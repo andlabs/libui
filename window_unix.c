@@ -41,6 +41,7 @@ void uiWindowHide(uiWindow *w)
 	gtk_widget_hide(w->widget);
 }
 
+// TODO will not free w
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 {
 	uiWindow *w = (uiWindow *) data;

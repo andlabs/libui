@@ -2,8 +2,6 @@
 #include "ui.h"
 #include <stdio.h>
 
-// #qo pkg-config: gtk+-3.0
-
 int onClosing(uiWindow *w, void *data)
 {
 	printf("in closing!\n");

@@ -7,22 +7,22 @@ struct uiInitError {
 
 uiInitError *uiInit(uiInitOptions *o)
 {
-	uiInitError *e;
+	uiInitError *err;
 
-	e = g_new0(uiInitError, 1);
-	if (gtk_init_with_args(NULL, NULL, NULL, NULL, NULL, &(e->err)) == FALSE)
-		return e;
-	g_free(e);
+	err = g_new0(uiInitError, 1);
+	if (gtk_init_with_args(NULL, NULL, NULL, NULL, NULL, &(err->err)) == FALSE)
+		return err;
+	g_free(err);
 	return NULL;
 }
 
-const char *uiInitErrorMessage(uiInitError *e)
+const char *uiInitErrorMessage(uiInitError *err)
 {
-	return e->err->message;
+	return err->err->message;
 }
 
-void uiInitErrorFree(uiInitError *e)
+void uiInitErrorFree(uiInitError *err)
 {
-	g_error_free(e->err);
-	g_free(e);
+	g_error_free(err->err);
+	g_free(err);
 }

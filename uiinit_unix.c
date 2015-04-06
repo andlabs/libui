@@ -12,7 +12,7 @@ uiInitError *uiInit(uiInitOptions *o)
 	e = g_new0(uiInitError, 1);
 	if (gtk_init_with_args(NULL, NULL, NULL, NULL, NULL, &(e->err)) == FALSE)
 		return e;
-	uiInitErrorFree(e);
+	g_free(e);
 	return NULL;
 }
 
@@ -23,5 +23,6 @@ const char *uiInitErrorMessage(uiInitError *e)
 
 void uiInitErrorFree(uiInitError *e)
 {
+	g_error_free(e->err);
 	g_free(e);
 }

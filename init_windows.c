@@ -25,6 +25,7 @@ uiInitError *uiInit(uiInitOptions *o)
 {
 	uiInitError *err;
 	STARTUPINFOW si;
+	const char *ce;
 	HICON hDefaultIcon;
 	HCURSOR hDefaultCursor;
 	NONCLIENTMETRICSW ncm;
@@ -41,6 +42,14 @@ uiInitError *uiInit(uiInitOptions *o)
 	GetStartupInfoW(&si);
 	if ((si.dwFlags & STARTF_USESHOWWINDOW) != 0)
 		nCmdShow = si.wShowWindow;
+
+	// TODO add "in initCommonControls()" to each of the messages this returns
+	// TODO make loadLastError() return err directly
+	ce = initCommonControls();
+	if (ce != NULL) {
+		loadLastError(err, ce);
+		return err;
+	}
 
 	hDefaultIcon = LoadIconW(NULL, IDI_APPLICATION);
 	if (hDefaultIcon == NULL) {

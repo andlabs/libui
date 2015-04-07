@@ -49,5 +49,11 @@ extern HWND initialParent;
 // util_windows.c
 extern WCHAR *toUTF16(const char *);
 
+// comctl32_windows.c
+extern BOOL (*WINAPI fv_SetWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR, DWORD_PTR);
+extern BOOL (*WINAPI fv_RemoveWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR);
+extern LRESULT (*WINAPI fv_DefSubclassProc)(HWND, UINT, WPARAM, LPARAM);
+extern const char *initCommonControls(void);
+
 // window_windows.c
 extern ATOM registerWindowClass(HICON, HCURSOR);

@@ -51,13 +51,3 @@ extern WCHAR *toUTF16(const char *);
 
 // window_windows.c
 extern ATOM registerWindowClass(HICON, HCURSOR);
-
-// singlehandle_windows.c
-typedef struct uiSingleHWNDControl uiSingleHWNDControl;
-struct uiSingleHWNDControl {
-	uiControl control;
-	HWND hwnd;
-	void (*voidEvent)(uiControl *, void *);
-	void *voidEventData;
-};
-extern uiSingleHWNDControl *newSingleHWNDControl(DWORD, const WCHAR *, DWORD, HINSTANCE);

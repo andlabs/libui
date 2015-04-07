@@ -1,8 +1,15 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
-// Common code for controls with a single window handle.
-// The only method NOT defined is preferredSize(); this differs between controls.
+typedef struct uiSingleHWNDControl uiSingleHWNDControl;
+
+struct uiSingleHWNDControl {
+	uiControl control;
+	HWND hwnd;
+	BOOL (*onWM_COMMAND)(uiControl *, WPARAM, LPARAM, void *, LRESULT *);
+	BOOL (*onWM_NOTIFY)(uiControl *, WPARAM, LPARAM, void *, LRESULT *);
+	void *onCommandNotifyData;
+};
 
 #define S(c) ((uiSingleHWNDControl *) (c))
 
@@ -16,6 +23,8 @@ void singleSetParent(uiControl *c, uintptr_t parentHWND)
 	if (SetParent(S(c)->hwnd, (HWND) parentHWND) == NULL)
 		logLastError("error changing control parent in singleSetParent()");
 }
+
+// TODO preferred size
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
@@ -33,18 +42,18 @@ static void singleContainerHide(uiControl *c)
 	ShowWindow(S(c)->hwnd, SW_HIDE);
 }
 
-uiSingleHWNDControl *newSingleHWNDControl(DWORD exstyle, const WCHAR *class, DWORD style, HINSTANCE hInstance)
+uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 {
 	uiSingleHWNDControl *c;
 
 	c = uiNew(uiSingleHWNDControl);
-	c->hwnd = CreateWindowExW(exstyle,
-		class, L"",
-		style | WS_CHILD | WS_VISIBLE,
+	c->hwnd = CreateWindowExW(p->dwExStyle,
+		p->lpClassName, L"",
+		p->dwStyle | WS_CHILD | WS_VISIBLE,
 		0, 0,
 		100, 100,
 		// TODO specify control IDs properly
-		initialParent, NULL, hInstance, NULL);
+		initialParent, NULL, p->hInstance, NULL);
 	if (c->hwnd == NULL)
 		logLastError("error creating control in newSingleHWNDControl()");
 
@@ -54,5 +63,9 @@ uiSingleHWNDControl *newSingleHWNDControl(DWORD exstyle, const WCHAR *class, DWO
 	c->control.containerShow = singleContainerShow;
 	c->control.containerHide = singleContainerHide;
 
-	return c;
+	c->onWM_COMMAND = p->onWM_COMMAND;
+	c->onWM_NOTIFY = p->onWM_NOTIFY;
+	c->onCommandNotifyData = p->onCommandNotifyData;
+
+	return (uiControl *) c;
 }

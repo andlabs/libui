@@ -60,15 +60,15 @@ void resize(uiControl *control, HWND parent, RECT r)
 {
 	uiSizing d;
 	HDC dc;
-	HFONT prevFont;
+	HFONT prevfont;
 	TEXTMETRICW tm;
 	SIZE size;
 
 	dc = GetDC(parent);
 	if (dc == NULL)
 		logLastError("error getting DC for preferred size calculations");
-	prevFont = (HFONT) SelectObject(dc, hMessageFont);
-	if (prevFont == NULL)
+	prevfont = (HFONT) SelectObject(dc, hMessageFont);
+	if (prevfont == NULL)
 		logLastError("error loading control font into device context for preferred size calculation");
 	if (GetTextMetricsW(dc, &tm) == 0)
 		logLastError("error getting text metrics for preferred size calculations");
@@ -77,7 +77,7 @@ void resize(uiControl *control, HWND parent, RECT r)
 	d.baseX = (int) ((size.cx / 26 + 1) / 2);
 	d.baseY = (int) tm.tmHeight;
 	d.internalLeading = tm.tmInternalLeading;
-	if (SelectObject(dc, prevFont) != hMessageFont)
+	if (SelectObject(dc, prevfont) != hMessageFont)
 		logLastError("error restoring previous font into device context after preferred size calculations");
 	if (ReleaseDC(parent, dc) == 0)
 		logLastError("error releasing DC for preferred size calculations");

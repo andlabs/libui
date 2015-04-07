@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	uiWindowSetChild(w, stack);
 
 	button2 = uiNewButton("Change Me");
-	uiButtonOnClicked(button, onClicked2, NULL);
+	uiButtonOnClicked(button2, onClicked2, NULL);
 
 	button = uiNewButton("Click Me");
 	uiButtonOnClicked(button, onClicked, button2);

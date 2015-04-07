@@ -20,7 +20,7 @@ static void loadLastError(uiInitError *err, const char *message)
 	le = GetLastError();
 	// TODO FormatMessageW() it
 	// TODO make sure argument is right; _snprintf_s() isn't supported on Windows XP
-	sprintf(err->failbuf, 256, "error %s (last error %I32u)", message, le);
+	snprintf(err->failbuf, 256, "error %s (last error %I32u)", message, le);
 	err->msg = err->failbuf;
 }
 

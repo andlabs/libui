@@ -1,8 +1,5 @@
 // 6 january 2015
 
-#ifndef __UI_UI_WINDOWS_H__
-#define __UI_UI_WINDOWS_H__
-
 #define UNICODE
 #define _UNICODE
 #define STRICT
@@ -64,5 +61,3 @@ struct uiSingleHWNDControl {
 	void *voidEventData;
 };
 extern uiSingleHWNDControl *newSingleHWNDControl(DWORD, const WCHAR *, DWORD, HINSTANCE);
-
-#endif

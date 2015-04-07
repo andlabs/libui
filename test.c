@@ -11,14 +11,20 @@ int onClosing(uiWindow *w, void *data)
 
 void onClicked(uiControl *b, void *data)
 {
+	// TODO
+}
+
+void onClicked2(uiControl *b, void *data)
+{
 	printf("button clicked!\n");
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	uiInitError *err;
 	uiWindow *w;
-	uiControl *button;
+	uiControl *stack;
+	uiControl *button, *button2;
 
 	err = uiInit(NULL);
 	if (err != NULL) {
@@ -30,9 +36,19 @@ int main(void)
 	w = uiNewWindow("Hello", 320, 240);
 	uiWindowOnClosing(w, onClosing, NULL);
 
+	if (argc > 1)
+		stack = uiNewHorizontalStack();
+	else
+		stack = uiNewVerticalStack();
+	uiWindowSetChild(w, stack);
+
+	button2 = uiNewButton("Change Me");
+	uiButtonOnClicked(button, onClicked2, NULL);
+
 	button = uiNewButton("Click Me");
-	uiButtonOnClicked(button, onClicked, NULL);
-	uiWindowSetChild(w, button);
+	uiButtonOnClicked(button, onClicked, button2);
+	uiStackAdd(stack, button, 1);
+	uiStackAdd(stack, button2, 0);
 
 	uiWindowShow(w);
 	uiMain();

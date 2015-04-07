@@ -39,7 +39,8 @@ static void uiContainer_size_allocate(GtkWidget *widget, GtkAllocation *allocati
 
 	gtk_widget_set_allocation(widget, allocation);
 	c = uiContainer(widget)->child;
-	(*(c->resize))(c, allocation->x, allocation->y, allocation->width, allocation->height, &d);
+	if (c != NULL)
+		(*(c->resize))(c, allocation->x, allocation->y, allocation->width, allocation->height, &d);
 }
 
 struct forall {

@@ -33,6 +33,7 @@ static void defaultOnClicked(uiControl *c, void *data)
 	// do nothing
 }
 
+// TODO destruction
 uiControl *uiNewButton(const char *text)
 {
 	struct button *b;

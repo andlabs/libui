@@ -51,6 +51,28 @@ static void singleContainerHide(uiControl *c)
 	ShowWindow(S(c)->hwnd, SW_HIDE);
 }
 
+static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	uiSingleHWNDControl *c = (uiSingleHWNDControl *) dwRefData;
+	LRESULT lResult;
+
+	switch (uMsg) {
+	case msgCOMMAND:
+		if ((*(c->onWM_COMMAND))((uiControl *) c, wParam, lParam, c->onCommandNotifyData, &lResult) != FALSE)
+			return lResult;
+		break;
+	case msgNOTIFY:
+		if ((*(c->onWM_NOTIFY))((uiControl *) c, wParam, lParam, c->onCommandNotifyData, &lResult) != FALSE)
+			return lResult;
+		break;
+	case WM_NCDESTROY:
+		if ((*fv_RemoveWindowSubclass)(hwnd, singleSubclassProc, uIdSubclass) == FALSE)
+			logLastError("error removing Windows control subclass in singleSubclassProc()");
+		break;
+	}
+	return (*fv_DefSubclassProc)(hwnd, uMsg, wParam, lParam);
+}
+
 uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 {
 	uiSingleHWNDControl *c;
@@ -64,7 +86,7 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 		// TODO specify control IDs properly
 		initialParent, NULL, p->hInstance, NULL);
 	if (c->hwnd == NULL)
-		logLastError("error creating control in newSingleHWNDControl()");
+		logLastError("error creating control in uiWindowsNewControl()");
 
 	c->control.handle = singleHandle;
 	c->control.setParent = singleSetParent;
@@ -78,7 +100,8 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	c->onCommandNotifyData = p->onCommandNotifyData;
 	c->preferredSize = p->preferredSize;
 
-	// TODO subclass
+	if ((*fv_SetWindowSubclass)(c->hwnd, singleSubclassProc, 0, c) == FALSE)
+		logLastError("error subclassing Windows control in uiWindowsNewControl()");
 
 	return (uiControl *) c;
 }

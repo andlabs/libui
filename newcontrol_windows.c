@@ -9,6 +9,7 @@ struct uiSingleHWNDControl {
 	BOOL (*onWM_COMMAND)(uiControl *, WPARAM, LPARAM, void *, LRESULT *);
 	BOOL (*onWM_NOTIFY)(uiControl *, WPARAM, LPARAM, void *, LRESULT *);
 	void *onCommandNotifyData;
+	void (*preferredSize)(uiControl *, int, int, LONG, intmax_t *, intmax_t *);
 };
 
 #define S(c) ((uiSingleHWNDControl *) (c))
@@ -24,7 +25,15 @@ void singleSetParent(uiControl *c, uintptr_t parentHWND)
 		logLastError("error changing control parent in singleSetParent()");
 }
 
-// TODO preferred size
+uiSize singlePreferredSize(uiControl *c, uiSizing *d)
+{
+	uiSize size;
+
+	(*(S(c)->preferredSize))(c,
+		d->baseX, d->baseY, d->internalLeading,
+		&(size.width), &(size.height));
+	return size;
+}
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
@@ -59,6 +68,7 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 
 	c->control.handle = singleHandle;
 	c->control.setParent = singleSetParent;
+	c->control.preferredSize = singlePreferredSize;
 	c->control.resize = singleResize;
 	c->control.containerShow = singleContainerShow;
 	c->control.containerHide = singleContainerHide;
@@ -66,6 +76,9 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	c->onWM_COMMAND = p->onWM_COMMAND;
 	c->onWM_NOTIFY = p->onWM_NOTIFY;
 	c->onCommandNotifyData = p->onCommandNotifyData;
+	c->preferredSize = p->preferredSize;
+
+	// TODO subclass
 
 	return (uiControl *) c;
 }

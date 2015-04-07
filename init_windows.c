@@ -84,7 +84,7 @@ uiInitError *uiInit(uiInitOptions *o)
 	// give each control a reasonable initial parent
 	// don't free the initial parent!
 	// TODO tune this better; it shouldn't be closed, for instance
-	initialParent = uiWindowHandle(uiNewWindow("", 0, 0));
+	initialParent = (HWND) uiWindowHandle(uiNewWindow("", 0, 0));
 
 	uiFree(err);
 	return NULL;

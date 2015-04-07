@@ -24,4 +24,6 @@ void uiWindowShow(uiWindow *);
 void uiWindowHide(uiWindow *);
 void uiWindowOnClosing(uiWindow *, int (*)(uiWindow *, void *), void *);
 
+typedef struct uiControl uiControl;
+
 #endif

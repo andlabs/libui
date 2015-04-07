@@ -36,6 +36,13 @@ enum {
 	msgNOTIFY,
 };
 
+// TODO move this to the right place
+struct uiSizing {
+	int baseX;
+	int baseY;
+	LONG internalLeading;
+};
+
 // alloc_windows.c
 extern void *uiAlloc(size_t);
 // TODO use this in existing files

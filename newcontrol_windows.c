@@ -100,7 +100,7 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	c->onCommandNotifyData = p->onCommandNotifyData;
 	c->preferredSize = p->preferredSize;
 
-	if ((*fv_SetWindowSubclass)(c->hwnd, singleSubclassProc, 0, c) == FALSE)
+	if ((*fv_SetWindowSubclass)(c->hwnd, singleSubclassProc, 0, (DWORD_PTR) c) == FALSE)
 		logLastError("error subclassing Windows control in uiWindowsNewControl()");
 
 	return (uiControl *) c;

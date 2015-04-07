@@ -41,4 +41,8 @@ void *uiWindowsControlData(uiControl *);
 #define uiDlgUnitToX(dlg, baseX) MulDiv((dlg), baseX, 4)
 #define uiDlgUnitToY(dlg, baseY) MulDiv((dlg), baseY, 8)
 
+// and use this if you need the text of the window width
+// TODO really export?
+extern intmax_t uiWindowsWindowTextWidth(HWND hwnd);
+
 #endif

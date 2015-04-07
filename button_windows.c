@@ -23,9 +23,30 @@ static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, 
 	return FALSE;
 }
 
+// from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
+#define buttonHeight 14
+
 static void preferredSize(uiControl *c, int baseX, int baseY, LONG internalLeading, intmax_t *width, intmax_t *height)
 {
-	// TODO
+	HWND hwnd;
+	SIZE size;
+
+	hwnd = (HWND) uiControlHandle(c);
+
+	// try the comctl32 version 6 way
+	size.cx = 0;		// explicitly ask for ideal size
+	size.cy = 0;
+	if (SendMessageW(hwnd, BCM_GETIDEALSIZE, 0, (LPARAM) (&size)) != FALSE) {
+		*width = size.cx;
+		*height = size.cy;
+		return;
+	}
+
+	// that didn't work; fall back to using Microsoft's metrics
+	// Microsoft says to use a fixed width for all buttons; this isn't good enough
+	// use the text width instead, with some edge padding
+	*width = uiWindowsWindowTextWidth(hwnd) + (2 * GetSystemMetrics(SM_CXEDGE));
+	*height = uiDlgUnitToY(buttonHeight, baseY);
 }
 
 static void defaultOnClicked(uiControl *c, void *data)

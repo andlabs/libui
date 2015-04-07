@@ -11,13 +11,6 @@
 struct uiSizing {
 };
 
-// alloc_darwin.m
-extern void *uiAlloc(size_t);
-// TODO use this in existing files
-#define uiNew(T) ((T *) uiAlloc(sizeof (T)))
-extern void *uiRealloc(void *, size_t);
-extern void uiFree(void *);
-
 // util_darwin.m
 extern void setStandardControlFont(NSControl *);
 

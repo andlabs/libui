@@ -12,7 +12,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 {
 	uiWindow *w;
 
-	w = g_new0(uiWindow, 1);
+	w = uiNew(uiWindow);
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(w->widget), title);
 	gtk_window_resize(GTK_WINDOW(w->widget), width, height);
@@ -24,7 +24,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 void uiWindowDestroy(uiWindow *w)
 {
 	gtk_widget_destroy(w->widget);
-	g_free(w);
+	uiFree(w);
 }
 
 uintptr_t uiWindowHandle(uiWindow *w)

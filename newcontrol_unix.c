@@ -64,7 +64,7 @@ uiControl *uiUnixNewControl(GType type, guint nConstructParams, GParameter *cons
 {
 	uiSingleWidgetControl *c;
 
-	c = g_new0(uiSingleWidgetControl, 1);
+	c = uiNew(uiSingleWidgetControl);
 	c->widget = GTK_WIDGET(g_object_newv(type, nConstructParams, constructParams));
 	c->immediate = c->widget;
 

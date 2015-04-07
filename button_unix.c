@@ -26,7 +26,7 @@ uiControl *uiNewButton(const char *text)
 	GParameter props[1];
 	GtkWidget *widget;
 
-	b = g_new0(struct button, 1);
+	b = uiNew(struct button);
 
 	props[0].name = "label";
 	g_value_init(&(props[0].value), G_TYPE_STRING);

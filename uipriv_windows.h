@@ -42,13 +42,6 @@ struct uiSizing {
 	LONG internalLeading;
 };
 
-// alloc_windows.c
-extern void *uiAlloc(size_t);
-// TODO use this in existing files
-#define uiNew(T) ((T *) uiAlloc(sizeof (T)))
-extern void *uiRealloc(void *, size_t);
-extern void uiFree(void *);
-
 // debug_windows.c
 extern HRESULT logLastError(const char *);
 extern HRESULT logHRESULT(const char *, HRESULT);

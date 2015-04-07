@@ -8,6 +8,8 @@
 #import <Cocoa/Cocoa.h>
 #import "ui.h"
 
+#define toNSString(str) [NSString stringWithUTF8String:(str)]
+
 // alloc_darwin.m
 extern void *uiAlloc(size_t);
 extern void *uiRealloc(void *, size_t);

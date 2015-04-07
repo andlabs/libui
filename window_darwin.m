@@ -1,8 +1,9 @@
 // 6 april 2015
 #include "ui_darwin.h"
 
-@interface uiWindowDelegate : NSWindowDelegate
-@property void (*onClosing)(uiWindow *, void *);
+@interface uiWindowDelegate : NSObject <NSWindowDelegate>
+@property uiWindow *w;
+@property int (*onClosing)(uiWindow *, void *);
 @property void *onClosingData;
 @end
 
@@ -12,7 +13,7 @@
 - (BOOL)windowShouldClose:(id)win
 {
 	// return exact constants to be safe
-	if ((*(self.onClosing))(self.onClosingData))
+	if ((*(self.onClosing))(self.w, self.onClosingData))
 		return YES;
 	return NO;
 }
@@ -39,9 +40,11 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
 		backing:NSBackingStoreBuffered
 		defer:YES];
+	[w->w setTitle:toNSString(title)];
 	// TODO substitutions
 
 	w->d = [uiWindowDelegate new];
+	w->d.w = w;
 	w->d.onClosing = defaultOnClosing;
 	[w->w setDelegate:w->d];
 
@@ -71,7 +74,7 @@ void uiWindowHide(uiWindow *w)
 	[w->w orderOut:w->w];
 }
 
-void uiWindowOnClosing(uiWindow *w, int (*)(uiWindow *f, void *), void *data)
+void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->d.onClosing = f;
 	w->d.onClosingData = data;

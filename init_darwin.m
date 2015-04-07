@@ -1,5 +1,5 @@
 // 6 april 2015
-#include "ui_darwin.m"
+#include "ui_darwin.h"
 
 @interface uiApplication : NSApplication
 @end
@@ -31,6 +31,7 @@ uiInitError *uiInit(uiInitOptions *o)
 
 const char *uiInitErrorMessage(uiInitError *err)
 {
+	return "";
 }
 
 void uiInitErrorFree(uiInitError *err)

@@ -26,5 +26,6 @@ int main(void)
 	uiWindowShow(w);
 
 	uiMain();
+	printf("after uiMain()\n");
 	return 0;
 }

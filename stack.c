@@ -28,10 +28,10 @@ static void stackSetParent(uiControl *c, uintptr_t parent)
 
 	S(c)->parent = parent;
 	for (i = 0; i < S(c)->len; i++)
-		(*(S(c)->controls[i]->setParent))(S(c)->controls[i], S(c)->parent));
+		(*(S(c)->controls[i]->setParent))(S(c)->controls[i], S(c)->parent);
 }
 
-static uiSize stackPreferredSize)(uiControl *c, uiSizing *d)
+static uiSize stackPreferredSize(uiControl *c, uiSizing *d)
 {
 	stack *s = S(c);
 	int xpadding, ypadding;
@@ -85,7 +85,7 @@ static uiSize stackPreferredSize)(uiControl *c, uiSizing *d)
 	if (s->vertical)
 		size.height += nStretchy * maxsht;
 	else
-		size.width += nStretchy * maxwid;
+		size.width += nStretchy * maxswid;
 
 	return size;
 }
@@ -187,7 +187,7 @@ uiControl *uiNewVerticalStack(void)
 {
 	uiControl *c;
 
-	c = newHorizontalStack();
+	c = uiNewHorizontalStack();
 	S(c)->vertical = 1;
 	return c;
 }

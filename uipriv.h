@@ -1,4 +1,5 @@
 // 6 april 2015
+#include <stdlib.h>
 #include "ui.h"
 
 typedef struct uiSize uiSize;

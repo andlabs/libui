@@ -32,4 +32,8 @@ uiControl *uiNewButton(const char *);
 // TODO text
 void uiButtonOnClicked(uiControl *, void (*)(uiControl *, void *), void *);
 
+uiControl *uiNewHorizontalStack(void);
+uiControl *uiNewVerticalStack(void);
+void uiStackAdd(uiControl *, uiControl *, int);
+
 #endif

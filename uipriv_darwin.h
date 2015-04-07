@@ -3,6 +3,7 @@
 #define MAC_OS_X_VERSION_MAX_ALLOWED MAC_OS_X_VERSION_10_7
 #import <Cocoa/Cocoa.h>
 #import "uipriv.h"
+#import "ui_darwin.h"
 
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
 

@@ -18,7 +18,9 @@ typedef struct uiContainer uiContainer;
 typedef struct uiContainerClass uiContainerClass;
 struct uiContainer {
 	GtkContainer parent_instance;
-	// TODO
+	// this is what triggers the resizing of all the children
+	uiControl *child;
+	// these are the actual children widgets of the container as far as GTK+ is concerned
 	GPtrArray *children;		// for forall()
 };
 struct uiContainerClass {

@@ -3,6 +3,7 @@
 
 struct uiWindow {
 	GtkWidget *widget;
+	GtkWidget *container;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 };
@@ -15,6 +16,8 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(w->widget), title);
 	gtk_window_resize(GTK_WINDOW(w->widget), width, height);
+	w->container = newContainer();
+	gtk_container_add(GTK_CONTAINER(w->widget), w->container);
 	return w;
 }
 
@@ -57,4 +60,10 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 	w->onClosing = f;
 	w->onClosingData = data;
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
+}
+
+void uiWindowSetChild(uiWindow *w, uiControl *c)
+{
+	uiContainer(w->container)->child = c;
+	(*(c->setParent))(c, (uintptr_t) (w->container));
 }

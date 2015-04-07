@@ -1,6 +1,9 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
+// TODOs:
+// - child not set to fit initial size
+
 struct uiWindow {
 	HWND hwnd;
 	uiControl *child;

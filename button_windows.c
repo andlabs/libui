@@ -38,6 +38,7 @@ uiControl *uiNewButton(const char *text)
 	struct button *b;
 	uiWindowsNewControlParams p;
 	WCHAR *wtext;
+	HWND hwnd;
 
 	b = uiNew(struct button);
 
@@ -52,9 +53,12 @@ uiControl *uiNewButton(const char *text)
 	p.data = b;
 	b->c = uiWindowsNewControl(&p);
 
+	hwnd = (HWND) uiControlHandle(b->c);
 	wtext = toUTF16(text);
-	// TODO set text
+	if (SetWindowTextW(hwnd, wtext) == 0)
+		logLastError("error setting button text in uiNewButton()");
 	uiFree(wtext);
+	SendMessageW(hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
 	b->onClicked = defaultOnClicked;
 

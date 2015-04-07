@@ -16,6 +16,7 @@ void uiMain(void);
 void uiQuit(void);
 
 typedef struct uiControl uiControl;
+uintptr_t uiControlHandle(uiControl *);
 
 typedef struct uiWindow uiWindow;
 uiWindow *uiNewWindow(char *, int, int);

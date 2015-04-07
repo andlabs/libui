@@ -9,10 +9,16 @@ int onClosing(uiWindow *w, void *data)
 	return 1;
 }
 
+void onClicked(uiControl *b, void *data)
+{
+	printf("button clicked!\n");
+}
+
 int main(void)
 {
 	uiInitError *err;
 	uiWindow *w;
+	uiControl *button;
 
 	err = uiInit(NULL);
 	if (err != NULL) {
@@ -24,6 +30,10 @@ int main(void)
 	w = uiNewWindow("Hello", 320, 240);
 	uiWindowOnClosing(w, onClosing, NULL);
 	uiWindowShow(w);
+
+	button = uiNewButton("Click Me");
+	uiButtonOnClicked(button, onClicked, NULL);
+	uiWindowSetChild(w, button);
 
 	uiMain();
 	printf("after uiMain()\n");

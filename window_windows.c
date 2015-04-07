@@ -133,3 +133,9 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 	w->onClosing = f;
 	w->onClosingData = data;
 }
+
+void uiWindowSetChild(uiWindow *w, uiControl *c)
+{
+	w->child = c;
+	(*(w->child->setParent))(w->child, (uintptr_t) (w->hwnd));
+}

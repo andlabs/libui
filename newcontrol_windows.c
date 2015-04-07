@@ -10,6 +10,7 @@ struct uiSingleHWNDControl {
 	BOOL (*onWM_NOTIFY)(uiControl *, WPARAM, LPARAM, void *, LRESULT *);
 	void *onCommandNotifyData;
 	void (*preferredSize)(uiControl *, int, int, LONG, intmax_t *, intmax_t *);
+	void *data;
 };
 
 #define S(c) ((uiSingleHWNDControl *) (c))
@@ -100,8 +101,15 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	c->onCommandNotifyData = p->onCommandNotifyData;
 	c->preferredSize = p->preferredSize;
 
+	c->data = p->data;
+
 	if ((*fv_SetWindowSubclass)(c->hwnd, singleSubclassProc, 0, (DWORD_PTR) c) == FALSE)
 		logLastError("error subclassing Windows control in uiWindowsNewControl()");
 
 	return (uiControl *) c;
+}
+
+void *uiWindowsControlData(uiControl *c)
+{
+	return S(c)->data;
 }

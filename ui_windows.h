@@ -30,8 +30,12 @@ struct uiWindowsNewControlParams {
 	// baseX and baseY are the base units used to convert between dialog units and pixels.
 	// internalLeading is the internal leading of the control font.
 	void (*preferredSize)(uiControl *c, int baseX, int baseY, LONG internalLeading, intmax_t *width, intmax_t *height);
+
+	// Data you can get with uiWindowsControlData()
+	void *data;
 };
 uiControl *uiWindowsNewControl(uiWindowsNewControlParams *);
+void *uiWindowsControlData(uiControl *);
 
 // use these in your preferredSize() implementation with baseX and baseY
 #define uiDlgUnitToX(dlg, baseX) MulDiv((dlg), baseX, 4)

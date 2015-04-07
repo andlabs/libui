@@ -12,6 +12,9 @@ extern void *uiAlloc(size_t);
 extern void *uiRealloc(void *, size_t);
 extern void uiFree(void *);
 
+// util_darwin.m
+extern void setStandardControlFont(NSControl *);
+
 // container_darwin.m
 @interface uiContainer : NSView
 @property uiControl *child;

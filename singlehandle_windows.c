@@ -1,5 +1,5 @@
 // 6 april 2015
-#include "tablepriv.h"
+#include "uipriv_windows.h"
 
 // Common code for controls with a single window handle.
 // The only method NOT defined is preferredSize(); this differs between controls.

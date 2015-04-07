@@ -1,5 +1,5 @@
 // 6 april 2015
-#include "ui_unix.h"
+#include "uipriv_unix.h"
 
 struct uiInitError {
 	GError *err;

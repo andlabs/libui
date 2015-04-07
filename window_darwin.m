@@ -1,5 +1,5 @@
 // 6 april 2015
-#include "ui_darwin.h"
+#import "uipriv_darwin.h"
 
 @interface uiWindowDelegate : NSObject <NSWindowDelegate>
 @property uiWindow *w;

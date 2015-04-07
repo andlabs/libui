@@ -1,5 +1,5 @@
 // 6 april 2015
-#include "ui_windows.h"
+#include "uipriv_windows.h"
 
 #define MBTWC(str, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, bufsiz)
 

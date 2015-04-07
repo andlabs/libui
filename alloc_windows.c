@@ -1,5 +1,5 @@
 // 4 december 2014
-#include "ui_windows.h"
+#include "uipriv_windows.h"
 
 // wrappers for allocator of choice
 // panics on memory exhausted, undefined on heap corruption or other unreliably-detected malady (see http://stackoverflow.com/questions/28761680/is-there-a-windows-api-memory-allocator-deallocator-i-can-use-that-will-just-giv)

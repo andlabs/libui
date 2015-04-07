@@ -1,5 +1,5 @@
 // 6 april 2015
-#include "ui_windows.h"
+#include "uipriv_windows.h"
 
 struct uiWindow {
 	HWND hwnd;

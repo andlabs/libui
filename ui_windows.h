@@ -33,6 +33,8 @@
 
 // alloc_windows.c
 extern void *uiAlloc(size_t);
+// TODO use this in existing files
+#define uiNew(T) ((T *) uiAlloc(sizeof (T)))
 extern void *uiRealloc(void *, size_t);
 extern void uiFree(void *);
 
@@ -51,5 +53,15 @@ extern WCHAR *toUTF16(const char *);
 
 // window_windows.c
 extern ATOM registerWindowClass(HICON, HCURSOR);
+
+// singlehandle_windows.c
+typedef struct uiSingleHWNDControl uiSingleHWNDControl;
+struct uiSingleHWNDControl {
+	uiControl control;
+	HWND hwnd;
+	void (*voidEvent)(uiControl *, void *);
+	void *voidEventData;
+};
+extern uiSingleHWNDControl *newSingleHWNDControl(DWORD, const WCHAR *, DWORD, HWND, HINSTANCE);
 
 #endif

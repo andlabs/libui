@@ -16,7 +16,7 @@
 
 	[super setFrameSize:s];
 	if (self.child != NULL)
-		(*(self.child->resize))(self.child, 0, 0, [self bounds].size.width, [self bounds].size.height, d);
+		(*(self.child->resize))(self.child, [self bounds].origin.y, [self bounds].origin.y, [self bounds].size.width, [self bounds].size.height, &d);
 }
 
 @end

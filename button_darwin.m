@@ -28,9 +28,9 @@ uiControl *uiNewButton(const char *text)
 	NSButton *bb;
 
 	b = [button new];
-	b->c = uiDarwinNewControl([NSButton class], NO, NO, b);
+	b.c = uiDarwinNewControl([NSButton class], NO, NO, b);
 
-	bb = (NSButton *) uiDarwinControlData(b->c);
+	bb = (NSButton *) uiControlHandle(b.c);
 	[bb setTitle:toNSString(text)];
 	[bb setButtonType:NSMomentaryPushInButton];
 	[bb setBordered:YES];
@@ -40,9 +40,9 @@ uiControl *uiNewButton(const char *text)
 	[bb setTarget:b];
 	[bb setAction:@selector(buttonClicked:)];
 
-	b->onClicked = defaultOnClicked;
+	b.onClicked = defaultOnClicked;
 
-	return b->c;
+	return b.c;
 }
 
 // TODO text
@@ -52,6 +52,6 @@ void uiButtonOnClicked(uiControl *c, void (*f)(uiControl *, void *), void *data)
 	button *b;
 
 	b = (button *) uiDarwinControlData(c);
-	b->onClicked = f;
-	b->onClickedData = data;
+	b.onClicked = f;
+	b.onClickedData = data;
 }

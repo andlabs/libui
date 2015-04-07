@@ -7,8 +7,14 @@
 
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
 
+// TODO move this to the right place
+struct uiSizing {
+};
+
 // alloc_darwin.m
 extern void *uiAlloc(size_t);
+// TODO use this in existing files
+#define uiNew(T) ((T *) uiAlloc(sizeof (T)))
 extern void *uiRealloc(void *, size_t);
 extern void uiFree(void *);
 

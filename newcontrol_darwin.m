@@ -1,13 +1,13 @@
 // 7 april 2015
 #include "uipriv_darwin.h"
 
-typedef struct uiSingleWidgetControl uiSingleWidgetControl;
+typedef struct uiSingleViewControl uiSingleViewControl;
 
 struct uiSingleViewControl {
 	uiControl control;
-	NSView *control;
+	NSView *view;
 	NSScrollView *scrollView;
-	NSView *immediate;		// the control that is added to the parent container; either control or scrollView
+	NSView *immediate;		// the control that is added to the parent container; either view or scrollView
 	void *data;
 };
 
@@ -15,7 +15,7 @@ struct uiSingleViewControl {
 
 static uintptr_t singleHandle(uiControl *c)
 {
-	return (uintptr_t) (S(c)->control);
+	return (uintptr_t) (S(c)->view);
 }
 
 static void singleSetParent(uiControl *c, uintptr_t parent)
@@ -40,7 +40,7 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 
 	frame.origin.x = x;
 	// mac os x coordinate system has (0,0) in the lower-left
-	frame.origin.y = [[S(c)->immediate superview] bounds].size.height - y;
+	frame.origin.y = ([[S(c)->immediate superview] bounds].size.height - height) - y;
 	frame.size.width = width;
 	frame.size.height = height;
 	frame = [S(c)->immediate frameForAlignmentRect:frame];
@@ -63,15 +63,15 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 {
 	uiSingleViewControl *c;
 
-	c = g_new0(uiSingleViewControl, 1);
+	c = uiNew(uiSingleViewControl);
 	// thanks to autoxr and arwyn in irc.freenode.net/#macdev
-	c->widget = (NSView *) [[class alloc] initWithFrame:NSZeroRect];
-	c->immediate = c->control;
+	c->view = (NSView *) [[class alloc] initWithFrame:NSZeroRect];
+	c->immediate = c->view;
 
 	// TODO turn into bit field?
 	if (inScrollView) {
 		c->scrollView = [[NSScrollView alloc] initWithFrame:NSZeroRect];
-		[c->scrollView setDocumentView:c->control];
+		[c->scrollView setDocumentView:c->view];
 		[c->scrollView setHasHorizontalScroller:YES];
 		[c->scrollView setHasVerticalScroller:YES];
 		[c->scrollView setAutohidesScrollers:YES];
@@ -79,7 +79,7 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 			[c->scrollView setBorderType:NSBezelBorder];
 		else
 			[c->scrollView setBorderType:NSNoBorder];
-		c->immediate = (NSView *) (c->scrolledWindow);
+		c->immediate = (NSView *) (c->scrollView);
 	}
 
 	c->control.handle = singleHandle;

@@ -11,7 +11,7 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 // The first parameter should come from [RealControlType class].
 // The two scrollView parameters allow placing scrollbars on the new control.
 // The data parameter can be accessed with uiDarwinControlData().
-extern uiControl *uiDarwinNewControl(Class class, gboolean inScrollView, gboolean scrollViewHasBorder, void *data);
+extern uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void *data);
 extern void *uiDarwinControlData(uiControl *c);
 
 #endif

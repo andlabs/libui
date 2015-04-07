@@ -8,6 +8,6 @@
 #define GDK_VERSION_MIN_REQUIRED GDK_VERSION_3_4
 #define GDK_VERSION_MAX_ALLOWED GDK_VERSION_3_4
 #include <gtk/gtk.h>
-#include "ui.h"
+#include "uipriv.h"
 
 #endif

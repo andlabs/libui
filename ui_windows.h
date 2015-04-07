@@ -29,7 +29,7 @@
 #include <stdarg.h>
 #include <oleacc.h>
 #include <stdio.h>
-#include "ui.h"
+#include "uipriv.h"
 
 // alloc_windows.c
 extern void *uiAlloc(size_t);

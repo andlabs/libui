@@ -47,6 +47,7 @@ extern HRESULT logMemoryExhausted(const char *);
 extern HINSTANCE hInstance;
 extern int nCmdShow;
 extern HFONT hMessageFont;
+extern HWND initialParent;
 
 // util_windows.c
 extern WCHAR *toUTF16(const char *);
@@ -62,6 +63,6 @@ struct uiSingleHWNDControl {
 	void (*voidEvent)(uiControl *, void *);
 	void *voidEventData;
 };
-extern uiSingleHWNDControl *newSingleHWNDControl(DWORD, const WCHAR *, DWORD, HWND, HINSTANCE);
+extern uiSingleHWNDControl *newSingleHWNDControl(DWORD, const WCHAR *, DWORD, HINSTANCE);
 
 #endif

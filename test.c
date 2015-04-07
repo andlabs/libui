@@ -29,12 +29,12 @@ int main(void)
 
 	w = uiNewWindow("Hello", 320, 240);
 	uiWindowOnClosing(w, onClosing, NULL);
-	uiWindowShow(w);
 
 	button = uiNewButton("Click Me");
 	uiButtonOnClicked(button, onClicked, NULL);
 	uiWindowSetChild(w, button);
 
+	uiWindowShow(w);
 	uiMain();
 	printf("after uiMain()\n");
 	return 0;

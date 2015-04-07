@@ -22,6 +22,8 @@
 
 struct uiWindow {
 	NSWindow *w;
+	uiContainer *container;
+	uiControl *child;
 	uiWindowDelegate *d;
 };
 
@@ -42,6 +44,9 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 		defer:YES];
 	[w->w setTitle:toNSString(title)];
 	// TODO substitutions
+
+	w->container = [[uiContainer alloc] initWithFrame:NSZeroRect];
+	[w->w setContentView:((NSView *) w->container)];
 
 	w->d = [uiWindowDelegate new];
 	w->d.w = w;
@@ -78,4 +83,10 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->d.onClosing = f;
 	w->d.onClosingData = data;
+}
+
+void uiWindowSetChild(uiWindow *w, uiControl *c)
+{
+	w->child = c;
+	(*(w->child->setParent))(w->child, (uintptr_t) (w->container));
 }

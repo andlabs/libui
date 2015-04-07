@@ -39,7 +39,8 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 	NSRect frame;
 
 	frame.origin.x = x;
-	frame.origin.y = y;
+	// mac os x coordinate system has (0,0) in the lower-left
+	frame.origin.y = [[S(c)->immediate superview] bounds].size.height - y;
 	frame.size.width = width;
 	frame.size.height = height;
 	frame = [S(c)->immediate frameForAlignmentRect:frame];

@@ -11,3 +11,8 @@
 extern void *uiAlloc(size_t);
 extern void *uiRealloc(void *, size_t);
 extern void uiFree(void *);
+
+// container_darwin.m
+@interface uiContainer : NSView
+@property uiControl *child;
+@end

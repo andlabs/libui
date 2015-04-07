@@ -33,4 +33,8 @@ struct uiWindowsNewControlParams {
 };
 uiControl *uiWindowsNewControl(uiWindowsNewControlParams *);
 
+// use these in your preferredSize() implementation with baseX and baseY
+#define uiDlgUnitToX(dlg, baseX) MulDiv((dlg), baseX, 4)
+#define uiDlgUnitToY(dlg, baseY) MulDiv((dlg), baseY, 8)
+
 #endif

@@ -3,6 +3,7 @@
 
 struct uiWindow {
 	HWND hwnd;
+	uiControl *child;
 	BOOL shownOnce;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
@@ -15,6 +16,8 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	uiWindow *w;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	LRESULT lResult;
+	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+	RECT r;
 
 	w = (uiWindow *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
@@ -26,6 +29,15 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	if (sharedWndProc(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
 	switch (uMsg) {
+	case WM_WINDOWPOSCHANGING:
+		if (w->child == NULL)
+			break;
+		if ((wp->flags & SWP_NOSIZE) != 0)
+			break;
+		if (GetClientRect(w->hwnd, &r) == 0)
+			logLastError("error getting window client rect for resize in uiWindowWndProc()");
+		resize(w->child, w->hwnd, r);
+		return 0;
 	case WM_CLOSE:
 		if (!(*(w->onClosing))(w, w->onClosingData))
 			return 0;

@@ -64,6 +64,7 @@ extern HWND initialParent;
 // util_windows.c
 extern WCHAR *toUTF16(const char *);
 extern BOOL sharedWndProc(HWND, UINT, WPARAM, LPARAM, LRESULT *);
+extern void resize(uiControl *, HWND, RECT);
 
 // comctl32_windows.c
 extern BOOL (*WINAPI fv_SetWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR, DWORD_PTR);

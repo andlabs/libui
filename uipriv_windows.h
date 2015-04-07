@@ -1,5 +1,4 @@
 // 6 january 2015
-
 #define UNICODE
 #define _UNICODE
 #define STRICT

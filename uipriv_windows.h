@@ -27,6 +27,7 @@
 #include <oleacc.h>
 #include <stdio.h>
 #include "uipriv.h"
+#include "ui_windows.h"
 
 // ui internal window messages
 enum {

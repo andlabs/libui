@@ -6,3 +6,4 @@
 #define GDK_VERSION_MAX_ALLOWED GDK_VERSION_3_4
 #include <gtk/gtk.h>
 #include "uipriv.h"
+#include "ui_unix.h"

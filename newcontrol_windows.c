@@ -20,13 +20,13 @@ static uintptr_t singleHandle(uiControl *c)
 	return (uintptr_t) (S(c)->hwnd);
 }
 
-void singleSetParent(uiControl *c, uintptr_t parentHWND)
+static void singleSetParent(uiControl *c, uintptr_t parentHWND)
 {
 	if (SetParent(S(c)->hwnd, (HWND) parentHWND) == NULL)
 		logLastError("error changing control parent in singleSetParent()");
 }
 
-uiSize singlePreferredSize(uiControl *c, uiSizing *d)
+static uiSize singlePreferredSize(uiControl *c, uiSizing *d)
 {
 	uiSize size;
 

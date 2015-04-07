@@ -14,6 +14,7 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 {
 	uiWindow *w;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
+	LRESULT lr;
 
 	w = (uiWindow *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
@@ -22,6 +23,8 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 		// fall through to DefWindowProc() anyway
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	}
+	if (sharedWindowProc(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
+		return lResult;
 	switch (uMsg) {
 	case WM_CLOSE:
 		if (!(*(w->onClosing))(w, w->onClosingData))

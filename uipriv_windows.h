@@ -28,6 +28,13 @@
 #include <stdio.h>
 #include "uipriv.h"
 
+// ui internal window messages
+enum {
+	// redirected WM_COMMAND and WM_NOTIFY
+	msgCOMMAND = WM_APP + 0x40,		// start offset just to be safe
+	msgNOTIFY,
+};
+
 // alloc_windows.c
 extern void *uiAlloc(size_t);
 // TODO use this in existing files
@@ -48,6 +55,7 @@ extern HWND initialParent;
 
 // util_windows.c
 extern WCHAR *toUTF16(const char *);
+extern BOOL sharedWndProc(HWND, UINT, WPARAM, LPARAM, LRESULT *);
 
 // comctl32_windows.c
 extern BOOL (*WINAPI fv_SetWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR, DWORD_PTR);

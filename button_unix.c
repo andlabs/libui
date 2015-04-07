@@ -23,18 +23,14 @@ static void defaultOnClicked(uiControl *c, void *data)
 uiControl *uiNewButton(const char *text)
 {
 	struct button *b;
-	GParameter props[1];
 	GtkWidget *widget;
 
 	b = uiNew(struct button);
 
-	props[0].name = "label";
-	g_value_init(&(props[0].value), G_TYPE_STRING);
-	g_value_set_string(&(props[0].value), text);
 	b->c = uiUnixNewControl(GTK_TYPE_BUTTON,
-		1, props,
-		FALSE, FALSE, FALSE, b);
-	g_value_unset(&(props[0].value));		// thanks to gregier in irc.gimp.net/#gtk+
+		FALSE, FALSE, FALSE, b,
+		"label", text,
+		NULL);
 
 	widget = GTK_WIDGET(uiControlHandle(b->c));
 	g_signal_connect(widget, "clicked", G_CALLBACK(onClicked), b);

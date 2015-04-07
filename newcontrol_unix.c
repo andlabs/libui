@@ -60,12 +60,16 @@ static void singleContainerHide(uiControl *c)
 
 // TODO connect free function
 
-uiControl *uiUnixNewControl(GType type, guint nConstructParams, GParameter *constructParams, gboolean inScrolledWindow, gboolean needsViewport, gboolean scrolledWindowHasBorder, void *data)
+uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean needsViewport, gboolean scrolledWindowHasBorder, void *data, const char *firstProperty, ...)
 {
 	uiSingleWidgetControl *c;
+	va_list ap;
 
 	c = uiNew(uiSingleWidgetControl);
-	c->widget = GTK_WIDGET(g_object_newv(type, nConstructParams, constructParams));
+
+	va_start(ap, firstProperty);
+	c->widget = GTK_WIDGET(g_object_new_valist(type, firstProperty, ap));
+	va_end(ap);
 	c->immediate = c->widget;
 
 	// TODO turn into bit field?

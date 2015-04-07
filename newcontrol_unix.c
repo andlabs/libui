@@ -62,9 +62,9 @@ static void singleContainerHide(uiControl *c)
 
 uiControl *uiUnixNewControl(GType type, guint nConstructParams, GParameter *constructParams, gboolean inScrolledWindow, gboolean needsViewport, gboolean scrolledWindowHasBorder, void *data)
 {
-	uiSingleHWNDControl *c;
+	uiSingleWidgetControl *c;
 
-	c = g_new0(uiSingleHWNDControl, 1);
+	c = g_new0(uiSingleWidgetControl, 1);
 	c->widget = GTK_WIDGET(g_object_newv(type, nConstructParams, constructParams));
 	c->immediate = c->widget;
 

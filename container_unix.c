@@ -39,7 +39,7 @@ static void uiContainer_size_allocate(GtkWidget *widget, GtkAllocation *allocati
 
 	gtk_widget_set_allocation(widget, allocation);
 	c = uiContainer(widget)->child;
-	(*(c->resize))(widget, allocation.x, allocation.y, allocation.width, allocation.height, &d);
+	(*(c->resize))(c, allocation->x, allocation->y, allocation->width, allocation->height, &d);
 }
 
 struct forall {
@@ -51,7 +51,7 @@ static void doforall(gpointer obj, gpointer data)
 {
 	struct forall *s = (struct forall *) data;
 
-	(*(s->callback))(uiContainer(obj), s->data);
+	(*(s->callback))(GTK_WIDGET(obj), s->data);
 }
 
 static void uiContainer_forall(GtkContainer *container, gboolean includeInternals, GtkCallback callback, gpointer data)

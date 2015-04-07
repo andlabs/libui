@@ -7,6 +7,10 @@
 #include "uipriv.h"
 #include "ui_unix.h"
 
+// TODO move this to the right place
+struct uiSizing {
+};
+
 // container_unix.c
 #define uiContainerType (uiContainer_get_type())
 #define uiContainer(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), uiContainerType, uiContainer))

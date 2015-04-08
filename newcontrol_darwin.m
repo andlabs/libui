@@ -54,16 +54,6 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 	[S(c)->immediate setFrame:frame];
 }
 
-static void singleContainerShow(uiControl *c)
-{
-	[S(c)->immediate setHidden:NO];
-}
-
-static void singleContainerHide(uiControl *c)
-{
-	[S(c)->immediate setHidden:YES];
-}
-
 // TODO connect free function
 
 uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void *data)
@@ -93,8 +83,6 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 	c->control.setParent = singleSetParent;
 	c->control.preferredSize = singlePreferredSize;
 	c->control.resize = singleResize;
-	c->control.containerShow = singleContainerShow;
-	c->control.containerHide = singleContainerHide;
 
 	c->data = data;
 

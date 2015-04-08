@@ -48,16 +48,6 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 	gtk_widget_size_allocate(S(c)->immediate, &a);
 }
 
-static void singleContainerShow(uiControl *c)
-{
-	gtk_widget_show_all(S(c)->immediate);
-}
-
-static void singleContainerHide(uiControl *c)
-{
-	gtk_widget_hide(S(c)->immediate);
-}
-
 // TODO connect free function
 
 uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean needsViewport, gboolean scrolledWindowHasBorder, void *data, const char *firstProperty, ...)
@@ -89,8 +79,6 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean need
 	c->control.setParent = singleSetParent;
 	c->control.preferredSize = singlePreferredSize;
 	c->control.resize = singleResize;
-	c->control.containerShow = singleContainerShow;
-	c->control.containerHide = singleContainerHide;
 
 	c->data = data;
 

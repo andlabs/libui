@@ -42,16 +42,6 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 		logLastError("error moving control in singleResize()");
 }
 
-static void singleContainerShow(uiControl *c)
-{
-	ShowWindow(S(c)->hwnd, SW_SHOW);
-}
-
-static void singleContainerHide(uiControl *c)
-{
-	ShowWindow(S(c)->hwnd, SW_HIDE);
-}
-
 static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
 	uiSingleHWNDControl *c = (uiSingleHWNDControl *) dwRefData;
@@ -93,8 +83,6 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	c->control.setParent = singleSetParent;
 	c->control.preferredSize = singlePreferredSize;
 	c->control.resize = singleResize;
-	c->control.containerShow = singleContainerShow;
-	c->control.containerHide = singleContainerHide;
 
 	c->onWM_COMMAND = p->onWM_COMMAND;
 	c->onWM_NOTIFY = p->onWM_NOTIFY;

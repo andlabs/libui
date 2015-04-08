@@ -157,16 +157,6 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	}
 }
 
-static void stackContainerShow(uiControl *c)
-{
-	// TODO
-}
-
-static void stackContainerHide(uiControl *c)
-{
-	// TODO
-}
-
 uiControl *uiNewHorizontalStack(void)
 {
 	stack *s;
@@ -177,8 +167,6 @@ uiControl *uiNewHorizontalStack(void)
 	s->control.setParent = stackSetParent;
 	s->control.preferredSize = stackPreferredSize;
 	s->control.resize = stackResize;
-	s->control.containerShow = stackContainerShow;
-	s->control.containerHide = stackContainerHide;
 
 	return (uiControl *) s;
 }

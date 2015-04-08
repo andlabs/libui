@@ -29,8 +29,6 @@ static void uiContainer_dispose(GObject *obj)
 	G_OBJECT_CLASS(uiContainer_parent_class)->dispose(obj);
 }
 
-// TODO switch from using uiContainer() directly below
-
 static void uiContainer_finalize(GObject *obj)
 {
 	G_OBJECT_CLASS(uiContainer_parent_class)->finalize(obj);
@@ -41,27 +39,30 @@ static void uiContainer_finalize(GObject *obj)
 
 static void uiContainer_add(GtkContainer *container, GtkWidget *widget)
 {
-	gtk_widget_set_parent(widget, GTK_WIDGET(container));
-	if (uiContainer(container)->children != NULL)
-		g_ptr_array_add(uiContainer(container)->children, widget);
+	uiContainer *c = uiContainer(container);
+
+	gtk_widget_set_parent(widget, GTK_WIDGET(c));
+	if (c->children != NULL)
+		g_ptr_array_add(c->children, widget);
 }
 
 static void uiContainer_remove(GtkContainer *container, GtkWidget *widget)
 {
+	uiContainer *c = uiContainer(container);
+
 	gtk_widget_unparent(widget);
-	if (uiContainer(container)->children != NULL)
-		g_ptr_array_remove(uiContainer(container)->children, widget);
+	if (c->children != NULL)
+		g_ptr_array_remove(c->children, widget);
 }
 
 static void uiContainer_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
-	uiControl *c;
+	uiContainer *c = uiContainer(widget);
 	uiSizing d;
 
-	gtk_widget_set_allocation(widget, allocation);
-	c = uiContainer(widget)->child;
-	if (c != NULL)
-		(*(c->resize))(c, allocation->x, allocation->y, allocation->width, allocation->height, &d);
+	gtk_widget_set_allocation(GTK_WIDGET(c), allocation);
+	if (c->child != NULL)
+		(*(c->child->resize))(c->child, allocation->x, allocation->y, allocation->width, allocation->height, &d);
 }
 
 struct forall {
@@ -78,12 +79,13 @@ static void doforall(gpointer obj, gpointer data)
 
 static void uiContainer_forall(GtkContainer *container, gboolean includeInternals, GtkCallback callback, gpointer data)
 {
+	uiContainer *c = uiContainer(container);
 	struct forall s;
 
 	s.callback = callback;
 	s.data = data;
-	if (uiContainer(container)->children != NULL)
-		g_ptr_array_foreach(uiContainer(container)->children, doforall, &s);
+	if (c->children != NULL)
+		g_ptr_array_foreach(c->children, doforall, &s);
 }
 
 static void uiContainer_class_init(uiContainerClass *class)
@@ -98,8 +100,5 @@ static void uiContainer_class_init(uiContainerClass *class)
 
 GtkWidget *newContainer(void)
 {
-	uiContainer *c;
-
-	c = uiContainer(g_object_new(uiContainerType, NULL));
-	return GTK_WIDGET(c);
+	return GTK_WIDGET(g_object_new(uiContainerType, NULL));
 }

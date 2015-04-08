@@ -25,12 +25,19 @@ static void singleSetParent(uiControl *c, uintptr_t parent)
 	[parentView addSubview:S(c)->immediate];
 }
 
+// also good for NSBox and NSProgressIndicator
 static uiSize singlePreferredSize(uiControl *c, uiSizing *d)
 {
 	uiSize size;
+	NSControl *control;
+	NSRect r;
 
-	// TODO
-	size.width = size.height = 0;
+	control = (NSControl *) (S(c)->view);
+	[control sizeToFit];
+	// use alignmentRect here instead of frame because we'll be resizing based on that
+	r = [control alignmentRectForFrame:[control frame]];
+	size.width = (intmax_t) r.size.width;
+	size.height = (intmax_t) r.size.height;
 	return size;
 }
 

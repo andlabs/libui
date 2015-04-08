@@ -17,6 +17,20 @@ struct stack {
 
 #define S(c) ((stack *) (c))
 
+static void stackDestroy(uiControl *c)
+{
+	stack *s = (stack *) c;
+	uintmax_t i;
+
+	for (i = 0; i < S(c)->len; i++)
+		uiControlDestroy(s->controls[i]);
+	uiFree(s->controls);
+	uiFree(s->stretchy);
+	uiFree(s->width);
+	uiFree(s->height);
+	uiFree(s);
+}
+
 static uintptr_t stackHandle(uiControl *c)
 {
 	return 0;
@@ -163,6 +177,7 @@ uiControl *uiNewHorizontalStack(void)
 
 	s = uiNew(stack);
 
+	s->control.destroy = stackDestroy;
 	s->control.handle = stackHandle;
 	s->control.setParent = stackSetParent;
 	s->control.preferredSize = stackPreferredSize;

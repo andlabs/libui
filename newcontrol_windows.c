@@ -15,6 +15,13 @@ struct uiSingleHWNDControl {
 
 #define S(c) ((uiSingleHWNDControl *) (c))
 
+static void singleDestroy(uiControl *c)
+{
+	if (DestroyWindow(S(c)->hwnd) == 0)
+		logLastError("error destroying control in singleDestroy()");
+	// the uiSingleHWNDControl is destroyed in the subclass procedure
+}
+
 static uintptr_t singleHandle(uiControl *c)
 {
 	return (uintptr_t) (S(c)->hwnd);
@@ -57,6 +64,8 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 			return lResult;
 		break;
 	case WM_NCDESTROY:
+		// TODO call an onDestroy handler
+		uiFree(c);
 		if ((*fv_RemoveWindowSubclass)(hwnd, singleSubclassProc, uIdSubclass) == FALSE)
 			logLastError("error removing Windows control subclass in singleSubclassProc()");
 		break;
@@ -79,6 +88,7 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	if (c->hwnd == NULL)
 		logLastError("error creating control in uiWindowsNewControl()");
 
+	c->control.destroy = singleDestroy;
 	c->control.handle = singleHandle;
 	c->control.setParent = singleSetParent;
 	c->control.preferredSize = singlePreferredSize;

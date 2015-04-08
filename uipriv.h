@@ -12,6 +12,7 @@ struct uiSize {
 
 // TODO handle destruction
 struct uiControl {
+	void (*destroy)(uiControl *);
 	uintptr_t (*handle)(uiControl *);
 	void (*setParent)(uiControl *, uintptr_t);
 	uiSize (*preferredSize)(uiControl *, uiSizing *);

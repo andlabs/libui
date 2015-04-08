@@ -46,6 +46,8 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 			return 0;
 		break;		// fall through to DefWindowProcW()
 	case WM_DESTROY:
+		if (w->child != NULL)
+			uiControlDestroy(w->child);
 		uiFree(w);
 		break;		// fall through to DefWindowProcW()
 	}

@@ -6,6 +6,8 @@
 
 @implementation uiApplication
 
+uiLogObjCClassAllocations
+
 // hey look! we're overriding terminate:!
 // we're going to make sure we can go back to main() whether Cocoa likes it or not!
 // and just how are we going to do that, hm?

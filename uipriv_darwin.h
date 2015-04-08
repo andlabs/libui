@@ -11,6 +11,24 @@
 struct uiSizing {
 };
 
+#ifdef uiLogAllocations
+#import <stdio.h>
+#define uiLogObjCClassAllocations \
+- (id)init \
+{ \
+	self = [super init]; \
+	fprintf(stderr, "%p alloc %s\n", self, [[self className] UTF8String]); \
+	return self; \
+} \
+- (void)dealloc \
+{ \
+	[super dealloc]; \
+	fprintf(stderr, "%p free\n", self); \
+}
+#else
+#define uiLogObjCClassAllocations
+#endif
+
 // util_darwin.m
 extern void setStandardControlFont(NSControl *);
 

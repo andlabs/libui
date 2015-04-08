@@ -12,6 +12,8 @@
 
 @implementation uiWindowDelegate
 
+uiLogObjCClassAllocations
+
 // TODO will this *destroy* the window?
 - (BOOL)windowShouldClose:(id)win
 {
@@ -39,7 +41,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 {
 	uiWindow *w;
 
-	w = (uiWindow *) uiAlloc(sizeof (uiWindow));
+	w = uiNew(uiWindow);
 
 	w->w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)

@@ -10,6 +10,8 @@
 // thanks to mikeash and JtRip in irc.freenode.net/#macdev
 @implementation uiContainer
 
+uiLogObjCClassAllocations
+
 - (void)setFrameSize:(NSSize)s
 {
 	uiSizing d;

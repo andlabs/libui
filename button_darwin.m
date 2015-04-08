@@ -9,6 +9,8 @@
 
 @implementation button
 
+uiLogObjCClassAllocations
+
 - (IBAction)buttonClicked:(id)sender
 {
 	(*(self.onClicked))(self.c, self.onClickedData);

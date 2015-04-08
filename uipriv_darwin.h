@@ -11,14 +11,16 @@
 struct uiSizing {
 };
 
+// TODO see if we can override alloc instead
 #ifdef uiLogAllocations
 #import <stdio.h>
 #define uiLogObjCClassAllocations \
-- (id)init \
++ (id)alloc \
 { \
-	self = [super init]; \
-	fprintf(stderr, "%p alloc %s\n", self, [[self className] UTF8String]); \
-	return self; \
+	id thing; \
+	thing = [super alloc]; \
+	fprintf(stderr, "%p alloc %s\n", thing, [[self className] UTF8String]); \
+	return thing; \
 } \
 - (void)dealloc \
 { \

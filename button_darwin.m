@@ -1,6 +1,19 @@
 // 7 april 2015
 #import "uipriv_darwin.h"
 
+#ifdef uiLogAllocations
+@interface loggingNSButton : NSButton
+@end
+
+@implementation loggingNSButton
+
+uiLogObjCClassAllocations
+
+@end
+#else
+#define loggingNSButton NSButton
+#endif
+
 @interface button : NSObject
 @property uiControl *c;
 @property void (*onClicked)(uiControl *, void *);
@@ -30,7 +43,7 @@ uiControl *uiNewButton(const char *text)
 	NSButton *bb;
 
 	b = [button new];
-	b.c = uiDarwinNewControl([NSButton class], NO, NO, b);
+	b.c = uiDarwinNewControl([loggingNSButton class], NO, NO, b);
 
 	bb = (NSButton *) uiControlHandle(b.c);
 	[bb setTitle:toNSString(text)];

@@ -4,6 +4,19 @@
 // TODO
 // - showing on size
 
+#ifdef uiLogAllocations
+@interface loggingNSWindow : NSWindow
+@end
+
+@implementation loggingNSWindow
+
+uiLogObjCClassAllocations
+
+@end
+#else
+#define loggingNSWindow NSWindow
+#endif
+
 @interface uiWindowDelegate : NSObject <NSWindowDelegate>
 @property uiWindow *w;
 @property int (*onClosing)(uiWindow *, void *);
@@ -14,13 +27,17 @@
 
 uiLogObjCClassAllocations
 
-// TODO will this *destroy* the window?
 - (BOOL)windowShouldClose:(id)win
 {
 	// return exact constants to be safe
 	if ((*(self.onClosing))(self.w, self.onClosingData))
 		return YES;
 	return NO;
+}
+
+- (void)windowWillClose:(NSNotification *)note
+{
+	[self release];
 }
 
 @end
@@ -43,12 +60,15 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 
 	w = uiNew(uiWindow);
 
-	w->w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
+	w->w = [[loggingNSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
 		backing:NSBackingStoreBuffered
 		defer:YES];
 	[w->w setTitle:toNSString(title)];
 	// TODO substitutions
+
+	// this is what will destroy the window on close
+	[w->w setReleasedWhenClosed:YES];
 
 	w->container = [[uiContainer alloc] initWithFrame:NSZeroRect];
 	[w->w setContentView:((NSView *) w->container)];
@@ -63,8 +83,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 
 void uiWindowDestroy(uiWindow *w)
 {
-	// TODO
-	// TODO will w->d be destroyed?
+	[w->w close];
 }
 
 uintptr_t uiWindowHandle(uiWindow *w)

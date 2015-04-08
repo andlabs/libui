@@ -39,17 +39,6 @@ struct uiSizing {
 
 // util_darwin.m
 extern void setStandardControlFont(NSControl *);
-@protocol uiFreeOnDealloc
-- (void)uiFreeOnDealloc:(void *)p;
-@end
-#define uiFreeOnDeallocImpl \
-- (void)uiFreeOnDealloc:(void *)p \
-{ \
-	if (self.uiFreeList == nil) \
-		self.uiFreeList = [NSMutableArray new]; \
-	[self.uiFreeList addObject:[NSValue valueWIthPointer:p]]; \
-}
-extern void uiDoFreeOnDealloc(NSMutableArray *);
 
 // container_darwin.m
 @interface uiContainer : NSView

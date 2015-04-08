@@ -1,7 +1,7 @@
 // 7 april 2015
 #import "uipriv_darwin.h"
 
-@interface uiNSButton : NSButton <uiFreeOnDealloc>
+@interface uiNSButton : NSButton
 @property uiControl *uiC;
 @property void (*uiOnClicked)(uiControl *, void *);
 @property void *uiOnClickedData;
@@ -10,12 +10,15 @@
 
 @implementation uiNSButton
 
-uiLogObjCClassAllocations(uiDoFreeOnDealloc(self.uiFreeList);)
-uiFreeOnDeallocImpl
+- (void)dealloc
+{
+	uiDarwinControlFree(self.uiC);
+	[super dealloc];
+}
 
 - (IBAction)uiButtonClicked:(id)sender
 {
-	(*(self.onClicked))(self.c, self.onClickedData);
+	(*(self.uiOnClicked))(self.uiC, self.uiOnClickedData);
 }
 
 @end
@@ -33,7 +36,7 @@ uiControl *uiNewButton(const char *text)
 
 	c = uiDarwinNewControl([uiNSButton class], NO, NO, NULL);
 	b = (uiNSButton *) uiControlHandle(c);
-	b.c = c;
+	b.uiC = c;
 
 	[b setTitle:toNSString(text)];
 	[b setButtonType:NSMomentaryPushInButton];
@@ -44,7 +47,7 @@ uiControl *uiNewButton(const char *text)
 	[b setTarget:b];
 	[b setAction:@selector(uiButtonClicked:)];
 
-	b.onClicked = defaultOnClicked;
+	b.uiOnClicked = defaultOnClicked;
 
 	return b.c;
 }
@@ -56,6 +59,6 @@ void uiButtonOnClicked(uiControl *c, void (*f)(uiControl *, void *), void *data)
 	button *b;
 
 	b = (uiNSButton *) uiControlHandle(c);
-	b.onClicked = f;
-	b.onClickedData = data;
+	b.uiOnClicked = f;
+	b.uiOnClickedData = data;
 }

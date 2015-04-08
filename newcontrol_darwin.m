@@ -8,7 +8,6 @@ struct uiSingleViewControl {
 	NSView *view;
 	NSScrollView *scrollView;
 	NSView *immediate;		// the control that is added to the parent container; either view or scrollView
-	void *data;
 };
 
 #define S(c) ((uiSingleViewControl *) (c))
@@ -59,12 +58,9 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 	[S(c)->immediate setFrame:frame];
 }
 
-// TODO connect free function
-
-uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void *data)
+uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder)
 {
 	uiSingleViewControl *c;
-	uiFreeOnDealloc *freer;
 
 	c = uiNew(uiSingleViewControl);
 	// thanks to autoxr and arwyn in irc.freenode.net/#macdev
@@ -91,15 +87,10 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 	c->control.preferredSize = singlePreferredSize;
 	c->control.resize = singleResize;
 
-	c->data = data;
-
-	freer = (uiFreeOnDealloc *) (c->view);
-	[freer uiFreeOnDealloc:c];
-
 	return (uiControl *) c;
 }
 
-void *uiDarwinControlData(uiControl *c)
+void uiDarwinControlFree(uiControl *c)
 {
-	return S(c)->data;
+	uiFree(c);
 }

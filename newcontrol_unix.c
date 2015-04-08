@@ -72,7 +72,6 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scro
 	va_end(ap);
 	c->immediate = c->widget;
 
-	// TODO turn into bit field?
 	if (inScrolledWindow) {
 		c->scrolledWindow = gtk_scrolled_window_new(NULL, NULL);
 		if (!GTK_IS_SCROLLABLE(c->widget))

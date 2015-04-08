@@ -67,7 +67,6 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 	c->view = (NSView *) [[class alloc] initWithFrame:NSZeroRect];
 	c->immediate = c->view;
 
-	// TODO turn into bit field?
 	if (inScrollView) {
 		c->scrollView = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 		[c->scrollView setDocumentView:c->view];

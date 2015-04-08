@@ -2,10 +2,6 @@
 #include <stdlib.h>
 #include "ui.h"
 
-#include <stdio.h>
-#define LOGALLOC(p, ty) fprintf(stderr, "%p %s ALLOC\n", p, #ty );
-#define LOGFREE(p, ty) fprintf(stderr, "%p %s FREE\n", p, #ty );
-
 typedef struct uiSize uiSize;
 typedef struct uiSizing uiSizing;
 

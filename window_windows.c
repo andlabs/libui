@@ -46,7 +46,6 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 			return 0;
 		break;		// fall through to DefWindowProcW()
 	case WM_DESTROY:
-LOGFREE(w, uiWindow)
 		uiFree(w);
 		break;		// fall through to DefWindowProcW()
 	}
@@ -82,7 +81,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	WCHAR *wtitle;
 
 	w = uiNew(uiWindow);
-LOGALLOC(w, uiWindow)
+	// TODO move other cases of default events here relative
 	w->onClosing = defaultOnClosing;
 
 	adjust.left = 0;

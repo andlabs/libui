@@ -60,7 +60,7 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	uiFree(c);
 }
 
-uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean needsViewport, gboolean scrolledWindowHasBorder, void *data, const char *firstProperty, ...)
+uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void *data, const char *firstProperty, ...)
 {
 	uiSingleWidgetControl *c;
 	va_list ap;
@@ -73,10 +73,9 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean need
 	c->immediate = c->widget;
 
 	// TODO turn into bit field?
-	// TODO should we check to see if the GType implements GtkScrollable instead of having this passed as a parameter?
 	if (inScrolledWindow) {
 		c->scrolledWindow = gtk_scrolled_window_new(NULL, NULL);
-		if (needsViewport)
+		if (!GTK_IS_SCROLLABLE(c->widget))
 			gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(c->scrolledWindow), c->widget);
 		else
 			gtk_container_add(GTK_CONTAINER(c->scrolledWindow), c->widget);

@@ -34,7 +34,7 @@ uiControl *uiNewButton(const char *text)
 	b = uiNew(struct button);
 
 	b->c = uiUnixNewControl(GTK_TYPE_BUTTON,
-		FALSE, FALSE, FALSE, b,
+		FALSE, FALSE, b,
 		"label", text,
 		NULL);
 

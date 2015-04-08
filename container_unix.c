@@ -17,6 +17,7 @@ static void uiContainer_dispose(GObject *obj)
 
 static void uiContainer_finalize(GObject *obj)
 {
+printf("in uiContainer_finalize(); freeing container\n");
 	G_OBJECT_CLASS(uiContainer_parent_class)->finalize(obj);
 }
 

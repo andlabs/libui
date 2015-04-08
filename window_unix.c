@@ -8,6 +8,14 @@ struct uiWindow {
 	void *onClosingData;
 };
 
+static void onDestroy(GtkWindow *window, gpointer data)
+{
+	uiWindow *w = (uiWindow *) data;
+
+printf("destroying window; freeing uiWindow\n");
+	uiFree(w);
+}
+
 uiWindow *uiNewWindow(char *title, int width, int height)
 {
 	uiWindow *w;
@@ -16,6 +24,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(w->widget), title);
 	gtk_window_resize(GTK_WINDOW(w->widget), width, height);
+	g_signal_connect(w->widget, "destroy", G_CALLBACK(onDestroy), w);
 	w->container = newContainer();
 	gtk_container_add(GTK_CONTAINER(w->widget), w->container);
 	return w;
@@ -24,7 +33,6 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 void uiWindowDestroy(uiWindow *w)
 {
 	gtk_widget_destroy(w->widget);
-	uiFree(w);
 }
 
 uintptr_t uiWindowHandle(uiWindow *w)
@@ -44,7 +52,6 @@ void uiWindowHide(uiWindow *w)
 	gtk_widget_hide(w->widget);
 }
 
-// TODO will not free w
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 {
 	uiWindow *w = (uiWindow *) data;

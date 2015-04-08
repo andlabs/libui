@@ -45,6 +45,10 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 		if (!(*(w->onClosing))(w, w->onClosingData))
 			return 0;
 		break;		// fall through to DefWindowProcW()
+	case WM_DESTROY:
+printf("destroying window; freeing uiWindow\n");
+		uiFree(w);
+		break;		// fall through to DefWindowProcW()
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
@@ -104,7 +108,6 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 void uiWindowDestroy(uiWindow *w)
 {
 	DestroyWindow(w->hwnd);
-	uiFree(w);
 }
 
 uintptr_t uiWindowHandle(uiWindow *w)

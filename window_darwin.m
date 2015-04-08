@@ -4,19 +4,6 @@
 // TODO
 // - showing on size
 
-#ifdef uiLogAllocations
-@interface loggingNSWindow : NSWindow
-@end
-
-@implementation loggingNSWindow
-
-uiLogObjCClassAllocations()
-
-@end
-#else
-#define loggingNSWindow NSWindow
-#endif
-
 @interface uiWindowDelegate : NSObject <NSWindowDelegate>
 @property uiWindow *w;
 @property int (*onClosing)(uiWindow *, void *);
@@ -35,8 +22,10 @@ uiLogObjCClassAllocations()
 	return NO;
 }
 
+// after this method returns we assume the window will be released (see below), so we can go too
 - (void)windowWillClose:(NSNotification *)note
 {
+	uiFree(self.w);
 	[self release];
 }
 
@@ -60,7 +49,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 
 	w = uiNew(uiWindow);
 
-	w->w = [[loggingNSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
+	w->w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
 		backing:NSBackingStoreBuffered
 		defer:YES];

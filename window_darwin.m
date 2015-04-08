@@ -1,9 +1,6 @@
 // 6 april 2015
 #import "uipriv_darwin.h"
 
-// TODO
-// - showing on size
-
 @interface uiWindowDelegate : NSObject <NSWindowDelegate>
 @property (assign) NSWindow *w;
 @property (assign) uiContainer *container;

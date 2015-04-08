@@ -36,5 +36,7 @@ extern void setStandardControlFont(NSControl *);
 
 // container_darwin.m
 @interface uiContainer : NSView
+// TODO rename to uiChild
 @property uiControl *child;
+- (void)uiUpdateNow;
 @end

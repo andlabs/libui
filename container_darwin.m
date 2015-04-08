@@ -24,11 +24,26 @@ uiLogObjCClassAllocations
 
 - (void)setFrameSize:(NSSize)s
 {
+	[super setFrameSize:s];
+	[self uiUpdateNow];
+}
+
+- (void)uiUpdateNow
+{
 	uiSizing d;
 
-	[super setFrameSize:s];
 	if (self.child != NULL)
 		(*(self.child->resize))(self.child, [self bounds].origin.y, [self bounds].origin.y, [self bounds].size.width, [self bounds].size.height, &d);
 }
 
 @end
+
+void updateParent(uintptr_t parent)
+{
+	uiContainer *c;
+
+	if (parent == 0)
+		return;
+	c = (uiContainer *) parent;
+	[c uiUpdateNow];
+}

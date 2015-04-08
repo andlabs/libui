@@ -8,6 +8,7 @@ struct uiSingleViewControl {
 	NSView *view;
 	NSScrollView *scrollView;
 	NSView *immediate;		// the control that is added to the parent container; either view or scrollView
+	uintptr_t parent;
 };
 
 #define S(c) ((uiSingleViewControl *) (c))
@@ -24,9 +25,17 @@ static uintptr_t singleHandle(uiControl *c)
 
 static void singleSetParent(uiControl *c, uintptr_t parent)
 {
-	NSView *parentView = (NSView *) parent;
+	uiSingleViewControl *s = S(c);
+	uintptr_t oldparent;
+	NSView *parentView;
 
-	[parentView addSubview:S(c)->immediate];
+	oldparent = s->parent;
+	s->parent = parent;
+	parentView = (NSView *) (s->parent);
+	// TODO will this change parents?
+	[parentView addSubview:s->immediate];
+	updateParent(oldparent);
+	updateParent(s->parent);
 }
 
 // also good for NSBox and NSProgressIndicator

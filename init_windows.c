@@ -45,7 +45,6 @@ uiInitError *uiInit(uiInitOptions *o)
 	if ((si.dwFlags & STARTF_USESHOWWINDOW) != 0)
 		nCmdShow = si.wShowWindow;
 
-	// TODO add "in initCommonControls()" to each of the messages this returns
 	ce = initCommonControls();
 	if (ce != NULL)
 		return loadLastError(err, ce);

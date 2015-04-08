@@ -12,17 +12,24 @@ static void uiContainer_init(uiContainer *c)
 	gtk_widget_set_has_window(GTK_WIDGET(c), FALSE);
 }
 
-// TODO explain the order here
-// TODO guard against use of forall after the ptr array unref
+// instead of having GtkContainer itself unref all our controls, we'll run our own uiControlDestroy() functions for child, which will do that and more
+// we still chain up because we need to, but by that point there will be no children for GtkContainer to free
 static void uiContainer_dispose(GObject *obj)
 {
-	g_ptr_array_unref(uiContainer(obj)->children);
-	if (uiContainer(obj)->child != NULL) {
-		uiControlDestroy(uiContainer(obj)->child);
-		uiContainer(obj)->child = NULL;
+	uiContainer *c = uiContainer(obj);
+
+	if (c->children != NULL) {
+		g_ptr_array_unref(c->children);
+		c->children = NULL;
+	}
+	if (c->child != NULL) {
+		uiControlDestroy(c->child);
+		c->child = NULL;
 	}
 	G_OBJECT_CLASS(uiContainer_parent_class)->dispose(obj);
 }
+
+// TODO switch from using uiContainer() directly below
 
 static void uiContainer_finalize(GObject *obj)
 {
@@ -35,13 +42,15 @@ static void uiContainer_finalize(GObject *obj)
 static void uiContainer_add(GtkContainer *container, GtkWidget *widget)
 {
 	gtk_widget_set_parent(widget, GTK_WIDGET(container));
-	g_ptr_array_add(uiContainer(container)->children, widget);
+	if (uiContainer(container)->children != NULL)
+		g_ptr_array_add(uiContainer(container)->children, widget);
 }
 
 static void uiContainer_remove(GtkContainer *container, GtkWidget *widget)
 {
 	gtk_widget_unparent(widget);
-	g_ptr_array_remove(uiContainer(container)->children, widget);
+	if (uiContainer(container)->children != NULL)
+		g_ptr_array_remove(uiContainer(container)->children, widget);
 }
 
 static void uiContainer_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
@@ -73,7 +82,8 @@ static void uiContainer_forall(GtkContainer *container, gboolean includeInternal
 
 	s.callback = callback;
 	s.data = data;
-	g_ptr_array_foreach(uiContainer(container)->children, doforall, &s);
+	if (uiContainer(container)->children != NULL)
+		g_ptr_array_foreach(uiContainer(container)->children, doforall, &s);
 }
 
 static void uiContainer_class_init(uiContainerClass *class)

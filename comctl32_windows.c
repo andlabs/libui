@@ -43,29 +43,28 @@ const char *initCommonControls(void)
 	BOOL (*WINAPI ficc)(const LPINITCOMMONCONTROLSEX);
 
 	if (GetTempPathW(MAX_PATH + 1, temppath) == 0)
-		return "getting temporary path for writing manifest file";
+		return "getting temporary path for writing manifest file in initCommonControls()";
 	if (GetTempFileNameW(temppath, L"manifest", 0, filename) == 0)
-		return "getting temporary filename for writing manifest file";
+		return "getting temporary filename for writing manifest file in initCommonControls()";
 	file = CreateFileW(filename, GENERIC_WRITE,
 		0,			// don't share while writing
 		NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (file == NULL)
-		return "creating manifest file";
+		return "creating manifest file in initCommonControls()";
 	nExpected = (sizeof manifest / sizeof manifest[0]) - 1;		// - 1 to omit the terminating null character)
 	SetLastError(0);		// catch errorless short writes
 	if (WriteFile(file, manifest, nExpected, &nGot, NULL) == 0)
-		return "writing manifest file";
+		return "writing manifest file in initCommonControls()";
 	if (nGot != nExpected) {
 		DWORD lasterr;
 
 		lasterr = GetLastError();
-		// TODO reword these
 		if (lasterr == 0)
-			return "short write to manifest file without error code";
-		return "short write to manifest file";
+			return "writing entire manifest file (short write) without error code in initCommonControls()";
+		return "writing entire manifest file (short write) in initCommonControls()";
 	}
 	if (CloseHandle(file) == 0)
-		return "closing manifest file (this IS an error here because not doing so will prevent Windows from being able to use the manifest file in an activation context)";
+		return "closing manifest file (this IS an error here because not doing so will prevent Windows from being able to use the manifest file in an activation context) in initCommonControls()";
 
 	ZeroMemory(&actctx, sizeof (ACTCTX));
 	actctx.cbSize = sizeof (ACTCTX);
@@ -73,9 +72,9 @@ const char *initCommonControls(void)
 	actctx.lpSource = filename;
 	ac = CreateActCtx(&actctx);
 	if (ac == INVALID_HANDLE_VALUE)
-		return "creating activation context for synthesized manifest file";
+		return "creating activation context for synthesized manifest file in initCommonControls()";
 	if (ActivateActCtx(ac, &comctlManifestCookie) == FALSE)
-		return "activating activation context for synthesized manifest file";
+		return "activating activation context for synthesized manifest file in initCommonControls()";
 
 	ZeroMemory(&icc, sizeof (INITCOMMONCONTROLSEX));
 	icc.dwSize = sizeof (INITCOMMONCONTROLSEX);
@@ -83,12 +82,12 @@ const char *initCommonControls(void)
 
 	comctl32 = LoadLibraryW(L"comctl32.dll");
 	if (comctl32 == NULL)
-		return "loading comctl32.dll";
+		return "loading comctl32.dll in initCommonControls()";
 
 	// GetProcAddress() only takes a multibyte string
 #define LOAD(fn) f = GetProcAddress(comctl32, fn); \
 	if (f == NULL) \
-		return "loading " fn "()";
+		return "loading " fn "() in initCommonControls()";
 
 	LOAD("InitCommonControlsEx");
 	ficc = (BOOL (*WINAPI)(const LPINITCOMMONCONTROLSEX)) f;
@@ -100,7 +99,7 @@ const char *initCommonControls(void)
 	fv_DefSubclassProc = (LRESULT (*WINAPI)(HWND, UINT, WPARAM, LPARAM)) f;
 
 	if ((*ficc)(&icc) == FALSE)
-		return "initializing Common Controls (comctl32.dll)";
+		return "initializing Common Controls (comctl32.dll) in initCommonControls()";
 
 	return NULL;
 }

@@ -13,6 +13,11 @@ struct uiSingleWidgetControl {
 
 #define S(c) ((uiSingleWidgetControl *) (c))
 
+static void singleDestroy(uiControl *c)
+{
+	gtk_widget_destroy(S(c)->immediate);
+}
+
 static uintptr_t singleHandle(uiControl *c)
 {
 	return (uintptr_t) (S(c)->widget);
@@ -48,7 +53,12 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 	gtk_widget_size_allocate(S(c)->immediate, &a);
 }
 
-// TODO connect free function
+static void onDestroy(GtkWidget *widget, gpointer data)
+{
+	uiSingleWidgetControl *c = (uiSingleWidgetControl *) data;
+
+	uiFree(c);
+}
 
 uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean needsViewport, gboolean scrolledWindowHasBorder, void *data, const char *firstProperty, ...)
 {
@@ -75,6 +85,19 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean need
 		c->immediate = c->scrolledWindow;
 	}
 
+	// we need to keep an extra reference on the immediate widget
+	// this is so uiControlDestroy() can work regardless of when it is called and who calls it
+	// without this:
+	// - end user call works (only one ref)
+	// - call in uiContainer destructor fails (uiContainer ref freed)
+	// with this:
+	// - end user call works (shoudn't be in any container)
+	// - call in uiContainer works (both refs freed)
+	g_object_ref_sink(c->immediate);
+	// and let's free the uiSingleWidgetControl with it
+	g_signal_connect(c->immediate, "destroy", G_CALLBACK(onDestroy), c);
+
+	c->control.destroy = singleDestroy;
 	c->control.handle = singleHandle;
 	c->control.setParent = singleSetParent;
 	c->control.preferredSize = singlePreferredSize;

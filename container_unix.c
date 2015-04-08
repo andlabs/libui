@@ -15,6 +15,10 @@ static void uiContainer_init(uiContainer *c)
 static void uiContainer_dispose(GObject *obj)
 {
 	g_ptr_array_unref(uiContainer(obj)->children);
+	if (uiContainer(obj)->child != NULL) {
+		uiControlDestroy(uiContainer(obj)->child);
+		uiContainer(obj)->child = NULL;
+	}
 	G_OBJECT_CLASS(uiContainer_parent_class)->dispose(obj);
 }
 

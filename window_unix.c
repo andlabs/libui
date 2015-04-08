@@ -8,7 +8,7 @@ struct uiWindow {
 	void *onClosingData;
 };
 
-static void onDestroy(GtkWindow *window, gpointer data)
+static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	uiWindow *w = (uiWindow *) data;
 

@@ -40,6 +40,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	uiWindow *w;
 
 	w = (uiWindow *) uiAlloc(sizeof (uiWindow));
+LOGALLOC(w, uiWindow)
 
 	w->w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)

@@ -66,7 +66,7 @@ uiControl *uiNewButton(const char *text)
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
-	p.dwStyle = BS_PUSHBUTTON;
+	p.dwStyle = BS_PUSHBUTTON | WS_TABSTOP;
 	p.hInstance = hInstance;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;

@@ -26,9 +26,3 @@ void uiQuit(void)
 	[NSApp postEvent:e atStart:NO];		// let pending events take priority
 	// TODO really wait?
 }
-
-// TODO move somewhere else
-uintptr_t uiControlHandle(uiControl *c)
-{
-	return (*(c->handle))(c);
-}

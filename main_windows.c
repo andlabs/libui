@@ -54,9 +54,3 @@ void uiQuit(void)
 {
 	PostQuitMessage(0);
 }
-
-// TODO move somewhere else
-uintptr_t uiControlHandle(uiControl *c)
-{
-	return (*(c->handle))(c);
-}

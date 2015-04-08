@@ -55,7 +55,6 @@ BOOL sharedWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *
 	return FALSE;
 }
 
-// TODO add function names to errors
 void resize(uiControl *control, HWND parent, RECT r)
 {
 	uiSizing d;
@@ -66,20 +65,20 @@ void resize(uiControl *control, HWND parent, RECT r)
 
 	dc = GetDC(parent);
 	if (dc == NULL)
-		logLastError("error getting DC for preferred size calculations");
+		logLastError("error getting DC in resize()");
 	prevfont = (HFONT) SelectObject(dc, hMessageFont);
 	if (prevfont == NULL)
-		logLastError("error loading control font into device context for preferred size calculation");
+		logLastError("error loading control font into device context in resize()");
 	if (GetTextMetricsW(dc, &tm) == 0)
-		logLastError("error getting text metrics for preferred size calculations");
+		logLastError("error getting text metrics in resize()");
 	if (GetTextExtentPoint32W(dc, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &size) == 0)
-		logLastError("error getting text extent point for preferred size calculations");
+		logLastError("error getting text extent point in resize()");
 	d.baseX = (int) ((size.cx / 26 + 1) / 2);
 	d.baseY = (int) tm.tmHeight;
 	d.internalLeading = tm.tmInternalLeading;
 	if (SelectObject(dc, prevfont) != hMessageFont)
-		logLastError("error restoring previous font into device context after preferred size calculations");
+		logLastError("error restoring previous font into device context in resize()");
 	if (ReleaseDC(parent, dc) == 0)
-		logLastError("error releasing DC for preferred size calculations");
+		logLastError("error releasing DC in resize()");
 	(*(control->resize))(control, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }

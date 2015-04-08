@@ -13,7 +13,7 @@ struct uiInitError {
 	char failbuf[256];
 };
 
-static void loadLastError(uiInitError *err, const char *message)
+static uiInitError *loadLastError(uiInitError *err, const char *message)
 {
 	DWORD le;
 
@@ -22,6 +22,7 @@ static void loadLastError(uiInitError *err, const char *message)
 	// TODO make sure argument is right; _snprintf_s() isn't supported on Windows XP
 	snprintf(err->failbuf, 256, "error %s (last error %I32u)", message, le);
 	err->msg = err->failbuf;
+	return err;
 }
 
 uiInitError *uiInit(uiInitOptions *o)
@@ -33,13 +34,11 @@ uiInitError *uiInit(uiInitOptions *o)
 	HCURSOR hDefaultCursor;
 	NONCLIENTMETRICSW ncm;
 
-	err = (uiInitError *) uiAlloc(sizeof (uiInitError));
+	err = uiNew(uiInitError);
 
 	hInstance = GetModuleHandle(NULL);
-	if (hInstance == NULL) {
-		loadLastError(err, "getting program HINSTANCE");
-		return err;
-	}
+	if (hInstance == NULL)
+		return loadLastError(err, "getting program HINSTANCE");
 
 	nCmdShow = SW_SHOWDEFAULT;
 	GetStartupInfoW(&si);
@@ -47,40 +46,27 @@ uiInitError *uiInit(uiInitOptions *o)
 		nCmdShow = si.wShowWindow;
 
 	// TODO add "in initCommonControls()" to each of the messages this returns
-	// TODO make loadLastError() return err directly
 	ce = initCommonControls();
-	if (ce != NULL) {
-		loadLastError(err, ce);
-		return err;
-	}
+	if (ce != NULL)
+		return loadLastError(err, ce);
 
 	hDefaultIcon = LoadIconW(NULL, IDI_APPLICATION);
-	if (hDefaultIcon == NULL) {
-		loadLastError(err, "loading default icon for window classes");
-		return err;
-	}
+	if (hDefaultIcon == NULL)
+		return loadLastError(err, "loading default icon for window classes");
 	hDefaultCursor = LoadCursorW(NULL, IDC_ARROW);
-	if (hDefaultCursor == NULL) {
-		loadLastError(err, "loading default cursor for window classes");
-		return err;
-	}
+	if (hDefaultCursor == NULL)
+		return loadLastError(err, "loading default cursor for window classes");
 
-	if (registerWindowClass(hDefaultIcon, hDefaultCursor) == 0) {
-		loadLastError(err, "registering uiWindow window class");
-		return err;
-	}
+	if (registerWindowClass(hDefaultIcon, hDefaultCursor) == 0)
+		return loadLastError(err, "registering uiWindow window class");
 
 	ZeroMemory(&ncm, sizeof (NONCLIENTMETRICSW));
 	ncm.cbSize = sizeof (NONCLIENTMETRICSW);
-	if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof (NONCLIENTMETRICSW), &ncm, sizeof (NONCLIENTMETRICSW)) == 0) {
-		loadLastError(err, "getting default fonts");
-		return err;
-	}
+	if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof (NONCLIENTMETRICSW), &ncm, sizeof (NONCLIENTMETRICSW)) == 0)
+		return loadLastError(err, "getting default fonts");
 	hMessageFont = CreateFontIndirectW(&(ncm.lfMessageFont));
-	if (hMessageFont == NULL) {
-		loadLastError(err, "loading default messagebox font; this is the default UI font");
-		return err;
-	}
+	if (hMessageFont == NULL)
+		return loadLastError(err, "loading default messagebox font; this is the default UI font");
 
 	// give each control a reasonable initial parent
 	// don't free the initial parent!

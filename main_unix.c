@@ -12,9 +12,3 @@ void uiQuit(void)
 {
 	gtk_main_quit();
 }
-
-// TODO move somewhere else
-uintptr_t uiControlHandle(uiControl *c)
-{
-	return (*(c->handle))(c);
-}

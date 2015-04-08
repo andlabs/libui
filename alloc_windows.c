@@ -7,7 +7,7 @@
 // passing NULL to tableRealloc() acts like tableAlloc()
 // passing NULL to tableFree() is a no-op
 
-void *uiAlloc(size_t size)
+void *uiAlloc(size_t size, const char *type)
 {
 	void *out;
 
@@ -15,19 +15,25 @@ void *uiAlloc(size_t size)
 	if (out == NULL)
 		abort();	// TODO figure this part out
 	ZeroMemory(out, size);
+#ifdef uiLogAllocations
+	fprintf(stderr, "%p alloc %s\n", out, type);
+#endif
 	return out;
 }
 
-void *uiRealloc(void *p, size_t size)
+void *uiRealloc(void *p, size_t size, const char *type)
 {
 	void *out;
 
 	if (p == NULL)
-		return uiAlloc(size);
+		return uiAlloc(size, type);
 	out = realloc(p, size);
 	if (out == NULL)
 		abort();
 	// TODO zero the extra memory
+#ifdef uiLogAllocations
+	fprintf(stderr, "%p realloc %p\n", p, out);
+#endif
 	return out;
 }
 
@@ -36,4 +42,7 @@ void uiFree(void *p)
 	if (p == NULL)
 		return;
 	free(p);
+#ifdef uiLogAllocations
+	fprintf(stderr, "%p free\n", p);
+#endif
 }

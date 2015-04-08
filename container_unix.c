@@ -5,6 +5,9 @@ G_DEFINE_TYPE(uiContainer, uiContainer, GTK_TYPE_CONTAINER)
 
 static void uiContainer_init(uiContainer *c)
 {
+#ifdef uiLogAllocations
+	fprintf(stderr, "%p alloc uiContainer\n", c);
+#endif
 	c->children = g_ptr_array_new();
 	gtk_widget_set_has_window(GTK_WIDGET(c), FALSE);
 }
@@ -18,6 +21,9 @@ static void uiContainer_dispose(GObject *obj)
 static void uiContainer_finalize(GObject *obj)
 {
 	G_OBJECT_CLASS(uiContainer_parent_class)->finalize(obj);
+#ifdef uiLogAllocations
+	fprintf(stderr, "%p free\n", obj);
+#endif
 }
 
 static void uiContainer_add(GtkContainer *container, GtkWidget *widget)

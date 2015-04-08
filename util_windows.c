@@ -11,7 +11,7 @@ WCHAR *toUTF16(const char *str)
 	n = MBTWC(str, NULL, 0);
 	if (n == 0)
 		logLastError("error figuring out number of characters to convert to in toUTF16()");
-	wstr = (WCHAR *) uiAlloc(n * sizeof (WCHAR));
+	wstr = (WCHAR *) uiAlloc(n * sizeof (WCHAR), "WCHAR[]");
 	if (MBTWC(str, wstr, n) != n)
 		logLastError("error converting from UTF-8 to UTF-16 in toUTF16()");
 	return wstr;
@@ -30,7 +30,7 @@ intmax_t uiWindowsWindowTextWidth(HWND hwnd)
 	len = GetWindowTextLengthW(hwnd);
 	if (len == 0)		// no text; nothing to do
 		return 0;
-	text = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR));
+	text = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
 	if (GetWindowText(hwnd, text, len + 1) == 0)		// should only happen on error given explicit test for len == 0 above
 		logLastError("error getting window text in uiWindowsWindowTextWidth()");
 	dc = GetDC(hwnd);

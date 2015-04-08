@@ -188,10 +188,10 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 
 	if (s->len >= s->cap) {
 		s->cap += stackCapGrow;
-		s->controls = (uiControl **) uiRealloc(s->controls, s->cap * sizeof (uiControl *));
-		s->stretchy = (int *) uiRealloc(s->stretchy, s->cap * sizeof (int));
-		s->width = (intmax_t *) uiRealloc(s->width, s->cap * sizeof (intmax_t));
-		s->height = (intmax_t *) uiRealloc(s->height, s->cap * sizeof (intmax_t));
+		s->controls = (uiControl **) uiRealloc(s->controls, s->cap * sizeof (uiControl *), "uiControl *[]");
+		s->stretchy = (int *) uiRealloc(s->stretchy, s->cap * sizeof (int), "int[]");
+		s->width = (intmax_t *) uiRealloc(s->width, s->cap * sizeof (intmax_t), "intmax_t[]");
+		s->height = (intmax_t *) uiRealloc(s->height, s->cap * sizeof (intmax_t), "intmax_t[]");
 	}
 	s->controls[s->len] = c;
 	s->stretchy[s->len] = stretchy;

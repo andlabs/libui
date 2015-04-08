@@ -10,7 +10,7 @@
 
 @implementation loggingNSWindow
 
-uiLogObjCClassAllocations
+uiLogObjCClassAllocations()
 
 @end
 #else
@@ -25,7 +25,7 @@ uiLogObjCClassAllocations
 
 @implementation uiWindowDelegate
 
-uiLogObjCClassAllocations
+uiLogObjCClassAllocations()
 
 - (BOOL)windowShouldClose:(id)win
 {

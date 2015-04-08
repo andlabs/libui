@@ -10,7 +10,10 @@
 // thanks to mikeash and JtRip in irc.freenode.net/#macdev
 @implementation uiContainer
 
-uiLogObjCClassAllocations
+uiLogObjCClassAllocations(
+	if (self.child != NULL)
+		uiControlDestroy(self.child);
+)
 
 - (void)setFrameSize:(NSSize)s
 {

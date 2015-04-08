@@ -13,6 +13,11 @@ struct uiSingleViewControl {
 
 #define S(c) ((uiSingleViewControl *) (c))
 
+static void singleDestroy(uiControl *c)
+{
+	[S(c)->view release];
+}
+
 static uintptr_t singleHandle(uiControl *c)
 {
 	return (uintptr_t) (S(c)->view);
@@ -59,6 +64,7 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void *data)
 {
 	uiSingleViewControl *c;
+	uiFreeOnDealloc *freer;
 
 	c = uiNew(uiSingleViewControl);
 	// thanks to autoxr and arwyn in irc.freenode.net/#macdev
@@ -79,12 +85,16 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 		c->immediate = (NSView *) (c->scrollView);
 	}
 
+	c->control.destroy = singleDestroy;
 	c->control.handle = singleHandle;
 	c->control.setParent = singleSetParent;
 	c->control.preferredSize = singlePreferredSize;
 	c->control.resize = singleResize;
 
 	c->data = data;
+
+	freer = (uiFreeOnDealloc *) (c->view);
+	[freer uiFreeOnDealloc:c];
 
 	return (uiControl *) c;
 }

@@ -14,7 +14,7 @@ struct uiSizing {
 // TODO see if we can override alloc instead
 #ifdef uiLogAllocations
 #import <stdio.h>
-#define uiLogObjCClassAllocations \
+#define uiLogObjCClassAllocations(deallocCode) \
 + (id)alloc \
 { \
 	id thing; \
@@ -24,15 +24,32 @@ struct uiSizing {
 } \
 - (void)dealloc \
 { \
+	deallocCode \
 	[super dealloc]; \
 	fprintf(stderr, "%p free\n", self); \
 }
 #else
-#define uiLogObjCClassAllocations
+#define uiLogObjCClassAllocations(deallocCode) \
+- (void)dealloc \
+{ \
+	deallocCode \
+	[super dealloc]; \
+}
 #endif
 
 // util_darwin.m
 extern void setStandardControlFont(NSControl *);
+@protocol uiFreeOnDealloc
+- (void)uiFreeOnDealloc:(void *)p;
+@end
+#define uiFreeOnDeallocImpl \
+- (void)uiFreeOnDealloc:(void *)p \
+{ \
+	if (self.uiFreeList == nil) \
+		self.uiFreeList = [NSMutableArray new]; \
+	[self.uiFreeList addObject:[NSValue valueWIthPointer:p]]; \
+}
+extern void uiDoFreeOnDealloc(NSMutableArray *);
 
 // container_darwin.m
 @interface uiContainer : NSView

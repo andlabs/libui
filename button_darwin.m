@@ -1,30 +1,19 @@
 // 7 april 2015
 #import "uipriv_darwin.h"
 
-#ifdef uiLogAllocations
-@interface loggingNSButton : NSButton
+@interface uiNSButton : NSButton <uiFreeOnDealloc>
+@property uiControl *uiC;
+@property void (*uiOnClicked)(uiControl *, void *);
+@property void *uiOnClickedData;
+@property NSMutableArray *uiFreeList;
 @end
 
-@implementation loggingNSButton
+@implementation uiNSButton
 
-uiLogObjCClassAllocations
+uiLogObjCClassAllocations(uiDoFreeOnDealloc(self.uiFreeList);)
+uiFreeOnDeallocImpl
 
-@end
-#else
-#define loggingNSButton NSButton
-#endif
-
-@interface button : NSObject
-@property uiControl *c;
-@property void (*onClicked)(uiControl *, void *);
-@property void *onClickedData;
-@end
-
-@implementation button
-
-uiLogObjCClassAllocations
-
-- (IBAction)buttonClicked:(id)sender
+- (IBAction)uiButtonClicked:(id)sender
 {
 	(*(self.onClicked))(self.c, self.onClickedData);
 }
@@ -39,21 +28,21 @@ static void defaultOnClicked(uiControl *c, void *data)
 // TODO destruction
 uiControl *uiNewButton(const char *text)
 {
-	button *b;
-	NSButton *bb;
+	uiControl *c;
+	uiNSButton *b;
 
-	b = [button new];
-	b.c = uiDarwinNewControl([loggingNSButton class], NO, NO, b);
+	c = uiDarwinNewControl([uiNSButton class], NO, NO, NULL);
+	b = (uiNSButton *) uiControlHandle(c);
+	b.c = c;
 
-	bb = (NSButton *) uiControlHandle(b.c);
-	[bb setTitle:toNSString(text)];
-	[bb setButtonType:NSMomentaryPushInButton];
-	[bb setBordered:YES];
-	[bb setBezelStyle:NSRoundedBezelStyle];
+	[b setTitle:toNSString(text)];
+	[b setButtonType:NSMomentaryPushInButton];
+	[b setBordered:YES];
+	[b setBezelStyle:NSRoundedBezelStyle];
 	setStandardControlFont((NSControl *) bb);
 
-	[bb setTarget:b];
-	[bb setAction:@selector(buttonClicked:)];
+	[b setTarget:b];
+	[b setAction:@selector(uiButtonClicked:)];
 
 	b.onClicked = defaultOnClicked;
 
@@ -66,7 +55,7 @@ void uiButtonOnClicked(uiControl *c, void (*f)(uiControl *, void *), void *data)
 {
 	button *b;
 
-	b = (button *) uiDarwinControlData(c);
+	b = (uiNSButton *) uiControlHandle(c);
 	b.onClicked = f;
 	b.onClickedData = data;
 }

@@ -8,7 +8,8 @@ struct uiSingleHWNDControl {
 	HWND hwnd;
 	BOOL (*onWM_COMMAND)(uiControl *, WPARAM, LPARAM, void *, LRESULT *);
 	BOOL (*onWM_NOTIFY)(uiControl *, WPARAM, LPARAM, void *, LRESULT *);
-	void *onCommandNotifyData;
+	void (*onWM_DESTROY)(uiControl *, void *);
+	void *onCommandNotifyDestroyData;
 	void (*preferredSize)(uiControl *, int, int, LONG, intmax_t *, intmax_t *);
 	void *data;
 };
@@ -56,16 +57,18 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 
 	switch (uMsg) {
 	case msgCOMMAND:
-		if ((*(c->onWM_COMMAND))((uiControl *) c, wParam, lParam, c->onCommandNotifyData, &lResult) != FALSE)
+		if ((*(c->onWM_COMMAND))((uiControl *) c, wParam, lParam, c->onCommandNotifyDestroyData, &lResult) != FALSE)
 			return lResult;
 		break;
 	case msgNOTIFY:
-		if ((*(c->onWM_NOTIFY))((uiControl *) c, wParam, lParam, c->onCommandNotifyData, &lResult) != FALSE)
+		if ((*(c->onWM_NOTIFY))((uiControl *) c, wParam, lParam, c->onCommandNotifyDestroyData, &lResult) != FALSE)
 			return lResult;
 		break;
-	case WM_NCDESTROY:
-		// TODO call an onDestroy handler
+	case WM_DESTROY:
+		(*(c->onWM_DESTROY))((uiControl *) c, c->onCommandNotifyDestroyData);
 		uiFree(c);
+		break;
+	case WM_NCDESTROY:
 		if ((*fv_RemoveWindowSubclass)(hwnd, singleSubclassProc, uIdSubclass) == FALSE)
 			logLastError("error removing Windows control subclass in singleSubclassProc()");
 		break;
@@ -96,7 +99,8 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 
 	c->onWM_COMMAND = p->onWM_COMMAND;
 	c->onWM_NOTIFY = p->onWM_NOTIFY;
-	c->onCommandNotifyData = p->onCommandNotifyData;
+	c->onWM_DESTROY = p->onWM_DESTROY;
+	c->onCommandNotifyDestroyData = p->onCommandNotifyDestroyData;
 	c->preferredSize = p->preferredSize;
 
 	c->data = p->data;

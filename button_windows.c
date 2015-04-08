@@ -23,6 +23,13 @@ static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, 
 	return FALSE;
 }
 
+static void onWM_DESTROY(uiControl *c, void *data)
+{
+	struct button *b = (struct button *) data;
+
+	uiFree(b);
+}
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
@@ -70,7 +77,8 @@ uiControl *uiNewButton(const char *text)
 	p.hInstance = hInstance;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
-	p.onCommandNotifyData = b;
+	p.onWM_DESTROY = onWM_DESTROY;
+	p.onCommandNotifyDestroyData = b;
 	p.preferredSize = preferredSize;
 	p.data = b;
 	b->c = uiWindowsNewControl(&p);

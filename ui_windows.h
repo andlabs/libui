@@ -23,8 +23,10 @@ struct uiWindowsNewControlParams {
 	// Note that these are only issued if they come from the uiControl itself; notifications from children of the uiControl (such as a header control) will be received normally.
 	BOOL (*onWM_COMMAND)(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult);
 	BOOL (*onWM_NOTIFY)(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult);
-	// This is the data parameter to both of the above.
-	void *onCommandNotifyData;
+	// This is called in WM_DESTROY.
+	void (*onWM_DESTROY)(uiControl *c, void *data);
+	// This is the data parameter to all three of the above.
+	void *onCommandNotifyDestroyData;
 
 	// This function is called when ui needs to know how to rearrange controls in a window.
 	// baseX and baseY are the base units used to convert between dialog units and pixels.

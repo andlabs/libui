@@ -9,6 +9,7 @@ struct uiSingleWidgetControl {
 	GtkWidget *scrolledWindow;
 	GtkWidget *immediate;		// the widget that is added to the parent container; either widget or scrolledWindow
 	void *data;
+	uintptr_t parent;
 };
 
 #define S(c) ((uiSingleWidgetControl *) (c))
@@ -25,7 +26,16 @@ static uintptr_t singleHandle(uiControl *c)
 
 static void singleSetParent(uiControl *c, uintptr_t parent)
 {
-	gtk_container_add(GTK_CONTAINER(parent), S(c)->immediate);
+	uiSingleWidgetControl *s = S(c);
+	uintptr_t oldparent;
+
+	oldparent = s->parent;
+	s->parent = parent;
+	if (oldparent != 0)
+		gtk_container_remove(GTK_CONTAINER(oldparent), s->immediate);
+	gtk_container_add(GTK_CONTAINER(s->parent), s->immediate);
+	updateParent(oldparent);
+	updateParent(s->parent);
 }
 
 static uiSize singlePreferredSize(uiControl *c, uiSizing *d)
@@ -91,6 +101,7 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scro
 	// with this:
 	// - end user call works (shoudn't be in any container)
 	// - call in uiContainer works (both refs freed)
+	// this also ensures singleSetParent() works properly when changing parents
 	g_object_ref_sink(c->immediate);
 	// and let's free the uiSingleWidgetControl with it
 	g_signal_connect(c->immediate, "destroy", G_CALLBACK(onDestroy), c);

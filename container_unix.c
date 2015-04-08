@@ -102,3 +102,9 @@ GtkWidget *newContainer(void)
 {
 	return GTK_WIDGET(g_object_new(uiContainerType, NULL));
 }
+
+void updateParent(uintptr_t parent)
+{
+	if (parent != 0)
+		gtk_widget_queue_resize(GTK_WIDGET(parent));
+}

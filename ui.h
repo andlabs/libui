@@ -16,9 +16,7 @@ void uiMain(void);
 void uiQuit(void);
 
 typedef struct uiControl uiControl;
-// TODO public?
 void uiControlDestroy(uiControl *);
-// TODO before destroy?
 uintptr_t uiControlHandle(uiControl *);
 
 typedef struct uiWindow uiWindow;

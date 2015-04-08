@@ -4,12 +4,12 @@
 // TODO
 // - showing on size
 
-// TODO clean this up
 @interface uiWindowDelegate : NSObject <NSWindowDelegate>
-@property (assign) NSWindow *win;
-@property uiWindow *w;
+@property (assign) NSWindow *w;
+@property (assign) uiContainer *container;
 @property int (*onClosing)(uiWindow *, void *);
 @property void *onClosingData;
+@property uiWindow *uiw;
 @end
 
 @implementation uiWindowDelegate
@@ -19,7 +19,7 @@ uiLogObjCClassAllocations
 - (BOOL)windowShouldClose:(id)win
 {
 	// return exact constants to be safe
-	if ((*(self.onClosing))(self.w, self.onClosingData))
+	if ((*(self.onClosing))(self.uiw, self.onClosingData))
 		return YES;
 	return NO;
 }
@@ -27,17 +27,14 @@ uiLogObjCClassAllocations
 // after this method returns we assume the window will be released (see below), so we can go too
 - (void)windowWillClose:(NSNotification *)note
 {
-	[self.win setDelegate:nil];		// see http://stackoverflow.com/a/29523141/3408572
-	uiFree(self.w);
+	[self.w setDelegate:nil];		// see http://stackoverflow.com/a/29523141/3408572
+	uiFree(self.uiw);
 	[self release];
 }
 
 @end
 
 struct uiWindow {
-	NSWindow *w;
-	uiContainer *container;
-	uiControl *child;
 	uiWindowDelegate *d;
 };
 
@@ -48,63 +45,63 @@ static int defaultOnClosing(uiWindow *w, void *data)
 
 uiWindow *uiNewWindow(char *title, int width, int height)
 {
-	uiWindow *w;
+	uiWindowDelegate *d;
 
-	w = uiNew(uiWindow);
+	d = [uiWindowDelegate new];
 
-	w->w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
+	d.w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
 		backing:NSBackingStoreBuffered
 		defer:YES];
-	[w->w setTitle:toNSString(title)];
+	[d.w setTitle:toNSString(title)];
 	// TODO substitutions
 
 	// this is what will destroy the window on close
-	[w->w setReleasedWhenClosed:YES];
+	[d.w setReleasedWhenClosed:YES];
 
-	w->container = [[uiContainer alloc] initWithFrame:NSZeroRect];
-	[w->w setContentView:((NSView *) w->container)];
+	d.container = [[uiContainer alloc] initWithFrame:NSZeroRect];
+	[d.w setContentView:d.container];
 
-	w->d = [uiWindowDelegate new];
-	w->d.win = w->w;
-	w->d.w = w;
-	w->d.onClosing = defaultOnClosing;
-	[w->w setDelegate:w->d];
+	d.onClosing = defaultOnClosing;
+	[d.w setDelegate:d];
 
-	return w;
+	d.uiw = uiNew(uiWindow);
+	d.uiw->d = d;
+	return d.uiw;
 }
+
+#define D w->d
 
 void uiWindowDestroy(uiWindow *w)
 {
-	[w->w close];
+	[D.w close];
 }
 
 uintptr_t uiWindowHandle(uiWindow *w)
 {
-	return (uintptr_t) (w->w);
+	return (uintptr_t) (D.w);
 }
 
 // TODO titles
 
 void uiWindowShow(uiWindow *w)
 {
-	[w->w makeKeyAndOrderFront:w->w];
+	[D.w makeKeyAndOrderFront:D.w];
 }
 
 void uiWindowHide(uiWindow *w)
 {
-	[w->w orderOut:w->w];
+	[D.w orderOut:D.w];
 }
 
 void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
-	w->d.onClosing = f;
-	w->d.onClosingData = data;
+	D.onClosing = f;
+	D.onClosingData = data;
 }
 
 void uiWindowSetChild(uiWindow *w, uiControl *c)
 {
-	w->child = c;
-	w->container.child = c;
-	(*(w->child->setParent))(w->child, (uintptr_t) (w->container));
+	D.container.child = c;
+	(*(D.container.child->setParent))(D.container.child, (uintptr_t) (D.container));
 }

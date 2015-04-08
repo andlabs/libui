@@ -12,6 +12,7 @@ struct uiSingleHWNDControl {
 	void *onCommandNotifyDestroyData;
 	void (*preferredSize)(uiControl *, int, int, LONG, intmax_t *, intmax_t *);
 	void *data;
+	uintptr_t parent;
 };
 
 #define S(c) ((uiSingleHWNDControl *) (c))
@@ -28,10 +29,17 @@ static uintptr_t singleHandle(uiControl *c)
 	return (uintptr_t) (S(c)->hwnd);
 }
 
-static void singleSetParent(uiControl *c, uintptr_t parentHWND)
+static void singleSetParent(uiControl *c, uintptr_t parent)
 {
-	if (SetParent(S(c)->hwnd, (HWND) parentHWND) == NULL)
+	uiSingleHWNDControl *s = S(c);
+	uintptr_t oldparent;
+
+	oldparent = s->parent;
+	s->parent = parent;
+	if (SetParent(s->hwnd, (HWND) (s->parent)) == NULL)
 		logLastError("error changing control parent in singleSetParent()");
+	updateParent(oldparent);
+	updateParent(s->parent);
 }
 
 static uiSize singlePreferredSize(uiControl *c, uiSizing *d)

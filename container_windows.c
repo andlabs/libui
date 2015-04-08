@@ -82,3 +82,19 @@ void resize(uiControl *control, HWND parent, RECT r)
 		logLastError("error releasing DC in resize()");
 	(*(control->resize))(control, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }
+
+void updateParent(uintptr_t h)
+{
+	HWND hwnd;
+	RECT r;
+
+	if (h == 0)		// no parent
+		return;
+	hwnd = (HWND) h;
+	// TODO is there a better way?
+	if (GetWindowRect(hwnd, &r) == 0)
+		logLastError("error getting window rect for dummy move in updateParent()");
+	if (MoveWindow(hwnd, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
+		logLastError("error moving window in updateParent()");
+	// TODO invalidate rect?
+}

@@ -38,11 +38,16 @@ static uintptr_t stackHandle(uiControl *c)
 
 static void stackSetParent(uiControl *c, uintptr_t parent)
 {
+	stack *s = S(c);
 	uintmax_t i;
+	uintptr_t oldparent;
 
-	S(c)->parent = parent;
+	oldparent = s->parent;
+	s->parent = parent;
 	for (i = 0; i < S(c)->len; i++)
-		(*(S(c)->controls[i]->setParent))(S(c)->controls[i], S(c)->parent);
+		(*(s->controls[i]->setParent))(s->controls[i], s->parent);
+	updateParent(oldparent);
+	updateParent(s->parent);
 }
 
 static uiSize stackPreferredSize(uiControl *c, uiSizing *d)
@@ -213,5 +218,5 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 	if (s->parent != 0)
 		(*(s->controls[s->len]->setParent))(s->controls[s->len], s->parent);
 	s->len++;
-	// TODO queue reposition
+	updateParent(s->parent);
 }

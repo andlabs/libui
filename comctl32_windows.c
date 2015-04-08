@@ -9,8 +9,8 @@ BOOL (*WINAPI fv_SetWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR, DWORD_PTR);
 BOOL (*WINAPI fv_RemoveWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR);
 LRESULT (*WINAPI fv_DefSubclassProc)(HWND, UINT, WPARAM, LPARAM);
 
-// TODO add user classes
 #define wantedICCClasses ( \
+	ICC_STANDARD_CLASSES |	/* user32.dll controls */	\
 	ICC_PROGRESS_CLASS |		/* progress bars */		\
 	ICC_TAB_CLASSES |			/* tabs */				\
 	ICC_LISTVIEW_CLASSES |		/* table headers */		\

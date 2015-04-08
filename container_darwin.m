@@ -10,10 +10,17 @@
 // thanks to mikeash and JtRip in irc.freenode.net/#macdev
 @implementation uiContainer
 
-uiLogObjCClassAllocations(
-	if (self.child != NULL)
-		uiControlDestroy(self.child);
-)
+uiLogObjCClassAllocations
+
+- (void)viewDidMoveToSuperview
+{
+	if ([self superview] == nil)
+		if (self.child != NULL) {
+			uiControlDestroy(self.child);
+			self.child = NULL;
+		}
+	[super viewDidMoveToSuperview];
+}
 
 - (void)setFrameSize:(NSSize)s
 {

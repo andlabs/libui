@@ -14,7 +14,7 @@ struct uiSingleViewControl {
 
 static void singleDestroy(uiControl *c)
 {
-	[S(c)->view release];
+	[S(c)->view removeFromSuperview];
 }
 
 static uintptr_t singleHandle(uiControl *c)
@@ -90,7 +90,11 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 	return (uiControl *) c;
 }
 
-void uiDarwinControlFree(uiControl *c)
+BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview)
 {
-	uiFree(c);
+	if (newSuperview == nil) {
+		uiFree(c);
+		return YES;
+	}
+	return NO;
 }

@@ -14,7 +14,7 @@ struct uiSizing {
 // TODO see if we can override alloc instead
 #ifdef uiLogAllocations
 #import <stdio.h>
-#define uiLogObjCClassAllocations(deallocCode) \
+#define uiLogObjCClassAllocations \
 + (id)alloc \
 { \
 	id thing; \
@@ -24,17 +24,11 @@ struct uiSizing {
 } \
 - (void)dealloc \
 { \
-	deallocCode \
 	[super dealloc]; \
 	fprintf(stderr, "%p free\n", self); \
 }
 #else
-#define uiLogObjCClassAllocations(deallocCode) \
-- (void)dealloc \
-{ \
-	deallocCode \
-	[super dealloc]; \
-}
+#define uiLogObjCClassAllocations
 #endif
 
 // util_darwin.m

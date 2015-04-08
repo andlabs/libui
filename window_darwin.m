@@ -4,7 +4,9 @@
 // TODO
 // - showing on size
 
+// TODO clean this up
 @interface uiWindowDelegate : NSObject <NSWindowDelegate>
+@property (assign) NSWindow *win;
 @property uiWindow *w;
 @property int (*onClosing)(uiWindow *, void *);
 @property void *onClosingData;
@@ -12,7 +14,7 @@
 
 @implementation uiWindowDelegate
 
-uiLogObjCClassAllocations()
+uiLogObjCClassAllocations
 
 - (BOOL)windowShouldClose:(id)win
 {
@@ -25,6 +27,7 @@ uiLogObjCClassAllocations()
 // after this method returns we assume the window will be released (see below), so we can go too
 - (void)windowWillClose:(NSNotification *)note
 {
+	[self.win setDelegate:nil];		// see http://stackoverflow.com/a/29523141/3408572
 	uiFree(self.w);
 	[self release];
 }
@@ -63,6 +66,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	[w->w setContentView:((NSView *) w->container)];
 
 	w->d = [uiWindowDelegate new];
+	w->d.win = w->w;
 	w->d.w = w;
 	w->d.onClosing = defaultOnClosing;
 	[w->w setDelegate:w->d];

@@ -9,10 +9,13 @@
 
 @implementation uiNSButton
 
-- (void)dealloc
+- (void)viewDidMoveToSuperview
 {
-	uiDarwinControlFree(self.uiC);
-	[super dealloc];
+	if (uiDarwinControlFreeWhenAppropriate(self.uiC, [self superview])) {
+		[self setTarget:nil];
+		self.uiC = NULL;
+	}
+	[super viewDidMoveToSuperview];
 }
 
 - (IBAction)uiButtonClicked:(id)sender

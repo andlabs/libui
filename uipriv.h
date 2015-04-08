@@ -10,7 +10,6 @@ struct uiSize {
 	intmax_t height;
 };
 
-// TODO handle destruction
 struct uiControl {
 	void (*destroy)(uiControl *);
 	uintptr_t (*handle)(uiControl *);

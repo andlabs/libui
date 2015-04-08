@@ -12,6 +12,8 @@ static void uiContainer_init(uiContainer *c)
 	gtk_widget_set_has_window(GTK_WIDGET(c), FALSE);
 }
 
+// TODO explain the order here
+// TODO guard against use of forall after the ptr array unref
 static void uiContainer_dispose(GObject *obj)
 {
 	g_ptr_array_unref(uiContainer(obj)->children);

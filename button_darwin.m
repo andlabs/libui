@@ -5,7 +5,6 @@
 @property uiControl *uiC;
 @property void (*uiOnClicked)(uiControl *, void *);
 @property void *uiOnClickedData;
-@property NSMutableArray *uiFreeList;
 @end
 
 @implementation uiNSButton
@@ -34,7 +33,7 @@ uiControl *uiNewButton(const char *text)
 	uiControl *c;
 	uiNSButton *b;
 
-	c = uiDarwinNewControl([uiNSButton class], NO, NO, NULL);
+	c = uiDarwinNewControl([uiNSButton class], NO, NO);
 	b = (uiNSButton *) uiControlHandle(c);
 	b.uiC = c;
 
@@ -42,21 +41,21 @@ uiControl *uiNewButton(const char *text)
 	[b setButtonType:NSMomentaryPushInButton];
 	[b setBordered:YES];
 	[b setBezelStyle:NSRoundedBezelStyle];
-	setStandardControlFont((NSControl *) bb);
+	setStandardControlFont((NSControl *) b);
 
 	[b setTarget:b];
 	[b setAction:@selector(uiButtonClicked:)];
 
 	b.uiOnClicked = defaultOnClicked;
 
-	return b.c;
+	return b.uiC;
 }
 
 // TODO text
 
 void uiButtonOnClicked(uiControl *c, void (*f)(uiControl *, void *), void *data)
 {
-	button *b;
+	uiNSButton *b;
 
 	b = (uiNSButton *) uiControlHandle(c);
 	b.uiOnClicked = f;

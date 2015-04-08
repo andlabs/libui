@@ -19,7 +19,6 @@ struct uiControl {
 };
 
 extern void *uiAlloc(size_t);
-// TODO use this in existing files
 #define uiNew(T) ((T *) uiAlloc(sizeof (T)))
 extern void *uiRealloc(void *, size_t);
 extern void uiFree(void *);

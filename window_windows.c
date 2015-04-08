@@ -81,7 +81,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	RECT adjust;
 	WCHAR *wtitle;
 
-	w = (uiWindow *) uiAlloc(sizeof (uiWindow));
+	w = uiNew(uiWindow);
 	w->onClosing = defaultOnClosing;
 
 	adjust.left = 0;

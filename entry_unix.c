@@ -30,3 +30,13 @@ uiControl *uiNewEntry(void)
 
 	return e->c;
 }
+
+char *uiEntryText(uiControl *c)
+{
+	return g_strdup(gtk_entry_get_text(GTK_ENTRY(uiControlHandle(c))));
+}
+
+void uiEntrySetText(uiControl *c, const char *text)
+{
+	gtk_entry_set_text(GTK_ENTRY(uiControlHandle(c)), text);
+}

@@ -39,7 +39,15 @@ uintptr_t uiWindowHandle(uiWindow *w)
 	return (uintptr_t) (w->widget);
 }
 
-// TODO titles
+char *uiWindowTitle(uiWindow *w)
+{
+	return g_strdup(gtk_window_get_title(GTK_WINDOW(w->widget)));
+}
+
+void uiWindowSetTitle(uiWindow *w, const char *title)
+{
+	gtk_window_set_title(GTK_WINDOW(w->widget), title);
+}
 
 void uiWindowShow(uiWindow *w)
 {

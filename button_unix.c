@@ -47,7 +47,15 @@ uiControl *uiNewButton(const char *text)
 	return b->c;
 }
 
-// TODO text
+char *uiButtonText(uiControl *c)
+{
+	return g_strdup(gtk_button_get_label(GTK_BUTTON(uiControlHandle(c))));
+}
+
+void uiButtonSetText(uiControl *c, const char *text)
+{
+	gtk_button_set_label(GTK_BUTTON(uiControlHandle(c)), text);
+}
 
 void uiButtonOnClicked(uiControl *c, void (*f)(uiControl *, void *), void *data)
 {

@@ -79,7 +79,7 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 void uiWindowSetChild(uiWindow *w, uiControl *c)
 {
 	uiContainer(w->container)->child = c;
-	(*(c->setParent))(c, (uintptr_t) (w->container));
+	uiControlSetParent(uiContainer(w->container)->child, (uintptr_t) (w->container));
 }
 
 // TODO margined

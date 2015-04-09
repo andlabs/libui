@@ -250,7 +250,7 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 	s->controls[s->len] = c;
 	s->stretchy[s->len] = stretchy;
 	if (s->parent != 0)
-		(*(s->controls[s->len]->setParent))(s->controls[s->len], s->parent);
+		uiControlSetParent(s->controls[s->len], s->parent);
 	s->len++;
 	updateParent(s->parent);
 }

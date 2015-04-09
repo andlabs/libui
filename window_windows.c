@@ -177,7 +177,7 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 void uiWindowSetChild(uiWindow *w, uiControl *c)
 {
 	w->child = c;
-	(*(w->child->setParent))(w->child, (uintptr_t) (w->hwnd));
+	uiControlSetParent(w->child, (uintptr_t) (w->hwnd));
 }
 
 // TODO uiWindowMargined

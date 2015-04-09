@@ -56,7 +56,7 @@ uiLogObjCClassAllocations
 	}
 	d.xPadding = macXPadding;
 	d.yPadding = macYPadding;
-	(*(self.child->resize))(self.child, x, y, width, height, &d);
+	uiControlResize(self.child, x, y, width, height, &d);
 }
 
 // TODO margined

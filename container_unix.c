@@ -81,7 +81,7 @@ static void uiContainer_size_allocate(GtkWidget *widget, GtkAllocation *allocati
 	}
 	d.xPadding = gtkXPadding;
 	d.yPadding = gtkYPadding;
-	(*(c->child->resize))(c->child, x, y, width, height, &d);
+	uiControlResize(c->child, x, y, width, height, &d);
 }
 
 struct forall {

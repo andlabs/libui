@@ -107,3 +107,23 @@ void uiCheckboxOnToggled(uiControl *c, void (*f)(uiControl *, void *), void *dat
 	cc->onToggled = f;
 	cc->onToggledData = data;
 }
+
+int uiCheckboxChecked(uiControl *c)
+{
+	HWND hwnd;
+
+	hwnd = (HWND) uiControlHandle(c);
+	return SendMessage(hwnd, BM_GETCHECK, 0, 0) == BST_CHECKED;
+}
+
+void uiCheckboxSetChecked(uiControl *c, int checked)
+{
+	HWND hwnd;
+	WPARAM check;
+
+	hwnd = (HWND) uiControlHandle(c);
+	check = BST_CHECKED;
+	if (!checked)
+		check = BST_UNCHECKED;
+	SendMessage(hwnd, BM_SETCHECK, check, 0);
+}

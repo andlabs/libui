@@ -53,7 +53,21 @@ uiControl *uiNewButton(const char *text)
 	return b.uiC;
 }
 
-// TODO text
+char *uiButtonText(uiControl *c)
+{
+	uiNSButton *b;
+
+	b = (uiNSButton *) uiControlHandle(c);
+	return strdup(fromNSString([b title]));
+}
+
+void uiButtonSetText(uiControl *c, const char *text)
+{
+	uiNSButton *b;
+
+	b = (uiNSButton *) uiControlHandle(c);
+	[b setTitle:toNSString(text)];
+}
 
 void uiButtonOnClicked(uiControl *c, void (*f)(uiControl *, void *), void *data)
 {

@@ -20,14 +20,14 @@
 
 // TOOD move elsewhere
 // these are based on interface builder defaults; my comments in the old code weren't very good so I don't really know what talked about what, sorry :/
-void finishNewTextField(NSTextField *t, BOOL isLabel)
+void finishNewTextField(NSTextField *t, BOOL isEntry)
 {
 	setStandardControlFont((id) t);
 
 	// THE ORDER OF THESE CALLS IS IMPORTANT; CHANGE IT AND THE BORDERS WILL DISAPPEAR
 	[t setBordered:NO];
 	[t setBezelStyle:NSTextFieldSquareBezel];
-	[t setBezeled:isLabel];
+	[t setBezeled:isEntry];
 
 	// TODO autocorrect comment
 
@@ -48,4 +48,21 @@ uiControl *uiNewEntry(void)
 	finishNewTextField((NSTextField *) t, YES);
 
 	return t.uiC;
+}
+
+char *uiEntryText(uiControl *c)
+{
+	uiNSTextField *t;
+
+	t = (uiNSTextField *) uiControlHandle(c);
+	// TODO wrap all strdup calls
+	return strdup(fromNSString([t stringValue]));
+}
+
+void uiEntrySetText(uiControl *c, const char *text)
+{
+	uiNSTextField *t;
+
+	t = (uiNSTextField *) uiControlHandle(c);
+	[t setStringValue:toNSString(text)];
 }

@@ -6,6 +6,7 @@
 #import "ui_darwin.h"
 
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
+#define fromNSString(str) [(str) UTF8String]
 
 // TODO move this to the right place
 struct uiSizing {

@@ -6,3 +6,8 @@ void setStandardControlFont(NSControl *control)
 {
 	[control setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]]];
 }
+
+void uiFreeText(char *s)
+{
+	free(s);
+}

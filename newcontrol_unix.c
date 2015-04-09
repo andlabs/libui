@@ -27,15 +27,21 @@ static uintptr_t singleHandle(uiControl *c)
 static void singleSetParent(uiControl *c, uintptr_t parent)
 {
 	uiSingleWidgetControl *s = S(c);
+
+	s->parent = parent;
+	gtk_container_add(GTK_CONTAINER(s->parent), s->immediate);
+	updateParent(s->parent);
+}
+
+static void singleRemoveParent(uiControl *c)
+{
+	uiSingleWidgetControl *s = S(c);
 	uintptr_t oldparent;
 
 	oldparent = s->parent;
-	s->parent = parent;
-	if (oldparent != 0)
-		gtk_container_remove(GTK_CONTAINER(oldparent), s->immediate);
-	gtk_container_add(GTK_CONTAINER(s->parent), s->immediate);
+	s->parent = 0;
+	gtk_container_remove(GTK_CONTAINER(oldparent), s->immediate);
 	updateParent(oldparent);
-	updateParent(s->parent);
 }
 
 static uiSize singlePreferredSize(uiControl *c, uiSizing *d)
@@ -101,7 +107,7 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scro
 	// with this:
 	// - end user call works (shoudn't be in any container)
 	// - call in uiContainer works (both refs freed)
-	// this also ensures singleSetParent() works properly when changing parents
+	// this also ensures singleRemoveParent() works properly
 	g_object_ref_sink(c->immediate);
 	// and let's free the uiSingleWidgetControl with it
 	g_signal_connect(c->immediate, "destroy", G_CALLBACK(onDestroy), c);
@@ -109,6 +115,7 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scro
 	c->control.destroy = singleDestroy;
 	c->control.handle = singleHandle;
 	c->control.setParent = singleSetParent;
+	c->control.removeParent = singleRemoveParent;
 	c->control.preferredSize = singlePreferredSize;
 	c->control.resize = singleResize;
 

@@ -24,6 +24,7 @@ struct uiControl {
 	void (*destroy)(uiControl *);
 	uintptr_t (*handle)(uiControl *);
 	void (*setParent)(uiControl *, uintptr_t);
+	void (*removeParent)(uiControl *);
 	uiSize (*preferredSize)(uiControl *, uiSizing *);
 	void (*resize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 };

@@ -13,6 +13,7 @@ struct uiSingleViewControl {
 
 #define S(c) ((uiSingleViewControl *) (c))
 
+// TODO this will need to change if we want to provide removal
 static void singleDestroy(uiControl *c)
 {
 	[S(c)->view removeFromSuperview];
@@ -26,16 +27,23 @@ static uintptr_t singleHandle(uiControl *c)
 static void singleSetParent(uiControl *c, uintptr_t parent)
 {
 	uiSingleViewControl *s = S(c);
-	uintptr_t oldparent;
 	NSView *parentView;
 
-	oldparent = s->parent;
 	s->parent = parent;
 	parentView = (NSView *) (s->parent);
-	// TODO will this change parents?
 	[parentView addSubview:s->immediate];
-	updateParent(oldparent);
 	updateParent(s->parent);
+}
+
+static void singleRemoveParent(uiControl *c)
+{
+	uiSingleViewControl *s = S(c);
+	uintptr_t oldparent;
+
+	oldparent = s->parent;
+	s->parent = 0;
+	[s->immediate removeFromSuperview];
+	updateParent(oldparent);
 }
 
 // also good for NSBox and NSProgressIndicator
@@ -92,6 +100,7 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 	c->control.destroy = singleDestroy;
 	c->control.handle = singleHandle;
 	c->control.setParent = singleSetParent;
+	c->control.removeParent = singleRemoveParent;
 	c->control.preferredSize = singlePreferredSize;
 	c->control.resize = singleResize;
 

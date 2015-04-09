@@ -41,14 +41,24 @@ static void stackSetParent(uiControl *c, uintptr_t parent)
 {
 	stack *s = S(c);
 	uintmax_t i;
-	uintptr_t oldparent;
 
-	oldparent = s->parent;
 	s->parent = parent;
 	for (i = 0; i < S(c)->len; i++)
 		(*(s->controls[i]->setParent))(s->controls[i], s->parent);
-	updateParent(oldparent);
 	updateParent(s->parent);
+}
+
+static void stackRemoveParent(uiControl *c)
+{
+	stack *s = S(c);
+	uintmax_t i;
+	uintptr_t oldparent;
+
+	oldparent = s->parent;
+	s->parent = 0;
+	for (i = 0; i < S(c)->len; i++)
+		(*(s->controls[i]->removeParent))(s->controls[i]);
+	updateParent(oldparent);
 }
 
 static uiSize stackPreferredSize(uiControl *c, uiSizing *d)
@@ -197,6 +207,7 @@ uiControl *uiNewHorizontalStack(void)
 	s->control.destroy = stackDestroy;
 	s->control.handle = stackHandle;
 	s->control.setParent = stackSetParent;
+	s->control.removeParent = stackRemoveParent;
 	s->control.preferredSize = stackPreferredSize;
 	s->control.resize = stackResize;
 

@@ -13,6 +13,7 @@ struct stack {
 	uintmax_t cap;
 	int vertical;
 	uintptr_t parent;
+	int padded;
 };
 
 #define S(c) ((stack *) (c))
@@ -58,16 +59,22 @@ static uiSize stackPreferredSize(uiControl *c, uiSizing *d)
 	intmax_t maxswid, maxsht;
 	uintmax_t i;
 	uiSize size, preferred;
+	uiSizingComm *dd = (uiSizingComm *) d;
 
 	size.width = 0;
 	size.height = 0;
 	if (s->len == 0)
 		return size;
 
-	// 1) add in padding
-	// TODO padding
+	// 0) get this Stack's padding
 	xpadding = 0;
 	ypadding = 0;
+	if (s->padded) {
+		xpadding = dd->xPadding;
+		ypadding = dd->yPadding;
+	}
+
+	// 1) initialize the desired rect with the needed padding
 	if (s->vertical)
 		size.height = (s->len - 1) * ypadding;
 	else
@@ -117,13 +124,18 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	intmax_t stretchywid, stretchyht;
 	uintmax_t i;
 	uiSize preferred;
+	uiSizingComm *dd = (uiSizingComm *) d;
 
 	if (s->len == 0)
 		return;
 
-	// TODO padding
+	// -1) get this Stack's padding
 	xpadding = 0;
 	ypadding = 0;
+	if (s->padded) {
+		xpadding = dd->xPadding;
+		ypadding = dd->yPadding;
+	}
 
 	// 0) inset the available rect by the needed padding
 	if (s->vertical)
@@ -218,5 +230,15 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 	if (s->parent != 0)
 		(*(s->controls[s->len]->setParent))(s->controls[s->len], s->parent);
 	s->len++;
+	updateParent(s->parent);
+}
+
+// TODO get padded
+
+void uiStackSetPadded(uiControl *st, int padded)
+{
+	stack *s = S(st);
+
+	s->padded = padded;
 	updateParent(s->parent);
 }

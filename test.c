@@ -66,12 +66,17 @@ static void setCheckboxText(uiControl *b, void *data)
 }
 
 uiWindow *w;
-uiControl *stacks[5];
+#define nStacks 5
+uiControl *stacks[nStacks];
 uiControl *spaced;
 
 static void setSpaced(int spaced)
 {
+	int i;
+
 	uiWindowSetMargined(w, spaced);
+	for (i = 0; i < nStacks; i++)
+		uiStackSetPadded(stacks[i], spaced);
 }
 
 static void toggleSpaced(uiControl *c, void *data)

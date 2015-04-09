@@ -42,6 +42,8 @@ void uiButtonOnClicked(uiControl *, void (*)(uiControl *, void *), void *);
 uiControl *uiNewHorizontalStack(void);
 uiControl *uiNewVerticalStack(void);
 void uiStackAdd(uiControl *, uiControl *, int);
+// TODO get padded
+void uiStackSetPadded(uiControl *, int);
 
 uiControl *uiNewEntry(void);
 char *uiEntryText(uiControl *);

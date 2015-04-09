@@ -35,13 +35,6 @@ enum {
 	msgNOTIFY,
 };
 
-// TODO move this to the right place
-struct uiSizing {
-	int baseX;
-	int baseY;
-	LONG internalLeading;
-};
-
 // debug_windows.c
 extern HRESULT logLastError(const char *);
 extern HRESULT logHRESULT(const char *, HRESULT);
@@ -58,6 +51,11 @@ extern WCHAR *toUTF16(const char *);
 
 // container_windows.c
 extern BOOL sharedWndProc(HWND, UINT, WPARAM, LPARAM, LRESULT *);
+struct uiSizing {
+	int baseX;
+	int baseY;
+	LONG internalLeading;
+};
 extern void resize(uiControl *, HWND, RECT);
 
 // comctl32_windows.c

@@ -63,6 +63,9 @@ void resize(uiControl *control, HWND parent, RECT r)
 	TEXTMETRICW tm;
 	SIZE size;
 
+	size.cx = 0;
+	size.cy = 0;
+	ZeroMemory(&tm, sizeof (TEXTMETRICW));
 	dc = GetDC(parent);
 	if (dc == NULL)
 		logLastError("error getting DC in resize()");

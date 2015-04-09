@@ -17,7 +17,6 @@ WCHAR *toUTF16(const char *str)
 	return wstr;
 }
 
-// TODO this and resize(): initialize size and other values to avoid garbage on failure
 intmax_t uiWindowsWindowTextWidth(HWND hwnd)
 {
 	int len;
@@ -26,6 +25,8 @@ intmax_t uiWindowsWindowTextWidth(HWND hwnd)
 	HFONT prevfont;
 	SIZE size;
 
+	size.cx = 0;
+	size.cy = 0;
 	// TODO check for error
 	len = GetWindowTextLengthW(hwnd);
 	if (len == 0)		// no text; nothing to do

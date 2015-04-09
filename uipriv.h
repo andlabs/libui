@@ -18,7 +18,7 @@ struct uiControl {
 	void (*resize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 };
 
-// TODO write this comment
+// uncomment the following line to enable memory logging; see leaks.awk
 #define uiLogAllocations
 
 extern void *uiAlloc(size_t, const char *);

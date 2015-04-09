@@ -65,13 +65,24 @@ static void setCheckboxText(uiControl *b, void *data)
 	uiFreeText(text);
 }
 
-uiControl *stacks[4];
+uiControl *stacks[5];
 uiControl *spaced;
 
 static void setSpaced(uiControl *c, void *data)
 {
 	// TODO
-	printf("toggled\n");
+	printf("toggled %d\n", uiCheckboxCheked(spaced));
+}
+
+// these will also be used to test if setting checks will trigger events
+static void forceSpacedOn(uiControl *c, void *data)
+{
+	uiCheckboxSetChecked(spaced, 1);
+}
+
+static void forceSpacedOff(uiControl *c, void *data)
+{
+	uiCheckboxSetChecked(spaced, 0);
 }
 
 int main(int argc, char *argv[])
@@ -127,7 +138,15 @@ int main(int argc, char *argv[])
 	uiStackAdd(stacks[3], setButton, 1);
 	uiStackAdd(stacks[0], stacks[3], 0);
 
-	uiStackAdd(stacks[0], spaced, 0);
+	stacks[4] = uiNewHorizontalStack();
+	uiStackAdd(stacks[4], spaced, 1);
+	getButton = uiNewButton("On");
+	uiButtonOnClicked(getButton, forceSpacedOn, NULL);
+	setButton = uiNewButton("Off");
+	uiButtonOnClicked(setButton, forceSpacedOff, NULL);
+	uiStackAdd(stacks[4], getButton, 0);
+	uiStackAdd(stacks[4], setButton, 0);
+	uiStackAdd(stacks[0], stacks[4], 0);
 
 	uiWindowShow(w);
 	uiMain();

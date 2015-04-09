@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 	uiWindowOnClosing(w, onClosing, NULL);
 
 	stacks[0] = uiNewVerticalStack();
-	uiWindowSetChild(w, staacks[0]);
+	uiWindowSetChild(w, stacks[0]);
 
 	e = uiNewEntry();
 	uiStackAdd(stacks[0], e, 0);
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 
 	// this will also be used to make sure tab stops work properly when inserted out of creation order, especially on Windows
 	spaced = uiNewCheckbox("Spaced");
-	uiCheckboxOnClicked(spaced, setSpaced, NULL);
+	uiCheckboxOnToggled(spaced, setSpaced, NULL);
 
 	stacks[3] = uiNewHorizontalStack();
 	getButton = uiNewButton("Get Checkbox Text");

@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	mainStack = uiNewVerticalStack();
 	uiWindowSetChild(w, mainStack);
 
-	e = uiTextEntryNew();
+	e = uiNewEntry();
 	uiStackAdd(mainStack, e, 0);
 
 	buttonStack = uiNewHorizontalStack();
@@ -83,10 +83,10 @@ int main(int argc, char *argv[])
 	uiStackAdd(mainStack, buttonStack, 0);
 
 	buttonStack = uiNewHorizontalStack();
-//TODO	getButton = uiNewButton("Get Button Text");
-	uiButtonOnClicked(getButton, getButtonText, getButton);
-//TODO	setButton = uiNewButton("Set Button Text");
-	uiButtonOnClicked(setButton, setButtonText, getButton);
+	getButton = uiNewButton("Get Button Text");
+//TODO	uiButtonOnClicked(getButton, getButtonText, getButton);
+	setButton = uiNewButton("Set Button Text");
+//TODO	uiButtonOnClicked(setButton, setButtonText, getButton);
 	uiStackAdd(buttonStack, getButton, 1);
 	uiStackAdd(buttonStack, setButton, 1);
 	uiStackAdd(mainStack, buttonStack, 0);

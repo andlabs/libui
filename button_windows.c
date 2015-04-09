@@ -93,7 +93,15 @@ uiControl *uiNewButton(const char *text)
 	return b->c;
 }
 
-// TODO text
+char *uiButtonText(uiControl *c)
+{
+	return uiWindowsControlText(c);
+}
+
+void uiButtonSetText(uiControl *c, const char *text)
+{
+	uiWindowsControlSetText(c, text);
+}
 
 void uiButtonOnClicked(uiControl *c, void (*f)(uiControl *, void *), void *data)
 {

@@ -49,6 +49,8 @@ extern HWND initialParent;
 
 // text_windows.c
 extern WCHAR *toUTF16(const char *);
+extern char *toUTF8(const WCHAR *);
+extern WCHAR *windowText(HWND);
 
 // container_windows.c
 extern BOOL sharedWndProc(HWND, UINT, WPARAM, LPARAM, LRESULT *);

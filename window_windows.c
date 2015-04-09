@@ -116,7 +116,26 @@ uintptr_t uiWindowHandle(uiWindow *w)
 	return (uintptr_t) (w->hwnd);
 }
 
-// TODO titles
+char *uiWindowTitle(uiWindow *w)
+{
+	WCHAR *wtext;
+	char *text;
+
+	wtext = windowText(w->hwnd);
+	text = toUTF8(wtext);
+	uiFree(wtext);
+	return text;
+}
+
+void uiWindowSetTitle(uiWindow *w, const char *text)
+{
+	WCHAR *wtext;
+
+	wtext = toUTF16(text);
+	if (SetWindowTextW(w->hwnd, wtext) == 0)
+		logLastError("error setting window title in uiWindowSetTitle()");
+	uiFree(wtext);
+}
 
 void uiWindowShow(uiWindow *w)
 {

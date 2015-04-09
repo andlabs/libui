@@ -123,3 +123,24 @@ void *uiWindowsControlData(uiControl *c)
 {
 	return S(c)->data;
 }
+
+char *uiWindowsControlText(uiControl *c)
+{
+	WCHAR *wtext;
+	char *text;
+
+	wtext = windowText(S(c)->hwnd);
+	text = toUTF8(wtext);
+	uiFree(wtext);
+	return text;
+}
+
+void uiWindowsControlSetText(uiControl *c, const char *text)
+{
+	WCHAR *wtext;
+
+	wtext = toUTF16(text);
+	if (SetWindowTextW(S(c)->hwnd, wtext) == 0)
+		logLastError("error setting control text in uiWindowsControlSetText()");
+	uiFree(wtext);
+}

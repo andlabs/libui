@@ -61,3 +61,13 @@ uiControl *uiNewEntry(void)
 
 	return e->c;
 }
+
+char *uiEntryText(uiControl *c)
+{
+	return uiWindowsControlText(c);
+}
+
+void uiEntrySetText(uiControl *c, const char *text)
+{
+	uiWindowsControlSetText(c, text);
+}

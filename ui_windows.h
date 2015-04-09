@@ -47,4 +47,9 @@ void *uiWindowsControlData(uiControl *);
 // TODO really export?
 extern intmax_t uiWindowsWindowTextWidth(HWND hwnd);
 
+// these functions get and set the window text for such a uiControl
+// the value returned should be freed with uiFreeText()
+extern char *uiWindowsControlText(uiControl *);
+extern void uiWindowsControlSetText(uiControl *, const char *);
+
 #endif

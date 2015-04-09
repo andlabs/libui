@@ -110,3 +110,15 @@ void uiWindowSetChild(uiWindow *w, uiControl *c)
 	D.container.child = c;
 	(*(D.container.child->setParent))(D.container.child, (uintptr_t) (D.container));
 }
+
+// TODO margined
+
+void uiWindowSetMargined(uiWindow *w, int margined)
+{
+	BOOL m;
+
+	m = NO;
+	if (margined)
+		m = YES;
+	[D.container uiSetMargined:m];
+}

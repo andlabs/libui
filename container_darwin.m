@@ -8,7 +8,9 @@
 // - NSTab switching tabs calls both -[setFrame:] and -[setFrameSize:] on the new tab
 // so we just override setFrameSize:
 // thanks to mikeash and JtRip in irc.freenode.net/#macdev
-@implementation uiContainer
+@implementation uiContainer {
+	BOOL uimargined;
+}
 
 uiLogObjCClassAllocations
 
@@ -28,12 +30,37 @@ uiLogObjCClassAllocations
 	[self uiUpdateNow];
 }
 
+// These are based on measurements from Interface Builder.
+// TODO reverify these against /layout rects/, not /frame rects/
+#define macXMargin 20
+#define macYMargin 20
+
 - (void)uiUpdateNow
 {
 	uiSizing d;
+	intmax_t x, y, width, height;
 
-	if (self.child != NULL)
-		(*(self.child->resize))(self.child, [self bounds].origin.y, [self bounds].origin.y, [self bounds].size.width, [self bounds].size.height, &d);
+	if (self.child == NULL)
+		return;
+	x = [self bounds].origin.x;
+	y = [self bounds].origin.y;
+	width = [self bounds].size.width;
+	height = [self bounds].size.height;
+	if (self->uimargined) {
+		x += macXMargin;
+		y += macYMargin;
+		width -= 2 * macXMargin;
+		height -= 2 * macYMargin;
+	}
+	(*(self.child->resize))(self.child, x, y, width, height, &d);
+}
+
+// TODO margined
+
+- (void)uiSetMargined:(BOOL)margined
+{
+	self->uimargined = margined;
+	[self uiUpdateNow];
 }
 
 @end

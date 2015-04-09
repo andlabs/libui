@@ -40,4 +40,5 @@ extern void setStandardControlFont(NSControl *);
 // TODO rename to uiChild
 @property uiControl *child;
 - (void)uiUpdateNow;
+- (void)uiSetMargined:(BOOL)margined;
 @end

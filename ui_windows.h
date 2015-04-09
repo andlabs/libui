@@ -39,9 +39,8 @@ struct uiSizingSys {
 	LONG internalLeading;
 };
 // Use these in your preferredSize() implementation with baseX and baseY.
-// TODO rename to DlgUnits?
-#define uiDlgUnitToX(dlg, baseX) MulDiv((dlg), baseX, 4)
-#define uiDlgUnitToY(dlg, baseY) MulDiv((dlg), baseY, 8)
+#define uiDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)
+#define uiDlgUnitsToY(dlg, baseY) MulDiv((dlg), baseY, 8)
 
 // and use this if you need the text of the window width
 // TODO really export?

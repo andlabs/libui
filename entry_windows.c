@@ -27,8 +27,8 @@ static void onWM_DESTROY(uiControl *c)
 
 static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiDlgUnitToX(entryWidth, d->sys->baseX);
-	*height = uiDlgUnitToY(entryHeight, d->sys->baseY);
+	*width = uiDlgUnitsToX(entryWidth, d->sys->baseX);
+	*height = uiDlgUnitsToY(entryHeight, d->sys->baseY);
 }
 
 uiControl *uiNewEntry(void)

@@ -46,8 +46,8 @@ static void onWM_DESTROY(uiControl *c)
 
 static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiDlgUnitToX(checkboxXFromLeftOfBoxToLeftOfLabel, d->sys->baseX) + uiWindowsWindowTextWidth((HWND) uiControlHandle(c));
-	*height = uiDlgUnitToY(checkboxHeight, d->sys->baseY);
+	*width = uiDlgUnitsToX(checkboxXFromLeftOfBoxToLeftOfLabel, d->sys->baseX) + uiWindowsWindowTextWidth((HWND) uiControlHandle(c));
+	*height = uiDlgUnitsToY(checkboxHeight, d->sys->baseY);
 }
 
 static void defaultOnToggled(uiControl *c, void *data)

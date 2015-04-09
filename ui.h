@@ -15,6 +15,8 @@ void uiInitErrorFree(uiInitError *);
 void uiMain(void);
 void uiQuit(void);
 
+void uiFreeText(char *);
+
 typedef struct uiControl uiControl;
 void uiControlDestroy(uiControl *);
 uintptr_t uiControlHandle(uiControl *);
@@ -23,14 +25,16 @@ typedef struct uiWindow uiWindow;
 uiWindow *uiNewWindow(char *, int, int);
 void uiWindowDestroy(uiWindow *);
 uintptr_t uiWindowHandle(uiWindow *);
-// TODO titles
+char *uiWindowTitle(uiWindow *);
+void uiWindowSetTitle(uiWindow *, const char *);
 void uiWindowShow(uiWindow *);
 void uiWindowHide(uiWindow *);
 void uiWindowOnClosing(uiWindow *, int (*)(uiWindow *, void *), void *);
 void uiWindowSetChild(uiWindow *, uiControl *);
 
 uiControl *uiNewButton(const char *);
-// TODO text
+char *uiButtonText(uiControl *);
+void uiButtonSetText(uiControl *, const char *);
 void uiButtonOnClicked(uiControl *, void (*)(uiControl *, void *), void *);
 
 uiControl *uiNewHorizontalStack(void);
@@ -38,5 +42,7 @@ uiControl *uiNewVerticalStack(void);
 void uiStackAdd(uiControl *, uiControl *, int);
 
 uiControl *uiNewEntry(void);
+char *uiEntryText(uiControl *);
+void uiEntrySetText(uiControl *, const char *);
 
 #endif

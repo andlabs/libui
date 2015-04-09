@@ -11,7 +11,6 @@ int onClosing(uiWindow *w, void *data)
 
 uiControl *e;
 
-/*TODO
 static void getWindowText(uiControl *b, void *data)
 {
 	char *text;
@@ -47,7 +46,6 @@ static void setButtonText(uiControl *b, void *data)
 	uiButtonSetText((uiControl *) data, text);
 	uiFreeText(text);
 }
-*/
 
 int main(int argc, char *argv[])
 {
@@ -75,18 +73,18 @@ int main(int argc, char *argv[])
 
 	buttonStack = uiNewHorizontalStack();
 	getButton = uiNewButton("Get Window Text");
-//TODO	uiButtonOnClicked(getButton, getWindowText, w);
+	uiButtonOnClicked(getButton, getWindowText, w);
 	setButton = uiNewButton("Set Window Text");
-//TODO	uiButtonOnClicked(setButton, setWindowText, w);
+	uiButtonOnClicked(setButton, setWindowText, w);
 	uiStackAdd(buttonStack, getButton, 1);
 	uiStackAdd(buttonStack, setButton, 1);
 	uiStackAdd(mainStack, buttonStack, 0);
 
 	buttonStack = uiNewHorizontalStack();
 	getButton = uiNewButton("Get Button Text");
-//TODO	uiButtonOnClicked(getButton, getButtonText, getButton);
+	uiButtonOnClicked(getButton, getButtonText, getButton);
 	setButton = uiNewButton("Set Button Text");
-//TODO	uiButtonOnClicked(setButton, setButtonText, getButton);
+	uiButtonOnClicked(setButton, setButtonText, getButton);
 	uiStackAdd(buttonStack, getButton, 1);
 	uiStackAdd(buttonStack, setButton, 1);
 	uiStackAdd(mainStack, buttonStack, 0);

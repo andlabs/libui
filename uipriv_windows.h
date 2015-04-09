@@ -47,7 +47,7 @@ extern int nCmdShow;
 extern HFONT hMessageFont;
 extern HWND initialParent;
 
-// util_windows.c
+// text_windows.c
 extern WCHAR *toUTF16(const char *);
 
 // container_windows.c

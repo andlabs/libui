@@ -4,7 +4,7 @@
 struct entry {
 };
 
-static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 {
 	return FALSE;
 }

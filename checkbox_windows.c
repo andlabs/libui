@@ -6,13 +6,13 @@ struct checkbox {
 	void *onToggledData;
 };
 
-static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 {
 	struct checkbox *cc = (struct checkbox *) (c->data);
 	HWND hwnd;
 	WPARAM check;
 
-	if (HIWORD(wParam) != BN_CLICKED)
+	if (code != BN_CLICKED)
 		return FALSE;
 
 	// we didn't use BS_AUTOCHECKBOX (see controls_windows.go) so we have to manage the check state ourselves

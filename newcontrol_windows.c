@@ -5,7 +5,7 @@ typedef struct singleHWND singleHWND;
 
 struct singleHWND {
 	HWND hwnd;
-	BOOL (*onWM_COMMAND)(uiControl *, WPARAM, LPARAM, LRESULT *);
+	BOOL (*onWM_COMMAND)(uiControl *, WORD, LRESULT *);
 	BOOL (*onWM_NOTIFY)(uiControl *, WPARAM, LPARAM, LRESULT *);
 	void (*onWM_DESTROY)(uiControl *);
 	uintptr_t parent;
@@ -65,7 +65,7 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 
 	switch (uMsg) {
 	case msgCOMMAND:
-		if ((*(s->onWM_COMMAND))(c, wParam, lParam, &lResult) != FALSE)
+		if ((*(s->onWM_COMMAND))(c, HIWORD(wParam), &lResult) != FALSE)
 			return lResult;
 		break;
 	case msgNOTIFY:

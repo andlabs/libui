@@ -6,11 +6,11 @@ struct button {
 	void *onClickedData;
 };
 
-static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 {
 	struct button *b = (struct button *) (c->data);
 
-	if (HIWORD(wParam) != BN_CLICKED)
+	if (code != BN_CLICKED)
 		return FALSE;
 	(*(b->onClicked))(c, b->onClickedData);
 	*lResult = 0;

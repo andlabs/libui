@@ -2,10 +2,7 @@
 #include "uipriv_windows.h"
 
 struct entry {
-	uiControl *c;
 };
-
-#define E(x) ((struct entry *) (x))
 
 static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult)
 {
@@ -17,9 +14,9 @@ static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, 
 	return FALSE;
 }
 
-static void onWM_DESTROY(uiControl *c, void *data)
+static void onWM_DESTROY(uiControl *c)
 {
-	struct entry *e = (struct entry *) data;
+	struct entry *e = (struct entry *) (c->data);
 
 	uiFree(e);
 }
@@ -28,19 +25,18 @@ static void onWM_DESTROY(uiControl *c, void *data)
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void preferredSize(uiControl *c, int baseX, int baseY, LONG internalLeading, intmax_t *width, intmax_t *height)
+static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiDlgUnitToX(entryWidth, baseX);
-	*height = uiDlgUnitToY(entryHeight, baseY);
+	*width = uiDlgUnitToX(entryWidth, d->sys->baseX);
+	*height = uiDlgUnitToY(entryHeight, d->sys->baseY);
 }
 
 uiControl *uiNewEntry(void)
 {
+	uiControl *c;
 	struct entry *e;
 	uiWindowsNewControlParams p;
 	HWND hwnd;
-
-	e = uiNew(struct entry);
 
 	p.dwExStyle = WS_EX_CLIENTEDGE;
 	p.lpClassName = L"edit";
@@ -51,15 +47,17 @@ uiControl *uiNewEntry(void)
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
-	p.onCommandNotifyDestroyData = e;
-	p.preferredSize = preferredSize;
-	p.data = e;
-	e->c = uiWindowsNewControl(&p);
+	c = uiWindowsNewControl(&p);
 
-	hwnd = (HWND) uiControlHandle(e->c);
+	c->preferredSize = preferredSize;
+
+	hwnd = (HWND) uiControlHandle(c);
 	SendMessageW(hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
-	return e->c;
+	e = uiNew(struct entry);
+	c->data = e;
+
+	return c;
 }
 
 char *uiEntryText(uiControl *c)

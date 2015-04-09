@@ -2,15 +2,13 @@
 #include "uipriv_windows.h"
 
 struct checkbox {
-	uiControl *c;
 	void (*onToggled)(uiControl *, void *);
 	void *onToggledData;
 };
 
-#define C(x) ((struct checkbox *) (x))
-
-static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
+	struct checkbox *cc = (struct checkbox *) (c->data);
 	HWND hwnd;
 	WPARAM check;
 
@@ -24,19 +22,19 @@ static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, void *data,
 		check = BST_UNCHECKED;
 	SendMessage(hwnd, BM_SETCHECK, check, 0);
 
-	(*(C(data)->onToggled))(c, C(data)->onToggledData);
+	(*(cc->onToggled))(c, cc->onToggledData);
 	*lResult = 0;
 	return TRUE;
 }
 
-static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult)
+static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
 	return FALSE;
 }
 
-static void onWM_DESTROY(uiControl *c, void *data)
+static void onWM_DESTROY(uiControl *c)
 {
-	struct checkbox *cc = (struct checkbox *) data;
+	struct checkbox *cc = (struct checkbox *) (c->data);
 
 	uiFree(cc);
 }
@@ -46,10 +44,10 @@ static void onWM_DESTROY(uiControl *c, void *data)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define checkboxXFromLeftOfBoxToLeftOfLabel 12
 
-static void preferredSize(uiControl *c, int baseX, int baseY, LONG internalLeading, intmax_t *width, intmax_t *height)
+static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiDlgUnitToX(checkboxXFromLeftOfBoxToLeftOfLabel, baseX) + uiWindowsWindowTextWidth((HWND) uiControlHandle(c));
-	*height = uiDlgUnitToY(checkboxHeight, baseY);
+	*width = uiDlgUnitToX(checkboxXFromLeftOfBoxToLeftOfLabel, d->sys->baseX) + uiWindowsWindowTextWidth((HWND) uiControlHandle(c));
+	*height = uiDlgUnitToY(checkboxHeight, d->sys->baseY);
 }
 
 static void defaultOnToggled(uiControl *c, void *data)
@@ -59,12 +57,11 @@ static void defaultOnToggled(uiControl *c, void *data)
 
 uiControl *uiNewCheckbox(const char *text)
 {
-	struct checkbox *c;
+	uiControl *c;
+	struct checkbox *cc;
 	uiWindowsNewControlParams p;
 	WCHAR *wtext;
 	HWND hwnd;
-
-	c = uiNew(struct checkbox);
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
@@ -75,18 +72,19 @@ uiControl *uiNewCheckbox(const char *text)
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
-	p.onCommandNotifyDestroyData = c;
-	p.preferredSize = preferredSize;
-	p.data = c;
-	c->c = uiWindowsNewControl(&p);
+	c = uiWindowsNewControl(&p);
 	uiFree(wtext);
 
-	hwnd = (HWND) uiControlHandle(c->c);
+	c->preferredSize = preferredSize;
+
+	hwnd = (HWND) uiControlHandle(c);
 	SendMessageW(hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
-	c->onToggled = defaultOnToggled;
+	cc = uiNew(struct checkbox);
+	cc->onToggled = defaultOnToggled;
+	c->data = cc;
 
-	return c->c;
+	return c;
 }
 
 char *uiCheckboxText(uiControl *c)
@@ -101,9 +99,8 @@ void uiCheckboxSetText(uiControl *c, const char *text)
 
 void uiCheckboxOnToggled(uiControl *c, void (*f)(uiControl *, void *), void *data)
 {
-	struct checkbox *cc;
+	struct checkbox *cc = (struct checkbox *) (c->data);
 
-	cc = (struct checkbox *) uiWindowsControlData(c);
 	cc->onToggled = f;
 	cc->onToggledData = data;
 }

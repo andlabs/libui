@@ -2,30 +2,29 @@
 #include "uipriv_windows.h"
 
 struct button {
-	uiControl *c;
 	void (*onClicked)(uiControl *, void *);
 	void *onClickedData;
 };
 
-#define B(x) ((struct button *) (x))
-
-static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
+	struct button *b = (struct button *) (c->data);
+
 	if (HIWORD(wParam) != BN_CLICKED)
 		return FALSE;
-	(*(B(data)->onClicked))(c, B(data)->onClickedData);
+	(*(b->onClicked))(c, b->onClickedData);
 	*lResult = 0;
 	return TRUE;
 }
 
-static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult)
+static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
 	return FALSE;
 }
 
-static void onWM_DESTROY(uiControl *c, void *data)
+static void onWM_DESTROY(uiControl *c)
 {
-	struct button *b = (struct button *) data;
+	struct button *b = (struct button *) (c->data);
 
 	uiFree(b);
 }
@@ -33,7 +32,7 @@ static void onWM_DESTROY(uiControl *c, void *data)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
-static void preferredSize(uiControl *c, int baseX, int baseY, LONG internalLeading, intmax_t *width, intmax_t *height)
+static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	HWND hwnd;
 	SIZE size;
@@ -53,7 +52,7 @@ static void preferredSize(uiControl *c, int baseX, int baseY, LONG internalLeadi
 	// Microsoft says to use a fixed width for all buttons; this isn't good enough
 	// use the text width instead, with some edge padding
 	*width = uiWindowsWindowTextWidth(hwnd) + (2 * GetSystemMetrics(SM_CXEDGE));
-	*height = uiDlgUnitToY(buttonHeight, baseY);
+	*height = uiDlgUnitToY(buttonHeight, d->sys->baseY);
 }
 
 static void defaultOnClicked(uiControl *c, void *data)
@@ -63,12 +62,11 @@ static void defaultOnClicked(uiControl *c, void *data)
 
 uiControl *uiNewButton(const char *text)
 {
+	uiControl *c;
 	struct button *b;
 	uiWindowsNewControlParams p;
 	WCHAR *wtext;
 	HWND hwnd;
-
-	b = uiNew(struct button);
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
@@ -79,18 +77,19 @@ uiControl *uiNewButton(const char *text)
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
-	p.onCommandNotifyDestroyData = b;
-	p.preferredSize = preferredSize;
-	p.data = b;
-	b->c = uiWindowsNewControl(&p);
+	c = uiWindowsNewControl(&p);
 	uiFree(wtext);
 
-	hwnd = (HWND) uiControlHandle(b->c);
+	c->preferredSize = preferredSize;
+
+	hwnd = (HWND) uiControlHandle(c);
 	SendMessageW(hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
+	b = uiNew(struct button);
 	b->onClicked = defaultOnClicked;
+	c->data = b;
 
-	return b->c;
+	return c;
 }
 
 char *uiButtonText(uiControl *c)
@@ -105,9 +104,8 @@ void uiButtonSetText(uiControl *c, const char *text)
 
 void uiButtonOnClicked(uiControl *c, void (*f)(uiControl *, void *), void *data)
 {
-	struct button *b;
+	struct button *b = (struct button *) (c->data);
 
-	b = (struct button *) uiWindowsControlData(c);
 	b->onClicked = f;
 	b->onClickedData = data;
 }

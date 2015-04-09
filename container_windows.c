@@ -62,6 +62,7 @@ BOOL sharedWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *
 void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 {
 	uiSizing d;
+	uiSizingSys sys;
 	HDC dc;
 	HFONT prevfont;
 	TEXTMETRICW tm;
@@ -80,9 +81,9 @@ void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 		logLastError("error getting text metrics in resize()");
 	if (GetTextExtentPoint32W(dc, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &size) == 0)
 		logLastError("error getting text extent point in resize()");
-	d.baseX = (int) ((size.cx / 26 + 1) / 2);
-	d.baseY = (int) tm.tmHeight;
-	d.internalLeading = tm.tmInternalLeading;
+	sys.baseX = (int) ((size.cx / 26 + 1) / 2);
+	sys.baseY = (int) tm.tmHeight;
+	sys.internalLeading = tm.tmInternalLeading;
 	if (SelectObject(dc, prevfont) != hMessageFont)
 		logLastError("error restoring previous font into device context in resize()");
 	if (ReleaseDC(parent, dc) == 0)
@@ -93,7 +94,8 @@ void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 	r.bottom -= uiDlgUnitToY(margin.bottom, d.baseY);
 	d.xPadding = uiDlgUnitToX(winXPadding, d.baseX);
 	d.yPadding = uiDlgUnitToY(winYPadding, d.baseY);
-	(*(control->resize))(control, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
+	d.sys = &sys;
+	uiControlResize(control, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }
 
 void updateParent(uintptr_t h)

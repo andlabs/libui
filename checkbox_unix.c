@@ -2,16 +2,16 @@
 #include "uipriv_unix.h"
 
 struct checkbox {
-	uiControl *c;
 	void (*onToggled)(uiControl *, void *);
 	void *onToggledData;
 };
 
-#define C(x) ((struct checkbox *) (x))
-
 static void onToggled(GtkToggleButton *b, gpointer data)
 {
-	(*(C(data)->onToggled))(C(data)->c, C(data)->onToggledData);
+	uiControl *c = (uiControl *) data;
+	struct checkbox *cc = (struct checkbox *) (c->data);
+
+	(*(cc->onToggled))(c, cc->onToggledData);
 }
 
 static void defaultOnToggled(uiControl *c, void *data)
@@ -21,30 +21,31 @@ static void defaultOnToggled(uiControl *c, void *data)
 
 static void onDestroy(GtkWidget *widget, gpointer data)
 {
-	struct checkbox *c = (struct checkbox *) data;
+	struct checkbox *cc = (struct checkbox *) data;
 
-	uiFree(c);
+	uiFree(cc);
 }
 
 uiControl *uiNewCheckbox(const char *text)
 {
-	struct checkbox *c;
+	uiControl *c;
+	struct checkbox *cc;
 	GtkWidget *widget;
 
-	c = uiNew(struct checkbox);
-
-	c->c = uiUnixNewControl(GTK_TYPE_CHECK_BUTTON,
-		FALSE, FALSE, c,
+	c = uiUnixNewControl(GTK_TYPE_CHECK_BUTTON,
+		FALSE, FALSE,
 		"label", text,
 		NULL);
 
-	widget = GTK_WIDGET(uiControlHandle(c->c));
-	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), c);
+	widget = GTK_WIDGET(uiControlHandle(c));
 	g_signal_connect(widget, "toggled", G_CALLBACK(onToggled), c);
 
-	c->onToggled = defaultOnToggled;
+	cc = uiNew(struct checkbox);
+	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), cc);
+	cc->onToggled = defaultOnToggled;
+	c->data = cc;
 
-	return c->c;
+	return c;
 }
 
 char *uiCheckboxText(uiControl *c)
@@ -59,9 +60,8 @@ void uiCheckboxSetText(uiControl *c, const char *text)
 
 void uiCheckboxOnToggled(uiControl *c, void (*f)(uiControl *, void *), void *data)
 {
-	struct checkbox *cc;
+	struct checkbox *cc = (struct checkbox *) (c->data);
 
-	cc = (struct checkbox *) uiUnixControlData(c);
 	cc->onToggled = f;
 	cc->onToggledData = data;
 }

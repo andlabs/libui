@@ -8,9 +8,6 @@
 #include "ui_unix.h"
 
 // container_unix.c
-struct uiSizing {
-	uiSizingCommon
-};
 #define uiContainerType (uiContainer_get_type())
 #define uiContainer(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), uiContainerType, uiContainer))
 #define uiIsContainer(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), uiContainerType))

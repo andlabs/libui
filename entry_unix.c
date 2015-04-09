@@ -2,10 +2,7 @@
 #include "uipriv_unix.h"
 
 struct entry {
-	uiControl *c;
 };
-
-#define E(x) ((struct entry *) (x))
 
 static void onDestroy(GtkWidget *widget, gpointer data)
 {
@@ -16,19 +13,21 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 
 uiControl *uiNewEntry(void)
 {
+	uiControl *c;
 	struct entry *e;
 	GtkWidget *widget;
 
-	e = uiNew(struct entry);
-
-	e->c = uiUnixNewControl(GTK_TYPE_ENTRY,
-		FALSE, FALSE, e,
+	c = uiUnixNewControl(GTK_TYPE_ENTRY,
+		FALSE, FALSE,
 		NULL);
 
-	widget = GTK_WIDGET(uiControlHandle(e->c));
-	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), e);
+	widget = GTK_WIDGET(uiControlHandle(c));
 
-	return e->c;
+	e = uiNew(struct entry);
+	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), e);
+	c->data = e;
+
+	return c;
 }
 
 char *uiEntryText(uiControl *c)

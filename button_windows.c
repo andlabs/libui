@@ -72,6 +72,8 @@ uiControl *uiNewButton(const char *text)
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
+	wtext = toUTF16(text);
+	p.lpWindowName = wtext;
 	p.dwStyle = BS_PUSHBUTTON | WS_TABSTOP;
 	p.hInstance = hInstance;
 	p.onWM_COMMAND = onWM_COMMAND;
@@ -81,12 +83,9 @@ uiControl *uiNewButton(const char *text)
 	p.preferredSize = preferredSize;
 	p.data = b;
 	b->c = uiWindowsNewControl(&p);
+	uiFree(wtext);
 
 	hwnd = (HWND) uiControlHandle(b->c);
-	wtext = toUTF16(text);
-	if (SetWindowTextW(hwnd, wtext) == 0)
-		logLastError("error setting button text in uiNewButton()");
-	uiFree(wtext);
 	SendMessageW(hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
 	b->onClicked = defaultOnClicked;

@@ -13,7 +13,7 @@ struct uiWindowsNewControlParams {
 	// These match the CreateWindowExW() function.
 	DWORD dwExStyle;
 	LPCWSTR lpClassName;
-//TODO?	LPCWSTR lpWindowName;
+	LPCWSTR lpWindowName;
 	DWORD dwStyle;		// WS_CHILD and WS_VISIBLE are automatically applied.
 	HINSTANCE hInstance;
 

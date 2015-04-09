@@ -90,7 +90,7 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 
 	c = uiNew(uiSingleHWNDControl);
 	c->hwnd = CreateWindowExW(p->dwExStyle,
-		p->lpClassName, L"",
+		p->lpClassName, p->lpWindowName,
 		p->dwStyle | WS_CHILD | WS_VISIBLE,
 		0, 0,
 		100, 100,

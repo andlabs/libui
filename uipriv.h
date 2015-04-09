@@ -2,33 +2,6 @@
 #include <stdlib.h>
 #include "ui.h"
 
-typedef struct uiSize uiSize;
-typedef struct uiSizing uiSizing;
-typedef struct uiSizingComm uiSizingComm;
-
-struct uiSize {
-	intmax_t width;
-	intmax_t height;
-};
-
-// TODO this is a bit iffy; clean it up
-#define uiSizingCommon \
-	intmax_t xPadding; \
-	intmax_t yPadding;
-
-struct uiSizingComm {
-	uiSizingCommon
-};
-
-struct uiControl {
-	void (*destroy)(uiControl *);
-	uintptr_t (*handle)(uiControl *);
-	void (*setParent)(uiControl *, uintptr_t);
-	void (*removeParent)(uiControl *);
-	uiSize (*preferredSize)(uiControl *, uiSizing *);
-	void (*resize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
-};
-
 // uncomment the following line to enable memory logging; see leaks.awk
 #define uiLogAllocations
 

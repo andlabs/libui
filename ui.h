@@ -17,9 +17,30 @@ void uiQuit(void);
 
 void uiFreeText(char *);
 
+typedef struct uiSizing uiSizing;
+struct uiSizing {
+	intmax_t xPadding;
+	intmax_t yPadding;
+	struct uiSizingSys *sys;
+};
+
 typedef struct uiControl uiControl;
+struct uiControl {
+	void *data;			// for use by implementations only
+	void *internal;			// for use by ui only
+	void (*destroy)(uiControl *);
+	uintptr_t (*handle)(uiControl *);
+	void (*setParent)(uiControl *, uintptr_t);
+	void (*removeParent)(uiControl *);
+	void (*preferredSize)(uiControl *, uiSizing *, intmax_t *, intmax_t *);
+	void (*resize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
+};
 void uiControlDestroy(uiControl *);
 uintptr_t uiControlHandle(uiControl *);
+void uiControlSetParent(uiControl *, uintptr_t);
+void uiControlRemoveParent(uiControl *);
+void uiControlPreferredSize(uiControl *, uiSizing *, intmax_t *width, intmax_t *height);
+void uiControlResize(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 
 typedef struct uiWindow uiWindow;
 uiWindow *uiNewWindow(char *, int, int);

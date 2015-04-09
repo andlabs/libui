@@ -9,22 +9,53 @@ int onClosing(uiWindow *w, void *data)
 	return 1;
 }
 
-void onClicked(uiControl *b, void *data)
+uiControl *e;
+
+/*TODO
+static void getWindowText(uiControl *b, void *data)
 {
-	// TODO
+	char *text;
+
+	text = uiWindowTitle((uiWindow *) data);
+	uiEntrySetText(e, text);
+	uiFreeText(text);
 }
 
-void onClicked2(uiControl *b, void *data)
+static void setWindowText(uiControl *b, void *data)
 {
-	printf("button clicked!\n");
+	char *text;
+
+	text = uiEntryText(e);
+	uiWindowSetTitle((uiWindow *) data, text);
+	uiFreeText(text);
 }
+
+static void getButtonText(uiControl *b, void *data)
+{
+	char *text;
+
+	text = uiButtonText((uiControl *) data);
+	uiEntrySetText(e, text);
+	uiFreeText(text);
+}
+
+static void setButtonText(uiControl *b, void *data)
+{
+	char *text;
+
+	text = uiEntryText(e);
+	uiButtonSetText((uiControl *) data, text);
+	uiFreeText(text);
+}
+*/
 
 int main(int argc, char *argv[])
 {
 	uiInitError *err;
 	uiWindow *w;
-	uiControl *stack;
-	uiControl *button, *button2;
+	uiControl *mainStack;
+	uiControl *buttonStack;
+	uiControl *getButton, *setButton;
 
 	err = uiInit(NULL);
 	if (err != NULL) {
@@ -36,19 +67,29 @@ int main(int argc, char *argv[])
 	w = uiNewWindow("Hello", 320, 240);
 	uiWindowOnClosing(w, onClosing, NULL);
 
-	if (argc > 1)
-		stack = uiNewHorizontalStack();
-	else
-		stack = uiNewVerticalStack();
-	uiWindowSetChild(w, stack);
+	mainStack = uiNewVerticalStack();
+	uiWindowSetChild(w, mainStack);
 
-	button2 = uiNewButton("Change Me");
-	uiButtonOnClicked(button2, onClicked2, NULL);
+	e = uiTextEntryNew();
+	uiStackAdd(mainStack, e, 0);
 
-	button = uiNewButton("Click Me");
-	uiButtonOnClicked(button, onClicked, button2);
-	uiStackAdd(stack, button, 1);
-	uiStackAdd(stack, button2, 0);
+	buttonStack = uiNewHorizontalStack();
+	getButton = uiNewButton("Get Window Text");
+//TODO	uiButtonOnClicked(getButton, getWindowText, w);
+	setButton = uiNewButton("Set Window Text");
+//TODO	uiButtonOnClicked(setButton, setWindowText, w);
+	uiStackAdd(buttonStack, getButton, 1);
+	uiStackAdd(buttonStack, setButton, 1);
+	uiStackAdd(mainStack, buttonStack, 0);
+
+	buttonStack = uiNewHorizontalStack();
+//TODO	getButton = uiNewButton("Get Button Text");
+	uiButtonOnClicked(getButton, getButtonText, getButton);
+//TODO	setButton = uiNewButton("Set Button Text");
+	uiButtonOnClicked(setButton, setButtonText, getButton);
+	uiStackAdd(buttonStack, getButton, 1);
+	uiStackAdd(buttonStack, setButton, 1);
+	uiStackAdd(mainStack, buttonStack, 0);
 
 	uiWindowShow(w);
 	uiMain();

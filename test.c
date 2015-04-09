@@ -65,13 +65,21 @@ static void setCheckboxText(uiControl *b, void *data)
 	uiFreeText(text);
 }
 
+uiWindow *w;
 uiControl *stacks[5];
 uiControl *spaced;
 
-static void setSpaced(uiControl *c, void *data)
+static void setSpaced(int spaced)
 {
-	// TODO
-	printf("toggled %d\n", uiCheckboxChecked(spaced));
+	uiWindowSetMargined(w, spaced);
+}
+
+static void toggleSpaced(uiControl *c, void *data)
+{
+	int s = uiCheckboxChecked(spaced);
+
+	printf("toggled %d\n", s);
+	setSpaced(s);
 }
 
 // these will also be used to test if setting checks will trigger events
@@ -88,7 +96,6 @@ static void forceSpacedOff(uiControl *c, void *data)
 int main(int argc, char *argv[])
 {
 	uiInitError *err;
-	uiWindow *w;
 	uiControl *getButton, *setButton;
 
 	err = uiInit(NULL);
@@ -127,7 +134,7 @@ int main(int argc, char *argv[])
 
 	// this will also be used to make sure tab stops work properly when inserted out of creation order, especially on Windows
 	spaced = uiNewCheckbox("Spaced");
-	uiCheckboxOnToggled(spaced, setSpaced, NULL);
+	uiCheckboxOnToggled(spaced, toggleSpaced, NULL);
 
 	stacks[3] = uiNewHorizontalStack();
 	getButton = uiNewButton("Get Checkbox Text");
@@ -147,6 +154,8 @@ int main(int argc, char *argv[])
 	uiStackAdd(stacks[4], getButton, 0);
 	uiStackAdd(stacks[4], setButton, 0);
 	uiStackAdd(stacks[0], stacks[4], 0);
+
+	// TODO get spaced values
 
 	uiWindowShow(w);
 	uiMain();

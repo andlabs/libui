@@ -51,6 +51,6 @@ void uiCheckboxSetText(uiControl *, const char *);
 void uiCheckboxOnToggled(uiControl *, void (*)(uiControl *, void *), void *);
 int uiCheckboxChecked(uiControl *);
 // TODO should this trigger an event?
-void uiChekboxSetChecked(uiControl *, int);
+void uiCheckboxSetChecked(uiControl *, int);
 
 #endif

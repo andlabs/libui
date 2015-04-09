@@ -71,7 +71,7 @@ uiControl *spaced;
 static void setSpaced(uiControl *c, void *data)
 {
 	// TODO
-	printf("toggled %d\n", uiCheckboxCheked(spaced));
+	printf("toggled %d\n", uiCheckboxChecked(spaced));
 }
 
 // these will also be used to test if setting checks will trigger events

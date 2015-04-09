@@ -15,4 +15,8 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 extern uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder);
 extern BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview);
 
+struct uiSizingSys {
+	// this structure currently left blank
+};
+
 #endif

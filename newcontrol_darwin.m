@@ -1,32 +1,33 @@
 // 7 april 2015
 #include "uipriv_darwin.h"
 
-typedef struct uiSingleViewControl uiSingleViewControl;
+typedef struct singleView singleView;
 
-struct uiSingleViewControl {
-	uiControl control;
+struct singleView {
 	NSView *view;
 	NSScrollView *scrollView;
 	NSView *immediate;		// the control that is added to the parent container; either view or scrollView
 	uintptr_t parent;
 };
 
-#define S(c) ((uiSingleViewControl *) (c))
-
 // TODO this will need to change if we want to provide removal
 static void singleDestroy(uiControl *c)
 {
-	[S(c)->view removeFromSuperview];
+	singleView *s = (singleView *) (c->internal);
+
+	[s->view removeFromSuperview];
 }
 
 static uintptr_t singleHandle(uiControl *c)
 {
-	return (uintptr_t) (S(c)->view);
+	singleView *s = (singleView *) (c->internal);
+
+	return (uintptr_t) (s->view);
 }
 
 static void singleSetParent(uiControl *c, uintptr_t parent)
 {
-	uiSingleViewControl *s = S(c);
+	singleView *s = (singleView *) (c->internal);
 	NSView *parentView;
 
 	s->parent = parent;
@@ -37,7 +38,7 @@ static void singleSetParent(uiControl *c, uintptr_t parent)
 
 static void singleRemoveParent(uiControl *c)
 {
-	uiSingleViewControl *s = S(c);
+	singleView *s = (singleView *) (c->internal);
 	uintptr_t oldparent;
 
 	oldparent = s->parent;
@@ -47,69 +48,75 @@ static void singleRemoveParent(uiControl *c)
 }
 
 // also good for NSBox and NSProgressIndicator
-static uiSize singlePreferredSize(uiControl *c, uiSizing *d)
+static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	uiSize size;
+	singleView *s = (singleView *) (c->internal);
 	NSControl *control;
 	NSRect r;
 
-	control = (NSControl *) (S(c)->view);
+	control = (NSControl *) (s->view);
 	[control sizeToFit];
 	// use alignmentRect here instead of frame because we'll be resizing based on that
 	r = [control alignmentRectForFrame:[control frame]];
-	size.width = (intmax_t) r.size.width;
-	size.height = (intmax_t) r.size.height;
-	return size;
+	*width = (intmax_t) r.size.width;
+	*height = (intmax_t) r.size.height;
 }
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
+	singleView *s = (singleView *) (c->internal);
 	NSRect frame;
 
 	frame.origin.x = x;
 	// mac os x coordinate system has (0,0) in the lower-left
-	frame.origin.y = ([[S(c)->immediate superview] bounds].size.height - height) - y;
+	frame.origin.y = ([[s->immediate superview] bounds].size.height - height) - y;
 	frame.size.width = width;
 	frame.size.height = height;
-	frame = [S(c)->immediate frameForAlignmentRect:frame];
-	[S(c)->immediate setFrame:frame];
+	frame = [s->immediate frameForAlignmentRect:frame];
+	[s->immediate setFrame:frame];
 }
 
 uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder)
 {
-	uiSingleViewControl *c;
+	uiControl *c;
+	singleView *s;
 
-	c = uiNew(uiSingleViewControl);
+	s = uiNew(singleView);
 	// thanks to autoxr and arwyn in irc.freenode.net/#macdev
-	c->view = (NSView *) [[class alloc] initWithFrame:NSZeroRect];
-	c->immediate = c->view;
+	s->view = (NSView *) [[class alloc] initWithFrame:NSZeroRect];
+	s->immediate = s->view;
 
 	if (inScrollView) {
-		c->scrollView = [[NSScrollView alloc] initWithFrame:NSZeroRect];
-		[c->scrollView setDocumentView:c->view];
-		[c->scrollView setHasHorizontalScroller:YES];
-		[c->scrollView setHasVerticalScroller:YES];
-		[c->scrollView setAutohidesScrollers:YES];
+		s->scrollView = [[NSScrollView alloc] initWithFrame:NSZeroRect];
+		[s->scrollView setDocumentView:s->view];
+		[s->scrollView setHasHorizontalScroller:YES];
+		[s->scrollView setHasVerticalScroller:YES];
+		[s->scrollView setAutohidesScrollers:YES];
 		if (scrollViewHasBorder)
-			[c->scrollView setBorderType:NSBezelBorder];
+			[s->scrollView setBorderType:NSBezelBorder];
 		else
-			[c->scrollView setBorderType:NSNoBorder];
-		c->immediate = (NSView *) (c->scrollView);
+			[s->scrollView setBorderType:NSNoBorder];
+		s->immediate = (NSView *) (s->scrollView);
 	}
 
-	c->control.destroy = singleDestroy;
-	c->control.handle = singleHandle;
-	c->control.setParent = singleSetParent;
-	c->control.removeParent = singleRemoveParent;
-	c->control.preferredSize = singlePreferredSize;
-	c->control.resize = singleResize;
+	c = uiNew(uiControl);
+	c->internal = s;
+	c->destroy = singleDestroy;
+	c->handle = singleHandle;
+	c->setParent = singleSetParent;
+	c->removeParent = singleRemoveParent;
+	c->preferredSize = singlePreferredSize;
+	c->resize = singleResize;
 
-	return (uiControl *) c;
+	return c;
 }
 
 BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview)
 {
+	singleView *s = (singleView *) (c->internal);
+
 	if (newSuperview == nil) {
+		uiFree(s);
 		uiFree(c);
 		return YES;
 	}

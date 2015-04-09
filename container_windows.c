@@ -55,6 +55,10 @@ BOOL sharedWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *
 	return FALSE;
 }
 
+// TODO get source
+#define winXPadding 4
+#define winYPadding 4
+
 void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 {
 	uiSizing d;
@@ -87,6 +91,8 @@ void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 	r.top += uiDlgUnitToY(margin.top, d.baseY);
 	r.right -= uiDlgUnitToX(margin.right, d.baseX);
 	r.bottom -= uiDlgUnitToY(margin.bottom, d.baseY);
+	d.xPadding = uiDlgUnitToX(winXPadding, d.baseX);
+	d.yPadding = uiDlgUnitToY(winYPadding, d.baseY);
 	(*(control->resize))(control, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }
 

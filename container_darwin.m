@@ -34,6 +34,8 @@ uiLogObjCClassAllocations
 // TODO reverify these against /layout rects/, not /frame rects/
 #define macXMargin 20
 #define macYMargin 20
+#define macXPadding 8
+#define macYPadding 8
 
 - (void)uiUpdateNow
 {
@@ -52,6 +54,8 @@ uiLogObjCClassAllocations
 		width -= 2 * macXMargin;
 		height -= 2 * macYMargin;
 	}
+	d.xPadding = macXPadding;
+	d.yPadding = macYPadding;
 	(*(self.child->resize))(self.child, x, y, width, height, &d);
 }
 

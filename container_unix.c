@@ -57,6 +57,8 @@ static void uiContainer_remove(GtkContainer *container, GtkWidget *widget)
 
 #define gtkXMargin 12
 #define gtkYMargin 12
+#define gtkXPadding 12
+#define gtkYPadding 6
 
 static void uiContainer_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
@@ -77,6 +79,8 @@ static void uiContainer_size_allocate(GtkWidget *widget, GtkAllocation *allocati
 		width -= 2 * gtkXMargin;
 		height -= 2 * gtkYMargin;
 	}
+	d.xPadding = gtkXPadding;
+	d.yPadding = gtkYPadding;
 	(*(c->child->resize))(c->child, x, y, width, height, &d);
 }
 

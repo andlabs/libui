@@ -37,4 +37,6 @@ uiControl *uiNewHorizontalStack(void);
 uiControl *uiNewVerticalStack(void);
 void uiStackAdd(uiControl *, uiControl *, int);
 
+uiControl *uiNewEntry(void);
+
 #endif

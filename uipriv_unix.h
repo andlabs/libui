@@ -7,11 +7,10 @@
 #include "uipriv.h"
 #include "ui_unix.h"
 
-// TODO move this to the right place
-struct uiSizing {
-};
-
 // container_unix.c
+struct uiSizing {
+	uiSizingCommon
+};
 #define uiContainerType (uiContainer_get_type())
 #define uiContainer(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), uiContainerType, uiContainer))
 #define uiIsContainer(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), uiContainerType))

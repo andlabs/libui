@@ -10,6 +10,10 @@ struct uiSize {
 	intmax_t height;
 };
 
+#define uiSizingCommon \
+	intmax_t xPadding; \
+	intmax_t yPadding;
+
 struct uiControl {
 	void (*destroy)(uiControl *);
 	uintptr_t (*handle)(uiControl *);

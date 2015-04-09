@@ -8,10 +8,6 @@
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
 #define fromNSString(str) [(str) UTF8String]
 
-// TODO move this to the right place
-struct uiSizing {
-};
-
 // TODO see if we can override alloc instead
 #ifdef uiLogAllocations
 #import <stdio.h>
@@ -36,6 +32,9 @@ struct uiSizing {
 extern void setStandardControlFont(NSControl *);
 
 // container_darwin.m
+struct uiSizing {
+	uiSizingCommon
+};
 @interface uiContainer : NSView
 // TODO rename to uiChild
 @property uiControl *child;

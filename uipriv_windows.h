@@ -55,6 +55,7 @@ extern WCHAR *windowText(HWND);
 // container_windows.c
 extern BOOL sharedWndProc(HWND, UINT, WPARAM, LPARAM, LRESULT *);
 struct uiSizing {
+	uiSizingCommon
 	int baseX;
 	int baseY;
 	LONG internalLeading;

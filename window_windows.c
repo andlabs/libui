@@ -1,9 +1,6 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
-// TODO
-// - [18:19] <ZeroOne> Though, if you minimise it and bring it back up, the buttons disappear until you resize the window. Not sure if you care about that or not.
-
 struct uiWindow {
 	HWND hwnd;
 	uiControl *child;
@@ -32,7 +29,7 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	if (sharedWndProc(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
 	switch (uMsg) {
-	case WM_WINDOWPOSCHANGING:
+	case WM_WINDOWPOSCHANGED:
 		if (w->child == NULL)
 			break;
 		if ((wp->flags & SWP_NOSIZE) != 0)

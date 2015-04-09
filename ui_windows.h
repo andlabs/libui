@@ -22,9 +22,8 @@ struct uiWindowsNewControlParams {
 	// ui redirects the message back and calls these functions.
 	// Store the result in *lResult and return any non-FALSE value (such as TRUE) to return the given result; return FALSE to pass the notification up to your window procedure.
 	// Note that these are only issued if they come from the uiControl itself; notifications from children of the uiControl (such as a header control) will be received normally.
-	// TODO don't give WPARAM/LPARAM raw
 	BOOL (*onWM_COMMAND)(uiControl *c, WORD code, LRESULT *lResult);
-	BOOL (*onWM_NOTIFY)(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
+	BOOL (*onWM_NOTIFY)(uiControl *c, NMHDR *nm, LRESULT *lResult);
 	// This is called in WM_DESTROY.
 	void (*onWM_DESTROY)(uiControl *c);
 };

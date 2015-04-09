@@ -27,7 +27,7 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
+static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 {
 	return FALSE;
 }

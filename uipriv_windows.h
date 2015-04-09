@@ -59,7 +59,7 @@ struct uiSizing {
 	int baseY;
 	LONG internalLeading;
 };
-extern void resize(uiControl *, HWND, RECT);
+extern void resize(uiControl *, HWND, RECT, RECT);
 
 // comctl32_windows.c
 extern BOOL (*WINAPI fv_SetWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR, DWORD_PTR);

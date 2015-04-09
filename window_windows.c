@@ -7,9 +7,13 @@ struct uiWindow {
 	BOOL shownOnce;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
+	int margined;
 };
 
 #define uiWindowClass L"uiWindowClass"
+
+// TODO get source
+#define windowMargin 7
 
 static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -17,7 +21,7 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	LRESULT lResult;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
-	RECT r;
+	RECT r, margin;
 
 	w = (uiWindow *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
@@ -38,7 +42,17 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 			break;
 		if (GetClientRect(w->hwnd, &r) == 0)
 			logLastError("error getting window client rect for resize in uiWindowWndProc()");
-		resize(w->child, w->hwnd, r);
+		margin.left = 0;
+		margin.top = 0;
+		margin.right = 0;
+		margin.bottom = 0;
+		if (w->margined) {
+			margin.left = windowMargin;
+			margin.top = windowMargin;
+			margin.right = windowMargin;
+			margin.bottom = windowMargin;
+		}
+		resize(w->child, w->hwnd, r, margin);
 		return 0;
 	case WM_CLOSE:
 		if (!(*(w->onClosing))(w, w->onClosingData))
@@ -164,4 +178,12 @@ void uiWindowSetChild(uiWindow *w, uiControl *c)
 {
 	w->child = c;
 	(*(w->child->setParent))(w->child, (uintptr_t) (w->hwnd));
+}
+
+// TODO uiWindowMargined
+
+void uiWindowSetMargined(uiWindow *w, int margined)
+{
+	w->margined = margined;
+	updateParent((uintptr_t) (w->hwnd));
 }

@@ -55,7 +55,7 @@ BOOL sharedWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *
 	return FALSE;
 }
 
-void resize(uiControl *control, HWND parent, RECT r)
+void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 {
 	uiSizing d;
 	HDC dc;
@@ -83,6 +83,10 @@ void resize(uiControl *control, HWND parent, RECT r)
 		logLastError("error restoring previous font into device context in resize()");
 	if (ReleaseDC(parent, dc) == 0)
 		logLastError("error releasing DC in resize()");
+	r.left += uiDlgUnitToX(margin.left, d.baseX);
+	r.top += uiDlgUnitToY(margin.top, d.baseY);
+	r.right -= uiDlgUnitToX(margin.right, d.baseX);
+	r.bottom -= uiDlgUnitToY(margin.bottom, d.baseY);
 	(*(control->resize))(control, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }
 

@@ -65,14 +65,20 @@ static void setCheckboxText(uiControl *b, void *data)
 	uiFreeText(text);
 }
 
-uiControl *stacks[3];
+uiControl *stacks[4];
+uiControl *spaced;
+
+static void setSpaced(uiControl *c, void *data)
+{
+	// TODO
+	printf("toggled\n");
+}
 
 int main(int argc, char *argv[])
 {
 	uiInitError *err;
 	uiWindow *w;
 	uiControl *getButton, *setButton;
-	uiControl *spaced;
 
 	err = uiInit(NULL);
 	if (err != NULL) {
@@ -108,7 +114,9 @@ int main(int argc, char *argv[])
 	uiStackAdd(stacks[2], setButton, 1);
 	uiStackAdd(stacks[0], stacks[2], 0);
 
+	// this will also be used to make sure tab stops work properly when inserted out of creation order, especially on Windows
 	spaced = uiNewCheckbox("Spaced");
+	uiCheckboxOnClicked(spaced, setSpaced, NULL);
 
 	stacks[3] = uiNewHorizontalStack();
 	getButton = uiNewButton("Get Checkbox Text");

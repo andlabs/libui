@@ -88,12 +88,12 @@ void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 		logLastError("error restoring previous font into device context in resize()");
 	if (ReleaseDC(parent, dc) == 0)
 		logLastError("error releasing DC in resize()");
-	r.left += uiDlgUnitToX(margin.left, d.baseX);
-	r.top += uiDlgUnitToY(margin.top, d.baseY);
-	r.right -= uiDlgUnitToX(margin.right, d.baseX);
-	r.bottom -= uiDlgUnitToY(margin.bottom, d.baseY);
-	d.xPadding = uiDlgUnitToX(winXPadding, d.baseX);
-	d.yPadding = uiDlgUnitToY(winYPadding, d.baseY);
+	r.left += uiDlgUnitToX(margin.left, sys.baseX);
+	r.top += uiDlgUnitToY(margin.top, sys.baseY);
+	r.right -= uiDlgUnitToX(margin.right, sys.baseX);
+	r.bottom -= uiDlgUnitToY(margin.bottom, sys.baseY);
+	d.xPadding = uiDlgUnitToX(winXPadding, sys.baseX);
+	d.yPadding = uiDlgUnitToY(winYPadding, sys.baseY);
 	d.sys = &sys;
 	uiControlResize(control, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }

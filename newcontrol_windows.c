@@ -3,7 +3,7 @@
 
 typedef struct singleHWND singleHWND;
 
-struct uiSingleHWNDControl {
+struct singleHWND {
 	HWND hwnd;
 	BOOL (*onWM_COMMAND)(uiControl *, WPARAM, LPARAM, LRESULT *);
 	BOOL (*onWM_NOTIFY)(uiControl *, WPARAM, LPARAM, LRESULT *);

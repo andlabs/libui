@@ -4,12 +4,12 @@
 struct entry {
 };
 
-static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
 	return FALSE;
 }
 
-static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult)
+static BOOL onWM_NOTIFY(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
 	return FALSE;
 }

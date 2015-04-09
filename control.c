@@ -11,4 +11,22 @@ uintptr_t uiControlHandle(uiControl *c)
 	return (*(c->handle))(c);
 }
 
-// TODO do this for the others
+void uiControlSetParent(uiControl *c, uintptr_t parent)
+{
+	(*(c->setParent))(c, parent);
+}
+
+void uiControlRemoveParent(uiControl *c)
+{
+	(*(c->removeParent))(c);
+}
+
+void uiControlPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+{
+	(*(c->preferredSize))(c, d, width, height);
+}
+
+void uiControlResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+{
+	(*(c->resize))(c, x, y, width, height, d);
+}

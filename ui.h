@@ -18,10 +18,11 @@ void uiQuit(void);
 void uiFreeText(char *);
 
 typedef struct uiSizing uiSizing;
+typedef struct uiSizingSys uiSizingSys;
 struct uiSizing {
 	intmax_t xPadding;
 	intmax_t yPadding;
-	struct uiSizingSys *sys;
+	uiSizingSys *sys;
 };
 
 typedef struct uiControl uiControl;

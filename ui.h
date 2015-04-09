@@ -45,4 +45,8 @@ uiControl *uiNewEntry(void);
 char *uiEntryText(uiControl *);
 void uiEntrySetText(uiControl *, const char *);
 
+uiControl *uiNewCheckbox(const char *);
+char *uiCheckboxText(void);
+void uiCheckboxSetText(uiControl *, const char *);
+
 #endif

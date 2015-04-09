@@ -26,6 +26,7 @@ struct uiContainer {
 	uiControl *child;
 	// these are the actual children widgets of the container as far as GTK+ is concerned
 	GPtrArray *children;		// for forall()
+	gboolean margined;
 };
 struct uiContainerClass {
 	GtkContainerClass parent_class;

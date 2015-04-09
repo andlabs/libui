@@ -55,14 +55,29 @@ static void uiContainer_remove(GtkContainer *container, GtkWidget *widget)
 		g_ptr_array_remove(c->children, widget);
 }
 
+#define gtkXMargin 12
+#define gtkYMargin 12
+
 static void uiContainer_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
 	uiContainer *c = uiContainer(widget);
 	uiSizing d;
+	intmax_t x, y, width, height;
 
 	gtk_widget_set_allocation(GTK_WIDGET(c), allocation);
-	if (c->child != NULL)
-		(*(c->child->resize))(c->child, allocation->x, allocation->y, allocation->width, allocation->height, &d);
+	if (c->child == NULL)
+		return;
+	x = allocation->x;
+	y = allocation->y;
+	width = allocation->width;
+	height = allocation->height;
+	if (c->margined) {
+		x += gtkXMargin;
+		y += gtkYMargin;
+		width -= 2 * gtkXMargin;
+		height -= 2 * gtkYMargin;
+	}
+	(*(c->child->resize))(c->child, x, y, width, height, &d);
 }
 
 struct forall {

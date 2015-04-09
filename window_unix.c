@@ -81,3 +81,11 @@ void uiWindowSetChild(uiWindow *w, uiControl *c)
 	uiContainer(w->container)->child = c;
 	(*(c->setParent))(c, (uintptr_t) (w->container));
 }
+
+// TODO margined
+
+void uiWindowSetMargined(uiWindow *w, int margined)
+{
+	uiContainer(w->container)->margined = margined;
+	updateParent((uintptr_t) (w->container));
+}

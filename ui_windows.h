@@ -8,6 +8,7 @@ This file assumes that you have included <windows.h> and "ui.h" beforehand. It p
 #define __UI_UI_WINDOWS_H__
 
 // uiWindowsNewControl() creates a new uiControl with the given Windows API control inside.
+// You will need to provide the preferredSize() method yourself.
 typedef struct uiWindowsNewControlParams uiWindowsNewControlParams;
 struct uiWindowsNewControlParams {
 	// These match the CreateWindowExW() function.
@@ -21,25 +22,24 @@ struct uiWindowsNewControlParams {
 	// ui redirects the message back and calls these functions.
 	// Store the result in *lResult and return any non-FALSE value (such as TRUE) to return the given result; return FALSE to pass the notification up to your window procedure.
 	// Note that these are only issued if they come from the uiControl itself; notifications from children of the uiControl (such as a header control) will be received normally.
-	BOOL (*onWM_COMMAND)(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult);
-	BOOL (*onWM_NOTIFY)(uiControl *c, WPARAM wParam, LPARAM lParam, void *data, LRESULT *lResult);
+	// TODO don't give WPARAM/LPARAM raw
+	BOOL (*onWM_COMMAND)(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
+	BOOL (*onWM_NOTIFY)(uiControl *c, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 	// This is called in WM_DESTROY.
-	void (*onWM_DESTROY)(uiControl *c, void *data);
-	// This is the data parameter to all three of the above.
-	void *onCommandNotifyDestroyData;
-
-	// This function is called when ui needs to know how to rearrange controls in a window.
-	// baseX and baseY are the base units used to convert between dialog units and pixels.
-	// internalLeading is the internal leading of the control font.
-	void (*preferredSize)(uiControl *c, int baseX, int baseY, LONG internalLeading, intmax_t *width, intmax_t *height);
-
-	// Data you can get with uiWindowsControlData()
-	void *data;
+	void (*onWM_DESTROY)(uiControl *c);
 };
 uiControl *uiWindowsNewControl(uiWindowsNewControlParams *);
-void *uiWindowsControlData(uiControl *);
 
-// use these in your preferredSize() implementation with baseX and baseY
+// This contains the Windows-specific parts of the uiSizing structure.
+// baseX and baseY are the dialog base units.
+// internalLeading is the standard control font's internal leading; labels in uiForms use this for correct Y positioning.
+struct uiSizingSys {
+	int baseX;
+	int baseY;
+	LONG internalLeading;
+};
+// Use these in your preferredSize() implementation with baseX and baseY.
+// TODO rename to DlgUnits?
 #define uiDlgUnitToX(dlg, baseX) MulDiv((dlg), baseX, 4)
 #define uiDlgUnitToY(dlg, baseY) MulDiv((dlg), baseY, 8)
 

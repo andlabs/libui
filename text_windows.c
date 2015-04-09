@@ -17,7 +17,7 @@ WCHAR *toUTF16(const char *str)
 	return wstr;
 }
 
-#define WCTMB(wstr, str, bufsiz) WideCharToMultiByte(CP_UTF8, WC_NO_BEST_FIT_CHARS, wstr, -1, str, bufsiz, NULL, FALSE)
+#define WCTMB(wstr, str, bufsiz) WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, bufsiz, NULL, FALSE)
 
 char *toUTF8(const WCHAR *wstr)
 {

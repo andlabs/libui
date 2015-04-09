@@ -33,6 +33,7 @@ enum {
 	// redirected WM_COMMAND and WM_NOTIFY
 	msgCOMMAND = WM_APP + 0x40,		// start offset just to be safe
 	msgNOTIFY,
+	msgUpdateChild,		// fake because wine (only? TODO) seems to SWP_NOSIZE MoveWindow()s and SetWindowPos()s that don't change the window size (even if SWP_NOSIZE isn't specified)
 };
 
 // debug_windows.c

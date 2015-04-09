@@ -30,9 +30,11 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 		return lResult;
 	switch (uMsg) {
 	case WM_WINDOWPOSCHANGED:
-		if (w->child == NULL)
-			break;
 		if ((wp->flags & SWP_NOSIZE) != 0)
+			break;
+		// fall through
+	case msgUpdateChild:
+		if (w->child == NULL)
 			break;
 		if (GetClientRect(w->hwnd, &r) == 0)
 			logLastError("error getting window client rect for resize in uiWindowWndProc()");

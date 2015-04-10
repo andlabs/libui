@@ -17,9 +17,9 @@ uiLogObjCClassAllocations
 - (void)viewDidMoveToSuperview
 {
 	if ([self superview] == nil)
-		if (self.child != NULL) {
-			uiControlDestroy(self.child);
-			self.child = NULL;
+		if (self.uiChild != NULL) {
+			uiControlDestroy(self.uiChild);
+			self.uiChild = NULL;
 		}
 	[super viewDidMoveToSuperview];
 }
@@ -42,7 +42,7 @@ uiLogObjCClassAllocations
 	uiSizing d;
 	intmax_t x, y, width, height;
 
-	if (self.child == NULL)
+	if (self.uiChild == NULL)
 		return;
 	x = [self bounds].origin.x;
 	y = [self bounds].origin.y;
@@ -56,7 +56,7 @@ uiLogObjCClassAllocations
 	}
 	d.xPadding = macXPadding;
 	d.yPadding = macYPadding;
-	uiControlResize(self.child, x, y, width, height, &d);
+	uiControlResize(self.uiChild, x, y, width, height, &d);
 }
 
 - (BOOL)uiMargined

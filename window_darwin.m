@@ -107,8 +107,8 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 
 void uiWindowSetChild(uiWindow *w, uiControl *c)
 {
-	D.container.child = c;
-	uiControlSetParent(D.container.child, (uintptr_t) (D.container));
+	D.container.uiChild = c;
+	uiControlSetParent(D.container.uiChild, (uintptr_t) (D.container));
 }
 
 int uiWindowMargined(uiWindow *w)

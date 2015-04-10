@@ -2,8 +2,6 @@
 #import <stdio.h>
 #import "uipriv_darwin.h"
 
-// TODO is there a better alternative to NSCAssert()? preferably a built-in allocator that panics on out of memory for us?
-
 void *uiAlloc(size_t size, const char *type)
 {
 	void *out;

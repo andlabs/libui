@@ -1,5 +1,5 @@
 // 25 february 2015
-#include "uipriv_windows.h"
+#include "tablepriv.h"
 
 // uncomment the following line to enable debug messages
 #define tableDebug
@@ -14,19 +14,25 @@ HRESULT logLastError(const char *context)
 {
 	DWORD le;
 	WCHAR *msg;
-	int parenthesize = 0;
+	BOOL parenthesize = FALSE;
+	BOOL localFreeFailed = FALSE;
+	DWORD localFreeLastError;
 
 	le = GetLastError();
 	fprintf(stderr, "%s: ", context);
 	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, le, 0, (LPWSTR) (&msg), 0, NULL) != 0) {
 		fprintf(stderr, "%S (", msg);
-		// TODO check error
-		LocalFree(msg);
-		parenthesize = 1;
+		if (LocalFree(msg) != NULL) {
+			localFreeFailed = TRUE;
+			localFreeLastError = GetLastError();
+		}
+		parenthesize = TRUE;
 	}
 	fprintf(stderr, "GetLastError() == %I32u", le);
 	if (parenthesize)
 		fprintf(stderr, ")");
+	if (localFreeFailed)
+		fprintf(stderr, "; local free of system message failed with last error %I32u", localFreeLastError);
 	fprintf(stderr, "\n");
 #ifdef tableDebugStop
 	DebugBreak();
@@ -43,19 +49,25 @@ HRESULT logLastError(const char *context)
 HRESULT logHRESULT(const char *context, HRESULT hr)
 {
 	WCHAR *msg;
-	int parenthesize = 0;
+	BOOL parenthesize = FALSE;
+	BOOL localFreeFailed = FALSE;
+	DWORD localFreeLastError;
 
 	fprintf(stderr, "%s: ", context);
 	// this isn't technically documented, but everyone does it, including Microsoft (see the implementation of _com_error::ErrorMessage() in a copy of comdef.h that comes with the Windows DDK)
 	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, (DWORD) hr, 0, (LPWSTR) (&msg), 0, NULL) != 0) {
 		fprintf(stderr, "%S (", msg);
-		// TODO check error
-		LocalFree(msg);
-		parenthesize = 1;
+		if (LocalFree(msg) != NULL) {
+			localFreeFailed = TRUE;
+			localFreeLastError = GetLastError();
+		}
+		parenthesize = TRUE;
 	}
 	fprintf(stderr, "HRESULT == 0x%I32X", hr);
 	if (parenthesize)
 		fprintf(stderr, ")");
+	if (localFreeFailed)
+		fprintf(stderr, "; local free of system message failed with last error %I32u", localFreeLastError);
 	fprintf(stderr, "\n");
 #ifdef tableDebugStop
 	DebugBreak();
@@ -79,7 +91,7 @@ HRESULT logLastError(const char *reason)
 	DWORD le;
 
 	le = GetLastError();
-	// technically (I think? TODO) we don't need to do this, but let's do this anyway just to be safe
+	// we shouldn't need to do this, but let's do this anyway just to be safe
 	SetLastError(le);
 	if (le == 0)
 		return E_FAIL;

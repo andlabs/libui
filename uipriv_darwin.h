@@ -26,6 +26,7 @@
 
 // util_darwin.m
 extern void setStandardControlFont(NSControl *);
+extern void disableAutocorrect(NSTextView *);
 
 // container_darwin.m
 @interface uiContainer : NSView

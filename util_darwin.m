@@ -7,7 +7,14 @@ void setStandardControlFont(NSControl *control)
 	[control setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]]];
 }
 
-void uiFreeText(char *s)
+void disableAutocorrect(NSTextView *tv)
 {
-	free(s);
+	[tv setEnabledTextCheckingTypes:0];
+	[tv setAutomaticDashSubstitutionEnabled:NO];
+	// don't worry about automatic data detection; it won't change stringValue (thanks pretty_function in irc.freenode.net/#macdev)
+	[tv setAutomaticSpellingCorrectionEnabled:NO];
+	[tv setAutomaticTextReplacementEnabled:NO];
+	[tv setAutomaticQuoteSubstitutionEnabled:NO];
+	[tv setAutomaticLinkDetectionEnabled:NO];
+	[tv setSmartInsertDeleteEnabled:NO];
 }

@@ -29,7 +29,7 @@ void finishNewTextField(NSTextField *t, BOOL isEntry)
 	[t setBezelStyle:NSTextFieldSquareBezel];
 	[t setBezeled:isEntry];
 
-	// TODO autocorrect comment
+	// we don't need to worry about substitutions/autocorrect here; see window_darwin.m for details
 
 	[[t cell] setLineBreakMode:NSLineBreakByClipping];
 	[[t cell] setScrollable:YES];

@@ -51,7 +51,14 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 		backing:NSBackingStoreBuffered
 		defer:YES];
 	[d.w setTitle:toNSString(title)];
-	// TODO substitutions
+
+	// we do not want substitutions
+	// text fields, labels, etc. take their smart quotes and other autocorrect settings from their parent window, which provides a shared "field editor"
+	// so we have to turn them off here
+	// thanks akempgen in irc.freenode.net/#macdev
+	// for some reason, this selector returns NSText but is documented to return NSTextView...
+	// NOTE: if you disagree with me about disabling substitutions, start a github issue with why and I'll be happy to consider it
+	disableAutocorrect((NSTextView *) [d.w fieldEditor:YES forObject:nil]);
 
 	// this is what will destroy the window on close
 	[d.w setReleasedWhenClosed:YES];

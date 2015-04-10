@@ -12,3 +12,8 @@ char *uiDarwinNSStringToText(NSString *s)
 	}
 	return out;
 }
+
+void uiFreeText(char *s)
+{
+	free(s);
+}

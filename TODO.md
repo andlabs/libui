@@ -3,3 +3,11 @@
 - figure out what to cleanup in darwin terminate:
 	- delegate
 	- deleted objects view
+
+ultimately:
+- make everything vtable-based
+	- provide macros for the vtables
+	- figure out where updateParent() plays into this
+		- figure out what to do about custom containers
+			- rename container to parent?
+		- make the code flow of all platforms fully symmetrical

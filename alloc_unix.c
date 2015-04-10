@@ -7,9 +7,8 @@ void *uiAlloc(size_t size, const char *type)
 	void *out;
 
 	out = g_malloc0(size);
-#ifdef uiLogAllocations
-	fprintf(stderr, "%p alloc %s\n", out, type);
-#endif
+	if (options.debugLogAllocations)
+		fprintf(stderr, "%p alloc %s\n", out, type);
 	return out;
 }
 
@@ -21,16 +20,14 @@ void *uiRealloc(void *p, size_t size, const char *type)
 		return uiAlloc(size, type);
 	// TODO fill with 0s
 	out = g_realloc(p, size);
-#ifdef uiLogAllocations
-	fprintf(stderr, "%p realloc %p\n", p, out);
-#endif
+	if (options.debugLogAllocations)
+		fprintf(stderr, "%p realloc %p\n", p, out);
 	return out;
 }
 
 void uiFree(void *p)
 {
 	g_free(p);
-#ifdef uiLogAllocations
-	fprintf(stderr, "%p free\n", p);
-#endif
+	if (options.debugLogAllocations)
+		fprintf(stderr, "%p free\n", p);
 }

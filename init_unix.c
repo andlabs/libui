@@ -5,10 +5,13 @@ struct uiInitError {
 	GError *err;
 };
 
+uiInitOptions options;
+
 uiInitError *uiInit(uiInitOptions *o)
 {
 	uiInitError *err;
 
+	options = *o;
 	err = uiNew(uiInitError);
 	if (gtk_init_with_args(NULL, NULL, NULL, NULL, NULL, &(err->err)) == FALSE)
 		return err;

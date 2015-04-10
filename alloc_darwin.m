@@ -11,9 +11,8 @@ void *uiAlloc(size_t size, const char *type)
 	out = malloc(size);
 	NSCAssert(out != NULL, @"out of memory in uiAlloc()");
 	memset(out, 0, size);
-#ifdef uiLogAllocations
-	fprintf(stderr, "%p alloc %s\n", out, type);
-#endif
+	if (options.debugLogAllocations)
+		fprintf(stderr, "%p alloc %s\n", out, type);
 	return out;
 }
 
@@ -26,9 +25,8 @@ void *uiRealloc(void *p, size_t size, const char *type)
 	out = realloc(p, size);
 	NSCAssert(out != NULL, @"out of memory in uiRealloc()");
 	// TODO zero the extra memory
-#ifdef uiLogAllocations
-	fprintf(stderr, "%p realloc %p\n", p, out);
-#endif
+	if (options.debugLogAllocations)
+		fprintf(stderr, "%p realloc %p\n", p, out);
 	return out;
 }
 
@@ -37,7 +35,6 @@ void uiFree(void *p)
 	if (p == NULL)
 		return;
 	free(p);
-#ifdef uiLogAllocations
-	fprintf(stderr, "%p free\n", p);
-#endif
+	if (options.debugLogAllocations)
+		fprintf(stderr, "%p free\n", p);
 }

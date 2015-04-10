@@ -25,6 +25,8 @@ static uiInitError *loadLastError(uiInitError *err, const char *message)
 	return err;
 }
 
+uiInitOptions options;
+
 uiInitError *uiInit(uiInitOptions *o)
 {
 	uiInitError *err;
@@ -33,6 +35,8 @@ uiInitError *uiInit(uiInitOptions *o)
 	HICON hDefaultIcon;
 	HCURSOR hDefaultCursor;
 	NONCLIENTMETRICSW ncm;
+
+	options = *o;
 
 	err = uiNew(uiInitError);
 

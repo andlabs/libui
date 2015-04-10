@@ -1,6 +1,7 @@
 // 6 april 2015
 #include "ui.h"
 #include <stdio.h>
+#include <string.h>
 
 int onClosing(uiWindow *w, void *data)
 {
@@ -111,10 +112,21 @@ static void showSpaced(uiControl *c, void *data)
 
 int main(int argc, char *argv[])
 {
+	uiInitOptions o;
+	int i;
 	uiInitError *err;
 	uiControl *getButton, *setButton;
 
-	err = uiInit(NULL);
+	memset(&o, 0, sizeof (uiInitOptions));
+	for (i = 1; i < argc; i++)
+		if (strcmp(argv[i], "leaks") == 0)
+			o.debugLogAllocations = 1;
+		else {
+			fprintf(stderr, "%s: unrecognized option %s\n", argv[0], argv[i]);
+			return 1;
+		}
+
+	err = uiInit(&o);
 	if (err != NULL) {
 		fprintf(stderr, "error initializing ui: %s\n", uiInitErrorMessage(err));
 		uiInitErrorFree(err);

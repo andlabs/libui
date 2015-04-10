@@ -8,6 +8,15 @@
 typedef struct uiInitError uiInitError;
 typedef struct uiInitOptions uiInitOptions;
 
+// TODO note that should be initialized to zero
+struct uiInitOptions {
+	// TODO cbSize
+
+	// If nonzero, allocations will be logged to stderr.
+	// See leaks.awk.
+	int debugLogAllocations;
+};
+
 uiInitError *uiInit(uiInitOptions *);
 const char *uiInitErrorMessage(uiInitError *);
 void uiInitErrorFree(uiInitError *);

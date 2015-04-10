@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include "ui.h"
 
-// uncomment the following line to enable memory logging; see leaks.awk
-#define uiLogAllocations
+extern uiInitOptions options;
 
 extern void *uiAlloc(size_t, const char *);
 #define uiNew(T) ((T *) uiAlloc(sizeof (T), #T ))

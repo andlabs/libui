@@ -20,8 +20,11 @@
 
 // TODO applicationShouldTerminateAfterLastWindowClosed
 
+uiInitOptions options;
+
 uiInitError *uiInit(uiInitOptions *o)
 {
+	options = *o;
 	[uiApplication sharedApplication];
 	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 	// see https://github.com/andlabs/ui/issues/6

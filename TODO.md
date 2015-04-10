@@ -1,0 +1,5 @@
+- change all private names to uipXxxx
+- make it so Windows API calls that do logLastError(), etc. abort whatever they're doing and not try to continue, just like wintable
+- figure out what to cleanup in darwin terminate:
+	- delegate
+	- deleted objects view

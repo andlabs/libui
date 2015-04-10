@@ -255,7 +255,12 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 	updateParent(s->parent);
 }
 
-// TODO get padded
+int uiStackPadded(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+
+	return s->padded;
+}
 
 void uiStackSetPadded(uiControl *c, int padded)
 {

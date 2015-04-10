@@ -98,6 +98,16 @@ static void forceSpacedOff(uiControl *c, void *data)
 	uiCheckboxSetChecked(spaced, 0);
 }
 
+static void showSpaced(uiControl *c, void *data)
+{
+	char msg[] = { 'm', ' ', '0', ' ', 'p', ' ', '0', '\0' };
+
+	// TODO margined
+	if (uiStackPadded(stacks[0]))
+		msg[6] = '1';
+	uiEntrySetText(e, msg);
+}
+
 int main(int argc, char *argv[])
 {
 	uiInitError *err;
@@ -158,9 +168,10 @@ int main(int argc, char *argv[])
 	uiButtonOnClicked(setButton, forceSpacedOff, NULL);
 	uiStackAdd(stacks[4], getButton, 0);
 	uiStackAdd(stacks[4], setButton, 0);
+	setButton = uiNewButton("Show");
+	uiButtonOnClicked(setButton, showSpaced, NULL);
+	uiStackAdd(stacks[4], setButton, 0);
 	uiStackAdd(stacks[0], stacks[4], 0);
-
-	// TODO get spaced values
 
 	uiWindowShow(w);
 	uiMain();

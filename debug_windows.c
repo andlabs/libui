@@ -1,5 +1,5 @@
 // 25 february 2015
-#include "tablepriv.h"
+#include "uipriv_windows.h"
 
 // uncomment the following line to enable debug messages
 #define tableDebug

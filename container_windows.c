@@ -55,7 +55,7 @@ BOOL sharedWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *
 	return FALSE;
 }
 
-// TODO get source
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define winXPadding 4
 #define winYPadding 4
 

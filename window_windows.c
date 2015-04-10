@@ -12,7 +12,7 @@ struct uiWindow {
 
 #define uiWindowClass L"uiWindowClass"
 
-// TODO get source
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define windowMargin 7
 
 static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

@@ -1,6 +1,8 @@
 // 9 april 2015
 #include "uipriv_windows.h"
 
+// see http://stackoverflow.com/a/29556509/3408572
+
 #define MBTWC(str, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, bufsiz)
 
 WCHAR *toUTF16(const char *str)
@@ -12,13 +14,12 @@ WCHAR *toUTF16(const char *str)
 	if (n == 0)
 		logLastError("error figuring out number of characters to convert to in toUTF16()");
 	wstr = (WCHAR *) uiAlloc(n * sizeof (WCHAR), "WCHAR[]");
-	// TODO verify return includes null terminator
 	if (MBTWC(str, wstr, n) != n)
 		logLastError("error converting from UTF-8 to UTF-16 in toUTF16()");
 	return wstr;
 }
 
-#define WCTMB(wstr, str, bufsiz) WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, bufsiz, NULL, FALSE)
+#define WCTMB(wstr, str, bufsiz) WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, bufsiz, NULL, NULL)
 
 char *toUTF8(const WCHAR *wstr)
 {
@@ -28,9 +29,8 @@ char *toUTF8(const WCHAR *wstr)
 	n = WCTMB(wstr, NULL, 0);
 	if (n == 0)
 		logLastError("error figuring out number of characters to convert to in toUTF8()");
-	// TODO does n include the null terminator?
-	str = (char *) uiAlloc((n + 1) * sizeof (char), "char[]");
-	if (WCTMB(wstr, str, n + 1) != n)
+	str = (char *) uiAlloc(n * sizeof (char), "char[]");
+	if (WCTMB(wstr, str, n) != n)
 		logLastError("error converting from UTF-16 to UTF-8 in toUTFF8()");
 	return str;
 }

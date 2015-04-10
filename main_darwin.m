@@ -21,6 +21,5 @@ void uiQuit(void)
 		subtype:0
 		data1:0
 		data2:0];
-	[NSApp postEvent:e atStart:NO];		// let pending events take priority
-	// TODO really wait?
+	[NSApp postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
 }

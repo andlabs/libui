@@ -58,7 +58,7 @@ char *uiButtonText(uiControl *c)
 	uiNSButton *b;
 
 	b = (uiNSButton *) uiControlHandle(c);
-	return strdup(fromNSString([b title]));
+	return uiDarwinNSStringToText([b title]);
 }
 
 void uiButtonSetText(uiControl *c, const char *text)

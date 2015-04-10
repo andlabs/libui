@@ -55,8 +55,7 @@ char *uiEntryText(uiControl *c)
 	uiNSTextField *t;
 
 	t = (uiNSTextField *) uiControlHandle(c);
-	// TODO wrap all strdup calls
-	return strdup(fromNSString([t stringValue]));
+	return uiDarwinNSStringToText([t stringValue]);
 }
 
 void uiEntrySetText(uiControl *c, const char *text)

@@ -57,7 +57,7 @@ char *uiCheckboxText(uiControl *c)
 	uiCheckboxNSButton *cc;
 
 	cc = (uiCheckboxNSButton *) uiControlHandle(c);
-	return strdup(fromNSString([cc title]));
+	return uiDarwinNSStringToText([cc title]);
 }
 
 void uiCheckboxSetText(uiControl *c, const char *text)

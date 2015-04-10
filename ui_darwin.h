@@ -15,6 +15,9 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 extern uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder);
 extern BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview);
 
+// You can use this function from within your control implementations to return text strings that can be freed with uiTextFree().
+extern char *uiDarwinNSStringToText(NSString *);
+
 struct uiSizingSys {
 	// this structure currently left blank
 };

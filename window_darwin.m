@@ -81,7 +81,7 @@ uintptr_t uiWindowHandle(uiWindow *w)
 
 char *uiWindowTitle(uiWindow *w)
 {
-	return strdup(fromNSString([D.w title]));
+	return uiDarwinNSStringToText([D.w title]);
 }
 
 void uiWindowSetTitle(uiWindow *w, const char *title)

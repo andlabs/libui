@@ -42,7 +42,7 @@
 
 uiInitOptions options;
 
-uiInitError *uiInit(uiInitOptions *o)
+const char *uiInit(uiInitOptions *o)
 {
 	options = *o;
 	[uiApplication sharedApplication];
@@ -53,11 +53,6 @@ uiInitError *uiInit(uiInitOptions *o)
 	return NULL;
 }
 
-const char *uiInitErrorMessage(uiInitError *err)
-{
-	return "";
-}
-
-void uiInitErrorFree(uiInitError *err)
+void uiFreeInitError(const char *err)
 {
 }

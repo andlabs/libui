@@ -5,7 +5,6 @@
 
 #include <stdint.h>
 
-typedef struct uiInitError uiInitError;
 typedef struct uiInitOptions uiInitOptions;
 
 // TODO note that should be initialized to zero
@@ -17,9 +16,8 @@ struct uiInitOptions {
 	int debugLogAllocations;
 };
 
-uiInitError *uiInit(uiInitOptions *);
-const char *uiInitErrorMessage(uiInitError *);
-void uiInitErrorFree(uiInitError *);
+const char *uiInit(uiInitOptions *);
+void uiFreeInitError(const char *);
 
 void uiMain(void);
 void uiQuit(void);

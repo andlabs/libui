@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 {
 	uiInitOptions o;
 	int i;
-	uiInitError *err;
+	const char *err;
 	uiControl *getButton, *setButton;
 
 	memset(&o, 0, sizeof (uiInitOptions));
@@ -128,8 +128,8 @@ int main(int argc, char *argv[])
 
 	err = uiInit(&o);
 	if (err != NULL) {
-		fprintf(stderr, "error initializing ui: %s\n", uiInitErrorMessage(err));
-		uiInitErrorFree(err);
+		fprintf(stderr, "error initializing ui: %s\n", err);
+		uiFreeInitError(err);
 		return 1;
 	}
 

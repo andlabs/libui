@@ -12,8 +12,10 @@ void *uiAlloc(size_t size, const char *type)
 	void *out;
 
 	out = malloc(size);
-	if (out == NULL)
-		abort();	// TODO figure this part out
+	if (out == NULL) {
+		fprintf(stderr, "memory exhausted in uiAlloc() allocating %s\n", type);
+		abort();
+	}
 	ZeroMemory(out, size);
 	if (options.debugLogAllocations)
 		fprintf(stderr, "%p alloc %s\n", out, type);
@@ -27,8 +29,10 @@ void *uiRealloc(void *p, size_t size, const char *type)
 	if (p == NULL)
 		return uiAlloc(size, type);
 	out = realloc(p, size);
-	if (out == NULL)
+	if (out == NULL) {
+		fprintf(stderr, "memory exhausted in uiRealloc() reallocating %s\n", type);
 		abort();
+	}
 	// TODO zero the extra memory
 	if (options.debugLogAllocations)
 		fprintf(stderr, "%p realloc %p\n", p, out);

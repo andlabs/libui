@@ -64,3 +64,6 @@ extern const char *initCommonControls(void);
 
 // window_windows.c
 extern ATOM registerWindowClass(HICON, HCURSOR);
+
+// initparent_windows.c
+extern const char *initInitialParent(HICON, HCURSOR);

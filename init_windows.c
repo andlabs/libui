@@ -6,8 +6,6 @@ int nCmdShow;
 
 HFONT hMessageFont;
 
-HWND initialParent;
-
 struct uiInitError {
 	char *msg;
 	char failbuf[256];
@@ -95,10 +93,9 @@ const char *uiInit(uiInitOptions *o)
 	if (hMessageFont == NULL)
 		return loadLastError("loading default messagebox font; this is the default UI font");
 
-	// give each control a reasonable initial parent
-	// don't free the initial parent!
-	// TODO tune this better; it shouldn't be closed, for instance
-	initialParent = (HWND) uiWindowHandle(uiNewWindow("", 0, 0));
+	ce = initInitialParent(hDefaultIcon, hDefaultCursor);
+	if (ce != NULL)
+		return loadLastError(ce);
 
 	return NULL;
 }

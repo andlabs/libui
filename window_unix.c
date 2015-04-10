@@ -82,7 +82,10 @@ void uiWindowSetChild(uiWindow *w, uiControl *c)
 	uiControlSetParent(uiContainer(w->container)->child, (uintptr_t) (w->container));
 }
 
-// TODO margined
+int uiWindowMargined(uiWindow *w)
+{
+	return uiContainer(w->container)->margined;
+}
 
 void uiWindowSetMargined(uiWindow *w, int margined)
 {

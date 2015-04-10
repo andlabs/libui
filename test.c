@@ -102,7 +102,8 @@ static void showSpaced(uiControl *c, void *data)
 {
 	char msg[] = { 'm', ' ', '0', ' ', 'p', ' ', '0', '\0' };
 
-	// TODO margined
+	if (uiWindowMargined(w))
+		msg[2] = '1';
 	if (uiStackPadded(stacks[0]))
 		msg[6] = '1';
 	uiEntrySetText(e, msg);

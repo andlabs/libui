@@ -59,7 +59,10 @@ uiLogObjCClassAllocations
 	uiControlResize(self.child, x, y, width, height, &d);
 }
 
-// TODO margined
+- (BOOL)uiMargined
+{
+	return self->uimargined;
+}
 
 - (void)uiSetMargined:(BOOL)margined
 {

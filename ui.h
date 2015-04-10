@@ -53,7 +53,7 @@ void uiWindowShow(uiWindow *);
 void uiWindowHide(uiWindow *);
 void uiWindowOnClosing(uiWindow *, int (*)(uiWindow *, void *), void *);
 void uiWindowSetChild(uiWindow *, uiControl *);
-// TODO uiWindowMargined()
+int uiWindowMargined(uiWindow *);
 void uiWindowSetMargined(uiWindow *, int);
 
 uiControl *uiNewButton(const char *);

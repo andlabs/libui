@@ -180,7 +180,10 @@ void uiWindowSetChild(uiWindow *w, uiControl *c)
 	uiControlSetParent(w->child, (uintptr_t) (w->hwnd));
 }
 
-// TODO uiWindowMargined
+int uiWindowMargined(uiWindow *w)
+{
+	return w->margined;
+}
 
 void uiWindowSetMargined(uiWindow *w, int margined)
 {

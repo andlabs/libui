@@ -105,16 +105,19 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	s->onWM_DESTROY = p->onWM_DESTROY;
 
 	c = uiNew(uiControl);
-	c->internal = s;
 	c->destroy = singleDestroy;
 	c->handle = singleHandle;
 	c->setParent = singleSetParent;
 	c->removeParent = singleRemoveParent;
 	c->resize = singleResize;
 
+	if (p->useStandardControlFont)
+		SendMessageW(s->hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
+
 	if ((*fv_SetWindowSubclass)(s->hwnd, singleSubclassProc, 0, (DWORD_PTR) c) == FALSE)
 		logLastError("error subclassing Windows control in uiWindowsNewControl()");
 
+	c->internal = s;
 	return c;
 }
 

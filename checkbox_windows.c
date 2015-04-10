@@ -61,7 +61,6 @@ uiControl *uiNewCheckbox(const char *text)
 	struct checkbox *cc;
 	uiWindowsNewControlParams p;
 	WCHAR *wtext;
-	HWND hwnd;
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
@@ -69,6 +68,7 @@ uiControl *uiNewCheckbox(const char *text)
 	p.lpWindowName = wtext;
 	p.dwStyle = BS_CHECKBOX | WS_TABSTOP;
 	p.hInstance = hInstance;
+	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
@@ -76,9 +76,6 @@ uiControl *uiNewCheckbox(const char *text)
 	uiFree(wtext);
 
 	c->preferredSize = preferredSize;
-
-	hwnd = (HWND) uiControlHandle(c);
-	SendMessageW(hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
 	cc = uiNew(struct checkbox);
 	cc->onToggled = defaultOnToggled;

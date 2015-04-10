@@ -66,7 +66,6 @@ uiControl *uiNewButton(const char *text)
 	struct button *b;
 	uiWindowsNewControlParams p;
 	WCHAR *wtext;
-	HWND hwnd;
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
@@ -74,6 +73,7 @@ uiControl *uiNewButton(const char *text)
 	p.lpWindowName = wtext;
 	p.dwStyle = BS_PUSHBUTTON | WS_TABSTOP;
 	p.hInstance = hInstance;
+	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
@@ -81,9 +81,6 @@ uiControl *uiNewButton(const char *text)
 	uiFree(wtext);
 
 	c->preferredSize = preferredSize;
-
-	hwnd = (HWND) uiControlHandle(c);
-	SendMessageW(hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
 	b = uiNew(struct button);
 	b->onClicked = defaultOnClicked;

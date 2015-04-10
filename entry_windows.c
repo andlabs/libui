@@ -36,23 +36,19 @@ uiControl *uiNewEntry(void)
 	uiControl *c;
 	struct entry *e;
 	uiWindowsNewControlParams p;
-	HWND hwnd;
 
 	p.dwExStyle = WS_EX_CLIENTEDGE;
 	p.lpClassName = L"edit";
 	p.lpWindowName = L"";
-	// TODO ES_NOHIDESEL?
-	p.dwStyle = ES_AUTOHSCROLL | ES_LEFT | WS_TABSTOP;
+	p.dwStyle = ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP;
 	p.hInstance = hInstance;
+	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
 	c = uiWindowsNewControl(&p);
 
 	c->preferredSize = preferredSize;
-
-	hwnd = (HWND) uiControlHandle(c);
-	SendMessageW(hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
 	e = uiNew(struct entry);
 	c->data = e;

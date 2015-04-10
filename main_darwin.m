@@ -1,8 +1,6 @@
 // 6 april 2015
 #import "uipriv_darwin.h"
 
-// TODO merge with init_darwin.m?
-
 void uiMain(void)
 {
 	[NSApp run];

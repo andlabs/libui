@@ -14,11 +14,31 @@
 {
 	// yes that's right folks: DO ABSOLUTELY NOTHING.
 	// the magic is [NSApp run] will just... stop.
+
+	// for debugging
+	NSLog(@"in terminate:");
 }
 
 @end
 
-// TODO applicationShouldTerminateAfterLastWindowClosed
+@interface uiAppDelegate : NSObject <NSApplicationDelegate>
+@end
+
+@implementation uiAppDelegate
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)app
+{
+	// for debugging
+	NSLog(@"in applicationShouldTerminate:");
+	return NSTerminateNow;
+}
+
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app
+{
+	return NO;
+}
+
+@end
 
 uiInitOptions options;
 
@@ -29,6 +49,7 @@ uiInitError *uiInit(uiInitOptions *o)
 	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 	// see https://github.com/andlabs/ui/issues/6
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+	[NSApp setDelegate:[uiAppDelegate new]];
 	return NULL;
 }
 

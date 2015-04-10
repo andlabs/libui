@@ -13,23 +13,49 @@ struct uiInitError {
 	char failbuf[256];
 };
 
-static uiInitError *loadLastError(uiInitError *err, const char *message)
+#define initErrorFormat L"error %s: %s%sGetLastError() == %I32u%s"
+#define initErrorArgs wmessage, sysmsg, beforele, le, afterle
+
+static const char *loadLastError(const char *message)
 {
+	WCHAR *sysmsg;
+	BOOL hassysmsg;
+	WCHAR *beforele;
+	WCHAR *afterle;
+	int n;
+	WCHAR *wmessage;
+	WCHAR *wstr;
+	const char *str;
 	DWORD le;
 
 	le = GetLastError();
-	// TODO FormatMessageW() it
-	// TODO make sure argument is right; _snprintf_s() isn't supported on Windows XP
-	snprintf(err->failbuf, 256, "error %s (last error %I32u)", message, le);
-	err->msg = err->failbuf;
-	return err;
+	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, le, 0, (LPWSTR) (&sysmsg), 0, NULL) != 0) {
+		hassysmsg = TRUE;
+		beforele = L" (";
+		afterle = L")";
+	} else {
+		hassysmsg = FALSE;
+		sysmsg = L"";
+		beforele = L"";
+		afterle = L"";
+	}
+	wmessage = toUTF16(message);
+	n = _scwprintf(initErrorFormat, initErrorArgs);
+	wstr = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
+	swprintf_s(wstr, n + 1, initErrorFormat, initErrorArgs);
+	str = toUTF8(wstr);
+	uiFree(wstr);
+	if (hassysmsg)
+		if (LocalFree(sysmsg) != NULL)
+			logLastError("error freeing system message in loadLastError()");
+	uiFree(wmessage);
+	return str;
 }
 
 uiInitOptions options;
 
-uiInitError *uiInit(uiInitOptions *o)
+const char *uiInit(uiInitOptions *o)
 {
-	uiInitError *err;
 	STARTUPINFOW si;
 	const char *ce;
 	HICON hDefaultIcon;
@@ -38,11 +64,9 @@ uiInitError *uiInit(uiInitOptions *o)
 
 	options = *o;
 
-	err = uiNew(uiInitError);
-
 	hInstance = GetModuleHandle(NULL);
 	if (hInstance == NULL)
-		return loadLastError(err, "getting program HINSTANCE");
+		return loadLastError("getting program HINSTANCE");
 
 	nCmdShow = SW_SHOWDEFAULT;
 	GetStartupInfoW(&si);
@@ -51,43 +75,35 @@ uiInitError *uiInit(uiInitOptions *o)
 
 	ce = initCommonControls();
 	if (ce != NULL)
-		return loadLastError(err, ce);
+		return loadLastError(ce);
 
 	hDefaultIcon = LoadIconW(NULL, IDI_APPLICATION);
 	if (hDefaultIcon == NULL)
-		return loadLastError(err, "loading default icon for window classes");
+		return loadLastError("loading default icon for window classes");
 	hDefaultCursor = LoadCursorW(NULL, IDC_ARROW);
 	if (hDefaultCursor == NULL)
-		return loadLastError(err, "loading default cursor for window classes");
+		return loadLastError("loading default cursor for window classes");
 
 	if (registerWindowClass(hDefaultIcon, hDefaultCursor) == 0)
-		return loadLastError(err, "registering uiWindow window class");
+		return loadLastError("registering uiWindow window class");
 
 	ZeroMemory(&ncm, sizeof (NONCLIENTMETRICSW));
 	ncm.cbSize = sizeof (NONCLIENTMETRICSW);
 	if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof (NONCLIENTMETRICSW), &ncm, sizeof (NONCLIENTMETRICSW)) == 0)
-		return loadLastError(err, "getting default fonts");
+		return loadLastError("getting default fonts");
 	hMessageFont = CreateFontIndirectW(&(ncm.lfMessageFont));
 	if (hMessageFont == NULL)
-		return loadLastError(err, "loading default messagebox font; this is the default UI font");
+		return loadLastError("loading default messagebox font; this is the default UI font");
 
 	// give each control a reasonable initial parent
 	// don't free the initial parent!
 	// TODO tune this better; it shouldn't be closed, for instance
 	initialParent = (HWND) uiWindowHandle(uiNewWindow("", 0, 0));
 
-	uiFree(err);
 	return NULL;
 }
 
-const char *uiInitErrorMessage(uiInitError *err)
+void uiFreeInitError(const char *err)
 {
-	return err->msg;
-}
-
-void uiInitErrorFree(uiInitError *err)
-{
-	if (err->msg != err->failbuf)
-		uiFree(err->msg);
-	uiFree(err);
+	uiFree((void *) err);
 }

@@ -96,7 +96,6 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 		p->dwStyle | WS_CHILD | WS_VISIBLE,
 		0, 0,
 		100, 100,
-		// TODO specify control IDs properly
 		initialParent, NULL, p->hInstance, NULL);
 	if (s->hwnd == NULL)
 		logLastError("error creating control in uiWindowsNewControl()");

@@ -3,6 +3,8 @@
 - figure out what to cleanup in darwin terminate:
 	- delegate
 	- deleted objects view
+- assign control IDs on windows
+	- GWL(P)_ID
 
 ultimately:
 - make everything vtable-based

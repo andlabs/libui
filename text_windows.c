@@ -12,6 +12,7 @@ WCHAR *toUTF16(const char *str)
 	if (n == 0)
 		logLastError("error figuring out number of characters to convert to in toUTF16()");
 	wstr = (WCHAR *) uiAlloc(n * sizeof (WCHAR), "WCHAR[]");
+	// TODO verify return includes null terminator
 	if (MBTWC(str, wstr, n) != n)
 		logLastError("error converting from UTF-8 to UTF-16 in toUTF16()");
 	return wstr;
@@ -36,20 +37,13 @@ char *toUTF8(const WCHAR *wstr)
 
 WCHAR *windowText(HWND hwnd)
 {
-	int n;
+	LRESULT n;
 	WCHAR *text;
-	DWORD le;
 
-	SetLastError(0);
-	n = GetWindowTextLengthW(hwnd);
-	if (n == 0) {
-		le = GetLastError();
-		SetLastError(le);		// just in case
-		if (le != 0)
-			logLastError("error getting window text length in windowText()");
-	}
-	// TODO null terminator?
+	n = SendMessageW(hwnd, WM_GETTEXTLENGTH, 0, 0);
+	// WM_GETTEXTLENGTH does not include the null terminator
 	text = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
+	// note the comparison: the size includes the null terminator, but the return does not
 	if (GetWindowTextW(hwnd, text, n + 1) != n)
 		logLastError("error getting window text in windowText()");
 	return text;

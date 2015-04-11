@@ -8,6 +8,10 @@ struct singleWidget {
 	GtkWidget *scrolledWindow;
 	GtkWidget *immediate;		// the widget that is added to the parent container; either widget or scrolledWindow
 	uintptr_t parent;
+	gboolean userHid;
+	gboolean containerHid;
+	gboolean userDisabled;
+	gboolean containerDisabled;
 };
 
 static void singleDestroy(uiControl *c)
@@ -69,6 +73,83 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 	gtk_widget_size_allocate(s->immediate, &a);
 }
 
+static int singleVisible(uiControl *c)
+{
+	singleWidget *s = (singleWidget *) (c->internal);
+
+	if (s->userHid)
+		return 1;
+	return 0;
+}
+
+static void singleShow(uiControl *c)
+{
+	singleWidget *s = (singleWidget *) (c->internal);
+
+	s->userHid = FALSE;
+	if (!s->containerHid)
+		gtk_widget_show_all(s->immediate);
+}
+
+static void singleHide(uiControl *c)
+{
+	singleWidget *s = (singleWidget *) (c->internal);
+
+	s->userHid = TRUE;
+	gtk_widget_hide(s->immediate);
+}
+
+static void singleContainerShow(uiControl *c)
+{
+	singleWidget *s = (singleWidget *) (c->internal);
+
+	s->containerHid = FALSE;
+	if (!s->userHid)
+		gtk_widget_show_all(s->immediate);
+}
+
+static void singleContainerHide(uiControl *c)
+{
+	singleWidget *s = (singleWidget *) (c->internal);
+
+	s->containerHid = TRUE;
+	gtk_widget_hide(s->immediate);
+}
+
+static void singleEnable(uiControl *c)
+{
+	singleWidget *s = (singleWidget *) (c->internal);
+
+	s->userDisabled = FALSE;
+	if (!s->containerDisabled)
+		gtk_widget_set_sensitive(s->immediate, TRUE);
+}
+
+static void singleDisable(uiControl *c)
+{
+	singleWidget *s = (singleWidget *) (c->internal);
+
+	s->userDisabled = TRUE;
+	gtk_widget_set_sensitive(s->immediate, FALSE);
+}
+
+static void singleContainerEnable(uiControl *c)
+{
+	singleWidget *s = (singleWidget *) (c->internal);
+
+	s->containerDisabled = FALSE;
+	if (!s->userDisabled)
+		gtk_widget_set_sensitive(s->immediate, TRUE);
+}
+
+static void singleContainerDisable(uiControl *c)
+{
+	singleWidget *s = (singleWidget *) (c->internal);
+
+	s->containerDisabled = TRUE;
+	gtk_widget_set_sensitive(s->immediate, FALSE);
+}
+
 static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	uiControl *c = (uiControl *) data;
@@ -121,6 +202,15 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scro
 	c->removeParent = singleRemoveParent;
 	c->preferredSize = singlePreferredSize;
 	c->resize = singleResize;
+	c->visible = singleVisible;
+	c->show = singleShow;
+	c->hide = singleHide;
+	c->containerShow = singleContainerShow;
+	c->containerHide = singleContainerHide;
+	c->enable = singleEnable;
+	c->disable = singleDisable;
+	c->containerEnable = singleContainerEnable;
+	c->containerDisable = singleContainerDisable;
 
 	// and let's free everything with the immediate widget
 	g_signal_connect(s->immediate, "destroy", G_CALLBACK(onDestroy), c);

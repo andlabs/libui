@@ -3,7 +3,7 @@
 
 intmax_t uiWindowsWindowTextWidth(HWND hwnd)
 {
-	int len;
+	LRESULT len;
 	WCHAR *text;
 	HDC dc;
 	HFONT prevfont;
@@ -11,13 +11,17 @@ intmax_t uiWindowsWindowTextWidth(HWND hwnd)
 
 	size.cx = 0;
 	size.cy = 0;
-	// TODO check for error
-	len = GetWindowTextLengthW(hwnd);
+
+	// first we need the window text
+	len = SendMessageW(hwnd, WM_GETTEXTLENGTH, 0, 0);
 	if (len == 0)		// no text; nothing to do
 		return 0;
 	text = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
-	if (GetWindowText(hwnd, text, len + 1) == 0)		// should only happen on error given explicit test for len == 0 above
+	// note the comparison: the size includes the null terminator, but the return does not
+	if (GetWindowText(hwnd, text, len + 1) != len)
 		logLastError("error getting window text in uiWindowsWindowTextWidth()");
+
+	// now we can do the calculations
 	dc = GetDC(hwnd);
 	if (dc == NULL)
 		logLastError("error getting DC in uiWindowsWindowTextWidth()");
@@ -31,5 +35,6 @@ intmax_t uiWindowsWindowTextWidth(HWND hwnd)
 	if (ReleaseDC(hwnd, dc) == 0)
 		logLastError("error releasing DC in uiWindowsWindowTextWidth()");
 	uiFree(text);
+
 	return size.cx;
 }

@@ -40,9 +40,7 @@ static const char *loadLastError(const char *message)
 	wmessage = toUTF16(message);
 	n = _scwprintf(initErrorFormat, initErrorArgs);
 	wstr = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
-	// TODO this requires -lmsvcr100; find out if that runs on XP RTM/SP1
-	// TODO find replacement
-	swprintf_s(wstr, n + 1, initErrorFormat, initErrorArgs);
+	snwprintf(wstr, n + 1, initErrorFormat, initErrorArgs);
 	str = toUTF8(wstr);
 	uiFree(wstr);
 	if (hassysmsg)

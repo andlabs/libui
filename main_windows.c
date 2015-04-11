@@ -1,7 +1,7 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
-// #qo LDFLAGS: -luser32 -lkernel32 -lgdi32 -luxtheme -lmsimg32 -lcomdlg32 -lole32 -loleaut32 -loleacc -luuid -lmsvcr100
+// #qo LDFLAGS: -luser32 -lkernel32 -lgdi32 -luxtheme -lmsimg32 -lcomdlg32 -lole32 -loleaut32 -loleacc -luuid
 
 static void uimsgloop_else(MSG *msg)
 {

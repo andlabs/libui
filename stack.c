@@ -171,10 +171,6 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 		}
 		uiControlPreferredSize(s->controls[i].c, d, &preferredWidth, &preferredHeight);
 		if (s->vertical) {		// all controls have same width
-			// TODO TODO TODO TODO TODO TODO TODO
-			// for some reason, the 32-bit Windows build is clobbering some stacks's data pointer with this line
-			// I have no idea what's going on; it doesn't happen with the 64-bit version
-			// is gcc miscompiling something?
 			s->controls[i].width = width;
 			s->controls[i].height = preferredHeight;
 			stretchyht -= preferredHeight;
@@ -356,7 +352,7 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 
 	if (s->len >= s->cap) {
 		s->cap += stackCapGrow;
-		s->controls = (stackControl *) uiRealloc(s->controls, s->cap * sizeof (stackControl *), "stackControl[]");
+		s->controls = (stackControl *) uiRealloc(s->controls, s->cap * sizeof (stackControl), "stackControl[]");
 	}
 	s->controls[s->len].c = c;
 	s->controls[s->len].stretchy = stretchy;

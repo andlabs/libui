@@ -25,7 +25,7 @@
 }
 
 // init_darwin.m
-extern NSView *deletedControlsView;
+extern NSView *destroyedControlsView;
 
 // util_darwin.m
 extern void setStandardControlFont(NSControl *);

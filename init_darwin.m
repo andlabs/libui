@@ -43,7 +43,7 @@
 // we are not in control of the actual lifetimes and refcounts of NSViews (see http://stackoverflow.com/a/29523141/3408572)
 // when we're done with a view, it'll be added as a subview of this one, and this one will be released on application shutdown
 // we need this separate view because it's possible for controls to have no parent but still be alive
-NSView *deletedControlsView;
+NSView *destroyedControlsView;
 
 uiInitOptions options;
 
@@ -57,7 +57,7 @@ const char *uiInit(uiInitOptions *o)
 	[NSApp setDelegate:[uiAppDelegate new]];
 
 	// we can use a stock NSView for this
-	deletedControlsView = [[NSView alloc] initWithFrame:NSZeroRect];
+	destroyedControlsView = [[NSView alloc] initWithFrame:NSZeroRect];
 
 	return NULL;
 }

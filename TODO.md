@@ -5,6 +5,7 @@
 	- deleted objects view
 - assign control IDs on windows
 	- GWL(P)_ID
+- make sure all terminology is consistent
 
 ultimately:
 - make everything vtable-based

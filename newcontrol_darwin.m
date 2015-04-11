@@ -14,7 +14,7 @@ static void singleDestroy(uiControl *c)
 {
 	singleView *s = (singleView *) (c->internal);
 
-	[deletedControlsView addSubview:s->immediate];
+	[destroyedControlsView addSubview:s->immediate];
 }
 
 static uintptr_t singleHandle(uiControl *c)
@@ -117,7 +117,7 @@ BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview)
 {
 	singleView *s = (singleView *) (c->internal);
 
-	if (newSuperview == deletedControlsView) {
+	if (newSuperview == destroyedControlsView) {
 		[s->immediate release];		// we don't need the reference anymore
 		uiFree(s);
 		uiFree(c);

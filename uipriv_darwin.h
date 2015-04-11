@@ -24,6 +24,9 @@
 		fprintf(stderr, "%p free\n", self); \
 }
 
+// init_darwin.m
+extern NSView *deletedControlsView;
+
 // util_darwin.m
 extern void setStandardControlFont(NSControl *);
 extern void disableAutocorrect(NSTextView *);

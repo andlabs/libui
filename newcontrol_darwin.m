@@ -10,12 +10,11 @@ struct singleView {
 	uintptr_t parent;
 };
 
-// TODO this will need to change if we want to provide removal
 static void singleDestroy(uiControl *c)
 {
 	singleView *s = (singleView *) (c->internal);
 
-	[s->view removeFromSuperview];
+	[deletedControlsView addSubview:s->immediate];
 }
 
 static uintptr_t singleHandle(uiControl *c)
@@ -99,6 +98,9 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 		s->immediate = (NSView *) (s->scrollView);
 	}
 
+	// and keep a reference to s->immediate for when we remove the control from its parent
+	[s->immediate retain];
+
 	c = uiNew(uiControl);
 	c->internal = s;
 	c->destroy = singleDestroy;
@@ -115,7 +117,8 @@ BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview)
 {
 	singleView *s = (singleView *) (c->internal);
 
-	if (newSuperview == nil) {
+	if (newSuperview == deletedControlsView) {
+		[s->immediate release];		// we don't need the reference anymore
 		uiFree(s);
 		uiFree(c);
 		return YES;

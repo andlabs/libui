@@ -2,17 +2,13 @@
 #include "uipriv.h"
 
 // TODO
-// - use stackControl
 // - change prefwid/prefht to preferredWidth/preferredHeight
 
 typedef struct stack stack;
 typedef struct stackControl stackControl;
 
 struct stack {
-	uiControl **controls;
-	int *stretchy;
-	intmax_t *width;
-	intmax_t *height;
+	stackControl *controls;
 	uintmax_t len;
 	uintmax_t cap;
 	int vertical;
@@ -21,7 +17,7 @@ struct stack {
 };
 
 struct stackControl {
-	uiControl *control;
+	uiControl *c;
 	int stretchy;
 	intmax_t width;		// both used by resize(); preallocated to save time and reduce risk of failure
 	intmax_t height;
@@ -33,11 +29,8 @@ static void stackDestroy(uiControl *c)
 	uintmax_t i;
 
 	for (i = 0; i < s->len; i++)
-		uiControlDestroy(s->controls[i]);
+		uiControlDestroy(s->controls[i].c);
 	uiFree(s->controls);
-	uiFree(s->stretchy);
-	uiFree(s->width);
-	uiFree(s->height);
 	uiFree(s);
 	uiFree(c);
 }
@@ -54,7 +47,7 @@ static void stackSetParent(uiControl *c, uintptr_t parent)
 
 	s->parent = parent;
 	for (i = 0; i < s->len; i++)
-		uiControlSetParent(s->controls[i], s->parent);
+		uiControlSetParent(s->controls[i].c, s->parent);
 	updateParent(s->parent);
 }
 
@@ -67,7 +60,7 @@ static void stackRemoveParent(uiControl *c)
 	oldparent = s->parent;
 	s->parent = 0;
 	for (i = 0; i < s->len; i++)
-		uiControlRemoveParent(s->controls[i]);
+		uiControlRemoveParent(s->controls[i].c);
 	updateParent(oldparent);
 }
 
@@ -105,8 +98,8 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	maxswid = 0;
 	maxsht = 0;
 	for (i = 0; i < s->len; i++) {
-		uiControlPreferredSize(s->controls[i], d, &prefwid, &prefht);
-		if (s->stretchy[i]) {
+		uiControlPreferredSize(s->controls[i].c, d, &prefwid, &prefht);
+		if (s->controls[i].stretchy) {
 			nStretchy++;
 			if (maxswid < prefwid)
 				maxswid = prefwid;
@@ -116,10 +109,10 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 		if (s->vertical) {
 			if (*width < prefwid)
 				*width = prefwid;
-			if (!s->stretchy[i])
+			if (!s->controls[i].stretchy)
 				*height += prefht;
 		} else {
-			if (!s->stretchy[i])
+			if (!s->controls[i].stretchy)
 				*width += prefwid;
 			if (*height < prefht)
 				*height = prefht;
@@ -165,19 +158,19 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	stretchyht = height;
 	nStretchy = 0;
 	for (i = 0; i < s->len; i++) {
-		if (s->stretchy[i]) {
+		if (s->controls[i].stretchy) {
 			nStretchy++;
 			continue;
 		}
-		c = s->controls[i];
-		uiControlPreferredSize(s->controls[i], d, &prefwid, &prefht);
+		c = s->controls[i].c;
+		uiControlPreferredSize(s->controls[i].c, d, &prefwid, &prefht);
 		if (s->vertical) {		// all controls have same width
-			s->width[i] = width;
-			s->height[i] = prefht;
+			s->controls[i].width = width;
+			s->controls[i].height = prefht;
 			stretchyht -= prefht;
 		} else {				// all controls have same height
-			s->width[i] = prefwid;
-			s->height[i] = height;
+			s->controls[i].width = prefwid;
+			s->controls[i].height = height;
 			stretchywid -= prefwid;
 		}
 	}
@@ -189,18 +182,18 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 		else
 			stretchywid /= nStretchy;
 	for (i = 0; i < s->len; i++)
-		if (s->stretchy[i]) {
-			s->width[i] = stretchywid;
-			s->height[i] = stretchyht;
+		if (s->controls[i].stretchy) {
+			s->controls[i].width = stretchywid;
+			s->controls[i].height = stretchyht;
 		}
 
 	// 3) now we can position controls
 	for (i = 0; i < s->len; i++) {
-		uiControlResize(s->controls[i], x, y, s->width[i], s->height[i], d);
+		uiControlResize(s->controls[i].c, x, y, s->controls[i].width, s->controls[i].height, d);
 		if (s->vertical)
-			y += s->height[i] + ypadding;
+			y += s->controls[i].height + ypadding;
 		else
-			x += s->width[i] + xpadding;
+			x += s->controls[i].width + xpadding;
 	}
 }
 
@@ -242,15 +235,12 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 
 	if (s->len >= s->cap) {
 		s->cap += stackCapGrow;
-		s->controls = (uiControl **) uiRealloc(s->controls, s->cap * sizeof (uiControl *), "uiControl *[]");
-		s->stretchy = (int *) uiRealloc(s->stretchy, s->cap * sizeof (int), "int[]");
-		s->width = (intmax_t *) uiRealloc(s->width, s->cap * sizeof (intmax_t), "intmax_t[]");
-		s->height = (intmax_t *) uiRealloc(s->height, s->cap * sizeof (intmax_t), "intmax_t[]");
+		s->controls = (stackControl *) uiRealloc(s->controls, s->cap * sizeof (stackControl *), "stackControl[]");
 	}
-	s->controls[s->len] = c;
-	s->stretchy[s->len] = stretchy;
+	s->controls[s->len].c = c;
+	s->controls[s->len].stretchy = stretchy;
 	if (s->parent != 0)
-		uiControlSetParent(s->controls[s->len], s->parent);
+		uiControlSetParent(s->controls[s->len].c, s->parent);
 	s->len++;
 	updateParent(s->parent);
 }

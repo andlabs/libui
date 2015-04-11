@@ -8,6 +8,10 @@ struct singleView {
 	NSScrollView *scrollView;
 	NSView *immediate;		// the control that is added to the parent container; either view or scrollView
 	uintptr_t parent;
+	BOOL userHid;
+	BOOL containerHid;
+	BOOL userDisabled;
+	BOOL containerDisabled;
 };
 
 static void singleDestroy(uiControl *c)
@@ -75,6 +79,101 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 	[s->immediate setFrame:frame];
 }
 
+static int singleVisible(uiControl *c)
+{
+	singleView *s = (singleView *) (c->internal);
+
+	if (s->userHid)
+		return 0;
+	return 1;
+}
+
+static void singleShow(uiControl *c)
+{
+	singleView *s = (singleView *) (c->internal);
+
+	s->userHid = NO;
+	if (!s->containerHid) {
+		[s->immediate setHidden:NO];
+		updateParent(s->parent);
+	}
+}
+
+static void singleHide(uiControl *c)
+{
+	singleView *s = (singleView *) (c->internal);
+
+	s->userHid = YES;
+	[s->immediate setHidden:YES];
+	updateParent(s->parent);
+}
+
+static void singleContainerShow(uiControl *c)
+{
+	singleView *s = (singleView *) (c->internal);
+
+	s->containerHid = NO;
+	if (!s->userHid) {
+		[s->immediate setHidden:NO];
+		updateParent(s->parent);
+	}
+}
+
+static void singleContainerHide(uiControl *c)
+{
+	singleView *s = (singleView *) (c->internal);
+
+	s->containerHid = YES;
+	[s->immediate setHidden:YES];
+	updateParent(s->parent);
+}
+
+static void enable(singleView *s)
+{
+	if ([s->view respondsToSelector:@selector(setEnabled:)])
+		[((NSControl *) (s->view)) setEnabled:YES];
+}
+
+static void disable(singleView *s)
+{
+	if ([s->view respondsToSelector:@selector(setEnabled:)])
+		[((NSControl *) (s->view)) setEnabled:NO];
+}
+
+static void singleEnable(uiControl *c)
+{
+	singleView *s = (singleView *) (c->internal);
+
+	s->userDisabled = NO;
+	if (!s->containerDisabled)
+		enable(s);
+}
+
+static void singleDisable(uiControl *c)
+{
+	singleView *s = (singleView *) (c->internal);
+
+	s->userDisabled = YES;
+	disable(s);
+}
+
+static void singleContainerEnable(uiControl *c)
+{
+	singleView *s = (singleView *) (c->internal);
+
+	s->containerDisabled = NO;
+	if (!s->userDisabled)
+		enable(s);
+}
+
+static void singleContainerDisable(uiControl *c)
+{
+	singleView *s = (singleView *) (c->internal);
+
+	s->containerDisabled = YES;
+	disable(s);
+}
+
 uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder)
 {
 	uiControl *c;
@@ -109,6 +208,15 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 	c->removeParent = singleRemoveParent;
 	c->preferredSize = singlePreferredSize;
 	c->resize = singleResize;
+	c->visible = singleVisible;
+	c->show = singleShow;
+	c->hide = singleHide;
+	c->containerShow = singleContainerShow;
+	c->containerHide = singleContainerHide;
+	c->enable = singleEnable;
+	c->disable = singleDisable;
+	c->containerEnable = singleContainerEnable;
+	c->containerDisable = singleContainerDisable;
 
 	return c;
 }

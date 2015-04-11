@@ -31,10 +31,12 @@ uiLogObjCClassAllocations
 }
 
 // These are based on measurements from Interface Builder.
-// TODO reverify these against /layout rects/, not /frame rects/
+// These seem to be based on Auto Layout constants, but I don't see an API that exposes these...
 #define macXMargin 20
 #define macYMargin 20
+// This one is 8 for most pairs of controls that I've tried; the only difference is between two pushbuttons, where it's 12...
 #define macXPadding 8
+// Likewise, this one appears to be 12 for pairs of push buttons...
 #define macYPadding 8
 
 - (void)uiUpdateNow

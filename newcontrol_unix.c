@@ -78,8 +78,8 @@ static int singleVisible(uiControl *c)
 	singleWidget *s = (singleWidget *) (c->internal);
 
 	if (s->userHid)
-		return 1;
-	return 0;
+		return 0;
+	return 1;
 }
 
 static void singleShow(uiControl *c)

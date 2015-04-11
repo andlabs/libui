@@ -11,6 +11,10 @@ struct stack {
 	int vertical;
 	uintptr_t parent;
 	int padded;
+	int userHid;
+	int containerHid;
+	int userDisabled;
+	int containerDisabled;
 };
 
 struct stackControl {
@@ -205,6 +209,103 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	}
 }
 
+static int stackVisible(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+
+	return !(s->userHid);
+}
+
+static void stackShow(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+	uintmax_t i;
+
+	s->userHid = 0;
+	if (!s->containerHid) {
+		for (i = 0; i < s->len; i++)
+			uiControlContainerShow(s->controls[i].c);
+		updateParent(s->parent);
+	}
+}
+
+static void stackHide(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+	uintmax_t i;
+
+	s->userHid = 1;
+	for (i = 0; i < s->len; i++)
+		uiControlContainerHide(s->controls[i].c);
+	updateParent(s->parent);
+}
+
+static void stackContainerShow(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+	uintmax_t i;
+
+	s->containerHid = 0;
+	if (!s->userHid) {
+		for (i = 0; i < s->len; i++)
+			uiControlContainerShow(s->controls[i].c);
+		updateParent(s->parent);
+	}
+}
+
+static void stackContainerHide(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+	uintmax_t i;
+
+	s->containerHid = 1;
+	for (i = 0; i < s->len; i++)
+		uiControlContainerHide(s->controls[i].c);
+	updateParent(s->parent);
+}
+
+static void stackEnable(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+	uintmax_t i;
+
+	s->userDisabled = 0;
+	if (!s->containerDisabled)
+		for (i = 0; i < s->len; i++)
+			uiControlContainerEnable(s->controls[i].c);
+}
+
+static void stackDisable(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+	uintmax_t i;
+
+	s->userDisabled = 1;
+	for (i = 0; i < s->len; i++)
+		uiControlContainerDisable(s->controls[i].c);
+}
+
+static void stackContainerEnable(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+	uintmax_t i;
+
+	s->containerDisabled = 0;
+	if (!s->userDisabled)
+		for (i = 0; i < s->len; i++)
+			uiControlContainerEnable(s->controls[i].c);
+}
+
+static void stackContainerDisable(uiControl *c)
+{
+	stack *s = (stack *) (c->data);
+	uintmax_t i;
+
+	s->containerDisabled = 1;
+	for (i = 0; i < s->len; i++)
+		uiControlContainerDisable(s->controls[i].c);
+}
+
 uiControl *uiNewHorizontalStack(void)
 {
 	uiControl *c;
@@ -220,6 +321,15 @@ uiControl *uiNewHorizontalStack(void)
 	c->removeParent = stackRemoveParent;
 	c->preferredSize = stackPreferredSize;
 	c->resize = stackResize;
+	c->visible = stackVisible;
+	c->show = stackShow;
+	c->hide = stackHide;
+	c->containerShow = stackContainerShow;
+	c->containerHide = stackContainerHide;
+	c->enable = stackEnable;
+	c->disable = stackDisable;
+	c->containerEnable = stackContainerEnable;
+	c->containerDisable = stackContainerDisable;
 
 	return c;
 }

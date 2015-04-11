@@ -97,6 +97,8 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	maxStretchyWidth = 0;
 	maxStretchyHeight = 0;
 	for (i = 0; i < s->len; i++) {
+		if (!uiControlVisible(s->controls[i].c))
+			continue;
 		uiControlPreferredSize(s->controls[i].c, d, &preferredWidth, &preferredHeight);
 		if (s->controls[i].stretchy) {
 			nStretchy++;
@@ -157,6 +159,8 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	stretchyht = height;
 	nStretchy = 0;
 	for (i = 0; i < s->len; i++) {
+		if (!uiControlVisible(s->controls[i].c))
+			continue;
 		if (s->controls[i].stretchy) {
 			nStretchy++;
 			continue;
@@ -180,14 +184,19 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 			stretchyht /= nStretchy;
 		else
 			stretchywid /= nStretchy;
-	for (i = 0; i < s->len; i++)
+	for (i = 0; i < s->len; i++) {
+		if (!uiControlVisible(s->controls[i].c))
+			continue;
 		if (s->controls[i].stretchy) {
 			s->controls[i].width = stretchywid;
 			s->controls[i].height = stretchyht;
 		}
+	}
 
 	// 3) now we can position controls
 	for (i = 0; i < s->len; i++) {
+		if (!uiControlVisible(s->controls[i].c))
+			continue;
 		uiControlResize(s->controls[i].c, x, y, s->controls[i].width, s->controls[i].height, d);
 		if (s->vertical)
 			y += s->controls[i].height + ypadding;

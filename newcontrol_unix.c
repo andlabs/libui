@@ -87,8 +87,10 @@ static void singleShow(uiControl *c)
 	singleWidget *s = (singleWidget *) (c->internal);
 
 	s->userHid = FALSE;
-	if (!s->containerHid)
+	if (!s->containerHid) {
 		gtk_widget_show_all(s->immediate);
+		updateParent(s->parent);
+	}
 }
 
 static void singleHide(uiControl *c)
@@ -97,6 +99,7 @@ static void singleHide(uiControl *c)
 
 	s->userHid = TRUE;
 	gtk_widget_hide(s->immediate);
+	updateParent(s->parent);
 }
 
 static void singleContainerShow(uiControl *c)
@@ -104,8 +107,10 @@ static void singleContainerShow(uiControl *c)
 	singleWidget *s = (singleWidget *) (c->internal);
 
 	s->containerHid = FALSE;
-	if (!s->userHid)
+	if (!s->userHid) {
 		gtk_widget_show_all(s->immediate);
+		updateParent(s->parent);
+	}
 }
 
 static void singleContainerHide(uiControl *c)
@@ -114,6 +119,7 @@ static void singleContainerHide(uiControl *c)
 
 	s->containerHid = TRUE;
 	gtk_widget_hide(s->immediate);
+	updateParent(s->parent);
 }
 
 static void singleEnable(uiControl *c)

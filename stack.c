@@ -169,7 +169,6 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 			nStretchy++;
 			continue;
 		}
-		c = s->controls[i].c;
 		uiControlPreferredSize(s->controls[i].c, d, &preferredWidth, &preferredHeight);
 		if (s->vertical) {		// all controls have same width
 			// TODO TODO TODO TODO TODO TODO TODO

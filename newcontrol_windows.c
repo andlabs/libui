@@ -95,6 +95,7 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 		p->lpClassName, p->lpWindowName,
 		p->dwStyle | WS_CHILD | WS_VISIBLE,
 		0, 0,
+		// use a nonzero initial size just in case some control breaks with a zero initial size
 		100, 100,
 		initialParent, NULL, p->hInstance, NULL);
 	if (s->hwnd == NULL)

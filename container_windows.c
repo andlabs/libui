@@ -55,8 +55,10 @@ BOOL sharedWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *
 	return FALSE;
 }
 
-// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
+// this X value is really only for buttons but I don't see a better one :/
 #define winXPadding 4
+// 3 might look better but IDK... TODO
 #define winYPadding 4
 
 void resize(uiControl *control, HWND parent, RECT r, RECT margin)

@@ -6,6 +6,7 @@
 - assign control IDs on windows
 	- GWL(P)_ID
 - make sure all terminology is consistent
+- 32-bit Mac OS X support (requires lots of code changes)
 
 ultimately:
 - make everything vtable-based

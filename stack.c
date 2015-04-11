@@ -1,9 +1,6 @@
 // 7 april 2015
 #include "uipriv.h"
 
-// TODO
-// - change prefwid/prefht to preferredWidth/preferredHeight
-
 typedef struct stack stack;
 typedef struct stackControl stackControl;
 
@@ -69,9 +66,11 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	stack *s = (stack *) (c->data);
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
-	intmax_t maxswid, maxsht;
+	// these two contain the largest preferred width and height of all stretchy controls in the stack
+	// all stretchy controls will use this value to determine the final preferred size
+	intmax_t maxStretchyWidth, maxStretchyHeight;
 	uintmax_t i;
-	intmax_t prefwid, prefht;
+	intmax_t preferredWidth, preferredHeight;
 
 	*width = 0;
 	*height = 0;
@@ -95,35 +94,35 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	// 2) add in the size of non-stretchy controls and get (but not add in) the largest widths and heights of stretchy controls
 	// we still add in like direction of stretchy controls
 	nStretchy = 0;
-	maxswid = 0;
-	maxsht = 0;
+	maxStretchyWidth = 0;
+	maxStretchyHeight = 0;
 	for (i = 0; i < s->len; i++) {
-		uiControlPreferredSize(s->controls[i].c, d, &prefwid, &prefht);
+		uiControlPreferredSize(s->controls[i].c, d, &preferredWidth, &preferredHeight);
 		if (s->controls[i].stretchy) {
 			nStretchy++;
-			if (maxswid < prefwid)
-				maxswid = prefwid;
-			if (maxsht < prefht)
-				maxsht = prefht;
+			if (maxStretchyWidth < preferredWidth)
+				maxStretchyWidth = preferredWidth;
+			if (maxStretchyHeight < preferredHeight)
+				maxStretchyHeight = preferredHeight;
 		}
 		if (s->vertical) {
-			if (*width < prefwid)
-				*width = prefwid;
+			if (*width < preferredWidth)
+				*width = preferredWidth;
 			if (!s->controls[i].stretchy)
-				*height += prefht;
+				*height += preferredHeight;
 		} else {
 			if (!s->controls[i].stretchy)
-				*width += prefwid;
-			if (*height < prefht)
-				*height = prefht;
+				*width += preferredWidth;
+			if (*height < preferredHeight)
+				*height = preferredHeight;
 		}
 	}
 
 	// 3) and now we can add in stretchy controls
 	if (s->vertical)
-		*height += nStretchy * maxsht;
+		*height += nStretchy * maxStretchyHeight;
 	else
-		*width += nStretchy * maxswid;
+		*width += nStretchy * maxStretchyWidth;
 }
 
 static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
@@ -133,7 +132,7 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	uintmax_t nStretchy;
 	intmax_t stretchywid, stretchyht;
 	uintmax_t i;
-	intmax_t prefwid, prefht;
+	intmax_t preferredWidth, preferredHeight;
 
 	if (s->len == 0)
 		return;
@@ -163,15 +162,15 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 			continue;
 		}
 		c = s->controls[i].c;
-		uiControlPreferredSize(s->controls[i].c, d, &prefwid, &prefht);
+		uiControlPreferredSize(s->controls[i].c, d, &preferredWidth, &preferredHeight);
 		if (s->vertical) {		// all controls have same width
 			s->controls[i].width = width;
-			s->controls[i].height = prefht;
-			stretchyht -= prefht;
+			s->controls[i].height = preferredHeight;
+			stretchyht -= preferredHeight;
 		} else {				// all controls have same height
-			s->controls[i].width = prefwid;
+			s->controls[i].width = preferredWidth;
 			s->controls[i].height = height;
-			stretchywid -= prefwid;
+			stretchywid -= preferredWidth;
 		}
 	}
 

@@ -67,7 +67,7 @@ static void setCheckboxText(uiControl *b, void *data)
 }
 
 uiWindow *w;
-#define nStacks 5
+#define nStacks 7
 uiControl *stacks[nStacks];
 uiControl *spaced;
 
@@ -108,6 +108,26 @@ static void showSpaced(uiControl *c, void *data)
 	if (uiStackPadded(stacks[0]))
 		msg[6] = '1';
 	uiEntrySetText(e, msg);
+}
+
+static void showControl(uiControl *c, void *data)
+{
+	uiControlShow((uiControl *) data);
+}
+
+static void hideControl(uiControl *c, void *data)
+{
+	uiControlHide((uiControl *) data);
+}
+
+static void enableControl(uiControl *c, void *data)
+{
+	uiControlEnable((uiControl *) data);
+}
+
+static void disableControl(uiControl *c, void *data)
+{
+	uiControlDisable((uiControl *) data);
 }
 
 int main(int argc, char *argv[])
@@ -185,6 +205,38 @@ int main(int argc, char *argv[])
 	uiButtonOnClicked(setButton, showSpaced, NULL);
 	uiStackAdd(stacks[4], setButton, 0);
 	uiStackAdd(stacks[0], stacks[4], 0);
+
+	stacks[5] = uiNewHorizontalStack();
+	getButton = uiNewButton("Button");
+	uiStackAdd(stacks[5], getButton, 1);
+	setButton = uiNewButton("Show");
+	uiButtonOnClicked(setButton, showControl, getButton);
+	uiStackAdd(stacks[5], setButton, 0);
+	setButton = uiNewButton("Hide");
+	uiButtonOnClicked(setButton, hideControl, getButton);
+	uiStackAdd(stacks[5], setButton, 0);
+	setButton = uiNewButton("Enable");
+	uiButtonOnClicked(setButton, enableControl, getButton);
+	uiStackAdd(stacks[5], setButton, 0);
+	setButton = uiNewButton("Disable");
+	uiButtonOnClicked(setButton, disableControl, getButton);
+	uiStackAdd(stacks[5], setButton, 0);
+	uiStackAdd(stacks[0], stacks[5], 0);
+
+	stacks[6] = uiNewHorizontalStack();
+	setButton = uiNewButton("Show Stack");
+	uiButtonOnClicked(setButton, showControl, stacks[5]);
+	uiStackAdd(stacks[6], setButton, 1);
+	setButton = uiNewButton("Hide Stack");
+	uiButtonOnClicked(setButton, hideControl, stacks[5]);
+	uiStackAdd(stacks[6], setButton, 1);
+	setButton = uiNewButton("Enable Stack");
+	uiButtonOnClicked(setButton, enableControl, stacks[5]);
+	uiStackAdd(stacks[6], setButton, 1);
+	setButton = uiNewButton("Disable Stack");
+	uiButtonOnClicked(setButton, disableControl, stacks[5]);
+	uiStackAdd(stacks[6], setButton, 1);
+	uiStackAdd(stacks[0], stacks[6], 0);
 
 	uiWindowShow(w);
 	uiMain();

@@ -9,6 +9,10 @@ struct singleHWND {
 	BOOL (*onWM_NOTIFY)(uiControl *, NMHDR *, LRESULT *);
 	void (*onWM_DESTROY)(uiControl *);
 	uintptr_t parent;
+	BOOL userHid;
+	BOOL containerHid;
+	BOOL userDisabled;
+	BOOL containerDisabled;
 };
 
 static void singleDestroy(uiControl *c)
@@ -55,6 +59,89 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 
 	if (MoveWindow(s->hwnd, x, y, width, height, TRUE) == 0)
 		logLastError("error moving control in singleResize()");
+}
+
+static int singleVisible(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->internal);
+
+	if (s->userHid)
+		return 0;
+	return 1;
+}
+
+static void singleShow(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->internal);
+
+	s->userHid = FALSE;
+	if (!s->containerHid) {
+		ShowWindow(s->hwnd, SW_SHOW);
+		updateParent(s->parent);
+	}
+}
+
+static void singleHide(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->internal);
+
+	s->userHid = TRUE;
+	ShowWindow(s->hwnd, SW_HIDE);
+	updateParent(s->parent);
+}
+
+static void singleContainerShow(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->internal);
+
+	s->containerHid = FALSE;
+	if (!s->userHid) {
+		ShowWindow(s->hwnd, SW_SHOW);
+		updateParent(s->parent);
+	}
+}
+
+static void singleContainerHide(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->internal);
+
+	s->containerHid = TRUE;
+	ShowWindow(s->hwnd, SW_HIDE);
+	updateParent(s->parent);
+}
+
+static void singleEnable(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->internal);
+
+	s->userDisabled = FALSE;
+	if (!s->containerDisabled)
+		EnableWindow(s->hwnd, TRUE);
+}
+
+static void singleDisable(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->internal);
+
+	s->userDisabled = TRUE;
+	EnableWindow(s->hwnd, FALSE);
+}
+
+static void singleContainerEnable(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->internal);
+
+	s->containerDisabled = FALSE;
+	if (!s->userDisabled)
+		EnableWindow(s->hwnd, TRUE);
+}
+
+static void singleContainerDisable(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->internal);
+
+	s->containerDisabled = TRUE;
+	EnableWindow(s->hwnd, FALSE);
 }
 
 static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
@@ -110,6 +197,15 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	c->setParent = singleSetParent;
 	c->removeParent = singleRemoveParent;
 	c->resize = singleResize;
+	c->visible = singleVisible;
+	c->show = singleShow;
+	c->hide = singleHide;
+	c->containerShow = singleContainerShow;
+	c->containerHide = singleContainerHide;
+	c->enable = singleEnable;
+	c->disable = singleDisable;
+	c->containerEnable = singleContainerEnable;
+	c->containerDisable = singleContainerDisable;
 
 	if (p->useStandardControlFont)
 		SendMessageW(s->hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);

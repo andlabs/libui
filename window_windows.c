@@ -96,7 +96,6 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	WCHAR *wtitle;
 
 	w = uiNew(uiWindow);
-	// TODO move other cases of default events here relative
 	w->onClosing = defaultOnClosing;
 
 	adjust.left = 0;

@@ -8,6 +8,21 @@ struct uiWindow {
 	void *onClosingData;
 };
 
+static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
+{
+	uiWindow *w = (uiWindow *) data;
+
+	// return exact values just in case
+	if ((*(w->onClosing))(w, w->onClosingData))
+		return FALSE;
+	return TRUE;
+}
+
+static int defaultOnClosing(uiWindow *w, void *data)
+{
+	return 1;
+}
+
 static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	uiWindow *w = (uiWindow *) data;
@@ -23,9 +38,11 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(w->widget), title);
 	gtk_window_resize(GTK_WINDOW(w->widget), width, height);
+	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
 	g_signal_connect(w->widget, "destroy", G_CALLBACK(onDestroy), w);
 	w->container = newContainer();
 	gtk_container_add(GTK_CONTAINER(w->widget), w->container);
+	w->onClosing = defaultOnClosing;
 	return w;
 }
 
@@ -59,21 +76,10 @@ void uiWindowHide(uiWindow *w)
 	gtk_widget_hide(w->widget);
 }
 
-static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
-{
-	uiWindow *w = (uiWindow *) data;
-
-	// return exact values just in case
-	if ((*(w->onClosing))(w, w->onClosingData))
-		return FALSE;
-	return TRUE;
-}
-
 void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->onClosing = f;
 	w->onClosingData = data;
-	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
 }
 
 void uiWindowSetChild(uiWindow *w, uiControl *c)

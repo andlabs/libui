@@ -2,7 +2,7 @@
 #include "uipriv_windows.h"
 
 // for maximum safety, all controls that don't have a parent are made children of this, the "initial parent"
-// it behaves like other containers due to bugs described in container_windows.c, but is never seen and cannot be interacted with by end users
+// it behaves like other containers due to bugs described in container_windows.c, but is never seen, is disabled, and cannot be interacted with by end users
 // despite being called the initial parent, it is used whenever a control has no parent, even if it loses its parent at some later point during the execution of the program
 
 #define uiInitialParentClass L"uiInitialParentClass"
@@ -41,6 +41,8 @@ const char *initInitialParent(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	if (initialParent == NULL)
 		return "creating initial parent window";
 
-	// TODO disable?
+	// just to be safe, disable the initial parent so it can't be interacted with accidentally
+	// if this causes issues for our controls, we can remove it
+	EnableWindow(initialParent, FALSE);
 	return NULL;
 }

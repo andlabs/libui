@@ -25,6 +25,14 @@ uiLogObjCClassAllocations
 - (void)windowWillClose:(NSNotification *)note
 {
 	[self.w setDelegate:nil];		// see http://stackoverflow.com/a/29523141/3408572
+
+	// when we reach this point, we need to ensure that all the window's children are destroyed (for OS parity)
+	// this may not happen under certain conditions
+	// I'm not sure if calling uiQuit() in the close handler causes whatever causes our window to release its content view during deallocation to race with uiQuit()'s stopping of the run loop but that's one symptom I've noticed
+	// so let's manually change the content view now
+	// we'll set it to a new stock view; this should be enough to set our real container's superview to nil, triggering the destruction
+	[self.w setContentView:[[NSView alloc] initWithFrame:NSZeroRect]];
+
 	uiFree(self.uiw);
 	[self release];
 }

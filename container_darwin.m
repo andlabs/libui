@@ -16,7 +16,7 @@ uiLogObjCClassAllocations
 
 - (void)viewDidMoveToSuperview
 {
-	if ([self superview] == nil)
+	if ([self superview] == destroyedControlsView)
 		if (self.uiChild != NULL) {
 			uiControlDestroy(self.uiChild);
 			self.uiChild = NULL;

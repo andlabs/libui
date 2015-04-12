@@ -1,7 +1,9 @@
 // 12 april 2015
 #import "uipriv_darwin.h"
 
-// TODO very margins against extra space around the tab
+// TODO
+// - verify margins against extra space around the tab
+// - free child containers properly
 
 @interface uiNSTabView : NSTabView
 @property uiControl *uiC;

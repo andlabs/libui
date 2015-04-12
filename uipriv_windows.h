@@ -55,10 +55,6 @@ extern WCHAR *toUTF16(const char *);
 extern char *toUTF8(const WCHAR *);
 extern WCHAR *windowText(HWND);
 
-// container_windows.c
-extern BOOL sharedWndProc(HWND, UINT, WPARAM, LPARAM, LRESULT *);
-extern void resize(uiControl *, HWND, RECT, RECT);
-
 // comctl32_windows.c
 extern BOOL (*WINAPI fv_SetWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR, DWORD_PTR);
 extern BOOL (*WINAPI fv_RemoveWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR);
@@ -68,6 +64,6 @@ extern const char *initCommonControls(void);
 // window_windows.c
 extern ATOM registerWindowClass(HICON, HCURSOR);
 
-// initparent_windows.c
+// parent_windows.c
 extern HWND initialParent;
-extern const char *initInitialParent(HICON, HCURSOR);
+extern const char *initParent(HICON, HCURSOR);

@@ -95,7 +95,7 @@ const char *uiInit(uiInitOptions *o)
 	if (hMessageFont == NULL)
 		return loadLastError("loading default messagebox font; this is the default UI font");
 
-	ce = initInitialParent(hDefaultIcon, hDefaultCursor);
+	ce = initParent(hDefaultIcon, hDefaultCursor);
 	if (ce != NULL)
 		return loadLastError(ce);
 

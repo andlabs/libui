@@ -86,12 +86,16 @@ struct uiParent {
 #define uiParentHandle(p) ((*((p)->Handle))((p)))
 
 	// SetChild sets the uiControl that this uiParent relegates.
-	// It calls uiControl.SetParent().
+	// It calls uiControl.SetParent() which should, in turn, call uiParent.Update().
+	// The uiParent should already not have a child and the uiControl should already not have a parent.
+	// 
+	// child can be NULL, in which case the uiParent has no children.
+	// This form should be called by uiControl.RemoveParent().
 	void (*SetChild)(uiParent *p, uiControl *child);
 #define uiParentSetChild(p, child) ((*((p)->SetChild))((p), (child)))
 
 	// SetMargins sets the margins of the uiParent to the given margins.
-	// It then updates the uiParent to make the margins take effect.
+	// It does not call uiParent.Update(); its caller must.
 	// The units of the margins are backend-defined.
 	// The initial margins are all 0.
 	void (*SetMargins)(uiParent *p, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom);

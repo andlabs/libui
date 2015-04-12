@@ -1,6 +1,11 @@
 // 7 april 2015
 #include "uipriv_windows.h"
 
+// TODOs
+// - [12:24] <ZeroOne> There's flickering between tabs
+// - with CTLCOLOR handler: [12:24] <ZeroOne> And setting the button text blanked out the entire GUI until I ran my mouse over the elements / [12:25] <ZeroOne> https://dl.dropboxusercontent.com/u/15144168/GUI%20stuff.png
+// - without CTLCOLOR handler: [12:33] <ZeroOne> If I hide the stack, then show it, it looks like it's drawing duplicate buttons underneath
+
 /*
 all container windows (including the message-only window, hence this is not in container_windows.c) have to call the sharedWndProc() to ensure messages go in the right place and control colors are handled properly
 */
@@ -30,6 +35,42 @@ static LRESULT forwardNotify(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 
+static void paintControlBackground(HWND hwnd, HDC dc)
+{
+	HWND parent;
+	RECT r;
+	POINT pOrig;
+	DWORD le;
+
+	parent = hwnd;
+	for (;;) {
+		parent = GetParent(parent);
+		if (parent == NULL)
+			logLastError("error getting parent control of control in paintControlBackground()");
+		// wine sends these messages early, yay...
+		if (parent == initialParent)
+			return;
+		// skip groupboxes; they're (supposed to be) transparent
+		if (windowClassOf(parent, L"button", NULL) != 0)
+			break;
+	}
+	if (GetWindowRect(hwnd, &r) == 0)
+		logLastError("error getting control's window rect in paintControlBackground()");
+	// the above is a window rect in screen coordinates; convert to client rect
+	SetLastError(0);
+	if (MapWindowRect(NULL, parent, &r) == 0) {
+		le = GetLastError();
+		SetLastError(le);		// just to be safe
+		if (le != 0)
+			logLastError("error getting client origin of control in paintControlBackground()");
+	}
+	if (SetWindowOrgEx(dc, r.left, r.top, &pOrig) == 0)
+		logLastError("error moving window origin in paintControlBackground()");
+	SendMessageW(parent, WM_PRINTCLIENT, (WPARAM) dc, PRF_CLIENT);
+	if (SetWindowOrgEx(dc, pOrig.x, pOrig.y, NULL) == 0)
+		logLastError("error resetting window origin in paintControlBackground()");
+}
+
 BOOL sharedWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
 	switch (uMsg) {
@@ -39,19 +80,19 @@ BOOL sharedWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *
 	case WM_NOTIFY:
 		*lResult = forwardNotify(hwnd, uMsg, wParam, lParam);
 		return TRUE;
-/*TODO	case WM_CTLCOLORSTATIC:
+	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
-		// read-only TextFields and Textboxes are exempt
+/*TODO		// read-only TextFields and Textboxes are exempt
 		// this is because read-only edit controls count under WM_CTLCOLORSTATIC
 		if (windowClassOf((HWND) lParam, L"edit", NULL) == 0)
 			if (textfieldReadOnly((HWND) lParam))
 				return FALSE;
-		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
-			xpanic("error setting transparent background mode to Labels", GetLastError());
+*/		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
+			logLastError("error setting transparent background mode to controls in sharedWndProc()");
 		paintControlBackground((HWND) lParam, (HDC) wParam);
 		*lResult = (LRESULT) hollowBrush;
 		return TRUE;
-*/	}
+	}
 	return FALSE;
 }
 

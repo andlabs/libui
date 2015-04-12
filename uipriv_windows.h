@@ -45,7 +45,10 @@ extern HRESULT logMemoryExhausted(const char *);
 extern HINSTANCE hInstance;
 extern int nCmdShow;
 extern HFONT hMessageFont;
-extern HWND initialParent;
+extern HBRUSH hollowBrush;
+
+// util_windows.c
+extern int windowClassOf(HWND, ...);
 
 // text_windows.c
 extern WCHAR *toUTF16(const char *);
@@ -66,4 +69,5 @@ extern const char *initCommonControls(void);
 extern ATOM registerWindowClass(HICON, HCURSOR);
 
 // initparent_windows.c
+extern HWND initialParent;
 extern const char *initInitialParent(HICON, HCURSOR);

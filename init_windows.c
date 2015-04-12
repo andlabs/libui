@@ -6,6 +6,8 @@ int nCmdShow;
 
 HFONT hMessageFont;
 
+HBRUSH hollowBrush;
+
 struct uiInitError {
 	char *msg;
 	char failbuf[256];
@@ -96,6 +98,10 @@ const char *uiInit(uiInitOptions *o)
 	ce = initInitialParent(hDefaultIcon, hDefaultCursor);
 	if (ce != NULL)
 		return loadLastError(ce);
+
+	hollowBrush = (HBRUSH) GetStockObject(HOLLOW_BRUSH);
+	if (hollowBrush == NULL)
+		return loadLastError("getting hollow brush");
 
 	return NULL;
 }

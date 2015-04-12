@@ -38,3 +38,6 @@ extern void disableAutocorrect(NSTextView *);
 - (BOOL)uiMargined;
 - (void)uiSetMargined:(BOOL)margined;
 @end
+
+// entry_darwin.m
+extern void finishNewTextField(NSTextField *, BOOL);

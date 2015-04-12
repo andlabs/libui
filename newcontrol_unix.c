@@ -221,6 +221,9 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scro
 	// and let's free everything with the immediate widget
 	g_signal_connect(s->immediate, "destroy", G_CALLBACK(onDestroy), c);
 
+	// finally, call gtk_widget_show_all() here to set the initial visibility of the widget
+	gtk_widget_show_all(s->immediate);
+
 	c->internal = s;
 	return c;
 }

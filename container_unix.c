@@ -117,7 +117,12 @@ static void uiContainer_class_init(uiContainerClass *class)
 
 GtkWidget *newContainer(void)
 {
-	return GTK_WIDGET(g_object_new(uiContainerType, NULL));
+	GtkWidget *w;
+
+	w = GTK_WIDGET(g_object_new(uiContainerType, NULL));
+	// call gtk_widget_show_all() here to make the container visible
+	gtk_widget_show_all(w);
+	return w;
 }
 
 void updateParent(uintptr_t parent)

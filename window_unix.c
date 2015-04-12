@@ -68,7 +68,8 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 
 void uiWindowShow(uiWindow *w)
 {
-	gtk_widget_show_all(w->widget);
+	// don't use gtk_widget_show_all(); that will override user hidden settings
+	gtk_widget_show(w->widget);
 }
 
 void uiWindowHide(uiWindow *w)

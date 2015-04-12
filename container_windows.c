@@ -2,7 +2,7 @@
 #include "uipriv_windows.h"
 
 // TODOs
-// - [12:24] <ZeroOne> There's flickering between tabs
+// - wiith CTLCOLOR handler: [12:24] <ZeroOne> There's flickering between tabs
 // - with CTLCOLOR handler: [12:24] <ZeroOne> And setting the button text blanked out the entire GUI until I ran my mouse over the elements / [12:25] <ZeroOne> https://dl.dropboxusercontent.com/u/15144168/GUI%20stuff.png / [12:41] <ZeroOne> https://dl.dropboxusercontent.com/u/15144168/stack.png here have another screenshot
 // 	- I get this too
 
@@ -56,7 +56,7 @@ static void paintControlBackground(HWND hwnd, HDC dc)
 	}
 	if (GetWindowRect(hwnd, &r) == 0)
 		logLastError("error getting control's window rect in paintControlBackground()");
-	// the above is a window rect in screen coordinates; convert to client rect
+	// the above is a window rect in screen coordinates; convert to parent coordinates
 	SetLastError(0);
 	if (MapWindowRect(NULL, parent, &r) == 0) {
 		le = GetLastError();

@@ -106,25 +106,28 @@ struct parent {
 
 static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	struct parent *p;
+	uiParent *p;
+	struct parent *pp;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	HWND control;
 	NMHDR *nm = (NMHDR *) lParam;
 	RECT r, margin;
 
-	p = (struct parent *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+	p = (uiParent *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (p == NULL) {
 		if (uMsg == WM_NCCREATE) {
-			p = (struct parent *) (cs->lpCreateParams);
+			p = (uiParent *) (cs->lpCreateParams);
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) p);
 			// fall through to DefWindowProcW()
 		}
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	}
+	pp = (struct parent *) (p->Internal);
 
 	switch (uMsg) {
 	case WM_NCDESTROY:
 		// no need to explicitly destroy children; they're already gone by this point (and so are their data structures; they clean up after themselves)
+		uiFree(p->Internal);
 		uiFree(p);
 		break;		// fall through to DefWindowPocW()
 	case WM_COMMAND:
@@ -156,15 +159,15 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 			break;
 		// fall through
 	case msgUpdateChild:
-		if (p->child == NULL)
+		if (pp->child == NULL)
 			break;
 		if (GetClientRect(p->hwnd, &r) == 0)
 			logLastError("error getting client rect for resize in parentWndProc()");
-		margin.left = p->marginLeft;
-		margin.top = p->marginTop;
-		margin.right = p->marginRight;
-		margin.bottom = p->marginBottom;
-		resize(p->child, p->hwnd, r, margin);
+		margin.left = pp->marginLeft;
+		margin.top = pp->marginTop;
+		margin.right = pp->marginRight;
+		margin.bottom = pp->marginBottom;
+		resize(pp->child, pp->hwnd, r, margin);
 		return 0;
 	}
 
@@ -235,4 +238,21 @@ static void parentUpdate(uiParent *p)
 
 uiParent *uiNewParent(uintptr_t osParent)
 {
+	uiParent *p;
+
+	p = uiNew(uiParent);
+	p->Internal = uiNew(struct parent);
+	p->hwnd = CreateWindowExW(0,
+		xxxxxxx, L"",
+		WS_CHILD | WS_VISIBLE,
+		0, 0,
+		0, 0,
+		(HWND) osParent, NULL, hInstance, p);
+	if (p->hwnd == NULL)
+		logLastError("error creating uiParent window in uiNewParent()");
+	p->Handle = parentHandle;
+	p->SetChild = parentSetChild;
+	p->SetMargins = parentSetMargins;
+	p->Update = parentUpdate;
+	return p;
 }

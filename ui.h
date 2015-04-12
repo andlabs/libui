@@ -107,4 +107,7 @@ uiControl *uiNewLabel(const char *);
 char *uiLabelText(uiControl *);
 void uiLabelSetText(uiControl *, const char *);
 
+uiControl *uiNewTab(void);
+void uiTabAddPage(uiControl *, const char *, uiControl *);
+
 #endif

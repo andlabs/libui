@@ -67,7 +67,7 @@ static void setCheckboxText(uiControl *b, void *data)
 }
 
 uiWindow *w;
-#define nStacks 8
+#define nStacks 7
 uiControl *stacks[nStacks];
 uiControl *spaced;
 
@@ -155,6 +155,8 @@ int main(int argc, char *argv[])
 	const char *err;
 	uiControl *getButton, *setButton;
 	uiControl *label;
+	uiControl *tab;
+	int page2stack;
 
 	memset(&o, 0, sizeof (uiInitOptions));
 	for (i = 1; i < argc; i++)
@@ -176,7 +178,6 @@ int main(int argc, char *argv[])
 	uiWindowOnClosing(w, onClosing, NULL);
 
 	stacks[0] = uiNewVerticalStack();
-	uiWindowSetChild(w, stacks[0]);
 
 	e = uiNewEntry();
 	uiStackAdd(stacks[0], e, 0);
@@ -278,6 +279,15 @@ int main(int argc, char *argv[])
 	i++;
 
 	uiStackAdd(stacks[0], label, 0);
+
+	tab = uiNewTab();
+	uiWindowSetChild(w, tab);
+	uiTabAddPage(tab, "Page 1", stacks[0]);
+
+	page2stack = i;
+	stacks[i] = uiNewVerticalStack();
+	uiTabAddPage(tab, "Page 2", stacks[i]);
+	i++;
 
 	if (i != nStacks) {
 		fprintf(stderr, "forgot to update nStacks\n");

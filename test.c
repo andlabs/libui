@@ -67,7 +67,7 @@ static void setCheckboxText(uiControl *b, void *data)
 }
 
 uiWindow *w;
-#define nStacks 7
+#define nStacks 9
 uiControl *stacks[nStacks];
 uiControl *spaced;
 
@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
 	i++;
 
 	if (i != nStacks) {
-		fprintf(stderr, "forgot to update nStacks\n");
+		fprintf(stderr, "forgot to update nStacks (expected %d)\n", i);
 		return 1;
 	}
 	uiWindowShow(w);

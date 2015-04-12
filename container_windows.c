@@ -3,7 +3,8 @@
 
 // TODOs
 // - [12:24] <ZeroOne> There's flickering between tabs
-// - with CTLCOLOR handler: [12:24] <ZeroOne> And setting the button text blanked out the entire GUI until I ran my mouse over the elements / [12:25] <ZeroOne> https://dl.dropboxusercontent.com/u/15144168/GUI%20stuff.png
+// - with CTLCOLOR handler: [12:24] <ZeroOne> And setting the button text blanked out the entire GUI until I ran my mouse over the elements / [12:25] <ZeroOne> https://dl.dropboxusercontent.com/u/15144168/GUI%20stuff.png / [12:41] <ZeroOne> https://dl.dropboxusercontent.com/u/15144168/stack.png here have another screenshot
+// 	- I get this too
 // - without CTLCOLOR handler: [12:33] <ZeroOne> If I hide the stack, then show it, it looks like it's drawing duplicate buttons underneath
 
 /*

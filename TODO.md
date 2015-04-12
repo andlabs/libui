@@ -5,6 +5,8 @@
 	- deleted objects view
 - assign control IDs on windows
 	- GWL(P)_ID
+	- related? [12:25] <ZeroOne> And the blue outline on those buttons [ALL clicked buttons on Windows 7] won't go away
+		- I get this too
 - make sure all terminology is consistent
 - 32-bit Mac OS X support (requires lots of code changes)
 - add a test for hidden controls when a window is shown

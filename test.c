@@ -130,12 +130,31 @@ static void disableControl(uiControl *c, void *data)
 	uiControlDisable((uiControl *) data);
 }
 
+static void getLabelText(uiControl *b, void *data)
+{
+	char *text;
+
+	text = uiLabelText((uiControl *) data);
+	uiEntrySetText(e, text);
+	uiFreeText(text);
+}
+
+static void setLabelText(uiControl *b, void *data)
+{
+	char *text;
+
+	text = uiEntryText(e);
+	uiLabelSetText((uiControl *) data, text);
+	uiFreeText(text);
+}
+
 int main(int argc, char *argv[])
 {
 	uiInitOptions o;
 	int i;
 	const char *err;
 	uiControl *getButton, *setButton;
+	uiControl *label;
 
 	memset(&o, 0, sizeof (uiInitOptions));
 	for (i = 1; i < argc; i++)
@@ -193,6 +212,18 @@ int main(int argc, char *argv[])
 	uiStackAdd(stacks[3], setButton, 1);
 	uiStackAdd(stacks[0], stacks[3], 0);
 
+	label = uiNewLabel("Label");
+/*
+	stacks[i] = uiNewHorizontalStack();
+	getButton = uiNewButton("Get Label Text");
+	uiButtonOnClicked(getButton, getLabelText, label);
+	setButton = uiNewButton("Set Label Text");
+	uiButtonOnClicked(setButton, setLabelText, label);
+	uiStackAdd(stacks[i], getButton, 1);
+	uiStackAdd(stacks[i], setButton, 1);
+	uiStackAdd(stacks[0], stacks[i], 0);
+	i++;
+*/
 	stacks[4] = uiNewHorizontalStack();
 	uiStackAdd(stacks[4], spaced, 1);
 	getButton = uiNewButton("On");
@@ -237,6 +268,8 @@ int main(int argc, char *argv[])
 	uiButtonOnClicked(setButton, disableControl, stacks[5]);
 	uiStackAdd(stacks[6], setButton, 1);
 	uiStackAdd(stacks[0], stacks[6], 0);
+
+	uiStackAdd(stacks[0], label, 0);
 
 	uiWindowShow(w);
 	uiMain();

@@ -103,4 +103,8 @@ void uiCheckboxOnToggled(uiControl *, void (*)(uiControl *, void *), void *);
 int uiCheckboxChecked(uiControl *);
 void uiCheckboxSetChecked(uiControl *, int);
 
+uiControl *uiNewLabel(const char *);
+char *uiLabelText(uiControl *);
+void uiLabelSetText(uiControl *, const char *);
+
 #endif

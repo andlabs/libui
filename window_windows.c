@@ -3,7 +3,7 @@
 
 struct uiWindow {
 	HWND hwnd;
-	uiControl *child;
+	uiParent *content;
 	BOOL shownOnce;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
@@ -12,16 +12,11 @@ struct uiWindow {
 
 #define uiWindowClass L"uiWindowClass"
 
-// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define windowMargin 7
-
 static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uiWindow *w;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
-	LRESULT lResult;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
-	RECT r, margin;
 
 	w = (uiWindow *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
@@ -30,29 +25,13 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 		// fall through to DefWindowProc() anyway
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	}
-	if (sharedWndProc(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
-		return lResult;
 	switch (uMsg) {
 	case WM_WINDOWPOSCHANGED:
-		if ((wp->flags & SWP_NOSIZE) != 0)
-			break;
-		// fall through
-	case msgUpdateChild:
-		if (w->child == NULL)
-			break;
 		if (GetClientRect(w->hwnd, &r) == 0)
 			logLastError("error getting window client rect for resize in uiWindowWndProc()");
-		margin.left = 0;
-		margin.top = 0;
-		margin.right = 0;
-		margin.bottom = 0;
-		if (w->margined) {
-			margin.left = windowMargin;
-			margin.top = windowMargin;
-			margin.right = windowMargin;
-			margin.bottom = windowMargin;
-		}
-		resize(w->child, w->hwnd, r, margin);
+		contenthwnd = (HWND) uiParentHandle(content);
+		if (MoveWindow(contenthwnd, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
+			logLastError("error resizing window content parent in uiWindowWndProc()");
 		return 0;
 	case WM_CLOSE:
 		if (!(*(w->onClosing))(w, w->onClosingData))
@@ -114,8 +93,10 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 		NULL, NULL, hInstance, w);
 	if (w->hwnd == NULL)
 		logLastError("error creating window in uiWindow()");
-
 	uiFree(wtitle);
+
+	w->content = uiNewParent((uintptr_t) (w->hwnd));
+
 	return w;
 }
 
@@ -175,8 +156,8 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 
 void uiWindowSetChild(uiWindow *w, uiControl *c)
 {
-	w->child = c;
-	uiControlSetParent(w->child, (uintptr_t) (w->hwnd));
+	uiParentSetChild(w->content, c);
+	uiParentUpdate(w->content);
 }
 
 int uiWindowMargined(uiWindow *w)
@@ -184,8 +165,15 @@ int uiWindowMargined(uiWindow *w)
 	return w->margined;
 }
 
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
+#define windowMargin 7
+
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	updateParent((uintptr_t) (w->hwnd));
+	if (w->margined)
+		uiParentSetMargins(w->content, windowMargin, windowMargin, windowMargin, windowMargin);
+	else
+		uiParentSetMargins(w->content, 0, 0, 0, 0);
+	uiParentUpdate(w->content);
 }

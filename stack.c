@@ -360,11 +360,11 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 	}
 	s->controls[s->len].c = c;
 	s->controls[s->len].stretchy = stretchy;
-	if (s->parent != 0)
-		uiControlSetParent(s->controls[s->len].c, s->parent);
 	s->len++;
-	if (s->parent != NULL)
+	if (s->parent != NULL) {
+		uiControlSetParent(s->controls[s->len].c, s->parent);
 		uiParentUpdate(s->parent);
+	}
 }
 
 void uiStackRemove(uiControl *st, uintptr_t index)

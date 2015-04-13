@@ -80,8 +80,82 @@ We also need a term for uiStack and uiGrid
 The above uses 'children' for their children
 
 CURRENT PLAN
-T/THING will be called a 'parent'
-H will be called a 'host'
-a parent has a host, but it will NOT be accessed directly by children
-instead it will use the named methods
+T/THING will be called a 'host'
+H will be called an 'OS parent'
+a host has an OS parent; it gives it to the individual children of its control as needed
 uiStack and uiGrid, etc. will be called 'containers'
+
+let's rewrite the above with the new terminology:
+
+We have
+	a uiWindow w
+		which has a Host h
+			which has a uiControl control
+			and an OSParent p
+	a uiControl c
+We call
+	uiWindowSetChild(w, c)
+What happens:
+	w instructs h that c should be the control it keeps track of
+		h.SetControl(c)
+	h tells c that it is its host
+		c.SetHost(h)
+	t instructs c to lay itself out
+		c.Resize()
+We now say
+	c is really a uiStack
+We call
+	uiStackAppend(c, d, 2)
+What happens:
+	c asks h to add d to p
+		h.Host(d)
+	h gives d p to add itself too
+		d.SetOSParent(p)
+	c asks h to let it lay itself out
+		h.Update()
+	h tells c to lay itself out
+		c.Resize()
+We call
+	uiStackDelete(c, 4)
+What happens:
+	c asks h to remove its fifth child from p
+		h.Unhost(c.children[4])
+	h tells c's fifth child to unhost itself
+		c.children[4].UnsetOSParent()
+	c instructs h to tell it to lay itself out
+		h.Update()
+	h tells c to lay itself out
+		c.Resize()
+We do
+	resize the window
+What happens:
+	w resizes h, which resizes p
+		h.Resize()
+	resizing p triggers a relayout of c
+		c.Resize()
+We do
+	uiWindowSetChild(w, e)
+What happens:
+	w instructs t to stop tracking c
+		t.UnsetControl(c)
+	t instructs c to remove its children from h
+		c.UnsetHost()
+			t.Unhost(d)
+				d.UnsetOSParent()
+	w instrcuts t to start tracking e
+		t.SetControl(e)
+	t instructs e to add its children to h
+		e.SetHost(t)
+	t instructs e to be laid out
+		e.Resize()
+We do
+	uiWindowDestroy(w)
+What happens
+	w instructs h to tell e to destroy itself
+		h.Destroy()
+	h tells e to unhook itself
+		e.UnsetHost()
+	h tells e to destroy itself
+		e.Destroy()
+	h destroys p, then itself
+	w destroys itself

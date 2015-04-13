@@ -34,7 +34,7 @@ static void uipParent_init(uipParent *p)
 	if (options.debugLogAllocations)
 		fprintf(stderr, "%p alloc uipParent\n", p);
 	p->children = g_ptr_array_new();
-	gtk_widget_set_has_window(GTK_WIDGET(c), FALSE);
+	gtk_widget_set_has_window(GTK_WIDGET(p), FALSE);
 }
 
 // instead of having GtkContainer itself unref all our controls, we'll run our own uiControlDestroy() functions for child, which will do that and more
@@ -44,11 +44,11 @@ static void uipParent_dispose(GObject *obj)
 	uipParent *p = uipParent(obj);
 
 	if (p->children != NULL) {
-		g_ptr_array_unref(c->children);
+		g_ptr_array_unref(p->children);
 		p->children = NULL;
 	}
 	if (p->child != NULL) {
-		uiControlDestroy(c->child);
+		uiControlDestroy(p->child);
 		p->child = NULL;
 	}
 	G_OBJECT_CLASS(uipParent_parent_class)->dispose(obj);
@@ -65,7 +65,7 @@ static void uipParent_add(GtkContainer *container, GtkWidget *widget)
 {
 	uipParent *p = uipParent(container);
 
-	gtk_widget_set_parent(widget, GTK_WIDGET(c));
+	gtk_widget_set_parent(widget, GTK_WIDGET(p));
 	if (p->children != NULL)
 		g_ptr_array_add(p->children, widget);
 }
@@ -88,8 +88,8 @@ static void uipParent_size_allocate(GtkWidget *widget, GtkAllocation *allocation
 	uiSizing d;
 	intmax_t x, y, width, height;
 
-	gtk_widget_set_allocation(GTK_WIDGET(c), allocation);
-	if (c->child == NULL)
+	gtk_widget_set_allocation(GTK_WIDGET(p), allocation);
+	if (p->child == NULL)
 		return;
 	x = allocation->x + p->marginLeft;
 	y = allocation->y + p->marginTop;
@@ -97,7 +97,7 @@ static void uipParent_size_allocate(GtkWidget *widget, GtkAllocation *allocation
 	height = allocation->height - (p->marginTop + p->marginBottom);
 	d.xPadding = gtkXPadding;
 	d.yPadding = gtkYPadding;
-	uiControlResize(c->child, x, y, width, height, &d);
+	uiControlResize(p->child, x, y, width, height, &d);
 }
 
 struct forall {
@@ -120,7 +120,7 @@ static void uipParent_forall(GtkContainer *container, gboolean includeInternals,
 	s.callback = callback;
 	s.data = data;
 	if (p->children != NULL)
-		g_ptr_array_foreach(c->children, doforall, &s);
+		g_ptr_array_foreach(p->children, doforall, &s);
 }
 
 static void uipParent_class_init(uipParentClass *class)
@@ -163,7 +163,7 @@ static void parentUpdate(uiParent *p)
 {
 	uipParent *pp = uipParent(p->Internal);
 
-	gtk_queue_resize(GTK_WIDGET(pp));
+	gtk_widget_queue_resize(GTK_WIDGET(pp));
 }
 
 uiParent *uiNewParent(uintptr_t osParent)
@@ -178,6 +178,6 @@ uiParent *uiNewParent(uintptr_t osParent)
 	p->Update = parentUpdate;
 	gtk_container_add(GTK_CONTAINER(osParent), GTK_WIDGET(p->Internal));
 	// and make it visible by default
-	gtk_widget_show_all(GTK_WIDGET(p->internal));
+	gtk_widget_show_all(GTK_WIDGET(p->Internal));
 	return p;
 }

@@ -33,7 +33,7 @@ static void singleSetParent(uiControl *c, uiParent *parent)
 	singleWidget *s = (singleWidget *) (c->internal);
 
 	s->parent = parent;
-	gtk_container_add(GTK_CONTAINER(s->parent), s->immediate);
+	gtk_container_add(GTK_CONTAINER(uiParentHandle(s->parent)), s->immediate);
 	uiParentUpdate(s->parent);
 }
 

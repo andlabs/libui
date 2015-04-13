@@ -51,7 +51,7 @@ void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 	content = uiNewParent((uintptr_t) notebook);
 	uiParentSetChild(content, child);
 	uiParentUpdate(content);
-	gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(notebook), container, name);
+	gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(notebook), GTK_WIDGET(uiParentHandle(content)), name);
 
 	t->pages[t->len] = content;
 	t->len++;

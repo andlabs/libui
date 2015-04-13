@@ -375,6 +375,7 @@ void uiStackRemove(uiControl *st, uintptr_t index)
 
 	removed = s->controls[index].c;
 	nAfter = s->len - index - 1;
+	// TODO make sure this is correct
 	memmove(&(s->controls[index + 1]), &(s->controls[index]), nAfter * sizeof (stackControl));
 	s->len--;
 	if (s->parent != NULL) {

@@ -1,11 +1,51 @@
 In the interest of making sure that everything in ui is consistent, here is a glossary of various conflicting terms and what they mean to the library. These are disjunct from the terminology used by each backend's native platform; context should be used to differentiate where appropriate.
 
-CONTAINER
-	a uiControl that hosts other controls, such as uiStack and uiGrid
-PARENT
-	a non-uiControl that maintains a single uiControl; that uiControl can be a container, in which case the purpose of the parent is to collect the controls in that container for the purpose of the operating system as a holder
-HOLDER
-	a non-uiControl that hosts an uiControl from the perspective of the operating system
-	this should always be a parent
-CONTENT
-	the non-uiControl that acts as a parent and a holder; this is used by uiWindow and uiTab
+Instead of a traditional glossary, let's look at things the way ui does them:
+
+We have
+	a uiWindow w
+		which has a T t
+	a uiControl c
+We call
+	uiWindowSetChild(w, c)
+What happens:
+	w instructs t that c should be the child it keeps track of
+	t instructs c that it should add its children to the OS object h backing t
+	t instructs c to lay itself out
+We now say
+	c is really a uiStack
+We call
+	uiStackAppend(c, d, 2)
+What happens:
+	c adds d to h
+	c asks t to let it lay itself out
+	t tells c to lay itself out
+We call
+	uiStackDelete(c, 4)
+What happens:
+	c removes its fifth child from h
+	c instructs t to tell it to lay itself out
+	t tells c to lay itself out
+We do
+	resize the window
+What happens:
+	w resizes h
+	the resize of h causes t to trigger a relayout of c
+We do
+	uiWindowSetChild(w, e)
+What happens:
+	w instructs t to stop tracking c and start tracking e
+	t instructs c to remove its children from h
+	t instructs e to add its children to h
+	t instructs e to be laid out
+We do
+	uiWindowDestroy(w)
+What happens
+	w instructs t to tell e to destroy itself
+	e removes its children from h and destroys them, then destroys itself
+	t destroys h, then itself
+	w destroys itself
+
+Therefore, we need a name for T and H
+We also need a term for uiStack and uiGrid
+The above uses 'children' for their children

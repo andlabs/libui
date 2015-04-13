@@ -1,0 +1,11 @@
+In the interest of making sure that everything in ui is consistent, here is a glossary of various conflicting terms and what they mean to the library. These are disjunct from the terminology used by each backend's native platform; context should be used to differentiate where appropriate.
+
+CONTAINER
+	a uiControl that hosts other controls, such as uiStack and uiGrid
+PARENT
+	a non-uiControl that maintains a single uiControl; that uiControl can be a container, in which case the purpose of the parent is to collect the controls in that container for the purpose of the operating system as a holder
+HOLDER
+	a non-uiControl that hosts an uiControl from the perspective of the operating system
+	this should always be a parent
+CONTENT
+	the non-uiControl that acts as a parent and a holder; this is used by uiWindow and uiTab

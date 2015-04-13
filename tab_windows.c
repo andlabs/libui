@@ -24,15 +24,15 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 
 	switch (nm->code) {
 	case TCN_SELCHANGING:
-		n = SendMessageW((HWND) uiControlHandle(c), TCM_GETCURSEL, 0, 0);
+		n = SendMessageW(uiControlHWND(c), TCM_GETCURSEL, 0, 0);
 		if (n != (LRESULT) (-1))		// if we're changing to a real tab
-			ShowWindow((HWND) uiParentHandle(t->pages[n].content), SW_HIDE);
+			ShowWindow(uiParentHWND(t->pages[n].content), SW_HIDE);
 		*lResult = FALSE;			// and allow the change
 		return TRUE;
 	case TCN_SELCHANGE:
-		n = SendMessageW((HWND) uiControlHandle(c), TCM_GETCURSEL, 0, 0);
+		n = SendMessageW(uiControlHWND(c), TCM_GETCURSEL, 0, 0);
 		if (n != (LRESULT) (-1)) {		// if we're changing to a real tab
-			ShowWindow((HWND) uiParentHandle(t->pages[n].content), SW_SHOW);
+			ShowWindow(uiParentHWND(t->pages[n].content), SW_SHOW);
 			// because we only resize the current child on resize, we'll need to trigger an update here
 			uiParentUpdate(t->pages[n].content);
 		}
@@ -63,7 +63,7 @@ static void resizeTab(uiControl *c, LONG width, LONG height)
 	LRESULT n;
 	RECT r;
 
-	hwnd = (HWND) uiControlHandle(c);
+	hwnd = uiControlHWND(c);
 
 	n = SendMessageW(hwnd, TCM_GETCURSEL, 0, 0);
 	if (n == (LRESULT) (-1))		// no child selected; do nothing
@@ -78,7 +78,7 @@ static void resizeTab(uiControl *c, LONG width, LONG height)
 	// convert to the display rectangle
 	SendMessageW(hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
 
-	if (MoveWindow((HWND) uiParentHandle(t->pages[n].content), r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
+	if (MoveWindow(uiParentHWND(t->pages[n].content), r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
 		logLastError("error resizing current tab page in resizeTab()");
 }
 
@@ -129,7 +129,7 @@ uiControl *uiNewTab(void)
 	t = uiNew(struct tab);
 	c->data = t;
 
-	hwnd = (HWND) uiControlHandle(c);
+	hwnd = uiControlHWND(c);
 	if ((*fv_SetWindowSubclass)(hwnd, tabSubProc, 0, (DWORD_PTR) c) == FALSE)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
 
@@ -152,13 +152,13 @@ void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 		t->pages = (struct tabPage *) uiRealloc(t->pages, t->cap * sizeof (struct tabPage), "struct tabPage[]");
 	}
 
-	hwnd = (HWND) uiControlHandle(c);
+	hwnd = uiControlHWND(c);
 	n = SendMessageW(hwnd, TCM_GETITEMCOUNT, 0, 0);
 
 	parent = uiNewParent((uintptr_t) hwnd);
 	uiParentSetChild(parent, child);
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
-		ShowWindow((HWND) uiParentHandle(parent), SW_HIDE);
+		ShowWindow(uiParentHWND(parent), SW_HIDE);
 	t->pages[t->len].content = parent;
 	t->len++;
 

@@ -37,7 +37,7 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	HWND hwnd;
 	SIZE size;
 
-	hwnd = (HWND) uiControlHandle(c);
+	hwnd = uiControlHWND(c);
 
 	// try the comctl32 version 6 way
 	size.cx = 0;		// explicitly ask for ideal size

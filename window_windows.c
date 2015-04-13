@@ -33,7 +33,7 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 			break;
 		if (GetClientRect(w->hwnd, &r) == 0)
 			logLastError("error getting window client rect for resize in uiWindowWndProc()");
-		contenthwnd = (HWND) uiParentHandle(w->content);
+		contenthwnd = uiParentHWND(w->content);
 		if (MoveWindow(contenthwnd, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
 			logLastError("error resizing window content parent in uiWindowWndProc()");
 		return 0;

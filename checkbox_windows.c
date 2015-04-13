@@ -16,7 +16,7 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 		return FALSE;
 
 	// we didn't use BS_AUTOCHECKBOX (see controls_windows.go) so we have to manage the check state ourselves
-	hwnd = (HWND) uiControlHandle(c);
+	hwnd = uiControlHWND(c);
 	check = BST_CHECKED;
 	if (SendMessage(hwnd, BM_GETCHECK, 0, 0) == BST_CHECKED)
 		check = BST_UNCHECKED;
@@ -46,7 +46,7 @@ static void onWM_DESTROY(uiControl *c)
 
 static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiDlgUnitsToX(checkboxXFromLeftOfBoxToLeftOfLabel, d->sys->baseX) + uiWindowsWindowTextWidth((HWND) uiControlHandle(c));
+	*width = uiDlgUnitsToX(checkboxXFromLeftOfBoxToLeftOfLabel, d->sys->baseX) + uiWindowsWindowTextWidth(uiControlHWND(c));
 	*height = uiDlgUnitsToY(checkboxHeight, d->sys->baseY);
 }
 
@@ -106,7 +106,7 @@ int uiCheckboxChecked(uiControl *c)
 {
 	HWND hwnd;
 
-	hwnd = (HWND) uiControlHandle(c);
+	hwnd = uiControlHWND(c);
 	return SendMessage(hwnd, BM_GETCHECK, 0, 0) == BST_CHECKED;
 }
 
@@ -115,7 +115,7 @@ void uiCheckboxSetChecked(uiControl *c, int checked)
 	HWND hwnd;
 	WPARAM check;
 
-	hwnd = (HWND) uiControlHandle(c);
+	hwnd = uiControlHWND(c);
 	check = BST_CHECKED;
 	if (!checked)
 		check = BST_UNCHECKED;

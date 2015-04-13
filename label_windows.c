@@ -26,7 +26,7 @@ static void onWM_DESTROY(uiControl *c)
 
 static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsWindowTextWidth((HWND) uiControlHandle(c));
+	*width = uiWindowsWindowTextWidth(uiControlHWND(c));
 	*height = uiDlgUnitsToY(labelHeight, d->sys->baseY);
 }
 

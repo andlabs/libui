@@ -367,6 +367,22 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 		uiParentUpdate(s->parent);
 }
 
+void uiStackRemove(uiControl *st, uintptr_t index)
+{
+	stack *s = (stack *) (st->data);
+	uiControl *removed;
+	uintmax_t nAfter;
+
+	removed = s->controls[index].c;
+	nAfter = s->len - index - 1;
+	memmove(&(s->controls[index + 1]), &(s->controls[index]), nAfter * sizeof (stackControl));
+	s->len--;
+	if (s->parent != NULL) {
+		uiControlRemoveParent(removed);
+		uiParentUpdate(s->parent);
+	}
+}
+
 int uiStackPadded(uiControl *c)
 {
 	stack *s = (stack *) (c->data);

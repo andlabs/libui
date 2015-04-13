@@ -67,7 +67,7 @@ static void setCheckboxText(uiControl *b, void *data)
 }
 
 uiWindow *w;
-#define nStacks 9
+#define nStacks 11
 uiControl *stacks[nStacks];
 uiControl *spaced;
 
@@ -146,6 +146,22 @@ static void setLabelText(uiControl *b, void *data)
 	text = uiEntryText(e);
 	uiLabelSetText((uiControl *) data, text);
 	uiFreeText(text);
+}
+
+uiControl *firstStack;
+uiControl *secondStack;
+uiControl *movingLabel;
+
+static void moveToFirst(uiControl *c, void *data)
+{
+	uiStackRemove(secondStack, 1);
+	uiStackAdd(firstStack, movingLabel, 1);
+}
+
+static void moveToSecond(uiControl *c, void *data)
+{
+	uiStackRemove(firstStack, 1);
+	uiStackAdd(secondStack, movingLabel, 1);
 }
 
 int main(int argc, char *argv[])
@@ -287,6 +303,24 @@ int main(int argc, char *argv[])
 	page2stack = i;
 	stacks[i] = uiNewVerticalStack();
 	uiTabAddPage(tab, "Page 2", stacks[i]);
+	i++;
+
+	stacks[i] = uiNewHorizontalStack();
+	firstStack = stacks[i];
+	getButton = uiNewButton("Move Here");
+	uiButtonOnClicked(getButton, moveToFirst, NULL);
+	uiStackAdd(stacks[i], getButton, 0);
+	movingLabel = uiNewLabel("This label moves!");
+	uiStackAdd(stacks[i], movingLabel, 1);
+	uiStackAdd(stacks[page2stack], stacks[i], 0);;
+	i++;
+
+	stacks[i] = uiNewHorizontalStack();
+	secondStack = stacks[i];
+	getButton = uiNewButton("Move Here");
+	uiButtonOnClicked(getButton, moveToSecond, NULL);
+	uiStackAdd(stacks[i], getButton, 0);
+	uiStackAdd(stacks[page2stack], stacks[i], 0);
 	i++;
 
 	if (i != nStacks) {

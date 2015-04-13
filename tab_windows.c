@@ -34,7 +34,8 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 		if (n != (LRESULT) (-1)) {		// if we're changing to a real tab
 			ShowWindow(uiParentHWND(t->pages[n]), SW_SHOW);
 			// because we only resize the current child on resize, we'll need to trigger an update here
-			uiParentUpdate(t->pages[n]);
+			// don't call uiParentUpdate(); doing that won't size the content area (so we'll still have a 0x0 content area, for instance)
+			SendMessageW(uiControlHWND(c), msgUpdateChild, 0, 0);
 		}
 		*lResult = 0;
 		return TRUE;
@@ -89,6 +90,7 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 	uiControl *c = (uiControl *) dwRefData;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	LRESULT lResult;
+	RECT r;
 
 	switch (uMsg) {
 	case WM_WINDOWPOSCHANGED:
@@ -99,6 +101,12 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 		// we have the window rect width as part of the WINDOWPOS; resize
 		resizeTab(c, wp->cx, wp->cy);
 		return lResult;
+	case msgUpdateChild:
+		if (GetWindowRect(uiControlHWND(c), &r) == 0)
+			logLastError("error getting Tab window rect for synthesized resize message in tabSubProc()");
+		// these are in screen coordinates, which match what WM_WINDOWPOSCHANGED gave us (thanks TODOTODOTODOTODOTODOTODOTODO)
+		resizeTab(c, r.right - r.left, r.bottom - r.top);
+		return 0;
 	case WM_NCDESTROY:
 		if ((*fv_RemoveWindowSubclass)(hwnd, tabSubProc, uIdSubclass) == FALSE)
 			logLastError("error removing Tab resize handling subclass in tabSubProc()");
@@ -172,4 +180,10 @@ void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 	if (SendMessageW(hwnd, TCM_INSERTITEM, (WPARAM) n, (LPARAM) (&item)) == (LRESULT) -1)
 		logLastError("error adding tab to Tab in uiTabAddPage()");
 	uiFree(wname);
+
+	// if this is the first tab, Windows will automatically show it /without/ sending a TCN_SELCHANGE notification
+	// (TODO verify that)
+	// so we need to manually resize the tab ourselves
+	// don't use uiUpdateParent() for the same reason as in the TCN_SELCHANGE handler
+	SendMessageW(uiControlHWND(c), msgUpdateChild, 0, 0);
 }

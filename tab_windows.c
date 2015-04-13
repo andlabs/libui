@@ -1,6 +1,9 @@
 // 12 april 2015
 #include "uipriv_windows.h"
 
+// TODO
+// - tab change notifications aren't being sent on wine (anymore...? TODO)
+
 struct tab {
 	uiParent **pages;
 	uintmax_t len;

@@ -31,6 +31,8 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
+		// fall through
+	case msgUpdateChild:
 		if (GetClientRect(w->hwnd, &r) == 0)
 			logLastError("error getting window client rect for resize in uiWindowWndProc()");
 		contenthwnd = uiParentHWND(w->content);
@@ -160,7 +162,9 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 void uiWindowSetChild(uiWindow *w, uiControl *c)
 {
 	uiParentSetChild(w->content, c);
-	uiParentUpdate(w->content);
+	// don't call uiParentUpdate(); instead, synthesize a resize
+	// otherwise, we'll have a 0x0 content area at first
+	SendMessageW(w->hwnd, msgUpdateChild, 0, 0);
 }
 
 int uiWindowMargined(uiWindow *w)

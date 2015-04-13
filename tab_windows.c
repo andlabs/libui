@@ -2,13 +2,9 @@
 #include "uipriv_windows.h"
 
 struct tab {
-	struct tabPage *pages;
+	uiParent **pages;
 	uintmax_t len;
 	uintmax_t cap;
-};
-
-struct tabPage {
-	uiParent *content;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
@@ -26,15 +22,15 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	case TCN_SELCHANGING:
 		n = SendMessageW(uiControlHWND(c), TCM_GETCURSEL, 0, 0);
 		if (n != (LRESULT) (-1))		// if we're changing to a real tab
-			ShowWindow(uiParentHWND(t->pages[n].content), SW_HIDE);
+			ShowWindow(uiParentHWND(t->pages[n]), SW_HIDE);
 		*lResult = FALSE;			// and allow the change
 		return TRUE;
 	case TCN_SELCHANGE:
 		n = SendMessageW(uiControlHWND(c), TCM_GETCURSEL, 0, 0);
 		if (n != (LRESULT) (-1)) {		// if we're changing to a real tab
-			ShowWindow(uiParentHWND(t->pages[n].content), SW_SHOW);
+			ShowWindow(uiParentHWND(t->pages[n]), SW_SHOW);
 			// because we only resize the current child on resize, we'll need to trigger an update here
-			uiParentUpdate(t->pages[n].content);
+			uiParentUpdate(t->pages[n]);
 		}
 		*lResult = 0;
 		return TRUE;
@@ -46,6 +42,7 @@ static void onWM_DESTROY(uiControl *c)
 {
 	struct tab *t = (struct tab *) (c->data);
 
+	// no need to worry about freeing the pages themselves; they'll destroy themselves after we return
 	uiFree(t->pages);
 	uiFree(t);
 }
@@ -78,7 +75,7 @@ static void resizeTab(uiControl *c, LONG width, LONG height)
 	// convert to the display rectangle
 	SendMessageW(hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
 
-	if (MoveWindow(uiParentHWND(t->pages[n].content), r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
+	if (MoveWindow(uiParentHWND(t->pages[n]), r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
 		logLastError("error resizing current tab page in resizeTab()");
 }
 
@@ -149,7 +146,7 @@ void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 
 	if (t->len >= t->cap) {
 		t->cap += tabCapGrow;
-		t->pages = (struct tabPage *) uiRealloc(t->pages, t->cap * sizeof (struct tabPage), "struct tabPage[]");
+		t->pages = (struct tabPage *) uiRealloc(t->pages, t->cap * sizeof (uiParent *), "uiParent *[]");
 	}
 
 	hwnd = uiControlHWND(c);
@@ -157,9 +154,10 @@ void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 
 	parent = uiNewParent((uintptr_t) hwnd);
 	uiParentSetChild(parent, child);
+	uiParentUpdate(parent);
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
 		ShowWindow(uiParentHWND(parent), SW_HIDE);
-	t->pages[t->len].content = parent;
+	t->pages[t->len] = parent;
 	t->len++;
 
 	ZeroMemory(&item, sizeof (TCITEMW));

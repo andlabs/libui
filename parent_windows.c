@@ -114,47 +114,54 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r, margin;
 
-	p = (uiParent *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
-	if (p == NULL) {
-		if (uMsg == WM_NCCREATE) {
-			p = (uiParent *) (cs->lpCreateParams);
-			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) p);
-			// fall through to DefWindowProcW()
-		}
-		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-	}
-	pp = (struct parent *) (p->Internal);
-
+	// these must always be executed, even on the initial parent
+	// why? http://blogs.msdn.com/b/oldnewthing/archive/2010/03/16/9979112.aspx
 	switch (uMsg) {
-	case WM_NCDESTROY:
-		// no need to explicitly destroy children; they're already gone by this point (and so are their data structures; they clean up after themselves)
-		uiFree(p->Internal);
-		uiFree(p);
-		break;		// fall through to DefWindowPocW()
 	case WM_COMMAND:
 		// bounce back to the control in question
 		// except if to the initial parent, in which case act as if the message was ignored
 		control = (HWND) lParam;
 		if (control != NULL && IsChild(initialParent, control) == 0)
 			return SendMessageW(control, msgCOMMAND, wParam, lParam);
-		break;		// fall through to DefWindowPocW()
+		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	case WM_NOTIFY:
 		// same as WM_COMMAND
 		control = nm->hwndFrom;
 		if (control != NULL && IsChild(initialParent, control) == 0)
 			return SendMessageW(control, msgNOTIFY, wParam, lParam);
-		break;		// fall through to DefWindowProcW()
+		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
 /*TODO		// read-only TextFields and Textboxes are exempt
 		// this is because read-only edit controls count under WM_CTLCOLORSTATIC
 		if (windowClassOf((HWND) lParam, L"edit", NULL) == 0)
 			if (textfieldReadOnly((HWND) lParam))
-				break;		// fall through to DefWindowProcW()
+				return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 */		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
 			logLastError("error setting transparent background mode to controls in parentWndProc()");
 		paintControlBackground((HWND) lParam, (HDC) wParam);
 		return (LRESULT) hollowBrush;
+	}
+
+	// these are only executed on actual parents
+	p = (uiParent *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+	if (p == NULL) {
+		if (uMsg == WM_NCCREATE) {
+			p = (uiParent *) (cs->lpCreateParams);
+			// this will be NULL for the initial parent; that's what we want
+			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) p);
+			// fall through to DefWindowProcW()
+		}
+		// this is the return the initial parent will always use
+		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+	}
+	pp = (struct parent *) (p->Internal);
+	switch (uMsg) {
+	case WM_NCDESTROY:
+		// no need to explicitly destroy children; they're already gone by this point (and so are their data structures; they clean up after themselves)
+		uiFree(p->Internal);
+		uiFree(p);
+		break;		// fall through to DefWindowPocW()
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;

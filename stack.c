@@ -9,7 +9,7 @@ struct stack {
 	uintmax_t len;
 	uintmax_t cap;
 	int vertical;
-	uintptr_t parent;
+	uiParent *parent;
 	int padded;
 	int userHid;
 	int containerHid;
@@ -41,7 +41,7 @@ static uintptr_t stackHandle(uiControl *c)
 	return 0;
 }
 
-static void stackSetParent(uiControl *c, uintptr_t parent)
+static void stackSetParent(uiControl *c, uiParent *parent)
 {
 	stack *s = (stack *) (c->data);
 	uintmax_t i;
@@ -49,20 +49,20 @@ static void stackSetParent(uiControl *c, uintptr_t parent)
 	s->parent = parent;
 	for (i = 0; i < s->len; i++)
 		uiControlSetParent(s->controls[i].c, s->parent);
-	updateParent(s->parent);
+	uiParentUpdate(s->parent);
 }
 
 static void stackRemoveParent(uiControl *c)
 {
 	stack *s = (stack *) (c->data);
 	uintmax_t i;
-	uintptr_t oldparent;
+	uiParent *oldparent;
 
 	oldparent = s->parent;
-	s->parent = 0;
+	s->parent = NULL;
 	for (i = 0; i < s->len; i++)
 		uiControlRemoveParent(s->controls[i].c);
-	updateParent(oldparent);
+	uiParentUpdate(oldparent);
 }
 
 static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -224,7 +224,8 @@ static void stackShow(uiControl *c)
 	if (!s->containerHid) {
 		for (i = 0; i < s->len; i++)
 			uiControlContainerShow(s->controls[i].c);
-		updateParent(s->parent);
+		if (s->parent != NULL)
+			uiParentUpdate(s->parent);
 	}
 }
 
@@ -236,7 +237,8 @@ static void stackHide(uiControl *c)
 	s->userHid = 1;
 	for (i = 0; i < s->len; i++)
 		uiControlContainerHide(s->controls[i].c);
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }
 
 static void stackContainerShow(uiControl *c)
@@ -248,7 +250,8 @@ static void stackContainerShow(uiControl *c)
 	if (!s->userHid) {
 		for (i = 0; i < s->len; i++)
 			uiControlContainerShow(s->controls[i].c);
-		updateParent(s->parent);
+		if (s->parent != NULL)
+			uiParentUpdate(s->parent);
 	}
 }
 
@@ -260,7 +263,8 @@ static void stackContainerHide(uiControl *c)
 	s->containerHid = 1;
 	for (i = 0; i < s->len; i++)
 		uiControlContainerHide(s->controls[i].c);
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }
 
 static void stackEnable(uiControl *c)
@@ -359,7 +363,8 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 	if (s->parent != 0)
 		uiControlSetParent(s->controls[s->len].c, s->parent);
 	s->len++;
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }
 
 int uiStackPadded(uiControl *c)
@@ -374,5 +379,6 @@ void uiStackSetPadded(uiControl *c, int padded)
 	stack *s = (stack *) (c->data);
 
 	s->padded = padded;
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }

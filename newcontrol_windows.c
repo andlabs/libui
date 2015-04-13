@@ -8,7 +8,7 @@ struct singleHWND {
 	BOOL (*onWM_COMMAND)(uiControl *, WORD, LRESULT *);
 	BOOL (*onWM_NOTIFY)(uiControl *, NMHDR *, LRESULT *);
 	void (*onWM_DESTROY)(uiControl *);
-	uintptr_t parent;
+	uiParent *parent;
 	BOOL userHid;
 	BOOL containerHid;
 	BOOL userDisabled;
@@ -31,26 +31,26 @@ static uintptr_t singleHandle(uiControl *c)
 	return (uintptr_t) (s->hwnd);
 }
 
-static void singleSetParent(uiControl *c, uintptr_t parent)
+static void singleSetParent(uiControl *c, uiParent *parent)
 {
 	singleHWND *s = (singleHWND *) (c->internal);
 
 	s->parent = parent;
 	if (SetParent(s->hwnd, (HWND) (s->parent)) == NULL)
 		logLastError("error setting control parent in singleSetParent()");
-	updateParent(s->parent);
+	uiParentUpdate(s->parent);
 }
 
 static void singleRemoveParent(uiControl *c)
 {
 	singleHWND *s = (singleHWND *) (c->internal);
-	uintptr_t oldparent;
+	uiParent *oldparent;
 
 	oldparent = s->parent;
-	s->parent = 0;
+	s->parent = NULL;
 	if (SetParent(s->hwnd, initialParent) == NULL)
 		logLastError("error removing control parent in singleSetParent()");
-	updateParent(oldparent);
+	uiParentUpdate(oldparent);
 }
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
@@ -77,7 +77,8 @@ static void singleShow(uiControl *c)
 	s->userHid = FALSE;
 	if (!s->containerHid) {
 		ShowWindow(s->hwnd, SW_SHOW);
-		updateParent(s->parent);
+		if (s->parent != NULL)
+			uiUpdateParent(s->parent);
 	}
 }
 
@@ -87,7 +88,8 @@ static void singleHide(uiControl *c)
 
 	s->userHid = TRUE;
 	ShowWindow(s->hwnd, SW_HIDE);
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiUpdateParent(s->parent);
 }
 
 static void singleContainerShow(uiControl *c)
@@ -97,7 +99,8 @@ static void singleContainerShow(uiControl *c)
 	s->containerHid = FALSE;
 	if (!s->userHid) {
 		ShowWindow(s->hwnd, SW_SHOW);
-		updateParent(s->parent);
+		if (s->parent != NULL)
+			uiUpdateParent(s->parent);
 	}
 }
 
@@ -107,7 +110,8 @@ static void singleContainerHide(uiControl *c)
 
 	s->containerHid = TRUE;
 	ShowWindow(s->hwnd, SW_HIDE);
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiUpdateParent(s->parent);
 }
 
 static void singleEnable(uiControl *c)

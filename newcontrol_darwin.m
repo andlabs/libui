@@ -42,10 +42,10 @@ static void singleSetParent(uiControl *c, uintptr_t parent)
 static void singleRemoveParent(uiControl *c)
 {
 	singleView *s = (singleView *) (c->internal);
-	uintptr_t oldparent;
+	uiParent *oldparent;
 
 	oldparent = s->parent;
-	s->parent = 0;
+	s->parent = NULL;
 	[s->immediate removeFromSuperview];
 	updateParent(oldparent);
 }

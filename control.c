@@ -11,7 +11,7 @@ uintptr_t uiControlHandle(uiControl *c)
 	return (*(c->handle))(c);
 }
 
-void uiControlSetParent(uiControl *c, uintptr_t parent)
+void uiControlSetParent(uiControl *c, uiParent *parent)
 {
 	(*(c->setParent))(c, parent);
 }

@@ -40,7 +40,7 @@ struct uiControl {
 	void *internal;			// for use by ui only
 	void (*destroy)(uiControl *);
 	uintptr_t (*handle)(uiControl *);
-	void (*setParent)(uiControl *, uiContainer *);
+	void (*setParent)(uiControl *, uiParent *);
 	void (*removeParent)(uiControl *);
 	void (*preferredSize)(uiControl *, uiSizing *, intmax_t *, intmax_t *);
 	void (*resize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
@@ -56,7 +56,7 @@ struct uiControl {
 };
 void uiControlDestroy(uiControl *);
 uintptr_t uiControlHandle(uiControl *);
-void uiControlSetParent(uiControl *, uiContainer *);
+void uiControlSetParent(uiControl *, uiParent *);
 void uiControlRemoveParent(uiControl *);
 void uiControlPreferredSize(uiControl *, uiSizing *, intmax_t *width, intmax_t *height);
 void uiControlResize(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);

@@ -40,10 +40,10 @@ static void singleSetParent(uiControl *c, uintptr_t parent)
 static void singleRemoveParent(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->internal);
-	uintptr_t oldparent;
+	uiParent *oldparent;
 
 	oldparent = s->parent;
-	s->parent = 0;
+	s->parent = NULL;
 	gtk_container_remove(GTK_CONTAINER(oldparent), s->immediate);
 	updateParent(oldparent);
 }

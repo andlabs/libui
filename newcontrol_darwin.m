@@ -7,7 +7,7 @@ struct singleView {
 	NSView *view;
 	NSScrollView *scrollView;
 	NSView *immediate;		// the control that is added to the parent container; either view or scrollView
-	uintptr_t parent;
+	uiParent *parent;
 	BOOL userHid;
 	BOOL containerHid;
 	BOOL userDisabled;
@@ -28,15 +28,15 @@ static uintptr_t singleHandle(uiControl *c)
 	return (uintptr_t) (s->view);
 }
 
-static void singleSetParent(uiControl *c, uintptr_t parent)
+static void singleSetParent(uiControl *c, uiParent *parent)
 {
 	singleView *s = (singleView *) (c->internal);
 	NSView *parentView;
 
 	s->parent = parent;
-	parentView = (NSView *) (s->parent);
+	parentView = (NSView *) uiParentHandle(s->parent);
 	[parentView addSubview:s->immediate];
-	updateParent(s->parent);
+	uiParentUpdate(s->parent);
 }
 
 static void singleRemoveParent(uiControl *c)
@@ -47,7 +47,7 @@ static void singleRemoveParent(uiControl *c)
 	oldparent = s->parent;
 	s->parent = NULL;
 	[s->immediate removeFromSuperview];
-	updateParent(oldparent);
+	uiParentUpdate(oldparent);
 }
 
 // also good for NSBox and NSProgressIndicator
@@ -95,7 +95,8 @@ static void singleShow(uiControl *c)
 	s->userHid = NO;
 	if (!s->containerHid) {
 		[s->immediate setHidden:NO];
-		updateParent(s->parent);
+		if (s->parent != NULL)
+			uiParentUpdate(s->parent);
 	}
 }
 
@@ -105,7 +106,8 @@ static void singleHide(uiControl *c)
 
 	s->userHid = YES;
 	[s->immediate setHidden:YES];
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }
 
 static void singleContainerShow(uiControl *c)
@@ -115,7 +117,8 @@ static void singleContainerShow(uiControl *c)
 	s->containerHid = NO;
 	if (!s->userHid) {
 		[s->immediate setHidden:NO];
-		updateParent(s->parent);
+		if (s->parent != NULL)
+			uiParentUpdate(s->parent);
 	}
 }
 
@@ -125,7 +128,8 @@ static void singleContainerHide(uiControl *c)
 
 	s->containerHid = YES;
 	[s->immediate setHidden:YES];
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }
 
 static void enable(singleView *s)

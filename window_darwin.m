@@ -6,7 +6,7 @@
 
 @interface uiWindowDelegate : NSObject <NSWindowDelegate>
 @property (assign) NSWindow *w;
-@property (assign) uiContainer *container;
+@property uiParent *content;
 @property int (*onClosing)(uiWindow *, void *);
 @property void *onClosingData;
 @property uiWindow *uiw;
@@ -30,11 +30,11 @@ uiLogObjCClassAllocations
 	[self.w setDelegate:nil];		// see http://stackoverflow.com/a/29523141/3408572
 
 	// when we reach this point, we need to ensure that all the window's children are destroyed (for OS parity)
-	// this may not happen under certain conditions
-	// I'm not sure if calling uiQuit() in the close handler causes whatever causes our window to release its content view during deallocation to race with uiQuit()'s stopping of the run loop but that's one symptom I've noticed
-	// so let's manually change the content view now
-	// we'll set it to a new stock view; this should be enough to set our real container's superview to nil, triggering the destruction
+	// because we need to set the content view's superview to the destroyed controls view to trigger deletion, we need to do this manually
+	// first, replace the current content view...
 	[self.w setContentView:[[NSView alloc] initWithFrame:NSZeroRect]];
+	// ...then, trigger the deletion
+	[destroyedControlsView addSubview:((NSView *) uiParentHandle(self.content))];
 
 	uiFree(self.uiw);
 	[self release];
@@ -44,6 +44,7 @@ uiLogObjCClassAllocations
 
 struct uiWindow {
 	uiWindowDelegate *d;
+	int margined;
 };
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -74,8 +75,8 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	// this is what will destroy the window on close
 	[d.w setReleasedWhenClosed:YES];
 
-	d.container = [[uiContainer alloc] initWithFrame:NSZeroRect];
-	[d.w setContentView:d.container];
+	d.content = uiNewParent(0);
+	[d.w setContentView:((NSView *) uiParentHandle(d.content))];
 
 	d.onClosing = defaultOnClosing;
 	[d.w setDelegate:d];
@@ -125,23 +126,20 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 
 void uiWindowSetChild(uiWindow *w, uiControl *c)
 {
-	D.container.uiChild = c;
-	uiControlSetParent(D.container.uiChild, (uintptr_t) (D.container));
+	uiParentSetChild(D.content, c);
 }
 
 int uiWindowMargined(uiWindow *w)
 {
-	if ([D.container uiMargined])
-		return 1;
-	return 0;
+	return w->margined;
 }
 
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
-	BOOL m;
-
-	m = NO;
-	if (margined)
-		m = YES;
-	[D.container uiSetMargined:m];
+	w->margined = margined;
+	if (w->margined)
+		uiParentSetMargins(D.content, macXMargin, macYMargin, macXMargin, macYMargin);
+	else
+		uiParentSetMargins(D.content, 0, 0, 0, 0);
+	uiParentUpdate(D.content);
 }

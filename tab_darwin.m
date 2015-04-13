@@ -13,6 +13,7 @@
 
 - (void)viewDidMoveToSuperview
 {
+	// TODO free all tabs explicitly
 	if (uiDarwinControlFreeWhenAppropriate(self.uiC, [self superview]))
 		self.uiC = NULL;
 	[super viewDidMoveToSuperview];
@@ -52,16 +53,15 @@ uiControl *uiNewTab(void)
 void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 {
 	uiNSTabView *tv;
-	uiContainer *container;
+	uiParent *content;
 	NSTabViewItem *i;
 
-	container = [[uiContainer alloc] initWithFrame:NSZeroRect];
-	container.uiChild = child;
-	uiControlSetParent(container.uiChild, (uintptr_t) container);
+	content = uiNewParent(0);
+	uiParentSetChild(content, child);
 
 	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
 	[i setLabel:toNSString(name)];
-	[i setView:container];
+	[i setView:((NSView *) uiParentHandle(content))];
 	tv = (uiNSTabView *) uiControlHandle(c);
 	[tv addTabViewItem:i];
 }

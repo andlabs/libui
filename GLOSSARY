@@ -5,47 +5,83 @@ Instead of a traditional glossary, let's look at things the way ui does them:
 We have
 	a uiWindow w
 		which has a T t
+			which has a uiControl
+			and an H h, which is an OS resource
 	a uiControl c
 We call
 	uiWindowSetChild(w, c)
 What happens:
 	w instructs t that c should be the child it keeps track of
+		t.SetControl(c)
 	t instructs c that it should add its children to the OS object h backing t
+		c.SetTHING(t)
 	t instructs c to lay itself out
+		c.Resize()
 We now say
 	c is really a uiStack
 We call
 	uiStackAppend(c, d, 2)
 What happens:
-	c adds d to h
+	c asks t to add d to h
+		t.Host(d)
+	t gives d h to add itself too
+		d.SetHost(h)
 	c asks t to let it lay itself out
+		t.Update()
 	t tells c to lay itself out
+		c.Resize()
 We call
 	uiStackDelete(c, 4)
 What happens:
-	c removes its fifth child from h
+	c asks t to remove its fifth child from h
+		t.Unhost(c.children[4])
+	t tells c's fifth child to unhost itself
+		c.children[4].UnsetHost()
 	c instructs t to tell it to lay itself out
+		t.Update()
 	t tells c to lay itself out
+		c.Resize()
 We do
 	resize the window
 What happens:
-	w resizes h
-	the resize of h causes t to trigger a relayout of c
+	w resizes t, which resizes h
+		t.Resize()
+	resizing h triggers a relayout of c
+		c.Resize()
 We do
 	uiWindowSetChild(w, e)
 What happens:
-	w instructs t to stop tracking c and start tracking e
+	w instructs t to stop tracking c
+		t.UnsetControl(c)
 	t instructs c to remove its children from h
+		c.UnsetTHING()
+			t.Unhost(d)
+				d.Unhost()
+	w instrcuts t to start tracking e
+		t.SetControl(e)
 	t instructs e to add its children to h
+		e.SetTHING(t)
 	t instructs e to be laid out
+		e.Resize()
 We do
 	uiWindowDestroy(w)
 What happens
 	w instructs t to tell e to destroy itself
-	e removes its children from h and destroys them, then destroys itself
+		t.Destroy()
+	t tells e to unhook itself
+		e.UnsetTHING()
+	t tells e to destroy itself
+		e.Destroy()
 	t destroys h, then itself
 	w destroys itself
 
 Therefore, we need a name for T and H
 We also need a term for uiStack and uiGrid
 The above uses 'children' for their children
+
+CURRENT PLAN
+T/THING will be called a 'parent'
+H will be called a 'host'
+a parent has a host, but it will NOT be accessed directly by children
+instead it will use the named methods
+uiStack and uiGrid, etc. will be called 'containers'

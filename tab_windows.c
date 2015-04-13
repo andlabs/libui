@@ -78,7 +78,7 @@ static void resizeTab(uiControl *c, LONG width, LONG height)
 	// convert to the display rectangle
 	SendMessageW(hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
 
-	if (MoveWindow((HWND) uiParentHandle(t->pages[n].content), r.leftm r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
+	if (MoveWindow((HWND) uiParentHandle(t->pages[n].content), r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
 		logLastError("error resizing current tab page in resizeTab()");
 }
 
@@ -87,6 +87,7 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 {
 	uiControl *c = (uiControl *) dwRefData;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+	LRESULT lResult;
 
 	switch (uMsg) {
 	case WM_WINDOWPOSCHANGED:

@@ -17,6 +17,8 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	uiWindow *w;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+	RECT r;
+	HWND contenthwnd;
 
 	w = (uiWindow *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
@@ -27,9 +29,11 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	}
 	switch (uMsg) {
 	case WM_WINDOWPOSCHANGED:
+		if ((wp->flags & SWP_NOSIZE) != 0)
+			break;
 		if (GetClientRect(w->hwnd, &r) == 0)
 			logLastError("error getting window client rect for resize in uiWindowWndProc()");
-		contenthwnd = (HWND) uiParentHandle(content);
+		contenthwnd = (HWND) uiParentHandle(w->content);
 		if (MoveWindow(contenthwnd, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
 			logLastError("error resizing window content parent in uiWindowWndProc()");
 		return 0;
@@ -38,8 +42,7 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 			return 0;
 		break;		// fall through to DefWindowProcW()
 	case WM_DESTROY:
-		if (w->child != NULL)
-			uiControlDestroy(w->child);
+		// no need to free the child ourselves; it'll destroy itself after we leave this handler
 		uiFree(w);
 		break;		// fall through to DefWindowProcW()
 	}

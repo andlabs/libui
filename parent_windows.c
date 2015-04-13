@@ -4,7 +4,7 @@
 // All controls in package ui are children of a window of this class.
 // This keeps everything together, makes hiding controls en masse (tab page switching, for instance) easy, and makes the overall design cleaner.
 // In addition, controls that are first created or don't have a parent are considered children of the "initial parent", which is also of this class.
-// This paxxxxxxxxxxxxxxxxxrent is invisible, disabled, and should not be interacted with.
+// This parent is invisible, disabled, and should not be interacted with.
 
 // TODOs
 // - wiith CTLCOLOR handler: [12:24] <ZeroOne> There's flickering between tabs
@@ -98,10 +98,10 @@ static void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 struct parent {
 	HWND hwnd;
 	uiControl *child;
-	intmax_t leftMargin;
-	intmax_t topMargin;
-	intmax_t rightMargin;
-	intmax_t bottomMargin;
+	intmax_t marginLeft;
+	intmax_t marginTop;
+	intmax_t marginRight;
+	intmax_t marginBottom;
 };
 
 static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -111,6 +111,7 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	HWND control;
 	NMHDR *nm = (NMHDR *) lParam;
+	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r, margin;
 
 	p = (uiParent *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
@@ -151,7 +152,7 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 			if (textfieldReadOnly((HWND) lParam))
 				break;		// fall through to DefWindowProcW()
 */		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
-			logLastError("error setting transparent background mode to controls in sharedWndProc()");
+			logLastError("error setting transparent background mode to controls in parentWndProc()");
 		paintControlBackground((HWND) lParam, (HDC) wParam);
 		return (LRESULT) hollowBrush;
 	case WM_WINDOWPOSCHANGED:
@@ -161,7 +162,7 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	case msgUpdateChild:
 		if (pp->child == NULL)
 			break;
-		if (GetClientRect(p->hwnd, &r) == 0)
+		if (GetClientRect(pp->hwnd, &r) == 0)
 			logLastError("error getting client rect for resize in parentWndProc()");
 		margin.left = pp->marginLeft;
 		margin.top = pp->marginTop;
@@ -179,8 +180,8 @@ const char *initParent(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	WNDCLASSW wc;
 
 	ZeroMemory(&wc, sizeof (WNDCLASSW));
-	wc.lpszClassName = uiInitialParentClass;
-	wc.lpfnWndProc = initialParentWndProc;
+	wc.lpszClassName = uiParentClass;
+	wc.lpfnWndProc = parentWndProc;
 	wc.hInstance = hInstance;
 	wc.hIcon = hDefaultIcon;
 	wc.hCursor = hDefaultCursor;
@@ -207,12 +208,12 @@ static uintptr_t parentHandle(uiParent *p)
 {
 	struct parent *pp = (struct parent *) (p->Internal);
 
-	return (uintptr_t) (p->hwnd);
+	return (uintptr_t) (pp->hwnd);
 }
 
-static void parentSetChild(uiParent *p, uiChild *child)
+static void parentSetChild(uiParent *p, uiControl *child)
 {
-	struct parent *pp = (struct parent *) (p->internal);
+	struct parent *pp = (struct parent *) (p->Internal);
 
 	pp->child = child;
 	if (pp->child != NULL)
@@ -221,7 +222,7 @@ static void parentSetChild(uiParent *p, uiChild *child)
 
 static void parentSetMargins(uiParent *p, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom)
 {
-	struct parent *pp = (struct parent *) (p->internal);
+	struct parent *pp = (struct parent *) (p->Internal);
 
 	pp->marginLeft = left;
 	pp->marginTop = top;
@@ -231,7 +232,7 @@ static void parentSetMargins(uiParent *p, intmax_t left, intmax_t top, intmax_t 
 
 static void parentUpdate(uiParent *p)
 {
-	struct parent *pp = (struct parent *) (p->internal);
+	struct parent *pp = (struct parent *) (p->Internal);
 
 	SendMessageW(pp->hwnd, msgUpdateChild, 0, 0);
 }
@@ -239,17 +240,19 @@ static void parentUpdate(uiParent *p)
 uiParent *uiNewParent(uintptr_t osParent)
 {
 	uiParent *p;
+	struct parent *pp;
 
 	p = uiNew(uiParent);
-	p->Internal = uiNew(struct parent);
-	p->hwnd = CreateWindowExW(0,
-		xxxxxxx, L"",
+	pp = uiNew(struct parent);
+	pp->hwnd = CreateWindowExW(0,
+		uiParentClass, L"",
 		WS_CHILD | WS_VISIBLE,
 		0, 0,
 		0, 0,
 		(HWND) osParent, NULL, hInstance, p);
-	if (p->hwnd == NULL)
+	if (pp->hwnd == NULL)
 		logLastError("error creating uiParent window in uiNewParent()");
+	p->Internal = pp;
 	p->Handle = parentHandle;
 	p->SetChild = parentSetChild;
 	p->SetMargins = parentSetMargins;

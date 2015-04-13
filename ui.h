@@ -32,7 +32,7 @@ struct uiSizing {
 	uiSizingSys *sys;
 };
 
-typedef strut uiContainer uiContainer;
+typedef struct uiParent uiParent;
 
 typedef struct uiControl uiControl;
 struct uiControl {

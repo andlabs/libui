@@ -78,7 +78,7 @@ static void singleShow(uiControl *c)
 	if (!s->containerHid) {
 		ShowWindow(s->hwnd, SW_SHOW);
 		if (s->parent != NULL)
-			uiUpdateParent(s->parent);
+			uiParentUpdate(s->parent);
 	}
 }
 
@@ -89,7 +89,7 @@ static void singleHide(uiControl *c)
 	s->userHid = TRUE;
 	ShowWindow(s->hwnd, SW_HIDE);
 	if (s->parent != NULL)
-		uiUpdateParent(s->parent);
+		uiParentUpdate(s->parent);
 }
 
 static void singleContainerShow(uiControl *c)
@@ -100,7 +100,7 @@ static void singleContainerShow(uiControl *c)
 	if (!s->userHid) {
 		ShowWindow(s->hwnd, SW_SHOW);
 		if (s->parent != NULL)
-			uiUpdateParent(s->parent);
+			uiParentUpdate(s->parent);
 	}
 }
 
@@ -111,7 +111,7 @@ static void singleContainerHide(uiControl *c)
 	s->containerHid = TRUE;
 	ShowWindow(s->hwnd, SW_HIDE);
 	if (s->parent != NULL)
-		uiUpdateParent(s->parent);
+		uiParentUpdate(s->parent);
 }
 
 static void singleEnable(uiControl *c)

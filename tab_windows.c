@@ -3,6 +3,7 @@
 
 // TODO
 // - tab change notifications aren't being sent on wine (anymore...? TODO)
+// - tell wine developers that tab controls do respond to parent changes on real windows (at least comctl6 tab controls do)
 
 struct tab {
 	uiParent **pages;

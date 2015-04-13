@@ -7,7 +7,7 @@ struct singleWidget {
 	GtkWidget *widget;
 	GtkWidget *scrolledWindow;
 	GtkWidget *immediate;		// the widget that is added to the parent container; either widget or scrolledWindow
-	uintptr_t parent;
+	uiParent *parent;
 	gboolean userHid;
 	gboolean containerHid;
 	gboolean userDisabled;
@@ -28,13 +28,13 @@ static uintptr_t singleHandle(uiControl *c)
 	return (uintptr_t) (s->widget);
 }
 
-static void singleSetParent(uiControl *c, uintptr_t parent)
+static void singleSetParent(uiControl *c, uiParent *parent)
 {
 	singleWidget *s = (singleWidget *) (c->internal);
 
 	s->parent = parent;
 	gtk_container_add(GTK_CONTAINER(s->parent), s->immediate);
-	updateParent(s->parent);
+	uiParentUpdate(s->parent);
 }
 
 static void singleRemoveParent(uiControl *c)
@@ -45,7 +45,7 @@ static void singleRemoveParent(uiControl *c)
 	oldparent = s->parent;
 	s->parent = NULL;
 	gtk_container_remove(GTK_CONTAINER(oldparent), s->immediate);
-	updateParent(oldparent);
+	uiParentUpdate(oldparent);
 }
 
 static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -89,7 +89,8 @@ static void singleShow(uiControl *c)
 	s->userHid = FALSE;
 	if (!s->containerHid) {
 		gtk_widget_show_all(s->immediate);
-		updateParent(s->parent);
+		if (s->parent != NULL)
+			uiParentUpdate(s->parent);
 	}
 }
 
@@ -99,7 +100,8 @@ static void singleHide(uiControl *c)
 
 	s->userHid = TRUE;
 	gtk_widget_hide(s->immediate);
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }
 
 static void singleContainerShow(uiControl *c)
@@ -109,7 +111,8 @@ static void singleContainerShow(uiControl *c)
 	s->containerHid = FALSE;
 	if (!s->userHid) {
 		gtk_widget_show_all(s->immediate);
-		updateParent(s->parent);
+		if (s->parent != NULL)
+			uiParentUpdate(s->parent);
 	}
 }
 
@@ -119,7 +122,8 @@ static void singleContainerHide(uiControl *c)
 
 	s->containerHid = TRUE;
 	gtk_widget_hide(s->immediate);
-	updateParent(s->parent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }
 
 static void singleEnable(uiControl *c)

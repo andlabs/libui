@@ -2,13 +2,9 @@
 #include "uipriv_unix.h"
 
 struct tab {
-	struct tabPage *pages;
+	uiParent **pages;
 	uintmax_t len;
 	uintmax_t cap;
-};
-
-struct tabPage {
-	GtkWidget *container;
 };
 
 static void onDestroy(GtkWidget *widget, gpointer data)
@@ -44,21 +40,19 @@ void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) (c->data);
 	GtkWidget *notebook;
-	GtkWidget *container;
+	uiParent *content;
 
 	if (t->len >= t->cap) {
 		t->cap += tabCapGrow;
-		t->pages = (struct tabPage *) uiRealloc(t->pages, t->cap * sizeof (struct tabPage), "struct tabPage[]");
+		t->pages = (uiParent **) uiRealloc(t->pages, t->cap * sizeof (uiParent *), "uiParent *[]");
 	}
 
-	container = newContainer();
-	uiContainer(container)->child = child;
-	uiControlSetParent(uiContainer(container)->child, (uintptr_t) (container));
 	notebook = GTK_WIDGET(uiControlHandle(c));
-	gtk_container_add(GTK_CONTAINER(notebook), container);
+	content = uiNewParent((uintptr_t) notebook);
+	uiParentSetChild(content, child);
+	uiParentUpdate(content);
 	gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(notebook), container, name);
-	gtk_widget_show_all(container);
 
-	t->pages[t->len].container = container;
+	t->pages[t->len] = content;
 	t->len++;
 }

@@ -3,9 +3,10 @@
 
 struct uiWindow {
 	GtkWidget *widget;
-	GtkWidget *container;
+	uiParent *content;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
+	int margined;
 };
 
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
@@ -40,8 +41,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	gtk_window_resize(GTK_WINDOW(w->widget), width, height);
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
 	g_signal_connect(w->widget, "destroy", G_CALLBACK(onDestroy), w);
-	w->container = newContainer();
-	gtk_container_add(GTK_CONTAINER(w->widget), w->container);
+	w->content = uiNewParent((uintptr_t) (w->widget));
 	w->onClosing = defaultOnClosing;
 	return w;
 }
@@ -85,17 +85,21 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 
 void uiWindowSetChild(uiWindow *w, uiControl *c)
 {
-	uiContainer(w->container)->child = c;
-	uiControlSetParent(uiContainer(w->container)->child, (uintptr_t) (w->container));
+	uiParentSetChild(w->content, c);
+	uiParentUpdate(w->content);
 }
 
 int uiWindowMargined(uiWindow *w)
 {
-	return uiContainer(w->container)->margined;
+	return w->margined;
 }
 
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
-	uiContainer(w->container)->margined = margined;
-	updateParent((uintptr_t) (w->container));
+	w->margined = margined;
+	if (w->margined)
+		uiParentSetMargins(w->content, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
+	else
+		uiParentSetMargins(w->content, 0, 0, 0, 0);
+	uiParentUpdate(w->content);
 }

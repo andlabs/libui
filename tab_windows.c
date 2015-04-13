@@ -149,7 +149,7 @@ void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 
 	if (t->len >= t->cap) {
 		t->cap += tabCapGrow;
-		t->pages = (struct tabPage *) uiRealloc(t->pages, t->cap * sizeof (uiParent *), "uiParent *[]");
+		t->pages = (uiParent **) uiRealloc(t->pages, t->cap * sizeof (uiParent *), "uiParent *[]");
 	}
 
 	hwnd = uiControlHWND(c);

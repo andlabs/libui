@@ -36,7 +36,7 @@ static void singleSetParent(uiControl *c, uiParent *parent)
 	singleHWND *s = (singleHWND *) (c->internal);
 
 	s->parent = parent;
-	if (SetParent(s->hwnd, (HWND) (s->parent)) == NULL)
+	if (SetParent(s->hwnd, (HWND) uiParentHandle(s->parent)) == NULL)
 		logLastError("error setting control parent in singleSetParent()");
 	uiParentUpdate(s->parent);
 }

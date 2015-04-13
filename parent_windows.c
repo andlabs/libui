@@ -243,7 +243,8 @@ uiParent *uiNewParent(uintptr_t osParent)
 	struct parent *pp;
 
 	p = uiNew(uiParent);
-	pp = uiNew(struct parent);
+	p->Internal = uiNew(struct parent);		// set now in case the parent class window procedure uses it
+	pp = (struct parent *) (p->Internal);
 	pp->hwnd = CreateWindowExW(0,
 		uiParentClass, L"",
 		WS_CHILD | WS_VISIBLE,
@@ -252,7 +253,6 @@ uiParent *uiNewParent(uintptr_t osParent)
 		(HWND) osParent, NULL, hInstance, p);
 	if (pp->hwnd == NULL)
 		logLastError("error creating uiParent window in uiNewParent()");
-	p->Internal = pp;
 	p->Handle = parentHandle;
 	p->SetChild = parentSetChild;
 	p->SetMargins = parentSetMargins;

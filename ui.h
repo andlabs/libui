@@ -41,7 +41,6 @@ struct uiControl {
 	void (*destroy)(uiControl *);
 	uintptr_t (*handle)(uiControl *);
 	void (*setParent)(uiControl *, uiParent *);
-	void (*removeParent)(uiControl *);
 	void (*preferredSize)(uiControl *, uiSizing *, intmax_t *, intmax_t *);
 	void (*resize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 	int (*visible)(uiControl *);
@@ -57,7 +56,6 @@ struct uiControl {
 void uiControlDestroy(uiControl *);
 uintptr_t uiControlHandle(uiControl *);
 void uiControlSetParent(uiControl *, uiParent *);
-void uiControlRemoveParent(uiControl *);
 void uiControlPreferredSize(uiControl *, uiSizing *, intmax_t *width, intmax_t *height);
 void uiControlResize(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 int uiControlVisible(uiControl *);
@@ -90,7 +88,9 @@ struct uiParent {
 	// The uiParent should already not have a child and the uiControl should already not have a parent.
 	// 
 	// child can be NULL, in which case the uiParent has no children.
-	// This form should be called by uiControl.RemoveParent().
+	// This version should also call uiControl.SetParent(), passing NULL.
+	// 
+	// If this uiParent has a child already, then the current child is replaced with the new one.
 	void (*SetChild)(uiParent *p, uiControl *child);
 #define uiParentSetChild(p, child) ((*((p)->SetChild))((p), (child)))
 

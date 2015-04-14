@@ -32,22 +32,19 @@ static void singleSetParent(uiControl *c, uiParent *parent)
 {
 	singleView *s = (singleView *) (c->internal);
 	NSView *parentView;
-
-	s->parent = parent;
-	parentView = (NSView *) uiParentHandle(s->parent);
-	[parentView addSubview:s->immediate];
-	uiParentUpdate(s->parent);
-}
-
-static void singleRemoveParent(uiControl *c)
-{
-	singleView *s = (singleView *) (c->internal);
 	uiParent *oldparent;
 
 	oldparent = s->parent;
-	s->parent = NULL;
-	[s->immediate removeFromSuperview];
-	uiParentUpdate(oldparent);
+	s->parent = parent;
+	if (oldparent != NULL) {
+		[s->immediate removeFromSuperview];
+		uiParentUpdate(oldparent);
+	}
+	if (s->parent != NULL) {
+		parentView = (NSView *) uiParentHandle(s->parent);
+		[parentView addSubview:s->immediate];
+		uiParentUpdate(s->parent);
+	}
 }
 
 // also good for NSBox and NSProgressIndicator
@@ -209,7 +206,6 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 	c->destroy = singleDestroy;
 	c->handle = singleHandle;
 	c->setParent = singleSetParent;
-	c->removeParent = singleRemoveParent;
 	c->preferredSize = singlePreferredSize;
 	c->resize = singleResize;
 	c->visible = singleVisible;

@@ -34,23 +34,20 @@ static uintptr_t singleHandle(uiControl *c)
 static void singleSetParent(uiControl *c, uiParent *parent)
 {
 	singleHWND *s = (singleHWND *) (c->internal);
-
-	s->parent = parent;
-	if (SetParent(s->hwnd, uiParentHWND(s->parent)) == NULL)
-		logLastError("error setting control parent in singleSetParent()");
-	uiParentUpdate(s->parent);
-}
-
-static void singleRemoveParent(uiControl *c)
-{
-	singleHWND *s = (singleHWND *) (c->internal);
 	uiParent *oldparent;
+	HWND newParentHWND;
 
 	oldparent = s->parent;
-	s->parent = NULL;
-	if (SetParent(s->hwnd, initialParent) == NULL)
-		logLastError("error removing control parent in singleSetParent()");
-	uiParentUpdate(oldparent);
+	s->parent = parent;
+	newParentHWND = initialParent;
+	if (s->parent != NULL)
+		newParentHWND = uiParentHWND(s->parent);
+	if (SetParent(s->hwnd, newParentHWND) == NULL)
+		logLastError("error setting control parent in singleSetParent()");
+	if (oldparent != NULL)
+		uiParentUpdate(oldparent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
@@ -199,7 +196,6 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	c->destroy = singleDestroy;
 	c->handle = singleHandle;
 	c->setParent = singleSetParent;
-	c->removeParent = singleRemoveParent;
 	c->resize = singleResize;
 	c->visible = singleVisible;
 	c->show = singleShow;

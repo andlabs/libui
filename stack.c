@@ -48,24 +48,16 @@ static void stackSetParent(uiControl *c, uiParent *parent)
 {
 	stack *s = (stack *) (c->data);
 	uintmax_t i;
-
-	s->parent = parent;
-	for (i = 0; i < s->len; i++)
-		uiControlSetParent(s->controls[i].c, s->parent);
-	uiParentUpdate(s->parent);
-}
-
-static void stackRemoveParent(uiControl *c)
-{
-	stack *s = (stack *) (c->data);
-	uintmax_t i;
 	uiParent *oldparent;
 
 	oldparent = s->parent;
-	s->parent = NULL;
+	s->parent = parent;
 	for (i = 0; i < s->len; i++)
-		uiControlRemoveParent(s->controls[i].c);
-	uiParentUpdate(oldparent);
+		uiControlSetParent(s->controls[i].c, s->parent);
+	if (oldparent != NULL)
+		uiParentUpdate(oldparent);
+	if (s->parent != NULL)
+		uiParentUpdate(s->parent);
 }
 
 static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -324,7 +316,6 @@ uiControl *uiNewHorizontalStack(void)
 	c->destroy = stackDestroy;
 	c->handle = stackHandle;
 	c->setParent = stackSetParent;
-	c->removeParent = stackRemoveParent;
 	c->preferredSize = stackPreferredSize;
 	c->resize = stackResize;
 	c->visible = stackVisible;
@@ -363,14 +354,14 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 	}
 	s->controls[s->len].c = c;
 	s->controls[s->len].stretchy = stretchy;
-	s->len++;
 	if (s->parent != NULL) {
 		uiControlSetParent(s->controls[s->len].c, s->parent);
 		uiParentUpdate(s->parent);
 	}
+	s->len++;
 }
 
-void uiStackRemove(uiControl *st, uintptr_t index)
+void uiStackRemove(uiControl *st, uintmax_t index)
 {
 	stack *s = (stack *) (st->data);
 	uiControl *removed;
@@ -382,7 +373,7 @@ void uiStackRemove(uiControl *st, uintptr_t index)
 	memmove(&(s->controls[index + 1]), &(s->controls[index]), nAfter * sizeof (stackControl));
 	s->len--;
 	if (s->parent != NULL) {
-		uiControlRemoveParent(removed);
+		uiControlSetParent(removed, NULL);
 		uiParentUpdate(s->parent);
 	}
 }

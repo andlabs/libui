@@ -16,11 +16,6 @@ void uiControlSetParent(uiControl *c, uiParent *parent)
 	(*(c->setParent))(c, parent);
 }
 
-void uiControlRemoveParent(uiControl *c)
-{
-	(*(c->removeParent))(c);
-}
-
 void uiControlPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	(*(c->preferredSize))(c, d, width, height);

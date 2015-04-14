@@ -1,6 +1,9 @@
 // 7 april 2015
 #include "uipriv.h"
 
+// TODO
+// - rename to uiBox
+
 typedef struct stack stack;
 typedef struct stackControl stackControl;
 

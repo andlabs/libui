@@ -1,0 +1,37 @@
+current situation
+
+let's say the control hierarchy is
+w	window
+	p	parent
+c	stack
+	d	stack
+		e	button
+		f	button
+	g	button
+h	button
+i	entry
+
+w = NewWindow()
+	p = NewParent(w.Handle)
+w.SetChild(c)
+	p.SetChild(c)
+		c.SetParent(p)
+			d.SetParent(p)
+				e.SetParent(p)
+				f.SetParent(p)
+			g.SetParent(p)
+c.Add(h)
+	h.SetParent(p)
+	p.Update()
+		c.Resize()
+d.Remove(1)
+	f.RemoveParent()
+	p.Update()
+		c.Resize()
+g.Hide()
+	p.Update()
+		c.Resize()
+w.SetChild(i)
+	?????????????
+w.Destroy()
+	?????????????

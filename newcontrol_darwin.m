@@ -41,6 +41,7 @@ static void singleSetParent(uiControl *c, uiParent *parent)
 		uiParentUpdate(oldparent);
 	}
 	if (s->parent != NULL) {
+		// TODO uiControlView(), uiParentView()
 		parentView = (NSView *) uiParentHandle(s->parent);
 		[parentView addSubview:s->immediate];
 		uiParentUpdate(s->parent);

@@ -365,12 +365,13 @@ void uiStackRemove(uiControl *st, uintmax_t index)
 {
 	stack *s = (stack *) (st->data);
 	uiControl *removed;
-	uintmax_t nAfter;
+	uintmax_t i;
 
 	removed = s->controls[index].c;
-	nAfter = s->len - index - 1;
-	// TODO make sure this is correct
-	memmove(&(s->controls[index + 1]), &(s->controls[index]), nAfter * sizeof (stackControl));
+	// TODO switch to memmove?
+	for (i = index; i < s->len - 1; i++)
+		s->controls[i] = s->controls[i + 1];
+	// TODO memset the last one to NULL
 	s->len--;
 	if (s->parent != NULL) {
 		uiControlSetParent(removed, NULL);

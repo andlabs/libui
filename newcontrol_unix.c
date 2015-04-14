@@ -31,21 +31,18 @@ static uintptr_t singleHandle(uiControl *c)
 static void singleSetParent(uiControl *c, uiParent *parent)
 {
 	singleWidget *s = (singleWidget *) (c->internal);
-
-	s->parent = parent;
-	gtk_container_add(GTK_CONTAINER(uiParentHandle(s->parent)), s->immediate);
-	uiParentUpdate(s->parent);
-}
-
-static void singleRemoveParent(uiControl *c)
-{
-	singleWidget *s = (singleWidget *) (c->internal);
 	uiParent *oldparent;
 
 	oldparent = s->parent;
-	s->parent = NULL;
-	gtk_container_remove(GTK_CONTAINER(oldparent), s->immediate);
-	uiParentUpdate(oldparent);
+	s->parent = parent;
+	if (oldparent != NULL) {
+		gtk_container_remove(GTK_CONTAINER(uiParentHandle(oldparent)), s->immediate);
+		uiParentUpdate(oldparent);
+	}
+	if (s->parent != NULL) {
+		gtk_container_add(GTK_CONTAINER(uiParentHandle(s->parent)), s->immediate);
+		uiParentUpdate(s->parent);
+	}
 }
 
 static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -209,7 +206,6 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scro
 	c->destroy = singleDestroy;
 	c->handle = singleHandle;
 	c->setParent = singleSetParent;
-	c->removeParent = singleRemoveParent;
 	c->preferredSize = singlePreferredSize;
 	c->resize = singleResize;
 	c->visible = singleVisible;

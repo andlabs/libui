@@ -51,3 +51,7 @@ w.SetChild(i)
 w.Destroy()
 	p.Destroy()
 		i.Destroy()
+
+TODO
+- rename these methods
+- p.DeferUpdate()/p.EndDeferUpdate()

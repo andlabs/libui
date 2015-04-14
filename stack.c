@@ -3,7 +3,7 @@
 
 // TODO
 // - rename to uiBox
-// - adding and removing doesn't take effect immediately on windows; I have to resize first
+// - on windows, removing a control from one stack and adding it to another doesn't actually move the control (just removing it works though, so...)
 
 typedef struct stack stack;
 typedef struct stackControl stackControl;

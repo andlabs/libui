@@ -3,7 +3,6 @@
 
 // TODO
 // - rename to uiBox
-// - on windows, removing a control from one stack and adding it to another doesn't actually move the control (just removing it works though, so...)
 
 typedef struct stack stack;
 typedef struct stackControl stackControl;
@@ -355,11 +354,11 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 	}
 	s->controls[s->len].c = c;
 	s->controls[s->len].stretchy = stretchy;
+	s->len++;		// must be here for parent updates to work
 	if (s->parent != NULL) {
-		uiControlSetParent(s->controls[s->len].c, s->parent);
+		uiControlSetParent(s->controls[s->len - 1].c, s->parent);
 		uiParentUpdate(s->parent);
 	}
-	s->len++;
 }
 
 void uiStackRemove(uiControl *st, uintmax_t index)

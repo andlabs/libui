@@ -133,8 +133,8 @@ void uiButtonOnClicked(uiControl *, void (*)(uiControl *, void *), void *);
 
 uiControl *uiNewHorizontalStack(void);
 uiControl *uiNewVerticalStack(void);
-void uiStackAdd(uiControl *, uiControl *, int);
-void uiStackRemove(uiControl *, uintmax_t);
+void uiStackAppend(uiControl *, uiControl *, int);
+void uiStackDelete(uiControl *, uintmax_t);
 int uiStackPadded(uiControl *);
 void uiStackSetPadded(uiControl *, int);
 

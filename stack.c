@@ -344,7 +344,7 @@ uiControl *uiNewVerticalStack(void)
 
 #define stackCapGrow 32
 
-void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
+void uiStackAppend(uiControl *st, uiControl *c, int stretchy)
 {
 	stack *s = (stack *) (st->data);
 
@@ -361,7 +361,7 @@ void uiStackAdd(uiControl *st, uiControl *c, int stretchy)
 	}
 }
 
-void uiStackRemove(uiControl *st, uintmax_t index)
+void uiStackDelete(uiControl *st, uintmax_t index)
 {
 	stack *s = (stack *) (st->data);
 	uiControl *removed;

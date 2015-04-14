@@ -3,6 +3,7 @@
 
 // TODO
 // - rename to uiBox
+// - adding and removing doesn't take effect immediately on windows; I have to resize first
 
 typedef struct stack stack;
 typedef struct stackControl stackControl;

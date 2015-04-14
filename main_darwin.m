@@ -1,6 +1,8 @@
 // 6 april 2015
 #import "uipriv_darwin.h"
 
+// #qo LDFLAGS: -lobjc -framework Foundation -framework AppKit
+
 void uiMain(void)
 {
 	[NSApp run];

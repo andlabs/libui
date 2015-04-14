@@ -76,6 +76,9 @@ struct uiParent {
 	// Do not access or alter this field.
 	void *Internal;
 
+	// TODO destroy
+	// TODO object destruction debug handler
+
 	// Handle returns the window handle of the uiParent.
 	// On Windows, this is a HWND.
 	// On GTK+, this is a GtkContainer.

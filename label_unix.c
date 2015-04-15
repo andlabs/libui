@@ -20,10 +20,7 @@ uiControl *uiNewLabel(const char *text)
 	c = uiUnixNewControl(GTK_TYPE_LABEL,
 		FALSE, FALSE,
 		"label", text,
-		// TODO TODO TODO TODO TODO
-		// the presence of this property leads to a segfault on 32-bit linux builds AND 64-bit openbsd builds
-		// is it just this property? or is it more than one property at all? and why?
-		"xalign", 0,
+		"xalign", 0.0,		// note: must be a float constant, otherwise the ... will turn it into an int and we get segfaults on some platforms (thanks ebassi in irc.gimp.net/#gtk+)
 		// TODO yalign 0?
 		NULL);
 

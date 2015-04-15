@@ -2,7 +2,7 @@
 
 OBJDIR = .obj
 
-# windows does this so :/
+# MAME does this so :/
 ifeq ($(OS),Windows_NT)
 OS = windows
 endif

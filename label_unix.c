@@ -21,7 +21,7 @@ uiControl *uiNewLabel(const char *text)
 		FALSE, FALSE,
 		"label", text,
 		// TODO TODO TODO TODO TODO
-		// the presence of this property leads to a segfault on 32-bit linux builds
+		// the presence of this property leads to a segfault on 32-bit linux builds AND 64-bit openbsd builds
 		// is it just this property? or is it more than one property at all? and why?
 		"xalign", 0,
 		// TODO yalign 0?

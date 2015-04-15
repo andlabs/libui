@@ -159,16 +159,14 @@ static void singleContainerDisable(uiControl *c)
 
 static void onDestroy(GtkWidget *widget, gpointer data)
 {
-	uiControl *c = (uiControl *) data;
+	uiControl *c = uiControl(data);
 	singleWidget *s = (singleWidget *) (c->internal);
 
 	uiFree(s);
-	uiFree(c);
 }
 
-uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, const char *firstProperty, ...)
+void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, const char *firstProperty, ...)
 {
-	uiControl *c;
 	singleWidget *s;
 	va_list ap;
 
@@ -201,7 +199,6 @@ uiControl *uiUnixNewControl(GType type, gboolean inScrolledWindow, gboolean scro
 	// this also ensures singleRemoveParent() works properly
 	g_object_ref_sink(s->immediate);
 
-	c = uiNew(uiControl);
 	// assign s later; we still need it for one more thing
 	c->destroy = singleDestroy;
 	c->handle = singleHandle;

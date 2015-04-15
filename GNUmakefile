@@ -54,4 +54,4 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 ui.h: ui.idl
-	idl2h < ui.h > ui.idl
+	idl2h < ui.idl > ui.h

@@ -1,0 +1,162 @@
+// 6 april 2015
+
+// This is not an IDL file for the conventional RPC or Microsoft IDLs.
+// Instead, this is for a custom IDL of my own creation.
+// You can find it at github.com/andlabs/pgidl
+
+package ui {
+
+// TODO autogenerate this somehow
+// TODO alternatively, move AFTER typedefs
+raw "#ifndef __UI_UI_H__";
+raw "#define __UI_UI_H__";
+
+raw "#include <stdint.h>";
+
+// TODO note that should be initialized to zero
+struct InitOptions {
+	// TODO cbSize
+
+	// If nonzero, allocations will be logged to stderr.
+	// See leaks.awk.
+	field debugLogAllocations int;
+};
+
+// TODO const char
+raw "const char *uiInit(uiInitOptions *);";
+raw "void uiFreeInitError(const char *);";
+
+func Main(void);
+func Quit(void);
+
+func FreeText(text *char);
+
+raw "typedef struct uiSizingSys uiSizingSys;";
+
+struct Sizing {
+	field xPadding intmax_t;
+	field yPadding intmax_t;
+	field sys *uiSizingSys;
+};
+
+interface Control {
+	field Data *void;		// for use by implementations only
+	field Internal *void;		// for use by ui only
+	func Destroy(void);
+	func Handle(void) uintptr_t;
+	func SetParent(p *Parent);
+	func PreferredSize(d *Sizing, width *intmax_t, height *intmax_t);
+	func Resize(x intmax_t, y intmax_t, width intmax_t, height intmax_t, d *Sizing);
+	func Visible(void) int;
+	func Show(void);
+	func Hide(void);
+	func ContainerShow(void);
+	func ContainerHide(void);
+	func Enable(void);
+	func Disable(void);
+	func ContainerEnable(void);
+	func ContainerDisable(void);
+};
+
+// Parent represents an OS control that hosts other OS controls.
+// It is used internally by package ui and by implementations.
+// Window, Tab, and Group all use uiParents to store their controls.
+interface Parent {
+	// Internal points to internal data.
+	// Do not access or alter this field.
+	field Internal *void;
+
+	// TODO destroy
+	// TODO object destruction debug handler
+
+	// Handle returns the window handle of the uiParent.
+	// On Windows, this is a HWND.
+	// On GTK+, this is a GtkContainer.
+	// On Mac OS X, this is a NSView.
+	func Handle(void) uintptr_t;
+
+	// TODO rename and clean this up
+	// SetChild sets the uiControl that this uiParent relegates.
+	// It calls uiControl.SetParent() which should, in turn, call uiParent.Update().
+	// The uiParent should already not have a child and the uiControl should already not have a parent.
+	// 
+	// child can be NULL, in which case the uiParent has no children.
+	// This version should also call uiControl.SetParent(), passing NULL.
+	// 
+	// If this uiParent has a child already, then the current child is replaced with the new one.
+	func SetChild(c *Control);
+
+	// SetMargins sets the margins of the uiParent to the given margins.
+	// It does not call uiParent.Update(); its caller must.
+	// The units of the margins are backend-defined.
+	// The initial margins are all 0.
+	func SetMargins(left intmax_t, top intmax_t, right intmax_t, bottom intmax_t);
+
+	// TODO Resize?
+
+	// Update tells the uiParent to re-layout its children immediately.
+	// It is called when a widget is shown or hidden or when a control is added or removed from a container such as uiStack.
+	func Update(void);
+};
+func uiNewParent(osParent uintptr_t) *Parent;
+
+interface uiWindow {
+	field Internal *void;
+	func Destroy(void);
+	func Handle(void) uintptr_t;
+	func Title(void) *char;
+	func SetTitle(title *const char);
+	func Show(void);
+	func Hide(void);
+	func OnClosing(f *func(w *Window, data *void), data *void);
+	func SetChild(c *Control);
+	func Margined(void) int;
+	func SetMargined(margined int);
+};
+func uiNewWindow(title *const char, width int, height int) *Window;
+
+interface Button from Control {
+	func Text(void) *char;
+	func SetText(text *const char)
+	func OnClicked(f *func(b *Button, data *void), data *void);
+};
+func NewButton(text *const char) *Button;
+
+interface Stack from Control {
+	func Append(c *Control, stretchy int);
+	func Delete(index uintmax_t);
+	func Padded(void) int;
+	func SetPadded(padded int);
+};
+func NewHorizontalStack(void) *Stack;
+func NewVerticalStack(void) *Stack;
+
+interface Entry from Control {
+	func Text(void) *char;
+	func SetText(text *const char);
+};
+func NewEntry() *Entry;
+
+interface Checkbox from Control {
+	func Text(void) *char;
+	func SetText(text *const char);
+	func OnToggled(f *func(c *Checkbox, data *void), data *void);
+	func Checked(void) int;
+	func SetChecked(checked int);
+};
+func NewCheckbox(text *const char) *Checkbox;
+
+interface Label from Control {
+	func Text(void) *char;
+	func SetText(text *const char);
+};
+func NewLabel() *Label;
+
+interface Tab from Control {
+	AddPage(name *const char, c *Control);
+}
+func NewTab() *Tab;
+
+raw "#endif";
+
+};

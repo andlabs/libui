@@ -117,7 +117,7 @@ func uiNewWindow(title *const char, width int, height int) *Window;
 
 interface Button from Control {
 	func Text(void) *char;
-	func SetText(text *const char)
+	func SetText(text *const char);
 	func OnClicked(f *func(b *Button, data *void), data *void);
 };
 func NewButton(text *const char) *Button;
@@ -135,7 +135,7 @@ interface Entry from Control {
 	func Text(void) *char;
 	func SetText(text *const char);
 };
-func NewEntry() *Entry;
+func NewEntry(void) *Entry;
 
 interface Checkbox from Control {
 	func Text(void) *char;
@@ -150,12 +150,12 @@ interface Label from Control {
 	func Text(void) *char;
 	func SetText(text *const char);
 };
-func NewLabel() *Label;
+func NewLabel(void) *Label;
 
 interface Tab from Control {
-	AddPage(name *const char, c *Control);
-}
-func NewTab() *Tab;
+	func AddPage(name *const char, c *Control);
+};
+func NewTab(void) *Tab;
 
 raw "#endif";
 

@@ -100,7 +100,7 @@ interface Parent {
 };
 func uiNewParent(osParent uintptr_t) *Parent;
 
-interface uiWindow {
+interface Window {
 	field Internal *void;
 	func Destroy(void);
 	func Handle(void) uintptr_t;

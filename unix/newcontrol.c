@@ -16,21 +16,21 @@ struct singleWidget {
 
 static void singleDestroy(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	gtk_widget_destroy(s->immediate);
 }
 
 static uintptr_t singleHandle(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	return (uintptr_t) (s->widget);
 }
 
 static void singleSetParent(uiControl *c, uiParent *parent)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 	uiParent *oldparent;
 
 	oldparent = s->parent;
@@ -47,7 +47,7 @@ static void singleSetParent(uiControl *c, uiParent *parent)
 
 static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 	GtkRequisition natural;
 
 	// use the natural size as the minimum size is an *absolute* minimum
@@ -60,7 +60,7 @@ static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intm
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 	GtkAllocation a;
 
 	a.x = x;
@@ -72,7 +72,7 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 
 static int singleVisible(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	if (s->userHid)
 		return 0;
@@ -81,7 +81,7 @@ static int singleVisible(uiControl *c)
 
 static void singleShow(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	s->userHid = FALSE;
 	if (!s->containerHid) {
@@ -93,7 +93,7 @@ static void singleShow(uiControl *c)
 
 static void singleHide(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	s->userHid = TRUE;
 	gtk_widget_hide(s->immediate);
@@ -103,7 +103,7 @@ static void singleHide(uiControl *c)
 
 static void singleContainerShow(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	s->containerHid = FALSE;
 	if (!s->userHid) {
@@ -115,7 +115,7 @@ static void singleContainerShow(uiControl *c)
 
 static void singleContainerHide(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	s->containerHid = TRUE;
 	gtk_widget_hide(s->immediate);
@@ -125,7 +125,7 @@ static void singleContainerHide(uiControl *c)
 
 static void singleEnable(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	s->userDisabled = FALSE;
 	if (!s->containerDisabled)
@@ -134,7 +134,7 @@ static void singleEnable(uiControl *c)
 
 static void singleDisable(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	s->userDisabled = TRUE;
 	gtk_widget_set_sensitive(s->immediate, FALSE);
@@ -142,7 +142,7 @@ static void singleDisable(uiControl *c)
 
 static void singleContainerEnable(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	s->containerDisabled = FALSE;
 	if (!s->userDisabled)
@@ -151,7 +151,7 @@ static void singleContainerEnable(uiControl *c)
 
 static void singleContainerDisable(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) (c->Internal);
 
 	s->containerDisabled = TRUE;
 	gtk_widget_set_sensitive(s->immediate, FALSE);
@@ -159,8 +159,7 @@ static void singleContainerDisable(uiControl *c)
 
 static void onDestroy(GtkWidget *widget, gpointer data)
 {
-	uiControl *c = uiControl(data);
-	singleWidget *s = (singleWidget *) (c->internal);
+	singleWidget *s = (singleWidget *) data;
 
 	uiFree(s);
 }
@@ -216,11 +215,12 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	c->containerDisable = singleContainerDisable;
 
 	// and let's free everything with the immediate widget
-	g_signal_connect(s->immediate, "destroy", G_CALLBACK(onDestroy), c);
+	// we send s as data instead of c just in case c is gone by then
+	g_signal_connect(s->immediate, "destroy", G_CALLBACK(onDestroy), s);
 
 	// finally, call gtk_widget_show_all() here to set the initial visibility of the widget
 	gtk_widget_show_all(s->immediate);
 
-	c->internal = s;
+	c->Internal = s;
 	return c;
 }

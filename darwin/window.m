@@ -19,7 +19,7 @@ uiLogObjCClassAllocations
 - (BOOL)windowShouldClose:(id)win
 {
 	// return exact constants to be safe
-	if ((*(self.onClosing))(self.uiw, self.onClosingData))
+	if ((*(self.onClosing))(uiWindow(self.uiw), self.onClosingData))
 		return YES;
 	return NO;
 }
@@ -153,10 +153,10 @@ uiWindow *uiNewWindow(const char *title, int width, int height)
 	uiWindow(d.uiw)->SetTitle = windowSetTitle;
 	uiWindow(d.uiw)->Show = windowShow;
 	uiWindow(d.uiw)->Hide = windowHide;
-	uiWindow(d.uiw)->OnClosing = windowSetOnClosing;
+	uiWindow(d.uiw)->OnClosing = windowOnClosing;
 	uiWindow(d.uiw)->SetChild = windowSetChild;
 	uiWindow(d.uiw)->Margined = windowMargined;
 	uiWindow(d.uiw)->SetMargined = windowSetMargined;
 
-	return d.uiw;
+	return uiWindow(d.uiw);
 }

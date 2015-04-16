@@ -50,7 +50,7 @@ static void checkboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), vo
 {
 	uiCheckboxNSButton *cc;
 
-	cc = (uiCheckboxNSButton *) uiControlHandle(uiCheckbox(c));
+	cc = (uiCheckboxNSButton *) uiControlHandle(uiControl(c));
 	cc.uiOnToggled = f;
 	cc.uiOnToggledData = data;
 }
@@ -83,7 +83,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	c = uiNew(uiCheckbox);
 
 	uiDarwinNewControl(uiControl(c), [uiCheckboxNSButton class], NO, NO);
-	cc = (uiCheckboxNSButton *) uiControlHandle(c);
+	cc = (uiCheckboxNSButton *) uiControlHandle(uiControl(c));
 
 	[cc setTitle:toNSString(text)];
 	[cc setButtonType:NSSwitchButton];

@@ -59,7 +59,7 @@ uiEntry *uiNewEntry(void)
 	e = uiNew(uiEntry);
 
 	uiDarwinNewControl(uiControl(e), [uiNSTextField class], NO, NO);
-	t = (uiNSTextField *) uiControlHandle(c);
+	t = (uiNSTextField *) uiControlHandle(uiControl(e));
 
 	[t setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
 	finishNewTextField((NSTextField *) t, YES);

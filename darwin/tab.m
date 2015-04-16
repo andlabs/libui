@@ -15,7 +15,7 @@
 {
 	// TODO free all tabs explicitly
 	if (uiDarwinControlFreeWhenAppropriate(uiControl(self.uiT), [self superview]))
-		self.uiC = NULL;
+		self.uiT = NULL;
 	[super viewDidMoveToSuperview];
 }
 
@@ -55,8 +55,10 @@ uiTab *uiNewTab(void)
 	uiTab *t;
 	uiNSTabView *tv;
 
+	t = uiNew(uiTab);
+
 	uiDarwinNewControl(uiControl(t), [uiNSTabView class], NO, NO);
-	tv = (uiNSTabView *) uiControlHandle(c);
+	tv = (uiNSTabView *) uiControlHandle(uiControl(t));
 
 	// also good for NSTabView (same selector and everything)
 	setStandardControlFont((NSControl *) tv);

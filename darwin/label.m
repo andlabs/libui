@@ -34,7 +34,7 @@ static void labelSetText(uiLabel *l, const char *text)
 	[t setStringValue:toNSString(text)];
 }
 
-uiControl *uiNewLabel(const char *text)
+uiLabel *uiNewLabel(const char *text)
 {
 	uiLabel *l;
 	uiLabelNSTextField *t;
@@ -42,7 +42,7 @@ uiControl *uiNewLabel(const char *text)
 	l = uiNew(uiLabel);
 
 	uiDarwinNewControl(uiControl(l), [uiLabelNSTextField class], NO, NO);
-	t = (uiLabelNSTextField *) uiControlHandle(c);
+	t = (uiLabelNSTextField *) uiControlHandle(uiControl(l));
 
 	[t setStringValue:toNSString(text)];
 	[t setEditable:NO];
@@ -53,7 +53,7 @@ uiControl *uiNewLabel(const char *text)
 	uiLabel(l)->Text = labelText;
 	uiLabel(l)->SetText = labelSetText;
 
-	t.uiC = l;
+	t.uiL = l;
 
-	return t.uiC;
+	return t.uiL;
 }

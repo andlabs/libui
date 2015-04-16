@@ -82,5 +82,5 @@ uiButton *uiNewButton(const char *text)
 
 	bb.uiB = b;
 
-	return b.uiB;
+	return bb.uiB;
 }

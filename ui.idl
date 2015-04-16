@@ -98,7 +98,7 @@ interface Parent {
 	// It is called when a widget is shown or hidden or when a control is added or removed from a container such as uiStack.
 	func Update(void);
 };
-func uiNewParent(osParent uintptr_t) *Parent;
+func NewParent(osParent uintptr_t) *Parent;
 
 interface Window {
 	field Internal *void;
@@ -108,12 +108,12 @@ interface Window {
 	func SetTitle(title *const char);
 	func Show(void);
 	func Hide(void);
-	func OnClosing(f *func(w *Window, data *void), data *void);
+	func OnClosing(f *func(w *Window, data *void) int, data *void);
 	func SetChild(c *Control);
 	func Margined(void) int;
 	func SetMargined(margined int);
 };
-func uiNewWindow(title *const char, width int, height int) *Window;
+func NewWindow(title *const char, width int, height int) *Window;
 
 interface Button from Control {
 	func Text(void) *char;
@@ -150,7 +150,7 @@ interface Label from Control {
 	func Text(void) *char;
 	func SetText(text *const char);
 };
-func NewLabel(void) *Label;
+func NewLabel(text *const char) *Label;
 
 interface Tab from Control {
 	func AddPage(name *const char, c *Control);

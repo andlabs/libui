@@ -3,7 +3,7 @@
 
 struct checkbox {
 	uiCheckbox c;
-	void (*onToggled)(uiControl *, void *);
+	void (*onToggled)(uiCheckbox *, void *);
 	void *onToggledData;
 	gulong onToggledSignal;
 };
@@ -12,10 +12,10 @@ static void onToggled(GtkToggleButton *b, gpointer data)
 {
 	struct checkbox *c = (struct checkbox *) data;
 
-	(*(c->onToggled))(uiControl(c), c->onToggledData);
+	(*(c->onToggled))(uiCheckbox(c), c->onToggledData);
 }
 
-static void defaultOnToggled(uiControl *c, void *data)
+static void defaultOnToggled(uiCheckbox *c, void *data)
 {
 	// do nothing
 }
@@ -39,9 +39,9 @@ static void setText(uiCheckbox *c, const char *text)
 	gtk_button_set_label(CHECKBOX(c), text);
 }
 
-static void setOnToggled(uiCheckbox *c, void (*f)(uiControl *, void *), void *data)
+static void setOnToggled(uiCheckbox *cc, void (*f)(uiCheckbox *, void *), void *data)
 {
-	struct checkbox *c = (struct checkbox *) c;
+	struct checkbox *c = (struct checkbox *) cc;
 
 	c->onToggled = f;
 	c->onToggledData = data;
@@ -52,9 +52,9 @@ static int getChecked(uiCheckbox *c)
 	return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(CHECKBOX(c))) != FALSE;
 }
 
-static void setChecked(uiCheckbox *c, int checked)
+static void setChecked(uiCheckbox *cc, int checked)
 {
-	struct checkbox *cc = (struct checkbox *) c;
+	struct checkbox *c = (struct checkbox *) cc;
 	GtkToggleButton *button;
 	gboolean active;
 
@@ -63,12 +63,12 @@ static void setChecked(uiCheckbox *c, int checked)
 		active = TRUE;
 	// we need to inhibit sending of ::toggled because this WILL send a ::toggled otherwise
 	button = GTK_TOGGLE_BUTTON(CHECKBOX(c));
-	g_signal_handler_block(button, cc->onToggledSignal);
+	g_signal_handler_block(button, c->onToggledSignal);
 	gtk_toggle_button_set_active(button, active);
-	g_signal_handler_unblock(button, cc->onToggledSignal);
+	g_signal_handler_unblock(button, c->onToggledSignal);
 }
 
-uiControl *uiNewCheckbox(const char *text)
+uiCheckbox *uiNewCheckbox(const char *text)
 {
 	struct checkbox *c;
 	GtkWidget *widget;

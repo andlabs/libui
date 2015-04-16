@@ -19,12 +19,12 @@ static char *getText(uiEntry *e)
 	return g_strdup(gtk_entry_get_text(ENTRY(e)));
 }
 
-static void uiEntrySetText(uiEntry *e, const char *text)
+static void setText(uiEntry *e, const char *text)
 {
 	gtk_entry_set_text(ENTRY(e), text);
 }
 
-uiControl *uiNewEntry(void)
+uiEntry *uiNewEntry(void)
 {
 	struct entry *e;
 	GtkWidget *widget;

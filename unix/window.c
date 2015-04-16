@@ -46,7 +46,7 @@ static uintptr_t handle(uiWindow *ww)
 	return (uintptr_t) (w->widget);
 }
 
-static char *title(uiWindow *ww)
+static char *getTitle(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
@@ -109,7 +109,7 @@ static void setMargined(uiWindow *ww, int margined)
 	uiParentUpdate(w->content);
 }
 
-uiWindow *uiNewWindow(char *title, int width, int height)
+uiWindow *uiNewWindow(const char *title, int width, int height)
 {
 	struct window *w;
 
@@ -124,7 +124,7 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 
 	uiWindow(w)->Destroy = windowDestroy;
 	uiWindow(w)->Handle = handle;
-	uiWindow(w)->Title = title;
+	uiWindow(w)->Title = getTitle;
 	uiWindow(w)->SetTitle = setTitle;
 	uiWindow(w)->Show = show;
 	uiWindow(w)->Hide = hide;

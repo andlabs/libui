@@ -38,20 +38,20 @@ static void setText(uiButton *b, const char *text)
 	gtk_button_set_label(BUTTON(b), text);
 }
 
-static void setOnClicked(uiButton *b, void (*f)(uiControl *, void *), void *data)
+static void setOnClicked(uiButton *bb, void (*f)(uiControl *, void *), void *data)
 {
-	struct button *b = (struct button *) b;
+	struct button *b = (struct button *) bb;
 
 	b->onClicked = f;
 	b->onClickedData = data;
 }
 
-uiControl *uiNewButton(const char *text)
+uiButton *uiNewButton(const char *text)
 {
 	struct button *b;
 	GtkWidget *widget;
 
-	b = uiNew(b);
+	b = uiNew(struct button);
 
 	uiUnixNewControl(uiControl(b), GTK_TYPE_BUTTON,
 		FALSE, FALSE,

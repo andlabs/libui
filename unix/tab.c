@@ -31,7 +31,7 @@ static void addPage(uiTab *tt, const char *name, uiControl *child)
 		t->pages = (uiParent **) uiRealloc(t->pages, t->cap * sizeof (uiParent *), "uiParent *[]");
 	}
 
-	notebook = GTK_WIDGET(uiControlHandle(c));
+	notebook = GTK_WIDGET(TAB(t));
 	content = uiNewParent((uintptr_t) notebook);
 	uiParentSetChild(content, child);
 	uiParentUpdate(content);
@@ -41,7 +41,7 @@ static void addPage(uiTab *tt, const char *name, uiControl *child)
 	t->len++;
 }
 
-uiControl *uiNewTab(void)
+uiTab *uiNewTab(void)
 {
 	uiControl *c;
 	struct tab *t;

@@ -25,7 +25,7 @@ static void setText(uiLabel *l, const char *text)
 	gtk_label_set_text(LABEL(l), text);
 }
 
-uiControl *uiNewLabel(const char *text)
+uiLabel *uiNewLabel(const char *text)
 {
 	struct label *l;
 	GtkWidget *widget;

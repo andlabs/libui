@@ -41,7 +41,7 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 			logLastError("error resizing window content parent in uiWindowWndProc()");
 		return 0;
 	case WM_CLOSE:
-		if (!(*(w->onClosing))(w, w->onClosingData))
+		if (!(*(w->onClosing))(uiWindow(w), w->onClosingData))
 			return 0;
 		break;		// fall through to DefWindowProcW()
 	case WM_DESTROY:

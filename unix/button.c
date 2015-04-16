@@ -67,5 +67,5 @@ uiControl *uiNewButton(const char *text)
 	uiButton(b)->SetText = setText;
 	uiButton(b)->OnClicked = setOnClicked;
 
-	return b;
+	return uiButton(b);
 }

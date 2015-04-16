@@ -2,6 +2,7 @@
 #include "uipriv_unix.h"
 
 struct tab {
+	uiTab t;
 	uiParent **pages;
 	uintmax_t len;
 	uintmax_t cap;
@@ -15,30 +16,13 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	uiFree(t);
 }
 
-uiControl *uiNewTab(void)
-{
-	uiControl *c;
-	struct tab *t;
-	GtkWidget *widget;
-
-	c = uiUnixNewControl(GTK_TYPE_NOTEBOOK,
-		FALSE, FALSE,
-		NULL);
-
-	widget = GTK_WIDGET(uiControlHandle(c));
-
-	t = uiNew(struct tab);
-	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), t);
-	c->data = t;
-
-	return c;
-}
+#define TAB(t) GTK_NOTEBOOK(uiControlHandle(uiControl(t)))
 
 #define tabCapGrow 32
 
-void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
+static void addPage(uiTab *tt, const char *name, uiControl *child)
 {
-	struct tab *t = (struct tab *) (c->data);
+	struct tab *t = (struct tab *) tt;
 	GtkWidget *notebook;
 	uiParent *content;
 
@@ -55,4 +39,24 @@ void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 
 	t->pages[t->len] = content;
 	t->len++;
+}
+
+uiControl *uiNewTab(void)
+{
+	uiControl *c;
+	struct tab *t;
+	GtkWidget *widget;
+
+	t = uiNew(struct tab);
+
+	uiUnixNewControl(uiControl(t), GTK_TYPE_NOTEBOOK,
+		FALSE, FALSE,
+		NULL);
+
+	widget = GTK_WIDGET(TAB(t));
+	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), t);
+
+	uiTab(t)->AddPage = addPage;
+
+	return uiTab(t);
 }

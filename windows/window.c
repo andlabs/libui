@@ -1,7 +1,8 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
-struct uiWindow {
+struct window {
+	uiWindow w;
 	HWND hwnd;
 	uiParent *content;
 	BOOL shownOnce;
@@ -14,13 +15,13 @@ struct uiWindow {
 
 static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	uiWindow *w;
+	struct window *w;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r;
 	HWND contenthwnd;
 
-	w = (uiWindow *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+	w = (struct window *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
 		if (uMsg == WM_CREATE)
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (cs->lpCreateParams));
@@ -73,13 +74,111 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 1;
 }
 
+static void windowDestroy(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	DestroyWindow(w->hwnd);
+}
+
+static uintptr_t windowHandle(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return (uintptr_t) (w->hwnd);
+}
+
+static char *windowTitle(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+	WCHAR *wtext;
+	char *text;
+
+	wtext = windowText(w->hwnd);
+	text = toUTF8(wtext);
+	uiFree(wtext);
+	return text;
+}
+
+static void windowSetTitle(uiWindow *ww, const char *text)
+{
+	struct window *w = (struct window *) ww;
+	WCHAR *wtext;
+
+	wtext = toUTF16(text);
+	if (SetWindowTextW(w->hwnd, wtext) == 0)
+		logLastError("error setting window title in uiWindowSetTitle()");
+	uiFree(wtext);
+}
+
+void uiWindowShow(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	if (w->shownOnce) {
+		ShowWindow(w->hwnd, SW_SHOW);
+		return;
+	}
+	w->shownOnce = TRUE;
+	ShowWindow(w->hwnd, nCmdShow);
+	if (UpdateWindow(w->hwnd) == 0)
+		logLastError("error calling UpdateWindow() after showing uiWindow for the first time");
+}
+
+void uiWindowHide(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	ShowWindow(w->hwnd, SW_HIDE);
+}
+
+static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
+{
+	struct window *w = (struct window *) ww;
+
+	w->onClosing = f;
+	w->onClosingData = data;
+}
+
+static void windowSetChild(uiWindow *ww, uiControl *c)
+{
+	struct window *w = (struct window *) ww
+
+	uiParentSetChild(w->content, c);
+	// don't call uiParentUpdate(); instead, synthesize a resize
+	// otherwise, we'll have a 0x0 content area at first
+	SendMessageW(w->hwnd, msgUpdateChild, 0, 0);
+}
+
+int uiWindowMargined(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return w->margined;
+}
+
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
+#define windowMargin 7
+
+void uiWindowSetMargined(uiWindow *ww, int margined)
+{
+	struct window *w = (struct window *) ww;
+
+	w->margined = margined;
+	if (w->margined)
+		uiParentSetMargins(w->content, windowMargin, windowMargin, windowMargin, windowMargin);
+	else
+		uiParentSetMargins(w->content, 0, 0, 0, 0);
+	uiParentUpdate(w->content);
+}
+
 uiWindow *uiNewWindow(char *title, int width, int height)
 {
-	uiWindow *w;
+	struct window *w;
 	RECT adjust;
 	WCHAR *wtitle;
 
-	w = uiNew(uiWindow);
+	w = uiNew(struct window);
 	w->onClosing = defaultOnClosing;
 
 	adjust.left = 0;
@@ -102,85 +201,16 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 
 	w->content = uiNewParent((uintptr_t) (w->hwnd));
 
-	return w;
-}
+	uiWindow(w)->Destroy = windowDestroy;
+	uiWindow(w)->Handle = windowHandle;
+	uiWindow(w)->Title = windowTitle;
+	uiWindow(w)->SetTitle = windowSetTitle;
+	uiWindow(w)->Show = windowShow;
+	uiWindow(w)->Hide = windowHide;
+	uiWindow(w)->OnClosing = windowOnClosing;
+	uiWindow(w)->SetChild = windowSetChild;
+	uiWindow(w)->Margined = windowMargined;
+	uiWindow(w)->SetMargined = windowSetMargined;
 
-void uiWindowDestroy(uiWindow *w)
-{
-	DestroyWindow(w->hwnd);
-}
-
-uintptr_t uiWindowHandle(uiWindow *w)
-{
-	return (uintptr_t) (w->hwnd);
-}
-
-char *uiWindowTitle(uiWindow *w)
-{
-	WCHAR *wtext;
-	char *text;
-
-	wtext = windowText(w->hwnd);
-	text = toUTF8(wtext);
-	uiFree(wtext);
-	return text;
-}
-
-void uiWindowSetTitle(uiWindow *w, const char *text)
-{
-	WCHAR *wtext;
-
-	wtext = toUTF16(text);
-	if (SetWindowTextW(w->hwnd, wtext) == 0)
-		logLastError("error setting window title in uiWindowSetTitle()");
-	uiFree(wtext);
-}
-
-void uiWindowShow(uiWindow *w)
-{
-	if (w->shownOnce) {
-		ShowWindow(w->hwnd, SW_SHOW);
-		return;
-	}
-	w->shownOnce = TRUE;
-	ShowWindow(w->hwnd, nCmdShow);
-	if (UpdateWindow(w->hwnd) == 0)
-		logLastError("error calling UpdateWindow() after showing uiWindow for the first time");
-}
-
-void uiWindowHide(uiWindow *w)
-{
-	ShowWindow(w->hwnd, SW_HIDE);
-}
-
-void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
-{
-	w->onClosing = f;
-	w->onClosingData = data;
-}
-
-void uiWindowSetChild(uiWindow *w, uiControl *c)
-{
-	uiParentSetChild(w->content, c);
-	// don't call uiParentUpdate(); instead, synthesize a resize
-	// otherwise, we'll have a 0x0 content area at first
-	SendMessageW(w->hwnd, msgUpdateChild, 0, 0);
-}
-
-int uiWindowMargined(uiWindow *w)
-{
-	return w->margined;
-}
-
-// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define windowMargin 7
-
-void uiWindowSetMargined(uiWindow *w, int margined)
-{
-	w->margined = margined;
-	if (w->margined)
-		uiParentSetMargins(w->content, windowMargin, windowMargin, windowMargin, windowMargin);
-	else
-		uiParentSetMargins(w->content, 0, 0, 0, 0);
-	uiParentUpdate(w->content);
+	return uiWindow(w);
 }

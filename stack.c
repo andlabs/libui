@@ -8,6 +8,7 @@ typedef struct stack stack;
 typedef struct stackControl stackControl;
 
 struct stack {
+	uiStack s;
 	stackControl *controls;
 	uintmax_t len;
 	uintmax_t cap;
@@ -29,14 +30,13 @@ struct stackControl {
 
 static void stackDestroy(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 
 	for (i = 0; i < s->len; i++)
 		uiControlDestroy(s->controls[i].c);
 	uiFree(s->controls);
 	uiFree(s);
-	uiFree(c);
 }
 
 static uintptr_t stackHandle(uiControl *c)
@@ -46,7 +46,7 @@ static uintptr_t stackHandle(uiControl *c)
 
 static void stackSetParent(uiControl *c, uiParent *parent)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 	uiParent *oldparent;
 
@@ -62,7 +62,7 @@ static void stackSetParent(uiControl *c, uiParent *parent)
 
 static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	// these two contain the largest preferred width and height of all stretchy controls in the stack
@@ -128,7 +128,7 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 
 static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	intmax_t stretchywid, stretchyht;
@@ -205,14 +205,14 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 
 static int stackVisible(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 
 	return !(s->userHid);
 }
 
 static void stackShow(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 
 	s->userHid = 0;
@@ -226,7 +226,7 @@ static void stackShow(uiControl *c)
 
 static void stackHide(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 
 	s->userHid = 1;
@@ -238,7 +238,7 @@ static void stackHide(uiControl *c)
 
 static void stackContainerShow(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 
 	s->containerHid = 0;
@@ -252,7 +252,7 @@ static void stackContainerShow(uiControl *c)
 
 static void stackContainerHide(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 
 	s->containerHid = 1;
@@ -264,7 +264,7 @@ static void stackContainerHide(uiControl *c)
 
 static void stackEnable(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 
 	s->userDisabled = 0;
@@ -275,7 +275,7 @@ static void stackEnable(uiControl *c)
 
 static void stackDisable(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 
 	s->userDisabled = 1;
@@ -285,7 +285,7 @@ static void stackDisable(uiControl *c)
 
 static void stackContainerEnable(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 
 	s->containerDisabled = 0;
@@ -296,7 +296,7 @@ static void stackContainerEnable(uiControl *c)
 
 static void stackContainerDisable(uiControl *c)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) c;
 	uintmax_t i;
 
 	s->containerDisabled = 1;
@@ -304,49 +304,11 @@ static void stackContainerDisable(uiControl *c)
 		uiControlContainerDisable(s->controls[i].c);
 }
 
-uiControl *uiNewHorizontalStack(void)
-{
-	uiControl *c;
-	stack *s;
-
-	c = uiNew(uiControl);
-	s = uiNew(stack);
-
-	c->data = s;
-	c->destroy = stackDestroy;
-	c->handle = stackHandle;
-	c->setParent = stackSetParent;
-	c->preferredSize = stackPreferredSize;
-	c->resize = stackResize;
-	c->visible = stackVisible;
-	c->show = stackShow;
-	c->hide = stackHide;
-	c->containerShow = stackContainerShow;
-	c->containerHide = stackContainerHide;
-	c->enable = stackEnable;
-	c->disable = stackDisable;
-	c->containerEnable = stackContainerEnable;
-	c->containerDisable = stackContainerDisable;
-
-	return c;
-}
-
-uiControl *uiNewVerticalStack(void)
-{
-	uiControl *c;
-	stack *s;
-
-	c = uiNewHorizontalStack();
-	s = (stack *) (c->data);
-	s->vertical = 1;
-	return c;
-}
-
 #define stackCapGrow 32
 
-void uiStackAppend(uiControl *st, uiControl *c, int stretchy)
+static void stackAppend(uiStack *ss, uiControl *c, int stretchy)
 {
-	stack *s = (stack *) (st->data);
+	stack *s = (stack *) ss;
 
 	if (s->len >= s->cap) {
 		s->cap += stackCapGrow;
@@ -361,9 +323,9 @@ void uiStackAppend(uiControl *st, uiControl *c, int stretchy)
 	}
 }
 
-void uiStackDelete(uiControl *st, uintmax_t index)
+static void stackDelete(uiStack *ss, uintmax_t index)
 {
-	stack *s = (stack *) (st->data);
+	stack *s = (stack *) ss;
 	uiControl *removed;
 	uintmax_t i;
 
@@ -379,18 +341,58 @@ void uiStackDelete(uiControl *st, uintmax_t index)
 	}
 }
 
-int uiStackPadded(uiControl *c)
+static int stackPadded(uiStack *ss)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) ss;
 
 	return s->padded;
 }
 
-void uiStackSetPadded(uiControl *c, int padded)
+static void stackSetPadded(uiStack *ss, int padded)
 {
-	stack *s = (stack *) (c->data);
+	stack *s = (stack *) ss;
 
 	s->padded = padded;
 	if (s->parent != NULL)
 		uiParentUpdate(s->parent);
+}
+
+uiStack *uiNewHorizontalStack(void)
+{
+	stack *s;
+
+	s = uiNew(stack);
+
+	uiControl(s)->Destroy = stackDestroy;
+	uiControl(s)->Handle = stackHandle;
+	uiControl(s)->SetParent = stackSetParent;
+	uiControl(s)->PreferredSize = stackPreferredSize;
+	uiControl(s)->Resize = stackResize;
+	uiControl(s)->Visible = stackVisible;
+	uiControl(s)->Show = stackShow;
+	uiControl(s)->Hide = stackHide;
+	uiControl(s)->ContainerShow = stackContainerShow;
+	uiControl(s)->ContainerHide = stackContainerHide;
+	uiControl(s)->Enable = stackEnable;
+	uiControl(s)->Disable = stackDisable;
+	uiControl(s)->ContainerEnable = stackContainerEnable;
+	uiControl(s)->ContainerDisable = stackContainerDisable;
+
+	uiStack(s)->Append = stackAppend;
+	uiStack(s)->Delete = stackDelete;
+	uiStack(s)->Padded = stackPadded;
+	uiStack(s)->SetPadded = stackSetPadded;
+
+	return uiStack(s);
+}
+
+uiControl *uiNewVerticalStack(void)
+{
+	uiStack *ss;
+	stack *s;
+
+	ss = uiNewHorizontalStack();
+	s = (stack *) ss;
+	s->vertical = 1;
+	return ss;
 }

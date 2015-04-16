@@ -2,19 +2,19 @@
 #include "uipriv_unix.h"
 
 struct button {
+	uiButton b;
 	void (*onClicked)(uiControl *, void *);
 	void *onClickedData;
 };
 
 static void onClicked(GtkButton *button, gpointer data)
 {
-	uiControl *c = uiControl(data);
-	struct button *b = (struct button *) (c->data);
+	struct button *b = (struct button *) data;
 
-	(*(b->onClicked))(c, b->onClickedData);
+	(*(b->onClicked))(uiButton(b), b->onClickedData);
 }
 
-static void defaultOnClicked(uiControl *c, void *data)
+static void defaultOnClicked(uiButton *b, void *data)
 {
 	// do nothing
 }
@@ -26,19 +26,21 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	uiFree(b);
 }
 
+#define BUTTON(b) GTK_BUTTON(uiControlHandle(uiControl(b)))
+
 static char *getText(uiButton *b)
 {
-	return g_strdup(gtk_button_get_label(GTK_BUTTON(uiControlHandle(b.base))));
+	return g_strdup(gtk_button_get_label(BUTTON(b)));
 }
 
 static void setText(uiButton *b, const char *text)
 {
-	gtk_button_set_label(GTK_BUTTON(uiControlHandle(b.base)), text);
+	gtk_button_set_label(BUTTON(b), text);
 }
 
 static void setOnClicked(uiButton *b, void (*f)(uiControl *, void *), void *data)
 {
-	struct button *b = (struct button *) (b->base.data);
+	struct button *b = (struct button *) b;
 
 	b->onClicked = f;
 	b->onClickedData = data;
@@ -46,28 +48,24 @@ static void setOnClicked(uiButton *b, void (*f)(uiControl *, void *), void *data
 
 uiControl *uiNewButton(const char *text)
 {
-	uiButton *b;
-	struct button *bb;
+	struct button *b;
 	GtkWidget *widget;
 
-	b = uiNew(uiButton);
+	b = uiNew(b);
 
-	uiUnixNewControl(&(b.base), GTK_TYPE_BUTTON,
+	uiUnixNewControl(uiControl(b), GTK_TYPE_BUTTON,
 		FALSE, FALSE,
 		"label", text,
 		NULL);
 
-	widget = GTK_WIDGET(uiControlHandle(&(b.base)));
+	widget = GTK_WIDGET(BUTTON(b));
 	g_signal_connect(widget, "clicked", G_CALLBACK(onClicked), b);
+	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), b);
+	b->onClicked = defaultOnClicked;
 
-	bb = uiNew(struct button);
-	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), bb);
-	bb->onClicked = defaultOnClicked;
-	b->priv.data = bb;
-
-	b->Text = getText;
-	b->SetText = setText;
-	b->OnClicked = setOnClicked;
+	uiButton(b)->Text = getText;
+	uiButton(b)->SetText = setText;
+	uiButton(b)->OnClicked = setOnClicked;
 
 	return b;
 }

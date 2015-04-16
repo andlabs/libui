@@ -2,6 +2,7 @@
 #include "uipriv_unix.h"
 
 struct entry {
+	uiEntry e;
 };
 
 static void onDestroy(GtkWidget *widget, gpointer data)
@@ -11,31 +12,34 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	uiFree(e);
 }
 
+#define ENTRY(e) GTK_ENTRY(uiControlHandle(uiControl(e)))
+
+static char *getText(uiEntry *e)
+{
+	return g_strdup(gtk_entry_get_text(ENTRY(e)));
+}
+
+static void uiEntrySetText(uiEntry *e, const char *text)
+{
+	gtk_entry_set_text(ENTRY(e), text);
+}
+
 uiControl *uiNewEntry(void)
 {
-	uiControl *c;
 	struct entry *e;
 	GtkWidget *widget;
 
-	c = uiUnixNewControl(GTK_TYPE_ENTRY,
+	e = uiNew(struct entry);
+
+	uiUnixNewControl(uiControl(e), GTK_TYPE_ENTRY,
 		FALSE, FALSE,
 		NULL);
 
-	widget = GTK_WIDGET(uiControlHandle(c));
-
-	e = uiNew(struct entry);
+	widget = GTK_WIDGET(ENTRY(e));
 	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), e);
-	c->data = e;
 
-	return c;
-}
+	uiEntry(e)->Text = getText;
+	uiEntry(e)->SetText = setText;
 
-char *uiEntryText(uiControl *c)
-{
-	return g_strdup(gtk_entry_get_text(GTK_ENTRY(uiControlHandle(c))));
-}
-
-void uiEntrySetText(uiControl *c, const char *text)
-{
-	gtk_entry_set_text(GTK_ENTRY(uiControlHandle(c)), text);
+	return uiEntry(e);
 }

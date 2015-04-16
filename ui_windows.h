@@ -11,7 +11,7 @@ This file assumes that you have included <windows.h> and "ui.h" beforehand. It p
 #define uiControlHWND(c) ((HWND) uiControlHandle(c))
 #define uiParentHWND(p) ((HWND) uiParentHandle(p))
 
-// uiWindowsNewControl() creates a new uiControl with the given Windows API control inside.
+// uiWindowsNewControl() initializes the given uiControl with the given Windows API control inside.
 // You will need to provide the preferredSize() method yourself.
 typedef struct uiWindowsNewControlParams uiWindowsNewControlParams;
 struct uiWindowsNewControlParams {
@@ -34,7 +34,7 @@ struct uiWindowsNewControlParams {
 	// This is called in WM_DESTROY.
 	void (*onWM_DESTROY)(uiControl *c);
 };
-uiControl *uiWindowsNewControl(uiWindowsNewControlParams *);
+void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p);
 
 // This contains the Windows-specific parts of the uiSizing structure.
 // baseX and baseY are the dialog base units.

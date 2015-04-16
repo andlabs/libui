@@ -17,7 +17,7 @@ struct singleHWND {
 
 static void singleDestroy(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	if (DestroyWindow(s->hwnd) == 0)
 		logLastError("error destroying control in singleDestroy()");
@@ -26,14 +26,14 @@ static void singleDestroy(uiControl *c)
 
 static uintptr_t singleHandle(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	return (uintptr_t) (s->hwnd);
 }
 
 static void singleSetParent(uiControl *c, uiParent *parent)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 	uiParent *oldparent;
 	HWND newParentHWND;
 
@@ -52,7 +52,7 @@ static void singleSetParent(uiControl *c, uiParent *parent)
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	if (MoveWindow(s->hwnd, x, y, width, height, TRUE) == 0)
 		logLastError("error moving control in singleResize()");
@@ -60,7 +60,7 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 
 static int singleVisible(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	if (s->userHid)
 		return 0;
@@ -69,7 +69,7 @@ static int singleVisible(uiControl *c)
 
 static void singleShow(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	s->userHid = FALSE;
 	if (!s->containerHid) {
@@ -81,7 +81,7 @@ static void singleShow(uiControl *c)
 
 static void singleHide(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	s->userHid = TRUE;
 	ShowWindow(s->hwnd, SW_HIDE);
@@ -91,7 +91,7 @@ static void singleHide(uiControl *c)
 
 static void singleContainerShow(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	s->containerHid = FALSE;
 	if (!s->userHid) {
@@ -103,7 +103,7 @@ static void singleContainerShow(uiControl *c)
 
 static void singleContainerHide(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	s->containerHid = TRUE;
 	ShowWindow(s->hwnd, SW_HIDE);
@@ -113,7 +113,7 @@ static void singleContainerHide(uiControl *c)
 
 static void singleEnable(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	s->userDisabled = FALSE;
 	if (!s->containerDisabled)
@@ -122,7 +122,7 @@ static void singleEnable(uiControl *c)
 
 static void singleDisable(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	s->userDisabled = TRUE;
 	EnableWindow(s->hwnd, FALSE);
@@ -130,7 +130,7 @@ static void singleDisable(uiControl *c)
 
 static void singleContainerEnable(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	s->containerDisabled = FALSE;
 	if (!s->userDisabled)
@@ -139,7 +139,7 @@ static void singleContainerEnable(uiControl *c)
 
 static void singleContainerDisable(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 
 	s->containerDisabled = TRUE;
 	EnableWindow(s->hwnd, FALSE);
@@ -148,7 +148,7 @@ static void singleContainerDisable(uiControl *c)
 static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
 	uiControl *c = (uiControl *) dwRefData;
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 	LRESULT lResult;
 
 	switch (uMsg) {
@@ -173,9 +173,8 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 	return (*fv_DefSubclassProc)(hwnd, uMsg, wParam, lParam);
 }
 
-uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
+void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p)
 {
-	uiControl *c;
 	singleHWND *s;
 
 	s = uiNew(singleHWND);
@@ -192,20 +191,19 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	s->onWM_NOTIFY = p->onWM_NOTIFY;
 	s->onWM_DESTROY = p->onWM_DESTROY;
 
-	c = uiNew(uiControl);
-	c->destroy = singleDestroy;
-	c->handle = singleHandle;
-	c->setParent = singleSetParent;
-	c->resize = singleResize;
-	c->visible = singleVisible;
-	c->show = singleShow;
-	c->hide = singleHide;
-	c->containerShow = singleContainerShow;
-	c->containerHide = singleContainerHide;
-	c->enable = singleEnable;
-	c->disable = singleDisable;
-	c->containerEnable = singleContainerEnable;
-	c->containerDisable = singleContainerDisable;
+	c->Destroy = singleDestroy;
+	c->Handle = singleHandle;
+	c->SetParent = singleSetParent;
+	c->Resize = singleResize;
+	c->Visible = singleVisible;
+	c->Show = singleShow;
+	c->Hide = singleHide;
+	c->ContainerShow = singleContainerShow;
+	c->ContainerHide = singleContainerHide;
+	c->Enable = singleEnable;
+	c->Disable = singleDisable;
+	c->ContainerEnable = singleContainerEnable;
+	c->ContainerDisable = singleContainerDisable;
 
 	if (p->useStandardControlFont)
 		SendMessageW(s->hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
@@ -213,13 +211,12 @@ uiControl *uiWindowsNewControl(uiWindowsNewControlParams *p)
 	if ((*fv_SetWindowSubclass)(s->hwnd, singleSubclassProc, 0, (DWORD_PTR) c) == FALSE)
 		logLastError("error subclassing Windows control in uiWindowsNewControl()");
 
-	c->internal = s;
-	return c;
+	c->Internal = s;
 }
 
 char *uiWindowsControlText(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 	WCHAR *wtext;
 	char *text;
 
@@ -231,7 +228,7 @@ char *uiWindowsControlText(uiControl *c)
 
 void uiWindowsControlSetText(uiControl *c, const char *text)
 {
-	singleHWND *s = (singleHWND *) (c->internal);
+	singleHWND *s = (singleHWND *) (c->Internal);
 	WCHAR *wtext;
 
 	wtext = toUTF16(text);

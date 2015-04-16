@@ -2,17 +2,18 @@
 #include "uipriv_windows.h"
 
 struct button {
-	void (*onClicked)(uiControl *, void *);
+	uiButton b;
+	void (*onClicked)(uiButton *, void *);
 	void *onClickedData;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 {
-	struct button *b = (struct button *) (c->data);
+	struct button *b = (struct button *) c;
 
 	if (code != BN_CLICKED)
 		return FALSE;
-	(*(b->onClicked))(c, b->onClickedData);
+	(*(b->onClicked))(uiButton(b), b->onClickedData);
 	*lResult = 0;
 	return TRUE;
 }
@@ -24,7 +25,7 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 
 static void onWM_DESTROY(uiControl *c)
 {
-	struct button *b = (struct button *) (c->data);
+	struct button *b = (struct button *) c;
 
 	uiFree(b);
 }
@@ -55,17 +56,36 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	*height = uiDlgUnitsToY(buttonHeight, d->sys->baseY);
 }
 
-static void defaultOnClicked(uiControl *c, void *data)
+static void defaultOnClicked(uiButton *b, void *data)
 {
 	// do nothing
 }
 
-uiControl *uiNewButton(const char *text)
+static char *getText(uiButton *b)
 {
-	uiControl *c;
+	return uiWindowsControlText(uiControl(c));
+}
+
+static void setText(uiButton *b, const char *text)
+{
+	uiWindowsControlSetText(uiControl(b), text);
+}
+
+static void setOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
+{
+	struct button *b = (struct button *) b;
+
+	b->onClicked = f;
+	b->onClickedData = data;
+}
+
+uiButton *uiNewButton(const char *text)
+{
 	struct button *b;
 	uiWindowsNewControlParams p;
 	WCHAR *wtext;
+
+	b = uiNew(struct button);
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
@@ -77,32 +97,16 @@ uiControl *uiNewButton(const char *text)
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
-	c = uiWindowsNewControl(&p);
+	uiWindowsNewControl(uiControl(b), &p);
 	uiFree(wtext);
 
-	c->preferredSize = preferredSize;
-
-	b = uiNew(struct button);
 	b->onClicked = defaultOnClicked;
-	c->data = b;
 
-	return c;
-}
+	uiControl(b)->preferredSize = preferredSize;
 
-char *uiButtonText(uiControl *c)
-{
-	return uiWindowsControlText(c);
-}
+	uiButton(b)->Text = getText;
+	uiButton(b)->SetText = setText;
+	uiButton(b)->OnClicked = setOnClicked;
 
-void uiButtonSetText(uiControl *c, const char *text)
-{
-	uiWindowsControlSetText(c, text);
-}
-
-void uiButtonOnClicked(uiControl *c, void (*f)(uiControl *, void *), void *data)
-{
-	struct button *b = (struct button *) (c->data);
-
-	b->onClicked = f;
-	b->onClickedData = data;
+	return uiButton(b);
 }

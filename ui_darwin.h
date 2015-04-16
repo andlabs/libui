@@ -7,12 +7,12 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 #ifndef __UI_UI_DARWIN_H__
 #define __UI_UI_DARWIN_H__
 
-// uiDarwinNewControl() creates a new uiControl with the given Cocoa control inside.
-// The first parameter should come from [RealControlType class].
+// uiDarwinNewControl() initializes the given uiControl with the given Cocoa control inside.
+// The second parameter should come from [RealControlType class].
 // The two scrollView parameters allow placing scrollbars on the new control.
 // Your control must call uiDarwinControlFreeWhenAppropriate() on the returned uiControl in its -[viewDidMoveToSuperview] method.
 // If it returns a value other than NO, then the uiControl has been freed and you should set references to it to NULL.
-extern uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder);
+extern void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder);
 extern BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview);
 
 // You can use this function from within your control implementations to return text strings that can be freed with uiTextFree().

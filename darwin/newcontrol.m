@@ -16,21 +16,21 @@ struct singleView {
 
 static void singleDestroy(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	[destroyedControlsView addSubview:s->immediate];
 }
 
 static uintptr_t singleHandle(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	return (uintptr_t) (s->view);
 }
 
 static void singleSetParent(uiControl *c, uiParent *parent)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 	NSView *parentView;
 	uiParent *oldparent;
 
@@ -51,7 +51,7 @@ static void singleSetParent(uiControl *c, uiParent *parent)
 // also good for NSBox and NSProgressIndicator
 static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 	NSControl *control;
 	NSRect r;
 
@@ -65,7 +65,7 @@ static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intm
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 	NSRect frame;
 
 	frame.origin.x = x;
@@ -79,7 +79,7 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 
 static int singleVisible(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	if (s->userHid)
 		return 0;
@@ -88,7 +88,7 @@ static int singleVisible(uiControl *c)
 
 static void singleShow(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	s->userHid = NO;
 	if (!s->containerHid) {
@@ -100,7 +100,7 @@ static void singleShow(uiControl *c)
 
 static void singleHide(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	s->userHid = YES;
 	[s->immediate setHidden:YES];
@@ -110,7 +110,7 @@ static void singleHide(uiControl *c)
 
 static void singleContainerShow(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	s->containerHid = NO;
 	if (!s->userHid) {
@@ -122,7 +122,7 @@ static void singleContainerShow(uiControl *c)
 
 static void singleContainerHide(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	s->containerHid = YES;
 	[s->immediate setHidden:YES];
@@ -144,7 +144,7 @@ static void disable(singleView *s)
 
 static void singleEnable(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	s->userDisabled = NO;
 	if (!s->containerDisabled)
@@ -153,7 +153,7 @@ static void singleEnable(uiControl *c)
 
 static void singleDisable(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	s->userDisabled = YES;
 	disable(s);
@@ -161,7 +161,7 @@ static void singleDisable(uiControl *c)
 
 static void singleContainerEnable(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	s->containerDisabled = NO;
 	if (!s->userDisabled)
@@ -170,15 +170,14 @@ static void singleContainerEnable(uiControl *c)
 
 static void singleContainerDisable(uiControl *c)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	s->containerDisabled = YES;
 	disable(s);
 }
 
-uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHasBorder)
+void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder)
 {
-	uiControl *c;
 	singleView *s;
 
 	s = uiNew(singleView);
@@ -202,34 +201,30 @@ uiControl *uiDarwinNewControl(Class class, BOOL inScrollView, BOOL scrollViewHas
 	// and keep a reference to s->immediate for when we remove the control from its parent
 	[s->immediate retain];
 
-	c = uiNew(uiControl);
-	c->internal = s;
-	c->destroy = singleDestroy;
-	c->handle = singleHandle;
-	c->setParent = singleSetParent;
-	c->preferredSize = singlePreferredSize;
-	c->resize = singleResize;
-	c->visible = singleVisible;
-	c->show = singleShow;
-	c->hide = singleHide;
-	c->containerShow = singleContainerShow;
-	c->containerHide = singleContainerHide;
-	c->enable = singleEnable;
-	c->disable = singleDisable;
-	c->containerEnable = singleContainerEnable;
-	c->containerDisable = singleContainerDisable;
-
-	return c;
+	c->Internal = s;
+	c->Destroy = singleDestroy;
+	c->Handle = singleHandle;
+	c->SetParent = singleSetParent;
+	c->PreferredSize = singlePreferredSize;
+	c->Resize = singleResize;
+	c->Visible = singleVisible;
+	c->Show = singleShow;
+	c->Hide = singleHide;
+	c->ContainerShow = singleContainerShow;
+	c->ContainerHide = singleContainerHide;
+	c->Enable = singleEnable;
+	c->Disable = singleDisable;
+	c->ContainerEnable = singleContainerEnable;
+	c->ContainerDisable = singleContainerDisable;
 }
 
 BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview)
 {
-	singleView *s = (singleView *) (c->internal);
+	singleView *s = (singleView *) (c->Internal);
 
 	if (newSuperview == destroyedControlsView) {
 		[s->immediate release];		// we don't need the reference anymore
 		uiFree(s);
-		uiFree(c);
 		return YES;
 	}
 	return NO;

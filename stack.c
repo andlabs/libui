@@ -386,7 +386,7 @@ uiStack *uiNewHorizontalStack(void)
 	return uiStack(s);
 }
 
-uiControl *uiNewVerticalStack(void)
+uiStack *uiNewVerticalStack(void)
 {
 	uiStack *ss;
 	stack *s;

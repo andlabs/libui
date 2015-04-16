@@ -132,7 +132,7 @@ void addPage(uiTab *tt, const char *name, uiControl *child)
 		t->pages = (uiParent **) uiRealloc(t->pages, t->cap * sizeof (uiParent *), "uiParent *[]");
 	}
 
-	hwnd = uiControlHWND(c);
+	hwnd = uiControlHWND(uiControl(t));
 	n = SendMessageW(hwnd, TCM_GETITEMCOUNT, 0, 0);
 
 	parent = uiNewParent((uintptr_t) hwnd);
@@ -179,7 +179,7 @@ uiTab *uiNewTab(void)
 	uiWindowsNewControl(uiControl(t), &p);
 
 	hwnd = uiControlHWND(uiControl(t));
-	if ((*fv_SetWindowSubclass)(hwnd, tabSubProc, 0, (DWORD_PTR) c) == FALSE)
+	if ((*fv_SetWindowSubclass)(hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
 
 	uiControl(t)->PreferredSize = preferredSize;

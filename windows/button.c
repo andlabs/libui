@@ -63,7 +63,7 @@ static void defaultOnClicked(uiButton *b, void *data)
 
 static char *getText(uiButton *b)
 {
-	return uiWindowsControlText(uiControl(c));
+	return uiWindowsControlText(uiControl(b));
 }
 
 static void setText(uiButton *b, const char *text)
@@ -71,9 +71,9 @@ static void setText(uiButton *b, const char *text)
 	uiWindowsControlSetText(uiControl(b), text);
 }
 
-static void setOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
+static void setOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *data)
 {
-	struct button *b = (struct button *) b;
+	struct button *b = (struct button *) bb;
 
 	b->onClicked = f;
 	b->onClickedData = data;

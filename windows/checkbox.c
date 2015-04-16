@@ -3,7 +3,7 @@
 
 struct checkbox {
 	uiCheckbox c;
-	void (*onToggled)(uiControl *, void *);
+	void (*onToggled)(uiCheckbox *, void *);
 	void *onToggledData;
 };
 
@@ -17,7 +17,7 @@ static BOOL onWM_COMMAND(uiControl *cc, WORD code, LRESULT *lResult)
 		return FALSE;
 
 	// we didn't use BS_AUTOCHECKBOX (see controls_windows.go) so we have to manage the check state ourselves
-	hwnd = uiControlHWND(c);
+	hwnd = uiControlHWND(uiControl(c));
 	check = BST_CHECKED;
 	if (SendMessage(hwnd, BM_GETCHECK, 0, 0) == BST_CHECKED)
 		check = BST_UNCHECKED;
@@ -74,7 +74,7 @@ static void setOnToggled(uiCheckbox *cc, void (*f)(uiCheckbox *, void *), void *
 	c->onToggledData = data;
 }
 
-static int getChecked(uiChecckbox *c)
+static int getChecked(uiCheckbox *c)
 {
 	HWND hwnd;
 
@@ -100,7 +100,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiWindowsNewControlParams p;
 	WCHAR *wtext;
 
-	c = uiNew(struct checkbox)
+	c = uiNew(struct checkbox);
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";

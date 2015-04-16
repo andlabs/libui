@@ -7,7 +7,7 @@ struct button {
 	void *onClickedData;
 };
 
-static void onClicked(GtkButton *button, gpointer data)
+static void clicked(GtkButton *button, gpointer data)
 {
 	struct button *b = (struct button *) data;
 
@@ -19,26 +19,26 @@ static void defaultOnClicked(uiButton *b, void *data)
 	// do nothing
 }
 
-static void onDestroy(GtkWidget *widget, gpointer data)
+static void destroy(GtkWidget *widget, gpointer data)
 {
 	struct button *b = (struct button *) data;
 
 	uiFree(b);
 }
 
-#define BUTTON(b) GTK_BUTTON(uiControlHandle(uiControl(b)))
+#define BUTTON(b) GTK_BUTTON(widget(b))
 
-static char *getText(uiButton *b)
+static char *buttonText(uiButton *bb)
 {
-	return g_strdup(gtk_button_get_label(BUTTON(b)));
+	return g_strdup(gtk_button_get_label(BUTTON(bb)));
 }
 
-static void setText(uiButton *b, const char *text)
+static void buttonSetText(uiButton *bb, const char *text)
 {
-	gtk_button_set_label(BUTTON(b), text);
+	gtk_button_set_label(BUTTON(bb), text);
 }
 
-static void setOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *data)
+static void buttonOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *data)
 {
 	struct button *b = (struct button *) bb;
 
@@ -58,14 +58,14 @@ uiButton *uiNewButton(const char *text)
 		"label", text,
 		NULL);
 
-	widget = GTK_WIDGET(BUTTON(b));
-	g_signal_connect(widget, "clicked", G_CALLBACK(onClicked), b);
-	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), b);
+	widget = WIDGET(b);
+	g_signal_connect(widget, "clicked", G_CALLBACK(clicked), b);
+	g_signal_connect(widget, "destroy", G_CALLBACK(destroy), b);
 	b->onClicked = defaultOnClicked;
 
-	uiButton(b)->Text = getText;
-	uiButton(b)->SetText = setText;
-	uiButton(b)->OnClicked = setOnClicked;
+	uiButton(b)->Text = buttonText;
+	uiButton(b)->SetText = buttonSetText;
+	uiButton(b)->OnClicked = buttonOnClicked;
 
 	return uiButton(b);
 }

@@ -9,3 +9,6 @@
 
 #define gtkXMargin 12
 #define gtkYMargin 12
+
+#define widget(c) uiControlHandle(uiControl(c))
+#define WIDGET(c) GTK_WIDGET(widget(c))

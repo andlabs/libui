@@ -163,7 +163,6 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 	case WM_DESTROY:
 		(*(s->onWM_DESTROY))(c);
 		uiFree(s);
-		uiFree(c);
 		break;
 	case WM_NCDESTROY:
 		if ((*fv_RemoveWindowSubclass)(hwnd, singleSubclassProc, uIdSubclass) == FALSE)

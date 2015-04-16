@@ -156,7 +156,7 @@ void addPage(uiTab *tt, const char *name, uiControl *child)
 	// (TODO verify that)
 	// so we need to manually resize the tab ourselves
 	// don't use uiUpdateParent() for the same reason as in the TCN_SELCHANGE handler
-	SendMessageW(uiControlHWND(c), msgUpdateChild, 0, 0);
+	SendMessageW(hwnd, msgUpdateChild, 0, 0);
 }
 
 uiTab *uiNewTab(void)

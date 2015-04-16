@@ -111,7 +111,7 @@ static void windowSetTitle(uiWindow *ww, const char *text)
 	uiFree(wtext);
 }
 
-void uiWindowShow(uiWindow *ww)
+static void windowShow(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
@@ -125,7 +125,7 @@ void uiWindowShow(uiWindow *ww)
 		logLastError("error calling UpdateWindow() after showing uiWindow for the first time");
 }
 
-void uiWindowHide(uiWindow *ww)
+static void windowHide(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
@@ -142,7 +142,7 @@ static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *da
 
 static void windowSetChild(uiWindow *ww, uiControl *c)
 {
-	struct window *w = (struct window *) ww
+	struct window *w = (struct window *) ww;
 
 	uiParentSetChild(w->content, c);
 	// don't call uiParentUpdate(); instead, synthesize a resize
@@ -150,7 +150,7 @@ static void windowSetChild(uiWindow *ww, uiControl *c)
 	SendMessageW(w->hwnd, msgUpdateChild, 0, 0);
 }
 
-int uiWindowMargined(uiWindow *ww)
+static int windowMargined(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
@@ -160,7 +160,7 @@ int uiWindowMargined(uiWindow *ww)
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define windowMargin 7
 
-void uiWindowSetMargined(uiWindow *ww, int margined)
+static void windowSetMargined(uiWindow *ww, int margined)
 {
 	struct window *w = (struct window *) ww;
 
@@ -172,7 +172,7 @@ void uiWindowSetMargined(uiWindow *ww, int margined)
 	uiParentUpdate(w->content);
 }
 
-uiWindow *uiNewWindow(char *title, int width, int height)
+uiWindow *uiNewWindow(const char *title, int width, int height)
 {
 	struct window *w;
 	RECT adjust;

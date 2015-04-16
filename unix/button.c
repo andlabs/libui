@@ -3,7 +3,7 @@
 
 struct button {
 	uiButton b;
-	void (*onClicked)(uiControl *, void *);
+	void (*onClicked)(uiButton *, void *);
 	void *onClickedData;
 };
 
@@ -38,7 +38,7 @@ static void setText(uiButton *b, const char *text)
 	gtk_button_set_label(BUTTON(b), text);
 }
 
-static void setOnClicked(uiButton *bb, void (*f)(uiControl *, void *), void *data)
+static void setOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *data)
 {
 	struct button *b = (struct button *) bb;
 

@@ -15,7 +15,7 @@ static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 	struct window *w = (struct window *) data;
 
 	// return exact values just in case
-	if ((*(w->onClosing))(w, w->onClosingData))
+	if ((*(w->onClosing))(uiWindow(w), w->onClosingData))
 		return FALSE;
 	return TRUE;
 }

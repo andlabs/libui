@@ -31,12 +31,12 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 
 static char *getText(uiCheckbox *c)
 {
-	return g_strdup(gtk_button_get_label(CHECKBOX(c)));
+	return g_strdup(gtk_button_get_label(GTK_BUTTON(CHECKBOX(c))));
 }
 
 static void setText(uiCheckbox *c, const char *text)
 {
-	gtk_button_set_label(CHECKBOX(c), text);
+	gtk_button_set_label(GTK_BUTTON(CHECKBOX(c)), text);
 }
 
 static void setOnToggled(uiCheckbox *cc, void (*f)(uiCheckbox *, void *), void *data)

@@ -10,9 +10,10 @@
 - make sure all terminology is consistent
 - 32-bit Mac OS X support (requires lots of code changes)
 - add a test for hidden controls when a window is shown
-- WS_CLIPCHILDREN
+- SWP_NOCOPYBITS (or was it WS_CLIPCHILDREN?)
 	- buttons not in tab get drawover issues
 	- buttons in tab without transparent drawing code get copied into the label when stack shown and rehidden
+- see if we can clean up the GTK+ backend
 
 ultimately:
 - make everything vtable-based
@@ -21,3 +22,4 @@ ultimately:
 		- figure out what to do about custom containers
 			- rename container to parent?
 		- make the code flow of all platforms fully symmetrical
+- add some sort of runtime type checking

@@ -222,5 +222,4 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	gtk_widget_show_all(s->immediate);
 
 	c->Internal = s;
-	return c;
 }

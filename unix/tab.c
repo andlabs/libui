@@ -43,7 +43,6 @@ static void addPage(uiTab *tt, const char *name, uiControl *child)
 
 uiTab *uiNewTab(void)
 {
-	uiControl *c;
 	struct tab *t;
 	GtkWidget *widget;
 

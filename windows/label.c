@@ -41,7 +41,7 @@ static void setText(uiLabel *l, const char *text)
 	uiWindowsControlSetText(uiControl(l), text);
 }
 
-uiControl *uiNewLabel(const char *text)
+uiLabel *uiNewLabel(const char *text)
 {
 	struct label *l;
 	uiWindowsNewControlParams p;

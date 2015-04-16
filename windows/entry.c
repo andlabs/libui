@@ -42,7 +42,7 @@ static void setText(uiEntry *e, const char *text)
 	uiWindowsControlSetText(uiControl(e), text);
 }
 
-uiControl *uiNewEntry(void)
+uiEntry *uiNewEntry(void)
 {
 	struct entry *e;
 	uiWindowsNewControlParams p;

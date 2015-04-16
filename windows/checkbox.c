@@ -94,7 +94,7 @@ static void setChecked(uiCheckbox *c, int checked)
 	SendMessage(hwnd, BM_SETCHECK, check, 0);
 }
 
-uiControl *uiNewCheckbox(const char *text)
+uiCheckbox *uiNewCheckbox(const char *text)
 {
 	struct checkbox *c;
 	uiWindowsNewControlParams p;

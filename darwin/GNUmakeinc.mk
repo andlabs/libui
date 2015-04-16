@@ -1,4 +1,4 @@
-OSCFILES = \
+OSMFILES = \
 	alloc.m \
 	button.m \
 	checkbox.m \

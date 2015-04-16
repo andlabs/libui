@@ -37,9 +37,11 @@ xLDFLAGS = \
 
 include $(OS)/GNUmakeinc.mk
 xOSCFILES = $(OSCFILES:%=$(OS)/%)
+xOSMFILES = $(OSMFILES:%=$(OS)/%)
 
 OFILES = $(CFILES:%.c=$(OBJDIR)/%.o) \
-	$(xOSCFILES:$(OS)/%.c=$(OBJDIR)/%_$(OS).o)
+	$(xOSCFILES:$(OS)/%.c=$(OBJDIR)/%_$(OS).o) \
+	$(xOSMFILES:$(OS)/%.m=$(OBJDIR)/%_$(OS).o)
 
 $(OUT): $(OFILES)
 	$(CC) -o $(OUT) $(OFILES) $(xLDFLAGS)
@@ -48,6 +50,9 @@ $(OBJDIR)/%.o: %.c $(OBJDIR) $(HFILES)
 	$(CC) -o $@ -c $< $(xCFLAGS)
 
 $(OBJDIR)/%_$(OS).o: $(OS)/%.c $(OBJDIR) $(HFILES)
+	$(CC) -o $@ -c $< $(xCFLAGS)
+
+$(OBJDIR)/%_$(OS).o: $(OS)/%.m $(OBJDIR) $(HFILES)
 	$(CC) -o $@ -c $< $(xCFLAGS)
 
 $(OBJDIR):

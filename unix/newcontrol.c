@@ -199,20 +199,20 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	g_object_ref_sink(s->immediate);
 
 	// assign s later; we still need it for one more thing
-	c->destroy = singleDestroy;
-	c->handle = singleHandle;
-	c->setParent = singleSetParent;
-	c->preferredSize = singlePreferredSize;
-	c->resize = singleResize;
-	c->visible = singleVisible;
-	c->show = singleShow;
-	c->hide = singleHide;
-	c->containerShow = singleContainerShow;
-	c->containerHide = singleContainerHide;
-	c->enable = singleEnable;
-	c->disable = singleDisable;
-	c->containerEnable = singleContainerEnable;
-	c->containerDisable = singleContainerDisable;
+	c->Destroy = singleDestroy;
+	c->Handle = singleHandle;
+	c->SetParent = singleSetParent;
+	c->PreferredSize = singlePreferredSize;
+	c->Resize = singleResize;
+	c->Visible = singleVisible;
+	c->Show = singleShow;
+	c->Hide = singleHide;
+	c->ContainerShow = singleContainerShow;
+	c->ContainerHide = singleContainerHide;
+	c->Enable = singleEnable;
+	c->Disable = singleDisable;
+	c->ContainerEnable = singleContainerEnable;
+	c->ContainerDisable = singleContainerDisable;
 
 	// and let's free everything with the immediate widget
 	// we send s as data instead of c just in case c is gone by then

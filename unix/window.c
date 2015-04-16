@@ -1,7 +1,8 @@
 // 6 april 2015
 #include "uipriv_unix.h"
 
-struct uiWindow {
+struct window {
+	uiWindow w;
 	GtkWidget *widget;
 	uiParent *content;
 	int (*onClosing)(uiWindow *, void *);
@@ -11,7 +12,7 @@ struct uiWindow {
 
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 {
-	uiWindow *w = (uiWindow *) data;
+	struct window *w = (struct window *) data;
 
 	// return exact values just in case
 	if ((*(w->onClosing))(w, w->onClosingData))
@@ -26,16 +27,93 @@ static int defaultOnClosing(uiWindow *w, void *data)
 
 static void onDestroy(GtkWidget *widget, gpointer data)
 {
-	uiWindow *w = (uiWindow *) data;
+	struct window *w = (struct window *) data;
 
 	uiFree(w);
 }
 
+static void windowDestroy(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	gtk_widget_destroy(w->widget);
+}
+
+static uintptr_t handle(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return (uintptr_t) (w->widget);
+}
+
+static char *title(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return g_strdup(gtk_window_get_title(GTK_WINDOW(w->widget)));
+}
+
+static void setTitle(uiWindow *ww, const char *title)
+{
+	struct window *w = (struct window *) ww;
+
+	gtk_window_set_title(GTK_WINDOW(w->widget), title);
+}
+
+static void show(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	// don't use gtk_widget_show_all(); that will override user hidden settings
+	gtk_widget_show(w->widget);
+}
+
+static void hide(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+	gtk_widget_hide(w->widget);
+}
+
+static void setOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
+{
+	struct window *w = (struct window *) ww;
+
+	w->onClosing = f;
+	w->onClosingData = data;
+}
+
+static void setChild(uiWindow *ww, uiControl *c)
+{
+	struct window *w = (struct window *) ww;
+
+	uiParentSetChild(w->content, c);
+	uiParentUpdate(w->content);
+}
+
+static int margined(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return w->margined;
+}
+
+static void setMargined(uiWindow *ww, int margined)
+{
+	struct window *w = (struct window *) ww;
+
+	w->margined = margined;
+	if (w->margined)
+		uiParentSetMargins(w->content, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
+	else
+		uiParentSetMargins(w->content, 0, 0, 0, 0);
+	uiParentUpdate(w->content);
+}
+
 uiWindow *uiNewWindow(char *title, int width, int height)
 {
-	uiWindow *w;
+	struct window *w;
 
-	w = uiNew(uiWindow);
+	w = uiNew(struct window);
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(w->widget), title);
 	gtk_window_resize(GTK_WINDOW(w->widget), width, height);
@@ -43,63 +121,17 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	g_signal_connect(w->widget, "destroy", G_CALLBACK(onDestroy), w);
 	w->content = uiNewParent((uintptr_t) (w->widget));
 	w->onClosing = defaultOnClosing;
-	return w;
-}
 
-void uiWindowDestroy(uiWindow *w)
-{
-	gtk_widget_destroy(w->widget);
-}
+	uiWindow(w)->Destroy = windowDestroy;
+	uiWindow(w)->Handle = handle;
+	uiWindow(w)->Title = title;
+	uiWindow(w)->SetTitle = setTitle;
+	uiWindow(w)->Show = show;
+	uiWindow(w)->Hide = hide;
+	uiWindow(w)->OnClosing = setOnClosing;
+	uiWindow(w)->SetChild = setChild;
+	uiWindow(w)->Margined = margined;
+	uiWindow(w)->SetMargined = setMargined;
 
-uintptr_t uiWindowHandle(uiWindow *w)
-{
-	return (uintptr_t) (w->widget);
-}
-
-char *uiWindowTitle(uiWindow *w)
-{
-	return g_strdup(gtk_window_get_title(GTK_WINDOW(w->widget)));
-}
-
-void uiWindowSetTitle(uiWindow *w, const char *title)
-{
-	gtk_window_set_title(GTK_WINDOW(w->widget), title);
-}
-
-void uiWindowShow(uiWindow *w)
-{
-	// don't use gtk_widget_show_all(); that will override user hidden settings
-	gtk_widget_show(w->widget);
-}
-
-void uiWindowHide(uiWindow *w)
-{
-	gtk_widget_hide(w->widget);
-}
-
-void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
-{
-	w->onClosing = f;
-	w->onClosingData = data;
-}
-
-void uiWindowSetChild(uiWindow *w, uiControl *c)
-{
-	uiParentSetChild(w->content, c);
-	uiParentUpdate(w->content);
-}
-
-int uiWindowMargined(uiWindow *w)
-{
-	return w->margined;
-}
-
-void uiWindowSetMargined(uiWindow *w, int margined)
-{
-	w->margined = margined;
-	if (w->margined)
-		uiParentSetMargins(w->content, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
-	else
-		uiParentSetMargins(w->content, 0, 0, 0, 0);
-	uiParentUpdate(w->content);
+	return uiWindow(w);
 }

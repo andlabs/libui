@@ -2,13 +2,14 @@
 #include "uipriv_windows.h"
 
 struct checkbox {
+	uiCheckbox c;
 	void (*onToggled)(uiControl *, void *);
 	void *onToggledData;
 };
 
-static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *cc, WORD code, LRESULT *lResult)
 {
-	struct checkbox *cc = (struct checkbox *) (c->data);
+	struct checkbox *c = (struct checkbox *) cc;
 	HWND hwnd;
 	WPARAM check;
 
@@ -22,7 +23,7 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 		check = BST_UNCHECKED;
 	SendMessage(hwnd, BM_SETCHECK, check, 0);
 
-	(*(cc->onToggled))(c, cc->onToggledData);
+	(*(c->onToggled))(uiCheckbox(c), c->onToggledData);
 	*lResult = 0;
 	return TRUE;
 }
@@ -32,11 +33,11 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	return FALSE;
 }
 
-static void onWM_DESTROY(uiControl *c)
+static void onWM_DESTROY(uiControl *cc)
 {
-	struct checkbox *cc = (struct checkbox *) (c->data);
+	struct checkbox *c = (struct checkbox *) cc;
 
-	uiFree(cc);
+	uiFree(c);
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -50,17 +51,56 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	*height = uiDlgUnitsToY(checkboxHeight, d->sys->baseY);
 }
 
-static void defaultOnToggled(uiControl *c, void *data)
+static void defaultOnToggled(uiCheckbox *c, void *data)
 {
 	// do nothing
 }
 
+static char *getText(uiCheckbox *c)
+{
+	return uiWindowsControlText(uiControl(c));
+}
+
+static void setText(uiCheckbox *c, const char *text)
+{
+	uiWindowsControlSetText(uiControl(c), text);
+}
+
+static void setOnToggled(uiCheckbox *cc, void (*f)(uiCheckbox *, void *), void *data)
+{
+	struct checkbox *c = (struct checkbox *) cc;
+
+	c->onToggled = f;
+	c->onToggledData = data;
+}
+
+static int getChecked(uiChecckbox *c)
+{
+	HWND hwnd;
+
+	hwnd = uiControlHWND(uiControl(c));
+	return SendMessage(hwnd, BM_GETCHECK, 0, 0) == BST_CHECKED;
+}
+
+static void setChecked(uiCheckbox *c, int checked)
+{
+	HWND hwnd;
+	WPARAM check;
+
+	hwnd = uiControlHWND(uiControl(c));
+	check = BST_CHECKED;
+	if (!checked)
+		check = BST_UNCHECKED;
+	SendMessage(hwnd, BM_SETCHECK, check, 0);
+}
+
 uiControl *uiNewCheckbox(const char *text)
 {
-	uiControl *c;
-	struct checkbox *cc;
+	struct checkbox *c;
 	uiWindowsNewControlParams p;
 	WCHAR *wtext;
+
+	c = uiNew(struct checkbox)
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
@@ -72,52 +112,18 @@ uiControl *uiNewCheckbox(const char *text)
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
-	c = uiWindowsNewControl(&p);
+	uiWindowsNewControl(uiControl(c), &p);
 	uiFree(wtext);
 
-	c->preferredSize = preferredSize;
+	c->onToggled = defaultOnToggled;
 
-	cc = uiNew(struct checkbox);
-	cc->onToggled = defaultOnToggled;
-	c->data = cc;
+	uiControl(c)->PreferredSize = preferredSize;
 
-	return c;
-}
+	uiCheckbox(c)->Text = getText;
+	uiCheckbox(c)->SetText = setText;
+	uiCheckbox(c)->OnToggled = setOnToggled;
+	uiCheckbox(c)->Checked = getChecked;
+	uiCheckbox(c)->SetChecked = setChecked;
 
-char *uiCheckboxText(uiControl *c)
-{
-	return uiWindowsControlText(c);
-}
-
-void uiCheckboxSetText(uiControl *c, const char *text)
-{
-	uiWindowsControlSetText(c, text);
-}
-
-void uiCheckboxOnToggled(uiControl *c, void (*f)(uiControl *, void *), void *data)
-{
-	struct checkbox *cc = (struct checkbox *) (c->data);
-
-	cc->onToggled = f;
-	cc->onToggledData = data;
-}
-
-int uiCheckboxChecked(uiControl *c)
-{
-	HWND hwnd;
-
-	hwnd = uiControlHWND(c);
-	return SendMessage(hwnd, BM_GETCHECK, 0, 0) == BST_CHECKED;
-}
-
-void uiCheckboxSetChecked(uiControl *c, int checked)
-{
-	HWND hwnd;
-	WPARAM check;
-
-	hwnd = uiControlHWND(c);
-	check = BST_CHECKED;
-	if (!checked)
-		check = BST_UNCHECKED;
-	SendMessage(hwnd, BM_SETCHECK, check, 0);
+	return uiCheckbox(c);
 }

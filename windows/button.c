@@ -102,7 +102,7 @@ uiButton *uiNewButton(const char *text)
 
 	b->onClicked = defaultOnClicked;
 
-	uiControl(b)->preferredSize = preferredSize;
+	uiControl(b)->PreferredSize = preferredSize;
 
 	uiButton(b)->Text = getText;
 	uiButton(b)->SetText = setText;

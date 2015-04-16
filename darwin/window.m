@@ -9,7 +9,7 @@
 @property uiParent *content;
 @property int (*onClosing)(uiWindow *, void *);
 @property void *onClosingData;
-@property uiWindow *uiw;
+@property struct window *uiw;
 @end
 
 @implementation uiWindowDelegate
@@ -42,7 +42,8 @@ uiLogObjCClassAllocations
 
 @end
 
-struct uiWindow {
+struct window {
+	uiWindow w;
 	uiWindowDelegate *d;
 	int margined;
 };
@@ -52,7 +53,69 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 1;
 }
 
-uiWindow *uiNewWindow(char *title, int width, int height)
+#define D (((struct window *) w)->d)
+
+static void windowDestroy(uiWindow *w)
+{
+	[D.w close];
+}
+
+static uintptr_t windowHandle(uiWindow *w)
+{
+	return (uintptr_t) (D.w);
+}
+
+static char *windowTitle(uiWindow *w)
+{
+	return uiDarwinNSStringToText([D.w title]);
+}
+
+static void windowSetTitle(uiWindow *w, const char *title)
+{
+	[D.w setTitle:toNSString(title)];
+}
+
+static void windowShow(uiWindow *w)
+{
+	[D.w makeKeyAndOrderFront:D.w];
+}
+
+static void windowHide(uiWindow *w)
+{
+	[D.w orderOut:D.w];
+}
+
+static void windowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
+{
+	D.onClosing = f;
+	D.onClosingData = data;
+}
+
+static void windowSetChild(uiWindow *w, uiControl *c)
+{
+	uiParentSetChild(D.content, c);
+}
+
+static int windowMargined(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return w->margined;
+}
+
+static void windowSetMargined(uiWindow *ww, int margined)
+{
+	struct window *w = (struct window *) ww;
+
+	w->margined = margined;
+	if (w->margined)
+		uiParentSetMargins(D.content, macXMargin, macYMargin, macXMargin, macYMargin);
+	else
+		uiParentSetMargins(D.content, 0, 0, 0, 0);
+	uiParentUpdate(D.content);
+}
+
+uiWindow *uiNewWindow(const char *title, int width, int height)
 {
 	uiWindowDelegate *d;
 
@@ -81,65 +144,19 @@ uiWindow *uiNewWindow(char *title, int width, int height)
 	d.onClosing = defaultOnClosing;
 	[d.w setDelegate:d];
 
-	d.uiw = uiNew(uiWindow);
+	d.uiw = uiNew(struct window);
 	d.uiw->d = d;
+
+	uiWindow(d.uiw)->Destroy = windowDestroy;
+	uiWindow(d.uiw)->Handle = windowHandle;
+	uiWindow(d.uiw)->Title = windowTitle;
+	uiWindow(d.uiw)->SetTitle = windowSetTitle;
+	uiWindow(d.uiw)->Show = windowShow;
+	uiWindow(d.uiw)->Hide = windowHide;
+	uiWindow(d.uiw)->OnClosing = windowSetOnClosing;
+	uiWindow(d.uiw)->SetChild = windowSetChild;
+	uiWindow(d.uiw)->Margined = windowMargined;
+	uiWindow(d.uiw)->SetMargined = windowSetMargined;
+
 	return d.uiw;
-}
-
-#define D w->d
-
-void uiWindowDestroy(uiWindow *w)
-{
-	[D.w close];
-}
-
-uintptr_t uiWindowHandle(uiWindow *w)
-{
-	return (uintptr_t) (D.w);
-}
-
-char *uiWindowTitle(uiWindow *w)
-{
-	return uiDarwinNSStringToText([D.w title]);
-}
-
-void uiWindowSetTitle(uiWindow *w, const char *title)
-{
-	[D.w setTitle:toNSString(title)];
-}
-
-void uiWindowShow(uiWindow *w)
-{
-	[D.w makeKeyAndOrderFront:D.w];
-}
-
-void uiWindowHide(uiWindow *w)
-{
-	[D.w orderOut:D.w];
-}
-
-void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
-{
-	D.onClosing = f;
-	D.onClosingData = data;
-}
-
-void uiWindowSetChild(uiWindow *w, uiControl *c)
-{
-	uiParentSetChild(D.content, c);
-}
-
-int uiWindowMargined(uiWindow *w)
-{
-	return w->margined;
-}
-
-void uiWindowSetMargined(uiWindow *w, int margined)
-{
-	w->margined = margined;
-	if (w->margined)
-		uiParentSetMargins(D.content, macXMargin, macYMargin, macXMargin, macYMargin);
-	else
-		uiParentSetMargins(D.content, 0, 0, 0, 0);
-	uiParentUpdate(D.content);
 }

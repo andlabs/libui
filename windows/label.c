@@ -2,6 +2,7 @@
 #include "uipriv_windows.h"
 
 struct label {
+	uiLabel l;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
@@ -16,7 +17,7 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 
 static void onWM_DESTROY(uiControl *c)
 {
-	struct label *l = (struct label *) (c->data);
+	struct label *l = (struct label *) c;
 
 	uiFree(l);
 }
@@ -30,12 +31,23 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	*height = uiDlgUnitsToY(labelHeight, d->sys->baseY);
 }
 
+static char *getText(uiLabel *l)
+{
+	return uiWindowsControlText(uiControl(l));
+}
+
+static void setText(uiLabel *l, const char *text)
+{
+	uiWindowsControlSetText(uiControl(l), text);
+}
+
 uiControl *uiNewLabel(const char *text)
 {
-	uiControl *c;
 	struct label *l;
 	uiWindowsNewControlParams p;
 	WCHAR *wtext;
+
+	l = uiNew(struct label);
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"static";
@@ -49,23 +61,13 @@ uiControl *uiNewLabel(const char *text)
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
-	c = uiWindowsNewControl(&p);
+	uiWindowsNewControl(uiControl(l), &p);
 	uiFree(wtext);
 
-	c->preferredSize = preferredSize;
+	uiControl(l)->PreferredSize = preferredSize;
 
-	l = uiNew(struct label);
-	c->data = l;
+	uiLabel(l)->Text = getText;
+	uiLabel(l)->SetText = setText;
 
-	return c;
-}
-
-char *uiLabelText(uiControl *c)
-{
-	return uiWindowsControlText(c);
-}
-
-void uiLabelSetText(uiControl *c, const char *text)
-{
-	uiWindowsControlSetText(c, text);
+	return uiLabel(l);
 }

@@ -2,6 +2,7 @@
 #include "uipriv_windows.h"
 
 struct entry {
+	uiEntry e;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
@@ -16,7 +17,7 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 
 static void onWM_DESTROY(uiControl *c)
 {
-	struct entry *e = (struct entry *) (c->data);
+	struct entry *e = (struct entry *) c;
 
 	uiFree(e);
 }
@@ -31,11 +32,22 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	*height = uiDlgUnitsToY(entryHeight, d->sys->baseY);
 }
 
+static char *getText(uiEntry *e)
+{
+	return uiWindowsControlText(uiControl(e));
+}
+
+static void setText(uiEntry *e, const char *text)
+{
+	uiWindowsControlSetText(uiControl(e), text);
+}
+
 uiControl *uiNewEntry(void)
 {
-	uiControl *c;
 	struct entry *e;
 	uiWindowsNewControlParams p;
+
+	e = uiNew(struct entry);
 
 	p.dwExStyle = WS_EX_CLIENTEDGE;
 	p.lpClassName = L"edit";
@@ -46,22 +58,12 @@ uiControl *uiNewEntry(void)
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_DESTROY = onWM_DESTROY;
-	c = uiWindowsNewControl(&p);
+	uiWindowsNewControl(uiControl(e), &p);
 
-	c->preferredSize = preferredSize;
+	uiControl(e)->PreferredSize = preferredSize;
 
-	e = uiNew(struct entry);
-	c->data = e;
+	uiEntry(e)->Text = getText;
+	uiEntry(e)->SetText = setText;
 
-	return c;
-}
-
-char *uiEntryText(uiControl *c)
-{
-	return uiWindowsControlText(c);
-}
-
-void uiEntrySetText(uiControl *c, const char *text)
-{
-	uiWindowsControlSetText(c, text);
+	return uiEntry(e);
 }

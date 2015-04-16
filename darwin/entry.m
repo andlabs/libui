@@ -2,21 +2,37 @@
 #import "uipriv_darwin.h"
 
 @interface uiNSTextField : NSTextField
-@property uiControl *uiC;
+@property uiEntry *uiE;
 @end
 
 @implementation uiNSTextField
 
 - (void)viewDidMoveToSuperview
 {
-	if (uiDarwinControlFreeWhenAppropriate(self.uiC, [self superview])) {
+	if (uiDarwinControlFreeWhenAppropriate(uiControl(self.uiE), [self superview])) {
 		[self setTarget:nil];
-		self.uiC = NULL;
+		self.uiE = NULL;
 	}
 	[super viewDidMoveToSuperview];
 }
 
 @end
+
+static char *entryText(uiEntry *e)
+{
+	uiNSTextField *t;
+
+	t = (uiNSTextField *) uiControlHandle(uiControl(e));
+	return uiDarwinNSStringToText([t stringValue]);
+}
+
+static void entrySetText(uiEntry *e, const char *text)
+{
+	uiNSTextField *t;
+
+	t = (uiNSTextField *) uiControlHandle(uiControl(e));
+	[t setStringValue:toNSString(text)];
+}
 
 // TOOD move elsewhere
 // these are based on interface builder defaults; my comments in the old code weren't very good so I don't really know what talked about what, sorry :/
@@ -35,33 +51,23 @@ void finishNewTextField(NSTextField *t, BOOL isEntry)
 	[[t cell] setScrollable:YES];
 }
 
-uiControl *uiNewEntry(void)
+uiEntry *uiNewEntry(void)
 {
-	uiControl *c;
+	uiEntry *e;
 	uiNSTextField *t;
 
-	c = uiDarwinNewControl([uiNSTextField class], NO, NO);
+	e = uiNew(uiEntry);
+
+	uiDarwinNewControl(uiControl(e), [uiNSTextField class], NO, NO);
 	t = (uiNSTextField *) uiControlHandle(c);
-	t.uiC = c;
 
 	[t setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
 	finishNewTextField((NSTextField *) t, YES);
 
-	return t.uiC;
-}
+	uiEntry(e)->Text = entryText;
+	uiEntry(e)->SetText = entrySetText;
 
-char *uiEntryText(uiControl *c)
-{
-	uiNSTextField *t;
+	t.uiE = e;
 
-	t = (uiNSTextField *) uiControlHandle(c);
-	return uiDarwinNSStringToText([t stringValue]);
-}
-
-void uiEntrySetText(uiControl *c, const char *text)
-{
-	uiNSTextField *t;
-
-	t = (uiNSTextField *) uiControlHandle(c);
-	[t setStringValue:toNSString(text)];
+	return t.uiE;
 }

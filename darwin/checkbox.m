@@ -11,7 +11,7 @@
 
 - (void)viewDidMoveToSuperview
 {
-	if (uiDarwinControlFreeWhenAppropriate(self.uiC, [self superview])) {
+	if (uiDarwinControlFreeWhenAppropriate(uiControl(self.uiC), [self superview])) {
 		[self setTarget:nil];
 		self.uiC = NULL;
 	}

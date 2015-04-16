@@ -40,7 +40,6 @@ struct Sizing {
 };
 
 interface Control {
-	field Data *void;		// for use by implementations only
 	field Internal *void;		// for use by ui only
 	func Destroy(void);
 	func Handle(void) uintptr_t;

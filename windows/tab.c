@@ -6,6 +6,7 @@
 // - tell wine developers that tab controls do respond to parent changes on real windows (at least comctl6 tab controls do)
 
 struct tab {
+	uiTab t;
 	uiParent **pages;
 	uintmax_t len;
 	uintmax_t cap;
@@ -19,7 +20,7 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 // we have to handle hiding and showing of tab pages ourselves
 static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 {
-	struct tab *t = (struct tab *) (c->data);
+	struct tab *t = (struct tab *) c;
 	LRESULT n;
 
 	switch (nm->code) {
@@ -45,7 +46,7 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 
 static void onWM_DESTROY(uiControl *c)
 {
-	struct tab *t = (struct tab *) (c->data);
+	struct tab *t = (struct tab *) c;
 
 	// no need to worry about freeing the pages themselves; they'll destroy themselves after we return
 	uiFree(t->pages);
@@ -60,7 +61,7 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 // common code for resizes
 static void resizeTab(uiControl *c, LONG width, LONG height)
 {
-	struct tab *t = (struct tab *) (c->data);
+	struct tab *t = (struct tab *) c;
 	HWND hwnd;
 	LRESULT n;
 	RECT r;
@@ -115,41 +116,11 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 	return (*fv_DefSubclassProc)(hwnd, uMsg, wParam, lParam);
 }
 
-uiControl *uiNewTab(void)
-{
-	uiControl *c;
-	struct tab *t;
-	uiWindowsNewControlParams p;
-	HWND hwnd;
-
-	p.dwExStyle = 0;		// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
-	p.lpClassName = WC_TABCONTROLW;
-	p.lpWindowName = L"";
-	p.dwStyle = TCS_TOOLTIPS | WS_TABSTOP;
-	p.hInstance = hInstance;
-	p.useStandardControlFont = TRUE;
-	p.onWM_COMMAND = onWM_COMMAND;
-	p.onWM_NOTIFY = onWM_NOTIFY;
-	p.onWM_DESTROY = onWM_DESTROY;
-	c = uiWindowsNewControl(&p);
-
-	c->preferredSize = preferredSize;
-
-	t = uiNew(struct tab);
-	c->data = t;
-
-	hwnd = uiControlHWND(c);
-	if ((*fv_SetWindowSubclass)(hwnd, tabSubProc, 0, (DWORD_PTR) c) == FALSE)
-		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
-
-	return c;
-}
-
 #define tabCapGrow 32
 
-void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
+void addPage(uiTab *tt, const char *name, uiControl *child)
 {
-	struct tab *t = (struct tab *) (c->data);
+	struct tab *t = (struct tab *) tt;
 	HWND hwnd;
 	TCITEMW item;
 	LRESULT n;
@@ -186,4 +157,34 @@ void uiTabAddPage(uiControl *c, const char *name, uiControl *child)
 	// so we need to manually resize the tab ourselves
 	// don't use uiUpdateParent() for the same reason as in the TCN_SELCHANGE handler
 	SendMessageW(uiControlHWND(c), msgUpdateChild, 0, 0);
+}
+
+uiTab *uiNewTab(void)
+{
+	struct tab *t;
+	uiWindowsNewControlParams p;
+	HWND hwnd;
+
+	t = uiNew(struct tab);
+
+	p.dwExStyle = 0;		// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
+	p.lpClassName = WC_TABCONTROLW;
+	p.lpWindowName = L"";
+	p.dwStyle = TCS_TOOLTIPS | WS_TABSTOP;
+	p.hInstance = hInstance;
+	p.useStandardControlFont = TRUE;
+	p.onWM_COMMAND = onWM_COMMAND;
+	p.onWM_NOTIFY = onWM_NOTIFY;
+	p.onWM_DESTROY = onWM_DESTROY;
+	uiWindowsNewControl(uiControl(t), &p);
+
+	hwnd = uiControlHWND(uiControl(t));
+	if ((*fv_SetWindowSubclass)(hwnd, tabSubProc, 0, (DWORD_PTR) c) == FALSE)
+		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
+
+	uiControl(t)->PreferredSize = preferredSize;
+
+	uiTab(t)->AddPage = addPage;
+
+	return uiTab(t);
 }

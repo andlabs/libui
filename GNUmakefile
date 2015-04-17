@@ -61,3 +61,6 @@ $(OBJDIR):
 
 ui.h: ui.idl
 	idl2h < ui.idl > ui.h
+
+clean:
+	rm -rf $(OBJDIR) ui.h

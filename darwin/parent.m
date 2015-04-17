@@ -1,23 +1,16 @@
-// 4 august 2014
+// 17 april 2015
 #import "uipriv_darwin.h"
 
-// calling -[className] on the content views of NSWindow, NSTabItem, and NSBox all return NSView, so I'm assuming I just need to override these
-// fornunately:
-// - NSWindow resizing calls -[setFrameSize:] (but not -[setFrame:])
-// - NSTabView resizing calls both -[setFrame:] and -[setFrameSIze:] on the current tab
-// - NSTabView switching tabs calls both -[setFrame:] and -[setFrameSize:] on the new tab
-// so we just override setFrameSize:
-// thanks to mikeash and JtRip in irc.freenode.net/#macdev
 @interface uipParent : NSView {
-// TODO
-@public
 	uiControl *mainControl;
 	intmax_t marginLeft;
 	intmax_t marginTop;
 	intmax_t marginRight;
 	intmax_t marginBottom;
 }
-- (void)uiUpdateNow;
+- (void)uipSetMainControl:(uiControl *)mainControl parent:(uiParent *)p;
+- (void)uipSetMarginLeft:(intmax_t)left top:(intmax_t)top right:(intmax_t)right bottom:(intmax_t)bottom;
+- (void)uipUpdate;
 @end
 
 @implementation uipParent
@@ -32,7 +25,6 @@ uiLogObjCClassAllocations
 		if (self->mainControl != NULL) {
 			uiControlDestroy(self->mainControl);
 			self->mainControl = NULL;
-			[self release];
 		}
 	[super viewDidMoveToSuperview];
 }
@@ -40,7 +32,24 @@ uiLogObjCClassAllocations
 - (void)setFrameSize:(NSSize)s
 {
 	[super setFrameSize:s];
-	[self uiUpdateNow];
+	[self uipUpdate];
+}
+
+- (void)uipSetMainControl:(uiControl *)mainControl parent:(uiParent *)p
+{
+	if (self->mainControl != NULL)
+		uiControlSetParent(self->mainControl, NULL);
+	self->mainControl = mainControl;
+	if (self->mainControl != NULL)
+		uiControlSetParent(self->mainControl, p);
+}
+
+- (void)uipSetMarginLeft:(intmax_t)left top:(intmax_t)top right:(intmax_t)right bottom:(intmax_t)bottom
+{
+	self->marginLeft = left;
+	self->marginTop = top;
+	self->marginRight = right;
+	self->marginBottom = bottom;
 }
 
 // These are based on measurements from Interface Builder.
@@ -50,7 +59,7 @@ uiLogObjCClassAllocations
 // Likewise, this one appears to be 12 for pairs of push buttons...
 #define macYPadding 8
 
-- (void)uiUpdateNow
+- (void)uipUpdate
 {
 	uiSizing d;
 	intmax_t x, y, width, height;
@@ -68,53 +77,58 @@ uiLogObjCClassAllocations
 
 @end
 
+static void parentDestroy(uiParent *pp)
+{
+	uipParent *p = (uipParent *) (pp->Internal);
+
+	[p retain];		// to avoid destruction upon removing from superview
+	[p removeFromSuperview];
+	[destroyedControlsView addSubview:p];
+	[p release];
+}
+
 static uintptr_t parentHandle(uiParent *p)
 {
-	uipParent *pp = (uipParent *) (p->Internal);
-
-	return (uintptr_t) pp;
+	return (uintptr_t) (p->Internal);
 }
 
 static void parentSetMainControl(uiParent *pp, uiControl *mainControl)
 {
 	uipParent *p = (uipParent *) (pp->Internal);
 
-	if (p->mainControl != NULL)
-		uiControlSetParent(p->mainControl, NULL);
-	p->mainControl = mainControl;
-	if (p->mainControl != NULL)
-		uiControlSetParent(p->mainControl, pp);
+	[p uipSetMainControl:mainControl parent:pp];
 }
 
-static void parentSetMargins(uiParent *p, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom)
+static void parentSetMargins(uiParent *pp, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom)
 {
-	uipParent *pp = (uipParent *) (p->Internal);
+	uipParent *p = (uipParent *) (pp->Internal);
 
-	pp->marginLeft = left;
-	pp->marginTop = top;
-	pp->marginRight = right;
-	pp->marginBottom = bottom;
+	[p uipSetMarginLeft:left top:top right:right bottom:bottom];
 }
 
-static void parentUpdate(uiParent *p)
+static void parentUpdate(uiParent *pp)
 {
-	uipParent *pp = (uipParent *) (p->Internal);
+	uipParent *p = (uipParent *) (pp->Internal);
 
-	[pp uiUpdateNow];
+	[p uipUpdate];
 }
 
 uiParent *uiNewParent(uintptr_t osParent)
 {
 	uiParent *p;
+	uipParent *pp;
 
 	p = uiNew(uiParent);
-	p->Internal = [[uipParent alloc] initWithFrame:NSZeroRect];
+
+	pp = [[uipParent alloc] initWithFrame:NSZeroRect];
+	// don't use osParent; we'll need to call specific selectors to set the parent view
+	p->Internal = pp;
+
+	p->Destroy = parentDestroy;
 	p->Handle = parentHandle;
 	p->SetMainControl = parentSetMainControl;
 	p->SetMargins = parentSetMargins;
 	p->Update = parentUpdate;
-	// don't use osParent; we'll need to call specific selectors to set the parent view
-	// and keep the view alive so we can release it properly later
-	[((uipParent *) (p->Internal)) retain];
+
 	return p;
 }

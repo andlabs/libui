@@ -230,15 +230,3 @@ void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrol
 	c->ContainerEnable = singleContainerEnable;
 	c->ContainerDisable = singleContainerDisable;
 }
-
-BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview)
-{
-	singleView *s = (singleView *) (c->Internal);
-
-	if (newSuperview == destroyedControlsView) {
-		[s->immediate release];		// we don't need the reference anymore
-		uiFree(s);
-		return YES;
-	}
-	return NO;
-}

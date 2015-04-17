@@ -37,8 +37,6 @@ enum {
 };
 
 #define HWND(c) ((HWND) uiControlHandle(uiControl(c)))
-// TODO get rid of this
-#define uiControlHWND(c) HWND(c)
 #define uiParentHWND(p) ((HWND) uiParentHandle(p))
 
 // debug_windows.c

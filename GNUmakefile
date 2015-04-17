@@ -1,6 +1,7 @@
 # 15 april 2015
 
 OBJDIR = .obj
+OUTBASE = new
 
 # MAME does this so :/
 ifeq ($(OS),Windows_NT)

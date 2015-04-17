@@ -18,7 +18,7 @@ OSCFILES = \
 xLDFLAGS += \
 	-luser32 -lkernel32 -lgdi32 -luxtheme -lmsimg32 -lcomdlg32 -lole32 -loleaut32 -loleacc -luuid
 
-OUT = new.exe
+OUT = $(OUTBASE).exe
 
 ifeq ($(ARCH),64)
 	CC = x86_64-w64-mingw32-gcc

@@ -16,4 +16,4 @@ OSMFILES = \
 xCFLAGS += -mmacosx-version-min=10.7 -DMACOSX_DEPLOYMENT_TARGET=10.7
 xLDFLAGS += -mmacosx-version-min=10.7 -lobjc -framework Foundation -framework AppKit
 
-OUT = new
+OUT = $(OUTBASE)

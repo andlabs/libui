@@ -15,4 +15,4 @@ OSCFILES = \
 xCFLAGS += `pkg-config --cflags gtk+-3.0`
 xLDFLAGS += `pkg-config --libs gtk+-3.0`
 
-OUT = new
+OUT = $(OUTBASE)

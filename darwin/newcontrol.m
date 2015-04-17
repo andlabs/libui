@@ -12,13 +12,22 @@ struct singleView {
 	BOOL containerHid;
 	BOOL userDisabled;
 	BOOL containerDisabled;
+	void (*onDestroy)(void *);
+	void *onDestroyData;
 };
 
 static void singleDestroy(uiControl *c)
 {
 	singleView *s = (singleView *) (c->Internal);
 
+	[s->immediate retain];		// to keep alive when removing
+	if (s->parent != NULL) {
+		[s->immediate removeFromSuperview];
+		s->parent = NULL;
+	}
 	[destroyedControlsView addSubview:s->immediate];
+	(*(s->onDestroy))(s->onDestroyData);
+	[s->immediate release];
 }
 
 static uintptr_t singleHandle(uiControl *c)
@@ -28,6 +37,7 @@ static uintptr_t singleHandle(uiControl *c)
 	return (uintptr_t) (s->view);
 }
 
+// TODO figure out retain/release for this
 static void singleSetParent(uiControl *c, uiParent *parent)
 {
 	singleView *s = (singleView *) (c->Internal);
@@ -176,7 +186,7 @@ static void singleContainerDisable(uiControl *c)
 	disable(s);
 }
 
-void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder)
+void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void (*onDestroy)(void *), void *onDestroyData)
 {
 	singleView *s;
 
@@ -197,6 +207,9 @@ void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrol
 			[s->scrollView setBorderType:NSNoBorder];
 		s->immediate = (NSView *) (s->scrollView);
 	}
+
+	s->onDestroy = onDestroy;
+	s->onDestroyData = onDestroyData;
 
 	// and keep a reference to s->immediate for when we remove the control from its parent
 	[s->immediate retain];

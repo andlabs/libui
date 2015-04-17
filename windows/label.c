@@ -3,6 +3,7 @@
 
 struct label {
 	uiLabel l;
+	HWND hwnd;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
@@ -27,16 +28,18 @@ static void onWM_DESTROY(uiControl *c)
 
 static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsWindowTextWidth(uiControlHWND(c));
+	struct label *l = (struct label *) c;
+
+	*width = uiWindowsWindowTextWidth(l->hwnd);
 	*height = uiDlgUnitsToY(labelHeight, d->sys->baseY);
 }
 
-static char *getText(uiLabel *l)
+static char *labelText(uiLabel *l)
 {
 	return uiWindowsControlText(uiControl(l));
 }
 
-static void setText(uiLabel *l, const char *text)
+static void labelSetText(uiLabel *l, const char *text)
 {
 	uiWindowsControlSetText(uiControl(l), text);
 }
@@ -64,10 +67,12 @@ uiLabel *uiNewLabel(const char *text)
 	uiWindowsNewControl(uiControl(l), &p);
 	uiFree(wtext);
 
+	l->hwnd = HWND(l);
+
 	uiControl(l)->PreferredSize = preferredSize;
 
-	uiLabel(l)->Text = getText;
-	uiLabel(l)->SetText = setText;
+	uiLabel(l)->Text = labelText;
+	uiLabel(l)->SetText = labelSetText;
 
 	return uiLabel(l);
 }

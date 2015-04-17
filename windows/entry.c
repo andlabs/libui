@@ -3,6 +3,7 @@
 
 struct entry {
 	uiEntry e;
+	HWND hwnd;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
@@ -32,12 +33,12 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	*height = uiDlgUnitsToY(entryHeight, d->sys->baseY);
 }
 
-static char *getText(uiEntry *e)
+static char *entryText(uiEntry *e)
 {
 	return uiWindowsControlText(uiControl(e));
 }
 
-static void setText(uiEntry *e, const char *text)
+static void entrySetText(uiEntry *e, const char *text)
 {
 	uiWindowsControlSetText(uiControl(e), text);
 }
@@ -60,10 +61,12 @@ uiEntry *uiNewEntry(void)
 	p.onWM_DESTROY = onWM_DESTROY;
 	uiWindowsNewControl(uiControl(e), &p);
 
+	e->hwnd = HWND(e);
+
 	uiControl(e)->PreferredSize = preferredSize;
 
-	uiEntry(e)->Text = getText;
-	uiEntry(e)->SetText = setText;
+	uiEntry(e)->Text = entryText;
+	uiEntry(e)->SetText = entrySetText;
 
 	return uiEntry(e);
 }

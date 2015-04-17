@@ -97,7 +97,7 @@ static void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 
 struct parent {
 	HWND hwnd;
-	uiControl *child;
+	uiControl *mainControl;
 	intmax_t marginLeft;
 	intmax_t marginTop;
 	intmax_t marginRight;
@@ -167,7 +167,7 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 			break;
 		// fall through
 	case msgUpdateChild:
-		if (pp->child == NULL)
+		if (pp->mainControl == NULL)
 			break;
 		if (GetClientRect(pp->hwnd, &r) == 0)
 			logLastError("error getting client rect for resize in parentWndProc()");
@@ -175,7 +175,7 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		margin.top = pp->marginTop;
 		margin.right = pp->marginRight;
 		margin.bottom = pp->marginBottom;
-		resize(pp->child, pp->hwnd, r, margin);
+		resize(pp->mainControl, pp->hwnd, r, margin);
 		return 0;
 	}
 
@@ -218,13 +218,15 @@ static uintptr_t parentHandle(uiParent *p)
 	return (uintptr_t) (pp->hwnd);
 }
 
-static void parentSetChild(uiParent *p, uiControl *child)
+static void parentSetMainControl(uiParent *pp, uiControl *mainControl)
 {
-	struct parent *pp = (struct parent *) (p->Internal);
+	struct parent *p = (struct parent *) (pp->Internal);
 
-	pp->child = child;
-	if (pp->child != NULL)
-		uiControlSetParent(child, p);
+	if (p->mainControl != NULL)
+		uiControlSetParent(p->mainControl, NULL);
+	p->mainControl = mainControl;
+	if (p->mainControl != NULL)
+		uiControlSetParent(p->mainControl, pp);
 }
 
 static void parentSetMargins(uiParent *p, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom)
@@ -261,8 +263,9 @@ uiParent *uiNewParent(uintptr_t osParent)
 	if (pp->hwnd == NULL)
 		logLastError("error creating uiParent window in uiNewParent()");
 	p->Handle = parentHandle;
-	p->SetChild = parentSetChild;
+	p->SetMainControl = parentSetMainControl;
 	p->SetMargins = parentSetMargins;
 	p->Update = parentUpdate;
+
 	return p;
 }

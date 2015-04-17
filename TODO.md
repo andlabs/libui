@@ -13,8 +13,7 @@
 - SWP_NOCOPYBITS (or was it WS_CLIPCHILDREN?)
 	- buttons not in tab get drawover issues
 	- buttons in tab without transparent drawing code get copied into the label when stack shown and rehidden
-- see if we can clean up the Darwin backend
-- make the Unix and Windows backend use uiParentDestroy() instead of relying on the autodestroy behavior of the backends
+- make the backends use uiParentDestroy() instead of relying on the autodestroy behavior of the backends
 	- this requires explicitly handling delete events
 - verify retainment for uiParents in GTK+
 

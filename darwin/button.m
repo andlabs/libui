@@ -76,9 +76,9 @@ static void buttonOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *d
 
 uiButton *uiNewButton(const char *text)
 {
-	uiButton *b;
+	struct button *b;
 
-	b = uiNew(uiButton);
+	b = uiNew(struct button);
 
 	uiDarwinNewControl(uiControl(b), [NSButton class], NO, NO, destroy, b);
 

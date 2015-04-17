@@ -1,59 +1,50 @@
 // 9 april 2015
 #import "uipriv_darwin.h"
 
-@interface uiLabelNSTextField : NSTextField
-@property uiLabel *uiL;
-@end
+struct label {
+	uiLabel l;
+	NSTextField *label;
+};
 
-@implementation uiLabelNSTextField
-
-- (void)viewDidMoveToSuperview
+static void destroy(void *data)
 {
-	if (uiDarwinControlFreeWhenAppropriate(uiControl(self.uiL), [self superview])) {
-		[self setTarget:nil];
-		self.uiL = NULL;
-	}
-	[super viewDidMoveToSuperview];
+	struct label *l = (struct label *) data;
+
+	uiFree(l);
 }
 
-@end
-
-static char *labelText(uiLabel *l)
+static char *labelText(uiLabel *ll)
 {
-	uiLabelNSTextField *t;
+	struct label *l = (struct label *) ll;
 
-	t = (uiLabelNSTextField *) uiControlHandle(uiControl(l));
-	return uiDarwinNSStringToText([t stringValue]);
+	return uiDarwinNSStringToText([l->label stringValue]);
 }
 
-static void labelSetText(uiLabel *l, const char *text)
+static void labelSetText(uiLabel *ll, const char *text)
 {
-	uiLabelNSTextField *t;
+	struct label *l = (struct label *) ll;
 
-	t = (uiLabelNSTextField *) uiControlHandle(uiControl(l));
-	[t setStringValue:toNSString(text)];
+	[l->label setStringValue:toNSString(text)];
 }
 
 uiLabel *uiNewLabel(const char *text)
 {
-	uiLabel *l;
-	uiLabelNSTextField *t;
+	struct label *l;
 
-	l = uiNew(uiLabel);
+	l = uiNew(struct label);
 
-	uiDarwinNewControl(uiControl(l), [uiLabelNSTextField class], NO, NO);
-	t = (uiLabelNSTextField *) uiControlHandle(uiControl(l));
+	uiDarwinNewControl(uiControl(l), [NSTextField class], NO, NO, destroy, NULL);
 
-	[t setStringValue:toNSString(text)];
-	[t setEditable:NO];
-	[t setSelectable:NO];
-	[t setDrawsBackground:NO];
-	finishNewTextField((NSTextField *) t, NO);
+	l->label = (NSTextField *) VIEW(l);
+
+	[l->label setStringValue:toNSString(text)];
+	[l->label setEditable:NO];
+	[l->label setSelectable:NO];
+	[l->label setDrawsBackground:NO];
+	finishNewTextField(l->label, NO);
 
 	uiLabel(l)->Text = labelText;
 	uiLabel(l)->SetText = labelSetText;
 
-	t.uiL = l;
-
-	return t.uiL;
+	return uiLabel(l);
 }

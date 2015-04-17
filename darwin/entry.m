@@ -1,44 +1,36 @@
 // 9 april 2015
 #import "uipriv_darwin.h"
 
-@interface uiNSTextField : NSTextField
-@property uiEntry *uiE;
-@end
-
-@implementation uiNSTextField
-
-- (void)viewDidMoveToSuperview
-{
-	if (uiDarwinControlFreeWhenAppropriate(uiControl(self.uiE), [self superview])) {
-		[self setTarget:nil];
-		self.uiE = NULL;
-	}
-	[super viewDidMoveToSuperview];
+struct entry {
+	uiEntry e;
+	NSTextField *textfield;
 }
 
-@end
-
-static char *entryText(uiEntry *e)
+static void destroy(void *data)
 {
-	uiNSTextField *t;
+	struct entry *e = (struct entry *) data;
 
-	t = (uiNSTextField *) uiControlHandle(uiControl(e));
-	return uiDarwinNSStringToText([t stringValue]);
+	uiFree(e);
 }
 
-static void entrySetText(uiEntry *e, const char *text)
+static char *entryText(uiEntry *ee)
 {
-	uiNSTextField *t;
+	struct entry *e = (struct entry *) ee;
 
-	t = (uiNSTextField *) uiControlHandle(uiControl(e));
-	[t setStringValue:toNSString(text)];
+	return uiDarwinNSStringToText([e->textfield stringValue]);
 }
 
-// TOOD move elsewhere
+static void entrySetText(uiEntry *ee, const char *text)
+{
+	struct entry *e = (struct entry *) ee;
+
+	[e->textfield setStringValue:toNSString(text)];
+}
+
 // these are based on interface builder defaults; my comments in the old code weren't very good so I don't really know what talked about what, sorry :/
 void finishNewTextField(NSTextField *t, BOOL isEntry)
 {
-	setStandardControlFont((id) t);
+	setStandardControlFont(t);
 
 	// THE ORDER OF THESE CALLS IS IMPORTANT; CHANGE IT AND THE BORDERS WILL DISAPPEAR
 	[t setBordered:NO];
@@ -53,21 +45,19 @@ void finishNewTextField(NSTextField *t, BOOL isEntry)
 
 uiEntry *uiNewEntry(void)
 {
-	uiEntry *e;
-	uiNSTextField *t;
+	struct entry *e;
 
-	e = uiNew(uiEntry);
+	e = uiNew(struct entry);
 
-	uiDarwinNewControl(uiControl(e), [uiNSTextField class], NO, NO);
-	t = (uiNSTextField *) uiControlHandle(uiControl(e));
+	uiDarwinNewControl(uiControl(e), [NSTextField class], NO, NO, destroy, NULL);
 
-	[t setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
-	finishNewTextField((NSTextField *) t, YES);
+	e->textfield = (NSTextField *) VIEW(e);
+
+	[e->textfield setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
+	finishNewTextField(e->textfield, YES);
 
 	uiEntry(e)->Text = entryText;
 	uiEntry(e)->SetText = entrySetText;
 
-	t.uiE = e;
-
-	return t.uiE;
+	return uiEntry(e);
 }

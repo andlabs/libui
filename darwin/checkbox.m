@@ -94,9 +94,9 @@ static void checkboxSetChecked(uiCheckbox *cc, int checked)
 
 uiCheckbox *uiNewCheckbox(const char *text)
 {
-	uiCheckbox *c;
+	struct checkbox *c;
 
-	c = uiNew(uiCheckbox);
+	c = uiNew(struct checkbox);
 
 	uiDarwinNewControl(uiControl(c), [NSButton class], NO, NO, destroy, NULL);
 

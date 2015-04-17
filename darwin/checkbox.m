@@ -102,7 +102,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c->checkbox = (NSButton *) VIEW(c);
 
-	[c-checkbox setTitle:toNSString(text)];
+	[c->checkbox setTitle:toNSString(text)];
 	[c->checkbox setButtonType:NSSwitchButton];
 	[c->checkbox setBordered:NO];
 	setStandardControlFont(c->checkbox);

@@ -13,8 +13,8 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 // The two onDestroy parameters define a function and its parameter to call when the widget is destroyed.
 // Your control must call uiDarwinControlFreeWhenAppropriate() on the returned uiControl in its -[viewDidMoveToSuperview] method.
 // If it returns a value other than NO, then the uiControl has been freed and you should set references to it to NULL.
-extern void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder);
-extern BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview, void (*onDestroy)(void *), void *onDestroyData);
+extern void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void (*onDestroy)(void *), void *onDestroyData);
+extern BOOL uiDarwinControlFreeWhenAppropriate(uiControl *c, NSView *newSuperview);
 
 // You can use this function from within your control implementations to return text strings that can be freed with uiTextFree().
 extern char *uiDarwinNSStringToText(NSString *);

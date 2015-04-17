@@ -4,7 +4,7 @@
 struct entry {
 	uiEntry e;
 	NSTextField *textfield;
-}
+};
 
 static void destroy(void *data)
 {

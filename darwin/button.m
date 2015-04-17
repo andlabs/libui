@@ -7,7 +7,7 @@
 	void *onClickedData;
 }
 - (IBAction)buttonClicked:(id)sender;
-- (void)setButton(uiButton *)b;
+- (void)setButton:(uiButton *)b;
 - (void)setOnClicked:(void (*)(uiButton *, void *))f data:(void *)data;
 @end
 

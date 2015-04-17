@@ -57,44 +57,15 @@ interface Control {
 	func ContainerDisable(void);
 };
 
-// Parent represents an OS control that hosts other OS controls.
-// It is used internally by package ui and by implementations.
-// Window, Tab, and Group all use uiParents to store their controls.
 interface Parent {
-	// Internal points to internal data.
-	// Do not access or alter this field.
 	field Internal *void;
-
 	// TODO destroy
 	// TODO object destruction debug handler
-
-	// Handle returns the window handle of the uiParent.
-	// On Windows, this is a HWND.
-	// On GTK+, this is a GtkContainer.
-	// On Mac OS X, this is a NSView.
 	func Handle(void) uintptr_t;
-
 	// TODO rename and clean this up
-	// SetChild sets the uiControl that this uiParent relegates.
-	// It calls uiControl.SetParent() which should, in turn, call uiParent.Update().
-	// The uiParent should already not have a child and the uiControl should already not have a parent.
-	// 
-	// child can be NULL, in which case the uiParent has no children.
-	// This version should also call uiControl.SetParent(), passing NULL.
-	// 
-	// If this uiParent has a child already, then the current child is replaced with the new one.
 	func SetChild(c *Control);
-
-	// SetMargins sets the margins of the uiParent to the given margins.
-	// It does not call uiParent.Update(); its caller must.
-	// The units of the margins are backend-defined.
-	// The initial margins are all 0.
 	func SetMargins(left intmax_t, top intmax_t, right intmax_t, bottom intmax_t);
-
 	// TODO Resize?
-
-	// Update tells the uiParent to re-layout its children immediately.
-	// It is called when a widget is shown or hidden or when a control is added or removed from a container such as uiStack.
 	func Update(void);
 };
 func NewParent(osParent uintptr_t) *Parent;

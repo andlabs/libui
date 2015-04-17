@@ -7,10 +7,6 @@ This file assumes that you have included <windows.h> and "ui.h" beforehand. It p
 #ifndef __UI_UI_WINDOWS_H__
 #define __UI_UI_WINDOWS_H__
 
-// Correctness macros.
-#define uiControlHWND(c) ((HWND) uiControlHandle(c))
-#define uiParentHWND(p) ((HWND) uiParentHandle(p))
-
 // uiWindowsNewControl() initializes the given uiControl with the given Windows API control inside.
 // You will need to provide the preferredSize() method yourself.
 typedef struct uiWindowsNewControlParams uiWindowsNewControlParams;

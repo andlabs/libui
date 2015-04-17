@@ -36,6 +36,11 @@ enum {
 	msgUpdateChild,		// fake because Windows seems to SWP_NOSIZE MoveWindow()s and SetWindowPos()s that don't change the window size (even if SWP_NOSIZE isn't specified)
 };
 
+#define HWND(c) ((HWND) uiControlHandle(uiControl(c)))
+// TODO get rid of this
+#define uiControlHWND(c) HWND(c)
+#define uiParentHWND(p) ((HWND) uiParentHandle(p))
+
 // debug_windows.c
 extern HRESULT logLastError(const char *);
 extern HRESULT logHRESULT(const char *, HRESULT);

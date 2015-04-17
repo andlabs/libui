@@ -3,6 +3,7 @@
 
 struct button {
 	uiButton b;
+	HWND hwnd;
 	void (*onClicked)(uiButton *, void *);
 	void *onClickedData;
 };
@@ -35,15 +36,13 @@ static void onWM_DESTROY(uiControl *c)
 
 static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	HWND hwnd;
+	struct button *b = (struct button *) c;
 	SIZE size;
-
-	hwnd = uiControlHWND(c);
 
 	// try the comctl32 version 6 way
 	size.cx = 0;		// explicitly ask for ideal size
 	size.cy = 0;
-	if (SendMessageW(hwnd, BCM_GETIDEALSIZE, 0, (LPARAM) (&size)) != FALSE) {
+	if (SendMessageW(b->hwnd, BCM_GETIDEALSIZE, 0, (LPARAM) (&size)) != FALSE) {
 		*width = size.cx;
 		*height = size.cy;
 		return;
@@ -52,7 +51,7 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	// that didn't work; fall back to using Microsoft's metrics
 	// Microsoft says to use a fixed width for all buttons; this isn't good enough
 	// use the text width instead, with some edge padding
-	*width = uiWindowsWindowTextWidth(hwnd) + (2 * GetSystemMetrics(SM_CXEDGE));
+	*width = uiWindowsWindowTextWidth(b->hwnd) + (2 * GetSystemMetrics(SM_CXEDGE));
 	*height = uiDlgUnitsToY(buttonHeight, d->sys->baseY);
 }
 
@@ -61,17 +60,17 @@ static void defaultOnClicked(uiButton *b, void *data)
 	// do nothing
 }
 
-static char *getText(uiButton *b)
+static char *buttonText(uiButton *b)
 {
 	return uiWindowsControlText(uiControl(b));
 }
 
-static void setText(uiButton *b, const char *text)
+static void buttonSetText(uiButton *b, const char *text)
 {
 	uiWindowsControlSetText(uiControl(b), text);
 }
 
-static void setOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *data)
+static void buttonOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *data)
 {
 	struct button *b = (struct button *) bb;
 
@@ -100,13 +99,15 @@ uiButton *uiNewButton(const char *text)
 	uiWindowsNewControl(uiControl(b), &p);
 	uiFree(wtext);
 
+	b->hwnd = HWND(b);
+
 	b->onClicked = defaultOnClicked;
 
 	uiControl(b)->PreferredSize = preferredSize;
 
-	uiButton(b)->Text = getText;
-	uiButton(b)->SetText = setText;
-	uiButton(b)->OnClicked = setOnClicked;
+	uiButton(b)->Text = buttonText;
+	uiButton(b)->SetText = buttonSetText;
+	uiButton(b)->OnClicked = buttonOnClicked;
 
 	return uiButton(b);
 }

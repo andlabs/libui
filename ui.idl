@@ -59,7 +59,7 @@ interface Control {
 
 interface Parent {
 	field Internal *void;
-	// TODO destroy
+	func Destroy(void);
 	// TODO object destruction debug handler
 	func Handle(void) uintptr_t;
 	func SetMainControl(c *Control);

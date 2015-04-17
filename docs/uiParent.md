@@ -10,7 +10,10 @@ void *Internal;
 This pointer is used internally by libui. Do not attempt to alter it or access/alter its data.
 
 ## func Destroy()
-TODO
+```c
+void uiParentDestroy(uiParent *p);
+```
+Destroys the uiParent. This also destroys the main child, if any. This is called by `uiWindowDestroy()` and uiTab's/uiGroup's `uiControlDestroy()`.
 
 ## func Handle()
 ```c

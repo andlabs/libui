@@ -80,7 +80,7 @@ uiButton *uiNewButton(const char *text)
 
 	b = uiNew(uiButton);
 
-	uiDarwinNewControl(uiControl(b), [uiNSButton class], NO, NO, destroy, b);
+	uiDarwinNewControl(uiControl(b), [NSButton class], NO, NO, destroy, b);
 
 	b->button = (NSButton *) VIEW(b);
 

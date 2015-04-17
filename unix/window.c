@@ -4,6 +4,8 @@
 struct window {
 	uiWindow w;
 	GtkWidget *widget;
+	GtkContainer *container;
+	GtkWindow *window;
 	uiParent *content;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
@@ -39,28 +41,28 @@ static void windowDestroy(uiWindow *ww)
 	gtk_widget_destroy(w->widget);
 }
 
-static uintptr_t handle(uiWindow *ww)
+static uintptr_t windowHandle(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
 	return (uintptr_t) (w->widget);
 }
 
-static char *getTitle(uiWindow *ww)
+static char *windowTitle(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
-	return g_strdup(gtk_window_get_title(GTK_WINDOW(w->widget)));
+	return g_strdup(gtk_window_get_title(w->window));
 }
 
-static void setTitle(uiWindow *ww, const char *title)
+static void windowSetTitle(uiWindow *ww, const char *title)
 {
 	struct window *w = (struct window *) ww;
 
-	gtk_window_set_title(GTK_WINDOW(w->widget), title);
+	gtk_window_set_title(w->window, title);
 }
 
-static void show(uiWindow *ww)
+static void windowShow(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
@@ -68,13 +70,13 @@ static void show(uiWindow *ww)
 	gtk_widget_show(w->widget);
 }
 
-static void hide(uiWindow *ww)
+static void windowHide(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 	gtk_widget_hide(w->widget);
 }
 
-static void setOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
+static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
 {
 	struct window *w = (struct window *) ww;
 
@@ -82,7 +84,7 @@ static void setOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
 	w->onClosingData = data;
 }
 
-static void setChild(uiWindow *ww, uiControl *c)
+static void windowSetChild(uiWindow *ww, uiControl *c)
 {
 	struct window *w = (struct window *) ww;
 
@@ -90,14 +92,14 @@ static void setChild(uiWindow *ww, uiControl *c)
 	uiParentUpdate(w->content);
 }
 
-static int margined(uiWindow *ww)
+static int windowMargined(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
 	return w->margined;
 }
 
-static void setMargined(uiWindow *ww, int margined)
+static void windowSetMargined(uiWindow *ww, int margined)
 {
 	struct window *w = (struct window *) ww;
 
@@ -114,24 +116,30 @@ uiWindow *uiNewWindow(const char *title, int width, int height)
 	struct window *w;
 
 	w = uiNew(struct window);
+
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(w->widget), title);
-	gtk_window_resize(GTK_WINDOW(w->widget), width, height);
+	w->container = GTK_CONTAINER(w->widget);
+	w->window = GTK_WINDOW(w->widget);
+
+	gtk_window_set_title(w->window, title);
+	gtk_window_resize(w->window, width, height);
+
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
 	g_signal_connect(w->widget, "destroy", G_CALLBACK(onDestroy), w);
-	w->content = uiNewParent((uintptr_t) (w->widget));
+
+	w->content = uiNewParent((uintptr_t) (w->container));
 	w->onClosing = defaultOnClosing;
 
 	uiWindow(w)->Destroy = windowDestroy;
-	uiWindow(w)->Handle = handle;
-	uiWindow(w)->Title = getTitle;
-	uiWindow(w)->SetTitle = setTitle;
-	uiWindow(w)->Show = show;
-	uiWindow(w)->Hide = hide;
-	uiWindow(w)->OnClosing = setOnClosing;
-	uiWindow(w)->SetChild = setChild;
-	uiWindow(w)->Margined = margined;
-	uiWindow(w)->SetMargined = setMargined;
+	uiWindow(w)->Handle = windowHandle;
+	uiWindow(w)->Title = windowTitle;
+	uiWindow(w)->SetTitle = windowSetTitle;
+	uiWindow(w)->Show = windowShow;
+	uiWindow(w)->Hide = windowHide;
+	uiWindow(w)->OnClosing = windowOnClosing;
+	uiWindow(w)->SetChild = windowSetChild;
+	uiWindow(w)->Margined = windowMargined;
+	uiWindow(w)->SetMargined = windowSetMargined;
 
 	return uiWindow(w);
 }

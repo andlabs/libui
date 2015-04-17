@@ -1,99 +1,117 @@
 // 7 april 2015
 #import "uipriv_darwin.h"
 
-@interface uiCheckboxNSButton : NSButton
-@property uiCheckbox *uiC;
-@property void (*uiOnToggled)(uiCheckbox *, void *);
-@property void *uiOnToggledData;
+@interface uipCheckboxDelegate : NSObject {
+	uiCheckbox *c;
+	void (*onToggled)(uiCheckbox *, void *);
+	void *onToggledData;
+}
+- (IBAction)checkboxToggled:(id)sender;
+- (void)setCheckbox:(uiCheckbox *)c;
+- (void)setOnToggled:(void (*)(uiCheckbox *, void *))f data:(void *)data;
 @end
 
-@implementation uiCheckboxNSButton
+@implementation uipCheckboxDelegate
 
-- (void)viewDidMoveToSuperview
+uiLogObjCClassAllocations
+
+- (IBAction)checkboxToggled:(id)sender
 {
-	if (uiDarwinControlFreeWhenAppropriate(uiControl(self.uiC), [self superview])) {
-		[self setTarget:nil];
-		self.uiC = NULL;
-	}
-	[super viewDidMoveToSuperview];
+	(*(self->onToggled))(self->c, self->onToggledData);
 }
 
-- (IBAction)uiCheckboxToggled:(id)sender
+- (void)setCheckbox:(uiCheckbox *)c
 {
-	(*(self.uiOnToggled))(self.uiC, self.uiOnToggledData);
+	self->c = c;
+}
+
+- (void)setOnToggled:(void (*)(uiCheckbox *, void *))f data:(void *)data
+{
+	self->onToggled = f;
+	self->onToggledData = data;
 }
 
 @end
+
+struct checkbox {
+	uiCheckbox c;
+	NSButton *checkbox;
+	uipCheckboxDelegate *delegate;
+};
 
 static void defaultOnToggled(uiCheckbox *c, void *data)
 {
 	// do nothing
 }
 
-static char *checkboxText(uiCheckbox *c)
+static void destroy(void *data)
 {
-	uiCheckboxNSButton *cc;
+	struct checkbox *c = (struct checkbox *) data;
 
-	cc = (uiCheckboxNSButton *) uiControlHandle(uiControl(c));
-	return uiDarwinNSStringToText([cc title]);
+	[c->checkbox setTarget:nil];
+	[c->delegate release];
+	uiFree(c);
 }
 
-static void checkboxSetText(uiCheckbox *c, const char *text)
+static char *checkboxText(uiCheckbox *cc)
 {
-	uiCheckboxNSButton *cc;
+	struct checkbox *c = (struct checkbox *) cc;
 
-	cc = (uiCheckboxNSButton *) uiControlHandle(uiControl(c));
-	[cc setTitle:toNSString(text)];
+	return uiDarwinNSStringToText([c->checkbox title]);
 }
 
-static void checkboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)
+static void checkboxSetText(uiCheckbox *cc, const char *text)
 {
-	uiCheckboxNSButton *cc;
+	struct checkbox *c = (struct checkbox *) cc;
 
-	cc = (uiCheckboxNSButton *) uiControlHandle(uiControl(c));
-	cc.uiOnToggled = f;
-	cc.uiOnToggledData = data;
+	[c->checkbox setTitle:toNSString(text)];
 }
 
-static int checkboxChecked(uiCheckbox *c)
+static void checkboxOnToggled(uiCheckbox *cc, void (*f)(uiCheckbox *, void *), void *data)
 {
-	uiCheckboxNSButton *cc;
+	struct checkbox *c = (struct checkbox *) cc;
 
-	cc = (uiCheckboxNSButton *) uiControlHandle(uiControl(c));
-	return [cc state] == NSOnState;
+	[c->delegate setOnToggled:f data:data];
 }
 
-static void checkboxSetChecked(uiCheckbox *c, int checked)
+static int checkboxChecked(uiCheckbox *cc)
 {
-	uiCheckboxNSButton *cc;
+	struct checkbox *c = (struct checkbox *) cc;
+
+	return [c->checkbox state] == NSOnState;
+}
+
+static void checkboxSetChecked(uiCheckbox *cc, int checked)
+{
+	struct checkbox *c = (struct checkbox *) cc;
 	NSInteger state;
 
-	cc = (uiCheckboxNSButton *) uiControlHandle(uiControl(c));
 	state = NSOnState;
 	if (!checked)
 		state = NSOffState;
-	[cc setState:state];
+	[c->checkbox setState:state];
 }
 
 uiCheckbox *uiNewCheckbox(const char *text)
 {
 	uiCheckbox *c;
-	uiCheckboxNSButton *cc;
 
 	c = uiNew(uiCheckbox);
 
-	uiDarwinNewControl(uiControl(c), [uiCheckboxNSButton class], NO, NO);
-	cc = (uiCheckboxNSButton *) uiControlHandle(uiControl(c));
+	uiDarwinNewControl(uiControl(c), [uiCheckboxNSButton class], NO, NO, destroy, NULL);
 
-	[cc setTitle:toNSString(text)];
-	[cc setButtonType:NSSwitchButton];
-	[cc setBordered:NO];
-	setStandardControlFont((NSControl *) cc);
+	c->checkbox = (NSButton *) VIEW(c);
 
-	[cc setTarget:cc];
-	[cc setAction:@selector(uiCheckboxToggled:)];
+	[c-checkbox setTitle:toNSString(text)];
+	[c->checkbox setButtonType:NSSwitchButton];
+	[c->checkbox setBordered:NO];
+	setStandardControlFont(c->checkbox);
 
-	cc.uiOnToggled = defaultOnToggled;
+	c->delegate = [uipCheckboxDelegate new];
+	[c->checkbox setTarget:c->delegate];
+	[c->checkbox setAction:@selector(checkboxToggled:)];
+	[c->delegate setCheckbox:uiCheckbox(c)];
+	[c->delegate setOnToggled:defaultOnToggled data:NULL];
 
 	uiCheckbox(c)->Text = checkboxText;
 	uiCheckbox(c)->SetText = checkboxSetText;
@@ -101,7 +119,5 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiCheckbox(c)->Checked = checkboxChecked;
 	uiCheckbox(c)->SetChecked = checkboxSetChecked;
 
-	cc.uiC = c;
-
-	return cc.uiC;
+	return uiCheckbox(c);
 }

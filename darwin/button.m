@@ -7,6 +7,7 @@
 	void *onClickedData;
 }
 - (IBAction)buttonClicked:(id)sender;
+- (void)setButton(uiButton *)b;
 - (void)setOnClicked:(void (*)(uiButton *, void *))f data:(void *)data;
 @end
 
@@ -17,6 +18,11 @@ uiLogObjCClassAllocations
 - (IBAction)buttonClicked:(id)sender
 {
 	(*(self->onClicked))(self->b, self->onClickedData);
+}
+
+- (void)setButton:(uiButton *)b
+{
+	self->b = b;
 }
 
 - (void)setOnClicked:(void (*)(uiButton *, void *))f data:(void *)data
@@ -40,7 +46,7 @@ static void defaultOnClicked(uiButton *c, void *data)
 
 static void destroy(void *data)
 {
-	struct button *b = (struct button *) bb;
+	struct button *b = (struct button *) data;
 
 	[b->button setTarget:nil];
 	[b->delegate release];
@@ -87,6 +93,7 @@ uiButton *uiNewButton(const char *text)
 	b->delegate = [uipButtonDelegate new];
 	[b->button setTarget:b->delegate];
 	[b->button setAction:@selector(buttonClicked:)];
+	[b->delegate setButton:uiButton(b)];
 	[b->delegate setOnClicked:defaultOnClicked data:NULL];
 
 	uiButton(b)->Text = buttonText;

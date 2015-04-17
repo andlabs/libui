@@ -13,15 +13,11 @@
 - SWP_NOCOPYBITS (or was it WS_CLIPCHILDREN?)
 	- buttons not in tab get drawover issues
 	- buttons in tab without transparent drawing code get copied into the label when stack shown and rehidden
-- see if we can clean up the backends (other than GTK+)
-	- rename all method implementations to typeMethod
-	- especially clean up the Darwin backend
+- see if we can clean up the Darwin backend
 
 ultimately:
 - make everything vtable-based
-	- provide macros for the vtables
 	- figure out where updateParent() plays into this
 		- figure out what to do about custom containers
-			- rename container to parent?
 		- make the code flow of all platforms fully symmetrical
 - add some sort of runtime type checking

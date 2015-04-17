@@ -16,6 +16,7 @@
 - see if we can clean up the Darwin backend
 - make the Unix and Windows backend use uiParentDestroy() instead of relying on the autodestroy behavior of the backends
 	- this requires explicitly handling delete events
+- verify retainment for uiParents in GTK+
 
 ultimately:
 - make everything vtable-based

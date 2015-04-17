@@ -10,8 +10,8 @@ struct mySwitch {
 	uiControl base;
 	int (*On)(mySwitch *);
 };
-#define mySwitch(x) ((uiSwitch *) (x))
-#define mySwitchOn(s) ((*((s)->On))((x)))
+#define mySwitch(x) ((mySwitch *) (x))
+#define mySwitchOn(s) ((*((s)->On))((s)))
 ```
 
 To be able to create Unix backend controls, we need to include `ui_unix.h`, the file that contains the Unix backend function declarations. It requires that you include both `ui.h` and `<gtk/gtk.h>` beforehand:
@@ -46,7 +46,7 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	struct xswitch *s = (struct xswitch *) data;
 
-	g_free(data);
+	g_free(s);
 }
 ```
 
@@ -133,4 +133,115 @@ And that's it! You now have everything you need to build a complete Unix backend
 
 Here's a complete working example showing our `mySwitch` control:
 
-TODO
+```c
+#include <gtk/gtk.h>
+#include "ui.h"
+#include "ui_unix.h"
+
+typedef struct mySwitch mySwitch;
+struct mySwitch {
+	uiControl base;
+	int (*On)(mySwitch *);
+};
+#define mySwitch(x) ((mySwitch *) (x))
+#define mySwitchOn(s) ((*((s)->On))((s)))
+
+struct xswitch {
+	mySwitch s;
+	GtkWidget *widget;
+	GtkSwitch *xswitch;
+};
+
+static void onDestroy(GtkWidget *widget, gpointer data)
+{
+	struct xswitch *s = (struct xswitch *) data;
+
+	g_free(s);
+}
+
+static int switchOn(mySwitch *ss)
+{
+	struct xswitch *s = (struct xswitch *) ss;
+
+	return gtk_switch_get_active(s->xswitch) != FALSE;
+}
+
+mySwitch *newSwitch(void)
+{
+	struct xswitch *s;
+
+	s = g_new0(struct xswitch, 1);
+
+	uiUnixNewControl(uiControl(s), GTK_TYPE_SWITCH,
+		FALSE, FALSE,
+		NULL);
+
+	s->widget = GTK_WIDGET(uiControlHandle(uiControl(s)));
+	s->xswitch = GTK_SWITCH(s->widget);
+
+	g_signal_connect(s->widget, "destroy", G_CALLBACK(onDestroy), s);
+
+	mySwitch(s)->On = switchOn;
+
+	return mySwitch(s);
+}
+
+mySwitch *s;
+uiLabel *l;
+
+void onClicked(uiButton *b, void *data)
+{
+	if (mySwitchOn(s))
+		uiLabelSetText(l, "Switch is on");
+	else
+		uiLabelSetText(l, "Switch is off");
+}
+
+int onClosing(uiWindow *w, void *data)
+{
+	uiQuit();
+	return 1;
+}
+
+int main(void)
+{
+	uiInitOptions o;
+	const char *err;
+	uiWindow *w;
+	uiStack *stack;
+	uiButton *b;
+
+	memset(&o, 0, sizeof (uiInitOptions));
+	err = uiInit(&o);
+	if (err != NULL) {
+		fprintf(stderr, "error initializing ui: %s\n", err);
+		uiFreeInitError(err);
+		return 1;
+	}
+
+	w = uiNewWindow("mySwitch Test", 200, 100);
+	uiWindowOnClosing(w, onClosing, NULL);
+	uiWindowSetMargined(w, 1);
+	stack = uiNewHorizontalStack();
+	uiStackSetPadded(stack, 1);
+	uiWindowSetChild(w, uiControl(stack));
+
+	s = newSwitch();
+	uiStackAppend(stack, uiControl(s), 0);
+
+	b = uiNewButton("On?");
+	uiButtonOnClicked(b, onClicked, NULL);
+	uiStackAppend(stack, uiControl(b), 0);
+
+	l = uiNewLabel("");;
+	uiStackAppend(stack, uiControl(l), 1);
+
+	// TODO autosize window
+	// TODO make sure label is centered when done here
+	uiWindowShow(w);
+	uiMain();
+	return 0;
+}
+```
+
+TODO show output

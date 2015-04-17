@@ -1,86 +1,97 @@
 // 7 april 2015
 #import "uipriv_darwin.h"
 
-@interface uiNSButton : NSButton
-@property uiButton *uiB;
-@property void (*uiOnClicked)(uiButton *, void *);
-@property void *uiOnClickedData;
+@interface uipButtonDelegate : NSObject {
+	uiButton *b;
+	void (*onClicked)(uiButton *, void *);
+	void *onClickedData;
+}
+- (IBAction)buttonClicked:(id)sender;
+- (void)setOnClicked:(void (*)(uiButton *, void *))f data:(void *)data;
 @end
 
-@implementation uiNSButton
+@implementation uipButtonDelegate
 
-- (void)viewDidMoveToSuperview
+uiLogObjCClassAllocations
+
+- (IBAction)buttonClicked:(id)sender
 {
-	if (uiDarwinControlFreeWhenAppropriate(uiControl(self.uiB), [self superview])) {
-		[self setTarget:nil];
-		self.uiB = NULL;
-	}
-	[super viewDidMoveToSuperview];
+	(*(self->onClicked))(self->b, self->onClickedData);
 }
 
-- (IBAction)uiButtonClicked:(id)sender
+- (void)setOnClicked:(void (*)(uiButton *, void *))f data:(void *)data
 {
-	(*(self.uiOnClicked))(self.uiB, self.uiOnClickedData);
+	self->onClicked = f;
+	self->onClickedData = data;
 }
 
 @end
+
+struct button {
+	uiButton b;
+	NSButton *button;
+	uipButtonDelegate *delegate;
+};
 
 static void defaultOnClicked(uiButton *c, void *data)
 {
 	// do nothing
 }
 
+static void destroy(void *data)
+{
+	struct button *b = (struct button *) bb;
+
+	[b->button setTarget:nil];
+	[b->delegate release];
+	uiFree(b);
+}
+
 static char *buttonText(uiButton *bb)
 {
-	uiNSButton *b;
+	struct button *b = (struct button *) bb;
 
-	b = (uiNSButton *) uiControlHandle(uiControl(bb));
-	return uiDarwinNSStringToText([b title]);
+	return uiDarwinNSStringToText([b->button title]);
 }
 
 static void buttonSetText(uiButton *bb, const char *text)
 {
-	uiNSButton *b;
+	struct button *b = (struct button *) bb;
 
-	b = (uiNSButton *) uiControlHandle(uiControl(bb));
-	[b setTitle:toNSString(text)];
+	[b->button setTitle:toNSString(text)];
 }
 
 static void buttonOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *data)
 {
-	uiNSButton *b;
+	struct button *b = (struct button *) bb;
 
-	b = (uiNSButton *) uiControlHandle(uiControl(bb));
-	b.uiOnClicked = f;
-	b.uiOnClickedData = data;
+	[b->delegate setOnClicked:f data:data];
 }
 
 uiButton *uiNewButton(const char *text)
 {
 	uiButton *b;
-	uiNSButton *bb;
 
 	b = uiNew(uiButton);
 
-	uiDarwinNewControl(uiControl(b), [uiNSButton class], NO, NO);
-	bb = (uiNSButton *) uiControlHandle(uiControl(b));
+	uiDarwinNewControl(uiControl(b), [uiNSButton class], NO, NO, destroy, b);
 
-	[bb setTitle:toNSString(text)];
-	[bb setButtonType:NSMomentaryPushInButton];
-	[bb setBordered:YES];
-	[bb setBezelStyle:NSRoundedBezelStyle];
-	setStandardControlFont((NSControl *) bb);
+	b->button = (NSButton *) VIEW(b);
 
-	[bb setTarget:bb];
-	[bb setAction:@selector(uiButtonClicked:)];
+	[b->button setTitle:toNSString(text)];
+	[b->button setButtonType:NSMomentaryPushInButton];
+	[b->button setBordered:YES];
+	[b->button setBezelStyle:NSRoundedBezelStyle];
+	setStandardControlFont(b->button);
 
-	bb.uiOnClicked = defaultOnClicked;
+	b->delegate = [uipButtonDelegate new];
+	[b->button setTarget:b->delegate];
+	[b->button setAction:@selector(buttonClicked:)];
+	[b->delegate setOnClicked:defaultOnClicked data:NULL];
 
 	uiButton(b)->Text = buttonText;
 	uiButton(b)->SetText = buttonSetText;
 	uiButton(b)->OnClicked = buttonOnClicked;
 
-	bb.uiB = b;
-
-	return bb.uiB;
+	return uiButton(b);
 }

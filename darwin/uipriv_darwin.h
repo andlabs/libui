@@ -24,6 +24,8 @@
 		fprintf(stderr, "%p free\n", self); \
 }
 
+#define VIEW(c) uiControlHandle(uiControl(c))
+
 // init_darwin.m
 extern NSView *destroyedControlsView;
 

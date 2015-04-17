@@ -13,9 +13,7 @@ typedef struct uipParentClass uipParentClass;
 
 struct uipParent {
 	GtkContainer parent_instance;
-	// this is what triggers the resizing of all the children
-	uiControl *child;
-	// these are the actual children widgets of the container as far as GTK+ is concerned
+	uiControl *mainControl;
 	GPtrArray *children;		// for forall()
 	intmax_t marginLeft;
 	intmax_t marginTop;
@@ -47,9 +45,9 @@ static void uipParent_dispose(GObject *obj)
 		g_ptr_array_unref(p->children);
 		p->children = NULL;
 	}
-	if (p->child != NULL) {
-		uiControlDestroy(p->child);
-		p->child = NULL;
+	if (p->mainControl != NULL) {
+		uiControlDestroy(p->mainControl);
+		p->mainControl = NULL;
 	}
 	G_OBJECT_CLASS(uipParent_parent_class)->dispose(obj);
 }
@@ -89,7 +87,7 @@ static void uipParent_size_allocate(GtkWidget *widget, GtkAllocation *allocation
 	intmax_t x, y, width, height;
 
 	gtk_widget_set_allocation(GTK_WIDGET(p), allocation);
-	if (p->child == NULL)
+	if (p->mainControl == NULL)
 		return;
 	x = allocation->x + p->marginLeft;
 	y = allocation->y + p->marginTop;
@@ -97,7 +95,7 @@ static void uipParent_size_allocate(GtkWidget *widget, GtkAllocation *allocation
 	height = allocation->height - (p->marginTop + p->marginBottom);
 	d.xPadding = gtkXPadding;
 	d.yPadding = gtkYPadding;
-	uiControlResize(p->child, x, y, width, height, &d);
+	uiControlResize(p->mainControl, x, y, width, height, &d);
 }
 
 struct forall {
@@ -140,13 +138,15 @@ static uintptr_t parentHandle(uiParent *p)
 	return (uintptr_t) pp;
 }
 
-static void parentSetChild(uiParent *p, uiControl *child)
+static void parentSetMainControl(uiParent *pp, uiControl *mainControl)
 {
-	uipParent *pp = uipParent(p->Internal);
+	uipParent *p = uipParent(pp->Internal);
 
-	pp->child = child;
-	if (pp->child != NULL)
-		uiControlSetParent(child, p);
+	if (p->mainControl != NULL)
+		uiControlSetParent(p->mainControl, NULL);
+	p->mainControl = mainControl;
+	if (p->mainControl != NULL)
+		uiControlSetParent(p->mainControl, pp);
 }
 
 static void parentSetMargins(uiParent *p, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom)
@@ -173,7 +173,7 @@ uiParent *uiNewParent(uintptr_t osParent)
 	p = uiNew(uiParent);
 	p->Internal = g_object_new(uipParentType, NULL);
 	p->Handle = parentHandle;
-	p->SetChild = parentSetChild;
+	p->SetMainControl = parentSetMainControl;
 	p->SetMargins = parentSetMargins;
 	p->Update = parentUpdate;
 	gtk_container_add(GTK_CONTAINER(osParent), GTK_WIDGET(p->Internal));

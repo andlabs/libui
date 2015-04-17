@@ -131,6 +131,15 @@ static void uipParent_class_init(uipParentClass *class)
 	GTK_CONTAINER_CLASS(class)->forall = uipParent_forall;
 }
 
+// TODO convert other methods of this + other backends to pp arg p instance variable
+
+static void parentDestroy(uiParent *pp)
+{
+	uipParent *p = uipParent(pp->Internal);
+
+	gtk_widget_destroy(GTK_WIDGET(p));
+}
+
 static uintptr_t parentHandle(uiParent *p)
 {
 	uipParent *pp = uipParent(p->Internal);
@@ -172,6 +181,7 @@ uiParent *uiNewParent(uintptr_t osParent)
 
 	p = uiNew(uiParent);
 	p->Internal = g_object_new(uipParentType, NULL);
+	p->Destroy = parentDestroy;
 	p->Handle = parentHandle;
 	p->SetMainControl = parentSetMainControl;
 	p->SetMargins = parentSetMargins;

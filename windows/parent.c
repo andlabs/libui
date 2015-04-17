@@ -211,6 +211,14 @@ const char *initParent(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	return NULL;
 }
 
+static void parentDestroy(uiParent *pp)
+{
+	struct parent *p = (struct parent *) (pp->Internal);
+
+	if (DestroyWindow(p->hwnd) == 0)
+		logLastError("error destroying uiParent window in parentDestroy()");
+}
+
 static uintptr_t parentHandle(uiParent *p)
 {
 	struct parent *pp = (struct parent *) (p->Internal);
@@ -262,6 +270,8 @@ uiParent *uiNewParent(uintptr_t osParent)
 		(HWND) osParent, NULL, hInstance, p);
 	if (pp->hwnd == NULL)
 		logLastError("error creating uiParent window in uiNewParent()");
+
+	p->Destroy = parentDestroy;
 	p->Handle = parentHandle;
 	p->SetMainControl = parentSetMainControl;
 	p->SetMargins = parentSetMargins;

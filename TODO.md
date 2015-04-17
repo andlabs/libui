@@ -14,6 +14,8 @@
 	- buttons not in tab get drawover issues
 	- buttons in tab without transparent drawing code get copied into the label when stack shown and rehidden
 - see if we can clean up the Darwin backend
+- make the Unix and Windows backend use uiParentDestroy() instead of relying on the autodestroy behavior of the backends
+	- this requires explicitly handling delete events
 
 ultimately:
 - make everything vtable-based

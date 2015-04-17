@@ -25,7 +25,7 @@ To be able to create Unix backend controls, we need to include `ui_unix.h`, the 
 The first thing we need to do is define the data structure used for our new control. The first field of this data structure must be a mySwitch (not a pointer to a mySwitch). This allows us to use our data structure *as* the mySwitch:
 
 ```c
-struct switch {
+struct xswitch {
 	mySwitch s;
 ```
 
@@ -33,18 +33,18 @@ We'll also store copies of the pointer to our switch's GtkWidget as both a GtkWi
 
 ```c
 	GtkWidget *widget;
-	GtkSwitch *switch;
+	GtkSwitch *xswitch;
 };
 ```
 
 The good news is that all the work of implementing uiControl is done for you by libui. You only need to worry about destroying your data structure along witht he GtkWidget and implementing the other methods of your interface.
 
-Let's start by writing the code to destroy the switch data structure when the GtkSwitch is destroyed. This will be the GtkSwitch's `::destroy` signal handler implementation. Our `struct switch` is passed as the user data:
+Let's start by writing the code to destroy the switch data structure when the GtkSwitch is destroyed. This will be the GtkSwitch's `::destroy` signal handler implementation. Our `struct xswitch` is passed as the user data:
 
 ```c
 static void onDestroy(GtkWidget *widget, gpointer data)
 {
-	struct switch *s = (struct switch *) data;
+	struct xswitch *s = (struct xswitch *) data;
 
 	g_free(data);
 }
@@ -52,32 +52,32 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 
 We'll connect this when we write our constructor.
 
-Next, let's write the implementation of our `mySwitchOn()` method. Remember that a `struct switch` *is* a `mySwitch`, so we simply use a pointer cast to go from the this pointer (the first argument of the method) to our `struct switch`:
+Next, let's write the implementation of our `mySwitchOn()` method. Remember that a `struct xswitch` *is* a `mySwitch`, so we simply use a pointer cast to go from the this pointer (the first argument of the method) to our `struct xswitch`:
 
 ```c
 static int switchOn(mySwitch *ss)
 {
-	struct switch *s = (struct switch *) ss;
+	struct xswitch *s = (struct xswitch *) ss;
 
-	return gtk_switch_get_active(s->switch) != FALSE;
+	return gtk_switch_get_active(s->xswitch) != FALSE;
 }
 ```
 
-Now we need to write the function that creates a new mySwitch. Start by creating a new `struct switch`.
+Now we need to write the function that creates a new mySwitch. Start by creating a new `struct xswitch`.
 
 ```c
 mySwitch *newSwitch(void)
 {
-	struct switch *s;
+	struct xswitch *s;
 
-	s = g_new0(struct switch, 1);
+	s = g_new0(struct xswitch, 1);
 ```
 
-Remember that a `mySwitch` is a `uiControl`, and that a `struct switch` is a `mySwitch`. Therefore, a `struct switch` is also a `uiControl`. This will be important shortly.
+Remember that a `mySwitch` is a `uiControl`, and that a `struct xswitch` is a `mySwitch`. Therefore, a `struct xswitch` is also a `uiControl`. This will be important shortly.
 
 The next step is to actually create the widget. All the work is done for you by the libui function `uiUnixNewControl()`.
 
-The first argument to `uiUnixNewControl()` is a pointer to the `uiControl` that will be filled in with internal data structures and the various uiControl methods. All we need to do is pass in our new `struct switch` converted to a `uiControl` with our `uiControl()` conversion macro.
+The first argument to `uiUnixNewControl()` is a pointer to the `uiControl` that will be filled in with internal data structures and the various uiControl methods. All we need to do is pass in our new `struct xswitch` converted to a `uiControl` with our `uiControl()` conversion macro.
 
 The second argument is the GType that represents the GtkWidget that we want to create. In this case, it's `GTK_TYPE_SWITCH`:
 
@@ -99,13 +99,13 @@ Finally, we pass in a `NULL`-terminated list of GObject construct properties to 
 		NULL);
 ```
 
-We now have a fully usable uiControl, but we still need a fully usable mySwitch and a fully usable `struct switch`. So let's fill in the rest of the structure.
+We now have a fully usable uiControl, but we still need a fully usable mySwitch and a fully usable `struct xswitch`. So let's fill in the rest of the structure.
 
 First, we'll get a handle to the GtkSwitch itself and stuff that into our structure:
 
 ```c
 	s->widget = GTK_WIDGET(uiControlHandle(uiControl(s)));
-	s->switch = GTK_SWITCH(s->widget);
+	s->xswitch = GTK_SWITCH(s->widget);
 ```
 
 You may choose to use macros to hide the nested call that gets the value of `s->widget`; the implementation of libui itself uses a macro called `WIDGET()` for this.
@@ -116,7 +116,7 @@ Next, let's connect our `onDestroy()` handler from earlier:
 	g_signal_connect(s->widget, "destroy", G_CALLBACK(onDestroy), s);
 ```
 
-Now we need to connect our mySwitch vtable functions. We do this by converting our `struct switch` to a `mySwitch` with the `mySwitch()` conversion macro and writing to the vtable entries:
+Now we need to connect our mySwitch vtable functions. We do this by converting our `struct xswitch` to a `mySwitch` with the `mySwitch()` conversion macro and writing to the vtable entries:
 
 ```c
 	mySwitch(s)->On = switchOn;

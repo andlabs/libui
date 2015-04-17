@@ -3,6 +3,8 @@
 
 struct entry {
 	uiEntry e;
+	GtkWidget *widget;
+	GtkEntry *entry;
 };
 
 static void onDestroy(GtkWidget *widget, gpointer data)
@@ -12,22 +14,23 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	uiFree(e);
 }
 
-#define ENTRY(e) GTK_ENTRY(uiControlHandle(uiControl(e)))
-
-static char *getText(uiEntry *e)
+static char *entryText(uiEntry *ee)
 {
-	return g_strdup(gtk_entry_get_text(ENTRY(e)));
+	struct entry *e = (struct entry *) ee;
+
+	return g_strdup(gtk_entry_get_text(e->entry));
 }
 
-static void setText(uiEntry *e, const char *text)
+static void entrySetText(uiEntry *ee, const char *text)
 {
-	gtk_entry_set_text(ENTRY(e), text);
+	struct entry *e = (struct entry *) ee;
+
+	gtk_entry_set_text(e->entry, text);
 }
 
 uiEntry *uiNewEntry(void)
 {
 	struct entry *e;
-	GtkWidget *widget;
 
 	e = uiNew(struct entry);
 
@@ -35,11 +38,13 @@ uiEntry *uiNewEntry(void)
 		FALSE, FALSE,
 		NULL);
 
-	widget = GTK_WIDGET(ENTRY(e));
-	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), e);
+	e->widget = WIDGET(e);
+	e->entry = GTK_ENTRY(e->widget);
 
-	uiEntry(e)->Text = getText;
-	uiEntry(e)->SetText = setText;
+	g_signal_connect(e->widget, "destroy", G_CALLBACK(onDestroy), e);
+
+	uiEntry(e)->Text = entryText;
+	uiEntry(e)->SetText = entrySetText;
 
 	return uiEntry(e);
 }

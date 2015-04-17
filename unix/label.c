@@ -3,6 +3,8 @@
 
 struct label {
 	uiLabel l;
+	GtkWidget *widget;
+	GtkLabel *label;
 };
 
 static void onDestroy(GtkWidget *widget, gpointer data)
@@ -12,23 +14,24 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	uiFree(l);
 }
 
-#define LABEL(l) GTK_LABEL(uiControlHandle(uiControl(l)))
-
-static char *getText(uiLabel *l)
+static char *labelText(uiLabel *ll)
 {
+	struct label *l = (struct label *) ll;
+
 	// TODO change g_strdup() to a wrapper function for export in ui_unix.h
-	return g_strdup(gtk_label_get_text(LABEL(l)));
+	return g_strdup(gtk_label_get_text(l->label));
 }
 
-static void setText(uiLabel *l, const char *text)
+static void labelSetText(uiLabel *ll, const char *text)
 {
-	gtk_label_set_text(LABEL(l), text);
+	struct label *l = (struct label *) ll;
+
+	gtk_label_set_text(l->label, text);
 }
 
 uiLabel *uiNewLabel(const char *text)
 {
 	struct label *l;
-	GtkWidget *widget;
 
 	l = uiNew(struct label);
 
@@ -39,11 +42,13 @@ uiLabel *uiNewLabel(const char *text)
 		// TODO yalign 0?
 		NULL);
 
-	widget = GTK_WIDGET(LABEL(l));
-	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), l);
+	l->widget = WIDGET(l);
+	l->label = GTK_LABEL(l->widget);
 
-	uiLabel(l)->Text = getText;
-	uiLabel(l)->SetText = setText;
+	g_signal_connect(l->widget, "destroy", G_CALLBACK(onDestroy), l);
+
+	uiLabel(l)->Text = labelText;
+	uiLabel(l)->SetText = labelSetText;
 
 	return uiLabel(l);
 }

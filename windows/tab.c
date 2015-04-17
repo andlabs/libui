@@ -7,6 +7,7 @@
 
 struct tab {
 	uiTab t;
+	HWND hwnd;
 	uiParent **pages;
 	uintmax_t len;
 	uintmax_t cap;
@@ -25,18 +26,18 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 
 	switch (nm->code) {
 	case TCN_SELCHANGING:
-		n = SendMessageW(uiControlHWND(c), TCM_GETCURSEL, 0, 0);
+		n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
 		if (n != (LRESULT) (-1))		// if we're changing to a real tab
 			ShowWindow(uiParentHWND(t->pages[n]), SW_HIDE);
 		*lResult = FALSE;			// and allow the change
 		return TRUE;
 	case TCN_SELCHANGE:
-		n = SendMessageW(uiControlHWND(c), TCM_GETCURSEL, 0, 0);
+		n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
 		if (n != (LRESULT) (-1)) {		// if we're changing to a real tab
 			ShowWindow(uiParentHWND(t->pages[n]), SW_SHOW);
 			// because we only resize the current child on resize, we'll need to trigger an update here
 			// don't call uiParentUpdate(); doing that won't size the content area (so we'll still have a 0x0 content area, for instance)
-			SendMessageW(uiControlHWND(c), msgUpdateChild, 0, 0);
+			SendMessageW(t->hwnd, msgUpdateChild, 0, 0);
 		}
 		*lResult = 0;
 		return TRUE;
@@ -59,16 +60,12 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 }
 
 // common code for resizes
-static void resizeTab(uiControl *c, LONG width, LONG height)
+static void resizeTab(struct tab *t, LONG width, LONG height)
 {
-	struct tab *t = (struct tab *) c;
-	HWND hwnd;
 	LRESULT n;
 	RECT r;
 
-	hwnd = uiControlHWND(c);
-
-	n = SendMessageW(hwnd, TCM_GETCURSEL, 0, 0);
+	n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
 	if (n == (LRESULT) (-1))		// no child selected; do nothing
 		return;
 
@@ -79,7 +76,7 @@ static void resizeTab(uiControl *c, LONG width, LONG height)
 	r.right = width;
 	r.bottom = height;
 	// convert to the display rectangle
-	SendMessageW(hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
+	SendMessageW(t->hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
 
 	if (MoveWindow(uiParentHWND(t->pages[n]), r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
 		logLastError("error resizing current tab page in resizeTab()");
@@ -88,7 +85,7 @@ static void resizeTab(uiControl *c, LONG width, LONG height)
 // and finally, because we have to resize parents, we have to handle resizes and updates
 static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
-	uiControl *c = (uiControl *) dwRefData;
+	struct tab *t = (struct tab *) dwRefData;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	LRESULT lResult;
 	RECT r;
@@ -100,13 +97,13 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 		// first, let the tab control handle it
 		lResult = (*fv_DefSubclassProc)(hwnd, uMsg, wParam, lParam);
 		// we have the window rect width as part of the WINDOWPOS; resize
-		resizeTab(c, wp->cx, wp->cy);
+		resizeTab(t, wp->cx, wp->cy);
 		return lResult;
 	case msgUpdateChild:
-		if (GetWindowRect(uiControlHWND(c), &r) == 0)
+		if (GetWindowRect(t->hwnd, &r) == 0)
 			logLastError("error getting Tab window rect for synthesized resize message in tabSubProc()");
 		// these are in screen coordinates, which match what WM_WINDOWPOSCHANGED gave us (thanks TODOTODOTODOTODOTODOTODOTODO)
-		resizeTab(c, r.right - r.left, r.bottom - r.top);
+		resizeTab(t, r.right - r.left, r.bottom - r.top);
 		return 0;
 	case WM_NCDESTROY:
 		if ((*fv_RemoveWindowSubclass)(hwnd, tabSubProc, uIdSubclass) == FALSE)
@@ -118,10 +115,9 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 #define tabCapGrow 32
 
-void addPage(uiTab *tt, const char *name, uiControl *child)
+void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	HWND hwnd;
 	TCITEMW item;
 	LRESULT n;
 	uiParent *parent;
@@ -132,10 +128,9 @@ void addPage(uiTab *tt, const char *name, uiControl *child)
 		t->pages = (uiParent **) uiRealloc(t->pages, t->cap * sizeof (uiParent *), "uiParent *[]");
 	}
 
-	hwnd = uiControlHWND(uiControl(t));
-	n = SendMessageW(hwnd, TCM_GETITEMCOUNT, 0, 0);
+	n = SendMessageW(t->hwnd, TCM_GETITEMCOUNT, 0, 0);
 
-	parent = uiNewParent((uintptr_t) hwnd);
+	parent = uiNewParent((uintptr_t) (t->hwnd));
 	uiParentSetChild(parent, child);
 	uiParentUpdate(parent);
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
@@ -148,7 +143,7 @@ void addPage(uiTab *tt, const char *name, uiControl *child)
 	wname = toUTF16(name);
 	item.pszText = wname;
 	// MSDN's example code uses the first invalid index directly for this
-	if (SendMessageW(hwnd, TCM_INSERTITEM, (WPARAM) n, (LPARAM) (&item)) == (LRESULT) -1)
+	if (SendMessageW(t->hwnd, TCM_INSERTITEM, (WPARAM) n, (LPARAM) (&item)) == (LRESULT) -1)
 		logLastError("error adding tab to Tab in uiTabAddPage()");
 	uiFree(wname);
 
@@ -156,14 +151,13 @@ void addPage(uiTab *tt, const char *name, uiControl *child)
 	// (TODO verify that)
 	// so we need to manually resize the tab ourselves
 	// don't use uiUpdateParent() for the same reason as in the TCN_SELCHANGE handler
-	SendMessageW(hwnd, msgUpdateChild, 0, 0);
+	SendMessageW(t->hwnd, msgUpdateChild, 0, 0);
 }
 
 uiTab *uiNewTab(void)
 {
 	struct tab *t;
 	uiWindowsNewControlParams p;
-	HWND hwnd;
 
 	t = uiNew(struct tab);
 
@@ -178,13 +172,14 @@ uiTab *uiNewTab(void)
 	p.onWM_DESTROY = onWM_DESTROY;
 	uiWindowsNewControl(uiControl(t), &p);
 
-	hwnd = uiControlHWND(uiControl(t));
-	if ((*fv_SetWindowSubclass)(hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
+	t->hwnd = HWND(t);
+
+	if ((*fv_SetWindowSubclass)(t->hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
 
 	uiControl(t)->PreferredSize = preferredSize;
 
-	uiTab(t)->AddPage = addPage;
+	uiTab(t)->AddPage = tabAddPage;
 
 	return uiTab(t);
 }

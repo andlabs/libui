@@ -3,6 +3,9 @@
 
 struct tab {
 	uiTab t;
+	GtkWidget *widget;
+	GtkContainer *container;
+	GtkNotebook *notebook;
 	uiParent **pages;
 	uintmax_t len;
 	uintmax_t cap;
@@ -16,14 +19,11 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	uiFree(t);
 }
 
-#define TAB(t) GTK_NOTEBOOK(uiControlHandle(uiControl(t)))
-
 #define tabCapGrow 32
 
-static void addPage(uiTab *tt, const char *name, uiControl *child)
+static void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	GtkWidget *notebook;
 	uiParent *content;
 
 	if (t->len >= t->cap) {
@@ -31,11 +31,10 @@ static void addPage(uiTab *tt, const char *name, uiControl *child)
 		t->pages = (uiParent **) uiRealloc(t->pages, t->cap * sizeof (uiParent *), "uiParent *[]");
 	}
 
-	notebook = GTK_WIDGET(TAB(t));
-	content = uiNewParent((uintptr_t) notebook);
+	content = uiNewParent((uintptr_t) (t->container));
 	uiParentSetChild(content, child);
 	uiParentUpdate(content);
-	gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(notebook), GTK_WIDGET(uiParentHandle(content)), name);
+	gtk_notebook_set_tab_label_text(t->notebook, GTK_WIDGET(uiParentHandle(content)), name);
 
 	t->pages[t->len] = content;
 	t->len++;
@@ -44,7 +43,6 @@ static void addPage(uiTab *tt, const char *name, uiControl *child)
 uiTab *uiNewTab(void)
 {
 	struct tab *t;
-	GtkWidget *widget;
 
 	t = uiNew(struct tab);
 
@@ -52,10 +50,13 @@ uiTab *uiNewTab(void)
 		FALSE, FALSE,
 		NULL);
 
-	widget = GTK_WIDGET(TAB(t));
-	g_signal_connect(widget, "destroy", G_CALLBACK(onDestroy), t);
+	t->widget = WIDGET(t);
+	t->container = GTK_CONTAINER(t->widget);
+	t->notebook = GTK_NOTEBOOK(t->widget);
 
-	uiTab(t)->AddPage = addPage;
+	g_signal_connect(t->widget, "destroy", G_CALLBACK(onDestroy), t);
+
+	uiTab(t)->AddPage = tabAddPage;
 
 	return uiTab(t);
 }

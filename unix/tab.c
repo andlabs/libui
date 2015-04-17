@@ -32,7 +32,7 @@ static void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 	}
 
 	content = uiNewParent((uintptr_t) (t->container));
-	uiParentSetChild(content, child);
+	uiParentSetMainControl(content, child);
 	uiParentUpdate(content);
 	gtk_notebook_set_tab_label_text(t->notebook, GTK_WIDGET(uiParentHandle(content)), name);
 

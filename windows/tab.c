@@ -131,7 +131,7 @@ void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 	n = SendMessageW(t->hwnd, TCM_GETITEMCOUNT, 0, 0);
 
 	parent = uiNewParent((uintptr_t) (t->hwnd));
-	uiParentSetChild(parent, child);
+	uiParentSetMainControl(parent, child);
 	uiParentUpdate(parent);
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
 		ShowWindow(uiParentHWND(parent), SW_HIDE);

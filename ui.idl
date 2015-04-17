@@ -62,8 +62,7 @@ interface Parent {
 	// TODO destroy
 	// TODO object destruction debug handler
 	func Handle(void) uintptr_t;
-	// TODO rename and clean this up
-	func SetChild(c *Control);
+	func SetMainControl(c *Control);
 	func SetMargins(left intmax_t, top intmax_t, right intmax_t, bottom intmax_t);
 	// TODO Resize?
 	func Update(void);

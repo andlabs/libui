@@ -93,7 +93,7 @@ static void windowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *dat
 
 static void windowSetChild(uiWindow *w, uiControl *c)
 {
-	uiParentSetChild(D.content, c);
+	uiParentSetMainControl(D.content, c);
 }
 
 static int windowMargined(uiWindow *ww)

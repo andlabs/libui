@@ -88,7 +88,7 @@ static void windowSetChild(uiWindow *ww, uiControl *c)
 {
 	struct window *w = (struct window *) ww;
 
-	uiParentSetChild(w->content, c);
+	uiParentSetMainControl(w->content, c);
 	uiParentUpdate(w->content);
 }
 

@@ -41,7 +41,7 @@ static void tabAddPage(uiTab *t, const char *name, uiControl *child)
 	NSTabViewItem *i;
 
 	content = uiNewParent(0);
-	uiParentSetChild(content, child);
+	uiParentSetMainControl(content, child);
 
 	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
 	[i setLabel:toNSString(name)];

@@ -144,7 +144,7 @@ static void windowSetChild(uiWindow *ww, uiControl *c)
 {
 	struct window *w = (struct window *) ww;
 
-	uiParentSetChild(w->content, c);
+	uiParentSetMainControl(w->content, c);
 	// don't call uiParentUpdate(); instead, synthesize a resize
 	// otherwise, we'll have a 0x0 content area at first
 	SendMessageW(w->hwnd, msgUpdateChild, 0, 0);

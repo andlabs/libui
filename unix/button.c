@@ -64,8 +64,9 @@ uiButton *uiNewButton(const char *text)
 	b->widget = WIDGET(b);
 	b->button = GTK_BUTTON(b->widget);
 
-	g_signal_connect(b->widget, "clicked", G_CALLBACK(onClicked), b);
 	g_signal_connect(b->widget, "destroy", G_CALLBACK(onDestroy), b);
+
+	g_signal_connect(b->widget, "clicked", G_CALLBACK(onClicked), b);
 	b->onClicked = defaultOnClicked;
 
 	uiButton(b)->Text = buttonText;

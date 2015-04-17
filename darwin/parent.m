@@ -11,7 +11,7 @@
 @interface uipParent : NSView {
 // TODO
 @public
-	uiControl *child;
+	uiControl *mainControl;
 	intmax_t marginLeft;
 	intmax_t marginTop;
 	intmax_t marginRight;
@@ -29,9 +29,9 @@ uiLogObjCClassAllocations
 	// we can't just use nil because NSTabView will set page views to nil when they're tabbed away
 	// this means that we have to explicitly move them to the destroyed controls view when we're done with them, and likewise in NSWindow
 	if ([self superview] == destroyedControlsView)
-		if (self->child != NULL) {
-			uiControlDestroy(self->child);
-			self->child = NULL;
+		if (self->mainControl != NULL) {
+			uiControlDestroy(self->mainControl);
+			self->mainControl = NULL;
 			[self release];
 		}
 	[super viewDidMoveToSuperview];
@@ -55,7 +55,7 @@ uiLogObjCClassAllocations
 	uiSizing d;
 	intmax_t x, y, width, height;
 
-	if (self->child == NULL)
+	if (self->mainControl == NULL)
 		return;
 	x = [self bounds].origin.x + self->marginLeft;
 	y = [self bounds].origin.y + self->marginTop;
@@ -63,7 +63,7 @@ uiLogObjCClassAllocations
 	height = [self bounds].size.height - (self->marginTop + self->marginBottom);
 	d.xPadding = macXPadding;
 	d.yPadding = macYPadding;
-	uiControlResize(self->child, x, y, width, height, &d);
+	uiControlResize(self->mainControl, x, y, width, height, &d);
 }
 
 @end
@@ -75,13 +75,15 @@ static uintptr_t parentHandle(uiParent *p)
 	return (uintptr_t) pp;
 }
 
-static void parentSetChild(uiParent *p, uiControl *child)
+static void parentSetMainControl(uiParent *pp, uiControl *mainControl)
 {
-	uipParent *pp = (uipParent *) (p->Internal);
+	uipParent *p = (uipParent *) (pp->Internal);
 
-	pp->child = child;
-	if (pp->child != NULL)
-		uiControlSetParent(child, p);
+	if (p->mainControl != NULL)
+		uiControlSetParent(p->mainControl, NULL);
+	p->mainControl = mainControl;
+	if (p->mainControl != NULL)
+		uiControlSetParent(p->mainControl, pp);
 }
 
 static void parentSetMargins(uiParent *p, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom)
@@ -108,7 +110,7 @@ uiParent *uiNewParent(uintptr_t osParent)
 	p = uiNew(uiParent);
 	p->Internal = [[uipParent alloc] initWithFrame:NSZeroRect];
 	p->Handle = parentHandle;
-	p->SetChild = parentSetChild;
+	p->SetMainControl = parentSetMainControl;
 	p->SetMargins = parentSetMargins;
 	p->Update = parentUpdate;
 	// don't use osParent; we'll need to call specific selectors to set the parent view

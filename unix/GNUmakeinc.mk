@@ -9,6 +9,7 @@ OSCFILES = \
 	newcontrol.c \
 	parent.c \
 	tab.c \
+	text.c \
 	util.c \
 	window.c
 

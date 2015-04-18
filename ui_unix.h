@@ -12,7 +12,7 @@ This file assumes that you have included <gtk/gtk.h> and "ui.h" beforehand. It p
 // The two scrolledWindow parameters allow placing scrollbars on the new control.
 // The destroy parameter is for a function that should be called when destroying the widget.
 // The firstProperty parameter and beyond allow passing construct properties to the new control, as with g_object_new(); end this list with NULL.
-extern void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*onDestroy)(uiControl *), const char *firstProperty, ...);
+extern void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*destroy)(uiControl *), const char *firstProperty, ...);
 
 struct uiSizingSys {
 	// this structure currently left blank

@@ -21,7 +21,11 @@ static void singleDestroy(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
+	// first call the widget's own destruction code
+	(*(s->onDestroy))(s->onDestroyControl);
+	// then mark that we are ready to be destroyed
 	s->canDestroy = TRUE;
+	// then actually destroy
 	gtk_widget_destroy(s->immediate);
 }
 
@@ -168,11 +172,10 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	if (!s->canDestroy)
 		// TODO switch to complain()
 		g_error("trying to destroy control with singleWidget at %p before uiControlDestroy()", s);
-	(*(s->onDestroy))(s->onDestroyControl);
 	uiFree(s);
 }
 
-void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*onDestroy)(uiControl *), const char *firstProperty, ...)
+void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*destroy)(uiControl *), const char *firstProperty, ...)
 {
 	singleWidget *s;
 	va_list ap;
@@ -207,7 +210,7 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	// TODO double-check this for new parenting rules
 	g_object_ref_sink(s->immediate);
 
-	s->onDestroy = onDestroy;
+	s->onDestroy = destroy;
 	s->onDestroyControl = c;
 
 	// assign s later; we still need it for one more thing

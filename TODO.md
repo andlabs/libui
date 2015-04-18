@@ -21,6 +21,7 @@
 - settle differences between intmax_t and uintmax_t
 - make destroy functions take the control as an argument
 - settle onDestroy/destroy naming
+- clean up Unix lifetiming code
 
 ultimately:
 - make everything vtable-based

@@ -57,10 +57,11 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 
 	// make sure the page's control isn't destroyed
 	uiParentSetMainControl(p, NULL);
-	uiParentDestroy(p);
 
-	// TODO destroying the parent does this?
-//	gtk_notebook_remove_page(t->notebook, n);
+	// now destroy the page
+	// this will also remove the tab
+	// why? simple: both gtk_notebook_remove_tab() and gtk_widget_destroy() call gtk_container_remove()
+	uiParentDestroy(p);
 }
 
 uiTab *uiNewTab(void)

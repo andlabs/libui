@@ -21,9 +21,9 @@ static void defaultOnClicked(uiButton *b, void *data)
 	// do nothing
 }
 
-static void onDestroy(uiControl *c)
+static void onDestroy(void *data)
 {
-	struct button *b = (struct button *) c;
+	struct button *b = (struct button *) data;
 
 	uiFree(b);
 }
@@ -57,7 +57,7 @@ uiButton *uiNewButton(const char *text)
 	b = uiNew(struct button);
 
 	uiUnixNewControl(uiControl(b), GTK_TYPE_BUTTON,
-		FALSE, FALSE, onDestroy,
+		FALSE, FALSE, onDestroy, b,
 		"label", text,
 		NULL);
 

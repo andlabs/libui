@@ -13,8 +13,8 @@ struct singleWidget {
 	gboolean userDisabled;
 	gboolean containerDisabled;
 	gboolean canDestroy;
-	void (*onDestroy)(uiControl *);
-	uiControl *onDestroyControl;
+	void (*onDestroy)(void *);
+	void *onDestroyData;
 };
 
 static void singleDestroy(uiControl *c)
@@ -22,7 +22,7 @@ static void singleDestroy(uiControl *c)
 	singleWidget *s = (singleWidget *) (c->Internal);
 
 	// first call the widget's own destruction code
-	(*(s->onDestroy))(s->onDestroyControl);
+	(*(s->onDestroy))(s->onDestroyData);
 	// then mark that we are ready to be destroyed
 	s->canDestroy = TRUE;
 	// then actually destroy
@@ -175,7 +175,7 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	uiFree(s);
 }
 
-void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*destroy)(uiControl *), const char *firstProperty, ...)
+void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*destroy)(void *), void *onDestroyData, const char *firstProperty, ...)
 {
 	singleWidget *s;
 	va_list ap;
@@ -211,7 +211,7 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	g_object_ref_sink(s->immediate);
 
 	s->onDestroy = destroy;
-	s->onDestroyControl = c;
+	s->onDestroyData = onDestroyData;
 
 	// assign s later; we still need it for one more thing
 	c->Destroy = singleDestroy;

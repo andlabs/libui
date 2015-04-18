@@ -11,9 +11,9 @@ struct tab {
 	uintmax_t cap;
 };
 
-static void onDestroy(uiControl *c)
+static void onDestroy(void *data)
 {
-	struct tab *t = (struct tab *) c;
+	struct tab *t = (struct tab *) data;
 	uintmax_t i;
 
 	for (i = 0; i < t->len; i++)
@@ -70,7 +70,7 @@ uiTab *uiNewTab(void)
 	t = uiNew(struct tab);
 
 	uiUnixNewControl(uiControl(t), GTK_TYPE_NOTEBOOK,
-		FALSE, FALSE, onDestroy,
+		FALSE, FALSE, onDestroy, t,
 		NULL);
 
 	t->widget = WIDGET(t);

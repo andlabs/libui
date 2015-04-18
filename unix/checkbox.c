@@ -24,9 +24,9 @@ static void defaultOnToggled(uiCheckbox *c, void *data)
 	// do nothing
 }
 
-static void onDestroy(uiControl *cc)
+static void onDestroy(void *data)
 {
-	struct checkbox *c = (struct checkbox *) cc;
+	struct checkbox *c = (struct checkbox *) data;
 
 	uiFree(c);
 }
@@ -81,7 +81,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	c = uiNew(struct checkbox);
 
 	uiUnixNewControl(uiControl(c), GTK_TYPE_CHECK_BUTTON,
-		FALSE, FALSE, onDestroy,
+		FALSE, FALSE, onDestroy, c,
 		"label", text,
 		NULL);
 

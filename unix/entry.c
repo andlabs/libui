@@ -7,9 +7,9 @@ struct entry {
 	GtkEntry *entry;
 };
 
-static void onDestroy(uiControl *c)
+static void onDestroy(void *data)
 {
-	struct entry *e = (struct entry *) c;
+	struct entry *e = (struct entry *) data;
 
 	uiFree(e);
 }
@@ -35,7 +35,7 @@ uiEntry *uiNewEntry(void)
 	e = uiNew(struct entry);
 
 	uiUnixNewControl(uiControl(e), GTK_TYPE_ENTRY,
-		FALSE, FALSE, onDestroy,
+		FALSE, FALSE, onDestroy, e,
 		NULL);
 
 	e->widget = WIDGET(e);

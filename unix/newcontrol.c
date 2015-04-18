@@ -12,7 +12,7 @@ struct singleWidget {
 	gboolean containerHid;
 	gboolean userDisabled;
 	gboolean containerDisabled;
-	gboolean canDestroy;
+	gulong destroyBlocker;
 	void (*onDestroy)(void *);
 	void *onDestroyData;
 };
@@ -24,7 +24,7 @@ static void singleDestroy(uiControl *c)
 	// first call the widget's own destruction code
 	(*(s->onDestroy))(s->onDestroyData);
 	// then mark that we are ready to be destroyed
-	s->canDestroy = TRUE;
+	g_signal_handler_disconnect(s->immediate, s->destroyBlocker);
 	// then actually destroy
 	gtk_widget_destroy(s->immediate);
 }
@@ -165,16 +165,12 @@ static void singleContainerDisable(uiControl *c)
 	gtk_widget_set_sensitive(s->immediate, FALSE);
 }
 
-static void onDestroy(GtkWidget *widget, gpointer data)
+static void destroyBlocker(GtkWidget *widget, gpointer data)
 {
-	singleWidget *s = (singleWidget *) data;
-
-	if (!s->canDestroy)
-		complain("trying to destroy control with singleWidget at %p before uiControlDestroy()", s);
-	uiFree(s);
+	complain("trying to destroy control at %p before uiControlDestroy()", data);
 }
 
-void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*destroy)(void *), void *onDestroyData, const char *firstProperty, ...)
+void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*onDestroy)(void *), void *onDestroyData, const char *firstProperty, ...)
 {
 	singleWidget *s;
 	va_list ap;
@@ -209,7 +205,7 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	// TODO double-check this for new parenting rules
 	g_object_ref_sink(s->immediate);
 
-	s->onDestroy = destroy;
+	s->onDestroy = onDestroy;
 	s->onDestroyData = onDestroyData;
 
 	// assign s later; we still need it for one more thing
@@ -228,9 +224,8 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	c->ContainerEnable = singleContainerEnable;
 	c->ContainerDisable = singleContainerDisable;
 
-	// and let's free everything with the immediate widget
-	// we send s as data instead of c just in case c is gone by then
-	g_signal_connect(s->immediate, "destroy", G_CALLBACK(onDestroy), s);
+	// let's stop premature destruction
+	s->destroyBlocker = g_signal_connect(s->immediate, "destroy", G_CALLBACK(destroyBlocker), c);
 
 	// finally, call gtk_widget_show_all() here to set the initial visibility of the widget
 	gtk_widget_show_all(s->immediate);

@@ -16,6 +16,7 @@
 - make the backends use uiParentDestroy() instead of relying on the autodestroy behavior of the backends
 	- this requires explicitly handling delete events
 - verify retainment for uiParents in GTK+
+- add an example of events to each of the new controls guides
 
 ultimately:
 - make everything vtable-based

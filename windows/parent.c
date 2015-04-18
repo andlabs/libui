@@ -102,6 +102,7 @@ struct parent {
 	intmax_t marginTop;
 	intmax_t marginRight;
 	intmax_t marginBottom;
+	BOOL canDestroy;
 };
 
 static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -158,7 +159,8 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	pp = (struct parent *) (p->Internal);
 	switch (uMsg) {
 	case WM_NCDESTROY:
-		// no need to explicitly destroy children; they're already gone by this point (and so are their data structures; they clean up after themselves)
+		if (!pp->canDestroy)
+			complain("attempt to destroy uiParent at %p before uiParentDestroy()", p);
 		uiFree(p->Internal);
 		uiFree(p);
 		break;		// fall through to DefWindowPocW()
@@ -215,6 +217,14 @@ static void parentDestroy(uiParent *pp)
 {
 	struct parent *p = (struct parent *) (pp->Internal);
 
+	// first destroy the main control, if any
+	if (p->mainControl != NULL) {
+		uiControlDestroy(p->mainControl);
+		p->mainControl = NULL;
+	}
+	// then mark that we are ready to destroy
+	p->canDestroy = TRUE;
+	// and finally destroy
 	if (DestroyWindow(p->hwnd) == 0)
 		logLastError("error destroying uiParent window in parentDestroy()");
 }

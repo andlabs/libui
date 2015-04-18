@@ -9,6 +9,7 @@ struct window {
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	int margined;
+	BOOL canDestroy;
 };
 
 #define uiWindowClass L"uiWindowClass"
@@ -42,10 +43,11 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 		return 0;
 	case WM_CLOSE:
 		if (!(*(w->onClosing))(uiWindow(w), w->onClosingData))
-			return 0;
-		break;		// fall through to DefWindowProcW()
+			uiWindowDestroy(uiWindow(w));
+		return 0;		// we destroyed it already
 	case WM_DESTROY:
-		// no need to free the child ourselves; it'll destroy itself after we leave this handler
+		if (!w->canDestroy)
+			complain("attempt to destroy uiWindow at %p before uiWindowDestroy()", w);
 		uiFree(w);
 		break;		// fall through to DefWindowProcW()
 	}
@@ -78,6 +80,12 @@ static void windowDestroy(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
+	// first destroy the content
+	uiParentDestroy(w->content);
+	// then mark that we're ready to destroy
+	w->canDestroy = TRUE;
+	// and finally destroy
+	// TODO check for errors
 	DestroyWindow(w->hwnd);
 }
 

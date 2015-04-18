@@ -21,9 +21,9 @@ static void defaultOnClicked(uiButton *b, void *data)
 	// do nothing
 }
 
-static void onDestroy(GtkWidget *widget, gpointer data)
+static void onDestroy(uiControl *c)
 {
-	struct button *b = (struct button *) data;
+	struct button *b = (struct button *) c;
 
 	uiFree(b);
 }
@@ -57,14 +57,12 @@ uiButton *uiNewButton(const char *text)
 	b = uiNew(struct button);
 
 	uiUnixNewControl(uiControl(b), GTK_TYPE_BUTTON,
-		FALSE, FALSE,
+		FALSE, FALSE, onDestroy,
 		"label", text,
 		NULL);
 
 	b->widget = WIDGET(b);
 	b->button = GTK_BUTTON(b->widget);
-
-	g_signal_connect(b->widget, "destroy", G_CALLBACK(onDestroy), b);
 
 	g_signal_connect(b->widget, "clicked", G_CALLBACK(onClicked), b);
 	b->onClicked = defaultOnClicked;

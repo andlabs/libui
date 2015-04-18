@@ -24,9 +24,9 @@ static void defaultOnToggled(uiCheckbox *c, void *data)
 	// do nothing
 }
 
-static void onDestroy(GtkWidget *widget, gpointer data)
+static void onDestroy(uiControl *cc)
 {
-	struct checkbox *c = (struct checkbox *) data;
+	struct checkbox *c = (struct checkbox *) cc;
 
 	uiFree(c);
 }
@@ -81,7 +81,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	c = uiNew(struct checkbox);
 
 	uiUnixNewControl(uiControl(c), GTK_TYPE_CHECK_BUTTON,
-		FALSE, FALSE,
+		FALSE, FALSE, onDestroy,
 		"label", text,
 		NULL);
 
@@ -89,8 +89,6 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	c->button = GTK_BUTTON(c->widget);
 	c->toggleButton = GTK_TOGGLE_BUTTON(c->widget);
 	c->checkButton = GTK_CHECK_BUTTON(c->widget);
-
-	g_signal_connect(c->widget, "destroy", G_CALLBACK(onDestroy), c);
 
 	c->onToggledSignal = g_signal_connect(c->widget, "toggled", G_CALLBACK(onToggled), c);
 	c->onToggled = defaultOnToggled;

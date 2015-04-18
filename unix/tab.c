@@ -11,9 +11,9 @@ struct tab {
 	uintmax_t cap;
 };
 
-static void onDestroy(GtkWidget *widget, gpointer data)
+static void onDestroy(uiControl *c)
 {
-	struct tab *t = (struct tab *) data;
+	struct tab *t = (struct tab *) c;
 
 	uiFree(t->pages);
 	uiFree(t);
@@ -66,14 +66,12 @@ uiTab *uiNewTab(void)
 	t = uiNew(struct tab);
 
 	uiUnixNewControl(uiControl(t), GTK_TYPE_NOTEBOOK,
-		FALSE, FALSE,
+		FALSE, FALSE, onDestroy,
 		NULL);
 
 	t->widget = WIDGET(t);
 	t->container = GTK_CONTAINER(t->widget);
 	t->notebook = GTK_NOTEBOOK(t->widget);
-
-	g_signal_connect(t->widget, "destroy", G_CALLBACK(onDestroy), t);
 
 	uiTab(t)->AddPage = tabAddPage;
 	uiTab(t)->DeletePage = tabDeletePage;

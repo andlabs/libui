@@ -7,9 +7,9 @@ struct label {
 	GtkLabel *label;
 };
 
-static void onDestroy(GtkWidget *widget, gpointer data)
+static void onDestroy(uiControl *c)
 {
-	struct label *l = (struct label *) data;
+	struct label *l = (struct label *) c;
 
 	uiFree(l);
 }
@@ -36,7 +36,7 @@ uiLabel *uiNewLabel(const char *text)
 	l = uiNew(struct label);
 
 	uiUnixNewControl(uiControl(l), GTK_TYPE_LABEL,
-		FALSE, FALSE,
+		FALSE, FALSE, onDestroy,
 		"label", text,
 		"xalign", 0.0,		// note: must be a float constant, otherwise the ... will turn it into an int and we get segfaults on some platforms (thanks ebassi in irc.gimp.net/#gtk+)
 		// TODO yalign 0?
@@ -44,8 +44,6 @@ uiLabel *uiNewLabel(const char *text)
 
 	l->widget = WIDGET(l);
 	l->label = GTK_LABEL(l->widget);
-
-	g_signal_connect(l->widget, "destroy", G_CALLBACK(onDestroy), l);
 
 	uiLabel(l)->Text = labelText;
 	uiLabel(l)->SetText = labelSetText;

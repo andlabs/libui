@@ -14,7 +14,10 @@ struct tab {
 static void onDestroy(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
+	uintmax_t i;
 
+	for (i = 0; i < t->len; i++)
+		uiParentDestroy(t->pages[i]);
 	uiFree(t->pages);
 	uiFree(t);
 }
@@ -54,9 +57,10 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 
 	// make sure the page's control isn't destroyed
 	uiParentSetMainControl(p, NULL);
-	// TODO don't call uiParentDestroy() here as the following line will do so; figure out how to prevent
+	uiParentDestroy(p);
 
-	gtk_notebook_remove_page(t->notebook, n);
+	// TODO destroying the parent does this?
+//	gtk_notebook_remove_page(t->notebook, n);
 }
 
 uiTab *uiNewTab(void)

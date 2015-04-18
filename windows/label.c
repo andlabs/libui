@@ -16,9 +16,9 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	return FALSE;
 }
 
-static void onWM_DESTROY(uiControl *c)
+static void onDestroy(void *data)
 {
-	struct label *l = (struct label *) c;
+	struct label *l = (struct label *) data;
 
 	uiFree(l);
 }
@@ -63,7 +63,8 @@ uiLabel *uiNewLabel(const char *text)
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
-	p.onWM_DESTROY = onWM_DESTROY;
+	p.onDestroy = onDestroy;
+	p.onDestroyData = l;
 	uiWindowsNewControl(uiControl(l), &p);
 	uiFree(wtext);
 

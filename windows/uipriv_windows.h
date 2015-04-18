@@ -34,6 +34,7 @@ enum {
 	msgCOMMAND = WM_APP + 0x40,		// start offset just to be safe
 	msgNOTIFY,
 	msgUpdateChild,		// fake because Windows seems to SWP_NOSIZE MoveWindow()s and SetWindowPos()s that don't change the window size (even if SWP_NOSIZE isn't specified)
+	msgCanDestroyNow,
 };
 
 #define HWND(c) ((HWND) uiControlHandle(uiControl(c)))

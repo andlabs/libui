@@ -7,7 +7,8 @@ struct singleHWND {
 	HWND hwnd;
 	BOOL (*onWM_COMMAND)(uiControl *, WORD, LRESULT *);
 	BOOL (*onWM_NOTIFY)(uiControl *, NMHDR *, LRESULT *);
-	void (*onWM_DESTROY)(uiControl *);
+	void (*onDestroy)(void *);
+	void *onDestroyData;
 	uiParent *parent;
 	BOOL userHid;
 	BOOL containerHid;
@@ -165,7 +166,7 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 	case WM_DESTROY:
 		if (!s->canDestroy)
 			complain("trying to destroy control with singleWidget at %p before uiControlDestroy()", s);
-		(*(s->onWM_DESTROY))(c);
+		(*(s->onDestroy))(s->onDestroyData);
 		uiFree(s);
 		break;
 	case WM_NCDESTROY:
@@ -192,7 +193,9 @@ void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p)
 		logLastError("error creating control in uiWindowsNewControl()");
 	s->onWM_COMMAND = p->onWM_COMMAND;
 	s->onWM_NOTIFY = p->onWM_NOTIFY;
-	s->onWM_DESTROY = p->onWM_DESTROY;
+
+	s->onDestroy = p->onDestroy;
+	s->onDestroyData = p->onDestroyData;
 
 	c->Destroy = singleDestroy;
 	c->Handle = singleHandle;

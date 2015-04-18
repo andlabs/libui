@@ -32,9 +32,9 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	return FALSE;
 }
 
-static void onWM_DESTROY(uiControl *cc)
+static void onDestroy(void *data)
 {
-	struct checkbox *c = (struct checkbox *) cc;
+	struct checkbox *c = (struct checkbox *) data;
 
 	uiFree(c);
 }
@@ -110,7 +110,8 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
-	p.onWM_DESTROY = onWM_DESTROY;
+	p.onDestroy = onDestroy;
+	p.onDestroyData = c;
 	uiWindowsNewControl(uiControl(c), &p);
 	uiFree(wtext);
 

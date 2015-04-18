@@ -45,9 +45,9 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	return FALSE;
 }
 
-static void onWM_DESTROY(uiControl *c)
+static void onDestroy(void *data)
 {
-	struct tab *t = (struct tab *) c;
+	struct tab *t = (struct tab *) data;
 	uintmax_t i;
 
 	for (i = 0; i < t->len; i++)
@@ -194,7 +194,8 @@ uiTab *uiNewTab(void)
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
-	p.onWM_DESTROY = onWM_DESTROY;
+	p.onDestroy = onDestroy;
+	p.onDestroyData = t;
 	uiWindowsNewControl(uiControl(t), &p);
 
 	t->hwnd = HWND(t);

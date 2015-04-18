@@ -24,9 +24,9 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	return FALSE;
 }
 
-static void onWM_DESTROY(uiControl *c)
+static void onDestroy(void *data)
 {
-	struct button *b = (struct button *) c;
+	struct button *b = (struct button *) data;
 
 	uiFree(b);
 }
@@ -95,7 +95,8 @@ uiButton *uiNewButton(const char *text)
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
-	p.onWM_DESTROY = onWM_DESTROY;
+	p.onDestroy = onDestroy;
+	p.onDestroyData = b;
 	uiWindowsNewControl(uiControl(b), &p);
 	uiFree(wtext);
 

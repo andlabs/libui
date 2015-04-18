@@ -28,8 +28,10 @@ struct uiWindowsNewControlParams {
 	BOOL (*onWM_COMMAND)(uiControl *c, WORD code, LRESULT *lResult);
 	// TODO set idFrom to 0?
 	BOOL (*onWM_NOTIFY)(uiControl *c, NMHDR *nm, LRESULT *lResult);
-	// This is called in WM_DESTROY.
-	void (*onWM_DESTROY)(uiControl *c);
+
+	// This is called when the widget is ready to be destroyed.
+	void (*onDestroy)(void *data);
+	void *onDestroyData;
 };
 void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p);
 

@@ -16,9 +16,9 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	return FALSE;
 }
 
-static void onWM_DESTROY(uiControl *c)
+static void onDestroy(void *data)
 {
-	struct entry *e = (struct entry *) c;
+	struct entry *e = (struct entry *) data;
 
 	uiFree(e);
 }
@@ -58,7 +58,8 @@ uiEntry *uiNewEntry(void)
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
-	p.onWM_DESTROY = onWM_DESTROY;
+	p.onDestroy = onDestroy;
+	p.onDestroyData = e;
 	uiWindowsNewControl(uiControl(e), &p);
 
 	e->hwnd = HWND(e);

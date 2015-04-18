@@ -13,12 +13,14 @@ struct singleHWND {
 	BOOL containerHid;
 	BOOL userDisabled;
 	BOOL containerDisabled;
+	BOOL canDestroy;
 };
 
 static void singleDestroy(uiControl *c)
 {
 	singleHWND *s = (singleHWND *) (c->Internal);
 
+	s->canDestroy = TRUE;
 	if (DestroyWindow(s->hwnd) == 0)
 		logLastError("error destroying control in singleDestroy()");
 	// the data structures are destroyed in the subclass procedure
@@ -161,6 +163,8 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 			return lResult;
 		break;
 	case WM_DESTROY:
+		if (!s->canDestroy)
+			complain("trying to destroy control with singleWidget at %p before uiControlDestroy()", s);
 		(*(s->onWM_DESTROY))(c);
 		uiFree(s);
 		break;

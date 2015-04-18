@@ -69,7 +69,7 @@ static void setCheckboxText(uiButton *b, void *data)
 }
 
 uiWindow *w;
-#define nStacks 11
+#define nStacks 13
 uiStack *stacks[nStacks];
 uiCheckbox *spaced;
 
@@ -167,6 +167,23 @@ static void moveToSecond(uiButton *b, void *data)
 	uiStackAppend(secondStack, uiControl(movingLabel), 1);
 }
 
+uiStack *mainStack;
+uiStack *page1stack;
+uiTab *tab;
+
+void movePage1Out(uiButton *b, void *data)
+{
+	// TODO
+//	uiTabDeletePage(tab, 0)
+	uiStackAppend(mainStack, uiControl(page1stack), 1);
+}
+
+void addPage1Back(uiButton *b, void *data)
+{
+	uiStackDelete(mainStack, 1);
+	uiTabAddPage(tab, "Page 1", uiControl(page1stack));
+}
+
 int main(int argc, char *argv[])
 {
 	uiInitOptions o;
@@ -174,7 +191,6 @@ int main(int argc, char *argv[])
 	const char *err;
 	uiButton *getButton, *setButton;
 	uiLabel *label;
-	uiTab *tab;
 	int page2stack;
 
 	memset(&o, 0, sizeof (uiInitOptions));
@@ -197,6 +213,7 @@ int main(int argc, char *argv[])
 	uiWindowOnClosing(w, onClosing, NULL);
 
 	stacks[0] = uiNewVerticalStack();
+	page1stack = stacks[0];
 
 	e = uiNewEntry();
 	uiStackAppend(stacks[0], uiControl(e), 0);
@@ -300,7 +317,6 @@ int main(int argc, char *argv[])
 	uiStackAppend(stacks[0], uiControl(label), 0);
 
 	tab = uiNewTab();
-	uiWindowSetChild(w, uiControl(tab));
 	uiTabAddPage(tab, "Page 1", uiControl(stacks[0]));
 
 	page2stack = i;
@@ -324,6 +340,22 @@ int main(int argc, char *argv[])
 	uiButtonOnClicked(getButton, moveToSecond, NULL);
 	uiStackAppend(stacks[i], uiControl(getButton), 0);
 	uiStackAppend(stacks[page2stack], uiControl(stacks[i]), 0);
+	i++;
+
+	stacks[i] = uiNewHorizontalStack();
+	getButton = uiNewButton("Move Page 1 Out");
+	uiButtonOnClicked(getButton, movePage1Out, NULL);
+	setButton = uiNewButton("Add Page 1 Back");
+	uiButtonOnClicked(setButton, addPage1Back, NULL);
+	uiStackAppend(stacks[i], uiControl(getButton), 0);
+	uiStackAppend(stacks[i], uiControl(setButton), 0);
+	uiStackAppend(stacks[page2stack], uiControl(stacks[i]), 0);
+	i++;
+
+	stacks[i] = uiNewHorizontalStack();
+	mainStack = stacks[i];
+	uiStackAppend(stacks[i], uiControl(tab), 1);
+	uiWindowSetChild(w, uiControl(mainStack));
 	i++;
 
 	if (i != nStacks) {

@@ -316,7 +316,8 @@ int main(int argc, char *argv[])
 	uiStackAppend(stacks[0], uiControl(label), 0);
 
 	tab = uiNewTab();
-	uiTabAddPage(tab, "Page 1", uiControl(stacks[0]));
+//TODO	uiTabAddPage(tab, "Page 1", uiControl(stacks[0]));
+	uiTabAddPage(tab, "Page 1", uiControl(uiNewVerticalStack()));
 
 	page2stack = i;
 	stacks[i] = uiNewVerticalStack();

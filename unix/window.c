@@ -33,8 +33,7 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	struct window *w = (struct window *) data;
 
 	if (!w->canDestroy)
-		// TODO switch to complain()
-		g_error("attempt to dispose uiWindow at %p before uiWindowDestroy()", w);
+		complain("attempt to dispose uiWindow at %p before uiWindowDestroy()", w);
 	uiFree(w);
 }
 

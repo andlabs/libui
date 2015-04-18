@@ -170,8 +170,7 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	singleWidget *s = (singleWidget *) data;
 
 	if (!s->canDestroy)
-		// TODO switch to complain()
-		g_error("trying to destroy control with singleWidget at %p before uiControlDestroy()", s);
+		complain("trying to destroy control with singleWidget at %p before uiControlDestroy()", s);
 	uiFree(s);
 }
 

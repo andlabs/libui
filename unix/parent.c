@@ -44,8 +44,7 @@ static void uipParent_dispose(GObject *obj)
 
 	// don't free mainControl here; that should have been done by uiParentDestroy()
 	if (!p->canDestroy)
-		// TODO switch to complain()
-		g_error("attempt to dispose uiParent with uipParent at %p before uiParentDestroy()", p);
+		complain("attempt to dispose uiParent with uipParent at %p before uiParentDestroy()", p);
 	if (p->children != NULL) {
 		g_ptr_array_unref(p->children);
 		p->children = NULL;
@@ -58,8 +57,7 @@ static void uipParent_finalize(GObject *obj)
 	uipParent *p = uipParent(obj);
 
 	if (!p->canDestroy)
-		// TODO switch to complain()
-		g_error("attempt to finalize uiParent with uipParent at %p before uiParentDestroy()", p);
+		complain("attempt to finalize uiParent with uipParent at %p before uiParentDestroy()", p);
 	G_OBJECT_CLASS(uipParent_parent_class)->finalize(obj);
 	if (options.debugLogAllocations)
 		fprintf(stderr, "%p free\n", obj);

@@ -117,7 +117,7 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 #define tabCapGrow 32
 
-void tabAddPage(uiTab *tt, const char *name, uiControl *child)
+static void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
 	TCITEMW item;
@@ -156,6 +156,29 @@ void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 	SendMessageW(t->hwnd, msgUpdateChild, 0, 0);
 }
 
+static void tabDeletePage(uiTab *tt, uintmax_t n)
+{
+	struct tab *t = (struct tab *) tt;
+	uiParent *p;
+	uintmax_t i;
+
+	// first delete the tab from the tab control
+	// if this is the current tab, no tab will be selected, which is good
+	if (SendMessageW(t->hwnd, TCM_DELETEITEM, (WPARAM) n, 0) == FALSE)
+		logLastError("error deleting Tab page in tabDeletePage()");
+
+	// now delete the page itself
+	p = t->pages[n];
+	for (i = n; i < t->len - 1; i++)
+		t->pages[i] = t->pages[i + 1];
+	t->pages[i] = NULL;
+	t->len--;
+
+	// make sure the page's control isn't destroyed
+	uiParentSetMainControl(p, NULL);
+	uiParentDestroy(p);
+}
+
 uiTab *uiNewTab(void)
 {
 	struct tab *t;
@@ -182,6 +205,7 @@ uiTab *uiNewTab(void)
 	uiControl(t)->PreferredSize = preferredSize;
 
 	uiTab(t)->AddPage = tabAddPage;
+	uiTab(t)->DeletePage = tabDeletePage;
 
 	return uiTab(t);
 }

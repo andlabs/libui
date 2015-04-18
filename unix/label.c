@@ -12,7 +12,7 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	struct label *l = (struct label *) data;
 
 	if (options.debugLogLifetimes)
-		fprintf(stderr, "GtkWidget::destroy label %p\n", l);
+		fprintf(stderr, "OSdestroy label %p\n", l);
 	uiFree(l);
 }
 

@@ -16,7 +16,7 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	struct tab *t = (struct tab *) data;
 
 	if (options.debugLogLifetimes)
-		fprintf(stderr, "GtkWidget::destroy tab %p\n", t);
+		fprintf(stderr, "OSdestroy tab %p\n", t);
 	uiFree(t->pages);
 	uiFree(t);
 }

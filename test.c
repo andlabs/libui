@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 	for (i = 1; i < argc; i++)
 		if (strcmp(argv[i], "leaks") == 0)
 			o.debugLogAllocations = 1;
-		else if (strcmp(argv[i], "lifetime") == 0)
+		else if (strcmp(argv[i], "lifetimes") == 0)
 			o.debugLogLifetimes = 1;
 		else {
 			fprintf(stderr, "%s: unrecognized option %s\n", argv[0], argv[i]);

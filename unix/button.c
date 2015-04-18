@@ -26,7 +26,7 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	struct button *b = (struct button *) data;
 
 	if (options.debugLogLifetimes)
-		fprintf(stderr, "GtkWidget::destroy button %p\n", b);
+		fprintf(stderr, "OSdestroy button %p\n", b);
 	uiFree(b);
 }
 

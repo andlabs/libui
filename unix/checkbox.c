@@ -29,7 +29,7 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	struct checkbox *c = (struct checkbox *) data;
 
 	if (options.debugLogLifetimes)
-		fprintf(stderr, "GtkWidget::destroy checkbox %p\n", c);
+		fprintf(stderr, "OSdestroy checkbox %p\n", c);
 	uiFree(c);
 }
 

@@ -13,6 +13,8 @@ struct singleWidget {
 	gboolean userDisabled;
 	gboolean containerDisabled;
 	gboolean canDestroy;
+	void (*onDestroy)(uiControl *);
+	uiControl *onDestroyControl;
 };
 
 static void singleDestroy(uiControl *c)
@@ -166,10 +168,11 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 	if (!s->canDestroy)
 		// TODO switch to complain()
 		g_error("trying to destroy control with singleWidget at %p before uiControlDestroy()", s);
+	(*(s->onDestroy))(s->onDestroyControl);
 	uiFree(s);
 }
 
-void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, const char *firstProperty, ...)
+void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*onDestroy)(uiControl *), const char *firstProperty, ...)
 {
 	singleWidget *s;
 	va_list ap;
@@ -201,7 +204,11 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	// - end user call works (shoudn't be in any container)
 	// - call in uiContainer works (both refs freed)
 	// this also ensures singleRemoveParent() works properly
+	// TODO double-check this for new parenting rules
 	g_object_ref_sink(s->immediate);
+
+	s->onDestroy = onDestroy;
+	s->onDestroyControl = c;
 
 	// assign s later; we still need it for one more thing
 	c->Destroy = singleDestroy;

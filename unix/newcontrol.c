@@ -18,8 +18,6 @@ static void singleDestroy(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
-	if (options.debugLogLifetimes)
-		fprintf(stderr, "uiControlDestroy() %p %p\n", c, s);
 	gtk_widget_destroy(s->immediate);
 }
 
@@ -163,8 +161,6 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	singleWidget *s = (singleWidget *) data;
 
-	if (options.debugLogLifetimes)
-		fprintf(stderr, "OSdestroy single %p\n", s);
 	uiFree(s);
 }
 
@@ -174,8 +170,6 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	va_list ap;
 
 	s = uiNew(singleWidget);
-	if (options.debugLogLifetimes)
-		fprintf(stderr, "newSingle %p %p\n", c, s);
 
 	va_start(ap, firstProperty);
 	s->widget = GTK_WIDGET(g_object_new_valist(type, firstProperty, ap));

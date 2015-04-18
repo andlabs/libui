@@ -25,8 +25,6 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	struct button *b = (struct button *) data;
 
-	if (options.debugLogLifetimes)
-		fprintf(stderr, "OSdestroy button %p\n", b);
 	uiFree(b);
 }
 
@@ -57,8 +55,6 @@ uiButton *uiNewButton(const char *text)
 	struct button *b;
 
 	b = uiNew(struct button);
-	if (options.debugLogLifetimes)
-		fprintf(stderr, "uiNewButton() %p %s\n", b, text);
 
 	uiUnixNewControl(uiControl(b), GTK_TYPE_BUTTON,
 		FALSE, FALSE,

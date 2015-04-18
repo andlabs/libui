@@ -31,8 +31,6 @@ static void uipParent_init(uipParent *p)
 {
 	if (options.debugLogAllocations)
 		fprintf(stderr, "%p alloc uipParent\n", p);
-	if (options.debugLogLifetimes)
-;//TODO		fprintf(stderr, "uipParent_init() %p\n", p);
 	p->children = g_ptr_array_new();
 	gtk_widget_set_has_window(GTK_WIDGET(p), FALSE);
 }
@@ -43,8 +41,6 @@ static void uipParent_dispose(GObject *obj)
 {
 	uipParent *p = uipParent(obj);
 
-	if (options.debugLogLifetimes)
-;//TODO		fprintf(stderr, "uipParent_dispose() %p\n", p);
 	if (p->children != NULL) {
 		g_ptr_array_unref(p->children);
 		p->children = NULL;
@@ -58,8 +54,6 @@ static void uipParent_dispose(GObject *obj)
 
 static void uipParent_finalize(GObject *obj)
 {
-	if (options.debugLogLifetimes)
-;//TODO		fprintf(stderr, "uipParent_finalize() %p\n", obj);
 	G_OBJECT_CLASS(uipParent_parent_class)->finalize(obj);
 	if (options.debugLogAllocations)
 		fprintf(stderr, "%p free\n", obj);
@@ -143,8 +137,6 @@ static void parentDestroy(uiParent *pp)
 {
 	uipParent *p = uipParent(pp->Internal);
 
-	if (options.debugLogLifetimes)
-;//TODO		fprintf(stderr, "uiParentDestroy() %p %p\n", pp, p);
 	gtk_widget_destroy(GTK_WIDGET(p));
 }
 
@@ -189,8 +181,6 @@ uiParent *uiNewParent(uintptr_t osParent)
 
 	p = uiNew(uiParent);
 	p->Internal = g_object_new(uipParentType, NULL);
-	if (options.debugLogLifetimes)
-;//TODO		fprintf(stderr, "uiNewParent() %p %p\n", p, p->Internal);
 	p->Destroy = parentDestroy;
 	p->Handle = parentHandle;
 	p->SetMainControl = parentSetMainControl;

@@ -10,7 +10,8 @@ import (
 )
 
 func toaddr(s string) uintptr {
-	n, err := strconv.Itoa(s)
+	// TODO verify this call
+	n, err := strconv.ParseUint(s, 0, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -127,7 +128,7 @@ func destroy(parts []string) {
 func main() {
 	b := bufio.NewScanner(os.Stdin)
 	for b.Scan() {
-		s := b.String()
+		s := b.Text()
 		parts := strings.Split(s, " ")
 		name := parts[0]
 		switch {

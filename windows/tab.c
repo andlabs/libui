@@ -48,8 +48,10 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 static void onWM_DESTROY(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
+	uintmax_t i;
 
-	// no need to worry about freeing the pages themselves; they'll destroy themselves after we return
+	for (i = 0; i < t->len; i++)
+		uiParentDestroy(t->pages[i]);
 	uiFree(t->pages);
 	uiFree(t);
 }

@@ -19,6 +19,7 @@
 - add an example of events to each of the new controls guides
 - verify that uiParentSetMainControl() does indeed not update
 - settle differences between intmax_t and uintmax_t
+- make destroy functions take the control as an argument
 
 ultimately:
 - make everything vtable-based

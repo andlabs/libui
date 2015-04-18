@@ -14,17 +14,17 @@ struct singleHWND {
 	BOOL containerHid;
 	BOOL userDisabled;
 	BOOL containerDisabled;
-	BOOL canDestroy;
 };
 
 static void singleDestroy(uiControl *c)
 {
 	singleHWND *s = (singleHWND *) (c->Internal);
 
-	s->canDestroy = TRUE;
+	SendMessageW(s->hwnd, msgCanDestroyNow, 0, 0);
+	(*(s->onDestroy))(s->onDestroyData);
 	if (DestroyWindow(s->hwnd) == 0)
 		logLastError("error destroying control in singleDestroy()");
-	// the data structures are destroyed in the subclass procedure
+	uiFree(s);
 }
 
 static uintptr_t singleHandle(uiControl *c)
@@ -164,12 +164,10 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 			return lResult;
 		break;
 	case WM_DESTROY:
-		if (!s->canDestroy)
-			complain("trying to destroy control with singleWidget at %p before uiControlDestroy()", s);
-		(*(s->onDestroy))(s->onDestroyData);
-		uiFree(s);
+	case WM_NCDESTROY:		// just in case
+		complain("trying to destroy control at %p before uiControlDestroy()", c);
 		break;
-	case WM_NCDESTROY:
+	case msgCanDestroyNow:
 		if ((*fv_RemoveWindowSubclass)(hwnd, singleSubclassProc, uIdSubclass) == FALSE)
 			logLastError("error removing Windows control subclass in singleSubclassProc()");
 		break;
@@ -214,6 +212,7 @@ void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p)
 	if (p->useStandardControlFont)
 		SendMessageW(s->hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
+	// this handles both blocking control destruction and redirected notification messages
 	if ((*fv_SetWindowSubclass)(s->hwnd, singleSubclassProc, 0, (DWORD_PTR) c) == FALSE)
 		logLastError("error subclassing Windows control in uiWindowsNewControl()");
 

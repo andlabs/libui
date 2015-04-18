@@ -19,6 +19,7 @@ struct uipParent {
 	intmax_t marginTop;
 	intmax_t marginRight;
 	intmax_t marginBottom;
+	gboolean canDestroy;
 };
 
 struct uipParentClass {
@@ -41,19 +42,24 @@ static void uipParent_dispose(GObject *obj)
 {
 	uipParent *p = uipParent(obj);
 
+	// don't free mainControl here; that should have been done by uiParentDestroy()
+	if (!p->canDestroy)
+		// TODO switch to complain()
+		g_error("attempt to dispose uiParent with uipParent at %p before uiParentDestroy()", p);
 	if (p->children != NULL) {
 		g_ptr_array_unref(p->children);
 		p->children = NULL;
-	}
-	if (p->mainControl != NULL) {
-		uiControlDestroy(p->mainControl);
-		p->mainControl = NULL;
 	}
 	G_OBJECT_CLASS(uipParent_parent_class)->dispose(obj);
 }
 
 static void uipParent_finalize(GObject *obj)
 {
+	uipParent *p = uipParent(obj);
+
+	if (!p->canDestroy)
+		// TODO switch to complain()
+		g_error("attempt to finalize uiParent with uipParent at %p before uiParentDestroy()", p);
 	G_OBJECT_CLASS(uipParent_parent_class)->finalize(obj);
 	if (options.debugLogAllocations)
 		fprintf(stderr, "%p free\n", obj);
@@ -137,6 +143,11 @@ static void parentDestroy(uiParent *pp)
 {
 	uipParent *p = uipParent(pp->Internal);
 
+	p->canDestroy = TRUE;
+	if (p->mainControl != NULL) {
+		uiControlDestroy(p->mainControl);
+		p->mainControl = NULL;
+	}
 	gtk_widget_destroy(GTK_WIDGET(p));
 }
 

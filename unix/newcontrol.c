@@ -12,12 +12,14 @@ struct singleWidget {
 	gboolean containerHid;
 	gboolean userDisabled;
 	gboolean containerDisabled;
+	gboolean canDestroy;
 };
 
 static void singleDestroy(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
+	s->canDestroy = TRUE;
 	gtk_widget_destroy(s->immediate);
 }
 
@@ -161,6 +163,9 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	singleWidget *s = (singleWidget *) data;
 
+	if (!s->canDestroy)
+		// TODO switch to complain()
+		g_error("trying to destroy control with singleWidget at %p before uiControlDestroy()", s);
 	uiFree(s);
 }
 

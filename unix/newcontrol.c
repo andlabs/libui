@@ -25,8 +25,10 @@ static void singleDestroy(uiControl *c)
 	(*(s->onDestroy))(s->onDestroyData);
 	// then mark that we are ready to be destroyed
 	g_signal_handler_disconnect(s->immediate, s->destroyBlocker);
-	// then actually destroy
+	// then actually destroy (TODO sync these comments)
 	gtk_widget_destroy(s->immediate);
+	// and free ourselves
+	uiFree(s);
 }
 
 static uintptr_t singleHandle(uiControl *c)

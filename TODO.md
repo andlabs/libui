@@ -20,7 +20,7 @@
 - verify that uiParentSetMainControl() does indeed not update
 - settle differences between intmax_t and uintmax_t
 - settle onDestroy/destroy naming
-- clean up Unix lifetiming code
+- clean up Windows lifetiming code
 
 ultimately:
 - make everything vtable-based

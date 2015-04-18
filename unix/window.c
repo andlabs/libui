@@ -10,7 +10,7 @@ struct window {
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	int margined;
-	gboolean canDestroy;
+	gulong destroyBlocker;
 };
 
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
@@ -28,13 +28,9 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 1;
 }
 
-static void onDestroy(GtkWidget *widget, gpointer data)
+static void destroyBlocker(GtkWidget *widget, gpointer data)
 {
-	struct window *w = (struct window *) data;
-
-	if (!w->canDestroy)
-		complain("attempt to dispose uiWindow at %p before uiWindowDestroy()", w);
-	uiFree(w);
+	complain("attempt to dispose uiWindow at %p before uiWindowDestroy()", data);
 }
 
 // TODO should we change the GtkWindow's child first?
@@ -47,9 +43,11 @@ static void windowDestroy(uiWindow *ww)
 	// next, destroy the content uiParent
 	uiParentDestroy(w->content);
 	// now that we cleaned up properly, we can mark our window as ready to be destroyed
-	w->canDestroy = TRUE;
+	g_signal_handler_disconnect(w->widget, w->destroyBlocker);
 	// finally, destroy the window
 	gtk_widget_destroy(w->widget);
+	// and free ourselves
+	uiFree(w);
 }
 
 static uintptr_t windowHandle(uiWindow *ww)
@@ -136,7 +134,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height)
 	gtk_window_resize(w->window, width, height);
 
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
-	g_signal_connect(w->widget, "destroy", G_CALLBACK(onDestroy), w);
+	w->destroyBlocker = g_signal_connect(w->widget, "destroy", G_CALLBACK(destroyBlocker), w);
 
 	w->content = uiNewParent((uintptr_t) (w->container));
 	w->onClosing = defaultOnClosing;

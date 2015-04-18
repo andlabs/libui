@@ -46,6 +46,8 @@ static void uipParent_dispose(GObject *obj)
 	if (!p->canDestroy)
 		complain("attempt to dispose uiParent with uipParent at %p before uiParentDestroy()", p);
 	if (p->children != NULL) {
+		if (p->children->len != 0)
+			complain("disposing uiParent with uipParent at %p while there are still children", p);
 		g_ptr_array_unref(p->children);
 		p->children = NULL;
 	}
@@ -150,6 +152,8 @@ static void parentDestroy(uiParent *pp)
 	p->canDestroy = TRUE;
 	// finally, destroy the parent
 	gtk_widget_destroy(GTK_WIDGET(p));
+	// and free ourselves
+	uiFree(pp);
 }
 
 static uintptr_t parentHandle(uiParent *p)

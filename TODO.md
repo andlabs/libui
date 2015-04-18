@@ -17,6 +17,7 @@
 	- this requires explicitly handling delete events
 - verify retainment for uiParents in GTK+
 - add an example of events to each of the new controls guides
+- verify that uiParentSetMainControl() does indeed not update
 
 ultimately:
 - make everything vtable-based

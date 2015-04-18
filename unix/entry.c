@@ -11,6 +11,8 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	struct entry *e = (struct entry *) data;
 
+	if (options.debugLogLifetimes)
+		fprintf(stderr, "GtkWidget::destroy entry %p\n", e);
 	uiFree(e);
 }
 
@@ -33,6 +35,8 @@ uiEntry *uiNewEntry(void)
 	struct entry *e;
 
 	e = uiNew(struct entry);
+	if (options.debugLogLifetimes)
+		fprintf(stderr, "uiNewEntry() %p\n", e);
 
 	uiUnixNewControl(uiControl(e), GTK_TYPE_ENTRY,
 		FALSE, FALSE,

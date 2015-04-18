@@ -20,6 +20,9 @@ struct InitOptions {
 	// If nonzero, allocations will be logged to stderr.
 	// See leaks.awk.
 	field debugLogAllocations int;
+
+	// If nonzero, OS control creation/destruction will be logged to stderr.
+	field debugLogLifetimes int;
 };
 
 // TODO const char

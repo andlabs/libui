@@ -11,6 +11,8 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	struct label *l = (struct label *) data;
 
+	if (options.debugLogLifetimes)
+		fprintf(stderr, "GtkWidget::destroy label %p\n", l);
 	uiFree(l);
 }
 
@@ -34,6 +36,8 @@ uiLabel *uiNewLabel(const char *text)
 	struct label *l;
 
 	l = uiNew(struct label);
+	if (options.debugLogLifetimes)
+		fprintf(stderr, "uiNewLabel() %p %s\n", l, text);
 
 	uiUnixNewControl(uiControl(l), GTK_TYPE_LABEL,
 		FALSE, FALSE,

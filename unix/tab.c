@@ -15,6 +15,8 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	struct tab *t = (struct tab *) data;
 
+	if (options.debugLogLifetimes)
+		fprintf(stderr, "GtkWidget::destroy tab %p\n", t);
 	uiFree(t->pages);
 	uiFree(t);
 }
@@ -64,6 +66,9 @@ uiTab *uiNewTab(void)
 	struct tab *t;
 
 	t = uiNew(struct tab);
+	// TODO log page lifetimes too
+	if (options.debugLogLifetimes)
+		fprintf(stderr, "uiNewTab() %p\n", t);
 
 	uiUnixNewControl(uiControl(t), GTK_TYPE_NOTEBOOK,
 		FALSE, FALSE,

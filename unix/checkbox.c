@@ -28,6 +28,8 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	struct checkbox *c = (struct checkbox *) data;
 
+	if (options.debugLogLifetimes)
+		fprintf(stderr, "GtkWidget::destroy checkbox %p\n", c);
 	uiFree(c);
 }
 
@@ -79,6 +81,8 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	struct checkbox *c;
 
 	c = uiNew(struct checkbox);
+	if (options.debugLogLifetimes)
+		fprintf(stderr, "uiNewCheckbox() %p %s\n", c, text);
 
 	uiUnixNewControl(uiControl(c), GTK_TYPE_CHECK_BUTTON,
 		FALSE, FALSE,

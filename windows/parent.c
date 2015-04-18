@@ -95,6 +95,7 @@ static void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 	uiControlResize(control, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }
 
+// TODO make this a uiParent directly
 struct parent {
 	HWND hwnd;
 	uiControl *mainControl;

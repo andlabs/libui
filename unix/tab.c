@@ -40,6 +40,25 @@ static void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 	t->len++;
 }
 
+static void tabDeletePage(uiTab *tt, uintmax_t n)
+{
+	struct tab *t = (struct tab *) tt;
+	uiParent *p;
+	uintmax_t i;
+
+	p = t->pages[n];
+	for (i = n; i < t->len - 1; i++)
+		t->pages[i] = t->pages[i + 1];
+	t->pages[i] = NULL;
+	t->len--;
+
+	// make sure the page's control isn't destroyed
+	uiParentSetMainControl(p, NULL);
+	// TODO don't call uiParentDestroy() here as the following line will do so; figure out how to prevent
+
+	gtk_notebook_remove_page(t->notebook, n);
+}
+
 uiTab *uiNewTab(void)
 {
 	struct tab *t;
@@ -57,6 +76,7 @@ uiTab *uiNewTab(void)
 	g_signal_connect(t->widget, "destroy", G_CALLBACK(onDestroy), t);
 
 	uiTab(t)->AddPage = tabAddPage;
+	uiTab(t)->DeletePage = tabDeletePage;
 
 	return uiTab(t);
 }

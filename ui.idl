@@ -124,7 +124,7 @@ func NewLabel(text *const char) *Label;
 interface Tab from Control {
 	// TODO rename to AppendPage()
 	func AddPage(name *const char, c *Control);
-	func DeletePage(index intmax_t);
+	func DeletePage(index uintmax_t);
 };
 func NewTab(void) *Tab;
 

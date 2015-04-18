@@ -173,8 +173,7 @@ uiTab *tab;
 
 void movePage1Out(uiButton *b, void *data)
 {
-	// TODO
-//	uiTabDeletePage(tab, 0)
+	uiTabDeletePage(tab, 0)
 	uiStackAppend(mainStack, uiControl(page1stack), 1);
 }
 

@@ -10,16 +10,17 @@ struct window {
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	int margined;
+	gboolean canDestroy;
 };
 
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 {
 	struct window *w = (struct window *) data;
 
-	// return exact values just in case
+	// manually destroy the window ourselves; don't let the delete-event handler do it
 	if ((*(w->onClosing))(uiWindow(w), w->onClosingData))
-		return FALSE;
-	return TRUE;
+		uiWindowDestroy(uiWindow(w));
+	return TRUE;		// don't continue to the default delete-event handler; we destroyed the window by now
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -31,13 +32,24 @@ static void onDestroy(GtkWidget *widget, gpointer data)
 {
 	struct window *w = (struct window *) data;
 
+	if (!w->canDestroy)
+		// TODO switch to complain()
+		g_error("attempt to dispose uiWindow at %p before uiWindowDestroy()", w);
 	uiFree(w);
 }
 
+// TODO should we change the GtkWindow's child first?
 static void windowDestroy(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
+	// first, hide the window to prevent our cleanup from being noticed
+	gtk_widget_hide(w->widget);
+	// next, destroy the content uiParent
+	uiParentDestroy(w->content);
+	// now that we cleaned up properly, we can mark our window as ready to be destroyed
+	w->canDestroy = TRUE;
+	// finally, destroy the window
 	gtk_widget_destroy(w->widget);
 }
 

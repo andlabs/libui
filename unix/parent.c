@@ -143,11 +143,14 @@ static void parentDestroy(uiParent *pp)
 {
 	uipParent *p = uipParent(pp->Internal);
 
-	p->canDestroy = TRUE;
+	// first, destroy the main control
 	if (p->mainControl != NULL) {
 		uiControlDestroy(p->mainControl);
 		p->mainControl = NULL;
 	}
+	// now we can mark the parent as ready to be destroyed
+	p->canDestroy = TRUE;
+	// finally, destroy the parent
 	gtk_widget_destroy(GTK_WIDGET(p));
 }
 

@@ -80,7 +80,8 @@ static void uipParent_remove(GtkContainer *container, GtkWidget *widget)
 
 	gtk_widget_unparent(widget);
 	if (p->children != NULL)
-		g_ptr_array_remove(p->children, widget);
+		if (g_ptr_array_remove(p->children, widget) == FALSE)
+			complain("widget %p not found in uipParent gtk_container_remove()", widget);
 }
 
 #define gtkXPadding 12

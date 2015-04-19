@@ -12,7 +12,7 @@ TODO complain loudly if Destroying a control with a parent
 The rules for lifetimes are simple:
 
 - Removing a control from a container (for instance, with `uiBoxDelete()` or `uiTabDeletePage()`) does NOT destroy the control.
-- Destroying a container (`uiWindowDestroy()`, `uiControlDestroy()` on a  uiBox or uiTab, et.c) WILL destroy children.
+- Destroying a container (`uiWindowDestroy()`, `uiControlDestroy()` on a  uiBox or uiTab, etc.) WILL destroy children.
 - Otherwise, a control stays alive.
 - It is an error to destroy a control while it is part of a container.
 - It is an error to add a control to more than one container at once.
@@ -23,7 +23,9 @@ Currently, breaking these rules results in undefined behavior. Error checks will
 
 Note that control implementations generally don't need to worry about backend-specific information; these are handled by the backends's convenience functions. If you bypass those, however, you *will* need to worry.
 
-### Backend-Agnostic (uiBox, uiGrid)
+### General
+
+### Containers (uiBox, uiGrid)
 
 ### Windows
 
@@ -38,6 +40,8 @@ The destruction process is simple:
 2. The window receives `WM_DESTROY`.
 3. Any child windows are destroyed.
 4. The window receives `WM_NCDESTROY`.
+
+TODO write this
 
 ### Unix
 

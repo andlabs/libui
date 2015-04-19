@@ -8,6 +8,7 @@
 	intmax_t marginRight;
 	intmax_t marginBottom;
 }
+- (void)uipDestroyMainControl;
 - (void)uipSetMainControl:(uiControl *)mainControl parent:(uiParent *)p;
 - (void)uipSetMarginLeft:(intmax_t)left top:(intmax_t)top right:(intmax_t)right bottom:(intmax_t)bottom;
 - (void)uipUpdate;
@@ -17,22 +18,18 @@
 
 uiLogObjCClassAllocations
 
-- (void)viewDidMoveToSuperview
-{
-	// we can't just use nil because NSTabView will set page views to nil when they're tabbed away
-	// this means that we have to explicitly move them to the destroyed controls view when we're done with them, and likewise in NSWindow
-	if ([self superview] == destroyedControlsView)
-		if (self->mainControl != NULL) {
-			uiControlDestroy(self->mainControl);
-			self->mainControl = NULL;
-		}
-	[super viewDidMoveToSuperview];
-}
-
 - (void)setFrameSize:(NSSize)s
 {
 	[super setFrameSize:s];
 	[self uipUpdate];
+}
+
+- (void)uipDestroyMainControl
+{
+	if (self->mainControl != NULL) {
+		uiControlDestroy(self->mainControl);
+		self->mainControl = NULL;
+	}
 }
 
 - (void)uipSetMainControl:(uiControl *)mainControl parent:(uiParent *)p
@@ -82,6 +79,7 @@ static void parentDestroy(uiParent *pp)
 	uipParent *p = (uipParent *) (pp->Internal);
 
 	[p retain];		// to avoid destruction upon removing from superview
+	[p uipDestroyMainControl];
 	[p removeFromSuperview];
 	[destroyedControlsView addSubview:p];
 	[p release];

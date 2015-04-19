@@ -29,13 +29,14 @@ uiLogObjCClassAllocations
 {
 	[self.w setDelegate:nil];		// see http://stackoverflow.com/a/29523141/3408572
 
-	// when we reach this point, we need to ensure that all the window's children are destroyed (for OS parity)
-	// because we need to set the content view's superview to the destroyed controls view to trigger deletion, we need to do this manually
-	// first, replace the current content view...
+	// just to be safe
 	[self.w setContentView:[[NSView alloc] initWithFrame:NSZeroRect]];
-	// ...then, trigger the deletion
-	[destroyedControlsView addSubview:((NSView *) uiParentHandle(self.content))];
+	uiParentDestroy(self.content);
 
+	// now we need to release the window too
+	[self.w release];
+
+	// and clean up
 	uiFree(self.uiw);
 	[self release];
 }
@@ -135,8 +136,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height)
 	// NOTE: if you disagree with me about disabling substitutions, start a github issue with why and I'll be happy to consider it
 	disableAutocorrect((NSTextView *) [d.w fieldEditor:YES forObject:nil]);
 
-	// this is what will destroy the window on close
-	[d.w setReleasedWhenClosed:YES];
+	// don't release on close; we'll do it ourselves (see above)
+	[d.w setReleasedWhenClosed:NO];
 
 	d.content = uiNewParent(0);
 	[d.w setContentView:((NSView *) uiParentHandle(d.content))];

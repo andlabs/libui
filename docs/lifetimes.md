@@ -45,9 +45,11 @@ TODO write this
 
 ### Unix
 
-All GtkWidgets are initially created "floating" (referenceless but unowned). When adding to a GtkContainer, the reference count is increased. When removing from a GtkContainer, the reference count is decreased. When the reference count drops back to zero, the widget is destroyed. Since containers are also widgets, when a container is destroyed, its children are removed (TODO verify this).
+All GtkWidgets are initially created "floating" (referenceless but unowned). When adding to a GtkContainer, the reference count is increased. When removing from a GtkContainer, the reference count is decreased. When the reference count drops back to zero, the widget is destroyed. Since containers are also widgets, when a container is destroyed, its children are removed.
 
 An explicit call to `gtk_widget_destroy()` will immediately destroy the widget regardless of any refcounts. Container removal uses the refcounting functions `g_object_unref()`, not `gtk_widget_destroy()`.
+
+TODO destroy rules are inaccurate
 
 What these rules mean is that in the general case, you create widgets, add them to containers (which are themselves widgets, including GtkWindow), then destroy the uppermost container in the widget tree (usually a GtkWindow) to trigger the destruction of all the widgets.
 

@@ -115,6 +115,8 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	NMHDR *nm = (NMHDR *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r, margin;
+	HDC dc;
+	PAINTSTRUCT ps;
 
 	// these must always be executed, even on the initial parent
 	// why? http://blogs.msdn.com/b/oldnewthing/archive/2010/03/16/9979112.aspx
@@ -179,6 +181,13 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		margin.right = pp->marginRight;
 		margin.bottom = pp->marginBottom;
 		resize(pp->mainControl, pp->hwnd, r, margin);
+		return 0;
+	case WM_PAINT:
+		dc = BeginPaint(pp->hwnd, &ps);
+		if (dc == NULL)
+			logLastError("TODO write this");
+		paintControlBackground(pp->hwnd, dc);
+		EndPaint(pp->hwnd, &ps);
 		return 0;
 	}
 

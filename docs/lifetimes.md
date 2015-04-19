@@ -6,6 +6,9 @@ One of the more annoying parts of libui is that it has to juggle an OS control h
 
 ## To end programmers
 
+TODO complain loudly if rules broken
+TODO complain loudly if Destroying a control with a parent
+
 ## Implementation
 
 Note that control implementations generally don't need to worry about backend-specific information; these are handled by the backends's convenience functions. If you bypass those, however, you *will* need to worry.

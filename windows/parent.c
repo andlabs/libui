@@ -20,6 +20,7 @@ static void paintControlBackground(HWND hwnd, HDC dc)
 	HWND parent;
 	RECT r;
 	POINT pOrig;
+	int class;
 	DWORD le;
 
 	parent = hwnd;
@@ -31,7 +32,9 @@ static void paintControlBackground(HWND hwnd, HDC dc)
 		if (parent == initialParent)
 			return;
 		// skip groupboxes; they're (supposed to be) transparent
-		if (windowClassOf(parent, L"button", NULL) != 0)
+		// skip uiParents for reasons described below
+		class = windowClassOf(parent, L"button", uiParentClass, NULL);
+		if (class != 0 && class != 1)
 			break;
 	}
 	if (GetWindowRect(hwnd, &r) == 0)

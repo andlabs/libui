@@ -3,7 +3,6 @@
 
 // TODO
 // - verify margins against extra space around the tab
-// - free child containers properly
 
 struct tab {
 	uiTab t;
@@ -57,8 +56,19 @@ static void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
+	NSValue *v;
+	uiParent *p;
+	NSTabViewItem *i;
 
+	v = (NSValue *) [t->pages objectAtIndex:n];
+	p = (uiParent *) [v pointerValue];
 	[t->pages removeObjectAtIndex:n];
+	// make sure the children of the tab aren't destroyed
+	uiParentSetMainControl(p, NULL);
+
+	// TODO negotiate lifetimes better
+	i = [t->tabview tabViewItemAtIndex:n];
+	[t->tabview removeTabViewItem:i];
 }
 
 uiTab *uiNewTab(void)
@@ -79,6 +89,7 @@ uiTab *uiNewTab(void)
 	uiControl(t)->PreferredSize = preferredSize;
 
 	uiTab(t)->AddPage = tabAddPage;
+	uiTab(t)->DeletePage = tabDeletePage;
 
 	return uiTab(t);
 }

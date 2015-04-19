@@ -5,6 +5,7 @@ OSCFILES = \
 	entry.c \
 	init.c \
 	label.c \
+	lifetimes.c \
 	main.c \
 	newcontrol.c \
 	parent.c \

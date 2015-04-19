@@ -12,3 +12,7 @@
 
 #define widget(c) uiControlHandle(uiControl(c))
 #define WIDGET(c) GTK_WIDGET(widget(c))
+
+// lifetimes.c
+extern gulong blockDestruction(GtkWidget *, void *);
+extern void readyToDestroy(GtkWidget *, gulong);

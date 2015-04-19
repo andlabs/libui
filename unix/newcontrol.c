@@ -24,7 +24,7 @@ static void singleDestroy(uiControl *c)
 	// first call the widget's own destruction code
 	(*(s->onDestroy))(s->onDestroyData);
 	// then mark that we are ready to be destroyed
-	g_signal_handler_disconnect(s->immediate, s->destroyBlocker);
+	readyToDestroy(s->immediate, s->destroyBlocker);
 	// then actually destroy (TODO sync these comments)
 	gtk_widget_destroy(s->immediate);
 	// and free ourselves
@@ -167,11 +167,6 @@ static void singleContainerDisable(uiControl *c)
 	gtk_widget_set_sensitive(s->immediate, FALSE);
 }
 
-static void destroyBlocker(GtkWidget *widget, gpointer data)
-{
-	complain("trying to destroy control at %p before uiControlDestroy()", data);
-}
-
 void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*onDestroy)(void *), void *onDestroyData, const char *firstProperty, ...)
 {
 	singleWidget *s;
@@ -227,7 +222,7 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	c->ContainerDisable = singleContainerDisable;
 
 	// let's stop premature destruction
-	s->destroyBlocker = g_signal_connect(s->immediate, "destroy", G_CALLBACK(destroyBlocker), c);
+	s->destroyBlocker = blockDestruction(s->immediate, c);
 
 	// finally, call gtk_widget_show_all() here to set the initial visibility of the widget
 	gtk_widget_show_all(s->immediate);

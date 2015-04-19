@@ -189,6 +189,9 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		paintControlBackground(pp->hwnd, dc);
 		EndPaint(pp->hwnd, &ps);
 		return 0;
+	// don't implement WM_PRINTCLIENT
+	// if paintControlBackground() asks us to draw our background, we have to ask our parent to draw its, which causes weird origin issues
+	// instead, we skip uiParents in paintControlBackground()
 	}
 
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);

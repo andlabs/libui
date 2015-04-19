@@ -33,7 +33,7 @@ uiLabel *uiNewLabel(const char *text)
 
 	l = uiNew(struct label);
 
-	uiDarwinNewControl(uiControl(l), [NSTextField class], NO, NO, destroy, NULL);
+	uiDarwinNewControl(uiControl(l), [NSTextField class], NO, NO, destroy, l);
 
 	l->label = (NSTextField *) VIEW(l);
 

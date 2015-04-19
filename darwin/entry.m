@@ -49,7 +49,7 @@ uiEntry *uiNewEntry(void)
 
 	e = uiNew(struct entry);
 
-	uiDarwinNewControl(uiControl(e), [NSTextField class], NO, NO, destroy, NULL);
+	uiDarwinNewControl(uiControl(e), [NSTextField class], NO, NO, destroy, e);
 
 	e->textfield = (NSTextField *) VIEW(e);
 

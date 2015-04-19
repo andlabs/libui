@@ -8,12 +8,21 @@
 struct tab {
 	uiTab t;
 	NSTabView *tabview;
+	NSMutableArray *pages;
 };
 
 static void destroy(void *data)
 {
 	struct tab *t = (struct tab *) data;
 
+	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		NSValue *v = (NSValue *) obj;
+		uiParent *p;
+
+		p = (uiParent *) [v pointerValue];
+		uiParentDestroy(p);
+	}];
+	[t->pages release];
 	uiFree(t);
 }
 
@@ -37,11 +46,19 @@ static void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 
 	content = uiNewParent(0);
 	uiParentSetMainControl(content, child);
+	[t->pages addObject:[NSValue valueWithPointer:content]];
 
 	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
 	[i setLabel:toNSString(name)];
 	[i setView:((NSView *) uiParentHandle(content))];
 	[t->tabview addTabViewItem:i];
+}
+
+static void tabDeletePage(uiTab *tt, uintmax_t n)
+{
+	struct tab *t = (struct tab *) tt;
+
+	[t->pages removeObjectAtIndex:n];
 }
 
 uiTab *uiNewTab(void)
@@ -50,12 +67,14 @@ uiTab *uiNewTab(void)
 
 	t = uiNew(struct tab);
 
-	uiDarwinNewControl(uiControl(t), [NSTabView class], NO, NO, destroy, NULL);
+	uiDarwinNewControl(uiControl(t), [NSTabView class], NO, NO, destroy, t);
 
 	t->tabview = (NSTabView *) VIEW(t);
 
 	// also good for NSTabView (same selector and everything)
 	setStandardControlFont((NSControl *) (t->tabview));
+
+	t->pages = [NSMutableArray new];
 
 	uiControl(t)->PreferredSize = preferredSize;
 

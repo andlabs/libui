@@ -30,15 +30,15 @@ struct stackControl {
 
 static void stackDestroy(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 
-	if (s->parent != NULL)
-		complain("attempt to destroy a uiControl at %p while it still has a parent %p", c, s->parent);
-	for (i = 0; i < s->len; i++)
-		uiControlDestroy(s->controls[i].c);
-	uiFree(s->controls);
-	uiFree(s);
+	if (b->parent != NULL)
+		complain("attempt to destroy a uiControl at %p while it still has a parent %p", c, b->parent);
+	for (i = 0; i < b->len; i++)
+		uiControlDestroy(b->controls[i].c);
+	uiFree(b->controls);
+	uiFree(b);
 }
 
 static uintptr_t stackHandle(uiControl *c)
@@ -48,23 +48,23 @@ static uintptr_t stackHandle(uiControl *c)
 
 static void stackSetParent(uiControl *c, uiParent *parent)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 	uiParent *oldparent;
 
-	oldparent = s->parent;
-	s->parent = parent;
-	for (i = 0; i < s->len; i++)
-		uiControlSetParent(s->controls[i].c, s->parent);
+	oldparent = b->parent;
+	b->parent = parent;
+	for (i = 0; i < b->len; i++)
+		uiControlSetParent(b->controls[i].c, b->parent);
 	if (oldparent != NULL)
 		uiParentUpdate(oldparent);
-	if (s->parent != NULL)
-		uiParentUpdate(s->parent);
+	if (b->parent != NULL)
+		uiParentUpdate(b->parent);
 }
 
 static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	// these two contain the largest preferred width and height of all stretchy controls in the stack
@@ -75,46 +75,46 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 
 	*width = 0;
 	*height = 0;
-	if (s->len == 0)
+	if (b->len == 0)
 		return;
 
 	// 0) get this Stack's padding
 	xpadding = 0;
 	ypadding = 0;
-	if (s->padded) {
+	if (b->padded) {
 		xpadding = d->xPadding;
 		ypadding = d->yPadding;
 	}
 
 	// 1) initialize the desired rect with the needed padding
-	if (s->vertical)
-		*height = (s->len - 1) * ypadding;
+	if (b->vertical)
+		*height = (b->len - 1) * ypadding;
 	else
-		*width = (s->len - 1) * xpadding;
+		*width = (b->len - 1) * xpadding;
 
 	// 2) add in the size of non-stretchy controls and get (but not add in) the largest widths and heights of stretchy controls
 	// we still add in like direction of stretchy controls
 	nStretchy = 0;
 	maxStretchyWidth = 0;
 	maxStretchyHeight = 0;
-	for (i = 0; i < s->len; i++) {
-		if (!uiControlVisible(s->controls[i].c))
+	for (i = 0; i < b->len; i++) {
+		if (!uiControlVisible(b->controls[i].c))
 			continue;
-		uiControlPreferredSize(s->controls[i].c, d, &preferredWidth, &preferredHeight);
-		if (s->controls[i].stretchy) {
+		uiControlPreferredSize(b->controls[i].c, d, &preferredWidth, &preferredHeight);
+		if (b->controls[i].stretchy) {
 			nStretchy++;
 			if (maxStretchyWidth < preferredWidth)
 				maxStretchyWidth = preferredWidth;
 			if (maxStretchyHeight < preferredHeight)
 				maxStretchyHeight = preferredHeight;
 		}
-		if (s->vertical) {
+		if (b->vertical) {
 			if (*width < preferredWidth)
 				*width = preferredWidth;
-			if (!s->controls[i].stretchy)
+			if (!b->controls[i].stretchy)
 				*height += preferredHeight;
 		} else {
-			if (!s->controls[i].stretchy)
+			if (!b->controls[i].stretchy)
 				*width += preferredWidth;
 			if (*height < preferredHeight)
 				*height = preferredHeight;
@@ -122,7 +122,7 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	}
 
 	// 3) and now we can add in stretchy controls
-	if (s->vertical)
+	if (b->vertical)
 		*height += nStretchy * maxStretchyHeight;
 	else
 		*width += nStretchy * maxStretchyWidth;
@@ -130,271 +130,271 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 
 static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	intmax_t stretchywid, stretchyht;
 	uintmax_t i;
 	intmax_t preferredWidth, preferredHeight;
 
-	if (s->len == 0)
+	if (b->len == 0)
 		return;
 
 	// -1) get this Stack's padding
 	xpadding = 0;
 	ypadding = 0;
-	if (s->padded) {
+	if (b->padded) {
 		xpadding = d->xPadding;
 		ypadding = d->yPadding;
 	}
 
 	// 0) inset the available rect by the needed padding
-	if (s->vertical)
-		height -= (s->len - 1) * ypadding;
+	if (b->vertical)
+		height -= (b->len - 1) * ypadding;
 	else
-		width -= (s->len - 1) * xpadding;
+		width -= (b->len - 1) * xpadding;
 
 	// 1) get width and height of non-stretchy controls
 	// this will tell us how much space will be left for stretchy controls
 	stretchywid = width;
 	stretchyht = height;
 	nStretchy = 0;
-	for (i = 0; i < s->len; i++) {
-		if (!uiControlVisible(s->controls[i].c))
+	for (i = 0; i < b->len; i++) {
+		if (!uiControlVisible(b->controls[i].c))
 			continue;
-		if (s->controls[i].stretchy) {
+		if (b->controls[i].stretchy) {
 			nStretchy++;
 			continue;
 		}
-		uiControlPreferredSize(s->controls[i].c, d, &preferredWidth, &preferredHeight);
-		if (s->vertical) {		// all controls have same width
-			s->controls[i].width = width;
-			s->controls[i].height = preferredHeight;
+		uiControlPreferredSize(b->controls[i].c, d, &preferredWidth, &preferredHeight);
+		if (b->vertical) {		// all controls have same width
+			b->controls[i].width = width;
+			b->controls[i].height = preferredHeight;
 			stretchyht -= preferredHeight;
 		} else {				// all controls have same height
-			s->controls[i].width = preferredWidth;
-			s->controls[i].height = height;
+			b->controls[i].width = preferredWidth;
+			b->controls[i].height = height;
 			stretchywid -= preferredWidth;
 		}
 	}
 
 	// 2) now get the size of stretchy controls
 	if (nStretchy != 0)
-		if (s->vertical)
+		if (b->vertical)
 			stretchyht /= nStretchy;
 		else
 			stretchywid /= nStretchy;
-	for (i = 0; i < s->len; i++) {
-		if (!uiControlVisible(s->controls[i].c))
+	for (i = 0; i < b->len; i++) {
+		if (!uiControlVisible(b->controls[i].c))
 			continue;
-		if (s->controls[i].stretchy) {
-			s->controls[i].width = stretchywid;
-			s->controls[i].height = stretchyht;
+		if (b->controls[i].stretchy) {
+			b->controls[i].width = stretchywid;
+			b->controls[i].height = stretchyht;
 		}
 	}
 
 	// 3) now we can position controls
-	for (i = 0; i < s->len; i++) {
-		if (!uiControlVisible(s->controls[i].c))
+	for (i = 0; i < b->len; i++) {
+		if (!uiControlVisible(b->controls[i].c))
 			continue;
-		uiControlResize(s->controls[i].c, x, y, s->controls[i].width, s->controls[i].height, d);
-		if (s->vertical)
-			y += s->controls[i].height + ypadding;
+		uiControlResize(b->controls[i].c, x, y, b->controls[i].width, b->controls[i].height, d);
+		if (b->vertical)
+			y += b->controls[i].height + ypadding;
 		else
-			x += s->controls[i].width + xpadding;
+			x += b->controls[i].width + xpadding;
 	}
 }
 
 static int stackVisible(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 
-	return !(s->userHid);
+	return !(b->userHid);
 }
 
 static void stackShow(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 
-	s->userHid = 0;
-	if (!s->containerHid) {
-		for (i = 0; i < s->len; i++)
-			uiControlContainerShow(s->controls[i].c);
-		if (s->parent != NULL)
-			uiParentUpdate(s->parent);
+	b->userHid = 0;
+	if (!b->containerHid) {
+		for (i = 0; i < b->len; i++)
+			uiControlContainerShow(b->controls[i].c);
+		if (b->parent != NULL)
+			uiParentUpdate(b->parent);
 	}
 }
 
 static void stackHide(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 
-	s->userHid = 1;
-	for (i = 0; i < s->len; i++)
-		uiControlContainerHide(s->controls[i].c);
-	if (s->parent != NULL)
-		uiParentUpdate(s->parent);
+	b->userHid = 1;
+	for (i = 0; i < b->len; i++)
+		uiControlContainerHide(b->controls[i].c);
+	if (b->parent != NULL)
+		uiParentUpdate(b->parent);
 }
 
 static void stackContainerShow(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 
-	s->containerHid = 0;
-	if (!s->userHid) {
-		for (i = 0; i < s->len; i++)
-			uiControlContainerShow(s->controls[i].c);
-		if (s->parent != NULL)
-			uiParentUpdate(s->parent);
+	b->containerHid = 0;
+	if (!b->userHid) {
+		for (i = 0; i < b->len; i++)
+			uiControlContainerShow(b->controls[i].c);
+		if (b->parent != NULL)
+			uiParentUpdate(b->parent);
 	}
 }
 
 static void stackContainerHide(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 
-	s->containerHid = 1;
-	for (i = 0; i < s->len; i++)
-		uiControlContainerHide(s->controls[i].c);
-	if (s->parent != NULL)
-		uiParentUpdate(s->parent);
+	b->containerHid = 1;
+	for (i = 0; i < b->len; i++)
+		uiControlContainerHide(b->controls[i].c);
+	if (b->parent != NULL)
+		uiParentUpdate(b->parent);
 }
 
 static void stackEnable(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 
-	s->userDisabled = 0;
-	if (!s->containerDisabled)
-		for (i = 0; i < s->len; i++)
-			uiControlContainerEnable(s->controls[i].c);
+	b->userDisabled = 0;
+	if (!b->containerDisabled)
+		for (i = 0; i < b->len; i++)
+			uiControlContainerEnable(b->controls[i].c);
 }
 
 static void stackDisable(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 
-	s->userDisabled = 1;
-	for (i = 0; i < s->len; i++)
-		uiControlContainerDisable(s->controls[i].c);
+	b->userDisabled = 1;
+	for (i = 0; i < b->len; i++)
+		uiControlContainerDisable(b->controls[i].c);
 }
 
 static void stackContainerEnable(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 
-	s->containerDisabled = 0;
-	if (!s->userDisabled)
-		for (i = 0; i < s->len; i++)
-			uiControlContainerEnable(s->controls[i].c);
+	b->containerDisabled = 0;
+	if (!b->userDisabled)
+		for (i = 0; i < b->len; i++)
+			uiControlContainerEnable(b->controls[i].c);
 }
 
 static void stackContainerDisable(uiControl *c)
 {
-	stack *s = (stack *) c;
+	stack *b = (stack *) c;
 	uintmax_t i;
 
-	s->containerDisabled = 1;
-	for (i = 0; i < s->len; i++)
-		uiControlContainerDisable(s->controls[i].c);
+	b->containerDisabled = 1;
+	for (i = 0; i < b->len; i++)
+		uiControlContainerDisable(b->controls[i].c);
 }
 
 #define stackCapGrow 32
 
 static void stackAppend(uiStack *ss, uiControl *c, int stretchy)
 {
-	stack *s = (stack *) ss;
+	stack *b = (stack *) ss;
 
-	if (s->len >= s->cap) {
-		s->cap += stackCapGrow;
-		s->controls = (stackControl *) uiRealloc(s->controls, s->cap * sizeof (stackControl), "stackControl[]");
+	if (b->len >= b->cap) {
+		b->cap += stackCapGrow;
+		b->controls = (stackControl *) uiRealloc(b->controls, b->cap * sizeof (stackControl), "stackControl[]");
 	}
-	s->controls[s->len].c = c;
-	s->controls[s->len].stretchy = stretchy;
-	s->len++;		// must be here for parent updates to work
-	if (s->parent != NULL) {
-		uiControlSetParent(s->controls[s->len - 1].c, s->parent);
-		uiParentUpdate(s->parent);
+	b->controls[b->len].c = c;
+	b->controls[b->len].stretchy = stretchy;
+	b->len++;		// must be here for parent updates to work
+	if (b->parent != NULL) {
+		uiControlSetParent(b->controls[b->len - 1].c, b->parent);
+		uiParentUpdate(b->parent);
 	}
 }
 
 static void stackDelete(uiStack *ss, uintmax_t index)
 {
-	stack *s = (stack *) ss;
+	stack *b = (stack *) ss;
 	uiControl *removed;
 	uintmax_t i;
 
-	removed = s->controls[index].c;
+	removed = b->controls[index].c;
 	// TODO switch to memmove?
-	for (i = index; i < s->len - 1; i++)
-		s->controls[i] = s->controls[i + 1];
+	for (i = index; i < b->len - 1; i++)
+		b->controls[i] = b->controls[i + 1];
 	// TODO memset the last one to NULL
-	s->len--;
-	if (s->parent != NULL) {
+	b->len--;
+	if (b->parent != NULL) {
 		uiControlSetParent(removed, NULL);
-		uiParentUpdate(s->parent);
+		uiParentUpdate(b->parent);
 	}
 }
 
 static int stackPadded(uiStack *ss)
 {
-	stack *s = (stack *) ss;
+	stack *b = (stack *) ss;
 
-	return s->padded;
+	return b->padded;
 }
 
 static void stackSetPadded(uiStack *ss, int padded)
 {
-	stack *s = (stack *) ss;
+	stack *b = (stack *) ss;
 
-	s->padded = padded;
-	if (s->parent != NULL)
-		uiParentUpdate(s->parent);
+	b->padded = padded;
+	if (b->parent != NULL)
+		uiParentUpdate(b->parent);
 }
 
 uiStack *uiNewHorizontalStack(void)
 {
-	stack *s;
+	stack *b;
 
-	s = uiNew(stack);
+	b = uiNew(stack);
 
-	uiControl(s)->Destroy = stackDestroy;
-	uiControl(s)->Handle = stackHandle;
-	uiControl(s)->SetParent = stackSetParent;
-	uiControl(s)->PreferredSize = stackPreferredSize;
-	uiControl(s)->Resize = stackResize;
-	uiControl(s)->Visible = stackVisible;
-	uiControl(s)->Show = stackShow;
-	uiControl(s)->Hide = stackHide;
-	uiControl(s)->ContainerShow = stackContainerShow;
-	uiControl(s)->ContainerHide = stackContainerHide;
-	uiControl(s)->Enable = stackEnable;
-	uiControl(s)->Disable = stackDisable;
-	uiControl(s)->ContainerEnable = stackContainerEnable;
-	uiControl(s)->ContainerDisable = stackContainerDisable;
+	uiControl(b)->Destroy = stackDestroy;
+	uiControl(b)->Handle = stackHandle;
+	uiControl(b)->SetParent = stackSetParent;
+	uiControl(b)->PreferredSize = stackPreferredSize;
+	uiControl(b)->Resize = stackResize;
+	uiControl(b)->Visible = stackVisible;
+	uiControl(b)->Show = stackShow;
+	uiControl(b)->Hide = stackHide;
+	uiControl(b)->ContainerShow = stackContainerShow;
+	uiControl(b)->ContainerHide = stackContainerHide;
+	uiControl(b)->Enable = stackEnable;
+	uiControl(b)->Disable = stackDisable;
+	uiControl(b)->ContainerEnable = stackContainerEnable;
+	uiControl(b)->ContainerDisable = stackContainerDisable;
 
-	uiStack(s)->Append = stackAppend;
-	uiStack(s)->Delete = stackDelete;
-	uiStack(s)->Padded = stackPadded;
-	uiStack(s)->SetPadded = stackSetPadded;
+	uiStack(b)->Append = stackAppend;
+	uiStack(b)->Delete = stackDelete;
+	uiStack(b)->Padded = stackPadded;
+	uiStack(b)->SetPadded = stackSetPadded;
 
-	return uiStack(s);
+	return uiStack(b);
 }
 
 uiStack *uiNewVerticalStack(void)
 {
 	uiStack *ss;
-	stack *s;
+	stack *b;
 
 	ss = uiNewHorizontalStack();
-	s = (stack *) ss;
-	s->vertical = 1;
+	b = (stack *) ss;
+	b->vertical = 1;
 	return ss;
 }

@@ -20,12 +20,10 @@ static void singleDestroy(uiControl *c)
 {
 	singleView *s = (singleView *) (c->Internal);
 
+	if (s->parent != NULL)
+		complain("attempt to destroy a uiControl at %p while it still has a parent %p", c, s->parent);
 	[s->immediate retain];		// to keep alive when removing
 	(*(s->onDestroy))(s->onDestroyData);
-	if (s->parent != NULL) {
-		[s->immediate removeFromSuperview];
-		s->parent = NULL;
-	}
 	[destroyedControlsView addSubview:s->immediate];
 	[s->immediate release];
 }

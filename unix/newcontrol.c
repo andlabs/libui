@@ -21,6 +21,8 @@ static void singleDestroy(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
+	if (s->parent != NULL)
+		complain("attempt to destroy a uiControl at %p while it still has a parent %p", c, s->parent);
 	// first call the widget's own destruction code
 	(*(s->onDestroy))(s->onDestroyData);
 	// then mark that we are ready to be destroyed

@@ -20,6 +20,8 @@ static void singleDestroy(uiControl *c)
 {
 	singleHWND *s = (singleHWND *) (c->Internal);
 
+	if (s->parent != NULL)
+		complain("attempt to destroy a uiControl at %p while it still has a parent %p", c, s->parent);
 	SendMessageW(s->hwnd, msgCanDestroyNow, 0, 0);
 	(*(s->onDestroy))(s->onDestroyData);
 	if (DestroyWindow(s->hwnd) == 0)

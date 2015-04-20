@@ -1,15 +1,12 @@
 // 7 april 2015
 #include "uipriv.h"
 
-// TODO
-// - rename to uiBox
+typedef struct box box;
+typedef struct boxControl boxControl;
 
-typedef struct stack stack;
-typedef struct stackControl stackControl;
-
-struct stack {
-	uiStack s;
-	stackControl *controls;
+struct box {
+	uiBox s;
+	boxControl *controls;
 	uintmax_t len;
 	uintmax_t cap;
 	int vertical;
@@ -21,16 +18,16 @@ struct stack {
 	int containerDisabled;
 };
 
-struct stackControl {
+struct boxControl {
 	uiControl *c;
 	int stretchy;
 	intmax_t width;		// both used by resize(); preallocated to save time and reduce risk of failure
 	intmax_t height;
 };
 
-static void stackDestroy(uiControl *c)
+static void boxDestroy(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 
 	if (b->parent != NULL)
@@ -41,14 +38,14 @@ static void stackDestroy(uiControl *c)
 	uiFree(b);
 }
 
-static uintptr_t stackHandle(uiControl *c)
+static uintptr_t boxHandle(uiControl *c)
 {
 	return 0;
 }
 
-static void stackSetParent(uiControl *c, uiParent *parent)
+static void boxSetParent(uiControl *c, uiParent *parent)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 	uiParent *oldparent;
 
@@ -62,12 +59,12 @@ static void stackSetParent(uiControl *c, uiParent *parent)
 		uiParentUpdate(b->parent);
 }
 
-static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
-	// these two contain the largest preferred width and height of all stretchy controls in the stack
+	// these two contain the largest preferred width and height of all stretchy controls in the box
 	// all stretchy controls will use this value to determine the final preferred size
 	intmax_t maxStretchyWidth, maxStretchyHeight;
 	uintmax_t i;
@@ -78,7 +75,7 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	if (b->len == 0)
 		return;
 
-	// 0) get this Stack's padding
+	// 0) get this Box's padding
 	xpadding = 0;
 	ypadding = 0;
 	if (b->padded) {
@@ -128,9 +125,9 @@ static void stackPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 		*width += nStretchy * maxStretchyWidth;
 }
 
-static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	intmax_t stretchywid, stretchyht;
@@ -140,7 +137,7 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	if (b->len == 0)
 		return;
 
-	// -1) get this Stack's padding
+	// -1) get this Box's padding
 	xpadding = 0;
 	ypadding = 0;
 	if (b->padded) {
@@ -205,16 +202,16 @@ static void stackResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	}
 }
 
-static int stackVisible(uiControl *c)
+static int boxVisible(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 
 	return !(b->userHid);
 }
 
-static void stackShow(uiControl *c)
+static void boxShow(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 
 	b->userHid = 0;
@@ -226,9 +223,9 @@ static void stackShow(uiControl *c)
 	}
 }
 
-static void stackHide(uiControl *c)
+static void boxHide(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 
 	b->userHid = 1;
@@ -238,9 +235,9 @@ static void stackHide(uiControl *c)
 		uiParentUpdate(b->parent);
 }
 
-static void stackContainerShow(uiControl *c)
+static void boxContainerShow(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 
 	b->containerHid = 0;
@@ -252,9 +249,9 @@ static void stackContainerShow(uiControl *c)
 	}
 }
 
-static void stackContainerHide(uiControl *c)
+static void boxContainerHide(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 
 	b->containerHid = 1;
@@ -264,9 +261,9 @@ static void stackContainerHide(uiControl *c)
 		uiParentUpdate(b->parent);
 }
 
-static void stackEnable(uiControl *c)
+static void boxEnable(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 
 	b->userDisabled = 0;
@@ -275,9 +272,9 @@ static void stackEnable(uiControl *c)
 			uiControlContainerEnable(b->controls[i].c);
 }
 
-static void stackDisable(uiControl *c)
+static void boxDisable(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 
 	b->userDisabled = 1;
@@ -285,9 +282,9 @@ static void stackDisable(uiControl *c)
 		uiControlContainerDisable(b->controls[i].c);
 }
 
-static void stackContainerEnable(uiControl *c)
+static void boxContainerEnable(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 
 	b->containerDisabled = 0;
@@ -296,9 +293,9 @@ static void stackContainerEnable(uiControl *c)
 			uiControlContainerEnable(b->controls[i].c);
 }
 
-static void stackContainerDisable(uiControl *c)
+static void boxContainerDisable(uiControl *c)
 {
-	stack *b = (stack *) c;
+	box *b = (box *) c;
 	uintmax_t i;
 
 	b->containerDisabled = 1;
@@ -306,15 +303,15 @@ static void stackContainerDisable(uiControl *c)
 		uiControlContainerDisable(b->controls[i].c);
 }
 
-#define stackCapGrow 32
+#define boxCapGrow 32
 
-static void stackAppend(uiStack *ss, uiControl *c, int stretchy)
+static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 {
-	stack *b = (stack *) ss;
+	box *b = (box *) ss;
 
 	if (b->len >= b->cap) {
-		b->cap += stackCapGrow;
-		b->controls = (stackControl *) uiRealloc(b->controls, b->cap * sizeof (stackControl), "stackControl[]");
+		b->cap += boxCapGrow;
+		b->controls = (boxControl *) uiRealloc(b->controls, b->cap * sizeof (boxControl), "boxControl[]");
 	}
 	b->controls[b->len].c = c;
 	b->controls[b->len].stretchy = stretchy;
@@ -325,9 +322,9 @@ static void stackAppend(uiStack *ss, uiControl *c, int stretchy)
 	}
 }
 
-static void stackDelete(uiStack *ss, uintmax_t index)
+static void boxDelete(uiBox *ss, uintmax_t index)
 {
-	stack *b = (stack *) ss;
+	box *b = (box *) ss;
 	uiControl *removed;
 	uintmax_t i;
 
@@ -343,58 +340,58 @@ static void stackDelete(uiStack *ss, uintmax_t index)
 	}
 }
 
-static int stackPadded(uiStack *ss)
+static int boxPadded(uiBox *ss)
 {
-	stack *b = (stack *) ss;
+	box *b = (box *) ss;
 
 	return b->padded;
 }
 
-static void stackSetPadded(uiStack *ss, int padded)
+static void boxSetPadded(uiBox *ss, int padded)
 {
-	stack *b = (stack *) ss;
+	box *b = (box *) ss;
 
 	b->padded = padded;
 	if (b->parent != NULL)
 		uiParentUpdate(b->parent);
 }
 
-uiStack *uiNewHorizontalStack(void)
+uiBox *uiNewHorizontalBox(void)
 {
-	stack *b;
+	box *b;
 
-	b = uiNew(stack);
+	b = uiNew(box);
 
-	uiControl(b)->Destroy = stackDestroy;
-	uiControl(b)->Handle = stackHandle;
-	uiControl(b)->SetParent = stackSetParent;
-	uiControl(b)->PreferredSize = stackPreferredSize;
-	uiControl(b)->Resize = stackResize;
-	uiControl(b)->Visible = stackVisible;
-	uiControl(b)->Show = stackShow;
-	uiControl(b)->Hide = stackHide;
-	uiControl(b)->ContainerShow = stackContainerShow;
-	uiControl(b)->ContainerHide = stackContainerHide;
-	uiControl(b)->Enable = stackEnable;
-	uiControl(b)->Disable = stackDisable;
-	uiControl(b)->ContainerEnable = stackContainerEnable;
-	uiControl(b)->ContainerDisable = stackContainerDisable;
+	uiControl(b)->Destroy = boxDestroy;
+	uiControl(b)->Handle = boxHandle;
+	uiControl(b)->SetParent = boxSetParent;
+	uiControl(b)->PreferredSize = boxPreferredSize;
+	uiControl(b)->Resize = boxResize;
+	uiControl(b)->Visible = boxVisible;
+	uiControl(b)->Show = boxShow;
+	uiControl(b)->Hide = boxHide;
+	uiControl(b)->ContainerShow = boxContainerShow;
+	uiControl(b)->ContainerHide = boxContainerHide;
+	uiControl(b)->Enable = boxEnable;
+	uiControl(b)->Disable = boxDisable;
+	uiControl(b)->ContainerEnable = boxContainerEnable;
+	uiControl(b)->ContainerDisable = boxContainerDisable;
 
-	uiStack(b)->Append = stackAppend;
-	uiStack(b)->Delete = stackDelete;
-	uiStack(b)->Padded = stackPadded;
-	uiStack(b)->SetPadded = stackSetPadded;
+	uiBox(b)->Append = boxAppend;
+	uiBox(b)->Delete = boxDelete;
+	uiBox(b)->Padded = boxPadded;
+	uiBox(b)->SetPadded = boxSetPadded;
 
-	return uiStack(b);
+	return uiBox(b);
 }
 
-uiStack *uiNewVerticalStack(void)
+uiBox *uiNewVerticalBox(void)
 {
-	uiStack *ss;
-	stack *b;
+	uiBox *ss;
+	box *b;
 
-	ss = uiNewHorizontalStack();
-	b = (stack *) ss;
+	ss = uiNewHorizontalBox();
+	b = (box *) ss;
 	b->vertical = 1;
 	return ss;
 }

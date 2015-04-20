@@ -18,7 +18,7 @@ endif
 endif
 
 CFILES = \
-	stack.c \
+	box.c \
 	test.c
 HFILES = \
 	ui.h \

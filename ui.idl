@@ -91,14 +91,14 @@ interface Button from Control {
 };
 func NewButton(text *const char) *Button;
 
-interface Stack from Control {
+interface Box from Control {
 	func Append(c *Control, stretchy int);
 	func Delete(index uintmax_t);
 	func Padded(void) int;
 	func SetPadded(padded int);
 };
-func NewHorizontalStack(void) *Stack;
-func NewVerticalStack(void) *Stack;
+func NewHorizontalBox(void) *Box;
+func NewVerticalBox(void) *Box;
 
 interface Entry from Control {
 	func Text(void) *char;

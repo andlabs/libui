@@ -8,7 +8,7 @@ Windows | Unix | OS X
 
 uiButton derives from [uiControl](uiControl.md).
 
-# uiNewButton()
+## uiNewButton()
 
 ```c
 uiButton *uiNewButton(const char *text);
@@ -16,21 +16,21 @@ uiButton *uiNewButton(const char *text);
 
 Creates a new uiButton with the specifed text.
 
-# func Text()
+## func Text()
 ```c
 char *uiButtonText(uiButton *b);
 ```
 Returns the text shown on the uiButton. Free the returned string with `uiTextFree()`.
 
-# func SetText()
+## func SetText()
 ```c
 void uiButtonSetText(uiButton *b, const char *text);
 ```
 Changes the text shown on the uiButton to the given text string.
 
-# func OnClicked
+## func OnClicked
 ```c
-void uiButtonOnClicked(uiButton *b void (*handler)(uiButton *, void *), void *data);
+void uiButtonOnClicked(uiButton *b, void (*handler)(uiButton *, void *), void *data);
 ```
 Sets the function that is called when the user clicks the uiButton. The `data` parameter is passed as the second argument to this function. If a handler was previous assigned, this call replaces the old handler with the given one.
 

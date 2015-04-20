@@ -120,9 +120,11 @@ static void windowSetMargined(uiWindow *ww, int margined)
 	uiParentUpdate(w->content);
 }
 
-uiWindow *uiNewWindow(const char *title, int width, int height)
+uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	struct window *w;
+	GtkWidget *vbox;
+	GtkWidget *contentWidget;
 
 	w = uiNew(struct window);
 
@@ -131,12 +133,28 @@ uiWindow *uiNewWindow(const char *title, int width, int height)
 	w->window = GTK_WINDOW(w->widget);
 
 	gtk_window_set_title(w->window, title);
+	// TODO this does not take menus or CSD into account
 	gtk_window_resize(w->window, width, height);
 
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
 	w->destroyBlocker = g_signal_connect(w->widget, "destroy", G_CALLBACK(destroyBlocker), w);
 
-	w->content = uiNewParent((uintptr_t) (w->container));
+	if (hasMenubar) {
+		vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+		gtk_widget_show_all(vbox);
+		gtk_container_add(w->container, vbox);
+
+		gtk_container_add(GTK_CONTAINER(vbox), makeMenubar());
+
+		w->content = uiNewParent((uintptr_t) GTK_CONTAINER(vbox));
+		contentWidget = GTK_WIDGET(uiParentHandle(w->content));
+		gtk_widget_set_hexpand(contentWidget, TRUE);
+		gtk_widget_set_halign(contentWidget, GTK_ALIGN_FILL);
+		gtk_widget_set_vexpand(contentWidget, TRUE);
+		gtk_widget_set_valign(contentWidget, GTK_ALIGN_FILL);
+	} else
+		w->content = uiNewParent((uintptr_t) (w->container));
+
 	w->onClosing = defaultOnClosing;
 
 	uiWindow(w)->Destroy = windowDestroy;

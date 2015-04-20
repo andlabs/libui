@@ -16,3 +16,6 @@
 // lifetimes.c
 extern gulong blockDestruction(GtkWidget *, void *);
 extern void readyToDestroy(GtkWidget *, gulong);
+
+// menu.c
+extern GtkWidget *makeMenubar(void);

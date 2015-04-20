@@ -7,6 +7,7 @@ OSCFILES = \
 	label.c \
 	lifetimes.c \
 	main.c \
+	menu.c \
 	newcontrol.c \
 	parent.c \
 	tab.c \

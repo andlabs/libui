@@ -22,7 +22,7 @@ struct InitOptions {
 	field debugLogAllocations int;
 
 	// This is the menu that the application will use.
-	// To give this menu to a uiWindow, specify nonzero for the hasMenu parameter to uiNewWindow().
+	// To give this menu to a uiWindow, specify nonzero for the hasMenubar parameter to uiNewWindow().
 	// This value, nor any element of the array it points to, should never change during execution of the program.
 	// TODO make it a proper const *const
 	// TODO idl2h doesn't support making this even const * yet...
@@ -89,7 +89,7 @@ interface Window {
 	func Margined(void) int;
 	func SetMargined(margined int);
 };
-func NewWindow(title *const char, width int, height int) *Window;
+func NewWindow(title *const char, width int, height int, hasMenubar int) *Window;
 
 interface Button from Control {
 	func Text(void) *char;

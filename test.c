@@ -5,6 +5,13 @@
 
 // TODO convert to using the new conversion macros
 
+static const uiMenu menu[] = {
+	{ "File", NULL },
+	{ "Edit", NULL },
+	{ "Help", NULL },
+	{ NULL, NULL },
+};
+
 int onClosing(uiWindow *w, void *data)
 {
 	printf("in closing!\n");
@@ -201,6 +208,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
+	o.Menu = menu;
 	err = uiInit(&o);
 	if (err != NULL) {
 		fprintf(stderr, "error initializing ui: %s\n", err);
@@ -208,7 +216,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	w = uiNewWindow("Hello", 320, 240);
+	w = uiNewWindow("Hello", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);
 
 	boxes[0] = uiNewVerticalBox();

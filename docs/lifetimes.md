@@ -53,6 +53,8 @@ for every child
 free data structures
 ```
 
+TODO uiGroup, uiTab
+
 As for uiWindow, we won't need to worry, as destroying a uiParent will properly destroy its main control.
 
 ```

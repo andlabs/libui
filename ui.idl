@@ -20,6 +20,13 @@ struct InitOptions {
 	// If nonzero, allocations will be logged to stderr.
 	// See leaks.awk.
 	field debugLogAllocations int;
+
+	// This is the menu that the application will use.
+	// To give this menu to a uiWindow, specify nonzero for the hasMenu parameter to uiNewWindow().
+	// This value, nor any element of the array it points to, should never change during execution of the program.
+	// TODO make it a proper const *const
+	// TODO idl2h doesn't support making this even const * yet...
+	field Menu *Menu;
 };
 
 // TODO const char
@@ -127,6 +134,30 @@ interface Tab from Control {
 	func DeletePage(index uintmax_t);
 };
 func NewTab(void) *Tab;
+
+struct Menu {
+	field Name *const char;
+	// TODO make a proper const *const
+	// TODO idl2h doesn't support making this even const * yet...
+	field Items *MenuItem;
+};
+
+struct MenuItem {
+	field Name *const char;
+	field Type MenuItemType;
+};
+
+enum MenuItemType {
+	Command,
+	Checkbox,
+	Separator,
+};
+
+// TODO allow these to be specified directly in the IDL
+raw "extern const char *const uiMenuItemQuit;";
+raw "extern const char *const uiMenuItemPreferences;";
+raw "extern const char *const uiMenuItemAbout;";
+raw "extern const char *const uiMenuItemSeparator;";
 
 raw "#endif";
 

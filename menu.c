@@ -6,7 +6,9 @@
 static volatile char dummyQuit = 'q';
 static volatile char dummyPreferences = 'p';
 static volatile char dummyAbout = 'a';
+static volatile char dummySeparator = 's';
 
-const char *const uiMenuQuitItem = &dummyQuit;
-const char *const uiMenuPreferencesItem = &dummyPreferences;
-const char *const uiMenuAboutItem = &dummyAbout;
+const char *const uiMenuItemQuit = &dummyQuit;
+const char *const uiMenuItemPreferences = &dummyPreferences;
+const char *const uiMenuItemAbout = &dummyAbout;
+const char *const uiMenuItemSeparator = &dummySeparator;

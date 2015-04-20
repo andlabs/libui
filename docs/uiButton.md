@@ -8,7 +8,7 @@ Windows | Unix | OS X
 
 uiButton derives from [uiControl](uiControl.md).
 
-## uiNewButton()
+## constructor NewButton()
 
 ```c
 uiButton *uiNewButton(const char *text);
@@ -28,7 +28,7 @@ void uiButtonSetText(uiButton *b, const char *text);
 ```
 Changes the text shown on the uiButton to the given text string.
 
-## func OnClicked
+## func OnClicked()
 ```c
 void uiButtonOnClicked(uiButton *b, void (*handler)(uiButton *, void *), void *data);
 ```

@@ -27,6 +27,8 @@ uiLogObjCClassAllocations
 - (void)uipDestroyMainControl
 {
 	if (self->mainControl != NULL) {
+		// we have to do this before we can destroy controls
+		uiControlSetParent(p->mainControl, NULL);
 		uiControlDestroy(self->mainControl);
 		self->mainControl = NULL;
 	}

@@ -33,6 +33,8 @@ static void stackDestroy(uiControl *c)
 	stack *s = (stack *) c;
 	uintmax_t i;
 
+	if (s->parent != NULL)
+		complain("attempt to destroy a uiControl at %p while it still has a parent %p", c, s->parent);
 	for (i = 0; i < s->len; i++)
 		uiControlDestroy(s->controls[i].c);
 	uiFree(s->controls);

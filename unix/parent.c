@@ -146,6 +146,8 @@ static void parentDestroy(uiParent *pp)
 
 	// first, destroy the main control
 	if (p->mainControl != NULL) {
+		// we have to do this before we can destroy controls
+		uiControlSetParent(p->mainControl, NULL);
 		uiControlDestroy(p->mainControl);
 		p->mainControl = NULL;
 	}

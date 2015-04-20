@@ -22,7 +22,7 @@
 - settle onDestroy/destroy naming
 - clean up Windows lifetiming code
 - forbid free(NULL) to check for bugs
-- figure out how to do the parent on destroy check for uiStack
+- figure out how to do the parent on destroy check for children of a uiStack without a parent in and of itself
 
 ultimately:
 - make everything vtable-based

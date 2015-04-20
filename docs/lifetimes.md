@@ -25,7 +25,42 @@ Note that control implementations generally don't need to worry about backend-sp
 
 ### General
 
-### Containers (uiBox, uiGrid)
+A correct implementation of `uiControlDestroy()` would work like this:
+
+```
+if control is a child of either a parent (TODO or a container)
+	complain
+destroy the OS control
+free data structures
+```
+
+And in the case of uiParent:
+
+```
+if there is a main control
+	set its parent to NULL
+	destroy it
+destroy the OS handle
+free data structures
+```
+
+In the case of uiBox and uiGrid:
+
+```
+for every child
+	set its parent to NULL
+	destroy it
+free data structures
+```
+
+As for uiWindow, we won't need to worry, as destroying a uiParent will properly destroy its main control.
+
+```
+if necessary, change the OS window's child to make the uiParent safe to destroy
+destroy the uiParent
+destroy the OS window
+free internal data structures
+```
 
 ### Windows
 

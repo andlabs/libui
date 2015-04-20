@@ -1,6 +1,9 @@
 // 20 april 2015
 #include "uipriv.h"
 
+#if 0
+TODO
+
 // dummy items for various predefined menu identifiers
 // these are so we can get a definite unique pointer value
 static volatile char dummyQuit = 'q';
@@ -12,3 +15,5 @@ const char *const uiMenuItemQuit = &dummyQuit;
 const char *const uiMenuItemPreferences = &dummyPreferences;
 const char *const uiMenuItemAbout = &dummyAbout;
 const char *const uiMenuItemSeparator = &dummySeparator;
+
+#endif

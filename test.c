@@ -4,11 +4,33 @@
 #include <string.h>
 
 // TODO convert to using the new conversion macros
+// TODO why can't these be const?
 
-static const uiMenu menu[] = {
-	{ "File", NULL },
-	{ "Edit", NULL },
-	{ "Help", NULL },
+static uiMenuItem fileMenu[] = {
+	{ "New", uiMenuItemTypeCommand },
+	{ "Open", uiMenuItemTypeCommand },
+	{ uiMenuItemQuit, uiMenuItemTypeCommand },
+	{ NULL, 0 },
+};
+
+static uiMenuItem editMenu[] = {
+	{ "Undo", uiMenuItemTypeCommand },
+	{ uiMenuItemSeparator, uiMenuItemTypeSeparator },
+	{ "Check Me", uiMenuItemTypeCheckbox },
+	{ uiMenuItemPreferences, uiMenuItemTypeCommand },
+	{ NULL, 0 },
+};
+
+static uiMenuItem helpMenu[] = {
+	{ "Help", uiMenuItemTypeCommand },
+	{ uiMenuItemAbout, uiMenuItemTypeCommand },
+	{ NULL, 0 },
+};
+
+static uiMenu menu[] = {
+	{ "File", fileMenu },
+	{ "Edit", editMenu },
+	{ "Help", helpMenu },
 	{ NULL, NULL },
 };
 

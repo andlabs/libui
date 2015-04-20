@@ -154,10 +154,16 @@ enum MenuItemType {
 };
 
 // TODO allow these to be specified directly in the IDL
+/* TODO
 raw "extern const char *const uiMenuItemQuit;";
 raw "extern const char *const uiMenuItemPreferences;";
 raw "extern const char *const uiMenuItemAbout;";
 raw "extern const char *const uiMenuItemSeparator;";
+*/
+raw "#define uiMenuItemQuit ((char *)1)";
+raw "#define uiMenuItemPreferences ((char *)2)";
+raw "#define uiMenuItemAbout ((char *)3)";
+raw "#define uiMenuItemSeparator ((char *)4)";
 
 raw "#endif";
 

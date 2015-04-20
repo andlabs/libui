@@ -32,7 +32,7 @@ Note that control implementations generally don't need to worry about backend-sp
 Windows has no reference counting for window handles. The only situations where a window handle can be destroyed are
 
 - with a call to `DestroyWindow()`, or
-- by `DefWindowProc()` if it receives a `WM_CLOSE` message
+- by `DefWindowProc()` if it receives a `WM_CLOSE` message (when the user clicks the Close button on the titlebar of a toplevel window, for instance)
 
 The destruction process is simple:
 
@@ -52,6 +52,8 @@ GtkWidgets also have a reference count. Initially, a GtkWidget starts out as *fl
 What does this mean? In the normal case, you create a widget, add it to a container, and add the container to a GtkWindow (also a GtkWidget). Then, when you're done, you simply destroy the GtkWindow, which will destroy the widgets inside.
 
 Note that removing a widget from a container does not call `gtk_widget_destroy()`; it merely decrements the reference count of the widget.
+
+As with Windows, a `::delete-event` signal (which is sent when the user clicks a toplevel window's Close button) that is allowed to propagate will result in the window being destroyed.
 
 TODO describe what we need to do
 TODO remove lifetimes.c?

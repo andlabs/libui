@@ -40,34 +40,37 @@ enum {
 #define HWND(c) ((HWND) uiControlHandle(uiControl(c)))
 #define uiParentHWND(p) ((HWND) uiParentHandle(p))
 
-// debug_windows.c
+// debug.c
 extern HRESULT logLastError(const char *);
 extern HRESULT logHRESULT(const char *, HRESULT);
 extern HRESULT logMemoryExhausted(const char *);
 
-// init_windows.c
+// init.c
 extern HINSTANCE hInstance;
 extern int nCmdShow;
 extern HFONT hMessageFont;
 extern HBRUSH hollowBrush;
 
-// util_windows.c
+// util.c
 extern int windowClassOf(HWND, ...);
 
-// text_windows.c
+// text.c
 extern WCHAR *toUTF16(const char *);
 extern char *toUTF8(const WCHAR *);
 extern WCHAR *windowText(HWND);
 
-// comctl32_windows.c
+// comctl32.c
 extern BOOL (*WINAPI fv_SetWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR, DWORD_PTR);
 extern BOOL (*WINAPI fv_RemoveWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR);
 extern LRESULT (*WINAPI fv_DefSubclassProc)(HWND, UINT, WPARAM, LPARAM);
 extern const char *initCommonControls(void);
 
-// window_windows.c
+// window.c
 extern ATOM registerWindowClass(HICON, HCURSOR);
 
-// parent_windows.c
+// parent.c
 extern HWND initialParent;
 extern const char *initParent(HICON, HCURSOR);
+
+// menu.c
+extern HMENU makeMenubar(void);

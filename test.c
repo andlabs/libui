@@ -17,6 +17,7 @@ static uiMenuItem editMenu[] = {
 	{ "Undo", uiMenuItemTypeCommand },
 	{ uiMenuItemSeparator, uiMenuItemTypeSeparator },
 	{ "Check Me", uiMenuItemTypeCheckbox },
+	{ "A&ccelerator T_est", uiMenuItemTypeCommand },
 	{ uiMenuItemPreferences, uiMenuItemTypeCommand },
 	{ NULL, 0 },
 };

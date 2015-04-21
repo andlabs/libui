@@ -8,6 +8,7 @@ OSCFILES = \
 	init.c \
 	label.c \
 	main.c \
+	menu.c \
 	newcontrol.c \
 	parent.c \
 	tab.c \

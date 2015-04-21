@@ -87,6 +87,7 @@ static void windowDestroy(uiWindow *ww)
 	// and finally destroy
 	// TODO check for errors
 	DestroyWindow(w->hwnd);
+	// no need to explicitly destroy the menubar, if any; that's done automatically during window destruction
 }
 
 static uintptr_t windowHandle(uiWindow *ww)
@@ -180,20 +181,27 @@ static void windowSetMargined(uiWindow *ww, int margined)
 	uiParentUpdate(w->content);
 }
 
-uiWindow *uiNewWindow(const char *title, int width, int height)
+uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	struct window *w;
 	RECT adjust;
 	WCHAR *wtitle;
+	BOOL hasMenubarBOOL;
+	HMENU hmenu;
 
 	w = uiNew(struct window);
 	w->onClosing = defaultOnClosing;
+
+	hasMenubarBOOL = FALSE;
+	if (hasMenubar)
+		hasMenubarBOOL = TRUE;
 
 	adjust.left = 0;
 	adjust.top = 0;
 	adjust.right = width;
 	adjust.bottom = height;
-	if (AdjustWindowRectEx(&adjust, style, FALSE, exstyle) == 0)
+	// TODO does not handle menu wrapping; see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx
+	if (AdjustWindowRectEx(&adjust, style, hasMenubarBOOL, exstyle) == 0)
 		logLastError("error getting real window coordinates in uiWindow()");
 
 	wtitle = toUTF16(title);
@@ -208,6 +216,12 @@ uiWindow *uiNewWindow(const char *title, int width, int height)
 	uiFree(wtitle);
 
 	w->content = uiNewParent((uintptr_t) (w->hwnd));
+
+	if (hasMenubar) {
+		hmenu = makeMenubar();
+		if (SetMenu(w->hwnd, hmenu) == 0)
+			logLastError("error giving menu to window in uiNewWindow()");
+	}
 
 	uiWindow(w)->Destroy = windowDestroy;
 	uiWindow(w)->Handle = windowHandle;

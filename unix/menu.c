@@ -10,33 +10,6 @@ static void appendMenuItem(GtkMenuShell *menu, const uiMenuItem *item)
 {
 	GtkWidget *iw;
 
-	// TODO see if there are stock items for these three
-	if (item->Name == uiMenuItemQuit) {
-		// TODO verify type
-		appendSeparator(menu);
-		iw = gtk_menu_item_new_with_label("Quit");
-		gtk_menu_shell_append(menu, iw);
-		return;
-	}
-	if (item->Name == uiMenuItemPreferences) {
-		// TODO verify type
-		appendSeparator(menu);
-		iw = gtk_menu_item_new_with_label("Preferences");
-		gtk_menu_shell_append(menu, iw);
-		return;
-	}
-	if (item->Name == uiMenuItemAbout) {
-		// TODO verify type
-		appendSeparator(menu);
-		iw = gtk_menu_item_new_with_label("About");
-		gtk_menu_shell_append(menu, iw);
-		return;
-	}
-	if (item->Name == uiMenuItemSeparator) {
-		// TODO verify type
-		appendSeparator(menu);
-		return;
-	}
 	switch (item->Type) {
 	case uiMenuItemTypeCommand:
 		iw = gtk_menu_item_new_with_label(item->Name);
@@ -45,6 +18,29 @@ static void appendMenuItem(GtkMenuShell *menu, const uiMenuItem *item)
 	case uiMenuItemTypeCheckbox:
 		iw = gtk_check_menu_item_new_with_label(item->Name);
 		gtk_menu_shell_append(menu, iw);
+		return;
+	// TODO see if there are stock items for these three
+	case uiMenuItemTypeQuit:
+		// TODO verify name
+		appendSeparator(menu);
+		iw = gtk_menu_item_new_with_label("Quit");
+		gtk_menu_shell_append(menu, iw);
+		return;
+	case uiMenuItemTypePreferences:
+		// TODO verify name
+		appendSeparator(menu);
+		iw = gtk_menu_item_new_with_label("Preferences");
+		gtk_menu_shell_append(menu, iw);
+		return;
+	case uiMenuItemTypeAbout:
+		// TODO verify name
+		appendSeparator(menu);
+		iw = gtk_menu_item_new_with_label("About");
+		gtk_menu_shell_append(menu, iw);
+		return;
+	case uiMenuItemTypeSeparator:
+		// TODO verify name
+		appendSeparator(menu);
 		return;
 	}
 	// TODO complain
@@ -58,7 +54,7 @@ static GtkWidget *makeMenu(const char *name, uiMenuItem *items)
 
 	menu = gtk_menu_item_new_with_label(name);
 	submenu = gtk_menu_new();
-	for (i = items; i->Name != NULL; i++)
+	for (i = items; i->Type != 0; i++)
 		appendMenuItem(GTK_MENU_SHELL(submenu), i);
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu), submenu);
 	return menu;

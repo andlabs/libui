@@ -145,6 +145,8 @@ struct Menu {
 struct MenuItem {
 	field Type MenuItemType;
 	field Name *const char;
+	field OnClicked *func(sender *void, data *void);
+	field OnClickedData *void;
 };
 
 enum MenuItemType {

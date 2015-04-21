@@ -21,8 +21,8 @@ static const uiMenuItem fileMenu[] = {
 static const uiMenuItem editMenu[] = {
 	{ uiMenuItemTypeCommand, "Undo", noopMenu, NULL },
 	{ uiMenuItemTypeSeparator, NULL, NULL, NULL },
-	{ uiMenuItemTypeCheckbox, "Check Me", noopMenu, NULL },
-	{ uiMenuItemTypeCommand, "A&ccelerator T_est\tTest", noopMenu, NULL },
+	{ uiMenuItemTypeCheckbox, "Check Me\tTest", noopMenu, NULL },
+	{ uiMenuItemTypeCommand, "A&ccelerator T_est", noopMenu, NULL },
 	{ uiMenuItemTypePreferences, NULL, noopMenu, NULL },
 	{ 0, NULL, NULL, NULL },
 };

@@ -19,7 +19,6 @@ endif
 
 CFILES = \
 	box.c \
-	menu.c \
 	test.c
 HFILES = \
 	ui.h \

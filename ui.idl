@@ -143,27 +143,19 @@ struct Menu {
 };
 
 struct MenuItem {
-	field Name *const char;
 	field Type MenuItemType;
+	field Name *const char;
 };
 
 enum MenuItemType {
+	End,				// Name must be NULL; specicfy this as 0
 	Command,
 	Checkbox,
-	Separator,
+	Quit,				// Name must be NULL
+	Preferences,		// Name must be NULL
+	About,			// Name must be NULL
+	Separator,			// Name must be NULL
 };
-
-// TODO allow these to be specified directly in the IDL
-/* TODO
-raw "extern const char *const uiMenuItemQuit;";
-raw "extern const char *const uiMenuItemPreferences;";
-raw "extern const char *const uiMenuItemAbout;";
-raw "extern const char *const uiMenuItemSeparator;";
-*/
-raw "#define uiMenuItemQuit ((char *)1)";
-raw "#define uiMenuItemPreferences ((char *)2)";
-raw "#define uiMenuItemAbout ((char *)3)";
-raw "#define uiMenuItemSeparator ((char *)4)";
 
 raw "#endif";
 

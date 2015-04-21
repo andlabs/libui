@@ -6,26 +6,26 @@
 // TODO convert to using the new conversion macros
 // TODO why can't these be const?
 
-static uiMenuItem fileMenu[] = {
-	{ "New", uiMenuItemTypeCommand },
-	{ "Open", uiMenuItemTypeCommand },
-	{ uiMenuItemQuit, uiMenuItemTypeCommand },
-	{ NULL, 0 },
+static const uiMenuItem fileMenu[] = {
+	{ uiMenuItemTypeCommand, "New" },
+	{ uiMenuItemTypeCommand, "Open" },
+	{ uiMenuItemTypeQuit, NULL },
+	{ 0, NULL },
 };
 
-static uiMenuItem editMenu[] = {
-	{ "Undo", uiMenuItemTypeCommand },
-	{ uiMenuItemSeparator, uiMenuItemTypeSeparator },
-	{ "Check Me", uiMenuItemTypeCheckbox },
-	{ "A&ccelerator T_est", uiMenuItemTypeCommand },
-	{ uiMenuItemPreferences, uiMenuItemTypeCommand },
-	{ NULL, 0 },
+static const uiMenuItem editMenu[] = {
+	{ uiMenuItemTypeCommand, "Undo" },
+	{ uiMenuItemTypeSeparator, NULL },
+	{ uiMenuItemTypeCheckbox, "Check Me" },
+	{ uiMenuItemTypeCommand, "A&ccelerator T_est" },
+	{ uiMenuItemTypePreferences, NULL },
+	{ 0, NULL },
 };
 
-static uiMenuItem helpMenu[] = {
-	{ "Help", uiMenuItemTypeCommand },
-	{ uiMenuItemAbout, uiMenuItemTypeCommand },
-	{ NULL, 0 },
+static const uiMenuItem helpMenu[] = {
+	{ uiMenuItemTypeCommand, "Help" },
+	{ uiMenuItemTypeAbout, NULL },
+	{ 0, NULL },
 };
 
 static uiMenu menu[] = {

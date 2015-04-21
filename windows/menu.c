@@ -93,7 +93,7 @@ HMENU makeMenubar(void)
 // this is slow, but it will do for now
 // TODO investigate faster options
 
-static const uiMenuItem *lookupID(const uiMenu *items, UINT_PTR *cur, UINT_PTR id)
+static const uiMenuItem *lookupID(const uiMenuItem *items, UINT_PTR *cur, UINT_PTR id)
 {
 	const uiMenuItem *i;
 
@@ -115,7 +115,7 @@ const uiMenuItem *menuIDToItem(UINT_PTR id)
 
 	cur = 100;
 	for (m = options.Menu; m->Name != NULL; m++) {
-		item = lookupID(m, &cur, id);
+		item = lookupID(m->Items, &cur, id);
 		if (item != NULL)
 			return item;
 	}

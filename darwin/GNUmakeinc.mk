@@ -6,6 +6,7 @@ OSMFILES = \
 	init.m \
 	label.m \
 	main.m \
+	menu.m \
 	newcontrol.m \
 	parent.m \
 	tab.m \

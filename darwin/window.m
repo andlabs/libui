@@ -116,7 +116,7 @@ static void windowSetMargined(uiWindow *ww, int margined)
 	uiParentUpdate(D.content);
 }
 
-uiWindow *uiNewWindow(const char *title, int width, int height)
+uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindowDelegate *d;
 

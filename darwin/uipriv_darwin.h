@@ -26,17 +26,21 @@
 
 #define VIEW(c) uiControlHandle(uiControl(c))
 
-// init_darwin.m
+// init.m
 extern NSView *destroyedControlsView;
 
-// util_darwin.m
+// util.m
 extern void setStandardControlFont(NSControl *);
 extern void disableAutocorrect(NSTextView *);
 
+// parent.m
 // These are based on measurements from Interface Builder.
 // These seem to be based on Auto Layout constants, but I don't see an API that exposes these...
 #define macXMargin 20
 #define macYMargin 20
 
-// entry_darwin.m
+// entry.m
 extern void finishNewTextField(NSTextField *, BOOL);
+
+// menu.m
+extern NSMenu *makeMenubar(void);

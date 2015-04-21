@@ -56,6 +56,9 @@ const char *uiInit(uiInitOptions *o)
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 	[NSApp setDelegate:[uiAppDelegate new]];
 
+	if (options.Menu != NULL)
+		[NSApp setMainMenu:makeMenubar()];
+
 	// we can use a stock NSView for this
 	destroyedControlsView = [[NSView alloc] initWithFrame:NSZeroRect];
 

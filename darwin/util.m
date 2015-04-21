@@ -18,3 +18,8 @@ void disableAutocorrect(NSTextView *tv)
 	[tv setAutomaticLinkDetectionEnabled:NO];
 	[tv setSmartInsertDeleteEnabled:NO];
 }
+
+void complain(const char *fmt, ...)
+{
+	// TODO
+}

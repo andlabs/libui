@@ -19,34 +19,30 @@ static void appendTextItem(HMENU menu, const char *text)
 
 static void appendMenuItem(HMENU menu, const uiMenuItem *item)
 {
-	// TODO see if there are stock items for these three
-	if (item->Name == uiMenuItemQuit) {
-		// TODO verify type
-		appendSeparator(menu);
-		appendTextItem(menu, "Quit");
-		return;
-	}
-	if (item->Name == uiMenuItemPreferences) {
-		// TODO verify type
-		appendSeparator(menu);
-		appendTextItem(menu, "Preferences");
-		return;
-	}
-	if (item->Name == uiMenuItemAbout) {
-		// TODO verify type
-		appendSeparator(menu);
-		appendTextItem(menu, "About");
-		return;
-	}
-	if (item->Name == uiMenuItemSeparator) {
-		// TODO verify type
-		appendSeparator(menu);
-		return;
-	}
 	switch (item->Type) {
 	case uiMenuItemTypeCommand:
 	case uiMenuItemTypeCheckbox:
 		appendTextItem(menu, item->Name);
+		return;
+	// TODO see if there are stock items for these three
+	case uiMenuItemTypeQuit:
+		// TODO verify name
+		appendSeparator(menu);
+		appendTextItem(menu, "Quit");
+		return;
+	case uiMenuItemTypePreferences:
+		// TODO verify name
+		appendSeparator(menu);
+		appendTextItem(menu, "Preferences");
+		return;
+	case uiMenuItemTypeAbout:
+		// TODO verify name
+		appendSeparator(menu);
+		appendTextItem(menu, "About");
+		return;
+	case uiMenuItemTypeSeparator:
+		// TODO verify name
+		appendSeparator(menu);
 		return;
 	}
 	// TODO complain
@@ -61,7 +57,7 @@ static HMENU makeMenu(uiMenuItem *items)
 	menu = CreatePopupMenu();
 	if (menu == NULL)
 		logLastError("error creating menu in makeMenu()");
-	for (i = items; i->Name != NULL; i++)
+	for (i = items; i->Type != 0; i++)
 		appendMenuItem(menu, i);
 	return menu;
 }

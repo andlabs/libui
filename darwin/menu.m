@@ -56,6 +56,7 @@ NSMenuItem *makeMenu(const char *name, const uiMenuItem *items, struct menuConfi
 }
 
 // Cocoa constructs the default application menu by hand for each program; that's what MainMenu.[nx]ib does
+// TODO investigate setAppleMenu:
 static void buildApplicationMenu(NSMenu *menubar)
 {
 	NSString *appName;

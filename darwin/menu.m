@@ -7,6 +7,10 @@ struct menuConfig {
 	BOOL hasAbout;
 };
 
+static NSMenuItem *quitItem;
+static NSMenuItem *preferencesItem;
+static NSMenuItem *aboutItem;
+
 void appendMenuItem(NSMenu *menu, const uiMenuItem *item, struct menuConfig *menuConfig)
 {
 	NSMenuItem *mitem;
@@ -51,25 +55,87 @@ NSMenuItem *makeMenu(const char *name, const uiMenuItem *items, struct menuConfi
 	return menubarItem;
 }
 
+// Cocoa constructs the default application menu by hand for each program; that's what MainMenu.[nx]ib does
+static void buildApplicationMenu(NSMenu *menubar)
+{
+	NSString *appName;
+	NSMenuItem *appMenuItem;
+	NSMenu *appMenu;
+	NSMenuItem *item;
+	NSString *title;
+
+	appName = [[NSProcessInfo processInfo] processName];
+	appMenuItem = [[NSMenuItem alloc] initWithTitle:appName action:NULL keyEquivalent:@""];
+	appMenu = [[NSMenu alloc] initWithTitle:appName];
+	[appMenuItem setSubmenu:appMenu];
+	[menubar addItem:appMenuItem];
+
+	// first is About
+	title = [@"About " stringByAppendingString:appName];
+	item = [[NSMenuItem alloc] initWithTitle:title action:NULL keyEquivalent:@""];
+	[item setEnabled:NO];
+	[appMenu addItem:item];
+	aboutItem = item;
+
+	[appMenu addItem:[NSMenuItem separatorItem]];
+
+	// next is Preferences
+	item = [[NSMenuItem alloc] initWithTitle:@"Preferences…" action:NULL keyEquivalent:@","];
+	[item setEnabled:NO];
+	[appMenu addItem:item];
+	preferencesItem = item;
+
+	[appMenu addItem:[NSMenuItem separatorItem]];
+
+	// next is Services
+	item = [[NSMenuItem alloc] initWithTitle:@"Services" action:NULL keyEquivalent:@""];
+	// TODO build this part
+
+	[appMenu addItem:[NSMenuItem separatorItem]];
+
+	// next are the three hiding options
+	title = [@"Hide " stringByAppendingString:appName];
+	item = [[NSMenuItem alloc] initWithTitle:title action:@selector(hide:) keyEquivalent:@"h"];
+	// TODO set target for all three of these? the .xib file says they go to -1 ("First Responder", which sounds wrong...)
+	[appMenu addItem:item];
+	item = [[NSMenuItem alloc] initWithTitle:@"Hide Others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
+	[item setKeyEquivalentModifierMask:(NSAlternateKeyMask | NSCommandKeyMask)];
+	[appMenu addItem:item];
+	item = [[NSMenuItem alloc] initWithTitle:@"Show All" action:@selector(unhideAllApplications:) keyEquivalent:@""];
+	[appMenu addItem:item];
+
+	[appMenu addItem:[NSMenuItem separatorItem]];
+
+	// and finally Quit
+	// DON'T use @selector(terminate:) as the action; we handle termination ourselves (TODO figure out how)
+	title = [@"Quit " stringByAppendingString:appName];
+	item = [[NSMenuItem alloc] initWithTitle:title action:NULL keyEquivalent:@"q"];
+	[appMenu addItem:item];
+	quitItem = item;
+}
+
 NSMenu *makeMenubar(void)
 {
 	NSMenu *menubar;
-	NSMenuItem *applicationMenuItem;
-	NSMenu *applicationMenu;
 	struct menuConfig menuConfig;
 	const uiMenu *m;
 
 	menubar = [[NSMenu alloc] initWithTitle:@""];
 
-	// TODO give the application name?
-	applicationMenuItem = [[NSMenuItem alloc] initWithTitle:@"" action:NULL keyEquivalent:@""];
-	applicationMenu = [[NSMenu alloc] initWithTitle:@""];
-	[applicationMenuItem setSubmenu:applicationMenu];
-	[menubar addItem:applicationMenuItem];
+	// always build the application menu
+	buildApplicationMenu(menubar);
 
 	memset(&menuConfig, 0, sizeof (struct menuConfig));
-	for (m = options.Menu; m->Name != NULL; m++)
-		[menubar addItem:makeMenu(m->Name, m->Items, &menuConfig)];
+	if (options.Menu != NULL)
+		for (m = options.Menu; m->Name != NULL; m++)
+			[menubar addItem:makeMenu(m->Name, m->Items, &menuConfig)];
+
+	if (menuConfig.hasQuit)
+		[quitItem setEnabled:YES];
+	if (menuConfig.hasPreferences)
+		[preferencesItem setEnabled:YES];
+	if (menuConfig.hasAbout)
+		[aboutItem setEnabled:YES];
 
 	return menubar;
 }

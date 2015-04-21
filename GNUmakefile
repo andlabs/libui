@@ -31,6 +31,7 @@ xCFLAGS = \
 	-g \
 	-Wall -Wextra \
 	-Wno-unused-parameter \
+	-Wno-switch \
 	--std=c99 \
 	$(CFLAGS)
 xLDFLAGS = \

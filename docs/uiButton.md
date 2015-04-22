@@ -30,9 +30,13 @@ Changes the text shown on the uiButton to the given text string.
 
 ## func OnClicked()
 ```c
-void uiButtonOnClicked(uiButton *b, void (*handler)(uiButton *, void *), void *data);
+void uiButtonOnClicked(uiButton *b, void (*handler)(void *sender, void *data), void *data);
 ```
-Sets the function that is called when the user clicks the uiButton. The `data` parameter is passed as the second argument to this function. If a handler was previous assigned, this call replaces the old handler with the given one.
+Sets the function that is called when the user clicks the uiButton. If a handler was previous assigned, this call replaces the old handler with the given one.
+
+The `sender` argument to the callback is the `b` argument to `uiButtonOnClicked()`. It is of type `void *` to allow uiMenus to use the same callback functions.
+
+The `data` argument to the callback is the `data` argument to `uiButtonOnClicked()`.
 
 The default handler does nothing.
 

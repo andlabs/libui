@@ -1,7 +1,9 @@
 # 22 april 2015
 
 osCFILES = \
-	unix/main.c
+	unix/alloc.c \
+	unix/main.c \
+	unix/util.c
 
 osHFILES = \
 	unix/uipriv_unix.h

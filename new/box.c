@@ -38,7 +38,7 @@ static void boxDestroy(uiControl *c)
 		uiControlSetHasParent(b->controls[i].c, 0);
 		uiControlSetOSContainer(b->controls[i].c, NULL);
 		uiControlDestroy(b->controls[i].c);
-	{
+	}
 	uiFree(b->controls);
 	uiFree(b);
 }
@@ -64,7 +64,7 @@ static void boxSetOSContainer(uiControl *c, uiOSContainer *osContainer)
 	oldcontainer = b->osContainer;
 	b->osContainer = osContainer;
 	for (i = 0; i < b->len; i++)
-		uiControlSetParent(b->controls[i].c, b->osContainer);
+		uiControlSetOSContainer(b->controls[i].c, b->osContainer);
 	if (oldcontainer != NULL)
 		uiOSContainerUpdate(oldcontainer);
 	if (b->osContainer != NULL)
@@ -325,7 +325,7 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 		b->cap += boxCapGrow;
 		b->controls = (boxControl *) uiRealloc(b->controls, b->cap * sizeof (boxControl), "boxControl[]");
 	}
-	uiControlSethasParent(c, 1);
+	uiControlSetHasParent(c, 1);
 	b->controls[b->len].c = c;
 	b->controls[b->len].stretchy = stretchy;
 	b->len++;		// must be here for OS container updates to work

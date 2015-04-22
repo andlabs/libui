@@ -10,13 +10,13 @@ static struct thing *things = NULL;
 static uintmax_t len = 0;
 static uintmax_t cap = 0;
 
-#define incr 32
+#define grow 32
 
 static void *append(void *thing, int type)
 {
 	if (len >= cap) {
 		cap += grow;
-		things = (struct thing *) realloc(uiBoxes, cap * sizeof (struct thing));
+		things = (struct thing *) realloc(things, cap * sizeof (struct thing));
 		if (things == NULL)
 			die("reallocating things array in test/spaced.c append()");
 	}
@@ -38,7 +38,7 @@ void setSpaced(int spaced)
 
 	for (i = 0; i < len; i++) {
 		p = things[i].ptr;
-		switch (things[i],type) {
+		switch (things[i].type) {
 		case window:
 			uiWindowSetMargined(uiWindow(p), spaced);
 			break;

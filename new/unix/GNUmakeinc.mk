@@ -8,7 +8,9 @@ osCFILES = \
 osHFILES = \
 	unix/uipriv_unix.h
 
+# thanks ebassi in irc.gimp.net/#gtk+
 osCFLAGS = \
+	-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
 	-fvisibility=hidden \
 	`pkg-config --cflags gtk+-3.0`
 

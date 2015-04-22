@@ -9,11 +9,9 @@ Windows | Unix | OS X
 uiButton derives from [uiControl](uiControl.md).
 
 ## constructor NewButton()
-
 ```c
 uiButton *uiNewButton(const char *text);
 ```
-
 Creates a new uiButton with the specifed text.
 
 ## func Text()
@@ -32,9 +30,9 @@ Changes the text shown on the uiButton to the given text string.
 ```c
 void uiButtonOnClicked(uiButton *b, void (*handler)(void *sender, void *data), void *data);
 ```
-Sets the function that is called when the user clicks the uiButton. If a handler was previous assigned, this call replaces the old handler with the given one.
+Sets the function that is called when the user clicks the uiButton. If a handler was previously assigned, this call replaces the old handler with the given one.
 
-The `sender` argument to the callback is the `b` argument to `uiButtonOnClicked()`. It is of type `void *` to allow uiMenus to use the same callback functions.
+The `sender` argument to the callback is the `b` argument to `uiButtonOnClicked()`. It is of type `void *` to allow uiMenuItems to use the same callback functions.
 
 The `data` argument to the callback is the `data` argument to `uiButtonOnClicked()`.
 

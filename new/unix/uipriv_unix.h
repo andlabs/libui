@@ -7,3 +7,6 @@
 #include "../ui.h"
 #include "../ui_unix.h"
 #include "../uipriv.h"
+
+#define gtkXMargin 12
+#define gtkYMargin 12

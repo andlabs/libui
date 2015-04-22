@@ -49,7 +49,14 @@ void setSpaced(int spaced)
 	}
 }
 
-// TODO newWindow()
+uiWindow *newWindow(const char *title, int width, int height, int hasMenubar)
+{
+	uiWindow *w;
+
+	w = uiNewWindow(title, width, height, hasMenubar);
+	append(w, window);
+	return w;
+}
 
 uiBox *newHorizontalBox(void)
 {

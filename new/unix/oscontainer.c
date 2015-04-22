@@ -199,7 +199,7 @@ static void parentUpdate(uiOSContainer *cc)
 	gtk_widget_queue_resize(GTK_WIDGET(c));
 }
 
-uiOSContainer *uiNewParent(uintptr_t osParent)
+uiOSContainer *uiNewOSContainer(uintptr_t osParent)
 {
 	uiOSContainer *c;
 

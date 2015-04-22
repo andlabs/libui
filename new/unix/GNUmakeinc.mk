@@ -4,7 +4,8 @@ osCFILES = \
 	unix/alloc.c \
 	unix/main.c \
 	unix/oscontainer.c \
-	unix/util.c
+	unix/util.c \
+	unix/window.c
 
 osHFILES = \
 	unix/uipriv_unix.h

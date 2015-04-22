@@ -13,6 +13,10 @@ raw "#define __UI_UI_H__";
 
 raw "#include <stdint.h>";
 
+raw "#ifndef _UI_EXTERN";
+raw "#define _UI_EXTERN extern";
+raw "#endif";
+
 // TODO note that should be initialized to zero
 struct InitOptions {
 	// TODO cbSize

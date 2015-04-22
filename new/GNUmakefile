@@ -27,7 +27,7 @@ HFILES = \
 
 OFILES = \
 	$(CFILES:%.c=$(OBJDIR)/%.o) \
-	$(osCFILES:%.c=$(OBJDIR)/%_$(OS).o)
+	$(osCFILES:%.c=$(OBJDIR)/%.o)
 
 xCFLAGS = \
 	-g \
@@ -35,10 +35,12 @@ xCFLAGS = \
 	-Wno-unused-parameter \
 	-Wno-switch \
 	--std=c99 \
+	-fPIC \
 	$(CFLAGS)
 
 xLDFLAGS = \
 	-g \
+	-fPIC \
 	$(LDFLAGS)
 
 OUT = $(OUTDIR)/$(OUTBASE)$(osLIBSUFFIX)
@@ -48,34 +50,29 @@ default: $(OUT)
 test: $(TEST)
 .PHONY: default test
 
-$(OUT): $(OFILES) $(OUTDIR)
+$(OUT): $(OFILES) dirs
 	$(CC) -o $(OUT) $(OFILES) -shared $(xLDFLAGS) $(osLDFLAGS)
 
-$(OBJDIR)/%.o: %.c $(HFILES) $(OBJDIR)
+$(OBJDIR)/%.o: %.c $(HFILES) $(osHFILES) dirs
 	$(CC) -o $@ -c $< $(xCFLAGS) $(osCFLAGS)
 
-$(OBJDIR)/%_$(OS).o: $(OS)/%.c $(HFILES) $(osHFILES) $(OBJDIR)
-	$(CC) -o $@ -c $< $(xCFLAGS) $(osCFLAGS)
-
-$(TEST): $(OUT) $(TESTOFILES) $(OUTDIR)
+$(TEST): $(OUT) $(TESTOFILES) dirs
 	$(CC) -o $(TEST) $(TESTOFILES) $(OUT) $(xLDFLAGS)
 
-$(OBJDIR)/%_test.o: test/%.c ui.h $(OBJDIR)
+$(OBJDIR)/%_test.o: test/%.c ui.h dirs
 	$(CC) -o $@ -c $< $(xCFLAGS)
 
+dirs: $(OBJDIR)/.phony $(OBJDIR)/$(OS)/.phony $(OUTDIR)/.phony
+.PHONY: dirs
+
 # see http://www.cmcrossroads.com/article/making-directories-gnu-make
-#$(OUTDIR): $(OUTDIR)/phony
-#$(OBJDIR): $(OBJDIR)/phony
-#%/phony:
-#	mkdir -p $(dir $@)
-#	touch $@
-#.PRECIOUS: $(OUTDIR) $(OUTDIR)/phony
-#.PRECIOUS: $(OBJDIR) $(OBJDIR)/phony
-$(OUTDIR) $(OBJDIR):
-	mkdir -p $@
+%/.phony:
+	mkdir -p $(dir $@)
+	touch $@
 
 ui.h: ui.idl
 	idl2h -extern _UI_EXTERN < ui.idl > ui.h
 
 clean:
 	rm -rf $(OUTDIR) $(OBJDIR) ui.h
+.PHONY: clean

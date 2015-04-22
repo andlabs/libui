@@ -131,14 +131,14 @@ interface Tab from Control {
 func NewTab(void) *Tab;
 
 interface Menu {
-	func AddItem(name string) *MenuItem;
-	func AddCheckItem(name string) *MenuItem;
+	func AddItem(name *const char) *MenuItem;
+	func AddCheckItem(name *const char) *MenuItem;
 	func AddQuitItem(void) *MenuItem;
 	func AddPreferencesItem(void) *MenuItem;
 	func AddAboutItem(void) *MenuItem;
 	func AddSeparator(void);
 };
-func NewMenu(name string) *Menu;
+func NewMenu(name *const char) *Menu;
 
 interface MenuItem {
 	func Enable(void);

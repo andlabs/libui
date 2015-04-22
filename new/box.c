@@ -1,4 +1,5 @@
 // 7 april 2015
+#include "ui.h"
 #include "uipriv.h"
 
 typedef struct box box;
@@ -229,8 +230,8 @@ static void boxShow(uiControl *c)
 	if (!b->containerHid) {
 		for (i = 0; i < b->len; i++)
 			uiControlContainerShow(b->controls[i].c);
-		if (b->parent != NULL)
-			uiParentUpdate(b->parent);
+		if (b->osContainer != NULL)
+			uiOSContainerUpdate(b->osContainer);
 	}
 }
 
@@ -242,8 +243,8 @@ static void boxHide(uiControl *c)
 	b->userHid = 1;
 	for (i = 0; i < b->len; i++)
 		uiControlContainerHide(b->controls[i].c);
-	if (b->parent != NULL)
-		uiParentUpdate(b->parent);
+	if (b->osContainer != NULL)
+		uiOSContainerUpdate(b->osContainer);
 }
 
 static void boxContainerShow(uiControl *c)
@@ -255,8 +256,8 @@ static void boxContainerShow(uiControl *c)
 	if (!b->userHid) {
 		for (i = 0; i < b->len; i++)
 			uiControlContainerShow(b->controls[i].c);
-		if (b->parent != NULL)
-			uiParentUpdate(b->parent);
+		if (b->osContainer != NULL)
+			uiOSContainerUpdate(b->osContainer);
 	}
 }
 
@@ -268,8 +269,8 @@ static void boxContainerHide(uiControl *c)
 	b->containerHid = 1;
 	for (i = 0; i < b->len; i++)
 		uiControlContainerHide(b->controls[i].c);
-	if (b->parent != NULL)
-		uiParentUpdate(b->parent);
+	if (b->osContainer != NULL)
+		uiOSContainerUpdate(b->osContainer);
 }
 
 static void boxEnable(uiControl *c)
@@ -327,10 +328,10 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 	uiControlSethasParent(c, 1);
 	b->controls[b->len].c = c;
 	b->controls[b->len].stretchy = stretchy;
-	b->len++;		// must be here for parent updates to work
+	b->len++;		// must be here for OS container updates to work
 	if (b->osContainer != NULL) {
 		uiControlSetOSContainer(b->controls[b->len - 1].c, b->osContainer);
-		uiParentUpdate(b->parent);
+		uiOSContainerUpdate(b->osContainer);
 	}
 }
 
@@ -349,7 +350,7 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 	uiControlSetHasParent(removed, 0);
 	if (b->osContainer != NULL) {
 		uiControlSetOSContainer(removed, NULL);
-		uiParentUpdate(b->parent);
+		uiOSContainerUpdate(b->osContainer);
 	}
 }
 
@@ -365,8 +366,8 @@ static void boxSetPadded(uiBox *ss, int padded)
 	box *b = (box *) ss;
 
 	b->padded = padded;
-	if (b->parent != NULL)
-		uiParentUpdate(b->parent);
+	if (b->osContainer != NULL)
+		uiOSContainerUpdate(b->osContainer);
 }
 
 uiBox *uiNewHorizontalBox(void)

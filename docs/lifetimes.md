@@ -2,7 +2,7 @@
 
 Know them.
 
-One of the more annoying parts of libui is that it has to juggle an OS control handle and at least one C data structure for a single uiControl, uiParent, uiWindow, etc. To that end, this document exists to lay the ground rules for object lifetimes.
+One of the more annoying parts of libui is that it has to juggle an OS control handle and at least one C data structure for a single uiControl, uiOSContainer, uiWindow, etc. To that end, this document exists to lay the ground rules for object lifetimes.
 
 ## To end programmers
 
@@ -34,7 +34,7 @@ destroy the OS control
 free data structures
 ```
 
-And in the case of uiParent:
+And in the case of uiOSContainer:
 
 ```
 if there is a main control
@@ -55,11 +55,11 @@ free data structures
 
 TODO uiGroup, uiTab
 
-As for uiWindow, we won't need to worry, as destroying a uiParent will properly destroy its main control.
+As for uiWindow, we won't need to worry, as destroying a uiOSContainer will properly destroy its main control.
 
 ```
-if necessary, change the OS window's child to make the uiParent safe to destroy
-destroy the uiParent
+if necessary, change the OS window's child to make the uiOSContainer safe to destroy
+destroy the uiOSContainer
 destroy the OS window
 free internal data structures
 ```

@@ -20,18 +20,10 @@ struct InitOptions {
 	// If nonzero, allocations will be logged to stderr.
 	// See leaks.awk.
 	field debugLogAllocations int;
-
-	// This is the menu that the application will use.
-	// To give this menu to a uiWindow, specify nonzero for the hasMenubar parameter to uiNewWindow().
-	// This value, nor any element of the array it points to, should never change during execution of the program.
-	// TODO make it a proper const *const
-	// TODO idl2h doesn't support making this even const * yet...
-	field Menu *Menu;
 };
 
-// TODO const char
-raw "const char *uiInit(uiInitOptions *);";
-raw "void uiFreeInitError(const char *);";
+func Init(options *InitOptions) *const char;
+func FreeInitError(err *const char);
 
 func Main(void);
 func Quit(void);
@@ -50,7 +42,8 @@ interface Control {
 	field Internal *void;		// for use by ui only
 	func Destroy(void);
 	func Handle(void) uintptr_t;
-	func SetParent(p *Parent);
+	func SetHasParent(hasParent int);
+	func SetOSContainer(c *OSContainer);
 	func PreferredSize(d *Sizing, width *intmax_t, height *intmax_t);
 	func Resize(x intmax_t, y intmax_t, width intmax_t, height intmax_t, d *Sizing);
 	func Visible(void) int;
@@ -64,17 +57,15 @@ interface Control {
 	func ContainerDisable(void);
 };
 
-interface Parent {
+interface OSContainer {
 	field Internal *void;
 	func Destroy(void);
-	// TODO object destruction debug handler
 	func Handle(void) uintptr_t;
 	func SetMainControl(c *Control);
 	func SetMargins(left intmax_t, top intmax_t, right intmax_t, bottom intmax_t);
-	// TODO Resize?
 	func Update(void);
 };
-func NewParent(osParent uintptr_t) *Parent;
+func NewOSContainer(osParent uintptr_t) *OSContainer;
 
 interface Window {
 	field Internal *void;
@@ -135,28 +126,22 @@ interface Tab from Control {
 };
 func NewTab(void) *Tab;
 
-struct Menu {
-	field Name *const char;
-	// TODO make a proper const *const
-	// TODO idl2h doesn't support making this even const * yet...
-	field Items *MenuItem;
+interface Menu {
+	func AddItem(name string) *MenuItem;
+	func AddCheckItem(name string) *MenuItem;
+	func AddQuitItem(void) *MenuItem;
+	func AddPreferencesItem(void) *MenuItem;
+	func AddAboutItem(void) *MenuItem;
+	func AddSeparator(void);
 };
+func NewMenu(name string) *Menu;
 
-struct MenuItem {
-	field Type MenuItemType;
-	field Name *const char;
-	field OnClicked *func(sender *void, data *void);
-	field OnClickedData *void;
-};
-
-enum MenuItemType {
-	End,				// Name must be NULL; specicfy this as 0
-	Command,
-	Checkbox,
-	Quit,				// Name must be NULL
-	Preferences,		// Name must be NULL
-	About,			// Name must be NULL
-	Separator,			// Name must be NULL
+interface MenuItem {
+	func Enable(void);
+	func Disable(void);
+	func OnClicked(f *func(sender *void, data *void), data *void);
+	func Checked(void) int;
+	func SetChecked(checked int);
 };
 
 raw "#endif";

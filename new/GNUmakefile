@@ -29,7 +29,10 @@ baseCFILES = \
 baseMFILES = $(osMFILES)
 
 baseCFLAGS = $(osCFLAGS)
-baseLDFLAGS = -shared $(osLDFLAGS)
+baseLDFLAGS = \
+	-shared \
+	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined \
+	$(osLDFLAGS)
 baseSUFFIX = $(osLIBSUFFIX)
 
 include GNUbase.mk

@@ -44,6 +44,11 @@ xLDFLAGS = \
 	$(LDFLAGS)
 
 OUT = $(OUTDIR)/$(OUTBASE)$(osLIBSUFFIX)
+
+include test/GNUmakeinc.mk
+
+testOFILES = $(testCFILES:%.c=$(OBJ)/test/%.o)
+
 TEST = $(OUTDIR)/$(OUTBASE)$(osEXESUFFIX)
 
 default: $(OUT)
@@ -56,10 +61,10 @@ $(OUT): $(OFILES) dirs
 $(OBJDIR)/%.o: %.c $(HFILES) $(osHFILES) dirs
 	$(CC) -o $@ -c $< $(xCFLAGS) $(osCFLAGS)
 
-$(TEST): $(OUT) $(TESTOFILES) dirs
-	$(CC) -o $(TEST) $(TESTOFILES) $(OUT) $(xLDFLAGS)
+$(TEST): $(OUT) $(testOFILES) dirs $(OBJDIR)/test/.phony
+	$(CC) -o $(TEST) $(testOFILES) $(OUT) $(xLDFLAGS)
 
-$(OBJDIR)/%_test.o: test/%.c ui.h dirs
+$(OBJDIR)/test/%.o: test/%.c ui.h dirs $(OBJDIR)/test/.phony
 	$(CC) -o $@ -c $< $(xCFLAGS)
 
 dirs: $(OBJDIR)/.phony $(OBJDIR)/$(OS)/.phony $(OUTDIR)/.phony

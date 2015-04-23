@@ -42,32 +42,6 @@ static void onClicked(GtkMenuItem *menuitem, gpointer data)
 	(*(item->onClicked))(uiMenuItem(item), w, item->onClickedData);
 }
 
-static void setChecked(struct menuItem *item, gboolean checked)
-{
-	GHashTableIter iter;
-	gpointer widget;
-
-	// sync it with our template
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->baseItem), checked);
-
-	// then sync everything else
-	g_hash_table_iter_init(&iter, item->uiWindows);
-	while (g_hash_table_iter_next(&iter, &widget, NULL))
-		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(widget), checked);
-}
-
-// TODO change to onNotifyActive
-static void onToggled(GtkCheckMenuItem *menuitem, gpointer data)
-{
-	struct menuItem *item = (struct menuItem *) data;
-	gboolean checked;
-
-	// get the checked state of /the item that triggered the signal/
-	checked = gtk_check_menu_item_get_active(menuitem);
-
-	setChecked(item, checked);
-}
-
 static void defaultOnClicked(uiMenuItem *item, uiWindow *w, void *data)
 {
 	// do nothing
@@ -122,7 +96,8 @@ static void menuItemSetChecked(uiMenuItem *ii, int checked)
 	c = FALSE;
 	if (checked)
 		c = TRUE;
-	setChecked(item, c);
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->baseItem), c);
+	// the bindings will make this take effect on all instances
 }
 
 static uiMenuItem *newItem(struct menu *m, int type, const char *name)
@@ -285,6 +260,10 @@ static void appendMenuItem(GtkMenuShell *submenu, struct menuItem *item, uiWindo
 		gtk_menu_item_set_label(GTK_MENU_ITEM(menuitem), item->name);
 	if (item->type != typeSeparator) {
 		g_signal_connect(menuitem, "activate", G_CALLBACK(onClicked), item);
+
+		// this binding does two things:
+		// 1) makes it so that when one instance of the menu item is checked, the rest are too
+		// 2) makes it so that the implementation of  uiMenuItemChecked() and uiMenuItemSetChecked() only needs to get/set the checked state from item->baseItem
 		if (item->type == typeCheckbox)
 			g_object_bind_property(item->baseItem, "active",
 				menuitem, "active",

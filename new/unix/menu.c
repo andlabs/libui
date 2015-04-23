@@ -7,8 +7,6 @@ static gboolean menusFinalized = FALSE;
 struct menu {
 	uiMenu m;
 	char *name;
-	GHashTable *gtkMenuItems;		// map[GtkWindow]GtkMenuItem
-	GHashTable *gtkSubmenus;		// map[GtkWindow]GtkMenu
 	GArray *items;					// []struct menuItem
 };
 
@@ -207,8 +205,6 @@ uiMenu *uiNewMenu(const char *name)
 	m = &g_array_index(menus, struct menu, menus->len - 1);
 
 	m->name = g_strdup(name);
-	m->gtkMenuItems = NEWHASH();
-	m->gtkSubmenus = NEWHASH();
 	m->items = g_array_new(FALSE, TRUE, sizeof (struct menuItem));
 
 	uiMenu(m)->AppendItem = menuAppendItem;
@@ -241,10 +237,6 @@ void menuDestroy(void)
 		for (j = 0; j < m->items->len; j++)
 			menuItemDestroy(&g_array_index(m->items, struct menuItem, j));
 		g_array_free(m->items, TRUE);
-		// TODO check that m->gtkSubmenus is empty
-		g_hash_table_destroy(m->gtkSubmenus);
-		// TODO check that m->gtkMenuItem is empty
-		g_hash_table_destroy(m->gtkMenuItem);
 		g_free(m->name);
 	}
 	g_array_free(menus, TRUE);

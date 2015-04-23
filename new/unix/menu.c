@@ -217,32 +217,6 @@ uiMenu *uiNewMenu(const char *name)
 	return uiMenu(m);
 }
 
-/*
-void menuItemDestroy(struct menuItem *item)
-{
-	// TODO checck that item->uiWindows is empty
-	g_hash_table_destroy(item->uiWindows);
-	gtk_widget_destroy(item->baseItem);
-	if (item->name != NULL)
-		g_free(item->name);
-}
-
-void menuDestroy(void)
-{
-	guint i, j;
-	struct menu *m;
-
-	for (i = 0; i < menus->len; i++) {
-		m = &g_array_index(menus, struct menu, i);
-		for (j = 0; j < m->items->len; j++)
-			menuItemDestroy(&g_array_index(m->items, struct menuItem, j));
-		g_array_free(m->items, TRUE);
-		g_free(m->name);
-	}
-	g_array_free(menus, TRUE);
-}
-*/
-
 static void appendMenuItem(GtkMenuShell *submenu, struct menuItem *item, uiWindow *w)
 {
 	GtkWidget *menuitem;

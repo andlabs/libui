@@ -4,6 +4,7 @@ osCFILES = \
 	unix/alloc.c \
 	unix/main.c \
 	unix/oscontainer.c \
+	unix/text.c \
 	unix/util.c \
 	unix/window.c
 

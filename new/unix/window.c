@@ -20,6 +20,112 @@ struct window {
 	int margined;
 };
 
+static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
+{
+	struct window *w = (struct window *) data;
+
+	// manually destroy the window ourselves; don't let the delete-event handler do it
+	if ((*(w->onClosing))(uiWindow(w), w->onClosingData))
+		uiWindowDestroy(uiWindow(w));
+	// don't continue to the default delete-event handler; we destroyed the window by now
+	return TRUE;
+}
+
+static int defaultOnClosing(uiWindow *w, void *data)
+{
+	return 1;
+}
+
+static void windowDestroy(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	// first, hide the window to avoid flicker
+	gtk_widget_hide(w->widget);
+	// next, remove the uiOSContainer from the vbox
+	gtk_container_remove(w->vboxcontainer, GTK_WIDGET(uiOSContainerHandle(w->content)));
+	// next, destroy the uiOSContainer, which will destroy its child widget
+	uiOSContainerDestroy(w->content);
+	// TODO menus
+	// next, destroy the GtkWindow itself, which will destroy the vbox, menus, etc.
+	gtk_widget_destroy(w->widget);
+	// finally, free ourselves
+	uiFree(w);
+}
+
+static uintptr_t windowHandle(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return (uintptr_t) (w->widget);
+}
+
+static char *windowTitle(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return strdupText(gtk_window_get_title(w->window));
+}
+
+static void windowSetTitle(uiWindow *ww, const char *title)
+{
+	struct window *w = (struct window *) ww;
+
+	gtk_window_set_title(w->window, title);
+}
+
+static void windowShow(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	// don't use gtk_widget_show_all(); that will override user hidden settings
+	gtk_widget_show(w->widget);
+}
+
+static void windowHide(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	gtk_widget_hide(w->widget);
+}
+
+static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
+{
+	struct window *w = (struct window *) ww;
+
+	w->onClosing = f;
+	w->onClosingData = data;
+}
+
+static void windowSetChild(uiWindow *ww, uiControl *c)
+{
+	struct window *w = (struct window *) ww;
+
+	// TODO make the update implicit
+	uiOSContainerSetMainControl(w->content, c);
+	uiOSContainerUpdate(w->content);
+}
+
+static int windowMargined(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return w->margined;
+}
+
+static void windowSetMargined(uiWindow *ww, int margined)
+{
+	struct window *w = (struct window *) ww;
+
+	// TODO make the update implicit
+	w->margined = margined;
+	if (w->margined)
+		uiOSContainerSetMargins(w->content, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
+	else
+		uiOSContainerSetMargins(w->content, 0, 0, 0, 0);
+	uiOSContainerUpdate(w->content);
+}
+
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubars)
 {
 	struct window *w;
@@ -44,13 +150,14 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubars)
 	gtk_widget_set_hexpand(GTK_WIDGET(w->content), TRUE);
 	gtk_widget_set_halign(GTK_WIDGET(w->content), GTK_ALIGN_FILL);
 	gtk_widget_set_vexpand(GTK_WIDGET(w->content), TRUE);
-	gtk_widget_set_valign(GTK_WIDGET(w->content), GTK_ALL_FILL);
+	gtk_widget_set_valign(GTK_WIDGET(w->content), GTK_ALIGN_FILL);
 
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxwidget);
 
 	// and connect our OnClosing() event
-	g_signal_connect(w->TODO
+	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
+	w->onClosing = defaultOnClosing;
 
 	uiWindow(w)->Destroy = windowDestroy;
 	uiWindow(w)->Handle = windowHandle;

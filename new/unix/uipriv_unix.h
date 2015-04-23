@@ -10,3 +10,6 @@
 
 #define gtkXMargin 12
 #define gtkYMargin 12
+
+// text.c
+extern char *strdupText(const char *);

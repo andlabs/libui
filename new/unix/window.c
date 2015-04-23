@@ -131,7 +131,7 @@ static void windowSetMargined(uiWindow *ww, int margined)
 	uiOSContainerUpdate(w->content);
 }
 
-uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubars)
+uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	struct window *w;
 
@@ -148,7 +148,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubars)
 	// set the vbox as the GtkWindow child
 	gtk_container_add(w->container, w->vboxwidget);
 
-	// TODO menus
+	if (hasMenubar)
+		gtk_container_add(w->vboxcontainer, makeMenubar(uiWindow(w)));
 
 	// and add the OS container
 	w->content = uiNewOSContainer((uintptr_t) (w->vboxcontainer));

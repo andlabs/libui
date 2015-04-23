@@ -275,3 +275,49 @@ void menuDestroy(void)
 	g_array_free(menus, TRUE);
 }
 */
+
+static void appendMenuItem(GtkMenuShell *submenu, struct menuItem *item, uiWindow *w)
+{
+	GtkWidget *menuitem;
+
+	menuitem = g_object_new(G_OBJECT_TYPE(item->baseItem), NULL);
+	if (item->name != NULL)
+		gtk_menu_item_set_label(GTK_MENU_ITEM(menuitem), item->name);
+	if (item->type != typeSeparator) {
+		g_signal_connect(menuitem, "activate", G_CALLBACK(onClicked), item);
+		if (item->type == typeCheckbox)
+			g_object_bind_property(item->baseItem, "active",
+				menuitem, "active",
+				G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+	}
+	gtk_menu_shell_append(submenu, menuitem);
+	g_hash_table_insert(item->uiWindows, menuitem, w);
+}
+
+// TODO should this return a zero-height widget (or NULL) if there are no menus defined?
+GtkWidget *makeMenubar(uiWindow *w)
+{
+	GtkWidget *menubar;
+	guint i, j;
+	struct menu *m;
+	GtkWidget *menuitem;
+	GtkWidget *submenu;
+
+	menusFinalized = TRUE;
+
+	menubar = gtk_menu_bar_new();
+
+	for (i = 0; i < menus->len; i++) {
+		m = &g_array_index(menus, struct menu, i);
+		menuitem = gtk_menu_item_new_with_label(m->name);
+		submenu = gtk_menu_new();
+		gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), submenu);
+		for (j = 0; j < m->items->len; j++)
+			appendMenuItem(GTK_MENU_SHELL(submenu), &g_array_index(m->items, struct menuItem, j), w);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menubar), menuitem);
+	}
+
+	gtk_widget_set_hexpand(menubar, TRUE);
+	gtk_widget_set_halign(menubar, GTK_ALIGN_FILL);
+	return menubar;
+}

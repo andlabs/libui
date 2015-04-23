@@ -143,7 +143,7 @@ func NewMenu(name *const char) *Menu;
 interface MenuItem {
 	func Enable(void);
 	func Disable(void);
-	func OnClicked(f *func(sender *void, data *void), data *void);
+	func OnClicked(f *func(sender *MenuItem, window *Window, data *void), data *void);
 	func Checked(void) int;
 	func SetChecked(checked int);
 };

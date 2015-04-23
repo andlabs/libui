@@ -2,6 +2,7 @@
 #include "ui.h"
 #include "uipriv.h"
 
+// TODO remove these
 typedef struct box box;
 typedef struct boxControl boxControl;
 

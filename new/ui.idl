@@ -72,7 +72,6 @@ interface OSContainer {
 func NewOSContainer(osParent uintptr_t) *OSContainer;
 
 interface Window {
-	field Internal *void;
 	func Destroy(void);
 	func Handle(void) uintptr_t;
 	func Title(void) *char;

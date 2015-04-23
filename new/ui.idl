@@ -78,6 +78,7 @@ interface Window {
 	func SetTitle(title *const char);
 	func Show(void);
 	func Hide(void);
+	// TODO really return int?
 	func OnClosing(f *func(w *Window, data *void) int, data *void);
 	func SetChild(c *Control);
 	func Margined(void) int;

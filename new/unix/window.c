@@ -16,6 +16,11 @@ struct window {
 
 	// the OS container for the uiWindow
 	uiOSContainer *content;
+	GtkWidget *contentWidget;
+
+	// events
+	int (*onClosing)(uiWindow *, void *);
+	void *onClosingData;
 
 	int margined;
 };
@@ -43,7 +48,7 @@ static void windowDestroy(uiWindow *ww)
 	// first, hide the window to avoid flicker
 	gtk_widget_hide(w->widget);
 	// next, remove the uiOSContainer from the vbox
-	gtk_container_remove(w->vboxcontainer, GTK_WIDGET(uiOSContainerHandle(w->content)));
+	gtk_container_remove(w->vboxcontainer, GTK_WIDGET(w->contentWidget));
 	// next, destroy the uiOSContainer, which will destroy its child widget
 	uiOSContainerDestroy(w->content);
 	// TODO menus
@@ -147,10 +152,11 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubars)
 
 	// and add the OS container
 	w->content = uiNewOSContainer((uintptr_t) (w->vboxcontainer));
-	gtk_widget_set_hexpand(GTK_WIDGET(w->content), TRUE);
-	gtk_widget_set_halign(GTK_WIDGET(w->content), GTK_ALIGN_FILL);
-	gtk_widget_set_vexpand(GTK_WIDGET(w->content), TRUE);
-	gtk_widget_set_valign(GTK_WIDGET(w->content), GTK_ALIGN_FILL);
+	w->contentWidget = GTK_WIDGET(uiOSContainerHandle(w->content));
+	gtk_widget_set_hexpand(w->contentWidget, TRUE);
+	gtk_widget_set_halign(w->contentWidget, GTK_ALIGN_FILL);
+	gtk_widget_set_vexpand(w->contentWidget, TRUE);
+	gtk_widget_set_valign(w->contentWidget, GTK_ALIGN_FILL);
 
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxwidget);

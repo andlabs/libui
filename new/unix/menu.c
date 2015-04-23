@@ -18,11 +18,8 @@ struct menuItem {
 	int type;
 	void (*onClicked)(uiMenuItem *, uiWindow *, void *);
 	void *onClickedData;
-	const char *signal;
-	GCallback signalFunc;
 	GtkWidget *baseItem;			// template for new instances; kept in sync with everything else
 	GHashTable *uiWindows;			// map[GtkMenuItem]uiWindow
-	GHashTable *checkedSignals;		// map[GtkMenuItem]gulong
 };
 
 enum {
@@ -49,22 +46,17 @@ static void setChecked(struct menuItem *item, gboolean checked)
 {
 	GHashTableIter iter;
 	gpointer widget;
-	gulong signal;
 
 	// sync it with our template
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->baseItem), checked);
 
 	// then sync everything else
 	g_hash_table_iter_init(&iter, item->uiWindows);
-	while (g_hash_table_iter_next(&iter, &widget, NULL)) {
-		signal = (gulong) g_hash_table_lookup(item->checkedSignals, widget);
-		// don't allow toggling to recursively trigger the ::checked signal (or trigger it at all on an explicit call to uiMenuItemSetChecked())
-		g_signal_handler_block(widget, signal);
+	while (g_hash_table_iter_next(&iter, &widget, NULL))
 		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(widget), checked);
-		g_signal_handler_unblock(widget, signal);
-	}
 }
 
+// TODO change to onNotifyActive
 static void onToggled(GtkCheckMenuItem *menuitem, gpointer data)
 {
 	struct menuItem *item = (struct menuItem *) data;
@@ -74,10 +66,6 @@ static void onToggled(GtkCheckMenuItem *menuitem, gpointer data)
 	checked = gtk_check_menu_item_get_active(menuitem);
 
 	setChecked(item, checked);
-
-	// and finally fire our signal
-	// once again, do it on /the item that triggered the signal/
-	onClicked(GTK_MENU_ITEM(menuitem), item);
 }
 
 static void defaultOnClicked(uiMenuItem *item, uiWindow *w, void *data)
@@ -170,21 +158,16 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	switch (item->type) {
 	case typeCheckbox:
 		item->baseItem = gtk_check_menu_item_new_with_label(item->name);
-		item->signal = "toggled";
-		item->signalFunc = G_CALLBACK(onToggled);
 		break;
 	case typeSeparator:
 		item->baseItem = gtk_separator_menu_item_new();
 		break;
 	default:
 		item->baseItem = gtk_menu_item_new_with_label(item->name);
-		item->signal = "activate";
-		item->signalFunc = G_CALLBACK(onClicked);
 		break;
 	}
 
 	item->uiWindows = NEWHASH();
-	item->checkedSignals = NEWHASH();
 
 	uiMenuItem(item)->Enable = menuItemEnable;
 	uiMenuItem(item)->Disable = menuItemDisable;
@@ -266,8 +249,6 @@ uiMenu *uiNewMenu(const char *name)
 /*
 void menuItemDestroy(struct menuItem *item)
 {
-	// TODO check that item->checkedSignals is empty
-	g_hash_table_destroy(item->checkedSignals);
 	// TODO checck that item->uiWindows is empty
 	g_hash_table_destroy(item->uiWindows);
 	gtk_widget_destroy(item->baseItem);

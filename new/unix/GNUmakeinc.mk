@@ -3,6 +3,7 @@
 osCFILES = \
 	unix/alloc.c \
 	unix/main.c \
+	unix/menu.c \
 	unix/oscontainer.c \
 	unix/text.c \
 	unix/util.c \

@@ -45,16 +45,11 @@ static void onClicked(GtkMenuItem *menuitem, gpointer data)
 	(*(item->onClicked))(uiMenuItem(item), w, item->onClickedData);
 }
 
-static void onToggled(GtkCheckMenuItem *menuitem, gpointer data)
+static void setChecked(struct menuItem *item, gboolean checked)
 {
-	struct menuItem *item = (struct menuItem *) data;
-	gboolean checked;
 	GHashTableIter iter;
 	gpointer widget;
 	gulong signal;
-
-	// get the checked state of /the item that triggered the signal/
-	checked = gtk_check_menu_item_get_active(menuitem);
 
 	// sync it with our template
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->baseItem), checked);
@@ -63,11 +58,22 @@ static void onToggled(GtkCheckMenuItem *menuitem, gpointer data)
 	g_hash_table_iter_init(&iter, item->uiWindows);
 	while (g_hash_table_iter_next(&iter, &widget, NULL)) {
 		signal = (gulong) g_hash_table_lookup(item->checkedSignals, widget);
-		// don't allow toggling to recursively trigger this signal
+		// don't allow toggling to recursively trigger the ::checked signal (or trigger it at all on an explicit call to uiMenuItemSetChecked())
 		g_signal_handler_block(widget, signal);
 		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(widget), checked);
 		g_signal_handler_unblock(widget, signal);
 	}
+}
+
+static void onToggled(GtkCheckMenuItem *menuitem, gpointer data)
+{
+	struct menuItem *item = (struct menuItem *) data;
+	gboolean checked;
+
+	// get the checked state of /the item that triggered the signal/
+	checked = gtk_check_menu_item_get_active(menuitem);
+
+	setChecked(item, checked);
 
 	// and finally fire our signal
 	// once again, do it on /the item that triggered the signal/
@@ -110,6 +116,25 @@ static void menuItemOnClicked(uiMenuItem *ii, void (*f)(uiMenuItem *, uiWindow *
 
 	item->onClicked = f;
 	item->onClickedData = data;
+}
+
+static int menuItemChecked(uiMenuItem *ii)
+{
+	struct menuItem *item = (struct menuItem *) ii;
+
+	return gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item->baseItem)) != FALSE;
+}
+
+static void menuItemSetChecked(uiMenuItem *ii, int checked)
+{
+	struct menuItem *item = (struct menuItem *) ii;
+	gboolean c;
+
+	// use explicit values
+	c = FALSE;
+	if (checked)
+		c = TRUE;
+	setChecked(item, c);
 }
 
 static uiMenuItem *newItem(struct menu *m, int type, const char *name)
@@ -164,7 +189,8 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	uiMenuItem(item)->Enable = menuItemEnable;
 	uiMenuItem(item)->Disable = menuItemDisable;
 	uiMenuItem(item)->OnClicked = menuItemOnClicked;
-	// TODO checked/setchecked
+	uiMenuItem(item)->Checked = menuItemChecked;
+	uiMenuItem(item)->SetChecked = menuItemSetChecked;
 
 	return uiMenuItem(item);
 }

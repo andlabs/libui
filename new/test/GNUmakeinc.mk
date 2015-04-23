@@ -2,6 +2,7 @@
 
 testCFILES = \
 	test/main.c \
+	test/menus.c \
 	test/spaced.c
 
 testHFILES = \

@@ -14,3 +14,6 @@ extern void setSpaced(int);
 extern uiWindow *newWindow(const char *title, int width, int height, int hasMenubar);
 extern uiBox *newHorizontalBox(void);
 extern uiBox *newVerticalBox(void);
+
+// menus.c
+extern void initMenus(void);

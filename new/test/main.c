@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);
 
+	uiWindowShow(newWindow("Second Window", 320, 240, 1));
+
 	uiWindowShow(w);
 	uiMain();
 	printf("after uiMain()\n");

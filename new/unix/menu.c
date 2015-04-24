@@ -1,6 +1,8 @@
 // 23 april 2015
 #include "uipriv_unix.h"
 
+// TODO window destruction
+
 static GArray *menus = NULL;
 static gboolean menusFinalized = FALSE;
 

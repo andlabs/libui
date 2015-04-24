@@ -7,6 +7,7 @@ static struct menu *menus = NULL;
 static uintmax_t len = 0;
 static uintmax_t cap = 0;
 static BOOL menusFinalized = FALSE;
+static WORD curID = 100;			// start somewhere safe
 
 struct menu {
 	uiMenu m;
@@ -14,7 +15,6 @@ struct menu {
 	struct menuItem *items;
 	uintmax_t len;
 	uintmax_t cap;
-	WORD curID;
 };
 
 struct menuItem {
@@ -143,8 +143,8 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	}
 
 	if (item->type != typeSeparator) {
-		item->id = m->curID;
-		m->curID++;
+		item->id = curID;
+		curID++;
 	}
 	// TODO this shouldn't be necessary, but uiRealloc() doesn't yet zero out new bytes
 	else
@@ -227,9 +227,6 @@ uiMenu *uiNewMenu(const char *name)
 	m->items = NULL;
 	m->len = 0;
 	m->cap = 0;
-
-	// start somewhere safe
-	m->curID = 100;
 
 	uiMenu(m)->AppendItem = menuAppendItem;
 	uiMenu(m)->AppendCheckItem = menuAppendCheckItem;

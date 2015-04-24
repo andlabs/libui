@@ -46,6 +46,7 @@ void initMenus(void)
 
 	editMenu = uiNewMenu("Edit");
 	undoItem = uiMenuAppendItem(editMenu, "Undo");
+	uiMenuItemDisable(undoItem);
 	uiMenuAppendSeparator(editMenu);
 	checkItem = uiMenuAppendCheckItem(editMenu, "Check Me\tTest");
 	accelItem = uiMenuAppendItem(editMenu, "A&ccele&&rator T_es__t");

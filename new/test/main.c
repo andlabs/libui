@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	initMenus();
+//	initMenus();
 
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);

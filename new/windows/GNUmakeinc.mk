@@ -6,6 +6,7 @@ osCFILES = \
 	windows/debug.c \
 	windows/init.c \
 	windows/main.c \
+	windows/menu.c \
 	windows/oscontainer.c \
 	windows/text.c \
 	windows/util.c \
@@ -19,6 +20,7 @@ osCFLAGS = \
 	-D_UI_EXTERN='__declspec(dllexport) extern'
 
 osLDFLAGS = \
+	-static-libgcc \
 	-luser32 -lkernel32 -lgdi32 -luxtheme -lmsimg32 -lcomdlg32 -lole32 -loleaut32 -loleacc -luuid
 
 osLIBSUFFIX = .dll

@@ -7,7 +7,7 @@ static gboolean menusFinalized = FALSE;
 struct menu {
 	uiMenu m;
 	char *name;
-	GArray *items;					// []struct menuItem
+	GArray *items;					// []*struct menuItem
 };
 
 struct menuItem {
@@ -130,8 +130,8 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	if (menusFinalized)
 		complain("attempt to create a new menu item after menus have been finalized");
 
-	g_array_set_size(m->items, m->items->len + 1);
-	item = &g_array_index(m->items, struct menuItem, m->items->len - 1);
+	item = uiNew(struct menuItem);
+	g_array_append_val(m->items, item);
 
 	item->type = type;
 	switch (item->type) {
@@ -224,14 +224,13 @@ uiMenu *uiNewMenu(const char *name)
 	if (menusFinalized)
 		complain("attempt to create a new menu after menus have been finalized");
 	if (menus == NULL)
-		menus = g_array_new(FALSE, TRUE, sizeof (struct menu));
+		menus = g_array_new(FALSE, TRUE, sizeof (struct menu *));
 
-	// thanks Company in irc.gimp.net/#gtk+
-	g_array_set_size(menus, menus->len + 1);
-	m = &g_array_index(menus, struct menu, menus->len - 1);
+	m = uiNew(struct menu);
+	g_array_append_val(menus, m);
 
 	m->name = g_strdup(name);
-	m->items = g_array_new(FALSE, TRUE, sizeof (struct menuItem));
+	m->items = g_array_new(FALSE, TRUE, sizeof (struct menuItem *));
 
 	uiMenu(m)->AppendItem = menuAppendItem;
 	uiMenu(m)->AppendCheckItem = menuAppendCheckItem;
@@ -276,12 +275,12 @@ GtkWidget *makeMenubar(uiWindow *w)
 	menubar = gtk_menu_bar_new();
 
 	for (i = 0; i < menus->len; i++) {
-		m = &g_array_index(menus, struct menu, i);
+		m = g_array_index(menus, struct menu *, i);
 		menuitem = gtk_menu_item_new_with_label(m->name);
 		submenu = gtk_menu_new();
 		gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), submenu);
 		for (j = 0; j < m->items->len; j++)
-			appendMenuItem(GTK_MENU_SHELL(submenu), &g_array_index(m->items, struct menuItem, j), w);
+			appendMenuItem(GTK_MENU_SHELL(submenu), g_array_index(m->items, struct menuItem *, j), w);
 		gtk_menu_shell_append(GTK_MENU_SHELL(menubar), menuitem);
 	}
 

@@ -2,6 +2,8 @@
 
 osCFILES = \
 	windows/alloc.c \
+	windows/comctl32.c \
+	windows/debug.c \
 	windows/init.c \
 	windows/main.c \
 	windows/oscontainer.c \

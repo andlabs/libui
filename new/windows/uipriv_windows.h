@@ -1,4 +1,4 @@
-// 24 april 2015
+// 6 january 2015
 #define UNICODE
 #define _UNICODE
 #define STRICT
@@ -37,3 +37,42 @@ enum {
 	msgUpdateChild,		// fake because Windows seems to SWP_NOSIZE MoveWindow()s and SetWindowPos()s that don't change the window size (even if SWP_NOSIZE isn't specified)
 	msgCanDestroyNow,
 };
+
+#define HWND(c) ((HWND) uiControlHandle(uiControl(c)))
+#define uiOSContainerHWND(p) ((HWND) uiOSContainerHandle(p))
+
+// debug.c
+extern HRESULT logLastError(const char *);
+extern HRESULT logHRESULT(const char *, HRESULT);
+extern HRESULT logMemoryExhausted(const char *);
+
+// init.c
+extern HINSTANCE hInstance;
+extern int nCmdShow;
+extern HFONT hMessageFont;
+extern HBRUSH hollowBrush;
+
+// util.c
+extern int windowClassOf(HWND, ...);
+
+// text.c
+extern WCHAR *toUTF16(const char *);
+extern char *toUTF8(const WCHAR *);
+extern WCHAR *windowText(HWND);
+
+// comctl32.c
+extern BOOL (*WINAPI fv_SetWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR, DWORD_PTR);
+extern BOOL (*WINAPI fv_RemoveWindowSubclass)(HWND, SUBCLASSPROC, UINT_PTR);
+extern LRESULT (*WINAPI fv_DefSubclassProc)(HWND, UINT, WPARAM, LPARAM);
+extern const char *initCommonControls(void);
+
+// window.c
+extern ATOM registerWindowClass(HICON, HCURSOR);
+
+// parent.c
+extern HWND initialOSContainer;
+extern const char *initOSContainer(HICON, HCURSOR);
+
+// menu.c
+extern HMENU makeMenubar(void);
+extern const uiMenuItem *menuIDToItem(UINT_PTR);

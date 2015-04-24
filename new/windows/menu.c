@@ -26,7 +26,6 @@ struct menuItem {
 	void *onClickedData;
 	BOOL disabled;				// template for new instances; kept in sync with everything else
 	BOOL checked;
-	HWND *hwnds;
 	HMENU *hmenus;
 	uintmax_t len;
 	uintmax_t cap;
@@ -135,6 +134,8 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 		item->name = toUTF16("About");
 		break;
 	case typeSeparator:
+		// TODO this shouldn't be necessary, but uiRealloc() doesn't yet zero out new bytes
+		item->name = NULL;
 		break;
 	default:
 		item->name = toUTF16(name);
@@ -154,7 +155,6 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	// TODO this shouldn't be necessary, but uiRealloc() doesn't yet zero out new bytes
 	item->disabled = FALSE;
 	item->checked = FALSE;
-	item->hwnds = NULL;
 	item->hmenus = NULL;
 	item->len = 0;
 	item->cap = 0;
@@ -239,4 +239,62 @@ uiMenu *uiNewMenu(const char *name)
 	uiMenu(m)->AppendSeparator = menuAppendSeparator;
 
 	return uiMenu(m);
+}
+
+static void appendMenuItem(HMENU menu, struct menuItem *item)
+{
+	UINT uFlags;
+
+	uFlags = MF_SEPARATOR;
+	if (item->type != typeSeparator) {
+		uFlags = MF_STRING;
+		if (item->disabled)
+			uFlags |= MF_DISABLED | MF_GRAYED;
+		if (item->checked)
+			uFlags |= MF_CHECKED;
+	}
+	if (AppendMenuW(menu, uFlags, item->id, item->name) == 0)
+		logLastError("error appending menu item in appendMenuItem()");
+
+	if (item->len >= item->cap) {
+		item->cap += grow;
+		item->hmenus = (HMENU *) uiRealloc(item->hmenus, item->cap * sizeof (HMENU), "HMENU[]");
+	}
+	item->hmenus[item->len] = menu;
+	item->len++;
+}
+
+static HMENU makeMenu(struct menu *m)
+{
+	HMENU menu;
+	uintmax_t i;
+
+	menu = CreatePopupMenu();
+	if (menu == NULL)
+		logLastError("error creating menu in makeMenu()");
+	for (i = 0; i < m->len; i++)
+		appendMenuItem(menu, &(m->items[i]));
+	return menu;
+}
+
+// TODO should this return a zero-height widget (or NULL) if there are no menus defined?
+HMENU makeMenubar(void)
+{
+	HMENU menubar;
+	HMENU menu;
+	uintmax_t i;
+
+	menusFinalized = TRUE;
+
+	menubar = CreateMenu();
+	if (menubar == NULL)
+		logLastError("error creating menubar in makeMenubar()");
+
+	for (i = 0; i < len; i++) {
+		menu = makeMenu(&menus[i]);
+		if (AppendMenuW(menubar, MF_POPUP | MF_STRING, (UINT_PTR) menu, menus[i].name) == 0)
+			logLastError("error appending menu to menubar in makeMenubar()");
+	}
+
+	return menubar;
 }

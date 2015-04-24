@@ -230,11 +230,11 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	w->content = uiNewOSContainer((uintptr_t) (w->hwnd));
 
-/*TODO	if (hasMenubar) {
+	if (hasMenubar) {
 		hmenu = makeMenubar();
 		if (SetMenu(w->hwnd, hmenu) == 0)
 			logLastError("error giving menu to window in uiNewWindow()");
-	}*/
+	}
 
 	uiWindow(w)->Destroy = windowDestroy;
 	uiWindow(w)->Handle = windowHandle;

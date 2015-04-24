@@ -18,13 +18,11 @@ xCFLAGS = \
 	-Wno-unused-parameter \
 	-Wno-switch \
 	--std=c99 \
-	-fPIC \
 	$(CFLAGS) \
 	$(baseCFLAGS)
 
 xLDFLAGS = \
 	-g \
-	-fPIC \
 	$(LDFLAGS) \
 	$(baseLDFLAGS)
 

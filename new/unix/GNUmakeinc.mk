@@ -16,10 +16,12 @@ osHFILES = \
 osCFLAGS = \
 	-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
 	-fvisibility=hidden \
+	-fPIC \
 	`pkg-config --cflags gtk+-3.0`
 
 osLDFLAGS = \
 	-fvisibility=hidden \
+	-fPIC \
 	`pkg-config --libs gtk+-3.0`
 
 osLIBSUFFIX = .so

@@ -18,6 +18,8 @@ struct menuItem {
 	void *onClickedData;
 	GtkWidget *baseItem;			// template for new instances; kept in sync with everything else
 	GHashTable *uiWindows;			// map[GtkMenuItem]uiWindow
+	// TODO this assumes that a gulong can fit in a gpointer
+	GHashTable *signals;			// map[GtkMenuItem]gulong
 };
 
 enum {
@@ -31,10 +33,34 @@ enum {
 
 #define NEWHASH() g_hash_table_new(g_direct_hash, g_direct_equal)
 
+// we do NOT want programmatic updates to raise an ::activated signal
+static void singleSetChecked(GtkCheckMenuItem *menuitem, gboolean checked, gulong signal)
+{
+	g_signal_handler_block(menuitem, signal);
+	gtk_check_menu_item_set_active(menuitem, checked);
+	g_signal_handler_unblock(menuitem, signal);
+}
+
+static void setChecked(struct menuItem *item, gboolean checked)
+{
+	GHashTableIter iter;
+	gpointer widget;
+
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->baseItem), checked);
+	g_hash_table_iter_init(&iter, item->uiWindows);
+	while (g_hash_table_iter_next(&iter, &widget, NULL))
+		singleSetChecked(GTK_CHECK_MENU_ITEM(widget), checked, (gulong) g_hash_table_lookup(item->signals, widget));
+}
+
 static void onClicked(GtkMenuItem *menuitem, gpointer data)
 {
 	struct menuItem *item = (struct menuItem *) data;
 	uiWindow *w;
+
+	// we need to manually update the checked states of all menu items if one changes
+	// notice that this is getting the checked state of the menu item that this signal is sent from
+	if (item->type == typeCheckbox)
+		setChecked(item, gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)));
 
 	w = uiWindow(g_hash_table_lookup(item->uiWindows, menuitem));
 	(*(item->onClicked))(uiMenuItem(item), w, item->onClickedData);
@@ -94,8 +120,7 @@ static void menuItemSetChecked(uiMenuItem *ii, int checked)
 	c = FALSE;
 	if (checked)
 		c = TRUE;
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->baseItem), c);
-	// the bindings will make this take effect on all instances
+	setChecked(item, c);
 }
 
 static uiMenuItem *newItem(struct menu *m, int type, const char *name)
@@ -141,6 +166,7 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	}
 
 	item->uiWindows = NEWHASH();
+	item->signals = NEWHASH();
 
 	uiMenuItem(item)->Enable = menuItemEnable;
 	uiMenuItem(item)->Disable = menuItemDisable;
@@ -220,23 +246,20 @@ uiMenu *uiNewMenu(const char *name)
 static void appendMenuItem(GtkMenuShell *submenu, struct menuItem *item, uiWindow *w)
 {
 	GtkWidget *menuitem;
+	gulong signal;
 
 	menuitem = g_object_new(G_OBJECT_TYPE(item->baseItem), NULL);
 	if (item->name != NULL)
 		gtk_menu_item_set_label(GTK_MENU_ITEM(menuitem), item->name);
 	if (item->type != typeSeparator) {
-		g_signal_connect(menuitem, "activate", G_CALLBACK(onClicked), item);
-
-		// this binding does two things:
-		// 1) makes it so that when one instance of the menu item is checked, the rest are too
-		// 2) makes it so that the implementation of  uiMenuItemChecked() and uiMenuItemSetChecked() only needs to get/set the checked state from item->baseItem
+		signal = g_signal_connect(menuitem, "activate", G_CALLBACK(onClicked), item);
+		gtk_widget_set_sensitive(menuitem, gtk_widget_get_sensitive(item->baseItem));
 		if (item->type == typeCheckbox)
-			g_object_bind_property(item->baseItem, "active",
-				menuitem, "active",
-				G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+			singleSetChecked(GTK_CHECK_MENU_ITEM(menuitem), gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item->baseItem)), signal);
 	}
 	gtk_menu_shell_append(submenu, menuitem);
 	g_hash_table_insert(item->uiWindows, menuitem, w);
+	g_hash_table_insert(item->signals, menuitem, (gpointer) signal);
 }
 
 // TODO should this return a zero-height widget (or NULL) if there are no menus defined?

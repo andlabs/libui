@@ -1,6 +1,8 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
+// TODO DllMain()
+
 HINSTANCE hInstance;
 int nCmdShow;
 

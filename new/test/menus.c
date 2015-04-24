@@ -27,6 +27,16 @@ static void enableItemTest(uiMenuItem *item, uiWindow *w, void *data)
 		uiMenuItemDisable(enableThisItem);
 }
 
+static void forceOn(uiMenuItem *item, uiWindow *w, void *data)
+{
+	uiMenuItemSetChecked(enabledItem, 1);
+}
+
+static void forceOff(uiMenuItem *item, uiWindow *w, void *data)
+{
+	uiMenuItemSetChecked(enabledItem, 0);
+}
+
 void initMenus(void)
 {
 	fileMenu = uiNewMenu("File");
@@ -47,7 +57,9 @@ void initMenus(void)
 	uiMenuItemOnClicked(enabledItem, enableItemTest, NULL);
 	enableThisItem = uiMenuAppendItem(testMenu, "This Will Be Enabled");
 	forceCheckedItem = uiMenuAppendItem(testMenu, "Force Above Checked");
+	uiMenuItemOnClicked(forceCheckedItem, forceOn, NULL);
 	forceUncheckedItem = uiMenuAppendItem(testMenu, "Force Above Unchecked");
+	uiMenuItemOnClicked(forceUncheckedItem, forceOff, NULL);
 
 	helpMenu = uiNewMenu("Help");
 	helpItem = uiMenuAppendItem(helpMenu, "Help");

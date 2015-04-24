@@ -21,7 +21,6 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r;
 	HWND contenthwnd;
-	const uiMenuItem *item;
 
 	w = (struct window *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
@@ -37,12 +36,8 @@ static LRESULT CALLBACK uiWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 			break;
 		if (HIWORD(wParam) != 0)
 			break;
-/*TODO		item = menuIDToItem(LOWORD(wParam));
-		printf("%d", item->Type);
-		if (item->Type == uiMenuItemTypeCommand)
-			printf(" %s", item->Name);
-		printf("\n");
-*/		return 0;
+		runMenuEvent(LOWORD(wParam), uiWindow(w));
+		return 0;
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;

@@ -295,3 +295,34 @@ HMENU makeMenubar(void)
 
 	return menubar;
 }
+
+void runMenuEvent(WORD id, uiWindow *w)
+{
+	struct menu *m;
+	struct menuItem *item;
+	uintmax_t i, j;
+	uiMenuItem *umi;
+
+	// TODO optimize this somehow?
+	for (i = 0; i < len; i++) {
+		m = &menus[i];
+		for (j = 0; j < m->len; j++) {
+			item = &(m->items[j]);
+			if (item->id == id)
+				goto found;
+		}
+	}
+	// no match
+	// TODO complain?
+	return;
+
+found:
+	umi = uiMenuItem(item);
+
+	// first toggle checkboxes, if any
+	if (item->type == typeCheckbox)
+		uiMenuItemSetChecked(umi, !uiMenuItemChecked(umi));
+
+	// then run the event
+	(*(item->onClicked))(umi, w, item->onClickedData);
+}

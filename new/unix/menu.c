@@ -2,6 +2,7 @@
 #include "uipriv_unix.h"
 
 // TODO window destruction
+// TODO get rid of the base item and store the GType, the disabled flag, and the checked flag like we do on Windows?
 
 static GArray *menus = NULL;
 static gboolean menusFinalized = FALSE;

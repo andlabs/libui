@@ -15,8 +15,8 @@ struct window {
 	GtkBox *vbox;
 
 	// the OS container for the uiWindow
-	uiOSContainer *content;
 	GtkWidget *contentWidget;
+	uipOSContainer *content;
 
 	// events
 	int (*onClosing)(uiWindow *, void *);
@@ -47,13 +47,20 @@ static void windowDestroy(uiWindow *ww)
 
 	// first, hide the window to avoid flicker
 	gtk_widget_hide(w->widget);
+
 	// next, remove the uiOSContainer from the vbox
+	// this will free the GtkWindow's reference to it
 	gtk_container_remove(w->vboxcontainer, GTK_WIDGET(w->contentWidget));
+
 	// next, destroy the uiOSContainer, which will destroy its child widget
-	uiOSContainerDestroy(w->content);
+	// this will release its own reference.
+	osContainerDestroy(w->content);
+
 	// TODO menus
+
 	// next, destroy the GtkWindow itself, which will destroy the vbox, menus, etc.
 	gtk_widget_destroy(w->widget);
+
 	// finally, free ourselves
 	uiFree(w);
 }
@@ -106,9 +113,7 @@ static void windowSetChild(uiWindow *ww, uiControl *c)
 {
 	struct window *w = (struct window *) ww;
 
-	// TODO make the update implicit
-	uiOSContainerSetMainControl(w->content, c);
-	uiOSContainerUpdate(w->content);
+	osContainerSetMainControl(w->content, c);
 }
 
 static int windowMargined(uiWindow *ww)
@@ -125,10 +130,9 @@ static void windowSetMargined(uiWindow *ww, int margined)
 	// TODO make the update implicit
 	w->margined = margined;
 	if (w->margined)
-		uiOSContainerSetMargins(w->content, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
+		osContainerSetMargins(w->content, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
 	else
-		uiOSContainerSetMargins(w->content, 0, 0, 0, 0);
-	uiOSContainerUpdate(w->content);
+		osContainerSetMargins(w->content, 0, 0, 0, 0);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
@@ -141,6 +145,10 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	w->container = GTK_CONTAINER(w->widget);
 	w->window = GTK_WINDOW(w->widget);
 
+	gtk_window_set_title(w->window, title);
+	// TODO this does not take menus into account
+	gtk_window_resize(w->window, width, height);
+
 	w->vboxwidget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	w->vboxcontainer = GTK_CONTAINER(w->vboxwidget);
 	w->vbox = GTK_BOX(w->vboxwidget);
@@ -152,12 +160,13 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		gtk_container_add(w->vboxcontainer, makeMenubar(uiWindow(w)));
 
 	// and add the OS container
-	w->content = uiNewOSContainer((uintptr_t) (w->vboxcontainer));
-	w->contentWidget = GTK_WIDGET(uiOSContainerHandle(w->content));
+	w->contentWidget = newOSContainer();
+	w->content = uipOSContainer(w->contentWidget);
 	gtk_widget_set_hexpand(w->contentWidget, TRUE);
 	gtk_widget_set_halign(w->contentWidget, GTK_ALIGN_FILL);
 	gtk_widget_set_vexpand(w->contentWidget, TRUE);
 	gtk_widget_set_valign(w->contentWidget, GTK_ALIGN_FILL);
+	gtk_container_add(w->vboxcontainer, w->contentWidget);
 
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxwidget);

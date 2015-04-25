@@ -13,7 +13,7 @@ struct box {
 	uintmax_t cap;
 	int vertical;
 	int hasParent;
-	uiOSContainer *osContainer;
+	uintptr_t osContainer;
 	int padded;
 	int userHid;
 	int containerHid;
@@ -37,7 +37,7 @@ static void boxDestroy(uiControl *c)
 		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
 	for (i = 0; i < b->len; i++) {
 		uiControlSetHasParent(b->controls[i].c, 0);
-		uiControlSetOSContainer(b->controls[i].c, NULL);
+		uiControlSetOSContainer(b->controls[i].c, 0);
 		uiControlDestroy(b->controls[i].c);
 	}
 	uiFree(b->controls);
@@ -56,20 +56,20 @@ static void boxSetHasParent(uiControl *c, int hasParent)
 	b->hasParent = hasParent;
 }
 
-static void boxSetOSContainer(uiControl *c, uiOSContainer *osContainer)
+static void boxSetOSContainer(uiControl *c, uintptr_t osContainer)
 {
 	box *b = (box *) c;
 	uintmax_t i;
-	uiOSContainer *oldcontainer;
+	uintptr_t oldcontainer;
 
 	oldcontainer = b->osContainer;
 	b->osContainer = osContainer;
 	for (i = 0; i < b->len; i++)
 		uiControlSetOSContainer(b->controls[i].c, b->osContainer);
-	if (oldcontainer != NULL)
-		uiOSContainerUpdate(oldcontainer);
-	if (b->osContainer != NULL)
-		uiOSContainerUpdate(b->osContainer);
+	if (oldcontainer != 0)
+		uiUpdateOSContainer(oldcontainer);
+	if (b->osContainer != 0)
+		uiUpdateOSContainer(b->osContainer);
 }
 
 static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -231,8 +231,8 @@ static void boxShow(uiControl *c)
 	if (!b->containerHid) {
 		for (i = 0; i < b->len; i++)
 			uiControlContainerShow(b->controls[i].c);
-		if (b->osContainer != NULL)
-			uiOSContainerUpdate(b->osContainer);
+		if (b->osContainer != 0)
+			uiUpdateOSContainer(b->osContainer);
 	}
 }
 
@@ -244,8 +244,8 @@ static void boxHide(uiControl *c)
 	b->userHid = 1;
 	for (i = 0; i < b->len; i++)
 		uiControlContainerHide(b->controls[i].c);
-	if (b->osContainer != NULL)
-		uiOSContainerUpdate(b->osContainer);
+	if (b->osContainer != 0)
+		uiUpdateOSContainer(b->osContainer);
 }
 
 static void boxContainerShow(uiControl *c)
@@ -257,8 +257,8 @@ static void boxContainerShow(uiControl *c)
 	if (!b->userHid) {
 		for (i = 0; i < b->len; i++)
 			uiControlContainerShow(b->controls[i].c);
-		if (b->osContainer != NULL)
-			uiOSContainerUpdate(b->osContainer);
+		if (b->osContainer != 0)
+			uiUpdateOSContainer(b->osContainer);
 	}
 }
 
@@ -270,8 +270,8 @@ static void boxContainerHide(uiControl *c)
 	b->containerHid = 1;
 	for (i = 0; i < b->len; i++)
 		uiControlContainerHide(b->controls[i].c);
-	if (b->osContainer != NULL)
-		uiOSContainerUpdate(b->osContainer);
+	if (b->osContainer != 0)
+		uiUpdateOSContainer(b->osContainer);
 }
 
 static void boxEnable(uiControl *c)
@@ -330,9 +330,9 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 	b->controls[b->len].c = c;
 	b->controls[b->len].stretchy = stretchy;
 	b->len++;		// must be here for OS container updates to work
-	if (b->osContainer != NULL) {
+	if (b->osContainer != 0) {
 		uiControlSetOSContainer(b->controls[b->len - 1].c, b->osContainer);
-		uiOSContainerUpdate(b->osContainer);
+		uiUpdateOSContainer(b->osContainer);
 	}
 }
 
@@ -349,9 +349,9 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 	// TODO memset the last one to NULL
 	b->len--;
 	uiControlSetHasParent(removed, 0);
-	if (b->osContainer != NULL) {
-		uiControlSetOSContainer(removed, NULL);
-		uiOSContainerUpdate(b->osContainer);
+	if (b->osContainer != 0) {
+		uiControlSetOSContainer(removed, 0);
+		uiUpdateOSContainer(b->osContainer);
 	}
 }
 
@@ -367,8 +367,8 @@ static void boxSetPadded(uiBox *ss, int padded)
 	box *b = (box *) ss;
 
 	b->padded = padded;
-	if (b->osContainer != NULL)
-		uiOSContainerUpdate(b->osContainer);
+	if (b->osContainer != 0)
+		uiUpdateOSContainer(b->osContainer);
 }
 
 uiBox *uiNewHorizontalBox(void)

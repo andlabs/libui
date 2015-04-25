@@ -9,3 +9,6 @@ extern void *uiRealloc(void *, size_t, const char *);
 extern void uiFree(void *);
 
 extern void complain(const char *, ...);
+
+// lifetimes.c
+extern void properlyDestroyControl(uiControl *);

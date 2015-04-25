@@ -47,7 +47,7 @@ interface Control {
 	func Destroy(void);
 	func Handle(void) uintptr_t;
 	func SetHasParent(hasParent int);
-	func SetOSContainer(handle uintptr_t);
+	func SetOSContainer(c *OSContainer);
 	func PreferredSize(d *Sizing, width *intmax_t, height *intmax_t);
 	func Resize(x intmax_t, y intmax_t, width intmax_t, height intmax_t, d *Sizing);
 	func Visible(void) int;
@@ -61,7 +61,15 @@ interface Control {
 	func ContainerDisable(void);
 };
 
-func UpdateOSContainer(handle uintptr_t);
+interface OSContainer {
+	field Internal *void;
+	func Destroy(void);
+	func Handle(void) uintptr_t;
+	func SetMainControl(c *Control);
+	func SetMargins(left intmax_t, top intmax_t, right intmax_t, bottom intmax_t);
+	func Update(void);
+};
+func NewOSContainer(osParent uintptr_t) *OSContainer;
 
 interface Window {
 	func Destroy(void);

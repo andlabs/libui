@@ -1,16 +1,30 @@
 // 13 august 2014
 #include "uipriv_unix.h"
 
-// In GTK+, many containers (GtkWindow, GtkNotebook, GtkFrame) can only have one child.
-// (In the case of GtkNotebook, each child widget is a single page.)
-// GtkFrame and GtkLayout, the official "anything goes" containers, are buggy and ineffective.
-// This custom container does what we need just fine.
-// uiWindow, uiTab, and uiGroup will keep private instances of this special container, and it will be the OS container given to each uiControl that becomes a child of those three controls.
+#define uipOSContainerType (uipOSContainer_get_type())
+#define uipOSContainer(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), uipOSContainerType, uipOSContainer))
+#define uipIsOSContainer(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), uipOSContainerType))
+#define uipOSContainerClass(class) (G_TYPE_CHECK_CLASS_CAST((class), uipOSContainerType, uipOSContainerClass))
+#define uipIsOSContainerClass(class) (G_TYPE_CHECK_CLASS_TYPE((class), uipOSContainer))
+#define uipGetParentClass(obj) (G_TYPE_INSTANCE_GET_CLASS((obj), uipOSContainerType, uipOSContainerClass))
 
-// This container maintains a "main control", which is the uiControl that is resized alongside the container.
-// It also keeps track of all the GtkWidgets that are in the uiControl for the purposes of GTK+ internals.
-// Finally, it also handles margining.
-// In other words, it does everything uiWindow, uiTab, and uiGroup need to do to keep track of controls.
+typedef struct uipOSContainer uipOSContainer;
+typedef struct uipOSContainerClass uipOSContainerClass;
+
+struct uipOSContainer {
+	GtkContainer parent_instance;
+	uiControl *mainControl;
+	GPtrArray *children;		// for forall()
+	intmax_t marginLeft;
+	intmax_t marginTop;
+	intmax_t marginRight;
+	intmax_t marginBottom;
+	gboolean canDestroy;
+};
+
+struct uipOSContainerClass {
+	GtkContainerClass parent_class;
+};
 
 G_DEFINE_TYPE(uipOSContainer, uipOSContainer, GTK_TYPE_CONTAINER)
 
@@ -28,12 +42,12 @@ static void uipOSContainer_dispose(GObject *obj)
 {
 	uipOSContainer *c = uipOSContainer(obj);
 
-	// don't free mainControl here; that should have been done by osContainerDestroy()
+	// don't free mainControl here; that should have been done by uiOSContainerDestroy()
 	if (!c->canDestroy)
-		complain("attempt to dispose uipOSContainer at %p before osContainerDestroy()", c);
+		complain("attempt to dispose uiOSContainer with uipOSContainer at %p before uiOSContainerDestroy()", c);
 	if (c->children != NULL) {
 		if (c->children->len != 0)
-			complain("disposing uipOSContainer at %p while there are still children", c);
+			complain("disposing uiOSContainer with uipOSContainer at %p while there are still children", c);
 		g_ptr_array_unref(c->children);
 		c->children = NULL;
 	}
@@ -45,7 +59,7 @@ static void uipOSContainer_finalize(GObject *obj)
 	uipOSContainer *c = uipOSContainer(obj);
 
 	if (!c->canDestroy)
-		complain("attempt to finalize uipOSContainer at %p before osContainerDestroy()", c);
+		complain("attempt to finalize uiOSContainer with uipOSContainer at %p before uiOSContainerDestroy()", c);
 	G_OBJECT_CLASS(uipOSContainer_parent_class)->finalize(obj);
 	if (options.debugLogAllocations)
 		fprintf(stderr, "%p free\n", obj);
@@ -124,59 +138,82 @@ static void uipOSContainer_class_init(uipOSContainerClass *class)
 	GTK_CONTAINER_CLASS(class)->forall = uipOSContainer_forall;
 }
 
-GtkWidget *newOSContainer(void)
-{
-	GtkWidget *c;
+// TODO convert other methods of other backends to pp arg p instance variable
 
-	c = GTK_WIDGET(g_object_new(uipOSContainerType, NULL));
-	// make it visible by default
-	gtk_widget_show_all(c);
-	// hold a reference to ourselves to keep ourselves alive when we're removed from whatever container we wind up in
-	g_object_ref_sink(c);
-	return c;
-}
-
-void osContainerDestroy(uipOSContainer *c)
+static void parentDestroy(uiOSContainer *cc)
 {
+	uipOSContainer *c = uipOSContainer(cc->Internal);
+
 	// first, destroy the main control
 	if (c->mainControl != NULL) {
 		// we have to do this before we can destroy controls
-		// TODO clean this up a bit
 		uiControlSetHasParent(c->mainControl, 0);
-		uiControlSetOSContainer(c->mainControl, 0);
+		uiControlSetOSContainer(c->mainControl, NULL);
 		uiControlDestroy(c->mainControl);
 		c->mainControl = NULL;
 	}
 	// now we can mark the parent as ready to be destroyed
 	c->canDestroy = TRUE;
-	// finally, actually go ahead and destroy ourselves
-	g_object_unref(c);
+	// finally, destroy the parent
+	g_object_unref(G_OBJECT(c));
+	// and free ourselves
+	uiFree(cc);
 }
 
-void osContainerSetMainControl(uipOSContainer *c, uiControl *mainControl)
+static uintptr_t parentHandle(uiOSContainer *cc)
 {
+	uipOSContainer *c = uipOSContainer(cc->Internal);
+
+	return (uintptr_t) c;
+}
+
+static void parentSetMainControl(uiOSContainer *cc, uiControl *mainControl)
+{
+	uipOSContainer *c = uipOSContainer(cc->Internal);
+
 	if (c->mainControl != NULL) {
 		uiControlSetHasParent(c->mainControl, 0);
-		uiControlSetOSContainer(c->mainControl, 0);
+		uiControlSetOSContainer(c->mainControl, NULL);
 	}
 	c->mainControl = mainControl;
 	if (c->mainControl != NULL) {
 		uiControlSetHasParent(c->mainControl, 1);
-		uiControlSetOSContainer(c->mainControl, (uintptr_t) c);
+		uiControlSetOSContainer(c->mainControl, cc);
 	}
-	uiUpdateOSContainer((uintptr_t) c);
 }
 
-void osContainerSetMargins(uipOSContainer *c, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom)
+static void parentSetMargins(uiOSContainer *cc, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom)
 {
+	uipOSContainer *c = uipOSContainer(cc->Internal);
+
 	c->marginLeft = left;
 	c->marginTop = top;
 	c->marginRight = right;
 	c->marginBottom = bottom;
-	uiUpdateOSContainer((uintptr_t) c);
 }
 
-void uiUpdateOSContainer(uintptr_t c)
+static void parentUpdate(uiOSContainer *cc)
 {
+	uipOSContainer *c = uipOSContainer(cc->Internal);
+
 	gtk_widget_queue_resize(GTK_WIDGET(c));
+}
+
+uiOSContainer *uiNewOSContainer(uintptr_t osParent)
+{
+	uiOSContainer *c;
+
+	c = uiNew(uiOSContainer);
+	c->Internal = g_object_new(uipOSContainerType, NULL);
+	c->Destroy = parentDestroy;
+	c->Handle = parentHandle;
+	c->SetMainControl = parentSetMainControl;
+	c->SetMargins = parentSetMargins;
+	c->Update = parentUpdate;
+	gtk_container_add(GTK_CONTAINER(osParent), GTK_WIDGET(c->Internal));
+	// make it visible by default
+	gtk_widget_show_all(GTK_WIDGET(c->Internal));
+	// hold a reference to it to keep it alive
+	g_object_ref(G_OBJECT(c->Internal));
+	return c;
 }

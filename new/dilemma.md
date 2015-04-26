@@ -56,3 +56,5 @@ This weakness does not exist on either GTK+ or OS X.
 I'm personally presently edging toward throwing my hands up and implementing this solution on Windows itself. It wouldn't get rid of the inelegance of having to unparent children before destruction, but it *would* make things consistent, which would lead into elegance.
 
 I don't know what this will mean for uiWindow.
+
+I'm also not sure how uiTab or uiGroup will be implemented this way. It works for GTK+ because it needs to do everything on its own...

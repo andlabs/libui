@@ -58,3 +58,90 @@ I'm personally presently edging toward throwing my hands up and implementing thi
 I don't know what this will mean for uiWindow.
 
 I'm also not sure how uiTab or uiGroup will be implemented this way. It works for GTK+ because it needs to do everything on its own...
+
+With this idea, uiControl would have only one parenting method:
+
+```c
+void uiControlSetParent(uiControl *c, T t);
+```
+
+But what is `T`?
+
+Let's assume it's `uiControl`.
+
+```c
+void uiControlSetParent(uiControl *c, uiControl *parent);
+```
+
+Then the traditional newcontrol implementation would be of the form
+
+```c
+void uiControlSetParent(uiControl *c, uiControl *parent)
+{
+	struct single *s = (struct single *) (c->Internal);
+
+	s->parent = parent;
+	if (s->parent != NULL)
+		OSSetParent(s->OSHandle, (OSHandle) uiControlHandle(s->parent));
+}
+```
+
+and the `uiControlDestroy()` would begin with
+
+```c
+	if (s->parent != NULL)
+		complain("attempt to destroy uiControl %p while it has a parent", c);
+```
+
+The only problem is that when the control is hidden, we need to notify its parent to re-layout itself. A normal control has no need for such an update function.
+
+Let's assume that this isn't a problem for now and get to the implementation of uiBox and uiGrid. These will be derived from a new type, uiContainer:
+
+```
+interface Container from Control {
+	func ContainerResize([same arguments as Control.Resize()]);
+	func Update(void);
+};
+```
+
+`ContainerResize()` is implemented by `uiBox` and `uiGrid` to do the actual resizing work. It also uses `uiControlPreferredSize()`. `Update()` also performs a dummy resize, and is called by things like `uiBoxAppend()` and `uiBoxSetStretchy()`.
+
+`uiNewContainer()` is the function to build a uiContainer subclass. It takes a pointer to where the `uiContainer()` should be placed. (TODO rename this and the OS-specific ones to uiMakeXxxx()?)
+
+As an alternative, we could require chaining up:
+
+```c
+void boxResize(...)
+{
+	(*(b->containerResize))(...);
+	...
+}
+```
+
+Now let's think about uiWindow, uiTab, and uiGroup.
+
+Let's make uiWindow a uiControl! It won't be a uiContainer, but it will have a uiControl as an immediate child. It can't be a child itself; calling `SetParent()` will complain.
+
+uiGroup works the same way.
+
+But neither of these have an `Update()` method! Okay fine, we'll make `Update()` part of `uiControl` too. For most widgets, `uiWidgetUpdate()` is a no-op; it only takes effect when the widge contains others.
+
+uiTab is the problem.
+
+Remember that on Windows we are manually responsible for showing and hiding tabs. But we want to get rid of `ContainerShow()` and `ContainerHide()`! And we can't just use `Show()` and `Hide()` because those are user settings, not libui settings.
+
+In this case, we would need an intermediary uiContainer of sorts that only contains the control we're interested in. GTK+ calls this a "bin"; we can probably create an internal bin control for our use.
+
+Note that this design means that there is a minimum of 2<i>n</i>+1 controls for each uiTab, with <i>n</i> being the number of tabs. If <i>n</i> is 10, we don't have much of a problem, though, so...
+
+GTK+ and OS X are fine; we can just use the control itself as the tab page's GtkWidget/NSView, respectively.
+
+BUT WAIT! All three of these need margins!
+
+On Windows, there's no issue because we're in control of the sizing of all our controls, including parents like uiWindow. We just apply the margins in our parents's `uiControlResize()`.
+
+But on GTK+ and OS X, the child controls get their size allocations and have to make use of them. *They* have to know about the margins, not the parents.
+
+The solution is simple: have *everything* be in a bin! In fact we can have uiWindow and uiGroup be a uiBin too!
+
+...I've just recreated GTK+...

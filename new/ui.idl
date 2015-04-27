@@ -61,6 +61,7 @@ interface Control {
 };
 
 interface Container from Control {
+	func ResizeChildren(x intmax_t, y intmax_t, width intmax_t, height intmax_t, d *Sizing);
 	func Update(voiid);
 };
 func MakeContainer(c *Container);

@@ -9,7 +9,6 @@ typedef struct boxControl boxControl;
 struct box {
 	uiBox b;
 	void (*baseDestroy)(uiControl *);
-	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 	boxControl *controls;
 	uintmax_t len;
 	uintmax_t cap;
@@ -109,7 +108,7 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		*width += nStretchy * maxStretchyWidth;
 }
 
-static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void boxResizeChildren(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	box *b = (box *) c;
 	int xpadding, ypadding;
@@ -117,8 +116,6 @@ static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	intmax_t stretchywid, stretchyht;
 	uintmax_t i;
 	intmax_t preferredWidth, preferredHeight;
-
-	(*(b->baseResize))(c, x, y, width, height, d);
 
 	if (b->len == 0)
 		return;
@@ -249,8 +246,8 @@ uiBox *uiNewHorizontalBox(void)
 	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = boxDestroy;
 	uiControl(b)->PreferredSize = boxPreferredSize;
-	b->baseResize = uiControl(b)->Resize;
-	uiControl(b)->Resize = boxResize;
+
+	uiContainer(b)->ResizeChildren = boxResizeChildren;
 
 	uiBox(b)->Append = boxAppend;
 	uiBox(b)->Delete = boxDelete;

@@ -38,7 +38,7 @@ static void boxDestroy(uiControl *c)
 	}
 	uiFree(b->controls);
 	// NOW we can chain up to base
-	(*(b->baseDestroy))(c);
+	(*(b->baseDestroy))(uiControl(b));
 	uiFree(b);
 }
 

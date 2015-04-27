@@ -50,25 +50,6 @@ static void paintControlBackground(HWND hwnd, HDC dc)
 		logLastError("error resetting window origin in paintControlBackground()");
 }
 
-static void resize(uiControl *control, HWND parent, RECT r, RECT margin)
-{
-	r.left += uiDlgUnitsToX(margin.left, sys.baseX);
-	r.top += uiDlgUnitsToY(margin.top, sys.baseY);
-	r.right -= uiDlgUnitsToX(margin.right, sys.baseX);
-	r.bottom -= uiDlgUnitsToY(margin.bottom, sys.baseY);
-}
-
-// TODO make this a uiOSContainer directly
-struct parent {
-	HWND hwnd;
-	uiControl *mainControl;
-	intmax_t marginLeft;
-	intmax_t marginTop;
-	intmax_t marginRight;
-	intmax_t marginBottom;
-	BOOL canDestroy;
-};
-
 static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uiOSContainer *p;

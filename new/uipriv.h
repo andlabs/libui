@@ -10,5 +10,9 @@ extern void uiFree(void *);
 
 extern void complain(const char *, ...);
 
+extern uiContainer *newBin(void);
+extern void binSetMainControl(uiContainer *, uiControl *);
+extern void binSetMargins(uiContainer *, intmax_t, intmax_t, intmax_t, intmax_t);
+
 // lifetimes.c
 extern void properlyDestroyControl(uiControl *);

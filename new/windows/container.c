@@ -5,13 +5,19 @@
 
 HWND initialParent;
 
+struct container {
+	HWND hwnd;
+	uiContainer *parent;
+};
+
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 // this X value is really only for buttons but I don't see a better one :/
 #define winXPadding 4
 #define winYPadding 4
 
-static void resize(uiContainer *c, RECT *r)
+static void resize(uiContainer *cc, RECT *r)
 {
+	struct container *c = (struct container *) (cc->Internal);
 	uiSizing d;
 	uiSizingSys sys;
 	HDC dc;
@@ -23,7 +29,7 @@ static void resize(uiContainer *c, RECT *r)
 	size.cx = 0;
 	size.cy = 0;
 	ZeroMemory(&tm, sizeof (TEXTMETRICW));
-	dc = GetDC(parent);
+	dc = GetDC(c->hwnd);
 	if (dc == NULL)
 		logLastError("error getting DC in resize()");
 	prevfont = (HFONT) SelectObject(dc, hMessageFont);
@@ -38,12 +44,12 @@ static void resize(uiContainer *c, RECT *r)
 	sys.internalLeading = tm.tmInternalLeading;
 	if (SelectObject(dc, prevfont) != hMessageFont)
 		logLastError("error restoring previous font into device context in resize()");
-	if (ReleaseDC(parent, dc) == 0)
+	if (ReleaseDC(c->hwnd, dc) == 0)
 		logLastError("error releasing DC in resize()");
 	d.xPadding = uiDlgUnitsToX(winXPadding, sys.baseX);
 	d.yPadding = uiDlgUnitsToY(winYPadding, sys.baseY);
 	d.sys = &sys;
-	uiContainerResizeChildren(c, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
+	uiContainerResizeChildren(cc, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }
 
 static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -111,7 +117,113 @@ const char *initContainer(void)
 	return NULL;
 }
 
-void uiMakeContainer(uiContainer *c)
+// subclasses override this and call back here when all children are destroyed
+static void containerDestroy(uiControl *cc)
 {
-	// TODO
+	struct container *c = (struct container *) (cc->Internal);
+
+	if (c->parent != NULL)
+		complain("attempt to destroy uiContainer %p while it has a parent", cc);
+	if (DestroyWindow(c->hwnd) == 0)
+		logLastError("error destroying uiContainer window in containerDestroy()");
+	uiFree(c);
+}
+
+static uintptr_t containerHandle(uiControl *cc)
+{
+	struct container *c = (struct container *) (cc->Internal);
+
+	return (uinptr_t) (c->hwnd);
+}
+
+static void containerSetParent(uiControl *cc, uiContainer *parent)
+{
+	struct contianer *c = (struct container *) cc;
+	uiContainer *oldparent;
+	HWND newparent;
+
+	oldparent = c->parent;
+	c->parent = parent;
+	newparent = initialParent;
+	if (c->parent != NULL)
+		newparent = (HWND) uiControlHandle(uiControl(c->parent));
+	if (SetParent(c->hwnd, newparent) == 0)
+		logLastError("error changing uiContainer parent in containerSetParent()");
+	if (oldparent != NULL)
+		uiContainerUpdate(oldparent);
+	if (c->parent != NULL)
+		uiContainerUpdate(c->parent);
+}
+
+static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+{
+	struct container *c = (struct container *) (cc->Internal);
+
+	if (MoveWindow(c->hwnd, x, y, width, height, TRUE) == 0)
+		logLastError("error resizing uiContainer in containerResize()");
+}
+
+static void containerShow(uiControl *cc)
+{
+	struct container *c = (struct container *) (cc->Internal);
+
+	ShowWindow(c->hwnd, SW_SHOW);
+}
+
+static void containerHide(uiControl *cc)
+{
+	struct container *c = (struct container *) (cc->Internal);
+
+	ShowWindow(c->hwnd, SW_HIDE);
+}
+
+static void containerEnable(uiControl *cc)
+{
+	struct container *c = (struct container *) (cc->Internal);
+
+	EnableWindow(c->hwnd, TRUE);
+}
+
+static void containerDisable(uiControl *cc)
+{
+	struct container *c = (struct container *) (cc->Internal);
+
+	EnableWindow(c->hwnd, FALSE);
+}
+
+static void containerUpdate(uiContainer *cc)
+{
+	struct container *c = (struct container *) (uiControl(cc)->Internal);
+
+	SendMessageW(c->hwnd, msgUpdateChild, 0, 0);
+}
+
+void uiMakeContainer(uiContainer *cc)
+{
+	struct container *c;
+
+	c = uiNew(struct container);
+
+	c->hwnd = CreateWindowExW(0,
+		containerClass, L"",
+		WS_CHILD | WS_VISIBLE,
+		0, 0,
+		100, 100,
+		initialParent, NULL, hInstance, cc);
+	if (c->hwnd == NULL)
+		logLastError("error creating uiContainer window in uiMakeContainer()");
+
+	uiControl(cc)->Internal = c;
+	uiControl(cc)->Destroy = containerDestroy;
+	uiControl(cc)->Handle = containerHandle;
+	uiControl(cc)->SetParent = containerSetParent;
+	// PreferredSize() is provided by subclasses
+	uiControl(cc)->Resize = containerResize;
+	uiControl(cc)->Show = containerShow;
+	uiControl(cc)->Hide = containerHide;
+	uiControl(cc)->Enable = containerEnable;
+	uiControl(cc)->Disable = containerDisable;
+
+	// ResizeChildren() is provided by subclasses
+	uiContainer(cc)->Update = containerUpdate;
 }

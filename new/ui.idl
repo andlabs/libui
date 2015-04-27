@@ -62,13 +62,9 @@ interface Container from Control {
 };
 func MakeContainer(c *Container);
 
-interface Window {
-	func Destroy(void);
-	func Handle(void) uintptr_t;
+interface Window from Control {
 	func Title(void) *char;
 	func SetTitle(title *const char);
-	func Show(void);
-	func Hide(void);
 	// TODO really return int?
 	func OnClosing(f *func(w *Window, data *void) int, data *void);
 	func SetChild(c *Control);

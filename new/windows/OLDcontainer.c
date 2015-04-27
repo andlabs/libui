@@ -50,48 +50,12 @@ static void paintControlBackground(HWND hwnd, HDC dc)
 		logLastError("error resetting window origin in paintControlBackground()");
 }
 
-// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
-// this X value is really only for buttons but I don't see a better one :/
-#define winXPadding 4
-#define winYPadding 4
-
 static void resize(uiControl *control, HWND parent, RECT r, RECT margin)
 {
-	uiSizing d;
-	uiSizingSys sys;
-	HDC dc;
-	HFONT prevfont;
-	TEXTMETRICW tm;
-	SIZE size;
-
-	size.cx = 0;
-	size.cy = 0;
-	ZeroMemory(&tm, sizeof (TEXTMETRICW));
-	dc = GetDC(parent);
-	if (dc == NULL)
-		logLastError("error getting DC in resize()");
-	prevfont = (HFONT) SelectObject(dc, hMessageFont);
-	if (prevfont == NULL)
-		logLastError("error loading control font into device context in resize()");
-	if (GetTextMetricsW(dc, &tm) == 0)
-		logLastError("error getting text metrics in resize()");
-	if (GetTextExtentPoint32W(dc, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &size) == 0)
-		logLastError("error getting text extent point in resize()");
-	sys.baseX = (int) ((size.cx / 26 + 1) / 2);
-	sys.baseY = (int) tm.tmHeight;
-	sys.internalLeading = tm.tmInternalLeading;
-	if (SelectObject(dc, prevfont) != hMessageFont)
-		logLastError("error restoring previous font into device context in resize()");
-	if (ReleaseDC(parent, dc) == 0)
-		logLastError("error releasing DC in resize()");
 	r.left += uiDlgUnitsToX(margin.left, sys.baseX);
 	r.top += uiDlgUnitsToY(margin.top, sys.baseY);
 	r.right -= uiDlgUnitsToX(margin.right, sys.baseX);
 	r.bottom -= uiDlgUnitsToY(margin.bottom, sys.baseY);
-	d.xPadding = uiDlgUnitsToX(winXPadding, sys.baseX);
-	d.yPadding = uiDlgUnitsToY(winYPadding, sys.baseY);
-	d.sys = &sys;
-	uiControlResize(control, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }
 
 // TODO make this a uiOSContainer directly
@@ -166,21 +130,6 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		uiFree(p->Internal);
 		uiFree(p);
 		break;		// fall through to DefWindowPocW()
-	case WM_WINDOWPOSCHANGED:
-		if ((wp->flags & SWP_NOSIZE) != 0)
-			break;
-		// fall through
-	case msgUpdateChild:
-		if (pp->mainControl == NULL)
-			break;
-		if (GetClientRect(pp->hwnd, &r) == 0)
-			logLastError("error getting client rect for resize in parentWndProc()");
-		margin.left = pp->marginLeft;
-		margin.top = pp->marginTop;
-		margin.right = pp->marginRight;
-		margin.bottom = pp->marginBottom;
-		resize(pp->mainControl, pp->hwnd, r, margin);
-		return 0;
 	case WM_PAINT:
 		dc = BeginPaint(pp->hwnd, &ps);
 		if (dc == NULL)

@@ -31,12 +31,15 @@ static void boxDestroy(uiControl *c)
 	box *b = (box *) c;
 	uintmax_t i;
 
-	(*(b->baseDestroy))(c);
+	// TODO find a way to move the parented check here
+	// don't chain up to base here; we need to destroy children ourselves first
 	for (i = 0; i < b->len; i++) {
 		uiControlSetParent(b->controls[i].c, NULL);
 		uiControlDestroy(b->controls[i].c);
 	}
 	uiFree(b->controls);
+	// NOW we can chain up to base
+	(*(b->baseDestroy))(c);
 	uiFree(b);
 }
 

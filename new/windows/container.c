@@ -8,6 +8,7 @@ HWND initialParent;
 struct container {
 	HWND hwnd;
 	uiContainer *parent;
+	int hidden;
 };
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
@@ -163,11 +164,19 @@ static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t widt
 		logLastError("error resizing uiContainer in containerResize()");
 }
 
+static int containerVisible(uiControl *cc)
+{
+	struct container *c = (struct container *) (cc->Internal);
+
+	return !c->hidden;
+}
+
 static void containerShow(uiControl *cc)
 {
 	struct container *c = (struct container *) (cc->Internal);
 
 	ShowWindow(c->hwnd, SW_SHOW);
+	c->hidden = 0;
 }
 
 static void containerHide(uiControl *cc)
@@ -175,6 +184,7 @@ static void containerHide(uiControl *cc)
 	struct container *c = (struct container *) (cc->Internal);
 
 	ShowWindow(c->hwnd, SW_HIDE);
+	c->hidden = 1;
 }
 
 static void containerEnable(uiControl *cc)
@@ -219,6 +229,7 @@ void uiMakeContainer(uiContainer *cc)
 	uiControl(cc)->SetParent = containerSetParent;
 	// PreferredSize() is provided by subclasses
 	uiControl(cc)->Resize = containerResize;
+	uiControl(cc)->Visible = containerVisible;
 	uiControl(cc)->Show = containerShow;
 	uiControl(cc)->Hide = containerHide;
 	uiControl(cc)->Enable = containerEnable;

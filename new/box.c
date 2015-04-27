@@ -7,18 +7,17 @@ typedef struct box box;
 typedef struct boxControl boxControl;
 
 struct box {
-	uiBox s;
+	uiBox b;
+	void (*baseDestroy)(uiControl *);
+	void (*baseSetParent)(uiControl *, uiContainer *);
+	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 	boxControl *controls;
 	uintmax_t len;
 	uintmax_t cap;
 	int vertical;
 	int hasParent;
-	uiOSContainer *osContainer;
+	uiContainer *parent;
 	int padded;
-	int userHid;
-	int containerHid;
-	int userDisabled;
-	int containerDisabled;
 };
 
 struct boxControl {
@@ -33,43 +32,30 @@ static void boxDestroy(uiControl *c)
 	box *b = (box *) c;
 	uintmax_t i;
 
-	if (b->hasParent)
-		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
+	(*(b->baseDestroy))(c);
 	for (i = 0; i < b->len; i++) {
-		uiControlSetHasParent(b->controls[i].c, 0);
-		uiControlSetOSContainer(b->controls[i].c, NULL);
+		uiControlSetParent(b->controls[i].c, NULL);
 		uiControlDestroy(b->controls[i].c);
 	}
 	uiFree(b->controls);
 	uiFree(b);
 }
 
-static uintptr_t boxHandle(uiControl *c)
-{
-	return 0;
-}
-
-static void boxSetHasParent(uiControl *c, int hasParent)
-{
-	box *b = (box *) c;
-
-	b->hasParent = hasParent;
-}
-
-static void boxSetOSContainer(uiControl *c, uiOSContainer *osContainer)
+static void boxSetParent(uiControl *c, uiContainer *parent)
 {
 	box *b = (box *) c;
 	uintmax_t i;
-	uiOSContainer *oldcontainer;
+	uiOSContainer *oldparent;
 
-	oldcontainer = b->osContainer;
-	b->osContainer = osContainer;
+	(*(b->baseSetParent))(c, parent);
+	oldparent = b->parent;
+	b->parent = parent;
 	for (i = 0; i < b->len; i++)
-		uiControlSetOSContainer(b->controls[i].c, b->osContainer);
-	if (oldcontainer != NULL)
-		uiOSContainerUpdate(oldcontainer);
-	if (b->osContainer != NULL)
-		uiOSContainerUpdate(b->osContainer);
+		uiControlSetParent(b->controls[i].c, b->parent);
+	if (oldparent != NULL)
+		uiContainerUpdate(oldparent);
+	if (b->parent != NULL)
+		uiContainerUpdate(b->parent);
 }
 
 static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -147,6 +133,8 @@ static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	uintmax_t i;
 	intmax_t preferredWidth, preferredHeight;
 
+	(*(b->baseResize))(c, x, y, width, height, d);
+
 	if (b->len == 0)
 		return;
 
@@ -215,107 +203,6 @@ static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	}
 }
 
-static int boxVisible(uiControl *c)
-{
-	box *b = (box *) c;
-
-	return !(b->userHid);
-}
-
-static void boxShow(uiControl *c)
-{
-	box *b = (box *) c;
-	uintmax_t i;
-
-	b->userHid = 0;
-	if (!b->containerHid) {
-		for (i = 0; i < b->len; i++)
-			uiControlContainerShow(b->controls[i].c);
-		if (b->osContainer != NULL)
-			uiOSContainerUpdate(b->osContainer);
-	}
-}
-
-static void boxHide(uiControl *c)
-{
-	box *b = (box *) c;
-	uintmax_t i;
-
-	b->userHid = 1;
-	for (i = 0; i < b->len; i++)
-		uiControlContainerHide(b->controls[i].c);
-	if (b->osContainer != NULL)
-		uiOSContainerUpdate(b->osContainer);
-}
-
-static void boxContainerShow(uiControl *c)
-{
-	box *b = (box *) c;
-	uintmax_t i;
-
-	b->containerHid = 0;
-	if (!b->userHid) {
-		for (i = 0; i < b->len; i++)
-			uiControlContainerShow(b->controls[i].c);
-		if (b->osContainer != NULL)
-			uiOSContainerUpdate(b->osContainer);
-	}
-}
-
-static void boxContainerHide(uiControl *c)
-{
-	box *b = (box *) c;
-	uintmax_t i;
-
-	b->containerHid = 1;
-	for (i = 0; i < b->len; i++)
-		uiControlContainerHide(b->controls[i].c);
-	if (b->osContainer != NULL)
-		uiOSContainerUpdate(b->osContainer);
-}
-
-static void boxEnable(uiControl *c)
-{
-	box *b = (box *) c;
-	uintmax_t i;
-
-	b->userDisabled = 0;
-	if (!b->containerDisabled)
-		for (i = 0; i < b->len; i++)
-			uiControlContainerEnable(b->controls[i].c);
-}
-
-static void boxDisable(uiControl *c)
-{
-	box *b = (box *) c;
-	uintmax_t i;
-
-	b->userDisabled = 1;
-	for (i = 0; i < b->len; i++)
-		uiControlContainerDisable(b->controls[i].c);
-}
-
-static void boxContainerEnable(uiControl *c)
-{
-	box *b = (box *) c;
-	uintmax_t i;
-
-	b->containerDisabled = 0;
-	if (!b->userDisabled)
-		for (i = 0; i < b->len; i++)
-			uiControlContainerEnable(b->controls[i].c);
-}
-
-static void boxContainerDisable(uiControl *c)
-{
-	box *b = (box *) c;
-	uintmax_t i;
-
-	b->containerDisabled = 1;
-	for (i = 0; i < b->len; i++)
-		uiControlContainerDisable(b->controls[i].c);
-}
-
 #define boxCapGrow 32
 
 static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
@@ -330,9 +217,9 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 	b->controls[b->len].c = c;
 	b->controls[b->len].stretchy = stretchy;
 	b->len++;		// must be here for OS container updates to work
-	if (b->osContainer != NULL) {
-		uiControlSetOSContainer(b->controls[b->len - 1].c, b->osContainer);
-		uiOSContainerUpdate(b->osContainer);
+	if (b->parent != NULL) {
+		uiControlSetParent(b->controls[b->len - 1].c, b->parent);
+		uiContainerUpdate(b->parent);
 	}
 }
 
@@ -348,10 +235,9 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 		b->controls[i] = b->controls[i + 1];
 	// TODO memset the last one to NULL
 	b->len--;
-	uiControlSetHasParent(removed, 0);
-	if (b->osContainer != NULL) {
-		uiControlSetOSContainer(removed, NULL);
-		uiOSContainerUpdate(b->osContainer);
+	if (b->parent != NULL) {
+		uiControlSetParent(removed, NULL);
+		uiContainerUpdate(b->parent);
 	}
 }
 
@@ -367,8 +253,8 @@ static void boxSetPadded(uiBox *ss, int padded)
 	box *b = (box *) ss;
 
 	b->padded = padded;
-	if (b->osContainer != NULL)
-		uiOSContainerUpdate(b->osContainer);
+	if (b->parent != NULL)
+		uiContainerUpdate(b->parent);
 }
 
 uiBox *uiNewHorizontalBox(void)
@@ -377,21 +263,15 @@ uiBox *uiNewHorizontalBox(void)
 
 	b = uiNew(box);
 
+	uiMakeContainer(uiContainer(b));
+
+	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = boxDestroy;
-	uiControl(b)->Handle = boxHandle;
-	uiControl(b)->SetHasParent = boxSetHasParent;
-	uiControl(b)->SetOSContainer = boxSetOSContainer;
+	b->baseSetParent = uiControl(b)->SetParent;
+	uiControl(b)->SetParent = boxSetParent;
 	uiControl(b)->PreferredSize = boxPreferredSize;
+	b->baseResize = uiControl(b)->Resize;
 	uiControl(b)->Resize = boxResize;
-	uiControl(b)->Visible = boxVisible;
-	uiControl(b)->Show = boxShow;
-	uiControl(b)->Hide = boxHide;
-	uiControl(b)->ContainerShow = boxContainerShow;
-	uiControl(b)->ContainerHide = boxContainerHide;
-	uiControl(b)->Enable = boxEnable;
-	uiControl(b)->Disable = boxDisable;
-	uiControl(b)->ContainerEnable = boxContainerEnable;
-	uiControl(b)->ContainerDisable = boxContainerDisable;
 
 	uiBox(b)->Append = boxAppend;
 	uiBox(b)->Delete = boxDelete;
@@ -403,11 +283,11 @@ uiBox *uiNewHorizontalBox(void)
 
 uiBox *uiNewVerticalBox(void)
 {
-	uiBox *ss;
+	uiBox *bb;
 	box *b;
 
-	ss = uiNewHorizontalBox();
-	b = (box *) ss;
+	bb = uiNewHorizontalBox();
+	b = (box *) bb;
 	b->vertical = 1;
 	return ss;
 }

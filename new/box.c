@@ -9,7 +9,6 @@ typedef struct boxControl boxControl;
 struct box {
 	uiBox b;
 	void (*baseDestroy)(uiControl *);
-	void (*baseSetParent)(uiControl *, uiContainer *);
 	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 	boxControl *controls;
 	uintmax_t len;
@@ -39,23 +38,6 @@ static void boxDestroy(uiControl *c)
 	}
 	uiFree(b->controls);
 	uiFree(b);
-}
-
-static void boxSetParent(uiControl *c, uiContainer *parent)
-{
-	box *b = (box *) c;
-	uintmax_t i;
-	uiOSContainer *oldparent;
-
-	(*(b->baseSetParent))(c, parent);
-	oldparent = b->parent;
-	b->parent = parent;
-	for (i = 0; i < b->len; i++)
-		uiControlSetParent(b->controls[i].c, b->parent);
-	if (oldparent != NULL)
-		uiContainerUpdate(oldparent);
-	if (b->parent != NULL)
-		uiContainerUpdate(b->parent);
 }
 
 static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -217,10 +199,8 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 	b->controls[b->len].c = c;
 	b->controls[b->len].stretchy = stretchy;
 	b->len++;		// must be here for OS container updates to work
-	if (b->parent != NULL) {
-		uiControlSetParent(b->controls[b->len - 1].c, b->parent);
-		uiContainerUpdate(b->parent);
-	}
+	uiControlSetParent(b->controls[b->len - 1].c, uiContainer(b));
+	uiContainerUpdate(uiContainer(b));
 }
 
 static void boxDelete(uiBox *ss, uintmax_t index)
@@ -235,10 +215,8 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 		b->controls[i] = b->controls[i + 1];
 	// TODO memset the last one to NULL
 	b->len--;
-	if (b->parent != NULL) {
-		uiControlSetParent(removed, NULL);
-		uiContainerUpdate(b->parent);
-	}
+	uiControlSetParent(removed, NULL);
+	uiContainerUpdate(uiContainer(b));
 }
 
 static int boxPadded(uiBox *ss)
@@ -267,8 +245,6 @@ uiBox *uiNewHorizontalBox(void)
 
 	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = boxDestroy;
-	b->baseSetParent = uiControl(b)->SetParent;
-	uiControl(b)->SetParent = boxSetParent;
 	uiControl(b)->PreferredSize = boxPreferredSize;
 	b->baseResize = uiControl(b)->Resize;
 	uiControl(b)->Resize = boxResize;

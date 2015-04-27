@@ -11,10 +11,6 @@
 // - with CTLCOLOR handler: [12:24] <ZeroOne> And setting the button text blanked out the entire GUI until I ran my mouse over the elements / [12:25] <ZeroOne> https://dl.dropboxusercontent.com/u/15144168/GUI%20stuff.png / [12:41] <ZeroOne> https://dl.dropboxusercontent.com/u/15144168/stack.png here have another screenshot
 // 	- I get this too
 
-#define uiOSContainerClass L"uiOSContainerClass"
-
-HWND initialOSContainer;
-
 static void paintControlBackground(HWND hwnd, HDC dc)
 {
 	HWND parent;
@@ -198,35 +194,6 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	}
 
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-}
-
-const char *initOSContainer(HICON hDefaultIcon, HCURSOR hDefaultCursor)
-{
-	WNDCLASSW wc;
-
-	ZeroMemory(&wc, sizeof (WNDCLASSW));
-	wc.lpszClassName = uiOSContainerClass;
-	wc.lpfnWndProc = parentWndProc;
-	wc.hInstance = hInstance;
-	wc.hIcon = hDefaultIcon;
-	wc.hCursor = hDefaultCursor;
-	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
-	if (RegisterClassW(&wc) == 0)
-		return "registering parent window class";
-
-	initialOSContainer = CreateWindowExW(0,
-		uiOSContainerClass, L"",
-		WS_OVERLAPPEDWINDOW,
-		0, 0,
-		100, 100,
-		NULL, NULL, hInstance, NULL);
-	if (initialOSContainer == NULL)
-		return "creating initial parent window";
-
-	// just to be safe, disable the initial parent so it can't be interacted with accidentally
-	// if this causes issues for our controls, we can remove it
-	EnableWindow(initialOSContainer, FALSE);
-	return NULL;
 }
 
 static void parentDestroy(uiOSContainer *pp)

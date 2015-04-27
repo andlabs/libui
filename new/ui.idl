@@ -52,12 +52,8 @@ interface Control {
 	func Visible(void) int;
 	func Show(void);
 	func Hide(void);
-	func ContainerShow(void);
-	func ContainerHide(void);
 	func Enable(void);
 	func Disable(void);
-	func ContainerEnable(void);
-	func ContainerDisable(void);
 };
 
 interface Container from Control {

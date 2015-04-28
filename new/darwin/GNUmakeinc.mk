@@ -2,6 +2,7 @@
 
 osMFILES = \
 	darwin/alloc.m \
+	darwin/container.m \
 	darwin/init.m \
 	darwin/main.m \
 	darwin/menu.m \

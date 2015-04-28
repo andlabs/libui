@@ -24,23 +24,31 @@
 		fprintf(stderr, "%p free\n", self); \
 }
 
-#define VIEW(c) uiControlHandle(uiControl(c))
-
-// init.m
-extern NSView *destroyedControlsView;
-
-// util.m
-extern void setStandardControlFont(NSControl *);
-extern void disableAutocorrect(NSTextView *);
-
-// parent.m
 // These are based on measurements from Interface Builder.
 // These seem to be based on Auto Layout constants, but I don't see an API that exposes these...
 #define macXMargin 20
 #define macYMargin 20
 
+// menu.m
+@interface menuManager : NSObject {
+	NSMutableDictionary *items;
+}
+@property NSMenuItem *quitItem;
+@property NSMenuItem *preferencesItem;
+@property NSMenuItem *aboutItem;
+- (IBAction)onMenuItemClicked:(id)sender;
+- (NSMenu *)makeMenubar;
+@end
+
+// init.m
+@interface appDelegate : NSObject <NSApplicationDelegate>
+@property menuManager *menuManager;
+@end
+#define appDelegate() ((appDelegate *) [NSApp delegate])
+
+// util.m
+extern void setStandardControlFont(NSControl *);
+extern void disableAutocorrect(NSTextView *);
+
 // entry.m
 extern void finishNewTextField(NSTextField *, BOOL);
-
-// menu.m
-extern NSMenu *makeMenubar(void);

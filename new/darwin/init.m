@@ -21,10 +21,7 @@
 
 @end
 
-@interface uiAppDelegate : NSObject <NSApplicationDelegate>
-@end
-
-@implementation uiAppDelegate
+@implementation appDelegate
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)app
 {
@@ -54,10 +51,11 @@ const char *uiInit(uiInitOptions *o)
 	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 	// see https://github.com/andlabs/ui/issues/6
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-	[NSApp setDelegate:[uiAppDelegate new]];
+	[NSApp setDelegate:[appDelegate new]];
 
 	// always do this so we always have an application menu
-	[NSApp setMainMenu:makeMenubar()];
+	appDelegate().menuManager = [menuManager new];
+	[NSApp setMainMenu:[appDelegate().menuManager makeMenubar]];
 
 	// we can use a stock NSView for this
 	destroyedControlsView = [[NSView alloc] initWithFrame:NSZeroRect];

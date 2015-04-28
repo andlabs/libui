@@ -8,7 +8,8 @@ osMFILES = \
 	darwin/main.m \
 	darwin/menu.m \
 	darwin/text.m \
-	darwin/util.m
+	darwin/util.m \
+	darwin/window.m
 
 osHFILES = \
 	darwin/uipriv_darwin.h

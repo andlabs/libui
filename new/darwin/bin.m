@@ -99,11 +99,5 @@ void binSetMargins(uiContainer *c, intmax_t left, intmax_t top, intmax_t right, 
 
 void binSetParent(uiContainer *c, uintptr_t osParent)
 {
-	struct bin *b = (struct bin *) c;
-	NSView *view;
-	NSView *newContainer;
-
-	view = (NSView *) uiControlHandle(uiControl(b));
-	newContainer = (NSView *) osParent;
-	[newContainer addSubview:view];
+	complain("binSetParent() ineffective on OS X; specific selectors need to be called instead");
 }

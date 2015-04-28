@@ -108,7 +108,7 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		*width += nStretchy * maxStretchyWidth;
 }
 
-static void boxResizeChildren(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	box *b = (box *) c;
 	int xpadding, ypadding;
@@ -195,7 +195,6 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 		b->cap += boxCapGrow;
 		b->controls = (boxControl *) uiRealloc(b->controls, b->cap * sizeof (boxControl), "boxControl[]");
 	}
-	uiControlSetHasParent(c, 1);
 	b->controls[b->len].c = c;
 	b->controls[b->len].stretchy = stretchy;
 	b->len++;		// must be here for OS container updates to work
@@ -265,5 +264,5 @@ uiBox *uiNewVerticalBox(void)
 	bb = uiNewHorizontalBox();
 	b = (box *) bb;
 	b->vertical = 1;
-	return ss;
+	return bb;
 }

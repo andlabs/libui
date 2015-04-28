@@ -18,7 +18,7 @@ struct container {
 
 static void resize(uiContainer *cc, RECT *r)
 {
-	struct container *c = (struct container *) (cc->Internal);
+	struct container *c = (struct container *) (uiControl(cc)->Internal);
 	uiSizing d;
 	uiSizingSys sys;
 	HDC dc;
@@ -50,18 +50,19 @@ static void resize(uiContainer *cc, RECT *r)
 	d.xPadding = uiDlgUnitsToX(winXPadding, sys.baseX);
 	d.yPadding = uiDlgUnitsToY(winYPadding, sys.baseY);
 	d.sys = &sys;
-	uiContainerResizeChildren(cc, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
+	uiContainerResizeChildren(cc, r->left, r->top, r->right - r->left, r->bottom - r->top, &d);
 }
 
 static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	uiContainer *c;
+	uiContainer *cc;
+	struct container *c;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
-	WINDOWPOSW *wp = (WINDOWPOSW *) lParam;
+	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r;
 
-	c = uiContainer(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
-	if (c == NULL)
+	cc = uiContainer(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+	if (cc == NULL)
 		if (uMsg == WM_NCCREATE)
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (cs->lpCreateParams));
 		// DO NOT RETURN DEFWINDOWPROC() HERE
@@ -78,18 +79,19 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 			break;
 		// fall through
 	case msgUpdateChild:
-		if (c == NULL)
+		if (cc == NULL)
 			break;
-		if (GetClientRect(pp->hwnd, &r) == 0)
+		c = (struct container *) (uiControl(cc)->Internal);
+		if (GetClientRect(c->hwnd, &r) == 0)
 			logLastError("error getting client rect for resize in parentWndProc()");
-		resize(c, &r);
+		resize(cc, &r);
 		return 0;
 	}
 
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 
-const char *initContainer(void)
+const char *initContainer(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 {
 	WNDCLASSW wc;
 
@@ -104,7 +106,7 @@ const char *initContainer(void)
 		return "registering uiContainer window class";
 
 	initialParent = CreateWindowExW(0,
-		uiOSContainerClass, L"",
+		containerClass, L"",
 		WS_OVERLAPPEDWINDOW,
 		0, 0,
 		100, 100,
@@ -134,12 +136,12 @@ static uintptr_t containerHandle(uiControl *cc)
 {
 	struct container *c = (struct container *) (cc->Internal);
 
-	return (uinptr_t) (c->hwnd);
+	return (uintptr_t) (c->hwnd);
 }
 
 static void containerSetParent(uiControl *cc, uiContainer *parent)
 {
-	struct contianer *c = (struct container *) cc;
+	struct container *c = (struct container *) cc;
 	uiContainer *oldparent;
 	HWND newparent;
 

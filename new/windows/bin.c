@@ -72,7 +72,7 @@ uiContainer *newBin(void)
 	uiControl(b)->Destroy = binDestroy;
 	uiControl(b)->PreferredSize = binPreferredSize;
 
-	uiContainer(b)->ControlResize = binControlResize;
+	uiContainer(b)->ResizeChildren = binResizeChildren;
 
 	return uiContainer(b);
 }
@@ -103,8 +103,10 @@ void binSetMargins(uiContainer *c, intmax_t left, intmax_t top, intmax_t right, 
 void binSetParent(uiContainer *c, uintptr_t osParent)
 {
 	struct bin *b = (struct bin *) c;
+	HWND hwnd;
 	HWND newParent = (HWND) osParent;
 
-	if (SetParent(b->hwnd, newParent) == 0)
+	hwnd = (HWND) uiControlHandle(uiControl(b));
+	if (SetParent(hwnd, newParent) == 0)
 		logLastError("error changing bin's parent in binSetParent()");
 }

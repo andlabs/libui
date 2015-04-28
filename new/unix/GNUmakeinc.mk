@@ -25,5 +25,7 @@ osLDFLAGS = \
 	-fPIC \
 	`pkg-config --libs gtk+-3.0`
 
+osLDWarnUndefinedFlags = -Wl,--no-undefined -Wl,--no-allow-shlib-undefined
+
 osLIBSUFFIX = .so
 osEXESUFFIX =

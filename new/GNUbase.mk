@@ -35,6 +35,9 @@ $(OUT): $(OFILES) | $(OUTDIR)/.phony
 $(OBJDIR)/%.o: %.c $(xHFILES) | $$(dir $$@).phony
 	$(CC) -o $@ -c $< $(xCFLAGS)
 
+$(OBJDIR)/%.o: %.m $(xHFILES) | $$(dir $$@).phony
+	$(CC) -o $@ -c $< $(xCFLAGS)
+
 # see http://www.cmcrossroads.com/article/making-directories-gnu-make
 %/.phony:
 	mkdir -p $(dir $@)

@@ -31,7 +31,7 @@ baseMFILES = $(osMFILES)
 baseCFLAGS = $(osCFLAGS)
 baseLDFLAGS = \
 	-shared \
-	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined \
+	$(osLDWarnUndefinedFlags) \
 	$(osLDFLAGS)
 baseSUFFIX = $(osLIBSUFFIX)
 

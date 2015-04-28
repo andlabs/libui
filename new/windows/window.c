@@ -6,6 +6,9 @@ struct window {
 	HWND hwnd;
 	uiContainer *bin;
 	int hidden;
+	BOOL shownOnce;
+	int (*onClosing)(uiWindow *, void *);
+	void *onClosingData;
 	int margined;
 };
 
@@ -60,8 +63,15 @@ static void windowShow(uiControl *w)
 {
 	struct window *w = (struct window *) c;
 
-	// TODO first show logic
-	ShowWindow(w->hwnd, SW_SHOW);
+	if (w->shownOnce) {
+		ShowWindow(w->hwnd, SW_SHOW);
+		w->hidden = 0;
+		return;
+	}
+	w->shownOnce = TRUE;
+	ShowWindow(w->hwnd, nCmdShow);
+	if (UpdateWindow(w->hwnd) == 0)
+		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");
 	w->hidden = 0;
 }
 
@@ -85,4 +95,63 @@ static void windowDisable(uiControl *c)
 	struct window *w = (struct window *) c;
 
 	EnableWindow(w->hwnd, FALSE);
+}
+
+static char *windowTitle(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+	WCHAR *wtext;
+	char *text;
+
+	wtext = windowText(w->hwnd);
+	text = toUTF8(wtext);
+	uiFree(wtext);
+	return text;
+}
+
+static void windowSetTitle(uiWindow *ww, const char *title)
+{
+	struct window *w = (struct window *) ww;
+	WCHAR *wtext;
+
+	wtext = toUTF16(text);
+	if (SetWindowTextW(w->hwnd, wtext) == 0)
+		logLastError("error setting window title in uiWindowSetTitle()");
+	uiFree(wtext);
+}
+
+static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
+{
+	struct window *w = (struct window *) ww;
+
+	w->onClosing = f;
+	w->onClosingData = data;
+}
+
+static void windowSetChild(uiWindow *ww, uiControl *child)
+{
+	struct window *w = (struct window *) ww;
+
+	binSetMainControl(w->bin, child);
+}
+
+static int windowMargined(uiWindow *ww)
+{
+	struct window *w = (struct window *) ww;
+
+	return w->margined;
+}
+
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
+#define windowMargin 7
+
+static void windowSetMargined(uiWindow *ww, int margined)
+{
+	struct window *w = (struct window *) ww;
+
+	w->margined = margined;
+	if (w->margined)
+		binSetMargins(w->bin, windowMargin, windowMargin, windowMargin, windowMargin);
+	else
+		binSetMargins(w->bin, 0, 0, 0, 0);
 }

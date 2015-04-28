@@ -173,14 +173,14 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	w->window = GTK_WINDOW(w->widget);
 
 	w->vboxWidget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	w->vboxContainer = GTK_CONTAINER(w->vboxwidget);
-	w->vbox = GTK_BOX(w->vboxwidget);
+	w->vboxContainer = GTK_CONTAINER(w->vboxWidget);
+	w->vbox = GTK_BOX(w->vboxWidget);
 
 	// set the vbox as the GtkWindow child
-	gtk_container_add(w->container, w->vboxwidget);
+	gtk_container_add(w->container, w->vboxWidget);
 
 	if (hasMenubar)
-		gtk_container_add(w->vboxcontainer, makeMenubar(uiWindow(w)));
+		gtk_container_add(w->vboxContainer, makeMenubar(uiWindow(w)));
 
 	w->bin = newBin();
 	binWidget = GTK_WIDGET(uiControlHandle(uiControl(w->bin)));

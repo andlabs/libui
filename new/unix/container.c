@@ -92,9 +92,9 @@ static void doforall(gpointer obj, gpointer data)
 	(*(s->callback))(GTK_WIDGET(obj), s->data);
 }
 
-static void uipOSContainer_forall(GtkContainer *container, gboolean includeInternals, GtkCallback callback, gpointer data)
+static void containerWidget_forall(GtkContainer *container, gboolean includeInternals, GtkCallback callback, gpointer data)
 {
-	uipOSContainer *c = uipOSContainer(container);
+	containerWidget *c = containerWidget(container);
 	struct forall s;
 
 	s.callback = callback;
@@ -205,7 +205,7 @@ static void containerDisable(uiControl *cc)
 
 static void containerUpdate(uiContainer *cc)
 {
-	containerWidget *c = containerWidget(cc->Internal);
+	containerWidget *c = containerWidget(uiControl(cc)->Internal);
 
 	gtk_widget_queue_resize(GTK_WIDGET(c));
 }

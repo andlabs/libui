@@ -97,3 +97,9 @@
 }
 
 @end
+
+uiMenu *uiNewMenu(const char *name)
+{
+	// TODO
+	return NULL;
+}

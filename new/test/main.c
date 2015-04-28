@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-/*	initMenus();
+//	initMenus();
 
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	uiControlShow(uiControl(newWindow("Second Window", 320, 240, 1)));
 
 	uiControlShow(uiControl(w));
-*/	uiMain();
+	uiMain();
 	printf("after uiMain()\n");
 	return 0;
 }

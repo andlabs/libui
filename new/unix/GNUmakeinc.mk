@@ -2,9 +2,10 @@
 
 osCFILES = \
 	unix/alloc.c \
+	unix/bin.c \
+	unix/container.c \
 	unix/main.c \
 	unix/menu.c \
-	unix/oscontainer.c \
 	unix/text.c \
 	unix/util.c \
 	unix/window.c

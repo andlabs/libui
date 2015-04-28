@@ -13,6 +13,7 @@ extern void complain(const char *, ...);
 extern uiContainer *newBin(void);
 extern void binSetMainControl(uiContainer *, uiControl *);
 extern void binSetMargins(uiContainer *, intmax_t, intmax_t, intmax_t, intmax_t);
+extern void binSetParent(uiContainer *, uintptr_t);
 
 // lifetimes.c
 extern void properlyDestroyControl(uiControl *);

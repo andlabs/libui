@@ -1,6 +1,8 @@
 // 27 april 2015
 #include "uipriv_windows.h"
 
+#define windowClass L"libui_uiWindowClass"
+
 struct window {
 	uiWindow w;
 	HWND hwnd;
@@ -13,6 +15,11 @@ struct window {
 };
 
 // TODO window class and init functions
+
+static int defaultOnClosing(uiWindow *w, void *data)
+{
+	return 1;
+}
 
 static void windowDestroy(uiControl *c)
 {
@@ -154,4 +161,67 @@ static void windowSetMargined(uiWindow *ww, int margined)
 		binSetMargins(w->bin, windowMargin, windowMargin, windowMargin, windowMargin);
 	else
 		binSetMargins(w->bin, 0, 0, 0, 0);
+}
+
+uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
+{
+	struct window *w;
+	RECT adjust;
+	WCHAR *wtitle;
+	BOOL hasMenubarBOOL;
+	HMENU hmenu;
+
+	w = uiNew(struct window);
+
+	hasMenubarBOOL = FALSE;
+	if (hasMenubar)
+		hasMenubarBOOL = TRUE;
+
+	adjust.left = 0;
+	adjust.top = 0;
+	adjust.right = width;
+	adjust.bottom = height;
+	// TODO does not handle menu wrapping; see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx
+	if (AdjustWindowRectEx(&adjust, style, hasMenubarBOOL, exstyle) == 0)
+		logLastError("error getting real window coordinates in uiNewWindow()");
+
+	wtitle = toUTF16(title);
+	w->hwnd = CreateWindowExW(0,
+		windowClass, wtitle,
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		adjust.right - adjust.left, adjust.bottom - adjust.top,
+		NULL, NULL, hInstance, w);
+	if (w->hwnd == NULL)
+		logLastError("error creating window in uiWindow()");
+	uiFree(wtitle);
+
+	w->bin = newBin();
+	binSetParent(w->bin, (uintptr_t) (w->hwnd));
+
+	if (hasMenubar) {
+		hmenu = makeMenubar();
+		if (SetMenu(w->hwnd, hmenu) == 0)
+			logLastError("error giving menu to window in uiNewWindow()");
+	}
+
+	uiControl(w)->Destroy = windowDestroy;
+	uiControl(w)->Handle = windowHandle;
+	uiControl(w)->SetParent = windowSetParent;
+	uiControl(w)->PreferredSize = windowPreferredSize;
+	uiControl(w)->Resize = windowResize;
+	uiControl(w)->Visible = windowVisible;
+	uiControl(w)->Show = windowShow;
+	uiControl(w)->Hide = windowHide;
+	uiControl(w)->Enable = windowEnable;
+	uiControl(w)->Disable = windowDisable;
+
+	uiWindow(w)->Title = windowTitle;
+	uiWindow(w)->SetTitle = windowSetTitle;
+	uiWindow(w)->OnClosing = windowOnClosing;
+	uiWindow(w)->SetChild = windowSetChild;
+	uiWindow(w)->Margined = windowMargined;
+	uiWindow(w)->SetMargined = windowSetMargined;
+
+	return uiWindow(w);
 }

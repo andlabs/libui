@@ -99,3 +99,12 @@ void binSetMargins(uiContainer *c, intmax_t left, intmax_t top, intmax_t right, 
 	b->marginBottom = bottom;
 	uiContainerUpdate(uiContainer(b));
 }
+
+void binSetParent(uiContainer *c, uintptr_t osParent)
+{
+	struct bin *b = (struct bin *) c;
+	HWND newParent = (HWND) osParent;
+
+	if (SetParent(b->hwnd, newParent) == 0)
+		logLastError("error changing bin's parent in binSetParent()");
+}

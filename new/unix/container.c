@@ -66,6 +66,9 @@ static void containerWidget_remove(GtkContainer *container, GtkWidget *widget)
 		complain("widget %p not found in containerWidget gtk_container_remove()", widget);
 }
 
+#define gtkXPadding 12
+#define gtkYPadding 6
+
 static void containerWidget_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
 	containerWidget *c = containerWidget(widget);

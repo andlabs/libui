@@ -1,25 +1,15 @@
 // 13 august 2014
 #include "uipriv_unix.h"
 
-#define gtkXPadding 12
-#define gtkYPadding 6
 
 static void uipOSContainer_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
-	uipOSContainer *c = uipOSContainer(widget);
-	uiSizing d;
 	intmax_t x, y, width, height;
 
-	gtk_widget_set_allocation(GTK_WIDGET(c), allocation);
-	if (c->mainControl == NULL)
-		return;
 	x = allocation->x + c->marginLeft;
 	y = allocation->y + c->marginTop;
 	width = allocation->width - (c->marginLeft + c->marginRight);
 	height = allocation->height - (c->marginTop + c->marginBottom);
-	d.xPadding = gtkXPadding;
-	d.yPadding = gtkYPadding;
-	uiControlResize(c->mainControl, x, y, width, height, &d);
 }
 
 

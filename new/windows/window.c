@@ -20,7 +20,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r;
-	HWND boxhwnd;
+	HWND binhwnd;
 
 	w = (struct window *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
@@ -45,13 +45,13 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	case msgUpdateChild:
 		if (GetClientRect(w->hwnd, &r) == 0)
 			logLastError("error getting window client rect for resize in uiWindowWndProc()");
-		boxhwnd = (HWND) uiControlHandle(uiControl(w->box));
-		if (MoveWindow(boxhwnd, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
+		binhwnd = (HWND) uiControlHandle(uiControl(w->bin));
+		if (MoveWindow(binhwnd, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
 			logLastError("error resizing uiWindow box in windowWndProc()");
 		return 0;
 	case WM_CLOSE:
 		if (!(*(w->onClosing))(uiWindow(w), w->onClosingData))
-			uiWindowDestroy(uiWindow(w));
+			uiControlDestroy(uiControl(w));
 		return 0;		// we destroyed it already
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
@@ -99,7 +99,7 @@ static uintptr_t windowHandle(uiControl *c)
 	return (uintptr_t) (w->hwnd);
 }
 
-static void windowSetParent(uiControl *c)
+static void windowSetParent(uiControl *c, uiContainer *parent)
 {
 	complain("attempt to give the uiWindow at %p a parent", c);
 }
@@ -121,7 +121,7 @@ static int windowVisible(uiControl *c)
 	return !w->hidden;
 }
 
-static void windowShow(uiControl *w)
+static void windowShow(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
@@ -137,7 +137,7 @@ static void windowShow(uiControl *w)
 	w->hidden = 0;
 }
 
-static void windowHide(uiControl *w)
+static void windowHide(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
@@ -174,12 +174,12 @@ static char *windowTitle(uiWindow *ww)
 static void windowSetTitle(uiWindow *ww, const char *title)
 {
 	struct window *w = (struct window *) ww;
-	WCHAR *wtext;
+	WCHAR *wtitle;
 
-	wtext = toUTF16(text);
-	if (SetWindowTextW(w->hwnd, wtext) == 0)
+	wtitle = toUTF16(title);
+	if (SetWindowTextW(w->hwnd, wtitle) == 0)
 		logLastError("error setting window title in uiWindowSetTitle()");
-	uiFree(wtext);
+	uiFree(wtitle);
 }
 
 static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
@@ -233,6 +233,9 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	if (hasMenubar)
 		hasMenubarBOOL = TRUE;
 
+#define style WS_OVERLAPPEDWINDOW
+#define exstyle 0
+
 	adjust.left = 0;
 	adjust.top = 0;
 	adjust.right = width;
@@ -242,9 +245,9 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		logLastError("error getting real window coordinates in uiNewWindow()");
 
 	wtitle = toUTF16(title);
-	w->hwnd = CreateWindowExW(0,
+	w->hwnd = CreateWindowExW(exstyle,
 		windowClass, wtitle,
-		WS_OVERLAPPEDWINDOW,
+		style,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		adjust.right - adjust.left, adjust.bottom - adjust.top,
 		NULL, NULL, hInstance, w);
@@ -260,6 +263,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		if (SetMenu(w->hwnd, hmenu) == 0)
 			logLastError("error giving menu to window in uiNewWindow()");
 	}
+
+	w->onClosing = defaultOnClosing;
 
 	uiControl(w)->Destroy = windowDestroy;
 	uiControl(w)->Handle = windowHandle;

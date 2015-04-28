@@ -69,9 +69,9 @@ extern const char *initCommonControls(void);
 // window.c
 extern ATOM registerWindowClass(HICON, HCURSOR);
 
-// parent.c
-extern HWND initialOSContainer;
-extern const char *initOSContainer(HICON, HCURSOR);
+// container.c
+extern HWND initialParent;
+extern const char *initContainer(HICON, HCURSOR);
 
 // menu.c
 extern HMENU makeMenubar(void);

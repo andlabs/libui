@@ -24,7 +24,6 @@ baseHFILES = \
 
 baseCFILES = \
 	box.c \
-	lifetimes.c \
 	$(osCFILES)
 
 baseMFILES = $(osMFILES)

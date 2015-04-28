@@ -120,7 +120,6 @@ static void containerDestroy(uiControl *cc)
 	if (c->parent != NULL)
 		complain("attempt to destroy uiContainer %p while it has a parent", cc);
 	g_object_unref(c);		// release our initial reference, which destroys the widget
-	uiFree(c);
 }
 
 static uintptr_t containerHandle(uiControl *cc)
@@ -215,6 +214,7 @@ void uiMakeContainer(uiContainer *cc)
 	containerWidget *c;
 
 	c = containerWidget(g_object_new(containerWidgetType, NULL));
+	c->c = cc;
 	// keep a reference to our container so it stays alive when reparented
 	g_object_ref_sink(c);
 	// and make it visible

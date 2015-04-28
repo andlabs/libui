@@ -14,7 +14,62 @@ struct window {
 	int margined;
 };
 
-// TODO window class and init functions
+static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	struct window *w;
+	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
+	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+	RECT r;
+	HWND boxhwnd;
+
+	w = (struct window *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+	if (w == NULL) {
+		if (uMsg == WM_CREATE)
+			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (cs->lpCreateParams));
+		// fall through to DefWindowProc() anyway
+		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+	}
+	switch (uMsg) {
+	case WM_COMMAND:
+		// not a menu
+		if (lParam != 0)
+			break;
+		if (HIWORD(wParam) != 0)
+			break;
+		runMenuEvent(LOWORD(wParam), uiWindow(w));
+		return 0;
+	case WM_WINDOWPOSCHANGED:
+		if ((wp->flags & SWP_NOSIZE) != 0)
+			break;
+		// fall through
+	case msgUpdateChild:
+		if (GetClientRect(w->hwnd, &r) == 0)
+			logLastError("error getting window client rect for resize in uiWindowWndProc()");
+		boxhwnd = (HWND) uiControlHandle(uiControl(w->box));
+		if (MoveWindow(boxhwnd, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
+			logLastError("error resizing uiWindow box in windowWndProc()");
+		return 0;
+	case WM_CLOSE:
+		if (!(*(w->onClosing))(uiWindow(w), w->onClosingData))
+			uiWindowDestroy(uiWindow(w));
+		return 0;		// we destroyed it already
+	}
+	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+}
+
+ATOM registerWindowClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
+{
+	WNDCLASSW wc;
+
+	ZeroMemory(&wc, sizeof (WNDCLASSW));
+	wc.lpszClassName = windowClass;
+	wc.lpfnWndProc = windowWndProc;
+	wc.hInstance = hInstance;
+	wc.hIcon = hDefaultIcon;
+	wc.hCursor = hDefaultCursor;
+	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
+	return RegisterClassW(&wc);
+}
 
 static int defaultOnClosing(uiWindow *w, void *data)
 {
@@ -163,6 +218,7 @@ static void windowSetMargined(uiWindow *ww, int margined)
 		binSetMargins(w->bin, 0, 0, 0, 0);
 }
 
+// TODO destruction blocking
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	struct window *w;

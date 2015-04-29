@@ -100,7 +100,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	uiDarwinNewControl(uiControl(c), [NSButton class], NO, NO, destroy, c);
 
-	c->checkbox = (NSButton *) VIEW(c);
+	c->checkbox = (NSButton *) uiControlHandle(uiControl(c));
 
 	[c->checkbox setTitle:toNSString(text)];
 	[c->checkbox setButtonType:NSSwitchButton];

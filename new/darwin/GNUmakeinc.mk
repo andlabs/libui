@@ -3,8 +3,12 @@
 osMFILES = \
 	darwin/alloc.m \
 	darwin/bin.m \
+	darwin/button.m \
+	darwin/checkbox.m \
 	darwin/container.m \
+	darwin/entry.m \
 	darwin/init.m \
+	darwin/label.m \
 	darwin/main.m \
 	darwin/menu.m \
 	darwin/newcontrol.m \

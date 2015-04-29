@@ -82,7 +82,7 @@ uiButton *uiNewButton(const char *text)
 
 	uiDarwinNewControl(uiControl(b), [NSButton class], NO, NO, destroy, b);
 
-	b->button = (NSButton *) VIEW(b);
+	b->button = (NSButton *) uiControlHandle(uiControl(b));
 
 	[b->button setTitle:toNSString(text)];
 	[b->button setButtonType:NSMomentaryPushInButton];

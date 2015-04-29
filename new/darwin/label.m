@@ -35,7 +35,7 @@ uiLabel *uiNewLabel(const char *text)
 
 	uiDarwinNewControl(uiControl(l), [NSTextField class], NO, NO, destroy, l);
 
-	l->label = (NSTextField *) VIEW(l);
+	l->label = (NSTextField *) uiControlHandle(uiControl(l));
 
 	[l->label setStringValue:toNSString(text)];
 	[l->label setEditable:NO];

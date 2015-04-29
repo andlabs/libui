@@ -3,7 +3,11 @@
 osCFILES = \
 	unix/alloc.c \
 	unix/bin.c \
+	unix/button.c \
+	unix/checkbox.c \
 	unix/container.c \
+	unix/entry.c \
+	unix/label.c \
 	unix/main.c \
 	unix/menu.c \
 	unix/newcontrol.c \

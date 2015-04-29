@@ -61,7 +61,7 @@ uiButton *uiNewButton(const char *text)
 		"label", text,
 		NULL);
 
-	b->widget = WIDGET(b);
+	b->widget = GTK_WIDGET(uiControlHandle(uiControl(b)));
 	b->button = GTK_BUTTON(b->widget);
 
 	g_signal_connect(b->widget, "clicked", G_CALLBACK(onClicked), b);

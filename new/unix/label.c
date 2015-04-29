@@ -42,7 +42,7 @@ uiLabel *uiNewLabel(const char *text)
 		// TODO yalign 0?
 		NULL);
 
-	l->widget = WIDGET(l);
+	l->widget = GTK_WIDGET(uiControlHandle(uiControl(l)));
 	l->label = GTK_LABEL(l->widget);
 
 	uiLabel(l)->Text = labelText;

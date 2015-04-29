@@ -85,7 +85,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 		"label", text,
 		NULL);
 
-	c->widget = WIDGET(c);
+	c->widget = GTK_WIDGET(uiControlHandle(uiControl(c)));
 	c->button = GTK_BUTTON(c->widget);
 	c->toggleButton = GTK_TOGGLE_BUTTON(c->widget);
 	c->checkButton = GTK_CHECK_BUTTON(c->widget);

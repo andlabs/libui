@@ -38,7 +38,7 @@ uiEntry *uiNewEntry(void)
 		FALSE, FALSE, onDestroy, e,
 		NULL);
 
-	e->widget = WIDGET(e);
+	e->widget = GTK_WIDGET(uiControlHandle(uiControl(e)));
 	e->entry = GTK_ENTRY(e->widget);
 
 	uiEntry(e)->Text = entryText;

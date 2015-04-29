@@ -73,9 +73,9 @@ static void singleShow(uiControl *c)
 	singleHWND *s = (singleHWND *) (c->Internal);
 
 	ShowWindow(s->hwnd, SW_SHOW);
+	s->hidden = 0;
 	if (s->parent != NULL)
 		uiContainerUpdate(s->parent);
-	s->hidden = 0;
 }
 
 static void singleHide(uiControl *c)
@@ -83,9 +83,9 @@ static void singleHide(uiControl *c)
 	singleHWND *s = (singleHWND *) (c->Internal);
 
 	ShowWindow(s->hwnd, SW_HIDE);
+	s->hidden = 1;
 	if (s->parent != NULL)
 		uiContainerUpdate(s->parent);
-	s->hidden = 1;
 }
 
 static void singleEnable(uiControl *c)

@@ -93,9 +93,9 @@ static void singleShow(uiControl *c)
 	singleView *s = (singleView *) (c->Internal);
 
 	[s->immediate setHidden:NO];
+	s->hidden = 0;
 	if (s->parent != NULL)
 		uiContainerUpdate(s->parent);
-	s->hidden = 0;
 }
 
 static void singleHide(uiControl *c)
@@ -103,9 +103,9 @@ static void singleHide(uiControl *c)
 	singleView *s = (singleView *) (c->Internal);
 
 	[s->immediate setHidden:YES];
+	s->hidden = 1;
 	if (s->parent != NULL)
 		uiContainerUpdate(s->parent);
-	s->hidden = 1;
 }
 
 static void singleEnable(uiControl *c)

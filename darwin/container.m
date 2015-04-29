@@ -114,9 +114,10 @@ static void containerShow(uiControl *cc)
 
 	[c setHidden:NO];
 	// hidden controls don't count in boxes and grids
+	// be sure to change the hidden variable FIRST, otherwise immediate resizes like on OS X don't work right
+	c.containerHidden = 0;
 	if (c.containerParent != NULL)
 		uiContainerUpdate(c.containerParent);
-	c.containerHidden = 0;
 }
 
 static void containerHide(uiControl *cc)
@@ -124,9 +125,9 @@ static void containerHide(uiControl *cc)
 	containerView *c = (containerView *) (cc->Internal);
 
 	[c setHidden:YES];
+	c.containerHidden = 1;
 	if (c.containerParent != NULL)
 		uiContainerUpdate(c.containerParent);
-	c.containerHidden = 1;
 }
 
 static void containerEnable(uiControl *cc)

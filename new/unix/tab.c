@@ -6,25 +6,30 @@ struct tab {
 	GtkWidget *widget;
 	GtkContainer *container;
 	GtkNotebook *notebook;
-	// TODO switch to GArray or GPtrArray
-	uiContainer **pages;
-	uintmax_t len;
-	uintmax_t cap;
+	GArray *pages;
+};
+
+struct tabPage {
+	uiContainer *bin;
+	GtkWidget *binWidget;
 };
 
 static void onDestroy(void *data)
 {
 	struct tab *t = (struct tab *) data;
-	uintmax_t i;
+	guint i;
+	struct tabPage *p;
 
 	// first hide ourselves to avoid flicker
 	gtk_widget_hide(t->widget);
 	// the pages do not have a libui parent, so we can simply destroy them
 	// TODO verify if this is sufficient
-	for (i = 0; i < t->len; i++)
-		uiControlDestroy(uiControl(t->pages[i]));
+	for (i = 0; i < t->pages->len; i++) {
+		p = &g_array_index(t->pages, struct tabPage, i);
+		uiControlDestroy(uiControl(p->bin));
+	}
 	// then free ourselves
-	uiFree(t->pages);
+	g_array_free(t->pages, TRUE);
 	uiFree(t);
 }
 
@@ -33,45 +38,35 @@ static void onDestroy(void *data)
 static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	uiContainer *page;
-	GtkWidget *pageWidget;
+	struct tabPage p;
 
-	if (t->len >= t->cap) {
-		t->cap += tabCapGrow;
-		t->pages = (uiContainer **) uiRealloc(t->pages, t->cap * sizeof (uiContainer *), "uiContainer *[]");
-	}
-
-	page = newBin();
-	binSetMainControl(page, child);
+	p.bin = newBin();
+	binSetMainControl(p.bin, child);
 	// and add it as a tab page
-	binSetParent(page, (uintptr_t) (t->container));
-	pageWidget = GTK_WIDGET(uiControlHandle(uiControl(page)));
-	gtk_notebook_set_tab_label_text(t->notebook, pageWidget, name);
+	binSetParent(p.bin, (uintptr_t) (t->container));
+	p.binWidget = GTK_WIDGET(uiControlHandle(uiControl(p.bin)));
+	gtk_notebook_set_tab_label_text(t->notebook, p.binWidget, name);
 
-	t->pages[t->len] = page;
-	t->len++;
+	g_array_append_val(t->pages, p);
 }
 
 static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
-	uiContainer *page;
-	uintmax_t i;
+	struct tabPage *p;
 
-	page = t->pages[n];
-	for (i = n; i < t->len - 1; i++)
-		t->pages[i] = t->pages[i + 1];
-	t->pages[i] = NULL;
-	t->len--;
+	p = &g_array_index(t->pages, struct tabPage, n);
 
 	// make sure the page's control isn't destroyed
-	binSetMainControl(page, NULL);
+	binSetMainControl(p->bin, NULL);
 
 	// now destroy the page
 	// this will also remove the tab
 	// why? simple: both gtk_notebook_remove_tab() and gtk_widget_destroy() call gtk_container_remove()
 	// TODO verify this
-	uiControlDestroy(uiControl(page));
+	uiControlDestroy(uiControl(p->bin));
+
+	g_array_remove_index(t->pages, n);
 }
 
 uiTab *uiNewTab(void)
@@ -83,6 +78,8 @@ uiTab *uiNewTab(void)
 	uiUnixNewControl(uiControl(t), GTK_TYPE_NOTEBOOK,
 		FALSE, FALSE, onDestroy, t,
 		NULL);
+
+	t->pages = g_array_new(FALSE, TRUE, sizeof (struct tabPage));
 
 	t->widget = GTK_WIDGET(uiControlHandle(uiControl(t)));
 	t->container = GTK_CONTAINER(t->widget);

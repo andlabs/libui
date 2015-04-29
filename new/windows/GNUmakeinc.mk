@@ -3,10 +3,14 @@
 osCFILES = \
 	windows/alloc.c \
 	windows/bin.c \
+	windows/button.c \
+	windows/checkbox.c \
 	windows/comctl32.c \
 	windows/container.c \
 	windows/debug.c \
+	windows/entry.c \
 	windows/init.c \
+	windows/label.c \
 	windows/main.c \
 	windows/menu.c \
 	windows/newcontrol.c \

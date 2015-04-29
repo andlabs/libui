@@ -100,7 +100,7 @@ uiButton *uiNewButton(const char *text)
 	uiWindowsNewControl(uiControl(b), &p);
 	uiFree(wtext);
 
-	b->hwnd = HWND(b);
+	b->hwnd = (HWND) uiControlHandle(uiControl(b));
 
 	b->onClicked = defaultOnClicked;
 

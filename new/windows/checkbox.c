@@ -115,7 +115,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiWindowsNewControl(uiControl(c), &p);
 	uiFree(wtext);
 
-	c->hwnd = HWND(c);
+	c->hwnd = (HWND) uiControlHandle(uiControl(c));
 
 	c->onToggled = defaultOnToggled;
 

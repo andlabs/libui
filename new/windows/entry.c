@@ -62,7 +62,7 @@ uiEntry *uiNewEntry(void)
 	p.onDestroyData = e;
 	uiWindowsNewControl(uiControl(e), &p);
 
-	e->hwnd = HWND(e);
+	e->hwnd = (HWND) uiControlHandle(uiControl(e));
 
 	uiControl(e)->PreferredSize = preferredSize;
 

@@ -68,7 +68,7 @@ uiLabel *uiNewLabel(const char *text)
 	uiWindowsNewControl(uiControl(l), &p);
 	uiFree(wtext);
 
-	l->hwnd = HWND(l);
+	l->hwnd = (HWND) uiControlHandle(uiControl(l));
 
 	uiControl(l)->PreferredSize = preferredSize;
 

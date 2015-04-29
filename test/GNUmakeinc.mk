@@ -3,6 +3,7 @@
 testCFILES = \
 	test/main.c \
 	test/menus.c \
+	test/page1.c \
 	test/spaced.c
 
 testHFILES = \

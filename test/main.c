@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	const char *err;
 	uiWindow *w;
 	uiTab *tab;
-	uiBox *vbox;
+	uiBox *page1;
 
 	memset(&o, 0, sizeof (uiInitOptions));
 	for (i = 1; i < argc; i++)
@@ -45,20 +45,11 @@ int main(int argc, char *argv[])
 	uiWindowOnClosing(w, onClosing, NULL);
 
 	tab = newTab();
-	vbox = newVerticalBox();
-	uiTabAppendPage(tab, "Page 1", uiControl(vbox));
-	uiTabAppendPage(tab, "Page 2", uiControl(newVerticalBox()));
-	uiTabAppendPage(tab, "Page 3", uiControl(newVerticalBox()));
-	uiTabDeletePage(tab, 1);
-	// TODO delete the stack
+
+	page1 = makePage1();
+	uiTabAppendPage(tab, "Page 1", uiControl(page1));
+
 	uiWindowSetChild(w, uiControl(tab));
-
-	uiBoxAppend(vbox, uiNewButton("Button"), 0);
-	uiBoxAppend(vbox, uiNewCheckbox("Checkbox"), 0);
-	uiBoxAppend(vbox, uiNewEntry(), 0);
-	uiBoxAppend(vbox, uiNewLabel("Label"), 0);
-
-	uiControlShow(uiControl(newWindow("Second Window", 320, 240, 1)));
 
 	uiControlShow(uiControl(w));
 	uiMain();

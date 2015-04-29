@@ -18,3 +18,6 @@ extern uiTab *newTab(void);
 
 // menus.c
 extern void initMenus(void);
+
+// page1.c
+extern uiBox *makePage1(void);

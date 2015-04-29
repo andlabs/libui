@@ -2,13 +2,12 @@
 #include "uipriv_windows.h"
 
 // TODO
-// - tab change notifications aren't being sent on wine (anymore...? TODO)
 // - tell wine developers that tab controls do respond to parent changes on real windows (at least comctl6 tab controls do)
 
 struct tab {
 	uiTab t;
 	HWND hwnd;
-	uiParent **pages;
+	uiContainer **pages;
 	uintmax_t len;
 	uintmax_t cap;
 };
@@ -28,13 +27,13 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	case TCN_SELCHANGING:
 		n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
 		if (n != (LRESULT) (-1))		// if we're changing to a real tab
-			ShowWindow(uiParentHWND(t->pages[n]), SW_HIDE);
+			uiControlHide(uiControl(t->pages[n]));
 		*lResult = FALSE;			// and allow the change
 		return TRUE;
 	case TCN_SELCHANGE:
 		n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
 		if (n != (LRESULT) (-1)) {		// if we're changing to a real tab
-			ShowWindow(uiParentHWND(t->pages[n]), SW_SHOW);
+			uiControlHide(uiControl(t->pages[n]));
 			// because we only resize the current child on resize, we'll need to trigger an update here
 			// don't call uiParentUpdate(); doing that won't size the content area (so we'll still have a 0x0 content area, for instance)
 			SendMessageW(t->hwnd, msgUpdateChild, 0, 0);
@@ -50,8 +49,13 @@ static void onDestroy(void *data)
 	struct tab *t = (struct tab *) data;
 	uintmax_t i;
 
+	// first, hide the widget to avoid flicker
+	ShowWindow(t->hwnd, SW_HIDE);
+	// because the pages don't have by a libui paent, we can simply destroy them
+	// we don't have to worry about the Windows tab control holding a reference to our bin; there is no reference holding anyway
 	for (i = 0; i < t->len; i++)
-		uiParentDestroy(t->pages[i]);
+		uiControlDestroy(uiControl(t->pages[i]));
+	// and finally destroy ourselves
 	uiFree(t->pages);
 	uiFree(t);
 }
@@ -80,11 +84,11 @@ static void resizeTab(struct tab *t, LONG width, LONG height)
 	// convert to the display rectangle
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
 
-	if (MoveWindow(uiParentHWND(t->pages[n]), r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
-		logLastError("error resizing current tab page in resizeTab()");
+//TODO	uiControlResize(uiControl(t->pages[n]), r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 
 // and finally, because we have to resize parents, we have to handle resizes and updates
+// TODO see if this approach is /really/ necessary and we can get by with an alteration to the above function and overriding uiControlResize()
 static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
 	struct tab *t = (struct tab *) dwRefData;
@@ -117,27 +121,27 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 #define tabCapGrow 32
 
-static void tabAddPage(uiTab *tt, const char *name, uiControl *child)
+static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
 	TCITEMW item;
 	LRESULT n;
-	uiParent *parent;
+	uiContainer *page;
 	WCHAR *wname;
 
 	if (t->len >= t->cap) {
 		t->cap += tabCapGrow;
-		t->pages = (uiParent **) uiRealloc(t->pages, t->cap * sizeof (uiParent *), "uiParent *[]");
+		t->pages = (uiContainer **) uiRealloc(t->pages, t->cap * sizeof (uiContainer *), "uiContainer *[]");
 	}
 
 	n = SendMessageW(t->hwnd, TCM_GETITEMCOUNT, 0, 0);
 
-	parent = uiNewParent((uintptr_t) (t->hwnd));
-	uiParentSetMainControl(parent, child);
-	uiParentUpdate(parent);
+	page = newBin();
+	binSetMainControl(page, child);
+	binSetParent(page, (uintptr_t) (t->hwnd));
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
-		ShowWindow(uiParentHWND(parent), SW_HIDE);
-	t->pages[t->len] = parent;
+		uiControlHide(uiControl(page));
+	t->pages[t->len] = page;
 	t->len++;
 
 	ZeroMemory(&item, sizeof (TCITEMW));
@@ -159,7 +163,7 @@ static void tabAddPage(uiTab *tt, const char *name, uiControl *child)
 static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
-	uiParent *p;
+	uiContainer *page;
 	uintmax_t i;
 
 	// first delete the tab from the tab control
@@ -168,15 +172,17 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 		logLastError("error deleting Tab page in tabDeletePage()");
 
 	// now delete the page itself
-	p = t->pages[n];
+	page = t->pages[n];
 	for (i = n; i < t->len - 1; i++)
 		t->pages[i] = t->pages[i + 1];
 	t->pages[i] = NULL;
 	t->len--;
 
 	// make sure the page's control isn't destroyed
-	uiParentSetMainControl(p, NULL);
-	uiParentDestroy(p);
+	binSetMainControl(page, NULL);
+
+	// see tabDestroy() above for details
+	uiControlDestroy(uiControl(page));
 }
 
 uiTab *uiNewTab(void)
@@ -205,7 +211,7 @@ uiTab *uiNewTab(void)
 
 	uiControl(t)->PreferredSize = preferredSize;
 
-	uiTab(t)->AddPage = tabAddPage;
+	uiTab(t)->AppendPage = tabAppendPage;
 	uiTab(t)->DeletePage = tabDeletePage;
 
 	return uiTab(t);

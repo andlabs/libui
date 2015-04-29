@@ -141,7 +141,7 @@ static uintptr_t containerHandle(uiControl *cc)
 
 static void containerSetParent(uiControl *cc, uiContainer *parent)
 {
-	struct container *c = (struct container *) cc;
+	struct container *c = (struct container *) (cc->Internal);
 	uiContainer *oldparent;
 	HWND newparent;
 

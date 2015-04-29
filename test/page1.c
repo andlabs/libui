@@ -42,6 +42,16 @@ static void showSpaced(uiButton *b, void *data)
 	uiEntrySetText(entry, s);
 }
 
+#define SHED(method, Method) \
+	static void method ## Control(uiButton *b, void *data) \
+	{ \
+		uiControl ## Method(uiControl(data)); \
+	}
+SHED(show, Show)
+SHED(hide, Hide)
+SHED(enable, Enable)
+SHED(disable, Disable)
+
 uiBox *makePage1(uiWindow *w)
 {
 	uiBox *page1;
@@ -112,23 +122,31 @@ uiBox *makePage1(uiWindow *w)
 	setButton = uiNewButton("Button");
 	uiBoxAppend(testBox, uiControl(setButton), 1);
 	getButton = uiNewButton("Show");
+	uiButtonOnClicked(getButton, showControl, setButton);
 	uiBoxAppend(testBox, uiControl(getButton), 0);
 	getButton = uiNewButton("Hide");
+	uiButtonOnClicked(getButton, hideControl, setButton);
 	uiBoxAppend(testBox, uiControl(getButton), 0);
 	getButton = uiNewButton("Enable");
+	uiButtonOnClicked(getButton, enableControl, setButton);
 	uiBoxAppend(testBox, uiControl(getButton), 0);
 	getButton = uiNewButton("Disable");
+	uiButtonOnClicked(getButton, disableControl, setButton);
 	uiBoxAppend(testBox, uiControl(getButton), 0);
 	uiBoxAppend(page1, uiControl(testBox), 0);
 
 	hbox = newHorizontalBox();
 	getButton = uiNewButton("Show Box");
+	uiButtonOnClicked(getButton, showControl, testBox);
 	uiBoxAppend(hbox, uiControl(getButton), 1);
 	getButton = uiNewButton("Hide Box");
+	uiButtonOnClicked(getButton, hideControl, testBox);
 	uiBoxAppend(hbox, uiControl(getButton), 1);
 	getButton = uiNewButton("Enable Box");
+	uiButtonOnClicked(getButton, enableControl, testBox);
 	uiBoxAppend(hbox, uiControl(getButton), 1);
 	getButton = uiNewButton("Disable Box");
+	uiButtonOnClicked(getButton, disableControl, testBox);
 	uiBoxAppend(hbox, uiControl(getButton), 1);
 	uiBoxAppend(page1, uiControl(hbox), 0);
 

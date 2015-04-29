@@ -70,6 +70,7 @@ static void resizeTab(struct tab *t, LONG width, LONG height)
 {
 	LRESULT n;
 	RECT r;
+	HWND binHWND;
 
 	n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
 	if (n == (LRESULT) (-1))		// no child selected; do nothing
@@ -84,7 +85,9 @@ static void resizeTab(struct tab *t, LONG width, LONG height)
 	// convert to the display rectangle
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
 
-//TODO	uiControlResize(uiControl(t->pages[n]), r.left, r.top, r.right - r.left, r.bottom - r.top);
+	binHWND = (HWND) uiControlHandle(uiControl(t->pages[n]));
+	if (MoveWindow(binHWND, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
+		logLastError("error resizing uiTab page in resizeTab()");
 }
 
 // and finally, because we have to resize parents, we have to handle resizes and updates

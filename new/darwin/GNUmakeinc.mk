@@ -7,6 +7,7 @@ osMFILES = \
 	darwin/init.m \
 	darwin/main.m \
 	darwin/menu.m \
+	darwin/newcontrol.m \
 	darwin/text.m \
 	darwin/util.m \
 	darwin/window.m

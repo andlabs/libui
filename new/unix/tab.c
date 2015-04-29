@@ -23,9 +23,10 @@ static void onDestroy(void *data)
 	// first hide ourselves to avoid flicker
 	gtk_widget_hide(t->widget);
 	// the pages do not have a libui parent, so we can simply destroy them
-	// TODO verify if this is sufficient
+	// we need to remove them from the tab first; see below
 	for (i = 0; i < t->pages->len; i++) {
 		p = &g_array_index(t->pages, struct tabPage, i);
+		gtk_container_remove(t->container, p->binWidget);
 		uiControlDestroy(uiControl(p->bin));
 	}
 	// then free ourselves
@@ -63,7 +64,9 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	// now destroy the page
 	// this will also remove the tab
 	// why? simple: both gtk_notebook_remove_tab() and gtk_widget_destroy() call gtk_container_remove()
-	// TODO verify this
+	// we need to remove them from the tab first, though, otherwise they won't really be destroyed properly
+	// (the GtkNotebook will still have the tab in it because its reference ISN'T destroyed, and we crash resizing a bin that no longer exists
+	gtk_container_remove(t->container, p->binWidget);
 	uiControlDestroy(uiControl(p->bin));
 
 	g_array_remove_index(t->pages, n);

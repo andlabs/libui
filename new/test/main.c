@@ -44,9 +44,9 @@ int main(int argc, char *argv[])
 	uiWindowOnClosing(w, onClosing, NULL);
 
 	tab = newTab();
-	uiTabAppendPage(tab, "Page 1", newVerticalBox());
-	uiTabAppendPage(tab, "Page 2", newHorizontalBox());
-	uiTabAppendPage(tab, "Page 3", newVerticalBox());
+	uiTabAppendPage(tab, "Page 1", uiControl(newVerticalBox()));
+	uiTabAppendPage(tab, "Page 2", uiControl(newVerticalBox()));
+	uiTabAppendPage(tab, "Page 3", uiControl(newVerticalBox()));
 	uiTabDeletePage(tab, 1);
 	// TODO delete the stack
 	uiWindowSetChild(w, uiControl(tab));

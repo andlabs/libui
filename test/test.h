@@ -8,6 +8,7 @@
 
 // main.c
 extern void die(const char *, ...);
+extern uiBox *mainBox;
 
 // spaced.c
 extern void setSpaced(int);

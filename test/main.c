@@ -14,6 +14,8 @@ int onClosing(uiWindow *w, void *data)
 	return 1;
 }
 
+uiBox *mainBox;
+
 int main(int argc, char *argv[])
 {
 	uiInitOptions o;
@@ -44,12 +46,14 @@ int main(int argc, char *argv[])
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);
 
+	mainBox = newHorizontalBox();
+	uiWindowSetChild(w, uiControl(mainBox));
+
 	tab = newTab();
+	uiBoxAppend(mainBox, uiControl(tab), 1);
 
 	page1 = makePage1(w);
 	uiTabAppendPage(tab, "Page 1", uiControl(page1));
-
-	uiWindowSetChild(w, uiControl(tab));
 
 	uiControlShow(uiControl(w));
 	uiMain();

@@ -45,6 +45,10 @@ int main(int argc, char *argv[])
 
 	tab = newTab();
 	uiTabAppendPage(tab, "Page 1", newVerticalBox());
+	uiTabAppendPage(tab, "Page 2", newHorizontalBox());
+	uiTabAppendPage(tab, "Page 3", newVerticalBox());
+	uiTabDeletePage(tab, 1);
+	// TODO delete the stack
 	uiWindowSetChild(w, uiControl(tab));
 
 	uiControlShow(uiControl(newWindow("Second Window", 320, 240, 1)));

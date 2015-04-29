@@ -3,7 +3,7 @@
 #include "uipriv.h"
 
 // TODOs
-// - setting padded doesn't take effect immediately on OS X
+// - setting padded doesn't take effect immediately on Windows and OS X
 
 // TODO remove these
 typedef struct box box;

@@ -58,6 +58,8 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	uiContainer *cc;
 	struct container *c;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
+	HWND control;
+	NMHDR *nm = (NMHDR *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r;
 
@@ -72,7 +74,20 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	switch (uMsg) {
 	// these must always be run, even on the initial parent
 	// why? http://blogs.msdn.com/b/oldnewthing/archive/2010/03/16/9979112.aspx
-	// TODO
+	case WM_COMMAND:
+		// bounce back to the control in question
+		// except if to the initial parent, in which case act as if the message was ignored
+		control = (HWND) lParam;
+		if (control != NULL && IsChild(initialParent, control) == 0)
+			return SendMessageW(control, msgCOMMAND, wParam, lParam);
+		break;			// fall through to DefWindowProcW()
+	case WM_NOTIFY:
+		// same as WM_COMMAND
+		control = nm->hwndFrom;
+		if (control != NULL && IsChild(initialParent, control) == 0)
+			return SendMessageW(control, msgNOTIFY, wParam, lParam);
+		break;
+
 	// these are only run if c is not NULL
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)

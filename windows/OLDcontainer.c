@@ -65,19 +65,6 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	// these must always be executed, even on the initial parent
 	// why? http://blogs.msdn.com/b/oldnewthing/archive/2010/03/16/9979112.aspx
 	switch (uMsg) {
-	case WM_COMMAND:
-		// bounce back to the control in question
-		// except if to the initial parent, in which case act as if the message was ignored
-		control = (HWND) lParam;
-		if (control != NULL && IsChild(initialOSContainer, control) == 0)
-			return SendMessageW(control, msgCOMMAND, wParam, lParam);
-		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-	case WM_NOTIFY:
-		// same as WM_COMMAND
-		control = nm->hwndFrom;
-		if (control != NULL && IsChild(initialOSContainer, control) == 0)
-			return SendMessageW(control, msgNOTIFY, wParam, lParam);
-		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
 /*TODO		// read-only TextFields and Textboxes are exempt

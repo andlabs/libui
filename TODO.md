@@ -1,4 +1,4 @@
-- change all private names to uipXxxx
+- change all private names away from uiXxxx and uipXxxx
 - make it so Windows API calls that do logLastError(), etc. abort whatever they're doing and not try to continue, just like wintable
 - figure out what to cleanup in darwin terminate:
 	- delegate
@@ -13,21 +13,13 @@
 - SWP_NOCOPYBITS (or was it WS_CLIPCHILDREN?)
 	- buttons not in tab get drawover issues
 	- buttons in tab without transparent drawing code get copied into the label when stack shown and rehidden
-- make the backends use uiParentDestroy() instead of relying on the autodestroy behavior of the backends
-	- this requires explicitly handling delete events
-- verify retainment for uiParents in GTK+
-- add an example of events to each of the new controls guides
-- verify that uiParentSetMainControl() does indeed not update
 - settle differences between intmax_t and uintmax_t
 - settle onDestroy/destroy naming
-- clean up Windows lifetiming code
+- implement lifetiming on Windows
 - forbid free(NULL) to check for bugs
-- figure out how to do the parent on destroy check for children of a uiStack without a parent in and of itself
 - opposite side alignment control in uiBox
+- disabling containers on wine doesn't redraw children as disabled
+	- TODO test on real windows
 
 ultimately:
-- make everything vtable-based
-	- figure out where updateParent() plays into this
-		- figure out what to do about custom containers
-		- make the code flow of all platforms fully symmetrical
 - add some sort of runtime type checking

@@ -9,6 +9,7 @@ osCFILES = \
 	windows/init.c \
 	windows/main.c \
 	windows/menu.c \
+	windows/newcontrol.c \
 	windows/text.c \
 	windows/util.c \
 	windows/window.c

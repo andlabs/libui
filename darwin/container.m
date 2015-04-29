@@ -93,7 +93,8 @@ static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t widt
 	NSRect r;
 
 	r.origin.x = x;
-	r.origin.y = y;
+	// mac os x coordinate system has (0,0) in the lower-left
+	r.origin.y = ([[c superview] bounds].size.height - height) - y;
 	r.size.width = width;
 	r.size.height = height;
 	// we can safely use setFrame here since we have no alignment rect to worry about

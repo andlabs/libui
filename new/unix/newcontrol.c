@@ -91,7 +91,7 @@ static int singleVisible(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
-	return s->hidden;
+	return !s->hidden;
 }
 
 static void singleShow(uiControl *c)

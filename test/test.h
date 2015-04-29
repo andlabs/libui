@@ -11,6 +11,7 @@ extern void die(const char *, ...);
 
 // spaced.c
 extern void setSpaced(int);
+extern void querySpaced(char[12]);
 extern uiWindow *newWindow(const char *title, int width, int height, int hasMenubar);
 extern uiBox *newHorizontalBox(void);
 extern uiBox *newVerticalBox(void);

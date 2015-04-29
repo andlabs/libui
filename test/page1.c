@@ -24,6 +24,24 @@ TEXT(Button, uiButton, uiButtonText, uiButtonSetText)
 TEXT(Checkbox, uiCheckbox, uiCheckboxText, uiCheckboxSetText)
 TEXT(Label, uiLabel, uiLabelText, uiLabelSetText)
 
+static void toggleSpaced(uiCheckbox *c, void *data)
+{
+	setSpaced(uiCheckboxChecked(spaced));
+}
+
+static void forceSpaced(uiButton *b, void *data)
+{
+	uiCheckboxSetChecked(spaced, data != NULL);
+}
+
+static void showSpaced(uiButton *b, void *data)
+{
+	char s[12];
+
+	querySpaced(s);
+	uiEntrySetText(entry, s);
+}
+
 uiBox *makePage1(uiWindow *w)
 {
 	uiBox *page1;
@@ -38,6 +56,7 @@ uiBox *makePage1(uiWindow *w)
 	uiBoxAppend(page1, uiControl(entry), 0);
 
 	spaced = uiNewCheckbox("Spaced");
+	uiCheckboxOnToggled(spaced, toggleSpaced, NULL);
 	label = uiNewLabel("Label");
 
 	hbox = newHorizontalBox();
@@ -79,10 +98,13 @@ uiBox *makePage1(uiWindow *w)
 	hbox = newHorizontalBox();
 	uiBoxAppend(hbox, uiControl(spaced), 1);
 	getButton = uiNewButton("On");
+	uiButtonOnClicked(getButton, forceSpaced, getButton);
 	uiBoxAppend(hbox, uiControl(getButton), 0);
 	getButton = uiNewButton("Off");
+	uiButtonOnClicked(getButton, forceSpaced, NULL);
 	uiBoxAppend(hbox, uiControl(getButton), 0);
 	getButton = uiNewButton("Show");
+	uiButtonOnClicked(getButton, showSpaced, NULL);
 	uiBoxAppend(hbox, uiControl(getButton), 0);
 	uiBoxAppend(page1, uiControl(hbox), 0);
 

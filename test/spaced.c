@@ -53,6 +53,41 @@ void setSpaced(int spaced)
 	}
 }
 
+void querySpaced(char out[12])		// more than enough
+{
+	int m = 0;
+	int p = 0;
+	uintmax_t i;
+	void *pp;
+
+	for (i = 0; i < len; i++) {
+		pp = things[i].ptr;
+		switch (things[i].type) {
+		case window:
+			m = uiWindowMargined(uiWindow(pp));
+			break;
+		case box:
+			p = uiBoxPadded(uiBox(pp));
+			break;
+		}
+		if (m && p)		// cheap attempt at breaking early
+			break;
+	}
+
+	out[0] = 'm';
+	out[1] = ' ';
+	out[2] = '0';
+	if (m)
+		out[2] = '1';
+	out[3] = ' ';
+	out[4] = 'p';
+	out[5] = ' ';
+	out[6] = '0';
+	if (p)
+		out[6] = '1';
+	out[7] = '\0';
+}
+
 uiWindow *newWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindow *w;

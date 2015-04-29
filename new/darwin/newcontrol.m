@@ -21,7 +21,6 @@ static void singleDestroy(uiControl *c)
 		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
 	[s->immediate retain];		// to keep alive when removing
 	(*(s->onDestroy))(s->onDestroyData);
-	[destroyedControlsView addSubview:s->immediate];
 	[s->immediate release];
 }
 
@@ -33,24 +32,24 @@ static uintptr_t singleHandle(uiControl *c)
 }
 
 // TODO update refcounting here and in the GTK+ port
-static void singleSetParent(uiControl *c, uiParent *parent)
+static void singleSetParent(uiControl *c, uiContainer *parent)
 {
 	singleView *s = (singleView *) (c->Internal);
 	NSView *parentView;
-	uiParent *oldparent;
+	uiContainer *oldparent;
 
 	oldparent = s->parent;
 	s->parent = parent;
 	if (oldparent != NULL)
 		[s->immediate removeFromSuperview];
 	if (s->parent != NULL) {
-		parentView = (NSView *) uiControlHandle(uiControls->parent));
+		parentView = (NSView *) uiControlHandle(uiControl(s->parent));
 		[parentView addSubview:s->immediate];
 	}
 	if (oldparent != NULL)
 		uiContainerUpdate(oldparent);
 	if (s->parent != NULL)
-		uiParentUpdate(s->parent);
+		uiContainerUpdate(s->parent);
 }
 
 // also good for NSBox and NSProgressIndicator

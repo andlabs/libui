@@ -45,12 +45,12 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	NSTabViewItem *i;
 
 	page = newBin();
-	binSetMainConotrol(page, child);
+	binSetMainControl(page, child);
 	[t->pages addObject:[NSValue valueWithPointer:page]];
 
 	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
 	[i setLabel:toNSString(name)];
-	[i setView:((NSView *) uiContainerHandle(content))];
+	[i setView:((NSView *) uiControlHandle(uiControl(page)))];
 	[t->tabview addTabViewItem:i];
 }
 

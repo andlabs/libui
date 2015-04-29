@@ -131,6 +131,8 @@ static void windowShow(uiControl *c)
 		return;
 	}
 	w->shownOnce = TRUE;
+	// make sure the bin is the correct size
+	SendMessage(w->hwnd, msgUpdateChild, 0, 0);
 	ShowWindow(w->hwnd, nCmdShow);
 	if (UpdateWindow(w->hwnd) == 0)
 		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");

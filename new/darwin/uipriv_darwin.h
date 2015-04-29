@@ -32,12 +32,12 @@
 
 // menu.m
 @interface menuManager : NSObject {
-	NSMutableDictionary *items;
+	// unfortunately NSMutableDictionary copies its keys, meaning we can't use it for pointers
+	NSMapTable *items;
 }
 @property (strong) NSMenuItem *quitItem;
 @property (strong) NSMenuItem *preferencesItem;
 @property (strong) NSMenuItem *aboutItem;
-- (IBAction)onMenuItemClicked:(id)sender;
 - (NSMenu *)makeMenubar;
 @end
 

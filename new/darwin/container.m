@@ -112,6 +112,9 @@ static void containerShow(uiControl *cc)
 	containerView *c = (containerView *) (cc->Internal);
 
 	[c setHidden:NO];
+	// hidden controls don't count in boxes and grids
+	if (c.containerParent != NULL)
+		uiContainerUpdate(c.containerParent);
 	c.containerHidden = 0;
 }
 
@@ -120,6 +123,8 @@ static void containerHide(uiControl *cc)
 	containerView *c = (containerView *) (cc->Internal);
 
 	[c setHidden:YES];
+	if (c.containerParent != NULL)
+		uiContainerUpdate(c.containerParent);
 	c.containerHidden = 1;
 }
 

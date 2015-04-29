@@ -178,6 +178,9 @@ static void containerShow(uiControl *cc)
 	struct container *c = (struct container *) (cc->Internal);
 
 	ShowWindow(c->hwnd, SW_SHOW);
+	// hidden controls don't count in boxes and grids
+	if (c->parent != NULL)
+		uiContainerUpdate(c->parent);
 	c->hidden = 0;
 }
 
@@ -186,6 +189,8 @@ static void containerHide(uiControl *cc)
 	struct container *c = (struct container *) (cc->Internal);
 
 	ShowWindow(c->hwnd, SW_HIDE);
+	if (c->parent != NULL)
+		uiContainerUpdate(c->parent);
 	c->hidden = 1;
 }
 

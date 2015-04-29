@@ -177,6 +177,7 @@ static void containerShow(uiControl *cc)
 
 	// don't use gtk_widget_show_all(); that'll show every widget, including ones hidden by the user
 	gtk_widget_show(GTK_WIDGET(c));
+	// hidden controls don't count in boxes and grids
 	if (c->parent != NULL)
 		uiContainerUpdate(c->parent);
 	c->hidden = 0;

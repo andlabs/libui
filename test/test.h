@@ -20,4 +20,4 @@ extern uiTab *newTab(void);
 extern void initMenus(void);
 
 // page1.c
-extern uiBox *makePage1(void);
+extern uiBox *makePage1(uiWindow *);

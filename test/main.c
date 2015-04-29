@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
 	tab = newTab();
 
-	page1 = makePage1();
+	page1 = makePage1(w);
 	uiTabAppendPage(tab, "Page 1", uiControl(page1));
 
 	uiWindowSetChild(w, uiControl(tab));

@@ -4,7 +4,27 @@
 static uiEntry *entry;
 static uiCheckbox *spaced;
 
-uiBox *makePage1(void)
+#define TEXT(name, type, getter, setter) \
+	static void get ## name ## Text(uiButton *b, void *data) \
+	{ \
+		char *text; \
+		text = getter(type(data)); \
+		uiEntrySetText(entry, text); \
+		uiFreeText(text); \
+	} \
+	static void set ## name ## Text(uiButton *b, void *data) \
+	{ \
+		char *text; \
+		text = uiEntryText(entry); \
+		setter(type(data), text); \
+		uiFreeText(text); \
+	}
+TEXT(Window, uiWindow, uiWindowTitle, uiWindowSetTitle)
+TEXT(Button, uiButton, uiButtonText, uiButtonSetText)
+TEXT(Checkbox, uiCheckbox, uiCheckboxText, uiCheckboxSetText)
+TEXT(Label, uiLabel, uiLabelText, uiLabelSetText)
+
+uiBox *makePage1(uiWindow *w)
 {
 	uiBox *page1;
 	uiButton *getButton, *setButton;
@@ -22,28 +42,36 @@ uiBox *makePage1(void)
 
 	hbox = newHorizontalBox();
 	getButton = uiNewButton("Get Window Text");
+	uiButtonOnClicked(getButton, getWindowText, w);
 	setButton = uiNewButton("Set Window Text");
+	uiButtonOnClicked(setButton, setWindowText, w);
 	uiBoxAppend(hbox, uiControl(getButton), 1);
 	uiBoxAppend(hbox, uiControl(setButton), 1);
 	uiBoxAppend(page1, uiControl(hbox), 0);
 
 	hbox = newHorizontalBox();
 	getButton = uiNewButton("Get Button Text");
+	uiButtonOnClicked(getButton, getButtonText, getButton);
 	setButton = uiNewButton("Set Button Text");
+	uiButtonOnClicked(setButton, setButtonText, getButton);
 	uiBoxAppend(hbox, uiControl(getButton), 1);
 	uiBoxAppend(hbox, uiControl(setButton), 1);
 	uiBoxAppend(page1, uiControl(hbox), 0);
 
 	hbox = newHorizontalBox();
 	getButton = uiNewButton("Get Checkbox Text");
+	uiButtonOnClicked(getButton, getCheckboxText, spaced);
 	setButton = uiNewButton("Set Checkbox Text");
+	uiButtonOnClicked(setButton, setCheckboxText, spaced);
 	uiBoxAppend(hbox, uiControl(getButton), 1);
 	uiBoxAppend(hbox, uiControl(setButton), 1);
 	uiBoxAppend(page1, uiControl(hbox), 0);
 
 	hbox = newHorizontalBox();
 	getButton = uiNewButton("Get Label Text");
+	uiButtonOnClicked(getButton, getLabelText, label);
 	setButton = uiNewButton("Set Label Text");
+	uiButtonOnClicked(setButton, setLabelText, label);
 	uiBoxAppend(hbox, uiControl(getButton), 1);
 	uiBoxAppend(hbox, uiControl(setButton), 1);
 	uiBoxAppend(page1, uiControl(hbox), 0);

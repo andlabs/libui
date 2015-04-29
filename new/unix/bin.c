@@ -13,6 +13,7 @@ struct bin {
 	intmax_t marginBottom;
 };
 
+// TODO ensure clean removal by making sure there's no OS parent
 void binDestroy(uiControl *c)
 {
 	struct bin *b = (struct bin *) c;

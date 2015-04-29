@@ -153,6 +153,7 @@ void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrol
 	// and keep a reference to s->immediate for when we remove the control from its parent
 	[s->immediate retain];
 
+	// TODO update all of these to say uiControl(c)
 	c->Internal = s;
 	c->Destroy = singleDestroy;
 	c->Handle = singleHandle;

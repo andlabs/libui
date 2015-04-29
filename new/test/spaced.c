@@ -29,6 +29,7 @@ static void *append(void *thing, int type)
 enum types {
 	window,
 	box,
+	tab,
 };
 
 void setSpaced(int spaced)
@@ -44,6 +45,9 @@ void setSpaced(int spaced)
 			break;
 		case box:
 			uiBoxSetPadded(uiBox(p), spaced);
+			break;
+		case tab:
+			// TODO
 			break;
 		}
 	}
@@ -74,4 +78,13 @@ uiBox *newVerticalBox(void)
 	b = uiNewVerticalBox();
 	append(b, box);
 	return b;
+}
+
+uiTab *newTab(void)
+{
+	uiTab *t;
+
+	t = uiNewTab();
+	append(t, tab);
+	return t;
 }

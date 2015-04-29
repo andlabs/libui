@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
 	int i;
 	const char *err;
 	uiWindow *w;
+	uiTab *tab;
 
 	memset(&o, 0, sizeof (uiInitOptions));
 	for (i = 1; i < argc; i++)
@@ -41,6 +42,10 @@ int main(int argc, char *argv[])
 
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);
+
+	tab = newTab();
+	uiTabAppendPage(tab, "Page 1", newVerticalBox());
+	uiWindowSetChild(w, uiControl(tab));
 
 	uiControlShow(uiControl(newWindow("Second Window", 320, 240, 1)));
 

@@ -1,6 +1,10 @@
 // 12 april 2015
 #include "uipriv_unix.h"
 
+// TODOs
+// - clean up the bin handling
+// 	- in particular, why are we holding a reference to binWidget again? if we should, then get rid of binSetParent() entirely!
+
 struct tab {
 	uiTab t;
 	GtkWidget *widget;

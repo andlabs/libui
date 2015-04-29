@@ -16,10 +16,11 @@ static void destroy(void *data)
 
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiParent *p;
+		uiContainer *p;
 
-		p = (uiParent *) [v pointerValue];
-		uiParentDestroy(p);
+		// TODO this is definitely wrong but
+		p = (uiContainer *) [v pointerValue];
+		uiControlDestroy(uiControl(p));
 	}];
 	[t->pages release];
 	uiFree(t);
@@ -37,19 +38,19 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	*height = (intmax_t) (s.height);
 }
 
-static void tabAddPage(uiTab *tt, const char *name, uiControl *child)
+static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	uiParent *content;
+	uiContainer *page;
 	NSTabViewItem *i;
 
-	content = uiNewParent(0);
-	uiParentSetMainControl(content, child);
-	[t->pages addObject:[NSValue valueWithPointer:content]];
+	page = newBin();
+	binSetMainConotrol(page, child);
+	[t->pages addObject:[NSValue valueWithPointer:page]];
 
 	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
 	[i setLabel:toNSString(name)];
-	[i setView:((NSView *) uiParentHandle(content))];
+	[i setView:((NSView *) uiContainerHandle(content))];
 	[t->tabview addTabViewItem:i];
 }
 
@@ -57,14 +58,15 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
 	NSValue *v;
-	uiParent *p;
+	uiContainer *p;
 	NSTabViewItem *i;
 
 	v = (NSValue *) [t->pages objectAtIndex:n];
-	p = (uiParent *) [v pointerValue];
+	p = (uiContainer *) [v pointerValue];
 	[t->pages removeObjectAtIndex:n];
+
 	// make sure the children of the tab aren't destroyed
-	uiParentSetMainControl(p, NULL);
+	binSetMainControl(p, NULL);
 
 	// TODO negotiate lifetimes better
 	i = [t->tabview tabViewItemAtIndex:n];
@@ -79,7 +81,7 @@ uiTab *uiNewTab(void)
 
 	uiDarwinNewControl(uiControl(t), [NSTabView class], NO, NO, destroy, t);
 
-	t->tabview = (NSTabView *) VIEW(t);
+	t->tabview = (NSTabView *) uiControlHandle(uiControl(t));
 
 	// also good for NSTabView (same selector and everything)
 	setStandardControlFont((NSControl *) (t->tabview));
@@ -88,7 +90,7 @@ uiTab *uiNewTab(void)
 
 	uiControl(t)->PreferredSize = preferredSize;
 
-	uiTab(t)->AddPage = tabAddPage;
+	uiTab(t)->AppendPage = tabAppendPage;
 	uiTab(t)->DeletePage = tabDeletePage;
 
 	return uiTab(t);

@@ -6,6 +6,7 @@ osCFILES = \
 	unix/container.c \
 	unix/main.c \
 	unix/menu.c \
+	unix/newcontrol.c \
 	unix/text.c \
 	unix/util.c \
 	unix/window.c

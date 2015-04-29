@@ -1,34 +1,33 @@
 // 7 april 2015
 #include "uipriv_unix.h"
 
+// TODO rename these
+
+// TODO get rid of this
 typedef struct singleWidget singleWidget;
 
 struct singleWidget {
 	GtkWidget *widget;
 	GtkWidget *scrolledWindow;
 	GtkWidget *immediate;		// the widget that is added to the parent container; either widget or scrolledWindow
-	uiParent *parent;
-	gboolean userHid;
-	gboolean containerHid;
-	gboolean userDisabled;
-	gboolean containerDisabled;
-	gulong destroyBlocker;
+	uiContainer *parent;
+	int hidden;
 	void (*onDestroy)(void *);
 	void *onDestroyData;
 };
+
+// TODO destruction blockers
 
 static void singleDestroy(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
 	if (s->parent != NULL)
-		complain("attempt to destroy a uiControl at %p while it still has a parent %p", c, s->parent);
+		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
 	// first call the widget's own destruction code
 	(*(s->onDestroy))(s->onDestroyData);
-	// then mark that we are ready to be destroyed
-	readyToDestroy(s->immediate, s->destroyBlocker);
-	// then actually destroy (TODO sync these comments)
-	gtk_widget_destroy(s->immediate);
+	// then actually destroy (TODO sync these comments with the container and window ones)
+	g_object_unref(s->immediate);
 	// and free ourselves
 	uiFree(s);
 }
@@ -40,21 +39,27 @@ static uintptr_t singleHandle(uiControl *c)
 	return (uintptr_t) (s->widget);
 }
 
-static void singleSetParent(uiControl *c, uiParent *parent)
+static void singleSetParent(uiControl *c, uiContainer *parent)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
-	uiParent *oldparent;
+	uiContainer *oldparent;
+	GtkContainer *oldcontainer;
+	GtkContainer *newcontainer;
 
 	oldparent = s->parent;
 	s->parent = parent;
 	if (oldparent != NULL) {
-		gtk_container_remove(GTK_CONTAINER(uiParentHandle(oldparent)), s->immediate);
-		uiParentUpdate(oldparent);
+		oldcontainer = GTK_CONTAINER(uiControlHandle(uiControl(oldparent)));
+		gtk_container_remove(oldcontainer, s->immediate);
 	}
 	if (s->parent != NULL) {
-		gtk_container_add(GTK_CONTAINER(uiParentHandle(s->parent)), s->immediate);
-		uiParentUpdate(s->parent);
+		newcontainer = GTK_CONTAINER(uiControlHandle(uiControl(s->parent)));
+		gtk_container_add(newcontainer, s->immediate);
 	}
+	if (oldparent != NULL)
+		uiContainerUpdate(oldparent);
+	if (s->parent != NULL)
+		uiContainerUpdate(s->parent);
 }
 
 static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -86,86 +91,40 @@ static int singleVisible(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
-	if (s->userHid)
-		return 0;
-	return 1;
+	return s->hidden;
 }
 
 static void singleShow(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
-	s->userHid = FALSE;
-	if (!s->containerHid) {
-		gtk_widget_show_all(s->immediate);
-		if (s->parent != NULL)
-			uiParentUpdate(s->parent);
-	}
+	gtk_widget_show_all(s->immediate);
+	if (s->parent != NULL)
+		uiContainerUpdate(s->parent);
+	s->hidden = 0;
 }
 
 static void singleHide(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
-	s->userHid = TRUE;
 	gtk_widget_hide(s->immediate);
 	if (s->parent != NULL)
-		uiParentUpdate(s->parent);
-}
-
-static void singleContainerShow(uiControl *c)
-{
-	singleWidget *s = (singleWidget *) (c->Internal);
-
-	s->containerHid = FALSE;
-	if (!s->userHid) {
-		gtk_widget_show_all(s->immediate);
-		if (s->parent != NULL)
-			uiParentUpdate(s->parent);
-	}
-}
-
-static void singleContainerHide(uiControl *c)
-{
-	singleWidget *s = (singleWidget *) (c->Internal);
-
-	s->containerHid = TRUE;
-	gtk_widget_hide(s->immediate);
-	if (s->parent != NULL)
-		uiParentUpdate(s->parent);
+		uiContainerUpdate(s->parent);
+	s->hidden = 1;
 }
 
 static void singleEnable(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
-	s->userDisabled = FALSE;
-	if (!s->containerDisabled)
-		gtk_widget_set_sensitive(s->immediate, TRUE);
+	gtk_widget_set_sensitive(s->immediate, TRUE);
 }
 
 static void singleDisable(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);
 
-	s->userDisabled = TRUE;
-	gtk_widget_set_sensitive(s->immediate, FALSE);
-}
-
-static void singleContainerEnable(uiControl *c)
-{
-	singleWidget *s = (singleWidget *) (c->Internal);
-
-	s->containerDisabled = FALSE;
-	if (!s->userDisabled)
-		gtk_widget_set_sensitive(s->immediate, TRUE);
-}
-
-static void singleContainerDisable(uiControl *c)
-{
-	singleWidget *s = (singleWidget *) (c->Internal);
-
-	s->containerDisabled = TRUE;
 	gtk_widget_set_sensitive(s->immediate, FALSE);
 }
 
@@ -207,7 +166,10 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	s->onDestroy = onDestroy;
 	s->onDestroyData = onDestroyData;
 
-	// assign s later; we still need it for one more thing
+	// finally, call gtk_widget_show_all() here to set the initial visibility of the widget
+	gtk_widget_show_all(s->immediate);
+
+	c->Internal = s;
 	c->Destroy = singleDestroy;
 	c->Handle = singleHandle;
 	c->SetParent = singleSetParent;
@@ -216,18 +178,6 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	c->Visible = singleVisible;
 	c->Show = singleShow;
 	c->Hide = singleHide;
-	c->ContainerShow = singleContainerShow;
-	c->ContainerHide = singleContainerHide;
 	c->Enable = singleEnable;
 	c->Disable = singleDisable;
-	c->ContainerEnable = singleContainerEnable;
-	c->ContainerDisable = singleContainerDisable;
-
-	// let's stop premature destruction
-	s->destroyBlocker = blockDestruction(s->immediate, c);
-
-	// finally, call gtk_widget_show_all() here to set the initial visibility of the widget
-	gtk_widget_show_all(s->immediate);
-
-	c->Internal = s;
 }

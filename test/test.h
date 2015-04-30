@@ -23,3 +23,6 @@ extern void initMenus(void);
 
 // page1.c
 extern uiBox *makePage1(uiWindow *);
+
+// page2.c
+extern uiBox *makePage2(void);

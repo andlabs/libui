@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	const char *err;
 	uiWindow *w;
 	uiTab *tab;
-	uiBox *page1;
+	uiBox *page1, *page2;
 
 	memset(&o, 0, sizeof (uiInitOptions));
 	for (i = 1; i < argc; i++)
@@ -54,6 +54,9 @@ int main(int argc, char *argv[])
 
 	page1 = makePage1(w);
 	uiTabAppendPage(tab, "Page 1", uiControl(page1));
+
+	page2 = makePage2();
+	uiTabAppendPage(tab, "Page 2", uiControl(page2));
 
 	uiControlShow(uiControl(w));
 	uiMain();

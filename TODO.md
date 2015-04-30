@@ -24,6 +24,11 @@
 	- including for quit/preferences/about?
 		- or not even have separators there?
 			- in which case, hide leading or trailing separators?
+- write an array.c for uiBox, uiGrid, and the Windows backend
+	- it'd just be a clone of GArray from GLib
+- add the visibility stuff to the Windows makefile
+	- figure out visibility on mac os x
+	- hide command lines in the makefile
 
 ultimately:
 - add some sort of runtime type checking

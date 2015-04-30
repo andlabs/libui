@@ -112,6 +112,7 @@ interface Label from Control {
 func NewLabel(text *const char) *Label;
 
 interface Tab from Control {
+	// TODO remove Page from these?
 	func AppendPage(name *const char, c *Control);
 	func DeletePage(index uintmax_t);
 };

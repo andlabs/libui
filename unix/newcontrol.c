@@ -16,8 +16,6 @@ struct singleWidget {
 	void *onDestroyData;
 };
 
-// TODO destruction blockers
-
 static void singleDestroy(uiControl *c)
 {
 	singleWidget *s = (singleWidget *) (c->Internal);

@@ -220,7 +220,6 @@ static void windowSetMargined(uiWindow *ww, int margined)
 		binSetMargins(w->bin, 0, 0, 0, 0);
 }
 
-// TODO destruction blocking
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	struct window *w;

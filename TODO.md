@@ -23,3 +23,4 @@
 
 ultimately:
 - add some sort of runtime type checking
+- MAYBE readd lifetime blocking

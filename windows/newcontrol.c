@@ -13,7 +13,6 @@ struct singleHWND {
 	int hidden;
 };
 
-// TODO destruction blocking
 static void singleDestroy(uiControl *c)
 {
 	singleHWND *s = (singleHWND *) (c->Internal);
@@ -148,7 +147,7 @@ void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p)
 	if (p->useStandardControlFont)
 		SendMessageW(s->hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
-	// this handles both blocking control destruction and redirected notification messages
+	// this handles redirected notification messages
 	if ((*fv_SetWindowSubclass)(s->hwnd, singleSubclassProc, 0, (DWORD_PTR) c) == FALSE)
 		logLastError("error subclassing Windows control in uiWindowsNewControl()");
 

@@ -33,7 +33,6 @@ static void containerWidget_init(containerWidget *c)
 	gtk_widget_set_has_window(GTK_WIDGET(c), FALSE);
 }
 
-// TODO destroy blocking
 static void containerWidget_dispose(GObject *obj)
 {
 	G_OBJECT_CLASS(containerWidget_parent_class)->dispose(obj);

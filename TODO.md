@@ -21,6 +21,9 @@
 - disabling containers on wine doesn't redraw children as disabled
 	- test on real windows
 - collapse multiple consecutive menu separators?
+	- including for quit/preferences/about?
+		- or not even have separators there?
+			- in which case, hide leading or trailing separators?
 
 ultimately:
 - add some sort of runtime type checking

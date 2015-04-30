@@ -197,7 +197,6 @@ uiMenuItem *menuAppendQuitItem(uiMenu *mm)
 	if (hasQuit)
 		complain("attempt to add multiple Quit menu items");
 	hasQuit = TRUE;
-	// TODO conditionally add separator
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typeQuit, NULL);
 }
@@ -207,7 +206,6 @@ uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
 	if (hasPreferences)
 		complain("attempt to add multiple Preferences menu items");
 	hasPreferences = TRUE;
-	// TODO conditionally add separator
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typePreferences, NULL);
 }
@@ -217,7 +215,6 @@ uiMenuItem *menuAppendAboutItem(uiMenu *mm)
 	if (hasAbout)
 		complain("attempt to add multiple About menu items");
 	hasAbout = TRUE;
-	// TODO conditionally add separator
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typeAbout, NULL);
 }

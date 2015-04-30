@@ -181,7 +181,6 @@ uiMenuItem *menuAppendCheckItem(uiMenu *mm, const char *name)
 uiMenuItem *menuAppendQuitItem(uiMenu *mm)
 {
 	// TODO check multiple quit items
-	// TODO conditionally add separator
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typeQuit, NULL);
 }
@@ -189,7 +188,6 @@ uiMenuItem *menuAppendQuitItem(uiMenu *mm)
 uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
 {
 	// TODO check multiple preferences items
-	// TODO conditionally add separator
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typePreferences, NULL);
 }
@@ -197,7 +195,6 @@ uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
 uiMenuItem *menuAppendAboutItem(uiMenu *mm)
 {
 	// TODO check multiple about items
-	// TODO conditionally add separator
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typeAbout, NULL);
 }

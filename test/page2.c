@@ -34,6 +34,11 @@ static void movePage1(uiButton *b, void *data)
 	moveBack = 1;
 }
 
+static void openAnotherWindow(uiButton *b, void *data)
+{
+	uiControlShow(uiControl(uiNewWindow("Another Window", 100, 100, data != NULL)));
+}
+
 uiBox *makePage2(void)
 {
 	uiBox *page2;
@@ -67,6 +72,16 @@ uiBox *makePage2(void)
 	uiBoxAppend(hbox, uiControl(button), 0);
 	uiBoxAppend(page2, uiControl(hbox), 0);
 	moveBack = 0;
+
+	hbox = newHorizontalBox();
+	uiBoxAppend(hbox, uiControl(uiNewLabel("Label Alignment Test")), 0);
+	button = uiNewButton("Open Menued Window");
+	uiButtonOnClicked(button, openAnotherWindow, button);
+	uiBoxAppend(hbox, uiControl(button), 0);
+	button = uiNewButton("Open Menuless Window");
+	uiButtonOnClicked(button, openAnotherWindow, NULL);
+	uiBoxAppend(hbox, uiControl(button), 0);
+	uiBoxAppend(page2, uiControl(hbox), 0);
 
 	return page2;
 }

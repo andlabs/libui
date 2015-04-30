@@ -50,7 +50,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 			logLastError("error resizing uiWindow box in windowWndProc()");
 		return 0;
 	case WM_CLOSE:
-		if (!(*(w->onClosing))(uiWindow(w), w->onClosingData))
+		if ((*(w->onClosing))(uiWindow(w), w->onClosingData))
 			uiControlDestroy(uiControl(w));
 		return 0;		// we destroyed it already
 	}

@@ -52,9 +52,10 @@ SHED(hide, Hide)
 SHED(enable, Enable)
 SHED(disable, Disable)
 
-uiBox *makePage1(uiWindow *w)
+uiBox *page1;
+
+void makePage1(uiWindow *w)
 {
-	uiBox *page1;
 	uiButton *getButton, *setButton;
 	uiBox *hbox;
 	uiBox *testBox;
@@ -151,6 +152,4 @@ uiBox *makePage1(uiWindow *w)
 	uiBoxAppend(page1, uiControl(hbox), 0);
 
 	uiBoxAppend(page1, uiControl(label), 0);
-
-	return page1;
 }

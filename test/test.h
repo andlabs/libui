@@ -22,7 +22,8 @@ extern uiTab *newTab(void);
 extern void initMenus(void);
 
 // page1.c
-extern uiBox *makePage1(uiWindow *);
+extern uiBox *page1;
+extern void makePage1(uiWindow *);
 
 // page2.c
 extern uiBox *makePage2(void);

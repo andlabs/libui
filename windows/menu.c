@@ -1,8 +1,7 @@
 // 24 april 2015
 #include "uipriv_windows.h"
 
-// TODO turn this into struct menu **
-static struct menu *menus = NULL;
+static struct menu **menus = NULL;
 static uintmax_t len = 0;
 static uintmax_t cap = 0;
 static BOOL menusFinalized = FALSE;
@@ -14,8 +13,7 @@ static BOOL hasAbout = FALSE;
 struct menu {
 	uiMenu m;
 	WCHAR *name;
-	// TODO turn into struct menuItem **
-	struct menuItem *items;
+	struct menuItem **items;
 	uintmax_t len;
 	uintmax_t cap;
 };
@@ -120,9 +118,11 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 
 	if (m->len >= m->cap) {
 		m->cap += grow;
-		m->items = (struct menuItem *) uiRealloc(m->items, m->cap * sizeof (struct menuItem), "struct menuItem[]");
+		m->items = (struct menuItem **) uiRealloc(m->items, m->cap * sizeof (struct menuItem *), "struct menuItem *[]");
 	}
-	item = &(m->items[m->len]);
+
+	item = uiNew(struct menuItem);
+	m->items[m->len] = item;
 	m->len++;
 
 	item->type = type;
@@ -137,8 +137,6 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 		item->name = toUTF16("About");
 		break;
 	case typeSeparator:
-		// TODO this shouldn't be necessary, but uiRealloc() doesn't yet zero out new bytes
-		item->name = NULL;
 		break;
 	default:
 		item->name = toUTF16(name);
@@ -149,18 +147,8 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 		item->id = curID;
 		curID++;
 	}
-	// TODO this shouldn't be necessary, but uiRealloc() doesn't yet zero out new bytes
-	else
-		item->id = 0;
 
 	item->onClicked = defaultOnClicked;
-
-	// TODO this shouldn't be necessary, but uiRealloc() doesn't yet zero out new bytes
-	item->disabled = FALSE;
-	item->checked = FALSE;
-	item->hmenus = NULL;
-	item->len = 0;
-	item->cap = 0;
 
 	uiMenuItem(item)->Enable = menuItemEnable;
 	uiMenuItem(item)->Disable = menuItemDisable;
@@ -221,17 +209,14 @@ uiMenu *uiNewMenu(const char *name)
 		complain("attempt to create a new menu after menus have been finalized");
 	if (len >= cap) {
 		cap += grow;
-		menus = (struct menu *) uiRealloc(menus, cap * sizeof (struct menu), "struct menu[]");
+		menus = (struct menu **) uiRealloc(menus, cap * sizeof (struct menu *), "struct menu *[]");
 	}
-	m = &menus[len];
+
+	m = uiNew(struct menu);
+	menus[len] = m;
 	len++;
 
 	m->name = toUTF16(name);
-
-	// TODO this shouldn't be necessary, but uiRealloc() doesn't yet zero out new bytes
-	m->items = NULL;
-	m->len = 0;
-	m->cap = 0;
 
 	uiMenu(m)->AppendItem = menuAppendItem;
 	uiMenu(m)->AppendCheckItem = menuAppendCheckItem;
@@ -275,7 +260,7 @@ static HMENU makeMenu(struct menu *m)
 	if (menu == NULL)
 		logLastError("error creating menu in makeMenu()");
 	for (i = 0; i < m->len; i++)
-		appendMenuItem(menu, &(m->items[i]));
+		appendMenuItem(menu, m->items[i]);
 	return menu;
 }
 
@@ -293,8 +278,8 @@ HMENU makeMenubar(void)
 		logLastError("error creating menubar in makeMenubar()");
 
 	for (i = 0; i < len; i++) {
-		menu = makeMenu(&menus[i]);
-		if (AppendMenuW(menubar, MF_POPUP | MF_STRING, (UINT_PTR) menu, menus[i].name) == 0)
+		menu = makeMenu(menus[i]);
+		if (AppendMenuW(menubar, MF_POPUP | MF_STRING, (UINT_PTR) menu, menus[i]->name) == 0)
 			logLastError("error appending menu to menubar in makeMenubar()");
 	}
 
@@ -310,9 +295,9 @@ void runMenuEvent(WORD id, uiWindow *w)
 
 	// TODO optimize this somehow?
 	for (i = 0; i < len; i++) {
-		m = &menus[i];
+		m = menus[i];
 		for (j = 0; j < m->len; j++) {
-			item = &(m->items[j]);
+			item = m->items[j];
 			if (item->id == id)
 				goto found;
 		}
@@ -339,7 +324,7 @@ static void freeMenu(struct menu *m, HMENU submenu)
 	uintmax_t j;
 
 	for (i = 0; i < m->len; i++) {
-		item = &m->items[i];
+		item = m->items[i];
 		for (j = 0; j < item->len; j++)
 			if (item->hmenus[j] == submenu)
 				break;
@@ -363,7 +348,7 @@ void freeMenubar(HMENU menubar)
 		mi.fMask = MIIM_SUBMENU;
 		if (GetMenuItemInfoW(menubar, i, TRUE, &mi) == 0)
 			logLastError("error getting menu to delete item references from in freeMenubar()");
-		freeMenu(&menus[i], mi.hSubMenu);
+		freeMenu(menus[i], mi.hSubMenu);
 	}
 	// no need to worry about destroying any menus; destruction of the window they're in will do it for us
 }

@@ -78,7 +78,7 @@ enum {
 	appName = [[NSProcessInfo processInfo] processName];
 	appMenuItem = [[NSMenuItem alloc] initWithTitle:appName action:NULL keyEquivalent:@""];
 	appMenu = [[NSMenu alloc] initWithTitle:appName];
-	// TODO see if this is safe for the items we don't care about
+	// TODO this is not safe for the items we don't care about
 	[appMenu setAutoenablesItems:NO];
 	[appMenuItem setSubmenu:appMenu];
 	[menubar addItem:appMenuItem];
@@ -126,7 +126,7 @@ enum {
 	title = [@"Quit " stringByAppendingString:appName];
 	item = [[NSMenuItem alloc] initWithTitle:title action:@selector(onClicked:) keyEquivalent:@"q"];
 	[item setTarget:self];
-//TODO	[item setEnabled:NO];
+	[item setEnabled:NO];
 	[appMenu addItem:item];
 	self.quitItem = item;
 }

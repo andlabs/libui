@@ -18,8 +18,7 @@ static char *labelText(uiLabel *ll)
 {
 	struct label *l = (struct label *) ll;
 
-	// TODO change g_strdup() to a wrapper function for export in ui_unix.h
-	return g_strdup(gtk_label_get_text(l->label));
+	return strdupText(gtk_label_get_text(l->label));
 }
 
 static void labelSetText(uiLabel *ll, const char *text)

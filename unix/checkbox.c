@@ -35,7 +35,7 @@ static char *checkboxText(uiCheckbox *cc)
 {
 	struct checkbox *c = (struct checkbox *) cc;
 
-	return g_strdup(gtk_button_get_label(c->button));
+	return strdupText(gtk_button_get_label(c->button));
 }
 
 static void checkboxSetText(uiCheckbox *cc, const char *text)

@@ -18,7 +18,7 @@ static char *entryText(uiEntry *ee)
 {
 	struct entry *e = (struct entry *) ee;
 
-	return g_strdup(gtk_entry_get_text(e->entry));
+	return strdupText(gtk_entry_get_text(e->entry));
 }
 
 static void entrySetText(uiEntry *ee, const char *text)

@@ -32,7 +32,7 @@ static char *buttonText(uiButton *bb)
 {
 	struct button *b = (struct button *) bb;
 
-	return g_strdup(gtk_button_get_label(b->button));
+	return strdupText(gtk_button_get_label(b->button));
 }
 
 static void buttonSetText(uiButton *bb, const char *text)

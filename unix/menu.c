@@ -1,7 +1,6 @@
 // 23 april 2015
 #include "uipriv_unix.h"
 
-// TODO window destruction
 // TODO get rid of the base item and store the GType, the disabled flag, and the checked flag like we do on Windows?
 
 static GArray *menus = NULL;
@@ -292,7 +291,45 @@ GtkWidget *makeMenubar(uiWindow *w)
 	return menubar;
 }
 
+struct freeMenuItemData {
+	GArray *items;
+	guint i;
+};
+
+static void freeMenuItem(GtkWidget *widget, gpointer data)
+{
+	struct freeMenuItemData *fmi = (struct freeMenuItemData *) data;
+	struct menuItem *item;
+
+	item = g_array_index(fmi->items, struct menuItem *, fmi->i);
+	if (g_hash_table_remove(item->uiWindows, widget) == FALSE)
+		complain("GtkMenuItem %p not in menu items uiWindows map", widget);
+	if (g_hash_table_remove(item->signals, widget) == FALSE)
+		complain("GtkMenuItem %p not in menu items signals map", widget);
+	fmi->i++;
+}
+
+static void freeMenu(GtkWidget *widget, gpointer data)
+{
+	guint *i = (guint *) data;
+	struct menu *m;
+	GtkMenuItem *item;
+	GtkWidget *submenu;
+	struct freeMenuItemData fmi;
+
+	m = g_array_index(menus, struct menu *, *i);
+	item = GTK_MENU_ITEM(widget);
+	submenu = gtk_menu_item_get_submenu(item);
+	fmi.items = m->items;
+	fmi.i = 0;
+	gtk_container_foreach(GTK_CONTAINER(submenu), freeMenuItem, &fmi);
+	(*i)++;
+}
+
 void freeMenubar(GtkWidget *mb)
 {
-	// TODO
+	guint i;
+
+	i = 0;
+	gtk_container_foreach(GTK_CONTAINER(mb), freeMenu, &i);
 }

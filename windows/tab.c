@@ -33,7 +33,7 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	case TCN_SELCHANGE:
 		n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
 		if (n != (LRESULT) (-1)) {		// if we're changing to a real tab
-			uiControlHide(uiControl(t->pages[n]));
+			uiControlShow(uiControl(t->pages[n]));
 			// because we only resize the current child on resize, we'll need to trigger an update here
 			// don't call uiParentUpdate(); doing that won't size the content area (so we'll still have a 0x0 content area, for instance)
 			SendMessageW(t->hwnd, msgUpdateChild, 0, 0);

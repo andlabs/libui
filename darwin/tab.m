@@ -1,13 +1,11 @@
 // 12 april 2015
 #import "uipriv_darwin.h"
 
-// TODO
-// - verify margins against extra space around the tab
-
 struct tab {
 	uiTab t;
 	NSTabView *tabview;
 	NSMutableArray *pages;
+	NSMutableArray *margined;
 };
 
 static void destroy(void *data)
@@ -23,6 +21,7 @@ static void destroy(void *data)
 		uiControlDestroy(uiControl(p));
 	}];
 	[t->pages release];
+	[t->margined release];
 	uiFree(t);
 }
 
@@ -47,6 +46,7 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	page = newBin();
 	binSetMainControl(page, child);
 	[t->pages addObject:[NSValue valueWithPointer:page]];
+	[t->margined addObject:[NSNumber numberWithInt:0]];
 
 	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
 	[i setLabel:toNSString(name)];
@@ -64,6 +64,7 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	v = (NSValue *) [t->pages objectAtIndex:n];
 	p = (uiContainer *) [v pointerValue];
 	[t->pages removeObjectAtIndex:n];
+	[t->margined removeObjectAtIndex:n];
 
 	// make sure the children of the tab aren't destroyed
 	binSetMainControl(p, NULL);
@@ -71,6 +72,50 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	// TODO negotiate lifetimes better
 	i = [t->tabview tabViewItemAtIndex:n];
 	[t->tabview removeTabViewItem:i];
+}
+
+static uintmax_t tabNumPages(uiTab *tt)
+{
+	struct tab *t = (struct tab *) tt;
+
+	return [t->pages count];
+}
+
+static int tabMargined(uiTab *tt, uintmax_t n)
+{
+	struct tab *t = (struct tab *) tt;
+	NSNumber *v;
+
+	v = (NSNumber *) [t->margined objectAtIndex:n];
+	return [v intValue];
+}
+
+// These are based on measurements from Interface Builder.
+// These seem to be based on Auto Layout constants, but I don't see an API that exposes these...
+#define tabLeftMargin 17
+#define tabTopMargin 3
+#define tabRightMargin 17
+#define tabBottomMargin 17
+
+// notes:
+// top margin of a tab to its parent should be 12, not 20
+// our system doesn't allow this...
+
+static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
+{
+	struct tab *t = (struct tab *) tt;
+	NSNumber *v;
+	NSValue *binv;
+	uiContainer *bin;
+
+	v = [NSNumber numberWithInt:margined];
+	[t->margined replaceObjectAtIndex:n withObject:v];
+	binv = (NSValue *) [t->pages objectAtIndex:n];
+	bin = (uiContainer *) [binv pointerValue];
+	if ([v intValue])
+		binSetMargins(bin, tabLeftMargin, tabTopMargin, tabRightMargin, tabBottomMargin);
+	else
+		binSetMargins(bin, 0, 0, 0, 0);
 }
 
 uiTab *uiNewTab(void)
@@ -87,11 +132,15 @@ uiTab *uiNewTab(void)
 	setStandardControlFont((NSControl *) (t->tabview));
 
 	t->pages = [NSMutableArray new];
+	t->margined = [NSMutableArray new];
 
 	uiControl(t)->PreferredSize = preferredSize;
 
 	uiTab(t)->AppendPage = tabAppendPage;
 	uiTab(t)->DeletePage = tabDeletePage;
+	uiTab(t)->NumPages = tabNumPages;
+	uiTab(t)->Margined = tabMargined;
+	uiTab(t)->SetMargined = tabSetMargined;
 
 	return uiTab(t);
 }

@@ -19,9 +19,10 @@ static void singleDestroy(uiControl *c)
 
 	if (s->parent != NULL)
 		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
-	[s->immediate retain];		// to keep alive when removing
 	(*(s->onDestroy))(s->onDestroyData);
+	// release the reference we took on creation to destroy the widget
 	[s->immediate release];
+	uiFree(s);
 }
 
 static uintptr_t singleHandle(uiControl *c)
@@ -31,7 +32,6 @@ static uintptr_t singleHandle(uiControl *c)
 	return (uintptr_t) (s->view);
 }
 
-// TODO update refcounting here and in the GTK+ port
 static void singleSetParent(uiControl *c, uiContainer *parent)
 {
 	singleView *s = (singleView *) (c->Internal);

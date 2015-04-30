@@ -150,15 +150,7 @@ void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gbool
 	}
 
 	// we need to keep an extra reference on the immediate widget
-	// this is so uiControlDestroy() can work regardless of when it is called and who calls it
-	// without this:
-	// - end user call works (only one ref)
-	// - call in uiContainer destructor fails (uiContainer ref freed)
-	// with this:
-	// - end user call works (shoudn't be in any container)
-	// - call in uiContainer works (both refs freed)
-	// this also ensures singleRemoveParent() works properly
-	// TODO double-check this for new parenting rules
+	// this is so we can reparent the control freely
 	g_object_ref_sink(s->immediate);
 
 	s->onDestroy = onDestroy;

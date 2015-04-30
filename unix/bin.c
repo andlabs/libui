@@ -17,8 +17,13 @@ struct bin {
 void binDestroy(uiControl *c)
 {
 	struct bin *b = (struct bin *) c;
+	GtkWidget *binWidget;
 
 	// TODO find a way to move the parented check here
+	// ensure clean removal by making sure the bin has no OS parent
+	binWidget = GTK_WIDGET(uiControlHandle(uiControl(b)));
+	if (gtk_widget_get_parent(binWidget) != NULL)
+		complain("attempt to destroy bin %p while it has an OS parent", b);
 	// don't chain up to base here; we need to destroy children ourselves first
 	if (b->mainControl != NULL) {
 		uiControlSetParent(b->mainControl, NULL);

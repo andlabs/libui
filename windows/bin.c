@@ -14,8 +14,13 @@ struct bin {
 void binDestroy(uiControl *c)
 {
 	struct bin *b = (struct bin *) c;
+	HWND hwnd;
 
 	// TODO find a way to move the parented check here
+	// ensure clean removal by making sure the bin has no OS parent
+	hwnd = (HWND) uiControlHandle(uiControl(b));
+	if (GetAncestor(hwnd, GA_PARENT) != NULL)
+		complain("attempt to destroy bin %p while it has an OS parent", b);
 	// don't chain up to base here; we need to destroy children ourselves first
 	if (b->mainControl != NULL) {
 		uiControlSetParent(b->mainControl, NULL);

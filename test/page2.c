@@ -18,7 +18,21 @@ static void moveLabel(uiButton *b, void *data)
 	movingCurrent = to;
 }
 
-// TODO tab manipulation
+static int moveBack;
+#define moveOutText "Move Page 1 Out"
+#define moveBackText "Move Page 1 Back"
+
+static void movePage1(uiButton *b, void *data)
+{
+	if (moveBack) {
+		// TODO
+		return;
+	}
+	uiTabDeletePage(mainTab, 0);
+	uiBoxAppend(mainBox, uiControl(page1), 1);
+	uiButtonSetText(b, moveBackText);
+	moveBack = 1;
+}
 
 uiBox *makePage2(void)
 {
@@ -46,6 +60,13 @@ uiBox *makePage2(void)
 	movingCurrent = 0;
 	movingLabel = uiNewLabel("This label moves!");
 	uiBoxAppend(movingBoxes[movingCurrent], uiControl(movingLabel), 0);
+
+	hbox = newHorizontalBox();
+	button = uiNewButton(moveOutText);
+	uiButtonOnClicked(button, movePage1, NULL);
+	uiBoxAppend(hbox, uiControl(button), 0);
+	uiBoxAppend(page2, uiControl(hbox), 0);
+	moveBack = 0;
 
 	return page2;
 }

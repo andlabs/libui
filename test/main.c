@@ -15,6 +15,7 @@ int onClosing(uiWindow *w, void *data)
 }
 
 uiBox *mainBox;
+uiTab *mainTab;
 
 int main(int argc, char *argv[])
 {
@@ -22,7 +23,6 @@ int main(int argc, char *argv[])
 	int i;
 	const char *err;
 	uiWindow *w;
-	uiTab *tab;
 	uiBox *page2;
 
 	memset(&o, 0, sizeof (uiInitOptions));
@@ -49,14 +49,14 @@ int main(int argc, char *argv[])
 	mainBox = newHorizontalBox();
 	uiWindowSetChild(w, uiControl(mainBox));
 
-	tab = newTab();
-	uiBoxAppend(mainBox, uiControl(tab), 1);
+	mainTab = newTab();
+	uiBoxAppend(mainBox, uiControl(mainTab), 1);
 
 	makePage1(w);
-	uiTabAppendPage(tab, "Page 1", uiControl(page1));
+	uiTabAppendPage(mainTab, "Page 1", uiControl(page1));
 
 	page2 = makePage2();
-	uiTabAppendPage(tab, "Page 2", uiControl(page2));
+	uiTabAppendPage(mainTab, "Page 2", uiControl(page2));
 
 	uiControlShow(uiControl(w));
 	uiMain();

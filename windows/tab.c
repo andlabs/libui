@@ -8,6 +8,7 @@ struct tab {
 	uiTab t;
 	HWND hwnd;
 	uiContainer **pages;
+	int *margined;
 	uintmax_t len;
 	uintmax_t cap;
 };
@@ -57,6 +58,7 @@ static void onDestroy(void *data)
 		uiControlDestroy(uiControl(t->pages[i]));
 	// and finally destroy ourselves
 	uiFree(t->pages);
+	uiFree(t->margined);
 	uiFree(t);
 }
 
@@ -135,6 +137,7 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	if (t->len >= t->cap) {
 		t->cap += tabCapGrow;
 		t->pages = (uiContainer **) uiRealloc(t->pages, t->cap * sizeof (uiContainer *), "uiContainer *[]");
+		t->margined = (int *) uiRealloc(t->margined, t->cap * sizeof (int), "int[]");
 	}
 
 	n = SendMessageW(t->hwnd, TCM_GETITEMCOUNT, 0, 0);
@@ -145,6 +148,7 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
 		uiControlHide(uiControl(page));
 	t->pages[t->len] = page;
+	t->margined[t->len] = 0;		// TODO should not be necessary but blah blah blah realloc
 	t->len++;
 
 	ZeroMemory(&item, sizeof (TCITEMW));
@@ -176,9 +180,12 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 
 	// now delete the page itself
 	page = t->pages[n];
-	for (i = n; i < t->len - 1; i++)
+	for (i = n; i < t->len - 1; i++) {
 		t->pages[i] = t->pages[i + 1];
+		t->margined[i] = t->margined[i + 1];
+	}
 	t->pages[i] = NULL;
+	t->margined[i] = 0;
 	t->len--;
 
 	// make sure the page's control isn't destroyed
@@ -186,6 +193,34 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 
 	// see tabDestroy() above for details
 	uiControlDestroy(uiControl(page));
+}
+
+static uintmax_t tabNumPages(uiTab *tt)
+{
+	struct tab *t = (struct tab *) tt;
+
+	return t->len;
+}
+
+static int tabMargined(uiTab *tt, uintmax_t n)
+{
+	struct tab *t = (struct tab *) tt;
+
+	return t->margined[n];
+}
+
+// from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
+#define tabMargin 7
+
+static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
+{
+	struct tab *t = (struct tab *) tt;
+
+	t->margined[n] = margined;
+	if (t->margined[n])
+		binSetMargins(t->pages[n], tabMargin, tabMargin, tabMargin, tabMargin);
+	else
+		binSetMargins(t->pages[n], 0, 0, 0, 0);
 }
 
 uiTab *uiNewTab(void)
@@ -216,6 +251,9 @@ uiTab *uiNewTab(void)
 
 	uiTab(t)->AppendPage = tabAppendPage;
 	uiTab(t)->DeletePage = tabDeletePage;
+	uiTab(t)->NumPages = tabNumPages;
+	uiTab(t)->Margined = tabMargined;
+	uiTab(t)->SetMargined = tabSetMargined;
 
 	return uiTab(t);
 }

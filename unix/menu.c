@@ -5,6 +5,9 @@
 
 static GArray *menus = NULL;
 static gboolean menusFinalized = FALSE;
+static gboolean hasQuit = FALSE;
+static gboolean hasPreferences = FALSE;
+static gboolean hasAbout = FALSE;
 
 struct menu {
 	uiMenu m;
@@ -191,7 +194,9 @@ uiMenuItem *menuAppendCheckItem(uiMenu *mm, const char *name)
 
 uiMenuItem *menuAppendQuitItem(uiMenu *mm)
 {
-	// TODO check multiple quit items
+	if (hasQuit)
+		complain("attempt to add multiple Quit menu items");
+	hasQuit = TRUE;
 	// TODO conditionally add separator
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typeQuit, NULL);
@@ -199,7 +204,9 @@ uiMenuItem *menuAppendQuitItem(uiMenu *mm)
 
 uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
 {
-	// TODO check multiple preferences items
+	if (hasPreferences)
+		complain("attempt to add multiple Preferences menu items");
+	hasPreferences = TRUE;
 	// TODO conditionally add separator
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typePreferences, NULL);
@@ -207,7 +214,9 @@ uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
 
 uiMenuItem *menuAppendAboutItem(uiMenu *mm)
 {
-	// TODO check multiple about items
+	if (hasAbout)
+		complain("attempt to add multiple About menu items");
+	hasAbout = TRUE;
 	// TODO conditionally add separator
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typeAbout, NULL);

@@ -340,4 +340,5 @@ void freeMenubar(GtkWidget *mb)
 
 	i = 0;
 	gtk_container_foreach(GTK_CONTAINER(mb), freeMenu, &i);
+	// no need to worry about destroying any widgets; destruction of the window they're in will do it for us
 }

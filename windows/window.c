@@ -86,7 +86,9 @@ static void windowDestroy(uiControl *c)
 	// now destroy the bin
 	// the bin has no parent, so we can just call uiControlDestroy()
 	uiControlDestroy(uiControl(w->bin));
-	// TODO menus
+	// now free the menubar, if any
+	if (w->menubar != NULL)
+		freeMenubar(w->menubar);
 	// now destroy ourselves
 	if (DestroyWindow(w->hwnd) == 0)
 		logLastError("error destroying uiWindow in windowDestroy()");

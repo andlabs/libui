@@ -1,8 +1,7 @@
 // 24 april 2015
 #include "uipriv_windows.h"
 
-// TODO window destruction
-
+// TODO turn this into struct menu **
 static struct menu *menus = NULL;
 static uintmax_t len = 0;
 static uintmax_t cap = 0;
@@ -12,6 +11,7 @@ static WORD curID = 100;			// start somewhere safe
 struct menu {
 	uiMenu m;
 	WCHAR *name;
+	// TODO turn into struct menuItem **
 	struct menuItem *items;
 	uintmax_t len;
 	uintmax_t cap;
@@ -325,4 +325,40 @@ found:
 
 	// then run the event
 	(*(item->onClicked))(umi, w, item->onClickedData);
+}
+
+static void freeMenu(struct menu *m, HMENU submenu)
+{
+	uintmax_t i;
+	struct menuItem *item;
+	uintmax_t j;
+
+	for (i = 0; i < m->len; i++) {
+		item = &m->items[i];
+		for (j = 0; j < item->len; j++)
+			if (item->hmenus[j] == submenu)
+				break;
+		if (j >= item->len)
+			complain("submenu handle %p not found in freeMenu()", submenu);
+		for (; j < item->len - 1; j++)
+			item->hmenus[j] = item->hmenus[j + 1];
+		item->hmenus[j] = NULL;
+		item->len--;
+	}
+}
+
+void freeMenubar(HMENU menubar)
+{
+	uintmax_t i;
+	MENUITEMINFOW mi;
+
+	for (i = 0; i < len; i++) {
+		ZeroMemory(&mi, sizeof (MENUITEMINFOW));
+		mi.cbSize = sizeof (MENUITEMINFOW);
+		mi.fMask = MIIM_SUBMENU;
+		if (GetMenuItemInfoW(menubar, i, TRUE, &mi) == 0)
+			logLastError("error getting menu to delete item references from in freeMenubar()");
+		freeMenu(&menus[i], mi.hSubMenu);
+	}
+	// no need to worry about destroying any menus; destruction of the window they're in will do it for us
 }

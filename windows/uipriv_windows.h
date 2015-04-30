@@ -77,3 +77,4 @@ extern const char *initContainer(HICON, HCURSOR);
 extern HMENU makeMenubar(void);
 extern const uiMenuItem *menuIDToItem(UINT_PTR);
 extern void runMenuEvent(WORD, uiWindow *);
+extern void freeMenubar(HMENU);

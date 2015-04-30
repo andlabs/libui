@@ -1,8 +1,6 @@
 // 23 april 2015
 #include "uipriv_unix.h"
 
-// TODO get rid of the base item and store the GType, the disabled flag, and the checked flag like we do on Windows?
-
 static GArray *menus = NULL;
 static gboolean menusFinalized = FALSE;
 static gboolean hasQuit = FALSE;
@@ -21,7 +19,9 @@ struct menuItem {
 	int type;
 	void (*onClicked)(uiMenuItem *, uiWindow *, void *);
 	void *onClickedData;
-	GtkWidget *baseItem;			// template for new instances; kept in sync with everything else
+	GType gtype;					// template for new instances; kept in sync with everything else
+	gboolean disabled;
+	gboolean checked;
 	GHashTable *windows;			// map[GtkMenuItem]*menuItemWindow
 };
 
@@ -54,11 +54,11 @@ static void setChecked(struct menuItem *item, gboolean checked)
 	gpointer ww;
 	struct menuItemWindow *w;
 
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->baseItem), checked);
+	item->checked = checked;
 	g_hash_table_iter_init(&iter, item->windows);
 	while (g_hash_table_iter_next(&iter, &widget, &ww)) {
 		w = (struct menuItemWindow *) ww;
-		singleSetChecked(GTK_CHECK_MENU_ITEM(widget), checked, w->signal);
+		singleSetChecked(GTK_CHECK_MENU_ITEM(widget), item->checked, w->signal);
 	}
 }
 
@@ -86,7 +86,7 @@ static void menuItemEnableDisable(struct menuItem *item, gboolean enabled)
 	GHashTableIter iter;
 	gpointer widget;
 
-	gtk_widget_set_sensitive(item->baseItem, enabled);
+	item->disabled = !enabled;
 	g_hash_table_iter_init(&iter, item->windows);
 	while (g_hash_table_iter_next(&iter, &widget, NULL))
 		gtk_widget_set_sensitive(GTK_WIDGET(widget), enabled);
@@ -118,7 +118,7 @@ static int menuItemChecked(uiMenuItem *ii)
 {
 	struct menuItem *item = (struct menuItem *) ii;
 
-	return gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item->baseItem)) != FALSE;
+	return item->checked != FALSE;
 }
 
 static void menuItemSetChecked(uiMenuItem *ii, int checked)
@@ -165,13 +165,13 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 
 	switch (item->type) {
 	case typeCheckbox:
-		item->baseItem = gtk_check_menu_item_new_with_label(item->name);
+		item->gtype = GTK_TYPE_CHECK_MENU_ITEM;
 		break;
 	case typeSeparator:
-		item->baseItem = gtk_separator_menu_item_new();
+		item->gtype = GTK_TYPE_SEPARATOR_MENU_ITEM;
 		break;
 	default:
-		item->baseItem = gtk_menu_item_new_with_label(item->name);
+		item->gtype = GTK_TYPE_MENU_ITEM;
 		break;
 	}
 
@@ -259,14 +259,14 @@ static void appendMenuItem(GtkMenuShell *submenu, struct menuItem *item, uiWindo
 	gulong signal;
 	struct menuItemWindow *ww;
 
-	menuitem = g_object_new(G_OBJECT_TYPE(item->baseItem), NULL);
+	menuitem = g_object_new(item->gtype, NULL);
 	if (item->name != NULL)
 		gtk_menu_item_set_label(GTK_MENU_ITEM(menuitem), item->name);
 	if (item->type != typeSeparator) {
 		signal = g_signal_connect(menuitem, "activate", G_CALLBACK(onClicked), item);
-		gtk_widget_set_sensitive(menuitem, gtk_widget_get_sensitive(item->baseItem));
+		gtk_widget_set_sensitive(menuitem, !item->disabled);
 		if (item->type == typeCheckbox)
-			singleSetChecked(GTK_CHECK_MENU_ITEM(menuitem), gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item->baseItem)), signal);
+			singleSetChecked(GTK_CHECK_MENU_ITEM(menuitem), item->checked, signal);
 	}
 	gtk_menu_shell_append(submenu, menuitem);
 	ww = uiNew(struct menuItemWindow);

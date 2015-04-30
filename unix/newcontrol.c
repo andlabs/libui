@@ -1,8 +1,6 @@
 // 7 april 2015
 #include "uipriv_unix.h"
 
-// TODO rename these files
-
 // TODO get rid of this
 typedef struct singleWidget singleWidget;
 

@@ -29,6 +29,7 @@
 - add the visibility stuff to the Windows makefile
 	- figure out visibility on mac os x
 	- hide command lines in the makefile
+- rename newcontrol.[cm] to control.[cm] or something else?
 
 ultimately:
 - add some sort of runtime type checking

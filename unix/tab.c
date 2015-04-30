@@ -16,6 +16,7 @@ struct tab {
 struct tabPage {
 	uiContainer *bin;
 	GtkWidget *binWidget;
+	int margined;
 };
 
 static void onDestroy(void *data)
@@ -76,6 +77,35 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	g_array_remove_index(t->pages, n);
 }
 
+static uintmax_t tabNumPages(uiTab *tt)
+{
+	struct tab *t = (struct tab *) tt;
+
+	return t->pages->len;
+}
+
+static int tabMargined(uiTab *tt, uintmax_t n)
+{
+	struct tab *t = (struct tab *) tt;
+	struct tabPage *p;
+
+	p = &g_array_index(t->pages, struct tabPage, n);
+	return p->margined;
+}
+
+static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
+{
+	struct tab *t = (struct tab *) tt;
+	struct tabPage *p;
+
+	p = &g_array_index(t->pages, struct tabPage, n);
+	p->margined = margined;
+	if (p->margined)
+		binSetMargins(p->bin, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
+	else
+		binSetMargins(p->bin, 0, 0, 0, 0);
+}
+
 uiTab *uiNewTab(void)
 {
 	struct tab *t;
@@ -94,6 +124,9 @@ uiTab *uiNewTab(void)
 
 	uiTab(t)->AppendPage = tabAppendPage;
 	uiTab(t)->DeletePage = tabDeletePage;
+	uiTab(t)->NumPages = tabNumPages;
+	uiTab(t)->Margined = tabMargined;
+	uiTab(t)->SetMargined = tabSetMargined;
 
 	return uiTab(t);
 }

@@ -22,9 +22,12 @@ struct menuItem {
 	void (*onClicked)(uiMenuItem *, uiWindow *, void *);
 	void *onClickedData;
 	GtkWidget *baseItem;			// template for new instances; kept in sync with everything else
-	GHashTable *uiWindows;			// map[GtkMenuItem]uiWindow
-	// TODO this assumes that a gulong can fit in a gpointer
-	GHashTable *signals;			// map[GtkMenuItem]gulong
+	GHashTable *windows;			// map[GtkMenuItem]*menuItemWindow
+};
+
+struct menuItemWindow {
+	uiWindow *w;
+	gulong signal;
 };
 
 enum {
@@ -35,8 +38,6 @@ enum {
 	typeAbout,
 	typeSeparator,
 };
-
-#define NEWHASH() g_hash_table_new(g_direct_hash, g_direct_equal)
 
 // we do NOT want programmatic updates to raise an ::activated signal
 static void singleSetChecked(GtkCheckMenuItem *menuitem, gboolean checked, gulong signal)
@@ -50,25 +51,29 @@ static void setChecked(struct menuItem *item, gboolean checked)
 {
 	GHashTableIter iter;
 	gpointer widget;
+	gpointer ww;
+	struct menuItemWindow *w;
 
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->baseItem), checked);
-	g_hash_table_iter_init(&iter, item->uiWindows);
-	while (g_hash_table_iter_next(&iter, &widget, NULL))
-		singleSetChecked(GTK_CHECK_MENU_ITEM(widget), checked, (gulong) g_hash_table_lookup(item->signals, widget));
+	g_hash_table_iter_init(&iter, item->windows);
+	while (g_hash_table_iter_next(&iter, &widget, &ww)) {
+		w = (struct menuItemWindow *) ww;
+		singleSetChecked(GTK_CHECK_MENU_ITEM(widget), checked, w->signal);
+	}
 }
 
 static void onClicked(GtkMenuItem *menuitem, gpointer data)
 {
 	struct menuItem *item = (struct menuItem *) data;
-	uiWindow *w;
+	struct menuItemWindow *w;
 
 	// we need to manually update the checked states of all menu items if one changes
 	// notice that this is getting the checked state of the menu item that this signal is sent from
 	if (item->type == typeCheckbox)
 		setChecked(item, gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)));
 
-	w = uiWindow(g_hash_table_lookup(item->uiWindows, menuitem));
-	(*(item->onClicked))(uiMenuItem(item), w, item->onClickedData);
+	w = (struct menuItemWindow *) g_hash_table_lookup(item->windows, menuitem);
+	(*(item->onClicked))(uiMenuItem(item), w->w, item->onClickedData);
 }
 
 static void defaultOnClicked(uiMenuItem *item, uiWindow *w, void *data)
@@ -82,7 +87,7 @@ static void menuItemEnableDisable(struct menuItem *item, gboolean enabled)
 	gpointer widget;
 
 	gtk_widget_set_sensitive(item->baseItem, enabled);
-	g_hash_table_iter_init(&iter, item->uiWindows);
+	g_hash_table_iter_init(&iter, item->windows);
 	while (g_hash_table_iter_next(&iter, &widget, NULL))
 		gtk_widget_set_sensitive(GTK_WIDGET(widget), enabled);
 }
@@ -170,8 +175,7 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 		break;
 	}
 
-	item->uiWindows = NEWHASH();
-	item->signals = NEWHASH();
+	item->windows = g_hash_table_new(g_direct_hash, g_direct_equal);
 
 	uiMenuItem(item)->Enable = menuItemEnable;
 	uiMenuItem(item)->Disable = menuItemDisable;
@@ -253,6 +257,7 @@ static void appendMenuItem(GtkMenuShell *submenu, struct menuItem *item, uiWindo
 {
 	GtkWidget *menuitem;
 	gulong signal;
+	struct menuItemWindow *ww;
 
 	menuitem = g_object_new(G_OBJECT_TYPE(item->baseItem), NULL);
 	if (item->name != NULL)
@@ -264,8 +269,10 @@ static void appendMenuItem(GtkMenuShell *submenu, struct menuItem *item, uiWindo
 			singleSetChecked(GTK_CHECK_MENU_ITEM(menuitem), gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item->baseItem)), signal);
 	}
 	gtk_menu_shell_append(submenu, menuitem);
-	g_hash_table_insert(item->uiWindows, menuitem, w);
-	g_hash_table_insert(item->signals, menuitem, (gpointer) signal);
+	ww = uiNew(struct menuItemWindow);
+	ww->w = w;
+	ww->signal = signal;
+	g_hash_table_insert(item->windows, menuitem, ww);
 }
 
 // TODO should this return a zero-height widget (or NULL) if there are no menus defined?
@@ -305,12 +312,13 @@ static void freeMenuItem(GtkWidget *widget, gpointer data)
 {
 	struct freeMenuItemData *fmi = (struct freeMenuItemData *) data;
 	struct menuItem *item;
+	struct menuItemWindow *w;
 
 	item = g_array_index(fmi->items, struct menuItem *, fmi->i);
-	if (g_hash_table_remove(item->uiWindows, widget) == FALSE)
-		complain("GtkMenuItem %p not in menu items uiWindows map", widget);
-	if (g_hash_table_remove(item->signals, widget) == FALSE)
-		complain("GtkMenuItem %p not in menu items signals map", widget);
+	w = (struct menuItemWindow *) g_hash_table_lookup(item->windows, widget);
+	if (g_hash_table_remove(item->windows, widget) == FALSE)
+		complain("GtkMenuItem %p not in menu item's item/window map", widget);
+	uiFree(w);
 	fmi->i++;
 }
 

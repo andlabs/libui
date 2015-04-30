@@ -12,6 +12,8 @@ struct window {
 	GtkContainer *vboxContainer;
 	GtkBox *vbox;
 
+	GtkWidget *menubar;
+
 	uiContainer *bin;
 
 	int hidden;
@@ -46,7 +48,8 @@ static void windowDestroy(uiControl *c)
 	// now destroy the bin
 	// the bin has no parent, so we can just call uiControlDestroy()
 	uiControlDestroy(uiControl(w->bin));
-	// TODO menus
+	// now destroy the menus
+	freeMenubar(w->menubar);
 	// now destroy ourselves
 	// this will also free the vbox
 	gtk_widget_destroy(w->widget);
@@ -182,8 +185,10 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	// set the vbox as the GtkWindow child
 	gtk_container_add(w->container, w->vboxWidget);
 
-	if (hasMenubar)
-		gtk_container_add(w->vboxContainer, makeMenubar(uiWindow(w)));
+	if (hasMenubar) {
+		w->menubar = makeMenubar(uiWindow(w));
+		gtk_container_add(w->vboxContainer, w->menubar);
+	}
 
 	w->bin = newBin();
 	binWidget = GTK_WIDGET(uiControlHandle(uiControl(w->bin)));

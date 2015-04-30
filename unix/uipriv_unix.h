@@ -18,3 +18,4 @@ extern char *strdupText(const char *);
 
 // menu.c
 extern GtkWidget *makeMenubar(uiWindow *);
+extern void freeMenubar(GtkWidget *);

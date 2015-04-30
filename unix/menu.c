@@ -291,3 +291,8 @@ GtkWidget *makeMenubar(uiWindow *w)
 	gtk_widget_set_halign(menubar, GTK_ALIGN_FILL);
 	return menubar;
 }
+
+void freeMenubar(GtkWidget *mb)
+{
+	// TODO
+}

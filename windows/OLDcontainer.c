@@ -21,9 +21,7 @@ static void paintControlBackground(HWND hwnd, HDC dc)
 
 	parent = hwnd;
 	for (;;) {
-		parent = GetParent(parent);
-		if (parent == NULL)
-			logLastError("error getting parent control of control in paintControlBackground()");
+		parent = GetAncestor(parent, GA_PARENT);
 		// wine sends these messages early, yay...
 		if (parent == initialOSContainer)
 			return;

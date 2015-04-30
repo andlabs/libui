@@ -97,6 +97,7 @@ static void windowShow(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
+	// TODO making it key and ordering it front makes it foreground; see if there's just a generic "orderIn:" that doesn't affect Z-order
 	[w->window makeKeyAndOrderFront:w->window];
 	w->hidden = 0;
 }

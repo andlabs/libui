@@ -19,7 +19,8 @@
 - forbid free(NULL) to check for bugs
 - opposite side alignment control in uiBox
 - disabling containers on wine doesn't redraw children as disabled
-	- TODO test on real windows
+	- test on real windows
+- collapse multiple consecutive menu separators?
 
 ultimately:
 - add some sort of runtime type checking

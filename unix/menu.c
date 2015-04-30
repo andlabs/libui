@@ -224,7 +224,6 @@ uiMenuItem *menuAppendAboutItem(uiMenu *mm)
 
 void menuAppendSeparator(uiMenu *mm)
 {
-	// TODO check multiple about items
 	newItem((struct menu *) mm, typeSeparator, NULL);
 }
 

@@ -111,7 +111,8 @@ enum {
 	// next are the three hiding options
 	title = [@"Hide " stringByAppendingString:appName];
 	item = [[NSMenuItem alloc] initWithTitle:title action:@selector(hide:) keyEquivalent:@"h"];
-	// TODO set target for all three of these? the .xib file says they go to -1 ("First Responder", which sounds wrong...)
+	// the .xib file says they go to -1 ("First Responder", which sounds wrong...)
+	// to do that, we simply leave the target as nil
 	[appMenu addItem:item];
 	item = [[NSMenuItem alloc] initWithTitle:@"Hide Others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
 	[item setKeyEquivalentModifierMask:(NSAlternateKeyMask | NSCommandKeyMask)];

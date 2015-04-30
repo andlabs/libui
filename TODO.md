@@ -23,4 +23,5 @@
 
 ultimately:
 - add some sort of runtime type checking
-- MAYBE readd lifetime blocking
+- MAYBE readd lifetime handling/destruction blocking
+- figure out how to integrate leak checking into the source tree

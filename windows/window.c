@@ -6,6 +6,7 @@
 struct window {
 	uiWindow w;
 	HWND hwnd;
+	HMENU menubar;
 	uiContainer *bin;
 	int hidden;
 	BOOL shownOnce;
@@ -226,7 +227,6 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	RECT adjust;
 	WCHAR *wtitle;
 	BOOL hasMenubarBOOL;
-	HMENU hmenu;
 
 	w = uiNew(struct window);
 
@@ -260,8 +260,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	binSetParent(w->bin, (uintptr_t) (w->hwnd));
 
 	if (hasMenubar) {
-		hmenu = makeMenubar();
-		if (SetMenu(w->hwnd, hmenu) == 0)
+		w->menubar = makeMenubar();
+		if (SetMenu(w->hwnd, w->menubar) == 0)
 			logLastError("error giving menu to window in uiNewWindow()");
 	}
 

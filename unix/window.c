@@ -48,8 +48,9 @@ static void windowDestroy(uiControl *c)
 	// now destroy the bin
 	// the bin has no parent, so we can just call uiControlDestroy()
 	uiControlDestroy(uiControl(w->bin));
-	// now destroy the menus
-	freeMenubar(w->menubar);
+	// now destroy the menus, if any
+	if (w->menubar != NULL)
+		freeMenubar(w->menubar);
 	// now destroy ourselves
 	// this will also free the vbox
 	gtk_widget_destroy(w->widget);

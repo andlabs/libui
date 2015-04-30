@@ -7,6 +7,9 @@ static uintmax_t len = 0;
 static uintmax_t cap = 0;
 static BOOL menusFinalized = FALSE;
 static WORD curID = 100;			// start somewhere safe
+static BOOL hasQuit = FALSE;
+static BOOL hasPreferences = FALSE;
+static BOOL hasAbout = FALSE;
 
 struct menu {
 	uiMenu m;
@@ -180,28 +183,33 @@ uiMenuItem *menuAppendCheckItem(uiMenu *mm, const char *name)
 
 uiMenuItem *menuAppendQuitItem(uiMenu *mm)
 {
-	// TODO check multiple quit items
+	if (hasQuit)
+		complain("attempt to add multiple Quit menu items");
+	hasQuit = TRUE;
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typeQuit, NULL);
 }
 
 uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
 {
-	// TODO check multiple preferences items
+	if (hasPreferences)
+		complain("attempt to add multiple Preferences menu items");
+	hasPreferences = TRUE;
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typePreferences, NULL);
 }
 
 uiMenuItem *menuAppendAboutItem(uiMenu *mm)
 {
-	// TODO check multiple about items
+	if (hasAbout)
+		complain("attempt to add multiple About menu items");
+	hasAbout = TRUE;
 	newItem((struct menu *) mm, typeSeparator, NULL);
 	return newItem((struct menu *) mm, typeAbout, NULL);
 }
 
 void menuAppendSeparator(uiMenu *mm)
 {
-	// TODO check multiple about items
 	newItem((struct menu *) mm, typeSeparator, NULL);
 }
 

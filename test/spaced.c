@@ -36,6 +36,7 @@ void setSpaced(int spaced)
 {
 	uintmax_t i;
 	void *p;
+	uintmax_t j, n;
 
 	for (i = 0; i < len; i++) {
 		p = things[i].ptr;
@@ -47,7 +48,9 @@ void setSpaced(int spaced)
 			uiBoxSetPadded(uiBox(p), spaced);
 			break;
 		case tab:
-			// TODO
+			n = uiTabNumPages(uiTab(p));
+			for (j = 0; j < n; j++)
+				uiTabSetMargined(uiTab(p), j, spaced);
 			break;
 		}
 	}
@@ -59,26 +62,29 @@ void querySpaced(char out[12])		// more than enough
 	int p = 0;
 	uintmax_t i;
 	void *pp;
+	uintmax_t j, n;
 
 	for (i = 0; i < len; i++) {
 		pp = things[i].ptr;
 		switch (things[i].type) {
 		case window:
-			m = uiWindowMargined(uiWindow(pp));
+			if (uiWindowMargined(uiWindow(pp)))
+				m++;
 			break;
 		case box:
 			p = uiBoxPadded(uiBox(pp));
 			break;
+		case tab:
+			n = uiTabNumPages(uiTab(pp));
+			for (j = 0; j < n; j++)
+				if (uiTabMargined(uiTab(pp), j))
+					m++;
 		}
-		if (m && p)		// cheap attempt at breaking early
-			break;
 	}
 
 	out[0] = 'm';
 	out[1] = ' ';
-	out[2] = '0';
-	if (m)
-		out[2] = '1';
+	out[2] = '0' + m;
 	out[3] = ' ';
 	out[4] = 'p';
 	out[5] = ' ';

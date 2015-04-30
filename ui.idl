@@ -111,6 +111,9 @@ interface Tab from Control {
 	// TODO remove Page from these?
 	func AppendPage(name *const char, c *Control);
 	func DeletePage(index uintmax_t);
+	func NumPages(void) uintmax_t;
+	func Margined(page uintmax_t) int;
+	func SetMargined(page uintmax_t, margined int);
 };
 func NewTab(void) *Tab;
 

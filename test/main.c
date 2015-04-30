@@ -27,9 +27,7 @@ int main(int argc, char *argv[])
 
 	memset(&o, 0, sizeof (uiInitOptions));
 	for (i = 1; i < argc; i++)
-		if (strcmp(argv[i], "leaks") == 0)
-			o.debugLogAllocations = 1;
-		else {
+{//TODO		else {
 			fprintf(stderr, "%s: unrecognized option %s\n", argv[0], argv[i]);
 			return 1;
 		}

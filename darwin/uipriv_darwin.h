@@ -9,22 +9,6 @@
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
 #define fromNSString(str) [(str) UTF8String]
 
-#define uiLogObjCClassAllocations \
-+ (id)alloc \
-{ \
-	id thing; \
-	thing = [super alloc]; \
-	if (options.debugLogAllocations) \
-		fprintf(stderr, "%p alloc %s\n", thing, [[self className] UTF8String]); \
-	return thing; \
-} \
-- (void)dealloc \
-{ \
-	[super dealloc]; \
-	if (options.debugLogAllocations) \
-		fprintf(stderr, "%p free\n", self); \
-}
-
 // These are based on measurements from Interface Builder.
 // These seem to be based on Auto Layout constants, but I don't see an API that exposes these...
 #define macXMargin 20

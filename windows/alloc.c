@@ -17,8 +17,6 @@ void *uiAlloc(size_t size, const char *type)
 		abort();
 	}
 	ZeroMemory(out, size);
-	if (options.debugLogAllocations)
-		fprintf(stderr, "%p alloc %s\n", out, type);
 	return out;
 }
 
@@ -34,8 +32,6 @@ void *uiRealloc(void *p, size_t size, const char *type)
 		abort();
 	}
 	// TODO zero the extra memory
-	if (options.debugLogAllocations)
-		fprintf(stderr, "%p realloc %p\n", p, out);
 	return out;
 }
 
@@ -44,6 +40,4 @@ void uiFree(void *p)
 	if (p == NULL)
 		return;
 	free(p);
-	if (options.debugLogAllocations)
-		fprintf(stderr, "%p free\n", p);
 }

@@ -14,8 +14,6 @@
 
 @implementation containerView
 
-// TODO allocation logger
-
 - (void)setContainer:(uiContainer *)cc
 {
 	self->c = cc;

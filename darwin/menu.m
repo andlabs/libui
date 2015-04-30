@@ -28,8 +28,6 @@ enum {
 
 @implementation menuManager
 
-// TODO allocation logger
-
 - (id)init
 {
 	self = [super init];

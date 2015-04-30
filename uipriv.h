@@ -3,6 +3,7 @@
 
 extern uiInitOptions options;
 
+// TODO remove the type name arguments
 extern void *uiAlloc(size_t, const char *);
 #define uiNew(T) ((T *) uiAlloc(sizeof (T), #T ))
 extern void *uiRealloc(void *, size_t, const char *);

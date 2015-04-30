@@ -13,8 +13,6 @@
 
 @implementation uipCheckboxDelegate
 
-uiLogObjCClassAllocations
-
 - (IBAction)checkboxToggled:(id)sender
 {
 	(*(self->onToggled))(self->c, self->onToggledData);

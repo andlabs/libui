@@ -13,8 +13,6 @@
 
 @implementation uipButtonDelegate
 
-uiLogObjCClassAllocations
-
 - (IBAction)buttonClicked:(id)sender
 {
 	(*(self->onClicked))(self->b, self->onClickedData);

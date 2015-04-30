@@ -27,8 +27,6 @@ G_DEFINE_TYPE(containerWidget, containerWidget, GTK_TYPE_CONTAINER)
 
 static void containerWidget_init(containerWidget *c)
 {
-	if (options.debugLogAllocations)
-		fprintf(stderr, "%p alloc containerWidget\n", c);
 	c->widgets = g_ptr_array_new();
 	gtk_widget_set_has_window(GTK_WIDGET(c), FALSE);
 }
@@ -44,8 +42,6 @@ static void containerWidget_finalize(GObject *obj)
 
 	g_ptr_array_unref(c->widgets);
 	G_OBJECT_CLASS(containerWidget_parent_class)->finalize(obj);
-	if (options.debugLogAllocations)
-		fprintf(stderr, "%p free\n", obj);
 }
 
 static void containerWidget_add(GtkContainer *container, GtkWidget *widget)

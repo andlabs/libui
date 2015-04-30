@@ -12,8 +12,6 @@
 
 @implementation windowDelegate
 
-// TODO allocation logging
-
 - (void)setuiWindow:(uiWindow *)ww
 {
 	self->w = ww;

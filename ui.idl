@@ -20,10 +20,6 @@ raw "#endif";
 // TODO note that should be initialized to zero
 struct InitOptions {
 	// TODO cbSize
-
-	// If nonzero, allocations will be logged to stderr.
-	// See leaks.awk.
-	field debugLogAllocations int;
 };
 
 func Init(options *InitOptions) *const char;

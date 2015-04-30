@@ -12,14 +12,18 @@ static void destroy(void *data)
 {
 	struct tab *t = (struct tab *) data;
 
+	// first destroy all tab pages so we can destroy all the bins
+	while ([t->tabview numberOfTabViewItems] != 0)
+		[t->tabview removeTabViewItem:[t->tabview tabViewItemAtIndex:0]];
+	// then destroy all the bins, destroying children in the process
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
 		uiContainer *p;
 
-		// TODO this is definitely wrong but
 		p = (uiContainer *) [v pointerValue];
 		uiControlDestroy(uiControl(p));
 	}];
+	// and finally destroy ourselves
 	[t->pages release];
 	[t->margined release];
 	uiFree(t);
@@ -69,9 +73,12 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	// make sure the children of the tab aren't destroyed
 	binSetMainControl(p, NULL);
 
-	// TODO negotiate lifetimes better
+	// remove the bin from the tab view
 	i = [t->tabview tabViewItemAtIndex:n];
 	[t->tabview removeTabViewItem:i];
+
+	// then destroy the bin
+	uiControlDestroy(uiControl(p));
 }
 
 static uintmax_t tabNumPages(uiTab *tt)

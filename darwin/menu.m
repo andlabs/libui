@@ -3,6 +3,8 @@
 
 // general TODO: release Objective-C objects in dealloc since we can't use ARC
 
+// TODO menu finalization
+
 struct menu {
 	uiMenu m;
 	NSMenu *menu;
@@ -31,9 +33,13 @@ enum {
 - (id)init
 {
 	self = [super init];
-	if (self)
+	if (self) {
 		self->items = [NSMapTable mapTableWithKeyOptions:NSPointerFunctionsOpaqueMemory
 			valueOptions:NSPointerFunctionsOpaqueMemory];
+		self->hasQuit = NO;
+		self->hasPreferences = NO;
+		self->hasAbout = NO;
+	}
 	return self;
 }
 
@@ -61,6 +67,23 @@ enum {
 {
 	NSValue *v;
 
+	switch (smi->type) {
+	case typeQuit:
+		if (self->hasQuit)
+			complain("attempt to add multiple Quit menu items");
+		self->hasQuit = YES;
+		break;
+	case typePreferences:
+		if (self->hasPreferences)
+			complain("attempt to add multiple Preferences menu items");
+		self->hasPreferences = YES;
+		break;
+	case typeAbout:
+		if (self->hasAbout)
+			complain("attempt to add multiple About menu items");
+		self->hasAbout = YES;
+		break;
+	}
 	v = [NSValue valueWithPointer:smi];
 	[self->items setObject:v forKey:item];
 }
@@ -243,31 +266,24 @@ uiMenuItem *menuAppendCheckItem(uiMenu *mm, const char *name)
 
 uiMenuItem *menuAppendQuitItem(uiMenu *mm)
 {
-	// TODO check multiple quit items
-	// TODO conditionally add separator
-	newItem((struct menu *) mm, typeSeparator, NULL);
+	// duplicate check is in the register:to: selector
 	return newItem((struct menu *) mm, typeQuit, NULL);
 }
 
 uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
 {
-	// TODO check multiple preferences items
-	// TODO conditionally add separator
-	newItem((struct menu *) mm, typeSeparator, NULL);
+	// duplicate check is in the register:to: selector
 	return newItem((struct menu *) mm, typePreferences, NULL);
 }
 
 uiMenuItem *menuAppendAboutItem(uiMenu *mm)
 {
-	// TODO check multiple about items
-	// TODO conditionally add separator
-	newItem((struct menu *) mm, typeSeparator, NULL);
+	// duplicate check is in the register:to: selector
 	return newItem((struct menu *) mm, typeAbout, NULL);
 }
 
 void menuAppendSeparator(uiMenu *mm)
 {
-	// TODO check multiple about items
 	newItem((struct menu *) mm, typeSeparator, NULL);
 }
 

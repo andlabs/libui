@@ -18,6 +18,9 @@
 @interface menuManager : NSObject {
 	// unfortunately NSMutableDictionary copies its keys, meaning we can't use it for pointers
 	NSMapTable *items;
+	BOOL hasQuit;
+	BOOL hasPreferences;
+	BOOL hasAbout;
 }
 @property (strong) NSMenuItem *quitItem;
 @property (strong) NSMenuItem *preferencesItem;

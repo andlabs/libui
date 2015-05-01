@@ -1,8 +1,6 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
-// TODO DllMain()
-
 HINSTANCE hInstance;
 int nCmdShow;
 
@@ -66,10 +64,6 @@ const char *uiInit(uiInitOptions *o)
 
 	options = *o;
 
-	hInstance = GetModuleHandle(NULL);
-	if (hInstance == NULL)
-		return loadLastError("getting program HINSTANCE");
-
 	nCmdShow = SW_SHOWDEFAULT;
 	GetStartupInfoW(&si);
 	if ((si.dwFlags & STARTF_USESHOWWINDOW) != 0)
@@ -111,4 +105,17 @@ const char *uiInit(uiInitOptions *o)
 void uiFreeInitError(const char *err)
 {
 	uiFree((void *) err);
+}
+
+// TODO consider DisableThreadLibraryCalls() (will require removing ALL C runtime calls)
+// TODO make sure this is the correct name for C runtime initialization (CHECK MSDN OR THE HEADERS)
+// TODO can hinstDLL ever change?
+// TODO handle DLL_PROCESS_DETACH?
+// TODO __declspec(dllexport)?
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+	if (fdwReason == DLL_PROCESS_ATTACH)
+		hInstance = hinstDLL;
+	// TODO provide a cleanup function
+	return TRUE;
 }

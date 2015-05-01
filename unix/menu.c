@@ -275,7 +275,6 @@ static void appendMenuItem(GtkMenuShell *submenu, struct menuItem *item, uiWindo
 	g_hash_table_insert(item->windows, menuitem, ww);
 }
 
-// TODO should this return a zero-height widget (or NULL) if there are no menus defined?
 GtkWidget *makeMenubar(uiWindow *w)
 {
 	GtkWidget *menubar;

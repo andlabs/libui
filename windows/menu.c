@@ -264,7 +264,6 @@ static HMENU makeMenu(struct menu *m)
 	return menu;
 }
 
-// TODO should this return a zero-height widget (or NULL) if there are no menus defined?
 HMENU makeMenubar(void)
 {
 	HMENU menubar;

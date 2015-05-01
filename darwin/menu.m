@@ -123,7 +123,7 @@ enum {
 	[appMenu addItem:[NSMenuItem separatorItem]];
 
 	// and finally Quit
-	// DON'T use @selector(terminate:) as the action; we handle termination ourselves (TODO figure out how)
+	// DON'T use @selector(terminate:) as the action; we handle termination ourselves
 	title = [@"Quit " stringByAppendingString:appName];
 	item = [[NSMenuItem alloc] initWithTitle:title action:@selector(onClicked:) keyEquivalent:@"q"];
 	[item setTarget:self];

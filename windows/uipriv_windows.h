@@ -38,9 +38,6 @@ enum {
 	msgCanDestroyNow,
 };
 
-#define HWND(c) ((HWND) uiControlHandle(uiControl(c)))
-#define uiOSContainerHWND(p) ((HWND) uiOSContainerHandle(p))
-
 // debug.c
 extern HRESULT logLastError(const char *);
 extern HRESULT logHRESULT(const char *, HRESULT);

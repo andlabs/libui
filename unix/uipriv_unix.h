@@ -8,8 +8,6 @@
 #include "../ui_unix.h"
 #include "../uipriv.h"
 
-// TODO clean up all of these uipriv files
-
 #define gtkXMargin 12
 #define gtkYMargin 12
 

@@ -49,7 +49,6 @@ enum {
 	[super dealloc];
 }
 
-// TODO make sure this is the right signature
 - (IBAction)onClicked:(id)sender
 {
 	struct menuItem *item;

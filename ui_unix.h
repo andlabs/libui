@@ -14,6 +14,9 @@ This file assumes that you have included <gtk/gtk.h> and "ui.h" beforehand. It p
 // The firstProperty parameter and beyond allow passing construct properties to the new control, as with g_object_new(); end this list with NULL.
 _UI_EXTERN void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*destroy)(void *), void *onDestroyData, const char *firstProperty, ...);
 
+// uiUnixStrdupText() takes the given string and produces a copy of it suitable for being freed by uiFreeText().
+extern char *uiUnixStrdupText(const char *);
+
 struct uiSizingSys {
 	// this structure currently left blank
 };

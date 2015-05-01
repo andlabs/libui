@@ -2,7 +2,7 @@
 #include "uipriv_unix.h"
 
 // TODO rename to uiUnixStrdupText()
-char *strdupText(const char *t)
+char *uiUnixStrdupText(const char *t)
 {
 	return g_strdup(t);
 }

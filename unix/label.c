@@ -18,7 +18,7 @@ static char *labelText(uiLabel *ll)
 {
 	struct label *l = (struct label *) ll;
 
-	return strdupText(gtk_label_get_text(l->label));
+	return uiUnixStrdupText(gtk_label_get_text(l->label));
 }
 
 static void labelSetText(uiLabel *ll, const char *text)

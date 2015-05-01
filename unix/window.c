@@ -121,7 +121,7 @@ static char *windowTitle(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
-	return strdupText(gtk_window_get_title(w->window));
+	return uiUnixStrdupText(gtk_window_get_title(w->window));
 }
 
 static void windowSetTitle(uiWindow *ww, const char *title)

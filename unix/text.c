@@ -1,7 +1,6 @@
 // 9 april 2015
 #include "uipriv_unix.h"
 
-// TODO rename to uiUnixStrdupText()
 char *uiUnixStrdupText(const char *t)
 {
 	return g_strdup(t);

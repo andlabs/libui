@@ -242,7 +242,7 @@ uiTab *uiNewTab(void)
 	p.onDestroyData = t;
 	uiWindowsNewControl(uiControl(t), &p);
 
-	t->hwnd = HWND(t);
+	t->hwnd = (HWND) uiControlHandle(uiControl(t));
 
 	if ((*fv_SetWindowSubclass)(t->hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");

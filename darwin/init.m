@@ -17,6 +17,8 @@
 
 	// for debugging
 	NSLog(@"in terminate:");
+
+	// TODO figure out what to do here
 }
 
 @end

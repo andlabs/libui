@@ -22,7 +22,7 @@ static void singleDestroy(uiControl *c)
 		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
 	// first call the widget's own destruction code
 	(*(s->onDestroy))(s->onDestroyData);
-	// then actually destroy (TODO sync these comments with the container and window ones)
+	// then actually destroy
 	g_object_unref(s->immediate);
 	// and free ourselves
 	uiFree(s);

@@ -303,8 +303,7 @@ void runMenuEvent(WORD id, uiWindow *w)
 		}
 	}
 	// no match
-	// TODO complain?
-	return;
+	complain("unknown menu ID %hu in runMenuEvent()", id);
 
 found:
 	umi = uiMenuItem(item);

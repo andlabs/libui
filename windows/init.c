@@ -64,6 +64,9 @@ const char *uiInit(uiInitOptions *o)
 
 	options = *o;
 
+	if (initAlloc() == 0)
+		return loadLastError("error initializing memory allocations");
+
 	nCmdShow = SW_SHOWDEFAULT;
 	GetStartupInfoW(&si);
 	if ((si.dwFlags & STARTF_USESHOWWINDOW) != 0)

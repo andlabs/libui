@@ -7,16 +7,23 @@
 // passing NULL to tableRealloc() acts like tableAlloc()
 // passing NULL to tableFree() is a no-op
 
+static HANDLE heap;
+
+BOOL initAlloc(void)
+{
+	heap = HeapCreate(0, 0, 0);
+	return heap != NULL;
+}
+
 void *uiAlloc(size_t size, const char *type)
 {
 	void *out;
 
-	out = malloc(size);
+	out = HeapAlloc(heap, HEAP_ZERO_MEMORY, size);
 	if (out == NULL) {
 		fprintf(stderr, "memory exhausted in uiAlloc() allocating %s\n", type);
 		abort();
 	}
-	ZeroMemory(out, size);
 	return out;
 }
 
@@ -26,12 +33,11 @@ void *uiRealloc(void *p, size_t size, const char *type)
 
 	if (p == NULL)
 		return uiAlloc(size, type);
-	out = realloc(p, size);
+	out = HeapReAlloc(heap, HEAP_ZERO_MEMORY, p, size);
 	if (out == NULL) {
 		fprintf(stderr, "memory exhausted in uiRealloc() reallocating %s\n", type);
 		abort();
 	}
-	// TODO zero the extra memory
 	return out;
 }
 
@@ -39,5 +45,6 @@ void uiFree(void *p)
 {
 	if (p == NULL)
 		return;
-	free(p);
+	if (HeapFree(heap, 0, p) == 0)
+		logLastError("error freeing memory in uiFree()");
 }

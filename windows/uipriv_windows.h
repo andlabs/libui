@@ -77,4 +77,4 @@ extern void runMenuEvent(WORD, uiWindow *);
 extern void freeMenubar(HMENU);
 
 // alloc.c
-extern BOOL initAlloc(void);
+extern int initAlloc(void);

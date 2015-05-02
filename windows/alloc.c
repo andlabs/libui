@@ -9,7 +9,7 @@
 
 static HANDLE heap;
 
-BOOL initAlloc(void)
+int initAlloc(void)
 {
 	heap = HeapCreate(0, 0, 0);
 	return heap != NULL;

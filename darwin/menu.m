@@ -96,6 +96,7 @@ enum {
 	NSMenu *appMenu;
 	NSMenuItem *item;
 	NSString *title;
+	NSMenu *servicesMenu;
 
 	appName = [[NSProcessInfo processInfo] processName];
 	appMenuItem = [[NSMenuItem alloc] initWithTitle:appName action:NULL keyEquivalent:@""];
@@ -126,7 +127,10 @@ enum {
 
 	// next is Services
 	item = [[NSMenuItem alloc] initWithTitle:@"Services" action:NULL keyEquivalent:@""];
-	// TODO build this part
+	servicesMenu = [[NSMenu alloc] initWithTitle:@"Services"];
+	[item setSubmenu:servicesMenu];
+	[NSApp setServicesMenu:servicesMenu];
+	[appMenu addItem:item];
 
 	[appMenu addItem:[NSMenuItem separatorItem]];
 

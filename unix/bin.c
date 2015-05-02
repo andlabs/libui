@@ -1,8 +1,6 @@
 // 28 april 2015
 #include "uipriv_unix.h"
 
-// TODO find a way to consolidate duplicate code across OSs
-
 struct bin {
 	uiContainer c;
 	void (*baseDestroy)(uiControl *);
@@ -18,7 +16,6 @@ void binDestroy(uiControl *c)
 	struct bin *b = (struct bin *) c;
 	GtkWidget *binWidget;
 
-	// TODO find a way to move the parented check here
 	// ensure clean removal by making sure the bin has no OS parent
 	binWidget = GTK_WIDGET(uiControlHandle(uiControl(b)));
 	if (gtk_widget_get_parent(binWidget) != NULL)
@@ -38,7 +35,6 @@ void binPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *heig
 	struct bin *b = (struct bin *) c;
 	intmax_t marginX, marginY;
 
-	// TODO have the margins count even if no control?
 	if (b->mainControl == NULL) {
 		*width = 0;
 		*height = 0;

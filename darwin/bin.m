@@ -15,7 +15,6 @@ void binDestroy(uiControl *c)
 {
 	struct bin *b = (struct bin *) c;
 
-	// TODO find a way to move the parented check here
 	// we can't check for an OS parent here because what we're working with with bin isn't subviews but rather content views (at least I think... TODO)
 	// don't chain up to base here; we need to destroy children ourselves first
 	if (b->mainControl != NULL) {
@@ -32,7 +31,6 @@ void binPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *heig
 	struct bin *b = (struct bin *) c;
 	intmax_t marginX, marginY;
 
-	// TODO have the margins count even if no control?
 	if (b->mainControl == NULL) {
 		*width = 0;
 		*height = 0;

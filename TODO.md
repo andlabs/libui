@@ -35,6 +35,10 @@
 - make sure complain()s don't have \n at the end; add one on each platform
 	- add a `[libui]` to the beginning of the message
 - figure out what to do on Windows and GTK+ if we don't have menus but the user wants a menubar (zero-height widget? don't bother? complain?)
+- bin.c
+	- find a way to consolidate the duplicate code across OSs
+	- find a way to move the has parent check at the beginning of binDestroy()
+	- determine whether or not margins count in preferredSize() when there is no main control
 
 ultimately:
 - add some sort of runtime type checking

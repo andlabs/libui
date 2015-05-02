@@ -16,7 +16,6 @@ void binDestroy(uiControl *c)
 	struct bin *b = (struct bin *) c;
 	HWND hwnd;
 
-	// TODO find a way to move the parented check here
 	// ensure clean removal by making sure the bin has no OS parent
 	hwnd = (HWND) uiControlHandle(uiControl(b));
 	if (GetAncestor(hwnd, GA_PARENT) != NULL)
@@ -36,7 +35,6 @@ void binPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *heig
 	struct bin *b = (struct bin *) c;
 	intmax_t marginX, marginY;
 
-	// TODO have the margins count even if no control?
 	if (b->mainControl == NULL) {
 		*width = 0;
 		*height = 0;

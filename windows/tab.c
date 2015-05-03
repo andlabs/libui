@@ -81,10 +81,10 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 		}
 	}
 	// otherwise just use the rect [0 0 0 0]
+	// the following will take the tabs themselves into account
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) TRUE, (LPARAM) (&r));
 	*width = r.right - r.left;
 	*height = r.bottom - r.top;
-	// TODO does ths include the tabs themselves on windows? they do on wine
 }
 
 // common code for resizes

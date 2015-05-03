@@ -8,7 +8,7 @@ void *uiAlloc(size_t size)
 
 	out = malloc(size);
 	if (out == NULL) {
-		fprintf(stderr, "memory exhausted in uiAlloc() allocating %s\n", type);
+		fprintf(stderr, "memory exhausted in uiAlloc()\n");
 		abort();
 	}
 	memset(out, 0, size);
@@ -23,7 +23,7 @@ void *uiRealloc(void *p, size_t size)
 		return uiAlloc(size);
 	out = realloc(p, size);
 	if (out == NULL) {
-		fprintf(stderr, "memory exhausted in uiRealloc() reallocating %s\n", type);
+		fprintf(stderr, "memory exhausted in uiRealloc()\n");
 		abort();
 	}
 	// TODO zero the extra memory

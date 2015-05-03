@@ -42,6 +42,8 @@
 - menu item state change while the menu is visible (not in response to user action)
 - figure out where we should return HRESULTs
 - Windows: don't abort if a cleanup function fails?
+- should uiWindowOnClosing() really return an int?
+	- if so, should the default return 0 instead of 1?
 
 ultimately:
 - add some sort of runtime type checking

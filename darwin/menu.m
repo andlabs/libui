@@ -15,6 +15,7 @@ struct menuItem {
 	uiMenuItem mi;
 	NSMenuItem *item;
 	int type;
+	BOOL disabled;
 	void (*onClicked)(uiMenuItem *, uiWindow *, void *);
 	void *onClickedData;
 };
@@ -87,6 +88,27 @@ enum {
 	[self->items setObject:v forKey:item];
 }
 
+// on OS X there are two ways to handle menu items being enabled or disabled: automatically and manually
+// unfortunately, the application menu requires automatic menu handling for the Hide, Hide Others, and Show All items to work correctly
+// therefore, we have to handle enabling of the other options ourselves
+- (BOOL)validateMenuItem:(NSMenuItem *)item
+{
+	struct menuItem *item;
+	NSValue *v;
+
+	// disable the special items if they aren't present
+	if (item == self.quitItem && !self.hasQuit)
+		return NO;
+	if (item == self.prefsItem && !self.hasPreferences)
+		return NO;
+	if (item == self.aboutItem && !self.hasAbout)
+		return NO;
+	// then poll the item's enabled/disabled state
+	v = (NSValue *) [self->items objectForKey:sender];
+	item = (struct menuItem *) [v pointerValue];
+	return !item->disabled;
+}
+
 // Cocoa constructs the default application menu by hand for each program; that's what MainMenu.[nx]ib does
 // TODO investigate setAppleMenu:
 - (void)buildApplicationMenu:(NSMenu *)menubar
@@ -101,8 +123,6 @@ enum {
 	appName = [[NSProcessInfo processInfo] processName];
 	appMenuItem = [[NSMenuItem alloc] initWithTitle:appName action:NULL keyEquivalent:@""];
 	appMenu = [[NSMenu alloc] initWithTitle:appName];
-	// TODO this is not safe for the items we don't care about
-	[appMenu setAutoenablesItems:NO];
 	[appMenuItem setSubmenu:appMenu];
 	[menubar addItem:appMenuItem];
 
@@ -178,7 +198,10 @@ static void menuItemEnable(uiMenuItem *ii)
 {
 	struct menuItem *item = (struct menuItem *) ii;
 
+	// TODO get rid of this entirely and just use the validation
 	[item->item setEnabled:YES];
+	item->disabled = NO;
+	// we don't need to explicitly update the menus here; they'll be updated the next time they're opened (thanks mikeash in irc.freenode.net/#macdev)
 }
 
 static void menuItemDisable(uiMenuItem *ii)
@@ -186,6 +209,7 @@ static void menuItemDisable(uiMenuItem *ii)
 	struct menuItem *item = (struct menuItem *) ii;
 
 	[item->item setEnabled:NO];
+	item->disabled = YES;
 }
 
 static void menuItemOnClicked(uiMenuItem *ii, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)

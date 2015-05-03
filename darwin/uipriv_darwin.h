@@ -15,7 +15,7 @@
 #define macYMargin 20
 
 // menu.m
-@interface menuManager : NSObject {
+@interface menuManager : NSObject <NSMenuValidation> {
 	// unfortunately NSMutableDictionary copies its keys, meaning we can't use it for pointers
 	NSMapTable *items;
 	BOOL hasQuit;

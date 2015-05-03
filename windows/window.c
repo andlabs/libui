@@ -223,10 +223,32 @@ static void windowSetMargined(uiWindow *ww, int margined)
 		binSetMargins(w->bin, 0, 0, 0, 0);
 }
 
+// see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
+static void setClientSize(struct window *w, int width, int height, BOOL hasMenubar, DWORD style, DWORD exstyle)
+{
+	RECT window;
+
+	window.left = 0;
+	window.top = 0;
+	window.right = width;
+	window.bottom = height;
+	if (AdjustWindowRectEx(&window, style, hasMenubar, exstyle) == 0)
+		logLastError("error getting real window coordinates in setClientSize()");
+	if (hasMenubar) {
+		RECT temp;
+
+		temp = window;
+		temp.bottom = 0x7FFF;		// infinite height
+		SendMessageW(w->hwnd, WM_NCCALCSIZE, (WPARAM) FALSE, (LPARAM) (&temp));
+		window.bottom += temp.top;
+	}
+	if (SetWindowPos(w->hwnd, NULL, 0, 0, window.right - window.left, window.bottom - window.top, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
+		logLastError("error resizing window in setClientSize()");
+}
+
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	struct window *w;
-	RECT adjust;
 	WCHAR *wtitle;
 	BOOL hasMenubarBOOL;
 
@@ -239,20 +261,15 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 #define style WS_OVERLAPPEDWINDOW
 #define exstyle 0
 
-	adjust.left = 0;
-	adjust.top = 0;
-	adjust.right = width;
-	adjust.bottom = height;
-	// TODO does not handle menu wrapping; see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx
-	if (AdjustWindowRectEx(&adjust, style, hasMenubarBOOL, exstyle) == 0)
-		logLastError("error getting real window coordinates in uiNewWindow()");
-
 	wtitle = toUTF16(title);
 	w->hwnd = CreateWindowExW(exstyle,
 		windowClass, wtitle,
 		style,
 		CW_USEDEFAULT, CW_USEDEFAULT,
-		adjust.right - adjust.left, adjust.bottom - adjust.top,
+		// use the raw width and height for now
+		// this will get CW_USEDEFAULT (hopefully) predicting well
+		// even if it doesn't, we're adjusting it later
+		width, height,
 		NULL, NULL, hInstance, w);
 	if (w->hwnd == NULL)
 		logLastError("error creating window in uiWindow()");
@@ -266,6 +283,9 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		if (SetMenu(w->hwnd, w->menubar) == 0)
 			logLastError("error giving menu to window in uiNewWindow()");
 	}
+
+	// and use the proper size
+	setClientSize(w, width, height, hasMenubarBOOL, style, exstyle);
 
 	w->onClosing = defaultOnClosing;
 

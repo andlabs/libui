@@ -1,8 +1,6 @@
 // 9 april 2015
 #include "uipriv_windows.h"
 
-// TODO figure out how to integreate HRESULT into this
-
 // see http://stackoverflow.com/a/29556509/3408572
 
 #define MBTWC(str, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, bufsiz)

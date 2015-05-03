@@ -39,6 +39,7 @@
 	- find a way to consolidate the duplicate code across OSs
 	- find a way to move the has parent check at the beginning of binDestroy()
 	- determine whether or not margins count in preferredSize() when there is no main control
+- menu item state change while the menu is visible
 
 ultimately:
 - add some sort of runtime type checking

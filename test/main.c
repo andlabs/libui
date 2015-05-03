@@ -30,10 +30,13 @@ int main(int argc, char *argv[])
 	const char *err;
 	uiWindow *w;
 	uiBox *page2;
+	int nomenus = 0;
 
 	memset(&o, 0, sizeof (uiInitOptions));
 	for (i = 1; i < argc; i++)
-{//TODO		else {
+		if (strcmp(argv[i], "nomenus") == 0)
+			nomenus = 1;
+		else {
 			fprintf(stderr, "%s: unrecognized option %s\n", argv[0], argv[i]);
 			return 1;
 		}
@@ -45,7 +48,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	initMenus();
+	if (!nomenus)
+		initMenus();
 
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);

@@ -111,10 +111,6 @@ void uiFreeInitError(const char *err)
 }
 
 // TODO consider DisableThreadLibraryCalls() (will require removing ALL C runtime calls)
-// TODO make sure this is the correct name for C runtime initialization (CHECK MSDN OR THE HEADERS)
-// TODO can hinstDLL ever change?
-// TODO handle DLL_PROCESS_DETACH?
-// TODO __declspec(dllexport)?
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
 	if (fdwReason == DLL_PROCESS_ATTACH)

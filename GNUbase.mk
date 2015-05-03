@@ -45,7 +45,7 @@ $(OBJDIR)/%.o: %.m $(xHFILES) | $$(dir $$@).phony
 .PRECIOUS: %/.phony
 
 ui.h: ui.idl
-	idl2h -extern _UI_EXTERN < ui.idl > ui.h
+	idl2h -extern _UI_EXTERN -guard __UI_UI_H__ < ui.idl > ui.h
 
 clean:
 	rm -rf $(OUTDIR) $(OBJDIR) ui.h

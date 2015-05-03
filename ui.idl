@@ -6,11 +6,6 @@
 
 package ui {
 
-// TODO autogenerate this somehow
-// TODO alternatively, move AFTER typedefs
-raw "#ifndef __UI_UI_H__";
-raw "#define __UI_UI_H__";
-
 raw "#include <stdint.h>";
 
 raw "#ifndef _UI_EXTERN";
@@ -132,7 +127,5 @@ interface MenuItem {
 	func Checked(void) int;
 	func SetChecked(checked int);
 };
-
-raw "#endif";
 
 };

@@ -3,7 +3,13 @@
 
 void die(const char *fmt, ...)
 {
-	// TODO
+	va_list ap;
+
+	va_start(ap, fmt);
+	fprintf(stderr, "[test program] ");
+	vfprintf(stderr, fmt, ap);
+	fprintf(stderr, "\n");
+	va_end(ap);
 	abort();
 }
 

@@ -34,7 +34,7 @@ uiEntry *uiNewEntry(void)
 
 	e = uiNew(struct entry);
 
-	uiUnixNewControl(uiControl(e), GTK_TYPE_ENTRY,
+	uiUnixMakeControl(uiControl(e), GTK_TYPE_ENTRY,
 		FALSE, FALSE, onDestroy, e,
 		NULL);
 

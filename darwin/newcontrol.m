@@ -124,7 +124,7 @@ static void singleDisable(uiControl *c)
 		[((NSControl *) (s->view)) setEnabled:NO];
 }
 
-void uiDarwinNewControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void (*onDestroy)(void *), void *onDestroyData)
+void uiDarwinMakeControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void (*onDestroy)(void *), void *onDestroyData)
 {
 	singleView *s;
 

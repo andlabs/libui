@@ -46,7 +46,7 @@ static void entrySetText(uiEntry *e, const char *text)
 uiEntry *uiNewEntry(void)
 {
 	struct entry *e;
-	uiWindowsNewControlParams p;
+	uiWindowsMakeControlParams p;
 
 	e = uiNew(struct entry);
 
@@ -60,7 +60,7 @@ uiEntry *uiNewEntry(void)
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = e;
-	uiWindowsNewControl(uiControl(e), &p);
+	uiWindowsMakeControl(uiControl(e), &p);
 
 	e->hwnd = (HWND) uiControlHandle(uiControl(e));
 

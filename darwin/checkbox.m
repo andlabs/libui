@@ -96,7 +96,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c = uiNew(struct checkbox);
 
-	uiDarwinNewControl(uiControl(c), [NSButton class], NO, NO, destroy, c);
+	uiDarwinMakeControl(uiControl(c), [NSButton class], NO, NO, destroy, c);
 
 	c->checkbox = (NSButton *) uiControlHandle(uiControl(c));
 

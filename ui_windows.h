@@ -7,10 +7,10 @@ This file assumes that you have included <windows.h> and "ui.h" beforehand. It p
 #ifndef __UI_UI_WINDOWS_H__
 #define __UI_UI_WINDOWS_H__
 
-// uiWindowsNewControl() initializes the given uiControl with the given Windows API control inside.
+// uiWindowsMakeControl() initializes the given uiControl with the given Windows API control inside.
 // You will need to provide the preferredSize() method yourself.
-typedef struct uiWindowsNewControlParams uiWindowsNewControlParams;
-struct uiWindowsNewControlParams {
+typedef struct uiWindowsMakeControlParams uiWindowsMakeControlParams;
+struct uiWindowsMakeControlParams {
 	// These match the CreateWindowExW() function.
 	DWORD dwExStyle;
 	LPCWSTR lpClassName;
@@ -33,7 +33,7 @@ struct uiWindowsNewControlParams {
 	void (*onDestroy)(void *data);
 	void *onDestroyData;
 };
-void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p);
+void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p);
 
 // This contains the Windows-specific parts of the uiSizing structure.
 // baseX and baseY are the dialog base units.

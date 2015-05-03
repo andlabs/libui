@@ -81,7 +81,7 @@ static void buttonOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *d
 uiButton *uiNewButton(const char *text)
 {
 	struct button *b;
-	uiWindowsNewControlParams p;
+	uiWindowsMakeControlParams p;
 	WCHAR *wtext;
 
 	b = uiNew(struct button);
@@ -97,7 +97,7 @@ uiButton *uiNewButton(const char *text)
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = b;
-	uiWindowsNewControl(uiControl(b), &p);
+	uiWindowsMakeControl(uiControl(b), &p);
 	uiFree(wtext);
 
 	b->hwnd = (HWND) uiControlHandle(uiControl(b));

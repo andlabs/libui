@@ -124,7 +124,7 @@ static void singleDisable(uiControl *c)
 	gtk_widget_set_sensitive(s->immediate, FALSE);
 }
 
-void uiUnixNewControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*onDestroy)(void *), void *onDestroyData, const char *firstProperty, ...)
+void uiUnixMakeControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*onDestroy)(void *), void *onDestroyData, const char *firstProperty, ...)
 {
 	singleWidget *s;
 	va_list ap;

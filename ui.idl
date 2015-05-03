@@ -56,7 +56,6 @@ interface Container from Control {
 	func ResizeChildren(x intmax_t, y intmax_t, width intmax_t, height intmax_t, d *Sizing);
 	func Update(void);
 };
-// TODO change the various OS-side control functions to be Make
 func MakeContainer(c *Container);
 
 interface Window from Control {

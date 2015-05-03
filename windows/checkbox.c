@@ -96,7 +96,7 @@ static void checkboxSetChecked(uiCheckbox *cc, int checked)
 uiCheckbox *uiNewCheckbox(const char *text)
 {
 	struct checkbox *c;
-	uiWindowsNewControlParams p;
+	uiWindowsMakeControlParams p;
 	WCHAR *wtext;
 
 	c = uiNew(struct checkbox);
@@ -112,7 +112,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = c;
-	uiWindowsNewControl(uiControl(c), &p);
+	uiWindowsMakeControl(uiControl(c), &p);
 	uiFree(wtext);
 
 	c->hwnd = (HWND) uiControlHandle(uiControl(c));

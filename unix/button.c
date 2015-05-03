@@ -56,7 +56,7 @@ uiButton *uiNewButton(const char *text)
 
 	b = uiNew(struct button);
 
-	uiUnixNewControl(uiControl(b), GTK_TYPE_BUTTON,
+	uiUnixMakeControl(uiControl(b), GTK_TYPE_BUTTON,
 		FALSE, FALSE, onDestroy, b,
 		"label", text,
 		NULL);

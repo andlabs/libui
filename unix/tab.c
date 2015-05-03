@@ -112,7 +112,7 @@ uiTab *uiNewTab(void)
 
 	t = uiNew(struct tab);
 
-	uiUnixNewControl(uiControl(t), GTK_TYPE_NOTEBOOK,
+	uiUnixMakeControl(uiControl(t), GTK_TYPE_NOTEBOOK,
 		FALSE, FALSE, onDestroy, t,
 		NULL);
 

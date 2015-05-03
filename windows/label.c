@@ -47,7 +47,7 @@ static void labelSetText(uiLabel *l, const char *text)
 uiLabel *uiNewLabel(const char *text)
 {
 	struct label *l;
-	uiWindowsNewControlParams p;
+	uiWindowsMakeControlParams p;
 	WCHAR *wtext;
 
 	l = uiNew(struct label);
@@ -65,7 +65,7 @@ uiLabel *uiNewLabel(const char *text)
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = l;
-	uiWindowsNewControl(uiControl(l), &p);
+	uiWindowsMakeControl(uiControl(l), &p);
 	uiFree(wtext);
 
 	l->hwnd = (HWND) uiControlHandle(uiControl(l));

@@ -131,7 +131,7 @@ uiTab *uiNewTab(void)
 
 	t = uiNew(struct tab);
 
-	uiDarwinNewControl(uiControl(t), [NSTabView class], NO, NO, destroy, t);
+	uiDarwinMakeControl(uiControl(t), [NSTabView class], NO, NO, destroy, t);
 
 	t->tabview = (NSTabView *) uiControlHandle(uiControl(t));
 

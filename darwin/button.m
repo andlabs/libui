@@ -78,7 +78,7 @@ uiButton *uiNewButton(const char *text)
 
 	b = uiNew(struct button);
 
-	uiDarwinNewControl(uiControl(b), [NSButton class], NO, NO, destroy, b);
+	uiDarwinMakeControl(uiControl(b), [NSButton class], NO, NO, destroy, b);
 
 	b->button = (NSButton *) uiControlHandle(uiControl(b));
 

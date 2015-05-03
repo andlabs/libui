@@ -80,7 +80,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c = uiNew(struct checkbox);
 
-	uiUnixNewControl(uiControl(c), GTK_TYPE_CHECK_BUTTON,
+	uiUnixMakeControl(uiControl(c), GTK_TYPE_CHECK_BUTTON,
 		FALSE, FALSE, onDestroy, c,
 		"label", text,
 		NULL);

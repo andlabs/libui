@@ -124,7 +124,7 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 	return (*fv_DefSubclassProc)(hwnd, uMsg, wParam, lParam);
 }
 
-void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p)
+void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 {
 	singleHWND *s;
 
@@ -137,7 +137,7 @@ void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p)
 		100, 100,
 		initialParent, NULL, p->hInstance, NULL);
 	if (s->hwnd == NULL)
-		logLastError("error creating control in uiWindowsNewControl()");
+		logLastError("error creating control in uiWindowsMakeControl()");
 	s->onWM_COMMAND = p->onWM_COMMAND;
 	s->onWM_NOTIFY = p->onWM_NOTIFY;
 
@@ -149,7 +149,7 @@ void uiWindowsNewControl(uiControl *c, uiWindowsNewControlParams *p)
 
 	// this handles redirected notification messages
 	if ((*fv_SetWindowSubclass)(s->hwnd, singleSubclassProc, 0, (DWORD_PTR) c) == FALSE)
-		logLastError("error subclassing Windows control in uiWindowsNewControl()");
+		logLastError("error subclassing Windows control in uiWindowsMakeControl()");
 
 	c->Internal = s;
 	c->Destroy = singleDestroy;

@@ -226,7 +226,7 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 uiTab *uiNewTab(void)
 {
 	struct tab *t;
-	uiWindowsNewControlParams p;
+	uiWindowsMakeControlParams p;
 
 	t = uiNew(struct tab);
 
@@ -240,7 +240,7 @@ uiTab *uiNewTab(void)
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = t;
-	uiWindowsNewControl(uiControl(t), &p);
+	uiWindowsMakeControl(uiControl(t), &p);
 
 	t->hwnd = (HWND) uiControlHandle(uiControl(t));
 

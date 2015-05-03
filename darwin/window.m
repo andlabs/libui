@@ -97,7 +97,7 @@ static void windowShow(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
-	// don't make it key
+	// don't make it key (TODO really? first time only?)
 	// unfortunately there's no orderIn: or something that says "make the window visible but preserve the z-order" so
 	[w->window orderFront:w->window];
 	w->hidden = 0;

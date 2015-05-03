@@ -14,8 +14,15 @@ struct bin {
 void binDestroy(uiControl *c)
 {
 	struct bin *b = (struct bin *) c;
+	NSView *v;
 
-	// we can't check for an OS parent here because what we're working with with bin isn't subviews but rather content views (at least I think... TODO)
+	// ensure clean removal by making sure the bin has no OS parent
+	// note that:
+	// - the superview of a NSWindow content view is the window frame
+	// - the superview of *the active NSTabView page* is the NSTabView itself (we don't have to worry about other pages because if there are pages, then at least one page will be active, so we will eventually get here)
+	v = (NSView *) uiControlHandle(uiControl(b));
+	if ([v superview] != nil)
+		complain("attempt to destroy bin %p while it has an OS parent", b);
 	// don't chain up to base here; we need to destroy children ourselves first
 	if (b->mainControl != NULL) {
 		uiControlSetParent(b->mainControl, NULL);

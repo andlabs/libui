@@ -16,7 +16,8 @@ struct container {
 #define winXPadding 4
 #define winYPadding 4
 
-static void resize(uiContainer *cc, RECT *r)
+// abort the resize if something fails and we don't have what we need to do a resize
+static HRESULT resize(uiContainer *cc, RECT *r)
 {
 	struct container *c = (struct container *) (uiControl(cc)->Internal);
 	uiSizing d;
@@ -26,27 +27,28 @@ static void resize(uiContainer *cc, RECT *r)
 	TEXTMETRICW tm;
 	SIZE size;
 
-	// TODO clean this up a bit
-	size.cx = 0;
-	size.cy = 0;
-	ZeroMemory(&tm, sizeof (TEXTMETRICW));
 	dc = GetDC(c->hwnd);
 	if (dc == NULL)
-		logLastError("error getting DC in resize()");
+		return logLastError("error getting DC in resize()");
 	prevfont = (HFONT) SelectObject(dc, hMessageFont);
 	if (prevfont == NULL)
-		logLastError("error loading control font into device context in resize()");
+		return logLastError("error loading control font into device context in resize()");
+
+	ZeroMemory(&tm, sizeof (TEXTMETRICW));
 	if (GetTextMetricsW(dc, &tm) == 0)
-		logLastError("error getting text metrics in resize()");
+		return logLastError("error getting text metrics in resize()");
 	if (GetTextExtentPoint32W(dc, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &size) == 0)
-		logLastError("error getting text extent point in resize()");
+		return logLastError("error getting text extent point in resize()");
+
 	sys.baseX = (int) ((size.cx / 26 + 1) / 2);
 	sys.baseY = (int) tm.tmHeight;
 	sys.internalLeading = tm.tmInternalLeading;
+
 	if (SelectObject(dc, prevfont) != hMessageFont)
-		logLastError("error restoring previous font into device context in resize()");
+		return logLastError("error restoring previous font into device context in resize()");
 	if (ReleaseDC(c->hwnd, dc) == 0)
-		logLastError("error releasing DC in resize()");
+		return logLastError("error releasing DC in resize()");
+
 	d.xPadding = uiDlgUnitsToX(winXPadding, sys.baseX);
 	d.yPadding = uiDlgUnitsToY(winYPadding, sys.baseY);
 	d.sys = &sys;

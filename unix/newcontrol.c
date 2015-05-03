@@ -157,15 +157,15 @@ void uiUnixMakeControl(uiControl *c, GType type, gboolean inScrolledWindow, gboo
 	// finally, call gtk_widget_show_all() here to set the initial visibility of the widget
 	gtk_widget_show_all(s->immediate);
 
-	c->Internal = s;
-	c->Destroy = singleDestroy;
-	c->Handle = singleHandle;
-	c->SetParent = singleSetParent;
-	c->PreferredSize = singlePreferredSize;
-	c->Resize = singleResize;
-	c->Visible = singleVisible;
-	c->Show = singleShow;
-	c->Hide = singleHide;
-	c->Enable = singleEnable;
-	c->Disable = singleDisable;
+	uiControl(c)->Internal = s;
+	uiControl(c)->Destroy = singleDestroy;
+	uiControl(c)->Handle = singleHandle;
+	uiControl(c)->SetParent = singleSetParent;
+	uiControl(c)->PreferredSize = singlePreferredSize;
+	uiControl(c)->Resize = singleResize;
+	uiControl(c)->Visible = singleVisible;
+	uiControl(c)->Show = singleShow;
+	uiControl(c)->Hide = singleHide;
+	uiControl(c)->Enable = singleEnable;
+	uiControl(c)->Disable = singleDisable;
 }

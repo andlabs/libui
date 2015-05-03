@@ -151,16 +151,16 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 	if ((*fv_SetWindowSubclass)(s->hwnd, singleSubclassProc, 0, (DWORD_PTR) c) == FALSE)
 		logLastError("error subclassing Windows control in uiWindowsMakeControl()");
 
-	c->Internal = s;
-	c->Destroy = singleDestroy;
-	c->Handle = singleHandle;
-	c->SetParent = singleSetParent;
-	c->Resize = singleResize;
-	c->Visible = singleVisible;
-	c->Show = singleShow;
-	c->Hide = singleHide;
-	c->Enable = singleEnable;
-	c->Disable = singleDisable;
+	uiControl(c)->Internal = s;
+	uiControl(c)->Destroy = singleDestroy;
+	uiControl(c)->Handle = singleHandle;
+	uiControl(c)->SetParent = singleSetParent;
+	uiControl(c)->Resize = singleResize;
+	uiControl(c)->Visible = singleVisible;
+	uiControl(c)->Show = singleShow;
+	uiControl(c)->Hide = singleHide;
+	uiControl(c)->Enable = singleEnable;
+	uiControl(c)->Disable = singleDisable;
 }
 
 char *uiWindowsControlText(uiControl *c)

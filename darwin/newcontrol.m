@@ -152,16 +152,15 @@ void uiDarwinMakeControl(uiControl *c, Class class, BOOL inScrollView, BOOL scro
 	// and keep a reference to s->immediate for when we remove the control from its parent
 	[s->immediate retain];
 
-	// TODO update all of these to say uiControl(c)
-	c->Internal = s;
-	c->Destroy = singleDestroy;
-	c->Handle = singleHandle;
-	c->SetParent = singleSetParent;
-	c->PreferredSize = singlePreferredSize;
-	c->Resize = singleResize;
-	c->Visible = singleVisible;
-	c->Show = singleShow;
-	c->Hide = singleHide;
-	c->Enable = singleEnable;
-	c->Disable = singleDisable;
+	uiControl(c)->Internal = s;
+	uiControl(c)->Destroy = singleDestroy;
+	uiControl(c)->Handle = singleHandle;
+	uiControl(c)->SetParent = singleSetParent;
+	uiControl(c)->PreferredSize = singlePreferredSize;
+	uiControl(c)->Resize = singleResize;
+	uiControl(c)->Visible = singleVisible;
+	uiControl(c)->Show = singleShow;
+	uiControl(c)->Hide = singleHide;
+	uiControl(c)->Enable = singleEnable;
+	uiControl(c)->Disable = singleDisable;
 }

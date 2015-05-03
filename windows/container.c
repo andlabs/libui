@@ -238,7 +238,7 @@ void uiMakeContainer(uiContainer *cc)
 
 	c = uiNew(struct container);
 
-	c->hwnd = CreateWindowExW(0,
+	c->hwnd = CreateWindowExW(WS_EX_CONTROLPARENT,
 		containerClass, L"",
 		WS_CHILD | WS_VISIBLE,
 		0, 0,

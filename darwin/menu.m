@@ -93,20 +93,20 @@ enum {
 // therefore, we have to handle enabling of the other options ourselves
 - (BOOL)validateMenuItem:(NSMenuItem *)item
 {
-	struct menuItem *item;
+	struct menuItem *smi;
 	NSValue *v;
 
 	// disable the special items if they aren't present
-	if (item == self.quitItem && !self.hasQuit)
+	if (item == self.quitItem && !self->hasQuit)
 		return NO;
-	if (item == self.prefsItem && !self.hasPreferences)
+	if (item == self.preferencesItem && !self->hasPreferences)
 		return NO;
-	if (item == self.aboutItem && !self.hasAbout)
+	if (item == self.aboutItem && !self->hasAbout)
 		return NO;
 	// then poll the item's enabled/disabled state
-	v = (NSValue *) [self->items objectForKey:sender];
-	item = (struct menuItem *) [v pointerValue];
-	return !item->disabled;
+	v = (NSValue *) [self->items objectForKey:item];
+	smi = (struct menuItem *) [v pointerValue];
+	return !smi->disabled;
 }
 
 // Cocoa constructs the default application menu by hand for each program; that's what MainMenu.[nx]ib does

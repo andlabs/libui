@@ -1,8 +1,6 @@
 // 28 april 2015
 #include "uipriv_unix.h"
 
-// TODO implement preferred size vtable functions
-
 #define containerWidgetType (containerWidget_get_type())
 #define containerWidget(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), containerWidgetType, containerWidget))
 #define IscontainerWidget(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), containerWidgetType))
@@ -77,6 +75,32 @@ static void containerWidget_size_allocate(GtkWidget *widget, GtkAllocation *allo
 	uiContainerResizeChildren(c->c, allocation->x, allocation->y, allocation->width, allocation->height, &d);
 }
 
+static void containerWidget_get_preferred_height(GtkWidget *widget, gint *minimum, gint *natural)
+{
+	containerWidget *c = containerWidget(widget);
+	intmax_t width, height;
+	uiSizing d;
+
+	d.xPadding = gtkXPadding;
+	d.yPadding = gtkYPadding;
+	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
+	*minimum = 0;
+	*natural = height;
+}
+
+static void containerWidget_get_preferred_width(GtkWidget *widget, gint *minimum, gint *natural)
+{
+	containerWidget *c = containerWidget(widget);
+	intmax_t width, height;
+	uiSizing d;
+
+	d.xPadding = gtkXPadding;
+	d.yPadding = gtkYPadding;
+	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
+	*minimum = 0;
+	*natural = width;
+}
+
 struct forall {
 	GtkCallback callback;
 	gpointer data;
@@ -104,6 +128,8 @@ static void containerWidget_class_init(containerWidgetClass *class)
 	G_OBJECT_CLASS(class)->dispose = containerWidget_dispose;
 	G_OBJECT_CLASS(class)->finalize = containerWidget_finalize;
 	GTK_WIDGET_CLASS(class)->size_allocate = containerWidget_size_allocate;
+	GTK_WIDGET_CLASS(class)->get_preferred_height = containerWidget_get_preferred_height;
+	GTK_WIDGET_CLASS(class)->get_preferred_width = containerWidget_get_preferred_width;
 	GTK_CONTAINER_CLASS(class)->add = containerWidget_add;
 	GTK_CONTAINER_CLASS(class)->remove = containerWidget_remove;
 	GTK_CONTAINER_CLASS(class)->forall = containerWidget_forall;

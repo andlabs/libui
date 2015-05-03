@@ -84,7 +84,7 @@ static void containerWidget_get_preferred_height(GtkWidget *widget, gint *minimu
 	d.xPadding = gtkXPadding;
 	d.yPadding = gtkYPadding;
 	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
-	*minimum = 0;
+	*minimum = 0;			// allow arbitrary resize
 	*natural = height;
 }
 
@@ -97,7 +97,7 @@ static void containerWidget_get_preferred_width(GtkWidget *widget, gint *minimum
 	d.xPadding = gtkXPadding;
 	d.yPadding = gtkYPadding;
 	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
-	*minimum = 0;
+	*minimum = 0;			// allow arbitrary resize
 	*natural = width;
 }
 

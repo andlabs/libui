@@ -25,7 +25,7 @@
 @property (strong) NSMenuItem *quitItem;
 @property (strong) NSMenuItem *preferencesItem;
 @property (strong) NSMenuItem *aboutItem;
-// NSMenuValidation is only informal (TODO)
+// NSMenuValidation is only informal
 - (BOOL)validateMenuItem:(NSMenuItem *)item;
 - (NSMenu *)makeMenubar;
 @end

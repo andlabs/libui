@@ -110,7 +110,7 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 	case msgUpdateChild:
 		if (GetWindowRect(t->hwnd, &r) == 0)
 			logLastError("error getting Tab window rect for synthesized resize message in tabSubProc()");
-		// these are in screen coordinates, which match what WM_WINDOWPOSCHANGED gave us (thanks TODOTODOTODOTODOTODOTODOTODO)
+		// these are in screen coordinates, which match what WM_WINDOWPOSCHANGED gave us (see http://stackoverflow.com/questions/29598334/are-the-coordinates-in-windowpos-on-wm-windowposchanged-in-parent-coordinates-or)
 		resizeTab(t, r.right - r.left, r.bottom - r.top);
 		return 0;
 	case WM_NCDESTROY:

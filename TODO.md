@@ -40,6 +40,8 @@
 	- find a way to move the has parent check at the beginning of binDestroy()
 	- determine whether or not margins count in preferredSize() when there is no main control
 - menu item state change while the menu is visible (not in response to user action)
+	- OS X: requires an [NSMenu update] call after changing state
+	- Windows: requires getting current menu state when amending it; see relevant line in windows/menu.c
 - figure out where we should return HRESULTs
 - Windows: don't abort if a cleanup function fails?
 - should uiWindowOnClosing() really return an int?

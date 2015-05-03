@@ -185,7 +185,6 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	// explicitly release when closed
 	// the only thing that closes the window is us anyway
-	// (TODO confirm this when terminating from the Dock or shutting down)
 	[w->window setReleasedWhenClosed:YES];
 
 	w->delegate = [windowDelegate new];

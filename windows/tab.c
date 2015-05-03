@@ -61,7 +61,30 @@ static void onDestroy(void *data)
 
 static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	// TODO
+	struct tab *t = (struct tab *) c;
+	LRESULT current;
+	uiContainer *curpage;
+	intmax_t curwid, curht;
+	RECT r;
+
+	r.left = 0;
+	r.top = 0;
+	r.right = 0;
+	r.bottom = 0;
+	if (t->len != 0) {
+		current = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
+		if (current != (LRESULT) (-1)) {
+			curpage = t->pages[current];
+			uiControlPreferredSize(uiControl(curpage), d, &curwid, &curht);
+			r.right = curwid;
+			r.bottom = curht;
+		}
+	}
+	// otherwise just use the rect [0 0 0 0]
+	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) TRUE, (LPARAM) (&r));
+	*width = r.right - r.left;
+	*height = r.bottom - r.top;
+	// TODO does ths include the tabs themselves on windows? they do on wine
 }
 
 // common code for resizes

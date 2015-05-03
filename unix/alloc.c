@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "uipriv_unix.h"
 
-void *uiAlloc(size_t size, const char *type)
+void *uiAlloc(size_t size)
 {
 	void *out;
 
@@ -10,12 +10,12 @@ void *uiAlloc(size_t size, const char *type)
 	return out;
 }
 
-void *uiRealloc(void *p, size_t size, const char *type)
+void *uiRealloc(void *p, size_t size)
 {
 	void *out;
 
 	if (p == NULL)
-		return uiAlloc(size, type);
+		return uiAlloc(size);
 	// TODO fill with 0s
 	out = g_realloc(p, size);
 	return out;

@@ -156,8 +156,8 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 
 	if (t->len >= t->cap) {
 		t->cap += tabCapGrow;
-		t->pages = (uiContainer **) uiRealloc(t->pages, t->cap * sizeof (uiContainer *), "uiContainer *[]");
-		t->margined = (int *) uiRealloc(t->margined, t->cap * sizeof (int), "int[]");
+		t->pages = (uiContainer **) uiRealloc(t->pages, t->cap * sizeof (uiContainer *));
+		t->margined = (int *) uiRealloc(t->margined, t->cap * sizeof (int));
 	}
 
 	n = SendMessageW(t->hwnd, TCM_GETITEMCOUNT, 0, 0);

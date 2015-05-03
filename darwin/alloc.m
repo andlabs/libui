@@ -2,7 +2,7 @@
 #import <stdio.h>
 #import "uipriv_darwin.h"
 
-void *uiAlloc(size_t size, const char *type)
+void *uiAlloc(size_t size)
 {
 	void *out;
 
@@ -15,12 +15,12 @@ void *uiAlloc(size_t size, const char *type)
 	return out;
 }
 
-void *uiRealloc(void *p, size_t size, const char *type)
+void *uiRealloc(void *p, size_t size)
 {
 	void *out;
 
 	if (p == NULL)
-		return uiAlloc(size, type);
+		return uiAlloc(size);
 	out = realloc(p, size);
 	if (out == NULL) {
 		fprintf(stderr, "memory exhausted in uiRealloc() reallocating %s\n", type);

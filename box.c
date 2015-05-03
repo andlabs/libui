@@ -196,7 +196,7 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 
 	if (b->len >= b->cap) {
 		b->cap += boxCapGrow;
-		b->controls = (boxControl *) uiRealloc(b->controls, b->cap * sizeof (boxControl), "boxControl[]");
+		b->controls = (boxControl *) uiRealloc(b->controls, b->cap * sizeof (boxControl));
 	}
 	b->controls[b->len].c = c;
 	b->controls[b->len].stretchy = stretchy;

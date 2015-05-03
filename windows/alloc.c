@@ -15,27 +15,27 @@ int initAlloc(void)
 	return heap != NULL;
 }
 
-void *uiAlloc(size_t size, const char *type)
+void *uiAlloc(size_t size)
 {
 	void *out;
 
 	out = HeapAlloc(heap, HEAP_ZERO_MEMORY, size);
 	if (out == NULL) {
-		fprintf(stderr, "memory exhausted in uiAlloc() allocating %s\n", type);
+		fprintf(stderr, "memory exhausted in uiAlloc()\n");
 		abort();
 	}
 	return out;
 }
 
-void *uiRealloc(void *p, size_t size, const char *type)
+void *uiRealloc(void *p, size_t size)
 {
 	void *out;
 
 	if (p == NULL)
-		return uiAlloc(size, type);
+		return uiAlloc(size);
 	out = HeapReAlloc(heap, HEAP_ZERO_MEMORY, p, size);
 	if (out == NULL) {
-		fprintf(stderr, "memory exhausted in uiRealloc() reallocating %s\n", type);
+		fprintf(stderr, "memory exhausted in uiRealloc()\n");
 		abort();
 	}
 	return out;

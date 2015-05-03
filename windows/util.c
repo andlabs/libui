@@ -16,7 +16,7 @@ intmax_t uiWindowsWindowTextWidth(HWND hwnd)
 	len = SendMessageW(hwnd, WM_GETTEXTLENGTH, 0, 0);
 	if (len == 0)		// no text; nothing to do
 		return 0;
-	text = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
+	text = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR));
 	// note the comparison: the size includes the null terminator, but the return does not
 	if (GetWindowText(hwnd, text, len + 1) != len)
 		logLastError("error getting window text in uiWindowsWindowTextWidth()");

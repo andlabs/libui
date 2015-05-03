@@ -1,9 +1,6 @@
 // 12 april 2015
 #include "uipriv_windows.h"
 
-// TODO
-// - tell wine developers that tab controls do respond to parent changes on real windows (at least comctl6 tab controls do)
-
 struct tab {
 	uiTab t;
 	HWND hwnd;
@@ -161,7 +158,6 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	uiFree(wname);
 
 	// if this is the first tab, Windows will automatically show it /without/ sending a TCN_SELCHANGE notification
-	// (TODO verify that)
 	// so we need to manually resize the tab ourselves
 	// don't use uiUpdateParent() for the same reason as in the TCN_SELCHANGE handler
 	SendMessageW(t->hwnd, msgUpdateChild, 0, 0);

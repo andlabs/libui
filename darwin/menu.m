@@ -110,7 +110,6 @@ enum {
 }
 
 // Cocoa constructs the default application menu by hand for each program; that's what MainMenu.[nx]ib does
-// TODO investigate setAppleMenu:
 - (void)buildApplicationMenu:(NSMenu *)menubar
 {
 	NSString *appName;

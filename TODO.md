@@ -48,6 +48,7 @@
 	- have a cbSize member
 - drop "Page" from uiTab method names? (uiTabAppendPage() -> uiTabAppend())
 - override dock menu quit item to act like our app menu quit item
+- consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
 
 ultimately:
 - add some sort of runtime type checking

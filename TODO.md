@@ -44,6 +44,9 @@
 - Windows: don't abort if a cleanup function fails?
 - should uiWindowOnClosing() really return an int?
 	- if so, should the default return 0 instead of 1?
+- note that uiInitOptions should be initialized to zero
+	- have a cbSize member
+- drop "Page" from uiTab method names? (uiTabAppendPage() -> uiTabAppend())
 
 ultimately:
 - add some sort of runtime type checking

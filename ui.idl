@@ -12,9 +12,7 @@ raw "#ifndef _UI_EXTERN";
 raw "#define _UI_EXTERN extern";
 raw "#endif";
 
-// TODO note that should be initialized to zero
 struct InitOptions {
-	// TODO cbSize
 };
 
 func Init(options *InitOptions) *const char;
@@ -101,7 +99,6 @@ interface Label from Control {
 func NewLabel(text *const char) *Label;
 
 interface Tab from Control {
-	// TODO remove Page from these?
 	func AppendPage(name *const char, c *Control);
 	func DeletePage(index uintmax_t);
 	func NumPages(void) uintmax_t;

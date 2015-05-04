@@ -221,10 +221,8 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 	uintmax_t i;
 
 	removed = b->controls[index].c;
-	// TODO switch to memmove?
 	for (i = index; i < b->len - 1; i++)
 		b->controls[i] = b->controls[i + 1];
-	// TODO memset the last one to NULL
 	b->len--;
 	uiControlSetParent(removed, NULL);
 	uiContainerUpdate(uiContainer(b));

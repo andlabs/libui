@@ -182,6 +182,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	struct window *w;
 	NSView *binView;
 
+	finalizeMenus();
+
 	w = uiNew(struct window);
 
 	w->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)

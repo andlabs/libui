@@ -3,7 +3,7 @@
 
 // general TODO: release Objective-C objects in dealloc since we can't use ARC
 
-// TODO menu finalization
+static BOOL menusFinalized = NO;
 
 struct menu {
 	uiMenu m;
@@ -241,6 +241,9 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 {
 	struct menuItem *item;
 
+	if (menusFinalized)
+		complain("attempt to create a new menu item after menus have been finalized");
+
 	item = uiNew(struct menuItem);
 
 	item->type = type;
@@ -317,6 +320,9 @@ uiMenu *uiNewMenu(const char *name)
 {
 	struct menu *m;
 
+	if (menusFinalized)
+		complain("attempt to create a new menu after menus have been finalized");
+
 	m = uiNew(struct menu);
 
 	m->menu = [[NSMenu alloc] initWithTitle:toNSString(name)];
@@ -335,4 +341,9 @@ uiMenu *uiNewMenu(const char *name)
 	uiMenu(m)->AppendSeparator = menuAppendSeparator;
 
 	return uiMenu(m);
+}
+
+void finalizeMenus(void)
+{
+	menusFinalized = YES;
 }

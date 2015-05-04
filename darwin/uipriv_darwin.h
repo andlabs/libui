@@ -29,6 +29,7 @@
 - (BOOL)validateMenuItem:(NSMenuItem *)item;
 - (NSMenu *)makeMenubar;
 @end
+extern void finalizeMenus(void);
 
 // init.m
 @interface appDelegate : NSObject <NSApplicationDelegate>

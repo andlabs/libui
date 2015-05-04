@@ -57,6 +57,7 @@
 - figure out what to do in OS X terminate:
 - clean up bin handling
 	- is binSetOSParent() even needed?
+- readd the allocation tracking as just a list of pointers
 
 ultimately:
 - add some sort of runtime type checking

@@ -51,6 +51,10 @@
 - drop "Page" from uiTab method names? (uiTabAppendPage() -> uiTabAppend())
 - override dock menu quit item to act like our app menu quit item
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
+- release OS X properties in dealloc
+	- switch away from properties or figure out what incantation is necessary for 32-bit
+	- figure out strong/weak vs assign/copy/retain
+- figure out what to do in OS X terminate:
 
 ultimately:
 - add some sort of runtime type checking

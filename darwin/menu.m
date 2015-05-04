@@ -1,8 +1,6 @@
 // 28 april 2015
 #import "uipriv_darwin.h"
 
-// general TODO: release Objective-C objects in dealloc since we can't use ARC
-
 static BOOL menusFinalized = NO;
 
 struct menu {

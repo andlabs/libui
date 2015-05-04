@@ -31,6 +31,8 @@ struct Sizing {
 	field sys *uiSizingSys;
 };
 
+raw "typedef struct uiControlSysFuncParams uiControlSysFuncParams";
+
 interface Control {
 	field Internal *void;		// for use by ui only
 	func Destroy(void);
@@ -43,6 +45,7 @@ interface Control {
 	func Hide(void);
 	func Enable(void);
 	func Disable(void);
+	func SysFunc(p *uiControlSysFuncParams);
 };
 
 interface Container from Control {

@@ -2,6 +2,9 @@
 #include "ui.h"
 #include "uipriv.h"
 
+// TODO
+// - boxes inside boxes aren't updated on windows when padded changes (OS X too?)
+
 struct box {
 	uiBox b;
 	void (*baseDestroy)(uiControl *);

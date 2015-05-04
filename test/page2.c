@@ -39,11 +39,22 @@ static void openAnotherWindow(uiButton *b, void *data)
 	uiControlShow(uiControl(uiNewWindow("Another Window", 100, 100, data != NULL)));
 }
 
+#define SHED(method, Method) \
+	static void method ## Control(uiButton *b, void *data) \
+	{ \
+		uiControl ## Method(uiControl(data)); \
+	}
+SHED(enable, Enable)
+SHED(disable, Disable)
+
 uiBox *makePage2(void)
 {
 	uiBox *page2;
 	uiBox *hbox;
 	uiButton *button;
+	uiBox *innerhbox;
+	uiBox *innerhbox2;
+	uiBox *innerhbox3;
 
 	page2 = newVerticalBox();
 
@@ -81,6 +92,29 @@ uiBox *makePage2(void)
 	button = uiNewButton("Open Menuless Window");
 	uiButtonOnClicked(button, openAnotherWindow, NULL);
 	uiBoxAppend(hbox, uiControl(button), 0);
+	uiBoxAppend(page2, uiControl(hbox), 0);
+
+	hbox = newHorizontalBox();
+	innerhbox = newHorizontalBox();
+	uiBoxAppend(innerhbox, uiControl(uiNewButton("These")), 0);
+	uiBoxAppend(innerhbox, uiControl(uiNewButton("buttons")), 0);
+	uiBoxAppend(hbox, uiControl(innerhbox), 0);
+	innerhbox = newHorizontalBox();
+	uiBoxAppend(innerhbox, uiControl(uiNewButton("are")), 0);
+	innerhbox2 = newHorizontalBox();
+	button = uiNewButton("in");
+	uiControlDisable(uiControl(button));
+	uiBoxAppend(innerhbox2, uiControl(button), 0);
+	uiBoxAppend(innerhbox, uiControl(innerhbox2), 0);
+	uiBoxAppend(hbox, uiControl(innerhbox), 0);
+	innerhbox = newHorizontalBox();
+	innerhbox2 = newHorizontalBox();
+	uiBoxAppend(innerhbox2, uiControl(uiNewButton("nested")), 0);
+	innerhbox3 = newHorizontalBox();
+	uiBoxAppend(innerhbox3, uiControl(uiNewButton("boxes")), 0);
+	uiBoxAppend(innerhbox2, uiControl(innerhbox3), 0);
+	uiBoxAppend(innerhbox, uiControl(innerhbox2), 0);
+	uiBoxAppend(hbox, uiControl(innerhbox), 0);
 	uiBoxAppend(page2, uiControl(hbox), 0);
 
 	return page2;

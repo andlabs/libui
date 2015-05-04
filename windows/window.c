@@ -1,8 +1,6 @@
 // 27 april 2015
 #include "uipriv_windows.h"
 
-// TODO enable/disable container
-
 #define windowClass L"libui_uiWindowClass"
 
 struct window {
@@ -157,6 +155,7 @@ static void windowEnable(uiControl *c)
 	struct window *w = (struct window *) c;
 
 	EnableWindow(w->hwnd, TRUE);
+	uiControlEnable(uiControl(w->bin));
 }
 
 static void windowDisable(uiControl *c)
@@ -164,6 +163,7 @@ static void windowDisable(uiControl *c)
 	struct window *w = (struct window *) c;
 
 	EnableWindow(w->hwnd, FALSE);
+	uiControlDisable(uiControl(w->bin));
 }
 
 static char *windowTitle(uiWindow *ww)

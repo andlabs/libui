@@ -56,6 +56,7 @@ uiBox *makePage2(void)
 	uiBox *innerhbox;
 	uiBox *innerhbox2;
 	uiBox *innerhbox3;
+	uiTab *disabledTab;
 
 	page2 = newVerticalBox();
 
@@ -130,6 +131,12 @@ uiBox *makePage2(void)
 	uiButtonOnClicked(button, disableControl, nestedBox);
 	uiBoxAppend(hbox, uiControl(button), 0);
 	uiBoxAppend(page2, uiControl(hbox), 0);
+
+	disabledTab = newTab();
+	uiTabAppendPage(disabledTab, "Disabled", uiControl(uiNewButton("Button")));
+	uiTabAppendPage(disabledTab, "Tab", uiControl(uiNewLabel("Label")));
+	uiControlDisable(uiControl(disabledTab));
+	uiBoxAppend(page2, uiControl(disabledTab), 1);
 
 	return page2;
 }

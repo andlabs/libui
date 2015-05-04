@@ -1,6 +1,8 @@
 // 27 april 2015
 #include "uipriv_windows.h"
 
+// TODO enable/disable container
+
 #define windowClass L"libui_uiWindowClass"
 
 struct window {

@@ -215,15 +215,21 @@ static void containerHide(uiControl *cc)
 static void containerEnable(uiControl *cc)
 {
 	struct container *c = (struct container *) (cc->Internal);
+	uiControlSysFuncParams p;
 
 	EnableWindow(c->hwnd, TRUE);
+	p.Func = uiWindowsSysFuncContainerEnable;
+	uiControlSysFunc(cc, &p);
 }
 
 static void containerDisable(uiControl *cc)
 {
 	struct container *c = (struct container *) (cc->Internal);
+	uiControlSysFuncParams p;
 
 	EnableWindow(c->hwnd, FALSE);
+	p.Func = uiWindowsSysFuncContainerDisable;
+	uiControlSysFunc(cc, &p);
 }
 
 static void containerUpdate(uiContainer *cc)

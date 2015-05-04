@@ -1,6 +1,8 @@
 // 12 april 2015
 #include "uipriv_windows.h"
 
+// TODO enable/disable
+
 struct tab {
 	uiTab t;
 	HWND hwnd;

@@ -1,8 +1,6 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
-typedef struct singleHWND singleHWND;
-
 struct singleHWND {
 	HWND hwnd;
 	BOOL (*onWM_COMMAND)(uiControl *, WORD, LRESULT *);
@@ -17,7 +15,7 @@ struct singleHWND {
 
 static void singleDestroy(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
 	if (s->parent != NULL)
 		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
@@ -30,14 +28,14 @@ static void singleDestroy(uiControl *c)
 
 static uintptr_t singleHandle(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
 	return (uintptr_t) (s->hwnd);
 }
 
 static void singleSetParent(uiControl *c, uiContainer *parent)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 	uiContainer *oldparent;
 	HWND newParentHWND;
 
@@ -56,7 +54,7 @@ static void singleSetParent(uiControl *c, uiContainer *parent)
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
 	if (MoveWindow(s->hwnd, x, y, width, height, TRUE) == 0)
 		logLastError("error moving control in singleResize()");
@@ -64,14 +62,14 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 
 static int singleVisible(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
 	return !s->hidden;
 }
 
 static void singleShow(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
 	ShowWindow(s->hwnd, SW_SHOW);
 	s->hidden = 0;
@@ -81,7 +79,7 @@ static void singleShow(uiControl *c)
 
 static void singleHide(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
 	ShowWindow(s->hwnd, SW_HIDE);
 	s->hidden = 1;
@@ -91,7 +89,7 @@ static void singleHide(uiControl *c)
 
 static void singleEnable(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
 	s->userDisabled = 0;
 	if (!s->containerDisabled)
@@ -100,7 +98,7 @@ static void singleEnable(uiControl *c)
 
 static void singleDisable(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
 	s->userDisabled = 1;
 	EnableWindow(s->hwnd, FALSE);
@@ -108,7 +106,7 @@ static void singleDisable(uiControl *c)
 
 static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
 	switch (p->Func) {
 	case uiWindowsSysFuncContainerEnable:
@@ -127,7 +125,7 @@ static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
 	uiControl *c = (uiControl *) dwRefData;
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 	LRESULT lResult;
 
 	switch (uMsg) {
@@ -149,9 +147,9 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 
 void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 {
-	singleHWND *s;
+	struct singleHWND *s;
 
-	s = uiNew(singleHWND);
+	s = uiNew(struct singleHWND);
 	s->hwnd = CreateWindowExW(p->dwExStyle,
 		p->lpClassName, p->lpWindowName,
 		p->dwStyle | WS_CHILD | WS_VISIBLE,
@@ -189,7 +187,7 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 
 char *uiWindowsControlText(uiControl *c)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 	WCHAR *wtext;
 	char *text;
 
@@ -201,7 +199,7 @@ char *uiWindowsControlText(uiControl *c)
 
 void uiWindowsControlSetText(uiControl *c, const char *text)
 {
-	singleHWND *s = (singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 	WCHAR *wtext;
 
 	wtext = toUTF16(text);

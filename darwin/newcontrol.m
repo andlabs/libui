@@ -1,8 +1,6 @@
 // 7 april 2015
 #include "uipriv_darwin.h"
 
-typedef struct singleView singleView;
-
 struct singleView {
 	NSView *view;
 	NSScrollView *scrollView;
@@ -17,7 +15,7 @@ struct singleView {
 
 static void singleDestroy(uiControl *c)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 
 	if (s->parent != NULL)
 		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
@@ -29,14 +27,14 @@ static void singleDestroy(uiControl *c)
 
 static uintptr_t singleHandle(uiControl *c)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 
 	return (uintptr_t) (s->view);
 }
 
 static void singleSetParent(uiControl *c, uiContainer *parent)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 	NSView *parentView;
 	uiContainer *oldparent;
 
@@ -57,7 +55,7 @@ static void singleSetParent(uiControl *c, uiContainer *parent)
 // also good for NSBox and NSProgressIndicator
 static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 	NSControl *control;
 	NSRect r;
 
@@ -71,7 +69,7 @@ static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intm
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 	NSRect frame;
 
 	frame.origin.x = x;
@@ -85,14 +83,14 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 
 static int singleVisible(uiControl *c)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 
 	return !s->hidden;
 }
 
 static void singleShow(uiControl *c)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 
 	[s->immediate setHidden:NO];
 	s->hidden = 0;
@@ -102,7 +100,7 @@ static void singleShow(uiControl *c)
 
 static void singleHide(uiControl *c)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 
 	[s->immediate setHidden:YES];
 	s->hidden = 1;
@@ -112,7 +110,7 @@ static void singleHide(uiControl *c)
 
 static void singleEnable(uiControl *c)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 
 	s->userDisabled = 0;
 	if (!s->containerDisabled)
@@ -122,7 +120,7 @@ static void singleEnable(uiControl *c)
 
 static void singleDisable(uiControl *c)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 
 	s->userDisabled = 1;
 	if ([s->view respondsToSelector:@selector(setEnabled:)])
@@ -131,7 +129,7 @@ static void singleDisable(uiControl *c)
 
 static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
-	singleView *s = (singleView *) (c->Internal);
+	struct singleView *s = (struct singleView *) (c->Internal);
 
 	switch (p->Func) {
 	case uiDarwinSysFuncContainerEnable:
@@ -151,9 +149,9 @@ static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 
 void uiDarwinMakeControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void (*onDestroy)(void *), void *onDestroyData)
 {
-	singleView *s;
+	struct singleView *s;
 
-	s = uiNew(singleView);
+	s = uiNew(struct singleView);
 	// thanks to autoxr and arwyn in irc.freenode.net/#macdev
 	s->view = (NSView *) [[class alloc] initWithFrame:NSZeroRect];
 	s->immediate = s->view;

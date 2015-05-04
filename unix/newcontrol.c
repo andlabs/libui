@@ -1,9 +1,6 @@
 // 7 april 2015
 #include "uipriv_unix.h"
 
-// TODO get rid of this
-typedef struct singleWidget singleWidget;
-
 struct singleWidget {
 	GtkWidget *widget;
 	GtkWidget *scrolledWindow;
@@ -16,7 +13,7 @@ struct singleWidget {
 
 static void singleDestroy(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 
 	if (s->parent != NULL)
 		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
@@ -30,14 +27,14 @@ static void singleDestroy(uiControl *c)
 
 static uintptr_t singleHandle(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 
 	return (uintptr_t) (s->widget);
 }
 
 static void singleSetParent(uiControl *c, uiContainer *parent)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 	uiContainer *oldparent;
 	GtkContainer *oldcontainer;
 	GtkContainer *newcontainer;
@@ -60,7 +57,7 @@ static void singleSetParent(uiControl *c, uiContainer *parent)
 
 static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 	GtkRequisition natural;
 
 	// use the natural size as the minimum size is an *absolute* minimum
@@ -73,7 +70,7 @@ static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intm
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 	GtkAllocation a;
 
 	a.x = x;
@@ -85,14 +82,14 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 
 static int singleVisible(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 
 	return !s->hidden;
 }
 
 static void singleShow(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 
 	gtk_widget_show_all(s->immediate);
 	s->hidden = 0;
@@ -102,7 +99,7 @@ static void singleShow(uiControl *c)
 
 static void singleHide(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 
 	gtk_widget_hide(s->immediate);
 	s->hidden = 1;
@@ -112,24 +109,24 @@ static void singleHide(uiControl *c)
 
 static void singleEnable(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 
 	gtk_widget_set_sensitive(s->immediate, TRUE);
 }
 
 static void singleDisable(uiControl *c)
 {
-	singleWidget *s = (singleWidget *) (c->Internal);
+	struct singleWidget *s = (struct singleWidget *) (c->Internal);
 
 	gtk_widget_set_sensitive(s->immediate, FALSE);
 }
 
 void uiUnixMakeControl(uiControl *c, GType type, gboolean inScrolledWindow, gboolean scrolledWindowHasBorder, void (*onDestroy)(void *), void *onDestroyData, const char *firstProperty, ...)
 {
-	singleWidget *s;
+	struct singleWidget *s;
 	va_list ap;
 
-	s = uiNew(singleWidget);
+	s = uiNew(struct singleWidget);
 
 	va_start(ap, firstProperty);
 	s->widget = GTK_WIDGET(g_object_new_valist(type, firstProperty, ap));

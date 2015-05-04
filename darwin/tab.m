@@ -1,13 +1,14 @@
 // 12 april 2015
 #import "uipriv_darwin.h"
 
-// TODO enable/disable
-
 struct tab {
 	uiTab t;
 	NSTabView *tabview;
 	NSMutableArray *pages;
 	NSMutableArray *margined;
+	void (*baseEnable)(uiControl *);
+	void (*baseDisable)(uiControl *);
+	void (*baseSysFunc)(uiControl *, uiControlSysFuncParams *);
 };
 
 static void destroy(void *data)
@@ -33,7 +34,7 @@ static void destroy(void *data)
 
 // the default new control implementation uses -sizeToFit, which we don't have with NSTabView
 // fortunately, we do have -minimumSize
-static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct tab *t = (struct tab *) c;
 	NSSize s;
@@ -41,6 +42,48 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	s = [t->tabview minimumSize];
 	*width = (intmax_t) (s.width);
 	*height = (intmax_t) (s.height);
+}
+
+static void tabEnable(uiControl *c)
+{
+	struct tab *t = (struct tab *) c;
+
+	(*(t->baseEnable))(uiControl(t));
+	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		NSValue *v = (NSValue *) obj;
+		uiContainer *p;
+
+		p = (uiContainer *) [v pointerValue];
+		uiControlEnable(uiControl(p));
+	}];
+}
+
+static void tabDisable(uiControl *c)
+{
+	struct tab *t = (struct tab *) c;
+
+	(*(t->baseDisable))(uiControl(t));
+	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		NSValue *v = (NSValue *) obj;
+		uiContainer *p;
+
+		p = (uiContainer *) [v pointerValue];
+		uiControlDisable(uiControl(p));
+	}];
+}
+
+static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
+{
+	struct tab *t = (struct tab *) c;
+
+	(*(t->baseSysFunc))(uiControl(t), p);
+	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		NSValue *v = (NSValue *) obj;
+		uiContainer *pp;
+
+		pp = (uiContainer *) [v pointerValue];
+		uiControlSysFunc(uiControl(pp), p);
+	}];
 }
 
 static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
@@ -143,7 +186,13 @@ uiTab *uiNewTab(void)
 	t->pages = [NSMutableArray new];
 	t->margined = [NSMutableArray new];
 
-	uiControl(t)->PreferredSize = preferredSize;
+	uiControl(t)->PreferredSize = tabPreferredSize;
+	t->baseEnable = uiControl(t)->Enable;
+	uiControl(t)->Enable = tabEnable;
+	t->baseDisable = uiControl(t)->Disable;
+	uiControl(t)->Disable = tabDisable;
+	t->baseSysFunc = uiControl(t)->SysFunc;
+	uiControl(t)->SysFunc = tabSysFunc;
 
 	uiTab(t)->AppendPage = tabAppendPage;
 	uiTab(t)->DeletePage = tabDeletePage;

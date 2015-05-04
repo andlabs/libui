@@ -106,12 +106,12 @@ static void singleDisable(uiControl *c)
 	EnableWindow(s->hwnd, FALSE);
 }
 
-static void singleEnable(uiControl *c)
+static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
 	singleHWND *s = (singleHWND *) (c->Internal);
 
 	switch (p->Func) {
-	case uiWindowsSysFuncContainerEnabled:
+	case uiWindowsSysFuncContainerEnable:
 		s->containerDisabled = 0;
 		if (!s->userDisabled)
 			EnableWindow(s->hwnd, TRUE);

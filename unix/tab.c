@@ -39,6 +39,14 @@ static void onDestroy(void *data)
 	uiFree(t);
 }
 
+static void tabShow(uiControl *c)
+{
+	struct tab *t = (struct tab *) t;
+
+	// don't call gtk_widget_show_all() like the default handler does; that'll override user hiding
+	gtk_widget_show(t->widget);
+}
+
 #define tabCapGrow 32
 
 static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
@@ -121,6 +129,8 @@ uiTab *uiNewTab(void)
 	t->widget = GTK_WIDGET(uiControlHandle(uiControl(t)));
 	t->container = GTK_CONTAINER(t->widget);
 	t->notebook = GTK_NOTEBOOK(t->widget);
+
+	uiControl(t)->Show = tabShow;
 
 	uiTab(t)->AppendPage = tabAppendPage;
 	uiTab(t)->DeletePage = tabDeletePage;

@@ -1,6 +1,8 @@
 // 12 april 2015
 #import "uipriv_darwin.h"
 
+// TODO enable/disable
+
 struct tab {
 	uiTab t;
 	NSTabView *tabview;

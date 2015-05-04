@@ -52,6 +52,7 @@ uiBox *makePage2(void)
 	uiBox *page2;
 	uiBox *hbox;
 	uiButton *button;
+	uiBox *nestedBox;
 	uiBox *innerhbox;
 	uiBox *innerhbox2;
 	uiBox *innerhbox3;
@@ -94,11 +95,11 @@ uiBox *makePage2(void)
 	uiBoxAppend(hbox, uiControl(button), 0);
 	uiBoxAppend(page2, uiControl(hbox), 0);
 
-	hbox = newHorizontalBox();
+	nestedBox = newHorizontalBox();
 	innerhbox = newHorizontalBox();
 	uiBoxAppend(innerhbox, uiControl(uiNewButton("These")), 0);
 	uiBoxAppend(innerhbox, uiControl(uiNewButton("buttons")), 0);
-	uiBoxAppend(hbox, uiControl(innerhbox), 0);
+	uiBoxAppend(nestedBox, uiControl(innerhbox), 0);
 	innerhbox = newHorizontalBox();
 	uiBoxAppend(innerhbox, uiControl(uiNewButton("are")), 0);
 	innerhbox2 = newHorizontalBox();
@@ -106,7 +107,7 @@ uiBox *makePage2(void)
 	uiControlDisable(uiControl(button));
 	uiBoxAppend(innerhbox2, uiControl(button), 0);
 	uiBoxAppend(innerhbox, uiControl(innerhbox2), 0);
-	uiBoxAppend(hbox, uiControl(innerhbox), 0);
+	uiBoxAppend(nestedBox, uiControl(innerhbox), 0);
 	innerhbox = newHorizontalBox();
 	innerhbox2 = newHorizontalBox();
 	uiBoxAppend(innerhbox2, uiControl(uiNewButton("nested")), 0);
@@ -114,7 +115,16 @@ uiBox *makePage2(void)
 	uiBoxAppend(innerhbox3, uiControl(uiNewButton("boxes")), 0);
 	uiBoxAppend(innerhbox2, uiControl(innerhbox3), 0);
 	uiBoxAppend(innerhbox, uiControl(innerhbox2), 0);
-	uiBoxAppend(hbox, uiControl(innerhbox), 0);
+	uiBoxAppend(nestedBox, uiControl(innerhbox), 0);
+	uiBoxAppend(page2, uiControl(nestedBox), 0);
+
+	hbox = newHorizontalBox();
+	button = uiNewButton("Enable Nested Box");
+	uiButtonOnClicked(button, enableControl, nestedBox);
+	uiBoxAppend(hbox, uiControl(button), 0);
+	button = uiNewButton("Disable Nested Box");
+	uiButtonOnClicked(button, disableControl, nestedBox);
+	uiBoxAppend(hbox, uiControl(button), 0);
 	uiBoxAppend(page2, uiControl(hbox), 0);
 
 	return page2;

@@ -1,8 +1,6 @@
 // 12 april 2015
 #include "uipriv_windows.h"
 
-// TODO enable/disable
-
 struct tab {
 	uiTab t;
 	HWND hwnd;
@@ -64,7 +62,6 @@ static void onDestroy(void *data)
 	uiFree(t);
 }
 
-// TODO rename all the other preferredSize overloads to this form
 static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct tab *t = (struct tab *) c;

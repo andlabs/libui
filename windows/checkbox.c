@@ -44,7 +44,7 @@ static void onDestroy(void *data)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define checkboxXFromLeftOfBoxToLeftOfLabel 12
 
-static void preferredSize(uiControl *cc, uiSizing *d, intmax_t *width, intmax_t *height)
+static void checkboxPreferredSize(uiControl *cc, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct checkbox *c = (struct checkbox *) cc;
 
@@ -119,7 +119,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c->onToggled = defaultOnToggled;
 
-	uiControl(c)->PreferredSize = preferredSize;
+	uiControl(c)->PreferredSize = checkboxPreferredSize;
 
 	uiCheckbox(c)->Text = checkboxText;
 	uiCheckbox(c)->SetText = checkboxSetText;

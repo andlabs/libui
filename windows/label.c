@@ -26,7 +26,7 @@ static void onDestroy(void *data)
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define labelHeight 8
 
-static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void labelPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct label *l = (struct label *) c;
 
@@ -70,7 +70,7 @@ uiLabel *uiNewLabel(const char *text)
 
 	l->hwnd = (HWND) uiControlHandle(uiControl(l));
 
-	uiControl(l)->PreferredSize = preferredSize;
+	uiControl(l)->PreferredSize = labelPreferredSize;
 
 	uiLabel(l)->Text = labelText;
 	uiLabel(l)->SetText = labelSetText;

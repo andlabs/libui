@@ -27,7 +27,7 @@ static void onDestroy(void *data)
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void entryPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	*width = uiDlgUnitsToX(entryWidth, d->sys->baseX);
 	*height = uiDlgUnitsToY(entryHeight, d->sys->baseY);
@@ -64,7 +64,7 @@ uiEntry *uiNewEntry(void)
 
 	e->hwnd = (HWND) uiControlHandle(uiControl(e));
 
-	uiControl(e)->PreferredSize = preferredSize;
+	uiControl(e)->PreferredSize = entryPreferredSize;
 
 	uiEntry(e)->Text = entryText;
 	uiEntry(e)->SetText = entrySetText;

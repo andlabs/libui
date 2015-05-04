@@ -34,7 +34,7 @@ static void onDestroy(void *data)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
-static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void buttonPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct button *b = (struct button *) c;
 	SIZE size;
@@ -104,7 +104,7 @@ uiButton *uiNewButton(const char *text)
 
 	b->onClicked = defaultOnClicked;
 
-	uiControl(b)->PreferredSize = preferredSize;
+	uiControl(b)->PreferredSize = buttonPreferredSize;
 
 	uiButton(b)->Text = buttonText;
 	uiButton(b)->SetText = buttonSetText;

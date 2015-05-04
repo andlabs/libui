@@ -96,22 +96,31 @@ static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 static void tabEnable(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
+	uintmax_t i;
 
 	(*(t->baseEnable))(uiControl(t));
+	for (i = 0; i < t->len; i++)
+		uiControlEnable(uiControl(t->pages[i]));
 }
 
 static void tabDisable(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
+	uintmax_t i;
 
 	(*(t->baseDisable))(uiControl(t));
+	for (i = 0; i < t->len; i++)
+		uiControlDisable(uiControl(t->pages[i]));
 }
 
 static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
 	struct tab *t = (struct tab *) c;
+	uintmax_t i;
 
 	(*(t->baseSysFunc))(uiControl(t), p);
+	for (i = 0; i < t->len; i++)
+		uiControlSysFunc(uiControl(t->pages[i]), p);
 }
 
 // common code for resizes

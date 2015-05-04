@@ -91,7 +91,9 @@ static void windowShow(uiControl *c)
 	struct window *w = (struct window *) c;
 
 	// don't use gtk_widget_show_all() as that will show all children, regardless of user settings
-	gtk_widget_show(w->widget);
+	// don't use gtk_widget_show(); that doesn't bring to front or give keyboard focus
+	// (gtk_window_present() does call gtk_widget_show() though)
+	gtk_window_present(w->window);
 	w->hidden = 0;
 }
 

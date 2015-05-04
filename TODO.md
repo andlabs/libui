@@ -59,3 +59,5 @@ ultimately:
 
 notes to self
 - explicitly document label position at top-left corner
+- mark that uiControlShow() on a uiWindow() will bring to front and give keyboard focus because of OS X
+	- make sure ShowWindow() is sufficient for zorder on Windows

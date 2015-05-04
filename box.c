@@ -5,14 +5,10 @@
 // TODOs
 // - setting padded doesn't take effect immediately on Windows and OS X
 
-// TODO remove these
-typedef struct box box;
-typedef struct boxControl boxControl;
-
 struct box {
 	uiBox b;
 	void (*baseDestroy)(uiControl *);
-	boxControl *controls;
+	struct boxControl *controls;
 	uintmax_t len;
 	uintmax_t cap;
 	int vertical;
@@ -30,7 +26,7 @@ struct boxControl {
 
 static void boxDestroy(uiControl *c)
 {
-	box *b = (box *) c;
+	struct box *b = (struct box *) c;
 	uintmax_t i;
 
 	// TODO find a way to move the parented check here
@@ -47,7 +43,7 @@ static void boxDestroy(uiControl *c)
 
 static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	box *b = (box *) c;
+	struct box *b = (struct box *) c;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	// these two contain the largest preferred width and height of all stretchy controls in the box
@@ -113,7 +109,7 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 
 static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
-	box *b = (box *) c;
+	struct box *b = (struct box *) c;
 	uintmax_t i;
 
 	for (i = 0; i < b->len; i++)
@@ -122,7 +118,7 @@ static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
 
 static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	box *b = (box *) c;
+	struct box *b = (struct box *) c;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	intmax_t stretchywid, stretchyht;
@@ -201,11 +197,11 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 
 static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 {
-	box *b = (box *) ss;
+	struct box *b = (struct box *) ss;
 
 	if (b->len >= b->cap) {
 		b->cap += boxCapGrow;
-		b->controls = (boxControl *) uiRealloc(b->controls, b->cap * sizeof (boxControl));
+		b->controls = (struct boxControl *) uiRealloc(b->controls, b->cap * sizeof (struct boxControl));
 	}
 	b->controls[b->len].c = c;
 	b->controls[b->len].stretchy = stretchy;
@@ -216,7 +212,7 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 
 static void boxDelete(uiBox *ss, uintmax_t index)
 {
-	box *b = (box *) ss;
+	struct box *b = (struct box *) ss;
 	uiControl *removed;
 	uintmax_t i;
 
@@ -230,14 +226,14 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 
 static int boxPadded(uiBox *ss)
 {
-	box *b = (box *) ss;
+	struct box *b = (struct box *) ss;
 
 	return b->padded;
 }
 
 static void boxSetPadded(uiBox *ss, int padded)
 {
-	box *b = (box *) ss;
+	struct box *b = (struct box *) ss;
 
 	b->padded = padded;
 	if (b->parent != NULL)
@@ -246,9 +242,9 @@ static void boxSetPadded(uiBox *ss, int padded)
 
 uiBox *uiNewHorizontalBox(void)
 {
-	box *b;
+	struct box *b;
 
-	b = uiNew(box);
+	b = uiNew(struct box);
 
 	uiMakeContainer(uiContainer(b));
 
@@ -270,10 +266,10 @@ uiBox *uiNewHorizontalBox(void)
 uiBox *uiNewVerticalBox(void)
 {
 	uiBox *bb;
-	box *b;
+	struct box *b;
 
 	bb = uiNewHorizontalBox();
-	b = (box *) bb;
+	b = (struct box *) bb;
 	b->vertical = 1;
 	return bb;
 }

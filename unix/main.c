@@ -14,6 +14,7 @@ const char *uiInit(uiInitOptions *o)
 		g_error_free(err);
 		return msg;
 	}
+	initAlloc();
 	return NULL;
 }
 

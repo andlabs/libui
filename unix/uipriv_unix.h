@@ -14,3 +14,6 @@
 // menu.c
 extern GtkWidget *makeMenubar(uiWindow *);
 extern void freeMenubar(GtkWidget *);
+
+// alloc.c
+extern void initAlloc(void);

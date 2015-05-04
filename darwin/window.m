@@ -121,14 +121,14 @@ static void windowEnable(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
-	// TODO
+	uiControlEnable(uiControl(w->bin));
 }
 
 static void windowDisable(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
-	// TODO
+	uiControlDisable(uiControl(w->bin));
 }
 
 static char *windowTitle(uiWindow *ww)

@@ -131,15 +131,19 @@ static void containerHide(uiControl *cc)
 static void containerEnable(uiControl *cc)
 {
 	containerView *c = (containerView *) (cc->Internal);
+	uiControlSysFuncParams p;
 
-	// TODO
+	p.Func = uiDarwinSysFuncContainerEnable;
+	uiControlSysFunc(cc, &p);
 }
 
 static void containerDisable(uiControl *cc)
 {
 	containerView *c = (containerView *) (cc->Internal);
+	uiControlSysFuncParams p;
 
-	// TODO
+	p.Func = uiDarwinSysFuncContainerDisable;
+	uiControlSysFunc(cc, &p);
 }
 
 static void containerUpdate(uiContainer *cc)
@@ -169,6 +173,7 @@ void uiMakeContainer(uiContainer *cc)
 	uiControl(cc)->Hide = containerHide;
 	uiControl(cc)->Enable = containerEnable;
 	uiControl(cc)->Disable = containerDisable;
+	// SysFunc() is provided by subclasses
 
 	// ResizeChildren() is provided by subclasses
 	uiContainer(cc)->Update = containerUpdate;

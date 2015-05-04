@@ -9,6 +9,8 @@ struct singleView {
 	NSView *immediate;		// the control that is added to the parent container; either view or scrollView
 	uiContainer *parent;
 	int hidden;
+	int userDisabled;
+	int containerDisabled;
 	void (*onDestroy)(void *);
 	void *onDestroyData;
 };
@@ -112,16 +114,39 @@ static void singleEnable(uiControl *c)
 {
 	singleView *s = (singleView *) (c->Internal);
 
-	if ([s->view respondsToSelector:@selector(setEnabled:)])
-		[((NSControl *) (s->view)) setEnabled:YES];
+	s->userDisabled = 0;
+	if (!s->containerDisabled)
+		if ([s->view respondsToSelector:@selector(setEnabled:)])
+			[((NSControl *) (s->view)) setEnabled:YES];
 }
 
 static void singleDisable(uiControl *c)
 {
 	singleView *s = (singleView *) (c->Internal);
 
+	s->userDisabled = 1;
 	if ([s->view respondsToSelector:@selector(setEnabled:)])
 		[((NSControl *) (s->view)) setEnabled:NO];
+}
+
+static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
+{
+	singleView *s = (singleView *) (c->Internal);
+
+	switch (p->Func) {
+	case uiDarwinSysFuncContainerEnable:
+		s->containerDisabled = 0;
+		if (!s->userDisabled)
+			if ([s->view respondsToSelector:@selector(setEnabled:)])
+				[((NSControl *) (s->view)) setEnabled:YES];
+		return;
+	case uiDarwinSysFuncContainerDisable:
+		s->containerDisabled = 1;
+		if ([s->view respondsToSelector:@selector(setEnabled:)])
+			[((NSControl *) (s->view)) setEnabled:NO];
+		return;
+	}
+	complain("unknown p->Func %d in singleSysFunc()", p->Func);
 }
 
 void uiDarwinMakeControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void (*onDestroy)(void *), void *onDestroyData)
@@ -163,4 +188,5 @@ void uiDarwinMakeControl(uiControl *c, Class class, BOOL inScrollView, BOOL scro
 	uiControl(c)->Hide = singleHide;
 	uiControl(c)->Enable = singleEnable;
 	uiControl(c)->Disable = singleDisable;
+	uiControl(c)->SysFunc = singleSysFunc;
 }

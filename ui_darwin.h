@@ -20,4 +20,15 @@ struct uiSizingSys {
 	// this structure currently left blank
 };
 
+struct uiControlSysFuncParams {
+	int Func;
+};
+
+enum {
+	// These should enable and disable the uiControl while preserving the user enable/disable setting.
+	// These are needed because enabling and disabling of views on OS X is available on a view-by-view basis, and is not transitive to subviews by default as a result.
+	uiDarwinSysFuncContainerEnable,
+	uiDarwinSysFuncContainerDisable,
+};
+
 #endif

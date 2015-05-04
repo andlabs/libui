@@ -51,7 +51,6 @@
 - drop "Page" from uiTab method names? (uiTabAppendPage() -> uiTabAppend())
 - override dock menu quit item to act like our app menu quit item
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
-- we might need to bring ContainerEnable() and ContainerDisable() back because of OS X and Windows :(
 
 ultimately:
 - add some sort of runtime type checking

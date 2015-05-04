@@ -54,4 +54,15 @@ extern intmax_t uiWindowsWindowTextWidth(HWND hwnd);
 extern char *uiWindowsControlText(uiControl *);
 extern void uiWindowsControlSetText(uiControl *, const char *);
 
+struct uiControlSysFuncParams {
+	int Func;
+};
+
+enum {
+	// These should enable and disable the uiControl while preserving the user enable/disable setting.
+	// These are needed because while disabling a parent window does cause children to stop receiving events, they are not shown as disabled, which is not what we want.
+	uiWindowsSysFuncContainerEnable,
+	uiWindowsSysFuncContainerDisable,
+};
+
 #endif

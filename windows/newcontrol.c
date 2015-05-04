@@ -11,6 +11,8 @@ struct singleHWND {
 	void *onDestroyData;
 	uiContainer *parent;
 	int hidden;
+	int userDisabled;
+	int containerDisabled;
 };
 
 static void singleDestroy(uiControl *c)
@@ -91,14 +93,35 @@ static void singleEnable(uiControl *c)
 {
 	singleHWND *s = (singleHWND *) (c->Internal);
 
-	EnableWindow(s->hwnd, TRUE);
+	s->userDisabled = 0;
+	if (!s->containerDisabled)
+		EnableWindow(s->hwnd, TRUE);
 }
 
 static void singleDisable(uiControl *c)
 {
 	singleHWND *s = (singleHWND *) (c->Internal);
 
+	s->userDisabled = 1;
 	EnableWindow(s->hwnd, FALSE);
+}
+
+static void singleEnable(uiControl *c)
+{
+	singleHWND *s = (singleHWND *) (c->Internal);
+
+	switch (p->Func) {
+	case uiWindowsSysFuncContainerEnabled:
+		s->containerDisabled = 0;
+		if (!s->userDisabled)
+			EnableWindow(s->hwnd, TRUE);
+		return;
+	case uiWindowsSysFuncContainerDisable:
+		s->containerDisabled = 1;
+		EnableWindow(s->hwnd, FALSE);
+		return;
+	}
+	complain("unknown p->Func %d in singleSysFunc()", p->Func);
 }
 
 static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
@@ -161,6 +184,7 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 	uiControl(c)->Hide = singleHide;
 	uiControl(c)->Enable = singleEnable;
 	uiControl(c)->Disable = singleDisable;
+	uiControl(c)->SysFunc = singleSysFunc;
 }
 
 char *uiWindowsControlText(uiControl *c)

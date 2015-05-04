@@ -47,6 +47,14 @@ void binPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *heig
 	*height += marginY;
 }
 
+static void binSysFunc(uiControl *c, uiControlSysFuncParams *p)
+{
+	struct bin *b = (struct bin *) c;
+
+	if (b->mainControl != NULL)
+		uiControlSysFunc(b->mainControl, p);
+}
+
 void binResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	struct bin *b = (struct bin *) c;
@@ -74,6 +82,7 @@ uiContainer *newBin(void)
 	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = binDestroy;
 	uiControl(b)->PreferredSize = binPreferredSize;
+	uiControl(b)->SysFunc = binSysFunc;
 
 	uiContainer(b)->ResizeChildren = binResizeChildren;
 

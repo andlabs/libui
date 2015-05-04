@@ -111,6 +111,15 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		*width += nStretchy * maxStretchyWidth;
 }
 
+static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
+{
+	box *b = (box *) c;
+	uintmax_t i;
+
+	for (i = 0; i < b->len; i++)
+		uiControlSysFunc(b->controls[i].c, p);
+}
+
 static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	box *b = (box *) c;
@@ -248,6 +257,7 @@ uiBox *uiNewHorizontalBox(void)
 	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = boxDestroy;
 	uiControl(b)->PreferredSize = boxPreferredSize;
+	uiControl(b)->SysFunc = boxSysFunc;
 
 	uiContainer(b)->ResizeChildren = boxResizeChildren;
 

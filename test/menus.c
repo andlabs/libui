@@ -15,6 +15,7 @@ uiMenuItem *enabledItem;
 uiMenuItem *enableThisItem;
 uiMenuItem *forceCheckedItem;
 uiMenuItem *forceUncheckedItem;
+uiMenuItem *whatWindowItem;
 uiMenu *moreTestsMenu;
 uiMenuItem *quitEnabledItem;
 uiMenuItem *prefsEnabledItem;
@@ -42,6 +43,11 @@ static void forceOff(uiMenuItem *item, uiWindow *w, void *data)
 	uiMenuItemSetChecked(enabledItem, 0);
 }
 
+static void whatWindow(uiMenuItem *item, uiWindow *w, void *data)
+{
+	printf("menu item clicked on window %p\n", w);
+}
+
 void initMenus(void)
 {
 	fileMenu = uiNewMenu("File");
@@ -66,6 +72,9 @@ void initMenus(void)
 	uiMenuItemOnClicked(forceCheckedItem, forceOn, NULL);
 	forceUncheckedItem = uiMenuAppendItem(testMenu, "Force Above Unchecked");
 	uiMenuItemOnClicked(forceUncheckedItem, forceOff, NULL);
+	uiMenuAppendSeparator(testMenu);
+	whatWindowItem = uiMenuAppendItem(testMenu, "What Window?");
+	uiMenuItemOnClicked(whatWindowItem, whatWindow, NULL);
 
 	moreTestsMenu = uiNewMenu("More Tests");
 	quitEnabledItem = uiMenuAppendCheckItem(moreTestsMenu, "Quit Item Enabled");

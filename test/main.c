@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
 
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);
+	printf("main window %p\n", w);
 
 	mainBox = newHorizontalBox();
 	uiWindowSetChild(w, uiControl(mainBox));

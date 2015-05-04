@@ -6,11 +6,17 @@
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 }
+- (uiWindow *)getuiWindow;
 - (void)setuiWindow:(uiWindow *)ww;
 - (void)setOnClosing:(int (*)(uiWindow *, void *))f data:(void *)data;
 @end
 
 @implementation windowDelegate
+
+- (uiWindow *)getuiWindow
+{
+	return self->w;
+}
 
 - (void)setuiWindow:(uiWindow *)ww
 {
@@ -217,4 +223,14 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindow(w)->SetMargined = windowSetMargined;
 
 	return uiWindow(w);
+}
+
+uiWindow *windowFromNSWindow(NSWindow *w)
+{
+	windowDelegate *d;
+
+	if (w == nil)
+		return NULL;
+	d = (windowDelegate *) [w delegate];
+	return [d getuiWindow];
 }

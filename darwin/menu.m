@@ -59,8 +59,8 @@ enum {
 	item = (struct menuItem *) [v pointerValue];
 	if (item->type == typeCheckbox)
 		uiMenuItemSetChecked(uiMenuItem(item), !uiMenuItemChecked(uiMenuItem(item)));
-	// TODO get key window
-	(*(item->onClicked))(uiMenuItem(item), NULL, item->onClickedData);
+	// use the key window as the source of the menu event; it's the active window
+	(*(item->onClicked))(uiMenuItem(item), windowFromNSWindow([NSApp keyWindow]), item->onClickedData);
 }
 
 - (void)register:(NSMenuItem *)item to:(struct menuItem *)smi

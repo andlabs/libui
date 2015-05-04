@@ -42,3 +42,6 @@ extern void disableAutocorrect(NSTextView *);
 
 // entry.m
 extern void finishNewTextField(NSTextField *, BOOL);
+
+// window.m
+extern uiWindow *windowFromNSWindow(NSWindow *);

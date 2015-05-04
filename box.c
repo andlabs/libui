@@ -2,9 +2,6 @@
 #include "ui.h"
 #include "uipriv.h"
 
-// TODOs
-// - setting padded doesn't take effect immediately on Windows and OS X
-
 struct box {
 	uiBox b;
 	void (*baseDestroy)(uiControl *);
@@ -12,7 +9,7 @@ struct box {
 	uintmax_t len;
 	uintmax_t cap;
 	int vertical;
-	int hasParent;
+	void (*baseSetParent)(uiControl *, uiContainer *);
 	uiContainer *parent;
 	int padded;
 };
@@ -29,7 +26,8 @@ static void boxDestroy(uiControl *c)
 	struct box *b = (struct box *) c;
 	uintmax_t i;
 
-	// TODO find a way to move the parented check here
+	if (b->parent != NULL)
+		complain("attempt to destroy uiBox %p while it has a parent", b);
 	// don't chain up to base here; we need to destroy children ourselves first
 	for (i = 0; i < b->len; i++) {
 		uiControlSetParent(b->controls[i].c, NULL);
@@ -39,6 +37,16 @@ static void boxDestroy(uiControl *c)
 	// NOW we can chain up to base
 	(*(b->baseDestroy))(uiControl(b));
 	uiFree(b);
+}
+
+static void boxSetParent(uiControl *c, uiContainer *parent)
+{
+	struct box *b = (struct box *) c;
+
+	// this does all the actual work
+	(*(b->baseSetParent))(uiControl(b), parent);
+	// we just need to have a copy of the parent ourselves for boxSetPadded()
+	b->parent = parent;
 }
 
 static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -250,6 +258,8 @@ uiBox *uiNewHorizontalBox(void)
 
 	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = boxDestroy;
+	b->baseSetParent = uiControl(b)->SetParent;
+	uiControl(b)->SetParent = boxSetParent;
 	uiControl(b)->PreferredSize = boxPreferredSize;
 	uiControl(b)->SysFunc = boxSysFunc;
 

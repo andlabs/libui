@@ -43,7 +43,7 @@ static void tabShow(uiControl *c)
 {
 	struct tab *t = (struct tab *) t;
 
-	// don't call gtk_widget_show_all() like the default handler does; that'll override user hiding
+	// don't call gtk_widget_show_all() like the default handler does; that'll override user hiding of children
 	gtk_widget_show(t->widget);
 }
 

@@ -11,7 +11,7 @@ struct bin {
 	intmax_t marginBottom;
 };
 
-void binDestroy(uiControl *c)
+static void binDestroy(uiControl *c)
 {
 	struct bin *b = (struct bin *) c;
 	HWND hwnd;
@@ -30,7 +30,7 @@ void binDestroy(uiControl *c)
 	uiFree(b);
 }
 
-void binPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void binPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct bin *b = (struct bin *) c;
 	intmax_t marginX, marginY;
@@ -55,7 +55,7 @@ static void binSysFunc(uiControl *c, uiControlSysFuncParams *p)
 		uiControlSysFunc(b->mainControl, p);
 }
 
-void binResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void binResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	struct bin *b = (struct bin *) c;
 	intmax_t marginLeft, marginTop;

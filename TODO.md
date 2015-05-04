@@ -55,6 +55,8 @@
 	- switch away from properties or figure out what incantation is necessary for 32-bit
 	- figure out strong/weak vs assign/copy/retain
 - figure out what to do in OS X terminate:
+- clean up bin handling
+	- is binSetOSParent() even needed?
 
 ultimately:
 - add some sort of runtime type checking

@@ -31,7 +31,7 @@ struct Sizing {
 	field sys *uiSizingSys;
 };
 
-raw "typedef struct uiControlSysFuncParams uiControlSysFuncParams";
+raw "typedef struct uiControlSysFuncParams uiControlSysFuncParams;";
 
 interface Control {
 	field Internal *void;		// for use by ui only

@@ -129,7 +129,6 @@ enum {
 	title = [@"About " stringByAppendingString:appName];
 	item = [[NSMenuItem alloc] initWithTitle:title action:@selector(onClicked:) keyEquivalent:@""];
 	[item setTarget:self];
-	[item setEnabled:NO];
 	[appMenu addItem:item];
 	self.aboutItem = item;
 
@@ -138,7 +137,6 @@ enum {
 	// next is Preferences
 	item = [[NSMenuItem alloc] initWithTitle:@"Preferences…" action:@selector(onClicked:) keyEquivalent:@","];
 	[item setTarget:self];
-	[item setEnabled:NO];
 	[appMenu addItem:item];
 	self.preferencesItem = item;
 
@@ -172,7 +170,6 @@ enum {
 	title = [@"Quit " stringByAppendingString:appName];
 	item = [[NSMenuItem alloc] initWithTitle:title action:@selector(onClicked:) keyEquivalent:@"q"];
 	[item setTarget:self];
-	[item setEnabled:NO];
 	[appMenu addItem:item];
 	self.quitItem = item;
 }
@@ -197,8 +194,6 @@ static void menuItemEnable(uiMenuItem *ii)
 {
 	struct menuItem *item = (struct menuItem *) ii;
 
-	// TODO get rid of this entirely and just use the validation
-	[item->item setEnabled:YES];
 	item->disabled = NO;
 	// we don't need to explicitly update the menus here; they'll be updated the next time they're opened (thanks mikeash in irc.freenode.net/#macdev)
 }
@@ -207,7 +202,6 @@ static void menuItemDisable(uiMenuItem *ii)
 {
 	struct menuItem *item = (struct menuItem *) ii;
 
-	[item->item setEnabled:NO];
 	item->disabled = YES;
 }
 
@@ -250,15 +244,12 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	switch (item->type) {
 	case typeQuit:
 		item->item = appDelegate().menuManager.quitItem;
-		[item->item setEnabled:YES];
 		break;
 	case typePreferences:
 		item->item = appDelegate().menuManager.preferencesItem;
-		[item->item setEnabled:YES];
 		break;
 	case typeAbout:
 		item->item = appDelegate().menuManager.aboutItem;
-		[item->item setEnabled:YES];
 		break;
 	case typeSeparator:
 		item->item = [NSMenuItem separatorItem];
@@ -326,7 +317,7 @@ uiMenu *uiNewMenu(const char *name)
 	m = uiNew(struct menu);
 
 	m->menu = [[NSMenu alloc] initWithTitle:toNSString(name)];
-	[m->menu setAutoenablesItems:NO];
+	// use automatic menu item enabling for all menus for consistency's sake
 
 	m->item = [[NSMenuItem alloc] initWithTitle:toNSString(name) action:NULL keyEquivalent:@""];
 	[m->item setSubmenu:m->menu];

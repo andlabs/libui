@@ -10,6 +10,9 @@ struct tab {
 	int *margined;
 	uintmax_t len;
 	uintmax_t cap;
+	void (*baseEnable)(uiControl *);
+	void (*baseDisable)(uiControl *);
+	void (*baseSysFunc)(uiControl *, uiControlSysFuncParams *);
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
@@ -61,7 +64,8 @@ static void onDestroy(void *data)
 	uiFree(t);
 }
 
-static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+// TODO rename all the other preferredSize overloads to this form
+static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct tab *t = (struct tab *) c;
 	LRESULT current;
@@ -87,6 +91,27 @@ static void preferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) TRUE, (LPARAM) (&r));
 	*width = r.right - r.left;
 	*height = r.bottom - r.top;
+}
+
+static void tabEnable(uiControl *c)
+{
+	struct tab *t = (struct tab *) c;
+
+	(*(t->baseEnable))(uiControl(t));
+}
+
+static void tabDisable(uiControl *c)
+{
+	struct tab *t = (struct tab *) c;
+
+	(*(t->baseDisable))(uiControl(t));
+}
+
+static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
+{
+	struct tab *t = (struct tab *) c;
+
+	(*(t->baseSysFunc))(uiControl(t), p);
 }
 
 // common code for resizes
@@ -268,7 +293,13 @@ uiTab *uiNewTab(void)
 	if ((*fv_SetWindowSubclass)(t->hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
 
-	uiControl(t)->PreferredSize = preferredSize;
+	uiControl(t)->PreferredSize = tabPreferredSize;
+	t->baseEnable = uiControl(t)->Enable;
+	uiControl(t)->Enable = tabEnable;
+	t->baseDisable = uiControl(t)->Disable;
+	uiControl(t)->Disable = tabDisable;
+	t->baseSysFunc = uiControl(t)->SysFunc;
+	uiControl(t)->SysFunc = tabSysFunc;
 
 	uiTab(t)->AppendPage = tabAppendPage;
 	uiTab(t)->DeletePage = tabDeletePage;

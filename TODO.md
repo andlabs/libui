@@ -52,6 +52,9 @@
 - override dock menu quit item to act like our app menu quit item
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
 - I have a feeling the container enable/disable logic we have won't work with two levels of controls to enable...
+	- perhaps drop ContainerENable/Disable entirely and make enabling and disabling counted: each call to Disable() increments a counter and each call to Enable() decrements it
+		- would be error-prone on the user's side, even if Enable() with refcount == 0 is a no-op
+	- what does GTK+ do?
 
 ultimately:
 - add some sort of runtime type checking

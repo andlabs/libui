@@ -1,8 +1,6 @@
 // 26 april 2015
 #include "uipriv_windows.h"
 
-// TODO figure out flicker
-
 #define containerClass L"libui_uiContainerClass"
 
 HWND initialParent;

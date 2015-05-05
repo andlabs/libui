@@ -58,6 +58,7 @@
 - clean up bin handling
 	- is binSetOSParent() even needed?
 - readd the allocation tracking as just a list of pointers
+- add a final cleanup function (uiUninit() or uiCleanup())
 
 ultimately:
 - add some sort of runtime type checking

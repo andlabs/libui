@@ -201,7 +201,6 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
 		uiControlHide(uiControl(page));
 	t->pages[t->len] = page;
-	t->margined[t->len] = 0;		// TODO should not be necessary but blah blah blah realloc
 	t->len++;
 
 	ZeroMemory(&item, sizeof (TCITEMW));

@@ -119,6 +119,9 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	NMHDR *nm = (NMHDR *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r;
+	HDC dc;
+	PAINTSTRUCT ps;
+	HBRUSH brush, prevbrush;
 
 	cc = uiContainer(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
 	if (cc == NULL)
@@ -163,6 +166,20 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 			logLastError("error setting transparent background mode to controls in parentWndProc()");
 		c->brush = getControlBackgroundBrush((HWND) lParam, (HDC) wParam);
 		return (LRESULT) (c->brush);
+	case WM_PAINT:
+		if (cc == NULL)
+			break;
+		c = (struct container *) (uiControl(cc)->Internal);
+		// TODO check for errors
+		dc = BeginPaint(c->hwnd, &ps);
+		GetClientRect(c->hwnd, &r);
+		brush = getControlBackgroundBrush(c->hwnd, dc);
+		prevbrush = SelectObject(dc, brush);
+		PatBlt(dc, r.left, r.top, r.right - r.left, r.bottom - r.top, PATCOPY);
+		SelectObject(dc, prevbrush);
+		DeleteObject(brush);
+		EndPaint(c->hwnd, &ps);
+		return 0;
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;

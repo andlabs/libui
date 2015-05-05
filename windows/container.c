@@ -13,10 +13,10 @@ struct container {
 };
 
 // see http://www.codeproject.com/Articles/5978/Correctly-drawn-themed-dialogs-in-WinXP
-static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
+static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc, RECT *hwndScreenRect)
 {
 	HWND parent;
-	RECT r;
+	RECT parentRect;
 	int class;
 	HDC cdc;
 	HBITMAP bitmap, prevbitmap;
@@ -33,13 +33,13 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	}
 
 	// TODO get client rect instead?
-	if (GetWindowRect(parent, &r) == 0)
+	if (GetWindowRect(parent, &parentRect) == 0)
 		logLastError("error getting parent's window rect in getControlBackgroundBrush()");
 
 	cdc = CreateCompatibleDC(dc);
 	if (cdc == NULL)
 		logLastError("error creating compatible DC in getControlBackgroundBrush()");
-	bitmap = CreateCompatibleBitmap(dc, r.right - r.left, r.bottom - r.top);
+	bitmap = CreateCompatibleBitmap(dc, parentRect.right - parentRect.left, parentRect.bottom - parentRect.top);
 	if (bitmap == NULL)
 		logLastError("error creating compatible bitmap in getControlBackgroundBrush()");
 	prevbitmap = SelectObject(cdc, bitmap);
@@ -57,11 +57,9 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	if (DeleteDC(cdc) == 0)
 		logLastError("error deleting compatible DC in getControlBackgroundBrush()");
 
-	if (GetWindowRect(hwnd, &r) == 0)
-		logLastError("error getting control's window rect in getControlBackgroundBrush()");
-	// the above is a window rect in screen coordinates; convert to parent coordinates
-	mapWindowRect(NULL, parent, &r);
-	if (SetBrushOrgEx(dc, -r.left, -r.top, NULL) == 0)
+	// the given control rect is in screen coordinates; convert to parent coordinates
+	mapWindowRect(NULL, parent, hwndScreenRect);
+	if (SetBrushOrgEx(dc, -hwndScreenRect->left, -hwndScreenRect->top, NULL) == 0)
 		logLastError("error setting brush origin in getControlBackgroundBrush()");
 
 	return brush;
@@ -75,7 +73,7 @@ static void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
 	// getControlBackgroundBrush() needs a screen rectangle
 	screenRect = *paintRect;
 	mapWindowRect(hwnd, NULL, &screenRect);
-	brush = getControlBackgroundBrush(hwnd, dc);
+	brush = getControlBackgroundBrush(hwnd, dc, &screenRect);
 	prevbrush = SelectObject(dc, brush);
 	if (prevbrush == NULL)
 		logLastError("error selecting background brush into DC in paintContainerBackground()");
@@ -184,8 +182,10 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 			if (textfieldReadOnly((HWND) lParam))
 				return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 */		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
-			logLastError("error setting transparent background mode to controls in parentWndProc()");
-		c->brush = getControlBackgroundBrush((HWND) lParam, (HDC) wParam);
+			logLastError("error setting transparent background mode to controls in containerWndProc()");
+		if (GetWindowRect((HWND) lParam, &r) == 0)
+			logLastError("error getting control's window rect in containerWndProc()");
+		c->brush = getControlBackgroundBrush((HWND) lParam, (HDC) wParam, &r);
 		return (LRESULT) (c->brush);
 	case WM_PAINT:
 		if (cc == NULL)
@@ -198,7 +198,9 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		paintContainerBackground(c->hwnd, dc, &r);
 		EndPaint(c->hwnd, &ps);
 		return 0;
-	case WM_PRINTCLIENT:
+	// TODO the tab control uses this to draw the tab background
+	// but we have no idea where the tab is, so...
+//	case WM_PRINTCLIENT:
 		if (cc == NULL)
 			break;
 		c = (struct container *) (uiControl(cc)->Internal);

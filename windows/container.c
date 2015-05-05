@@ -33,33 +33,43 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 			break;
 	}
 
+	// TODO get client rect instead?
 	if (GetWindowRect(parent, &r) == 0)
-		logLastError("error getting control's window rect in paintControlBackground()");
+		logLastError("error getting parent's window rect in getControlBackgroundBrush()");
 
-	// TODO check errors
 	cdc = CreateCompatibleDC(dc);
+	if (cdc == NULL)
+		logLastError("error creating compatible DC in getControlBackgroundBrush()");
 	bitmap = CreateCompatibleBitmap(dc, r.right - r.left, r.bottom - r.top);
+	if (bitmap == NULL)
+		logLastError("error creating compatible bitmap in getControlBackgroundBrush()");
 	prevbitmap = SelectObject(cdc, bitmap);
-
+	if (prevbitmap == NULL)
+		logLastError("error selecting bitmap into compatible DC in getControlBackgroundBrush()");
 	SendMessageW(parent, WM_PRINTCLIENT, (WPARAM) cdc, PRF_CLIENT);
-
-	// TODO check errors
-	SelectObject(cdc, prevbitmap);
-	DeleteDC(cdc);
+	// create it now, just to be safe
 	brush = CreatePatternBrush(bitmap);
-	DeleteObject(bitmap);
+	if (brush == NULL)
+		logLastError("error creating pattern brush in getControlBackgroundBrush()");
+	if (SelectObject(cdc, prevbitmap) != bitmap)
+		logLastError("error selecting previous bitmap back into compatible DC in getControlBackgroundBrush()");
+	if (DeleteObject(bitmap) == 0)
+		logLastError("error deleting compatible bitmap in getControlBackgroundBrush()");
+	if (DeleteDC(cdc) == 0)
+		logLastError("error deleting compatible DC in getControlBackgroundBrush()");
 
 	if (GetWindowRect(hwnd, &r) == 0)
-		logLastError("error getting control's window rect in paintControlBackground()");
+		logLastError("error getting control's window rect in getControlBackgroundBrush()");
 	// the above is a window rect in screen coordinates; convert to parent coordinates
 	SetLastError(0);
 	if (MapWindowRect(NULL, parent, &r) == 0) {
 		le = GetLastError();
 		SetLastError(le);		// just to be safe
 		if (le != 0)
-			logLastError("error getting client origin of control in paintControlBackground()");
+			logLastError("error getting coordinates to change brush origin to in getControlBackgroundBrush()");
 	}
-	SetBrushOrgEx(dc, -r.left, -r.top, NULL);
+	if (SetBrushOrgEx(dc, -r.left, -r.top, NULL) == 0)
+		logLastError("error setting brush origin in getControlBackgroundBrush()");
 
 	return brush;
 }
@@ -170,14 +180,22 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		if (cc == NULL)
 			break;
 		c = (struct container *) (uiControl(cc)->Internal);
-		// TODO check for errors
 		dc = BeginPaint(c->hwnd, &ps);
-		GetClientRect(c->hwnd, &r);
+		if (dc == NULL)
+			logLastError("error beginning container paint in containerWndProc()");
+		// TODO only draw what's needed
+		if (GetClientRect(c->hwnd, &r) == 0)
+			logLastError("error getting client rect in containerWndProc()");
 		brush = getControlBackgroundBrush(c->hwnd, dc);
 		prevbrush = SelectObject(dc, brush);
-		PatBlt(dc, r.left, r.top, r.right - r.left, r.bottom - r.top, PATCOPY);
-		SelectObject(dc, prevbrush);
-		DeleteObject(brush);
+		if (prevbrush == NULL)
+			logLastError("error selecting background brush into DC in containerWndProc()");
+		if (PatBlt(dc, r.left, r.top, r.right - r.left, r.bottom - r.top, PATCOPY) == 0)
+			logLastError("error drawing container background in containerWndProc()");
+		if (SelectObject(dc, prevbrush) != brush)
+			logLastError("error selecting previous brush back into DC in containerWndProc()");
+		if (DeleteObject(brush) == 0)
+			logLastError("error deleting background brush in containerWndProc()");
 		EndPaint(c->hwnd, &ps);
 		return 0;
 	case WM_WINDOWPOSCHANGED:
@@ -189,7 +207,7 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 			break;
 		c = (struct container *) (uiControl(cc)->Internal);
 		if (GetClientRect(c->hwnd, &r) == 0)
-			logLastError("error getting client rect for resize in parentWndProc()");
+			logLastError("error getting client rect for resize in containerWndProc()");
 		resize(cc, &r);
 		return 0;
 	}

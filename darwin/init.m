@@ -53,6 +53,8 @@ const char *uiInit(uiInitOptions *o)
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 	[NSApp setDelegate:[appDelegate new]];
 
+	initAlloc();
+
 	// always do this so we always have an application menu
 	appDelegate().menuManager = [menuManager new];
 	[NSApp setMainMenu:[appDelegate().menuManager makeMenubar]];

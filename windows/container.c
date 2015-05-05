@@ -16,7 +16,6 @@ struct container {
 static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 {
 	HWND parent;
-	RECT window;
 	RECT r;
 	int class;
 	HDC cdc;
@@ -34,18 +33,8 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 			break;
 	}
 
-	if (GetWindowRect(hwnd, &window) == 0)
+	if (GetWindowRect(parent, &r) == 0)
 		logLastError("error getting control's window rect in paintControlBackground()");
-
-	// the above is a window rect in screen coordinates; convert to parent coordinates
-	r = window;
-	SetLastError(0);
-	if (MapWindowRect(NULL, parent, &r) == 0) {
-		le = GetLastError();
-		SetLastError(le);		// just to be safe
-		if (le != 0)
-			logLastError("error getting client origin of control in paintControlBackground()");
-	}
 
 	// TODO check errors
 	cdc = CreateCompatibleDC(dc);
@@ -59,6 +48,17 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	DeleteDC(cdc);
 	brush = CreatePatternBrush(bitmap);
 	DeleteObject(bitmap);
+
+	if (GetWindowRect(hwnd, &r) == 0)
+		logLastError("error getting control's window rect in paintControlBackground()");
+	// the above is a window rect in screen coordinates; convert to parent coordinates
+	SetLastError(0);
+	if (MapWindowRect(NULL, parent, &r) == 0) {
+		le = GetLastError();
+		SetLastError(le);		// just to be safe
+		if (le != 0)
+			logLastError("error getting client origin of control in paintControlBackground()");
+	}
 	SetBrushOrgEx(dc, -r.left, -r.top, NULL);
 
 	return brush;

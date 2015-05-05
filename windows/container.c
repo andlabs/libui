@@ -127,7 +127,15 @@ static HRESULT resize(uiContainer *cc, RECT *r)
 	d.xPadding = uiDlgUnitsToX(winXPadding, sys.baseX);
 	d.yPadding = uiDlgUnitsToY(winYPadding, sys.baseY);
 	d.sys = &sys;
+
+	// 32 is an arbitrary number to start with, just to be safe
+	d.sys->dwp = BeginDeferWindowPos(32);
+	if (d.sys->dwp == NULL)
+		logLastError("error beginning resize in resize()");
 	uiContainerResizeChildren(cc, r->left, r->top, r->right - r->left, r->bottom - r->top, &d);
+	if (EndDeferWindowPos(d.sys->dwp) == 0)
+		logLastError("error ending resize in resize()");
+
 	return S_OK;
 }
 
@@ -301,8 +309,7 @@ static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t widt
 {
 	struct container *c = (struct container *) (cc->Internal);
 
-	if (MoveWindow(c->hwnd, x, y, width, height, TRUE) == 0)
-		logLastError("error resizing uiContainer in containerResize()");
+	uiWindowsResizeHWND(c->hwnd, x, y, width, height, d);
 }
 
 static int containerVisible(uiControl *cc)

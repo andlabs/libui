@@ -35,16 +35,22 @@ struct uiWindowsMakeControlParams {
 void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p);
 
 // This contains the Windows-specific parts of the uiSizing structure.
+// dwp contains the HDWP to issue a resize request to.
+// You only need to worry about it if you are implementing your own Resize().
 // baseX and baseY are the dialog base units.
 // internalLeading is the standard control font's internal leading; labels in uiForms use this for correct Y positioning.
 struct uiSizingSys {
+	HDWP dwp;
 	int baseX;
 	int baseY;
 	LONG internalLeading;
 };
-// Use these in your preferredSize() implementation with baseX and baseY.
+// Use these in your PreferredSize() implementation with baseX and baseY.
 #define uiDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)
 #define uiDlgUnitsToY(dlg, baseY) MulDiv((dlg), baseY, 8)
+
+// Use this in your Resize() implementation.
+void uiWindowsResizeHWND(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d);
 
 // and use this if you need the text of the window width
 extern intmax_t uiWindowsWindowTextWidth(HWND hwnd);

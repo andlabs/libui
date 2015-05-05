@@ -9,7 +9,61 @@ struct container {
 	HWND hwnd;
 	uiContainer *parent;
 	int hidden;
+	HBRUSH brush;
 };
+
+// see http://www.codeproject.com/Articles/5978/Correctly-drawn-themed-dialogs-in-WinXP
+static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
+{
+	HWND parent;
+	RECT window;
+	RECT r;
+	int class;
+	HDC cdc;
+	HBITMAP bitmap, prevbitmap;
+	HBRUSH brush;
+	DWORD le;
+
+	parent = hwnd;
+	for (;;) {
+		parent = GetAncestor(parent, GA_PARENT);
+		// skip groupboxes; they're (supposed to be) transparent
+		// skip uiContainers; they don't draw anything
+		class = windowClassOf(parent, L"button", containerClass, NULL);
+		if (class != 0 && class != 1)
+			break;
+	}
+
+	if (GetWindowRect(hwnd, &window) == 0)
+		logLastError("error getting control's window rect in paintControlBackground()");
+
+	// the above is a window rect in screen coordinates; convert to parent coordinates
+	r = window;
+	SetLastError(0);
+	if (MapWindowRect(NULL, parent, &r) == 0) {
+		le = GetLastError();
+		SetLastError(le);		// just to be safe
+		if (le != 0)
+			logLastError("error getting client origin of control in paintControlBackground()");
+	}
+
+	// TODO check errors
+	cdc = CreateCompatibleDC(dc);
+	bitmap = CreateCompatibleBitmap(dc, r.right - r.left, r.bottom - r.top);
+	prevbitmap = SelectObject(cdc, bitmap);
+
+	SendMessageW(parent, WM_PRINTCLIENT, (WPARAM) cdc, PRF_CLIENT);
+
+	// TODO check errors
+	SelectObject(cdc, prevbitmap);
+	DeleteDC(cdc);
+	brush = CreatePatternBrush(bitmap);
+	DeleteObject(bitmap);
+	SetBrushOrgEx(dc, -r.left, -r.top, NULL);
+
+	return brush;
+}
+
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 // this X value is really only for buttons but I don't see a better one :/
@@ -90,19 +144,25 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		if (control != NULL && IsChild(initialParent, control) == 0)
 			return SendMessageW(control, msgNOTIFY, wParam, lParam);
 		break;
-/*	case WM_CTLCOLORSTATIC:
+
+	// these are only run if c is not NULL
+	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
+		if (cc == NULL)
+			break;
+		c = (struct container *) (uiControl(cc)->Internal);
+		if (c->brush != NULL)
+			if (DeleteObject(c->brush) == 0)
+				logLastError("error deleting old background brush in containerWndProc()");
 /*TODO		// read-only TextFields and Textboxes are exempt
 		// this is because read-only edit controls count under WM_CTLCOLORSTATIC
 		if (windowClassOf((HWND) lParam, L"edit", NULL) == 0)
 			if (textfieldReadOnly((HWND) lParam))
 				return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-*//*		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
+*/		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
 			logLastError("error setting transparent background mode to controls in parentWndProc()");
-//		paintControlBackground((HWND) lParam, (HDC) wParam);
-		return (LRESULT) hollowBrush;
-*/
-	// these are only run if c is not NULL
+		c->brush = getControlBackgroundBrush((HWND) lParam, (HDC) wParam);
+		return (LRESULT) (c->brush);
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;

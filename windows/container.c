@@ -90,6 +90,17 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		if (control != NULL && IsChild(initialParent, control) == 0)
 			return SendMessageW(control, msgNOTIFY, wParam, lParam);
 		break;
+	case WM_CTLCOLORSTATIC:
+	case WM_CTLCOLORBTN:
+/*TODO		// read-only TextFields and Textboxes are exempt
+		// this is because read-only edit controls count under WM_CTLCOLORSTATIC
+		if (windowClassOf((HWND) lParam, L"edit", NULL) == 0)
+			if (textfieldReadOnly((HWND) lParam))
+				return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+*/		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
+			logLastError("error setting transparent background mode to controls in parentWndProc()");
+//		paintControlBackground((HWND) lParam, (HDC) wParam);
+		return (LRESULT) hollowBrush;
 
 	// these are only run if c is not NULL
 	case WM_WINDOWPOSCHANGED:

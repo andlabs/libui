@@ -63,17 +63,7 @@ static LRESULT CALLBACK parentWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	// these must always be executed, even on the initial parent
 	// why? http://blogs.msdn.com/b/oldnewthing/archive/2010/03/16/9979112.aspx
 	switch (uMsg) {
-	case WM_CTLCOLORSTATIC:
-	case WM_CTLCOLORBTN:
-/*TODO		// read-only TextFields and Textboxes are exempt
-		// this is because read-only edit controls count under WM_CTLCOLORSTATIC
-		if (windowClassOf((HWND) lParam, L"edit", NULL) == 0)
-			if (textfieldReadOnly((HWND) lParam))
-				return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-*/		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
-			logLastError("error setting transparent background mode to controls in parentWndProc()");
-		paintControlBackground((HWND) lParam, (HDC) wParam);
-		return (LRESULT) hollowBrush;
+
 	}
 
 	// these are only executed on actual parents

@@ -29,7 +29,7 @@ void *uiRealloc(void *p, size_t new)
 	if (p == NULL)
 		return uiAlloc(new);
 	p = BASE(p);
-	out = g_realloc(p, new);
+	out = g_realloc(p, sizeof (size_t) + new);
 	s = SIZE(out);
 	if (new <= *s)
 		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);

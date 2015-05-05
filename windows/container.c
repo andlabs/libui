@@ -67,6 +67,25 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	return brush;
 }
 
+static void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
+{
+	RECT screenRect;
+	HBRUSH brush, prevbrush;
+
+	// getControlBackgroundBrush() needs a screen rectangle
+	screenRect = *paintRect;
+	mapWindowRect(hwnd, NULL, &screenRect);
+	brush = getControlBackgroundBrush(hwnd, dc);
+	prevbrush = SelectObject(dc, brush);
+	if (prevbrush == NULL)
+		logLastError("error selecting background brush into DC in paintContainerBackground()");
+	if (PatBlt(dc, paintRect->left, paintRect->top, paintRect->right - paintRect->left, paintRect->bottom - paintRect->top, PATCOPY) == 0)
+		logLastError("error drawing container background in paintContainerBackground()");
+	if (SelectObject(dc, prevbrush) != brush)
+		logLastError("error selecting previous brush back into DC in paintContainerBackground()");
+	if (DeleteObject(brush) == 0)
+		logLastError("error deleting background brush in paintContainerBackground()");
+}
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 // this X value is really only for buttons but I don't see a better one :/
@@ -124,7 +143,6 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	RECT r;
 	HDC dc;
 	PAINTSTRUCT ps;
-	HBRUSH brush, prevbrush;
 
 	cc = uiContainer(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
 	if (cc == NULL)
@@ -176,20 +194,17 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		dc = BeginPaint(c->hwnd, &ps);
 		if (dc == NULL)
 			logLastError("error beginning container paint in containerWndProc()");
-		// TODO only draw what's needed
+		r = ps.rcPaint;
+		paintContainerBackground(c->hwnd, dc, &r);
+		EndPaint(c->hwnd, &ps);
+		return 0;
+	case WM_PRINTCLIENT:
+		if (cc == NULL)
+			break;
+		c = (struct container *) (uiControl(cc)->Internal);
 		if (GetClientRect(c->hwnd, &r) == 0)
 			logLastError("error getting client rect in containerWndProc()");
-		brush = getControlBackgroundBrush(c->hwnd, dc);
-		prevbrush = SelectObject(dc, brush);
-		if (prevbrush == NULL)
-			logLastError("error selecting background brush into DC in containerWndProc()");
-		if (PatBlt(dc, r.left, r.top, r.right - r.left, r.bottom - r.top, PATCOPY) == 0)
-			logLastError("error drawing container background in containerWndProc()");
-		if (SelectObject(dc, prevbrush) != brush)
-			logLastError("error selecting previous brush back into DC in containerWndProc()");
-		if (DeleteObject(brush) == 0)
-			logLastError("error deleting background brush in containerWndProc()");
-		EndPaint(c->hwnd, &ps);
+		paintContainerBackground(c->hwnd, (HDC) wParam, &r);
 		return 0;
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)

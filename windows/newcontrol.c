@@ -56,7 +56,8 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 {
 	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
-	uiWindowsResizeHWND(s->hwnd, x, y, width, height, d);
+	if (MoveWindow(s->hwnd, x, y, width, height, TRUE) == 0)
+		logLastError("error moving control in singleResize()");
 }
 
 static int singleVisible(uiControl *c)
@@ -205,11 +206,4 @@ void uiWindowsControlSetText(uiControl *c, const char *text)
 	if (SetWindowTextW(s->hwnd, wtext) == 0)
 		logLastError("error setting control text in uiWindowsControlSetText()");
 	uiFree(wtext);
-}
-
-void uiWindowsResizeHWND(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
-{
-	d->sys->dwp = DeferWindowPos(d->sys->dwp, hwnd, NULL, x, y, width, height, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
-	if (d->sys->dwp == NULL)
-		logLastError("error queuing window for resize in uiWindowsResizeHWND()");
 }

@@ -65,6 +65,7 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc, RECT *hwndScreenRect)
 	return brush;
 }
 
+// TODO this doesn't work right for partial redraws
 static void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
 {
 	RECT screenRect;
@@ -208,6 +209,10 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 			logLastError("error getting client rect in containerWndProc()");
 		paintContainerBackground(c->hwnd, (HDC) wParam, &r);
 		return 0;
+	case WM_ERASEBKGND:
+		// avoid some flicker
+		// we draw the whole update area anyway
+		return 1;
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;

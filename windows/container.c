@@ -21,7 +21,6 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	HDC cdc;
 	HBITMAP bitmap, prevbitmap;
 	HBRUSH brush;
-	DWORD le;
 
 	parent = hwnd;
 	for (;;) {
@@ -61,13 +60,7 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	if (GetWindowRect(hwnd, &r) == 0)
 		logLastError("error getting control's window rect in getControlBackgroundBrush()");
 	// the above is a window rect in screen coordinates; convert to parent coordinates
-	SetLastError(0);
-	if (MapWindowRect(NULL, parent, &r) == 0) {
-		le = GetLastError();
-		SetLastError(le);		// just to be safe
-		if (le != 0)
-			logLastError("error getting coordinates to change brush origin to in getControlBackgroundBrush()");
-	}
+	mapWindowRect(NULL, parent, &r);
 	if (SetBrushOrgEx(dc, -r.left, -r.top, NULL) == 0)
 		logLastError("error setting brush origin in getControlBackgroundBrush()");
 

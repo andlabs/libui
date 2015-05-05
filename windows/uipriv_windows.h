@@ -51,6 +51,7 @@ extern HBRUSH hollowBrush;
 
 // util.c
 extern int windowClassOf(HWND, ...);
+extern void mapWindowRect(HWND, HWND, RECT *);
 
 // text.c
 extern WCHAR *toUTF16(const char *);

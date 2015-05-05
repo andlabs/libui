@@ -81,3 +81,17 @@ void complain(const char *fmt, ...)
 	va_end(ap);
 	abort();
 }
+
+// wrapper around MapWindowRect() that handles the complex error handling
+void mapWindowRect(HWND from, HWND to, RECT *r)
+{
+	DWORD le;
+
+	SetLastError(0);
+	if (MapWindowRect(from, to, r) == 0) {
+		le = GetLastError();
+		SetLastError(le);		// just to be safe
+		if (le != 0)
+			logLastError("error calling MapWindowRect() in mapWindowRect()");
+	}
+}

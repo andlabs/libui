@@ -104,6 +104,23 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	[t->tabview addTabViewItem:i];
 }
 
+static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
+{
+	struct tab *t = (struct tab *) tt;
+	uiContainer *page;
+	NSTabViewItem *i;
+
+	page = newBin();
+	binSetMainControl(page, child);
+	[t->pages insertObject:[NSValue valueWithPointer:page] atIndex:n];
+	[t->margined insertObject:[NSNumber numberWithInt:0] atIndex:n];
+
+	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
+	[i setLabel:toNSString(name)];
+	[i setView:((NSView *) uiControlHandle(uiControl(page)))];
+	[t->tabview insertTabViewItem:i atIndex:n];
+}
+
 static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
@@ -197,6 +214,7 @@ uiTab *uiNewTab(void)
 	uiControl(t)->SysFunc = tabSysFunc;
 
 	uiTab(t)->AppendPage = tabAppendPage;
+	uiTab(t)->InsertPageBefore = tabInsertPageBefore;
 	uiTab(t)->DeletePage = tabDeletePage;
 	uiTab(t)->NumPages = tabNumPages;
 	uiTab(t)->Margined = tabMargined;

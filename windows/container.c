@@ -29,40 +29,55 @@ static HWND realParent(HWND hwnd)
 	return parent;
 }
 
+struct parentDraw {
+	HDC cdc;
+	HBITMAP bitmap;
+	HBITMAP prevbitmap;
+};
+
+static void parentDraw(HDC dc, HWND parent, struct parentDraw *pd)
+{
+	RECT r;
+
+	if (GetClientRect(parent, &r) == 0)
+		logLastError("error getting parent's client rect in parentDraw()");
+	pd->cdc = CreateCompatibleDC(dc);
+	if (pd->cdc == NULL)
+		logLastError("error creating compatible DC in parentDraw()");
+	pd->bitmap = CreateCompatibleBitmap(dc, r.right - r.left, r.bottom - r.top);
+	if (pd->bitmap == NULL)
+		logLastError("error creating compatible bitmap in parentDraw()");
+	pd->prevbitmap = SelectObject(pd->cdc, pd->bitmap);
+	if (pd->prevbitmap == NULL)
+		logLastError("error selecting bitmap into compatible DC in parentDraw()");
+	SendMessageW(parent, WM_PRINTCLIENT, (WPARAM) (pd->cdc), PRF_CLIENT);
+}
+
+static void endParentDraw(struct parentDraw *pd)
+{
+	if (SelectObject(pd->cdc, pd->prevbitmap) != pd->bitmap)
+		logLastError("error selecting previous bitmap back into compatible DC in endParentDraw()");
+	if (DeleteObject(pd->bitmap) == 0)
+		logLastError("error deleting compatible bitmap in endParentDraw()");
+	if (DeleteDC(pd->cdc) == 0)
+		logLastError("error deleting compatible DC in endParentDraw()");
+}
+
 // see http://www.codeproject.com/Articles/5978/Correctly-drawn-themed-dialogs-in-WinXP
 static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 {
 	HWND parent;
 	RECT parentRect, hwndScreenRect;
-	HDC cdc;
-	HBITMAP bitmap, prevbitmap;
+	struct parentDraw pd;
 	HBRUSH brush;
 
 	parent = realParent(hwnd);
 
-	if (GetClientRect(parent, &parentRect) == 0)
-		logLastError("error getting parent's client rect in getControlBackgroundBrush()");
-
-	cdc = CreateCompatibleDC(dc);
-	if (cdc == NULL)
-		logLastError("error creating compatible DC in getControlBackgroundBrush()");
-	bitmap = CreateCompatibleBitmap(dc, parentRect.right - parentRect.left, parentRect.bottom - parentRect.top);
-	if (bitmap == NULL)
-		logLastError("error creating compatible bitmap in getControlBackgroundBrush()");
-	prevbitmap = SelectObject(cdc, bitmap);
-	if (prevbitmap == NULL)
-		logLastError("error selecting bitmap into compatible DC in getControlBackgroundBrush()");
-	SendMessageW(parent, WM_PRINTCLIENT, (WPARAM) cdc, PRF_CLIENT);
-	// create it now, just to be safe
-	brush = CreatePatternBrush(bitmap);
+	parentDraw(dc, parent, &pd);
+	brush = CreatePatternBrush(pd.bitmap);
 	if (brush == NULL)
 		logLastError("error creating pattern brush in getControlBackgroundBrush()");
-	if (SelectObject(cdc, prevbitmap) != bitmap)
-		logLastError("error selecting previous bitmap back into compatible DC in getControlBackgroundBrush()");
-	if (DeleteObject(bitmap) == 0)
-		logLastError("error deleting compatible bitmap in getControlBackgroundBrush()");
-	if (DeleteDC(cdc) == 0)
-		logLastError("error deleting compatible DC in getControlBackgroundBrush()");
+	endParentDraw(&pd);
 
 	// now figure out where the control is relative to the parent so we can align the brush properly
 	if (GetWindowRect(hwnd, &hwndScreenRect) == 0)

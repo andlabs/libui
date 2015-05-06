@@ -12,7 +12,8 @@ struct ptrArray newPtrArray(void)
 
 void ptrArrayDestroy(struct ptrArray *p)
 {
-	// TODO check iif len is nonzero
+	if (p->len != 0)
+		complain("attempt to destroy ptrarray %p while it still has pointers inside", p);
 	uiFree(p);
 }
 

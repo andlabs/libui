@@ -46,7 +46,8 @@ static void windowDestroy(uiControl *c)
 	// first hide ourselves
 	gtk_widget_hide(w->widget);
 	// now destroy the bin
-	// the bin has no parent, so we can just call uiControlDestroy()
+	// we need to remove the bin from its parent first
+	binSetParent(w->bin, 0);
 	uiControlDestroy(uiControl(w->bin));
 	// now destroy the menus, if any
 	if (w->menubar != NULL)

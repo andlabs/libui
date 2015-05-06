@@ -27,6 +27,7 @@ static void onDestroy(void *data)
 	// we need to remove them from the tab first; see below
 	for (i = 0; i < t->pages->len; i++) {
 		p = &g_array_index(t->pages, struct tabPage, i);
+		// this does the job of binSetParent()
 		gtk_container_remove(t->container, p->binWidget);
 		uiControlDestroy(uiControl(p->bin));
 	}
@@ -75,6 +76,7 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	// why? simple: both gtk_notebook_remove_tab() and gtk_widget_destroy() call gtk_container_remove()
 	// we need to remove them from the tab first, though, otherwise they won't really be destroyed properly
 	// (the GtkNotebook will still have the tab in it because its reference ISN'T destroyed, and we crash resizing a bin that no longer exists
+	// this also does the job of binSetParent()
 	gtk_container_remove(t->container, p->binWidget);
 	uiControlDestroy(uiControl(p->bin));
 

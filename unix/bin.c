@@ -104,9 +104,14 @@ void binSetParent(uiContainer *c, uintptr_t osParent)
 {
 	struct bin *b = (struct bin *) c;
 	GtkWidget *widget;
-	GtkContainer *newContainer;
+	GtkContainer *newContainer, *oldContainer;
 
 	widget = GTK_WIDGET(uiControlHandle(uiControl(b)));
+	if (osParent == 0) {
+		oldContainer = GTK_CONTAINER(gtk_widget_get_parent(widget));
+		gtk_container_remove(oldContainer, widget);
+		return;
+	}
 	newContainer = GTK_CONTAINER(osParent);
 	gtk_container_add(newContainer, widget);
 }

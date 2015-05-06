@@ -66,7 +66,7 @@ enum {
 	uiWindowsSysFuncContainerDisable,
 	// This is interpreted by controls that are tab stops; the control should set HasTabStops to TRUE if so, and *LEAVE IT ALONE* if not.
 	// You only need this if implementing your own uiControl.
-	// Controls created with uiWindowsMakeControl() check for the presence of WS_TABSTOP.
+	// Controls created with uiWindowsMakeControl() check for the window being enabled and the presence of WS_TABSTOP.
 	// The name is "has tab stops" because it is used by uiTabs to say "does the current tab page have tab stops?".
 	uiWindowsSysFuncHasTabStops,
 };

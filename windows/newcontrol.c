@@ -19,7 +19,6 @@ static void singleDestroy(uiControl *c)
 
 	if (s->parent != NULL)
 		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
-	SendMessageW(s->hwnd, msgCanDestroyNow, 0, 0);
 	(*(s->onDestroy))(s->onDestroyData);
 	if (DestroyWindow(s->hwnd) == 0)
 		logLastError("error destroying control in singleDestroy()");
@@ -119,8 +118,9 @@ static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 		EnableWindow(s->hwnd, FALSE);
 		return;
 	case uiWindowsSysFuncHasTabStops:
-		if ((getStyle(s->hwnd) & WS_TABSTOP) != 0)
-			p->HasTabStops = TRUE;
+		if (IsWindowEnabled(s->hwnd) != 0)
+			if ((getStyle(s->hwnd) & WS_TABSTOP) != 0)
+				p->HasTabStops = TRUE;
 		return;
 	}
 	complain("unknown p->Func %d in singleSysFunc()", p->Func);

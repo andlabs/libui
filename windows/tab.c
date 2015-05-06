@@ -133,9 +133,11 @@ static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
 
 	// we handle tab stops specially
 	if (p->Func == uiWindowsSysFuncHasTabStops) {
-		// if there are no tabs, it is not a tab stop
-		if (t->pages->len != 0)
-			p->HasTabStops = TRUE;
+		// if disabled, not a tab stop
+		if (IsWindowEnabled(t->hwnd) != 0)
+			// if there are no tabs, it is not a tab stop
+			if (t->pages->len != 0)
+				p->HasTabStops = TRUE;
 		return;
 	}
 	// otherwise distribute it throughout all pages
@@ -181,6 +183,9 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	LRESULT lResult;
 	RECT r;
+	LRESULT n;
+	uiControlSysFuncParams p;
+	struct tabPage *page;
 
 	switch (uMsg) {
 	case WM_WINDOWPOSCHANGED:
@@ -197,6 +202,15 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 		// these are in screen coordinates, which match what WM_WINDOWPOSCHANGED gave us (see http://stackoverflow.com/questions/29598334/are-the-coordinates-in-windowpos-on-wm-windowposchanged-in-parent-coordinates-or)
 		resizeTab(t, r.right - r.left, r.bottom - r.top);
 		return 0;
+	case msgHasTabStops:
+		n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
+		if (n == (LRESULT) (-1))		// no current selection == no tab stops
+			return FALSE;
+		p.Func = uiWindowsSysFuncHasTabStops;
+		p.HasTabStops = FALSE;
+		page = ptrArrayIndex(t->pages, struct tabPage *, n);
+		uiControlSysFunc(uiControl(page->bin), &p);
+		return p.HasTabStops;
 	case WM_NCDESTROY:
 		if ((*fv_RemoveWindowSubclass)(hwnd, tabSubProc, uIdSubclass) == FALSE)
 			logLastError("error removing Tab resize handling subclass in tabSubProc()");
@@ -332,7 +346,7 @@ uiTab *uiNewTab(void)
 	p.dwExStyle = 0;		// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
 	p.lpClassName = WC_TABCONTROLW;
 	p.lpWindowName = L"";
-	p.dwStyle = TCS_TOOLTIPS | WS_TABSTOP;		// start with this; we will alternate between this and WS_EX_CONTROLPARENT as needed (see main.c and msgHasTabStops above)
+	p.dwStyle = TCS_TOOLTIPS | WS_TABSTOP;		// start with this; we will alternate between this and WS_EX_CONTROLPARENT as needed (see main.c and msgHasTabStops above and the toggling functions below)
 	p.hInstance = hInstance;
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
@@ -363,4 +377,19 @@ uiTab *uiNewTab(void)
 	uiTab(t)->SetMargined = tabSetMargined;
 
 	return uiTab(t);
+}
+
+// unfortunately WS_TABSTOP and WS_EX_CONTROLPARENT are mutually exclusive, so we have to toggle between them
+// see main.c for more details
+
+void tabEnterTabNavigation(HWND hwnd)
+{
+	setStyle(hwnd, getStyle(hwnd) & ~WS_TABSTOP);
+	setExStyle(hwnd, getExStyle(hwnd) | WS_EX_CONTROLPARENT);
+}
+
+void tabLeaveTabNavigation(HWND hwnd)
+{
+	setExStyle(hwnd, getExStyle(hwnd) & ~WS_EX_CONTROLPARENT);
+	setStyle(hwnd, getStyle(hwnd) | WS_TABSTOP);
 }

@@ -3,7 +3,7 @@
 #include "ui.h"
 #include "uipriv.h"
 
-struct ptrArray newPtrArray(void)
+struct ptrArray *newPtrArray(void)
 {
 	return uiNew(struct ptrArray);
 }
@@ -29,8 +29,6 @@ void ptrArrayAppend(struct ptrArray *p, void *d)
 
 void ptrArrayInsertBefore(struct ptrArray *p, uintmax_t i, void *d)
 {
-	uintmax_t j;
-
 	if (i >= p->len)
 		complain("index out of range in ptrArrayInsertBefore()");
 	if (p->len >= p->cap) {
@@ -45,8 +43,6 @@ void ptrArrayInsertBefore(struct ptrArray *p, uintmax_t i, void *d)
 
 void ptrArrayDelete(struct ptrArray *p, uintmax_t i)
 {
-	uintmax_t j;
-
 	if (i >= p->len)
 		complain("index out of range in ptrArrayRemove()");
 	// thanks to ValleyBell

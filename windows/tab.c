@@ -4,13 +4,15 @@
 struct tab {
 	uiTab t;
 	HWND hwnd;
-	uiContainer **pages;
-	int *margined;
-	uintmax_t len;
-	uintmax_t cap;
+	struct ptrArray *pages;
 	void (*baseEnable)(uiControl *);
 	void (*baseDisable)(uiControl *);
 	void (*baseSysFunc)(uiControl *, uiControlSysFuncParams *);
+};
+
+struct tabPage {
+	uiContainer *bin;
+	int margined;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
@@ -22,46 +24,50 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 {
 	struct tab *t = (struct tab *) c;
+	struct tabPage *page;
 	LRESULT n;
 
-	switch (nm->code) {
-	case TCN_SELCHANGING:
-		n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
-		if (n != (LRESULT) (-1))		// if we're changing to a real tab
-			uiControlHide(uiControl(t->pages[n]));
+	if (nm->code != TCN_SELCHANGING && nm->code != TCN_SELCHANGE)
+		return FALSE;
+	n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
+	if (n == (LRESULT) (-1))		// not changing from/to a page; nothing to do
+		return FALSE;
+	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	if (nm->code == TCN_SELCHANGING) {
+		// changing from a real page
+		uiControlHide(uiControl(page->bin));
 		*lResult = FALSE;			// and allow the change
 		return TRUE;
-	case TCN_SELCHANGE:
-		n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
-		if (n != (LRESULT) (-1)) {		// if we're changing to a real tab
-			uiControlShow(uiControl(t->pages[n]));
-			// because we only resize the current child on resize, we'll need to trigger an update here
-			// don't call uiParentUpdate(); doing that won't size the content area (so we'll still have a 0x0 content area, for instance)
-			SendMessageW(t->hwnd, msgUpdateChild, 0, 0);
-		}
-		*lResult = 0;
-		return TRUE;
 	}
-	return FALSE;
+	// otherwise it's TCN_SELCHANGE
+	// and we're changing to a real page
+	uiControlShow(uiControl(page->bin));
+	// because we only resize the current child on resize, we'll need to trigger an update here
+	// don't call uiParentUpdate(); doing that won't size the content area (so we'll still have a 0x0 content area, for instance)
+	SendMessageW(t->hwnd, msgUpdateChild, 0, 0);
+	*lResult = 0;
+	return TRUE;
 }
 
 static void onDestroy(void *data)
 {
 	struct tab *t = (struct tab *) data;
-	uintmax_t i;
+	struct tabPage *p;
 
 	// first, hide the widget to avoid flicker
 	ShowWindow(t->hwnd, SW_HIDE);
 	// because the pages don't have by a libui paent, we can simply destroy them
 	// we don't have to worry about the Windows tab control holding a reference to our bin; there is no reference holding anyway
-	for (i = 0; i < t->len; i++) {
+	while (t->pages->len != 0) {
+		p = ptrArrayIndex(t->pages, struct tabPage *, 0);
 		// we do have to remove the page from the tab control, though
-		binSetParent(t->pages[i], 0);
-		uiControlDestroy(uiControl(t->pages[i]));
+		binSetParent(p->bin, 0);
+		uiControlDestroy(uiControl(p->bin));
+		ptrArrayDelete(t->pages, 0);
+		uiFree(p);
 	}
 	// and finally destroy ourselves
-	uiFree(t->pages);
-	uiFree(t->margined);
+	ptrArrayDestroy(t->pages);
 	uiFree(t);
 }
 
@@ -69,7 +75,7 @@ static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 {
 	struct tab *t = (struct tab *) c;
 	LRESULT current;
-	uiContainer *curpage;
+	struct tabPage *curpage;
 	intmax_t curwid, curht;
 	RECT r;
 
@@ -77,11 +83,11 @@ static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 	r.top = 0;
 	r.right = 0;
 	r.bottom = 0;
-	if (t->len != 0) {
+	if (t->pages->len != 0) {
 		current = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
 		if (current != (LRESULT) (-1)) {
-			curpage = t->pages[current];
-			uiControlPreferredSize(uiControl(curpage), d, &curwid, &curht);
+			curpage = ptrArrayIndex(t->pages, struct tabPage *, current);
+			uiControlPreferredSize(uiControl(curpage->bin), d, &curwid, &curht);
 			r.right = curwid;
 			r.bottom = curht;
 		}
@@ -96,31 +102,40 @@ static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 static void tabEnable(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
+	struct tabPage *p;
 	uintmax_t i;
 
 	(*(t->baseEnable))(uiControl(t));
-	for (i = 0; i < t->len; i++)
-		uiControlEnable(uiControl(t->pages[i]));
+	for (i = 0; i < t->pages->len; i++) {
+		p = ptrArrayIndex(t->pages, struct tabPage *, i);
+		uiControlEnable(uiControl(p->bin));
+	}
 }
 
 static void tabDisable(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
+	struct tabPage *p;
 	uintmax_t i;
 
 	(*(t->baseDisable))(uiControl(t));
-	for (i = 0; i < t->len; i++)
-		uiControlDisable(uiControl(t->pages[i]));
+	for (i = 0; i < t->pages->len; i++) {
+		p = ptrArrayIndex(t->pages, struct tabPage *, i);
+		uiControlDisable(uiControl(p->bin));
+	}
 }
 
 static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
 	struct tab *t = (struct tab *) c;
+	struct tabPage *page;
 	uintmax_t i;
 
 	(*(t->baseSysFunc))(uiControl(t), p);
-	for (i = 0; i < t->len; i++)
-		uiControlSysFunc(uiControl(t->pages[i]), p);
+	for (i = 0; i < t->pages->len; i++) {
+		page = ptrArrayIndex(t->pages, struct tabPage *, i);
+		uiControlSysFunc(uiControl(page->bin), p);
+	}
 }
 
 // common code for resizes
@@ -128,6 +143,7 @@ static void resizeTab(struct tab *t, LONG width, LONG height)
 {
 	LRESULT n;
 	RECT r;
+	struct tabPage *p;
 	HWND binHWND;
 
 	n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
@@ -143,7 +159,8 @@ static void resizeTab(struct tab *t, LONG width, LONG height)
 	// convert to the display rectangle
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
 
-	binHWND = (HWND) uiControlHandle(uiControl(t->pages[n]));
+	p = ptrArrayIndex(t->pages, struct tabPage *, n);
+	binHWND = (HWND) uiControlHandle(uiControl(p->bin));
 	if (MoveWindow(binHWND, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
 		logLastError("error resizing uiTab page in resizeTab()");
 }
@@ -187,24 +204,19 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	struct tab *t = (struct tab *) tt;
 	TCITEMW item;
 	LRESULT n;
-	uiContainer *page;
+	struct tabPage *page;
 	WCHAR *wname;
 
-	if (t->len >= t->cap) {
-		t->cap += tabCapGrow;
-		t->pages = (uiContainer **) uiRealloc(t->pages, t->cap * sizeof (uiContainer *));
-		t->margined = (int *) uiRealloc(t->margined, t->cap * sizeof (int));
-	}
-
+	page = uiNew(struct tabPage);
 	n = SendMessageW(t->hwnd, TCM_GETITEMCOUNT, 0, 0);
 
-	page = newBin();
-	binSetMainControl(page, child);
-	binSetParent(page, (uintptr_t) (t->hwnd));
+	page->bin = newBin();
+	binSetMainControl(page->bin, child);
+	binSetParent(page->bin, (uintptr_t) (t->hwnd));
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
-		uiControlHide(uiControl(page));
-	t->pages[t->len] = page;
-	t->len++;
+		uiControlHide(uiControl(page->bin));
+
+	ptrArrayAppend(t->pages, page);
 
 	ZeroMemory(&item, sizeof (TCITEMW));
 	item.mask = TCIF_TEXT;
@@ -224,8 +236,7 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
-	uiContainer *page;
-	uintmax_t i;
+	struct tabPage *page;
 
 	// first delete the tab from the tab control
 	// if this is the current tab, no tab will be selected, which is good
@@ -233,35 +244,32 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 		logLastError("error deleting Tab page in tabDeletePage()");
 
 	// now delete the page itself
-	page = t->pages[n];
-	for (i = n; i < t->len - 1; i++) {
-		t->pages[i] = t->pages[i + 1];
-		t->margined[i] = t->margined[i + 1];
-	}
-	t->pages[i] = NULL;
-	t->margined[i] = 0;
-	t->len--;
+	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	ptrArrayDelete(t->pages, n);
 
 	// make sure the page's control isn't destroyed
-	binSetMainControl(page, NULL);
+	binSetMainControl(page->bin, NULL);
 
 	// see tabDestroy() above for details
-	binSetParent(page, 0);
-	uiControlDestroy(uiControl(page));
+	binSetParent(page->bin, 0);
+	uiControlDestroy(uiControl(page->bin));
+	uiFree(page);
 }
 
 static uintmax_t tabNumPages(uiTab *tt)
 {
 	struct tab *t = (struct tab *) tt;
 
-	return t->len;
+	return t->pages->len;
 }
 
 static int tabMargined(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
+	struct tabPage *page;
 
-	return t->margined[n];
+	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	return page->margined;
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
@@ -270,12 +278,14 @@ static int tabMargined(uiTab *tt, uintmax_t n)
 static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 {
 	struct tab *t = (struct tab *) tt;
+	struct tabPage *page;
 
-	t->margined[n] = margined;
-	if (t->margined[n])
-		binSetMargins(t->pages[n], tabMargin, tabMargin, tabMargin, tabMargin);
+	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	page->margined = margined;
+	if (page->margined)
+		binSetMargins(page->bin, tabMargin, tabMargin, tabMargin, tabMargin);
 	else
-		binSetMargins(t->pages[n], 0, 0, 0, 0);
+		binSetMargins(page->bin, 0, 0, 0, 0);
 }
 
 uiTab *uiNewTab(void)
@@ -298,6 +308,7 @@ uiTab *uiNewTab(void)
 	uiWindowsMakeControl(uiControl(t), &p);
 
 	t->hwnd = (HWND) uiControlHandle(uiControl(t));
+	t->pages = newPtrArray();
 
 	if ((*fv_SetWindowSubclass)(t->hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");

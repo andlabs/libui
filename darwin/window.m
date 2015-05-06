@@ -59,8 +59,10 @@ static void windowDestroy(uiControl *c)
 	// first hide ourselves
 	[w->window orderOut:w->window];
 	// now destroy the bin
-	// the bin has no parent, so we can just call uiControlDestroy()
-	// we also don't have to worry about the NSWindow's reference to the content view; that'll be released too
+	// we need to remove the bin from its parent; this is equivalent to calling binSetParent()
+	// we do this by changing the content view to a dummy view
+	// the window will release its reference on the bin now, then it will release its reference on the dummy view when the window itself is finally released
+	[w->window setContentView:[[NSView alloc] initWithFrame:NSZeroRect]];
 	uiControlDestroy(uiControl(w->bin));
 	// now destroy the delegate
 	[w->window setDelegate:nil];

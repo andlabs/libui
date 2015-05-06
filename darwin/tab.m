@@ -19,6 +19,7 @@ static void destroy(void *data)
 	while ([t->tabview numberOfTabViewItems] != 0)
 		[t->tabview removeTabViewItem:[t->tabview tabViewItemAtIndex:0]];
 	// then destroy all the bins, destroying children in the process
+	// the above loop serves the purpose of binSetParent()
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
 		uiContainer *p;
@@ -119,6 +120,7 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	binSetMainControl(p, NULL);
 
 	// remove the bin from the tab view
+	// this serves the purpose of binSetParent()
 	i = [t->tabview tabViewItemAtIndex:n];
 	[t->tabview removeTabViewItem:i];
 

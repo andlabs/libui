@@ -48,7 +48,6 @@ static void sync(struct menuItem *item)
 	uintmax_t i;
 	MENUITEMINFOW mi;
 
-	// TODO do we need to get the current state and amend it?
 	ZeroMemory(&mi, sizeof (MENUITEMINFOW));
 	mi.cbSize = sizeof (MENUITEMINFOW);
 	mi.fMask = MIIM_STATE;

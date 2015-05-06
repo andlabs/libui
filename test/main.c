@@ -67,6 +67,8 @@ int main(int argc, char *argv[])
 	page2 = makePage2();
 	uiTabAppendPage(mainTab, "Page 2", uiControl(page2));
 
+	uiTabAppendPage(mainTab, "Empty Page", uiControl(uiNewHorizontalBox()));
+
 	uiControlShow(uiControl(w));
 	uiMain();
 	printf("after uiMain()\n");

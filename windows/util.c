@@ -95,3 +95,23 @@ void mapWindowRect(HWND from, HWND to, RECT *r)
 			logLastError("error calling MapWindowRect() in mapWindowRect()");
 	}
 }
+
+DWORD getStyle(HWND hwnd)
+{
+	return (DWORD) GetWindowLongPtrW(hwnd, GWL_STYLE);
+}
+
+void setStyle(HWND hwnd, DWORD style)
+{
+	SetWindowLongPtrW(hwnd, GWL_STYLE, (LONG_PTR) style);
+}
+
+DWORD getExStyle(HWND hwnd)
+{
+	return (DWORD) GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+}
+
+void setExStyle(HWND hwnd, DWORD exstyle)
+{
+	SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (LONG_PTR) exstyle);
+}

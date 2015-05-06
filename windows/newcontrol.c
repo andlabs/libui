@@ -118,6 +118,10 @@ static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 		s->containerDisabled = 1;
 		EnableWindow(s->hwnd, FALSE);
 		return;
+	case uiWindowsSysFuncHasTabStops:
+		if ((getStyle(s->hwnd) & WS_TABSTOP) != 0)
+			p->HasTabStops = TRUE;
+		return;
 	}
 	complain("unknown p->Func %d in singleSysFunc()", p->Func);
 }

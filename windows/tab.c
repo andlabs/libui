@@ -131,6 +131,14 @@ static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
 	struct tabPage *page;
 	uintmax_t i;
 
+	// we handle tab stops specially
+	if (p->Func == uiWindowsSysFuncHasTabStops) {
+		// if there are no tabs, it is not a tab stop
+		if (t->pages->len != 0)
+			p->HasTabStops = TRUE;
+		return;
+	}
+	// otherwise distribute it throughout all pages
 	(*(t->baseSysFunc))(uiControl(t), p);
 	for (i = 0; i < t->pages->len; i++) {
 		page = ptrArrayIndex(t->pages, struct tabPage *, i);
@@ -324,7 +332,7 @@ uiTab *uiNewTab(void)
 	p.dwExStyle = 0;		// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
 	p.lpClassName = WC_TABCONTROLW;
 	p.lpWindowName = L"";
-	p.dwStyle = TCS_TOOLTIPS | WS_TABSTOP;
+	p.dwStyle = TCS_TOOLTIPS | WS_TABSTOP;		// start with this; we will alternate between this and WS_EX_CONTROLPARENT as needed (see main.c and msgHasTabStops above)
 	p.hInstance = hInstance;
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;

@@ -67,7 +67,7 @@ static void endParentDraw(struct parentDraw *pd)
 static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 {
 	HWND parent;
-	RECT parentRect, hwndScreenRect;
+	RECT hwndScreenRect;
 	struct parentDraw pd;
 	HBRUSH brush;
 
@@ -90,22 +90,23 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	return brush;
 }
 
-// TODO this needs to respect clipping
 static void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
 {
 	HWND parent;
-	RECT r;
-	POINT prevOrigin;
+	RECT paintRectParent;
+	struct parentDraw pd;
 
 	parent = realParent(hwnd);
+	parentDraw(dc, parent, &pd);
 
-	if (GetWindowRect(hwnd, &r) == 0)
-		logLastError("error getting window rect in paintContainerBackground()");
-	mapWindowRect(NULL, parent, &r);
-	// TODO check errors
-	SetWindowOrgEx(dc, r.left, r.top, &prevOrigin);
-	SendMessageW(parent, WM_PRINTCLIENT, (WPARAM) dc, PRF_CLIENT);
-	SetWindowOrgEx(dc, prevOrigin.x, prevOrigin.y, NULL);
+	paintRectParent = *paintRect;
+	mapWindowRect(hwnd, parent, &paintRectParent);
+	if (BitBlt(dc, paintRect->left, paintRect->top, paintRect->right - paintRect->left, paintRect->bottom - paintRect->top,
+		pd.cdc, paintRectParent.left, paintRectParent.top,
+		SRCCOPY) == 0)
+		logLastError("error drawing parent background over uiContainer in paintContainerBackground()");
+
+	endParentDraw(&pd);
 }
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx

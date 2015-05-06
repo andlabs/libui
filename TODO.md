@@ -59,6 +59,7 @@
 	- is binSetOSParent() even needed?
 - readd the allocation tracking as just a list of pointers
 - add a final cleanup function (uiUninit() or uiCleanup())
+- whenever a list of things is destroyed, each successive item must be removed as it is destroyed, otherwise we might wind up in a situation where we access items after they're freed
 
 ultimately:
 - add some sort of runtime type checking

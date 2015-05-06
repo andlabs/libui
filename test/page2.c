@@ -25,7 +25,9 @@ static int moveBack;
 static void movePage1(uiButton *b, void *data)
 {
 	if (moveBack) {
-		// TODO
+		uiBoxDelete(mainBox, 1);
+		uiTabInsertPageBefore(mainTab, 0, uiControl(page1));
+		uiButtonSetText(b, moveOutText);
 		return;
 	}
 	uiTabDeletePage(mainTab, 0);

@@ -61,6 +61,22 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	g_array_append_val(t->pages, p);
 }
 
+static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
+{
+	struct tab *t = (struct tab *) tt;
+	struct tabPage p;
+
+	p.bin = newBin();
+	binSetMainControl(p.bin, child);
+	// and add it as a tab page
+	binSetParent(p.bin, (uintptr_t) (t->container));
+	p.binWidget = GTK_WIDGET(uiControlHandle(uiControl(p.bin)));
+	gtk_notebook_set_tab_label_text(t->notebook, p.binWidget, name);
+
+	gtk_notebook_reorder_child(t->notebook, p.binWidget, n);
+	g_array_insert_val(t->pages, n, p);
+}
+
 static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
@@ -131,6 +147,7 @@ uiTab *uiNewTab(void)
 	uiControl(t)->Show = tabShow;
 
 	uiTab(t)->AppendPage = tabAppendPage;
+	uiTab(t)->InsertPageBefore = tabInsertPageBefore;
 	uiTab(t)->DeletePage = tabDeletePage;
 	uiTab(t)->NumPages = tabNumPages;
 	uiTab(t)->Margined = tabMargined;

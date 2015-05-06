@@ -110,7 +110,6 @@ void uiFreeInitError(const char *err)
 	uiFree((void *) err);
 }
 
-// TODO consider DisableThreadLibraryCalls() (will require removing ALL C runtime calls); if we do so we will need to adjust the below signature
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
 	if (fdwReason == DLL_PROCESS_ATTACH)

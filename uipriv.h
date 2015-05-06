@@ -14,3 +14,15 @@ extern uiContainer *newBin(void);
 extern void binSetMainControl(uiContainer *, uiControl *);
 extern void binSetMargins(uiContainer *, intmax_t, intmax_t, intmax_t, intmax_t);
 extern void binSetParent(uiContainer *, uintptr_t);
+
+// array.c
+struct ptrArray {
+	void **ptrs;
+	uintmax_t len;
+	uintmax_t cap;
+};
+struct ptrArray *newPtrArray(void);
+void ptrArrayDestroy(sstruct ptrArray *);
+void ptrArrayAppend(struct ptrArray *, void *);
+void ptrArrayInsertBefore(struct ptrArray *, uintmax_t, void *);
+void ptrArrayDelete(struct ptrArray *, uintmax_t);

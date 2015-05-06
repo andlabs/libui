@@ -84,7 +84,8 @@ static void windowDestroy(uiControl *c)
 	// first hide ourselves
 	ShowWindow(w->hwnd, SW_HIDE);
 	// now destroy the bin
-	// the bin has no parent, so we can just call uiControlDestroy()
+	// we need to remove the OS parent first
+	binSetParent(w->bin, 0);
 	uiControlDestroy(uiControl(w->bin));
 	// now free the menubar, if any
 	if (w->menubar != NULL)

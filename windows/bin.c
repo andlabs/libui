@@ -18,7 +18,7 @@ static void binDestroy(uiControl *c)
 
 	// ensure clean removal by making sure the bin has no OS parent
 	hwnd = (HWND) uiControlHandle(uiControl(b));
-	if (GetAncestor(hwnd, GA_PARENT) != NULL)
+	if (GetAncestor(hwnd, GA_PARENT) != initialParent)
 		complain("attempt to destroy bin %p while it has an OS parent", b);
 	// don't chain up to base here; we need to destroy children ourselves first
 	if (b->mainControl != NULL) {
@@ -119,6 +119,8 @@ void binSetParent(uiContainer *c, uintptr_t osParent)
 	HWND newParent = (HWND) osParent;
 
 	hwnd = (HWND) uiControlHandle(uiControl(b));
+	if (newParent == NULL)
+		newParent = initialParent;
 	if (SetParent(hwnd, newParent) == 0)
 		logLastError("error changing bin's parent in binSetParent()");
 }

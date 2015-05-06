@@ -54,8 +54,11 @@ static void onDestroy(void *data)
 	ShowWindow(t->hwnd, SW_HIDE);
 	// because the pages don't have by a libui paent, we can simply destroy them
 	// we don't have to worry about the Windows tab control holding a reference to our bin; there is no reference holding anyway
-	for (i = 0; i < t->len; i++)
+	for (i = 0; i < t->len; i++) {
+		// we do have to remove the page from the tab control, though
+		binSetParent(t->pages[i], 0);
 		uiControlDestroy(uiControl(t->pages[i]));
+	}
 	// and finally destroy ourselves
 	uiFree(t->pages);
 	uiFree(t->margined);
@@ -243,6 +246,7 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	binSetMainControl(page, NULL);
 
 	// see tabDestroy() above for details
+	binSetParent(page, 0);
 	uiControlDestroy(uiControl(page));
 }
 

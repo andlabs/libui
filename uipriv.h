@@ -22,7 +22,7 @@ struct ptrArray {
 	uintmax_t cap;
 };
 struct ptrArray *newPtrArray(void);
-void ptrArrayDestroy(sstruct ptrArray *);
+void ptrArrayDestroy(struct ptrArray *);
 void ptrArrayAppend(struct ptrArray *, void *);
 void ptrArrayInsertBefore(struct ptrArray *, uintmax_t, void *);
 void ptrArrayDelete(struct ptrArray *, uintmax_t);

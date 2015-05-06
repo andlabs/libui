@@ -32,9 +32,8 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc, RECT *hwndScreenRect)
 			break;
 	}
 
-	// TODO get client rect instead?
-	if (GetWindowRect(parent, &parentRect) == 0)
-		logLastError("error getting parent's window rect in getControlBackgroundBrush()");
+	if (GetClientRect(parent, &parentRect) == 0)
+		logLastError("error getting parent's client rect in getControlBackgroundBrush()");
 
 	cdc = CreateCompatibleDC(dc);
 	if (cdc == NULL)

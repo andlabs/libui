@@ -71,3 +71,7 @@ notes to self
 - explicitly document label position at top-left corner
 - mark that uiControlShow() on a uiWindow() will bring to front and give keyboard focus because of OS X
 	- make sure ShowWindow() is sufficient for zorder on Windows
+- document that you can't use InsertBefore functions to insert before a nonexistent index (that includes if an array is empty)
+	- reconsider this, as the pointer array code does work with the first invalid index...
+		- we would need to test everything else with it
+- note that uiTabInsertPageBefore() does NOT change the current tab page (it may change its index if inserting before the current page)

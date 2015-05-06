@@ -3,8 +3,6 @@
 #include "ui.h"
 #include "uipriv.h"
 
-// TODO see if we can use memmove()
-
 struct ptrArray newPtrArray(void)
 {
 	return uiNew(struct ptrArray);
@@ -21,12 +19,12 @@ void ptrArrayDestroy(struct ptrArray *p)
 
 void ptrArrayAppend(struct ptrArray *p, void *d)
 {
-	p->len++;
 	if (p->len >= p->cap) {
 		p->cap += grow;
 		p->ptrs = (void **) uiRealloc(p->ptrs, p->cap * sizeof (void *));
 	}
-	p->ptrs[p->len - 1] = d;
+	p->ptrs[p->len] = d;
+	p->len++;
 }
 
 void ptrArrayInsertBefore(struct ptrArray *p, uintmax_t i, void *d)
@@ -35,15 +33,14 @@ void ptrArrayInsertBefore(struct ptrArray *p, uintmax_t i, void *d)
 
 	if (i >= p->len)
 		complain("index out of range in ptrArrayInsertBefore()");
-	// TODO does this need to be here
-	p->len++;
 	if (p->len >= p->cap) {
 		p->cap += grow;
 		p->ptrs = (void **) uiRealloc(p->ptrs, p->cap * sizeof (void *));
 	}
-	for (j = p->len - 1; j >= i; j--)
-		p->ptrs[j + 1] = p->ptrs[j];
+	// thanks to ValleyBell
+	memmove(&(p->ptrs[i + 1]), &(p->ptrs[i]), (p->len - i) * sizeof (void *));
 	p->ptrs[i] = d;
+	p->len++;
 }
 
 void ptrArrayDelete(struct ptrArray *p, uintmax_t i)
@@ -52,8 +49,8 @@ void ptrArrayDelete(struct ptrArray *p, uintmax_t i)
 
 	if (i >= p->len)
 		complain("index out of range in ptrArrayRemove()");
-	for (j = i; j < p->len - 1; j++)
-		p->ptrs[j] = p->ptrs[j + 1];
-	p->ptrs[j] = NULL;
+	// thanks to ValleyBell
+	memmove(&(p->ptrs[i]), &(p->ptrs[i + 1]), (p->len - i - 1) * sizeof (void *));
+	p->ptrs[p->len - 1] = NULL;
 	p->len--;
 }

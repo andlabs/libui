@@ -12,15 +12,10 @@ struct container {
 	HBRUSH brush;
 };
 
-// see http://www.codeproject.com/Articles/5978/Correctly-drawn-themed-dialogs-in-WinXP
-static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc, RECT *hwndScreenRect)
+static HWND realParent(HWND hwnd)
 {
 	HWND parent;
-	RECT parentRect;
 	int class;
-	HDC cdc;
-	HBITMAP bitmap, prevbitmap;
-	HBRUSH brush;
 
 	parent = hwnd;
 	for (;;) {
@@ -31,6 +26,19 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc, RECT *hwndScreenRect)
 		if (class != 0 && class != 1)
 			break;
 	}
+	return parent;
+}
+
+// see http://www.codeproject.com/Articles/5978/Correctly-drawn-themed-dialogs-in-WinXP
+static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
+{
+	HWND parent;
+	RECT parentRect, hwndScreenRect;
+	HDC cdc;
+	HBITMAP bitmap, prevbitmap;
+	HBRUSH brush;
+
+	parent = realParent(hwnd);
 
 	if (GetClientRect(parent, &parentRect) == 0)
 		logLastError("error getting parent's client rect in getControlBackgroundBrush()");
@@ -56,33 +64,33 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc, RECT *hwndScreenRect)
 	if (DeleteDC(cdc) == 0)
 		logLastError("error deleting compatible DC in getControlBackgroundBrush()");
 
-	// the given control rect is in screen coordinates; convert to parent coordinates
-	mapWindowRect(NULL, parent, hwndScreenRect);
-	if (SetBrushOrgEx(dc, -hwndScreenRect->left, -hwndScreenRect->top, NULL) == 0)
+	// now figure out where the control is relative to the parent so we can align the brush properly
+	if (GetWindowRect(hwnd, &hwndScreenRect) == 0)
+		logLastError("error getting control window rect in getControlBackgroundBrush()");
+	// this will be in screen coordinates; convert to parent coordinates
+	mapWindowRect(NULL, parent, &hwndScreenRect);
+	if (SetBrushOrgEx(dc, -hwndScreenRect.left, -hwndScreenRect.top, NULL) == 0)
 		logLastError("error setting brush origin in getControlBackgroundBrush()");
 
 	return brush;
 }
 
-// TODO this doesn't work right for partial redraws
+// TODO this needs to respect clipping
 static void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
 {
-	RECT screenRect;
-	HBRUSH brush, prevbrush;
+	HWND parent;
+	RECT r;
+	POINT prevOrigin;
 
-	// getControlBackgroundBrush() needs a screen rectangle
-	screenRect = *paintRect;
-	mapWindowRect(hwnd, NULL, &screenRect);
-	brush = getControlBackgroundBrush(hwnd, dc, &screenRect);
-	prevbrush = SelectObject(dc, brush);
-	if (prevbrush == NULL)
-		logLastError("error selecting background brush into DC in paintContainerBackground()");
-	if (PatBlt(dc, paintRect->left, paintRect->top, paintRect->right - paintRect->left, paintRect->bottom - paintRect->top, PATCOPY) == 0)
-		logLastError("error drawing container background in paintContainerBackground()");
-	if (SelectObject(dc, prevbrush) != brush)
-		logLastError("error selecting previous brush back into DC in paintContainerBackground()");
-	if (DeleteObject(brush) == 0)
-		logLastError("error deleting background brush in paintContainerBackground()");
+	parent = realParent(hwnd);
+
+	if (GetWindowRect(hwnd, &r) == 0)
+		logLastError("error getting window rect in paintContainerBackground()");
+	mapWindowRect(NULL, parent, &r);
+	// TODO check errors
+	SetWindowOrgEx(dc, r.left, r.top, &prevOrigin);
+	SendMessageW(parent, WM_PRINTCLIENT, (WPARAM) dc, PRF_CLIENT);
+	SetWindowOrgEx(dc, prevOrigin.x, prevOrigin.y, NULL);
 }
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
@@ -183,9 +191,7 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 				return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 */		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
 			logLastError("error setting transparent background mode to controls in containerWndProc()");
-		if (GetWindowRect((HWND) lParam, &r) == 0)
-			logLastError("error getting control's window rect in containerWndProc()");
-		c->brush = getControlBackgroundBrush((HWND) lParam, (HDC) wParam, &r);
+		c->brush = getControlBackgroundBrush((HWND) lParam, (HDC) wParam);
 		return (LRESULT) (c->brush);
 	case WM_PAINT:
 		if (cc == NULL)

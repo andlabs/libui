@@ -83,6 +83,7 @@ func NewVerticalBox(void) *Box;
 interface Entry from Control {
 	func Text(void) *char;
 	func SetText(text *const char);
+	func OnChanged(f *func(e *Entry, data *void), data *void);
 };
 func NewEntry(void) *Entry;
 

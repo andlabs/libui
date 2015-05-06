@@ -50,6 +50,15 @@ static void openAnotherWindow(uiButton *b, void *data)
 SHED(enable, Enable)
 SHED(disable, Disable)
 
+static void setLabelText(uiEntry *e, void *data)
+{
+	char *text;
+
+	text = uiEntryText(e);
+	uiLabelSetText(uiLabel(data), text);
+	uiFreeText(text);
+}
+
 uiBox *makePage2(void)
 {
 	uiBox *page2;
@@ -60,6 +69,8 @@ uiBox *makePage2(void)
 	uiBox *innerhbox2;
 	uiBox *innerhbox3;
 	uiTab *disabledTab;
+	uiEntry *entry;
+	uiLabel *entrylabel;
 
 	page2 = newVerticalBox();
 
@@ -140,6 +151,12 @@ uiBox *makePage2(void)
 	uiTabAppendPage(disabledTab, "Tab", uiControl(uiNewLabel("Label")));
 	uiControlDisable(uiControl(disabledTab));
 	uiBoxAppend(page2, uiControl(disabledTab), 1);
+
+	entry = uiNewEntry();
+	entrylabel = uiNewLabel("");
+	uiEntryOnChanged(entry, setLabelText, entrylabel);
+	uiBoxAppend(page2, uiControl(entry), 0);
+	uiBoxAppend(page2, uiControl(entrylabel), 0);
 
 	return page2;
 }

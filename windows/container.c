@@ -220,9 +220,8 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		paintContainerBackground(c->hwnd, dc, &r);
 		EndPaint(c->hwnd, &ps);
 		return 0;
-	// TODO the tab control uses this to draw the tab background
-	// but we have no idea which tab so we don't know where the tab is, so...
-//	case WM_PRINTCLIENT:
+	// tab controls use this to draw the background of the tab area
+	case WM_PRINTCLIENT:
 		if (cc == NULL)
 			break;
 		c = (struct container *) (uiControl(cc)->Internal);

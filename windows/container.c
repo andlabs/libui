@@ -199,7 +199,7 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		EndPaint(c->hwnd, &ps);
 		return 0;
 	// TODO the tab control uses this to draw the tab background
-	// but we have no idea where the tab is, so...
+	// but we have no idea which tab so we don't know where the tab is, so...
 //	case WM_PRINTCLIENT:
 		if (cc == NULL)
 			break;

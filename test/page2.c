@@ -156,7 +156,7 @@ uiBox *makePage2(void)
 	readonly = uiNewEntry();
 	uiEntryOnChanged(entry, echoReadOnlyText, readonly);
 	uiEntrySetText(readonly, "If you can see this, uiEntryReadOnly() isn't working properly.");
-	uiEntrySetReadOnly(readonly), 1);
+	uiEntrySetReadOnly(readonly, 1);
 	if (uiEntryReadOnly(readonly))
 		uiEntrySetText(readonly, "");
 	uiBoxAppend(page2, uiControl(entry), 0);

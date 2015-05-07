@@ -65,6 +65,25 @@ static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data
 	e->onChangedData = data;
 }
 
+static int entryReadOnly(uiEntry *ee)
+{
+	struct entry *e = (struct entry *) ee;
+
+	return (getStyle(e->hwnd) & ES_READONLY) != 0;
+}
+
+static void entrySetReadOnly(uiEntry *ee, int readonly)
+{
+	struct entry *e = (struct entry *) ee;
+	WPARAM ro;
+
+	ro = (WPARAM) FALSE;
+	if (readonly)
+		ro = (WPARAM) TRUE;
+	if (SendMessage(e->hwnd, EM_SETREADONLY, ro, 0) == 0)
+		logLastError("error making uiEntry read-only in entrySetReadOnly()");
+}
+
 uiEntry *uiNewEntry(void)
 {
 	struct entry *e;
@@ -93,6 +112,8 @@ uiEntry *uiNewEntry(void)
 	uiEntry(e)->Text = entryText;
 	uiEntry(e)->SetText = entrySetText;
 	uiEntry(e)->OnChanged = entryOnChanged;
+	uiEntry(e)->ReadOnly = entryReadOnly;
+	uiEntry(e)->SetReadOnly = entrySetReadOnly;
 
 	return uiEntry(e);
 }

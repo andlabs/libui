@@ -1,15 +1,53 @@
 // 9 april 2015
 #import "uipriv_darwin.h"
 
+@interface entryDelegate : NSObject {
+	uiEntry *e;
+	void (*onChanged)(uiEntry *, void *);
+	void *onChangedData;
+}
+- (void)controlTextDidChange:(NSNotification *)note;
+- (void)setEntry:(uiEntry *)e;
+- (void)setOnChanged:(void (*)(uiEntry *, void *))f data:(void *)data;
+@end
+
+@implementation entryDelegate
+
+- (void)controlTextDidChange:(NSNotification *)note
+{
+	(*(self->onChanged))(self->e, self->onChangedData);
+}
+
+- (void)setEntry:(uiEntry *)e
+{
+	self->e = e;
+}
+
+- (void)setOnChanged:(void (*)(uiEntry *, void *))f data:(void *)data
+{
+	self->onChanged = f;
+	self->onChangedData = data;
+}
+
+@end
+
 struct entry {
 	uiEntry e;
 	NSTextField *textfield;
+	entryDelegate *delegate;
 };
+
+static void defaultOnChanged(uiEntry *e, void *data)
+{
+	// do nothing
+}
 
 static void destroy(void *data)
 {
 	struct entry *e = (struct entry *) data;
 
+	[e->textfield setDelegate:nil];
+	[e->delegate release];
 	uiFree(e);
 }
 
@@ -26,6 +64,14 @@ static void entrySetText(uiEntry *ee, const char *text)
 
 	[e->textfield setStringValue:toNSString(text)];
 }
+
+static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data)
+{
+	struct entry *e = (struct entry *) ee;
+
+	[e->delegate setOnChanged:f data:data];
+}
+
 
 // these are based on interface builder defaults; my comments in the old code weren't very good so I don't really know what talked about what, sorry :/
 void finishNewTextField(NSTextField *t, BOOL isEntry)
@@ -56,8 +102,14 @@ uiEntry *uiNewEntry(void)
 	[e->textfield setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
 	finishNewTextField(e->textfield, YES);
 
+	e->delegate = [entryDelegate new];
+	[e->textfield setDelegate:e->delegate];
+	[e->delegate setEntry:uiEntry(e)];
+	[e->delegate setOnChanged:defaultOnChanged data:NULL];
+
 	uiEntry(e)->Text = entryText;
 	uiEntry(e)->SetText = entrySetText;
+	uiEntry(e)->OnChanged = entryOnChanged;
 
 	return uiEntry(e);
 }

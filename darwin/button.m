@@ -37,7 +37,7 @@ struct button {
 	uipButtonDelegate *delegate;
 };
 
-static void defaultOnClicked(uiButton *c, void *data)
+static void defaultOnClicked(uiButton *b, void *data)
 {
 	// do nothing
 }

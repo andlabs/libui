@@ -37,8 +37,8 @@ static void onDestroy(void *data)
 
 static void entryPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(entryWidth, d->sys->baseX);
-	*height = uiWindowsDlgUnitsToY(entryHeight, d->sys->baseY);
+	*width = uiWindowsDlgUnitsToX(entryWidth, d->sys->BaseX);
+	*height = uiWindowsDlgUnitsToY(entryHeight, d->sys->BaseY);
 }
 
 static void defaultOnChanged(uiEntry *e, void *data)

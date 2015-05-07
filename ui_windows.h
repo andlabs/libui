@@ -35,12 +35,12 @@ struct uiWindowsMakeControlParams {
 void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p);
 
 // This contains the Windows-specific parts of the uiSizing structure.
-// baseX and baseY are the dialog base units.
-// internalLeading is the standard control font's internal leading; labels in uiForms use this for correct Y positioning.
+// BaseX and BaseY are the dialog base units.
+// InternalLeading is the standard control font's internal leading; labels in uiForms use this for correct Y positioning.
 struct uiSizingSys {
-	int baseX;
-	int baseY;
-	LONG internalLeading;
+	int BaseX;
+	int BaseY;
+	LONG InternalLeading;
 
 	// This is the window handle to pass to the hWndInsertAfter parameter of SetWindowPos().
 	// You should set this to your own window handle when done.

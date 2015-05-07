@@ -138,9 +138,9 @@ static HRESULT resize(uiContainer *cc, RECT *r)
 	if (GetTextExtentPoint32W(dc, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &size) == 0)
 		return logLastError("error getting text extent point in resize()");
 
-	sys.baseX = (int) ((size.cx / 26 + 1) / 2);
-	sys.baseY = (int) tm.tmHeight;
-	sys.internalLeading = tm.tmInternalLeading;
+	sys.BaseX = (int) ((size.cx / 26 + 1) / 2);
+	sys.BaseY = (int) tm.tmHeight;
+	sys.InternalLeading = tm.tmInternalLeading;
 
 	if (SelectObject(dc, prevfont) != hMessageFont)
 		return logLastError("error restoring previous font into device context in resize()");
@@ -150,8 +150,8 @@ static HRESULT resize(uiContainer *cc, RECT *r)
 	// the first control gets the topmost z-order and thus the first tab stop
 	sys.InsertAfter = HWND_TOP;
 
-	d.xPadding = uiWindowsDlgUnitsToX(winXPadding, sys.baseX);
-	d.yPadding = uiWindowsDlgUnitsToY(winYPadding, sys.baseY);
+	d.xPadding = uiWindowsDlgUnitsToX(winXPadding, sys.BaseX);
+	d.yPadding = uiWindowsDlgUnitsToY(winYPadding, sys.BaseY);
 	d.sys = &sys;
 	uiContainerResizeChildren(cc, r->left, r->top, r->right - r->left, r->bottom - r->top, &d);
 	return S_OK;

@@ -41,6 +41,11 @@ struct uiSizingSys {
 	int baseX;
 	int baseY;
 	LONG internalLeading;
+
+	// This is the window handle to pass to the hWndInsertAfter parameter of SetWindowPos().
+	// You should set this to your own window handle when done.
+	// Controls made with uiWindowsMakeControl() do this for you; you only need to do this if you are implementing uiControlResize() yourself.
+	HWND InsertAfter;
 };
 // Use these in your preferredSize() implementation with baseX and baseY.
 #define uiWindowsDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)

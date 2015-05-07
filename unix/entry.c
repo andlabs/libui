@@ -5,7 +5,21 @@ struct entry {
 	uiEntry e;
 	GtkWidget *widget;
 	GtkEntry *entry;
+	void (*onChanged)(uiEntry *, void *);
+	void *onChangedData;
 };
+
+static void onChanged(GtkEditable *editable, gpointer data)
+{
+	struct entry *e = (struct entry *) data;
+
+	(*(e->onChanged))(uiEntry(e), e->onChangedData);
+}
+
+static void defaultOnChanged(uiEntry *e, void *data)
+{
+	// do nothing
+}
 
 static void onDestroy(void *data)
 {
@@ -28,6 +42,14 @@ static void entrySetText(uiEntry *ee, const char *text)
 	gtk_entry_set_text(e->entry, text);
 }
 
+static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data)
+{
+	struct entry *e = (struct entry *) ee;
+
+	e->onChanged = f;
+	e->onChangedData = data;
+}
+
 uiEntry *uiNewEntry(void)
 {
 	struct entry *e;
@@ -41,8 +63,12 @@ uiEntry *uiNewEntry(void)
 	e->widget = GTK_WIDGET(uiControlHandle(uiControl(e)));
 	e->entry = GTK_ENTRY(e->widget);
 
+	g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
+	e->onChanged = defaultOnChanged;
+
 	uiEntry(e)->Text = entryText;
 	uiEntry(e)->SetText = entrySetText;
+	uiEntry(e)->OnChanged = entryOnChanged;
 
 	return uiEntry(e);
 }

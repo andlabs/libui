@@ -32,7 +32,7 @@ struct uiWindowsMakeControlParams {
 	void (*onDestroy)(void *data);
 	void *onDestroyData;
 };
-void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p);
+_UI_EXTERN void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p);
 
 // This contains the Windows-specific parts of the uiSizing structure.
 // BaseX and BaseY are the dialog base units.
@@ -52,12 +52,12 @@ struct uiSizingSys {
 #define uiWindowsDlgUnitsToY(dlg, baseY) MulDiv((dlg), baseY, 8)
 
 // and use this if you need the text of the window width
-extern intmax_t uiWindowsWindowTextWidth(HWND hwnd);
+_UI_EXTERN intmax_t uiWindowsWindowTextWidth(HWND hwnd);
 
 // these functions get and set the window text for such a uiControl
 // the value returned should be freed with uiFreeText()
-extern char *uiWindowsControlText(uiControl *);
-extern void uiWindowsControlSetText(uiControl *, const char *);
+_UI_EXTERN char *uiWindowsControlText(uiControl *);
+_UI_EXTERN void uiWindowsControlSetText(uiControl *, const char *);
 
 struct uiControlSysFuncParams {
 	int Func;

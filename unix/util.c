@@ -4,10 +4,10 @@
 void complain(const char *fmt, ...)
 {
 	va_list ap;
+	char *msg;
 
 	va_start(ap, fmt);
-	// there's no g_errorv() in glib 2.32, so do it manually instead
-	g_logv(G_LOG_DOMAIN, G_LOG_LEVEL_ERROR, fmt, ap);
+	msg = g_strdup_vprintf(fmt, ap);
 	va_end(ap);
-	abort();		// just in case
+	g_error("[libui] %s\n", msg);
 }

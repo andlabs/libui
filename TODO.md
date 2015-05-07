@@ -1,5 +1,3 @@
-- make sure complain()s don't have \n at the end; add one on each platform
-	- add a `[libui]` to the beginning of the message
 - figure out what to do on Windows and GTK+ if we don't have menus but the user wants a menubar (zero-height widget? don't bother? complain?)
 - bin.c
 	- find a way to consolidate the duplicate code across OSs

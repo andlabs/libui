@@ -4,11 +4,20 @@
 struct entry {
 	uiEntry e;
 	HWND hwnd;
+	void (*onChanged)(uiEntry *, void *);
+	void *onChangedData;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 {
-	return FALSE;
+	struct entry *e = (struct entry *) c;
+
+	if (code != EN_CHANGE)
+		return FALSE;
+	(*(e->onChanged))(uiEntry(e), e->onChangedData);
+	// TODO EN_CHANGE return value
+	*lResult = 0;
+	return TRUE;
 }
 
 static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
@@ -33,6 +42,11 @@ static void entryPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	*height = uiDlgUnitsToY(entryHeight, d->sys->baseY);
 }
 
+static void defaultOnChanged(uiEntry *e, void *data)
+{
+	// do nothing
+}
+
 static char *entryText(uiEntry *e)
 {
 	return uiWindowsControlText(uiControl(e));
@@ -41,6 +55,14 @@ static char *entryText(uiEntry *e)
 static void entrySetText(uiEntry *e, const char *text)
 {
 	uiWindowsControlSetText(uiControl(e), text);
+}
+
+static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data)
+{
+	struct entry *e = (struct entry *) ee;
+
+	e->onChanged = f;
+	e->onChangedData = data;
 }
 
 uiEntry *uiNewEntry(void)
@@ -64,10 +86,13 @@ uiEntry *uiNewEntry(void)
 
 	e->hwnd = (HWND) uiControlHandle(uiControl(e));
 
+	e->onChanged = defaultOnChanged;
+
 	uiControl(e)->PreferredSize = entryPreferredSize;
 
 	uiEntry(e)->Text = entryText;
 	uiEntry(e)->SetText = entrySetText;
+	uiEntry(e)->OnChanged = entryOnChanged;
 
 	return uiEntry(e);
 }

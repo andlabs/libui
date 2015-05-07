@@ -70,8 +70,8 @@ static void containerWidget_size_allocate(GtkWidget *widget, GtkAllocation *allo
 	uiSizing d;
 
 	gtk_widget_set_allocation(GTK_WIDGET(c), allocation);
-	d.xPadding = gtkXPadding;
-	d.yPadding = gtkYPadding;
+	d.XPadding = gtkXPadding;
+	d.YPadding = gtkYPadding;
 	uiContainerResizeChildren(c->c, allocation->x, allocation->y, allocation->width, allocation->height, &d);
 }
 
@@ -81,8 +81,8 @@ static void containerWidget_get_preferred_height(GtkWidget *widget, gint *minimu
 	intmax_t width, height;
 	uiSizing d;
 
-	d.xPadding = gtkXPadding;
-	d.yPadding = gtkYPadding;
+	d.XPadding = gtkXPadding;
+	d.YPadding = gtkYPadding;
 	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
 	*minimum = 0;			// allow arbitrary resize
 	*natural = height;
@@ -94,8 +94,8 @@ static void containerWidget_get_preferred_width(GtkWidget *widget, gint *minimum
 	intmax_t width, height;
 	uiSizing d;
 
-	d.xPadding = gtkXPadding;
-	d.yPadding = gtkYPadding;
+	d.XPadding = gtkXPadding;
+	d.YPadding = gtkYPadding;
 	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
 	*minimum = 0;			// allow arbitrary resize
 	*natural = width;

@@ -69,8 +69,8 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 	xpadding = 0;
 	ypadding = 0;
 	if (b->padded) {
-		xpadding = d->xPadding;
-		ypadding = d->yPadding;
+		xpadding = d->XPadding;
+		ypadding = d->YPadding;
 	}
 
 	// 1) initialize the desired rect with the needed padding
@@ -140,8 +140,8 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 	xpadding = 0;
 	ypadding = 0;
 	if (b->padded) {
-		xpadding = d->xPadding;
-		ypadding = d->yPadding;
+		xpadding = d->XPadding;
+		ypadding = d->YPadding;
 	}
 
 	// 0) inset the available rect by the needed padding

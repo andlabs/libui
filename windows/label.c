@@ -31,7 +31,7 @@ static void labelPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	struct label *l = (struct label *) c;
 
 	*width = uiWindowsWindowTextWidth(l->hwnd);
-	*height = uiWindowsDlgUnitsToY(labelHeight, d->sys->BaseY);
+	*height = uiWindowsDlgUnitsToY(labelHeight, d->Sys->BaseY);
 }
 
 static char *labelText(uiLabel *l)

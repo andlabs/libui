@@ -26,9 +26,9 @@ func FreeText(text *char);
 raw "typedef struct uiSizingSys uiSizingSys;";
 
 struct Sizing {
-	field xPadding intmax_t;
-	field yPadding intmax_t;
-	field sys *uiSizingSys;
+	field XPadding intmax_t;
+	field YPadding intmax_t;
+	field Sys *uiSizingSys;
 };
 
 raw "typedef struct uiControlSysFuncParams uiControlSysFuncParams;";

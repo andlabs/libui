@@ -35,8 +35,8 @@
 	y = [self bounds].origin.y;
 	width = [self bounds].size.width;
 	height = [self bounds].size.height;
-	d.xPadding = macXPadding;
-	d.yPadding = macYPadding;
+	d.XPadding = macXPadding;
+	d.YPadding = macYPadding;
 	uiContainerResizeChildren(self->c, x, y, width, height, &d);
 }
 

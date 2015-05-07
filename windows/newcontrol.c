@@ -55,9 +55,9 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 {
 	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
-	if (SetWindowPos(s->hwnd, d->sys->InsertAfter, x, y, width, height, SWP_NOACTIVATE | SWP_NOOWNERZORDER) == 0)
+	if (SetWindowPos(s->hwnd, d->Sys->InsertAfter, x, y, width, height, SWP_NOACTIVATE | SWP_NOOWNERZORDER) == 0)
 		logLastError("error moving control in singleResize()");
-	d->sys->InsertAfter = s->hwnd;
+	d->Sys->InsertAfter = s->hwnd;
 }
 
 static int singleVisible(uiControl *c)

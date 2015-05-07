@@ -150,9 +150,9 @@ static HRESULT resize(uiContainer *cc, RECT *r)
 	// the first control gets the topmost z-order and thus the first tab stop
 	sys.InsertAfter = HWND_TOP;
 
-	d.xPadding = uiWindowsDlgUnitsToX(winXPadding, sys.BaseX);
-	d.yPadding = uiWindowsDlgUnitsToY(winYPadding, sys.BaseY);
-	d.sys = &sys;
+	d.XPadding = uiWindowsDlgUnitsToX(winXPadding, sys.BaseX);
+	d.YPadding = uiWindowsDlgUnitsToY(winYPadding, sys.BaseY);
+	d.Sys = &sys;
 	uiContainerResizeChildren(cc, r->left, r->top, r->right - r->left, r->bottom - r->top, &d);
 	return S_OK;
 }
@@ -319,9 +319,9 @@ static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t widt
 {
 	struct container *c = (struct container *) (cc->Internal);
 
-	if (SetWindowPos(c->hwnd, d->sys->InsertAfter, x, y, width, height, SWP_NOACTIVATE | SWP_NOOWNERZORDER) == 0)
+	if (SetWindowPos(c->hwnd, d->Sys->InsertAfter, x, y, width, height, SWP_NOACTIVATE | SWP_NOOWNERZORDER) == 0)
 		logLastError("error resizing uiContainer in containerResize()");
-	d->sys->InsertAfter = c->hwnd;
+	d->Sys->InsertAfter = c->hwnd;
 	// under some circumstances this might not be sufficient
 	// example: check the Spaced checkbox; inside boxes will have been resized already before they get a chance to update their padded
 	SendMessageW(c->hwnd, msgUpdateChild, 0, 0);

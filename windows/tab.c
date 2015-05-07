@@ -176,7 +176,7 @@ static void resizeTab(struct tab *t, LONG width, LONG height)
 }
 
 // and finally, because we have to resize parents, we have to handle resizes and updates
-// TODO see if this approach is /really/ necessary and we can get by with an alteration to the above function and overriding uiControlResize()
+// this is also partially where tab navigation is handled
 static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
 	struct tab *t = (struct tab *) dwRefData;
@@ -251,7 +251,7 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 
 	// if this is the first tab, Windows will automatically show it /without/ sending a TCN_SELCHANGE notification
 	// so we need to manually resize the tab ourselves
-	// don't use uiUpdateParent() for the same reason as in the TCN_SELCHANGE handler
+	// don't use uiContainerUpdate() for the same reason as in the TCN_SELCHANGE handler
 	SendMessageW(t->hwnd, msgUpdateChild, 0, 0);
 }
 

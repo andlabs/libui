@@ -72,6 +72,23 @@ static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data
 	[e->delegate setOnChanged:f data:data];
 }
 
+static int entryReadOnly(uiEntry *ee)
+{
+	struct entry *e = (struct entry *) ee;
+
+	return [e->textfield isEditable] == NO;
+}
+
+static void entrySetReadOnly(uiEntry *ee, int readonly)
+{
+	struct entry *e = (struct entry *) ee;
+	BOOL editable;
+
+	editable = YES;
+	if (readonly)
+		editable = NO;
+	[e->textfield setEditable:editable];
+}
 
 // these are based on interface builder defaults; my comments in the old code weren't very good so I don't really know what talked about what, sorry :/
 void finishNewTextField(NSTextField *t, BOOL isEntry)
@@ -110,6 +127,8 @@ uiEntry *uiNewEntry(void)
 	uiEntry(e)->Text = entryText;
 	uiEntry(e)->SetText = entrySetText;
 	uiEntry(e)->OnChanged = entryOnChanged;
+	uiEntry(e)->ReadOnly = entryReadOnly;
+	uiEntry(e)->SetReadOnly = entrySetReadOnly;
 
 	return uiEntry(e);
 }

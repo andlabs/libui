@@ -4,6 +4,7 @@
 
 // TODO
 // - boxes inside boxes aren't updated on windows when padded changes
+// 	- to be more precise, horizontal boxes don't update their spacing until after a horizontal resize (not a vertical one)
 
 struct box {
 	uiBox b;

@@ -44,7 +44,7 @@ void *uiRealloc(void *p, size_t size)
 void uiFree(void *p)
 {
 	if (p == NULL)
-		return;
+		complain("attempt to uiFree(NULL); there's a bug somewhere");
 	if (HeapFree(heap, 0, p) == 0)
 		logLastError("error freeing memory in uiFree()");
 }

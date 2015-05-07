@@ -1,4 +1,3 @@
-- forbid free(NULL) to check for bugs
 - opposite side alignment control in uiBox
 - disabling containers on wine doesn't redraw children as disabled
 	- test on real windows

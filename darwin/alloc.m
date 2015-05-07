@@ -49,6 +49,6 @@ void *uiRealloc(void *p, size_t new)
 void uiFree(void *p)
 {
 	if (p == NULL)
-		return;
+		complain("attempt to uiFree(NULL); there's a bug somewhere");
 	free(BASE(p));
 }

@@ -57,6 +57,7 @@ ultimately:
 	- including for quit/preferences/about?
 		- or not even have separators there?
 			- in which case, hide leading or trailing separators?
+- generate libui.lib and related files
 
 notes to self
 - explicitly document label position at top-left corner

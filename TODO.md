@@ -9,7 +9,6 @@
 - SWP_NOCOPYBITS (or was it WS_CLIPCHILDREN?)
 	- buttons not in tab get drawover issues
 	- buttons in tab without transparent drawing code get copied into the label when stack shown and rehidden
-- settle differences between intmax_t and uintmax_t
 - settle onDestroy/destroy naming
 - implement lifetiming on Windows
 - forbid free(NULL) to check for bugs

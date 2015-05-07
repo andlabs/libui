@@ -3,8 +3,7 @@
 #include "uipriv.h"
 
 // TODO
-// - boxes inside boxes aren't updated on windows when padded changes
-// 	- to be more precise, horizontal boxes don't update their spacing until after a horizontal resize (not a vertical one)
+// - horizontal boxes (only) inside boxes aren't updated on Windows (only) when padded changes until a horizontal (only) resize
 
 struct box {
 	uiBox b;

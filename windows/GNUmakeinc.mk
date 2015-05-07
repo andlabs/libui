@@ -35,7 +35,7 @@ osLDWarnUndefinedFlags = -Wl,--no-undefined -Wl,--no-allow-shlib-undefined
 osLIBSUFFIX = .dll
 osEXESUFFIX = .exe
 
-ifeq ($(ARCH),64)
+ifeq ($(ARCH),amd64)
 	CC = x86_64-w64-mingw32-gcc
 	RC = x86_64-w64-mingw32-windres
 	osCFLAGS += -m64

@@ -200,12 +200,6 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		if (c->brush != NULL)
 			if (DeleteObject(c->brush) == 0)
 				logLastError("error deleting old background brush in containerWndProc()");
-		// read-only TextFields and Textboxes are exempt
-		// this is because read-only edit controls count under WM_CTLCOLORSTATIC
-		// TODO really?
-		if (windowClassOf((HWND) lParam, L"edit", NULL) == 0)
-			if ((getStyle((HWND) lParam) & ES_READONLY) != 0)
-				break;
 		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
 			logLastError("error setting transparent background mode to controls in containerWndProc()");
 		c->brush = getControlBackgroundBrush((HWND) lParam, (HDC) wParam);

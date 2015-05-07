@@ -28,3 +28,6 @@ extern void makePage1(uiWindow *);
 
 // page2.c
 extern uiBox *makePage2(void);
+
+// page3.c
+extern uiBox *makePage3(void);

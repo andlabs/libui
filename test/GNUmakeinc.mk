@@ -5,6 +5,7 @@ testCFILES = \
 	test/menus.c \
 	test/page1.c \
 	test/page2.c \
+	test/page3.c \
 	test/spaced.c
 
 testHFILES = \

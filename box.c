@@ -74,6 +74,7 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 	}
 
 	// 1) initialize the desired rect with the needed padding
+	// TODO this is wrong if any controls are hidden
 	if (b->vertical)
 		*height = (b->len - 1) * ypadding;
 	else
@@ -145,6 +146,7 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 	}
 
 	// 0) inset the available rect by the needed padding
+	// TODO this is incorrect if any controls are hidden
 	if (b->vertical)
 		height -= (b->len - 1) * ypadding;
 	else

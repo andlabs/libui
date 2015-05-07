@@ -1,5 +1,3 @@
-- 32-bit Mac OS X support (requires lots of code changes)
-- add a test for hidden controls when a window is shown
 - SWP_NOCOPYBITS (or was it WS_CLIPCHILDREN?)
 	- buttons not in tab get drawover issues
 	- buttons in tab without transparent drawing code get copied into the label when stack shown and rehidden
@@ -57,6 +55,8 @@
 		- we control resizes of all children so we can reliably update after a resize
 		- we already need to do this in uiContainer :/
 - make it so Windows API calls that do logLastError(), etc. abort whatever they're doing and not try to continue, just like wintable
+- 32-bit Mac OS X support (requires lots of code changes)
+	- change the build system to be more receptive to arch changes
 
 ultimately:
 - add some sort of runtime type checking

@@ -47,6 +47,7 @@ static void openAnotherWindow(uiButton *b, void *data)
 	{ \
 		uiControl ## Method(uiControl(data)); \
 	}
+SHED(show, Show)
 SHED(enable, Enable)
 SHED(disable, Disable)
 
@@ -71,6 +72,7 @@ uiBox *makePage2(void)
 	uiTab *disabledTab;
 	uiEntry *entry;
 	uiEntry *readonly;
+	uiButton *button2;
 
 	page2 = newVerticalBox();
 
@@ -161,6 +163,15 @@ uiBox *makePage2(void)
 		uiEntrySetText(readonly, "");
 	uiBoxAppend(page2, uiControl(entry), 0);
 	uiBoxAppend(page2, uiControl(readonly), 0);
+
+	hbox = newHorizontalBox();
+	button = uiNewButton("Show Button 2");
+	button2 = uiNewButton("Button 2");
+	uiButtonOnClicked(button, showControl, button2);
+	uiControlHide(uiControl(button2));
+	uiBoxAppend(hbox, uiControl(button), 1);
+	uiBoxAppend(hbox, uiControl(button2), 0);
+	uiBoxAppend(page2, uiControl(hbox), 0);
 
 	return page2;
 }

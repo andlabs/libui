@@ -2,9 +2,6 @@
 #include "ui.h"
 #include "uipriv.h"
 
-// TODO
-// - horizontal boxes (only) inside vertical boxes (and vice versa) aren't updated on Windows (only) when padded changes until a horizontal (only; vertical) resize
-
 struct box {
 	uiBox b;
 	void (*baseDestroy)(uiControl *);

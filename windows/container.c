@@ -318,6 +318,9 @@ static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t widt
 
 	if (MoveWindow(c->hwnd, x, y, width, height, TRUE) == 0)
 		logLastError("error resizing uiContainer in containerResize()");
+	// under some circumstances this might not be sufficient
+	// example: check the Spaced checkbox; inside boxes will have been resized already before they get a chance to update their padded
+	SendMessageW(c->hwnd, msgUpdateChild, 0, 0);
 }
 
 static int containerVisible(uiControl *cc)

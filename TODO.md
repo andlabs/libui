@@ -62,6 +62,11 @@
 - whenever a list of things is destroyed, each successive item must be removed as it is destroyed, otherwise we might wind up in a situation where we access items after they're freed
 - make the name of the variable to refer to a single tab page consistent (already decided to make them all `page`)
 - make sure uiEntryOnChanged() is not triggered when calling uiEntrySetText()
+- clean up windows resizing logic
+	- make it so that only top-level window resizes trigger an update; container resizes do not update
+		- windows resizing logic is simply not comprehensive enough (no null resizes allowed) to do things
+		- we control resizes of all children so we can reliably update after a resize
+		- we already need to do this in uiContainer :/
 
 ultimately:
 - add some sort of runtime type checking

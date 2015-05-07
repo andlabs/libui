@@ -171,8 +171,7 @@ static void resizeTab(struct tab *t, LONG width, LONG height)
 
 	p = ptrArrayIndex(t->pages, struct tabPage *, n);
 	binHWND = (HWND) uiControlHandle(uiControl(p->bin));
-	if (MoveWindow(binHWND, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
-		logLastError("error resizing uiTab page in resizeTab()");
+	moveWindow(binHWND, r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 
 // and finally, because we have to resize parents, we have to handle resizes and updates

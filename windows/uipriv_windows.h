@@ -56,6 +56,8 @@ extern DWORD getStyle(HWND);
 extern void setStyle(HWND, DWORD);
 extern DWORD getExStyle(HWND);
 extern void setExStyle(HWND, DWORD);
+extern void moveWindow(HWND, intmax_t, intmax_t, intmax_t, intmax_t);
+extern void moveAndReorderWindow(HWND, HWND, intmax_t, intmax_t, intmax_t, intmax_t);
 
 // text.c
 extern WCHAR *toUTF16(const char *);

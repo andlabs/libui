@@ -319,8 +319,7 @@ static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t widt
 {
 	struct container *c = (struct container *) (cc->Internal);
 
-	if (SetWindowPos(c->hwnd, d->Sys->InsertAfter, x, y, width, height, SWP_NOACTIVATE | SWP_NOOWNERZORDER) == 0)
-		logLastError("error resizing uiContainer in containerResize()");
+	moveAndReorderWindow(c->hwnd, d->Sys->InsertAfter, x, y, width, height);
 	d->Sys->InsertAfter = c->hwnd;
 	// under some circumstances this might not be sufficient
 	// example: check the Spaced checkbox; inside boxes will have been resized already before they get a chance to update their padded

@@ -1,7 +1,4 @@
 - make it so Windows API calls that do logLastError(), etc. abort whatever they're doing and not try to continue, just like wintable
-- figure out what to cleanup in darwin terminate:
-	- delegate
-	- deleted objects view
 - assign control IDs on windows
 	- GWL(P)_ID
 	- related? [12:25] <ZeroOne> And the blue outline on those buttons [ALL clicked buttons on Windows 7] won't go away

@@ -147,8 +147,8 @@ static HRESULT resize(uiContainer *cc, RECT *r)
 	if (ReleaseDC(c->hwnd, dc) == 0)
 		return logLastError("error releasing DC in resize()");
 
-	d.xPadding = uiDlgUnitsToX(winXPadding, sys.baseX);
-	d.yPadding = uiDlgUnitsToY(winYPadding, sys.baseY);
+	d.xPadding = uiWindowsDlgUnitsToX(winXPadding, sys.baseX);
+	d.yPadding = uiWindowsDlgUnitsToY(winYPadding, sys.baseY);
 	d.sys = &sys;
 	uiContainerResizeChildren(cc, r->left, r->top, r->right - r->left, r->bottom - r->top, &d);
 	return S_OK;

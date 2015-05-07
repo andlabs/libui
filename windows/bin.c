@@ -41,8 +41,8 @@ static void binPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		return;
 	}
 	uiControlPreferredSize(b->mainControl, d, width, height);
-	marginX = uiDlgUnitsToX(b->marginLeft, d->sys->baseX) + uiDlgUnitsToX(b->marginRight, d->sys->baseX);
-	marginY = uiDlgUnitsToY(b->marginTop, d->sys->baseY) + uiDlgUnitsToY(b->marginBottom, d->sys->baseY);
+	marginX = uiWindowsDlgUnitsToX(b->marginLeft, d->sys->baseX) + uiWindowsDlgUnitsToX(b->marginRight, d->sys->baseX);
+	marginY = uiWindowsDlgUnitsToY(b->marginTop, d->sys->baseY) + uiWindowsDlgUnitsToY(b->marginBottom, d->sys->baseY);
 	*width += marginX;
 	*height += marginY;
 }
@@ -62,12 +62,12 @@ static void binResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 
 	if (b->mainControl == NULL)
 		return;
-	marginLeft = uiDlgUnitsToX(b->marginLeft, d->sys->baseX);
-	marginTop = uiDlgUnitsToY(b->marginTop, d->sys->baseY);
+	marginLeft = uiWindowsDlgUnitsToX(b->marginLeft, d->sys->baseX);
+	marginTop = uiWindowsDlgUnitsToY(b->marginTop, d->sys->baseY);
 	x += marginLeft;
 	y += marginTop;
-	width -= marginLeft + uiDlgUnitsToX(b->marginRight, d->sys->baseX);
-	height -= marginTop + uiDlgUnitsToY(b->marginBottom, d->sys->baseY);
+	width -= marginLeft + uiWindowsDlgUnitsToX(b->marginRight, d->sys->baseX);
+	height -= marginTop + uiWindowsDlgUnitsToY(b->marginBottom, d->sys->baseY);
 	uiControlResize(b->mainControl, x, y, width, height, d);
 }
 

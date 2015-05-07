@@ -45,7 +45,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		// fall through
 	case msgUpdateChild:
 		if (GetClientRect(w->hwnd, &r) == 0)
-			logLastError("error getting window client rect for resize in uiWindowWndProc()");
+			logLastError("error getting window client rect for resize in windowWndProc()");
 		binhwnd = (HWND) uiControlHandle(uiControl(w->bin));
 		if (MoveWindow(binhwnd, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE) == 0)
 			logLastError("error resizing uiWindow box in windowWndProc()");

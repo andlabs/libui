@@ -13,7 +13,7 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 // The two onDestroy parameters define a function and its parameter to call when the widget is destroyed.
 extern void uiDarwinMakeControl(uiControl *c, Class class, BOOL inScrollView, BOOL scrollViewHasBorder, void (*onDestroy)(void *), void *onDestroyData);
 
-// You can use this function from within your control implementations to return text strings that can be freed with uiTextFree().
+// You can use this function from within your control implementations to return text strings that can be freed with uiFreeText().
 extern char *uiDarwinNSStringToText(NSString *);
 
 struct uiSizingSys {

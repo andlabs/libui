@@ -43,7 +43,7 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	// and we're changing to a real page
 	uiControlShow(uiControl(page->bin));
 	// because we only resize the current child on resize, we'll need to trigger an update here
-	// don't call uiParentUpdate(); doing that won't size the content area (so we'll still have a 0x0 content area, for instance)
+	// don't call uiContainerUpdate(); doing that won't size the content area (so we'll still have a 0x0 content area, for instance)
 	SendMessageW(t->hwnd, msgUpdateChild, 0, 0);
 	*lResult = 0;
 	return TRUE;

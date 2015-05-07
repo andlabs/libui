@@ -43,8 +43,8 @@ struct uiSizingSys {
 	LONG internalLeading;
 };
 // Use these in your preferredSize() implementation with baseX and baseY.
-#define uiDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)
-#define uiDlgUnitsToY(dlg, baseY) MulDiv((dlg), baseY, 8)
+#define uiWindowsDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)
+#define uiWindowsDlgUnitsToY(dlg, baseY) MulDiv((dlg), baseY, 8)
 
 // and use this if you need the text of the window width
 extern intmax_t uiWindowsWindowTextWidth(HWND hwnd);

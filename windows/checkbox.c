@@ -48,8 +48,8 @@ static void checkboxPreferredSize(uiControl *cc, uiSizing *d, intmax_t *width, i
 {
 	struct checkbox *c = (struct checkbox *) cc;
 
-	*width = uiDlgUnitsToX(checkboxXFromLeftOfBoxToLeftOfLabel, d->sys->baseX) + uiWindowsWindowTextWidth(c->hwnd);
-	*height = uiDlgUnitsToY(checkboxHeight, d->sys->baseY);
+	*width = uiWindowsDlgUnitsToX(checkboxXFromLeftOfBoxToLeftOfLabel, d->sys->baseX) + uiWindowsWindowTextWidth(c->hwnd);
+	*height = uiWindowsDlgUnitsToY(checkboxHeight, d->sys->baseY);
 }
 
 static void defaultOnToggled(uiCheckbox *c, void *data)

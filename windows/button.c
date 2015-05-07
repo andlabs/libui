@@ -52,7 +52,7 @@ static void buttonPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intm
 	// Microsoft says to use a fixed width for all buttons; this isn't good enough
 	// use the text width instead, with some edge padding
 	*width = uiWindowsWindowTextWidth(b->hwnd) + (2 * GetSystemMetrics(SM_CXEDGE));
-	*height = uiDlgUnitsToY(buttonHeight, d->sys->baseY);
+	*height = uiWindowsDlgUnitsToY(buttonHeight, d->sys->baseY);
 }
 
 static void defaultOnClicked(uiButton *b, void *data)

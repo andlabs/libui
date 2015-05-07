@@ -20,8 +20,13 @@ osMFILES = \
 osHFILES = \
 	darwin/uipriv_darwin.h
 
-osCFLAGS = -mmacosx-version-min=10.7 -DMACOSX_DEPLOYMENT_TARGET=10.7
-osLDFLAGS = -mmacosx-version-min=10.7 -lobjc -framework Foundation -framework AppKit
+osCFLAGS = \
+	-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
+	-fvisibility=hidden \
+	-mmacosx-version-min=10.7 -DMACOSX_DEPLOYMENT_TARGET=10.7
+osLDFLAGS = \
+	-fvisibility=hidden \
+	-mmacosx-version-min=10.7 -lobjc -framework Foundation -framework AppKit
 
 # the gcc flags don't work with Apple's linker
 # fortunately, we don't need any; Apple's linker warns about undefined symbols in -shared builds!

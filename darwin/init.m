@@ -1,10 +1,10 @@
 // 6 april 2015
 #import "uipriv_darwin.h"
 
-@interface uiApplication : NSApplication
+@interface applicationClass : NSApplication
 @end
 
-@implementation uiApplication
+@implementation applicationClass
 
 // hey look! we're overriding terminate:!
 // we're going to make sure we can go back to main() whether Cocoa likes it or not!
@@ -47,7 +47,7 @@ uiInitOptions options;
 const char *uiInit(uiInitOptions *o)
 {
 	options = *o;
-	[uiApplication sharedApplication];
+	[applicationClass sharedApplication];
 	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 	// see https://github.com/andlabs/ui/issues/6
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];

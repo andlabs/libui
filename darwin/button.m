@@ -1,7 +1,7 @@
 // 7 april 2015
 #import "uipriv_darwin.h"
 
-@interface uipButtonDelegate : NSObject {
+@interface buttonDelegate : NSObject {
 	uiButton *b;
 	void (*onClicked)(uiButton *, void *);
 	void *onClickedData;
@@ -11,7 +11,7 @@
 - (void)setOnClicked:(void (*)(uiButton *, void *))f data:(void *)data;
 @end
 
-@implementation uipButtonDelegate
+@implementation buttonDelegate
 
 - (IBAction)buttonClicked:(id)sender
 {
@@ -34,7 +34,7 @@
 struct button {
 	uiButton b;
 	NSButton *button;
-	uipButtonDelegate *delegate;
+	buttonDelegate *delegate;
 };
 
 static void defaultOnClicked(uiButton *b, void *data)
@@ -88,7 +88,7 @@ uiButton *uiNewButton(const char *text)
 	[b->button setBezelStyle:NSRoundedBezelStyle];
 	setStandardControlFont(b->button);
 
-	b->delegate = [uipButtonDelegate new];
+	b->delegate = [buttonDelegate new];
 	[b->button setTarget:b->delegate];
 	[b->button setAction:@selector(buttonClicked:)];
 	[b->delegate setButton:uiButton(b)];

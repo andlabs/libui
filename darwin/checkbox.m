@@ -1,7 +1,7 @@
 // 7 april 2015
 #import "uipriv_darwin.h"
 
-@interface uipCheckboxDelegate : NSObject {
+@interface checkboxDelegate : NSObject {
 	uiCheckbox *c;
 	void (*onToggled)(uiCheckbox *, void *);
 	void *onToggledData;
@@ -11,7 +11,7 @@
 - (void)setOnToggled:(void (*)(uiCheckbox *, void *))f data:(void *)data;
 @end
 
-@implementation uipCheckboxDelegate
+@implementation checkboxDelegate
 
 - (IBAction)checkboxToggled:(id)sender
 {
@@ -34,7 +34,7 @@
 struct checkbox {
 	uiCheckbox c;
 	NSButton *checkbox;
-	uipCheckboxDelegate *delegate;
+	checkboxDelegate *delegate;
 };
 
 static void defaultOnToggled(uiCheckbox *c, void *data)
@@ -105,7 +105,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	[c->checkbox setBordered:NO];
 	setStandardControlFont(c->checkbox);
 
-	c->delegate = [uipCheckboxDelegate new];
+	c->delegate = [checkboxDelegate new];
 	[c->checkbox setTarget:c->delegate];
 	[c->checkbox setAction:@selector(checkboxToggled:)];
 	[c->delegate setCheckbox:uiCheckbox(c)];

@@ -50,12 +50,12 @@ static void openAnotherWindow(uiButton *b, void *data)
 SHED(enable, Enable)
 SHED(disable, Disable)
 
-static void setLabelText(uiEntry *e, void *data)
+static void echoReadOnlyText(uiEntry *e, void *data)
 {
 	char *text;
 
 	text = uiEntryText(e);
-	uiLabelSetText(uiLabel(data), text);
+	uiEntrySetText(uiEntry(data), text);
 	uiFreeText(text);
 }
 
@@ -70,7 +70,7 @@ uiBox *makePage2(void)
 	uiBox *innerhbox3;
 	uiTab *disabledTab;
 	uiEntry *entry;
-	uiLabel *entrylabel;
+	uiEntry *readonly;
 
 	page2 = newVerticalBox();
 
@@ -153,10 +153,14 @@ uiBox *makePage2(void)
 	uiBoxAppend(page2, uiControl(disabledTab), 1);
 
 	entry = uiNewEntry();
-	entrylabel = uiNewLabel("");
-	uiEntryOnChanged(entry, setLabelText, entrylabel);
+	readonly = uiNewEntry();
+	uiEntryOnChanged(entry, echoReadOnlyText, readonly);
+	uiEntrySetText(readonly, "If you can see this, uiEntryReadOnly() isn't working properly.");
+	uiEntrySetReadOnly(readonly), 1);
+	if (uiEntryReadOnly(readonly))
+		uiEntrySetText(readonly, "");
 	uiBoxAppend(page2, uiControl(entry), 0);
-	uiBoxAppend(page2, uiControl(entrylabel), 0);
+	uiBoxAppend(page2, uiControl(readonly), 0);
 
 	return page2;
 }

@@ -84,6 +84,8 @@ interface Entry from Control {
 	func Text(void) *char;
 	func SetText(text *const char);
 	func OnChanged(f *func(e *Entry, data *void), data *void);
+	func ReadOnly(void) int;
+	func SetReadOnly(readonly int);
 };
 func NewEntry(void) *Entry;
 

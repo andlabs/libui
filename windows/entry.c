@@ -15,7 +15,6 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 	if (code != EN_CHANGE)
 		return FALSE;
 	(*(e->onChanged))(uiEntry(e), e->onChangedData);
-	// TODO EN_CHANGE return value
 	*lResult = 0;
 	return TRUE;
 }

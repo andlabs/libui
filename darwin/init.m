@@ -23,6 +23,12 @@
 
 @implementation appDelegate
 
+- (void)dealloc
+{
+	[self.menuManager release];
+	[super dealloc];
+}
+
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)app
 {
 	// for debugging
@@ -36,11 +42,6 @@
 }
 
 @end
-
-// we are not in control of the actual lifetimes and refcounts of NSViews (see http://stackoverflow.com/a/29523141/3408572)
-// when we're done with a view, it'll be added as a subview of this one, and this one will be released on application shutdown
-// we need this separate view because it's possible for controls to have no parent but still be alive
-NSView *destroyedControlsView;
 
 uiInitOptions options;
 
@@ -58,9 +59,6 @@ const char *uiInit(uiInitOptions *o)
 	// always do this so we always have an application menu
 	appDelegate().menuManager = [menuManager new];
 	[NSApp setMainMenu:[appDelegate().menuManager makeMenubar]];
-
-	// we can use a stock NSView for this
-	destroyedControlsView = [[NSView alloc] initWithFrame:NSZeroRect];
 
 	return NULL;
 }

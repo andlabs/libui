@@ -5,6 +5,7 @@ struct entry {
 	uiEntry e;
 	GtkWidget *widget;
 	GtkEntry *entry;
+	GtkEditable *editable;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 };
@@ -50,6 +51,24 @@ static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data
 	e->onChangedData = data;
 }
 
+static int entryReadOnly(uiEntry *ee)
+{
+	struct entry *e = (struct entry *) ee;
+
+	return gtk_editable_get_editable(e->editable) == FALSE;
+}
+
+static void entrySetReadOnly(uiEntry *ee, int readonly)
+{
+	struct entry *e = (struct entry *) ee;
+	gboolean editable;
+
+	editable = TRUE;
+	if (readonly)
+		editable = FALSE;
+	gtk_editable_set_editable(e->editable, editable);
+}
+
 uiEntry *uiNewEntry(void)
 {
 	struct entry *e;
@@ -62,6 +81,7 @@ uiEntry *uiNewEntry(void)
 
 	e->widget = GTK_WIDGET(uiControlHandle(uiControl(e)));
 	e->entry = GTK_ENTRY(e->widget);
+	e->editable = GTK_EDITABLE(e->widget);
 
 	g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
 	e->onChanged = defaultOnChanged;
@@ -69,6 +89,8 @@ uiEntry *uiNewEntry(void)
 	uiEntry(e)->Text = entryText;
 	uiEntry(e)->SetText = entrySetText;
 	uiEntry(e)->OnChanged = entryOnChanged;
+	uiEntry(e)->ReadOnly = entryReadOnly;
+	uiEntry(e)->SetReadOnly = entrySetReadOnly;
 
 	return uiEntry(e);
 }

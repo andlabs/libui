@@ -39,5 +39,5 @@ baseSUFFIX = $(osLIBSUFFIX)
 include GNUbase.mk
 
 test: $(OUT)
-	$(MAKE) -f GNUmaketest.mk osLIB=$(OUT) osEXESUFFIX=$(osEXESUFFIX) CC=$(CC) archmflag=$(archmflag)
+	@$(MAKE) -f GNUmaketest.mk osLIB=$(OUT) osEXESUFFIX=$(osEXESUFFIX) CC=$(CC) archmflag=$(archmflag)
 .PHONY: test

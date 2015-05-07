@@ -31,23 +31,27 @@ xLDFLAGS = \
 OUT = $(OUTDIR)/$(OUTBASE)$(baseSUFFIX)
 
 $(OUT): $(OFILES) | $(OUTDIR)/.phony
-	$(CC) -o $(OUT) $(OFILES) $(xLDFLAGS)
+	@$(CC) -o $(OUT) $(OFILES) $(xLDFLAGS)
+	@echo ====== Linked $(OUT)
 
 .SECONDEXPANSION:
 $(OBJDIR)/%.o: %.c $(xHFILES) | $$(dir $$@).phony
-	$(CC) -o $@ -c $< $(xCFLAGS)
+	@$(CC) -o $@ -c $< $(xCFLAGS)
+	@echo ====== Compiled $<
 
 $(OBJDIR)/%.o: %.m $(xHFILES) | $$(dir $$@).phony
-	$(CC) -o $@ -c $< $(xCFLAGS)
+	@$(CC) -o $@ -c $< $(xCFLAGS)
+	@echo ====== Compiled $<
 
 # see http://www.cmcrossroads.com/article/making-directories-gnu-make
 %/.phony:
-	mkdir -p $(dir $@)
-	touch $@
+	@mkdir -p $(dir $@)
+	@touch $@
 .PRECIOUS: %/.phony
 
 ui.h: ui.idl
-	idl2h -extern _UI_EXTERN -guard __UI_UI_H__ < ui.idl > ui.h
+	@idl2h -extern _UI_EXTERN -guard __UI_UI_H__ < ui.idl > ui.h
+	@echo ====== Generated ui.h
 
 clean:
 	rm -rf $(OUTDIR) $(OBJDIR) ui.h

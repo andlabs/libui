@@ -1,4 +1,3 @@
-- make it so Windows API calls that do logLastError(), etc. abort whatever they're doing and not try to continue, just like wintable
 - assign control IDs on windows
 	- GWL(P)_ID
 	- related? [12:25] <ZeroOne> And the blue outline on those buttons [ALL clicked buttons on Windows 7] won't go away
@@ -62,6 +61,7 @@
 		- windows resizing logic is simply not comprehensive enough (no null resizes allowed) to do things
 		- we control resizes of all children so we can reliably update after a resize
 		- we already need to do this in uiContainer :/
+- make it so Windows API calls that do logLastError(), etc. abort whatever they're doing and not try to continue, just like wintable
 
 ultimately:
 - add some sort of runtime type checking

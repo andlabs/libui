@@ -19,11 +19,13 @@ xCFLAGS = \
 	-Wno-switch \
 	--std=c99 \
 	$(CFLAGS) \
+	$(archmflag) \
 	$(baseCFLAGS)
 
 xLDFLAGS = \
 	-g \
 	$(LDFLAGS) \
+	$(archmflag) \
 	$(baseLDFLAGS)
 
 OUT = $(OUTDIR)/$(OUTBASE)$(baseSUFFIX)

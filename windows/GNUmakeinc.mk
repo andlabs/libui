@@ -38,11 +38,9 @@ osEXESUFFIX = .exe
 ifeq ($(ARCH),amd64)
 	CC = x86_64-w64-mingw32-gcc
 	RC = x86_64-w64-mingw32-windres
-	osCFLAGS += -m64
-	osLDFLAGS += -m64
+	archmflag = -m64
 else
 	CC = i686-w64-mingw32-gcc
 	RC = i686-w64-mingw32-windres
-	osCFLAGS += -m32
-	osLDFLAGS += -m32
+	archmflag = -m32
 endif

@@ -31,6 +31,7 @@ osLIBSUFFIX = .dylib
 osEXESUFFIX =
 
 ifeq ($(ARCH),386)
-	osCFLAGS += -m32
-	osLDFLAGS += -m32
+	archmflag = -m32
+else
+	archmflag = -m64
 endif

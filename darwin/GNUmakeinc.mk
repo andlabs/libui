@@ -27,6 +27,10 @@ osLDFLAGS = -mmacosx-version-min=10.7 -lobjc -framework Foundation -framework Ap
 # fortunately, we don't need any; Apple's linker warns about undefined symbols in -shared builds!
 osLDWarnUndefinedFlags = 
 
-
 osLIBSUFFIX = .dylib
 osEXESUFFIX =
+
+ifeq ($(ARCH),386)
+	osCFLAGS += -m32
+	osLDFLAGS += -m32
+endif

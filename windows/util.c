@@ -1,6 +1,7 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
+// TODO move to text.c
 intmax_t uiWindowsWindowTextWidth(HWND hwnd)
 {
 	LRESULT len;

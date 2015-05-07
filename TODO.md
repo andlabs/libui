@@ -1,8 +1,3 @@
-- SWP_NOCOPYBITS (or was it WS_CLIPCHILDREN?)
-	- buttons not in tab get drawover issues
-	- buttons in tab without transparent drawing code get copied into the label when stack shown and rehidden
-- settle onDestroy/destroy naming
-- implement lifetiming on Windows
 - forbid free(NULL) to check for bugs
 - opposite side alignment control in uiBox
 - disabling containers on wine doesn't redraw children as disabled
@@ -66,6 +61,7 @@ ultimately:
 	- GWL(P)_ID
 	- related? [12:25] <ZeroOne> And the blue outline on those buttons [ALL clicked buttons on Windows 7] won't go away
 		- I get this too
+- SWP_NOCOPYBITS to avoid button redraw issues on Windows when not in tab, but only when making resize faster
 
 notes to self
 - explicitly document label position at top-left corner

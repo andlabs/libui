@@ -1,12 +1,3 @@
-- opposite side alignment control in uiBox
-- disabling containers on wine doesn't redraw children as disabled
-	- test on real windows
-- collapse multiple consecutive menu separators?
-	- including for quit/preferences/about?
-		- or not even have separators there?
-			- in which case, hide leading or trailing separators?
-- write an array.c for uiBox, uiGrid, and the Windows backend
-	- it'd just be a clone of GArray from GLib
 - add the visibility stuff to the Windows makefile
 	- figure out visibility on mac os x
 	- hide command lines in the makefile
@@ -61,6 +52,11 @@ ultimately:
 	- related? [12:25] <ZeroOne> And the blue outline on those buttons [ALL clicked buttons on Windows 7] won't go away
 		- I get this too
 - SWP_NOCOPYBITS to avoid button redraw issues on Windows when not in tab, but only when making resize faster
+- opposite side alignment control in uiBox
+- collapse multiple consecutive menu separators?
+	- including for quit/preferences/about?
+		- or not even have separators there?
+			- in which case, hide leading or trailing separators?
 
 notes to self
 - explicitly document label position at top-left corner

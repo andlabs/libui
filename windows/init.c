@@ -110,7 +110,8 @@ void uiUninit(void)
 	uninitMenus();
 	// TODO delete hollow brush
 	uninitContainer();
-	// TODO delete message font
+	if (DeleteObject(hMessageFont) == 0)
+		logLastError("error deleting control font in uiUninit()");
 	unregisterWindowClass();
 	// TODO delete default cursor
 	// TODO delete default icon

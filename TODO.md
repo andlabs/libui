@@ -1,5 +1,3 @@
-- note that uiInitOptions should be initialized to zero
-	- have a cbSize member
 - drop "Page" from uiTab method names? (uiTabAppendPage() -> uiTabAppend())
 - override dock menu quit item to act like our app menu quit item
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
@@ -60,3 +58,4 @@ notes to self
 		- we would need to test everything else with it
 - note that uiTabInsertPageBefore() does NOT change the current tab page (it may change its index if inserting before the current page)
 - note that the default action for uiWindowOnClosing() is to return 0 (keep the window open)
+- note that uiInitOptions should be initialized to zero

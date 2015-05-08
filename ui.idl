@@ -13,6 +13,7 @@ raw "#define _UI_EXTERN extern";
 raw "#endif";
 
 struct InitOptions {
+	field Size size_t;
 };
 
 func Init(options *InitOptions) *const char;

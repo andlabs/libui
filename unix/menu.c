@@ -353,6 +353,8 @@ void uninitMenus(void)
 	struct menuItem *item;
 	guint i, j;
 
+	if (menus == NULL)
+		return;
 	for (i = 0; i < menus->len; i++) {
 		m = g_array_index(menus, struct menu *, i);
 		g_free(m->name);

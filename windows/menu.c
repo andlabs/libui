@@ -1,6 +1,8 @@
 // 24 april 2015
 #include "uipriv_windows.h"
 
+// TODO migrate to ptrArray
+
 static struct menu **menus = NULL;
 static uintmax_t len = 0;
 static uintmax_t cap = 0;
@@ -117,7 +119,7 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 
 	if (m->len >= m->cap) {
 		m->cap += grow;
-		m->items = (struct menuItem **) uiRealloc(m->items, m->cap * sizeof (struct menuItem *));
+		m->items = (struct menuItem **) uiRealloc(m->items, m->cap * sizeof (struct menuItem *), "struct menuItem *[]");
 	}
 
 	item = uiNew(struct menuItem);
@@ -208,7 +210,7 @@ uiMenu *uiNewMenu(const char *name)
 		complain("attempt to create a new menu after menus have been finalized");
 	if (len >= cap) {
 		cap += grow;
-		menus = (struct menu **) uiRealloc(menus, cap * sizeof (struct menu *));
+		menus = (struct menu **) uiRealloc(menus, cap * sizeof (struct menu *), "struct menu *[]");
 	}
 
 	m = uiNew(struct menu);
@@ -244,7 +246,7 @@ static void appendMenuItem(HMENU menu, struct menuItem *item)
 
 	if (item->len >= item->cap) {
 		item->cap += grow;
-		item->hmenus = (HMENU *) uiRealloc(item->hmenus, item->cap * sizeof (HMENU));
+		item->hmenus = (HMENU *) uiRealloc(item->hmenus, item->cap * sizeof (HMENU), "HMENU[]");
 	}
 	item->hmenus[item->len] = menu;
 	item->len++;

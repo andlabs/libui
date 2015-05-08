@@ -15,25 +15,35 @@ int initAlloc(void)
 	return heap != NULL;
 }
 
-void *uiAlloc(size_t size)
+#define UINT8(p) ((uint8_t *) (p))
+#define PVOID(p) ((void *) (p))
+#define EXTRA (sizeof (const char **))
+#define DATA(p) PVOID(UINT8(p) + EXTRA)
+#define BASE(p) PVOID(UINT8(p) - EXTRA)
+#define CCHAR(p) ((const char **) (p))
+#define TYPE(p) CCHAR(UINT8(p))
+
+void *uiAlloc(size_t size, const char *type)
 {
 	void *out;
 
-	out = HeapAlloc(heap, HEAP_ZERO_MEMORY, size);
+	out = HeapAlloc(heap, HEAP_ZERO_MEMORY, EXTRA + size);
 	if (out == NULL) {
 		fprintf(stderr, "memory exhausted in uiAlloc()\n");
 		abort();
 	}
-	return out;
+	*TYPE(out) = type;
+	return DATA(out);
 }
 
-void *uiRealloc(void *p, size_t size)
+void *uiRealloc(void *p, size_t size, const char *type)
 {
 	void *out;
 
 	if (p == NULL)
-		return uiAlloc(size);
-	out = HeapReAlloc(heap, HEAP_ZERO_MEMORY, p, size);
+		return uiAlloc(size, type);
+	p = BASE(p);
+	out = HeapReAlloc(heap, HEAP_ZERO_MEMORY, p, EXTRA + size);
 	if (out == NULL) {
 		fprintf(stderr, "memory exhausted in uiRealloc()\n");
 		abort();
@@ -45,6 +55,7 @@ void uiFree(void *p)
 {
 	if (p == NULL)
 		complain("attempt to uiFree(NULL); there's a bug somewhere");
+	p = BASE(p);
 	if (HeapFree(heap, 0, p) == 0)
 		logLastError("error freeing memory in uiFree()");
 }

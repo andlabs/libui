@@ -12,6 +12,8 @@ void ptrArrayDestroy(struct ptrArray *p)
 {
 	if (p->len != 0)
 		complain("attempt to destroy ptrarray %p while it still has pointers inside", p);
+	if (p->ptrs != NULL)			// array was created but nothing was ever put inside
+		uiFree(p->ptrs);
 	uiFree(p);
 }
 

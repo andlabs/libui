@@ -1,13 +1,11 @@
-- drop "Page" from uiTab method names? (uiTabAppendPage() -> uiTabAppend())
 - override dock menu quit item to act like our app menu quit item
+	- poll the quit menu item in applicationShouldTerminate:
+	- on shutdowns too
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
-- release OS X properties in dealloc
-	- switch away from properties or figure out what incantation is necessary for 32-bit
-	- figure out strong/weak vs assign/copy/retain
 - figure out what to do in OS X terminate:
-- clean up bin handling
-	- is binSetOSParent() even needed?
-- readd the allocation tracking as just a list of pointers
+	- what uiQuit() does
+	- uiQuit() will call terminate: instead
+- re-add the allocation tracking as just a list of pointers
 - add a final cleanup function (uiUninit() or uiCleanup())
 - whenever a list of things is destroyed, each successive item must be removed as it is destroyed, otherwise we might wind up in a situation where we access items after they're freed
 - make the name of the variable to refer to a single tab page consistent (already decided to make them all `page`)
@@ -20,6 +18,7 @@
 - make it so Windows API calls that do logLastError(), etc. abort whatever they're doing and not try to continue, just like wintable
 - 32-bit Mac OS X support (requires lots of code changes)
 	- change the build system to be more receptive to arch changes
+- http://stackoverflow.com/questions/4543087/applicationwillterminate-and-the-dock-but-wanting-to-cancel-this-action
 
 ultimately:
 - add some sort of runtime type checking
@@ -48,6 +47,7 @@ ultimately:
 	- Windows: requires getting current menu state when amending it in sync()
 - figure out where we should return HRESULTs
 - Windows: don't abort if a cleanup function fails?
+- drop "Page" from uiTab method names? (uiTabAppendPage() -> uiTabAppend())
 
 notes to self
 - explicitly document label position at top-left corner

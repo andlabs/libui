@@ -18,6 +18,7 @@ struct InitOptions {
 };
 
 func Init(options *InitOptions) *const char;
+func Uninit(void);
 func FreeInitError(err *const char);
 
 func Main(void);

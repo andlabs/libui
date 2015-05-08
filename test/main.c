@@ -75,5 +75,6 @@ int main(int argc, char *argv[])
 	uiControlShow(uiControl(w));
 	uiMain();
 	printf("after uiMain()\n");
+	uiUninit();
 	return 0;
 }

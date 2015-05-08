@@ -23,6 +23,34 @@ int initAlloc(void)
 #define CCHAR(p) ((const char **) (p))
 #define TYPE(p) CCHAR(UINT8(p))
 
+void uninitAlloc(void)
+{
+	BOOL hasEntry;
+	PROCESS_HEAP_ENTRY phe;
+	DWORD le;
+
+	hasEntry = FALSE;
+	ZeroMemory(&phe, sizeof (PROCESS_HEAP_ENTRY));
+	while (HeapWalk(heap, &phe) != 0) {
+		// skip non-allocations
+		if ((phe.wFlags & PROCESS_HEAP_ENTRY_BUSY) == 0)
+			continue;
+		if (!hasEntry) {
+			fprintf(stderr, "[libui] leaked allocations:\n");
+			hasEntry = TRUE;
+		}
+		fprintf(stderr, "[libui] %p %s\n", phe.lpData, *TYPE(phe.lpData));
+	}
+	le = GetLastError();
+	SetLastError(le);		// just in case
+	if (le != ERROR_NO_MORE_ITEMS)
+		logLastError("error walking heap in uninitAlloc()");
+	if (hasEntry)
+		complain("either you left something around or there's a bug in libui");
+	if (HeapDestroy(heap) == 0)
+		logLastError("error destroying heap in uninitAlloc()");
+}
+
 void *uiAlloc(size_t size, const char *type)
 {
 	void *out;

@@ -85,6 +85,7 @@ extern void freeMenubar(HMENU);
 
 // alloc.c
 extern int initAlloc(void);
+extern void uninitAlloc(void);
 
 // tab.c
 extern void tabEnterTabNavigation(HWND);

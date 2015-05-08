@@ -114,7 +114,7 @@ void uiUninit(void)
 	// TODO uninit window
 	// TODO delete default cursor
 	// TODO delete default icon
-	// TODO uninit alloc
+	uninitAlloc();
 }
 
 void uiFreeInitError(const char *err)

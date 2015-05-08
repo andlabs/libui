@@ -65,7 +65,8 @@ void uiFree(void *p)
 {
 	if (p == NULL)
 		complain("attempt to uiFree(NULL); there's a bug somewhere");
-	g_free(BASE(p));
+	p = BASE(p);
+	g_free(p);
 	if (g_ptr_array_remove(allocations, p) == FALSE)
 		complain("%p not found in allocations array in uiFree()", p);
 }

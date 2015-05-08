@@ -67,7 +67,7 @@ void uiUninit(void)
 {
 	// TODO free menus
 	// TODO free application delegate
-	// TODO uninit alloc
+	uninitAlloc();
 }
 
 void uiFreeInitError(const char *err)

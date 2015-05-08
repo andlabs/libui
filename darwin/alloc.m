@@ -2,8 +2,11 @@
 #import <stdlib.h>
 #import "uipriv_darwin.h"
 
+NSMutableArray *allocations;
+
 void initAlloc(void)
 {
+	allocations = [NSMutableArray new];
 }
 
 #define UINT8(p) ((uint8_t *) (p))
@@ -17,6 +20,20 @@ void initAlloc(void)
 
 void uninitAlloc(void)
 {
+	if ([allocations count] == 0) {
+		[allocations release];
+		return;
+	}
+	fprintf(stderr, "[libui] leaked allocations:\n");
+	[allocations enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		NSValue *v;
+		void *ptr;
+
+		v = (NSValue *) obj;
+		ptr = [v pointerValue];
+		fprintf(stderr, "[libui] %p %s\n", ptr, *TYPE(ptr));
+	}];
+	complain("either you left something around or there's a bug in libui");
 }
 
 void *uiAlloc(size_t size, const char *type)
@@ -31,6 +48,7 @@ void *uiAlloc(size_t size, const char *type)
 	memset(DATA(out), 0, size);
 	*SIZE(out) = size;
 	*TYPE(out) = type;
+	[allocations addObject:[NSValue valueWithPointer:out]];
 	return DATA(out);
 }
 
@@ -51,6 +69,8 @@ void *uiRealloc(void *p, size_t new, const char *type)
 	if (new <= *s)
 		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);
 	*s = new;
+	[allocations removeObject:[NSValue valueWithPointer:p]];
+	[allocations addObject:[NSValue valueWithPointer:out]];
 	return DATA(out);
 }
 
@@ -59,4 +79,5 @@ void uiFree(void *p)
 	if (p == NULL)
 		complain("attempt to uiFree(NULL); there's a bug somewhere");
 	free(BASE(p));
+	[allocations removeObject:[NSValue valueWithPointer:p]];
 }

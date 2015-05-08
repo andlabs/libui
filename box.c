@@ -5,7 +5,7 @@
 struct box {
 	uiBox b;
 	void (*baseDestroy)(uiControl *);
-	struct boxControl *controls;
+	struct boxControl **controls;
 	uintmax_t len;
 	uintmax_t cap;
 	int vertical;
@@ -30,8 +30,8 @@ static void boxDestroy(uiControl *c)
 		complain("attempt to destroy uiBox %p while it has a parent", b);
 	// don't chain up to base here; we need to destroy children ourselves first
 	for (i = 0; i < b->len; i++) {
-		uiControlSetParent(b->controls[i].c, NULL);
-		uiControlDestroy(b->controls[i].c);
+		uiControlSetParent(b->controls[i]->c, NULL);
+		uiControlDestroy(b->controls[i]->c);
 	}
 	uiFree(b->controls);
 	// NOW we can chain up to base
@@ -86,10 +86,10 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 	maxStretchyWidth = 0;
 	maxStretchyHeight = 0;
 	for (i = 0; i < b->len; i++) {
-		if (!uiControlVisible(b->controls[i].c))
+		if (!uiControlVisible(b->controls[i]->c))
 			continue;
-		uiControlPreferredSize(b->controls[i].c, d, &preferredWidth, &preferredHeight);
-		if (b->controls[i].stretchy) {
+		uiControlPreferredSize(b->controls[i]->c, d, &preferredWidth, &preferredHeight);
+		if (b->controls[i]->stretchy) {
 			nStretchy++;
 			if (maxStretchyWidth < preferredWidth)
 				maxStretchyWidth = preferredWidth;
@@ -99,10 +99,10 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		if (b->vertical) {
 			if (*width < preferredWidth)
 				*width = preferredWidth;
-			if (!b->controls[i].stretchy)
+			if (!b->controls[i]->stretchy)
 				*height += preferredHeight;
 		} else {
-			if (!b->controls[i].stretchy)
+			if (!b->controls[i]->stretchy)
 				*width += preferredWidth;
 			if (*height < preferredHeight)
 				*height = preferredHeight;
@@ -122,7 +122,7 @@ static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
 	uintmax_t i;
 
 	for (i = 0; i < b->len; i++)
-		uiControlSysFunc(b->controls[i].c, p);
+		uiControlSysFunc(b->controls[i]->c, p);
 }
 
 static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
@@ -158,20 +158,20 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 	stretchyht = height;
 	nStretchy = 0;
 	for (i = 0; i < b->len; i++) {
-		if (!uiControlVisible(b->controls[i].c))
+		if (!uiControlVisible(b->controls[i]->c))
 			continue;
-		if (b->controls[i].stretchy) {
+		if (b->controls[i]->stretchy) {
 			nStretchy++;
 			continue;
 		}
-		uiControlPreferredSize(b->controls[i].c, d, &preferredWidth, &preferredHeight);
+		uiControlPreferredSize(b->controls[i]->c, d, &preferredWidth, &preferredHeight);
 		if (b->vertical) {		// all controls have same width
-			b->controls[i].width = width;
-			b->controls[i].height = preferredHeight;
+			b->controls[i]->width = width;
+			b->controls[i]->height = preferredHeight;
 			stretchyht -= preferredHeight;
 		} else {				// all controls have same height
-			b->controls[i].width = preferredWidth;
-			b->controls[i].height = height;
+			b->controls[i]->width = preferredWidth;
+			b->controls[i]->height = height;
 			stretchywid -= preferredWidth;
 		}
 	}
@@ -183,23 +183,23 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 		else
 			stretchywid /= nStretchy;
 	for (i = 0; i < b->len; i++) {
-		if (!uiControlVisible(b->controls[i].c))
+		if (!uiControlVisible(b->controls[i]->c))
 			continue;
-		if (b->controls[i].stretchy) {
-			b->controls[i].width = stretchywid;
-			b->controls[i].height = stretchyht;
+		if (b->controls[i]->stretchy) {
+			b->controls[i]->width = stretchywid;
+			b->controls[i]->height = stretchyht;
 		}
 	}
 
 	// 3) now we can position controls
 	for (i = 0; i < b->len; i++) {
-		if (!uiControlVisible(b->controls[i].c))
+		if (!uiControlVisible(b->controls[i]->c))
 			continue;
-		uiControlResize(b->controls[i].c, x, y, b->controls[i].width, b->controls[i].height, d);
+		uiControlResize(b->controls[i]->c, x, y, b->controls[i]->width, b->controls[i]->height, d);
 		if (b->vertical)
-			y += b->controls[i].height + ypadding;
+			y += b->controls[i]->height + ypadding;
 		else
-			x += b->controls[i].width + xpadding;
+			x += b->controls[i]->width + xpadding;
 	}
 }
 
@@ -208,15 +208,18 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 {
 	struct box *b = (struct box *) ss;
+	struct boxControl *bc;
 
 	if (b->len >= b->cap) {
 		b->cap += boxCapGrow;
-		b->controls = (struct boxControl *) uiRealloc(b->controls, b->cap * sizeof (struct boxControl));
+		b->controls = (struct boxControl **) uiRealloc(b->controls, b->cap * sizeof (struct boxControl *));
 	}
-	b->controls[b->len].c = c;
-	b->controls[b->len].stretchy = stretchy;
+	bc = uiNew(struct boxControl);
+	b->controls[b->len] = bc;
+	b->controls[b->len]->c = c;
+	b->controls[b->len]->stretchy = stretchy;
 	b->len++;		// must be here for OS container updates to work
-	uiControlSetParent(b->controls[b->len - 1].c, uiContainer(b));
+	uiControlSetParent(b->controls[b->len - 1]->c, uiContainer(b));
 	uiContainerUpdate(uiContainer(b));
 }
 
@@ -226,7 +229,7 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 	uiControl *removed;
 	uintmax_t i;
 
-	removed = b->controls[index].c;
+	removed = b->controls[index]->c;
 	for (i = index; i < b->len - 1; i++)
 		b->controls[i] = b->controls[i + 1];
 	b->len--;

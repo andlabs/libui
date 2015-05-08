@@ -78,6 +78,7 @@ void uiFree(void *p)
 {
 	if (p == NULL)
 		complain("attempt to uiFree(NULL); there's a bug somewhere");
-	free(BASE(p));
+	p = BASE(p);
+	free(p);
 	[allocations removeObject:[NSValue valueWithPointer:p]];
 }

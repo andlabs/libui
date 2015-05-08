@@ -136,6 +136,7 @@ uiTab *uiNewTab(void)
 
 	uiUnixMakeControl(uiControl(t), GTK_TYPE_NOTEBOOK,
 		FALSE, FALSE, onDestroy, t,
+		"scrollable", TRUE,
 		NULL);
 
 	t->pages = g_array_new(FALSE, TRUE, sizeof (struct tabPage));

@@ -6,6 +6,7 @@
 
 package ui {
 
+raw "#include <stddef.h>";
 raw "#include <stdint.h>";
 
 raw "#ifndef _UI_EXTERN";

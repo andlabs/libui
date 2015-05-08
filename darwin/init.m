@@ -63,6 +63,13 @@ const char *uiInit(uiInitOptions *o)
 	return NULL;
 }
 
+void uiUninit(void)
+{
+	// TODO free menus
+	// TODO free application delegate
+	// TODO uninit alloc
+}
+
 void uiFreeInitError(const char *err)
 {
 }

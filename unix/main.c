@@ -18,6 +18,12 @@ const char *uiInit(uiInitOptions *o)
 	return NULL;
 }
 
+void uiUninit(void)
+{
+	// TODO free menus
+	// TODO uninit alloc
+}
+
 void uiFreeInitError(const char *err)
 {
 	g_free((gpointer) err);

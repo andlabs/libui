@@ -105,6 +105,18 @@ const char *uiInit(uiInitOptions *o)
 	return NULL;
 }
 
+void uiUninit(void)
+{
+	// TODO free menus
+	// TODO delete hollow brush
+	// TODO uninit container
+	// TODO delete message font
+	// TODO uninit window
+	// TODO delete default cursor
+	// TODO delete default icon
+	// TODO uninit alloc
+}
+
 void uiFreeInitError(const char *err)
 {
 	uiFree((void *) err);

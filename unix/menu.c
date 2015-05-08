@@ -346,3 +346,26 @@ void freeMenubar(GtkWidget *mb)
 	gtk_container_foreach(GTK_CONTAINER(mb), freeMenu, &i);
 	// no need to worry about destroying any widgets; destruction of the window they're in will do it for us
 }
+
+void uninitMenus(void)
+{
+	struct menu *m;
+	struct menuItem *item;
+	guint i, j;
+
+	for (i = 0; i < menus->len; i++) {
+		m = g_array_index(menus, struct menu *, i);
+		g_free(m->name);
+		for (j = 0; j < m->items->len; j++) {
+			item = g_array_index(m->items, struct menuItem *, j);
+			if (g_hash_table_size(item->windows) != 0)
+				complain("menu item %p (%s) still has uiWindows attached; did you forget to free some?", item, item->name);
+			g_free(item->name);
+			g_hash_table_destroy(item->windows);
+			uiFree(item);
+		}
+		g_array_free(m->items, TRUE);
+		uiFree(m);
+	}
+	g_array_free(menus, TRUE);
+}

@@ -5,9 +5,7 @@
 struct box {
 	uiBox b;
 	void (*baseDestroy)(uiControl *);
-	struct boxControl **controls;
-	uintmax_t len;
-	uintmax_t cap;
+	struct ptrArray *controls;
 	int vertical;
 	void (*baseSetParent)(uiControl *, uiContainer *);
 	uiContainer *parent;
@@ -24,16 +22,19 @@ struct boxControl {
 static void boxDestroy(uiControl *c)
 {
 	struct box *b = (struct box *) c;
-	uintmax_t i;
+	struct boxControl *bc;
 
 	if (b->parent != NULL)
 		complain("attempt to destroy uiBox %p while it has a parent", b);
 	// don't chain up to base here; we need to destroy children ourselves first
-	for (i = 0; i < b->len; i++) {
-		uiControlSetParent(b->controls[i]->c, NULL);
-		uiControlDestroy(b->controls[i]->c);
+	while (b->controls->len != 0) {
+		bc = ptrArrayIndex(b->controls, struct boxControl *, 0);
+		uiControlSetParent(bc->c, NULL);
+		uiControlDestroy(bc->c);
+		ptrArrayDelete(b->controls, 0);
+		uiFree(bc);
 	}
-	uiFree(b->controls);
+	ptrArrayDestroy(b->controls);
 	// NOW we can chain up to base
 	(*(b->baseDestroy))(uiControl(b));
 	uiFree(b);
@@ -52,6 +53,7 @@ static void boxSetParent(uiControl *c, uiContainer *parent)
 static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct box *b = (struct box *) c;
+	struct boxControl *bc;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	// these two contain the largest preferred width and height of all stretchy controls in the box
@@ -62,7 +64,7 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 
 	*width = 0;
 	*height = 0;
-	if (b->len == 0)
+	if (b->controls->len == 0)
 		return;
 
 	// 0) get this Box's padding
@@ -76,20 +78,21 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 	// 1) initialize the desired rect with the needed padding
 	// TODO this is wrong if any controls are hidden
 	if (b->vertical)
-		*height = (b->len - 1) * ypadding;
+		*height = (b->controls->len - 1) * ypadding;
 	else
-		*width = (b->len - 1) * xpadding;
+		*width = (b->controls->len - 1) * xpadding;
 
 	// 2) add in the size of non-stretchy controls and get (but not add in) the largest widths and heights of stretchy controls
 	// we still add in like direction of stretchy controls
 	nStretchy = 0;
 	maxStretchyWidth = 0;
 	maxStretchyHeight = 0;
-	for (i = 0; i < b->len; i++) {
-		if (!uiControlVisible(b->controls[i]->c))
+	for (i = 0; i < b->controls->len; i++) {
+		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		if (!uiControlVisible(bc->c))
 			continue;
-		uiControlPreferredSize(b->controls[i]->c, d, &preferredWidth, &preferredHeight);
-		if (b->controls[i]->stretchy) {
+		uiControlPreferredSize(bc->c, d, &preferredWidth, &preferredHeight);
+		if (bc->stretchy) {
 			nStretchy++;
 			if (maxStretchyWidth < preferredWidth)
 				maxStretchyWidth = preferredWidth;
@@ -99,10 +102,10 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		if (b->vertical) {
 			if (*width < preferredWidth)
 				*width = preferredWidth;
-			if (!b->controls[i]->stretchy)
+			if (!bc->stretchy)
 				*height += preferredHeight;
 		} else {
-			if (!b->controls[i]->stretchy)
+			if (!bc->stretchy)
 				*width += preferredWidth;
 			if (*height < preferredHeight)
 				*height = preferredHeight;
@@ -119,22 +122,26 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
 	struct box *b = (struct box *) c;
+	struct boxControl *bc;
 	uintmax_t i;
 
-	for (i = 0; i < b->len; i++)
-		uiControlSysFunc(b->controls[i]->c, p);
+	for (i = 0; i < b->controls->len; i++) {
+		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		uiControlSysFunc(bc->c, p);
+	}
 }
 
 static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	struct box *b = (struct box *) c;
+	struct boxControl *bc;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	intmax_t stretchywid, stretchyht;
 	uintmax_t i;
 	intmax_t preferredWidth, preferredHeight;
 
-	if (b->len == 0)
+	if (b->controls->len == 0)
 		return;
 
 	// -1) get this Box's padding
@@ -148,30 +155,31 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 	// 0) inset the available rect by the needed padding
 	// TODO this is incorrect if any controls are hidden
 	if (b->vertical)
-		height -= (b->len - 1) * ypadding;
+		height -= (b->controls->len - 1) * ypadding;
 	else
-		width -= (b->len - 1) * xpadding;
+		width -= (b->controls->len - 1) * xpadding;
 
 	// 1) get width and height of non-stretchy controls
 	// this will tell us how much space will be left for stretchy controls
 	stretchywid = width;
 	stretchyht = height;
 	nStretchy = 0;
-	for (i = 0; i < b->len; i++) {
-		if (!uiControlVisible(b->controls[i]->c))
+	for (i = 0; i < b->controls->len; i++) {
+		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		if (!uiControlVisible(bc->c))
 			continue;
-		if (b->controls[i]->stretchy) {
+		if (bc->stretchy) {
 			nStretchy++;
 			continue;
 		}
-		uiControlPreferredSize(b->controls[i]->c, d, &preferredWidth, &preferredHeight);
+		uiControlPreferredSize(bc->c, d, &preferredWidth, &preferredHeight);
 		if (b->vertical) {		// all controls have same width
-			b->controls[i]->width = width;
-			b->controls[i]->height = preferredHeight;
+			bc->width = width;
+			bc->height = preferredHeight;
 			stretchyht -= preferredHeight;
 		} else {				// all controls have same height
-			b->controls[i]->width = preferredWidth;
-			b->controls[i]->height = height;
+			bc->width = preferredWidth;
+			bc->height = height;
 			stretchywid -= preferredWidth;
 		}
 	}
@@ -182,58 +190,55 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 			stretchyht /= nStretchy;
 		else
 			stretchywid /= nStretchy;
-	for (i = 0; i < b->len; i++) {
-		if (!uiControlVisible(b->controls[i]->c))
+	for (i = 0; i < b->controls->len; i++) {
+		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		if (!uiControlVisible(bc->c))
 			continue;
-		if (b->controls[i]->stretchy) {
-			b->controls[i]->width = stretchywid;
-			b->controls[i]->height = stretchyht;
+		if (bc->stretchy) {
+			bc->width = stretchywid;
+			bc->height = stretchyht;
 		}
 	}
 
 	// 3) now we can position controls
-	for (i = 0; i < b->len; i++) {
-		if (!uiControlVisible(b->controls[i]->c))
+	for (i = 0; i < b->controls->len; i++) {
+		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		if (!uiControlVisible(bc->c))
 			continue;
-		uiControlResize(b->controls[i]->c, x, y, b->controls[i]->width, b->controls[i]->height, d);
+		uiControlResize(bc->c, x, y, bc->width, bc->height, d);
 		if (b->vertical)
-			y += b->controls[i]->height + ypadding;
+			y += bc->height + ypadding;
 		else
-			x += b->controls[i]->width + xpadding;
+			x += bc->width + xpadding;
 	}
 }
-
-#define boxCapGrow 32
 
 static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 {
 	struct box *b = (struct box *) ss;
 	struct boxControl *bc;
 
-	if (b->len >= b->cap) {
-		b->cap += boxCapGrow;
-		b->controls = (struct boxControl **) uiRealloc(b->controls, b->cap * sizeof (struct boxControl *));
-	}
 	bc = uiNew(struct boxControl);
-	b->controls[b->len] = bc;
-	b->controls[b->len]->c = c;
-	b->controls[b->len]->stretchy = stretchy;
-	b->len++;		// must be here for OS container updates to work
-	uiControlSetParent(b->controls[b->len - 1]->c, uiContainer(b));
+	bc->c = c;
+	bc->stretchy = stretchy;
+	uiControlSetParent(bc->c, uiContainer(b));
+	ptrArrayAppend(b->controls, bc);
 	uiContainerUpdate(uiContainer(b));
 }
 
 static void boxDelete(uiBox *ss, uintmax_t index)
 {
 	struct box *b = (struct box *) ss;
+	struct boxControl *bc;
 	uiControl *removed;
-	uintmax_t i;
 
-	removed = b->controls[index]->c;
-	for (i = index; i < b->len - 1; i++)
-		b->controls[i] = b->controls[i + 1];
-	b->len--;
+	// TODO rearrange this
+	// TODO sync call order with that of Destroy()
+	bc = ptrArrayIndex(b->controls, struct boxControl *, index);
+	removed = bc->c;
+	ptrArrayDelete(b->controls, index);
 	uiControlSetParent(removed, NULL);
+	uiFree(bc);
 	uiContainerUpdate(uiContainer(b));
 }
 
@@ -260,6 +265,8 @@ uiBox *uiNewHorizontalBox(void)
 	b = uiNew(struct box);
 
 	uiMakeContainer(uiContainer(b));
+
+	b->controls = newPtrArray();
 
 	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = boxDestroy;

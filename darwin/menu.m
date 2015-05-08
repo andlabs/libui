@@ -33,6 +33,7 @@ enum {
 {
 	self = [super init];
 	if (self) {
+		// TODO NSPointerFunctionsOpaquePersonality?
 		self->items = [NSMapTable mapTableWithKeyOptions:NSPointerFunctionsOpaqueMemory
 			valueOptions:NSPointerFunctionsOpaqueMemory];
 		self->hasQuit = NO;

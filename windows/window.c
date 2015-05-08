@@ -73,7 +73,7 @@ ATOM registerWindowClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 
 static int defaultOnClosing(uiWindow *w, void *data)
 {
-	return 1;
+	return 0;
 }
 
 static void windowDestroy(uiControl *c)

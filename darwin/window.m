@@ -49,7 +49,7 @@ struct window {
 
 static int defaultOnClosing(uiWindow *w, void *data)
 {
-	return 1;
+	return 0;
 }
 
 static void windowDestroy(uiControl *c)

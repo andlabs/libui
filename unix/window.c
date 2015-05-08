@@ -36,7 +36,7 @@ static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 
 static int defaultOnClosing(uiWindow *w, void *data)
 {
-	return 1;
+	return 0;
 }
 
 static void windowDestroy(uiControl *c)

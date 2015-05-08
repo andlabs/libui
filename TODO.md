@@ -1,5 +1,3 @@
-- should uiWindowOnClosing() really return an int?
-	- if so, should the default return 0 instead of 1?
 - note that uiInitOptions should be initialized to zero
 	- have a cbSize member
 - drop "Page" from uiTab method names? (uiTabAppendPage() -> uiTabAppend())
@@ -61,3 +59,4 @@ notes to self
 	- reconsider this, as the pointer array code does work with the first invalid index...
 		- we would need to test everything else with it
 - note that uiTabInsertPageBefore() does NOT change the current tab page (it may change its index if inserting before the current page)
+- note that the default action for uiWindowOnClosing() is to return 0 (keep the window open)

@@ -3,9 +3,9 @@
 
 extern uiInitOptions options;
 
-extern void *uiAlloc(size_t);
-#define uiNew(T) ((T *) uiAlloc(sizeof (T)))
-extern void *uiRealloc(void *, size_t);
+extern void *uiAlloc(size_t, const char *);
+#define uiNew(T) ((T *) uiAlloc(sizeof (T), #T))
+extern void *uiRealloc(void *, size_t, const char *);
 extern void uiFree(void *);
 
 extern void complain(const char *, ...);

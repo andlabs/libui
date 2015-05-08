@@ -4,6 +4,15 @@
 
 static GPtrArray *allocations;
 
+#define UINT8(p) ((uint8_t *) (p))
+#define PVOID(p) ((void *) (p))
+#define EXTRA (sizeof (size_t) + sizeof (const char **))
+#define DATA(p) PVOID(UINT8(p) + EXTRA)
+#define BASE(p) PVOID(UINT8(p) - EXTRA)
+#define SIZE(p) ((size_t *) (p))
+#define CCHAR(p) ((const char **) (p))
+#define TYPE(p) CCHAR(UINT8(p) + sizeof (size_t))
+
 void initAlloc(void)
 {
 	allocations = g_ptr_array_new();
@@ -11,7 +20,7 @@ void initAlloc(void)
 
 static void uninitComplain(gpointer ptr, gpointer data)
 {
-	fprintf(stderr, "[libui] %p\n", ptr);
+	fprintf(stderr, "[libui] %p %s\n", ptr, *TYPE(ptr));
 }
 
 // TODO bring back the type names for this
@@ -26,31 +35,26 @@ void uninitAlloc(void)
 	complain("either you left something around or there's a bug in libui");
 }
 
-#define UINT8(p) ((uint8_t *) (p))
-#define PVOID(p) ((void *) (p))
-#define DATA(p) PVOID(UINT8(p) + sizeof (size_t))
-#define BASE(p) PVOID(UINT8(p) - sizeof (size_t))
-#define SIZE(p) ((size_t *) (p))
-
-void *uiAlloc(size_t size)
+void *uiAlloc(size_t size, const char *type)
 {
 	void *out;
 
-	out = g_malloc0(sizeof (size_t) + size);
+	out = g_malloc0(EXTRA + size);
 	*SIZE(out) = size;
+	*TYPE(out) = type;
 	g_ptr_array_add(allocations, out);
 	return DATA(out);
 }
 
-void *uiRealloc(void *p, size_t new)
+void *uiRealloc(void *p, size_t new, const char *type)
 {
 	void *out;
 	size_t *s;
 
 	if (p == NULL)
-		return uiAlloc(new);
+		return uiAlloc(new, type);
 	p = BASE(p);
-	out = g_realloc(p, sizeof (size_t) + new);
+	out = g_realloc(p, EXTRA + new);
 	s = SIZE(out);
 	if (new <= *s)
 		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);

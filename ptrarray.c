@@ -21,7 +21,7 @@ void ptrArrayAppend(struct ptrArray *p, void *d)
 {
 	if (p->len >= p->cap) {
 		p->cap += grow;
-		p->ptrs = (void **) uiRealloc(p->ptrs, p->cap * sizeof (void *));
+		p->ptrs = (void **) uiRealloc(p->ptrs, p->cap * sizeof (void *), "void *[]");
 	}
 	p->ptrs[p->len] = d;
 	p->len++;
@@ -33,7 +33,7 @@ void ptrArrayInsertBefore(struct ptrArray *p, uintmax_t i, void *d)
 		complain("index out of range in ptrArrayInsertBefore()");
 	if (p->len >= p->cap) {
 		p->cap += grow;
-		p->ptrs = (void **) uiRealloc(p->ptrs, p->cap * sizeof (void *));
+		p->ptrs = (void **) uiRealloc(p->ptrs, p->cap * sizeof (void *), "void *[]");
 	}
 	// thanks to ValleyBell
 	memmove(&(p->ptrs[i + 1]), &(p->ptrs[i]), (p->len - i) * sizeof (void *));

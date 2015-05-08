@@ -17,3 +17,4 @@ extern void freeMenubar(GtkWidget *);
 
 // alloc.c
 extern void initAlloc(void);
+extern void uninitAlloc(void);

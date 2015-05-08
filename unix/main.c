@@ -21,7 +21,7 @@ const char *uiInit(uiInitOptions *o)
 void uiUninit(void)
 {
 	// TODO free menus
-	// TODO uninit alloc
+	uninitAlloc();
 }
 
 void uiFreeInitError(const char *err)

@@ -277,6 +277,14 @@ const char *initContainer(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	return NULL;
 }
 
+void uninitContainer(void)
+{
+	if (DestroyWindow(initialParent) == 0)
+		logLastError("error destroying initial parent in uninitContainer()");
+	if (UnregisterClassW(containerClass, hInstance) == 0)
+		logLastError("error unregistering uiContainer window class in uninitContainer()");
+}
+
 // subclasses override this and call back here when all children are destroyed
 static void containerDestroy(uiControl *cc)
 {

@@ -71,6 +71,12 @@ ATOM registerWindowClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	return RegisterClassW(&wc);
 }
 
+void unregisterWindowClass(void)
+{
+	if (UnregisterClassW(windowClass, hInstance) == 0)
+		logLastError("error unregistering uiWindow window class in unregisterWindowClass()");
+}
+
 static int defaultOnClosing(uiWindow *w, void *data)
 {
 	return 0;

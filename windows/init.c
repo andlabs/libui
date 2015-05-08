@@ -109,9 +109,9 @@ void uiUninit(void)
 {
 	uninitMenus();
 	// TODO delete hollow brush
-	// TODO uninit container
+	uninitContainer();
 	// TODO delete message font
-	// TODO uninit window
+	unregisterWindowClass();
 	// TODO delete default cursor
 	// TODO delete default icon
 	uninitAlloc();

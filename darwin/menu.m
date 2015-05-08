@@ -1,12 +1,14 @@
 // 28 april 2015
 #import "uipriv_darwin.h"
 
+static NSMutableArray *menus = nil;
 static BOOL menusFinalized = NO;
 
 struct menu {
 	uiMenu m;
 	NSMenu *menu;
 	NSMenuItem *item;
+	NSMutableArray *items;
 };
 
 struct menuItem {
@@ -264,6 +266,8 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	[appDelegate().menuManager register:item->item to:item];
 	item->onClicked = defaultOnClicked;
 
+	[m->items addObject:[NSValue valueWithPointer:item]];
+
 	uiMenuItem(item)->Enable = menuItemEnable;
 	uiMenuItem(item)->Disable = menuItemDisable;
 	uiMenuItem(item)->OnClicked = menuItemOnClicked;
@@ -273,35 +277,35 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	return uiMenuItem(item);
 }
 
-uiMenuItem *menuAppendItem(uiMenu *mm, const char *name)
+static uiMenuItem *menuAppendItem(uiMenu *mm, const char *name)
 {
 	return newItem((struct menu *) mm, typeRegular, name);
 }
 
-uiMenuItem *menuAppendCheckItem(uiMenu *mm, const char *name)
+static uiMenuItem *menuAppendCheckItem(uiMenu *mm, const char *name)
 {
 	return newItem((struct menu *) mm, typeCheckbox, name);
 }
 
-uiMenuItem *menuAppendQuitItem(uiMenu *mm)
+static uiMenuItem *menuAppendQuitItem(uiMenu *mm)
 {
 	// duplicate check is in the register:to: selector
 	return newItem((struct menu *) mm, typeQuit, NULL);
 }
 
-uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
+static uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
 {
 	// duplicate check is in the register:to: selector
 	return newItem((struct menu *) mm, typePreferences, NULL);
 }
 
-uiMenuItem *menuAppendAboutItem(uiMenu *mm)
+static uiMenuItem *menuAppendAboutItem(uiMenu *mm)
 {
 	// duplicate check is in the register:to: selector
 	return newItem((struct menu *) mm, typeAbout, NULL);
 }
 
-void menuAppendSeparator(uiMenu *mm)
+static void menuAppendSeparator(uiMenu *mm)
 {
 	newItem((struct menu *) mm, typeSeparator, NULL);
 }
@@ -312,6 +316,8 @@ uiMenu *uiNewMenu(const char *name)
 
 	if (menusFinalized)
 		complain("attempt to create a new menu after menus have been finalized");
+	if (menus == nil)
+		menus = [NSMutableArray new];
 
 	m = uiNew(struct menu);
 
@@ -321,7 +327,11 @@ uiMenu *uiNewMenu(const char *name)
 	m->item = [[NSMenuItem alloc] initWithTitle:toNSString(name) action:NULL keyEquivalent:@""];
 	[m->item setSubmenu:m->menu];
 
+	m->items = [NSMutableArray new];
+
 	[[NSApp mainMenu] addItem:m->item];
+
+	[menus addObject:[NSValue valueWithPointer:m];
 
 	uiMenu(m)->AppendItem = menuAppendItem;
 	uiMenu(m)->AppendCheckItem = menuAppendCheckItem;

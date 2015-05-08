@@ -351,3 +351,30 @@ void freeMenubar(HMENU menubar)
 	}
 	// no need to worry about destroying any menus; destruction of the window they're in will do it for us
 }
+
+void uninitMenus(void)
+{
+	struct menu *m;
+	struct menuItem *item;
+	uintmax_t i, j;
+
+	for (i = 0; i < len; i++) {
+		m = menus[i];
+		uiFree(m->name);
+		for (j = 0; j < m->len; j++) {
+			item = m->items[j];
+			if (item->len != 0)
+				complain("menu item %p (%ws) still has uiWindows attached; did you forget to free some?", item, item->name);
+			if (item->name != NULL)
+				uiFree(item->name);
+			if (item->hmenus != NULL)
+				uiFree(item->hmenus);
+			uiFree(item);
+		}
+		if (m->items != NULL)
+			uiFree(m->items);
+		uiFree(m);
+	}
+	if (menus != NULL)
+		uiFree(menus);
+}

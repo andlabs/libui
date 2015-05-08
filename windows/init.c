@@ -107,7 +107,7 @@ const char *uiInit(uiInitOptions *o)
 
 void uiUninit(void)
 {
-	// TODO free menus
+	uninitMenus();
 	// TODO delete hollow brush
 	// TODO uninit container
 	// TODO delete message font

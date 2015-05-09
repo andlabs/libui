@@ -20,6 +20,12 @@ int onClosing(uiWindow *w, void *data)
 	return 1;
 }
 
+int onShouldQuit(void *data)
+{
+	printf("in onShouldQuit()\n");
+	return uiMenuItemChecked(shouldQuitItem);
+}
+
 uiBox *mainBox;
 uiTab *mainTab;
 
@@ -50,6 +56,8 @@ int main(int argc, char *argv[])
 
 	if (!nomenus)
 		initMenus();
+
+	uiOnShouldQuit(onShouldQuit, NULL);
 
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);

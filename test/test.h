@@ -20,6 +20,7 @@ extern uiBox *newVerticalBox(void);
 extern uiTab *newTab(void);
 
 // menus.c
+extern uiMenuItem *shouldQuitItem;
 extern void initMenus(void);
 
 // page1.c

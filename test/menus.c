@@ -4,6 +4,7 @@
 uiMenu *fileMenu;
 uiMenuItem *newItem;
 uiMenuItem *openItem;
+uiMenuItem *shouldQuitItem;
 uiMenuItem *quitItem;
 uiMenu *editMenu;
 uiMenuItem *undoItem;
@@ -53,6 +54,8 @@ void initMenus(void)
 	fileMenu = uiNewMenu("File");
 	newItem = uiMenuAppendItem(fileMenu, "New");
 	openItem = uiMenuAppendItem(fileMenu, "Open");
+	uiMenuAppendSeparator(fileMenu);
+	shouldQuitItem = uiMenuAppendCheckItem(fileMenu, "Should Quit");
 	quitItem = uiMenuAppendQuitItem(fileMenu);
 
 	editMenu = uiNewMenu("Edit");

@@ -27,3 +27,6 @@ void ptrArrayAppend(struct ptrArray *, void *);
 void ptrArrayInsertBefore(struct ptrArray *, uintmax_t, void *);
 void ptrArrayDelete(struct ptrArray *, uintmax_t);
 #define ptrArrayIndex(p, T, i) ((T) ((p)->ptrs[(i)]))
+
+// shouldquit.c
+int shouldQuit(void);

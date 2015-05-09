@@ -24,6 +24,8 @@ func FreeInitError(err *const char);
 func Main(void);
 func Quit(void);
 
+func OnShouldQuit(f *func(data *void) int, data *void);
+
 func FreeText(text *char);
 
 raw "typedef struct uiSizingSys uiSizingSys;";

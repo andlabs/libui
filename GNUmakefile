@@ -25,6 +25,7 @@ baseHFILES = \
 baseCFILES = \
 	box.c \
 	ptrarray.c \
+	shouldquit.c \
 	$(osCFILES)
 
 baseMFILES = $(osMFILES)

@@ -331,7 +331,7 @@ uiMenu *uiNewMenu(const char *name)
 
 	[[NSApp mainMenu] addItem:m->item];
 
-	[menus addObject:[NSValue valueWithPointer:m];
+	[menus addObject:[NSValue valueWithPointer:m]];
 
 	uiMenu(m)->AppendItem = menuAppendItem;
 	uiMenu(m)->AppendCheckItem = menuAppendCheckItem;

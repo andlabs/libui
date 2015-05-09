@@ -1,6 +1,8 @@
 // 6 april 2015
 #import "uipriv_darwin.h"
 
+static BOOL canQuit = NO;
+
 @interface applicationClass : NSApplication
 @end
 
@@ -17,6 +19,9 @@
 
 	// for debugging
 	NSLog(@"in terminate:");
+
+	if (!canQuit)
+		complain("call to [NSApp terminate:] when not ready to terminate");
 }
 
 @end
@@ -33,6 +38,7 @@
 {
 	// for debugging
 	NSLog(@"in applicationShouldTerminate:");
+	canQuit = YES;
 	return NSTerminateNow;
 }
 

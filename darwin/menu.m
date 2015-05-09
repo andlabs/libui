@@ -64,6 +64,12 @@ enum {
 	(*(item->onClicked))(uiMenuItem(item), windowFromNSWindow([NSApp keyWindow]), item->onClickedData);
 }
 
+- (IBAction)onQuitClicked:(id)sender
+{
+	if ([[NSApp delegate] applicationShouldTerminate:NSApp] == NSTerminateNow)
+		[NSApp terminate:self];
+}
+
 - (void)register:(NSMenuItem *)item to:(struct menuItem *)smi
 {
 	NSValue *v;
@@ -169,7 +175,7 @@ enum {
 	// and finally Quit
 	// DON'T use @selector(terminate:) as the action; we handle termination ourselves
 	title = [@"Quit " stringByAppendingString:appName];
-	item = [[NSMenuItem alloc] initWithTitle:title action:@selector(onClicked:) keyEquivalent:@"q"];
+	item = [[NSMenuItem alloc] initWithTitle:title action:@selector(onQuitClicked:) keyEquivalent:@"q"];
 	[item setTarget:self];
 	[appMenu addItem:item];
 	self.quitItem = item;
@@ -210,6 +216,8 @@ static void menuItemOnClicked(uiMenuItem *ii, void (*f)(uiMenuItem *, uiWindow *
 {
 	struct menuItem *item = (struct menuItem *) ii;
 
+	if (item->type == typeQuit)
+		complain("attempt to call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead");
 	item->onClicked = f;
 	item->onClickedData = data;
 }

@@ -22,6 +22,10 @@ static BOOL canQuit = NO;
 
 	if (!canQuit)
 		complain("call to [NSApp terminate:] when not ready to terminate");
+
+	// TODO move the body of uiQuit() here
+	// TODO make uiQuit() just call terminate:
+	// TODO update the above comment
 }
 
 @end
@@ -38,8 +42,12 @@ static BOOL canQuit = NO;
 {
 	// for debugging
 	NSLog(@"in applicationShouldTerminate:");
-	canQuit = YES;
-	return NSTerminateNow;
+	if (shouldQuit()) {
+		canQuit = YES;
+		// this will call terminate:, which is the same as uiQuit()
+		return NSTerminateNow;
+	}
+	return NSTerminateCancel;
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app

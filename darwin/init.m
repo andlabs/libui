@@ -67,6 +67,7 @@ void uiUninit(void)
 {
 	uninitMenus();
 	// TODO free application delegate
+	// TODO free NSApplication resources (main menu, etc.)
 	uninitAlloc();
 }
 

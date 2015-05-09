@@ -352,6 +352,7 @@ void uninitMenus(void)
 {
 	if (menus == NULL)
 		return;
+	// don't worry about the actual NSMenus and NSMenuItems; they'll be freed when we clean up the NSApplication
 	[menus enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v;
 		struct menu *m;

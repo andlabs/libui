@@ -88,5 +88,6 @@ int main(int argc, char *argv[])
 	uiMain();
 	printf("after uiMain()\n");
 	uiUninit();
+	printf("after uiUninit()\n");
 	return 0;
 }

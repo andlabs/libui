@@ -23,6 +23,7 @@ int onClosing(uiWindow *w, void *data)
 int onShouldQuit(void *data)
 {
 	printf("in onShouldQuit()\n");
+	uiControlDestroy(uiControl(data));
 	return uiMenuItemChecked(shouldQuitItem);
 }
 
@@ -57,11 +58,11 @@ int main(int argc, char *argv[])
 	if (!nomenus)
 		initMenus();
 
-	uiOnShouldQuit(onShouldQuit, NULL);
-
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);
 	printf("main window %p\n", w);
+
+	uiOnShouldQuit(onShouldQuit, w);
 
 	mainBox = newHorizontalBox();
 	uiWindowSetChild(w, uiControl(mainBox));

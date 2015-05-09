@@ -17,15 +17,27 @@ static BOOL canQuit = NO;
 	// yes that's right folks: DO ABSOLUTELY NOTHING.
 	// the magic is [NSApp run] will just... stop.
 
+	// well let's not do nothing; let's actually quit our graceful way
+	NSEvent *e;
+
 	// for debugging
 	NSLog(@"in terminate:");
 
 	if (!canQuit)
 		complain("call to [NSApp terminate:] when not ready to terminate");
 
-	// TODO move the body of uiQuit() here
-	// TODO make uiQuit() just call terminate:
-	// TODO update the above comment
+	[NSApp stop:NSApp];
+	// stop: won't register until another event has passed; let's synthesize one
+	e = [NSEvent otherEventWithType:NSApplicationDefined
+		location:NSZeroPoint
+		modifierFlags:0
+		timestamp:[[NSProcessInfo processInfo] systemUptime]
+		windowNumber:0
+		context:[NSGraphicsContext currentContext]
+		subtype:0
+		data1:0
+		data2:0];
+	[NSApp postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
 }
 
 @end
@@ -87,4 +99,15 @@ void uiUninit(void)
 
 void uiFreeInitError(const char *err)
 {
+}
+
+void uiMain(void)
+{
+	[NSApp run];
+}
+
+void uiQuit(void)
+{
+	canQuit = YES;
+	[NSApp terminate:NSApp];
 }

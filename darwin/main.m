@@ -1,2 +1,113 @@
 // 6 april 2015
 #import "uipriv_darwin.h"
+
+static BOOL canQuit = NO;
+
+@interface applicationClass : NSApplication
+@end
+
+@implementation applicationClass
+
+// hey look! we're overriding terminate:!
+// we're going to make sure we can go back to main() whether Cocoa likes it or not!
+// and just how are we going to do that, hm?
+// (note: this is called after applicationShouldTerminate:)
+- (void)terminate:(id)sender
+{
+	// yes that's right folks: DO ABSOLUTELY NOTHING.
+	// the magic is [NSApp run] will just... stop.
+
+	// well let's not do nothing; let's actually quit our graceful way
+	NSEvent *e;
+
+	// for debugging
+	NSLog(@"in terminate:");
+
+	if (!canQuit)
+		complain("call to [NSApp terminate:] when not ready to terminate");
+
+	[NSApp stop:NSApp];
+	// stop: won't register until another event has passed; let's synthesize one
+	e = [NSEvent otherEventWithType:NSApplicationDefined
+		location:NSZeroPoint
+		modifierFlags:0
+		timestamp:[[NSProcessInfo processInfo] systemUptime]
+		windowNumber:0
+		context:[NSGraphicsContext currentContext]
+		subtype:0
+		data1:0
+		data2:0];
+	[NSApp postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
+}
+
+@end
+
+@implementation appDelegate
+
+- (void)dealloc
+{
+	[self.menuManager release];
+	[super dealloc];
+}
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)app
+{
+	// for debugging
+	NSLog(@"in applicationShouldTerminate:");
+	if (shouldQuit()) {
+		canQuit = YES;
+		// this will call terminate:, which is the same as uiQuit()
+		return NSTerminateNow;
+	}
+	return NSTerminateCancel;
+}
+
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app
+{
+	return NO;
+}
+
+@end
+
+uiInitOptions options;
+
+const char *uiInit(uiInitOptions *o)
+{
+	options = *o;
+	[applicationClass sharedApplication];
+	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
+	// see https://github.com/andlabs/ui/issues/6
+	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+	[NSApp setDelegate:[appDelegate new]];
+
+	initAlloc();
+
+	// always do this so we always have an application menu
+	appDelegate().menuManager = [menuManager new];
+	[NSApp setMainMenu:[appDelegate().menuManager makeMenubar]];
+
+	return NULL;
+}
+
+void uiUninit(void)
+{
+	uninitMenus();
+	// TODO free application delegate
+	// TODO free NSApplication resources (main menu, etc.)
+	uninitAlloc();
+}
+
+void uiFreeInitError(const char *err)
+{
+}
+
+void uiMain(void)
+{
+	[NSApp run];
+}
+
+void uiQuit(void)
+{
+	canQuit = YES;
+	[NSApp terminate:NSApp];
+}

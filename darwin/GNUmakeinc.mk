@@ -7,7 +7,6 @@ osMFILES = \
 	darwin/checkbox.m \
 	darwin/container.m \
 	darwin/entry.m \
-	darwin/init.m \
 	darwin/label.m \
 	darwin/main.m \
 	darwin/menu.m \

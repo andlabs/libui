@@ -5,9 +5,6 @@
 - figure out what to do in OS X terminate:
 	- what uiQuit() does
 	- uiQuit() will call terminate: instead
-- re-add the allocation tracking as just a list of pointers
-- add a final cleanup function (uiUninit() or uiCleanup())
-- whenever a list of things is destroyed, each successive item must be removed as it is destroyed, otherwise we might wind up in a situation where we access items after they're freed
 - make the name of the variable to refer to a single tab page consistent (already decided to make them all `page`)
 - make sure uiEntryOnChanged() is not triggered when calling uiEntrySetText()
 - clean up windows resizing logic

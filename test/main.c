@@ -23,8 +23,11 @@ int onClosing(uiWindow *w, void *data)
 int onShouldQuit(void *data)
 {
 	printf("in onShouldQuit()\n");
-	uiControlDestroy(uiControl(data));
-	return uiMenuItemChecked(shouldQuitItem);
+	if (uiMenuItemChecked(shouldQuitItem)) {
+		uiControlDestroy(uiControl(data));
+		return 1;
+	}
+	return 0;
 }
 
 uiBox *mainBox;

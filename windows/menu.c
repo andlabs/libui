@@ -68,6 +68,12 @@ static void defaultOnClicked(uiMenuItem *item, uiWindow *w, void *data)
 	// do nothing
 }
 
+static void onQuitClicked(uiMenuItem *item, uiWindow *w, void *data)
+{
+	if (shouldQuit())
+		uiQuit();
+}
+
 static void menuItemEnable(uiMenuItem *ii)
 {
 	struct menuItem *item = (struct menuItem *) ii;
@@ -88,6 +94,8 @@ static void menuItemOnClicked(uiMenuItem *ii, void (*f)(uiMenuItem *, uiWindow *
 {
 	struct menuItem *item = (struct menuItem *) ii;
 
+	if (item->type == typeQuit)
+		complain("attempt to call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead");
 	item->onClicked = f;
 	item->onClickedData = data;
 }
@@ -150,6 +158,8 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	}
 
 	item->onClicked = defaultOnClicked;
+	if (item->type == typeQuit)
+		item->onClicked = onQuitClicked;
 
 	uiMenuItem(item)->Enable = menuItemEnable;
 	uiMenuItem(item)->Disable = menuItemDisable;

@@ -30,6 +30,7 @@
 - (NSMenu *)makeMenubar;
 @end
 extern void finalizeMenus(void);
+extern void uninitMenus(void);
 
 // init.m
 @interface appDelegate : NSObject <NSApplicationDelegate>

@@ -65,7 +65,7 @@ const char *uiInit(uiInitOptions *o)
 
 void uiUninit(void)
 {
-	// TODO free menus
+	uninitMenus();
 	// TODO free application delegate
 	uninitAlloc();
 }

@@ -347,3 +347,27 @@ void finalizeMenus(void)
 {
 	menusFinalized = YES;
 }
+
+void uninitMenus(void)
+{
+	if (menus == NULL)
+		return;
+	[menus enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		NSValue *v;
+		struct menu *m;
+
+		v = (NSValue *) obj;
+		m = (struct menu *) [v pointerValue];
+		[m->items enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+			NSValue *v;
+			struct menuItem *mi;
+
+			v = (NSValue *) obj;
+			mi = (struct menuItem *) [v pointerValue];
+			uiFree(mi);
+		}];
+		[m->items release];
+		uiFree(m);
+	}];
+	[menus release];
+}

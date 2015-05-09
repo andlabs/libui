@@ -243,6 +243,19 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 			logLastError("error getting client rect for resize in containerWndProc()");
 		resize(cc, &r);
 		return 0;
+
+	// and this is run only on the initial parent
+	// this ensures that all end session handling is done in one place and only once
+	case WM_QUERYENDSESSION:
+	case msgConsoleEndSession:
+		if (cc != NULL)
+			break;
+		// TODO block handler
+		if (shouldQuit()) {
+			uiQuit();
+			return TRUE;
+		}
+		return FALSE;
 	}
 
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);

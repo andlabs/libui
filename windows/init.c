@@ -52,6 +52,19 @@ static const char *loadLastError(const char *message)
 	return str;
 }
 
+static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType)
+{
+	switch (dwCtrlType) {
+	case CTRL_LOGOFF_EVENT:
+	case CTRL_SHUTDOWN_EVENT:
+		// the handler is run in a separate thread
+		SendMessageW(initialParent, msgConsoleEndSession, 0, 0);
+		// we handled it here
+		return TRUE;
+	}
+	return FALSE;
+}
+
 uiInitOptions options;
 
 const char *uiInit(uiInitOptions *o)
@@ -98,6 +111,9 @@ const char *uiInit(uiInitOptions *o)
 	if (ce != NULL)
 		return loadLastError(ce);
 
+	if (SetConsoleCtrlHandler(consoleCtrlHandler, TRUE) == 0)
+		return loadLastError("setting up console end session handler");
+
 	hollowBrush = (HBRUSH) GetStockObject(HOLLOW_BRUSH);
 	if (hollowBrush == NULL)
 		return loadLastError("getting hollow brush");
@@ -109,6 +125,8 @@ void uiUninit(void)
 {
 	uninitMenus();
 	// TODO delete hollow brush
+	if (SetConsoleCtrlHandler(consoleCtrlHandler, FALSE) == 0)
+		logLastError("unregistering console end session handler");
 	uninitContainer();
 	if (DeleteObject(hMessageFont) == 0)
 		logLastError("error deleting control font in uiUninit()");

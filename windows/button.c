@@ -14,7 +14,6 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 
 	if (code != BN_CLICKED)
 		return FALSE;
-printf("%d\n", GenerateConsoleCtrlEvent(CTRL_SHUTDOWN_EVENT, 0));
 	(*(b->onClicked))(uiButton(b), b->onClickedData);
 	*lResult = 0;
 	return TRUE;

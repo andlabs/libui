@@ -59,6 +59,17 @@ interface Container from Control {
 };
 func MakeContainer(c *Container);
 
+interface Bin from Container {
+	func SetMainControl(c *Control);
+	func SetMargins(left intmax_t, top intmax_t, right intmax_t, bottom intmax_t);
+	// defined by each OS
+	func HasOSParent(void) int;
+	func SetOSParent(parent uintptr_t);
+	func RemoveOSParent(void);
+	func ResizeRoot(x intmax_t, y intmax_t, width intmax_t, height intmax_t);
+	func TranslateMargins(left *intmax_t, top *intmax_t, right *intmax_t, bottom *intmax_t, d *Sizing);
+};
+
 interface Window from Control {
 	func Title(void) *char;
 	func SetTitle(title *const char);

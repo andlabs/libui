@@ -10,10 +10,12 @@ extern void uiFree(void *);
 
 extern void complain(const char *, ...);
 
-extern uiContainer *newBin(void);
-extern void binSetMainControl(uiContainer *, uiControl *);
-extern void binSetMargins(uiContainer *, intmax_t, intmax_t, intmax_t, intmax_t);
-extern void binSetParent(uiContainer *, uintptr_t);
+extern uiBin *newBin(void);
+extern int binHasOSParent(uiBin *);
+extern void binSetOSParent(uiBin *, uintptr_t);
+extern void binRemoveOSParent(uiBin *);
+extern void binResizeRoot(uiBin *, intmax_t, intmax_t, intmax_t, intmax_t);
+extern void binTranslateMargins(uiBin *, intmax_t *, intmax_t *, intmax_t *, intmax_t *, uiSizing *);
 
 // array.c
 struct ptrArray {

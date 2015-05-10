@@ -23,6 +23,7 @@ baseHFILES = \
 	$(osHFILES)
 
 baseCFILES = \
+	bin.c \
 	box.c \
 	ptrarray.c \
 	shouldquit.c \

@@ -10,7 +10,8 @@ struct tab {
 };
 
 struct tabPage {
-	uiContainer *bin;
+	uiBin *bin;
+	// TODO remove the need for this
 	GtkWidget *binWidget;
 	int margined;
 };
@@ -27,8 +28,7 @@ static void onDestroy(void *data)
 	// we need to remove them from the tab first; see below
 	for (i = 0; i < t->pages->len; i++) {
 		p = &g_array_index(t->pages, struct tabPage, i);
-		// this does the job of binSetParent()
-		gtk_container_remove(t->container, p->binWidget);
+		uiBinRemoveOSParent(p->bin);
 		uiControlDestroy(uiControl(p->bin));
 	}
 	// then free ourselves
@@ -52,9 +52,9 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	struct tabPage p;
 
 	p.bin = newBin();
-	binSetMainControl(p.bin, child);
+	uiBinSetMainControl(p.bin, child);
 	// and add it as a tab page
-	binSetParent(p.bin, (uintptr_t) (t->container));
+	uiBinSetOSParent(p.bin, (uintptr_t) (t->container));
 	p.binWidget = GTK_WIDGET(uiControlHandle(uiControl(p.bin)));
 	gtk_notebook_set_tab_label_text(t->notebook, p.binWidget, name);
 
@@ -67,9 +67,9 @@ static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiCont
 	struct tabPage p;
 
 	p.bin = newBin();
-	binSetMainControl(p.bin, child);
+	uiBinSetMainControl(p.bin, child);
 	// and add it as a tab page
-	binSetParent(p.bin, (uintptr_t) (t->container));
+	uiBinSetOSParent(p.bin, (uintptr_t) (t->container));
 	p.binWidget = GTK_WIDGET(uiControlHandle(uiControl(p.bin)));
 	gtk_notebook_set_tab_label_text(t->notebook, p.binWidget, name);
 
@@ -85,15 +85,15 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	p = &g_array_index(t->pages, struct tabPage, n);
 
 	// make sure the page's control isn't destroyed
-	binSetMainControl(p->bin, NULL);
+	uiBinSetMainControl(p->bin, NULL);
 
 	// now destroy the page
 	// this will also remove the tab
 	// why? simple: both gtk_notebook_remove_tab() and gtk_widget_destroy() call gtk_container_remove()
 	// we need to remove them from the tab first, though, otherwise they won't really be destroyed properly
 	// (the GtkNotebook will still have the tab in it because its reference ISN'T destroyed, and we crash resizing a bin that no longer exists
-	// this also does the job of binSetParent()
-	gtk_container_remove(t->container, p->binWidget);
+	// TODO redo this comment
+	uiBinRemoveOSParent(p->bin);
 	uiControlDestroy(uiControl(p->bin));
 
 	g_array_remove_index(t->pages, n);
@@ -123,9 +123,9 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 	p = &g_array_index(t->pages, struct tabPage, n);
 	p->margined = margined;
 	if (p->margined)
-		binSetMargins(p->bin, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
+		uiBinSetMargins(p->bin, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
 	else
-		binSetMargins(p->bin, 0, 0, 0, 0);
+		uiBinSetMargins(p->bin, 0, 0, 0, 0);
 }
 
 uiTab *uiNewTab(void)

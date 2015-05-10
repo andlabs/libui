@@ -14,7 +14,7 @@ struct window {
 
 	GtkWidget *menubar;
 
-	uiContainer *bin;
+	uiBin *bin;
 
 	int hidden;
 
@@ -47,7 +47,7 @@ static void windowDestroy(uiControl *c)
 	gtk_widget_hide(w->widget);
 	// now destroy the bin
 	// we need to remove the bin from its parent first
-	binSetParent(w->bin, 0);
+	uiBinRemoveOSParent(w->bin);
 	uiControlDestroy(uiControl(w->bin));
 	// now destroy the menus, if any
 	if (w->menubar != NULL)
@@ -146,7 +146,7 @@ static void windowSetChild(uiWindow *ww, uiControl *child)
 {
 	struct window *w = (struct window *) ww;
 
-	binSetMainControl(w->bin, child);
+	uiBinSetMainControl(w->bin, child);
 }
 
 static int windowMargined(uiWindow *ww)
@@ -162,9 +162,9 @@ static void windowSetMargined(uiWindow *ww, int margined)
 
 	w->margined = margined;
 	if (w->margined)
-		binSetMargins(w->bin, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
+		uiBinSetMargins(w->bin, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
 	else
-		binSetMargins(w->bin, 0, 0, 0, 0);
+		uiBinSetMargins(w->bin, 0, 0, 0, 0);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
@@ -199,7 +199,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	gtk_widget_set_halign(binWidget, GTK_ALIGN_FILL);
 	gtk_widget_set_vexpand(binWidget, TRUE);
 	gtk_widget_set_valign(binWidget, GTK_ALIGN_FILL);
-	binSetParent(w->bin, (uintptr_t) (w->vboxContainer));
+	uiBinSetOSParent(w->bin, (uintptr_t) (w->vboxContainer));
 
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxWidget);

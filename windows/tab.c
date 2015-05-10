@@ -5,6 +5,7 @@ struct tab {
 	uiTab t;
 	HWND hwnd;
 	struct ptrArray *pages;
+	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 	void (*baseEnable)(uiControl *);
 	void (*baseDisable)(uiControl *);
 	void (*baseSysFunc)(uiControl *, uiControlSysFuncParams *);
@@ -99,6 +100,38 @@ static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 	*height = r.bottom - r.top;
 }
 
+// common code for resizes
+static void resizeTab(struct tab *t, LONG width, LONG height)
+{
+	LRESULT n;
+	RECT r;
+	struct tabPage *page;
+
+	n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
+	if (n == (LRESULT) (-1))		// no child selected; do nothing
+		return;
+
+	// make a rect at (0, 0) of the given window size
+	// this should give us the correct client coordinates
+	r.left = 0;
+	r.top = 0;
+	r.right = width;
+	r.bottom = height;
+	// convert to the display rectangle
+	SendMessageW(t->hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
+
+	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	uiBinResizeRootAndUpdate(page->bin, r.left, r.top, r.right - r.left, r.bottom - r.top);
+}
+
+static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+{
+	struct tab *t = (struct tab *) c;
+
+	(*(t->baseResize))(uiControl(t), x, y, width, height, d);
+	resizeTab(t, width, height);
+}
+
 static void tabEnable(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
@@ -148,51 +181,18 @@ static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
 	}
 }
 
-// common code for resizes
-static void resizeTab(struct tab *t, LONG width, LONG height)
-{
-	LRESULT n;
-	RECT r;
-	struct tabPage *page;
-
-	n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
-	if (n == (LRESULT) (-1))		// no child selected; do nothing
-		return;
-
-	// make a rect at (0, 0) of the given window size
-	// this should give us the correct client coordinates
-	r.left = 0;
-	r.top = 0;
-	r.right = width;
-	r.bottom = height;
-	// convert to the display rectangle
-	SendMessageW(t->hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
-
-	page = ptrArrayIndex(t->pages, struct tabPage *, n);
-	uiBinResizeRootAndUpdate(page->bin, r.left, r.top, r.right - r.left, r.bottom - r.top);
-}
-
-// and finally, because we have to resize parents, we have to handle resizes and updates
+// this is where some resizing work is done
+// TODO investigate removing it
 // this is also partially where tab navigation is handled
 static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
 	struct tab *t = (struct tab *) dwRefData;
-	WINDOWPOS *wp = (WINDOWPOS *) lParam;
-	LRESULT lResult;
 	RECT r;
 	LRESULT n;
 	uiControlSysFuncParams p;
 	struct tabPage *page;
 
 	switch (uMsg) {
-	case WM_WINDOWPOSCHANGED:
-		if ((wp->flags & SWP_NOSIZE) != 0)
-			break;
-		// first, let the tab control handle it
-		lResult = (*fv_DefSubclassProc)(hwnd, uMsg, wParam, lParam);
-		// we have the window rect width as part of the WINDOWPOS; resize
-		resizeTab(t, wp->cx, wp->cy);
-		return lResult;
 	case msgUpdateChild:
 		if (GetWindowRect(t->hwnd, &r) == 0)
 			logLastError("error getting Tab window rect for synthesized resize message in tabSubProc()");
@@ -359,6 +359,8 @@ uiTab *uiNewTab(void)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
 
 	uiControl(t)->PreferredSize = tabPreferredSize;
+	t->baseResize = uiControl(t)->Resize;
+	uiControl(t)->Resize = tabResize;
 	t->baseEnable = uiControl(t)->Enable;
 	uiControl(t)->Enable = tabEnable;
 	t->baseDisable = uiControl(t)->Disable;

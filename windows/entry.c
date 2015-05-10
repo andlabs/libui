@@ -6,6 +6,7 @@ struct entry {
 	HWND hwnd;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
+	BOOL inhibitChanged;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
@@ -13,6 +14,8 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 	struct entry *e = (struct entry *) c;
 
 	if (code != EN_CHANGE)
+		return FALSE;
+	if (e->inhibitChanged)
 		return FALSE;
 	(*(e->onChanged))(uiEntry(e), e->onChangedData);
 	*lResult = 0;
@@ -51,9 +54,14 @@ static char *entryText(uiEntry *e)
 	return uiWindowsControlText(uiControl(e));
 }
 
-static void entrySetText(uiEntry *e, const char *text)
+static void entrySetText(uiEntry *ee, const char *text)
 {
+	struct entry *e = (struct entry *) ee;
+
+	// doing this raises an EN_CHANGED
+	e->inhibitChanged = TRUE;
 	uiWindowsControlSetText(uiControl(e), text);
+	e->inhibitChanged = FALSE;
 }
 
 static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data)

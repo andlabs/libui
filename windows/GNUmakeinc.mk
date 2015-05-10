@@ -44,3 +44,9 @@ else
 	RC = i686-w64-mingw32-windres
 	archmflag = -m32
 endif
+
+ifeq ($(PROFILE),1)
+	osCFILES += windows/profiler.c
+	osCFLAGS += -finstrument-functions
+	osLDFLAGS += -finstrument-functions
+endif

@@ -50,3 +50,4 @@ notes to self
 - note that the default action for uiWindowOnClosing() is to return 0 (keep the window open)
 - note that uiInitOptions should be initialized to zero
 - explicitly document that uiCheckboxSetChecked() and uiEntrySetText() do not fire uiCheckboxOnToggled() and uiEntryOnChanged(), respectively
+- note that uiControlResize() on a uiContainer also updates

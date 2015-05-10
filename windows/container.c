@@ -164,7 +164,6 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	HWND control;
 	NMHDR *nm = (NMHDR *) lParam;
-	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r;
 	HDC dc;
 	PAINTSTRUCT ps;
@@ -231,10 +230,6 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		// avoid some flicker
 		// we draw the whole update area anyway
 		return 1;
-	case WM_WINDOWPOSCHANGED:
-		if ((wp->flags & SWP_NOSIZE) != 0)
-			break;
-		// fall through
 	case msgUpdateChild:
 		if (cc == NULL)
 			break;
@@ -342,8 +337,6 @@ static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t widt
 
 	moveAndReorderWindow(c->hwnd, d->Sys->InsertAfter, x, y, width, height);
 	d->Sys->InsertAfter = c->hwnd;
-	// under some circumstances this might not be sufficient
-	// example: check the Spaced checkbox; inside boxes will have been resized already before they get a chance to update their padded
 	SendMessageW(c->hwnd, msgUpdateChild, 0, 0);
 }
 

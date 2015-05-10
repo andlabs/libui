@@ -1,6 +1,5 @@
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
 - make the name of the variable to refer to a single tab page consistent (already decided to make them all `page`)
-- make sure uiEntryOnChanged() is not triggered when calling uiEntrySetText()
 - clean up windows resizing logic
 	- make it so that only top-level window resizes trigger an update; container resizes do not update
 		- windows resizing logic is simply not comprehensive enough (no null resizes allowed) to do things
@@ -50,3 +49,4 @@ notes to self
 - note that uiTabInsertPageBefore() does NOT change the current tab page (it may change its index if inserting before the current page)
 - note that the default action for uiWindowOnClosing() is to return 0 (keep the window open)
 - note that uiInitOptions should be initialized to zero
+- explicitly document that uiCheckboxSetChecked() and uiEntrySetText() do not fire uiCheckboxOnToggled() and uiEntryOnChanged(), respectively

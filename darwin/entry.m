@@ -1,13 +1,13 @@
 // 9 april 2015
 #import "uipriv_darwin.h"
 
-@interface entryDelegate : NSObject {
+@interface entryDelegate : NSObject <NSTextFieldDelegate> {
 	uiEntry *e;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 }
 - (void)controlTextDidChange:(NSNotification *)note;
-- (void)setEntry:(uiEntry *)e;
+- (void)setEntry:(uiEntry *)newe;
 - (void)setOnChanged:(void (*)(uiEntry *, void *))f data:(void *)data;
 @end
 
@@ -18,9 +18,9 @@
 	(*(self->onChanged))(self->e, self->onChangedData);
 }
 
-- (void)setEntry:(uiEntry *)e
+- (void)setEntry:(uiEntry *)newe
 {
-	self->e = e;
+	self->e = newe;
 }
 
 - (void)setOnChanged:(void (*)(uiEntry *, void *))f data:(void *)data

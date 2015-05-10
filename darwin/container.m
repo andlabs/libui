@@ -130,7 +130,6 @@ static void containerHide(uiControl *cc)
 
 static void containerEnable(uiControl *cc)
 {
-	containerView *c = (containerView *) (cc->Internal);
 	uiControlSysFuncParams p;
 
 	p.Func = uiDarwinSysFuncContainerEnable;
@@ -139,7 +138,6 @@ static void containerEnable(uiControl *cc)
 
 static void containerDisable(uiControl *cc)
 {
-	containerView *c = (containerView *) (cc->Internal);
 	uiControlSysFuncParams p;
 
 	p.Func = uiDarwinSysFuncContainerDisable;

@@ -66,8 +66,8 @@ enum {
 
 - (IBAction)onQuitClicked:(id)sender
 {
-	if ([[NSApp delegate] applicationShouldTerminate:NSApp] == NSTerminateNow)
-		[NSApp terminate:self];
+	if (shouldQuit())
+		uiQuit();
 }
 
 - (void)register:(NSMenuItem *)item to:(struct menuItem *)smi

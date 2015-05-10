@@ -7,7 +7,7 @@
 	void *onClickedData;
 }
 - (IBAction)buttonClicked:(id)sender;
-- (void)setButton:(uiButton *)b;
+- (void)setButton:(uiButton *)newb;
 - (void)setOnClicked:(void (*)(uiButton *, void *))f data:(void *)data;
 @end
 
@@ -18,9 +18,9 @@
 	(*(self->onClicked))(self->b, self->onClickedData);
 }
 
-- (void)setButton:(uiButton *)b
+- (void)setButton:(uiButton *)newb
 {
-	self->b = b;
+	self->b = newb;
 }
 
 - (void)setOnClicked:(void (*)(uiButton *, void *))f data:(void *)data

@@ -7,7 +7,7 @@
 	void *onToggledData;
 }
 - (IBAction)checkboxToggled:(id)sender;
-- (void)setCheckbox:(uiCheckbox *)c;
+- (void)setCheckbox:(uiCheckbox *)newc;
 - (void)setOnToggled:(void (*)(uiCheckbox *, void *))f data:(void *)data;
 @end
 
@@ -18,9 +18,9 @@
 	(*(self->onToggled))(self->c, self->onToggledData);
 }
 
-- (void)setCheckbox:(uiCheckbox *)c
+- (void)setCheckbox:(uiCheckbox *)newc
 {
-	self->c = c;
+	self->c = newc;
 }
 
 - (void)setOnToggled:(void (*)(uiCheckbox *, void *))f data:(void *)data

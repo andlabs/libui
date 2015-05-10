@@ -122,9 +122,9 @@ func main() {
 	for f, p := range profile {
 		fmt.Printf("%s %v %v ", f, p.Calls, p.TotalTime)
 		if p.Calls != 0 {
-			fmt.Printf("%v", float64(p.TotalTime) / float64(p.Calls))
+			fmt.Printf("%v", p.TotalTime / uint64(p.Calls))
 		} else {
-			fmt.Printf("%v", float64(0))
+			fmt.Printf("%v", 0)
 		}
 		fmt.Printf("\n")
 	}

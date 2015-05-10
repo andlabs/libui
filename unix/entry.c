@@ -8,6 +8,7 @@ struct entry {
 	GtkEditable *editable;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
+	gulong onChangedSignal;
 };
 
 static void onChanged(GtkEditable *editable, gpointer data)
@@ -40,7 +41,10 @@ static void entrySetText(uiEntry *ee, const char *text)
 {
 	struct entry *e = (struct entry *) ee;
 
+	// we need to inhibit sending of ::changed because this WILL send a ::changed otherwise
+	g_signal_handler_block(e->editable, e->onChangedSignal);
 	gtk_entry_set_text(e->entry, text);
+	g_signal_handler_unblock(e->editable, e->onChangedSignal);
 }
 
 static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data)
@@ -83,7 +87,7 @@ uiEntry *uiNewEntry(void)
 	e->entry = GTK_ENTRY(e->widget);
 	e->editable = GTK_EDITABLE(e->widget);
 
-	g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
+	e->onChangedSignal = g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
 	e->onChanged = defaultOnChanged;
 
 	uiEntry(e)->Text = entryText;

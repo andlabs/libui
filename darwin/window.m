@@ -1,6 +1,8 @@
 // 28 april 2015
 #import "uipriv_darwin.h"
 
+// TODO rewrite this file to take advantage of bins
+
 @interface windowDelegate : NSObject <NSWindowDelegate> {
 	uiWindow *w;
 	int (*onClosing)(uiWindow *, void *);
@@ -42,7 +44,7 @@ struct window {
 	uiWindow w;
 	NSWindow *window;
 	windowDelegate *delegate;
-	uiContainer *bin;
+	uiBin *bin;
 	int hidden;
 	int margined;
 };
@@ -156,7 +158,7 @@ static void windowSetChild(uiWindow *ww, uiControl *child)
 {
 	struct window *w = (struct window *) ww;
 
-	binSetMainControl(w->bin, child);
+	uiBinSetMainControl(w->bin, child);
 }
 
 static int windowMargined(uiWindow *ww)
@@ -172,9 +174,9 @@ static void windowSetMargined(uiWindow *ww, int margined)
 
 	w->margined = margined;
 	if (w->margined)
-		binSetMargins(w->bin, macXMargin, macYMargin, macXMargin, macYMargin);
+		uiBinSetMargins(w->bin, macXMargin, macYMargin, macXMargin, macYMargin);
 	else
-		binSetMargins(w->bin, 0, 0, 0, 0);
+		uiBinSetMargins(w->bin, 0, 0, 0, 0);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)

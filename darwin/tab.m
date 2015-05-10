@@ -1,6 +1,8 @@
 // 12 april 2015
 #import "uipriv_darwin.h"
 
+// TODO rewrite this whole file to take advantage of bin functions
+
 struct tab {
 	uiTab t;
 	NSTabView *tabview;
@@ -22,9 +24,9 @@ static void destroy(void *data)
 	// the above loop serves the purpose of binSetParent()
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiContainer *p;
+		uiBin *p;
 
-		p = (uiContainer *) [v pointerValue];
+		p = (uiBin *) [v pointerValue];
 		uiControlDestroy(uiControl(p));
 	}];
 	// and finally destroy ourselves
@@ -52,9 +54,9 @@ static void tabEnable(uiControl *c)
 	(*(t->baseEnable))(uiControl(t));
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiContainer *p;
+		uiBin *p;
 
-		p = (uiContainer *) [v pointerValue];
+		p = (uiBin *) [v pointerValue];
 		uiControlEnable(uiControl(p));
 	}];
 }
@@ -66,9 +68,9 @@ static void tabDisable(uiControl *c)
 	(*(t->baseDisable))(uiControl(t));
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiContainer *p;
+		uiBin *p;
 
-		p = (uiContainer *) [v pointerValue];
+		p = (uiBin *) [v pointerValue];
 		uiControlDisable(uiControl(p));
 	}];
 }
@@ -80,9 +82,9 @@ static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
 	(*(t->baseSysFunc))(uiControl(t), p);
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiContainer *pp;
+		uiBin *pp;
 
-		pp = (uiContainer *) [v pointerValue];
+		pp = (uiBin *) [v pointerValue];
 		uiControlSysFunc(uiControl(pp), p);
 	}];
 }
@@ -90,11 +92,11 @@ static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
 static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	uiContainer *page;
+	uiBin *page;
 	NSTabViewItem *i;
 
 	page = newBin();
-	binSetMainControl(page, child);
+	uiBinSetMainControl(page, child);
 	[t->pages addObject:[NSValue valueWithPointer:page]];
 	[t->margined addObject:[NSNumber numberWithInt:0]];
 
@@ -107,11 +109,11 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	uiContainer *page;
+	uiBin *page;
 	NSTabViewItem *i;
 
 	page = newBin();
-	binSetMainControl(page, child);
+	uiBinSetMainControl(page, child);
 	[t->pages insertObject:[NSValue valueWithPointer:page] atIndex:n];
 	[t->margined insertObject:[NSNumber numberWithInt:0] atIndex:n];
 
@@ -125,19 +127,19 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
 	NSValue *v;
-	uiContainer *p;
+	uiBin *p;
 	NSTabViewItem *i;
 
 	v = (NSValue *) [t->pages objectAtIndex:n];
-	p = (uiContainer *) [v pointerValue];
+	p = (uiBin *) [v pointerValue];
 	[t->pages removeObjectAtIndex:n];
 	[t->margined removeObjectAtIndex:n];
 
 	// make sure the children of the tab aren't destroyed
-	binSetMainControl(p, NULL);
+	uiBinSetMainControl(p, NULL);
 
 	// remove the bin from the tab view
-	// this serves the purpose of binSetParent()
+	// this serves the purpose of uiBinRemoveOSParent()
 	i = [t->tabview tabViewItemAtIndex:n];
 	[t->tabview removeTabViewItem:i];
 
@@ -177,16 +179,16 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 	struct tab *t = (struct tab *) tt;
 	NSNumber *v;
 	NSValue *binv;
-	uiContainer *bin;
+	uiBin *bin;
 
 	v = [NSNumber numberWithInt:margined];
 	[t->margined replaceObjectAtIndex:n withObject:v];
 	binv = (NSValue *) [t->pages objectAtIndex:n];
-	bin = (uiContainer *) [binv pointerValue];
+	bin = (uiBin *) [binv pointerValue];
 	if ([v intValue])
-		binSetMargins(bin, tabLeftMargin, tabTopMargin, tabRightMargin, tabBottomMargin);
+		uiBinSetMargins(bin, tabLeftMargin, tabTopMargin, tabRightMargin, tabBottomMargin);
 	else
-		binSetMargins(bin, 0, 0, 0, 0);
+		uiBinSetMargins(bin, 0, 0, 0, 0);
 }
 
 uiTab *uiNewTab(void)

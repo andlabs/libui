@@ -24,6 +24,11 @@ TEXT(Button, uiButton, uiButtonText, uiButtonSetText)
 TEXT(Checkbox, uiCheckbox, uiCheckboxText, uiCheckboxSetText)
 TEXT(Label, uiLabel, uiLabelText, uiLabelSetText)
 
+static void onChanged(uiEntry *e, void *data)
+{
+	printf("onChanged()\n");
+}
+
 static void toggleSpaced(uiCheckbox *c, void *data)
 {
 	setSpaced(uiCheckboxChecked(spaced));
@@ -64,6 +69,7 @@ void makePage1(uiWindow *w)
 	page1 = newVerticalBox();
 
 	entry = uiNewEntry();
+	uiEntryOnChanged(entry, onChanged, NULL);
 	uiBoxAppend(page1, uiControl(entry), 0);
 
 	spaced = uiNewCheckbox("Spaced");

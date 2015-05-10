@@ -61,7 +61,7 @@ enum {
 	if (item->type == typeCheckbox)
 		uiMenuItemSetChecked(uiMenuItem(item), !uiMenuItemChecked(uiMenuItem(item)));
 	// use the key window as the source of the menu event; it's the active window
-	(*(item->onClicked))(uiMenuItem(item), windowFromNSWindow([NSApp keyWindow]), item->onClickedData);
+	(*(item->onClicked))(uiMenuItem(item), windowFromNSWindow([realNSApp() keyWindow]), item->onClickedData);
 }
 
 - (IBAction)onQuitClicked:(id)sender
@@ -153,7 +153,7 @@ enum {
 	item = [[NSMenuItem alloc] initWithTitle:@"Services" action:NULL keyEquivalent:@""];
 	servicesMenu = [[NSMenu alloc] initWithTitle:@"Services"];
 	[item setSubmenu:servicesMenu];
-	[NSApp setServicesMenu:servicesMenu];
+	[realNSApp() setServicesMenu:servicesMenu];
 	[appMenu addItem:item];
 
 	[appMenu addItem:[NSMenuItem separatorItem]];
@@ -337,7 +337,7 @@ uiMenu *uiNewMenu(const char *name)
 
 	m->items = [NSMutableArray new];
 
-	[[NSApp mainMenu] addItem:m->item];
+	[[realNSApp() mainMenu] addItem:m->item];
 
 	[menus addObject:[NSValue valueWithPointer:m]];
 

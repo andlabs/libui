@@ -33,10 +33,14 @@ extern void finalizeMenus(void);
 extern void uninitMenus(void);
 
 // init.m
+@interface applicationClass : NSApplication
+@end
+// this is needed because NSApp is of type id, confusing clang
+#define realNSApp() ((applicationClass *) NSApp)
 @interface appDelegate : NSObject <NSApplicationDelegate>
 @property (strong) menuManager *menuManager;
 @end
-#define appDelegate() ((appDelegate *) [NSApp delegate])
+#define appDelegate() ((appDelegate *) [realNSApp() delegate])
 
 // util.m
 extern void setStandardControlFont(NSControl *);

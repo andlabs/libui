@@ -3,9 +3,6 @@
 
 static BOOL canQuit = NO;
 
-@interface applicationClass : NSApplication
-@end
-
 @implementation applicationClass
 
 // hey look! we're overriding terminate:!
@@ -26,7 +23,7 @@ static BOOL canQuit = NO;
 	if (!canQuit)
 		complain("call to [NSApp terminate:] when not ready to terminate");
 
-	[NSApp stop:NSApp];
+	[realNSApp() stop:realNSApp()];
 	// stop: won't register until another event has passed; let's synthesize one
 	e = [NSEvent otherEventWithType:NSApplicationDefined
 		location:NSZeroPoint
@@ -37,7 +34,7 @@ static BOOL canQuit = NO;
 		subtype:0
 		data1:0
 		data2:0];
-	[NSApp postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
+	[realNSApp() postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
 }
 
 @end
@@ -77,14 +74,14 @@ const char *uiInit(uiInitOptions *o)
 	[applicationClass sharedApplication];
 	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 	// see https://github.com/andlabs/ui/issues/6
-	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-	[NSApp setDelegate:[appDelegate new]];
+	[realNSApp() setActivationPolicy:NSApplicationActivationPolicyRegular];
+	[realNSApp() setDelegate:[appDelegate new]];
 
 	initAlloc();
 
 	// always do this so we always have an application menu
 	appDelegate().menuManager = [menuManager new];
-	[NSApp setMainMenu:[appDelegate().menuManager makeMenubar]];
+	[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
 	return NULL;
 }
@@ -103,11 +100,11 @@ void uiFreeInitError(const char *err)
 
 void uiMain(void)
 {
-	[NSApp run];
+	[realNSApp() run];
 }
 
 void uiQuit(void)
 {
 	canQuit = YES;
-	[NSApp terminate:NSApp];
+	[realNSApp() terminate:realNSApp()];
 }

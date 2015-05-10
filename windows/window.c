@@ -7,7 +7,7 @@ struct window {
 	uiWindow w;
 	HWND hwnd;
 	HMENU menubar;
-	uiContainer *bin;
+	uiBin *bin;
 	int hidden;
 	BOOL shownOnce;
 	int (*onClosing)(uiWindow *, void *);
@@ -21,7 +21,6 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r;
-	HWND binhwnd;
 
 	w = (struct window *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
@@ -46,8 +45,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	case msgUpdateChild:
 		if (GetClientRect(w->hwnd, &r) == 0)
 			logLastError("error getting window client rect for resize in windowWndProc()");
-		binhwnd = (HWND) uiControlHandle(uiControl(w->bin));
-		moveWindow(binhwnd, r.left, r.top, r.right - r.left, r.bottom - r.top);
+		uiBinResizeRootAndUpdate(w->bin, r.left, r.top, r.right - r.left, r.bottom - r.top);
 		return 0;
 	case WM_CLOSE:
 		if ((*(w->onClosing))(uiWindow(w), w->onClosingData))
@@ -90,7 +88,7 @@ static void windowDestroy(uiControl *c)
 	ShowWindow(w->hwnd, SW_HIDE);
 	// now destroy the bin
 	// we need to remove the OS parent first
-	binSetParent(w->bin, 0);
+	uiBinRemoveOSParent(w->bin);
 	uiControlDestroy(uiControl(w->bin));
 	// now free the menubar, if any
 	if (w->menubar != NULL)
@@ -207,7 +205,7 @@ static void windowSetChild(uiWindow *ww, uiControl *child)
 {
 	struct window *w = (struct window *) ww;
 
-	binSetMainControl(w->bin, child);
+	uiBinSetMainControl(w->bin, child);
 }
 
 static int windowMargined(uiWindow *ww)
@@ -226,9 +224,9 @@ static void windowSetMargined(uiWindow *ww, int margined)
 
 	w->margined = margined;
 	if (w->margined)
-		binSetMargins(w->bin, windowMargin, windowMargin, windowMargin, windowMargin);
+		uiBinSetMargins(w->bin, windowMargin, windowMargin, windowMargin, windowMargin);
 	else
-		binSetMargins(w->bin, 0, 0, 0, 0);
+		uiBinSetMargins(w->bin, 0, 0, 0, 0);
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
@@ -284,7 +282,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiFree(wtitle);
 
 	w->bin = newBin();
-	binSetParent(w->bin, (uintptr_t) (w->hwnd));
+	uiBinSetOSParent(w->bin, (uintptr_t) (w->hwnd));
 
 	if (hasMenubar) {
 		w->menubar = makeMenubar();

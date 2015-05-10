@@ -1,5 +1,6 @@
 // 27 april 2015
-#include "uipriv_windows.h"
+#include "ui.h"
+#include "uipriv.h"
 
 struct bin {
 	uiBin b;
@@ -14,7 +15,6 @@ struct bin {
 static void binDestroy(uiControl *c)
 {
 	struct bin *b = (struct bin *) c;
-	HWND hwnd;
 
 	// ensure clean removal by making sure the bin has no OS parent
 	if (uiBinHasOSParent(uiBin(b)))
@@ -127,7 +127,7 @@ uiBin *newBin(void)
 	uiBin(b)->HasOSParent = binHasOSParent;
 	uiBin(b)->SetOSParent = binSetOSParent;
 	uiBin(b)->RemoveOSParent = binRemoveOSParent;
-	uiBin(b)->ResizeRoot = binResizeRoot;
+	uiBin(b)->ResizeRootAndUpdate = binResizeRootAndUpdate;
 	uiBin(b)->TranslateMargins = binTranslateMargins;
 
 	return uiBin(b);

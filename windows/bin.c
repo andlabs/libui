@@ -24,7 +24,7 @@ void binRemoveOSParent(uiBin *b)
 	binSetOSParent(b, (uintptr_t) initialParent);
 }
 
-void binResizeRoot(uiBin *b, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+void binResizeRootAndUpdate(uiBin *b, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
 	HWND hwnd;
 

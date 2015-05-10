@@ -66,7 +66,7 @@ interface Bin from Container {
 	func HasOSParent(void) int;
 	func SetOSParent(parent uintptr_t);
 	func RemoveOSParent(void);
-	func ResizeRoot(x intmax_t, y intmax_t, width intmax_t, height intmax_t);
+	func ResizeRootAndUpdate(x intmax_t, y intmax_t, width intmax_t, height intmax_t);
 	func TranslateMargins(left *intmax_t, top *intmax_t, right *intmax_t, bottom *intmax_t, d *Sizing);
 };
 

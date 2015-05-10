@@ -11,7 +11,7 @@ struct tab {
 };
 
 struct tabPage {
-	uiContainer *bin;
+	uiBin *bin;
 	int margined;
 };
 
@@ -61,7 +61,7 @@ static void onDestroy(void *data)
 	while (t->pages->len != 0) {
 		p = ptrArrayIndex(t->pages, struct tabPage *, 0);
 		// we do have to remove the page from the tab control, though
-		binSetParent(p->bin, 0);
+		uiBinRemoveOSParent(p->bin);
 		uiControlDestroy(uiControl(p->bin));
 		ptrArrayDelete(t->pages, 0);
 		uiFree(p);
@@ -153,8 +153,7 @@ static void resizeTab(struct tab *t, LONG width, LONG height)
 {
 	LRESULT n;
 	RECT r;
-	struct tabPage *p;
-	HWND binHWND;
+	struct tabPage *page;
 
 	n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
 	if (n == (LRESULT) (-1))		// no child selected; do nothing
@@ -169,9 +168,8 @@ static void resizeTab(struct tab *t, LONG width, LONG height)
 	// convert to the display rectangle
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, FALSE, (LPARAM) (&r));
 
-	p = ptrArrayIndex(t->pages, struct tabPage *, n);
-	binHWND = (HWND) uiControlHandle(uiControl(p->bin));
-	moveWindow(binHWND, r.left, r.top, r.right - r.left, r.bottom - r.top);
+	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	uiBinResizeRootAndUpdate(page->bin, r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 
 // and finally, because we have to resize parents, we have to handle resizes and updates
@@ -232,8 +230,8 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	n = SendMessageW(t->hwnd, TCM_GETITEMCOUNT, 0, 0);
 
 	page->bin = newBin();
-	binSetMainControl(page->bin, child);
-	binSetParent(page->bin, (uintptr_t) (t->hwnd));
+	uiBinSetMainControl(page->bin, child);
+	uiBinSetOSParent(page->bin, (uintptr_t) (t->hwnd));
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
 		uiControlHide(uiControl(page->bin));
 
@@ -264,8 +262,8 @@ static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiCont
 	page = uiNew(struct tabPage);
 
 	page->bin = newBin();
-	binSetMainControl(page->bin, child);
-	binSetParent(page->bin, (uintptr_t) (t->hwnd));
+	uiBinSetMainControl(page->bin, child);
+	uiBinSetOSParent(page->bin, (uintptr_t) (t->hwnd));
 	// always hide; the current tab doesn't change
 	uiControlHide(uiControl(page->bin));
 
@@ -295,10 +293,10 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	ptrArrayDelete(t->pages, n);
 
 	// make sure the page's control isn't destroyed
-	binSetMainControl(page->bin, NULL);
+	uiBinSetMainControl(page->bin, NULL);
 
 	// see tabDestroy() above for details
-	binSetParent(page->bin, 0);
+	uiBinRemoveOSParent(page->bin);
 	uiControlDestroy(uiControl(page->bin));
 	uiFree(page);
 }
@@ -330,9 +328,9 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 	page = ptrArrayIndex(t->pages, struct tabPage *, n);
 	page->margined = margined;
 	if (page->margined)
-		binSetMargins(page->bin, tabMargin, tabMargin, tabMargin, tabMargin);
+		uiBinSetMargins(page->bin, tabMargin, tabMargin, tabMargin, tabMargin);
 	else
-		binSetMargins(page->bin, 0, 0, 0, 0);
+		uiBinSetMargins(page->bin, 0, 0, 0, 0);
 }
 
 uiTab *uiNewTab(void)

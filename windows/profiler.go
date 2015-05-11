@@ -29,6 +29,9 @@ func getsymbols(filename string) map[uint64]string {
 
 	names := make(map[uint64]string)
 	for _, s := range dll.Symbols {
+		if strings.HasPrefix(s.Name, ".text") {
+			continue
+		}
 		switch s.SectionNumber {
 		case 0, -1, -2:		// undefined, constant, debugging
 			continue
@@ -107,25 +110,45 @@ func run(e Entry) {
 	profile[e.Func] = p
 }
 
+func usage() {
+	fmt.Fprintf(os.Stderr, "usage: %s dll profout (profile|callgraph)\n", os.Args[0])
+	os.Exit(1)
+}
+
 func main() {
-	if len(os.Args) != 3 {
-		fmt.Fprintf(os.Stderr, "usage: %s dll profout\n", os.Args[0])
-		os.Exit(1)
+	if len(os.Args) != 4 {
+		usage()
 	}
 
 	names := getsymbols(os.Args[1])
 	entries := getentries(os.Args[2], names)
-	profile = make(map[string]*Profile)
-	for _, e := range entries {
-		run(e)
-	}
-	for f, p := range profile {
-		fmt.Printf("%s %v %v ", f, p.Calls, p.TotalTime)
-		if p.Calls != 0 {
-			fmt.Printf("%v", p.TotalTime / uint64(p.Calls))
-		} else {
-			fmt.Printf("%v", 0)
+
+	switch os.Args[3] {
+	case "profile":
+		profile = make(map[string]*Profile)
+		for _, e := range entries {
+			run(e)
 		}
-		fmt.Printf("\n")
+		for f, p := range profile {
+			fmt.Printf("%s %v %v ", f, p.Calls, p.TotalTime)
+			if p.Calls != 0 {
+				fmt.Printf("%v", p.TotalTime / uint64(p.Calls))
+			} else {
+				fmt.Printf("%v", 0)
+			}
+			fmt.Printf("\n")
+		}
+	case "callgraph":
+		indent := 0
+		for _, e := range entries {
+			if e.Leave {
+				indent--
+			} else {
+				fmt.Printf("%s%s\n", strings.Repeat(" ", indent), e.Func)
+				indent++
+			}
+		}
+	default:
+		usage()
 	}
 }

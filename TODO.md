@@ -1,3 +1,4 @@
+- require explicit calls to uiContainerUpdate() everywhere, because sigh...
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
 - http://stackoverflow.com/questions/4543087/applicationwillterminate-and-the-dock-but-wanting-to-cancel-this-action
 

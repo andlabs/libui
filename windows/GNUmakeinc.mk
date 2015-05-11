@@ -47,6 +47,5 @@ endif
 
 ifeq ($(PROFILE),1)
 	osCFILES += windows/profiler.c
-	osCFLAGS += -finstrument-functions
-	osLDFLAGS += -finstrument-functions
+	osCFLAGS += -DLIBUIPROFILING
 endif

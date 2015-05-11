@@ -79,10 +79,6 @@ static void containerSetParent(uiControl *cc, uiContainer *parent)
 		newcontainer = (NSView *) uiControlHandle(uiControl(c.containerParent));
 		[newcontainer addSubview:c];
 	}
-	if (oldparent != NULL)
-		uiContainerUpdate(oldparent);
-	if (c.containerParent != NULL)
-		uiContainerUpdate(c.containerParent);
 }
 
 static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)

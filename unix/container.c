@@ -169,10 +169,6 @@ static void containerSetParent(uiControl *cc, uiContainer *parent)
 		newcontainer = GTK_CONTAINER(uiControlHandle(uiControl(c->parent)));
 		gtk_container_add(newcontainer, GTK_WIDGET(c));
 	}
-	if (oldparent != NULL)
-		uiContainerUpdate(oldparent);
-	if (c->parent != NULL)
-		uiContainerUpdate(c->parent);
 }
 
 static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)

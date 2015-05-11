@@ -325,10 +325,6 @@ static void containerSetParent(uiControl *cc, uiContainer *parent)
 		newparent = (HWND) uiControlHandle(uiControl(c->parent));
 	if (SetParent(c->hwnd, newparent) == 0)
 		logLastError("error changing uiContainer parent in containerSetParent()");
-	if (oldparent != NULL)
-		uiContainerUpdate(oldparent);
-	if (c->parent != NULL)
-		uiContainerUpdate(c->parent);
 }
 
 static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)

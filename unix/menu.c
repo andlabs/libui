@@ -297,15 +297,16 @@ GtkWidget *makeMenubar(uiWindow *w)
 
 	menubar = gtk_menu_bar_new();
 
-	for (i = 0; i < menus->len; i++) {
-		m = g_array_index(menus, struct menu *, i);
-		menuitem = gtk_menu_item_new_with_label(m->name);
-		submenu = gtk_menu_new();
-		gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), submenu);
-		for (j = 0; j < m->items->len; j++)
-			appendMenuItem(GTK_MENU_SHELL(submenu), g_array_index(m->items, struct menuItem *, j), w);
-		gtk_menu_shell_append(GTK_MENU_SHELL(menubar), menuitem);
-	}
+	if (menus != NULL)
+		for (i = 0; i < menus->len; i++) {
+			m = g_array_index(menus, struct menu *, i);
+			menuitem = gtk_menu_item_new_with_label(m->name);
+			submenu = gtk_menu_new();
+			gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), submenu);
+			for (j = 0; j < m->items->len; j++)
+				appendMenuItem(GTK_MENU_SHELL(submenu), g_array_index(m->items, struct menuItem *, j), w);
+			gtk_menu_shell_append(GTK_MENU_SHELL(menubar), menuitem);
+		}
 
 	gtk_widget_set_hexpand(menubar, TRUE);
 	gtk_widget_set_halign(menubar, GTK_ALIGN_FILL);

@@ -2,7 +2,6 @@
 - http://stackoverflow.com/questions/4543087/applicationwillterminate-and-the-dock-but-wanting-to-cancel-this-action
 
 ultimately:
-- add some sort of runtime type checking
 - MAYBE readd lifetime handling/destruction blocking
 - assign control IDs on windows
 	- GWL(P)_ID
@@ -39,3 +38,4 @@ notes to self
 - explicitly document that uiCheckboxSetChecked() and uiEntrySetText() do not fire uiCheckboxOnToggled() and uiEntryOnChanged(), respectively
 - note that uiControlResize() on a uiContainer also updates
 - note that if a menu is requested on systems with menubars on windows but no menus are defined, the result is a blank menubar, with whatever that means left up to the OS to decide
+- note that type mixing == undefined behavior

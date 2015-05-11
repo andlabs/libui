@@ -22,6 +22,7 @@ uiMenuItem *quitEnabledItem;
 uiMenuItem *prefsEnabledItem;
 uiMenuItem *aboutEnabledItem;
 uiMenuItem *checkEnabledItem;
+uiMenu *multiMenu;
 uiMenu *helpMenu;
 uiMenuItem *helpItem;
 uiMenuItem *aboutItem;
@@ -89,6 +90,16 @@ void initMenus(void)
 	uiMenuAppendSeparator(moreTestsMenu);
 	checkEnabledItem = uiMenuAppendCheckItem(moreTestsMenu, "Check Me Item Enabled");
 	uiMenuItemSetChecked(checkEnabledItem, 1);
+
+	multiMenu = uiNewMenu("Multi");
+	uiMenuAppendSeparator(multiMenu);
+	uiMenuAppendSeparator(multiMenu);
+	uiMenuAppendItem(multiMenu, "Item");
+	uiMenuAppendSeparator(multiMenu);
+	uiMenuAppendSeparator(multiMenu);
+	uiMenuAppendItem(multiMenu, "Item");
+	uiMenuAppendSeparator(multiMenu);
+	uiMenuAppendSeparator(multiMenu);
 
 	helpMenu = uiNewMenu("Help");
 	helpItem = uiMenuAppendItem(helpMenu, "Help");

@@ -49,10 +49,6 @@ static void singleSetParent(uiControl *c, uiContainer *parent)
 		newcontainer = GTK_CONTAINER(uiControlHandle(uiControl(s->parent)));
 		gtk_container_add(newcontainer, s->immediate);
 	}
-	if (oldparent != NULL)
-		uiContainerUpdate(oldparent);
-	if (s->parent != NULL)
-		uiContainerUpdate(s->parent);
 }
 
 static void singlePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)

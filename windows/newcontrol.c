@@ -45,10 +45,6 @@ static void singleSetParent(uiControl *c, uiContainer *parent)
 		newParentHWND = (HWND) uiControlHandle(uiControl(s->parent));
 	if (SetParent(s->hwnd, newParentHWND) == NULL)
 		logLastError("error setting control parent in singleSetParent()");
-	if (oldparent != NULL)
-		uiContainerUpdate(oldparent);
-	if (s->parent != NULL)
-		uiContainerUpdate(s->parent);
 }
 
 static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)

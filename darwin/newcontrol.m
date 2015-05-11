@@ -46,10 +46,6 @@ static void singleSetParent(uiControl *c, uiContainer *parent)
 		parentView = (NSView *) uiControlHandle(uiControl(s->parent));
 		[parentView addSubview:s->immediate];
 	}
-	if (oldparent != NULL)
-		uiContainerUpdate(oldparent);
-	if (s->parent != NULL)
-		uiContainerUpdate(s->parent);
 }
 
 // also good for NSBox and NSProgressIndicator

@@ -189,6 +189,7 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 		uiBinSetMargins(page, tabLeftMargin, tabTopMargin, tabRightMargin, tabBottomMargin);
 	else
 		uiBinSetMargins(page, 0, 0, 0, 0);
+	uiContainerUpdate(uiContainer(page));
 }
 
 uiTab *uiNewTab(void)

@@ -165,6 +165,7 @@ static void windowSetMargined(uiWindow *ww, int margined)
 		uiBinSetMargins(w->bin, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
 	else
 		uiBinSetMargins(w->bin, 0, 0, 0, 0);
+	uiContainerUpdate(uiContainer(w->bin));
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)

@@ -227,6 +227,7 @@ static void windowSetMargined(uiWindow *ww, int margined)
 		uiBinSetMargins(w->bin, windowMargin, windowMargin, windowMargin, windowMargin);
 	else
 		uiBinSetMargins(w->bin, 0, 0, 0, 0);
+	uiContainerUpdate(uiContainer(w->bin));
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx

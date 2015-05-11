@@ -3,41 +3,33 @@
 
 static FILE *fprof = NULL;
 
-static DWORD WINAPI profilerThread(LPVOID th)
+__attribute__((no_instrument_function)) static void init(void)
 {
-	HANDLE thread = (HANDLE) th;
-	LARGE_INTEGER counter;
-	CONTEXT ctxt;
-
-	// TODO check for errors
-	if (SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL) == 0)
-		complain("error setting thread priority in profilerThread()");
-	for (;;) {
-		if (SuspendThread(thread) == (DWORD) (-1))
-			complain("error suspending thread in profilerThread()");
-		QueryPerformanceCounter(&counter);
-		ZeroMemory(&ctxt, sizeof (CONTEXT));
-		ctxt.ContextFlags = CONTEXT_CONTROL;
-		if (GetThreadContext(thread, &ctxt) == 0)
-			complain("error getting thread context in profilerThread()");
-		fprintf(fprof, "%I64X %I64d\n",
-			(DWORD64) (ctxt.Eip),
-			counter.QuadPart);
-		fflush(fprof);
-		if (ResumeThread(thread) == (DWORD) (-1))
-			complain("error resuming thread in profilerThread()");
-		Sleep(100);
-	}
-	return 0;
-}
-
-void initprofiler(HANDLE thread)
-{
+	if (fprof != NULL)
+		return;
 	fprof = fopen("profiler.out", "w");
 	if (fprof == NULL) {
 		fprintf(stderr, "error opening profiler output file\n");
 		abort();
 	}
-	if (CreateThread(NULL, 0, profilerThread, thread, 0, NULL) == NULL)
-		complain("error creating profiler thread");
+}
+
+__attribute__((no_instrument_function)) void __cyg_profile_func_enter(void *this_fn, void *call_site)
+{
+	LARGE_INTEGER counter;
+
+	init();
+	QueryPerformanceCounter(&counter);
+	fprintf(fprof, "enter %p %I64d\n", this_fn, counter.QuadPart);
+	fflush(fprof);
+}
+
+__attribute__((no_instrument_function)) void __cyg_profile_func_exit(void *this_fn, void *call_site)
+{
+	LARGE_INTEGER counter;
+
+	init();
+	QueryPerformanceCounter(&counter);
+	fprintf(fprof, "leave %p %I64d\n", this_fn, counter.QuadPart);
+	fflush(fprof);
 }

@@ -80,16 +80,6 @@ const char *uiInit(uiInitOptions *o)
 	HCURSOR hDefaultCursor;
 	NONCLIENTMETRICSW ncm;
 
-#ifdef LIBUIPROFILING
-	extern void initprofiler(HANDLE);
-	HANDLE real;
-	if (DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
-		GetCurrentProcess(), &real,
-		0, FALSE, DUPLICATE_SAME_ACCESS) == 0)
-		return loadLastError("getting the current thread's handle for initializing the profiler");
-	initprofiler(real);
-#endif
-
 	options = *o;
 
 	if (initAlloc() == 0)

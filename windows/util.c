@@ -119,7 +119,7 @@ void setExStyle(HWND hwnd, DWORD exstyle)
 	SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (LONG_PTR) exstyle);
 }
 
-#define swpflags (SWP_NOACTIVATE | SWP_NOOWNERZORDER)
+#define swpflags (SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW)
 
 void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {

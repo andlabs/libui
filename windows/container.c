@@ -237,6 +237,9 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		if (GetClientRect(c->hwnd, &r) == 0)
 			logLastError("error getting client rect for resize in containerWndProc()");
 		resize(cc, &r);
+		// we used SWP_NOREDRAW for each resize so we can do this here
+		if (InvalidateRect(c->hwnd, NULL, TRUE) == 0)
+			logLastError("error queueing redraw after resize in containerWndProc()");
 		return 0;
 
 	// and this is run only on the initial parent

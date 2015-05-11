@@ -1,5 +1,4 @@
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
-- make the name of the variable to refer to a single tab page consistent (already decided to make them all `page`)
 - make it so Windows API calls that do logLastError(), etc. abort whatever they're doing and not try to continue, just like wintable
 - 32-bit Mac OS X support (requires lots of code changes)
 	- change the build system to be more receptive to arch changes

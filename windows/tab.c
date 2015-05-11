@@ -53,19 +53,19 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 static void onDestroy(void *data)
 {
 	struct tab *t = (struct tab *) data;
-	struct tabPage *p;
+	struct tabPage *page;
 
 	// first, hide the widget to avoid flicker
 	ShowWindow(t->hwnd, SW_HIDE);
 	// because the pages don't have by a libui paent, we can simply destroy them
 	// we don't have to worry about the Windows tab control holding a reference to our bin; there is no reference holding anyway
 	while (t->pages->len != 0) {
-		p = ptrArrayIndex(t->pages, struct tabPage *, 0);
+		page = ptrArrayIndex(t->pages, struct tabPage *, 0);
 		// we do have to remove the page from the tab control, though
-		uiBinRemoveOSParent(p->bin);
-		uiControlDestroy(uiControl(p->bin));
+		uiBinRemoveOSParent(page->bin);
+		uiControlDestroy(uiControl(page->bin));
 		ptrArrayDelete(t->pages, 0);
-		uiFree(p);
+		uiFree(page);
 	}
 	// and finally destroy ourselves
 	ptrArrayDestroy(t->pages);
@@ -135,26 +135,26 @@ static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 static void tabEnable(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
-	struct tabPage *p;
+	struct tabPage *page;
 	uintmax_t i;
 
 	(*(t->baseEnable))(uiControl(t));
 	for (i = 0; i < t->pages->len; i++) {
-		p = ptrArrayIndex(t->pages, struct tabPage *, i);
-		uiControlEnable(uiControl(p->bin));
+		page = ptrArrayIndex(t->pages, struct tabPage *, i);
+		uiControlEnable(uiControl(page->bin));
 	}
 }
 
 static void tabDisable(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
-	struct tabPage *p;
+	struct tabPage *page;
 	uintmax_t i;
 
 	(*(t->baseDisable))(uiControl(t));
 	for (i = 0; i < t->pages->len; i++) {
-		p = ptrArrayIndex(t->pages, struct tabPage *, i);
-		uiControlDisable(uiControl(p->bin));
+		page = ptrArrayIndex(t->pages, struct tabPage *, i);
+		uiControlDisable(uiControl(page->bin));
 	}
 }
 

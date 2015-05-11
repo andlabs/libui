@@ -54,10 +54,10 @@ static void tabEnable(uiControl *c)
 	(*(t->baseEnable))(uiControl(t));
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiBin *p;
+		uiBin *page;
 
-		p = (uiBin *) [v pointerValue];
-		uiControlEnable(uiControl(p));
+		page = (uiBin *) [v pointerValue];
+		uiControlEnable(uiControl(page));
 	}];
 }
 
@@ -68,10 +68,10 @@ static void tabDisable(uiControl *c)
 	(*(t->baseDisable))(uiControl(t));
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiBin *p;
+		uiBin *page;
 
-		p = (uiBin *) [v pointerValue];
-		uiControlDisable(uiControl(p));
+		page = (uiBin *) [v pointerValue];
+		uiControlDisable(uiControl(page));
 	}];
 }
 
@@ -82,10 +82,10 @@ static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
 	(*(t->baseSysFunc))(uiControl(t), p);
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiBin *pp;
+		uiBin *page;
 
-		pp = (uiBin *) [v pointerValue];
-		uiControlSysFunc(uiControl(pp), p);
+		page = (uiBin *) [v pointerValue];
+		uiControlSysFunc(uiControl(page), p);
 	}];
 }
 
@@ -127,16 +127,16 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
 	NSValue *v;
-	uiBin *p;
+	uiBin *page;
 	NSTabViewItem *i;
 
 	v = (NSValue *) [t->pages objectAtIndex:n];
-	p = (uiBin *) [v pointerValue];
+	page = (uiBin *) [v pointerValue];
 	[t->pages removeObjectAtIndex:n];
 	[t->margined removeObjectAtIndex:n];
 
 	// make sure the children of the tab aren't destroyed
-	uiBinSetMainControl(p, NULL);
+	uiBinSetMainControl(page, NULL);
 
 	// remove the bin from the tab view
 	// this serves the purpose of uiBinRemoveOSParent()
@@ -144,7 +144,7 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	[t->tabview removeTabViewItem:i];
 
 	// then destroy the bin
-	uiControlDestroy(uiControl(p));
+	uiControlDestroy(uiControl(page));
 }
 
 static uintmax_t tabNumPages(uiTab *tt)
@@ -178,17 +178,17 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 {
 	struct tab *t = (struct tab *) tt;
 	NSNumber *v;
-	NSValue *binv;
-	uiBin *bin;
+	NSValue *pagev;
+	uiBin *page;
 
 	v = [NSNumber numberWithInt:margined];
 	[t->margined replaceObjectAtIndex:n withObject:v];
-	binv = (NSValue *) [t->pages objectAtIndex:n];
-	bin = (uiBin *) [binv pointerValue];
+	pagev = (NSValue *) [t->pages objectAtIndex:n];
+	page = (uiBin *) [pagev pointerValue];
 	if ([v intValue])
-		uiBinSetMargins(bin, tabLeftMargin, tabTopMargin, tabRightMargin, tabBottomMargin);
+		uiBinSetMargins(page, tabLeftMargin, tabTopMargin, tabRightMargin, tabBottomMargin);
 	else
-		uiBinSetMargins(bin, 0, 0, 0, 0);
+		uiBinSetMargins(page, 0, 0, 0, 0);
 }
 
 uiTab *uiNewTab(void)

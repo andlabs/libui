@@ -20,16 +20,16 @@ static void onDestroy(void *data)
 {
 	struct tab *t = (struct tab *) data;
 	guint i;
-	struct tabPage *p;
+	struct tabPage *page;
 
 	// first hide ourselves to avoid flicker
 	gtk_widget_hide(t->widget);
 	// the pages do not have a libui parent, so we can simply destroy them
 	// we need to remove them from the tab first; see below
 	for (i = 0; i < t->pages->len; i++) {
-		p = &g_array_index(t->pages, struct tabPage, i);
-		uiBinRemoveOSParent(p->bin);
-		uiControlDestroy(uiControl(p->bin));
+		page = &g_array_index(t->pages, struct tabPage, i);
+		uiBinRemoveOSParent(page->bin);
+		uiControlDestroy(uiControl(page->bin));
 	}
 	// then free ourselves
 	g_array_free(t->pages, TRUE);
@@ -49,43 +49,43 @@ static void tabShow(uiControl *c)
 static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	struct tabPage p;
+	struct tabPage page;
 
-	p.bin = newBin();
-	uiBinSetMainControl(p.bin, child);
+	page.bin = newBin();
+	uiBinSetMainControl(page.bin, child);
 	// and add it as a tab page
-	uiBinSetOSParent(p.bin, (uintptr_t) (t->container));
-	p.binWidget = GTK_WIDGET(uiControlHandle(uiControl(p.bin)));
-	gtk_notebook_set_tab_label_text(t->notebook, p.binWidget, name);
+	uiBinSetOSParent(page.bin, (uintptr_t) (t->container));
+	page.binWidget = GTK_WIDGET(uiControlHandle(uiControl(page.bin)));
+	gtk_notebook_set_tab_label_text(t->notebook, page.binWidget, name);
 
-	g_array_append_val(t->pages, p);
+	g_array_append_val(t->pages, page);
 }
 
 static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	struct tabPage p;
+	struct tabPage page;
 
-	p.bin = newBin();
-	uiBinSetMainControl(p.bin, child);
+	page.bin = newBin();
+	uiBinSetMainControl(page.bin, child);
 	// and add it as a tab page
-	uiBinSetOSParent(p.bin, (uintptr_t) (t->container));
-	p.binWidget = GTK_WIDGET(uiControlHandle(uiControl(p.bin)));
-	gtk_notebook_set_tab_label_text(t->notebook, p.binWidget, name);
+	uiBinSetOSParent(page.bin, (uintptr_t) (t->container));
+	page.binWidget = GTK_WIDGET(uiControlHandle(uiControl(page.bin)));
+	gtk_notebook_set_tab_label_text(t->notebook, page.binWidget, name);
 
-	gtk_notebook_reorder_child(t->notebook, p.binWidget, n);
-	g_array_insert_val(t->pages, n, p);
+	gtk_notebook_reorder_child(t->notebook, page.binWidget, n);
+	g_array_insert_val(t->pages, n, page);
 }
 
 static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
-	struct tabPage *p;
+	struct tabPage *page;
 
-	p = &g_array_index(t->pages, struct tabPage, n);
+	page = &g_array_index(t->pages, struct tabPage, n);
 
 	// make sure the page's control isn't destroyed
-	uiBinSetMainControl(p->bin, NULL);
+	uiBinSetMainControl(page->bin, NULL);
 
 	// now destroy the page
 	// this will also remove the tab
@@ -93,8 +93,8 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	// we need to remove them from the tab first, though, otherwise they won't really be destroyed properly
 	// (the GtkNotebook will still have the tab in it because its reference ISN'T destroyed, and we crash resizing a bin that no longer exists
 	// TODO redo this comment
-	uiBinRemoveOSParent(p->bin);
-	uiControlDestroy(uiControl(p->bin));
+	uiBinRemoveOSParent(page->bin);
+	uiControlDestroy(uiControl(page->bin));
 
 	g_array_remove_index(t->pages, n);
 }
@@ -109,23 +109,23 @@ static uintmax_t tabNumPages(uiTab *tt)
 static int tabMargined(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
-	struct tabPage *p;
+	struct tabPage *page;
 
-	p = &g_array_index(t->pages, struct tabPage, n);
-	return p->margined;
+	page = &g_array_index(t->pages, struct tabPage, n);
+	return page->margined;
 }
 
 static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 {
 	struct tab *t = (struct tab *) tt;
-	struct tabPage *p;
+	struct tabPage *page;
 
-	p = &g_array_index(t->pages, struct tabPage, n);
-	p->margined = margined;
-	if (p->margined)
-		uiBinSetMargins(p->bin, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
+	page = &g_array_index(t->pages, struct tabPage, n);
+	page->margined = margined;
+	if (page->margined)
+		uiBinSetMargins(page->bin, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
 	else
-		uiBinSetMargins(p->bin, 0, 0, 0, 0);
+		uiBinSetMargins(page->bin, 0, 0, 0, 0);
 }
 
 uiTab *uiNewTab(void)

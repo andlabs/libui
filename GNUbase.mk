@@ -50,7 +50,7 @@ $(OBJDIR)/%.o: %.m $(xHFILES) | $$(dir $$@).phony
 .PRECIOUS: %/.phony
 
 ui.h: ui.idl
-	@idl2h -extern _UI_EXTERN -guard __UI_UI_H__ < ui.idl > ui.h
+	@go run tools/idl2h.go -extern _UI_EXTERN -guard __UI_UI_H__ < ui.idl > ui.h
 	@echo ====== Generated ui.h
 
 clean:

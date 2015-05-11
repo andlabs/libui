@@ -254,8 +254,7 @@ static void boxSetPadded(uiBox *ss, int padded)
 	struct box *b = (struct box *) ss;
 
 	b->padded = padded;
-	if (b->parent != NULL)
-		uiContainerUpdate(b->parent);
+	uiContainerUpdate(uiContainer(b));
 }
 
 uiBox *uiNewHorizontalBox(void)

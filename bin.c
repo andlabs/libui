@@ -92,7 +92,6 @@ static void binSetMainControl(uiBin *bb, uiControl *mainControl)
 	b->mainControl = mainControl;
 	if (b->mainControl != NULL)
 		uiControlSetParent(b->mainControl, uiContainer(b));
-	uiContainerUpdate(uiContainer(b));
 }
 
 static void binSetMargins(uiBin *bb, intmax_t left, intmax_t top, intmax_t right, intmax_t bottom)
@@ -103,7 +102,6 @@ static void binSetMargins(uiBin *bb, intmax_t left, intmax_t top, intmax_t right
 	b->marginRight = right;
 	b->marginTop = top;
 	b->marginBottom = bottom;
-	uiContainerUpdate(uiContainer(b));
 }
 
 uiBin *newBin(void)

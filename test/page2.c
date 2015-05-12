@@ -64,6 +64,8 @@ uiBox *makePage2(void)
 {
 	uiBox *page2;
 	uiBox *hbox;
+	uiGroup *group;
+	uiBox *vbox;
 	uiButton *button;
 	uiBox *nestedBox;
 	uiBox *innerhbox;
@@ -76,20 +78,25 @@ uiBox *makePage2(void)
 
 	page2 = newVerticalBox();
 
+	group = newGroup("Moving Label");
+	uiBoxAppend(page2, uiControl(group), 0);
+	vbox = newVerticalBox();
+	uiGroupSetChild(group, uiControl(vbox));
+
 	hbox = newHorizontalBox();
 	button = uiNewButton("Move the Label!");
 	uiButtonOnClicked(button, moveLabel, NULL);
 	uiBoxAppend(hbox, uiControl(button), 1);
 	// have a blank label for space
 	uiBoxAppend(hbox, uiControl(uiNewLabel("")), 1);
-	uiBoxAppend(page2, uiControl(hbox), 0);
+	uiBoxAppend(vbox, uiControl(hbox), 0);
 
 	hbox = newHorizontalBox();
 	movingBoxes[0] = newVerticalBox();
 	uiBoxAppend(hbox, uiControl(movingBoxes[0]), 1);
 	movingBoxes[1] = newVerticalBox();
 	uiBoxAppend(hbox, uiControl(movingBoxes[1]), 1);
-	uiBoxAppend(page2, uiControl(hbox), 0);
+	uiBoxAppend(vbox, uiControl(hbox), 0);
 
 	movingCurrent = 0;
 	movingLabel = uiNewLabel("This label moves!");

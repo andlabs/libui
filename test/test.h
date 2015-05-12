@@ -18,6 +18,7 @@ extern uiWindow *newWindow(const char *title, int width, int height, int hasMenu
 extern uiBox *newHorizontalBox(void);
 extern uiBox *newVerticalBox(void);
 extern uiTab *newTab(void);
+extern uiGroup *newGroup(const char *);
 
 // menus.c
 extern uiMenuItem *shouldQuitItem;

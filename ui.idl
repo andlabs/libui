@@ -130,6 +130,13 @@ interface Tab from Control {
 };
 func NewTab(void) *Tab;
 
+interface Group from Control {
+	// TODO text and settext
+	func SetChild(c *Control);
+	// TODO margined and setmargined
+};
+func NewGroup(text *const char) *Group;
+
 interface Menu {
 	func AppendItem(name *const char) *MenuItem;
 	func AppendCheckItem(name *const char) *MenuItem;

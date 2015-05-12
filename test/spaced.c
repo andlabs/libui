@@ -30,6 +30,7 @@ enum types {
 	window,
 	box,
 	tab,
+	group,
 };
 
 void setSpaced(int spaced)
@@ -128,4 +129,13 @@ uiTab *newTab(void)
 	t = uiNewTab();
 	append(t, tab);
 	return t;
+}
+
+uiGroup *newGroup(const char *text)
+{
+	uiGroup *g;
+
+	g = uiNewGroup(text);
+	append(g, group);
+	return g;
 }

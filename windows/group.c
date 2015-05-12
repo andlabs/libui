@@ -29,15 +29,28 @@ static void onDestroy(void *data)
 
 static void groupPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
+	struct group *g = (struct group *) c;
+
+	uiControlPreferredSize(uiControl(g->bin), d, width, height);
 	// TODO
+	*width += 20;
+	*height += 20;
 }
 
 static void groupResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	struct group *g = (struct group *) c;
+	RECT r;
 
 	(*(g->baseResize))(uiControl(g), x, y, width, height, d);
+	if (GetClientRect(g->hwnd, &r) == 0)
+		logLastError("error getting uiGroup client rect for bin resize in groupResize()");
 	// TODO
+	r.left += 10;
+	r.right -= 10;
+	r.top += 10;
+	r.bottom -= 10;
+	uiBinResizeRootAndUpdate(g->bin, r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 
 static void groupSetChild(uiGroup *gg, uiControl *c)

@@ -27,14 +27,25 @@ static void onDestroy(void *data)
 	uiFree(g);
 }
 
+// TODO get source
+#define groupXMargin 6
+#define groupYMarginTop 11 /* note this value /includes the groupbox label */
+#define groupYMarginBottom 7
+
+// unfortunately because the client area of a groupbox includes the frame and caption text, we have to apply some margins ourselves, even if we don't want "any"
+// these were deduced by hand based on the standard DLU conversions; the X and Y top margins are the width and height, respectively, of one character cell
+// they can be fine-tuned later
+#define groupUnmarginedXMargin 4
+#define groupUnmarginedYMarginTop 8
+#define groupUnmarginedYMarginBottom 3
+
 static void groupPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct group *g = (struct group *) c;
 
 	uiControlPreferredSize(uiControl(g->bin), d, width, height);
-	// TODO
-	*width += 20;
-	*height += 20;
+	*width += uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX) * 2;
+	*height += uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->Sys->BaseY) + uiWindowsDlgUnitsToY(groupUnmarginedYMarginBottom, d->Sys->BaseY);
 }
 
 static void groupResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
@@ -45,11 +56,10 @@ static void groupResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	(*(g->baseResize))(uiControl(g), x, y, width, height, d);
 	if (GetClientRect(g->hwnd, &r) == 0)
 		logLastError("error getting uiGroup client rect for bin resize in groupResize()");
-	// TODO
-	r.left += 10;
-	r.right -= 10;
-	r.top += 10;
-	r.bottom -= 10;
+	r.left += uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX);
+	r.top += uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->Sys->BaseY);
+	r.right -= uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX);
+	r.bottom -= uiWindowsDlgUnitsToY(groupUnmarginedYMarginBottom, d->Sys->BaseY);
 	uiBinResizeRootAndUpdate(g->bin, r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 

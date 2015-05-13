@@ -374,7 +374,7 @@ void uninitMenus(void)
 		for (j = 0; j < m->len; j++) {
 			item = m->items[j];
 			if (item->len != 0)
-				complain("menu item %p (%ws) still has uiWindows attached; did you forget to free some?", item, item->name);
+				complain("menu item %p (%ws) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
 			if (item->name != NULL)
 				uiFree(item->name);
 			if (item->hmenus != NULL)

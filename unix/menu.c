@@ -372,7 +372,7 @@ void uninitMenus(void)
 		for (j = 0; j < m->items->len; j++) {
 			item = g_array_index(m->items, struct menuItem *, j);
 			if (g_hash_table_size(item->windows) != 0)
-				complain("menu item %p (%s) still has uiWindows attached; did you forget to free some?", item, item->name);
+				complain("menu item %p (%s) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
 			g_free(item->name);
 			g_hash_table_destroy(item->windows);
 			uiFree(item);

@@ -17,6 +17,7 @@ struct uiWindowsMakeControlParams {
 	LPCWSTR lpWindowName;
 	DWORD dwStyle;		// WS_CHILD and WS_VISIBLE are automatically applied.
 	HINSTANCE hInstance;
+	LPVOID lpParam;
 
 	// Set this to non-FALSE to use the standard control font used by other ui controls.
 	BOOL useStandardControlFont;

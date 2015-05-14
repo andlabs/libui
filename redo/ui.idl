@@ -43,7 +43,8 @@ interface Control {
 	field Internal *void;		// for use by ui only
 	func Destroy(void);
 	func Handle(void) uintptr_t;
-	func SetParent(c *Container);
+	func Parent(void) *Control;
+	func SetParent(c *Control);
 	func PreferredSize(d *Sizing, width *intmax_t, height *intmax_t);
 	func Resize(x intmax_t, y intmax_t, width intmax_t, height intmax_t, d *Sizing);
 	func QueueResize(void);

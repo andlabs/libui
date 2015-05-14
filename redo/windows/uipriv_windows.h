@@ -94,3 +94,13 @@ extern void uninitAlloc(void);
 // tab.c
 extern void tabEnterTabNavigation(HWND);
 extern void tabLeaveTabNavigation(HWND);
+
+/////////////////////////////////
+
+// resize.c
+extern void initResizes(void);
+extern void uninitResizes(void);
+extern void queueResize(uiControl *);
+extern void doResizes(void);
+extern void moveWindow(HWND, intmax_t, intmax_t, intmax_t, intmax_t);
+extern void moveAndReorderWindow(HWND, HWND, intmax_t, intmax_t, intmax_t, intmax_t);

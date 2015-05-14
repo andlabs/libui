@@ -108,3 +108,6 @@ extern void moveAndReorderWindow(HWND, HWND, intmax_t, intmax_t, intmax_t, intma
 // utilwindow.c
 extern const char *initUtilWindow(HICON, HCURSOR);
 extern void uninitUtilWindow(void);
+
+// parent.c
+extern BOOL handleParentMessages(HWND, UINT, WPARAM, LPARAM, LRESULT *);

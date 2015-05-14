@@ -42,11 +42,6 @@ struct uiSizingSys {
 	int BaseX;
 	int BaseY;
 	LONG InternalLeading;
-
-	// This is the window handle to pass to the hWndInsertAfter parameter of SetWindowPos().
-	// You should set this to your own window handle when done.
-	// Controls made with uiWindowsMakeControl() do this for you; you only need to do this if you are implementing uiControlResize() yourself.
-	HWND InsertAfter;
 };
 // Use these in your preferredSize() implementation with baseX and baseY.
 #define uiWindowsDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)
@@ -63,6 +58,7 @@ _UI_EXTERN void uiWindowsControlSetText(uiControl *, const char *);
 struct uiControlSysFuncParams {
 	int Func;
 	BOOL HasTabStops;
+	HWND InsertAfter;
 };
 
 enum {
@@ -75,6 +71,9 @@ enum {
 	// Controls created with uiWindowsMakeControl() check for the window being enabled and the presence of WS_TABSTOP.
 	// The name is "has tab stops" because it is used by uiTabs to say "does the current tab page have tab stops?".
 	uiWindowsSysFuncHasTabStops,
+	// This tells the current control to set its Z order to be after the control in the InsertAfter field.
+	// You should also set your own handle to the InsertAfter field for the next control.
+	uiWindowsSysFuncSetZOrder,
 };
 
 #endif

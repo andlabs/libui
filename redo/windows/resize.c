@@ -35,7 +35,8 @@ void doResizes(void)
 		if (parent == NULL)		// not in a parent; can't resize
 			continue;			// this is for uiBox, etc.
 		d.sys = &sys;
-		uiControlComputeChildSizeArea(parent, &x, &y, &width, &height, &d);
+		uiControlGetSizing(parent, &d);
+		uiControlComputeChildSize(parent, &x, &y, &width, &height, &d);
 		uiControlResize(c, x, y, width, height, &d);
 		hwnd = (HWND) uiControlHandle(c);
 		// we used SWP_NOREDRAW; we need to queue a redraw ourselves

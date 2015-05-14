@@ -104,3 +104,7 @@ extern void queueResize(uiControl *);
 extern void doResizes(void);
 extern void moveWindow(HWND, intmax_t, intmax_t, intmax_t, intmax_t);
 extern void moveAndReorderWindow(HWND, HWND, intmax_t, intmax_t, intmax_t, intmax_t);
+
+// utilwindow.c
+extern const char *initUtilWindow(HICON, HCURSOR);
+extern void uninitUtilWindow(void);

@@ -78,9 +78,9 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 0;
 }
 
-static void onDestroy(void *data)
+static void windowDestroy(uiControl *c)
 {
-	struct window *w = (struct window *) data;
+	struct window *w = (struct window *) c;
 
 	// first hide ourselves
 	ShowWindow(w->hwnd, SW_HIDE);
@@ -93,8 +93,28 @@ static void onDestroy(void *data)
 	// now free the menubar, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
-	// now destroy ourselves
+	// and finally destroy ourselves
+	if (DestroyWindow(w->hwnd) == 0)
+		logLastError("error destroying uiWindow in windowDestroy()");
 	uiFree(w);
+}
+
+static uintptr_t windowHandle(uiControl *c)
+{
+	struct window *w = (struct window *) c;
+
+	return (uintptr_t) (w->hwnd);
+}
+
+static uiControl *windowParent(uiControl *c)
+{
+	complain("attempt to get the parent of uiWindow %p", c);
+	return NULL;		// keep compiler happy
+}
+
+static void windowSetParent(uiControl *c, uiControl *parent)
+{
+	complain("attempt to set the parent of uiWindow %p", c);
 }
 
 static void windowPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -105,6 +125,11 @@ static void windowPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intm
 static void windowResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	complain("attempt to resize the uiWindow at %p", c);
+}
+
+static void windowGetSizing(uiControl *c, uiSizing *d)
+{
+	// TODO
 }
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -124,6 +149,77 @@ static void windowComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intma
 	if (w->margined) {
 		// TODO
 	}
+}
+
+static int windowVisible(uiControl *c)
+{
+	struct window *w = (struct window *) c;
+
+	return !w->hidden;
+}
+
+static void windowShow(uiControl *c)
+{
+	struct window *w = (struct window *) c;
+
+	if (w->shownOnce) {
+		ShowWindow(w->hwnd, SW_SHOW);
+		w->hidden = 0;
+		return;
+	}
+	w->shownOnce = TRUE;
+	// make sure the bin is the correct size
+	SendMessage(w->hwnd, msgUpdateChild, 0, 0);
+	ShowWindow(w->hwnd, nCmdShow);
+	if (UpdateWindow(w->hwnd) == 0)
+		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");
+	w->hidden = 0;
+}
+
+static void windowHide(uiControl *c)
+{
+	struct window *w = (struct window *) c;
+
+	ShowWindow(w->hwnd, SW_HIDE);
+	w->hidden = 1;
+}
+
+static void windowEnable(uiControl *c)
+{
+	struct window *w = (struct window *) c;
+
+	EnableWindow(w->hwnd, TRUE);
+	if (w->child != NULL)
+		uiControlContainerEnable(w->child);
+}
+
+static void windowDisable(uiControl *c)
+{
+	struct window *w = (struct window *) c;
+
+	EnableWindow(w->hwnd, FALSE);
+	if (w->child != NULL)
+		uiControlContainerDisable(w->child);
+}
+
+static void windowContainerEnable(uiControl *c)
+{
+	complain("attempt to container enable uiWindow %p", c);
+}
+
+static void windowContainerDisable(uiControl *c)
+{
+	complain("attempt to container disable uiWindow %p", c);
+}
+
+static void windowSysFunc(uiControl *c, uiControlSysFuncParams *p)
+{
+	complain("attempt to call system functions on uiWindow %p", c);
+}
+
+static void windowStartZOrder(uiControl *c, uiControlSysFuncParams *p)
+{
+	complain("attempt to start Z-ordering on uiWindow %p", c);
 }
 
 static char *windowTitle(uiWindow *ww)
@@ -249,14 +345,22 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	uiControl(w)->Destroy = windowDestroy;
 	uiControl(w)->Handle = windowHandle;
+	uiControl(w)->Parent = windowParent;
 	uiControl(w)->SetParent = windowSetParent;
 	uiControl(w)->PreferredSize = windowPreferredSize;
 	uiControl(w)->Resize = windowResize;
+	uiControl(w)->QueueResize = windowQueueResize
+	uiControl(w)->GetSizing = windowGetSizing;
+	uiControl(w)->ComputeChildSize = windowComputeChildSize;
 	uiControl(w)->Visible = windowVisible;
 	uiControl(w)->Show = windowShow;
 	uiControl(w)->Hide = windowHide;
 	uiControl(w)->Enable = windowEnable;
 	uiControl(w)->Disable = windowDisable;
+	uiControl(w)->ContainerEnable = windowContainerEnable;
+	uiControl(w)->ContainerDisable = windowContainerDisable;
+	uiControl(w)->SysFunc = windowSysFunc;
+	uiControl(w)->StartZOrder = windowStartZOrder;
 
 	uiWindow(w)->Title = windowTitle;
 	uiWindow(w)->SetTitle = windowSetTitle;

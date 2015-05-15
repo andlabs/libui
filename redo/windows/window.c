@@ -134,7 +134,7 @@ static void windowQueueResize(uiControl *c)
 
 static void windowGetSizing(uiControl *c, uiSizing *d)
 {
-	// TODO
+	uiWindowsGetSizing(c, d);
 }
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing

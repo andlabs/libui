@@ -68,7 +68,7 @@ static void singleQueueResize(uiControl *c)
 
 static void singleGetSIzing(uiControl *c, uiSizing *d)
 {
-	// TODO
+	uiWindowsGetSizing(c, d);
 }
 
 static void singleComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intmax_t *width, intmax_t *height, uiSizing *d)

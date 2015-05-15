@@ -46,6 +46,8 @@ struct uiSizingSys {
 // Use these in your preferredSize() implementation with baseX and baseY.
 #define uiWindowsDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)
 #define uiWindowsDlgUnitsToY(dlg, baseY) MulDiv((dlg), baseY, 8)
+// Use this as your control's GetSizing() implementation.
+extern void uiWindowsGetSizing(uiControl *, uiSizing *);
 
 // and use this if you need the text of the window width
 _UI_EXTERN intmax_t uiWindowsWindowTextWidth(HWND hwnd);

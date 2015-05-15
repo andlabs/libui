@@ -127,6 +127,11 @@ static void windowResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 	complain("attempt to resize the uiWindow at %p", c);
 }
 
+static void windowQueueResize(uiControl *c)
+{
+	complain("attempt to queue a resize of the uiWindow at %p", c);
+}
+
 static void windowGetSizing(uiControl *c, uiSizing *d)
 {
 	// TODO

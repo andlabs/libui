@@ -60,6 +60,7 @@ uiLabel *uiNewLabel(const char *text)
 	// controls are vertically aligned to the top by default (thanks Xeek in irc.freenode.net/#winapi)
 	p.dwStyle = SS_LEFTNOWORDWRAP | SS_NOPREFIX;
 	p.hInstance = hInstance;
+	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;

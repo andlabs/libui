@@ -103,6 +103,7 @@ uiEntry *uiNewEntry(void)
 	p.lpWindowName = L"";
 	p.dwStyle = ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP;
 	p.hInstance = hInstance;
+	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;

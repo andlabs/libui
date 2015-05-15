@@ -107,6 +107,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	p.lpWindowName = wtext;
 	p.dwStyle = BS_CHECKBOX | WS_TABSTOP;
 	p.hInstance = hInstance;
+	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;

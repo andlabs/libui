@@ -115,7 +115,7 @@ BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LR
 		// bounce back to the control in question
 		// except if to the initial parent, in which case act as if the message was ignored
 		control = (HWND) lParam;
-		if (control != NULL && IsChild(initialParent, control) == 0) {
+		if (control != NULL && IsChild(utilWindow, control) == 0) {
 			*lResult = SendMessageW(control, msgCOMMAND, wParam, lParam);
 			return TRUE;
 		}
@@ -123,7 +123,7 @@ BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LR
 	case WM_NOTIFY:
 		// same as WM_COMMAND
 		control = nm->hwndFrom;
-		if (control != NULL && IsChild(initialParent, control) == 0) {
+		if (control != NULL && IsChild(utilWindow, control) == 0) {
 			*lResult = SendMessageW(control, msgNOTIFY, wParam, lParam);
 			return TRUE;
 		}

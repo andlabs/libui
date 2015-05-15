@@ -193,7 +193,7 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 		0, 0,
 		// use a nonzero initial size just in case some control breaks with a zero initial size
 		100, 100,
-		initialParent, NULL, p->hInstance, p->lpParam);
+		utilWindow, NULL, p->hInstance, p->lpParam);
 	if (s->hwnd == NULL)
 		logLastError("error creating control in uiWindowsMakeControl()");
 	s->onWM_COMMAND = p->onWM_COMMAND;

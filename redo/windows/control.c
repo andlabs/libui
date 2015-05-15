@@ -8,7 +8,8 @@ struct singleHWND {
 	void (*onDestroy)(void *);
 	void *onDestroyData;
 	uiContainer *parent;
-	int hidden;
+	int userHidden;
+	int containerHidden;
 	int userDisabled;
 	int containerDisabled;
 };
@@ -76,19 +77,20 @@ static void singleComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intma
 	complain("attempt to call uiControlComputeChildSize() on a non-container");
 }
 
-static int singleVisible(uiControl *c)
+static int singleContainerVisible(uiControl *c)
 {
 	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
-	return !s->hidden;
+	return !s->userHidden && !s->containerHidden;
 }
 
 static void singleShow(uiControl *c)
 {
 	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
-	ShowWindow(s->hwnd, SW_SHOW);
-	s->hidden = 0;
+	s->userHidden = 0;
+	if (!s->containerHidden)
+		ShowWindow(s->hwnd, SW_SHOW);
 	if (s->parent != NULL)
 		uiContainerUpdate(s->parent);
 }
@@ -97,8 +99,29 @@ static void singleHide(uiControl *c)
 {
 	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
+	s->userHidden = 1;
 	ShowWindow(s->hwnd, SW_HIDE);
-	s->hidden = 1;
+	if (s->parent != NULL)
+		uiContainerUpdate(s->parent);
+}
+
+static void singleContainerShow(uiControl *c)
+{
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+
+	s->containerHidden = 0;
+	if (!s->userHidden)
+		ShowWindow(s->hwnd, SW_SHOW);
+	if (s->parent != NULL)
+		uiContainerUpdate(s->parent);
+}
+
+static void singleContainerHide(uiControl *c)
+{
+	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+
+	s->containerHidden = 1;
+	ShowWindow(s->hwnd, SW_HIDE);
 	if (s->parent != NULL)
 		uiContainerUpdate(s->parent);
 }
@@ -219,9 +242,11 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 	uiControl(c)->QueueResize = singleQueueResize;
 	uiControl(c)->GetSizing = singleGetSizing;
 	uiControl(c)->ComputeChildSize = singleComputeChildSize;
-	uiControl(c)->Visible = singleVisible;
+	uiControl(c)->ContainerVisible = singleContainerVisible;
 	uiControl(c)->Show = singleShow;
 	uiControl(c)->Hide = singleHide;
+	uiControl(c)->ContainerShow = singleContainerShow;
+	uiControl(c)->ContainerHide = singleContainerHide;
 	uiControl(c)->Enable = singleEnable;
 	uiControl(c)->Disable = singleDisable;
 	uiControl(c)->ContainerEnable = singleContainerEnable;

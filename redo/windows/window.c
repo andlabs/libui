@@ -8,7 +8,6 @@ struct window {
 	HWND hwnd;
 	HMENU menubar;
 	uiControl *child;
-	int hidden;
 	BOOL shownOnce;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
@@ -156,11 +155,9 @@ static void windowComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intma
 	}
 }
 
-static int windowVisible(uiControl *c)
+static int windowContainerVisible(uiControl *c)
 {
-	struct window *w = (struct window *) c;
-
-	return !w->hidden;
+	complain("attempt to get container visibility state of uiWindow %p", c);
 }
 
 static void windowShow(uiControl *c)
@@ -169,7 +166,6 @@ static void windowShow(uiControl *c)
 
 	if (w->shownOnce) {
 		ShowWindow(w->hwnd, SW_SHOW);
-		w->hidden = 0;
 		return;
 	}
 	w->shownOnce = TRUE;
@@ -178,7 +174,6 @@ static void windowShow(uiControl *c)
 	ShowWindow(w->hwnd, nCmdShow);
 	if (UpdateWindow(w->hwnd) == 0)
 		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");
-	w->hidden = 0;
 }
 
 static void windowHide(uiControl *c)
@@ -186,7 +181,16 @@ static void windowHide(uiControl *c)
 	struct window *w = (struct window *) c;
 
 	ShowWindow(w->hwnd, SW_HIDE);
-	w->hidden = 1;
+}
+
+static void windowContainerShow(uiControl *c)
+{
+	complain("attempt to container show uiWindow %p", c);
+}
+
+static void windowContainerHide(uiControl *c)
+{
+	complain("attempt to container hide uiWindow %p", c);
 }
 
 static void windowEnable(uiControl *c)
@@ -357,9 +361,11 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiControl(w)->QueueResize = windowQueueResize
 	uiControl(w)->GetSizing = windowGetSizing;
 	uiControl(w)->ComputeChildSize = windowComputeChildSize;
-	uiControl(w)->Visible = windowVisible;
+	uiControl(w)->ContainerVisible = windowContainerVisible;
 	uiControl(w)->Show = windowShow;
 	uiControl(w)->Hide = windowHide;
+	uiControl(w)->ContainerShow = windowContainerShow;
+	uiControl(w)->ContainerHide = windowContainerHide;
 	uiControl(w)->Enable = windowEnable;
 	uiControl(w)->Disable = windowDisable;
 	uiControl(w)->ContainerEnable = windowContainerEnable;

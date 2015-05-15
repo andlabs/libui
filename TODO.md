@@ -39,3 +39,4 @@ notes to self
 - note that type mixing == undefined behavior
 - note that handling of multiple consecutive separators in menus, leading separators in menus, and trailing separators in menus are all implementation-defined
 - note that ContainerVisible() returns true if both user and container not hidden; container use only
+- note that if we are currently updating, QueueResize() will take effect during the CURRENT update cycle

@@ -60,9 +60,6 @@ extern WCHAR *windowText(HWND);
 
 
 
-// tab.c
-extern void tabEnterTabNavigation(HWND);
-extern void tabLeaveTabNavigation(HWND);
 
 /////////////////////////////////
 
@@ -105,3 +102,7 @@ extern void uninitMenus(void);
 // alloc.c
 extern int initAlloc(void);
 extern void uninitAlloc(void);
+
+// tab.c
+extern void tabEnterTabNavigation(HWND);
+extern void tabLeaveTabNavigation(HWND);

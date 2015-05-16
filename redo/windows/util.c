@@ -118,17 +118,3 @@ void setExStyle(HWND hwnd, DWORD exstyle)
 {
 	SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (LONG_PTR) exstyle);
 }
-
-#define swpflags (SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW)
-
-void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
-{
-	if (SetWindowPos(hwnd, NULL, x, y, width, height, swpflags | SWP_NOZORDER) == 0)
-		logLastError("error moving window in moveWindow()");
-}
-
-void moveAndReorderWindow(HWND hwnd, HWND insertAfter, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
-{
-	if (SetWindowPos(hwnd, insertAfter, x, y, width, height, swpflags) == 0)
-		logLastError("error moving and reordering window in moveAndReorderWindow()");
-}

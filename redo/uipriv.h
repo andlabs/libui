@@ -10,13 +10,6 @@ extern void uiFree(void *);
 
 extern void complain(const char *, ...);
 
-extern uiBin *newBin(void);
-extern int binHasOSParent(uiBin *);
-extern void binSetOSParent(uiBin *, uintptr_t);
-extern void binRemoveOSParent(uiBin *);
-extern void binResizeRootAndUpdate(uiBin *, intmax_t, intmax_t, intmax_t, intmax_t);
-extern void binTranslateMargins(uiBin *, intmax_t *, intmax_t *, intmax_t *, intmax_t *, uiSizing *);
-
 // array.c
 struct ptrArray {
 	void **ptrs;

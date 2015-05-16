@@ -3,7 +3,7 @@
 
 // Code for containers. uiMakeContainer() creates a singleHWND of this window class.
 
-#define containerClass L"libui_uiContainerClass"}
+#define containerClass L"libui_uiContainerClass"
 
 static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -54,12 +54,12 @@ ATOM initContainer(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 void uninitContainer(void)
 {
 	if (UnregisterClassW(containerClass, hInstance) == 0)
-		logLastError("error unregistering uiContainer window class in uninitContainer()");
+		logLastError("error unregistering container window class in uninitContainer()");
 }
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 {
-	return FALSE
+	return FALSE;
 }
 
 static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
@@ -86,7 +86,7 @@ static void containerComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, in
 	*height = r.bottom - r.top;
 }
 
-void uiMakeContainer(uiContainer *c)
+void uiMakeContainer(uiControl *c)
 {
 	uiWindowsMakeControlParams p;
 

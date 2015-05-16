@@ -89,7 +89,7 @@ extern ATOM registerWindowClass(HICON, HCURSOR);
 extern void unregisterWindowClass(void);
 
 // container.c
-extern const char *initContainer(HICON, HCURSOR);
+extern ATOM initContainer(HICON, HCURSOR);
 extern void uninitContainer(void);
 
 // menu.c

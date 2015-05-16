@@ -7,7 +7,7 @@ struct singleHWND {
 	BOOL (*onWM_NOTIFY)(uiControl *, NMHDR *, LRESULT *);
 	void (*onDestroy)(void *);
 	void *onDestroyData;
-	uiContainer *parent;
+	uiControl *parent;
 	int userHidden;
 	int containerHidden;
 	int userDisabled;
@@ -40,10 +40,10 @@ static uiControl *singleParent(uiControl *c)
 	return s->parent;
 }
 
-static void singleSetParent(uiControl *c, uiContainer *parent)
+static void singleSetParent(uiControl *c, uiControl *parent)
 {
 	struct singleHWND *s = (struct singleHWND *) (c->Internal);
-	uiContainer *oldparent;
+	uiControl *oldparent;
 	HWND newParentHWND;
 
 	oldparent = s->parent;
@@ -67,7 +67,7 @@ static void singleQueueResize(uiControl *c)
 	queueResize(c);
 }
 
-static void singleGetSIzing(uiControl *c, uiSizing *d)
+static void singleGetSizing(uiControl *c, uiSizing *d)
 {
 	uiWindowsGetSizing(c, d);
 }
@@ -92,7 +92,7 @@ static void singleShow(uiControl *c)
 	if (!s->containerHidden)
 		ShowWindow(s->hwnd, SW_SHOW);
 	if (s->parent != NULL)
-		uiContainerUpdate(s->parent);
+		uiControlQueueResize(s->parent);
 }
 
 static void singleHide(uiControl *c)
@@ -102,7 +102,7 @@ static void singleHide(uiControl *c)
 	s->userHidden = 1;
 	ShowWindow(s->hwnd, SW_HIDE);
 	if (s->parent != NULL)
-		uiContainerUpdate(s->parent);
+		uiControlQueueResize(s->parent);
 }
 
 static void singleContainerShow(uiControl *c)
@@ -113,7 +113,7 @@ static void singleContainerShow(uiControl *c)
 	if (!s->userHidden)
 		ShowWindow(s->hwnd, SW_SHOW);
 	if (s->parent != NULL)
-		uiContainerUpdate(s->parent);
+		uiControlQueueResize(s->parent);
 }
 
 static void singleContainerHide(uiControl *c)
@@ -123,7 +123,7 @@ static void singleContainerHide(uiControl *c)
 	s->containerHidden = 1;
 	ShowWindow(s->hwnd, SW_HIDE);
 	if (s->parent != NULL)
-		uiContainerUpdate(s->parent);
+		uiControlQueueResize(s->parent);
 }
 
 static void singleEnable(uiControl *c)
@@ -170,7 +170,7 @@ static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 			if ((getStyle(s->hwnd) & WS_TABSTOP) != 0)
 				p->HasTabStops = TRUE;
 		return;
-	case uiWindowSysFuncSetZOrder:
+	case uiWindowsSysFuncSetZOrder:
 		// TODO
 		return;
 	}

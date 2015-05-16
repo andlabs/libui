@@ -82,7 +82,7 @@ interface Button from Control {
 };
 func NewButton(text *const char) *Button;
 
-interface Box from Container {
+interface Box from Control {
 	func Append(c *Control, stretchy int);
 	func Delete(index uintmax_t);
 	func Padded(void) int;

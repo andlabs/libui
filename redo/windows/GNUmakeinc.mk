@@ -2,11 +2,10 @@
 
 osCFILES = \
 	windows/alloc.c \
-	windows/bin.c \
 	windows/button.c \
 	windows/checkbox.c \
-	windows/comctl32.c \
 	windows/container.c \
+	windows/control.c \
 	windows/debug.c \
 	windows/entry.c \
 	windows/group.c \
@@ -14,10 +13,12 @@ osCFILES = \
 	windows/label.c \
 	windows/main.c \
 	windows/menu.c \
-	windows/newcontrol.c \
+	windows/parent.c \
+	windows/resize.c \
 	windows/tab.c \
 	windows/text.c \
 	windows/util.c \
+	windows/utilwin.c \
 	windows/window.c
 
 osHFILES = \

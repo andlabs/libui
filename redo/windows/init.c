@@ -101,6 +101,10 @@ const char *uiInit(uiInitOptions *o)
 	if (hDefaultCursor == NULL)
 		return loadLastError("loading default cursor for window classes");
 
+	ce = initUtilWindow(hDefaultIcon, hDefaultCursor);
+	if (ce != NULL)
+		return loadLastError(ce);
+
 	if (registerWindowClass(hDefaultIcon, hDefaultCursor) == 0)
 		return loadLastError("registering uiWindow window class");
 
@@ -112,9 +116,8 @@ const char *uiInit(uiInitOptions *o)
 	if (hMessageFont == NULL)
 		return loadLastError("loading default messagebox font; this is the default UI font");
 
-	ce = initContainer(hDefaultIcon, hDefaultCursor);
-	if (ce != NULL)
-		return loadLastError(ce);
+	if (initContainer(hDefaultIcon, hDefaultCursor) == 0)
+		return loadLastError("initializing uiMakeContainer() window class");
 
 	if (SetConsoleCtrlHandler(consoleCtrlHandler, TRUE) == 0)
 		return loadLastError("setting up console end session handler");

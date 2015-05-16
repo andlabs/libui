@@ -30,7 +30,7 @@ osCFLAGS = \
 
 osLDFLAGS = \
 	-static-libgcc \
-	-luser32 -lkernel32 -lgdi32 -luxtheme -lmsimg32 -lcomdlg32 -lole32 -loleaut32 -loleacc -luuid
+	-luser32 -lkernel32 -lgdi32 -lcomctl32 -luxtheme -lmsimg32 -lcomdlg32 -lole32 -loleaut32 -loleacc -luuid
 
 osLDWarnUndefinedFlags = -Wl,--no-undefined -Wl,--no-allow-shlib-undefined
 

@@ -56,12 +56,11 @@ static void onDestroy(void *data)
 	// first, hide the widget to avoid flicker
 	ShowWindow(t->hwnd, SW_HIDE);
 	// because the pages don't have by a libui paent, we can simply destroy them
-	// we don't have to worry about the Windows tab control holding a reference to our bin; there is no reference holding anyway
 	while (t->pages->len != 0) {
 		page = ptrArrayIndex(t->pages, struct tabPage *, 0);
 		// we do have to remove the page from the tab control, though
-		uiControlSetOSParent(page->control, NULL);
-		uiControlDestroy(page->control, NULL);
+		uiControlSetParent(page->control, NULL);
+		uiControlDestroy(page->control);
 		ptrArrayDelete(t->pages, 0);
 		uiFree(page);
 	}
@@ -151,7 +150,7 @@ static void tabEnable(uiControl *c)
 	(*(t->baseEnable))(uiControl(t));
 	for (i = 0; i < t->pages->len; i++) {
 		page = ptrArrayIndex(t->pages, struct tabPage *, i);
-		uiControlContainerEnable(uiControl(page->bin));
+		uiControlContainerEnable(page->control);
 	}
 }
 
@@ -164,7 +163,7 @@ static void tabDisable(uiControl *c)
 	(*(t->baseDisable))(uiControl(t));
 	for (i = 0; i < t->pages->len; i++) {
 		page = ptrArrayIndex(t->pages, struct tabPage *, i);
-		uiControlContainerDisable(uiControl(page->bin));
+		uiControlContainerDisable(page->control);
 	}
 }
 
@@ -187,7 +186,7 @@ static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)
 	(*(t->baseSysFunc))(uiControl(t), p);
 	for (i = 0; i < t->pages->len; i++) {
 		page = ptrArrayIndex(t->pages, struct tabPage *, i);
-		uiControlSysFunc(uiControl(page->bin), p);
+		uiControlSysFunc(page->control, p);
 	}
 }
 
@@ -208,7 +207,7 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 		p.Func = uiWindowsSysFuncHasTabStops;
 		p.HasTabStops = FALSE;
 		page = ptrArrayIndex(t->pages, struct tabPage *, n);
-		uiControlSysFunc(uiControl(page->bin), &p);
+		uiControlSysFunc(page->control, &p);
 		return p.HasTabStops;
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, tabSubProc, uIdSubclass) == FALSE)
@@ -232,6 +231,7 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	n = SendMessageW(t->hwnd, TCM_GETITEMCOUNT, 0, 0);
 
 	page->control = child;
+	uiControlSetParent(page->control, uiControl(t));
 	if (n != 0)		// if this isn't the first page, we have to hide the other controls
 		uiControlHide(page->control);
 
@@ -262,6 +262,7 @@ static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiCont
 	page = uiNew(struct tabPage);
 
 	page->control = child;
+	uiControlSetParent(page->control, uiControl(t));
 	// always hide; the current tab doesn't change
 	uiControlHide(page->control);
 
@@ -345,7 +346,7 @@ uiTab *uiNewTab(void)
 	t->hwnd = (HWND) uiControlHandle(uiControl(t));
 	t->pages = newPtrArray();
 
-	if ((*fv_SetWindowSubclass)(t->hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
+	if (SetWindowSubclass(t->hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
 
 	uiControl(t)->PreferredSize = tabPreferredSize;

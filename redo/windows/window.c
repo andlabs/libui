@@ -158,6 +158,7 @@ static void windowComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intma
 static int windowContainerVisible(uiControl *c)
 {
 	complain("attempt to get container visibility state of uiWindow %p", c);
+	return 0;			// make compiler happy
 }
 
 static void windowShow(uiControl *c)
@@ -169,8 +170,9 @@ static void windowShow(uiControl *c)
 		return;
 	}
 	w->shownOnce = TRUE;
-	// make sure the bin is the correct size
-	SendMessage(w->hwnd, msgUpdateChild, 0, 0);
+	// make sure the child is the correct size
+	if (w->child != NULL)
+		uiControlQueueResize(w->child);
 	ShowWindow(w->hwnd, nCmdShow);
 	if (UpdateWindow(w->hwnd) == 0)
 		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");
@@ -226,9 +228,10 @@ static void windowSysFunc(uiControl *c, uiControlSysFuncParams *p)
 	complain("attempt to call system functions on uiWindow %p", c);
 }
 
-static void windowStartZOrder(uiControl *c, uiControlSysFuncParams *p)
+static int windowStartZOrder(uiControl *c, uiControlSysFuncParams *p)
 {
 	complain("attempt to start Z-ordering on uiWindow %p", c);
+	return 0;			// make compiler happy
 }
 
 static char *windowTitle(uiWindow *ww)
@@ -358,7 +361,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiControl(w)->SetParent = windowSetParent;
 	uiControl(w)->PreferredSize = windowPreferredSize;
 	uiControl(w)->Resize = windowResize;
-	uiControl(w)->QueueResize = windowQueueResize
+	uiControl(w)->QueueResize = windowQueueResize;
 	uiControl(w)->GetSizing = windowGetSizing;
 	uiControl(w)->ComputeChildSize = windowComputeChildSize;
 	uiControl(w)->ContainerVisible = windowContainerVisible;

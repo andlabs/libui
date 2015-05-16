@@ -36,7 +36,7 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		if (SetTimer(utilWindow, resizeTimerID, resizeTimerInterval, NULL) == 0)
 			logLastError("error resetting resize timer in utilWindowWndProc()");
 		doResizes();
-		return TODO;
+		return 0;
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
@@ -45,7 +45,7 @@ const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 {
 	WNDCLASSW wc;
 
-	ZeroMemoryW(&wc, sizeof (WNDCLASSW));
+	ZeroMemory(&wc, sizeof (WNDCLASSW));
 	wc.lpszClassName = utilWindowClass;
 	wc.lpfnWndProc = utilWindowWndProc;
 	wc.hInstance = hInstance;
@@ -67,6 +67,8 @@ const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 
 	if (SetTimer(utilWindow, resizeTimerID, resizeTimerInterval, NULL) == 0)
 		return "starting resize timer";
+
+	return NULL;
 }
 
 void uninitUtilWindow(void)

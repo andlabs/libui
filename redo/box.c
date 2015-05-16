@@ -10,6 +10,7 @@ struct box {
 	void (*baseSetParent)(uiControl *, uiContainer *);
 	uiContainer *parent;
 	int padded;
+	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 };
 
 struct boxControl {
@@ -38,6 +39,13 @@ static void boxDestroy(uiControl *c)
 	// NOW we can chain up to base
 	(*(b->baseDestroy))(uiControl(b));
 	uiFree(b);
+}
+
+static uiControl *boxParent(uiControl *c)
+{
+	struct box *b = (struct box *) c;
+
+	return b->parent;
 }
 
 static void boxSetParent(uiControl *c, uiContainer *parent)
@@ -119,19 +127,7 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		*width += nStretchy * maxStretchyWidth;
 }
 
-static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
-{
-	struct box *b = (struct box *) c;
-	struct boxControl *bc;
-	uintmax_t i;
-
-	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
-		uiControlSysFunc(bc->c, p);
-	}
-}
-
-static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void boxResize(uiContainer *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	struct box *b = (struct box *) c;
 	struct boxControl *bc;
@@ -140,6 +136,8 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 	intmax_t stretchywid, stretchyht;
 	uintmax_t i;
 	intmax_t preferredWidth, preferredHeight;
+
+	(*(b->baseResize))(uiControl(b), x, y, width, height, d);
 
 	if (b->controls->len == 0)
 		return;
@@ -213,6 +211,18 @@ static void boxResizeChildren(uiContainer *c, intmax_t x, intmax_t y, intmax_t w
 	}
 }
 
+static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
+{
+	struct box *b = (struct box *) c;
+	struct boxControl *bc;
+	uintmax_t i;
+
+	for (i = 0; i < b->controls->len; i++) {
+		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		uiControlSysFunc(bc->c, p);
+	}
+}
+
 static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 {
 	struct box *b = (struct box *) ss;
@@ -223,7 +233,7 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 	bc->stretchy = stretchy;
 	uiControlSetParent(bc->c, uiContainer(b));
 	ptrArrayAppend(b->controls, bc);
-	uiContainerUpdate(uiContainer(b));
+	uiControlQueueResize(uiControl(b));
 }
 
 static void boxDelete(uiBox *ss, uintmax_t index)
@@ -239,7 +249,7 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 	ptrArrayDelete(b->controls, index);
 	uiControlSetParent(removed, NULL);
 	uiFree(bc);
-	uiContainerUpdate(uiContainer(b));
+	uiControlQueueResize(uiControl(b));
 }
 
 static int boxPadded(uiBox *ss)
@@ -254,7 +264,7 @@ static void boxSetPadded(uiBox *ss, int padded)
 	struct box *b = (struct box *) ss;
 
 	b->padded = padded;
-	uiContainerUpdate(uiContainer(b));
+	uiControlQueueResize(uiControl(b));
 }
 
 uiBox *uiNewHorizontalBox(void)
@@ -272,9 +282,9 @@ uiBox *uiNewHorizontalBox(void)
 	b->baseSetParent = uiControl(b)->SetParent;
 	uiControl(b)->SetParent = boxSetParent;
 	uiControl(b)->PreferredSize = boxPreferredSize;
+	b->baseResize = uiControl(b)->Resize
+	uiControl(b)->Resize = boxResize;
 	uiControl(b)->SysFunc = boxSysFunc;
-
-	uiContainer(b)->ResizeChildren = boxResizeChildren;
 
 	uiBox(b)->Append = boxAppend;
 	uiBox(b)->Delete = boxDelete;

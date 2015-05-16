@@ -3,8 +3,6 @@
 
 // Code for containers. uiMakeContainer() creates a singleHWND of this window class.
 
-#define containerClass L"libui_uiContainerClass"
-
 static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 /* TODO

@@ -108,7 +108,6 @@ BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LR
 {
 	HWND control;
 	NMHDR *nm = (NMHDR *) lParam;
-	RECT r;
 
 	switch (uMsg) {
 	case WM_COMMAND:
@@ -131,7 +130,7 @@ BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LR
 	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
 		if (parentBrush != NULL)
-			if (DeleteObject(c->brush) == 0)
+			if (DeleteObject(parentBrush) == 0)
 				logLastError("error deleting old background brush in containerWndProc()");
 		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
 			logLastError("error setting transparent background mode to controls in containerWndProc()");

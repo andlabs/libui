@@ -26,7 +26,8 @@ void doResizes(void)
 	uiControl *c, *parent;
 	intmax_t x, y, width, height;
 	uiSizing d;
-	uiSizngSys sys;
+	uiSizingSys sys;
+	HWND hwnd;
 
 	while (resizes->len != 0) {
 		c = ptrArrayIndex(resizes, uiControl *, 0);
@@ -34,7 +35,7 @@ void doResizes(void)
 		parent = uiControlParent(c);
 		if (parent == NULL)		// not in a parent; can't resize
 			continue;			// this is for uiBox, etc.
-		d.sys = &sys;
+		d.Sys = &sys;
 		uiControlGetSizing(parent, &d);
 		uiControlComputeChildSize(parent, &x, &y, &width, &height, &d);
 		uiControlResize(c, x, y, width, height, &d);
@@ -75,7 +76,7 @@ void uiWindowsGetSizing(uiControl *c, uiSizing *d)
 
 	hwnd = (HWND) uiControlHandle(c);
 
-	dc = GetDC(c->hwnd);
+	dc = GetDC(hwnd);
 	if (dc == NULL)
 		logLastError("error getting DC in uiWindowsGetSizing()");
 	prevfont = (HFONT) SelectObject(dc, hMessageFont);
@@ -94,9 +95,9 @@ void uiWindowsGetSizing(uiControl *c, uiSizing *d)
 
 	if (SelectObject(dc, prevfont) != hMessageFont)
 		logLastError("error restoring previous font into device context in uiWindowsGetSizing()");
-	if (ReleaseDC(c->hwnd, dc) == 0)
+	if (ReleaseDC(hwnd, dc) == 0)
 		logLastError("error releasing DC in uiWindowsGetSizing()");
 
-	d->XPadding = uiWindowsDlgUnitsToX(winXPadding, sys.BaseX);
-	d->YPadding = uiWindowsDlgUnitsToY(winYPadding, sys.BaseY);
+	d->XPadding = uiWindowsDlgUnitsToX(winXPadding, d->Sys->BaseX);
+	d->YPadding = uiWindowsDlgUnitsToY(winYPadding, d->Sys->BaseY);
 }

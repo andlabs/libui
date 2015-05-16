@@ -1,5 +1,5 @@
 # 22 april 2015
-# TODO figure out why ui.h is being regenerated always
+# TODO figure out why ui.h is being regenerated always? and it seems despite that it doesn't affect existing dependencies?
 
 OUTBASE = new
 OUTDIR = out

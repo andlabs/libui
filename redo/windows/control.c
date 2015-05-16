@@ -177,9 +177,10 @@ static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 	complain("unknown p->Func %d in singleSysFunc()", p->Func);
 }
 
-static void singleStartZOrder(uiControl *c, uiControlSysFuncParams *p)
+static int singleStartZOrder(uiControl *c, uiControlSysFuncParams *p)
 {
 	// TODO
+	return 0;
 }
 
 static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)

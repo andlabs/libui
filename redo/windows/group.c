@@ -45,7 +45,7 @@ static void groupPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 {
 	struct group *g = (struct group *) c;
 
-	uiControlPreferredSize(uiControl(g->bin), d, width, height);
+	uiControlPreferredSize(g->child, d, width, height);
 	*width += uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX) * 2;
 	*height += uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->Sys->BaseY) + uiWindowsDlgUnitsToY(groupUnmarginedYMarginBottom, d->Sys->BaseY);
 }
@@ -65,7 +65,7 @@ static void groupComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intmax
 	RECT r;
 
 	if (GetClientRect(g->hwnd, &r) == 0)
-		logLastError("error getting uiGroup client rect for bin resize in groupResize()");
+		logLastError("error getting uiGroup client rect for computing child size in groupResize()");
 	r.left += uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX);
 	r.top += uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->Sys->BaseY);
 	r.right -= uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX);

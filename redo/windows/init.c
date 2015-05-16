@@ -58,7 +58,7 @@ static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType)
 	case CTRL_LOGOFF_EVENT:
 	case CTRL_SHUTDOWN_EVENT:
 		// the handler is run in a separate thread
-		SendMessageW(initialParent, msgConsoleEndSession, 0, 0);
+		SendMessageW(utilWindow, msgConsoleEndSession, 0, 0);
 		// we handled it here
 		// this WON'T terminate the program because this is a DLL
 		// at least, that's the best I can gather from the MSDN page on the handler function
@@ -89,10 +89,6 @@ const char *uiInit(uiInitOptions *o)
 	GetStartupInfoW(&si);
 	if ((si.dwFlags & STARTF_USESHOWWINDOW) != 0)
 		nCmdShow = si.wShowWindow;
-
-	ce = initCommonControls();
-	if (ce != NULL)
-		return loadLastError(ce);
 
 	hDefaultIcon = LoadIconW(NULL, IDI_APPLICATION);
 	if (hDefaultIcon == NULL)

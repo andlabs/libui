@@ -1,5 +1,4 @@
 # 22 april 2015
-# TODO figure out why ui.h is being regenerated always? and it seems despite that it doesn't affect existing dependencies?
 
 OUTBASE = new
 OUTDIR = out
@@ -58,6 +57,7 @@ $(OBJDIR)/%.o: %.m $(xHFILES) | $$(dir $$@).phony
 $(OUTDIR)/%.h: %.idl tools/idl2h.go | $(OUTDIR)/.phony
 	@go run tools/idl2h.go -extern _UI_EXTERN -guard __UI_UI_H__ < $< > $@
 	@echo ====== Generated `basename $@`
+.PRECIOUS: $(OUTDIR)/%.h
 
 clean:
 	rm -rf $(OUTDIR) $(OBJDIR) ui.h

@@ -57,7 +57,51 @@ void uninitContainer(void)
 		logLastError("error unregistering uiContainer window class in uninitContainer()");
 }
 
+static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
+{
+	return FALSE
+}
+
+static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
+{
+	return FALSE;
+}
+
+static void onDestroy(void *data)
+{
+	// do nothing
+}
+
+static void containerComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intmax_t *width, intmax_t *height, uiSizing *d)
+{
+	HWND hwnd;
+	RECT r;
+
+	hwnd = (HWND) uiControlHandle(c);
+	if (GetClientRect(hwnd, &r) == 0)
+		logLastError("error getting container client rect in containerComputeChildSize()");
+	*x = r.left;
+	*y = r.top;
+	*width = r.right - r.left;
+	*height = r.bottom - r.top;
+}
+
 void uiMakeContainer(uiContainer *c)
 {
-	// TODO
+	uiWindowsMakeControlParams p;
+
+	p.dwExStyle = 0;
+	p.lpClassName = containerClass;
+	p.lpWindowName = L"";
+	p.dwStyle = 0;
+	p.hInstance = hInstance;
+	p.lpParam = NULL;
+	p.useStandardControlFont = TRUE;
+	p.onWM_COMMAND = onWM_COMMAND;
+	p.onWM_NOTIFY = onWM_NOTIFY;
+	p.onDestroy = onDestroy;
+	p.onDestroyData = NULL;
+	uiWindowsMakeControl(c, &p);
+
+	uiControl(c)->ComputeChildSize = containerComputeChildSize;
 }

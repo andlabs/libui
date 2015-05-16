@@ -334,6 +334,7 @@ uiTab *uiNewTab(void)
 	p.lpWindowName = L"";
 	p.dwStyle = TCS_TOOLTIPS | WS_TABSTOP;		// start with this; we will alternate between this and WS_EX_CONTROLPARENT as needed (see main.c and msgHasTabStops above and the toggling functions below)
 	p.hInstance = hInstance;
+	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;

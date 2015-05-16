@@ -4,7 +4,7 @@
 struct group {
 	uiGroup g;
 	HWND hwnd;
-	uiBin *bin;
+	uiControl *child;
 	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 };
 
@@ -22,8 +22,10 @@ static void onDestroy(void *data)
 {
 	struct group *g = (struct group *) data;
 
-	uiBinRemoveOSParent(g->bin);
-	uiControlDestroy(uiControl(g->bin));
+	if (g->child != NULL) {
+		uiControlSetParent(g->child, NULL);
+		uiControlDestroy(g->child);
+	}
 	uiFree(g);
 }
 
@@ -51,24 +53,36 @@ static void groupPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 static void groupResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	struct group *g = (struct group *) c;
-	RECT r;
 
 	(*(g->baseResize))(uiControl(g), x, y, width, height, d);
+	if (g->child != NULL)
+		uiControlQueueResize(g->child);
+}
+
+static void groupComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intmax_t *width, intmax_t *height, uiSizing *d)
+{
+	struct group *g = (struct group *) c;
+	RECT r;
+
 	if (GetClientRect(g->hwnd, &r) == 0)
 		logLastError("error getting uiGroup client rect for bin resize in groupResize()");
 	r.left += uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX);
 	r.top += uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->Sys->BaseY);
 	r.right -= uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX);
 	r.bottom -= uiWindowsDlgUnitsToY(groupUnmarginedYMarginBottom, d->Sys->BaseY);
-	uiBinResizeRootAndUpdate(g->bin, r.left, r.top, r.right - r.left, r.bottom - r.top);
+	*x = r.left;
+	*y = r.top;
+	*width = r.right - r.left;
+	*height = r.bottom - r.top;
 }
 
 static void groupSetChild(uiGroup *gg, uiControl *c)
 {
 	struct group *g = (struct group *) gg;
 
-	uiBinSetMainControl(g->bin, c);
-	uiContainerUpdate(uiContainer(g->bin));
+	g->child = c;
+	if (g->child != NULL)
+		uiControlQueueResize(g->child);
 }
 
 uiGroup *uiNewGroup(const char *text)
@@ -85,6 +99,7 @@ uiGroup *uiNewGroup(const char *text)
 	p.lpWindowName = wtext;
 	p.dwStyle = BS_GROUPBOX;
 	p.hInstance = hInstance;
+	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
@@ -95,12 +110,10 @@ uiGroup *uiNewGroup(const char *text)
 
 	g->hwnd = (HWND) uiControlHandle(uiControl(g));
 
-	g->bin = newBin();
-	uiBinSetOSParent(g->bin, (uintptr_t) (g->hwnd));
-
 	uiControl(g)->PreferredSize = groupPreferredSize;
 	g->baseResize = uiControl(g)->Resize;
 	uiControl(g)->Resize = groupResize;
+	uiControl(g)->ComputeChildSize = groupComputeChildSize;
 	// TODO enable, disable, sysfunc
 
 	uiGroup(g)->SetChild = groupSetChild;

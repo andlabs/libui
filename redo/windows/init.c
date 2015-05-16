@@ -85,6 +85,8 @@ const char *uiInit(uiInitOptions *o)
 	if (initAlloc() == 0)
 		return loadLastError("error initializing memory allocations");
 
+	initResizes();
+
 	nCmdShow = SW_SHOWDEFAULT;
 	GetStartupInfoW(&si);
 	if ((si.dwFlags & STARTF_USESHOWWINDOW) != 0)
@@ -137,6 +139,7 @@ void uiUninit(void)
 	unregisterWindowClass();
 	// TODO delete default cursor
 	// TODO delete default icon
+	uninitResizes();
 	uninitAlloc();
 }
 

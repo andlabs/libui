@@ -4,7 +4,6 @@
 include test/GNUmakeinc.mk
 
 baseHFILES = \
-	ui.h \
 	$(testHFILES)
 
 baseCFILES = $(testCFILES)

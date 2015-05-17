@@ -85,3 +85,18 @@ uiTab *uiNewTab(void)
 
 	return uiTab(t);
 }
+
+// unfortunately WS_TABSTOP and WS_EX_CONTROLPARENT are mutually exclusive, so we have to toggle between them
+// see main.c for more details
+
+void tabEnterTabNavigation(HWND hwnd)
+{
+	setStyle(hwnd, getStyle(hwnd) & ~WS_TABSTOP);
+	setExStyle(hwnd, getExStyle(hwnd) | WS_EX_CONTROLPARENT);
+}
+
+void tabLeaveTabNavigation(HWND hwnd)
+{
+	setExStyle(hwnd, getExStyle(hwnd) & ~WS_EX_CONTROLPARENT);
+	setStyle(hwnd, getStyle(hwnd) | WS_TABSTOP);
+}

@@ -25,7 +25,7 @@ uintmax_t uiRegisterType(const char *name, uintmax_t parent)
 	return types->len - 1;
 }
 
-void *uiIsA(void *p, uintmax_t id)
+void *uiIsA(void *p, uintmax_t id, int fail)
 {
 	uiTyped *t;
 	struct typeinfo *ti;
@@ -45,9 +45,11 @@ void *uiIsA(void *p, uintmax_t id)
 			break;
 		compareTo = ti->parent;
 	}
-	ti = ptrArrayIndex(types, struct typeInfo *, t->Type);
-	complain("object %p not a %s in uiIsA()", t, ti->name);
-	return NULL;			// make compiler happy
+	if (fail) {
+		ti = ptrArrayIndex(types, struct typeInfo *, t->Type);
+		complain("object %p not a %s in uiIsA()", t, ti->name);
+	}
+	return NULL;
 }
 
 // TODO free type info

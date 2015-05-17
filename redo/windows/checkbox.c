@@ -120,6 +120,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c->onToggled = defaultOnToggled;
 
+	uiControl(c)->Type = uiTypeCheckbox();
 	uiControl(c)->PreferredSize = checkboxPreferredSize;
 
 	uiCheckbox(c)->Text = checkboxText;

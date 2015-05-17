@@ -110,6 +110,7 @@ uiGroup *uiNewGroup(const char *text)
 
 	g->hwnd = (HWND) uiControlHandle(uiControl(g));
 
+	uiControl(g)->Type = uiTypeGroup();
 	uiControl(g)->PreferredSize = groupPreferredSize;
 	g->baseResize = uiControl(g)->Resize;
 	uiControl(g)->Resize = groupResize;

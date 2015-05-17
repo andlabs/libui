@@ -94,6 +94,8 @@ func geniface(i *pgidl.Interface, prefix string) {
 	fmt.Printf("struct %s%s {\n", prefix, i.Name)
 	if i.From != "" {
 		fmt.Printf("\t%s%s base;\n", prefix, i.From)
+	} else {
+		fmt.Printf("\tuintmax_t Type;\n")
 	}
 	for _, f := range i.Fields {
 		fmt.Printf("\t%s;\n", typedecl(f.Type, f.Name))
@@ -113,8 +115,17 @@ func geniface(i *pgidl.Interface, prefix string) {
 		fmt.Printf("%s\n", cmethodmacro(m, prefix + i.Name))
 	}
 	fmt.Printf("};\n")
-	fmt.Printf("#define %s%s(this) ((%s%s *) (this))\n",
+	fmt.Printf("%s uintmax_t %sType%s(void);\n",
+		*extern,
+		prefix, i.Name)
+	fmt.Printf("#define %s%s(this) ((%s%s *) %sIsA((this), %sType%s(), 1))\n",
 		prefix, i.Name,
+		prefix, i.Name,
+		prefix,
+		prefix, i.Name)
+	fmt.Printf("#define %sIs%s(this) (%sIsA((this), %sType%s(), 0) != NULL)\n",
+		prefix, i.Name,
+		prefix,
 		prefix, i.Name)
 }
 

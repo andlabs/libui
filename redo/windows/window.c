@@ -355,6 +355,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	w->onClosing = defaultOnClosing;
 
+	uiControl(w)->Type = uiTypeWindow();
 	uiControl(w)->Destroy = windowDestroy;
 	uiControl(w)->Handle = windowHandle;
 	uiControl(w)->Parent = windowParent;

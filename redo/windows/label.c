@@ -71,6 +71,7 @@ uiLabel *uiNewLabel(const char *text)
 
 	l->hwnd = (HWND) uiControlHandle(uiControl(l));
 
+	uiControl(l)->Type = uiTypeLabel();
 	uiControl(l)->PreferredSize = labelPreferredSize;
 
 	uiLabel(l)->Text = labelText;

@@ -105,6 +105,7 @@ uiButton *uiNewButton(const char *text)
 
 	b->onClicked = defaultOnClicked;
 
+	uiControl(b)->Type = uiTypeButton();
 	uiControl(b)->PreferredSize = buttonPreferredSize;
 
 	uiButton(b)->Text = buttonText;

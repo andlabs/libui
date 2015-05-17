@@ -115,6 +115,7 @@ uiEntry *uiNewEntry(void)
 
 	e->onChanged = defaultOnChanged;
 
+	uiControl(e)->Type = uiTypeEntry();
 	uiControl(e)->PreferredSize = entryPreferredSize;
 
 	uiEntry(e)->Text = entryText;

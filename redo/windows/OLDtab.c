@@ -349,6 +349,7 @@ uiTab *uiNewTab(void)
 	if (SetWindowSubclass(t->hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
 
+	uiControl(t)->Type = uiTypeTab();
 	uiControl(t)->PreferredSize = tabPreferredSize;
 	t->baseResize = uiControl(t)->Resize;
 	uiControl(t)->Resize = tabResize;

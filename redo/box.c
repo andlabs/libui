@@ -270,6 +270,7 @@ uiBox *uiNewHorizontalBox(void)
 
 	b->controls = newPtrArray();
 
+	uiControl(b)->Type = uiTypeBox();
 	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = boxDestroy;
 	b->baseSetParent = uiControl(b)->SetParent;

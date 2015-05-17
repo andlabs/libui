@@ -74,6 +74,7 @@ uiTab *uiNewTab(void)
 
 	t->hwnd = (HWND) uiControlHandle(uiControl(t));
 
+	uiControl(t)->Type = uiTypeTab();
 	uiControl(t)->PreferredSize = tabPreferredSize;
 
 	uiTab(t)->AppendPage = tabAppendPage;

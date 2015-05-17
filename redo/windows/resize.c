@@ -17,9 +17,19 @@ void uninitResizes(void)
 
 void queueResize(uiControl *c)
 {
-	// TODO make this more robust
+	uintmax_t i;
+	uiControl *d;
+
+	// make sure we're only queued once
+	for (i = 0 ; i < resizes->len; i++) {
+		d = ptrArrayIndex(resizes, uiControl *, i);
+		if (c == d)
+			return;
+	}
 	ptrArrayAppend(resizes, c);
 }
+
+// TODO dequeueResize
 
 void doResizes(void)
 {

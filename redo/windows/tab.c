@@ -58,6 +58,7 @@ uiTab *uiNewTab(void)
 	uiWindowsMakeControlParams p;
 
 	t = uiNew(struct tab);
+	uiTyped(t)->Type = uiTypeTab();
 
 	p.dwExStyle = 0;		// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
 	p.lpClassName = WC_TABCONTROLW;
@@ -74,7 +75,6 @@ uiTab *uiNewTab(void)
 
 	t->hwnd = (HWND) uiControlHandle(uiControl(t));
 
-	uiControl(t)->Type = uiTypeTab();
 	uiControl(t)->PreferredSize = tabPreferredSize;
 
 	uiTab(t)->AppendPage = tabAppendPage;

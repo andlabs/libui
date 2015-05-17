@@ -265,12 +265,12 @@ uiBox *uiNewHorizontalBox(void)
 	struct box *b;
 
 	b = uiNew(struct box);
+	uiTyped(b)->Type = uiTypeBox();
 
 	uiMakeContainer(uiControl(b));
 
 	b->controls = newPtrArray();
 
-	uiControl(b)->Type = uiTypeBox();
 	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = boxDestroy;
 	b->baseSetParent = uiControl(b)->SetParent;

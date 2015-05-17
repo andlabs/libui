@@ -85,6 +85,7 @@ uiButton *uiNewButton(const char *text)
 	WCHAR *wtext;
 
 	b = uiNew(struct button);
+	uiTyped(b)->Type = uiTypeButton();
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
@@ -105,7 +106,6 @@ uiButton *uiNewButton(const char *text)
 
 	b->onClicked = defaultOnClicked;
 
-	uiControl(b)->Type = uiTypeButton();
 	uiControl(b)->PreferredSize = buttonPreferredSize;
 
 	uiButton(b)->Text = buttonText;

@@ -33,6 +33,7 @@ func IsA(p *void, type uintmax_t, fail int) *void;
 struct Typed {
 	field Type uintmax_t;
 };
+raw "#define uiTyped(this) ((uiTyped *) (this))";
 
 raw "typedef struct uiSizingSys uiSizingSys;";
 

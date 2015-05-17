@@ -100,6 +100,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	WCHAR *wtext;
 
 	c = uiNew(struct checkbox);
+	uiTyped(c)->Type = uiTypeCheckbox();
 
 	p.dwExStyle = 0;
 	p.lpClassName = L"button";
@@ -120,7 +121,6 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c->onToggled = defaultOnToggled;
 
-	uiControl(c)->Type = uiTypeCheckbox();
 	uiControl(c)->PreferredSize = checkboxPreferredSize;
 
 	uiCheckbox(c)->Text = checkboxText;

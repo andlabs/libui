@@ -329,6 +329,7 @@ uiTab *uiNewTab(void)
 	uiWindowsMakeControlParams p;
 
 	t = uiNew(struct tab);
+	uiTyped(t)->Type = uiTypeTab();
 
 	p.dwExStyle = 0;		// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
 	p.lpClassName = WC_TABCONTROLW;
@@ -349,7 +350,6 @@ uiTab *uiNewTab(void)
 	if (SetWindowSubclass(t->hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
 		logLastError("error subclassing Tab to give it its own resize handler in uiNewTab()");
 
-	uiControl(t)->Type = uiTypeTab();
 	uiControl(t)->PreferredSize = tabPreferredSize;
 	t->baseResize = uiControl(t)->Resize;
 	uiControl(t)->Resize = tabResize;

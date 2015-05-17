@@ -131,6 +131,8 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	}
 
 	item = uiNew(struct menuItem);
+	uiTyped(item)->Type = uiTypeMenuItem();
+
 	m->items[m->len] = item;
 	m->len++;
 
@@ -161,7 +163,6 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	if (item->type == typeQuit)
 		item->onClicked = onQuitClicked;
 
-	uiMenuItem(item)->Type = uiTypeMenuItem();
 	uiMenuItem(item)->Enable = menuItemEnable;
 	uiMenuItem(item)->Disable = menuItemDisable;
 	uiMenuItem(item)->OnClicked = menuItemOnClicked;
@@ -225,12 +226,13 @@ uiMenu *uiNewMenu(const char *name)
 	}
 
 	m = uiNew(struct menu);
+	uiTyped(m)->Type = uiTypeMenu();
+
 	menus[len] = m;
 	len++;
 
 	m->name = toUTF16(name);
 
-	uiMenu(m)->Type = uiTypeMenu();
 	uiMenu(m)->AppendItem = menuAppendItem;
 	uiMenu(m)->AppendCheckItem = menuAppendCheckItem;
 	uiMenu(m)->AppendQuitItem = menuAppendQuitItem;

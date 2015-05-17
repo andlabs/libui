@@ -322,6 +322,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	BOOL hasMenubarBOOL;
 
 	w = uiNew(struct window);
+	uiTyped(w)->Type = uiTypeWindow();
 
 	hasMenubarBOOL = FALSE;
 	if (hasMenubar)
@@ -355,7 +356,6 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	w->onClosing = defaultOnClosing;
 
-	uiControl(w)->Type = uiTypeWindow();
 	uiControl(w)->Destroy = windowDestroy;
 	uiControl(w)->Handle = windowHandle;
 	uiControl(w)->Parent = windowParent;

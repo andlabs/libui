@@ -97,6 +97,7 @@ uiEntry *uiNewEntry(void)
 	uiWindowsMakeControlParams p;
 
 	e = uiNew(struct entry);
+	uiTyped(e)->Type = uiTypeEntry();
 
 	p.dwExStyle = WS_EX_CLIENTEDGE;
 	p.lpClassName = L"edit";
@@ -115,7 +116,6 @@ uiEntry *uiNewEntry(void)
 
 	e->onChanged = defaultOnChanged;
 
-	uiControl(e)->Type = uiTypeEntry();
 	uiControl(e)->PreferredSize = entryPreferredSize;
 
 	uiEntry(e)->Text = entryText;

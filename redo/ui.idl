@@ -28,6 +28,12 @@ func OnShouldQuit(f *func(data *void) int, data *void);
 
 func FreeText(text *char);
 
+func RegisterType(name *const char, parent uintmax_t);
+func IsA(p *void, type uintmax_t);
+struct uiTyped {
+	field Type uintmax_t;
+};
+
 raw "typedef struct uiSizingSys uiSizingSys;";
 
 struct Sizing {

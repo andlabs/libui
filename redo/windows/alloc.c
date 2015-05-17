@@ -76,7 +76,7 @@ void *uiRealloc(void *p, size_t size, const char *type)
 		fprintf(stderr, "memory exhausted in uiRealloc()\n");
 		abort();
 	}
-	return out;
+	return DATA(out);
 }
 
 void uiFree(void *p)

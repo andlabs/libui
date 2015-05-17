@@ -68,13 +68,14 @@ int main(int argc, char *argv[])
 	uiOnShouldQuit(onShouldQuit, w);
 
 	mainBox = newHorizontalBox();
-	uiWindowSetChild(w, uiControl(mainBox));
+//	uiWindowSetChild(w, uiControl(mainBox));
 
 	mainTab = newTab();
 	uiBoxAppend(mainBox, uiControl(mainTab), 1);
 
 	makePage1(w);
-	uiTabAppendPage(mainTab, "Page 1", uiControl(page1));
+//	uiTabAppendPage(mainTab, "Page 1", uiControl(page1));
+	uiWindowSetChild(w, uiControl(page1));
 
 	page2 = makePage2();
 	uiTabAppendPage(mainTab, "Page 2", uiControl(page2));

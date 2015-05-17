@@ -82,7 +82,8 @@ void complain(const char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	fprintf(stderr, "\n");
 	va_end(ap);
-	abort();
+	DebugBreak();
+	abort();		// just in case
 }
 
 // wrapper around MapWindowRect() that handles the complex error handling

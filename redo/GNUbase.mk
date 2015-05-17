@@ -15,6 +15,7 @@ xHFILES = \
 
 OFILES = \
 	$(baseCFILES:%.c=$(OBJDIR)/%.o) \
+	$(IDLFILES:%.idl=$(OBJDIR)/z%typefuncs.o) \
 	$(baseMFILES:%.m=$(OBJDIR)/%.o)
 
 xCFLAGS = \
@@ -59,6 +60,11 @@ $(OUTDIR)/%.h: %.idl tools/idl2h.go | $(OUTDIR)/.phony
 	@echo ====== Generated `basename $@`
 .PRECIOUS: $(OUTDIR)/%.h
 
+z%typefuncs.c: %.idl tools/idl2typefuncs.go
+	@go run tools/idl2typefuncs.go out/ui.h < $< > $@
+	@echo ====== Generated $@
+.PRECIOUS: z%typefuncs.c
+
 clean:
-	rm -rf $(OUTDIR) $(OBJDIR) ui.h
+	rm -rf $(OUTDIR) $(OBJDIR) z*
 .PHONY: clean

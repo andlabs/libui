@@ -35,8 +35,10 @@ void *uiIsA(void *p, uintmax_t id, int fail)
 		complain("invalid type ID given to uiIsA()");
 	t = (uiTyped *) p;
 	compareTo = t->Type;
+	if (compareTo == 0)
+		complain("object %p has no type in uiIsA()", t);
 	for (;;) {
-		if (compareTo == 0 || compareTo >= types->len)
+		if (compareTo >= types->len)
 			complain("invalid type ID in uiIsA()", t);
 		if (compareTo == id)
 			return t;
@@ -46,7 +48,7 @@ void *uiIsA(void *p, uintmax_t id, int fail)
 		compareTo = ti->parent;
 	}
 	if (fail) {
-		ti = ptrArrayIndex(types, struct typeInfo *, t->Type);
+		ti = ptrArrayIndex(types, struct typeinfo *, t->Type);
 		complain("object %p not a %s in uiIsA()", t, ti->name);
 	}
 	return NULL;

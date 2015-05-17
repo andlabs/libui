@@ -161,6 +161,7 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 	if (item->type == typeQuit)
 		item->onClicked = onQuitClicked;
 
+	uiMenuItem(item)->Type = uiTypeMenuItem();
 	uiMenuItem(item)->Enable = menuItemEnable;
 	uiMenuItem(item)->Disable = menuItemDisable;
 	uiMenuItem(item)->OnClicked = menuItemOnClicked;
@@ -229,6 +230,7 @@ uiMenu *uiNewMenu(const char *name)
 
 	m->name = toUTF16(name);
 
+	uiMenu(m)->Type = uiTypeMenu();
 	uiMenu(m)->AppendItem = menuAppendItem;
 	uiMenu(m)->AppendCheckItem = menuAppendCheckItem;
 	uiMenu(m)->AppendQuitItem = menuAppendQuitItem;

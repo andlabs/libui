@@ -24,6 +24,8 @@ static void onDestroy(void *data)
 static void groupPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	// TODO
+	*width = 0;
+	*height = 0;
 }
 
 static void groupSetChild(uiGroup *gg, uiControl *c)

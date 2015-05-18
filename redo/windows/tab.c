@@ -66,6 +66,9 @@ static void onDestroy(void *data)
 	// TODO
 }
 
+// from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
+#define tabMargin 7
+
 static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	// TODO
@@ -98,7 +101,10 @@ static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	mapWindowRect(NULL, dchild->Sys->CoordFrom, &r);
 
 	if (page->margined) {
-		// TODO
+		r.left += uiWindowsDlgUnitsToX(tabMargin, d->Sys->BaseX);
+		r.top += uiWindowsDlgUnitsToY(tabMargin, d->Sys->BaseY);
+		r.right -= uiWindowsDlgUnitsToX(tabMargin, d->Sys->BaseX);
+		r.bottom -= uiWindowsDlgUnitsToY(tabMargin, d->Sys->BaseY);
 	}
 	uiControlResize(page->control, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
 
@@ -153,19 +159,28 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 
 static uintmax_t tabNumPages(uiTab *tt)
 {
-	// TODO
-	return 0;
+	struct tab *t = (struct tab *) tt;
+
+	return t->pages->len;
 }
 
 static int tabMargined(uiTab *tt, uintmax_t n)
 {
-	// TODO
-	return 0;
+	struct tab *t = (struct tab *) tt;
+	struct tabPage *page;
+
+	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	return page->margined;
 }
 
 static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 {
-	// TODO
+	struct tab *t = (struct tab *) tt;
+	struct tabPage *page;
+
+	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	page->margined = margined;
+	uiControlQueueResize(page->control);
 }
 
 uiTab *uiNewTab(void)

@@ -4,6 +4,7 @@
 // TODO
 // - page 2's top is clipped on wine
 // - group on page 2 is wrecking things on real windows
+// - comctl5 on real windows: tabs get drawn behind checkbox
 
 struct tab {
 	uiTab t;

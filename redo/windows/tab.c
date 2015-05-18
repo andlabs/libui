@@ -1,6 +1,10 @@
 // 16 may 2015
 #include "uipriv_windows.h"
 
+// TODO
+// - page 2's top is clipped on wine
+// - group on page 2 is wrecking things on real windows
+
 struct tab {
 	uiTab t;
 	HWND hwnd;

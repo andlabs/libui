@@ -26,7 +26,7 @@ static void movePage1(uiButton *b, void *data)
 {
 	if (moveBack) {
 		uiBoxDelete(mainBox, 1);
-		uiTabInsertBefore(mainTab, "Page 1", 0, uiControl(page1));
+		uiTabInsertAt(mainTab, "Page 1", 0, uiControl(page1));
 		uiButtonSetText(b, moveOutText);
 		moveBack = 0;
 		return;

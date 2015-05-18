@@ -30,7 +30,7 @@ static void tabAppend(uiTab *tt, const char *name, uiControl *child)
 {
 }
 
-static void tabInsertBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
+static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
 {
 }
 
@@ -78,7 +78,7 @@ uiTab *uiNewTab(void)
 	uiControl(t)->PreferredSize = tabPreferredSize;
 
 	uiTab(t)->Append = tabAppend;
-	uiTab(t)->InsertBefore = tabInsertBefore;
+	uiTab(t)->InsertAt = tabInsertAt;
 	uiTab(t)->Delete = tabDelete;
 	uiTab(t)->NumPages = tabNumPages;
 	uiTab(t)->Margined = tabMargined;

@@ -124,7 +124,7 @@ func NewLabel(text *const char) *Label;
 
 interface Tab from Control {
 	func Append(name *const char, c *Control);
-	func InsertBefore(name *const char, before uintmax_t, c *Control);
+	func InsertAt(name *const char, before uintmax_t, c *Control);
 	func Delete(index uintmax_t);
 	func NumPages(void) uintmax_t;
 	func Margined(page uintmax_t) int;

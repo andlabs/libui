@@ -252,7 +252,7 @@ static void tabAppend(uiTab *tt, const char *name, uiControl *child)
 	uiControlQueueResize(page->control);
 }
 
-static void tabInsertBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
+static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
 	TCITEMW item;
@@ -266,14 +266,14 @@ static void tabInsertBefore(uiTab *tt, const char *name, uintmax_t n, uiControl 
 	// always hide; the current tab doesn't change
 	uiControlHide(page->control);
 
-	ptrArrayInsertBefore(t->pages, n, page);
+	ptrArrayInsertAt(t->pages, n, page);
 
 	ZeroMemory(&item, sizeof (TCITEMW));
 	item.mask = TCIF_TEXT;
 	wname = toUTF16(name);
 	item.pszText = wname;
 	if (SendMessageW(t->hwnd, TCM_INSERTITEM, (WPARAM) n, (LPARAM) (&item)) == (LRESULT) -1)
-		logLastError("error adding tab to Tab in uiTabInsertBefore()");
+		logLastError("error adding tab to Tab in uiTabInsertAt()");
 	uiFree(wname);
 }
 
@@ -363,7 +363,7 @@ uiTab *uiNewTab(void)
 	uiControl(t)->SysFunc = tabSysFunc;
 
 	uiTab(t)->Append = tabAppend;
-	uiTab(t)->InsertBefore = tabInsertBefore;
+	uiTab(t)->InsertAt = tabInsertAt;
 	uiTab(t)->Delete = tabDelete;
 	uiTab(t)->NumPages = tabNumPages;
 	uiTab(t)->Margined = tabMargined;

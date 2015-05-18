@@ -21,13 +21,13 @@ void ptrArrayDestroy(struct ptrArray *p)
 
 void ptrArrayAppend(struct ptrArray *p, void *d)
 {
-	ptrArrayInsertBefore(p, p->len, d);
+	ptrArrayInsertAt(p, p->len, d);
 }
 
-void ptrArrayInsertBefore(struct ptrArray *p, uintmax_t i, void *d)
+void ptrArrayInsertAt(struct ptrArray *p, uintmax_t i, void *d)
 {
 	if (i > p->len)
-		complain("index out of range in ptrArrayInsertBefore()");
+		complain("index out of range in ptrArrayInsertAt()");
 	if (p->len >= p->cap) {
 		p->cap += grow;
 		p->ptrs = (void **) uiRealloc(p->ptrs, p->cap * sizeof (void *), "void *[]");

@@ -28,9 +28,9 @@ notes to self
 - explicitly document label position at top-left corner
 - mark that uiControlShow() on a uiWindow() will bring to front and give keyboard focus because of OS X
 	- make sure ShowWindow() is sufficient for zorder on Windows
-- document that you CAN use InsertBefore functions to insert at the first invalid index, even if the array is empty
+- document that you CAN use InsertAt functions to insert at the first invalid index, even if the array is empty
 	- add tests for this
-- note that uiTabInsertPageBefore() does NOT change the current tab page (it may change its index if inserting before the current page)
+- note that uiTabInsertAt() does NOT change the current tab page (it may change its index if inserting before the current page)
 - note that the default action for uiWindowOnClosing() is to return 0 (keep the window open)
 - note that uiInitOptions should be initialized to zero
 - explicitly document that uiCheckboxSetChecked() and uiEntrySetText() do not fire uiCheckboxOnToggled() and uiEntryOnChanged(), respectively

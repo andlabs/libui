@@ -59,7 +59,7 @@ static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 {
 	struct singleHWND *s = (struct singleHWND *) (c->Internal);
 
-	moveWindow(s->hwnd, x, y, width, height);
+	moveWindow(s->hwnd, x, y, width, height, d);
 }
 
 static void singleQueueResize(uiControl *c)

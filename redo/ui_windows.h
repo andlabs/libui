@@ -38,10 +38,13 @@ _UI_EXTERN void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p
 // This contains the Windows-specific parts of the uiSizing structure.
 // BaseX and BaseY are the dialog base units.
 // InternalLeading is the standard control font's internal leading; labels in uiForms use this for correct Y positioning.
+// CoordFrom and CoordTo are the window handles to convert coordinates passed to uiControlResize() from and to (viaa MapWindowRect()) before passing to one of the Windows API resizing functions.
 struct uiSizingSys {
 	int BaseX;
 	int BaseY;
 	LONG InternalLeading;
+	HWND CoordFrom;
+	HWND CoordTo;
 };
 // Use these in your preferredSize() implementation with baseX and baseY.
 #define uiWindowsDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)

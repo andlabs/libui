@@ -15,19 +15,27 @@ void uninitResizes(void)
 	ptrArrayDestroy(resizes);
 }
 
+static uiControl *findToplevel(uiControl *c)
+{
+	for (;;) {
+		if (uiIsWindow(c))
+			break;
+		if (uiControlParent(c) == NULL)		// not in a window
+			return NULL;
+		c = uiControlParent(c);
+	}
+	return c;
+}
+
 void queueResize(uiControl *c)
 {
 	uintmax_t i;
 	uiControl *d;
 
 	// resizing a control requires us to reocmpute the sizes of everything in the top-level window
-	for (;;) {
-		if (uiIsWindow(c))
-			break;
-		if (uiControlParent(c) == NULL)		// not in a window; don't bother resizing
-			return;
-		c = uiControlParent(c);
-	}
+	c = findToplevel(c);
+	if (c == NULL)
+		return;
 	// make sure we're only queued once
 	for (i = 0 ; i < resizes->len; i++) {
 		d = ptrArrayIndex(resizes, uiControl *, i);
@@ -58,12 +66,20 @@ void doResizes(void)
 
 #define swpflags (SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW)
 
-void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	if (SetWindowPos(hwnd, NULL, x, y, width, height, swpflags | SWP_NOZORDER) == 0)
+	RECT r;
+
+	r.left = x;
+	r.top = y;
+	r.right = x + width;
+	r.bottom = y + height;
+	mapWindowRect(d->Sys->CoordFrom, d->Sys->CoordTo, &r);
+	if (SetWindowPos(hwnd, NULL, r.left, r.top, r.right - r.left, r.bottom - r.top, swpflags | SWP_NOZORDER) == 0)
 		logLastError("error moving window in moveWindow()");
 }
 
+// TODO
 void moveAndReorderWindow(HWND hwnd, HWND insertAfter, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
 	if (SetWindowPos(hwnd, insertAfter, x, y, width, height, swpflags) == 0)
@@ -83,6 +99,7 @@ uiSizing *uiWindowsSizing(uiControl *c)
 	HFONT prevfont;
 	TEXTMETRICW tm;
 	SIZE size;
+	uiControl *toplevel;
 
 	d = uiNew(uiSizing);
 	d->Sys = uiNew(uiSizingSys);
@@ -113,6 +130,13 @@ uiSizing *uiWindowsSizing(uiControl *c)
 
 	d->XPadding = uiWindowsDlgUnitsToX(winXPadding, d->Sys->BaseX);
 	d->YPadding = uiWindowsDlgUnitsToY(winYPadding, d->Sys->BaseY);
+
+	toplevel = findToplevel(c);
+	if (toplevel != NULL)
+		d->Sys->CoordFrom = (HWND) uiControlHandle(toplevel);
+	d->Sys->CoordTo = hwnd;
+
+	return d;
 }
 
 void uiFreeSizing(uiSizing *d)

@@ -68,7 +68,7 @@ extern void initResizes(void);
 extern void uninitResizes(void);
 extern void queueResize(uiControl *);
 extern void doResizes(void);
-extern void moveWindow(HWND, intmax_t, intmax_t, intmax_t, intmax_t);
+extern void moveWindow(HWND, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 extern void moveAndReorderWindow(HWND, HWND, intmax_t, intmax_t, intmax_t, intmax_t);
 
 // utilwindow.c

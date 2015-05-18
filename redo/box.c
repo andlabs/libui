@@ -92,6 +92,7 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
 		if (!uiControlContainerVisible(bc->c))
 			continue;
+		// TODO dchild
 		uiControlPreferredSize(bc->c, d, &preferredWidth, &preferredHeight);
 		if (bc->stretchy) {
 			nStretchy++;
@@ -129,11 +130,9 @@ static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	intmax_t stretchywid, stretchyht;
 	uintmax_t i;
 	intmax_t preferredWidth, preferredHeight;
+	uiSizing *dchild;
 
 	(*(b->baseResize))(uiControl(b), x, y, width, height, d);
-	// TODO
-	x = 0;
-	y = 0;
 
 	if (b->controls->len == 0)
 		return;
@@ -195,16 +194,18 @@ static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	}
 
 	// 3) now we can position controls
+	dchild = uiControlSizing(uiControl(b));
 	for (i = 0; i < b->controls->len; i++) {
 		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
 		if (!uiControlContainerVisible(bc->c))
 			continue;
-		uiControlResize(bc->c, x, y, bc->width, bc->height, d);
+		uiControlResize(bc->c, x, y, bc->width, bc->height, dchild);
 		if (b->vertical)
 			y += bc->height + ypadding;
 		else
 			x += bc->width + xpadding;
 	}
+	uiFreeSizing(dchild);
 }
 
 static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)

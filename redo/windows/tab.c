@@ -64,23 +64,32 @@ static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	LRESULT n;
 	struct tabPage *page;
 	RECT r;
+	uiSizing *dchild;
 
 	(*(t->baseResize))(uiControl(t), x, y, width, height, d);
 	n = curpage(t);
 	if (n == (LRESULT) (-1))
 		return;
 	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+
+	dchild = uiControlSizing(uiControl(t));
+
+	// now we need to figure out what rect the child goes
+	// this rect needs to be in toplevel window coordinates, but TCM_ADJUSTRECT wants a window rect, which is screen coordinates
 	r.left = x;
 	r.top = y;
 	r.right = x + width;
 	r.bottom = y + height;
-	// TODO convert from parent window coordinates to screen coordinates
+	mapWindowRect(dchild->Sys->CoordFrom, NULL, &r);
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) FALSE, (LPARAM) (&r));
-	// TODO convert back to parent window coordinates
+	mapWindowRect(NULL, dchild->Sys->CoordFrom, &r);
+
 	if (page->margined) {
 		// TODO
 	}
-	uiControlResize(page->control, x, y, width, height, d);
+	uiControlResize(page->control, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
+
+	uiFreeSizing(dchild);
 }
 
 static void tabAppend(uiTab *tt, const char *name, uiControl *child)
@@ -104,6 +113,8 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 	page = uiNew(struct tabPage);
 	page->control = child;
 	uiControlSetParent(page->control, uiControl(t));
+	// and make it invisible at first; we show it later if needed
+	uiControlContainerHide(page->control);
 	ptrArrayInsertAt(t->pages, n, page);
 
 	ZeroMemory(&item, sizeof (TCITEMW));

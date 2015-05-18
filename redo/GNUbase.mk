@@ -5,7 +5,6 @@ OUTDIR = out
 OBJDIR = .obj
 
 IDLFILES = \
-	ui.idl \
 	$(baseIDLFILES)
 
 xHFILES = \

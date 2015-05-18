@@ -16,7 +16,8 @@ endif
 
 include $(OS)/GNUmakeinc.mk
 
-#baseIDLFILES = \
+baseIDLFILES = \
+	ui.idl
 #	ui_$(OS).idl
 
 baseHFILES = \

@@ -43,7 +43,6 @@ void *uiIsA(void *p, uintmax_t id, int fail)
 		if (compareTo == id)
 			return t;
 		ti = ptrArrayIndex(types, struct typeinfo *, compareTo);
-printf("%d %d %d\n", (int)compareTo, (int)(ti->parent), (int)id);
 		if (ti->parent == 0)
 			break;
 		compareTo = ti->parent;

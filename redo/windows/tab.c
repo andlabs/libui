@@ -45,7 +45,15 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 
 static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 {
-	return FALSE;
+	struct tab *t = (struct tab *) c;
+
+	if (nm->code != TCN_SELCHANGING && nm->code != TCN_SELCHANGE)
+		return FALSE;
+	showHidePage(t, curpage(t), nm->code == TCN_SELCHANGING);
+	*lResult = 0;
+	if (nm->code == TCN_SELCHANGING)
+		*lResult = FALSE;
+	return TRUE;
 }
 
 static void onDestroy(void *data)

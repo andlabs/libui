@@ -3,6 +3,7 @@
 
 // TODO
 // - comctl5 on real windows: tabs get drawn behind checkbox
+// - moving page 1 out doesn't actually move it out
 
 struct tab {
 	uiTab t;
@@ -152,7 +153,22 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 
 static void tabDelete(uiTab *tt, uintmax_t n)
 {
-	// TODO
+	struct tab *t = (struct tab *) tt;
+	struct tabPage *page;
+
+	// first delete the tab from the tab control
+	// if this is the current tab, no tab will be selected, which is good
+	if (SendMessageW(t->hwnd, TCM_DELETEITEM, (WPARAM) n, 0) == FALSE)
+		logLastError("error deleting uiTab tab in tabDelete()");
+
+	// now delete the page itself
+	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	ptrArrayDelete(t->pages, n);
+
+	// and keep the page control alive
+	uiControlSetParent(page->control, NULL);
+
+	uiFree(page);
 }
 
 static uintmax_t tabNumPages(uiTab *tt)

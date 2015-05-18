@@ -20,6 +20,14 @@ void queueResize(uiControl *c)
 	uintmax_t i;
 	uiControl *d;
 
+	// resizing a control requires us to reocmpute the sizes of everything in the top-level window
+	for (;;) {
+		if (uiIsWindow(c))
+			break;
+		if (uiControlParent(c) == NULL)		// not in a window; don't bother resizing
+			return;
+		c = uiControlParent(c);
+	}
 	// make sure we're only queued once
 	for (i = 0 ; i < resizes->len; i++) {
 		d = ptrArrayIndex(resizes, uiControl *, i);
@@ -33,23 +41,14 @@ void queueResize(uiControl *c)
 
 void doResizes(void)
 {
-	uiControl *c, *parent;
-	intmax_t x, y, width, height;
-	uiSizing d;
-	uiSizingSys sys;
+	uiWindow *w;
 	HWND hwnd;
 
 	while (resizes->len != 0) {
-		c = ptrArrayIndex(resizes, uiControl *, 0);
+		w = ptrArrayIndex(resizes, uiWindow *, 0);
 		ptrArrayDelete(resizes, 0);
-		parent = uiControlParent(c);
-		if (parent == NULL)		// not in a parent; can't resize
-			continue;			// this is for uiBox, etc.
-		d.Sys = &sys;
-		uiControlGetSizing(parent, &d);
-		uiControlComputeChildSize(parent, &x, &y, &width, &height, &d);
-		uiControlResize(c, x, y, width, height, &d);
-		hwnd = (HWND) uiControlHandle(c);
+		uiWindowResizeChild(w);
+		hwnd = (HWND) uiControlHandle(uiControl(w));
 		// we used SWP_NOREDRAW; we need to queue a redraw ourselves
 		// TODO use RedrawWindow() to bypass WS_CLIPCHILDREN complications
 		if (InvalidateRect(hwnd, NULL, TRUE) == 0)

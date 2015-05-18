@@ -41,8 +41,10 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
+		// wine sends this early so we have to guard
+		// TODO does real windows?
 		if (w->child != NULL)
-			uiControlQueueResize(w->child);
+			uiControlQueueResize(uiControl(w));
 		return 0;
 	case WM_CLOSE:
 		if ((*(w->onClosing))(uiWindow(w), w->onClosingData))
@@ -128,31 +130,12 @@ static void windowResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, i
 
 static void windowQueueResize(uiControl *c)
 {
-	complain("attempt to queue a resize of the uiWindow at %p", c);
+	queueResize(c);
 }
 
 static void windowGetSizing(uiControl *c, uiSizing *d)
 {
 	uiWindowsGetSizing(c, d);
-}
-
-// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define windowMargin 7
-
-static void windowComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intmax_t *width, intmax_t *height, uiSizing *d)
-{
-	struct window *w = (struct window *) c;
-	RECT r;
-
-	if (GetClientRect(w->hwnd, &r) == 0)
-		logLastError("error getting uiWindow client rect in windowComputeChildSize()");
-	*x = r.left;
-	*y = r.top;
-	*width = r.right - r.left;
-	*height = r.bottom - r.top;
-	if (w->margined) {
-		// TODO
-	}
 }
 
 static int windowContainerVisible(uiControl *c)
@@ -171,8 +154,7 @@ static void windowShow(uiControl *c)
 	}
 	w->shownOnce = TRUE;
 	// make sure the child is the correct size
-	if (w->child != NULL)
-		uiControlQueueResize(w->child);
+	uiControlQueueResize(uiControl(w));
 	ShowWindow(w->hwnd, nCmdShow);
 	if (UpdateWindow(w->hwnd) == 0)
 		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");
@@ -272,8 +254,10 @@ static void windowSetChild(uiWindow *ww, uiControl *child)
 	if (w->child != NULL)
 		uiControlSetParent(w->child, NULL);
 	w->child = child;
-	uiControlSetParent(w->child, uiControl(w));
-	uiControlQueueResize(w->child);
+	if (w->child != NULL) {
+		uiControlSetParent(w->child, uiControl(w));
+		uiControlQueueResize(w->child);
+	}
 }
 
 static int windowMargined(uiWindow *ww)
@@ -288,8 +272,29 @@ static void windowSetMargined(uiWindow *ww, int margined)
 	struct window *w = (struct window *) ww;
 
 	w->margined = margined;
-	if (w->child != NULL)
-		uiControlQueueResize(w->child);
+	uiControlQueueResize(uiControl(w));
+}
+
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
+#define windowMargin 7
+
+static void windowResizeChild(uiControl *c)
+{
+	struct window *w = (struct window *) c;
+	RECT r;
+	uiSizing d;
+	uiSizingSys sys;
+
+	if (w->child == NULL)
+		return;
+	if (GetClientRect(w->hwnd, &r) == 0)
+		logLastError("error getting uiWindow client rect in windowComputeChildSize()");
+	if (w->margined) {
+		// TODO
+	}
+	d.Sys = &sys;
+	uiControlGetSizing(uiControl(w), &d);
+	uiControlResize(w->child, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
@@ -364,7 +369,6 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiControl(w)->Resize = windowResize;
 	uiControl(w)->QueueResize = windowQueueResize;
 	uiControl(w)->GetSizing = windowGetSizing;
-	uiControl(w)->ComputeChildSize = windowComputeChildSize;
 	uiControl(w)->ContainerVisible = windowContainerVisible;
 	uiControl(w)->Show = windowShow;
 	uiControl(w)->Hide = windowHide;
@@ -383,6 +387,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindow(w)->SetChild = windowSetChild;
 	uiWindow(w)->Margined = windowMargined;
 	uiWindow(w)->SetMargined = windowSetMargined;
+	uiWindow(w)->ResizeChild = windowResizeChild;
 
 	return uiWindow(w);
 }

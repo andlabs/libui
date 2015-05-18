@@ -78,6 +78,7 @@ interface Window from Control {
 	func SetChild(c *Control);
 	func Margined(void) int;
 	func SetMargined(margined int);
+	func ResizeChild(void);
 };
 func NewWindow(title *const char, width int, height int, hasMenubar int) *Window;
 

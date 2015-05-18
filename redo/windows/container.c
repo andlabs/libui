@@ -70,20 +70,6 @@ static void onDestroy(void *data)
 	// do nothing
 }
 
-static void containerComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intmax_t *width, intmax_t *height, uiSizing *d)
-{
-	HWND hwnd;
-	RECT r;
-
-	hwnd = (HWND) uiControlHandle(c);
-	if (GetClientRect(hwnd, &r) == 0)
-		logLastError("error getting container client rect in containerComputeChildSize()");
-	*x = r.left;
-	*y = r.top;
-	*width = r.right - r.left;
-	*height = r.bottom - r.top;
-}
-
 void uiMakeContainer(uiControl *c)
 {
 	uiWindowsMakeControlParams p;
@@ -100,6 +86,4 @@ void uiMakeContainer(uiControl *c)
 	p.onDestroy = onDestroy;
 	p.onDestroyData = NULL;
 	uiWindowsMakeControl(c, &p);
-
-	uiControl(c)->ComputeChildSize = containerComputeChildSize;
 }

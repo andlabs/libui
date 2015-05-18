@@ -55,7 +55,7 @@ interface Control {
 	func PreferredSize(d *Sizing, width *intmax_t, height *intmax_t);
 	func Resize(x intmax_t, y intmax_t, width intmax_t, height intmax_t, d *Sizing);
 	func QueueResize(void);
-	func GetSizing(d *Sizing);
+	func Sizing(void) *Sizing;
 	func ContainerVisible(void) int;
 	func Show(void);
 	func Hide(void);
@@ -68,6 +68,8 @@ interface Control {
 	func SysFunc(p *uiControlSysFuncParams);
 	func StartZOrder(p *uiControlSysFuncParams) int;
 };
+
+func FreeSizing(d *Sizing);
 
 func MakeContainer(c *Control);
 

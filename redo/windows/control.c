@@ -67,9 +67,9 @@ static void singleQueueResize(uiControl *c)
 	queueResize(c);
 }
 
-static void singleGetSizing(uiControl *c, uiSizing *d)
+static uiSizing *singleSizing(uiControl *c)
 {
-	uiWindowsGetSizing(c, d);
+	return uiWindowsSizing(c);
 }
 
 static int singleContainerVisible(uiControl *c)
@@ -236,7 +236,7 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 	// PreferredSize() implemented by the individual controls
 	uiControl(c)->Resize = singleResize;
 	uiControl(c)->QueueResize = singleQueueResize;
-	uiControl(c)->GetSizing = singleGetSizing;
+	uiControl(c)->Sizing = singleSizing;
 	uiControl(c)->ContainerVisible = singleContainerVisible;
 	uiControl(c)->Show = singleShow;
 	uiControl(c)->Hide = singleHide;

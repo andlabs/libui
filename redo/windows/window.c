@@ -135,9 +135,9 @@ static void windowQueueResize(uiControl *c)
 	queueResize(c);
 }
 
-static void windowGetSizing(uiControl *c, uiSizing *d)
+static uiSizing *windowSizing(uiControl *c)
 {
-	uiWindowsGetSizing(c, d);
+	return uiWindowsSizing(c);
 }
 
 static int windowContainerVisible(uiControl *c)
@@ -284,8 +284,7 @@ static void windowResizeChild(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 	RECT r;
-	uiSizing d;
-	uiSizingSys sys;
+	uiSizing *d;
 
 	if (w->child == NULL)
 		return;
@@ -294,9 +293,9 @@ static void windowResizeChild(uiControl *c)
 	if (w->margined) {
 		// TODO
 	}
-	d.Sys = &sys;
-	uiControlGetSizing(uiControl(w), &d);
-	uiControlResize(w->child, r.left, r.top, r.right - r.left, r.bottom - r.top, &d);
+	d = uiControlSizing(uiControl(w));
+	uiControlResize(w->child, r.left, r.top, r.right - r.left, r.bottom - r.top, d);
+	uiFreeSizing(d);
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
@@ -370,7 +369,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiControl(w)->PreferredSize = windowPreferredSize;
 	uiControl(w)->Resize = windowResize;
 	uiControl(w)->QueueResize = windowQueueResize;
-	uiControl(w)->GetSizing = windowGetSizing;
+	uiControl(w)->Sizing = windowSizing;
 	uiControl(w)->ContainerVisible = windowContainerVisible;
 	uiControl(w)->Show = windowShow;
 	uiControl(w)->Hide = windowHide;

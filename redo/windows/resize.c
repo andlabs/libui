@@ -75,38 +75,48 @@ void moveAndReorderWindow(HWND hwnd, HWND insertAfter, intmax_t x, intmax_t y, i
 #define winXPadding 4
 #define winYPadding 4
 
-void uiWindowsGetSizing(uiControl *c, uiSizing *d)
+uiSizing *uiWindowsSizing(uiControl *c)
 {
+	uiSizing *d;
 	HWND hwnd;
 	HDC dc;
 	HFONT prevfont;
 	TEXTMETRICW tm;
 	SIZE size;
 
+	d = uiNew(uiSizing);
+	d->Sys = uiNew(uiSizingSys);
+
 	hwnd = (HWND) uiControlHandle(c);
 
 	dc = GetDC(hwnd);
 	if (dc == NULL)
-		logLastError("error getting DC in uiWindowsGetSizing()");
+		logLastError("error getting DC in uiWindowsSizing()");
 	prevfont = (HFONT) SelectObject(dc, hMessageFont);
 	if (prevfont == NULL)
-		logLastError("error loading control font into device context in uiWindowsGetSizing()");
+		logLastError("error loading control font into device context in uiWindowsSizing()");
 
 	ZeroMemory(&tm, sizeof (TEXTMETRICW));
 	if (GetTextMetricsW(dc, &tm) == 0)
-		logLastError("error getting text metrics in uiWindowsGetSizing()");
+		logLastError("error getting text metrics in uiWindowsSizing()");
 	if (GetTextExtentPoint32W(dc, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &size) == 0)
-		logLastError("error getting text extent point in uiWindowsGetSizing()");
+		logLastError("error getting text extent point in uiWindowsSizing()");
 
 	d->Sys->BaseX = (int) ((size.cx / 26 + 1) / 2);
 	d->Sys->BaseY = (int) tm.tmHeight;
 	d->Sys->InternalLeading = tm.tmInternalLeading;
 
 	if (SelectObject(dc, prevfont) != hMessageFont)
-		logLastError("error restoring previous font into device context in uiWindowsGetSizing()");
+		logLastError("error restoring previous font into device context in uiWindowsSizing()");
 	if (ReleaseDC(hwnd, dc) == 0)
-		logLastError("error releasing DC in uiWindowsGetSizing()");
+		logLastError("error releasing DC in uiWindowsSizing()");
 
 	d->XPadding = uiWindowsDlgUnitsToX(winXPadding, d->Sys->BaseX);
 	d->YPadding = uiWindowsDlgUnitsToY(winYPadding, d->Sys->BaseY);
+}
+
+void uiFreeSizing(uiSizing *d)
+{
+	uiFree(d->Sys);
+	uiFree(d);
 }

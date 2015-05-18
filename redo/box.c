@@ -7,8 +7,6 @@ struct box {
 	void (*baseDestroy)(uiControl *);
 	struct ptrArray *controls;
 	int vertical;
-	void (*baseSetParent)(uiControl *, uiControl *);
-	uiControl *parent;
 	int padded;
 	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 };
@@ -25,8 +23,6 @@ static void boxDestroy(uiControl *c)
 	struct box *b = (struct box *) c;
 	struct boxControl *bc;
 
-	if (b->parent != NULL)
-		complain("attempt to destroy uiBox %p while it has a parent", b);
 	// don't chain up to base here; we need to destroy children ourselves first
 	while (b->controls->len != 0) {
 		bc = ptrArrayIndex(b->controls, struct boxControl *, 0);
@@ -39,16 +35,6 @@ static void boxDestroy(uiControl *c)
 	// NOW we can chain up to base
 	(*(b->baseDestroy))(uiControl(b));
 	uiFree(b);
-}
-
-static void boxSetParent(uiControl *c, uiControl *parent)
-{
-	struct box *b = (struct box *) c;
-
-	// this does all the actual work
-	(*(b->baseSetParent))(uiControl(b), parent);
-	// we just need to have a copy of the parent ourselves for boxSetPadded()
-	b->parent = parent;
 }
 
 static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -277,8 +263,6 @@ uiBox *uiNewHorizontalBox(void)
 
 	b->baseDestroy = uiControl(b)->Destroy;
 	uiControl(b)->Destroy = boxDestroy;
-	b->baseSetParent = uiControl(b)->SetParent;
-	uiControl(b)->SetParent = boxSetParent;
 	uiControl(b)->PreferredSize = boxPreferredSize;
 	b->baseResize = uiControl(b)->Resize;
 	uiControl(b)->Resize = boxResize;

@@ -5,11 +5,14 @@
 
 static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-/* TODO
 	RECT r;
 	HDC dc;
 	PAINTSTRUCT ps;
+	LRESULT lResult;
 
+	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
+		return lResult;
+/* TODO
 	switch (uMsg) {
 	case WM_PAINT:
 		dc = BeginPaint(hwnd, &ps);

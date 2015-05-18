@@ -20,6 +20,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	RECT r;
+	LRESULT lResult;
 
 	w = (struct window *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
@@ -28,7 +29,8 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		// fall through to DefWindowProc() anyway
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	}
-	// TODO container stuff
+	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
+		return lResult;
 	switch (uMsg) {
 	case WM_COMMAND:
 		// not a menu

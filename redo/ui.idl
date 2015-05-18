@@ -56,7 +56,6 @@ interface Control {
 	func Resize(x intmax_t, y intmax_t, width intmax_t, height intmax_t, d *Sizing);
 	func QueueResize(void);
 	func GetSizing(d *Sizing);
-	func ComputeChildSize(x *intmax_t, y *intmax_t, width *intmax_t, height *intmax_t, d *Sizing);
 	func ContainerVisible(void) int;
 	func Show(void);
 	func Hide(void);

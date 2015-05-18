@@ -72,11 +72,6 @@ static void singleGetSizing(uiControl *c, uiSizing *d)
 	uiWindowsGetSizing(c, d);
 }
 
-static void singleComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intmax_t *width, intmax_t *height, uiSizing *d)
-{
-	complain("attempt to call uiControlComputeChildSize() on a non-container");
-}
-
 static int singleContainerVisible(uiControl *c)
 {
 	struct singleHWND *s = (struct singleHWND *) (c->Internal);
@@ -242,7 +237,6 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 	uiControl(c)->Resize = singleResize;
 	uiControl(c)->QueueResize = singleQueueResize;
 	uiControl(c)->GetSizing = singleGetSizing;
-	uiControl(c)->ComputeChildSize = singleComputeChildSize;
 	uiControl(c)->ContainerVisible = singleContainerVisible;
 	uiControl(c)->Show = singleShow;
 	uiControl(c)->Hide = singleHide;

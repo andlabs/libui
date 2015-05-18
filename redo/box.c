@@ -131,6 +131,9 @@ static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	intmax_t preferredWidth, preferredHeight;
 
 	(*(b->baseResize))(uiControl(b), x, y, width, height, d);
+	// TODO
+	x = 0;
+	y = 0;
 
 	if (b->controls->len == 0)
 		return;

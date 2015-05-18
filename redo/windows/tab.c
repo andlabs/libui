@@ -26,15 +26,15 @@ static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 	// TODO
 }
 
-static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
+static void tabAppend(uiTab *tt, const char *name, uiControl *child)
 {
 }
 
-static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
+static void tabInsertBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
 {
 }
 
-static void tabDeletePage(uiTab *tt, uintmax_t n)
+static void tabDelete(uiTab *tt, uintmax_t n)
 {
 }
 
@@ -77,9 +77,9 @@ uiTab *uiNewTab(void)
 
 	uiControl(t)->PreferredSize = tabPreferredSize;
 
-	uiTab(t)->AppendPage = tabAppendPage;
-	uiTab(t)->InsertPageBefore = tabInsertPageBefore;
-	uiTab(t)->DeletePage = tabDeletePage;
+	uiTab(t)->Append = tabAppend;
+	uiTab(t)->InsertBefore = tabInsertBefore;
+	uiTab(t)->Delete = tabDelete;
 	uiTab(t)->NumPages = tabNumPages;
 	uiTab(t)->Margined = tabMargined;
 	uiTab(t)->SetMargined = tabSetMargined;

@@ -20,7 +20,6 @@ ultimately:
 	- Windows: requires getting current menu state when amending it in sync()
 - figure out where we should return HRESULTs
 - Windows: don't abort if a cleanup function fails?
-- drop "Page" from uiTab method names? (uiTabAppendPage() -> uiTabAppend())
 - make it so Windows API calls that do logLastError(), etc. abort whatever they're doing and not try to continue, just like wintable
 - 32-bit Mac OS X support (requires lots of code changes)
 	- change the build system to be more receptive to arch changes

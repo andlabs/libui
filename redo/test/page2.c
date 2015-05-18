@@ -26,12 +26,12 @@ static void movePage1(uiButton *b, void *data)
 {
 	if (moveBack) {
 		uiBoxDelete(mainBox, 1);
-		uiTabInsertPageBefore(mainTab, "Page 1", 0, uiControl(page1));
+		uiTabInsertBefore(mainTab, "Page 1", 0, uiControl(page1));
 		uiButtonSetText(b, moveOutText);
 		moveBack = 0;
 		return;
 	}
-	uiTabDeletePage(mainTab, 0);
+	uiTabDelete(mainTab, 0);
 	uiBoxAppend(mainBox, uiControl(page1), 1);
 	uiButtonSetText(b, moveBackText);
 	moveBack = 1;
@@ -156,8 +156,8 @@ uiBox *makePage2(void)
 	uiBoxAppend(page2, uiControl(hbox), 0);
 
 	disabledTab = newTab();
-	uiTabAppendPage(disabledTab, "Disabled", uiControl(uiNewButton("Button")));
-	uiTabAppendPage(disabledTab, "Tab", uiControl(uiNewLabel("Label")));
+	uiTabAppend(disabledTab, "Disabled", uiControl(uiNewButton("Button")));
+	uiTabAppend(disabledTab, "Tab", uiControl(uiNewLabel("Label")));
 	uiControlDisable(uiControl(disabledTab));
 	uiBoxAppend(page2, uiControl(disabledTab), 1);
 

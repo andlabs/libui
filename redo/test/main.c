@@ -74,16 +74,16 @@ int main(int argc, char *argv[])
 	uiBoxAppend(mainBox, uiControl(mainTab), 1);
 
 	makePage1(w);
-//	uiTabAppendPage(mainTab, "Page 1", uiControl(page1));
+//	uiTabAppend(mainTab, "Page 1", uiControl(page1));
 	uiWindowSetChild(w, uiControl(page1));
 
 	page2 = makePage2();
-	uiTabAppendPage(mainTab, "Page 2", uiControl(page2));
+	uiTabAppend(mainTab, "Page 2", uiControl(page2));
 
-	uiTabAppendPage(mainTab, "Empty Page", uiControl(uiNewHorizontalBox()));
+	uiTabAppend(mainTab, "Empty Page", uiControl(uiNewHorizontalBox()));
 
 	page3 = makePage3();
-	uiTabAppendPage(mainTab, "Page 3", uiControl(page3));
+	uiTabAppend(mainTab, "Page 3", uiControl(page3));
 
 	uiControlShow(uiControl(w));
 	uiMain();

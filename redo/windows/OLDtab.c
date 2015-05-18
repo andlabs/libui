@@ -219,7 +219,7 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 #define tabCapGrow 32
 
-static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
+static void tabAppend(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
 	TCITEMW item;
@@ -252,7 +252,7 @@ static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
 	uiControlQueueResize(page->control);
 }
 
-static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
+static void tabInsertBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
 	TCITEMW item;
@@ -273,11 +273,11 @@ static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiCont
 	wname = toUTF16(name);
 	item.pszText = wname;
 	if (SendMessageW(t->hwnd, TCM_INSERTITEM, (WPARAM) n, (LPARAM) (&item)) == (LRESULT) -1)
-		logLastError("error adding tab to Tab in uiTabInsertPageBefore()");
+		logLastError("error adding tab to Tab in uiTabInsertBefore()");
 	uiFree(wname);
 }
 
-static void tabDeletePage(uiTab *tt, uintmax_t n)
+static void tabDelete(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
 	struct tabPage *page;
@@ -285,7 +285,7 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	// first delete the tab from the tab control
 	// if this is the current tab, no tab will be selected, which is good
 	if (SendMessageW(t->hwnd, TCM_DELETEITEM, (WPARAM) n, 0) == FALSE)
-		logLastError("error deleting Tab page in tabDeletePage()");
+		logLastError("error deleting Tab page in tabDelete()");
 
 	// now delete the page itself
 	page = ptrArrayIndex(t->pages, struct tabPage *, n);
@@ -362,9 +362,9 @@ uiTab *uiNewTab(void)
 	t->baseSysFunc = uiControl(t)->SysFunc;
 	uiControl(t)->SysFunc = tabSysFunc;
 
-	uiTab(t)->AppendPage = tabAppendPage;
-	uiTab(t)->InsertPageBefore = tabInsertPageBefore;
-	uiTab(t)->DeletePage = tabDeletePage;
+	uiTab(t)->Append = tabAppend;
+	uiTab(t)->InsertBefore = tabInsertBefore;
+	uiTab(t)->Delete = tabDelete;
 	uiTab(t)->NumPages = tabNumPages;
 	uiTab(t)->Margined = tabMargined;
 	uiTab(t)->SetMargined = tabSetMargined;

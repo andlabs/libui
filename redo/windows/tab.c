@@ -3,7 +3,6 @@
 
 // TODO
 // - comctl5 on real windows: tabs get drawn behind checkbox
-// - moving page 1 out doesn't actually move it out
 
 struct tab {
 	uiTab t;
@@ -167,6 +166,8 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 
 	// and keep the page control alive
 	uiControlSetParent(page->control, NULL);
+	// and show it again, as we don't know where it will go next
+	uiControlContainerShow(page->control);
 
 	uiFree(page);
 }

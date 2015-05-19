@@ -10,6 +10,19 @@ struct spinbox {
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 {
+	struct spinbox *s = (struct spinbox *) c;
+	BOOL neededCap = FALSE;
+	LRESULT val;
+
+	if (code != EN_CHANGE)
+		return FALSE;
+	// This verifies the value put in, capping it automatically.
+	// We don't need to worry about checking for an error; that flag should really be called "did we have to cap?".
+	// We DO need to set the value in case of a cap though.
+	// TODO if we have change events, we need to make sure doing this doesn't trigger a double event
+	val = SendMessageW(s->updown, UDM_GETPOS32, 0, (LPARAM) (&neededCap));
+	if (neededCap)
+		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) val);
 	return FALSE;
 }
 

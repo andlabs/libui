@@ -1,3 +1,4 @@
+- make the various onDestroy() functions take the uiControl instead
 - make sure all calls to uiControlResize() are preceded with calls to uiControlGetSizing()
 
 - require explicit calls to uiContainerUpdate() everywhere, because sigh...

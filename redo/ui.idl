@@ -142,6 +142,9 @@ interface Group from Control {
 func NewGroup(text *const char) *Group;
 
 interface Spinbox from Control {
+	func Value(void) intmax_t;
+	// TODO SetValue()
+	func OnChanged(f *func(s *Spinbox, data *void), data *void);
 };
 func NewSpinbox(void) *Spinbox;
 

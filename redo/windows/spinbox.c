@@ -6,25 +6,45 @@ struct spinbox {
 	HWND hwnd;
 	HWND updown;
 	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
+	void (*onChanged)(uiSpinbox *, void *);
+	void *onChangedData;
+	BOOL inhibitChanged;
 };
+
+// utility functions
+
+static intmax_t value(struct spinbox *s)
+{
+	BOOL neededCap = FALSE;
+	LRESULT val;
+
+	// This verifies the value put in, capping it automatically.
+	// We don't need to worry about checking for an error; that flag should really be called "did we have to cap?".
+	// We DO need to set the value in case of a cap though.
+	// TODO wine only?
+	val = SendMessageW(s->updown, UDM_GETPOS32, 0, (LPARAM) (&neededCap));
+	if (neededCap) {
+		s->inhibitChanged = TRUE;
+		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) val);
+		s->inhibitChanged = FALSE;
+	}
+	return (intmax_t) val;
+}
+
+// control implementation
 
 static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 {
 	struct spinbox *s = (struct spinbox *) c;
-	BOOL neededCap = FALSE;
-	LRESULT val;
 
 	if (code != EN_CHANGE)
 		return FALSE;
-	// This verifies the value put in, capping it automatically.
-	// We don't need to worry about checking for an error; that flag should really be called "did we have to cap?".
-	// We DO need to set the value in case of a cap though.
-	// TODO if we have change events, we need to make sure doing this doesn't trigger a double event
-	// TODO wine only?
-	val = SendMessageW(s->updown, UDM_GETPOS32, 0, (LPARAM) (&neededCap));
-	if (neededCap)
-		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) val);
-	return FALSE;
+	if (s->inhibitChanged)
+		return FALSE;
+	// value() does the work for us
+	value(s);
+	(*(s->onChanged))(uiSpinbox(s), s->onChangedData);
+	return TRUE;
 }
 
 static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
@@ -86,6 +106,27 @@ static void spinboxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 	recreateUpDown(s);
 }
 
+// TODO does it go here relative of other things?
+static void defaultOnChanged(uiSpinbox *s, void *data)
+{
+	// do nothing
+}
+
+static intmax_t spinboxValue(uiSpinbox *ss)
+{
+	struct spinbox *s = (struct spinbox *) ss;
+
+	return value(s);
+}
+
+static void spinboxOnChanged(uiSpinbox *ss, void (*f)(uiSpinbox *, void *), void *data)
+{
+	struct spinbox *s = (struct spinbox *) ss;
+
+	s->onChanged = f;
+	s->onChangedData = data;
+}
+
 uiSpinbox *uiNewSpinbox(void)
 {
 	struct spinbox *s;
@@ -111,9 +152,14 @@ uiSpinbox *uiNewSpinbox(void)
 
 	recreateUpDown(s);
 
+	s->onChanged = defaultOnChanged;
+
 	uiControl(s)->PreferredSize = spinboxPreferredSize;
 	s->baseResize = uiControl(s)->Resize;
 	uiControl(s)->Resize = spinboxResize;
+
+	uiSpinbox(s)->Value = spinboxValue;
+	uiSpinbox(s)->OnChanged = spinboxOnChanged;
 
 	return uiSpinbox(s);
 }

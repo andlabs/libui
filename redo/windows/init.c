@@ -72,6 +72,14 @@ static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType)
 
 uiInitOptions options;
 
+#define wantedICCClasses ( \
+	ICC_STANDARD_CLASSES |	/* user32.dll controls */		\
+	ICC_PROGRESS_CLASS |		/* progress bars */			\
+	ICC_TAB_CLASSES |			/* tabs */					\
+	ICC_LISTVIEW_CLASSES |		/* table headers */			\
+	ICC_UPDOWN_CLASS |		/* spinboxes */			\
+	0)
+
 const char *uiInit(uiInitOptions *o)
 {
 	STARTUPINFOW si;
@@ -79,6 +87,7 @@ const char *uiInit(uiInitOptions *o)
 	HICON hDefaultIcon;
 	HCURSOR hDefaultCursor;
 	NONCLIENTMETRICSW ncm;
+	INITCOMMONCONTROLSEX icc;
 
 	options = *o;
 
@@ -123,6 +132,12 @@ const char *uiInit(uiInitOptions *o)
 	hollowBrush = (HBRUSH) GetStockObject(HOLLOW_BRUSH);
 	if (hollowBrush == NULL)
 		return loadLastError("getting hollow brush");
+
+	ZeroMemory(&icc, sizeof (INITCOMMONCONTROLSEX));
+	icc.dwSize = sizeof (INITCOMMONCONTROLSEX);
+	icc.dwICC = wantedICCClasses;
+	if (InitCommonControlsEx(&icc) == 0)
+		return loadLastError("initializing Common Controls");
 
 	return NULL;
 }

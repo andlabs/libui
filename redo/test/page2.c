@@ -106,6 +106,7 @@ uiBox *makePage2(void)
 	button = uiNewButton(moveOutText);
 	uiButtonOnClicked(button, movePage1, NULL);
 	uiBoxAppend(hbox, uiControl(button), 0);
+	uiBoxAppend(hbox, uiControl(uiNewSpinbox()), 0);
 	uiBoxAppend(page2, uiControl(hbox), 0);
 	moveBack = 0;
 

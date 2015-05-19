@@ -141,6 +141,10 @@ interface Group from Control {
 };
 func NewGroup(text *const char) *Group;
 
+interface Spinbox from Control {
+};
+func NewSpinbox(void);
+
 interface Menu {
 	func AppendItem(name *const char) *MenuItem;
 	func AppendCheckItem(name *const char) *MenuItem;

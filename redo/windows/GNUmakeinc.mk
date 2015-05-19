@@ -15,6 +15,7 @@ osCFILES = \
 	windows/menu.c \
 	windows/parent.c \
 	windows/resize.c \
+	windows/spinbox.c \
 	windows/tab.c \
 	windows/text.c \
 	windows/util.c \

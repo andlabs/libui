@@ -2,159 +2,84 @@
 #include "uipriv_windows.h"
 
 struct singleHWND {
+	uiControl *c;
 	HWND hwnd;
 	BOOL (*onWM_COMMAND)(uiControl *, WORD, LRESULT *);
 	BOOL (*onWM_NOTIFY)(uiControl *, NMHDR *, LRESULT *);
 	void (*onDestroy)(void *);
 	void *onDestroyData;
-	uiControl *parent;
-	int userHidden;
-	int containerHidden;
-	int userDisabled;
-	int containerDisabled;
 };
 
-static void singleDestroy(uiControl *c)
+void osSingleDestroy(void *internal)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) internal;
 
-	if (s->parent != NULL)
-		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
 	(*(s->onDestroy))(s->onDestroyData);
 	if (DestroyWindow(s->hwnd) == 0)
 		logLastError("error destroying control in singleDestroy()");
 	uiFree(s);
 }
 
-static uintptr_t singleHandle(uiControl *c)
+uintptr_t osSingleHandle(void *internal)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) internal;
 
 	return (uintptr_t) (s->hwnd);
 }
 
-static uiControl *singleParent(uiControl *c)
+void osSingleSetParent(void *internal, uiControl *oldParent, uiControl *newParent)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
-
-	return s->parent;
-}
-
-static void singleSetParent(uiControl *c, uiControl *parent)
-{
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
-	uiControl *oldparent;
+	struct singleHWND *s = (struct singleHWND *) internal;
 	HWND newParentHWND;
 
-	oldparent = s->parent;
-	s->parent = parent;
 	newParentHWND = utilWindow;
-	if (s->parent != NULL)
-		newParentHWND = (HWND) uiControlHandle(uiControl(s->parent));
+	if (newParent != NULL)
+		newParentHWND = (HWND) uiControlHandle(newParent);
 	if (SetParent(s->hwnd, newParentHWND) == NULL)
-		logLastError("error setting control parent in singleSetParent()");
+		logLastError("error setting control parent in osSingleSetParent()");
 }
 
-static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+void osSingleResize(void *internal, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) internal;
 
 	moveWindow(s->hwnd, x, y, width, height, d);
 }
 
-static void singleQueueResize(uiControl *c)
-{
-	queueResize(c);
-}
-
-static uiSizing *singleSizing(uiControl *c)
+uiSizing *osSingleSizing(void *internal, uiControl *c)
 {
 	return uiWindowsSizing(c);
 }
 
-static int singleContainerVisible(uiControl *c)
+void osSingleShow(void *internal)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) internal;
 
-	return !s->userHidden && !s->containerHidden;
+	ShowWindow(s->hwnd, SW_SHOW);
 }
 
-static void singleShow(uiControl *c)
+void osSingleHide(void *internal)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) internal;
 
-	s->userHidden = 0;
-	if (!s->containerHidden)
-		ShowWindow(s->hwnd, SW_SHOW);
-	if (s->parent != NULL)
-		uiControlQueueResize(s->parent);
-}
-
-static void singleHide(uiControl *c)
-{
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
-
-	s->userHidden = 1;
 	ShowWindow(s->hwnd, SW_HIDE);
-	if (s->parent != NULL)
-		uiControlQueueResize(s->parent);
 }
 
-static void singleContainerShow(uiControl *c)
+void osSingleEnable(void *internal)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) internal;
 
-	s->containerHidden = 0;
-	if (!s->userHidden)
-		ShowWindow(s->hwnd, SW_SHOW);
-	if (s->parent != NULL)
-		uiControlQueueResize(s->parent);
+	EnableWindow(s->hwnd, TRUE);
 }
 
-static void singleContainerHide(uiControl *c)
+void osSingleDisable(void *internal)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) internal;
 
-	s->containerHidden = 1;
-	ShowWindow(s->hwnd, SW_HIDE);
-	if (s->parent != NULL)
-		uiControlQueueResize(s->parent);
-}
-
-static void singleEnable(uiControl *c)
-{
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
-
-	s->userDisabled = 0;
-	if (!s->containerDisabled)
-		EnableWindow(s->hwnd, TRUE);
-}
-
-static void singleDisable(uiControl *c)
-{
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
-
-	s->userDisabled = 1;
 	EnableWindow(s->hwnd, FALSE);
 }
 
-static void singleContainerEnable(uiControl *c)
-{
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
-
-	s->containerDisabled = 0;
-	if (!s->userDisabled)
-		EnableWindow(s->hwnd, TRUE);
-}
-
-static void singleContainerDisable(uiControl *c)
-{
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
-
-	s->containerDisabled = 1;
-	EnableWindow(s->hwnd, FALSE);
-}
-
+// TODO integrate these two with the main control.c
 static void singleSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
 	struct singleHWND *s = (struct singleHWND *) (c->Internal);
@@ -180,17 +105,16 @@ static int singleStartZOrder(uiControl *c, uiControlSysFuncParams *p)
 
 static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
-	uiControl *c = (uiControl *) dwRefData;
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	struct singleHWND *s = (struct singleHWND *) dwRefData;
 	LRESULT lResult;
 
 	switch (uMsg) {
 	case msgCOMMAND:
-		if ((*(s->onWM_COMMAND))(c, HIWORD(wParam), &lResult) != FALSE)
+		if ((*(s->onWM_COMMAND))(s->c, HIWORD(wParam), &lResult) != FALSE)
 			return lResult;
 		break;
 	case msgNOTIFY:
-		if ((*(s->onWM_NOTIFY))(c, (NMHDR *) lParam, &lResult) != FALSE)
+		if ((*(s->onWM_NOTIFY))(s->c, (NMHDR *) lParam, &lResult) != FALSE)
 			return lResult;
 		break;
 	case WM_NCDESTROY:
@@ -206,6 +130,7 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 	struct singleHWND *s;
 
 	s = uiNew(struct singleHWND);
+	s->c = c;
 	s->hwnd = CreateWindowExW(p->dwExStyle,
 		p->lpClassName, p->lpWindowName,
 		p->dwStyle | WS_CHILD | WS_VISIBLE,
@@ -225,38 +150,24 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 		SendMessageW(s->hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
 	// this handles redirected notification messages
-	if (SetWindowSubclass(s->hwnd, singleSubclassProc, 0, (DWORD_PTR) c) == FALSE)
+	if (SetWindowSubclass(s->hwnd, singleSubclassProc, 0, (DWORD_PTR) s) == FALSE)
 		logLastError("error subclassing Windows control in uiWindowsMakeControl()");
 
-	uiControl(c)->Internal = s;
-	uiControl(c)->Destroy = singleDestroy;
-	uiControl(c)->Handle = singleHandle;
-	uiControl(c)->Parent = singleParent;
-	uiControl(c)->SetParent = singleSetParent;
+	makeControl(uiControl(c), s);
+
 	// PreferredSize() implemented by the individual controls
-	uiControl(c)->Resize = singleResize;
-	uiControl(c)->QueueResize = singleQueueResize;
-	uiControl(c)->Sizing = singleSizing;
-	uiControl(c)->ContainerVisible = singleContainerVisible;
-	uiControl(c)->Show = singleShow;
-	uiControl(c)->Hide = singleHide;
-	uiControl(c)->ContainerShow = singleContainerShow;
-	uiControl(c)->ContainerHide = singleContainerHide;
-	uiControl(c)->Enable = singleEnable;
-	uiControl(c)->Disable = singleDisable;
-	uiControl(c)->ContainerEnable = singleContainerEnable;
-	uiControl(c)->ContainerDisable = singleContainerDisable;
 	uiControl(c)->SysFunc = singleSysFunc;
 	uiControl(c)->StartZOrder = singleStartZOrder;
 }
 
 char *uiWindowsControlText(uiControl *c)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	HWND hwnd;
 	WCHAR *wtext;
 	char *text;
 
-	wtext = windowText(s->hwnd);
+	hwnd = (HWND) uiControlHandle(c);
+	wtext = windowText(hwnd);
 	text = toUTF8(wtext);
 	uiFree(wtext);
 	return text;
@@ -264,11 +175,12 @@ char *uiWindowsControlText(uiControl *c)
 
 void uiWindowsControlSetText(uiControl *c, const char *text)
 {
-	struct singleHWND *s = (struct singleHWND *) (c->Internal);
+	HWND hwnd;
 	WCHAR *wtext;
 
+	hwnd = (HWND) uiControlHandle(c);
 	wtext = toUTF16(text);
-	if (SetWindowTextW(s->hwnd, wtext) == 0)
+	if (SetWindowTextW(hwnd, wtext) == 0)
 		logLastError("error setting control text in uiWindowsControlSetText()");
 	uiFree(wtext);
 }

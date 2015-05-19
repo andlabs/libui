@@ -27,6 +27,7 @@ baseHFILES = \
 
 baseCFILES = \
 	box.c \
+	control.c \
 	ptrarray.c \
 	shouldquit.c \
 	types.c \

@@ -1,5 +1,6 @@
 // 6 april 2015
-#include "uipriv_windows.h"
+#include "out/ui.h"
+#include "uipriv.h"
 
 struct singleControl {
 	void *internal;
@@ -16,7 +17,7 @@ static void singleDestroy(uiControl *c)
 
 	if (s->parent != NULL)
 		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
-	osOnDestroy(s->internal);
+	osSingleDestroy(s->internal);
 	uiFree(s);
 }
 
@@ -159,7 +160,7 @@ void makeControl(uiControl *c, void *internal)
 	uiControl(c)->Handle = singleHandle;
 	uiControl(c)->Parent = singleParent;
 	uiControl(c)->SetParent = singleSetParent;
-	// PreferredSize() implemented by the individual controls
+	// PreferredSize() implemented by subclasses
 	uiControl(c)->Resize = singleResize;
 	uiControl(c)->QueueResize = singleQueueResize;
 	uiControl(c)->Sizing = singleSizing;
@@ -172,4 +173,5 @@ void makeControl(uiControl *c, void *internal)
 	uiControl(c)->Disable = singleDisable;
 	uiControl(c)->ContainerEnable = singleContainerEnable;
 	uiControl(c)->ContainerDisable = singleContainerDisable;
+	// SysFunc and SetZOrder implemented by subclasses
 }

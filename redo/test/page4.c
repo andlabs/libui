@@ -2,6 +2,7 @@
 #include "test.h"
 
 static uiSpinbox *spinbox;
+static uiSlider *slider;
 static uiProgressBar *pbar;
 
 #define CHANGED(what) \
@@ -13,6 +14,7 @@ static uiProgressBar *pbar;
 		uiProgressBarSetValue(pbar, value); \
 	}
 CHANGED(Spinbox)
+CHANGED(Slider)
 
 uiBox *makePage4(void)
 {
@@ -23,6 +25,10 @@ uiBox *makePage4(void)
 	spinbox = uiNewSpinbox();
 	uiSpinboxOnChanged(spinbox, onSpinboxChanged, NULL);
 	uiBoxAppend(page4, uiControl(spinbox), 0);
+
+	slider = uiNewSlider();
+	uiSliderOnChanged(slider, onSliderChanged, NULL);
+	uiBoxAppend(page4, uiControl(slider), 0);
 
 	pbar = uiNewProgressBar();
 	uiBoxAppend(page4, uiControl(pbar), 0);

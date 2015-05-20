@@ -147,6 +147,7 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 		logLastError("error creating control in uiWindowsMakeControl()");
 	s->onWM_COMMAND = p->onWM_COMMAND;
 	s->onWM_NOTIFY = p->onWM_NOTIFY;
+	s->onWM_HSCROLL = p->onWM_HSCROLL;
 
 	s->onDestroy = p->onDestroy;
 	s->onDestroyData = p->onDestroyData;

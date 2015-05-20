@@ -127,6 +127,14 @@ BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LR
 			return TRUE;
 		}
 		break;
+	case WM_HSCROLL:
+		// same as WM_COMMAND
+		control = (HWND) lParam;
+		if (control != NULL && IsChild(utilWindow, control) == 0) {
+			*lResult = SendMessageW(control, msgHSCROLL, wParam, lParam);
+			return TRUE;
+		}
+		break;
 	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
 		if (parentBrush != NULL)

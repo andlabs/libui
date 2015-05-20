@@ -78,6 +78,7 @@ uiInitOptions options;
 	ICC_TAB_CLASSES |			/* tabs */					\
 	ICC_LISTVIEW_CLASSES |		/* table headers */			\
 	ICC_UPDOWN_CLASS |		/* spinboxes */			\
+	ICC_BAR_CLASSES |			/* trackbar */				\
 	0)
 
 const char *uiInit(uiInitOptions *o)

@@ -27,6 +27,11 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	return FALSE;
 }
 
+static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
+{
+	return FALSE;
+}
+
 static void onDestroy(void *data)
 {
 	struct entry *e = (struct entry *) data;
@@ -108,6 +113,7 @@ uiEntry *uiNewEntry(void)
 	p.useStandardControlFont = TRUE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
+	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = e;
 	uiWindowsMakeControl(uiControl(e), &p);

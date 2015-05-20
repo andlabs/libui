@@ -6,6 +6,7 @@ struct singleHWND {
 	HWND hwnd;
 	BOOL (*onWM_COMMAND)(uiControl *, WORD, LRESULT *);
 	BOOL (*onWM_NOTIFY)(uiControl *, NMHDR *, LRESULT *);
+	BOOL (*onWM_HSCROLL)(uiControl *, WORD, LRESULT *);
 	void (*onDestroy)(void *);
 	void *onDestroyData;
 };
@@ -115,6 +116,10 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 		break;
 	case msgNOTIFY:
 		if ((*(s->onWM_NOTIFY))(s->c, (NMHDR *) lParam, &lResult) != FALSE)
+			return lResult;
+		break;
+	case msgHSCROLL:
+		if ((*(s->onWM_HSCROLL))(s->c, LOWORD(wParam), &lResult) != FALSE)
 			return lResult;
 		break;
 	case WM_NCDESTROY:

@@ -16,6 +16,11 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	return FALSE;
 }
 
+static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
+{
+	return FALSE;
+}
+
 static void onDestroy(void *data)
 {
 	struct progressbar *p = (struct progressbar *) data;
@@ -60,6 +65,7 @@ uiProgressBar *uiNewProgressBar(void)
 	p.useStandardControlFont = FALSE;
 	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
+	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = pbar;
 	uiWindowsMakeControl(uiControl(pbar), &p);

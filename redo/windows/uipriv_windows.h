@@ -34,6 +34,7 @@ enum {
 	// redirected WM_COMMAND and WM_NOTIFY
 	msgCOMMAND = WM_APP + 0x40,		// start offset just to be safe
 	msgNOTIFY,
+	msgHSCROLL,
 	msgHasTabStops,
 	msgConsoleEndSession,
 };

@@ -1,6 +1,9 @@
 // 20 may 2015
 #include "uipriv_windows.h"
 
+// TODOs
+// - investigate overriding WM_ERASEBKGND to simulate TBS_TRANSPARENTBKGND
+
 struct slider {
 	uiSlider s;
 	HWND hwnd;
@@ -24,6 +27,7 @@ static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
 	struct slider *s = (struct slider *) c;
 
 	(*(s->onChanged))(uiSlider(s), s->onChangedData);
+	*lResult = 0;
 	return TRUE;
 }
 

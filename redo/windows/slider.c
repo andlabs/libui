@@ -2,7 +2,7 @@
 #include "uipriv_windows.h"
 
 // TODOs
-// - investigate overriding WM_ERASEBKGND to simulate TBS_TRANSPARENTBKGND
+// - investigate overriding WM_ERASEBKGND to simulate TBS_TRANSPARENTBKGND; windows xp tries to do this it seems for tab controls but doesn't really do a good job of it
 // - wine does not clamp TBM_SETPOS
 
 struct slider {
@@ -39,15 +39,14 @@ static void onDestroy(void *data)
 	uiFree(s);
 }
 
-// TODO
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
-#define entryHeight 14
+#define sliderWidth 107 /* this is actually the shorter progress bar width, but Microsoft doesn't indicate a width */
+#define sliderHeight 15
 
 static void sliderPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(entryWidth, d->Sys->BaseX);
-	*height = uiWindowsDlgUnitsToY(entryHeight, d->Sys->BaseY);
+	*width = uiWindowsDlgUnitsToX(sliderWidth, d->Sys->BaseX);
+	*height = uiWindowsDlgUnitsToY(sliderHeight, d->Sys->BaseY);
 }
 
 // TODO does it go here relative of other things?

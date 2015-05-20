@@ -14,6 +14,7 @@ osCFILES = \
 	windows/main.c \
 	windows/menu.c \
 	windows/parent.c \
+	windows/progressbar.c \
 	windows/resize.c \
 	windows/spinbox.c \
 	windows/tab.c \

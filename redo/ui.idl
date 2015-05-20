@@ -148,6 +148,12 @@ interface Spinbox from Control {
 };
 func NewSpinbox(void) *Spinbox;
 
+interface ProgressBar from Control {
+	// TODO Value()
+	func SetValue(n int);
+};
+func NewProgressBar(void) *ProgressBar;
+
 interface Menu {
 	func AppendItem(name *const char) *MenuItem;
 	func AppendCheckItem(name *const char) *MenuItem;

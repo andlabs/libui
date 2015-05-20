@@ -16,6 +16,7 @@ osCFILES = \
 	windows/parent.c \
 	windows/progressbar.c \
 	windows/resize.c \
+	windows/separator.c \
 	windows/slider.c \
 	windows/spinbox.c \
 	windows/tab.c \

@@ -49,7 +49,7 @@ uiBox *makePage4(void)
 	pbar = uiNewProgressBar();
 	uiBoxAppend(page4, uiControl(pbar), 0);
 
-	// TODO separator
+	uiBoxAppend(page4, uiControl(uiNewHorizontalSeparator()), 0);
 
 	hbox = newHorizontalBox();
 	xsb = uiNewSpinbox(-40, 40);

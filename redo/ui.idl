@@ -166,6 +166,10 @@ interface Slider from Control {
 };
 func NewSlider(min intmax_t, max intmax_t) *Slider;
 
+interface Separator from Control {
+};
+func NewHorizontalSeparator(void) *Separator;
+
 interface Menu {
 	func AppendItem(name *const char) *MenuItem;
 	func AppendCheckItem(name *const char) *MenuItem;

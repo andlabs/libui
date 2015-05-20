@@ -110,10 +110,6 @@ static void recreateUpDown(struct spinbox *s)
 	if (preserve) {
 		SendMessageW(s->updown, UDM_SETRANGE32, (WPARAM) min, (LPARAM) max);
 		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) current);
-	} else {
-		// TODO
-		SendMessageW(s->updown, UDM_SETRANGE32, 0, 100);
-		SendMessageW(s->updown, UDM_SETPOS32, 0, 0);
 	}
 	if (uiControlContainerVisible(uiControl(s)))
 		ShowWindow(s->updown, SW_SHOW);
@@ -158,7 +154,7 @@ static void spinboxOnChanged(uiSpinbox *ss, void (*f)(uiSpinbox *, void *), void
 	s->onChangedData = data;
 }
 
-uiSpinbox *uiNewSpinbox(void)
+uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	struct spinbox *s;
 	uiWindowsMakeControlParams p;
@@ -183,6 +179,10 @@ uiSpinbox *uiNewSpinbox(void)
 	s->hwnd = (HWND) uiControlHandle(uiControl(s));
 
 	recreateUpDown(s);
+	s->inhibitChanged = TRUE;
+	SendMessageW(s->updown, UDM_SETRANGE32, (WPARAM) min, (LPARAM) max);
+	SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) min);
+	s->inhibitChanged = FALSE;
 
 	s->onChanged = defaultOnChanged;
 

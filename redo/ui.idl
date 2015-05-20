@@ -143,13 +143,15 @@ func NewGroup(text *const char) *Group;
 
 // spinbox/slider rules:
 // setting value outside of range will automatically clamp
+// initial value is minimum
+// TODO what happens if max > min? max == min?
 
 interface Spinbox from Control {
 	func Value(void) intmax_t;
 	func SetValue(value intmax_t);
 	func OnChanged(f *func(s *Spinbox, data *void), data *void);
 };
-func NewSpinbox(void) *Spinbox;
+func NewSpinbox(min intmax_t, max intmax_t) *Spinbox;
 
 interface ProgressBar from Control {
 	// TODO Value()
@@ -162,7 +164,7 @@ interface Slider from Control {
 	func SetValue(value intmax_t);
 	func OnChanged(f *func(s *Slider, data *void), data *void);
 };
-func NewSlider(void) *Slider;
+func NewSlider(min intmax_t, max intmax_t) *Slider;
 
 interface Menu {
 	func AppendItem(name *const char) *MenuItem;

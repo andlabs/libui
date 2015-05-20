@@ -3,6 +3,7 @@
 
 // TODOs
 // - investigate overriding WM_ERASEBKGND to simulate TBS_TRANSPARENTBKGND
+// - wine does not clamp TBM_SETPOS
 
 struct slider {
 	uiSlider s;
@@ -78,7 +79,7 @@ static void sliderOnChanged(uiSlider *ss, void (*f)(uiSlider *, void *), void *d
 	s->onChangedData = data;
 }
 
-uiSlider *uiNewSlider(void)
+uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	struct slider *s;
 	uiWindowsMakeControlParams p;
@@ -103,8 +104,9 @@ uiSlider *uiNewSlider(void)
 
 	s->hwnd = (HWND) uiControlHandle(uiControl(s));
 
-	SendMessageW(s->hwnd, TBM_SETRANGEMIN, (WPARAM) TRUE, (LPARAM) 0);
-	SendMessageW(s->hwnd, TBM_SETRANGEMAX, (WPARAM) TRUE, (LPARAM) 100);
+	SendMessageW(s->hwnd, TBM_SETRANGEMIN, (WPARAM) TRUE, (LPARAM) min);
+	SendMessageW(s->hwnd, TBM_SETRANGEMAX, (WPARAM) TRUE, (LPARAM) max);
+	SendMessageW(s->hwnd, TBM_SETPOS, (WPARAM) TRUE, (LPARAM) min);
 
 	s->onChanged = defaultOnChanged;
 

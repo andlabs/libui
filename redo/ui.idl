@@ -175,6 +175,11 @@ interface Combobox from Control {
 };
 func NewCombobox(void) *Combobox;
 
+interface RadioButtons from Control {
+	func Append(text *const char);
+};
+func NewRadioButtons(void) *RadioButtons;
+
 interface Menu {
 	func AppendItem(name *const char) *MenuItem;
 	func AppendCheckItem(name *const char) *MenuItem;

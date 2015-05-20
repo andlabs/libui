@@ -16,6 +16,7 @@ osCFILES = \
 	windows/menu.c \
 	windows/parent.c \
 	windows/progressbar.c \
+	windows/radiobuttons.c \
 	windows/resize.c \
 	windows/separator.c \
 	windows/slider.c \

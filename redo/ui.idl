@@ -170,6 +170,11 @@ interface Separator from Control {
 };
 func NewHorizontalSeparator(void) *Separator;
 
+interface Combobox from Control {
+	func Append(text *const char);
+};
+func NewCombobox(void) *Combobox;
+
 interface Menu {
 	func AppendItem(name *const char) *MenuItem;
 	func AppendCheckItem(name *const char) *MenuItem;

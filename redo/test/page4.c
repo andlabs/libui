@@ -28,6 +28,8 @@ SETTOO(Spinbox, High, 80)
 SETTOO(Slider, Low, -80)
 SETTOO(Slider, High, 80)
 
+uiCombobox *cbox;
+
 uiBox *makePage4(void)
 {
 	uiBox *page4;
@@ -72,6 +74,14 @@ uiBox *makePage4(void)
 	uiButtonOnClicked(b, setSliderTooHigh, xsl);
 	uiBoxAppend(hbox, uiControl(b), 0);
 	uiBoxAppend(page4, uiControl(hbox), 0);
+
+	uiBoxAppend(page4, uiControl(uiNewHorizontalSeparator()), 0);
+
+	cbox = uiNewCombobox();
+	uiComboboxAppend(cbox, "Item 1");
+	uiComboboxAppend(cbox, "Item 2");
+	uiComboboxAppend(cbox, "Item 3");
+	uiBoxAppend(page4, uiControl(cbox), 0);
 
 	return page4;
 }

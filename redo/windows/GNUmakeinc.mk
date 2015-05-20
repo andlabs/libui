@@ -4,6 +4,7 @@ osCFILES = \
 	windows/alloc.c \
 	windows/button.c \
 	windows/checkbox.c \
+	windows/combobox.c \
 	windows/container.c \
 	windows/control.c \
 	windows/debug.c \

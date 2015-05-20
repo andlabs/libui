@@ -62,6 +62,14 @@ static intmax_t sliderValue(uiSlider *ss)
 	return (intmax_t) SendMessageW(s->hwnd, TBM_GETPOS, 0, 0);
 }
 
+static void sliderSetValue(uiSlider *ss, intmax_t value)
+{
+	struct slider *s = (struct slider *) ss;
+
+	// don't use TBM_SETPOSNOTIFY; that triggers an event
+	SendMessageW(s->hwnd, TBM_SETPOS, (WPARAM) TRUE, (LPARAM) value);
+}
+
 static void sliderOnChanged(uiSlider *ss, void (*f)(uiSlider *, void *), void *data)
 {
 	struct slider *s = (struct slider *) ss;
@@ -103,6 +111,7 @@ uiSlider *uiNewSlider(void)
 	uiControl(s)->PreferredSize = sliderPreferredSize;
 
 	uiSlider(s)->Value = sliderValue;
+	uiSlider(s)->SetValue = sliderSetValue;
 	uiSlider(s)->OnChanged = sliderOnChanged;
 
 	return uiSlider(s);

@@ -141,9 +141,12 @@ interface Group from Control {
 };
 func NewGroup(text *const char) *Group;
 
+// spinbox/slider rules:
+// setting value outside of range will automatically clamp
+
 interface Spinbox from Control {
 	func Value(void) intmax_t;
-	// TODO SetValue()
+	func SetValue(value intmax_t);
 	func OnChanged(f *func(s *Spinbox, data *void), data *void);
 };
 func NewSpinbox(void) *Spinbox;
@@ -156,7 +159,7 @@ func NewProgressBar(void) *ProgressBar;
 
 interface Slider from Control {
 	func Value(void) intmax_t;
-	// TODO SetValue()
+	func SetValue(value intmax_t);
 	func OnChanged(f *func(s *Slider, data *void), data *void);
 };
 func NewSlider(void) *Slider;

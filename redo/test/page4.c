@@ -11,6 +11,8 @@ static uiProgressBar *pbar;
 		uintmax_t value; \
 		printf("on %s changed\n", #what); \
 		value = ui ## what ## Value(this); \
+		uiSpinboxSetValue(spinbox, value); \
+		uiSliderSetValue(slider, value); \
 		uiProgressBarSetValue(pbar, value); \
 	}
 CHANGED(Spinbox)

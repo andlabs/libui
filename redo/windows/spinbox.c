@@ -81,11 +81,20 @@ static void spinboxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, int
 static void recreateUpDown(struct spinbox *s)
 {
 	HWND parent;
+	BOOL preserve = FALSE;
+	intmax_t current;
+	// wine uses this type
+	INT min, max;
 
 	parent = GetAncestor(s->hwnd, GA_PARENT);
-	if (s->updown != NULL)
+	if (s->updown != NULL) {
+		preserve = TRUE;
+		current = value(s);
+		SendMessageW(s->updown, UDM_GETRANGE32, (WPARAM) (&min), (LPARAM) (&max));
 		if (DestroyWindow(s->updown) == 0)
 			logLastError("error destroying old updown in recreateUpDown()");
+	}
+	s->inhibitChanged = TRUE;
 	s->updown = CreateWindowExW(0,
 		UPDOWN_CLASSW, L"",
 		// no WS_VISIBLE; we set visibility ourselves
@@ -98,11 +107,17 @@ static void recreateUpDown(struct spinbox *s)
 	if (s->updown == NULL)
 		logLastError("error creating updown in recreateUpDown()");
 	SendMessageW(s->updown, UDM_SETBUDDY, (WPARAM) (s->hwnd), 0);
-	// TODO
-	SendMessageW(s->updown, UDM_SETRANGE32, 0, 100);
-	SendMessageW(s->updown, UDM_SETPOS32, 0, 0);
+	if (preserve) {
+		SendMessageW(s->updown, UDM_SETRANGE32, (WPARAM) min, (LPARAM) max);
+		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) current);
+	} else {
+		// TODO
+		SendMessageW(s->updown, UDM_SETRANGE32, 0, 100);
+		SendMessageW(s->updown, UDM_SETPOS32, 0, 0);
+	}
 	if (uiControlContainerVisible(uiControl(s)))
 		ShowWindow(s->updown, SW_SHOW);
+	s->inhibitChanged = FALSE;
 }
 
 static void spinboxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
@@ -124,6 +139,15 @@ static intmax_t spinboxValue(uiSpinbox *ss)
 	struct spinbox *s = (struct spinbox *) ss;
 
 	return value(s);
+}
+
+static void spinboxSetValue(uiSpinbox *ss, intmax_t value)
+{
+	struct spinbox *s = (struct spinbox *) ss;
+
+	s->inhibitChanged = TRUE;
+	SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) value);
+	s->inhibitChanged = FALSE;
 }
 
 static void spinboxOnChanged(uiSpinbox *ss, void (*f)(uiSpinbox *, void *), void *data)
@@ -167,6 +191,7 @@ uiSpinbox *uiNewSpinbox(void)
 	uiControl(s)->Resize = spinboxResize;
 
 	uiSpinbox(s)->Value = spinboxValue;
+	uiSpinbox(s)->SetValue = spinboxSetValue;
 	uiSpinbox(s)->OnChanged = spinboxOnChanged;
 
 	return uiSpinbox(s);

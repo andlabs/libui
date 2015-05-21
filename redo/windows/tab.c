@@ -62,6 +62,7 @@ static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
 static void onDestroy(void *data)
 {
 	// TODO
+//TODO	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
@@ -213,13 +214,13 @@ uiTab *uiNewTab(void)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = t;
 	uiWindowsMakeControl(uiControl(t), &p);
 
 	t->hwnd = (HWND) uiControlHandle(uiControl(t));
+	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
 
 	t->pages = newPtrArray();
 

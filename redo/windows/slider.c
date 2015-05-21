@@ -13,11 +13,6 @@ struct slider {
 	void *onChangedData;
 };
 
-static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
 {
 	struct slider *s = (struct slider *) c;
@@ -89,7 +84,6 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = s;

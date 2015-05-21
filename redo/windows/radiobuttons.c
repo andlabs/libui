@@ -7,12 +7,23 @@ struct radiobuttons {
 	uiControl *parent;
 };
 
-static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
+// TODO make sure this is the correct way to check radiobuttons
+static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;
+	WPARAM check;
+	uintmax_t i;
+	HWND hwnd;
 
 	if (code != BN_CLICKED)
 		return FALSE;
+	for (i = 0; i < r->hwnds->len; i++) {
+		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
+		check = BST_UNCHECKED;
+		if (clicked == hwnd)
+			check = BST_CHECKED;
+		SendMessage(hwnd, BM_SETCHECK, check, 0);
+	}
 	*lResult = 0;
 	return TRUE;
 }
@@ -143,6 +154,7 @@ static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
 		parent, NULL, hInstance, NULL);
 	if (hwnd == NULL)
 		logLastError("error creating radio button in radiobuttonsAppend()");
+	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
 	ptrArrayAppend(r->hwnds, hwnd);
 	uiControlQueueResize(uiControl(r));
 }

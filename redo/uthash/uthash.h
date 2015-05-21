@@ -60,18 +60,8 @@ do {                                                                            
 #endif
 
 /* a number of the hash function use uint32_t which isn't defined on Pre VS2010 */
-#if defined (_WIN32)
-#if defined(_MSC_VER) && _MSC_VER >= 1600
+// TODO(andlabs) - old code missed MinGW
 #include <stdint.h>
-#elif defined(__WATCOMC__)
-#include <stdint.h>
-#else
-typedef unsigned int uint32_t;
-typedef unsigned char uint8_t;
-#endif
-#else
-#include <stdint.h>
-#endif
 
 #define UTHASH_VERSION 1.9.9
 

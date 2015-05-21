@@ -84,13 +84,11 @@ uiBox *makePage4(void)
 	uiComboboxAppend(cbox, "Item 3");
 	uiBoxAppend(page4, uiControl(cbox), 0);
 
-/*
 	rb = uiNewRadioButtons();
 	uiRadioButtonsAppend(rb, "Item 1");
 	uiRadioButtonsAppend(rb, "Item 2");
 	uiRadioButtonsAppend(rb, "Item 3");
 	uiBoxAppend(page4, uiControl(rb), 0);
-*/
 
 	return page4;
 }

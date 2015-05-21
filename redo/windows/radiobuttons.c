@@ -7,7 +7,6 @@ struct radiobuttons {
 	uiControl *parent;
 };
 
-// TODO make sure this is the correct way to check radiobuttons
 static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;
@@ -65,11 +64,12 @@ static void radiobuttonsSetParent(uiControl *c, uiControl *parent)
 	}
 }
 
-// TODO
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define checkboxHeight 10
+#define radiobuttonHeight 10
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
-#define checkboxXFromLeftOfBoxToLeftOfLabel 12
+#define radiobuttonXFromLeftOfBoxToLeftOfLabel 12
+
+// TODO vertical space between controls
 
 static void radiobuttonsPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
@@ -83,8 +83,8 @@ static void radiobuttonsPreferredSize(uiControl *c, uiSizing *d, intmax_t *width
 		if (maxwid < wid)
 			maxwid = wid;
 	}
-	*width = uiWindowsDlgUnitsToX(checkboxXFromLeftOfBoxToLeftOfLabel, d->Sys->BaseX) + maxwid;
-	*height = uiWindowsDlgUnitsToY(checkboxHeight, d->Sys->BaseY) * r->hwnds->len;
+	*width = uiWindowsDlgUnitsToX(radiobuttonXFromLeftOfBoxToLeftOfLabel, d->Sys->BaseX) + maxwid;
+	*height = uiWindowsDlgUnitsToY(radiobuttonHeight, d->Sys->BaseY) * r->hwnds->len;
 }
 
 // TODO clip to height
@@ -95,7 +95,7 @@ static void radiobuttonsResize(uiControl *c, intmax_t x, intmax_t y, intmax_t wi
 	uintmax_t i;
 	HWND hwnd;
 
-	height1 = uiWindowsDlgUnitsToY(checkboxHeight, d->Sys->BaseY);
+	height1 = uiWindowsDlgUnitsToY(radiobuttonHeight, d->Sys->BaseY);
 	for (i = 0; i < r->hwnds->len; i++) {
 		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
 		moveWindow(hwnd, x, y, width, height1, d);

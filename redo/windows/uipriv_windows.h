@@ -108,3 +108,9 @@ extern void uninitAlloc(void);
 // tab.c
 extern void tabEnterTabNavigation(HWND);
 extern void tabLeaveTabNavigation(HWND);
+
+// events.c
+// TODO split the uiWindows ones to ui_windows.h
+extern void uiWindowsRegisterWM_COMMANDHandler(HWND, BOOL (*)(uiControl *, WORD, LRESULT *), uiControl *);
+extern void uiWindowsUnregisterWM_COMMANDHandler(HWND);
+extern BOOL runWM_COMMAND(WPARAM, LPARAM, LRESULT *);

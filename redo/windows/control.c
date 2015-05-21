@@ -4,7 +4,6 @@
 struct singleHWND {
 	uiControl *c;
 	HWND hwnd;
-	BOOL (*onWM_COMMAND)(uiControl *, WORD, LRESULT *);
 	BOOL (*onWM_NOTIFY)(uiControl *, NMHDR *, LRESULT *);
 	BOOL (*onWM_HSCROLL)(uiControl *, WORD, LRESULT *);
 	void (*onDestroy)(void *);
@@ -16,6 +15,7 @@ void osSingleDestroy(void *internal)
 	struct singleHWND *s = (struct singleHWND *) internal;
 
 	(*(s->onDestroy))(s->onDestroyData);
+	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
 	if (DestroyWindow(s->hwnd) == 0)
 		logLastError("error destroying control in singleDestroy()");
 	uiFree(s);
@@ -110,10 +110,6 @@ static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 	LRESULT lResult;
 
 	switch (uMsg) {
-	case msgCOMMAND:
-		if ((*(s->onWM_COMMAND))(s->c, HIWORD(wParam), &lResult) != FALSE)
-			return lResult;
-		break;
 	case msgNOTIFY:
 		if ((*(s->onWM_NOTIFY))(s->c, (NMHDR *) lParam, &lResult) != FALSE)
 			return lResult;
@@ -145,7 +141,8 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 		utilWindow, NULL, p->hInstance, p->lpParam);
 	if (s->hwnd == NULL)
 		logLastError("error creating control in uiWindowsMakeControl()");
-	s->onWM_COMMAND = p->onWM_COMMAND;
+
+	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, p->onWM_COMMAND, uiControl(c));
 	s->onWM_NOTIFY = p->onWM_NOTIFY;
 	s->onWM_HSCROLL = p->onWM_HSCROLL;
 

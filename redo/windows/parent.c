@@ -111,14 +111,7 @@ BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LR
 
 	switch (uMsg) {
 	case WM_COMMAND:
-		// bounce back to the control in question
-		// except if to the initial parent, in which case act as if the message was ignored
-		control = (HWND) lParam;
-		if (control != NULL && IsChild(utilWindow, control) == 0) {
-			*lResult = SendMessageW(control, msgCOMMAND, wParam, lParam);
-			return TRUE;
-		}
-		break;
+		return runWM_COMMAND(wParam, lParam, lResult);
 	case WM_NOTIFY:
 		// same as WM_COMMAND
 		control = nm->hwndFrom;

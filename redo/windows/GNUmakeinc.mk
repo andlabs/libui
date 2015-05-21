@@ -9,6 +9,7 @@ osCFILES = \
 	windows/control.c \
 	windows/debug.c \
 	windows/entry.c \
+	windows/events.c \
 	windows/group.c \
 	windows/init.c \
 	windows/label.c \

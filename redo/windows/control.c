@@ -4,8 +4,6 @@
 struct singleHWND {
 	uiControl *c;
 	HWND hwnd;
-	BOOL (*onWM_NOTIFY)(uiControl *, NMHDR *, LRESULT *);
-	BOOL (*onWM_HSCROLL)(uiControl *, WORD, LRESULT *);
 	void (*onDestroy)(void *);
 	void *onDestroyData;
 };
@@ -16,6 +14,8 @@ void osSingleDestroy(void *internal)
 
 	(*(s->onDestroy))(s->onDestroyData);
 	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
+	uiWindowsUnregisterWM_NOTIFYHandler(s->hwnd);
+	uiWindowsUnregisterWM_HSCROLLHandler(s->hwnd);
 	if (DestroyWindow(s->hwnd) == 0)
 		logLastError("error destroying control in singleDestroy()");
 	uiFree(s);
@@ -104,28 +104,6 @@ static int singleStartZOrder(uiControl *c, uiControlSysFuncParams *p)
 	return 0;
 }
 
-static LRESULT CALLBACK singleSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
-{
-	struct singleHWND *s = (struct singleHWND *) dwRefData;
-	LRESULT lResult;
-
-	switch (uMsg) {
-	case msgNOTIFY:
-		if ((*(s->onWM_NOTIFY))(s->c, (NMHDR *) lParam, &lResult) != FALSE)
-			return lResult;
-		break;
-	case msgHSCROLL:
-		if ((*(s->onWM_HSCROLL))(s->c, LOWORD(wParam), &lResult) != FALSE)
-			return lResult;
-		break;
-	case WM_NCDESTROY:
-		if (RemoveWindowSubclass(hwnd, singleSubclassProc, uIdSubclass) == FALSE)
-			logLastError("error removing Windows control subclass in singleSubclassProc()");
-		break;
-	}
-	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
-}
-
 void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 {
 	struct singleHWND *s;
@@ -143,18 +121,14 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 		logLastError("error creating control in uiWindowsMakeControl()");
 
 	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, p->onWM_COMMAND, uiControl(c));
-	s->onWM_NOTIFY = p->onWM_NOTIFY;
-	s->onWM_HSCROLL = p->onWM_HSCROLL;
+	uiWindowsRegisterWM_NOTIFYHandler(s->hwnd, p->onWM_NOTIFY, uiControl(c));
+	uiWindowsRegisterWM_HSCROLLHandler(s->hwnd, p->onWM_HSCROLL, uiControl(c));
 
 	s->onDestroy = p->onDestroy;
 	s->onDestroyData = p->onDestroyData;
 
 	if (p->useStandardControlFont)
 		SendMessageW(s->hwnd, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
-
-	// this handles redirected notification messages
-	if (SetWindowSubclass(s->hwnd, singleSubclassProc, 0, (DWORD_PTR) s) == FALSE)
-		logLastError("error subclassing Windows control in uiWindowsMakeControl()");
 
 	makeControl(uiControl(c), s);
 

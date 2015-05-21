@@ -61,6 +61,7 @@ static void onDestroy(void *data)
 {
 	struct spinbox *s = (struct spinbox *) data;
 
+	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
 	uiFree(s);
 }
 
@@ -169,7 +170,6 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
@@ -177,6 +177,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	uiWindowsMakeControl(uiControl(s), &p);
 
 	s->hwnd = (HWND) uiControlHandle(uiControl(s));
+	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, onWM_COMMAND, uiControl(s));
 
 	recreateUpDown(s);
 	s->inhibitChanged = TRUE;

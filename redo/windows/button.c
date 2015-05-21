@@ -33,6 +33,7 @@ static void onDestroy(void *data)
 {
 	struct button *b = (struct button *) data;
 
+	uiWindowsUnregisterWM_COMMANDHandler(b->hwnd);
 	uiFree(b);
 }
 
@@ -100,7 +101,6 @@ uiButton *uiNewButton(const char *text)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
@@ -109,6 +109,7 @@ uiButton *uiNewButton(const char *text)
 	uiFree(wtext);
 
 	b->hwnd = (HWND) uiControlHandle(uiControl(b));
+	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
 
 	b->onClicked = defaultOnClicked;
 

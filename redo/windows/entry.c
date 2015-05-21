@@ -36,6 +36,7 @@ static void onDestroy(void *data)
 {
 	struct entry *e = (struct entry *) data;
 
+	uiWindowsUnregisterWM_COMMANDHandler(e->hwnd);
 	uiFree(e);
 }
 
@@ -111,7 +112,6 @@ uiEntry *uiNewEntry(void)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
@@ -119,6 +119,7 @@ uiEntry *uiNewEntry(void)
 	uiWindowsMakeControl(uiControl(e), &p);
 
 	e->hwnd = (HWND) uiControlHandle(uiControl(e));
+	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
 
 	e->onChanged = defaultOnChanged;
 

@@ -13,7 +13,6 @@ void osSingleDestroy(void *internal)
 	struct singleHWND *s = (struct singleHWND *) internal;
 
 	(*(s->onDestroy))(s->onDestroyData);
-	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
 	uiWindowsUnregisterWM_NOTIFYHandler(s->hwnd);
 	uiWindowsUnregisterWM_HSCROLLHandler(s->hwnd);
 	if (DestroyWindow(s->hwnd) == 0)
@@ -120,7 +119,6 @@ void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p)
 	if (s->hwnd == NULL)
 		logLastError("error creating control in uiWindowsMakeControl()");
 
-	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, p->onWM_COMMAND, uiControl(c));
 	uiWindowsRegisterWM_NOTIFYHandler(s->hwnd, p->onWM_NOTIFY, uiControl(c));
 	uiWindowsRegisterWM_HSCROLLHandler(s->hwnd, p->onWM_HSCROLL, uiControl(c));
 

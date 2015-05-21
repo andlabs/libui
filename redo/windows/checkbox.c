@@ -41,6 +41,7 @@ static void onDestroy(void *data)
 {
 	struct checkbox *c = (struct checkbox *) data;
 
+	uiWindowsUnregisterWM_COMMANDHandler(c->hwnd);
 	uiFree(c);
 }
 
@@ -115,7 +116,6 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
@@ -124,6 +124,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiFree(wtext);
 
 	c->hwnd = (HWND) uiControlHandle(uiControl(c));
+	uiWindowsRegisterWM_COMMANDHandler(c->hwnd, onWM_COMMAND, uiControl(c));
 
 	c->onToggled = defaultOnToggled;
 

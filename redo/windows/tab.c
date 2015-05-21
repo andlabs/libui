@@ -41,11 +41,6 @@ static void showHidePage(struct tab *t, LRESULT which, int hide)
 
 // control implementation
 
-static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 {
 	struct tab *t = (struct tab *) c;
@@ -218,7 +213,6 @@ uiTab *uiNewTab(void)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_COMMAND = onWM_COMMAND;
 	p.onWM_NOTIFY = onWM_NOTIFY;
 	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;

@@ -9,7 +9,7 @@ struct entry {
 	BOOL inhibitChanged;
 };
 
-static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	struct entry *e = (struct entry *) c;
 

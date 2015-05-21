@@ -13,7 +13,7 @@ struct slider {
 	void *onChangedData;
 };
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
+static BOOL onWM_HSCROLL(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	struct slider *s = (struct slider *) c;
 

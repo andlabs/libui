@@ -33,7 +33,7 @@ static intmax_t value(struct spinbox *s)
 
 // control implementation
 
-static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	struct spinbox *s = (struct spinbox *) c;
 

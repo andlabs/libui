@@ -41,7 +41,7 @@ static void showHidePage(struct tab *t, LRESULT which, int hide)
 
 // control implementation
 
-static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
+static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 {
 	struct tab *t = (struct tab *) c;
 

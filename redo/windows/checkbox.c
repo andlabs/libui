@@ -8,7 +8,7 @@ struct checkbox {
 	void *onToggledData;
 };
 
-static BOOL onWM_COMMAND(uiControl *cc, WORD code, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	struct checkbox *c = (struct checkbox *) cc;
 	WPARAM check;

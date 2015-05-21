@@ -5,21 +5,21 @@
 
 struct commandHandler {
 	HWND hwnd;
-	BOOL (*handler)(uiControl *, WORD, LRESULT *);
+	BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *);
 	uiControl *c;
 	UT_hash_handle hh;
 };
 
 struct notifyHandler {
 	HWND hwnd;
-	BOOL (*handler)(uiControl *, NMHDR *, LRESULT *);
+	BOOL (*handler)(uiControl *, HWND, NMHDR *, LRESULT *);
 	uiControl *c;
 	UT_hash_handle hh;
 };
 
 struct hscrollHandler {
 	HWND hwnd;
-	BOOL (*handler)(uiControl *, WORD, LRESULT *);
+	BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *);
 	uiControl *c;
 	UT_hash_handle hh;
 };
@@ -41,9 +41,9 @@ struct hscrollHandler *hscrollHandlers = NULL;
 		ch->c = c; \
 		HASH_ADD_PTR(message ## Handlers, hwnd, ch); \
 	}
-REGFN(WM_COMMAND, command, (uiControl *, WORD, LRESULT *))
-REGFN(WM_NOTIFY, notify, (uiControl *, NMHDR *, LRESULT *))
-REGFN(WM_HSCROLL, hscroll, (uiControl *, WORD, LRESULT *))
+REGFN(WM_COMMAND, command, (uiControl *, HWND, WORD, LRESULT *))
+REGFN(WM_NOTIFY, notify, (uiControl *, HWND, NMHDR *, LRESULT *))
+REGFN(WM_HSCROLL, hscroll, (uiControl *, HWND, WORD, LRESULT *))
 
 #define UNREGFN(WM_MESSAGE, message) \
 	void uiWindowsUnregister ## WM_MESSAGE ## Handler(HWND hwnd) \
@@ -59,7 +59,7 @@ UNREGFN(WM_COMMAND, command)
 UNREGFN(WM_NOTIFY, notify)
 UNREGFN(WM_HSCROLL, hscroll)
 
-#define RUNFN(WM_MESSAGE, message, gethwnd, arg2) \
+#define RUNFN(WM_MESSAGE, message, gethwnd, arg3) \
 	BOOL run ## WM_MESSAGE(WPARAM wParam, LPARAM lParam, LRESULT *lResult) \
 	{ \
 		HWND control; \
@@ -70,7 +70,7 @@ UNREGFN(WM_HSCROLL, hscroll)
 		if (control != NULL && IsChild(utilWindow, control) == 0) { \
 			HASH_FIND_PTR(message ## Handlers, &control, ch); \
 			if (ch != NULL) \
-				return (*(ch->handler))(ch->c, arg2, lResult); \
+				return (*(ch->handler))(ch->c, control, arg3, lResult); \
 			/* not registered; fall out to return FALSE */ \
 		} \
 		return FALSE; \

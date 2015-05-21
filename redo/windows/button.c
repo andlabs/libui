@@ -8,7 +8,7 @@ struct button {
 	void *onClickedData;
 };
 
-static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
+static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	struct button *b = (struct button *) c;
 

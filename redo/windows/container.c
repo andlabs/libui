@@ -58,11 +58,6 @@ void uninitContainer(void)
 		logLastError("error unregistering container window class in uninitContainer()");
 }
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static void onDestroy(void *data)
 {
 	// do nothing
@@ -79,7 +74,6 @@ void uiMakeContainer(uiControl *c)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = NULL;
 	uiWindowsMakeControl(c, &p);

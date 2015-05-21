@@ -6,11 +6,6 @@ struct label {
 	HWND hwnd;
 };
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static void onDestroy(void *data)
 {
 	struct label *l = (struct label *) data;
@@ -58,7 +53,6 @@ uiLabel *uiNewLabel(const char *text)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = l;
 	uiWindowsMakeControl(uiControl(l), &p);

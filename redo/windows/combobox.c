@@ -6,11 +6,6 @@ struct combobox {
 	HWND hwnd;
 };
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static void onDestroy(void *data)
 {
 	struct combobox *c = (struct combobox *) data;
@@ -58,7 +53,6 @@ uiCombobox *uiNewCombobox(void)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = c;
 	uiWindowsMakeControl(uiControl(c), &p);

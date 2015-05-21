@@ -6,11 +6,6 @@ struct progressbar {
 	HWND hwnd;
 };
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static void onDestroy(void *data)
 {
 	struct progressbar *p = (struct progressbar *) data;
@@ -53,7 +48,6 @@ uiProgressBar *uiNewProgressBar(void)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = FALSE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = pbar;
 	uiWindowsMakeControl(uiControl(pbar), &p);

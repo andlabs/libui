@@ -19,11 +19,6 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static void onDestroy(void *data)
 {
 	struct button *b = (struct button *) data;
@@ -96,7 +91,6 @@ uiButton *uiNewButton(const char *text)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = b;
 	uiWindowsMakeControl(uiControl(b), &p);

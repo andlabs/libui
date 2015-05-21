@@ -27,11 +27,6 @@ static BOOL onWM_COMMAND(uiControl *cc, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static void onDestroy(void *data)
 {
 	struct checkbox *c = (struct checkbox *) data;
@@ -111,7 +106,6 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = c;
 	uiWindowsMakeControl(uiControl(c), &p);

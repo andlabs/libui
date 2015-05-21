@@ -47,11 +47,6 @@ static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static void onDestroy(void *data)
 {
 	struct spinbox *s = (struct spinbox *) data;
@@ -165,7 +160,6 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = s;
 	uiWindowsMakeControl(uiControl(s), &p);

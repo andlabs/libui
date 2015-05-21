@@ -54,11 +54,6 @@ static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
 	return TRUE;
 }
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static void onDestroy(void *data)
 {
 	// TODO
@@ -214,7 +209,6 @@ uiTab *uiNewTab(void)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = t;
 	uiWindowsMakeControl(uiControl(t), &p);

@@ -22,12 +22,6 @@ struct uiWindowsMakeControlParams {
 	// Set this to non-FALSE to use the standard control font used by other ui controls.
 	BOOL useStandardControlFont;
 
-	// These are called when the control sends a WM_COMMAND, WM_NOTIFY, or WM_HSCROLL (respectively) to its parent.
-	// ui redirects the message back and calls these functions.
-	// Store the result in *lResult and return any non-FALSE value (such as TRUE) to return the given result; return FALSE to pass the notification up to your window procedure.
-	// Note that these are only issued if they come from the uiControl itself; notifications from children of the uiControl (such as a header control) will be received normally.
-	BOOL (*onWM_HSCROLL)(uiControl *c, WORD code, LRESULT *lResult);
-
 	// This is called when the widget is ready to be destroyed.
 	void (*onDestroy)(void *data);
 	void *onDestroyData;

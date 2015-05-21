@@ -26,6 +26,7 @@ static void onDestroy(void *data)
 {
 	struct slider *s = (struct slider *) data;
 
+	uiWindowsUnregisterWM_HSCROLLHandler(s->hwnd);
 	uiFree(s);
 }
 
@@ -84,12 +85,12 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = s;
 	uiWindowsMakeControl(uiControl(s), &p);
 
 	s->hwnd = (HWND) uiControlHandle(uiControl(s));
+	uiWindowsRegisterWM_HSCROLLHandler(s->hwnd, onWM_HSCROLL, uiControl(s));
 
 	SendMessageW(s->hwnd, TBM_SETRANGEMIN, (WPARAM) TRUE, (LPARAM) min);
 	SendMessageW(s->hwnd, TBM_SETRANGEMAX, (WPARAM) TRUE, (LPARAM) max);

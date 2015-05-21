@@ -10,11 +10,6 @@ struct separator {
 	HWND hwnd;
 };
 
-static BOOL onWM_HSCROLL(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
 static void onDestroy(void *data)
 {
 	struct separator *s = (struct separator *) data;
@@ -47,7 +42,6 @@ uiSeparator *uiNewHorizontalSeparator(void)
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
-	p.onWM_HSCROLL = onWM_HSCROLL;
 	p.onDestroy = onDestroy;
 	p.onDestroyData = s;
 	uiWindowsMakeControl(uiControl(s), &p);

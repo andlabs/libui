@@ -125,5 +125,5 @@ extern BOOL runWM_HSCROLL(WPARAM, LPARAM, LRESULT *);
 extern void dialogHelperRegisterWindow(HWND);
 extern void dialogHelperUnregisterWindow(HWND);
 extern ATOM initDialogHelper(HICON, HCURSOR);
-extern uintptr_t beginDialogHelper(void);
-extern void endDialog(uintptr_t);
+extern HWND beginDialogHelper(void);
+extern void endDialogHelper(HWND);

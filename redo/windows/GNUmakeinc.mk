@@ -24,6 +24,7 @@ osCFILES = \
 	windows/separator.c \
 	windows/slider.c \
 	windows/spinbox.c \
+	windows/stddialogs.c \
 	windows/tab.c \
 	windows/text.c \
 	windows/util.c \

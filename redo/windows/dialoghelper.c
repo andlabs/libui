@@ -87,7 +87,7 @@ ATOM initDialogHelper(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	return RegisterClassW(&wc);
 }
 
-uintptr_t beginDialogHelper(void)
+HWND beginDialogHelper(void)
 {
 	HWND hwnd;
 
@@ -98,13 +98,11 @@ uintptr_t beginDialogHelper(void)
 		NULL, NULL, hInstance, NULL);
 	if (hwnd == NULL)
 		logLastError("error creating dialog helper in beginDialogHelper()");
-	return (uintptr_t) hwnd;
+	return hwnd;
 }
 
-void endDialog(uintptr_t handle)
+void endDialogHelper(HWND hwnd)
 {
-	HWND hwnd = (HWND) handle;
-
 	if (DestroyWindow(hwnd) == 0)
 		logLastError("error cleaning up after dialog helper in endDialogHelper()");
 }

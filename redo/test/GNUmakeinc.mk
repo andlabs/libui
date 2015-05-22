@@ -7,6 +7,7 @@ testCFILES = \
 	test/page2.c \
 	test/page3.c \
 	test/page4.c \
+	test/page5.c \
 	test/spaced.c
 
 testHFILES = \

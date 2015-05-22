@@ -205,4 +205,6 @@ interface MenuItem {
 	func SetChecked(checked int);
 };
 
+func OpenFile(void) *char;
+
 };

@@ -36,3 +36,6 @@ extern uiBox *makePage3(void);
 
 // page4.c
 extern uiBox *makePage4(void);
+
+// page5.c
+extern uiBox *makePage5(void);

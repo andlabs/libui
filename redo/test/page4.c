@@ -28,8 +28,9 @@ SETTOO(Spinbox, High, 80)
 SETTOO(Slider, Low, -80)
 SETTOO(Slider, High, 80)
 
-uiCombobox *cbox;
-uiRadioButtons *rb;
+static uiCombobox *cbox;
+static uiCombobox *editable;
+static uiRadioButtons *rb;
 
 uiBox *makePage4(void)
 {
@@ -83,6 +84,12 @@ uiBox *makePage4(void)
 	uiComboboxAppend(cbox, "Item 2");
 	uiComboboxAppend(cbox, "Item 3");
 	uiBoxAppend(page4, uiControl(cbox), 0);
+
+	editable = uiNewEditableCombobox();
+	uiComboboxAppend(editable, "Editable Item 1");
+	uiComboboxAppend(editable, "Editable Item 2");
+	uiComboboxAppend(editable, "Editable Item 3");
+	uiBoxAppend(page4, uiControl(editable), 0);
 
 	rb = uiNewRadioButtons();
 	uiRadioButtonsAppend(rb, "Item 1");

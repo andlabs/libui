@@ -38,7 +38,7 @@ static void comboboxAppend(uiCombobox *cc, const char *text)
 	uiFree(wtext);
 }
 
-uiCombobox *uiNewCombobox(void)
+static uiCombobox *finishNewCombobox(DWORD style)
 {
 	struct combobox *c;
 	uiWindowsMakeControlParams p;
@@ -49,7 +49,7 @@ uiCombobox *uiNewCombobox(void)
 	p.dwExStyle = WS_EX_CLIENTEDGE;
 	p.lpClassName = L"combobox";
 	p.lpWindowName = L"";
-	p.dwStyle = CBS_DROPDOWNLIST | WS_TABSTOP;
+	p.dwStyle = style | WS_TABSTOP;
 	p.hInstance = hInstance;
 	p.lpParam = NULL;
 	p.useStandardControlFont = TRUE;
@@ -64,4 +64,14 @@ uiCombobox *uiNewCombobox(void)
 	uiCombobox(c)->Append = comboboxAppend;
 
 	return uiCombobox(c);
+}
+
+uiCombobox *uiNewCombobox(void)
+{
+	return finishNewCombobox(CBS_DROPDOWNLIST);
+}
+
+uiCombobox *uiNewEditableCombobox(void)
+{
+	return finishNewCombobox(CBS_DROPDOWN);
 }

@@ -7,6 +7,7 @@ osCFILES = \
 	windows/combobox.c \
 	windows/container.c \
 	windows/control.c \
+	windows/datetimepicker.c \
 	windows/debug.c \
 	windows/entry.c \
 	windows/events.c \

@@ -48,6 +48,7 @@ static uiCombobox *finishNewCombobox(DWORD style)
 	c = uiNew(struct combobox);
 	uiTyped(c)->Type = uiTypeCombobox();
 
+	// TODO client edge?
 	p.dwExStyle = WS_EX_CLIENTEDGE;
 	p.lpClassName = L"combobox";
 	p.lpWindowName = L"";

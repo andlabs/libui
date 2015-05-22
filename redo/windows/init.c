@@ -79,6 +79,7 @@ uiInitOptions options;
 	ICC_LISTVIEW_CLASSES |		/* table headers */			\
 	ICC_UPDOWN_CLASS |		/* spinboxes */			\
 	ICC_BAR_CLASSES |			/* trackbar */				\
+	ICC_DATE_CLASSES |		/* date/time picker */		\
 	0)
 
 const char *uiInit(uiInitOptions *o)

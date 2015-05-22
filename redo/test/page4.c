@@ -97,5 +97,11 @@ uiBox *makePage4(void)
 	uiRadioButtonsAppend(rb, "Item 3");
 	uiBoxAppend(page4, uiControl(rb), 0);
 
+	uiBoxAppend(page4, uiControl(uiNewHorizontalSeparator()), 0);
+
+	uiBoxAppend(page4, uiControl(uiNewDateTimePicker()), 0);
+	uiBoxAppend(page4, uiControl(uiNewDatePicker()), 0);
+	uiBoxAppend(page4, uiControl(uiNewTimePicker()), 0);
+
 	return page4;
 }

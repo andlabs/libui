@@ -181,6 +181,12 @@ interface RadioButtons from Control {
 };
 func NewRadioButtons(void) *RadioButtons;
 
+interface DateTimePicker from Control {
+};
+func NewDateTimePicker(void) *DateTimePicker;
+func NewDatePicker(void) *DateTimePicker;
+func NewTimePicker(void) *DateTimePicker;
+
 interface Menu {
 	func AppendItem(name *const char) *MenuItem;
 	func AppendCheckItem(name *const char) *MenuItem;

@@ -1,6 +1,8 @@
 // 20 may 2015
 #include "uipriv_windows.h"
 
+// TODO point to where it says size is autocomputed on comctl6
+
 struct combobox {
 	uiCombobox c;
 	HWND hwnd;

@@ -9,6 +9,7 @@ osCFILES = \
 	windows/control.c \
 	windows/datetimepicker.c \
 	windows/debug.c \
+	windows/dialoghelper.c \
 	windows/entry.c \
 	windows/events.c \
 	windows/group.c \

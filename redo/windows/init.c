@@ -141,6 +141,9 @@ const char *uiInit(uiInitOptions *o)
 	if (InitCommonControlsEx(&icc) == 0)
 		return loadLastError("initializing Common Controls");
 
+	if (initDialogHelper(hDefaultIcon, hDefaultCursor) == 0)
+		return loadLastError("initializing the dialog helper");
+
 	return NULL;
 }
 

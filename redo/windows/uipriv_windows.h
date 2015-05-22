@@ -120,3 +120,10 @@ extern void uiWindowsUnregisterWM_HSCROLLHandler(HWND);
 extern BOOL runWM_COMMAND(WPARAM, LPARAM, LRESULT *);
 extern BOOL runWM_NOTIFY(WPARAM, LPARAM, LRESULT *);
 extern BOOL runWM_HSCROLL(WPARAM, LPARAM, LRESULT *);
+
+// dialoghelper.c
+extern void dialogHelperRegisterWindow(HWND);
+extern void dialogHelperUnregisterWindow(HWND);
+extern ATOM initDialogHelper(HICON, HCURSOR);
+extern uintptr_t beginDialogHelper(void);
+extern void endDialog(uintptr_t);

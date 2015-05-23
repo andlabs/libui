@@ -207,5 +207,7 @@ interface MenuItem {
 
 func OpenFile(void) *char;
 func SaveFile(void) *char;
+func MsgBox(title *const char, description *const char);
+func MsgBoxError(title *const char, description *const char);
 
 };

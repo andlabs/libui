@@ -74,3 +74,37 @@ char *uiSaveFile(void)
 	endDialogHelper(dialogHelper);
 	return toUTF8(wfilename);
 }
+
+// TODO migrate to task dialogs when making Vista-only
+static void msgbox(const char *title, const char *description, UINT flags)
+{
+	WCHAR *wtitle, *wdescription;
+	WCHAR *wtext;
+	int n;
+	HWND dialogHelper;
+
+	wtitle = toUTF16(title);
+	wdescription = toUTF16(description);
+	n = _scwprintf(L"%s\n\n%s", wtitle, wdescription);
+	wtext = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
+	snwprintf(wtext, n + 1, L"%s\n\n%s", wtitle, wdescription);
+
+	dialogHelper = beginDialogHelper();
+	if (MessageBoxW(dialogHelper, wtext, NULL, flags) == 0)
+		logLastError("error showing message box in msgbox()");
+	endDialogHelper(dialogHelper);
+
+	uiFree(wtext);
+	uiFree(wdescription);
+	uiFree(wtitle);
+}
+
+void uiMsgBox(const char *title, const char *description)
+{
+	msgbox(title, description, MB_OK);
+}
+
+void uiMsgBoxError(const char *title, const char *description)
+{
+	msgbox(title, description, MB_OK | MB_ICONERROR);
+}

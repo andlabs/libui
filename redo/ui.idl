@@ -206,5 +206,6 @@ interface MenuItem {
 };
 
 func OpenFile(void) *char;
+func SaveFile(void) *char;
 
 };

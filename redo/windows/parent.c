@@ -83,8 +83,7 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	return brush;
 }
 
-// TODO
-static void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
+void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
 {
 	HWND parent;
 	RECT paintRectParent;

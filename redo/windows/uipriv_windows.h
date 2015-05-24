@@ -78,6 +78,7 @@ extern const char *initUtilWindow(HICON, HCURSOR);
 extern void uninitUtilWindow(void);
 
 // parent.c
+extern void paintContainerBackground(HWND, HDC, RECT *);
 extern BOOL handleParentMessages(HWND, UINT, WPARAM, LPARAM, LRESULT *);
 
 // debug.c

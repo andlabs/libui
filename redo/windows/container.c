@@ -12,7 +12,6 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
-/* TODO
 	switch (uMsg) {
 	case WM_PAINT:
 		dc = BeginPaint(hwnd, &ps);
@@ -33,8 +32,6 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		// we draw the whole update area anyway
 		return 1;
 	}
-*/
-
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 

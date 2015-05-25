@@ -18,13 +18,13 @@ static void msgloop_tab(HWND active, HWND focus, MSG *msg)
 	if (idm != 0)
 		return;
 	TranslateMessage(msg);
-	DispatchMessage(msg);
+	DispatchMessageW(msg);
 }
 
 static void msgloop_else(MSG *msg)
 {
 	TranslateMessage(msg);
-	DispatchMessage(msg);
+	DispatchMessageW(msg);
 }
 
 void uiMain(void)

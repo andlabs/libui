@@ -144,12 +144,18 @@ const char *uiInit(uiInitOptions *o)
 	if (initDialogHelper(hDefaultIcon, hDefaultCursor) == 0)
 		return loadLastError("initializing the dialog helper");
 
+	// TODO initialize COM
+	// TODO initialize COM security
+	// TODO (windows vista) turn off COM exception handling
+
 	return NULL;
 }
 
 void uiUninit(void)
 {
 	uninitMenus();
+	// TODO uninitialize COM
+	// TODO uninitialize the dialog helper
 	// TODO delete hollow brush
 	if (SetConsoleCtrlHandler(consoleCtrlHandler, FALSE) == 0)
 		logLastError("unregistering console end session handler");

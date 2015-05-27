@@ -37,6 +37,8 @@ void controlBaseSetParent(uiControl *c, uiControl *parent)
 		complain("attempt to double unparent uiControl %p", c);
 	cb->parent = parent;
 	uiControlCommitSetParent(c, parent);
+	// for situations such as where the old parent was disabled but the new one is not, etc.
+	uiControlUpdateState(c);
 }
 
 int controlBaseContainerVisible(uiControl *c)

@@ -1,6 +1,8 @@
 // 27 may 2015
 #include "uipriv_windows.h"
 
+// TODO Edit ,s/Util/HWND/g
+
 #define HWND(c) ((HWND) uiControlHandle((c)))
 
 void uiWindowsUtilDestroy(HWND hwnd)
@@ -72,4 +74,40 @@ void uiWindowsSingleHWNDControlCommitDisable(uiControl *c)
 	uiWindowsUtilDisable(HWND(c));
 }
 
-// TODO sysfunc and zorder
+void uiWindowsUtilSysFunc(HWND hwnd, uiControlSysFuncParams *p)
+{
+	switch (p->Func) {
+	case uiControlSysFuncNop:
+		return;
+	case uiWindowsSysFuncHasTabStops:
+		if ((getStyle(hwnd) & WS_TABSTOP) != 0)
+			p->HasTabStops = TRUE;
+		return;
+	case uiWindowsSysFuncSetZOrder:
+		setWindowInsertAfter(hwnd, p->InsertAfter);
+		p->InsertAfter = hwnd;
+		return;
+	}
+	complain("unknown uiControlSysFunc() function %d in uiWindowsUtilSysFunc()", p->Func);
+}
+
+void uiWindowsSingleHWNDControlSysFunc(uiControl *c, uiControlSysFuncParams *p)
+{
+	uiWindowsUtilSysFunc(HWND(c), p);
+}
+
+void uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p)
+{
+	HWND insertAfter;
+
+	// see http://stackoverflow.com/questions/30491418/
+	insertAfter = GetWindow(hwnd, GW_HWNDPREV);
+	if (insertAfter == NULL)
+		logLastError("error getting insert after window in uiWindowsUtilStartZOrder()");
+	p->InsertAfter = insertAfter;
+}
+
+void uiWindowsSingleHWNDControlStartZOrder(uiControl *c, uiControlSysFuncParams *p)
+{
+	uiWindowsUtilStartZOrder(HWND(c), p);
+}

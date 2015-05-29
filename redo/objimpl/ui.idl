@@ -28,7 +28,7 @@ func OnShouldQuit(f *func(data *void) int, data *void);
 
 func FreeText(text *char);
 
-func RegisterType(name *const char, parent uintmax_t) uintmax_t;
+func RegisterType(name *const char, parent uintmax_t, size size_t) uintmax_t;
 func IsA(p *void, type uintmax_t, fail int) *void;
 struct Typed {
 	field Type uintmax_t;
@@ -73,6 +73,17 @@ interface Control {
 	func CommitDisable(void);
 	func ContainerUpdateState(void);
 };
+
+func NewControl(type uintmax_t) *Control;
+
+raw "#define uiDefineControlType(typename, funcname, realtype) \";
+raw "	static uintmax_t type_ ## typename = 0; \";
+raw "	uintmax_t funcname(void) \";
+raw "	{ \";
+raw "		if (type_ ## typename == 0) \";
+raw "			type_ ## typename = uiRegisterType(#typename, uiTypeControl(), sizeof (realtype)); \";
+raw "		return type_ ## typename; \";
+raw "	}";
 
 func FreeSizing(d *Sizing);
 

@@ -18,7 +18,7 @@ static void controlBaseDestroy(uiControl *c)
 		complain("attempt to destroy uiControl %p while it has a parent", c);
 	uiControlCommitDestroy(c);
 	uiFree(cb);
-	// TODO free c?
+	uiFree(c);
 }
 
 static uiControl *controlBaseParent(uiControl *c)
@@ -119,9 +119,11 @@ static void controlBaseContainerUpdateState(uiControl *c)
 	// by default not a container; do nothing
 }
 
-void uiMakeControl(uiControl *c, uintmax_t type)
+uiControl *uiNewControl(uintmax_t type)
 {
-	uiTyped(c)->Type = type;
+	uiControl *c;
+
+	c = uiControl(newTyped(type));
 	uiControl(c)->Internal = uiNew(struct controlBase);
 	uiControl(c)->Destroy = controlBaseDestroy;
 	uiControl(c)->Parent = controlBaseParent;
@@ -135,4 +137,5 @@ void uiMakeControl(uiControl *c, uintmax_t type)
 	uiControl(c)->Disable = controlBaseDisable;
 	uiControl(c)->UpdateState = controlBaseUpdateState;
 	uiControl(c)->ContainerUpdateState = controlBaseContainerUpdateState;
+	return uiControl(c);
 }

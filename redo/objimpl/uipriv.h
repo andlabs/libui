@@ -31,4 +31,7 @@ void ptrArrayDelete(struct ptrArray *, uintmax_t);
 #define ptrArrayIndex(p, T, i) ((T) ((p)->ptrs[(i)]))
 
 // shouldquit.c
-int shouldQuit(void);
+extern int shouldQuit(void);
+
+// types.c
+extern uiTyped *newTyped(uintmax_t type);

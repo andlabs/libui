@@ -18,7 +18,7 @@ _UI_EXTERN void uiWIndowsUtilEnable(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilDisable(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilSysFunc(HWND hwnd, uiControlSysFuncParams *p);
 _UI_EXTERN void uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p);
-_UI_EXTERN void uiWindowsMakeSingleHWNDControl(uiControl *c, uintmax_t type);
+_UI_EXTERN uiControl *uiWindowsNewSingleHWNDControl(uintmax_t type);
 
 // This contains the Windows-specific parts of the uiSizing structure.
 // BaseX and BaseY are the dialog base units.

@@ -144,9 +144,11 @@ static void singleHWNDStartZOrder(uiControl *c, uiControlSysFuncParams *p)
 	uiWindowsUtilStartZOrder(HWND(c), p);
 }
 
-void uiWindowsMakeSingleHWNDControl(uiControl *c, uintmax_t type)
+uiControl *uiWindowsNewSingleHWNDControl(uintmax_t type)
 {
-	uiMakeControl(c, type);
+	uiControl *c;
+
+	c = uiNewControl(type);
 	uiControl(c)->CommitDestroy = singleHWNDCommitDestroy;
 	uiControl(c)->CommitSetParent = singleHWNDCommitSetParent;
 	uiControl(c)->Resize = singleHWNDResize;
@@ -157,4 +159,5 @@ void uiWindowsMakeSingleHWNDControl(uiControl *c, uintmax_t type)
 	uiControl(c)->CommitDisable = singleHWNDCommitDisable;
 	uiControl(c)->SysFunc = singleHWNDSysFunc;
 	uiControl(c)->StartZOrder = singleHWNDStartZOrder;
+	return c;
 }

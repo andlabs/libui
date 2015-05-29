@@ -33,6 +33,13 @@ static void entryCommitDestroy(uiControl *c)
 	(*(e->baseCommitDestroy))(uiControl(e));
 }
 
+static uintptr_t entryHandle(uiControl *c)
+{
+	struct entry *e = (struct entry *) c;
+
+	return (uintptr_t) (e->hwnd);
+}
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
@@ -106,6 +113,7 @@ uiEntry *uiNewEntry(void)
 
 	e->onChanged = defaultOnChanged;
 
+	uiControl(e)->Handle = entryHandle;
 	uiControl(e)->PreferredSize = entryPreferredSize;
 	e->baseCommitDestroy = uiControl(e)->CommitDestroy;
 	uiControl(e)->CommitDestroy = entryCommitDestroy;

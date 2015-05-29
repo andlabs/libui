@@ -10,6 +10,13 @@ struct datetimepicker {
 
 uiDefineControlType(uiDateTimePicker, uiTypeDateTimePicker, struct datetimepicker)
 
+static uintptr_t datetimepickerHandle(uiControl *c)
+{
+	struct datetimepicker *d = (struct datetimepicker *) c;
+
+	return (uintptr_t) (d->hwnd);
+}
+
 // TODO
 // TODO use DTM_GETIDEALSIZE when making Vista-only
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -39,6 +46,7 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style, WCHAR *format)
 		if (SendMessageW(d->hwnd, DTM_SETFORMAT, 0, (LPARAM) format) == 0)
 			logLastError("error applying format string to date/time picker in finishNewDateTimePicker()");
 
+	uiControl(d)->Handle = datetimepickerHandle;
 	uiControl(d)->PreferredSize = datetimepickerPreferredSize;
 
 	return uiDateTimePicker(d);

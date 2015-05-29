@@ -8,6 +8,13 @@ struct group {
 
 uiDefineControlType(uiGroup, uiTypeGroup, struct group)
 
+static uintptr_t groupHandle(uiControl *c)
+{
+	struct group *g = (struct group *) c;
+
+	return (uintptr_t) (g->hwnd);
+}
+
 static void groupPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	// TODO
@@ -35,6 +42,7 @@ uiGroup *uiNewGroup(const char *text)
 		TRUE);
 	uiFree(wtext);
 
+	uiControl(g)->Handle = groupHandle;
 	uiControl(g)->PreferredSize = groupPreferredSize;
 
 	uiGroup(g)->SetChild = groupSetChild;

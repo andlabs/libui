@@ -33,6 +33,13 @@ static void sliderCommitDestroy(uiControl *c)
 	(*(s->baseCommitDestroy))(uiControl(s));
 }
 
+static uintptr_t sliderHandle(uiControl *c)
+{
+	struct slider *s = (struct slider *) c;
+
+	return (uintptr_t) (s->hwnd);
+}
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define sliderWidth 107 /* this is actually the shorter progress bar width, but Microsoft doesn't indicate a width */
 #define sliderHeight 15
@@ -93,6 +100,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 
 	s->onChanged = defaultOnChanged;
 
+	uiControl(s)->Handle = sliderHandle;
 	uiControl(s)->PreferredSize = sliderPreferredSize;
 	s->baseCommitDestroy = uiControl(s)->CommitDestroy;
 	uiControl(s)->CommitDestroy = sliderCommitDestroy;

@@ -59,6 +59,15 @@ static void spinboxCommitDestroy(uiControl *c)
 	(*(s->baseCommitDestroy))(uiControl(s));
 }
 
+// the edit control is the one to return here
+// we can't return the updown because it gets recreated on resize
+static uintptr_t spinboxHandle(uiControl *c)
+{
+	struct spinbox *s = (struct spinbox *) c;
+
+	return (uintptr_t) (s->hwnd);
+}
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
@@ -157,6 +166,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	s->hwnd = uiWindowsNewSingleHWNDControl(WS_EX_CLIENTEDGE,
 		L"edit", L"",
+		// TODO ES_NUMBER doesn't allow typing in a leading -
 		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | ES_NUMBER | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
@@ -171,6 +181,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	s->onChanged = defaultOnChanged;
 
+	uiControl(s)->Handle = spinboxHandle;
 	uiControl(s)->PreferredSize = spinboxPreferredSize;
 	s->baseResize = uiControl(s)->Resize;
 	uiControl(s)->Resize = spinboxResize;

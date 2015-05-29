@@ -66,6 +66,13 @@ static void tabCommitDestroy(uiControl *c)
 	(*(t->baseCommitDestroy))(uiControl(t));
 }
 
+static uintptr_t tabHandle(uiControl *c)
+{
+	struct tab *t = (struct tab *) c;
+
+	return (uintptr_t) (t->hwnd);
+}
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define tabMargin 7
 
@@ -217,6 +224,7 @@ uiTab *uiNewTab(void)
 
 	t->pages = newPtrArray();
 
+	uiControl(t)->Handle = tabHandle;
 	uiControl(t)->PreferredSize = tabPreferredSize;
 	t->baseResize = uiControl(t)->Resize;
 	uiControl(t)->Resize = tabResize;

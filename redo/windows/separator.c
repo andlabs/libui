@@ -16,6 +16,13 @@ uiDefineControlType(uiSeparator, uiTypeSeparator, struct separator)
 // TODO
 // TODO DPI independence?
 
+static uintptr_t separatorHandle(uiControl *c)
+{
+	struct separator *s = (struct separator *) c;
+
+	return s->hwnd;
+}
+
 static void separatorPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	*width = 1;		// TODO
@@ -34,6 +41,7 @@ uiSeparator *uiNewHorizontalSeparator(void)
 		hInstance, NULL,
 		TRUE);
 
+	uiControl(s)->Handle = separatorHandle;
 	uiControl(s)->PreferredSize = separatorPreferredSize;
 
 	return uiSeparator(s);

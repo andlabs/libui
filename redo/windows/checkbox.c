@@ -38,6 +38,13 @@ static void checkboxCommitDestroy(uiControl *cc)
 	(*(c->baseCommitDestroy))(uiControl(c));
 }
 
+static uintptr_t checkboxHandle(uiControl *cc)
+{
+	struct checkbox *c = (struct checkbox *) cc;
+
+	return (uintptr_t) (c->hwnd);
+}
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define checkboxHeight 10
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
@@ -112,6 +119,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c->onToggled = defaultOnToggled;
 
+	uiControl(c)->Handle = checkboxHandle;
 	uiControl(c)->PreferredSize = checkboxPreferredSize;
 	c->baseCommitDestroy = uiControl(c)->CommitDestroy;
 	uiControl(c)->CommitDestroy = checkboxCommitDestroy;

@@ -8,6 +8,13 @@ struct label {
 
 uiDefineControlType(uiLabel, uiTypeLabel, struct label)
 
+static uintptr_t labelHandle(uiControl *c)
+{
+	struct label *l = (struct label *) c;
+
+	return (uintptr_t) (l->hwnd);
+}
+
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define labelHeight 8
 
@@ -46,6 +53,7 @@ uiLabel *uiNewLabel(const char *text)
 		TRUE);
 	uiFree(wtext);
 
+	uiControl(l)->Handle = labelHandle;
 	uiControl(l)->PreferredSize = labelPreferredSize;
 
 	uiLabel(l)->Text = labelText;

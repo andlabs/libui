@@ -30,6 +30,13 @@ static void buttonCommitDestroy(uiControl *c)
 	(*(b->baseCommitDestroy))(uiControl(b));
 }
 
+static uintptr_t buttonHandle(uiControl *c)
+{
+	struct button *b = (struct button *) c;
+
+	return (uintptr_t) (b->hwnd);
+}
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
@@ -96,6 +103,7 @@ uiButton *uiNewButton(const char *text)
 
 	b->onClicked = defaultOnClicked;
 
+	uiControl(b)->Handle = buttonHandle;
 	uiControl(b)->PreferredSize = buttonPreferredSize;
 	b->baseCommitDestroy = uiControl(b)->CommitDestroy;
 	uiControl(b)->CommitDestroy = buttonCommitDestroy;

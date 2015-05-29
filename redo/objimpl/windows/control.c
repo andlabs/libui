@@ -42,16 +42,10 @@ static void singleHWNDResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, 
 	uiWindowsUtilResize(HWND(c), x, y, width, height, d);
 }
 
-// TODO queue resize
-
-uiSizing *uiWindowsUtilSizing(HWND hwnd)
-{
-	xxxxxTODOxxxxxx
-}
-
 static uiSizing *singleHWNDSizing(uiControl *c)
 {
-	return uiWindowsUtilSizing(HWND(c));
+	// TODO change this to take a HWND and the parent
+	return uiWindowsSizing(c);
 }
 
 void uiWIndowsUtilShow(HWND hwnd)
@@ -130,4 +124,19 @@ void uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p)
 static void singleHWNDStartZOrder(uiControl *c, uiControlSysFuncParams *p)
 {
 	uiWindowsUtilStartZOrder(HWND(c), p);
+}
+
+void uiWindowsMakeSingleHWNDControl(uiControl *c, uintmax_t type)
+{
+	uiMakeControl(c, type);
+	uiControl(c)->CommitDestroy = singleHWNDCommitDestroy;
+	uiControl(c)->CommitSetParent = singleHWNDCommitSetParent;
+	uiControl(c)->Resize = singleHWNDResize;
+	uiControl(c)->Sizing = singleHWNDSizing;
+	uiControl(c)->CommitShow = singleHWNDCommitShow;
+	uiControl(c)->CommitHide = singleHWNDCommitHide
+	uiControl(c)->CommitEnable = singleHWNDCommitEnable;
+	uiControl(c)->CommitDisable = singleHWNDCommitDisable;
+	uiControl(c)->SysFunc = singleHWNDSysFunc;
+	uiControl(c)->StartZOrder = singleHWNDStartZOrder;
 }

@@ -10,7 +10,7 @@ struct controlBase {
 
 #define controlBase(c) ((struct controlBase *) (TODO))
 
-void controlBaseDestroy(uiControl *c)
+void uiControlBaseDestroy(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -20,14 +20,14 @@ void controlBaseDestroy(uiControl *c)
 	// TODO free memory
 }
 
-uiControl *controlBaseParent(uiControl *c)
+uiControl *uiControlBaseParent(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
 	return cb->parent;
 }
 
-void controlBaseSetParent(uiControl *c, uiControl *parent)
+void uiControlBaseSetParent(uiControl *c, uiControl *parent)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -41,7 +41,7 @@ void controlBaseSetParent(uiControl *c, uiControl *parent)
 	uiControlUpdateState(c);
 }
 
-int controlBaseContainerVisible(uiControl *c)
+int uiControlBaseContainerVisible(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -52,7 +52,7 @@ int controlBaseContainerVisible(uiControl *c)
 	return uiControlContainerVisible(cb->parent);
 }
 
-void controlBaseShow(uiControl *c)
+void uiControlBaseShow(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -60,7 +60,7 @@ void controlBaseShow(uiControl *c)
 	uiControlUpdateState(c);
 }
 
-void controlBaseHide(uiControl *c)
+void uiControlBaseHide(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -68,7 +68,7 @@ void controlBaseHide(uiControl *c)
 	uiControlUpdateState(c);
 }
 
-int controlBaseContainerEnabled(uiControl *c)
+int uiControlBaseContainerEnabled(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -79,7 +79,7 @@ int controlBaseContainerEnabled(uiControl *c)
 	return uiControlContainerEnabled(cb->parent);
 }
 
-void controlBaseEnable(uiControl *c)
+void uiControlBaseEnable(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -87,7 +87,7 @@ void controlBaseEnable(uiControl *c)
 	uiControlUpdateState(c);
 }
 
-void controlBaseDisable(uiControl *c)
+void uiControlBaseDisable(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -95,7 +95,7 @@ void controlBaseDisable(uiControl *c)
 	uiControlUpdateState(c);
 }
 
-void controlBaseUpdateState(uiControl *c)
+void uiControlBaseUpdateState(uiControl *c)
 {
 	if (uiControlContainerVisible(c))
 		uiControlCommitShow(c);
@@ -108,7 +108,7 @@ void controlBaseUpdateState(uiControl *c)
 	uiControlContainerUpdateState(c);
 }
 
-void controlBaseContainerUpdateState(uiControl *c)
+void uiControlBaseContainerUpdateState(uiControl *c)
 {
-	// by default not a contianer; do nothing
+	// by default not a container; do nothing
 }

@@ -11,7 +11,7 @@ void uiWindowsUtilDestroy(HWND hwnd)
 		logLastError("error destroying window in uiWindowsUtilDestroyWindow()");
 }
 
-void uiWindowsSingleHWNDControlCommitDestroy(uiControl *c)
+static void singleHWNDCommitDestroy(uiControl *c)
 {
 	uiWindowsUtilDestroy(HWND(c));
 }
@@ -27,19 +27,39 @@ void uiWindowsUtilSetParent(HWND hwnd, uiControl *parent)
 		logLastError("error changing window parent in uiWindowsUtilSetParent()");
 }
 
-void uiWindowsSingleHWNDControlCommitSetParent(uiControl *c, uiControl *parent)
+static void singleHWNDCommitSetParent(uiControl *c, uiControl *parent)
 {
 	uiWindowsUtilSetParent(HWND(c), parent);
 }
 
-// TODO resizing
+void uiWindowsUtilResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+{
+	moveWindow(hwnd, x, y, width, height, d);
+}
+
+static void singleHWNDResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+{
+	uiWindowsUtilResize(HWND(c), x, y, width, height, d);
+}
+
+// TODO queue resize
+
+uiSizing *uiWindowsUtilSizing(HWND hwnd)
+{
+	xxxxxTODOxxxxxx
+}
+
+static uiSizing *singleHWNDSizing(uiControl *c)
+{
+	return uiWindowsUtilSizing(HWND(c));
+}
 
 void uiWIndowsUtilShow(HWND hwnd)
 {
 	ShowWindow(hwnd, SW_SHOW);
 }
 
-void uiWindowsSingleHWNDControlCommitShow(uiControl *c)
+static void singleHWNDCommitShow(uiControl *c)
 {
 	uiWindowsUtilShow(HWND(c));
 }
@@ -49,7 +69,7 @@ void uiWindowsUtilHide(HWND hwnd)
 	ShowWindow(hwnd, SW_HIDE);
 }
 
-void uiWindowsSingleHWNDControlCommitHide(uiControl *c)
+static void singleHWNDCommitHide(uiControl *c)
 {
 	uiWindowsUtilHide(HWND(c));
 }
@@ -59,7 +79,7 @@ void uiWIndowsUtilEnable(HWND hwnd)
 	EnableWindow(hwnd, TRUE);
 }
 
-void uiWindowsSingleHWNDControlCommitEnable(uiControl *c)
+static void singleHWNDCommitEnable(uiControl *c)
 {
 	uiWindowsUtilEnable(HWND(c));
 }
@@ -69,7 +89,7 @@ void uiWindowsUtilDisable(HWND hwnd)
 	EnableWindow(hwnd, FALSE);
 }
 
-void uiWindowsSingleHWNDControlCommitDisable(uiControl *c)
+static void singleHWNDCommitDisable(uiControl *c)
 {
 	uiWindowsUtilDisable(HWND(c));
 }
@@ -91,7 +111,7 @@ void uiWindowsUtilSysFunc(HWND hwnd, uiControlSysFuncParams *p)
 	complain("unknown uiControlSysFunc() function %d in uiWindowsUtilSysFunc()", p->Func);
 }
 
-void uiWindowsSingleHWNDControlSysFunc(uiControl *c, uiControlSysFuncParams *p)
+static void singleHWNDSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
 	uiWindowsUtilSysFunc(HWND(c), p);
 }
@@ -107,7 +127,7 @@ void uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p)
 	p->InsertAfter = insertAfter;
 }
 
-void uiWindowsSingleHWNDControlStartZOrder(uiControl *c, uiControlSysFuncParams *p)
+static void singleHWNDStartZOrder(uiControl *c, uiControlSysFuncParams *p)
 {
 	uiWindowsUtilStartZOrder(HWND(c), p);
 }

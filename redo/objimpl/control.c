@@ -42,6 +42,11 @@ static void controlBaseSetParent(uiControl *c, uiControl *parent)
 	uiControlUpdateState(c);
 }
 
+static void controlBaseQueueResize(uiControl *c)
+{
+	queueResize(c);
+}
+
 static int controlBaseContainerVisible(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
@@ -121,6 +126,7 @@ void uiMakeControl(uiControl *c, uintmax_t type)
 	uiControl(c)->Destroy = controlBaseDestroy;
 	uiControl(c)->Parent = controlBaseParent;
 	uiControl(c)->SetParent = controlBaseSetParent;
+	uiControl(c)->QueueResize = controlBaseQueueResize;
 	uiControl(c)->ContainerVisible = controlBaseContainerVisible;
 	uiControl(c)->Show = controlBaseShow;
 	uiControl(c)->Hide = controlBaseHide;

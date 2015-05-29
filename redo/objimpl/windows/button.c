@@ -6,7 +6,10 @@ struct button {
 	HWND hwnd;
 	void (*onClicked)(uiButton *, void *);
 	void *onClickedData;
+	void (*baseCommitDestroy)(uiControl *);
 };
+
+uiDefineControlType(uiButton, uiTypeButton, struct button)
 
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
@@ -19,12 +22,12 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static void onDestroy(void *data)
+static void buttonCommitDestroy(uiControl *c)
 {
-	struct button *b = (struct button *) data;
+	struct button *b = (struct button *) c;
 
 	uiWindowsUnregisterWM_COMMANDHandler(b->hwnd);
-	uiFree(b);
+	(*(b->baseCommitDestroy))(uiControl(b));
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -77,31 +80,25 @@ static void buttonOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *d
 uiButton *uiNewButton(const char *text)
 {
 	struct button *b;
-	uiWindowsMakeControlParams p;
 	WCHAR *wtext;
 
-	b = uiNew(struct button);
-	uiTyped(b)->Type = uiTypeButton();
+	b = (struct button *) uiWindowsNewControl(uiTypeButton());
 
-	p.dwExStyle = 0;
-	p.lpClassName = L"button";
 	wtext = toUTF16(text);
-	p.lpWindowName = wtext;
-	p.dwStyle = BS_PUSHBUTTON | WS_TABSTOP;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = b;
-	uiWindowsMakeControl(uiControl(b), &p);
+	b->hwnd = uiWindowsUtilCreateControlHWND(0,
+		L"button", wtext,
+		BS_PUSHBUTTON | WS_TABSTOP,
+		hInstance, NULL,
+		TRUE);
 	uiFree(wtext);
 
-	b->hwnd = (HWND) uiControlHandle(uiControl(b));
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
 
 	b->onClicked = defaultOnClicked;
 
 	uiControl(b)->PreferredSize = buttonPreferredSize;
+	b->baseCommitDestroy = uiControl(b)->CommitDestroy;
+	uiControl(b)->CommitDestroy = buttonCommitDestroy;
 
 	uiButton(b)->Text = buttonText;
 	uiButton(b)->SetText = buttonSetText;

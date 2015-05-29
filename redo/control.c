@@ -1,177 +1,141 @@
-// 6 april 2015
+// 26 may 2015
 #include "out/ui.h"
 #include "uipriv.h"
 
-struct singleControl {
-	void *internal;
+struct controlBase {
 	uiControl *parent;
-	int userHidden;
-	int containerHidden;
-	int userDisabled;
-	int containerDisabled;
+	int hidden;
+	int disabled;
 };
 
-static void singleDestroy(uiControl *c)
-{
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+#define controlBase(c) ((struct controlBase *) (c->Internal))
 
-	if (s->parent != NULL)
-		complain("attempt to destroy a uiControl at %p while it still has a parent", c);
-	osSingleDestroy(s->internal);
-	uiFree(s);
+static void controlBaseDestroy(uiControl *c)
+{
+	struct controlBase *cb = controlBase(c);
+
+	if (cb->parent != NULL)
+		complain("attempt to destroy uiControl %p while it has a parent", c);
+	uiControlCommitDestroy(c);
+	uiFree(cb);
+	uiFree(c);
 }
 
-static uintptr_t singleHandle(uiControl *c)
+static uiControl *controlBaseParent(uiControl *c)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+	struct controlBase *cb = controlBase(c);
 
-	return osSingleHandle(s->internal);
+	return cb->parent;
 }
 
-static uiControl *singleParent(uiControl *c)
+static void controlBaseSetParent(uiControl *c, uiControl *parent)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+	struct controlBase *cb = controlBase(c);
 
-	return s->parent;
+	if (parent != NULL && cb->parent != NULL)
+		complain("attempt to reparent uiControl %p (has parent %p, attempt to give parent %p)", c, cb->parent, parent);
+	if (parent == NULL && cb->parent == NULL)
+		complain("attempt to double unparent uiControl %p", c);
+	cb->parent = parent;
+	uiControlCommitSetParent(c, parent);
+	// for situations such as where the old parent was disabled but the new one is not, etc.
+	uiControlUpdateState(c);
 }
 
-static void singleSetParent(uiControl *c, uiControl *parent)
-{
-	struct singleControl *s = (struct singleControl *) (c->Internal);
-	uiControl *oldparent;
-
-	oldparent = s->parent;
-	s->parent = parent;
-	osSingleSetParent(s->internal, oldparent, s->parent);
-}
-
-static void singleResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
-{
-	struct singleControl *s = (struct singleControl *) (c->Internal);
-
-	osSingleResize(s->internal, x, y, width, height, d);
-}
-
-static void singleQueueResize(uiControl *c)
+static void controlBaseQueueResize(uiControl *c)
 {
 	queueResize(c);
 }
 
-static uiSizing *singleSizing(uiControl *c)
+static int controlBaseContainerVisible(uiControl *c)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+	struct controlBase *cb = controlBase(c);
 
-	return osSingleSizing(s->internal, c);
+	if (cb->hidden)
+		return 0;
+	if (cb->parent == NULL)
+		return 1;
+	return uiControlContainerVisible(cb->parent);
 }
 
-static int singleContainerVisible(uiControl *c)
+static void controlBaseShow(uiControl *c)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+	struct controlBase *cb = controlBase(c);
 
-	return !s->userHidden && !s->containerHidden;
+	cb->hidden = 0;
+	uiControlUpdateState(c);
 }
 
-static void singleShow(uiControl *c)
+static void controlBaseHide(uiControl *c)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+	struct controlBase *cb = controlBase(c);
 
-	s->userHidden = 0;
-	if (!s->containerHidden)
-		osSingleShow(s->internal);
-	if (s->parent != NULL)
-		uiControlQueueResize(s->parent);
+	cb->hidden = 1;
+	uiControlUpdateState(c);
 }
 
-static void singleHide(uiControl *c)
+static int controlBaseContainerEnabled(uiControl *c)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+	struct controlBase *cb = controlBase(c);
 
-	s->userHidden = 1;
-	osSingleHide(s->internal);
-	if (s->parent != NULL)
-		uiControlQueueResize(s->parent);
+	if (cb->disabled)
+		return 0;
+	if (cb->parent == NULL)
+		return 1;
+	return uiControlContainerEnabled(cb->parent);
 }
 
-static void singleContainerShow(uiControl *c)
+static void controlBaseEnable(uiControl *c)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+	struct controlBase *cb = controlBase(c);
 
-	s->containerHidden = 0;
-	if (!s->userHidden)
-		osSingleShow(s->internal);
-	if (s->parent != NULL)
-		uiControlQueueResize(s->parent);
+	cb->disabled = 0;
+	uiControlUpdateState(c);
 }
 
-static void singleContainerHide(uiControl *c)
+static void controlBaseDisable(uiControl *c)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+	struct controlBase *cb = controlBase(c);
 
-	s->containerHidden = 1;
-	osSingleHide(s->internal);
-	if (s->parent != NULL)
-		uiControlQueueResize(s->parent);
+	cb->disabled = 1;
+	uiControlUpdateState(c);
 }
 
-static void singleEnable(uiControl *c)
+static void controlBaseUpdateState(uiControl *c)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
-
-	s->userDisabled = 0;
-	if (!s->containerDisabled)
-		osSingleEnable(s->internal);
+	if (uiControlContainerVisible(c))
+		uiControlCommitShow(c);
+	else
+		uiControlCommitHide(c);
+	if (uiControlContainerEnabled(c))
+		uiControlCommitEnable(c);
+	else
+		uiControlCommitDisable(c);
+	uiControlContainerUpdateState(c);
 }
 
-static void singleDisable(uiControl *c)
+static void controlBaseContainerUpdateState(uiControl *c)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
-
-	s->userDisabled = 1;
-	osSingleDisable(s->internal);
+	// by default not a container; do nothing
 }
 
-static void singleContainerEnable(uiControl *c)
+uiControl *uiNewControl(uintmax_t type)
 {
-	struct singleControl *s = (struct singleControl *) (c->Internal);
+	uiControl *c;
 
-	s->containerDisabled = 0;
-	if (!s->userDisabled)
-		osSingleEnable(s->internal);
-}
-
-static void singleContainerDisable(uiControl *c)
-{
-	struct singleControl *s = (struct singleControl *) (c->Internal);
-
-	s->containerDisabled = 1;
-	osSingleDisable(s->internal);
-}
-
-void makeControl(uiControl *c, void *internal)
-{
-	struct singleControl *s;
-
-	s = uiNew(struct singleControl);
-
-	s->internal = internal;
-
-	uiControl(c)->Internal = s;
-	uiControl(c)->Destroy = singleDestroy;
-	uiControl(c)->Handle = singleHandle;
-	uiControl(c)->Parent = singleParent;
-	uiControl(c)->SetParent = singleSetParent;
-	// PreferredSize() implemented by subclasses
-	uiControl(c)->Resize = singleResize;
-	uiControl(c)->QueueResize = singleQueueResize;
-	uiControl(c)->Sizing = singleSizing;
-	uiControl(c)->ContainerVisible = singleContainerVisible;
-	uiControl(c)->Show = singleShow;
-	uiControl(c)->Hide = singleHide;
-	uiControl(c)->ContainerShow = singleContainerShow;
-	uiControl(c)->ContainerHide = singleContainerHide;
-	uiControl(c)->Enable = singleEnable;
-	uiControl(c)->Disable = singleDisable;
-	uiControl(c)->ContainerEnable = singleContainerEnable;
-	uiControl(c)->ContainerDisable = singleContainerDisable;
-	// SysFunc and SetZOrder implemented by subclasses
+	c = uiControl(newTyped(type));
+	uiControl(c)->Internal = uiNew(struct controlBase);
+	uiControl(c)->Destroy = controlBaseDestroy;
+	uiControl(c)->Parent = controlBaseParent;
+	uiControl(c)->SetParent = controlBaseSetParent;
+	uiControl(c)->QueueResize = controlBaseQueueResize;
+	uiControl(c)->ContainerVisible = controlBaseContainerVisible;
+	uiControl(c)->Show = controlBaseShow;
+	uiControl(c)->Hide = controlBaseHide;
+	uiControl(c)->ContainerEnabled = controlBaseContainerEnabled;
+	uiControl(c)->Enable = controlBaseEnable;
+	uiControl(c)->Disable = controlBaseDisable;
+	uiControl(c)->UpdateState = controlBaseUpdateState;
+	uiControl(c)->ContainerUpdateState = controlBaseContainerUpdateState;
+	return uiControl(c);
 }

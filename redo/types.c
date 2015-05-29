@@ -5,11 +5,12 @@
 struct typeinfo {
 	const char *name;
 	uintmax_t parent;
+	size_t size;
 };
 
 static struct ptrArray *types = NULL;
 
-uintmax_t uiRegisterType(const char *name, uintmax_t parent)
+uintmax_t uiRegisterType(const char *name, uintmax_t parent, size_t size)
 {
 	struct typeinfo *ti;
 
@@ -21,6 +22,7 @@ uintmax_t uiRegisterType(const char *name, uintmax_t parent)
 	ti = uiNew(struct typeinfo);
 	ti->name = name;
 	ti->parent = parent;
+	ti->size = size;
 	ptrArrayAppend(types, ti);
 	return types->len - 1;
 }
@@ -56,3 +58,16 @@ void *uiIsA(void *p, uintmax_t id, int fail)
 }
 
 // TODO free type info
+
+uiTyped *newTyped(uintmax_t type)
+{
+	struct typeinfo *ti;
+	uiTyped *instance;
+
+	if (type == 0 || id >= types->len)
+		complain("invalid type ID given to newTyped()");
+	ti = ptrArrayIndex(types, struct typeinfo *, type);
+	instance = (uiTyped *) uiAlloc(ti->size, ti->name);
+	instance->Type = type;
+	return instance;
+}

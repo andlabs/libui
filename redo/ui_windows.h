@@ -7,26 +7,18 @@ This file assumes that you have included <windows.h> and "ui.h" beforehand. It p
 #ifndef __UI_UI_WINDOWS_H__
 #define __UI_UI_WINDOWS_H__
 
-// uiWindowsMakeControl() initializes the given uiControl with the given Windows API control inside.
-// You will need to provide the preferredSize() method yourself.
-typedef struct uiWindowsMakeControlParams uiWindowsMakeControlParams;
-struct uiWindowsMakeControlParams {
-	// These match the CreateWindowExW() function.
-	DWORD dwExStyle;
-	LPCWSTR lpClassName;
-	LPCWSTR lpWindowName;
-	DWORD dwStyle;		// WS_CHILD and WS_VISIBLE are automatically applied.
-	HINSTANCE hInstance;
-	LPVOID lpParam;
-
-	// Set this to non-FALSE to use the standard control font used by other ui controls.
-	BOOL useStandardControlFont;
-
-	// This is called when the widget is ready to be destroyed.
-	void (*onDestroy)(void *data);
-	void *onDestroyData;
-};
-_UI_EXTERN void uiWindowsMakeControl(uiControl *c, uiWindowsMakeControlParams *p);
+// TODO write comments for these
+_UI_EXTERN HWND uiWindowsUtilCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont);
+_UI_EXTERN void uiWindowsUtilDestroy(HWND hwnd);
+_UI_EXTERN void uiWindowsUtilSetParent(HWND hwnd, uiControl *parent);
+_UI_EXTERN void uiWindowsUtilResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d);
+_UI_EXTERN void uiWIndowsUtilShow(HWND hwnd);
+_UI_EXTERN void uiWindowsUtilHide(HWND hwnd);
+_UI_EXTERN void uiWIndowsUtilEnable(HWND hwnd);
+_UI_EXTERN void uiWindowsUtilDisable(HWND hwnd);
+_UI_EXTERN void uiWindowsUtilSysFunc(HWND hwnd, uiControlSysFuncParams *p);
+_UI_EXTERN void uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p);
+_UI_EXTERN uiControl *uiWindowsNewSingleHWNDControl(uintmax_t type);
 
 // This contains the Windows-specific parts of the uiSizing structure.
 // BaseX and BaseY are the dialog base units.

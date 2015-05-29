@@ -15,6 +15,8 @@ extern void uiFree(void *);
 
 extern void complain(const char *, ...);
 
+extern void queueResize(uiControl *);
+
 // ptrarray.c
 struct ptrArray {
 	void **ptrs;
@@ -29,16 +31,7 @@ void ptrArrayDelete(struct ptrArray *, uintmax_t);
 #define ptrArrayIndex(p, T, i) ((T) ((p)->ptrs[(i)]))
 
 // shouldquit.c
-int shouldQuit(void);
+extern int shouldQuit(void);
 
-// control.c
-extern void osSingleDestroy(void *);
-extern uintptr_t osSingleHandle(void *);
-extern void osSingleSetParent(void *, uiControl *, uiControl *);
-extern void osSingleResize(void *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
-extern uiSizing *osSingleSizing(void *, uiControl *);
-extern void osSingleShow(void *);
-extern void osSingleHide(void *);
-extern void osSingleEnable(void *);
-extern void osSingleDisable(void *);
-extern void makeControl(uiControl *, void *);
+// types.c
+extern uiTyped *newTyped(uintmax_t type);

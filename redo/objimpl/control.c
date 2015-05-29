@@ -8,26 +8,27 @@ struct controlBase {
 	int disabled;
 };
 
-#define controlBase(c) ((struct controlBase *) (TODO))
+#define controlBase(c) ((struct controlBase *) (c->Internal))
 
-void uiControlBaseDestroy(uiControl *c)
+static void controlBaseDestroy(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
 	if (cb->parent != NULL)
 		complain("attempt to destroy uiControl %p while it has a parent", c);
 	uiControlCommitDestroy(c);
-	// TODO free memory
+	uiFree(cb);
+	// TODO free c?
 }
 
-uiControl *uiControlBaseParent(uiControl *c)
+static uiControl *controlBaseParent(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
 	return cb->parent;
 }
 
-void uiControlBaseSetParent(uiControl *c, uiControl *parent)
+static void controlBaseSetParent(uiControl *c, uiControl *parent)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -41,7 +42,7 @@ void uiControlBaseSetParent(uiControl *c, uiControl *parent)
 	uiControlUpdateState(c);
 }
 
-int uiControlBaseContainerVisible(uiControl *c)
+static int controlBaseContainerVisible(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -52,7 +53,7 @@ int uiControlBaseContainerVisible(uiControl *c)
 	return uiControlContainerVisible(cb->parent);
 }
 
-void uiControlBaseShow(uiControl *c)
+static void controlBaseShow(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -60,7 +61,7 @@ void uiControlBaseShow(uiControl *c)
 	uiControlUpdateState(c);
 }
 
-void uiControlBaseHide(uiControl *c)
+static void controlBaseHide(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -68,7 +69,7 @@ void uiControlBaseHide(uiControl *c)
 	uiControlUpdateState(c);
 }
 
-int uiControlBaseContainerEnabled(uiControl *c)
+static int controlBaseContainerEnabled(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -79,7 +80,7 @@ int uiControlBaseContainerEnabled(uiControl *c)
 	return uiControlContainerEnabled(cb->parent);
 }
 
-void uiControlBaseEnable(uiControl *c)
+static void controlBaseEnable(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -87,7 +88,7 @@ void uiControlBaseEnable(uiControl *c)
 	uiControlUpdateState(c);
 }
 
-void uiControlBaseDisable(uiControl *c)
+static void controlBaseDisable(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -95,7 +96,7 @@ void uiControlBaseDisable(uiControl *c)
 	uiControlUpdateState(c);
 }
 
-void uiControlBaseUpdateState(uiControl *c)
+static void controlBaseUpdateState(uiControl *c)
 {
 	if (uiControlContainerVisible(c))
 		uiControlCommitShow(c);
@@ -108,7 +109,24 @@ void uiControlBaseUpdateState(uiControl *c)
 	uiControlContainerUpdateState(c);
 }
 
-void uiControlBaseContainerUpdateState(uiControl *c)
+static void controlBaseContainerUpdateState(uiControl *c)
 {
 	// by default not a container; do nothing
+}
+
+void uiMakeControl(uiControl *c, uintmax_t type)
+{
+	uiTyped(c)->Type = type;
+	uiControl(c)->Internal = uiNew(struct controlBase);
+	uiControl(c)->Destroy = controlBaseDestroy;
+	uiControl(c)->Parent = controlBaseParent;
+	uiControl(c)->SetParent = controlBaseSetParent;
+	uiControl(c)->ContainerVisible = controlBaseContainerVisible;
+	uiControl(c)->Show = controlBaseShow;
+	uiControl(c)->Hide = controlBaseHide;
+	uiControl(c)->ContainerEnabled = controlBaseContainerEnabled;
+	uiControl(c)->Enable = controlBaseEnable;
+	uiControl(c)->Disable = controlBaseDisable;
+	uiControl(c)->UpdateState = controlBaseUpdateState;
+	uiControl(c)->ContainerUpdateState = controlBaseContainerUpdateState;
 }

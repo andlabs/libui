@@ -8,12 +8,7 @@ struct combobox {
 	HWND hwnd;
 };
 
-static void onDestroy(void *data)
-{
-	struct combobox *c = (struct combobox *) data;
-
-	uiFree(c);
-}
+uiDefineControlType(uiCombobox, uiTypeCombobox, struct combobox)
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define comboboxWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
@@ -45,22 +40,14 @@ static uiCombobox *finishNewCombobox(DWORD style)
 	struct combobox *c;
 	uiWindowsMakeControlParams p;
 
-	c = uiNew(struct combobox);
-	uiTyped(c)->Type = uiTypeCombobox();
+	c = (struct combobox *) uiWindowsNewSingleHWNDControl(uiTypeCombobox());
 
 	// TODO client edge?
-	p.dwExStyle = WS_EX_CLIENTEDGE;
-	p.lpClassName = L"combobox";
-	p.lpWindowName = L"";
-	p.dwStyle = style | WS_TABSTOP;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = c;
-	uiWindowsMakeControl(uiControl(c), &p);
-
-	c->hwnd = (HWND) uiControlHandle(uiControl(c));
+	c->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
+		L"combobox", L"",
+		style | WS_TABSTOP,
+		hInstance, NULL,
+		TRUE);
 
 	uiControl(c)->PreferredSize = comboboxPreferredSize;
 

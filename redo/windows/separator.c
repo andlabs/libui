@@ -10,12 +10,7 @@ struct separator {
 	HWND hwnd;
 };
 
-static void onDestroy(void *data)
-{
-	struct separator *s = (struct separator *) data;
-
-	uiFree(s);
-}
+uiDefineControlType(uiSeparator, uiTypeSeparator, struct separator)
 
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 // TODO
@@ -30,23 +25,14 @@ static void separatorPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, i
 uiSeparator *uiNewHorizontalSeparator(void)
 {
 	struct separator *s;
-	uiWindowsMakeControlParams p;
 
-	s = uiNew(struct separator);
-	uiTyped(s)->Type = uiTypeSeparator();
+	s = (struct separator *) uiWindowsNewSingleHWNDControl(uiTypeSeparator());
 
-	p.dwExStyle = 0;
-	p.lpClassName = L"static";
-	p.lpWindowName = L"";
-	p.dwStyle = SS_ETCHEDHORZ;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = s;
-	uiWindowsMakeControl(uiControl(s), &p);
-
-	s->hwnd = (HWND) uiControlHandle(uiControl(s));
+	s->hwnd = uiWindowsNewSingleHWNDControl(0,
+		L"static", L"",
+		SS_ETCHEDHORZ,
+		hInstance, NULL,
+		TRUE);
 
 	uiControl(s)->PreferredSize = separatorPreferredSize;
 

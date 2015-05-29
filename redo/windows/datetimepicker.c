@@ -8,12 +8,7 @@ struct datetimepicker {
 	HWND hwnd;
 };
 
-static void onDestroy(void *data)
-{
-	struct datetimepicker *d = (struct datetimepicker *) data;
-
-	uiFree(d);
-}
+uiDefineControlType(uiDateTimePicker, uiTypeDateTimePicker, struct datetimepicker)
 
 // TODO
 // TODO use DTM_GETIDEALSIZE when making Vista-only
@@ -32,21 +27,13 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style, WCHAR *format)
 	struct datetimepicker *d;
 	uiWindowsMakeControlParams p;
 
-	d = uiNew(struct datetimepicker);
-	uiTyped(d)->Type = uiTypeDateTimePicker();
+	d = (struct datetimepicker *) uiWindowsNewSingleHWNDControluiTypeDateTimePicker());
 
-	p.dwExStyle = 0;		// TODO client edge?
-	p.lpClassName = DATETIMEPICK_CLASSW;
-	p.lpWindowName = L"";
-	p.dwStyle = style | WS_TABSTOP;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = d;
-	uiWindowsMakeControl(uiControl(d), &p);
-
-	d->hwnd = (HWND) uiControlHandle(uiControl(d));
+	d->hwnd = uiWindowsUtilCreateControlHWND(0,		// TODO client edge?
+		DATETIMEPICK_CLASSW, L"",
+		style | WS_TABSTOP,
+		hInstance, NULL,
+		TRUE);
 
 	if (format != NULL)
 		if (SendMessageW(d->hwnd, DTM_SETFORMAT, 0, (LPARAM) format) == 0)

@@ -55,11 +55,7 @@ void uninitContainer(void)
 		logLastError("error unregistering container window class in uninitContainer()");
 }
 
-static void onDestroy(void *data)
-{
-	// do nothing
-}
-
+// TODO make into a uiNewContainer()
 void uiMakeContainer(uiControl *c)
 {
 	uiWindowsMakeControlParams p;

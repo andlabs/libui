@@ -6,12 +6,7 @@ struct label {
 	HWND hwnd;
 };
 
-static void onDestroy(void *data)
-{
-	struct label *l = (struct label *) data;
-
-	uiFree(l);
-}
+uiDefineControlType(uiLabel, uiTypeLabel, struct label)
 
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define labelHeight 8
@@ -37,28 +32,19 @@ static void labelSetText(uiLabel *l, const char *text)
 uiLabel *uiNewLabel(const char *text)
 {
 	struct label *l;
-	uiWindowsMakeControlParams p;
 	WCHAR *wtext;
 
-	l = uiNew(struct label);
-	uiTyped(l)->Type = uiTypeLabel();
+	l = (struct label *) uiWindowsNewSingleHWNDControl(uiTypeLabel());
 
-	p.dwExStyle = 0;
-	p.lpClassName = L"static";
 	wtext = toUTF16(text);
-	p.lpWindowName = wtext;
-	// SS_LEFTNOWORDWRAP clips text past the end; SS_NOPREFIX avoids accelerator translation
-	// controls are vertically aligned to the top by default (thanks Xeek in irc.freenode.net/#winapi)
-	p.dwStyle = SS_LEFTNOWORDWRAP | SS_NOPREFIX;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = l;
-	uiWindowsMakeControl(uiControl(l), &p);
+	l->hwnd = uiWindowsNewSingleHWNDControl(0,
+		L"static", wtext,
+		// SS_LEFTNOWORDWRAP clips text past the end; SS_NOPREFIX avoids accelerator translation
+		// controls are vertically aligned to the top by default (thanks Xeek in irc.freenode.net/#winapi)
+		SS_LEFTNOWORDWRAP | SS_NOPREFIX,
+		hInstance, NULL,
+		TRUE);
 	uiFree(wtext);
-
-	l->hwnd = (HWND) uiControlHandle(uiControl(l));
 
 	uiControl(l)->PreferredSize = labelPreferredSize;
 

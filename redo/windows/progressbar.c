@@ -6,12 +6,7 @@ struct progressbar {
 	HWND hwnd;
 };
 
-static void onDestroy(void *data)
-{
-	struct progressbar *p = (struct progressbar *) data;
-
-	uiFree(p);
-}
+uiDefineControlType(uiProgressBar, uiTypeProgressBar, struct progressbar)
 
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define pbarWidth 237
@@ -35,28 +30,19 @@ static void progressbarSetValue(uiProgressBar *pp, int value)
 
 uiProgressBar *uiNewProgressBar(void)
 {
-	struct progressbar *pbar;
-	uiWindowsMakeControlParams p;
+	struct progressbar *p;
 
-	pbar = uiNew(struct progressbar);
-	uiTyped(pbar)->Type = uiTypeProgressBar();
+	p = (struct progressbar *) uiWindowsNewSingleHWNDControl(uiTypeProgressBar());
 
-	p.dwExStyle = 0;
-	p.lpClassName = PROGRESS_CLASSW;
-	p.lpWindowName = L"";
-	p.dwStyle = PBS_SMOOTH;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = FALSE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = pbar;
-	uiWindowsMakeControl(uiControl(pbar), &p);
+	p->hwnd = uiWindowsNewSingleHWNDControl(0,
+		PROGRESS_CLASSW, L"",
+		PBS_SMOOTH,
+		hInstance, NULL,
+		FALSE);
 
-	pbar->hwnd = (HWND) uiControlHandle(uiControl(pbar));
+	uiControl(p)->PreferredSize = progressbarPreferredSize;
 
-	uiControl(pbar)->PreferredSize = progressbarPreferredSize;
+	uiProgressBar(p)->SetValue = progressbarSetValue;
 
-	uiProgressBar(pbar)->SetValue = progressbarSetValue;
-
-	return uiProgressBar(pbar);
+	return uiProgressBar(p);
 }

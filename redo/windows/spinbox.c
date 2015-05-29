@@ -9,7 +9,10 @@ struct spinbox {
 	void (*onChanged)(uiSpinbox *, void *);
 	void *onChangedData;
 	BOOL inhibitChanged;
+	void (*baseCommitDestroy)(uiControl *);
 };
+
+uiDefineControlType(uiSpinbox, uiTypeSpinbox, struct spinbox)
 
 // utility functions
 
@@ -47,12 +50,13 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static void onDestroy(void *data)
+static void spinboxCommitDestroy(uiControl *c)
 {
-	struct spinbox *s = (struct spinbox *) data;
+	struct spinbox *s = (struct spinbox *) c;
 
 	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
-	uiFree(s);
+	// TODO destroy the updown
+	(*(s->baseCommitDestroy))(uiControl(s));
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -148,23 +152,15 @@ static void spinboxOnChanged(uiSpinbox *ss, void (*f)(uiSpinbox *, void *), void
 uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	struct spinbox *s;
-	uiWindowsMakeControlParams p;
 
-	s = uiNew(struct spinbox);
-	uiTyped(s)->Type = uiTypeSpinbox();
+	s = (struct spinbox *) uiWindowsNewSingleHWNDControl(uiTypeSpinbox());
 
-	p.dwExStyle = WS_EX_CLIENTEDGE;
-	p.lpClassName = L"edit";
-	p.lpWindowName = L"";
-	p.dwStyle = ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | ES_NUMBER | WS_TABSTOP;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = s;
-	uiWindowsMakeControl(uiControl(s), &p);
+	s->hwnd = uiWindowsNewSingleHWNDControl(WS_EX_CLIENTEDGE,
+		L"edit", L"",
+		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | ES_NUMBER | WS_TABSTOP,
+		hInstance, NULL,
+		TRUE);
 
-	s->hwnd = (HWND) uiControlHandle(uiControl(s));
 	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, onWM_COMMAND, uiControl(s));
 
 	recreateUpDown(s);
@@ -178,6 +174,8 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	uiControl(s)->PreferredSize = spinboxPreferredSize;
 	s->baseResize = uiControl(s)->Resize;
 	uiControl(s)->Resize = spinboxResize;
+	s->baseCommitDestroy = uiControl(s)->CommitDestroy;
+	uiControl(s)->CommitDestroy = spinboxCommitDestroy;
 
 	uiSpinbox(s)->Value = spinboxValue;
 	uiSpinbox(s)->SetValue = spinboxSetValue;

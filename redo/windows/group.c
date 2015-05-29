@@ -6,10 +6,7 @@ struct group {
 	HWND hwnd;
 };
 
-static void onDestroy(void *data)
-{
-	// TODO
-}
+uiDefineControlType(uiGroup, uiTypeGroup, struct group)
 
 static void groupPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
@@ -26,26 +23,17 @@ static void groupSetChild(uiGroup *gg, uiControl *c)
 uiGroup *uiNewGroup(const char *text)
 {
 	struct group *g;
-	uiWindowsMakeControlParams p;
 	WCHAR *wtext;
 
-	g = uiNew(struct group);
-	uiTyped(g)->Type = uiTypeGroup();
+	g = (struct group *) uiWindowsNewSingleHWNDControl(uiTypeGroup());
 
-	p.dwExStyle = WS_EX_CONTROLPARENT;
-	p.lpClassName = L"button";
 	wtext = toUTF16(text);
-	p.lpWindowName = wtext;
-	p.dwStyle = BS_GROUPBOX;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = g;
-	uiWindowsMakeControl(uiControl(g), &p);
+	g->hwnd = uiWindowsNewSingleHWNDControl(WS_EX_CONTROLPARENT,
+		L"button", wtext,
+		BS_GROUPBOX,
+		hInstance, NULL,
+		TRUE);
 	uiFree(wtext);
-
-	g->hwnd = (HWND) uiControlHandle(uiControl(g));
 
 	uiControl(g)->PreferredSize = groupPreferredSize;
 

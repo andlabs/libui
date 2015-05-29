@@ -9,12 +9,15 @@ struct tab {
 	HWND hwnd;
 	struct ptrArray *pages;
 	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
+	void (*baseCommitDestroy)(uiControl *);
 };
 
 struct tabPage {
 	uiControl *control;
 	int margined;
 };
+
+uiDefineControlType(uiTab, uiTypeTab, struct tab)
 
 // utility functions
 
@@ -54,10 +57,13 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 	return TRUE;
 }
 
-static void onDestroy(void *data)
+static void tabCommitDestroy(uiControl *c)
 {
+	struct tab *t = (struct tab *) c;
+
 	// TODO
-//TODO	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
+	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
+	(*(t->baseCommitDestroy))(uiControl(t));
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
@@ -199,21 +205,14 @@ uiTab *uiNewTab(void)
 	struct tab *t;
 	uiWindowsMakeControlParams p;
 
-	t = uiNew(struct tab);
-	uiTyped(t)->Type = uiTypeTab();
+	t = (struct tab *) uiWindowsNewSingleHWNDControl(uiTypeTab());
 
-	p.dwExStyle = 0;		// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
-	p.lpClassName = WC_TABCONTROLW;
-	p.lpWindowName = L"";
-	p.dwStyle = TCS_TOOLTIPS | WS_TABSTOP;		// start with this; we will alternate between this and WS_EX_CONTROLPARENT as needed (see main.c and msgHasTabStops above and the toggling functions below)
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = t;
-	uiWindowsMakeControl(uiControl(t), &p);
+	t->hwnd = uiWindowsNewSingleHWNDControl(0,			// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
+		WC_TABCONTROLW, L"",
+		TCS_TOOLTIPS | WS_TABSTOP,						// start with this; we will alternate between this and WS_EX_CONTROLPARENT as needed (see main.c and msgHasTabStops above and the toggling functions below)
+		hInstance, NULL,
+		TRUE);
 
-	t->hwnd = (HWND) uiControlHandle(uiControl(t));
 	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
 
 	t->pages = newPtrArray();
@@ -221,6 +220,8 @@ uiTab *uiNewTab(void)
 	uiControl(t)->PreferredSize = tabPreferredSize;
 	t->baseResize = uiControl(t)->Resize;
 	uiControl(t)->Resize = tabResize;
+	t->baseCommitDestroy = uiControl(t)->CommitDestroy;
+	uiControl(t)->CommitDestroy = tabCommitDestroy;
 
 	uiTab(t)->Append = tabAppend;
 	uiTab(t)->InsertAt = tabInsertAt;

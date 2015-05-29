@@ -7,7 +7,10 @@ struct entry {
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 	BOOL inhibitChanged;
+	void (*baseCommitDestroy)(uiControl *);
 };
+
+uiDefineControlType(uiEntry, uiTypeEntry, struct entry)
 
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
@@ -22,12 +25,12 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static void onDestroy(void *data)
+static void entryCommitDestroy(uiControl *c)
 {
-	struct entry *e = (struct entry *) data;
+	struct entry *e = (struct entry *) c;
 
 	uiWindowsUnregisterWM_COMMANDHandler(e->hwnd);
-	uiFree(e);
+	(*(e->baseCommitDestroy))(uiControl(e));
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -90,28 +93,22 @@ static void entrySetReadOnly(uiEntry *ee, int readonly)
 uiEntry *uiNewEntry(void)
 {
 	struct entry *e;
-	uiWindowsMakeControlParams p;
 
-	e = uiNew(struct entry);
-	uiTyped(e)->Type = uiTypeEntry();
+	e = (struct entry *) uiWindowsNewSingleHWNDControl(uiTypeEntry());
 
-	p.dwExStyle = WS_EX_CLIENTEDGE;
-	p.lpClassName = L"edit";
-	p.lpWindowName = L"";
-	p.dwStyle = ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = e;
-	uiWindowsMakeControl(uiControl(e), &p);
+	e->hwnd = uiWindowsNewSingleHWNDControl(WS_EX_CLIENTEDGE,
+		L"edit", L"",
+		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
+		hInstance, NULL,
+		TRUE);
 
-	e->hwnd = (HWND) uiControlHandle(uiControl(e));
 	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
 
 	e->onChanged = defaultOnChanged;
 
 	uiControl(e)->PreferredSize = entryPreferredSize;
+	e->baseCommitDestroy = uiControl(e)->CommitDestroy;
+	uiControl(e)->CommitDestroy = entryCommitDestroy;
 
 	uiEntry(e)->Text = entryText;
 	uiEntry(e)->SetText = entrySetText;

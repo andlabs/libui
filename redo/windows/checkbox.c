@@ -6,7 +6,10 @@ struct checkbox {
 	HWND hwnd;
 	void (*onToggled)(uiCheckbox *, void *);
 	void *onToggledData;
+	void (*baseCommitDestroy)(uiControl *);
 };
+
+uiDefineControlType(uiCheckbox, uiTypeCheckbox, struct checkbox)
 
 static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 {
@@ -27,12 +30,12 @@ static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static void onDestroy(void *data)
+static void checkboxCommitDestroy(uiControl *cc)
 {
-	struct checkbox *c = (struct checkbox *) data;
+	struct checkbox *c = (struct checkbox *) cc;
 
 	uiWindowsUnregisterWM_COMMANDHandler(c->hwnd);
-	uiFree(c);
+	(*(c->baseCommitDestroy))(uiControl(c));
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -95,28 +98,23 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiWindowsMakeControlParams p;
 	WCHAR *wtext;
 
-	c = uiNew(struct checkbox);
-	uiTyped(c)->Type = uiTypeCheckbox();
+	c = (struct checkbox *) uiWindowsNewSingleHWNDControl(uiTypeCheckbox());
 
-	p.dwExStyle = 0;
-	p.lpClassName = L"button";
 	wtext = toUTF16(text);
-	p.lpWindowName = wtext;
-	p.dwStyle = BS_CHECKBOX | WS_TABSTOP;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = c;
-	uiWindowsMakeControl(uiControl(c), &p);
+	c->hwnd = uiWindowsUtilCreateControlHWND(0,
+		L"button", wtext,
+		BS_CHECKBOX | WS_TABSTOP,
+		hInstance, NULL,
+		TRUE);
 	uiFree(wtext);
 
-	c->hwnd = (HWND) uiControlHandle(uiControl(c));
 	uiWindowsRegisterWM_COMMANDHandler(c->hwnd, onWM_COMMAND, uiControl(c));
 
 	c->onToggled = defaultOnToggled;
 
 	uiControl(c)->PreferredSize = checkboxPreferredSize;
+	c->baseCommitDestroy = uiControl(c)->CommitDestroy;
+	uiControl(c)->CommitDestroy = checkboxCommitDestroy;
 
 	uiCheckbox(c)->Text = checkboxText;
 	uiCheckbox(c)->SetText = checkboxSetText;

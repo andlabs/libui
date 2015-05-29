@@ -11,7 +11,10 @@ struct slider {
 	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 	void (*onChanged)(uiSlider *, void *);
 	void *onChangedData;
+	void (*baseCommitDestroy)(uiControl *);
 };
+
+uiDefineControlType(uiSlider, uiTypeSlider, struct slider)
 
 static BOOL onWM_HSCROLL(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
@@ -22,12 +25,12 @@ static BOOL onWM_HSCROLL(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static void onDestroy(void *data)
+static void sliderCommitDestroy(uiControl *c)
 {
-	struct slider *s = (struct slider *) data;
+	struct slider *s = (struct slider *) c;
 
 	uiWindowsUnregisterWM_HSCROLLHandler(s->hwnd);
-	uiFree(s);
+	(*(s->baseCommitDestroy))(uiControl(s));
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -72,24 +75,16 @@ static void sliderOnChanged(uiSlider *ss, void (*f)(uiSlider *, void *), void *d
 uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	struct slider *s;
-	uiWindowsMakeControlParams p;
 
-	s = uiNew(struct slider);
-	uiTyped(s)->Type = uiTypeSlider();
+	s = (struct slider *) uiWindowsNewSingleHWNDControl(uiTypeSlider());
 
-	p.dwExStyle = 0;
-	p.lpClassName = TRACKBAR_CLASSW;
-	p.lpWindowName = L"";
-	// TODO TBS_TRANSPARENTBKGND when making Vista-only
-	p.dwStyle = TBS_HORZ | TBS_TOOLTIPS | WS_TABSTOP;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = s;
-	uiWindowsMakeControl(uiControl(s), &p);
+	s->hwnd = uiWindowsNewSingleHWNDControl(0,
+		TRACKBAR_CLASSW, L"",
+		// TODO TBS_TRANSPARENTBKGND when making Vista-only
+		TBS_HORZ | TBS_TOOLTIPS | WS_TABSTOP,
+		hInstance, NULL,
+		TRUE);
 
-	s->hwnd = (HWND) uiControlHandle(uiControl(s));
 	uiWindowsRegisterWM_HSCROLLHandler(s->hwnd, onWM_HSCROLL, uiControl(s));
 
 	SendMessageW(s->hwnd, TBM_SETRANGEMIN, (WPARAM) TRUE, (LPARAM) min);
@@ -99,6 +94,8 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	s->onChanged = defaultOnChanged;
 
 	uiControl(s)->PreferredSize = sliderPreferredSize;
+	s->baseCommitDestroy = uiControl(s)->CommitDestroy;
+	uiControl(s)->CommitDestroy = sliderCommitDestroy;
 
 	uiSlider(s)->Value = sliderValue;
 	uiSlider(s)->SetValue = sliderSetValue;

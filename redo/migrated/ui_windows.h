@@ -16,8 +16,9 @@ _UI_EXTERN void uiWIndowsUtilShow(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilHide(HWND hwnd);
 _UI_EXTERN void uiWIndowsUtilEnable(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilDisable(HWND hwnd);
-_UI_EXTERN void uiWindowsUtilSysFunc(HWND hwnd, uiControlSysFuncParams *p);
-_UI_EXTERN int uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p);
+_UI_EXTERN uintptr_t uiWindowsUtilStartZOrder(HWND hwnd);
+_UI_EXTERN uintptr_t uiWindowsUtilSetZOrder(HWND hwnd, uintptr_t insertAfter);
+_UI_EXTERN int uiWindowsUtilHasTabStops(HWND hwnd);
 _UI_EXTERN uiControl *uiWindowsNewSingleHWNDControl(uintmax_t type);
 
 // This contains the Windows-specific parts of the uiSizing structure.
@@ -44,26 +45,5 @@ _UI_EXTERN intmax_t uiWindowsWindowTextWidth(HWND hwnd);
 // the value returned should be freed with uiFreeText()
 _UI_EXTERN char *uiWindowsControlText(uiControl *);
 _UI_EXTERN void uiWindowsControlSetText(uiControl *, const char *);
-
-struct uiControlSysFuncParams {
-	int Func;
-	BOOL HasTabStops;
-	HWND InsertAfter;
-};
-
-enum {
-	// These should enable and disable the uiControl while preserving the user enable/disable setting.
-	// These are needed because while disabling a parent window does cause children to stop receiving events, they are not shown as disabled, which is not what we want.
-	uiWindowsSysFuncContainerEnable,
-	uiWindowsSysFuncContainerDisable,
-	// This is interpreted by controls that are tab stops; the control should set HasTabStops to TRUE if so, and *LEAVE IT ALONE* if not.
-	// You only need this if implementing your own uiControl.
-	// Controls created with uiWindowsMakeControl() check for the window being enabled and the presence of WS_TABSTOP.
-	// The name is "has tab stops" because it is used by uiTabs to say "does the current tab page have tab stops?".
-	uiWindowsSysFuncHasTabStops,
-	// This tells the current control to set its Z order to be after the control in the InsertAfter field.
-	// You should also set your own handle to the InsertAfter field for the next control.
-	uiWindowsSysFuncSetZOrder,
-};
 
 #endif

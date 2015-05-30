@@ -106,29 +106,7 @@ static void singleHWNDCommitDisable(uiControl *c)
 	uiWindowsUtilDisable(HWND(c));
 }
 
-void uiWindowsUtilSysFunc(HWND hwnd, uiControlSysFuncParams *p)
-{
-	switch (p->Func) {
-	case uiControlSysFuncNop:
-		return;
-	case uiWindowsSysFuncHasTabStops:
-		if ((getStyle(hwnd) & WS_TABSTOP) != 0)
-			p->HasTabStops = TRUE;
-		return;
-	case uiWindowsSysFuncSetZOrder:
-		setWindowInsertAfter(hwnd, p->InsertAfter);
-		p->InsertAfter = hwnd;
-		return;
-	}
-	complain("unknown uiControlSysFunc() function %d in uiWindowsUtilSysFunc()", p->Func);
-}
-
-static void singleHWNDSysFunc(uiControl *c, uiControlSysFuncParams *p)
-{
-	uiWindowsUtilSysFunc(HWND(c), p);
-}
-
-int uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p)
+uintptr_t uiWindowsUtilStartZOrder(HWND hwnd)
 {
 	HWND insertAfter;
 
@@ -136,13 +114,33 @@ int uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p)
 	insertAfter = GetWindow(hwnd, GW_HWNDPREV);
 	if (insertAfter == NULL)
 		logLastError("error getting insert after window in uiWindowsUtilStartZOrder()");
-	p->InsertAfter = insertAfter;
-	return 1;
+	return (uintptr_t) insertAfter;
 }
 
-static int singleHWNDStartZOrder(uiControl *c, uiControlSysFuncParams *p)
+static uintptr_t singleHWNDStartZOrder(uiControl *c)
 {
-	return uiWindowsUtilStartZOrder(HWND(c), p);
+	return uiWindowsUtilStartZOrder(HWND(c));
+}
+
+uintptr_t uiWindowsUtilSetZOrder(HWND hwnd, uintptr_t insertAfter)
+{
+	setWindowInsertAfter(hwnd, (HWND) insertAfter);
+	return (uintptr_t) hwnd;
+}
+
+static uintptr_t singleHWNDSetZOrder(uiControl *c, uintptr_t insertAfter)
+{
+	return uiWindowsUtilSetZOrder(HWND(c), insertAfter);
+}
+
+int uiWindowsUtilHasTabStops(HWND hwnd)
+{
+	return (getStyle(hwnd) & WS_TABSTOP) != 0;
+}
+
+static int singleHWNDHasTabStops(uiControl *c)
+{
+	return uiWindowsUtilHasTabStops(HWND(c));
 }
 
 void setSingleHWNDFuncs(uiControl *c)
@@ -155,8 +153,9 @@ void setSingleHWNDFuncs(uiControl *c)
 	uiControl(c)->CommitHide = singleHWNDCommitHide;
 	uiControl(c)->CommitEnable = singleHWNDCommitEnable;
 	uiControl(c)->CommitDisable = singleHWNDCommitDisable;
-	uiControl(c)->SysFunc = singleHWNDSysFunc;
 	uiControl(c)->StartZOrder = singleHWNDStartZOrder;
+	uiControl(c)->SetZOrder = singleHWNDSetZOrder;
+	uiControl(c)->HasTabStops = singleHWNDHasTabStops;
 }
 
 uiControl *uiWindowsNewSingleHWNDControl(uintmax_t type)

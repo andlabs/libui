@@ -55,19 +55,12 @@ void uninitContainer(void)
 		logLastError("error unregistering container window class in uninitContainer()");
 }
 
-// TODO make into a uiNewContainer()
-void uiMakeContainer(uiControl *c)
+uintptr_t uiMakeContainer(uiControl *c)
 {
-	uiWindowsMakeControlParams p;
-
-	p.dwExStyle = 0;
-	p.lpClassName = containerClass;
-	p.lpWindowName = L"";
-	p.dwStyle = 0;
-	p.hInstance = hInstance;
-	p.lpParam = NULL;
-	p.useStandardControlFont = TRUE;
-	p.onDestroy = onDestroy;
-	p.onDestroyData = NULL;
-	uiWindowsMakeControl(c, &p);
+	setSingleHWNDFuncs(c);
+	return (uintptr_t) uiWindowsUtilCreateControlHWND(0,
+		containerClass, L"",
+		0,
+		hInstance, NULL,
+		FALSE);
 }

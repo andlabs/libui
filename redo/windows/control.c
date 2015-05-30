@@ -55,7 +55,7 @@ void uiWindowsUtilResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intm
 	moveWindow(hwnd, x, y, width, height, d);
 }
 
-static void singleHWNDResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void singleHWNDResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	uiWindowsUtilResize(HWND(c), x, y, width, height, d);
 }

@@ -2,8 +2,6 @@
 #include "out/ui.h"
 #include "uipriv.h"
 
-// TODO ContainerUpdateState()
-
 struct box {
 	uiBox b;
 	void (*baseCommitDestroy)(uiControl *);
@@ -205,8 +203,7 @@ static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	uiFreeSizing(dchild);
 }
 
-// TODO this doesn't really work the way we want for Z-orders
-static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
+static int boxHasTabStops(uiControl *c)
 {
 	struct box *b = (struct box *) c;
 	struct boxControl *bc;
@@ -214,7 +211,21 @@ static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
 
 	for (i = 0; i < b->controls->len; i++) {
 		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
-		uiControlSysFunc(bc->c, p);
+		if (uiControlHasTabStops(bc->c))
+			return 1;
+	}
+	return 0;
+}
+
+static void boxContainerUpdateState(uiControl *c)
+{
+	struct box *b = (struct box *) c;
+	struct boxControl *bc;
+	uintmax_t i;
+
+	for (i = 0; i < b->controls->len; i++) {
+		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		uiControlUpdateState(bc->c);
 	}
 }
 
@@ -276,9 +287,10 @@ uiBox *uiNewHorizontalBox(void)
 	uiControl(b)->PreferredSize = boxPreferredSize;
 	b->baseResize = uiControl(b)->Resize;
 	uiControl(b)->Resize = boxResize;
-	uiControl(b)->SysFunc = boxSysFunc;
+	uiControl(b)->HasTabStops = boxHasTabStops;
 	b->baseCommitDestroy = uiControl(b)->CommitDestroy;
 	uiControl(b)->CommitDestroy = boxCommitDestroy;
+	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;
 
 	uiBox(b)->Append = boxAppend;
 	uiBox(b)->Delete = boxDelete;

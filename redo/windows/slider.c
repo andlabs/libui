@@ -85,7 +85,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 
 	s = (struct slider *) uiWindowsNewSingleHWNDControl(uiTypeSlider());
 
-	s->hwnd = uiWindowsNewSingleHWNDControl(0,
+	s->hwnd = uiWindowsUtilCreateControlHWND(0,
 		TRACKBAR_CLASSW, L"",
 		// TODO TBS_TRANSPARENTBKGND when making Vista-only
 		TBS_HORZ | TBS_TOOLTIPS | WS_TABSTOP,

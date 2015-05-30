@@ -103,7 +103,7 @@ uiEntry *uiNewEntry(void)
 
 	e = (struct entry *) uiWindowsNewSingleHWNDControl(uiTypeEntry());
 
-	e->hwnd = uiWindowsNewSingleHWNDControl(WS_EX_CLIENTEDGE,
+	e->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
 		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
 		hInstance, NULL,

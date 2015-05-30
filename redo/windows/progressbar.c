@@ -41,7 +41,7 @@ uiProgressBar *uiNewProgressBar(void)
 
 	p = (struct progressbar *) uiWindowsNewSingleHWNDControl(uiTypeProgressBar());
 
-	p->hwnd = uiWindowsNewSingleHWNDControl(0,
+	p->hwnd = uiWindowsUtilCreateControlHWND(0,
 		PROGRESS_CLASSW, L"",
 		PBS_SMOOTH,
 		hInstance, NULL,

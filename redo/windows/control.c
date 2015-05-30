@@ -8,7 +8,7 @@ HWND uiWindowsUtilCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWST
 	HWND hwnd;
 
 	hwnd = CreateWindowExW(dwExStyle,
-		lpClassName, lpWIndowName,
+		lpClassName, lpWindowName,
 		dwStyle | WS_CHILD | WS_VISIBLE,
 		0, 0,
 		// use a nonzero initial size just in case some control breaks with a zero initial size
@@ -66,7 +66,7 @@ static uiSizing *singleHWNDSizing(uiControl *c)
 	return uiWindowsSizing(c);
 }
 
-void uiWIndowsUtilShow(HWND hwnd)
+void uiWindowsUtilShow(HWND hwnd)
 {
 	ShowWindow(hwnd, SW_SHOW);
 }
@@ -86,7 +86,7 @@ static void singleHWNDCommitHide(uiControl *c)
 	uiWindowsUtilHide(HWND(c));
 }
 
-void uiWIndowsUtilEnable(HWND hwnd)
+void uiWindowsUtilEnable(HWND hwnd)
 {
 	EnableWindow(hwnd, TRUE);
 }
@@ -128,7 +128,7 @@ static void singleHWNDSysFunc(uiControl *c, uiControlSysFuncParams *p)
 	uiWindowsUtilSysFunc(HWND(c), p);
 }
 
-void uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p)
+int uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p)
 {
 	HWND insertAfter;
 
@@ -137,11 +137,12 @@ void uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p)
 	if (insertAfter == NULL)
 		logLastError("error getting insert after window in uiWindowsUtilStartZOrder()");
 	p->InsertAfter = insertAfter;
+	return 1;
 }
 
-static void singleHWNDStartZOrder(uiControl *c, uiControlSysFuncParams *p)
+static int singleHWNDStartZOrder(uiControl *c, uiControlSysFuncParams *p)
 {
-	uiWindowsUtilStartZOrder(HWND(c), p);
+	return uiWindowsUtilStartZOrder(HWND(c), p);
 }
 
 void setSingleHWNDFuncs(uiControl *c)
@@ -151,7 +152,7 @@ void setSingleHWNDFuncs(uiControl *c)
 	uiControl(c)->Resize = singleHWNDResize;
 	uiControl(c)->Sizing = singleHWNDSizing;
 	uiControl(c)->CommitShow = singleHWNDCommitShow;
-	uiControl(c)->CommitHide = singleHWNDCommitHide
+	uiControl(c)->CommitHide = singleHWNDCommitHide;
 	uiControl(c)->CommitEnable = singleHWNDCommitEnable;
 	uiControl(c)->CommitDisable = singleHWNDCommitDisable;
 	uiControl(c)->SysFunc = singleHWNDSysFunc;

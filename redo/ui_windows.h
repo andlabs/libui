@@ -17,7 +17,7 @@ _UI_EXTERN void uiWindowsUtilHide(HWND hwnd);
 _UI_EXTERN void uiWIndowsUtilEnable(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilDisable(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilSysFunc(HWND hwnd, uiControlSysFuncParams *p);
-_UI_EXTERN void uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p);
+_UI_EXTERN int uiWindowsUtilStartZOrder(HWND hwnd, uiControlSysFuncParams *p);
 _UI_EXTERN uiControl *uiWindowsNewSingleHWNDControl(uintmax_t type);
 
 // This contains the Windows-specific parts of the uiSizing structure.

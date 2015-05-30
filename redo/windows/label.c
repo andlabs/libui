@@ -44,7 +44,7 @@ uiLabel *uiNewLabel(const char *text)
 	l = (struct label *) uiWindowsNewSingleHWNDControl(uiTypeLabel());
 
 	wtext = toUTF16(text);
-	l->hwnd = uiWindowsNewSingleHWNDControl(0,
+	l->hwnd = uiWindowsUtilCreateControlHWND(0,
 		L"static", wtext,
 		// SS_LEFTNOWORDWRAP clips text past the end; SS_NOPREFIX avoids accelerator translation
 		// controls are vertically aligned to the top by default (thanks Xeek in irc.freenode.net/#winapi)

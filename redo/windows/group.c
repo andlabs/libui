@@ -35,7 +35,7 @@ uiGroup *uiNewGroup(const char *text)
 	g = (struct group *) uiWindowsNewSingleHWNDControl(uiTypeGroup());
 
 	wtext = toUTF16(text);
-	g->hwnd = uiWindowsNewSingleHWNDControl(WS_EX_CONTROLPARENT,
+	g->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CONTROLPARENT,
 		L"button", wtext,
 		BS_GROUPBOX,
 		hInstance, NULL,

@@ -164,7 +164,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	s = (struct spinbox *) uiWindowsNewSingleHWNDControl(uiTypeSpinbox());
 
-	s->hwnd = uiWindowsNewSingleHWNDControl(WS_EX_CLIENTEDGE,
+	s->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
 		// TODO ES_NUMBER doesn't allow typing in a leading -
 		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | ES_NUMBER | WS_TABSTOP,

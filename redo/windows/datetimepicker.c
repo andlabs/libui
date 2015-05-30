@@ -32,9 +32,8 @@ static void datetimepickerPreferredSize(uiControl *c, uiSizing *d, intmax_t *wid
 uiDateTimePicker *finishNewDateTimePicker(DWORD style, WCHAR *format)
 {
 	struct datetimepicker *d;
-	uiWindowsMakeControlParams p;
 
-	d = (struct datetimepicker *) uiWindowsNewSingleHWNDControluiTypeDateTimePicker());
+	d = (struct datetimepicker *) uiWindowsNewSingleHWNDControl(uiTypeDateTimePicker());
 
 	d->hwnd = uiWindowsUtilCreateControlHWND(0,		// TODO client edge?
 		DATETIMEPICK_CLASSW, L"",

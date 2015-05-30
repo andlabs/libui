@@ -6,6 +6,8 @@
 // The standard property sheet control oes the same thing.
 // TODO (long term) figure out how to use uiContainer with this
 
+// TODO verify that the tab page texture doesn't end too soon
+
 struct tabPage {
 	uiControl c;
 	HWND hwnd;

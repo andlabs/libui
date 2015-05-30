@@ -34,9 +34,9 @@ static void showHidePage(struct tab *t, LRESULT which, int hide)
 		return;
 	page = ptrArrayIndex(t->pages, struct tabPage *, which);
 	if (hide)
-		uiControlContainerHide(page->control);
+//TODO		uiControlContainerHide(page->control);
 	else {
-		uiControlContainerShow(page->control);
+//TODO		uiControlContainerShow(page->control);
 		// we only resize the current page, so we have to do this here
 		uiControlQueueResize(page->control);
 	}
@@ -140,7 +140,7 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 	page->control = child;
 	uiControlSetParent(page->control, uiControl(t));
 	// and make it invisible at first; we show it later if needed
-	uiControlContainerHide(page->control);
+//TODO	uiControlContainerHide(page->control);
 	ptrArrayInsertAt(t->pages, n, page);
 
 	ZeroMemory(&item, sizeof (TCITEMW));
@@ -176,7 +176,7 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 	// and keep the page control alive
 	uiControlSetParent(page->control, NULL);
 	// and show it again, as we don't know where it will go next
-	uiControlContainerShow(page->control);
+//TODO	uiControlContainerShow(page->control);
 
 	uiFree(page);
 }

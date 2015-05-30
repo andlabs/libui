@@ -64,7 +64,7 @@ uiTyped *newTyped(uintmax_t type)
 	struct typeinfo *ti;
 	uiTyped *instance;
 
-	if (type == 0 || id >= types->len)
+	if (type == 0 || type >= types->len)
 		complain("invalid type ID given to newTyped()");
 	ti = ptrArrayIndex(types, struct typeinfo *, type);
 	instance = (uiTyped *) uiAlloc(ti->size, ti->name);

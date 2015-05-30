@@ -89,7 +89,7 @@ uiButton *uiNewButton(const char *text)
 	struct button *b;
 	WCHAR *wtext;
 
-	b = (struct button *) uiWindowsNewControl(uiTypeButton());
+	b = (struct button *) uiWindowsNewSingleHWNDControl(uiTypeButton());
 
 	wtext = toUTF16(text);
 	b->hwnd = uiWindowsUtilCreateControlHWND(0,

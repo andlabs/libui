@@ -66,7 +66,7 @@ interface Control {
 	func SysFunc(p *uiControlSysFuncParams);
 	func StartZOrder(p *uiControlSysFuncParams) int;
 	func CommitDestroy(void);
-	func CommitSetParent(uiControl *);
+	func CommitSetParent(parent *uiControl);
 	func CommitShow(void);
 	func CommitHide(void);
 	func CommitEnable(void);
@@ -76,13 +76,13 @@ interface Control {
 
 func NewControl(type uintmax_t) *Control;
 
-raw "#define uiDefineControlType(typename, funcname, realtype) \";
-raw "	static uintmax_t type_ ## typename = 0; \";
-raw "	uintmax_t funcname(void) \";
-raw "	{ \";
-raw "		if (type_ ## typename == 0) \";
-raw "			type_ ## typename = uiRegisterType(#typename, uiTypeControl(), sizeof (realtype)); \";
-raw "		return type_ ## typename; \";
+raw "#define uiDefineControlType(typename, funcname, realtype) \\";
+raw "	static uintmax_t type_ ## typename = 0; \\";
+raw "	uintmax_t funcname(void) \\";
+raw "	{ \\";
+raw "		if (type_ ## typename == 0) \\";
+raw "			type_ ## typename = uiRegisterType(#typename, uiTypeControl(), sizeof (realtype)); \\";
+raw "		return type_ ## typename; \\";
 raw "	}";
 
 func FreeSizing(d *Sizing);

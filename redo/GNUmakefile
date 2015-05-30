@@ -36,11 +36,14 @@ baseCFILES = \
 
 baseMFILES = $(osMFILES)
 
+baseRCFILES = $(osRCFILES)
+
 baseCFLAGS = $(osCFLAGS)
 baseLDFLAGS = \
 	-shared \
 	$(osLDWarnUndefinedFlags) \
 	$(osLDFLAGS)
+baseRCFLAGS = $(osRCFLAGS)
 baseSUFFIX = $(osLIBSUFFIX)
 
 include GNUbase.mk

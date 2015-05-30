@@ -28,6 +28,7 @@
 #include "../out/ui.h"
 #include "../ui_windows.h"
 #include "../uipriv.h"
+#include "resources.h"
 
 // ui internal window messages
 enum {

@@ -14,7 +14,8 @@ xHFILES = \
 
 OFILES = \
 	$(baseCFILES:%.c=$(OBJDIR)/%.o) \
-	$(baseMFILES:%.m=$(OBJDIR)/%.o)
+	$(baseMFILES:%.m=$(OBJDIR)/%.o) \
+	$(baseRCFILES:%.rc=$(OBJDIR)/%.o)
 
 xCFLAGS = \
 	-g \
@@ -25,6 +26,11 @@ xCFLAGS = \
 	$(CFLAGS) \
 	$(archmflag) \
 	$(baseCFLAGS)
+
+# windres doesn't support -m
+xRCFLAGS = \
+	$(RCFLAGS) \
+	$(baseRCFLAGS)
 
 xLDFLAGS = \
 	-g \
@@ -45,6 +51,10 @@ $(OBJDIR)/%.o: %.c $(xHFILES) | $$(dir $$@).phony
 
 $(OBJDIR)/%.o: %.m $(xHFILES) | $$(dir $$@).phony
 	@$(CC) -o $@ -c $< $(xCFLAGS)
+	@echo ====== Compiled $<
+
+$(OBJDIR)/%.o: %.rc $(xHFILES) | $$(dir $$@).phony
+	@$(RC) $(xRCFLAGS) $< $@
 	@echo ====== Compiled $<
 
 # see http://www.cmcrossroads.com/article/making-directories-gnu-make

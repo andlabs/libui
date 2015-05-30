@@ -33,7 +33,11 @@ osCFILES = \
 	windows/window.c
 
 osHFILES = \
+	windows/resources.h \
 	windows/uipriv_windows.h
+
+osRCFILES = \
+	windows/resources.rc
 
 # thanks ebassi in irc.gimp.net/#gtk+
 osCFLAGS = \

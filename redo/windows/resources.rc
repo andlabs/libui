@@ -1,0 +1,14 @@
+// 30 may 2015
+//TODO#include "winapi.h"
+#include <windows.h>
+
+// this is a UTF-8 file
+#pragma code_page(65001)
+
+// this is the dialog template used 
+rcTabPageDialog DIALOGEX 0, 0, 100, 100
+STYLE WS_CHILD | WS_VISIBLE
+// TODO EXSTYLE WS_EX_CONTROLPARENT
+BEGIN
+	// nothing
+END

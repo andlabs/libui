@@ -4,7 +4,8 @@
 
 struct box {
 	uiBox b;
-	void (*baseDestroy)(uiControl *);
+	void (*baseCommitDestroy)(uiControl *);
+	uintptr_t handle;
 	struct ptrArray *controls;
 	int vertical;
 	int padded;
@@ -18,7 +19,7 @@ struct boxControl {
 	intmax_t height;
 };
 
-static void boxDestroy(uiControl *c)
+static void boxCommitDestroy(uiControl *c)
 {
 	struct box *b = (struct box *) c;
 	struct boxControl *bc;
@@ -33,8 +34,14 @@ static void boxDestroy(uiControl *c)
 	}
 	ptrArrayDestroy(b->controls);
 	// NOW we can chain up to base
-	(*(b->baseDestroy))(uiControl(b));
-	uiFree(b);
+	(*(b->baseCommitDestroy))(uiControl(b));
+}
+
+static uintptr_t boxHandle(uiControl *c)
+{
+	struct box *b = (struct box *) c;
+
+	return b->handle;
 }
 
 static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
@@ -257,16 +264,17 @@ uiBox *uiNewHorizontalBox(void)
 	b = uiNew(struct box);
 	uiTyped(b)->Type = uiTypeBox();
 
-	uiMakeContainer(uiControl(b));
+	b->handle = uiMakeContainer(uiControl(b));
 
 	b->controls = newPtrArray();
 
-	b->baseDestroy = uiControl(b)->Destroy;
-	uiControl(b)->Destroy = boxDestroy;
+	uiControl(b)->Handle = boxHandle;
 	uiControl(b)->PreferredSize = boxPreferredSize;
 	b->baseResize = uiControl(b)->Resize;
 	uiControl(b)->Resize = boxResize;
 	uiControl(b)->SysFunc = boxSysFunc;
+	b->baseCommitDestroy = uiControl(b)->CommitDestroy;
+	uiControl(b)->CommitDestroy = boxCommitDestroy;
 
 	uiBox(b)->Append = boxAppend;
 	uiBox(b)->Delete = boxDelete;

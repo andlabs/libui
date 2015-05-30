@@ -87,7 +87,7 @@ raw "	}";
 
 func FreeSizing(d *Sizing);
 
-func MakeContainer(c *Control);
+func MakeContainer(c *Control) uintptr_t;
 
 interface Window from Control {
 	func Title(void) *char;

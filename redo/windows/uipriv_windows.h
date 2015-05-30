@@ -128,3 +128,6 @@ extern void dialogHelperUnregisterWindow(HWND);
 extern ATOM initDialogHelper(HICON, HCURSOR);
 extern HWND beginDialogHelper(void);
 extern void endDialogHelper(HWND);
+
+// control.c
+extern void setSingleHWNDFuncs(uiControl *);

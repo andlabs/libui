@@ -121,6 +121,8 @@ static void controlBaseUpdateState(uiControl *c)
 	else
 		uiControlCommitDisable(c);
 	uiControlContainerUpdateState(c);
+	// and queue a resize, just in case we showed/hid something
+	uiControlQueueResize(c);
 }
 
 static void controlBaseContainerUpdateState(uiControl *c)

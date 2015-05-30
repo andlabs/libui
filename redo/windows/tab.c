@@ -68,9 +68,6 @@ static uintptr_t tabHandle(uiControl *c)
 	return (uintptr_t) (t->hwnd);
 }
 
-// from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
-#define tabMargin 7
-
 static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	// TODO
@@ -102,14 +99,6 @@ static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) FALSE, (LPARAM) (&r));
 	mapWindowRect(NULL, dchild->Sys->CoordFrom, &r);
 
-/*TODO
-	if (page->margined) {
-		r.left += uiWindowsDlgUnitsToX(tabMargin, d->Sys->BaseX);
-		r.top += uiWindowsDlgUnitsToY(tabMargin, d->Sys->BaseY);
-		r.right -= uiWindowsDlgUnitsToX(tabMargin, d->Sys->BaseX);
-		r.bottom -= uiWindowsDlgUnitsToY(tabMargin, d->Sys->BaseY);
-	}
-*/
 	uiControlResize(page, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
 
 	uiFreeSizing(dchild);

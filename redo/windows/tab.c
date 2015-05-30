@@ -80,7 +80,7 @@ static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 {
 	struct tab *t = (struct tab *) c;
 	LRESULT n;
-	struct tabPage *page;
+	uiControl *page;
 	RECT r;
 	uiSizing *dchild;
 
@@ -88,7 +88,7 @@ static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	n = curpage(t);
 	if (n == (LRESULT) (-1))
 		return;
-	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	page = ptrArrayIndex(t->pages, uiControl *, n);
 
 	dchild = uiControlSizing(uiControl(t));
 
@@ -102,13 +102,15 @@ static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) FALSE, (LPARAM) (&r));
 	mapWindowRect(NULL, dchild->Sys->CoordFrom, &r);
 
+/*TODO
 	if (page->margined) {
 		r.left += uiWindowsDlgUnitsToX(tabMargin, d->Sys->BaseX);
 		r.top += uiWindowsDlgUnitsToY(tabMargin, d->Sys->BaseY);
 		r.right -= uiWindowsDlgUnitsToX(tabMargin, d->Sys->BaseX);
 		r.bottom -= uiWindowsDlgUnitsToY(tabMargin, d->Sys->BaseY);
 	}
-	uiControlResize(page->control, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
+*/
+	uiControlResize(page, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
 
 	uiFreeSizing(dchild);
 }

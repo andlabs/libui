@@ -1,5 +1,5 @@
 // 30 may 2015
-#include "uicontrol_windows.h"
+#include "uipriv_windows.h"
 
 // This is a special internal control type that handles tab pages.
 // This doesn't use the container class, but rather a subclassed WC_DIALOG, as that supports tab textures properly.
@@ -33,7 +33,7 @@ uiControl *newTabPage(uiControl *child)
 	t = (struct tabPage *) uiWindowsNewSingleHWNDControl(tabPageType());
 
 	t->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CONTROLPARENT,
-		WC_DIALOGW, L"",
+		WC_DIALOG, L"",
 		0,
 		hInstance, NULL,
 		FALSE);
@@ -44,10 +44,12 @@ uiControl *newTabPage(uiControl *child)
 
 	// TODO subclass hwnd to handle events
 
+	// needs to be done here, otherwise the uiControlSetParent() below will crash
+	// TODO split into separate functions
+	uiControl(t)->Handle = tabPageHandle;
+
 	t->control = child;
 	uiControlSetParent(t->control, uiControl(t));
-
-	uiControl(t)->Handle = tabPageHandle;
 
 	return uiControl(t);
 }

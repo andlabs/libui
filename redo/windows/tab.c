@@ -34,7 +34,7 @@ static void showHidePage(struct tab *t, LRESULT which, int hide)
 		return;
 	page = ptrArrayIndex(t->pages, struct tabPage *, which);
 	if (hide)
-//TODO		uiControlContainerHide(page->control);
+;//TODO		uiControlContainerHide(page->control);
 	else {
 //TODO		uiControlContainerShow(page->control);
 		// we only resize the current page, so we have to do this here

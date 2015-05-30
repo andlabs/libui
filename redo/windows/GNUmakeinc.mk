@@ -26,6 +26,7 @@ osCFILES = \
 	windows/spinbox.c \
 	windows/stddialogs.c \
 	windows/tab.c \
+	windows/tabpage.c \
 	windows/text.c \
 	windows/util.c \
 	windows/utilwin.c \

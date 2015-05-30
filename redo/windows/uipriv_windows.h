@@ -131,3 +131,6 @@ extern void endDialogHelper(HWND);
 
 // control.c
 extern void setSingleHWNDFuncs(uiControl *);
+
+// tabpage.c
+extern uiControl *newTabPage(uiControl *);

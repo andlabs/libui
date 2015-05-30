@@ -12,11 +12,6 @@ struct tab {
 	void (*baseCommitDestroy)(uiControl *);
 };
 
-struct tabPage {
-	uiControl *control;
-	int margined;
-};
-
 uiDefineControlType(uiTab, uiTypeTab, struct tab)
 
 // utility functions
@@ -28,17 +23,17 @@ static LRESULT curpage(struct tab *t)
 
 static void showHidePage(struct tab *t, LRESULT which, int hide)
 {
-	struct tabPage *page;
+	uiControl *page;
 
 	if (which == (LRESULT) (-1))
 		return;
-	page = ptrArrayIndex(t->pages, struct tabPage *, which);
+	page = ptrArrayIndex(t->pages, uiControl *, which);
 	if (hide)
-;//TODO		uiControlContainerHide(page->control);
+		uiControlHide(page);
 	else {
-//TODO		uiControlContainerShow(page->control);
+		uiControlShow(page);
 		// we only resize the current page, so we have to do this here
-		uiControlQueueResize(page->control);
+		uiControlQueueResize(page);
 	}
 }
 
@@ -128,7 +123,7 @@ static void tabAppend(uiTab *tt, const char *name, uiControl *child)
 static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	struct tabPage *page;
+	uiControl *page;
 	LRESULT hide, show;
 	TCITEMW item;
 	WCHAR *wname;
@@ -136,11 +131,10 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 	// see below
 	hide = curpage(t);
 
-	page = uiNew(struct tabPage);
-	page->control = child;
-	uiControlSetParent(page->control, uiControl(t));
+	page = newTabPage(child);
+	uiControlSetParent(page, uiControl(t));
 	// and make it invisible at first; we show it later if needed
-//TODO	uiControlContainerHide(page->control);
+	uiControlHide(page);
 	ptrArrayInsertAt(t->pages, n, page);
 
 	ZeroMemory(&item, sizeof (TCITEMW));
@@ -162,7 +156,7 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 static void tabDelete(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
-	struct tabPage *page;
+	uiControl *page;
 
 	// first delete the tab from the tab control
 	// if this is the current tab, no tab will be selected, which is good
@@ -170,15 +164,13 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 		logLastError("error deleting uiTab tab in tabDelete()");
 
 	// now delete the page itself
-	page = ptrArrayIndex(t->pages, struct tabPage *, n);
+	page = ptrArrayIndex(t->pages, uiControl *, n);
 	ptrArrayDelete(t->pages, n);
 
-	// and keep the page control alive
-	uiControlSetParent(page->control, NULL);
-	// and show it again, as we don't know where it will go next
-//TODO	uiControlContainerShow(page->control);
-
-	uiFree(page);
+	// and free the page
+	// this will keep the control alive
+	uiControlSetParent(page, NULL);
+	uiControlDestroy(page);
 }
 
 static uintmax_t tabNumPages(uiTab *tt)
@@ -191,20 +183,21 @@ static uintmax_t tabNumPages(uiTab *tt)
 static int tabMargined(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
-	struct tabPage *page;
+	uiControl *page;
 
-	page = ptrArrayIndex(t->pages, struct tabPage *, n);
-	return page->margined;
+	page = ptrArrayIndex(t->pages, uiControl *, n);
+//TODO	return page->margined;
+	return 0;
 }
 
 static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 {
 	struct tab *t = (struct tab *) tt;
-	struct tabPage *page;
+	uiControl *page;
 
-	page = ptrArrayIndex(t->pages, struct tabPage *, n);
-	page->margined = margined;
-	uiControlQueueResize(page->control);
+	page = ptrArrayIndex(t->pages, uiControl *, n);
+//TODO	page->margined = margined;
+//TODO	uiControlQueueResize(page->control);
 }
 
 uiTab *uiNewTab(void)

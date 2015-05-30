@@ -55,6 +55,14 @@ static void tabPageResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 	uiFreeSizing(dchild);
 }
 
+// dummy dialog function; see below for details
+INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	if (uMsg == WM_INITDIALOG)
+		return TRUE;
+	return FALSE;
+}
+
 uiControl *newTabPage(uiControl *child)
 {
 	struct tabPage *t;
@@ -62,11 +70,11 @@ uiControl *newTabPage(uiControl *child)
 
 	t = (struct tabPage *) uiWindowsNewSingleHWNDControl(tabPageType());
 
-	t->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CONTROLPARENT,
-		WC_DIALOG, L"",
-		0,
-		hInstance, NULL,
-		FALSE);
+	// unfortunately this needs to be a proper dialog for EnableThemeDialogTexture() to work; CreateWindowExW() won't suffice
+	t->hwnd = CreateDialogW(hInstance, MAKEINTRESOURCE(rcTabPageDialog),
+		utilWindow, dlgproc);
+	if (t->hwnd == NULL)
+		logLastError("error creating tab page in newTabPage()");
 
 	// TODO figure out why this is not working
 	hr = EnableThemeDialogTexture(t->hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);

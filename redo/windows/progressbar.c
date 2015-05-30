@@ -21,8 +21,6 @@ static uintptr_t progressbarHandle(uiControl *c)
 
 static void progressbarPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	struct label *l = (struct label *) c;
-
 	*width = uiWindowsDlgUnitsToX(pbarWidth, d->Sys->BaseX);
 	*height = uiWindowsDlgUnitsToY(pbarHeight, d->Sys->BaseY);
 }

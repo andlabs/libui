@@ -145,8 +145,8 @@ static uiSizing *windowSizing(uiControl *c)
 
 static int windowContainerVisible(uiControl *c)
 {
-	complain("attempt to get container visibility state of uiWindow %p", c);
-	return 0;			// make compiler happy
+	// TODO
+	return 1;
 }
 
 static void windowShow(uiControl *c)
@@ -358,6 +358,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiControl(w)->ContainerVisible = windowContainerVisible;
 	uiControl(w)->Show = windowShow;
 	uiControl(w)->Hide = windowHide;
+	// TODO
+	uiControl(w)->ContainerEnabled = windowContainerVisible;
 	uiControl(w)->Enable = windowEnable;
 	uiControl(w)->Disable = windowDisable;
 	uiControl(w)->SysFunc = windowSysFunc;

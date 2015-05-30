@@ -148,8 +148,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 {
 	struct radiobuttons *r;
 
-	r = uiNew(struct radiobuttons);
-	uiTyped(r)->Type = uiTypeRadioButtons();
+	r = (struct radiobuttons *) uiNewControl(uiTypeRadioButtons());
 
 	r->hwnds = newPtrArray();
 

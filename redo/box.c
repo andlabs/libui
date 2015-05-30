@@ -203,6 +203,7 @@ static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	uiFreeSizing(dchild);
 }
 
+// TODO this doesn't really work the way we want for Z-orders
 static void boxSysFunc(uiControl *c, uiControlSysFuncParams *p)
 {
 	struct box *b = (struct box *) c;
@@ -263,8 +264,7 @@ uiBox *uiNewHorizontalBox(void)
 {
 	struct box *b;
 
-	b = uiNew(struct box);
-	uiTyped(b)->Type = uiTypeBox();
+	b = (struct box *) uiNewControl(uiTypeBox());
 
 	b->handle = uiMakeContainer(uiControl(b));
 

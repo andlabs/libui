@@ -14,6 +14,8 @@ struct window {
 	int margined;
 };
 
+uiDefineControlType(uiWindow, uiTypeWindow, struct window)
+
 static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	struct window *w;

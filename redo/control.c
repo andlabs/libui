@@ -8,6 +8,15 @@ struct controlBase {
 	int disabled;
 };
 
+static uintmax_t type_uiControl = 0;
+
+uintmax_t uiTypeControl(void)
+{
+	if (type_uiControl == 0)
+		type_uiControl = uiRegisterType("uiControl", 0, 0);
+	return type_uiControl;
+}
+
 #define controlBase(c) ((struct controlBase *) (c->Internal))
 
 static void controlBaseDestroy(uiControl *c)

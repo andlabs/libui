@@ -19,6 +19,8 @@ struct boxControl {
 	intmax_t height;
 };
 
+uiDefineControlType(uiBox, uiTypeBox, struct box)
+
 static void boxCommitDestroy(uiControl *c)
 {
 	struct box *b = (struct box *) c;

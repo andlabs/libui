@@ -110,15 +110,22 @@ static void radiobuttonsSHED(uiControl *c)
 	// TODO
 }
 
-static void radiobuttonsSysFunc(uiControl *c, uiControlSysFuncParams *p)
-{
-	// TODO
-}
-
-static int radiobuttonsStartZOrder(uiControl *c, uiControlSysFuncParams *p)
+static uintptr_t radiobuttonsStartZOrder(uiControl *c)
 {
 	// TODO
 	return 0;
+}
+
+static uintptr_t radiobuttonsSetZOrder(uiControl *c, uintptr_t insertAfter)
+{
+	// TODO
+	return 0;
+}
+
+static int radiobuttonsHasTabStops(uiControl *c)
+{
+	// TODO return 0 if no radio buttons
+	return 1;
 }
 
 static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
@@ -162,8 +169,9 @@ uiRadioButtons *uiNewRadioButtons(void)
 	uiControl(r)->CommitHide = radiobuttonsSHED;
 	uiControl(r)->CommitEnable = radiobuttonsSHED;
 	uiControl(r)->CommitDisable = radiobuttonsSHED;
-	uiControl(r)->SysFunc = radiobuttonsSysFunc;
 	uiControl(r)->StartZOrder = radiobuttonsStartZOrder;
+	uiControl(r)->SetZOrder = radiobuttonsSetZOrder;
+	uiControl(r)->HasTabStops = radiobuttonsHasTabStops;
 
 	uiRadioButtons(r)->Append = radiobuttonsAppend;
 

@@ -210,7 +210,6 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 uiTab *uiNewTab(void)
 {
 	struct tab *t;
-	uiWindowsMakeControlParams p;
 
 	t = (struct tab *) uiWindowsNewSingleHWNDControl(uiTypeTab());
 

@@ -27,7 +27,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult
 	return TRUE;
 }
 
-static void radiobuttonsDestroy(uiControl *c)
+static void radiobuttonsCommitDestroy(uiControl *c)
 {
 	// TODO
 }
@@ -39,20 +39,14 @@ static uintptr_t radiobuttonsHandle(uiControl *c)
 	return 0;
 }
 
-static uiControl *radiobuttonsParent(uiControl *c)
-{
-	struct radiobuttons *r = (struct radiobuttons *) c;
-
-	return r->parent;
-}
-
-static void radiobuttonsSetParent(uiControl *c, uiControl *parent)
+static void radiobuttonsCommitSetParent(uiControl *c, uiControl *parent)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;
 	HWND newParentHWND;
 	HWND hwnd;
 	uintmax_t i;
 
+	// TODO store the hwnd instead
 	r->parent = parent;
 	newParentHWND = utilWindow;
 	if (r->parent != NULL)
@@ -103,21 +97,10 @@ static void radiobuttonsResize(uiControl *c, intmax_t x, intmax_t y, intmax_t wi
 	}
 }
 
-static void radiobuttonsQueueResize(uiControl *c)
-{
-	queueResize(c);
-}
-
 static uiSizing *radiobuttonsSizing(uiControl *c)
 {
 	// TODO
 	return NULL;
-}
-
-static int radiobuttonsContainerVisible(uiControl *c)
-{
-	// TODO
-	return 1;
 }
 
 static void radiobuttonsSHED(uiControl *c)
@@ -168,23 +151,16 @@ uiRadioButtons *uiNewRadioButtons(void)
 
 	r->hwnds = newPtrArray();
 
-	uiControl(r)->Destroy = radiobuttonsDestroy;
+	uiControl(r)->CommitDestroy = radiobuttonsCommitDestroy;
 	uiControl(r)->Handle = radiobuttonsHandle;
-	uiControl(r)->Parent = radiobuttonsParent;
-	uiControl(r)->SetParent = radiobuttonsSetParent;
+	uiControl(r)->CommitSetParent = radiobuttonsCommitSetParent;
 	uiControl(r)->PreferredSize = radiobuttonsPreferredSize;
 	uiControl(r)->Resize = radiobuttonsResize;
-	uiControl(r)->QueueResize = radiobuttonsQueueResize;
 	uiControl(r)->Sizing = radiobuttonsSizing;
-	uiControl(r)->ContainerVisible = radiobuttonsContainerVisible;
-	uiControl(r)->Show = radiobuttonsSHED;
-	uiControl(r)->Hide = radiobuttonsSHED;
-	uiControl(r)->ContainerShow = radiobuttonsSHED;
-	uiControl(r)->ContainerHide = radiobuttonsSHED;
-	uiControl(r)->Enable = radiobuttonsSHED;
-	uiControl(r)->Disable = radiobuttonsSHED;
-	uiControl(r)->ContainerEnable = radiobuttonsSHED;
-	uiControl(r)->ContainerDisable = radiobuttonsSHED;
+	uiControl(r)->CommitShow = radiobuttonsSHED;
+	uiControl(r)->CommitHide = radiobuttonsSHED;
+	uiControl(r)->CommitEnable = radiobuttonsSHED;
+	uiControl(r)->CommitDisable = radiobuttonsSHED;
 	uiControl(r)->SysFunc = radiobuttonsSysFunc;
 	uiControl(r)->StartZOrder = radiobuttonsStartZOrder;
 

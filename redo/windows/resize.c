@@ -79,11 +79,10 @@ void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t heig
 		logLastError("error moving window in moveWindow()");
 }
 
-// TODO
-void moveAndReorderWindow(HWND hwnd, HWND insertAfter, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
 {
-	if (SetWindowPos(hwnd, insertAfter, x, y, width, height, swpflags) == 0)
-		logLastError("error moving and reordering window in moveAndReorderWindow()");
+	if (SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, swpflags | SWP_NOMOVE | SWP_NOSIZE) == 0)
+		logLastError("error reordering window in setWindowInsertAfter()");
 }
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx

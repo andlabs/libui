@@ -178,7 +178,7 @@ static void windowEnable(uiControl *c)
 
 	EnableWindow(w->hwnd, TRUE);
 	if (w->child != NULL)
-		uiControlContainerEnable(w->child);
+		uiControlUpdateState(w->child);
 }
 
 static void windowDisable(uiControl *c)
@@ -187,7 +187,7 @@ static void windowDisable(uiControl *c)
 
 	EnableWindow(w->hwnd, FALSE);
 	if (w->child != NULL)
-		uiControlContainerDisable(w->child);
+		uiControlUpdateState(w->child);
 }
 
 static void windowSysFunc(uiControl *c, uiControlSysFuncParams *p)

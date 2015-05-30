@@ -7,6 +7,8 @@ struct radiobuttons {
 	uiControl *parent;
 };
 
+uiDefineControlType(uiRadioButtons, uiTypeRadioButtons, struct radiobuttons)
+
 static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;

@@ -7,6 +7,7 @@
 // TODO (long term) figure out how to use uiContainer with this
 
 // TODO verify that the tab page texture doesn't end too soon
+// TODO container update state
 
 struct tabPage {
 	uiControl c;

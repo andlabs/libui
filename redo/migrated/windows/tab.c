@@ -3,6 +3,7 @@
 
 // TODO
 // - comctl5 on real windows: tabs get drawn behind checkbox
+// - container update state
 
 struct tab {
 	uiTab t;

@@ -43,9 +43,6 @@ struct Sizing {
 	field Sys *uiSizingSys;
 };
 
-raw "typedef struct uiControlSysFuncParams uiControlSysFuncParams;";
-raw "#define uiControlSysFuncNop 0";
-
 interface Control {
 	field Internal *void;		// for use by ui only
 	func Destroy(void);
@@ -63,8 +60,9 @@ interface Control {
 	func Enable(void);
 	func Disable(void);
 	func UpdateState(void);
-	func SysFunc(p *uiControlSysFuncParams);
-	func StartZOrder(p *uiControlSysFuncParams) int;
+	func StartZOrder(void) uintptr_t;
+	func SetZOrder(param uintptr_t) uintptr_t;
+	func HasTabStops(void) int;
 	func CommitDestroy(void);
 	func CommitSetParent(parent *uiControl);
 	func CommitShow(void);

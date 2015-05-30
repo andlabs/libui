@@ -102,7 +102,6 @@ static void checkboxSetChecked(uiCheckbox *cc, int checked)
 uiCheckbox *uiNewCheckbox(const char *text)
 {
 	struct checkbox *c;
-	uiWindowsMakeControlParams p;
 	WCHAR *wtext;
 
 	c = (struct checkbox *) uiWindowsNewSingleHWNDControl(uiTypeCheckbox());

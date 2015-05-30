@@ -45,7 +45,6 @@ static void comboboxAppend(uiCombobox *cc, const char *text)
 static uiCombobox *finishNewCombobox(DWORD style)
 {
 	struct combobox *c;
-	uiWindowsMakeControlParams p;
 
 	c = (struct combobox *) uiWindowsNewSingleHWNDControl(uiTypeCombobox());
 

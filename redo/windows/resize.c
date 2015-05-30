@@ -79,6 +79,7 @@ void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t heig
 		logLastError("error moving window in moveWindow()");
 }
 
+// TODO make sure we're not missing any flags
 void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
 {
 	if (SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, swpflags | SWP_NOMOVE | SWP_NOSIZE) == 0)

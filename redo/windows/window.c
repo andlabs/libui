@@ -170,16 +170,6 @@ static void windowHide(uiControl *c)
 	ShowWindow(w->hwnd, SW_HIDE);
 }
 
-static void windowContainerShow(uiControl *c)
-{
-	complain("attempt to container show uiWindow %p", c);
-}
-
-static void windowContainerHide(uiControl *c)
-{
-	complain("attempt to container hide uiWindow %p", c);
-}
-
 static void windowEnable(uiControl *c)
 {
 	struct window *w = (struct window *) c;
@@ -196,16 +186,6 @@ static void windowDisable(uiControl *c)
 	EnableWindow(w->hwnd, FALSE);
 	if (w->child != NULL)
 		uiControlContainerDisable(w->child);
-}
-
-static void windowContainerEnable(uiControl *c)
-{
-	complain("attempt to container enable uiWindow %p", c);
-}
-
-static void windowContainerDisable(uiControl *c)
-{
-	complain("attempt to container disable uiWindow %p", c);
 }
 
 static void windowSysFunc(uiControl *c, uiControlSysFuncParams *p)
@@ -376,14 +356,11 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiControl(w)->ContainerVisible = windowContainerVisible;
 	uiControl(w)->Show = windowShow;
 	uiControl(w)->Hide = windowHide;
-	uiControl(w)->ContainerShow = windowContainerShow;
-	uiControl(w)->ContainerHide = windowContainerHide;
 	uiControl(w)->Enable = windowEnable;
 	uiControl(w)->Disable = windowDisable;
-	uiControl(w)->ContainerEnable = windowContainerEnable;
-	uiControl(w)->ContainerDisable = windowContainerDisable;
 	uiControl(w)->SysFunc = windowSysFunc;
 	uiControl(w)->StartZOrder = windowStartZOrder;
+	// TODO other methods
 
 	uiWindow(w)->Title = windowTitle;
 	uiWindow(w)->SetTitle = windowSetTitle;

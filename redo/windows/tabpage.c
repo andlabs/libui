@@ -37,6 +37,8 @@ static void tabPageResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 
 	(*(t->baseResize))(uiControl(t), x, y, width, height, d);
 
+	dchild = uiControlSizing(uiControl(t));
+
 	if (GetClientRect(t->hwnd, &r) == 0)
 		logLastError("error getting tab page client rect in tabPageResize()");
 	if (t->margined) {
@@ -45,9 +47,11 @@ static void tabPageResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 		r.right -= uiWindowsDlgUnitsToX(tabMargin, d->Sys->BaseX);
 		r.bottom -= uiWindowsDlgUnitsToY(tabMargin, d->Sys->BaseY);
 	}
+	// this rect is in client coordinates; we need toplevel window coordinates
+	mapWindowRect(t->hwnd, dchild->Sys->CoordFrom, &r);
 
-	dchild = uiControlSizing(uiControl(t));
-//TODO	uiControlResize(t->control, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
+	uiControlResize(t->control, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
+
 	uiFreeSizing(dchild);
 }
 

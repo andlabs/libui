@@ -68,7 +68,6 @@ extern WCHAR *windowText(HWND);
 // resize.c
 extern void initResizes(void);
 extern void uninitResizes(void);
-extern void queueResize(uiControl *);
 extern void doResizes(void);
 extern void moveWindow(HWND, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 extern void setWindowInsertAfter(HWND, HWND);

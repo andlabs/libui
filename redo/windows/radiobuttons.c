@@ -7,6 +7,8 @@ struct radiobuttons {
 	uiControl *parent;
 };
 
+// TODO properly test parent changes (add an Add Item button to the test program)
+
 uiDefineControlType(uiRadioButtons, uiTypeRadioButtons, struct radiobuttons)
 
 static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult)
@@ -44,19 +46,13 @@ static uintptr_t radiobuttonsHandle(uiControl *c)
 static void radiobuttonsCommitSetParent(uiControl *c, uiControl *parent)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;
-	HWND newParentHWND;
 	HWND hwnd;
 	uintmax_t i;
 
-	// TODO store the hwnd instead
 	r->parent = parent;
-	newParentHWND = utilWindow;
-	if (r->parent != NULL)
-		newParentHWND = (HWND) uiControlHandle(r->parent);
 	for (i = 0; i < r->hwnds->len; i++) {
 		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
-		if (SetParent(hwnd, newParentHWND) == NULL)
-			logLastError("error setting radio button parent in radiobuttonsSetParent()");
+		uiWindowsUtilSetParent(hwnd, r->parent);
 	}
 }
 
@@ -131,21 +127,16 @@ static int radiobuttonsHasTabStops(uiControl *c)
 static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
 {
 	struct radiobuttons *r = (struct radiobuttons *) rr;
-	HWND hwnd, parent;
+	HWND hwnd;
 	WCHAR *wtext;
 
 	wtext = toUTF16(text);
-	parent = utilWindow;
-	if (r->parent != NULL)
-		parent = (HWND) uiControlHandle(r->parent);
-	hwnd = CreateWindowExW(0,
+	hwnd = uiWindowsUtilCreateControlHWND(0,
 		L"button", wtext,
 		BS_RADIOBUTTON | WS_TABSTOP | WS_CHILD | WS_VISIBLE,
-		0, 0,
-		100, 100,
-		parent, NULL, hInstance, NULL);
-	if (hwnd == NULL)
-		logLastError("error creating radio button in radiobuttonsAppend()");
+		hInstance, NULL,
+		TRUE);
+	uiWindowsUtilSetParent(hwnd, r->parent);
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
 	ptrArrayAppend(r->hwnds, hwnd);
 	uiControlQueueResize(uiControl(r));

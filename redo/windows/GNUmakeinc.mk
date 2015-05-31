@@ -34,7 +34,8 @@ osCFILES = \
 
 osHFILES = \
 	windows/resources.h \
-	windows/uipriv_windows.h
+	windows/uipriv_windows.h \
+	windows/winapi.h
 
 osRCFILES = \
 	windows/resources.rc

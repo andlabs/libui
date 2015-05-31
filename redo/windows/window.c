@@ -1,6 +1,8 @@
 // 27 april 2015
 #include "uipriv_windows.h"
 
+// TODO ban uiControl methods that mean nothing on toplevels
+
 #define windowClass L"libui_uiWindowClass"
 
 struct window {
@@ -112,27 +114,6 @@ static uintptr_t windowHandle(uiControl *c)
 	return (uintptr_t) (w->hwnd);
 }
 
-static uiControl *windowParent(uiControl *c)
-{
-	complain("attempt to get the parent of uiWindow %p", c);
-	return NULL;		// keep compiler happy
-}
-
-static void windowSetParent(uiControl *c, uiControl *parent)
-{
-	complain("attempt to set the parent of uiWindow %p", c);
-}
-
-static void windowPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
-{
-	complain("attempt to get the preferred size of the uiWindow at %p", c);
-}
-
-static void windowResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
-{
-	complain("attempt to resize the uiWindow at %p", c);
-}
-
 static void windowQueueResize(uiControl *c)
 {
 	queueResize(c);
@@ -188,17 +169,6 @@ static void windowDisable(uiControl *c)
 	EnableWindow(w->hwnd, FALSE);
 	if (w->child != NULL)
 		uiControlUpdateState(w->child);
-}
-
-static void windowSysFunc(uiControl *c, uiControlSysFuncParams *p)
-{
-	complain("attempt to call system functions on uiWindow %p", c);
-}
-
-static int windowStartZOrder(uiControl *c, uiControlSysFuncParams *p)
-{
-	complain("attempt to start Z-ordering on uiWindow %p", c);
-	return 0;			// make compiler happy
 }
 
 static char *windowTitle(uiWindow *ww)

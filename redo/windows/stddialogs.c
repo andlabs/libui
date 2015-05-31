@@ -24,9 +24,7 @@ char *uiOpenFile(void)
 	ofn.nMaxFile = NFILENAME;		// seems to include null terminator according to docs
 	ofn.lpstrInitialDir = NULL;			// let system decide
 	ofn.lpstrTitle = NULL;			// let system decide
-	// TODO OFN_SHAREAWARE?
-	// better question: TODO keep networking?
-	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_FORCESHOWHIDDEN | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_NOCHANGEDIR | OFN_NODEREFERENCELINKS | OFN_NOTESTFILECREATE | OFN_PATHMUSTEXIST;
+	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_FORCESHOWHIDDEN | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_NOCHANGEDIR | OFN_NODEREFERENCELINKS | OFN_NOTESTFILECREATE | OFN_PATHMUSTEXIST | OFN_SHAREAWARE;
 	if (GetOpenFileNameW(&ofn) == FALSE) {
 		err = CommDlgExtendedError();
 		if (err != 0)
@@ -58,10 +56,8 @@ char *uiSaveFile(void)
 	ofn.nMaxFile = NFILENAME;		// seems to include null terminator according to docs
 	ofn.lpstrInitialDir = NULL;			// let system decide
 	ofn.lpstrTitle = NULL;			// let system decide
-	// TODO OFN_SHAREAWARE?
-	// better question: TODO keep networking?
 	// TODO OFN_PATHMUSTEXIST?
-	ofn.Flags = OFN_EXPLORER | OFN_FORCESHOWHIDDEN | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_NOCHANGEDIR | OFN_NODEREFERENCELINKS | OFN_NOTESTFILECREATE | OFN_OVERWRITEPROMPT;
+	ofn.Flags = OFN_EXPLORER | OFN_FORCESHOWHIDDEN | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_NOCHANGEDIR | OFN_NODEREFERENCELINKS | OFN_NOTESTFILECREATE | OFN_OVERWRITEPROMPT | OFN_SHAREAWARE;
 	if (GetSaveFileNameW(&ofn) == FALSE) {
 		err = CommDlgExtendedError();
 		if (err != 0)

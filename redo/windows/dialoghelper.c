@@ -3,11 +3,10 @@
 
 // see http://stackoverflow.com/questions/25494914/is-there-something-like-cdn-filecancel-analogous-to-cdn-fileok-for-getting-when#comment40420049_25494914
 
-// TODO reconcile this with users being able to enable/disable windows
-
 struct dialogDisableWindow {
 	HWND hwnd;
 	uintmax_t n;
+	BOOL prevstate;
 	UT_hash_handle hh;
 };
 
@@ -39,9 +38,15 @@ void dialogHelperUnregisterWindow(HWND hwnd)
 static void dialogBegin(void)
 {
 	struct dialogDisableWindow *d;
+	BOOL prevstate;
 
 	for (d = windows; d != NULL; d = d->hh.next) {
-		EnableWindow(d->hwnd, FALSE);
+		prevstate = EnableWindow(d->hwnd, FALSE);
+		// store the previous state in case the window was already disabled by the user
+		// (TODO test)
+		// note the !; EnableWindow() returns TRUE if window was previously /disabled/
+		if (d->n == 0)
+			d->prevstate = !prevstate;
 		d->n++;
 	}
 }
@@ -53,7 +58,7 @@ static void dialogEnd(void)
 	for (d = windows; d != NULL; d = d->hh.next) {
 		d->n--;
 		if (d->n == 0)
-			EnableWindow(d->hwnd, TRUE);
+			EnableWindow(d->hwnd, d->prevstate);
 	}
 }
 

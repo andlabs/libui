@@ -240,8 +240,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	WCHAR *wtitle;
 	BOOL hasMenubarBOOL;
 
-	w = uiNew(struct window);
-	uiTyped(w)->Type = uiTypeWindow();
+	w = (struct window *) uiWindowsNewSingleHWNDControl(uiTypeWindow());
 
 	hasMenubarBOOL = FALSE;
 	if (hasMenubar)
@@ -277,24 +276,11 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	w->onClosing = defaultOnClosing;
 
-	uiControl(w)->Destroy = windowDestroy;
 	uiControl(w)->Handle = windowHandle;
-	uiControl(w)->Parent = windowParent;
-	uiControl(w)->SetParent = windowSetParent;
-	uiControl(w)->PreferredSize = windowPreferredSize;
-	uiControl(w)->Resize = windowResize;
-	uiControl(w)->QueueResize = windowQueueResize;
-	uiControl(w)->Sizing = windowSizing;
-	uiControl(w)->ContainerVisible = windowContainerVisible;
-	uiControl(w)->Show = windowShow;
-	uiControl(w)->Hide = windowHide;
-	// TODO
-	uiControl(w)->ContainerEnabled = windowContainerVisible;
-	uiControl(w)->Enable = windowEnable;
-	uiControl(w)->Disable = windowDisable;
-	uiControl(w)->SysFunc = windowSysFunc;
-	uiControl(w)->StartZOrder = windowStartZOrder;
-	// TODO other methods
+	w->baseCommitDestroy = uiControl(w)->CommitDestroy;
+	uiControl(w)->CommitDestroy = windowCommitDestroy;
+	// simply overwrite this; TODO call the base one somehow?
+	uiControl(w)->CommitShow = windowCommitShow;
 
 	uiWindow(w)->Title = windowTitle;
 	uiWindow(w)->SetTitle = windowSetTitle;

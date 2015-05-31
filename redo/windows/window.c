@@ -14,6 +14,7 @@ struct window {
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	int margined;
+	void (*baseCommitDestroy)(uiControl *);
 };
 
 uiDefineControlType(uiWindow, uiTypeWindow, struct window)
@@ -85,7 +86,7 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 0;
 }
 
-static void windowDestroy(uiControl *c)
+static void windowCommitDestroy(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
@@ -102,9 +103,7 @@ static void windowDestroy(uiControl *c)
 		freeMenubar(w->menubar);
 	// and finally destroy ourselves
 	dialogHelperUnregisterWindow(w->hwnd);
-	if (DestroyWindow(w->hwnd) == 0)
-		logLastError("error destroying uiWindow in windowDestroy()");
-	uiFree(w);
+	(*(w->baseCommitDestroy))(uiControl(w));
 }
 
 static uintptr_t windowHandle(uiControl *c)
@@ -114,23 +113,7 @@ static uintptr_t windowHandle(uiControl *c)
 	return (uintptr_t) (w->hwnd);
 }
 
-static void windowQueueResize(uiControl *c)
-{
-	queueResize(c);
-}
-
-static uiSizing *windowSizing(uiControl *c)
-{
-	return uiWindowsSizing(c);
-}
-
-static int windowContainerVisible(uiControl *c)
-{
-	// TODO
-	return 1;
-}
-
-static void windowShow(uiControl *c)
+static void windowCommitShow(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
@@ -146,30 +129,7 @@ static void windowShow(uiControl *c)
 		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");
 }
 
-static void windowHide(uiControl *c)
-{
-	struct window *w = (struct window *) c;
-
-	ShowWindow(w->hwnd, SW_HIDE);
-}
-
-static void windowEnable(uiControl *c)
-{
-	struct window *w = (struct window *) c;
-
-	EnableWindow(w->hwnd, TRUE);
-	if (w->child != NULL)
-		uiControlUpdateState(w->child);
-}
-
-static void windowDisable(uiControl *c)
-{
-	struct window *w = (struct window *) c;
-
-	EnableWindow(w->hwnd, FALSE);
-	if (w->child != NULL)
-		uiControlUpdateState(w->child);
-}
+// TODO container update state
 
 static char *windowTitle(uiWindow *ww)
 {

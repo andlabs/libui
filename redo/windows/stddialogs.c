@@ -71,36 +71,44 @@ char *uiSaveFile(void)
 	return toUTF8(wfilename);
 }
 
-// TODO migrate to task dialogs when making Vista-only
-static void msgbox(const char *title, const char *description, UINT flags)
+// TODO MinGW-w64 doesn't support task dialogs
+#define TDCBF_OK_BUTTON 0x0001
+#define TD_ERROR_ICON MAKEINTRESOURCEW(-2)
+typedef int TASKDIALOG_COMMON_BUTTON_FLAGS;           // Note: _TASKDIALOG_COMMON_BUTTON_FLAGS is an int
+HRESULT (*WINAPI fv_TaskDialog)(_In_opt_ HWND hwndOwner, _In_opt_ HINSTANCE hInstance, _In_opt_ PCWSTR pszWindowTitle, _In_opt_ PCWSTR pszMainInstruction, _In_opt_ PCWSTR pszContent, TASKDIALOG_COMMON_BUTTON_FLAGS dwCommonButtons, _In_opt_ PCWSTR pszIcon, int *pnButton) = NULL;
+
+static void msgbox(const char *title, const char *description, TASKDIALOG_COMMON_BUTTON_FLAGS buttons, PCWSTR icon)
 {
 	WCHAR *wtitle, *wdescription;
-	WCHAR *wtext;
-	int n;
 	HWND dialogHelper;
+	HRESULT hr;
+
+	if (fv_TaskDialog == NULL) {
+		HANDLE h;
+
+		h = LoadLibraryW(L"comctl32.dll");
+		fv_TaskDialog = GetProcAddress(h, "TaskDialog");
+	}
 
 	wtitle = toUTF16(title);
 	wdescription = toUTF16(description);
-	n = _scwprintf(L"%s\n\n%s", wtitle, wdescription);
-	wtext = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
-	snwprintf(wtext, n + 1, L"%s\n\n%s", wtitle, wdescription);
 
 	dialogHelper = beginDialogHelper();
-	if (MessageBoxW(dialogHelper, wtext, NULL, flags) == 0)
-		logLastError("error showing message box in msgbox()");
+	hr = (*fv_TaskDialog)(dialogHelper, NULL, NULL, wtitle, wdescription, buttons, icon, NULL);
+	if (hr != S_OK)
+		logHRESULT("error showing task dialog in msgbox()", hr);
 	endDialogHelper(dialogHelper);
 
-	uiFree(wtext);
 	uiFree(wdescription);
 	uiFree(wtitle);
 }
 
 void uiMsgBox(const char *title, const char *description)
 {
-	msgbox(title, description, MB_OK);
+	msgbox(title, description, TDCBF_OK_BUTTON, NULL);
 }
 
 void uiMsgBoxError(const char *title, const char *description)
 {
-	msgbox(title, description, MB_OK | MB_ICONERROR);
+	msgbox(title, description, TDCBF_OK_BUTTON, TD_ERROR_ICON);
 }

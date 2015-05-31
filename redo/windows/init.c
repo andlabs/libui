@@ -16,6 +16,7 @@ struct uiInitError {
 #define initErrorFormat L"error %s: %s%sGetLastError() == %I32u%s"
 #define initErrorArgs wmessage, sysmsg, beforele, le, afterle
 
+// TODO split for HRESULTs
 static const char *loadLastError(const char *message)
 {
 	WCHAR *sysmsg;
@@ -90,6 +91,7 @@ const char *uiInit(uiInitOptions *o)
 	HCURSOR hDefaultCursor;
 	NONCLIENTMETRICSW ncm;
 	INITCOMMONCONTROLSEX icc;
+	HRESULT hr;
 
 	options = *o;
 
@@ -144,7 +146,9 @@ const char *uiInit(uiInitOptions *o)
 	if (initDialogHelper(hDefaultIcon, hDefaultCursor) == 0)
 		return loadLastError("initializing the dialog helper");
 
-	// TODO initialize COM
+	hr = CoInitialize(NULL);
+	if (hr != S_OK && hr != S_FALSE)
+		return loadLastError("initializing COM");		// TODO loadHRESULT
 	// TODO initialize COM security
 	// TODO (windows vista) turn off COM exception handling
 
@@ -154,11 +158,11 @@ const char *uiInit(uiInitOptions *o)
 void uiUninit(void)
 {
 	uninitMenus();
-	// TODO uninitialize COM
+	CoUninitialize();
 	// TODO uninitialize the dialog helper
 	// TODO delete hollow brush
 	if (SetConsoleCtrlHandler(consoleCtrlHandler, FALSE) == 0)
-		logLastError("unregistering console end session handler");
+		logLastError("error unregistering console end session handler");
 	uninitContainer();
 	if (DeleteObject(hMessageFont) == 0)
 		logLastError("error deleting control font in uiUninit()");

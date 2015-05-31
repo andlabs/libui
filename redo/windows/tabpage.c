@@ -99,3 +99,17 @@ uiControl *newTabPage(uiControl *child)
 
 	return uiControl(t);
 }
+
+int tabPageMargined(uiControl *c)
+{
+	struct tabPage *t = (struct tabPage *) c;
+
+	return t->margined;
+}
+
+void tabPageSetMargined(uiControl *c, int margined)
+{
+	struct tabPage *t = (struct tabPage *) c;
+
+	t->margined = margined;
+}

@@ -178,8 +178,7 @@ static int tabMargined(uiTab *tt, uintmax_t n)
 	uiControl *page;
 
 	page = ptrArrayIndex(t->pages, uiControl *, n);
-//TODO	return page->margined;
-	return 0;
+	return tabPageMargined(page);
 }
 
 static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
@@ -188,8 +187,8 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 	uiControl *page;
 
 	page = ptrArrayIndex(t->pages, uiControl *, n);
-//TODO	page->margined = margined;
-//TODO	uiControlQueueResize(page->control);
+	tabPageSetMargined(page, margined);
+	uiControlQueueResize(page);
 }
 
 uiTab *uiNewTab(void)

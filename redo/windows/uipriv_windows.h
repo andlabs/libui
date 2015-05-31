@@ -134,3 +134,5 @@ extern void setSingleHWNDFuncs(uiControl *);
 
 // tabpage.c
 extern uiControl *newTabPage(uiControl *);
+extern int tabPageMargined(uiControl *);
+extern void tabPageSetMargined(uiControl *, int);

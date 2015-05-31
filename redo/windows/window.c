@@ -24,7 +24,6 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	struct window *w;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
-	RECT r;
 	LRESULT lResult;
 
 	w = (struct window *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
@@ -193,9 +192,9 @@ static void windowSetMargined(uiWindow *ww, int margined)
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define windowMargin 7
 
-static void windowResizeChild(uiControl *c)
+static void windowResizeChild(uiWindow *ww)
 {
-	struct window *w = (struct window *) c;
+	struct window *w = (struct window *) ww;
 	RECT r;
 	uiSizing *d;
 

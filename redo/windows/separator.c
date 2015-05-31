@@ -20,7 +20,7 @@ static uintptr_t separatorHandle(uiControl *c)
 {
 	struct separator *s = (struct separator *) c;
 
-	return s->hwnd;
+	return (uintptr_t) (s->hwnd);
 }
 
 static void separatorPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)

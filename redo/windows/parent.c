@@ -105,9 +105,6 @@ void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
 // why have this to begin with? http://blogs.msdn.com/b/oldnewthing/archive/2010/03/16/9979112.aspx
 BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
-	HWND control;
-	NMHDR *nm = (NMHDR *) lParam;
-
 	switch (uMsg) {
 	case WM_COMMAND:
 		return runWM_COMMAND(wParam, lParam, lResult);

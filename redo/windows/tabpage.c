@@ -8,6 +8,7 @@
 
 // TODO verify that the tab page texture doesn't end too soon
 // TODO container update state
+// TODO tell wine that dialogs respond to WM_PRINTCLIENT on xp+
 
 struct tabPage {
 	uiControl c;

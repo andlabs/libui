@@ -170,6 +170,7 @@ void uiUninit(void)
 	// TODO delete default cursor
 	// TODO delete default icon
 	uninitResizes();
+	uninitTypes();
 	uninitAlloc();
 }
 

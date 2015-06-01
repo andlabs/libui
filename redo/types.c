@@ -57,7 +57,21 @@ void *uiIsA(void *p, uintmax_t id, int fail)
 	return NULL;
 }
 
-// TODO free type info
+void uninitTypes(void)
+{
+	struct typeinfo *ti;
+
+	if (types == NULL)		// never initialized; do nothing
+		return;
+	// the first entry is NULL; get rid of it directly
+	ptrArrayDelete(types, 0);
+	while (types->len != 0) {
+		ti = ptrArrayIndex(types, struct typeinfo *, 0);
+		ptrArrayDelete(types, 0);
+		uiFree(ti);
+	}
+	ptrArrayDestroy(types);
+}
 
 uiTyped *newTyped(uintmax_t type)
 {

@@ -34,4 +34,5 @@ void ptrArrayDelete(struct ptrArray *, uintmax_t);
 extern int shouldQuit(void);
 
 // types.c
+extern void uninitTypes(void);
 extern uiTyped *newTyped(uintmax_t type);

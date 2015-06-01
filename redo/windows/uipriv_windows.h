@@ -5,6 +5,13 @@
 #include "../uipriv.h"
 #include "resources.h"
 
+#ifndef __MINGW64_VERSION_MAJOR
+#error At present, only MinGW-w64 (>= 4.0.0) is supported. Other toolchains will be supported in the future (but other variants of MinGW will not).
+#endif
+#if __MINGW64_VERSION_MAJOR < 4
+#error MinGW-w64 version 4.0.0 or newer is required.
+#endif
+
 // ui internal window messages
 enum {
 	// redirected WM_COMMAND and WM_NOTIFY

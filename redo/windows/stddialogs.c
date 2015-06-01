@@ -63,9 +63,6 @@ char *uiSaveFile(void)
 }
 
 // TODO MinGW-w64 3.x doesn't support task dialogs
-#define TDCBF_OK_BUTTON 0x0001
-#define TD_ERROR_ICON MAKEINTRESOURCEW(-2)
-typedef int TASKDIALOG_COMMON_BUTTON_FLAGS;           // Note: _TASKDIALOG_COMMON_BUTTON_FLAGS is an int
 HRESULT (*WINAPI fv_TaskDialog)(_In_opt_ HWND hwndOwner, _In_opt_ HINSTANCE hInstance, _In_opt_ PCWSTR pszWindowTitle, _In_opt_ PCWSTR pszMainInstruction, _In_opt_ PCWSTR pszContent, TASKDIALOG_COMMON_BUTTON_FLAGS dwCommonButtons, _In_opt_ PCWSTR pszIcon, int *pnButton) = NULL;
 
 static void msgbox(const char *title, const char *description, TASKDIALOG_COMMON_BUTTON_FLAGS buttons, PCWSTR icon)

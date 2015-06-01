@@ -116,7 +116,7 @@ static void recreateUpDown(struct spinbox *s)
 		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) current);
 	}
 	if (uiControlContainerVisible(uiControl(s)))
-		uiWIndowsUtilShow(s->updown);
+		uiWindowsUtilShow(s->updown);
 	s->inhibitChanged = FALSE;
 }
 
@@ -135,10 +135,10 @@ static void spinboxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 		f(s->hwnd); \
 		f(s->updown); \
 	}
-COMMIT(Show, uiWIndowsUtilShow)
-COMMIT(Hide, uiWIndowsUtilHide)
-COMMIT(Enable, uiWIndowsUtilEnable)
-COMMIT(Disable, uiWIndowsUtilDisable)
+COMMIT(Show, uiWindowsUtilShow)
+COMMIT(Hide, uiWindowsUtilHide)
+COMMIT(Enable, uiWindowsUtilEnable)
+COMMIT(Disable, uiWindowsUtilDisable)
 
 // TODO does it go here relative of other things?
 static void defaultOnChanged(uiSpinbox *s, void *data)

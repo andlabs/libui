@@ -12,9 +12,9 @@ _UI_EXTERN HWND uiWindowsUtilCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassN
 _UI_EXTERN void uiWindowsUtilDestroy(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilSetParent(HWND hwnd, uiControl *parent);
 _UI_EXTERN void uiWindowsUtilResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d);
-_UI_EXTERN void uiWIndowsUtilShow(HWND hwnd);
+_UI_EXTERN void uiWindowsUtilShow(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilHide(HWND hwnd);
-_UI_EXTERN void uiWIndowsUtilEnable(HWND hwnd);
+_UI_EXTERN void uiWindowsUtilEnable(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilDisable(HWND hwnd);
 _UI_EXTERN uintptr_t uiWindowsUtilStartZOrder(HWND hwnd);
 _UI_EXTERN uintptr_t uiWindowsUtilSetZOrder(HWND hwnd, uintptr_t insertAfter);

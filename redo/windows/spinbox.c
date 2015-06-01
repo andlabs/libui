@@ -1,8 +1,6 @@
 // 8 april 2015
 #include "uipriv_windows.h"
 
-// TODO SHED
-
 struct spinbox {
 	uiSpinbox s;
 	HWND hwnd;
@@ -118,7 +116,7 @@ static void recreateUpDown(struct spinbox *s)
 		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) current);
 	}
 	if (uiControlContainerVisible(uiControl(s)))
-		ShowWindow(s->updown, SW_SHOW);
+		uiWIndowsUtilShow(s->updown);
 	s->inhibitChanged = FALSE;
 }
 
@@ -129,6 +127,18 @@ static void spinboxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 	(*(s->baseResize))(uiControl(s), x, y, width, height, d);
 	recreateUpDown(s);
 }
+
+#define COMMIT(n, f) \
+	static void spinboxCommit ## n(uiControl *c) \
+	{ \
+		struct spinbox *s = (struct spinbox *) c; \
+		f(s->hwnd); \
+		f(s->updown); \
+	}
+COMMIT(Show, uiWIndowsUtilShow)
+COMMIT(Hide, uiWIndowsUtilHide)
+COMMIT(Enable, uiWIndowsUtilEnable)
+COMMIT(Disable, uiWIndowsUtilDisable)
 
 // TODO does it go here relative of other things?
 static void defaultOnChanged(uiSpinbox *s, void *data)
@@ -189,6 +199,10 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	uiControl(s)->Resize = spinboxResize;
 	s->baseCommitDestroy = uiControl(s)->CommitDestroy;
 	uiControl(s)->CommitDestroy = spinboxCommitDestroy;
+	uiControl(s)->CommitShow = spinboxCommitShow;
+	uiControl(s)->CommitHide = spinboxCommitHide;
+	uiControl(s)->CommitEnable = spinboxCommitEnable;
+	uiControl(s)->CommitDisable = spinboxCommitDisable;
 
 	uiSpinbox(s)->Value = spinboxValue;
 	uiSpinbox(s)->SetValue = spinboxSetValue;

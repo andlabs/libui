@@ -6,6 +6,8 @@ struct group {
 	HWND hwnd;
 	uiControl *child;
 	void (*baseCommitDestroy)(uiControl *);
+	int margined;
+	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 };
 
 uiDefineControlType(uiGroup, uiTypeGroup, struct group)
@@ -28,11 +30,60 @@ static uintptr_t groupHandle(uiControl *c)
 	return (uintptr_t) (g->hwnd);
 }
 
+// TODO get source
+#define groupXMargin 6
+#define groupYMarginTop 11 /* note this value /includes the groupbox label */
+#define groupYMarginBottom 7
+
+// unfortunately because the client area of a groupbox includes the frame and caption text, we have to apply some margins ourselves, even if we don't want "any"
+// these were deduced by hand based on the standard DLU conversions; the X and Y top margins are the width and height, respectively, of one character cell
+// they can be fine-tuned later
+#define groupUnmarginedXMargin 4
+#define groupUnmarginedYMarginTop 8
+#define groupUnmarginedYMarginBottom 3
+
 static void groupPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	// TODO
+	struct group *g = (struct group *) c;
+
 	*width = 0;
 	*height = 0;
+	if (g->child != NULL)
+		uiControlPreferredSize(g->child, d, width, height);
+	if (g->margined) {
+		*width += 2 * uiWindowsDlgUnitsToX(groupXMargin, d->Sys->BaseX);
+		*height += uiWindowsDlgUnitsToY(groupYMarginTop, d->Sys->BaseY) + uiWindowsDlgUnitsToY(groupYMarginBottom, d->Sys->BaseY);
+	} else {
+		*width += 2 * uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX);
+		*height += uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->Sys->BaseY) + uiWindowsDlgUnitsToY(groupUnmarginedYMarginBottom, d->Sys->BaseY);
+	}
+}
+
+static void groupResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+{
+	struct group *g = (struct group *) c;
+	uiSizing *dchild;
+
+	(*(g->baseResize))(uiControl(g), x, y, width, height, d);
+
+	if (g->child == NULL)
+		return;
+
+	if (g->margined) {
+		x += uiWindowsDlgUnitsToX(groupXMargin, d->Sys->BaseX);
+		y += uiWindowsDlgUnitsToY(groupYMarginTop, d->Sys->BaseY);
+		width -= 2 * uiWindowsDlgUnitsToX(groupXMargin, d->Sys->BaseX);
+		height -= uiWindowsDlgUnitsToY(groupYMarginTop, d->Sys->BaseY) + uiWindowsDlgUnitsToY(groupYMarginBottom, d->Sys->BaseY);
+	} else {
+		x += uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX);
+		y += uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->Sys->BaseY);
+		width -= 2 * uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->Sys->BaseX);
+		height -= uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->Sys->BaseY) + uiWindowsDlgUnitsToY(groupUnmarginedYMarginBottom, d->Sys->BaseY);
+	}
+
+	dchild = uiControlSizing(uiControl(g));
+	uiControlResize(g->child, x, y, width, height, dchild);
+	uiFreeSizing(dchild);
 }
 
 static void groupContainerUpdateState(uiControl *c)
@@ -73,6 +124,8 @@ uiGroup *uiNewGroup(const char *text)
 
 	uiControl(g)->Handle = groupHandle;
 	uiControl(g)->PreferredSize = groupPreferredSize;
+	g->baseResize = uiControl(g)->Resize;
+	uiControl(g)->Resize = groupResize;
 	g->baseCommitDestroy = uiControl(g)->CommitDestroy;
 	uiControl(g)->CommitDestroy = groupCommitDestroy;
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;

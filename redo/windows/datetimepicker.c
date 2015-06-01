@@ -18,7 +18,7 @@ static uintptr_t datetimepickerHandle(uiControl *c)
 }
 
 // TODO
-// TODO use DTM_GETIDEALSIZE when making Vista-only
+// TODO DTM_GETIDEALSIZE results in something too big
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14

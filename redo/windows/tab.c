@@ -2,7 +2,6 @@
 #include "uipriv_windows.h"
 
 // TODO
-// - comctl5 on real windows: tabs get drawn behind checkbox
 // - container update state
 
 struct tab {
@@ -56,8 +55,16 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 static void tabCommitDestroy(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
+	uiControl *page;
 
-	// TODO
+	while (t->pages->len != 0) {
+		page = ptrArrayIndex(t->pages, uiControl *, 0);
+		ptrArrayDelete(t->pages, 0);
+		// TODO destroy control
+		uiControlSetParent(page, NULL);
+		uiControlDestroy(page);
+	}
+	ptrArrayDestroy(t->pages);
 	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
 	(*(t->baseCommitDestroy))(uiControl(t));
 }

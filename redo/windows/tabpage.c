@@ -4,10 +4,7 @@
 // This is a special internal control type that handles tab pages.
 // This doesn't use the container class, but rather a subclassed WC_DIALOG, as that supports tab textures properly.
 // The standard property sheet control oes the same thing.
-// TODO (long term) figure out how to use uiContainer with this
 
-// TODO verify that the tab page texture doesn't end too soon
-// TODO container update state
 // TODO tell wine that dialogs respond to WM_PRINTCLIENT on xp+
 
 struct tabPage {
@@ -20,8 +17,7 @@ struct tabPage {
 
 uiDefineControlType(tabPage, tabPageType, struct tabPage)
 
-// TODO override methods
-// TODO when overriding CommitDestroy, DO NOT DESTROY THE CHILD
+// don't override CommitDestroy(); we destroy the child with a separate function
 
 static uintptr_t tabPageHandle(uiControl *c)
 {
@@ -32,6 +28,8 @@ static uintptr_t tabPageHandle(uiControl *c)
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define tabMargin 7
+
+// TODO preferred size
 
 static void tabPageResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
@@ -59,6 +57,8 @@ static void tabPageResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 	uiFreeSizing(dchild);
 }
 
+// TODO container update state
+
 // dummy dialog function; see below for details
 INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -80,7 +80,6 @@ uiControl *newTabPage(uiControl *child)
 	if (t->hwnd == NULL)
 		logLastError("error creating tab page in newTabPage()");
 
-	// TODO figure out why this is not working
 	hr = EnableThemeDialogTexture(t->hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);
 	if (hr != S_OK)
 		logHRESULT("error setting tab page background in newTabPage()", hr);

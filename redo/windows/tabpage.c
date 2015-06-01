@@ -75,9 +75,16 @@ static void tabPageContainerUpdateState(uiControl *c)
 		uiControlUpdateState(t->child);
 }
 
-// dummy dialog function; see below for details
+// dummy dialog procedure; see below for details
+// let's handle parent messages here to avoid needing to subclass
 static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	LRESULT lResult;
+
+	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE) {
+		SetWindowLongPtrW(hwnd, DWLP_MSGRESULT, (LONG_PTR) lResult);
+		return TRUE;
+	}
 	if (uMsg == WM_INITDIALOG)
 		return TRUE;
 	return FALSE;
@@ -99,8 +106,6 @@ uiControl *newTabPage(uiControl *child)
 	hr = EnableThemeDialogTexture(t->hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);
 	if (hr != S_OK)
 		logHRESULT("error setting tab page background in newTabPage()", hr);
-
-	// TODO subclass hwnd to handle events
 
 	// needs to be done here, otherwise the uiControlSetParent() below will crash
 	// TODO split into separate functions

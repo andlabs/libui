@@ -45,8 +45,6 @@ void queueResize(uiControl *c)
 	ptrArrayAppend(resizes, c);
 }
 
-// TODO dequeueResize
-
 void doResizes(void)
 {
 	uiWindow *w;

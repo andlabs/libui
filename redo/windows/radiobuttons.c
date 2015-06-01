@@ -97,14 +97,25 @@ static void radiobuttonsResize(uiControl *c, intmax_t x, intmax_t y, intmax_t wi
 
 static uiSizing *radiobuttonsSizing(uiControl *c)
 {
-	// TODO
+	complain("attempt to call uiControlSizing() on uiRadioButtons %p", c);
 	return NULL;
 }
 
-static void radiobuttonsSHED(uiControl *c)
-{
-	// TODO
-}
+#define COMMIT(n, f) \
+	static void radiobuttonsCommit ## n(uiControl *c) \
+	{ \
+		struct radiobuttons *r = (struct radiobuttons *) c; \
+		uintmax_t i; \
+		HWND hwnd; \
+		for (i = 0; i < r->hwnds->len; i++) { \
+			hwnd = ptrArrayIndex(r->hwnds, HWND, i); \
+			f(hwnd); \
+		} \
+	}
+COMMIT(Show, uiWindowsUtilShow)
+COMMIT(Hide, uiWindowsUtilHide)
+COMMIT(Enable, uiWindowsUtilEnable)
+COMMIT(Disable, uiWindowsUtilDisable)
 
 static uintptr_t radiobuttonsStartZOrder(uiControl *c)
 {
@@ -120,8 +131,9 @@ static uintptr_t radiobuttonsSetZOrder(uiControl *c, uintptr_t insertAfter)
 
 static int radiobuttonsHasTabStops(uiControl *c)
 {
-	// TODO return 0 if no radio buttons
-	return 1;
+	struct radiobuttons *r = (struct radiobuttons *) c;
+
+	return r->hwnds->len != 0;
 }
 
 static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
@@ -156,10 +168,10 @@ uiRadioButtons *uiNewRadioButtons(void)
 	uiControl(r)->PreferredSize = radiobuttonsPreferredSize;
 	uiControl(r)->Resize = radiobuttonsResize;
 	uiControl(r)->Sizing = radiobuttonsSizing;
-	uiControl(r)->CommitShow = radiobuttonsSHED;
-	uiControl(r)->CommitHide = radiobuttonsSHED;
-	uiControl(r)->CommitEnable = radiobuttonsSHED;
-	uiControl(r)->CommitDisable = radiobuttonsSHED;
+	uiControl(r)->CommitShow = radiobuttonsCommitShow;
+	uiControl(r)->CommitHide = radiobuttonsCommitHide;
+	uiControl(r)->CommitEnable = radiobuttonsCommitEnable;
+	uiControl(r)->CommitDisable = radiobuttonsCommitDisable;
 	uiControl(r)->StartZOrder = radiobuttonsStartZOrder;
 	uiControl(r)->SetZOrder = radiobuttonsSetZOrder;
 	uiControl(r)->HasTabStops = radiobuttonsHasTabStops;

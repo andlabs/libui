@@ -6,36 +6,51 @@
 // this should be reasonable
 #define NFILENAME 4096
 
+// TODO not in MinGW-w64?
+#define FOS_SUPPORTSTREAMABLEITEMS 0x80000000
+
 char *uiOpenFile(void)
 {
-	WCHAR wfilename[NFILENAME];
-	OPENFILENAMEW ofn;
+	IFileOpenDialog *d;
+	FILEOPENDIALOGOPTIONS opts;
 	HWND dialogHelper;
-	DWORD err;
+	IShellItem *result;
+	WCHAR *wname;
+	char *name;
+	HRESULT hr;
 
+	hr = CoCreateInstance(&CLSID_FileOpenDialog,
+		NULL, CLSCTX_INPROC_SERVER,
+		&IID_IFileOpenDialog, (LPVOID *) (&d));
+	if (hr != S_OK)
+		logHRESULT("error creating common item dialog in uiOpenFile()", hr);
+	hr = IFileOpenDialog_GetOptions(d, &opts);
+	if (hr != S_OK)
+		logHRESULT("error getting current options in uiOpenFile()", hr);
+	opts |= FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE | FOS_SUPPORTSTREAMABLEITEMS;
+	hr = IFileOpenDialog_SetOptions(d, opts);
+	if (hr != S_OK)
+		logHRESULT("error setting options in uiOpenFile()", hr);
 	dialogHelper = beginDialogHelper();
-	wfilename[0] = L'\0';			// required by GetOpenFileName() to indicate no previous filename
-	ZeroMemory(&ofn, sizeof (OPENFILENAMEW));
-	ofn.lStructSize = sizeof (OPENFILENAMEW);
-	ofn.hwndOwner = dialogHelper;
-	ofn.hInstance = hInstance;
-	ofn.lpstrFilter = NULL;			// no filters
-	ofn.lpstrFile = wfilename;
-	ofn.nMaxFile = NFILENAME;		// seems to include null terminator according to docs
-	ofn.lpstrInitialDir = NULL;			// let system decide
-	ofn.lpstrTitle = NULL;			// let system decide
-	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_FORCESHOWHIDDEN | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_NOCHANGEDIR | OFN_NODEREFERENCELINKS | OFN_NOTESTFILECREATE | OFN_PATHMUSTEXIST | OFN_SHAREAWARE;
-	if (GetOpenFileNameW(&ofn) == FALSE) {
-		err = CommDlgExtendedError();
-		if (err != 0)
-			// TODO
-			complain("error running open file dialog", err);
-		// otherwise user cancelled
-		endDialogHelper(dialogHelper);
+	hr = IFileOpenDialog_Show(d, dialogHelper);
+	endDialogHelper(dialogHelper);
+	if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) {
+		IFileOpenDialog_Release(d);
 		return NULL;
 	}
-	endDialogHelper(dialogHelper);
-	return toUTF8(wfilename);
+	if (hr != S_OK)
+		logHRESULT("error showing dialog in uiOpenFile()", hr);
+	hr = IFileOpenDialog_GetResult(d, &result);
+	if (hr != S_OK)
+		logHRESULT("error getting dialog result in uiOpenFile()", hr);
+	hr = IShellItem_GetDisplayName(result, SIGDN_FILESYSPATH, &wname);
+	if (hr != S_OK)
+		logHRESULT("error getting filename in uiOpenFile()", hr);
+	name = toUTF8(wname);
+	CoTaskMemFree(wname);
+	IShellItem_Release(result);
+	IFileOpenDialog_Release(d);
+	return name;
 }
 
 char *uiSaveFile(void)
@@ -71,7 +86,7 @@ char *uiSaveFile(void)
 	return toUTF8(wfilename);
 }
 
-// TODO MinGW-w64 doesn't support task dialogs
+// TODO MinGW-w64 3.x doesn't support task dialogs
 #define TDCBF_OK_BUTTON 0x0001
 #define TD_ERROR_ICON MAKEINTRESOURCEW(-2)
 typedef int TASKDIALOG_COMMON_BUTTON_FLAGS;           // Note: _TASKDIALOG_COMMON_BUTTON_FLAGS is an int

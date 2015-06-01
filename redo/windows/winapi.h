@@ -25,3 +25,4 @@
 #include <stdarg.h>
 #include <oleacc.h>
 #include <stdio.h>
+#include <shobjidl.h>

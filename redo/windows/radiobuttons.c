@@ -33,7 +33,16 @@ static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult
 
 static void radiobuttonsCommitDestroy(uiControl *c)
 {
-	// TODO
+	struct radiobuttons *r = (struct radiobuttons *) c;
+	HWND hwnd;
+
+	while (r->hwnds->len != 0) {
+		hwnd = ptrArrayIndex(r->hwnds, HWND, 0);
+		ptrArrayDelete(r->hwnds, 0);
+		uiWindowsUnregisterWM_COMMANDHandler(hwnd);
+		uiWindowsUtilDestroy(hwnd);
+	}
+	ptrArrayDestroy(r->hwnds);
 }
 
 // radio buttons have more than one handle
@@ -148,6 +157,7 @@ static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
 		BS_RADIOBUTTON | WS_TABSTOP | WS_CHILD | WS_VISIBLE,
 		hInstance, NULL,
 		TRUE);
+	uiFree(wtext);
 	uiWindowsUtilSetParent(hwnd, r->parent);
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
 	ptrArrayAppend(r->hwnds, hwnd);

@@ -1,0 +1,2 @@
+wine
+- say that dialogs respond to WM_PRINTCLIENT on xp+

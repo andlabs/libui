@@ -3,9 +3,7 @@
 
 // This is a special internal control type that handles tab pages.
 // This doesn't use the container class, but rather a subclassed WC_DIALOG, as that supports tab textures properly.
-// The standard property sheet control oes the same thing.
-
-// TODO tell wine that dialogs respond to WM_PRINTCLIENT on xp+
+// The standard property sheet control does the same thing.
 
 struct tabPage {
 	uiControl c;

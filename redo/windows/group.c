@@ -4,9 +4,22 @@
 struct group {
 	uiGroup g;
 	HWND hwnd;
+	uiControl *child;
+	void (*baseCommitDestroy)(uiControl *);
 };
 
 uiDefineControlType(uiGroup, uiTypeGroup, struct group)
+
+static void groupCommitDestroy(uiControl *c)
+{
+	struct group *g = (struct group *) c;
+
+	if (g->child != NULL) {
+		uiControlSetParent(g->child, NULL);
+		uiControlDestroy(g->child);
+	}
+	(*(g->baseCommitDestroy))(uiControl(g));
+}
 
 static uintptr_t groupHandle(uiControl *c)
 {
@@ -22,9 +35,25 @@ static void groupPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	*height = 0;
 }
 
-static void groupSetChild(uiGroup *gg, uiControl *c)
+static void groupContainerUpdateState(uiControl *c)
 {
-	// TODO
+	struct group *g = (struct group *) c;
+
+	if (g->child != NULL)
+		uiControlUpdateState(g->child);
+}
+
+static void groupSetChild(uiGroup *gg, uiControl *child)
+{
+	struct group *g = (struct group *) gg;
+
+	if (g->child != NULL)
+		uiControlSetParent(g->child, NULL);
+	g->child = child;
+	if (g->child != NULL) {
+		uiControlSetParent(g->child, uiControl(g));
+		uiControlQueueResize(g->child);
+	}
 }
 
 uiGroup *uiNewGroup(const char *text)
@@ -44,6 +73,9 @@ uiGroup *uiNewGroup(const char *text)
 
 	uiControl(g)->Handle = groupHandle;
 	uiControl(g)->PreferredSize = groupPreferredSize;
+	g->baseCommitDestroy = uiControl(g)->CommitDestroy;
+	uiControl(g)->CommitDestroy = groupCommitDestroy;
+	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;
 
 	uiGroup(g)->SetChild = groupSetChild;
 

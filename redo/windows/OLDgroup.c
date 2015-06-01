@@ -8,26 +8,6 @@ struct group {
 	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 };
 
-static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
-static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
-{
-	return FALSE;
-}
-
-static void onDestroy(void *data)
-{
-	struct group *g = (struct group *) data;
-
-	if (g->child != NULL) {
-		uiControlSetParent(g->child, NULL);
-		uiControlDestroy(g->child);
-	}
-	uiFree(g);
-}
 
 // TODO get source
 #define groupXMargin 6
@@ -74,15 +54,6 @@ static void groupComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intmax
 	*y = r.top;
 	*width = r.right - r.left;
 	*height = r.bottom - r.top;
-}
-
-static void groupSetChild(uiGroup *gg, uiControl *c)
-{
-	struct group *g = (struct group *) gg;
-
-	g->child = c;
-	if (g->child != NULL)
-		uiControlQueueResize(g->child);
 }
 
 uiGroup *uiNewGroup(const char *text)

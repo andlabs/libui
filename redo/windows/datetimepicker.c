@@ -51,8 +51,7 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style, WCHAR *format)
 	return uiDateTimePicker(d);
 }
 
-// TODO move to GetLocaleInfoEx() when making Vista-only
-#define GLI(what, buf, n) GetLocaleInfoW(LOCALE_USER_DEFAULT, what, buf, n)
+#define GLI(what, buf, n) GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, what, buf, n)
 
 // Windows has no combined date/time prebuilt constant; we have to build the format string ourselves
 uiDateTimePicker *uiNewDateTimePicker(void)

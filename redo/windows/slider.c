@@ -2,7 +2,6 @@
 #include "uipriv_windows.h"
 
 // TODOs
-// - investigate overriding WM_ERASEBKGND to simulate TBS_TRANSPARENTBKGND; windows xp tries to do this it seems for tab controls but doesn't really do a good job of it
 // - wine does not clamp TBM_SETPOS
 
 struct slider {
@@ -87,8 +86,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 
 	s->hwnd = uiWindowsUtilCreateControlHWND(0,
 		TRACKBAR_CLASSW, L"",
-		// TODO TBS_TRANSPARENTBKGND when making Vista-only
-		TBS_HORZ | TBS_TOOLTIPS | WS_TABSTOP,
+		TBS_HORZ | TBS_TOOLTIPS | TBS_TRANSPARENTBKGND | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
 

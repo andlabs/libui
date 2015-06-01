@@ -29,7 +29,19 @@ static uintptr_t tabPageHandle(uiControl *c)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define tabMargin 7
 
-// TODO preferred size
+static void tabPagePreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+{
+	struct tabPage *t = (struct tabPage *) c;
+
+	*width = 0;
+	*height = 0;
+	if (t->child != NULL)
+		uiControlPreferredSize(t->child, d, width, height);
+	if (t->margined) {
+		*width += 2 * uiWindowsDlgUnitsToX(tabMargin, d->Sys->BaseX);
+		*height += 2 * uiWindowsDlgUnitsToY(tabMargin, d->Sys->BaseY);
+	}
+}
 
 static void tabPageResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
@@ -57,10 +69,16 @@ static void tabPageResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 	uiFreeSizing(dchild);
 }
 
-// TODO container update state
+static void tabPageContainerUpdateState(uiControl *c)
+{
+	struct tabPage *t = (struct tabPage *) c;
+
+	if (t->child != NULL)
+		uiControlUpdateState(t->child);
+}
 
 // dummy dialog function; see below for details
-INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_INITDIALOG)
 		return TRUE;
@@ -93,8 +111,10 @@ uiControl *newTabPage(uiControl *child)
 	t->child = child;
 	uiControlSetParent(t->child, uiControl(t));
 
+	uiControl(t)->PreferredSize = tabPagePreferredSize;
 	t->baseResize = uiControl(t)->Resize;
 	uiControl(t)->Resize = tabPageResize;
+	uiControl(t)->ContainerUpdateState = tabPageContainerUpdateState;
 
 	return uiControl(t);
 }

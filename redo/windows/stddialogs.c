@@ -3,6 +3,8 @@
 
 // note: FOS_SUPPORTSTREAMABLEITEMS doesn't seem to be supported on windows vista, or at least not with the flags we use
 
+// TODO does FOS_NOVALIDATE not check filenames?
+
 char *commonItemDialog(REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd)
 {
 	IFileDialog *d;

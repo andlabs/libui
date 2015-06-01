@@ -139,4 +139,5 @@ void tabPageDestroyChild(uiControl *c)
 
 	uiControlSetParent(t->child, NULL);
 	uiControlDestroy(t->child);
+	t->child = NULL;
 }

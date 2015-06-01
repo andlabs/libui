@@ -60,7 +60,7 @@ static void tabCommitDestroy(uiControl *c)
 	while (t->pages->len != 0) {
 		page = ptrArrayIndex(t->pages, uiControl *, 0);
 		ptrArrayDelete(t->pages, 0);
-		// TODO destroy control
+		tabPageDestroyChild(page);
 		uiControlSetParent(page, NULL);
 		uiControlDestroy(page);
 	}

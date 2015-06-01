@@ -10,7 +10,7 @@
 struct tabPage {
 	uiControl c;
 	HWND hwnd;
-	uiControl *control;		// TODO rename child
+	uiControl *child;
 	int margined;
 	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 };
@@ -52,7 +52,7 @@ static void tabPageResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 	// this rect is in client coordinates; we need toplevel window coordinates
 	mapWindowRect(t->hwnd, dchild->Sys->CoordFrom, &r);
 
-	uiControlResize(t->control, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
+	uiControlResize(t->child, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
 
 	uiFreeSizing(dchild);
 }
@@ -90,8 +90,8 @@ uiControl *newTabPage(uiControl *child)
 	// TODO split into separate functions
 	uiControl(t)->Handle = tabPageHandle;
 
-	t->control = child;
-	uiControlSetParent(t->control, uiControl(t));
+	t->child = child;
+	uiControlSetParent(t->child, uiControl(t));
 
 	t->baseResize = uiControl(t)->Resize;
 	uiControl(t)->Resize = tabPageResize;
@@ -111,4 +111,12 @@ void tabPageSetMargined(uiControl *c, int margined)
 	struct tabPage *t = (struct tabPage *) c;
 
 	t->margined = margined;
+}
+
+void tabPageDestroyChild(uiControl *c)
+{
+	struct tabPage *t = (struct tabPage *) c;
+
+	uiControlSetParent(t->child, NULL);
+	uiControlDestroy(t->child);
 }

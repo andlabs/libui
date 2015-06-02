@@ -38,7 +38,7 @@ static void showHidePage(struct tab *t, LRESULT which, int hide)
 	}
 }
 
-// see below for issues
+// see below for info
 static void updateWS_TABSTOP(HWND hwnd)
 {
 	LRESULT n;

@@ -58,7 +58,7 @@ void uninitContainer(void)
 uintptr_t uiMakeContainer(uiControl *c)
 {
 	setSingleHWNDFuncs(c);
-	return (uintptr_t) uiWindowsUtilCreateControlHWND(0,
+	return (uintptr_t) uiWindowsUtilCreateControlHWND(WS_EX_CONTROLPARENT,
 		containerClass, L"",
 		0,
 		hInstance, NULL,

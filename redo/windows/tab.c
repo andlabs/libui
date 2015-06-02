@@ -233,6 +233,30 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 	uiControlQueueResize(page);
 }
 
+// this handles tab navigation; see main.c for details
+static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	struct tab *t = (struct tab *) dwRefData;
+	LRESULT n;
+	uiControl *page;
+
+	switch (uMsg) {
+	case msgHasTabStops:
+		n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
+		if (n == (LRESULT) (-1))		// no current selection == no tab stops
+			return FALSE;
+		page = ptrArrayIndex(t->pages, uiControl *, n);
+		if (uiControlHasTabStops(page))
+			return TRUE;
+		return FALSE;
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, tabSubProc, uIdSubclass) == FALSE)
+			logLastError("error removing Tab resize handling subclass in tabSubProc()");
+		break;
+	}
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+}
+
 uiTab *uiNewTab(void)
 {
 	struct tab *t;
@@ -247,6 +271,9 @@ uiTab *uiNewTab(void)
 		TRUE);
 
 	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
+
+	if (SetWindowSubclass(t->hwnd, tabSubProc, 0, (DWORD_PTR) t) == FALSE)
+		logLastError("error subclassing Tab to assist in tab stop handling in uiNewTab()");
 
 	t->pages = newPtrArray();
 

@@ -38,6 +38,24 @@ static void showHidePage(struct tab *t, LRESULT which, int hide)
 	}
 }
 
+// see below for issues
+static void updateWS_TABSTOP(HWND hwnd)
+{
+	LRESULT n;
+	DWORD le;
+
+	SetLastError(0);
+	n = SendMessageW(hwnd, TCM_GETITEMCOUNT, 0, 0);
+	le = GetLastError();
+	SetLastError(le);		// just to be safe
+	if (n != 0)
+		setStyle(hwnd, getStyle(hwnd) | WS_TABSTOP);
+	else if (le == 0)			// truly no tabs
+		setStyle(hwnd, getStyle(hwnd) & ~WS_TABSTOP);
+	else
+		logLastError("error getting number of tabs in updateWS_TABSTOP()");
+}
+
 // control implementation
 
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
@@ -164,6 +182,8 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 		showHidePage(t, hide, 1);
 		showHidePage(t, show, 0);
 	}
+
+	updateWS_TABSTOP(t->hwnd);
 }
 
 static void tabDelete(uiTab *tt, uintmax_t n)
@@ -184,6 +204,8 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 	tabPagePreserveChild(page);
 	uiControlSetParent(page, NULL);
 	uiControlDestroy(page);
+
+	updateWS_TABSTOP(t->hwnd);
 }
 
 static uintmax_t tabNumPages(uiTab *tt)
@@ -220,7 +242,8 @@ uiTab *uiNewTab(void)
 
 	t->hwnd = uiWindowsUtilCreateControlHWND(0,			// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
 		WC_TABCONTROLW, L"",
-		TCS_TOOLTIPS | WS_TABSTOP,						// start with this; we will alternate between this and WS_EX_CONTROLPARENT as needed (see main.c and msgHasTabStops above and the toggling functions below)
+		// don't give WS_TABSTOP here; we only apply WS_TABSTOP if there are tabs
+		TCS_TOOLTIPS,
 		hInstance, NULL,
 		TRUE);
 
@@ -258,5 +281,5 @@ void tabEnterTabNavigation(HWND hwnd)
 void tabLeaveTabNavigation(HWND hwnd)
 {
 	setExStyle(hwnd, getExStyle(hwnd) & ~WS_EX_CONTROLPARENT);
-	setStyle(hwnd, getStyle(hwnd) | WS_TABSTOP);
+	updateWS_TABSTOP(hwnd);
 }

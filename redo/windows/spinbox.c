@@ -55,7 +55,8 @@ static void spinboxCommitDestroy(uiControl *c)
 	struct spinbox *s = (struct spinbox *) c;
 
 	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
-	// TODO destroy the updown
+	if (DestroyWindow(s->updown) == 0)
+		logLastError("error destroying updown in spinboxCommitDestroy()");
 	(*(s->baseCommitDestroy))(uiControl(s));
 }
 
@@ -81,7 +82,6 @@ static void spinboxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, int
 // an up-down control will only properly position itself the first time
 // stupidly, there are no messages to force a size calculation, nor can I seem to reset the buddy window to force a new position
 // alas, we have to make a new up/down control each time :(
-// TODO will we need to store a copy of the current position and range for this?
 static void recreateUpDown(struct spinbox *s)
 {
 	HWND parent;
@@ -140,7 +140,6 @@ COMMIT(Hide, uiWindowsUtilHide)
 COMMIT(Enable, uiWindowsUtilEnable)
 COMMIT(Disable, uiWindowsUtilDisable)
 
-// TODO does it go here relative of other things?
 static void defaultOnChanged(uiSpinbox *s, void *data)
 {
 	// do nothing

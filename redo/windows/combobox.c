@@ -48,7 +48,6 @@ static uiCombobox *finishNewCombobox(DWORD style)
 
 	c = (struct combobox *) uiWindowsNewSingleHWNDControl(uiTypeCombobox());
 
-	// TODO client edge?
 	c->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"combobox", L"",
 		style | WS_TABSTOP,

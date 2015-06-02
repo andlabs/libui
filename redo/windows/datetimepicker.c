@@ -33,7 +33,7 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style, WCHAR *format)
 
 	d = (struct datetimepicker *) uiWindowsNewSingleHWNDControl(uiTypeDateTimePicker());
 
-	d->hwnd = uiWindowsUtilCreateControlHWND(0,		// TODO client edge?
+	d->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
 		DATETIMEPICK_CLASSW, L"",
 		style | WS_TABSTOP,
 		hInstance, NULL,

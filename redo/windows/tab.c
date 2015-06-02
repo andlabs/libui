@@ -3,6 +3,7 @@
 
 // TODO
 // - test background drawing with visual styles off
+// - dynamically apply the WS_TABSTOP flag based on number of tabs
 
 struct tab {
 	uiTab t;

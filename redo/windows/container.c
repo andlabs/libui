@@ -14,7 +14,7 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		return lResult;
 	switch (uMsg) {
 	case WM_PAINT:
-		dc = BeginPaint(hwnd, &ps);
+break;//TODO		dc = BeginPaint(hwnd, &ps);
 		if (dc == NULL)
 			logLastError("error beginning container paint in containerWndProc()");
 		r = ps.rcPaint;

@@ -96,7 +96,32 @@ static uintptr_t tabHandle(uiControl *c)
 
 static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	// TODO
+	struct tab *t = (struct tab *) c;
+	intmax_t maxwid, maxht;
+	intmax_t pagewid, pageht;
+	uiControl *page;
+	uintmax_t i;
+	RECT r;
+
+	maxwid = 0;
+	maxht = 0;
+	for (i = 0; i < t->pages->len; i++) {
+		page = ptrArrayIndex(t->pages, uiControl *, i);
+		uiControlPreferredSize(page, d, &pagewid, &pageht);
+		if (maxwid < pagewid)
+			maxwid = pagewid;
+		if (maxht < pageht)
+			maxht = pageht;
+	}
+
+	r.left = 0;
+	r.top = 0;
+	r.right = maxwid;
+	r.bottom = maxht;
+	// this also includes the tabs themselves
+	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) TRUE, (LPARAM) (&r));
+	*width = r.right - r.left;
+	*height = r.bottom - r.top;
 }
 
 static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)

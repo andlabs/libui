@@ -180,7 +180,7 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 	ptrArrayDelete(t->pages, n);
 
 	// and free the page
-	// this will keep the control alive
+	tabPagePreserveChild(page);
 	uiControlSetParent(page, NULL);
 	uiControlDestroy(page);
 }

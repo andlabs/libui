@@ -142,6 +142,14 @@ void tabPageDestroyChild(uiControl *c)
 	t->child = NULL;
 }
 
+void tabPagePreserveChild(uiControl *c)
+{
+	struct tabPage *t = (struct tabPage *) c;
+
+	uiControlSetParent(t->child, NULL);
+	t->child = NULL;
+}
+
 void tabPageSetChild(uiControl *c, uiControl *child)
 {
 	struct tabPage *t = (struct tabPage *) c;

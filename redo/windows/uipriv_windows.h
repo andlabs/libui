@@ -119,4 +119,5 @@ extern uiControl *newTabPage(void);
 extern int tabPageMargined(uiControl *);
 extern void tabPageSetMargined(uiControl *, int);
 extern void tabPageDestroyChild(uiControl *);
+extern void tabPagePreserveChild(uiControl *);
 extern void tabPageSetChild(uiControl *, uiControl *);

@@ -3,3 +3,7 @@ wine
 
 uthash
 - stdint code misses MinGW(-w64)
+
+MinGW-w64
+- TaskDialog
+- CLSID_GlobalOptions

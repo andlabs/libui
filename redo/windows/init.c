@@ -13,11 +13,10 @@ struct uiInitError {
 	char failbuf[256];
 };
 
-#define initErrorFormat L"error %s: %s%sGetLastError() == %I32u%s"
-#define initErrorArgs wmessage, sysmsg, beforele, le, afterle
+#define initErrorFormat L"error %s: %s%s%s %I32u (0x%I32X)%s"
+#define initErrorArgs wmessage, sysmsg, beforele, label, value, value, afterle
 
-// TODO split for HRESULTs
-static const char *loadLastError(const char *message)
+static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 {
 	WCHAR *sysmsg;
 	BOOL hassysmsg;
@@ -27,10 +26,8 @@ static const char *loadLastError(const char *message)
 	WCHAR *wmessage;
 	WCHAR *wstr;
 	const char *str;
-	DWORD le;
 
-	le = GetLastError();
-	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, le, 0, (LPWSTR) (&sysmsg), 0, NULL) != 0) {
+	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, value, 0, (LPWSTR) (&sysmsg), 0, NULL) != 0) {
 		hassysmsg = TRUE;
 		beforele = L" (";
 		afterle = L")";
@@ -51,6 +48,16 @@ static const char *loadLastError(const char *message)
 			logLastError("error freeing system message in loadLastError()");
 	uiFree(wmessage);
 	return str;
+}
+
+static const char *loadLastError(const char *message)
+{
+	return initerr(message, L"GetLastError() ==", GetLastError());
+}
+
+static const char *loadHRESULT(const char *message, HRESULT hr)
+{
+	return initerr(message, L"HRESULT", (DWORD) hr);
 }
 
 static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType)
@@ -148,7 +155,7 @@ const char *uiInit(uiInitOptions *o)
 
 	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)
-		return loadLastError("initializing COM");		// TODO loadHRESULT
+		return loadHRESULT("initializing COM", hr);
 	// TODO initialize COM security
 	// TODO (windows vista) turn off COM exception handling
 

@@ -92,6 +92,12 @@ ATOM initDialogHelper(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	return RegisterClassW(&wc);
 }
 
+void uninitDialogHelper(void)
+{
+	if (UnregisterClassW(dialogHelperClass, hInstance) == 0)
+		logLastError("error unregistering dialog helper window class in uninitDialogHelper()");
+}
+
 HWND beginDialogHelper(void)
 {
 	HWND hwnd;

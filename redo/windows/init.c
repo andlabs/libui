@@ -166,16 +166,16 @@ void uiUninit(void)
 {
 	uninitMenus();
 	CoUninitialize();
-	// TODO uninitialize the dialog helper
-	// TODO delete hollow brush
+	uninitDialogHelper();
+	if (DeleteObject(hollowBrush) == 0)
+		logLastError("error freeing hollow brush in uiUninit()");
 	if (SetConsoleCtrlHandler(consoleCtrlHandler, FALSE) == 0)
-		logLastError("error unregistering console end session handler");
+		logLastError("error unregistering console end session handler in uiUninit()");
 	uninitContainer();
 	if (DeleteObject(hMessageFont) == 0)
 		logLastError("error deleting control font in uiUninit()");
 	unregisterWindowClass();
-	// TODO delete default cursor
-	// TODO delete default icon
+	// no need to delete the default icon or cursor; see http://stackoverflow.com/questions/30603077/
 	uninitResizes();
 	uninitTypes();
 	uninitAlloc();

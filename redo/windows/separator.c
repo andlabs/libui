@@ -12,10 +12,6 @@ struct separator {
 
 uiDefineControlType(uiSeparator, uiTypeSeparator, struct separator)
 
-// via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-// TODO
-// TODO DPI independence?
-
 static uintptr_t separatorHandle(uiControl *c)
 {
 	struct separator *s = (struct separator *) c;
@@ -23,10 +19,13 @@ static uintptr_t separatorHandle(uiControl *c)
 	return (uintptr_t) (s->hwnd);
 }
 
+// via https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
+#define separatorHeight 1
+
 static void separatorPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	*width = 1;		// TODO
-	*height = 2;		// what Spy++ says Windows XP's Explorer uses
+	*height = uiWindowsDlgUnitsToY(separatorHeight, d->Sys->BaseY);
 }
 
 uiSeparator *uiNewHorizontalSeparator(void)

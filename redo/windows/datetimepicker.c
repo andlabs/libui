@@ -1,8 +1,6 @@
 // 22 may 2015
 #include "uipriv_windows.h"
 
-// TODO does the control update builtin date and time formats with a locale change?
-
 struct datetimepicker {
 	uiDateTimePicker d;
 	HWND hwnd;
@@ -54,6 +52,7 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style, WCHAR *format)
 #define GLI(what, buf, n) GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, what, buf, n)
 
 // Windows has no combined date/time prebuilt constant; we have to build the format string ourselves
+// Fortunately, because the date/time picker (on Vista, at least) does NOT respond to date/time format changes with its standard format styles, we only need to do this when creating the control as well.
 uiDateTimePicker *uiNewDateTimePicker(void)
 {
 	WCHAR *date, *time, *datetime;

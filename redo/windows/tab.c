@@ -288,7 +288,7 @@ uiTab *uiNewTab(void)
 
 	t = (struct tab *) uiWindowsNewSingleHWNDControl(uiTypeTab());
 
-	t->hwnd = uiWindowsUtilCreateControlHWND(0,			// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see main_windows.c)
+	t->hwnd = uiWindowsUtilCreateControlHWND(0,			// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see below)
 		WC_TABCONTROLW, L"",
 		// don't give WS_TABSTOP here; we only apply WS_TABSTOP if there are tabs
 		TCS_TOOLTIPS,

@@ -1,5 +1,5 @@
 wine
-- say that dialogs respond to WM_PRINTCLIENT on xp+
+- say that dialogs respond to WM_PRINTCLIENT on xp+ with visual styles enabled
 
 uthash
 - stdint code misses MinGW(-w64)

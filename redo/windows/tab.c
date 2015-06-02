@@ -2,7 +2,7 @@
 #include "uipriv_windows.h"
 
 // TODO
-// - test background drawing with visual styles off
+// - dialog doesn't respond to WM_PRINTCLIENT in Windows Classic
 
 struct tab {
 	uiTab t;

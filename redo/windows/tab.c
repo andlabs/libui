@@ -130,7 +130,8 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 	// see below
 	hide = curpage(t);
 
-	page = newTabPage(child);
+	page = newTabPage();
+	tabPageSetChild(page, child);
 	uiControlSetParent(page, uiControl(t));
 	// and make it invisible at first; we show it later if needed
 	uiControlHide(page);

@@ -49,6 +49,9 @@ static void tabPageResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 
 	(*(t->baseResize))(uiControl(t), x, y, width, height, d);
 
+	if (t->child == NULL)
+		return;
+
 	dchild = uiControlSizing(uiControl(t));
 
 	if (GetClientRect(t->hwnd, &r) == 0)
@@ -90,7 +93,7 @@ static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	return FALSE;
 }
 
-uiControl *newTabPage(uiControl *child)
+uiControl *newTabPage(void)
 {
 	struct tabPage *t;
 	HRESULT hr;
@@ -107,13 +110,7 @@ uiControl *newTabPage(uiControl *child)
 	if (hr != S_OK)
 		logHRESULT("error setting tab page background in newTabPage()", hr);
 
-	// needs to be done here, otherwise the uiControlSetParent() below will crash
-	// TODO split into separate functions
 	uiControl(t)->Handle = tabPageHandle;
-
-	t->child = child;
-	uiControlSetParent(t->child, uiControl(t));
-
 	uiControl(t)->PreferredSize = tabPagePreferredSize;
 	t->baseResize = uiControl(t)->Resize;
 	uiControl(t)->Resize = tabPageResize;
@@ -143,4 +140,13 @@ void tabPageDestroyChild(uiControl *c)
 	uiControlSetParent(t->child, NULL);
 	uiControlDestroy(t->child);
 	t->child = NULL;
+}
+
+void tabPageSetChild(uiControl *c, uiControl *child)
+{
+	struct tabPage *t = (struct tabPage *) c;
+
+	t->child = child;
+	t->child = child;
+	uiControlSetParent(t->child, uiControl(t));
 }

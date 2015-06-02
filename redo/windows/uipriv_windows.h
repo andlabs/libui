@@ -115,7 +115,8 @@ extern void endDialogHelper(HWND);
 extern void setSingleHWNDFuncs(uiControl *);
 
 // tabpage.c
-extern uiControl *newTabPage(uiControl *);
+extern uiControl *newTabPage(void);
 extern int tabPageMargined(uiControl *);
 extern void tabPageSetMargined(uiControl *, int);
 extern void tabPageDestroyChild(uiControl *);
+extern void tabPageSetChild(uiControl *, uiControl *);

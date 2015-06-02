@@ -2,7 +2,6 @@
 #include "uipriv_windows.h"
 
 // we as Common Controls 6 users don't need to worry about the height of comboboxes; see http://blogs.msdn.com/b/oldnewthing/archive/2006/03/10/548537.aspx
-// TODO verify for when visual styles disabled
 
 struct combobox {
 	uiCombobox c;

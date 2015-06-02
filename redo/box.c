@@ -233,6 +233,18 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 {
 	struct box *b = (struct box *) ss;
 	struct boxControl *bc;
+	uintptr_t zorder;
+	int dozorder;
+	uintmax_t i;
+
+	// start the zorder with the *CURRENT* first child
+	// this is in case we're adding a new first child
+	dozorder = 0;
+	if (b->controls->len != 0) {
+		dozorder = 1;
+		bc = ptrArrayIndex(b->controls, struct boxControl *, 0);
+		zorder = uiControlStartZOrder(bc->c);
+	}
 
 	bc = uiNew(struct boxControl);
 	bc->c = c;
@@ -240,6 +252,13 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 	uiControlSetParent(bc->c, uiControl(b));
 	ptrArrayAppend(b->controls, bc);
 	uiControlQueueResize(uiControl(b));
+
+	// and now update the zorder for all controls
+	if (dozorder)
+		for (i = 0; i < b->controls->len; i++) {
+			bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+			zorder = uiControlSetZOrder(bc->c, zorder);
+		}
 }
 
 static void boxDelete(uiBox *ss, uintmax_t index)

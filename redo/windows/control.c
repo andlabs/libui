@@ -109,11 +109,19 @@ static void singleHWNDCommitDisable(uiControl *c)
 uintptr_t uiWindowsUtilStartZOrder(HWND hwnd)
 {
 	HWND insertAfter;
+	DWORD le;
 
 	// see http://stackoverflow.com/questions/30491418/
+	// also, the window at the beginning of the z-order has no previous window, so GetWindow() returns NULL
+	// we have to differentiate these error states
+	SetLastError(0);
 	insertAfter = GetWindow(hwnd, GW_HWNDPREV);
-	if (insertAfter == NULL)
-		logLastError("error getting insert after window in uiWindowsUtilStartZOrder()");
+	if (insertAfter == NULL) {
+		le = GetLastError();
+		SetLastError(le);		// just in case
+		if (le != 0)
+			logLastError("error getting insert after window in uiWindowsUtilStartZOrder()");
+	}
 	return (uintptr_t) insertAfter;
 }
 

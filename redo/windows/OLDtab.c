@@ -11,64 +11,6 @@ struct tab {
 	void (*baseSysFunc)(uiControl *, uiControlSysFuncParams *);
 };
 
-struct tabPage {
-	uiControl *control;
-	int margined;
-};
-
-static BOOL onWM_COMMAND(uiControl *c, WORD code, LRESULT *lResult)
-{
-	return FALSE;
-}
-
-// we have to handle hiding and showing of tab pages ourselves
-static BOOL onWM_NOTIFY(uiControl *c, NMHDR *nm, LRESULT *lResult)
-{
-	struct tab *t = (struct tab *) c;
-	struct tabPage *page;
-	LRESULT n;
-
-	if (nm->code != TCN_SELCHANGING && nm->code != TCN_SELCHANGE)
-		return FALSE;
-	n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
-	if (n == (LRESULT) (-1))		// not changing from/to a page; nothing to do
-		return FALSE;
-	page = ptrArrayIndex(t->pages, struct tabPage *, n);
-	if (nm->code == TCN_SELCHANGING) {
-		// changing from a real page
-		uiControlContainerHide(page->control);
-		*lResult = FALSE;			// and allow the change
-		return TRUE;
-	}
-	// otherwise it's TCN_SELCHANGE
-	// and we're changing to a real page
-	uiControlContainerShow(page->control);
-	uiControlQueueResize(page->control);
-	*lResult = 0;
-	return TRUE;
-}
-
-static void onDestroy(void *data)
-{
-	struct tab *t = (struct tab *) data;
-	struct tabPage *page;
-
-	// first, hide the widget to avoid flicker
-	ShowWindow(t->hwnd, SW_HIDE);
-	// because the pages don't have by a libui paent, we can simply destroy them
-	while (t->pages->len != 0) {
-		page = ptrArrayIndex(t->pages, struct tabPage *, 0);
-		// we do have to remove the page from the tab control, though
-		uiControlSetParent(page->control, NULL);
-		uiControlDestroy(page->control);
-		ptrArrayDelete(t->pages, 0);
-		uiFree(page);
-	}
-	// and finally destroy ourselves
-	ptrArrayDestroy(t->pages);
-	uiFree(t);
-}
-
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define tabMargin 7
 
@@ -99,72 +41,6 @@ static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) TRUE, (LPARAM) (&r));
 	*width = r.right - r.left;
 	*height = r.bottom - r.top;
-}
-
-static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
-{
-	struct tab *t = (struct tab *) c;
-	LRESULT current;
-	struct tabPage *curpage;
-
-	(*(t->baseResize))(uiControl(t), x, y, width, height, d);
-	current = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
-	if (current != (LRESULT) (-1)) {
-		curpage = ptrArrayIndex(t->pages, struct tabPage *, current);
-		uiControlQueueResize(curpage->control);
-	}
-}
-
-static void tabComputeChildSize(uiControl *c, intmax_t *x, intmax_t *y, intmax_t *width, intmax_t *height, uiSizing *d)
-{
-	struct tab *t = (struct tab *) c;
-	LRESULT n;
-	RECT r;
-	struct tabPage *page;
-
-	// first figure out what the content area for pages is
-	if (GetWindowRect(t->hwnd, &r) == 0)
-		logLastError("error getting tab window rect in tabComputeChildSize()");
-	// convert to the display rectangle
-	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) TRUE, (LPARAM) (&r));
-	*x = r.left;
-	*y = r.top;
-	*width = r.right - r.left;
-	*height = r.bottom - r.top;
-
-	n = SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
-	if (n == (LRESULT) (-1))		// no child selected; do nothing
-		return;
-	page = ptrArrayIndex(t->pages, struct tabPage *, n);
-	if (page->margined) {
-		// TODO
-	}
-}
-
-static void tabEnable(uiControl *c)
-{
-	struct tab *t = (struct tab *) c;
-	struct tabPage *page;
-	uintmax_t i;
-
-	(*(t->baseEnable))(uiControl(t));
-	for (i = 0; i < t->pages->len; i++) {
-		page = ptrArrayIndex(t->pages, struct tabPage *, i);
-		uiControlContainerEnable(page->control);
-	}
-}
-
-static void tabDisable(uiControl *c)
-{
-	struct tab *t = (struct tab *) c;
-	struct tabPage *page;
-	uintmax_t i;
-
-	(*(t->baseDisable))(uiControl(t));
-	for (i = 0; i < t->pages->len; i++) {
-		page = ptrArrayIndex(t->pages, struct tabPage *, i);
-		uiControlContainerDisable(page->control);
-	}
 }
 
 static void tabSysFunc(uiControl *c, uiControlSysFuncParams *p)

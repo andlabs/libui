@@ -2,7 +2,7 @@
 #include "uipriv_windows.h"
 
 // TODO
-// - container update state
+// - test background drawing with visual styles off
 
 struct tab {
 	uiTab t;
@@ -110,6 +110,18 @@ static void tabResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 	uiControlResize(page, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
 
 	uiFreeSizing(dchild);
+}
+
+static void tabContainerUpdateState(uiControl *c)
+{
+	struct tab *t = (struct tab *) c;
+	uiControl *page;
+	uintmax_t i;
+
+	for (i = 0; i < t->pages->len; i++) {
+		page = ptrArrayIndex(t->pages, uiControl *, i);
+		uiControlUpdateState(page);
+	}
 }
 
 static void tabAppend(uiTab *tt, const char *name, uiControl *child)
@@ -221,6 +233,7 @@ uiTab *uiNewTab(void)
 	uiControl(t)->Resize = tabResize;
 	t->baseCommitDestroy = uiControl(t)->CommitDestroy;
 	uiControl(t)->CommitDestroy = tabCommitDestroy;
+	uiControl(t)->ContainerUpdateState = tabContainerUpdateState;
 
 	uiTab(t)->Append = tabAppend;
 	uiTab(t)->InsertAt = tabInsertAt;

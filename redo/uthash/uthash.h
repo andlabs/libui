@@ -60,7 +60,6 @@ do {                                                                            
 #endif
 
 /* a number of the hash function use uint32_t which isn't defined on Pre VS2010 */
-// TODO(andlabs) - old code missed MinGW
 #include <stdint.h>
 
 #define UTHASH_VERSION 1.9.9

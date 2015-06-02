@@ -30,7 +30,7 @@ static uintptr_t groupHandle(uiControl *c)
 	return (uintptr_t) (g->hwnd);
 }
 
-// TODO get source
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define groupXMargin 6
 #define groupYMarginTop 11 /* note this value /includes the groupbox label */
 #define groupYMarginBottom 7

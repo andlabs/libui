@@ -1,7 +1,8 @@
 // 20 may 2015
 #include "uipriv_windows.h"
 
-// TODO point to where it says size is autocomputed on comctl6
+// we as Common Controls 6 users don't need to worry about the height of comboboxes; see http://blogs.msdn.com/b/oldnewthing/archive/2006/03/10/548537.aspx
+// TODO verify for when visual styles disabled
 
 struct combobox {
 	uiCombobox c;

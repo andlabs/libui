@@ -1,9 +1,6 @@
 // 20 may 2015
 #include "uipriv_windows.h"
 
-// TODOs
-// - wine does not clamp TBM_SETPOS
-
 struct slider {
 	uiSlider s;
 	HWND hwnd;
@@ -49,7 +46,6 @@ static void sliderPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intm
 	*height = uiWindowsDlgUnitsToY(sliderHeight, d->Sys->BaseY);
 }
 
-// TODO does it go here relative of other things?
 static void defaultOnChanged(uiSlider *s, void *data)
 {
 	// do nothing

@@ -1,3 +1,4 @@
+- update state whenever setting parent
 - make the various onDestroy() functions take the uiControl instead
 - make sure all calls to uiControlResize() are preceded with calls to uiControlGetSizing()
 

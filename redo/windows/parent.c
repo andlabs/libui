@@ -112,8 +112,8 @@ BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LR
 		return runWM_NOTIFY(wParam, lParam, lResult);
 	case WM_HSCROLL:
 		return runWM_HSCROLL(wParam, lParam, lResult);
-	case WM_CTLCOLORSTATIC:
-	case WM_CTLCOLORBTN:
+//TODO	case WM_CTLCOLORSTATIC:
+//TODO	case WM_CTLCOLORBTN:
 		if (parentBrush != NULL)
 			if (DeleteObject(parentBrush) == 0)
 				logLastError("error deleting old background brush in containerWndProc()");

@@ -103,7 +103,6 @@ static void recreateUpDown(struct spinbox *s)
 		UPDOWN_CLASSW, L"",
 		// no WS_VISIBLE; we set visibility ourselves
 		// TODO tab stop?
-		// TODO maintain Z-order
 		WS_CHILD | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_HOTTRACK | UDS_NOTHOUSANDS | UDS_SETBUDDYINT,
 		// this is important; it's necessary for autosizing to work
 		0, 0, 0, 0,
@@ -115,6 +114,8 @@ static void recreateUpDown(struct spinbox *s)
 		SendMessageW(s->updown, UDM_SETRANGE32, (WPARAM) min, (LPARAM) max);
 		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) current);
 	}
+	// preserve the z-order
+	uiWindowsUtilSetZOrder(s->updown, (uintptr_t) (s->hwnd));
 	if (uiControlContainerVisible(uiControl(s)))
 		uiWindowsUtilShow(s->updown);
 	s->inhibitChanged = FALSE;
@@ -139,6 +140,18 @@ COMMIT(Show, uiWindowsUtilShow)
 COMMIT(Hide, uiWindowsUtilHide)
 COMMIT(Enable, uiWindowsUtilEnable)
 COMMIT(Disable, uiWindowsUtilDisable)
+
+// StartZOrder() is fine (the edit is the first control, and that's satisfied by the singleHWND interface)
+// SetZOrder() is not
+// TODO don't even bother with singleHWND at all
+static uintptr_t spinboxSetZOrder(uiControl *c, uintptr_t insertAfter)
+{
+	struct spinbox *s = (struct spinbox *) c;
+
+	uiWindowsUtilSetZOrder(s->hwnd, insertAfter);
+	uiWindowsUtilSetZOrder(s->updown, (uintptr_t) (s->hwnd));
+	return (uintptr_t) (s->updown);
+}
 
 static void defaultOnChanged(uiSpinbox *s, void *data)
 {
@@ -202,6 +215,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	uiControl(s)->CommitHide = spinboxCommitHide;
 	uiControl(s)->CommitEnable = spinboxCommitEnable;
 	uiControl(s)->CommitDisable = spinboxCommitDisable;
+	uiControl(s)->SetZOrder = spinboxSetZOrder;
 
 	uiSpinbox(s)->Value = spinboxValue;
 	uiSpinbox(s)->SetValue = spinboxSetValue;

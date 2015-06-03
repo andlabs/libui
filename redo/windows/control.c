@@ -175,8 +175,6 @@ uiControl *uiWindowsNewSingleHWNDControl(uintmax_t type)
 	return c;
 }
 
-// TODO migrate these to the system set up above
-
 char *uiWindowsUtilText(HWND hwnd)
 {
 	WCHAR *wtext;

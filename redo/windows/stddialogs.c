@@ -1,9 +1,9 @@
 // 22 may 2015
 #include "uipriv_windows.h"
 
-// note: FOS_SUPPORTSTREAMABLEITEMS doesn't seem to be supported on windows vista, or at least not with the flags we use
-
-// TODO does FOS_NOVALIDATE not check filenames?
+// notes:
+// - FOS_SUPPORTSTREAMABLEITEMS doesn't seem to be supported on windows vista, or at least not with the flags we use
+// - even with FOS_NOVALIDATE the dialogs will reject invalid filenames (at least on Vista, anyway)
 
 char *commonItemDialog(REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd)
 {
@@ -62,7 +62,7 @@ char *uiSaveFile(void)
 		FOS_OVERWRITEPROMPT | FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
 }
 
-// TODO MinGW-w64 3.x doesn't support task dialogs
+// TODO MinGW-w64 4.0.0 doesn't have the Task Dialog functions in its .lib files
 HRESULT (*WINAPI fv_TaskDialog)(_In_opt_ HWND hwndOwner, _In_opt_ HINSTANCE hInstance, _In_opt_ PCWSTR pszWindowTitle, _In_opt_ PCWSTR pszMainInstruction, _In_opt_ PCWSTR pszContent, TASKDIALOG_COMMON_BUTTON_FLAGS dwCommonButtons, _In_opt_ PCWSTR pszIcon, int *pnButton) = NULL;
 
 static void msgbox(const char *title, const char *description, TASKDIALOG_COMMON_BUTTON_FLAGS buttons, PCWSTR icon)

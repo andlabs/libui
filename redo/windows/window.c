@@ -126,7 +126,13 @@ static void windowCommitShow(uiControl *c)
 		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");
 }
 
-// TODO container update state
+static void windowContainerUpdateState(uiControl *c)
+{
+	struct window *w = (struct window *) c;
+
+	if (w->child != NULL)
+		uiControlUpdateState(w->child);
+}
 
 static char *windowTitle(uiWindow *ww)
 {
@@ -271,8 +277,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiControl(w)->Handle = windowHandle;
 	w->baseCommitDestroy = uiControl(w)->CommitDestroy;
 	uiControl(w)->CommitDestroy = windowCommitDestroy;
-	// simply overwrite this; TODO call the base one somehow?
 	uiControl(w)->CommitShow = windowCommitShow;
+	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
 
 	uiWindow(w)->Title = windowTitle;
 	uiWindow(w)->SetTitle = windowSetTitle;

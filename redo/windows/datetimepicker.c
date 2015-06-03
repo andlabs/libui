@@ -53,6 +53,7 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style, WCHAR *format)
 
 // Windows has no combined date/time prebuilt constant; we have to build the format string ourselves
 // Fortunately, because the date/time picker (on Vista, at least) does NOT respond to date/time format changes with its standard format styles, we only need to do this when creating the control as well.
+// TODO really we need to send any WM_WININICHANGE messages back...
 uiDateTimePicker *uiNewDateTimePicker(void)
 {
 	WCHAR *date, *time, *datetime;

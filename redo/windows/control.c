@@ -177,27 +177,34 @@ uiControl *uiWindowsNewSingleHWNDControl(uintmax_t type)
 
 // TODO migrate these to the system set up above
 
-char *uiWindowsControlText(uiControl *c)
+char *uiWindowsUtilText(HWND hwnd)
 {
-	HWND hwnd;
 	WCHAR *wtext;
 	char *text;
 
-	hwnd = (HWND) uiControlHandle(c);
 	wtext = windowText(hwnd);
 	text = toUTF8(wtext);
 	uiFree(wtext);
 	return text;
 }
 
-void uiWindowsControlSetText(uiControl *c, const char *text)
+// TODO get rid of these I guess
+char *uiWindowsSingleHWNDControlText(uiControl *c)
 {
-	HWND hwnd;
+	return uiWindowsUtilText(HWND(c));
+}
+
+void uiWindowsUtilSetText(HWND hwnd, const char *text)
+{
 	WCHAR *wtext;
 
-	hwnd = (HWND) uiControlHandle(c);
 	wtext = toUTF16(text);
 	if (SetWindowTextW(hwnd, wtext) == 0)
 		logLastError("error setting control text in uiWindowsControlSetText()");
 	uiFree(wtext);
+}
+
+void uiWindowsSingleHWNDControlSetText(uiControl *c, const char *text)
+{
+	uiWindowsUtilSetText(HWND(c), text);
 }

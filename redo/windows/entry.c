@@ -57,7 +57,7 @@ static void defaultOnChanged(uiEntry *e, void *data)
 
 static char *entryText(uiEntry *e)
 {
-	return uiWindowsControlText(uiControl(e));
+	return uiWindowsSingleHWNDControlText(uiControl(e));
 }
 
 static void entrySetText(uiEntry *ee, const char *text)
@@ -66,7 +66,7 @@ static void entrySetText(uiEntry *ee, const char *text)
 
 	// doing this raises an EN_CHANGED
 	e->inhibitChanged = TRUE;
-	uiWindowsControlSetText(uiControl(e), text);
+	uiWindowsSingleHWNDControlSetText(uiControl(e), text);
 	e->inhibitChanged = FALSE;
 }
 

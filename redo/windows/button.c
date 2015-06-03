@@ -68,12 +68,12 @@ static void defaultOnClicked(uiButton *b, void *data)
 
 static char *buttonText(uiButton *b)
 {
-	return uiWindowsControlText(uiControl(b));
+	return uiWindowsSingleHWNDControlText(uiControl(b));
 }
 
 static void buttonSetText(uiButton *b, const char *text)
 {
-	uiWindowsControlSetText(uiControl(b), text);
+	uiWindowsSingleHWNDControlSetText(uiControl(b), text);
 }
 
 static void buttonOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *data)

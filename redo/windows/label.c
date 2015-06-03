@@ -28,12 +28,12 @@ static void labelPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 
 static char *labelText(uiLabel *l)
 {
-	return uiWindowsControlText(uiControl(l));
+	return uiWindowsSingleHWNDControlText(uiControl(l));
 }
 
 static void labelSetText(uiLabel *l, const char *text)
 {
-	uiWindowsControlSetText(uiControl(l), text);
+	uiWindowsSingleHWNDControlSetText(uiControl(l), text);
 }
 
 uiLabel *uiNewLabel(const char *text)

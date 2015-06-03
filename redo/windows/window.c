@@ -130,27 +130,14 @@ static void windowCommitShow(uiControl *c)
 
 // TODO container update state
 
-static char *windowTitle(uiWindow *ww)
+static char *windowTitle(uiWindow *w)
 {
-	struct window *w = (struct window *) ww;
-	WCHAR *wtext;
-	char *text;
-
-	wtext = windowText(w->hwnd);
-	text = toUTF8(wtext);
-	uiFree(wtext);
-	return text;
+	return uiWindowsSingleHWNDControlText(uiControl(w));
 }
 
-static void windowSetTitle(uiWindow *ww, const char *title)
+static void windowSetTitle(uiWindow *w, const char *title)
 {
-	struct window *w = (struct window *) ww;
-	WCHAR *wtitle;
-
-	wtitle = toUTF16(title);
-	if (SetWindowTextW(w->hwnd, wtitle) == 0)
-		logLastError("error setting window title in uiWindowSetTitle()");
-	uiFree(wtitle);
+	uiWindowsSingleHWNDControlSetText(uiControl(w), title);
 }
 
 static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)

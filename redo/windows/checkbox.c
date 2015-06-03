@@ -65,12 +65,12 @@ static void defaultOnToggled(uiCheckbox *c, void *data)
 
 static char *checkboxText(uiCheckbox *c)
 {
-	return uiWindowsControlText(uiControl(c));
+	return uiWindowsSingleHWNDControlText(uiControl(c));
 }
 
 static void checkboxSetText(uiCheckbox *c, const char *text)
 {
-	uiWindowsControlSetText(uiControl(c), text);
+	uiWindowsSingleHWNDControlSetText(uiControl(c), text);
 }
 
 static void checkboxOnToggled(uiCheckbox *cc, void (*f)(uiCheckbox *, void *), void *data)

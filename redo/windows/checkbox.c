@@ -63,14 +63,20 @@ static void defaultOnToggled(uiCheckbox *c, void *data)
 	// do nothing
 }
 
-static char *checkboxText(uiCheckbox *c)
+static char *checkboxText(uiCheckbox *cc)
 {
-	return uiWindowsSingleHWNDControlText(uiControl(c));
+	struct checkbox *c = (struct checkbox *) cc;
+
+	return uiWindowsUtilText(c->hwnd);
 }
 
-static void checkboxSetText(uiCheckbox *c, const char *text)
+static void checkboxSetText(uiCheckbox *cc, const char *text)
 {
-	uiWindowsSingleHWNDControlSetText(uiControl(c), text);
+	struct checkbox *c = (struct checkbox *) cc;
+
+	uiWindowsUtilSetText(c->hwnd, text);
+	// changing the text might necessitate a change in the checkbox's size
+	uiControlQueueResize(uiControl(c));
 }
 
 static void checkboxOnToggled(uiCheckbox *cc, void (*f)(uiCheckbox *, void *), void *data)

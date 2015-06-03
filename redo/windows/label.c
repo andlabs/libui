@@ -26,14 +26,20 @@ static void labelPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intma
 	*height = uiWindowsDlgUnitsToY(labelHeight, d->Sys->BaseY);
 }
 
-static char *labelText(uiLabel *l)
+static char *labelText(uiLabel *ll)
 {
-	return uiWindowsSingleHWNDControlText(uiControl(l));
+	struct label *l = (struct label *) ll;
+
+	return uiWindowsUtilText(l->hwnd);
 }
 
-static void labelSetText(uiLabel *l, const char *text)
+static void labelSetText(uiLabel *ll, const char *text)
 {
-	uiWindowsSingleHWNDControlSetText(uiControl(l), text);
+	struct label *l = (struct label *) ll;
+
+	uiWindowsUtilSetText(l->hwnd, text);
+	// changing the text might necessitate a change in the label's size
+	uiControlQueueResize(uiControl(l));
 }
 
 uiLabel *uiNewLabel(const char *text)

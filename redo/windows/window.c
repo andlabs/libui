@@ -130,14 +130,19 @@ static void windowCommitShow(uiControl *c)
 
 // TODO container update state
 
-static char *windowTitle(uiWindow *w)
+static char *windowTitle(uiWindow *ww)
 {
-	return uiWindowsSingleHWNDControlText(uiControl(w));
+	struct window *w = (struct window *) ww;
+
+	return uiWindowsUtilText(w->hwnd);
 }
 
-static void windowSetTitle(uiWindow *w, const char *title)
+static void windowSetTitle(uiWindow *ww, const char *title)
 {
-	uiWindowsSingleHWNDControlSetText(uiControl(w), title);
+	struct window *w = (struct window *) ww;
+
+	uiWindowsUtilSetText(w->hwnd, title);
+	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
 }
 
 static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)

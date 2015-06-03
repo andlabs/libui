@@ -66,14 +66,20 @@ static void defaultOnClicked(uiButton *b, void *data)
 	// do nothing
 }
 
-static char *buttonText(uiButton *b)
+static char *buttonText(uiButton *bb)
 {
-	return uiWindowsSingleHWNDControlText(uiControl(b));
+	struct button *b = (struct button *) bb;
+
+	return uiWindowsUtilText(b->hwnd);
 }
 
-static void buttonSetText(uiButton *b, const char *text)
+static void buttonSetText(uiButton *bb, const char *text)
 {
-	uiWindowsSingleHWNDControlSetText(uiControl(b), text);
+	struct button *b = (struct button *) bb;
+
+	uiWindowsUtilSetText(b->hwnd, text);
+	// changing the text might necessitate a change in the button's size
+	uiControlQueueResize(uiControl(b));
 }
 
 static void buttonOnClicked(uiButton *bb, void (*f)(uiButton *, void *), void *data)

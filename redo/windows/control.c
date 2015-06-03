@@ -188,12 +188,6 @@ char *uiWindowsUtilText(HWND hwnd)
 	return text;
 }
 
-// TODO get rid of these I guess
-char *uiWindowsSingleHWNDControlText(uiControl *c)
-{
-	return uiWindowsUtilText(HWND(c));
-}
-
 void uiWindowsUtilSetText(HWND hwnd, const char *text)
 {
 	WCHAR *wtext;
@@ -202,9 +196,4 @@ void uiWindowsUtilSetText(HWND hwnd, const char *text)
 	if (SetWindowTextW(hwnd, wtext) == 0)
 		logLastError("error setting control text in uiWindowsControlSetText()");
 	uiFree(wtext);
-}
-
-void uiWindowsSingleHWNDControlSetText(uiControl *c, const char *text)
-{
-	uiWindowsUtilSetText(HWND(c), text);
 }

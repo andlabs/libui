@@ -41,11 +41,9 @@ extern uiSizing *uiWindowsSizing(uiControl *);
 // and use this if you need the text of the window width
 _UI_EXTERN intmax_t uiWindowsWindowTextWidth(HWND hwnd);
 
-// these functions get and set the window text for either a single HWND or a single-HWND uiControl
+// these functions get and set the window text for a single HWND
 // the value returned should be freed with uiFreeText()
 _UI_EXTERN char *uiWindowsUtilText(HWND);
-_UI_EXTERN char *uiWindowsSingleHWNDControlText(uiControl *);
 _UI_EXTERN void uiWindowsUtilSetText(HWND, const char *);
-_UI_EXTERN void uiWindowsSingleHWNDControlSetText(uiControl *, const char *);
 
 #endif

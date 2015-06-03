@@ -55,9 +55,11 @@ static void defaultOnChanged(uiEntry *e, void *data)
 	// do nothing
 }
 
-static char *entryText(uiEntry *e)
+static char *entryText(uiEntry *ee)
 {
-	return uiWindowsSingleHWNDControlText(uiControl(e));
+	struct entry *e = (struct entry *) ee;
+
+	return uiWindowsUtilText(e->hwnd);
 }
 
 static void entrySetText(uiEntry *ee, const char *text)
@@ -66,8 +68,9 @@ static void entrySetText(uiEntry *ee, const char *text)
 
 	// doing this raises an EN_CHANGED
 	e->inhibitChanged = TRUE;
-	uiWindowsSingleHWNDControlSetText(uiControl(e), text);
+	uiWindowsUtilSetText(e->hwnd, text);
 	e->inhibitChanged = FALSE;
+	// don't queue the control for resize; entry sizes are independent of their contents
 }
 
 static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data)

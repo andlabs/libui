@@ -192,10 +192,13 @@ static void windowResizeChild(uiWindow *ww)
 		return;
 	if (GetClientRect(w->hwnd, &r) == 0)
 		logLastError("error getting uiWindow client rect in windowComputeChildSize()");
-	if (w->margined) {
-		// TODO
-	}
 	d = uiControlSizing(uiControl(w));
+	if (w->margined) {
+		r.left += uiWindowsDlgUnitsToX(windowMargin, d->Sys->BaseX);
+		r.top += uiWindowsDlgUnitsToY(windowMargin, d->Sys->BaseY);
+		r.right -= uiWindowsDlgUnitsToX(windowMargin, d->Sys->BaseX);
+		r.bottom -= uiWindowsDlgUnitsToY(windowMargin, d->Sys->BaseY);
+	}
 	uiControlResize(w->child, r.left, r.top, r.right - r.left, r.bottom - r.top, d);
 	uiFreeSizing(d);
 }

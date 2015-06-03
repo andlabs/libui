@@ -47,8 +47,6 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
-		// wine sends this early so we have to guard
-		// TODO does real windows?
 		if (w->child != NULL)
 			uiControlQueueResize(uiControl(w));
 		return 0;

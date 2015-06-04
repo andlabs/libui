@@ -84,3 +84,41 @@ RUNFN(WM_NOTIFY, notify,
 RUNFN(WM_HSCROLL, hscroll,
 	(HWND) lParam,
 	LOWORD(wParam))
+
+struct wininichange {
+	HWND hwnd;
+	UT_hash_handle hh;
+};
+
+static struct wininichange *wininichanges = NULL;
+
+void uiWindowsRegisterReceiveWM_WININICHANGE(HWND hwnd)
+{
+	struct wininchange *ch;
+
+	HASH_FIND_PTR(wininichanges, &hwnd, ch);
+	if (ch != NULL)
+		complain("window handle %p already subscribed to receive WM_WINICHANGEs in uiWindowsRegisterReceiveWM_WININICHANGE()", hwnd);
+	ch = uiNew(struct wininichange);
+	ch->hwnd = hwnd;
+	HASH_ADD_PTR(wininichanges, hwnd, ch);
+}
+
+void uiWindowsUnregisterReceiveWM_WINICHANGE(HWND hwnd)
+{
+	struct wininichange *ch;
+
+	HASH_FIND_PTR(wininichanges, &hwnd, ch);
+	if (ch == NULL)
+		complain("window handle %p not registered to receive WM_WININICHANGEs in uiWindowsUnregisterReceiveWM_WINICHANGE()", hwnd);
+	HASH_DEL(wininichanges, ch);
+	uiFree(ch);
+}
+
+void issueWM_WININICHANGE(WPARAM wParam, LPARAM lParam)
+{
+	struct wininichange *ch;
+
+	for (ch = wininichanges; ch != NULL; ch = ch->hh.next)
+		SendMessageW(ch->hwnd, WM_WININICHANGE, wParam, lParam);
+}

@@ -7,6 +7,7 @@
 // - It is the initial parent of all controls. When a control loses its parent, it also becomes that control's parent.
 // - It handles WM_QUERYENDSESSION and console end session requests.
 // - It has a timer to run resizes.
+// - It handles WM_WININICHANGE and forwards the message to any child windows that request it.
 
 #define utilWindowClass L"libui_utilWindowClass"
 
@@ -36,6 +37,9 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		if (SetTimer(utilWindow, resizeTimerID, resizeTimerInterval, NULL) == 0)
 			logLastError("error resetting resize timer in utilWindowWndProc()");
 		doResizes();
+		return 0;
+	case WM_WININICHANGE:
+		issueWM_WININICHANGE(wParam, lParam);
 		return 0;
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);

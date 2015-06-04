@@ -176,6 +176,7 @@ void uiUninit(void)
 		logLastError("error deleting control font in uiUninit()");
 	unregisterWindowClass();
 	// no need to delete the default icon or cursor; see http://stackoverflow.com/questions/30603077/
+	uninitUtilWindow();
 	uninitResizes();
 	uninitTypes();
 	uninitAlloc();

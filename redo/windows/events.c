@@ -24,9 +24,9 @@ struct hscrollHandler {
 	UT_hash_handle hh;
 };
 
-struct commandHandler *commandHandlers = NULL;
-struct notifyHandler *notifyHandlers = NULL;
-struct hscrollHandler *hscrollHandlers = NULL;
+static struct commandHandler *commandHandlers = NULL;
+static struct notifyHandler *notifyHandlers = NULL;
+static struct hscrollHandler *hscrollHandlers = NULL;
 
 #define REGFN(WM_MESSAGE, message, params) \
 	void uiWindowsRegister ## WM_MESSAGE ## Handler(HWND hwnd, BOOL (*handler)params, uiControl *c) \

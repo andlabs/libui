@@ -3,8 +3,6 @@
 
 // see http://stackoverflow.com/a/29556509/3408572
 
-// TODO windows vista only options
-
 #define MBTWC(str, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, bufsiz)
 
 WCHAR *toUTF16(const char *str)

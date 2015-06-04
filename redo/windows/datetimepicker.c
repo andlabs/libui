@@ -100,8 +100,23 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 	return uiDateTimePicker(d);
 }
 
-// Fortunately, because the date/time picker (on Vista, at least) does NOT respond to date/time format changes with its standard format styles, we only need to do this when creating the control as well.
-// TODO really we need to send any WM_WININICHANGE messages back...
+static LRESULT CALLBACK datetimepickerSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	switch (uMsg) {
+	case WM_WININICHANGE:
+		// we can optimize this by only doing it when the real date/time picker does it
+		// unfortunately, I don't know when that is :/
+		// hopefully this won't hurt
+		setDateTimeFormat(hwnd);
+		return 0;
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, datetimepickerSubProc, uIdSubclass) == FALSE)
+			logLastError("error removing date-time picker locale change handling subclass in datetimepickerSubProc()");
+		break;
+	}
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+}
+
 uiDateTimePicker *uiNewDateTimePicker(void)
 {
 	uiDateTimePicker *dtp;
@@ -110,6 +125,8 @@ uiDateTimePicker *uiNewDateTimePicker(void)
 	dtp = finishNewDateTimePicker(0);
 	d = (struct datetimepicker *) dtp;
 	setDateTimeFormat(d->hwnd);
+	if (SetWindowSubclass(d->hwnd, datetimepickerSubProc, 0, (DWORD_PTR) d) == FALSE)
+		logLastError("error subclassing date-time-picker to assist in locale change handling in uiNewDateTimePicker()");
 	return dtp;
 }
 

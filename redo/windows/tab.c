@@ -277,7 +277,7 @@ static LRESULT CALLBACK tabSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 		return FALSE;
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, tabSubProc, uIdSubclass) == FALSE)
-			logLastError("error removing Tab resize handling subclass in tabSubProc()");
+			logLastError("error removing Tab tab stop handling subclass in tabSubProc()");
 		break;
 	}
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);

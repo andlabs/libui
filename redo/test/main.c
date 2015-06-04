@@ -33,6 +33,9 @@ int onShouldQuit(void *data)
 uiBox *mainBox;
 uiTab *mainTab;
 
+uiBox *(*newhbox)(void);
+uiBox *(*newvbox)(void);
+
 int main(int argc, char *argv[])
 {
 	uiInitOptions o;
@@ -42,11 +45,17 @@ int main(int argc, char *argv[])
 	uiBox *page2, *page3, *page4, *page5;
 	int nomenus = 0;
 
+	newhbox = uiNewHorizontalBox;
+	newvbox = uiNewVerticalBox;
+
 	memset(&o, 0, sizeof (uiInitOptions));
 	for (i = 1; i < argc; i++)
 		if (strcmp(argv[i], "nomenus") == 0)
 			nomenus = 1;
-		else {
+		else if (strcmp(argv[i], "swaphv") == 0) {
+			newhbox = uiNewVerticalBox;
+			newvbox = uiNewHorizontalBox;
+		} else {
 			fprintf(stderr, "%s: unrecognized option %s\n", argv[0], argv[i]);
 			return 1;
 		}

@@ -108,7 +108,7 @@ uiBox *newHorizontalBox(void)
 {
 	uiBox *b;
 
-	b = uiNewHorizontalBox();
+	b = (*newhbox)();
 	append(b, box);
 	return b;
 }
@@ -117,7 +117,7 @@ uiBox *newVerticalBox(void)
 {
 	uiBox *b;
 
-	b = uiNewVerticalBox();
+	b = (*newvbox)();
 	append(b, box);
 	return b;
 }

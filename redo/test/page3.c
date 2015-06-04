@@ -8,7 +8,7 @@ static uiBox *makeSet(int omit, int hidden, int stretch)
 
 	// don't use newHorizontalBox()
 	// the point of this test is to test hidden controls and padded
-	hbox = uiNewHorizontalBox();
+	hbox = (*newhbox)();
 	uiBoxSetPadded(hbox, 1);
 	if (omit != 0) {
 		buttons[0] = uiNewButton("First");
@@ -44,8 +44,8 @@ uiBox *makePage3(void)
 	// first the non-stretchy type
 	for (hidden = 0; hidden < 4; hidden++) {
 		// these two must stay unpadded as well, otherwise the test isn't meaningful
-		hbox2 = uiNewHorizontalBox();
-		vbox = uiNewVerticalBox();
+		hbox2 = (*newhbox)();
+		vbox = (*newvbox)();
 		// reference set
 		hbox = makeSet(hidden, -1, 0);
 		uiBoxAppend(vbox, uiControl(hbox), 0);

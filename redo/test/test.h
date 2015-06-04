@@ -10,6 +10,8 @@
 extern void die(const char *, ...);
 extern uiBox *mainBox;
 extern uiTab *mainTab;
+extern uiBox *(*newhbox)(void);
+extern uiBox *(*newvbox)(void);
 
 // spaced.c
 extern void setSpaced(int);

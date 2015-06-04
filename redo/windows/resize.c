@@ -56,8 +56,8 @@ void doResizes(void)
 		uiWindowResizeChild(w);
 		hwnd = (HWND) uiControlHandle(uiControl(w));
 		// we used SWP_NOREDRAW; we need to queue a redraw ourselves
-		// TODO use RedrawWindow() to bypass WS_CLIPCHILDREN complications
-		if (InvalidateRect(hwnd, NULL, TRUE) == 0)
+		// force all controls to be redrawn; this fixes things like the date-time picker's up-down not showing up until hovered over (and bypasses complications caused by WS_CLIPCHILDREN and WS_CLIPSIBLINGS, which we don't use but other controls might)
+		if (RedrawWindow(hwnd, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN) == 0)
 			logLastError("error redrawing controls after a resize in doResizes()");
 	}
 }

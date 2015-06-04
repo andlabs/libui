@@ -104,7 +104,7 @@ extern BOOL runWM_COMMAND(WPARAM, LPARAM, LRESULT *);
 extern BOOL runWM_NOTIFY(WPARAM, LPARAM, LRESULT *);
 extern BOOL runWM_HSCROLL(WPARAM, LPARAM, LRESULT *);
 extern void uiWindowsRegisterReceiveWM_WININICHANGE(HWND);
-extern void uiWindowsUnregisterReceiveWM_WINICHANGE(HWND);
+extern void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND);
 extern void issueWM_WININICHANGE(WPARAM, LPARAM);
 
 // dialoghelper.c

@@ -4,6 +4,7 @@
 struct datetimepicker {
 	uiDateTimePicker d;
 	HWND hwnd;
+	void (*baseCommitDestroy)(uiControl *);
 };
 
 uiDefineControlType(uiDateTimePicker, uiTypeDateTimePicker, struct datetimepicker)
@@ -47,6 +48,14 @@ static void setDateTimeFormat(HWND hwnd)
 
 // control implementation
 
+static void datetimepickerCommitDestroy(uiControl *c)
+{
+	struct datetimepicker *d = (struct datetimepicker *) c;
+
+	uiWindowsUnregisterReceiveWM_WININICHANGE(d->hwnd);
+	(*(d->baseCommitDestroy))(uiControl(d));
+}
+
 static uintptr_t datetimepickerHandle(uiControl *c)
 {
 	struct datetimepicker *d = (struct datetimepicker *) c;
@@ -78,6 +87,13 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 		hInstance, NULL,
 		TRUE);
 
+	// automatically update date/time format when user changes locale settings
+	// for the standard styles, this is in the date-time picker itself
+	// for our date/time mode, we do it in a subclass assigned in uiNewDateTimePicker()
+	uiWindowsRegisterReceiveWM_WININICHANGE(d->hwnd);
+
+	d->baseCommitDestroy = uiControl(d)->CommitDestroy;
+	uiControl(d)->CommitDestroy = datetimepickerCommitDestroy;
 	uiControl(d)->Handle = datetimepickerHandle;
 	uiControl(d)->PreferredSize = datetimepickerPreferredSize;
 

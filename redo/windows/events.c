@@ -104,13 +104,13 @@ void uiWindowsRegisterReceiveWM_WININICHANGE(HWND hwnd)
 	HASH_ADD_PTR(wininichanges, hwnd, ch);
 }
 
-void uiWindowsUnregisterReceiveWM_WINICHANGE(HWND hwnd)
+void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND hwnd)
 {
 	struct wininichange *ch;
 
 	HASH_FIND_PTR(wininichanges, &hwnd, ch);
 	if (ch == NULL)
-		complain("window handle %p not registered to receive WM_WININICHANGEs in uiWindowsUnregisterReceiveWM_WINICHANGE()", hwnd);
+		complain("window handle %p not registered to receive WM_WININICHANGEs in uiWindowsUnregisterReceiveWM_WININICHANGE()", hwnd);
 	HASH_DEL(wininichanges, ch);
 	uiFree(ch);
 }

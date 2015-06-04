@@ -8,6 +8,45 @@ struct datetimepicker {
 
 uiDefineControlType(uiDateTimePicker, uiTypeDateTimePicker, struct datetimepicker)
 
+// utility functions
+
+#define GLI(what, buf, n) GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, what, buf, n)
+
+// Windows has no combined date/time prebuilt constant; we have to build the format string ourselves
+static void setDateTimeFormat(HWND hwnd)
+{
+	WCHAR *date, *time, *datetime;
+	int ndate, ntime;
+	int n;
+
+	// TODO verify that this always returns a century year
+	ndate = GLI(LOCALE_SSHORTDATE, NULL, 0);
+	if (ndate == 0)
+		logLastError("error getting date string length in setDateTimeFormat()");
+	date = (WCHAR *) uiAlloc(ndate * sizeof (WCHAR), "WCHAR[]");
+	if (GLI(LOCALE_SSHORTDATE, date, ndate) == 0)
+		logLastError("error geting date string in setDateTimeFormat()");
+
+	ntime = GLI(LOCALE_STIMEFORMAT, NULL, 0);
+	if (ndate == 0)
+		logLastError("error getting time string length in setDateTimeFormat()");
+	time = (WCHAR *) uiAlloc(ntime * sizeof (WCHAR), "WCHAR[]");
+	if (GLI(LOCALE_STIMEFORMAT, time, ntime) == 0)
+		logLastError("error geting time string in setDateTimeFormat()");
+
+	n = _scwprintf(L"%s %s", date, time);
+	datetime = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
+	snwprintf(datetime, n + 1, L"%s %s", date, time);
+	if (SendMessageW(hwnd, DTM_SETFORMAT, 0, (LPARAM) datetime) == 0)
+		logLastError("error applying format string to date/time picker in setDateTimeFormat()");
+
+	uiFree(datetime);
+	uiFree(time);
+	uiFree(date);
+}
+
+// control implementation
+
 static uintptr_t datetimepickerHandle(uiControl *c)
 {
 	struct datetimepicker *d = (struct datetimepicker *) c;
@@ -27,7 +66,7 @@ static void datetimepickerPreferredSize(uiControl *c, uiSizing *d, intmax_t *wid
 	*height = uiWindowsDlgUnitsToY(entryHeight, d->Sys->BaseY);
 }
 
-uiDateTimePicker *finishNewDateTimePicker(DWORD style, WCHAR *format)
+uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 {
 	struct datetimepicker *d;
 
@@ -39,61 +78,31 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style, WCHAR *format)
 		hInstance, NULL,
 		TRUE);
 
-	if (format != NULL)
-		if (SendMessageW(d->hwnd, DTM_SETFORMAT, 0, (LPARAM) format) == 0)
-			logLastError("error applying format string to date/time picker in finishNewDateTimePicker()");
-
 	uiControl(d)->Handle = datetimepickerHandle;
 	uiControl(d)->PreferredSize = datetimepickerPreferredSize;
 
 	return uiDateTimePicker(d);
 }
 
-#define GLI(what, buf, n) GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, what, buf, n)
-
-// Windows has no combined date/time prebuilt constant; we have to build the format string ourselves
 // Fortunately, because the date/time picker (on Vista, at least) does NOT respond to date/time format changes with its standard format styles, we only need to do this when creating the control as well.
 // TODO really we need to send any WM_WININICHANGE messages back...
 uiDateTimePicker *uiNewDateTimePicker(void)
 {
-	WCHAR *date, *time, *datetime;
-	int ndate, ntime;
-	int n;
 	uiDateTimePicker *dtp;
+	struct datetimepicker *d;
 
-	// TODO verify that this always returns a century year
-	ndate = GLI(LOCALE_SSHORTDATE, NULL, 0);
-	if (ndate == 0)
-		logLastError("error getting date string length in uiNewDateTimePicker()");
-	date = (WCHAR *) uiAlloc(ndate * sizeof (WCHAR), "WCHAR[]");
-	if (GLI(LOCALE_SSHORTDATE, date, ndate) == 0)
-		logLastError("error geting date string in uiNewDateTimePicker()");
-
-	ntime = GLI(LOCALE_STIMEFORMAT, NULL, 0);
-	if (ndate == 0)
-		logLastError("error getting time string length in uiNewDateTimePicker()");
-	time = (WCHAR *) uiAlloc(ntime * sizeof (WCHAR), "WCHAR[]");
-	if (GLI(LOCALE_STIMEFORMAT, time, ntime) == 0)
-		logLastError("error geting time string in uiNewDateTimePicker()");
-
-	n = _scwprintf(L"%s %s", date, time);
-	datetime = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
-	snwprintf(datetime, n + 1, L"%s %s", date, time);
-	dtp = finishNewDateTimePicker(0, datetime);
-
-	uiFree(datetime);
-	uiFree(time);
-	uiFree(date);
-
+	dtp = finishNewDateTimePicker(0);
+	d = (struct datetimepicker *) dtp;
+	setDateTimeFormat(d->hwnd);
 	return dtp;
 }
 
 uiDateTimePicker *uiNewDatePicker(void)
 {
-	return finishNewDateTimePicker(DTS_SHORTDATECENTURYFORMAT, NULL);
+	return finishNewDateTimePicker(DTS_SHORTDATECENTURYFORMAT);
 }
 
 uiDateTimePicker *uiNewTimePicker(void)
 {
-	return finishNewDateTimePicker(DTS_TIMEFORMAT, NULL);
+	return finishNewDateTimePicker(DTS_TIMEFORMAT);
 }

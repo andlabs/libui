@@ -62,8 +62,6 @@ void doResizes(void)
 	}
 }
 
-#define swpflags (SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW)
-
 void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	RECT r;
@@ -73,14 +71,13 @@ void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t heig
 	r.right = x + width;
 	r.bottom = y + height;
 	mapWindowRect(d->Sys->CoordFrom, d->Sys->CoordTo, &r);
-	if (SetWindowPos(hwnd, NULL, r.left, r.top, r.right - r.left, r.bottom - r.top, swpflags | SWP_NOZORDER) == 0)
+	if (SetWindowPos(hwnd, NULL, r.left, r.top, r.right - r.left, r.bottom - r.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOZORDER) == 0)
 		logLastError("error moving window in moveWindow()");
 }
 
-// TODO make sure we're not missing any flags
 void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
 {
-	if (SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, swpflags | SWP_NOMOVE | SWP_NOSIZE) == 0)
+	if (SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE) == 0)
 		logLastError("error reordering window in setWindowInsertAfter()");
 }
 

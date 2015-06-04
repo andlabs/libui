@@ -94,7 +94,7 @@ static struct wininichange *wininichanges = NULL;
 
 void uiWindowsRegisterReceiveWM_WININICHANGE(HWND hwnd)
 {
-	struct wininchange *ch;
+	struct wininichange *ch;
 
 	HASH_FIND_PTR(wininichanges, &hwnd, ch);
 	if (ch != NULL)

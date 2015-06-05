@@ -158,7 +158,7 @@ func NewGroup(text *const char) *Group;
 // spinbox/slider rules:
 // setting value outside of range will automatically clamp
 // initial value is minimum
-// TODO what happens if max > min? max == min?
+// complaint if min >= max?
 
 interface Spinbox from Control {
 	func Value(void) intmax_t;

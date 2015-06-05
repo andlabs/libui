@@ -267,8 +267,6 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 	struct boxControl *bc;
 	uiControl *removed;
 
-	// TODO rearrange this
-	// TODO sync call order with that of Destroy()
 	bc = ptrArrayIndex(b->controls, struct boxControl *, index);
 	removed = bc->c;
 	ptrArrayDelete(b->controls, index);

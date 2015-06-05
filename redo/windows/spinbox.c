@@ -218,6 +218,9 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	struct spinbox *s;
 
+	if (min >= max)
+		complain("error: min >= max in uiNewSpinbox()");
+
 	s = (struct spinbox *) uiNewControl(uiTypeSpinbox());
 
 	s->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,

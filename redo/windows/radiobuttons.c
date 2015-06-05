@@ -1,6 +1,10 @@
 // 20 may 2015
 #include "uipriv_windows.h"
 
+// desired behavior:
+// - tab moves between /entire groups/
+// - arrow keys navigate between radio buttons
+
 struct radiobuttons {
 	uiRadioButtons r;
 	struct ptrArray *hwnds;

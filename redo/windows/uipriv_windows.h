@@ -93,18 +93,9 @@ extern void tabEnterTabNavigation(HWND);
 extern void tabLeaveTabNavigation(HWND);
 
 // events.c
-// TODO split the uiWindows ones to ui_windows.h
-extern void uiWindowsRegisterWM_COMMANDHandler(HWND, BOOL (*)(uiControl *, HWND, WORD, LRESULT *), uiControl *);
-extern void uiWindowsRegisterWM_NOTIFYHandler(HWND, BOOL (*)(uiControl *, HWND, NMHDR *, LRESULT *), uiControl *);
-extern void uiWindowsRegisterWM_HSCROLLHandler(HWND, BOOL (*)(uiControl *, HWND, WORD, LRESULT *), uiControl *);
-extern void uiWindowsUnregisterWM_COMMANDHandler(HWND);
-extern void uiWindowsUnregisterWM_NOTIFYHandler(HWND);
-extern void uiWindowsUnregisterWM_HSCROLLHandler(HWND);
 extern BOOL runWM_COMMAND(WPARAM, LPARAM, LRESULT *);
 extern BOOL runWM_NOTIFY(WPARAM, LPARAM, LRESULT *);
 extern BOOL runWM_HSCROLL(WPARAM, LPARAM, LRESULT *);
-extern void uiWindowsRegisterReceiveWM_WININICHANGE(HWND);
-extern void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND);
 extern void issueWM_WININICHANGE(WPARAM, LPARAM);
 
 // dialoghelper.c

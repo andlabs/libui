@@ -5,11 +5,9 @@ struct spinbox {
 	uiSpinbox s;
 	HWND hwnd;
 	HWND updown;
-	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 	void (*onChanged)(uiSpinbox *, void *);
 	void *onChangedData;
 	BOOL inhibitChanged;
-	void (*baseCommitDestroy)(uiControl *);
 };
 
 uiDefineControlType(uiSpinbox, uiTypeSpinbox, struct spinbox)
@@ -66,7 +64,7 @@ static void spinboxCommitDestroy(uiControl *c)
 	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
 	if (DestroyWindow(s->updown) == 0)
 		logLastError("error destroying updown in spinboxCommitDestroy()");
-	(*(s->baseCommitDestroy))(uiControl(s));
+	uiWindowsUtilDestroy(s->hwnd);
 }
 
 // the edit control is the one to return here
@@ -76,6 +74,14 @@ static uintptr_t spinboxHandle(uiControl *c)
 	struct spinbox *s = (struct spinbox *) c;
 
 	return (uintptr_t) (s->hwnd);
+}
+
+static void spinboxCommitSetParent(uiControl *c, uiControl *parent)
+{
+	struct spinbox *s = (struct spinbox *) c;
+
+	uiWindowsUtilSetParent(s->hwnd, parent);
+	uiWindowsUtilSetParent(s->updown, parent);
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -134,8 +140,14 @@ static void spinboxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 {
 	struct spinbox *s = (struct spinbox *) c;
 
-	(*(s->baseResize))(uiControl(s), x, y, width, height, d);
+	moveWindow(s->hwnd, x, y, width, height, d);
 	recreateUpDown(s);
+}
+
+static uiSizing *spinboxSizing(uiControl *c)
+{
+	complain("attempt to call uiControlSizing() on uiSpinbox %p", c);
+	return NULL;
 }
 
 #define COMMIT(n, f) \
@@ -150,9 +162,13 @@ COMMIT(Hide, uiWindowsUtilHide)
 COMMIT(Enable, uiWindowsUtilEnable)
 COMMIT(Disable, uiWindowsUtilDisable)
 
-// StartZOrder() is fine (the edit is the first control, and that's satisfied by the singleHWND interface)
-// SetZOrder() is not
-// TODO don't even bother with singleHWND at all
+static uintptr_t spinboxStartZOrder(uiControl *c)
+{
+	struct spinbox *s = (struct spinbox *) c;
+
+	return uiWindowsUtilStartZOrder(s->hwnd);
+}
+
 static uintptr_t spinboxSetZOrder(uiControl *c, uintptr_t insertAfter)
 {
 	struct spinbox *s = (struct spinbox *) c;
@@ -160,6 +176,13 @@ static uintptr_t spinboxSetZOrder(uiControl *c, uintptr_t insertAfter)
 	uiWindowsUtilSetZOrder(s->hwnd, insertAfter);
 	uiWindowsUtilSetZOrder(s->updown, (uintptr_t) (s->hwnd));
 	return (uintptr_t) (s->updown);
+}
+
+static int spinboxHasTabStops(uiControl *c)
+{
+	struct spinbox *s = (struct spinbox *) c;
+
+	return uiWindowsUtilHasTabStops(s->hwnd);
 }
 
 static void defaultOnChanged(uiSpinbox *s, void *data)
@@ -195,7 +218,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	struct spinbox *s;
 
-	s = (struct spinbox *) uiWindowsNewSingleHWNDControl(uiTypeSpinbox());
+	s = (struct spinbox *) uiNewControl(uiTypeSpinbox());
 
 	s->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
@@ -216,15 +239,17 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	uiControl(s)->Handle = spinboxHandle;
 	uiControl(s)->PreferredSize = spinboxPreferredSize;
-	s->baseResize = uiControl(s)->Resize;
 	uiControl(s)->Resize = spinboxResize;
-	s->baseCommitDestroy = uiControl(s)->CommitDestroy;
+	uiControl(s)->Sizing = spinboxSizing;
 	uiControl(s)->CommitDestroy = spinboxCommitDestroy;
+	uiControl(s)->CommitSetParent = spinboxCommitSetParent;
 	uiControl(s)->CommitShow = spinboxCommitShow;
 	uiControl(s)->CommitHide = spinboxCommitHide;
 	uiControl(s)->CommitEnable = spinboxCommitEnable;
 	uiControl(s)->CommitDisable = spinboxCommitDisable;
+	uiControl(s)->StartZOrder = spinboxStartZOrder;
 	uiControl(s)->SetZOrder = spinboxSetZOrder;
+	uiControl(s)->HasTabStops = spinboxHasTabStops;
 
 	uiSpinbox(s)->Value = spinboxValue;
 	uiSpinbox(s)->SetValue = spinboxSetValue;

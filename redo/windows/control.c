@@ -141,6 +141,7 @@ static uintptr_t singleHWNDSetZOrder(uiControl *c, uintptr_t insertAfter)
 	return uiWindowsUtilSetZOrder(HWND(c), insertAfter);
 }
 
+// TODO should disabled controls return 1? test tabbing across a tab with only disabled controls
 int uiWindowsUtilHasTabStops(HWND hwnd)
 {
 	return (getStyle(hwnd) & WS_TABSTOP) != 0;

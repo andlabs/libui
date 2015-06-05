@@ -24,7 +24,6 @@ static intmax_t value(struct spinbox *s)
 	// This verifies the value put in, capping it automatically.
 	// We don't need to worry about checking for an error; that flag should really be called "did we have to cap?".
 	// We DO need to set the value in case of a cap though.
-	// TODO wine only?
 	val = SendMessageW(s->updown, UDM_GETPOS32, 0, (LPARAM) (&neededCap));
 	if (neededCap) {
 		s->inhibitChanged = TRUE;

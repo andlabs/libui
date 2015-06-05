@@ -10,6 +10,9 @@ struct radiobuttons {
 
 uiDefineControlType(uiRadioButtons, uiTypeRadioButtons, struct radiobuttons)
 
+// TODO arrow keys don't work for changing items
+
+// TODO this wrecks the z-order
 static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;

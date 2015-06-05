@@ -149,9 +149,11 @@ interface Tab from Control {
 func NewTab(void) *Tab;
 
 interface Group from Control {
-	// TODO text and settext
+	func Title(void) *char;
+	func SetTitle(title *const char);
 	func SetChild(c *Control);
-	// TODO margined and setmargined
+	func Margined(void) int;
+	func SetMargined(margined int);
 };
 func NewGroup(text *const char) *Group;
 

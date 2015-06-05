@@ -94,6 +94,22 @@ static void groupContainerUpdateState(uiControl *c)
 		uiControlUpdateState(g->child);
 }
 
+static char *groupTitle(uiGroup *gg)
+{
+	struct group *g = (struct group *) gg;
+
+	return uiWindowsUtilText(g->hwnd);
+}
+
+static void groupSetTitle(uiGroup *gg, const char *text)
+{
+	struct group *g = (struct group *) gg;
+
+	uiWindowsUtilSetText(g->hwnd, text);
+	// changing the text might necessitate a change in the groupbox's size
+	uiControlQueueResize(uiControl(g));
+}
+
 static void groupSetChild(uiGroup *gg, uiControl *child)
 {
 	struct group *g = (struct group *) gg;
@@ -105,6 +121,21 @@ static void groupSetChild(uiGroup *gg, uiControl *child)
 		uiControlSetParent(g->child, uiControl(g));
 		uiControlQueueResize(g->child);
 	}
+}
+
+static int groupMargined(uiGroup *gg)
+{
+	struct group *g = (struct group *) gg;
+
+	return g->margined;
+}
+
+static void groupSetMargined(uiGroup *gg, int margined)
+{
+	struct group *g = (struct group *) gg;
+
+	g->margined = margined;
+	uiControlQueueResize(uiControl(g));
 }
 
 uiGroup *uiNewGroup(const char *text)
@@ -130,7 +161,11 @@ uiGroup *uiNewGroup(const char *text)
 	uiControl(g)->CommitDestroy = groupCommitDestroy;
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;
 
+	uiGroup(g)->Title = groupTitle;
+	uiGroup(g)->SetTitle = groupSetTitle;
 	uiGroup(g)->SetChild = groupSetChild;
+	uiGroup(g)->Margined = groupMargined;
+	uiGroup(g)->SetMargined = groupSetMargined;
 
 	return uiGroup(g);
 }

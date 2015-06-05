@@ -31,6 +31,7 @@ extern uiBox *page1;
 extern void makePage1(uiWindow *);
 
 // page2.c
+extern uiGroup *page2group;
 extern uiBox *makePage2(void);
 
 // page3.c

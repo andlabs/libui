@@ -53,6 +53,9 @@ void setSpaced(int spaced)
 			for (j = 0; j < n; j++)
 				uiTabSetMargined(uiTab(p), j, spaced);
 			break;
+		case group:
+			uiGroupSetMargined(uiGroup(p), spaced);
+			break;
 		}
 	}
 }
@@ -80,6 +83,11 @@ void querySpaced(char out[12])		// more than enough
 			for (j = 0; j < n; j++)
 				if (uiTabMargined(uiTab(pp), j))
 					m++;
+			break;
+		case group:
+			if (uiGroupMargined(uiGroup(pp)))
+				m++;
+			break;
 		}
 	}
 

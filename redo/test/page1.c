@@ -23,6 +23,7 @@ TEXT(Window, uiWindow, uiWindowTitle, uiWindowSetTitle)
 TEXT(Button, uiButton, uiButtonText, uiButtonSetText)
 TEXT(Checkbox, uiCheckbox, uiCheckboxText, uiCheckboxSetText)
 TEXT(Label, uiLabel, uiLabelText, uiLabelSetText)
+TEXT(Group, uiGroup, uiGroupTitle, uiGroupSetTitle)
 
 static void onChanged(uiEntry *e, void *data)
 {
@@ -108,6 +109,15 @@ void makePage1(uiWindow *w)
 	uiButtonOnClicked(getButton, getLabelText, label);
 	setButton = uiNewButton("Set Label Text");
 	uiButtonOnClicked(setButton, setLabelText, label);
+	uiBoxAppend(hbox, uiControl(getButton), 1);
+	uiBoxAppend(hbox, uiControl(setButton), 1);
+	uiBoxAppend(page1, uiControl(hbox), 0);
+
+	hbox = newHorizontalBox();
+	getButton = uiNewButton("Get Group Text");
+	uiButtonOnClicked(getButton, getGroupText, page2group);
+	setButton = uiNewButton("Set Group Text");
+	uiButtonOnClicked(setButton, setGroupText, page2group);
 	uiBoxAppend(hbox, uiControl(getButton), 1);
 	uiBoxAppend(hbox, uiControl(setButton), 1);
 	uiBoxAppend(page1, uiControl(hbox), 0);

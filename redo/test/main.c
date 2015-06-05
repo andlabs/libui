@@ -82,10 +82,12 @@ int main(int argc, char *argv[])
 	mainTab = newTab();
 	uiBoxAppend(mainBox, uiControl(mainTab), 1);
 
+	// page 1 uses page 2's uiGroup
+	page2 = makePage2();
+
 	makePage1(w);
 	uiTabAppend(mainTab, "Page 1", uiControl(page1));
 
-	page2 = makePage2();
 	uiTabAppend(mainTab, "Page 2", uiControl(page2));
 
 	uiTabAppend(mainTab, "Empty Page", uiControl(uiNewHorizontalBox()));

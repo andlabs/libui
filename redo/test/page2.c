@@ -1,6 +1,8 @@
 // 29 april 2015
 #include "test.h"
 
+uiGroup *page2group;
+
 static uiLabel *movingLabel;
 static uiBox *movingBoxes[2];
 static int movingCurrent;
@@ -88,6 +90,7 @@ uiBox *makePage2(void)
 	page2 = newVerticalBox();
 
 	group = newGroup("Moving Label");
+	page2group = group;
 	uiBoxAppend(page2, uiControl(group), 0);
 	vbox = newVerticalBox();
 	uiGroupSetChild(group, uiControl(vbox));

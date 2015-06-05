@@ -43,7 +43,6 @@ static void dialogBegin(void)
 	for (d = windows; d != NULL; d = d->hh.next) {
 		prevstate = EnableWindow(d->hwnd, FALSE);
 		// store the previous state in case the window was already disabled by the user
-		// (TODO test)
 		// note the !; EnableWindow() returns TRUE if window was previously /disabled/
 		if (d->n == 0)
 			d->prevstate = !prevstate;

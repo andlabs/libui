@@ -1,8 +1,6 @@
 // 27 may 2015
 #include "uipriv_windows.h"
 
-// TODO Edit ,s/Util/HWND/g ?
-
 HWND uiWindowsUtilCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont)
 {
 	HWND hwnd;
@@ -62,7 +60,7 @@ static void singleHWNDResize(uiControl *c, intmax_t x, intmax_t y, intmax_t widt
 
 static uiSizing *singleHWNDSizing(uiControl *c)
 {
-	// TODO change this to take a HWND and the parent
+	// TODO see if we can make this take an HWND and the parent
 	return uiWindowsSizing(c);
 }
 

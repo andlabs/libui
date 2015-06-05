@@ -42,6 +42,15 @@ static void openAnotherWindow(uiButton *b, void *data)
 	uiControlShow(uiControl(uiNewWindow("Another Window", 100, 100, data != NULL)));
 }
 
+static void openAnotherDisabledWindow(uiButton *b, void *data)
+{
+	uiWindow *w;
+
+	w = uiNewWindow("Another Window", 100, 100, data != NULL);
+	uiControlDisable(uiControl(w));
+	uiControlShow(uiControl(w));
+}
+
 #define SHED(method, Method) \
 	static void method ## Control(uiButton *b, void *data) \
 	{ \
@@ -116,6 +125,12 @@ uiBox *makePage2(void)
 	uiBoxAppend(hbox, uiControl(button), 0);
 	button = uiNewButton("Open Menuless Window");
 	uiButtonOnClicked(button, openAnotherWindow, NULL);
+	uiBoxAppend(hbox, uiControl(button), 0);
+	button = uiNewButton("Disabled Menued");
+	uiButtonOnClicked(button, openAnotherDisabledWindow, button);
+	uiBoxAppend(hbox, uiControl(button), 0);
+	button = uiNewButton("Disabled Menuless");
+	uiButtonOnClicked(button, openAnotherDisabledWindow, NULL);
 	uiBoxAppend(hbox, uiControl(button), 0);
 	uiBoxAppend(page2, uiControl(hbox), 0);
 

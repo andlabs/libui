@@ -89,8 +89,8 @@ void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
 uiSizing *uiWindowsSizing(uiControl *c)
 {
 	uiSizing *d;
-	HWND hwnd;
 	HDC dc;
+	HWND hwnd;
 	HFONT prevfont;
 	TEXTMETRICW tm;
 	SIZE size;

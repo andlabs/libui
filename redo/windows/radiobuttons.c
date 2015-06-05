@@ -8,8 +8,6 @@ struct radiobuttons {
 	uintptr_t insertAfter;			// safe to be 0 initially (either not in a container or trully the first in the z-order)
 };
 
-// TODO properly test parent changes (add an Add Item button to the test program)
-
 uiDefineControlType(uiRadioButtons, uiTypeRadioButtons, struct radiobuttons)
 
 static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult)

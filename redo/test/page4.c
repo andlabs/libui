@@ -32,6 +32,13 @@ static uiCombobox *cbox;
 static uiCombobox *editable;
 static uiRadioButtons *rb;
 
+static void appendCBRB(uiButton *b, void *data)
+{
+	uiComboboxAppend(cbox, "New Item");
+	uiComboboxAppend(editable, "New Item");
+	uiRadioButtonsAppend(rb, "New Item");
+}
+
 uiBox *makePage4(void)
 {
 	uiBox *page4;
@@ -96,6 +103,12 @@ uiBox *makePage4(void)
 	uiRadioButtonsAppend(rb, "Item 2");
 	uiRadioButtonsAppend(rb, "Item 3");
 	uiBoxAppend(page4, uiControl(rb), 0);
+
+	hbox = newHorizontalBox();
+	b = uiNewButton("Append");
+	uiButtonOnClicked(b, appendCBRB, NULL);
+	uiBoxAppend(hbox, uiControl(b), 0);
+	uiBoxAppend(page4, uiControl(hbox), 0);
 
 	uiBoxAppend(page4, uiControl(uiNewHorizontalSeparator()), 0);
 

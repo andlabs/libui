@@ -13,20 +13,76 @@ uiDefineControlType(uiDateTimePicker, uiTypeDateTimePicker, struct datetimepicke
 
 #define GLI(what, buf, n) GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, what, buf, n)
 
+// The real date/time picker does a manual replacement of "yy" with "yyyy" for DTS_SHORTDATECENTURYFORMAT.
+// Because we're also duplicating its functionality (see below), we have to do it too.
+// This code should not be contributed to wine.
+static WCHAR *expandYear(WCHAR *dts, int n)
+{
+	WCHAR *out;
+	WCHAR *p, *q;
+	int ny = 0;
+
+	// allocate more than we need to be safe
+	out = (WCHAR *) uiAlloc((n * 3) * sizeof (WCHAR), "WCHAR[]");
+	q = out;
+	for (p = dts; *p != L'\0'; p++) {
+		// first, if the current character is a y, increment the number of consecutive ys
+		// otherwise, stop counting, and if there were only two, add two more to make four
+		if (*p != L'y') {
+			if (ny == 2) {
+				*q++ = L'y';
+				*q++ = L'y';
+			}
+			ny = 0;
+		} else
+			ny++;
+		// next, handle quoted blocks
+		// we do this AFTER the above so yy'abc' becomes yyyy'abc' and not yy'abc'yy
+		// this handles the case of 'a''b' elegantly as well
+		if (*p == L'\'') {
+			// copy the opening quote
+			*q++ = *p;
+			// copy the contents
+			for (;;) {
+				p++;
+				if (*p == L'\'')
+					break;
+				if (*p == L'\0')
+					complain("unterminated quote in system-provided locale date string in expandYear()");
+				*q++ = *p;
+			}
+			// and fall through to copy the closing quote
+		}
+		// copy the current character
+		*q++ = *p;
+	}
+	// handle trailing yy
+	if (ny == 2) {
+		*q++ = L'y';
+		*q++ = L'y';
+	}
+	*q++ = L'\0';
+	return out;
+}
+
 // Windows has no combined date/time prebuilt constant; we have to build the format string ourselves
 static void setDateTimeFormat(HWND hwnd)
 {
-	WCHAR *date, *time, *datetime;
+	WCHAR *unexpandedDate, *date;
+	WCHAR *time;
+	WCHAR *datetime;
 	int ndate, ntime;
 	int n;
 
-	// TODO verify that this always returns a century year
 	ndate = GLI(LOCALE_SSHORTDATE, NULL, 0);
 	if (ndate == 0)
 		logLastError("error getting date string length in setDateTimeFormat()");
 	date = (WCHAR *) uiAlloc(ndate * sizeof (WCHAR), "WCHAR[]");
 	if (GLI(LOCALE_SSHORTDATE, date, ndate) == 0)
 		logLastError("error geting date string in setDateTimeFormat()");
+	unexpandedDate = date;		// so we can free it
+	date = expandYear(unexpandedDate, ndate);
+	uiFree(unexpandedDate);
 
 	ntime = GLI(LOCALE_STIMEFORMAT, NULL, 0);
 	if (ndate == 0)

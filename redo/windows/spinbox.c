@@ -38,11 +38,21 @@ static intmax_t value(struct spinbox *s)
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	struct spinbox *s = (struct spinbox *) c;
+	WCHAR *wtext;
 
 	if (code != EN_CHANGE)
 		return FALSE;
 	if (s->inhibitChanged)
 		return FALSE;
+	// We want to allow typing negative numbers; the natural way to do so is to start with a -.
+	// However, if we just have the code below, the up-down will catch the bare - and reject it.
+	// Let's fix that.
+	// This won't handle leading spaces, but spaces aren't allowed *anyway*.
+	wtext = windowText(s->hwnd);
+	if (wcscmp(wtext, L"-") == 0) {
+		uiFree(wtext);
+		return TRUE;
+	}
 	// value() does the work for us
 	value(s);
 	(*(s->onChanged))(uiSpinbox(s), s->onChangedData);
@@ -189,8 +199,8 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	s->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
-		// TODO ES_NUMBER doesn't allow typing in a leading -
-		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | ES_NUMBER | WS_TABSTOP,
+		// don't use ES_NUMBER; it doesn't allow typing in a leading -
+		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
 

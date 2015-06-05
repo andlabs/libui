@@ -117,7 +117,7 @@ static void recreateUpDown(struct spinbox *s)
 	s->updown = CreateWindowExW(0,
 		UPDOWN_CLASSW, L"",
 		// no WS_VISIBLE; we set visibility ourselves
-		// TODO tab stop?
+		// up-down control should not be a tab stop
 		WS_CHILD | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_HOTTRACK | UDS_NOTHOUSANDS | UDS_SETBUDDYINT,
 		// this is important; it's necessary for autosizing to work
 		0, 0, 0, 0,

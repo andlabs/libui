@@ -89,19 +89,25 @@ static void radiobuttonsPreferredSize(uiControl *c, uiSizing *d, intmax_t *width
 	*height = uiWindowsDlgUnitsToY(radiobuttonHeight, d->Sys->BaseY) * r->hwnds->len;
 }
 
-// TODO clip to height
 static void radiobuttonsResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;
 	intmax_t height1;
+	intmax_t h;
 	uintmax_t i;
 	HWND hwnd;
 
 	height1 = uiWindowsDlgUnitsToY(radiobuttonHeight, d->Sys->BaseY);
 	for (i = 0; i < r->hwnds->len; i++) {
 		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
-		moveWindow(hwnd, x, y, width, height1, d);
+		h = height1;
+		if (h > height)		// clip to height
+			h = height;
+		moveWindow(hwnd, x, y, width, h, d);
 		y += height1;
+		height -= height1;
+		if (height <= 0)		// clip to height
+			break;
 	}
 }
 

@@ -5,6 +5,7 @@ struct radiobuttons {
 	uiRadioButtons r;
 	struct ptrArray *hwnds;
 	uiControl *parent;
+	uintptr_t insertAfter;			// safe to be 0 initially (either not in a container or trully the first in the z-order)
 };
 
 // TODO properly test parent changes (add an Add Item button to the test program)
@@ -128,14 +129,24 @@ COMMIT(Disable, uiWindowsUtilDisable)
 
 static uintptr_t radiobuttonsStartZOrder(uiControl *c)
 {
-	// TODO
-	return 0;
+	struct radiobuttons *r = (struct radiobuttons *) c;
+
+	return r->insertAfter;
 }
 
 static uintptr_t radiobuttonsSetZOrder(uiControl *c, uintptr_t insertAfter)
 {
-	// TODO
-	return 0;
+	struct radiobuttons *r = (struct radiobuttons *) c;
+	uintmax_t i;
+	HWND hwnd;
+
+	r->insertAfter = insertAfter;
+	for (i = 0; i < r->hwnds->len; i++) {
+		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
+		uiWindowsUtilSetZOrder(hwnd, insertAfter);
+		insertAfter = (uintptr_t) hwnd;
+	}
+	return insertAfter;
 }
 
 static int radiobuttonsHasTabStops(uiControl *c)
@@ -150,6 +161,7 @@ static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
 	struct radiobuttons *r = (struct radiobuttons *) rr;
 	HWND hwnd;
 	WCHAR *wtext;
+	HWND after;
 
 	wtext = toUTF16(text);
 	hwnd = uiWindowsUtilCreateControlHWND(0,
@@ -160,6 +172,15 @@ static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
 	uiFree(wtext);
 	uiWindowsUtilSetParent(hwnd, r->parent);
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
+
+	// maintain z-order
+	if (r->hwnds->len == 0)		// first item
+		uiWindowsUtilSetZOrder(hwnd, r->insertAfter);
+	else {
+		after = ptrArrayIndex(r->hwnds, HWND, r->hwnds->len - 1);
+		uiWindowsUtilSetZOrder(hwnd, (uintptr_t) after);
+	}
+
 	ptrArrayAppend(r->hwnds, hwnd);
 	uiControlQueueResize(uiControl(r));
 }

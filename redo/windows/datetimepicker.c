@@ -119,15 +119,19 @@ static uintptr_t datetimepickerHandle(uiControl *c)
 	return (uintptr_t) (d->hwnd);
 }
 
-// TODO
-// TODO DTM_GETIDEALSIZE results in something too big
+// the height returned from DTM_GETIDEALSIZE is unreliable; see http://stackoverflow.com/questions/30626549/what-is-the-proper-use-of-dtm-getidealsize-treating-the-returned-size-as-pixels
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
 static void datetimepickerPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(entryWidth, d->Sys->BaseX);
+	struct datetimepicker *dd = (struct datetimepicker *) c;
+	SIZE s;
+
+	s.cx = 0;
+	s.cy = 0;
+	SendMessageW(dd->hwnd, DTM_GETIDEALSIZE, 0, (LPARAM) (&s));
+	*width = s.cx;
 	*height = uiWindowsDlgUnitsToY(entryHeight, d->Sys->BaseY);
 }
 

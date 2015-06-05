@@ -177,7 +177,7 @@ static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
 	wtext = toUTF16(text);
 	hwnd = uiWindowsUtilCreateControlHWND(0,
 		L"button", wtext,
-		BS_RADIOBUTTON | WS_TABSTOP | WS_CHILD | WS_VISIBLE,
+		BS_RADIOBUTTON | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
 	uiFree(wtext);

@@ -1,7 +1,3 @@
-wine
-- say that dialogs respond to WM_PRINTCLIENT on xp+ with visual styles enabled
-- trackbars are not clamped with TBM_SETPOS
-
 uthash
 - stdint code misses MinGW(-w64)
 

@@ -15,7 +15,6 @@ uiDefineControlType(uiDateTimePicker, uiTypeDateTimePicker, struct datetimepicke
 
 // The real date/time picker does a manual replacement of "yy" with "yyyy" for DTS_SHORTDATECENTURYFORMAT.
 // Because we're also duplicating its functionality (see below), we have to do it too.
-// This code should not be contributed to wine.
 static WCHAR *expandYear(WCHAR *dts, int n)
 {
 	WCHAR *out;

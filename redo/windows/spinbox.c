@@ -102,7 +102,7 @@ static void recreateUpDown(struct spinbox *s)
 	HWND parent;
 	BOOL preserve = FALSE;
 	intmax_t current;
-	// wine uses this type
+	// Microsoft's commctrl.h says to use this type
 	INT min, max;
 
 	parent = GetAncestor(s->hwnd, GA_PARENT);

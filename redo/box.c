@@ -87,7 +87,6 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
 		if (!uiControlContainerVisible(bc->c))
 			continue;
-		// TODO dchild
 		uiControlPreferredSize(bc->c, d, &preferredWidth, &preferredHeight);
 		if (bc->stretchy) {
 			nStretchy++;

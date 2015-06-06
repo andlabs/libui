@@ -1,3 +1,4 @@
+- figure out how to deal with dchild at all, including preferred sizes
 - make OS X uiEntry width based on default in Interface Builder, not from sizeToFit
 - update state whenever setting parent
 - make the various onDestroy() functions take the uiControl instead

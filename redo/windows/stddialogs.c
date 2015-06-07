@@ -62,27 +62,17 @@ char *uiSaveFile(void)
 		FOS_OVERWRITEPROMPT | FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
 }
 
-// TODO MinGW-w64 4.0.0 doesn't have the Task Dialog functions in its .lib files
-HRESULT (*WINAPI fv_TaskDialog)(_In_opt_ HWND hwndOwner, _In_opt_ HINSTANCE hInstance, _In_opt_ PCWSTR pszWindowTitle, _In_opt_ PCWSTR pszMainInstruction, _In_opt_ PCWSTR pszContent, TASKDIALOG_COMMON_BUTTON_FLAGS dwCommonButtons, _In_opt_ PCWSTR pszIcon, int *pnButton) = NULL;
-
 static void msgbox(const char *title, const char *description, TASKDIALOG_COMMON_BUTTON_FLAGS buttons, PCWSTR icon)
 {
 	WCHAR *wtitle, *wdescription;
 	HWND dialogHelper;
 	HRESULT hr;
 
-	if (fv_TaskDialog == NULL) {
-		HANDLE h;
-
-		h = LoadLibraryW(L"comctl32.dll");
-		fv_TaskDialog = GetProcAddress(h, "TaskDialog");
-	}
-
 	wtitle = toUTF16(title);
 	wdescription = toUTF16(description);
 
 	dialogHelper = beginDialogHelper();
-	hr = (*fv_TaskDialog)(dialogHelper, NULL, NULL, wtitle, wdescription, buttons, icon, NULL);
+	hr = TaskDialog(dialogHelper, NULL, NULL, wtitle, wdescription, buttons, icon, NULL);
 	if (hr != S_OK)
 		logHRESULT("error showing task dialog in msgbox()", hr);
 	endDialogHelper(dialogHelper);

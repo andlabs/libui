@@ -11,6 +11,7 @@
 #if __MINGW64_VERSION_MAJOR < 4
 #error MinGW-w64 version 4.0.0 or newer is required.
 #endif
+// TODO exact version once my changes get pushed
 
 // ui internal window messages
 enum {

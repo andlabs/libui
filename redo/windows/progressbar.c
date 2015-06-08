@@ -25,11 +25,24 @@ static void progressbarPreferredSize(uiControl *c, uiSizing *d, intmax_t *width,
 	*height = uiWindowsDlgUnitsToY(pbarHeight, d->Sys->BaseY);
 }
 
-// TODO bypass Aero animations
+// unfortunately, as of Vista progress bars have a forced animation on increase
+// we have to set the progress bar to value + 1 and decrease it back to value if we want an "instant" change
+// see http://stackoverflow.com/questions/2217688/windows-7-aero-theme-progress-bar-bug
+// it's not ideal/perfect, but it will have to do
 static void progressbarSetValue(uiProgressBar *pp, int value)
 {
 	struct progressbar *p = (struct progressbar *) pp;
 
+	if (value < 0 || value > 100)
+		complain("value %d out of range in progressbarSetValue()", value);
+	if (value == 100) {			// because we can't 101
+		SendMessageW(p->hwnd, PBM_SETRANGE32, 0, 101);
+		SendMessageW(p->hwnd, PBM_SETPOS, 101, 0);
+		SendMessageW(p->hwnd, PBM_SETPOS, 100, 0);
+		SendMessageW(p->hwnd, PBM_SETRANGE32, 0, 100);
+		return;
+	}
+	SendMessageW(p->hwnd, PBM_SETPOS, (WPARAM) (value + 1), 0);
 	SendMessageW(p->hwnd, PBM_SETPOS, (WPARAM) value, 0);
 }
 

@@ -34,21 +34,6 @@ int windowClassOf(HWND hwnd, ...)
 	return -1;
 }
 
-// TODO refine this
-void uiLog(const char *fmt, ...)
-{
-	va_list ap;
-	char buf[2048];
-
-	va_start(ap, fmt);
-	vsnprintf(buf, 2044, fmt, ap);
-	va_end(ap);
-	// unfortunately we need to make sure this is callable even before uiInit() executes or after uiUninit() has executed
-	// that means we can't use toUTF16(), because that requires our private heap
-	// sadly that means we're stuck with OutputDebugStringA() without some serious refinement
-	OutputDebugStringA(buf);
-}
-
 void complain(const char *fmt, ...)
 {
 	va_list ap;

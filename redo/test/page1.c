@@ -27,7 +27,7 @@ TEXT(Group, uiGroup, uiGroupTitle, uiGroupSetTitle)
 
 static void onChanged(uiEntry *e, void *data)
 {
-	printf("onChanged()\n");
+	uiLog("[test program] onChanged()\n");
 }
 
 static void toggleSpaced(uiCheckbox *c, void *data)

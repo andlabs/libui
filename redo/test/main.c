@@ -15,14 +15,14 @@ void die(const char *fmt, ...)
 
 int onClosing(uiWindow *w, void *data)
 {
-	printf("in onClosing()\n");
+	uiLog("[test program] in onClosing()\n");
 	uiQuit();
 	return 1;
 }
 
 int onShouldQuit(void *data)
 {
-	printf("in onShouldQuit()\n");
+	uiLog("[test program] in onShouldQuit()\n");
 	if (uiMenuItemChecked(shouldQuitItem)) {
 		uiControlDestroy(uiControl(data));
 		return 1;
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
 	w = newWindow("Main Window", 320, 240, 1);
 	uiWindowOnClosing(w, onClosing, NULL);
-	printf("main window %p\n", w);
+	uiLog("[test program] main window %p\n", w);
 
 	uiOnShouldQuit(onShouldQuit, w);
 
@@ -103,8 +103,8 @@ int main(int argc, char *argv[])
 
 	uiControlShow(uiControl(w));
 	uiMain();
-	printf("after uiMain()\n");
+	uiLog("[test program] after uiMain()\n");
 	uiUninit();
-	printf("after uiUninit()\n");
+	uiLog("[test program] after uiUninit()\n");
 	return 0;
 }

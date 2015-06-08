@@ -9,7 +9,7 @@ static uiProgressBar *pbar;
 	static void on ## what ## Changed(ui ## what *this, void *data) \
 	{ \
 		uintmax_t value; \
-		printf("on %s changed\n", #what); \
+		uiLog("[test program] on %s changed\n", #what); \
 		value = ui ## what ## Value(this); \
 		uiSpinboxSetValue(spinbox, value); \
 		uiSliderSetValue(slider, value); \

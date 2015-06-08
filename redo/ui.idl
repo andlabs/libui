@@ -28,6 +28,9 @@ func OnShouldQuit(f *func(data *void) int, data *void);
 
 func FreeText(text *char);
 
+// TODO add ... to IDL
+raw "_UI_EXTERN void uiLog(const char *format, ...);";
+
 func RegisterType(name *const char, parent uintmax_t, size size_t) uintmax_t;
 func IsA(p *void, type uintmax_t, fail int) *void;
 struct Typed {

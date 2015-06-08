@@ -3,7 +3,7 @@
 
 // TODO
 // - can't seem to tab away anymore
-// - removving the first page then moving the label hangs
+// - removving the first page then pressing a BS_PUSHBUTTON button hangs
 
 struct tab {
 	uiTab t;

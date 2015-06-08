@@ -7,7 +7,7 @@
 
 // this is the dialog template used by tab pages; see windows/tabpage.c for details
 rcTabPageDialog DIALOGEX 0, 0, 100, 100
-STYLE WS_CHILD | WS_VISIBLE
+STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 EXSTYLE WS_EX_CONTROLPARENT
 BEGIN
 	// nothing

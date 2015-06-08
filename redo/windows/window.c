@@ -50,6 +50,11 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		if (w->child != NULL)
 			uiControlQueueResize(uiControl(w));
 		return 0;
+	case WM_PRINTCLIENT:
+		// we do no special painting; just erase the background
+		// don't worry about the return value; we let DefWindowProcW() handle this message
+		SendMessageW(hwnd, WM_ERASEBKGND, wParam, lParam);
+		return 0;
 	case WM_CLOSE:
 		if ((*(w->onClosing))(uiWindow(w), w->onClosingData))
 			uiControlDestroy(uiControl(w));

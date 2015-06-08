@@ -2,7 +2,6 @@
 #include "uipriv_windows.h"
 
 // TODO
-// - dialog doesn't respond to WM_PRINTCLIENT in Windows Classic
 // - can't seem to tab away anymore
 
 struct tab {

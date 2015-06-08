@@ -88,6 +88,13 @@ static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		SetWindowLongPtrW(hwnd, DWLP_MSGRESULT, (LONG_PTR) lResult);
 		return TRUE;
 	}
+	// unthemed dialogs don't respond to WM_PRINTCLIENT
+	// fortunately they don't have any special painting
+	if (uMsg == WM_PRINTCLIENT) {
+		SendMessageW(hwnd, WM_ERASEBKGND, wParam, lParam);
+		// and pretend we did nothing just so the themed dialog can still paint its content
+		return FALSE;
+	}
 	if (uMsg == WM_INITDIALOG)
 		return TRUE;
 	return FALSE;

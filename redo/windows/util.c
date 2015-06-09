@@ -34,6 +34,19 @@ int windowClassOf(HWND hwnd, ...)
 	return -1;
 }
 
+void complain(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	fprintf(stderr, "[libui] ");
+	vfprintf(stderr, fmt, ap);
+	fprintf(stderr, "\n");
+	va_end(ap);
+	DebugBreak();
+	abort();		// just in case
+}
+
 // wrapper around MapWindowRect() that handles the complex error handling
 void mapWindowRect(HWND from, HWND to, RECT *r)
 {

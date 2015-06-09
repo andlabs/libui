@@ -72,7 +72,6 @@ static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType)
 		// at least, that's the best I can gather from the MSDN page on the handler function
 		// it says that functions registered by a DLL replace the default handler function (which ends the process)
 		// it works, anyway
-		// TODO it's telling me there's one allocation that's left over with no type information
 		return TRUE;
 	}
 	return FALSE;

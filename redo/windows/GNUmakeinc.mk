@@ -15,6 +15,7 @@ osCFILES = \
 	windows/group.c \
 	windows/init.c \
 	windows/label.c \
+	windows/logging.c \
 	windows/main.c \
 	windows/menu.c \
 	windows/parent.c \

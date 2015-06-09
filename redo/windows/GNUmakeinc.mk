@@ -33,6 +33,7 @@ osCFILES = \
 	windows/window.c
 
 osHFILES = \
+	windows/compilerver.h \
 	windows/resources.h \
 	windows/uipriv_windows.h \
 	windows/winapi.h

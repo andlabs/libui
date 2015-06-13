@@ -77,10 +77,10 @@ static int singleWidgetHasTabStops(uiControl *c)
 }
 
 // called after creating the control's widget
-void uiUnixMakeSingleWidgetControl(uiControl *c)
+void uiUnixMakeSingleWidgetControl(uiControl *c, GtkWidget *widget)
 {
 	// we have to sink the widget so we can reparent it
-	g_object_ref_sink(WIDGET(c));
+	g_object_ref_sink(widget);
 
 	uiControl(c)->CommitDestroy = singleWidgetCommitDestroy;
 	uiControl(c)->CommitSetParent = singleWidgetCommitSetParent;

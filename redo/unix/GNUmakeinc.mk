@@ -2,15 +2,21 @@
 
 osCFILES = \
 	unix/alloc.c \
-	unix/bin.c \
 	unix/button.c \
 	unix/checkbox.c \
-	unix/container.c \
+	unix/combobox.c \
+	unix/control.c \
+	unix/datetimepicker.c \
 	unix/entry.c \
+	unix/group.c \
 	unix/label.c \
 	unix/main.c \
 	unix/menu.c \
-	unix/newcontrol.c \
+	unix/progressbar.c \
+	unix/radiobuttons.c \
+	unix/separator.c \
+	unix/slider.c \
+	unix/spinbox.c \
 	unix/tab.c \
 	unix/text.c \
 	unix/util.c \

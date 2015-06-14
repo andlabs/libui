@@ -49,8 +49,8 @@ static void windowCommitDestroy(uiControl *c)
 	gtk_widget_hide(w->widget);
 	// now destroy the bin
 	// we need to remove the bin from its parent first
-	uiBinRemoveOSParent(w->bin);
-	uiControlDestroy(uiControl(w->bin));
+//TODO	uiBinRemoveOSParent(w->bin);
+//TODO	uiControlDestroy(uiControl(w->bin));
 	// now destroy the menus, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
@@ -171,14 +171,14 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		gtk_container_add(w->vboxContainer, w->menubar);
 	}
 
-	w->bin = newBin();
+/*TODO	w->bin = newBin();
 	binWidget = GTK_WIDGET(uiControlHandle(uiControl(w->bin)));
 	gtk_widget_set_hexpand(binWidget, TRUE);
 	gtk_widget_set_halign(binWidget, GTK_ALIGN_FILL);
 	gtk_widget_set_vexpand(binWidget, TRUE);
 	gtk_widget_set_valign(binWidget, GTK_ALIGN_FILL);
 	uiBinSetOSParent(w->bin, (uintptr_t) (w->vboxContainer));
-
+*/
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxWidget);
 

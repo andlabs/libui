@@ -63,7 +63,6 @@ static void checkboxSetChecked(uiCheckbox *cc, int checked)
 uiCheckbox *uiNewCheckbox(const char *text)
 {
 	struct checkbox *c;
-	WCHAR *wtext;
 
 	c = (struct checkbox *) MAKE_CONTROL_INSTANCE(uiTypeCheckbox());
 

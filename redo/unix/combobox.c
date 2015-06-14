@@ -22,7 +22,7 @@ static void comboboxAppend(uiCombobox *cc, const char *text)
 	PUT_CODE_HERE;
 }
 
-static uiCombobox *finishNewCombobox(OSTHING OSARG)
+static uiCombobox *finishNewCombobox(GtkWidget (*newfunc)(void))
 {
 	struct combobox *c;
 
@@ -39,10 +39,10 @@ static uiCombobox *finishNewCombobox(OSTHING OSARG)
 
 uiCombobox *uiNewCombobox(void)
 {
-	return finishNewCombobox(OSARGNONEDITABLE);
+	return finishNewCombobox(gtk_combo_box_text_new);
 }
 
 uiCombobox *uiNewEditableCombobox(void)
 {
-	return finishNewCombobox(OSARGEDITABLE);
+	return finishNewCombobox(gtk_combo_box_text_new_with_entry);
 }

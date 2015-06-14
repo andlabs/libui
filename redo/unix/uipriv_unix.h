@@ -19,3 +19,6 @@ extern void uninitMenus(void);
 // alloc.c
 extern void initAlloc(void);
 extern void uninitAlloc(void);
+
+// TODO
+#define PUT_CODE_HERE 0

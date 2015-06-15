@@ -15,11 +15,19 @@ static uintptr_t datetimepickerHandle(uiControl *c)
 	return (uintptr_t) (d->widget);
 }
 
+// TODO
+typedef int OSTHING;
+enum {
+	OSARGDATETIME,
+	OSARGDATEONLY,
+	OSARGTIMEONLY,
+};
+
 uiDateTimePicker *finishNewDateTimePicker(OSTHING OSARG)
 {
 	struct datetimepicker *d;
 
-	d = (struct datetimepicker *) MAKE_CONTROL_INSTANCE(uiTypeDateTimePicker());
+	d = (struct datetimepicker *) uiNewControl(uiTypeDateTimePicker());
 
 	PUT_CODE_HERE;
 

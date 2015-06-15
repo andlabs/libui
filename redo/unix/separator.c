@@ -19,7 +19,7 @@ uiSeparator *uiNewHorizontalSeparator(void)
 {
 	struct separator *s;
 
-	s = (struct separator *) MAKE_CONTROL_INSTANCE(uiTypeSeparator());
+	s = (struct separator *) uiNewControl(uiTypeSeparator());
 
 	PUT_CODE_HERE;
 

@@ -61,7 +61,7 @@ uiTab *uiNewTab(void)
 {
 	struct tab *t;
 
-	t = (struct tab *) MAKE_CONTROL_INSTANCE(uiTypeTab());
+	t = (struct tab *) uiNewControl(uiTypeTab());
 
 	PUT_CODE_HERE;
 

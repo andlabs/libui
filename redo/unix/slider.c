@@ -48,7 +48,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	struct slider *s;
 
-	s = (struct slider *) MAKE_CONTROL_INSTANCE(uiTypeSlider());
+	s = (struct slider *) uiNewControl(uiTypeSlider());
 
 	PUT_CODE_HERE;
 

@@ -3,6 +3,9 @@
 
 struct spinbox {
 	uiSpinbox s;
+	OSTYPE OSHANDLE;
+	void (*onChanged)(uiSpinbox *, void *);
+	void *onChangedData;
 };
 
 uiDefineControlType(uiSpinbox, uiTypeSpinbox, struct spinbox)

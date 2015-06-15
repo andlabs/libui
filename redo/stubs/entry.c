@@ -55,7 +55,6 @@ static int entryReadOnly(uiEntry *ee)
 static void entrySetReadOnly(uiEntry *ee, int readonly)
 {
 	struct entry *e = (struct entry *) ee;
-	WPARAM ro;
 
 	PUT_CODE_HERE;
 }

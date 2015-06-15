@@ -64,7 +64,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 {
 	struct checkbox *c;
 
-	c = (struct checkbox *) MAKE_CONTROL_INSTANCE(uiTypeCheckbox());
+	c = (struct checkbox *) uiNewControl(uiTypeCheckbox());
 
 	PUT_CODE_HERE;
 

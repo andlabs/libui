@@ -35,7 +35,7 @@ uiLabel *uiNewLabel(const char *text)
 {
 	struct label *l;
 
-	l = (struct label *) MAKE_CONTROL_INSTANCE(uiTypeLabel());
+	l = (struct label *) uiNewControl(uiTypeLabel());
 
 	PUT_CODE_HERE;
 

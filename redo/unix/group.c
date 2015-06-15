@@ -73,7 +73,7 @@ uiGroup *uiNewGroup(const char *text)
 {
 	struct group *g;
 
-	g = (struct group *) MAKE_CONTROL_INSTANCE(uiTypeGroup());
+	g = (struct group *) uiNewControl(uiTypeGroup());
 
 	PUT_CODE_HERE;
 

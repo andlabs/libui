@@ -55,7 +55,6 @@ static int entryReadOnly(uiEntry *ee)
 static void entrySetReadOnly(uiEntry *ee, int readonly)
 {
 	struct entry *e = (struct entry *) ee;
-	WPARAM ro;
 
 	PUT_CODE_HERE;
 }
@@ -64,7 +63,7 @@ uiEntry *uiNewEntry(void)
 {
 	struct entry *e;
 
-	e = (struct entry *) MAKE_CONTROL_INSTANCE(uiTypeEntry());
+	e = (struct entry *) uiNewControl(uiTypeEntry());
 
 	PUT_CODE_HERE;
 

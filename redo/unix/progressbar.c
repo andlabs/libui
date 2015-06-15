@@ -28,7 +28,7 @@ uiProgressBar *uiNewProgressBar(void)
 {
 	struct progressbar *p;
 
-	p = (struct progressbar *) MAKE_CONTROL_INSTANCE(uiTypeProgressBar());
+	p = (struct progressbar *) uiNewControl(uiTypeProgressBar());
 
 	PUT_CODE_HERE;
 

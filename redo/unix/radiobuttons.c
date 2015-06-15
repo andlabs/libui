@@ -24,7 +24,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 {
 	struct radiobuttons *r;
 
-	r = (struct radiobuttons *) MAKE_CONTROL_INSTANCE(uiTypeRadioButtons());
+	r = (struct radiobuttons *) uiNewControl(uiTypeRadioButtons());
 
 	PUT_CODE_HERE;
 

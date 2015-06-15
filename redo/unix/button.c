@@ -50,7 +50,7 @@ uiButton *uiNewButton(const char *text)
 {
 	struct button *b;
 
-	b = (struct button *) MAKE_CONTROL_INSTANCE(uiTypeButton());
+	b = (struct button *) uiNewControl(uiTypeButton());
 
 	PUT_CODE_HERE;
 

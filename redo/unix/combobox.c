@@ -26,7 +26,7 @@ static uiCombobox *finishNewCombobox(GtkWidget (*newfunc)(void))
 {
 	struct combobox *c;
 
-	c = (struct combobox *) MAKE_CONTROL_INSTANCE(uiTypeCombobox());
+	c = (struct combobox *) uiNewControl(uiTypeCombobox());
 
 	PUT_CODE_HERE;
 

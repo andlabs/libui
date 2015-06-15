@@ -3,6 +3,8 @@
 
 struct spinbox {
 	uiSpinbox s;
+	void (*onChanged)(uiSpinbox *, void *);
+	void *onChangedData;
 };
 
 uiDefineControlType(uiSpinbox, uiTypeSpinbox, struct spinbox)
@@ -48,7 +50,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	if (min >= max)
 		complain("error: min >= max in uiNewSpinbox()");
 
-	s = (struct spinbox *) MAKE_CONTROL_INSTANCE(uiTypeSpinbox());
+	s = (struct spinbox *) uiNewControl(uiTypeSpinbox());
 
 	PUT_CODE_HERE;
 

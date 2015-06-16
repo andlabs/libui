@@ -13,10 +13,9 @@ typedef struct containerWidgetClass containerWidgetClass;
 
 struct containerWidget {
 	GtkContainer parent_instance;
-	uiContainer *c;
+	uiControl *main;
 	GPtrArray *widgets;		// for for_each()/for_all()
-	uiContainer *parent;
-	int hidden;
+	int margined;
 };
 
 struct containerWidgetClass {
@@ -64,23 +63,34 @@ static void containerWidget_remove(GtkContainer *container, GtkWidget *widget)
 static void containerWidget_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
 	containerWidget *c = containerWidget(widget);
-	uiSizing d;
+	uiSizing *d;
+	intmax_t x, y, width, height;
 
 	gtk_widget_set_allocation(GTK_WIDGET(c), allocation);
-	d.XPadding = gtkXPadding;
-	d.YPadding = gtkYPadding;
-	uiContainerResizeChildren(c->c, allocation->x, allocation->y, allocation->width, allocation->height, &d);
+	x = allocation->x;
+	y = allocation->y;
+	width = allocation->width;
+	height = allocation->height;
+	if (c->margined) {
+		x += gtkXMargin;
+		y += gtkYMargin;
+		width -= 2 * gtkXMargin;
+		height -= 2 * gtkYMargin;
+	}
+	d = uiUnixNewSizing();
+	uiControlResize(c->c, x, y, width, height, d);
+	uiFreeSizing(d);
 }
 
 static void containerWidget_get_preferred_height(GtkWidget *widget, gint *minimum, gint *natural)
 {
 	containerWidget *c = containerWidget(widget);
 	intmax_t width, height;
-	uiSizing d;
+	uiSizing *d;
 
-	d.XPadding = gtkXPadding;
-	d.YPadding = gtkYPadding;
+	d = uiUnixNewSizing();
 	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
+	uiFreeSizing(d);
 	*minimum = 0;			// allow arbitrary resize
 	*natural = height;
 }
@@ -89,11 +99,11 @@ static void containerWidget_get_preferred_width(GtkWidget *widget, gint *minimum
 {
 	containerWidget *c = containerWidget(widget);
 	intmax_t width, height;
-	uiSizing d;
+	uiSizing *d;
 
-	d.XPadding = gtkXPadding;
-	d.YPadding = gtkYPadding;
+	d = uiUnixNewSizing();
 	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
+	uiFreeSizing(d);
 	*minimum = 0;			// allow arbitrary resize
 	*natural = width;
 }
@@ -132,15 +142,7 @@ static void containerWidget_class_init(containerWidgetClass *class)
 	GTK_CONTAINER_CLASS(class)->forall = containerWidget_forall;
 }
 
-// subclasses override this and call back here when all children are destroyed
-static void containerDestroy(uiControl *cc)
-{
-	containerWidget *c = containerWidget(cc->Internal);
-
-	if (c->parent != NULL)
-		complain("attempt to destroy uiContainer %p while it has a parent", cc);
-	g_object_unref(c);		// release our initial reference, which destroys the widget
-}
+////////////////////////// CONTINUE HERE
 
 static uintptr_t containerHandle(uiControl *cc)
 {

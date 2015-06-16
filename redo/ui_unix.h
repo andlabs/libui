@@ -17,4 +17,7 @@ struct uiSizingSys {
 	// this structure currently left blank
 };
 
+// This creates a uiSizing for Unix systems.
+_UI_EXTERN uiSizing *uiUnixNewSizing(void);
+
 #endif

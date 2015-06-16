@@ -35,7 +35,7 @@ static void singleWidgetResize(uiControl *c, intmax_t x, intmax_t y, intmax_t wi
 
 static uiSizing *singleWidgetSizing(uiControl *c)
 {
-	// TODO
+	return uiUnixNewSizing();
 }
 
 static void singleWidgetCommitShow(uiControl *c)

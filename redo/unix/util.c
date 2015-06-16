@@ -11,3 +11,23 @@ void complain(const char *fmt, ...)
 	va_end(ap);
 	g_error("[libui] %s\n", msg);
 }
+
+#define gtkXPadding 12
+#define gtkYPadding 6
+
+uiSizing *uiUnixNewSizing(void)
+{
+	uiSizing *d;
+
+	d = uiNew(uiSizing);
+	d->XPadding = gtkXPadding;
+	d->YPadding = gtkYPadding;
+	d->Sys = uiNew(uiSizingSys);
+	return d;
+}
+
+void uiFreeSizing(uiSizing *d)
+{
+	uiFree(d->Sys);
+	uiFree(d);
+}

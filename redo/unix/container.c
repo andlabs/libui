@@ -1,6 +1,8 @@
 // 28 april 2015
 #include "uipriv_unix.h"
 
+// TODO this is a wreck; describe what's going on here
+
 #define containerWidgetType (containerWidget_get_type())
 #define containerWidget(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), containerWidgetType, containerWidget))
 #define IscontainerWidget(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), containerWidgetType))
@@ -13,7 +15,7 @@ typedef struct containerWidgetClass containerWidgetClass;
 
 struct containerWidget {
 	GtkContainer parent_instance;
-	uiControl *main;
+	uiControl *c;
 	GPtrArray *widgets;		// for for_each()/for_all()
 	int margined;
 };
@@ -142,119 +144,11 @@ static void containerWidget_class_init(containerWidgetClass *class)
 	GTK_CONTAINER_CLASS(class)->forall = containerWidget_forall;
 }
 
-////////////////////////// CONTINUE HERE
-
-static uintptr_t containerHandle(uiControl *cc)
+uintptr_t uiMakeContainer(uiControl *c)
 {
-	containerWidget *c = containerWidget(cc->Internal);
+	GtkWidget *widget;
 
-	return (uintptr_t) c;
-}
-
-static void containerSetParent(uiControl *cc, uiContainer *parent)
-{
-	containerWidget *c = containerWidget(cc->Internal);
-	uiContainer *oldparent;
-	GtkContainer *oldcontainer;
-	GtkContainer *newcontainer;
-
-	oldparent = c->parent;
-	c->parent = parent;
-	if (oldparent != NULL) {
-		oldcontainer = GTK_CONTAINER(uiControlHandle(uiControl(oldparent)));
-		gtk_container_remove(oldcontainer, GTK_WIDGET(c));
-	}
-	if (c->parent != NULL) {
-		newcontainer = GTK_CONTAINER(uiControlHandle(uiControl(c->parent)));
-		gtk_container_add(newcontainer, GTK_WIDGET(c));
-	}
-}
-
-static void containerResize(uiControl *cc, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
-{
-	containerWidget *c = containerWidget(cc->Internal);
-	GtkAllocation a;
-
-	a.x = x;
-	a.y = y;
-	a.width = width;
-	a.height = height;
-	gtk_widget_size_allocate(GTK_WIDGET(c), &a);
-}
-
-static int containerVisible(uiControl *cc)
-{
-	containerWidget *c = containerWidget(cc->Internal);
-
-	return !c->hidden;
-}
-
-static void containerShow(uiControl *cc)
-{
-	containerWidget *c = containerWidget(cc->Internal);
-
-	// don't use gtk_widget_show_all(); that'll show every widget, including ones hidden by the user
-	gtk_widget_show(GTK_WIDGET(c));
-	// hidden controls don't count in boxes and grids
-	c->hidden = 0;
-	if (c->parent != NULL)
-		uiContainerUpdate(c->parent);
-}
-
-static void containerHide(uiControl *cc)
-{
-	containerWidget *c = containerWidget(cc->Internal);
-
-	gtk_widget_hide(GTK_WIDGET(c));
-	c->hidden = 1;
-	if (c->parent != NULL)
-		uiContainerUpdate(c->parent);
-}
-
-static void containerEnable(uiControl *cc)
-{
-	containerWidget *c = containerWidget(cc->Internal);
-
-	gtk_widget_set_sensitive(GTK_WIDGET(c), TRUE);
-}
-
-static void containerDisable(uiControl *cc)
-{
-	containerWidget *c = containerWidget(cc->Internal);
-
-	gtk_widget_set_sensitive(GTK_WIDGET(c), FALSE);
-}
-
-static void containerUpdate(uiContainer *cc)
-{
-	containerWidget *c = containerWidget(uiControl(cc)->Internal);
-
-	gtk_widget_queue_resize(GTK_WIDGET(c));
-}
-
-void uiMakeContainer(uiContainer *cc)
-{
-	containerWidget *c;
-
-	c = containerWidget(g_object_new(containerWidgetType, NULL));
-	c->c = cc;
-	// keep a reference to our container so it stays alive when reparented
-	g_object_ref_sink(c);
-	// and make it visible
-	gtk_widget_show_all(GTK_WIDGET(c));
-
-	uiControl(cc)->Internal = c;
-	uiControl(cc)->Destroy = containerDestroy;
-	uiControl(cc)->Handle = containerHandle;
-	uiControl(cc)->SetParent = containerSetParent;
-	// PreferredSize() is provided by subclasses
-	uiControl(cc)->Resize = containerResize;
-	uiControl(cc)->Visible = containerVisible;
-	uiControl(cc)->Show = containerShow;
-	uiControl(cc)->Hide = containerHide;
-	uiControl(cc)->Enable = containerEnable;
-	uiControl(cc)->Disable = containerDisable;
-
-	// ResizeChildren() is provided by subclasses
-	uiContainer(cc)->Update = containerUpdate;
+	widget = GTK_WIDGET(g_object_new(containerWidgetType, NULL));
+	uiUnixMakeSingleWidgetControl(c, widget);
+	return (uintptr_t) widget;
 }

@@ -18,6 +18,7 @@ osCFILES = \
 	unix/separator.c \
 	unix/slider.c \
 	unix/spinbox.c \
+	unix/stddialogs.c \
 	unix/tab.c \
 	unix/text.c \
 	unix/util.c \

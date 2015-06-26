@@ -150,5 +150,6 @@ uintptr_t uiMakeContainer(uiControl *c)
 
 	widget = GTK_WIDGET(g_object_new(containerWidgetType, NULL));
 	uiUnixMakeSingleWidgetControl(c, widget);
+	containerWidget(widget)->c = c;
 	return (uintptr_t) widget;
 }

@@ -115,7 +115,7 @@ static void windowSetChild(uiWindow *ww, uiControl *child)
 		uiControlSetParent(w->child, NULL);
 	w->child = child;
 	if (w->child != NULL) {
-		uiControlSetParent(w->child, uiControl(w));
+//TODO		uiControlSetParent(w->child, uiControl(w));
 		uiControlQueueResize(w->child);
 	}
 }

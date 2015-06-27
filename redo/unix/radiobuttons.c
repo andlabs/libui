@@ -1,8 +1,12 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
+// on GTK+ a uiRadioButtons is a GtkBox with each of the GtkRadioButtons as children
+
 struct radiobuttons {
 	uiRadioButtons r;
+	GtkWidget *boxWidget;
+	GtkBox *box;
 };
 
 uiDefineControlType(uiRadioButtons, uiTypeRadioButtons, struct radiobuttons)
@@ -26,7 +30,9 @@ uiRadioButtons *uiNewRadioButtons(void)
 
 	r = (struct radiobuttons *) uiNewControl(uiTypeRadioButtons());
 
-	PUT_CODE_HERE;
+	r->boxWidget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	r->box = GTK_BOX(r->boxWidget);
+	uiUnixMakeSingleWidgetControl(uiControl(r), r->boxWidget);
 
 	uiControl(r)->Handle = radiobuttonsHandle;
 

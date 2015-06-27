@@ -29,7 +29,8 @@ uiDateTimePicker *finishNewDateTimePicker(OSTHING OSARG)
 
 	d = (struct datetimepicker *) uiNewControl(uiTypeDateTimePicker());
 
-	PUT_CODE_HERE;
+	d->widget = gtk_label_new("TODO uiDateTimePicker not implemented");
+	uiUnixMakeSingleWidgetControl(uiControl(d), d->widget);
 
 	uiControl(d)->Handle = datetimepickerHandle;
 

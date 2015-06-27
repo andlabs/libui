@@ -4,6 +4,8 @@
 struct combobox {
 	uiCombobox c;
 	GtkWidget *widget;
+	GtkComboBox *combobox;
+	GtkComboBoxText *comboboxText;
 };
 
 uiDefineControlType(uiCombobox, uiTypeCombobox, struct combobox)
@@ -22,13 +24,16 @@ static void comboboxAppend(uiCombobox *cc, const char *text)
 	PUT_CODE_HERE;
 }
 
-static uiCombobox *finishNewCombobox(GtkWidget (*newfunc)(void))
+static uiCombobox *finishNewCombobox(GtkWidget *(*newfunc)(void))
 {
 	struct combobox *c;
 
 	c = (struct combobox *) uiNewControl(uiTypeCombobox());
 
-	PUT_CODE_HERE;
+	c->widget = (*newfunc)();
+	c->combobox = GTK_COMBO_BOX(c->widget);
+	c->comboboxText = GTK_COMBO_BOX_TEXT(c->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(c), c->widget);
 
 	uiControl(c)->Handle = comboboxHandle;
 

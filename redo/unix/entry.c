@@ -4,6 +4,8 @@
 struct entry {
 	uiEntry e;
 	GtkWidget *widget;
+	GtkEntry *entry;
+	GtkEditable *editable;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 };
@@ -65,7 +67,10 @@ uiEntry *uiNewEntry(void)
 
 	e = (struct entry *) uiNewControl(uiTypeEntry());
 
-	PUT_CODE_HERE;
+	e->widget = gtk_entry_new();
+	e->entry = GTK_ENTRY(e->widget);
+	e->editable = GTK_EDITABLE(e->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(e), e->widget);
 
 	e->onChanged = defaultOnChanged;
 

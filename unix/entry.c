@@ -79,14 +79,6 @@ uiEntry *uiNewEntry(void)
 
 	e = uiNew(struct entry);
 
-	uiUnixMakeControl(uiControl(e), GTK_TYPE_ENTRY,
-		FALSE, FALSE, onDestroy, e,
-		NULL);
-
-	e->widget = GTK_WIDGET(uiControlHandle(uiControl(e)));
-	e->entry = GTK_ENTRY(e->widget);
-	e->editable = GTK_EDITABLE(e->widget);
-
 	e->onChangedSignal = g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
 	e->onChanged = defaultOnChanged;
 

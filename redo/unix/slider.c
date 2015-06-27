@@ -4,6 +4,8 @@
 struct slider {
 	uiSlider s;
 	GtkWidget *widget;
+	GtkRange *range;
+	GtkScale *scale;
 	void (*onChanged)(uiSlider *, void *);
 	void *onChangedData;
 };
@@ -50,7 +52,13 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 
 	s = (struct slider *) uiNewControl(uiTypeSlider());
 
-	PUT_CODE_HERE;
+	s->widget = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, min, max, 1);
+	s->range = GTK_RANGE(s->widget);
+	s->scale = GTK_SCALE(s->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(s), s->widget);
+
+	// TODO needed?
+	gtk_scale_set_digits(s->scale, 0);
 
 	s->onChanged = defaultOnChanged;
 

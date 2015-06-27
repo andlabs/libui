@@ -80,16 +80,6 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c = uiNew(struct checkbox);
 
-	uiUnixMakeControl(uiControl(c), GTK_TYPE_CHECK_BUTTON,
-		FALSE, FALSE, onDestroy, c,
-		"label", text,
-		NULL);
-
-	c->widget = GTK_WIDGET(uiControlHandle(uiControl(c)));
-	c->button = GTK_BUTTON(c->widget);
-	c->toggleButton = GTK_TOGGLE_BUTTON(c->widget);
-	c->checkButton = GTK_CHECK_BUTTON(c->widget);
-
 	c->onToggledSignal = g_signal_connect(c->widget, "toggled", G_CALLBACK(onToggled), c);
 	c->onToggled = defaultOnToggled;
 

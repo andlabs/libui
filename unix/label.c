@@ -34,13 +34,6 @@ uiLabel *uiNewLabel(const char *text)
 
 	l = uiNew(struct label);
 
-	uiUnixMakeControl(uiControl(l), GTK_TYPE_LABEL,
-		FALSE, FALSE, onDestroy, l,
-		"label", text,
-		"xalign", 0.0,		// note: must be a float constant, otherwise the ... will turn it into an int and we get segfaults on some platforms (thanks ebassi in irc.gimp.net/#gtk+)
-		"yalign", 0.0,
-		NULL);
-
 	l->widget = GTK_WIDGET(uiControlHandle(uiControl(l)));
 	l->label = GTK_LABEL(l->widget);
 

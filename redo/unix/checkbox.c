@@ -4,6 +4,9 @@
 struct checkbox {
 	uiCheckbox c;
 	GtkWidget *widget;
+	GtkButton *button;
+	GtkToggleButton *toggleButton;
+	GtkCheckButton *checkButton;
 	void (*onToggled)(uiCheckbox *, void *);
 	void *onToggledData;
 };
@@ -66,7 +69,11 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c = (struct checkbox *) uiNewControl(uiTypeCheckbox());
 
-	PUT_CODE_HERE;
+	c->widget = gtk_check_button_new_with_label(text);
+	c->button = GTK_BUTTON(c->widget);
+	c->toggleButton = GTK_TOGGLE_BUTTON(c->widget);
+	c->checkButton = GTK_CHECK_BUTTON(c->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(c), c->widget);
 
 	c->onToggled = defaultOnToggled;
 

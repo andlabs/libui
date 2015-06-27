@@ -3,6 +3,9 @@
 
 struct spinbox {
 	uiSpinbox s;
+	GtkWidget *widget;
+	GtkEntry *entry;
+	GtkSpinButton *spinButton;
 	void (*onChanged)(uiSpinbox *, void *);
 	void *onChangedData;
 };
@@ -52,7 +55,13 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	s = (struct spinbox *) uiNewControl(uiTypeSpinbox());
 
-	PUT_CODE_HERE;
+	s->widget = gtk_spin_button_new_with_range(min, max, 1);
+	s->entry = GTK_ENTRY(s->widget);
+	s->spinButton = GTK_SPIN_BUTTON(s->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(s), s->widget);
+
+	// TODO needed?
+	gtk_spin_button_set_digits(s->spinButton, 0);
 
 	s->onChanged = defaultOnChanged;
 

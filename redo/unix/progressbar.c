@@ -4,6 +4,7 @@
 struct progressbar {
 	uiProgressBar p;
 	GtkWidget *widget;
+	GtkProgressBar *pbar;
 };
 
 uiDefineControlType(uiProgressBar, uiTypeProgressBar, struct progressbar)
@@ -30,7 +31,9 @@ uiProgressBar *uiNewProgressBar(void)
 
 	p = (struct progressbar *) uiNewControl(uiTypeProgressBar());
 
-	PUT_CODE_HERE;
+	p->widget = gtk_progress_bar_new();
+	p->pbar = GTK_PROGRESS_BAR(p->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(p), p->widget);
 
 	uiControl(p)->Handle = progressbarHandle;
 

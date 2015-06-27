@@ -60,14 +60,14 @@ static void singleWidgetCommitDisable(uiControl *c)
 
 static uintptr_t singleWidgetStartZOrder(uiControl *c)
 {
-	complain("singleWidgetStartZOrder() meaningless on GTK+");
-	return 0;		// keep compiler happy
+	// we don't need to do anything; GTK+ does it for us
+	return 0;
 }
 
 static uintptr_t singleWidgetSetZOrder(uiControl *c, uintptr_t insertAfter)
 {
-	complain("singleWidgetSetZOrder() meaningless on GTK+");
-	return 0;		// keep compiler happy
+	// we don't need to do anything; GTK+ does it for us
+	return 0;
 }
 
 static int singleWidgetHasTabStops(uiControl *c)

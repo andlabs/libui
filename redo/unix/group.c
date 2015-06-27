@@ -4,6 +4,8 @@
 struct group {
 	uiGroup g;
 	GtkWidget *widget;
+	GtkContainer *container;
+	GtkFrame *frame;
 	uiControl *child;
 	int margined;
 };
@@ -72,10 +74,32 @@ static void groupSetMargined(uiGroup *gg, int margined)
 uiGroup *uiNewGroup(const char *text)
 {
 	struct group *g;
+	gfloat yalign;
+	GtkLabel *label;
+	PangoAttribute *bold;
+	PangoAttrList *boldlist;
 
 	g = (struct group *) uiNewControl(uiTypeGroup());
 
-	PUT_CODE_HERE;
+	g->widget = gtk_frame_new(text);
+	g->container = GTK_CONTAINER(g->widget);
+	g->frame = GTK_FRAME(g->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(g), g->widget);
+
+	// with GTK+, groupboxes by default have frames and slightly x-offset regular text
+	// they should have no frame and fully left-justified, bold text
+	// preserve default y-alignment
+	gtk_frame_get_label_align(g->frame, NULL, &yalign);
+	gtk_frame_set_label_align(g->frame, 0, yalign);
+	gtk_frame_set_shadow_type(g->frame, GTK_SHADOW_NONE);
+	label = GTK_LABEL(gtk_frame_get_label_widget(g->frame));
+	// this is the boldness level used by GtkPrintUnixDialog
+	// (it technically uses "bold" but see pango's pango-enum-types.c for the name conversion; GType is weird)
+	bold = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
+	boldlist = pango_attr_list_new();
+	pango_attr_list_insert(boldlist, bold);
+	gtk_label_set_attributes(label, boldlist);
+	pango_attr_list_unref(boldlist);		// thanks baedert in irc.gimp.net/#gtk+
 
 	uiControl(g)->Handle = groupHandle;
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;

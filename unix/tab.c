@@ -135,16 +135,7 @@ uiTab *uiNewTab(void)
 
 	t = uiNew(struct tab);
 
-	uiUnixMakeControl(uiControl(t), GTK_TYPE_NOTEBOOK,
-		FALSE, FALSE, onDestroy, t,
-		"scrollable", TRUE,
-		NULL);
-
 	t->pages = g_array_new(FALSE, TRUE, sizeof (struct tabPage));
-
-	t->widget = GTK_WIDGET(uiControlHandle(uiControl(t)));
-	t->container = GTK_CONTAINER(t->widget);
-	t->notebook = GTK_NOTEBOOK(t->widget);
 
 	uiControl(t)->Show = tabShow;
 

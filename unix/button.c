@@ -56,14 +56,6 @@ uiButton *uiNewButton(const char *text)
 
 	b = uiNew(struct button);
 
-	uiUnixMakeControl(uiControl(b), GTK_TYPE_BUTTON,
-		FALSE, FALSE, onDestroy, b,
-		"label", text,
-		NULL);
-
-	b->widget = GTK_WIDGET(uiControlHandle(uiControl(b)));
-	b->button = GTK_BUTTON(b->widget);
-
 	g_signal_connect(b->widget, "clicked", G_CALLBACK(onClicked), b);
 	b->onClicked = defaultOnClicked;
 

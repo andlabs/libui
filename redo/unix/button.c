@@ -4,6 +4,7 @@
 struct button {
 	uiButton b;
 	GtkWidget *widget;
+	GtkButton *button;
 	void (*onClicked)(uiButton *, void *);
 	void *onClickedData;
 };
@@ -52,7 +53,9 @@ uiButton *uiNewButton(const char *text)
 
 	b = (struct button *) uiNewControl(uiTypeButton());
 
-	PUT_CODE_HERE;
+	b->widget = gtk_button_new_with_label(text);
+	b->button = GTK_BUTTON(b->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(b), b->widget);
 
 	b->onClicked = defaultOnClicked;
 

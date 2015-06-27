@@ -3,7 +3,10 @@
 
 struct tab {
 	uiTab t;
+
 	GtkWidget *widget;
+	GtkContainer *container;
+	GtkNotebook *notebook;
 };
 
 uiDefineControlType(uiTab, uiTypeTab, struct tab)
@@ -63,7 +66,12 @@ uiTab *uiNewTab(void)
 
 	t = (struct tab *) uiNewControl(uiTypeTab());
 
-	PUT_CODE_HERE;
+	t->widget = gtk_notebook_new();
+	t->container = GTK_CONTAINER(t->widget);
+	t->notebook = GTK_NOTEBOOK(t->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(t), t->widget);
+
+	gtk_notebook_set_scrollable(t->notebook, TRUE);
 
 	uiControl(t)->Handle = tabHandle;
 

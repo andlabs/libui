@@ -4,6 +4,7 @@
 struct separator {
 	uiSeparator s;
 	GtkWidget *widget;
+	GtkSeparator *separator;
 };
 
 uiDefineControlType(uiSeparator, uiTypeSeparator, struct separator)
@@ -21,7 +22,9 @@ uiSeparator *uiNewHorizontalSeparator(void)
 
 	s = (struct separator *) uiNewControl(uiTypeSeparator());
 
-	PUT_CODE_HERE;
+	s->widget = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+	s->separator = GTK_SEPARATOR(s->widget);
+	uiUnixMakeSingleWidgetControl(uiControl(s), s->widget);
 
 	uiControl(s)->Handle = separatorHandle;
 

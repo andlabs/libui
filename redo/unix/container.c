@@ -153,3 +153,46 @@ uintptr_t uiMakeContainer(uiControl *c)
 	containerWidget(widget)->c = c;
 	return (uintptr_t) widget;
 }
+
+// A holder wraps a uiControl in a single GtkWidget.
+// It is used for things like GtkWindow, GtkNotebook, etc..
+// The containerWidget's c is the wrapped uiControl.
+// TODO what happens when destroying these and regular containerWidgets?
+
+struct holder {
+	uiControl c;
+	containerWidget *cw;
+};
+
+uiDefineControlType(holder, holderType, struct holder)
+
+static uintptr_t holderHandle(uiControl *c)
+{
+	struct holder *h = (struct holder *) c;
+
+	return (uintptr_t) (h->cw);
+}
+
+uiControl *newHolder(void)
+{
+	struct holder *h;
+
+	h = (struct holder *) uiNewControl(holderType());
+
+	h->cw = containerWidget(uiMakeContainer(uiControl(h)));
+
+	uiControl(h)->Handle = holderHandle;
+
+	return uiControl(h);
+}
+
+void holderSetChild(uiControl *hh, uiControl *c)
+{
+	struct holder *h = (struct holder *) hh;
+
+	if (h->cw->c != NULL)
+		uiControlSetParent(h->cw->c, NULL);
+	h->cw->c = c;
+	if (c != NULL)
+		uiControlSetParent(h->cw->c, uiControl(h));
+}

@@ -20,5 +20,9 @@ extern void uninitMenus(void);
 extern void initAlloc(void);
 extern void uninitAlloc(void);
 
+// container.c
+extern uiControl *newHolder(void);
+extern void holderSetChild(uiControl *, uiControl *);
+
 // TODO
 #define PUT_CODE_HERE 0

@@ -91,7 +91,7 @@ static void containerWidget_get_preferred_height(GtkWidget *widget, gint *minimu
 	uiSizing *d;
 
 	d = uiUnixNewSizing();
-	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
+	uiControlPreferredSize(uiControl(c->c), d, &width, &height);
 	uiFreeSizing(d);
 	*minimum = 0;			// allow arbitrary resize
 	*natural = height;
@@ -104,7 +104,7 @@ static void containerWidget_get_preferred_width(GtkWidget *widget, gint *minimum
 	uiSizing *d;
 
 	d = uiUnixNewSizing();
-	uiControlPreferredSize(uiControl(c->c), &d, &width, &height);
+	uiControlPreferredSize(uiControl(c->c), d, &width, &height);
 	uiFreeSizing(d);
 	*minimum = 0;			// allow arbitrary resize
 	*natural = width;

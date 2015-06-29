@@ -16,7 +16,9 @@ struct window {
 
 	GtkWidget *menubar;
 
+	uiControl *holder;
 	uiControl *child;
+
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	int margined;
@@ -47,10 +49,11 @@ static void windowCommitDestroy(uiControl *c)
 
 	// first hide ourselves
 	gtk_widget_hide(w->widget);
-	// now destroy the bin
-	// we need to remove the bin from its parent first
-//TODO	uiBinRemoveOSParent(w->bin);
-//TODO	uiControlDestroy(uiControl(w->bin));
+	// now destroy the child; removing it from its holder first
+	holderSetChild(w->holder, NULL);
+	uiControlDestroy(w->child);
+	// now destroy the holder
+	uiControlDestroy(w->holder);
 	// now destroy the menus, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
@@ -112,10 +115,10 @@ static void windowSetChild(uiWindow *ww, uiControl *child)
 	struct window *w = (struct window *) ww;
 
 	if (w->child != NULL)
-		uiControlSetParent(w->child, NULL);
+		holderSetChild(w->holder, NULL);
 	w->child = child;
 	if (w->child != NULL) {
-//TODO		uiControlSetParent(w->child, uiControl(w));
+		holderSetChild(w->holder, w->child);
 		uiControlQueueResize(w->child);
 	}
 }
@@ -147,6 +150,7 @@ static void windowResizeChild(uiWindow *ww)
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	struct window *w;
+	GtkWidget *holderWidget;
 
 	w = (struct window *) uiNewControl(uiTypeWindow());
 
@@ -171,14 +175,14 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		gtk_container_add(w->vboxContainer, w->menubar);
 	}
 
-/*TODO	w->bin = newBin();
-	binWidget = GTK_WIDGET(uiControlHandle(uiControl(w->bin)));
-	gtk_widget_set_hexpand(binWidget, TRUE);
-	gtk_widget_set_halign(binWidget, GTK_ALIGN_FILL);
-	gtk_widget_set_vexpand(binWidget, TRUE);
-	gtk_widget_set_valign(binWidget, GTK_ALIGN_FILL);
-	uiBinSetOSParent(w->bin, (uintptr_t) (w->vboxContainer));
-*/
+	w->holder = newHolder();
+	holderWidget = GTK_WIDGET(uiControlHandle(uiControl(w->holder)));
+	gtk_widget_set_hexpand(holderWidget, TRUE);
+	gtk_widget_set_halign(holderWidget, GTK_ALIGN_FILL);
+	gtk_widget_set_vexpand(holderWidget, TRUE);
+	gtk_widget_set_valign(holderWidget, GTK_ALIGN_FILL);
+	gtk_container_add(w->vboxContainer, holderWidget);
+
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxWidget);
 

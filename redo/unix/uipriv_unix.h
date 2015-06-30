@@ -10,6 +10,8 @@
 
 #define gtkXMargin 12
 #define gtkYMargin 12
+#define gtkXPadding 12
+#define gtkYPadding 6
 
 // menu.c
 extern GtkWidget *makeMenubar(uiWindow *);

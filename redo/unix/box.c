@@ -1,6 +1,5 @@
 // 7 april 2015
-#include "out/ui.h"
-#include "uipriv.h"
+#include "uipriv_unix.h"
 
 struct box {
 	uiBox b;

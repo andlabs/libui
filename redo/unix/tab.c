@@ -12,9 +12,8 @@ struct tab {
 };
 
 struct tabPage {
-	uiControl *holder;
-	GtkWidget *holderWidget;
 	uiControl *c;
+	GtkWidget *widget;
 	int margined;
 };
 
@@ -39,14 +38,12 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 	struct tab *t = (struct tab *) tt;
 	struct tabPage page;
 
-	page.holder = newHolder();
 	page.c = child;
-	holderSetChild(page.holder, page.c);
-	page.holderWidget = GTK_WIDGET(uiControlHandle(page.holder));
+	page.widget = GTK_WIDGET(uiControlHandle(page.c));
 
-	gtk_container_add(t->container, page.holderWidget);
-	gtk_notebook_set_tab_label_text(t->notebook, page.holderWidget, name);
-	gtk_notebook_reorder_child(t->notebook, page.holderWidget, n);
+	uiControlSetParent(page.c, uiControl(t));
+	gtk_notebook_set_tab_label_text(t->notebook, page.widget, name);
+	gtk_notebook_reorder_child(t->notebook, page.widget, n);
 
 	g_array_insert_val(t->pages, n, page);
 }

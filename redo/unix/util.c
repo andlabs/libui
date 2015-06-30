@@ -12,9 +12,6 @@ void complain(const char *fmt, ...)
 	g_error("[libui] %s\n", msg);
 }
 
-#define gtkXPadding 12
-#define gtkYPadding 6
-
 uiSizing *uiUnixNewSizing(void)
 {
 	uiSizing *d;

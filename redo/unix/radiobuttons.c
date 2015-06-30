@@ -11,7 +11,7 @@ struct radiobuttons {
 
 uiDefineControlType(uiRadioButtons, uiTypeRadioButtons, struct radiobuttons)
 
-// TODO note that the handle of a uiRadioButtons is undefined
+// TODO note that the handle of a uiRadioButtons is undefined (or at least highly platform-dependent and unreliable)
 static uintptr_t radiobuttonsHandle(uiControl *c)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;

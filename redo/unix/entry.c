@@ -8,9 +8,17 @@ struct entry {
 	GtkEditable *editable;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
+	gulong onChangedSignal;
 };
 
 uiDefineControlType(uiEntry, uiTypeEntry, struct entry)
+
+static void onChanged(GtkEditable *editable, gpointer data)
+{
+	struct entry *e = (struct entry *) data;
+
+	(*(e->onChanged))(uiEntry(e), e->onChangedData);
+}
 
 static uintptr_t entryHandle(uiControl *c)
 {
@@ -28,14 +36,17 @@ static char *entryText(uiEntry *ee)
 {
 	struct entry *e = (struct entry *) ee;
 
-	return PUT_CODE_HERE;
+	return uiUnixStrdupText(gtk_entry_get_text(e->entry));
 }
 
 static void entrySetText(uiEntry *ee, const char *text)
 {
 	struct entry *e = (struct entry *) ee;
 
-	PUT_CODE_HERE;
+	// we need to inhibit sending of ::changed because this WILL send a ::changed otherwise
+	g_signal_handler_block(e->editable, e->onChangedSignal);
+	gtk_entry_set_text(e->entry, text);
+	g_signal_handler_unblock(e->editable, e->onChangedSignal);
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
 
@@ -51,14 +62,18 @@ static int entryReadOnly(uiEntry *ee)
 {
 	struct entry *e = (struct entry *) ee;
 
-	return PUT_CODE_HERE;
+	return gtk_editable_get_editable(e->editable) == FALSE;
 }
 
 static void entrySetReadOnly(uiEntry *ee, int readonly)
 {
 	struct entry *e = (struct entry *) ee;
+	gboolean editable;
 
-	PUT_CODE_HERE;
+	editable = TRUE;
+	if (readonly)
+		editable = FALSE;
+	gtk_editable_set_editable(e->editable, editable);
 }
 
 uiEntry *uiNewEntry(void)
@@ -72,6 +87,7 @@ uiEntry *uiNewEntry(void)
 	e->editable = GTK_EDITABLE(e->widget);
 	uiUnixMakeSingleWidgetControl(uiControl(e), e->widget);
 
+	e->onChangedSignal = g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
 	e->onChanged = defaultOnChanged;
 
 	uiControl(e)->Handle = entryHandle;

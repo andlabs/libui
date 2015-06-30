@@ -61,14 +61,27 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 	struct box *b = (struct box *) ss;
 	struct boxControl *bc;
 	uintmax_t i;
+	GtkWidget *widget;
+	gboolean hexpand, vexpand;
 
 	bc = uiNew(struct boxControl);
 	bc->c = c;
 	bc->stretchy = stretchy;
+	widget = GTK_WIDGET(uiControlHandle(bc->c));
+	hexpand = FALSE;
+	vexpand = FALSE;
+	if (bc->stretchy)
+		if (b->vertical)
+			vexpand = TRUE;
+		else
+			hexpand = TRUE;
+	gtk_widget_set_hexpand(widget, hexpand);
+	gtk_widget_set_halign(widget, GTK_ALIGN_FILL);
+	gtk_widget_set_vexpand(widget, vexpand);
+	gtk_widget_set_valign(widget, GTK_ALIGN_FILL);
 	uiControlSetParent(bc->c, uiControl(b));
 	ptrArrayAppend(b->controls, bc);
 	uiControlQueueResize(uiControl(b));
-	// TODO stretchy
 	// TODO when adding boxInsertAt(), we use gtk_box_reorder_child()
 }
 

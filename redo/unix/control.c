@@ -22,6 +22,16 @@ static void singleWidgetCommitSetParent(uiControl *c, uiControl *parent)
 	gtk_container_add(GTK_CONTAINER(newParent), WIDGET(c));
 }
 
+static void singleWidgetPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+{
+	// use the natural height; it makes more sense
+	GtkAllocation natural;
+
+	gtk_widget_get_preferred_size(WIDGET(c), NULL, &natural);
+	*width = (intmax_t) (natural.width);
+	*height = (intmax_t) (natural.height);
+}
+
 static void singleWidgetResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
 	GtkAllocation a;
@@ -84,6 +94,7 @@ void uiUnixMakeSingleWidgetControl(uiControl *c, GtkWidget *widget)
 
 	uiControl(c)->CommitDestroy = singleWidgetCommitDestroy;
 	uiControl(c)->CommitSetParent = singleWidgetCommitSetParent;
+	uiControl(c)->PreferredSize = singleWidgetPreferredSize;
 	uiControl(c)->Resize = singleWidgetResize;
 	uiControl(c)->Sizing = singleWidgetSizing;
 	uiControl(c)->CommitShow = singleWidgetCommitShow;

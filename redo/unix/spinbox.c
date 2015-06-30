@@ -16,7 +16,7 @@ static uintptr_t spinboxHandle(uiControl *c)
 {
 	struct spinbox *s = (struct spinbox *) c;
 
-	return PUT_CODE_HERE;
+	return (uintptr_t) (s->widget);
 }
 
 static void defaultOnChanged(uiSpinbox *s, void *data)

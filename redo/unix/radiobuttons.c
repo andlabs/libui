@@ -11,9 +11,12 @@ struct radiobuttons {
 
 uiDefineControlType(uiRadioButtons, uiTypeRadioButtons, struct radiobuttons)
 
+// TODO note that the handle of a uiRadioButtons is undefined
 static uintptr_t radiobuttonsHandle(uiControl *c)
 {
-	return 0;
+	struct radiobuttons *r = (struct radiobuttons *) c;
+
+	return (uintptr_t) (r->boxWidget);
 }
 
 static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)

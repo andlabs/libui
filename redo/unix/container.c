@@ -180,6 +180,7 @@ uiControl *newHolder(void)
 	h = (struct holder *) uiNewControl(holderType());
 
 	h->cw = containerWidget(uiMakeContainer(uiControl(h)));
+	h->cw->c = NULL;		// but don't make it manage ourselves
 
 	uiControl(h)->Handle = holderHandle;
 

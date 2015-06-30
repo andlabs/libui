@@ -2,6 +2,7 @@
 
 osCFILES = \
 	windows/alloc.c \
+	windows/box.c \
 	windows/button.c \
 	windows/checkbox.c \
 	windows/combobox.c \

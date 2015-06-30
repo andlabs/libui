@@ -2,6 +2,7 @@
 
 osCFILES = \
 	unix/alloc.c \
+	unix/box.c \
 	unix/button.c \
 	unix/checkbox.c \
 	unix/combobox.c \

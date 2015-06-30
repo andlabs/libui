@@ -44,38 +44,7 @@ static void tabShow(uiControl *c)
 	gtk_widget_show(t->widget);
 }
 
-#define tabCapGrow 32
 
-static void tabAppendPage(uiTab *tt, const char *name, uiControl *child)
-{
-	struct tab *t = (struct tab *) tt;
-	struct tabPage page;
-
-	page.bin = newBin();
-	uiBinSetMainControl(page.bin, child);
-	// and add it as a tab page
-	uiBinSetOSParent(page.bin, (uintptr_t) (t->container));
-	page.binWidget = GTK_WIDGET(uiControlHandle(uiControl(page.bin)));
-	gtk_notebook_set_tab_label_text(t->notebook, page.binWidget, name);
-
-	g_array_append_val(t->pages, page);
-}
-
-static void tabInsertPageBefore(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
-{
-	struct tab *t = (struct tab *) tt;
-	struct tabPage page;
-
-	page.bin = newBin();
-	uiBinSetMainControl(page.bin, child);
-	// and add it as a tab page
-	uiBinSetOSParent(page.bin, (uintptr_t) (t->container));
-	page.binWidget = GTK_WIDGET(uiControlHandle(uiControl(page.bin)));
-	gtk_notebook_set_tab_label_text(t->notebook, page.binWidget, name);
-
-	gtk_notebook_reorder_child(t->notebook, page.binWidget, n);
-	g_array_insert_val(t->pages, n, page);
-}
 
 static void tabDeletePage(uiTab *tt, uintmax_t n)
 {
@@ -97,13 +66,6 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	uiControlDestroy(uiControl(page->bin));
 
 	g_array_remove_index(t->pages, n);
-}
-
-static uintmax_t tabNumPages(uiTab *tt)
-{
-	struct tab *t = (struct tab *) tt;
-
-	return t->pages->len;
 }
 
 static int tabMargined(uiTab *tt, uintmax_t n)
@@ -134,8 +96,6 @@ uiTab *uiNewTab(void)
 	struct tab *t;
 
 	t = uiNew(struct tab);
-
-	t->pages = g_array_new(FALSE, TRUE, sizeof (struct tabPage));
 
 	uiControl(t)->Show = tabShow;
 

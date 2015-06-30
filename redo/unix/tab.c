@@ -7,6 +7,15 @@ struct tab {
 	GtkWidget *widget;
 	GtkContainer *container;
 	GtkNotebook *notebook;
+
+	GArray *pages;
+};
+
+struct tabPage {
+	uiControl *holder;
+	GtkWidget *holderWidget;
+	uiControl *c;
+	int margined;
 };
 
 uiDefineControlType(uiTab, uiTypeTab, struct tab)
@@ -22,14 +31,24 @@ static void tabAppend(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
 
-	uiTabInsertAt(tt, name, PUT_CODE_HERE, child);
+	uiTabInsertAt(tt, name, t->pages->len, child);
 }
 
 static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
+	struct tabPage page;
 
-	PUT_CODE_HERE;
+	page.holder = newHolder();
+	page.c = child;
+	holderSetChild(page.holder, page.c);
+	page.holderWidget = GTK_WIDGET(uiControlHandle(page.holder));
+
+	gtk_container_add(t->container, page.holderWidget);
+	gtk_notebook_set_tab_label(t->container, page.holderWidget, name);
+	gtk_notebook_reorder_child(t->container, page.holderWidget, n);
+
+	g_array_insert_val(t->pages, n, page);
 }
 
 static void tabDelete(uiTab *tt, uintmax_t n)
@@ -43,7 +62,7 @@ static uintmax_t tabNumPages(uiTab *tt)
 {
 	struct tab *t = (struct tab *) tt;
 
-	return PUT_CODE_HERE;
+	return t->pages->len;
 }
 
 static int tabMargined(uiTab *tt, uintmax_t n)
@@ -72,6 +91,8 @@ uiTab *uiNewTab(void)
 	uiUnixMakeSingleWidgetControl(uiControl(t), t->widget);
 
 	gtk_notebook_set_scrollable(t->notebook, TRUE);
+
+	t->pages = g_array_new(FALSE, TRUE, sizeof (struct tabPage));
 
 	uiControl(t)->Handle = tabHandle;
 

@@ -45,8 +45,8 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 	page.holderWidget = GTK_WIDGET(uiControlHandle(page.holder));
 
 	gtk_container_add(t->container, page.holderWidget);
-	gtk_notebook_set_tab_label(t->container, page.holderWidget, name);
-	gtk_notebook_reorder_child(t->container, page.holderWidget, n);
+	gtk_notebook_set_tab_label_text(t->notebook, page.holderWidget, name);
+	gtk_notebook_reorder_child(t->notebook, page.holderWidget, n);
 
 	g_array_insert_val(t->pages, n, page);
 }

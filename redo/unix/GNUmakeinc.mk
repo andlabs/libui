@@ -7,7 +7,6 @@ osCFILES = \
 	unix/checkbox.c \
 	unix/combobox.c \
 	unix/control.c \
-	unix/container.c \
 	unix/datetimepicker.c \
 	unix/entry.c \
 	unix/group.c \

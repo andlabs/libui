@@ -45,8 +45,9 @@ static void controlBaseSetParent(uiControl *c, uiControl *parent)
 		complain("attempt to reparent uiControl %p (has parent %p, attempt to give parent %p)", c, cb->parent, parent);
 	if (parent == NULL && cb->parent == NULL)
 		complain("attempt to double unparent uiControl %p", c);
-	cb->parent = parent;
+	// this must come first; GTK+ CommitSetParent() needs the old parent
 	uiControlCommitSetParent(c, parent);
+	cb->parent = parent;
 	// for situations such as where the old parent was disabled but the new one is not, etc.
 	uiControlUpdateState(c);
 }

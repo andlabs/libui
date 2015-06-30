@@ -11,6 +11,13 @@ struct button {
 
 uiDefineControlType(uiButton, uiTypeButton, struct button)
 
+static void onClicked(GtkButton *button, gpointer data)
+{
+	struct button *b = (struct button *) data;
+
+	(*(b->onClicked))(uiButton(b), b->onClickedData);
+}
+
 static uintptr_t buttonHandle(uiControl *c)
 {
 	struct button *b = (struct button *) c;
@@ -27,14 +34,14 @@ static char *buttonText(uiButton *bb)
 {
 	struct button *b = (struct button *) bb;
 
-	return PUT_CODE_HERE;
+	return uiUnixStrdupText(gtk_button_get_label(b->button));
 }
 
 static void buttonSetText(uiButton *bb, const char *text)
 {
 	struct button *b = (struct button *) bb;
 
-	PUT_CODE_HERE;
+	gtk_button_set_label(b->button, text);
 	// changing the text might necessitate a change in the button's size
 	uiControlQueueResize(uiControl(b));
 }
@@ -57,6 +64,7 @@ uiButton *uiNewButton(const char *text)
 	b->button = GTK_BUTTON(b->widget);
 	uiUnixMakeSingleWidgetControl(uiControl(b), b->widget);
 
+	g_signal_connect(b->widget, "clicked", G_CALLBACK(onClicked), b);
 	b->onClicked = defaultOnClicked;
 
 	uiControl(b)->Handle = buttonHandle;

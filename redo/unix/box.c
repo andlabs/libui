@@ -1,6 +1,9 @@
 // 7 april 2015
 #include "uipriv_unix.h"
 
+// TODO
+// - the move the label box on GTK+ is not sized halfway, or the label below it is not; one of the two
+
 struct box {
 	uiBox b;
 	GtkWidget *widget;

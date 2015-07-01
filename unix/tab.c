@@ -68,29 +68,6 @@ static void tabDeletePage(uiTab *tt, uintmax_t n)
 	g_array_remove_index(t->pages, n);
 }
 
-static int tabMargined(uiTab *tt, uintmax_t n)
-{
-	struct tab *t = (struct tab *) tt;
-	struct tabPage *page;
-
-	page = &g_array_index(t->pages, struct tabPage, n);
-	return page->margined;
-}
-
-static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
-{
-	struct tab *t = (struct tab *) tt;
-	struct tabPage *page;
-
-	page = &g_array_index(t->pages, struct tabPage, n);
-	page->margined = margined;
-	if (page->margined)
-		uiBinSetMargins(page->bin, gtkXMargin, gtkYMargin, gtkXMargin, gtkYMargin);
-	else
-		uiBinSetMargins(page->bin, 0, 0, 0, 0);
-	uiContainerUpdate(page->bin);
-}
-
 uiTab *uiNewTab(void)
 {
 	struct tab *t;

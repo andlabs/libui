@@ -12,9 +12,9 @@ struct tab {
 };
 
 struct tabPage {
+	uiControl *bin;
+	GtkWidget *binWidget;
 	uiControl *c;
-	GtkWidget *widget;
-	int margined;
 };
 
 uiDefineControlType(uiTab, uiTypeTab, struct tab)
@@ -39,11 +39,13 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 	struct tabPage page;
 
 	page.c = child;
-	page.widget = GTK_WIDGET(uiControlHandle(page.c));
+	page.bin = newBin();
+	page.binWidget = GTK_WIDGET(uiControlHandle(page.bin));
+	binSetChild(page.bin, page.c);
 
-	uiControlSetParent(page.c, uiControl(t));
-	gtk_notebook_set_tab_label_text(t->notebook, page.widget, name);
-	gtk_notebook_reorder_child(t->notebook, page.widget, n);
+	uiControlSetParent(page.bin, uiControl(t));
+	gtk_notebook_set_tab_label_text(t->notebook, page.binWidget, name);
+	gtk_notebook_reorder_child(t->notebook, page.binWidget, n);
 
 	g_array_insert_val(t->pages, n, page);
 }
@@ -65,15 +67,19 @@ static uintmax_t tabNumPages(uiTab *tt)
 static int tabMargined(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
+	struct tabPage *page;
 
-	return PUT_CODE_HERE;
+	page = &g_array_index(t->pages, struct tabPage, n);
+	return binMargined(page->bin);
 }
 
 static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 {
 	struct tab *t = (struct tab *) tt;
+	struct tabPage *page;
 
-	PUT_CODE_HERE;
+	page = &g_array_index(t->pages, struct tabPage, n);
+	binSetMargined(page->bin, margined);
 }
 
 uiTab *uiNewTab(void)

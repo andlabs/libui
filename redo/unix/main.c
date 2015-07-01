@@ -21,6 +21,7 @@ const char *uiInit(uiInitOptions *o)
 void uiUninit(void)
 {
 	uninitMenus();
+	uninitTypes();
 	uninitAlloc();
 }
 

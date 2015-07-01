@@ -21,14 +21,14 @@ static char *labelText(uiLabel *ll)
 {
 	struct label *l = (struct label *) ll;
 
-	return PUT_CODE_HERE;
+	return uiUnixStrdupText(gtk_label_get_text(l->label));
 }
 
 static void labelSetText(uiLabel *ll, const char *text)
 {
 	struct label *l = (struct label *) ll;
 
-	PUT_CODE_HERE;
+	gtk_label_set_text(l->label, text);
 	// changing the text might necessitate a change in the label's size
 	uiControlQueueResize(uiControl(l));
 }

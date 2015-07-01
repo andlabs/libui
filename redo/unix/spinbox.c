@@ -12,6 +12,13 @@ struct spinbox {
 
 uiDefineControlType(uiSpinbox, uiTypeSpinbox, struct spinbox)
 
+static void onChanged(GtkSpinButton *sb, gpointer data)
+{
+	struct spinbox *s = (struct spinbox *) data;
+
+	(*(s->onChanged))(uiSpinbox(s), s->onChangedData);
+}
+
 static uintptr_t spinboxHandle(uiControl *c)
 {
 	struct spinbox *s = (struct spinbox *) c;
@@ -28,14 +35,16 @@ static intmax_t spinboxValue(uiSpinbox *ss)
 {
 	struct spinbox *s = (struct spinbox *) ss;
 
-	return PUT_CODE_HERE;
+	return (intmax_t) gtk_spin_button_get_value(s->spinButton);
 }
 
 static void spinboxSetValue(uiSpinbox *ss, intmax_t value)
 {
 	struct spinbox *s = (struct spinbox *) ss;
 
-	PUT_CODE_HERE;
+	// TODO does this raise an event?
+	// TODO does this clamp?
+	gtk_spin_button_set_value(s->spinButton, (gdouble) value);
 }
 
 static void spinboxOnChanged(uiSpinbox *ss, void (*f)(uiSpinbox *, void *), void *data)
@@ -63,6 +72,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	// TODO needed?
 	gtk_spin_button_set_digits(s->spinButton, 0);
 
+	g_signal_connect(s->spinButton, "value-changed", G_CALLBACK(onChanged), s);
 	s->onChanged = defaultOnChanged;
 
 	uiControl(s)->Handle = spinboxHandle;

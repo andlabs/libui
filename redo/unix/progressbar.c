@@ -22,7 +22,7 @@ static void progressbarSetValue(uiProgressBar *pp, int value)
 
 	if (value < 0 || value > 100)
 		complain("value %d out of range in progressbarSetValue()", value);
-	PUT_CODE_HERE;
+	gtk_progress_bar_set_fraction(p->pbar, ((gdouble) value) / 100);
 }
 
 uiProgressBar *uiNewProgressBar(void)

@@ -12,6 +12,13 @@ struct slider {
 
 uiDefineControlType(uiSlider, uiTypeSlider, struct slider)
 
+static void onChanged(GtkRange *range, gpointer data)
+{
+	struct slider *s = (struct slider *) data;
+
+	(*(s->onChanged))(uiSlider(s), s->onChangedData);
+}
+
 static uintptr_t sliderHandle(uiControl *c)
 {
 	struct slider *s = (struct slider *) c;
@@ -28,14 +35,14 @@ static intmax_t sliderValue(uiSlider *ss)
 {
 	struct slider *s = (struct slider *) ss;
 
-	return PUT_CODE_HERE;
+	return (intmax_t) gtk_range_get_value(s->range);
 }
 
 static void sliderSetValue(uiSlider *ss, intmax_t value)
 {
 	struct slider *s = (struct slider *) ss;
 
-	PUT_CODE_HERE;
+	gtk_range_set_value(s->range, value);
 }
 
 static void sliderOnChanged(uiSlider *ss, void (*f)(uiSlider *, void *), void *data)
@@ -60,6 +67,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	// TODO needed?
 	gtk_scale_set_digits(s->scale, 0);
 
+	g_signal_connect(s->scale, "value-changed", G_CALLBACK(onChanged), s);
 	s->onChanged = defaultOnChanged;
 
 	uiControl(s)->Handle = sliderHandle;

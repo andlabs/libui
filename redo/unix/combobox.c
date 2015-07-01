@@ -21,7 +21,7 @@ static void comboboxAppend(uiCombobox *cc, const char *text)
 {
 	struct combobox *c = (struct combobox *) cc;
 
-	PUT_CODE_HERE;
+	gtk_combo_box_text_append(c->comboboxText, NULL, text);
 }
 
 static uiCombobox *finishNewCombobox(GtkWidget *(*newfunc)(void))

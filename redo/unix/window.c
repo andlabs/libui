@@ -16,11 +16,11 @@ struct window {
 
 	GtkWidget *menubar;
 
+	uiControl *bin;
 	uiControl *child;
 
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
-	int margined;
 	void (*baseCommitDestroy)(uiControl *c);
 };
 
@@ -49,8 +49,10 @@ static void windowCommitDestroy(uiControl *c)
 	// first hide ourselves
 	gtk_widget_hide(w->widget);
 	// now destroy the child
-	uiControlSetParent(w->child, NULL);
+	binSetChild(w->bin, NULL);
 	uiControlDestroy(w->child);
+	// and destroy the bin
+	uiControlDestroy(w->bin);
 	// now destroy the menus, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
@@ -112,32 +114,24 @@ static void windowSetChild(uiWindow *ww, uiControl *child)
 	struct window *w = (struct window *) ww;
 
 	if (w->child != NULL)
-		uiControlSetParent(w->child, NULL);
+		binSetChild(w->bin, NULL);
 	w->child = child;
-	if (w->child != NULL) {
-//TODO		uiControlSetParent(w->child, w->child);
-		gtk_widget_set_hexpand(GTK_WIDGET(uiControlHandle(w->child)), TRUE);
-		gtk_widget_set_halign(GTK_WIDGET(uiControlHandle(w->child)), GTK_ALIGN_FILL);
-		gtk_widget_set_vexpand(GTK_WIDGET(uiControlHandle(w->child)), TRUE);
-		gtk_widget_set_valign(GTK_WIDGET(uiControlHandle(w->child)), GTK_ALIGN_FILL);
-		gtk_container_add(w->vboxContainer, GTK_WIDGET(uiControlHandle(w->child)));
-		uiControlQueueResize(w->child);
-	}
+	if (w->child != NULL)
+		binSetChild(w->bin, w->child);
 }
 
 static int windowMargined(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
-	return w->margined;
+	return binMargined(w->bin);
 }
 
 static void windowSetMargined(uiWindow *ww, int margined)
 {
 	struct window *w = (struct window *) ww;
 
-	w->margined = margined;
-	// TODO
+	binSetMargined(w->bin, margined);
 	uiControlQueueResize(uiControl(w));
 }
 
@@ -177,6 +171,9 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		w->menubar = makeMenubar(uiWindow(w));
 		gtk_container_add(w->vboxContainer, w->menubar);
 	}
+
+	w->bin = newBin();
+	gtk_container_add(w->vboxContainer, GTK_WIDGET(uiControlHandle(w->bin)));
 
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxWidget);

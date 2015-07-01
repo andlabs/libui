@@ -6,11 +6,27 @@ struct group {
 	GtkWidget *widget;
 	GtkContainer *container;
 	GtkFrame *frame;
+
+	// unfortunately, even though a GtkFrame is a GtkBin, calling gtk_container_set_border_width() on it /includes/ the GtkFrame's label; we don't want tht
+	uiControl *bin;
 	uiControl *child;
-	int margined;
+
+	void (*baseCommitDestroy)(uiControl *);
 };
 
 uiDefineControlType(uiGroup, uiTypeGroup, struct group)
+
+static void groupCommitDestroy(uiControl *c)
+{
+	struct group *g = (struct group *) c;
+
+	if (g->child != NULL) {
+		binSetChild(g->bin, NULL);
+		uiControlDestroy(g->child);
+	}
+	uiControlDestroy(g->bin);
+	(*(g->baseCommitDestroy))(uiControl(g));
+}
 
 static uintptr_t groupHandle(uiControl *c)
 {
@@ -31,14 +47,14 @@ static char *groupTitle(uiGroup *gg)
 {
 	struct group *g = (struct group *) gg;
 
-	return PUT_CODE_HERE;
+	return uiUnixStrdupText(gtk_frame_get_label(g->frame));
 }
 
 static void groupSetTitle(uiGroup *gg, const char *text)
 {
 	struct group *g = (struct group *) gg;
 
-	PUT_CODE_HERE;
+	gtk_frame_set_label(g->frame, text);
 	// changing the text might necessitate a change in the groupbox's size
 	uiControlQueueResize(uiControl(g));
 }
@@ -48,10 +64,10 @@ static void groupSetChild(uiGroup *gg, uiControl *child)
 	struct group *g = (struct group *) gg;
 
 	if (g->child != NULL)
-		uiControlSetParent(g->child, NULL);
+		binSetChild(g->bin, NULL);
 	g->child = child;
 	if (g->child != NULL) {
-		uiControlSetParent(g->child, uiControl(g));
+		binSetChild(g->bin, g->child);
 		uiControlQueueResize(g->child);
 	}
 }
@@ -60,14 +76,15 @@ static int groupMargined(uiGroup *gg)
 {
 	struct group *g = (struct group *) gg;
 
-	return g->margined;
+	return binMargined(g->bin);
 }
 
+// TODO this includes the label
 static void groupSetMargined(uiGroup *gg, int margined)
 {
 	struct group *g = (struct group *) gg;
 
-	g->margined = margined;
+	binSetMargined(g->bin, margined);
 	uiControlQueueResize(uiControl(g));
 }
 
@@ -101,7 +118,15 @@ uiGroup *uiNewGroup(const char *text)
 	gtk_label_set_attributes(label, boldlist);
 	pango_attr_list_unref(boldlist);		// thanks baedert in irc.gimp.net/#gtk+
 
+	g->bin = newBin();
+	// can't use uiControlSetParent() because we didn't set the vtable yet
+	gtk_container_add(g->container, GTK_WIDGET(uiControlHandle(g->bin)));
+	// TODO this is a mess
+	gtk_widget_show(GTK_WIDGET(uiControlHandle(g->bin)));
+
 	uiControl(g)->Handle = groupHandle;
+	g->baseCommitDestroy = uiControl(g)->CommitDestroy;
+	uiControl(g)->CommitDestroy = groupCommitDestroy;
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;
 
 	uiGroup(g)->Title = groupTitle;

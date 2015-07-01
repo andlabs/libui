@@ -8,6 +8,7 @@ struct spinbox {
 	GtkSpinButton *spinButton;
 	void (*onChanged)(uiSpinbox *, void *);
 	void *onChangedData;
+	gulong onChangedSignal;
 };
 
 uiDefineControlType(uiSpinbox, uiTypeSpinbox, struct spinbox)
@@ -42,9 +43,11 @@ static void spinboxSetValue(uiSpinbox *ss, intmax_t value)
 {
 	struct spinbox *s = (struct spinbox *) ss;
 
-	// TODO does this raise an event?
+	// we need to inhibit sending of ::value-changed because this WILL send a ::value-changed otherwise
+	g_signal_handler_block(s->spinButton, s->onChangedSignal);
 	// TODO does this clamp?
 	gtk_spin_button_set_value(s->spinButton, (gdouble) value);
+	g_signal_handler_unblock(s->spinButton, s->onChangedSignal);
 }
 
 static void spinboxOnChanged(uiSpinbox *ss, void (*f)(uiSpinbox *, void *), void *data)
@@ -72,7 +75,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	// TODO needed?
 	gtk_spin_button_set_digits(s->spinButton, 0);
 
-	g_signal_connect(s->spinButton, "value-changed", G_CALLBACK(onChanged), s);
+	s->onChangedSignal = g_signal_connect(s->spinButton, "value-changed", G_CALLBACK(onChanged), s);
 	s->onChanged = defaultOnChanged;
 
 	uiControl(s)->Handle = spinboxHandle;

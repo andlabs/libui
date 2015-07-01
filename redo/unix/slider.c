@@ -8,6 +8,7 @@ struct slider {
 	GtkScale *scale;
 	void (*onChanged)(uiSlider *, void *);
 	void *onChangedData;
+	gulong onChangedSignal;
 };
 
 uiDefineControlType(uiSlider, uiTypeSlider, struct slider)
@@ -42,7 +43,10 @@ static void sliderSetValue(uiSlider *ss, intmax_t value)
 {
 	struct slider *s = (struct slider *) ss;
 
+	// we need to inhibit sending of ::value-changed because this WILL send a ::value-changed otherwise
+	g_signal_handler_block(s->range, s->onChangedSignal);
 	gtk_range_set_value(s->range, value);
+	g_signal_handler_unblock(s->range, s->onChangedSignal);
 }
 
 static void sliderOnChanged(uiSlider *ss, void (*f)(uiSlider *, void *), void *data)
@@ -67,7 +71,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	// TODO needed?
 	gtk_scale_set_digits(s->scale, 0);
 
-	g_signal_connect(s->scale, "value-changed", G_CALLBACK(onChanged), s);
+	s->onChangedSignal = g_signal_connect(s->scale, "value-changed", G_CALLBACK(onChanged), s);
 	s->onChanged = defaultOnChanged;
 
 	uiControl(s)->Handle = sliderHandle;

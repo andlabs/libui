@@ -9,6 +9,8 @@ struct tab {
 	GtkNotebook *notebook;
 
 	GArray *pages;
+
+	void (*baseCommitDestroy)(uiControl *);
 };
 
 struct tabPage {
@@ -18,6 +20,26 @@ struct tabPage {
 };
 
 uiDefineControlType(uiTab, uiTypeTab, struct tab)
+
+static void tabCommitDestroy(uiControl *c)
+{
+	struct tab *t = (struct tab *) c;
+	guint i;
+	struct tabPage *page;
+
+	// the pages do not have a libui parent, so we can simply destroy them
+	// we need to remove them from the tab first; see below
+	for (i = 0; i < t->pages->len; i++) {
+		page = &g_array_index(t->pages, struct tabPage, i);
+		binSetChild(page->bin, NULL);
+		uiControlDestroy(page->c);
+		uiControlSetParent(page->bin, NULL);
+		uiControlDestroy(page->bin);
+	}
+	// then free ourselves
+	g_array_free(t->pages, TRUE);
+	(*(t->baseCommitDestroy))(uiControl(t));
+}
 
 static uintptr_t tabHandle(uiControl *c)
 {
@@ -53,8 +75,23 @@ static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *chi
 static void tabDelete(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
+	struct tabPage *page;
 
-	PUT_CODE_HERE;
+	page = &g_array_index(t->pages, struct tabPage, n);
+
+	// make sure the page's control isn't destroyed
+	binSetChild(page->bin, NULL);
+
+	// now destroy the page
+	// this will also remove the tab
+	// why? simple: both gtk_notebook_remove_tab() and gtk_widget_destroy() call gtk_container_remove()
+	// we need to remove them from the tab first, though, otherwise they won't really be destroyed properly
+	// (the GtkNotebook will still have the tab in it because its reference ISN'T destroyed, and we crash resizing a bin that no longer exists)
+	// TODO redo this comment
+	uiControlSetParent(page->bin, NULL);
+	uiControlDestroy(page->bin);
+
+	g_array_remove_index(t->pages, n);
 }
 
 static uintmax_t tabNumPages(uiTab *tt)
@@ -98,6 +135,8 @@ uiTab *uiNewTab(void)
 	t->pages = g_array_new(FALSE, TRUE, sizeof (struct tabPage));
 
 	uiControl(t)->Handle = tabHandle;
+	t->baseCommitDestroy = uiControl(t)->CommitDestroy;
+	uiControl(t)->CommitDestroy = tabCommitDestroy;
 
 	uiTab(t)->Append = tabAppend;
 	uiTab(t)->InsertAt = tabInsertAt;

@@ -40,7 +40,7 @@ static void singleWidgetResize(uiControl *c, intmax_t x, intmax_t y, intmax_t wi
 	a.y = y;
 	a.width = width;
 	a.height = height;
-	gtk_widget_set_allocation(WIDGET(c), &a);
+	gtk_widget_size_allocate(WIDGET(c), &a);
 }
 
 static uiSizing *singleWidgetSizing(uiControl *c)

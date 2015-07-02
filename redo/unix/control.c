@@ -25,7 +25,7 @@ static void singleWidgetCommitSetParent(uiControl *c, uiControl *parent)
 static void singleWidgetPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
 {
 	// use the natural height; it makes more sense
-	GtkAllocation natural;
+	GtkRequisition natural;
 
 	gtk_widget_get_preferred_size(WIDGET(c), NULL, &natural);
 	*width = (intmax_t) (natural.width);

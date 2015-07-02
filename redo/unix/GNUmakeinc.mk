@@ -3,7 +3,6 @@
 osCFILES = \
 	unix/alloc.c \
 	unix/bin.c \
-	unix/box.c \
 	unix/button.c \
 	unix/checkbox.c \
 	unix/combobox.c \

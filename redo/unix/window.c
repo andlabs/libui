@@ -143,7 +143,6 @@ static void windowResizeChild(uiWindow *ww)
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	struct window *w;
-	GtkWidget *holderWidget;
 
 	w = (struct window *) uiNewControl(uiTypeWindow());
 

@@ -38,10 +38,24 @@ char *uiSaveFile(void)
 	return filedialog(GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_SAVE);
 }
 
+static void msgbox(const char *title, const char *description, GtkMessageType type, GtkButtonsType buttons)
+{
+	GtkWidget *md;
+
+	md = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL,
+		type, buttons,
+		"%s", title);
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), "%s", description);
+	gtk_dialog_run(GTK_DIALOG(md));
+	gtk_widget_destroy(md);
+}
+
 void uiMsgBox(const char *title, const char *description)
 {
+	msgbox(title, description, GTK_MESSAGE_OTHER, GTK_BUTTONS_OK);
 }
 
 void uiMsgBoxError(const char *title, const char *description)
 {
+	msgbox(title, description, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK);
 }

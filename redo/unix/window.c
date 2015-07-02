@@ -137,11 +137,7 @@ static void windowSetMargined(uiWindow *ww, int margined)
 
 static void windowResizeChild(uiWindow *ww)
 {
-	struct window *w = (struct window *) ww;
-
-	if (w->child == NULL)
-		return;
-	PUT_CODE_HERE;
+	complain("uiWindowResizeChild() meaningless on GTK+");
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)

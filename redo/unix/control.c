@@ -18,7 +18,7 @@ static void singleWidgetCommitSetParent(uiControl *c, uiControl *parent)
 		gtk_container_remove(GTK_CONTAINER(oldParent), WIDGET(c));
 		return;
 	}
-	newParent = WIDGET(parent);;
+	newParent = WIDGET(parent);
 	gtk_container_add(GTK_CONTAINER(newParent), WIDGET(c));
 }
 

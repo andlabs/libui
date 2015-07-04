@@ -101,8 +101,8 @@ static int singleViewHasTabStops(uiControl *c)
 	return 0;		// keep compiler happy
 }
 
-// called after creating the control's widget
-void uiDarwinMakeSingleWidgetControl(uiControl *c, NSView *view)
+// called after creating the control's NSView
+void uiDarwinMakeSingleViewControl(uiControl *c, NSView *view)
 {
 	// we have to retain the view so we can reparent it
 	[view retain];

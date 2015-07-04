@@ -165,7 +165,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	[w->window setTitle:toNSString(title)];
 
 	// a NSWindow is not a NSView, but nothing we're doing in this function is view-specific
-	uiDarwinMakeSingleWidgetControl(uiControl(w), (NSView *) (w->window));
+	uiDarwinMakeSingleViewControl(uiControl(w), (NSView *) (w->window));
 
 	// explicitly release when closed
 	// the only thing that closes the window is us anyway

@@ -1,8 +1,6 @@
 // 28 april 2015
 #import "uipriv_darwin.h"
 
-// TODO rewrite this file to take advantage of bins
-
 @interface windowDelegate : NSObject <NSWindowDelegate> {
 	uiWindow *w;
 	int (*onClosing)(uiWindow *, void *);
@@ -44,9 +42,7 @@ struct window {
 	uiWindow w;
 	NSWindow *window;
 	windowDelegate *delegate;
-	uiBin *bin;
-	int hidden;
-	int margined;
+	uiControl *bin;
 };
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -60,18 +56,20 @@ static void windowDestroy(uiControl *c)
 
 	// first hide ourselves
 	[w->window orderOut:w->window];
+	// now destroy the child
+	binSetChild(w->bin, NULL);
+	uiControlDestroy(w->child);
 	// now destroy the bin
-	// we need to remove the bin from its parent; this is equivalent to calling binSetParent()
 	// we do this by changing the content view to a dummy view
 	// the window will release its reference on the bin now, then it will release its reference on the dummy view when the window itself is finally released
 	[w->window setContentView:[[NSView alloc] initWithFrame:NSZeroRect]];
-	uiControlDestroy(uiControl(w->bin));
+	uiControlDestroy(w->bin);
 	// now destroy the delegate
 	[w->window setDelegate:nil];
 	[w->delegate release];
 	// now destroy ourselves
+	// don't call the base; we use a different method
 	[w->window close];			// see below about releasing when closed
-	uiFree(w);
 }
 
 static uintptr_t windowHandle(uiControl *c)
@@ -81,56 +79,26 @@ static uintptr_t windowHandle(uiControl *c)
 	return (uintptr_t) (w->window);
 }
 
-static void windowSetParent(uiControl *c, uiContainer *parent)
-{
-	complain("attempt to give the uiWindow at %p a parent", c);
-}
-
-static void windowPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
-{
-	complain("attempt to get the preferred size of the uiWindow at %p", c);
-}
-
-static void windowResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
-{
-	complain("attempt to resize the uiWindow at %p", c);
-}
-
-static int windowVisible(uiControl *c)
-{
-	struct window *w = (struct window *) c;
-
-	return !w->hidden;
-}
-
-static void windowShow(uiControl *c)
+static void windowCommitShow(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
 	[w->window makeKeyAndOrderFront:w->window];
-	w->hidden = 0;
 }
 
-static void windowHide(uiControl *c)
+static void windowCommitHide(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
 	[w->window orderOut:w->window];
-	w->hidden = 1;
 }
 
-static void windowEnable(uiControl *c)
+static void windowContainerUpdateState(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
-	uiControlEnable(uiControl(w->bin));
-}
-
-static void windowDisable(uiControl *c)
-{
-	struct window *w = (struct window *) c;
-
-	uiControlDisable(uiControl(w->bin));
+	if (w->child != NULL)
+		uiControlUpdateState(w->child);
 }
 
 static char *windowTitle(uiWindow *ww)
@@ -158,26 +126,27 @@ static void windowSetChild(uiWindow *ww, uiControl *child)
 {
 	struct window *w = (struct window *) ww;
 
-	uiBinSetMainControl(w->bin, child);
+	binSetChild(w->bin, child);
 }
 
 static int windowMargined(uiWindow *ww)
 {
 	struct window *w = (struct window *) ww;
 
-	return w->margined;
+	return binMargined(w->bin);
 }
 
 static void windowSetMargined(uiWindow *ww, int margined)
 {
 	struct window *w = (struct window *) ww;
 
-	w->margined = margined;
-	if (w->margined)
-		uiBinSetMargins(w->bin, macXMargin, macYMargin, macXMargin, macYMargin);
-	else
-		uiBinSetMargins(w->bin, 0, 0, 0, 0);
+	binSetMargined(w->bin, margined);
 	uiContainerUpdate(uiContainer(w->bin));
+}
+
+static void windowResizeChild(uiWindow *ww)
+{
+	complain("uiWindowResizeChild() meaningless on OS X");
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
@@ -187,13 +156,16 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	finalizeMenus();
 
-	w = uiNew(struct window);
+	w = (struct window *) uiNewControl(uiTypeWindow());
 
 	w->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
 		backing:NSBackingStoreBuffered
 		defer:YES];
 	[w->window setTitle:toNSString(title)];
+
+	// a NSWindow is not a NSView, but nothing we're doing in this function is view-specific
+	uiDarwinMakeSingleWidgetControl(uiControl(w), (NSView *) (w->window));
 
 	// explicitly release when closed
 	// the only thing that closes the window is us anyway
@@ -209,16 +181,11 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	[w->delegate setOnClosing:defaultOnClosing data:NULL];
 
-	uiControl(w)->Destroy = windowDestroy;
 	uiControl(w)->Handle = windowHandle;
-	uiControl(w)->SetParent = windowSetParent;
-	uiControl(w)->PreferredSize = windowPreferredSize;
-	uiControl(w)->Resize = windowResize;
-	uiControl(w)->Visible = windowVisible;
-	uiControl(w)->Show = windowShow;
-	uiControl(w)->Hide = windowHide;
-	uiControl(w)->Enable = windowEnable;
-	uiControl(w)->Disable = windowDisable;
+	uiControl(w)->CommitDestroy = windowCommitDestroy;
+	uiControl(w)->CommitShow = windowCommitShow;
+	uiControl(w)->CommitHide = windowCommitHide;
+	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
 
 	uiWindow(w)->Title = windowTitle;
 	uiWindow(w)->SetTitle = windowSetTitle;
@@ -226,6 +193,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindow(w)->SetChild = windowSetChild;
 	uiWindow(w)->Margined = windowMargined;
 	uiWindow(w)->SetMargined = windowSetMargined;
+	uiWindow(w)->ResizeChild = windowResizeChild;
 
 	return uiWindow(w);
 }

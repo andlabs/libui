@@ -1,9 +1,9 @@
 // 11 june 2015
-#include "uipriv_OSHERE.h"
+#include "uipriv_darwin.h"
 
 struct label {
 	uiLabel l;
-	OSTYPE OSHANDLE;
+	OSTYPE *OSHANDLE;
 };
 
 uiDefineControlType(uiLabel, uiTypeLabel, struct label)

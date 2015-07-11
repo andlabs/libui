@@ -55,3 +55,6 @@ extern uiWindow *windowFromNSWindow(NSWindow *);
 // alloc.m
 extern void initAlloc(void);
 extern void uninitAlloc(void);
+
+// TODO
+#define PUT_CODE_HERE 0

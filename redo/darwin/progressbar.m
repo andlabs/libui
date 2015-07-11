@@ -1,9 +1,9 @@
 // 11 june 2015
-#include "uipriv_OSHERE.h"
+#include "uipriv_darwin.h"
 
 struct progressbar {
 	uiProgressBar p;
-	OSTYPE OSHANDLE;
+	OSTYPE *OSHANDLE;
 };
 
 uiDefineControlType(uiProgressBar, uiTypeProgressBar, struct progressbar)

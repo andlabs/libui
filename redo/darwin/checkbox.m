@@ -1,9 +1,9 @@
 // 10 june 2015
-#include "uipriv_OSHERE.h"
+#include "uipriv_darwin.h"
 
 struct checkbox {
 	uiCheckbox c;
-	OSTYPE OSHANDLE;
+	OSTYPE *OSHANDLE;
 	void (*onToggled)(uiCheckbox *, void *);
 	void *onToggledData;
 };

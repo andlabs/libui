@@ -1,9 +1,9 @@
 // 10 june 2015
-#include "uipriv_OSHERE.h"
+#include "uipriv_darwin.h"
 
 struct button {
 	uiButton b;
-	OSTYPE OSHANDLE;
+	OSTYPE *OSHANDLE;
 	void (*onClicked)(uiButton *, void *);
 	void *onClickedData;
 };

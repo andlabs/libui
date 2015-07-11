@@ -1,9 +1,9 @@
 // 11 june 2015
-#include "uipriv_OSHERE.h"
+#include "uipriv_darwin.h"
 
 struct entry {
 	uiEntry e;
-	OSTYPE OSHANDLE;
+	OSTYPE *OSHANDLE;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 };

@@ -1,9 +1,9 @@
 // 11 june 2015
-#include "uipriv_OSHERE.h"
+#include "uipriv_darwin.h"
 
 struct group {
 	uiGroup g;
-	OSTYPE OSHANDLE;
+	OSTYPE *OSHANDLE;
 	uiControl *child;
 	int margined;
 };

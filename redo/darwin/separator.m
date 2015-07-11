@@ -1,9 +1,9 @@
 // 11 june 2015
-#include "uipriv_OSHERE.h"
+#include "uipriv_darwin.h"
 
 struct separator {
 	uiSeparator s;
-	OSTYPE OSHANDLE;
+	OSTYPE *OSHANDLE;
 };
 
 uiDefineControlType(uiSeparator, uiTypeSeparator, struct separator)

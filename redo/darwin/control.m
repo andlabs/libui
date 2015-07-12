@@ -5,6 +5,9 @@
 
 static void singleViewCommitDestroy(uiControl *c)
 {
+	// TODO make this unnecessary?
+	if ([VIEW(c) respondsToSelector:@selector(delegate)])
+		[[VIEW(c) delegate] release];
 	[VIEW(c) release];
 }
 
@@ -102,10 +105,13 @@ static int singleViewHasTabStops(uiControl *c)
 }
 
 // called after creating the control's NSView
-void uiDarwinMakeSingleViewControl(uiControl *c, NSView *view)
+void uiDarwinMakeSingleViewControl(uiControl *c, NSView *view, BOOL useStandardControlFont)
 {
 	// we have to retain the view so we can reparent it
 	[view retain];
+
+	if (useStandardControlFont)
+		setStandardControlFont((NSControl *) view);
 
 	uiControl(c)->CommitDestroy = singleViewCommitDestroy;
 	uiControl(c)->CommitSetParent = singleViewCommitSetParent;

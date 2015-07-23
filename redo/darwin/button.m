@@ -1,6 +1,8 @@
 // 10 june 2015
 #include "uipriv_darwin.h"
 
+// TODO reimplement CommitDestroy() on all of these
+
 @interface buttonDelegate : NSObject {
 	uiButton *b;
 	void (*onClicked)(uiButton *, void *);

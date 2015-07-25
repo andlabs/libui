@@ -1,0 +1,24 @@
+group
+	NSBox
+	Title Position	At Top
+	Box Type	Primary
+	Border Type	Line
+	Not Transparent
+	Font		System *Small*
+	Margins
+		l 16
+		t 25 FROM ABSOLUTE TOP
+		r 16
+		b 11
+
+text box default width 96
+
+separator
+	seems to be an internal subclass of NSBox
+	need to generate a nib to observe its properties
+
+horizontal slider
+	NSSlider
+	Style		Linear
+	Tick Marks	Position Above
+

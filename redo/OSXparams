@@ -17,8 +17,29 @@ separator
 	seems to be an internal subclass of NSBox
 	need to generate a nib to observe its properties
 
-horizontal slider
-	NSSlider
-	Style		Linear
-	Tick Marks	Position Above
+slider
+	check 10.9
 
+combo box
+	bordered button
+	system regular font
+
+popup button
+	type popup
+	arrow bottom
+	menu edge bottom
+	font menu 13 ??????????????
+		check 10.9
+
+radio buttons
+	mode radio
+	selection rectangular, not empty
+	buttons
+		style radio
+		type radio
+		not bordered, not transparent
+		font system regular
+
+progress bar
+	style bar
+	display when stopped

@@ -1,9 +1,11 @@
 // 11 june 2015
 #include "uipriv_darwin.h"
 
+// TODO events
+
 struct slider {
 	uiSlider s;
-	OSTYPE *OSHANDLE;
+	NSSlider *slider;
 	void (*onChanged)(uiSlider *, void *);
 	void *onChangedData;
 };
@@ -14,7 +16,7 @@ static uintptr_t sliderHandle(uiControl *c)
 {
 	struct slider *s = (struct slider *) c;
 
-	return (uintptr_t) (s->OSHANDLE);
+	return (uintptr_t) (s->slider);
 }
 
 static void defaultOnChanged(uiSlider *s, void *data)
@@ -47,10 +49,20 @@ static void sliderOnChanged(uiSlider *ss, void (*f)(uiSlider *, void *), void *d
 uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	struct slider *s;
+	NSSliderCell *cell;
 
-	s = (struct slider *) MAKE_CONTROL_INSTANCE(uiTypeSlider());
+	s = (struct slider *) uiNewControl(uiTypeSlider());
 
-	PUT_CODE_HERE;
+	s->slider = [[NSSlider alloc] initWithFrame:NSZeroRect];
+	// TODO vertical is defined by wider than tall
+	[s->slider setMinValue:min];
+	[s->slider setMaxValue:max];
+	// TODO NSTickMarkAbove?
+
+	cell = (NSSliderCell *) [s->slider cell];
+	[cell setSliderType:NSLinearSlider];
+
+	uiDarwinMakeSingleViewControl(uiControl(s), s->slider, NO);
 
 	s->onChanged = defaultOnChanged;
 

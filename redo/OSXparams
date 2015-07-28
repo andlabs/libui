@@ -21,6 +21,7 @@ completes
 
 NSComboBoxCell
 (no unique ones)
+(TODO verify text field elements)
 
 NSPopUpButton
 pullsDown
@@ -48,6 +49,7 @@ timeZone
 
 NSDatePickerCell
 (no unique ones)
+(TODO verify text field elements)
 
 ==============================
 

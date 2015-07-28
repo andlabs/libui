@@ -54,13 +54,17 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	s = (struct slider *) uiNewControl(uiTypeSlider());
 
 	s->slider = [[NSSlider alloc] initWithFrame:NSZeroRect];
+NSLog(@"NOTE thickness %f\n", [s->slider knobThickness]);
 	// TODO vertical is defined by wider than tall
 	[s->slider setMinValue:min];
 	[s->slider setMaxValue:max];
-	// TODO NSTickMarkAbove?
+	[s->slider setAllowsTickMarkValuesOnly:NO];
+	[s->slider setNumberOfTicks:0];
+	[s->slider setTickMarkPosition:NSTickMarkAbove];
 
 	cell = (NSSliderCell *) [s->slider cell];
 	[cell setSliderType:NSLinearSlider];
+NSLog(@"NOTE thickness %f\n", [s->slider knobThickness]);
 
 	uiDarwinMakeSingleViewControl(uiControl(s), s->slider, NO);
 

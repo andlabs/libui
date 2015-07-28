@@ -3,7 +3,7 @@
 
 struct group {
 	uiGroup g;
-	OSTYPE *OSHANDLE;
+	NSBox *box;
 	uiControl *child;
 	int margined;
 };
@@ -14,7 +14,7 @@ static uintptr_t groupHandle(uiControl *c)
 {
 	struct group *g = (struct group *) c;
 
-	return (uintptr_t) (g->OSHANDLE);
+	return (uintptr_t) (g->box);
 }
 
 static void groupContainerUpdateState(uiControl *c)
@@ -75,7 +75,16 @@ uiGroup *uiNewGroup(const char *text)
 
 	g = (struct group *) MAKE_CONTROL_INSTANCE(uiTypeGroup());
 
-	PUT_CODE_HERE;
+	g->box = [[NSBox alloc] initWithFrame:NSZeroRect];
+	[g->box setBoxType:NSBoxPrimary];
+	[g->box setBorderType:TODO];
+	[g->box setTransparent:NO];
+	[g->box setTitlePosition:NSAtTop];
+
+	// can't set title font the way the function does; plus we need to use a different size
+	uiDarwinMakeSingleViewControl(uiControl(g), g->box, NO);
+	// TODO verify if Small in Xcode is this small
+	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
 
 	uiControl(g)->Handle = groupHandle;
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;

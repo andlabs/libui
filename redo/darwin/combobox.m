@@ -3,7 +3,9 @@
 
 struct combobox {
 	uiCombobox c;
-	OSTYPE *OSHANDLE;
+	BOOL editable;
+	NSPopUpButton *pb;
+	NSComboBox *cb;
 };
 
 uiDefineControlType(uiCombobox, uiTypeCombobox, struct combobox)
@@ -12,7 +14,9 @@ static uintptr_t comboboxHandle(uiControl *cc)
 {
 	struct combobox *c = (struct combobox *) cc;
 
-	return (uintptr_t) (c->OSHANDLE);
+	if (c->editable)
+		return (uintptr_t) (c->cb);
+	return (uintptr_t) (c->pb);
 }
 
 static void comboboxAppend(uiCombobox *cc, const char *text)
@@ -22,13 +26,28 @@ static void comboboxAppend(uiCombobox *cc, const char *text)
 	PUT_CODE_HERE;
 }
 
-static uiCombobox *finishNewCombobox(OSTHING OSARG)
+static uiCombobox *finishNewCombobox(BOOL editable)
 {
 	struct combobox *c;
 
-	c = (struct combobox *) MAKE_CONTROL_INSTANCE(uiTypeCombobox());
+	c = (struct combobox *) uiNewControl(uiTypeCombobox());
 
-	PUT_CODE_HERE;
+	c->editable = editable;
+	if (c->editable) {
+		c->cb = [[NSComboBox alloc] initWithFrame:NSZeroRect];
+		[c->cb setUsesDataSource:NO];
+		[c->cb setButtonBordered:YES];
+NSLog(@"TEST intercellSpacing %@", NSStringFromSize([c->cb intercellSpacing]);
+		[c->cb setCompletes:NO];
+		uiDarwinMakeSingleViewControl(uiControl(c), c->cb, YES);
+NSLog(@"TEST intercellSpacing %@", NSStringFromSize([c->cb intercellSpacing]);
+	} else {
+		c->pb = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
+		// TODO preferred edge
+		// TODO arrow position
+		// TODO font
+		uiDarwinMakeSingleViewControl(uiControl(c), c->cb, YES);
+	}
 
 	uiControl(c)->Handle = comboboxHandle;
 
@@ -39,10 +58,10 @@ static uiCombobox *finishNewCombobox(OSTHING OSARG)
 
 uiCombobox *uiNewCombobox(void)
 {
-	return finishNewCombobox(OSARGNONEDITABLE);
+	return finishNewCombobox(NO);
 }
 
 uiCombobox *uiNewEditableCombobox(void)
 {
-	return finishNewCombobox(OSARGEDITABLE);
+	return finishNewCombobox(YES);
 }

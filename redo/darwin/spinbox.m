@@ -3,7 +3,7 @@
 
 struct spinbox {
 	uiSpinbox s;
-	OSTYPE *OSHANDLE;
+	NSTextField *dummy;
 	void (*onChanged)(uiSpinbox *, void *);
 	void *onChangedData;
 };
@@ -14,7 +14,7 @@ static uintptr_t spinboxHandle(uiControl *c)
 {
 	struct spinbox *s = (struct spinbox *) c;
 
-	return PUT_CODE_HERE;
+	return (uintptr_t) (s->dummy);
 }
 
 static void defaultOnChanged(uiSpinbox *s, void *data)
@@ -51,9 +51,11 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	if (min >= max)
 		complain("error: min >= max in uiNewSpinbox()");
 
-	s = (struct spinbox *) MAKE_CONTROL_INSTANCE(uiTypeSpinbox());
+	s = (struct spinbox *) uiNewControl(uiTypeSpinbox());
 
-	PUT_CODE_HERE;
+	s->dummy = [[NSTextField alloc] initWithFrame:NSZeroRect];
+	[s->dummy setStringValue:@"TODO uiSpinbox not implemented"];
+	uiDarwinMakeSingleViewControl(uiControl(s), s->dummy, YES);
 
 	s->onChanged = defaultOnChanged;
 

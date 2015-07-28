@@ -2,15 +2,21 @@
 
 osMFILES = \
 	darwin/alloc.m \
-	darwin/bin.m \
 	darwin/button.m \
 	darwin/checkbox.m \
-	darwin/container.m \
+	darwin/combobox.m \
+	darwin/control.m \
+	darwin/datetimepicker.m \
 	darwin/entry.m \
+	darwin/group.m \
 	darwin/label.m \
 	darwin/main.m \
 	darwin/menu.m \
-	darwin/newcontrol.m \
+	darwin/progressbar.m \
+	darwin/radiobuttons.m \
+	darwin/separator.m \
+	darwin/slider.m \
+	darwin/spinbox.m \
 	darwin/tab.m \
 	darwin/text.m \
 	darwin/util.m \

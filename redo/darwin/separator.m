@@ -21,11 +21,11 @@ uiSeparator *uiNewHorizontalSeparator(void)
 {
 	struct separator *s;
 
-	s = (struct separator *) MAKE_CONTROL_INSTANCE(uiTypeSeparator());
+	s = (struct separator *) uiNewControl(uiTypeSeparator());
 
 	s->box = [[NSBox alloc] initWithFrame:NSZeroRect];
 	[s->box setBoxType:NSBoxSeparator];
-	[s->box setBorderType:TODO];
+//TODO	[s->box setBorderType:TODO];
 	[s->box setTransparent:NO];
 	[s->box setTitlePosition:NSNoTitle];
 

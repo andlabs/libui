@@ -80,7 +80,7 @@ uiButton *uiNewButton(const char *text)
 
 	b = (struct button *) uiNewControl(uiTypeButton());
 
-	b->button = [[NSButton alloc] initWithFrame:NSZeroFrame];
+	b->button = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[b->button setTitle:toNSString(text)];
 	[b->button setButtonType:NSMomentaryPushInButton];
 	[b->button setBordered:YES];

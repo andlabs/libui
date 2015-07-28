@@ -28,15 +28,15 @@ uiProgressBar *uiNewProgressBar(void)
 {
 	struct progressbar *p;
 
-	p = (struct progressbar *) MAKE_CONTROL_INSTANCE(uiTypeProgressBar());
+	p = (struct progressbar *) uiNewControl(uiTypeProgressBar());
 
 	p->pi = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
-NSLog(@"TEST thread %d tint %d stopped %d", (int) [p->pi usesThreadedAnimation], [p->pi controlTint], (int) [p->pi displayedWhenStopped]);
+NSLog(@"TEST thread %d tint %d stopped %d", (int) [p->pi usesThreadedAnimation], [p->pi controlTint], (int) [p->pi isDisplayedWhenStopped]);
 	[p->pi setControlSize:NSRegularControlSize];
 	[p->pi setBezeled:YES];
 	[p->pi setStyle:NSProgressIndicatorBarStyle];
 	[p->pi setIndeterminate:NO];
-NSLog(@"TEST thread %d tint %d stopped %d", (int) [p->pi usesThreadedAnimation], [p->pi controlTint], (int) [p->pi displayedWhenStopped]);
+NSLog(@"TEST thread %d tint %d stopped %d", (int) [p->pi usesThreadedAnimation], [p->pi controlTint], (int) [p->pi isDisplayedWhenStopped]);
 	uiDarwinMakeSingleViewControl(uiControl(p), p->pi, NO);
 
 	uiControl(p)->Handle = progressbarHandle;

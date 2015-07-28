@@ -8,7 +8,7 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 #define __UI_UI_DARWIN_H__
 
 // TODO document
-_UI_EXTERN void uiDarwinMakeSingleViewControl(uiControl *, NSView *);
+_UI_EXTERN void uiDarwinMakeSingleViewControl(uiControl *, NSView *, BOOL);
 
 // You can use this function from within your control implementations to return text strings that can be freed with uiFreeText().
 _UI_EXTERN char *uiDarwinNSStringToText(NSString *);

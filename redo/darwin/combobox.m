@@ -37,10 +37,10 @@ static uiCombobox *finishNewCombobox(BOOL editable)
 		c->cb = [[NSComboBox alloc] initWithFrame:NSZeroRect];
 		[c->cb setUsesDataSource:NO];
 		[c->cb setButtonBordered:YES];
-NSLog(@"TEST intercellSpacing %@", NSStringFromSize([c->cb intercellSpacing]);
+NSLog(@"TEST intercellSpacing %@", NSStringFromSize([c->cb intercellSpacing]));
 		[c->cb setCompletes:NO];
 		uiDarwinMakeSingleViewControl(uiControl(c), c->cb, YES);
-NSLog(@"TEST intercellSpacing %@", NSStringFromSize([c->cb intercellSpacing]);
+NSLog(@"TEST intercellSpacing %@", NSStringFromSize([c->cb intercellSpacing]));
 	} else {
 		c->pb = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
 		// TODO preferred edge

@@ -123,8 +123,6 @@ uiEntry *uiNewEntry(void)
 	[e->delegate setEntry:uiEntry(e)];
 	[e->delegate setOnChanged:defaultOnChanged data:NULL];
 
-	e->onChanged = defaultOnChanged;
-
 	uiControl(e)->Handle = entryHandle;
 
 	uiEntry(e)->Text = entryText;

@@ -73,11 +73,11 @@ uiGroup *uiNewGroup(const char *text)
 {
 	struct group *g;
 
-	g = (struct group *) MAKE_CONTROL_INSTANCE(uiTypeGroup());
+	g = (struct group *) uiNewControl(uiTypeGroup());
 
 	g->box = [[NSBox alloc] initWithFrame:NSZeroRect];
 	[g->box setBoxType:NSBoxPrimary];
-	[g->box setBorderType:TODO];
+//TODO	[g->box setBorderType:TODO];
 	[g->box setTransparent:NO];
 	[g->box setTitlePosition:NSAtTop];
 

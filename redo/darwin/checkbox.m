@@ -97,7 +97,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	c = (struct checkbox *) uiNewControl(uiTypeCheckbox());
 
 	// TODO make a macro for the below
-	c->checkbox = [[NSCheckbox alloc] initWithFrame:NSZeroRect];
+	c->checkbox = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[c->checkbox setTitle:toNSString(text)];
 	[c->checkbox setButtonType:NSSwitchButton];
 	[c->checkbox setBordered:NO];

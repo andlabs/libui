@@ -3,7 +3,7 @@
 
 struct progressbar {
 	uiProgressBar p;
-	OSTYPE *OSHANDLE;
+	NSProgressIndicator *pi;
 };
 
 uiDefineControlType(uiProgressBar, uiTypeProgressBar, struct progressbar)
@@ -12,7 +12,7 @@ static uintptr_t progressbarHandle(uiControl *c)
 {
 	struct progressbar *p = (struct progressbar *) c;
 
-	return (uintptr_t) (p->OSHANDLE);
+	return (uintptr_t) (p->pi);
 }
 
 static void progressbarSetValue(uiProgressBar *pp, int value)
@@ -30,7 +30,14 @@ uiProgressBar *uiNewProgressBar(void)
 
 	p = (struct progressbar *) MAKE_CONTROL_INSTANCE(uiTypeProgressBar());
 
-	PUT_CODE_HERE;
+	p->pi = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
+NSLog(@"TEST thread %d tint %d stopped %d", (int) [p->pi usesThreadedAnimation], [p->pi controlTint], (int) [p->pi displayedWhenStopped]);
+	[p->pi setControlSize:NSRegularControlSize];
+	[p->pi setBezeled:YES];
+	[p->pi setStyle:NSProgressIndicatorBarStyle];
+	[p->pi setIndeterminate:NO];
+NSLog(@"TEST thread %d tint %d stopped %d", (int) [p->pi usesThreadedAnimation], [p->pi controlTint], (int) [p->pi displayedWhenStopped]);
+	uiDarwinMakeSingleViewControl(uiControl(p), p->pi, NO);
 
 	uiControl(p)->Handle = progressbarHandle;
 

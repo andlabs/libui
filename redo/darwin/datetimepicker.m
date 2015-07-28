@@ -3,7 +3,7 @@
 
 struct datetimepicker {
 	uiDateTimePicker d;
-	OSTYPE *OSHANDLE;
+	NSDatePicker *dp;
 };
 
 uiDefineControlType(uiDateTimePicker, uiTypeDateTimePicker, struct datetimepicker)
@@ -12,16 +12,21 @@ static uintptr_t datetimepickerHandle(uiControl *c)
 {
 	struct datetimepicker *d = (struct datetimepicker *) c;
 
-	return (uintptr_t) (d->OSHANDLE);
+	return (uintptr_t) (d->dp);
 }
 
-uiDateTimePicker *finishNewDateTimePicker(OSTHING OSARG)
+uiDateTimePicker *finishNewDateTimePicker(NSDatePickerElementFlags elements)
 {
 	struct datetimepicker *d;
 
-	d = (struct datetimepicker *) MAKE_CONTROL_INSTANCE(uiTypeDateTimePicker());
+	d = (struct datetimepicker *) uiNewControl(uiTypeDateTimePicker());
 
-	PUT_CODE_HERE;
+	d->dp = [[NSDatePicker alloc] initWithFrame:NSZeroRect];
+	// TODO text field stuff
+	[d->dp setDatePickerStyle:NSTextFieldAndStepperDatePickerStyle];
+	[d->dp setDatePickerElements:elements];
+	[d->dp setDatePickerMode:NSSingleDateMode];
+	// TODO get date picker font
 
 	uiControl(d)->Handle = datetimepickerHandle;
 
@@ -30,15 +35,15 @@ uiDateTimePicker *finishNewDateTimePicker(OSTHING OSARG)
 
 uiDateTimePicker *uiNewDateTimePicker(void)
 {
-	return finishNewDateTimePicker(OSARGDATETIME);
+	return finishNewDateTimePicker(NSYearMonthDayDatePickerElementFlag | NSHourMinuteSecondDatePickerElementFlag);
 }
 
 uiDateTimePicker *uiNewDatePicker(void)
 {
-	return finishNewDateTimePicker(OSARGDATEONLY);
+	return finishNewDateTimePicker(NSYearMonthDayDatePickerElementFlag);
 }
 
 uiDateTimePicker *uiNewTimePicker(void)
 {
-	return finishNewDateTimePicker(OSARGTIMEONLY);
+	return finishNewDateTimePicker(NSHourMinuteSecondDatePickerElementFlag);
 }

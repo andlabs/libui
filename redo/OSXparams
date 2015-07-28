@@ -37,6 +37,18 @@ isBezeled
 style
 isDisplayedWhenStopped (TODO only if different?)
 
+NSDatePicker
+bezeled bordered drawsBackground (confirm identical to text field)
+datePickerStyle
+datePickerElements
+calendar
+locale
+datePickerMode
+timeZone
+
+NSDatePickerCell
+(no unique ones)
+
 ==============================
 
 group

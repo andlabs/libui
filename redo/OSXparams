@@ -1,9 +1,45 @@
+NSSlider
+knobThickness (TODO only if different)
+allowsTickMarkValuesOnly
+numberOfTickMarks
+tickMarkPosition
+
+NSSliderCell
+sliderType
+
+NSBox
+boxType
+borderType
+isTransparent
+titlePosition
+(TODO stylistic properties?)
+
+NSComboBox
+buttonBordered
+intercellSpacing (TODO only if different)
+completes
+
+NSComboBoxCell
+(no unique ones)
+
+NSPopUpButton
+pullsDown
+preferredEdge (TODO only if different)
+
+NSPopUpButtonCell
+arrowPosition (TODO only if different?)
+
+NSProgressIndicator
+usesThreadedAnimation (TODO only if different?)
+controlSize
+controlTint (TODO only if different?)
+isBezeled
+style
+isDisplayedWhenStopped (TODO only if different?)
+
+==============================
+
 group
-	NSBox
-	Title Position	At Top
-	Box Type	Primary
-	Border Type	Line
-	Not Transparent
 	Font		System *Small*
 	Margins
 		l 16
@@ -13,33 +49,12 @@ group
 
 text box default width 96
 
-separator
-	seems to be an internal subclass of NSBox
-	need to generate a nib to observe its properties
-
-slider
-	check 10.9
-
 combo box
-	bordered button
 	system regular font
 
 popup button
-	type popup
-	arrow bottom
-	menu edge bottom
 	font menu 13 ??????????????
 		check 10.9
 
 radio buttons
-	mode radio
-	selection rectangular, not empty
-	buttons
-		style radio
-		type radio
-		not bordered, not transparent
-		font system regular
-
-progress bar
-	style bar
-	display when stopped
+	font system regular

@@ -4,6 +4,8 @@
 - make the various onDestroy() functions take the uiControl instead
 - make sure all calls to uiControlResize() are preceded with calls to uiControlGetSizing()
 
+- OS X group: use setFrameFromContentFrame: in preferredSize?
+
 - require explicit calls to uiContainerUpdate() everywhere, because sigh...
 	- forbid uiControlSetParent() when there already is a parent
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but

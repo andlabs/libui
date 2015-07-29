@@ -5,6 +5,7 @@
 - make sure all calls to uiControlResize() are preceded with calls to uiControlGetSizing()
 
 - OS X group: use setFrameFromContentFrame: in preferredSize?
+- DPI awareness on windows
 
 - require explicit calls to uiContainerUpdate() everywhere, because sigh...
 	- forbid uiControlSetParent() when there already is a parent

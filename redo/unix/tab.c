@@ -48,6 +48,8 @@ static uintptr_t tabHandle(uiControl *c)
 	return (uintptr_t) (t->widget);
 }
 
+// TODO tabContainerUpdate()?
+
 static void tabAppend(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;

@@ -24,10 +24,12 @@ static void tabCommitDestroy(uiControl *c)
 	// the above loop serves the purpose of binSetParent()
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiBin *p;
+		uiControl *bin;
 
-		p = (uiBin *) [v pointerValue];
-		uiControlDestroy(uiControl(p));
+		bin = (uiControl *) [v pointerValue];
+		binSetChild(bin, NULL);
+		// TODO destroy the child
+		uiControlDestroy(uiControl(bin));
 	}];
 	// and finally destroy ourselves
 	[t->pages release];
@@ -59,13 +61,14 @@ static void tabContainerUpdate(uiControl *c)
 	struct tab *t = (struct tab *) c;
 
 	(*(t->baseEnable))(uiControl(t));
+	// TODO enumerate over page CONTROLS instead
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiBin *page;
+		uiControl *bin;
 
-		page = (uiBin *) [v pointerValue];
+		bin = (uiControl *) [v pointerValue];
 		// TODO get the right function
-		uiContainerUpdate(uiControl(page));
+		uiContainerUpdate(uiControl(bin));
 	}];
 }
 
@@ -73,11 +76,11 @@ static void tabContainerUpdate(uiControl *c)
 static void tabAppend(uiTab *tt, const char *name, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	uiBin *page;
+	uiControl *page;
 	NSTabViewItem *i;
 
 	page = newBin();
-	uiBinSetMainControl(page, child);
+	binSetChild(page, child);
 	[t->pages addObject:[NSValue valueWithPointer:page]];
 	[t->margined addObject:[NSNumber numberWithInt:0]];
 
@@ -90,11 +93,11 @@ static void tabAppend(uiTab *tt, const char *name, uiControl *child)
 static void tabInsertAt(uiTab *tt, const char *name, uintmax_t n, uiControl *child)
 {
 	struct tab *t = (struct tab *) tt;
-	uiBin *page;
+	uiControl *page;
 	NSTabViewItem *i;
 
 	page = newBin();
-	uiBinSetMainControl(page, child);
+	binSetChild(page, child);
 	[t->pages insertObject:[NSValue valueWithPointer:page] atIndex:n];
 	[t->margined insertObject:[NSNumber numberWithInt:0] atIndex:n];
 
@@ -108,7 +111,7 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 {
 	struct tab *t = (struct tab *) tt;
 	NSValue *v;
-	uiBin *page;
+	uiControl *page;
 	NSTabViewItem *i;
 
 	v = (NSValue *) [t->pages objectAtIndex:n];
@@ -117,7 +120,7 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 	[t->margined removeObjectAtIndex:n];
 
 	// make sure the children of the tab aren't destroyed
-	uiBinSetMainControl(page, NULL);
+	binSetChild(page, NULL);
 
 	// remove the bin from the tab view
 	// this serves the purpose of uiBinRemoveOSParent()
@@ -166,11 +169,12 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 	[t->margined replaceObjectAtIndex:n withObject:v];
 	pagev = (NSValue *) [t->pages objectAtIndex:n];
 	page = (uiBin *) [pagev pointerValue];
+/* TODO
 	if ([v intValue])
 		uiBinSetMargins(page, tabLeftMargin, tabTopMargin, tabRightMargin, tabBottomMargin);
 	else
 		uiBinSetMargins(page, 0, 0, 0, 0);
-	uiContainerUpdate(uiContainer(page));
+*/
 }
 
 uiTab *uiNewTab(void)

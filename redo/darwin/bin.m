@@ -10,6 +10,8 @@ struct bin {
 	NSView *view;
 	uiControl *child;
 	int margined;
+	NSArray *hconstraint;
+	NSArray *vconstraint;
 };
 
 uiDefineControlType(bin, binType, struct bin)
@@ -39,9 +41,15 @@ uiControl *newBin(void)
 void binSetChild(uiControl *c, uiControl *child)
 {
 	struct bin *b = (struct bin *) c;
-	NSView *childView;
+	NSView *binView, *childView;
+	NSDictionary *views;
 
+	binView = (NSView *) uiControlHandle(uiControl(b));
 	if (b->child != NULL) {
+		[binView removeConstraints:b->hconstraint];
+		[binView removeConstraints:b->vconstraint];
+		[b->hconstraint release];
+		[b->vconstraint release];
 		childView = (NSView *) uiControlHandle(b->child);
 		[childView removeFromSuperview];
 	}
@@ -49,7 +57,12 @@ void binSetChild(uiControl *c, uiControl *child)
 	if (b->child != NULL) {
 		uiControlSetParent(b->child, uiControl(b));
 		childView = (NSView *) uiControlHandle(b->child);
-		// TODO auto layout to autoresize
+		[childView setTranslatesAutoresizingMaskIntoConstraints:NO];
+		views = NSDictionaryOfVariableBindings(childView);
+		b->hconstraint = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|[childView]|" options:0 metrics:nil views:views];
+		b->vconstraint = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[childView]|" options:0 metrics:nil views:views];
+		[binView addConstraints:b->hconstraint];
+		[binView addConstraints:b->vconstraint];
 	}
 }
 

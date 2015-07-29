@@ -29,7 +29,7 @@ uiControl *newBin(void)
 
 	// a simple NSView will do fine
 	b->view = [[NSView alloc] initWithFrame:NSZeroRect];
-	uiDarwinMakeSingleWidgetControl(uiControl(b), b->view, NO);
+	uiDarwinMakeSingleViewControl(uiControl(b), b->view, NO);
 
 	uiControl(b)->Handle = binHandle;
 

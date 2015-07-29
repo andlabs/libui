@@ -56,11 +56,10 @@ static void tabPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 	*height = (intmax_t) (s.height);
 }
 
-static void tabContainerUpdate(uiControl *c)
+static void tabContainerUpdateState(uiControl *c)
 {
 	struct tab *t = (struct tab *) c;
 
-	(*(t->baseEnable))(uiControl(t));
 	// TODO enumerate over page CONTROLS instead
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
@@ -68,7 +67,7 @@ static void tabContainerUpdate(uiControl *c)
 
 		bin = (uiControl *) [v pointerValue];
 		// TODO get the right function
-		uiContainerUpdate(uiControl(bin));
+		uiControlUpdateState(uiControl(bin));
 	}];
 }
 
@@ -115,7 +114,7 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 	NSTabViewItem *i;
 
 	v = (NSValue *) [t->pages objectAtIndex:n];
-	page = (uiBin *) [v pointerValue];
+	page = (uiControl *) [v pointerValue];
 	[t->pages removeObjectAtIndex:n];
 	[t->margined removeObjectAtIndex:n];
 
@@ -123,7 +122,7 @@ static void tabDelete(uiTab *tt, uintmax_t n)
 	binSetChild(page, NULL);
 
 	// remove the bin from the tab view
-	// this serves the purpose of uiBinRemoveOSParent()
+	// this serves the purpose of uiControlSetOSParent(bin, NULL)
 	i = [t->tabview tabViewItemAtIndex:n];
 	[t->tabview removeTabViewItem:i];
 
@@ -163,12 +162,12 @@ static void tabSetMargined(uiTab *tt, uintmax_t n, int margined)
 	struct tab *t = (struct tab *) tt;
 	NSNumber *v;
 	NSValue *pagev;
-	uiBin *page;
+	uiControl *page;
 
 	v = [NSNumber numberWithInt:margined];
 	[t->margined replaceObjectAtIndex:n withObject:v];
 	pagev = (NSValue *) [t->pages objectAtIndex:n];
-	page = (uiBin *) [pagev pointerValue];
+	page = (uiControl *) [pagev pointerValue];
 /* TODO
 	if ([v intValue])
 		uiBinSetMargins(page, tabLeftMargin, tabTopMargin, tabRightMargin, tabBottomMargin);
@@ -181,7 +180,7 @@ uiTab *uiNewTab(void)
 {
 	struct tab *t;
 
-	t = (struct tab *) MAKE_CONTROL_INSTANCE(uiTypeTab());
+	t = (struct tab *) uiNewControl(uiTypeTab());
 
 	t->tabview = [[NSTabView alloc] initWithFrame:NSZeroRect];
 	// also good for NSTabView (same selector and everything)
@@ -194,7 +193,7 @@ uiTab *uiNewTab(void)
 	uiControl(t)->PreferredSize = tabPreferredSize;
 	t->baseCommitDestroy = uiControl(t)->CommitDestroy;
 	uiControl(t)->CommitDestroy = tabCommitDestroy;
-	uiControl(t)->ContainerUpdate = tabContainerUpdate;
+	uiControl(t)->ContainerUpdateState = tabContainerUpdateState;
 
 	uiTab(t)->Append = tabAppend;
 	uiTab(t)->InsertAt = tabInsertAt;

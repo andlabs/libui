@@ -19,6 +19,7 @@ osMFILES = \
 	darwin/separator.m \
 	darwin/slider.m \
 	darwin/spinbox.m \
+	darwin/stddialogs.m \
 	darwin/tab.m \
 	darwin/text.m \
 	darwin/util.m \

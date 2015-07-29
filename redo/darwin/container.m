@@ -15,13 +15,6 @@
 	self->c = cc;
 }
 
-// These are based on measurements from Interface Builder.
-// These seem to be based on Auto Layout constants, but I don't see an API that exposes these...
-// This one is 8 for most pairs of controls that I've tried; the only difference is between two pushbuttons, where it's 12...
-#define macXPadding 8
-// Likewise, this one appears to be 12 for pairs of push buttons...
-#define macYPadding 8
-
 - (void)containerUpdate
 {
 	uiSizing *d;
@@ -48,7 +41,7 @@ uintptr_t uiMakeContainer(uiControl *c)
 	containerView *view;
 
 	view = [[containerView alloc] initWithFrame:NSZeroRect];
-	uiDarwinMakeSingleWidgetControl(c, view, NO);
+	uiDarwinMakeSingleViewControl(c, view, NO);
 	[view setContainer:c];
-	return (uintptr_t) widget;
+	return (uintptr_t) view;
 }

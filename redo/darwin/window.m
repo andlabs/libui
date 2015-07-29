@@ -43,14 +43,17 @@ struct window {
 	NSWindow *window;
 	windowDelegate *delegate;
 	uiControl *bin;
+	uiControl *child;
 };
+
+uiDefineControlType(uiWindow, uiTypeWindow, struct window)
 
 static int defaultOnClosing(uiWindow *w, void *data)
 {
 	return 0;
 }
 
-static void windowDestroy(uiControl *c)
+static void windowCommitDestroy(uiControl *c)
 {
 	struct window *w = (struct window *) c;
 
@@ -141,7 +144,6 @@ static void windowSetMargined(uiWindow *ww, int margined)
 	struct window *w = (struct window *) ww;
 
 	binSetMargined(w->bin, margined);
-	uiContainerUpdate(uiContainer(w->bin));
 }
 
 static void windowResizeChild(uiWindow *ww)
@@ -165,7 +167,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	[w->window setTitle:toNSString(title)];
 
 	// a NSWindow is not a NSView, but nothing we're doing in this function is view-specific
-	uiDarwinMakeSingleViewControl(uiControl(w), (NSView *) (w->window));
+	uiDarwinMakeSingleViewControl(uiControl(w), (NSView *) (w->window), NO);
 
 	// explicitly release when closed
 	// the only thing that closes the window is us anyway

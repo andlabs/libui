@@ -61,7 +61,8 @@ static void windowCommitDestroy(uiControl *c)
 	[w->window orderOut:w->window];
 	// now destroy the child
 	binSetChild(w->bin, NULL);
-	uiControlDestroy(w->child);
+	if (w->child != NULL)
+		uiControlDestroy(w->child);
 	// now destroy the bin
 	// we do this by changing the content view to a dummy view
 	// the window will release its reference on the bin now, then it will release its reference on the dummy view when the window itself is finally released
@@ -129,7 +130,8 @@ static void windowSetChild(uiWindow *ww, uiControl *child)
 {
 	struct window *w = (struct window *) ww;
 
-	binSetChild(w->bin, child);
+	w->child = child;
+	binSetChild(w->bin, w->child);
 }
 
 static int windowMargined(uiWindow *ww)

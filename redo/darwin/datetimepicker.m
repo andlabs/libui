@@ -27,6 +27,7 @@ uiDateTimePicker *finishNewDateTimePicker(NSDatePickerElementFlags elements)
 	[d->dp setDatePickerElements:elements];
 	[d->dp setDatePickerMode:NSSingleDateMode];
 	// TODO get date picker font
+	uiDarwinMakeSingleViewControl(uiControl(d), d->dp, YES);
 
 	uiControl(d)->Handle = datetimepickerHandle;
 

@@ -59,7 +59,7 @@ NSLog(@"NOTE thickness %f\n", [s->slider knobThickness]);
 	[s->slider setMinValue:min];
 	[s->slider setMaxValue:max];
 	[s->slider setAllowsTickMarkValuesOnly:NO];
-	[s->slider setNumberOfTicks:0];
+	[s->slider setNumberOfTickMarks:0];
 	[s->slider setTickMarkPosition:NSTickMarkAbove];
 
 	cell = (NSSliderCell *) [s->slider cell];

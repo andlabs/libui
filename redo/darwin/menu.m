@@ -248,6 +248,7 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 		complain("attempt to create a new menu item after menus have been finalized");
 
 	item = uiNew(struct menuItem);
+	uiTyped(item)->Type = uiTypeMenuItem();
 
 	item->type = type;
 	switch (item->type) {
@@ -328,6 +329,7 @@ uiMenu *uiNewMenu(const char *name)
 		menus = [NSMutableArray new];
 
 	m = uiNew(struct menu);
+	uiTyped(m)->Type = uiTypeMenu();
 
 	m->menu = [[NSMenu alloc] initWithTitle:toNSString(name)];
 	// use automatic menu item enabling for all menus for consistency's sake

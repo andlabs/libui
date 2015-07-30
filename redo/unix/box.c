@@ -1,6 +1,7 @@
 // 7 april 2015
-#include "out/ui.h"
-#include "uipriv.h"
+#include "uipriv_unix.h"
+
+// TODO clean this up
 
 struct box {
 	uiBox b;
@@ -64,14 +65,28 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 {
 	struct box *b = (struct box *) ss;
 	struct boxControl *bc;
-	uintmax_t i;
+	GtkWidget *widget;
 
 	bc = uiNew(struct boxControl);
 	bc->c = c;
 	bc->stretchy = stretchy;
 	uiControlSetParent(bc->c, uiControl(b));
-	if (bc->stretchy)
-		gtk_size_group_add_widget(b->stretchygroup, GTK_WIDGET(uiControlHandle(bc->c)));
+	widget = GTK_WIDGET(uiControlHandle(bc->c));
+	if (bc->stretchy) {
+		if (b->vertical) {
+			gtk_widget_set_vexpand(widget, TRUE);
+			gtk_widget_set_valign(widget, GTK_ALIGN_FILL);
+		} else {
+			gtk_widget_set_hexpand(widget, TRUE);
+			gtk_widget_set_halign(widget, GTK_ALIGN_FILL);
+		}
+		gtk_size_group_add_widget(b->stretchygroup, widget);
+	} else		// TODO undo this all in delete
+		if (b->vertical)
+			gtk_widget_set_vexpand(widget, FALSE);
+		else
+			gtk_widget_set_hexpand(widget, FALSE);
+	// TODO make the other dimension fill
 	ptrArrayAppend(b->controls, bc);
 	uiControlQueueResize(uiControl(b));
 }
@@ -112,7 +127,7 @@ static void boxSetPadded(uiBox *ss, int padded)
 	uiControlQueueResize(uiControl(b));
 }
 
-static uiBox *finishNewBox(GtkOrientationType orientation)
+static uiBox *finishNewBox(GtkOrientation orientation)
 {
 	struct box *b;
 
@@ -131,11 +146,9 @@ static uiBox *finishNewBox(GtkOrientationType orientation)
 
 	b->controls = newPtrArray();
 
+	uiUnixMakeSingleWidgetControl(uiControl(b), b->widget);
+
 	uiControl(b)->Handle = boxHandle;
-	uiControl(b)->PreferredSize = boxPreferredSize;
-	b->baseResize = uiControl(b)->Resize;
-	uiControl(b)->Resize = boxResize;
-	uiControl(b)->HasTabStops = boxHasTabStops;
 	b->baseCommitDestroy = uiControl(b)->CommitDestroy;
 	uiControl(b)->CommitDestroy = boxCommitDestroy;
 	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;

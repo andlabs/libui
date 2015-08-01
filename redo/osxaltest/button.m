@@ -25,13 +25,6 @@
 	[v addSubview:self->b];
 }
 
-- (uintmax_t)tAddToAutoLayoutDictionary:(NSMutableDictionary *)views keyNumber:(uintmax_t)n
-{
-	[views setObject:self->b forKey:tAutoLayoutKey(n)];
-	n++;
-	return n;
-}
-
 - (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
 	vert:(NSMutableArray *)vert
 	extra:(NSMutableArray *)extra

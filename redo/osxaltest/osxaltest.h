@@ -5,7 +5,6 @@
 @protocol tControl
 @required
 - (void)tAddToView:(NSView *)v;
-//TODO- (uintmax_t)tAddToAutoLayoutDictionary:(NSMutableDictionary *)views keyNumber:(uintmax_t)n;
 - (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
 	vert:(NSMutableArray *)vert
 	extra:(NSMutableArray *)extra

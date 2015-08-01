@@ -66,6 +66,9 @@
 	}];
 	[constraints appendString:@"|"];
 	return constraints;
+	// TODOs:
+	// - lateral dimension: for each view of n+1, make other dimension next to first n
+	// 	this way, subelement views get positioned right
 }
 
 @end

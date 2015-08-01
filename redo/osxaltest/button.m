@@ -15,6 +15,7 @@
 		[self->b setBordered:YES];
 		[self->b setBezelStyle:NSRoundedBezelStyle];
 		[self->b setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]]];
+		[self->b setTranslatesAutoresizingMaskIntoConstraints:NO];
 	}
 	return self;
 }
@@ -29,6 +30,17 @@
 	[views setObject:self->b forKey:tAutoLayoutKey(n)];
 	n++;
 	return n;
+}
+
+- (void)tFillAutoLayoutHorz:(NSMutableString *)horz
+	vert:(NSMutableString *)vert
+	extra:(NSMutableArray *)extra
+	extraVert:(NSMutableArray *)extraVert
+	views:(NSMutableDictionary *)views
+{
+	[horz setString:@"[view0]"];
+	[vert setString:@"[view0]"];
+	[views setObject:self->b forKey:@"view0"];
 }
 
 @end

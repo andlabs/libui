@@ -37,19 +37,6 @@
 	}];
 }
 
-- (uintmax_t)tAddToAutoLayoutDictionary:(NSMutableDictionary *)views keyNumber:(uintmax_t)nn
-{
-	__block uintmax_t n = nn;
-
-	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		id<tControl> c;
-
-		c = (id<tControl>) obj;
-		n = [c tAddToAutoLayoutDictionary:views keyNumber:n];
-	}];
-	return n;
-}
-
 - (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
 	vert:(NSMutableArray *)vert
 	extra:(NSMutableArray *)extra
@@ -60,6 +47,7 @@
 	NSMutableArray *subhorz, *subvert;
 	uintmax_t *first;
 	NSUInteger i;
+	NSMutableString *out;
 
 	first = (uintmax_t *) malloc([self->children count] * sizeof (uintmax_t));
 	if (first == NULL)
@@ -75,7 +63,15 @@
 			extra:extra extraVert:extraVert
 			views:views first:n];
 	}
-	// TODO combine subhorz/subvert
+	// TODO vertical
+	out = [NSMutableString new];
+	[subhorz enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+//TODO		if (index != 0)
+//TODO			[out appendString:@"-"];
+		[out appendString:((NSString *) obj)];
+	}];
+	[horz addObject:out];
+	[vert addObjectsFromArray:subvert];
 	[subhorz release];
 	[subvert release];
 	free(first);

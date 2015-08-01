@@ -15,6 +15,7 @@
 
 @interface tWindow : NSObject<tControl>
 - (void)tSetControl:(id<tControl>)cc;
+- (void)tSetMargined:(BOOL)m;
 - (void)tShow;
 // TODO this should probably in tControl
 - (void)tRelayout;

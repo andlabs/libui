@@ -3,6 +3,8 @@
 
 // #qo LDFLAGS: -framework Foundation -framework AppKit
 
+BOOL margined = NO;
+
 @interface appDelegate : NSObject<NSApplicationDelegate>
 @end
 
@@ -14,6 +16,7 @@
 	tButton *button;
 
 	mainwin = [[tWindow alloc] init];
+	[mainwin tSetMargined:margined];
 
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[mainwin tSetControl:button];
@@ -31,6 +34,8 @@
 int main(int argc, char *argv[])
 {
 	NSApplication *app;
+
+	margined = argc > 1;
 
 	app = [NSApplication sharedApplication];
 	[app setActivationPolicy:NSApplicationActivationPolicyRegular];

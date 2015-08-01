@@ -4,6 +4,7 @@
 @implementation tWindow {
 	NSWindow *w;
 	id<tControl> c;
+	BOOL margined;
 }
 
 - (id)init
@@ -26,6 +27,12 @@
 	[self tRelayout];
 }
 
+- (void)tSetMargined:(BOOL)m
+{
+	self->margined = m;
+	[self tRelayout];
+}
+
 - (void)tShow
 {
 	[self->w cascadeTopLeftFromPoint:NSMakePoint(20, 20)];
@@ -39,7 +46,10 @@
 	NSMutableArray *extra, *extraVert;
 	NSMutableDictionary *views;
 	NSInteger i;
+	NSString *margin;
 
+	if (self->c == nil)
+		return;
 	contentView = [self->w contentView];
 	[contentView removeConstraints:[contentView constraints]];
 	horz = [NSMutableString new];
@@ -48,9 +58,12 @@
 	extraVert = [NSMutableArray new];
 	views = [NSMutableDictionary new];
 	[self->c tFillAutoLayoutHorz:horz vert:vert extra:extra extraVert:extraVert views:views];
-	[extra addObject:[NSString stringWithFormat:@"|%@|", horz]];
+	margin = @"";
+	if (self->margined)
+		margin = @"-";
+	[extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, horz, margin]];
 	[extraVert addObject:@NO];
-	[extra addObject:[NSString stringWithFormat:@"|%@|", vert]];
+	[extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, vert, margin]];
 	[extraVert addObject:@YES];
 	for (i = 0; i < [extra count]; i++) {
 		NSString *constraint;

@@ -13,17 +13,22 @@ BOOL margined = NO;
 - (void)applicationDidFinishLaunching:(NSNotification *)note
 {
 	tWindow *mainwin;
+	tBox *box;
 	tButton *button;
 	tSpinbox *spinbox;
 
 	mainwin = [[tWindow alloc] init];
 	[mainwin tSetMargined:margined];
 
-//	button = [[tButton alloc] tInitWithText:@"Button"];
-//	[mainwin tSetControl:button];
+	box = [[tBox alloc] tInitVertical:NO];
+
+	button = [[tButton alloc] tInitWithText:@"Button"];
+	[box tAddControl:button stretchy:NO];
+
+	[mainwin tSetControl:box];
 
 	spinbox = [[tSpinbox alloc] init];
-	[mainwin tSetControl:spinbox];
+	[box tAddControl:spinbox stretchy:YES];
 
 	[mainwin tShow];
 }

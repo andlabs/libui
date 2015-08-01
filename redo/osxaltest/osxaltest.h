@@ -6,8 +6,8 @@
 @required
 - (void)tAddToView:(NSView *)v;
 //TODO- (uintmax_t)tAddToAutoLayoutDictionary:(NSMutableDictionary *)views keyNumber:(uintmax_t)n;
-- (void)tFillAutoLayoutHorz:(NSMutableString *)horz
-	vert:(NSMutableString *)vert
+- (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
+	vert:(NSMutableArray *)vert
 	extra:(NSMutableArray *)extra
 	extraVert:(NSMutableArray *)extraVert
 	views:(NSMutableDictionary *)views;

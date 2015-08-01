@@ -32,14 +32,14 @@
 	return n;
 }
 
-- (void)tFillAutoLayoutHorz:(NSMutableString *)horz
-	vert:(NSMutableString *)vert
+- (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
+	vert:(NSMutableArray *)vert
 	extra:(NSMutableArray *)extra
 	extraVert:(NSMutableArray *)extraVert
 	views:(NSMutableDictionary *)views
 {
-	[horz setString:@"[view0]"];
-	[vert setString:@"[view0]"];
+	[horz addObject:@"[view0]"];
+	[vert addObject:@"[view0]"];
 	[views setObject:self->b forKey:@"view0"];
 }
 

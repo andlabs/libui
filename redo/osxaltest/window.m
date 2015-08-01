@@ -42,18 +42,18 @@
 - (void)tRelayout
 {
 	NSView *contentView;
-	NSMutableString *horz, *vert;
+	NSMutableArray *horz, *vert;
 	NSMutableArray *extra, *extraVert;
 	NSMutableDictionary *views;
-	NSInteger i;
+	NSUInteger i;
 	NSString *margin;
 
 	if (self->c == nil)
 		return;
 	contentView = [self->w contentView];
 	[contentView removeConstraints:[contentView constraints]];
-	horz = [NSMutableString new];
-	vert = [NSMutableString new];
+	horz = [NSMutableArray new];
+	vert = [NSMutableArray new];
 	extra = [NSMutableArray new];
 	extraVert = [NSMutableArray new];
 	views = [NSMutableDictionary new];
@@ -61,10 +61,14 @@
 	margin = @"";
 	if (self->margined)
 		margin = @"-";
-	[extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, horz, margin]];
-	[extraVert addObject:@NO];
-	[extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, vert, margin]];
-	[extraVert addObject:@YES];
+	[horz enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		[extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, obj, margin]];
+		[extraVert addObject:@NO];
+	}];
+	[vert enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		[extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, obj, margin]];
+		[extraVert addObject:@YES];
+	}];
 	for (i = 0; i < [extra count]; i++) {
 		NSString *constraint;
 		NSNumber *vertical;

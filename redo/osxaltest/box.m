@@ -37,20 +37,23 @@
 	}];
 }
 
-- (uintmax_t)tAddToAutoLayoutDictionary:(NSMutableDictionary *)views keyNumber:(uintmax_t)n
+- (uintmax_t)tAddToAutoLayoutDictionary:(NSMutableDictionary *)views keyNumber:(uintmax_t)nn
 {
-	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		NSObject<tControl> *c;
+	__block uintmax_t n = nn;
 
-		c = (NSObject<tControl> *) obj;
+	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		id<tControl> c;
+
+		c = (id<tControl>) obj;
 		n = [c tAddToAutoLayoutDictionary:views keyNumber:n];
 	}];
 	return n;
 }
 
-- (NSString *)tBuildAutoLayoutConstraintsKeyNumber:(uintmax_t)n
+- (NSString *)tBuildAutoLayoutConstraintsKeyNumber:(uintmax_t)nn
 {
 	NSMutableString *constraints;
+	__block uintmax_t n = nn;
 
 	if (self->vertical)
 		constraints = [NSMutableString stringWithString:@"V:"];

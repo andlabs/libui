@@ -8,4 +8,9 @@
 - (uintmax_t)tAddToAutoLayoutDictionary:(NSMutableDictionary *)views keyNumber:(uintmax_t)n;
 @end
 
+@interface tWindowDelegate : NSObject<NSWindowDelegate>
+- (void)tSetControl:(NSObject<tControl> *)cc;
+- (void)tRelayout;
+@end
+
 extern NSString *tAutoLayoutKey(uintmax_t);

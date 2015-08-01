@@ -4,17 +4,19 @@
 @interface tBox : NSObject<tControl> {
 	NSMutableArray *children;
 	NSView *sv;
+	BOOL vertical;
 }
 @end
 
 @implementation tBox
 
-- (id)init
+- (id)initVertical:(BOOL)vert
 {
 	self = [super init];
 	if (self) {
 		self->children = [NSMutableArray new];
 		self->sv = nil;
+		self->vertical = vert;
 	}
 	return self;
 }
@@ -27,14 +29,43 @@
 - (void)tAddToView:(NSView *)v
 {
 	self->sv = v;
-	// TODO
+	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		NSView *vv;
+
+		vv = (NSView *) obj;
+		[v addSubview:vv];
+	}];
 }
 
 - (uintmax_t)tAddToAutoLayoutDictionary:(NSMutableDictionary *)views keyNumber:(uintmax_t)n
 {
-	// TODO
+	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		NSObject<tControl> *c;
+
+		c = (NSObject<tControl> *) obj;
+		n = [c tAddToAutoLayoutDictionary:views keyNumber:n];
+	}];
+	return n;
 }
 
-// TODO build auto layout constraints
+- (NSString *)tBuildAutoLayoutConstraintsKeyNumber:(uintmax_t)n
+{
+	NSMutableString *constraints;
+
+	if (self->vertical)
+		constraints = [NSMutableString stringWithString:@"V:"];
+	else
+		constraints = [NSMutableString stringWithString:@"H:"];
+	[constraints appendString:@"|"];
+	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		NSString *thisView;
+
+		// TODO have every control do this
+		[constraints appendString:tAutoLayoutKey(n)];
+		n++;
+	}];
+	[constraints appendString:@"|"];
+	return constraints;
+}
 
 @end

@@ -20,17 +20,20 @@
 
 - (void)tAddControl:(id<tControl>)c stretchy:(BOOL)s
 {
-	// TODO
+	if (self->sv != nil)
+		[c tAddToView:self->sv];
+	[self->children addObject:c];
+	// TODO mark as needing relayout
 }
 
 - (void)tAddToView:(NSView *)v
 {
 	self->sv = v;
 	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		NSView *vv;
+		id<tControl> c;
 
-		vv = (NSView *) obj;
-		[v addSubview:vv];
+		c = (id<tControl>) obj;
+		[c tAddToView:self->sv];
 	}];
 }
 

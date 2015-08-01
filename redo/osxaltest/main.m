@@ -10,20 +10,15 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)note
 {
-	NSWindow *mainwin;
-	tWindowDelegate *delegate;
+	tWindow *mainwin;
+	tButton *button;
 
-	mainwin = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 320, 240)
-		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
-		backing:NSBackingStoreBuffered
-		defer:YES];
-	[mainwin setTitle:@"Auto Layout Test"];
+	mainwin = [[tWindow alloc] init];
 
-	delegate = [tWindowDelegate new];
-	[mainwin setDelegate:delegate];
+	button = [[tButton alloc] tInitWithText:@"Button"];
+	[mainwin tSetControl:button];
 
-	[mainwin cascadeTopLeftFromPoint:NSMakePoint(20, 20)];
-	[mainwin makeKeyAndOrderFront:self];
+	[mainwin tShow];
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)a

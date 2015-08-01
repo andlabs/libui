@@ -8,8 +8,10 @@
 - (uintmax_t)tAddToAutoLayoutDictionary:(NSMutableDictionary *)views keyNumber:(uintmax_t)n;
 @end
 
-@interface tWindowDelegate : NSObject<NSWindowDelegate>
+@interface tWindow : NSObject<tControl>
 - (void)tSetControl:(id<tControl>)cc;
+- (void)tShow;
+// TODO this should probably in tControl
 - (void)tRelayout;
 @end
 

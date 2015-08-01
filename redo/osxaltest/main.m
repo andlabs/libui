@@ -14,12 +14,16 @@ BOOL margined = NO;
 {
 	tWindow *mainwin;
 	tButton *button;
+	tSpinbox *spinbox;
 
 	mainwin = [[tWindow alloc] init];
 	[mainwin tSetMargined:margined];
 
-	button = [[tButton alloc] tInitWithText:@"Button"];
-	[mainwin tSetControl:button];
+//	button = [[tButton alloc] tInitWithText:@"Button"];
+//	[mainwin tSetControl:button];
+
+	spinbox = [[tSpinbox alloc] init];
+	[mainwin tSetControl:spinbox];
 
 	[mainwin tShow];
 }

@@ -32,4 +32,7 @@
 - (id)tInitWithText:(NSString *)text;
 @end
 
+@interface tSpinbox : NSObject<tControl>
+@end
+
 extern NSString *tAutoLayoutKey(uintmax_t);

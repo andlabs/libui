@@ -47,6 +47,7 @@
 	NSMutableDictionary *views;
 	NSUInteger i;
 	NSString *margin;
+	uintmax_t n;
 
 	if (self->c == nil)
 		return;
@@ -57,7 +58,8 @@
 	extra = [NSMutableArray new];
 	extraVert = [NSMutableArray new];
 	views = [NSMutableDictionary new];
-	[self->c tFillAutoLayoutHorz:horz vert:vert extra:extra extraVert:extraVert views:views];
+	n = 0;
+	[self->c tFillAutoLayoutHorz:horz vert:vert extra:extra extraVert:extraVert views:views first:&n];
 	margin = @"";
 	if (self->margined)
 		margin = @"-";

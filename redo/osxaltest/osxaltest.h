@@ -10,7 +10,8 @@
 	vert:(NSMutableArray *)vert
 	extra:(NSMutableArray *)extra
 	extraVert:(NSMutableArray *)extraVert
-	views:(NSMutableDictionary *)views;
+	views:(NSMutableDictionary *)views
+	first:(uintmax_t *)n;
 @end
 
 @interface tWindow : NSObject<tControl>
@@ -21,12 +22,10 @@
 - (void)tRelayout;
 @end
 
-/*
 @interface tBox : NSObject<tControl>
 - (id)tInitVertical:(BOOL)vert;
 - (void)tAddControl:(id<tControl>)c stretchy:(BOOL)s;
 @end
-*/
 
 @interface tButton : NSObject<tControl>
 - (id)tInitWithText:(NSString *)text;

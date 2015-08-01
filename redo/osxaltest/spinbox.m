@@ -49,11 +49,17 @@
 	extraVert:(NSMutableArray *)extraVert
 	views:(NSMutableDictionary *)views
 {
-	[horz addObject:@"[view0]-[view1]"];
-	[vert addObject:@"[view0]"];
-	[vert addObject:@"[view1]"];
-	[views setObject:self->t forKey:@"view0"];
-	[views setObject:self->s forKey:@"view1"];
+	NSString *keyt;
+	NSString *keys;
+
+	keyt = tAutoLayoutKey(*n);
+	keys = tAutoLayoutKey(*n + 1);
+	*n += 2;
+	[horz addObject:[NSString stringWithFormat:@"[%@]-[%@]", keyt, keys]];
+	[vert addObject:[NSString stringWithFormat:@"[%@]", keyt]];
+	[vert addObject:[NSString stringWithFormat:@"[%@]", keys]];
+	[views setObject:self->t forKey:keyt];
+	[views setObject:self->s forKey:keys];
 }
 
 @end

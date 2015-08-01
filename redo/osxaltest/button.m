@@ -37,10 +37,15 @@
 	extra:(NSMutableArray *)extra
 	extraVert:(NSMutableArray *)extraVert
 	views:(NSMutableDictionary *)views
+	first:(uintmax_t *)n
 {
-	[horz addObject:@"[view0]"];
-	[vert addObject:@"[view0]"];
-	[views setObject:self->b forKey:@"view0"];
+	NSString *key;
+
+	key = tAutoLayoutKey(*n);
+	(*n)++;
+	[horz addObject:[NSString stringWithFormat:@"[%@]", key]];
+	[vert addObject:[NSString stringWithFormat:@"[%@]", key]];
+	[views setObject:self->b forKey:key];
 }
 
 @end

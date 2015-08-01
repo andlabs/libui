@@ -50,28 +50,39 @@
 	return n;
 }
 
-- (NSString *)tBuildAutoLayoutConstraintsKeyNumber:(uintmax_t)nn
+- (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
+	vert:(NSMutableArray *)vert
+	extra:(NSMutableArray *)extra
+	extraVert:(NSMutableArray *)extraVert
+	views:(NSMutableDictionary *)views
+	first:(uintmax_t *)n
 {
-	NSMutableString *constraints;
-	__block uintmax_t n = nn;
+	NSMutableArray *subhorz, *subvert;
+	uintmax_t *first;
+	NSUInteger i;
 
-	if (self->vertical)
-		constraints = [NSMutableString stringWithString:@"V:"];
-	else
-		constraints = [NSMutableString stringWithString:@"H:"];
-	[constraints appendString:@"|"];
-	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		NSString *thisView;
+	first = (uintmax_t *) malloc([self->children count] * sizeof (uintmax_t));
+	if (first == NULL)
+		abort();
+	subhorz = [NSMutableArray new];
+	subvert = [NSMutableArray new];
+	for (i = 0; i < [self->children count]; i++) {
+		id<tControl> cur;
 
-		// TODO have every control do this
-		[constraints appendString:tAutoLayoutKey(n)];
-		n++;
-	}];
-	[constraints appendString:@"|"];
-	return constraints;
-	// TODOs:
-	// - lateral dimension: for each view of n+1, make other dimension next to first n
-	// 	this way, subelement views get positioned right
+		first[i] = *n;
+		cur = (id<tControl>) [self->children objectAtIndex:i];
+		[cur tFillAutoLayoutHorz:subhorz vert:subvert
+			extra:extra extraVert:extraVert
+			views:views first:n];
+	}
+	// TODO combine subhorz/subvert
+	[subhorz release];
+	[subvert release];
+	free(first);
 }
+
+// TODOs:
+// - lateral dimension: for each view of n+1, make other dimension next to first n
+// 	this way, subelement views get positioned right
 
 @end

@@ -3,5 +3,5 @@
 
 NSString *tAutoLayoutKey(uintmax_t n)
 {
-	return [NSString stringWithFormat:@"[view%ju]", n];
+	return [NSString stringWithFormat:@"view%ju", n];
 }

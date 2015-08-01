@@ -1,16 +1,13 @@
 // 31 july 2015
 #import "osxaltest.h"
 
-@interface tBox : NSObject<tControl> {
+@implementation tBox {
 	NSMutableArray *children;
 	NSView *sv;
 	BOOL vertical;
 }
-@end
 
-@implementation tBox
-
-- (id)initVertical:(BOOL)vert
+- (id)tInitVertical:(BOOL)vert
 {
 	self = [super init];
 	if (self) {
@@ -21,7 +18,7 @@
 	return self;
 }
 
-- (void)addControl:(NSObject<tControl> *)c stretchy:(BOOL)s
+- (void)tAddControl:(id<tControl>)c stretchy:(BOOL)s
 {
 	// TODO
 }

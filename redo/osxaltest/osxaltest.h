@@ -9,8 +9,17 @@
 @end
 
 @interface tWindowDelegate : NSObject<NSWindowDelegate>
-- (void)tSetControl:(NSObject<tControl> *)cc;
+- (void)tSetControl:(id<tControl>)cc;
 - (void)tRelayout;
+@end
+
+@interface tBox : NSObject<tControl>
+- (id)tInitVertical:(BOOL)vert;
+- (void)tAddControl:(id<tControl>)c stretchy:(BOOL)s;
+@end
+
+@interface tButton : NSObject<tControl>
+- (id)tInitWithText:(NSString *)text;
 @end
 
 extern NSString *tAutoLayoutKey(uintmax_t);

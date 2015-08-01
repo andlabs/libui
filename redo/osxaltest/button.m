@@ -1,14 +1,11 @@
 // 31 july 2015
 #import "osxaltest.h"
 
-@interface tButton : NSObject<tControl> {
+@implementation tButton {
 	NSButton *b;
 }
-@end
 
-@implementation tButton
-
-- (id)initWithText:(NSString *)text
+- (id)tInitWithText:(NSString *)text
 {
 	self = [super init];
 	if (self) {

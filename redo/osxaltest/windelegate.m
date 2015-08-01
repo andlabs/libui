@@ -2,7 +2,7 @@
 #import "osxaltest.h"
 
 @implementation tWindowDelegate {
-	NSObject<tControl> *c;
+	id<tControl> c;
 }
 
 - (id)init
@@ -13,7 +13,7 @@
 	return self;
 }
 
-- (void)tSetControl:(NSObject<tControl> *)cc
+- (void)tSetControl:(id<tControl>)cc
 {
 	self->c = cc;
 }

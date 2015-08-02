@@ -71,12 +71,12 @@
 	pp.firstStretchy = TRUE;
 	for (i = 0; i < [self->children count]; i++) {
 		id<tControl> cur;
-		NSNumber *stretchy;
+		NSNumber *isStretchy;
 
 		first[i] = pp.n;
 		cur = (id<tControl>) [self->children objectAtIndex:i];
-		stretchy = (NSNumber *) [self->stretchy objectAtIndex:i];
-		pp.stretchy = [stretchy boolValue];
+		isStretchy = (NSNumber *) [self->stretchy objectAtIndex:i];
+		pp.stretchy = [isStretchy boolValue];
 		[cur tFillAutoLayout:&pp];
 		if (pp.stretchy && pp.firstStretchy) {
 			pp.firstStretchy = FALSE;

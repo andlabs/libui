@@ -33,11 +33,27 @@
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSString *key;
+	NSString *horzpred, *vertpred;
 
 	key = tAutoLayoutKey(p->n);
 	p->n++;
-	[p->horz addObject:[NSString stringWithFormat:@"[%@]", key]];
-	[p->vert addObject:[NSString stringWithFormat:@"[%@]", key]];
+	horzpred = @"";
+	vertpred = @"";
+	if (p->stretchy) {
+		NSString *predicate;
+
+		if (p->firstStretchy)
+			// TODO is this unnecessary? it seems like I need to do other things instead of this to ensure stretchiness...
+			predicate = @"(>=0)";
+		else
+			predicate = [NSString stringWithFormat:@"(==%@)", tAutoLayoutKey(p->stretchyTo)];
+		if (p->stretchyVert)
+			vertpred = predicate;
+		else
+			horzpred = predicate;
+	}
+	[p->horz addObject:[NSString stringWithFormat:@"[%@%@]", key, horzpred]];
+	[p->vert addObject:[NSString stringWithFormat:@"[%@%@]", key, vertpred]];
 	[p->views setObject:self->b forKey:key];
 }
 

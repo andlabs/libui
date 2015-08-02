@@ -48,6 +48,8 @@
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSMutableArray *subhorz, *subvert;
+	NSMutableArray *subhorzleft, *subhorzright;
+	NSMutableArray *subverttop, *subvertbottom;
 	uintmax_t *first;
 	NSUInteger i;
 	NSMutableString *out;
@@ -59,12 +61,18 @@
 	if (first == NULL)
 		abort();
 	subhorz = [NSMutableArray new];
+	subhorzleft = [NSMutableArray new];
+	subhorzright = [NSMutableArray new];
 	subvert = [NSMutableArray new];
+	subverttop = [NSMutableArray new];
+	subvertbottom = [NSMutableArray new];
 
 	pp.horz = subhorz;
+	pp.horzAttachLeft = subhorzleft;
+	pp.horzAttachRight = subhorzright;
 	pp.vert = subvert;
-	pp.extra = p->extra;
-	pp.extraVert = p->extraVert;
+	pp.vertAttachTop = subverttop;
+	pp.vertAttachBottom = subvertbottom;
 	pp.views = p->views;
 	pp.n = p->n;
 	pp.stretchyVert = self->vertical;
@@ -105,7 +113,11 @@
 	[secondaryout addObjectsFromArray:secondaryin];
 
 	[subhorz release];
+	[subhorzleft release];
+	[subhorzright release];
 	[subvert release];
+	[subverttop release];
+	[subvertbottom release];
 	free(first);
 }
 

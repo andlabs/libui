@@ -25,7 +25,11 @@
 {
 	self = [super init];
 	if (self) {
+		NSMutableDictionary *views;
+		NSArray *constraints;
+
 		self->c = [[tSpinboxContainer alloc] initWithFrame:NSZeroRect];
+		[self->c setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		self->t = [[NSTextField alloc] initWithFrame:NSZeroRect];
 		[self->t setSelectable:YES];
@@ -44,6 +48,19 @@
 		[self->s setAutorepeat:YES];
 		[self->s setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[self->c addSubview:self->s];
+
+		views = [NSMutableDictionary new];
+		[views setObject:self->t forKey:@"t"];
+		[views setObject:self->s forKey:@"s"];
+
+		constraints = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|[t]-[s]|" options:0 metrics:nil views:views];
+		[self->c addConstraints:constraints];
+		constraints = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[t]|" options:0 metrics:nil views:views];
+		[self->c addConstraints:constraints];
+		constraints = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[s]|" options:0 metrics:nil views:views];
+		[self->c addConstraints:constraints];
+
+		[views release];
 
 		self->parent = nil;
 	}

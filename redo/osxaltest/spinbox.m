@@ -15,6 +15,7 @@
 @end
 
 @implementation tSpinbox {
+	tSpinboxContainer *c;
 	NSTextField *t;
 	NSStepper *s;
 	id<tControl> parent;
@@ -24,6 +25,8 @@
 {
 	self = [super init];
 	if (self) {
+		self->c = [[tSpinboxContainer alloc] initWithFrame:NSZeroRect];
+
 		self->t = [[NSTextField alloc] initWithFrame:NSZeroRect];
 		[self->t setSelectable:YES];
 		[self->t setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]]];
@@ -33,12 +36,14 @@
 		[[self->t cell] setLineBreakMode:NSLineBreakByClipping];
 		[[self->t cell] setScrollable:YES];
 		[self->t setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self->c addSubview:self->t];
 
 		self->s = [[NSStepper alloc] initWithFrame:NSZeroRect];
 		[self->s setIncrement:1];
 		[self->s setValueWraps:NO];
 		[self->s setAutorepeat:YES];
 		[self->s setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self->c addSubview:self->s];
 
 		self->parent = nil;
 	}
@@ -48,8 +53,7 @@
 - (void)tSetParent:(id<tControl>)p addToView:(NSView *)v
 {
 	self->parent = p;
-	[v addSubview:self->t];
-	[v addSubview:self->s];
+	[v addSubview:self->c];
 }
 
 - (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
@@ -59,17 +63,13 @@
 	views:(NSMutableDictionary *)views
 	first:(uintmax_t *)n
 {
-	NSString *keyt;
-	NSString *keys;
+	NSString *key;
 
-	keyt = tAutoLayoutKey(*n);
-	keys = tAutoLayoutKey(*n + 1);
-	*n += 2;
-	[horz addObject:[NSString stringWithFormat:@"[%@]-[%@]", keyt, keys]];
-	[vert addObject:[NSString stringWithFormat:@"[%@]", keyt]];
-	[vert addObject:[NSString stringWithFormat:@"[%@]", keys]];
-	[views setObject:self->t forKey:keyt];
-	[views setObject:self->s forKey:keys];
+	key = tAutoLayoutKey(*n);
+	(*n)++;
+	[horz addObject:[NSString stringWithFormat:@"[%@]", key]];
+	[vert addObject:[NSString stringWithFormat:@"[%@]", key]];
+	[views setObject:self->c forKey:key];
 }
 
 - (void)tRelayout

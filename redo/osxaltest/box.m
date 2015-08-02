@@ -5,6 +5,7 @@
 	NSMutableArray *children;
 	NSView *sv;
 	BOOL vertical;
+	id<tControl> parent;
 }
 
 - (id)tInitVertical:(BOOL)vert
@@ -14,6 +15,7 @@
 		self->children = [NSMutableArray new];
 		self->sv = nil;
 		self->vertical = vert;
+		self->parent = nil;
 	}
 	return self;
 }
@@ -21,19 +23,20 @@
 - (void)tAddControl:(id<tControl>)c stretchy:(BOOL)s
 {
 	if (self->sv != nil)
-		[c tAddToView:self->sv];
+		[c tSetParent:self->parent addToView:self->sv];
 	[self->children addObject:c];
 	// TODO mark as needing relayout
 }
 
-- (void)tAddToView:(NSView *)v
+- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v
 {
+	self->parent = p;
 	self->sv = v;
 	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		id<tControl> c;
 
 		c = (id<tControl>) obj;
-		[c tAddToView:self->sv];
+		[c tSetParent:self->parent addToView:self->sv];
 	}];
 }
 

@@ -3,6 +3,7 @@
 
 @implementation tButton {
 	NSButton *b;
+	id<tControl> parent;
 }
 
 - (id)tInitWithText:(NSString *)text
@@ -16,12 +17,15 @@
 		[self->b setBezelStyle:NSRoundedBezelStyle];
 		[self->b setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]]];
 		[self->b setTranslatesAutoresizingMaskIntoConstraints:NO];
+
+		self->parent = nil;
 	}
 	return self;
 }
 
-- (void)tAddToView:(NSView *)v
+- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v
 {
+	self->parent = p;
 	[v addSubview:self->b];
 }
 

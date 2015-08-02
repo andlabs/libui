@@ -4,7 +4,7 @@
 
 @protocol tControl
 @required
-- (void)tAddToView:(NSView *)v;
+- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v;
 - (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
 	vert:(NSMutableArray *)vert
 	extra:(NSMutableArray *)extra

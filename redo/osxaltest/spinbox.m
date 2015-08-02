@@ -4,6 +4,7 @@
 @implementation tSpinbox {
 	NSTextField *t;
 	NSStepper *s;
+	id<tControl> parent;
 }
 
 - (id)init
@@ -25,12 +26,15 @@
 		[self->s setValueWraps:NO];
 		[self->s setAutorepeat:YES];
 		[self->s setTranslatesAutoresizingMaskIntoConstraints:NO];
+
+		self->parent = nil;
 	}
 	return self;
 }
 
-- (void)tAddToView:(NSView *)v
+- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v
 {
+	self->parent = p;
 	[v addSubview:self->t];
 	[v addSubview:self->s];
 }

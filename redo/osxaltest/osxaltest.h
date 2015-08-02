@@ -11,14 +11,13 @@
 	extraVert:(NSMutableArray *)extraVert
 	views:(NSMutableDictionary *)views
 	first:(uintmax_t *)n;
+- (void)tRelayout;
 @end
 
 @interface tWindow : NSObject<tControl>
 - (void)tSetControl:(id<tControl>)cc;
 - (void)tSetMargined:(BOOL)m;
 - (void)tShow;
-// TODO this should probably in tControl
-- (void)tRelayout;
 @end
 
 @interface tBox : NSObject<tControl>

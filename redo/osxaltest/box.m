@@ -26,6 +26,7 @@
 		[c tSetParent:self->parent addToView:self->sv];
 	[self->children addObject:c];
 	// TODO mark as needing relayout
+	[self tRelayout];
 }
 
 - (void)tSetParent:(id<tControl>)p addToView:(NSView *)v
@@ -38,6 +39,7 @@
 		c = (id<tControl>) obj;
 		[c tSetParent:self->parent addToView:self->sv];
 	}];
+	[self tRelayout];
 }
 
 - (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
@@ -83,5 +85,11 @@
 // TODOs:
 // - lateral dimension: for each view of n+1, make other dimension next to first n
 // 	this way, subelement views get positioned right
+
+- (void)tRelayout
+{
+	if (self->parent != nil)
+		[self->parent tRelayout];
+}
 
 @end

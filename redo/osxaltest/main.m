@@ -23,12 +23,12 @@ BOOL margined = NO;
 	box = [[tBox alloc] tInitVertical:NO];
 
 	button = [[tButton alloc] tInitWithText:@"Button"];
-	[box tAddControl:button stretchy:NO];
+	[box tAddControl:button stretchy:YES];
 
 	[mainwin tSetControl:box];
 
 	spinbox = [[tSpinbox alloc] init];
-	[box tAddControl:spinbox stretchy:YES];
+	[box tAddControl:spinbox stretchy:NO];
 
 	[mainwin tShow];
 }

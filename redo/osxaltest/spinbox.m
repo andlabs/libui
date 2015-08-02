@@ -59,4 +59,10 @@
 	[views setObject:self->s forKey:keys];
 }
 
+- (void)tRelayout
+{
+	if (self->parent != nil)
+		[self->parent tRelayout];
+}
+
 @end

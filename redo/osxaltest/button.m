@@ -27,6 +27,7 @@
 {
 	self->parent = p;
 	[v addSubview:self->b];
+	[self tRelayout];
 }
 
 - (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
@@ -43,6 +44,12 @@
 	[horz addObject:[NSString stringWithFormat:@"[%@]", key]];
 	[vert addObject:[NSString stringWithFormat:@"[%@]", key]];
 	[views setObject:self->b forKey:key];
+}
+
+- (void)tRelayout
+{
+	if (self->parent != nil)
+		[self->parent tRelayout];
 }
 
 @end

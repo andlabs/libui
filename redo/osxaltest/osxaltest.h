@@ -2,15 +2,21 @@
 #import <Cocoa/Cocoa.h>
 #import <stdint.h>
 
+typedef struct tAutoLayoutParams tAutoLayoutParams;
+
+struct tAutoLayoutParams {
+	NSMutableArray *horz;
+	NSMutableArray *vert;
+	NSMutableArray *extra;		// TODO make extraHorz and return BOOL NSNumber logic
+	NSMutableArray *extraVert;
+	NSMutableDictionary *views;
+	uintmax_t n;
+};
+
 @protocol tControl
 @required
 - (void)tSetParent:(id<tControl>)p addToView:(NSView *)v;
-- (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
-	vert:(NSMutableArray *)vert
-	extra:(NSMutableArray *)extra
-	extraVert:(NSMutableArray *)extraVert
-	views:(NSMutableDictionary *)views
-	first:(uintmax_t *)n;
+- (void)tFillAutoLayout:(tAutoLayoutParams *)p;
 - (void)tRelayout;
 @end
 

@@ -42,48 +42,49 @@
 - (void)tRelayout
 {
 	NSView *contentView;
-	NSMutableArray *horz, *vert;
-	NSMutableArray *extra, *extraVert;
-	NSMutableDictionary *views;
+	tAutoLayoutParams p;
 	NSUInteger i;
 	NSString *margin;
-	uintmax_t n;
 
 	if (self->c == nil)
 		return;
+
 	contentView = [self->w contentView];
 	[contentView removeConstraints:[contentView constraints]];
-	horz = [NSMutableArray new];
-	vert = [NSMutableArray new];
-	extra = [NSMutableArray new];
-	extraVert = [NSMutableArray new];
-	views = [NSMutableDictionary new];
-	n = 0;
-	[self->c tFillAutoLayoutHorz:horz vert:vert extra:extra extraVert:extraVert views:views first:&n];
+
+	p.horz = [NSMutableArray new];
+	p.vert = [NSMutableArray new];
+	p.extra = [NSMutableArray new];
+	p.extraVert = [NSMutableArray new];
+	p.views = [NSMutableDictionary new];
+	p.n = 0;
+	[self->c tFillAutoLayout:&p];
+
 	margin = @"";
 	if (self->margined)
 		margin = @"-";
-	[horz enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		[extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, obj, margin]];
-		[extraVert addObject:@NO];
+	[p.horz enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		[p.extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, obj, margin]];
+		[p.extraVert addObject:@NO];
 	}];
-	[vert enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		[extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, obj, margin]];
-		[extraVert addObject:@YES];
+	[p.vert enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		[p.extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, obj, margin]];
+		[p.extraVert addObject:@YES];
 	}];
-	for (i = 0; i < [extra count]; i++) {
+	for (i = 0; i < [p.extra count]; i++) {
 		NSString *constraint;
 		NSNumber *vertical;
 		NSArray *constraints;
 
-		vertical = (NSNumber *) [extraVert objectAtIndex:i];
+		vertical = (NSNumber *) [p.extraVert objectAtIndex:i];
 		if ([vertical boolValue])
-			constraint = [NSString stringWithFormat:@"V:%@", [extra objectAtIndex:i]];
+			constraint = [NSString stringWithFormat:@"V:%@", [p.extra objectAtIndex:i]];
 		else
-			constraint = [NSString stringWithFormat:@"H:%@", [extra objectAtIndex:i]];
-		constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views];
+			constraint = [NSString stringWithFormat:@"H:%@", [p.extra objectAtIndex:i]];
+		constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:p.views];
 		[contentView addConstraints:constraints];
 	}
+
 	// TODO release everything
 }
 

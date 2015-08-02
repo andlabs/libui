@@ -30,20 +30,15 @@
 	[self tRelayout];
 }
 
-- (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
-	vert:(NSMutableArray *)vert
-	extra:(NSMutableArray *)extra
-	extraVert:(NSMutableArray *)extraVert
-	views:(NSMutableDictionary *)views
-	first:(uintmax_t *)n
+- (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSString *key;
 
-	key = tAutoLayoutKey(*n);
-	(*n)++;
-	[horz addObject:[NSString stringWithFormat:@"[%@]", key]];
-	[vert addObject:[NSString stringWithFormat:@"[%@]", key]];
-	[views setObject:self->b forKey:key];
+	key = tAutoLayoutKey(p->n);
+	p->n++;
+	[p->horz addObject:[NSString stringWithFormat:@"[%@]", key]];
+	[p->vert addObject:[NSString stringWithFormat:@"[%@]", key]];
+	[p->views setObject:self->b forKey:key];
 }
 
 - (void)tRelayout

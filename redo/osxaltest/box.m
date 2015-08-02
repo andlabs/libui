@@ -45,32 +45,35 @@
 	[self tRelayout];
 }
 
-- (void)tFillAutoLayoutHorz:(NSMutableArray *)horz
-	vert:(NSMutableArray *)vert
-	extra:(NSMutableArray *)extra
-	extraVert:(NSMutableArray *)extraVert
-	views:(NSMutableDictionary *)views
-	first:(uintmax_t *)n
+- (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSMutableArray *subhorz, *subvert;
 	uintmax_t *first;
 	NSUInteger i;
 	NSMutableString *out;
+	tAutoLayoutParams pp;
 
 	first = (uintmax_t *) malloc([self->children count] * sizeof (uintmax_t));
 	if (first == NULL)
 		abort();
 	subhorz = [NSMutableArray new];
 	subvert = [NSMutableArray new];
+
+	pp.horz = subhorz;
+	pp.vert = subvert;
+	pp.extra = p->extra;
+	pp.extraVert = p->extraVert;
+	pp.views = p->views;
+	pp.n = p->n;
 	for (i = 0; i < [self->children count]; i++) {
 		id<tControl> cur;
 
-		first[i] = *n;
+		first[i] = pp.n;
 		cur = (id<tControl>) [self->children objectAtIndex:i];
-		[cur tFillAutoLayoutHorz:subhorz vert:subvert
-			extra:extra extraVert:extraVert
-			views:views first:n];
+		[cur tFillAutoLayout:&pp];
 	}
+	p->n = pp.n;
+
 	// TODO vertical
 	out = [NSMutableString new];
 	[subhorz enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
@@ -78,8 +81,9 @@
 //TODO			[out appendString:@"-"];
 		[out appendString:((NSString *) obj)];
 	}];
-	[horz addObject:out];
-	[vert addObjectsFromArray:subvert];
+	[p->horz addObject:out];
+	[p->vert addObjectsFromArray:subvert];
+
 	[subhorz release];
 	[subvert release];
 	free(first);

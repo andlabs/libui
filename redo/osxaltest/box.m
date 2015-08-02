@@ -52,6 +52,8 @@
 	NSUInteger i;
 	NSMutableString *out;
 	tAutoLayoutParams pp;
+	NSMutableArray *primaryin, *primaryout;
+	NSMutableArray *secondaryin, *secondaryout;
 
 	first = (uintmax_t *) malloc([self->children count] * sizeof (uintmax_t));
 	if (first == NULL)
@@ -74,15 +76,24 @@
 	}
 	p->n = pp.n;
 
-	// TODO vertical
 	out = [NSMutableString new];
-	[subhorz enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+	primaryin = subhorz;
+	primaryout = p->horz;
+	secondaryin = subvert;
+	secondaryout = p->vert;
+	if (self->vertical) {
+		primaryin = subvert;
+		primaryout = p->vert;
+		secondaryin = subhorz;
+		secondaryout = p->horz;
+	}
+	[primaryin enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 //TODO		if (index != 0)
 //TODO			[out appendString:@"-"];
 		[out appendString:((NSString *) obj)];
 	}];
-	[p->horz addObject:out];
-	[p->vert addObjectsFromArray:subvert];
+	[primaryout addObject:out];
+	[secondaryout addObjectsFromArray:secondaryin];
 
 	[subhorz release];
 	[subvert release];

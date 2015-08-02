@@ -6,9 +6,11 @@ typedef struct tAutoLayoutParams tAutoLayoutParams;
 
 struct tAutoLayoutParams {
 	NSMutableArray *horz;
+	NSMutableArray *horzAttachLeft;
+	NSMutableArray *horzAttachRight;
 	NSMutableArray *vert;
-	NSMutableArray *extra;		// TODO make extraHorz and return BOOL NSNumber logic
-	NSMutableArray *extraVert;
+	NSMutableArray *vertAttachTop;
+	NSMutableArray *vertAttachBottom;
 	NSMutableDictionary *views;
 	uintmax_t n;
 	BOOL stretchy;

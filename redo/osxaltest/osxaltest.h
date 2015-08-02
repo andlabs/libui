@@ -25,7 +25,7 @@ struct tAutoLayoutParams {
 
 @protocol tControl
 @required
-- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v;
+- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v relayout:(BOOL)relayout;
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p;
 - (void)tRelayout;
 @end

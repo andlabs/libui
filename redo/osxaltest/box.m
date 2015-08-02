@@ -25,14 +25,14 @@
 - (void)tAddControl:(id<tControl>)c stretchy:(BOOL)s
 {
 	if (self->sv != nil)
-		[c tSetParent:self->parent addToView:self->sv];
+		[c tSetParent:self addToView:self->sv relayout:NO];
 	[self->children addObject:c];
 	[self->stretchy addObject:[NSNumber numberWithBool:s]];
 	// TODO mark as needing relayout
 	[self tRelayout];
 }
 
-- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v
+- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v relayout:(BOOL)relayout
 {
 	self->parent = p;
 	self->sv = v;
@@ -40,9 +40,10 @@
 		id<tControl> c;
 
 		c = (id<tControl>) obj;
-		[c tSetParent:self->parent addToView:self->sv];
+		[c tSetParent:self addToView:self->sv relayout:NO];
 	}];
-	[self tRelayout];
+	if (relayout)
+		[self tRelayout];
 }
 
 // TODO MASSIVE CLEANUP and comments everywhere too
@@ -53,14 +54,9 @@
 	NSMutableArray *subverttop, *subvertbottom;
 	uintmax_t *first;
 	NSUInteger i;
-	NSMutableString *out;
 	tAutoLayoutParams pp;
-	NSMutableArray *primaryin, *primaryout;
-	BOOL primaryinstart, primaryinend;
-	NSMutableArray *primaryoutstart, *primaryoutend;
-	NSMutableArray *secondaryin, *secondaryout;
-	NSMutableArray *secondaryinstart, *secondaryinend;
-	NSMutableArray *secondaryoutstart, *secondaryoutend;
+	void (^buildPrimary)(NSMutableArray *in, BOOL first, BOOL last,
+		NSMutableArray *out, NSMutableArray *outstart, NSMutableArray *outend);
 
 	first = (uintmax_t *) malloc([self->children count] * sizeof (uintmax_t));
 	if (first == NULL)
@@ -109,44 +105,34 @@
 	}
 	p->n = pp.n;
 
-	out = [NSMutableString new];
-	primaryin = subhorz;
-	primaryinstart = p->horzFirst;
-	primaryinend = p->horzLast;
-	primaryout = p->horz;
-	primaryoutstart = p->horzAttachLeft;
-	primaryoutend = p->horzAttachRight;
-	secondaryin = subvert;
-	secondaryinstart = subverttop;
-	secondaryinend = subvertbottom;
-	secondaryout = p->vert;
-	secondaryoutstart = p->vertAttachTop;
-	secondaryoutend = p->vertAttachBottom;
-	if (self->vertical) {
-		primaryin = subvert;
-		primaryinstart = p->vertFirst;
-		primaryinend = p->vertLast;
-		primaryout = p->vert;
-		primaryoutstart = p->vertAttachTop;
-		primaryoutend = p->vertAttachBottom;
-		secondaryin = subhorz;
-		secondaryinstart = subhorzleft;
-		secondaryinend = subhorzright;
-		secondaryout = p->horz;
-		secondaryoutstart = p->horzAttachLeft;
-		secondaryoutend = p->horzAttachRight;
-	}
-	[primaryin enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+	buildPrimary = ^(NSMutableArray *in, BOOL first, BOOL last,
+		NSMutableArray *out, NSMutableArray *outstart, NSMutableArray *outend) {
+		NSMutableString *outstr;
+
+		outstr = [NSMutableString new];
+		[in enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 //TODO		if (index != 0)
-//TODO			[out appendString:@"-"];
-		[out appendString:((NSString *) obj)];
-	}];
-	[primaryout addObject:out];
-	[primaryoutstart addObject:[NSNumber numberWithBool:primaryinstart]];
-	[primaryoutend addObject:[NSNumber numberWithBool:primaryinend]];
-	[secondaryout addObjectsFromArray:secondaryin];
-	[secondaryoutstart addObjectsFromArray:secondaryinstart];
-	[secondaryoutend addObjectsFromArray:secondaryinend];
+//TODO			[outstr appendString:@"-"];
+			[outstr appendString:((NSString *) obj)];
+		}];
+		[out addObject:outstr];
+		[outstart addObject:[NSNumber numberWithBool:first]];
+		[outend addObject:[NSNumber numberWithBool:last]];
+	};
+
+	if (self->vertical) {
+		buildPrimary(subvert, p->vertFirst, p->vertLast,
+			p->vert, p->vertAttachTop, p->vertAttachBottom);
+		[p->horz addObjectsFromArray:subhorz];
+		[p->horzAttachLeft addObjectsFromArray:subhorzleft];
+		[p->horzAttachRight addObjectsFromArray:subhorzright];
+	} else {
+		buildPrimary(subhorz, p->horzFirst, p->horzLast,
+			p->horz, p->horzAttachLeft, p->horzAttachRight);
+		[p->vert addObjectsFromArray:subvert];
+		[p->vertAttachTop addObjectsFromArray:subverttop];
+		[p->vertAttachBottom addObjectsFromArray:subvertbottom];
+	}
 
 	[subhorz release];
 	[subhorzleft release];

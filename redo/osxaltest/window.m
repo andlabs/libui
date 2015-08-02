@@ -23,7 +23,7 @@
 - (void)tSetControl:(id<tControl>)cc
 {
 	self->c = cc;
-	[self->c tSetParent:self addToView:[self->w contentView]];
+	[self->c tSetParent:self addToView:[self->w contentView] relayout:NO];
 	[self tRelayout];
 }
 

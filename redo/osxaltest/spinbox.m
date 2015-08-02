@@ -67,10 +67,12 @@
 	return self;
 }
 
-- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v
+- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v relayout:(BOOL)relayout
 {
 	self->parent = p;
 	[v addSubview:self->c];
+	if (relayout)
+		[self tRelayout];
 }
 
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p

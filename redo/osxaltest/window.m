@@ -55,9 +55,13 @@
 	p.horz = [NSMutableArray new];
 	p.horzAttachLeft = [NSMutableArray new];
 	p.horzAttachRight = [NSMutableArray new];
+	p.horzFirst = YES;		// only control here
+	p.horzLast = YES;
 	p.vert = [NSMutableArray new];
 	p.vertAttachTop = [NSMutableArray new];
 	p.vertAttachBottom = [NSMutableArray new];
+	p.vertFirst = YES;
+	p.vertLast = YES;
 	p.views = [NSMutableDictionary new];
 	p.n = 0;
 	[self->c tFillAutoLayout:&p];

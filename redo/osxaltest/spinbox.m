@@ -95,11 +95,11 @@
 			horzpred = predicate;
 	}
 	[p->horz addObject:[NSString stringWithFormat:@"[%@%@]", key, horzpred]];
-	[p->horzAttachLeft addObject:@YES];
-	[p->horzAttachRight addObject:@YES];
+	[p->horzAttachLeft addObject:[NSNumtber numberWithBool:p->horzFirst]];
+	[p->horzAttachRight addObject:[NSNumber numberWithBool:p->horzLast]];
 	[p->vert addObject:[NSString stringWithFormat:@"[%@%@]", key, vertpred]];
-	[p->vertAttachTop addObject:@YES];
-	[p->vertAttachBottom addObject:@YES];
+	[p->vertAttachTop addObject:[NSNumber numberWithBool:p->vertFirst]];
+	[p->vertAttachBottom addObject:[NSNumber numberWithBool:p->vertLast]];
 	[p->views setObject:self->c forKey:key];
 }
 

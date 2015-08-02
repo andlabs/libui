@@ -8,9 +8,13 @@ struct tAutoLayoutParams {
 	NSMutableArray *horz;
 	NSMutableArray *horzAttachLeft;
 	NSMutableArray *horzAttachRight;
+	BOOL horzFirst;
+	BOOL horzLast;
 	NSMutableArray *vert;
 	NSMutableArray *vertAttachTop;
 	NSMutableArray *vertAttachBottom;
+	BOOL vertFirst;
+	BOOL vertLast;
 	NSMutableDictionary *views;
 	uintmax_t n;
 	BOOL stretchy;

@@ -3,7 +3,8 @@
 
 // #qo LDFLAGS: -framework Foundation -framework AppKit
 
-BOOL margined = NO;
+BOOL spaced = NO;
+BOOL firstvert = YES;
 
 @interface appDelegate : NSObject<NSApplicationDelegate>
 @end
@@ -18,23 +19,23 @@ BOOL margined = NO;
 	tSpinbox *spinbox;
 
 	mainwin = [[tWindow alloc] init];
-	[mainwin tSetMargined:margined];
+	[mainwin tSetMargined:spaced];
 
-	box = [[tBox alloc] tInitVertical:YES];
+	box = [[tBox alloc] tInitVertical:firstvert];
 
 	spinbox = [[tSpinbox alloc] init];
 	[box tAddControl:spinbox stretchy:NO];
 
 	[mainwin tSetControl:box];
 
-	hbox = [[tBox alloc] tInitVertical:NO];
+	hbox = [[tBox alloc] tInitVertical:!firstvert];
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[hbox tAddControl:button stretchy:YES];
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[hbox tAddControl:button stretchy:YES];
 	[box tAddControl:hbox stretchy:NO];
 
-	hbox = [[tBox alloc] tInitVertical:NO];
+	hbox = [[tBox alloc] tInitVertical:!firstvert];
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[hbox tAddControl:button stretchy:YES];
 	button = [[tButton alloc] tInitWithText:@"Button"];
@@ -55,7 +56,7 @@ int main(int argc, char *argv[])
 {
 	NSApplication *app;
 
-	margined = argc > 1;
+	spaced = argc > 1;
 
 	app = [NSApplication sharedApplication];
 	[app setActivationPolicy:NSApplicationActivationPolicyRegular];

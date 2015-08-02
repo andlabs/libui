@@ -52,7 +52,7 @@
 	NSMutableArray *subhorz, *subvert;
 	NSMutableArray *subhorzleft, *subhorzright;
 	NSMutableArray *subverttop, *subvertbottom;
-	uintmax_t *first;
+	__block uintmax_t *first;
 	NSUInteger i;
 	tAutoLayoutParams pp;
 	void (^buildPrimary)(NSMutableArray *in, BOOL first, BOOL last,
@@ -148,6 +148,33 @@
 		[p->vertAttachTop addObjectsFromArray:subverttop];
 		[p->vertAttachBottom addObjectsFromArray:subvertbottom];
 	}
+
+	// now constrain the lateral dimension
+	// all children of item i must be next to the first child of item i+1
+	// this is so sub-boxes are on the same "line"
+	// TODO move this declaration above
+	void (^lateral)(NSMutableArray *, BOOL, BOOL, NSMutableArray *, NSMutableArray *) = ^(NSMutableArray *out, BOOL xfirst, BOOL last, NSMutableArray *outstart, NSMutableArray *outend) {
+		NSUInteger i;
+		uintmax_t j;
+
+		for (i = 0; i < [self->children count] - 1; i++)
+			for (j = first[i]; j < first[i + 1]; j++) {
+				NSString *c1, *c2;
+				NSString *constraint;
+
+				c1 = tAutoLayoutKey(j);
+				c2 = tAutoLayoutKey(first[i + 1]);
+				constraint = [NSString stringWithFormat:@"[%@][%@]", c1, c2];
+				[out addObject:constraint];
+				[outstart addObject:[NSNumber numberWithBool:xfirst]];
+				[outend addObject:[NSNumber numberWithBool:last]];
+			}
+	};
+
+	if (self->vertical)
+		lateral(p->vert, p->vertFirst, p->vertLast, p->vertAttachTop, p->vertAttachBottom);
+	else
+		lateral(p->horz, p->horzFirst, p->horzLast, p->horzAttachLeft, p->horzAttachRight);
 
 	[subhorz release];
 	[subhorzleft release];

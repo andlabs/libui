@@ -95,7 +95,7 @@
 			horzpred = predicate;
 	}
 	[p->horz addObject:[NSString stringWithFormat:@"[%@%@]", key, horzpred]];
-	[p->horzAttachLeft addObject:[NSNumtber numberWithBool:p->horzFirst]];
+	[p->horzAttachLeft addObject:[NSNumber numberWithBool:p->horzFirst]];
 	[p->horzAttachRight addObject:[NSNumber numberWithBool:p->horzLast]];
 	[p->vert addObject:[NSString stringWithFormat:@"[%@%@]", key, vertpred]];
 	[p->vertAttachTop addObject:[NSNumber numberWithBool:p->vertFirst]];

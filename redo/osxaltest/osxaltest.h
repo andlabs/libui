@@ -4,6 +4,8 @@
 
 typedef struct tAutoLayoutParams tAutoLayoutParams;
 
+// TODO stretchy across both dimensions
+// for a vertical box, the horizontal width should be variable
 struct tAutoLayoutParams {
 	NSMutableArray *horz;
 	NSMutableArray *horzAttachLeft;

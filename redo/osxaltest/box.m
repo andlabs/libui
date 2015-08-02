@@ -3,6 +3,7 @@
 
 @implementation tBox {
 	NSMutableArray *children;
+	NSMutableArray *stretchy;
 	NSView *sv;
 	BOOL vertical;
 	id<tControl> parent;
@@ -13,6 +14,7 @@
 	self = [super init];
 	if (self) {
 		self->children = [NSMutableArray new];
+		self->stretchy = [NSMutableArray new];
 		self->sv = nil;
 		self->vertical = vert;
 		self->parent = nil;
@@ -25,6 +27,7 @@
 	if (self->sv != nil)
 		[c tSetParent:self->parent addToView:self->sv];
 	[self->children addObject:c];
+	[self->stretchy addObject:[NSNumber numberWithBool:s]];
 	// TODO mark as needing relayout
 	[self tRelayout];
 }

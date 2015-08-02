@@ -67,12 +67,21 @@
 	pp.extraVert = p->extraVert;
 	pp.views = p->views;
 	pp.n = p->n;
+	pp.stretchyVert = self->vertical;
+	pp.firstStretchy = TRUE;
 	for (i = 0; i < [self->children count]; i++) {
 		id<tControl> cur;
+		NSNumber *stretchy;
 
 		first[i] = pp.n;
 		cur = (id<tControl>) [self->children objectAtIndex:i];
+		stretchy = (NSNumber *) [self->stretchy objectAtIndex:i];
+		pp.stretchy = [stretchy boolValue];
 		[cur tFillAutoLayout:&pp];
+		if (pp.stretchy && pp.firstStretchy) {
+			pp.firstStretchy = FALSE;
+			pp.stretchyTo = first[i];
+		}
 	}
 	p->n = pp.n;
 

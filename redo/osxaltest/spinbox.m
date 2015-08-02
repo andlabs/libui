@@ -1,6 +1,19 @@
 // 31 july 2015
 #import "osxaltest.h"
 
+// leave a whole lot of space around the alignment rect, just to be safe
+@interface tSpinboxContainer : NSView
+@end
+
+@implementation tSpinboxContainer
+
+- (NSEdgeInsets)alignmentRectInsets
+{
+	return NSEdgeInsetsMake(50, 50, 50, 50);
+}
+
+@end
+
 @implementation tSpinbox {
 	NSTextField *t;
 	NSStepper *s;

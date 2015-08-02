@@ -19,10 +19,12 @@ struct tAutoLayoutParams {
 	BOOL vertLast;
 	NSMutableDictionary *views;
 	uintmax_t n;
-	BOOL stretchy;
-	BOOL stretchyVert;
-	BOOL firstStretchy;
-	uintmax_t stretchyTo;
+	BOOL horzStretchy;
+	BOOL horzFirstStretchy;
+	uintmax_t horzStretchyTo;
+	BOOL vertStretchy;
+	BOOL vertFirstStretchy;
+	uintmax_t vertStretchyTo;
 };
 
 @protocol tControl

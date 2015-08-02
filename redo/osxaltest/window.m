@@ -64,6 +64,10 @@
 	p.vertLast = YES;
 	p.views = [NSMutableDictionary new];
 	p.n = 0;
+	p.horzStretchy = YES;		// assumption for the sole control to avoid fixed size hacks
+	p.horzFirstStretchy = YES;
+	p.vertStretchy = YES;
+	p.vertFirstStretchy = YES;
 	[self->c tFillAutoLayout:&p];
 
 	margin = @"";

@@ -39,20 +39,19 @@
 	key = tAutoLayoutKey(p->n);
 	p->n++;
 	horzpred = @"";
-	vertpred = @"";
-	if (p->stretchy) {
-		NSString *predicate;
-
-		if (p->firstStretchy)
+	if (p->horzStretchy)
+		if (p->horzFirstStretchy)
 			// TODO is this unnecessary? it seems like I need to do other things instead of this to ensure stretchiness...
-			predicate = @"(>=0)";
+			horzpred = @"(>=0)";
 		else
-			predicate = [NSString stringWithFormat:@"(==%@)", tAutoLayoutKey(p->stretchyTo)];
-		if (p->stretchyVert)
-			vertpred = predicate;
+			horzpred = [NSString stringWithFormat:@"(==%@)", tAutoLayoutKey(p->horzStretchyTo)];
+	vertpred = @"";
+	if (p->vertStretchy)
+		if (p->vertFirstStretchy)
+			// TODO is this unnecessary? it seems like I need to do other things instead of this to ensure stretchiness...
+			vertpred = @"(>=0)";
 		else
-			horzpred = predicate;
-	}
+			vertpred = [NSString stringWithFormat:@"(==%@)", tAutoLayoutKey(p->vertStretchyTo)];
 	[p->horz addObject:[NSString stringWithFormat:@"[%@%@]", key, horzpred]];
 	[p->horzAttachLeft addObject:[NSNumber numberWithBool:p->horzFirst]];
 	[p->horzAttachRight addObject:[NSNumber numberWithBool:p->horzLast]];

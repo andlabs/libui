@@ -76,8 +76,15 @@
 	pp.vertAttachBottom = subvertbottom;
 	pp.views = p->views;
 	pp.n = p->n;
-	pp.stretchyVert = self->vertical;
-	pp.firstStretchy = TRUE;
+	if (self->vertical) {
+		pp.vertFirstStretchy = YES;
+		pp.horzStretchy = YES;
+		pp.horzFirstStretchy = YES;
+	} else {
+		pp.horzFirstStretchy = YES;
+		pp.vertStretchy = YES;
+		pp.vertFirstStretchy = YES;
+	}
 	for (i = 0; i < [self->children count]; i++) {
 		id<tControl> cur;
 		NSNumber *isStretchy;
@@ -85,22 +92,30 @@
 		first[i] = pp.n;
 		cur = (id<tControl>) [self->children objectAtIndex:i];
 		isStretchy = (NSNumber *) [self->stretchy objectAtIndex:i];
-		pp.stretchy = [isStretchy boolValue];
 		if (self->vertical) {
+			pp.vertStretchy = [isStretchy boolValue];
 			pp.vertFirst = p->vertFirst && i == 0;
 			pp.vertLast = p->vertLast && i == ([self->children count] - 1);
 			pp.horzFirst = p->horzFirst;
 			pp.horzLast = p->horzLast;
 		} else {
+			pp.horzStretchy = [isStretchy boolValue];
 			pp.horzFirst = p->horzFirst && i == 0;
 			pp.horzLast = p->horzLast && i == ([self->children count] - 1);
 			pp.vertFirst = p->vertFirst;
 			pp.vertLast = p->vertLast;
 		}
 		[cur tFillAutoLayout:&pp];
-		if (pp.stretchy && pp.firstStretchy) {
-			pp.firstStretchy = FALSE;
-			pp.stretchyTo = first[i];
+		if (self->vertical) {
+			if (pp.vertStretchy && pp.vertFirstStretchy) {
+				pp.vertFirstStretchy = NO;
+				pp.vertStretchyTo = first[i];
+			}
+		} else {
+			if (pp.horzStretchy && pp.horzFirstStretchy) {
+				pp.horzFirstStretchy = NO;
+				pp.horzStretchyTo = first[i];
+			}
 		}
 	}
 	p->n = pp.n;
@@ -146,6 +161,7 @@
 // TODOs:
 // - lateral dimension: for each view of n+1, make other dimension next to first n
 // 	this way, subelement views get positioned right
+// - don't pin to end if no controls are stretchy
 
 - (void)tRelayout
 {

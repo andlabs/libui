@@ -43,8 +43,8 @@
 {
 	NSView *contentView;
 	tAutoLayoutParams p;
-	NSUInteger i;
 	NSString *margin;
+	void (^run)(NSArray *, NSArray *, NSArray *);
 
 	if (self->c == nil)
 		return;
@@ -53,9 +53,11 @@
 	[contentView removeConstraints:[contentView constraints]];
 
 	p.horz = [NSMutableArray new];
+	p.horzAttachLeft = [NSMutableArray new];
+	p.horzAttachRight = [NSMutableArray new];
 	p.vert = [NSMutableArray new];
-	p.extra = [NSMutableArray new];
-	p.extraVert = [NSMutableArray new];
+	p.vertAttachTop = [NSMutableArray new];
+	p.vertAttachBottom = [NSMutableArray new];
 	p.views = [NSMutableDictionary new];
 	p.n = 0;
 	[self->c tFillAutoLayout:&p];
@@ -63,27 +65,35 @@
 	margin = @"";
 	if (self->margined)
 		margin = @"-";
-	[p.horz enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		[p.extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, obj, margin]];
-		[p.extraVert addObject:@NO];
-	}];
-	[p.vert enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		[p.extra addObject:[NSString stringWithFormat:@"|%@%@%@|", margin, obj, margin]];
-		[p.extraVert addObject:@YES];
-	}];
-	for (i = 0; i < [p.extra count]; i++) {
-		NSString *constraint;
-		NSNumber *vertical;
-		NSArray *constraints;
 
-		vertical = (NSNumber *) [p.extraVert objectAtIndex:i];
-		if ([vertical boolValue])
-			constraint = [NSString stringWithFormat:@"V:%@", [p.extra objectAtIndex:i]];
-		else
-			constraint = [NSString stringWithFormat:@"H:%@", [p.extra objectAtIndex:i]];
-		constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:p.views];
-		[contentView addConstraints:constraints];
-	}
+	run = ^(NSArray *side, NSArray *attachStart, NSArray *attachEnd) {
+		NSUInteger i;
+
+		for (i = 0; i < [side count]; i++) {
+			NSMutableString *constraint;
+			NSNumber *attach;
+			NSArray *constraints;
+
+			constraint = [NSMutableString stringWithString:@"H:"];
+			attach = (NSNumber *) [attachStart objectAtIndex:i];
+			if ([attach boolValue]) {
+				[constraint appendString:@"|"];
+				[constraint appendString:margin];
+			}
+			[constraint appendString:[side objectAtIndex:i]];
+			attach = (NSNumber *) [attachEnd objectAtIndex:i];
+			if ([attach boolValue]) {
+				[constraint appendString:margin];
+				[constraint appendString:@"|"];
+			}
+			constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:p.views];
+			[contentView addConstraints:constraints];
+			[constraint release];
+		}
+	};
+
+	run(p.horz, p.horzAttachLeft, p.horzAttachRight);
+	run(p.vert, p.vertAttachTop, p.vertAttachBottom);
 
 	// TODO release everything
 }

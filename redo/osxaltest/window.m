@@ -92,7 +92,7 @@
 			}
 			constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:p.views];
 			[contentView addConstraints:constraints];
-			[constraint release];
+//TODO uncomment this and the program tries to access after free			[constraint release];
 		}
 	};
 

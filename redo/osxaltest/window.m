@@ -44,7 +44,7 @@
 	NSView *contentView;
 	tAutoLayoutParams p;
 	NSString *margin;
-	void (^run)(NSArray *, NSArray *, NSArray *);
+	void (^run)(NSArray *, NSArray *, NSArray *, NSString *);
 
 	if (self->c == nil)
 		return;
@@ -70,7 +70,7 @@
 	if (self->margined)
 		margin = @"-";
 
-	run = ^(NSArray *side, NSArray *attachStart, NSArray *attachEnd) {
+	run = ^(NSArray *side, NSArray *attachStart, NSArray *attachEnd, NSString *prefix) {
 		NSUInteger i;
 
 		for (i = 0; i < [side count]; i++) {
@@ -78,7 +78,7 @@
 			NSNumber *attach;
 			NSArray *constraints;
 
-			constraint = [NSMutableString stringWithString:@"H:"];
+			constraint = [NSMutableString stringWithString:prefix];
 			attach = (NSNumber *) [attachStart objectAtIndex:i];
 			if ([attach boolValue]) {
 				[constraint appendString:@"|"];
@@ -96,8 +96,8 @@
 		}
 	};
 
-	run(p.horz, p.horzAttachLeft, p.horzAttachRight);
-	run(p.vert, p.vertAttachTop, p.vertAttachBottom);
+	run(p.horz, p.horzAttachLeft, p.horzAttachRight, @"H:");
+	run(p.vert, p.vertAttachTop, p.vertAttachBottom, @"V:");
 
 	// TODO release everything
 }

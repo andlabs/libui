@@ -22,28 +22,28 @@ BOOL firstvert = YES;
 	mainwin = [[tWindow alloc] init];
 	[mainwin tSetMargined:spaced];
 
-	box = [[tBox alloc] tInitVertical:firstvert];
+	box = [[tBox alloc] tInitVertical:firstvert spaced:spaced];
 
 	spinbox = [[tSpinbox alloc] init];
 	[box tAddControl:spinbox stretchy:NO];
 
 	[mainwin tSetControl:box];
 
-	hbox = [[tBox alloc] tInitVertical:!firstvert];
+	hbox = [[tBox alloc] tInitVertical:!firstvert spaced:spaced];
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[hbox tAddControl:button stretchy:YES];
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[hbox tAddControl:button stretchy:YES];
 	[box tAddControl:hbox stretchy:NO];
 
-	hbox = [[tBox alloc] tInitVertical:!firstvert];
+	hbox = [[tBox alloc] tInitVertical:!firstvert spaced:spaced];
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[hbox tAddControl:button stretchy:YES];
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[hbox tAddControl:button stretchy:YES];
 	[box tAddControl:hbox stretchy:NO];
 
-	hbox = [[tBox alloc] tInitVertical:!firstvert];
+	hbox = [[tBox alloc] tInitVertical:!firstvert spaced:spaced];
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[hbox tAddControl:button stretchy:YES];
 	button = [[tButton alloc] tInitWithText:@"A"];
@@ -55,14 +55,14 @@ BOOL firstvert = YES;
 	[box tAddControl:hbox stretchy:NO];
 
 	// TODO this isn't stretchy in the proper order
-	hbox = [[tBox alloc] tInitVertical:!firstvert];
+	hbox = [[tBox alloc] tInitVertical:!firstvert spaced:spaced];
 	spinbox = [[tSpinbox alloc] init];
 	[hbox tAddControl:spinbox stretchy:NO];
 	spinbox = [[tSpinbox alloc] init];
 	[hbox tAddControl:spinbox stretchy:YES];
 	[box tAddControl:hbox stretchy:NO];
 
-	hbox = [[tBox alloc] tInitVertical:!firstvert];
+	hbox = [[tBox alloc] tInitVertical:!firstvert spaced:spaced];
 	entry = [[tEntry alloc] init];
 	[hbox tAddControl:entry stretchy:NO];
 	entry = [[tEntry alloc] init];

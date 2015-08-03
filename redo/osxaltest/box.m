@@ -22,9 +22,10 @@
 	NSMutableArray *stretchy;
 	BOOL vertical;
 	id<tControl> parent;
+	BOOL spaced;
 }
 
-- (id)tInitVertical:(BOOL)vert
+- (id)tInitVertical:(BOOL)vert spaced:(BOOL)sp
 {
 	self = [super init];
 	if (self) {
@@ -34,6 +35,7 @@
 		self->stretchy = [NSMutableArray new];
 		self->vertical = vert;
 		self->parent = nil;
+		self->spaced = sp;
 	}
 	return self;
 }
@@ -54,7 +56,6 @@
 		[self tRelayout];
 }
 
-// TODO spaced
 // TODO custom minimum width for non-stretchy controls
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
@@ -101,6 +102,8 @@
 	for (i = 0; i < n; i++) {
 		NSNumber *isStretchy;
 
+		if (self->spaced && i != 0)
+			[constraint appendString:@"-"];
 		[constraint appendString:@"["];
 		[constraint appendString:tAutoLayoutKey(i)];
 		isStretchy = (NSNumber *) [self->stretchy objectAtIndex:i];

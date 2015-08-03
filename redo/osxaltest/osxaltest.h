@@ -28,7 +28,7 @@ struct tAutoLayoutParams {
 @end
 
 @interface tBox : NSObject<tControl>
-- (id)tInitVertical:(BOOL)vert;
+- (id)tInitVertical:(BOOL)vert spaced:(BOOL)sp;
 - (void)tAddControl:(id<tControl>)c stretchy:(BOOL)s;
 @end
 

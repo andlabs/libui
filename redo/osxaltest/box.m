@@ -59,8 +59,8 @@
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSMutableDictionary *views;
-	__block uintmax_t n;
-	tAutoLayoutParams pp;
+	__block uintmax_t i, n;
+	__block tAutoLayoutParams pp;
 	__block BOOL anyStretchy;
 	NSMutableString *constraint;
 
@@ -78,7 +78,7 @@
 		if ([isStretchy boolValue])
 			anyStretchy = YES;
 		[c tFillAutoLayout:&pp];
-		[views setObjject:pp.view forKey:tAutoLayoutKey(n)];
+		[views setObject:pp.view forKey:tAutoLayoutKey(n)];
 		n++;
 	}];
 
@@ -89,23 +89,23 @@
 		constraint = [NSMutableString stringWithString:@"H:|"];
 	for (i = 0; i < n; i++) {
 		[constraint appendString:@"["];
-		[constraint appendString:tAutoLayoutKey(n)];
+		[constraint appendString:tAutoLayoutKey(i)];
 		[constraint appendString:@"]"];
 	}
 	[constraint appendString:@"|"];
-	[self->v addConstraint:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
-	[constraint release];
+	[self->v addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
+	// TODO do not release constraint; it's autoreleased?
 
 	// next make the views span the full other dimension
 	for (i = 0; i < n; i++) {
 		if (self->vertical)
-			constraint = [NSMutableString stringWithString:@"H:|"];
+			constraint = [NSMutableString stringWithString:@"H:|["];
 		else
-			constraint = [NSMutableString stringWithString:@"V:|"];
-		[constraint appendString:tAutoLayoutKey(n)];
+			constraint = [NSMutableString stringWithString:@"V:|["];
+		[constraint appendString:tAutoLayoutKey(i)];
 		[constraint appendString:@"]|"];
-		[self->v addConstraint:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
-		[constraint release];
+		[self->v addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
+		// TODO do not release constraint; it's autoreleased?
 	}
 
 	[views release];

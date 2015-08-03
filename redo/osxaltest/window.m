@@ -74,9 +74,9 @@
 		[constraint appendString:margin];
 		[constraint appendString:@"|"];
 	}
-	constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:p.views];
+	constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views];
 	[contentView addConstraints:constraints];
-	[constraint release];
+	// TODO do not release constraint; it's autoreleased?
 
 	constraint = [NSMutableString stringWithString:@"V:"];
 	if (p.attachTop) {
@@ -88,11 +88,12 @@
 		[constraint appendString:margin];
 		[constraint appendString:@"|"];
 	}
-	constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:p.views];
+	constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views];
 	[contentView addConstraints:constraints];
-	[constraint release];
+	// TODO do not release constraint; it's autoreleased?
 
-	[views release];
+	// TODO do not release views; it's autoreleased?
+	// (for all of these, look up whether the constructor autoreleases)
 }
 
 @end

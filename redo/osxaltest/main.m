@@ -42,6 +42,17 @@ BOOL firstvert = YES;
 	[hbox tAddControl:button stretchy:YES];
 	[box tAddControl:hbox stretchy:NO];
 
+	hbox = [[tBox alloc] tInitVertical:!firstvert];
+	button = [[tButton alloc] tInitWithText:@"Button"];
+	[hbox tAddControl:button stretchy:YES];
+	button = [[tButton alloc] tInitWithText:@"A"];
+	[hbox tAddControl:button stretchy:NO];
+	button = [[tButton alloc] tInitWithText:@"BB"];
+	[hbox tAddControl:button stretchy:NO];
+	button = [[tButton alloc] tInitWithText:@"CCC"];
+	[hbox tAddControl:button stretchy:NO];
+	[box tAddControl:hbox stretchy:NO];
+
 	[mainwin tShow];
 }
 

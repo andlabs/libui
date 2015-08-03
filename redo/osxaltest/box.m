@@ -49,146 +49,66 @@
 // TODO MASSIVE CLEANUP and comments everywhere too
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
-	NSMutableArray *subhorz, *subvert;
-	NSMutableArray *subhorzleft, *subhorzright;
-	NSMutableArray *subverttop, *subvertbottom;
-	__block uintmax_t *first;
-	NSUInteger i;
+	NSMutableDictionary *views;
+	__block uintmax_t n;
 	tAutoLayoutParams pp;
-	void (^buildPrimary)(NSMutableArray *in, BOOL first, BOOL last,
-		NSMutableArray *out, NSMutableArray *outstart, NSMutableArray *outend);
+	__block BOOL anyStretchy;
+	NSMutableString *constraint;
 
-	first = (uintmax_t *) malloc([self->children count] * sizeof (uintmax_t));
-	if (first == NULL)
-		abort();
-	subhorz = [NSMutableArray new];
-	subhorzleft = [NSMutableArray new];
-	subhorzright = [NSMutableArray new];
-	subvert = [NSMutableArray new];
-	subverttop = [NSMutableArray new];
-	subvertbottom = [NSMutableArray new];
-
-	pp.horz = subhorz;
-	pp.horzAttachLeft = subhorzleft;
-	pp.horzAttachRight = subhorzright;
-	pp.vert = subvert;
-	pp.vertAttachTop = subverttop;
-	pp.vertAttachBottom = subvertbottom;
-	pp.views = p->views;
-	pp.n = p->n;
-	if (self->vertical) {
-		pp.vertFirstStretchy = YES;
-		pp.horzStretchy = YES;
-		pp.horzFirstStretchy = YES;
-	} else {
-		pp.horzFirstStretchy = YES;
-		pp.vertStretchy = YES;
-		pp.vertFirstStretchy = YES;
-	}
-	for (i = 0; i < [self->children count]; i++) {
-		id<tControl> cur;
+	views = [NSMutableDictionary new];
+	n = 0;
+	anyStretchy = NO;
+	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
+		id<tControl> c;
 		NSNumber *isStretchy;
 
-		first[i] = pp.n;
-		cur = (id<tControl>) [self->children objectAtIndex:i];
-		isStretchy = (NSNumber *) [self->stretchy objectAtIndex:i];
-		if (self->vertical) {
-			pp.vertStretchy = [isStretchy boolValue];
-			pp.vertFirst = p->vertFirst && i == 0;
-			pp.vertLast = p->vertLast && i == ([self->children count] - 1);
-			pp.horzFirst = p->horzFirst;
-			pp.horzLast = p->horzLast;
-		} else {
-			pp.horzStretchy = [isStretchy boolValue];
-			pp.horzFirst = p->horzFirst && i == 0;
-			pp.horzLast = p->horzLast && i == ([self->children count] - 1);
-			pp.vertFirst = p->vertFirst;
-			pp.vertLast = p->vertLast;
-		}
-		[cur tFillAutoLayout:&pp];
-		if (self->vertical) {
-			if (pp.vertStretchy && pp.vertFirstStretchy) {
-				pp.vertFirstStretchy = NO;
-				pp.vertStretchyTo = first[i];
-			}
-		} else {
-			if (pp.horzStretchy && pp.horzFirstStretchy) {
-				pp.horzFirstStretchy = NO;
-				pp.horzStretchyTo = first[i];
-			}
-		}
+		c = (id<tControl>) obj;
+		isStretchy = (NSNumber *) [self->stretchy objectAtIndex:index];
+		if ([isStretchy boolValue])
+			anyStretchy = YES;
+		[c tFillAutoLayout:&pp];
+		[views setObjject:pp.view forKey:tAutoLayoutKey(n)];
+		n++;
+	}];
+
+	// first string the views together
+	constraint = [NSMutableString stringWithString:@"|"];
+	for (i = 0; i < n; i++) {
+		[constraint appendString:@"["];
+		[constraint appendString:tAutoLayoutKey(n)];
+		[constraint appendString:@"]"];
 	}
-	p->n = pp.n;
+	[constraint appendString:@"|"];
+	// TODO apply constraint
+	[constraint release];
 
-	buildPrimary = ^(NSMutableArray *in, BOOL first, BOOL last,
-		NSMutableArray *out, NSMutableArray *outstart, NSMutableArray *outend) {
-		NSMutableString *outstr;
+	// next make the views span the full other dimension
+	for (i = 0; i < n; i++) {
+		if (self->vertical)
+			constraint = [NSMutableString stringWithString:@"H:|"];
+		else
+			constraint = [NSMutableString stringWithString:@"V:|"];
+		[constraint appendString:tAutoLayoutKey(n)];
+		[constraint appendString:@"]|"];
+		// TODO apply constraint
+		[constraint release];
+	}
 
-		outstr = [NSMutableString new];
-		[in enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-//TODO		if (index != 0)
-//TODO			[outstr appendString:@"-"];
-			[outstr appendString:((NSString *) obj)];
-		}];
-		[out addObject:outstr];
-		[outstart addObject:[NSNumber numberWithBool:first]];
-		[outend addObject:[NSNumber numberWithBool:last]];
-	};
+	[views release];
 
+	// and now populate for self
+	p->view = TODO;
+	p->attachLeft = YES;
+	p->attachTop = YES;
+	// don't attach to the end if there weren't any stretchy controls
 	if (self->vertical) {
-		buildPrimary(subvert, p->vertFirst, p->vertLast,
-			p->vert, p->vertAttachTop, p->vertAttachBottom);
-		[p->horz addObjectsFromArray:subhorz];
-		[p->horzAttachLeft addObjectsFromArray:subhorzleft];
-		[p->horzAttachRight addObjectsFromArray:subhorzright];
+		p->attachRight = YES;
+		p->attachBottom = anyStretchy;
 	} else {
-		buildPrimary(subhorz, p->horzFirst, p->horzLast,
-			p->horz, p->horzAttachLeft, p->horzAttachRight);
-		[p->vert addObjectsFromArray:subvert];
-		[p->vertAttachTop addObjectsFromArray:subverttop];
-		[p->vertAttachBottom addObjectsFromArray:subvertbottom];
+		p->attachRight = anyStretchy;
+		p->attachBottom = YES;
 	}
-
-	// now constrain the lateral dimension
-	// all children of item i must be next to the first child of item i+1
-	// this is so sub-boxes are on the same "line"
-	// TODO move this declaration above
-	void (^lateral)(NSMutableArray *, BOOL, BOOL, NSMutableArray *, NSMutableArray *) = ^(NSMutableArray *out, BOOL xfirst, BOOL last, NSMutableArray *outstart, NSMutableArray *outend) {
-		NSUInteger i;
-		uintmax_t j;
-
-		for (i = 0; i < [self->children count] - 1; i++)
-			for (j = first[i]; j < first[i + 1]; j++) {
-				NSString *c1, *c2;
-				NSString *constraint;
-
-				c1 = tAutoLayoutKey(j);
-				c2 = tAutoLayoutKey(first[i + 1]);
-				constraint = [NSString stringWithFormat:@"[%@][%@]", c1, c2];
-				[out addObject:constraint];
-				[outstart addObject:[NSNumber numberWithBool:xfirst]];
-				[outend addObject:[NSNumber numberWithBool:last]];
-			}
-	};
-
-	if (self->vertical)
-		lateral(p->vert, p->vertFirst, p->vertLast, p->vertAttachTop, p->vertAttachBottom);
-	else
-		lateral(p->horz, p->horzFirst, p->horzLast, p->horzAttachLeft, p->horzAttachRight);
-
-	[subhorz release];
-	[subhorzleft release];
-	[subhorzright release];
-	[subvert release];
-	[subverttop release];
-	[subvertbottom release];
-	free(first);
 }
-
-// TODOs:
-// - lateral dimension: for each view of n+1, make other dimension next to first n
-// 	this way, subelement views get positioned right
-// - don't pin to end if no controls are stretchy
 
 - (void)tRelayout
 {

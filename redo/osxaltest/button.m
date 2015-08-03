@@ -33,32 +33,11 @@
 
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
-	NSString *key;
-	NSString *horzpred, *vertpred;
-
-	key = tAutoLayoutKey(p->n);
-	p->n++;
-	horzpred = @"";
-	if (p->horzStretchy)
-		if (p->horzFirstStretchy)
-			// TODO is this unnecessary? it seems like I need to do other things instead of this to ensure stretchiness...
-			horzpred = @"(>=0)";
-		else
-			horzpred = [NSString stringWithFormat:@"(==%@)", tAutoLayoutKey(p->horzStretchyTo)];
-	vertpred = @"";
-	if (p->vertStretchy)
-		if (p->vertFirstStretchy)
-			// TODO is this unnecessary? it seems like I need to do other things instead of this to ensure stretchiness...
-			vertpred = @"(>=0)";
-		else
-			vertpred = [NSString stringWithFormat:@"(==%@)", tAutoLayoutKey(p->vertStretchyTo)];
-	[p->horz addObject:[NSString stringWithFormat:@"[%@%@]", key, horzpred]];
-	[p->horzAttachLeft addObject:[NSNumber numberWithBool:p->horzFirst]];
-	[p->horzAttachRight addObject:[NSNumber numberWithBool:p->horzLast]];
-	[p->vert addObject:[NSString stringWithFormat:@"[%@%@]", key, vertpred]];
-	[p->vertAttachTop addObject:[NSNumber numberWithBool:p->vertFirst]];
-	[p->vertAttachBottom addObject:[NSNumber numberWithBool:p->vertLast]];
-	[p->views setObject:self->b forKey:key];
+	p->view = self->b;
+	p->attachLeft = YES;
+	p->attachTop = YES;
+	p->attachRight = YES;
+	p->attachBottom = YES;
 }
 
 - (void)tRelayout

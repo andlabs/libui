@@ -4,6 +4,7 @@
 @implementation tButton {
 	NSButton *b;
 	id<tControl> parent;
+	NSLayoutPriority horzpri, vertpri;
 }
 
 - (id)tInitWithText:(NSString *)text
@@ -19,6 +20,9 @@
 		[self->b setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		self->parent = nil;
+
+		self->horzpri = [self->b contentHuggingPriorityForOrientation:NSLayoutConstraintOrientationHorizontal];
+		self->vertpri = [self->b contentHuggingPriorityForOrientation:NSLayoutConstraintOrientationVertical];
 	}
 	return self;
 }
@@ -33,6 +37,9 @@
 
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
+	// reset the hugging priority
+	[self->b setContentHuggingPriority:self->horzpri forOrientation:NSLayoutConstraintOrientationHorizontal];
+	[self->b setContentHuggingPriority:self->vertpri forOrientation:NSLayoutConstraintOrientationVertical];
 	p->view = self->b;
 	p->attachLeft = YES;
 	p->attachTop = YES;

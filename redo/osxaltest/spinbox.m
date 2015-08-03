@@ -19,6 +19,7 @@
 	NSTextField *t;
 	NSStepper *s;
 	id<tControl> parent;
+	NSLayoutPriority horzpri, vertpri;
 }
 
 - (id)init
@@ -63,6 +64,9 @@
 		[views release];
 
 		self->parent = nil;
+
+		self->horzpri = [self->c contentHuggingPriorityForOrientation:NSLayoutConstraintOrientationHorizontal];
+		self->vertpri = [self->c contentHuggingPriorityForOrientation:NSLayoutConstraintOrientationVertical];
 	}
 	return self;
 }
@@ -77,6 +81,9 @@
 
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
+	// reset the hugging priority
+	[self->c setContentHuggingPriority:self->horzpri forOrientation:NSLayoutConstraintOrientationHorizontal];
+	[self->c setContentHuggingPriority:self->vertpri forOrientation:NSLayoutConstraintOrientationVertical];
 	p->view = self->c;
 	p->attachLeft = YES;
 	p->attachTop = YES;

@@ -77,6 +77,8 @@
 		id<tControl> c;
 
 		c = (id<tControl>) obj;
+		// this also resets the hugging priority
+		// TODO do this when adding and removing controls instead
 		[c tFillAutoLayout:&pp];
 		[views setObject:pp.view forKey:tAutoLayoutKey(n)];
 		n++;

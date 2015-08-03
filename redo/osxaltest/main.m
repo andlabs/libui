@@ -17,6 +17,7 @@ BOOL firstvert = YES;
 	tBox *box, *hbox;
 	tButton *button;
 	tSpinbox *spinbox;
+	tEntry *entry;
 
 	mainwin = [[tWindow alloc] init];
 	[mainwin tSetMargined:spaced];
@@ -59,6 +60,13 @@ BOOL firstvert = YES;
 	[hbox tAddControl:spinbox stretchy:NO];
 	spinbox = [[tSpinbox alloc] init];
 	[hbox tAddControl:spinbox stretchy:YES];
+	[box tAddControl:hbox stretchy:NO];
+
+	hbox = [[tBox alloc] tInitVertical:!firstvert];
+	entry = [[tEntry alloc] init];
+	[hbox tAddControl:entry stretchy:NO];
+	entry = [[tEntry alloc] init];
+	[hbox tAddControl:entry stretchy:YES];
 	[box tAddControl:hbox stretchy:NO];
 
 	[mainwin tShow];

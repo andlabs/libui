@@ -36,6 +36,9 @@ struct tAutoLayoutParams {
 - (id)tInitWithText:(NSString *)text;
 @end
 
+@interface tEntry : NSObject<tControl>
+@end
+
 @interface tSpinbox : NSObject<tControl>
 @end
 

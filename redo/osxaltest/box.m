@@ -55,6 +55,7 @@
 }
 
 // TODO spaced
+// TODO custom minimum width for non-stretchy controls
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSMutableDictionary *views;

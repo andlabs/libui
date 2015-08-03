@@ -75,11 +75,18 @@
 	n = 0;
 	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		id<tControl> c;
+		NSNumber *isStretchy;
+		NSLayoutPriority priority;
 
 		c = (id<tControl>) obj;
+		isStretchy = (NSNumber *) [self->stretchy objectAtIndex:n];
 		// this also resets the hugging priority
 		// TODO do this when adding and removing controls instead
 		[c tFillAutoLayout:&pp];
+		priority = NSLayoutPriorityDefaultHigh;			// forcibly hug; avoid stretching out
+		if ([isStretchy boolValue])
+			priority = NSLayoutPriorityDefaultLow;		// do not forcibly hug; freely stretch out
+		[pp.view setContentHuggingPriority:priority forOrientation:orientation];
 		[views setObject:pp.view forKey:tAutoLayoutKey(n)];
 		n++;
 	}];

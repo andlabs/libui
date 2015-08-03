@@ -25,6 +25,7 @@
 	BOOL spaced;
 }
 
+// TODO rename to padded
 - (id)tInitVertical:(BOOL)vert spaced:(BOOL)sp
 {
 	self = [super init];

@@ -1,6 +1,24 @@
 // 1 august 2015
 #include "osxaltest.h"
 
+@implementation NSView (AutoLayoutHelpers)
+- (void)tIsAmbiguous:(uintmax_t)indent
+{
+	NSMutableString *s;
+	uintmax_t i;
+	NSUInteger j;
+
+	s = [NSMutableString new];
+	for (i = 0; i < indent; i++)
+		[s appendString:@" "];
+	NSLog(@"%@%@ %d", s, [self className], (int) [self hasAmbiguousLayout]);
+	if ([self hasAmbiguousLayout])
+		[[self window] visualizeConstraints:[[self superview] constraints]];
+	for (j = 0; j < [[self subviews] count]; j++)
+		[[[self subviews] objectAtIndex:j] tIsAmbiguous:(indent + 1)];
+}
+@end
+
 @implementation tWindow {
 	NSWindow *w;
 	id<tControl> c;
@@ -37,6 +55,7 @@
 {
 	[self->w cascadeTopLeftFromPoint:NSMakePoint(20, 20)];
 	[self->w makeKeyAndOrderFront:self];
+	[[self->w contentView] tIsAmbiguous:0];
 }
 
 - (void)tRelayout

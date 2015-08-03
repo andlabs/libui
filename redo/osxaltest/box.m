@@ -136,6 +136,7 @@
 	// TODO do not release constraint; it's autoreleased?
 
 	// next make the views span the full other dimension
+	// TODO make all of these the same width/height
 	for (i = 0; i < n; i++) {
 		if (self->vertical)
 			constraint = [NSMutableString stringWithString:@"H:|["];

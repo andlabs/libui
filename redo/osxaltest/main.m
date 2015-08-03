@@ -44,6 +44,7 @@ BOOL firstvert = NO;
 	[hbox tAddControl:button stretchy:YES];
 	[box tAddControl:hbox stretchy:NO];
 
+	// TODO in vertical mode the three non-stretchy buttons are smaller than they should be
 	hbox = [[tBox alloc] tInitVertical:!firstvert spaced:spaced];
 	button = [[tButton alloc] tInitWithText:@"Button"];
 	[hbox tAddControl:button stretchy:YES];

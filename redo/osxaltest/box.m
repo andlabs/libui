@@ -1,10 +1,25 @@
 // 31 july 2015
 #import "osxaltest.h"
 
+// leave a whole lot of space around the alignment rect, just to be safe
+// TODO fine tune this
+// TODO de-duplicate this from spinbox.m
+@interface tBoxContainer : NSView
+@end
+
+@implementation tBoxContainer
+
+- (NSEdgeInsets)alignmentRectInsets
+{
+	return NSEdgeInsetsMake(50, 50, 50, 50);
+}
+
+@end
+
 @implementation tBox {
+	NSView *v;
 	NSMutableArray *children;
 	NSMutableArray *stretchy;
-	NSView *sv;
 	BOOL vertical;
 	id<tControl> parent;
 }
@@ -13,9 +28,9 @@
 {
 	self = [super init];
 	if (self) {
+		self->v = [[NSView alloc] initWithFrame:NSZeroRect];
 		self->children = [NSMutableArray new];
 		self->stretchy = [NSMutableArray new];
-		self->sv = nil;
 		self->vertical = vert;
 		self->parent = nil;
 	}
@@ -24,29 +39,22 @@
 
 - (void)tAddControl:(id<tControl>)c stretchy:(BOOL)s
 {
-	if (self->sv != nil)
-		[c tSetParent:self addToView:self->sv relayout:NO];
+	[c tSetParent:self addToView:self->v relayout:NO];
 	[self->children addObject:c];
 	[self->stretchy addObject:[NSNumber numberWithBool:s]];
-	// TODO mark as needing relayout
 	[self tRelayout];
 }
 
-- (void)tSetParent:(id<tControl>)p addToView:(NSView *)v relayout:(BOOL)relayout
+- (void)tSetParent:(id<tControl>)p addToView:(NSView *)sv relayout:(BOOL)relayout
 {
 	self->parent = p;
-	self->sv = v;
-	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		id<tControl> c;
-
-		c = (id<tControl>) obj;
-		[c tSetParent:self addToView:self->sv relayout:NO];
-	}];
+	[sv addSubview:self->v];
 	if (relayout)
 		[self tRelayout];
 }
 
-// TODO MASSIVE CLEANUP and comments everywhere too
+// TODO stretchy
+// TODO spaced
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSMutableDictionary *views;
@@ -54,6 +62,8 @@
 	tAutoLayoutParams pp;
 	__block BOOL anyStretchy;
 	NSMutableString *constraint;
+
+	[self->v removeConstraints:[self->v constraints]];
 
 	views = [NSMutableDictionary new];
 	n = 0;
@@ -72,14 +82,17 @@
 	}];
 
 	// first string the views together
-	constraint = [NSMutableString stringWithString:@"|"];
+	if (self->vertical)
+		constraint = [NSMutableString stringWithString:@"V:|"];
+	else
+		constraint = [NSMutableString stringWithString:@"H:|"];
 	for (i = 0; i < n; i++) {
 		[constraint appendString:@"["];
 		[constraint appendString:tAutoLayoutKey(n)];
 		[constraint appendString:@"]"];
 	}
 	[constraint appendString:@"|"];
-	// TODO apply constraint
+	[self->v addConstraint:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
 	[constraint release];
 
 	// next make the views span the full other dimension
@@ -90,14 +103,14 @@
 			constraint = [NSMutableString stringWithString:@"V:|"];
 		[constraint appendString:tAutoLayoutKey(n)];
 		[constraint appendString:@"]|"];
-		// TODO apply constraint
+		[self->v addConstraint:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
 		[constraint release];
 	}
 
 	[views release];
 
 	// and now populate for self
-	p->view = TODO;
+	p->view = self->v;
 	p->attachLeft = YES;
 	p->attachTop = YES;
 	// don't attach to the end if there weren't any stretchy controls

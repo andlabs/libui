@@ -54,29 +54,24 @@
 		[self tRelayout];
 }
 
-// TODO stretchy
 // TODO spaced
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSMutableDictionary *views;
 	__block uintmax_t i, n;
 	__block tAutoLayoutParams pp;
-	__block BOOL anyStretchy;
 	NSMutableString *constraint;
+	BOOL firstStretchy;
+	uintmax_t nStretchy;
 
 	[self->v removeConstraints:[self->v constraints]];
 
 	views = [NSMutableDictionary new];
 	n = 0;
-	anyStretchy = NO;
 	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		id<tControl> c;
-		NSNumber *isStretchy;
 
 		c = (id<tControl>) obj;
-		isStretchy = (NSNumber *) [self->stretchy objectAtIndex:index];
-		if ([isStretchy boolValue])
-			anyStretchy = YES;
 		[c tFillAutoLayout:&pp];
 		[views setObject:pp.view forKey:tAutoLayoutKey(n)];
 		n++;
@@ -87,9 +82,22 @@
 		constraint = [NSMutableString stringWithString:@"V:|"];
 	else
 		constraint = [NSMutableString stringWithString:@"H:|"];
+	firstStretchy = YES;
 	for (i = 0; i < n; i++) {
+		NSNumber *isStretchy;
+
 		[constraint appendString:@"["];
 		[constraint appendString:tAutoLayoutKey(i)];
+		isStretchy = (NSNumber *) [self->stretchy objectAtIndex:i];
+		if ([isStretchy boolValue])
+			if (firstStretchy) {
+				firstStretchy = NO;
+				nStretchy = i;
+			} else {
+				[constraint appendString:@"(=="];
+				[constraint appendString:tAutoLayoutKey(nStretchy)];
+				[constraint appendString:@")"];
+			}
 		[constraint appendString:@"]"];
 	}
 	[constraint appendString:@"|"];
@@ -115,11 +123,12 @@
 	p->attachLeft = YES;
 	p->attachTop = YES;
 	// don't attach to the end if there weren't any stretchy controls
+	// firstStretchy is NO if there was at least one stretchy control
 	if (self->vertical) {
 		p->attachRight = YES;
-		p->attachBottom = anyStretchy;
+		p->attachBottom = !firstStretchy;
 	} else {
-		p->attachRight = anyStretchy;
+		p->attachRight = !firstStretchy;
 		p->attachBottom = YES;
 	}
 }

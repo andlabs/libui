@@ -12,6 +12,8 @@ struct tAutoLayoutParams {
 	BOOL attachTop;
 	BOOL attachRight;
 	BOOL attachBottom;
+	NSString *nonStretchyWidthPredicate;
+	NSString *nonStretchyHeightPredicate;
 };
 
 @protocol tControl

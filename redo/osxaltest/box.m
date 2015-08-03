@@ -57,7 +57,6 @@
 		[self tRelayout];
 }
 
-// TODO custom minimum width for non-stretchy controls
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSMutableDictionary *views;
@@ -67,6 +66,7 @@
 	BOOL firstStretchy;
 	uintmax_t nStretchy;
 	NSLayoutConstraintOrientation orientation;
+	__block NSMutableArray *predicates;
 
 	if ([self->children count] == 0)
 		goto selfOnly;
@@ -79,6 +79,7 @@
 
 	views = [NSMutableDictionary new];
 	n = 0;
+	predicates = [NSMutableArray new];
 	[self->children enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		id<tControl> c;
 		NSNumber *isStretchy;
@@ -86,12 +87,18 @@
 
 		c = (id<tControl>) obj;
 		isStretchy = (NSNumber *) [self->stretchy objectAtIndex:n];
+		pp.nonStretchyWidthPredicate = @"";
+		pp.nonStretchyHeightPredicate = @"";
 		// this also resets the hugging priority
 		// TODO do this when adding and removing controls instead
 		[c tFillAutoLayout:&pp];
 		priority = NSLayoutPriorityDefaultHigh;			// forcibly hug; avoid stretching out
 		if ([isStretchy boolValue])
 			priority = NSLayoutPriorityDefaultLow;		// do not forcibly hug; freely stretch out
+		if (self->vertical)
+			[predicates addObject:pp.nonStretchyHeightPredicate];
+		else
+			[predicates addObject:pp.nonStretchyWidthPredicate];
 		[pp.view setContentHuggingPriority:priority forOrientation:orientation];
 		[views setObject:pp.view forKey:tAutoLayoutKey(n)];
 		n++;
@@ -120,6 +127,8 @@
 				[constraint appendString:tAutoLayoutKey(nStretchy)];
 				[constraint appendString:@")"];
 			}
+		else
+			[constraint appendString:[predicates objectAtIndex:i]];
 		[constraint appendString:@"]"];
 	}
 	[constraint appendString:@"|"];
@@ -140,6 +149,7 @@ NSLog(@"other dimension %@", constraint);
 		// TODO do not release constraint; it's autoreleased?
 	}
 
+	[predicates release];
 	[views release];
 
 	// and now populate for self

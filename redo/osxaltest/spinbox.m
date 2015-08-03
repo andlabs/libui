@@ -93,6 +93,7 @@ nspinbox++;
 	p->attachTop = YES;
 	p->attachRight = YES;
 	p->attachBottom = YES;
+	p->nonStretchyWidthPredicate = @"(==96)";		// TODO on the text field only
 }
 
 - (void)tRelayout

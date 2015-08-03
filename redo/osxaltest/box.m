@@ -68,6 +68,9 @@
 	uintmax_t nStretchy;
 	NSLayoutConstraintOrientation orientation;
 
+	if ([self->children count] == 0)
+		goto selfOnly;
+
 	[self->v removeConstraints:[self->v constraints]];
 
 	orientation = NSLayoutConstraintOrientationHorizontal;
@@ -140,6 +143,7 @@ NSLog(@"%@", constraint);
 	[views release];
 
 	// and now populate for self
+selfOnly:
 	p->view = self->v;
 	p->attachLeft = YES;
 	p->attachTop = YES;

@@ -4,7 +4,7 @@
 // #qo LDFLAGS: -framework Foundation -framework AppKit
 
 BOOL spaced = NO;
-BOOL firstvert = YES;
+BOOL firstvert = NO;
 
 @interface appDelegate : NSObject<NSApplicationDelegate>
 @end

@@ -47,6 +47,7 @@
 	p->attachTop = YES;
 	p->attachRight = YES;
 	p->attachBottom = YES;
+	p->nonStretchyWidthPredicate = @"(==96)";		// TODO verify against Interface Builder
 }
 
 - (void)tRelayout

@@ -132,7 +132,6 @@
 		[constraint appendString:@"]"];
 	}
 	[constraint appendString:@"|"];
-NSLog(@"primary dimension %@", constraint);
 	[self->v addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
 	// TODO do not release constraint; it's autoreleased?
 
@@ -144,7 +143,6 @@ NSLog(@"primary dimension %@", constraint);
 			constraint = [NSMutableString stringWithString:@"V:|["];
 		[constraint appendString:tAutoLayoutKey(i)];
 		[constraint appendString:@"]|"];
-NSLog(@"other dimension %@", constraint);
 		[self->v addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
 		// TODO do not release constraint; it's autoreleased?
 	}

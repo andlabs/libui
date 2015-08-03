@@ -14,7 +14,7 @@
 	NSLog(@"%@%@ %d", s, [self className], (int) [self hasAmbiguousLayout]);
 	if ([self hasAmbiguousLayout])
 		[[self window] visualizeConstraints:[[self superview] constraints]];
-else	for (j = 0; j < [[self subviews] count]; j++)
+	for (j = 0; j < [[self subviews] count]; j++)
 		[[[self subviews] objectAtIndex:j] tIsAmbiguous:(indent + 1)];
 }
 @end
@@ -55,7 +55,7 @@ else	for (j = 0; j < [[self subviews] count]; j++)
 {
 	[self->w cascadeTopLeftFromPoint:NSMakePoint(20, 20)];
 	[self->w makeKeyAndOrderFront:self];
-	[[self->w contentView] tIsAmbiguous:0];
+//	[[self->w contentView] tIsAmbiguous:0];
 }
 
 - (void)tRelayout

@@ -12,8 +12,8 @@
 	for (i = 0; i < indent; i++)
 		[s appendString:@" "];
 	NSLog(@"%@%@ %d", s, [self className], (int) [self hasAmbiguousLayout]);
-	if ([self hasAmbiguousLayout])
-		[[self window] visualizeConstraints:[[self superview] constraints]];
+//	if ([self hasAmbiguousLayout])
+//		[[self window] visualizeConstraints:[self constraints]];
 	for (j = 0; j < [[self subviews] count]; j++)
 		[[[self subviews] objectAtIndex:j] tIsAmbiguous:(indent + 1)];
 }

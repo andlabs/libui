@@ -120,6 +120,7 @@
 		[constraint appendString:@"]"];
 	}
 	[constraint appendString:@"|"];
+NSLog(@"%@", constraint);
 	[self->v addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
 	// TODO do not release constraint; it's autoreleased?
 
@@ -131,6 +132,7 @@
 			constraint = [NSMutableString stringWithString:@"V:|["];
 		[constraint appendString:tAutoLayoutKey(i)];
 		[constraint appendString:@"]|"];
+NSLog(@"%@", constraint);
 		[self->v addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:views]];
 		// TODO do not release constraint; it's autoreleased?
 	}

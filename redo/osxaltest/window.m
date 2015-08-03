@@ -55,7 +55,7 @@
 {
 	[self->w cascadeTopLeftFromPoint:NSMakePoint(20, 20)];
 	[self->w makeKeyAndOrderFront:self];
-//	[[self->w contentView] tIsAmbiguous:0];
+	[[self->w contentView] tIsAmbiguous:0];
 }
 
 - (void)tRelayout

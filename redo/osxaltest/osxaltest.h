@@ -41,6 +41,9 @@ struct tAutoLayoutParams {
 @interface tEntry : NSObject<tControl>
 @end
 
+@interface tLabel : NSObject<tControl>
+@end
+
 @interface tSpinbox : NSObject<tControl>
 @end
 

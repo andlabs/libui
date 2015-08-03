@@ -7,24 +7,11 @@ typedef struct tAutoLayoutParams tAutoLayoutParams;
 // TODO stretchy across both dimensions
 // for a vertical box, the horizontal width should be variable
 struct tAutoLayoutParams {
-	NSMutableArray *horz;
-	NSMutableArray *horzAttachLeft;
-	NSMutableArray *horzAttachRight;
-	BOOL horzFirst;
-	BOOL horzLast;
-	NSMutableArray *vert;
-	NSMutableArray *vertAttachTop;
-	NSMutableArray *vertAttachBottom;
-	BOOL vertFirst;
-	BOOL vertLast;
-	NSMutableDictionary *views;
-	uintmax_t n;
-	BOOL horzStretchy;
-	BOOL horzFirstStretchy;
-	uintmax_t horzStretchyTo;
-	BOOL vertStretchy;
-	BOOL vertFirstStretchy;
-	uintmax_t vertStretchyTo;
+	NSView *view;
+	BOOL attachLeft;
+	BOOL attachTop;
+	BOOL attachRight;
+	BOOL attachBottom;
 };
 
 @protocol tControl

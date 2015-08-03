@@ -43,8 +43,10 @@
 {
 	NSView *contentView;
 	tAutoLayoutParams p;
+	NSDictionary *views;
 	NSString *margin;
-	void (^run)(NSArray *, NSArray *, NSArray *, NSString *);
+	NSMutableString *constraint;
+	NSArray *constraints;
 
 	if (self->c == nil)
 		return;
@@ -52,58 +54,45 @@
 	contentView = [self->w contentView];
 	[contentView removeConstraints:[contentView constraints]];
 
-	p.horz = [NSMutableArray new];
-	p.horzAttachLeft = [NSMutableArray new];
-	p.horzAttachRight = [NSMutableArray new];
-	p.horzFirst = YES;		// only control here
-	p.horzLast = YES;
-	p.vert = [NSMutableArray new];
-	p.vertAttachTop = [NSMutableArray new];
-	p.vertAttachBottom = [NSMutableArray new];
-	p.vertFirst = YES;
-	p.vertLast = YES;
-	p.views = [NSMutableDictionary new];
-	p.n = 0;
-	p.horzStretchy = YES;		// assumption for the sole control to avoid fixed size hacks
-	p.horzFirstStretchy = YES;
-	p.vertStretchy = YES;
-	p.vertFirstStretchy = YES;
 	[self->c tFillAutoLayout:&p];
+
+	views = [NSDictionary dictionaryWithObject:p.view forKey:@"view"];
 
 	margin = @"";
 	if (self->margined)
 		margin = @"-";
 
-	run = ^(NSArray *side, NSArray *attachStart, NSArray *attachEnd, NSString *prefix) {
-		NSUInteger i;
+	// TODO always append margins even if not attached?
+	// or if not attached, append ->=0- as well?
+	constraint = [NSMutableString stringWithString:@"H:"];
+	if (p.attachLeft) {
+		[constraint appendString:@"|"];
+		[constraint appendString:margin];
+	}
+	[constraint appendString:@"[view]"];
+	if (p.attachRight) {
+		[constraint appendString:margin];
+		[constraint appendString:@"|"];
+	}
+	constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:p.views];
+	[contentView addConstraints:constraints];
+	[constraint release];
 
-		for (i = 0; i < [side count]; i++) {
-			NSMutableString *constraint;
-			NSNumber *attach;
-			NSArray *constraints;
+	constraint = [NSMutableString stringWithString:@"V:"];
+	if (p.attachTop) {
+		[constraint appendString:@"|"];
+		[constraint appendString:margin];
+	}
+	[constraint appendString:@"[view]"];
+	if (p.attachBottom) {
+		[constraint appendString:margin];
+		[constraint appendString:@"|"];
+	}
+	constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:p.views];
+	[contentView addConstraints:constraints];
+	[constraint release];
 
-			constraint = [NSMutableString stringWithString:prefix];
-			attach = (NSNumber *) [attachStart objectAtIndex:i];
-			if ([attach boolValue]) {
-				[constraint appendString:@"|"];
-				[constraint appendString:margin];
-			}
-			[constraint appendString:[side objectAtIndex:i]];
-			attach = (NSNumber *) [attachEnd objectAtIndex:i];
-			if ([attach boolValue]) {
-				[constraint appendString:margin];
-				[constraint appendString:@"|"];
-			}
-			constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint options:0 metrics:nil views:p.views];
-			[contentView addConstraints:constraints];
-//TODO uncomment this and the program tries to access after free			[constraint release];
-		}
-	};
-
-	run(p.horz, p.horzAttachLeft, p.horzAttachRight, @"H:");
-	run(p.vert, p.vertAttachTop, p.vertAttachBottom, @"V:");
-
-	// TODO release everything
+	[views release];
 }
 
 @end

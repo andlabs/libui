@@ -30,7 +30,7 @@
 {
 	self = [super init];
 	if (self) {
-		self->v = [[NSView alloc] initWithFrame:NSZeroRect];
+		self->v = [[tBoxContainer alloc] initWithFrame:NSZeroRect];
 		[self->v setTranslatesAutoresizingMaskIntoConstraints:NO];
 		self->children = [NSMutableArray new];
 		self->stretchy = [NSMutableArray new];

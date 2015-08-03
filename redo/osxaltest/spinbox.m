@@ -14,6 +14,8 @@
 
 @end
 
+int nspinbox = 0;
+
 @implementation tSpinbox {
 	tSpinboxContainer *c;
 	NSTextField *t;
@@ -33,6 +35,8 @@
 		[self->c setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		self->t = [[NSTextField alloc] initWithFrame:NSZeroRect];
+[self->t setStringValue:[NSString stringWithFormat:@"%d", nspinbox]];
+nspinbox++;
 		[self->t setSelectable:YES];
 		[self->t setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]]];
 		[self->t setBordered:NO];

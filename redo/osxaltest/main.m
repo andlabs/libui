@@ -53,6 +53,14 @@ BOOL firstvert = YES;
 	[hbox tAddControl:button stretchy:NO];
 	[box tAddControl:hbox stretchy:NO];
 
+	// TODO this isn't stretchy in the proper order
+	hbox = [[tBox alloc] tInitVertical:!firstvert];
+	spinbox = [[tSpinbox alloc] init];
+	[hbox tAddControl:spinbox stretchy:NO];
+	spinbox = [[tSpinbox alloc] init];
+	[hbox tAddControl:spinbox stretchy:YES];
+	[box tAddControl:hbox stretchy:NO];
+
 	[mainwin tShow];
 }
 

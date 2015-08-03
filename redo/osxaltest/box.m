@@ -57,6 +57,7 @@
 		[self tRelayout];
 }
 
+// TODO make the other dimension not hug (as an experiment)
 - (void)tFillAutoLayout:(tAutoLayoutParams *)p
 {
 	NSMutableDictionary *views;

@@ -63,8 +63,13 @@
 	NSMutableString *constraint;
 	BOOL firstStretchy;
 	uintmax_t nStretchy;
+	NSLayoutConstraintOrientation orientation;
 
 	[self->v removeConstraints:[self->v constraints]];
+
+	orientation = NSLayoutConstraintOrientationHorizontal;
+	if (self->vertical)
+		orientation = NSLayoutConstraintOrientationVertical;
 
 	views = [NSMutableDictionary new];
 	n = 0;

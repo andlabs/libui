@@ -2,7 +2,7 @@
 import Cocoa
 
 // auto layout helpers
-func tIsAmbiguous(view: NSView, indent: Int) {
+func isAmbiguous(view: NSView, indent: Int) {
 	var s = String(count: indent, repeatedValue: " " as Character)
 	println("\(s) \(view.className) \(view.hasAmbiguousLayout)")
 	if view.hasAmbiguousLayout {
@@ -13,49 +13,48 @@ func tIsAmbiguous(view: NSView, indent: Int) {
 	}
 }
 
-class tWindow : tControl {
-	private var w: NSWindow
+class Window : NSWindow, Control {
 	private var c: tControl?
 	private var margined: Bool
 
 	init() {
-		self.w = NSWindow(
+		super.init(
 			contentRect: NSMakeRect(0, 0, 320, 240),
 			styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask),
 			backing: NSBackingStoreType.Buffered,
 			defer: true)
-		self.w.title = "Auto Layout Test"
+		self.title = "Auto Layout Test"
 		self.c = nil
 		self.margined = false
 	}
 
-	func tSetControl(c: tControl) {
+	func SetControl(c: Control) {
 		self.c = c
-		// TODO use self.c here
-		c.tSetParent(self, addToView: self.w.contentView as! NSView)
-		self.tRelayout()
+		var contentView = self.contentView as! NSView
+		contentView.addSubview(self.c?.View())
+		self.Relayout()
 	}
 
-	func tSetMargined(m: Bool) {
+	func SetMargined(m: Bool) {
 		self.margined = m
-		self.tRelayout()
+		self.Relayout()
 	}
 
-	func tShow() {
-		self.w.cascadeTopLeftFromPoint(NSMakePoint(20, 20))
-		self.w.makeKeyAndOrderFront(self)
-		tIsAmbiguous(self.w.contentView as! NSView, 0)
+	func Show() {
+		self.cascadeTopLeftFromPoint(NSMakePoint(20, 20))
+		self.makeKeyAndOrderFront(self)
+		tIsAmbiguous(self.contentView as! NSView, 0)
 	}
 
-	func tSetParent(p: tControl, addToView: NSView) {
-		fatalError("cannot call tWindow.tSetParent()")
+	func View() -> NSView {
+		fatalError("cannot call Window.View()")
 	}
 
-	func tFillAutoLayout(inout p: tAutoLayoutParams) {
-		fatalError("cannot call tWindow.tFillAutoLayout()")
+	func SetParent(p: Control) {
+		fatalError("cannot call Window.SetParent()")
 	}
 
-	func tRelayout() {
+	func Relayout() {
 		if self.c == nil {
 			return
 		}
@@ -63,39 +62,21 @@ class tWindow : tControl {
 		var contentView = self.w.contentView as! NSView
 		contentView.removeConstraints(contentView.constraints)
 
-		var p = tAutoLayoutParams()
-		c?.tFillAutoLayout(&p)
-
 		// TODO why can't I just say var views = [ "view": p.view ]?
 		// I think the parser is getting confused
-		var views = [String: NSView]()
-		views["view"] = p.view
+		var views = [
+			"view":	self.c?.View(),
+		]
 		var margin = ""
 		if self.margined {
 			margin = "-"
 		}
 
-		// TODO always append margins even if not attached?
-		// or if not attached, append ->=0- as well?
-		var constraint = "H:"
-		if p.attachLeft {
-			constraint += "|" + margin
-		}
-		constraint += "[view]"
-		if p.attachRight {
-			constraint += margin + "|"
-		}
+		var constraint = "H:|" + margin + "[view]" + margin + "|"
 		var constraints = mkconstraints(constraint, views)
 		contentView.addConstraints(constraints)
 
-		constraint = "V:"
-		if p.attachTop {
-			constraint += "|" + margin
-		}
-		constraint += "[view]"
-		if p.attachBottom {
-			constraint += margin + "|"
-		}
+		constraint = "V:|" + margin + "[view]" + margin + "|"
 		constraints = mkconstraints(constraint, views)
 		contentView.addConstraints(constraints)
 	}

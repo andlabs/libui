@@ -4,7 +4,7 @@ import Cocoa
 // auto layout helpers
 func tIsAmbiguous(view: NSView, indent: Int) {
 	var s = string(indent, ' ')
-	println("\(s) \(view.className) \(view.hasAmbiguousLayout)")
+	debugPrint("\(s) \(view.className) \(view.hasAmbiguousLayout)")
 	if view.hasAmbiguousLayout {
 		view.window.visualizeConstraints(view.superview.constraints)
 	}
@@ -25,6 +25,8 @@ class tWindow : tControl {
 			backing: NSBackingStoreBuffered,
 			defer: true)
 		self.w.title = "Auto Layout Test"
+		self.c = nil
+		self.margined = false
 	}
 
 	public func tSetControl(c: tControl) {
@@ -42,6 +44,14 @@ class tWindow : tControl {
 		self.w.cascadeTopLeftFromPoint(NSMakePoint(20, 20))
 		self.w.makeKeyAndOrderFront(self)
 		tIsAmbiguous(self.w.contentView, 0)
+	}
+
+	func tSetParent(p: tControl, addToView: NSView) {
+		fatalError("cannot call tWindow.tSetParent()")
+	}
+
+	func tFillAutoLayout(p: tAutoLayoutParams) {
+		fatalError("cannot call tWindow.tFillAutoLayout()")
 	}
 
 	public func tRelayout() {

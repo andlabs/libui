@@ -83,7 +83,7 @@ class tWindow : tControl {
 		if p.attachRight {
 			constraint += margin + "|"
 		}
-		var constraints = NSLayoutConstraint(
+		var constraints = NSLayoutConstraint.constraintsWithVisualFormat(
 			visualFormat:constraint,
 			options:0,
 			metrics:nil,
@@ -98,7 +98,7 @@ class tWindow : tControl {
 		if p.attachBottom {
 			constraint += margin + "|"
 		}
-		constraints = NSLayoutConstraint(
+		constraints = NSLayoutConstraint.constraintsWithVisualFormat(
 			visualFormat:constraint,
 			options:0,
 			metrics:nil,

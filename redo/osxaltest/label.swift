@@ -7,7 +7,7 @@ class tEntry : tControl {
 	private var horzpri, vertpri: NSLayoutPriority
 
 	init() {
-		self.t = NSTextField(NSZeroRect)
+		self.t = NSTextField(frame: NSZeroRect)
 		self.t.stringValue = "Label"
 		self.t.setEditable = false
 		self.t.selectable = false
@@ -22,19 +22,19 @@ class tEntry : tControl {
 
 		self.parent = nil
 
-		self.horzpri = self.t.contentHuggingPriorityForOrientation(NSLayoutConstraintOrientationHorizontal)
-		self.vertpri = self.t contentHuggingPriorityForOrientation(NSLayoutConstraintOrientationVertical)
+		self.horzpri = self.t.contentHuggingPriorityForOrientation(NSLayoutConstraintOrientation.Horizontal)
+		self.vertpri = self.t.contentHuggingPriorityForOrientation(NSLayoutConstraintOrientation.Vertical)
 	}
 
-	func tSetParent(p: tControl, v addToView: NSView) {
+	func tSetParent(p: tControl, addToView v: NSView) {
 		self.parent = p
 		v.addSubview(self.t)
 	}
 
-	func tFillAutoLayout:(p: tAutoLayoutParams) {
+	func tFillAutoLayout(p: tAutoLayoutParams) {
 		// reset the hugging priority
-		self.t.setContentHuggingPriority(self.horzpri, orientation:NSLayoutConstraintOrientationHorizontal)
-		self.t.setContentHuggingPriority(self.vertpri, orientation:NSLayoutConstraintOrientationVertical)
+		self.t.setContentHuggingPriority(self.horzpri, forOrientation:NSLayoutConstraintOrientation.Horizontal)
+		self.t.setContentHuggingPriority(self.vertpri, forOrientation:NSLayoutConstraintOrientation.Vertical)
 
 		p.view = self.t
 		p.attachLeft = true
@@ -44,7 +44,7 @@ class tEntry : tControl {
 	}
 
 	func tRelayout() {
-		if self->parent != nil {
+		if self.parent != nil {
 			self.parent.tRelayout()
 		}
 	}

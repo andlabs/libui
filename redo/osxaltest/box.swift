@@ -24,7 +24,7 @@ class tBox : tControl {
 
 	// TODO rename to padded
 	init(vertical: Bool, spaced: Bool) {
-		self.v = tBoxContainer(NSZeroRect)
+		self.v = tBoxContainer(frame: NSZeroRect)
 		self.v.translatesAutoresizingMaskIntoConstraints = false
 		self.children = []
 		self.vertical = vertical
@@ -36,12 +36,11 @@ class tBox : tControl {
 		c.tSetParent(self, addToView: self.v)
 		self.children.append(tBoxChild(
 			c:			c,
-			stretchy:		stretchy,
-		))
+			stretchy:		stretchy))
 		self.tRelayout()
 	}
 
-	func tSetParent(p: tControl, v addToView: NSView) {
+	func tSetParent(p: tControl, addToView v: NSView) {
 		self.parent = p
 		v.addSubview(self.v)
 	}
@@ -59,9 +58,9 @@ class tBox : tControl {
 
 		self.v.removeConstraints(self.v.constraints)
 
-		orientation = NSLayoutConstraintOrientationHorizontal
+		orientation = NSLayoutConstraintOrientation.Horizontal
 		if self.vertical {
-			orientation = NSLayoutConstraintOrientationVertical
+			orientation = NSLayoutConstraintOrientation.Vertical
 		}
 
 		var views = [String: NSView]()
@@ -70,8 +69,8 @@ class tBox : tControl {
 		for child in self.children {
 			var priority: NSLayoutPriority
 
-			pp.nonStretchyWidthPredicate = @""
-			pp.nonStretchyHeightPredicate = @""
+			pp.nonStretchyWidthPredicate = ""
+			pp.nonStretchyHeightPredicate = ""
 			// this also resets the hugging priority
 			// TODO do this when adding and removing controls instead
 			child.c.tFillAutoLayout(pp)
@@ -84,7 +83,7 @@ class tBox : tControl {
 			} else {
 				predicates.append(pp.nonStretchyWidthPredicate)
 			}
-			pp.view.setContentHuggingPriority(priority, orientation:orientation)
+			pp.view.setContentHuggingPriority(priority, forOrientation:orientation)
 			views[tAutoLayoutKey(n)] = pp.view
 			n++
 		}
@@ -94,7 +93,7 @@ class tBox : tControl {
 		if self.vertical {
 			constraint = "V:"
 		}
-		var firstStretchy: true
+		var firstStretchy = true
 		for i = 0; i < n; i++ {
 			if self.spaced && i != 0 {
 				constraint += "-"
@@ -113,7 +112,7 @@ class tBox : tControl {
 			constraint += "]"
 		}
 		constraint += "|"
-		self.v.addConstraints(NSLayoutConstraint(
+		self.v.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat(
 			visualFormat: constraint,
 			options: 0,
 			metrics: nil,
@@ -124,11 +123,11 @@ class tBox : tControl {
 		// TODO make all of these the same width/height
 		for i = 0; i < n; i++ {
 			constraint = "V:|["
-			if self->vertical {
+			if self.vertical {
 				constraint = "H:|["
 			}
 			constraint += tAutoLayoutKey(i) + "]|"
-			self.v.addConstraints(NSLayoutConstraint(
+			self.v.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat(
 				visualFormat: constraint,
 				options: 0,
 				metrics: nil,
@@ -153,7 +152,7 @@ class tBox : tControl {
 	}
 
 	func tRelayout() {
-		if self->parent != nil {
+		if self.parent != nil {
 			self.parent.tRelayout()
 		}
 	}

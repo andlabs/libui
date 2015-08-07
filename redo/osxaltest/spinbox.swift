@@ -18,10 +18,10 @@ class tSpinbox : tControl {
 	private var horzpri, vertpri: NSLayoutPriority
 
 	init() {
-		self.c = tSpinboxContainer(NSZeroRect)
+		self.c = tSpinboxContainer(frame: NSZeroRect)
 		self.c.translatesAutoresizingMaskIntoConstraints = false
 
-		self.t = NSTextField(NSZeroRect)
+		self.t = NSTextField(frame: NSZeroRect)
 self.t.stringValue = "\(nspinbox)"
 nspinbox++
 		self.t.selectable = true
@@ -36,8 +36,8 @@ nspinbox++
 
 		self.s = NSStepper(NSZeroFrame)
 		self.s.increment = 1
-		self.s valueWraps = false
-		self.s autorepeat = true
+		self.s.valueWraps = false
+		self.s.autorepeat = true
 		self.s.translatesAutoresizingMaskIntoConstraints = false
 		self.c.addSubview(self.s)
 
@@ -45,19 +45,19 @@ nspinbox++
 			"t":	self.t,
 			"s":	self.s,
 		]
-		var constraints = NSLayoutConstraint(
+		var constraints = NSLayoutConstraint.constraintsWithVisualFormat(
 			visualFormat: "H:|[t]-[s]|",
 			options: 0,
 			metrics: nil,
 			views: views)
 		self.c.addConstraints(constraints)
-		constraints = NSLayoutConstraint(
+		constraints = NSLayoutConstraint.constraintsWithVisualFormat(
 			visualFormat: "V:|[t]|",
 			options: 0,
 			metrics: nil,
 			views: views)
 		self.c.addConstraints(constraints)
-		constraints = NSLayoutConstraint(
+		constraints = NSLayoutConstraint.constraintsWithVisualFormat(
 			visualFormat: "V:|[s]|",
 			options: 0,
 			metrics: nil,
@@ -66,19 +66,19 @@ nspinbox++
 
 		self.parent = nil
 
-		self.horzpri = self.c.contentHuggingPriorityForOrientation(NSLayoutConstraintOrientationHorizontal)
-		self.vertpri = self.c contentHuggingPriorityForOrientation(NSLayoutConstraintOrientationVertical)
+		self.horzpri = self.c.contentHuggingPriorityForOrientation(NSLayoutConstraintOrientation.Horizontal)
+		self.vertpri = self.c.contentHuggingPriorityForOrientation(NSLayoutConstraintOrientation.Vertical)
 	}
 
-	func tSetParent(p: tControl, v addToView: NSView) {
+	func tSetParent(p: tControl, addToView v: NSView) {
 		self.parent = p
 		v.addSubview(self.c)
 	}
 
-	func tFillAutoLayout:(p: tAutoLayoutParams) {
+	func tFillAutoLayout(p: tAutoLayoutParams) {
 		// reset the hugging priority
-		self.c.setContentHuggingPriority(self.horzpri, orientation:NSLayoutConstraintOrientationHorizontal)
-		self.c.setContentHuggingPriority(self.vertpri, orientation:NSLayoutConstraintOrientationVertical)
+		self.c.setContentHuggingPriority(self.horzpri, forOrientation:NSLayoutConstraintOrientation.Horizontal)
+		self.c.setContentHuggingPriority(self.vertpri, forOrientation:NSLayoutConstraintOrientation.Vertical)
 
 		p.view = self.c
 		p.attachLeft = true
@@ -89,7 +89,7 @@ nspinbox++
 	}
 
 	func tRelayout() {
-		if self->parent != nil {
+		if self.parent != nil {
 			self.parent.tRelayout()
 		}
 	}

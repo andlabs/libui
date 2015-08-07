@@ -19,12 +19,11 @@ protocol tControl : class {
 	func tRelayout()
 }
 
-func tAutoLayoutKey(n: UIntMax) -> String {
-	return NSString(format: "view%d", n) as String
+func tAutoLayoutKey(n: Int) -> String {
+	return "view\(n)"
 }
 
 func mkconstraints(constraint: String, views: [String: NSView]) -> [AnyObject] {
-println("making constraint \(constraint)")
 	return NSLayoutConstraint.constraintsWithVisualFormat(
 		constraint,
 		options: NSLayoutFormatOptions(0),

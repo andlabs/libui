@@ -78,9 +78,9 @@ class tBox : tControl {
 
 	func actualLayoutWork() -> Bool {
 		var orientation: NSLayoutConstraintOrientation
-		// TODO don't use UIntMax
-		var i, n: UIntMax
-		var nStretchy: UIntMax
+		// TODO don't use Int
+		var i, n: Int
+		var nStretchy: Int
 
 		self.v.removeConstraints(self.v.constraints)
 
@@ -128,9 +128,7 @@ class tBox : tControl {
 				constraint += "-"
 			}
 			constraint += "[" + tAutoLayoutKey(i)
-			// TODO swift currently can't do self.children[i].stretchy
-			var child = self.children[Int(i)]
-			if child.stretchy {
+			if self.children[i].stretchy {
 				if firstStretchy {
 					firstStretchy = false
 					nStretchy = i
@@ -138,7 +136,7 @@ class tBox : tControl {
 					constraint += "(==" + tAutoLayoutKey(nStretchy) + ")"
 				}
 			} else {
-				constraint += predicates[Int(i)]
+				constraint += predicates[i]
 			}
 			constraint += "]"
 		}

@@ -14,9 +14,9 @@ func tIsAmbiguous(view: NSView, indent: Int) {
 }
 
 class tWindow : tControl {
-	private var w: NSWindow;
-	private var c: tControl;
-	private var margined: Bool;
+	private var w: NSWindow
+	private var c: tControl
+	private var margined: Bool
 
 	init() {
 		self.w = NSWindow(

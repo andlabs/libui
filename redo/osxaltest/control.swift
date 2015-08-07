@@ -1,8 +1,6 @@
 // 31 july 2015
 import Cocoa
 
-typedef struct tAutoLayoutParams tAutoLayoutParams;
-
 // TODO stretchy across both dimensions
 // for a vertical box, the horizontal width should be variable
 class tAutoLayoutParams {

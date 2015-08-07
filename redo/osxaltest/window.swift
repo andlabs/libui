@@ -4,7 +4,7 @@ import Cocoa
 // auto layout helpers
 func tIsAmbiguous(view: NSView, indent: Int) {
 	var s = String(count: indent, repeatedValue: " " as Character)
-	debugPrint("\(s) \(view.className) \(view.hasAmbiguousLayout)")
+	print("\(s) \(view.className) \(view.hasAmbiguousLayout)")
 	if view.hasAmbiguousLayout {
 		view.window?.visualizeConstraints(view.superview!.constraints)
 	}

@@ -5,7 +5,7 @@ import Cocoa
 class tSpinboxContainer : NSView {
 	override var alignmentRectInsets: NSEdgeInsets {
 		get {
-debugPrint("in tSpinboxContainer.alignmentRectInsets")
+print("in tSpinboxContainer.alignmentRectInsets")
 			return NSEdgeInsetsMake(50, 50, 50, 50)
 		}
 	}

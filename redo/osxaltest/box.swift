@@ -7,7 +7,7 @@ import Cocoa
 class tBoxContainer : NSView {
 	override var alignmentRectInsets: NSEdgeInsets {
 		get {
-debugPrint("in tBoxContainer.alignmentRectInsets")
+print("in tBoxContainer.alignmentRectInsets")
 			return NSEdgeInsetsMake(50, 50, 50, 50)
 		}
 	}

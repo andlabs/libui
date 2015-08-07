@@ -85,7 +85,9 @@ func main() {
 
 	var app = NSApplication.sharedApplication()
 	app.setActivationPolicy(NSApplicationActivationPolicy.Regular)
-	app.delegate = appDelegate()
+	// NSApplication.delegate is weak; if we don't use the temporary variable, the delegate will die before it's used
+	var delegate = appDelegate()
+	app.delegate = delegate
 	app.run()
 }
 

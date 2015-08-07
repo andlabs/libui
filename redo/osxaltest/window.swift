@@ -9,29 +9,34 @@ func isAmbiguous(view: NSView, indent: Int) {
 		view.window?.visualizeConstraints(view.superview!.constraints)
 	}
 	for subview in view.subviews {
-		tIsAmbiguous(subview as! NSView, indent + 1)
+		isAmbiguous(subview as! NSView, indent + 1)
 	}
 }
 
 class Window : NSWindow, Control {
-	private var c: tControl?
+	private var c: Control?
 	private var margined: Bool
 
 	init() {
+		self.c = nil
+		self.margined = false
+		// we have to initialize our own instance variables first, unfortunately (thanks erica in irc.freenode.net/#swift-lang)
 		super.init(
 			contentRect: NSMakeRect(0, 0, 320, 240),
 			styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask),
 			backing: NSBackingStoreType.Buffered,
 			defer: true)
 		self.title = "Auto Layout Test"
-		self.c = nil
-		self.margined = false
+	}
+
+	required init?(coder: NSCoder) {
+		fatalError("can't use this constructor, sorry")
 	}
 
 	func SetControl(c: Control) {
 		self.c = c
 		var contentView = self.contentView as! NSView
-		contentView.addSubview(self.c?.View())
+		contentView.addSubview(self.c!.View())
 		self.Relayout()
 	}
 
@@ -43,7 +48,7 @@ class Window : NSWindow, Control {
 	func Show() {
 		self.cascadeTopLeftFromPoint(NSMakePoint(20, 20))
 		self.makeKeyAndOrderFront(self)
-		tIsAmbiguous(self.contentView as! NSView, 0)
+		isAmbiguous(self.contentView as! NSView, 0)
 	}
 
 	func View() -> NSView {
@@ -59,13 +64,11 @@ class Window : NSWindow, Control {
 			return
 		}
 
-		var contentView = self.w.contentView as! NSView
+		var contentView = self.contentView as! NSView
 		contentView.removeConstraints(contentView.constraints)
 
-		// TODO why can't I just say var views = [ "view": p.view ]?
-		// I think the parser is getting confused
 		var views = [
-			"view":	self.c?.View(),
+			"view":	self.c!.View(),
 		]
 		var margin = ""
 		if self.margined {

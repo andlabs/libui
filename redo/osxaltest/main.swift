@@ -4,11 +4,18 @@ import Cocoa
 var spaced = false
 var firstvert = true
 
+// keep alive
+// apparently I'm not allowed to declare a variable and then assign to it first thing in a function
+// it'd be great if people weren't so afraid of nil pointers
+var keepAliveMainwin: Window? = nil
+
 func appLaunched() {
 	var mainwin = Window()
 	mainwin.SetMargined(spaced)
 
 	mainwin.Show()
+
+	keepAliveMainwin = mainwin
 }
 
 class appDelegate : NSObject, NSApplicationDelegate {

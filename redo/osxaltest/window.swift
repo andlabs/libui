@@ -29,7 +29,7 @@ class tWindow : tControl {
 
 	public func tSetControl(c: tControl) {
 		self.c = c
-		self.c.tSetParent(self, view: self.w.contentView)
+		self.c.tSetParent(self, addToView: self.w.contentView)
 		self.tRelayout()
 	}
 

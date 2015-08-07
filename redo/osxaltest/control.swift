@@ -16,11 +16,11 @@ class tAutoLayoutParams {
 }
 
 protocol tControl {
-	mutating func tSetParent(p: tControl, addToView: NSView, relayout: Bool)
+	mutating func tSetParent(p: tControl, addToView: NSView)
 	mutating func tFillAutoLayout(p: tAutoLayoutParams)
 	mutating func tRelayout()
 }
 
-func tAutoLayoutKey(n: UInt) -> String {
+func tAutoLayoutKey(n: UIntMax) -> String {
 	return NSString(format: "view%d", n)
 }

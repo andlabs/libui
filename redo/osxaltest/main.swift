@@ -2,7 +2,7 @@
 import Cocoa
 
 var spaced = false
-var firstvert = false
+var firstvert = true
 
 func appLaunched() {
 	var hbox: tBox
@@ -57,9 +57,9 @@ func appLaunched() {
 
 	hbox = tBox(vertical: !firstvert, spaced: spaced)
 	entry = tEntry()
-	hbox.tAddControl(entry, stretchy: false)
-	entry = tEntry()
 	hbox.tAddControl(entry, stretchy: true)
+	entry = tEntry()
+	hbox.tAddControl(entry, stretchy: false)
 	box.tAddControl(hbox, stretchy: false)
 
 	hbox = tBox(vertical: !firstvert, spaced: spaced)

@@ -4,7 +4,7 @@ import Cocoa
 // auto layout helpers
 func tIsAmbiguous(view: NSView, indent: Int) {
 	var s = String(count: indent, repeatedValue: " " as Character)
-	print("\(s) \(view.className) \(view.hasAmbiguousLayout)")
+	println("\(s) \(view.className) \(view.hasAmbiguousLayout)")
 	if view.hasAmbiguousLayout {
 		view.window?.visualizeConstraints(view.superview!.constraints)
 	}
@@ -85,11 +85,7 @@ class tWindow : tControl {
 		if p.attachRight {
 			constraint += margin + "|"
 		}
-		var constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			constraint,
-			options: NSLayoutFormatOptions(0),
-			metrics: nil,
-			views: views)
+		var constraints = mkconstraints(constraint, views)
 		contentView.addConstraints(constraints)
 
 		constraint = "V:"
@@ -100,11 +96,7 @@ class tWindow : tControl {
 		if p.attachBottom {
 			constraint += margin + "|"
 		}
-		constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			constraint,
-			options: NSLayoutFormatOptions(0),
-			metrics: nil,
-			views: views)
+		constraints = mkconstraints(constraint, views)
 		contentView.addConstraints(constraints)
 	}
 }

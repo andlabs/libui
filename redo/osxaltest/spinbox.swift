@@ -5,7 +5,6 @@ import Cocoa
 class tSpinboxContainer : NSView {
 	override var alignmentRectInsets: NSEdgeInsets {
 		get {
-print("in tSpinboxContainer.alignmentRectInsets")
 			return NSEdgeInsetsMake(50, 50, 50, 50)
 		}
 	}
@@ -51,23 +50,11 @@ nspinbox++
 			"t":	self.t,
 			"s":	self.s,
 		]
-		var constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			"H:|[t]-[s]|",
-			options: NSLayoutFormatOptions(0),
-			metrics: nil,
-			views: views)
+		var constraints = mkconstraints("H:|[t]-[s]|", views)
 		self.c.addConstraints(constraints)
-		constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			"V:|[t]|",
-			options: NSLayoutFormatOptions(0),
-			metrics: nil,
-			views: views)
+		constraints = mkconstraints("V:|[t]|", views)
 		self.c.addConstraints(constraints)
-		constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			"V:|[s]|",
-			options: NSLayoutFormatOptions(0),
-			metrics: nil,
-			views: views)
+		constraints = mkconstraints("V:|[s]|", views)
 		self.c.addConstraints(constraints)
 
 		self.parent = nil

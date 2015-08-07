@@ -7,7 +7,6 @@ import Cocoa
 class tBoxContainer : NSView {
 	override var alignmentRectInsets: NSEdgeInsets {
 		get {
-print("in tBoxContainer.alignmentRectInsets")
 			return NSEdgeInsetsMake(50, 50, 50, 50)
 		}
 	}
@@ -61,7 +60,7 @@ class tBox : tControl {
 	// TODO make the other dimension not hug (as an experiment)
 	func tFillAutoLayout(inout p: tAutoLayoutParams) {
 		var hasStretchy = false
-		if self.children.count == 0 {
+		if self.children.count != 0 {
 			hasStretchy = self.actualLayoutWork()
 		}
 		p.view = self.v
@@ -117,9 +116,9 @@ class tBox : tControl {
 		}
 
 		// first string the views together
-		var constraint = "H:"
+		var constraint = "H:|"
 		if self.vertical {
-			constraint = "V:"
+			constraint = "V:|"
 		}
 		var firstStretchy = true
 		// swift can't tell that nStretchy isn't used until firstStretchy becomes false
@@ -129,7 +128,7 @@ class tBox : tControl {
 				constraint += "-"
 			}
 			constraint += "[" + tAutoLayoutKey(i)
-			// swift currently can't do self.children[i].stretchy
+			// TODO swift currently can't do self.children[i].stretchy
 			var child = self.children[Int(i)]
 			if child.stretchy {
 				if firstStretchy {
@@ -144,11 +143,7 @@ class tBox : tControl {
 			constraint += "]"
 		}
 		constraint += "|"
-		self.v.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat(
-			constraint,
-			options: NSLayoutFormatOptions(0),
-			metrics: nil,
-			views: views))
+		self.v.addConstraints(mkconstraints(constraint, views))
 		// TODO do not release constraint; it's autoreleased?
 
 		// next make the views span the full other dimension
@@ -159,11 +154,7 @@ class tBox : tControl {
 				constraint = "H:|["
 			}
 			constraint += tAutoLayoutKey(i) + "]|"
-			self.v.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat(
-				constraint,
-				options: NSLayoutFormatOptions(0),
-				metrics: nil,
-				views: views))
+			self.v.addConstraints(mkconstraints(constraint, views))
 			// TODO do not release constraint; it's autoreleased?
 		}
 

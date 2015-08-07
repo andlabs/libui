@@ -13,6 +13,9 @@ func appLaunched() {
 	var mainwin = Window()
 	mainwin.SetMargined(spaced)
 
+	var control = Label()
+	mainwin.SetControl(control)
+
 	mainwin.Show()
 
 	keepAliveMainwin = mainwin

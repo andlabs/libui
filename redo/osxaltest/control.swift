@@ -3,22 +3,22 @@ import Cocoa
 
 // TODO stretchy across both dimensions
 // for a vertical box, the horizontal width should be variable
-class tAutoLayoutParams {
-	var view: NSView
-	var attachLeft: Bool
-	var attachTop: Bool
-	var attachRight: Bool
-	var attachBottom: Bool
-	var nonStretchyWidthPredicate: String
-	var nonStretchyHeightPredicate: String
+struct tAutoLayoutParams {
+	var view: NSView? = nil
+	var attachLeft: Bool = false
+	var attachTop: Bool = false
+	var attachRight: Bool = false
+	var attachBottom: Bool = false
+	var nonStretchyWidthPredicate: String = ""
+	var nonStretchyHeightPredicate: String = ""
 }
 
-protocol tControl {
-	mutating func tSetParent(p: tControl, addToView: NSView)
-	mutating func tFillAutoLayout(p: tAutoLayoutParams)
-	mutating func tRelayout()
+protocol tControl : class {
+	func tSetParent(p: tControl, addToView: NSView)
+	func tFillAutoLayout(inout p: tAutoLayoutParams)
+	func tRelayout()
 }
 
 func tAutoLayoutKey(n: UIntMax) -> String {
-	return NSString(format: "view%d", n)
+	return NSString(format: "view%d", n) as String
 }

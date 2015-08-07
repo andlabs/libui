@@ -3,8 +3,11 @@ import Cocoa
 
 // leave a whole lot of space around the alignment rect, just to be safe
 class tSpinboxContainer : NSView {
-	override func alignmentRectInsets() -> NSEdgeInsets {
-		return NSEdgeInsetsMake(50, 50, 50, 50)
+	override var alignmentRectInsets: NSEdgeInsets {
+		get {
+debugPrint("in tSpinboxContainer.alignmentRectInsets")
+			return NSEdgeInsetsMake(50, 50, 50, 50)
+		}
 	}
 }
 
@@ -14,10 +17,12 @@ class tSpinbox : tControl {
 	private var c: tSpinboxContainer
 	private var t: NSTextField
 	private var s: NSStepper
-	private var parent: tControl
+	private var parent: tControl?
 	private var horzpri, vertpri: NSLayoutPriority
 
 	init() {
+		var cell: NSTextFieldCell
+
 		self.c = tSpinboxContainer(frame: NSZeroRect)
 		self.c.translatesAutoresizingMaskIntoConstraints = false
 
@@ -25,16 +30,17 @@ class tSpinbox : tControl {
 self.t.stringValue = "\(nspinbox)"
 nspinbox++
 		self.t.selectable = true
-		self.t.font = NSFont.systemFontOfSize(NSFont.systemFontSizeForControlSize(NSRegularControlSize))
+		self.t.font = NSFont.systemFontOfSize(NSFont.systemFontSizeForControlSize(NSControlSize.RegularControlSize))
 		self.t.bordered = false
-		self.t.bezelStyle = NSTextFieldSquareBezel
+		self.t.bezelStyle = NSTextFieldBezelStyle.SquareBezel
 		self.t.bezeled = true
-		self.t.cell.lineBreakMode = NSLineBreakByClipping
-		self.t.cell.scrollable = true
+		cell = self.t.cell() as! NSTextFieldCell
+		cell.lineBreakMode = NSLineBreakMode.ByClipping
+		cell.scrollable = true
 		self.t.translatesAutoresizingMaskIntoConstraints = false
 		self.c.addSubview(self.t)
 
-		self.s = NSStepper(NSZeroFrame)
+		self.s = NSStepper(frame: NSZeroRect)
 		self.s.increment = 1
 		self.s.valueWraps = false
 		self.s.autorepeat = true
@@ -46,20 +52,20 @@ nspinbox++
 			"s":	self.s,
 		]
 		var constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			visualFormat: "H:|[t]-[s]|",
-			options: 0,
+			"H:|[t]-[s]|",
+			options: NSLayoutFormatOptions(0),
 			metrics: nil,
 			views: views)
 		self.c.addConstraints(constraints)
 		constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			visualFormat: "V:|[t]|",
-			options: 0,
+			"V:|[t]|",
+			options: NSLayoutFormatOptions(0),
 			metrics: nil,
 			views: views)
 		self.c.addConstraints(constraints)
 		constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			visualFormat: "V:|[s]|",
-			options: 0,
+			"V:|[s]|",
+			options: NSLayoutFormatOptions(0),
 			metrics: nil,
 			views: views)
 		self.c.addConstraints(constraints)
@@ -75,7 +81,7 @@ nspinbox++
 		v.addSubview(self.c)
 	}
 
-	func tFillAutoLayout(p: tAutoLayoutParams) {
+	func tFillAutoLayout(inout p: tAutoLayoutParams) {
 		// reset the hugging priority
 		self.c.setContentHuggingPriority(self.horzpri, forOrientation:NSLayoutConstraintOrientation.Horizontal)
 		self.c.setContentHuggingPriority(self.vertpri, forOrientation:NSLayoutConstraintOrientation.Vertical)
@@ -90,7 +96,7 @@ nspinbox++
 
 	func tRelayout() {
 		if self.parent != nil {
-			self.parent.tRelayout()
+			self.parent?.tRelayout()
 		}
 	}
 }

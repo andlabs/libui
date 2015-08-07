@@ -2,19 +2,22 @@
 import Cocoa
 
 class tEntry : tControl {
-	private var b: NSButton
-	private var parent: tControl
+	private var t: NSTextField
+	private var parent: tControl?
 	private var horzpri, vertpri: NSLayoutPriority
 
 	init() {
+		var cell: NSTextFieldCell
+
 		self.t = NSTextField(frame: NSZeroRect)
 		self.t.selectable = true
-		self.t.font = NSFont.systemFontOfSize(NSFont.systemFontSizeForControlSize(NSRegularControlSize))
+		self.t.font = NSFont.systemFontOfSize(NSFont.systemFontSizeForControlSize(NSControlSize.RegularControlSize))
 		self.t.bordered = false
-		self.t.bezelStyle = NSTextFieldSquareBezel
+		self.t.bezelStyle = NSTextFieldBezelStyle.SquareBezel
 		self.t.bezeled = true
-		self.t.cell.lineBreakMode = NSLineBreakByClipping
-		self.t.cell.scrollable = true
+		cell = self.t.cell() as! NSTextFieldCell
+		cell.lineBreakMode = NSLineBreakMode.ByClipping
+		cell.scrollable = true
 		self.t.translatesAutoresizingMaskIntoConstraints = false
 
 		self.parent = nil
@@ -28,7 +31,7 @@ class tEntry : tControl {
 		v.addSubview(self.t)
 	}
 
-	func tFillAutoLayout(p: tAutoLayoutParams) {
+	func tFillAutoLayout(inout p: tAutoLayoutParams) {
 		// reset the hugging priority
 		self.t.setContentHuggingPriority(self.horzpri, forOrientation:NSLayoutConstraintOrientation.Horizontal)
 		self.t.setContentHuggingPriority(self.vertpri, forOrientation:NSLayoutConstraintOrientation.Vertical)
@@ -43,7 +46,7 @@ class tEntry : tControl {
 
 	func tRelayout() {
 		if self.parent != nil {
-			self.parent.tRelayout()
+			self.parent?.tRelayout()
 		}
 	}
 }

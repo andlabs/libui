@@ -5,8 +5,11 @@ import Cocoa
 // TODO fine tune this
 // TODO de-duplicate this from spinbox.m
 class tBoxContainer : NSView {
-	override func alignmentRectInsets() -> NSEdgeInsets {
-		return NSEdgeInsetsMake(50, 50, 50, 50)
+	override var alignmentRectInsets: NSEdgeInsets {
+		get {
+debugPrint("in tBoxContainer.alignmentRectInsets")
+			return NSEdgeInsetsMake(50, 50, 50, 50)
+		}
 	}
 }
 
@@ -15,11 +18,21 @@ struct tBoxChild {
 	var stretchy: Bool
 }
 
+// the swift bridge isn't perfect; it won't recognize these properly
+// thanks to Eridius in freenode/#swift-lang
+let myNSLayoutPriorityRequired: NSLayoutPriority = 1000
+let myNSLayoutPriorityDefaultHigh: NSLayoutPriority = 750
+let myNSLayoutPriorityDragThatCanResizeWindow: NSLayoutPriority = 510
+let myNSLayoutPriorityWindowSizeStayPut: NSLayoutPriority = 500
+let myNSLayoutPriorityDragThatCannotResizeWindow: NSLayoutPriority = 490
+let myNSLayoutPriorityDefaultLow: NSLayoutPriority = 250
+let myNSLayoutPriorityFittingSizeCompression: NSLayoutPriority = 50
+
 class tBox : tControl {
 	private var v: NSView
 	private var children: [tBoxChild]
 	private var vertical: Bool
-	private var parent: tControl
+	private var parent: tControl?
 	private var spaced: Bool
 
 	// TODO rename to padded
@@ -46,15 +59,29 @@ class tBox : tControl {
 	}
 
 	// TODO make the other dimension not hug (as an experiment)
-	func tFillAutoLayout(p: tAutoLayoutParams) {
-		var orientation: NSLayoutConstraintOrientation
-		var i, n: UIntMax
-		var pp: tAutoLayoutParams
-		var nStretchy: UIntMax
-
+	func tFillAutoLayout(inout p: tAutoLayoutParams) {
+		var hasStretchy = false
 		if self.children.count == 0 {
-			goto selfOnly
+			hasStretchy = self.actualLayoutWork()
 		}
+		p.view = self.v
+		p.attachLeft = true
+		p.attachTop = true
+		// don't attach to the end if there weren't any stretchy controls
+		if self.vertical {
+			p.attachRight = true
+			p.attachBottom = hasStretchy
+		} else {
+			p.attachRight = hasStretchy
+			p.attachBottom = true
+		}
+	}
+
+	func actualLayoutWork() -> Bool {
+		var orientation: NSLayoutConstraintOrientation
+		// TODO don't use UIntMax
+		var i, n: UIntMax
+		var nStretchy: UIntMax
 
 		self.v.removeConstraints(self.v.constraints)
 
@@ -66,6 +93,7 @@ class tBox : tControl {
 		var views = [String: NSView]()
 		n = 0
 		var predicates = [String]()
+		var pp = tAutoLayoutParams()
 		for child in self.children {
 			var priority: NSLayoutPriority
 
@@ -73,17 +101,17 @@ class tBox : tControl {
 			pp.nonStretchyHeightPredicate = ""
 			// this also resets the hugging priority
 			// TODO do this when adding and removing controls instead
-			child.c.tFillAutoLayout(pp)
-			priority = NSLayoutPriorityDefaultHigh			// forcibly hug; avoid stretching out
+			child.c.tFillAutoLayout(&pp)
+			priority = myNSLayoutPriorityDefaultHigh			// forcibly hug; avoid stretching out
 			if child.stretchy {
-				priority = NSLayoutPriorityDefaultLow		// do not forcibly hug; freely stretch out
+				priority = myNSLayoutPriorityDefaultLow		// do not forcibly hug; freely stretch out
 			}
 			if self.vertical {
 				predicates.append(pp.nonStretchyHeightPredicate)
 			} else {
 				predicates.append(pp.nonStretchyWidthPredicate)
 			}
-			pp.view.setContentHuggingPriority(priority, forOrientation:orientation)
+			pp.view?.setContentHuggingPriority(priority, forOrientation:orientation)
 			views[tAutoLayoutKey(n)] = pp.view
 			n++
 		}
@@ -94,12 +122,16 @@ class tBox : tControl {
 			constraint = "V:"
 		}
 		var firstStretchy = true
-		for i = 0; i < n; i++ {
+		// swift can't tell that nStretchy isn't used until firstStretchy becomes false
+		nStretchy = 0
+		for i in 0..<n {
 			if self.spaced && i != 0 {
 				constraint += "-"
 			}
 			constraint += "[" + tAutoLayoutKey(i)
-			if self.children[i].stretchy {
+			// swift currently can't do self.children[i].stretchy
+			var child = self.children[Int(i)]
+			if child.stretchy {
 				if firstStretchy {
 					firstStretchy = false
 					nStretchy = i
@@ -107,53 +139,42 @@ class tBox : tControl {
 					constraint += "(==" + tAutoLayoutKey(nStretchy) + ")"
 				}
 			} else {
-				constraint += predicates[i]
+				constraint += predicates[Int(i)]
 			}
 			constraint += "]"
 		}
 		constraint += "|"
 		self.v.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat(
-			visualFormat: constraint,
-			options: 0,
+			constraint,
+			options: NSLayoutFormatOptions(0),
 			metrics: nil,
 			views: views))
 		// TODO do not release constraint; it's autoreleased?
 
 		// next make the views span the full other dimension
 		// TODO make all of these the same width/height
-		for i = 0; i < n; i++ {
+		for i in 0..<n {
 			constraint = "V:|["
 			if self.vertical {
 				constraint = "H:|["
 			}
 			constraint += tAutoLayoutKey(i) + "]|"
 			self.v.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat(
-				visualFormat: constraint,
-				options: 0,
+				constraint,
+				options: NSLayoutFormatOptions(0),
 				metrics: nil,
 				views: views))
 			// TODO do not release constraint; it's autoreleased?
 		}
 
-		// and now populate for self
-	selfOnly:
-		p.view = self.v
-		p.attachLeft = true
-		p.attachTop = true
-		// don't attach to the end if there weren't any stretchy controls
-		// firstStretchy is false if there was at least one stretchy control
-		if self.vertical {
-			p.attachRight = true
-			p.attachBottom = !firstStretchy
-		} else {
-			p.attachRight = !firstStretchy
-			p.attachBottom = true
-		}
+		// the caller needs to know if a control was stretchy
+		// firstStretchy is false if there was one
+		return !firstStretchy
 	}
 
 	func tRelayout() {
 		if self.parent != nil {
-			self.parent.tRelayout()
+			self.parent?.tRelayout()
 		}
 	}
 }

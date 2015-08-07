@@ -3,71 +3,73 @@ import Cocoa
 
 // auto layout helpers
 func tIsAmbiguous(view: NSView, indent: Int) {
-	var s = string(indent, ' ')
+	var s = String(count: indent, repeatedValue: " " as Character)
 	debugPrint("\(s) \(view.className) \(view.hasAmbiguousLayout)")
 	if view.hasAmbiguousLayout {
-		view.window.visualizeConstraints(view.superview.constraints)
+		view.window?.visualizeConstraints(view.superview!.constraints)
 	}
 	for subview in view.subviews {
-		tIsAmbiguous(subview, indent + 1)
+		tIsAmbiguous(subview as! NSView, indent + 1)
 	}
 }
 
 class tWindow : tControl {
 	private var w: NSWindow
-	private var c: tControl
+	private var c: tControl?
 	private var margined: Bool
 
 	init() {
 		self.w = NSWindow(
 			contentRect: NSMakeRect(0, 0, 320, 240),
 			styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask),
-			backing: NSBackingStoreBuffered,
+			backing: NSBackingStoreType.Buffered,
 			defer: true)
 		self.w.title = "Auto Layout Test"
 		self.c = nil
 		self.margined = false
 	}
 
-	public func tSetControl(c: tControl) {
+	func tSetControl(c: tControl) {
 		self.c = c
-		self.c.tSetParent(self, addToView: self.w.contentView)
+		// TODO use self.c here
+		c.tSetParent(self, addToView: self.w.contentView as! NSView)
 		self.tRelayout()
 	}
 
-	public func tSetMargined(m: Bool) {
+	func tSetMargined(m: Bool) {
 		self.margined = m
 		self.tRelayout()
 	}
 
-	public func tShow() {
+	func tShow() {
 		self.w.cascadeTopLeftFromPoint(NSMakePoint(20, 20))
 		self.w.makeKeyAndOrderFront(self)
-		tIsAmbiguous(self.w.contentView, 0)
+		tIsAmbiguous(self.w.contentView as! NSView, 0)
 	}
 
 	func tSetParent(p: tControl, addToView: NSView) {
 		fatalError("cannot call tWindow.tSetParent()")
 	}
 
-	func tFillAutoLayout(p: tAutoLayoutParams) {
+	func tFillAutoLayout(inout p: tAutoLayoutParams) {
 		fatalError("cannot call tWindow.tFillAutoLayout()")
 	}
 
-	public func tRelayout() {
+	func tRelayout() {
 		if self.c == nil {
 			return
 		}
 
-		var contentView = self.w.contentView
+		var contentView = self.w.contentView as! NSView
 		contentView.removeConstraints(contentView.constraints)
 
 		var p = tAutoLayoutParams()
-		self.c.tFillAutoLayout(p)
+		c?.tFillAutoLayout(&p)
 
-		var views = [
-			"view": p.view,
-		]
+		// TODO why can't I just say var views = [ "view": p.view ]?
+		// I think the parser is getting confused
+		var views = [String: NSView]()
+		views["view"] = p.view
 		var margin = ""
 		if self.margined {
 			margin = "-"
@@ -84,10 +86,10 @@ class tWindow : tControl {
 			constraint += margin + "|"
 		}
 		var constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			visualFormat:constraint,
-			options:0,
-			metrics:nil,
-			views:views)
+			constraint,
+			options: NSLayoutFormatOptions(0),
+			metrics: nil,
+			views: views)
 		contentView.addConstraints(constraints)
 
 		constraint = "V:"
@@ -99,10 +101,10 @@ class tWindow : tControl {
 			constraint += margin + "|"
 		}
 		constraints = NSLayoutConstraint.constraintsWithVisualFormat(
-			visualFormat:constraint,
-			options:0,
-			metrics:nil,
-			views:views)
+			constraint,
+			options: NSLayoutFormatOptions(0),
+			metrics: nil,
+			views: views)
 		contentView.addConstraints(constraints)
 	}
 }

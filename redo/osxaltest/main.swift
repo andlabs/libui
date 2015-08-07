@@ -70,7 +70,7 @@ func appLaunched() {
 	mainwin.tShow()
 }
 
-class appDelegate : NSApplicationDelegate {
+class appDelegate : NSObject, NSApplicationDelegate {
 	func applicationDidFinishLaunching(note: NSNotification) {
 		appLaunched()
 	}
@@ -84,8 +84,8 @@ func main() {
 	spaced = Process.arguments.count > 1
 
 	var app = NSApplication.sharedApplication()
-	app.setActivationPolicy(NSApplicationActivationPolicyRegular)
-	app.setDelegate(appDelegate())
+	app.setActivationPolicy(NSApplicationActivationPolicy.Regular)
+	app.delegate = appDelegate()
 	app.run()
 }
 

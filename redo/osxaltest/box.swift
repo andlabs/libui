@@ -4,6 +4,8 @@ import Cocoa
 struct BoxControl {
 	var c: Control
 	var stretchy: Bool
+	var horzHuggingPri: NSLayoutPriority
+	var vertHuggingPri: NSLayoutPriority
 }
 
 class Box : NSView, Control {
@@ -39,11 +41,15 @@ class Box : NSView, Control {
 	func Add(control: Control, _ stretchy: Bool) {
 		var c: BoxControl
 
+		var view = control.View()
 		c = BoxControl(
-			c:		control,
-			stretchy:	stretchy)
-		self.addSubview(c.c.View())
+			c:				control,
+			stretchy:			stretchy
+			horzHuggingPri:	horzHuggingPri(view),
+			vertHuggingPri:	vertHuggingPri(view))
+		self.addSubview(view)
 		self.controls.append(c)
+		// TODO set secondary hugging priority to low
 		self.relayout()
 	}
 

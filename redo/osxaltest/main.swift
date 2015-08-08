@@ -13,8 +13,11 @@ func appLaunched() {
 	var mainwin = Window()
 	mainwin.SetMargined(spaced)
 
-	var control = Spinbox()
-	mainwin.SetControl(control)
+	var box = Box(vertical: firstvert, padded: spaced)
+	mainwin.SetControl(box)
+
+	box.Add(Entry(), false)
+	box.Add(Button("Button"), false)
 
 	mainwin.Show()
 

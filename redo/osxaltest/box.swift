@@ -36,11 +36,12 @@ class Box : NSView, Control {
 		fatalError("can't use this constructor, sorry")
 	}
 
-	func Add(control: Control, stretchy: Stretchy) {
-		var c BoxControl
+	func Add(control: Control, _ stretchy: Bool) {
+		var c: BoxControl
 
-		c.c = control
-		c.stretchy = stretchy
+		c = BoxControl(
+			c:		control,
+			stretchy:	stretchy)
 		self.addSubview(c.c.View())
 		self.controls.append(c)
 		self.relayout()
@@ -57,7 +58,9 @@ class Box : NSView, Control {
 	// TODO stretchiness
 	// - we will need a trailing view if there are no stretchy controls
 	private func relayout() {
-		if self.children.count == 0 {
+		var constraint: String
+
+		if self.controls.count == 0 {
 			return
 		}
 
@@ -68,12 +71,28 @@ class Box : NSView, Control {
 		var n = 0
 		for c in self.controls {
 			views["view\(n)"] = c.c.View()
+			n++
 		}
 
 		// next, assemble the views in the primary direction
 		// they all go in a straight line
+		constraint = "\(self.primaryDirPrefix)|"
+		for i in 0..<n {
+			if self.padded && i != 0 {
+				constraint += "-"
+			}
+			constraint += "[view\(i)]"
+		}
+		constraint += "|"
+		var constraints = mkconstraints(constraint, views)
+		self.addConstraints(constraints)
 
 		// next: assemble the views in the secondary direction
 		// each of them will span the secondary direction
+		for i in 0..<n {
+			constraint = "\(self.secondaryDirPrefix)|[view\(i)]|"
+			var constraints = mkconstraints(constraint, views)
+			self.addConstraints(constraints)
+		}
 	}
 }

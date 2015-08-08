@@ -35,7 +35,15 @@ class appDelegate : NSObject, NSApplicationDelegate {
 }
 
 func main() {
-	spaced = Process.arguments.count > 1
+	for arg in dropFirst(Process.arguments) {
+		if arg == "spaced" {
+			spaced = true
+		} else if arg == "horizontal" {
+			firstvert = false
+		} else {
+			fatalError("unrecognized option \(arg)")
+		}
+	}
 
 	var app = NSApplication.sharedApplication()
 	app.setActivationPolicy(NSApplicationActivationPolicy.Regular)

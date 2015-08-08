@@ -16,6 +16,8 @@ class Box : NSView, Control {
 
 	private var primaryDirPrefix: String
 	private var secondaryDirPrefix: String
+	private var primaryOrientation: NSLayoutConstraintOrientation
+	private var secondaryOrientation: NSLayoutConstraintOrientation
 
 	init(vertical: Bool, padded: Bool) {
 		self.controls = []
@@ -25,9 +27,13 @@ class Box : NSView, Control {
 
 		self.primaryDirPrefix = "H:"
 		self.secondaryDirPrefix = "V:"
+		self.primaryOrientation = NSLayoutConstraintOrientation.Horizontal
+		self.secondaryOrientation = NSLayoutConstraintOrientation.Vertical
 		if self.vertical {
 			self.primaryDirPrefix = "V:"
 			self.secondaryDirPrefix = "H:"
+			self.primaryOrientation = NSLayoutConstraintOrientation.Vertical
+			self.secondaryOrientation = NSLayoutConstraintOrientation.Horizontal
 		}
 
 		super.init(frame: NSZeroRect)
@@ -44,12 +50,13 @@ class Box : NSView, Control {
 		var view = control.View()
 		c = BoxControl(
 			c:				control,
-			stretchy:			stretchy
+			stretchy:			stretchy,
 			horzHuggingPri:	horzHuggingPri(view),
 			vertHuggingPri:	vertHuggingPri(view))
 		self.addSubview(view)
 		self.controls.append(c)
-		// TODO set secondary hugging priority to low
+		// make sure controls don't hug their secondary direction so they fill the width of the view
+		setHuggingPri(view, myNSLayoutPriorityDefaultLow, self.secondaryOrientation)
 		self.relayout()
 	}
 

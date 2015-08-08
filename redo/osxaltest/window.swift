@@ -37,12 +37,12 @@ class Window : NSWindow, Control {
 		self.c = c
 		var contentView = self.contentView as! NSView
 		contentView.addSubview(self.c!.View())
-		self.Relayout()
+		self.relayout()
 	}
 
 	func SetMargined(m: Bool) {
 		self.margined = m
-		self.Relayout()
+		self.relayout()
 	}
 
 	func Show() {
@@ -59,7 +59,7 @@ class Window : NSWindow, Control {
 		fatalError("cannot call Window.SetParent()")
 	}
 
-	func Relayout() {
+	private func relayout() {
 		if self.c == nil {
 			return
 		}

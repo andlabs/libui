@@ -67,12 +67,6 @@ nspinbox++
 	func SetParent(p: Control) {
 		self.parent = p
 	}
-
-	func Relayout() {
-		if self.parent != nil {
-			self.parent?.Relayout()
-		}
-	}
 }
 
 //TODO		p.nonStretchyWidthPredicate = "(==96)"		// TODO on the text field only

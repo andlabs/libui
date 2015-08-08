@@ -4,7 +4,6 @@ import Cocoa
 protocol Control : class {
 	func View() -> NSView
 	func SetParent(p: Control)
-	func Relayout()
 }
 
 func mkconstraints(constraint: String, views: [String: NSView]) -> [AnyObject] {

@@ -13,7 +13,7 @@ func appLaunched() {
 	var mainwin = Window()
 	mainwin.SetMargined(spaced)
 
-	var control = Label()
+	var control = Spinbox()
 	mainwin.SetControl(control)
 
 	mainwin.Show()

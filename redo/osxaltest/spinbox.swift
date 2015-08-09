@@ -80,6 +80,7 @@ nspinbox++
 
 	// TODO justify this
 	// TODO no really, is this height the right way to go?
+	// TODO in particular, why is making the NSTextField an Entry insufficient?
 	// TODO restrict width to the text field only?
 	override var intrinsicContentSize: NSSize {
 		get {

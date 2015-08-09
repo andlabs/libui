@@ -72,6 +72,7 @@ class Box : NSView, Control {
 		if c.stretchy {
 			setHuggingPri(view, myNSLayoutPriorityDefaultLow, self.primaryOrientation)
 		} else {
+			// TODO will default high work?
 			setHuggingPri(view, myNSLayoutPriorityRequired, self.primaryOrientation)
 		}
 

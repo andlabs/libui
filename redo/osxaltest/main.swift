@@ -67,6 +67,24 @@ func appLaunched() {
 	hbox.Add(Label(), false)
 	box.Add(hbox, false)
 
+	hbox = mkhbox()
+	var vbox = Box(vertical: firstvert, padded: spaced)
+	vbox.Add(Button("Button"), true)
+	hbox.Add(vbox, false)
+	vbox = Box(vertical: firstvert, padded: spaced)
+	vbox.Add(Button("Button 2"), true)
+	hbox.Add(vbox, true)
+	box.Add(hbox, false)
+
+	hbox = Box(vertical: firstvert, padded: spaced)
+	vbox = mkhbox()
+	vbox.Add(Button("Button"), true)
+	hbox.Add(vbox, false)
+	vbox = mkhbox()
+	vbox.Add(Button("Button 2"), true)
+	hbox.Add(vbox, true)
+	box.Add(hbox, false)
+
 	mainwin.Show()
 
 	keepAliveMainwin = mainwin

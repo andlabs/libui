@@ -55,8 +55,18 @@ class Box : NSView, Control {
 			vertHuggingPri:	vertHuggingPri(view))
 		self.addSubview(view)
 		self.controls.append(c)
+
+		// if a control is stretchy, it should not hug in the primary direction
+		// otherwise, it should *forcibly* hug
+		if c.stretchy {
+			setHuggingPri(view, myNSLayoutPriorityDefaultLow, self.primaryOrientation)
+		} else {
+			setHuggingPri(view, myNSLayoutPriorityRequired, self.primaryOrientation)
+		}
+
 		// make sure controls don't hug their secondary direction so they fill the width of the view
 		setHuggingPri(view, myNSLayoutPriorityDefaultLow, self.secondaryOrientation)
+
 		self.relayout()
 	}
 

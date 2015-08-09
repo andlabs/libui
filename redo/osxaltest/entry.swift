@@ -32,6 +32,16 @@ class Entry : NSTextField, Control {
 	func SetParent(p: Control) {
 		self.parent = p
 	}
-}
 
-//TODO		p.nonStretchyWidthPredicate = "(==96)"		// TODO verify against Interface Builder
+	// by default a text entry has no intrinsic content width
+	// in order for our layout containers to work, we need to give it one
+	// give it what Interface Builder uses as a default
+	// TODO verify against Interface Builder
+	override var intrinsicContentSize: NSSize {
+		get {
+			var s = super.intrinsicContentSize
+			s.width = 96
+			return s
+		}
+	}
+}

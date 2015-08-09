@@ -92,8 +92,12 @@ class Box : NSView, Control {
 		// first collect the views
 		var views = [String: NSView]()
 		var n = 0
+		var firstStretchy = -1
 		for c in self.controls {
 			views["view\(n)"] = c.c.View()
+			if firstStretchy == -1 && c.stretchy {
+				firstStretchy = n
+			}
 			n++
 		}
 
@@ -104,7 +108,12 @@ class Box : NSView, Control {
 			if self.padded && i != 0 {
 				constraint += "-"
 			}
-			constraint += "[view\(i)]"
+			constraint += "[view\(i)"
+			// implement multiple stretchiness properly
+			if self.controls[i].stretchy && i != firstStretchy {
+				constraint += "(==view\(firstStretchy))"
+			}
+			constraint += "]"
 		}
 		constraint += "|"
 		var constraints = mkconstraints(constraint, views)

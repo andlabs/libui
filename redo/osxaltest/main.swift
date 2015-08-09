@@ -16,7 +16,7 @@ func appLaunched() {
 	var box = Box(vertical: firstvert, padded: spaced)
 	mainwin.SetControl(box)
 
-	box.Add(Entry(), false)
+	box.Add(Entry(), true)
 	box.Add(Button("Button"), true)
 
 	mainwin.Show()

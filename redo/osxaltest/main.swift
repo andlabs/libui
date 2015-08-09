@@ -17,7 +17,7 @@ func appLaunched() {
 	mainwin.SetControl(box)
 
 	box.Add(Entry(), false)
-	box.Add(Button("Button"), false)
+	box.Add(Button("Button"), true)
 
 	mainwin.Show()
 

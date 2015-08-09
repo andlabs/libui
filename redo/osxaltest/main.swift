@@ -30,7 +30,7 @@ func appLaunched() {
 	box.Add(hbox(false, false), false)
 */
 
-	box.Add(Entry(), false)
+	box.Add(Spinbox(), false)
 
 	var mkhbox = {() -> Box in
 		Box(vertical: !firstvert, padded: spaced)
@@ -51,6 +51,20 @@ func appLaunched() {
 	hbox.Add(Button("A"), false)
 	hbox.Add(Button("BB"), false)
 	hbox.Add(Button("CCC"), false)
+	box.Add(hbox, false)
+
+	hbox = mkhbox()
+	hbox.Add(Spinbox(), false)
+	hbox.Add(Spinbox(), true)
+	box.Add(hbox, false)
+
+	hbox = mkhbox()
+	hbox.Add(Entry(), true)
+	hbox.Add(Entry(), false)
+	box.Add(hbox, false)
+
+	hbox = mkhbox()
+	hbox.Add(Label(), false)
 	box.Add(hbox, false)
 
 	mainwin.Show()

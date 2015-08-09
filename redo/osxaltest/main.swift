@@ -16,8 +16,17 @@ func appLaunched() {
 	var box = Box(vertical: firstvert, padded: spaced)
 	mainwin.SetControl(box)
 
-	box.Add(Entry(), false)
-	box.Add(Button("Button"), false)
+	var hbox = {(entrys: Bool, buttons: Bool) -> Box in
+		var hbox = Box(vertical: !firstvert, padded: spaced)
+		hbox.Add(Entry(), entrys)
+		hbox.Add(Button("Button"), buttons)
+		return hbox
+	}
+
+	box.Add(hbox(true, true), false)
+	box.Add(hbox(true, false), false)
+	box.Add(hbox(false, true), false)
+	box.Add(hbox(false, false), false)
 
 	mainwin.Show()
 

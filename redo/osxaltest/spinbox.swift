@@ -24,11 +24,20 @@ nspinbox++
 		cell.scrollable = true
 		self.t.translatesAutoresizingMaskIntoConstraints = false
 
+		// make the textbox grow horizontally and vertically
+		setHorzHuggingPri(self.t, myNSLayoutPriorityDefaultLow)
+		setVertHuggingPri(self.t, myNSLayoutPriorityDefaultLow)
+
 		self.s = NSStepper(frame: NSZeroRect)
 		self.s.increment = 1
 		self.s.valueWraps = false
 		self.s.autorepeat = true
 		self.s.translatesAutoresizingMaskIntoConstraints = false
+
+		// make the spinner grow vertically but not horizontally
+		// TODO Required instead?
+		setHorzHuggingPri(self.s, myNSLayoutPriorityDefaultHigh)
+		setVertHuggingPri(self.s, myNSLayoutPriorityDefaultLow)
 
 		self.parent = nil
 
@@ -54,6 +63,7 @@ nspinbox++
 	}
 
 	// TODO leave only the required amount of space around the alignment rect
+	// TODO even with this the stepper sometimes gets cut off at the bottom *anyway*
 	override var alignmentRectInsets: NSEdgeInsets {
 		get {
 			return NSEdgeInsetsMake(50, 50, 50, 50)
@@ -69,11 +79,13 @@ nspinbox++
 	}
 
 	// TODO justify this
-	// TODO restrict to the text field only?
+	// TODO no really, is this height the right way to go?
+	// TODO restrict width to the text field only?
 	override var intrinsicContentSize: NSSize {
 		get {
 			var s = super.intrinsicContentSize
 			s.width = 96
+			s.height = max(self.t.intrinsicContentSize.height, self.s.intrinsicContentSize.height)
 			return s
 		}
 	}

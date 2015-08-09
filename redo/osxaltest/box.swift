@@ -19,6 +19,10 @@ class Box : NSView, Control {
 	private var primaryOrientation: NSLayoutConstraintOrientation
 	private var secondaryOrientation: NSLayoutConstraintOrientation
 
+	// we implement a lack of stretchy controls by adding a stretchy view at the end of the view list when we assemble layouts
+	// this is that view
+	private var noStretchyView: NSView
+
 	init(vertical: Bool, padded: Bool) {
 		self.controls = []
 		self.parent = nil
@@ -35,6 +39,13 @@ class Box : NSView, Control {
 			self.primaryOrientation = NSLayoutConstraintOrientation.Vertical
 			self.secondaryOrientation = NSLayoutConstraintOrientation.Horizontal
 		}
+
+		self.noStretchyView = NSView(frame: NSZeroRect)
+		self.noStretchyView.translatesAutoresizingMaskIntoConstraints = false
+		// make the view stretchy in both directions
+		// you can tell this is correct by synthesizing an Add() in your head; see below
+		setHorzHuggingPri(self.noStretchyView, myNSLayoutPriorityDefaultLow)
+		setVertHuggingPri(self.noStretchyView, myNSLayoutPriorityDefaultLow)
 
 		super.init(frame: NSZeroRect)
 		self.translatesAutoresizingMaskIntoConstraints = false
@@ -101,6 +112,19 @@ class Box : NSView, Control {
 			n++
 		}
 
+		// if there are no stretchy controls, we must add the no-stretchy view
+		// if there are, we must remove it
+		if firstStretchy == -1 {
+			if self.noStretchyView.superview == nil {
+				self.addSubview(self.noStretchyView)
+			}
+			views["noStretchyView"] = self.noStretchyView
+		} else {
+			if self.noStretchyView.superview != nil {
+				self.noStretchyView.removeFromSuperview()
+			}
+		}
+
 		// next, assemble the views in the primary direction
 		// they all go in a straight line
 		constraint = "\(self.primaryDirPrefix)|"
@@ -115,6 +139,9 @@ class Box : NSView, Control {
 			}
 			constraint += "]"
 		}
+		if firstStretchy == -1 {		// don't space between the last control and the no-stretchy view
+			constraint += "[noStretchyView]"
+		}
 		constraint += "|"
 		var constraints = mkconstraints(constraint, views)
 		self.addConstraints(constraints)
@@ -123,6 +150,11 @@ class Box : NSView, Control {
 		// each of them will span the secondary direction
 		for i in 0..<n {
 			constraint = "\(self.secondaryDirPrefix)|[view\(i)]|"
+			var constraints = mkconstraints(constraint, views)
+			self.addConstraints(constraints)
+		}
+		if firstStretchy == -1 {		// and again to the no-stretchy view
+			constraint = "\(self.secondaryDirPrefix)|[noStretchyView]|"
 			var constraints = mkconstraints(constraint, views)
 			self.addConstraints(constraints)
 		}

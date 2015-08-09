@@ -67,6 +67,14 @@ nspinbox++
 	func SetParent(p: Control) {
 		self.parent = p
 	}
-}
 
-//TODO		p.nonStretchyWidthPredicate = "(==96)"		// TODO on the text field only
+	// TODO justify this
+	// TODO restrict to the text field only?
+	override var intrinsicContentSize: NSSize {
+		get {
+			var s = super.intrinsicContentSize
+			s.width = 96
+			return s
+		}
+	}
+}

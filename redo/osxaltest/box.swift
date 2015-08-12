@@ -90,7 +90,7 @@ class Box : NSView, Control {
 		self.parent = p
 	}
 
-	// TODO do we still need to set hugging?
+	// TODO do we still need to set hugging? I think we do for stretchy controls...
 	// TODO try unsetting spinbox intrinsics and seeing what happens
 	private func relayout() {
 		var constraint: String

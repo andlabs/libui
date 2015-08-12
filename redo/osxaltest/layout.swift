@@ -39,6 +39,7 @@ func setVertHuggingPri(view: NSView, priority: NSLayoutPriority) {
 	setHuggingPri(view, priority, NSLayoutConstraintOrientation.Vertical)
 }
 
+// use the fitting size, not the intrinsic content size, for the case of recursive views without an intrinsic content size
 func fittingAlignmentSize(view: NSView) -> NSSize {
 	var s = view.fittingSize
 	// the fitting size is for a frame rect; we need an alignment rect

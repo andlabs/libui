@@ -1,7 +1,7 @@
 // 8 august 2015
 import Cocoa
 
-func mkconstraints(constraint: String, metrics: [String: Double]?, views: [String: NSView]) -> [AnyObject] {
+func mkconstraints(constraint: String, metrics: [String: CGFloat]?, views: [String: NSView]) -> [AnyObject] {
 	return NSLayoutConstraint.constraintsWithVisualFormat(
 		constraint,
 		options: NSLayoutFormatOptions(0),

@@ -90,6 +90,8 @@ class Box : NSView, Control {
 		self.parent = p
 	}
 
+	// TODO do we still need to set hugging?
+	// TODO try unsetting spinbox intrinsics and seeing what happens
 	private func relayout() {
 		var constraint: String
 
@@ -103,8 +105,12 @@ class Box : NSView, Control {
 		var views = [String: NSView]()
 		var n = 0
 		var firstStretchy = -1
+		var metrics = [String: CGFloat]()
 		for c in self.controls {
 			views["view\(n)"] = c.c.View()
+			var s = fittingAlignmentSize(c.c.View())
+			metrics["view\(n)width"] = s.width
+			metrics["view\(n)height"] = s.height
 			if firstStretchy == -1 && c.stretchy {
 				firstStretchy = n
 			}
@@ -136,13 +142,21 @@ class Box : NSView, Control {
 			if self.controls[i].stretchy && i != firstStretchy {
 				constraint += "(==view\(firstStretchy))"
 			}
+			// if the control is not stretchy, restrict it to the fitting size
+			if !self.controls[i].stretchy {
+				if self.vertical {
+					constraint += "(==view\(i)height)"
+				} else {
+					constraint += "(==view\(i)width)"
+				}
+			}
 			constraint += "]"
 		}
 		if firstStretchy == -1 {		// don't space between the last control and the no-stretchy view
 			constraint += "[noStretchyView]"
 		}
 		constraint += "|"
-		var constraints = mkconstraints(constraint, nil, views)
+		var constraints = mkconstraints(constraint, metrics, views)
 		self.addConstraints(constraints)
 
 		// next: assemble the views in the secondary direction

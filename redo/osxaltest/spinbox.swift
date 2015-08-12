@@ -50,11 +50,11 @@ nspinbox++
 			"t":	self.t,
 			"s":	self.s,
 		]
-		var constraints = mkconstraints("H:|[t]-[s]|", views)
+		var constraints = mkconstraints("H:|[t]-[s]|", nil, views)
 		self.addConstraints(constraints)
-		constraints = mkconstraints("V:|[t]|", views)
+		constraints = mkconstraints("V:|[t]|", nil, views)
 		self.addConstraints(constraints)
-		constraints = mkconstraints("V:|[s]|", views)
+		constraints = mkconstraints("V:|[s]|", nil, views)
 		self.addConstraints(constraints)
 	}
 

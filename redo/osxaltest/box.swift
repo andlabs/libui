@@ -90,8 +90,6 @@ class Box : NSView, Control {
 		self.parent = p
 	}
 
-	// TODO stretchiness
-	// - we will need a trailing view if there are no stretchy controls
 	private func relayout() {
 		var constraint: String
 
@@ -144,19 +142,19 @@ class Box : NSView, Control {
 			constraint += "[noStretchyView]"
 		}
 		constraint += "|"
-		var constraints = mkconstraints(constraint, views)
+		var constraints = mkconstraints(constraint, nil, views)
 		self.addConstraints(constraints)
 
 		// next: assemble the views in the secondary direction
 		// each of them will span the secondary direction
 		for i in 0..<n {
 			constraint = "\(self.secondaryDirPrefix)|[view\(i)]|"
-			var constraints = mkconstraints(constraint, views)
+			var constraints = mkconstraints(constraint, nil, views)
 			self.addConstraints(constraints)
 		}
 		if firstStretchy == -1 {		// and again to the no-stretchy view
 			constraint = "\(self.secondaryDirPrefix)|[noStretchyView]|"
-			var constraints = mkconstraints(constraint, views)
+			var constraints = mkconstraints(constraint, nil, views)
 			self.addConstraints(constraints)
 		}
 	}

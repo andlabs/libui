@@ -1,11 +1,11 @@
 // 8 august 2015
 import Cocoa
 
-func mkconstraints(constraint: String, views: [String: NSView]) -> [AnyObject] {
+func mkconstraints(constraint: String, metrics: [String: Double]?, views: [String: NSView]) -> [AnyObject] {
 	return NSLayoutConstraint.constraintsWithVisualFormat(
 		constraint,
 		options: NSLayoutFormatOptions(0),
-		metrics: nil,
+		metrics: metrics,
 		views: views)
 }
 
@@ -37,4 +37,12 @@ func setHorzHuggingPri(view: NSView, priority: NSLayoutPriority) {
 
 func setVertHuggingPri(view: NSView, priority: NSLayoutPriority) {
 	setHuggingPri(view, priority, NSLayoutConstraintOrientation.Vertical)
+}
+
+func fittingAlignmentSize(view: NSView) -> NSSize {
+	var s = view.fittingSize
+	// the fitting size is for a frame rect; we need an alignment rect
+	var r = NSMakeRect(0, 0, s.width, s.height)
+	r = view.alignmentRectForFrame(r)
+	return r.size
 }

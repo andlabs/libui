@@ -76,11 +76,11 @@ class Window : NSWindow, Control {
 		}
 
 		var constraint = "H:|" + margin + "[view]" + margin + "|"
-		var constraints = mkconstraints(constraint, views)
+		var constraints = mkconstraints(constraint, nil, views)
 		contentView.addConstraints(constraints)
 
 		constraint = "V:|" + margin + "[view]" + margin + "|"
-		constraints = mkconstraints(constraint, views)
+		constraints = mkconstraints(constraint, nil, views)
 		contentView.addConstraints(constraints)
 	}
 }

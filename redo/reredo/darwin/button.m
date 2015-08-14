@@ -26,6 +26,7 @@ struct uiButton {
 	return self;
 }
 
+// TODO have this called
 - (void)dealloc
 {
 	if ([self->buttons count] != 0)

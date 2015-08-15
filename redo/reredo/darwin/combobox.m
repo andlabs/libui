@@ -32,7 +32,7 @@ static uiCombobox *finishNewCombobox(BOOL editable)
 		[c->cb setUsesDataSource:NO];
 		[c->cb setButtonBordered:YES];
 		[c->cb setCompletes:NO];
-		uiDarwinSetControlFont(c->cb, NSControlSizeRegular);
+		uiDarwinSetControlFont(c->cb, NSRegularControlSize);
 		c->handle = (uintptr_t) (c->cb);
 	} else {
 		c->pb = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];

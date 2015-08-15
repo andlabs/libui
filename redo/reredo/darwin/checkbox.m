@@ -118,7 +118,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	[c->button setTitle:toNSString(text)];
 	[c->button setButtonType:NSSwitchButton];
 	[c->button setBordered:NO];
-	uiDarwinSetControlFont(c->button, NSControlSizeRegular);
+	uiDarwinSetControlFont(c->button, NSRegularControlSize);
 
 	if (checkboxDelegate == nil)
 		checkboxDelegate = [checkboxDelegateClass new];

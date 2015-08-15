@@ -104,7 +104,7 @@ uiButton *uiNewButton(const char *text)
 	[b->button setButtonType:NSMomentaryPushInButton];
 	[b->button setBordered:YES];
 	[b->button setBezelStyle:NSRoundedBezelStyle];
-	uiDarwinSetControlFont(b->button, NSControlSizeRegular);
+	uiDarwinSetControlFont(b->button, NSRegularControlSize);
 
 	if (buttonDelegate == nil)
 		buttonDelegate = [buttonDelegateClass new];

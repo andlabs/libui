@@ -85,7 +85,7 @@ void uiButtonSetText(uiButton *b, const char *text)
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
 {
 	b->onClicked = f;
-	b->onClickedData = NULL;
+	b->onClickedData = data;
 }
 
 static void defaultOnClicked(uiButton *b, void *data)

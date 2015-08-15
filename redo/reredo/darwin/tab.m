@@ -4,8 +4,12 @@
 struct uiTab {
 	uiDarwinControl c;
 	NSTabView *tabview;
-	NSMutableArray *pages;
-	NSMutableArray *margined;
+	// TODO either rename all uses of child to page or rename this to children
+	NSMutableArray *pages;			// []NSValue<uiControl *>
+	// the views that contain the children's views
+	// these are the views that are assigned to each NSTabViewItem
+	NSMutableArray *views;			// []NSView
+	NSMutableArray *margined;		// []NSNumber
 };
 
 static void onDestroy(uiTab *);
@@ -19,81 +23,73 @@ uiDarwinDefineControlWithOnDestroy(
 
 static void onDestroy(uiTab *t)
 {
-	// first destroy all tab pages so we can destroy all the bins
+	// first remove all tab pages so we can destroy all the children
 	while ([t->tabview numberOfTabViewItems] != 0)
 		[t->tabview removeTabViewItem:[t->tabview tabViewItemAtIndex:0]];
-	// then destroy all the bins, destroying children in the process
-	// the above loop serves the purpose of binSetParent()
+	// then destroy all the children
 	[t->pages enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v = (NSValue *) obj;
-		uiControl *bin;
+		uiControl *c;
 
-		bin = (uiControl *) [v pointerValue];
-		binSetChild(bin, NULL);
-		// TODO destroy the child
-		uiControlDestroy(uiControl(bin));
+		c = (uiControl *) [v pointerValue];
+		uiControlDestroy(c);
 	}];
 	// and finally destroy ourselves
 	[t->pages release];
+	[t->views release];
 	[t->margined release];
 }
 
 // TODO container update
 
-// TODO merge with InsertAt
 void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
-	uiControl *page;
-	NSTabViewItem *i;
-
-	page = newBin();
-	binSetChild(page, child);
-	[t->pages addObject:[NSValue valueWithPointer:page]];
-	[t->margined addObject:[NSNumber numberWithInt:0]];
-
-	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
-	[i setLabel:toNSString(name)];
-	[i setView:((NSView *) uiControlHandle(uiControl(page)))];
-	[t->tabview addTabViewItem:i];
+	uiTabInsertAt(t, name, [t->pages count], child);
 }
 
 void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 {
-	uiControl *page;
+	NSView *childView;
+	NSView *view;
 	NSTabViewItem *i;
 
-	page = newBin();
-	binSetChild(page, child);
+	uiControlSetParent(child, uiControl(t));
+
+	childView = (NSView *) uiControlHandle(child);
+	view = [[NSView alloc] initWithFrame:NSZeroRect];
+	[view addSubview:childView];
+	layoutSingleView(view, childView, 0);
+
 	[t->pages insertObject:[NSValue valueWithPointer:page] atIndex:n];
+	[t->views insertObject:view atIndex:n];
 	[t->margined insertObject:[NSNumber numberWithInt:0] atIndex:n];
 
 	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
 	[i setLabel:toNSString(name)];
-	[i setView:((NSView *) uiControlHandle(uiControl(page)))];
+	[i setView:view];
 	[t->tabview insertTabViewItem:i atIndex:n];
 }
 
 void uiTabDelete(uiTab *t, uintmax_t n)
 {
 	NSValue *v;
-	uiControl *page;
+	uiControl *child;
+	NSView *childView;
 	NSTabViewItem *i;
 
 	v = (NSValue *) [t->pages objectAtIndex:n];
-	page = (uiControl *) [v pointerValue];
+	child = (uiControl *) [v pointerValue];
+
 	[t->pages removeObjectAtIndex:n];
+	[t->views removeObjectAtIndex:n];
 	[t->margined removeObjectAtIndex:n];
 
-	// make sure the children of the tab aren't destroyed
-	binSetChild(page, NULL);
+	childView = (NSView *) uiControlHandle(child);
+	[childView removeFromSuperview];
+	uiControlSetParent(childView, NULL);
 
-	// remove the bin from the tab view
-	// this serves the purpose of uiControlSetOSParent(bin, NULL)
 	i = [t->tabview tabViewItemAtIndex:n];
 	[t->tabview removeTabViewItem:i];
-
-	// then destroy the bin
-	uiControlDestroy(uiControl(page));
 }
 
 uintmax_t uITabNumPages(uiTab *t)
@@ -109,33 +105,21 @@ int uiTabMargined(uiTab *t, uintmax_t n)
 	return [v intValue];
 }
 
-// These are based on measurements from Interface Builder.
-// These seem to be based on Auto Layout constants, but I don't see an API that exposes these...
-#define tabLeftMargin 17
-#define tabTopMargin 3
-#define tabRightMargin 17
-#define tabBottomMargin 17
-
-// notes:
-// top margin of a tab to its parent should be 12, not 20
-// our system doesn't allow this...
-
 void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 {
 	NSNumber *v;
-	NSValue *pagev;
-	uiControl *page;
+	NSValue *childv;
+	uiControl *child;
+	NSView *childView;
 
 	v = [NSNumber numberWithInt:margined];
 	[t->margined replaceObjectAtIndex:n withObject:v];
-	pagev = (NSValue *) [t->pages objectAtIndex:n];
-	page = (uiControl *) [pagev pointerValue];
-/* TODO
-	if ([v intValue])
-		uiBinSetMargins(page, tabLeftMargin, tabTopMargin, tabRightMargin, tabBottomMargin);
-	else
-		uiBinSetMargins(page, 0, 0, 0, 0);
-*/
+
+	view = (NSView *) [t->views objectAtIndex:n];
+	childv = (NSValue *) [t->pages objectAtIndex:n];
+	child = (uiControl *) [childv pointerValue];
+	childView = (NSView *) uiControlHandle(child);
+	layoutSingleView(view, childView, margined);
 }
 
 uiTab *uiNewTab(void)
@@ -149,6 +133,7 @@ uiTab *uiNewTab(void)
 	uiDarwinSetControlFont((NSControl *) (t->tabview), NSRegularControlSize);
 
 	t->pages = [NSMutableArray new];
+	t->views = [NSMutableArray new];
 	t->margined = [NSMutableArray new];
 
 	uiDarwinFinishNewControl(t, uiTab);

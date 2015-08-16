@@ -12,6 +12,21 @@ void addConstraint(NSView *view, NSString *constraint, NSDictionary *metrics, NS
 	[view addConstraints:constraints];
 }
 
+NSLayoutPriority horzHuggingPri(NSView *view)
+{
+	return [view contentHuggingPriorityForOrientation:NSLayoutConstraintOrientationHorizontal];
+}
+
+NSLayoutPriority vertHuggingPri(NSView *view)
+{
+	return [view contentHuggingPriorityForOrientation:NSLayoutConstraintOrientationVertical];
+}
+
+void setHuggingPri(NSView *view, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
+{
+	[view setContentHuggingPriority:priority forOrientation:orientation];
+}
+
 void layoutSingleView(NSView *superview, NSView *subview, int margined)
 {
 	NSDictionary *views;

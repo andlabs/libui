@@ -46,3 +46,16 @@ void layoutSingleView(NSView *superview, NSView *subview, int margined)
 		constraint = @"V:|-[subview]-|";
 	addConstraint(superview, constraint, nil, views);
 }
+
+// use the fitting size, not the intrinsic content size, for the case of recursive views without an intrinsic content size
+NSSize fittingAlignmentSize(NSView *view)
+{
+	NSSize s;
+	NSRect r;
+
+	s = [view fittingSize];
+	// the fitting size is for a frame rect; we need an alignment rect
+	r = NSMakeRect(0, 0, s.width, s.height);
+	r = [view alignmentRectForFrame:r];
+	return r.size;
+}

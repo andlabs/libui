@@ -30,6 +30,11 @@ void uiControlDestroy(uiControl *c)
 	uiFree(c);
 }
 
+uintptr_t uiControlHandle(uiControl *c)
+{
+	return (*(c->Handle))(c);
+}
+
 static void controlUpdateState(uiControl *);
 
 void uiControlSetParent(uiControl *c, uiControl *parent)

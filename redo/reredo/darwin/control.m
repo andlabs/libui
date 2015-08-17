@@ -1,6 +1,15 @@
 // 16 august 2015
 #import "uipriv_darwin.h"
 
+static uintmax_t type_uiDarwinControl = 0;
+
+uintmax_t uiTypeMenu(void)
+{
+	if (type_uiDarwinControl == 0)
+		type_uiDarwinControl = uiRegisterType("uiDarwinControl", uiControlType(), sizeof (uiDarwinControl));
+	return type_uiDarwinControl;
+}
+
 void osCommitShow(uiControl *c)
 {
 	NSView *view;

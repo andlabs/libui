@@ -28,19 +28,18 @@ uiDarwinDefineControlWithOnDestroy(
 static uiControl *childAt(uiBox *b, uintmax_t n)
 {
 	NSValue *v;
-	uiControl *c;
 
 	v = (NSValue *) [b->children objectAtIndex:n];
 	return (uiControl *) [v pointerValue];
 }
 
-static void onDestroy(uiTab *t)
+static void onDestroy(uiBox *b)
 {
 	uintmax_t i;
 	uiControl *child;
 	NSView *childView;
 
-	for (i = 0; i < [t->children count]; i++) {
+	for (i = 0; i < [b->children count]; i++) {
 		child = childAt(b, i);
 		childView = (NSView *) uiControlHandle(child);
 		[childView removeFromSuperview];
@@ -164,7 +163,7 @@ static void relayout(uiBox *b)
 		// don't space between the last control and the no-stretchy view
 		[constraint appendString:@"[noStretchyView]"];
 	[constraint appendString:@"|"];
-	addConstraints(b->view, constraint, metrics, views);
+	addConstraint(b->view, constraint, metrics, views);
 	[constraint release];
 
 	// next: assemble the views in the secondary direction
@@ -205,9 +204,9 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 		setHuggingPri(childView, NSLayoutPriorityDefaultLow, b->primaryOrientation);
 	else
 		// TODO will default high work?
-		setHuggingPri(childView NSLayoutPriorityRequired, b->primaryOrientation);
+		setHuggingPri(childView, NSLayoutPriorityRequired, b->primaryOrientation);
 	// make sure controls don't hug their secondary direction so they fill the width of the view
-	setHuggingPri(childView, NSLayoutPriorityDefaultLow, b->secondaryOrientation)
+	setHuggingPri(childView, NSLayoutPriorityDefaultLow, b->secondaryOrientation);
 
 	uiControlSetParent(c, uiControl(b));
 	relayout(b);
@@ -231,7 +230,7 @@ int uiBoxPadded(uiBox *b)
 	return b->padded;
 }
 
-void uiBoxSetPadded(uiBox *ss, int padded)
+void uiBoxSetPadded(uiBox *b, int padded)
 {
 	b->padded = padded;
 	relayout(b);
@@ -250,21 +249,21 @@ static uiBox *finishNewBox(BOOL vertical)
 
 	b->vertical = vertical;
 	if (b->vertical) {
-		b->primaryDirString = @"V:";
-		b->secondaryDirString = @"H:";
+		b->primaryDirPrefix = @"V:";
+		b->secondaryDirPrefix = @"H:";
 		b->primaryOrientation = NSLayoutConstraintOrientationVertical;
 		b->secondaryOrientation = NSLayoutConstraintOrientationHorizontal;
 	} else {
-		b->primaryDirString = @"H:";
-		b->secondaryDirString = @"V:";
+		b->primaryDirPrefix = @"H:";
+		b->secondaryDirPrefix = @"V:";
 		b->primaryOrientation = NSLayoutConstraintOrientationHorizontal;
 		b->secondaryOrientation = NSLayoutConstraintOrientationVertical;
 	}
 
 	b->noStretchyView = [[NSView alloc] initWithFrame:NSZeroRect];
 	[b->noStretchyView setTranslatesAutoresizingMaskIntoConstraints:NO];
-	setHorzHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow);
-	setVertHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow);
+	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal);
+	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
 
 	uiDarwinFinishNewControl(b, uiBox);
 

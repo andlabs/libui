@@ -7,6 +7,12 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 #ifndef __LIBUI_UI_DARWIN_H__
 #define __LIBUI_UI_DARWIN_H__
 
+typedef struct uiDarwinControl uiDarwinControl;
+struct uiDarwinControl {
+	uiControl c;
+};
+_UI_EXTERN uintmax_t uiDarwinControlType(void);
+
 // TODO document
 #define uiDarwinDefineControlWithOnDestroy(type, typefn, handlefield, onDestroy) \
 	static uintmax_t _ ## type ## Type = 0; \
@@ -24,7 +30,7 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 	} \
 	static uintptr_t _ ## type ## Handle(uiControl *c) \
 	{ \
-		return type(c)->handlefield; \
+		return (uintptr_t) (type(c)->handlefield); \
 	} \
 	static void _ ## type ## ContainerUpdateState(uiControl *c) \
 	{ \

@@ -9,11 +9,6 @@
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
 #define fromNSString(str) [(str) UTF8String]
 
-// These are based on measurements from Interface Builder.
-// These seem to be based on Auto Layout constants, but I don't see an API that exposes these...
-#define macXMargin 20
-#define macYMargin 20
-
 // menu.m
 @interface menuManager : NSObject {
 	// unfortunately NSMutableDictionary copies its keys, meaning we can't use it for pointers
@@ -43,7 +38,6 @@ extern void uninitMenus(void);
 #define appDelegate() ((appDelegate *) [realNSApp() delegate])
 
 // util.m
-extern void setStandardControlFont(NSControl *);
 extern void disableAutocorrect(NSTextView *);
 
 // entry.m
@@ -56,11 +50,13 @@ extern uiWindow *windowFromNSWindow(NSWindow *);
 extern void initAlloc(void);
 extern void uninitAlloc(void);
 
-// bin.c
-extern uiControl *newBin(void);
-extern void binSetChild(uiControl *, uiControl *);
-extern int binMargined(uiControl *);
-extern void binSetMargined(uiControl *, int);
+// autolayout.m
+extern void addConstraint(NSView *, NSString *, NSDictionary *, NSDictionary *);
+extern NSLayoutPriority horzHuggingPri(NSView *);
+extern NSLayoutPriority vertHuggingPri(NSView *);
+extern void setHuggingPri(NSView *, NSLayoutPriority, NSLayoutConstraintOrientation);
+extern void layoutSingleView(NSView *, NSView *, int);
+extern NSSize fittingAlignmentSize(NSView *);
 
 // TODO
 #define PUT_CODE_HERE 0

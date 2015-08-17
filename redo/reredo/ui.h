@@ -135,12 +135,12 @@ _UI_EXTERN uintmax_t uiLabelType(void);
 #define uiLabel(this) ((uiLabel *) uiIsA((this), uiLabelType(), 1))
 _UI_EXTERN char *uiLabelText(uiLabel *l);
 _UI_EXTERN void uiLabelSetText(uiLabel *l, const char *text);
-_UI_EXTERN uiLable *uiNewLabel(const char *text);
+_UI_EXTERN uiLabel *uiNewLabel(const char *text);
 
 typedef struct uiTab uiTab;
 _UI_EXTERN uintmax_t uiTabType(void);
 #define uiTab(this) ((uiTab *) uiIsA((this), uiTabType(), 1))
-_UI_EXTERN void uiTabAppend(uITab *t, const char *name uiControl *c);
+_UI_EXTERN void uiTabAppend(uiTab *t, const char *name, uiControl *c);
 _UI_EXTERN void uiTabInsertAt(uiTab *t, const char *name, uintmax_t before, uiControl *c);
 _UI_EXTERN void uiTabDelete(uiTab *t, uintmax_t index);
 _UI_EXTERN uintmax_t uiTabNumPages(uiTab *t);
@@ -166,7 +166,7 @@ _UI_EXTERN uiGroup *uiNewGroup(const char *title);
 typedef struct uiSpinbox uiSpinbox;
 _UI_EXTERN uintmax_t uiSpinboxType(void);
 #define uiSpinbox(this) ((uiSpinbox *) uiIsA((this), uiSpinboxType(), 1))
-_UI_EXTERN intmx_t uiSpinboxValue(uiSpinbox *s);
+_UI_EXTERN intmax_t uiSpinboxValue(uiSpinbox *s);
 _UI_EXTERN void uiSpinboxSetValue(uiSpinbox *s, intmax_t value);
 _UI_EXTERN void uiSpinboxOnChanged(uiSpinbox *s, void (*f)(uiSpinbox *s, void *data), void *data);
 _UI_EXTERN uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max);
@@ -175,13 +175,13 @@ typedef struct uiProgressBar uiProgressBar;
 _UI_EXTERN uintmax_t uiProgressBarType(void);
 #define uiProgressBar(this) ((uiProgressBar *) uiIsA((this), uiProgressBarType(), 1))
 // TODO uiProgressBarValue()
-_UI_EXTERN uiProgressBarSetValue(uiProgressBar *p, int n);
+_UI_EXTERN void uiProgressBarSetValue(uiProgressBar *p, int n);
 _UI_EXTERN uiProgressBar *uiNewProgressBar(void);
 
 typedef struct uiSlider uiSlider;
 _UI_EXTERN uintmax_t uiSliderType(void);
 #define uiSlider(this) ((uiSlider *) uiIsA((this), uiSliderType(), 1))
-_UI_EXTERN intmx_t uiSliderValue(uiSlider *s);
+_UI_EXTERN intmax_t uiSliderValue(uiSlider *s);
 _UI_EXTERN void uiSliderSetValue(uiSlider *s, intmax_t value);
 _UI_EXTERN void uiSliderOnChanged(uiSlider *s, void (*f)(uiSlider *s, void *data), void *data);
 _UI_EXTERN uiSlider *uiNewSlider(intmax_t min, intmax_t max);

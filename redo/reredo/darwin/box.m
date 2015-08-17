@@ -237,7 +237,7 @@ void uiBoxSetPadded(uiBox *ss, int padded)
 	relayout(b);
 }
 
-static uiBox *finishBox(BOOL vertical)
+static uiBox *finishNewBox(BOOL vertical)
 {
 	uiBox *b;
 

@@ -35,9 +35,9 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 	uiDarwinDefineControlWithOnDestroy(type, typefn, handlefield, (void) this;)
 
 #define uiDarwinFinishNewControl(variable, type) \
-	type(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
-	type(variable)->Handle = _ ## type ## Handle; \
-	type(variable)->ContainerUpdateState = _ ## type ## ContainerUpdateState; \
+	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
+	uiControl(variable)->Handle = _ ## type ## Handle; \
+	uiControl(variable)->ContainerUpdateState = _ ## type ## ContainerUpdateState; \
 	uiDarwinFinishControl(uiControl(variable));
 
 // This is a function used to set up a control.

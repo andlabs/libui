@@ -7,6 +7,7 @@ osMFILES = \
 	darwin/button.m \
 	darwin/checkbox.m \
 	darwin/combobox.m \
+	darwin/control.m \
 	darwin/datetimepicker.m \
 	darwin/entry.m \
 	darwin/group.m \

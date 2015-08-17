@@ -101,11 +101,11 @@ void uiControlDisable(uiControl *c)
 
 static void controlUpdateState(uiControl *c)
 {
-	if (uiControlContainerVisible(c))
+	if (controlContainerVisible(c))
 		osCommitShow(c);
 	else
 		osCommitHide(c);
-	if (uiControlContainerEnabled(c))
+	if (controlContainerEnabled(c))
 		osCommitEnable(c);
 	else
 		osCommitDisable(c);

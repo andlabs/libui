@@ -21,7 +21,7 @@ void uiLabelSetText(uiLabel *l, const char *text)
 {
 	[l->textfield setStringValue:toNSString(text)];
 	// changing the text might necessitate a change in the label's size
-//TODO	uiControlQueueResize(uiControl(l));
+	// fortunately Auto Layout handles this for us
 }
 
 uiLabel *uiNewLabel(const char *text)

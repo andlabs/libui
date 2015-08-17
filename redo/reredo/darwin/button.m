@@ -76,7 +76,7 @@ void uiButtonSetText(uiButton *b, const char *text)
 {
 	[b->button setTitle:toNSString(text)];
 	// this may result in the size of the button changing
-//TODO	uiControlQueueResize(uiControl(b));
+	// fortunately Auto Layout handles this for us
 }
 
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)

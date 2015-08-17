@@ -17,7 +17,7 @@ void uiDarwinControlRelayoutParent(uiDarwinControl *c)
 	p = uiControlParent(uiControl(c));
 	if (p == NULL)
 		return;
-	(*(uiDarwinControl(p)->Relayout))(p);
+	(*(uiDarwinControl(p)->Relayout))(uiDarwinControl(p));
 }
 
 void osCommitShow(uiControl *c)

@@ -10,7 +10,7 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 typedef struct uiDarwinControl uiDarwinControl;
 struct uiDarwinControl {
 	uiControl c;
-	void (*Relayout)(uiControl *);
+	void (*Relayout)(uiDarwinControl *);
 };
 _UI_EXTERN uintmax_t uiDarwinControlType(void);
 #define uiDarwinControl(this) ((uiDarwinControl *) uiIsA((this), uiDarwinControlType(), 1))
@@ -40,7 +40,7 @@ _UI_EXTERN void uiDarwinControlRelayoutParent(uiDarwinControl *);
 	{ \
 		/* do nothing */ \
 	} \
-	static void _ ## type ## Relayout(uiControl *c) \
+	static void _ ## type ## Relayout(uiDarwinControl *c) \
 	{ \
 		uiDarwinControlRelayoutParent(uiDarwinControl(c)); \
 	}

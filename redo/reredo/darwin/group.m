@@ -1,6 +1,9 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
+// TODO
+// - even with the uiDarwinControlRelayoutParent() calls, we still need to click the button twice for the ambiguity to go away
+
 struct uiGroup {
 	uiDarwinControl c;
 	NSBox *box;
@@ -54,6 +57,7 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		uiControlSetParent(g->child, uiControl(g));
 		[g->box addSubview:childView];
 		layoutSingleView(g->box, childView, g->margined);
+		uiDarwinControlRelayoutParent(uiDarwinControl(g));
 	}
 }
 
@@ -70,6 +74,7 @@ void uiGroupSetMargined(uiGroup *g, int margined)
 	if (g->child != NULL) {
 		childView = (NSView *) uiControlHandle(g->child);
 		layoutSingleView(g->box, childView, g->margined);
+		uiDarwinControlRelayoutParent(uiDarwinControl(g));
 	}
 }
 

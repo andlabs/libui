@@ -191,7 +191,7 @@ static void relayout(uiBox *b)
 	[metrics release];
 	[views release];
 
-	uiDarwinControlRelayoutParent(uiControl(b));
+	uiDarwinControlRelayoutParent(uiDarwinControl(b));
 }
 
 static void boxRelayout(uiDarwinControl *c)

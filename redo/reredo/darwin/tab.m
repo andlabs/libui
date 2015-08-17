@@ -60,6 +60,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	view = [[NSView alloc] initWithFrame:NSZeroRect];
 	[view addSubview:childView];
 	layoutSingleView(view, childView, 0);
+	uiDarwinControlRelayoutParent(uiDarwinControl(t));
 
 	[t->pages insertObject:[NSValue valueWithPointer:child] atIndex:n];
 	[t->views insertObject:view atIndex:n];
@@ -122,6 +123,7 @@ void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 	child = (uiControl *) [childv pointerValue];
 	childView = (NSView *) uiControlHandle(child);
 	layoutSingleView(view, childView, margined);
+	uiDarwinControlRelayoutParent(uiDarwinControl(t));
 }
 
 uiTab *uiNewTab(void)

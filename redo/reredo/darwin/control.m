@@ -15,6 +15,11 @@ void osCommitShow(uiControl *c)
 	NSView *view;
 
 	view = (NSView *) uiControlHandle(c);
+	// TODO
+	if ([view isKindOfClass:[NSWindow class]]) {
+		[view makeKeyAndOrderFront:view];
+		return;
+	}
 	[view setHidden:NO];
 }
 
@@ -50,6 +55,9 @@ void uiDarwinFinishControl(uiControl *c)
 
 	view = (NSView *) uiControlHandle(c);
 	[view retain];
+	// TODO omit this for uiWindow properly
+	if ([view respondsToSelector:@selector(setTranslatesAutoresizingMaskIntoConstraints:)])
+		[view setTranslatesAutoresizingMaskIntoConstraints:NO];
 }
 
 void uiDarwinSetControlFont(NSControl *c, NSControlSize size)

@@ -197,6 +197,9 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	[b->children addObject:[NSValue valueWithPointer:c]];
 	[b->stretchy addObject:[NSNumber numberWithInt:stretchy]];
 
+	uiControlSetParent(c, uiControl(b));
+	[b->view addSubview:childView];
+
 	// TODO save the old hugging priorities
 	// if a control is stretchy, it should not hug in the primary direction
 	// otherwise, it should *forcibly* hug
@@ -208,7 +211,6 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	// make sure controls don't hug their secondary direction so they fill the width of the view
 	setHuggingPri(childView, NSLayoutPriorityDefaultLow, b->secondaryOrientation);
 
-	uiControlSetParent(c, uiControl(b));
 	relayout(b);
 }
 
@@ -216,9 +218,12 @@ void uiBoxDelete(uiBox *b, uintmax_t n)
 {
 	NSValue *v;
 	uiControl *removed;
+	NSView *removedView;
 
 	v = (NSValue *) [b->children objectAtIndex:n];
 	removed = (uiControl *) [v pointerValue];
+	removedView = (NSView *) uiControlHandle(removed);
+	[removedView removeFromSuperview];
 	uiControlSetParent(removed, NULL);
 	[b->children removeObjectAtIndex:n];
 	[b->stretchy removeObjectAtIndex:n];

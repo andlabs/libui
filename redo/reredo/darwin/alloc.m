@@ -23,7 +23,7 @@ void initAlloc(void)
 void uninitAlloc(void)
 {
 	if ([allocations count] == 0) {
-		NSInteger i;
+		NSUInteger i;
 
 		for (i = 0; i < [delegates count]; i++)
 			[[delegates objectAtIndex:i] release];

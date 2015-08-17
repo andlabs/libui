@@ -1,6 +1,10 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
+// TODOs:
+// - 10.8: left/right side of progress bar clipped
+// - 10.8: increasing value animates just like with Aero
+
 struct uiProgressBar {
 	uiDarwinControl c;
 	NSProgressIndicator *pi;
@@ -16,7 +20,7 @@ void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
 	if (value < 0 || value > 100)
 		complain("value %d out of range in progressbarSetValue()", value);
-	// TODO
+	[p->pi setDoubleValue:((double) value)];
 }
 
 uiProgressBar *uiNewProgressBar(void)

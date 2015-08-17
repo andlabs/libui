@@ -1,6 +1,9 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
+// TODOs:
+// - page 2 isn't growable
+
 struct uiBox {
 	uiDarwinControl c;
 	NSView *view;

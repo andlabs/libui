@@ -1,5 +1,7 @@
 // 6 april 2015
 
+// TODO rename all uiXxxType() to uiTypeXxx()?
+
 #ifndef __LIBUI_UI_H__
 #define __LIBUI_UI_H__
 

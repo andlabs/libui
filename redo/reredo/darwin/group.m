@@ -69,9 +69,7 @@ void uiGroupSetMargined(uiGroup *g, int margined)
 	g->margined = margined;
 	if (g->child != NULL) {
 		childView = (NSView *) uiControlHandle(g->child);
-NSLog(@"fitting size before %@", NSStringFromSize([g->box fittingSize]));
 		layoutSingleView(g->box, childView, g->margined);
-NSLog(@"fitting size after  %@", NSStringFromSize([g->box fittingSize]));
 	}
 }
 

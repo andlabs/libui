@@ -9,7 +9,7 @@ struct uiCheckbox {
 };
 
 @interface checkboxDelegateClass : NSObject {
-	NSMutableDictionary *buttons;			// TODO rename to checkboxes?
+	NSMapTable *buttons;			// TODO rename to checkboxes?
 }
 - (IBAction)onToggled:(id)sender;
 - (void)registerCheckbox:(uiCheckbox *)c;
@@ -22,7 +22,7 @@ struct uiCheckbox {
 {
 	self = [super init];
 	if (self)
-		self->buttons = [NSMutableDictionary new];
+		self->buttons = newMap();
 	return self;
 }
 
@@ -37,18 +37,15 @@ struct uiCheckbox {
 
 - (IBAction)onToggled:(id)sender
 {
-	NSValue *v;
 	uiCheckbox *c;
 
-	v = (NSValue *) [self->buttons objectForKey:sender];
-	c = (uiCheckbox *) [v pointerValue];
+	c = (uiCheckbox *) mapGet(self->buttons, sender);
 	(*(c->onToggled))(c, c->onToggledData);
 }
 
 - (void)registerCheckbox:(uiCheckbox *)c
 {
-	[self->buttons setObject:[NSValue valueWithPointer:c]
-		forKey:c->button];
+	mapSet(self->buttons, c->button, c);
 	[c->button setTarget:self];
 	[c->button setAction:@selector(onToggled:)];
 }

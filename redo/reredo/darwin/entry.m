@@ -11,7 +11,7 @@ struct uiEntry {
 };
 
 @interface entryDelegateClass : NSObject<NSTextFieldDelegate> {
-	NSMutableDictionary *entries;
+	NSMapTable *entries;
 }
 - (void)controlTextDidChange:(NSNotification *)note;
 - (void)registerEntry:(uiEntry *)e;
@@ -24,7 +24,7 @@ struct uiEntry {
 {
 	self = [super init];
 	if (self)
-		self->entries = [NSMutableDictionary new];
+		self->entries = newMap();
 	return self;
 }
 
@@ -39,18 +39,15 @@ struct uiEntry {
 
 - (void)controlTextDidChange:(NSNotification *)note
 {
-	NSValue *v;
 	uiEntry *e;
 
-	v = (NSValue *) [self->entries objectForKey:[note object]];
-	e = (uiEntry *) [v pointerValue];
+	e = (uiEntry *) mapGet(self->entries, [note object]);
 	(*(e->onChanged))(e, e->onChangedData);
 }
 
 - (void)registerEntry:(uiEntry *)e
 {
-	[self->entries setObject:[NSValue valueWithPointer:e]
-		forKey:e->textfield];
+	mapSet(self->entries, e->textfield, e);
 	[e->textfield setDelegate:self];
 }
 

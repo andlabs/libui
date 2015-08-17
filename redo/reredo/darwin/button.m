@@ -9,7 +9,7 @@ struct uiButton {
 };
 
 @interface buttonDelegateClass : NSObject {
-	NSMutableDictionary *buttons;
+	NSMapTable *buttons;
 }
 - (IBAction)onClicked:(id)sender;
 - (void)registerButton:(uiButton *)b;
@@ -22,7 +22,7 @@ struct uiButton {
 {
 	self = [super init];
 	if (self)
-		self->buttons = [NSMutableDictionary new];
+		self->buttons = newMap();
 	return self;
 }
 
@@ -37,18 +37,15 @@ struct uiButton {
 
 - (IBAction)onClicked:(id)sender
 {
-	NSValue *v;
 	uiButton *b;
 
-	v = (NSValue *) [self->buttons objectForKey:sender];
-	b = (uiButton *) [v pointerValue];
+	b = (uiButton *) mapGet(self->buttons, sender);
 	(*(b->onClicked))(b, b->onClickedData);
 }
 
 - (void)registerButton:(uiButton *)b
 {
-	[self->buttons setObject:[NSValue valueWithPointer:b]
-		forKey:b->button];
+	mapSet(self->buttons, b->button, b);
 	[b->button setTarget:self];
 	[b->button setAction:@selector(onClicked:)];
 }

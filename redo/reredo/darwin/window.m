@@ -11,7 +11,7 @@ struct uiWindow {
 };
 
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
-	NSMutableDictionary *windows;
+	NSMapTable *windows;
 }
 - (BOOL)windowShouldClose:(id)sender;
 - (void)registerWindow:(uiWindow *)w;
@@ -25,7 +25,7 @@ struct uiWindow {
 {
 	self = [super init];
 	if (self)
-		self->windows = [NSMutableDictionary new];
+		self->windows = newMap();
 	return self;
 }
 
@@ -51,8 +51,7 @@ struct uiWindow {
 
 - (void)registerWindow:(uiWindow *)w
 {
-	[self->windows setObject:[NSValue valueWithPointer:w]
-		forKey:w->window];
+	mapSet(self->windows w->window, w);
 	[w->window setDelegate:self];
 }
 

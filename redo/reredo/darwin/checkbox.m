@@ -88,17 +88,12 @@ void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *d
 	c->onToggledData = data;
 }
 
-static void defaultOnToggled(uiCheckbox *c, void *data)
-{
-	// do nothing
-}
-
-static int uiCheckboxChecked(uiCheckbox *c)
+int uiCheckboxChecked(uiCheckbox *c)
 {
 	return [c->button state] == NSOnState;
 }
 
-static void uiCheckboxSetChecked(uiCheckbox *c, int checked)
+void uiCheckboxSetChecked(uiCheckbox *c, int checked)
 {
 	NSInteger state;
 
@@ -106,6 +101,11 @@ static void uiCheckboxSetChecked(uiCheckbox *c, int checked)
 	if (!checked)
 		state = NSOffState;
 	[c->button setState:state];
+}
+
+static void defaultOnToggled(uiCheckbox *c, void *data)
+{
+	// do nothing
 }
 
 uiCheckbox *uiNewCheckbox(const char *text)

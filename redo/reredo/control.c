@@ -119,7 +119,6 @@ static void controlUpdateState(uiControl *c)
 //TODO	uiControlQueueResize(c);
 }
 
-// TODO should this be public?
 uiControl *uiNewControl(uintmax_t type)
 {
 	return uiControl(newTyped(type));

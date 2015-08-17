@@ -29,7 +29,6 @@ struct uiWindow {
 	return self;
 }
 
-// TODO have this called
 - (void)dealloc
 {
 	if ([self->windows count] != 0)
@@ -191,8 +190,10 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	// the only thing that closes the window is us anyway
 	[w->window setReleasedWhenClosed:YES];
 
-	if (windowDelegate == nil)
+	if (windowDelegate == nil) {
 		windowDelegate = [windowDelegateClass new];
+		[delegates addObject:windowDelegate];
+	}
 	[windowDelegate registerWindow:w];
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 

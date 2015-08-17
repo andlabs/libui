@@ -46,6 +46,7 @@ extern void finishNewTextField(NSTextField *, BOOL);
 extern uiWindow *windowFromNSWindow(NSWindow *);
 
 // alloc.m
+extern NSMutableArray *delegates;
 extern void initAlloc(void);
 extern void uninitAlloc(void);
 

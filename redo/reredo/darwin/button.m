@@ -26,7 +26,6 @@ struct uiButton {
 	return self;
 }
 
-// TODO have this called
 - (void)dealloc
 {
 	if ([self->buttons count] != 0)
@@ -103,8 +102,10 @@ uiButton *uiNewButton(const char *text)
 	[b->button setBezelStyle:NSRoundedBezelStyle];
 	uiDarwinSetControlFont(b->button, NSRegularControlSize);
 
-	if (buttonDelegate == nil)
+	if (buttonDelegate == nil) {
 		buttonDelegate = [buttonDelegateClass new];
+		[delegates addObject:buttonDelegate];
+	}
 	[buttonDelegate registerButton:b];
 	uiButtonOnClicked(b, defaultOnClicked, NULL);
 

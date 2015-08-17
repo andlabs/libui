@@ -3,13 +3,13 @@
 
 struct uiCheckbox {
 	uiDarwinControl c;
-	NSButton *button;		// TODO rename to checkbox?
+	NSButton *button;
 	void (*onToggled)(uiCheckbox *, void *);
 	void *onToggledData;
 };
 
 @interface checkboxDelegateClass : NSObject {
-	NSMapTable *buttons;			// TODO rename to checkboxes?
+	NSMapTable *buttons;
 }
 - (IBAction)onToggled:(id)sender;
 - (void)registerCheckbox:(uiCheckbox *)c;
@@ -26,7 +26,6 @@ struct uiCheckbox {
 	return self;
 }
 
-// TODO have this called
 - (void)dealloc
 {
 	if ([self->buttons count] != 0)
@@ -117,8 +116,10 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	[c->button setBordered:NO];
 	uiDarwinSetControlFont(c->button, NSRegularControlSize);
 
-	if (checkboxDelegate == nil)
+	if (checkboxDelegate == nil) {
 		checkboxDelegate = [checkboxDelegateClass new];
+		[delegates addObject:checkboxDelegate];
+	}
 	[checkboxDelegate registerCheckbox:c];
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);
 

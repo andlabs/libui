@@ -3,10 +3,12 @@
 #import "uipriv_darwin.h"
 
 NSMutableArray *allocations;
+NSMutableArray *delegates;
 
 void initAlloc(void)
 {
 	allocations = [NSMutableArray new];
+	delegates = [NSMutableArray new];
 }
 
 #define UINT8(p) ((uint8_t *) (p))
@@ -21,6 +23,11 @@ void initAlloc(void)
 void uninitAlloc(void)
 {
 	if ([allocations count] == 0) {
+		NSInteger i;
+
+		for (i = 0; i < [delegates count]; i++)
+			[[delegates objectAtIndex:i] release];
+		[delegates release];
 		[allocations release];
 		return;
 	}

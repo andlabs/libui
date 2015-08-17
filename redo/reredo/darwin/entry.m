@@ -28,7 +28,6 @@ struct uiEntry {
 	return self;
 }
 
-// TODO have this called
 - (void)dealloc
 {
 	if ([self->entries count] != 0)
@@ -131,8 +130,10 @@ uiEntry *uiNewEntry(void)
 	[e->textfield setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
 	finishNewTextField(e->textfield, YES);
 
-	if (entryDelegate == nil)
+	if (entryDelegate == nil) {
 		entryDelegate = [entryDelegateClass new];
+		[delegates addObject:entryDelegate];
+	}
 	[entryDelegate registerEntry:e];
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
 

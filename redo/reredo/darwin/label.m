@@ -3,7 +3,7 @@
 
 struct uiLabel {
 	uiDarwinControl c;
-	NSTextField *textfield;		// TODO rename to label?
+	NSTextField *textfield;
 };
 
 uiDarwinDefineControl(

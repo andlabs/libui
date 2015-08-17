@@ -49,6 +49,7 @@ struct Sizing {
 typedef struct uiControl uiControl;
 
 struct uiControl {
+	uiTyped t;
 	void *Internal;		// for use by libui only
 	void (*CommitDestroy)(uiControl *);
 	uintptr_t (*Handle)(uiControl *);

@@ -41,7 +41,7 @@ extern void uninitMenus(void);
 extern void disableAutocorrect(NSTextView *);
 
 // entry.m
-extern void finishNewTextField(uiControl *, NSTextField *, BOOL);
+extern void finishNewTextField(NSTextField *, BOOL);
 
 // window.m
 extern uiWindow *windowFromNSWindow(NSWindow *);

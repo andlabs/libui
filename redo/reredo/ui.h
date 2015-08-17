@@ -191,7 +191,7 @@ _UI_EXTERN uiSlider *uiNewSlider(intmax_t min, intmax_t max);
 typedef struct uiSeparator uiSeparator;
 _UI_EXTERN uintmax_t uiSeparatorType(void);
 #define uiSeparator(this) ((uiSeparator *) uiIsA((this), uiSeparatorType(), 1))
-_UI_EXTERN uiSeparator *NewHorizontalSeparator(void);
+_UI_EXTERN uiSeparator *uiNewHorizontalSeparator(void);
 
 typedef struct uiCombobox uiCombobox;
 _UI_EXTERN uintmax_t uiComboboxType(void);
@@ -217,7 +217,7 @@ typedef struct uiMenu uiMenu;
 typedef struct uiMenuItem uiMenuItem;
 _UI_EXTERN uintmax_t uiMenuType(void);
 #define uiMenu(this) ((uiMenu *) uiIsA((this), uiMenuType(), 1))
-_UI_EXTERN uiMenuItem *uiMenuAppendItem(uiMenu *m, char *name);
+_UI_EXTERN uiMenuItem *uiMenuAppendItem(uiMenu *m, const char *name);
 _UI_EXTERN uiMenuItem *uiMenuAppendCheckItem(uiMenu *m, const char *name);
 _UI_EXTERN uiMenuItem *uiMenuAppendQuitItem(uiMenu *m);
 _UI_EXTERN uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m);
@@ -233,9 +233,9 @@ _UI_EXTERN void uiMenuItemOnClicked(uiMenuItem *m, void (*f)(uiMenuItem *sender,
 _UI_EXTERN int uiMenuItemChecked(uiMenuItem *m);
 _UI_EXTERN void uiMenuItemSetChecked(uiMenuItem *m, int checked);
 
-_UI_EXTERN char *OpenFile(void);
-_UI_EXTERN char *SaveFile(void);
-_UI_EXTERN void MsgBox(const char *title, const char *description);
-_UI_EXTERN void MsgBoxError(const char *title, const char *description);
+_UI_EXTERN char *uiOpenFile(void);
+_UI_EXTERN char *uiSaveFile(void);
+_UI_EXTERN void uiMsgBox(const char *title, const char *description);
+_UI_EXTERN void uiMsgBoxError(const char *title, const char *description);
 
 #endif

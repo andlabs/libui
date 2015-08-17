@@ -51,7 +51,7 @@ struct uiEntry {
 {
 	[self->entries setObject:[NSValue valueWithPointer:e]
 		forKey:e->textfield];
-	[e->entry setDelegate:self];
+	[e->textfield setDelegate:self];
 }
 
 - (void)unregisterEntry:(uiEntry *)e
@@ -117,6 +117,11 @@ void finishNewTextField(NSTextField *t, BOOL isEntry)
 
 	[[t cell] setLineBreakMode:NSLineBreakByClipping];
 	[[t cell] setScrollable:YES];
+}
+
+static void defaultOnChanged(uiEntry *e, void *data)
+{
+	// do nothing
 }
 
 uiEntry *uiNewEntry(void)

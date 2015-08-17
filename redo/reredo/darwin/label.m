@@ -12,7 +12,7 @@ uiDarwinDefineControl(
 	textfield								// handle
 )
 
-char *uiLabelText(uiLabel *ll)
+char *uiLabelText(uiLabel *l)
 {
 	return uiDarwinNSStringToText([l->textfield stringValue]);
 }

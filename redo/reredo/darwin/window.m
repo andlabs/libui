@@ -78,7 +78,7 @@ static windowDelegateClass *windowDelegate = nil;
 
 static void onDestroy(uiWindow *);
 
-uiDarwinDefineControl(
+uiDarwinDefineControlWithOnDestroy(
 	uiWindow,							// type name
 	uiWindowType,							// type function
 	window,								// handle
@@ -198,8 +198,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 
 	uiDarwinFinishNewControl(w, uiWindow);
-	uiControl(w)->CommitShow = windowCommitShow;
-	uiControl(w)->CommitHide = windowCommitHide;
+//TODO	uiControl(w)->CommitShow = windowCommitShow;
+//TODO	uiControl(w)->CommitHide = windowCommitHide;
 
 	return w;
 }

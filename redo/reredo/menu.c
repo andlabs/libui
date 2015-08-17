@@ -4,14 +4,14 @@
 static uintmax_t type_uiMenu = 0;
 static uintmax_t type_uiMenuItem = 0;
 
-uintmax_t uiTypeMenu(void)
+uintmax_t uiMenuType(void)
 {
 	if (type_uiMenu == 0)
 		type_uiMenu = uiRegisterType("uiMenu", 0, 0);
 	return type_uiMenu;
 }
 
-uintmax_t uiTypeMenuItem(void)
+uintmax_t uiMenuItemType(void)
 {
 	if (type_uiMenuItem == 0)
 		type_uiMenuItem = uiRegisterType("uiMenuItem", 0, 0);

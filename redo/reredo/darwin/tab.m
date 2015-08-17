@@ -60,7 +60,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	[view addSubview:childView];
 	layoutSingleView(view, childView, 0);
 
-	[t->pages insertObject:[NSValue valueWithPointer:page] atIndex:n];
+	[t->pages insertObject:[NSValue valueWithPointer:child] atIndex:n];
 	[t->views insertObject:view atIndex:n];
 	[t->margined insertObject:[NSNumber numberWithInt:0] atIndex:n];
 
@@ -86,13 +86,13 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 
 	childView = (NSView *) uiControlHandle(child);
 	[childView removeFromSuperview];
-	uiControlSetParent(childView, NULL);
+	uiControlSetParent(child, NULL);
 
 	i = [t->tabview tabViewItemAtIndex:n];
 	[t->tabview removeTabViewItem:i];
 }
 
-uintmax_t uITabNumPages(uiTab *t)
+uintmax_t uiTabNumPages(uiTab *t)
 {
 	return [t->pages count];
 }
@@ -108,6 +108,7 @@ int uiTabMargined(uiTab *t, uintmax_t n)
 void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 {
 	NSNumber *v;
+	NSView *view;
 	NSValue *childv;
 	uiControl *child;
 	NSView *childView;

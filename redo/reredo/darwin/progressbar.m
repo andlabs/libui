@@ -12,7 +12,7 @@ uiDarwinDefineControl(
 	pi									// handle
 )
 
-void uiProgressbarSetValue(uiProgressBar *p, int value)
+void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
 	if (value < 0 || value > 100)
 		complain("value %d out of range in progressbarSetValue()", value);

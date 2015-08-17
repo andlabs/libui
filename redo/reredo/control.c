@@ -10,7 +10,7 @@ struct controlBase {
 
 static uintmax_t type_uiControl = 0;
 
-uintmax_t uiTypeControl(void)
+uintmax_t uiControlType(void)
 {
 	if (type_uiControl == 0)
 		type_uiControl = uiRegisterType("uiControl", 0, sizeof (uiControl));

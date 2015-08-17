@@ -5,12 +5,14 @@ static NSMutableArray *menus = nil;
 static BOOL menusFinalized = NO;
 
 struct uiMenu {
+	uiTyped t;
 	NSMenu *menu;
 	NSMenuItem *item;
 	NSMutableArray *items;
 };
 
 struct uiMenuItem {
+	uiTyped t;
 	NSMenuItem *item;
 	int type;
 	BOOL disabled;
@@ -219,7 +221,7 @@ int uiMenuItemChecked(uiMenuItem *item)
 	return [item->item state] != NSOffState;
 }
 
-void menuItemSetChecked(uiMenuItem *item, int checked)
+void uiMenuItemSetChecked(uiMenuItem *item, int checked)
 {
 	NSInteger state;
 
@@ -237,7 +239,7 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 		complain("attempt to create a new menu item after menus have been finalized");
 
 	item = uiNew(uiMenuItem);
-	uiTyped(item)->Type = uiTypeMenuItem();
+	uiTyped(item)->Type = uiMenuItemType();
 
 	item->type = type;
 	switch (item->type) {
@@ -288,7 +290,7 @@ uiMenuItem *uiMenuAppendQuitItem(uiMenu *m)
 uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m)
 {
 	// duplicate check is in the register:to: selector
-	return newItem(mm, typePreferences, NULL);
+	return newItem(m, typePreferences, NULL);
 }
 
 uiMenuItem *uiMenuAppendAboutItem(uiMenu *m)
@@ -312,7 +314,7 @@ uiMenu *uiNewMenu(const char *name)
 		menus = [NSMutableArray new];
 
 	m = uiNew(uiMenu);
-	uiTyped(m)->Type = uiTypeMenu();
+	uiTyped(m)->Type = uiMenuType();
 
 	m->menu = [[NSMenu alloc] initWithTitle:toNSString(name)];
 	// use automatic menu item enabling for all menus for consistency's sake

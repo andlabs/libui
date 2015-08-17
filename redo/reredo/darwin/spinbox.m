@@ -35,7 +35,7 @@ static void defaultOnChanged(uiSpinbox *s, void *data)
 	// do nothing
 }
 
-uiSpinbox *uiNewSpinbox(void)
+uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	uiSpinbox *s;
 
@@ -44,7 +44,7 @@ uiSpinbox *uiNewSpinbox(void)
 	s->dummy = [[NSTextField alloc] initWithFrame:NSZeroRect];
 	[s->dummy setStringValue:@"TODO uiSpinbox not implemented"];
 
-	uiSpinboxSetOnChanged(s, defaultOnChanged, NULL);
+	uiSpinboxOnChanged(s, defaultOnChanged, NULL);
 
 	uiDarwinFinishNewControl(s, uiSpinbox);
 

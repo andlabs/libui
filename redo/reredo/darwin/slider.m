@@ -3,7 +3,7 @@
 
 // TODO events
 
-type uiSlider {
+struct uiSlider {
 	uiDarwinControl c;
 	NSSlider *slider;
 	void (*onChanged)(uiSlider *, void *);

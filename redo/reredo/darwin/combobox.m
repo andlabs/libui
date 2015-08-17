@@ -6,7 +6,7 @@ struct uiCombobox {
 	BOOL editable;
 	NSPopUpButton *pb;
 	NSComboBox *cb;
-	uintptr_t handle;			// for uiControlHandle()
+	NSObject *handle;				// for uiControlHandle()
 };
 
 uiDarwinDefineControl(
@@ -33,13 +33,13 @@ static uiCombobox *finishNewCombobox(BOOL editable)
 		[c->cb setButtonBordered:YES];
 		[c->cb setCompletes:NO];
 		uiDarwinSetControlFont(c->cb, NSRegularControlSize);
-		c->handle = (uintptr_t) (c->cb);
+		c->handle = c->cb;
 	} else {
 		c->pb = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
 		// TODO preferred edge
 		// TODO arrow position
 		// TODO font
-		c->handle = (uintptr_t) (c->pb);
+		c->handle = c->pb;
 	}
 
 	uiDarwinFinishNewControl(c, uiCombobox);

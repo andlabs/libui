@@ -8,7 +8,7 @@ struct uiDateTimePicker {
 
 uiDarwinDefineControl(
 	uiDateTimePicker,						// type name
-	uiDaateTimePickerType,					// type function
+	uiDateTimePickerType,					// type function
 	dp									// handle
 )
 

@@ -32,9 +32,9 @@ char *uiGroupTitle(uiGroup *g)
 	return PUT_CODE_HERE;
 }
 
-void uiGroupSetTitle(uiGroup *g, const char *text)
+void uiGroupSetTitle(uiGroup *g, const char *title)
 {
-	// TODO
+	[g->box setTitle:toNSString(title)];
 	// changing the text might necessitate a change in the groupbox's size
 //TODO	uiControlQueueResize(uiControl(g));
 }
@@ -69,7 +69,9 @@ void uiGroupSetMargined(uiGroup *g, int margined)
 	g->margined = margined;
 	if (g->child != NULL) {
 		childView = (NSView *) uiControlHandle(g->child);
+NSLog(@"fitting size before %@", NSStringFromSize([g->box fittingSize]));
 		layoutSingleView(g->box, childView, g->margined);
+NSLog(@"fitting size after  %@", NSStringFromSize([g->box fittingSize]));
 	}
 }
 
@@ -80,12 +82,13 @@ uiGroup *uiNewGroup(const char *title)
 	g = (uiGroup *) uiNewControl(uiGroupType());
 
 	g->box = [[NSBox alloc] initWithFrame:NSZeroRect];
-	// TODO title
+	[g->box setTitle:toNSString(title)];
 	[g->box setBoxType:NSBoxPrimary];
-//TODO	[g->box setBorderType:TODO];
+	[g->box setBorderType:NSLineBorder];
 	[g->box setTransparent:NO];
 	[g->box setTitlePosition:NSAtTop];
-//TODO	uiDarwinSetControlFont(g->box, NSSmallControlSize);
+	// we can't use uiDarwinSetControlFont() because the selector is different
+	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
 
 	uiDarwinFinishNewControl(g, uiGroup);
 

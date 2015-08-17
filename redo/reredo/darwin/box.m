@@ -2,7 +2,7 @@
 #import "uipriv_darwin.h"
 
 // TODOs:
-// - page 2 isn't growable
+// - page 2 isn't growable - I think this is because the button in the tab isn't stretchy
 
 struct uiBox {
 	uiDarwinControl c;

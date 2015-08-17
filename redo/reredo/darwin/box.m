@@ -244,8 +244,8 @@ static uiBox *finishNewBox(BOOL vertical)
 
 	b->view = [[NSView alloc] initWithFrame:NSZeroRect];
 
-	b->children = [NSMutableArray alloc];
-	b->stretchy = [NSMutableArray alloc];
+	b->children = [NSMutableArray new];
+	b->stretchy = [NSMutableArray new];
 
 	b->vertical = vertical;
 	if (b->vertical) {

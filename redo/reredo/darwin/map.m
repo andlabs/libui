@@ -15,7 +15,7 @@ void *mapGet(NSMapTable *map, id key)
 {
 	NSValue *v;
 
-	v = (NSValue *) [self->items objectForKey:sender];
+	v = (NSValue *) [map objectForKey:key];
 	return [v pointerValue];
 }
 

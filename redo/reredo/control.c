@@ -121,5 +121,9 @@ static void controlUpdateState(uiControl *c)
 
 uiControl *uiNewControl(uintmax_t type)
 {
-	return uiControl(newTyped(type));
+	uiControl *c;
+
+	c = uiControl(newTyped(type));
+	c->Internal = uiNew(struct controlBase);
+	return c;
 }

@@ -51,7 +51,7 @@ struct uiWindow {
 
 - (void)registerWindow:(uiWindow *)w
 {
-	mapSet(self->windows w->window, w);
+	mapSet(self->windows, w->window, w);
 	[w->window setDelegate:self];
 }
 

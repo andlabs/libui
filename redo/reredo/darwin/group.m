@@ -66,7 +66,7 @@ uiGroup *uiNewGroup(const char *title)
 //TODO	[g->box setBorderType:TODO];
 	[g->box setTransparent:NO];
 	[g->box setTitlePosition:NSAtTop];
-	uiDarwinSetControlFont(g->box, NSSmallControlSize);
+//TODO	uiDarwinSetControlFont(g->box, NSSmallControlSize);
 
 	uiDarwinFinishNewControl(g, uiGroup);
 

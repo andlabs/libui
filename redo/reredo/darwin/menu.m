@@ -1,6 +1,8 @@
 // 28 april 2015
 #import "uipriv_darwin.h"
 
+// TODO migrate to map.m functions
+
 static NSMutableArray *menus = nil;
 static BOOL menusFinalized = NO;
 
@@ -35,9 +37,7 @@ enum {
 {
 	self = [super init];
 	if (self) {
-		// TODO NSPointerFunctionsOpaquePersonality?
-		self->items = [NSMapTable mapTableWithKeyOptions:NSPointerFunctionsOpaqueMemory
-			valueOptions:NSPointerFunctionsOpaqueMemory];
+		self->items = newMap();
 		self->hasQuit = NO;
 		self->hasPreferences = NO;
 		self->hasAbout = NO;

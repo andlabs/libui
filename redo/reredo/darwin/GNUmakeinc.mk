@@ -13,6 +13,7 @@ osMFILES = \
 	darwin/group.m \
 	darwin/label.m \
 	darwin/main.m \
+	darwin/map.m \
 	darwin/menu.m \
 	darwin/progressbar.m \
 	darwin/radiobuttons.m \

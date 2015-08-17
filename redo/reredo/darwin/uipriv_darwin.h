@@ -11,7 +11,6 @@
 
 // menu.m
 @interface menuManager : NSObject {
-	// unfortunately NSMutableDictionary copies its keys, meaning we can't use it for pointers
 	NSMapTable *items;
 	BOOL hasQuit;
 	BOOL hasPreferences;
@@ -57,6 +56,11 @@ extern NSLayoutPriority vertHuggingPri(NSView *);
 extern void setHuggingPri(NSView *, NSLayoutPriority, NSLayoutConstraintOrientation);
 extern void layoutSingleView(NSView *, NSView *, int);
 extern NSSize fittingAlignmentSize(NSView *);
+
+// map.m
+extern NSMapTable *newMap(void);
+extern void *mapGet(NSMapTable *map, id key);
+extern void mapSet(NSMapTable *map, id key, void *value);
 
 // TODO
 #define PUT_CODE_HERE 0

@@ -53,14 +53,16 @@ struct uiControl {
 	void *Internal;		// for use by libui only
 	void (*CommitDestroy)(uiControl *);
 	uintptr_t (*Handle)(uiControl *);
-	void (*CommitShow)(uiControl *);				// TODO are all of these still needed?
-	void (*CommitHide)(uiControl *);
-	void (*CommitEnable)(uiControl *);
-	void (*CommitDisable)(uiControl *);
-	void (*ContainerUpdateState)(uiControl *);		// TODO still needed?
+	void (*ContainerUpdateState)(uiControl *);
 };
 _UI_EXTERN uintmax_t uiControlType(void);
 #define uiControl(this) ((uiControl *) uiIsA((this), uiControlType(), 1))
+_UI_EXTERN void uiControlDestroy(uiControl *);
+_UI_EXTERN void uiControlSetParent(uiControl *, uiControl *);
+_UI_EXTERN void uiControlShow(uiControl *);
+_UI_EXTERN void uiControlHide(uiControl *);
+_UI_EXTERN void uiControlEnable(uiControl *);
+_UI_EXTERN void uiControlDisable(uiControl *);
 
 /* TODO
 func NewControl(type uintmax_t) *Control;

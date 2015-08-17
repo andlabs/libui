@@ -79,7 +79,7 @@ void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
 	[c->button setTitle:toNSString(text)];
 	// this may result in the size of the checkbox changing
-	uiControlQueueResize(uiControl(c));
+//TODO	uiControlQueueResize(uiControl(c));
 }
 
 void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)

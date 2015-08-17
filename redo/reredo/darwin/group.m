@@ -26,7 +26,7 @@ void uiGroupSetTitle(uiGroup *g, const char *text)
 {
 	// TODO
 	// changing the text might necessitate a change in the groupbox's size
-	uiControlQueueResize(uiControl(g));
+//TODO	uiControlQueueResize(uiControl(g));
 }
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)
@@ -37,7 +37,7 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 	g->child = child;
 	if (g->child != NULL) {
 		uiControlSetParent(g->child, uiControl(g));
-		uiControlQueueResize(g->child);
+//TODO		uiControlQueueResize(g->child);
 	}
 */
 }
@@ -51,7 +51,7 @@ void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
 	// TODO
-	uiControlQueueResize(uiControl(g));
+//TODO	uiControlQueueResize(uiControl(g));
 }
 
 uiGroup *uiNewGroup(const char *title)

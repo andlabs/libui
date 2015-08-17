@@ -25,6 +25,10 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 	static uintptr_t _ ## type ## Handle(uiControl *c) \
 	{ \
 		return type(c)->handlefield; \
+	} \
+	static void _ ## type ## ContainerUpdateState(uiControl *c) \
+	{ \
+		/* do nothing */ \
 	}
 
 #define uiDarwinDefineControl(type, typefn, handlefield) \
@@ -33,6 +37,7 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 #define uiDarwinFinishNewControl(variable, type) \
 	type(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
 	type(variable)->Handle = _ ## type ## Handle; \
+	type(variable)->ContainerUpdateState = _ ## type ## ContainerUpdateState; \
 	uiDarwinFinishControl(uiControl(variable));
 
 // This is a function used to set up a control.

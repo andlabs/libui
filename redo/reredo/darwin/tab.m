@@ -32,6 +32,7 @@ static void onDestroy(uiTab *t)
 		uiControl *c;
 
 		c = (uiControl *) [v pointerValue];
+		uiControlSetParent(c, NULL);
 		uiControlDestroy(c);
 	}];
 	// and finally destroy ourselves

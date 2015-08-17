@@ -10,8 +10,12 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 typedef struct uiDarwinControl uiDarwinControl;
 struct uiDarwinControl {
 	uiControl c;
+	void (*Relayout)(uiControl *);
 };
 _UI_EXTERN uintmax_t uiDarwinControlType(void);
+#define uiDarwinControl(this) ((uiDarwinControl *) uiIsA((this), uiDarwinControlType(), 1))
+// TODO document
+_UI_EXTERN void uiDarwinControlRelayoutParent(uiDarwinControl *);
 
 // TODO document
 #define uiDarwinDefineControlWithOnDestroy(type, typefn, handlefield, onDestroy) \
@@ -35,6 +39,10 @@ _UI_EXTERN uintmax_t uiDarwinControlType(void);
 	static void _ ## type ## ContainerUpdateState(uiControl *c) \
 	{ \
 		/* do nothing */ \
+	} \
+	static void _ ## type ## Relayout(uiControl *c) \
+	{ \
+		uiDarwinControlRelayoutParent(uiDarwinControl(c)); \
 	}
 
 #define uiDarwinDefineControl(type, typefn, handlefield) \
@@ -44,6 +52,7 @@ _UI_EXTERN uintmax_t uiDarwinControlType(void);
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
 	uiControl(variable)->Handle = _ ## type ## Handle; \
 	uiControl(variable)->ContainerUpdateState = _ ## type ## ContainerUpdateState; \
+	uiDarwinControl(variable)->Relayout = _ ## type ## Relayout; \
 	uiDarwinFinishControl(uiControl(variable));
 
 // This is a function used to set up a control.

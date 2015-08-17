@@ -35,6 +35,13 @@ uintptr_t uiControlHandle(uiControl *c)
 	return (*(c->Handle))(c);
 }
 
+uiControl *uiControlParent(uiControl *c)
+{
+	struct controlBase *cb = controlBase(c);
+
+	return cb->parent;
+}
+
 static void controlUpdateState(uiControl *);
 
 void uiControlSetParent(uiControl *c, uiControl *parent)

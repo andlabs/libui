@@ -61,6 +61,7 @@ _UI_EXTERN uintmax_t uiControlType(void);
 #define uiControl(this) ((uiControl *) uiIsA((this), uiControlType(), 1))
 _UI_EXTERN void uiControlDestroy(uiControl *);
 _UI_EXTERN uintptr_t uiControlHandle(uiControl *);
+_UI_EXTERN uiControl *uiControlParent(uiControl *);
 _UI_EXTERN void uiControlSetParent(uiControl *, uiControl *);
 _UI_EXTERN void uiControlShow(uiControl *);
 _UI_EXTERN void uiControlHide(uiControl *);

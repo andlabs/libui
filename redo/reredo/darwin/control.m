@@ -10,6 +10,16 @@ uintmax_t uiDarwinControlType(void)
 	return type_uiDarwinControl;
 }
 
+void uiDarwinControlRelayoutParent(uiDarwinControl *c)
+{
+	uiControl *p;
+
+	p = uiControlParent(uiControl(c));
+	if (p == NULL)
+		return;
+	(*(uiDarwinControl(p)->Relayout))(p);
+}
+
 void osCommitShow(uiControl *c)
 {
 	NSView *view;

@@ -190,6 +190,13 @@ static void relayout(uiBox *b)
 
 	[metrics release];
 	[views release];
+
+	uiDarwinControlRelayoutParent(uiControl(b));
+}
+
+static void boxRelayout(uiDarwinControl *c)
+{
+	relayout(uiBox(c));
 }
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
@@ -274,6 +281,7 @@ static uiBox *finishNewBox(BOOL vertical)
 	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
 
 	uiDarwinFinishNewControl(b, uiBox);
+	uiDarwinControl(b)->Relayout = boxRelayout;
 
 	return b;
 }

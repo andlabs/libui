@@ -1,0 +1,1 @@
+- change the uiDarwinControlResizeParent() stuff to force a resize of the entire top-level window and do that on a change

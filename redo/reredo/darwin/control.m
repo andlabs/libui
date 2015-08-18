@@ -10,14 +10,15 @@ uintmax_t uiDarwinControlType(void)
 	return type_uiDarwinControl;
 }
 
-void uiDarwinControlRelayoutParent(uiDarwinControl *c)
+void uiDarwinControlTriggerRelayout(uiDarwinControl *c)
 {
 	uiControl *p;
 
-	p = uiControlParent(uiControl(c));
-	if (p == NULL)
+	p = toplevelOwning(uiControl(c));
+	if (p == NULL)		// not in a window
 		return;
-	(*(uiDarwinControl(p)->Relayout))(uiDarwinControl(p));
+	c = uiDarwinControl(p);
+	(*(c->Relayout))(uiDarwinControl(c));
 }
 
 void osCommitShow(uiControl *c)

@@ -42,6 +42,21 @@ uiControl *uiControlParent(uiControl *c)
 	return cb->parent;
 }
 
+// returns self if self is a window
+uiControl *toplevelOwning(uiControl *c)
+{
+	struct controlBase *cb;
+
+	for (;;) {
+		if (uiIsA(c, uiWindowType(), 0) != NULL)
+			return c;
+		cb = controlBase(c);
+		if (cb->parent == NULL)
+			return NULL;
+		c = cb->parent;
+	}
+}
+
 static void controlUpdateState(uiControl *);
 
 void uiControlSetParent(uiControl *c, uiControl *parent)

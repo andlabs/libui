@@ -15,6 +15,8 @@ extern void uiFree(void *);
 
 extern void complain(const char *, ...);
 
+extern uiControl *toplevelOwning(uiControl *);
+
 extern void osCommitShow(uiControl *);
 extern void osCommitHide(uiControl *);
 extern void osCommitEnable(uiControl *);

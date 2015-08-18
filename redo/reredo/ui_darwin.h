@@ -15,7 +15,7 @@ struct uiDarwinControl {
 _UI_EXTERN uintmax_t uiDarwinControlType(void);
 #define uiDarwinControl(this) ((uiDarwinControl *) uiIsA((this), uiDarwinControlType(), 1))
 // TODO document
-_UI_EXTERN void uiDarwinControlRelayoutParent(uiDarwinControl *);
+_UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 
 // TODO document
 #define uiDarwinDefineControlWithOnDestroy(type, typefn, handlefield, onDestroy) \
@@ -42,7 +42,7 @@ _UI_EXTERN void uiDarwinControlRelayoutParent(uiDarwinControl *);
 	} \
 	static void _ ## type ## Relayout(uiDarwinControl *c) \
 	{ \
-		uiDarwinControlRelayoutParent(uiDarwinControl(c)); \
+		/* do nothing */ \
 	}
 
 #define uiDarwinDefineControl(type, typefn, handlefield) \

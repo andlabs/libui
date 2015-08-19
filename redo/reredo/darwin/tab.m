@@ -12,6 +12,60 @@ struct uiTab {
 	NSMutableArray *margined;		// []NSNumber
 };
 
+// NSTabView handles tab switching interestingly: it /removes the old tab from the view hierarchy outright/
+// for some reason that I don't know (TODO), this casues problems for our auto layout, even if we do a depth first recomputation of all of our fitting sizes
+// therefore, we have to only update the current tab page
+// TODO this doesn't really work...
+@interface tabDelegateClass : NSObject<NSTabViewDelegate> {
+	NSMapTable *tabs;
+}
+- (void)tabView:(NSTabView *)tv didSelectTabViewItem:(NSTabViewItem *)item;
+- (void)registerTab:(uiTab *)b;
+- (void)unregisterTab:(uiTab *)b;
+@end
+
+@implementation tabDelegateClass
+
+- (id)init
+{
+	self = [super init];
+	if (self)
+		self->tabs = newMap();
+	return self;
+}
+
+- (void)dealloc
+{
+	if ([self->tabs count] != 0)
+		complain("attempt to destroy shared tab delegate but tabs are still registered to it");
+	[self->tabs release];
+	[super dealloc];
+}
+
+- (void)tabView:(NSTabView *)tv didSelectTabViewItem:(NSTabViewItem *)item
+{
+	uiTab *t;
+
+	t = (uiTab *) mapGet(self->tabs, tv);
+	uiDarwinControlTriggerRelayout(uiDarwinControl(t));
+}
+
+- (void)registerTab:(uiTab *)t
+{
+	mapSet(self->tabs, t->tabview, t);
+	[t->tabview setDelegate:self];
+}
+
+- (void)unregisterTab:(uiTab *)t
+{
+	[t->tabview setDelegate:nil];
+	[self->tabs removeObjectForKey:t->tabview];
+}
+
+@end
+
+static tabDelegateClass *tabDelegate = nil;
+
 static void onDestroy(uiTab *);
 
 uiDarwinDefineControlWithOnDestroy(
@@ -47,14 +101,15 @@ static void tabRelayout(uiDarwinControl *c)
 {
 	uiTab *t = uiTab(c);
 	NSUInteger i;
+	NSValue *v;
+	uiControl *child;
+	uiDarwinControl *cc;
+	NSView *view, *childView;
+	NSNumber *margined;
 
+	if ([t->pages count] == 0)
+		return;
 	for (i = 0; i < [t->pages count]; i++) {
-		NSValue *v;
-		uiControl *child;
-		uiDarwinControl *cc;
-		NSView *view, *childView;
-		NSNumber *margined;
-
 		v = (NSValue *) [t->pages objectAtIndex:i];
 		child = (uiControl *) [v pointerValue];
 		view = (NSView *) [t->views objectAtIndex:i];
@@ -154,6 +209,12 @@ uiTab *uiNewTab(void)
 	t->pages = [NSMutableArray new];
 	t->views = [NSMutableArray new];
 	t->margined = [NSMutableArray new];
+
+	if (tabDelegate == nil) {
+		tabDelegate = [tabDelegateClass new];
+		[delegates addObject:tabDelegate];
+	}
+	[tabDelegate registerTab:t];
 
 	uiDarwinFinishNewControl(t, uiTab);
 	uiDarwinControl(t)->Relayout = tabRelayout;

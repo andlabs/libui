@@ -32,7 +32,7 @@ static void onDestroy(uiGroup *g)
 
 static void groupRelayout(uiDarwinControl *c)
 {
-	uiGroup *w = uiGroup(c);
+	uiGroup *g = uiGroup(c);
 	uiDarwinControl *cc;
 	NSView *childView;
 

@@ -97,6 +97,7 @@ static void onDestroy(uiTab *t)
 
 // TODO container update
 
+// TODO document our updating all pages here
 static void tabRelayout(uiDarwinControl *c)
 {
 	uiTab *t = uiTab(c);

@@ -43,6 +43,31 @@ static void onDestroy(uiTab *t)
 
 // TODO container update
 
+static void tabRelayout(uiDarwinControl *c)
+{
+	uiTab *t = uiTab(c);
+	NSUInteger i;
+
+	for (i = 0; i < [t->pages count]; i++) {
+		NSValue *v;
+		uiControl *child;
+		uiDarwinControl *cc;
+		NSView *view, *childView;
+		NSNumber *margined;
+
+		v = (NSValue *) [t->pages objectAtIndex:i];
+		child = (uiControl *) [v pointerValue];
+		view = (NSView *) [t->views objectAtIndex:i];
+		childView = (NSView *) uiControlHandle(child);
+		margined = (NSNumber *) [t->margined objectAtIndex:i];
+		// first lay out the child
+		cc = uiDarwinControl(child);
+		(*(cc->Relayout))(cc);
+		// then lay out the page
+		layoutSingleView(view, childView, [margined intValue]);
+	}
+}
+
 void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
 	uiTabInsertAt(t, name, [t->pages count], child);
@@ -59,8 +84,6 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	childView = (NSView *) uiControlHandle(child);
 	view = [[NSView alloc] initWithFrame:NSZeroRect];
 	[view addSubview:childView];
-	layoutSingleView(view, childView, 0);
-	uiDarwinControlRelayoutParent(uiDarwinControl(t));
 
 	[t->pages insertObject:[NSValue valueWithPointer:child] atIndex:n];
 	[t->views insertObject:view atIndex:n];
@@ -70,6 +93,8 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	[i setLabel:toNSString(name)];
 	[i setView:view];
 	[t->tabview insertTabViewItem:i atIndex:n];
+
+	uiDarwinControlTriggerRelayout(uiDarwinControl(t));
 }
 
 void uiTabDelete(uiTab *t, uintmax_t n)
@@ -110,20 +135,10 @@ int uiTabMargined(uiTab *t, uintmax_t n)
 void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 {
 	NSNumber *v;
-	NSView *view;
-	NSValue *childv;
-	uiControl *child;
-	NSView *childView;
 
 	v = [NSNumber numberWithInt:margined];
 	[t->margined replaceObjectAtIndex:n withObject:v];
-
-	view = (NSView *) [t->views objectAtIndex:n];
-	childv = (NSValue *) [t->pages objectAtIndex:n];
-	child = (uiControl *) [childv pointerValue];
-	childView = (NSView *) uiControlHandle(child);
-	layoutSingleView(view, childView, margined);
-	uiDarwinControlRelayoutParent(uiDarwinControl(t));
+	uiDarwinControlTriggerRelayout(uiDarwinControl(t));
 }
 
 uiTab *uiNewTab(void)
@@ -141,6 +156,7 @@ uiTab *uiNewTab(void)
 	t->margined = [NSMutableArray new];
 
 	uiDarwinFinishNewControl(t, uiTab);
+	uiDarwinControl(t)->Relayout = tabRelayout;
 
 	return t;
 }

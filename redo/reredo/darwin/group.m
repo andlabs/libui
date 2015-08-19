@@ -30,6 +30,22 @@ static void onDestroy(uiGroup *g)
 
 // TODO group container update
 
+static void groupRelayout(uiDarwinControl *c)
+{
+	uiGroup *w = uiGroup(c);
+	uiDarwinControl *cc;
+	NSView *childView;
+
+	if (g->child == NULL)
+		return;
+	cc = uiDarwinControl(g->child);
+	childView = (NSView *) uiControlHandle(g->child);
+	// first relayout the child
+	(*(cc->Relayout))(cc);
+	// now relayout ourselves
+	layoutSingleView(g->box, childView, g->margined);
+}
+
 char *uiGroupTitle(uiGroup *g)
 {
 	return PUT_CODE_HERE;
@@ -39,7 +55,7 @@ void uiGroupSetTitle(uiGroup *g, const char *title)
 {
 	[g->box setTitle:toNSString(title)];
 	// changing the text might necessitate a change in the groupbox's size
-//TODO	uiControlQueueResize(uiControl(g));
+	uiDarwinControlTriggerRelayout(uiDarwinControl(g));
 }
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)
@@ -56,8 +72,7 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		childView = (NSView *) uiControlHandle(g->child);
 		uiControlSetParent(g->child, uiControl(g));
 		[g->box addSubview:childView];
-		layoutSingleView(g->box, childView, g->margined);
-		uiDarwinControlRelayoutParent(uiDarwinControl(g));
+		uiDarwinControlTriggerRelayout(uiDarwinControl(g));
 	}
 }
 
@@ -68,14 +83,9 @@ int uiGroupMargined(uiGroup *g)
 
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
-	NSView *childView;
-
 	g->margined = margined;
-	if (g->child != NULL) {
-		childView = (NSView *) uiControlHandle(g->child);
-		layoutSingleView(g->box, childView, g->margined);
-		uiDarwinControlRelayoutParent(uiDarwinControl(g));
-	}
+	if (g->child != NULL)
+		uiDarwinControlTriggerRelayout(uiDarwinControl(g));
 }
 
 uiGroup *uiNewGroup(const char *title)
@@ -94,6 +104,7 @@ uiGroup *uiNewGroup(const char *title)
 	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
 
 	uiDarwinFinishNewControl(g, uiGroup);
+	uiDarwinControl(g)->Relayout = groupRelayout;
 
 	return g;
 }

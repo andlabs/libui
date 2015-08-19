@@ -15,7 +15,7 @@ uiDarwinDefineControl(
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 {
 	// TODO
-//TODO	uiControlQueueResize(uiControl(r));
+	uiDarwinControlTriggerRelayout(uiDarwinControl(r));
 }
 
 uiRadioButtons *uiNewRadioButtons(void)

@@ -116,6 +116,22 @@ static void windowCommitHide(uiControl *c)
 
 // TODO container update state
 
+static void windowRelayout(uiDarwinControl *c)
+{
+	uiWindow *w = uiWindow(c);
+	uiDarwinControl *cc;
+	NSView *childView;
+
+	if (w->child == NULL)
+		return;
+	cc = uiDarwinControl(w->child);
+	childView = (NSView *) uiControlHandle(w->child);
+	// first relayout the child
+	(*(cc->Relayout))(cc);
+	// now relayout ourselves
+	layoutSingleView([w->window contentView], childView, w->margined);
+}
+
 char *uiWindowTitle(uiWindow *w)
 {
 	return uiDarwinNSStringToText([w->window title]);
@@ -146,7 +162,7 @@ void uiWindowSetChild(uiWindow *w, uiControl *child)
 		uiControlSetParent(w->child, uiControl(w));
 		childView = (NSView *) uiControlHandle(w->child);
 		[[w->window contentView] addSubview:childView];
-		layoutSingleView([w->window contentView], childView, w->margined);
+		uiDarwinControlTriggerRelayout(uiDarwinControl(w));
 	}
 }
 
@@ -157,14 +173,9 @@ int uiWindowMargined(uiWindow *w)
 
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
-	NSView *childView;
-
 	w->margined = margined;
-	if (w->child != NULL) {
-		childView = (NSView *) uiControlHandle(w->child);
-		[[w->window contentView] addSubview:childView];
-		layoutSingleView([w->window contentView], childView, w->margined);
-	}
+	if (w->child != NULL)
+		uiDarwinControlTriggerRelayout(uiDarwinControl(w));
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -200,6 +211,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiDarwinFinishNewControl(w, uiWindow);
 //TODO	uiControl(w)->CommitShow = windowCommitShow;
 //TODO	uiControl(w)->CommitHide = windowCommitHide;
+	uiDarwinControl(w)->Relayout = windowRelayout;
 
 	return w;
 }

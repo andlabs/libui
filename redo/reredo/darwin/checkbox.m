@@ -75,7 +75,7 @@ void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
 	[c->button setTitle:toNSString(text)];
 	// this may result in the size of the checkbox changing
-	// fortunately Auto Layout handles this for us
+	uiDarwinControlTriggerRelayout(uiDarwinControl(c));
 }
 
 void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)

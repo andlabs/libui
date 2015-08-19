@@ -98,7 +98,7 @@ static void relayout(uiBox *b)
 
 	[b->view removeConstraints:[b->view constraints]];
 
-	// first collect the views and their fitting sizes (for non-stretchy controls)
+	// first lay out all children, collect the views and their fitting sizes (for non-stretchy controls)
 	// also figure out which is the first stretchy control, if any
 	metrics = [NSMutableDictionary new];
 	views = [NSMutableDictionary new];
@@ -106,12 +106,15 @@ static void relayout(uiBox *b)
 	n = 0;
 	while (n < [b->children count]) {
 		uiControl *child;
+		uiDarwinControl *cc;
 		NSView *childView;
 		NSSize fittingSize;
 
 		child = childAt(b, n);
+		cc = uiDarwinControl(child);
 		childView = (NSView *) uiControlHandle(child);
 		[views setObject:childView forKey:viewName(n)];
+		(*(cc->Relayout))(cc);
 		fittingSize = fittingAlignmentSize(childView);
 		[metrics setObject:[NSNumber numberWithDouble:fittingSize.width]
 			forKey:widthMetricName(n)];
@@ -190,8 +193,6 @@ static void relayout(uiBox *b)
 
 	[metrics release];
 	[views release];
-
-	uiDarwinControlRelayoutParent(uiDarwinControl(b));
 }
 
 static void boxRelayout(uiDarwinControl *c)

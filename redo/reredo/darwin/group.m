@@ -43,7 +43,7 @@ static void groupRelayout(uiDarwinControl *c)
 	// first relayout the child
 	(*(cc->Relayout))(cc);
 	// now relayout ourselves
-	layoutSingleView(g->box, childView, g->margined);
+	layoutSingleView([g->box contentView], childView, g->margined);
 }
 
 char *uiGroupTitle(uiGroup *g)
@@ -71,7 +71,7 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 	if (g->child != NULL) {
 		childView = (NSView *) uiControlHandle(g->child);
 		uiControlSetParent(g->child, uiControl(g));
-		[g->box addSubview:childView];
+		[[g->box contentView] addSubview:childView];
 		uiDarwinControlTriggerRelayout(uiDarwinControl(g));
 	}
 }

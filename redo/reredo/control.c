@@ -42,13 +42,18 @@ uiControl *uiControlParent(uiControl *c)
 	return cb->parent;
 }
 
+int isToplevel(uiControl *c)
+{
+	return uiIsA(c, uiWindowType(), 0) != NULL;
+}
+
 // returns self if self is a window
 uiControl *toplevelOwning(uiControl *c)
 {
 	struct controlBase *cb;
 
 	for (;;) {
-		if (uiIsA(c, uiWindowType(), 0) != NULL)
+		if (isToplevel(c))
 			return c;
 		cb = controlBase(c);
 		if (cb->parent == NULL)
@@ -63,6 +68,8 @@ void uiControlSetParent(uiControl *c, uiControl *parent)
 {
 	struct controlBase *cb = controlBase(c);
 
+	if (isToplevel(c))
+		complain("cannot set a parent on a toplevel (uiWindow)");
 	if (parent != NULL && cb->parent != NULL)
 		complain("attempt to reparent uiControl %p (has parent %p, attempt to give parent %p)", c, cb->parent, parent);
 	if (parent == NULL && cb->parent == NULL)

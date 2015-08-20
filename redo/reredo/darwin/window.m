@@ -98,8 +98,6 @@ static void onDestroy(uiWindow *w)
 	[windowDelegate unregisterWindow:w];
 }
 
-// TODO forbid setting a parent
-
 static void windowCommitShow(uiControl *c)
 {
 	uiWindow *w = (uiWindow *) c;

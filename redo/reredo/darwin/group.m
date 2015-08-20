@@ -43,7 +43,10 @@ static void groupRelayout(uiDarwinControl *c)
 	// first relayout the child
 	(*(cc->Relayout))(cc);
 	// now relayout ourselves
-	layoutSingleView([g->box contentView], childView, g->margined);
+	// see below on using the content view
+	layoutSingleView(g->box, childView, g->margined);
+	// we need to explicitly tell the NSBox to recompute its own size based on the new content layout
+	[g->box sizeToFit];
 }
 
 char *uiGroupTitle(uiGroup *g)
@@ -71,7 +74,10 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 	if (g->child != NULL) {
 		childView = (NSView *) uiControlHandle(g->child);
 		uiControlSetParent(g->child, uiControl(g));
-		[[g->box contentView] addSubview:childView];
+		// we have to add controls to the box itself NOT the content view
+		// otherwise, things get really glitchy
+		// we also need to call -sizeToFit, but we'll do that in the relayout that's triggered below (see above)
+		[g->box addSubview:childView];
 		uiDarwinControlTriggerRelayout(uiDarwinControl(g));
 	}
 }

@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 	uiOnShouldQuit(onShouldQuit, w);
 
 	mainBox = newHorizontalBox();
-	uiWindowSetChild(w, uiControl(mainBox));
+//	uiWindowSetChild(w, uiControl(mainBox));
 
 	mainTab = newTab();
 	uiBoxAppend(mainBox, uiControl(mainTab), 1);
@@ -88,7 +88,8 @@ int main(int argc, char *argv[])
 	makePage1(w);
 	uiTabAppend(mainTab, "Page 1", uiControl(page1));
 
-	uiTabAppend(mainTab, "Page 2", uiControl(page2));
+//	uiTabAppend(mainTab, "Page 2", uiControl(page2));
+	uiWindowSetChild(w, uiControl(page2));
 
 	uiTabAppend(mainTab, "Empty Page", uiControl(uiNewHorizontalBox()));
 

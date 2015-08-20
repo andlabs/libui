@@ -58,20 +58,19 @@ static void onDestroy(uiBox *b)
 
 // TODO container update state
 
-// TODO change i to n
-static NSString *viewName(uintmax_t i)
+static NSString *viewName(uintmax_t n)
 {
-	return [NSString stringWithFormat:@"view%ju", i];
+	return [NSString stringWithFormat:@"view%ju", n];
 }
 
-static NSString *widthMetricName(uintmax_t i)
+static NSString *widthMetricName(uintmax_t n)
 {
-	return [NSString stringWithFormat:@"view%juwidth", i];
+	return [NSString stringWithFormat:@"view%juwidth", n];
 }
 
-static NSString *heightMetricName(uintmax_t i)
+static NSString *heightMetricName(uintmax_t n)
 {
-	return [NSString stringWithFormat:@"view%juheight", i];
+	return [NSString stringWithFormat:@"view%juheight", n];
 }
 
 static int isStretchy(uiBox *b, uintmax_t n)

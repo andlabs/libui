@@ -112,7 +112,13 @@ static void windowCommitHide(uiControl *c)
 	[w->window orderOut:w->window];
 }
 
-// TODO container update state
+static void windowContainerUpdateState(uiControl *c)
+{
+	uiWindow *w = uiWindow(c);
+
+	if (w->child != NULL)
+		controlUpdateState(w->child);
+}
 
 static void windowRelayout(uiDarwinControl *c)
 {
@@ -209,6 +215,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiDarwinFinishNewControl(w, uiWindow);
 //TODO	uiControl(w)->CommitShow = windowCommitShow;
 //TODO	uiControl(w)->CommitHide = windowCommitHide;
+	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
 	uiDarwinControl(w)->Relayout = windowRelayout;
 
 	return w;

@@ -28,7 +28,13 @@ static void onDestroy(uiGroup *g)
 	}
 }
 
-// TODO group container update
+static void groupContainerUpdateState(uiControl *c)
+{
+	uiGroup *g = uiGroup(c);
+
+	if (g->child != NULL)
+		controlUpdateState(g->child);
+}
 
 static void groupRelayout(uiDarwinControl *c)
 {
@@ -110,6 +116,7 @@ uiGroup *uiNewGroup(const char *title)
 	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
 
 	uiDarwinFinishNewControl(g, uiGroup);
+	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;
 	uiDarwinControl(g)->Relayout = groupRelayout;
 
 	return g;

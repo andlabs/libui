@@ -17,6 +17,7 @@ extern void complain(const char *, ...);
 
 extern int isToplevel(uiControl *);
 extern uiControl *toplevelOwning(uiControl *);
+extern void controlUpdateState(uiControl *);
 
 extern void osCommitShow(uiControl *);
 extern void osCommitHide(uiControl *);

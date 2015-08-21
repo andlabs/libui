@@ -56,7 +56,21 @@ static void onDestroy(uiBox *b)
 	[b->stretchy release];
 }
 
-// TODO container update state
+static void boxContainerUpdateState(uiControl *c)
+{
+	uiBox *b = uiBox(c);
+	NSUInteger i;
+
+	for (i = 0; i < [b->children count]; i++) {
+		NSValue *v;
+		uiControl *child;
+
+		v = (NSValue *) [b->children objectAtIndex:i];
+		// TODO change all these other instances of casts to conversions
+		child = uiControl([v pointerValue]);
+		controlUpdateState(child);
+	}
+}
 
 static NSString *viewName(uintmax_t n)
 {
@@ -281,6 +295,7 @@ static uiBox *finishNewBox(BOOL vertical)
 	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
 
 	uiDarwinFinishNewControl(b, uiBox);
+	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;
 	uiDarwinControl(b)->Relayout = boxRelayout;
 
 	return b;

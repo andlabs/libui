@@ -62,8 +62,6 @@ uiControl *toplevelOwning(uiControl *c)
 	}
 }
 
-static void controlUpdateState(uiControl *);
-
 void uiControlSetParent(uiControl *c, uiControl *parent)
 {
 	struct controlBase *cb = controlBase(c);
@@ -133,7 +131,7 @@ void uiControlDisable(uiControl *c)
 	controlUpdateState(c);
 }
 
-static void controlUpdateState(uiControl *c)
+void controlUpdateState(uiControl *c)
 {
 	if (controlContainerVisible(c))
 		osCommitShow(c);

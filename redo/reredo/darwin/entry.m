@@ -1,7 +1,21 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
-// TODO set a text field minimum width
+// Text fields for entering text have no intrinsic width; we'll use the default Interface Builder width for them.
+#define textfieldWidth 96
+
+@implementation libui_intrinsicWidthNSTextField
+
+- (NSSize)intrinsicContentSize
+{
+	NSSize s;
+
+	s = [super intrinsicContentSize];
+	s.width = textfieldWidth;
+	return s;
+}
+
+@end
 
 struct uiEntry {
 	uiDarwinControl c;
@@ -126,7 +140,7 @@ uiEntry *uiNewEntry(void)
 
 	e = (uiEntry *) uiNewControl(uiEntryType());
 
-	e->textfield = [[NSTextField alloc] initWithFrame:NSZeroRect];
+	e->textfield = [[libui_intrinsicWidthNSTextField alloc] initWithFrame:NSZeroRect];
 	[e->textfield setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
 	finishNewTextField(e->textfield, YES);
 

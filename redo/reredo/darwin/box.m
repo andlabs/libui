@@ -3,6 +3,8 @@
 
 // TODOs:
 // - page 2 isn't growable - I think this is because the button in the tab isn't stretchy
+// - tab on page 2 is glitched
+// - separators on page 4 have variable padding after them
 
 struct uiBox {
 	uiDarwinControl c;

@@ -17,7 +17,10 @@ uiDarwinDefineControl(
 
 void uiComboboxAppend(uiCombobox *c, const char *text)
 {
-	// TODO
+	if (c->editable)
+		[c->cb addItemWithObjectValue:toNSString(text)];
+	else
+		[c->pb addItemWithTitle:toNSString(text)];
 }
 
 static uiCombobox *finishNewCombobox(BOOL editable)
@@ -35,9 +38,12 @@ static uiCombobox *finishNewCombobox(BOOL editable)
 		uiDarwinSetControlFont(c->cb, NSRegularControlSize);
 		c->handle = c->cb;
 	} else {
+		NSPopUpButtonCell *pbcell;
+
 		c->pb = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
-		// TODO preferred edge
-		// TODO arrow position
+		[c->pb setPreferredEdge:NSMinYEdge];
+		pbcell = (NSPopUpButtonCell *) [c->pb cell];
+		[pbcell setArrowPosition:NSPopUpArrowAtBottom];
 		// TODO font
 		c->handle = c->pb;
 	}

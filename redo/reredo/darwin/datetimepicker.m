@@ -19,11 +19,13 @@ static uiDateTimePicker *finishNewDateTimePicker(NSDatePickerElementFlags elemen
 	d = (uiDateTimePicker *) uiNewControl(uiDateTimePickerType());
 
 	d->dp = [[NSDatePicker alloc] initWithFrame:NSZeroRect];
-	// TODO text field stuff
+	[d->dp setBordered:NO];
+	[d->dp setBezeled:YES];
+	[d->dp setDrawsBackground:YES];
 	[d->dp setDatePickerStyle:NSTextFieldAndStepperDatePickerStyle];
 	[d->dp setDatePickerElements:elements];
 	[d->dp setDatePickerMode:NSSingleDateMode];
-	// TODO get date picker font
+	uiDarwinSetControlFont(d->dp, NSRegularControlSize);
 
 	uiDarwinFinishNewControl(d, uiDateTimePicker);
 

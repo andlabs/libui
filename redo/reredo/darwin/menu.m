@@ -68,8 +68,6 @@ enum {
 
 - (void)register:(NSMenuItem *)item to:(uiMenuItem *)smi
 {
-	NSValue *v;
-
 	switch (smi->type) {
 	case typeQuit:
 		if (self->hasQuit)

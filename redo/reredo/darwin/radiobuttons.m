@@ -28,11 +28,22 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 uiRadioButtons *uiNewRadioButtons(void)
 {
 	uiRadioButtons *r;
+	NSButtonCell *cell;
 
 	r = (uiRadioButtons *) uiNewControl(uiRadioButtonsType());
 
-	r->matrix = [[NSMatrix alloc] initWithFrame:NSZeroRect];
-	[r->matrix setMode:NSRadioModeMatrix];
+	// we have to set up the NSMatrix this way (prototype first)
+	// otherwise we won't be able to change its properties (such as the button type)
+	cell = [NSButtonCell new];
+	[cell setButtonType:NSRadioButton];
+	// works on NSCells too (same selector)
+	uiDarwinSetControlFont((NSControl *) cell, NSRegularControlSize);
+
+	r->matrix = [[NSMatrix alloc] initWithFrame:NSZeroRect
+		mode:NSRadioModeMatrix
+		prototype:cell
+		numberOfRows:0
+		numberOfColumns:0];
 	// TODO should we allow an initial state of no selection, but not allow the user to select nothing?
 	[r->matrix setAllowsEmptySelection:NO];
 	[r->matrix setIntercellSpacing:NSMakeSize(4, 2)];
@@ -40,9 +51,6 @@ uiRadioButtons *uiNewRadioButtons(void)
 	[r->matrix setDrawsBackground:NO];
 	[r->matrix setDrawsCellBackground:NO];
 	[r->matrix setAutosizesCells:YES];
-	[[r->matrix prototype] setButtonType:NSRadioButton];
-	// works on NSCells too (same selector)
-	uiDarwinSetControlFont((NSControl *) [r->matrix prototype], NSRegularControlSize);
 
 	uiDarwinFinishNewControl(r, uiRadioButtons);
 

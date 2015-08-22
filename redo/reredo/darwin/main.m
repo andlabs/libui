@@ -89,8 +89,9 @@ const char *uiInit(uiInitOptions *o)
 void uiUninit(void)
 {
 	uninitMenus();
-	// TODO free application delegate
-	// TODO free NSApplication resources (main menu, etc.)
+	[realNSApp() setDelegate:nil];
+	[appDelegate() release];
+	[realNSApp() release];
 	uninitTypes();
 	uninitAlloc();
 }

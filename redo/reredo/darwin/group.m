@@ -1,9 +1,6 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
-// TODO
-// - even with the uiDarwinControlRelayoutParent() calls, we still need to click the button twice for the ambiguity to go away
-
 struct uiGroup {
 	uiDarwinControl c;
 	NSBox *box;
@@ -57,7 +54,7 @@ static void groupRelayout(uiDarwinControl *c)
 
 char *uiGroupTitle(uiGroup *g)
 {
-	return PUT_CODE_HERE;
+	return uiDarwinNSStringToText([g->box title]);
 }
 
 void uiGroupSetTitle(uiGroup *g, const char *title)

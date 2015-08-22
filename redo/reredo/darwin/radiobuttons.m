@@ -44,8 +44,9 @@ uiRadioButtons *uiNewRadioButtons(void)
 		prototype:cell
 		numberOfRows:0
 		numberOfColumns:0];
-	// TODO should we allow an initial state of no selection, but not allow the user to select nothing?
+	// even with this property, none of the radio buttons will be selected initially, which is what we want
 	[r->matrix setAllowsEmptySelection:NO];
+	[r->matrix setSelectionByRect:YES];
 	[r->matrix setIntercellSpacing:NSMakeSize(4, 2)];
 	[r->matrix setAutorecalculatesCellSize:YES];
 	[r->matrix setDrawsBackground:NO];

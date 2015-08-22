@@ -19,9 +19,21 @@ static NSButtonCell *cellAt(uiRadioButtons *r, uintmax_t n)
 
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 {
-	[r->matrix addRow];
+	intmax_t prevSelection;
+
+	// renewRows:columns: will reset the selection
+	prevSelection = [r->matrix selectedRow];
+	[r->matrix renewRows:([r->matrix numberOfRows] + 1) columns:1];
 	[cellAt(r, [r->matrix numberOfRows] - 1) setTitle:toNSString(text)];
 	// this will definitely cause a resize in at least the vertical direction, even if not in the horizontal
+	// TODO sometimes this isn't enough
+	[r->matrix sizeToCells];
+	// and renew the previous selection
+	// we need to turn on allowing empty selection for this to work properly on the initial state
+	// TODO this doesn't actually work
+	[r->matrix setAllowsEmptySelection:YES];
+	[r->matrix selectCellAtRow:prevSelection column:0];
+	[r->matrix setAllowsEmptySelection:NO];
 	uiDarwinControlTriggerRelayout(uiDarwinControl(r));
 }
 
@@ -44,7 +56,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 		prototype:cell
 		numberOfRows:0
 		numberOfColumns:0];
-	// even with this property, none of the radio buttons will be selected initially, which is what we want
+	// we manually twiddle this property to allow programmatic non-selection state
 	[r->matrix setAllowsEmptySelection:NO];
 	[r->matrix setSelectionByRect:YES];
 	[r->matrix setIntercellSpacing:NSMakeSize(4, 2)];

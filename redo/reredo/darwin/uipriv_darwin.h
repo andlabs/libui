@@ -40,9 +40,8 @@ extern void uninitMenus(void);
 extern void disableAutocorrect(NSTextView *);
 
 // entry.m
-@interface libui_intrinsicWidthNSTextField : NSTextField
-@end
 extern void finishNewTextField(NSTextField *, BOOL);
+extern NSTextField *newEditableTextField(void);
 
 // window.m
 extern uiWindow *windowFromNSWindow(NSWindow *);

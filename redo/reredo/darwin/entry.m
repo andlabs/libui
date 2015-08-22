@@ -4,6 +4,9 @@
 // Text fields for entering text have no intrinsic width; we'll use the default Interface Builder width for them.
 #define textfieldWidth 96
 
+@interface libui_intrinsicWidthNSTextField : NSTextField
+@end
+
 @implementation libui_intrinsicWidthNSTextField
 
 - (NSSize)intrinsicContentSize
@@ -113,6 +116,11 @@ void uiEntrySetReadOnly(uiEntry *e, int readonly)
 	[e->textfield setEditable:editable];
 }
 
+static void defaultOnChanged(uiEntry *e, void *data)
+{
+	// do nothing
+}
+
 // these are based on interface builder defaults; my comments in the old code weren't very good so I don't really know what talked about what, sorry :/
 void finishNewTextField(NSTextField *t, BOOL isEntry)
 {
@@ -129,9 +137,14 @@ void finishNewTextField(NSTextField *t, BOOL isEntry)
 	[[t cell] setScrollable:YES];
 }
 
-static void defaultOnChanged(uiEntry *e, void *data)
+NSTextField *newEditableTextField(void)
 {
-	// do nothing
+	NSTextField *tf;
+
+	tf = [[libui_intrinsicWidthNSTextField alloc] initWithFrame:NSZeroRect];
+	[tf setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
+	finishNewTextField(tf, YES);
+	return tf;
 }
 
 uiEntry *uiNewEntry(void)
@@ -140,9 +153,7 @@ uiEntry *uiNewEntry(void)
 
 	e = (uiEntry *) uiNewControl(uiEntryType());
 
-	e->textfield = [[libui_intrinsicWidthNSTextField alloc] initWithFrame:NSZeroRect];
-	[e->textfield setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
-	finishNewTextField(e->textfield, YES);
+	e->textfield = newEditableTextField();
 
 	if (entryDelegate == nil) {
 		entryDelegate = [entryDelegateClass new];

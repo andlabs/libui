@@ -63,6 +63,3 @@ extern NSSize fittingAlignmentSize(NSView *);
 extern NSMapTable *newMap(void);
 extern void *mapGet(NSMapTable *map, id key);
 extern void mapSet(NSMapTable *map, id key, void *value);
-
-// TODO
-#define PUT_CODE_HERE 0

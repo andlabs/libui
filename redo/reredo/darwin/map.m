@@ -6,8 +6,7 @@
 
 NSMapTable *newMap(void)
 {
-	// TODO NSPointerFunctionsOpaquePersonality?
-	return [NSMapTable mapTableWithKeyOptions:NSPointerFunctionsOpaqueMemory
+	return [NSMapTable mapTableWithKeyOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)
 		valueOptions:NSPointerFunctionsOpaqueMemory];
 }
 

@@ -1,8 +1,6 @@
 // 28 april 2015
 #import "uipriv_darwin.h"
 
-// TODO migrate to map.m functions
-
 static NSMutableArray *menus = nil;
 static BOOL menusFinalized = NO;
 
@@ -54,10 +52,8 @@ enum {
 - (IBAction)onClicked:(id)sender
 {
 	uiMenuItem *item;
-	NSValue *v;
 
-	v = (NSValue *) [self->items objectForKey:sender];
-	item = (uiMenuItem *) [v pointerValue];
+	item = (uiMenuItem *) mapGet(self->items, sender);
 	if (item->type == typeCheckbox)
 		uiMenuItemSetChecked(uiMenuItem(item), !uiMenuItemChecked(uiMenuItem(item)));
 	// use the key window as the source of the menu event; it's the active window
@@ -91,8 +87,7 @@ enum {
 		self->hasAbout = YES;
 		break;
 	}
-	v = [NSValue valueWithPointer:smi];
-	[self->items setObject:v forKey:item];
+	mapSet(self->items, item, smi);
 }
 
 // on OS X there are two ways to handle menu items being enabled or disabled: automatically and manually
@@ -101,7 +96,6 @@ enum {
 - (BOOL)validateMenuItem:(NSMenuItem *)item
 {
 	uiMenuItem *smi;
-	NSValue *v;
 
 	// disable the special items if they aren't present
 	if (item == self.quitItem && !self->hasQuit)
@@ -111,8 +105,7 @@ enum {
 	if (item == self.aboutItem && !self->hasAbout)
 		return NO;
 	// then poll the item's enabled/disabled state
-	v = (NSValue *) [self->items objectForKey:item];
-	smi = (uiMenuItem *) [v pointerValue];
+	smi = (uiMenuItem *) mapGet(self->items, item);
 	return !smi->disabled;
 }
 

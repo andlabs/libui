@@ -19,13 +19,6 @@ static NSButtonCell *cellAt(uiRadioButtons *r, uintmax_t n)
 	return (NSButtonCell *) [r->matrix cellAtRow:n column:0];
 }
 
-static void radioButtonsRelayout(uiDarwinControl *c)
-{
-	uiRadioButtons *r = uiRadioButtons(c);
-
-	[r->matrix sizeToCells];
-}
-
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 {
 	intmax_t prevSelection;
@@ -37,8 +30,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	[cellAt(r, [r->matrix numberOfRows] - 1) setTitle:toNSString(text)];
 
 	// this will definitely cause a resize in at least the vertical direction, even if not in the horizontal
-	// we do that when relaying out below
-	// TODO sometimes it doesn't work right
+	// DO NOT CALL sizeToCells! this will glitch out; see http://stackoverflow.com/questions/32162562/dynamically-adding-cells-to-a-nsmatrix-laid-out-with-auto-layout-has-weird-effec
 
 	// and renew the previous selection
 	// we need to turn on allowing empty selection for this to work properly on the initial state
@@ -79,7 +71,6 @@ uiRadioButtons *uiNewRadioButtons(void)
 	[r->matrix setAutosizesCells:YES];
 
 	uiDarwinFinishNewControl(r, uiRadioButtons);
-	uiDarwinControl(r)->Relayout = radioButtonsRelayout;
 
 	return r;
 }

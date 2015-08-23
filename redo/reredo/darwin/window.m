@@ -125,15 +125,18 @@ static void windowRelayout(uiDarwinControl *c)
 	uiWindow *w = uiWindow(c);
 	uiDarwinControl *cc;
 	NSView *childView;
+	NSView *contentView;
 
 	if (w->child == NULL)
 		return;
 	cc = uiDarwinControl(w->child);
 	childView = (NSView *) uiControlHandle(w->child);
+	contentView = [w->window contentView];
+	[contentView removeConstraints:[contentView constraints]];
 	// first relayout the child
 	(*(cc->Relayout))(cc);
 	// now relayout ourselves
-	layoutSingleView([w->window contentView], childView, w->margined);
+	layoutSingleView(contentView, childView, w->margined);
 }
 
 char *uiWindowTitle(uiWindow *w)

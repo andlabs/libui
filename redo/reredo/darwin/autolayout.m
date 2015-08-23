@@ -27,12 +27,11 @@ void setHuggingPri(NSView *view, NSLayoutPriority priority, NSLayoutConstraintOr
 	[view setContentHuggingPriority:priority forOrientation:orientation];
 }
 
+// precondition: constraints must have been removed from superview already
 void layoutSingleView(NSView *superview, NSView *subview, int margined)
 {
 	NSDictionary *views;
 	NSString *constraint;
-
-	[superview removeConstraints:[superview constraints]];
 
 	views = NSDictionaryOfVariableBindings(subview);
 

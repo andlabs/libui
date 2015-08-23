@@ -61,6 +61,7 @@ static void tabRelayout(uiDarwinControl *c)
 		child = (uiControl *) [v pointerValue];
 		view = (NSView *) [t->views objectAtIndex:i];
 		childView = (NSView *) uiControlHandle(child);
+		[view removeConstraints:[view constraints]];
 		margined = (NSNumber *) [t->margined objectAtIndex:i];
 		// first lay out the child
 		cc = uiDarwinControl(child);

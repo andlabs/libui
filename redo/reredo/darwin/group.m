@@ -41,6 +41,7 @@ static void groupRelayout(uiDarwinControl *c)
 
 	if (g->child == NULL)
 		return;
+	[g->box removeConstraints:[g->box constraints]];
 	cc = uiDarwinControl(g->child);
 	childView = (NSView *) uiControlHandle(g->child);
 	// first relayout the child

@@ -1,6 +1,8 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
+// TODO should the selection be lost when starting a new drag?
+
 struct uiRadioButtons {
 	uiDarwinControl c;
 	NSMatrix *matrix;
@@ -17,23 +19,34 @@ static NSButtonCell *cellAt(uiRadioButtons *r, uintmax_t n)
 	return (NSButtonCell *) [r->matrix cellAtRow:n column:0];
 }
 
+static void radioButtonsRelayout(uiDarwinControl *c)
+{
+	uiRadioButtons *r = uiRadioButtons(c);
+
+	[r->matrix sizeToCells];
+}
+
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 {
 	intmax_t prevSelection;
 
 	// renewRows:columns: will reset the selection
 	prevSelection = [r->matrix selectedRow];
+
 	[r->matrix renewRows:([r->matrix numberOfRows] + 1) columns:1];
 	[cellAt(r, [r->matrix numberOfRows] - 1) setTitle:toNSString(text)];
+
 	// this will definitely cause a resize in at least the vertical direction, even if not in the horizontal
-	// TODO sometimes this isn't enough
-	[r->matrix sizeToCells];
+	// we do that when relaying out below
+	// TODO sometimes it doesn't work right
+
 	// and renew the previous selection
 	// we need to turn on allowing empty selection for this to work properly on the initial state
 	// TODO this doesn't actually work
 	[r->matrix setAllowsEmptySelection:YES];
 	[r->matrix selectCellAtRow:prevSelection column:0];
 	[r->matrix setAllowsEmptySelection:NO];
+
 	uiDarwinControlTriggerRelayout(uiDarwinControl(r));
 }
 
@@ -66,6 +79,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 	[r->matrix setAutosizesCells:YES];
 
 	uiDarwinFinishNewControl(r, uiRadioButtons);
+	uiDarwinControl(r)->Relayout = radioButtonsRelayout;
 
 	return r;
 }

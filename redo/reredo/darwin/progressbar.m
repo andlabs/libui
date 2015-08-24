@@ -2,7 +2,6 @@
 #import "uipriv_darwin.h"
 
 // TODOs:
-// - 10.8: left/right side of progress bar clipped
 // - 10.8: increasing value animates just like with Aero
 
 struct uiProgressBar {

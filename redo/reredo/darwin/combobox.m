@@ -1,9 +1,6 @@
 // 14 august 2015
 #include "uipriv_darwin.h"
 
-// TODOs:
-// - 10.8: edges of NSPopUpButton clipped
-
 struct uiCombobox {
 	uiDarwinControl c;
 	BOOL editable;

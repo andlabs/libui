@@ -1,9 +1,6 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
-// TODOs:
-// - 10.8: increasing value animates just like with Aero
-
 struct uiProgressBar {
 	uiDarwinControl c;
 	NSProgressIndicator *pi;
@@ -19,6 +16,15 @@ void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
 	if (value < 0 || value > 100)
 		complain("value %d out of range in progressbarSetValue()", value);
+	// on 10.8 there's an animation when the progress bar increases, just like with Aero
+	if (value == 100) {
+		[p->pi setMaxValue:101];
+		[p->pi setDoubleValue:101];
+		[p->pi setDoubleValue:100];
+		[p->pi setMaxValue:100];
+		return;
+	}
+	[p->pi setDoubleValue:((double) (value + 1))];
 	[p->pi setDoubleValue:((double) value)];
 }
 

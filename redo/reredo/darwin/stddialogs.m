@@ -1,7 +1,7 @@
 // 26 june 2015
 #import "uipriv_darwin.h"
 
-// TODO is whether extensions are shown a Finder setting?
+// note: whether extensions are actually shown depends on a user setting in Finder; we can't control it here
 static void setupSavePanel(NSSavePanel *s)
 {
 	[s setCanCreateDirectories:YES];
@@ -45,12 +45,27 @@ char *uiSaveFile(void)
 	return runSavePanel(s);
 }
 
+static void msgbox(const char *title, const char *description, NSAlertStyle style)
+{
+	NSAlert *a;
+
+	a = [NSAlert new];
+	[a setAlertStyle:style];
+	[a setShowsHelp:NO];
+	[a setShowsSuppressionButton:NO];
+	[a setMessageText:toNSString(title)];
+	[a setInformativeText:toNSString(description)];
+	[a addButtonWithTitle:@"OK"];
+	[a runModal];
+	[a release];
+}
+
 void uiMsgBox(const char *title, const char *description)
 {
-	// TODO
+	msgbox(title, description, NSInformationalAlertStyle);
 }
 
 void uiMsgBoxError(const char *title, const char *description)
 {
-	// TODO
+	msgbox(title, description, NSCriticalAlertStyle);
 }

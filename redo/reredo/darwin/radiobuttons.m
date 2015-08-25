@@ -1,7 +1,7 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
-// TODO should the selection be lost when starting a new drag?
+// TODO the selection should NOT be lost when starting a new drag
 
 struct uiRadioButtons {
 	uiDarwinControl c;

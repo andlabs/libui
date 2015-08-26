@@ -55,6 +55,8 @@ struct uiControl {
 	void *Internal;		// for use by libui only
 	void (*CommitDestroy)(uiControl *);
 	uintptr_t (*Handle)(uiControl *);
+	void (*CommitShow)(uiControl *);
+	void (*CommitHide)(uiControl *);
 	void (*ContainerUpdateState)(uiControl *);
 };
 _UI_EXTERN uintmax_t uiControlType(void);

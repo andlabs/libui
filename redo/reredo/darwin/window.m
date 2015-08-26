@@ -216,8 +216,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 
 	uiDarwinFinishNewControl(w, uiWindow);
-//TODO	uiControl(w)->CommitShow = windowCommitShow;
-//TODO	uiControl(w)->CommitHide = windowCommitHide;
+	uiControl(w)->CommitShow = windowCommitShow;
+	uiControl(w)->CommitHide = windowCommitHide;
 	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
 	uiDarwinControl(w)->Relayout = windowRelayout;
 

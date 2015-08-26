@@ -21,20 +21,15 @@ void uiDarwinControlTriggerRelayout(uiDarwinControl *c)
 	(*(c->Relayout))(uiDarwinControl(c));
 }
 
-void osCommitShow(uiControl *c)
+static void defaultCommitShow(uiControl *c)
 {
 	NSView *view;
 
 	view = (NSView *) uiControlHandle(c);
-	// TODO
-	if ([view isKindOfClass:[NSWindow class]]) {
-		[view makeKeyAndOrderFront:view];
-		return;
-	}
 	[view setHidden:NO];
 }
 
-void osCommitHide(uiControl *c)
+static void defaultCommitHide(uiControl *c)
 {
 	NSView *view;
 
@@ -69,6 +64,8 @@ void uiDarwinFinishControl(uiControl *c)
 	// TODO omit this for uiWindow properly
 	if ([view respondsToSelector:@selector(setTranslatesAutoresizingMaskIntoConstraints:)])
 		[view setTranslatesAutoresizingMaskIntoConstraints:NO];
+	c->CommitShow = defaultCommitShow;
+	c->CommitHide = defaultCommitHide;
 }
 
 void uiDarwinSetControlFont(NSControl *c, NSControlSize size)

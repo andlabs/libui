@@ -19,8 +19,6 @@ extern int isToplevel(uiControl *);
 extern uiControl *toplevelOwning(uiControl *);
 extern void controlUpdateState(uiControl *);
 
-extern void osCommitShow(uiControl *);
-extern void osCommitHide(uiControl *);
 extern void osCommitEnable(uiControl *);
 extern void osCommitDisable(uiControl *);
 

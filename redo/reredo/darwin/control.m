@@ -61,8 +61,7 @@ void uiDarwinFinishControl(uiControl *c)
 
 	view = (NSView *) uiControlHandle(c);
 	[view retain];
-	// TODO omit this for uiWindow properly
-	if ([view respondsToSelector:@selector(setTranslatesAutoresizingMaskIntoConstraints:)])
+	if (!isToplevel(c))
 		[view setTranslatesAutoresizingMaskIntoConstraints:NO];
 	c->CommitShow = defaultCommitShow;
 	c->CommitHide = defaultCommitHide;

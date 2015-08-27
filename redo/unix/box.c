@@ -3,13 +3,12 @@
 
 // TODO clean this up
 
-struct box {
-	uiBox b;
+struct uiBox {
+	uiUnixControl c;
 	GtkWidget *widget;
 	GtkContainer *container;
 	GtkBox *box;
-	void (*baseCommitDestroy)(uiControl *);
-	struct ptrArray *controls;		// TODO switch to GArray
+	struct ptrArray *controls;			// TODO switch to GArray
 	int vertical;
 	int padded;
 	GtkSizeGroup *stretchygroup;		// ensures all stretchy controls have the same size
@@ -20,11 +19,16 @@ struct boxControl {
 	int stretchy;
 };
 
-uiDefineControlType(uiBox, uiTypeBox, struct box)
+static void onDestroy(uiBox *b);
 
-static void boxCommitDestroy(uiControl *c)
+uiUnixDefineControlWithOnDestroy(
+	uiBox,								// type name
+	uiBoxType,							// type function
+	onDestroy(this);						// on destroy
+)
+
+static void onDestroy(uiBox *b)
 {
-	struct box *b = (struct box *) c;
 	struct boxControl *bc;
 
 	// don't chain up to base here; we need to destroy children ourselves first
@@ -38,20 +42,11 @@ static void boxCommitDestroy(uiControl *c)
 	ptrArrayDestroy(b->controls);
 	// kill the size group
 	g_object_unref(b->stretchygroup);
-	// NOW we can chain up to base
-	(*(b->baseCommitDestroy))(uiControl(b));
-}
-
-static uintptr_t boxHandle(uiControl *c)
-{
-	struct box *b = (struct box *) c;
-
-	return (uintptr_t) (b->widget);
 }
 
 static void boxContainerUpdateState(uiControl *c)
 {
-	struct box *b = (struct box *) c;
+	uiBox *b = uiBox(c);
 	struct boxControl *bc;
 	uintmax_t i;
 
@@ -61,9 +56,8 @@ static void boxContainerUpdateState(uiControl *c)
 	}
 }
 
-static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
+void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
-	struct box *b = (struct box *) ss;
 	struct boxControl *bc;
 	GtkWidget *widget;
 
@@ -91,9 +85,8 @@ static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
 	uiControlQueueResize(uiControl(b));
 }
 
-static void boxDelete(uiBox *ss, uintmax_t index)
+void uiBoxDelete(uiBox *b, uintmax_t index)
 {
-	struct box *b = (struct box *) ss;
 	struct boxControl *bc;
 
 	bc = ptrArrayIndex(b->controls, struct boxControl *, index);
@@ -105,17 +98,13 @@ static void boxDelete(uiBox *ss, uintmax_t index)
 	uiControlQueueResize(uiControl(b));
 }
 
-static int boxPadded(uiBox *ss)
+int uiBoxPadded(uiBox *b)
 {
-	struct box *b = (struct box *) ss;
-
 	return b->padded;
 }
 
-static void boxSetPadded(uiBox *ss, int padded)
+void uiBoxSetPadded(uiBox *b, int padded)
 {
-	struct box *b = (struct box *) ss;
-
 	b->padded = padded;
 	if (b->padded)
 		if (b->vertical)
@@ -129,9 +118,9 @@ static void boxSetPadded(uiBox *ss, int padded)
 
 static uiBox *finishNewBox(GtkOrientation orientation)
 {
-	struct box *b;
+	uiBox *b;
 
-	b = (struct box *) uiNewControl(uiTypeBox());
+	b = (uiBox *) uiNewControl(uiTypeBox());
 
 	b->widget = gtk_box_new(orientation, 0);
 	b->container = GTK_CONTAINER(b->widget);
@@ -148,17 +137,10 @@ static uiBox *finishNewBox(GtkOrientation orientation)
 
 	uiUnixMakeSingleWidgetControl(uiControl(b), b->widget);
 
-	uiControl(b)->Handle = boxHandle;
-	b->baseCommitDestroy = uiControl(b)->CommitDestroy;
-	uiControl(b)->CommitDestroy = boxCommitDestroy;
+	uiUnixFinishNewControl(b, uiBox);
 	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;
 
-	uiBox(b)->Append = boxAppend;
-	uiBox(b)->Delete = boxDelete;
-	uiBox(b)->Padded = boxPadded;
-	uiBox(b)->SetPadded = boxSetPadded;
-
-	return uiBox(b);
+	return b;
 }
 
 uiBox *uiNewHorizontalBox(void)

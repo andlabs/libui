@@ -1,8 +1,8 @@
 // 10 june 2015
 #include "uipriv_unix.h"
 
-struct checkbox {
-	uiCheckbox c;
+struct uiCheckbox {
+	uiUnixControl c;
 	GtkWidget *widget;
 	GtkButton *button;
 	GtkToggleButton *toggleButton;
@@ -12,7 +12,10 @@ struct checkbox {
 	gulong onToggledSignal;
 };
 
-uiDefineControlType(uiCheckbox, uiTypeCheckbox, struct checkbox)
+uiUnixDefineControl(
+	uiCheckbox,							// type name
+	uiCheckboxType						// type function
+)
 
 static void onToggled(GtkToggleButton *b, gpointer data)
 {
@@ -21,52 +24,36 @@ static void onToggled(GtkToggleButton *b, gpointer data)
 	(*(c->onToggled))(uiCheckbox(c), c->onToggledData);
 }
 
-static uintptr_t checkboxHandle(uiControl *cc)
-{
-	struct checkbox *c = (struct checkbox *) cc;
-
-	return (uintptr_t) (c->widget);
-}
-
 static void defaultOnToggled(uiCheckbox *c, void *data)
 {
 	// do nothing
 }
 
-static char *checkboxText(uiCheckbox *cc)
+char *uiCheckboxText(uiCheckbox *c)
 {
-	struct checkbox *c = (struct checkbox *) cc;
-
 	return uiUnixStrdupText(gtk_button_get_label(c->button));
 }
 
-static void checkboxSetText(uiCheckbox *cc, const char *text)
+void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
-	struct checkbox *c = (struct checkbox *) cc;
-
 	gtk_button_set_label(GTK_BUTTON(c->button), text);
 	// changing the text might necessitate a change in the checkbox's size
 	uiControlQueueResize(uiControl(c));
 }
 
-static void checkboxOnToggled(uiCheckbox *cc, void (*f)(uiCheckbox *, void *), void *data)
+void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)
 {
-	struct checkbox *c = (struct checkbox *) cc;
-
 	c->onToggled = f;
 	c->onToggledData = data;
 }
 
-static int checkboxChecked(uiCheckbox *cc)
+int uiCheckboxChecked(uiCheckbox *c)
 {
-	struct checkbox *c = (struct checkbox *) cc;
-
 	return gtk_toggle_button_get_active(c->toggleButton) != FALSE;
 }
 
-static void checkboxSetChecked(uiCheckbox *cc, int checked)
+void uiCheckboxSetChecked(uiCheckbox *c, int checked)
 {
-	struct checkbox *c = (struct checkbox *) cc;
 	gboolean active;
 
 	active = FALSE;
@@ -80,26 +67,19 @@ static void checkboxSetChecked(uiCheckbox *cc, int checked)
 
 uiCheckbox *uiNewCheckbox(const char *text)
 {
-	struct checkbox *c;
+	uiCheckbox *c;
 
-	c = (struct checkbox *) uiNewControl(uiTypeCheckbox());
+	c = (uiCheckbox *) uiNewControl(uiTypeCheckbox());
 
 	c->widget = gtk_check_button_new_with_label(text);
 	c->button = GTK_BUTTON(c->widget);
 	c->toggleButton = GTK_TOGGLE_BUTTON(c->widget);
 	c->checkButton = GTK_CHECK_BUTTON(c->widget);
-	uiUnixMakeSingleWidgetControl(uiControl(c), c->widget);
 
 	c->onToggledSignal = g_signal_connect(c->widget, "toggled", G_CALLBACK(onToggled), c);
-	c->onToggled = defaultOnToggled;
+	uiCheckboxOnToggled(c, defaultOnToggled, NULL);
 
-	uiControl(c)->Handle = checkboxHandle;
+	uiUnixFinishNewControl(c, uiCheckbox);
 
-	uiCheckbox(c)->Text = checkboxText;
-	uiCheckbox(c)->SetText = checkboxSetText;
-	uiCheckbox(c)->OnToggled = checkboxOnToggled;
-	uiCheckbox(c)->Checked = checkboxChecked;
-	uiCheckbox(c)->SetChecked = checkboxSetChecked;
-
-	return uiCheckbox(c);
+	return c;
 }

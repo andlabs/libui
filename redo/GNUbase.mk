@@ -8,8 +8,6 @@ IDLFILES = \
 	$(baseIDLFILES)
 
 xHFILES = \
-	uipriv.h \
-	$(IDLFILES:%.idl=$(OUTDIR)/%.h) \
 	$(baseHFILES)
 
 OFILES = \
@@ -62,11 +60,6 @@ $(OBJDIR)/%.o: %.rc $(xHFILES) | $$(dir $$@).phony
 	@mkdir -p $(dir $@)
 	@touch $@
 .PRECIOUS: %/.phony
-
-$(OUTDIR)/%.h: %.idl tools/idl2h.go | $(OUTDIR)/.phony
-	@go run tools/idl2h.go -extern _UI_EXTERN -guard __UI_UI_H__ < $< > $@
-	@echo ====== Generated `basename $@`
-.PRECIOUS: $(OUTDIR)/%.h
 
 clean:
 	rm -rf $(OUTDIR) $(OBJDIR) z*

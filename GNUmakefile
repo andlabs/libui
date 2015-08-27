@@ -16,8 +16,11 @@ endif
 
 include $(OS)/GNUmakeinc.mk
 
+baseIDLFILES = \
+	ui.idl
+#	ui_$(OS).idl
+
 baseHFILES = \
-	ui.h \
 	uipriv.h \
 	ui_$(OS).h \
 	$(osHFILES)

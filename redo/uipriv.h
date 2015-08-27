@@ -15,7 +15,12 @@ extern void uiFree(void *);
 
 extern void complain(const char *, ...);
 
-extern void queueResize(uiControl *);
+extern int isToplevel(uiControl *);
+extern uiControl *toplevelOwning(uiControl *);
+extern void controlUpdateState(uiControl *);
+
+extern void osCommitEnable(uiControl *);
+extern void osCommitDisable(uiControl *);
 
 // ptrarray.c
 struct ptrArray {

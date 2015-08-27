@@ -1,5 +1,5 @@
 // 17 may 2015
-#include "out/ui.h"
+#include "ui.h"
 #include "uipriv.h"
 
 struct typeinfo {
@@ -19,6 +19,7 @@ uintmax_t uiRegisterType(const char *name, uintmax_t parent, size_t size)
 		// reserve ID 0
 		ptrArrayAppend(types, NULL);
 	}
+	// TODO prevent our size from being smaller than our parent's
 	ti = uiNew(struct typeinfo);
 	ti->name = name;
 	ti->parent = parent;

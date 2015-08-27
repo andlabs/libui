@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
-#include "../out/ui.h"
+#include "../ui.h"
 
 // main.c
 extern void die(const char *, ...);

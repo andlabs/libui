@@ -1,5 +1,5 @@
 // 9 may 2015
-#include "out/ui.h"
+#include "ui.h"
 #include "uipriv.h"
 
 static int defaultOnShouldQuit(void *data)

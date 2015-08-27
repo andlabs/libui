@@ -1,6 +1,6 @@
 // 5 may 2015
 #include <string.h>
-#include "out/ui.h"
+#include "ui.h"
 #include "uipriv.h"
 
 struct ptrArray *newPtrArray(void)

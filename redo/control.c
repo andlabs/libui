@@ -1,5 +1,5 @@
 // 26 may 2015
-#include "out/ui.h"
+#include "ui.h"
 #include "uipriv.h"
 
 struct controlBase {
@@ -10,54 +10,74 @@ struct controlBase {
 
 static uintmax_t type_uiControl = 0;
 
-uintmax_t uiTypeControl(void)
+uintmax_t uiControlType(void)
 {
 	if (type_uiControl == 0)
-		type_uiControl = uiRegisterType("uiControl", 0, 0);
+		type_uiControl = uiRegisterType("uiControl", 0, sizeof (uiControl));
 	return type_uiControl;
 }
 
 #define controlBase(c) ((struct controlBase *) (c->Internal))
 
-static void controlBaseDestroy(uiControl *c)
+void uiControlDestroy(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
 	if (cb->parent != NULL)
 		complain("attempt to destroy uiControl %p while it has a parent", c);
-	uiControlCommitDestroy(c);
+	(*(c->CommitDestroy))(c);
 	uiFree(cb);
 	uiFree(c);
 }
 
-static uiControl *controlBaseParent(uiControl *c)
+uintptr_t uiControlHandle(uiControl *c)
+{
+	return (*(c->Handle))(c);
+}
+
+uiControl *uiControlParent(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
 	return cb->parent;
 }
 
-static void controlBaseSetParent(uiControl *c, uiControl *parent)
+int isToplevel(uiControl *c)
+{
+	return uiIsA(c, uiWindowType(), 0) != NULL;
+}
+
+// returns self if self is a window
+uiControl *toplevelOwning(uiControl *c)
+{
+	struct controlBase *cb;
+
+	for (;;) {
+		if (isToplevel(c))
+			return c;
+		cb = controlBase(c);
+		if (cb->parent == NULL)
+			return NULL;
+		c = cb->parent;
+	}
+}
+
+void uiControlSetParent(uiControl *c, uiControl *parent)
 {
 	struct controlBase *cb = controlBase(c);
 
+	if (isToplevel(c))
+		complain("cannot set a parent on a toplevel (uiWindow)");
 	if (parent != NULL && cb->parent != NULL)
 		complain("attempt to reparent uiControl %p (has parent %p, attempt to give parent %p)", c, cb->parent, parent);
 	if (parent == NULL && cb->parent == NULL)
 		complain("attempt to double unparent uiControl %p", c);
-	// this must come first; GTK+ CommitSetParent() needs the old parent
-	uiControlCommitSetParent(c, parent);
 	cb->parent = parent;
 	// for situations such as where the old parent was disabled but the new one is not, etc.
-	uiControlUpdateState(c);
+	controlUpdateState(c);
 }
 
-static void controlBaseQueueResize(uiControl *c)
-{
-	queueResize(c);
-}
-
-static int controlBaseContainerVisible(uiControl *c)
+static int controlContainerVisible(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -65,26 +85,26 @@ static int controlBaseContainerVisible(uiControl *c)
 		return 0;
 	if (cb->parent == NULL)
 		return 1;
-	return uiControlContainerVisible(cb->parent);
+	return controlContainerVisible(cb->parent);
 }
 
-static void controlBaseShow(uiControl *c)
+void uiControlShow(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
 	cb->hidden = 0;
-	uiControlUpdateState(c);
+	controlUpdateState(c);
 }
 
-static void controlBaseHide(uiControl *c)
+void uiControlHide(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
 	cb->hidden = 1;
-	uiControlUpdateState(c);
+	controlUpdateState(c);
 }
 
-static int controlBaseContainerEnabled(uiControl *c)
+static int controlContainerEnabled(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
@@ -92,43 +112,38 @@ static int controlBaseContainerEnabled(uiControl *c)
 		return 0;
 	if (cb->parent == NULL)
 		return 1;
-	return uiControlContainerEnabled(cb->parent);
+	return controlContainerEnabled(cb->parent);
 }
 
-static void controlBaseEnable(uiControl *c)
+void uiControlEnable(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
 	cb->disabled = 0;
-	uiControlUpdateState(c);
+	controlUpdateState(c);
 }
 
-static void controlBaseDisable(uiControl *c)
+void uiControlDisable(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
 
 	cb->disabled = 1;
-	uiControlUpdateState(c);
+	controlUpdateState(c);
 }
 
-static void controlBaseUpdateState(uiControl *c)
+void controlUpdateState(uiControl *c)
 {
-	if (uiControlContainerVisible(c))
-		uiControlCommitShow(c);
+	if (controlContainerVisible(c))
+		(*(c->CommitShow))(c);
 	else
-		uiControlCommitHide(c);
-	if (uiControlContainerEnabled(c))
-		uiControlCommitEnable(c);
+		(*(c->CommitHide))(c);
+	if (controlContainerEnabled(c))
+		osCommitEnable(c);
 	else
-		uiControlCommitDisable(c);
-	uiControlContainerUpdateState(c);
+		osCommitDisable(c);
+	(*(c->ContainerUpdateState))(c);
 	// and queue a resize, just in case we showed/hid something
-	uiControlQueueResize(c);
-}
-
-static void controlBaseContainerUpdateState(uiControl *c)
-{
-	// by default not a container; do nothing
+//TODO	uiControlQueueResize(c);
 }
 
 uiControl *uiNewControl(uintmax_t type)
@@ -136,18 +151,6 @@ uiControl *uiNewControl(uintmax_t type)
 	uiControl *c;
 
 	c = uiControl(newTyped(type));
-	uiControl(c)->Internal = uiNew(struct controlBase);
-	uiControl(c)->Destroy = controlBaseDestroy;
-	uiControl(c)->Parent = controlBaseParent;
-	uiControl(c)->SetParent = controlBaseSetParent;
-	uiControl(c)->QueueResize = controlBaseQueueResize;
-	uiControl(c)->ContainerVisible = controlBaseContainerVisible;
-	uiControl(c)->Show = controlBaseShow;
-	uiControl(c)->Hide = controlBaseHide;
-	uiControl(c)->ContainerEnabled = controlBaseContainerEnabled;
-	uiControl(c)->Enable = controlBaseEnable;
-	uiControl(c)->Disable = controlBaseDisable;
-	uiControl(c)->UpdateState = controlBaseUpdateState;
-	uiControl(c)->ContainerUpdateState = controlBaseContainerUpdateState;
-	return uiControl(c);
+	c->Internal = uiNew(struct controlBase);
+	return c;
 }

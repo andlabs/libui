@@ -12,19 +12,10 @@ void complain(const char *fmt, ...)
 	g_error("[libui] %s\n", msg);
 }
 
-uiSizing *uiUnixNewSizing(void)
+void setMargined(GtkContainer *c, int margined)
 {
-	uiSizing *d;
-
-	d = uiNew(uiSizing);
-	d->XPadding = gtkXPadding;
-	d->YPadding = gtkYPadding;
-	d->Sys = uiNew(uiSizingSys);
-	return d;
-}
-
-void uiFreeSizing(uiSizing *d)
-{
-	uiFree(d->Sys);
-	uiFree(d);
+	if (b->margined)
+		gtk_container_set_border_width(c, gtkXMargin);
+	else
+		gtk_container_set_border_width(c, 0);
 }

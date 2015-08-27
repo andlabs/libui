@@ -22,8 +22,5 @@ extern void uninitMenus(void);
 extern void initAlloc(void);
 extern void uninitAlloc(void);
 
-// bin.c
-extern uiControl *newBin(void);
-extern void binSetChild(uiControl *, uiControl *);
-extern int binMargined(uiControl *);
-extern void binSetMargined(uiControl *, int);
+// util.c
+extern void setMargined(GtkContainer *, int);

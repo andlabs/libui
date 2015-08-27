@@ -1,19 +1,15 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
-struct datetimepicker {
-	uiDateTimePicker d;
+struct uiDateTimePicker {
+	uiUnixControl c;
 	GtkWidget *widget;
 };
 
-uiDefineControlType(uiDateTimePicker, uiTypeDateTimePicker, struct datetimepicker)
-
-static uintptr_t datetimepickerHandle(uiControl *c)
-{
-	struct datetimepicker *d = (struct datetimepicker *) c;
-
-	return (uintptr_t) (d->widget);
-}
+uiUnixDefineControl(
+	uiDateTimePicker,						// type name
+	uiDateTimePickerType					// type function
+)
 
 // TODO
 typedef int OSTHING;
@@ -25,16 +21,15 @@ enum {
 
 uiDateTimePicker *finishNewDateTimePicker(OSTHING OSARG)
 {
-	struct datetimepicker *d;
+	uiDateTimePicker *d;
 
-	d = (struct datetimepicker *) uiNewControl(uiTypeDateTimePicker());
+	d = (uiDateTimePicker *) uiNewControl(uiTypeDateTimePicker());
 
 	d->widget = gtk_label_new("TODO uiDateTimePicker not implemented");
-	uiUnixMakeSingleWidgetControl(uiControl(d), d->widget);
 
-	uiControl(d)->Handle = datetimepickerHandle;
+	uiUnixFinishNewControl(d, uiDateTimePicker);
 
-	return uiDateTimePicker(d);
+	return d;
 }
 
 uiDateTimePicker *uiNewDateTimePicker(void)

@@ -1,45 +1,36 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
-struct combobox {
-	uiCombobox c;
+struct uiCombobox {
+	uiUnixControl c;
 	GtkWidget *widget;
 	GtkComboBox *combobox;
 	GtkComboBoxText *comboboxText;
 };
 
-uiDefineControlType(uiCombobox, uiTypeCombobox, struct combobox)
+uiUnixDefineControl(
+	uiCombobox,							// type name
+	uiComboboxType						// type function
+)
 
-static uintptr_t comboboxHandle(uiControl *cc)
+void uiComboboxAppend(uiCombobox *c, const char *text)
 {
-	struct combobox *c = (struct combobox *) cc;
-
-	return (uintptr_t) (c->widget);
-}
-
-static void comboboxAppend(uiCombobox *cc, const char *text)
-{
-	struct combobox *c = (struct combobox *) cc;
-
 	gtk_combo_box_text_append(c->comboboxText, NULL, text);
 }
 
 static uiCombobox *finishNewCombobox(GtkWidget *(*newfunc)(void))
 {
-	struct combobox *c;
+	uiCombobox *c;
 
-	c = (struct combobox *) uiNewControl(uiTypeCombobox());
+	c = (uiCombobox *) uiNewControl(uiTypeCombobox());
 
 	c->widget = (*newfunc)();
 	c->combobox = GTK_COMBO_BOX(c->widget);
 	c->comboboxText = GTK_COMBO_BOX_TEXT(c->widget);
-	uiUnixMakeSingleWidgetControl(uiControl(c), c->widget);
 
-	uiControl(c)->Handle = comboboxHandle;
+	uiUnixFinishNewControl(c, uiCombobox);
 
-	uiCombobox(c)->Append = comboboxAppend;
-
-	return uiCombobox(c);
+	return c;
 }
 
 uiCombobox *uiNewCombobox(void)

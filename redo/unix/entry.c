@@ -1,8 +1,8 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
-struct entry {
-	uiEntry e;
+struct uiEntry {
+	uiUnixControl c;
 	GtkWidget *widget;
 	GtkEntry *entry;
 	GtkEditable *editable;
@@ -11,7 +11,10 @@ struct entry {
 	gulong onChangedSignal;
 };
 
-uiDefineControlType(uiEntry, uiTypeEntry, struct entry)
+uiUnixDefineControl(
+	uiEntry,								// type name
+	uiEntryType							// type function
+)
 
 static void onChanged(GtkEditable *editable, gpointer data)
 {
@@ -20,29 +23,18 @@ static void onChanged(GtkEditable *editable, gpointer data)
 	(*(e->onChanged))(uiEntry(e), e->onChangedData);
 }
 
-static uintptr_t entryHandle(uiControl *c)
-{
-	struct entry *e = (struct entry *) c;
-
-	return (uintptr_t) (e->widget);
-}
-
 static void defaultOnChanged(uiEntry *e, void *data)
 {
 	// do nothing
 }
 
-static char *entryText(uiEntry *ee)
+char *uiEntryText(uiEntry *e)
 {
-	struct entry *e = (struct entry *) ee;
-
 	return uiUnixStrdupText(gtk_entry_get_text(e->entry));
 }
 
-static void entrySetText(uiEntry *ee, const char *text)
+void uiEntrySetText(uiEntry *e, const char *text)
 {
-	struct entry *e = (struct entry *) ee;
-
 	// we need to inhibit sending of ::changed because this WILL send a ::changed otherwise
 	g_signal_handler_block(e->editable, e->onChangedSignal);
 	gtk_entry_set_text(e->entry, text);
@@ -50,24 +42,19 @@ static void entrySetText(uiEntry *ee, const char *text)
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
 
-static void entryOnChanged(uiEntry *ee, void (*f)(uiEntry *, void *), void *data)
+void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 {
-	struct entry *e = (struct entry *) ee;
-
 	e->onChanged = f;
 	e->onChangedData = data;
 }
 
-static int entryReadOnly(uiEntry *ee)
+int uiEntryReadOnly(uiEntry *e)
 {
-	struct entry *e = (struct entry *) ee;
-
 	return gtk_editable_get_editable(e->editable) == FALSE;
 }
 
-static void entrySetReadOnly(uiEntry *ee, int readonly)
+void uiEntrySetReadOnly(uiEntry *e, int readonly)
 {
-	struct entry *e = (struct entry *) ee;
 	gboolean editable;
 
 	editable = TRUE;
@@ -78,25 +65,18 @@ static void entrySetReadOnly(uiEntry *ee, int readonly)
 
 uiEntry *uiNewEntry(void)
 {
-	struct entry *e;
+	uiEntry *e;
 
-	e = (struct entry *) uiNewControl(uiTypeEntry());
+	e = (uiEntry *) uiNewControl(uiTypeEntry());
 
 	e->widget = gtk_entry_new();
 	e->entry = GTK_ENTRY(e->widget);
 	e->editable = GTK_EDITABLE(e->widget);
-	uiUnixMakeSingleWidgetControl(uiControl(e), e->widget);
 
 	e->onChangedSignal = g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
-	e->onChanged = defaultOnChanged;
+	uiEntryOnChanged(e->onChanged, defaultOnChanged, NULL);
 
-	uiControl(e)->Handle = entryHandle;
+	uiUnixFinishNewControl(e, uiEntry);
 
-	uiEntry(e)->Text = entryText;
-	uiEntry(e)->SetText = entrySetText;
-	uiEntry(e)->OnChanged = entryOnChanged;
-	uiEntry(e)->ReadOnly = entryReadOnly;
-	uiEntry(e)->SetReadOnly = entrySetReadOnly;
-
-	return uiEntry(e);
+	return e;
 }

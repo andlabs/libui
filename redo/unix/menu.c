@@ -7,14 +7,14 @@ static gboolean hasQuit = FALSE;
 static gboolean hasPreferences = FALSE;
 static gboolean hasAbout = FALSE;
 
-struct menu {
-	uiMenu m;
+struct uiMenu {
+	uiTyped t;
 	char *name;
-	GArray *items;					// []*struct menuItem
+	GArray *items;					// []*uiMenuItem
 };
 
-struct menuItem {
-	uiMenuItem mi;
+struct uiMenuItem {
+	uiTyped t;
 	char *name;
 	int type;
 	void (*onClicked)(uiMenuItem *, uiWindow *, void *);
@@ -47,7 +47,7 @@ static void singleSetChecked(GtkCheckMenuItem *menuitem, gboolean checked, gulon
 	g_signal_handler_unblock(menuitem, signal);
 }
 
-static void setChecked(struct menuItem *item, gboolean checked)
+static void setChecked(uiMenuItem *item, gboolean checked)
 {
 	GHashTableIter iter;
 	gpointer widget;
@@ -64,7 +64,7 @@ static void setChecked(struct menuItem *item, gboolean checked)
 
 static void onClicked(GtkMenuItem *menuitem, gpointer data)
 {
-	struct menuItem *item = (struct menuItem *) data;
+	uiMenuItem *item = uiMenuItem(data);
 	struct menuItemWindow *w;
 
 	// we need to manually update the checked states of all menu items if one changes
@@ -73,7 +73,7 @@ static void onClicked(GtkMenuItem *menuitem, gpointer data)
 		setChecked(item, gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem)));
 
 	w = (struct menuItemWindow *) g_hash_table_lookup(item->windows, menuitem);
-	(*(item->onClicked))(uiMenuItem(item), w->w, item->onClickedData);
+	(*(item->onClicked))(item, w->w, item->onClickedData);
 }
 
 static void defaultOnClicked(uiMenuItem *item, uiWindow *w, void *data)
@@ -87,7 +87,7 @@ static void onQuitClicked(uiMenuItem *item, uiWindow *w, void *data)
 		uiQuit();
 }
 
-static void menuItemEnableDisable(struct menuItem *item, gboolean enabled)
+static void menuItemEnableDisable(uiMenuItem *item, gboolean enabled)
 {
 	GHashTableIter iter;
 	gpointer widget;
@@ -98,40 +98,31 @@ static void menuItemEnableDisable(struct menuItem *item, gboolean enabled)
 		gtk_widget_set_sensitive(GTK_WIDGET(widget), enabled);
 }
 
-static void menuItemEnable(uiMenuItem *ii)
+void uiMenuItemEnable(uiMenuItem *item)
 {
-	struct menuItem *item = (struct menuItem *) ii;
-
 	menuItemEnableDisable(item, TRUE);
 }
 
-static void menuItemDisable(uiMenuItem *ii)
+void menuItemDisable(uiMenuItem *item)
 {
-	struct menuItem *item = (struct menuItem *) ii;
-
 	menuItemEnableDisable(item, FALSE);
 }
 
-static void menuItemOnClicked(uiMenuItem *ii, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)
+void uiMenuItemOnClicked(uiMenuItem *item, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)
 {
-	struct menuItem *item = (struct menuItem *) ii;
-
 	if (item->type == typeQuit)
 		complain("attempt to call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead");
 	item->onClicked = f;
 	item->onClickedData = data;
 }
 
-static int menuItemChecked(uiMenuItem *ii)
+int uiMenuItemChecked(uiMenuItem *item)
 {
-	struct menuItem *item = (struct menuItem *) ii;
-
 	return item->checked != FALSE;
 }
 
-static void menuItemSetChecked(uiMenuItem *ii, int checked)
+void uiMenuItemSetChecked(uiMenuItem *item, int checked)
 {
-	struct menuItem *item = (struct menuItem *) ii;
 	gboolean c;
 
 	// use explicit values
@@ -141,14 +132,14 @@ static void menuItemSetChecked(uiMenuItem *ii, int checked)
 	setChecked(item, c);
 }
 
-static uiMenuItem *newItem(struct menu *m, int type, const char *name)
+static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 {
-	struct menuItem *item;
+	uiMenuItem *item;
 
 	if (menusFinalized)
 		complain("attempt to create a new menu item after menus have been finalized");
 
-	item = uiNew(struct menuItem);
+	item = uiNew(uiMenuItem);
 	uiTyped(item)->Type = uiMenuItemType();
 
 	g_array_append_val(m->items, item);
@@ -171,9 +162,9 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 		break;
 	}
 
-	item->onClicked = defaultOnClicked;
+	uiMenuItemOnClicked(item, defaultOnClicked, NULL);
 	if (item->type == typeQuit)
-		item->onClicked = onQuitClicked;
+		uiMenuItemOnClicked(item, onQuitClicked, NULL);
 
 	switch (item->type) {
 	case typeCheckbox:
@@ -189,85 +180,72 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 
 	item->windows = g_hash_table_new(g_direct_hash, g_direct_equal);
 
-	uiMenuItem(item)->Enable = menuItemEnable;
-	uiMenuItem(item)->Disable = menuItemDisable;
-	uiMenuItem(item)->OnClicked = menuItemOnClicked;
-	uiMenuItem(item)->Checked = menuItemChecked;
-	uiMenuItem(item)->SetChecked = menuItemSetChecked;
-
-	return uiMenuItem(item);
+	return item;
 }
 
-uiMenuItem *menuAppendItem(uiMenu *mm, const char *name)
+uiMenuItem *uiMenuAppendItem(uiMenu *m, const char *name)
 {
-	return newItem((struct menu *) mm, typeRegular, name);
+	return newItem(m, typeRegular, name);
 }
 
-uiMenuItem *menuAppendCheckItem(uiMenu *mm, const char *name)
+uiMenuItem *uiMenuAppendCheckItem(uiMenu *m, const char *name)
 {
-	return newItem((struct menu *) mm, typeCheckbox, name);
+	return newItem(m, typeCheckbox, name);
 }
 
-uiMenuItem *menuAppendQuitItem(uiMenu *mm)
+uiMenuItem *uiMenuAppendQuitItem(uiMenu *m)
 {
 	if (hasQuit)
 		complain("attempt to add multiple Quit menu items");
 	hasQuit = TRUE;
-	newItem((struct menu *) mm, typeSeparator, NULL);
-	return newItem((struct menu *) mm, typeQuit, NULL);
+	newItem(m, typeSeparator, NULL);
+	return newItem(m, typeQuit, NULL);
 }
 
-uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
+uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m)
 {
 	if (hasPreferences)
 		complain("attempt to add multiple Preferences menu items");
 	hasPreferences = TRUE;
-	newItem((struct menu *) mm, typeSeparator, NULL);
-	return newItem((struct menu *) mm, typePreferences, NULL);
+	newItem(m, typeSeparator, NULL);
+	return newItem(m, typePreferences, NULL);
 }
 
-uiMenuItem *menuAppendAboutItem(uiMenu *mm)
+uiMenuItem *uiMenuAppendAboutItem(uiMenu *m)
 {
 	if (hasAbout)
 		complain("attempt to add multiple About menu items");
 	hasAbout = TRUE;
-	newItem((struct menu *) mm, typeSeparator, NULL);
-	return newItem((struct menu *) mm, typeAbout, NULL);
+	newItem(m, typeSeparator, NULL);
+	return newItem(m, typeAbout, NULL);
 }
 
-void menuAppendSeparator(uiMenu *mm)
+void uiMenuAppendSeparator(uiMenu *m)
 {
-	newItem((struct menu *) mm, typeSeparator, NULL);
+	newItem(m, typeSeparator, NULL);
 }
 
 uiMenu *uiNewMenu(const char *name)
 {
-	struct menu *m;
+	uiMenu *m;
 
 	if (menusFinalized)
 		complain("attempt to create a new menu after menus have been finalized");
 	if (menus == NULL)
-		menus = g_array_new(FALSE, TRUE, sizeof (struct menu *));
+		menus = g_array_new(FALSE, TRUE, sizeof (uiMenu *));
 
-	m = uiNew(struct menu);
+	m = uiNew(uiMenu);
 	uiTyped(m)->Type = uiMenuType();
 
 	g_array_append_val(menus, m);
 
 	m->name = g_strdup(name);
-	m->items = g_array_new(FALSE, TRUE, sizeof (struct menuItem *));
+	m->items = g_array_new(FALSE, TRUE, sizeof (uiMenuItem *));
 
-	uiMenu(m)->AppendItem = menuAppendItem;
-	uiMenu(m)->AppendCheckItem = menuAppendCheckItem;
-	uiMenu(m)->AppendQuitItem = menuAppendQuitItem;
-	uiMenu(m)->AppendPreferencesItem = menuAppendPreferencesItem;
-	uiMenu(m)->AppendAboutItem = menuAppendAboutItem;
-	uiMenu(m)->AppendSeparator = menuAppendSeparator;
-
-	return uiMenu(m);
+	return m;
 }
 
-static void appendMenuItem(GtkMenuShell *submenu, struct menuItem *item, uiWindow *w)
+static void appendMenuItem(GtkMenuShell *submenu, uiMenuItem *item, uiWindow *w)
 {
 	GtkWidget *menuitem;
 	gulong signal;
@@ -293,7 +271,7 @@ GtkWidget *makeMenubar(uiWindow *w)
 {
 	GtkWidget *menubar;
 	guint i, j;
-	struct menu *m;
+	uiMenu *m;
 	GtkWidget *menuitem;
 	GtkWidget *submenu;
 
@@ -303,12 +281,12 @@ GtkWidget *makeMenubar(uiWindow *w)
 
 	if (menus != NULL)
 		for (i = 0; i < menus->len; i++) {
-			m = g_array_index(menus, struct menu *, i);
+			m = g_array_index(menus, uiMenu *, i);
 			menuitem = gtk_menu_item_new_with_label(m->name);
 			submenu = gtk_menu_new();
 			gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), submenu);
 			for (j = 0; j < m->items->len; j++)
-				appendMenuItem(GTK_MENU_SHELL(submenu), g_array_index(m->items, struct menuItem *, j), w);
+				appendMenuItem(GTK_MENU_SHELL(submenu), g_array_index(m->items, uiMenuItem *, j), w);
 			gtk_menu_shell_append(GTK_MENU_SHELL(menubar), menuitem);
 		}
 
@@ -325,10 +303,10 @@ struct freeMenuItemData {
 static void freeMenuItem(GtkWidget *widget, gpointer data)
 {
 	struct freeMenuItemData *fmi = (struct freeMenuItemData *) data;
-	struct menuItem *item;
+	uiMenuItem *item;
 	struct menuItemWindow *w;
 
-	item = g_array_index(fmi->items, struct menuItem *, fmi->i);
+	item = g_array_index(fmi->items, uiMenuItem *, fmi->i);
 	w = (struct menuItemWindow *) g_hash_table_lookup(item->windows, widget);
 	if (g_hash_table_remove(item->windows, widget) == FALSE)
 		complain("GtkMenuItem %p not in menu item's item/window map", widget);
@@ -339,12 +317,12 @@ static void freeMenuItem(GtkWidget *widget, gpointer data)
 static void freeMenu(GtkWidget *widget, gpointer data)
 {
 	guint *i = (guint *) data;
-	struct menu *m;
+	uiMenu *m;
 	GtkMenuItem *item;
 	GtkWidget *submenu;
 	struct freeMenuItemData fmi;
 
-	m = g_array_index(menus, struct menu *, *i);
+	m = g_array_index(menus, uiMenu *, *i);
 	item = GTK_MENU_ITEM(widget);
 	submenu = gtk_menu_item_get_submenu(item);
 	fmi.items = m->items;
@@ -364,17 +342,17 @@ void freeMenubar(GtkWidget *mb)
 
 void uninitMenus(void)
 {
-	struct menu *m;
-	struct menuItem *item;
+	uiMenu *m;
+	uiMenuItem *item;
 	guint i, j;
 
 	if (menus == NULL)
 		return;
 	for (i = 0; i < menus->len; i++) {
-		m = g_array_index(menus, struct menu *, i);
+		m = g_array_index(menus, uiMenu *, i);
 		g_free(m->name);
 		for (j = 0; j < m->items->len; j++) {
-			item = g_array_index(m->items, struct menuItem *, j);
+			item = g_array_index(m->items, uiMenuItem *, j);
 			if (g_hash_table_size(item->windows) != 0)
 				complain("menu item %p (%s) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
 			g_free(item->name);

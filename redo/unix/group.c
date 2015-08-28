@@ -5,11 +5,11 @@ struct uiGroup {
 	uiUnixControl c;
 	GtkWidget *widget;
 	GtkContainer *container;
+	GtkBin *bin;
 	GtkFrame *frame;
 
 	// unfortunately, even though a GtkFrame is a GtkBin, calling gtk_container_set_border_width() on it /includes/ the GtkFrame's label; we don't want tht
-	GtkWidget *box;
-	uiControl *child;
+	struct child *child;
 
 	int margined;
 };
@@ -24,11 +24,8 @@ uiUnixDefineControlWithOnDestroy(
 
 static void onDestroy(uiGroup *g)
 {
-	if (g->child != NULL) {
-		uiControlSetParent(g->child, NULL);
-		uiControlDestroy(g->child);
-	}
-	gtk_widget_destroy(g->box);
+	if (g->child != NULL)
+		childDestroy(g->child);
 }
 
 static void groupContainerUpdateState(uiControl *c)
@@ -36,7 +33,7 @@ static void groupContainerUpdateState(uiControl *c)
 	uiGroup *g = uiGroup(c);
 
 	if (g->child != NULL)
-		controlUpdateState(g->child);
+		childUpdateState(g->child);
 }
 
 char *uiGroupTitle(uiGroup *g)
@@ -53,18 +50,11 @@ void uiGroupSetTitle(uiGroup *g, const char *text)
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)
 {
-	if (g->child != NULL) {
-		gtk_container_remove(GTK_CONTAINER(g->box),
-			GTK_WIDGET(uiControlHandle(g->child)));
-		uiControlSetParent(g->child, NULL);
-	}
-	g->child = child;
-	if (g->child != NULL) {
-		uiControlSetParent(g->child, uiControl(g));
-		gtk_container_add(GTK_CONTAINER(g->box),
-			GTK_WIDGET(uiControlHandle(g->child)));
-		uiControlQueueResize(g->child);
-	}
+	if (g->child != NULL)
+		childRemove(g->child);
+	g->child = newChildWithBox(child, uiControl(g), g->container, g->margined);
+	if (g->child != NULL)
+		uiControlQueueResize(uiControl(g));
 }
 
 int uiGroupMargined(uiGroup *g)
@@ -75,7 +65,7 @@ int uiGroupMargined(uiGroup *g)
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
-	setMargined(GTK_CONTAINER(g->box), g->margined);
+	childSetMargined(g->child, g->margined);
 	uiControlQueueResize(uiControl(g));
 }
 
@@ -91,6 +81,7 @@ uiGroup *uiNewGroup(const char *text)
 
 	g->widget = gtk_frame_new(text);
 	g->container = GTK_CONTAINER(g->widget);
+	g->bin = GTK_BIN(g->widget);
 	g->frame = GTK_FRAME(g->widget);
 
 	// with GTK+, groupboxes by default have frames and slightly x-offset regular text
@@ -107,10 +98,6 @@ uiGroup *uiNewGroup(const char *text)
 	pango_attr_list_insert(boldlist, bold);
 	gtk_label_set_attributes(label, boldlist);
 	pango_attr_list_unref(boldlist);		// thanks baedert in irc.gimp.net/#gtk+
-
-	g->box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_container_add(g->container, g->box);
-	gtk_widget_show(g->box);
 
 	uiUnixFinishNewControl(g, uiGroup);
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;

@@ -57,6 +57,7 @@ struct child *newChildWithBox(uiControl *child, uiControl *parent, GtkContainer 
 	if (child == NULL)
 		return NULL;
 	box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_widget_show(box);
 	c = newChild(child, parent, GTK_CONTAINER(box));
 	c->box = box;
 	gtk_container_add(parentContainer, c->box);

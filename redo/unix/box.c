@@ -14,11 +14,6 @@ struct uiBox {
 	GtkSizeGroup *stretchygroup;		// ensures all stretchy controls have the same size
 };
 
-struct boxControl {
-	uiControl *c;
-	int stretchy;
-};
-
 static void onDestroy(uiBox *b);
 
 uiUnixDefineControlWithOnDestroy(
@@ -29,15 +24,12 @@ uiUnixDefineControlWithOnDestroy(
 
 static void onDestroy(uiBox *b)
 {
-	struct boxControl *bc;
+	struct child *bc;
 
-	// don't chain up to base here; we need to destroy children ourselves first
 	while (b->controls->len != 0) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, 0);
-		uiControlSetParent(bc->c, NULL);
-		uiControlDestroy(bc->c);
+		bc = ptrArrayIndex(b->controls, struct child *, 0);
+		childDestroy(bc);
 		ptrArrayDelete(b->controls, 0);
-		uiFree(bc);
 	}
 	ptrArrayDestroy(b->controls);
 	// kill the size group
@@ -47,27 +39,26 @@ static void onDestroy(uiBox *b)
 static void boxContainerUpdateState(uiControl *c)
 {
 	uiBox *b = uiBox(c);
-	struct boxControl *bc;
+	struct child *bc;
 	uintmax_t i;
 
 	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
-		controlUpdateState(bc->c);
+		bc = ptrArrayIndex(b->controls, struct child *, i);
+		childUpdateState(bc);
 	}
 }
 
+#define isStretchy(bc) childFlag(bc)
+
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
-	struct boxControl *bc;
+	struct child *bc;
 	GtkWidget *widget;
 
-	bc = uiNew(struct boxControl);
-	bc->c = c;
-	bc->stretchy = stretchy;
-	uiControlSetParent(bc->c, uiControl(b));
-	gtk_container_add(b->container, GTK_WIDGET(uiControlHandle(bc->c)));
-	widget = GTK_WIDGET(uiControlHandle(bc->c));
-	if (bc->stretchy) {
+	bc = newChild(c, uiControl(b), b->container);
+	childSetFlag(bc, stretchy);
+	widget = childWidget(bc);
+	if (isStretchy(bc)) {
 		if (b->vertical) {
 			gtk_widget_set_vexpand(widget, TRUE);
 			gtk_widget_set_valign(widget, GTK_ALIGN_FILL);
@@ -76,7 +67,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 			gtk_widget_set_halign(widget, GTK_ALIGN_FILL);
 		}
 		gtk_size_group_add_widget(b->stretchygroup, widget);
-	} else		// TODO undo this all in delete
+	} else
 		if (b->vertical)
 			gtk_widget_set_vexpand(widget, FALSE);
 		else
@@ -88,15 +79,13 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 
 void uiBoxDelete(uiBox *b, uintmax_t index)
 {
-	struct boxControl *bc;
+	struct child *bc;
 
-	bc = ptrArrayIndex(b->controls, struct boxControl *, index);
+	bc = ptrArrayIndex(b->controls, struct child *, index);
 	ptrArrayDelete(b->controls, index);
-	if (bc->stretchy)
-		gtk_size_group_remove_widget(b->stretchygroup, GTK_WIDGET(uiControlHandle(bc->c)));
-	gtk_container_remove(b->container, GTK_WIDGET(uiControlHandle(bc->c)));
-	uiControlSetParent(bc->c, NULL);
-	uiFree(bc);
+	if (isStretchy(bc))
+		gtk_size_group_remove_widget(b->stretchygroup, childWidget(bc));
+	childRemove(bc);
 	uiControlQueueResize(uiControl(b));
 }
 

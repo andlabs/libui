@@ -59,6 +59,10 @@ struct child *newChildWithBox(uiControl *child, uiControl *parent, GtkContainer 
 	box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_widget_show(box);
 	c = newChild(child, parent, GTK_CONTAINER(box));
+	gtk_widget_set_hexpand(c->widget, TRUE);
+	gtk_widget_set_halign(c->widget, GTK_ALIGN_FILL);
+	gtk_widget_set_vexpand(c->widget, TRUE);
+	gtk_widget_set_valign(c->widget, GTK_ALIGN_FILL);
 	c->box = box;
 	gtk_container_add(parentContainer, c->box);
 	childSetMargined(c, margined);

@@ -56,6 +56,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	page.box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_container_add(GTK_CONTAINER(page.box),
 		GTK_WIDGET(uiControlHandle(page.c)));
+	gtk_widget_show(page.box);
 
 	gtk_container_add(t->container, page.box);
 	gtk_notebook_set_tab_label_text(t->notebook, page.box, name);

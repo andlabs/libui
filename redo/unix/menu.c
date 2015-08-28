@@ -162,9 +162,12 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 		break;
 	}
 
-	uiMenuItemOnClicked(item, defaultOnClicked, NULL);
-	if (item->type == typeQuit)
-		uiMenuItemOnClicked(item, onQuitClicked, NULL);
+	if (item->type == typeQuit) {
+		// can't call uiMenuItemOnClicked() here
+		item->onClicked = onQuitClicked;
+		item->onClickedData = NULL;
+	} else
+		uiMenuItemOnClicked(item, defaultOnClicked, NULL);
 
 	switch (item->type) {
 	case typeCheckbox:

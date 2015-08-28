@@ -65,6 +65,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	bc->c = c;
 	bc->stretchy = stretchy;
 	uiControlSetParent(bc->c, uiControl(b));
+	gtk_container_add(b->container, GTK_WIDGET(uiControlHandle(bc->c)));
 	widget = GTK_WIDGET(uiControlHandle(bc->c));
 	if (bc->stretchy) {
 		if (b->vertical) {
@@ -93,6 +94,7 @@ void uiBoxDelete(uiBox *b, uintmax_t index)
 	ptrArrayDelete(b->controls, index);
 	if (bc->stretchy)
 		gtk_size_group_remove_widget(b->stretchygroup, GTK_WIDGET(uiControlHandle(bc->c)));
+	gtk_container_remove(b->container, GTK_WIDGET(uiControlHandle(bc->c)));
 	uiControlSetParent(bc->c, NULL);
 	uiFree(bc);
 	uiControlQueueResize(uiControl(b));

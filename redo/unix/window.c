@@ -51,8 +51,10 @@ static void onDestroy(uiWindow *w)
 	// first hide ourselves
 	gtk_widget_hide(w->widget);
 	// now destroy the child
-	uiControlSetParent(w->child, NULL);
-	uiControlDestroy(w->child);
+	if (w->child != NULL) {
+		uiControlSetParent(w->child, NULL);
+		uiControlDestroy(w->child);
+	}
 	// now destroy the menus, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
@@ -151,6 +153,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	gtk_widget_set_vexpand(w->childbox, TRUE);
 	gtk_widget_set_valign(w->childbox, GTK_ALIGN_FILL);
 	gtk_container_add(w->vboxContainer, w->childbox);
+	gtk_widget_show(w->childbox);
 
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxWidget);

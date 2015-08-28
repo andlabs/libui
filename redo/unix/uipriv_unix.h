@@ -25,5 +25,17 @@ extern void uninitAlloc(void);
 // util.c
 extern void setMargined(GtkContainer *, int);
 
+// child.c
+extern struct child *newChild(uiControl *child, uiControl *parent, GtkContainer *parentContainer);
+extern struct child *newChildWithBox(uiControl *child, uiControl *parent, GtkContainer *parentContainer, int margined);
+extern void childRemove(struct child *c);
+extern void childDestroy(struct child *c);
+extern GtkWidget *childWidget(struct child *c);
+extern void childUpdateState(struct child *c);
+extern int childFlag(struct child *c);
+extern void childSetFlag(struct child *c, int flag);
+extern GtkWidget *childBox(struct child *c);
+extern void childSetMargined(struct child *c, int margined);
+
 // TODO
 #define uiControlQueueResize(...)

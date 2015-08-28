@@ -5,6 +5,7 @@ osCFILES = \
 	unix/box.c \
 	unix/button.c \
 	unix/checkbox.c \
+	unix/child.c \
 	unix/combobox.c \
 	unix/control.c \
 	unix/datetimepicker.c \

@@ -23,7 +23,6 @@
 #ifndef ui_good_mingw
 #error MinGW-w64 version 4.0.0 or newer is required.
 #endif
-// TODO exact version once my changes get pushed
 #undef ui_good_mingw
 #endif
 

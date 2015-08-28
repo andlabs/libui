@@ -18,9 +18,9 @@ uiUnixDefineControl(
 
 static void onChanged(GtkEditable *editable, gpointer data)
 {
-	struct entry *e = (struct entry *) data;
+	uiEntry *e = uiEntry(data);
 
-	(*(e->onChanged))(uiEntry(e), e->onChangedData);
+	(*(e->onChanged))(e, e->onChangedData);
 }
 
 static void defaultOnChanged(uiEntry *e, void *data)

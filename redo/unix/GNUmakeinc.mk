@@ -2,12 +2,10 @@
 
 osCFILES = \
 	unix/alloc.c \
-	unix/bin.c \
 	unix/box.c \
 	unix/button.c \
 	unix/checkbox.c \
 	unix/combobox.c \
-	unix/container.c \
 	unix/control.c \
 	unix/datetimepicker.c \
 	unix/entry.c \

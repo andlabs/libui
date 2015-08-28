@@ -1,32 +1,27 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
-struct separator {
-	uiSeparator s;
+struct uiSeparator {
+	uiUnixControl c;
 	GtkWidget *widget;
 	GtkSeparator *separator;
 };
 
-uiDefineControlType(uiSeparator, uiTypeSeparator, struct separator)
-
-static uintptr_t separatorHandle(uiControl *c)
-{
-	struct separator *s = (struct separator *) c;
-
-	return (uintptr_t) (s->widget);
-}
+uiUnixDefineControl(
+	uiSeparator,							// type name
+	uiSeparatorType						// type function
+)
 
 uiSeparator *uiNewHorizontalSeparator(void)
 {
-	struct separator *s;
+	uiSeparator *s;
 
-	s = (struct separator *) uiNewControl(uiTypeSeparator());
+	s = (uiSeparator *) uiNewControl(uiTypeSeparator());
 
 	s->widget = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
 	s->separator = GTK_SEPARATOR(s->widget);
-	uiUnixMakeSingleWidgetControl(uiControl(s), s->widget);
 
-	uiControl(s)->Handle = separatorHandle;
+	uiUnixFinishNewControl(s, uiSeparator);
 
-	return uiSeparator(s);
+	return s;
 }

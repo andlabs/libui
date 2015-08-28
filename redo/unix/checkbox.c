@@ -19,9 +19,9 @@ uiUnixDefineControl(
 
 static void onToggled(GtkToggleButton *b, gpointer data)
 {
-	struct checkbox *c = (struct checkbox *) data;
+	uiCheckbox *c = uiCheckbox(data);
 
-	(*(c->onToggled))(uiCheckbox(c), c->onToggledData);
+	(*(c->onToggled))(c, c->onToggledData);
 }
 
 static void defaultOnToggled(uiCheckbox *c, void *data)

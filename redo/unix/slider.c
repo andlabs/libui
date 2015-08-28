@@ -1,8 +1,8 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
-struct slider {
-	uiSlider s;
+struct uiSlider {
+	uiUnixControl c;
 	GtkWidget *widget;
 	GtkRange *range;
 	GtkScale *scale;
@@ -11,20 +11,16 @@ struct slider {
 	gulong onChangedSignal;
 };
 
-uiDefineControlType(uiSlider, uiTypeSlider, struct slider)
+uiUnixDefineControl(
+	uiSlider,								// type name
+	uiSliderType							// type function
+)
 
 static void onChanged(GtkRange *range, gpointer data)
 {
-	struct slider *s = (struct slider *) data;
+	uiSlider *s = uiSlider(data);
 
-	(*(s->onChanged))(uiSlider(s), s->onChangedData);
-}
-
-static uintptr_t sliderHandle(uiControl *c)
-{
-	struct slider *s = (struct slider *) c;
-
-	return (uintptr_t) (s->widget);
+	(*(s->onChanged))(s, s->onChangedData);
 }
 
 static void defaultOnChanged(uiSlider *s, void *data)
@@ -32,53 +28,42 @@ static void defaultOnChanged(uiSlider *s, void *data)
 	// do nothing
 }
 
-static intmax_t sliderValue(uiSlider *ss)
+intmax_t uiSliderValue(uiSlider *s)
 {
-	struct slider *s = (struct slider *) ss;
-
 	return (intmax_t) gtk_range_get_value(s->range);
 }
 
-static void sliderSetValue(uiSlider *ss, intmax_t value)
+void uiSliderSetValue(uiSlider *s, intmax_t value)
 {
-	struct slider *s = (struct slider *) ss;
-
 	// we need to inhibit sending of ::value-changed because this WILL send a ::value-changed otherwise
 	g_signal_handler_block(s->range, s->onChangedSignal);
 	gtk_range_set_value(s->range, value);
 	g_signal_handler_unblock(s->range, s->onChangedSignal);
 }
 
-static void sliderOnChanged(uiSlider *ss, void (*f)(uiSlider *, void *), void *data)
+void uiSliderOnChanged(uiSlider *s, void (*f)(uiSlider *, void *), void *data)
 {
-	struct slider *s = (struct slider *) ss;
-
 	s->onChanged = f;
 	s->onChangedData = data;
 }
 
 uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
-	struct slider *s;
+	uiSlider *s;
 
-	s = (struct slider *) uiNewControl(uiTypeSlider());
+	s = (uiSlider *) uiNewControl(uiTypeSlider());
 
 	s->widget = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, min, max, 1);
 	s->range = GTK_RANGE(s->widget);
 	s->scale = GTK_SCALE(s->widget);
-	uiUnixMakeSingleWidgetControl(uiControl(s), s->widget);
 
 	// TODO needed?
 	gtk_scale_set_digits(s->scale, 0);
 
 	s->onChangedSignal = g_signal_connect(s->scale, "value-changed", G_CALLBACK(onChanged), s);
-	s->onChanged = defaultOnChanged;
+	uiSliderOnChanged(s, defaultOnChanged, NULL);
 
-	uiControl(s)->Handle = sliderHandle;
+	uiUnixFinishNewControl(s, uiSlider);
 
-	uiSlider(s)->Value = sliderValue;
-	uiSlider(s)->SetValue = sliderSetValue;
-	uiSlider(s)->OnChanged = sliderOnChanged;
-
-	return uiSlider(s);
+	return s;
 }

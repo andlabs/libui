@@ -1,33 +1,25 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
-struct label {
-	uiLabel l;
+struct uiLabel {
+	uiUnixControl c;
 	GtkWidget *widget;
 	GtkMisc *misc;
 	GtkLabel *label;
 };
 
-uiDefineControlType(uiLabel, uiTypeLabel, struct label)
+uiUnixDefineControl(
+	uiLabel,								// type name
+	uiLabelType							// type function
+)
 
-static uintptr_t labelHandle(uiControl *c)
+char *uiLabelText(uiLabel *l)
 {
-	struct label *l = (struct label *) c;
-
-	return (uintptr_t) (l->widget);
-}
-
-static char *labelText(uiLabel *ll)
-{
-	struct label *l = (struct label *) ll;
-
 	return uiUnixStrdupText(gtk_label_get_text(l->label));
 }
 
-static void labelSetText(uiLabel *ll, const char *text)
+void uiLabelSetText(uiLabel *l, const char *text)
 {
-	struct label *l = (struct label *) ll;
-
 	gtk_label_set_text(l->label, text);
 	// changing the text might necessitate a change in the label's size
 	uiControlQueueResize(uiControl(l));
@@ -35,21 +27,17 @@ static void labelSetText(uiLabel *ll, const char *text)
 
 uiLabel *uiNewLabel(const char *text)
 {
-	struct label *l;
+	uiLabel *l;
 
-	l = (struct label *) uiNewControl(uiTypeLabel());
+	l = (uiLabel *) uiNewControl(uiTypeLabel());
 
 	l->widget = gtk_label_new(text);
 	l->misc = GTK_MISC(l->widget);
 	l->label = GTK_LABEL(l->widget);
-	uiUnixMakeSingleWidgetControl(uiControl(l), l->widget);
 
 	gtk_misc_set_alignment(l->misc, 0, 0);
 
-	uiControl(l)->Handle = labelHandle;
+	uiUnixFinishNewControl(l, uiLabel);
 
-	uiLabel(l)->Text = labelText;
-	uiLabel(l)->SetText = labelSetText;
-
-	return uiLabel(l);
+	return l;
 }

@@ -4,28 +4,28 @@
 // on GTK+ a uiRadioButtons is a GtkBox with each of the GtkRadioButtons as children
 
 struct radiobuttons {
-	uiRadioButtons r;
-	GtkWidget *boxWidget;
-	GtkContainer *boxContainer;
+	uiUnixControl c;
+	GtkWidget *widget;
+	GtkContainer *container;
 	GtkBox *box;
 	GPtrArray *buttons;
 };
 
-uiDefineControlType(uiRadioButtons, uiTypeRadioButtons, struct radiobuttons)
+static void onDestroy(uiRadioButtons *);
 
-// TODO destroy
+uiUnixDefineControlWithOnDestroy(
+	uiRadioButtons,						// type name
+	uiRadioButtonsType,						// type function
+	onDestroy(this);						// on destroy
+)
 
-// TODO note that the handle of a uiRadioButtons is undefined (or at least highly platform-dependent and unreliable)
-static uintptr_t radiobuttonsHandle(uiControl *c)
+static void onDestroy(uiRadioButtons *r)
 {
-	struct radiobuttons *r = (struct radiobuttons *) c;
-
-	return (uintptr_t) (r->boxWidget);
+	// TODO
 }
 
-static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
+void uiRadiobuttonsAppend(uiRadioButtons *r, const char *text)
 {
-	struct radiobuttons *r = (struct radiobuttons *) rr;
 	GtkWidget *rb;
 	GtkRadioButton *previous;
 
@@ -33,7 +33,7 @@ static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
 	if (r->buttons->len > 0)
 		previous = GTK_RADIO_BUTTON(g_ptr_array_index(r->buttons, 0));
 	rb = gtk_radio_button_new_with_label_from_widget(previous, text);
-	gtk_container_add(r->boxContainer, rb);
+	gtk_container_add(r->container, rb);
 	g_ptr_array_add(r->buttons, rb);
 	gtk_widget_show(rb);
 	uiControlQueueResize(uiControl(r));
@@ -41,20 +41,17 @@ static void radiobuttonsAppend(uiRadioButtons *rr, const char *text)
 
 uiRadioButtons *uiNewRadioButtons(void)
 {
-	struct radiobuttons *r;
+	uiRadioButtons *r;
 
-	r = (struct radiobuttons *) uiNewControl(uiTypeRadioButtons());
+	r = (uiRadioButtons *) uiNewControl(uiTypeRadioButtons());
 
-	r->boxWidget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	r->boxContainer = GTK_CONTAINER(r->boxWidget);
-	r->box = GTK_BOX(r->boxWidget);
-	uiUnixMakeSingleWidgetControl(uiControl(r), r->boxWidget);
+	r->widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	r->container = GTK_CONTAINER(r->widget);
+	r->box = GTK_BOX(r->widget);
 
 	r->buttons = g_ptr_array_new();
 
-	uiControl(r)->Handle = radiobuttonsHandle;
+	uiUnixFinishNewControl(r, uiRadioButtons);
 
-	uiRadioButtons(r)->Append = radiobuttonsAppend;
-
-	return uiRadioButtons(r);
+	return r;
 }

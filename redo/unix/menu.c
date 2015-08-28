@@ -103,7 +103,7 @@ void uiMenuItemEnable(uiMenuItem *item)
 	menuItemEnableDisable(item, TRUE);
 }
 
-void menuItemDisable(uiMenuItem *item)
+void uiMenuItemDisable(uiMenuItem *item)
 {
 	menuItemEnableDisable(item, FALSE);
 }

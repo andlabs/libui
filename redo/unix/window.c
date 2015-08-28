@@ -15,6 +15,8 @@ struct uiWindow {
 	GtkWidget *menubar;
 
 	uiControl *child;
+	GtkWidget *childbox;
+	int margined;
 
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
@@ -49,10 +51,8 @@ static void onDestroy(uiWindow *w)
 	// first hide ourselves
 	gtk_widget_hide(w->widget);
 	// now destroy the child
-	binSetChild(w->bin, NULL);
+	uiControlSetParent(w->child, NULL);
 	uiControlDestroy(w->child);
-	// and destroy the bin
-	uiControlDestroy(w->bin);
 	// now destroy the menus, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);

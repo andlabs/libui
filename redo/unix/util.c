@@ -14,7 +14,7 @@ void complain(const char *fmt, ...)
 
 void setMargined(GtkContainer *c, int margined)
 {
-	if (b->margined)
+	if (margined)
 		gtk_container_set_border_width(c, gtkXMargin);
 	else
 		gtk_container_set_border_width(c, 0);

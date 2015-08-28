@@ -3,7 +3,7 @@
 
 // on GTK+ a uiRadioButtons is a GtkBox with each of the GtkRadioButtons as children
 
-struct radiobuttons {
+struct uiRadioButtons {
 	uiUnixControl c;
 	GtkWidget *widget;
 	GtkContainer *container;
@@ -24,7 +24,7 @@ static void onDestroy(uiRadioButtons *r)
 	// TODO
 }
 
-void uiRadiobuttonsAppend(uiRadioButtons *r, const char *text)
+void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 {
 	GtkWidget *rb;
 	GtkRadioButton *previous;

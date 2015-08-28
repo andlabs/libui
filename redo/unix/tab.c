@@ -73,7 +73,7 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 	// make sure the page's control isn't destroyed
 	uiControlSetParent(page->c, NULL);
 	gtk_container_remove(GTK_CONTAINER(page->box),
-		GTK+WIDGET(uiControlHandle(page->c)));
+		GTK_WIDGET(uiControlHandle(page->c)));
 
 	// this will also remove the tab
 	gtk_widget_destroy(page->box);

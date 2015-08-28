@@ -14,8 +14,7 @@ struct uiWindow {
 
 	GtkWidget *menubar;
 
-	uiControl *child;
-	GtkWidget *childbox;
+	struct child *child;
 	int margined;
 
 	int (*onClosing)(uiWindow *, void *);
@@ -51,10 +50,8 @@ static void onDestroy(uiWindow *w)
 	// first hide ourselves
 	gtk_widget_hide(w->widget);
 	// now destroy the child
-	if (w->child != NULL) {
-		uiControlSetParent(w->child, NULL);
-		uiControlDestroy(w->child);
-	}
+	if (w->child != NULL)
+		childDestroy(w->child);
 	// now destroy the menus, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
@@ -76,7 +73,7 @@ static void windowContainerUpdateState(uiControl *c)
 	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
-		controlUpdateState(w->child);
+		childUpdateState(w->child);
 }
 
 char *uiWindowTitle(uiWindow *w)
@@ -98,16 +95,14 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 
 void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
+	if (w->child != NULL)
+		childDestroy(w->child);
+	w->child = newChildWithBox(child, uiControl(w), w->vboxContainer, w->margined);
 	if (w->child != NULL) {
-		gtk_container_remove(GTK_CONTAINER(w->childbox),
-			GTK_WIDGET(uiControlHandle(w->child)));
-		uiControlSetParent(w->child, NULL);
-	}
-	w->child = child;
-	if (w->child != NULL) {
-		uiControlSetParent(w->child, uiControl(w));
-		gtk_container_add(GTK_CONTAINER(w->childbox),
-			GTK_WIDGET(uiControlHandle(w->child)));
+		gtk_widget_set_hexpand(childBox(w->child), TRUE);
+		gtk_widget_set_halign(childBox(w->child), GTK_ALIGN_FILL);
+		gtk_widget_set_vexpand(childBox(w->child), TRUE);
+		gtk_widget_set_valign(childBox(w->child), GTK_ALIGN_FILL);
 	}
 }
 
@@ -119,7 +114,8 @@ int uiWindowMargined(uiWindow *w)
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	setMargined(GTK_CONTAINER(w->childbox), w->margined);
+	if (w->child != NULL)
+		childSetMargined(w->child, w->margined);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
@@ -146,14 +142,6 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		w->menubar = makeMenubar(uiWindow(w));
 		gtk_container_add(w->vboxContainer, w->menubar);
 	}
-
-	w->childbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_widget_set_hexpand(w->childbox, TRUE);
-	gtk_widget_set_halign(w->childbox, GTK_ALIGN_FILL);
-	gtk_widget_set_vexpand(w->childbox, TRUE);
-	gtk_widget_set_valign(w->childbox, GTK_ALIGN_FILL);
-	gtk_container_add(w->vboxContainer, w->childbox);
-	gtk_widget_show(w->childbox);
 
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxWidget);

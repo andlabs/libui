@@ -65,7 +65,8 @@ int uiGroupMargined(uiGroup *g)
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
-	childSetMargined(g->child, g->margined);
+	if (g->child != NULL)
+		childSetMargined(g->child, g->margined);
 	uiControlQueueResize(uiControl(g));
 }
 

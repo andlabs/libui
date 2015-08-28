@@ -1,112 +1,40 @@
-// 11 june 2015
+// 16 august 2015
 #include "uipriv_unix.h"
 
-#define WIDGET(c) (GTK_WIDGET(uiControlHandle((c))))
+static uintmax_t type_uiUnixControl = 0;
 
-static void singleWidgetCommitDestroy(uiControl *c)
+uintmax_t uiUnixControlType(void)
 {
-	g_object_unref(WIDGET(c));
+	if (type_uiUnixControl == 0)
+		type_uiUnixControl = uiRegisterType("uiUnixControl", uiControlType(), sizeof (uiUnixControl));
+	return type_uiUnixControl;
 }
 
-static void singleWidgetCommitSetParent(uiControl *c, uiControl *parent)
+static void defaultCommitShow(uiControl *c)
 {
-	GtkWidget *newParent;
-	GtkWidget *oldParent;
-
-	if (parent == NULL) {
-		oldParent = WIDGET(uiControlParent(c));
-		gtk_container_remove(GTK_CONTAINER(oldParent), WIDGET(c));
-		return;
-	}
-	newParent = WIDGET(parent);
-	gtk_container_add(GTK_CONTAINER(newParent), WIDGET(c));
+	gtk_widget_show(GTK_WIDGET(uiControlHandle(c)));
 }
 
-static void singleWidgetPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void defaultCommitHide(uiControl *c)
 {
-	// use the natural height; it makes more sense
-	GtkRequisition natural;
-
-	gtk_widget_get_preferred_size(WIDGET(c), NULL, &natural);
-	*width = (intmax_t) (natural.width);
-	*height = (intmax_t) (natural.height);
+	gtk_widget_hide(GTK_WIDGET(uiControlHandle(c)));
 }
 
-static void singleWidgetResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+void osCommitEnable(uiControl *c)
 {
-	GtkAllocation a;
-
-	a.x = x;
-	a.y = y;
-	a.width = width;
-	a.height = height;
-	gtk_widget_size_allocate(WIDGET(c), &a);
+	gtk_widget_set_sensitive(GTK_WIDGET(uiControlHandle(c)), TRUE);
 }
 
-static uiSizing *singleWidgetSizing(uiControl *c)
+void osCommitDisable(uiControl *c)
 {
-	return uiUnixNewSizing();
+	gtk_widget_set_sensitive(GTK_WIDGET(uiControlHandle(c)), FALSE);
 }
 
-static void singleWidgetCommitShow(uiControl *c)
+void uiUnixFinishControl(uiControl *c)
 {
-	gtk_widget_show(WIDGET(c));
-}
-
-static void singleWidgetCommitHide(uiControl *c)
-{
-	gtk_widget_hide(WIDGET(c));
-}
-
-static void singleWidgetCommitEnable(uiControl *c)
-{
-	gtk_widget_set_sensitive(WIDGET(c), TRUE);
-}
-
-static void singleWidgetCommitDisable(uiControl *c)
-{
-	gtk_widget_set_sensitive(WIDGET(c), FALSE);
-}
-
-static uintptr_t singleWidgetStartZOrder(uiControl *c)
-{
-	// we don't need to do anything; GTK+ does it for us
-	return 0;
-}
-
-static uintptr_t singleWidgetSetZOrder(uiControl *c, uintptr_t insertAfter)
-{
-	// we don't need to do anything; GTK+ does it for us
-	return 0;
-}
-
-static int singleWidgetHasTabStops(uiControl *c)
-{
-	complain("singleWidgetHasTabStops() meaningless on GTK+");
-	return 0;		// keep compiler happy
-}
-
-// called after creating the control's widget
-void uiUnixMakeSingleWidgetControl(uiControl *c, GtkWidget *widget)
-{
-	// we have to sink the widget so we can reparent it
-	g_object_ref_sink(widget);
-
-	uiControl(c)->CommitDestroy = singleWidgetCommitDestroy;
-	uiControl(c)->CommitSetParent = singleWidgetCommitSetParent;
-	uiControl(c)->PreferredSize = singleWidgetPreferredSize;
-	uiControl(c)->Resize = singleWidgetResize;
-	uiControl(c)->Sizing = singleWidgetSizing;
-	uiControl(c)->CommitShow = singleWidgetCommitShow;
-	uiControl(c)->CommitHide = singleWidgetCommitHide;
-	uiControl(c)->CommitEnable = singleWidgetCommitEnable;
-	uiControl(c)->CommitDisable = singleWidgetCommitDisable;
-	uiControl(c)->StartZOrder = singleWidgetStartZOrder;
-	uiControl(c)->SetZOrder = singleWidgetSetZOrder;
-	uiControl(c)->HasTabStops = singleWidgetHasTabStops;
-}
-
-void queueResize(uiControl *c)
-{
-	gtk_widget_queue_resize(WIDGET(c));
+	g_object_ref_sink(GTK_WIDGET(uiControlHandle(c)));
+	if (!isToplevel(c))
+		gtk_widget_show(GTK_WIDGET(uiControlHandle(c)));
+	c->CommitShow = defaultCommitShow;
+	c->CommitHide = defaultCommitHide;
 }

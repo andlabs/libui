@@ -4,7 +4,7 @@
 #define GDK_VERSION_MIN_REQUIRED GDK_VERSION_3_4
 #define GDK_VERSION_MAX_ALLOWED GDK_VERSION_3_4
 #include <gtk/gtk.h>
-#include "../out/ui.h"
+#include "../ui.h"
 #include "../ui_unix.h"
 #include "../uipriv.h"
 
@@ -24,3 +24,6 @@ extern void uninitAlloc(void);
 
 // util.c
 extern void setMargined(GtkContainer *, int);
+
+// TODO
+#define uiControlQueueResize(...)

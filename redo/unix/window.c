@@ -1,10 +1,8 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
-// TODO ban uiControl methods that don't apply
-
-struct window {
-	uiWindow w;
+struct uiWindow {
+	uiUnixControl c;
 
 	GtkWidget *widget;
 	GtkContainer *container;
@@ -16,22 +14,26 @@ struct window {
 
 	GtkWidget *menubar;
 
-	uiControl *bin;
 	uiControl *child;
 
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
-	void (*baseCommitDestroy)(uiControl *c);
 };
 
-uiDefineControlType(uiWindow, uiTypeWindow, struct window)
+static void onDestroy(uiWindow *);
+
+uiUnixDefineControlWithOnDestroy(
+	uiWindow,							// type name
+	uiWindowType,							// type function
+	onDestroy(this);						// on destroy
+)
 
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 {
-	struct window *w = (struct window *) data;
+	uiWindow *w = uiWindow(data);
 
 	// manually destroy the window ourselves; don't let the delete-event handler do it
-	if ((*(w->onClosing))(uiWindow(w), w->onClosingData))
+	if ((*(w->onClosing))(w, w->onClosingData))
 		uiControlDestroy(uiControl(w));
 	// don't continue to the default delete-event handler; we destroyed the window by now
 	return TRUE;
@@ -42,10 +44,8 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 0;
 }
 
-static void windowCommitDestroy(uiControl *c)
+static void onDestroy(uiWindow *w)
 {
-	struct window *w = (struct window *) c;
-
 	// first hide ourselves
 	gtk_widget_hide(w->widget);
 	// now destroy the child
@@ -56,21 +56,12 @@ static void windowCommitDestroy(uiControl *c)
 	// now destroy the menus, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
-	// now destroy ourselves
-	// this will also free the vbox
-	(*(w->baseCommitDestroy))(uiControl(w));
-}
-
-static uintptr_t windowHandle(uiControl *c)
-{
-	struct window *w = (struct window *) c;
-
-	return (uintptr_t) (w->widget);
+	gtk_widget_destroy(w->vboxWidget);
 }
 
 static void windowCommitShow(uiControl *c)
 {
-	struct window *w = (struct window *) c;
+	uiWindow *w = uiWindow(c);
 
 	// don't use gtk_widget_show_all() as that will show all children, regardless of user settings
 	// don't use gtk_widget_show(); that doesn't bring to front or give keyboard focus
@@ -80,77 +71,64 @@ static void windowCommitShow(uiControl *c)
 
 static void windowContainerUpdateState(uiControl *c)
 {
-	struct window *w = (struct window *) c;
+	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
 		uiControlUpdateState(w->child);
 }
 
-static char *windowTitle(uiWindow *ww)
+char *uiWindowTitle(uiWindow *w)
 {
-	struct window *w = (struct window *) ww;
-
 	return uiUnixStrdupText(gtk_window_get_title(w->window));
 }
 
-static void windowSetTitle(uiWindow *ww, const char *title)
+void uiWindowSetTitle(uiWindow *w, const char *title)
 {
-	struct window *w = (struct window *) ww;
-
 	gtk_window_set_title(w->window, title);
 	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
 }
 
-static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
+void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
-	struct window *w = (struct window *) ww;
-
 	w->onClosing = f;
 	w->onClosingData = data;
 }
 
-static void windowSetChild(uiWindow *ww, uiControl *child)
+void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
-	struct window *w = (struct window *) ww;
-
-	if (w->child != NULL)
-		binSetChild(w->bin, NULL);
+	if (w->child != NULL) {
+		gtk_container_remove(GTK_CONTAINER(w->childbox),
+			GTK_WIDGET(uiControlHandle(w->child)));
+		uiControlSetParent(w->child, NULL);
+	}
 	w->child = child;
-	if (w->child != NULL)
-		binSetChild(w->bin, w->child);
+	if (w->child != NULL) {
+		uiControlSetParent(w->child, uiControl(w));
+		gtk_container_add(GTK_CONTAINER(w->childbox),
+			GTK_WIDGET(uiControlHandle(w->child)));
+	}
 }
 
-static int windowMargined(uiWindow *ww)
+int uiWindowMargined(uiWindow *w)
 {
-	struct window *w = (struct window *) ww;
-
-	return binMargined(w->bin);
+	return w->margined;
 }
 
-static void windowSetMargined(uiWindow *ww, int margined)
+void uiWindowSetMargined(uiWindow *w, int margined)
 {
-	struct window *w = (struct window *) ww;
-
-	binSetMargined(w->bin, margined);
-	uiControlQueueResize(uiControl(w));
-}
-
-static void windowResizeChild(uiWindow *ww)
-{
-	complain("uiWindowResizeChild() meaningless on GTK+");
+	w->margined = margined;
+	setMargined(GTK_CONTAINER(w->childbox), w->margined);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
-	struct window *w;
+	uiWindow *w;
 
-	w = (struct window *) uiNewControl(uiTypeWindow());
+	w = (uiWindow *) uiNewControl(uiTypeWindow());
 
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	w->container = GTK_CONTAINER(w->widget);
 	w->window = GTK_WINDOW(w->widget);
-
-	uiUnixMakeSingleWidgetControl(uiControl(w), w->widget);
 
 	gtk_window_set_title(w->window, title);
 	gtk_window_resize(w->window, width, height);
@@ -167,30 +145,23 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		gtk_container_add(w->vboxContainer, w->menubar);
 	}
 
-	w->bin = newBin();
-	gtk_container_add(w->vboxContainer, GTK_WIDGET(uiControlHandle(w->bin)));
+	w->childbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_widget_set_hexpand(w->childbox, TRUE);
+	gtk_widget_set_halign(w->childbox, GTK_ALIGN_FILL);
+	gtk_widget_set_vexpand(w->childbox, TRUE);
+	gtk_widget_set_valign(w->childbox, GTK_ALIGN_FILL);
+	gtk_container_add(w->vboxContainer, w->childbox);
 
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxWidget);
 
 	// and connect our OnClosing() event
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
+	uiWindowOnClosing(w, defaultOnClosing, NULL);
 
-	w->onClosing = defaultOnClosing;
-
-	uiControl(w)->Handle = windowHandle;
-	w->baseCommitDestroy = uiControl(w)->CommitDestroy;
-	uiControl(w)->CommitDestroy = windowCommitDestroy;
+	uiUnixFinishNewControl(w, uiWindow);
 	uiControl(w)->CommitShow = windowCommitShow;
 	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
 
-	uiWindow(w)->Title = windowTitle;
-	uiWindow(w)->SetTitle = windowSetTitle;
-	uiWindow(w)->OnClosing = windowOnClosing;
-	uiWindow(w)->SetChild = windowSetChild;
-	uiWindow(w)->Margined = windowMargined;
-	uiWindow(w)->SetMargined = windowSetMargined;
-	uiWindow(w)->ResizeChild = windowResizeChild;
-
-	return uiWindow(w);
+	return w;
 }

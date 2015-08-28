@@ -36,7 +36,7 @@ static void groupContainerUpdateState(uiControl *c)
 	uiGroup *g = uiGroup(c);
 
 	if (g->child != NULL)
-		uiControlUpdateState(g->child);
+		controlUpdateState(g->child);
 }
 
 char *uiGroupTitle(uiGroup *g)
@@ -53,17 +53,15 @@ void uiGroupSetTitle(uiGroup *g, const char *text)
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)
 {
-	struct group *g = (struct group *) gg;
-
 	if (g->child != NULL) {
-		gtk_container_remove(GTK_CONTAINER(g->bin),
+		gtk_container_remove(GTK_CONTAINER(g->box),
 			GTK_WIDGET(uiControlHandle(g->child)));
 		uiControlSetParent(g->child, NULL);
 	}
 	g->child = child;
 	if (g->child != NULL) {
 		uiControlSetParent(g->child, uiControl(g));
-		gtk_container_add(GTK_CONTAINER(g->bin),
+		gtk_container_add(GTK_CONTAINER(g->box),
 			GTK_WIDGET(uiControlHandle(g->child)));
 		uiControlQueueResize(g->child);
 	}
@@ -89,7 +87,7 @@ uiGroup *uiNewGroup(const char *text)
 	PangoAttribute *bold;
 	PangoAttrList *boldlist;
 
-	g = (uiGroup *) uiNewControl(uiTypeGroup());
+	g = (uiGroup *) uiNewControl(uiGroupType());
 
 	g->widget = gtk_frame_new(text);
 	g->container = GTK_CONTAINER(g->widget);

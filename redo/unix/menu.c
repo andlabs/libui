@@ -149,7 +149,7 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 		complain("attempt to create a new menu item after menus have been finalized");
 
 	item = uiNew(struct menuItem);
-	uiTyped(item)->Type = uiTypeMenuItem();
+	uiTyped(item)->Type = uiMenuItemType();
 
 	g_array_append_val(m->items, item);
 
@@ -250,7 +250,7 @@ uiMenu *uiNewMenu(const char *name)
 		menus = g_array_new(FALSE, TRUE, sizeof (struct menu *));
 
 	m = uiNew(struct menu);
-	uiTyped(m)->Type = uiTypeMenu();
+	uiTyped(m)->Type = uiMenuType();
 
 	g_array_append_val(menus, m);
 

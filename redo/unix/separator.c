@@ -16,7 +16,7 @@ uiSeparator *uiNewHorizontalSeparator(void)
 {
 	uiSeparator *s;
 
-	s = (uiSeparator *) uiNewControl(uiTypeSeparator());
+	s = (uiSeparator *) uiNewControl(uiSeparatorType());
 
 	s->widget = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
 	s->separator = GTK_SEPARATOR(s->widget);

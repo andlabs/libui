@@ -48,7 +48,7 @@ uiButton *uiNewButton(const char *text)
 {
 	uiButton *b;
 
-	b = (uiButton *) uiNewControl(uiTypeButton());
+	b = (uiButton *) uiNewControl(uiButtonType());
 
 	b->widget = gtk_button_new_with_label(text);
 	b->button = GTK_BUTTON(b->widget);

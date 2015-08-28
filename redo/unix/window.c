@@ -74,7 +74,7 @@ static void windowContainerUpdateState(uiControl *c)
 	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
-		uiControlUpdateState(w->child);
+		controlUpdateState(w->child);
 }
 
 char *uiWindowTitle(uiWindow *w)
@@ -124,7 +124,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindow *w;
 
-	w = (uiWindow *) uiNewControl(uiTypeWindow());
+	w = (uiWindow *) uiNewControl(uiWindowType());
 
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	w->container = GTK_CONTAINER(w->widget);

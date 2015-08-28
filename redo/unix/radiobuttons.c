@@ -43,7 +43,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 {
 	uiRadioButtons *r;
 
-	r = (uiRadioButtons *) uiNewControl(uiTypeRadioButtons());
+	r = (uiRadioButtons *) uiNewControl(uiRadioButtonsType());
 
 	r->widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	r->container = GTK_CONTAINER(r->widget);

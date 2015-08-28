@@ -29,7 +29,7 @@ uiLabel *uiNewLabel(const char *text)
 {
 	uiLabel *l;
 
-	l = (uiLabel *) uiNewControl(uiTypeLabel());
+	l = (uiLabel *) uiNewControl(uiLabelType());
 
 	l->widget = gtk_label_new(text);
 	l->misc = GTK_MISC(l->widget);

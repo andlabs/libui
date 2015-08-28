@@ -51,7 +51,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	uiSlider *s;
 
-	s = (uiSlider *) uiNewControl(uiTypeSlider());
+	s = (uiSlider *) uiNewControl(uiSliderType());
 
 	s->widget = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, min, max, 1);
 	s->range = GTK_RANGE(s->widget);

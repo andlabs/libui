@@ -67,14 +67,14 @@ uiEntry *uiNewEntry(void)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) uiNewControl(uiTypeEntry());
+	e = (uiEntry *) uiNewControl(uiEntryType());
 
 	e->widget = gtk_entry_new();
 	e->entry = GTK_ENTRY(e->widget);
 	e->editable = GTK_EDITABLE(e->widget);
 
 	e->onChangedSignal = g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
-	uiEntryOnChanged(e->onChanged, defaultOnChanged, NULL);
+	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
 	uiUnixFinishNewControl(e, uiEntry);
 

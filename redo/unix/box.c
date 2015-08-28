@@ -52,7 +52,7 @@ static void boxContainerUpdateState(uiControl *c)
 
 	for (i = 0; i < b->controls->len; i++) {
 		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
-		uiControlUpdateState(bc->c);
+		controlUpdateState(bc->c);
 	}
 }
 
@@ -120,7 +120,7 @@ static uiBox *finishNewBox(GtkOrientation orientation)
 {
 	uiBox *b;
 
-	b = (uiBox *) uiNewControl(uiTypeBox());
+	b = (uiBox *) uiNewControl(uiBoxType());
 
 	b->widget = gtk_box_new(orientation, 0);
 	b->container = GTK_CONTAINER(b->widget);
@@ -134,8 +134,6 @@ static uiBox *finishNewBox(GtkOrientation orientation)
 		b->stretchygroup = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 
 	b->controls = newPtrArray();
-
-	uiUnixMakeSingleWidgetControl(uiControl(b), b->widget);
 
 	uiUnixFinishNewControl(b, uiBox);
 	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;

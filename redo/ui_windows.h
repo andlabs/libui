@@ -4,11 +4,78 @@
 This file assumes that you have included <windows.h> and "ui.h" beforehand. It provides API-specific functions for interfacing with foreign controls in Windows.
 */
 
-#ifndef __UI_UI_WINDOWS_H__
-#define __UI_UI_WINDOWS_H__
+#ifndef __LIBUI_UI_WINDOWS_H__
+#define __LIBUI_UI_WINDOWS_H__
+
+typedef struct uiWindowsControl uiWindowsControl;
+struct uiWindowsControl {
+	uiControl c;
+	void (*CommitSetParent)(uiWindowsControl *, HWND);
+	void (*Relayout)(uiWindowsControl *);
+};
+_UI_EXTERN uintmax_t uiWindowsControlType(void);
+#define uiWindowsControl(this) ((uiWindowsControl *) uiIsA((this), uiWindowsControlType(), 1))
+// TODO document
+_UI_EXTERN void uiWindowsControlTriggerRelayout(uiWindowsControl *);
+
+// TODO document
+#define uiWindowsDefineControlWithOnDestroy(type, typefn, onDestroy) \
+	static uintmax_t _ ## type ## Type = 0; \
+	uintmax_t typefn(void) \
+	{ \
+		if (_ ## type ## Type == 0) \
+			_ ## type ## Type = uiRegisterType(#type, uiWindowsControlType(), sizeof (type)); \
+		return _ ## type ## Type; \
+	} \
+	static void _ ## type ## CommitDestroy(uiControl *c) \
+	{ \
+		type *this = type(c); \
+		onDestroy; \
+		uiWindowsEnsureDestroyWindow(this->hwnd); \
+	} \
+	static uintptr_t _ ## type ## Handle(uiControl *c) \
+	{ \
+		return (uintptr_t) (type(c)->hwnd); \
+	} \
+	static void _ ## type ## ContainerUpdateState(uiControl *c) \
+	{ \
+		/* do nothing */ \
+	} \
+	static void _ ## type ## CommitSetParent(uiWindowsControl *c, HWND parent) \
+	{ \
+		uiWindowsEnsureSetParent(type(c)->hwnd, parent); \
+	} \
+	static void _ ## type ## Relayout(uiWindowsControl *c) \
+	{ \
+		/* do nothing */ \
+	}
+
+#define uiWindowsDefineControl(type, typefn) \
+	uiWindowsDefineControlWithOnDestroy(type, typefn, (void) this;)
+
+#define uiWindowsFinishNewControl(variable, type) \
+	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
+	uiControl(variable)->Handle = _ ## type ## Handle; \
+	uiControl(variable)->ContainerUpdateState = _ ## type ## ContainerUpdateState; \
+	uiWindowsControl(variable)->CommitSetParent = _ ## type ## CommitSetParent; \
+	uiWindowsControl(variable)->Relayout = _ ## type ## Relayout; \
+	uiWindowsFinishControl(uiControl(variable));
+
+// This is a function used to set up a control.
+// Don't call it directly; use uiWindowsFinishNewControl() instead.
+_UI_EXTERN void uiWindowsFinishControl(uiControl *c);
 
 // This creates a HWND compatible with libui.
-_UI_EXTERN HWND uiWindowsUtilCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont);
+// It has no failure state; libui handles errors for you.
+_UI_EXTERN HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont);
+
+// This is a wrapper for certain Windows API functions; use them to have libui handle errors for you.
+_UI_EXTERN void uiWindowsEnsureDestroyWindow(HWND hwnd);
+_UI_EXTERN void uiWindowsEnsureSetParent(HWND hwnd, HWND parent);
+
+////////////////////////////////////////////
+/////////////////// TODO ///////////////////
+////////////////////////////////////////////
 
 // These provide single-HWND implementations of uiControl methods you can use in yours.
 _UI_EXTERN void uiWindowsUtilDestroy(HWND hwnd);

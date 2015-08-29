@@ -13,8 +13,6 @@ struct uiUnixControl {
 };
 _UI_EXTERN uintmax_t uiUnixControlType(void);
 #define uiUnixControl(this) ((uiUnixControl *) uiIsA((this), uiUnixControlType(), 1))
-// TODO document
-_UI_EXTERN void uiUnixControlTriggerRelayout(uiUnixControl *);
 
 // TODO document
 #define uiUnixDefineControlWithOnDestroy(type, typefn, onDestroy) \

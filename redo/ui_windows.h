@@ -14,12 +14,12 @@ struct uiWindowsControl {
 	uiControl c;
 	void (*CommitSetParent)(uiWindowsControl *, HWND);
 	void (*MinimumSize)(uiWindowsControl *, uiWindowsSizing *, intmax_t *, intmax_t *);
-	void (*Relayout)(uiWindowsControl *);
+	void (*Relayout)(uiWindowsControl *, intmax_t, intmax_t, intmax_t, intmax_t);
 };
 _UI_EXTERN uintmax_t uiWindowsControlType(void);
 #define uiWindowsControl(this) ((uiWindowsControl *) uiIsA((this), uiWindowsControlType(), 1))
 // TODO document
-_UI_EXTERN void uiWindowsControlTriggerRelayout(uiWindowsControl *);
+_UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 
 // TODO document
 #define uiWindowsDefineControlWithOnDestroy(type, typefn, onDestroy) \
@@ -48,9 +48,9 @@ _UI_EXTERN void uiWindowsControlTriggerRelayout(uiWindowsControl *);
 	{ \
 		uiWindowsEnsureSetParent(type(c)->hwnd, parent); \
 	} \
-	static void _ ## type ## Relayout(uiWindowsControl *c) \
+	static void _ ## type ## Relayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height) \
 	{ \
-		/* do nothing */ \
+		uiWindowsEnsureMoveWindow(type(c)->hwnd, x, y, width, height); \
 	} \
 	static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height);
 
@@ -78,6 +78,9 @@ _UI_EXTERN HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClas
 _UI_EXTERN void uiWindowsEnsureDestroyWindow(HWND hwnd);
 _UI_EXTERN void uiWindowsEnsureSetParent(HWND hwnd, HWND parent);
 
+// Use this in your Relayout() implementation to move and resize HWNDs. libui handles errors for you.
+_UI_EXTERN void uiWindowsEnsureMoveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height);
+
 ////////////////////////////////////////////
 /////////////////// TODO ///////////////////
 ////////////////////////////////////////////
@@ -85,7 +88,6 @@ _UI_EXTERN void uiWindowsEnsureSetParent(HWND hwnd, HWND parent);
 // These provide single-HWND implementations of uiControl methods you can use in yours.
 _UI_EXTERN void uiWindowsUtilDestroy(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilSetParent(HWND hwnd, uiControl *parent);
-_UI_EXTERN void uiWindowsUtilResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d);
 _UI_EXTERN void uiWindowsUtilShow(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilHide(HWND hwnd);
 _UI_EXTERN void uiWindowsUtilEnable(HWND hwnd);

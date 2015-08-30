@@ -7,10 +7,13 @@ This file assumes that you have included <windows.h> and "ui.h" beforehand. It p
 #ifndef __LIBUI_UI_WINDOWS_H__
 #define __LIBUI_UI_WINDOWS_H__
 
+typedef struct uiWindowsSizing uiWindowsSizing;
+
 typedef struct uiWindowsControl uiWindowsControl;
 struct uiWindowsControl {
 	uiControl c;
 	void (*CommitSetParent)(uiWindowsControl *, HWND);
+	void (*MinimumSize)(uiWindowsControl *, uiWindowsSizing *, intmax_t *, intmax_t *);
 	void (*Relayout)(uiWindowsControl *);
 };
 _UI_EXTERN uintmax_t uiWindowsControlType(void);
@@ -48,7 +51,8 @@ _UI_EXTERN void uiWindowsControlTriggerRelayout(uiWindowsControl *);
 	static void _ ## type ## Relayout(uiWindowsControl *c) \
 	{ \
 		/* do nothing */ \
-	}
+	} \
+	static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height);
 
 #define uiWindowsDefineControl(type, typefn) \
 	uiWindowsDefineControlWithOnDestroy(type, typefn, (void) this;)
@@ -58,6 +62,7 @@ _UI_EXTERN void uiWindowsControlTriggerRelayout(uiWindowsControl *);
 	uiControl(variable)->Handle = _ ## type ## Handle; \
 	uiControl(variable)->ContainerUpdateState = _ ## type ## ContainerUpdateState; \
 	uiWindowsControl(variable)->CommitSetParent = _ ## type ## CommitSetParent; \
+	uiWindowsControl(variable)->MinimumSize = minimumSize; \
 	uiWindowsControl(variable)->Relayout = _ ## type ## Relayout; \
 	uiWindowsFinishControl(uiControl(variable));
 
@@ -89,15 +94,11 @@ _UI_EXTERN uintptr_t uiWindowsUtilStartZOrder(HWND hwnd);
 _UI_EXTERN uintptr_t uiWindowsUtilSetZOrder(HWND hwnd, uintptr_t insertAfter);
 _UI_EXTERN int uiWindowsUtilHasTabStops(HWND hwnd);
 
-// This creates a uiControl with most uiControl methods filled out for controls that only require a single HWND.
-// You must provide Handle() (which returns that HWND) and PreferredSize() yourself.
-_UI_EXTERN uiControl *uiWindowsNewSingleHWNDControl(uintmax_t type);
-
 // This contains the Windows-specific parts of the uiSizing structure.
 // BaseX and BaseY are the dialog base units.
 // InternalLeading is the standard control font's internal leading; labels in uiForms use this for correct Y positioning.
 // CoordFrom and CoordTo are the window handles to convert coordinates passed to uiControlResize() from and to (viaa MapWindowRect()) before passing to one of the Windows API resizing functions.
-struct uiSizingSys {
+struct uiWindowsSizing {
 	int BaseX;
 	int BaseY;
 	LONG InternalLeading;
@@ -107,8 +108,6 @@ struct uiSizingSys {
 // Use these in your preferredSize() implementation with baseX and baseY.
 #define uiWindowsDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)
 #define uiWindowsDlgUnitsToY(dlg, baseY) MulDiv((dlg), baseY, 8)
-// Use this as your control's Sizing() implementation.
-_UI_EXTERN uiSizing *uiWindowsSizing(uiControl *c);
 
 // and use this if you need the text of the window width
 _UI_EXTERN intmax_t uiWindowsWindowTextWidth(HWND hwnd);
@@ -121,13 +120,13 @@ _UI_EXTERN void uiWindowsUtilSetText(HWND, const char *);
 // These provide event handling.
 // For WM_COMMAND, the WORD parameter is the notification code.
 // For WM_HSCROLL, the WORD parameter is the scroll operation.
-extern void uiWindowsRegisterWM_COMMANDHandler(HWND, BOOL (*)(uiControl *, HWND, WORD, LRESULT *), uiControl *);
-extern void uiWindowsRegisterWM_NOTIFYHandler(HWND, BOOL (*)(uiControl *, HWND, NMHDR *, LRESULT *), uiControl *);
-extern void uiWindowsRegisterWM_HSCROLLHandler(HWND, BOOL (*)(uiControl *, HWND, WORD, LRESULT *), uiControl *);
-extern void uiWindowsUnregisterWM_COMMANDHandler(HWND);
-extern void uiWindowsUnregisterWM_NOTIFYHandler(HWND);
-extern void uiWindowsUnregisterWM_HSCROLLHandler(HWND);
-extern void uiWindowsRegisterReceiveWM_WININICHANGE(HWND);
-extern void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND);
+_UI_EXTERN void uiWindowsRegisterWM_COMMANDHandler(HWND, BOOL (*)(uiControl *, HWND, WORD, LRESULT *), uiControl *);
+_UI_EXTERN void uiWindowsRegisterWM_NOTIFYHandler(HWND, BOOL (*)(uiControl *, HWND, NMHDR *, LRESULT *), uiControl *);
+_UI_EXTERN void uiWindowsRegisterWM_HSCROLLHandler(HWND, BOOL (*)(uiControl *, HWND, WORD, LRESULT *), uiControl *);
+_UI_EXTERN void uiWindowsUnregisterWM_COMMANDHandler(HWND);
+_UI_EXTERN void uiWindowsUnregisterWM_NOTIFYHandler(HWND);
+_UI_EXTERN void uiWindowsUnregisterWM_HSCROLLHandler(HWND);
+_UI_EXTERN void uiWindowsRegisterReceiveWM_WININICHANGE(HWND);
+_UI_EXTERN void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND);
 
 #endif

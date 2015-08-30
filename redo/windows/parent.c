@@ -1,7 +1,8 @@
 // 26 april 2015
 #include "uipriv_windows.h"
 
-// This contains code used by all OS controls that contain other controls. It also contains the container drawing code.
+// This contains code used by all uiControls that contain other controls.
+// It also contains the code to draw the background of a container.c container, as that is a variant of the WM_CTLCOLORxxx handler code.
 
 static HBRUSH parentBrush = NULL;
 

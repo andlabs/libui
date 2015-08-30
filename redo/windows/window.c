@@ -1,32 +1,35 @@
 // 27 april 2015
 #include "uipriv_windows.h"
 
-// TODO ban uiControl methods that mean nothing on toplevels
-
 #define windowClass L"libui_uiWindowClass"
 
-struct window {
-	uiWindow w;
+struct uiWindow {
+	uiWindowsControl c;
 	HWND hwnd;
 	HMENU menubar;
-	uiControl *child;
+	struct child *child;
 	BOOL shownOnce;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	int margined;
-	void (*baseCommitDestroy)(uiControl *);
 };
 
-uiDefineControlType(uiWindow, uiTypeWindow, struct window)
+static void onDestroy(uiWindow *);
+
+uiWindowsDefineControlWithOnDestroy(
+	uiWindow,							// type name
+	uiWindowType,							// type function
+	onDestroy(this);						// on destroy
+)
 
 static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	struct window *w;
+	uiWindow *w;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	LRESULT lResult;
 
-	w = (struct window *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+	w = uiWindow((void *) GetWindowLongPtrW(hwnd, GWLP_USERDATA));
 	if (w == NULL) {
 		if (uMsg == WM_CREATE)
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (cs->lpCreateParams));
@@ -56,7 +59,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		SendMessageW(hwnd, WM_ERASEBKGND, wParam, lParam);
 		return 0;
 	case WM_CLOSE:
-		if ((*(w->onClosing))(uiWindow(w), w->onClosingData))
+		if ((*(w->onClosing))(w, w->onClosingData))
 			uiControlDestroy(uiControl(w));
 		return 0;		// we destroyed it already
 	}
@@ -88,36 +91,23 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 0;
 }
 
-static void windowCommitDestroy(uiControl *c)
+static void onDestroy(uiWindow *w)
 {
-	struct window *w = (struct window *) c;
-
 	// first hide ourselves
 	ShowWindow(w->hwnd, SW_HIDE);
 	// now destroy the child
-	// we need to unset its parent first
-	if (w->child != NULL) {
-		uiControlSetParent(w->child, NULL);
-		uiControlDestroy(w->child);
-	}
+	if (w->child != NULL)
+		childDestroy(w->child);
 	// now free the menubar, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
 	// and finally destroy ourselves
 	dialogHelperUnregisterWindow(w->hwnd);
-	(*(w->baseCommitDestroy))(uiControl(w));
-}
-
-static uintptr_t windowHandle(uiControl *c)
-{
-	struct window *w = (struct window *) c;
-
-	return (uintptr_t) (w->hwnd);
 }
 
 static void windowCommitShow(uiControl *c)
 {
-	struct window *w = (struct window *) c;
+	uiWindow *w = uiWindow(c);
 
 	if (w->shownOnce) {
 		ShowWindow(w->hwnd, SW_SHOW);
@@ -133,59 +123,45 @@ static void windowCommitShow(uiControl *c)
 
 static void windowContainerUpdateState(uiControl *c)
 {
-	struct window *w = (struct window *) c;
+	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
-		uiControlUpdateState(w->child);
+		childContainerUpdateState(w->child);
 }
 
-static char *windowTitle(uiWindow *ww)
+char *uiWindowTitle(uiWindow *w)
 {
-	struct window *w = (struct window *) ww;
-
 	return uiWindowsUtilText(w->hwnd);
 }
 
-static void windowSetTitle(uiWindow *ww, const char *title)
+void uiWindowSetTitle(uiWindow *w, const char *title)
 {
-	struct window *w = (struct window *) ww;
-
 	uiWindowsUtilSetText(w->hwnd, title);
 	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
 }
 
-static void windowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
+void uiWindowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
 {
-	struct window *w = (struct window *) ww;
-
 	w->onClosing = f;
 	w->onClosingData = data;
 }
 
-static void windowSetChild(uiWindow *ww, uiControl *child)
+void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
-	struct window *w = (struct window *) ww;
-
 	if (w->child != NULL)
-		uiControlSetParent(w->child, NULL);
-	w->child = child;
-	if (w->child != NULL) {
-		uiControlSetParent(w->child, uiControl(w));
+		childRemove(w->child);
+	w->child = newChild(child, uiControl(w), w->hwnd);
+	if (w->child != NULL)
 		uiControlQueueResize(w->child);
-	}
 }
 
-static int windowMargined(uiWindow *ww)
+int uiWindowMargined(uiWindow *w)
 {
-	struct window *w = (struct window *) ww;
-
 	return w->margined;
 }
 
-static void windowSetMargined(uiWindow *ww, int margined)
+void uiWindowSetMargined(uiWindow *w, int margined)
 {
-	struct window *w = (struct window *) ww;
-
 	w->margined = margined;
 	uiControlQueueResize(uiControl(w));
 }
@@ -215,7 +191,7 @@ static void windowResizeChild(uiWindow *ww)
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
-static void setClientSize(struct window *w, int width, int height, BOOL hasMenubar, DWORD style, DWORD exstyle)
+static void setClientSize(uiWindow *w, int width, int height, BOOL hasMenubar, DWORD style, DWORD exstyle)
 {
 	RECT window;
 
@@ -239,11 +215,11 @@ static void setClientSize(struct window *w, int width, int height, BOOL hasMenub
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
-	struct window *w;
+	uiWindow *w;
 	WCHAR *wtitle;
 	BOOL hasMenubarBOOL;
 
-	w = (struct window *) uiWindowsNewSingleHWNDControl(uiTypeWindow());
+	w = (uiWindow *) uiNewControl(uiWindowType());
 
 	hasMenubarBOOL = FALSE;
 	if (hasMenubar)
@@ -277,21 +253,11 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	// and use the proper size
 	setClientSize(w, width, height, hasMenubarBOOL, style, exstyle);
 
-	w->onClosing = defaultOnClosing;
+	uiWindowSetOnClosing(w, defaultOnClosing, NULL);
 
-	uiControl(w)->Handle = windowHandle;
-	w->baseCommitDestroy = uiControl(w)->CommitDestroy;
-	uiControl(w)->CommitDestroy = windowCommitDestroy;
+	uiWindowsFinishNewControl(w, uiWindow);
 	uiControl(w)->CommitShow = windowCommitShow;
 	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
 
-	uiWindow(w)->Title = windowTitle;
-	uiWindow(w)->SetTitle = windowSetTitle;
-	uiWindow(w)->OnClosing = windowOnClosing;
-	uiWindow(w)->SetChild = windowSetChild;
-	uiWindow(w)->Margined = windowMargined;
-	uiWindow(w)->SetMargined = windowSetMargined;
-	uiWindow(w)->ResizeChild = windowResizeChild;
-
-	return uiWindow(w);
+	return w;
 }

@@ -1,7 +1,9 @@
 // 26 april 2015
 #include "uipriv_windows.h"
 
-// Code for containers. uiMakeContainer() creates a singleHWND of this window class.
+// Code for the HWND of the following uiControls:
+// - uiBox
+// - uiRadioButtons
 
 static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -55,10 +57,9 @@ void uninitContainer(void)
 		logLastError("error unregistering container window class in uninitContainer()");
 }
 
-uintptr_t uiMakeContainer(uiControl *c)
+HWND makeContainer(void)
 {
-	setSingleHWNDFuncs(c);
-	return (uintptr_t) uiWindowsUtilCreateControlHWND(WS_EX_CONTROLPARENT,
+	return uiWindowsUtilCreateControlHWND(WS_EX_CONTROLPARENT,
 		containerClass, L"",
 		0,
 		hInstance, NULL,

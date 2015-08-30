@@ -3,33 +3,28 @@
 
 // we as Common Controls 6 users don't need to worry about the height of comboboxes; see http://blogs.msdn.com/b/oldnewthing/archive/2006/03/10/548537.aspx
 
-struct combobox {
-	uiCombobox c;
+struct uiCombobox {
+	uiWindowsControl c;
 	HWND hwnd;
 };
 
-uiDefineControlType(uiCombobox, uiTypeCombobox, struct combobox)
-
-static uintptr_t comboboxHandle(uiControl *cc)
-{
-	struct combobox *c = (struct combobox *) cc;
-
-	return (uintptr_t) (c->hwnd);
-}
+uiWindowsDefineControl(
+	uiCombobox,							// type name
+	uiComboboxType						// type function
+)
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define comboboxWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define comboboxHeight 14
 
-static void comboboxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(comboboxWidth, d->Sys->BaseX);
-	*height = uiWindowsDlgUnitsToY(comboboxHeight, d->Sys->BaseY);
+	*width = uiWindowsDlgUnitsToX(comboboxWidth, d->BaseX);
+	*height = uiWindowsDlgUnitsToY(comboboxHeight, d->BaseY);
 }
 
-static void comboboxAppend(uiCombobox *cc, const char *text)
+void uiComboboxAppend(uiCombobox *c, const char *text)
 {
-	struct combobox *c = (struct combobox *) cc;
 	WCHAR *wtext;
 	LRESULT res;
 
@@ -44,9 +39,9 @@ static void comboboxAppend(uiCombobox *cc, const char *text)
 
 static uiCombobox *finishNewCombobox(DWORD style)
 {
-	struct combobox *c;
+	uiCombobox *c;
 
-	c = (struct combobox *) uiWindowsNewSingleHWNDControl(uiTypeCombobox());
+	c = (uiCombobox *) uiNewControl(uiComboboxType());
 
 	c->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"combobox", L"",
@@ -54,12 +49,9 @@ static uiCombobox *finishNewCombobox(DWORD style)
 		hInstance, NULL,
 		TRUE);
 
-	uiControl(c)->Handle = comboboxHandle;
-	uiControl(c)->PreferredSize = comboboxPreferredSize;
+	uiWindowsFinishNewControl(c, uiCombobox);
 
-	uiCombobox(c)->Append = comboboxAppend;
-
-	return uiCombobox(c);
+	return c;
 }
 
 uiCombobox *uiNewCombobox(void)

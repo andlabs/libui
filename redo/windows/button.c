@@ -8,7 +8,7 @@ struct uiButton {
 	void *onClickedData;
 };
 
-uiDarwinDefineControlWithOnDestroy(
+uiWindowsDefineControlWithOnDestroy(
 	uiButton,								// type name
 	uiButtonType,							// type function
 	uiWindowsUnregisterWM_COMMANDHandler(this->hwnd);	// on destroy

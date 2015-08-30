@@ -1,13 +1,16 @@
 // 22 may 2015
 #include "uipriv_windows.h"
 
-struct datetimepicker {
-	uiDateTimePicker d;
+struct uiDateTimePicker {
+	uiWindowsControl c;
 	HWND hwnd;
-	void (*baseCommitDestroy)(uiControl *);
 };
 
-uiDefineControlType(uiDateTimePicker, uiTypeDateTimePicker, struct datetimepicker)
+uiWindowsDefineControlWithOnDestroy(
+	uiDateTimePicker,						// type name
+	uiDateTimePickerType,					// type function
+	uiWindowsUnregisterReceiveWM_WININICHANGE(this->hwnd);		// on destroy
+)
 
 // utility functions
 
@@ -103,42 +106,27 @@ static void setDateTimeFormat(HWND hwnd)
 
 // control implementation
 
-static void datetimepickerCommitDestroy(uiControl *c)
-{
-	struct datetimepicker *d = (struct datetimepicker *) c;
-
-	uiWindowsUnregisterReceiveWM_WININICHANGE(d->hwnd);
-	(*(d->baseCommitDestroy))(uiControl(d));
-}
-
-static uintptr_t datetimepickerHandle(uiControl *c)
-{
-	struct datetimepicker *d = (struct datetimepicker *) c;
-
-	return (uintptr_t) (d->hwnd);
-}
-
 // the height returned from DTM_GETIDEALSIZE is unreliable; see http://stackoverflow.com/questions/30626549/what-is-the-proper-use-of-dtm-getidealsize-treating-the-returned-size-as-pixels
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryHeight 14
 
-static void datetimepickerPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
-	struct datetimepicker *dd = (struct datetimepicker *) c;
+	uiDateTimePicker *d = uiDateTimePicker(c);
 	SIZE s;
 
 	s.cx = 0;
 	s.cy = 0;
 	SendMessageW(dd->hwnd, DTM_GETIDEALSIZE, 0, (LPARAM) (&s));
 	*width = s.cx;
-	*height = uiWindowsDlgUnitsToY(entryHeight, d->Sys->BaseY);
+	*height = uiWindowsDlgUnitsToY(entryHeight, d->BaseY);
 }
 
-uiDateTimePicker *finishNewDateTimePicker(DWORD style)
+static uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 {
-	struct datetimepicker *d;
+	uiDateTimePicker *d;
 
-	d = (struct datetimepicker *) uiWindowsNewSingleHWNDControl(uiTypeDateTimePicker());
+	d = (uiDateTimePicker *) uiNewControl(uiDateTimePickerType());
 
 	d->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
 		DATETIMEPICK_CLASSW, L"",
@@ -151,12 +139,9 @@ uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 	// for our date/time mode, we do it in a subclass assigned in uiNewDateTimePicker()
 	uiWindowsRegisterReceiveWM_WININICHANGE(d->hwnd);
 
-	d->baseCommitDestroy = uiControl(d)->CommitDestroy;
-	uiControl(d)->CommitDestroy = datetimepickerCommitDestroy;
-	uiControl(d)->Handle = datetimepickerHandle;
-	uiControl(d)->PreferredSize = datetimepickerPreferredSize;
+	uiWindowsFinishNewControl(d, uiDateTimePicker);
 
-	return uiDateTimePicker(d);
+	return d;
 }
 
 static LRESULT CALLBACK datetimepickerSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
@@ -178,15 +163,13 @@ static LRESULT CALLBACK datetimepickerSubProc(HWND hwnd, UINT uMsg, WPARAM wPara
 
 uiDateTimePicker *uiNewDateTimePicker(void)
 {
-	uiDateTimePicker *dtp;
-	struct datetimepicker *d;
+	uiDateTimePicker *d;
 
-	dtp = finishNewDateTimePicker(0);
-	d = (struct datetimepicker *) dtp;
+	d = finishNewDateTimePicker(0);
 	setDateTimeFormat(d->hwnd);
 	if (SetWindowSubclass(d->hwnd, datetimepickerSubProc, 0, (DWORD_PTR) d) == FALSE)
 		logLastError("error subclassing date-time-picker to assist in locale change handling in uiNewDateTimePicker()");
-	return dtp;
+	return d;
 }
 
 uiDateTimePicker *uiNewDatePicker(void)

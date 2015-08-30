@@ -1,25 +1,21 @@
 // 19 may 2015
 #include "uipriv_windows.h"
 
-struct progressbar {
-	uiProgressBar p;
+struct uiProgressBar {
+	uiWindowsControl c;
 	HWND hwnd;
 };
 
-uiDefineControlType(uiProgressBar, uiTypeProgressBar, struct progressbar)
-
-static uintptr_t progressbarHandle(uiControl *c)
-{
-	struct progressbar *p = (struct progressbar *) c;
-
-	return (uintptr_t) (p->hwnd);
-}
+uiWindowsDefineControl(
+	uiProgressBar,							// type name
+	uiProgressBarType						// type function
+)
 
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define pbarWidth 237
 #define pbarHeight 8
 
-static void progressbarPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	*width = uiWindowsDlgUnitsToX(pbarWidth, d->Sys->BaseX);
 	*height = uiWindowsDlgUnitsToY(pbarHeight, d->Sys->BaseY);
@@ -29,12 +25,10 @@ static void progressbarPreferredSize(uiControl *c, uiSizing *d, intmax_t *width,
 // we have to set the progress bar to value + 1 and decrease it back to value if we want an "instant" change
 // see http://stackoverflow.com/questions/2217688/windows-7-aero-theme-progress-bar-bug
 // it's not ideal/perfect, but it will have to do
-static void progressbarSetValue(uiProgressBar *pp, int value)
+void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
-	struct progressbar *p = (struct progressbar *) pp;
-
 	if (value < 0 || value > 100)
-		complain("value %d out of range in progressbarSetValue()", value);
+		complain("value %d out of range in uiProgressBarSetValue()", value);
 	if (value == 100) {			// because we can't 101
 		SendMessageW(p->hwnd, PBM_SETRANGE32, 0, 101);
 		SendMessageW(p->hwnd, PBM_SETPOS, 101, 0);
@@ -48,9 +42,9 @@ static void progressbarSetValue(uiProgressBar *pp, int value)
 
 uiProgressBar *uiNewProgressBar(void)
 {
-	struct progressbar *p;
+	uiProgressBar *p;
 
-	p = (struct progressbar *) uiWindowsNewSingleHWNDControl(uiTypeProgressBar());
+	p = (uiProgressBar *) uiNewControl(uiProgressBarType());
 
 	p->hwnd = uiWindowsUtilCreateControlHWND(0,
 		PROGRESS_CLASSW, L"",
@@ -58,10 +52,7 @@ uiProgressBar *uiNewProgressBar(void)
 		hInstance, NULL,
 		FALSE);
 
-	uiControl(p)->Handle = progressbarHandle;
-	uiControl(p)->PreferredSize = progressbarPreferredSize;
+	uiWindowsFinishNewControl(p, uiProgressBar);
 
-	uiProgressBar(p)->SetValue = progressbarSetValue;
-
-	return uiProgressBar(p);
+	return p;
 }

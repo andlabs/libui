@@ -1,42 +1,34 @@
 // 11 april 2015
 #include "uipriv_windows.h"
 
-struct label {
-	uiLabel l;
+struct uiLabel {
+	uiWindowsControl c;
 	HWND hwnd;
 };
 
-uiDefineControlType(uiLabel, uiTypeLabel, struct label)
-
-static uintptr_t labelHandle(uiControl *c)
-{
-	struct label *l = (struct label *) c;
-
-	return (uintptr_t) (l->hwnd);
-}
+uiWindowsDefineControl(
+	uiLabel,								// type name
+	uiLabelType							// type function
+)
 
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define labelHeight 8
 
-static void labelPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
-	struct label *l = (struct label *) c;
+	uiLabel *l = uiLabel(c);
 
 	*width = uiWindowsWindowTextWidth(l->hwnd);
-	*height = uiWindowsDlgUnitsToY(labelHeight, d->Sys->BaseY);
+	*height = uiWindowsDlgUnitsToY(labelHeight, d->BaseY);
 }
 
-static char *labelText(uiLabel *ll)
+char *uiLabelText(uiLabel *l)
 {
-	struct label *l = (struct label *) ll;
-
 	return uiWindowsUtilText(l->hwnd);
 }
 
-static void labelSetText(uiLabel *ll, const char *text)
+void uiLabelSetText(uiLabel *l, const char *text)
 {
-	struct label *l = (struct label *) ll;
-
 	uiWindowsUtilSetText(l->hwnd, text);
 	// changing the text might necessitate a change in the label's size
 	uiControlQueueResize(uiControl(l));
@@ -44,10 +36,10 @@ static void labelSetText(uiLabel *ll, const char *text)
 
 uiLabel *uiNewLabel(const char *text)
 {
-	struct label *l;
+	uiLabel *l;
 	WCHAR *wtext;
 
-	l = (struct label *) uiWindowsNewSingleHWNDControl(uiTypeLabel());
+	l = (uiLabel *) uiNewControl(uiLabelType());
 
 	wtext = toUTF16(text);
 	l->hwnd = uiWindowsUtilCreateControlHWND(0,
@@ -59,11 +51,7 @@ uiLabel *uiNewLabel(const char *text)
 		TRUE);
 	uiFree(wtext);
 
-	uiControl(l)->Handle = labelHandle;
-	uiControl(l)->PreferredSize = labelPreferredSize;
+	uiWindowsFinishNewControl(l, uiLabel);
 
-	uiLabel(l)->Text = labelText;
-	uiLabel(l)->SetText = labelSetText;
-
-	return uiLabel(l);
+	return l;
 }

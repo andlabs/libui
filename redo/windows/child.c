@@ -15,6 +15,10 @@ struct child {
 	// This flag is for users of these functions.
 	// For uiBox, this is "spaced".
 	int flag;
+
+	// These intmax_t variables are for users of these functions.
+	// For uiBox, these are "width" and "height".
+	intmax_t im[2];
 };
 
 struct child *newChild(uiControl *child, uiControl *parent, HWND parentHWND)
@@ -132,4 +136,14 @@ int childFlag(struct child *c)
 void childSetFlag(struct child *c, int flag)
 {
 	c->flag = flag;
+}
+
+intmax_t childIntmax(struct child *c, int n)
+{
+	return c->im[n];
+}
+
+void childSetIntmax(struct child *c, int n, intmax_t to)
+{
+	c->im[n] = to;
 }

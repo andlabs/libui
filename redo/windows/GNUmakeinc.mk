@@ -5,6 +5,7 @@ osCFILES = \
 	windows/box.c \
 	windows/button.c \
 	windows/checkbox.c \
+	windows/child.c \
 	windows/combobox.c \
 	windows/container.c \
 	windows/control.c \

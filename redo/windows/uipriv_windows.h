@@ -109,3 +109,5 @@ extern int childMargined(struct child *c);
 extern void childSetMargined(struct child *c);
 extern int childFlag(struct child *c);
 extern void childSetFlag(struct child *c, int flag);
+extern intmax_t childIntmax(struct child *c, int n);
+extern void childSetIntmax(struct child *c, int n, intmax_t to);

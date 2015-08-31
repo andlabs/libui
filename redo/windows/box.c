@@ -3,53 +3,46 @@
 #include "uipriv.h"
 
 struct box {
-	uiBox b;
-	void (*baseCommitDestroy)(uiControl *);
-	uintptr_t handle;
+	uiWindowsControl c;
+	HWND hwnd;
 	struct ptrArray *controls;
 	int vertical;
 	int padded;
-	void (*baseResize)(uiControl *, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 };
 
-struct boxControl {
-	uiControl *c;
-	int stretchy;
-	intmax_t width;		// both used by resize(); preallocated to save time and reduce risk of failure
-	intmax_t height;
-};
+#define ctrlStretchy(child) childFlag(child)
+#define ctrlSetStretchy(child, stretchy) childSetFlag(child, stretchy)
+// both used by resize(); preallocated to save time and reduce risk of failure
+#define ctrlWidth(child) childIntmax(child, 0)
+#define ctrlSetWidth(child, w) childSetIntmax(child, 0, w)
+#define ctrlHeight(child) childIntmax(child, 1)
+#define ctrlSetHeight(child, h) childSetIntmax(child, 1, h)
 
-uiDefineControlType(uiBox, uiTypeBox, struct box)
+static void onDestroy(uiBox *);
 
-static void boxCommitDestroy(uiControl *c)
+uiWindowsDefineControlWithOnDestroy(
+	uiBox,								// type name
+	uiBoxType,							// type function
+	onDestroy(this);						// on destroy
+)
+
+static void onDestroy(uiBox *b)
 {
-	struct box *b = (struct box *) c;
-	struct boxControl *bc;
+	struct child *bc;
 
-	// don't chain up to base here; we need to destroy children ourselves first
 	while (b->controls->len != 0) {
 		bc = ptrArrayIndex(b->controls, struct boxControl *, 0);
-		uiControlSetParent(bc->c, NULL);
-		uiControlDestroy(bc->c);
 		ptrArrayDelete(b->controls, 0);
-		uiFree(bc);
+		childDestroy(bc);
 	}
 	ptrArrayDestroy(b->controls);
-	// NOW we can chain up to base
-	(*(b->baseCommitDestroy))(uiControl(b));
 }
 
-static uintptr_t boxHandle(uiControl *c)
+static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
-	struct box *b = (struct box *) c;
-
-	return b->handle;
-}
-
-static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
-{
-	struct box *b = (struct box *) c;
-	struct boxControl *bc;
+/* TODO
+	uiBox *b = uiBox(c);
+	struct child *bc;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	// these two contain the largest preferred width and height of all stretchy controls in the box
@@ -113,11 +106,13 @@ static void boxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_
 		*height += nStretchy * maxStretchyHeight;
 	else
 		*width += nStretchy * maxStretchyWidth;
+*/
 }
 
-static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
 {
-	struct box *b = (struct box *) c;
+/* TODO
+	uibox *b = uiBox(c);
 	struct boxControl *bc;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
@@ -200,8 +195,10 @@ static void boxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intm
 			x += bc->width + xpadding;
 	}
 	uiFreeSizing(dchild);
+*/
 }
 
+/* TODO
 static int boxHasTabStops(uiControl *c)
 {
 	struct box *b = (struct box *) c;
@@ -215,114 +212,97 @@ static int boxHasTabStops(uiControl *c)
 	}
 	return 0;
 }
+*/
 
 static void boxContainerUpdateState(uiControl *c)
 {
 	struct box *b = (struct box *) c;
-	struct boxControl *bc;
+	struct child *bc;
 	uintmax_t i;
 
 	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
-		uiControlUpdateState(bc->c);
+		bc = ptrArrayIndex(b->controls, struct child *, i);
+		childUpdateState(bc);
 	}
 }
 
-static void boxAppend(uiBox *ss, uiControl *c, int stretchy)
+void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
-	struct box *b = (struct box *) ss;
-	struct boxControl *bc;
+	struct child *bc;
 	uintptr_t zorder;
 	int dozorder;
 	uintmax_t i;
 
 	// start the zorder with the *CURRENT* first child
 	// this is in case we're adding a new first child
+/* TODO
 	dozorder = 0;
 	if (b->controls->len != 0) {
 		dozorder = 1;
 		bc = ptrArrayIndex(b->controls, struct boxControl *, 0);
 		zorder = uiControlStartZOrder(bc->c);
 	}
+*/
 
-	bc = uiNew(struct boxControl);
-	bc->c = c;
-	bc->stretchy = stretchy;
-	uiControlSetParent(bc->c, uiControl(b));
+	bc = newChild(child, uiControl(b), b->hwnd);
+	ctrlSetStretchy(bc, stretchy);
 	ptrArrayAppend(b->controls, bc);
 	uiControlQueueResize(uiControl(b));
 
+/* TODO
 	// and now update the zorder for all controls
 	if (dozorder)
 		for (i = 0; i < b->controls->len; i++) {
 			bc = ptrArrayIndex(b->controls, struct boxControl *, i);
 			zorder = uiControlSetZOrder(bc->c, zorder);
 		}
+*/
 }
 
-static void boxDelete(uiBox *ss, uintmax_t index)
+void uiBoxDelete(uiBox *b, uintmax_t index)
 {
-	struct box *b = (struct box *) ss;
-	struct boxControl *bc;
-	uiControl *removed;
+	struct child *bc;
 
-	bc = ptrArrayIndex(b->controls, struct boxControl *, index);
-	removed = bc->c;
+	bc = ptrArrayIndex(b->controls, struct child *, index);
 	ptrArrayDelete(b->controls, index);
-	uiControlSetParent(removed, NULL);
-	uiFree(bc);
+	childRemove(bc);
 	uiControlQueueResize(uiControl(b));
 }
 
-static int boxPadded(uiBox *ss)
+int uiBoxPadded(uiBox *b)
 {
-	struct box *b = (struct box *) ss;
-
 	return b->padded;
 }
 
-static void boxSetPadded(uiBox *ss, int padded)
+void uiBoxSetPadded(uiBox *b, int padded)
 {
-	struct box *b = (struct box *) ss;
-
 	b->padded = padded;
 	uiControlQueueResize(uiControl(b));
 }
 
-uiBox *uiNewHorizontalBox(void)
+static uiBox *finishNewBox(int vertical)
 {
-	struct box *b;
+	uiBox *b;
 
-	b = (struct box *) uiNewControl(uiTypeBox());
+	b = (uiBox *) uiNewControl(uiBoxType());
 
-	b->handle = uiMakeContainer(uiControl(b));
+	b->hwnd = makeContainer();
 
+	b->vertical = vertical;
 	b->controls = newPtrArray();
 
-	uiControl(b)->Handle = boxHandle;
-	uiControl(b)->PreferredSize = boxPreferredSize;
-	b->baseResize = uiControl(b)->Resize;
-	uiControl(b)->Resize = boxResize;
-	uiControl(b)->HasTabStops = boxHasTabStops;
-	b->baseCommitDestroy = uiControl(b)->CommitDestroy;
-	uiControl(b)->CommitDestroy = boxCommitDestroy;
-	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;
+	uiWindowsFinishNewControl(b, uiBox);
+	// TODO
 
-	uiBox(b)->Append = boxAppend;
-	uiBox(b)->Delete = boxDelete;
-	uiBox(b)->Padded = boxPadded;
-	uiBox(b)->SetPadded = boxSetPadded;
+	return b;
+}
 
-	return uiBox(b);
+uiBox *uiNewHorizontalBox(void)
+{
+	return finishNewBox(0);
 }
 
 uiBox *uiNewVerticalBox(void)
 {
-	uiBox *bb;
-	struct box *b;
-
-	bb = uiNewHorizontalBox();
-	b = (struct box *) bb;
-	b->vertical = 1;
-	return bb;
+	return finishNewBox(1);
 }

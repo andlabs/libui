@@ -3,7 +3,7 @@
 
 // TODO migrate to ptrArray
 
-static struct menu **menus = NULL;
+static uiMenu **menus = NULL;
 static uintmax_t len = 0;
 static uintmax_t cap = 0;
 static BOOL menusFinalized = FALSE;
@@ -12,16 +12,16 @@ static BOOL hasQuit = FALSE;
 static BOOL hasPreferences = FALSE;
 static BOOL hasAbout = FALSE;
 
-struct menu {
-	uiMenu m;
+struct uiMenu {
+	uiTyped t;
 	WCHAR *name;
-	struct menuItem **items;
+	uiMenuItem **items;
 	uintmax_t len;
 	uintmax_t cap;
 };
 
-struct menuItem {
-	uiMenuItem mi;
+struct uiMenuItem {
+	uiTyped t;
 	WCHAR *name;
 	int type;
 	WORD id;
@@ -45,7 +45,7 @@ enum {
 
 #define grow 32
 
-static void sync(struct menuItem *item)
+static void sync(uiMenuItem *item)
 {
 	uintmax_t i;
 	MENUITEMINFOW mi;
@@ -74,43 +74,33 @@ static void onQuitClicked(uiMenuItem *item, uiWindow *w, void *data)
 		uiQuit();
 }
 
-static void menuItemEnable(uiMenuItem *ii)
+void uiMenuItemEnable(uiMenuItem *i)
 {
-	struct menuItem *item = (struct menuItem *) ii;
-
 	item->disabled = FALSE;
 	sync(item);
 }
 
-static void menuItemDisable(uiMenuItem *ii)
+void uiMenuItemDisable(uiMenuItem *i)
 {
-	struct menuItem *item = (struct menuItem *) ii;
-
 	item->disabled = TRUE;
 	sync(item);
 }
 
-static void menuItemOnClicked(uiMenuItem *ii, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)
+void uiMenuItemOnClicked(uiMenuItem *i, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)
 {
-	struct menuItem *item = (struct menuItem *) ii;
-
 	if (item->type == typeQuit)
 		complain("attempt to call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead");
 	item->onClicked = f;
 	item->onClickedData = data;
 }
 
-static int menuItemChecked(uiMenuItem *ii)
+int uiMenuItemChecked(uiMenuItem *i)
 {
-	struct menuItem *item = (struct menuItem *) ii;
-
 	return item->checked != FALSE;
 }
 
-static void menuItemSetChecked(uiMenuItem *ii, int checked)
+void uiMenuItemSetChecked(uiMenuItem *i, int checked)
 {
-	struct menuItem *item = (struct menuItem *) ii;
-
 	// use explicit values
 	item->checked = FALSE;
 	if (checked)
@@ -118,20 +108,20 @@ static void menuItemSetChecked(uiMenuItem *ii, int checked)
 	sync(item);
 }
 
-static uiMenuItem *newItem(struct menu *m, int type, const char *name)
+static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 {
-	struct menuItem *item;
+	uiMenuItem *item;
 
 	if (menusFinalized)
 		complain("attempt to create a new menu item after menus have been finalized");
 
 	if (m->len >= m->cap) {
 		m->cap += grow;
-		m->items = (struct menuItem **) uiRealloc(m->items, m->cap * sizeof (struct menuItem *), "struct menuItem *[]");
+		m->items = (uiMenuItem **) uiRealloc(m->items, m->cap * sizeof (uiMenuItem *), "uiMenuitem *[]");
 	}
 
-	item = uiNew(struct menuItem);
-	uiTyped(item)->Type = uiTypeMenuItem();
+	item = uiNew(uiMenuItem);
+	uiTyped(item)->Type = uiMenuItemType();
 
 	m->items[m->len] = item;
 	m->len++;
@@ -159,91 +149,79 @@ static uiMenuItem *newItem(struct menu *m, int type, const char *name)
 		curID++;
 	}
 
+	// TODO copy this from the unix one
 	item->onClicked = defaultOnClicked;
 	if (item->type == typeQuit)
 		item->onClicked = onQuitClicked;
 
-	uiMenuItem(item)->Enable = menuItemEnable;
-	uiMenuItem(item)->Disable = menuItemDisable;
-	uiMenuItem(item)->OnClicked = menuItemOnClicked;
-	uiMenuItem(item)->Checked = menuItemChecked;
-	uiMenuItem(item)->SetChecked = menuItemSetChecked;
-
-	return uiMenuItem(item);
+	return item;
 }
 
-uiMenuItem *menuAppendItem(uiMenu *mm, const char *name)
+uiMenuItem *uiMenuAppendItem(uiMenu *m, const char *name)
 {
-	return newItem((struct menu *) mm, typeRegular, name);
+	return newItem(m, typeRegular, name);
 }
 
-uiMenuItem *menuAppendCheckItem(uiMenu *mm, const char *name)
+uiMenuItem *uiMenuAppendCheckItem(uiMenu *m, const char *name)
 {
-	return newItem((struct menu *) mm, typeCheckbox, name);
+	return newItem(m, typeCheckbox, name);
 }
 
-uiMenuItem *menuAppendQuitItem(uiMenu *mm)
+uiMenuItem *uiMenuAppendQuitItem(uiMenu *m)
 {
 	if (hasQuit)
 		complain("attempt to add multiple Quit menu items");
 	hasQuit = TRUE;
-	newItem((struct menu *) mm, typeSeparator, NULL);
-	return newItem((struct menu *) mm, typeQuit, NULL);
+	newItem(m, typeSeparator, NULL);
+	return newItem(m, typeQuit, NULL);
 }
 
-uiMenuItem *menuAppendPreferencesItem(uiMenu *mm)
+uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m)
 {
 	if (hasPreferences)
 		complain("attempt to add multiple Preferences menu items");
 	hasPreferences = TRUE;
-	newItem((struct menu *) mm, typeSeparator, NULL);
-	return newItem((struct menu *) mm, typePreferences, NULL);
+	newItem(m, typeSeparator, NULL);
+	return newItem(m, typePreferences, NULL);
 }
 
-uiMenuItem *menuAppendAboutItem(uiMenu *mm)
+uiMenuItem *uiMenuAppendAboutItem(uiMenu *mm)
 {
 	if (hasAbout)
 		complain("attempt to add multiple About menu items");
 	hasAbout = TRUE;
-	newItem((struct menu *) mm, typeSeparator, NULL);
-	return newItem((struct menu *) mm, typeAbout, NULL);
+	newItem(m, typeSeparator, NULL);
+	return newItem(m, typeAbout, NULL);
 }
 
-void menuAppendSeparator(uiMenu *mm)
+void uiMenuAppendSeparator(uiMenu *m)
 {
-	newItem((struct menu *) mm, typeSeparator, NULL);
+	newItem(m, typeSeparator, NULL);
 }
 
 uiMenu *uiNewMenu(const char *name)
 {
-	struct menu *m;
+	uiMenu *m;
 
 	if (menusFinalized)
 		complain("attempt to create a new menu after menus have been finalized");
 	if (len >= cap) {
 		cap += grow;
-		menus = (struct menu **) uiRealloc(menus, cap * sizeof (struct menu *), "struct menu *[]");
+		menus = (uiMenu **) uiRealloc(menus, cap * sizeof (uiMenu *), "uiMenu *[]");
 	}
 
-	m = uiNew(struct menu);
-	uiTyped(m)->Type = uiTypeMenu();
+	m = uiNew(uiMenu);
+	uiTyped(m)->Type = uiMenuType();
 
 	menus[len] = m;
 	len++;
 
 	m->name = toUTF16(name);
 
-	uiMenu(m)->AppendItem = menuAppendItem;
-	uiMenu(m)->AppendCheckItem = menuAppendCheckItem;
-	uiMenu(m)->AppendQuitItem = menuAppendQuitItem;
-	uiMenu(m)->AppendPreferencesItem = menuAppendPreferencesItem;
-	uiMenu(m)->AppendAboutItem = menuAppendAboutItem;
-	uiMenu(m)->AppendSeparator = menuAppendSeparator;
-
-	return uiMenu(m);
+	return m;
 }
 
-static void appendMenuItem(HMENU menu, struct menuItem *item)
+static void appendMenuItem(HMENU menu, uiMenuItem *item)
 {
 	UINT uFlags;
 
@@ -266,7 +244,7 @@ static void appendMenuItem(HMENU menu, struct menuItem *item)
 	item->len++;
 }
 
-static HMENU makeMenu(struct menu *m)
+static HMENU makeMenu(uiMenu *m)
 {
 	HMENU menu;
 	uintmax_t i;
@@ -302,8 +280,8 @@ HMENU makeMenubar(void)
 
 void runMenuEvent(WORD id, uiWindow *w)
 {
-	struct menu *m;
-	struct menuItem *item;
+	uiMenu *m;
+	uiMenuItem *item;
 	uintmax_t i, j;
 	uiMenuItem *umi;
 
@@ -320,20 +298,18 @@ void runMenuEvent(WORD id, uiWindow *w)
 	complain("unknown menu ID %hu in runMenuEvent()", id);
 
 found:
-	umi = uiMenuItem(item);
-
 	// first toggle checkboxes, if any
 	if (item->type == typeCheckbox)
-		uiMenuItemSetChecked(umi, !uiMenuItemChecked(umi));
+		uiMenuItemSetChecked(item, !uiMenuItemChecked(item));
 
 	// then run the event
-	(*(item->onClicked))(umi, w, item->onClickedData);
+	(*(item->onClicked))(item, w, item->onClickedData);
 }
 
-static void freeMenu(struct menu *m, HMENU submenu)
+static void freeMenu(uiMenu *m, HMENU submenu)
 {
 	uintmax_t i;
-	struct menuItem *item;
+	uiMenuItem *item;
 	uintmax_t j;
 
 	for (i = 0; i < m->len; i++) {
@@ -368,8 +344,8 @@ void freeMenubar(HMENU menubar)
 
 void uninitMenus(void)
 {
-	struct menu *m;
-	struct menuItem *item;
+	uiMenu *m;
+	uiMenuItem *item;
 	uintmax_t i, j;
 
 	for (i = 0; i < len; i++) {

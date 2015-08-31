@@ -12,7 +12,6 @@ enum {
 	msgCOMMAND = WM_APP + 0x40,		// start offset just to be safe
 	msgNOTIFY,
 	msgHSCROLL,
-	msgHasTabStops,
 	msgConsoleEndSession,
 };
 
@@ -45,7 +44,6 @@ extern WCHAR *windowText(HWND);
 extern void initResizes(void);
 extern void uninitResizes(void);
 extern void doResizes(void);
-extern void moveWindow(HWND, intmax_t, intmax_t, intmax_t, intmax_t, uiSizing *);
 extern void setWindowInsertAfter(HWND, HWND);
 
 // utilwindow.c
@@ -70,6 +68,7 @@ extern void unregisterWindowClass(void);
 #define containerClass L"libui_uiContainerClass"
 extern ATOM initContainer(HICON, HCURSOR);
 extern void uninitContainer(void);
+extern HWND newContainer(void);
 
 // menu.c
 extern HMENU makeMenubar(void);
@@ -81,10 +80,6 @@ extern void uninitMenus(void);
 // alloc.c
 extern int initAlloc(void);
 extern void uninitAlloc(void);
-
-// tab.c
-extern void tabEnterTabNavigation(HWND);
-extern void tabLeaveTabNavigation(HWND);
 
 // events.c
 extern BOOL runWM_COMMAND(WPARAM, LPARAM, LRESULT *);
@@ -100,13 +95,17 @@ extern void uninitDialogHelper(void);
 extern HWND beginDialogHelper(void);
 extern void endDialogHelper(HWND);
 
-// control.c
-extern void setSingleHWNDFuncs(uiControl *);
-
-// tabpage.c
-extern uiControl *newTabPage(void);
-extern int tabPageMargined(uiControl *);
-extern void tabPageSetMargined(uiControl *, int);
-extern void tabPageDestroyChild(uiControl *);
-extern void tabPagePreserveChild(uiControl *);
-extern void tabPageSetChild(uiControl *, uiControl *);
+// child.c
+extern struct child *newChild(uiControl *child, uiControl *parent, HWND parentHWND);
+extern struct child *newChildWithTabPage(uiControl *child, uiControl *parent, HWND parentHWND);
+extern void childRemove(struct child *c);
+extern void childDestroy(struct child *c);
+extern HWND childHWND(struct child *c);
+extern void childMinimumSize(struct child *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height);
+extern void childRelayout(struct child *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height);
+extern void childUpdateState(struct child *c);
+extern HWND childTabPage(struct child *c);
+extern int childMargined(struct child *c);
+extern void childSetMargined(struct child *c);
+extern int childFlag(struct child *c);
+extern void childSetFlag(struct child *c, int flag);

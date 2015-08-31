@@ -15,25 +15,13 @@ void uninitResizes(void)
 	ptrArrayDestroy(resizes);
 }
 
-static uiControl *findToplevel(uiControl *c)
-{
-	for (;;) {
-		if (uiIsWindow(c))
-			break;
-		if (uiControlParent(c) == NULL)		// not in a window
-			return NULL;
-		c = uiControlParent(c);
-	}
-	return c;
-}
-
 void queueResize(uiControl *c)
 {
 	uintmax_t i;
 	uiControl *d;
 
 	// resizing a control requires us to reocmpute the sizes of everything in the top-level window
-	c = findToplevel(c);
+	c = toplevelOwning(c);
 	if (c == NULL)
 		return;
 	// make sure we're only queued once
@@ -47,14 +35,17 @@ void queueResize(uiControl *c)
 
 void doResizes(void)
 {
-	uiWindow *w;
+	uiWindowsControl *w;
 	HWND hwnd;
+	RECT r;
 
 	while (resizes->len != 0) {
-		w = ptrArrayIndex(resizes, uiWindow *, 0);
+		w = ptrArrayIndex(resizes, uiWindowsControl *, 0);
 		ptrArrayDelete(resizes, 0);
-		uiWindowResizeChild(w);
 		hwnd = (HWND) uiControlHandle(uiControl(w));
+		if (GetClientRect(hwnd, &r) == 0)
+			logLastError("TODO write this");
+		(*(w->Relayout))(w, r.left, r.top, r.right - r.left, r.bottom - r.top);
 		// we used SWP_NOREDRAW; we need to queue a redraw ourselves
 		// force all controls to be redrawn; this fixes things like the date-time picker's up-down not showing up until hovered over (and bypasses complications caused by WS_CLIPCHILDREN and WS_CLIPSIBLINGS, which we don't use but other controls might)
 		if (RedrawWindow(hwnd, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN) == 0)
@@ -86,56 +77,45 @@ void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
 #define winXPadding 4
 #define winYPadding 4
 
-uiSizing *uiWindowsSizing(uiControl *c)
+uiWindowsSizing *uiWindowsNewSizing(HWND hwnd)
 {
 	uiSizing *d;
 	HDC dc;
-	HWND hwnd;
 	HFONT prevfont;
 	TEXTMETRICW tm;
 	SIZE size;
-	uiControl *toplevel;
 
-	d = uiNew(uiSizing);
-	d->Sys = uiNew(uiSizingSys);
-
-	hwnd = (HWND) uiControlHandle(c);
+	d = uiNew(uiWindowsSizing);
 
 	dc = GetDC(hwnd);
 	if (dc == NULL)
-		logLastError("error getting DC in uiWindowsSizing()");
+		logLastError("error getting DC in uiWindowsNewSizing()");
 	prevfont = (HFONT) SelectObject(dc, hMessageFont);
 	if (prevfont == NULL)
-		logLastError("error loading control font into device context in uiWindowsSizing()");
+		logLastError("error loading control font into device context in uiWindowsNewSizing()");
 
 	ZeroMemory(&tm, sizeof (TEXTMETRICW));
 	if (GetTextMetricsW(dc, &tm) == 0)
-		logLastError("error getting text metrics in uiWindowsSizing()");
+		logLastError("error getting text metrics in uiWindowsNewSizing()");
 	if (GetTextExtentPoint32W(dc, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &size) == 0)
-		logLastError("error getting text extent point in uiWindowsSizing()");
+		logLastError("error getting text extent point in uiWindowsNewSizing()");
 
-	d->Sys->BaseX = (int) ((size.cx / 26 + 1) / 2);
-	d->Sys->BaseY = (int) tm.tmHeight;
-	d->Sys->InternalLeading = tm.tmInternalLeading;
+	d->BaseX = (int) ((size.cx / 26 + 1) / 2);
+	d->BaseY = (int) tm.tmHeight;
+	d->InternalLeading = tm.tmInternalLeading;
 
 	if (SelectObject(dc, prevfont) != hMessageFont)
 		logLastError("error restoring previous font into device context in uiWindowsSizing()");
 	if (ReleaseDC(hwnd, dc) == 0)
 		logLastError("error releasing DC in uiWindowsSizing()");
 
-	d->XPadding = uiWindowsDlgUnitsToX(winXPadding, d->Sys->BaseX);
-	d->YPadding = uiWindowsDlgUnitsToY(winYPadding, d->Sys->BaseY);
-
-	toplevel = findToplevel(c);
-	if (toplevel != NULL)
-		d->Sys->CoordFrom = (HWND) uiControlHandle(toplevel);
-	d->Sys->CoordTo = hwnd;
+	d->XPadding = uiWindowsDlgUnitsToX(winXPadding, d->BaseX);
+	d->YPadding = uiWindowsDlgUnitsToY(winYPadding, d->BaseY);
 
 	return d;
 }
 
-void uiFreeSizing(uiSizing *d)
+void uiWindowsFreeSizing(uiWindowsSizing *d)
 {
-	uiFree(d->Sys);
 	uiFree(d);
 }

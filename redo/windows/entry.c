@@ -85,7 +85,7 @@ uiEntry *uiNewEntry(void)
 
 	e = (uiEntry *) uiWindowsNewSingleHWNDControl(uiNewControl());
 
-	e->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
+	e->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
 		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
 		hInstance, NULL,

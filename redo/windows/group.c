@@ -126,7 +126,7 @@ uiGroup *uiNewGroup(const char *text)
 	g = (uiGroup *) uiNewControl(uiGroupType());
 
 	wtext = toUTF16(text);
-	g->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CONTROLPARENT,
+	g->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CONTROLPARENT,
 		L"button", wtext,
 		BS_GROUPBOX,
 		hInstance, NULL,

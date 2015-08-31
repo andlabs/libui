@@ -13,8 +13,11 @@ struct uiRadioButtons {
 
 static void onDestroy(uiRadioButtons *);
 
-// TODO
-uiDefineControlType(uiRadioButtons, uiTypeRadioButtons, struct radiobuttons)
+uiWindowsDefineControlWithOnDestroy(
+	uiRadioButtons,						// type name
+	uiRadioButtonsType,						// type function
+	onDestroy(this);						// on destroy
+)
 
 // TODO arrow keys don't work for changing items
 
@@ -140,7 +143,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	HWND after;
 
 	wtext = toUTF16(text);
-	hwnd = uiWindowsUtilCreateControlHWND(0,
+	hwnd = uiWindowsEnsureCreateControlHWND(0,
 		L"button", wtext,
 		BS_RADIOBUTTON | WS_TABSTOP,
 		hInstance, NULL,
@@ -172,7 +175,8 @@ uiRadioButtons *uiNewRadioButtons(void)
 
 	r->hwnds = newPtrArray();
 
-	// TODO
+	uiWindowsFinishNewControl(r, uiRadioButtons);
 	uiControl(r)->Relayout = radiobuttonsRelayout;
+
 	return r;
 }

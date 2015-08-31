@@ -59,7 +59,7 @@ void uninitContainer(void)
 
 HWND makeContainer(void)
 {
-	return uiWindowsUtilCreateControlHWND(WS_EX_CONTROLPARENT,
+	return uiWindowsEnsureCreateControlHWND(WS_EX_CONTROLPARENT,
 		containerClass, L"",
 		0,
 		hInstance, NULL,

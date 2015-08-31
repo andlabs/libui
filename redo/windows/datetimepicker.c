@@ -128,7 +128,7 @@ static uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 
 	d = (uiDateTimePicker *) uiNewControl(uiDateTimePickerType());
 
-	d->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
+	d->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		DATETIMEPICK_CLASSW, L"",
 		style | WS_TABSTOP,
 		hInstance, NULL,

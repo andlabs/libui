@@ -43,7 +43,7 @@ static uiCombobox *finishNewCombobox(DWORD style)
 
 	c = (uiCombobox *) uiNewControl(uiComboboxType());
 
-	c->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
+	c->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"combobox", L"",
 		style | WS_TABSTOP,
 		hInstance, NULL,

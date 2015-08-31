@@ -13,8 +13,11 @@ struct uiTab {
 
 static void onDestroy(uiTab *);
 
-// TODO
-uiDefineControlType(uiTab, uiTypeTab, struct tab)
+uiWindowsDefineControlWithOnDestroy(
+	uiTab,								// type name
+	uiTabType,							// type function
+	onDestroy(this);						// on destroy
+)
 
 // utility functions
 
@@ -223,7 +226,7 @@ uiTab *uiNewTab(void)
 
 	t = (struct tab *) uiWindowsNewSingleHWNDControl(uiTypeTab());
 
-	t->hwnd = uiWindowsUtilCreateControlHWND(0,			// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see below)
+	t->hwnd = uiWindowsEnsureCreateControlHWND(0,			// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see below)
 		WC_TABCONTROLW, L"",
 		// don't give WS_TABSTOP here; we only apply WS_TABSTOP if there are tabs
 		TCS_TOOLTIPS,
@@ -234,7 +237,7 @@ uiTab *uiNewTab(void)
 
 	t->pages = newPtrArray();
 
-	// TODO
+	uiWindowsFinishNewControl(t, uiTab);
 	uiControl(t)->ContainerUpdateState = tabContainerUpdateState;
 	uiWindowsControl(t)->Relayout = tabRelayout;
 

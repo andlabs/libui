@@ -61,7 +61,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 
 	s = (uiSlider *) uiNewControl(uiSliderType());
 
-	s->hwnd = uiWindowsUtilCreateControlHWND(0,
+	s->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		TRACKBAR_CLASSW, L"",
 		TBS_HORZ | TBS_TOOLTIPS | TBS_TRANSPARENTBKGND | WS_TABSTOP,
 		hInstance, NULL,

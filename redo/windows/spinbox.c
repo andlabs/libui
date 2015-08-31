@@ -12,8 +12,11 @@ struct uiSpinbox {
 
 static void onDestroy(uiSpinbox *);
 
-// TODO
-uiDefineControlType(uiSpinbox, uiTypeSpinbox, struct spinbox)
+uiWindowsDefineControlWithOnDestroy(
+	uiSpinbox,							// type name
+	uiSpinboxType,						// type function
+	onDestroy(this);						// on destroy
+)
 
 // utility functions
 
@@ -190,7 +193,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	s = (uiSpinbox *) uiNewControl(uiSpinboxType());
 
-	s->hwnd = uiWindowsUtilCreateControlHWND(WS_EX_CLIENTEDGE,
+	s->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
 		// don't use ES_NUMBER; it doesn't allow typing in a leading -
 		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
@@ -206,7 +209,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) min);
 	s->inhibitChanged = FALSE;
 
-	// TODO
+	uiWindowsFinishNewControl(s, uiSpinbox);
 
 	return s;
 }

@@ -32,7 +32,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	*width = uiWindowsDlgUnitsToX(entryWidth, d->BaseX);
 	*height = uiWindowsDlgUnitsToY(entryHeight, d->BaseY);
@@ -83,7 +83,7 @@ uiEntry *uiNewEntry(void)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) uiWindowsNewSingleHWNDControl(uiNewControl());
+	e = (uiEntry *) uiNewControl(uiEntryType());
 
 	e->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",

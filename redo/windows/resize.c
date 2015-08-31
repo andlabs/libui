@@ -53,7 +53,7 @@ void doResizes(void)
 	}
 }
 
-void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiWindowsSizing *d)
 {
 	RECT r;
 
@@ -61,7 +61,6 @@ void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t heig
 	r.top = y;
 	r.right = x + width;
 	r.bottom = y + height;
-	mapWindowRect(d->Sys->CoordFrom, d->Sys->CoordTo, &r);
 	if (SetWindowPos(hwnd, NULL, r.left, r.top, r.right - r.left, r.bottom - r.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOZORDER) == 0)
 		logLastError("error moving window in moveWindow()");
 }
@@ -79,7 +78,7 @@ void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
 
 uiWindowsSizing *uiWindowsNewSizing(HWND hwnd)
 {
-	uiSizing *d;
+	uiWindowsSizing *d;
 	HDC dc;
 	HFONT prevfont;
 	TEXTMETRICW tm;

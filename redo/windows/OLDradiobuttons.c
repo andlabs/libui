@@ -76,7 +76,7 @@ static void radiobuttonsCommitSetParent(uiControl *c, uiControl *parent)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define radiobuttonXFromLeftOfBoxToLeftOfLabel 12
 
-static void radiobuttonsPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void radiobuttonsPreferredSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;
 	uintmax_t i;
@@ -92,7 +92,7 @@ static void radiobuttonsPreferredSize(uiControl *c, uiSizing *d, intmax_t *width
 	*height = uiWindowsDlgUnitsToY(radiobuttonHeight, d->Sys->BaseY) * r->hwnds->len;
 }
 
-static void radiobuttonsResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void radiobuttonsResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiWindowsSizing *d)
 {
 	struct radiobuttons *r = (struct radiobuttons *) c;
 	intmax_t height1;
@@ -114,7 +114,7 @@ static void radiobuttonsResize(uiControl *c, intmax_t x, intmax_t y, intmax_t wi
 	}
 }
 
-static uiSizing *radiobuttonsSizing(uiControl *c)
+static uiWindowsSizing *radiobuttonsSizing(uiControl *c)
 {
 	complain("attempt to call uiControlSizing() on uiRadioButtons %p", c);
 	return NULL;

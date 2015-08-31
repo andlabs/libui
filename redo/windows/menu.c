@@ -76,36 +76,36 @@ static void onQuitClicked(uiMenuItem *item, uiWindow *w, void *data)
 
 void uiMenuItemEnable(uiMenuItem *i)
 {
-	item->disabled = FALSE;
-	sync(item);
+	i->disabled = FALSE;
+	sync(i);
 }
 
 void uiMenuItemDisable(uiMenuItem *i)
 {
-	item->disabled = TRUE;
-	sync(item);
+	i->disabled = TRUE;
+	sync(i);
 }
 
 void uiMenuItemOnClicked(uiMenuItem *i, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)
 {
-	if (item->type == typeQuit)
+	if (i->type == typeQuit)
 		complain("attempt to call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead");
-	item->onClicked = f;
-	item->onClickedData = data;
+	i->onClicked = f;
+	i->onClickedData = data;
 }
 
 int uiMenuItemChecked(uiMenuItem *i)
 {
-	return item->checked != FALSE;
+	return i->checked != FALSE;
 }
 
 void uiMenuItemSetChecked(uiMenuItem *i, int checked)
 {
 	// use explicit values
-	item->checked = FALSE;
+	i->checked = FALSE;
 	if (checked)
-		item->checked = TRUE;
-	sync(item);
+		i->checked = TRUE;
+	sync(i);
 }
 
 static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
@@ -185,7 +185,7 @@ uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m)
 	return newItem(m, typePreferences, NULL);
 }
 
-uiMenuItem *uiMenuAppendAboutItem(uiMenu *mm)
+uiMenuItem *uiMenuAppendAboutItem(uiMenu *m)
 {
 	if (hasAbout)
 		complain("attempt to add multiple About menu items");

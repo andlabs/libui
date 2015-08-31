@@ -7,7 +7,7 @@
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define tabMargin 7
 
-static void tabPageMargins(HWND hwnd, intmax_t *left, intmax_t *right, intmax_t *right, intmax_t *bottom)
+void tabPageMargins(HWND hwnd, intmax_t *left, intmax_t *top, intmax_t *right, intmax_t *bottom)
 {
 	uiWindowsSizing *d;
 
@@ -51,10 +51,10 @@ HWND newTabPage(void)
 	// unfortunately this needs to be a proper dialog for EnableThemeDialogTexture() to work; CreateWindowExW() won't suffice
 	hwnd = CreateDialogW(hInstance, MAKEINTRESOURCE(rcTabPageDialog),
 		utilWindow, dlgproc);
-	if (t->hwnd == NULL)
+	if (hwnd == NULL)
 		logLastError("error creating tab page in newTabPage()");
 
-	hr = EnableThemeDialogTexture(t->hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);
+	hr = EnableThemeDialogTexture(hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);
 	if (hr != S_OK)
 		logHRESULT("error setting tab page background in newTabPage()", hr);
 

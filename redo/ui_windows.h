@@ -101,6 +101,8 @@ _UI_EXTERN int uiWindowsUtilHasTabStops(HWND hwnd);
 // InternalLeading is the standard control font's internal leading; labels in uiForms use this for correct Y positioning.
 // CoordFrom and CoordTo are the window handles to convert coordinates passed to uiControlResize() from and to (viaa MapWindowRect()) before passing to one of the Windows API resizing functions.
 struct uiWindowsSizing {
+	intmax_t XPadding;
+	intmax_t YPadding;
 	int BaseX;
 	int BaseY;
 	LONG InternalLeading;

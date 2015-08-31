@@ -88,7 +88,7 @@ static void spinboxCommitSetParent(uiControl *c, uiControl *parent)
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void spinboxPreferredSize(uiControl *c, uiSizing *d, intmax_t *width, intmax_t *height)
+static void spinboxPreferredSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	*width = uiWindowsDlgUnitsToX(entryWidth, d->Sys->BaseX);
 	*height = uiWindowsDlgUnitsToY(entryHeight, d->Sys->BaseY);
@@ -136,7 +136,7 @@ static void recreateUpDown(struct spinbox *s)
 	s->inhibitChanged = FALSE;
 }
 
-static void spinboxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void spinboxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiWindowsSizing *d)
 {
 	struct spinbox *s = (struct spinbox *) c;
 
@@ -144,7 +144,7 @@ static void spinboxResize(uiControl *c, intmax_t x, intmax_t y, intmax_t width, 
 	recreateUpDown(s);
 }
 
-static uiSizing *spinboxSizing(uiControl *c)
+static uiWindowsSizing *spinboxSizing(uiControl *c)
 {
 	complain("attempt to call uiControlSizing() on uiSpinbox %p", c);
 	return NULL;

@@ -140,7 +140,7 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
 }
 
-void uiWindowOnClosing(uiWindow *ww, int (*f)(uiWindow *, void *), void *data)
+void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->onClosing = f;
 	w->onClosingData = data;
@@ -169,11 +169,11 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define windowMargin 7
 
-static void windowResizeChild(uiWindow *ww)
+/* TODO
+static void windowResizeChild(uiWindow *w)
 {
-	struct window *w = (struct window *) ww;
 	RECT r;
-	uiSizing *d;
+	uiWindowsSizing *d;
 
 	if (w->child == NULL)
 		return;
@@ -189,6 +189,7 @@ static void windowResizeChild(uiWindow *ww)
 	uiControlResize(w->child, r.left, r.top, r.right - r.left, r.bottom - r.top, d);
 	uiFreeSizing(d);
 }
+*/
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
 static void setClientSize(uiWindow *w, int width, int height, BOOL hasMenubar, DWORD style, DWORD exstyle)

@@ -28,7 +28,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	uiButton *b = uiButton(c);
 	SIZE size;

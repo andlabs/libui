@@ -60,7 +60,7 @@ static void onDestroy(uiRadioButtons *r)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define radiobuttonXFromLeftOfBoxToLeftOfLabel 12
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	uiRadioButtons *r = uiRadioButtons(c);
 	uintmax_t i;
@@ -76,7 +76,7 @@ static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intma
 	*height = uiWindowsDlgUnitsToY(radiobuttonHeight, d->BaseY) * r->hwnds->len;
 }
 
-static void radiobuttonsRelayout(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
 /* TODO
 	struct radiobuttons *r = (struct radiobuttons *) c;
@@ -176,7 +176,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 	r->hwnds = newPtrArray();
 
 	uiWindowsFinishNewControl(r, uiRadioButtons);
-	uiControl(r)->Relayout = radiobuttonsRelayout;
+	uiWindowsControl(r)->Relayout = radiobuttonsRelayout;
 
 	return r;
 }

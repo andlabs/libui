@@ -17,7 +17,7 @@ uiWindowsDefineControl(
 #define comboboxWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define comboboxHeight 14
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	*width = uiWindowsDlgUnitsToX(comboboxWidth, d->BaseX);
 	*height = uiWindowsDlgUnitsToY(comboboxHeight, d->BaseY);

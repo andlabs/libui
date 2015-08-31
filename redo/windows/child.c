@@ -51,7 +51,7 @@ struct child *newChildWithTabPage(uiControl *child, uiControl *parent, HWND pare
 
 void childRemove(struct child *c)
 {
-	uiWindowsEnsureSetParent(c->hwnd, utilwin);
+	uiWindowsEnsureSetParent(c->hwnd, utilWindow);
 	uiControlSetParent(c->c, NULL);
 	if (c->tabpage != NULL)
 		uiWindowsEnsureDestroyWindow(c->tabpage);
@@ -75,7 +75,7 @@ HWND childHWND(struct child *c)
 void childMinimumSize(struct child *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	uiWindowsControl *wc;
-	intmax_t left, top, right, bottom
+	intmax_t left, top, right, bottom;
 
 	wc = uiWindowsControl(c->c);
 	(*(wc->MinimumSize))(wc, d, width, height);
@@ -122,7 +122,7 @@ int childMargined(struct child *c)
 	return c->margined;
 }
 
-void childSetMargined(struct child *c)
+void childSetMargined(struct child *c, int margined)
 {
 	c->margined = margined;
 	uiControlQueueResize(c->c);

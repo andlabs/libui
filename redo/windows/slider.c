@@ -27,7 +27,7 @@ static BOOL onWM_HSCROLL(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 #define sliderWidth 107 /* this is actually the shorter progress bar width, but Microsoft doesn't indicate a width */
 #define sliderHeight 15
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	*width = uiWindowsDlgUnitsToX(sliderWidth, d->BaseX);
 	*height = uiWindowsDlgUnitsToY(sliderHeight, d->BaseY);

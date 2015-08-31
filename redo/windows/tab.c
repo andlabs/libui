@@ -70,7 +70,7 @@ static void onDestroy(uiTab *t)
 	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
 }
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 /* TODO
 	uiTab *t = uiTab(c);
@@ -109,7 +109,7 @@ static void tabRelayout(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	LRESULT n;
 	uiControl *page;
 	RECT r;
-	uiSizing *dchild;
+	uiWindowsSizing *dchild;
 
 	(*(t->baseResize))(uiControl(t), x, y, width, height, d);
 	n = curpage(t);
@@ -149,7 +149,7 @@ static void tabContainerUpdateState(uiControl *c)
 
 void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
-	uiTabInsertAt(tt, name, t->pages->len, child);
+	uiTabInsertAt(t, name, t->pages->len, child);
 }
 
 void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
@@ -222,9 +222,9 @@ void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 
 uiTab *uiNewTab(void)
 {
-	struct tab *t;
+	uiTab *t;
 
-	t = (struct tab *) uiWindowsNewSingleHWNDControl(uiTypeTab());
+	t = (uiTab *) uiNewControl(uiTabType());
 
 	t->hwnd = uiWindowsEnsureCreateControlHWND(0,			// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see below)
 		WC_TABCONTROLW, L"",

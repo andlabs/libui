@@ -110,16 +110,16 @@ static void setDateTimeFormat(HWND hwnd)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryHeight 14
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *dd, intmax_t *width, intmax_t *height)
 {
 	uiDateTimePicker *d = uiDateTimePicker(c);
 	SIZE s;
 
 	s.cx = 0;
 	s.cy = 0;
-	SendMessageW(dd->hwnd, DTM_GETIDEALSIZE, 0, (LPARAM) (&s));
+	SendMessageW(d->hwnd, DTM_GETIDEALSIZE, 0, (LPARAM) (&s));
 	*width = s.cx;
-	*height = uiWindowsDlgUnitsToY(entryHeight, d->BaseY);
+	*height = uiWindowsDlgUnitsToY(entryHeight, dd->BaseY);
 }
 
 static uiDateTimePicker *finishNewDateTimePicker(DWORD style)

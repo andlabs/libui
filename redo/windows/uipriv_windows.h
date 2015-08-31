@@ -1,6 +1,6 @@
 // 6 january 2015
 #include "winapi.h"
-#include "../out/ui.h"
+#include "../ui.h"
 #include "../ui_windows.h"
 #include "../uipriv.h"
 #include "resources.h"
@@ -106,8 +106,12 @@ extern void childRelayout(struct child *c, intmax_t x, intmax_t y, intmax_t widt
 extern void childUpdateState(struct child *c);
 extern HWND childTabPage(struct child *c);
 extern int childMargined(struct child *c);
-extern void childSetMargined(struct child *c);
+extern void childSetMargined(struct child *c, int margined);
 extern int childFlag(struct child *c);
 extern void childSetFlag(struct child *c, int flag);
 extern intmax_t childIntmax(struct child *c, int n);
 extern void childSetIntmax(struct child *c, int n, intmax_t to);
+
+// tabpage.c
+extern void tabPageMargins(HWND, intmax_t *, intmax_t *, intmax_t *, intmax_t *);
+extern HWND newTabPage(void);

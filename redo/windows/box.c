@@ -1,8 +1,7 @@
 // 7 april 2015
-#include "out/ui.h"
-#include "uipriv.h"
+#include "uipriv_windows.h"
 
-struct box {
+struct uiBox {
 	uiWindowsControl c;
 	HWND hwnd;
 	struct ptrArray *controls;
@@ -31,14 +30,14 @@ static void onDestroy(uiBox *b)
 	struct child *bc;
 
 	while (b->controls->len != 0) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, 0);
+		bc = ptrArrayIndex(b->controls, struct child *, 0);
 		ptrArrayDelete(b->controls, 0);
 		childDestroy(bc);
 	}
 	ptrArrayDestroy(b->controls);
 }
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 /* TODO
 	uiBox *b = uiBox(c);
@@ -77,7 +76,7 @@ static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intma
 	maxStretchyWidth = 0;
 	maxStretchyHeight = 0;
 	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		bc = ptrArrayIndex(b->controls, struct child *, i);
 		if (!uiControlContainerVisible(bc->c))
 			continue;
 		uiControlPreferredSize(bc->c, d, &preferredWidth, &preferredHeight);
@@ -109,17 +108,17 @@ static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intma
 */
 }
 
-static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiSizing *d)
+static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiWindowsSizing *d)
 {
 /* TODO
 	uibox *b = uiBox(c);
-	struct boxControl *bc;
+	struct child *bc;
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	intmax_t stretchywid, stretchyht;
 	uintmax_t i;
 	intmax_t preferredWidth, preferredHeight;
-	uiSizing *dchild;
+	uiWindowsSizing *dchild;
 
 	(*(b->baseResize))(uiControl(b), x, y, width, height, d);
 
@@ -147,7 +146,7 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	stretchyht = height;
 	nStretchy = 0;
 	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		bc = ptrArrayIndex(b->controls, struct child *, i);
 		if (!uiControlContainerVisible(bc->c))
 			continue;
 		if (bc->stretchy) {
@@ -173,7 +172,7 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 		else
 			stretchywid /= nStretchy;
 	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		bc = ptrArrayIndex(b->controls, struct child *, i);
 		if (!uiControlContainerVisible(bc->c))
 			continue;
 		if (bc->stretchy) {
@@ -185,7 +184,7 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	// 3) now we can position controls
 	dchild = uiControlSizing(uiControl(b));
 	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		bc = ptrArrayIndex(b->controls, struct child *, i);
 		if (!uiControlContainerVisible(bc->c))
 			continue;
 		uiControlResize(bc->c, x, y, bc->width, bc->height, dchild);
@@ -201,12 +200,12 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 /* TODO
 static int boxHasTabStops(uiControl *c)
 {
-	struct box *b = (struct box *) c;
-	struct boxControl *bc;
+	uiBox *b = uiBox(c);
+	struct child *bc;
 	uintmax_t i;
 
 	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+		bc = ptrArrayIndex(b->controls, struct child *, i);
 		if (uiControlHasTabStops(bc->c))
 			return 1;
 	}
@@ -216,7 +215,7 @@ static int boxHasTabStops(uiControl *c)
 
 static void boxContainerUpdateState(uiControl *c)
 {
-	struct box *b = (struct box *) c;
+	uiBox *b = uiBox(c);
 	struct child *bc;
 	uintmax_t i;
 
@@ -239,12 +238,12 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	dozorder = 0;
 	if (b->controls->len != 0) {
 		dozorder = 1;
-		bc = ptrArrayIndex(b->controls, struct boxControl *, 0);
+		bc = ptrArrayIndex(b->controls, struct child *, 0);
 		zorder = uiControlStartZOrder(bc->c);
 	}
 */
 
-	bc = newChild(child, uiControl(b), b->hwnd);
+	bc = newChild(c, uiControl(b), b->hwnd);
 	ctrlSetStretchy(bc, stretchy);
 	ptrArrayAppend(b->controls, bc);
 	uiControlQueueResize(uiControl(b));
@@ -253,7 +252,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	// and now update the zorder for all controls
 	if (dozorder)
 		for (i = 0; i < b->controls->len; i++) {
-			bc = ptrArrayIndex(b->controls, struct boxControl *, i);
+			bc = ptrArrayIndex(b->controls, struct child *, i);
 			zorder = uiControlSetZOrder(bc->c, zorder);
 		}
 */
@@ -286,7 +285,7 @@ static uiBox *finishNewBox(int vertical)
 
 	b = (uiBox *) uiNewControl(uiBoxType());
 
-	b->hwnd = makeContainer();
+	b->hwnd = newContainer();
 
 	b->vertical = vertical;
 	b->controls = newPtrArray();

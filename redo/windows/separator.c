@@ -18,10 +18,10 @@ uiWindowsDefineControl(
 // via https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define separatorHeight 1
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	*width = 1;		// TODO
-	*height = uiWindowsDlgUnitsToY(separatorHeight, d->Sys->BaseY);
+	*height = uiWindowsDlgUnitsToY(separatorHeight, d->BaseY);
 }
 
 uiSeparator *uiNewHorizontalSeparator(void)

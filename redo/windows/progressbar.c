@@ -15,10 +15,10 @@ uiWindowsDefineControl(
 #define pbarWidth 237
 #define pbarHeight 8
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(pbarWidth, d->Sys->BaseX);
-	*height = uiWindowsDlgUnitsToY(pbarHeight, d->Sys->BaseY);
+	*width = uiWindowsDlgUnitsToX(pbarWidth, d->BaseX);
+	*height = uiWindowsDlgUnitsToY(pbarHeight, d->BaseY);
 }
 
 // unfortunately, as of Vista progress bars have a forced animation on increase

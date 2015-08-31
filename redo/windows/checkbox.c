@@ -38,7 +38,7 @@ static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define checkboxXFromLeftOfBoxToLeftOfLabel 12
 
-static void minimumSize(uiControl *cc, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *cc, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	uiCheckbox *c = uiCheckbox(cc);
 

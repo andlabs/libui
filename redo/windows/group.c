@@ -34,7 +34,7 @@ static void onDestroy(uiGroup *g)
 #define groupUnmarginedYMarginTop 8
 #define groupUnmarginedYMarginBottom 3
 
-static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	uiGroup *g = uiGroup(c);
 
@@ -51,13 +51,12 @@ static void minimumSize(uiControl *c, uiWindowsSizing *d, intmax_t *width, intma
 	}
 }
 
-static void groupRelayout(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+static void groupRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
-	struct group *g = (struct group *) c;
-	uiSizing *d;
+	uiGroup *g = uiGroup(c);
+	uiWindowsSizing *d;
 
-	// TODO
-	(*(g->baseResize))(uiControl(g), x, y, width, height, d);
+	uiWindowsEnsureMoveWindow(g->hwnd, x, y, width, height);
 
 	if (g->child == NULL)
 		return;
@@ -136,8 +135,8 @@ uiGroup *uiNewGroup(const char *text)
 	// TODO subclass uiGroup to call parent.c functions
 
 	uiWindowsFinishNewControl(g, uiGroup);
-	uiControl(g)->Resize = groupRelayout;
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;
+	uiWindowsControl(g)->Relayout = groupRelayout;
 
 	return g;
 }

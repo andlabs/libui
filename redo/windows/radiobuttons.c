@@ -78,31 +78,34 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 
 static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
-/* TODO
-	struct radiobuttons *r = (struct radiobuttons *) c;
+	uiRadioButtons *r = uiRadioButtons(c);
+	uiWindowsSizing *d;
 	intmax_t height1;
 	intmax_t h;
 	uintmax_t i;
 	HWND hwnd;
 
-	// TODO resize the main hwnd
+	uiWindowsEnsureMoveWindow(r->hwnd, x, y, width, height);
 
-	height1 = uiWindowsDlgUnitsToY(radiobuttonHeight, d->Sys->BaseY);
+	x = 0;
+	y = 0;
+	d = uiWindowsNewSizing(r->hwnd);
+	height1 = uiWindowsDlgUnitsToY(radiobuttonHeight, d->BaseY);
+	uiWindowsFreeSizing(d);
 	for (i = 0; i < r->hwnds->len; i++) {
 		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
 		h = height1;
 		if (h > height)		// clip to height
 			h = height;
-		moveWindow(hwnd, x, y, width, h, d);
+		uiWindowsEnsureMoveWindow(hwnd, x, y, width, h);
 		y += height1;
 		height -= height1;
 		if (height <= 0)		// clip to height
 			break;
 	}
-*/
 }
 
-// TODO container update state
+// TODO commit enable/disable
 
 /* TODO
 static uintptr_t radiobuttonsStartZOrder(uiControl *c)
@@ -137,10 +140,9 @@ static int radiobuttonsHasTabStops(uiControl *c)
 
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 {
-/* TODO
 	HWND hwnd;
 	WCHAR *wtext;
-	HWND after;
+//TODO	HWND after;
 
 	wtext = toUTF16(text);
 	hwnd = uiWindowsEnsureCreateControlHWND(0,
@@ -149,9 +151,10 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 		hInstance, NULL,
 		TRUE);
 	uiFree(wtext);
-	uiWindowsUtilSetParent(hwnd, r->parent);
+	uiWindowsEnsureSetParent(hwnd, r->hwnd);
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
 
+/* TODO
 	// maintain z-order
 	if (r->hwnds->len == 0)		// first item
 		uiWindowsUtilSetZOrder(hwnd, r->insertAfter);
@@ -159,10 +162,10 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 		after = ptrArrayIndex(r->hwnds, HWND, r->hwnds->len - 1);
 		uiWindowsUtilSetZOrder(hwnd, (uintptr_t) after);
 	}
+*/
 
 	ptrArrayAppend(r->hwnds, hwnd);
-	uiControlQueueResize(uiControl(r));
-*/
+	uiWindowsControlQueueRelayout(uiWindowsControl(r));
 }
 
 uiRadioButtons *uiNewRadioButtons(void)

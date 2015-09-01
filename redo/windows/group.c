@@ -117,6 +117,21 @@ void uiGroupSetMargined(uiGroup *g, int margined)
 	uiWindowsControlQueueRelayout(uiWindowsControl(g));
 }
 
+static LRESULT CALLBACK groupSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	LRESULT lResult;
+
+	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
+		return lResult;
+	switch (uMsg) {
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, groupSubProc, uIdSubclass) == FALSE)
+			logLastError("error removing groupbox subclass in groupSubProc()");
+		break;
+	}
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+}
+
 uiGroup *uiNewGroup(const char *text)
 {
 	uiGroup *g;
@@ -132,7 +147,8 @@ uiGroup *uiNewGroup(const char *text)
 		TRUE);
 	uiFree(wtext);
 
-	// TODO subclass uiGroup to call parent.c functions
+	if (SetWindowSubclass(g->hwnd, groupSubProc, 0, (DWORD_PTR) g) == FALSE)
+		logLastError("error subclassing groupbox to handle parent messages in uiNewGroup()");
 
 	uiWindowsFinishNewControl(g, uiGroup);
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;

@@ -22,7 +22,7 @@ static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 	if (code != BN_CLICKED)
 		return FALSE;
 
-	// we didn't use BS_AUTOCHECKBOX (TODO get link) so we have to manage the check state ourselves
+	// we didn't use BS_AUTOCHECKBOX (http://blogs.msdn.com/b/oldnewthing/archive/2014/05/22/10527522.aspx) so we have to manage the check state ourselves
 	check = BST_CHECKED;
 	if (SendMessage(c->hwnd, BM_GETCHECK, 0, 0) == BST_CHECKED)
 		check = BST_UNCHECKED;

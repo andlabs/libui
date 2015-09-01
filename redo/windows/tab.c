@@ -104,35 +104,29 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 
 static void tabRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
-/* TODO
 	uiTab *t = uiTab(c);
 	LRESULT n;
-	uiControl *page;
+	struct child *page;
 	RECT r;
-	uiWindowsSizing *dchild;
 
-	(*(t->baseResize))(uiControl(t), x, y, width, height, d);
+	uiWindowsEnsureMoveWindow(t->hwnd, x, y, width, height);
 	n = curpage(t);
 	if (n == (LRESULT) (-1))
 		return;
 	page = ptrArrayIndex(t->pages, struct child *, n);
 
-	dchild = uiControlSizing(uiControl(t));
-
 	// now we need to figure out what rect the child goes
-	// this rect needs to be in toplevel window coordinates, but TCM_ADJUSTRECT wants a window rect, which is screen coordinates
+	// this rect needs to be in parent window coordinates, but TCM_ADJUSTRECT wants a window rect, which is screen coordinates
 	r.left = x;
 	r.top = y;
 	r.right = x + width;
 	r.bottom = y + height;
-	mapWindowRect(dchild->Sys->CoordFrom, NULL, &r);
+	// TODO use the real parent; see below
+	mapWindowRect(t->hwnd, NULL, &r);
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) FALSE, (LPARAM) (&r));
-	mapWindowRect(NULL, dchild->Sys->CoordFrom, &r);
+	mapWindowRect(NULL, t->hwnd, &r);
 
-	uiControlResize(page, r.left, r.top, r.right - r.left, r.bottom - r.top, dchild);
-
-	uiFreeSizing(dchild);
-*/
+	childRelayout(page, r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 
 static void tabContainerUpdateState(uiControl *c)

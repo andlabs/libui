@@ -122,7 +122,6 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	intmax_t minimumWidth, minimumHeight;
 	uiWindowsSizing *d;
 
-printf("got here %d %d %d %d\n", (int)x, (int)y, (int)width, (int)height);
 	uiWindowsEnsureMoveWindow(b->hwnd, x, y, width, height);
 
 	if (b->controls->len == 0)
@@ -191,7 +190,7 @@ printf("got here %d %d %d %d\n", (int)x, (int)y, (int)width, (int)height);
 		bc = ptrArrayIndex(b->controls, struct child *, i);
 //TODO		if (!uiControlContainerVisible(bc->c))
 //TODO			continue;
-//TODO		childRelayout(bc, x, y, ctrlWidth(bc), ctrlHeight(bc));
+		childRelayout(bc, x, y, ctrlWidth(bc), ctrlHeight(bc));
 		if (b->vertical)
 			y += ctrlHeight(bc) + ypadding;
 		else

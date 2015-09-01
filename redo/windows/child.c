@@ -46,6 +46,7 @@ struct child *newChildWithTabPage(uiControl *child, uiControl *parent, HWND pare
 	tabpage = newTabPage();
 	c = newChild(child, parent, tabpage);
 	uiWindowsEnsureSetParent(tabpage, parentHWND);
+	c->tabpage = tabpage;
 	return c;
 }
 

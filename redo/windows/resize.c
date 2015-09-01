@@ -21,7 +21,8 @@ void uiWindowsControlQueueRelayout(uiWindowsControl *c)
 	uiWindowsControl *d;
 
 	// resizing a control requires us to reocmpute the sizes of everything in the top-level window
-	c = uiWindowsControl(toplevelOwning(uiControl(c)));
+	// TODO use conversion
+	c = (uiWindowsControl *) toplevelOwning(uiControl(c));
 	if (c == NULL)
 		return;
 	// make sure we're only queued once

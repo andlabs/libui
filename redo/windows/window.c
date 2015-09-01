@@ -29,7 +29,8 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	LRESULT lResult;
 
-	w = uiWindow((void *) GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+	// TODO change to our conversion syntax
+	w = (uiWindow *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (w == NULL) {
 		if (uMsg == WM_CREATE)
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (cs->lpCreateParams));

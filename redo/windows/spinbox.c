@@ -126,7 +126,7 @@ static void recreateUpDown(uiSpinbox *s)
 */
 }
 
-static void spinboxRelayout(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+static void spinboxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
 /* TODO
 	uiSpinbox *s = uiSpinbox(c);
@@ -210,6 +210,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	s->inhibitChanged = FALSE;
 
 	uiWindowsFinishNewControl(s, uiSpinbox);
+	uiWindowsControl(s)->Relayout = spinboxRelayout;
 
 	return s;
 }

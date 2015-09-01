@@ -283,7 +283,6 @@ void runMenuEvent(WORD id, uiWindow *w)
 	uiMenu *m;
 	uiMenuItem *item;
 	uintmax_t i, j;
-	uiMenuItem *umi;
 
 	// this isn't optimal, but it works, and it should be just fine for most cases
 	for (i = 0; i < len; i++) {

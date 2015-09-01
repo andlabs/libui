@@ -38,7 +38,7 @@ static void showHidePage(uiTab *t, LRESULT which, int hide)
 	else {
 		ShowWindow(childTabPage(page), SW_SHOW);
 		// we only resize the current page, so we have to do this here
-		uiControlQueueResize(page);
+		childQueueRelayout(page);
 	}
 }
 
@@ -62,7 +62,7 @@ static void onDestroy(uiTab *t)
 	struct child *page;
 
 	while (t->pages->len != 0) {
-		page = ptrArrayIndex(t->pages, uiControl *, 0);
+		page = ptrArrayIndex(t->pages, struct child *, 0);
 		ptrArrayDelete(t->pages, 0);
 		childDestroy(page);
 	}
@@ -83,8 +83,8 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 	maxwid = 0;
 	maxht = 0;
 	for (i = 0; i < t->pages->len; i++) {
-		page = ptrArrayIndex(t->pages, uiControl *, i);
-		uiControlPreferredSize(page, d, &pagewid, &pageht);
+		page = ptrArrayIndex(t->pages, struct child *, i);
+		childMinimumSize(page, d, &pagewid, &pageht);
 		if (maxwid < pagewid)
 			maxwid = pagewid;
 		if (maxht < pageht)
@@ -102,7 +102,7 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 */
 }
 
-static void tabRelayout(uiControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+static void tabRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
 /* TODO
 	uiTab *t = uiTab(c);
@@ -115,7 +115,7 @@ static void tabRelayout(uiControl *c, intmax_t x, intmax_t y, intmax_t width, in
 	n = curpage(t);
 	if (n == (LRESULT) (-1))
 		return;
-	page = ptrArrayIndex(t->pages, uiControl *, n);
+	page = ptrArrayIndex(t->pages, struct child *, n);
 
 	dchild = uiControlSizing(uiControl(t));
 
@@ -142,7 +142,7 @@ static void tabContainerUpdateState(uiControl *c)
 	uintmax_t i;
 
 	for (i = 0; i < t->pages->len; i++) {
-		page = ptrArrayIndex(t->pages, uiControl *, i);
+		page = ptrArrayIndex(t->pages, struct child *, i);
 		childUpdateState(page);
 	}
 }
@@ -194,7 +194,7 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 		logLastError("error deleting uiTab tab in tabDelete()");
 
 	// now delete the page itself
-	page = ptrArrayIndex(t->pages, uiControl *, n);
+	page = ptrArrayIndex(t->pages, struct child *, n);
 	ptrArrayDelete(t->pages, n);
 	childRemove(page);
 }
@@ -208,7 +208,7 @@ int uiTabMargined(uiTab *t, uintmax_t n)
 {
 	struct child *page;
 
-	page = ptrArrayIndex(t->pages, uiControl *, n);
+	page = ptrArrayIndex(t->pages, struct child *, n);
 	return childMargined(page);
 }
 
@@ -216,7 +216,7 @@ void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 {
 	struct child *page;
 
-	page = ptrArrayIndex(t->pages, uiControl *, n);
+	page = ptrArrayIndex(t->pages, struct child *, n);
 	childSetMargined(page, margined);
 }
 

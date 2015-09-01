@@ -108,7 +108,7 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 */
 }
 
-static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiWindowsSizing *d)
+static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
 /* TODO
 	uibox *b = uiBox(c);
@@ -228,13 +228,13 @@ static void boxContainerUpdateState(uiControl *c)
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
 	struct child *bc;
+/* TODO
 	uintptr_t zorder;
 	int dozorder;
 	uintmax_t i;
 
 	// start the zorder with the *CURRENT* first child
 	// this is in case we're adding a new first child
-/* TODO
 	dozorder = 0;
 	if (b->controls->len != 0) {
 		dozorder = 1;
@@ -246,7 +246,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	bc = newChild(c, uiControl(b), b->hwnd);
 	ctrlSetStretchy(bc, stretchy);
 	ptrArrayAppend(b->controls, bc);
-	uiControlQueueResize(uiControl(b));
+	uiWindowsControlQueueRelayout(uiWindowsControl(b));
 
 /* TODO
 	// and now update the zorder for all controls
@@ -265,7 +265,7 @@ void uiBoxDelete(uiBox *b, uintmax_t index)
 	bc = ptrArrayIndex(b->controls, struct child *, index);
 	ptrArrayDelete(b->controls, index);
 	childRemove(bc);
-	uiControlQueueResize(uiControl(b));
+	uiWindowsControlQueueRelayout(uiWindowsControl(b));
 }
 
 int uiBoxPadded(uiBox *b)
@@ -276,7 +276,7 @@ int uiBoxPadded(uiBox *b)
 void uiBoxSetPadded(uiBox *b, int padded)
 {
 	b->padded = padded;
-	uiControlQueueResize(uiControl(b));
+	uiWindowsControlQueueRelayout(uiWindowsControl(b));
 }
 
 static uiBox *finishNewBox(int vertical)
@@ -291,7 +291,8 @@ static uiBox *finishNewBox(int vertical)
 	b->controls = newPtrArray();
 
 	uiWindowsFinishNewControl(b, uiBox);
-	// TODO
+	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;
+	uiWindowsControl(b)->Relayout = boxRelayout;
 
 	return b;
 }

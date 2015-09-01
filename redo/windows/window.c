@@ -51,7 +51,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
 		if (w->child != NULL)
-			uiControlQueueResize(uiControl(w));
+			childQueueRelayout(w->child);
 		return 0;
 	case WM_PRINTCLIENT:
 		// we do no special painting; just erase the background
@@ -115,7 +115,7 @@ static void windowCommitShow(uiControl *c)
 	}
 	w->shownOnce = TRUE;
 	// make sure the child is the correct size
-	uiControlQueueResize(uiControl(w));
+	uiWindowsControlQueueRelayout(uiWindowsControl(w));
 	ShowWindow(w->hwnd, nCmdShow);
 	if (UpdateWindow(w->hwnd) == 0)
 		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");
@@ -126,7 +126,12 @@ static void windowContainerUpdateState(uiControl *c)
 	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
-		childContainerUpdateState(w->child);
+		childUpdateState(w->child);
+}
+
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+{
+	// TODO
 }
 
 char *uiWindowTitle(uiWindow *w)
@@ -152,7 +157,7 @@ void uiWindowSetChild(uiWindow *w, uiControl *child)
 		childRemove(w->child);
 	w->child = newChild(child, uiControl(w), w->hwnd);
 	if (w->child != NULL)
-		uiControlQueueResize(w->child);
+		childQueueRelayout(w->child);
 }
 
 int uiWindowMargined(uiWindow *w)
@@ -163,7 +168,7 @@ int uiWindowMargined(uiWindow *w)
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	uiControlQueueResize(uiControl(w));
+	uiWindowsControlQueueRelayout(uiWindowsControl(w));
 }
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -254,7 +259,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	// and use the proper size
 	setClientSize(w, width, height, hasMenubarBOOL, style, exstyle);
 
-	uiWindowSetOnClosing(w, defaultOnClosing, NULL);
+	uiWindowOnClosing(w, defaultOnClosing, NULL);
 
 	uiWindowsFinishNewControl(w, uiWindow);
 	uiControl(w)->CommitShow = windowCommitShow;

@@ -92,7 +92,7 @@ uiEntry *uiNewEntry(void)
 		TRUE);
 
 	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
-	uiEntrySetOnChanged(e, defaultOnChanged, NULL);
+	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
 	uiWindowsFinishNewControl(e, uiEntry);
 

@@ -109,6 +109,9 @@ struct uiWindowsSizing {
 	HWND CoordFrom;
 	HWND CoordTo;
 };
+// Use these to create and destroy uiWindowsSizings.
+_UI_EXTERN uiWindowsSizing *uiWindowsNewSizing(HWND hwnd);
+_UI_EXTERN void uiWindowsFreeSizing(uiWindowsSizing *d);
 // Use these in your preferredSize() implementation with baseX and baseY.
 #define uiWindowsDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)
 #define uiWindowsDlgUnitsToY(dlg, baseY) MulDiv((dlg), baseY, 8)

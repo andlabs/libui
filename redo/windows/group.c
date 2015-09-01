@@ -61,7 +61,7 @@ static void groupRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t 
 	if (g->child == NULL)
 		return;
 
-	d = uiWindowsGetSizing(g->hwnd);
+	d = uiWindowsNewSizing(g->hwnd);
 	if (g->margined) {
 		x += uiWindowsDlgUnitsToX(groupXMargin, d->BaseX);
 		y += uiWindowsDlgUnitsToY(groupYMarginTop, d->BaseY);
@@ -94,7 +94,7 @@ void uiGroupSetTitle(uiGroup *g, const char *text)
 {
 	uiWindowsUtilSetText(g->hwnd, text);
 	// changing the text might necessitate a change in the groupbox's size
-	uiControlQueueResize(uiControl(g));
+	uiWindowsControlQueueRelayout(uiWindowsControl(g));
 }
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)
@@ -103,7 +103,7 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		childRemove(g->child);
 	g->child = newChild(child, uiControl(g), g->hwnd);
 	if (g->child != NULL)
-		uiControlQueueResize(g->child);
+		uiWindowsControlQueueRelayout(uiWindowsControl(g));
 }
 
 int uiGroupMargined(uiGroup *g)
@@ -114,7 +114,7 @@ int uiGroupMargined(uiGroup *g)
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
-	uiControlQueueResize(uiControl(g));
+	uiWindowsControlQueueRelayout(uiWindowsControl(g));
 }
 
 uiGroup *uiNewGroup(const char *text)

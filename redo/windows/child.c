@@ -107,6 +107,11 @@ void childRelayout(struct child *c, intmax_t x, intmax_t y, intmax_t width, intm
 	(*(wc->Relayout))(wc, x, y, width, height);
 }
 
+void childQueueRelayout(struct child *c)
+{
+	uiWindowsControlQueueRelayout(uiWindowsControl(c->c));
+}
+
 void childUpdateState(struct child *c)
 {
 	controlUpdateState(c->c);
@@ -125,7 +130,7 @@ int childMargined(struct child *c)
 void childSetMargined(struct child *c, int margined)
 {
 	c->margined = margined;
-	uiControlQueueResize(c->c);
+	uiWindowsControlQueueRelayout(uiWindowsControl(c->c));
 }
 
 int childFlag(struct child *c)

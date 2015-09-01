@@ -60,7 +60,7 @@ void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
 	uiWindowsUtilSetText(c->hwnd, text);
 	// changing the text might necessitate a change in the checkbox's size
-	uiControlQueueResize(uiControl(c));
+	uiWindowsControlQueueRelayout(uiWindowsControl(c));
 }
 
 void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)

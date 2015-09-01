@@ -104,6 +104,7 @@ extern HWND childHWND(struct child *c);
 extern void childMinimumSize(struct child *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height);
 extern void childRelayout(struct child *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height);
 extern void childQueueRelayout(struct child *c);
+extern int childVisible(struct child *c);
 extern void childUpdateState(struct child *c);
 extern HWND childTabPage(struct child *c);
 extern int childMargined(struct child *c);

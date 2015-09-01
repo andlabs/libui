@@ -79,8 +79,8 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 	maxStretchyHeight = 0;
 	for (i = 0; i < b->controls->len; i++) {
 		bc = ptrArrayIndex(b->controls, struct child *, i);
-//TODO		if (!uiControlContainerVisible(bc->c))
-//TODO			continue;
+		if (!childVisible(bc))
+			continue;
 		childMinimumSize(bc, dself, &minimumWidth, &minimumHeight);
 		if (ctrlStretchy(bc)) {
 			nStretchy++;
@@ -151,8 +151,8 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	nStretchy = 0;
 	for (i = 0; i < b->controls->len; i++) {
 		bc = ptrArrayIndex(b->controls, struct child *, i);
-//TODO		if (!uiControlContainerVisible(bc->c))
-//TODO			continue;
+		if (!childVisible(bc))
+			continue;
 		if (ctrlStretchy(bc)) {
 			nStretchy++;
 			continue;
@@ -177,8 +177,8 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 			stretchywid /= nStretchy;
 	for (i = 0; i < b->controls->len; i++) {
 		bc = ptrArrayIndex(b->controls, struct child *, i);
-//TODO		if (!uiControlContainerVisible(bc->c))
-//TODO			continue;
+		if (!childVisible(bc))
+			continue;
 		if (ctrlStretchy(bc)) {
 			ctrlSetWidth(bc, stretchywid);
 			ctrlSetHeight(bc, stretchyht);
@@ -191,8 +191,8 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	y = 0;
 	for (i = 0; i < b->controls->len; i++) {
 		bc = ptrArrayIndex(b->controls, struct child *, i);
-//TODO		if (!uiControlContainerVisible(bc->c))
-//TODO			continue;
+		if (!childVisible(bc))
+			continue;
 		childRelayout(bc, x, y, ctrlWidth(bc), ctrlHeight(bc));
 		if (b->vertical)
 			y += ctrlHeight(bc) + ypadding;

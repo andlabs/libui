@@ -113,6 +113,11 @@ void childQueueRelayout(struct child *c)
 	uiWindowsControlQueueRelayout(uiWindowsControl(c->c));
 }
 
+int childVisible(struct child *c)
+{
+	return controlSelfVisible(c->c);
+}
+
 void childUpdateState(struct child *c)
 {
 	controlUpdateState(c->c);

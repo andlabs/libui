@@ -77,6 +77,14 @@ void uiControlSetParent(uiControl *c, uiControl *parent)
 	controlUpdateState(c);
 }
 
+// only to be called by the immediate parent of a control
+int controlSelfVisible(uiControl *c)
+{
+	struct controlBase *cb = controlBase(c);
+
+	return !cb->hidden;
+}
+
 static int controlContainerVisible(uiControl *c)
 {
 	struct controlBase *cb = controlBase(c);
@@ -143,6 +151,7 @@ void controlUpdateState(uiControl *c)
 		osCommitDisable(c);
 	(*(c->ContainerUpdateState))(c);
 	// and queue a resize, just in case we showed/hid something
+	// for instance, on Windows uiBox, if we don't do this, hiding a control will show empty space until the window is resized
 //TODO	uiControlQueueResize(c);
 }
 

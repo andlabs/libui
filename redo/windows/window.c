@@ -24,19 +24,20 @@ uiWindowsDefineControlWithOnDestroy(
 
 static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	LONG_PTR ww;
 	uiWindow *w;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	LRESULT lResult;
 
-	// TODO change to our conversion syntax
-	w = (uiWindow *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
-	if (w == NULL) {
+	ww = GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+	if (ww == 0) {
 		if (uMsg == WM_CREATE)
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (cs->lpCreateParams));
 		// fall through to DefWindowProc() anyway
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	}
+	w = uiWindow((void *) ww);
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
 	switch (uMsg) {
@@ -135,7 +136,18 @@ static void windowContainerUpdateState(uiControl *c)
 
 static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
-	// TODO
+	uiWindow *w = uiWindow(c);
+
+	*width = 0;
+	*height = 0;
+	d = uiWindowsNewSizing(w->hwnd);
+	if (w->child != NULL)
+		childMinimumSize(w->child, d, width, height);
+	if (w->margined) {
+		*width += 2 * uiWindowsDlgUnitsToX(windowMargin, d->BaseX);
+		*height += 2 * uiWindowsDlgUnitsToY(windowMargin, d->BaseY);
+	}
+	uiWindowsFreeSizing(d);
 }
 
 static void windowRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)

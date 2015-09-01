@@ -17,14 +17,15 @@ void uninitResizes(void)
 
 void uiWindowsControlQueueRelayout(uiWindowsControl *c)
 {
+	uiControl *cc;
 	uintmax_t i;
 	uiWindowsControl *d;
 
 	// resizing a control requires us to reocmpute the sizes of everything in the top-level window
-	// TODO use conversion
-	c = (uiWindowsControl *) toplevelOwning(uiControl(c));
-	if (c == NULL)
+	cc = toplevelOwning(uiControl(c));
+	if (cc == NULL)
 		return;
+	c = uiWindowsControl(cc);
 	// make sure we're only queued once
 	for (i = 0 ; i < resizes->len; i++) {
 		d = ptrArrayIndex(resizes, uiWindowsControl *, i);
@@ -45,7 +46,7 @@ void doResizes(void)
 		ptrArrayDelete(resizes, 0);
 		hwnd = (HWND) uiControlHandle(uiControl(w));
 		if (GetClientRect(hwnd, &r) == 0)
-			logLastError("TODO write this");
+			logLastError("error getting uiWindow client rect in doResizes()");
 		(*(w->Relayout))(w, r.left, r.top, r.right - r.left, r.bottom - r.top);
 		// we used SWP_NOREDRAW; we need to queue a redraw ourselves
 		// force all controls to be redrawn; this fixes things like the date-time picker's up-down not showing up until hovered over (and bypasses complications caused by WS_CLIPCHILDREN and WS_CLIPSIBLINGS, which we don't use but other controls might)

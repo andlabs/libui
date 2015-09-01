@@ -186,6 +186,9 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	}
 
 	// 3) now we can position controls
+	// first, make relative to the top-left corner of the container
+	x = 0;
+	y = 0;
 	for (i = 0; i < b->controls->len; i++) {
 		bc = ptrArrayIndex(b->controls, struct child *, i);
 //TODO		if (!uiControlContainerVisible(bc->c))

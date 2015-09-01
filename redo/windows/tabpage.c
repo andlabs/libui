@@ -58,5 +58,8 @@ HWND newTabPage(void)
 	if (hr != S_OK)
 		logHRESULT("error setting tab page background in newTabPage()", hr);
 
+	// and start the tab page hidden
+	ShowWindow(hwnd, SW_HIDE);
+
 	return hwnd;
 }

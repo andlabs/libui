@@ -130,9 +130,30 @@ static void windowContainerUpdateState(uiControl *c)
 		childUpdateState(w->child);
 }
 
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
+#define windowMargin 7
+
 static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	// TODO
+}
+
+static void windowRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+{
+	uiWindow *w = uiWindow(c);
+	uiWindowsSizing *d;
+
+	if (w->child == NULL)
+		return;
+	d = uiWindowsNewSizing(w->hwnd);
+	if (w->margined) {
+		x += uiWindowsDlgUnitsToX(windowMargin, d->BaseX);
+		y += uiWindowsDlgUnitsToY(windowMargin, d->BaseY);
+		width -= 2 * uiWindowsDlgUnitsToX(windowMargin, d->BaseX);
+		height -= 2 * uiWindowsDlgUnitsToY(windowMargin, d->BaseY);
+	}
+	childRelayout(w->child, x, y, width, height);
+	uiWindowsFreeSizing(d);
 }
 
 char *uiWindowTitle(uiWindow *w)
@@ -171,31 +192,6 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 	w->margined = margined;
 	uiWindowsControlQueueRelayout(uiWindowsControl(w));
 }
-
-// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define windowMargin 7
-
-/* TODO
-static void windowResizeChild(uiWindow *w)
-{
-	RECT r;
-	uiWindowsSizing *d;
-
-	if (w->child == NULL)
-		return;
-	if (GetClientRect(w->hwnd, &r) == 0)
-		logLastError("error getting uiWindow client rect in windowComputeChildSize()");
-	d = uiControlSizing(uiControl(w));
-	if (w->margined) {
-		r.left += uiWindowsDlgUnitsToX(windowMargin, d->Sys->BaseX);
-		r.top += uiWindowsDlgUnitsToY(windowMargin, d->Sys->BaseY);
-		r.right -= uiWindowsDlgUnitsToX(windowMargin, d->Sys->BaseX);
-		r.bottom -= uiWindowsDlgUnitsToY(windowMargin, d->Sys->BaseY);
-	}
-	uiControlResize(w->child, r.left, r.top, r.right - r.left, r.bottom - r.top, d);
-	uiFreeSizing(d);
-}
-*/
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
 static void setClientSize(uiWindow *w, int width, int height, BOOL hasMenubar, DWORD style, DWORD exstyle)
@@ -265,6 +261,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindowsFinishNewControl(w, uiWindow);
 	uiControl(w)->CommitShow = windowCommitShow;
 	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
+	uiWindowsControl(w)->Relayout = windowRelayout;
 
 	return w;
 }

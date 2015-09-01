@@ -117,6 +117,7 @@ static void tabRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 
 	// now we need to figure out what rect the child goes
 	// this rect needs to be in parent window coordinates, but TCM_ADJUSTRECT wants a window rect, which is screen coordinates
+printf("%d %d %d %d -> ", (int)x, (int)y, (int)width, (int)height);
 	r.left = x;
 	r.top = y;
 	r.right = x + width;
@@ -125,7 +126,7 @@ static void tabRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	mapWindowRect(t->hwnd, NULL, &r);
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) FALSE, (LPARAM) (&r));
 	mapWindowRect(NULL, t->hwnd, &r);
-
+printf("%d %d %d %d\n", (int)r.left, (int)r.top, (int)r.right-r.left, (int)r.bottom-r.top);
 	childRelayout(page, r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 

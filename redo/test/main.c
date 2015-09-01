@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 	uiWindow *w;
 	uiBox *page2, *page3, *page4, *page5;
 	int nomenus = 0;
+	int startspaced = 0;
 
 	newhbox = uiNewHorizontalBox;
 	newvbox = uiNewVerticalBox;
@@ -52,6 +53,8 @@ int main(int argc, char *argv[])
 	for (i = 1; i < argc; i++)
 		if (strcmp(argv[i], "nomenus") == 0)
 			nomenus = 1;
+		else if (strcmp(argv[i], "startspaced") == 0)
+			startspaced = 1;
 		else if (strcmp(argv[i], "swaphv") == 0) {
 			newhbox = uiNewVerticalBox;
 			newvbox = uiNewHorizontalBox;
@@ -100,6 +103,9 @@ int main(int argc, char *argv[])
 
 	page5 = makePage5();
 	uiTabAppend(mainTab, "Page 5", uiControl(page5));
+
+	if (startspaced)
+		setSpaced(1);
 
 	uiControlShow(uiControl(w));
 	uiMain();

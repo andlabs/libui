@@ -50,7 +50,7 @@ static void onDestroy(uiRadioButtons *r)
 		hwnd = ptrArrayIndex(r->hwnds, HWND, 0);
 		ptrArrayDelete(r->hwnds, 0);
 		uiWindowsUnregisterWM_COMMANDHandler(hwnd);
-		uiWindowsUtilDestroy(hwnd);
+		uiWindowsEnsureDestroyWindow(hwnd);
 	}
 	ptrArrayDestroy(r->hwnds);
 }

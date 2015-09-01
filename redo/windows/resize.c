@@ -15,18 +15,18 @@ void uninitResizes(void)
 	ptrArrayDestroy(resizes);
 }
 
-void queueResize(uiControl *c)
+void uiWindowsControlQueueRelayout(uiWindowsControl *c)
 {
 	uintmax_t i;
-	uiControl *d;
+	uiWindowsControl *d;
 
 	// resizing a control requires us to reocmpute the sizes of everything in the top-level window
-	c = toplevelOwning(c);
+	c = uiWindowsControl(toplevelOwning(uiControl(c)));
 	if (c == NULL)
 		return;
 	// make sure we're only queued once
 	for (i = 0 ; i < resizes->len; i++) {
-		d = ptrArrayIndex(resizes, uiControl *, i);
+		d = ptrArrayIndex(resizes, uiWindowsControl *, i);
 		if (c == d)
 			return;
 	}
@@ -53,7 +53,7 @@ void doResizes(void)
 	}
 }
 
-void moveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height, uiWindowsSizing *d)
+void uiWindowsEnsureMoveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
 	RECT r;
 

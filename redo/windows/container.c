@@ -57,7 +57,7 @@ void uninitContainer(void)
 		logLastError("error unregistering container window class in uninitContainer()");
 }
 
-HWND makeContainer(void)
+HWND newContainer(void)
 {
 	return uiWindowsEnsureCreateControlHWND(WS_EX_CONTROLPARENT,
 		containerClass, L"",

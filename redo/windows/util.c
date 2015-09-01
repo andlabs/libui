@@ -80,3 +80,15 @@ void setExStyle(HWND hwnd, DWORD exstyle)
 {
 	SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (LONG_PTR) exstyle);
 }
+
+void uiWindowsEnsureDestroyWindow(HWND hwnd)
+{
+	if (DestroyWindow(hwnd) == 0)
+		logLastError("error destroying window in uiWindowsEnsureDestroyWindow");
+}
+
+void uiWindowsEnsureSetParent(HWND hwnd, HWND parent)
+{
+	if (SetParent(hwnd, parent) == 0)
+		logLastError("error setting window parent in uiWindowsEnsureSetParent");
+}

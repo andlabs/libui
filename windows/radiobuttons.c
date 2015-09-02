@@ -6,7 +6,7 @@
 // - arrow keys navigate between radio buttons
 // - arrow keys do not leave the radio buttons (this is done in control.c)
 // - arrow keys wrap around bare groups (if the previous control has WS_GROUP but the first radio button doesn't, then it doesn't; since our radio buttons are all in their own child window we can't do that)
-// - clicking on a radio button draws a focus rect
+// - clicking on a radio button draws a focus rect (TODO)
 
 struct uiRadioButtons {
 	uiWindowsControl c;

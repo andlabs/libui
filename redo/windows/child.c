@@ -123,6 +123,11 @@ void childUpdateState(struct child *c)
 	controlUpdateState(c->c);
 }
 
+void childSetSoleControlID(struct child *c)
+{
+	uiWindowsEnsureAssignControlIDZOrder(c->hwnd, 100, NULL);
+}
+
 HWND childTabPage(struct child *c)
 {
 	return c->tabpage;

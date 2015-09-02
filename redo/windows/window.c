@@ -190,8 +190,10 @@ void uiWindowSetChild(uiWindow *w, uiControl *child)
 	if (w->child != NULL)
 		childRemove(w->child);
 	w->child = newChild(child, uiControl(w), w->hwnd);
-	if (w->child != NULL)
+	if (w->child != NULL) {
+		childSetSoleControlID(w->child);
 		childQueueRelayout(w->child);
+	}
 }
 
 int uiWindowMargined(uiWindow *w)

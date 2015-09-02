@@ -160,6 +160,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	// this is the only real way to do proper tab stops
 	// it's how tabs are /supposed to/ be done, anyway
 	page = newChildWithTabPage(child, uiControl(t), t->hwnd);
+	childSetSoleControlID(page);
 	ptrArrayInsertAt(t->pages, n, page);
 
 	ZeroMemory(&item, sizeof (TCITEMW));

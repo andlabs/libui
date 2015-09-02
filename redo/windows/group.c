@@ -102,8 +102,10 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 	if (g->child != NULL)
 		childRemove(g->child);
 	g->child = newChild(child, uiControl(g), g->hwnd);
-	if (g->child != NULL)
+	if (g->child != NULL) {
+		childSetSoleControlID(g->child);
 		uiWindowsControlQueueRelayout(uiWindowsControl(g));
+	}
 }
 
 int uiGroupMargined(uiGroup *g)

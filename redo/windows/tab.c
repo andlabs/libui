@@ -2,7 +2,6 @@
 #include "uipriv_windows.h"
 
 // TODO
-// - can't seem to tab away anymore
 // - write comment here about how tabs and parents work
 // - make sure parent Z-orders are always above tab Z-orders
 

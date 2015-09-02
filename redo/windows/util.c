@@ -92,3 +92,9 @@ void uiWindowsEnsureSetParent(HWND hwnd, HWND parent)
 	if (SetParent(hwnd, parent) == 0)
 		logLastError("error setting window parent in uiWindowsEnsureSetParent");
 }
+
+void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND insertAfter)
+{
+	SetWindowLongPtrW(hwnd, GWLP_ID, controlID);
+	setWindowInsertAfter(hwnd, insertAfter);
+}

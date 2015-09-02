@@ -15,6 +15,7 @@ struct uiWindowsControl {
 	void (*CommitSetParent)(uiWindowsControl *, HWND);
 	void (*MinimumSize)(uiWindowsControl *, uiWindowsSizing *, intmax_t *, intmax_t *);
 	void (*Relayout)(uiWindowsControl *, intmax_t, intmax_t, intmax_t, intmax_t);
+	void (*AssignControlIDZOrder)(uiWindowsControl *, LONG_PTR *, HWND *);
 };
 _UI_EXTERN uintmax_t uiWindowsControlType(void);
 #define uiWindowsControl(this) ((uiWindowsControl *) uiIsA((this), uiWindowsControlType(), 1))
@@ -52,7 +53,13 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 	{ \
 		uiWindowsEnsureMoveWindow(type(c)->hwnd, x, y, width, height); \
 	} \
-	static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height);
+	static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height); \
+	static void _ ## type ## AssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter) \
+	{ \
+		uiWindowsEnsureAssignControlIDZOrder(type(c)->hwnd, *controlID, *insertAfter); \
+		(*controlID)++; \
+		*insertAfter = type(c)->hwnd; \
+	}
 
 #define uiWindowsDefineControl(type, typefn) \
 	uiWindowsDefineControlWithOnDestroy(type, typefn, (void) this;)
@@ -64,6 +71,7 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 	uiWindowsControl(variable)->CommitSetParent = _ ## type ## CommitSetParent; \
 	uiWindowsControl(variable)->MinimumSize = minimumSize; \
 	uiWindowsControl(variable)->Relayout = _ ## type ## Relayout; \
+	uiWindowsControl(variable)->AssignControlIDZOrder = _ ## type ## AssignControlIDZOrder; \
 	uiWindowsFinishControl(uiControl(variable));
 
 // This is a function used to set up a control.
@@ -80,6 +88,10 @@ _UI_EXTERN void uiWindowsEnsureSetParent(HWND hwnd, HWND parent);
 
 // Use this in your Relayout() implementation to move and resize HWNDs. libui handles errors for you.
 _UI_EXTERN void uiWindowsEnsureMoveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height);
+
+// Use this in implementations of AssignControlIDZOrder().
+// libui handles errors for you.
+_UI_EXTERN void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND insertAfter);
 
 ////////////////////////////////////////////
 /////////////////// TODO ///////////////////

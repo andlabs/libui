@@ -62,9 +62,10 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	case WM_GETMINMAXINFO:
 		// ensure the user cannot resize the window smaller than its minimum size
 		lResult = DefWindowProcW(hwnd, uMsg, wParam, lParam);
-		if (w->child == NULL)
-			return lResult;
 		c = uiWindowsControl(w);
+		// TODO why is this message being sent too early?
+		if (c->MinimumSize == NULL)
+			return lResult;
 		(*(c->MinimumSize))(c, NULL, &width, &height);
 		// width and height are in client coordinates; ptMinTrackSize is in window coordinates
 		clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
@@ -127,6 +128,8 @@ static void windowCommitShow(uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
 
+	// just in case this wasn't called already
+	ensureMinimumWindowSize(w);
 	if (w->shownOnce) {
 		ShowWindow(w->hwnd, SW_SHOW);
 		return;
@@ -232,6 +235,7 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
+// TODO use clientSizeToWindowSize()
 static void setClientSize(uiWindow *w, int width, int height, BOOL hasMenubar, DWORD style, DWORD exstyle)
 {
 	RECT window;
@@ -304,4 +308,23 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindowsControl(w)->ArrangeChildrenControlIDsZOrder = windowArrangeChildrenControlIDsZOrder;
 
 	return w;
+}
+
+void ensureMinimumWindowSize(uiWindow *w)
+{
+	uiWindowsControl *c;
+	intmax_t width, height;
+	RECT r;
+
+	c = uiWindowsControl(w);
+	(*(c->MinimumSize))(c, NULL, &width, &height);
+	if (GetClientRect(w->hwnd, &r) == 0)
+		logLastError("error getting client rect in ensureMinimumWindowSize()");
+	if (width < (r.right - r.left))		// preserve width if larger
+		width = r.right - r.left;
+	if (height < (r.bottom - r.top))		// preserve height if larger
+		height = r.bottom - r.top;
+	clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
+	if (SetWindowPos(w->hwnd, NULL, 0, 0, width, height, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
+		logLastError("error resizing window in ensureMinimumWindowSize()");
 }

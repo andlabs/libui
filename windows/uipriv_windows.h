@@ -64,6 +64,7 @@ extern HRESULT logMemoryExhausted(const char *);
 // window.c
 extern ATOM registerWindowClass(HICON, HCURSOR);
 extern void unregisterWindowClass(void);
+extern void ensureMinimumWindowSize(uiWindow *);
 
 // container.c
 #define containerClass L"libui_uiContainerClass"

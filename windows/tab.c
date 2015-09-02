@@ -90,34 +90,29 @@ static void tabCommitSetParent(uiWindowsControl *c, HWND parent)
 
 static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
-/* TODO
 	uiTab *t = uiTab(c);
-	intmax_t maxwid, maxht;
 	intmax_t pagewid, pageht;
-	uiControl *page;
-	uintmax_t i;
+	struct child *page;
+	LRESULT n;
 	RECT r;
 
-	maxwid = 0;
-	maxht = 0;
-	for (i = 0; i < t->pages->len; i++) {
-		page = ptrArrayIndex(t->pages, struct child *, i);
+	// only consider the current page
+	pagewid = 0;
+	pageht = 0;
+	n = curpage(t);
+	if (n != (LRESULT) (-1)) {
+		page = ptrArrayIndex(t->pages, struct child *, n);
 		childMinimumSize(page, d, &pagewid, &pageht);
-		if (maxwid < pagewid)
-			maxwid = pagewid;
-		if (maxht < pageht)
-			maxht = pageht;
 	}
 
 	r.left = 0;
 	r.top = 0;
-	r.right = maxwid;
-	r.bottom = maxht;
+	r.right = pagewid;
+	r.bottom = pageht;
 	// this also includes the tabs themselves
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) TRUE, (LPARAM) (&r));
 	*width = r.right - r.left;
 	*height = r.bottom - r.top;
-*/
 }
 
 static void tabRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)

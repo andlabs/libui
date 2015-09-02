@@ -28,6 +28,7 @@ extern DWORD getStyle(HWND);
 extern void setStyle(HWND, DWORD);
 extern DWORD getExStyle(HWND);
 extern void setExStyle(HWND, DWORD);
+extern void clientSizeToWindowSize(HWND, intmax_t *, intmax_t *, BOOL);
 
 // text.c
 extern WCHAR *toUTF16(const char *);

@@ -98,3 +98,26 @@ void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND in
 	SetWindowLongPtrW(hwnd, GWLP_ID, controlID);
 	setWindowInsertAfter(hwnd, insertAfter);
 }
+
+// see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
+void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL hasMenubar)
+{
+	RECT window;
+
+	window.left = 0;
+	window.top = 0;
+	window.right = *width;
+	window.bottom = *height;
+	if (AdjustWindowRectEx(&window, getStyle(hwnd), hasMenubar, getExStyle(hwnd)) == 0)
+		logLastError("error getting real window coordinates in clientSizeToWindowSize()");
+	if (hasMenubar) {
+		RECT temp;
+
+		temp = window;
+		temp.bottom = 0x7FFF;		// infinite height
+		SendMessageW(hwnd, WM_NCCALCSIZE, (WPARAM) FALSE, (LPARAM) (&temp));
+		window.bottom += temp.top;
+	}
+	*width = window.right - window.left;
+	*height = window.bottom - window.top;
+}

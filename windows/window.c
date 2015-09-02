@@ -12,6 +12,7 @@ struct uiWindow {
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	int margined;
+	BOOL hasMenubar;
 };
 
 static void onDestroy(uiWindow *);
@@ -28,6 +29,9 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	uiWindow *w;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+	MINMAXINFO *mmi = (MINMAXINFO *) lParam;
+	uiWindowsControl *c;
+	intmax_t width, height;
 	LRESULT lResult;
 
 	ww = GetWindowLongPtrW(hwnd, GWLP_USERDATA);
@@ -55,6 +59,18 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		if (w->child != NULL)
 			childQueueRelayout(w->child);
 		return 0;
+	case WM_GETMINMAXINFO:
+		// ensure the user cannot resize the window smaller than its minimum size
+		lResult = DefWindowProcW(hwnd, uMsg, wParam, lParam);
+		if (w->child == NULL)
+			return lResult;
+		c = uiWindowsControl(w);
+		(*(c->MinimumSize))(c, NULL, &width, &height);
+		// width and height are in client coordinates; ptMinTrackSize is in window coordinates
+		clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
+		mmi->ptMinTrackSize.x = width;
+		mmi->ptMinTrackSize.y = height;
+		return lResult;
 	case WM_PRINTCLIENT:
 		// we do no special painting; just erase the background
 		// don't worry about the return value; we let DefWindowProcW() handle this message
@@ -249,6 +265,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	hasMenubarBOOL = FALSE;
 	if (hasMenubar)
 		hasMenubarBOOL = TRUE;
+	w->hasMenubar = hasMenubarBOOL;
 
 #define style WS_OVERLAPPEDWINDOW
 #define exstyle 0

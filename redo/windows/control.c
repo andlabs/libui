@@ -74,3 +74,14 @@ void uiWindowsUtilSetText(HWND hwnd, const char *text)
 		logLastError("error setting control text in uiWindowsControlSetText()");
 	uiFree(wtext);
 }
+
+void uiWindowsRearrangeControlIDsZOrder(uiControl *c)
+{
+	uiWindowsControl *wc;
+
+	c = uiControlParent(c);
+	if (c == NULL)
+		return;
+	wc = uiWindowsControl(c);
+	(*(wc->ArrangeChildrenControlIDsZOrder))(wc);
+}

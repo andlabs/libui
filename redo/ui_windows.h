@@ -16,6 +16,7 @@ struct uiWindowsControl {
 	void (*MinimumSize)(uiWindowsControl *, uiWindowsSizing *, intmax_t *, intmax_t *);
 	void (*Relayout)(uiWindowsControl *, intmax_t, intmax_t, intmax_t, intmax_t);
 	void (*AssignControlIDZOrder)(uiWindowsControl *, LONG_PTR *, HWND *);
+	void (*ArrangeChildrenControlIDsZOrder)(uiWindowsControl *);
 };
 _UI_EXTERN uintmax_t uiWindowsControlType(void);
 #define uiWindowsControl(this) ((uiWindowsControl *) uiIsA((this), uiWindowsControlType(), 1))
@@ -59,6 +60,10 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 		uiWindowsEnsureAssignControlIDZOrder(type(c)->hwnd, *controlID, *insertAfter); \
 		(*controlID)++; \
 		*insertAfter = type(c)->hwnd; \
+	} \
+	static void _ ## type ## ArrangeChildrenControlIDsZOrder(uiWindowsControl *c) \
+	{ \
+		/* do nothing */ \
 	}
 
 #define uiWindowsDefineControl(type, typefn) \
@@ -72,6 +77,7 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 	uiWindowsControl(variable)->MinimumSize = minimumSize; \
 	uiWindowsControl(variable)->Relayout = _ ## type ## Relayout; \
 	uiWindowsControl(variable)->AssignControlIDZOrder = _ ## type ## AssignControlIDZOrder; \
+	uiWindowsControl(variable)->ArrangeChildrenControlIDsZOrder = _ ## type ## ArrangeChildrenControlIDsZOrder; \
 	uiWindowsFinishControl(uiControl(variable));
 
 // This is a function used to set up a control.
@@ -92,6 +98,9 @@ _UI_EXTERN void uiWindowsEnsureMoveWindow(HWND hwnd, intmax_t x, intmax_t y, int
 // Use this in implementations of AssignControlIDZOrder().
 // libui handles errors for you.
 _UI_EXTERN void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND insertAfter);
+
+// Use this to tell a control's parent that the control needs to rearrange its Z-order.
+_UI_EXTERN void uiWindowsRearrangeControlIDsZOrder(uiControl *);
 
 ////////////////////////////////////////////
 /////////////////// TODO ///////////////////

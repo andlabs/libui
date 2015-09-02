@@ -168,6 +168,14 @@ static void windowRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t
 	uiWindowsFreeSizing(d);
 }
 
+static void windowArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
+{
+	uiWindow *w = uiWindow(c);
+
+	if (w->child != NULL)
+		childSetSoleControlID(w->child);
+}
+
 char *uiWindowTitle(uiWindow *w)
 {
 	return uiWindowsUtilText(w->hwnd);
@@ -276,6 +284,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiControl(w)->CommitShow = windowCommitShow;
 	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
 	uiWindowsControl(w)->Relayout = windowRelayout;
+	uiWindowsControl(w)->ArrangeChildrenControlIDsZOrder = windowArrangeChildrenControlIDsZOrder;
 
 	return w;
 }

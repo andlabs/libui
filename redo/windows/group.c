@@ -85,6 +85,14 @@ static void groupContainerUpdateState(uiControl *c)
 		childUpdateState(g->child);
 }
 
+static void groupArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
+{
+	uiGroup *g = uiGroup(c);
+
+	if (g->child != NULL)
+		childSetSoleControlID(g->child);
+}
+
 char *uiGroupTitle(uiGroup *g)
 {
 	return uiWindowsUtilText(g->hwnd);
@@ -155,6 +163,7 @@ uiGroup *uiNewGroup(const char *text)
 	uiWindowsFinishNewControl(g, uiGroup);
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;
 	uiWindowsControl(g)->Relayout = groupRelayout;
+	uiWindowsControl(g)->ArrangeChildrenControlIDsZOrder = groupArrangeChildrenControlIDsZOrder;
 
 	return g;
 }

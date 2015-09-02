@@ -141,6 +141,18 @@ static void tabContainerUpdateState(uiControl *c)
 	}
 }
 
+static void tabArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
+{
+	uiTab *t = uiTab(c);
+	struct child *page;
+	uintmax_t i;
+
+	for (i = 0; i < t->pages->len; i++) {
+		page = ptrArrayIndex(t->pages, struct child *, i);
+		childSetSoleControlID(page);
+	}
+}
+
 void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
 	uiTabInsertAt(t, name, t->pages->len, child);
@@ -234,6 +246,7 @@ uiTab *uiNewTab(void)
 	uiWindowsFinishNewControl(t, uiTab);
 	uiControl(t)->ContainerUpdateState = tabContainerUpdateState;
 	uiWindowsControl(t)->Relayout = tabRelayout;
+	uiWindowsControl(t)->ArrangeChildrenControlIDsZOrder = tabArrangeChildrenControlIDsZOrder;
 
 	return t;
 }

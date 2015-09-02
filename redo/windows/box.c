@@ -230,6 +230,13 @@ static void redoControlIDsZOrder(uiBox *b)
 	}
 }
 
+static void boxArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
+{
+	uiBox *b = uiBox(c);
+
+	redoControlIDsZOrder(b);
+}
+
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
 	struct child *bc;
@@ -277,6 +284,7 @@ static uiBox *finishNewBox(int vertical)
 	uiWindowsFinishNewControl(b, uiBox);
 	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;
 	uiWindowsControl(b)->Relayout = boxRelayout;
+	uiWindowsControl(b)->ArrangeChildrenControlIDsZOrder = boxArrangeChildrenControlIDsZOrder;
 
 	return b;
 }

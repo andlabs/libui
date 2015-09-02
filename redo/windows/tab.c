@@ -3,12 +3,14 @@
 
 // TODO
 // - can't seem to tab away anymore
-// - removving the first page then pressing a BS_PUSHBUTTON button hangs
+// - write comment here about how tabs and parents work
+// - make sure parent Z-orders are always above tab Z-orders
 
 struct uiTab {
 	uiWindowsControl c;
 	HWND hwnd;
 	struct ptrArray *pages;
+	HWND parent;
 };
 
 static void onDestroy(uiTab *);
@@ -70,6 +72,23 @@ static void onDestroy(uiTab *t)
 	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
 }
 
+static void tabCommitSetParent(uiWindowsControl *c, HWND parent)
+{
+	uiTab *t = uiTab(c);
+	struct child *page;
+	HWND pagehwnd;
+	uintmax_t i;
+
+	t->parent = parent;
+	uiWindowsEnsureSetParent(t->hwnd, t->parent);
+	for (i = 0; i < t->pages->len; i++) {
+		page = ptrArrayIndex(t->pages, struct child *, i);
+		pagehwnd = childTabPage(page);
+		uiWindowsEnsureSetParent(pagehwnd, t->parent);
+	}
+	uiWindowsRearrangeControlIDsZOrder(uiControl(t));
+}
+
 static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 /* TODO
@@ -117,11 +136,11 @@ static void tabRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 
 	// now we need to figure out what rect the child goes
 	// this rect needs to be in parent window coordinates, but TCM_ADJUSTRECT wants a window rect, which is screen coordinates
+	// because we have each page as a sibling of the tab, use the tab's own rect as the input rect
 	r.left = x;
 	r.top = y;
 	r.right = x + width;
 	r.bottom = y + height;
-	// TODO use the real parent; see below
 	mapWindowRect(t->hwnd, NULL, &r);
 	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) FALSE, (LPARAM) (&r));
 	mapWindowRect(NULL, t->hwnd, &r);
@@ -168,10 +187,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	// see below
 	hide = curpage(t);
 
-	// TODO make a child of the parent, not of the tab
-	// this is the only real way to do proper tab stops
-	// it's how tabs are /supposed to/ be done, anyway
-	page = newChildWithTabPage(child, uiControl(t), t->hwnd);
+	page = newChildWithTabPage(child, uiControl(t), t->parent);
 	childSetSoleControlID(page);
 	ptrArrayInsertAt(t->pages, n, page);
 
@@ -243,8 +259,11 @@ uiTab *uiNewTab(void)
 
 	t->pages = newPtrArray();
 
+	t->parent = utilWindow;
+
 	uiWindowsFinishNewControl(t, uiTab);
 	uiControl(t)->ContainerUpdateState = tabContainerUpdateState;
+	uiWindowsControl(t)->CommitSetParent = tabCommitSetParent;
 	uiWindowsControl(t)->Relayout = tabRelayout;
 	uiWindowsControl(t)->ArrangeChildrenControlIDsZOrder = tabArrangeChildrenControlIDsZOrder;
 

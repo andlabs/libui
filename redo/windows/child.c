@@ -24,6 +24,7 @@ struct child {
 struct child *newChild(uiControl *child, uiControl *parent, HWND parentHWND)
 {
 	struct child *c;
+	uiWindowsControl *wc;
 
 	if (child == NULL)
 		return NULL;
@@ -33,7 +34,8 @@ struct child *newChild(uiControl *child, uiControl *parent, HWND parentHWND)
 	c->hwnd = (HWND) uiControlHandle(c->c);
 
 	uiControlSetParent(c->c, parent);
-	uiWindowsEnsureSetParent(c->hwnd, parentHWND);
+	wc = uiWindowsControl(c->c);
+	(*(wc->CommitSetParent))(wc, parentHWND);
 
 	return c;
 }

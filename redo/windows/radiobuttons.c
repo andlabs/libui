@@ -129,13 +129,6 @@ static uintptr_t radiobuttonsSetZOrder(uiControl *c, uintptr_t insertAfter)
 	}
 	return insertAfter;
 }
-
-static int radiobuttonsHasTabStops(uiControl *c)
-{
-	struct radiobuttons *r = (struct radiobuttons *) c;
-
-	return r->hwnds->len != 0;
-}
 */
 
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)

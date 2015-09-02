@@ -203,22 +203,6 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	uiWindowsFreeSizing(d);
 }
 
-/* TODO
-static int boxHasTabStops(uiControl *c)
-{
-	uiBox *b = uiBox(c);
-	struct child *bc;
-	uintmax_t i;
-
-	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct child *, i);
-		if (uiControlHasTabStops(bc->c))
-			return 1;
-	}
-	return 0;
-}
-*/
-
 static void boxContainerUpdateState(uiControl *c)
 {
 	uiBox *b = uiBox(c);

@@ -152,13 +152,6 @@ static uintptr_t spinboxSetZOrder(uiControl *c, uintptr_t insertAfter)
 	uiWindowsUtilSetZOrder(s->updown, (uintptr_t) (s->hwnd));
 	return (uintptr_t) (s->updown);
 }
-
-static int spinboxHasTabStops(uiControl *c)
-{
-	struct spinbox *s = (struct spinbox *) c;
-
-	return uiWindowsUtilHasTabStops(s->hwnd);
-}
 */
 
 static void defaultOnChanged(uiSpinbox *s, void *data)

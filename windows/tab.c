@@ -4,6 +4,7 @@
 // TODO
 // - write comment here about how tabs and parents work
 // - make sure parent Z-orders are always above tab Z-orders
+// - commit show/hide/enable/disable
 
 struct uiTab {
 	uiWindowsControl c;

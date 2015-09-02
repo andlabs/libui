@@ -2,8 +2,11 @@
 #include "uipriv_windows.h"
 
 // desired behavior:
-// - tab moves between /entire groups/
+// - tab moves between the radio buttons and the adjacent controls
 // - arrow keys navigate between radio buttons
+// - arrow keys do not leave the radio buttons (this is done in control.c)
+// - arrow keys wrap around bare groups (if the previous control has WS_GROUP but the first radio button doesn't, then it doesn't; since our radio buttons are all in their own child window we can't do that)
+// - clicking on a radio button draws a focus rect
 
 struct uiRadioButtons {
 	uiWindowsControl c;
@@ -19,9 +22,6 @@ uiWindowsDefineControlWithOnDestroy(
 	onDestroy(this);						// on destroy
 )
 
-// TODO arrow keys don't work for changing items
-
-// TODO this wrecks the z-order
 static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult)
 {
 	uiRadioButtons *r = uiRadioButtons(c);
@@ -107,57 +107,46 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 
 // TODO commit enable/disable
 
-/* TODO
-static uintptr_t radiobuttonsStartZOrder(uiControl *c)
+static void redoControlIDsZOrder(uiRadioButtons *r)
 {
-	struct radiobuttons *r = (struct radiobuttons *) c;
-
-	return r->insertAfter;
-}
-
-static uintptr_t radiobuttonsSetZOrder(uiControl *c, uintptr_t insertAfter)
-{
-	struct radiobuttons *r = (struct radiobuttons *) c;
-	uintmax_t i;
 	HWND hwnd;
+	uintmax_t i;
+	LONG_PTR controlID;
+	HWND insertAfter;
 
-	r->insertAfter = insertAfter;
+	controlID = 100;
+	insertAfter = NULL;
 	for (i = 0; i < r->hwnds->len; i++) {
 		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
-		uiWindowsUtilSetZOrder(hwnd, insertAfter);
-		insertAfter = (uintptr_t) hwnd;
+		uiWindowsEnsureAssignControlIDZOrder(hwnd, controlID, insertAfter);
+		controlID++;
+		insertAfter = hwnd;
 	}
-	return insertAfter;
 }
-*/
 
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 {
 	HWND hwnd;
 	WCHAR *wtext;
-//TODO	HWND after;
+	DWORD groupTabStop;
+
+	// the first radio button gets both WS_GROUP and WS_TABSTOP
+	// successive radio buttons get *neither*
+	groupTabStop = 0;
+	if (r->hwnds->len == 0)
+		groupTabStop = WS_GROUP | WS_TABSTOP;
 
 	wtext = toUTF16(text);
 	hwnd = uiWindowsEnsureCreateControlHWND(0,
 		L"button", wtext,
-		BS_RADIOBUTTON | WS_TABSTOP,
+		BS_RADIOBUTTON | groupTabStop,
 		hInstance, NULL,
 		TRUE);
 	uiFree(wtext);
 	uiWindowsEnsureSetParent(hwnd, r->hwnd);
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
-
-/* TODO
-	// maintain z-order
-	if (r->hwnds->len == 0)		// first item
-		uiWindowsUtilSetZOrder(hwnd, r->insertAfter);
-	else {
-		after = ptrArrayIndex(r->hwnds, HWND, r->hwnds->len - 1);
-		uiWindowsUtilSetZOrder(hwnd, (uintptr_t) after);
-	}
-*/
-
 	ptrArrayAppend(r->hwnds, hwnd);
+	redoControlIDsZOrder(r);
 	uiWindowsControlQueueRelayout(uiWindowsControl(r));
 }
 

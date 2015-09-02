@@ -5,6 +5,9 @@ HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCW
 {
 	HWND hwnd;
 
+	// don't let using the arrow keys in a uiRadioButtons leave the radio buttons
+	if ((dwStyle & WS_TABSTOP) != 0)
+		dwStyle |= WS_GROUP;
 	hwnd = CreateWindowExW(dwExStyle,
 		lpClassName, lpWindowName,
 		dwStyle | WS_CHILD | WS_VISIBLE,

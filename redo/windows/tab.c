@@ -221,10 +221,9 @@ uiTab *uiNewTab(void)
 
 	t = (uiTab *) uiNewControl(uiTabType());
 
-	t->hwnd = uiWindowsEnsureCreateControlHWND(0,			// don't set WS_EX_CONTROLPARENT yet; we do that dynamically in the message loop (see below)
+	t->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		WC_TABCONTROLW, L"",
-		// don't give WS_TABSTOP here; we only apply WS_TABSTOP if there are tabs
-		TCS_TOOLTIPS,
+		TCS_TOOLTIPS | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
 

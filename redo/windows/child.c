@@ -123,6 +123,14 @@ void childUpdateState(struct child *c)
 	controlUpdateState(c->c);
 }
 
+void childAssignControlIDZOrder(struct child *c, LONG_PTR *controlID, HWND *insertAfter)
+{
+	uiWindowsControl *wc;
+
+	wc = uiWindowsControl(c->c);
+	(*(wc->AssignControlIDZOrder))(wc, controlID, insertAfter);
+}
+
 void childSetSoleControlID(struct child *c)
 {
 	uiWindowsEnsureAssignControlIDZOrder(c->hwnd, 100, NULL);

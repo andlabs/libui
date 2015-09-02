@@ -231,37 +231,30 @@ static void boxContainerUpdateState(uiControl *c)
 	}
 }
 
+static void redoControlIDsZOrder(uiBox *b)
+{
+	struct child *bc;
+	LONG_PTR controlID;
+	HWND insertAfter;
+	uintmax_t i;
+
+	controlID = 100;
+	insertAfter = NULL;
+	for (i = 0; i < b->controls->len; i++) {
+		bc = ptrArrayIndex(b->controls, struct child *, i);
+		childAssignControlIDZOrder(bc, &controlID, &insertAfter);
+	}
+}
+
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
 	struct child *bc;
-/* TODO
-	uintptr_t zorder;
-	int dozorder;
-	uintmax_t i;
-
-	// start the zorder with the *CURRENT* first child
-	// this is in case we're adding a new first child
-	dozorder = 0;
-	if (b->controls->len != 0) {
-		dozorder = 1;
-		bc = ptrArrayIndex(b->controls, struct child *, 0);
-		zorder = uiControlStartZOrder(bc->c);
-	}
-*/
 
 	bc = newChild(c, uiControl(b), b->hwnd);
 	ctrlSetStretchy(bc, stretchy);
 	ptrArrayAppend(b->controls, bc);
+	redoControlIDsZOrder(b);
 	uiWindowsControlQueueRelayout(uiWindowsControl(b));
-
-/* TODO
-	// and now update the zorder for all controls
-	if (dozorder)
-		for (i = 0; i < b->controls->len; i++) {
-			bc = ptrArrayIndex(b->controls, struct child *, i);
-			zorder = uiControlSetZOrder(bc->c, zorder);
-		}
-*/
 }
 
 void uiBoxDelete(uiBox *b, uintmax_t index)
@@ -271,6 +264,7 @@ void uiBoxDelete(uiBox *b, uintmax_t index)
 	bc = ptrArrayIndex(b->controls, struct child *, index);
 	ptrArrayDelete(b->controls, index);
 	childRemove(bc);
+	redoControlIDsZOrder(b);
 	uiWindowsControlQueueRelayout(uiWindowsControl(b));
 }
 

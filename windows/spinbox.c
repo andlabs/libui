@@ -8,6 +8,7 @@ struct uiSpinbox {
 	void (*onChanged)(uiSpinbox *, void *);
 	void *onChangedData;
 	BOOL inhibitChanged;
+	HWND parent;
 };
 
 static void onDestroy(uiSpinbox *);
@@ -70,7 +71,14 @@ static void onDestroy(uiSpinbox *s)
 		logLastError("error destroying updown in spinboxCommitDestroy()");
 }
 
-// TODO set spinbox parent
+static void spinboxCommitSetParent(uiWindowsControl *c, HWND parent)
+{
+	uiSpinbox *s = uiSpinbox(c);
+
+	s->parent = parent;
+	uiWindowsEnsureSetParent(s->hwnd, s->parent);
+	uiWindowsEnsureSetParent(s->updown, s->parent);
+}
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
@@ -87,20 +95,16 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 // alas, we have to make a new up/down control each time :(
 static void recreateUpDown(uiSpinbox *s)
 {
-/* TODO
-	HWND parent;
 	BOOL preserve = FALSE;
 	intmax_t current;
 	// Microsoft's commctrl.h says to use this type
 	INT min, max;
 
-	parent = GetAncestor(s->hwnd, GA_PARENT);
 	if (s->updown != NULL) {
 		preserve = TRUE;
 		current = value(s);
 		SendMessageW(s->updown, UDM_GETRANGE32, (WPARAM) (&min), (LPARAM) (&max));
-		if (DestroyWindow(s->updown) == 0)
-			logLastError("error destroying old updown in recreateUpDown()");
+		uiWindowsEnsureDestroyWindow(s->updown);
 	}
 	s->inhibitChanged = TRUE;
 	s->updown = CreateWindowExW(0,
@@ -110,7 +114,7 @@ static void recreateUpDown(uiSpinbox *s)
 		WS_CHILD | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_HOTTRACK | UDS_NOTHOUSANDS | UDS_SETBUDDYINT,
 		// this is important; it's necessary for autosizing to work
 		0, 0, 0, 0,
-		parent, NULL, hInstance, NULL);
+		s->parent, NULL, hInstance, NULL);
 	if (s->updown == NULL)
 		logLastError("error creating updown in recreateUpDown()");
 	SendMessageW(s->updown, UDM_SETBUDDY, (WPARAM) (s->hwnd), 0);
@@ -119,40 +123,29 @@ static void recreateUpDown(uiSpinbox *s)
 		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) current);
 	}
 	// preserve the z-order
-	uiWindowsUtilSetZOrder(s->updown, (uintptr_t) (s->hwnd));
-	if (uiControlContainerVisible(uiControl(s)))
-		uiWindowsUtilShow(s->updown);
+	uiWindowsRearrangeControlIDsZOrder(uiControl(s));
+	// TODO properly show/enable
+	ShowWindow(s->updown, SW_SHOW);
 	s->inhibitChanged = FALSE;
-*/
 }
 
 static void spinboxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
-/* TODO
 	uiSpinbox *s = uiSpinbox(c);
 
-	moveWindow(s->hwnd, x, y, width, height, d);
+	uiWindowsEnsureMoveWindow(s->hwnd, x, y, width, height);
 	recreateUpDown(s);
-*/
 }
 
-/* TODO
-static uintptr_t spinboxStartZOrder(uiControl *c)
+static void spinboxAssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter)
 {
-	struct spinbox *s = (struct spinbox *) c;
+	uiSpinbox *s = uiSpinbox(c);
 
-	return uiWindowsUtilStartZOrder(s->hwnd);
+	uiWindowsEnsureAssignControlIDZOrder(s->hwnd, *controlID, *insertAfter);
+	uiWindowsEnsureAssignControlIDZOrder(s->updown, *controlID + 1, s->hwnd);
+	*controlID += 2;
+	*insertAfter = s->updown;
 }
-
-static uintptr_t spinboxSetZOrder(uiControl *c, uintptr_t insertAfter)
-{
-	struct spinbox *s = (struct spinbox *) c;
-
-	uiWindowsUtilSetZOrder(s->hwnd, insertAfter);
-	uiWindowsUtilSetZOrder(s->updown, (uintptr_t) (s->hwnd));
-	return (uintptr_t) (s->updown);
-}
-*/
 
 static void defaultOnChanged(uiSpinbox *s, void *data)
 {
@@ -196,6 +189,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, onWM_COMMAND, uiControl(s));
 	uiSpinboxOnChanged(s, defaultOnChanged, NULL);
 
+	s->parent = utilWindow;
 	recreateUpDown(s);
 	s->inhibitChanged = TRUE;
 	SendMessageW(s->updown, UDM_SETRANGE32, (WPARAM) min, (LPARAM) max);
@@ -203,7 +197,9 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	s->inhibitChanged = FALSE;
 
 	uiWindowsFinishNewControl(s, uiSpinbox);
+	uiWindowsControl(s)->CommitSetParent = spinboxCommitSetParent;
 	uiWindowsControl(s)->Relayout = spinboxRelayout;
+	uiWindowsControl(s)->AssignControlIDZOrder = spinboxAssignControlIDZOrder;
 
 	return s;
 }

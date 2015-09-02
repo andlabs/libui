@@ -1,3 +1,7 @@
+- all ports: update state when adding a control to a parent
+
+# Old TODOs
+
 - figure out how to deal with dchild at all, including preferred sizes
 - make OS X uiEntry width based on default in Interface Builder, not from sizeToFit
 - update state whenever setting parent

@@ -58,6 +58,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 		uiFree(wtext);
 		return TRUE;
 	}
+	uiFree(wtext);
 	// value() does the work for us
 	value(s);
 	(*(s->onChanged))(s, s->onChangedData);

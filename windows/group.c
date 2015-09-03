@@ -62,6 +62,8 @@ static void groupRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t 
 		return;
 
 	d = uiWindowsNewSizing(g->hwnd);
+	x = 0;		// make relative to the top-left corner of the groupbox
+	y = 0;
 	if (g->margined) {
 		x += uiWindowsDlgUnitsToX(groupXMargin, d->BaseX);
 		y += uiWindowsDlgUnitsToY(groupYMarginTop, d->BaseY);

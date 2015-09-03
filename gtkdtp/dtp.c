@@ -152,7 +152,9 @@ static gint dateTimePicker_draw(GtkWidget *w, cairo_t *cr)
 	y = (allocation.height - minHeight) / 2;
 	width = allocation.width;
 	height = minHeight;
-	// cairo translate framex framey
+	cairo_translate(cr, x, y);
+	x = 0;
+	y = 0;
 	if (gtk_widget_has_focus(GTK_WIDGET(d)) & !m.interiorFocus) {
 		x += m.focusWidth;
 		y += m.focusWidth;

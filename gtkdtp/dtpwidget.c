@@ -1,6 +1,9 @@
 // 4 september 2015
 #include "dtp.h"
 
+// TODO imitate gnome-calendar's day/month/year entries
+// TODO connect to ::output to add a leading 0 to minutes and seconds
+
 struct dtpPrivate {
 	GtkWidget *calendar;
 	GtkWidget *timebox;
@@ -33,7 +36,8 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 	d->priv->calendar = gtk_calendar_new();
 	gtk_container_add(GTK_CONTAINER(d), d->priv->calendar);
 
-	d->priv->timebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+	d->priv->timebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+	gtk_widget_set_valign(d->priv->timebox, GTK_ALIGN_CENTER);
 	gtk_container_add(GTK_CONTAINER(d), d->priv->timebox);
 
 	d->priv->hours = newSpinbox(1, 12);

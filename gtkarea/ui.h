@@ -7,7 +7,7 @@ typedef struct uiAreaDrawParams uiAreaDrawParams;
 struct uiAreaHandler {
 	// TODO draw
 	void (*HScrollConfig)(uiAreaHandler *, uiArea *, uintmax_t *, uintmax_t *);
-	void (*VScrollConfig)(uiAreaHandler *, uiArea *, uintmax_t *, uintmx_t *);
+	void (*VScrollConfig)(uiAreaHandler *, uiArea *, uintmax_t *, uintmax_t *);
 };
 
 // TODO uiAreaDrawParams

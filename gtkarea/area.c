@@ -129,7 +129,7 @@ static void onValueChanged(GtkAdjustment *a, gpointer data)
 static void replaceAdjustment(areaWidget *a, GtkAdjustment **adj, const GValue *value)
 {
 	if (*adj != NULL) {
-		g_signal_handlers_disconnect_by_func(*adj, G_CALLBACK(onValueChanged), cc);
+		g_signal_handlers_disconnect_by_func(*adj, G_CALLBACK(onValueChanged), a);
 		g_object_unref(*adj);
 	}
 	*adj = GTK_ADJUSTMENT(g_value_get_object(value));

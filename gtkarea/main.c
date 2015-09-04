@@ -1,6 +1,8 @@
 // 4 september 2015
 #include "area.h"
 
+// #qo pkg-config: gtk+-3.0
+
 struct handler {
 	uiAreaHandler ah;
 };

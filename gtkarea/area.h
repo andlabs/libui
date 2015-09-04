@@ -4,6 +4,7 @@
 #define GDK_VERSION_MIN_REQUIRED GDK_VERSION_3_4
 #define GDK_VERSION_MAX_ALLOWED GDK_VERSION_3_4
 #include <gtk/gtk.h>
+#include <stdint.h>
 
 #define areaWidgetType (areaWidget_get_type())
 #define areaWidget(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), areaWidgetType, areaWidget))

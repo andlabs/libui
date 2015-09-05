@@ -37,6 +37,7 @@ static void updateScroll(areaWidget *a)
 		ap->clientWidth / pixelsPer,
 		ap->clientWidth / pixelsPer);
 
+	// TODO sometimes changing htis results inn no change until the window is significantly resized
 	(*(ap->ah->VScrollConfig))(ap->ah, ap->a,
 		&count, &pixelsPer);
 	gtk_adjustment_configure(ap->va,
@@ -234,4 +235,9 @@ GtkWidget *newArea(uiAreaHandler *ah)
 	return GTK_WIDGET(g_object_new(areaWidgetType,
 		"area-handler", ah,
 		NULL));
+}
+
+void areaUpdateScroll(GtkWidget *area)
+{
+	updateScroll(areaWidget(area));
 }

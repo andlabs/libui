@@ -7,6 +7,7 @@ struct handler {
 	uiAreaHandler ah;
 };
 
+static GtkWidget *area;
 static struct handler h;
 static GtkWidget *nhspinb;
 static GtkWidget *pphspinb;
@@ -27,7 +28,7 @@ static void handlerVScrollConfig(uiAreaHandler *a, uiArea *area, uintmax_t *n, u
 
 static void recalcScroll(GtkSpinButton *sb, gpointer data)
 {
-	// TODO
+	areaUpdateScroll(area);
 }
 
 static GtkWidget *makeSpinbox(int min)
@@ -45,7 +46,6 @@ int main(void)
 	GtkWidget *mainwin;
 	GtkWidget *box;
 	GtkWidget *scroller;
-	GtkWidget *area;
 	GtkWidget *grid;
 
 	h.ah.HScrollConfig = handlerHScrollConfig;

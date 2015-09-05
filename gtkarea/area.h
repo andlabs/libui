@@ -30,3 +30,4 @@ extern GType areaWidget_get_type(void);
 #include "ui.h"
 
 extern GtkWidget *newArea(uiAreaHandler *ah);
+extern void areaUpdateScroll(GtkWidget *area);

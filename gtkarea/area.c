@@ -18,7 +18,13 @@ static void areaWidget_scrollable_init(GtkScrollable *);
 G_DEFINE_TYPE_WITH_CODE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA,
 	G_IMPLEMENT_INTERFACE(GTK_TYPE_SCROLLABLE, areaWidget_scrollable_init))
 
-// TODO this really seems wrong
+/*
+lower and upper are the bounds of the adjusment, in units
+step_increment is the number of units scrolled when using the arrow keys or the buttons on an old-style scrollbar
+page_incremenet is the number of page_size units scrolled with the Page Up/Down keys
+according to baedert, the other condition is that upper >= page_size, and the effect is that the largest possible value is upper - page_size
+TODO so the below is wrong but I'm not sure what's right...
+*/
 static void updateScroll(areaWidget *a)
 {
 	struct areaPrivate *ap = a->priv;

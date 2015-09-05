@@ -15,7 +15,7 @@ struct areaPrivate {
 
 static void areaWidget_scrollable_init(GtkScrollable *);
 
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA,
+G_DEFINE_TYPE_WITH_CODE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA,
 	G_IMPLEMENT_INTERFACE(GTK_TYPE_SCROLLABLE, areaWidget_scrollable_init))
 
 static void updateScroll(areaWidget *a)
@@ -48,8 +48,8 @@ static void updateScroll(areaWidget *a)
 		ap->clientHeight / pixelsPer);
 
 	// TODO notify adjustment changes?
-	g_object_notify(G_OBJECT(a), "hadjustment");
-	g_object_notify(G_OBJECT(a), "vadjustment");
+//	g_object_notify(G_OBJECT(a), "hadjustment");
+//	g_object_notify(G_OBJECT(a), "vadjustment");
 }
 
 static void areaWidget_init(areaWidget *a)
@@ -114,12 +114,17 @@ static void areaWidget_size_allocate(GtkWidget *w, GtkAllocation *allocation)
 // TODO events
 
 enum {
-	pHAdjustment = 1,
+	// normal properties must come before override properties
+	// thanks gregier in irc.gimp.net/#gtk+
+	pAreaHandler = 1,
+	pHAdjustment,
 	pVAdjustment,
 	pHScrollPolicy,
 	pVScrollPolicy,
 	nProps,
 };
+
+static GParamSpec *pspecAreaHandler;
 
 static void onValueChanged(GtkAdjustment *a, gpointer data)
 {
@@ -158,6 +163,9 @@ static void areaWidget_set_property(GObject *obj, guint prop, const GValue *valu
 		return;
 	case pVScrollPolicy:
 		ap->vpolicy = g_value_get_enum(value);
+		return;
+	case pAreaHandler:
+		ap->ah = (uiAreaHandler *) g_value_get_pointer(value);
 		return;
 	}
 	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop, pspec);
@@ -201,6 +209,14 @@ static void areaWidget_class_init(areaWidgetClass *class)
 //	GTK_WIDGET_CLASS(class)->motion_notify_event = areaWidget_motion_notify_event;
 //	GTK_WIDGET_CLASS(class)->key_press_event = areaWidget_key_press_event;
 
+	g_type_class_add_private(G_OBJECT_CLASS(class), sizeof (struct areaPrivate));
+
+	pspecAreaHandler = g_param_spec_pointer("area-handler",
+		"area-handler",
+		"Area handler.",
+		G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+	g_object_class_install_property(G_OBJECT_CLASS(class), pAreaHandler, pspecAreaHandler);
+
 	// this is the actual interface implementation
 	g_object_class_override_property(G_OBJECT_CLASS(class), pHAdjustment, "hadjustment");
 	g_object_class_override_property(G_OBJECT_CLASS(class), pVAdjustment, "vadjustment");
@@ -211,4 +227,11 @@ static void areaWidget_class_init(areaWidgetClass *class)
 static void areaWidget_scrollable_init(GtkScrollable *iface)
 {
 	// no need to do anything; the interface only has properties
+}
+
+GtkWidget *newArea(uiAreaHandler *ah)
+{
+	return GTK_WIDGET(g_object_new(areaWidgetType,
+		"area-handler", ah,
+		NULL));
 }

@@ -1,9 +1,6 @@
 // 4 september 2015
 #include "area.h"
 
-// TODOs
-// - why are we getting the overrun drawing when there's no scroll?
-
 struct areaPrivate {
 	uiArea *a;
 	uiAreaHandler *ah;
@@ -21,6 +18,7 @@ static void areaWidget_scrollable_init(GtkScrollable *);
 G_DEFINE_TYPE_WITH_CODE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA,
 	G_IMPLEMENT_INTERFACE(GTK_TYPE_SCROLLABLE, areaWidget_scrollable_init))
 
+// TODO this really seems wrong
 static void updateScroll(areaWidget *a)
 {
 	struct areaPrivate *ap = a->priv;
@@ -38,7 +36,7 @@ static void updateScroll(areaWidget *a)
 		count,
 		1,
 		ap->clientWidth / pixelsPer,
-		ap->clientWidth / pixelsPer);
+		MIN(count, ap->clientWidth));
 
 	// TODO sometimes changing htis results inn no change until the window is significantly resized
 	(*(ap->ah->VScrollConfig))(ap->ah, ap->a,
@@ -49,7 +47,7 @@ static void updateScroll(areaWidget *a)
 		count,
 		1,
 		ap->clientHeight / pixelsPer,
-		ap->clientHeight / pixelsPer);
+		MIN(count, ap->clientHeight));
 
 	// TODO notify adjustment changes?
 //	g_object_notify(G_OBJECT(a), "hadjustment");

@@ -1,6 +1,9 @@
 // 4 september 2015
 #include "area.h"
 
+// TODOs
+// - why are we getting the overrun drawing when there's no scroll?
+
 struct areaPrivate {
 	uiArea *a;
 	uiAreaHandler *ah;
@@ -108,7 +111,40 @@ static void areaWidget_size_allocate(GtkWidget *w, GtkAllocation *allocation)
 	updateScroll(areaWidget(w));
 }
 
-// TODO draw
+static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
+{
+	areaWidget *a = areaWidget(w);
+	struct areaPrivate *ap = a->priv;
+	char *msg;
+	PangoLayout *layout;
+	int ypos;
+	int height;
+
+	ypos = 5;
+
+	msg = g_strdup_printf("client width %d height %d",
+		ap->clientWidth, ap->clientHeight);
+	layout = gtk_widget_create_pango_layout(GTK_WIDGET(a), msg);
+	cairo_move_to(cr, 5, ypos);
+	pango_cairo_show_layout(cr, layout);
+	pango_layout_get_pixel_size(layout, NULL, &height);
+	ypos += height;
+	g_object_unref(layout);
+	g_free(msg);
+
+	msg = g_strdup_printf("hscroll %d vscroll %d",
+		(int) gtk_adjustment_get_value(ap->ha),
+		(int) gtk_adjustment_get_value(ap->va));
+	layout = gtk_widget_create_pango_layout(GTK_WIDGET(a), msg);
+	cairo_move_to(cr, 5, ypos);
+	pango_cairo_show_layout(cr, layout);
+	pango_layout_get_pixel_size(layout, NULL, &height);
+	ypos += height;
+	g_object_unref(layout);
+	g_free(msg);
+
+	return FALSE;
+}
 
 // TODO preferred height/width
 
@@ -202,7 +238,7 @@ static void areaWidget_class_init(areaWidgetClass *class)
 	G_OBJECT_CLASS(class)->get_property = areaWidget_get_property;
 
 	GTK_WIDGET_CLASS(class)->size_allocate = areaWidget_size_allocate;
-//	GTK_WIDGET_CLASS(class)->draw = areaWidget_draw;
+	GTK_WIDGET_CLASS(class)->draw = areaWidget_draw;
 //	GTK_WIDGET_CLASS(class)->get_preferred_height = areaWidget_get_preferred_height;
 //	GTK_WIDGET_CLASS(class)->get_preferred_width = areaWidget_get_preferred_width;
 //	GTK_WIDGET_CLASS(class)->button_press_event = areaWidget_button_press_event;

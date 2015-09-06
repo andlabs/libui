@@ -23,36 +23,35 @@ lower and upper are the bounds of the adjusment, in units
 step_increment is the number of units scrolled when using the arrow keys or the buttons on an old-style scrollbar
 page_incremenet is the number of page_size units scrolled with the Page Up/Down keys
 according to baedert, the other condition is that upper >= page_size, and the effect is that the largest possible value is upper - page_size
-TODO so the below is wrong but I'm not sure what's right...
+
+unfortunately, everything in GTK+ assumes 1 unit = 1 pixel
+let's do the same :/
 */
 static void updateScroll(areaWidget *a)
 {
 	struct areaPrivate *ap = a->priv;
-	uintmax_t count, pixelsPer;
+	uintmax_t count;
 
 	// don't call if too early
 	if (ap->ha == NULL || ap->va == NULL)
 		return;
 
-	(*(ap->ah->HScrollConfig))(ap->ah, ap->a,
-		&count, &pixelsPer);
+	count = (*(ap->ah->HScrollMax))(ap->ah, ap->a);
 	gtk_adjustment_configure(ap->ha,
 		gtk_adjustment_get_value(ap->ha),
 		0,
 		count,
 		1,
-		ap->clientWidth / pixelsPer,
+		ap->clientWidth,
 		MIN(count, ap->clientWidth));
 
-	// TODO sometimes changing htis results inn no change until the window is significantly resized
-	(*(ap->ah->VScrollConfig))(ap->ah, ap->a,
-		&count, &pixelsPer);
+	count = (*(ap->ah->VScrollMax))(ap->ah, ap->a);
 	gtk_adjustment_configure(ap->va,
 		gtk_adjustment_get_value(ap->va),
 		0,
 		count,
 		1,
-		ap->clientHeight / pixelsPer,
+		ap->clientHeight,
 		MIN(count, ap->clientHeight));
 
 	// TODO notify adjustment changes?

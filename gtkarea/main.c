@@ -10,20 +10,16 @@ struct handler {
 static GtkWidget *area;
 static struct handler h;
 static GtkWidget *nhspinb;
-static GtkWidget *pphspinb;
 static GtkWidget *nvspinb;
-static GtkWidget *ppvspinb;
 
-static void handlerHScrollConfig(uiAreaHandler *a, uiArea *area, uintmax_t *n, uintmax_t *pixelsPer)
+static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
 {
-	*n = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(nhspinb));
-	*pixelsPer = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(pphspinb));
+	return gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(nhspinb));
 }
 
-static void handlerVScrollConfig(uiAreaHandler *a, uiArea *area, uintmax_t *n, uintmax_t *pixelsPer)
+static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
 {
-	*n = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(nvspinb));
-	*pixelsPer = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(ppvspinb));
+	return gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(nvspinb));
 }
 
 static void recalcScroll(GtkSpinButton *sb, gpointer data)
@@ -48,8 +44,8 @@ int main(void)
 	GtkWidget *scroller;
 	GtkWidget *grid;
 
-	h.ah.HScrollConfig = handlerHScrollConfig;
-	h.ah.VScrollConfig = handlerVScrollConfig;
+	h.ah.HScrollMax = handlerHScrollMax;
+	h.ah.VScrollMax = handlerVScrollMax;
 
 	gtk_init(NULL, NULL);
 
@@ -81,25 +77,11 @@ int main(void)
 		1, 0, 1, 1);
 
 	gtk_grid_attach(GTK_GRID(grid),
-		gtk_label_new("H Pixels Per"),
-		0, 1, 1, 1);
-	pphspinb = makeSpinbox(1);
-	gtk_grid_attach(GTK_GRID(grid), pphspinb,
-		1, 1, 1, 1);
-
-	gtk_grid_attach(GTK_GRID(grid),
 		gtk_label_new("V Count"),
-		0, 2, 1, 1);
+		0, 1, 1, 1);
 	nvspinb = makeSpinbox(0);
 	gtk_grid_attach(GTK_GRID(grid), nvspinb,
-		1, 2, 1, 1);
-
-	gtk_grid_attach(GTK_GRID(grid),
-		gtk_label_new("V Pixels Per"),
-		0, 3, 1, 1);
-	ppvspinb = makeSpinbox(1);
-	gtk_grid_attach(GTK_GRID(grid), ppvspinb,
-		1, 3, 1, 1);
+		1, 1, 1, 1);
 
 	area = newArea((uiAreaHandler *) (&h));
 	gtk_container_add(GTK_CONTAINER(scroller), area);

@@ -7,6 +7,7 @@ struct areaPrivate {
 
 	GtkAdjustment *ha;
 	GtkAdjustment *va;
+	// TODO get rid of the need for these
 	int clientWidth;
 	int clientHeight;
 	// needed for GtkScrollable
@@ -118,33 +119,24 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 {
 	areaWidget *a = areaWidget(w);
 	struct areaPrivate *ap = a->priv;
-	char *msg;
-	PangoLayout *layout;
-	int ypos;
-	int height;
+	uiAreaDrawParams dp;
+	double clipX0, clipY0, clipX1, clipY1;
 
-	ypos = 5;
+	// TODO dp.Context
 
-	msg = g_strdup_printf("client width %d height %d",
-		ap->clientWidth, ap->clientHeight);
-	layout = gtk_widget_create_pango_layout(GTK_WIDGET(a), msg);
-	cairo_move_to(cr, 5, ypos);
-	pango_cairo_show_layout(cr, layout);
-	pango_layout_get_pixel_size(layout, NULL, &height);
-	ypos += height;
-	g_object_unref(layout);
-	g_free(msg);
+	dp.ClientWidth = ap->clientWidth;
+	dp.ClientHeight = ap->clientHeight;
 
-	msg = g_strdup_printf("hscroll %d vscroll %d",
-		(int) gtk_adjustment_get_value(ap->ha),
-		(int) gtk_adjustment_get_value(ap->va));
-	layout = gtk_widget_create_pango_layout(GTK_WIDGET(a), msg);
-	cairo_move_to(cr, 5, ypos);
-	pango_cairo_show_layout(cr, layout);
-	pango_layout_get_pixel_size(layout, NULL, &height);
-	ypos += height;
-	g_object_unref(layout);
-	g_free(msg);
+	cairo_clip_extents(cr, &clipX0, &clipY0, &clipX1, &clipY1);
+	dp.ClipX = clipX0;
+	dp.ClipY = clipY0;
+	dp.ClipWidth = clipX1 - clipX0;
+	dp.ClipHeight = clipY1 - clipY0;
+
+	dp.HScrollPos = gtk_adjustment_get_value(ap->ha);
+	dp.VScrollPos = gtk_adjustment_get_value(ap->va);
+
+	(*(ap->ah->Draw))(ap->ah, ap->a, &dp);
 
 	return FALSE;
 }
@@ -168,6 +160,7 @@ static GParamSpec *pspecAreaHandler;
 
 static void onValueChanged(GtkAdjustment *a, gpointer data)
 {
+	// there's no way to scroll the contents of a widget, so we have to redraw the entire thing
 	gtk_widget_queue_draw(GTK_WIDGET(data));
 }
 

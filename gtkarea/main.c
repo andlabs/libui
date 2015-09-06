@@ -12,6 +12,11 @@ static struct handler h;
 static GtkWidget *nhspinb;
 static GtkWidget *nvspinb;
 
+static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *params)
+{
+	// TODO
+}
+
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
 {
 	return gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(nhspinb));
@@ -44,6 +49,7 @@ int main(void)
 	GtkWidget *scroller;
 	GtkWidget *grid;
 
+	h.ah.Draw = handlerDraw;
 	h.ah.HScrollMax = handlerHScrollMax;
 	h.ah.VScrollMax = handlerVScrollMax;
 
@@ -62,8 +68,6 @@ int main(void)
 	gtk_widget_set_vexpand(scroller, TRUE);
 	gtk_widget_set_valign(scroller, GTK_ALIGN_FILL);
 	gtk_container_add(GTK_CONTAINER(box), scroller);
-
-	// TODO area
 
 	grid = gtk_grid_new();
 	gtk_widget_set_halign(grid, GTK_ALIGN_START);

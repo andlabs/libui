@@ -4,6 +4,8 @@ typedef struct uiArea uiArea;
 typedef struct uiAreaHandler uiAreaHandler;
 typedef struct uiAreaDrawParams uiAreaDrawParams;
 
+typedef struct uiDrawContext uiDrawContext;
+
 struct uiAreaHandler {
 	void (*Draw)(uiAreaHandler *, uiArea *, uiAreaDrawParams *);
 	uintmax_t (*HScrollMax)(uiAreaHandler *, uiArea *);
@@ -11,7 +13,7 @@ struct uiAreaHandler {
 };
 
 struct uiAreaDrawParams {
-	// TODO context
+	uiDrawContext *Context;
 
 	intmax_t ClientWidth;
 	intmax_t ClientHeight;
@@ -21,8 +23,8 @@ struct uiAreaDrawParams {
 	intmax_t ClipWidth;
 	intmax_t ClipHeight;
 
-//TODO	xxxx DPIX;
-//TODO	xxxx DPIY;
+	int DPIX;
+	int DPIY;
 
 	intmax_t HScrollPos;
 	intmax_t VScrollPos;

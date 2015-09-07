@@ -1,10 +1,6 @@
 // 4 september 2015
 #include "area.h"
 
-struct uiDrawContext {
-	cairo_t *cr;
-};
-
 struct areaPrivate {
 	uiArea *a;
 	uiAreaHandler *ah;
@@ -125,10 +121,8 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	struct areaPrivate *ap = a->priv;
 	uiAreaDrawParams dp;
 	double clipX0, clipY0, clipX1, clipY1;
-	uiDrawContext ctxt;
 
-	ctxt.cr = cr;
-	dp.Context = &ctxt;
+	dp.Context = newContext(cr);
 
 	dp.ClientWidth = ap->clientWidth;
 	dp.ClientHeight = ap->clientHeight;
@@ -152,6 +146,7 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 
 	(*(ap->ah->Draw))(ap->ah, ap->a, &dp);
 
+	g_free(dp.Context);
 	return FALSE;
 }
 

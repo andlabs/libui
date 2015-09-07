@@ -31,3 +31,5 @@ extern GType areaWidget_get_type(void);
 
 extern GtkWidget *newArea(uiAreaHandler *ah);
 extern void areaUpdateScroll(GtkWidget *area);
+
+extern uiDrawContext *newContext(cairo_t *);

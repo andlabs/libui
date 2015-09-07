@@ -12,9 +12,27 @@ static struct handler h;
 static GtkWidget *nhspinb;
 static GtkWidget *nvspinb;
 
-static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *params)
+static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 {
-	// TODO
+	uiDrawStrokeParams sp;
+
+	uiDrawMoveTo(p->Context, p->ClipX + 5, p->ClipY + 5);
+	uiDrawLineTo(p->Context, (p->ClipX + p->ClipWidth) - 5, (p->ClipY + p->ClipHeight) - 5);
+	sp.RGB = 0xFF0000;
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.Thickness = 1;
+	sp.MiterLimit = 10;
+	uiDrawStroke(p->Context, &sp);
+
+	uiDrawMoveTo(p->Context, p->ClipX, p->ClipY);
+	uiDrawLineTo(p->Context, p->ClipX + p->ClipWidth, p->ClipY);
+	sp.RGB = 0x000080;
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.Thickness = 1;
+	sp.MiterLimit = 10;
+	uiDrawStroke(p->Context, &sp);
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)

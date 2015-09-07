@@ -75,6 +75,18 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	sp.Thickness = 1;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, &sp);
+
+	uiDrawBeginPathRGB(p->Context, 0x00, 0x80, 0xC0);
+	uiDrawMoveTo(p->Context, 300, 300);
+	uiDrawBezierTo(p->Context,
+		350, 320,
+		310, 390,
+		435, 372);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.Thickness = 1;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	uiDrawStroke(p->Context, &sp);
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)

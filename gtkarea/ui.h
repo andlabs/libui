@@ -80,6 +80,8 @@ void uiDrawLineTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawRectangle(uiDrawContext *, intmax_t, intmax_t, intmax_t, intmax_t);
 // notes: angles are both relative to 0 and go counterclockwise
 void uiDrawArc(uiDrawContext *, intmax_t, intmax_t, intmax_t, double, double, int);
+// TODO behavior when there is no initial point on Windows and OS X
+void uiDrawBezierTo(uiDrawContext *, intmax_t, intmax_t, intmax_t, intmax_t, intmax_t, intmax_t);
 void uiDrawCloseFigure(uiDrawContext *);
 
 void uiDrawStroke(uiDrawContext *, uiDrawStrokeParams *);

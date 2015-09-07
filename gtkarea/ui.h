@@ -78,6 +78,8 @@ void uiDrawBeginPathRGBA(uiDrawContext *, uint8_t, uint8_t, uint8_t, uint8_t);
 void uiDrawMoveTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawLineTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawRectangle(uiDrawContext *, intmax_t, intmax_t, intmax_t, intmax_t);
+// notes: angles are both relative to 0 and go counterclockwise
+void uiDrawArc(uiDrawContext *, intmax_t, intmax_t, intmax_t, double, double, int);
 void uiDrawCloseFigure(uiDrawContext *);
 
 void uiDrawStroke(uiDrawContext *, uiDrawStrokeParams *);
@@ -87,8 +89,8 @@ void uiDrawFill(uiDrawContext *, uiDrawFillMode);
 // cairo			gdi						core graphics
 // move_to		MoveToEx				MoveToPoint
 // line_to			LineTo					AddLineToPoint
-// arc			Arc/ArcTo/AngleArc/Ellipse	AddArc/AddArcToPoint/AddEllipseInRect
-// arc_negative	Pie						AddArc/AddArcToPoint
+// arc			Arc/ArcTo/AngleArc/Pie		AddArc/AddArcToPoint/AddEllipseInRect
+// arc_negative	Arc/ArcTo/AngleArc/Pie		AddArc/AddArcToPoint
 // curve_to		PolyBezier/PolyBezierTo		AddCurveToPoint
 // rectangle		Rectangle					AddRect
 // [arc functions?]	Chord					[arc functions?]
@@ -112,3 +114,26 @@ void uiDrawFill(uiDrawContext *, uiDrawFillMode);
 // - arbitrary patterns
 // - solid colors, arbitrary spaces
 // - shadows
+
+// arcs
+// cairo_arc/arc_negative
+// - parameters: center, radius, angle1 radians, angle2 radins
+// - if angle2 < angle1, TODO
+// - if angle2 > angle1, TODO
+// - line segment from current point to beginning of arc
+// - arc: clockwise, arc_negative: counterclockwise
+// - circular
+// GDI Arc/Pie
+// - parameters: bounding box, start point, end point
+// - current position not used/changed
+// - either clockwise or counterclockwise
+// - elliptical
+// GDI ArcTo
+// - same as Arc except line segment from current point to beginning of arc
+// - there does not appear to be a PieTo
+// GDI AngleArc
+// - parameters: center, radius, angle1 degrees, angle2 degrees
+// - line segment from current position to beginning of arc
+// - counterclockwise
+// - circular
+// - can be used to draw pies too; MSDN example demonstrates

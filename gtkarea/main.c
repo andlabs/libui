@@ -1,4 +1,6 @@
 // 4 september 2015
+#define _GNU_SOURCE
+#include <math.h>
 #include "area.h"
 
 // #qo pkg-config: gtk+-3.0
@@ -43,6 +45,31 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	uiDrawBeginPathRGB(p->Context, 0x00, 0x80, 0x00);
 	uiDrawMoveTo(p->Context, 5, 10);
 	uiDrawLineTo(p->Context, 5, 50);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.Thickness = 1;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	uiDrawStroke(p->Context, &sp);
+
+	uiDrawBeginPathRGB(p->Context, 0x80, 0xC0, 0x00);
+	uiDrawMoveTo(p->Context, 400, 100);
+	uiDrawArc(p->Context,
+		400, 100,
+		50,
+		30. * (M_PI / 180.),
+		// note the end angle here
+		// in GDI, the second angle to AngleArc() is relative to the start, not to 0
+		330. * (M_PI / 180.),
+		1);
+	// TODO add a checkbox for this
+	uiDrawLineTo(p->Context, 400, 100);
+	uiDrawArc(p->Context,
+		510, 100,
+		50,
+		30. * (M_PI / 180.),
+		330. * (M_PI / 180.),
+		0);
+	uiDrawCloseFigure(p->Context);
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.Thickness = 1;

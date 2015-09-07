@@ -22,16 +22,18 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.Thickness = 1;
-	sp.MiterLimit = 10;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, &sp);
 
 	uiDrawMoveTo(p->Context, p->ClipX, p->ClipY);
 	uiDrawLineTo(p->Context, p->ClipX + p->ClipWidth, p->ClipY);
+	uiDrawLineTo(p->Context, 50, 150);
+	uiDrawLineTo(p->Context, 50, 50);
+	uiDrawCloseFigure(p->Context);
 	sp.RGB = 0x000080;
 	sp.Cap = uiDrawLineCapFlat;
-	sp.Join = uiDrawLineJoinMiter;
-	sp.Thickness = 1;
-	sp.MiterLimit = 10;
+	sp.Join = uiDrawLineJoinRound;
+	sp.Thickness = 5;
 	uiDrawStroke(p->Context, &sp);
 }
 

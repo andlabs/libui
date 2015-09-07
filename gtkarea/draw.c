@@ -36,6 +36,12 @@ void uiDrawLineTo(uiDrawContext *c, intmax_t x, intmax_t y)
 	cairo_line_to(c->cr, (double) x + 0.5, (double) y + 0.5);
 }
 
+void uiDrawCloseFigure(uiDrawContext *c)
+{
+	prepPath(c);
+	cairo_close_path(c->cr);
+}
+
 #define R(c) (((c) >> 16) & 0xFF)
 #define G(c) (((c) >> 8) & 0xFF)
 #define B(c) ((c) & 0xFF)
@@ -69,7 +75,8 @@ void uiDrawStroke(uiDrawContext *c, uiDrawStrokeParams *p)
 		cairo_set_line_join(c->cr, CAIRO_LINE_JOIN_BEVEL);
 		break;
 	}
-	cairo_set_line_width(c->cr, p->Thickness);
+	// TODO comment the /2 here
+	cairo_set_line_width(c->cr, ((double) p->Thickness) / 2);
 	cairo_stroke(c->cr);
 	c->hasPath = FALSE;
 }

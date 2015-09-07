@@ -60,6 +60,7 @@ enum uiDrawLineJoin {
 // - os x: FillPath/EOFillPath functions
 enum uiDrawFillMode {
 	uiDrawFillModeWinding,
+	// TODO rename to EvenOdd?
 	uiDrawFillModeAlternate,
 };
 
@@ -72,14 +73,15 @@ struct uiDrawStrokeParams {
 };
 
 void uiDrawBeginPathRGB(uiDrawContext *, uint8_t, uint8_t, uint8_t);
-//TODO void uiDrawBeginPathRGBA(uiDrawContext *, uint8_t, uint8_t, uint8_t, uint8_t);
+void uiDrawBeginPathRGBA(uiDrawContext *, uint8_t, uint8_t, uint8_t, uint8_t);
 
 void uiDrawMoveTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawLineTo(uiDrawContext *, intmax_t, intmax_t);
+void uiDrawRectangle(uiDrawContext *, intmax_t, intmax_t, intmax_t, intmax_t);
 void uiDrawCloseFigure(uiDrawContext *);
 
 void uiDrawStroke(uiDrawContext *, uiDrawStrokeParams *);
-//TODO void uiDrawFill(uiDrawContext *, uiDrawFillMode);
+void uiDrawFill(uiDrawContext *, uiDrawFillMode);
 
 // path functions
 // cairo			gdi						core graphics

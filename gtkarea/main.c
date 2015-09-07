@@ -25,7 +25,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, &sp);
 
-	uiDrawBeginPathRGB(p->Context, 0x00, 0x00, 0x80);
+	uiDrawBeginPathRGB(p->Context, 0x00, 0x00, 0xC0);
 	uiDrawMoveTo(p->Context, p->ClipX, p->ClipY);
 	uiDrawLineTo(p->Context, p->ClipX + p->ClipWidth, p->ClipY);
 	uiDrawLineTo(p->Context, 50, 150);
@@ -35,6 +35,10 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	sp.Join = uiDrawLineJoinRound;
 	sp.Thickness = 5;
 	uiDrawStroke(p->Context, &sp);
+
+	uiDrawBeginPathRGBA(p->Context, 0x00, 0xC0, 0x00, 0x80);
+	uiDrawRectangle(p->Context, 120, 80, 50, 50);
+	uiDrawFill(p->Context, uiDrawFillModeWinding);
 
 	uiDrawBeginPathRGB(p->Context, 0x00, 0x80, 0x00);
 	uiDrawMoveTo(p->Context, 5, 10);

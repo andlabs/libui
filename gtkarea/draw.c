@@ -23,6 +23,16 @@ void uiDrawBeginPathRGB(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b)
 	cairo_new_path(c->cr);
 }
 
+void uiDrawBeginPathRGBA(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+	cairo_set_source_rgba(c->cr,
+		((double) r) / 255,
+		((double) g) / 255,
+		((double) b) / 255,
+		((double) a) / 255);
+	cairo_new_path(c->cr);
+}
+
 void uiDrawMoveTo(uiDrawContext *c, intmax_t x, intmax_t y)
 {
 	cairo_move_to(c->cr, (double) x + 0.5, (double) y + 0.5);
@@ -31,6 +41,11 @@ void uiDrawMoveTo(uiDrawContext *c, intmax_t x, intmax_t y)
 void uiDrawLineTo(uiDrawContext *c, intmax_t x, intmax_t y)
 {
 	cairo_line_to(c->cr, (double) x + 0.5, (double) y + 0.5);
+}
+
+void uiDrawRectangle(uiDrawContext *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+{
+	cairo_rectangle(c->cr, (double) x + 0.5, (double) y + 0.5, width, height);
 }
 
 void uiDrawCloseFigure(uiDrawContext *c)
@@ -66,4 +81,17 @@ void uiDrawStroke(uiDrawContext *c, uiDrawStrokeParams *p)
 	// TODO comment the /2 here
 	cairo_set_line_width(c->cr, ((double) p->Thickness) / 2);
 	cairo_stroke(c->cr);
+}
+
+void uiDrawFill(uiDrawContext *c, uiDrawFillMode mode)
+{
+	switch (mode) {
+	case uiDrawFillModeWinding:
+		cairo_set_fill_rule(c->cr, CAIRO_FILL_RULE_WINDING);
+		break;
+	case uiDrawFillModeAlternate:
+		cairo_set_fill_rule(c->cr, CAIRO_FILL_RULE_EVEN_ODD);
+		break;
+	}
+	cairo_fill(c->cr);
 }

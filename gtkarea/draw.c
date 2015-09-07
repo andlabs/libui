@@ -3,7 +3,6 @@
 
 struct uiDrawContext {
 	cairo_t *cr;
-	gboolean hasPath;
 };
 
 uiDrawContext *newContext(cairo_t *cr)
@@ -12,46 +11,35 @@ uiDrawContext *newContext(cairo_t *cr)
 
 	c = (uiDrawContext *) g_malloc0(sizeof (uiDrawContext));
 	c->cr = cr;
-	c->hasPath = FALSE;
 	return c;
 }
 
-static void prepPath(uiDrawContext *c)
+void uiDrawBeginPathRGB(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b)
 {
-	if (c->hasPath)
-		return;
+	cairo_set_source_rgb(c->cr,
+		((double) r) / 255,
+		((double) g) / 255,
+		((double) b) / 255);
 	cairo_new_path(c->cr);
-	c->hasPath = TRUE;
 }
 
 void uiDrawMoveTo(uiDrawContext *c, intmax_t x, intmax_t y)
 {
-	prepPath(c);
 	cairo_move_to(c->cr, (double) x + 0.5, (double) y + 0.5);
 }
 
 void uiDrawLineTo(uiDrawContext *c, intmax_t x, intmax_t y)
 {
-	prepPath(c);
 	cairo_line_to(c->cr, (double) x + 0.5, (double) y + 0.5);
 }
 
 void uiDrawCloseFigure(uiDrawContext *c)
 {
-	prepPath(c);
 	cairo_close_path(c->cr);
 }
 
-#define R(c) (((c) >> 16) & 0xFF)
-#define G(c) (((c) >> 8) & 0xFF)
-#define B(c) ((c) & 0xFF)
-
 void uiDrawStroke(uiDrawContext *c, uiDrawStrokeParams *p)
 {
-	cairo_set_source_rgb(c->cr,
-		((double) R(p->RGB)) / 255,
-		((double) G(p->RGB)) / 255,
-		((double) B(p->RGB)) / 255);
 	switch (p->Cap) {
 	case uiDrawLineCapFlat:
 		cairo_set_line_cap(c->cr, CAIRO_LINE_CAP_BUTT);
@@ -78,5 +66,4 @@ void uiDrawStroke(uiDrawContext *c, uiDrawStrokeParams *p)
 	// TODO comment the /2 here
 	cairo_set_line_width(c->cr, ((double) p->Thickness) / 2);
 	cairo_stroke(c->cr);
-	c->hasPath = FALSE;
 }

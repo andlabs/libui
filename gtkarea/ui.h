@@ -34,12 +34,9 @@ struct uiAreaDrawParams {
 // TODO dotting/dashing
 
 typedef struct uiDrawStrokeParams uiDrawStrokeParams;
-typedef struct uiDrawFillParams uiDrawFillParams;
 typedef enum uiDrawLineCap uiDrawLineCap;
 typedef enum uiDrawLineJoin uiDrawLineJoin;
 typedef enum uiDrawFillMode uiDrawFillMode;
-
-typedef uint32_t uiRGB;
 
 enum uiDrawLineCap {
 	uiDrawLineCapFlat,
@@ -67,7 +64,6 @@ enum uiDrawFillMode {
 };
 
 struct uiDrawStrokeParams {
-	uiRGB RGB;
 	uiDrawLineCap Cap;
 	uiDrawLineJoin Join;
 	intmax_t Thickness;
@@ -75,15 +71,15 @@ struct uiDrawStrokeParams {
 	double MiterLimit;
 };
 
-struct uiDrawFillParams {
-	uiRGB RGB;
-	uiDrawFillMode FillMode;
-};
+void uiDrawBeginPathRGB(uiDrawContext *, uint8_t, uint8_t, uint8_t);
+//TODO void uiDrawBeginPathRGBA(uiDrawContext *, uint8_t, uint8_t, uint8_t, uint8_t);
 
 void uiDrawMoveTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawLineTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawCloseFigure(uiDrawContext *);
+
 void uiDrawStroke(uiDrawContext *, uiDrawStrokeParams *);
+//TODO void uiDrawFill(uiDrawContext *, uiDrawFillMode);
 
 // path functions
 // cairo			gdi						core graphics

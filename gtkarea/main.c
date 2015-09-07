@@ -16,24 +16,33 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 {
 	uiDrawStrokeParams sp;
 
+	uiDrawBeginPathRGB(p->Context, 0xFF, 0x00, 0x00);
 	uiDrawMoveTo(p->Context, p->ClipX + 5, p->ClipY + 5);
 	uiDrawLineTo(p->Context, (p->ClipX + p->ClipWidth) - 5, (p->ClipY + p->ClipHeight) - 5);
-	sp.RGB = 0xFF0000;
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.Thickness = 1;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, &sp);
 
+	uiDrawBeginPathRGB(p->Context, 0x00, 0x00, 0x80);
 	uiDrawMoveTo(p->Context, p->ClipX, p->ClipY);
 	uiDrawLineTo(p->Context, p->ClipX + p->ClipWidth, p->ClipY);
 	uiDrawLineTo(p->Context, 50, 150);
 	uiDrawLineTo(p->Context, 50, 50);
 	uiDrawCloseFigure(p->Context);
-	sp.RGB = 0x000080;
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinRound;
 	sp.Thickness = 5;
+	uiDrawStroke(p->Context, &sp);
+
+	uiDrawBeginPathRGB(p->Context, 0x00, 0x80, 0x00);
+	uiDrawMoveTo(p->Context, 5, 10);
+	uiDrawLineTo(p->Context, 5, 50);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.Thickness = 1;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, &sp);
 }
 

@@ -58,6 +58,9 @@ enum uiDrawLineJoin {
 // so we're good to use it too!
 #define uiDrawDefaultMiterLimit 10.0
 
+// TODOs
+// - windows: SetPolyFillMode
+// - os x: FillPath/EOFillPath functions
 enum uiDrawFillMode {
 	uiDrawFillModeWinding,
 	uiDrawFillModeAlternate,
@@ -81,3 +84,33 @@ void uiDrawMoveTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawLineTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawCloseFigure(uiDrawContext *);
 void uiDrawStroke(uiDrawContext *, uiDrawStrokeParams *);
+
+// path functions
+// cairo			gdi						core graphics
+// move_to		MoveToEx				MoveToPoint
+// line_to			LineTo					AddLineToPoint
+// arc			Arc/ArcTo/AngleArc/Ellipse	AddArc/AddArcToPoint/AddEllipseInRect
+// arc_negative	Pie						AddArc/AddArcToPoint
+// curve_to		PolyBezier/PolyBezierTo		AddCurveToPoint
+// rectangle		Rectangle					AddRect
+// [arc functions?]	Chord					[arc functions?]
+// [combination]	RoundRect				[same way as cairo?]
+// [TODO pango]	TextOut/ExtTextOut			[TODO core text]
+// [TODO]		[TODO]					AddQuadCurveToPoint
+
+// on sources:
+// cairo:
+// - RGB
+// - RGBA
+// - images
+// - linear gradients, RGB or RGBA
+// - rounded gradients, RGB or RGBA
+// gdi:
+// - RGB
+// - hatches
+// - images
+// we can create a linear gradient image, but RGB only, and of finite size
+// core graphics:
+// - arbitrary patterns
+// - solid colors, arbitrary spaces
+// - shadows

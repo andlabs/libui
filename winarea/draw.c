@@ -183,6 +183,7 @@ static void startAlpha(uiDrawContext *c, struct alpha *a)
 	BYTE *ops;
 	HRGN region;
 	BITMAPINFO bi;
+	POINT prevWindowOrigin;
 	DWORD le;
 
 	ZeroMemory(a, sizeof (struct alpha));
@@ -234,12 +235,17 @@ static void startAlpha(uiDrawContext *c, struct alpha *a)
 		logLastError("error selecting bitmap into DC in startAlpha()");
 
 	// now we can finally copy the path like we were going to earlier
+	// we need to change the window origin so the path draws in the right place
+	if (SetWindowOrgEx(a->dc, a->r.left, a->r.top, &prevWindowOrigin) == 0)
+		logLastError("error setting window origin in startAlpha()");
 	if (BeginPath(a->dc) == 0)
 		logLastError("error beginning path in startAlpha()");
 	if (PolyDraw(a->dc, points, ops, n) == 0)
 		logLastError("error copying path in startAlpha()");
 	if (EndPath(a->dc) == 0)
 		logLastError("error ending path in startAlpha()");
+	if (SetWindowOrgEx(a->dc, prevWindowOrigin.x, prevWindowOrigin.y, NULL) == 0)
+		logLastError("error resetting window origin in startAlpha()");
 	free(points);
 	free(ops);
 }

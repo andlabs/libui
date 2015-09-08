@@ -53,7 +53,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 
 	uiDrawBeginPathRGB(p->Context, 0x80, 0xC0, 0x00);
 	uiDrawMoveTo(p->Context, 400, 100);
-	uiDrawArc(p->Context,
+	uiDrawArcTo(p->Context,
 		400, 100,
 		50,
 		30. * (M_PI / 180.),
@@ -63,7 +63,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 		1);
 	// TODO add a checkbox for this
 	uiDrawLineTo(p->Context, 400, 100);
-	uiDrawArc(p->Context,
+	uiDrawArcTo(p->Context,
 		510, 100,
 		50,
 		30. * (M_PI / 180.),

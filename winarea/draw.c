@@ -64,7 +64,7 @@ void uiDrawRectangle(uiDrawContext *c, intmax_t x, intmax_t y, intmax_t width, i
 		logLastError("error drawing rectangle in uiDrawRectangle()");
 }
 
-void uiDrawArc(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t radius, double startAngle, double endAngle, int lineFromCurrentPointToStart)
+void uiDrawArcTo(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t radius, double startAngle, double endAngle, int lineFromCurrentPointToStart)
 {
 	if (!lineFromCurrentPointToStart) {
 		int bx, by, bx2, by2;

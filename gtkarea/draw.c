@@ -49,7 +49,7 @@ void uiDrawRectangle(uiDrawContext *c, intmax_t x, intmax_t y, intmax_t width, i
 	cairo_rectangle(c->cr, ((double) x) + 0.5, ((double) y) + 0.5, width, height);
 }
 
-void uiDrawArc(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t radius, double startAngle, double endAngle, int lineFromCurrentPointToStart)
+void uiDrawArcTo(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t radius, double startAngle, double endAngle, int lineFromCurrentPointToStart)
 {
 	if (!lineFromCurrentPointToStart)
 		cairo_new_sub_path(c->cr);

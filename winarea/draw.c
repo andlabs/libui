@@ -17,7 +17,8 @@ uiDrawContext *newContext(HDC dc)
 {
 	uiDrawContext *c;
 
-	c = (uiDrawContext *) g_malloc0(sizeof (uiDrawContext));
+	// TODO use uiNew
+	c = (uiDrawContext *) malloc(sizeof (uiDrawContext));
 	c->dc = dc;
 	return c;
 }
@@ -70,7 +71,7 @@ void uiDrawArc(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t ra
 	}
 	// TODO convert radians to degrees
 	if (AngleArc(c->dc,
-		xCenter, yCenter
+		xCenter, yCenter,
 		radius,
 		startAngle,
 		// the "sweep angle" is relative to the start angle, not to 0
@@ -94,7 +95,7 @@ void uiDrawBezierTo(uiDrawContext *c, intmax_t c1x, intmax_t c1y, intmax_t c2x, 
 
 void uiDrawCloseFigure(uiDrawContext *c)
 {
-	if (CloseFigure(c->currentDC) == 0)
+	if (CloseFigure(c->dc) == 0)
 		logLastError("error closing figure in uiDrawCloseFigure()");
 }
 
@@ -199,7 +200,7 @@ static void startAlpha(uiDrawContext *c, struct alpha *a)
 		logLastError("error creating compatible DC in startAlpha()");
 
 	// now create and select in a *device-independent* bitmap that will hold the data that we're going to alpha blend
-	ZeroMemory(&bmi, sizeof (BITMAPINFO));
+	ZeroMemory(&bi, sizeof (BITMAPINFO));
 	bi.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
 	bi.bmiHeader.biWidth = a->r.right - a->r.left;
 	bi.bmiHeader.biHeight = -(a->r.bottom - a->r.top);		// negative to draw top-down
@@ -299,6 +300,7 @@ static HBRUSH toBrush(uiDrawContext *c)
 		return brush;
 	}
 	// TODO
+	return NULL;
 }
 
 void uiDrawFill(uiDrawContext *c, uiDrawFillMode mode)
@@ -333,7 +335,7 @@ void uiDrawFill(uiDrawContext *c, uiDrawFillMode mode)
 		logLastError("error selecting brush into DC in uiDrawFill()");
 	if (FillPath(fillDC) == 0)
 		logLastError("error filling path in uiDrawFill()");
-	if (SelectObject(strokeDC, prevbrush) != brush)
+	if (SelectObject(fillDC, prevbrush) != brush)
 		logLastError("error deselecting brush from DC in uiDrawFill()");
 	if (DeleteObject(brush) == 0)
 		logLastError("error deleting pen in uiDrawStroke()");

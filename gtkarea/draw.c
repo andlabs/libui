@@ -9,6 +9,7 @@ uiDrawContext *newContext(cairo_t *cr)
 {
 	uiDrawContext *c;
 
+	// TODO use uiNew
 	c = (uiDrawContext *) g_malloc0(sizeof (uiDrawContext));
 	c->cr = cr;
 	return c;

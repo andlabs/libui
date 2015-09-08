@@ -85,9 +85,9 @@ void uiDrawBezierTo(uiDrawContext *c, intmax_t c1x, intmax_t c1y, intmax_t c2x, 
 	points[0].x = c1x;
 	points[0].y = c1y;
 	points[1].x = c2x;
-	points[2].y = c2y;
-	points[3].x = endX;
-	points[3].y = endY;
+	points[1].y = c2y;
+	points[2].x = endX;
+	points[2].y = endY;
 	if (PolyBezierTo(c->dc, points, 3) == 0)
 		logLastError("error drawing bezier curve in uiDrawBezierTo()");
 }

@@ -56,7 +56,6 @@ enum uiDrawLineJoin {
 #define uiDrawDefaultMiterLimit 10.0
 
 // TODOs
-// - windows: SetPolyFillMode
 // - os x: FillPath/EOFillPath functions
 enum uiDrawFillMode {
 	uiDrawFillModeWinding,

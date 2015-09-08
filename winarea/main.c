@@ -114,10 +114,38 @@ static GtkWidget *makeSpinbox(int min)
 }
 */
 
+static void repos(HWND hwnd)
+{
+	RECT r;
+
+	GetClientRect(hwnd, &r);
+	SetWindowPos(area, NULL, r.left + 12, r.top + 12,
+		r.right - r.left - 24, r.bottom - r.top - 24,
+		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+}
+
+static LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+
+	switch (uMsg) {
+	case WM_WINDOWPOSCHANGED:
+		if ((wp->flags & SWP_NOSIZE) != 0)
+			break;
+		repos(hwnd);
+		return 0;
+	case WM_CLOSE:
+		PostQuitMessage(0);
+	}
+	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+}
+
 HINSTANCE hInstance;
 
 int main(void)
 {
+	WNDCLASSW wc;
+	HWND mainwin;
 	MSG msg;
 
 	hInstance = GetModuleHandle(NULL);
@@ -128,11 +156,24 @@ int main(void)
 
 	registerAreaClass();
 
-	area = makeArea(0,
+	ZeroMemory(&wc, sizeof (WNDCLASSW));
+	wc.lpszClassName = L"mainwin";
+	wc.lpfnWndProc = wndproc;
+	wc.hInstance = hInstance;
+	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
+	RegisterClassW(&wc);
+
+	mainwin = CreateWindowExW(0,
+		L"mainwin", L"mainwin",
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT,
-		NULL,
+		NULL, NULL, hInstance, NULL);
+
+	area = makeArea(0,
+		WS_CHILD | WS_VISIBLE,
+		0, 0, 0, 0,
+		mainwin,
 		(uiAreaHandler *) (&h));
 
 /* TODO
@@ -151,8 +192,9 @@ int main(void)
 		1, 1, 1, 1);
 */
 
-	ShowWindow(area, SW_SHOWDEFAULT);
-	UpdateWindow(area);
+	repos(mainwin);
+	ShowWindow(mainwin, SW_SHOWDEFAULT);
+	UpdateWindow(mainwin);
 
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);

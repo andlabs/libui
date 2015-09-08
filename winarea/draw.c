@@ -67,7 +67,23 @@ void uiDrawRectangle(uiDrawContext *c, intmax_t x, intmax_t y, intmax_t width, i
 void uiDrawArc(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t radius, double startAngle, double endAngle, int lineFromCurrentPointToStart)
 {
 	if (!lineFromCurrentPointToStart) {
-		// TODO
+		int bx, by, bx2, by2;
+		int sx, sy, ex, ey;
+
+		// see http://stackoverflow.com/questions/32465446/how-do-i-inhibit-the-initial-line-segment-of-an-anglearc
+		// the idea for floor(x + 0.5) is inspired by wine
+		// TODO make sure this is an accurate imitation of AngleArc()
+		bx = xCenter - radius;
+		by = yCenter - radius;
+		bx2 = xCenter + radius;
+		by2 = yCenter + radius;
+		sx = xCenter + floor((double) radius * cos(startAngle));
+		sy = yCenter - floor((double) radius * sin(startAngle));
+		ex = xCenter + floor((double) radius * cos(endAngle));
+		ey = yCenter - floor((double) radius * sin(endAngle));
+		if (Arc(c->dc, bx, by, bx2, by2, sx, sy, ex, ey) == 0)
+			logLastError("error drawing current point arc in uiDrawArc()");
+		return;
 	}
 	// AngleArc() expects degrees
 	startAngle *= (180.0 / M_PI);

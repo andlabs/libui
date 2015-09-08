@@ -49,7 +49,8 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 	a = (uiArea *) GetWindowLongPtrW(hwnd, gwlpArea);
 	ah = (uiAreaHandler *) GetWindowLongPtrW(hwnd, gwlpAreaHandler);
-	if (a == NULL) {
+//TODO	if (a == NULL) {
+	if (ah == NULL) {
 		if (uMsg == WM_NCCREATE) {
 			ai = (struct areainit *) (cs->lpCreateParams);
 			SetWindowLongPtrW(hwnd, gwlpArea, (LONG_PTR) (ai->a));

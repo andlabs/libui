@@ -69,7 +69,9 @@ void uiDrawArc(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t ra
 	if (!lineFromCurrentPointToStart) {
 		// TODO
 	}
-	// TODO convert radians to degrees
+	// AngleArc() expects degrees
+	startAngle *= (180.0 / M_PI);
+	endAngle *= (180.0 / M_PI);
 	if (AngleArc(c->dc,
 		xCenter, yCenter,
 		radius,
@@ -218,7 +220,7 @@ static void startAlpha(uiDrawContext *c, struct alpha *a)
 	// now we can finally copy the path like we were going to earlier
 	if (BeginPath(a->dc) == 0)
 		logLastError("error beginning path in startAlpha()");
-	if (PolyDraw(a->dc, points, ops, n) != 0)
+	if (PolyDraw(a->dc, points, ops, n) == 0)
 		logLastError("error copying path in startAlpha()");
 	if (EndPath(a->dc) == 0)
 		logLastError("error ending path in startAlpha()");

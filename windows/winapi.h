@@ -7,6 +7,7 @@
 #define COBJMACROS
 // see https://github.com/golang/go/issues/9916#issuecomment-74812211
 #define INITGUID
+#define _USE_MATH_DEFINES
 // get Windows version right; right now Windows Vista
 #define WINVER 0x0600				/* according to Microsoft's winnls.h */
 #define _WIN32_WINNT 0x0600		/* according to Microsoft's sdkddkver.h */
@@ -26,3 +27,4 @@
 #include <oleacc.h>
 #include <stdio.h>
 #include <shobjidl.h>
+#include <math.h>

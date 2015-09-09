@@ -7,6 +7,10 @@ struct uiArea {
 //	uiWindowsControl c;
 	HWND hwnd;
 	uiAreaHandler *ah;
+	intmax_t hscrollpos;
+	intmax_t vscrollpos;
+	int hwheelCarry;
+	int vwheelCarry;
 };
 
 static void doPaint(uiArea *a, HDC dc, RECT *client, RECT *clip)
@@ -28,12 +32,177 @@ static void doPaint(uiArea *a, HDC dc, RECT *client, RECT *clip)
 	dp.DPIX = GetDeviceCaps(dc, LOGPIXELSX);
 	dp.DPIY = GetDeviceCaps(dc, LOGPIXELSY);
 
-/* TODO
-	dp.HScrollPos = gtk_adjustment_get_value(ap->ha);
-	dp.VScrollPos = gtk_adjustment_get_value(ap->va);
-*/
+	dp.HScrollPos = a->hscrollpos;
+	dp.VScrollPos = a->vscrollpos;
 
 	(*(ah->Draw))(ah, a, &dp);
+}
+
+struct scrollParams {
+	intmax_t *pos;
+	intmax_t pagesize;
+	intmax_t length;
+	int *wheelCarry;
+};
+
+void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
+{
+	SCROLLINFO si;
+	intmax_t xamount, yamount;
+
+	// note that the pos < 0 check is /after/ the p->length - p->pagesize check
+	// it used to be /before/; this was actually a bug in Raymond Chen's original algorithm: if there are fewer than a page's worth of items, p->length - p->pagesize will be negative and our content draw at the bottom of the window
+	// this SHOULD have the same effect with that bug fixed and no others introduced... (thanks to devin on irc.badnik.net for confirming this logic)
+	// TODO verify this still holds with uiArea
+	if (pos > p->length - p->pagesize)
+		pos = p->length - p->pagesize;
+	if (pos < 0)
+		pos = 0;
+
+	// negative because ScrollWindowEx() is "backwards"
+	xamount = -(pos - *(p->pos));
+	yamount = 0;
+	if (which == SB_VERT) {
+		yamount = xamount;
+		xamount = 0;
+	}
+
+	if (ScrollWindowEx(a->hwnd, xamount, yamount,
+		NULL, NULL, NULL, NULL,
+		SW_ERASE | SW_INVALIDATE) == ERROR)
+;//TODO		logLastError("error scrolling area in scrollto()");
+
+	*(p->pos) = pos;
+
+	// now commit our new scrollbar setup...
+	ZeroMemory(&si, sizeof (SCROLLINFO));
+	si.cbSize = sizeof (SCROLLINFO);
+	si.fMask = SIF_PAGE | SIF_POS | SIF_RANGE;
+	si.nPage = p->pagesize;
+	si.nMin = 0;
+	si.nMax = p->length - 1;		// endpoint inclusive
+	si.nPos = *(p->pos);
+	SetScrollInfo(a->hwnd, which, &si, TRUE);
+}
+
+void scrollby(uiArea *a, int which, struct scrollParams *p, intmax_t delta)
+{
+	scrollto(a, which, p, *(p->pos) + delta);
+}
+
+void scroll(uiArea *a, int which, struct scrollParams *p, WPARAM wParam, LPARAM lParam)
+{
+	intmax_t pos;
+	SCROLLINFO si;
+
+	pos = *(p->pos);
+	switch (LOWORD(wParam)) {
+	case SB_LEFT:			// also SB_TOP
+		pos = 0;
+		break;
+	case SB_RIGHT:		// also SB_BOTTOM
+		pos = p->length - p->pagesize;
+		break;
+	case SB_LINELEFT:		// also SB_LINEUP
+		pos--;
+		break;
+	case SB_LINERIGHT:		// also SB_LINEDOWN
+		pos++;
+		break;
+	case SB_PAGELEFT:		// also SB_PAGEUP
+		pos -= p->pagesize;
+		break;
+	case SB_PAGERIGHT:	// also SB_PAGEDOWN
+		pos += p->pagesize;
+		break;
+	case SB_THUMBPOSITION:
+		ZeroMemory(&si, sizeof (SCROLLINFO));
+		si.cbSize = sizeof (SCROLLINFO);
+		si.fMask = SIF_POS;
+		if (GetScrollInfo(a->hwnd, which, &si) == 0)
+			logLastError("error getting thumb position for area in scroll()");
+		pos = si.nPos;
+		break;
+	case SB_THUMBTRACK:
+		ZeroMemory(&si, sizeof (SCROLLINFO));
+		si.cbSize = sizeof (SCROLLINFO);
+		si.fMask = SIF_TRACKPOS;
+		if (GetScrollInfo(a->hwnd, which, &si) == 0)
+			logLastError("error getting thumb track position for area in scroll()");
+		pos = si.nTrackPos;
+		break;
+	}
+	scrollto(a, which, p, pos);
+}
+
+static void wheelscroll(uiArea *a, int which, struct scrollParams *p, WPARAM wParam, LPARAM lParam)
+{
+/*TODO
+	int delta;
+	int lines;
+	UINT scrollAmount;
+
+	delta = GET_WHEEL_DELTA_WPARAM(wParam);
+	// TODO make a note of what the appropriate hscroll constant is
+	if (SystemParametersInfoW(SPI_GETWHEELSCROLLLINES, 0, &scrollAmount, 0) == 0)
+		// TODO use scrollAmount == 3 instead?
+		return logLastError("error getting wheel scroll amount in wheelscroll()");
+	if (scrollAmount == WHEEL_PAGESCROLL)
+		scrollAmount = p->pagesize;
+	if (scrollAmount == 0)		// no mouse wheel scrolling (or t->pagesize == 0)
+		return S_OK;
+	// the rest of this is basically http://blogs.msdn.com/b/oldnewthing/archive/2003/08/07/54615.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/08/11/54624.aspx
+	// see those pages for information on subtleties
+	delta += *(p->wheelCarry);
+	lines = delta * ((int) scrollAmount) / WHEEL_DELTA;
+	*(p->wheelCarry) = delta - lines * WHEEL_DELTA / ((int) scrollAmount);
+	return scrollby(t, which, p, -lines);
+*/
+}
+
+static void vscrollParams(uiArea *a, struct scrollParams *p)
+{
+	RECT r;
+
+	ZeroMemory(p, sizeof (struct scrollParams));
+	p->pos = &(a->vscrollpos);
+	if (GetClientRect(a->hwnd, &r) == 0)
+		logLastError("error getting area client rect in vscrollParams()");
+	p->pagesize = r.bottom - r.top;
+	p->length = (*(a->ah->VScrollMax))(a->ah, a);
+	p->wheelCarry = &(a->vwheelCarry);
+}
+
+static void vscrollto(uiArea *a, intmax_t pos)
+{
+	struct scrollParams p;
+
+	vscrollParams(a, &p);
+	scrollto(a, SB_VERT, &p, pos);
+}
+
+static void vscrollby(uiArea *a, intmax_t delta)
+{
+	struct scrollParams p;
+
+	vscrollParams(a, &p);
+	scrollby(a, SB_VERT, &p, delta);
+}
+
+static void vscroll(uiArea *a, WPARAM wParam, LPARAM lParam)
+{
+	struct scrollParams p;
+
+	vscrollParams(a, &p);
+	scroll(a, SB_VERT, &p, wParam, lParam);
+}
+
+static void vwheelscroll(uiArea *a, WPARAM wParam, LPARAM lParam)
+{
+	struct scrollParams p;
+
+	vscrollParams(a, &p);
+	wheelscroll(a, SB_VERT, &p, wParam, lParam);
 }
 
 static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -66,6 +235,12 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 		if (GetClientRect(a->hwnd, &client) == 0)
 			logLastError("error getting client rect in WM_PRINTCLIENT in areaWndProc()");
 		doPaint(a, (HDC) wParam, &client, &client);
+		return 0;
+	case WM_VSCROLL:
+		vscroll(a, wParam, lParam);
+		return 0;
+	case WM_MOUSEWHEEL:
+		vwheelscroll(a, wParam, lParam);
 		return 0;
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -112,5 +287,10 @@ HWND makeArea(DWORD exstyle, DWORD style, int x, int y, int cx, int cy, HWND par
 
 void areaUpdateScroll(HWND area)
 {
-	// TODO
+	uiArea *a;
+
+	a = (uiArea *) GetWindowLongPtrW(area, GWLP_USERDATA);
+	// use a no-op scroll to simulate scrolling
+//	hscrollby(a, 0);
+	vscrollby(a, 0);
 }

@@ -14,3 +14,5 @@ extern HRESULT logHRESULT(const char *, HRESULT);
 extern HRESULT logMemoryExhausted(const char *);
 
 extern uiDrawContext *newContext(HDC);
+
+extern void areaUpdateScroll(HWND);

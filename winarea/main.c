@@ -11,6 +11,8 @@ struct handler {
 
 static HWND area;
 static struct handler h;
+static HWND nhspinb;
+static HWND nvspinb;
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 {
@@ -89,38 +91,33 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
 {
-return 0;//TODO	return gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(nhspinb));
+	WCHAR c[50];
+
+	GetWindowTextW(nhspinb, c, 50);
+	return _wtoi(c);
 }
 
 static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
 {
-return 0;//TODO	return gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(nvspinb));
-}
+	WCHAR c[50];
 
-/* TODO
-static void recalcScroll(GtkSpinButton *sb, gpointer data)
-{
-	areaUpdateScroll(area);
+	GetWindowTextW(nvspinb, c, 50);
+	return _wtoi(c);
 }
-
-static GtkWidget *makeSpinbox(int min)
-{
-	GtkWidget *sb;
-
-	sb = gtk_spin_button_new_with_range(min, 100000, 1);
-	gtk_spin_button_set_digits(GTK_SPIN_BUTTON(sb), 0);
-	g_signal_connect(sb, "value-changed", G_CALLBACK(recalcScroll), NULL);
-	return sb;
-}
-*/
 
 static void repos(HWND hwnd)
 {
 	RECT r;
 
 	GetClientRect(hwnd, &r);
-	SetWindowPos(area, NULL, r.left + 12, r.top + 12,
-		r.right - r.left - 24, r.bottom - r.top - 24,
+	SetWindowPos(nhspinb, NULL, r.left + 12, r.top + 12,
+		120, 20,
+		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+	SetWindowPos(nvspinb, NULL, r.left + 12 + 120 + 6, r.top + 12,
+		120, 20,
+		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+	SetWindowPos(area, NULL, r.left + 12, r.top + 12 + 20 + 6,
+		r.right - r.left - 24, r.bottom - r.top - 24 - 20 - 6,
 		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
 }
 
@@ -129,6 +126,11 @@ static LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 
 	switch (uMsg) {
+	case WM_COMMAND:
+		if (((HWND) lParam) == nhspinb || ((HWND) lParam) == nvspinb)
+			if (HIWORD(wParam) == EN_CHANGE)
+				areaUpdateScroll(area);
+		break;
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
@@ -176,23 +178,22 @@ int main(void)
 		mainwin,
 		(uiAreaHandler *) (&h));
 
-/* TODO
-	gtk_grid_attach(GTK_GRID(grid),
-		gtk_label_new("H Count"),
-		0, 0, 1, 1);
-	nhspinb = makeSpinbox(0);
-	gtk_grid_attach(GTK_GRID(grid), nhspinb,
-		1, 0, 1, 1);
+	nhspinb = CreateWindowExW(WS_EX_CLIENTEDGE,
+		L"edit", L"0",
+		ES_NUMBER | WS_CHILD | WS_VISIBLE,
+		0, 0, 100, 100,
+		mainwin, NULL, hInstance, NULL);
 
-	gtk_grid_attach(GTK_GRID(grid),
-		gtk_label_new("V Count"),
-		0, 1, 1, 1);
-	nvspinb = makeSpinbox(0);
-	gtk_grid_attach(GTK_GRID(grid), nvspinb,
-		1, 1, 1, 1);
-*/
+	nvspinb = CreateWindowExW(WS_EX_CLIENTEDGE,
+		L"edit", L"0",
+		ES_NUMBER | WS_CHILD | WS_VISIBLE,
+		0, 0, 100, 100,
+		mainwin, NULL, hInstance, NULL);
 
+	// initial state
 	repos(mainwin);
+	areaUpdateScroll(area);
+
 	ShowWindow(mainwin, SW_SHOWDEFAULT);
 	UpdateWindow(mainwin);
 

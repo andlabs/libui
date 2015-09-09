@@ -23,7 +23,7 @@ uiDrawContext *newContext(CGContextRef ctxt)
 
 void uiDrawBeginPathRGB(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b)
 {
-	c->useRGB = YES;
+	c->useRGBA = YES;
 	c->r = ((CGFloat) r) / 255;
 	c->g = ((CGFloat) g) / 255;
 	c->b = ((CGFloat) b) / 255;
@@ -33,7 +33,7 @@ void uiDrawBeginPathRGB(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b)
 
 void uiDrawBeginPathRGBA(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-	c->useRGB = YES;
+	c->useRGBA = YES;
 	c->r = ((CGFloat) r) / 255;
 	c->g = ((CGFloat) g) / 255;
 	c->b = ((CGFloat) b) / 255;
@@ -53,7 +53,7 @@ void uiDrawLineTo(uiDrawContext *c, intmax_t x, intmax_t y)
 
 void uiDrawRectangle(uiDrawContext *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
-	CGContextAddRect(c->c, TODO(x, y, width, height));
+	CGContextAddRect(c->c, CGRectMake(x, y, width, height));
 }
 
 void uiDrawArcTo(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t radius, double startAngle, double endAngle, int lineFromCurrentPointToStart)
@@ -104,28 +104,28 @@ void uiDrawStroke(uiDrawContext *c, uiDrawStrokeParams *p)
 	}
 	switch (p->Join) {
 	case uiDrawLineJoinMiter:
-		CGContextSetLineJoin(c->cr, kCGLineJoinMiter);
+		CGContextSetLineJoin(c->c, kCGLineJoinMiter);
 		CGContextSetMiterLimit(c->c, p->MiterLimit);
 		break;
 	case uiDrawLineJoinRound:
-		CGContextSetLineJoin(c->cr, kCGLineJoinRound);
+		CGContextSetLineJoin(c->c, kCGLineJoinRound);
 		break;
 	case uiDrawLineJoinBevel:
-		CGContextSetLineJoin(c->cr, kCGLineJoinBevel);
+		CGContextSetLineJoin(c->c, kCGLineJoinBevel);
 		break;
 	}
 	CGContextSetLineWidth(c->c, p->Thickness);
-	if (c->useRGB)
+	if (c->useRGBA)
 		CGContextSetRGBStrokeColor(c->c, c->r, c->g, c->b, c->a);
 	else {
 		// TODO
 	}
-	CGContextStrokePath(c->cr);
+	CGContextStrokePath(c->c);
 }
 
 void uiDrawFill(uiDrawContext *c, uiDrawFillMode mode)
 {
-	if (c->useRGB)
+	if (c->useRGBA)
 		CGContextSetRGBFillColor(c->c, c->r, c->g, c->b, c->a);
 	else {
 		// TODO

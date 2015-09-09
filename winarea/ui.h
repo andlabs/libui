@@ -55,8 +55,6 @@ enum uiDrawLineJoin {
 // so we're good to use it too!
 #define uiDrawDefaultMiterLimit 10.0
 
-// TODOs
-// - os x: FillPath/EOFillPath functions
 enum uiDrawFillMode {
 	uiDrawFillModeWinding,
 	// TODO rename to EvenOdd?
@@ -71,6 +69,7 @@ struct uiDrawStrokeParams {
 };
 
 void uiDrawBeginPathRGB(uiDrawContext *, uint8_t, uint8_t, uint8_t);
+// TODO verify these aren't alpha premultiplied anywhere
 void uiDrawBeginPathRGBA(uiDrawContext *, uint8_t, uint8_t, uint8_t, uint8_t);
 
 void uiDrawMoveTo(uiDrawContext *, intmax_t, intmax_t);

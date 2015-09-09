@@ -59,7 +59,15 @@ void uiDrawRectangle(uiDrawContext *c, intmax_t x, intmax_t y, intmax_t width, i
 void uiDrawArcTo(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t radius, double startAngle, double endAngle, int lineFromCurrentPointToStart)
 {
 	if (!lineFromCurrentPointToStart) {
-		// TODO
+		// see http://stackoverflow.com/questions/31489157/extra-line-when-drawing-an-arc-in-swift
+		// TODO verify correctness
+		CGFloat x, y;
+
+		x = xCenter;
+		y = yCenter;
+		x += radius * cos(startAngle);
+		y -= radius * sin(startAngle);
+		CGContextMoveToPoint(c->c, x, y);
 	}
 	CGContextAddArc(c->c,
 		xCenter, yCenter,

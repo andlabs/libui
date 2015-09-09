@@ -43,6 +43,7 @@ struct scrollParams {
 	intmax_t pagesize;
 	intmax_t length;
 	int *wheelCarry;
+	UINT wheelSPIAction;
 };
 
 void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
@@ -137,27 +138,70 @@ void scroll(uiArea *a, int which, struct scrollParams *p, WPARAM wParam, LPARAM 
 
 static void wheelscroll(uiArea *a, int which, struct scrollParams *p, WPARAM wParam, LPARAM lParam)
 {
-/*TODO
 	int delta;
 	int lines;
 	UINT scrollAmount;
 
 	delta = GET_WHEEL_DELTA_WPARAM(wParam);
-	// TODO make a note of what the appropriate hscroll constant is
-	if (SystemParametersInfoW(SPI_GETWHEELSCROLLLINES, 0, &scrollAmount, 0) == 0)
-		// TODO use scrollAmount == 3 instead?
-		return logLastError("error getting wheel scroll amount in wheelscroll()");
+	if (SystemParametersInfoW(p->wheelSPIAction, 0, &scrollAmount, 0) == 0)
+		// TODO use scrollAmount == 3 (for both v and h) instead?
+		logLastError("error getting area wheel scroll amount in wheelscroll()");
 	if (scrollAmount == WHEEL_PAGESCROLL)
 		scrollAmount = p->pagesize;
 	if (scrollAmount == 0)		// no mouse wheel scrolling (or t->pagesize == 0)
-		return S_OK;
+		return;
 	// the rest of this is basically http://blogs.msdn.com/b/oldnewthing/archive/2003/08/07/54615.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/08/11/54624.aspx
 	// see those pages for information on subtleties
 	delta += *(p->wheelCarry);
 	lines = delta * ((int) scrollAmount) / WHEEL_DELTA;
 	*(p->wheelCarry) = delta - lines * WHEEL_DELTA / ((int) scrollAmount);
-	return scrollby(t, which, p, -lines);
-*/
+	return scrollby(a, which, p, -lines);
+}
+
+static void hscrollParams(uiArea *a, struct scrollParams *p)
+{
+	RECT r;
+
+	ZeroMemory(p, sizeof (struct scrollParams));
+	p->pos = &(a->hscrollpos);
+	if (GetClientRect(a->hwnd, &r) == 0)
+		logLastError("error getting area client rect in hscrollParams()");
+	p->pagesize = r.right - r.left;
+	p->length = (*(a->ah->HScrollMax))(a->ah, a);
+	p->wheelCarry = &(a->hwheelCarry);
+	p->wheelSPIAction = SPI_GETWHEELSCROLLCHARS;
+}
+
+static void hscrollto(uiArea *a, intmax_t pos)
+{
+	struct scrollParams p;
+
+	hscrollParams(a, &p);
+	scrollto(a, SB_HORZ, &p, pos);
+}
+
+static void hscrollby(uiArea *a, intmax_t delta)
+{
+	struct scrollParams p;
+
+	hscrollParams(a, &p);
+	scrollby(a, SB_HORZ, &p, delta);
+}
+
+static void hscroll(uiArea *a, WPARAM wParam, LPARAM lParam)
+{
+	struct scrollParams p;
+
+	hscrollParams(a, &p);
+	scroll(a, SB_HORZ, &p, wParam, lParam);
+}
+
+static void hwheelscroll(uiArea *a, WPARAM wParam, LPARAM lParam)
+{
+	struct scrollParams p;
+
+	hscrollParams(a, &p);
+	wheelscroll(a, SB_HORZ, &p, wParam, lParam);
 }
 
 static void vscrollParams(uiArea *a, struct scrollParams *p)
@@ -171,6 +215,7 @@ static void vscrollParams(uiArea *a, struct scrollParams *p)
 	p->pagesize = r.bottom - r.top;
 	p->length = (*(a->ah->VScrollMax))(a->ah, a);
 	p->wheelCarry = &(a->vwheelCarry);
+	p->wheelSPIAction = SPI_GETWHEELSCROLLLINES;
 }
 
 static void vscrollto(uiArea *a, intmax_t pos)
@@ -236,12 +281,22 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			logLastError("error getting client rect in WM_PRINTCLIENT in areaWndProc()");
 		doPaint(a, (HDC) wParam, &client, &client);
 		return 0;
+	case WM_HSCROLL:
+		hscroll(a, wParam, lParam);
+		return 0;
+	case WM_MOUSEHWHEEL:
+		hwheelscroll(a, wParam, lParam);
+		return 0;
 	case WM_VSCROLL:
 		vscroll(a, wParam, lParam);
 		return 0;
 	case WM_MOUSEWHEEL:
 		vwheelscroll(a, wParam, lParam);
 		return 0;
+	case WM_LBUTTONDOWN:
+		// TODO
+		SetFocus(a->hwnd);
+		break;
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
@@ -291,6 +346,6 @@ void areaUpdateScroll(HWND area)
 
 	a = (uiArea *) GetWindowLongPtrW(area, GWLP_USERDATA);
 	// use a no-op scroll to simulate scrolling
-//	hscrollby(a, 0);
+	hscrollby(a, 0);
 	vscrollby(a, 0);
 }

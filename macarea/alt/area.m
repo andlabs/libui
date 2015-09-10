@@ -161,7 +161,7 @@ struct uiArea {
 		[self->hscrollbar setKnobStyle:NSScrollerKnobStyleDefault];
 		[self->hscrollbar setControlTint:NSDefaultControlTint];
 		[self->hscrollbar setControlSize:NSRegularControlSize];
-//TODO		[self->hscrollbar setArrowsPosition:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx];
+		[self->hscrollbar setArrowsPosition:NSScrollerArrowsDefaultSetting];
 		[self->hscrollbar setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		self->vscrollbar = [[areaScroller alloc]
@@ -171,7 +171,7 @@ struct uiArea {
 		[self->vscrollbar setKnobStyle:NSScrollerKnobStyleDefault];
 		[self->vscrollbar setControlTint:NSDefaultControlTint];
 		[self->vscrollbar setControlSize:NSRegularControlSize];
-//TODO		[self->vscrollbar setArrowsPosition:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx];
+		[self->vscrollbar setArrowsPosition:NSScrollerArrowsDefaultSetting];
 		[self->vscrollbar setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		[self addSubview:self->drawingView];
@@ -247,6 +247,9 @@ struct uiArea {
 	[super dealloc];
 }
 
+// TODO reduce code duplication
+
+// TODO if the proportion becomes 1 we should disable the scrollbar
 - (void)dvFrameSizeChanged:(NSNotification *)note
 {
 	intmax_t max;
@@ -386,14 +389,25 @@ struct uiArea {
 - (void)hscrollTo:(intmax_t)pos
 {
 	double doubleVal;
+	CGFloat by;
+	NSRect update;
 
 	if (pos > [self hscrollmax])
 		pos = [self hscrollmax];
 	if (pos < 0)
 		pos = 0;
 
-	[self->drawingView scrollRect:[self->drawingView frame]
-		by:NSMakeSize(-(pos - self->hscrollpos), 0)];
+	by = -(pos - self->hscrollpos);
+	[self->drawingView scrollRect:[self->drawingView bounds]
+		by:NSMakeSize(by, 0)];
+	update = [self->drawingView bounds];
+	if (by < 0) {		// right of bounds needs updating
+		// + by since by is negative and we need to subtract its absolute value from the width
+		update.origin.x += update.size.width + by;
+		update.size.width = -by;
+	} else			// left of bounds needs updating
+		update.size.width = by;
+	[self->drawingView setNeedsDisplayInRect:update];
 
 	self->hscrollpos = pos;
 	doubleVal = ((double) (self->hscrollpos)) / [self hscrollmax];
@@ -403,14 +417,25 @@ struct uiArea {
 - (void)vscrollTo:(intmax_t)pos
 {
 	double doubleVal;
+	CGFloat by;
+	NSRect update;
 
 	if (pos > [self vscrollmax])
 		pos = [self vscrollmax];
 	if (pos < 0)
 		pos = 0;
 
-	[self->drawingView scrollRect:[self->drawingView frame]
-		by:NSMakeSize(0, -(pos - self->vscrollpos))];
+	by = -(pos - self->vscrollpos);
+	[self->drawingView scrollRect:[self->drawingView bounds]
+		by:NSMakeSize(0, by)];
+	update = [self->drawingView bounds];
+	if (by < 0) {		// bottom of bounds needs updating
+		// + by since by is negative and we need to subtract its absolute value from the height
+		update.origin.y += update.size.height + by;
+		update.size.height = -by;
+	} else			// top of bounds needs updating
+		update.size.height = by;
+	[self->drawingView setNeedsDisplayInRect:update];
 
 	self->vscrollpos = pos;
 	doubleVal = ((double) (self->vscrollpos)) / [self vscrollmax];

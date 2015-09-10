@@ -24,8 +24,7 @@ class program : NSObject, NSTextFieldDelegate {
 
 	private var scrollbar: NSScroller
 
-	private var proportion: NSTextField
-	private var doubleValue: NSTextField
+	private var info: NSTextField
 
 	init(_ contentView: NSView) {
 		var views: [String: NSView]
@@ -33,21 +32,17 @@ class program : NSObject, NSTextFieldDelegate {
 		var nhlabel = newLabel("H Max")
 		nhlabel.setContentHuggingPriority(1000, forOrientation: NSLayoutConstraintOrientation.Horizontal)
 		self.nhspinb = newTextField()
-		self.proportion = newLabel("")
 
 		var container1 = newContainerView()
 		container1.addSubview(nhlabel)
 		container1.addSubview(self.nhspinb)
-		container1.addSubview(self.proportion)
 		views = [
 			"nhlabel":		nhlabel,
 			"nhspinb":	self.nhspinb,
-			"proportion":	self.proportion,
 		]
-		addConstraint(container1, "H:|[nhlabel]-[nhspinb]-[proportion]|", views)
+		addConstraint(container1, "H:|[nhlabel]-[nhspinb]|", views)
 		addConstraint(container1, "V:|[nhlabel]|", views)
 		addConstraint(container1, "V:|[nhspinb]|", views)
-		addConstraint(container1, "V:|[proportion]|", views)
 
 		var ss = NSScroller.preferredScrollerStyle()
 		var ccs = NSScroller.scrollerWidthForControlSize(
@@ -61,20 +56,20 @@ class program : NSObject, NSTextFieldDelegate {
 //TODO		self.scrollbar.arrowsPosition = NSScrollArrowPosition.ScrollerArrowsDefaultSetting
 		self.scrollbar.translatesAutoresizingMaskIntoConstraints = false
 
-		self.doubleValue = newLabel("")
+		self.info = newLabel("")
 
 		contentView.addSubview(container1)
 		contentView.addSubview(self.scrollbar)
-		contentView.addSubview(self.doubleValue)
+		contentView.addSubview(self.info)
 		views = [
-			"container1":		container1,
-			"scrollbar":		scrollbar,
-			"doubleValue":		doubleValue,
+			"container1":	container1,
+			"scrollbar":	self.scrollbar,
+			"info":		self.info,
 		]
-		addConstraint(contentView, "V:|-[container1]-[scrollbar]-[doubleValue]-|", views)
+		addConstraint(contentView, "V:|-[container1]-[scrollbar]-[info]-|", views)
 		addConstraint(contentView, "H:|-[container1]-|", views)
 		addConstraint(contentView, "H:|-[scrollbar]-|", views)
-		addConstraint(contentView, "H:|-[doubleValue]-|", views)
+		addConstraint(contentView, "H:|-[info]-|", views)
 
 		self.nhformatter = newNumberFormatter(0, 100000)
 
@@ -119,14 +114,60 @@ class program : NSObject, NSTextFieldDelegate {
 		self.updateLabels()
 	}
 
+	func lineincr() -> CGFloat {
+		var swidth = self.scrollbar.frame.width
+		var max = CGFloat(self.nhspinb.integerValue) - swidth
+		if max <= 0 {
+			return 0
+		}
+		return 1.0 / max
+	}
+
+	func pageincr() -> CGFloat {
+		return self.lineincr() * self.scrollbar.frame.width
+	}
+
 	@IBAction func onScroll(sender: AnyObject) {
-		println("got \(self.scrollbar.hitPart)")
+		switch self.scrollbar.hitPart {
+		case NSScrollerPart.NoPart:
+			// do nothing
+			break
+		case NSScrollerPart.DecrementPage:
+			self.scrollbar.doubleValue -= Double(self.pageincr())
+		case NSScrollerPart.Knob:
+			// do nothing
+			break
+		case NSScrollerPart.IncrementPage:
+			self.scrollbar.doubleValue += Double(self.pageincr())
+		case NSScrollerPart.DecrementLine:
+			self.scrollbar.doubleValue -= Double(self.lineincr())
+		case NSScrollerPart.IncrementLine:
+			self.scrollbar.doubleValue += Double(self.lineincr())
+		case NSScrollerPart.KnobSlot:
+			// do nothing
+			break
+		}
 		self.updateLabels()
 	}
 
 	func updateLabels() {
-		self.proportion.stringValue = "Proportion: \(self.scrollbar.knobProportion)"
-		self.doubleValue.stringValue = "Double Value: \(self.scrollbar.doubleValue)"
+		var swidth = self.scrollbar.frame.width
+		var max = CGFloat(self.nhspinb.integerValue) - swidth
+		if max < 0 {
+			max = 0
+		}
+		var infostr = "Width: \(swidth)"
+		infostr += "\nProportion: \(self.scrollbar.knobProportion)"
+		infostr += "\nDouble Value: \(self.scrollbar.doubleValue)"
+		var scaledValue = Int(self.scrollbar.doubleValue * Double(max))
+		infostr += "\nScaled: \(scaledValue)"
+		var lineincr: CGFloat = 0
+		if max != 0 {
+			lineincr = 1.0 / max
+		}
+		infostr += "\nLine Increment: \(lineincr)"
+		infostr += "\nPage Increment: \(lineincr * swidth)"
+		self.info.stringValue = infostr
 	}
 }
 
@@ -173,7 +214,6 @@ func newTextField() -> NSTextField {
 	cell.lineBreakMode = NSLineBreakMode.ByClipping
 	cell.scrollable = true
 	tf.translatesAutoresizingMaskIntoConstraints = false
-	tf.setContentHuggingPriority(1000, forOrientation: NSLayoutConstraintOrientation.Horizontal)
 	tf.setContentCompressionResistancePriority(1000, forOrientation: NSLayoutConstraintOrientation.Vertical)
 	return tf
 }

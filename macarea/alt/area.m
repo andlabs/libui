@@ -70,8 +70,22 @@ void addConstraint(NSView *view, NSString *constraint, NSDictionary *metrics, NS
 	areaDrawingView *drawingView;
 	areaScroller *hscrollbar;
 	areaScroller *vscrollbar;
+	intmax_t hscrollpos;
+	intmax_t vscrollpos;
 }
 - (id)initWithFrame:(NSRect)r area:(uiArea *)a;
+- (void)dvFrameSizeChanged:(NSNotification *)note;
+- (IBAction)hscrollEvent:(id)sender;
+- (IBAction)vscrollEvent:(id)sender;
+// scroll utilities
+- (intmax_t)hpagesize;
+- (intmax_t)vpagesize;
+- (intmax_t)hscrollmax;
+- (intmax_t)vscrollmax;
+- (intmax_t)hscrollbarPosition;
+- (intmax_t)vscrollbarPosition;
+- (void)hscrollTo:(intmax_t)pos;
+- (void)vscrollTo:(intmax_t)pos;
 @end
 
 struct uiArea {
@@ -200,8 +214,207 @@ struct uiArea {
 			constant:0];
 		[self addConstraint:constraint];
 		[constraint release];
+
+		self->hscrollpos = 0;
+		self->vscrollpos = 0;
+
+		// now set up events
+		// first we need to monitor when the drawing view frame size has changed, as we need to recalculate all the scrollbar parameters in that case
+		[[NSNotificationCenter defaultCenter]
+			addObserver:self
+			selector:@selector(dvFrameSizeChanged:)
+			name:NSViewFrameDidChangeNotification
+			object:self->drawingView];
+		// and this will trigger a frame changed event to kick us off
+		[self->drawingView setPostsFrameChangedNotifications:YES];
+
+		// and the scrollbar events
+		[self->hscrollbar setTarget:self];
+		[self->hscrollbar setAction:@selector(hscrollEvent:)];
+		[self->vscrollbar setTarget:self];
+		[self->vscrollbar setAction:@selector(vscrollEvent:)];
+
+		// TODO notification on preferred style change
 	}
 	return self;
+}
+
+- (void)dealloc
+{
+	[self->vscrollbar setTarget:nil];
+	[self->hscrollbar setTarget:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[super dealloc];
+}
+
+- (void)dvFrameSizeChanged:(NSNotification *)note
+{
+	intmax_t max;
+	double proportion;
+
+	max = [self hscrollmax];
+	if (max == 0) {
+		[self->hscrollbar setKnobProportion:0];
+		// this hides the knob
+		[self->hscrollbar setEnabled:NO];
+	} else {
+		proportion = [self hpagesize];
+		proportion /= max;
+		[self->hscrollbar setKnobProportion:proportion];
+		[self->hscrollbar setEnabled:YES];
+	}
+
+	max = [self vscrollmax];
+	if (max == 0) {
+		[self->vscrollbar setKnobProportion:0];
+		// this hides the knob
+		[self->vscrollbar setEnabled:NO];
+	} else {
+		proportion = [self vpagesize];
+		proportion /= max;
+		[self->vscrollbar setKnobProportion:proportion];
+		[self->vscrollbar setEnabled:YES];
+	}
+
+	// and update the scrolling position
+	[self hscrollTo:self->hscrollpos];
+	[self vscrollTo:self->vscrollpos];
+}
+
+- (IBAction)hscrollEvent:(id)sender
+{
+	uintmax_t pos;
+
+	pos = self->hscrollpos;
+	switch ([self->hscrollbar hitPart]) {
+	case NSScrollerNoPart:
+		// do nothing
+		break;
+	case NSScrollerDecrementPage:
+		pos -= [self hpagesize];
+		break;
+	case NSScrollerKnob:
+	case NSScrollerKnobSlot:
+		pos = [self hscrollbarPosition];
+		break;
+	case NSScrollerIncrementPage:
+		pos += [self hpagesize];
+		break;
+	case NSScrollerDecrementLine:
+		pos--;
+		break;
+	case NSScrollerIncrementLine:
+		pos++;
+		break;
+	}
+	[self hscrollTo:pos];
+}
+
+- (IBAction)vscrollEvent:(id)sender
+{
+	uintmax_t pos;
+
+	pos = self->vscrollpos;
+	switch ([self->vscrollbar hitPart]) {
+	case NSScrollerNoPart:
+		// do nothing
+		break;
+	case NSScrollerDecrementPage:
+		pos -= [self vpagesize];
+		break;
+	case NSScrollerKnob:
+	case NSScrollerKnobSlot:
+		pos = [self vscrollbarPosition];
+		break;
+	case NSScrollerIncrementPage:
+		pos += [self vpagesize];
+		break;
+	case NSScrollerDecrementLine:
+		pos--;
+		break;
+	case NSScrollerIncrementLine:
+		pos++;
+		break;
+	}
+	[self vscrollTo:pos];
+}
+
+// scroll utilities
+
+- (intmax_t)hpagesize
+{
+	return [self->drawingView frame].size.width;
+}
+
+- (intmax_t)vpagesize
+{
+	return [self->drawingView frame].size.height;
+}
+
+- (intmax_t)hscrollmax
+{
+	intmax_t n;
+
+	n = (*(self->libui_a->ah->HScrollMax))(self->libui_a->ah, self->libui_a);
+	n -= [self hpagesize];
+	if (n < 0)
+		n = 0;
+	return n;
+}
+
+- (intmax_t)vscrollmax
+{
+	intmax_t n;
+
+	n = (*(self->libui_a->ah->VScrollMax))(self->libui_a->ah, self->libui_a);
+	n -= [self vpagesize];
+	if (n < 0)
+		n = 0;
+	return n;
+}
+
+- (intmax_t)hscrollbarPosition
+{
+	return [self->hscrollbar doubleValue] * [self hscrollmax];
+}
+
+- (intmax_t)vscrollbarPosition
+{
+	return [self->vscrollbar doubleValue] * [self vscrollmax];
+}
+
+- (void)hscrollTo:(intmax_t)pos
+{
+	double doubleVal;
+
+	if (pos > [self hscrollmax])
+		pos = [self hscrollmax];
+	if (pos < 0)
+		pos = 0;
+
+	[self->drawingView scrollRect:[self->drawingView frame]
+		by:NSMakeSize(-(pos - self->hscrollpos), 0)];
+
+	self->hscrollpos = pos;
+	doubleVal = ((double) (self->hscrollpos)) / [self hscrollmax];
+	[self->hscrollbar setDoubleValue:doubleVal];
+}
+
+- (void)vscrollTo:(intmax_t)pos
+{
+	double doubleVal;
+
+	if (pos > [self vscrollmax])
+		pos = [self vscrollmax];
+	if (pos < 0)
+		pos = 0;
+
+	[self->drawingView scrollRect:[self->drawingView frame]
+		by:NSMakeSize(0, -(pos - self->vscrollpos))];
+
+	self->vscrollpos = pos;
+	doubleVal = ((double) (self->vscrollpos)) / [self vscrollmax];
+	[self->vscrollbar setDoubleValue:doubleVal];
 }
 
 @end

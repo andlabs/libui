@@ -90,7 +90,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
-{/* TODO
+{return 1000;/* TODO
 	WCHAR c[50];
 
 	GetWindowTextW(nhspinb, c, 50);
@@ -98,7 +98,7 @@ static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
 */}
 
 static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
-{/* TODO
+{return 1000;/* TODO
 	WCHAR c[50];
 
 	GetWindowTextW(nvspinb, c, 50);

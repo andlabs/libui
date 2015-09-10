@@ -43,19 +43,24 @@ void uiDrawBeginPathRGBA(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b, uint
 	CGContextBeginPath(c->c);
 }
 
+// TODO 0.25 for retina? some say yes, some say no
+// TODO same adjustment for cairo
+#define topoint(x) (((CGFloat) x) + 0.5)
+
 void uiDrawMoveTo(uiDrawContext *c, intmax_t x, intmax_t y)
 {
-	CGContextMoveToPoint(c->c, x, y);
+	CGContextMoveToPoint(c->c, topoint(x), topoint(y));
 }
 
 void uiDrawLineTo(uiDrawContext *c, intmax_t x, intmax_t y)
 {
-	CGContextAddLineToPoint(c->c, x, y);
+	CGContextAddLineToPoint(c->c, topoint(x), topoint(y));
 }
 
+// TODO width-1/height-1? (also for cairo)
 void uiDrawRectangle(uiDrawContext *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
-	CGContextAddRect(c->c, CGRectMake(x, y, width, height));
+	CGContextAddRect(c->c, CGRectMake(topoint(x), topoint(y), width, height));
 }
 
 void uiDrawArcTo(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t radius, double startAngle, double endAngle, int lineFromCurrentPointToStart)
@@ -65,14 +70,14 @@ void uiDrawArcTo(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t 
 		// TODO verify correctness
 		CGFloat x, y;
 
-		x = xCenter;
-		y = yCenter;
+		x = topoint(xCenter);
+		y = topoint(yCenter);
 		x += radius * cos(startAngle);
 		y -= radius * sin(startAngle);
 		CGContextMoveToPoint(c->c, x, y);
 	}
 	CGContextAddArc(c->c,
-		xCenter, yCenter,
+		topoint(xCenter), topoint(yCenter),
 		radius,
 		startAngle, endAngle,
 		0);
@@ -81,9 +86,9 @@ void uiDrawArcTo(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t 
 void uiDrawBezierTo(uiDrawContext *c, intmax_t c1x, intmax_t c1y, intmax_t c2x, intmax_t c2y, intmax_t endX, intmax_t endY)
 {
 	CGContextAddCurveToPoint(c->c,
-		c1x, c1y,
-		c2x, c2y,
-		endX, endY);
+		topoint(c1x), topoint(c1y),
+		topoint(c2x), topoint(c2y),
+		topoint(endX), topoint(endY));
 }
 
 void uiDrawCloseFigure(uiDrawContext *c)

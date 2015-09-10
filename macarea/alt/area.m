@@ -1,6 +1,11 @@
 // 9 september 2015
 #include "area.h"
 
+// We are basically cloning NSScrollView here, managing scrolling ourselves.
+// TODOs
+// - is the page increment set up right?
+// - do we need to draw anything in the empty corner?
+
 // TODO remove this
 void addConstraint(NSView *view, NSString *constraint, NSDictionary *metrics, NSDictionary *views)
 {

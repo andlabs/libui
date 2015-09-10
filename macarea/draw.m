@@ -1,6 +1,8 @@
 // 6 september 2015
 #include "area.h"
 
+// TODO some pixel thick lines aren't actually pixel thick
+
 struct uiDrawContext {
 	CGContextRef c;
 

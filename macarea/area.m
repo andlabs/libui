@@ -65,6 +65,13 @@ struct uiArea {
 	return YES;
 }
 
+// see http://stackoverflow.com/questions/11318987/black-background-when-overriding-drawrect-in-uiscrollview (for iOS but same idea)
+// TODO there has to be a better way to set this; how does OS X do it for its default clip view?
+/*- (BOOL)isOpaque
+{
+	return NO;
+}*/
+
 @end
 
 @implementation areaDocumentView
@@ -92,7 +99,10 @@ uiArea *newArea(uiAreaHandler *ah)
 	[a->view setContentView:a->clipView];
 	[a->view setDocumentView:a->documentView];
 
-	// TODO set up scoll view
+	// TODO set up scroll view
+	// for some reason, without this line, NSLayoutConstraints complains about internal limits being exceeded
+	[a->view setDrawsBackground:YES];
+//TODO	[a->view setBackgroundColor:[NSColor controlColor]];
 
 	// set initial state
 	// TODO do this on other platforms?

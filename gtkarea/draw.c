@@ -104,8 +104,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawStrokeParams *p)
 		cairo_set_line_join(c->cr, CAIRO_LINE_JOIN_BEVEL);
 		break;
 	}
-	// TODO comment the /2 here
-	cairo_set_line_width(c->cr, ((double) p->Thickness) / 2);
+	cairo_set_line_width(c->cr, p->Thickness);
 	cairo_stroke(c->cr);
 }
 

@@ -257,6 +257,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 	HDC dc;
 	PAINTSTRUCT ps;
 	RECT client;
+	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 
 	a = (uiArea *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (a == NULL) {
@@ -280,6 +281,13 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 		if (GetClientRect(a->hwnd, &client) == 0)
 			logLastError("error getting client rect in WM_PRINTCLIENT in areaWndProc()");
 		doPaint(a, (HDC) wParam, &client, &client);
+		return 0;
+	case WM_WINDOWPOSCHANGED:
+		if ((wp->flags & SWP_NOSIZE) != 0)
+			break;
+		if ((*(a->ah->RedrawOnResize))(a->ah, a))
+			if (InvalidateRect(a->hwnd, NULL, TRUE) == 0)
+				logLastError("error redrawing area on resize in areaWndProc()");
 		return 0;
 	case WM_HSCROLL:
 		hscroll(a, wParam, lParam);
@@ -312,7 +320,7 @@ ATOM registerAreaClass(void)
 //TODO	wc.hIcon = hDefaultIcon;
 //TODO	wc.hCursor = hDefaultCursor;
 	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
-	wc.style = CS_HREDRAW | CS_VREDRAW;
+	// don't specify CS_HREDRAW or CS_VREDRAW; that's decided by the uiAreaHandler in RedrawOnResize()
 	return RegisterClassW(&wc);
 }
 

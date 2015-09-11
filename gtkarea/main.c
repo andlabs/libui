@@ -99,6 +99,11 @@ static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
 	return gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(nvspinb));
 }
 
+static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
+{
+	return 1;
+}
+
 static void recalcScroll(GtkSpinButton *sb, gpointer data)
 {
 	areaUpdateScroll(area);
@@ -124,6 +129,7 @@ int main(void)
 	h.ah.Draw = handlerDraw;
 	h.ah.HScrollMax = handlerHScrollMax;
 	h.ah.VScrollMax = handlerVScrollMax;
+	h.ah.RedrawOnResize = handlerRedrawOnResize;
 
 	gtk_init(NULL, NULL);
 

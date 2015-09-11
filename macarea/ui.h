@@ -10,6 +10,7 @@ struct uiAreaHandler {
 	void (*Draw)(uiAreaHandler *, uiArea *, uiAreaDrawParams *);
 	uintmax_t (*HScrollMax)(uiAreaHandler *, uiArea *);
 	uintmax_t (*VScrollMax)(uiAreaHandler *, uiArea *);
+	int (*RedrawOnResize)(uiAreaHandler *, uiArea *);
 };
 
 struct uiAreaDrawParams {

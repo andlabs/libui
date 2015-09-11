@@ -105,6 +105,11 @@ static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
 	return _wtoi(c);
 }
 
+static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
+{
+	return 1;
+}
+
 static void repos(HWND hwnd)
 {
 	RECT r;
@@ -155,6 +160,7 @@ int main(void)
 	h.ah.Draw = handlerDraw;
 	h.ah.HScrollMax = handlerHScrollMax;
 	h.ah.VScrollMax = handlerVScrollMax;
+	h.ah.RedrawOnResize = handlerRedrawOnResize;
 
 	registerAreaClass();
 

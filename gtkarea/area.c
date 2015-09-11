@@ -12,6 +12,7 @@ struct areaPrivate {
 	int clientHeight;
 	// needed for GtkScrollable
 	GtkScrollablePolicy hpolicy, vpolicy;
+	clickCounter cc;
 };
 
 static void areaWidget_scrollable_init(GtkScrollable *);
@@ -81,6 +82,8 @@ static void areaWidget_init(areaWidget *a)
 		GDK_SMOOTH_SCROLL_MASK);
 
 	gtk_widget_set_can_focus(GTK_WIDGET(a), TRUE);
+
+	clickCounterReset(&(a->priv->cc));
 }
 
 static void areaWidget_dispose(GObject *obj)
@@ -154,7 +157,138 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 
 // TODO preferred height/width
 
-// TODO events
+// TODO merge with toModifiers?
+static guint translateModifiers(guint state, GdkWindow *window)
+{
+	GdkModifierType statetype;
+
+	// GDK doesn't initialize the modifier flags fully; we have to explicitly tell it to (thanks to Daniel_S and daniels (two different people) in irc.gimp.net/#gtk+)
+	statetype = state;
+	gdk_keymap_add_virtual_modifiers(
+		gdk_keymap_get_for_display(gdk_window_get_display(window)),
+		&statetype);
+	return statetype;
+}
+
+static uiModifiers toModifiers(guint state)
+{
+	uiModifiers m;
+
+	m = 0;
+	if ((state & GDK_CONTROL_MASK) != 0))
+		m |= uiModifierCtrl;
+	if ((state & GDK_META_MASK) != 0)
+		m |= uiModifierAlt;
+	if ((state & GDK_MOD1_MASK) != 0)		// GTK+ itself requires this to be Alt (just read through gtkaccelgroup.c)
+		m |= uiModifierAlt;
+	if ((state & GDK_SHIFT_MASK) != 0)
+		m |= uiModifierShift;
+	if ((state & GDK_SUPER_MASK) != 0)
+		m |= uiModifierSuper;
+	return m;
+}
+
+static void finishMouseEvent(struct areaPrivate *ap, uiAreaMouseEvent *me, guint mb, gdouble x, gdouble y, guint state, GdkWindow *window)
+{
+	// on GTK+, mouse buttons 4-7 are for scrolling; if we got here, that's a mistake
+	if (mb >= 4 && mb <= 7)
+		return;
+	// if the button ID >= 8, continue counting from 4, as in the MouseEvent spec
+	if (me->Down >= 8)
+		me->Down -= 4;
+	if (me->Up >= 8)
+		me->Up -= 4;
+
+	state = translateModifiers(state, window);
+	me->Modifiers = toModifiers(state);
+
+	// the mb != # checks exclude the Up/Down button from Held
+	me->Held1To64 = 0;
+	if (mb != 1 && (state & GDK_BUTTON1_MASK) != 0)
+		me->Held1To64 |= 1 << 0;
+	if (mb != 2 && (state & GDK_BUTTON2_MASK) != 0)
+		me->Held1To64 |= 1 << 1;
+	if (mb != 3 && (state & GDK_BUTTON3_MASK) != 0)
+		me->Held1To64 |= 1 << 2;
+	// don't check GDK_BUTTON4_MASK or GDK_BUTTON5_MASK because those are for the scrolling buttons mentioned above
+	// GDK expressly does not support any more buttons in the GdkModifierType; see https://git.gnome.org/browse/gtk+/tree/gdk/x11/gdkdevice-xi2.c#n763 (thanks mclasen in irc.gimp.net/#gtk+)
+
+	me->X = x;
+	me->Y = y;
+	// do not cap to the area bounds in the case of captures
+	me->HScrollPos = gtk_adjustment_get_value(ap->ha);
+	me->VScrollPos = gtk_adjustment_get_value(ap->va);
+
+	(*(ap->ah->MouseEvent))(ap->ah, ap->a, me);
+}
+
+static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
+{
+	struct areaPrivate *ap = areaWidget(w)->priv;
+	gint maxTime, maxDistance;
+	GtkSettings *settings;
+	uiAreaMouseEvent me;
+
+	// clicking doesn't automatically transfer keyboard focus; we must do so manually (thanks tristan in irc.gimp.net/#gtk+)
+	gtk_widget_grab_focus(w);
+
+	// we handle multiple clicks ourselves here, in the same way as we do on Windows
+	if (e->type != GDK_BUTTON_PRESS)
+		// ignore GDK's generated double-clicks and beyond
+		return GDK_EVENT_PROPAGATE;
+	settings = gtk_widget_get_settings(w);
+	g_object_get(settings,
+		"gtk-double-click-time", &maxTime,
+		"gtk-double-click-distance", &maxDistance,
+		NULL);
+	// TODO unref settings?
+	me.Count = clickCounterClick(&(ap->cc), me.Down,
+		e->x, e->y,
+		e->time, maxTime,
+		maxDistance, maxDistance);
+
+	me.Down = e->button;
+	me.Up = 0;
+	finishMouseEvent(ap, &me, e->button, e->x, e->y, e->state, e->window);
+	return GDK_EVENT_PROPAGATE;
+}
+
+static gboolean areaWidget_button_release_event(GtkWidget *w, GdkEventButton *e)
+{
+	struct areaPrivate *ap = areaWidget(w)->priv;
+	uiAreaMouseEvent me;
+
+	me.Down = 0;
+	me.Up = e->button;
+	me.Count = 0;
+	finishMouseEvent(ap, &me, e->button, e->x, e->y, e->state, e->window);
+	return GDK_EVENT_PROPAGATE;
+}
+
+static gboolean areaWidget_motion_notify_event(GtkWidget *w, GdkEventMotion *e)
+{
+	struct areaPrivate *ap = areaWidget(w)->priv;
+	uiAreaMouseEvent me;
+
+	me.Down = 0;
+	me.Up = 0;
+	me.Count = 0;
+	finishMouseEvent(ap, &me, 0, e->x, e->y, e->state, e->window);
+	return GDK_EVENT_PROPAGATE;
+}
+
+// we want switching away from the control to reset the double-click counter, like with WM_ACTIVATE on Windows
+// according to tristan in irc.gimp.net/#gtk+, doing this on enter-notify-event and leave-notify-event is correct (and it seems to be true in my own tests; plus the events DO get sent when switching programs with the keyboard (just pointing that out))
+// differentiating between enter-notify-event and leave-notify-event is unimportant
+gboolean areaWidget_enterleave_notify_event(GtkWidget *widget, GdkEventCrossing *e)
+{
+	struct areaPrivate *ap = areaWidget(w)->priv;
+
+	clickCounterReset(&(ap->cc));
+	return GDK_EVENT_PROPAGATE;
+}
+
+// TODO key events
 
 enum {
 	// normal properties must come before override properties
@@ -248,10 +382,13 @@ static void areaWidget_class_init(areaWidgetClass *class)
 	GTK_WIDGET_CLASS(class)->draw = areaWidget_draw;
 //	GTK_WIDGET_CLASS(class)->get_preferred_height = areaWidget_get_preferred_height;
 //	GTK_WIDGET_CLASS(class)->get_preferred_width = areaWidget_get_preferred_width;
-//	GTK_WIDGET_CLASS(class)->button_press_event = areaWidget_button_press_event;
-//	GTK_WIDGET_CLASS(class)->button_release_event = areaWidget_button_release_event;
-//	GTK_WIDGET_CLASS(class)->motion_notify_event = areaWidget_motion_notify_event;
+	GTK_WIDGET_CLASS(class)->button_press_event = areaWidget_button_press_event;
+	GTK_WIDGET_CLASS(class)->button_release_event = areaWidget_button_release_event;
+	GTK_WIDGET_CLASS(class)->motion_notify_event = areaWidget_motion_notify_event;
+	GTK_WIDGET_CLASS(class)->enter_notify_event = areaWidget_enterleave_notify_event;
+	GTK_WIDGET_CLASS(class)->leave_notify_event = areaWidget_enterleave_notify_event;
 //	GTK_WIDGET_CLASS(class)->key_press_event = areaWidget_key_press_event;
+//	GTK_WIDGET_CLASS(class)->key_release_event = areaWidget_key_release_event;
 
 	g_type_class_add_private(G_OBJECT_CLASS(class), sizeof (struct areaPrivate));
 

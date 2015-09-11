@@ -110,6 +110,20 @@ static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
 	return 1;
 }
 
+static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
+{
+	printf("mouse (%d,%d):(%d,%d) down:%d up:%d count:%d mods:%x held:%I64x\n",
+		(int) e->X,
+		(int) e->Y,
+		(int) e->HScrollPos,
+		(int) e->VScrollPos,
+		(int) e->Down,
+		(int) e->Up,
+		(int) e->Count,
+		(uint32_t) e->Modifiers,
+		e->Held1To64);
+}
+
 static void repos(HWND hwnd)
 {
 	RECT r;
@@ -161,6 +175,7 @@ int main(void)
 	h.ah.HScrollMax = handlerHScrollMax;
 	h.ah.VScrollMax = handlerVScrollMax;
 	h.ah.RedrawOnResize = handlerRedrawOnResize;
+	h.ah.MouseEvent = handlerMouseEvent;
 
 	registerAreaClass();
 

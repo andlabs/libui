@@ -106,7 +106,7 @@ static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
 {
-	printf("mouse (%d,%d):(%d,%d) dn:%d up:%d count:%d mods:%x held:%x\n",
+	printf("mouse (%d,%d):(%d,%d) down:%d up:%d count:%d mods:%x held:%x\n",
 		(int) e->X,
 		(int) e->Y,
 		(int) e->HScrollPos,

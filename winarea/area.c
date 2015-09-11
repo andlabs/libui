@@ -11,6 +11,7 @@ struct uiArea {
 	intmax_t vscrollpos;
 	int hwheelCarry;
 	int vwheelCarry;
+	clickCounter cc;
 };
 
 static void doPaint(uiArea *a, HDC dc, RECT *client, RECT *clip)
@@ -250,6 +251,67 @@ static void vwheelscroll(uiArea *a, WPARAM wParam, LPARAM lParam)
 	wheelscroll(a, SB_VERT, &p, wParam, lParam);
 }
 
+static uiModifiers getModifiers(void)
+{
+	uiModifiers m = 0;
+
+	if ((GetKeyState(VK_CONTROL) & 0x80) != 0)
+		m |= uiModifierCtrl;
+	if ((GetKeyState(VK_MENU) & 0x80) != 0)
+		m |= uiModifierAlt;
+	if ((GetKeyState(VK_SHIFT) & 0x80) != 0)
+		m |= uiModifierShift;
+	if ((GetKeyState(VK_LWIN) & 0x80) != 0)
+		m |= uiModifierSuper;
+	if ((GetKeyState(VK_RWIN) & 0x80) != 0)
+		m |= uiModifierSuper;
+	return m;
+}
+
+static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wParam, LPARAM lParam)
+{
+	uiAreaMouseEvent me;
+	uintmax_t button;
+
+	me.X = GET_X_LPARAM(lParam);
+	me.Y = GET_Y_LPARAM(lParam);
+	// do not cap to the client rect in the case of a capture
+	me.HScrollPos = a->hscrollpos;
+	me.VScrollPos = a->vscrollpos;
+
+	me.Down = down;
+	me.Up = up;
+	me.Count = 0;
+	if (me.Down != 0)
+		// GetMessageTime() returns LONG and GetDoubleClckTime() returns UINT, which are int32 and uint32, respectively, but we don't need to worry about the signedness because for the same bit widths and two's complement arithmetic, s1-s2 == u1-u2 if bits(s1)==bits(s2) and bits(u1)==bits(u2) (and Windows requires two's complement: http://blogs.msdn.com/b/oldnewthing/archive/2005/05/27/422551.aspx)
+		// signedness isn't much of an issue for these calls anyway because http://stackoverflow.com/questions/24022225/what-are-the-sign-extension-rules-for-calling-windows-api-functions-stdcall-t and that we're only using unsigned values (think back to how you (didn't) handle signedness in assembly language) AND because of the above AND because the statistics below (time interval and width/height) really don't make sense if negative
+		me.Count = clickCounterClick(&(a->cc), me.Down,
+			me.X, me.Y,
+			GetMessageTime(), GetDoubleClickTime(),
+			GetSystemMetrics(SM_CXDOUBLECLK) / 2,
+			GetSystemMetrics(SM_CYDOUBLECLK) / 2);
+
+	// though wparam will contain control and shift state, let's just one function to get modifiers for both keyboard and mouse events; it'll work the same anyway since we have to do this for alt and windows key (super)
+	me.Modifiers = getModifiers();
+
+	button = me.Down;
+	if (button == 0)
+		button = me.Up;
+	me.Held1To64 = 0;
+	if (button != 1 && (wParam & MK_LBUTTON) != 0)
+		me.Held1To64 |= 1 << 0;
+	if (button != 2 && (wParam & MK_MBUTTON) != 0)
+		me.Held1To64 |= 1 << 1;
+	if (button != 3 && (wParam & MK_RBUTTON) != 0)
+		me.Held1To64 |= 1 << 2;
+	if (button != 4 && (wParam & MK_XBUTTON1) != 0)
+		me.Held1To64 |= 1 << 3;
+	if (button != 5 && (wParam & MK_XBUTTON2) != 0)
+		me.Held1To64 |= 1 << 4;
+
+	(*(a->ah->MouseEvent))(a->ah, a, &me);
+}
+
 static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uiArea *a;
@@ -301,10 +363,46 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 	case WM_MOUSEWHEEL:
 		vwheelscroll(a, wParam, lParam);
 		return 0;
+	case WM_ACTIVATE:
+		// don't keep the double-click timer running if the user switched programs in between clicks
+		clickCounterReset(&(a->cc));
+		return 0;
+	case WM_MOUSEMOVE:
+		areaMouseEvent(a, 0, 0, wParam, lParam);
+		return 0;
 	case WM_LBUTTONDOWN:
-		// TODO
 		SetFocus(a->hwnd);
-		break;
+		areaMouseEvent(a, 1, 0, wParam, lParam);
+		return 0;
+	case WM_LBUTTONUP:
+		areaMouseEvent(a, 0, 1, wParam, lParam);
+		return 0;
+	case WM_MBUTTONDOWN:
+		SetFocus(a->hwnd);
+		areaMouseEvent(a, 2, 0, wParam, lParam);
+		return 0;
+	case WM_MBUTTONUP:
+		areaMouseEvent(a, 0, 2, wParam, lParam);
+		return 0;
+	case WM_RBUTTONDOWN:
+		SetFocus(a->hwnd);
+		areaMouseEvent(a, 3, 0, wParam, lParam);
+		return 0;
+	case WM_RBUTTONUP:
+		areaMouseEvent(a, 0, 3, wParam, lParam);
+		return 0;
+	case WM_XBUTTONDOWN:
+		SetFocus(a->hwnd);
+		// values start at 1; we want them to start at 4
+		areaMouseEvent(a,
+			GET_XBUTTON_WPARAM(wParam) + 3, 0,
+			GET_KEYSTATE_WPARAM(wParam), lParam);
+		return TRUE;		// XBUTTON messages are different!
+	case WM_XBUTTONUP:
+		areaMouseEvent(a,
+			0, GET_XBUTTON_WPARAM(wParam) + 3,
+			GET_KEYSTATE_WPARAM(wParam), lParam);
+		return TRUE;		// XBUTTON messages are different!
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
@@ -344,6 +442,8 @@ HWND makeArea(DWORD exstyle, DWORD style, int x, int y, int cx, int cy, HWND par
 		style | WS_HSCROLL | WS_VSCROLL,
 		x, y, cx, cy,
 		parent, NULL, hInstance, a);
+
+	clickCounterReset(&(a->cc));
 
 	return a->hwnd;
 }

@@ -3,6 +3,7 @@
 typedef struct uiArea uiArea;
 typedef struct uiAreaHandler uiAreaHandler;
 typedef struct uiAreaDrawParams uiAreaDrawParams;
+typedef struct uiAreaMouseEvent uiAreaMouseEvent;
 
 typedef struct uiDrawContext uiDrawContext;
 
@@ -11,6 +12,7 @@ struct uiAreaHandler {
 	uintmax_t (*HScrollMax)(uiAreaHandler *, uiArea *);
 	uintmax_t (*VScrollMax)(uiAreaHandler *, uiArea *);
 	int (*RedrawOnResize)(uiAreaHandler *, uiArea *);
+	void (*MouseEvent)(uiAreaHandler *, uiArea *, uiAreaMouseEvent *);
 };
 
 struct uiAreaDrawParams {
@@ -115,25 +117,30 @@ void uiDrawFill(uiDrawContext *, uiDrawFillMode);
 // - solid colors, arbitrary spaces
 // - shadows
 
-// arcs
-// cairo_arc/arc_negative
-// - parameters: center, radius, angle1 radians, angle2 radins
-// - if angle2 < angle1, TODO
-// - if angle2 > angle1, TODO
-// - line segment from current point to beginning of arc
-// - arc: clockwise, arc_negative: counterclockwise
-// - circular
-// GDI Arc/Pie
-// - parameters: bounding box, start point, end point
-// - current position not used/changed
-// - either clockwise or counterclockwise
-// - elliptical
-// GDI ArcTo
-// - same as Arc except line segment from current point to beginning of arc
-// - there does not appear to be a PieTo
-// GDI AngleArc
-// - parameters: center, radius, angle1 degrees, angle2 degrees
-// - line segment from current position to beginning of arc
-// - counterclockwise
-// - circular
-// - can be used to draw pies too; MSDN example demonstrates
+typedef enum uiModifiers uiModifiers;
+
+enum uiModifiers {
+	uiModifierCtrl = 1 << 0,
+	uiModifierAlt = 1 << 1,
+	uiModifierShift = 1 << 2,
+	uiModifierSuper = 1 << 3,
+};
+
+struct uiAreaMouseEvent {
+	// notes:
+	// - relative to content rect
+	intmax_t X;
+	intmax_t Y;
+
+	intmax_t HScrollPos;
+	intmax_t VScrollPos;
+
+	uintmax_t Down;
+	uintmax_t Up;
+
+	uintmax_t Count;
+
+	uiModifiers Modifiers;
+
+	uint64_t Held1To64;
+};

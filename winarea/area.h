@@ -2,6 +2,7 @@
 #include "../windows/winapi.h"
 #include <stdint.h>
 #include "ui.h"
+#include "uipriv.h"
 
 extern HINSTANCE hInstance;
 

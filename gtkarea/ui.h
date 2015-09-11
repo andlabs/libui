@@ -138,6 +138,8 @@ struct uiAreaMouseEvent {
 	uintmax_t Down;
 	uintmax_t Up;
 
+	uintmax_t Count;
+
 	uiModifiers Modifiers;
 
 	uint64_t Held1To64;

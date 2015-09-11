@@ -175,7 +175,7 @@ static uiModifiers toModifiers(guint state)
 	uiModifiers m;
 
 	m = 0;
-	if ((state & GDK_CONTROL_MASK) != 0))
+	if ((state & GDK_CONTROL_MASK) != 0)
 		m |= uiModifierCtrl;
 	if ((state & GDK_META_MASK) != 0)
 		m |= uiModifierAlt;
@@ -280,7 +280,7 @@ static gboolean areaWidget_motion_notify_event(GtkWidget *w, GdkEventMotion *e)
 // we want switching away from the control to reset the double-click counter, like with WM_ACTIVATE on Windows
 // according to tristan in irc.gimp.net/#gtk+, doing this on enter-notify-event and leave-notify-event is correct (and it seems to be true in my own tests; plus the events DO get sent when switching programs with the keyboard (just pointing that out))
 // differentiating between enter-notify-event and leave-notify-event is unimportant
-gboolean areaWidget_enterleave_notify_event(GtkWidget *widget, GdkEventCrossing *e)
+gboolean areaWidget_enterleave_notify_event(GtkWidget *w, GdkEventCrossing *e)
 {
 	struct areaPrivate *ap = areaWidget(w)->priv;
 

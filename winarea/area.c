@@ -272,10 +272,15 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 {
 	uiAreaMouseEvent me;
 	uintmax_t button;
+	RECT r;
 
 	me.X = GET_X_LPARAM(lParam);
 	me.Y = GET_Y_LPARAM(lParam);
-	// do not cap to the client rect in the case of a capture
+
+	if (GetClientRect(a->hwnd, &r) == 0)
+		logLastError("error getting client rect of area in areaMouseEvent()");
+	me.ClientWidth = r.right - r.left;
+	me.ClientHeight = r.bottom - r.top;
 	me.HScrollPos = a->hscrollpos;
 	me.VScrollPos = a->vscrollpos;
 

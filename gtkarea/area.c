@@ -188,6 +188,7 @@ static uiModifiers toModifiers(guint state)
 	return m;
 }
 
+// capture on drag is done automatically on GTK+
 static void finishMouseEvent(struct areaPrivate *ap, uiAreaMouseEvent *me, guint mb, gdouble x, gdouble y, guint state, GdkWindow *window)
 {
 	// on GTK+, mouse buttons 4-7 are for scrolling; if we got here, that's a mistake
@@ -215,7 +216,9 @@ static void finishMouseEvent(struct areaPrivate *ap, uiAreaMouseEvent *me, guint
 
 	me->X = x;
 	me->Y = y;
-	// do not cap to the area bounds in the case of captures
+
+	me->ClientWidth = ap->clientWidth;
+	me->ClientHeight = ap->clientHeight;
 	me->HScrollPos = gtk_adjustment_get_value(ap->ha);
 	me->VScrollPos = gtk_adjustment_get_value(ap->va);
 

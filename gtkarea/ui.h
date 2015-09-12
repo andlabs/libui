@@ -127,11 +127,11 @@ enum uiModifiers {
 };
 
 struct uiAreaMouseEvent {
-	// notes:
-	// - relative to content rect
 	intmax_t X;
 	intmax_t Y;
 
+	intmax_t ClientWidth;
+	intmax_t ClientHeight;
 	intmax_t HScrollPos;
 	intmax_t VScrollPos;
 

@@ -145,6 +145,7 @@ struct uiArea {
 	return YES;
 }
 
+// capture on drag is done automatically on OS X
 - (void)doMouseEvent:(NSEvent *)e
 {
 	uiAreaMouseEvent me;
@@ -159,10 +160,11 @@ struct uiArea {
 	point = [self convertPoint:[e locationInWindow] fromView:nil];
 	me.X = point.x;
 	me.Y = point.y;
+
+	me.ClientWidth = [self frame].size.width;
+	me.ClientHeight = [self frame].size.height;
 	me.HScrollPos = [av hscrollPos];
 	me.VScrollPos = [av vscrollPos];
-	// don't clip to outside the view in the case of captures
-	// TODO cocoa captures automatically on a drag?
 
 	buttonNumber = [e buttonNumber] + 1;
 	// swap button numbers 2 and 3 (right and middle)

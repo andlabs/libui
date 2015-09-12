@@ -240,6 +240,10 @@ mouseEvent(mouseUp)
 mouseEvent(rightMouseUp)
 mouseEvent(otherMouseUp)
 
+// note: there is no equivalent to WM_CAPTURECHANGED on Mac OS X; there literally is no way to break a grab like that
+// even if I invoke the task switcher and switch processes, the mouse grab will still be held until I let go of all buttons
+// therefore, no DragBroken()
+
 @end
 
 @implementation areaView

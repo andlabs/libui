@@ -13,6 +13,7 @@ struct uiAreaHandler {
 	uintmax_t (*VScrollMax)(uiAreaHandler *, uiArea *);
 	int (*RedrawOnResize)(uiAreaHandler *, uiArea *);
 	void (*MouseEvent)(uiAreaHandler *, uiArea *, uiAreaMouseEvent *);
+	void (*DragBroken)(uiAreaHandler *, uiArea *);
 };
 
 struct uiAreaDrawParams {

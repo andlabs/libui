@@ -425,7 +425,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 	case WM_CAPTURECHANGED:
 		if (a->capturing) {
 			a->capturing = FALSE;
-			// TODO raise DragBroken()
+			(*(a->ah->DragBroken))(a->ah, a);
 		}
 		return 0;
 	}

@@ -124,6 +124,11 @@ static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *
 		e->Held1To64);
 }
 
+static void handlerDragBroken(uiAreaHandler *ah, uiArea *a)
+{
+	printf("drag broken\n");
+}
+
 // areaUpdateScroll(area);
 
 @interface appDelegate : NSObject<NSApplicationDelegate, NSTextFieldDelegate>
@@ -183,6 +188,7 @@ int main(void)
 	h.ah.VScrollMax = handlerVScrollMax;
 	h.ah.RedrawOnResize = handlerRedrawOnResize;
 	h.ah.MouseEvent = handlerMouseEvent;
+	h.ah.DragBroken = handlerDragBroken;
 
 	app = [NSApplication sharedApplication];
 	[app setActivationPolicy:NSApplicationActivationPolicyRegular];

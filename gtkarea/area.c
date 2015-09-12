@@ -291,6 +291,9 @@ gboolean areaWidget_enterleave_notify_event(GtkWidget *w, GdkEventCrossing *e)
 	return GDK_EVENT_PROPAGATE;
 }
 
+// note: there is no equivalent to WM_CAPTURECHANGED on GTK+; there literally is no way to break a grab like that (at least not on X11 and Wayland)
+// even if I invoke the task switcher and switch processes, the mouse grab will still be held until I let go of all buttons
+
 // TODO key events
 
 enum {

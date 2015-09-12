@@ -12,6 +12,7 @@ struct uiArea {
 	int hwheelCarry;
 	int vwheelCarry;
 	clickCounter cc;
+	BOOL capturing;
 };
 
 static void doPaint(uiArea *a, HDC dc, RECT *client, RECT *clip)
@@ -314,6 +315,19 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 	if (button != 5 && (wParam & MK_XBUTTON2) != 0)
 		me.Held1To64 |= 1 << 4;
 
+	// on Windows, we have to capture on drag ourselves
+	if (me.Down != 0 && !a->capturing) {
+		SetCapture(a->hwnd);
+		a->capturing = TRUE;
+	}
+	// only release capture when all buttons released
+	if (me.Up != 0 && a->capturing && me.Held1To64 == 0) {
+		// unset flag first as ReleaseCapture() sends WM_CAPTURECHANGED
+		a->capturing = FALSE;
+		if (ReleaseCapture() == 0)
+			logLastError("error releasing capture on drag in areaMouseEvent()");
+	}
+
 	(*(a->ah->MouseEvent))(a->ah, a, &me);
 }
 
@@ -408,6 +422,12 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			0, GET_XBUTTON_WPARAM(wParam) + 3,
 			GET_KEYSTATE_WPARAM(wParam), lParam);
 		return TRUE;		// XBUTTON messages are different!
+	case WM_CAPTURECHANGED:
+		if (a->capturing) {
+			a->capturing = FALSE;
+			// TODO raise DragBroken()
+		}
+		return 0;
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

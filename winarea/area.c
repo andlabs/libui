@@ -470,6 +470,8 @@ HWND makeArea(DWORD exstyle, DWORD style, int x, int y, int cx, int cy, HWND par
 
 	clickCounterReset(&(a->cc));
 
+	a->capturing = FALSE;
+
 	return a->hwnd;
 }
 

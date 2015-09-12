@@ -68,6 +68,7 @@ void addConstraint(NSView *view, NSString *constraint, NSDictionary *metrics, NS
 	uiArea *libui_a;
 }
 - (id)initWithFrame:(NSRect)r area:(uiArea *)a;
+- (void)doMouseEvent:(NSEvent *)e;
 @end
 
 @interface areaView : NSView {
@@ -82,6 +83,8 @@ void addConstraint(NSView *view, NSString *constraint, NSDictionary *metrics, NS
 - (void)dvFrameSizeChanged:(NSNotification *)note;
 - (IBAction)hscrollEvent:(id)sender;
 - (IBAction)vscrollEvent:(id)sender;
+- (intmax_t)hscrollPos;
+- (intmax_t)vscrollPos;
 // scroll utilities
 - (intmax_t)hpagesize;
 - (intmax_t)vpagesize;
@@ -136,6 +139,104 @@ struct uiArea {
 {
 	return YES;
 }
+
+- (BOOL)acceptsFirstResponder
+{
+	return YES;
+}
+
+- (void)doMouseEvent:(NSEvent *)e
+{
+	uiAreaMouseEvent me;
+	NSPoint point;
+	areaView *av;
+	uintmax_t buttonNumber;
+	NSUInteger pmb;
+	unsigned int i, max;
+
+	av = (areaView *) [self superview];
+
+	point = [self convertPoint:[e locationInWindow] fromView:nil];
+	me.X = point.x;
+	me.Y = point.y;
+	me.HScrollPos = [av hscrollPos];
+	me.VScrollPos = [av vscrollPos];
+	// don't clip to outside the view in the case of captures
+	// TODO cocoa captures automatically on a drag?
+
+	buttonNumber = [e buttonNumber] + 1;
+	// swap button numbers 2 and 3 (right and middle)
+	if (buttonNumber == 2)
+		buttonNumber = 3;
+	else if (buttonNumber == 3)
+		buttonNumber = 2;
+
+	me.Down = 0;
+	me.Up = 0;
+	me.Count = 0;
+	switch ([e type]) {
+	case NSLeftMouseDown:
+	case NSRightMouseDown:
+	case NSOtherMouseDown:
+		me.Down = buttonNumber;
+		me.Count = [e clickCount];
+		break;
+	case NSLeftMouseUp:
+	case NSRightMouseUp:
+	case NSOtherMouseUp:
+		me.Up = buttonNumber;
+		break;
+	case NSLeftMouseDragged:
+	case NSRightMouseDragged:
+	case NSOtherMouseDragged:
+		// we include the button that triggered the dragged event in the Held fields
+		buttonNumber = 0;
+		break;
+	}
+
+	me.Modifiers = 0;		// TODO
+
+	pmb = [NSEvent pressedMouseButtons];
+	me.Held1To64 = 0;
+	if (buttonNumber != 1 && (pmb & 1) != 0)
+		me.Held1To64 |= 1;
+	if (buttonNumber != 2 && (pmb & 4) != 0)
+		me.Held1To64 |= 2;
+	if (buttonNumber != 3 && (pmb & 2) != 0)
+		me.Held1To64 |= 4;
+	// buttons 4..64
+	max = 32;
+	// TODO are the upper 32 bits just mirrored?
+//	if (sizeof (NSUInteger) == 8)
+//		max = 64;
+	for (i = 4; i <= max; i++) {
+		uint64_t j;
+
+		if (buttonNumber == i)
+			continue;
+		j = 1 << (i - 1);
+		if ((pmb & j) != 0)
+			me.Held1To64 |= j;
+	}
+
+	(*(self->libui_a->ah->MouseEvent))(self->libui_a->ah, self->libui_a, &me);
+}
+
+#define mouseEvent(name) \
+	- (void)name:(NSEvent *)e \
+	{ \
+		[self doMouseEvent:e]; \
+	}
+mouseEvent(mouseMoved)
+mouseEvent(mouseDragged)
+mouseEvent(rightMouseDragged)
+mouseEvent(otherMouseDragged)
+mouseEvent(mouseDown)
+mouseEvent(rightMouseDown)
+mouseEvent(otherMouseDown)
+mouseEvent(mouseUp)
+mouseEvent(rightMouseUp)
+mouseEvent(otherMouseUp)
 
 @end
 
@@ -348,6 +449,16 @@ struct uiArea {
 		break;
 	}
 	[self vscrollTo:pos];
+}
+
+- (intmax_t)hscrollPos
+{
+	return self->hscrollpos;
+}
+
+- (intmax_t)vscrollPos
+{
+	return self->vscrollpos;
 }
 
 // scroll utilities

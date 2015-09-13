@@ -12,3 +12,5 @@ struct clickCounter {
 };
 extern uintmax_t clickCounterClick(clickCounter *, uintmax_t, intmax_t, intmax_t, uintptr_t, uintptr_t, intmax_t, intmax_t);
 extern void clickCounterReset(clickCounter *);
+
+extern int fromScancode(uintptr_t, uiAreaKeyEvent *);

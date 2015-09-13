@@ -246,7 +246,9 @@ int main(void)
 	ShowWindow(mainwin, SW_SHOWDEFAULT);
 	UpdateWindow(mainwin);
 
+	extern BOOL processAreaMessage(MSG *);
 	while (GetMessage(&msg, NULL, 0, 0)) {
+		if (processAreaMessage(&msg)) continue;
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}

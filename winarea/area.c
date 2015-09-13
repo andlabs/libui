@@ -331,6 +331,146 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 	(*(a->ah->MouseEvent))(a->ah, a, &me);
 }
 
+// we use VK_SNAPSHOT as a sentinel because libui will never support the print screen key; that key belongs to the user
+struct extkeymap {
+	WPARAM vk;
+	uiExtKey extkey;
+};
+
+// all mappings come from GLFW - https://github.com/glfw/glfw/blob/master/src/win32_window.c#L152
+static const struct extkeymap numpadExtKeys[] = {
+	{ VK_HOME, uiExtKeyN7 },
+	{ VK_UP, uiExtKeyN8 },
+	{ VK_PRIOR, uiExtKeyN9 },
+	{ VK_LEFT, uiExtKeyN4 },
+	{ VK_CLEAR, uiExtKeyN5 },
+	{ VK_RIGHT, uiExtKeyN6 },
+	{ VK_END, uiExtKeyN1 },
+	{ VK_DOWN, uiExtKeyN2 },
+	{ VK_NEXT, uiExtKeyN3 },
+	{ VK_INSERT, uiExtKeyN0 },
+	{ VK_DELETE, uiExtKeyNDot },
+	{ VK_SNAPSHOT, 0 },
+};
+
+static const struct extkeymap extKeys[] = {
+	{ VK_ESCAPE, uiExtKeyEscape },
+	{ VK_INSERT, uiExtKeyInsert },
+	{ VK_DELETE, uiExtKeyDelete },
+	{ VK_HOME, uiExtKeyHome },
+	{ VK_END, uiExtKeyEnd },
+	{ VK_PRIOR, uiExtKeyPageUp },
+	{ VK_NEXT, uiExtKeyPageDown },
+	{ VK_UP, uiExtKeyUp },
+	{ VK_DOWN, uiExtKeyDown },
+	{ VK_LEFT, uiExtKeyLeft },
+	{ VK_RIGHT, uiExtKeyRight },
+	{ VK_F1, uiExtKeyF1 },
+	{ VK_F2, uiExtKeyF2 },
+	{ VK_F3, uiExtKeyF3 },
+	{ VK_F4, uiExtKeyF4 },
+	{ VK_F5, uiExtKeyF5 },
+	{ VK_F6, uiExtKeyF6 },
+	{ VK_F7, uiExtKeyF7 },
+	{ VK_F8, uiExtKeyF8 },
+	{ VK_F9, uiExtKeyF9 },
+	{ VK_F10, uiExtKeyF10 },
+	{ VK_F11, uiExtKeyF11 },
+	{ VK_F12, uiExtKeyF12 },
+	// numpad numeric keys and . are handled in events.c
+	// numpad enter is handled in code below
+	{ VK_ADD, uiExtKeyNAdd },
+	{ VK_SUBTRACT, uiExtKeyNSubtract },
+	{ VK_MULTIPLY, uiExtKeyNMultiply },
+	{ VK_DIVIDE, uiExtKeyNDivide },
+	{ VK_SNAPSHOT, 0 },
+};
+
+static const struct {
+	WPARAM vk;
+	uiModifiers mod;
+} modKeys[] = {
+	// even if the separate left/right aren't necessary, have them here anyway, just to be safe
+	{ VK_CONTROL, uiModifierCtrl },
+	{ VK_LCONTROL, uiModifierCtrl },
+	{ VK_RCONTROL, uiModifierCtrl },
+	{ VK_MENU, uiModifierAlt },
+	{ VK_LMENU, uiModifierAlt },
+	{ VK_RMENU, uiModifierAlt },
+	{ VK_SHIFT, uiModifierShift },
+	{ VK_LSHIFT, uiModifierShift },
+	{ VK_RSHIFT, uiModifierShift },
+	// there's no combined Windows key virtual-key code as there is with the others
+	{ VK_LWIN, uiModifierSuper },
+	{ VK_RWIN, uiModifierSuper },
+	{ VK_SNAPSHOT, 0 },
+};
+
+static int areaKeyEvent(uiArea *a, int up, WPARAM wParam, LPARAM lParam)
+{
+	uiAreaKeyEvent ke;
+	int righthand;
+	int i;
+
+	ke.Key = 0;
+	ke.ExtKey = 0;
+	ke.Modifier = 0;
+
+	ke.Modifiers = getModifiers();
+
+	ke.Up = up;
+
+	// the numeric keypad keys when Num Lock is off are considered left-hand keys as the separate navigation buttons were added later
+	// the numeric keypad enter, however, is a right-hand key because it has the same virtual-key code as the typewriter enter
+	righthand = (lParam & 0x01000000) != 0;
+	if (righthand) {
+		if (wParam == VK_RETURN) {
+			ke.ExtKey = uiExtKeyNEnter;
+			goto keyFound;
+		}
+	} else
+		// this is special handling for numpad keys to ignore the state of Num Lock and Shift; see http://blogs.msdn.com/b/oldnewthing/archive/2004/09/06/226045.aspx and https://github.com/glfw/glfw/blob/master/src/win32_window.c#L152
+		for (i = 0; numpadExtKeys[i].vk != VK_SNAPSHOT; i++)
+			if (numpadExtKeys[i].vk == wParam) {
+				ke.ExtKey = numpadExtKeys[i].extkey;
+				goto keyFound;
+			}
+
+	// okay, those above cases didn't match anything
+	// first try the extended keys
+	for (i = 0; extKeys[i].vk != VK_SNAPSHOT; i++)
+		if (extKeys[i].vk == wParam) {
+			ke.ExtKey = extKeys[i].extkey;
+			goto keyFound;
+		}
+
+	// then try modifier keys
+	for (i = 0; modKeys[i].vk != VK_SNAPSHOT; i++)
+		if (modKeys[i].vk == wParam) {
+			ke.Modifier = modKeys[i].mod;
+			// and don't include the key in Modifiers
+			ke.Modifiers &= ~ke.Modifier;
+			goto keyFound;
+		}
+
+	// and finally everything else
+	if (fromScancode((lParam >> 16) & 0xFF, &ke))
+		goto keyFound;
+
+	// not a supported key, assume unhandled
+	// TODO the original code only did this if ke.Modifiers == 0 - why?
+	return 0;
+
+keyFound:
+	return (*(a->ah->KeyEvent))(a->ah, a, &ke);
+}
+
+enum {
+	// start at 0x40 to avoid clobbering dialog messages
+	msgAreaKeyDown = WM_USER + 0x40,
+	msgAreaKeyUp,
+};
+
 static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uiArea *a;
@@ -428,8 +568,47 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			(*(a->ah->DragBroken))(a->ah, a);
 		}
 		return 0;
+	case msgAreaKeyDown:
+		return (LRESULT) areaKeyEvent(a, 0, wParam, lParam);
+	case msgAreaKeyUp:
+		return (LRESULT) areaKeyEvent(a, 1, wParam, lParam);
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+// TODO affect visibility properly
+BOOL processAreaMessage(MSG *msg)
+{
+	LRESULT handled;
+
+	// TODO get rid of this part
+	WCHAR classname[260 + 1];
+	GetClassNameW(msg->hwnd, classname, 260);
+	if (wcscmp(classname, areaClass) != 0) return FALSE;
+	HWND active;
+	active = GetActiveWindow();
+	if (active == NULL) return FALSE;
+
+	handled = 0;
+	switch (msg->message) {
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+		handled = SendMessageW(msg->hwnd, msgAreaKeyDown, msg->wParam, msg->lParam);
+		break;
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		handled = SendMessageW(msg->hwnd, msgAreaKeyUp, msg->wParam, msg->lParam);
+		break;
+	}
+	if (handled)
+		return TRUE;
+
+	// don't call TranslateMessage(); we do our own keyboard handling
+	// TODO should we just return to the standard message loop?
+	if (IsDialogMessage(active, msg) != 0)
+		return TRUE;
+	DispatchMessageW(msg);
+	return TRUE;
 }
 
 ATOM registerAreaClass(void)

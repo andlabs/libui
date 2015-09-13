@@ -229,6 +229,7 @@ struct uiArea {
 	{ \
 		[self doMouseEvent:e]; \
 	}
+// TODO set up tracking events
 mouseEvent(mouseMoved)
 mouseEvent(mouseDragged)
 mouseEvent(rightMouseDragged)

@@ -295,7 +295,117 @@ gboolean areaWidget_enterleave_notify_event(GtkWidget *w, GdkEventCrossing *e)
 // even if I invoke the task switcher and switch processes, the mouse grab will still be held until I let go of all buttons
 // therefore, no DragBroken()
 
-// TODO key events
+// we use GDK_KEY_Print as a sentinel because libui will never support the print screen key; that key belongs to the user
+
+static const struct {
+	guint keyval;
+	uiExtKey extkey;
+} extKeys[] = {
+	{ GDK_KEY_Escape, uiExtKeyEscape },
+	{ GDK_KEY_Insert, uiExtKeyInsert },
+	{ GDK_KEY_Delete, uiExtKeyDelete },
+	{ GDK_KEY_Home, uiExtKeyHome },
+	{ GDK_KEY_End, uiExtKeyEnd },
+	{ GDK_KEY_Page_Up, uiExtKeyPageUp },
+	{ GDK_KEY_Page_Down, uiExtKeyPageDown },
+	{ GDK_KEY_Up, uiExtKeyUp },
+	{ GDK_KEY_Down, uiExtKeyDown },
+	{ GDK_KEY_Left, uiExtKeyLeft },
+	{ GDK_KEY_Right, uiExtKeyRight },
+	{ GDK_KEY_F1, uiExtKeyF1 },
+	{ GDK_KEY_F2, uiExtKeyF2 },
+	{ GDK_KEY_F3, uiExtKeyF3 },
+	{ GDK_KEY_F4, uiExtKeyF4 },
+	{ GDK_KEY_F5, uiExtKeyF5 },
+	{ GDK_KEY_F6, uiExtKeyF6 },
+	{ GDK_KEY_F7, uiExtKeyF7 },
+	{ GDK_KEY_F8, uiExtKeyF8 },
+	{ GDK_KEY_F9, uiExtKeyF9 },
+	{ GDK_KEY_F10, uiExtKeyF10 },
+	{ GDK_KEY_F11, uiExtKeyF11 },
+	{ GDK_KEY_F12, uiExtKeyF12 },
+	// numpad numeric keys and . are handled in events.c
+	{ GDK_KEY_KP_Enter, uiExtKeyNEnter },
+	{ GDK_KEY_KP_Add, uiExtKeyNAdd },
+	{ GDK_KEY_KP_Subtract, uiExtKeyNSubtract },
+	{ GDK_KEY_KP_Multiply, uiExtKeyNMultiply },
+	{ GDK_KEY_KP_Divide, uiExtKeyNDivide },
+	{ GDK_KEY_Print, 0 },
+};
+
+static const struct {
+	guint keyval;
+	uiModifiers mod;
+} modKeys[] = {
+	{ GDK_KEY_Control_L, uiModifierCtrl },
+	{ GDK_KEY_Control_R, uiModifierCtrl },
+	{ GDK_KEY_Alt_L, uiModifierAlt },
+	{ GDK_KEY_Alt_R, uiModifierAlt },
+	{ GDK_KEY_Meta_L, uiModifierAlt },
+	{ GDK_KEY_Meta_R, uiModifierAlt },
+	{ GDK_KEY_Shift_L, uiModifierShift },
+	{ GDK_KEY_Shift_R, uiModifierShift },
+	{ GDK_KEY_Super_L, uiModifierSuper },
+	{ GDK_KEY_Super_R, uiModifierSuper },
+	{ GDK_KEY_Print, 0 },
+};
+
+static int areaKeyEvent(struct areaPrivate *ap, int up, GdkEventKey *e)
+{
+	uiAreaKeyEvent ke;
+	guint state;
+	int i;
+
+	ke.Key = 0;
+	ke.ExtKey = 0;
+	ke.Modifier = 0;
+
+	state = translateModifiers(e->state, e->window);
+	ke.Modifiers = toModifiers(state);
+
+	ke.Up = up;
+
+	for (i = 0; extKeys[i].keyval != GDK_KEY_Print; i++)
+		if (extKeys[i].keyval == e->keyval) {
+			ke.ExtKey = extKeys[i].extkey;
+			goto keyFound;
+		}
+
+	for (i = 0; modKeys[i].keyval != GDK_KEY_Print; i++)
+		if (modKeys[i].keyval == e->keyval) {
+			ke.Modifier = modKeys[i].mod;
+			// don't include the modifier in ke.Modifiers
+			ke.Modifiers &= ~ke.Modifier;
+			goto keyFound;
+		}
+
+	if (fromScancode(e->hardware_keycode - 8, &ke))
+		goto keyFound;
+
+	// no supported key found; treat as unhandled
+	return 0;
+
+keyFound:
+	return (*(ap->ah->KeyEvent))(ap->ah, ap->a, &ke);
+}
+
+static gboolean areaWidget_key_press_event(GtkWidget *w, GdkEventKey *e)
+{
+	struct areaPrivate *ap = areaWidget(w)->priv;
+
+	if (areaKeyEvent(ap, 0, e))
+		return GDK_EVENT_STOP;
+	return GDK_EVENT_PROPAGATE;
+}
+
+static gboolean areaWidget_key_release_event(GtkWidget *w, GdkEventKey *e)
+{
+	struct areaPrivate *ap = areaWidget(w)->priv;
+
+	if (areaKeyEvent(ap, 1, e))
+		return GDK_EVENT_STOP;
+	return GDK_EVENT_PROPAGATE;
+}
 
 enum {
 	// normal properties must come before override properties
@@ -394,8 +504,8 @@ static void areaWidget_class_init(areaWidgetClass *class)
 	GTK_WIDGET_CLASS(class)->motion_notify_event = areaWidget_motion_notify_event;
 	GTK_WIDGET_CLASS(class)->enter_notify_event = areaWidget_enterleave_notify_event;
 	GTK_WIDGET_CLASS(class)->leave_notify_event = areaWidget_enterleave_notify_event;
-//	GTK_WIDGET_CLASS(class)->key_press_event = areaWidget_key_press_event;
-//	GTK_WIDGET_CLASS(class)->key_release_event = areaWidget_key_release_event;
+	GTK_WIDGET_CLASS(class)->key_press_event = areaWidget_key_press_event;
+	GTK_WIDGET_CLASS(class)->key_release_event = areaWidget_key_release_event;
 
 	g_type_class_add_private(G_OBJECT_CLASS(class), sizeof (struct areaPrivate));
 

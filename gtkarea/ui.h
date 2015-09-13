@@ -4,6 +4,7 @@ typedef struct uiArea uiArea;
 typedef struct uiAreaHandler uiAreaHandler;
 typedef struct uiAreaDrawParams uiAreaDrawParams;
 typedef struct uiAreaMouseEvent uiAreaMouseEvent;
+typedef struct uiAreaKeyEvent uiAreaKeyEvent;
 
 typedef struct uiDrawContext uiDrawContext;
 
@@ -14,6 +15,7 @@ struct uiAreaHandler {
 	int (*RedrawOnResize)(uiAreaHandler *, uiArea *);
 	void (*MouseEvent)(uiAreaHandler *, uiArea *, uiAreaMouseEvent *);
 	void (*DragBroken)(uiAreaHandler *, uiArea *);
+	int (*KeyEvent)(uiAreaHandler *, uiArea *, uiAreaKeyEvent *);
 };
 
 struct uiAreaDrawParams {
@@ -144,4 +146,58 @@ struct uiAreaMouseEvent {
 	uiModifiers Modifiers;
 
 	uint64_t Held1To64;
+};
+
+typedef enum uiExtKey uiExtKey;
+
+enum uiExtKey {
+	uiExtKeyEscape = 1,
+	uiExtKeyInsert,			// equivalent to "Help" on Apple keyboards
+	uiExtKeyDelete,
+	uiExtKeyHome,
+	uiExtKeyEnd,
+	uiExtKeyPageUp,
+	uiExtKeyPageDown,
+	uiExtKeyUp,
+	uiExtKeyDown,
+	uiExtKeyLeft,
+	uiExtKeyRight,
+	uiExtKeyF1,			// F1..F12 are guaranteed to be consecutive
+	uiExtKeyF2,
+	uiExtKeyF3,
+	uiExtKeyF4,
+	uiExtKeyF5,
+	uiExtKeyF6,
+	uiExtKeyF7,
+	uiExtKeyF8,
+	uiExtKeyF9,
+	uiExtKeyF10,
+	uiExtKeyF11,
+	uiExtKeyF12,
+	uiExtKeyN0,			// numpad keys; independent of Num Lock state
+	uiExtKeyN1,			// N0..N9 are guaranteed to be consecutive
+	uiExtKeyN2,
+	uiExtKeyN3,
+	uiExtKeyN4,
+	uiExtKeyN5,
+	uiExtKeyN6,
+	uiExtKeyN7,
+	uiExtKeyN8,
+	uiExtKeyN9,
+	uiExtKeyNDot,
+	uiExtKeyNEnter,
+	uiExtKeyNAdd,
+	uiExtKeyNSubtract,
+	uiExtKeyNMultiply,
+	uiExtKeyNDivide,
+};
+
+struct uiAreaKeyEvent {
+	char Key;
+	uiExtKey ExtKey;
+	uiModifiers Modifier;
+
+	uiModifiers Modifiers;
+
+	int Up;
 };

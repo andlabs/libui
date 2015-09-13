@@ -145,7 +145,7 @@ static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 		k,
 		(int) e->ExtKey,
 		(int) e->Modifier,
-		(int) e->Modifiers;
+		(int) e->Modifiers,
 		e->Up);
 	return 0;
 }

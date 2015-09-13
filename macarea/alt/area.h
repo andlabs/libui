@@ -2,6 +2,7 @@
 #import <Cocoa/Cocoa.h>
 #import <stdint.h>
 #import "ui.h"
+#import "uipriv_darwin.h"
 
 extern uiArea *newArea(uiAreaHandler *ah);
 

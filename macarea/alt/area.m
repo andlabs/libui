@@ -68,7 +68,13 @@ void addConstraint(NSView *view, NSString *constraint, NSDictionary *metrics, NS
 	uiArea *libui_a;
 }
 - (id)initWithFrame:(NSRect)r area:(uiArea *)a;
+- (uiModifiers)parseModifiers:(NSEvent *)e;
 - (void)doMouseEvent:(NSEvent *)e;
+- (int)sendKeyEvent:(uiAreaKeyEvent *)ke;
+- (int)doKeyDownUp:(NSEvent *)e up:(int)up;
+- (int)doKeyDown:(NSEvent *)e;
+- (int)doKeyUp:(NSEvent *)e;
+- (int)doFlagsChanged:(NSEvent *)e;
 @end
 
 @interface areaView : NSView {
@@ -116,6 +122,7 @@ struct uiArea {
 {
 	CGContextRef c;
 	uiAreaDrawParams dp;
+	areaView *av;
 
 	c = (CGContextRef) [[NSGraphicsContext currentContext] graphicsPort];
 	dp.Context = newContext(c);
@@ -130,7 +137,9 @@ struct uiArea {
 
 	// TODO DPI
 
-	// TODO scroll position
+	av = (areaView *) [self superview];
+	dp.HScrollPos = [av hscrollPos];
+	dp.VScrollPos = [av vscrollPos];
 
 	(*(self->libui_a->ah->Draw))(self->libui_a->ah, self->libui_a, &dp);
 }
@@ -143,6 +152,24 @@ struct uiArea {
 - (BOOL)acceptsFirstResponder
 {
 	return YES;
+}
+
+- (uiModifiers)parseModifiers:(NSEvent *)e
+{
+	NSEventModifierFlags mods;
+	uiModifiers m;
+
+	m = 0;
+	mods = [e modifierFlags];
+	if ((mods & NSControlKeyMask) != 0)
+		m |= uiModifierCtrl;
+	if ((mods & NSAlternateKeyMask) != 0)
+		m |= uiModifierAlt;
+	if ((mods & NSShiftKeyMask) != 0)
+		m |= uiModifierShift;
+	if ((mods & NSCommandKeyMask) != 0)
+		m |= uiModifierSuper;
+	return m;
 }
 
 // capture on drag is done automatically on OS X
@@ -196,7 +223,7 @@ struct uiArea {
 		break;
 	}
 
-	me.Modifiers = 0;		// TODO
+	me.Modifiers = [self parseModifiers:e];
 
 	pmb = [NSEvent pressedMouseButtons];
 	me.Held1To64 = 0;
@@ -245,7 +272,89 @@ mouseEvent(otherMouseUp)
 // even if I invoke the task switcher and switch processes, the mouse grab will still be held until I let go of all buttons
 // therefore, no DragBroken()
 
+- (int)sendKeyEvent:(uiAreaKeyEvent *)ke
+{
+	return (*(self->libui_a->ah->KeyEvent))(self->libui_a->ah, self->libui_a, ke);
+}
+
+- (int)doKeyDownUp:(NSEvent *)e up:(int)up
+{
+	uiKeyEvent ke;
+
+	ke.Key = 0;
+	ke.ExtKey = 0;
+	ke.Modifier = 0;
+
+	ke.Modifiers = [self parseModifiers:e];
+
+	ke.Up = up;
+
+	if (!fromKeycode([e keyCode], &ke))
+		return 0;
+	return [self sendKeyEvent:&ke];
+}
+
+- (int)doKeyDown:(NSEvent *)e
+{
+	return [self doKeyDownUp:e up:0];
+}
+
+- (int)doKeyUp:(NSEvent *)e
+{
+	return [self doKeyDownUp:e up:1];
+}
+
+- (int)doFlagsChanged:(NSEvent *)e
+{
+	uiAreaKeyEvent ke;
+	uiModifiers whichmod;
+
+	ke.Key = 0;
+	ke.ExtKey = 0;
+
+	// Mac OS X sends this event on both key up and key down.
+	// Fortunately -[e keyCode] IS valid here, so we can simply map from key code to Modifiers, get the value of [e modifierFlags], and check if the respective bit is set or not — that will give us the up/down state
+	if (!keycodeModifier([e keyCode], &whichmod))
+		return 0;
+	ke.Modifier = whichmod;
+	ke.Modifiers = [self parseModifiers:e];
+	ke.Up = (ke.Modifiers & ke.Modifier) == 0;
+	// and then drop the current modifier from Modifiers
+	ke.Modifiers &= ~ke.Modifier;
+	return [self sendKeyEvent:&ke];
+}
+
 @end
+
+// called by subclasses of -[NSApplication sendEvent:]
+// by default, NSApplication eats some key events
+// this prevents that from happening with uiArea
+// see http://stackoverflow.com/questions/24099063/how-do-i-detect-keyup-in-my-nsview-with-the-command-key-held and http://lists.apple.com/archives/cocoa-dev/2003/Oct/msg00442.html
+int sendAreaEvents(NSEvent *e)
+{
+	NSEventType type;
+	id focused;
+	areaDrawingView *view;
+
+	type = [e type];
+	if (type != NSKeyDown && type != NSKeyUp && type != NSFlagsChanged)
+		return 0;
+	focused = [[e window] firstResponder];
+	if (focused == nil)
+		return 0;
+	if (![focused isKindOfClass:[areaDrawingView class]])
+		return 0;
+	view = (areaDrawingView *) focused;
+	switch (type) {
+	case NSKeyDown:
+		return [view doKeyDown:e];
+	case NSKeyUp:
+		return [view doKeyUp:e];
+	case NSFlagsChanged:
+		return [view doFlagsChanged:e];
+	}
+	return 0;
+}
 
 @implementation areaView
 

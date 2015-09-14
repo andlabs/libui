@@ -200,6 +200,19 @@ static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 
 @end
 
+@interface testApplication : NSApplication
+@end
+
+@implementation testApplication
+
+- (void)sendEvent:(NSEvent *)e
+{
+	if (!sendAreaEvents(e))
+		[super sendEvent:e];
+}
+
+@end
+
 int main(void)
 {
 	NSApplication *app;
@@ -212,7 +225,7 @@ int main(void)
 	h.ah.DragBroken = handlerDragBroken;
 	h.ah.KeyEvent = handlerKeyEvent;
 
-	app = [NSApplication sharedApplication];
+	app = [testApplication sharedApplication];
 	[app setActivationPolicy:NSApplicationActivationPolicyRegular];
 	[app setDelegate:[appDelegate new]];
 	[app run];

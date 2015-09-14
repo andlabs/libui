@@ -279,7 +279,7 @@ mouseEvent(otherMouseUp)
 
 - (int)doKeyDownUp:(NSEvent *)e up:(int)up
 {
-	uiKeyEvent ke;
+	uiAreaKeyEvent ke;
 
 	ke.Key = 0;
 	ke.ExtKey = 0;

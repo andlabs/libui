@@ -13,6 +13,7 @@ static GtkWidget *area;
 static struct handler h;
 static GtkWidget *nhspinb;
 static GtkWidget *nvspinb;
+static GtkWidget *textstr;
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 {
@@ -207,6 +208,11 @@ int main(void)
 	nvspinb = makeSpinbox(0);
 	gtk_grid_attach(GTK_GRID(grid), nvspinb,
 		1, 1, 1, 1);
+
+	textstr = gtk_entry_new();
+	gtk_entry_set_text(GTK_ENTRY(textstr), "ベア・ナックルII 死闘への鎮魂歌");
+	gtk_grid_attach(GTK_GRID(grid), textstr,
+		2, 0, 1, 1);
 
 	area = newArea((uiAreaHandler *) (&h));
 	gtk_container_add(GTK_CONTAINER(scroller), area);

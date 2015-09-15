@@ -63,7 +63,6 @@ enum uiDrawLineJoin {
 
 enum uiDrawFillMode {
 	uiDrawFillModeWinding,
-	// TODO rename to EvenOdd?
 	uiDrawFillModeAlternate,
 };
 
@@ -90,35 +89,76 @@ void uiDrawCloseFigure(uiDrawContext *);
 void uiDrawStroke(uiDrawContext *, uiDrawStrokeParams *);
 void uiDrawFill(uiDrawContext *, uiDrawFillMode);
 
-// path functions
-// cairo			gdi						core graphics
-// move_to		MoveToEx				MoveToPoint
-// line_to			LineTo					AddLineToPoint
-// arc			Arc/ArcTo/AngleArc/Pie		AddArc/AddArcToPoint/AddEllipseInRect
-// arc_negative	Arc/ArcTo/AngleArc/Pie		AddArc/AddArcToPoint
-// curve_to		PolyBezier/PolyBezierTo		AddCurveToPoint
-// rectangle		Rectangle					AddRect
-// [arc functions?]	Chord					[arc functions?]
-// [combination]	RoundRect				[same way as cairo?]
-// [TODO pango]	TextOut/ExtTextOut			[TODO core text]
-// [TODO]		[TODO]					AddQuadCurveToPoint
+// TODO primitives:
+// - rounded rectangles
+// - elliptical arcs
+// - quadratic bezier curves
 
-// on sources:
-// cairo:
-// - RGB
-// - RGBA
-// - images
-// - linear gradients, RGB or RGBA
-// - rounded gradients, RGB or RGBA
-// gdi:
-// - RGB
-// - hatches
-// - images
-// we can create a linear gradient image, but RGB only, and of finite size
-// core graphics:
-// - arbitrary patterns
-// - solid colors, arbitrary spaces
-// - shadows
+typedef struct uiDrawFont uiDrawFont;
+typedef struct uiDrawFontSpec uiDrawFontSpec;
+typedef struct uiDrawTextBlockParams uiDrawTextBlockParams;
+typedef struct uiDrawFontMetrics uiDrawFontMetrics;
+typedef enum uiDrawTextWeight uiDrawTextWeight;
+typedef enum uiDrawTextAlign uiDrawTextAlign;
+
+enum uiDrawTextWeight {
+	uiDrawTextWeightThin,
+	uiDrawTextWeightExtraLight,
+	uiDrawTextWeightLight,
+	uiDrawTextWeightNormal,
+	uiDrawTextWeightMedium,
+	uiDrawTextWeightSemiBold,
+	uiDrawTextWeightBold,
+	uiDrawTextWeightExtraBold,
+	uiDrawTextWeightHeavy,
+};
+
+struct uiDrawFontSpec {
+	const char *Family;
+	uintmax_t PointSize;
+	uiDrawTextWeight Weight;
+	int Italic;			// always prefers true italics over obliques whenever possible
+	int Vertical;
+};
+
+enum uiDrawTextAlign {
+	uiDrawTextAlignLeft,
+	uiDrawTextAlignCenter,
+	uiDrawTextAlignRight,
+};
+
+struct uiDrawTextBlockParams {
+	intmax_t Width;
+	intmax_t FirstLineIndent;
+	intmax_t LineSpacing;
+	uiDrawTextAlign Align;
+	int Justify;
+};
+
+struct uiDrawFontMetrics {
+	// TODO
+	// metrics on Windows are per-device; other platforms not?
+};
+
+#define uiDrawTextPixelSizeToPointSize(pix, dpiY) \
+	((uintmax_t) ((((double) (pix)) * 72.0) / ((double) (dpiY))))
+#define uiDrawTextPointSizeToPixelSize(pt, dpiY) \
+	((uintmax_t) (((double) (pt)) * (((double) (dpiY)) / 72.0)))
+
+uiDrawFont *uiDrawPrepareFont(uiDrawFontSpec *);
+void uiDrawFreeFont(uiDrawFont *);
+
+void uiDrawText(uiDrawContext *, const char *, uiDrawFont *, intmax_t, intmax_t);
+void uiDrawTextBlock(uiDrawContext *, const char *, uiDrawFont *, intmax_t, intmax_t, uiDrawTextBlockParams *);
+void uiDrawTextExtents(uiDrawContext *, const char *, uiDrawFont *, intmax_t *, intmax_t *);
+intmax_t uiDrawTextExtentsBlockHeight(uiDrawContext *, const char *, uiDrawFont *, uiDrawTextBlockParams *);
+//TODOvoid uiDrawContextFontMetrics(uiDrawContext *, uiDrawFont *, uiDrawFontMetrics *);
+
+// TODO draw text, single line, control font
+// TODO draw text, wrapped to width, control font
+// TODO get text extents, single line, control font
+// TODO get text height for width, control font
+// TODO get font metrics, control font
 
 typedef enum uiModifiers uiModifiers;
 

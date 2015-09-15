@@ -76,6 +76,7 @@ struct uiDrawStrokeParams {
 void uiDrawBeginPathRGB(uiDrawContext *, uint8_t, uint8_t, uint8_t);
 // TODO verify these aren't alpha premultiplied anywhere
 void uiDrawBeginPathRGBA(uiDrawContext *, uint8_t, uint8_t, uint8_t, uint8_t);
+// TODO uiDrawBeginTextRGB(/RGBA?)
 
 void uiDrawMoveTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawLineTo(uiDrawContext *, intmax_t, intmax_t);
@@ -152,12 +153,14 @@ void uiDrawText(uiDrawContext *, const char *, uiDrawFont *, intmax_t, intmax_t)
 void uiDrawTextBlock(uiDrawContext *, const char *, uiDrawFont *, intmax_t, intmax_t, uiDrawTextBlockParams *);
 void uiDrawTextExtents(uiDrawContext *, const char *, uiDrawFont *, intmax_t *, intmax_t *);
 intmax_t uiDrawTextExtentsBlockHeight(uiDrawContext *, const char *, uiDrawFont *, uiDrawTextBlockParams *);
+// TODO width for number of lines
 //TODOvoid uiDrawContextFontMetrics(uiDrawContext *, uiDrawFont *, uiDrawFontMetrics *);
 
 // TODO draw text, single line, control font
 // TODO draw text, wrapped to width, control font
 // TODO get text extents, single line, control font
 // TODO get text height for width, control font
+// TODO width for number of lines, control font
 // TODO get font metrics, control font
 
 typedef enum uiModifiers uiModifiers;

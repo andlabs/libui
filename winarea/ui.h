@@ -76,6 +76,7 @@ struct uiDrawStrokeParams {
 void uiDrawBeginPathRGB(uiDrawContext *, uint8_t, uint8_t, uint8_t);
 // TODO verify these aren't alpha premultiplied anywhere
 void uiDrawBeginPathRGBA(uiDrawContext *, uint8_t, uint8_t, uint8_t, uint8_t);
+// TODO uiDrawBeginTextRGB(/RGBA?)
 
 void uiDrawMoveTo(uiDrawContext *, intmax_t, intmax_t);
 void uiDrawLineTo(uiDrawContext *, intmax_t, intmax_t);

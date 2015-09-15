@@ -3,7 +3,7 @@
 #include "area.h"
 #include <math.h>
 
-// #qo LIBS: user32 kernel32 gdi32 msimg32
+// #qo LIBS: user32 kernel32 usp10 gdi32 msimg32
 
 struct handler {
 	uiAreaHandler ah;

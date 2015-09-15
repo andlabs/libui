@@ -50,6 +50,7 @@ struct uniitem {
 	WCHAR *pwcChars;
 	int nChars;
 	WORD *clusters;
+	SCRIPT_LOGATTR *logattr;
 
 	ABC abc;
 };
@@ -130,6 +131,8 @@ static void resetItem(struct uniitem *item)
 	item->goffsets = NULL;
 	free(item->clusters);
 	item->clusters = NULL;
+	free(item->logattr);
+	item->logattr = NULL;
 }
 
 // step 5
@@ -186,6 +189,22 @@ static void placeItem(struct uniscribe *s, int n)
 		item->advances, item->goffsets, &(item->abc));
 	if (hr != S_OK)
 		logHRESULT("error placing glyphs in placeItem()", hr);
+}
+
+static void breakItem(struct uniscribe *s, int n)
+{
+	struct uniitem *item;
+	HRESULT hr;
+
+	item = &(s->items[n]);
+
+	// TODO uiAlloc
+	item->logattr = malloc(s->nChars * sizeof (SCRIPT_LOGATTR));
+	hr = ScriptBreak(item->pwcChars, item->nChars,
+		&(item->item.a),
+		item->logattr);
+	if (hr != S_OK)
+		logLastError("error breaking item in breakItem()");
 }
 
 static void uninitUniscribe(struct uniscribe *s)

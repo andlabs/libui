@@ -13,7 +13,7 @@ HRESULT initDraw(void)
 	return D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
 		&IID_ID2D1Factory,
 		&opts,
-		&d2dfactory);
+		(void **) (&d2dfactory));
 }
 
 void uninitDraw(void)
@@ -28,6 +28,7 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 	HDC dc;
 	RECT r;
 	ID2D1HwndRenderTarget *rt;
+	HRESULT hr;
 
 	// we need a DC for the DPI
 	// we *could* just use the screen DPI but why when we have a window handle and its DC has a DPI
@@ -56,7 +57,7 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 	hprops.pixelSize.height = r.bottom - r.top;
 	hprops.presentOptions = D2D1_PRESENT_OPTIONS_NONE;
 
-	hr = ID2D1Factory_CreateHwndRenderTarget(d2dfactory
+	hr = ID2D1Factory_CreateHwndRenderTarget(d2dfactory,
 		&props,
 		&hprops,
 		&rt);

@@ -13,14 +13,15 @@ struct uiArea {
 	int vwheelCarry;
 	clickCounter cc;
 	BOOL capturing;
+	ID2D1HwndRenderTarget *rt;
 };
 
-static void doPaint(uiArea *a, HDC dc, RECT *client, RECT *clip)
+static HRESULT doPaint(uiArea *a, ID2DRenderTarget *rt, RECT *client, RECT *clip)
 {
 	uiAreaHandler *ah = a->ah;
 	uiAreaDrawParams dp;
 
-	dp.Context = newContext(dc);
+	dp.Context = newContext(rt);
 
 	dp.ClientWidth = client->right - client->left;
 	dp.ClientHeight = client->bottom - client->top;
@@ -30,14 +31,12 @@ static void doPaint(uiArea *a, HDC dc, RECT *client, RECT *clip)
 	dp.ClipWidth = clip->right - clip->left;
 	dp.ClipHeight = clip->bottom - clip->top;
 
-	// TODO is this really the best for multimonitor setups?
-	dp.DPIX = GetDeviceCaps(dc, LOGPIXELSX);
-	dp.DPIY = GetDeviceCaps(dc, LOGPIXELSY);
-
 	dp.HScrollPos = a->hscrollpos;
 	dp.VScrollPos = a->vscrollpos;
 
+	ID2D1RenderTarget_BeginDraw(rt);
 	(*(ah->Draw))(ah, a, &dp);
+	return ID2D1RenderTarget_EndDraw(rt, NULL, NULL);
 }
 
 struct scrollParams {
@@ -475,10 +474,10 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 {
 	uiArea *a;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
-	HDC dc;
-	PAINTSTRUCT ps;
-	RECT client;
+	RECT client, clip;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+	D2D1_SIZE_U size;
+	HRESULT hr;
 
 	a = (uiArea *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (a == NULL) {
@@ -490,22 +489,49 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 	switch (uMsg) {
 	case WM_PAINT:
-		dc = BeginPaint(a->hwnd, &ps);
-		if (dc == NULL)
-			logLastError("error beginning paint in areaWndProc");
+		if (a->rt == NULL)
+			a->rt = makeHWNDRenderTarget(a->hwnd);
 		if (GetClientRect(a->hwnd, &client) == 0)
 			logLastError("error getting client rect in WM_PAINT in areaWndProc()");
-		doPaint(a, dc, &client, &(ps.rcPaint));
-		EndPaint(a->hwnd, &ps);
+		// TODO really FALSE?
+		if (GetUpdateRect(a->hwnd, &clip, FALSE) == 0)
+			logLastError("error getting clip rect in WM_PAINT in areaWndProc()");
+		hr = doPaint(a, (ID2D1RenderTarget *) (a->rt), &client, &clip);
+		switch (hr) {
+		case S_OK:
+			if (ValidateRect(a->hwnd, NULL) == 0)
+				logLastError("error validating rect ater WM_PAINT in areaWndProc()");
+			break;
+		case D2DERR_RECREATE_TARGET:
+			// DON'T validate the rect
+			// instead, simply drop the render target
+			// we'll get another WM_PAINT and make the render target again
+			ID2D1HwndRenderTarget_Release(a->rt);
+			a->rt = NULL;
+			break;
+		default:
+			logHRESULT("error painting in WM_PAINT in areaWndProc()", hr);
+		}
 		return 0;
 	case WM_PRINTCLIENT:
 		if (GetClientRect(a->hwnd, &client) == 0)
 			logLastError("error getting client rect in WM_PRINTCLIENT in areaWndProc()");
-		doPaint(a, (HDC) wParam, &client, &client);
+//TODO		doPaint(a, (HDC) wParam, &client, &client);
 		return 0;
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
+		if (a->rt == NULL)
+			a->rt = makeHWNDRenderTarget(a->hwnd);
+		else {
+			if (GetClientRect(a->hwnd, &client) == 0)
+				logLastError("error getting client rect for resizing Direct2D render target in areaWndProc()");
+			size.width = r.right - r.left;
+			size.height = r.bottom - r.top;
+			// don't track the error; we'll get that in EndDraw()
+			// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd370994%28v=vs.85%29.aspx
+			ID2D1HwndRenderTarget_Resize(a->rt, &size);
+		}
 		if ((*(a->ah->RedrawOnResize))(a->ah, a))
 			if (InvalidateRect(a->hwnd, NULL, TRUE) == 0)
 				logLastError("error redrawing area on resize in areaWndProc()");

@@ -21,6 +21,50 @@ void uninitDraw(void)
 	ID2D1Factory_Release(d2dfactory);
 }
 
+ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
+{
+	D2D1_RENDER_TARGET_PROPERTIES props;
+	D2D1_HWND_RENDER_TARGET_PROPERTIES hprops;
+	HDC dc;
+	RECT r;
+	ID2D1HwndRenderTarget *rt;
+
+	// we need a DC for the DPI
+	// we *could* just use the screen DPI but why when we have a window handle and its DC has a DPI
+	dc = GetDC(hwnd);
+	if (dc == NULL)
+		logLastError("error getting DC to find DPI in makeHWNDRenderTarget()");
+
+	ZeroMemory(&props, sizeof (D2D1_RENDER_TARGET_PROPERTIES));
+	props.type = D2D1_RENDER_TARGET_TYPE_DEFAULT;
+	props.pixelFormat.format = DXGI_FORMAT_UNKNOWN;
+	props.pixelFormat.alphaMode = D2D1_ALPHA_MODE_UNKNOWN;
+	props.dpiX = GetDeviceCaps(dc, LOGPIXELSX);
+	props.dpiY = GetDeviceCaps(dc, LOGPIXELSY);
+	props.usage = D2D1_RENDER_TARGET_USAGE_NONE;
+	props.minLevel = D2D1_FEATURE_LEVEL_DEFAULT;
+
+	if (ReleaseDC(hwnd, dc) == 0)
+		logLastError("error releasing DC for finding DPI in makeHWNDRenderTarget()");
+
+	if (GetClientRect(hwnd, &r) == 0)
+		logLastError("error getting current size of window in makeHWNDRenderTarget()");
+
+	ZeroMemory(&hprops, sizeof (D2D1_HWND_RENDER_TARGET_PROPERTIES));
+	hprops.hwnd = hwnd;
+	hprops.pixelSize.width = r.right - r.left;
+	hprops.pixelSize.height = r.bottom - r.top;
+	hprops.presentOptions = D2D1_PRESENT_OPTIONS_NONE;
+
+	hr = ID2D1Factory_CreateHwndRenderTarget(d2dfactory
+		&props,
+		&hprops,
+		&rt);
+	if (hr != S_OK)
+		logHRESULT("error creating area HWND render target in makeHWNDRenderTarget()", hr);
+	return rt;
+}
+
 struct uiDrawContext {
 	HDC dc;
 

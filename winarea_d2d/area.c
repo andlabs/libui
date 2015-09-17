@@ -16,7 +16,7 @@ struct uiArea {
 	ID2D1HwndRenderTarget *rt;
 };
 
-static HRESULT doPaint(uiArea *a, ID2DRenderTarget *rt, RECT *client, RECT *clip)
+static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *client, RECT *clip)
 {
 	uiAreaHandler *ah = a->ah;
 	uiAreaDrawParams dp;
@@ -526,8 +526,8 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 		else {
 			if (GetClientRect(a->hwnd, &client) == 0)
 				logLastError("error getting client rect for resizing Direct2D render target in areaWndProc()");
-			size.width = r.right - r.left;
-			size.height = r.bottom - r.top;
+			size.width = client.right - client.left;
+			size.height = client.bottom - client.top;
 			// don't track the error; we'll get that in EndDraw()
 			// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd370994%28v=vs.85%29.aspx
 			ID2D1HwndRenderTarget_Resize(a->rt, &size);

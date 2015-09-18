@@ -664,6 +664,7 @@ HWND makeArea(DWORD exstyle, DWORD style, int x, int y, int cx, int cy, HWND par
 
 	// TODO
 	a = malloc(sizeof (uiArea));
+a->rt = NULL;
 
 	a->ah = ah;
 

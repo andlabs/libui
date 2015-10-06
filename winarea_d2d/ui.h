@@ -39,6 +39,7 @@ struct uiAreaDrawParams {
 // TODO proper sources
 // TODO dotting/dashing
 
+typedef struct uiDrawPath uiDrawPath;
 typedef struct uiDrawStrokeParams uiDrawStrokeParams;
 typedef enum uiDrawLineCap uiDrawLineCap;
 typedef enum uiDrawLineJoin uiDrawLineJoin;
@@ -73,21 +74,21 @@ struct uiDrawStrokeParams {
 	double MiterLimit;
 };
 
-void uiDrawBeginPathRGB(uiDrawContext *, uint8_t, uint8_t, uint8_t);
-// TODO verify these aren't alpha premultiplied anywhere
-void uiDrawBeginPathRGBA(uiDrawContext *, uint8_t, uint8_t, uint8_t, uint8_t);
+uiDrawPath *uiDrawNewPath(uiDrawFillMode);
 
-void uiDrawMoveTo(uiDrawContext *, intmax_t, intmax_t);
-void uiDrawLineTo(uiDrawContext *, intmax_t, intmax_t);
-void uiDrawRectangle(uiDrawContext *, intmax_t, intmax_t, intmax_t, intmax_t);
+void uiDrawPathNewFigure(uiDrawPath *, double, double);
+void uiDrawPathLineTo(uiDrawPath *, double, double);
 // notes: angles are both relative to 0 and go counterclockwise
-void uiDrawArcTo(uiDrawContext *, intmax_t, intmax_t, intmax_t, double, double, int);
-// TODO behavior when there is no initial point on Windows and OS X
-void uiDrawBezierTo(uiDrawContext *, intmax_t, intmax_t, intmax_t, intmax_t, intmax_t, intmax_t);
-void uiDrawCloseFigure(uiDrawContext *);
+void uiDrawPathArcTo(uiDrawPath *, double, double, double, double, double);
+void uiDrawPathBezierTo(uiDrawPath *, double, double, double, double, double, double);
+void uiDrawPathCloseFigure(uiDrawPath *);
 
-void uiDrawStroke(uiDrawContext *, uiDrawStrokeParams *);
-void uiDrawFill(uiDrawContext *, uiDrawFillMode);
+void uiDrawPathAddRectangle(uiDrawPath *, double, double, double, double);
+
+void uiDrawPathEnd(uiDrawPath *);
+
+void uiDrawStroke(uiDrawContext *, uiDrawPath *, uiDrawStrokeParams *);
+void uiDrawFill(uiDrawContext *, uiDrawPath *);
 
 // TODO primitives:
 // - rounded rectangles

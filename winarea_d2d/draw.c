@@ -66,12 +66,9 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 	return rt;
 }
 
+// TODO move below the path stuff
 struct uiDrawContext {
 	ID2D1RenderTarget *rt;
-
-	ID2D1PathGeometry *path;
-	ID2D1GeometrySink *sink;
-	BOOL inFigure;
 
 	// source color
 	BOOL useRGB;
@@ -115,82 +112,121 @@ void uiDrawBeginPathRGBA(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b, uint
 	c->inFigure = FALSE;
 }
 
-void uiDrawMoveTo(uiDrawContext *c, intmax_t x, intmax_t y)
-{
-	D2D1_POINT_2F p;
+struct uiDrawPath {
+	ID2D1PathGeometry *path;
+	ID2D1GeometrySink *sink;
+	BOOL inFigure;
+};
 
-	if (c->inFigure)
+uiDrawPath *uiDrawNewPath(uiDrawFillMode fillmode)
+{
+	uiDrawPath *p;
+	HRESULT hr;
+
+	// TODO uiNew
+	p = malloc(sizeof (uiDrawPath));
+	hr = ID2D1Factory_CreatePathGeometry(d2dfactory,
+		&(p->path));
+	// TODO make sure this is the only success code
+	if (hr != S_OK)
+		logHRESULT("error creating path in uiDrawNewPath()", hr);
+	hr = ID2D1PathGeometry_Open(p->path,
+		&(p->sink));
+	if (hr != S_OK)
+		logHRESULT("error opening path in uiDrawNewPath()", hr);
+	switch (fillmode) {
+	case uiDrawFIllModeWinding:
+		ID2D1GeometrySink_SetFillMode(s->sink,
+			D2D1_FILL_MODE_WINDING);
+		break;
+	case uiDrawFillModeAlternate:
+		ID2D1GeometrySink_SetFillMode(s->sink,
+			D2D1_FILL_MODE_ALTERNATE);
+		break;
+	}
+p->inFigure = FALSE;
+	return p;
+}
+
+void uiDrawFreePath(uiDrawPath *p)
+{
+	if (p->inFigure)
+		ID2D1GeometrySink_EndFigure(p->sink,
+			D2D1_FIGURE_END_OPEN);
+	if (p->sink != NULL)
+		// TODO close sink first?
+		ID2D1GeometrySink_Release(p->sink);
+	ID2D1PathGeometry_Release(p->path);
+	// TODO uiFree
+	free(p);
+}
+
+void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
+{
+	D2D1_POINT_2F pt;
+
+	if (p->inFigure)
 		ID2D1GeometrySink_EndFigure(c->sink,
 			D2D1_FIGURE_END_OPEN);
-	p.x = ((FLOAT) x) + 0.5;
-	p.y = ((FLOAT) y) + 0.5;
-	ID2D1GeometrySink_BeginFigure(c->sink,
-		p,
+	p.x = x;
+	p.y = y;
+	ID2D1GeometrySink_BeginFigure(p->sink,
+		pt,
 		D2D1_FIGURE_BEGIN_FILLED);
-	c->inFigure = TRUE;
+	p->inFigure = TRUE;
 }
 
-void uiDrawLineTo(uiDrawContext *c, intmax_t x, intmax_t y)
+void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 {
-	D2D1_POINT_2F p;
+	D2D1_POINT_2F pt;
 
-	p.x = ((FLOAT) x) + 0.5;
-	p.y = ((FLOAT) y) + 0.5;
-	ID2D1GeometrySink_AddLine(c->sink, p);
+	pt.x = x;
+	pt.y = y;
+	ID2D1GeometrySink_AddLine(p->sink, pt);
 }
 
-void uiDrawRectangle(uiDrawContext *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
-{
-	// TODO
-}
-
-void uiDrawArcTo(uiDrawContext *c, intmax_t xCenter, intmax_t yCenter, intmax_t radius, double startAngle, double endAngle, int lineFromCurrentPointToStart)
-{
-	if (!lineFromCurrentPointToStart) {
-		int bx, by, bx2, by2;
-		int sx, sy, ex, ey;
-
-		// see http://stackoverflow.com/questions/32465446/how-do-i-inhibit-the-initial-line-segment-of-an-anglearc
-		// the idea for floor(x + 0.5) is inspired by wine
-		// TODO make sure this is an accurate imitation of AngleArc()
-		bx = xCenter - radius;
-		by = yCenter - radius;
-		bx2 = xCenter + radius;
-		by2 = yCenter + radius;
-		sx = xCenter + floor((double) radius * cos(startAngle));
-		sy = yCenter - floor((double) radius * sin(startAngle));
-		ex = xCenter + floor((double) radius * cos(endAngle));
-		ey = yCenter - floor((double) radius * sin(endAngle));
-/* TODO
-		if (Arc(c->dc, bx, by, bx2, by2, sx, sy, ex, ey) == 0)
-			logLastError("error drawing current point arc in uiDrawArc()");
-		return;
-*/
-	}
-/* TODO
-	// AngleArc() expects degrees
-	startAngle *= (180.0 / M_PI);
-	endAngle *= (180.0 / M_PI);
-	if (AngleArc(c->dc,
-		xCenter, yCenter,
-		radius,
-		startAngle,
-		// the "sweep angle" is relative to the start angle, not to 0
-		endAngle - startAngle) == 0)
-		logLastError("error drawing arc in uiDrawArc()");
-*/
-}
-
-void uiDrawBezierTo(uiDrawContext *c, intmax_t c1x, intmax_t c1y, intmax_t c2x, intmax_t c2y, intmax_t endX, intmax_t endY)
+void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
 {
 	// TODO
 }
 
-void uiDrawCloseFigure(uiDrawContext *c)
+void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY)
 {
-	ID2D1GeometrySink_EndFigure(c->sink,
+	D2D1_BEZIER_SEGMENT s;
+
+	s.point1.x = c1x;
+	s.point1.y = c1y;
+	s.point2.x = c2x;
+	s.point2.y = c2y;
+	s.point3.x = endX;
+	s.point3.y = endY;
+	ID2D1GeometrySink_AddBezier(p->sink, &s);
+}
+
+void uiDrawPathCloseFigure(uiDrawPath *p)
+{
+	ID2D1GeometrySink_EndFigure(p->sink,
 		D2D1_FIGURE_END_CLOSED);
-	c->inFigure = FALSE;
+	p->inFigure = FALSE;
+}
+
+void uiDrawPathAddRectangle(uiDrawPath *p, double x0, double y0, double xxxxTODOxxxx, double xxxTODOxxxxxxxxxx)
+{
+	// TODO
+}
+
+void uiDrawPathEnd(uiDrawPath *p)
+{
+	HRESULT hr;
+
+	if (p->inFigure)
+		ID2D1GeometrySink_EndFigure(c->sink,
+			D2D1_FIGURE_END_OPEN);
+	hr = ID2D1GeometrySink_Close(p->sink);
+	if (hr != S_OK)
+		logHRESULT("error closing path in uiDrawPathEnd()", hr);
+	ID2D1GeometrySink_Release(p->sink);
+	p->sink = NULL;
 }
 
 static ID2D1SolidColorBrush *makeBrush(uiDrawContext *c)

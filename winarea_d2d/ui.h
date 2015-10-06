@@ -75,13 +75,16 @@ struct uiDrawStrokeParams {
 };
 
 uiDrawPath *uiDrawNewPath(uiDrawFillMode);
+void uiDrawFreePath(uiDrawPath *);
 
 void uiDrawPathNewFigure(uiDrawPath *, double, double);
+// TODO uiDrawPathNewFigureWithArc
 void uiDrawPathLineTo(uiDrawPath *, double, double);
 // notes: angles are both relative to 0 and go counterclockwise
 // TODO is the initial line segment on cairo and OS X a proper join?
 void uiDrawPathArcTo(uiDrawPath *, double, double, double, double, double);
 void uiDrawPathBezierTo(uiDrawPath *, double, double, double, double, double, double);
+// TODO quadratic bezier
 void uiDrawPathCloseFigure(uiDrawPath *);
 
 void uiDrawPathAddRectangle(uiDrawPath *, double, double, double, double);

@@ -143,19 +143,20 @@ static void arcStartXY(double xCenter, double yCenter, double radius, double sta
 	*startY = yCenter + radius * sinStart;
 }
 
+// TODO this is a mess.
 static void doDrawArc(ID2D1GeometrySink *sink, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
 {
 	double delta;
-	double add;
+	int negative;
 	D2D1_ARC_SEGMENT as;
 	double endX, endY;
 
 	delta = endAngle - startAngle;
-	add = M_PI;
+	negative = 1;
 	// TODO why do I have to do this? if delta == 360 nothing gets drawn regardless of parameter values
 	while (delta > M_PI) {
-		// this line alternates between getting the 180 degree and 360 degree point; the add variable does the alternating
-		arcStartXY(xCenter, yCenter, radius, startAngle + add, &endX, &endY);
+		// this line alternates between getting the 180 degree and 360 degree point; the negative variable does the alternating
+		arcStartXY(xCenter, yCenter, radius, startAngle + (negative * M_PI), &endX, &endY);
 		as.point.x = endX;
 		as.point.y = endY;
 		as.size.width = radius;
@@ -165,7 +166,10 @@ static void doDrawArc(ID2D1GeometrySink *sink, double xCenter, double yCenter, d
 		as.arcSize = D2D1_ARC_SIZE_SMALL;
 		ID2D1GeometrySink_AddArc(sink, &as);
 		delta -= M_PI;
-		add += M_PI;
+		if (negative == 0)
+			negative = 1;
+		else
+			negative = 0;
 	}
 
 	arcStartXY(xCenter, yCenter, radius, endAngle, &endX, &endY);
@@ -175,12 +179,16 @@ static void doDrawArc(ID2D1GeometrySink *sink, double xCenter, double yCenter, d
 	as.size.height = radius;
 	// Direct2D expects degrees
 	as.rotationAngle = delta * (180.0 / M_PI);
+	if (!negative)
+		as.rotationAngle += 180;
 	as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
 	as.arcSize = D2D1_ARC_SIZE_SMALL;
+	if (!negative)
+		as.arcSize = D2D1_ARC_SIZE_LARGE;
 	ID2D1GeometrySink_AddArc(sink, &as);
 }
 
-void uiDrawPathNewFigureWIthArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
 {
 	double startX, startY;
 
@@ -324,6 +332,7 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 	return NULL;		// make compiler happy
 }
 
+// TODO use stroke params
 void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeParams *sp)
 {
 	ID2D1Brush *brush;

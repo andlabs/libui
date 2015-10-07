@@ -36,56 +36,75 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, path, &brush, &sp);
 	uiDrawFreePath(path);
-/*
-	uiDrawBeginPathRGB(p->Context, 0x00, 0x00, 0xC0);
-	uiDrawMoveTo(p->Context, p->ClipX, p->ClipY);
-	uiDrawLineTo(p->Context, p->ClipX + p->ClipWidth, p->ClipY);
-	uiDrawLineTo(p->Context, 50, 150);
-	uiDrawLineTo(p->Context, 50, 50);
-	uiDrawCloseFigure(p->Context);
+
+	brush.R = 0;
+	brush.G = 0;
+	brush.B = 0.75;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, p->ClipX, p->ClipY);
+	uiDrawPathLineTo(path, p->ClipX + p->ClipWidth, p->ClipY);
+	uiDrawPathLineTo(path, 50, 150);
+	uiDrawPathLineTo(path, 50, 50);
+	uiDrawPathCloseFigure(path);
+	uiDrawPathEnd(path);
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinRound;
 	sp.Thickness = 5;
-	uiDrawStroke(p->Context, &sp);
+	uiDrawStroke(p->Context, path, &brush, &sp);
+	uiDrawFreePath(path);
 
-	uiDrawBeginPathRGBA(p->Context, 0x00, 0xC0, 0x00, 0x80);
-	uiDrawRectangle(p->Context, 120, 80, 50, 50);
-	uiDrawFill(p->Context, uiDrawFillModeWinding);
+	brush.R = 0;
+	brush.G = 0.75;
+	brush.B = 0;
+	brush.A = 0.5;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+//TODO	uiDrawRectangle(path, 120, 80, 50, 50);
+	uiDrawPathEnd(path);
+//	uiDrawFill(p->Context, path, &brush);
+	uiDrawFreePath(path);
+	brush.A = 1;
 
-	uiDrawBeginPathRGB(p->Context, 0x00, 0x80, 0x00);
-	uiDrawMoveTo(p->Context, 5, 10);
-	uiDrawLineTo(p->Context, 5, 50);
+	brush.R = 0;
+	brush.G = 0.5;
+	brush.B = 0;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 5, 10);
+	uiDrawPathLineTo(path, 5, 50);
+	uiDrawPathEnd(path);
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.Thickness = 1;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
-	uiDrawStroke(p->Context, &sp);
+	uiDrawStroke(p->Context, path, &brush, &sp);
+	uiDrawFreePath(path);
 
-	uiDrawBeginPathRGB(p->Context, 0x80, 0xC0, 0x00);
-	uiDrawMoveTo(p->Context, 400, 100);
-	uiDrawArcTo(p->Context,
+	brush.R = 0.5;
+	brush.G = 0.75;
+	brush.B = 0;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 400, 100);
+	uiDrawPathArcTo(path,
 		400, 100,
 		50,
 		30. * (M_PI / 180.),
 		// note the end angle here
 		// in GDI, the second angle to AngleArc() is relative to the start, not to 0
-		330. * (M_PI / 180.),
-		1);
+		330. * (M_PI / 180.));
 	// TODO add a checkbox for this
-	uiDrawLineTo(p->Context, 400, 100);
-	uiDrawArcTo(p->Context,
+	uiDrawPathLineTo(path, 400, 100);
+	uiDrawPathNewFigureWithArc(path,
 		510, 100,
 		50,
 		30. * (M_PI / 180.),
-		330. * (M_PI / 180.),
-		0);
-	uiDrawCloseFigure(p->Context);
+		330. * (M_PI / 180.));
+	uiDrawPathCloseFigure(path);
+	uiDrawPathEnd(path);
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.Thickness = 1;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
-	uiDrawStroke(p->Context, &sp);
-
+	uiDrawStroke(p->Context, path, &brush, &sp);
+/*
 	uiDrawBeginPathRGB(p->Context, 0x00, 0x80, 0xC0);
 	uiDrawMoveTo(p->Context, 300, 300);
 	uiDrawBezierTo(p->Context,

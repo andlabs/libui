@@ -321,17 +321,62 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 	return NULL;		// make compiler happy
 }
 
-// TODO use stroke params
 void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeParams *sp)
 {
 	ID2D1Brush *brush;
+	ID2D1StrokeStyle *style;
+	D2D1_STROKE_STYLE_PROPERTIES dsp;
+	HRESULT hr;
 
 	brush = makeBrush(b, c->rt);
+
+	ZeroMemory(&dsp, sizeof (D2D1_STROKE_STYLE_PROPERTIES));
+	switch (sp->Cap) {
+	case uiDrawLineCapFlat:
+		dsp.startCap = D2D1_CAP_STYLE_FLAT;
+		dsp.endCap = D2D1_CAP_STYLE_FLAT;
+		dsp.dashCap = D2D1_CAP_STYLE_FLAT;
+		break;
+	case uiDrawLineCapRound:
+		dsp.startCap = D2D1_CAP_STYLE_ROUND;
+		dsp.endCap = D2D1_CAP_STYLE_ROUND;
+		dsp.dashCap = D2D1_CAP_STYLE_ROUND;
+		break;
+	case uiDrawLineCapSquare:
+		dsp.startCap = D2D1_CAP_STYLE_SQUARE;
+		dsp.endCap = D2D1_CAP_STYLE_SQUARE;
+		dsp.dashCap = D2D1_CAP_STYLE_SQUARE;
+		break;
+	}
+	switch (sp->Join) {
+	case uiDrawLineJoinMiter:
+		dsp.lineJoin = D2D1_LINE_JOIN_MITER_OR_BEVEL;
+		dsp.miterLimit = sp->MiterLimit;
+		break;
+	case uiDrawLineJoinRound:
+		dsp.lineJoin = D2D1_LINE_JOIN_ROUND;
+		break;
+	case uiDrawLineJoinBevel:
+		dsp.lineJoin = D2D1_LINE_JOIN_BEVEL;
+		break;
+	}
+	dsp.dashStyle = D2D1_DASH_STYLE_SOLID;
+	dsp.dashOffset = 0;
+	hr = ID2D1Factory_CreateStrokeStyle(d2dfactory,
+		&dsp,
+		NULL,
+		0,
+		&style);
+	if (hr != S_OK)
+		logHRESULT("error creating stroke style in uiDrawStroke()", hr);
+
 	ID2D1RenderTarget_DrawGeometry(c->rt,
 		(ID2D1Geometry *) (p->path),
 		brush,
 		sp->Thickness,
-		NULL);
+		style);
+
+	ID2D1StrokeStyle_Release(style);
 	ID2D1Brush_Release(brush);
 }
 

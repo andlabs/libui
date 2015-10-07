@@ -20,6 +20,8 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *client, RECT *cli
 {
 	uiAreaHandler *ah = a->ah;
 	uiAreaDrawParams dp;
+	COLORREF bgcolorref;
+	D2D1_COLOR_F bgcolor;
 
 	dp.Context = newContext(rt);
 
@@ -35,7 +37,17 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *client, RECT *cli
 	dp.VScrollPos = a->vscrollpos;
 
 	ID2D1RenderTarget_BeginDraw(rt);
+
+	// TODO only clear the clip area
+	bgcolorref = GetSysColor(COLOR_BTNFACE);
+	bgcolor.r = ((float) GetRValue(bgcolorref)) / 255.0;
+	bgcolor.g = ((float) GetGValue(bgcolorref)) / 255.0;
+	bgcolor.b = ((float) GetBValue(bgcolorref)) / 255.0;
+	bgcolor.a = 1.0;
+	ID2D1RenderTarget_Clear(rt, &bgcolor);
+
 	(*(ah->Draw))(ah, a, &dp);
+
 	return ID2D1RenderTarget_EndDraw(rt, NULL, NULL);
 }
 

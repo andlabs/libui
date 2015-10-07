@@ -102,14 +102,6 @@ void uiDrawBeginPathRGBA(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b, uint
 	c->g = g;
 	c->b = b;
 	c->a = a;
-
-	hr = ID2D1Factory_CreatePathGeometry(d2dfactory, &(c->path));
-	if (hr != S_OK)
-		logHRESULT("error creating path in uiDrawBeginPathRGBA()", hr);
-	hr = ID2D1PathGeometry_Open(c->path, &(c->sink));
-	if (hr != S_OK)
-		logHRESULT("error opening path sink in uiDrawBeginPathRGBA()", hr);
-	c->inFigure = FALSE;
 }
 
 struct uiDrawPath {
@@ -176,6 +168,64 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	p->inFigure = TRUE;
 }
 
+static void arcStartXY(double xCenter, double yCenter, double radius, double startAngle, double *startX, double *startY)
+{
+	FLOAT sinStart, cosStart;
+
+	ID2D1SinCos(startAngle, &sinStart, &cosStart);
+	*startX = xCenter + radius * cosStart;
+	*startY = yCenter + radius * sinStart;
+}
+
+static void doDrawArc(ID2D1GeometrySink *sink, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+{
+	double delta;
+	double add;
+	D2D1_ARC_SEGMENT as;
+	double endX, endY;
+
+	delta = endAngle - startAngle;
+	add = M_PI;
+	// TODO why do I have to do this? if delta == 360 nothing gets drawn regardless of parameter values
+	while (delta > M_PI) {
+		// this line alternates between getting the 180 degree and 360 degree point; the add variable does the alternating
+		arcStartXY(xCenter, yCenter, radius, startAngle + add, &endX, &endY);
+		as.point.x = endX;
+		as.point.y = endY;
+		as.size.width = radius;
+		as.size.height = radius;
+		as.rotationAngle = 180;
+		as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
+		as.arcSize = D2D1_ARC_SIZE_SMALL;
+		ID2D1GeometrySink_AddArc(sink, &as);
+		delta -= M_PI;
+		add += M_PI;
+	}
+
+	arcStartXY(xCenter, yCenter, radius, endAngle, &endX, &endY);
+	as.point.x = endX;
+	as.point.y = endY;
+	as.size.width = radius;
+	as.size.height = radius;
+	// Direct2D expects degrees
+	as.rotationAngle = delta * (180.0 / M_PI);
+	as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
+	as.arcSize = D2D1_ARC_SIZE_SMALL;
+	ID2D1GeometrySink_AddArc(sink, &as);
+}
+
+void uiDrawPathNewFigureWIthArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+{
+	double startX, startY;
+
+	// make the new figure
+	arcStartXY(xCenter, yCenter, radius, startAngle, &startX, &startY);
+	uiDrawPathNewFigure(p, startX, startY);
+
+	// draw the arc
+	doDrawArc(p->sink, xCenter, yCenter, radius, startAngle, endAngle);
+}
+
 void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 {
 	D2D1_POINT_2F pt;
@@ -187,7 +237,14 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 
 void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
 {
-	// TODO
+	double startX, startY;
+
+	// draw the starting line
+	arcStartXY(xCenter, yCenter, radius, startAngle, &startX, &startY);
+	uiDrawPathLineTo(p, startX, startY);
+
+	// draw the arc
+	doDrawArc(p->sink, xCenter, yCenter, radius, startAngle, endAngle);
 }
 
 void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY)

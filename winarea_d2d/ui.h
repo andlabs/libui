@@ -78,7 +78,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode);
 void uiDrawFreePath(uiDrawPath *);
 
 void uiDrawPathNewFigure(uiDrawPath *, double, double);
-// TODO uiDrawPathNewFigureWithArc
+void uiDrawPathNewFigureWithArc(uiDrawPath *, double, double, double, double, double);
 void uiDrawPathLineTo(uiDrawPath *, double, double);
 // notes: angles are both relative to 0 and go counterclockwise
 // TODO is the initial line segment on cairo and OS X a proper join?

@@ -36,14 +36,25 @@ struct uiAreaDrawParams {
 	intmax_t VScrollPos;
 };
 
-// TODO proper sources
 // TODO dotting/dashing
 
 typedef struct uiDrawPath uiDrawPath;
+typedef struct uiDrawBrush uiDrawBrush;
 typedef struct uiDrawStrokeParams uiDrawStrokeParams;
+
+typedef enum uiDrawBrushType uiDrawBrushType;
+typedef struct uiDrawBrushGradientStop uiDrawBrushGradientStop;
+
 typedef enum uiDrawLineCap uiDrawLineCap;
 typedef enum uiDrawLineJoin uiDrawLineJoin;
 typedef enum uiDrawFillMode uiDrawFillMode;
+
+enum uiDrawBrushType {
+	uiDrawBrushTypeSolid,
+/*TODO	uiDrawBrushTypeLinearGradient,
+	uiDrawBrushTypeRadialGradient,
+	uiDrawBrushTypeImage,
+*/};
 
 enum uiDrawLineCap {
 	uiDrawLineCapFlat,
@@ -65,6 +76,35 @@ enum uiDrawLineJoin {
 enum uiDrawFillMode {
 	uiDrawFillModeWinding,
 	uiDrawFillModeAlternate,
+};
+
+struct uiDrawBrush {
+	uiDrawBrushType Type;
+
+	// solid brushes
+	double R;
+	double G;
+	double B;
+	double A;
+
+	// gradient brushes
+	double X0;		// linear: start X, radial: start X
+	double Y0;		// linear: start Y, radial: start Y
+	double X1;		// linear: end X, radial: outer circle center X
+	double Y1;		// linear: end Y, radial: outer circle center Y
+	double OuterRadius;		// radial gradients only
+	uiDrawBrushGradientStop *Stops;
+	size_t NumStops;
+
+	// TODO images
+};
+
+struct uiDrawBrushGradientStop {
+	double Pos;
+	double R;
+	double G;
+	double B;
+	double A;
 };
 
 struct uiDrawStrokeParams {
@@ -91,8 +131,8 @@ void uiDrawPathAddRectangle(uiDrawPath *, double, double, double, double);
 
 void uiDrawPathEnd(uiDrawPath *);
 
-void uiDrawStroke(uiDrawContext *, uiDrawPath *, uiDrawStrokeParams *);
-void uiDrawFill(uiDrawContext *, uiDrawPath *);
+void uiDrawStroke(uiDrawContext *, uiDrawPath *, uiDrawBrush *, uiDrawStrokeParams *);
+void uiDrawFill(uiDrawContext *, uiDrawPath *, uiDrawBrush *);
 
 // TODO primitives:
 // - rounded rectangles

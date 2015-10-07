@@ -286,11 +286,69 @@ static ID2D1Brush *makeSolidBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BR
 	return (ID2D1Brush *) brush;
 }
 
-/* TODO
-static ID2D1Brush *makeLinearBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
+static ID2D1GradientStopCollection *mkstops(uiDrawBrush *b, ID2D1RenderTarget *rt)
 {
+	ID2D1GradientStopCollection *s;
+	D2D1_GRADIENT_STOP *stops;
+	size_t i;
+	HRESULT hr;
+
+	// TODO uiAlloc
+	stops = malloc(b->NumStops * sizeof (D2D1_GRADIENT_STOP));
+	for (i = 0; i < b->NumStops; i++) {
+		stops[i].position = b->Stops[i].Pos;
+		stops[i].color.r = b->Stops[i].R;
+		stops[i].color.g = b->Stops[i].G;
+		stops[i].color.b = b->Stops[i].B;
+		stops[i].color.a = b->Stops[i].A;
+	}
+
+	// TODO BUG IN MINGW
+	// the Microsoft headers give this all 6 parameters
+	// the MinGW headers use the 4-parameter version
+	hr = (*(rt->lpVtbl->CreateGradientStopCollection))(rt,
+		stops,
+		b->NumStops,
+		D2D1_GAMMA_2_2,			// this is the default for the C++-only overload of ID2D1RenderTarget::GradientStopCollection()
+		D2D1_EXTEND_MODE_CLAMP,
+		&s);
+	if (hr != S_OK)
+		logHRESULT("error creating stop collection in mkstops()", hr);
+
+	// TODO uiFree
+	free(stops);
+	return s;
 }
 
+static ID2D1Brush *makeLinearBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
+{
+	ID2D1LinearGradientBrush *brush;
+	D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES gprops;
+	ID2D1GradientStopCollection *stops;
+	HRESULT hr;
+
+	ZeroMemory(&gprops, sizeof (D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES));
+	gprops.startPoint.x = b->X0;
+	gprops.startPoint.y = b->Y0;
+	gprops.endPoint.x = b->X1;
+	gprops.endPoint.y = b->Y1;
+
+	stops = mkstops(b, rt);
+
+	hr = ID2D1RenderTarget_CreateLinearGradientBrush(rt,
+		&gprops,
+		props,
+		stops,
+		&brush);
+	if (hr != S_OK)
+		logHRESULT("error creating gradient brush in makeLinearBrush()", hr);
+
+	// the example at https://msdn.microsoft.com/en-us/library/windows/desktop/dd756682%28v=vs.85%29.aspx says this is safe to do now
+	ID2D1GradientStopCollection_Release(stops);
+	return (ID2D1Brush *) brush;
+}
+
+/* TODO
 static ID2D1Brush *makeRadialBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
 {
 }
@@ -309,8 +367,8 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 	switch (b->Type) {
 	case uiDrawBrushTypeSolid:
 		return makeSolidBrush(b, rt, &props);
-//	case uiDrawBrushTypeLinearGradient:
-//		return makeLinearBrush(b, rt, &props);
+	case uiDrawBrushTypeLinearGradient:
+		return makeLinearBrush(b, rt, &props);
 //	case uiDrawBrushTypeRadialGradient:
 //		return makeRadialBrush(b, rt, &props);
 //	case uiDrawBrushTypeImage:

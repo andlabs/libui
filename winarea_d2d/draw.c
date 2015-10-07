@@ -130,7 +130,7 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	p->inFigure = TRUE;
 }
 
-static void arcStartXY(double xCenter, double yCenter, double radius, double startAngle, double *startX, double *startY)
+static void arcEndpoint(double xCenter, double yCenter, double radius, double startAngle, double *startX, double *startY)
 {
 	FLOAT sinStart, cosStart;
 
@@ -143,61 +143,43 @@ static void arcStartXY(double xCenter, double yCenter, double radius, double sta
 	*startY = yCenter + radius * sinStart;
 }
 
-// TODO this is a mess.
-static void doDrawArc(ID2D1GeometrySink *sink, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+// An arc in Direct2D is defined by the chord between its endpoints, not solely by the sweep angle.
+// There are four possible arcs with the same sweep amount that you can draw this way.
+// See https://www.youtube.com/watch?v=ATS0ANW1UxQ for a demonstration.
+// TODO stress test this, compare to cairo and Core Graphics; handle the case where sweep >= 2π
+static void doDrawArc(ID2D1GeometrySink *sink, double startX, double startY, double endX, double endY, double radius, double sweep)
 {
-	double delta;
-	int negative;
 	D2D1_ARC_SEGMENT as;
-	double endX, endY;
 
-	delta = endAngle - startAngle;
-	negative = 1;
-	// TODO why do I have to do this? if delta == 360 nothing gets drawn regardless of parameter values
-	while (delta > M_PI) {
-		// this line alternates between getting the 180 degree and 360 degree point; the negative variable does the alternating
-		arcStartXY(xCenter, yCenter, radius, startAngle + (negative * M_PI), &endX, &endY);
-		as.point.x = endX;
-		as.point.y = endY;
-		as.size.width = radius;
-		as.size.height = radius;
-		as.rotationAngle = 180;
-		as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
-		as.arcSize = D2D1_ARC_SIZE_SMALL;
-		ID2D1GeometrySink_AddArc(sink, &as);
-		delta -= M_PI;
-		if (negative == 0)
-			negative = 1;
-		else
-			negative = 0;
-	}
-
-	arcStartXY(xCenter, yCenter, radius, endAngle, &endX, &endY);
 	as.point.x = endX;
 	as.point.y = endY;
 	as.size.width = radius;
 	as.size.height = radius;
-	// Direct2D expects degrees
-	as.rotationAngle = delta * (180.0 / M_PI);
-	if (!negative)
-		as.rotationAngle += 180;
-	as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
-	as.arcSize = D2D1_ARC_SIZE_SMALL;
-	if (!negative)
+	as.rotationAngle = sweep * (180.0 / M_PI);
+	// TODO explain this
+	if (sweep < 0)
+		as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
+	else
+		as.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE;
+	if (fabs(sweep) > M_PI)
 		as.arcSize = D2D1_ARC_SIZE_LARGE;
+	else
+		as.arcSize = D2D1_ARC_SIZE_SMALL;
 	ID2D1GeometrySink_AddArc(sink, &as);
 }
 
 void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
 {
 	double startX, startY;
+	double endX, endY;
 
 	// make the new figure
-	arcStartXY(xCenter, yCenter, radius, startAngle, &startX, &startY);
+	arcEndpoint(xCenter, yCenter, radius, startAngle, &startX, &startY);
 	uiDrawPathNewFigure(p, startX, startY);
 
 	// draw the arc
-	doDrawArc(p->sink, xCenter, yCenter, radius, startAngle, endAngle);
+	arcEndpoint(xCenter, yCenter, radius, endAngle, &endX, &endY);
+	doDrawArc(p->sink, startX, startY, endX, endY, radius, endAngle - startAngle);
 }
 
 void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
@@ -212,13 +194,15 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
 {
 	double startX, startY;
+	double endX, endY;
 
 	// draw the starting line
-	arcStartXY(xCenter, yCenter, radius, startAngle, &startX, &startY);
+	arcEndpoint(xCenter, yCenter, radius, startAngle, &startX, &startY);
 	uiDrawPathLineTo(p, startX, startY);
 
 	// draw the arc
-	doDrawArc(p->sink, xCenter, yCenter, radius, startAngle, endAngle);
+	arcEndpoint(xCenter, yCenter, radius, endAngle, &endX, &endY);
+	doDrawArc(p->sink, startX, startY, endX, endY, radius, endAngle - startAngle);
 }
 
 void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY)

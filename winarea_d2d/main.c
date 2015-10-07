@@ -58,9 +58,9 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	brush.B = 0;
 	brush.A = 0.5;
 	path = uiDrawNewPath(uiDrawFillModeWinding);
-//TODO	uiDrawRectangle(path, 120, 80, 50, 50);
+	uiDrawPathAddRectangle(path, 120, 80, 50, 50);
 	uiDrawPathEnd(path);
-//	uiDrawFill(p->Context, path, &brush);
+	uiDrawFill(p->Context, path, &brush);
 	uiDrawFreePath(path);
 	brush.A = 1;
 

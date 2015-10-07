@@ -132,6 +132,7 @@ void uiDrawPathBezierTo(uiDrawPath *, double, double, double, double, double, do
 // TODO quadratic bezier
 void uiDrawPathCloseFigure(uiDrawPath *);
 
+// TODO effect of these when a figure is already started
 void uiDrawPathAddRectangle(uiDrawPath *, double, double, double, double);
 
 void uiDrawPathEnd(uiDrawPath *);

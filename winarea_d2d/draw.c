@@ -225,9 +225,14 @@ void uiDrawPathCloseFigure(uiDrawPath *p)
 	p->inFigure = FALSE;
 }
 
-void uiDrawPathAddRectangle(uiDrawPath *p, double x0, double y0, double xxxxTODOxxxx, double xxxTODOxxxxxxxxxx)
+void uiDrawPathAddRectangle(uiDrawPath *p, double x, double y, double width, double height)
 {
-	// TODO
+	// this is the same algorithm used by cairo and Core Graphics, according to their documentations
+	uiDrawPathNewFigure(p, x, y);
+	uiDrawPathLineTo(p, x + width, y);
+	uiDrawPathLineTo(p, x + width, y + height);
+	uiDrawPathLineTo(p, x, y + height);
+	uiDrawPathCloseFigure(p);
 }
 
 void uiDrawPathEnd(uiDrawPath *p)

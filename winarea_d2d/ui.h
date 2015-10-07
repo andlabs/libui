@@ -115,8 +115,7 @@ struct uiDrawBrushGradientStop {
 struct uiDrawStrokeParams {
 	uiDrawLineCap Cap;
 	uiDrawLineJoin Join;
-	// TODO intmax_t?
-	intmax_t Thickness;
+	double Thickness;
 	double MiterLimit;
 };
 

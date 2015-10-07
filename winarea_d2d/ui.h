@@ -51,8 +51,8 @@ typedef enum uiDrawFillMode uiDrawFillMode;
 
 enum uiDrawBrushType {
 	uiDrawBrushTypeSolid,
-/*TODO	uiDrawBrushTypeLinearGradient,
-	uiDrawBrushTypeRadialGradient,
+	uiDrawBrushTypeLinearGradient,
+/*TODO	uiDrawBrushTypeRadialGradient,
 	uiDrawBrushTypeImage,
 */};
 
@@ -115,6 +115,7 @@ struct uiDrawBrushGradientStop {
 struct uiDrawStrokeParams {
 	uiDrawLineCap Cap;
 	uiDrawLineJoin Join;
+	// TODO intmax_t?
 	intmax_t Thickness;
 	double MiterLimit;
 };

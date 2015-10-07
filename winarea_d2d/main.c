@@ -122,6 +122,60 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, path, &brush, &sp);
 	uiDrawFreePath(path);
+
+	// based on https://msdn.microsoft.com/en-us/library/windows/desktop/dd756682%28v=vs.85%29.aspx
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+#define XO 50
+#define YO 250
+	uiDrawPathNewFigure(path, 0 + XO, 0 + YO);
+	uiDrawPathLineTo(path, 200 + XO, 0 + YO);
+	uiDrawPathBezierTo(path,
+		150 + XO, 50 + YO,
+		150 + XO, 150 + YO,
+		200 + XO, 200 + YO);
+	uiDrawPathLineTo(path, 0 + XO, 200 + YO);
+	uiDrawPathBezierTo(path,
+		50 + XO, 150 + YO,
+		50 + XO, 50 + YO,
+		0 + XO, 0 + YO);
+	uiDrawPathCloseFigure(path);
+	uiDrawPathEnd(path);
+	// first the stroke
+	brush.Type = uiDrawBrushTypeSolid;
+	brush.R = 0;
+	brush.G = 0;
+	brush.B = 0;
+	brush.A = 1;
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Thickness = 10;
+	uiDrawStroke(p->Context, path, &brush, &sp);
+	// and now the fill
+	{
+		uiDrawBrushGradientStop stops[2];
+
+		stops[0].Pos = 0.0;
+		stops[0].R = 0.0;
+		stops[0].G = 1.0;
+		stops[0].B = 1.0;
+		stops[0].A = 0.25;
+		stops[1].Pos = 1.0;
+		stops[1].R = 0.0;
+		stops[1].G = 0.0;
+		stops[1].B = 1.0;
+		stops[1].A = 1.0;
+		brush.Type = uiDrawBrushTypeLinearGradient;
+		brush.X0 = 100 + XO;
+		brush.Y0 = 0 + YO;
+		brush.X1 = 100 + XO;
+		brush.Y1 = 200 + YO;
+		brush.Stops = stops;
+		brush.NumStops = 2;
+		uiDrawFill(p->Context, path, &brush);
+	}
+#undef YO
+#undef XO
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)

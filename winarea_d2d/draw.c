@@ -66,44 +66,6 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 	return rt;
 }
 
-// TODO move below the path stuff
-struct uiDrawContext {
-	ID2D1RenderTarget *rt;
-
-	// source color
-	BOOL useRGB;
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t a;
-};
-
-uiDrawContext *newContext(ID2D1RenderTarget *rt)
-{
-	uiDrawContext *c;
-
-	// TODO use uiNew
-	c = (uiDrawContext *) malloc(sizeof (uiDrawContext));
-	c->rt = rt;
-	return c;
-}
-
-void uiDrawBeginPathRGB(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b)
-{
-	uiDrawBeginPathRGBA(c, r, g, b, 1);
-}
-
-void uiDrawBeginPathRGBA(uiDrawContext *c, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-{
-	HRESULT hr;
-
-	c->useRGB = TRUE;
-	c->r = r;
-	c->g = g;
-	c->b = b;
-	c->a = a;
-}
-
 struct uiDrawPath {
 	ID2D1PathGeometry *path;
 	ID2D1GeometrySink *sink;
@@ -286,17 +248,53 @@ void uiDrawPathEnd(uiDrawPath *p)
 	p->sink = NULL;
 }
 
-static ID2D1SolidColorBrush *makeBrush(uiDrawContext *c)
+struct uiDrawContext {
+	ID2D1RenderTarget *rt;
+};
+
+uiDrawContext *newContext(ID2D1RenderTarget *rt)
+{
+	uiDrawContext *c;
+
+	// TODO use uiNew
+	c = (uiDrawContext *) malloc(sizeof (uiDrawContext));
+	c->rt = rt;
+	return c;
+}
+
+static ID2D1Brush *makeSolidBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
 {
 	D2D1_COLOR_F color;
-	D2D1_BRUSH_PROPERTIES props;
 	ID2D1SolidColorBrush *brush;
 	HRESULT hr;
 
-	color.r = ((FLOAT) (c->r)) / 255;
-	color.g = ((FLOAT) (c->g)) / 255;
-	color.b = ((FLOAT) (c->b)) / 255;
-	color.a = ((FLOAT) (c->a)) / 255;
+	color.r = b->R;
+	color.g = b->G;
+	color.b = b->B;
+	color.a = b->A;
+
+	hr = ID2D1RenderTarget_CreateSolidColorBrush(rt,
+		&color,
+		&props,
+		&brush);
+	if (hr != S_OK)
+		logHRESULT("error creating solid brush in makeSolidBrush()", hr);
+	return (ID2D1Brush *) brush;
+}
+
+/* TODO
+static ID2D1Brush *makeLinearBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
+{
+}
+
+static ID2D1Brush *makeRadialBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
+{
+}
+*/
+
+static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
+{
+	D2D1_BRUSH_PROPERTIES props;
 
 	ZeroMemory(&props, sizeof (D2D1_BRUSH_PROPERTIES));
 	props.opacity = 1.0;
@@ -304,54 +302,44 @@ static ID2D1SolidColorBrush *makeBrush(uiDrawContext *c)
 	props.transform._11 = 1;
 	props.transform._22 = 1;
 
-	hr = ID2D1RenderTarget_CreateSolidColorBrush(c->rt,
-		&color,
-		&props,
-		&brush);
-	if (hr != S_OK)
-		logHRESULT("error creating brush in makeBrush()", hr);
-	return brush;
+	switch (b->Type) {
+	case uiDrawBrushTypeSolid:
+		return makeSolidBrush(b, rt, &props);
+//	case uiDrawBrushTypeLinearGradient:
+//		return makeLinearBrush(b, rt, &props);
+//	case uiDrawBrushTypeRadialGradient:
+//		return makeRadialBrush(b, rt, &props);
+//	case uiDrawBrushTypeImage:
+//		TODO
+	}
+
+	complain("invalid brush type %d in makeBrush()", b->Type);
+	return NULL;		// make compiler happy
 }
 
-void uiDrawStroke(uiDrawContext *c, uiDrawStrokeParams *p)
+void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeParams *sp)
 {
-	ID2D1SolidColorBrush *brush;
+	ID2D1Brush *brush;
 	HRESULT hr;
 
-	if (c->inFigure)
-		ID2D1GeometrySink_EndFigure(c->sink,
-			D2D1_FIGURE_END_OPEN);
-	hr = ID2D1GeometrySink_Close(c->sink);
-	if (hr != S_OK)
-		logHRESULT("error closing geometry sink in uiDrawStroke()", hr);
-	brush = makeBrush(c);
+	brush = makeBrush(b, c->rt);
 	ID2D1RenderTarget_DrawGeometry(c->rt,
-		(ID2D1Geometry *) (c->path),
-		(ID2D1Brush *) brush,
-		p->Thickness,
+		(ID2D1Geometry *) (p->path),
+		brush,
+		sp->Thickness,
 		NULL);
-	ID2D1SolidColorBrush_Release(brush);
-	ID2D1GeometrySink_Release(c->sink);
-	ID2D1PathGeometry_Release(c->path);
+	ID2D1Brush_Release(brush);
 }
 
-void uiDrawFill(uiDrawContext *c, uiDrawFillMode mode)
+void uiDrawFill(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b)
 {
-	ID2D1SolidColorBrush *brush;
+	ID2D1Brush *brush;
 	HRESULT hr;
 
-	if (c->inFigure)
-		ID2D1GeometrySink_EndFigure(c->sink,
-			D2D1_FIGURE_END_OPEN);
-	hr = ID2D1GeometrySink_Close(c->sink);
-	if (hr != S_OK)
-		logHRESULT("error closing geometry sink in uiDrawStroke()", hr);
-	brush = makeBrush(c);
+	brush = makeBrush(b, c->rt);
 	ID2D1RenderTarget_FillGeometry(c->rt,
-		(ID2D1Geometry *) (c->path),
-		(ID2D1Brush *) brush,
+		(ID2D1Geometry *) (p->path),
+		brush,
 		NULL);
-	ID2D1SolidColorBrush_Release(brush);
-	ID2D1GeometrySink_Release(c->sink);
-	ID2D1PathGeometry_Release(c->path);
+	ID2D1Brush_Release(brush);
 }

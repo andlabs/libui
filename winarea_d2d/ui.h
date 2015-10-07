@@ -95,6 +95,11 @@ struct uiDrawBrush {
 	double OuterRadius;		// radial gradients only
 	uiDrawBrushGradientStop *Stops;
 	size_t NumStops;
+	// TODO extend mode
+	// cairo: none, repeat, reflect, pad; no individual control
+	// Direct2D: repeat, reflect, pad; no individual control
+	// Core Graphics: none, pad; before and after individually
+	// TODO cairo documentation is inconsistent about pad
 
 	// TODO images
 };

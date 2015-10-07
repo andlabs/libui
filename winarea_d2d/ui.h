@@ -52,9 +52,9 @@ typedef enum uiDrawFillMode uiDrawFillMode;
 enum uiDrawBrushType {
 	uiDrawBrushTypeSolid,
 	uiDrawBrushTypeLinearGradient,
-/*TODO	uiDrawBrushTypeRadialGradient,
+	uiDrawBrushTypeRadialGradient,
 	uiDrawBrushTypeImage,
-*/};
+};
 
 enum uiDrawLineCap {
 	uiDrawLineCapFlat,

@@ -176,6 +176,56 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	}
 #undef YO
 #undef XO
+	uiDrawFreePath(path);
+
+	// based on https://msdn.microsoft.com/en-us/library/windows/desktop/dd756679%28v=vs.85%29.aspx
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 585, 235);
+	uiDrawPathArcTo(path,
+		510, 235,
+		75,
+		0,
+		// TODO why doesn't 360° work
+		2 * M_PI - 0.1);
+	uiDrawPathEnd(path);
+	// first the stroke
+	brush.Type = uiDrawBrushTypeSolid;
+	brush.R = 0;
+	brush.G = 0;
+	brush.B = 0;
+	brush.A = 1;
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Thickness = 1;
+	uiDrawStroke(p->Context, path, &brush, &sp);
+	// then the fill
+	{
+		uiDrawBrushGradientStop stops[2];
+
+		stops[0].Pos = 0.0;
+		stops[0].R = 1.0;
+		stops[0].G = 1.0;
+		stops[0].B = 0.0;
+		stops[0].A = 1.0;
+		stops[1].Pos = 1.0;
+		stops[1].R = ((double) 0x22) / 255.0;
+		stops[1].G = ((double) 0x8B) / 255.0;
+		stops[1].B = ((double) 0x22) / 255.0;
+		stops[1].A = 1.0;
+		brush.Type = uiDrawBrushTypeRadialGradient;
+		// start point
+		brush.X0 = 510;
+		brush.Y0 = 235;
+		// outer circle's center
+		brush.X1 = 510;
+		brush.Y1 = 235;
+		brush.OuterRadius = 75;
+		brush.Stops = stops;
+		brush.NumStops = 2;
+		uiDrawFill(p->Context, path, &brush);
+	}
+	uiDrawFreePath(path);
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)

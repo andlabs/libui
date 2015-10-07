@@ -348,11 +348,34 @@ static ID2D1Brush *makeLinearBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_B
 	return (ID2D1Brush *) brush;
 }
 
-/* TODO
 static ID2D1Brush *makeRadialBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
 {
+	ID2D1RadialGradientBrush *brush;
+	D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES gprops;
+	ID2D1GradientStopCollection *stops;
+	HRESULT hr;
+
+	ZeroMemory(&gprops, sizeof (D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES));
+	gprops.gradientOriginOffset.x = b->X0 - b->X1;
+	gprops.gradientOriginOffset.y = b->Y0 - b->Y1;
+	gprops.center.x = b->X1;
+	gprops.center.y = b->Y1;
+	gprops.radiusX = b->OuterRadius;
+	gprops.radiusY = b->OuterRadius;
+
+	stops = mkstops(b, rt);
+
+	hr = ID2D1RenderTarget_CreateRadialGradientBrush(rt,
+		&gprops,
+		props,
+		stops,
+		&brush);
+	if (hr != S_OK)
+		logHRESULT("error creating gradient brush in makeRadialBrush()", hr);
+
+	ID2D1GradientStopCollection_Release(stops);
+	return (ID2D1Brush *) brush;
 }
-*/
 
 static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 {
@@ -369,8 +392,8 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 		return makeSolidBrush(b, rt, &props);
 	case uiDrawBrushTypeLinearGradient:
 		return makeLinearBrush(b, rt, &props);
-//	case uiDrawBrushTypeRadialGradient:
-//		return makeRadialBrush(b, rt, &props);
+	case uiDrawBrushTypeRadialGradient:
+		return makeRadialBrush(b, rt, &props);
 //	case uiDrawBrushTypeImage:
 //		TODO
 	}

@@ -1,6 +1,9 @@
 // 8 september 2015
 #include "area.h"
 
+// TODOs
+// - things look very wrong on initial draw
+
 #define areaClass L"libui_uiAreaClass"
 
 struct uiArea {

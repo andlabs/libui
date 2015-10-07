@@ -68,8 +68,8 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	brush.G = 0.5;
 	brush.B = 0;
 	path = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathNewFigure(path, 5, 10);
-	uiDrawPathLineTo(path, 5, 50);
+	uiDrawPathNewFigure(path, 5.5, 10.5);
+	uiDrawPathLineTo(path, 5.5, 50.5);
 	uiDrawPathEnd(path);
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
@@ -104,19 +104,24 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	sp.Thickness = 1;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, path, &brush, &sp);
-/*
-	uiDrawBeginPathRGB(p->Context, 0x00, 0x80, 0xC0);
-	uiDrawMoveTo(p->Context, 300, 300);
-	uiDrawBezierTo(p->Context,
+	uiDrawFreePath(path);
+
+	brush.R = 0;
+	brush.G = 0.5;
+	brush.B = 0.75;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 300, 300);
+	uiDrawPathBezierTo(path,
 		350, 320,
 		310, 390,
 		435, 372);
+	uiDrawPathEnd(path);
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.Thickness = 1;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
-	uiDrawStroke(p->Context, &sp);
-*/
+	uiDrawStroke(p->Context, path, &brush, &sp);
+	uiDrawFreePath(path);
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)

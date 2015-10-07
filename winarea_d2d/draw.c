@@ -89,12 +89,12 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode fillmode)
 	if (hr != S_OK)
 		logHRESULT("error opening path in uiDrawNewPath()", hr);
 	switch (fillmode) {
-	case uiDrawFIllModeWinding:
-		ID2D1GeometrySink_SetFillMode(s->sink,
+	case uiDrawFillModeWinding:
+		ID2D1GeometrySink_SetFillMode(p->sink,
 			D2D1_FILL_MODE_WINDING);
 		break;
 	case uiDrawFillModeAlternate:
-		ID2D1GeometrySink_SetFillMode(s->sink,
+		ID2D1GeometrySink_SetFillMode(p->sink,
 			D2D1_FILL_MODE_ALTERNATE);
 		break;
 	}
@@ -120,10 +120,10 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	D2D1_POINT_2F pt;
 
 	if (p->inFigure)
-		ID2D1GeometrySink_EndFigure(c->sink,
+		ID2D1GeometrySink_EndFigure(p->sink,
 			D2D1_FIGURE_END_OPEN);
-	p.x = x;
-	p.y = y;
+	pt.x = x;
+	pt.y = y;
 	ID2D1GeometrySink_BeginFigure(p->sink,
 		pt,
 		D2D1_FIGURE_BEGIN_FILLED);
@@ -134,7 +134,11 @@ static void arcStartXY(double xCenter, double yCenter, double radius, double sta
 {
 	FLOAT sinStart, cosStart;
 
-	ID2D1SinCos(startAngle, &sinStart, &cosStart);
+	// unfortunately D2D1SinCos() is only defined on Windows 8 and newer
+	// the MSDN page doesn't say this, but says it requires d2d1_1.h, which is listed as only supported on Windows 8 and newer elsewhere on MSDN
+	// so we must use sin() and cos() and hope it's right...
+	sinStart = sin(startAngle);
+	cosStart = cos(startAngle);
 	*startX = xCenter + radius * cosStart;
 	*startY = yCenter + radius * sinStart;
 }
@@ -238,9 +242,12 @@ void uiDrawPathEnd(uiDrawPath *p)
 {
 	HRESULT hr;
 
-	if (p->inFigure)
-		ID2D1GeometrySink_EndFigure(c->sink,
+	if (p->inFigure) {
+		ID2D1GeometrySink_EndFigure(p->sink,
 			D2D1_FIGURE_END_OPEN);
+		// needed for uiDrawFreePath()
+		p->inFigure = FALSE;
+	}
 	hr = ID2D1GeometrySink_Close(p->sink);
 	if (hr != S_OK)
 		logHRESULT("error closing path in uiDrawPathEnd()", hr);
@@ -275,7 +282,7 @@ static ID2D1Brush *makeSolidBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BR
 
 	hr = ID2D1RenderTarget_CreateSolidColorBrush(rt,
 		&color,
-		&props,
+		props,
 		&brush);
 	if (hr != S_OK)
 		logHRESULT("error creating solid brush in makeSolidBrush()", hr);
@@ -313,14 +320,13 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 //		TODO
 	}
 
-	complain("invalid brush type %d in makeBrush()", b->Type);
+//TODO	complain("invalid brush type %d in makeBrush()", b->Type);
 	return NULL;		// make compiler happy
 }
 
 void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeParams *sp)
 {
 	ID2D1Brush *brush;
-	HRESULT hr;
 
 	brush = makeBrush(b, c->rt);
 	ID2D1RenderTarget_DrawGeometry(c->rt,
@@ -334,7 +340,6 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeP
 void uiDrawFill(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b)
 {
 	ID2D1Brush *brush;
-	HRESULT hr;
 
 	brush = makeBrush(b, c->rt);
 	ID2D1RenderTarget_FillGeometry(c->rt,

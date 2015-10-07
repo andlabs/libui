@@ -16,17 +16,27 @@ static HWND nvspinb;
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 {
+	uiDrawPath *path;
+	uiDrawBrush brush;
 	uiDrawStrokeParams sp;
 
-	uiDrawBeginPathRGB(p->Context, 0xFF, 0x00, 0x00);
-	uiDrawMoveTo(p->Context, p->ClipX + 5, p->ClipY + 5);
-	uiDrawLineTo(p->Context, (p->ClipX + p->ClipWidth) - 5, (p->ClipY + p->ClipHeight) - 5);
+	brush.Type = uiDrawBrushTypeSolid;
+	brush.A = 1;
+
+	brush.R = 1;
+	brush.G = 0;
+	brush.B = 0;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, p->ClipX + 5, p->ClipY + 5);
+	uiDrawPathLineTo(path, (p->ClipX + p->ClipWidth) - 5, (p->ClipY + p->ClipHeight) - 5);
+	uiDrawPathEnd(path);
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.Thickness = 1;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
-	uiDrawStroke(p->Context, &sp);
-
+	uiDrawStroke(p->Context, path, &brush, &sp);
+	uiDrawFreePath(path);
+/*
 	uiDrawBeginPathRGB(p->Context, 0x00, 0x00, 0xC0);
 	uiDrawMoveTo(p->Context, p->ClipX, p->ClipY);
 	uiDrawLineTo(p->Context, p->ClipX + p->ClipWidth, p->ClipY);
@@ -87,6 +97,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	sp.Thickness = 1;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, &sp);
+*/
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)

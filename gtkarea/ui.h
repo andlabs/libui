@@ -36,13 +36,25 @@ struct uiAreaDrawParams {
 	intmax_t VScrollPos;
 };
 
-// TODO proper sources
 // TODO dotting/dashing
 
+typedef struct uiDrawPath uiDrawPath;
+typedef struct uiDrawBrush uiDrawBrush;
 typedef struct uiDrawStrokeParams uiDrawStrokeParams;
+
+typedef enum uiDrawBrushType uiDrawBrushType;
+typedef struct uiDrawBrushGradientStop uiDrawBrushGradientStop;
+
 typedef enum uiDrawLineCap uiDrawLineCap;
 typedef enum uiDrawLineJoin uiDrawLineJoin;
 typedef enum uiDrawFillMode uiDrawFillMode;
+
+enum uiDrawBrushType {
+	uiDrawBrushTypeSolid,
+	uiDrawBrushTypeLinearGradient,
+	uiDrawBrushTypeRadialGradient,
+	uiDrawBrushTypeImage,
+};
 
 enum uiDrawLineCap {
 	uiDrawLineCapFlat,
@@ -66,28 +78,69 @@ enum uiDrawFillMode {
 	uiDrawFillModeAlternate,
 };
 
+struct uiDrawBrush {
+	uiDrawBrushType Type;
+
+	// solid brushes
+	double R;
+	double G;
+	double B;
+	double A;
+
+	// gradient brushes
+	double X0;		// linear: start X, radial: start X
+	double Y0;		// linear: start Y, radial: start Y
+	double X1;		// linear: end X, radial: outer circle center X
+	double Y1;		// linear: end Y, radial: outer circle center Y
+	double OuterRadius;		// radial gradients only
+	uiDrawBrushGradientStop *Stops;
+	size_t NumStops;
+	// TODO extend mode
+	// cairo: none, repeat, reflect, pad; no individual control
+	// Direct2D: repeat, reflect, pad; no individual control
+	// Core Graphics: none, pad; before and after individually
+	// TODO cairo documentation is inconsistent about pad
+
+	// TODO images
+
+	// TODO transforms
+};
+
+struct uiDrawBrushGradientStop {
+	double Pos;
+	double R;
+	double G;
+	double B;
+	double A;
+};
+
 struct uiDrawStrokeParams {
 	uiDrawLineCap Cap;
 	uiDrawLineJoin Join;
-	intmax_t Thickness;
+	double Thickness;
 	double MiterLimit;
 };
 
-void uiDrawBeginPathRGB(uiDrawContext *, uint8_t, uint8_t, uint8_t);
-// TODO verify these aren't alpha premultiplied anywhere
-void uiDrawBeginPathRGBA(uiDrawContext *, uint8_t, uint8_t, uint8_t, uint8_t);
+uiDrawPath *uiDrawNewPath(uiDrawFillMode);
+void uiDrawFreePath(uiDrawPath *);
 
-void uiDrawMoveTo(uiDrawContext *, intmax_t, intmax_t);
-void uiDrawLineTo(uiDrawContext *, intmax_t, intmax_t);
-void uiDrawRectangle(uiDrawContext *, intmax_t, intmax_t, intmax_t, intmax_t);
+void uiDrawPathNewFigure(uiDrawPath *, double, double);
+void uiDrawPathNewFigureWithArc(uiDrawPath *, double, double, double, double, double);
+void uiDrawPathLineTo(uiDrawPath *, double, double);
 // notes: angles are both relative to 0 and go counterclockwise
-void uiDrawArcTo(uiDrawContext *, intmax_t, intmax_t, intmax_t, double, double, int);
-// TODO behavior when there is no initial point on Windows and OS X
-void uiDrawBezierTo(uiDrawContext *, intmax_t, intmax_t, intmax_t, intmax_t, intmax_t, intmax_t);
-void uiDrawCloseFigure(uiDrawContext *);
+// TODO is the initial line segment on cairo and OS X a proper join?
+void uiDrawPathArcTo(uiDrawPath *, double, double, double, double, double);
+void uiDrawPathBezierTo(uiDrawPath *, double, double, double, double, double, double);
+// TODO quadratic bezier
+void uiDrawPathCloseFigure(uiDrawPath *);
 
-void uiDrawStroke(uiDrawContext *, uiDrawStrokeParams *);
-void uiDrawFill(uiDrawContext *, uiDrawFillMode);
+// TODO effect of these when a figure is already started
+void uiDrawPathAddRectangle(uiDrawPath *, double, double, double, double);
+
+void uiDrawPathEnd(uiDrawPath *);
+
+void uiDrawStroke(uiDrawContext *, uiDrawPath *, uiDrawBrush *, uiDrawStrokeParams *);
+void uiDrawFill(uiDrawContext *, uiDrawPath *, uiDrawBrush *);
 
 // TODO primitives:
 // - rounded rectangles

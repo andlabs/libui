@@ -37,5 +37,8 @@ extern void childSetFlag(struct child *c, int flag);
 extern GtkWidget *childBox(struct child *c);
 extern void childSetMargined(struct child *c, int margined);
 
+// draw.c
+extern uiDrawContext *newContext(cairo_t *);
+
 // TODO
 #define uiControlQueueResize(...)

@@ -1,5 +1,31 @@
 // 4 september 2015
-#include "area.h"
+#include "uipriv_unix.h"
+
+#define areaWidgetType (areaWidget_get_type())
+#define areaWidget(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), areaWidgetType, areaWidget))
+#define isAreaWidget(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), areaWidgetType))
+#define areaWidgetClass(class) (G_TYPE_CHECK_CLASS_CAST((class), areaWidgetType, areaWidgetClass))
+#define isAreaWidgetClass(class) (G_TYPE_CHECK_CLASS_TYPE((class), areaWidget))
+#define getAreaWidgetClass(obj) (G_TYPE_INSTANCE_GET_CLASS((obj), areaWidgetType, areaWidgetClass))
+
+typedef struct areaWidget areaWidget;
+typedef struct areaWidgetClass areaWidgetClass;
+
+struct areaWidget {
+	GtkDrawingArea parent_instance;
+	struct areaPrivate *priv;
+};
+
+struct areaWidgetClass {
+	GtkDrawingAreaClass parent_class;
+};
+
+struct uiArea {
+	uiUnixControl c;
+	GtkWidget *widget;
+	GtkDrawingArea *drawingArea;
+	areaWidget *area;
+};
 
 struct areaPrivate {
 	uiArea *a;
@@ -527,14 +553,33 @@ static void areaWidget_scrollable_init(GtkScrollable *iface)
 	// no need to do anything; the interface only has properties
 }
 
-GtkWidget *newArea(uiAreaHandler *ah)
+// control implementation
+
+uiUnixDefineControl(
+	uiArea,								// type name
+	uiAreaType							// type function
+)
+
+void uiAreaUpdateScroll(uiArea *a)
 {
-	return GTK_WIDGET(g_object_new(areaWidgetType,
-		"area-handler", ah,
-		NULL));
+	updateScroll(a->area);
 }
 
-void areaUpdateScroll(GtkWidget *area)
+uiArea *uiNewArea(uiAreaHandler *ah)
 {
-	updateScroll(areaWidget(area));
+	uiArea *a;
+
+	a = (uiArea *) uiNewControl(uiAreaType());
+
+	a->widget = GTK_WIDGET(g_object_new(areaWidgetType,
+		"area-handler", ah,
+		NULL));
+	a->drawingArea = GTK_DRAWING_AREA(a->widget);
+	a->area = areaWidget(a->widget);
+
+	// TODO wrap in scrolled window
+
+	uiUnixFinishNewControl(a, uiArea);
+
+	return a;
 }

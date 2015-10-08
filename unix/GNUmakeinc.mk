@@ -2,6 +2,7 @@
 
 osCFILES = \
 	unix/alloc.c \
+	unix/area.c \
 	unix/box.c \
 	unix/button.c \
 	unix/checkbox.c \
@@ -9,6 +10,7 @@ osCFILES = \
 	unix/combobox.c \
 	unix/control.c \
 	unix/datetimepicker.c \
+	unix/draw.c \
 	unix/entry.c \
 	unix/group.c \
 	unix/label.c \

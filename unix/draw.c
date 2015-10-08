@@ -1,5 +1,5 @@
 // 6 september 2015
-#include "area.h"
+#include "uipriv_unix.h"
 
 struct uiDrawPath {
 	GArray *pieces;

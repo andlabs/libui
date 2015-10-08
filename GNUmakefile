@@ -23,6 +23,7 @@ baseHFILES = \
 	$(osHFILES)
 
 baseCFILES = \
+	areaevents.c \
 	control.c \
 	menu.c \
 	ptrarray.c \

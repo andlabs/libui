@@ -1,7 +1,4 @@
 // 29 march 2014
-// TODO remove
-#include <stdint.h>
-#include <stddef.h>
 #include "ui.h"
 #include "uipriv.h"
 

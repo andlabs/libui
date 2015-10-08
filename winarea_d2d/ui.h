@@ -102,6 +102,8 @@ struct uiDrawBrush {
 	// TODO cairo documentation is inconsistent about pad
 
 	// TODO images
+
+	// TODO transforms
 };
 
 struct uiDrawBrushGradientStop {

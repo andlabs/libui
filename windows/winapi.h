@@ -28,4 +28,4 @@
 #include <stdio.h>
 #include <shobjidl.h>
 #include <math.h>
-#include <usp10.h>
+#include <d2d1.h>

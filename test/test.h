@@ -1,9 +1,13 @@
 // 22 april 2015
+// TODO
+#define _GNU_SOURCE
+#define _USE_MATH_DEFINES
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+#include <math.h>
 #include "../ui.h"
 
 // main.c
@@ -42,3 +46,6 @@ extern uiBox *makePage4(void);
 
 // page5.c
 extern uiBox *makePage5(void);
+
+// page6.c
+extern uiBox *makePage6(void);

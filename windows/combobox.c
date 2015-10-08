@@ -6,12 +6,27 @@
 struct uiCombobox {
 	uiWindowsControl c;
 	HWND hwnd;
+	void (*onSelected)(uiCombobox *, void *);
+	void *onSelectedData;
 };
 
-uiWindowsDefineControl(
+uiWindowsDefineControlWithOnDestroy(
 	uiCombobox,							// type name
-	uiComboboxType						// type function
+	uiComboboxType,						// type function
+	uiWindowsUnregisterWM_COMMANDHandler(this->hwnd);	// on destroy
 )
+
+// note: NOT triggered on entering text
+static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
+{
+	uiCombobox *c = uiCombobox(cc);
+
+	if (code != CBN_SELCHANGE)
+		return FALSE;
+	(*(c->onSelected))(c, c->onSelectedData);
+	*lResult = 0;
+	return TRUE;
+}
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define comboboxWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
@@ -21,6 +36,11 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 {
 	*width = uiWindowsDlgUnitsToX(comboboxWidth, d->BaseX);
 	*height = uiWindowsDlgUnitsToY(comboboxHeight, d->BaseY);
+}
+
+static void defaultOnSelected(uiCombobox *c, void *data)
+{
+	// do nothing
 }
 
 void uiComboboxAppend(uiCombobox *c, const char *text)
@@ -37,6 +57,22 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 	uiFree(wtext);
 }
 
+intmax_t uiComboboxSelected(uiCombobox *c)
+{
+	LRESULT n;
+
+	n = SendMessage(c->hwnd, CB_GETCURSEL, 0, 0);
+	if (n == (LRESULT) CB_ERR)
+		return -1;
+	return (intmax_t) n;
+}
+
+void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data)
+{
+	c->onSelected = f;
+	c->onSelectedData = data;
+}
+
 static uiCombobox *finishNewCombobox(DWORD style)
 {
 	uiCombobox *c;
@@ -48,6 +84,9 @@ static uiCombobox *finishNewCombobox(DWORD style)
 		style | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
+
+	uiWindowsRegisterWM_COMMANDHandler(c->hwnd, onWM_COMMAND, uiControl(c));
+	uiComboboxOnSelected(c, defaultOnSelected, NULL);
 
 	uiWindowsFinishNewControl(c, uiCombobox);
 

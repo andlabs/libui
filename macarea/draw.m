@@ -13,7 +13,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 
 	// TODO uiNew
 	p = malloc(sizeof (uiDrawPath));
-	p->path = CGPathCreateMutable()
+	p->path = CGPathCreateMutable();
 	p->fillMode = mode;
 p->ended = NO;
 	return p;
@@ -38,9 +38,15 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 
 void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
 {
+	double sinStart, cosStart;
+	double startx, starty;
+
 	if (p->ended)
 		complain("attempt to add figure to ended path in uiDrawPathNewFigureWithArc()");
-	// TODO
+	sinStart = sin(startAngle);
+	cosStart = cos(startAngle);
+	startx = xCenter + radius * cosStart;
+	starty = yCenter + radius * sinStart;
 	CGPathMoveToPoint(p->path, NULL, startx, starty);
 	uiDrawPathArcTo(p, xCenter, yCenter, radius, startAngle, endAngle);
 }
@@ -179,6 +185,7 @@ static void fillGradient(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 	CGColorSpaceRef colorspace;
 	CGFloat *colors;
 	CGFloat *locations;
+	size_t i;
 
 	// gradients need a color space
 	// for consistency with windows, use sRGB
@@ -199,6 +206,9 @@ static void fillGradient(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 	// TODO uiFree
 	free(locations);
 	free(colors);
+
+	// because we're mucking with clipping, we need to save the graphics state and restore it later
+	CGContextSaveGState(ctxt);
 
 	// clip
 	switch (p->fillMode) {
@@ -232,6 +242,7 @@ static void fillGradient(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 	}
 
 	// and clean up
+	CGContextRestoreGState(ctxt);
 	CGGradientRelease(gradient);
 	CGColorSpaceRelease(colorspace);
 }
@@ -240,7 +251,7 @@ void uiDrawFill(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b)
 {
 	if (!path->ended)
 		complain("path not ended in uiDrawFill()");
-	CGContextAddPath(c->c, (CGPathRef) (p->path));
+	CGContextAddPath(c->c, (CGPathRef) (path->path));
 	switch (b->Type) {
 	case uiDrawBrushTypeSolid:
 		fillSolid(c->c, path, b);

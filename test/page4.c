@@ -39,6 +39,13 @@ static void appendCBRB(uiButton *b, void *data)
 	uiRadioButtonsAppend(rb, "New Item");
 }
 
+static void onCBChanged(uiCombobox *c, void *data)
+{
+	printf("%s combobox changed to %d\n",
+		(char *) data,
+		(int) uiComboboxSelected(c));
+}
+
 uiBox *makePage4(void)
 {
 	uiBox *page4;
@@ -90,12 +97,14 @@ uiBox *makePage4(void)
 	uiComboboxAppend(cbox, "Item 1");
 	uiComboboxAppend(cbox, "Item 2");
 	uiComboboxAppend(cbox, "Item 3");
+	uiComboboxOnChanged(cbox, onCBChanged, "noneditable");
 	uiBoxAppend(page4, uiControl(cbox), 0);
 
 	editable = uiNewEditableCombobox();
 	uiComboboxAppend(editable, "Editable Item 1");
 	uiComboboxAppend(editable, "Editable Item 2");
 	uiComboboxAppend(editable, "Editable Item 3");
+	uiComboboxOnChanged(cbox, onCBChanged, "editable");
 	uiBoxAppend(page4, uiControl(editable), 0);
 
 	rb = uiNewRadioButtons();

@@ -8,7 +8,77 @@ struct uiCombobox {
 	NSArrayController *pbac;
 	NSComboBox *cb;
 	NSObject *handle;				// for uiControlHandle()
+	void (*onSelected)(uiCombobox *, void *);
+	void *onSelectedData;
 };
+
+@interface comboboxDelegateClass : NSObject<NSComboBoxDelegate> {
+	NSMapTable *comboboxes;
+}
+- (void)comboBoxSelectionDidChange:(NSNotification *)note;
+- (IBAction)onSelected:(id)sender;
+- (void)registerCombobox:(uiCombobox *)c;
+- (void)unregisterCombobox:(uiCombobox *)c;
+@end
+
+@implementation comboboxDelegateClass
+
+- (id)init
+{
+	self = [super init];
+	if (self)
+		self->comboboxes = newMap();
+	return self;
+}
+
+- (void)dealloc
+{
+	if ([self->comboboxes count] != 0)
+		complain("attempt to destroy shared combobox delegate but comboboxes are still registered to it");
+	[self->comboboxes release];
+	[super dealloc];
+}
+
+// note: does not trigger when text changed
+// TODO not perfect either:
+// - triggered when keyboard navigating the open menu
+// - does not trigger when the text is changed to a menu item (which normally selects that item; IDK how to inhibit that behavior - TODO)
+- (void)comboBoxSelectionDidChange:(NSNotification *)note
+{
+	[self onSelected:[note object]];
+}
+
+- (IBAction)onSelected:(id)sender
+{
+	uiCombobox *c;
+
+	c = (uiCombobox *) mapGet(self->comboboxes, sender);
+	(*(c->onSelected))(c, c->onSelectedData);
+}
+
+- (void)registerCombobox:(uiCombobox *)c
+{
+	mapSet(self->comboboxes, c->handle, c);
+	if (c->editable)
+		[c->cb setDelegate:self];
+	else {
+		[c->pb setTarget:self];
+		[c->pb setAction:@selector(onSelected:)];
+	}
+}
+
+- (void)unregisterCombobox:(uiCombobox *)c
+{
+	if (c->editable)
+		[c->cb setDelegate:nil];
+	else
+		[c->pb setTarget:nil];
+	[self->comboboxes removeObjectForKey:c->handle];
+}
+
+@end
+
+static comboboxDelegateClass *comboboxDelegate = nil;
 
 static void onDestroy(uiCombobox *);
 
@@ -21,6 +91,7 @@ uiDarwinDefineControlWithOnDestroy(
 
 static void onDestroy(uiCombobox *c)
 {
+	[comboboxDelegate unregisterCombobox:c];
 	if (!c->editable) {
 		[c->pb unbind:@"contentObjects"];
 		[c->pb unbind:@"selectedIndex"];
@@ -34,6 +105,24 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 		[c->cb addItemWithObjectValue:toNSString(text)];
 	else
 		[c->pbac addObject:toNSString(text)];
+}
+
+intmax_t uiComboboxSelected(uiCombobox *c)
+{
+	if (c->editable)
+		return [c->cb indexOfSelectedItem];
+	return [c->pb indexOfSelectedItem];
+}
+
+void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data)
+{
+	c->onSelected = f;
+	c->onSelectedData = data;
+}
+
+static void defaultOnSelected(uiCombobox *c, void *data)
+{
+	// do nothing
 }
 
 static uiCombobox *finishNewCombobox(BOOL editable)
@@ -77,6 +166,13 @@ static uiCombobox *finishNewCombobox(BOOL editable)
 			withKeyPath:@"selectionIndex"
 			options:nil];
 	}
+
+	if (comboboxDelegate == nil) {
+		comboboxDelegate = [comboboxDelegateClass new];
+		[delegates addObject:comboboxDelegate];
+	}
+	[comboboxDelegate registerCombobox:c];
+	uiComboboxOnSelected(c, defaultOnSelected, NULL);
 
 	uiDarwinFinishNewControl(c, uiCombobox);
 

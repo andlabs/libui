@@ -274,6 +274,7 @@ _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);
 struct uiAreaDrawParams {
 	uiDrawContext *Context;
 
+	// TODO this and the mouse event ones should probably be in points and not pixels
 	intmax_t ClientWidth;
 	intmax_t ClientHeight;
 

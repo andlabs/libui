@@ -49,3 +49,6 @@ extern uiBox *makePage5(void);
 
 // page6.c
 extern uiBox *makePage6(void);
+
+// drawtests.c
+extern void runDrawTest(intmax_t, uiAreaDrawParams *);

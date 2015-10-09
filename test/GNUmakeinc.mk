@@ -1,6 +1,7 @@
 # 22 april 2015
 
 testCFILES = \
+	test/drawtests.c \
 	test/main.c \
 	test/menus.c \
 	test/page1.c \

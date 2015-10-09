@@ -56,6 +56,8 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *client, RECT *cli
 
 	(*(ah->Draw))(ah, a, &dp);
 
+	freeContext(dp.Context);
+
 	return ID2D1RenderTarget_EndDraw(rt, NULL, NULL);
 }
 

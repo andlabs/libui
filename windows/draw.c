@@ -262,6 +262,11 @@ uiDrawContext *newContext(ID2D1RenderTarget *rt)
 	return c;
 }
 
+void freeContext(uiDrawContext *c)
+{
+	uiFree(c);
+}
+
 static ID2D1Brush *makeSolidBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
 {
 	D2D1_COLOR_F color;

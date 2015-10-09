@@ -172,6 +172,69 @@ static void drawOriginal(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
+static void drawArcs(uiAreaDrawParams *p)
+{
+	uiDrawPath *path;
+	int start = 20;
+	int step = 20;
+	int rad = 25;
+	int x, y;
+	double angle;
+	double add;
+	int i;
+	uiDrawBrush brush;
+	uiDrawStrokeParams sp;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+
+	add = (2.0 * M_PI) / 12;
+	x = start + rad;
+	y = start + rad;
+
+	angle = add;
+	for (i = 0; i < 12; i++) {
+		uiDrawPathNewFigureWithArc(path,
+			x, y,
+			rad,
+			0, angle);
+		angle += add;
+		x += 2 * rad + step;
+		if (i % 6 == 5) {
+			y += 2 * rad + step;
+			x = start + rad;
+		}
+	}
+
+	angle = add;
+	for (i = 0; i < 12; i++) {
+		uiDrawPathNewFigureWithArc(path,
+			x, y,
+			rad,
+			(M_PI / 4), (M_PI / 4) + angle);
+		angle += add;
+		x += 2 * rad + step;
+		if (i % 6 == 5) {
+			y += 2 * rad + step;
+			x = start + rad;
+		}
+	}
+
+	uiDrawPathEnd(path);
+
+	brush.Type = uiDrawBrushTypeSolid;
+	brush.R = 0;
+	brush.G = 0;
+	brush.B = 0;
+	brush.A = 1;
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.Thickness = 1;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	uiDrawStroke(p->Context, path, &brush, &sp);
+
+	uiDrawFreePath(path);
+}
+
 // Direct2D Examples
 
 static void d2dColorToRGB(uint32_t color, double *r, double *g, double *b)
@@ -599,6 +662,7 @@ static void drawD2DPathGeometries(uiAreaDrawParams *p)
 
 static const struct drawtest tests[] = {
 	{ "Original uiArea test", drawOriginal },
+	{ "Arc test", drawArcs },
 	{ "Direct2D: Direct2D Quickstart for Windows 8", drawD2DW8QS },
 	{ "Direct2D: Creating a Simple Direct2D Application", drawD2DSimpleApp },
 	{ "Direct2D: How to Create a Solid Color Brush", drawD2DSolidBrush },

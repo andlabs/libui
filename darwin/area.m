@@ -5,6 +5,7 @@
 // TODOs
 // - is the page increment set up right?
 // - do we need to draw anything in the empty corner?
+// - autohiding scrollbars
 
 // NSScrollers have no intrinsic size; here we give it one
 @interface areaScroller : NSScroller {

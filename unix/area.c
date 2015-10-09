@@ -23,6 +23,9 @@ struct areaWidgetClass {
 struct uiArea {
 	uiUnixControl c;
 	GtkWidget *widget;
+	GtkContainer *scontainer;
+	GtkScrolledWindow *sw;
+	GtkWidget *areaWidget;
 	GtkDrawingArea *drawingArea;
 	areaWidget *area;
 };
@@ -571,13 +574,19 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 
 	a = (uiArea *) uiNewControl(uiAreaType());
 
-	a->widget = GTK_WIDGET(g_object_new(areaWidgetType,
+	a->widget = gtk_scrolled_window_new(NULL, NULL);
+	a->scontainer = GTK_CONTAINER(a->widget);
+	a->sw = GTK_SCROLLED_WINDOW(a->widget);
+
+	a->areaWidget = GTK_WIDGET(g_object_new(areaWidgetType,
 		"area-handler", ah,
 		NULL));
-	a->drawingArea = GTK_DRAWING_AREA(a->widget);
-	a->area = areaWidget(a->widget);
+	a->drawingArea = GTK_DRAWING_AREA(a->areaWidget);
+	a->area = areaWidget(a->areaWidget);
 
-	// TODO wrap in scrolled window
+	gtk_container_add(a->scontainer, a->areaWidget);
+	// and make the area visible; only the scrolled window's visibility is controlled by libui
+	gtk_widget_show(a->areaWidget);
 
 	uiUnixFinishNewControl(a, uiArea);
 

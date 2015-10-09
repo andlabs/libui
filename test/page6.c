@@ -3,6 +3,8 @@
 
 static uiArea *area;
 static uiCombobox *which;
+static uiSpinbox *hamount;
+static uiSpinbox *vamount;
 
 struct handler {
 	uiAreaHandler ah;
@@ -226,20 +228,18 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
 {
-	// TODO
-	return 0;
+	return uiSpinboxValue(hamount);
 }
 
 static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
 {
-	// TODO
-	return 0;
+	return uiSpinboxValue(vamount);
 }
 
 static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
 {
-	// TODO
-	return 1;
+	// TODO make a checkbox
+	return uiSpinboxValue(hamount) == 0 && uiSpinboxValue(vamount) == 0;
 }
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
@@ -282,6 +282,11 @@ static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 	return 0;
 }
 
+static void onAmountChanged(uiSpinbox *s, void *data)
+{
+	uiAreaUpdateScroll(area);
+}
+
 uiBox *makePage6(void)
 {
 	uiBox *page6;
@@ -303,8 +308,21 @@ uiBox *makePage6(void)
 	which = uiNewCombobox();
 	uiBoxAppend(hbox, uiControl(which), 0);
 
+	// make these first in case the area handler calls the information as part of the constructor
+	hamount = uiNewSpinbox(0, 100000);
+	uiSpinboxOnChanged(hamount, onAmountChanged, NULL);
+	vamount = uiNewSpinbox(0, 100000);
+	uiSpinboxOnChanged(vamount, onAmountChanged, NULL);
+
 	area = uiNewArea((uiAreaHandler *) (&handler));
 	uiBoxAppend(page6, uiControl(area), 1);
+
+	hbox = newHorizontalBox();
+	uiBoxAppend(hbox, uiControl(uiNewLabel("H ")), 0);
+	uiBoxAppend(hbox, uiControl(hamount), 0);
+	uiBoxAppend(hbox, uiControl(uiNewLabel(" V ")), 0);
+	uiBoxAppend(hbox, uiControl(vamount), 0);
+	uiBoxAppend(page6, uiControl(hbox), 0);
 
 	return page6;
 }

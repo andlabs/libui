@@ -8,6 +8,7 @@ struct uiCombobox {
 	GtkComboBoxText *comboboxText;
 	void (*onSelected)(uiCombobox *, void *);
 	void *onSelectedData;
+	gulong onSelectedSignal;
 };
 
 uiUnixDefineControl(
@@ -38,6 +39,14 @@ intmax_t uiComboboxSelected(uiCombobox *c)
 	return gtk_combo_box_get_active(c->combobox);
 }
 
+void uiComboboxSetSelected(uiCombobox *c, intmax_t n)
+{
+	// we need to inhibit sending of ::changed because this WILL send a ::changed otherwise
+	g_signal_handler_block(c->combobox, c->onSelectedSignal);
+	gtk_combo_box_set_active(c->combobox, n);
+	g_signal_handler_unblock(c->combobox, c->onSelectedSignal);
+}
+
 void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data)
 {
 	c->onSelected = f;
@@ -54,7 +63,7 @@ static uiCombobox *finishNewCombobox(GtkWidget *(*newfunc)(void))
 	c->combobox = GTK_COMBO_BOX(c->widget);
 	c->comboboxText = GTK_COMBO_BOX_TEXT(c->widget);
 
-	g_signal_connect(c->widget, "changed", G_CALLBACK(onChanged), c);
+	c->onSelectedSignal = g_signal_connect(c->widget, "changed", G_CALLBACK(onChanged), c);
 	uiComboboxOnSelected(c, defaultOnSelected, NULL);
 
 	uiUnixFinishNewControl(c, uiCombobox);

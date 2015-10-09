@@ -80,7 +80,7 @@ static void onAmountChanged(uiSpinbox *s, void *data)
 
 static void shouldntHappen(uiCombobox *c, void *data)
 {
-	fprintf(stderr, "YOU SHOULD NOT SEE THIS. If you do, uiComboboxSetSelected() is triggering uiComboboxOnSelected(), which it should not.");
+	fprintf(stderr, "YOU SHOULD NOT SEE THIS. If you do, uiComboboxSetSelected() is triggering uiComboboxOnSelected(), which it should not.\n");
 }
 
 static void redraw(uiCombobox *c, void *data)

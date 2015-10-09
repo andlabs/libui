@@ -235,6 +235,6 @@ void populateComboboxWithTests(uiCombobox *c)
 {
 	size_t i;
 
-	for (i = 0; test[i].name != NULL; i++)
+	for (i = 0; tests[i].name != NULL; i++)
 		uiComboboxAppend(c, tests[i].name);
 }

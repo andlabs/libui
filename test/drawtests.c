@@ -191,6 +191,8 @@ static void d2dColorToRGB(uint32_t color, double *r, double *g, double *b)
 #define d2dWhite 0xFFFFFF
 #define d2dYellowGreen 0x9ACD32
 #define d2dYellow 0xFFFF00
+// TODO this color appears wrong on Vista for some reason... either that or the gradients aren't working right
+// TODO the gradients don't work on OS X
 #define d2dForestGreen 0x228B22
 #define d2dOliveDrab 0x6B8E23
 #define d2dLightSkyBlue 0x87CEFA

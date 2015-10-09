@@ -177,7 +177,7 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 
 	(*(ap->ah->Draw))(ap->ah, ap->a, &dp);
 
-	g_free(dp.Context);
+	freeContext(dp.Context);
 	return FALSE;
 }
 

@@ -39,6 +39,7 @@ extern void childSetMargined(struct child *c, int margined);
 
 // draw.c
 extern uiDrawContext *newContext(cairo_t *);
+extern void freeContext(uiDrawContext *);
 
 // TODO
 #define uiControlQueueResize(...)

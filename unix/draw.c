@@ -26,8 +26,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 {
 	uiDrawPath *p;
 
-	// TODO uiNew
-	p = g_malloc0(sizeof (uiDrawPath));
+	p = uiNew(uiDrawPath);
 	p->pieces = g_array_new(FALSE, TRUE, sizeof (struct piece));
 	p->fillMode = mode;
 	return p;
@@ -36,14 +35,13 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 void uiDrawFreePath(uiDrawPath *p)
 {
 	g_array_free(p->pieces, TRUE);
-	// TODO uiFree
-	g_free(p);
+	uiFree(p);
 }
 
 static void add(uiDrawPath *p, struct piece *piece)
 {
 	if (p->ended)
-		g_error("path ended in add()");
+		complain("path ended in add()");
 	g_array_append_vals(p->pieces, piece, 1);
 }
 
@@ -138,7 +136,7 @@ static void runPath(uiDrawPath *p, cairo_t *cr)
 	struct piece *piece;
 
 	if (!p->ended)
-		g_error("path not ended in runPath()");
+		complain("path not ended in runPath()");
 	cairo_new_path(cr);
 	for (i = 0; i < p->pieces->len; i++) {
 		piece = &g_array_index(p->pieces, struct piece, i);
@@ -193,13 +191,16 @@ uiDrawContext *newContext(cairo_t *cr)
 {
 	uiDrawContext *c;
 
-	// TODO use uiNew
-	c = (uiDrawContext *) g_malloc0(sizeof (uiDrawContext));
+	c = uiNew(uiDrawContext);
 	c->cr = cr;
 	return c;
 }
 
-// TODO replace all g_error with complain
+void freeContext(uiDrawContext *c)
+{
+	uiFree(c);
+}
+
 static cairo_pattern_t *mkbrush(uiDrawBrush *b)
 {
 	cairo_pattern_t *pat;
@@ -221,7 +222,7 @@ static cairo_pattern_t *mkbrush(uiDrawBrush *b)
 //	case uiDrawBrushTypeImage:
 	}
 	if (cairo_pattern_status(pat) != CAIRO_STATUS_SUCCESS)
-		g_error("error creating pattern in mkbrush(): %s",
+		complain("error creating pattern in mkbrush(): %s",
 			cairo_status_to_string(cairo_pattern_status(pat)));
 	switch (b->Type) {
 	case uiDrawBrushTypeLinearGradient:

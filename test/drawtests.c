@@ -223,9 +223,18 @@ static void drawOriginal(uiAreaDrawParams *p)
 
 static const struct drawtest tests[] = {
 	{ "Original uiArea test", drawOriginal },
+	{ NULL, NULL },
 };
 
 void runDrawTest(intmax_t n, uiAreaDrawParams *p)
 {
 	(*(tests[n].draw))(p);
+}
+
+void populateComboboxWithTests(uiCombobox *c)
+{
+	size_t i;
+
+	for (i = 0; test[i].name != NULL; i++)
+		uiComboboxAppend(c, tests[i].name);
 }

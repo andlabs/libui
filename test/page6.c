@@ -78,6 +78,16 @@ static void onAmountChanged(uiSpinbox *s, void *data)
 	uiAreaUpdateScroll(area);
 }
 
+static void shouldntHappen(uiCombobox *c, void *data)
+{
+	fprintf(stderr, "YOU SHOULD NOT SEE THIS. If you do, uiComboboxSetSelected() is triggering uiComboboxOnSelected(), which it should not.");
+}
+
+static void redraw(uiCombobox *c, void *data)
+{
+	// TODO
+}
+
 uiBox *makePage6(void)
 {
 	uiBox *page6;
@@ -97,6 +107,11 @@ uiBox *makePage6(void)
 	uiBoxAppend(page6, uiControl(hbox), 0);
 
 	which = uiNewCombobox();
+	populateComboboxWithTests(which);
+	// this is to make sure that uiComboboxOnSelected() doesn't trigger with uiComboboxSetSelected()
+	uiComboboxOnSelected(which, shouldntHappen, NULL);
+	uiComboboxSetSelected(which, 0);
+	uiComboboxOnSelected(which, redraw, NULL);
 	uiBoxAppend(hbox, uiControl(which), 0);
 
 	// make these first in case the area handler calls the information as part of the constructor

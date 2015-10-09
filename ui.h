@@ -203,7 +203,7 @@ _UI_EXTERN uintmax_t uiComboboxType(void);
 #define uiCombobox(this) ((uiCombobox *) uiIsA((this), uiComboboxType(), 1))
 _UI_EXTERN void uiComboboxAppend(uiCombobox *c, const char *text);
 _UI_EXTERN intmax_t uiComboboxSelected(uiCombobox *c);
-// TODO SetSelected
+_UI_EXTERN void uiComboboxSetSelected(uiCombobox *c, intmax_t n);
 _UI_EXTERN void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data);
 _UI_EXTERN uiCombobox *uiNewCombobox(void);
 _UI_EXTERN uiCombobox *uiNewEditableCombobox(void);

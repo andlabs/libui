@@ -14,7 +14,7 @@ static struct handler handler;
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 {
-	runDrawTest(0, p);
+	runDrawTest(uiComboboxSelected(which), p);
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)

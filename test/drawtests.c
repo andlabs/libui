@@ -221,8 +221,56 @@ static void drawOriginal(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
+// Direct2D Examples
+
+static void d2dColorToRGB(uint32_t color, double *r, double *g, double *b)
+{
+	uint8_t rr, gg, bb;
+
+	rr = (color & 0xFF0000) >> 16;
+	gg = (color & 0x00FF00) >> 8;
+	bb = color & 0x0000FF;
+	*r = ((double) rr) / 255.0;
+	*g = ((double) gg) / 255.0;
+	*b = ((double) bb) / 255.0;
+}
+#define d2dBlack 0x000000
+
+static void d2dSolidBrush(uiDrawBrush *brush, uint32_t color, double alpha)
+{
+	brush->Type = uiDrawBrushTypeSolid;
+	d2dColorToRGB(color, &(brush->R), &(brush->G), &(brush->B));
+	brush->A = alpha;
+}
+
+/*
+// from xxxx
+static void drawD2DXxxx(uiAreaDrawParams *p)
+{
+}
+*/
+
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/hh780340%28v=vs.85%29.aspx
+static void drawD2DW8QS(uiAreaDrawParams *p)
+{
+	uiDrawPath *path;
+	uiDrawBrush brush;
+
+	d2dSolidBrush(&brush, d2dBlack, 1.0);
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path,
+		100,
+		100,
+		(p->ClientWidth - 100) - 100,
+		(p->ClientHeight - 100) - 100);
+	uiDrawPathEnd(path);
+	uiDrawFill(p->Context, path, &brush);
+	uiDrawFreePath(path);
+}
+
 static const struct drawtest tests[] = {
 	{ "Original uiArea test", drawOriginal },
+	{ "Direct2D: Direct2D Quickstart for Windows 8", drawD2DW8QS },
 	{ NULL, NULL },
 };
 

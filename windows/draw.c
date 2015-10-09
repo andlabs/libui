@@ -77,11 +77,9 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode fillmode)
 	uiDrawPath *p;
 	HRESULT hr;
 
-	// TODO uiNew
-	p = malloc(sizeof (uiDrawPath));
+	p = uiNew(uiDrawPath);
 	hr = ID2D1Factory_CreatePathGeometry(d2dfactory,
 		&(p->path));
-	// TODO make sure this is the only success code
 	if (hr != S_OK)
 		logHRESULT("error creating path in uiDrawNewPath()", hr);
 	hr = ID2D1PathGeometry_Open(p->path,
@@ -111,8 +109,7 @@ void uiDrawFreePath(uiDrawPath *p)
 		// TODO close sink first?
 		ID2D1GeometrySink_Release(p->sink);
 	ID2D1PathGeometry_Release(p->path);
-	// TODO uiFree
-	free(p);
+	uiFree(p);
 }
 
 void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
@@ -260,8 +257,7 @@ uiDrawContext *newContext(ID2D1RenderTarget *rt)
 {
 	uiDrawContext *c;
 
-	// TODO use uiNew
-	c = (uiDrawContext *) malloc(sizeof (uiDrawContext));
+	c = uiNew(uiDrawContext);
 	c->rt = rt;
 	return c;
 }
@@ -293,8 +289,7 @@ static ID2D1GradientStopCollection *mkstops(uiDrawBrush *b, ID2D1RenderTarget *r
 	size_t i;
 	HRESULT hr;
 
-	// TODO uiAlloc
-	stops = malloc(b->NumStops * sizeof (D2D1_GRADIENT_STOP));
+	stops = uiAlloc(b->NumStops * sizeof (D2D1_GRADIENT_STOP), "D2D1_GRADIENT_STOP[]");
 	for (i = 0; i < b->NumStops; i++) {
 		stops[i].position = b->Stops[i].Pos;
 		stops[i].color.r = b->Stops[i].R;
@@ -315,8 +310,7 @@ static ID2D1GradientStopCollection *mkstops(uiDrawBrush *b, ID2D1RenderTarget *r
 	if (hr != S_OK)
 		logHRESULT("error creating stop collection in mkstops()", hr);
 
-	// TODO uiFree
-	free(stops);
+	uiFree(stops);
 	return s;
 }
 
@@ -398,7 +392,7 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 //		TODO
 	}
 
-//TODO	complain("invalid brush type %d in makeBrush()", b->Type);
+	complain("invalid brush type %d in makeBrush()", b->Type);
 	return NULL;		// make compiler happy
 }
 

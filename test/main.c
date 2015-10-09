@@ -1,6 +1,9 @@
 // 22 april 2015
 #include "test.h"
 
+// TODOs
+// - blank page affects menus negatively on Windows
+
 void die(const char *fmt, ...)
 {
 	va_list ap;

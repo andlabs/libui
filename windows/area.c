@@ -89,10 +89,11 @@ void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
 		xamount = 0;
 	}
 
+	// TODO this isn't safe with Direct2D
 	if (ScrollWindowEx(a->hwnd, xamount, yamount,
 		NULL, NULL, NULL, NULL,
 		SW_ERASE | SW_INVALIDATE) == ERROR)
-;//TODO		logLastError("error scrolling area in scrollto()");
+		logLastError("error scrolling area in scrollto()");
 
 	*(p->pos) = pos;
 
@@ -513,9 +514,14 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			a->rt = makeHWNDRenderTarget(a->hwnd);
 		if (GetClientRect(a->hwnd, &client) == 0)
 			logLastError("error getting client rect in WM_PAINT in areaWndProc()");
-		// TODO really FALSE?
-		if (GetUpdateRect(a->hwnd, &clip, FALSE) == 0)
-			logLastError("error getting clip rect in WM_PAINT in areaWndProc()");
+		// do not clear the update rect; we do that ourselves in doPaint()
+		if (GetUpdateRect(a->hwnd, &clip, FALSE) == 0) {
+			// set a zero clip rect just in case GetUpdateRect() didn't change clip
+			clip.left = 0;
+			clip.top = 0;
+			clip.right = 0;
+			clip.bottom = 0;
+		}
 		hr = doPaint(a, (ID2D1RenderTarget *) (a->rt), &client, &clip);
 		switch (hr) {
 		case S_OK:
@@ -526,6 +532,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			// DON'T validate the rect
 			// instead, simply drop the render target
 			// we'll get another WM_PAINT and make the render target again
+			// TODO would this require us to invalidate the entire client area?
 			ID2D1HwndRenderTarget_Release(a->rt);
 			a->rt = NULL;
 			break;
@@ -632,6 +639,7 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 }
 
 // TODO affect visibility properly
+// TODO what did this mean
 void processAreaMessage(HWND active, MSG *msg)
 {
 	LRESULT handled;

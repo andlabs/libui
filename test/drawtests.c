@@ -593,6 +593,10 @@ static void drawD2DPathGeometries(uiAreaDrawParams *p)
 	uiDrawFreePath(river);
 }
 
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756690%28v=vs.85%29.aspx
+
+// note: up to https://msdn.microsoft.com/en-us/library/windows/desktop/dd756681%28v=vs.85%29.aspx
+
 static const struct drawtest tests[] = {
 	{ "Original uiArea test", drawOriginal },
 	{ "Direct2D: Direct2D Quickstart for Windows 8", drawD2DW8QS },

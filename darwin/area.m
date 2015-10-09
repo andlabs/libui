@@ -688,6 +688,11 @@ void uiAreaUpdateScroll(uiArea *a)
 */
 }
 
+void uiAreaQueueRedrawAll(uiArea *a)
+{
+	[a->view setNeedsDisplay:YES];
+}
+
 uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;

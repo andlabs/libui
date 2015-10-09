@@ -85,7 +85,7 @@ static void shouldntHappen(uiCombobox *c, void *data)
 
 static void redraw(uiCombobox *c, void *data)
 {
-	// TODO
+	uiAreaQueueRedrawAll(area);
 }
 
 uiBox *makePage6(void)

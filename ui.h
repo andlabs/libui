@@ -267,6 +267,8 @@ struct uiAreaHandler {
 _UI_EXTERN uintmax_t uiMenuItemType(void);
 #define uiArea(this) ((uiArea *) uiIsA((this), uiAreaType(), 1))
 _UI_EXTERN void uiAreaUpdateScroll(uiArea *a);
+// TODO uiAreaQueueRedraw()
+_UI_EXTERN void uiAreaQueueRedrawAll(uiArea *a);
 _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);
 
 struct uiAreaDrawParams {

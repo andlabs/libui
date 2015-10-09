@@ -695,6 +695,13 @@ void uiAreaUpdateScroll(uiArea *a)
 	vscrollby(a, 0);
 }
 
+void uiAreaQueueRedrawAll(uiArea *a)
+{
+	// don't erase the background; we do that ourselves in doPaint()
+	if (InvalidateRect(a->hwnd, NULL, FALSE) == 0)
+		logLastError("error queueing uiArea redraw in uiAreaQueueRedrawAll()");
+}
+
 uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;

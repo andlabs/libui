@@ -1,22 +1,10 @@
 // 9 september 2015
-#include "area.h"
+#import "uipriv_darwin.h"
 
 // We are basically cloning NSScrollView here, managing scrolling ourselves.
 // TODOs
 // - is the page increment set up right?
 // - do we need to draw anything in the empty corner?
-
-// TODO remove this
-void addConstraint(NSView *view, NSString *constraint, NSDictionary *metrics, NSDictionary *views)
-{
-	NSArray *constraints;
-
-	constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint
-		options:0
-		metrics:metrics
-		views:views];
-	[view addConstraints:constraints];
-}
 
 // NSScrollers have no intrinsic size; here we give it one
 @interface areaScroller : NSScroller {
@@ -103,10 +91,16 @@ void addConstraint(NSView *view, NSString *constraint, NSDictionary *metrics, NS
 @end
 
 struct uiArea {
-//	uiDarwinControl c;
+	uiDarwinControl c;
 	areaView *view;
 	uiAreaHandler *ah;
 };
+
+uiDarwinDefineControl(
+	uiArea,								// type name
+	uiAreaType,							// type function
+	view									// handle
+)
 
 @implementation areaDrawingView
 
@@ -142,6 +136,8 @@ struct uiArea {
 	dp.VScrollPos = [av vscrollPos];
 
 	(*(self->libui_a->ah->Draw))(self->libui_a->ah, self->libui_a, &dp);
+
+	freeContext(dp.Context);
 }
 
 - (BOOL)isFlipped
@@ -679,30 +675,7 @@ int sendAreaEvents(NSEvent *e)
 
 @end
 
-uiArea *newArea(uiAreaHandler *ah)
-{
-	uiArea *a;
-
-	// TODO
-	a = (uiArea *) malloc(sizeof (uiArea));
-
-	a->ah = ah;
-
-	a->view = [[areaView alloc] initWithFrame:NSZeroRect area:a];
-
-	// set initial state
-	// TODO do this on other platforms?
-	areaUpdateScroll(a);
-
-	return a;
-}
-
-NSView *areaGetView(uiArea *a)
-{
-	return a->view;
-}
-
-void areaUpdateScroll(uiArea *a)
+void uiAreaUpdateScroll(uiArea *a)
 {
 /* TODO
 	NSRect frame;
@@ -712,4 +685,19 @@ void areaUpdateScroll(uiArea *a)
 	frame.size.height = (*(a->ah->VScrollMax))(a->ah, a);
 	[a->documentView setFrame:frame];
 */
+}
+
+uiArea *uiNewArea(uiAreaHandler *ah)
+{
+	uiArea *a;
+
+	a = (uiArea *) uiNewControl(uiAreaType());
+
+	a->ah = ah;
+
+	a->view = [[areaView alloc] initWithFrame:NSZeroRect area:a];
+
+	uiDarwinFinishNewControl(a, uiArea);
+
+	return a;
 }

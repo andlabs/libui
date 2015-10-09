@@ -1,6 +1,5 @@
 // 30 march 2014
-//TODO#include "uipriv_darwin.h"
-#include "area.h"
+#include "uipriv_darwin.h"
 
 /*
 Mac OS X uses its own set of hardware key codes that are different from PC keyboard scancodes, but are positional (like PC keyboard scancodes). These are defined in <HIToolbox/Events.h>, a Carbon header. As far as I can tell, there's no way to include this header without either using an absolute path or linking Carbon into the program, so the constant values are used here instead.

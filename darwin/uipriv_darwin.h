@@ -63,3 +63,14 @@ extern NSSize fittingAlignmentSize(NSView *);
 extern NSMapTable *newMap(void);
 extern void *mapGet(NSMapTable *map, id key);
 extern void mapSet(NSMapTable *map, id key, void *value);
+
+// area.m
+extern int sendAreaEvents(NSEvent *);
+
+// areaevents.m
+extern BOOL fromKeycode(unsigned short keycode, uiAreaKeyEvent *ke);
+extern BOOL keycodeModifier(unsigned short keycode, uiModifiers *mod);
+
+// draw.m
+extern uiDrawContext *newContext(CGContextRef);
+extern void freeContext(uiDrawContext *);

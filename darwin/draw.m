@@ -1,5 +1,5 @@
 // 6 september 2015
-#include "area.h"
+#import "uipriv_darwin.h"
 
 struct uiDrawPath {
 	CGMutablePathRef path;
@@ -11,23 +11,17 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 {
 	uiDrawPath *p;
 
-	// TODO uiNew
-	p = malloc(sizeof (uiDrawPath));
+	p = uiNew(uiDrawPath);
 	p->path = CGPathCreateMutable();
 	p->fillMode = mode;
-p->ended = NO;
 	return p;
 }
 
 void uiDrawFreePath(uiDrawPath *p)
 {
 	CGPathRelease((CGPathRef) (p->path));
-	// TODO uiFree
-	free(p);
+	uiFree(p);
 }
-
-// TODO
-#define complain(...) ;
 
 void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 {
@@ -106,10 +100,14 @@ uiDrawContext *newContext(CGContextRef ctxt)
 {
 	uiDrawContext *c;
 
-	// TODO use uiNew
-	c = (uiDrawContext *) malloc(sizeof (uiDrawContext));
+	c = uiNew(uiDrawContext);
 	c->c = ctxt;
 	return c;
+}
+
+void freeContext(uiDrawContext *c)
+{
+	uiFree(c);
 }
 
 // a stroke is identical to a fill of a stroked path
@@ -192,9 +190,8 @@ static void fillGradient(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 
 	// make the gradient
-	// TODO uiAlloc
-	colors = malloc(b->NumStops * 4 * sizeof (CGFloat));
-	locations = malloc(b->NumStops * sizeof (CGFloat));
+	colors = uiAlloc(b->NumStops * 4 * sizeof (CGFloat), "CGFloat[]");
+	locations = uiAlloc(b->NumStops * sizeof (CGFloat), "CGFloat[]");
 	for (i = 0; i < b->NumStops; i++) {
 		colors[i * 4 + 0] = b->Stops[i].R;
 		colors[i * 4 + 1] = b->Stops[i].G;
@@ -203,9 +200,8 @@ static void fillGradient(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 		locations[i] = b->Stops[i].Pos;
 	}
 	gradient = CGGradientCreateWithColorComponents(colorspace, colors, locations, b->NumStops);
-	// TODO uiFree
-	free(locations);
-	free(colors);
+	uiFree(locations);
+	uiFree(colors);
 
 	// because we're mucking with clipping, we need to save the graphics state and restore it later
 	CGContextSaveGState(ctxt);

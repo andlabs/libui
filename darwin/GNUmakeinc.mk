@@ -2,6 +2,8 @@
 
 osMFILES = \
 	darwin/alloc.m \
+	darwin/area.m \
+	darwin/areaevents.m \
 	darwin/autolayout.m \
 	darwin/box.m \
 	darwin/button.m \
@@ -9,6 +11,7 @@ osMFILES = \
 	darwin/combobox.m \
 	darwin/control.m \
 	darwin/datetimepicker.m \
+	darwin/draw.m \
 	darwin/entry.m \
 	darwin/group.m \
 	darwin/label.m \

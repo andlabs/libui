@@ -33,9 +33,9 @@ void uiMain(void)
 		// as for Tabs, we can't have both WS_TABSTOP and WS_EX_CONTROLPARENT set at the same time, so we hotswap the two styles to get the behavior we want
 		focus = GetFocus();
 		if (focus != NULL) {
-			switch (windowClassOf(focus, L"TODO Area not yet implemented", NULL)) {
+			switch (windowClassOf(focus, areaClass, NULL)) {
 			case 0:		// uiArea
-//				msgloop_area(active, focus, &msg);
+				processAreaMessage(active, &msg);
 				continue;
 			}
 			// else fall through

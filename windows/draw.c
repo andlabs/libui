@@ -1,5 +1,5 @@
 // 7 september 2015
-#include "area.h"
+#include "uipriv_windows.h"
 
 static ID2D1Factory *d2dfactory = NULL;
 

@@ -2,6 +2,7 @@
 
 osCFILES = \
 	windows/alloc.c \
+	windows/area.c \
 	windows/box.c \
 	windows/button.c \
 	windows/checkbox.c \
@@ -12,6 +13,7 @@ osCFILES = \
 	windows/datetimepicker.c \
 	windows/debug.c \
 	windows/dialoghelper.c \
+	windows/draw.c \
 	windows/entry.c \
 	windows/events.c \
 	windows/group.c \
@@ -49,7 +51,7 @@ osCFLAGS = \
 
 osLDFLAGS = \
 	-static-libgcc \
-	-luser32 -lkernel32 -lgdi32 -lcomctl32 -luxtheme -lmsimg32 -lcomdlg32 -lole32 -loleaut32 -loleacc -luuid
+	-luser32 -lkernel32 -lgdi32 -lcomctl32 -luxtheme -lmsimg32 -lcomdlg32 -ld2d1 -lole32 -loleaut32 -loleacc -luuid
 
 osLDWarnUndefinedFlags = -Wl,--no-undefined -Wl,--no-allow-shlib-undefined
 

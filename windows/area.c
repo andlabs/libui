@@ -1,13 +1,13 @@
 // 8 september 2015
-#include "area.h"
+#include "uipriv_windows.h"
 
 // TODOs
 // - things look very wrong on initial draw
-
-#define areaClass L"libui_uiAreaClass"
+// - initial scrolling is not set properly
+// - should background be inherited from parent control?
 
 struct uiArea {
-//	uiWindowsControl c;
+	uiWindowsControl c;
 	HWND hwnd;
 	uiAreaHandler *ah;
 	intmax_t hscrollpos;
@@ -18,6 +18,11 @@ struct uiArea {
 	BOOL capturing;
 	ID2D1HwndRenderTarget *rt;
 };
+
+uiWindowsDefineControl(
+	uiArea,								// type name
+	uiAreaType							// type function
+)
 
 static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *client, RECT *clip)
 {
@@ -617,18 +622,19 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+// control implementation
+
+static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+{
+	// TODO
+	*width = 0;
+	*height = 0;
+}
+
 // TODO affect visibility properly
-BOOL processAreaMessage(MSG *msg)
+void processAreaMessage(HWND active, MSG *msg)
 {
 	LRESULT handled;
-
-	// TODO get rid of this part
-	WCHAR classname[260 + 1];
-	GetClassNameW(msg->hwnd, classname, 260);
-	if (wcscmp(classname, areaClass) != 0) return FALSE;
-	HWND active;
-	active = GetActiveWindow();
-	if (active == NULL) return FALSE;
 
 	handled = 0;
 	switch (msg->message) {
@@ -642,17 +648,16 @@ BOOL processAreaMessage(MSG *msg)
 		break;
 	}
 	if (handled)
-		return TRUE;
+		return;
 
 	// don't call TranslateMessage(); we do our own keyboard handling
 	// TODO should we just return to the standard message loop?
 	if (IsDialogMessage(active, msg) != 0)
-		return TRUE;
+		return;
 	DispatchMessageW(msg);
-	return TRUE;
 }
 
-ATOM registerAreaClass(void)
+ATOM registerAreaClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 {
 	WNDCLASSW wc;
 
@@ -660,8 +665,8 @@ ATOM registerAreaClass(void)
 	wc.lpszClassName = areaClass;
 	wc.lpfnWndProc = areaWndProc;
 	wc.hInstance = hInstance;
-//TODO	wc.hIcon = hDefaultIcon;
-//TODO	wc.hCursor = hDefaultCursor;
+	wc.hIcon = hDefaultIcon;
+	wc.hCursor = hDefaultCursor;
 	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
 	// don't specify CS_HREDRAW or CS_VREDRAW; that's decided by the uiAreaHandler in RedrawOnResize()
 	return RegisterClassW(&wc);
@@ -673,35 +678,29 @@ void unregisterAreaClass(void)
 		logLastError("error unregistering uiArea window class in unregisterAreaClass()");
 }
 
-HWND makeArea(DWORD exstyle, DWORD style, int x, int y, int cx, int cy, HWND parent, uiAreaHandler *ah)
+void uiAreaUpdateScroll(uiArea *a)
 {
-	uiArea *a;
-
-	// TODO
-	a = malloc(sizeof (uiArea));
-a->rt = NULL;
-
-	a->ah = ah;
-
-	a->hwnd = CreateWindowExW(exstyle,
-		areaClass, L"",
-		style | WS_HSCROLL | WS_VSCROLL,
-		x, y, cx, cy,
-		parent, NULL, hInstance, a);
-
-	clickCounterReset(&(a->cc));
-
-	a->capturing = FALSE;
-
-	return a->hwnd;
-}
-
-void areaUpdateScroll(HWND area)
-{
-	uiArea *a;
-
-	a = (uiArea *) GetWindowLongPtrW(area, GWLP_USERDATA);
 	// use a no-op scroll to simulate scrolling
 	hscrollby(a, 0);
 	vscrollby(a, 0);
+}
+
+uiArea *uiNewArea(uiAreaHandler *ah)
+{
+	uiArea *a;
+
+	a = (uiArea *) uiNewControl(uiAreaType());
+
+	a->ah = ah;
+	clickCounterReset(&(a->cc));
+
+	a->hwnd = uiWindowsEnsureCreateControlHWND(0,
+		areaClass, L"",
+		WS_HSCROLL | WS_VSCROLL,
+		hInstance, a,
+		FALSE);
+
+	uiWindowsFinishNewControl(a, uiArea);
+
+	return a;
 }

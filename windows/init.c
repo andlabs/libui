@@ -158,12 +158,21 @@ const char *uiInit(uiInitOptions *o)
 	// TODO initialize COM security
 	// TODO (windows vista) turn off COM exception handling
 
+	hr = initDraw();
+	if (hr != S_OK)
+		return loadHRESULT("initializing Direct2D", hr);
+
+	if (registerAreaClass(hDefaultIcon, hDefaultCursor) == 0)
+		return loadLastError("registering uiArea window class");
+
 	return NULL;
 }
 
 void uiUninit(void)
 {
 	uninitMenus();
+	unregisterAreaClass();
+	uninitDraw();
 	CoUninitialize();
 	uninitDialogHelper();
 	if (DeleteObject(hollowBrush) == 0)

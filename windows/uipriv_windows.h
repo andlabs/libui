@@ -121,3 +121,16 @@ extern void childSetIntmax(struct child *c, int n, intmax_t to);
 // tabpage.c
 extern void tabPageMargins(HWND, intmax_t *, intmax_t *, intmax_t *, intmax_t *);
 extern HWND newTabPage(void);
+
+// area.c
+#define areaClass L"libui_uiAreaClass"
+extern void processAreaMessage(HWND, MSG *);
+extern ATOM registerAreaClass(HICON, HCURSOR);
+extern void unregisterAreaClass(void);
+
+// draw.c
+extern HRESULT initDraw(void);
+extern void uninitDraw(void);
+extern ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd);
+extern uiDrawContext *newContext(ID2D1RenderTarget *);
+extern void freeContext(uiDrawContext *);

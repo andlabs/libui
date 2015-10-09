@@ -191,8 +191,6 @@ static void d2dColorToRGB(uint32_t color, double *r, double *g, double *b)
 #define d2dWhite 0xFFFFFF
 #define d2dYellowGreen 0x9ACD32
 #define d2dYellow 0xFFFF00
-// TODO this color appears wrong on Vista for some reason... either that or the gradients aren't working right
-// TODO the gradients don't work on OS X
 #define d2dForestGreen 0x228B22
 #define d2dOliveDrab 0x6B8E23
 #define d2dLightSkyBlue 0x87CEFA
@@ -352,7 +350,7 @@ static void drawD2DLinearBrush(uiAreaDrawParams *p)
 	stops[0].Pos = 0.0;
 	d2dColorToRGB(d2dYellow, &(stops[0].R), &(stops[0].G), &(stops[0].B));
 	stops[0].A = 1.0;
-	stops[1].Pos = 10;
+	stops[1].Pos = 1.0;
 	d2dColorToRGB(d2dForestGreen, &(stops[1].R), &(stops[1].G), &(stops[1].B));
 	stops[1].A = 1.0;
 	gradient.Stops = stops;
@@ -395,7 +393,7 @@ static void drawD2DRadialBrush(uiAreaDrawParams *p)
 	stops[0].Pos = 0.0;
 	d2dColorToRGB(d2dYellow, &(stops[0].R), &(stops[0].G), &(stops[0].B));
 	stops[0].A = 1.0;
-	stops[1].Pos = 10;
+	stops[1].Pos = 1.0;
 	d2dColorToRGB(d2dForestGreen, &(stops[1].R), &(stops[1].G), &(stops[1].B));
 	stops[1].A = 1.0;
 	gradient.Stops = stops;
@@ -450,7 +448,7 @@ static void drawD2DPathGeometries(uiAreaDrawParams *p)
 	stops[0].Pos = 0.0;
 	d2dColorToRGB(d2dYellow, &(stops[0].R), &(stops[0].G), &(stops[0].B));
 	stops[0].A = 1.0;
-	stops[1].Pos = 10;
+	stops[1].Pos = 1.0;
 	d2dColorToRGB(d2dForestGreen, &(stops[1].R), &(stops[1].G), &(stops[1].B));
 	stops[1].A = 1.0;
 	radial.Stops = stops;

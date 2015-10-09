@@ -1,6 +1,26 @@
 // 14 august 2015
 #include "uipriv_darwin.h"
 
+// NSComboBoxes have no intrinsic width; we'll use the default Interface Builder width for them.
+// NSPopUpButton is fine.
+#define comboboxWidth 96
+
+@interface libui_intrinsicWidthNSComboBox : NSComboBox
+@end
+
+@implementation libui_intrinsicWidthNSComboBox
+
+- (NSSize)intrinsicContentSize
+{
+	NSSize s;
+
+	s = [super intrinsicContentSize];
+	s.width = comboboxWidth;
+	return s;
+}
+
+@end
+
 struct uiCombobox {
 	uiDarwinControl c;
 	BOOL editable;
@@ -114,6 +134,29 @@ intmax_t uiComboboxSelected(uiCombobox *c)
 	return [c->pb indexOfSelectedItem];
 }
 
+void uiComboboxSetSelected(uiCombobox *c, intmax_t n)
+{
+	if (c->editable) {
+		// see https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/ComboBox/Tasks/SettingComboBoxValue.html#//apple_ref/doc/uid/20000256
+		id delegate;
+
+		// this triggers the delegate; turn it off for now
+		delegate = [c->cb delegate];
+		[c->cb setDelegate:nil];
+
+		// this seems to work fine for -1 too
+		[c->cb selectItemAtIndex:n];
+		if (n == -1)
+			[c->cb setObjectValue:@""];
+		else
+			[c->cb setObjectValue:[c->cb objectValueOfSelectedItem]];
+
+		[c->cb setDelegate:delegate];
+		return;
+	}
+	[c->pb selectItemAtIndex:n];
+}
+
 void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data)
 {
 	c->onSelected = f;
@@ -133,7 +176,7 @@ static uiCombobox *finishNewCombobox(BOOL editable)
 
 	c->editable = editable;
 	if (c->editable) {
-		c->cb = [[NSComboBox alloc] initWithFrame:NSZeroRect];
+		c->cb = [[libui_intrinsicWidthNSComboBox alloc] initWithFrame:NSZeroRect];
 		[c->cb setUsesDataSource:NO];
 		[c->cb setButtonBordered:YES];
 		[c->cb setCompletes:NO];

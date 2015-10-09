@@ -67,6 +67,12 @@ intmax_t uiComboboxSelected(uiCombobox *c)
 	return (intmax_t) n;
 }
 
+void uiComboboxSetSelected(uiCombobox *c, intmax_t n)
+{
+	// TODO error check
+	SendMessageW(c->hwnd, CB_SETCURSEL, (WPARAM) n, 0);
+}
+
 void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data)
 {
 	c->onSelected = f;

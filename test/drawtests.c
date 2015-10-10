@@ -201,9 +201,9 @@ static void drawArcs(uiAreaDrawParams *p)
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
 	add = (2.0 * M_PI) / 12;
+
 	x = start + rad;
 	y = start + rad;
-
 	angle = add;
 	for (i = 0; i < 12; i++) {
 		uiDrawPathNewFigureWithArc(path,
@@ -212,12 +212,23 @@ static void drawArcs(uiAreaDrawParams *p)
 			0, angle);
 		angle += add;
 		x += 2 * rad + step;
-		if (i % 6 == 5) {
-			y += 2 * rad + step;
-			x = start + rad;
-		}
 	}
 
+	y += 2 * rad + step;
+	x = start + rad;
+	angle = add;
+	for (i = 0; i < 12; i++) {
+		uiDrawPathNewFigure(path, x, y);
+		uiDrawPathArcTo(path,
+			x, y,
+			rad,
+			0, angle);
+		angle += add;
+		x += 2 * rad + step;
+	}
+
+	y += 2 * rad + step;
+	x = start + rad;
 	angle = add;
 	for (i = 0; i < 12; i++) {
 		uiDrawPathNewFigureWithArc(path,
@@ -226,10 +237,6 @@ static void drawArcs(uiAreaDrawParams *p)
 			(M_PI / 4), angle);
 		angle += add;
 		x += 2 * rad + step;
-		if (i % 6 == 5) {
-			y += 2 * rad + step;
-			x = start + rad;
-		}
 	}
 
 	uiDrawPathEnd(path);

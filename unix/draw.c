@@ -152,14 +152,14 @@ static void runPath(uiDrawPath *p, cairo_t *cr)
 			cairo_new_sub_path(cr);
 			// fall through
 		case arcTo:
-			// the Windows AngleArc() function only goes counterclockwise, so our uiDrawArc() function does too
-			// simulate it in cairo by drawing a negative arc from end to start
-			cairo_arc_negative(cr,
+			// cairo_arc() and cairo_arc_negative() only go clockwise
+			// TODO explain why this works
+			cairo_arc(cr,
 				piece->d[0],
 				piece->d[1],
 				piece->d[2],
-				piece->d[3] + piece->d[4],
-				piece->d[3]);
+				-(piece->d[3] + piece->d[4]),
+				-(piece->d[3]));
 			break;
 		case lineTo:
 			cairo_line_to(cr, piece->d[0], piece->d[1]);

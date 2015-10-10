@@ -554,7 +554,7 @@ static void drawD2DPathGeometries(uiAreaDrawParams *p)
 
 	sun = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathNewFigureWithArc(sun,
-		440.0, 255,
+		(440.0 - 270.0) / 2 + 270.0, 255,
 		85,
 		0, M_PI);
 	uiDrawPathCloseFigure(sun);

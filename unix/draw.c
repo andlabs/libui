@@ -154,12 +154,13 @@ static void runPath(uiDrawPath *p, cairo_t *cr)
 		case arcTo:
 			// cairo_arc() and cairo_arc_negative() only go clockwise
 			// TODO explain why this works
-			cairo_arc(cr,
+			// don't use cairo_arc(); that requires us to put the starting point as the ending point
+			cairo_arc_negative(cr,
 				piece->d[0],
 				piece->d[1],
 				piece->d[2],
-				-(piece->d[3] + piece->d[4]),
-				-(piece->d[3]));
+				-(piece->d[3]),
+				-(piece->d[3] + piece->d[4]));
 			break;
 		case lineTo:
 			cairo_line_to(cr, piece->d[0], piece->d[1]);

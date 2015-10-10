@@ -127,54 +127,82 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	p->inFigure = TRUE;
 }
 
-static void arcEndpoint(double xCenter, double yCenter, double radius, double startAngle, double *startX, double *startY)
-{
-	FLOAT sinStart, cosStart;
+// Direct2D arcs require a little explanation.
+// An arc in Direct2D is defined by the chord between the endpoints.
+// There are four possible arcs with the same two endpoints that you can draw this way.
+// See https://www.youtube.com/watch?v=ATS0ANW1UxQ for a demonstration.
+// There is a property rotationAngle which deals with the rotation /of the entire ellipse that forms an ellpitical arc/ - it's effectively a transformation on the arc.
+// That is to say, it's NOT THE SWEEP.
+// The sweep is defined by the start and end points and whether the arc is "large".
+// As a result, this design does not allow for full circles or ellipses with a single arc; they have to be simulated with two.
 
+struct arc {
+	double xCenter;
+	double yCenter;
+	double radius;
+	double startAngle;
+	double sweep;
+};
+
+static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPath *, double, double))
+{
+	double sinx, cosx;
+	double startX, startY;
+	double endX, endY;
+	D2D1_ARC_SEGMENT as;
+
+	// as above, we can't do a full circle with one arc
+	// simulate it with two half-circles
+	if (a->sweep >= (2 * M_PI)) {
+		a->sweep = M_PI;
+		drawArc(p, a, startFunction);
+		a->startAngle += M_PI;
+		drawArc(p, a, NULL);
+		return;
+	}
+
+	// first, figure out the arc's endpoints
 	// unfortunately D2D1SinCos() is only defined on Windows 8 and newer
 	// the MSDN page doesn't say this, but says it requires d2d1_1.h, which is listed as only supported on Windows 8 and newer elsewhere on MSDN
 	// so we must use sin() and cos() and hope it's right...
-	sinStart = sin(startAngle);
-	cosStart = cos(startAngle);
-	*startX = xCenter + radius * cosStart;
-	*startY = yCenter - radius * sinStart;
-}
+	sinx = sin(a->startAngle);
+	cosx = cos(a->startAngle);
+	startX = a->xCenter + a->radius * cosx;
+	startY = a->yCenter - a->radius * sinx;
+	sinx = sin(a->startAngle + a->sweep);
+	cosx = cos(a->startAngle + a->sweep);
+	endX = a->xCenter + a->radius * cosx;
+	endY = a->yCenter - a->radius * sinx;
 
-// An arc in Direct2D is defined by the chord between its endpoints, not solely by the sweep angle.
-// There are four possible arcs with the same sweep amount that you can draw this way.
-// See https://www.youtube.com/watch?v=ATS0ANW1UxQ for a demonstration.
-// TODO clean this up, document it better, and merge it with the above and below functions
-static void doDrawArc(ID2D1GeometrySink *sink, double endX, double endY, double radius, double sweep)
-{
-	D2D1_ARC_SEGMENT as;
+	// now do the initial step to get the current point to be the start point
+	// this is either creating a new figure, drawing a line, or (in the case of our full circle code above) doing nothing
+	if (startFunction != NULL)
+		(*startFunction)(p, startX, startY);
 
-	if (sweep > 2 * M_PI)
-		sweep = 2 * M_PI;
+	// now we can draw the arc
 	as.point.x = endX;
 	as.point.y = endY;
-	as.size.width = radius;
-	as.size.height = radius;
-	as.rotationAngle = sweep * (180.0 / M_PI);
+	as.size.width = a->radius;
+	as.size.height = a->radius;
+	as.rotationAngle = 0;		// as above, not relevant for circles
 	as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
-	if (sweep > M_PI)
+	if (a->sweep > M_PI)
 		as.arcSize = D2D1_ARC_SIZE_LARGE;
 	else
 		as.arcSize = D2D1_ARC_SIZE_SMALL;
-	ID2D1GeometrySink_AddArc(sink, &as);
+	ID2D1GeometrySink_AddArc(p->sink, &as);
 }
 
 void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
 {
-	double startX, startY;
-	double endX, endY;
+	struct arc a;
 
-	// make the new figure
-	arcEndpoint(xCenter, yCenter, radius, startAngle, &startX, &startY);
-	uiDrawPathNewFigure(p, startX, startY);
-
-	// draw the arc
-	arcEndpoint(xCenter, yCenter, radius, startAngle + sweep, &endX, &endY);
-	doDrawArc(p->sink, endX, endY, radius, sweep);
+	a.xCenter = xCenter;
+	a.yCenter = yCenter;
+	a.radius = radius;
+	a.startAngle = startAngle;
+	a.sweep = sweep;
+	drawArc(p, &a, uiDrawPathNewFigure);
 }
 
 void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
@@ -188,16 +216,14 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 
 void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
 {
-	double startX, startY;
-	double endX, endY;
+	struct arc a;
 
-	// draw the starting line
-	arcEndpoint(xCenter, yCenter, radius, startAngle, &startX, &startY);
-	uiDrawPathLineTo(p, startX, startY);
-
-	// draw the arc
-	arcEndpoint(xCenter, yCenter, radius, startAngle + sweep, &endX, &endY);
-	doDrawArc(p->sink, endX, endY, radius, sweep);
+	a.xCenter = xCenter;
+	a.yCenter = yCenter;
+	a.radius = radius;
+	a.startAngle = startAngle;
+	a.sweep = sweep;
+	drawArc(p, &a, uiDrawPathLineTo);
 }
 
 void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY)

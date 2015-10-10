@@ -528,8 +528,7 @@ static void drawD2DRadialBrush(uiAreaDrawParams *p)
 		75, 75,
 		75,
 		0,
-		// TODO why doesn't 360° work
-		2 * M_PI - 0.1);
+		2 * M_PI);
 	uiDrawPathEnd(path);
 
 	uiDrawFill(p->Context, path, &gradient);

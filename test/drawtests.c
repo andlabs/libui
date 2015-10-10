@@ -953,6 +953,350 @@ static void drawCSArcNegative(uiAreaDrawParams *p)
 
 // TODO clip image
 
+// curve rectangle
+static void drawCSCurveRectangle(uiAreaDrawParams *p)
+{
+	double x0      = 25.6,   /* parameters like cairo_rectangle */
+		y0      = 25.6,
+		rect_width  = 204.8,
+		rect_height = 204.8,
+		radius = 102.4;   /* and an approximate curvature radius */
+
+	double x1,y1;
+
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+
+	x1=x0+rect_width;
+	y1=y0+rect_height;
+	if (!rect_width || !rect_height)
+		return;
+	if (rect_width/2 < radius) {
+		if (rect_height/2<radius) {
+			uiDrawPathNewFigure(path, x0, (y0 + y1)/2);
+			uiDrawPathBezierTo(path, x0 ,y0, x0, y0, (x0 + x1)/2, y0);
+			uiDrawPathBezierTo(path, x1, y0, x1, y0, x1, (y0 + y1)/2);
+			uiDrawPathBezierTo(path, x1, y1, x1, y1, (x1 + x0)/2, y1);
+			uiDrawPathBezierTo(path, x0, y1, x0, y1, x0, (y0 + y1)/2);
+		} else {
+			uiDrawPathNewFigure(path, x0, y0 + radius);
+			uiDrawPathBezierTo(path, x0 ,y0, x0, y0, (x0 + x1)/2, y0);
+			uiDrawPathBezierTo(path, x1, y0, x1, y0, x1, y0 + radius);
+			uiDrawPathLineTo(path, x1 , y1 - radius);
+			uiDrawPathBezierTo(path, x1, y1, x1, y1, (x1 + x0)/2, y1);
+			uiDrawPathBezierTo(path, x0, y1, x0, y1, x0, y1- radius);
+		}
+	} else {
+		if (rect_height / 2 < radius) {
+			uiDrawPathNewFigure(path, x0, (y0 + y1)/2);
+			uiDrawPathBezierTo(path, x0 , y0, x0 , y0, x0 + radius, y0);
+			uiDrawPathLineTo(path, x1 - radius, y0);
+			uiDrawPathBezierTo(path, x1, y0, x1, y0, x1, (y0 + y1)/2);
+			uiDrawPathBezierTo(path, x1, y1, x1, y1, x1 - radius, y1);
+			uiDrawPathLineTo(path, x0 + radius, y1);
+			uiDrawPathBezierTo(path, x0, y1, x0, y1, x0, (y0 + y1)/2);
+		} else {
+			uiDrawPathNewFigure(path, x0, y0 + radius);
+			uiDrawPathBezierTo(path, x0 , y0, x0 , y0, x0 + radius, y0);
+			uiDrawPathLineTo(path, x1 - radius, y0);
+			uiDrawPathBezierTo(path, x1, y0, x1, y0, x1, y0 + radius);
+			uiDrawPathLineTo(path, x1 , y1 - radius);
+			uiDrawPathBezierTo(path, x1, y1, x1, y1, x1 - radius, y1);
+			uiDrawPathLineTo(path, x0 + radius, y1);
+			uiDrawPathBezierTo(path, x0, y1, x0, y1, x0, y1- radius);
+		}
+	}
+	uiDrawPathCloseFigure(path);
+	uiDrawPathEnd(path);
+
+	crsourcergba(&source, 0.5, 0.5, 1, 1.0);
+	uiDrawFill(p->Context, path, &source);
+	crsourcergba(&source, 0.5, 0, 0, 0.5);
+	sp.Thickness = 10.0;
+	uiDrawStroke(p->Context, path, &source, &sp);
+
+	uiDrawFreePath(path);
+}
+
+// curve to
+static void drawCSCurveTo(uiAreaDrawParams *p)
+{
+	double x=25.6,  y=128.0;
+	double x1=102.4, y1=230.4,
+		x2=153.6, y2=25.6,
+		x3=230.4, y3=128.0;
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+
+	uiDrawPathNewFigure(path, x, y);
+	uiDrawPathBezierTo(path, x1, y1, x2, y2, x3, y3);
+	uiDrawPathEnd(path);
+	sp.Thickness = 10.0;
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+
+	crsourcergba(&source, 1, 0.2, 0.2, 0.6);
+	sp.Thickness = 6.0;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, x, y);
+	uiDrawPathLineTo(path, x1, y1);
+	uiDrawPathNewFigure(path, x2, y2);
+	uiDrawPathLineTo(path, x3, y3);
+	uiDrawPathEnd(path);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
+
+// TODO dash
+
+// fill and stroke2
+static void drawCSFillAndStroke2(uiAreaDrawParams *p)
+{
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+
+	uiDrawPathNewFigure(path, 128.0, 25.6);
+	uiDrawPathLineTo(path, 230.4, 230.4);
+	uiDrawPathLineTo(path, 230.4 - 102.4, 230.4 + 0.0);
+	uiDrawPathBezierTo(path, 51.2, 230.4, 51.2, 128.0, 128.0, 128.0);
+	uiDrawPathCloseFigure(path);
+
+	uiDrawPathNewFigure(path, 64.0, 25.6);
+	uiDrawPathLineTo(path, 64.0 + 51.2, 25.6 + 51.2);
+	uiDrawPathLineTo(path, 64.0 + 51.2 -51.2, 25.6 + 51.2 + 51.2);
+	uiDrawPathLineTo(path, 64.0 + 51.2 -51.2 -51.2, 25.6 + 51.2 + 51.2 -51.2);
+	uiDrawPathCloseFigure(path);
+
+	uiDrawPathEnd(path);
+
+	sp.Thickness = 10.0;
+	crsourcergba(&source, 0, 0, 1, 1);
+	uiDrawFill(p->Context, path, &source);
+	crsourcergba(&source, 0, 0, 0, 1);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
+
+// TODO fill style (needs transforms)
+
+// TOOD gradient (radial gradient with two circles)
+
+// TODO image
+
+// TODO imagepattern
+
+// multi segment caps
+static void drawCSMultiCaps(uiAreaDrawParams *p)
+{
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+
+	uiDrawPathNewFigure(path, 50.0, 75.0);
+	uiDrawPathLineTo(path, 200.0, 75.0);
+
+	uiDrawPathNewFigure(path, 50.0, 125.0);
+	uiDrawPathLineTo(path, 200.0, 125.0);
+
+	uiDrawPathNewFigure(path, 50.0, 175.0);
+	uiDrawPathLineTo(path, 200.0, 175.0);
+	uiDrawPathEnd(path);
+
+	sp.Thickness = 30.0;
+	sp.Cap = uiDrawLineCapRound;
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
+
+// rounded rectangle
+static void drawCSRoundRect(uiAreaDrawParams *p)
+{
+	double x         = 25.6,        /* parameters like cairo_rectangle */
+		y         = 25.6,
+		width         = 204.8,
+		height        = 204.8,
+		aspect        = 1.0,     /* aspect ratio */
+		corner_radius = height / 10.0;   /* and corner curvature radius */
+
+	double radius = corner_radius / aspect;
+	double degrees = M_PI / 180.0;
+
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+
+	// this example differs because of counterclockwise arcs
+	// the original went clockwise; we must go counterclockwise
+
+	// top right corner
+	uiDrawPathNewFigureWithArc(path,
+		x + width - radius, y + radius,
+		radius,
+		0 * degrees, 90 * degrees);
+	// top left corner
+	uiDrawPathArcTo(path,
+		x + radius, y + radius,
+		radius,
+		90 * degrees, 90 * degrees);
+	// bottom left corner
+	uiDrawPathArcTo(path,
+		x + radius, y + height - radius,
+		radius,
+		180 * degrees, 90 * degrees);
+	// bottom right corner
+	uiDrawPathArcTo(path,
+		x + width - radius, y + height - radius,
+		radius,
+		270 * degrees, 90 * degrees);
+	uiDrawPathCloseFigure(path);
+	uiDrawPathEnd(path);
+
+	crsourcergba(&source, 0.5, 0.5, 1, 1);
+	uiDrawFill(p->Context, path, &source);
+	crsourcergba(&source, 0.5, 0, 0, 0.5);
+	sp.Thickness = 10.0;
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
+
+// set line cap
+static void drawCSSetLineCap(uiAreaDrawParams *p)
+{
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	sp.Thickness = 30.0;
+
+	sp.Cap = uiDrawLineCapFlat;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 64.0, 50.0);
+	uiDrawPathLineTo(path, 64.0, 200.0);
+	uiDrawPathEnd(path);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+
+	sp.Cap = uiDrawLineCapRound;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 128.0, 50.0);
+	uiDrawPathLineTo(path, 128.0, 200.0);
+	uiDrawPathEnd(path);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+
+	sp.Cap = uiDrawLineCapSquare;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 192.0, 50.0);
+	uiDrawPathLineTo(path, 192.0, 200.0);
+	uiDrawPathEnd(path);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+
+	// draw helping lines
+	// keep the square cap to match the reference picture on the cairo website
+	crsourcergba(&source, 1, 0.2, 0.2, 1);
+	sp.Thickness = 2.56;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 64.0, 50.0);
+	uiDrawPathLineTo(path, 64.0, 200.0);
+	uiDrawPathNewFigure(path, 128.0, 50.0);
+	uiDrawPathLineTo(path, 128.0, 200.0);
+	uiDrawPathNewFigure(path, 192.0, 50.0);
+	uiDrawPathLineTo(path, 192.0, 200.0);
+	uiDrawPathEnd(path);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
+
+// set line join
+static void drawCSSetLineJoin(uiAreaDrawParams *p)
+{
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	sp.Thickness = 40.96;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 76.8, 84.48);
+	uiDrawPathLineTo(path, 76.8 + 51.2, 84.48 -51.2);
+	uiDrawPathLineTo(path, 76.8 + 51.2 + 51.2, 84.48 - 51.2 + 51.2);
+	uiDrawPathEnd(path);
+	sp.Join = uiDrawLineJoinMiter;
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 76.8, 161.28);
+	uiDrawPathLineTo(path, 76.8 + 51.2, 161.28 -51.2);
+	uiDrawPathLineTo(path, 76.8 + 51.2 + 51.2, 161.28 - 51.2 + 51.2);
+	uiDrawPathEnd(path);
+	sp.Join = uiDrawLineJoinBevel;
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 76.8, 238.08);
+	uiDrawPathLineTo(path, 76.8 + 51.2, 238.08 -51.2);
+	uiDrawPathLineTo(path, 76.8 + 51.2 + 51.2, 238.08 - 51.2 + 51.2);
+	uiDrawPathEnd(path);
+	sp.Join = uiDrawLineJoinRound;
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
+
+// TODO text
+
+// TODO text align center
+
+// TODO text extents
+
 static const struct drawtest tests[] = {
 	{ "Original uiArea test", drawOriginal },
 	{ "Arc test", drawArcs },
@@ -966,6 +1310,13 @@ static const struct drawtest tests[] = {
 	{ "Direct2D: How to Draw and Fill a Complex Shape", drawD2DComplexShape },
 	{ "cairo samples: arc", drawCSArc },
 	{ "cairo samples: arc negative", drawCSArcNegative },
+	{ "cairo samples: curve rectangle", drawCSCurveRectangle },
+	{ "cairo samples: curve to", drawCSCurveTo },
+	{ "cairo samples: fill and stroke2", drawCSFillAndStroke2 },
+	{ "cairo samples: multi segment caps", drawCSMultiCaps },
+	{ "cairo samples: rounded rectangle", drawCSRoundRect },
+	{ "cairo samples: set line cap", drawCSSetLineCap },
+	{ "cairo samples: set line join", drawCSSetLineJoin },
 	{ NULL, NULL },
 };
 

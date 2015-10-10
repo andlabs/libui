@@ -55,7 +55,7 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	add(p, &piece);
 }
 
-void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
 {
 	struct piece piece;
 
@@ -64,7 +64,7 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 	piece.d[1] = yCenter;
 	piece.d[2] = radius;
 	piece.d[3] = startAngle;
-	piece.d[4] = endAngle;
+	piece.d[4] = sweep;
 	add(p, &piece);
 }
 
@@ -78,7 +78,7 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 	add(p, &piece);
 }
 
-void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
 {
 	struct piece piece;
 
@@ -87,7 +87,7 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 	piece.d[1] = yCenter;
 	piece.d[2] = radius;
 	piece.d[3] = startAngle;
-	piece.d[4] = endAngle;
+	piece.d[4] = sweep;
 	add(p, &piece);
 }
 
@@ -154,7 +154,7 @@ static void runPath(uiDrawPath *p, cairo_t *cr)
 				piece->d[0],
 				piece->d[1],
 				piece->d[2],
-				piece->d[4],
+				piece->d[3] + piece->d[4],
 				piece->d[3]);
 			break;
 		case lineTo:

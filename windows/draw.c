@@ -165,7 +165,7 @@ static void doDrawArc(ID2D1GeometrySink *sink, double startX, double startY, dou
 	ID2D1GeometrySink_AddArc(sink, &as);
 }
 
-void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
 {
 	double startX, startY;
 	double endX, endY;
@@ -175,8 +175,8 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 	uiDrawPathNewFigure(p, startX, startY);
 
 	// draw the arc
-	arcEndpoint(xCenter, yCenter, radius, endAngle, &endX, &endY);
-	doDrawArc(p->sink, startX, startY, endX, endY, radius, endAngle - startAngle);
+	arcEndpoint(xCenter, yCenter, radius, startAngle + sweep, &endX, &endY);
+	doDrawArc(p->sink, startX, startY, endX, endY, radius, sweep);
 }
 
 void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
@@ -188,7 +188,7 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 	ID2D1GeometrySink_AddLine(p->sink, pt);
 }
 
-void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
 {
 	double startX, startY;
 	double endX, endY;
@@ -198,8 +198,8 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 	uiDrawPathLineTo(p, startX, startY);
 
 	// draw the arc
-	arcEndpoint(xCenter, yCenter, radius, endAngle, &endX, &endY);
-	doDrawArc(p->sink, startX, startY, endX, endY, radius, endAngle - startAngle);
+	arcEndpoint(xCenter, yCenter, radius, startAngle + sweep, &endX, &endY);
+	doDrawArc(p->sink, startX, startY, endX, endY, radius, sweep);
 }
 
 void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY)

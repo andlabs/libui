@@ -30,7 +30,7 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	CGPathMoveToPoint(p->path, NULL, x, y);
 }
 
-void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
 {
 	double sinStart, cosStart;
 	double startx, starty;
@@ -42,7 +42,7 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 	startx = xCenter + radius * cosStart;
 	starty = yCenter + radius * sinStart;
 	CGPathMoveToPoint(p->path, NULL, startx, starty);
-	uiDrawPathArcTo(p, xCenter, yCenter, radius, startAngle, endAngle);
+	uiDrawPathArcTo(p, xCenter, yCenter, radius, startAngle, sweep);
 }
 
 void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
@@ -52,14 +52,15 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 	CGPathAddLineToPoint(p->path, NULL, x, y);
 }
 
-void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double endAngle)
+void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
 {
 	if (p->ended)
 		complain("attempt to add arc to ended path in uiDrawPathArcTo()");
+	// TODO wasn't there a relative function?
 	CGPathAddArc(p->path, NULL,
 		xCenter, yCenter,
 		radius,
-		startAngle, endAngle,
+		startAngle, startAngle + sweep,
 		NO);
 }
 

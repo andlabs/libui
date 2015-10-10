@@ -80,16 +80,14 @@ static void drawOriginal(uiAreaDrawParams *p)
 		400, 100,
 		50,
 		30. * (M_PI / 180.),
-		// note the end angle here
-		// in GDI, the second angle to AngleArc() is relative to the start, not to 0
-		330. * (M_PI / 180.));
+		300. * (M_PI / 180.));
 	// TODO add a checkbox for this
 	uiDrawPathLineTo(path, 400, 100);
 	uiDrawPathNewFigureWithArc(path,
 		510, 100,
 		50,
 		30. * (M_PI / 180.),
-		330. * (M_PI / 180.));
+		300. * (M_PI / 180.));
 	uiDrawPathCloseFigure(path);
 	uiDrawPathEnd(path);
 	sp.Cap = uiDrawLineCapFlat;
@@ -210,7 +208,7 @@ static void drawArcs(uiAreaDrawParams *p)
 		uiDrawPathNewFigureWithArc(path,
 			x, y,
 			rad,
-			(M_PI / 4), (M_PI / 4) + angle);
+			(M_PI / 4), angle);
 		angle += add;
 		x += 2 * rad + step;
 		if (i % 6 == 5) {

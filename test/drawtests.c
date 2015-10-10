@@ -184,7 +184,6 @@ static void drawOriginal(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
-// TODO test that a sweep of 0 draws nothing
 static void drawArcs(uiAreaDrawParams *p)
 {
 	uiDrawPath *path;
@@ -204,8 +203,8 @@ static void drawArcs(uiAreaDrawParams *p)
 
 	x = start + rad;
 	y = start + rad;
-	angle = add;
-	for (i = 0; i < 12; i++) {
+	angle = 0;
+	for (i = 0; i < 13; i++) {
 		uiDrawPathNewFigureWithArc(path,
 			x, y,
 			rad,
@@ -216,8 +215,8 @@ static void drawArcs(uiAreaDrawParams *p)
 
 	y += 2 * rad + step;
 	x = start + rad;
-	angle = add;
-	for (i = 0; i < 12; i++) {
+	angle = 0;
+	for (i = 0; i < 13; i++) {
 		uiDrawPathNewFigure(path, x, y);
 		uiDrawPathArcTo(path,
 			x, y,
@@ -229,12 +228,50 @@ static void drawArcs(uiAreaDrawParams *p)
 
 	y += 2 * rad + step;
 	x = start + rad;
-	angle = add;
-	for (i = 0; i < 12; i++) {
+	angle = 0;
+	for (i = 0; i < 13; i++) {
 		uiDrawPathNewFigureWithArc(path,
 			x, y,
 			rad,
 			(M_PI / 4), angle);
+		angle += add;
+		x += 2 * rad + step;
+	}
+
+	y += 2 * rad + step;
+	x = start + rad;
+	angle = 0;
+	for (i = 0; i < 13; i++) {
+		uiDrawPathNewFigure(path, x, y);
+		uiDrawPathArcTo(path,
+			x, y,
+			rad,
+			(M_PI / 4), angle);
+		angle += add;
+		x += 2 * rad + step;
+	}
+
+	y += 2 * rad + step;
+	x = start + rad;
+	angle = 0;
+	for (i = 0; i < 13; i++) {
+		uiDrawPathNewFigureWithArc(path,
+			x, y,
+			rad,
+			M_PI + (M_PI / 5), angle);
+		angle += add;
+		x += 2 * rad + step;
+	}
+
+	y += 2 * rad + step;
+	x = start + rad;
+	angle = 0;
+	for (i = 0; i < 13; i++) {
+		uiDrawPathNewFigure(path, x, y);
+		uiDrawPathArcTo(path,
+			x, y,
+			rad,
+			M_PI + (M_PI / 5), angle);
 		angle += add;
 		x += 2 * rad + step;
 	}

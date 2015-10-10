@@ -392,7 +392,6 @@ static void drawD2DSimpleApp(uiAreaDrawParams *p)
 		uiDrawFreePath(path);
 	}
 
-	// TODO rounding errors ahoy; deal with when changing coordinate systems of uiAreaDrawParams
 	double left, top, right, bottom;
 
 	left = p->ClientWidth / 2.0 - 50.0;

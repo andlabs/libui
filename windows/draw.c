@@ -137,14 +137,14 @@ static void arcEndpoint(double xCenter, double yCenter, double radius, double st
 	sinStart = sin(startAngle);
 	cosStart = cos(startAngle);
 	*startX = xCenter + radius * cosStart;
-	*startY = yCenter + radius * sinStart;
+	*startY = yCenter - radius * sinStart;
 }
 
 // An arc in Direct2D is defined by the chord between its endpoints, not solely by the sweep angle.
 // There are four possible arcs with the same sweep amount that you can draw this way.
 // See https://www.youtube.com/watch?v=ATS0ANW1UxQ for a demonstration.
-// TODO stress test this, compare to cairo and Core Graphics; handle the case where sweep >= 2π
-static void doDrawArc(ID2D1GeometrySink *sink, double startX, double startY, double endX, double endY, double radius, double sweep)
+// TODO clean this up, document it better, and merge it with the above and below functions
+static void doDrawArc(ID2D1GeometrySink *sink, double endX, double endY, double radius, double sweep)
 {
 	D2D1_ARC_SEGMENT as;
 
@@ -155,12 +155,8 @@ static void doDrawArc(ID2D1GeometrySink *sink, double startX, double startY, dou
 	as.size.width = radius;
 	as.size.height = radius;
 	as.rotationAngle = sweep * (180.0 / M_PI);
-	// TODO explain this
-	if (sweep < 0)
-		as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
-	else
-		as.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE;
-	if (fabs(sweep) > M_PI)
+	as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
+	if (sweep > M_PI)
 		as.arcSize = D2D1_ARC_SIZE_LARGE;
 	else
 		as.arcSize = D2D1_ARC_SIZE_SMALL;
@@ -178,7 +174,7 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 
 	// draw the arc
 	arcEndpoint(xCenter, yCenter, radius, startAngle + sweep, &endX, &endY);
-	doDrawArc(p->sink, startX, startY, endX, endY, radius, sweep);
+	doDrawArc(p->sink, endX, endY, radius, sweep);
 }
 
 void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
@@ -201,7 +197,7 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 
 	// draw the arc
 	arcEndpoint(xCenter, yCenter, radius, startAngle + sweep, &endX, &endY);
-	doDrawArc(p->sink, startX, startY, endX, endY, radius, sweep);
+	doDrawArc(p->sink, endX, endY, radius, sweep);
 }
 
 void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY)

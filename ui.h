@@ -322,7 +322,7 @@ enum uiDrawLineJoin {
 	uiDrawLineJoinBevel,
 };
 
-// this is the default for botoh cairo and GDI
+// this is the default for botoh cairo and Direct2D (in the latter case, from the C++ helper functions)
 // Core Graphics doesn't explicitly specify a default, but NSBezierPath allows you to choose one, and this is the initial value
 // so we're good to use it too!
 #define uiDrawDefaultMiterLimit 10.0

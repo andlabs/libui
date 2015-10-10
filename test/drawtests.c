@@ -127,64 +127,10 @@ static void drawOriginal(uiAreaDrawParams *p)
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, path, &brush, &sp);
 	uiDrawFreePath(path);
-
-	// based on https://msdn.microsoft.com/en-us/library/windows/desktop/dd756682%28v=vs.85%29.aspx
-	path = uiDrawNewPath(uiDrawFillModeWinding);
-#define XO 50
-#define YO 250
-	uiDrawPathNewFigure(path, 0 + XO, 0 + YO);
-	uiDrawPathLineTo(path, 200 + XO, 0 + YO);
-	uiDrawPathBezierTo(path,
-		150 + XO, 50 + YO,
-		150 + XO, 150 + YO,
-		200 + XO, 200 + YO);
-	uiDrawPathLineTo(path, 0 + XO, 200 + YO);
-	uiDrawPathBezierTo(path,
-		50 + XO, 150 + YO,
-		50 + XO, 50 + YO,
-		0 + XO, 0 + YO);
-	uiDrawPathCloseFigure(path);
-	uiDrawPathEnd(path);
-	// first the stroke
-	brush.Type = uiDrawBrushTypeSolid;
-	brush.R = 0;
-	brush.G = 0;
-	brush.B = 0;
-	brush.A = 1;
-	sp.Cap = uiDrawLineCapFlat;
-	sp.Join = uiDrawLineJoinMiter;
-	sp.MiterLimit = uiDrawDefaultMiterLimit;
-	sp.Thickness = 10;
-	uiDrawStroke(p->Context, path, &brush, &sp);
-	// and now the fill
-	{
-		uiDrawBrushGradientStop stops[2];
-
-		stops[0].Pos = 0.0;
-		stops[0].R = 0.0;
-		stops[0].G = 1.0;
-		stops[0].B = 1.0;
-		stops[0].A = 0.25;
-		stops[1].Pos = 1.0;
-		stops[1].R = 0.0;
-		stops[1].G = 0.0;
-		stops[1].B = 1.0;
-		stops[1].A = 1.0;
-		brush.Type = uiDrawBrushTypeLinearGradient;
-		brush.X0 = 100 + XO;
-		brush.Y0 = 0 + YO;
-		brush.X1 = 100 + XO;
-		brush.Y1 = 200 + YO;
-		brush.Stops = stops;
-		brush.NumStops = 2;
-		uiDrawFill(p->Context, path, &brush);
-	}
-#undef YO
-#undef XO
-	uiDrawFreePath(path);
 }
 
 // TODO test quadrants 2 and 4 and the other axes
+// TODO test negative start angles too
 static void drawArcs(uiAreaDrawParams *p)
 {
 	uiDrawPath *path;
@@ -293,7 +239,7 @@ static void drawArcs(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
-// Direct2D Examples
+// Direct2D Documentation Code
 
 static void d2dColorToRGB(uint32_t color, double *r, double *g, double *b)
 {
@@ -714,7 +660,298 @@ static void drawD2DPathGeometries(uiAreaDrawParams *p)
 
 // TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756690%28v=vs.85%29.aspx
 
-// note: up to https://msdn.microsoft.com/en-us/library/windows/desktop/dd756681%28v=vs.85%29.aspx
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dd756681%28v=vs.85%29.aspx
+static void drawD2DGeometryGroup(uiAreaDrawParams *p)
+{
+	uiDrawPath *alternate;
+	uiDrawPath *winding;
+	uiDrawBrush fill;
+	uiDrawBrush stroke;
+	uiDrawStrokeParams sp;
+
+	alternate = uiDrawNewPath(uiDrawFillModeAlternate);
+	uiDrawPathNewFigureWithArc(alternate,
+		105, 105,
+		25,
+		0, 2 * M_PI);
+	uiDrawPathNewFigureWithArc(alternate,
+		105, 105,
+		50,
+		0, 2 * M_PI);
+	uiDrawPathNewFigureWithArc(alternate,
+		105, 105,
+		75,
+		0, 2 * M_PI);
+	uiDrawPathNewFigureWithArc(alternate,
+		105, 105,
+		100,
+		0, 2 * M_PI);
+	uiDrawPathEnd(alternate);
+
+	winding = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigureWithArc(winding,
+		105, 105,
+		25,
+		0, 2 * M_PI);
+	uiDrawPathNewFigureWithArc(winding,
+		105, 105,
+		50,
+		0, 2 * M_PI);
+	uiDrawPathNewFigureWithArc(winding,
+		105, 105,
+		75,
+		0, 2 * M_PI);
+	uiDrawPathNewFigureWithArc(winding,
+		105, 105,
+		100,
+		0, 2 * M_PI);
+	uiDrawPathEnd(winding);
+
+	d2dClear(p, d2dWhite, 1.0);
+
+	// TODO grid
+
+	// TODO the example doesn't provide these
+	d2dSolidBrush(&fill, d2dForestGreen, 1.0);
+	d2dSolidBrush(&stroke, d2dCornflowerBlue, 1.0);
+
+	sp.Thickness = 1.0;
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	uiDrawFill(p->Context, alternate, &fill);
+	uiDrawStroke(p->Context, alternate, &stroke, &sp);
+	// TODO text
+
+	// TODO transform
+//	uiDrawFill(p->Context, winding, &fill);
+//	uiDrawStroke(p->Context, winding, &stroke, &sp);
+//	// TODO text
+
+	uiDrawFreePath(winding);
+	uiDrawFreePath(alternate);
+}
+
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756676%28v=vs.85%29.aspx
+
+// TODO? https://msdn.microsoft.com/en-us/library/windows/desktop/dd370971%28v=vs.85%29.aspx
+
+// TODO are there even examples here? https://msdn.microsoft.com/en-us/library/windows/desktop/dd370966%28v=vs.85%29.aspx
+
+// TODO this entire section (transforms) https://msdn.microsoft.com/en-us/library/windows/desktop/dd756769%28v=vs.85%29.aspx
+
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756675%28v=vs.85%29.aspx
+
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756673%28v=vs.85%29.aspx
+
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756684%28v=vs.85%29.aspx
+
+// TODO dashing https://msdn.microsoft.com/en-us/library/windows/desktop/dd756683%28v=vs.85%29.aspx
+
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dd756682%28v=vs.85%29.aspx
+static void drawD2DComplexShape(uiAreaDrawParams *p)
+{
+	uiDrawPath *path;
+	uiDrawBrush black;
+	uiDrawBrush gradient;
+	uiDrawBrushGradientStop stops[2];
+	uiDrawStrokeParams sp;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 0, 0);
+	uiDrawPathLineTo(path, 200, 0);
+	uiDrawPathBezierTo(path,
+		150, 50,
+		150, 150,
+		200, 200);
+	uiDrawPathLineTo(path, 0, 200);
+	uiDrawPathBezierTo(path,
+		50, 150,
+		50, 50,
+		0, 0);
+	uiDrawPathCloseFigure(path);
+	uiDrawPathEnd(path);
+
+	d2dSolidBrush(&black, d2dBlack, 1.0);
+
+	stops[0].Pos =0.0;
+	stops[0].R = 0.0;
+	stops[0].G = 1.0;
+	stops[0].B = 1.0;
+	stops[0].A = 0.25;
+	stops[1].Pos = 1.0;
+	stops[1].R = 0.0;
+	stops[1].G = 0.0;
+	stops[1].B = 1.0;
+	stops[1].A = 1.0;
+	gradient.Type = uiDrawBrushTypeLinearGradient;
+	gradient.X0 = 100;
+	gradient.Y0 = 0;
+	gradient.X1 = 100;
+	gradient.Y1 = 200;
+	gradient.Stops = stops;
+	gradient.NumStops = 2;
+
+	// TODO transform
+
+	sp.Thickness = 10.0;
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	uiDrawStroke(p->Context, path, &black, &sp);
+	uiDrawFill(p->Context, path, &gradient);
+
+	uiDrawFreePath(path);
+}
+
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756692%28v=vs.85%29.aspx
+
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756686%28v=vs.85%29.aspx
+
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756685%28v=vs.85%29.aspx
+
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756674%28v=vs.85%29.aspx
+
+// TODO? https://msdn.microsoft.com/en-us/library/windows/desktop/ee329947%28v=vs.85%29.aspx
+
+// TODO https://msdn.microsoft.com/en-us/library/windows/desktop/ff485857%28v=vs.85%29.aspx
+
+// TODO? https://msdn.microsoft.com/en-us/library/windows/desktop/dd756755%28v=vs.85%29.aspx
+
+// TODO go through the API reference and spot examples that aren't listed
+
+// TODO all of these https://msdn.microsoft.com/en-us/library/windows/desktop/dd368187%28v=vs.85%29.aspx
+
+// cairo Samples Page (http://cairographics.org/samples/)
+
+static void crsourcergba(uiDrawBrush *brush, double r, double g, double b, double a)
+{
+	brush->Type = uiDrawBrushTypeSolid;
+	brush->R = r;
+	brush->G = g;
+	brush->B = b;
+	brush->A = a;
+}
+
+// arc
+static void drawCSArc(uiAreaDrawParams *p)
+{
+	double xc = 128.0;
+	double yc = 128.0;
+	double radius = 100.0;
+	// these are clockwise, not counterclockwise
+	double angle1 = 45.0  * (M_PI / 180.0);
+	double angle2 = 180.0 * (M_PI / 180.0);
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	sp.Thickness = 10.0;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigureWithArc(path,
+		xc, yc,
+		radius,
+		angle2,
+		M_PI - angle1);
+	uiDrawPathEnd(path);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+
+	crsourcergba(&source, 1, 0.2, 0.2, 0.6);
+	sp.Thickness = 6.0;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigureWithArc(path,
+		xc, yc,
+		10.0,
+		0, 2 * M_PI);
+	uiDrawPathEnd(path);
+	uiDrawFill(p->Context, path, &source);
+	uiDrawFreePath(path);
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigureWithArc(path,
+		xc, yc,
+		radius,
+		(M_PI - angle1) + angle2, 0);
+	uiDrawPathLineTo(path, xc, yc);
+	uiDrawPathNewFigureWithArc(path,
+		xc, yc,
+		radius,
+		angle2, 0);
+	uiDrawPathLineTo(path, xc, yc);
+	uiDrawPathEnd(path);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
+
+// arc negative
+static void drawCSArcNegative(uiAreaDrawParams *p)
+{
+	double xc = 128.0;
+	double yc = 128.0;
+	double radius = 100.0;
+	// these are clockwise, not counterclockwise
+	double angle1 = 45.0  * (M_PI / 180.0);
+	double angle2 = 180.0 * (M_PI / 180.0);
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	sp.Thickness = 10.0;
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigureWithArc(path,
+		xc, yc,
+		radius,
+		-angle1,
+		angle1 + angle2);
+	uiDrawPathEnd(path);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+
+	crsourcergba(&source, 1, 0.2, 0.2, 0.6);
+	sp.Thickness = 6.0;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigureWithArc(path,
+		xc, yc,
+		10.0,
+		0, 2 * M_PI);
+	uiDrawPathEnd(path);
+	uiDrawFill(p->Context, path, &source);
+	uiDrawFreePath(path);
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigureWithArc(path,
+		xc, yc,
+		radius,
+		(M_PI - angle1) + angle2, 0);
+	uiDrawPathLineTo(path, xc, yc);
+	uiDrawPathNewFigureWithArc(path,
+		xc, yc,
+		radius,
+		angle2, 0);
+	uiDrawPathLineTo(path, xc, yc);
+	uiDrawPathEnd(path);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
+
+// TODO clip
+
+// TODO clip image
 
 static const struct drawtest tests[] = {
 	{ "Original uiArea test", drawOriginal },
@@ -725,6 +962,10 @@ static const struct drawtest tests[] = {
 	{ "Direct2D: How to Create a Linear Gradient Brush", drawD2DLinearBrush },
 	{ "Direct2D: How to Create a Radial Gradient Brush", drawD2DRadialBrush },
 	{ "Direct2D: Path Geometries Overview", drawD2DPathGeometries },
+	{ "Direct2D: How to Create Geometry Groups", drawD2DGeometryGroup },
+	{ "Direct2D: How to Draw and Fill a Complex Shape", drawD2DComplexShape },
+	{ "cairo samples: arc", drawCSArc },
+	{ "cairo samples: arc negative", drawCSArcNegative },
 	{ NULL, NULL },
 };
 

@@ -184,6 +184,7 @@ static void drawOriginal(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
+// TODO test quadrants 2 and 4 and the other axes
 static void drawArcs(uiAreaDrawParams *p)
 {
 	uiDrawPath *path;

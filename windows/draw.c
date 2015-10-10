@@ -148,6 +148,8 @@ static void doDrawArc(ID2D1GeometrySink *sink, double startX, double startY, dou
 {
 	D2D1_ARC_SEGMENT as;
 
+	if (sweep > 2 * M_PI)
+		sweep = 2 * M_PI;
 	as.point.x = endX;
 	as.point.y = endY;
 	as.size.width = radius;

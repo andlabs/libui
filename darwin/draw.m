@@ -56,6 +56,8 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 {
 	if (p->ended)
 		complain("attempt to add arc to ended path in uiDrawPathArcTo()");
+	if (sweep > 2 * M_PI)
+		sweep = 2 * M_PI;
 	// TODO wasn't there a relative function?
 	CGPathAddArc(p->path, NULL,
 		xCenter, yCenter,

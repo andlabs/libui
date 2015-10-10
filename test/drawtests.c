@@ -81,13 +81,27 @@ static void drawOriginal(uiAreaDrawParams *p)
 		50,
 		30. * (M_PI / 180.),
 		300. * (M_PI / 180.));
-	// TODO add a checkbox for this
+	// the sweep test below doubles as a clockwise test so a checkbox isn't needed anymore
 	uiDrawPathLineTo(path, 400, 100);
 	uiDrawPathNewFigureWithArc(path,
 		510, 100,
 		50,
 		30. * (M_PI / 180.),
 		300. * (M_PI / 180.));
+	uiDrawPathCloseFigure(path);
+	// and now with 330 to make sure sweeps work properly
+	uiDrawPathNewFigure(path, 400, 210);
+	uiDrawPathArcTo(path,
+		400, 210,
+		50,
+		30. * (M_PI / 180.),
+		330. * (M_PI / 180.));
+	uiDrawPathLineTo(path, 400, 210);
+	uiDrawPathNewFigureWithArc(path,
+		510, 210,
+		50,
+		30. * (M_PI / 180.),
+		330. * (M_PI / 180.));
 	uiDrawPathCloseFigure(path);
 	uiDrawPathEnd(path);
 	sp.Cap = uiDrawLineCapFlat;
@@ -170,6 +184,7 @@ static void drawOriginal(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
+// TODO test that a sweep of 0 draws nothing
 static void drawArcs(uiAreaDrawParams *p)
 {
 	uiDrawPath *path;

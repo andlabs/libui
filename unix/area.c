@@ -178,6 +178,7 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	dp.HScrollPos = gtk_adjustment_get_value(ap->ha);
 	dp.VScrollPos = gtk_adjustment_get_value(ap->va);
 
+	// no need to save or restore the graphics state; GTK+ does that for us
 	(*(ap->ah->Draw))(ap->ah, ap->a, &dp);
 
 	freeContext(dp.Context);

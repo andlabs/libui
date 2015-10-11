@@ -406,7 +406,12 @@ static void drawD2DLinearBrush(uiAreaDrawParams *p)
 	uiDrawBrushGradientStop stops[2];
 	uiDrawStrokeParams sp;
 
-	// TODO transform by (25,25) to leave some room
+	uiDrawMatrix m;
+
+	// leave some room
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixTranslate(&m, 25, 25);
+	uiDrawTransform(p->Context, &m);
 
 	gradient.Type = uiDrawBrushTypeLinearGradient;
 	gradient.X0 = 0;

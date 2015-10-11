@@ -453,7 +453,12 @@ static void drawD2DRadialBrush(uiAreaDrawParams *p)
 	uiDrawBrushGradientStop stops[2];
 	uiDrawStrokeParams sp;
 
-	// TODO transform by (25,25) to leave some room
+	uiDrawMatrix m;
+
+	// leave some room
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixTranslate(&m, 25, 25);
+	uiDrawTransform(p->Context, &m);
 
 	gradient.Type = uiDrawBrushTypeRadialGradient;
 	gradient.X0 = 75;
@@ -673,6 +678,7 @@ static void drawD2DGeometryGroup(uiAreaDrawParams *p)
 	uiDrawBrush fill;
 	uiDrawBrush stroke;
 	uiDrawStrokeParams sp;
+	uiDrawMatrix m;
 
 	alternate = uiDrawNewPath(uiDrawFillModeAlternate);
 	uiDrawPathNewFigureWithArc(alternate,
@@ -729,9 +735,11 @@ static void drawD2DGeometryGroup(uiAreaDrawParams *p)
 	uiDrawStroke(p->Context, alternate, &stroke, &sp);
 	// TODO text
 
-	// TODO transform
-//	uiDrawFill(p->Context, winding, &fill);
-//	uiDrawStroke(p->Context, winding, &stroke, &sp);
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixTranslate(&m, 300, 0);
+	uiDrawTransform(p->Context, &m);
+	uiDrawFill(p->Context, winding, &fill);
+	uiDrawStroke(p->Context, winding, &stroke, &sp);
 //	// TODO text
 
 	uiDrawFreePath(winding);
@@ -762,6 +770,7 @@ static void drawD2DComplexShape(uiAreaDrawParams *p)
 	uiDrawBrush gradient;
 	uiDrawBrushGradientStop stops[2];
 	uiDrawStrokeParams sp;
+	uiDrawMatrix m;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathNewFigure(path, 0, 0);
@@ -798,7 +807,9 @@ static void drawD2DComplexShape(uiAreaDrawParams *p)
 	gradient.Stops = stops;
 	gradient.NumStops = 2;
 
-	// TODO transform
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixTranslate(&m, 20, 20);
+	uiDrawTransform(p->Context, &m);
 
 	sp.Thickness = 10.0;
 	sp.Cap = uiDrawLineCapFlat;
@@ -1106,7 +1117,61 @@ static void drawCSFillAndStroke2(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
-// TODO fill style (needs transforms)
+// fill style
+static void drawCSFillStyle(uiAreaDrawParams *p)
+{
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+	uiDrawMatrix m;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	sp.Thickness = 6;
+
+	path = uiDrawNewPath(uiDrawFillModeAlternate);
+	uiDrawPathAddRectangle(path, 12, 12, 232, 70);
+	uiDrawPathNewFigureWithArc(path,
+		64, 64,
+		40,
+		0, 2*M_PI);
+	uiDrawPathNewFigureWithArc(path,
+		192, 64,
+		40,
+		0, 2*M_PI);
+	uiDrawPathEnd(path);
+
+	crsourcergba(&source, 0, 0.7, 0, 1);
+	uiDrawFill(p->Context, path, &source);
+	crsourcergba(&source, 0, 0, 0, 1);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixTranslate(&m, 0, 128);
+	uiDrawTransform(p->Context, &m);
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path, 12, 12, 232, 70);
+// TODO THIS DOESN'T WORK.
+	uiDrawPathNewFigureWithArc(path,
+		64, 64,
+		40,
+		0, 2*M_PI);
+	uiDrawPathNewFigureWithArc(path,
+		192, 64,
+		40,
+		0, 2*M_PI);
+	uiDrawPathEnd(path);
+
+	crsourcergba(&source, 0, 0, 0.9, 1);
+	uiDrawFill(p->Context, path, &source);
+	crsourcergba(&source, 0, 0, 0, 1);
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
 
 // TOOD gradient (radial gradient with two circles)
 
@@ -1366,6 +1431,7 @@ static const struct drawtest tests[] = {
 	{ "cairo samples: curve rectangle", drawCSCurveRectangle },
 	{ "cairo samples: curve to", drawCSCurveTo },
 	{ "cairo samples: fill and stroke2", drawCSFillAndStroke2 },
+	{ "cairo samples: fill style", drawCSFillStyle },
 	{ "cairo samples: multi segment caps", drawCSMultiCaps },
 	{ "cairo samples: rounded rectangle", drawCSRoundRect },
 	{ "cairo samples: set line cap", drawCSSetLineCap },

@@ -62,3 +62,8 @@ extern int fromScancode(uintptr_t, uiAreaKeyEvent *);
 
 // matrix.c
 extern void setIdentity(uiDrawMatrix *);
+extern void fallbackTranslate(uiDrawMatrix *, double, double);
+extern void fallbackScale(uiDrawMatrix *, double, double);
+extern void fallbackMultiply(uiDrawMatrix *, uiDrawMatrix *);
+extern void fallbackTransformPoint(uiDrawMatrix *, double *, double *);
+extern void fallbackTransformSize(uiDrawMatrix *, double *, double *);

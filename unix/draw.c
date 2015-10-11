@@ -353,7 +353,7 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 	c2m(&c, m);
 }
 
-void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double amount)
+void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double amount, double yamount)
 {
 	complain("TODO");
 }

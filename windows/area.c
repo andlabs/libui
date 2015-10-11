@@ -54,6 +54,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *client, RECT *cli
 	bgcolor.a = 1.0;
 	ID2D1RenderTarget_Clear(rt, &bgcolor);
 
+	// no need to save or restore the graphics state to reset transformations; it's handled by resetTarget() in draw.c, called by newContext() above
 	(*(ah->Draw))(ah, a, &dp);
 
 	freeContext(dp.Context);

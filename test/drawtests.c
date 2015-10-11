@@ -1297,6 +1297,54 @@ static void drawCSSetLineJoin(uiAreaDrawParams *p)
 
 // TODO text extents
 
+// Quartz 2D Programming Guide
+
+static void cgaddrect(uiDrawPath *path, uiAreaDrawParams *p, double x, double y, double width, double height)
+{
+	uiDrawPathAddRectangle(path,
+		x, p->ClientHeight - y - height,
+		width, height);
+}
+
+// Graphics Contexts > Creating a Window Graphics Context in Mac OS X
+static void drawQ2DCreateWindowGC(uiAreaDrawParams *p)
+{
+	uiDrawPath *path;
+	uiDrawBrush brush;
+
+	crsourcergba(&brush, 1, 0, 0, 1);
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	cgaddrect(path, p, 0, 0, 200, 100);
+	uiDrawPathEnd(path);
+	uiDrawFill(p->Context, path, &brush);
+	uiDrawFreePath(path);
+
+	crsourcergba(&brush, 0, 0, 1, .5);
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	cgaddrect(path, p, 0, 0, 100, 200);
+	uiDrawPathEnd(path);
+	uiDrawFill(p->Context, path, &brush);
+	uiDrawFreePath(path);
+}
+
+// TODO Patterns page?
+
+// TODO Shadows page?
+
+// TODO Gradients page (includes some circle-circle radial gradients)
+
+// TODO Transparency Layers page?
+
+// TODO Core Graphics Layer Drawing page?
+
+// Cocoa Drawing Guide
+
+// TODO Advanced Drawing Techniques page?
+
+// TODO Text page, if any?
+
+// TODO Paths page
+
 static const struct drawtest tests[] = {
 	{ "Original uiArea test", drawOriginal },
 	{ "Arc test", drawArcs },
@@ -1317,6 +1365,7 @@ static const struct drawtest tests[] = {
 	{ "cairo samples: rounded rectangle", drawCSRoundRect },
 	{ "cairo samples: set line cap", drawCSSetLineCap },
 	{ "cairo samples: set line join", drawCSSetLineJoin },
+	{ "Quartz 2D PG: Creating a Window Graphics Context in Mac OS X", drawQ2DCreateWindowGC },
 	{ NULL, NULL },
 };
 

@@ -25,6 +25,7 @@ baseHFILES = \
 baseCFILES = \
 	areaevents.c \
 	control.c \
+	matrix.c \
 	menu.c \
 	ptrarray.c \
 	shouldquit.c \

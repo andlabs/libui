@@ -1,3 +1,5 @@
+- make sure graphics state is saved and restored around each draw call
+
 - all ports: update state when adding a control to a parent
 - should uiWindowsSizing be computed against the window handle, not the parent?
 

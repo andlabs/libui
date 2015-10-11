@@ -295,6 +295,7 @@ struct uiAreaDrawParams {
 typedef struct uiDrawPath uiDrawPath;
 typedef struct uiDrawBrush uiDrawBrush;
 typedef struct uiDrawStrokeParams uiDrawStrokeParams;
+typedef struct uiDrawMatrix uiDrawMatrix;
 
 typedef enum uiDrawBrushType uiDrawBrushType;
 typedef struct uiDrawBrushGradientStop uiDrawBrushGradientStop;
@@ -330,6 +331,15 @@ enum uiDrawLineJoin {
 enum uiDrawFillMode {
 	uiDrawFillModeWinding,
 	uiDrawFillModeAlternate,
+};
+
+struct uiDrawMatrix {
+	double M11;
+	double M12;
+	double M21;
+	double M22;
+	double M31;
+	double M32;
 };
 
 struct uiDrawBrush {
@@ -401,6 +411,21 @@ _UI_EXTERN void uiDrawFill(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b);
 // - rounded rectangles
 // - elliptical arcs
 // - quadratic bezier curves
+
+_UI_EXTERN void uiDrawMatrixSetIdentity(uiDrawMatrix *m);
+_UI_EXTERN void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y);
+_UI_EXTERN void uiDrawMatrixScale(uiDrawMatrix *m, double x, double y);
+_UI_EXTERN void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount);
+_UI_EXTERN void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double amount);
+_UI_EXTERN void uiDrawMatrixMultiply(uiDrawMatrix *dest, uiDrawMatrix *src);
+_UI_EXTERN int uiDrawMatrixInvertible(uiDrawMatrix *m);
+_UI_EXTERN int uiDrawMatrixInvert(uiDrawMatrix *m);
+_UI_EXTERN void uiDrawMatrixTransformPoint(uiDrawMatrix *m, double *x, double *y);
+_UI_EXTERN void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y);
+
+_UI_EXTERN void uiDrawSave(uiDrawContext *c);
+_UI_EXTERN void uiDrawRestore(uiDrawContext *c);
+_UI_EXTERN void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m);
 
 typedef enum uiModifiers uiModifiers;
 

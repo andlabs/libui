@@ -136,6 +136,7 @@ uiDarwinDefineControl(
 	dp.HScrollPos = [av hscrollPos];
 	dp.VScrollPos = [av vscrollPos];
 
+	// no need to save or restore the graphics state to reset transformations; Cocoa creates a brand-new context each time
 	(*(self->libui_a->ah->Draw))(self->libui_a->ah, self->libui_a, &dp);
 
 	freeContext(dp.Context);

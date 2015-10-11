@@ -264,3 +264,140 @@ void uiDrawFill(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b)
 	}
 	complain("unknown brush type %d in uiDrawFill()", b->Type);
 }
+
+static void m2c(uiDrawMatrix *m, CGAffineTransform *c)
+{
+	c->a = m->M11;
+	c->b = m->M12;
+	c->c = m->M21;
+	c->d = m->M22;
+	c->tx = m->M31;
+	c->ty = m->M32;
+}
+
+static void c2m(CGAffineTransform *c, uiDrawMatrix *m)
+{
+	m->M11 = c->a;
+	m->M12 = c->b;
+	m->M21 = c->c;
+	m->M22 = c->d;
+	m->M31 = c->tx;
+	m->M32 = c->ty;
+}
+
+// TODO get rid of the separate setIdentity()
+void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
+{
+	setIdentity(m);
+}
+
+void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
+{
+	CGAffineTransform c;
+
+	m2c(m, &c);
+	c = CGAffineTransformTranslate(c, x, y);
+	c2m(&c, m);
+}
+
+void uiDrawMatrixScale(uiDrawMatrix *m, double x, double y)
+{
+	CGAffineTransform c;
+
+	m2c(m, &c);
+	c = CGAffineTransformScale(c, x, y);
+	c2m(&c, m);
+}
+
+void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
+{
+	CGAffineTransform c;
+
+	m2c(m, &c);
+	// TODO verify this
+	c = CGAffineTransformTranslate(c, x, y);
+	c = CGAffineTransformRotate(c, -amount);
+	c = CGAffineTransformTranslate(c, -x, -y);
+	c2m(&c, m);
+}
+
+void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double amount, double yamount)
+{
+	complain("TODO");
+}
+
+void uiDrawMatrixMultiply(uiDrawMatrix *dest, uiDrawMatrix *src)
+{
+	CGAffineTransform c;
+	CGAffineTransform d;
+
+	m2c(dest, &c);
+	m2c(src, &d);
+	c = CGAffineTransformConcat(c, d);
+	c2m(&c, dest);
+}
+
+// there is no test for invertibility; CGAffineTransformInvert() is merely documented as returning the matrix unchanged if it isn't invertible
+// therefore, special care must be taken to catch matrices who are their own inverses
+// TODO figure out which matrices these are and do so
+int uiDrawMatrixInvertible(uiDrawMatrix *m)
+{
+	CGAffineTransform c, d;
+
+	m2c(m, &c);
+	d = CGAffineTransformInvert(c);
+	return CGAffineTransformEqualToTransform(c, d) == false;
+}
+
+int uiDrawMatrixInvert(uiDrawMatrix *m)
+{
+	CGAffineTransform c, d;
+
+	m2c(m, &c);
+	d = CGAffineTransformInvert(c);
+	if (CGAffineTransformEqualToTransform(c, d))
+		return 0;
+	c2m(&d, m);
+	return 1;
+}
+
+void uiDrawMatrixTransformPoint(uiDrawMatrix *m, double *x, double *y)
+{
+	CGAffineTransform c;
+	CGPoint p;
+
+	m2c(m, &c);
+	p = CGPointApplyAffineTransform(CGPointMake(*x, *y), c);
+	*x = p.x;
+	*y = p.y;
+}
+
+void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
+{
+	CGAffineTransform c;
+	CGSize s;
+
+	m2c(m, &c);
+	s = CGSizeApplyAffineTransform(CGSizeMake(*x, *y), c);
+	*x = s.width;
+	*y = s.height;
+}
+
+// TODO figure out what besides transforms these save/restore on all platforms
+void uiDrawSave(uiDrawContext *c)
+{
+	CGContextSaveGState(c->c);
+}
+
+void uiDrawRestore(uiDrawContext *c)
+{
+	CGContextRestoreGState(c->c);
+}
+
+void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
+{
+	CGAffineTransform cm;
+
+	m2c(m, &cm);
+	CGContextConcatCTM(c->c, cm);
+}

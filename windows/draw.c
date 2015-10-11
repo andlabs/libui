@@ -144,17 +144,33 @@ struct arc {
 	double sweep;
 };
 
+// this is used for the comparison below
+// if it falls apart it can be changed later
+#define aerMax 6 * DBL_EPSILON
+
 static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPath *, double, double))
 {
 	double sinx, cosx;
 	double startX, startY;
 	double endX, endY;
 	D2D1_ARC_SEGMENT as;
+	BOOL fullCircle;
 
 	// as above, we can't do a full circle with one arc
 	// simulate it with two half-circles
-	// TODO THIS ONLY WORKS ON THE ARCS TEST PAGE
-	if (a->sweep >= (2 * M_PI)) {
+	// of course, we have a dragon: equality on floating-point values!
+	// I've chosen to do the AlmostEqualRelative() technique in https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+	fullCircle = FALSE;
+	if (a->sweep > (2 * M_PI))		// this part is easy
+		fullCircle = TRUE;
+	else {
+		double aerDiff;
+
+		aerDiff = fabs(a->sweep - (2 * M_PI));
+		// if we got here then we know a->sweep is larger (or the same!)
+		fullCircle = aerDiff <= a->sweep * aerMax;
+	}
+	if (fullCircle) {
 		a->sweep = M_PI;
 		drawArc(p, a, startFunction);
 		a->startAngle += M_PI;

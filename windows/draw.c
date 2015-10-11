@@ -153,6 +153,7 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 
 	// as above, we can't do a full circle with one arc
 	// simulate it with two half-circles
+	// TODO THIS ONLY WORKS ON THE ARCS TEST PAGE
 	if (a->sweep >= (2 * M_PI)) {
 		a->sweep = M_PI;
 		drawArc(p, a, startFunction);

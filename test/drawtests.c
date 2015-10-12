@@ -900,12 +900,185 @@ static void drawD2DScale(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
-// TODO skewing https://msdn.microsoft.com/en-us/library/windows/desktop/dd756689%28v=vs.85%29.aspx
-// especially TODO counterclockwise?!
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dd756689%28v=vs.85%29.aspx
+// TODO counterclockwise?!
+void drawD2DSkew(uiAreaDrawParams *p)
+{
+	uiDrawPath *path;
+	uiDrawBrush original;
+	uiDrawBrush fill;
+	uiDrawBrush transform;
+	uiDrawStrokeParams originalsp;
+	uiDrawStrokeParams transformsp;
+	uiDrawMatrix m;
 
-// TODO translating https://msdn.microsoft.com/en-us/library/windows/desktop/dd756691%28v=vs.85%29.aspx
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path, 126.0, 301.5, 186.0 - 126.0, 361.5 - 301.5);
+	uiDrawPathEnd(path);
 
-// TODO multiple transforms https://msdn.microsoft.com/en-us/library/windows/desktop/dd756672%28v=vs.85%29.aspx
+	// TODO the example doesn't specify what these should be
+	d2dSolidBrush(&original, d2dBlack, 1.0);
+	d2dSolidBrush(&fill, d2dWhite, 0.5);
+	d2dSolidBrush(&transform, d2dForestGreen, 1.0);
+	// TODO this needs to be dashed
+	originalsp.Thickness = 1.0;
+	originalsp.Cap = uiDrawLineCapFlat;
+	originalsp.Join = uiDrawLineJoinMiter;
+	originalsp.MiterLimit = uiDrawDefaultMiterLimit;
+	transformsp.Thickness = 1.0;
+	transformsp.Cap = uiDrawLineCapFlat;
+	transformsp.Join = uiDrawLineJoinMiter;
+	transformsp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	// save for when we do the translated one
+	uiDrawSave(p->Context);
+
+	uiDrawStroke(p->Context, path, &original, &originalsp);
+
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixSkew(&m,
+		126.0, 301.5,
+		45.0 * (M_PI / 180), 0);
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawFill(p->Context, path, &fill);
+	uiDrawStroke(p->Context, path, &transform, &transformsp);
+
+	uiDrawRestore(p->Context);
+
+	// for testing purposes, show what happens if we skew about (0, 0)
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixTranslate(&m, 0, -200);
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawStroke(p->Context, path, &original, &originalsp);
+
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixSkew(&m,
+		0, 0,
+		45.0 * (M_PI / 180), 0);
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawFill(p->Context, path, &fill);
+	uiDrawStroke(p->Context, path, &transform, &transformsp);
+
+	uiDrawFreePath(path);
+}
+
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dd756691%28v=vs.85%29.aspx
+static void drawD2DTranslate(uiAreaDrawParams *p)
+{
+	uiDrawPath *path;
+	uiDrawBrush original;
+	uiDrawBrush fill;
+	uiDrawBrush transform;
+	uiDrawStrokeParams originalsp;
+	uiDrawStrokeParams transformsp;
+	uiDrawMatrix m;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path, 126.0, 80.5, 186.0 - 126.0, 140.5 - 80.5);
+	uiDrawPathEnd(path);
+
+	// TODO the example doesn't specify what these should be
+	d2dSolidBrush(&original, d2dBlack, 1.0);
+	d2dSolidBrush(&fill, d2dWhite, 0.5);
+	d2dSolidBrush(&transform, d2dForestGreen, 1.0);
+	// TODO this needs to be dashed
+	originalsp.Thickness = 1.0;
+	originalsp.Cap = uiDrawLineCapFlat;
+	originalsp.Join = uiDrawLineJoinMiter;
+	originalsp.MiterLimit = uiDrawDefaultMiterLimit;
+	transformsp.Thickness = 1.0;
+	transformsp.Cap = uiDrawLineCapFlat;
+	transformsp.Join = uiDrawLineJoinMiter;
+	transformsp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	uiDrawStroke(p->Context, path, &original, &originalsp);
+
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixTranslate(&m, 20, 10);
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawFill(p->Context, path, &fill);
+	uiDrawStroke(p->Context, path, &transform, &transformsp);
+
+	uiDrawFreePath(path);
+}
+
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dd756672%28v=vs.85%29.aspx
+// TODO the points seem off
+static void drawD2DMultiTransforms(uiAreaDrawParams *p)
+{
+	uiDrawPath *path;
+	uiDrawBrush original;
+	uiDrawBrush fill;
+	uiDrawBrush transform;
+	uiDrawStrokeParams originalsp;
+	uiDrawStrokeParams transformsp;
+	uiDrawMatrix mtranslate;
+	uiDrawMatrix mrotate;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path, 300.0, 40.0, 360.0 - 300.0, 100.0 - 40.0);
+	uiDrawPathEnd(path);
+
+	// TODO the example doesn't specify what these should be
+	d2dSolidBrush(&original, d2dBlack, 1.0);
+	d2dSolidBrush(&fill, d2dWhite, 0.5);
+	d2dSolidBrush(&transform, d2dForestGreen, 1.0);
+	// TODO this needs to be dashed
+	originalsp.Thickness = 1.0;
+	originalsp.Cap = uiDrawLineCapFlat;
+	originalsp.Join = uiDrawLineJoinMiter;
+	originalsp.MiterLimit = uiDrawDefaultMiterLimit;
+	transformsp.Thickness = 1.0;
+	transformsp.Cap = uiDrawLineCapFlat;
+	transformsp.Join = uiDrawLineJoinMiter;
+	transformsp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	uiDrawMatrixSetIdentity(&mtranslate);
+	uiDrawMatrixTranslate(&mtranslate, 20.0, 10.0);
+	uiDrawMatrixSetIdentity(&mrotate);
+	uiDrawMatrixRotate(&mrotate,
+		330.0, 70.0,
+		45.0 * (M_PI / 180));
+
+	// save for when we do the opposite one
+	uiDrawSave(p->Context);
+
+	uiDrawStroke(p->Context, path, &original, &originalsp);
+
+	uiDrawTransform(p->Context, &mrotate);
+	uiDrawTransform(p->Context, &mtranslate);
+
+	uiDrawFill(p->Context, path, &fill);
+	uiDrawStroke(p->Context, path, &transform, &transformsp);
+
+	uiDrawRestore(p->Context);
+	uiDrawFreePath(path);
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path, 40.0, 40.0, 100.0 - 40.0, 100.0 - 40.0);
+	uiDrawPathEnd(path);
+
+	uiDrawMatrixSetIdentity(&mtranslate);
+	uiDrawMatrixTranslate(&mtranslate, 20.0, 10.0);
+	uiDrawMatrixSetIdentity(&mrotate);
+	uiDrawMatrixRotate(&mrotate,
+		70.0, 70.0,
+		45.0 * (M_PI / 180));
+
+	uiDrawStroke(p->Context, path, &original, &originalsp);
+
+	uiDrawTransform(p->Context, &mtranslate);
+	uiDrawTransform(p->Context, &mrotate);
+
+	uiDrawFill(p->Context, path, &fill);
+	uiDrawStroke(p->Context, path, &transform, &transformsp);
+
+	uiDrawFreePath(path);
+}
 
 // TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756675%28v=vs.85%29.aspx
 
@@ -1593,6 +1766,9 @@ static const struct drawtest tests[] = {
 	{ "Direct2D: How to Create Geometry Groups", drawD2DGeometryGroup },
 	{ "Direct2D: How to Rotate an Object", drawD2DRotate },
 	{ "Direct2D: How to Scale an Object", drawD2DScale },
+	{ "Direct2D: How to Skew an Object", drawD2DSkew },
+	{ "Direct2D: How to Translate an Object", drawD2DTranslate },
+	{ "Direct2D: How to Apply Multiple Transforms to an Object", drawD2DMultiTransforms },
 	{ "Direct2D: How to Draw and Fill a Complex Shape", drawD2DComplexShape },
 	{ "cairo samples: arc", drawCSArc },
 	{ "cairo samples: arc negative", drawCSArcNegative },

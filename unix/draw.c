@@ -358,6 +358,7 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 	m2c(m, &c);
 	cairo_matrix_translate(&c, x, y);
 	cairo_matrix_rotate(&c, amount);
+	// TODO undo the translation? also cocoa backend
 	cairo_matrix_translate(&c, -x, -y);
 	c2m(&c, m);
 }

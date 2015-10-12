@@ -1,4 +1,5 @@
 // 11 october 2015
+#include <math.h>
 #include "ui.h"
 #include "uipriv.h"
 
@@ -14,20 +15,19 @@ void setIdentity(uiDrawMatrix *m)
 
 // TODO don't default to fallback functions within the fallback functions
 
-// technique from "Programming with Quartz: 2D and PDF Graphics in Mac OS X"
+// see https://msdn.microsoft.com/en-us/library/windows/desktop/ff684171%28v=vs.85%29.aspx#skew_transform
 // TODO if Windows 7 is ever dropped change this so we can pass in D2D1Tan()
 void fallbackSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
 {
-	uiDrawMatrix t, n;
+	uiDrawMatrix n;
 
-	setIdentity(&t);
-	fallbackTranslate(&t, x, y);
 	setIdentity(&n);
-	n.M12 = tan(xamount);
-	n.M21 = tan(yamount);
-	fallbackMultiply(&n, &t);
-	// TODO undo the translation?
-	fallbackMultiply(&m, &n);
+	// TODO explain this
+	n.M12 = tan(yamount);
+	n.M21 = tan(xamount);
+	n.M31 = -y * tan(xamount);
+	n.M32 = -x * tan(yamount);
+	fallbackMultiply(m, &n);
 }
 
 // see windows/draw.c for more information

@@ -40,7 +40,7 @@ osCFLAGS = \
 osLDFLAGS = \
 	-fvisibility=hidden \
 	-fPIC \
-	`pkg-config --libs gtk+-3.0`
+	`pkg-config --libs gtk+-3.0` -lm
 
 osLDWarnUndefinedFlags = -Wl,--no-undefined -Wl,--no-allow-shlib-undefined
 

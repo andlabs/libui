@@ -160,7 +160,9 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 		cap,
 		join,
 		p->MiterLimit);
-	p2.fillMode = path->fillMode;
+	// always draw stroke fills using the winding rule
+	// otherwise intersecting figures won't draw correctly
+	p2.fillMode = uiDrawFillModeWinding;
 	p2.ended = path->ended;
 	uiDrawFill(c, &p2, b);
 	// and clean up

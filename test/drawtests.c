@@ -1154,27 +1154,28 @@ static void drawCSFillStyle(uiAreaDrawParams *p)
 	uiDrawMatrix m;
 
 	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 
 	sp.Thickness = 6;
 
 	path = uiDrawNewPath(uiDrawFillModeAlternate);
-//	uiDrawPathAddRectangle(path, 12, 12, 232, 70);
+	uiDrawPathAddRectangle(path, 12, 12, 232, 70);
 	uiDrawPathNewFigureWithArc(path,
 		64, 64,
 		40,
 		0, 2*M_PI,
 		0);
-/*	uiDrawPathNewFigureWithArc(path,
+	uiDrawPathNewFigureWithArc(path,
 		192, 64,
 		40,
 		0, -2*M_PI,
 		1);
-*/	uiDrawPathEnd(path);
+	uiDrawPathEnd(path);
 
 	crsourcergba(&source, 0, 0.7, 0, 1);
-//	uiDrawFill(p->Context, path, &source);
+	uiDrawFill(p->Context, path, &source);
 	crsourcergba(&source, 0, 0, 0, 1);
 	uiDrawStroke(p->Context, path, &source, &sp);
 	uiDrawFreePath(path);
@@ -1184,8 +1185,8 @@ static void drawCSFillStyle(uiAreaDrawParams *p)
 	uiDrawTransform(p->Context, &m);
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
-//	uiDrawPathAddRectangle(path, 12, 12, 232, 70);
-/*	uiDrawPathNewFigureWithArc(path,
+	uiDrawPathAddRectangle(path, 12, 12, 232, 70);
+	uiDrawPathNewFigureWithArc(path,
 		64, 64,
 		40,
 		0, 2*M_PI,
@@ -1195,12 +1196,12 @@ static void drawCSFillStyle(uiAreaDrawParams *p)
 		40,
 		0, -2*M_PI,
 		1);
-*/	uiDrawPathEnd(path);
+	uiDrawPathEnd(path);
 
 	crsourcergba(&source, 0, 0, 0.9, 1);
-//	uiDrawFill(p->Context, path, &source);
+	uiDrawFill(p->Context, path, &source);
 	crsourcergba(&source, 0, 0, 0, 1);
-//	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawStroke(p->Context, path, &source, &sp);
 	uiDrawFreePath(path);
 }
 

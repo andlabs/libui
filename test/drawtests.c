@@ -871,9 +871,9 @@ static void drawD2DScale(uiAreaDrawParams *p)
 	uiDrawStroke(p->Context, path, &original, &originalsp);
 
 	uiDrawMatrixSetIdentity(&m);
-// TODO THIS DOES NOT WORK CORRECTLY
-// that pivot point is required...
-	uiDrawMatrixScale(&m, 1.3, 1.3);
+	uiDrawMatrixScale(&m,
+		438.0, 80.5,
+		1.3, 1.3);
 	uiDrawTransform(p->Context, &m);
 
 	uiDrawFill(p->Context, path, &fill);
@@ -881,12 +881,31 @@ static void drawD2DScale(uiAreaDrawParams *p)
 
 	uiDrawRestore(p->Context);
 
-	// TODO translate and show what happens if the center is (0, 0)
+	// for testing purposes, show what happens if we scale about (0, 0)
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixTranslate(&m, -300, 50);
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawStroke(p->Context, path, &original, &originalsp);
+
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixScale(&m,
+		0, 0,
+		1.3, 1.3);
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawFill(p->Context, path, &fill);
+	uiDrawStroke(p->Context, path, &transform, &transformsp);
 
 	uiDrawFreePath(path);
 }
 
-// TODOTODOTODO
+// TODO skewing https://msdn.microsoft.com/en-us/library/windows/desktop/dd756689%28v=vs.85%29.aspx
+// especially TODO counterclockwise?!
+
+// TODO translating https://msdn.microsoft.com/en-us/library/windows/desktop/dd756691%28v=vs.85%29.aspx
+
+// TODO multiple transforms https://msdn.microsoft.com/en-us/library/windows/desktop/dd756672%28v=vs.85%29.aspx
 
 // TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756675%28v=vs.85%29.aspx
 

@@ -306,12 +306,19 @@ void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 	c2m(&c, m);
 }
 
-void uiDrawMatrixScale(uiDrawMatrix *m, double x, double y)
+void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x, double y)
 {
 	CGAffineTransform c;
+	double xt, yt;
 
 	m2c(m, &c);
+	// TODO explain why the translation must come first
+	xt = x;
+	yt = y;
+	scaleCenter(xCenter, yCenter, &xt, &yt);
+	c = CGAffineTransformTranslate(c, xt, yt);
 	c = CGAffineTransformScale(c, x, y);
+	// TODO undo the translation?
 	c2m(&c, m);
 }
 

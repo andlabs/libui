@@ -578,9 +578,9 @@ void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 	fallbackTranslate(m, x, y);
 }
 
-void uiDrawMatrixScale(uiDrawMatrix *m, double x, double y)
+void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x, double y)
 {
-	fallbackScale(m, x, y);
+	fallbackScale(m, xCenter, yCenter, x, y);
 }
 
 void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)

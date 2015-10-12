@@ -335,12 +335,19 @@ void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 	c2m(&c, m);
 }
 
-void uiDrawMatrixScale(uiDrawMatrix *m, double x, double y)
+void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x, double y)
 {
 	cairo_matrix_t c;
+	double xt, yt;
 
 	m2c(m, &c);
+	// TODO explain why the translation must come first
+	xt = x;
+	yt = y;
+	scaleCenter(xCenter, yCenter, &xt, &yt);
+	cairo_matrix_translate(&c, xt, yt);
 	cairo_matrix_scale(&c, x, y);
+	// TODO undo the translation?
 	c2m(&c, m);
 }
 
@@ -349,10 +356,8 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 	cairo_matrix_t c;
 
 	m2c(m, &c);
-	// TODO verify this
 	cairo_matrix_translate(&c, x, y);
-	// TODO explain this
-	cairo_matrix_rotate(&c, -amount);
+	cairo_matrix_rotate(&c, amount);
 	cairo_matrix_translate(&c, -x, -y);
 	c2m(&c, m);
 }

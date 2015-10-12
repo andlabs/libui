@@ -27,14 +27,22 @@ void fallbackTranslate(uiDrawMatrix *m, double x, double y)
 	fallbackMultiply(m, &m2);
 }
 
-// TODO the Direct2D version takes a center argument; investigate it
-void fallbackScale(uiDrawMatrix *m, double x, double y)
+void scaleCenter(double xCenter, double yCenter, double *x, double *y)
+{
+	*x = xCenter - (*x * xCenter);
+	*y = yCenter - (*y * yCenter);
+}
+
+void fallbackScale(uiDrawMatrix *m, double xCenter, double yCenter, double x, double y)
 {
 	uiDrawMatrix m2;
 
 	setIdentity(&m2);
 	m2.M11 = x;
 	m2.M22 = y;
+	scaleCenter(xCenter, yCenter, &x, &y);
+	m2.M31 = x;
+	m2.M32 = y;
 	fallbackMultiply(m, &m2);
 }
 

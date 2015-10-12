@@ -30,7 +30,7 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	CGPathMoveToPoint(p->path, NULL, x, y);
 }
 
-void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
+void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative)
 {
 	double sinStart, cosStart;
 	double startx, starty;
@@ -42,7 +42,7 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 	startx = xCenter + radius * cosStart;
 	starty = yCenter + radius * sinStart;
 	CGPathMoveToPoint(p->path, NULL, startx, starty);
-	uiDrawPathArcTo(p, xCenter, yCenter, radius, startAngle, sweep);
+	uiDrawPathArcTo(p, xCenter, yCenter, radius, startAngle, sweep, negative);
 }
 
 void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
@@ -52,16 +52,22 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 	CGPathAddLineToPoint(p->path, NULL, x, y);
 }
 
-void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
+void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative)
 {
+	bool cw;
+
 	if (p->ended)
 		complain("attempt to add arc to ended path in uiDrawPathArcTo()");
 	if (sweep > 2 * M_PI)
 		sweep = 2 * M_PI;
-	CGPathAddRelativeArc(p->path, NULL,
+	cw = false;
+	if (negative)
+		cw = true;
+	CGPathAddArc(p->path, NULL,
 		xCenter, yCenter,
 		radius,
-		startAngle, sweep);
+		startAngle, startAngle + sweep,
+		cw);
 }
 
 void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY)
@@ -137,7 +143,6 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 	switch (p->Join) {
 	case uiDrawLineJoinMiter:
 		join = kCGLineJoinMiter;
-		CGContextSetMiterLimit(c->c, p->MiterLimit);
 		break;
 	case uiDrawLineJoinRound:
 		join = kCGLineJoinRound;

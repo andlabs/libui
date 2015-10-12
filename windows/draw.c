@@ -310,6 +310,7 @@ void uiDrawPathEnd(uiDrawPath *p)
 
 struct uiDrawContext {
 	ID2D1RenderTarget *rt;
+	struct ptrArray *states;
 };
 
 static void resetTarget(ID2D1RenderTarget *rt)
@@ -330,12 +331,15 @@ uiDrawContext *newContext(ID2D1RenderTarget *rt)
 
 	c = uiNew(uiDrawContext);
 	c->rt = rt;
+	c->states = newPtrArray();
 	resetTarget(c->rt);
 	return c;
 }
 
 void freeContext(uiDrawContext *c)
 {
+	// c->states should be empty by now
+	ptrArrayDestroy(c->states);
 	uiFree(c);
 }
 
@@ -592,8 +596,7 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 	amount *= 180 / M_PI;		// must be in degrees
 	center.x = x;
 	center.y = y;
-	// TODO explain this
-	D2D1MakeRotateMatrix(-amount, center, &dm);
+	D2D1MakeRotateMatrix(amount, center, &dm);
 	d2m(&dm, &rm);
 	uiDrawMatrixMultiply(m, &rm);
 }
@@ -649,12 +652,28 @@ void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
 
 void uiDrawSave(uiDrawContext *c)
 {
-	// TODO
+	ID2D1DrawingStateBlock *dsb;
+	HRESULT hr;
+
+	hr = ID2D1Factory_CreateDrawingStateBlock(d2dfactory,
+		// TODO verify that these are correct
+		NULL,
+		NULL,
+		&dsb);
+	if (hr != S_OK)
+		logHRESULT("error creating drawing state block in uiDrawSave()", hr);
+	ID2D1RenderTarget_SaveDrawingState(c->rt, dsb);
+	ptrArrayAppend(c->states, dsb);
 }
 
 void uiDrawRestore(uiDrawContext *c)
 {
-	// TODO
+	ID2D1DrawingStateBlock *dsb;
+
+	dsb = ptrArrayIndex(c->states, ID2D1DrawingStateBlock *, c->states->len - 1);
+	ptrArrayDelete(c->states, c->states->len - 1);
+	ID2D1RenderTarget_RestoreDrawingState(c->rt, dsb);
+	ID2D1DrawingStateBlock_Release(dsb);
 }
 
 void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)

@@ -10,6 +10,7 @@ struct uiDrawPath {
 struct piece {
 	int type;
 	double d[8];
+	int b;
 };
 
 enum {
@@ -55,7 +56,7 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	add(p, &piece);
 }
 
-void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
+void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative)
 {
 	struct piece piece;
 
@@ -67,6 +68,7 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 	piece.d[2] = radius;
 	piece.d[3] = startAngle;
 	piece.d[4] = sweep;
+	piece.b = negative;
 	add(p, &piece);
 }
 
@@ -80,7 +82,7 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 	add(p, &piece);
 }
 
-void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
+void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative)
 {
 	struct piece piece;
 
@@ -92,6 +94,7 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 	piece.d[2] = radius;
 	piece.d[3] = startAngle;
 	piece.d[4] = sweep;
+	piece.b = negative;
 	add(p, &piece);
 }
 
@@ -138,6 +141,7 @@ static void runPath(uiDrawPath *p, cairo_t *cr)
 {
 	guint i;
 	struct piece *piece;
+	void (*arc)(cairo_t *, double, double, double, double, double);
 
 	if (!p->ended)
 		complain("path not ended in runPath()");
@@ -152,7 +156,10 @@ static void runPath(uiDrawPath *p, cairo_t *cr)
 			cairo_new_sub_path(cr);
 			// fall through
 		case arcTo:
-			cairo_arc(cr,
+			arc = cairo_arc;
+			if (piece->b)
+				arc = cairo_arc_negative;
+			(*arc)(cr,
 				piece->d[0],
 				piece->d[1],
 				piece->d[2],

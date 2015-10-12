@@ -320,9 +320,8 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 	CGAffineTransform c;
 
 	m2c(m, &c);
-	// TODO verify this
 	c = CGAffineTransformTranslate(c, x, y);
-	c = CGAffineTransformRotate(c, -amount);
+	c = CGAffineTransformRotate(c, amount);
 	c = CGAffineTransformTranslate(c, -x, -y);
 	c2m(&c, m);
 }

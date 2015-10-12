@@ -772,7 +772,121 @@ static void drawD2DGeometryGroup(uiAreaDrawParams *p)
 
 // TODO are there even examples here? https://msdn.microsoft.com/en-us/library/windows/desktop/dd370966%28v=vs.85%29.aspx
 
-// TODO this entire section (transforms) https://msdn.microsoft.com/en-us/library/windows/desktop/dd756769%28v=vs.85%29.aspx
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dd756687%28v=vs.85%29.aspx
+static void drawD2DRotate(uiAreaDrawParams *p)
+{
+	uiDrawPath *path;
+	uiDrawBrush original;
+	uiDrawBrush fill;
+	uiDrawBrush transform;
+	uiDrawStrokeParams originalsp;
+	uiDrawStrokeParams transformsp;
+	uiDrawMatrix m;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path, 438.0, 301.5, 498.0 - 438.0, 361.5 - 301.5);
+	uiDrawPathEnd(path);
+
+	// TODO the example doesn't specify what these should be
+	d2dSolidBrush(&original, d2dBlack, 1.0);
+	d2dSolidBrush(&fill, d2dWhite, 0.5);
+	d2dSolidBrush(&transform, d2dForestGreen, 1.0);
+	// TODO this needs to be dashed
+	originalsp.Thickness = 1.0;
+	originalsp.Cap = uiDrawLineCapFlat;
+	originalsp.Join = uiDrawLineJoinMiter;
+	originalsp.MiterLimit = uiDrawDefaultMiterLimit;
+	transformsp.Thickness = 1.0;
+	transformsp.Cap = uiDrawLineCapFlat;
+	transformsp.Join = uiDrawLineJoinMiter;
+	transformsp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	// save for when we do the translated one
+	uiDrawSave(p->Context);
+
+	uiDrawStroke(p->Context, path, &original, &originalsp);
+
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixRotate(&m,
+		468.0, 331.5,
+		45.0 * (M_PI / 180));
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawFill(p->Context, path, &fill);
+	uiDrawStroke(p->Context, path, &transform, &transformsp);
+
+	uiDrawRestore(p->Context);
+
+	// translate to test the corner axis
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixTranslate(&m, -200, -200);
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawStroke(p->Context, path, &original, &originalsp);
+
+	uiDrawMatrixSetIdentity(&m);
+	uiDrawMatrixRotate(&m,
+		438.0, 301.5,
+		45.0 * (M_PI / 180));
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawFill(p->Context, path, &fill);
+	uiDrawStroke(p->Context, path, &transform, &transformsp);
+
+	uiDrawFreePath(path);
+}
+
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dd756688%28v=vs.85%29.aspx
+static void drawD2DScale(uiAreaDrawParams *p)
+{
+	uiDrawPath *path;
+	uiDrawBrush original;
+	uiDrawBrush fill;
+	uiDrawBrush transform;
+	uiDrawStrokeParams originalsp;
+	uiDrawStrokeParams transformsp;
+	uiDrawMatrix m;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path, 438.0, 80.5, 498.0 - 438.0, 140.5 - 80.5);
+	uiDrawPathEnd(path);
+
+	// TODO the example doesn't specify what these should be
+	d2dSolidBrush(&original, d2dBlack, 1.0);
+	d2dSolidBrush(&fill, d2dWhite, 0.5);
+	d2dSolidBrush(&transform, d2dForestGreen, 1.0);
+	// TODO this needs to be dashed
+	originalsp.Thickness = 1.0;
+	originalsp.Cap = uiDrawLineCapFlat;
+	originalsp.Join = uiDrawLineJoinMiter;
+	originalsp.MiterLimit = uiDrawDefaultMiterLimit;
+	transformsp.Thickness = 1.0;
+	transformsp.Cap = uiDrawLineCapFlat;
+	transformsp.Join = uiDrawLineJoinMiter;
+	transformsp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	// save for when we do the translated one
+	uiDrawSave(p->Context);
+
+	uiDrawStroke(p->Context, path, &original, &originalsp);
+
+	uiDrawMatrixSetIdentity(&m);
+// TODO THIS DOES NOT WORK CORRECTLY
+// that pivot point is required...
+	uiDrawMatrixScale(&m, 1.3, 1.3);
+	uiDrawTransform(p->Context, &m);
+
+	uiDrawFill(p->Context, path, &fill);
+	uiDrawStroke(p->Context, path, &transform, &transformsp);
+
+	uiDrawRestore(p->Context);
+
+	// TODO translate and show what happens if the center is (0, 0)
+
+	uiDrawFreePath(path);
+}
+
+// TODOTODOTODO
 
 // TODO https://msdn.microsoft.com/en-us/library/windows/desktop/dd756675%28v=vs.85%29.aspx
 
@@ -1458,6 +1572,8 @@ static const struct drawtest tests[] = {
 	{ "Direct2D: How to Create a Radial Gradient Brush", drawD2DRadialBrush },
 	{ "Direct2D: Path Geometries Overview", drawD2DPathGeometries },
 	{ "Direct2D: How to Create Geometry Groups", drawD2DGeometryGroup },
+	{ "Direct2D: How to Rotate an Object", drawD2DRotate },
+	{ "Direct2D: How to Scale an Object", drawD2DScale },
 	{ "Direct2D: How to Draw and Fill a Complex Shape", drawD2DComplexShape },
 	{ "cairo samples: arc", drawCSArc },
 	{ "cairo samples: arc negative", drawCSArcNegative },

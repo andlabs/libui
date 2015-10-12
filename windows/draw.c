@@ -142,6 +142,7 @@ struct arc {
 	double radius;
 	double startAngle;
 	double sweep;
+	int negative;
 };
 
 // this is used for the comparison below
@@ -155,21 +156,25 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 	double endX, endY;
 	D2D1_ARC_SEGMENT as;
 	BOOL fullCircle;
+	double absSweep;
 
 	// as above, we can't do a full circle with one arc
 	// simulate it with two half-circles
 	// of course, we have a dragon: equality on floating-point values!
 	// I've chosen to do the AlmostEqualRelative() technique in https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
 	fullCircle = FALSE;
-	if (a->sweep > (2 * M_PI))		// this part is easy
+	// use the absolute value to tackle both ≥2π and ≤-2π at the same time
+	absSweep = fabs(a->sweep);
+	if (absSweep > (2 * M_PI))		// this part is easy
 		fullCircle = TRUE;
 	else {
 		double aerDiff;
 
-		aerDiff = fabs(a->sweep - (2 * M_PI));
+		aerDiff = fabs(absSweep - (2 * M_PI));
 		// if we got here then we know a->sweep is larger (or the same!)
-		fullCircle = aerDiff <= a->sweep * aerMax;
+		fullCircle = aerDiff <= absSweep * aerMax;
 	}
+	// TODO make sure this works right for the negative direction
 	if (fullCircle) {
 		a->sweep = M_PI;
 		drawArc(p, a, startFunction);
@@ -202,15 +207,26 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 	as.size.width = a->radius;
 	as.size.height = a->radius;
 	as.rotationAngle = 0;		// as above, not relevant for circles
-	as.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE;
-	if (a->sweep > M_PI)
-		as.arcSize = D2D1_ARC_SIZE_LARGE;
+	if (a->negative)
+		as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
 	else
-		as.arcSize = D2D1_ARC_SIZE_SMALL;
+		as.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE;
+	// TODO explain the outer if
+	if (!a->negative)
+		if (a->sweep > M_PI)
+			as.arcSize = D2D1_ARC_SIZE_LARGE;
+		else
+			as.arcSize = D2D1_ARC_SIZE_SMALL;
+	else
+		// TODO especially this part
+		if (a->sweep > M_PI)
+			as.arcSize = D2D1_ARC_SIZE_SMALL;
+		else
+			as.arcSize = D2D1_ARC_SIZE_LARGE;
 	ID2D1GeometrySink_AddArc(p->sink, &as);
 }
 
-void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
+void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative)
 {
 	struct arc a;
 
@@ -219,6 +235,7 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 	a.radius = radius;
 	a.startAngle = startAngle;
 	a.sweep = sweep;
+	a.negative = negative;
 	drawArc(p, &a, uiDrawPathNewFigure);
 }
 
@@ -231,7 +248,7 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 	ID2D1GeometrySink_AddLine(p->sink, pt);
 }
 
-void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep)
+void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative)
 {
 	struct arc a;
 
@@ -240,6 +257,7 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 	a.radius = radius;
 	a.startAngle = startAngle;
 	a.sweep = sweep;
+	a.negative = negative;
 	drawArc(p, &a, uiDrawPathLineTo);
 }
 

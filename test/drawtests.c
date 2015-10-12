@@ -1265,7 +1265,7 @@ static void drawCSRoundRect(uiAreaDrawParams *p)
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
 	// top right corner
-	uiDrawPathArcTo(path,
+	uiDrawPathNewFigureWithArc(path,
 		x + width - radius, y + radius,
 		radius,
 		-90 * degrees, M_PI / 2,
@@ -1288,7 +1288,6 @@ static void drawCSRoundRect(uiAreaDrawParams *p)
 		radius,
 		180 * degrees, M_PI / 2,
 		0);
-
 	uiDrawPathCloseFigure(path);
 	uiDrawPathEnd(path);
 

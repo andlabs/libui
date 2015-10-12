@@ -680,10 +680,19 @@ void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 {
 	D2D1_MATRIX_3X2_F dm;
 	uiDrawMatrix already;
+	uiDrawMatrix temp;
 
 	ID2D1RenderTarget_GetTransform(c->rt, &dm);
 	d2m(&dm, &already);
-	uiDrawMatrixMultiply(&already, m);
-	m2d(&already, &dm);
+	temp = *m;		// don't modify m
+	// you would think we have to do already * m, right?
+	// WRONG! we have to do m * already
+	// why? a few reasons
+	// a) this lovely comment in cairo's source - http://cgit.freedesktop.org/cairo/tree/src/cairo-matrix.c?id=0537479bd1d4c5a3bc0f6f41dec4deb98481f34a#n330
+	// 	Direct2D uses column vectors and I don't know if this is even documented
+	// b) that's what Core Graphics does
+	// TODO see if Microsoft says to do this
+	uiDrawMatrixMultiply(&temp, &already);
+	m2d(&temp, &dm);
 	ID2D1RenderTarget_SetTransform(c->rt, &dm);
 }

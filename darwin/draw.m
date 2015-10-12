@@ -40,7 +40,7 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 	sinStart = sin(startAngle);
 	cosStart = cos(startAngle);
 	startx = xCenter + radius * cosStart;
-	starty = yCenter - radius * sinStart;
+	starty = yCenter + radius * sinStart;
 	CGPathMoveToPoint(p->path, NULL, startx, starty);
 	uiDrawPathArcTo(p, xCenter, yCenter, radius, startAngle, sweep);
 }
@@ -61,8 +61,7 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 	CGPathAddRelativeArc(p->path, NULL,
 		xCenter, yCenter,
 		radius,
-		// TODO explain this
-		-startAngle, -sweep);
+		startAngle, sweep);
 }
 
 void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY)

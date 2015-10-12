@@ -185,11 +185,11 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 	sinx = sin(a->startAngle);
 	cosx = cos(a->startAngle);
 	startX = a->xCenter + a->radius * cosx;
-	startY = a->yCenter - a->radius * sinx;
+	startY = a->yCenter + a->radius * sinx;
 	sinx = sin(a->startAngle + a->sweep);
 	cosx = cos(a->startAngle + a->sweep);
 	endX = a->xCenter + a->radius * cosx;
-	endY = a->yCenter - a->radius * sinx;
+	endY = a->yCenter + a->radius * sinx;
 
 	// now do the initial step to get the current point to be the start point
 	// this is either creating a new figure, drawing a line, or (in the case of our full circle code above) doing nothing
@@ -202,7 +202,7 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 	as.size.width = a->radius;
 	as.size.height = a->radius;
 	as.rotationAngle = 0;		// as above, not relevant for circles
-	as.sweepDirection = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
+	as.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE;
 	if (a->sweep > M_PI)
 		as.arcSize = D2D1_ARC_SIZE_LARGE;
 	else

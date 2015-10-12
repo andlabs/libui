@@ -566,7 +566,7 @@ static void drawD2DPathGeometries(uiAreaDrawParams *p)
 	uiDrawPathNewFigureWithArc(sun,
 		(440.0 - 270.0) / 2 + 270.0, 255,
 		85,
-		0, M_PI,
+		M_PI, M_PI,
 		0);
 	uiDrawPathCloseFigure(sun);
 	uiDrawPathEnd(sun);
@@ -894,8 +894,8 @@ static void drawCSArc(uiAreaDrawParams *p)
 	uiDrawPathNewFigureWithArc(path,
 		xc, yc,
 		radius,
-		angle2,
-		M_PI - angle1,
+		angle1,
+		angle2 - angle1,
 		0);
 	uiDrawPathEnd(path);
 	uiDrawStroke(p->Context, path, &source, &sp);
@@ -918,7 +918,7 @@ static void drawCSArc(uiAreaDrawParams *p)
 	uiDrawPathNewFigureWithArc(path,
 		xc, yc,
 		radius,
-		(M_PI - angle1) + angle2, 0,
+		angle1, 0,
 		0);
 	uiDrawPathLineTo(path, xc, yc);
 	uiDrawPathNewFigureWithArc(path,
@@ -955,9 +955,9 @@ static void drawCSArcNegative(uiAreaDrawParams *p)
 	uiDrawPathNewFigureWithArc(path,
 		xc, yc,
 		radius,
-		-angle1,
-		angle1 + angle2,
-		0);
+		angle1,
+		angle2 - angle1,
+		1);
 	uiDrawPathEnd(path);
 	uiDrawStroke(p->Context, path, &source, &sp);
 	uiDrawFreePath(path);
@@ -979,7 +979,7 @@ static void drawCSArcNegative(uiAreaDrawParams *p)
 	uiDrawPathNewFigureWithArc(path,
 		xc, yc,
 		radius,
-		(M_PI - angle1) + angle2, 0,
+		angle1, 0,
 		0);
 	uiDrawPathLineTo(path, xc, yc);
 	uiDrawPathNewFigureWithArc(path,
@@ -1169,8 +1169,8 @@ static void drawCSFillStyle(uiAreaDrawParams *p)
 	uiDrawPathNewFigureWithArc(path,
 		192, 64,
 		40,
-		0, 2*M_PI,
-		0);
+		0, -2*M_PI,
+		1);
 	uiDrawPathEnd(path);
 
 	crsourcergba(&source, 0, 0.7, 0, 1);
@@ -1194,8 +1194,8 @@ static void drawCSFillStyle(uiAreaDrawParams *p)
 	uiDrawPathNewFigureWithArc(path,
 		192, 64,
 		40,
-		0, 2*M_PI,
-		0);
+		0, -2*M_PI,
+		1);
 	uiDrawPathEnd(path);
 
 	crsourcergba(&source, 0, 0, 0.9, 1);
@@ -1264,33 +1264,31 @@ static void drawCSRoundRect(uiAreaDrawParams *p)
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
-	// this example differs because of counterclockwise arcs
-	// the original went clockwise; we must go counterclockwise
-
 	// top right corner
-	uiDrawPathNewFigureWithArc(path,
+	uiDrawPathArcTo(path,
 		x + width - radius, y + radius,
 		radius,
-		0 * degrees, 90 * degrees,
-		0);
-	// top left corner
-	uiDrawPathArcTo(path,
-		x + radius, y + radius,
-		radius,
-		90 * degrees, 90 * degrees,
-		0);
-	// bottom left corner
-	uiDrawPathArcTo(path,
-		x + radius, y + height - radius,
-		radius,
-		180 * degrees, 90 * degrees,
+		-90 * degrees, M_PI / 2,
 		0);
 	// bottom right corner
 	uiDrawPathArcTo(path,
 		x + width - radius, y + height - radius,
 		radius,
-		270 * degrees, 90 * degrees,
+		0 * degrees, M_PI / 2,
 		0);
+	// bottom left corner
+	uiDrawPathArcTo(path,
+		x + radius, y + height - radius,
+		radius,
+		90 * degrees, M_PI / 2,
+		0);
+	// top left corner
+	uiDrawPathArcTo(path,
+		x + radius, y + radius,
+		radius,
+		180 * degrees, M_PI / 2,
+		0);
+
 	uiDrawPathCloseFigure(path);
 	uiDrawPathEnd(path);
 

@@ -389,12 +389,12 @@ _UI_EXTERN uiDrawPath *uiDrawNewPath(uiDrawFillMode fillMode);
 _UI_EXTERN void uiDrawFreePath(uiDrawPath *p);
 
 _UI_EXTERN void uiDrawPathNewFigure(uiDrawPath *p, double x, double y);
-_UI_EXTERN void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep);
+_UI_EXTERN void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative);
 _UI_EXTERN void uiDrawPathLineTo(uiDrawPath *p, double x, double y);
 // notes: angles are both relative to 0 and go counterclockwise
 // TODO is the initial line segment on cairo and OS X a proper join?
 // TODO what if sweep < 0?
-_UI_EXTERN void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep);
+_UI_EXTERN void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative);
 _UI_EXTERN void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY);
 // TODO quadratic bezier
 _UI_EXTERN void uiDrawPathCloseFigure(uiDrawPath *p);

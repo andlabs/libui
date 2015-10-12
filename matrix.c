@@ -12,7 +12,23 @@ void setIdentity(uiDrawMatrix *m)
 	m->M32 = 0;
 }
 
-// TODO skew
+// TODO don't default to fallback functions within the fallback functions
+
+// technique from "Programming with Quartz: 2D and PDF Graphics in Mac OS X"
+// TODO if Windows 7 is ever dropped change this so we can pass in D2D1Tan()
+void fallbackSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
+{
+	uiDrawMatrix t, n;
+
+	setIdentity(&t);
+	fallbackTranslate(&t, x, y);
+	setIdentity(&n);
+	n.M12 = tan(xamount);
+	n.M21 = tan(yamount);
+	fallbackMultiply(&n, &t);
+	// TODO undo the translation?
+	fallbackMultiply(&m, &n);
+}
 
 // see windows/draw.c for more information
 // TODO we don't need to do this if we can bypass the multiplication somehow

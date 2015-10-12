@@ -333,9 +333,9 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 	c2m(&c, m);
 }
 
-void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double amount, double yamount)
+void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
 {
-	complain("TODO");
+	fallbackSkew(m, x, y, xamount, yamount);
 }
 
 void uiDrawMatrixMultiply(uiDrawMatrix *dest, uiDrawMatrix *src)

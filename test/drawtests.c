@@ -1,6 +1,10 @@
 // 9 october 2015
 #include "test.h"
 
+// TODO
+// - test multiple clips
+// - test saving and restoring clips
+
 struct drawtest {
 	const char *name;
 	void (*draw)(uiAreaDrawParams *p);

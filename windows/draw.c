@@ -96,7 +96,6 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode fillmode)
 			D2D1_FILL_MODE_ALTERNATE);
 		break;
 	}
-p->inFigure = FALSE;
 	return p;
 }
 
@@ -311,6 +310,7 @@ void uiDrawPathEnd(uiDrawPath *p)
 struct uiDrawContext {
 	ID2D1RenderTarget *rt;
 	UT_array *states;
+	ID2D1PathGeometry *currentClip;
 };
 
 // declared below
@@ -342,6 +342,8 @@ uiDrawContext *newContext(ID2D1RenderTarget *rt)
 
 void freeContext(uiDrawContext *c)
 {
+	if (c->currentClip != NULL)
+		ID2D1PathGeometry_Release(c->currentClip);
 	uninitStates(c);
 	uiFree(c);
 }
@@ -480,11 +482,77 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 	return NULL;		// make compiler happy
 }
 
+// how clipping works:
+// every fill and stroke is done on a temporary layer with the clip geometry applied to it
+// this is really the only way to clip in Direct2D that doesn't involve opacity images
+// reference counting:
+// - initially the clip is NULL, which means do not use a layer
+// - the first time uiDrawClip() is called, we take a reference on the path passed in (this is also why uiPathEnd() is needed)
+// - every successive time, we create a new PathGeometry and merge the current clip with the new path, releasing the reference we took earlier and taking a reference to the new one
+// - in Save, we take another reference; in Restore we drop the refernece to the existing path geometry and transfer that saved ref to the new path geometry over to the context
+// uiDrawFreePath() doesn't destroy the path geometry, it just drops the reference count, so a clip can exist independent of its path
+
+static ID2D1Layer *applyClip(uiDrawContext *c)
+{
+	ID2D1Layer *layer;
+	D2D1_LAYER_PARAMETERS params;
+	HRESULT hr;
+
+	// if no clip, don't do anything
+	if (c->currentClip == NULL)
+		return NULL;
+
+	// create a layer for clipping
+	// we have to explicitly make the layer because we're still targeting Windows 7
+	// TODO MINGW BUG
+	// this macro is supposed to take three parameters
+	hr = (*(c->rt->lpVtbl->CreateLayer))(c->rt,
+		NULL,
+		&layer);
+	if (hr != S_OK)
+		logHRESULT("error creating clip layer in applyClip()", hr);
+
+	// apply it as the clip
+	ZeroMemory(&params, sizeof (D2D1_LAYER_PARAMETERS));
+	// this is the equivalent of InfiniteRect() in d2d1helper.h
+	params.contentBounds.left = -FLT_MAX;
+	params.contentBounds.top = -FLT_MAX;
+	params.contentBounds.right = FLT_MAX;
+	params.contentBounds.bottom = FLT_MAX;
+	params.geometricMask = (ID2D1Geometry *) (c->currentClip);
+	// TODO is this correct?
+	params.maskAntialiasMode = ID2D1RenderTarget_GetAntialiasMode(c->rt);
+	// identity matrix
+	params.maskTransform._11 = 1;
+	params.maskTransform._22 = 1;
+	params.opacity = 1.0;
+	params.opacityBrush = NULL;
+	params.layerOptions = D2D1_LAYER_OPTIONS_NONE;
+	// TODO is this correct?
+	if (ID2D1RenderTarget_GetTextAntialiasMode(c->rt) == D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE)
+		params.layerOptions = D2D1_LAYER_OPTIONS_INITIALIZE_FOR_CLEARTYPE;
+	ID2D1RenderTarget_PushLayer(c->rt,
+		&params,
+		layer);
+
+	// return the layer so it can be freed later
+	return layer;
+}
+
+static void unapplyClip(uiDrawContext *c, ID2D1Layer *layer)
+{
+	if (layer == NULL)
+		return;
+	ID2D1RenderTarget_PopLayer(c->rt);
+	ID2D1Layer_Release(layer);
+}
+
 void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeParams *sp)
 {
 	ID2D1Brush *brush;
 	ID2D1StrokeStyle *style;
 	D2D1_STROKE_STYLE_PROPERTIES dsp;
+	ID2D1Layer *cliplayer;
 	HRESULT hr;
 
 	brush = makeBrush(b, c->rt);
@@ -529,11 +597,13 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeP
 	if (hr != S_OK)
 		logHRESULT("error creating stroke style in uiDrawStroke()", hr);
 
+	cliplayer = applyClip(c);
 	ID2D1RenderTarget_DrawGeometry(c->rt,
 		(ID2D1Geometry *) (p->path),
 		brush,
 		sp->Thickness,
 		style);
+	unapplyClip(c, cliplayer);
 
 	ID2D1StrokeStyle_Release(style);
 	ID2D1Brush_Release(brush);
@@ -542,12 +612,15 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeP
 void uiDrawFill(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b)
 {
 	ID2D1Brush *brush;
+	ID2D1Layer *cliplayer;
 
 	brush = makeBrush(b, c->rt);
+	cliplayer = applyClip(c);
 	ID2D1RenderTarget_FillGeometry(c->rt,
 		(ID2D1Geometry *) (p->path),
 		brush,
 		NULL);
+	unapplyClip(c, cliplayer);
 	ID2D1Brush_Release(brush);
 }
 
@@ -674,8 +747,57 @@ void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 	ID2D1RenderTarget_SetTransform(c->rt, &dm);
 }
 
+// TODO for this, stroke, and fill, make sure that an open path causes error state
+void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
+{
+	ID2D1PathGeometry *newPath;
+	ID2D1GeometrySink *newSink;
+	HRESULT hr;
+
+	// if there's no current clip, borrow the path
+	if (c->currentClip == NULL) {
+		c->currentClip = path->path;
+		// we have to take our own reference to that clip
+		ID2D1PathGeometry_AddRef(c->currentClip);
+		return;
+	}
+
+	// otherwise we have to intersect the current path with the new one
+	// we do that into a new path, and then replace c->currentClip with that new path
+	hr = ID2D1Factory_CreatePathGeometry(d2dfactory,
+		&newPath);
+	if (hr != S_OK)
+		logHRESULT("error creating new path in uiDrawClip()", hr);
+	hr = ID2D1PathGeometry_Open(newPath,
+		&newSink);
+	if (hr != S_OK)
+		logHRESULT("error opening new path in uiDrawClip()", hr);
+	// TODO BUG IN MINGW
+	// the macro is supposed to take 6 parameters
+	hr = (*(c->currentClip->lpVtbl->Base.CombineWithGeometry))(
+		(ID2D1Geometry *) (c->currentClip),
+		(ID2D1Geometry *) (path->path),
+		D2D1_COMBINE_MODE_INTERSECT,
+		NULL,
+		// TODO is this correct or can this be set per target?
+		D2D1_DEFAULT_FLATTENING_TOLERANCE,
+		(ID2D1SimplifiedGeometrySink *) newSink);
+	if (hr != S_OK)
+		logHRESULT("error intersecting old path with new path in uiDrawClip()", hr);
+	hr = ID2D1GeometrySink_Close(newSink);
+	if (hr != S_OK)
+		logHRESULT("error closing new path in uiDrawClip()", hr);
+	ID2D1GeometrySink_Release(newSink);
+
+	// okay we have the new clip; we just need to replace the old one with it
+	ID2D1PathGeometry_Release(c->currentClip);
+	c->currentClip = newPath;
+	// we have a reference already; no need for another
+}
+
 struct state {
 	ID2D1DrawingStateBlock *dsb;
+	ID2D1PathGeometry *clip;
 };
 
 static const UT_icd stateicd = {
@@ -712,7 +834,12 @@ void uiDrawSave(uiDrawContext *c)
 		logHRESULT("error creating drawing state block in uiDrawSave()", hr);
 	ID2D1RenderTarget_SaveDrawingState(c->rt, dsb);
 
+	// if we have a clip, we need to hold another reference to it
+	if (c->currentClip != NULL)
+		ID2D1PathGeometry_AddRef(c->currentClip);
+
 	state.dsb = dsb;
+	state.clip = c->currentClip;
 	utarray_push_back(c->states, &state);
 }
 
@@ -724,6 +851,12 @@ void uiDrawRestore(uiDrawContext *c)
 
 	ID2D1RenderTarget_RestoreDrawingState(c->rt, state->dsb);
 	ID2D1DrawingStateBlock_Release(state->dsb);
+
+	// if we have a current clip, we need to drop it
+	if (c->currentClip != NULL)
+		ID2D1PathGeometry_Release(c->currentClip);
+	// no need to explicitly addref or release; just transfer the ref
+	c->currentClip = state->clip;
 
 	utarray_pop_back(c->states);
 }

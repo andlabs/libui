@@ -1299,7 +1299,46 @@ static void drawCSArcNegative(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
-// TODO clip
+// clip
+static void drawCSClip(uiAreaDrawParams *p)
+{
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+
+	uiDrawPathNewFigureWithArc(path,
+		128.0, 128.0,
+		76.8,
+		0, 2 * M_PI,
+		0);
+	uiDrawPathEnd(path);
+	uiDrawClip(p->Context, path);
+	uiDrawFreePath(path);
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path, 0, 0, 256, 256);
+	uiDrawPathEnd(path);
+	uiDrawFill(p->Context, path, &source);
+	uiDrawFreePath(path);
+
+	crsourcergba(&source, 0, 1, 0, 1);
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 0, 0);
+	uiDrawPathLineTo(path, 256, 256);
+	uiDrawPathNewFigure(path, 256, 0);
+	uiDrawPathLineTo(path, 0, 256);
+	uiDrawPathEnd(path);
+	sp.Thickness = 10.0;
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
 
 // TODO clip image
 
@@ -1772,6 +1811,7 @@ static const struct drawtest tests[] = {
 	{ "Direct2D: How to Draw and Fill a Complex Shape", drawD2DComplexShape },
 	{ "cairo samples: arc", drawCSArc },
 	{ "cairo samples: arc negative", drawCSArcNegative },
+	{ "cairo samples: clip", drawCSClip },
 	{ "cairo samples: curve rectangle", drawCSCurveRectangle },
 	{ "cairo samples: curve to", drawCSCurveTo },
 	{ "cairo samples: fill and stroke2", drawCSFillAndStroke2 },

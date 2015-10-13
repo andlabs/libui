@@ -422,6 +422,20 @@ void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 	cairo_transform(c->cr, &cm);
 }
 
+void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
+{
+	runPath(path, c->cr);
+	switch (path->fillMode) {
+	case uiDrawFillModeWinding:
+		cairo_set_fill_rule(c->cr, CAIRO_FILL_RULE_WINDING);
+		break;
+	case uiDrawFillModeAlternate:
+		cairo_set_fill_rule(c->cr, CAIRO_FILL_RULE_EVEN_ODD);
+		break;
+	}
+	cairo_clip(c->cr);
+}
+
 void uiDrawSave(uiDrawContext *c)
 {
 	cairo_save(c->cr);

@@ -425,7 +425,8 @@ _UI_EXTERN void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
 
 _UI_EXTERN void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m);
 
-// TODO put uiDrawClip here
+// TODO add a uiDrawPathStrokeToFill() or something like that
+_UI_EXTERN void uiDrawClip(uiDrawContext *c, uiDrawPath *path);
 
 _UI_EXTERN void uiDrawSave(uiDrawContext *c);
 _UI_EXTERN void uiDrawRestore(uiDrawContext *c);

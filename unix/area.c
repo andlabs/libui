@@ -167,14 +167,6 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	dp.ClipWidth = clipX1 - clipX0;
 	dp.ClipHeight = clipY1 - clipY0;
 
-	// on GTK+ you're not supposed to care about high-DPI scaling
-	// instead, pango handles scaled text rendering for us
-	// this doesn't handle non-text cases, but neither do other GTK+ programs, so :/
-	// wayland and mir GDK are hardcoded to 96dpi; X11 uses this as a fallback
-	// thanks to hergertme in irc.gimp.net/#gtk+ for clarifying things
-	dp.DPIX = 96;
-	dp.DPIY = 96;
-
 	dp.HScrollPos = gtk_adjustment_get_value(ap->ha);
 	dp.VScrollPos = gtk_adjustment_get_value(ap->va);
 

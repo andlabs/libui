@@ -130,8 +130,6 @@ uiDarwinDefineControl(
 	dp.ClipWidth = r.size.width;
 	dp.ClipHeight = r.size.height;
 
-	// TODO DPI
-
 	av = (areaView *) [self superview];
 	dp.HScrollPos = [av hscrollPos];
 	dp.VScrollPos = [av vscrollPos];

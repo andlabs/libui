@@ -283,9 +283,6 @@ struct uiAreaDrawParams {
 	intmax_t ClipWidth;
 	intmax_t ClipHeight;
 
-	int DPIX;
-	int DPIY;
-
 	intmax_t HScrollPos;
 	intmax_t VScrollPos;
 };

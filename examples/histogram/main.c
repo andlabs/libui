@@ -1,6 +1,8 @@
 // 13 october 2015
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <time.h>
 #include "../../ui.h"
 
 uiWindow *mainwin;
@@ -90,6 +92,12 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	graphWidth = p->ClientWidth - xoffLeft - xoffRight;
 	graphHeight = p->ClientHeight - yoffTop - yoffBottom;
 
+	// make a stroke for both the axes and the histogram line
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.Thickness = 2;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+
 	// draw the axes
 	setSolidBrush(&brush, colorBlack, 1.0);
 	path = uiDrawNewPath(uiDrawFillModeWinding);
@@ -100,10 +108,6 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	uiDrawPathLineTo(path,
 		xoffLeft + graphWidth, yoffTop + graphHeight);
 	uiDrawPathEnd(path);
-	sp.Cap = uiDrawLineCapFlat;
-	sp.Join = uiDrawLineJoinMiter;
-	sp.Thickness = 2;
-	sp.MiterLimit = uiDrawDefaultMiterLimit;
 	uiDrawStroke(p->Context, path, &brush, &sp);
 	uiDrawFreePath(path);
 
@@ -117,20 +121,29 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	setSolidBrush(&brush, colorDodgerBlue, 0.5);
 	uiDrawFill(p->Context, path, &brush);
 	uiDrawFreePath(path);
+
+	// now draw the histogram line
+	path = constructGraph(graphWidth, graphHeight, 0);
+	setSolidBrush(&brush, colorDodgerBlue, 1.0);
+	uiDrawStroke(p->Context, path, &brush, &sp);
+	uiDrawFreePath(path);
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
 {
+	// we don't scroll
 	return 0;
 }
 
 static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
 {
+	// we don't scroll
 	return 0;
 }
 
 static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
 {
+	// always redraw on resize; we don't scroll
 	return 1;
 }
 
@@ -146,7 +159,13 @@ static void handlerDragBroken(uiAreaHandler *ah, uiArea *a)
 
 static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 {
+	// reject all keys
 	return 0;
+}
+
+static void onDatapointChanged(uiSpinbox *s, void *data)
+{
+	uiAreaQueueRedrawAll(histogram);
 }
 
 static int onClosing(uiWindow *w, void *data)
@@ -199,8 +218,11 @@ int main(void)
 	uiBoxSetPadded(vbox, 1);
 	uiBoxAppend(hbox, uiControl(vbox), 0);
 
+	srand(time(NULL));
 	for (i = 0; i < 10; i++) {
 		datapoints[i] = uiNewSpinbox(0, 100);
+		uiSpinboxSetValue(datapoints[i], rand() % 101);
+		uiSpinboxOnChanged(datapoints[i], onDatapointChanged, NULL);
 		uiBoxAppend(vbox, uiControl(datapoints[i]), 0);
 	}
 

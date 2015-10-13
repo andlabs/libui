@@ -310,8 +310,12 @@ void uiDrawPathEnd(uiDrawPath *p)
 
 struct uiDrawContext {
 	ID2D1RenderTarget *rt;
-	struct ptrArray *states;
+	UT_array *states;
 };
+
+// declared below
+static void initStates(uiDrawContext *);
+static void uninitStates(uiDrawContext *);
 
 static void resetTarget(ID2D1RenderTarget *rt)
 {
@@ -331,15 +335,14 @@ uiDrawContext *newContext(ID2D1RenderTarget *rt)
 
 	c = uiNew(uiDrawContext);
 	c->rt = rt;
-	c->states = newPtrArray();
+	initStates(c);
 	resetTarget(c->rt);
 	return c;
 }
 
 void freeContext(uiDrawContext *c)
 {
-	// c->states should be empty by now
-	ptrArrayDestroy(c->states);
+	uninitStates(c);
 	uiFree(c);
 }
 
@@ -671,8 +674,32 @@ void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 	ID2D1RenderTarget_SetTransform(c->rt, &dm);
 }
 
+struct state {
+	ID2D1DrawingStateBlock *dsb;
+};
+
+static const UT_icd stateicd = {
+	.sz = sizeof (struct state),
+	.init = NULL,
+	.copy = NULL,
+	.dtor = NULL,
+};
+
+static void initStates(uiDrawContext *c)
+{
+	utarray_new(c->states, &stateicd);
+}
+
+static void uninitStates(uiDrawContext *c)
+{
+	if (utarray_len(c->states) > 0)
+		complain("imbalanced save/restore count in uiDrawContext in uninitStates(); did you save without restoring?");
+	utarray_free(c->states);
+}
+
 void uiDrawSave(uiDrawContext *c)
 {
+	struct state state;
 	ID2D1DrawingStateBlock *dsb;
 	HRESULT hr;
 
@@ -684,15 +711,19 @@ void uiDrawSave(uiDrawContext *c)
 	if (hr != S_OK)
 		logHRESULT("error creating drawing state block in uiDrawSave()", hr);
 	ID2D1RenderTarget_SaveDrawingState(c->rt, dsb);
-	ptrArrayAppend(c->states, dsb);
+
+	state.dsb = dsb;
+	utarray_push_back(c->states, &state);
 }
 
 void uiDrawRestore(uiDrawContext *c)
 {
-	ID2D1DrawingStateBlock *dsb;
+	struct state *state;
 
-	dsb = ptrArrayIndex(c->states, ID2D1DrawingStateBlock *, c->states->len - 1);
-	ptrArrayDelete(c->states, c->states->len - 1);
-	ID2D1RenderTarget_RestoreDrawingState(c->rt, dsb);
-	ID2D1DrawingStateBlock_Release(dsb);
+	state = (struct state *) utarray_back(c->states);
+
+	ID2D1RenderTarget_RestoreDrawingState(c->rt, state->dsb);
+	ID2D1DrawingStateBlock_Release(state->dsb);
+
+	utarray_pop_back(c->states);
 }

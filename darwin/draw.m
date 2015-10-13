@@ -403,6 +403,21 @@ void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 	CGContextConcatCTM(c->c, cm);
 }
 
+void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
+{
+	if (!path->ended)
+		complain("path not ended in uiDrawClip()");
+	CGContextAddPath(c->c, (CGPathRef) (path->path));
+	switch (path->fillMode) {
+	case uiDrawFillModeWinding:
+		CGContextClip(c->c);
+		break;
+	case uiDrawFillModeAlternate:
+		CGContextEOClip(c->c);
+		break;
+	}
+}
+
 // TODO figure out what besides transforms these save/restore on all platforms
 void uiDrawSave(uiDrawContext *c)
 {

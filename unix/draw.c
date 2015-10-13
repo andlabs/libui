@@ -414,6 +414,14 @@ void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
 	cairo_matrix_transform_distance(&c, x, y);
 }
 
+void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
+{
+	cairo_matrix_t cm;
+
+	m2c(m, &cm);
+	cairo_transform(c->cr, &cm);
+}
+
 void uiDrawSave(uiDrawContext *c)
 {
 	cairo_save(c->cr);
@@ -422,12 +430,4 @@ void uiDrawSave(uiDrawContext *c)
 void uiDrawRestore(uiDrawContext *c)
 {
 	cairo_restore(c->cr);
-}
-
-void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
-{
-	cairo_matrix_t cm;
-
-	m2c(m, &cm);
-	cairo_transform(c->cr, &cm);
 }

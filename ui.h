@@ -423,9 +423,12 @@ _UI_EXTERN int uiDrawMatrixInvert(uiDrawMatrix *m);
 _UI_EXTERN void uiDrawMatrixTransformPoint(uiDrawMatrix *m, double *x, double *y);
 _UI_EXTERN void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y);
 
+_UI_EXTERN void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m);
+
+// TODO put uiDrawClip here
+
 _UI_EXTERN void uiDrawSave(uiDrawContext *c);
 _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
-_UI_EXTERN void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m);
 
 typedef enum uiModifiers uiModifiers;
 

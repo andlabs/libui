@@ -395,6 +395,14 @@ void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
 	*y = s.height;
 }
 
+void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
+{
+	CGAffineTransform cm;
+
+	m2c(m, &cm);
+	CGContextConcatCTM(c->c, cm);
+}
+
 // TODO figure out what besides transforms these save/restore on all platforms
 void uiDrawSave(uiDrawContext *c)
 {
@@ -404,12 +412,4 @@ void uiDrawSave(uiDrawContext *c)
 void uiDrawRestore(uiDrawContext *c)
 {
 	CGContextRestoreGState(c->c);
-}
-
-void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
-{
-	CGAffineTransform cm;
-
-	m2c(m, &cm);
-	CGContextConcatCTM(c->c, cm);
 }

@@ -137,8 +137,6 @@ static void drawOriginal(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
-// TODO test quadrants 2 and 4 and the other axes
-// TODO test negative start angles too
 static void drawArcs(uiAreaDrawParams *p)
 {
 	uiDrawPath *path;
@@ -1187,7 +1185,6 @@ static void drawCSArc(uiAreaDrawParams *p)
 	double xc = 128.0;
 	double yc = 128.0;
 	double radius = 100.0;
-	// these are clockwise, not counterclockwise
 	double angle1 = 45.0  * (M_PI / 180.0);
 	double angle2 = 180.0 * (M_PI / 180.0);
 	uiDrawBrush source;
@@ -1248,7 +1245,6 @@ static void drawCSArcNegative(uiAreaDrawParams *p)
 	double xc = 128.0;
 	double yc = 128.0;
 	double radius = 100.0;
-	// these are clockwise, not counterclockwise
 	double angle1 = 45.0  * (M_PI / 180.0);
 	double angle2 = 180.0 * (M_PI / 180.0);
 	uiDrawBrush source;

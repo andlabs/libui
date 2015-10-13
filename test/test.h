@@ -53,3 +53,6 @@ extern uiBox *makePage6(void);
 // drawtests.c
 extern void runDrawTest(intmax_t, uiAreaDrawParams *);
 extern void populateComboboxWithTests(uiCombobox *);
+
+// page7.c
+extern uiBox *makePage7(void);

@@ -5,7 +5,7 @@ OUT = histogram
 ifeq ($(OS),windows)
 linkto = ../../out/new.dll
 CC = i686-w64-mingw32-gcc
-OUT = controlgallery.exe
+OUT = histogram.exe
 else
 ifeq ($(OS),darwin)
 linkto = ../../out/new.dylib

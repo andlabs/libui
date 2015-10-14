@@ -122,6 +122,7 @@ uiDarwinDefineControl(
 	c = (CGContextRef) [[NSGraphicsContext currentContext] graphicsPort];
 	dp.Context = newContext(c);
 
+	// TODO frame or bounds?
 	dp.ClientWidth = [self frame].size.width;
 	dp.ClientHeight = [self frame].size.height;
 
@@ -180,10 +181,13 @@ uiDarwinDefineControl(
 
 	av = (areaView *) [self superview];
 
+	// this will convert point to drawing space
+	// thanks swillits in irc.freenode.net/#macdev
 	point = [self convertPoint:[e locationInWindow] fromView:nil];
 	me.X = point.x;
 	me.Y = point.y;
 
+	// TODO frame or bounds?
 	me.ClientWidth = [self frame].size.width;
 	me.ClientHeight = [self frame].size.height;
 	me.HScrollPos = [av hscrollPos];

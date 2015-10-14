@@ -275,10 +275,10 @@ _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);
 struct uiAreaDrawParams {
 	uiDrawContext *Context;
 
-	// TODO this and the mouse event ones should probably be in points and not pixels
-	intmax_t ClientWidth;
-	intmax_t ClientHeight;
+	double ClientWidth;
+	double ClientHeight;
 
+	// TODO keep this?
 	intmax_t ClipX;
 	intmax_t ClipY;
 	intmax_t ClipWidth;
@@ -439,11 +439,11 @@ enum uiModifiers {
 };
 
 struct uiAreaMouseEvent {
-	intmax_t X;
-	intmax_t Y;
+	double X;
+	double Y;
 
-	intmax_t ClientWidth;
-	intmax_t ClientHeight;
+	double ClientWidth;
+	double ClientHeight;
 	intmax_t HScrollPos;
 	intmax_t VScrollPos;
 

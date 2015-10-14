@@ -158,6 +158,9 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 
 	dp.Context = newContext(cr);
 
+	// these are already in drawing space coordinates
+	// the size of drawing space has the same value as the widget allocation
+	// thanks to tristan in irc.gimp.net/#gtk+
 	dp.ClientWidth = ap->clientWidth;
 	dp.ClientHeight = ap->clientHeight;
 
@@ -236,6 +239,9 @@ static void finishMouseEvent(struct areaPrivate *ap, uiAreaMouseEvent *me, guint
 	// don't check GDK_BUTTON4_MASK or GDK_BUTTON5_MASK because those are for the scrolling buttons mentioned above
 	// GDK expressly does not support any more buttons in the GdkModifierType; see https://git.gnome.org/browse/gtk+/tree/gdk/x11/gdkdevice-xi2.c#n763 (thanks mclasen in irc.gimp.net/#gtk+)
 
+	// these are already in drawing space coordinates
+	// the size of drawing space has the same value as the widget allocation
+	// thanks to tristan in irc.gimp.net/#gtk+
 	me->X = x;
 	me->Y = y;
 

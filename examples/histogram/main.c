@@ -9,12 +9,14 @@ uiWindow *mainwin;
 uiArea *histogram;
 uiAreaHandler handler;
 uiSpinbox *datapoints[10];
+int currentPoint = -1;
 
 // some metrics
 #define xoffLeft 20			/* histogram margins */
 #define yoffTop 20
 #define xoffRight 20
 #define yoffBottom 20
+#define pointRadius 5
 
 // helper to quickly set a brush color
 static void setSolidBrush(uiDrawBrush *brush, uint32_t color, double alpha)
@@ -37,30 +39,37 @@ static void setSolidBrush(uiDrawBrush *brush, uint32_t color, double alpha)
 #define colorBlack 0x000000
 #define colorDodgerBlue 0x1E90FF
 
-static uiDrawPath *constructGraph(double width, double height, int extend)
+static void pointLocations(double width, double height, double *xs, double *ys)
 {
-	uiDrawPath *path;
 	double xincr, yincr;
 	int i, n;
 
-	path = uiDrawNewPath(uiDrawFillModeWinding);
-
 	xincr = width / 9;		// 10 - 1 to make the last point be at the end
 	yincr = height / 100;
+
 	for (i = 0; i < 10; i++) {
 		// get the value of the point
 		n = uiSpinboxValue(datapoints[i]);
 		// because y=0 is the top but n=0 is the bottom, we need to flip
 		n = 100 - n;
-		if (i == 0)
-			uiDrawPathNewFigure(path,
-				xincr * i,
-				yincr * n);
-		else
-			uiDrawPathLineTo(path,
-				xincr * i,
-				yincr * n);
+		xs[i] = xincr * i;
+		ys[i] = yincr * n;
 	}
+}
+
+static uiDrawPath *constructGraph(double width, double height, int extend)
+{
+	uiDrawPath *path;
+	double xs[10], ys[10];
+	int i;
+
+	pointLocations(width, height, xs, ys);
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+
+	uiDrawPathNewFigure(path, xs[0], ys[0]);
+	for (i = 1; i < 10; i++)
+		uiDrawPathLineTo(path, xs[i], ys[i]);
 
 	if (extend) {
 		uiDrawPathLineTo(path, width, height);
@@ -70,6 +79,12 @@ static uiDrawPath *constructGraph(double width, double height, int extend)
 
 	uiDrawPathEnd(path);
 	return path;
+}
+
+static void graphSize(double clientWidth, double clientHeight, double *graphWidth, double *graphHeight)
+{
+	*graphWidth = clientWidth - xoffLeft - xoffRight;
+	*graphHeight = clientHeight - yoffTop - yoffBottom;
 }
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
@@ -89,8 +104,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 
 	// figure out dimensions
-	graphWidth = p->ClientWidth - xoffLeft - xoffRight;
-	graphHeight = p->ClientHeight - yoffTop - yoffBottom;
+	graphSize(p->ClientWidth, p->ClientHeight, &graphWidth, &graphHeight);
 
 	// make a stroke for both the axes and the histogram line
 	sp.Cap = uiDrawLineCapFlat;
@@ -127,6 +141,23 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	setSolidBrush(&brush, colorDodgerBlue, 1.0);
 	uiDrawStroke(p->Context, path, &brush, &sp);
 	uiDrawFreePath(path);
+
+	// now draw the point being hovered over
+	if (currentPoint != -1) {
+		double xs[10], ys[10];
+
+		pointLocations(graphWidth, graphHeight, xs, ys);
+		path = uiDrawNewPath(uiDrawFillModeWinding);
+		uiDrawPathNewFigureWithArc(path,
+			xs[currentPoint], ys[currentPoint],
+			pointRadius,
+			0, 6.23,		// TODO pi
+			0);
+		uiDrawPathEnd(path);
+		// use the same brush as for the histogram lines
+		uiDrawFill(p->Context, path, &brush);
+		uiDrawFreePath(path);
+	}
 }
 
 static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
@@ -147,9 +178,35 @@ static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
 	return 1;
 }
 
+static int inPoint(double x, double y, double xtest, double ytest)
+{
+	// TODO switch to using a matrix
+	x -= xoffLeft;
+	y -= yoffTop;
+	return (x >= xtest - pointRadius) &&
+		(x <= xtest + pointRadius) &&
+		(y >= ytest - pointRadius) &&
+		(y <= ytest + pointRadius);
+}
+
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
 {
-	// do nothing
+	double graphWidth, graphHeight;
+	double xs[10], ys[10];
+	int i;
+
+	graphSize(e->ClientWidth, e->ClientHeight, &graphWidth, &graphHeight);
+	pointLocations(graphWidth, graphHeight, xs, ys);
+
+	for (i = 0; i < 10; i++)
+		if (inPoint(e->X, e->Y, xs[i], ys[i]))
+			break;
+	if (i == 10)		// not in a point
+		i = -1;
+
+	currentPoint = i;
+	// TODO only redraw the relevant area
+	uiAreaQueueRedrawAll(histogram);
 }
 
 static void handlerDragBroken(uiAreaHandler *ah, uiArea *a)

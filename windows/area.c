@@ -24,17 +24,30 @@ uiWindowsDefineControl(
 	uiAreaType							// type function
 )
 
-static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *client, RECT *clip)
+// see https://sourceforge.net/p/mingw-w64/mailman/message/33176880/
+// TODO highly unsafe code
+static void rtGetSize(ID2D1RenderTarget *rt, D2D1_SIZE_F *size)
+{
+	typedef void (*STDMETHODCALLTYPE gsp)(ID2D1RenderTarget *, D2D1_SIZE_F *);
+	gsp gs;
+
+	gs = (gsp) (rt->lpVtbl->GetSize);
+	(*gs)(rt, size);
+}
+
+static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 {
 	uiAreaHandler *ah = a->ah;
 	uiAreaDrawParams dp;
 	COLORREF bgcolorref;
 	D2D1_COLOR_F bgcolor;
+	D2D1_SIZE_F size;
 
 	dp.Context = newContext(rt);
 
-	dp.ClientWidth = client->right - client->left;
-	dp.ClientHeight = client->bottom - client->top;
+	rtGetSize(rt, &size);
+	dp.ClientWidth = size.width;
+	dp.ClientHeight = size.height;
 
 	dp.ClipX = clip->left;
 	dp.ClipY = clip->top;
@@ -189,6 +202,7 @@ static void hscrollParams(uiArea *a, struct scrollParams *p)
 
 	ZeroMemory(p, sizeof (struct scrollParams));
 	p->pos = &(a->hscrollpos);
+	// TODO get rid of these and replace with points
 	if (GetClientRect(a->hwnd, &r) == 0)
 		logLastError("error getting area client rect in hscrollParams()");
 	p->pagesize = r.right - r.left;
@@ -296,15 +310,24 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 {
 	uiAreaMouseEvent me;
 	uintmax_t button;
-	RECT r;
+	double xpix, ypix;
+	FLOAT dpix, dpiy;
+	D2D1_SIZE_F size;
 
-	me.X = GET_X_LPARAM(lParam);
-	me.Y = GET_Y_LPARAM(lParam);
+	if (a->rt == NULL)
+		a->rt = makeHWNDRenderTarget(a->hwnd);
 
-	if (GetClientRect(a->hwnd, &r) == 0)
-		logLastError("error getting client rect of area in areaMouseEvent()");
-	me.ClientWidth = r.right - r.left;
-	me.ClientHeight = r.bottom - r.top;
+	xpix = (double) GET_X_LPARAM(lParam);
+	ypix = (double) GET_Y_LPARAM(lParam);
+	// these are in pixels; we need points
+	ID2D1HwndRenderTarget_GetDpi(a->rt, &dpix, &dpiy);
+	// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd756649%28v=vs.85%29.aspx (and others; search "direct2d mouse")
+	me.X = (xpix * 96) / dpix;
+	me.Y = (ypix * 96) / dpiy;
+
+	rtGetSize((ID2D1RenderTarget *) (a->rt), &size);
+	me.ClientWidth = size.width;
+	me.ClientHeight = size.height;
 	me.HScrollPos = a->hscrollpos;
 	me.VScrollPos = a->vscrollpos;
 
@@ -515,8 +538,6 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 	case WM_PAINT:
 		if (a->rt == NULL)
 			a->rt = makeHWNDRenderTarget(a->hwnd);
-		if (GetClientRect(a->hwnd, &client) == 0)
-			logLastError("error getting client rect in WM_PAINT in areaWndProc()");
 		// do not clear the update rect; we do that ourselves in doPaint()
 		if (GetUpdateRect(a->hwnd, &clip, FALSE) == 0) {
 			// set a zero clip rect just in case GetUpdateRect() didn't change clip
@@ -525,7 +546,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			clip.right = 0;
 			clip.bottom = 0;
 		}
-		hr = doPaint(a, (ID2D1RenderTarget *) (a->rt), &client, &clip);
+		hr = doPaint(a, (ID2D1RenderTarget *) (a->rt), &clip);
 		switch (hr) {
 		case S_OK:
 			if (ValidateRect(a->hwnd, NULL) == 0)
@@ -546,7 +567,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 	case WM_PRINTCLIENT:
 		if (GetClientRect(a->hwnd, &client) == 0)
 			logLastError("error getting client rect in WM_PRINTCLIENT in areaWndProc()");
-//TODO		doPaint(a, (HDC) wParam, &client, &client);
+//TODO		doPaint(a, (HDC) wParam, &client);
 		return 0;
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)

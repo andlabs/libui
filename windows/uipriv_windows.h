@@ -2,7 +2,7 @@
 #include "winapi.h"
 #include "../ui.h"
 #include "../ui_windows.h"
-#include "../uipriv.h"
+#include "../common/uipriv.h"
 #include "resources.h"
 #include "compilerver.h"
 

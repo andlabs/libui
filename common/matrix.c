@@ -1,6 +1,6 @@
 // 11 october 2015
 #include <math.h>
-#include "ui.h"
+#include "../ui.h"
 #include "uipriv.h"
 
 void setIdentity(uiDrawMatrix *m)

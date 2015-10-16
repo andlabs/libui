@@ -4,7 +4,7 @@
 #import <Cocoa/Cocoa.h>
 #import "../ui.h"
 #import "../ui_darwin.h"
-#import "../uipriv.h"
+#import "../common/uipriv.h"
 
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
 #define fromNSString(str) [(str) UTF8String]

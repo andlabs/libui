@@ -1,5 +1,5 @@
 // 17 may 2015
-#include "ui.h"
+#include "../ui.h"
 #include "uipriv.h"
 
 struct typeinfo {

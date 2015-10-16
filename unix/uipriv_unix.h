@@ -9,7 +9,7 @@
 #include <gtk/gtk.h>
 #include "../ui.h"
 #include "../ui_unix.h"
-#include "../uipriv.h"
+#include "../common/uipriv.h"
 
 #define gtkXMargin 12
 #define gtkYMargin 12

@@ -607,7 +607,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeP
 		&style);
 	if (hr != S_OK)
 		logHRESULT("error creating stroke style in uiDrawStroke()", hr);
-	if (dashes != NULL)
+	if (sp->NumDashes != 0)
 		uiFree(dashes);
 
 	cliplayer = applyClip(c);

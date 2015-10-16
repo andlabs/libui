@@ -124,6 +124,9 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 {
 	CGLineCap cap;
 	CGLineJoin join;
+	CGPathRef dashPath;
+	CGFloat *dashes;
+	size_t i;
 	uiDrawPath p2;
 
 	if (!path->ended)
@@ -153,13 +156,29 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 	}
 
 	// create a temporary path identical to the previous one
+	dashPath = (CGPathRef) path->path;
+	if (p->NumDashes != 0) {
+		dashes = (CGFloat *) uiAlloc(p->NumDashes * sizeof (CGFloat), "CGFloat[]");
+		for (i = 0; i < p->NumDashes; i++)
+			dashes[i] = p->Dashes[i];
+		dashPath = CGPathCreateCopyByDashingPath(path->path,
+			NULL,
+			p->DashPhase,
+			dashes,
+			p->NumDashes);
+		uiFree(dashes);
+	}
+	// the documentation is wrong: this produces a path suitable for calling CGPathCreateCopyByStrokingPath(), not for filling directly
 	// the cast is safe; we never modify the CGPathRef and always cast it back to a CGPathRef anyway
-	p2.path = (CGMutablePathRef) CGPathCreateCopyByStrokingPath(path->path,
+	p2.path = (CGMutablePathRef) CGPathCreateCopyByStrokingPath(dashPath,
 		NULL,
 		p->Thickness,
 		cap,
 		join,
 		p->MiterLimit);
+	if (p->NumDashes != 0)
+		CGPathRelease(dashPath);
+
 	// always draw stroke fills using the winding rule
 	// otherwise intersecting figures won't draw correctly
 	p2.fillMode = uiDrawFillModeWinding;

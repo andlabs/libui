@@ -377,6 +377,7 @@ struct uiDrawBrushGradientStop {
 struct uiDrawStrokeParams {
 	uiDrawLineCap Cap;
 	uiDrawLineJoin Join;
+	// TODO what if this is 0? on windows there will be a crash with dashing
 	double Thickness;
 	double MiterLimit;
 	double *Dashes;

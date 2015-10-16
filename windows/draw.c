@@ -552,6 +552,8 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeP
 	ID2D1Brush *brush;
 	ID2D1StrokeStyle *style;
 	D2D1_STROKE_STYLE_PROPERTIES dsp;
+	FLOAT *dashes;
+	size_t i;
 	ID2D1Layer *cliplayer;
 	HRESULT hr;
 
@@ -588,14 +590,25 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeP
 		break;
 	}
 	dsp.dashStyle = D2D1_DASH_STYLE_SOLID;
-	dsp.dashOffset = 0;
+	dashes = NULL;
+	// note that dash widths and the dash phase are scaled up by the thickness by Direct2D
+	// TODO be sure to formally document this
+	if (sp->NumDashes != 0) {
+		dsp.dashStyle = D2D1_DASH_STYLE_CUSTOM;
+		dashes = (FLOAT *) uiAlloc(sp->NumDashes * sizeof (FLOAT), "FLOAT[]");
+		for (i = 0; i < sp->NumDashes; i++)
+			dashes[i] = sp->Dashes[i] / sp->Thickness;
+	}
+	dsp.dashOffset = sp->DashPhase / sp->Thickness;
 	hr = ID2D1Factory_CreateStrokeStyle(d2dfactory,
 		&dsp,
-		NULL,
-		0,
+		dashes,
+		sp->NumDashes,
 		&style);
 	if (hr != S_OK)
 		logHRESULT("error creating stroke style in uiDrawStroke()", hr);
+	if (dashes != NULL)
+		uiFree(dashes);
 
 	cliplayer = applyClip(c);
 	ID2D1RenderTarget_DrawGeometry(c->rt,

@@ -34,6 +34,9 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	startText = uiEntryText(startAngle);
 	sweepText = uiEntryText(sweep);

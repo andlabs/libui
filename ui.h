@@ -288,8 +288,6 @@ struct uiAreaDrawParams {
 	intmax_t VScrollPos;
 };
 
-// TODO dotting/dashing
-
 typedef struct uiDrawPath uiDrawPath;
 typedef struct uiDrawBrush uiDrawBrush;
 typedef struct uiDrawStrokeParams uiDrawStrokeParams;
@@ -381,6 +379,11 @@ struct uiDrawStrokeParams {
 	uiDrawLineJoin Join;
 	double Thickness;
 	double MiterLimit;
+	double *Dashes;
+	// TOOD what if this is 1 on Direct2D?
+	// TODO what if a dash is 0 on Cairo or Quartz?
+	size_t NumDashes;
+	double DashPhase;
 };
 
 _UI_EXTERN uiDrawPath *uiDrawNewPath(uiDrawFillMode fillMode);

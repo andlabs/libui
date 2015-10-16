@@ -17,6 +17,10 @@ static void drawOriginal(uiAreaDrawParams *p)
 	uiDrawBrush brush;
 	uiDrawStrokeParams sp;
 
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
+
 	brush.Type = uiDrawBrushTypeSolid;
 	brush.A = 1;
 
@@ -149,6 +153,10 @@ static void drawArcs(uiAreaDrawParams *p)
 	int i;
 	uiDrawBrush brush;
 	uiDrawStrokeParams sp;
+
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
@@ -322,6 +330,10 @@ static void drawD2DSimpleApp(uiAreaDrawParams *p)
 	uiDrawStrokeParams sp;
 	int x, y;
 
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
+
 	d2dSolidBrush(&lightSlateGray, d2dLightSlateGray, 1.0);
 	d2dSolidBrush(&cornflowerBlue, d2dCornflowerBlue, 1.0);
 
@@ -390,6 +402,10 @@ static void drawD2DSolidBrush(uiAreaDrawParams *p)
 	uiDrawBrush yellowGreen;
 	uiDrawStrokeParams sp;
 
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
+
 	d2dSolidBrush(&black, d2dBlack, 1.0);
 	d2dSolidBrush(&yellowGreen, d2dYellowGreen, 1.0);
 
@@ -419,6 +435,10 @@ static void drawD2DLinearBrush(uiAreaDrawParams *p)
 	uiDrawStrokeParams sp;
 
 	uiDrawMatrix m;
+
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	// leave some room
 	uiDrawMatrixSetIdentity(&m);
@@ -466,6 +486,10 @@ static void drawD2DRadialBrush(uiAreaDrawParams *p)
 	uiDrawStrokeParams sp;
 
 	uiDrawMatrix m;
+
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	// leave some room
 	uiDrawMatrixSetIdentity(&m);
@@ -525,6 +549,10 @@ static void drawD2DPathGeometries(uiAreaDrawParams *p)
 	uiDrawBrush scene;
 	uiDrawStrokeParams sp;
 	uiDrawBrushGradientStop stops[2];
+
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	// TODO this is definitely wrong but the example doesn't have the right brush in it
 	radial.Type = uiDrawBrushTypeRadialGradient;
@@ -694,6 +722,10 @@ static void drawD2DGeometryGroup(uiAreaDrawParams *p)
 	uiDrawStrokeParams sp;
 	uiDrawMatrix m;
 
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
+
 	alternate = uiDrawNewPath(uiDrawFillModeAlternate);
 	uiDrawPathNewFigureWithArc(alternate,
 		105, 105,
@@ -785,6 +817,13 @@ static void drawD2DRotate(uiAreaDrawParams *p)
 	uiDrawStrokeParams transformsp;
 	uiDrawMatrix m;
 
+	originalsp.Dashes = NULL;
+	originalsp.NumDashes = 0;
+	originalsp.DashPhase = 0;
+	transformsp.Dashes = NULL;
+	transformsp.NumDashes = 0;
+	transformsp.DashPhase = 0;
+
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(path, 438.0, 301.5, 498.0 - 438.0, 361.5 - 301.5);
 	uiDrawPathEnd(path);
@@ -848,6 +887,13 @@ static void drawD2DScale(uiAreaDrawParams *p)
 	uiDrawStrokeParams originalsp;
 	uiDrawStrokeParams transformsp;
 	uiDrawMatrix m;
+
+	originalsp.Dashes = NULL;
+	originalsp.NumDashes = 0;
+	originalsp.DashPhase = 0;
+	transformsp.Dashes = NULL;
+	transformsp.NumDashes = 0;
+	transformsp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(path, 438.0, 80.5, 498.0 - 438.0, 140.5 - 80.5);
@@ -914,6 +960,13 @@ void drawD2DSkew(uiAreaDrawParams *p)
 	uiDrawStrokeParams transformsp;
 	uiDrawMatrix m;
 
+	originalsp.Dashes = NULL;
+	originalsp.NumDashes = 0;
+	originalsp.DashPhase = 0;
+	transformsp.Dashes = NULL;
+	transformsp.NumDashes = 0;
+	transformsp.DashPhase = 0;
+
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(path, 126.0, 301.5, 186.0 - 126.0, 361.5 - 301.5);
 	uiDrawPathEnd(path);
@@ -978,6 +1031,13 @@ static void drawD2DTranslate(uiAreaDrawParams *p)
 	uiDrawStrokeParams transformsp;
 	uiDrawMatrix m;
 
+	originalsp.Dashes = NULL;
+	originalsp.NumDashes = 0;
+	originalsp.DashPhase = 0;
+	transformsp.Dashes = NULL;
+	transformsp.NumDashes = 0;
+	transformsp.DashPhase = 0;
+
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(path, 126.0, 80.5, 186.0 - 126.0, 140.5 - 80.5);
 	uiDrawPathEnd(path);
@@ -1020,6 +1080,13 @@ static void drawD2DMultiTransforms(uiAreaDrawParams *p)
 	uiDrawStrokeParams transformsp;
 	uiDrawMatrix mtranslate;
 	uiDrawMatrix mrotate;
+
+	originalsp.Dashes = NULL;
+	originalsp.NumDashes = 0;
+	originalsp.DashPhase = 0;
+	transformsp.Dashes = NULL;
+	transformsp.NumDashes = 0;
+	transformsp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(path, 300.0, 40.0, 360.0 - 300.0, 100.0 - 40.0);
@@ -1099,6 +1166,10 @@ static void drawD2DComplexShape(uiAreaDrawParams *p)
 	uiDrawBrushGradientStop stops[2];
 	uiDrawStrokeParams sp;
 	uiDrawMatrix m;
+
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathNewFigure(path, 0, 0);
@@ -1195,6 +1266,9 @@ static void drawCSArc(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	sp.Thickness = 10.0;
 	path = uiDrawNewPath(uiDrawFillModeWinding);
@@ -1255,6 +1329,9 @@ static void drawCSArcNegative(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	sp.Thickness = 10.0;
 	path = uiDrawNewPath(uiDrawFillModeWinding);
@@ -1310,6 +1387,9 @@ static void drawCSClip(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
@@ -1361,6 +1441,9 @@ static void drawCSCurveRectangle(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
@@ -1430,6 +1513,9 @@ static void drawCSCurveTo(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
@@ -1452,7 +1538,44 @@ static void drawCSCurveTo(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 }
 
-// TODO dash
+// dash
+static void drawCSDash(uiAreaDrawParams *p)
+{
+	double dashes[] = {
+		50.0,  /* ink */
+		10.0,  /* skip */
+		10.0,  /* ink */
+		10.0   /* skip*/
+	};
+	int    ndash  = sizeof (dashes)/sizeof(dashes[0]);
+	double offset = -50.0;
+
+	uiDrawBrush source;
+	uiDrawStrokeParams sp;
+	uiDrawPath *path;
+
+	crsourcergba(&source, 0, 0, 0, 1);
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = dashes;
+	sp.NumDashes = ndash;
+	sp.DashPhase = offset;
+	sp.Thickness = 10.0;
+
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, 128.0, 25.6);
+	uiDrawPathLineTo(path, 230.4, 230.4);
+	uiDrawPathLineTo(path, 230.4 -102.4, 230.4 + 0.0);
+	uiDrawPathBezierTo(path,
+		51.2, 230.4,
+		51.2, 128.0,
+		128.0, 128.0);
+	uiDrawPathEnd(path);
+
+	uiDrawStroke(p->Context, path, &source, &sp);
+	uiDrawFreePath(path);
+}
 
 // fill and stroke2
 static void drawCSFillAndStroke2(uiAreaDrawParams *p)
@@ -1465,6 +1588,9 @@ static void drawCSFillAndStroke2(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
@@ -1502,6 +1628,9 @@ static void drawCSFillStyle(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	sp.Thickness = 6;
 
@@ -1566,6 +1695,9 @@ static void drawCSMultiCaps(uiAreaDrawParams *p)
 	crsourcergba(&source, 0, 0, 0, 1);
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
@@ -1606,6 +1738,9 @@ static void drawCSRoundRect(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 
@@ -1655,6 +1790,9 @@ static void drawCSSetLineCap(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	sp.Thickness = 30.0;
 
@@ -1709,6 +1847,9 @@ static void drawCSSetLineJoin(uiAreaDrawParams *p)
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Dashes = NULL;
+	sp.NumDashes = 0;
+	sp.DashPhase = 0;
 
 	sp.Thickness = 40.96;
 	path = uiDrawNewPath(uiDrawFillModeWinding);
@@ -1814,6 +1955,7 @@ static const struct drawtest tests[] = {
 	{ "cairo samples: clip", drawCSClip },
 	{ "cairo samples: curve rectangle", drawCSCurveRectangle },
 	{ "cairo samples: curve to", drawCSCurveTo },
+	{ "cairo samples: dash", drawCSDash },
 	{ "cairo samples: fill and stroke2", drawCSFillAndStroke2 },
 	{ "cairo samples: fill style", drawCSFillStyle },
 	{ "cairo samples: multi segment caps", drawCSMultiCaps },

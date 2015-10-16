@@ -278,6 +278,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 		break;
 	}
 	cairo_set_line_width(c->cr, p->Thickness);
+	cairo_set_dash(c->cr, p->Dashes, p->NumDashes, p->DashPhase);
 	cairo_stroke(c->cr);
 	cairo_pattern_destroy(pat);
 }

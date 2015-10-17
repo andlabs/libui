@@ -11,6 +11,6 @@ NAME = libui
 
 LDFLAGS += \
 	-shared \
-	-Wl,-soname,$(NAME)$(SUFFIX).0
+#	-Wl,-soname,$(NAME)$(SUFFIX).0
 
 include GNUbaserules.mk

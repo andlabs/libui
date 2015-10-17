@@ -10,14 +10,18 @@ HFILES += \
 
 NAME = libui
 
-CFLAGS += \
-	-fPIC
+# GROAN GCC
+#CFLAGS += \
+#	-fPIC
 
 SUFFIX = $(LIBSUFFIX)
 
 LDFLAGS += \
-	-shared \
-	-fPIC \
+	-shared
+# weird things:
+# GROAN GCC
+#	-fPIC \
+# confused by this
 #	-Wl,-soname,$(NAME)$(SUFFIX).0
 
 include GNUbaserules.mk

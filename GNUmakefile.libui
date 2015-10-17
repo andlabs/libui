@@ -1,5 +1,6 @@
 # 16 october 2015
 
+include $(OS)/GNUosspecific.mk
 include common/GNUmakeinc.mk
 include $(OS)/GNUmakeinc.mk
 
@@ -11,6 +12,8 @@ NAME = libui
 
 CFLAGS += \
 	-fPIC
+
+SUFFIX = $(LIBSUFFIX)
 
 LDFLAGS += \
 	-shared \

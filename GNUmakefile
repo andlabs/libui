@@ -3,6 +3,9 @@
 # silence entering/leaving messages
 MAKEFLAGS += --no-print-directory
 
+OUTDIR = out
+OBJDIR = .obj
+
 # MAME does this so :/
 ifeq ($(OS),Windows_NT)
 	OS = windows
@@ -29,10 +32,10 @@ ifndef ARCH
 endif
 
 libui:
-	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH)
+	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH) OUTDIR=$(OUTDIR) OBJDIR=$(OBJDIR)
 
 clean:
-	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH) clean
+	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH) OUTDIR=$(OUTDIR) OBJDIR=$(OBJDIR) clean
 
 test: libui
-	@$(MAKE) -f GNUmakefile.test OS=$(OS) ARCH=$(ARCH)
+	@$(MAKE) -f GNUmakefile.test OS=$(OS) ARCH=$(ARCH) OUTDIR=$(OUTDIR) OBJDIR=$(OBJDIR)

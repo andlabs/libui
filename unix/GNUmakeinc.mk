@@ -45,5 +45,3 @@ LDFLAGS += \
 # flags for warning on undefined symbols
 LDFLAGS += \
 	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined
-
-SUFFIX = .so

@@ -1,8 +1,5 @@
 # 16 october 2015
 
-OUTDIR = out
-OBJDIR = .obj
-
 OFILES = \
 	$(subst /,_,$(CFILES)) \
 	$(subst /,_,$(MFILES)) \

@@ -1,6 +1,6 @@
 # 22 april 2015
 
-osCFILES = \
+CFILES += \
 	unix/alloc.c \
 	unix/area.c \
 	unix/box.c \
@@ -27,22 +27,23 @@ osCFILES = \
 	unix/util.c \
 	unix/window.c
 
-osHFILES = \
+HFILES += \
 	unix/uipriv_unix.h
 
 # thanks ebassi in irc.gimp.net/#gtk+
-osCFLAGS = \
+CFLAGS += \
 	-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
 	-fvisibility=hidden \
 	-fPIC \
 	`pkg-config --cflags gtk+-3.0`
 
-osLDFLAGS = \
+LDFLAGS += \
 	-fvisibility=hidden \
 	-fPIC \
 	`pkg-config --libs gtk+-3.0` -lm
 
-osLDWarnUndefinedFlags = -Wl,--no-undefined -Wl,--no-allow-shlib-undefined
+# flags for warning on undefined symbols
+LDFLAGS += \
+	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined
 
-osLIBSUFFIX = .so
-osEXESUFFIX =
+SUFFIX = .so

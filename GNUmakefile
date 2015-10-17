@@ -1,51 +1,38 @@
-# 22 april 2015
+# 16 october 2015
+
+# silence entering/leaving messages
+MAKEFLAGS += --no-print-directory
 
 # MAME does this so :/
 ifeq ($(OS),Windows_NT)
-OS = windows
+	OS = windows
 endif
 
 ifndef OS
-UNAME = $(shell uname -s)
-ifeq ($(UNAME),Darwin)
-OS = darwin
-else
-OS = unix
+	UNAME = $(shell uname -s)
+	ifeq ($(UNAME),Darwin)
+		OS = darwin
+	else
+		OS = unix
+	endif
 endif
+
+ifndef ARCH
+	UNAME = $(shell uname -m)
+	ifeq ($(UNAME),x86_64)
+		ARCH = amd64
+	else ifeq ($(UNAME),i686)
+		ARCH = 386
+	else
+		ARCH = default
+	endif
 endif
 
-include $(OS)/GNUmakeinc.mk
+libui:
+	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH)
 
-baseHFILES = \
-	ui.h \
-	uipriv.h \
-	ui_$(OS).h \
-	$(osHFILES)
+clean:
+	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH) clean
 
-baseCFILES = \
-	areaevents.c \
-	control.c \
-	matrix.c \
-	menu.c \
-	ptrarray.c \
-	shouldquit.c \
-	types.c \
-	$(osCFILES)
-
-baseMFILES = $(osMFILES)
-
-baseRCFILES = $(osRCFILES)
-
-baseCFLAGS = $(osCFLAGS)
-baseLDFLAGS = \
-	-shared \
-	$(osLDWarnUndefinedFlags) \
-	$(osLDFLAGS)
-baseRCFLAGS = $(osRCFLAGS)
-baseSUFFIX = $(osLIBSUFFIX)
-
-include GNUbase.mk
-
-test: $(OUT)
-	@$(MAKE) -f GNUmaketest.mk osLIB=$(OUT) osEXESUFFIX=$(osEXESUFFIX) CC=$(CC) archmflag=$(archmflag)
-.PHONY: test
+test: libui
+	@$(MAKE) -f GNUmakefile.test OS=$(OS) ARCH=$(ARCH)

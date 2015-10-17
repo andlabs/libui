@@ -1,0 +1,16 @@
+# 16 october 2015
+
+include common/GNUmakeinc.mk
+include $(OS)/GNUmakeinc.mk
+
+HFILES += \
+	ui.h \
+	ui_$(OS).h
+
+NAME = libui
+
+LDFLAGS += \
+	-shared \
+	-Wl,-soname,$(NAME)$(SUFFIX).0
+
+include GNUbaserules.mk

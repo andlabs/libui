@@ -1,6 +1,6 @@
 # 22 april 2015
 
-osCFILES = \
+CFILES += \
 	windows/alloc.c \
 	windows/area.c \
 	windows/box.c \
@@ -36,34 +36,43 @@ osCFILES = \
 	windows/utilwin.c \
 	windows/window.c
 
-osHFILES = \
+HFILES += \
 	windows/compilerver.h \
 	windows/resources.h \
 	windows/uipriv_windows.h \
 	windows/winapi.h
 
-osRCFILES = \
+RCFILES += \
 	windows/resources.rc
 
 # thanks ebassi in irc.gimp.net/#gtk+
-osCFLAGS = \
+CFLAGS += \
 	-D_UI_EXTERN='__declspec(dllexport) extern'
 
-osLDFLAGS = \
+LDFLAGS += \
 	-static-libgcc \
 	-luser32 -lkernel32 -lgdi32 -lcomctl32 -luxtheme -lmsimg32 -lcomdlg32 -ld2d1 -lole32 -loleaut32 -loleacc -luuid
 
-osLDWarnUndefinedFlags = -Wl,--no-undefined -Wl,--no-allow-shlib-undefined
+# warnings on undefined symbols
+LDFLAGS += \
+	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined
 
-osLIBSUFFIX = .dll
-osEXESUFFIX = .exe
+SUFFIX = .dll
 
 ifeq ($(ARCH),amd64)
-	CC = x86_64-w64-mingw32-gcc
-	RC = x86_64-w64-mingw32-windres
-	archmflag = -m64
-else
-	CC = i686-w64-mingw32-gcc
-	RC = i686-w64-mingw32-windres
-	archmflag = -m32
+	ifndef CC
+		CC = x86_64-w64-mingw32-gcc
+	endif
+	ifndef RC
+		RC = x86_64-w64-mingw32-windres
+	endif
+else ifeq ($(ARCH),386)
+	ifndef CC
+		CC = i686-w64-mingw32-gcc
+	endif
+	ifndef RC
+		RC = i686-w64-mingw32-windres
+	endif
+else ifneq ($(ARCH),default)
+	$(error [FAIL] unknown architecture $(ARCH))
 endif

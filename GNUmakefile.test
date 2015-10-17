@@ -1,0 +1,41 @@
+# 16 october 2015
+
+include test/GNUmakeinc.mk
+
+HFILES += \
+	ui.h
+
+NAME = test
+
+SUFFIX =
+ifeq ($(OS),windows)
+	SUFFIX = .exe
+endif
+
+# TODO split out this logic somehow
+ifeq ($(OS),windows)
+ifeq ($(ARCH),amd64)
+	ifndef CC
+		CC = x86_64-w64-mingw32-gcc
+	endif
+	ifndef RC
+		RC = x86_64-w64-mingw32-windres
+	endif
+else ifeq ($(ARCH),386)
+	ifndef CC
+		CC = i686-w64-mingw32-gcc
+	endif
+	ifndef RC
+		RC = i686-w64-mingw32-windres
+	endif
+else ifneq ($(ARCH),default)
+	$(error [FAIL] unknown architecture $(ARCH))
+endif
+	LDFLAGS += out/libui.dll
+else ifeq ($(OS),darwin)
+	LDFLAGS += out/libui.dylib
+else
+	LDFLAGS += out/libui.so
+endif
+
+include GNUbaserules.mk

@@ -1,6 +1,6 @@
 # 22 april 2015
 
-testCFILES = \
+CFILES += \
 	test/drawtests.c \
 	test/main.c \
 	test/menus.c \
@@ -13,5 +13,5 @@ testCFILES = \
 	test/page7.c \
 	test/spaced.c
 
-testHFILES = \
+HFILES += \
 	test/test.h

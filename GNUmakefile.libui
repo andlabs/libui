@@ -9,8 +9,12 @@ HFILES += \
 
 NAME = libui
 
+CFLAGS += \
+	-fPIC
+
 LDFLAGS += \
 	-shared \
+	-fPIC \
 #	-Wl,-soname,$(NAME)$(SUFFIX).0
 
 include GNUbaserules.mk

@@ -1,5 +1,9 @@
 # 16 october 2015
 
+ifndef inlibuibuild
+$(error [FAIL] do not run these makefiles directly)
+endif
+
 include $(OS)/GNUosspecific.mk
 include test/GNUmakeinc.mk
 

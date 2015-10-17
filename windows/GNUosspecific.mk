@@ -11,5 +11,5 @@ else ifeq ($(ARCH),386)
 	CC = i686-w64-mingw32-gcc
 	RC = i686-w64-mingw32-windres
 else ifneq ($(ARCH),default)
-	$(error [FAIL] unknown architecture $(ARCH))
+$(error [FAIL] unknown architecture $(ARCH))
 endif

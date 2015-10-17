@@ -32,10 +32,10 @@ ifndef ARCH
 endif
 
 libui:
-	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH) OUTDIR=$(OUTDIR) OBJDIR=$(OBJDIR)
+	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH) OUTDIR=$(OUTDIR) OBJDIR=$(OBJDIR) inlibuibuild=1
 
 clean:
-	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH) OUTDIR=$(OUTDIR) OBJDIR=$(OBJDIR) clean
+	@$(MAKE) -f GNUmakefile.libui OS=$(OS) ARCH=$(ARCH) OUTDIR=$(OUTDIR) OBJDIR=$(OBJDIR) inlibuibuild=1 clean
 
 test: libui
-	@$(MAKE) -f GNUmakefile.test OS=$(OS) ARCH=$(ARCH) OUTDIR=$(OUTDIR) OBJDIR=$(OBJDIR)
+	@$(MAKE) -f GNUmakefile.test OS=$(OS) ARCH=$(ARCH) OUTDIR=$(OUTDIR) OBJDIR=$(OBJDIR) inlibuibuild=1

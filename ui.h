@@ -515,4 +515,58 @@ struct uiAreaKeyEvent {
 	int Up;
 };
 
+typedef struct uiTable uiTable;
+typedef struct uiTableModel uiTableModel;
+typedef struct uiTableColumnParams uiTableColumnParams;
+typedef enum uiTableColumnType uiTableColumnType;
+typedef struct uiTableSubscriptions uiTableSubscriptions;
+typedef enum uiTableNotification uiTableNotification;
+
+_UI_EXTERN uintmax_t uiMenuItemType(void);
+#define uiArea(this) ((uiArea *) uiIsA((this), uiAreaType(), 1))
+_UI_EXTERN void uiTableSetModel(uiTable *, uiTableModel *);
+_UI_EXTERN void uiTableAppendColumn(uiTable *, uiTableColumnParams *);
+_UI_EXTERN uiTable *uiNewTable(void);
+
+enum uiTableColumnType {
+	uiTableColumnText,
+//TODO	uiTableColumnImage,
+	uiTableColumnCheckbox,
+};
+
+struct uiTableModel {
+	void (*Subscribe)(uiTableModel *m, uiTable *t);
+	void (*Unsubscribe)(uiTableModel *m, uiTable *t);
+	intmax_t (*NumColumns)(uiTableModel *m);
+	uiTableColumnType (*ColumnType)(uiTableModel *m, intmax_t column);
+	intmax_t (*NumRows)(uiTableModel *m);
+	void *(*CellValue)(uiTableModel *m, intmax_t row, intmax_t column);
+	int (*ColumnMutable)(uiTableModel *m, intmax_t column);
+	void (*SetCellValue)(uiTableModel *m, intmax_t row, intmax_t column, void *value);
+};
+
+enum uiTableNotification {
+	uiTableNumRowsChanged,
+	uiTableRowInserted,
+	uiTableRowDeleted,
+	uiTableCellChanged,
+};
+
+_UI_EXTERN uiTableSubscriptions *uiTableNewSubscriptions(void);
+_UI_EXTERN void uiTableFreeSubscriptions(uiTableSubscriptions *s);
+_UI_EXTERN void uiTableSubscriptionsSubscribe(uiTableSubscriptions *s, uiTable *t);
+_UI_EXTERN void uiTableSubscriptionsUnsubscribe(uiTableSubscriptions *s, uiTable *t);
+_UI_EXTERN void uiTableSubscriptionsNotify(uiTableSubscriptions *s, uiTableNotification n, intmax_t row, intmax_t column);
+
+#define uiTableModelFromBool(b) ((void *) (b))
+#define uiTableModelToBool(v) ((int) (v))
+_UI_EXTERN void *uiTableModelFromString(const char *str);
+#define uiTableModelToString(v) ((const char *) (v))
+
+struct uiTableColumnParams {
+	const char *Name;
+	intmax_t ValueColumn;
+	// TODO background color
+};
+
 #endif

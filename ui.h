@@ -517,15 +517,15 @@ struct uiAreaKeyEvent {
 
 typedef struct uiTable uiTable;
 typedef struct uiTableModel uiTableModel;
+typedef struct uiTableModelSpec uiTableModelSpec;
 typedef struct uiTableColumnParams uiTableColumnParams;
 typedef enum uiTableColumnType uiTableColumnType;
-typedef struct uiTableSubscriptions uiTableSubscriptions;
 typedef enum uiTableNotification uiTableNotification;
 
 _UI_EXTERN uintmax_t uiMenuItemType(void);
 #define uiArea(this) ((uiArea *) uiIsA((this), uiAreaType(), 1))
-_UI_EXTERN void uiTableSetModel(uiTable *, uiTableModel *);
-_UI_EXTERN void uiTableAppendColumn(uiTable *, uiTableColumnParams *);
+_UI_EXTERN void uiTableSetModel(uiTable *t, uiTableModel *m);
+_UI_EXTERN void uiTableAppendColumn(uiTable *t, uiTableColumnParams *p);
 _UI_EXTERN uiTable *uiNewTable(void);
 
 enum uiTableColumnType {
@@ -534,15 +534,10 @@ enum uiTableColumnType {
 	uiTableColumnCheckbox,
 };
 
-struct uiTableModel {
-	void (*Subscribe)(uiTableModel *m, uiTable *t);
-	void (*Unsubscribe)(uiTableModel *m, uiTable *t);
-	intmax_t (*NumColumns)(uiTableModel *m);
-	uiTableColumnType (*ColumnType)(uiTableModel *m, intmax_t column);
-	intmax_t (*NumRows)(uiTableModel *m);
-	void *(*CellValue)(uiTableModel *m, intmax_t row, intmax_t column);
-	int (*ColumnMutable)(uiTableModel *m, intmax_t column);
-	void (*SetCellValue)(uiTableModel *m, intmax_t row, intmax_t column, void *value);
+struct uiTableModelSpec {
+	intmax_t (*NumRows)(uiTableModel *m, void *mData);
+	void *(*CellValue)(uiTableModel *m, void *mData, intmax_t row, intmax_t column);
+	void (*SetCellValue)(uiTableModel *m, void *mData, intmax_t row, intmax_t column, void *value);
 };
 
 enum uiTableNotification {
@@ -552,17 +547,16 @@ enum uiTableNotification {
 	uiTableCellChanged,
 };
 
-_UI_EXTERN uiTableSubscriptions *uiTableNewSubscriptions(void);
-_UI_EXTERN void uiTableFreeSubscriptions(uiTableSubscriptions *s);
-_UI_EXTERN void uiTableSubscriptionsSubscribe(uiTableSubscriptions *s, uiTable *t);
-_UI_EXTERN void uiTableSubscriptionsUnsubscribe(uiTableSubscriptions *s, uiTable *t);
-_UI_EXTERN void uiTableSubscriptionsNotify(uiTableSubscriptions *s, uiTableNotification n, intmax_t row, intmax_t column);
+_UI_EXTERN uiTableModel *uiNewTableModel(uintmax_t nCols, uiTableColumnType *types, uiTableModelSpec *spec, void *mData);
+_UI_EXTERN void uiFreeTableModel(uiTableModel *m);
+_UI_EXTERN void uiTableModelNotify(uiTableModel *m, uiTableNotification notification, intmax_t row, intmax_t column);
 
 #define uiTableModelFromBool(b) ((void *) (b))
 _UI_EXTERN void *uiTableModelFromString(const char *str);
 
 struct uiTableColumnParams {
 	const char *Name;
+	int Mutable;			// TODO move to the model?
 	intmax_t ValueColumn;
 	// TODO background color
 };

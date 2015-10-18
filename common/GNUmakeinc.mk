@@ -7,7 +7,6 @@ CFILES += \
 	common/menu.c \
 	common/ptrarray.c \
 	common/shouldquit.c \
-	common/tablesubscriptions.c \
 	common/types.c
 
 HFILES += \

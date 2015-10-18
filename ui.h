@@ -559,9 +559,7 @@ _UI_EXTERN void uiTableSubscriptionsUnsubscribe(uiTableSubscriptions *s, uiTable
 _UI_EXTERN void uiTableSubscriptionsNotify(uiTableSubscriptions *s, uiTableNotification n, intmax_t row, intmax_t column);
 
 #define uiTableModelFromBool(b) ((void *) (b))
-#define uiTableModelToBool(v) ((int) (v))
 _UI_EXTERN void *uiTableModelFromString(const char *str);
-#define uiTableModelToString(v) ((const char *) (v))
 
 struct uiTableColumnParams {
 	const char *Name;

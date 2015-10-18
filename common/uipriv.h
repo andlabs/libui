@@ -70,6 +70,3 @@ extern void fallbackScale(uiDrawMatrix *, double, double, double, double);
 extern void fallbackMultiply(uiDrawMatrix *, uiDrawMatrix *);
 extern void fallbackTransformPoint(uiDrawMatrix *, double *, double *);
 extern void fallbackTransformSize(uiDrawMatrix *, double *, double *);
-
-// each table implementation provides this
-extern void tableNotify(uiTable *, uiTableNotification, intmax_t, intmax_t);

@@ -541,7 +541,6 @@ struct uiTableModelSpec {
 };
 
 enum uiTableNotification {
-	uiTableNumRowsChanged,
 	uiTableRowInserted,
 	uiTableRowDeleted,
 	uiTableCellChanged,
@@ -556,6 +555,8 @@ _UI_EXTERN void *uiTableModelFromString(const char *str);
 
 struct uiTableColumnParams {
 	const char *Name;
+	// TODO make this unnecessary
+	uiTableColumnType Type;
 	int Mutable;			// TODO move to the model?
 	intmax_t ValueColumn;
 	// TODO background color

@@ -522,8 +522,8 @@ typedef struct uiTableColumnParams uiTableColumnParams;
 typedef enum uiTableColumnType uiTableColumnType;
 typedef enum uiTableNotification uiTableNotification;
 
-_UI_EXTERN uintmax_t uiMenuItemType(void);
-#define uiArea(this) ((uiArea *) uiIsA((this), uiAreaType(), 1))
+_UI_EXTERN uintmax_t uiTableType(void);
+#define uiTable(this) ((uiTable *) uiIsA((this), uiTableType(), 1))
 _UI_EXTERN void uiTableSetModel(uiTable *t, uiTableModel *m);
 _UI_EXTERN void uiTableAppendColumn(uiTable *t, uiTableColumnParams *p);
 _UI_EXTERN uiTable *uiNewTable(void);
@@ -550,7 +550,7 @@ _UI_EXTERN uiTableModel *uiNewTableModel(uintmax_t nCols, uiTableColumnType *typ
 _UI_EXTERN void uiFreeTableModel(uiTableModel *m);
 _UI_EXTERN void uiTableModelNotify(uiTableModel *m, uiTableNotification notification, intmax_t row, intmax_t column);
 
-#define uiTableModelFromBool(b) ((void *) (b))
+#define uiTableModelFromBool(b) ((void *) ((intptr_t) (b)))
 _UI_EXTERN void *uiTableModelFromString(const char *str);
 
 struct uiTableColumnParams {

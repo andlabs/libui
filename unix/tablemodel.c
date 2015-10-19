@@ -25,7 +25,7 @@ struct uiTableModelClass {
 	GObjectClass parent_class;
 };
 
-static void uiTableModel_treeModel_init(GtkTreeModel *);
+static void uiTableModel_treeModel_init(GtkTreeModelIface *);
 
 G_DEFINE_TYPE_WITH_CODE(uiTableModel, uiTableModel, G_TYPE_OBJECT,
 	G_IMPLEMENT_INTERFACE(GTK_TYPE_TREE_MODEL, uiTableModel_treeModel_init))
@@ -115,8 +115,8 @@ void *uiTableModelFromString(const char *str)
 	return g_strdup(str);
 }
 
-#define toBool(v) ((int) (v))
-#define toStr(v) ((const char *) (v))
+#define toBool(v) ((int) ((intptr_t) (v)))
+#define toStr(v) ((char *) (v))
 
 static void uiTableModel_get_value(GtkTreeModel *mb, GtkTreeIter *iter, gint column, GValue *value)
 {
@@ -178,11 +178,11 @@ static gboolean uiTableModel_iter_children(GtkTreeModel *mb, GtkTreeIter *iter, 
 	uiTableModel *m = uiTableModel(mb);
 
 	if (parent == NULL && numRows(m) > 0) {
-		child->stamp = GOOD_STAMP;
-		child->user_data = 0;
+		iter->stamp = GOOD_STAMP;
+		iter->user_data = 0;
 		return TRUE;
 	}
-	child->stamp = BAD_STAMP;
+	iter->stamp = BAD_STAMP;
 	return FALSE;
 }
 
@@ -205,17 +205,17 @@ static gboolean uiTableModel_iter_nth_child(GtkTreeModel *mb, GtkTreeIter *iter,
 	uiTableModel *m = uiTableModel(mb);
 
 	if (parent == NULL && n >= 0 && n < numRows(m)) {
-		child->stamp = GOOD_STAMP;
-		child->user_data = TO(n);
+		iter->stamp = GOOD_STAMP;
+		iter->user_data = TO(n);
 		return TRUE;
 	}
-	child->stamp = BAD_STAMP;
+	iter->stamp = BAD_STAMP;
 	return FALSE;
 }
 
 static gboolean uiTableModel_iter_parent(GtkTreeModel *mb, GtkTreeIter *iter, GtkTreeIter *child)
 {
-	parent->stamp = BAD_STAMP;
+	iter->stamp = BAD_STAMP;
 	return FALSE;
 }
 
@@ -225,7 +225,7 @@ static void uiTableModel_class_init(uiTableModelClass *class)
 	G_OBJECT_CLASS(class)->finalize = uiTableModel_finalize;
 }
 
-static void uiTableModel_treeModel_init(GtkTreeModel *iface)
+static void uiTableModel_treeModel_init(GtkTreeModelIface *iface)
 {
 	iface->get_flags = uiTableModel_get_flags;
 	iface->get_n_columns = uiTableModel_get_n_columns;
@@ -246,6 +246,7 @@ static void uiTableModel_treeModel_init(GtkTreeModel *iface)
 uiTableModel *uiNewTableModel(uintmax_t nCols, uiTableColumnType *types, uiTableModelSpec *spec, void *mData)
 {
 	uiTableModel *m;
+	intmax_t i;
 
 	m = uiTableModel(g_object_new(uiTableModelType, NULL));
 	m->spec = spec;

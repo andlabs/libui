@@ -20,7 +20,7 @@ uiUnixDefineControl(
 void uiTableSetModel(uiTable *t, uiTableModel *m)
 {
 	t->model = m;
-	gtk_tree_view_set_model(t->treeview, GTK_TREE_MODEL(t->moel));
+	gtk_tree_view_set_model(t->treeview, GTK_TREE_MODEL(t->model));
 }
 
 void uiTableAppendColumn(uiTable *t, uiTableColumnParams *p)
@@ -58,7 +58,7 @@ void uiTableAppendColumn(uiTable *t, uiTableColumnParams *p)
 		NULL);
 	// allow columns to be resized
 	gtk_tree_view_column_set_resizable(col, TRUE);
-	gtk_tree_view_append_column(t->treeviw, col);
+	gtk_tree_view_append_column(t->treeview, col);
 }
 
 uiTable *uiNewTable(void)

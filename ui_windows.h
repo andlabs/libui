@@ -7,6 +7,10 @@ This file assumes that you have included <windows.h> and "ui.h" beforehand. It p
 #ifndef __LIBUI_UI_WINDOWS_H__
 #define __LIBUI_UI_WINDOWS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct uiWindowsSizing uiWindowsSizing;
 
 typedef struct uiWindowsControl uiWindowsControl;
@@ -156,5 +160,9 @@ _UI_EXTERN void uiWindowsUnregisterWM_NOTIFYHandler(HWND);
 _UI_EXTERN void uiWindowsUnregisterWM_HSCROLLHandler(HWND);
 _UI_EXTERN void uiWindowsRegisterReceiveWM_WININICHANGE(HWND);
 _UI_EXTERN void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

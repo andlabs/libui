@@ -7,6 +7,10 @@ This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. 
 #ifndef __LIBUI_UI_DARWIN_H__
 #define __LIBUI_UI_DARWIN_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct uiDarwinControl uiDarwinControl;
 struct uiDarwinControl {
 	uiControl c;
@@ -64,5 +68,9 @@ _UI_EXTERN void uiDarwinSetControlFont(NSControl *c, NSControlSize size);
 
 // You can use this function from within your control implementations to return text strings that can be freed with uiFreeText().
 _UI_EXTERN char *uiDarwinNSStringToText(NSString *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

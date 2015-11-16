@@ -7,6 +7,10 @@ This file assumes that you have included <gtk/gtk.h> and "ui.h" beforehand. It p
 #ifndef __LIBUI_UI_UNIX_H__
 #define __LIBUI_UI_UNIX_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct uiUnixControl uiUnixControl;
 struct uiUnixControl {
 	uiControl c;
@@ -53,5 +57,9 @@ _UI_EXTERN void uiUnixFinishControl(uiControl *c);
 
 // uiUnixStrdupText() takes the given string and produces a copy of it suitable for being freed by uiFreeText().
 extern char *uiUnixStrdupText(const char *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -8,6 +8,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef _UI_EXTERN
 #define _UI_EXTERN extern
 #endif
@@ -514,5 +518,9 @@ struct uiAreaKeyEvent {
 
 	int Up;
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

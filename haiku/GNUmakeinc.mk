@@ -1,6 +1,7 @@
 # 22 april 2015
 
 CXXFILES += \
+	haiku/alloc.cpp \
 	haiku/main.cpp
 
 HFILES += \

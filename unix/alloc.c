@@ -23,7 +23,6 @@ static void uninitComplain(gpointer ptr, gpointer data)
 	fprintf(stderr, "[libui] %p %s\n", ptr, *TYPE(ptr));
 }
 
-// TODO bring back the type names for this
 void uninitAlloc(void)
 {
 	if (allocations->len == 0) {

@@ -17,12 +17,14 @@ const char *uiInit(uiInitOptions *o)
 		// TODO
 		return "fail";
 	}
+	initAlloc();
 	return NULL;
 }
 
 void uiUninit(void)
 {
 	delete app;
+	uninitAlloc();
 }
 
 void uiFreeInitError(const char *err)

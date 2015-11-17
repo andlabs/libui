@@ -1,14 +1,14 @@
 // 4 december 2014
-#import <stdlib.h>
-#import "uipriv_darwin.h"
+#include <set>
+#include <cstdio>
+#include <cstdlib>
+#include "uipriv_haiku.hpp"
+using namepsace std;
 
-static NSMutableArray *allocations;
-NSMutableArray *delegates;
+static set<void *> allocations;
 
 void initAlloc(void)
 {
-	allocations = [NSMutableArray new];
-	delegates = [NSMutableArray new];
 }
 
 #define UINT8(p) ((uint8_t *) (p))
@@ -22,24 +22,13 @@ void initAlloc(void)
 
 void uninitAlloc(void)
 {
-	if ([allocations count] == 0) {
-		NSUInteger i;
+	set<void *>::const_iterator i;
 
-		for (i = 0; i < [delegates count]; i++)
-			[[delegates objectAtIndex:i] release];
-		[delegates release];
-		[allocations release];
+	if (allocations.size() == 0)
 		return;
-	}
 	fprintf(stderr, "[libui] leaked allocations:\n");
-	[allocations enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		NSValue *v;
-		void *ptr;
-
-		v = (NSValue *) obj;
-		ptr = [v pointerValue];
-		fprintf(stderr, "[libui] %p %s\n", ptr, *TYPE(ptr));
-	}];
+	for (i = allocations.begin(); i != allocations.end(); i++)
+		fprintf(stderr, "[libui] %p %s\n", *i, *TYPE(*i));
 	complain("either you left something around or there's a bug in libui");
 }
 
@@ -55,7 +44,7 @@ void *uiAlloc(size_t size, const char *type)
 	memset(DATA(out), 0, size);
 	*SIZE(out) = size;
 	*TYPE(out) = type;
-	[allocations addObject:[NSValue valueWithPointer:out]];
+	allocations.insert(out);
 	return DATA(out);
 }
 
@@ -76,8 +65,9 @@ void *uiRealloc(void *p, size_t new, const char *type)
 	if (new <= *s)
 		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);
 	*s = new;
-	[allocations removeObject:[NSValue valueWithPointer:p]];
-	[allocations addObject:[NSValue valueWithPointer:out]];
+	// TODO check this
+	allocations.erase(p);
+	allocations.insert(out);
 	return DATA(out);
 }
 
@@ -87,5 +77,6 @@ void uiFree(void *p)
 		complain("attempt to uiFree(NULL); there's a bug somewhere");
 	p = BASE(p);
 	free(p);
-	[allocations removeObject:[NSValue valueWithPointer:p]];
+	// TODO check this
+	allocations.erase(p);
 }

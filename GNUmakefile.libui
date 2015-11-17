@@ -10,7 +10,7 @@ include $(OS)/GNUmakeinc.mk
 
 HFILES += \
 	ui.h \
-	ui_$(OS).h
+	ui_$(OS)$(OSHSUFFIX)
 
 NAME = libui
 

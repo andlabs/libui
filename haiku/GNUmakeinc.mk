@@ -1,12 +1,13 @@
 # 22 april 2015
 
-CFILES += \
+CXXFILES += \
+	haiku/main.cpp
 
 HFILES += \
-	haiku/uipriv_haiku.h
+	haiku/uipriv_haiku.hpp
 
 # thanks ebassi in irc.gimp.net/#gtk+
-CFLAGS += \
+CXXFLAGS += \
 	-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
 	-fvisibility=hidden \
 	-fPIC

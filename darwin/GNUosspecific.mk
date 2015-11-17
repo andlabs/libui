@@ -2,3 +2,4 @@
 
 EXESUFFIX =
 LIBSUFFIX = .dylib
+OSHSUFFIX = .h

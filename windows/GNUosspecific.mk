@@ -2,6 +2,7 @@
 
 EXESUFFIX = .exe
 LIBSUFFIX = .dll
+OSHSUFFIX = .h
 
 # TODO only when cross-compiling?
 ifeq ($(ARCH),amd64)

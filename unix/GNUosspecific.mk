@@ -2,3 +2,4 @@
 
 EXESUFFIX =
 LIBSUFFIX = .so
+OSHSUFFIX = .h

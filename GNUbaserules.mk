@@ -2,6 +2,7 @@
 
 OFILES = \
 	$(subst /,_,$(CFILES)) \
+	$(subst /,_,$(CXXFILES)) \
 	$(subst /,_,$(MFILES)) \
 	$(subst /,_,$(RCFILES))
 
@@ -13,6 +14,13 @@ CFLAGS += \
 	-Wno-unused-parameter \
 	-Wno-switch \
 	--std=c99
+
+CXXFLAGS += \
+	-g \
+	-Wall -Wextra \
+	-Wno-unused-parameter \
+	-Wno-switch \
+	--std=c++03
 
 LDFLAGS += \
 	-g
@@ -27,14 +35,24 @@ endif
 
 OUT = $(OUTDIR)/$(NAME)$(SUFFIX)
 
+ifdef CXXFILES
+	reallinker = $(CXX)
+else
+	reallinker = $(CC)
+endif
+
 $(OUT): $(OFILES) | $(OUTDIR)
-	@$(CC) -o $(OUT) $(OFILES) $(LDFLAGS)
+	@$(reallinker) -o $(OUT) $(OFILES) $(LDFLAGS)
 	@echo ====== Linked $(OUT)
 
 .SECONDEXPANSION:
 
 $(OBJDIR)/%.c.o: $$(subst _,/,%).c $(HFILES) | $(OBJDIR)
 	@$(CC) -o $@ -c $< $(CFLAGS)
+	@echo ====== Compiled $<
+
+$(OBJDIR)/%.cpp.o: $$(subst _,/,%).cpp $(HFILES) | $(OBJDIR)
+	@$(CXX) -o $@ -c $< $(CXXFLAGS)
 	@echo ====== Compiled $<
 
 $(OBJDIR)/%.m.o: $$(subst _,/,%).m $(HFILES) | $(OBJDIR)

@@ -1,0 +1,6 @@
+https://www.haiku-os.org/blog/pulkomandy/2015-10-03_haiku_monthly_activity_report_092015
+	currently no way to automatically track UI color changes
+	new APIs will allow this seamlessly; investigate (after R1 alpha 5? since api.haiku-os.org isn't updated yet)
+
+https://www.haiku-os.org/blog/pulkomandy/2015-08-29_haiku_monthly_activity_report_082015
+	do we actually need to set UI colors manually...?

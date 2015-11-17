@@ -56,7 +56,7 @@ _UI_EXTERN uintmax_t uiUnixControlType(void);
 _UI_EXTERN void uiUnixFinishControl(uiControl *c);
 
 // uiUnixStrdupText() takes the given string and produces a copy of it suitable for being freed by uiFreeText().
-extern char *uiUnixStrdupText(const char *);
+_UI_EXTERN char *uiUnixStrdupText(const char *);
 
 #ifdef __cplusplus
 }

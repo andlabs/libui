@@ -15,11 +15,14 @@ ifndef OS
 	UNAME = $(shell uname -s)
 	ifeq ($(UNAME),Darwin)
 		OS = darwin
+	else ifeq ($(UNAME),Haiku)
+		OS = haiku
 	else
 		OS = unix
 	endif
 endif
 
+# TODO this is wrong for Haiku
 ifndef ARCH
 	UNAME = $(shell uname -m)
 	ifeq ($(UNAME),x86_64)

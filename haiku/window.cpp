@@ -15,6 +15,8 @@ struct uiWindow {
 
 	libuiBWindow *window;
 
+	BGroupLayout *vbox;
+
 	struct child *child;
 	int margined;
 
@@ -145,6 +147,11 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		B_TITLED_WINDOW,
 		B_ASYNCHRONOUS_CONTROLS);
 	w->window->w = w;
+
+	w->vbox = new BGroupLayout(B_VERTICAL, 0);
+	w->window->SetLayout(w->vbox);
+	// Haiku itself does this, with a TODO
+	w->vbox->Owner()->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
 
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 

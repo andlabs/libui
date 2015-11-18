@@ -15,6 +15,8 @@ CFLAGS += \
 	-Wno-switch \
 	--std=c99
 
+# TODO consider switching to C++11
+# this will hopelessly disbar Haiku for GCC 2
 CXXFLAGS += \
 	-g \
 	-Wall -Wextra \

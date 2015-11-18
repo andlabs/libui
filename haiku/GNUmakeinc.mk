@@ -16,7 +16,7 @@ CXXFLAGS += \
 LDFLAGS += \
 	-fvisibility=hidden \
 	-fPIC \
-	-lbe -lm
+	-lbe
 
 # flags for warning on undefined symbols
 LDFLAGS += \

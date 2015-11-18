@@ -1,7 +1,9 @@
 // 17 november 2015
 // TODO versioning macros?
+#include <AppKit.h>
 #include <InterfaceKit.h>
-#include "../ui.h"
+//TODO#include "../ui.h"
+#include "ui.hpp"
 #include "../ui_haiku.hpp"
 #include "../common/uipriv.h"
 

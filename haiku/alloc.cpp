@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include "uipriv_haiku.hpp"
-using namepsace std;
+using namespace std;
 
 static set<void *> allocations;
 
@@ -48,23 +48,23 @@ void *uiAlloc(size_t size, const char *type)
 	return DATA(out);
 }
 
-void *uiRealloc(void *p, size_t new, const char *type)
+void *uiRealloc(void *p, size_t xnew, const char *type)
 {
 	void *out;
 	size_t *s;
 
 	if (p == NULL)
-		return uiAlloc(new, type);
+		return uiAlloc(xnew, type);
 	p = BASE(p);
-	out = realloc(p, EXTRA + new);
+	out = realloc(p, EXTRA + xnew);
 	if (out == NULL) {
 		fprintf(stderr, "memory exhausted in uiRealloc()\n");
 		abort();
 	}
 	s = SIZE(out);
-	if (new <= *s)
-		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);
-	*s = new;
+	if (xnew <= *s)
+		memset(((uint8_t *) DATA(out)) + *s, 0, xnew - *s);
+	*s = xnew;
 	// TODO check this
 	allocations.erase(p);
 	allocations.insert(out);

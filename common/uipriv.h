@@ -1,4 +1,8 @@
 // 6 april 2015
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 
 #define uthash_fatal(msg) complain("uthash failed: %s", (msg))
@@ -70,3 +74,7 @@ extern void fallbackScale(uiDrawMatrix *, double, double, double, double);
 extern void fallbackMultiply(uiDrawMatrix *, uiDrawMatrix *);
 extern void fallbackTransformPoint(uiDrawMatrix *, double *, double *);
 extern void fallbackTransformSize(uiDrawMatrix *, double *, double *);
+
+#ifdef __cplusplus
+}
+#endif

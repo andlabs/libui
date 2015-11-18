@@ -10,7 +10,7 @@ OFILES := $(OFILES:%=$(OBJDIR)/%.o)
 
 CFLAGS += \
 	-g \
-	-Wall -Wextra \
+	-Wall -Wextra -pedantic \
 	-Wno-unused-parameter \
 	-Wno-switch \
 	--std=c99
@@ -19,7 +19,7 @@ CFLAGS += \
 # this will hopelessly disbar Haiku for GCC 2
 CXXFLAGS += \
 	-g \
-	-Wall -Wextra \
+	-Wall -Wextra -pedantic \
 	-Wno-unused-parameter \
 	-Wno-switch \
 	--std=c++03

@@ -5,7 +5,8 @@ CXXFILES += \
 	haiku/control.cpp \
 	haiku/main.cpp \
 	haiku/text.cpp \
-	haiku/util.cpp
+	haiku/util.cpp \
+	haiku/window.cpp
 
 HFILES += \
 	haiku/uipriv_haiku.hpp

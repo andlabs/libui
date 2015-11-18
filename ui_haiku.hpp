@@ -26,7 +26,7 @@ _UI_EXTERN uintmax_t uiHaikuControlType(void);
 	uintmax_t typefn(void) \
 	{ \
 		if (_ ## type ## Type == 0) \
-			_ ## type ## Type = uiRegisterType(#type, uiDarwinControlType(), sizeof (type)); \
+			_ ## type ## Type = uiRegisterType(#type, uiHaikuControlType(), sizeof (type)); \
 		return _ ## type ## Type; \
 	} \
 	static void _ ## type ## CommitDestroy(uiControl *c) \

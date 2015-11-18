@@ -143,6 +143,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		title,
 		B_TITLED_WINDOW,
 		B_ASYNCHRONOUS_CONTROLS);
+	w->window->w = w;
 
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 

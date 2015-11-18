@@ -297,41 +297,37 @@ typedef struct uiDrawBrush uiDrawBrush;
 typedef struct uiDrawStrokeParams uiDrawStrokeParams;
 typedef struct uiDrawMatrix uiDrawMatrix;
 
-typedef enum uiDrawBrushType uiDrawBrushType;
 typedef struct uiDrawBrushGradientStop uiDrawBrushGradientStop;
 
-typedef enum uiDrawLineCap uiDrawLineCap;
-typedef enum uiDrawLineJoin uiDrawLineJoin;
-typedef enum uiDrawFillMode uiDrawFillMode;
-
-enum uiDrawBrushType {
+// ISO C forbids us from forward declaring enums >:(
+typedef enum uiDrawBrushType {
 	uiDrawBrushTypeSolid,
 	uiDrawBrushTypeLinearGradient,
 	uiDrawBrushTypeRadialGradient,
 	uiDrawBrushTypeImage,
-};
+} uiDrawBrushType;
 
-enum uiDrawLineCap {
+typedef enum uiDrawLineCap {
 	uiDrawLineCapFlat,
 	uiDrawLineCapRound,
 	uiDrawLineCapSquare,
-};
+} uiDrawLineCap;
 
-enum uiDrawLineJoin {
+typedef enum uiDrawLineJoin {
 	uiDrawLineJoinMiter,
 	uiDrawLineJoinRound,
 	uiDrawLineJoinBevel,
-};
+} uiDrawLineJoin;
 
 // this is the default for botoh cairo and Direct2D (in the latter case, from the C++ helper functions)
 // Core Graphics doesn't explicitly specify a default, but NSBezierPath allows you to choose one, and this is the initial value
 // so we're good to use it too!
 #define uiDrawDefaultMiterLimit 10.0
 
-enum uiDrawFillMode {
+typedef enum uiDrawFillMode {
 	uiDrawFillModeWinding,
 	uiDrawFillModeAlternate,
-};
+} uiDrawFillMode;
 
 struct uiDrawMatrix {
 	double M11;
@@ -437,14 +433,12 @@ _UI_EXTERN void uiDrawClip(uiDrawContext *c, uiDrawPath *path);
 _UI_EXTERN void uiDrawSave(uiDrawContext *c);
 _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
 
-typedef enum uiModifiers uiModifiers;
-
-enum uiModifiers {
+typedef enum uiModifiers {
 	uiModifierCtrl = 1 << 0,
 	uiModifierAlt = 1 << 1,
 	uiModifierShift = 1 << 2,
 	uiModifierSuper = 1 << 3,
-};
+} uiModifiers;
 
 struct uiAreaMouseEvent {
 	double X;
@@ -465,9 +459,7 @@ struct uiAreaMouseEvent {
 	uint64_t Held1To64;
 };
 
-typedef enum uiExtKey uiExtKey;
-
-enum uiExtKey {
+typedef enum uiExtKey {
 	uiExtKeyEscape = 1,
 	uiExtKeyInsert,			// equivalent to "Help" on Apple keyboards
 	uiExtKeyDelete,
@@ -507,7 +499,7 @@ enum uiExtKey {
 	uiExtKeyNSubtract,
 	uiExtKeyNMultiply,
 	uiExtKeyNDivide,
-};
+} uiExtKey;
 
 struct uiAreaKeyEvent {
 	char Key;

@@ -2,8 +2,7 @@
 // TODO versioning macros?
 #include <AppKit.h>
 #include <InterfaceKit.h>
-//TODO#include "../ui.h"
-#include "ui.hpp"
+#include "../ui.h"
 #include "../ui_haiku.hpp"
 #include "../common/uipriv.h"
 

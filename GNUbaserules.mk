@@ -15,14 +15,14 @@ CFLAGS += \
 	-Wno-switch \
 	--std=c99
 
-# TODO consider switching to C++11
-# this will hopelessly disbar Haiku for GCC 2
+# C++11 is needed due to stupid rules involving commas at the end of enum lists that C++03 stupidly didn't follow
+# This means sorry, no GCC 2 for Haiku builds :(
 CXXFLAGS += \
 	-g \
 	-Wall -Wextra -pedantic \
 	-Wno-unused-parameter \
 	-Wno-switch \
-	--std=c++03
+	--std=c++11
 
 LDFLAGS += \
 	-g

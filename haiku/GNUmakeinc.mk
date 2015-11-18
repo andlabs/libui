@@ -2,7 +2,10 @@
 
 CXXFILES += \
 	haiku/alloc.cpp \
-	haiku/main.cpp
+	haiku/control.cpp \
+	haiku/main.cpp \
+	haiku/text.cpp \
+	haiku/util.cpp
 
 HFILES += \
 	haiku/uipriv_haiku.hpp

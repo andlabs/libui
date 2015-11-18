@@ -2,6 +2,7 @@
 
 CXXFILES += \
 	haiku/alloc.cpp \
+	haiku/box.cpp \
 	haiku/control.cpp \
 	haiku/main.cpp \
 	haiku/text.cpp \

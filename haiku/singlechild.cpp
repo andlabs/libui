@@ -26,10 +26,8 @@ struct singleChild *newSingleChild(uiControl *c, uiControl *parent, void (*attac
 	uiControlSetParent(s->c, parent);
 
 	s->box = new BGroupLayout(B_HORIZONTAL, 0);
-	// TODO TODO TODO TODO
-	// currently BLayout won't let you add a view to a layout that isn't attached to a view
-	// that is, if you want to add a view to a layout, there must already be a parent view
-	// request this behavior to be changed
+	// A BLayout cannot add BViews unless it itself is in a BView for app_server-related reasons (thanks Skipp_OSX in irc.freenode.net/#haiku)
+	// TODO make this hook cleaner
 	(*attach)(attachTo, s->box);
 
 	s->view->SetExplicitAlignment(BAlignment(B_ALIGN_USE_FULL_WIDTH, B_ALIGN_USE_FULL_HEIGHT));

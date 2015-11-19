@@ -12,6 +12,8 @@ struct boxchild {
 
 struct uiBox {
 	uiHaikuControl c;
+	// layouts are not views; all layouts need an associated view
+	BView *view;
 	BGroupLayout *layout;
 	vector<struct boxchild> *controls;
 	int vertical;
@@ -23,7 +25,7 @@ static void onDestroy(uiBox *b);
 uiHaikuDefineControlWithOnDestroy(
 	uiBox,								// type name
 	uiBoxType,							// type function
-	layout,								// handle
+	view,								// handle
 	onDestroy(hthis);						// on destroy
 )
 
@@ -38,6 +40,7 @@ static void onDestroy(uiBox *b)
 		b->controls->pop_back();
 	}
 	delete b->controls;
+	// TODO is the layout automatically deleted?
 }
 
 static void boxContainerUpdateState(uiControl *c)
@@ -123,6 +126,7 @@ static uiBox *finishNewBox(orientation o)
 	b = (uiBox *) uiNewControl(uiBoxType());
 
 	b->layout = new BGroupLayout(o, 0);
+	b->view = new BView(NULL, B_SUPPORTS_LAYOUT, b->layout);
 
 	b->vertical = o == B_VERTICAL;
 

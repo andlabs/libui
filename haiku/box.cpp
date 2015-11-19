@@ -127,6 +127,8 @@ static uiBox *finishNewBox(orientation o)
 
 	b->layout = new BGroupLayout(o, 0);
 	b->view = new BView(NULL, B_SUPPORTS_LAYOUT, b->layout);
+	// TODO is this really necessary? is it correct?
+	b->view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
 
 	b->vertical = o == B_VERTICAL;
 

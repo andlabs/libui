@@ -3,29 +3,38 @@
 
 struct uiButton {
 	uiHaikuControl c;
-	BStringView *dummy;
+	BButton *button;
+	void (*onClicked)(uiButton *, void *);
+	void *onClickedData;
 };
 
 uiHaikuDefineControl(
 	uiButton,								// type name
 	uiButtonType,							// type function
-	dummy								// handle
+	button								// handle
 )
+
+#define mButtonClicked 0x4E754E75
+
+static void defaultOnClicked(uiButton *b, void *data)
+{
+	// do nothing
+}
 
 char *uiButtonText(uiButton *b)
 {
-	// TODO
-	return NULL;
+	return uiHaikuStrdupText(b->button->Label());
 }
 
 void uiButtonSetText(uiButton *b, const char *text)
 {
-	// TODO
+	b->button->SetLabel(text);
 }
 
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *b, void *data), void *data)
 {
-	// TODO
+	b->onClicked = f;
+	b->onClickedData = data;
 }
 
 uiButton *uiNewButton(const char *text)
@@ -34,8 +43,10 @@ uiButton *uiNewButton(const char *text)
 
 	b = (uiButton *) uiNewControl(uiButtonType());
 
-	b->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiButton not implemented");
+	b->button = new BButton(text, new BMessage(mButtonClicked));
+
+	// TODO hook up events
+	uiButtonOnClicked(b, defaultOnClicked, NULL);
 
 	uiHaikuFinishNewControl(b, uiButton);
 

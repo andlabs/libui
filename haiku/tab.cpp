@@ -49,6 +49,8 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t before, uiControl *c)
 
 	p.view = new BView(BRect(0, 0, 1, 1), NULL,
 		B_FOLLOW_ALL_SIDES, 0);
+	// TODO needed?
+	p.view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
 	p.tab = new BTab(p.view);
 	p.child = newSingleChild(c, uiControl(t), attach, p.view);
 

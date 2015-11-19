@@ -17,9 +17,7 @@ struct uiWindow {
 
 	BGroupLayout *vbox;
 
-	uiControl *child;
-	BGroupLayout *childBox;
-	BLayoutItem *childItem;
+	struct singleChild *child;
 	int margined;
 
 	int (*onClosing)(uiWindow *, void *);
@@ -55,12 +53,8 @@ static void windowCommitDestroy(uiControl *c)
 	// first hide ourselves
 	w->window->Hide();
 	// now destroy the child
-	if (w->child != NULL) {
-		w->childBox->RemoveItem(w->childItem);
-		delete w->childItem;
-		uiControlSetParent(w->child, NULL);
-		uiControlDestroy(w->child);
-	}
+	if (w->child != NULL)
+		singleChildDestroy(w->child);
 	// and finally destroy ourselves
 	// this is why we don't use the libui-provided CommitDestroy() implementation
 	// TODO check this for errors?
@@ -87,12 +81,10 @@ static void windowCommitHide(uiControl *c)
 
 static void windowContainerUpdateState(uiControl *c)
 {
-/*TODO
 	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
-		childUpdateState(w->child);
-*/
+		singleChildUpdateState(w->child);
 }
 
 char *uiWindowTitle(uiWindow *w)
@@ -112,17 +104,23 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 	w->onClosingData = data;
 }
 
-// TODO save and restore old alignment
+// see singlechild.cpp
+static void attach(void *attachTo, BLayoutItem *what)
+{
+	BGroupLayout *vbox = (BGroupLayout *) attachTo;
+
+	vbox->AddItem(what);
+}
+
 void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
 	if (w->child != NULL) {
-		w->childBox->RemoveItem(w->childItem);
-		delete w->childItem;
-		uiControlSetParent(w->child, NULL);
+		w->vbox->RemoveItem(singleChildLayoutItem(w->child));
+		singleChildRemove(w->child);
 	}
-	w->child = child;
+	w->child = newSingleChild(child, uiControl(w), attach, w->vbox);
 	if (w->child != NULL)
-		w->childItem = w->childBox->AddView((BView *) uiControlHandle(w->child));
+		uiWindowSetMargined(w, w->margined);
 }
 
 int uiWindowMargined(uiWindow *w)
@@ -133,13 +131,11 @@ int uiWindowMargined(uiWindow *w)
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	if (w->margined)
-		w->childBox->SetInsets(B_USE_WINDOW_SPACING,
-			B_USE_WINDOW_SPACING,
-			B_USE_WINDOW_SPACING,
-			B_USE_WINDOW_SPACING);
-	else
-		w->childBox->SetInsets(0, 0, 0, 0);
+	if (w->child != NULL)
+		if (w->margined)
+			singleChildSetMargined(w->child, B_USE_WINDOW_SPACING);
+		else
+			singleChildSetMargined(w->child, 0);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
@@ -161,11 +157,6 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	w->window->SetLayout(w->vbox);
 	// Haiku itself does this, with a TODO
 	w->vbox->Owner()->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
-
-	w->childBox = new BGroupLayout(B_HORIZONTAL, 0);
-	w->childBox->SetExplicitAlignment(BAlignment(B_ALIGN_USE_FULL_WIDTH, B_ALIGN_USE_FULL_HEIGHT));
-	w->childBox->SetInsets(0, 0, 0, 0);
-	w->vbox->AddItem(w->childBox, 1.0);
 
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 

@@ -18,6 +18,7 @@ CXXFILES += \
 	haiku/progressbar.cpp \
 	haiku/radiobuttons.cpp \
 	haiku/separator.cpp \
+	haiku/singlechild.cpp \
 	haiku/slider.cpp \
 	haiku/spinbox.cpp \
 	haiku/stddialogs.cpp \

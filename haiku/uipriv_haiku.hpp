@@ -7,6 +7,14 @@
 #include "../ui_haiku.hpp"
 #include "../common/uipriv.h"
 
-// alloc.c
+// alloc.cpp
 extern void initAlloc(void);
 extern void uninitAlloc(void);
+
+// singlechild.cpp
+extern struct singleChild *newSingleChild(uiControl *c, uiControl *parent, void (*attach)(void *, BLayoutItem *), void *attachTo);
+extern void singleChildRemove(struct singleChild *s);
+extern void singleChildDestroy(struct singleChild *s);
+extern BLayoutItem *singleChildLayoutItem(struct singleChild *s);
+extern void singleChildUpdateState(struct singleChild *s);
+extern void singleChildSetMargined(struct singleChild *s, float inset);

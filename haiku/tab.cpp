@@ -3,13 +3,13 @@
 
 struct uiTab {
 	uiHaikuControl c;
-	BStringView *dummy;
+	BTabView *tabview;
 };
 
 uiHaikuDefineControl(
 	uiTab,								// type name
 	uiTabType,							// type function
-	dummy								// handle
+	tabview								// handle
 )
 
 void uiTabAppend(uiTab *t, const char *name, uiControl *c)
@@ -50,8 +50,7 @@ uiTab *uiNewTab(void)
 
 	t = (uiTab *) uiNewControl(uiTabType());
 
-	t->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiTab not implemented");
+	t->tabview = new BTabView(BRect(0, 0, 1, 1), NULL);
 
 	uiHaikuFinishNewControl(t, uiTab);
 

@@ -9,15 +9,18 @@ CXXFILES += \
 	haiku/combobox.cpp \
 	haiku/control.cpp \
 	haiku/datetimepicker.cpp \
+	haiku/draw.cpp \
 	haiku/entry.cpp \
 	haiku/group.cpp \
 	haiku/label.cpp \
 	haiku/main.cpp \
+	haiku/menu.cpp \
 	haiku/progressbar.cpp \
 	haiku/radiobuttons.cpp \
 	haiku/separator.cpp \
 	haiku/slider.cpp \
 	haiku/spinbox.cpp \
+	haiku/stddialogs.cpp \
 	haiku/tab.cpp \
 	haiku/text.cpp \
 	haiku/util.cpp \

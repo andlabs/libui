@@ -3,29 +3,39 @@
 
 struct uiEntry {
 	uiHaikuControl c;
-	BStringView *dummy;
+	BTextControl *tc;
+	void (*onChanged)(uiEntry *, void *);
+	void *onChangedData;
 };
 
 uiHaikuDefineControl(
 	uiEntry,								// type name
 	uiEntryType,							// type function
-	dummy								// handle
+	tc									// handle
 )
+
+#define mEntryChanged 0x60FE60FE
+
+static void defaultOnChanged(uiEntry *e, void *data)
+{
+	// do nothing
+}
 
 char *uiEntryText(uiEntry *e)
 {
-	// TODO
-	return NULL;
+	return uiHaikuStrdupText(e->tc->Text());
 }
 
 void uiEntrySetText(uiEntry *e, const char *text)
 {
-	// TODO
+	// TODO does this send a message?
+	e->tc->SetText(text);
 }
 
 void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data)
 {
-	// TODO
+	e->onChanged = f;
+	e->onChangedData = data;
 }
 
 int uiEntryReadOnly(uiEntry *e)
@@ -45,8 +55,9 @@ uiEntry *uiNewEntry(void)
 
 	e = (uiEntry *) uiNewControl(uiEntryType());
 
-	e->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiEntry not implemented");
+	e->tc = new BTextControl(NULL, "", new BMessage(mEntryChanged));
+
+	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
 	uiHaikuFinishNewControl(e, uiEntry);
 

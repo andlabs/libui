@@ -30,7 +30,7 @@ uiLabel *uiNewLabel(const char *text)
 
 	l = (uiLabel *) uiNewControl(uiLabelType());
 
-	l->label = new BStringView(BRect(0, 0, 1, 1), NULL, text);
+	l->label = new BStringView(NULL, text);
 
 	uiHaikuFinishNewControl(l, uiLabel);
 

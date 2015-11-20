@@ -34,8 +34,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 
 	s = (uiSlider *) uiNewControl(uiSliderType());
 
-	s->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiSlider not implemented");
+	s->dummy = new BStringView(NULL, "TODO uiSlider not implemented");
 
 	uiHaikuFinishNewControl(s, uiSlider);
 

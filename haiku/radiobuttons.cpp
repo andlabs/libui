@@ -23,8 +23,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 
 	r = (uiRadioButtons *) uiNewControl(uiRadioButtonsType());
 
-	r->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiRadioButtons not implemented");
+	r->dummy = new BStringView(NULL, "TODO uiRadioButtons not implemented");
 
 	uiHaikuFinishNewControl(r, uiRadioButtons);
 

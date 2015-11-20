@@ -39,8 +39,7 @@ static uiCombobox *finishNewCombobox(void)
 
 	c = (uiCombobox *) uiNewControl(uiComboboxType());
 
-	c->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiCombobox not implemented");
+	c->dummy = new BStringView(NULL, "TODO uiCombobox not implemented");
 
 	uiHaikuFinishNewControl(c, uiCombobox);
 

@@ -45,8 +45,7 @@ uiGroup *uiNewGroup(const char *title)
 
 	g = (uiGroup *) uiNewControl(uiGroupType());
 
-	g->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiGroup not implemented");
+	g->dummy = new BStringView(NULL, "TODO uiGroup not implemented");
 
 	uiHaikuFinishNewControl(g, uiGroup);
 

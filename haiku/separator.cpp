@@ -18,8 +18,7 @@ uiSeparator *uiNewHorizontalSeparator(void)
 
 	s = (uiSeparator *) uiNewControl(uiSeparatorType());
 
-	s->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiSeparator not implemented");
+	s->dummy = new BStringView(NULL, "TODO uiSeparator not implemented");
 
 	uiHaikuFinishNewControl(s, uiSeparator);
 

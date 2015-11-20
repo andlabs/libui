@@ -23,8 +23,7 @@ uiProgressBar *uiNewProgressBar(void)
 
 	p = (uiProgressBar *) uiNewControl(uiProgressBarType());
 
-	p->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiProgressBar not implemented");
+	p->dummy = new BStringView(NULL, "TODO uiProgressBar not implemented");
 
 	uiHaikuFinishNewControl(p, uiProgressBar);
 

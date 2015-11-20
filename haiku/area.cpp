@@ -28,8 +28,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 
 	a = (uiArea *) uiNewControl(uiAreaType());
 
-	a->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiArea not implemented");
+	a->dummy = new BStringView(NULL, "TODO uiArea not implemented");
 
 	uiHaikuFinishNewControl(a, uiArea);
 

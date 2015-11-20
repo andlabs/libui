@@ -34,8 +34,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	s = (uiSpinbox *) uiNewControl(uiSpinboxType());
 
-	s->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiSpinbox not implemented");
+	s->dummy = new BStringView(NULL, "TODO uiSpinbox not implemented");
 
 	uiHaikuFinishNewControl(s, uiSpinbox);
 

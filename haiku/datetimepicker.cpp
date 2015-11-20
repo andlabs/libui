@@ -18,8 +18,7 @@ static uiDateTimePicker *finishNewDateTimePicker(void)
 
 	d = (uiDateTimePicker *) uiNewControl(uiDateTimePickerType());
 
-	d->dummy = new BStringView(BRect(0, 0, 1, 1), NULL,
-		"TODO uiDateTimePicker not implemented");
+	d->dummy = new BStringView(NULL, "TODO uiDateTimePicker not implemented");
 
 	uiHaikuFinishNewControl(d, uiDateTimePicker);
 

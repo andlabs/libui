@@ -31,7 +31,6 @@ uiHaikuDefineControlWithOnDestroy(
 	complain("attempt to use default CommitDestroy() code for uiWindow on Haiku");			// on destroy
 )
 
-// TODO is this correct?
 bool libuiBWindow::QuitRequested()
 {
 	// manually destroy the window ourselves; don't let the default BWindow code do it directly

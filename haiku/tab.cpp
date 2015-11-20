@@ -47,8 +47,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t before, uiControl *c)
 {
 	struct tabPage p;
 
-	p.view = new BView(BRect(0, 0, 1, 1), NULL,
-		B_FOLLOW_ALL_SIDES, 0);
+	p.view = new BView(NULL, B_SUPPORTS_LAYOUT);
 	// TODO needed?
 	p.view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
 	p.tab = new BTab(p.view);

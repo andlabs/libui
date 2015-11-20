@@ -184,6 +184,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		BRect(100, 100, width, height),
 		title,
 		B_TITLED_WINDOW,
+		// TODO B_AUTO_UPDATE_SIZE_LIMITS?
+		// TODO if we do this we need to set the maximum size to arbitrary (TODO always? check GTK+ and OS X)
 		B_ASYNCHRONOUS_CONTROLS);
 	w->window->w = w;
 

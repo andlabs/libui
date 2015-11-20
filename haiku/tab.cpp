@@ -89,9 +89,8 @@ uiTab *uiNewTab(void)
 
 	t = (uiTab *) uiNewControl(uiTabType());
 
-	t->tabview = new BTabView(BRect(0, 0, 1, 1), NULL);
+	t->tabview = new BTabView(NULL, B_WIDTH_FROM_LABEL);
 	// TODO scrollable
-	t->tabview->SetTabWidth(B_WIDTH_FROM_LABEL);
 
 	t->pages = new vector<struct tabPage>();
 

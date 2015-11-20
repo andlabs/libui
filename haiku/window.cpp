@@ -56,7 +56,7 @@ static void windowCommitDestroy(uiControl *c)
 		singleChildDestroy(w->child);
 	// and finally destroy ourselves
 	// this is why we don't use the libui-provided CommitDestroy() implementation
-	// TODO check this for errors?
+	// TODO check this for errors? or use B_QUIT_REQUESTED?
 	w->window->Lock();
 	w->window->Quit();
 	// w->window is now destroyed for us

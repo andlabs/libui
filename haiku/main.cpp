@@ -39,5 +39,6 @@ void uiMain(void)
 
 void uiQuit(void)
 {
+	// TODO app->PostMessage(B_QUIT_REQUESTED);?
 	app->Quit();
 }

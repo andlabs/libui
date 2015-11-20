@@ -11,6 +11,7 @@ const char *uiInit(uiInitOptions *o)
 
 	options = *o;
 	// TODO properly set the MIME type
+	// TODO andlabs-libui?
 	app = new BApplication("application/x-vnd.andlabs.libui", &err);
 	if (err != B_NO_ERROR) {
 		delete app;

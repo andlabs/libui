@@ -18,3 +18,7 @@ extern void singleChildDestroy(struct singleChild *s);
 extern BLayoutItem *singleChildLayoutItem(struct singleChild *s);
 extern void singleChildUpdateState(struct singleChild *s);
 extern void singleChildSetMargined(struct singleChild *s, float inset);
+
+// TODO make this public?
+#define mControlField "libui_uiControl"
+// TODO write helper functions?

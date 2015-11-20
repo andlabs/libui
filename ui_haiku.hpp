@@ -57,6 +57,9 @@ _UI_EXTERN uintmax_t uiHaikuControlType(void);
 // Don't call it directly; use uiHaikuFinishNewControl() instead.
 _UI_EXTERN void uiHaikuFinishControl(uiControl *c);
 
+// TODO document this
+_UI_EXTERN void uiHaikuRegisterEventHandler(uint32 what, void (*handler)(BMessage *));
+
 // uiHaikuStrdupText() takes the given string and produces a copy of it suitable for being freed by uiFreeText().
 _UI_EXTERN char *uiHaikuStrdupText(const char *);
 

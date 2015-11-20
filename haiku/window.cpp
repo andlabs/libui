@@ -1,10 +1,14 @@
 // 18 november 2015
+#include <map>
 #include "uipriv_haiku.hpp"
+using namespace std;
 
 class libuiBWindow : public BWindow {
 public:
 	// C++11! Inherit constructors.
 	using BWindow::BWindow;
+
+	virtual void MessageReceived(BMessage *);
 
 	uiWindow *w;
 	virtual bool QuitRequested();
@@ -30,6 +34,37 @@ uiHaikuDefineControlWithOnDestroy(
 	window,								// handle
 	complain("attempt to use default CommitDestroy() code for uiWindow on Haiku");			// on destroy
 )
+
+static map<uint32, void (*)(BMessage *)> eventHandlers;
+typedef map<uint32, void (*)(BMessage *)>::const_iterator eventHandlerIter;
+
+void uiHaikuRegisterEventHandler(uint32 what, void (*handler)(BMessage *))
+{
+	eventHandlerIter iter;
+
+	// TODO decide a convention for libui internal messages
+	iter = eventHandlers.find(what);
+	if (iter == eventHandlers.end()) {		// new entry
+		eventHandlers[what] = handler;
+		return;
+	}
+	if (iter->second != handler)			// mismatch
+		complain("attempt to clobber BMessage::what 0x%08X in uiHaikuRegisterEventHandler()", what);
+}
+
+void libuiBWindow::MessageReceived(BMessage *msg)
+{
+	eventHandlerIter iter;
+
+	// handle registered events
+	iter = eventHandlers.find(msg->what);
+	if (iter != eventHandlers.end()) {
+		(*(iter->second))(msg);
+		return;
+	}
+	// no event found; defer to BWindow
+	this->BWindow::MessageReceived(msg);
+}
 
 bool libuiBWindow::QuitRequested()
 {

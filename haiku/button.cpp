@@ -16,6 +16,17 @@ uiHaikuDefineControl(
 
 #define mButtonClicked 0x4E754E75
 
+static void onClicked(BMessage *msg)
+{
+	void *bb;
+	uiButton *b;
+
+	// TODO error check
+	msg->FindPointer(mControlField, &bb);
+	b = uiButton(bb);
+	(*(b->onClicked))(b, b->onClickedData);
+}
+
 static void defaultOnClicked(uiButton *b, void *data)
 {
 	// do nothing
@@ -40,10 +51,15 @@ void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *b, void *data), void *da
 uiButton *uiNewButton(const char *text)
 {
 	uiButton *b;
+	BMessage *msg;
 
 	b = (uiButton *) uiNewControl(uiButtonType());
 
-	b->button = new BButton(text, new BMessage(mButtonClicked));
+	uiHaikuRegisterEventHandler(mButtonClicked, onClicked);
+	msg = new BMessage(mButtonClicked);
+	msg->AddPointer(mControlField, b);
+
+	b->button = new BButton(text, msg);
 
 	// TODO hook up events
 	uiButtonOnClicked(b, defaultOnClicked, NULL);

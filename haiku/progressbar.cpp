@@ -3,18 +3,19 @@
 
 struct uiProgressBar {
 	uiHaikuControl c;
-	BStringView *dummy;
+	BStatusBar *pbar;
 };
 
 uiHaikuDefineControl(
 	uiProgressBar,							// type name
 	uiProgressBarType,						// type function
-	dummy								// handle
+	pbar									// handle
 )
 
 void uiProgressBarSetValue(uiProgressBar *p, int n)
 {
-	// TODO
+	// not on api.haiku-os.org
+	p->pbar->SetTo(n);
 }
 
 uiProgressBar *uiNewProgressBar(void)
@@ -23,7 +24,8 @@ uiProgressBar *uiNewProgressBar(void)
 
 	p = (uiProgressBar *) uiNewControl(uiProgressBarType());
 
-	p->dummy = new BStringView(NULL, "TODO uiProgressBar not implemented");
+	// layout constructor; not on api.haiku-os.org
+	p->pbar = new BStatusBar(NULL, NULL, NULL);
 
 	uiHaikuFinishNewControl(p, uiProgressBar);
 

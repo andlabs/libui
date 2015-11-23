@@ -24,5 +24,5 @@ extern void singleChildSetMargined(struct singleChild *s, float inset);
 // TODO write helper functions?
 
 // draw.cpp
-extern uiDrawContext *newContext(BView *view)
+extern uiDrawContext *newContext(BView *view);
 extern void freeContext(uiDrawContext *c);

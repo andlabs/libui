@@ -20,7 +20,8 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 intmax_t uiComboboxSelected(uiCombobox *c)
 {
 	// TODO
-	return -1;
+	// return 0 so the area test can work
+	return 0;
 }
 
 void uiComboboxSetSelected(uiCombobox *c, intmax_t n)

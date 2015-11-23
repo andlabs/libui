@@ -3,6 +3,8 @@
 #include "uipriv_haiku.hpp"
 using namespace std;
 
+// TODO alpha doesn't work
+
 struct uiDrawPath {
 	BShape *shape;
 	uiDrawFillMode fillMode;
@@ -15,7 +17,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode fillMode)
 
 	p = uiNew(uiDrawPath);
 	p->shape = new BShape();
-	p->fillMode = mode;
+	p->fillMode = fillMode;
 	return p;
 }
 
@@ -106,7 +108,7 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 	if (a->negative)
 		counterclockwise = true;
 	else
-		counterclockwise = false
+		counterclockwise = false;
 	// TODO explain the outer if
 	if (!a->negative)
 		if (a->sweep > M_PI)

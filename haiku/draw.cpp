@@ -1,5 +1,7 @@
 // 19 november 2015
+#include <cmath>
 #include "uipriv_haiku.hpp"
+using namespace std;
 
 struct uiDrawPath {
 	BShape *shape;
@@ -182,44 +184,178 @@ void uiDrawPathEnd(uiDrawPath *p)
 	p->ended = true;
 }
 
+struct uiDrawContext {
+	BView *view;
+};
+
+uiDrawContext *newContext(BView *view)
+{
+	uiDrawContext *c;
+
+	c = uiNew(uiDrawContext);
+	c->view = view;
+	return c;
+}
+
+void freeContext(uiDrawContext *c)
+{
+	uiFree(c);
+}
+
+// TODO verify this
+static void setHighColor(BView *view, uiDrawBrush *b)
+{
+	view->SetHighColor(b->R * 255,
+		b->G * 255,
+		b->B * 255,
+		b->A * 255);
+}
+
+// TODO path ended checks; error checks
+
 void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStrokeParams *p)
 {
-	// TODO
+	cap_mode cap;
+	join_mode join;
+
+	switch (p->Cap) {
+	case uiDrawLineCapFlat:
+		cap = B_BUTT_CAP;
+		break;
+	case uiDrawLineCapRound:
+		cap = B_ROUND_CAP;
+		break;
+	case uiDrawLineCapSquare:
+		cap = B_SQUARE_CAP;
+		break;
+	}
+	switch (p->Join) {
+	case uiDrawLineJoinMiter:
+		join = B_MITER_JOIN;
+		break;
+	case uiDrawLineJoinRound:
+		join = B_ROUND_JOIN;
+		break;
+	case uiDrawLineJoinBevel:
+		join = B_BEVEL_JOIN;
+		break;
+	}
+	c->view->SetLineMode(cap, join, p->MiterLimit);
+	c->view->SetPenSize(p->Thickness);
+	// TODO line dashes
+	switch (b->Type) {
+	case uiDrawBrushTypeSolid:
+		setHighColor(c->view, b);
+		c->view->StrokeShape(path->shape);
+		break;
+	case uiDrawBrushTypeLinearGradient:
+		// TODO
+	case uiDrawBrushTypeRadialGradient:
+		// TODO
+		break;
+//	case uiDrawBrushTypeImage:
+	}
 }
 
 void uiDrawFill(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b)
 {
-	// TODO
+	// TODO not documented on api.haiku-os.org
+	switch (path->fillMode) {
+	case uiDrawFillModeWinding:
+		c->view->SetFillRule(B_NONZERO);
+		break;
+	case uiDrawFillModeAlternate:
+		c->view->SetFillRule(B_EVEN_ODD);
+		break;
+	}
+	switch (b->Type) {
+	case uiDrawBrushTypeSolid:
+		setHighColor(c->view, b);
+		c->view->FillShape(path->shape);
+		break;
+	case uiDrawBrushTypeLinearGradient:
+		// TODO
+	case uiDrawBrushTypeRadialGradient:
+		// TODO
+		break;
+//	case uiDrawBrushTypeImage:
+	}
+}
+
+// TODO none of this is documented on api.haiku-os.org
+
+static void m2a(uiDrawMatrix *m, BAffineTransform *a)
+{
+	a->sx = m->M11;
+	a->shy = m->M12;
+	a->shx = m->M21;
+	a->sy = m->M22;
+	a->tx = m->M31;
+	a->ty = m->M32;
+}
+
+static void a2m(BAffineTransform *a, uiDrawMatrix *m)
+{
+	m->M11 = a->sx;
+	m->M12 = a->shy;
+	m->M21 = a->shx;
+	m->M22 = a->sy;
+	m->M31 = a->tx;
+	m->M32 = a->ty;
 }
 
 void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
 {
-	// TODO
+	setIdentity(m);
 }
 
 void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 {
-	// TODO
+	BAffineTransform a;
+
+	m2a(m, &a);
+	a.TranslateBy(x, y);
+	a2m(&a, m);
 }
 
 void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x, double y)
 {
-	// TODO
+	BAffineTransform a;
+
+	m2a(m, &a);
+	a.ScaleBy(BPoint(xCenter, yCenter), BPoint(x, y));
+	a2m(&a, m);
 }
 
 void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 {
-	// TODO
+	BAffineTransform a;
+
+	m2a(m, &a);
+	// TODO degrees or radians?
+	a.RotateBy(BPoint(x, y), amount);
+	a2m(&a, m);
 }
 
 void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
 {
-	// TODO
+	BAffineTransform a;
+
+	m2a(m, &a);
+	// TODO degrees or radians?
+	a.ShearBy(BPoint(x, y), BPoint(xamount, yamount));
+	a2m(&a, m);
 }
 
 void uiDrawMatrixMultiply(uiDrawMatrix *dest, uiDrawMatrix *src)
 {
-	// TODO
+	BAffineTransform c;
+	BAffineTransform d;
+
+	m2a(dest, &c);
+	m2a(src, &d);
+	c.Multiply(d);
+	a2m(&c, dest);
 }
 
 int uiDrawMatrixInvertible(uiDrawMatrix *m)
@@ -246,20 +382,26 @@ void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
 
 void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 {
-	// TODO
+	BAffineTransform a;
+
+	m2a(m, &a);
+	// see windows/draw.c
+	a.Multiply(c->view->Transform());
+	c->view->SetTransform(a);
 }
 
+// TODO not documented on api.haiku-os.org
 void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 {
-	// TODO
+	c->view->ClipToShape(path->shape);
 }
 
 void uiDrawSave(uiDrawContext *c)
 {
-	// TODO
+	c->view->PushState();
 }
 
 void uiDrawRestore(uiDrawContext *c)
 {
-	// TODO
+	c->view->PopState();
 }

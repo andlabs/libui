@@ -22,3 +22,7 @@ extern void singleChildSetMargined(struct singleChild *s, float inset);
 // TODO make this public?
 #define mControlField "libui_uiControl"
 // TODO write helper functions?
+
+// draw.cpp
+extern uiDrawContext *newContext(BView *view)
+extern void freeContext(uiDrawContext *c);

@@ -41,5 +41,6 @@ void uiMain(void)
 void uiQuit(void)
 {
 	// TODO app->PostMessage(B_QUIT_REQUESTED);?
+	// TODO see window.cpp for why that alone won't work
 	app->Quit();
 }

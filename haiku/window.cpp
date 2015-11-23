@@ -3,6 +3,10 @@
 #include "uipriv_haiku.hpp"
 using namespace std;
 
+// TODOs:
+// - Command+Q invariably quits; override that by catching the B_QUIT_REQUESTED in main.cpp
+// - other global shortcuts that need to be handled by overriding DispatchMessage() (NOT MessageReceived()) when adding uiArea event handling
+
 class libuiBWindow : public BWindow {
 public:
 	// C++11! Inherit constructors.

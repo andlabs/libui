@@ -3,8 +3,6 @@
 #include "uipriv_haiku.hpp"
 using namespace std;
 
-// TODO alpha doesn't work
-
 struct uiDrawPath {
 	BShape *shape;
 	uiDrawFillMode fillMode;

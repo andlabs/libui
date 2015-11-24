@@ -79,6 +79,11 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	a->area->a = a;
 	// TODO background color
 
+	// this is needed for alpha transparency (thanks mmu_man in irc.freenode.net/#haiku)
+	// unfortunately TODO it kills the other compositing modes
+	// (remember that if we ever drop Windows 7 we can use those)
+	a->area->SetDrawingMode(B_OP_ALPHA);
+
 	uiHaikuFinishNewControl(a, uiArea);
 
 	return a;

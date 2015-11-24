@@ -5,6 +5,9 @@
 // - FOS_SUPPORTSTREAMABLEITEMS doesn't seem to be supported on windows vista, or at least not with the flags we use
 // - even with FOS_NOVALIDATE the dialogs will reject invalid filenames (at least on Vista, anyway)
 
+// TODO
+// - http://blogs.msdn.com/b/wpfsdk/archive/2006/10/26/uncommon-dialogs--font-chooser-and-color-picker-dialogs.aspx
+
 char *commonItemDialog(REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd)
 {
 	IFileDialog *d;

@@ -1,7 +1,4 @@
 // 24 november 2015
-#define UNICODE
-#define _UNICODE
-#include <windows.h>
 #include <vcclr.h>
 #define EXPORT __declspec(dllexport)
 #include "wpf.h"
@@ -61,25 +58,15 @@ void wpfWindowOnClosing(wpfWindow *w, void (*f)(wpfWindow *w, void *data), void 
 
 static gcroot<Application ^> app;
 
-void wpfInit(void)
+// wpfInit() is in sta.c; see that or details.
+extern "C" void initWPF(void)
 {
-	HRESULT hr;
-
-	// see http://stackoverflow.com/questions/24348205/how-do-i-solve-this-com-issue-in-c
-	// we MUST be running STA
-	// .net initializes as MTA for some stupid reason
-	// TODO https://msdn.microsoft.com/en-us/library/5s8ee185%28v=vs.71%29.aspx use CoInitializeEx()?
-	hr = CoInitialize(NULL);
-	if (hr != S_OK && hr != S_FALSE)
-		DebugBreak();
-
 	app = gcnew Application();
 }
 
 void wpfRun(void)
 {
 	app->Run();
-	CoUninitialize();
 }
 
 void wpfQuit(void)

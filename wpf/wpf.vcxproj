@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 24 november 2015 -->
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+<!-- TODO target name -->
+
+<!-- TODO make sure all cl flags we care about are present -->
+
+<PropertyGroup Label="Configuration">
+	<TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
+	<ConfigurationType>DynamicLibrary</ConfigurationType>
+	<UseDebugLibraries>true</UseDebugLibraries>
+	<PlatformToolset>v120</PlatformToolset>
+	<CLRSupport>true</CLRSupport>
+	<CharacterSet>Unicode</CharacterSet>
+	<LinkIncremental>false</LinkIncremental>
+</PropertyGroup>
+
+<!-- TODO make this unnecessary -->
+<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+<ItemDefinitionGroup>
+	<ClCompile>
+		<WarningLevel>Level3</WarningLevel>
+		<!-- TODO no precompiled headers -->
+	</ClCompile>
+	<Link>
+		<GenerateDebugInformation>true</GenerateDebugInformation>
+		<AdditionalDependencies />
+	</Link>
+</ItemDefinitionGroup>
+
+<ItemGroup>
+	<Reference Include="System" />
+	<Reference Include="WindowsBase" />
+	<Reference Include="PresentationCore" />
+	<Reference Include="PresentationFramework" />
+
+	<ClInclude Include="wpf.h" />
+
+	<ClCompile Include="wpf.cpp" />
+</ItemGroup>
+
+</Project>

@@ -4,6 +4,8 @@
 #endif
 #include "../windows/winapi.h"
 #include "../ui.h"
+// TODO to make sure wpfInit() is exported properly
+#include "wpf.h"
 
 // If we don't set up the current thread otherwise, the first time .net tries to call out to unmanaged code, it will automatically set up a MTA for COM.
 // This is not what we want; we need a STA instead.

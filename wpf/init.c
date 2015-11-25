@@ -2,7 +2,7 @@
 #ifdef __cplusplus
 #error msbuild is being dumb and making this a C++ file
 #endif
-#include "../windows/winapi.h"
+#include "winapi.h"
 #include "../ui.h"
 // TODO to make sure wpfInit() is exported properly
 #include "wpf.h"

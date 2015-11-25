@@ -50,6 +50,7 @@
 		<!-- TODO should be EnableAllWarnings but that enables way too much -->
 		<WarningLevel>Level4</WarningLevel>
 		<PrecompiledHeader>NotUsing</PrecompiledHeader>
+		<PreprocessorDefinitions>_UI_EXTERN=__declspec(dllexport) extern</PreprocessorDefinitions>
 		<!-- TODO there's a better way for this -->
 		<!-- do not warn about unreferended parameters -->
 		<AdditionalOptions>/wd4100</AdditionalOptions>
@@ -69,12 +70,11 @@
 	<Reference Include="PresentationCore" />
 	<Reference Include="PresentationFramework" />
 
-	<ClInclude Include="wpf.h" />
-
-	<ClCompile Include="sta.c">
+	<ClCompile Include="init.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
-	<ClCompile Include="wpf.cpp" />
+
+	<ClCompile Include="winapi.h" />
 
 	<ClCompile Include="..\ui.h" />
 

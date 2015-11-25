@@ -22,9 +22,10 @@ func main() {
 	b := make([]byte, 256)		// to compensate for uiInitOptions
 	e, _, _ := uiInit.Call(uintptr(unsafe.Pointer(&b[0])))
 	if e != 0 { panic(e) }
-	s := "Hello from Go"
+	ss := "Hello from Go"
+	s := []byte(ss)
 	w, _, _ := uiNewWindow.Call(
-		uintptr(unsafe.Pointer(&s)),
+		uintptr(unsafe.Pointer(&s[0])),
 		320, 240, 0)
 	uiWindowOnClosing.Call(w, syscall.NewCallbackCDecl(onClosing), 0)
 	uiControlShow.Call(w)

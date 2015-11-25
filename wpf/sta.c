@@ -1,4 +1,7 @@
 // 25 november 2015
+#ifdef __cplusplus
+#error msbuild is being dumb and making this a C++ file
+#endif
 #include "../windows/winapi.h"
 #include "../ui.h"
 

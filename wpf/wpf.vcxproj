@@ -43,12 +43,12 @@
 	<OutDir>..\out\</OutDir>
 	<IntDir>..\.obj\</IntDir>
 	<EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
-	<CustomBuildBeforeTargets>Link</CustomBuildBeforeTargets>
 </PropertyGroup>
 
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
 	<ClCompile>
-		<WarningLevel>EnableAllWarnings</WarningLevel>
+		<!-- TODO should be EnableAllWarnings but that enables way too much -->
+		<WarningLevel>Level4</WarningLevel>
 		<PrecompiledHeader>NotUsing</PrecompiledHeader>
 		<!-- TODO there's a better way for this -->
 		<!-- do not warn about unreferended parameters -->
@@ -61,15 +61,6 @@
 <!--TODO		<MinimumRequiredVersion>600</MinimumRequiredVersion>-->
 <!--		<AdditionalOptions>additional linker options %(AdditionalOptions)</AdditionalOptions>-->
 	</Link>
-	<!-- TODO convert to a build rule -->
-	<!-- TODO use /Wall instead of /W4 -->
-	<CustomBuildStep>
-		<!-- TODO /MDd, /MTd, /EHa? -->
-		<!-- TODO /RTC1 /RTCc /RTCs /RTCu /sdl -->
-		<Command>cl sta.c /c /TC /analyze /bigobj /nologo /W4 /Wp64 /Zi /wd4100 /Fo$(IntDir)sta.obj</Command>
-		<Inputs>sta.c</Inputs>
-		<Outputs>$(IntDir)sta.obj</Outputs>
-	</CustomBuildStep>
 </ItemDefinitionGroup>
 
 <ItemGroup>
@@ -80,9 +71,10 @@
 
 	<ClInclude Include="wpf.h" />
 
+	<ClCompile Include="sta.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
 	<ClCompile Include="wpf.cpp" />
-
-	<Link Include="$(IntDir)sta.obj" />
 </ItemGroup>
 
 <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

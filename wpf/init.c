@@ -92,6 +92,7 @@ void uiUninit(void)
 {
 	uninitWPF();
 	CoUninitialize();
+	uninitTypes();
 	uninitAlloc();
 }
 

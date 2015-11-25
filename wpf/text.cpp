@@ -9,9 +9,12 @@ using namespace System::Runtime::InteropServices;
 String ^fromUTF8(const char *str)
 {
 	array<Byte> ^bytes;
+	size_t len;
 
+	len = strlen(str);
+	bytes = gcnew array<Byte>(len);
 	// TODO avoid the cast
-	Marshal::Copy(IntPtr((char *) str), bytes, 0, strlen(str));
+	Marshal::Copy(IntPtr((char *) str), bytes, 0, len);
 	return Encoding::UTF8->GetString(bytes);
 }
 

@@ -28,7 +28,11 @@ uiWindowsDefineControlWithOnDestroy(
 
 void libuiWindow::onClosing(Object ^sender, CancelEventArgs ^e)
 {
-	e->Cancel = (*(this->w->onClosing))(this->w, this->w->onClosingData) == 0;
+	// TODO copy comments
+	if ((*(this->w->onClosing))(this->w, this->w->onClosingData))
+		// TODO this triggers another onClosing() when it's too late
+		uiControlDestroy(uiControl(this->w));
+	e->Cancel = true;
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)

@@ -75,6 +75,32 @@
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
 	<ClCompile Include="wpf.cpp" />
+
+	<ClCompile Include="..\ui.h" />
+
+	<ClCompile Include="..\common\areaevents.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
+	<ClCompile Include="..\common\control.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
+	<ClCompile Include="..\common\matrix.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
+	<ClCompile Include="..\common\menu.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
+	<ClCompile Include="..\common\ptrarray.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
+	<ClCompile Include="..\common\shouldquit.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
+	<ClCompile Include="..\common\types.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
+
+	<ClCompile Include="..\common\uipriv.h" />
 </ItemGroup>
 
 <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

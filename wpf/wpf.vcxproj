@@ -37,6 +37,9 @@
 <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
 	<LinkIncremental>false</LinkIncremental>
 	<TargetName>libui</TargetName>
+	<!-- TODO will these work from any directory? -->
+	<OutDir>..\out</OutDir>
+	<IntDir>..\.obj</IntDir>
 	<EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
 <!--	<CustomBuildBeforeTargets>Link</CustomBuildBeforeTargets>-->
 </PropertyGroup>
@@ -49,10 +52,10 @@
 	</ClCompile>
 	<Link>
 		<GenerateDebugInformation>true</GenerateDebugInformation>
-		<AdditionalDependencies>kernel32.lib ole32.lib</AdditionalDependencies>
+		<AdditionalDependencies>kernel32.lib;ole32.lib</AdditionalDependencies>
 		<SubSystem>Windows</SubSystem>
 <!--TODO		<MinimumRequiredVersion>600</MinimumRequiredVersion>-->
-<!--		<AdditionalOptions>additional linker options %(AdditionalOptions)</AdditionalOptions>--
+<!--		<AdditionalOptions>additional linker options %(AdditionalOptions)</AdditionalOptions>-->
 	</Link>
 	<CustomBuildStep>
 		<Command>extra command</Command>

@@ -8,10 +8,7 @@ HFONT hMessageFont;
 
 HBRUSH hollowBrush;
 
-struct uiInitError {
-	char *msg;
-	char failbuf[256];
-};
+// TODO this won't work if initAlloc() failed
 
 #define initErrorFormat L"error %s: %s%s%s %I32u (0x%I32X)%s"
 #define initErrorArgs wmessage, sysmsg, beforele, label, value, value, afterle

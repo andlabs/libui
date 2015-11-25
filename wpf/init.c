@@ -2,11 +2,58 @@
 #ifdef __cplusplus
 #error msbuild is being dumb and making this a C++ file
 #endif
-#include "winapi.h"
-#include "../ui.h"
-// TODO to make sure wpfInit() is exported properly
-#include "wpf.h"
+#include "unmanaged.h"
 
+// TODO this won't work if initAlloc() failed
+
+#define initErrorFormat L"error %s: %s%s%s %I32u (0x%I32X)%s"
+#define initErrorArgs wmessage, sysmsg, beforele, label, value, value, afterle
+
+static const char *initerr(const char *message, const WCHAR *label, DWORD value)
+{
+	WCHAR *sysmsg;
+	BOOL hassysmsg;
+	WCHAR *beforele;
+	WCHAR *afterle;
+	int n;
+	WCHAR *wmessage;
+	WCHAR *wstr;
+	const char *str;
+
+	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, value, 0, (LPWSTR) (&sysmsg), 0, NULL) != 0) {
+		hassysmsg = TRUE;
+		beforele = L" (";
+		afterle = L")";
+	} else {
+		hassysmsg = FALSE;
+		sysmsg = L"";
+		beforele = L"";
+		afterle = L"";
+	}
+	wmessage = toUTF16(message);
+	n = _scwprintf(initErrorFormat, initErrorArgs);
+	wstr = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
+	snwprintf(wstr, n + 1, initErrorFormat, initErrorArgs);
+	str = toUTF8(wstr);
+	uiFree(wstr);
+	if (hassysmsg)
+		if (LocalFree(sysmsg) != NULL)
+			logLastError("error freeing system message in loadLastError()");
+	uiFree(wmessage);
+	return str;
+}
+
+static const char *loadLastError(const char *message)
+{
+	return initerr(message, L"GetLastError() ==", GetLastError());
+}
+
+static const char *loadHRESULT(const char *message, HRESULT hr)
+{
+	return initerr(message, L"HRESULT", (DWORD) hr);
+}
+
+// On the subject of CoInitialize(), or why this isn't in main.cpp:
 // If we don't set up the current thread otherwise, the first time .net tries to call out to unmanaged code, it will automatically set up a MTA for COM.
 // This is not what we want; we need a STA instead.
 // Since we're not in control of main(), we can't stick a [STAThread] on it, so we have to do it ourselves.
@@ -15,26 +62,36 @@
 // 2) To avoid mixing Windows API headers with .net
 // See also http://stackoverflow.com/questions/24348205/how-do-i-solve-this-com-issue-in-c
 
-extern void initWPF(void);
-//extern void uninitWPF(void);
+uiInitOptions options;
 
-void wpfInit(void)
+const char *uiInit(uiInitOptions *o)
 {
 	HRESULT hr;
+
+	options = *o;
+
+	if (initAlloc() == 0)
+		return loadLastError("error initializing memory allocations");
 
 	// TODO https://msdn.microsoft.com/en-us/library/5s8ee185%28v=vs.71%29.aspx use CoInitializeEx()?
 	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)
-		DebugBreak();
+		return loadHRESULT("initializing COM", hr);
 
 	// now do the rest of initialization on the managed side
 	initWPF();
+
+	return NULL;
 }
 
-/*TODO
 void uiUninit(void)
 {
 	uninitWPF();
 	CoUninitialize();
+	uninitAlloc();
 }
-*/
+
+void uiFreeInitError(const char *err)
+{
+	uiFree((void *) err);
+}

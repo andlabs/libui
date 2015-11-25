@@ -70,13 +70,19 @@
 	<Reference Include="PresentationCore" />
 	<Reference Include="PresentationFramework" />
 
+	<!-- TODO readd headers? -->
+
+	<ClCompile Include="alloc.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
+	<ClCompile Include="debug.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
 	<ClCompile Include="init.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
-
-	<ClCompile Include="winapi.h" />
-
-	<ClCompile Include="..\ui.h" />
+	<ClCompile Include="main.cpp" />
+	<ClCompile Include="text.cpp" />
 
 	<ClCompile Include="..\common\areaevents.c">
 		<CompileAsManaged>false</CompileAsManaged>
@@ -99,8 +105,6 @@
 	<ClCompile Include="..\common\types.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
-
-	<ClCompile Include="..\common\uipriv.h" />
 </ItemGroup>
 
 <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

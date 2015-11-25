@@ -55,21 +55,3 @@ void wpfWindowOnClosing(wpfWindow *w, void (*f)(wpfWindow *w, void *data), void 
 	w->onClosing = f;
 	w->onClosingData = data;
 }
-
-static gcroot<Application ^> app;
-
-// wpfInit() is in sta.c; see that or details.
-extern "C" void initWPF(void)
-{
-	app = gcnew Application();
-}
-
-void wpfRun(void)
-{
-	app->Run();
-}
-
-void wpfQuit(void)
-{
-	app->Shutdown();
-}

@@ -75,6 +75,7 @@
 	<ClCompile Include="alloc.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
+	<ClCompile Include="control.cpp" />
 	<ClCompile Include="debug.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
@@ -83,27 +84,38 @@
 	</ClCompile>
 	<ClCompile Include="main.cpp" />
 	<ClCompile Include="text.cpp" />
+	<ClCompile Include="util.c">
+		<CompileAsManaged>false</CompileAsManaged>
+	</ClCompile>
 
+	<!-- TODO find a way to get the basename of the source path so we can use dir_file.obj naming automatically -->
 	<ClCompile Include="..\common\areaevents.c">
 		<CompileAsManaged>false</CompileAsManaged>
+		<ObjectFileName>$(IntDir)common_areaevents.obj</ObjectFileName>
 	</ClCompile>
 	<ClCompile Include="..\common\control.c">
 		<CompileAsManaged>false</CompileAsManaged>
+		<ObjectFileName>$(IntDir)common_control.obj</ObjectFileName>
 	</ClCompile>
 	<ClCompile Include="..\common\matrix.c">
 		<CompileAsManaged>false</CompileAsManaged>
+		<ObjectFileName>$(IntDir)common_matrix.obj</ObjectFileName>
 	</ClCompile>
 	<ClCompile Include="..\common\menu.c">
 		<CompileAsManaged>false</CompileAsManaged>
+		<ObjectFileName>$(IntDir)common_menu.obj</ObjectFileName>
 	</ClCompile>
 	<ClCompile Include="..\common\ptrarray.c">
 		<CompileAsManaged>false</CompileAsManaged>
+		<ObjectFileName>$(IntDir)common_ptrarray.obj</ObjectFileName>
 	</ClCompile>
 	<ClCompile Include="..\common\shouldquit.c">
 		<CompileAsManaged>false</CompileAsManaged>
+		<ObjectFileName>$(IntDir)common_shouldquit.obj</ObjectFileName>
 	</ClCompile>
 	<ClCompile Include="..\common\types.c">
 		<CompileAsManaged>false</CompileAsManaged>
+		<ObjectFileName>$(IntDir)common_types.obj</ObjectFileName>
 	</ClCompile>
 </ItemGroup>
 

@@ -11,6 +11,9 @@
 
 static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 {
+	// TODO
+	return "";
+#if 0
 	WCHAR *sysmsg;
 	BOOL hassysmsg;
 	WCHAR *beforele;
@@ -41,6 +44,7 @@ static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 			logLastError("error freeing system message in loadLastError()");
 	uiFree(wmessage);
 	return str;
+#endif
 }
 
 static const char *loadLastError(const char *message)

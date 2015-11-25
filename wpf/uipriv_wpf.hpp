@@ -12,6 +12,7 @@
 using namespace System;
 using namespace System::ComponentModel;
 using namespace System::Windows;
+using namespace System::Windows::Controls;
 
 // text.cpp
 String ^fromUTF8(const char *);

@@ -1,7 +1,7 @@
 // 7 april 2015
 
 /*
-This file assumes that you have included <vccrt.h> and "ui.h" beforehand, as well as #using <System.dll> (but not necessarily beforehand). It provides API-specific functions for interfacing with foreign controls in Windows.
+This file assumes that you have included <vccrt.h> and "ui.h" beforehand, as well as #using <System.dll> and the three WPF DLLs (TODO) (but not necessarily beforehand). It provides API-specific functions for interfacing with foreign controls in Windows.
 */
 
 #ifndef __LIBUI_UI_WINDOWS_H__
@@ -18,6 +18,8 @@ typedef struct uiWindowsSizing uiWindowsSizing;
 typedef struct uiWindowsControl uiWindowsControl;
 struct uiWindowsControl {
 	uiControl c;
+	// TODO make truly private
+	gcroot<System::Windows::Controls::Control ^> *genericHandle;
 };
 _UI_EXTERN uintmax_t uiWindowsControlType(void);
 #define uiWindowsControl(this) ((uiWindowsControl *) uiIsA((this), uiWindowsControlType(), 1))
@@ -35,11 +37,12 @@ _UI_EXTERN uintmax_t uiWindowsControlType(void);
 	{ \
 		type *hthis = type(c); \
 		onDestroy; \
+		delete uiWindowsControl(c)->genericHandle; \
 		delete hthis->handle; \
 	} \
 	static uintptr_t _ ## type ## Handle(uiControl *c) \
 	{ \
-		return (uintptr_t) (type(c)->handle); \
+		return (uintptr_t) (uiWindowsControl(c)->genericHandle); \
 	} \
 	static void _ ## type ## ContainerUpdateState(uiControl *c) \
 	{ \
@@ -49,10 +52,12 @@ _UI_EXTERN uintmax_t uiWindowsControlType(void);
 #define uiWindowsDefineControl(type, typefn, handle) \
 	uiWindowsDefineControlWithOnDestroy(type, typefn, handle, (void) hthis;)
 
-#define uiWindowsFinishNewControl(variable, type) \
+#define uiWindowsFinishNewControl(variable, type, handle) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
 	uiControl(variable)->Handle = _ ## type ## Handle; \
 	uiControl(variable)->ContainerUpdateState = _ ## type ## ContainerUpdateState; \
+	uiWindowsControl(variable)->genericHandle = new gcroot<System::Windows::Controls::Control ^>(); \
+	*(uiWindowsControl(variable)->genericHandle) = *(variable->handle); \
 	uiWindowsFinishControl(uiControl(variable));
 
 // This is a function used to set up a control.

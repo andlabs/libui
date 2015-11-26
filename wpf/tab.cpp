@@ -2,6 +2,7 @@
 #include "uipriv_wpf.hpp"
 
 // TODO save child alignments?
+// TODO scroll tabs instead of multiline tabs
 
 using namespace System::Collections::Generic;
 

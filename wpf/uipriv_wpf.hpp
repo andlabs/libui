@@ -19,3 +19,14 @@ extern String ^fromUTF8(const char *);
 
 // control.cpp
 extern UIElement ^genericHandle(uiControl *c);
+
+typedef gcroot<Label ^> *DUMMY;
+static inline DUMMY mkdummy(String ^classname)
+{
+	DUMMY t;
+
+	t = new gcroot<Label ^>();
+	*t = gcnew Label();
+	(*t)->Content = L"TODO " + classname + L" not implemented";
+	return t;
+}

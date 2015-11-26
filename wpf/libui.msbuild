@@ -75,18 +75,31 @@
 	<ClCompile Include="alloc.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
+	<ClCompile Include="area.cpp" />
 	<ClCompile Include="box.cpp" />
 	<ClCompile Include="button.cpp" />
 	<ClCompile Include="checkbox.cpp" />
+	<ClCompile Include="combobox.cpp" />
 	<ClCompile Include="control.cpp" />
+	<ClCompile Include="datetimepicker.cpp" />
 	<ClCompile Include="debug.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
+	<ClCompile Include="draw.cpp" />
+	<ClCompile Include="entry.cpp" />
+	<ClCompile Include="group.cpp" />
 	<ClCompile Include="init.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
 	<ClCompile Include="label.cpp" />
 	<ClCompile Include="main.cpp" />
+	<ClCompile Include="menu.cpp" />
+	<ClCompile Include="progressbar.cpp" />
+	<ClCompile Include="radiobuttons.cpp" />
+	<ClCompile Include="separator.cpp" />
+	<ClCompile Include="slider.cpp" />
+	<ClCompile Include="spinbox.cpp" />
+	<ClCompile Include="stddialogs.cpp" />
 	<ClCompile Include="tab.cpp" />
 	<ClCompile Include="text.cpp" />
 	<ClCompile Include="util.c">

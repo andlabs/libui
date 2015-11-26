@@ -18,6 +18,7 @@ var uiNewTab = libui.NewProc("uiNewTab")
 var uiTabAppend = libui.NewProc("uiTabAppend")
 var uiTabSetMargined = libui.NewProc("uiTabSetMargined")
 var uiNewLabel = libui.NewProc("uiNewLabel")
+var uiNewCheckbox = libui.NewProc("uiNewCheckbox")
 var uiControlShow = libui.NewProc("uiControlShow")
 var uiMain = libui.NewProc("uiMain")
 var uiQuit = libui.NewProc("uiQuit")
@@ -40,7 +41,7 @@ func main() {
 	uiWindowOnClosing.Call(w, syscall.NewCallbackCDecl(onClosing), 0)
 	tab, _, _ := uiNewTab.Call()
 	box, _, _ := uiNewVerticalBox.Call()
-	btn, _, _ := uiNewButton.Call(
+	btn, _, _ := uiNewCheckbox.Call(
 		uintptr(unsafe.Pointer(&s[0])))
 	uiBoxAppend.Call(box, btn, 0)
 	btn, _, _ = uiNewButton.Call(
@@ -65,7 +66,7 @@ func main() {
 	uiTabAppend.Call(tab,
 		uintptr(unsafe.Pointer(&s[0])),
 		btn)
-	uiBoxSetPadded.Call(box, 1)
+//	uiBoxSetPadded.Call(box, 1)
 	uiWindowSetMargined.Call(w, 1)
 	uiControlShow.Call(w)
 	uiMain.Call(w)

@@ -11,10 +11,12 @@ struct uiWindow {
 	uiWindowsControl c;
 	gcroot<libuiWindow ^> *window;
 
+	gcroot<Border ^> *border;
 	int margined;
 
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
+	gcroot<CancelEventHandler ^> *onClosingDelegate;
 };
 
 static void onDestroy(uiWindow *);
@@ -30,7 +32,6 @@ void libuiWindow::onClosing(Object ^sender, CancelEventArgs ^e)
 {
 	// TODO copy comments
 	if ((*(this->w->onClosing))(this->w, this->w->onClosingData))
-		// TODO this triggers another onClosing() when it's too late
 		uiControlDestroy(uiControl(this->w));
 	e->Cancel = true;
 }
@@ -42,7 +43,14 @@ static int defaultOnClosing(uiWindow *w, void *data)
 
 static void onDestroy(uiWindow *w)
 {
+	// first hide the window
+	(*(w->window))->Hide();
+	// take off the closing event; otherwise it will be recursed
+	(*(w->window))->Closing -= *(w->onClosingDelegate);
+	delete w->onClosingDelegate;
 	// TODO
+	// clean up remaining .net objects
+	delete w->border;
 }
 
 static void windowCommitShow(uiControl *c)
@@ -104,10 +112,15 @@ int uiWindowMargined(uiWindow *w)
 	return w->margined;
 }
 
+// TODO according to http://stackoverflow.com/questions/18299107/how-to-handle-control-spacing-in-wpf-window-designer - same for rest of library
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-//TODO	uiWindowsControlQueueRelayout(uiWindowsControl(w));
+	// TODO Margin or Padding?
+	if (w->margined)
+		(*(w->border))->Margin = Thickness(10, 10, 10, 10);
+	else
+		(*(w->border))->Margin = Thickness(0, 0, 0, 0);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
@@ -125,10 +138,17 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	(*(w->window))->Width = width;
 	(*(w->window))->Height = height;
 
-	// TODO background color
+	// reference source indicates that this does indeed map to COLOR_BTNFACE
+	(*(w->window))->Background = SystemColors::ControlBrush;
 
-	(*(w->window))->Closing += gcnew CancelEventHandler(*(w->window),
+	w->border = new gcroot<Border ^>();
+	*(w->border) = gcnew Border();
+	(*(w->window))->Content = *(w->border);
+
+	w->onClosingDelegate = new gcroot<CancelEventHandler ^>();
+	*(w->onClosingDelegate) = gcnew CancelEventHandler(*(w->window),
 		&libuiWindow::onClosing);
+	(*(w->window))->Closing += *(w->onClosingDelegate);
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 
 	uiWindowsFinishNewControl(w, uiWindow, window);

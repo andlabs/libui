@@ -15,4 +15,7 @@ using namespace System::Windows;
 using namespace System::Windows::Controls;
 
 // text.cpp
-String ^fromUTF8(const char *);
+extern String ^fromUTF8(const char *);
+
+// control.cpp
+extern Control ^genericHandle(uiControl *c);

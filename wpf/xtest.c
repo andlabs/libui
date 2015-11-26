@@ -11,10 +11,14 @@ int main(void)
 {
 	uiInitOptions o;
 	uiWindow *w;
+	uiButton *btn;
 	if (uiInit(&o) != NULL) return 1;
 	w = uiNewWindow("Hello from C",
 		320, 240, 0);
 	uiWindowOnClosing(w, onClosing, NULL);
+	btn = uiNewButton("Hello from C");
+	uiWindowSetChild(w, uiControl(btn));
+	uiWindowSetMargined(w, 1);
 	uiControlShow(uiControl(w));
 	uiMain();
 	printf("after main\n");

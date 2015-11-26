@@ -1,31 +1,18 @@
-// 18 november 2015
-#include "uipriv_haiku.hpp"
+// 25 november 2015
+#include "uipriv_wpf.hpp"
 
 struct uiButton {
-	uiHaikuControl c;
-	BButton *button;
+	uiWindowsControl c;
+	gcroot<Button ^> *button;
 	void (*onClicked)(uiButton *, void *);
 	void *onClickedData;
 };
 
-uiHaikuDefineControl(
+uiWindowsDefineControl(
 	uiButton,								// type name
 	uiButtonType,							// type function
 	button								// handle
 )
-
-#define mButtonClicked 0x4E754E75
-
-static void onClicked(BMessage *msg)
-{
-	void *bb;
-	uiButton *b;
-
-	// TODO error check
-	msg->FindPointer(mControlField, &bb);
-	b = uiButton(bb);
-	(*(b->onClicked))(b, b->onClickedData);
-}
 
 static void defaultOnClicked(uiButton *b, void *data)
 {
@@ -34,12 +21,16 @@ static void defaultOnClicked(uiButton *b, void *data)
 
 char *uiButtonText(uiButton *b)
 {
-	return uiHaikuStrdupText(b->button->Label());
+	String ^text;
+
+	// TOOD bad cast?
+	text = (String ^) ((*(b->button))->Content);
+	return uiWindowsCLRStringToText(text);
 }
 
 void uiButtonSetText(uiButton *b, const char *text)
 {
-	b->button->SetLabel(text);
+	(*(b->button))->Content = fromUTF8(text);
 }
 
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *b, void *data), void *data)
@@ -51,19 +42,17 @@ void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *b, void *data), void *da
 uiButton *uiNewButton(const char *text)
 {
 	uiButton *b;
-	BMessage *msg;
 
 	b = (uiButton *) uiNewControl(uiButtonType());
 
-	uiHaikuRegisterEventHandler(mButtonClicked, onClicked);
-	msg = new BMessage(mButtonClicked);
-	msg->AddPointer(mControlField, b);
+	b->button = new gcroot<Button ^>();
+	*(b->button) = gcnew Button();
+	(*(b->button))->Content = fromUTF8(text);
 
-	b->button = new BButton(text, msg);
-
+	// TODO hook up events
 	uiButtonOnClicked(b, defaultOnClicked, NULL);
 
-	uiHaikuFinishNewControl(b, uiButton);
+	uiWindowsFinishNewControl(b, uiButton, button);
 
 	return b;
 }

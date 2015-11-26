@@ -10,7 +10,7 @@ uintmax_t uiWindowsControlType(void)
 	return type_uiWindowsControl;
 }
 
-static Control ^genericHandle(uiControl *c)
+Control ^genericHandle(uiControl *c)
 {
 	gcroot<Control ^> *h;
 

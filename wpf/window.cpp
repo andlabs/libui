@@ -14,6 +14,8 @@ struct uiWindow {
 	gcroot<Border ^> *border;
 	int margined;
 
+	uiControl *child;
+
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	gcroot<CancelEventHandler ^> *onClosingDelegate;
@@ -96,15 +98,15 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 
 void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
-/*TODO
-	if (w->child != NULL)
-		childRemove(w->child);
-	w->child = newChild(child, uiControl(w), w->hwnd);
 	if (w->child != NULL) {
-		childSetSoleControlID(w->child);
-		childQueueRelayout(w->child);
+		(*(w->border))->Child = nullptr;
+		uiControlSetParent(w->child, NULL);
 	}
-*/
+	w->child = child;
+	if (w->child != NULL) {
+		uiControlSetParent(w->child, uiControl(w));
+		(*(w->border))->Child = genericHandle(w->child);
+	}
 }
 
 int uiWindowMargined(uiWindow *w)

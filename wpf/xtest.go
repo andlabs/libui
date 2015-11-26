@@ -17,6 +17,7 @@ var uiBoxSetPadded = libui.NewProc("uiBoxSetPadded")
 var uiNewTab = libui.NewProc("uiNewTab")
 var uiTabAppend = libui.NewProc("uiTabAppend")
 var uiTabSetMargined = libui.NewProc("uiTabSetMargined")
+var uiNewLabel = libui.NewProc("uiNewLabel")
 var uiControlShow = libui.NewProc("uiControlShow")
 var uiMain = libui.NewProc("uiMain")
 var uiQuit = libui.NewProc("uiQuit")
@@ -45,7 +46,7 @@ func main() {
 	btn, _, _ = uiNewButton.Call(
 		uintptr(unsafe.Pointer(&s[0])))
 	uiBoxAppend.Call(box, btn, 1)
-	btn, _, _ = uiNewButton.Call(
+	btn, _, _ = uiNewLabel.Call(
 		uintptr(unsafe.Pointer(&s[0])))
 	uiBoxAppend.Call(box, btn, 0)
 	btn, _, _ = uiNewButton.Call(

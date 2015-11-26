@@ -84,6 +84,7 @@
 	<ClCompile Include="init.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
+	<ClCompile Include="label.cpp" />
 	<ClCompile Include="main.cpp" />
 	<ClCompile Include="tab.cpp" />
 	<ClCompile Include="text.cpp" />

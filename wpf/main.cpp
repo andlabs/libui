@@ -21,5 +21,6 @@ void uiMain(void)
 
 void uiQuit(void)
 {
+	// TODO this executes immediately, not later
 	(*app)->Shutdown();
 }

@@ -85,6 +85,7 @@
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
 	<ClCompile Include="main.cpp" />
+	<ClCompile Include="tab.cpp" />
 	<ClCompile Include="text.cpp" />
 	<ClCompile Include="util.c">
 		<CompileAsManaged>false</CompileAsManaged>

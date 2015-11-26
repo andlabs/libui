@@ -50,7 +50,12 @@ static void onDestroy(uiWindow *w)
 	// take off the closing event; otherwise it will be recursed
 	(*(w->window))->Closing -= *(w->onClosingDelegate);
 	delete w->onClosingDelegate;
-	// TODO
+	// then destroy the child
+	if (w->child != NULL) {
+		(*(w->border))->Child = nullptr;
+		uiControlSetParent(w->child, NULL);
+		uiControlDestroy(w->child);
+	}
 	// clean up remaining .net objects
 	delete w->border;
 }
@@ -72,12 +77,10 @@ static void windowCommitHide(uiControl *c)
 
 static void windowContainerUpdateState(uiControl *c)
 {
-/*TODO
 	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
-		childUpdateState(w->child);
-*/
+		controlUpdateState(w->child);
 }
 
 char *uiWindowTitle(uiWindow *w)
@@ -99,13 +102,13 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
 	if (w->child != NULL) {
-		(*(w->border))->Child = nullptr;
 		uiControlSetParent(w->child, NULL);
+		(*(w->border))->Child = nullptr;
 	}
 	w->child = child;
 	if (w->child != NULL) {
-		uiControlSetParent(w->child, uiControl(w));
 		(*(w->border))->Child = genericHandle(w->child);
+		uiControlSetParent(w->child, uiControl(w));
 	}
 }
 

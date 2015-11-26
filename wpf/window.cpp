@@ -1,6 +1,8 @@
 // 25 november 2015
 #include "uipriv_wpf.hpp"
 
+// TODO save alignment of children?
+
 ref class libuiWindow : public Window {
 public:
 	uiWindow *w;

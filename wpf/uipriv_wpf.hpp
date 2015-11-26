@@ -18,4 +18,4 @@ using namespace System::Windows::Controls;
 extern String ^fromUTF8(const char *);
 
 // control.cpp
-extern Control ^genericHandle(uiControl *c);
+extern UIElement ^genericHandle(uiControl *c);

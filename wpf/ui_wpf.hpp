@@ -19,7 +19,7 @@ typedef struct uiWindowsControl uiWindowsControl;
 struct uiWindowsControl {
 	uiControl c;
 	// TODO make truly private
-	gcroot<System::Windows::Controls::Control ^> *genericHandle;
+	gcroot<System::Windows::UIElement ^> *genericHandle;
 };
 _UI_EXTERN uintmax_t uiWindowsControlType(void);
 #define uiWindowsControl(this) ((uiWindowsControl *) uiIsA((this), uiWindowsControlType(), 1))
@@ -56,7 +56,7 @@ _UI_EXTERN uintmax_t uiWindowsControlType(void);
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
 	uiControl(variable)->Handle = _ ## type ## Handle; \
 	uiControl(variable)->ContainerUpdateState = _ ## type ## ContainerUpdateState; \
-	uiWindowsControl(variable)->genericHandle = new gcroot<System::Windows::Controls::Control ^>(); \
+	uiWindowsControl(variable)->genericHandle = new gcroot<System::Windows::UIElement ^>(); \
 	*(uiWindowsControl(variable)->genericHandle) = *(variable->handle); \
 	uiWindowsFinishControl(uiControl(variable));
 

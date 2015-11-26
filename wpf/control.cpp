@@ -10,11 +10,11 @@ uintmax_t uiWindowsControlType(void)
 	return type_uiWindowsControl;
 }
 
-Control ^genericHandle(uiControl *c)
+UIElement ^genericHandle(uiControl *c)
 {
-	gcroot<Control ^> *h;
+	gcroot<UIElement ^> *h;
 
-	h = (gcroot<Control ^> *) uiControlHandle(c);
+	h = (gcroot<UIElement ^> *) uiControlHandle(c);
 	return *h;
 }
 

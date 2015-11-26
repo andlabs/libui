@@ -11,6 +11,9 @@ var uiWindowOnClosing = libui.NewProc("uiWindowOnClosing")
 var uiNewButton = libui.NewProc("uiNewButton")
 var uiWindowSetChild = libui.NewProc("uiWindowSetChild")
 var uiWindowSetMargined = libui.NewProc("uiWindowSetMargined")
+var uiNewVerticalBox = libui.NewProc("uiNewVerticalBox")
+var uiBoxAppend = libui.NewProc("uiBoxAppend")
+var uiBoxSetPadded = libui.NewProc("uiBoxSetPadded")
 var uiControlShow = libui.NewProc("uiControlShow")
 var uiMain = libui.NewProc("uiMain")
 var uiQuit = libui.NewProc("uiQuit")
@@ -31,9 +34,24 @@ func main() {
 		uintptr(unsafe.Pointer(&s[0])),
 		320, 240, 0)
 	uiWindowOnClosing.Call(w, syscall.NewCallbackCDecl(onClosing), 0)
+	box, _, _ := uiNewVerticalBox.Call()
 	btn, _, _ := uiNewButton.Call(
 		uintptr(unsafe.Pointer(&s[0])))
-	uiWindowSetChild.Call(w, btn)
+	uiBoxAppend.Call(box, btn, 0)
+	btn, _, _ = uiNewButton.Call(
+		uintptr(unsafe.Pointer(&s[0])))
+	uiBoxAppend.Call(box, btn, 1)
+	btn, _, _ = uiNewButton.Call(
+		uintptr(unsafe.Pointer(&s[0])))
+	uiBoxAppend.Call(box, btn, 0)
+	btn, _, _ = uiNewButton.Call(
+		uintptr(unsafe.Pointer(&s[0])))
+	uiBoxAppend.Call(box, btn, 1)
+	btn, _, _ = uiNewButton.Call(
+		uintptr(unsafe.Pointer(&s[0])))
+	uiBoxAppend.Call(box, btn, 0)
+	uiWindowSetChild.Call(w, box)
+	uiBoxSetPadded.Call(box, 1)
 	uiWindowSetMargined.Call(w, 1)
 	uiControlShow.Call(w)
 	uiMain.Call(w)

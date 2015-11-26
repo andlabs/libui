@@ -75,6 +75,7 @@
 	<ClCompile Include="alloc.c">
 		<CompileAsManaged>false</CompileAsManaged>
 	</ClCompile>
+	<ClCompile Include="box.cpp" />
 	<ClCompile Include="button.cpp" />
 	<ClCompile Include="control.cpp" />
 	<ClCompile Include="debug.c">

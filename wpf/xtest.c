@@ -12,12 +12,20 @@ int main(void)
 	uiInitOptions o;
 	uiWindow *w;
 	uiButton *btn;
+	uiBox *box;
 	if (uiInit(&o) != NULL) return 1;
 	w = uiNewWindow("Hello from C",
 		320, 240, 0);
 	uiWindowOnClosing(w, onClosing, NULL);
+	box = uiNewVerticalBox();
 	btn = uiNewButton("Hello from C");
-	uiWindowSetChild(w, uiControl(btn));
+	uiBoxAppend(box, uiControl(btn), 0);
+	btn = uiNewButton("Hello from C");
+	uiBoxAppend(box, uiControl(btn), 0);
+	btn = uiNewButton("Hello from C");
+	uiBoxAppend(box, uiControl(btn), 0);
+	uiWindowSetChild(w, uiControl(box));
+	uiBoxSetPadded(box, 1);
 	uiWindowSetMargined(w, 1);
 	uiControlShow(uiControl(w));
 	uiMain();

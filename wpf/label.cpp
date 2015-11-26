@@ -3,6 +3,7 @@
 
 // TODO alignment
 // TODO lots of padding
+// TODO Label also has mnemonic value; use TextField instead
 
 struct uiLabel {
 	uiWindowsControl c;

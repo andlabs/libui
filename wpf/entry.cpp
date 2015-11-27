@@ -3,7 +3,7 @@
 
 struct uiEntry {
 	uiWindowsControl c;
-	DUMMY dummy;
+	gcroot<TextBox ^> *textbox;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 };
@@ -11,7 +11,7 @@ struct uiEntry {
 uiWindowsDefineControl(
 	uiEntry,								// type name
 	uiEntryType,							// type function
-	dummy								// handle
+	textbox								// handle
 )
 
 static void defaultOnChanged(uiEntry *e, void *data)
@@ -21,13 +21,12 @@ static void defaultOnChanged(uiEntry *e, void *data)
 
 char *uiEntryText(uiEntry *e)
 {
-	// TODO
-	return NULL;
+	return uiWindowsCLRStringToText((*(e->textbox))->Text);
 }
 
 void uiEntrySetText(uiEntry *e, const char *text)
 {
-	// TODO
+	(*(e->textbox))->Text = fromUTF8(text);
 }
 
 void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data)
@@ -38,13 +37,12 @@ void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data)
 
 int uiEntryReadOnly(uiEntry *e)
 {
-	// TODO
-	return 0;
+	return (*(e->textbox))->IsReadOnly != false;
 }
 
 void uiEntrySetReadOnly(uiEntry *e, int readonly)
 {
-	// TODO
+	(*(e->textbox))->IsReadOnly = readonly != 0;
 }
 
 uiEntry *uiNewEntry(void)
@@ -53,11 +51,12 @@ uiEntry *uiNewEntry(void)
 
 	e = (uiEntry *) uiNewControl(uiEntryType());
 
-	e->dummy = mkdummy("uiEntry");
+	e->textbox = new gcroot<TextBox ^>();
+	*(e->textbox) = gcnew TextBox();
 
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
-	uiWindowsFinishNewControl(e, uiEntry, dummy);
+	uiWindowsFinishNewControl(e, uiEntry, textbox);
 
 	return e;
 }

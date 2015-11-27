@@ -3,35 +3,42 @@
 
 struct uiCombobox {
 	uiWindowsControl c;
-	DUMMY dummy;
+	gcroot<ComboBox ^> *combobox;
+	void (*onSelected)(uiCombobox *, void *);
+	void *onSelectedData;
 };
 
 uiWindowsDefineControl(
 	uiCombobox,							// type name
 	uiComboboxType,						// type function
-	dummy								// handle
+	combobox							// handle
 )
+
+static void defaultOnSelected(uiCombobox *c, void *data)
+{
+	// do nothing
+}
 
 void uiComboboxAppend(uiCombobox *c, const char *text)
 {
-	// TODO
+	(*(c->combobox))->Items->Add(fromUTF8(text));
 }
 
 intmax_t uiComboboxSelected(uiCombobox *c)
 {
-	// TODO
-	// return 0 so the area test can work
-	return 0;
+	// TODO what happens on an editable combobox?
+	return (*(c->combobox))->SelectedIndex;
 }
 
 void uiComboboxSetSelected(uiCombobox *c, intmax_t n)
 {
-	// TODO
+	(*(c->combobox))->SelectedIndex = n;
 }
 
 void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data)
 {
-	// TODO
+	c->onSelected = f;
+	c->onSelectedData = data;
 }
 
 static uiCombobox *finishNewCombobox(bool editable)
@@ -40,11 +47,14 @@ static uiCombobox *finishNewCombobox(bool editable)
 
 	c = (uiCombobox *) uiNewControl(uiComboboxType());
 
-	c->dummy = mkdummy(L"uiCombobox");
+	c->combobox = new gcroot<ComboBox ^>();
+	*(c->combobox) = gcnew ComboBox();
+	// TODO doesn't affect the presence of a textbox
+	(*(c->combobox))->IsReadOnly = editable;
 
-//	(*(c->combobox))->IsReadOnly = editable;
+	uiComboboxOnSelected(c, defaultOnSelected, NULL);
 
-	uiWindowsFinishNewControl(c, uiCombobox, dummy);
+	uiWindowsFinishNewControl(c, uiCombobox, combobox);
 
 	return c;
 }

@@ -3,24 +3,29 @@
 
 struct uiGroup {
 	uiWindowsControl c;
-	DUMMY dummy;
+	gcroot<GroupBox ^> *groupbox;
+	int margined;
 };
 
 uiWindowsDefineControl(
 	uiGroup,								// type name
 	uiGroupType,							// type function
-	dummy								// handle
+	groupbox								// handle
 )
 
 char *uiGroupTitle(uiGroup *g)
 {
-	// TODO
-	return NULL;
+	String ^text;
+
+	// TOOD bad cast?
+	text = (String ^) ((*(g->groupbox))->Header);
+	return uiWindowsCLRStringToText(text);
 }
 
 void uiGroupSetTitle(uiGroup *g, const char *title)
 {
-	// TODO
+	(*(g->groupbox))->Header = fromUTF8(title);
+	// TODO layout
 }
 
 void uiGroupSetChild(uiGroup *g, uiControl *c)
@@ -30,8 +35,7 @@ void uiGroupSetChild(uiGroup *g, uiControl *c)
 
 int uiGroupMargined(uiGroup *g)
 {
-	// TODO
-	return 0;
+	return g->margined;
 }
 
 void uiGroupSetMargined(uiGroup *g, int margined)
@@ -45,9 +49,11 @@ uiGroup *uiNewGroup(const char *title)
 
 	g = (uiGroup *) uiNewControl(uiGroupType());
 
-	g->dummy = mkdummy(L"uiGroup");
+	g->groupbox = new gcroot<GroupBox ^>();
+	*(g->groupbox) = gcnew GroupBox();
+	(*(g->groupbox))->Header = fromUTF8(title);
 
-	uiWindowsFinishNewControl(g, uiGroup, dummy);
+	uiWindowsFinishNewControl(g, uiGroup, groupbox);
 
 	return g;
 }

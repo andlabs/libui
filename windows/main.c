@@ -1,7 +1,7 @@
 // 6 april 2015
 #include "uipriv_windows.h"
 
-// #qo LDFLAGS: -luser32 -lkernel32 -lgdi32 -luxtheme -lmsimg32 -lcomdlg32 -lole32 -loleaut32 -loleacc -luuid
+// TODO http://blogs.msdn.com/b/oldnewthing/archive/2005/04/08/406509.aspx when adding accelerators, TranslateMessage() before IsDialogMessage()
 
 static void msgloop_else(MSG *msg)
 {

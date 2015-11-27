@@ -59,6 +59,7 @@ static void boxContainerUpdateState(uiControl *c)
 
 // Grid unfortunately does not have a way to set the spacing between rows and columns.
 // This means we have to do padding ourselves.
+// TODO this doesn't work right for visibility purposes
 static void resetMargins(uiBox *b)
 {
 	double paddingUnit;

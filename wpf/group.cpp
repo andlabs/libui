@@ -4,14 +4,27 @@
 struct uiGroup {
 	uiWindowsControl c;
 	gcroot<GroupBox ^> *groupbox;
+	uiControl *child;
 	int margined;
 };
 
-uiWindowsDefineControl(
+static void onDestroy(uiGroup *);
+
+uiWindowsDefineControlWithOnDestroy(
 	uiGroup,								// type name
 	uiGroupType,							// type function
-	groupbox								// handle
+	groupbox,							// handle
+	onDestroy(hthis);						// on destroy
 )
+
+static void onDestroy(uiGroup *g)
+{
+	if (g->child != NULL) {
+		(*(g->groupbox))->Content = nullptr;
+		uiControlSetParent(g->child, NULL);
+		uiControlDestroy(g->child);
+	}
+}
 
 char *uiGroupTitle(uiGroup *g)
 {
@@ -30,7 +43,15 @@ void uiGroupSetTitle(uiGroup *g, const char *title)
 
 void uiGroupSetChild(uiGroup *g, uiControl *c)
 {
-	// TODO
+	if (g->child != NULL) {
+		uiControlSetParent(g->child, NULL);
+		(*(g->groupbox))->Content = nullptr;
+	}
+	g->child = c;
+	if (g->child != NULL) {
+		(*(g->groupbox))->Content = genericHandle(g->child);
+		uiControlSetParent(g->child, uiControl(g));
+	}
 }
 
 int uiGroupMargined(uiGroup *g)
@@ -40,7 +61,13 @@ int uiGroupMargined(uiGroup *g)
 
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
-	// TODO
+	g->margined = margined;
+	// TODO Margin or Padding?
+	// TODO really this? or should we just use another Border?
+	if (g->margined)
+		(*(g->groupbox))->Padding = Thickness(10, 10, 10, 10);
+	else
+		(*(g->groupbox))->Padding = Thickness(0, 0, 0, 0);
 }
 
 uiGroup *uiNewGroup(const char *title)

@@ -49,8 +49,7 @@ static uiCombobox *finishNewCombobox(bool editable)
 
 	c->combobox = new gcroot<ComboBox ^>();
 	*(c->combobox) = gcnew ComboBox();
-	// TODO doesn't affect the presence of a textbox
-	(*(c->combobox))->IsReadOnly = editable;
+	(*(c->combobox))->IsEditable = editable;
 
 	uiComboboxOnSelected(c, defaultOnSelected, NULL);
 
@@ -61,10 +60,10 @@ static uiCombobox *finishNewCombobox(bool editable)
 
 uiCombobox *uiNewCombobox(void)
 {
-	return finishNewCombobox(true);
+	return finishNewCombobox(false);
 }
 
 uiCombobox *uiNewEditableCombobox(void)
 {
-	return finishNewCombobox(false);
+	return finishNewCombobox(true);
 }

@@ -1,5 +1,5 @@
 // 16 august 2015
-#include "uipriv_wpf.hpp"
+#include "uipriv_winforms.hpp"
 
 static uintmax_t type_uiWindowsControl = 0;
 
@@ -10,11 +10,11 @@ uintmax_t uiWindowsControlType(void)
 	return type_uiWindowsControl;
 }
 
-UIElement ^genericHandle(uiControl *c)
+Control ^genericHandle(uiControl *c)
 {
-	gcroot<UIElement ^> *h;
+	gcroot<Control ^> *h;
 
-	h = (gcroot<UIElement ^> *) uiControlHandle(c);
+	h = (gcroot<Control ^> *) uiControlHandle(c);
 	return *h;
 }
 

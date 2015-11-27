@@ -8,7 +8,7 @@ This file assumes that you have included <vccrt.h> and "ui.h" beforehand, as wel
 #define __LIBUI_UI_WINDOWS_H__
 
 #ifndef __cplusplus_cli
-#error Sorry; ui_wpf.hpp can currently only be used from C++/CLI code.
+#error Sorry; ui_winforms.hpp can currently only be used from C++/CLI code.
 #endif
 
 extern "C" {

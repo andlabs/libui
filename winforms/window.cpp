@@ -1,26 +1,24 @@
 // 25 november 2015
-#include "uipriv_wpf.hpp"
+#include "uipriv_winforms.hpp"
 
 // TODO save alignment of children?
 
-ref class libuiWindow : public Window {
+ref class libuiForm : public Form {
 public:
 	uiWindow *w;
-	void onClosing(Object ^sender, CancelEventArgs ^e);
+//	void onClosing(Object ^sender, CancelEventArgs ^e);
 };
 
 struct uiWindow {
 	uiWindowsControl c;
-	gcroot<libuiWindow ^> *window;
-
-	gcroot<Border ^> *border;
-	int margined;
+	gcroot<libuiForm ^> *form;
 
 	uiControl *child;
+	int margined;
 
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
-	gcroot<CancelEventHandler ^> *onClosingDelegate;
+//	gcroot<CancelEventHandler ^> *onClosingDelegate;
 };
 
 static void onDestroy(uiWindow *);
@@ -32,6 +30,7 @@ uiWindowsDefineControlWithOnDestroy(
 	onDestroy(hthis);						// on destroy
 )
 
+/*
 void libuiWindow::onClosing(Object ^sender, CancelEventArgs ^e)
 {
 	// TODO copy comments
@@ -39,6 +38,7 @@ void libuiWindow::onClosing(Object ^sender, CancelEventArgs ^e)
 		uiControlDestroy(uiControl(this->w));
 	e->Cancel = true;
 }
+*/
 
 static int defaultOnClosing(uiWindow *w, void *data)
 {
@@ -47,6 +47,7 @@ static int defaultOnClosing(uiWindow *w, void *data)
 
 static void onDestroy(uiWindow *w)
 {
+/*
 	// first hide the window
 	(*(w->window))->Hide();
 	// take off the closing event; otherwise it will be recursed
@@ -60,6 +61,7 @@ static void onDestroy(uiWindow *w)
 	}
 	// clean up remaining .net objects
 	delete w->border;
+*/
 }
 
 static void windowCommitShow(uiControl *c)
@@ -87,12 +89,12 @@ static void windowContainerUpdateState(uiControl *c)
 
 char *uiWindowTitle(uiWindow *w)
 {
-	return uiWindowsCLRStringToText((*(w->window))->Title);
+	return uiWindowsCLRStringToText((*(w->window))->Text);
 }
 
 void uiWindowSetTitle(uiWindow *w, const char *title)
 {
-	(*(w->window))->Title = fromUTF8(title);
+	(*(w->window))->Text = fromUTF8(title);
 }
 
 void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
@@ -105,11 +107,11 @@ void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
 	if (w->child != NULL) {
 		uiControlSetParent(w->child, NULL);
-		(*(w->border))->Child = nullptr;
+//		(*(w->border))->Child = nullptr;
 	}
 	w->child = child;
 	if (w->child != NULL) {
-		(*(w->border))->Child = genericHandle(w->child);
+//		(*(w->border))->Child = genericHandle(w->child);
 		uiControlSetParent(w->child, uiControl(w));
 	}
 }
@@ -119,16 +121,15 @@ int uiWindowMargined(uiWindow *w)
 	return w->margined;
 }
 
-// TODO according to http://stackoverflow.com/questions/18299107/how-to-handle-control-spacing-in-wpf-window-designer - same for rest of library
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	// TODO Margin or Padding?
+/*	// TODO margin or padding?
 	if (w->margined)
 		(*(w->border))->Margin = Thickness(10, 10, 10, 10);
 	else
 		(*(w->border))->Margin = Thickness(0, 0, 0, 0);
-}
+*/}
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
@@ -136,19 +137,16 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	w = (uiWindow *) uiNewControl(uiWindowType());
 
-	w->window = new gcroot<libuiWindow ^>();
-	*(w->window) = gcnew libuiWindow();
-	(*(w->window))->w = w;
+	w->form = new gcroot<libuiForm ^>();
+	*(w->form) = gcnew libuiForm();
+	(*(w->form))->w = w;
 
-	(*(w->window))->Title = fromUTF8(title);
-	// TODO is this the client size?
-	(*(w->window))->Width = width;
-	(*(w->window))->Height = height;
+	(*(w->window))->Text = fromUTF8(title);
+//	(*(w->window))->ClientSize = xxxxx(width, height);
 
-	// reference source indicates that this does indeed map to COLOR_BTNFACE
-	(*(w->window))->Background = SystemColors::ControlBrush;
+	// TODO background color?
 
-	w->border = new gcroot<Border ^>();
+/*	w->border = new gcroot<Border ^>();
 	*(w->border) = gcnew Border();
 	(*(w->window))->Content = *(w->border);
 
@@ -156,7 +154,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	*(w->onClosingDelegate) = gcnew CancelEventHandler(*(w->window),
 		&libuiWindow::onClosing);
 	(*(w->window))->Closing += *(w->onClosingDelegate);
-	uiWindowOnClosing(w, defaultOnClosing, NULL);
+*/	uiWindowOnClosing(w, defaultOnClosing, NULL);
 
 	uiWindowsFinishNewControl(w, uiWindow, window);
 	uiControl(w)->CommitShow = windowCommitShow;

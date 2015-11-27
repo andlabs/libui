@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 // main.cpp
-extern void initWPF(void);
-extern void uninitWPF(void);
+extern void initWinForms(void);
+extern void uninitWinForms(void);
 
 // alloc.c
 extern int initAlloc(void);

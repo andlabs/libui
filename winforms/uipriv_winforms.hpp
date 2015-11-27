@@ -1,24 +1,20 @@
 // 25 november 2015
 #include <vcclr.h>
 #include "../ui.h"
-#include "ui_wpf.hpp"
+#include "ui_winforms.hpp"
 #include "../common/uipriv.h"
 #include "unmanaged.h"
 
 #using <System.dll>
-#using <WindowsBase.dll>
-#using <PresentationCore.dll>
-#using <PresentationFramework.dll>
+#using <System.Windows.Forms.dll>
 using namespace System;
-using namespace System::ComponentModel;
-using namespace System::Windows;
-using namespace System::Windows::Controls;
+using namespace System::Windows::Forms;
 
 // text.cpp
 extern String ^fromUTF8(const char *);
 
 // control.cpp
-extern UIElement ^genericHandle(uiControl *c);
+extern Control ^genericHandle(uiControl *c);
 
 typedef gcroot<Label ^> *DUMMY;
 static inline DUMMY mkdummy(String ^classname)

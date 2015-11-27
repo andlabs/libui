@@ -1,5 +1,5 @@
 // 19 november 2015
-#include "uipriv_wpf.hpp"
+#include "uipriv_winforms.hpp"
 
 void uiMenuItemEnable(uiMenuItem *m)
 {

@@ -5,6 +5,7 @@ static uiArea *area;
 static uiCombobox *which;
 static uiSpinbox *hamount;
 static uiSpinbox *vamount;
+static uiCheckbox *swallowKeys;
 
 struct handler {
 	uiAreaHandler ah;
@@ -70,7 +71,7 @@ static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 		(int) e->Modifier,
 		(int) e->Modifiers,
 		e->Up);
-	return 0;
+	return uiCheckboxChecked(swallowKeys);
 }
 
 static void onAmountChanged(uiSpinbox *s, void *data)
@@ -129,6 +130,9 @@ uiBox *makePage6(void)
 	uiBoxAppend(hbox, uiControl(uiNewLabel(" V ")), 0);
 	uiBoxAppend(hbox, uiControl(vamount), 0);
 	uiBoxAppend(page6, uiControl(hbox), 0);
+
+	swallowKeys = uiNewCheckbox("Consider key events handled");
+	uiBoxAppend(page6, uiControl(swallowKeys), 0);
 
 	return page6;
 }

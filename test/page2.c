@@ -39,9 +39,19 @@ static void movePage1(uiButton *b, void *data)
 	moveBack = 1;
 }
 
-static void openAnotherWindow(uiButton *b, void *data)
+static void openAnotherWindow(uiButton *bb, void *data)
 {
-	uiControlShow(uiControl(uiNewWindow("Another Window", 100, 100, data != NULL)));
+	uiWindow *w;
+	uiBox *b;
+
+	w = uiNewWindow("Another Window", 100, 100, data != NULL);
+	b = uiNewVerticalBox();
+	uiBoxAppend(b, uiControl(uiNewEntry()), 0);
+	uiBoxAppend(b, uiControl(uiNewButton("Button")), 0);
+	uiBoxSetPadded(b, 1);
+	uiWindowSetChild(w, uiControl(b));
+	uiWindowSetMargined(w, 1);
+	uiControlShow(uiControl(w));
 }
 
 static void openAnotherDisabledWindow(uiButton *b, void *data)

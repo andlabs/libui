@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 	page4 = makePage4();
 	uiTabAppend(mainTab, "Page 4", uiControl(page4));
 
-	page5 = makePage5();
+	page5 = makePage5(w);
 	uiTabAppend(mainTab, "Page 5", uiControl(page5));
 
 	page6 = makePage6();

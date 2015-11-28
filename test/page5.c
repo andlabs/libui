@@ -1,11 +1,13 @@
 // 22 may 2015
 #include "test.h"
 
+static uiWindow *parent;
+
 static void openFile(uiButton *b, void *data)
 {
 	char *fn;
 
-	fn = uiOpenFile();
+	fn = uiOpenFile(parent);
 	if (fn == NULL)
 		uiLabelSetText(uiLabel(data), "(cancelled)");
 	else {
@@ -18,7 +20,7 @@ static void saveFile(uiButton *b, void *data)
 {
 	char *fn;
 
-	fn = uiSaveFile();
+	fn = uiSaveFile(parent);
 	if (fn == NULL)
 		uiLabelSetText(uiLabel(data), "(cancelled)");
 	else {
@@ -35,7 +37,7 @@ static void msgBox(uiButton *b, void *data)
 
 	t = uiEntryText(title);
 	d = uiEntryText(description);
-	uiMsgBox(t, d);
+	uiMsgBox(parent, t, d);
 	uiFreeText(d);
 	uiFreeText(t);
 }
@@ -46,17 +48,19 @@ static void msgBoxError(uiButton *b, void *data)
 
 	t = uiEntryText(title);
 	d = uiEntryText(description);
-	uiMsgBoxError(t, d);
+	uiMsgBoxError(parent, t, d);
 	uiFreeText(d);
 	uiFreeText(t);
 }
 
-uiBox *makePage5(void)
+uiBox *makePage5(uiWindow *pw)
 {
 	uiBox *page5;
 	uiBox *hbox;
 	uiButton *button;
 	uiLabel *label;
+
+	parent = pw;
 
 	page5 = newVerticalBox();
 

@@ -245,10 +245,10 @@ _UI_EXTERN void uiMenuItemOnClicked(uiMenuItem *m, void (*f)(uiMenuItem *sender,
 _UI_EXTERN int uiMenuItemChecked(uiMenuItem *m);
 _UI_EXTERN void uiMenuItemSetChecked(uiMenuItem *m, int checked);
 
-_UI_EXTERN char *uiOpenFile(void);
-_UI_EXTERN char *uiSaveFile(void);
-_UI_EXTERN void uiMsgBox(const char *title, const char *description);
-_UI_EXTERN void uiMsgBoxError(const char *title, const char *description);
+_UI_EXTERN char *uiOpenFile(uiWindow *parent);
+_UI_EXTERN char *uiSaveFile(uiWindow *parent);
+_UI_EXTERN void uiMsgBox(uiWindow *parent, const char *title, const char *description);
+_UI_EXTERN void uiMsgBoxError(uiWindow *parent, const char *title, const char *description);
 
 typedef struct uiArea uiArea;
 typedef struct uiAreaHandler uiAreaHandler;

@@ -78,12 +78,13 @@ OFILES := $(OFILES:%=$(OBJDIR)/%.o)
 # TODO -Wno-switch equivalent
 # TODO /sdl turns C4996 into an ERROR
 # TODO loads of warnings in the system header files
+# TODO /analyze requires us to write annotations everywhere
 CFLAGS += \
 	/Zi \
 	/W4 \
 	/wd4100 \
 	/TC \
-	/analyze /bigobj /nologo \
+	/bigobj /nologo \
 	/RTC1 /RTCc /RTCs /RTCu \
 	/D "_UI_EXTERN=__declspec(dllexport) extern"
 

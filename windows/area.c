@@ -28,7 +28,7 @@ uiWindowsDefineControl(
 // TODO highly unsafe code
 static void rtGetSize(ID2D1RenderTarget *rt, D2D1_SIZE_F *size)
 {
-	typedef void (*STDMETHODCALLTYPE gsp)(ID2D1RenderTarget *, D2D1_SIZE_F *);
+	typedef void (STDMETHODCALLTYPE *gsp)(ID2D1RenderTarget *, D2D1_SIZE_F *);
 	gsp gs;
 
 	gs = (gsp) (rt->lpVtbl->GetSize);
@@ -60,9 +60,12 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 	ID2D1RenderTarget_BeginDraw(rt);
 
 	// TODO only clear the clip area
+	// TODO clear with actual background color
 	bgcolorref = GetSysColor(COLOR_BTNFACE);
 	bgcolor.r = ((float) GetRValue(bgcolorref)) / 255.0;
-	bgcolor.g = ((float) GetGValue(bgcolorref)) / 255.0;
+	// due to utter apathy on Microsoft's part, GetGValue() does not work with MSVC's Run-Time Error Checks
+	// it has not worked since 2008 and they have *never* fixed it
+	bgcolor.g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
 	bgcolor.b = ((float) GetBValue(bgcolorref)) / 255.0;
 	bgcolor.a = 1.0;
 	ID2D1RenderTarget_Clear(rt, &bgcolor);
@@ -193,7 +196,7 @@ static void wheelscroll(uiArea *a, int which, struct scrollParams *p, WPARAM wPa
 	delta += *(p->wheelCarry);
 	lines = delta * ((int) scrollAmount) / WHEEL_DELTA;
 	*(p->wheelCarry) = delta - lines * WHEEL_DELTA / ((int) scrollAmount);
-	return scrollby(a, which, p, -lines);
+	scrollby(a, which, p, -lines);
 }
 
 static void hscrollParams(uiArea *a, struct scrollParams *p)

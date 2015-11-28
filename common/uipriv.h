@@ -9,7 +9,6 @@ extern "C" {
 #define uthash_malloc(sz) uiAlloc((sz), "(uthash internal)")
 #define uthash_free(ptr,sz) uiFree((ptr))
 #include "uthash/uthash.h"
-#include "uthash/utarray.h"
 
 extern uiInitOptions options;
 

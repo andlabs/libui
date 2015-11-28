@@ -309,7 +309,7 @@ void uiDrawPathEnd(uiDrawPath *p)
 
 struct uiDrawContext {
 	ID2D1RenderTarget *rt;
-	UT_array *states;
+	struct ptrArray *states;
 	ID2D1PathGeometry *currentClip;
 };
 
@@ -813,28 +813,22 @@ struct state {
 	ID2D1PathGeometry *clip;
 };
 
-static const UT_icd stateicd = {
-	.sz = sizeof (struct state),
-	.init = NULL,
-	.copy = NULL,
-	.dtor = NULL,
-};
-
 static void initStates(uiDrawContext *c)
 {
-	utarray_new(c->states, &stateicd);
+	c->states = newPtrArray();
 }
 
 static void uninitStates(uiDrawContext *c)
 {
-	if (utarray_len(c->states) > 0)
+	// have a helpful diagnostic here
+	if (c->states->len > 0)
 		complain("imbalanced save/restore count in uiDrawContext in uninitStates(); did you save without restoring?");
-	utarray_free(c->states);
+	ptrArrayDestroy(c->states);
 }
 
 void uiDrawSave(uiDrawContext *c)
 {
-	struct state state;
+	struct state *state;
 	ID2D1DrawingStateBlock *dsb;
 	HRESULT hr;
 
@@ -851,16 +845,17 @@ void uiDrawSave(uiDrawContext *c)
 	if (c->currentClip != NULL)
 		ID2D1PathGeometry_AddRef(c->currentClip);
 
-	state.dsb = dsb;
-	state.clip = c->currentClip;
-	utarray_push_back(c->states, &state);
+	state = uiNew(struct state);
+	state->dsb = dsb;
+	state->clip = c->currentClip;
+	ptrArrayAppend(c->states, state);
 }
 
 void uiDrawRestore(uiDrawContext *c)
 {
 	struct state *state;
 
-	state = (struct state *) utarray_back(c->states);
+	state = ptrArrayIndex(c->states, struct state *, c->states->len - 1);
 
 	ID2D1RenderTarget_RestoreDrawingState(c->rt, state->dsb);
 	ID2D1DrawingStateBlock_Release(state->dsb);
@@ -871,5 +866,6 @@ void uiDrawRestore(uiDrawContext *c)
 	// no need to explicitly addref or release; just transfer the ref
 	c->currentClip = state->clip;
 
-	utarray_pop_back(c->states);
+	uiFree(state);
+	ptrArrayDelete(c->states, c->states->len - 1);
 }

@@ -696,6 +696,8 @@ static LRESULT CALLBACK areaFilterProc(int code, WPARAM wParam, LPARAM lParam)
 		goto callNext;
 
 	// is the recipient an area?
+	if (msg->hwnd == NULL)		// this can happen; for example, WM_TIMER
+		goto callNext;
 	if (windowClassOf(msg->hwnd, areaClass, NULL) != 0)
 		goto callNext;		// nope
 

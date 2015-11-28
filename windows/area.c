@@ -708,7 +708,7 @@ static LRESULT CALLBACK areaFilterProc(int code, WPARAM wParam, LPARAM lParam)
 		break;
 	// otherwise handled remains 0, as we didn't handle this
 	}
-	if (handled)
+	if (!handled)
 		goto callNext;
 
 	// we handled it; discard the message so the dialog manager doesn't see it

@@ -110,7 +110,6 @@ $(OBJDIR)/%.c.o: $$(subst _,/,%).c $(HFILES) | $(OBJDIR)
 	@cl /Fo:$@ /c $< $(CFLAGS) /Fd$@.pdb
 	@echo ====== Compiled $<
 
-# unfortunately rc.exe does not support / as a pathname specifier
 $(OBJDIR)/%.rc.o: $$(subst _,/,%).rc $(HFILES) | $(OBJDIR)
 	@rc /nologo /v /fo $@.res $<
 	@cvtres /nologo /out:$@ $@.res

@@ -1,5 +1,7 @@
 # 16 october 2015
 
+# TODO merge into the main makefile
+
 # TODO silence compiler non-diagnostics (/nologo is not enough)
 
 OBJDIR = .obj

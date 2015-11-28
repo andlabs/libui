@@ -1,5 +1,7 @@
 # 16 october 2015
 
+# TODO warn on MinGW-w64 builds that lack of isolation awareness means no theming
+
 # silence entering/leaving messages
 MAKEFLAGS += --no-print-directory
 

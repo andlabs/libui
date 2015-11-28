@@ -6,6 +6,7 @@
 #pragma code_page(65001)
 
 // this is the Common Controls 6 manifest
+// TODO set up the string values here
 ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "libui.manifest"
 
 // this is the dialog template used by tab pages; see windows/tabpage.c for details

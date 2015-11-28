@@ -80,7 +80,7 @@ OFILES := $(OFILES:%=$(OBJDIR)/%.o)
 # TODO loads of warnings in the system header files
 CFLAGS += \
 	/Zi \
-	/W4 /Wp64 \
+	/W4 \
 	/wd4100 \
 	/TC \
 	/analyze /bigobj /nologo \

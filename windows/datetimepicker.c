@@ -95,7 +95,7 @@ static void setDateTimeFormat(HWND hwnd)
 
 	n = _scwprintf(L"%s %s", date, time);
 	datetime = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
-	snwprintf(datetime, n + 1, L"%s %s", date, time);
+	_snwprintf(datetime, n + 1, L"%s %s", date, time);
 	if (SendMessageW(hwnd, DTM_SETFORMAT, 0, (LPARAM) datetime) == 0)
 		logLastError("error applying format string to date/time picker in setDateTimeFormat()");
 

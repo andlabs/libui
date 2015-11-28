@@ -37,7 +37,7 @@ static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 	wmessage = toUTF16(message);
 	n = _scwprintf(initErrorFormat, initErrorArgs);
 	wstr = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
-	snwprintf(wstr, n + 1, initErrorFormat, initErrorArgs);
+	_snwprintf(wstr, n + 1, initErrorFormat, initErrorArgs);
 	str = toUTF8(wstr);
 	uiFree(wstr);
 	if (hassysmsg)

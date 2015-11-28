@@ -91,7 +91,7 @@ CFLAGS += \
 LDFLAGS += \
 	/dll \
 	/debug \
-	/largeadressaware /nologo \
+	/largeaddressaware /nologo \
 	user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib comdlg32.lib d2d1.lib ole32.lib oleaut32.lib oleacc.lib uuid.lib
 
 OUT = $(OUTDIR)/$(NAME)$(SUFFIX)

@@ -17,6 +17,8 @@
 #define _WIN32_IE 0x0700			/* according to Microsoft's sdkddkver.h */
 #define NTDDI_VERSION 0x06000000	/* according to Microsoft's sdkddkver.h */
 #include <windows.h>
+// Microsoft's resource compiler will segfault if we feed it headers it was not designed to handle
+#ifndef RC_INVOKED
 #include <commctrl.h>
 #include <stdint.h>
 #include <uxtheme.h>
@@ -32,3 +34,4 @@
 #include <math.h>
 #include <d2d1.h>
 #include <float.h>
+#endif

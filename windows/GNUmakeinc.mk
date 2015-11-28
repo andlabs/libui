@@ -12,7 +12,6 @@ CFILES += \
 	windows/control.c \
 	windows/datetimepicker.c \
 	windows/debug.c \
-	windows/dialoghelper.c \
 	windows/draw.c \
 	windows/entry.c \
 	windows/events.c \

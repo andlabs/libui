@@ -89,14 +89,6 @@ extern BOOL runWM_NOTIFY(WPARAM, LPARAM, LRESULT *);
 extern BOOL runWM_HSCROLL(WPARAM, LPARAM, LRESULT *);
 extern void issueWM_WININICHANGE(WPARAM, LPARAM);
 
-// dialoghelper.c
-extern void dialogHelperRegisterWindow(HWND);
-extern void dialogHelperUnregisterWindow(HWND);
-extern ATOM initDialogHelper(HICON, HCURSOR);
-extern void uninitDialogHelper(void);
-extern HWND beginDialogHelper(void);
-extern void endDialogHelper(HWND);
-
 // child.c
 extern struct child *newChild(uiControl *child, uiControl *parent, HWND parentHWND);
 extern struct child *newChildWithTabPage(uiControl *child, uiControl *parent, HWND parentHWND);

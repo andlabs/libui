@@ -120,8 +120,6 @@ static void onDestroy(uiWindow *w)
 	// now free the menubar, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
-	// and finally destroy ourselves
-	dialogHelperUnregisterWindow(w->hwnd);
 }
 
 static void windowCommitShow(uiControl *c)
@@ -287,8 +285,6 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	if (w->hwnd == NULL)
 		logLastError("error creating window in uiWindow()");
 	uiFree(wtitle);
-
-	dialogHelperRegisterWindow(w->hwnd);
 
 	if (hasMenubar) {
 		w->menubar = makeMenubar();

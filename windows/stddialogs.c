@@ -7,12 +7,14 @@
 
 // TODO
 // - http://blogs.msdn.com/b/wpfsdk/archive/2006/10/26/uncommon-dialogs--font-chooser-and-color-picker-dialogs.aspx
+// - when a dialog is active, tab navigation in other windows stops working
 
-char *commonItemDialog(REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd)
+#define windowHWND(w) ((HWND) uiControlHandle(uiControl(w)))
+
+char *commonItemDialog(HWND parent, REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd)
 {
 	IFileDialog *d;
 	FILEOPENDIALOGOPTIONS opts;
-	HWND dialogHelper;
 	IShellItem *result;
 	WCHAR *wname;
 	char *name;
@@ -30,9 +32,7 @@ char *commonItemDialog(REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd
 	hr = IFileDialog_SetOptions(d, opts);
 	if (hr != S_OK)
 		logHRESULT("error setting options in commonItemDialog()", hr);
-	dialogHelper = beginDialogHelper();
-	hr = IFileDialog_Show(d, dialogHelper);
-	endDialogHelper(dialogHelper);
+	hr = IFileDialog_Show(d, parent);
 	if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) {
 		IFileDialog_Release(d);
 		return NULL;
@@ -52,44 +52,45 @@ char *commonItemDialog(REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd
 	return name;
 }
 
-char *uiOpenFile(void)
+char *uiOpenFile(uiWindow *parent)
 {
-	return commonItemDialog(&CLSID_FileOpenDialog, &IID_IFileOpenDialog,
+	return commonItemDialog(windowHWND(parent),
+		&CLSID_FileOpenDialog, &IID_IFileOpenDialog,
 		FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
 }
 
-char *uiSaveFile(void)
+char *uiSaveFile(uiWindow *parent)
 {
-	return commonItemDialog(&CLSID_FileSaveDialog, &IID_IFileSaveDialog,
+	return commonItemDialog(windowHWND(parent),
+		&CLSID_FileSaveDialog, &IID_IFileSaveDialog,
 		// TODO strip FOS_NOREADONLYRETURN?
 		FOS_OVERWRITEPROMPT | FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
 }
 
-static void msgbox(const char *title, const char *description, TASKDIALOG_COMMON_BUTTON_FLAGS buttons, PCWSTR icon)
+// TODO switch to TaskDialogIndirect()?
+
+static void msgbox(HWND parent, const char *title, const char *description, TASKDIALOG_COMMON_BUTTON_FLAGS buttons, PCWSTR icon)
 {
 	WCHAR *wtitle, *wdescription;
-	HWND dialogHelper;
 	HRESULT hr;
 
 	wtitle = toUTF16(title);
 	wdescription = toUTF16(description);
 
-	dialogHelper = beginDialogHelper();
-	hr = TaskDialog(dialogHelper, NULL, NULL, wtitle, wdescription, buttons, icon, NULL);
+	hr = TaskDialog(parent, NULL, NULL, wtitle, wdescription, buttons, icon, NULL);
 	if (hr != S_OK)
 		logHRESULT("error showing task dialog in msgbox()", hr);
-	endDialogHelper(dialogHelper);
 
 	uiFree(wdescription);
 	uiFree(wtitle);
 }
 
-void uiMsgBox(const char *title, const char *description)
+void uiMsgBox(uiWindow *parent, const char *title, const char *description)
 {
-	msgbox(title, description, TDCBF_OK_BUTTON, NULL);
+	msgbox(windowHWND(parent), title, description, TDCBF_OK_BUTTON, NULL);
 }
 
-void uiMsgBoxError(const char *title, const char *description)
+void uiMsgBoxError(uiWindow *parent, const char *title, const char *description)
 {
-	msgbox(title, description, TDCBF_OK_BUTTON, TD_ERROR_ICON);
+	msgbox(windowHWND(parent), title, description, TDCBF_OK_BUTTON, TD_ERROR_ICON);
 }

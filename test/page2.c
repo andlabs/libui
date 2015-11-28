@@ -45,11 +45,14 @@ static void openAnotherWindow(uiButton *bb, void *data)
 	uiBox *b;
 
 	w = uiNewWindow("Another Window", 100, 100, data != NULL);
-	b = uiNewVerticalBox();
-	uiBoxAppend(b, uiControl(uiNewEntry()), 0);
-	uiBoxAppend(b, uiControl(uiNewButton("Button")), 0);
-	uiBoxSetPadded(b, 1);
-	uiWindowSetChild(w, uiControl(b));
+	if (data != NULL) {
+		b = uiNewVerticalBox();
+		uiBoxAppend(b, uiControl(uiNewEntry()), 0);
+		uiBoxAppend(b, uiControl(uiNewButton("Button")), 0);
+		uiBoxSetPadded(b, 1);
+		uiWindowSetChild(w, uiControl(b));
+	} else
+		uiWindowSetChild(w, uiControl(makePage6()));
 	uiWindowSetMargined(w, 1);
 	uiControlShow(uiControl(w));
 }

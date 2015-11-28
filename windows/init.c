@@ -146,9 +146,6 @@ const char *uiInit(uiInitOptions *o)
 	if (InitCommonControlsEx(&icc) == 0)
 		return loadLastError("initializing Common Controls");
 
-	if (initDialogHelper(hDefaultIcon, hDefaultCursor) == 0)
-		return loadLastError("initializing the dialog helper");
-
 	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)
 		return loadHRESULT("initializing COM", hr);
@@ -173,7 +170,6 @@ void uiUninit(void)
 	unregisterArea();
 	uninitDraw();
 	CoUninitialize();
-	uninitDialogHelper();
 	if (DeleteObject(hollowBrush) == 0)
 		logLastError("error freeing hollow brush in uiUninit()");
 	if (SetConsoleCtrlHandler(consoleCtrlHandler, FALSE) == 0)

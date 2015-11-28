@@ -1,24 +1,24 @@
 // 26 june 2015
 #include "uipriv_haiku.hpp"
 
-char *uiOpenFile(void)
+char *uiOpenFile(uiWindow *parent)
 {
 	// TODO
 	return NULL;
 }
 
-char *uiSaveFile(void)
+char *uiSaveFile(uiWindow *parent)
 {
 	// TODO
 	return NULL;
 }
 
-void uiMsgBox(const char *title, const char *description)
+void uiMsgBox(uiWindow *parent, const char *title, const char *description)
 {
 	// TODO
 }
 
-void uiMsgBoxError(const char *title, const char *description)
+void uiMsgBoxError(uiWindow *parent, const char *title, const char *description)
 {
 	// TODO
 }

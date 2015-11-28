@@ -511,6 +511,9 @@ keyFound:
 	return (*(a->ah->KeyEvent))(a->ah, a, &ke);
 }
 
+// We don't handle the standard Windows keyboard messages directly, to avoid both the dialog manager and TranslateMessage().
+// Instead, we set up a message filter and do things there.
+// That stuff is later in this file.
 enum {
 	// start at 0x40 to avoid clobbering dialog messages
 	msgAreaKeyDown = WM_USER + 0x40,
@@ -662,33 +665,6 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 	*height = 0;
 }
 
-// TODO affect visibility properly
-// TODO what did this mean
-void processAreaMessage(HWND active, MSG *msg)
-{
-	LRESULT handled;
-
-	handled = 0;
-	switch (msg->message) {
-	case WM_KEYDOWN:
-	case WM_SYSKEYDOWN:
-		handled = SendMessageW(msg->hwnd, msgAreaKeyDown, msg->wParam, msg->lParam);
-		break;
-	case WM_KEYUP:
-	case WM_SYSKEYUP:
-		handled = SendMessageW(msg->hwnd, msgAreaKeyUp, msg->wParam, msg->lParam);
-		break;
-	}
-	if (handled)
-		return;
-
-	// don't call TranslateMessage(); we do our own keyboard handling
-	// TODO should we just return to the standard message loop?
-	if (IsDialogMessage(active, msg) != 0)
-		return;
-	DispatchMessageW(msg);
-}
-
 ATOM registerAreaClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 {
 	WNDCLASSW wc;
@@ -704,10 +680,59 @@ ATOM registerAreaClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	return RegisterClassW(&wc);
 }
 
-void unregisterAreaClass(void)
+static HHOOK areaFilter;
+
+// TODO affect visibility properly
+// TODO what did this mean
+static LRESULT CALLBACK areaFilterProc(int code, WPARAM wParam, LPARAM lParam)
 {
+	MSG *msg = (MSG *) lParam;
+	LRESULT handled;
+
+	if (code < 0)
+		goto callNext;
+
+	// is the recipient an area?
+	if (windowClassOf(msg->hwnd, areaClass, NULL) != 0)
+		goto callNext;		// nope
+
+	handled = 0;
+	switch (msg->message) {
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+		handled = SendMessageW(msg->hwnd, msgAreaKeyDown, msg->wParam, msg->lParam);
+		break;
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		handled = SendMessageW(msg->hwnd, msgAreaKeyUp, msg->wParam, msg->lParam);
+		break;
+	// otherwise handled remains 0, as we didn't handle this
+	}
+	if (handled)
+		goto callNext;
+
+	// we handled it; discard the message so the dialog manager doesn't see it
+	return 1;
+
+callNext:
+	return CallNextHookEx(areaFilter, code, wParam, lParam);
+}
+
+int registerAreaFilter(void)
+{
+	areaFilter = SetWindowsHookExW(WH_MSGFILTER,
+		areaFilterProc,
+		hInstance,
+		GetCurrentThreadId());
+	return areaFilter != NULL;
+}
+
+void unregisterArea(void)
+{
+	if (UnhookWindowsHookEx(areaFilter) == 0)
+		logLastError("error unregistering uiArea message filter in unregisterArea()");
 	if (UnregisterClassW(areaClass, hInstance) == 0)
-		logLastError("error unregistering uiArea window class in unregisterAreaClass()");
+		logLastError("error unregistering uiArea window class in unregisterArea()");
 }
 
 void uiAreaUpdateScroll(uiArea *a)

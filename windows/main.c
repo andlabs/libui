@@ -13,7 +13,7 @@ void uiMain(void)
 {
 	MSG msg;
 	int res;
-	HWND active, focus;
+	HWND active;
 
 	for (;;) {
 		SetLastError(0);
@@ -28,18 +28,8 @@ void uiMain(void)
 			continue;
 		}
 
-		// bit of logic involved here:
-		// we don't want dialog messages passed into Areas, so we don't call IsDialogMessageW() there
-		// as for Tabs, we can't have both WS_TABSTOP and WS_EX_CONTROLPARENT set at the same time, so we hotswap the two styles to get the behavior we want
-		focus = GetFocus();
-		if (focus != NULL) {
-			switch (windowClassOf(focus, areaClass, NULL)) {
-			case 0:		// uiArea
-				processAreaMessage(active, &msg);
-				continue;
-			}
-			// else fall through
-		}
+		// TODO find documentation that says IsDialogMessage() calls CallMsgFilter() for us, because that's what's happening
+		// TODO rewrite this whole function to compensate
 
 		if (IsDialogMessage(active, &msg) != 0)
 			continue;

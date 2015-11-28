@@ -161,6 +161,8 @@ const char *uiInit(uiInitOptions *o)
 
 	if (registerAreaClass(hDefaultIcon, hDefaultCursor) == 0)
 		return loadLastError("registering uiArea window class");
+	if (registerAreaFilter() == 0)
+		return loadLastError("registering uiArea message filter");
 
 	return NULL;
 }
@@ -168,7 +170,7 @@ const char *uiInit(uiInitOptions *o)
 void uiUninit(void)
 {
 	uninitMenus();
-	unregisterAreaClass();
+	unregisterArea();
 	uninitDraw();
 	CoUninitialize();
 	uninitDialogHelper();

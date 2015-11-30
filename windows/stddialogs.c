@@ -8,6 +8,7 @@
 // TODO
 // - http://blogs.msdn.com/b/wpfsdk/archive/2006/10/26/uncommon-dialogs--font-chooser-and-color-picker-dialogs.aspx
 // - when a dialog is active, tab navigation in other windows stops working
+// - when adding uiOpenFolder(), use IFileDialog as well - https://msdn.microsoft.com/en-us/library/windows/desktop/bb762115%28v=vs.85%29.aspx
 
 #define windowHWND(w) ((HWND) uiControlHandle(uiControl(w)))
 

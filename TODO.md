@@ -1,3 +1,5 @@
+- http://blogs.msdn.com/b/oldnewthing/archive/2004/01/12/57833.aspx provide a DEF file on Windows
+
 - all ports: update state when adding a control to a parent
 - should uiWindowsSizing be computed against the window handle, not the parent?
 

@@ -35,6 +35,3 @@ notes to self
 
 - test RTL
 	- automate RTL
-
-others:
-- theme fonts? http://stackoverflow.com/questions/12251116/getthemefont-function-not-working

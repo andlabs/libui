@@ -106,6 +106,10 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	// figure out dimensions
 	graphSize(p->ClientWidth, p->ClientHeight, &graphWidth, &graphHeight);
 
+	// clear sp to avoid passing garbage to uiDrawStroke()
+	// for example, we don't use dashing
+	memset(&sp, 0, sizeof (uiDrawStrokeParams));
+
 	// make a stroke for both the axes and the histogram line
 	sp.Cap = uiDrawLineCapFlat;
 	sp.Join = uiDrawLineJoinMiter;

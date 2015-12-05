@@ -589,9 +589,11 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd370994%28v=vs.85%29.aspx
 			ID2D1HwndRenderTarget_Resize(a->rt, &size);
 		}
-		if ((*(a->ah->RedrawOnResize))(a->ah, a))
-			if (InvalidateRect(a->hwnd, NULL, TRUE) == 0)
-				logLastError("error redrawing area on resize in areaWndProc()");
+		// according to Rick Brewster, we must always redraw the entire client area after calling ID2D1RenderTarget::Resize() (see http://stackoverflow.com/a/33222983/3408572)
+		// we used to have a uiAreaHandler.RedrawOnResize() method to decide this; now you know why we don't anymore
+		// TODO consider changing the scrolling model
+		if (InvalidateRect(a->hwnd, NULL, TRUE) == 0)
+			logLastError("error redrawing area on resize in areaWndProc()");
 		return 0;
 	case WM_HSCROLL:
 		hscroll(a, wParam, lParam);

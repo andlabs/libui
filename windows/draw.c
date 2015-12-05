@@ -55,7 +55,8 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 	hprops.hwnd = hwnd;
 	hprops.pixelSize.width = r.right - r.left;
 	hprops.pixelSize.height = r.bottom - r.top;
-	hprops.presentOptions = D2D1_PRESENT_OPTIONS_NONE;
+	// according to Rick Brewster, some drivers will misbehave if we don't specify this (see http://stackoverflow.com/a/33222983/3408572)
+	hprops.presentOptions = D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS;
 
 	hr = ID2D1Factory_CreateHwndRenderTarget(d2dfactory,
 		&props,

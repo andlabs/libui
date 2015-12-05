@@ -18,6 +18,7 @@ HWND utilWindow;
 
 static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	void (*qf)(void *);
 	LRESULT lResult;
 
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
@@ -40,6 +41,10 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		return 0;
 	case WM_WININICHANGE:
 		issueWM_WININICHANGE(wParam, lParam);
+		return 0;
+	case msgQueued:
+		qf = (void (*)(void *)) wParam;
+		(*qf)((void *) lParam);
 		return 0;
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);

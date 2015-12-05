@@ -44,3 +44,8 @@ void uiQuit(void)
 	// TODO see window.cpp for why that alone won't work
 	app->Quit();
 }
+
+void uiQueueMain(void (*f)(void *data), void *data)
+{
+	// TODO
+}

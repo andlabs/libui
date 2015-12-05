@@ -29,6 +29,9 @@ _UI_EXTERN void uiFreeInitError(const char *err);
 _UI_EXTERN void uiMain(void);
 _UI_EXTERN void uiQuit(void);
 
+// TODO write a test for this after adding multiline entries
+_UI_EXTERN void uiQueueMain(void (*f)(void *data), void *data);
+
 _UI_EXTERN void uiOnShouldQuit(int (*f)(void *data), void *data);
 
 _UI_EXTERN void uiFreeText(char *text);

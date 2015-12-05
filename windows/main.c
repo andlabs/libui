@@ -41,3 +41,10 @@ void uiQuit(void)
 {
 	PostQuitMessage(0);
 }
+
+void uiQueueMain(void (*f)(void *data), void *data)
+{
+	if (PostMessageW(utilWindow, msgQueued, (WPARAM) f, (LPARAM) data) == 0)
+		// TODO make sure this is safe to call across threads
+		logLastError("error queueing function to run on main thread in uiQueueMain()");
+}

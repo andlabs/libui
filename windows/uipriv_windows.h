@@ -13,6 +13,7 @@ enum {
 	msgNOTIFY,
 	msgHSCROLL,
 	msgConsoleEndSession,
+	msgQueued,
 };
 
 // init.c

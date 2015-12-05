@@ -48,3 +48,28 @@ void uiQuit(void)
 {
 	gdk_threads_add_idle(quit, NULL);
 }
+
+struct queued {
+	void (*f)(void *);
+	void *data;
+};
+
+static gboolean doqueued(gpointer data)
+{
+	struct queued *q = (struct queued *) data;
+
+	(*(q->f))(q->data);
+	uiFree(q);
+	return FALSE;
+}
+
+// TODO document that the effect of calling this function after uiQuit() is called (either directly or via a nonzero return to uiShouldQuit()) is undefined
+void uiQueueMain(void (*f)(void *data), void *data)
+{
+	struct queued *q;
+
+	q = uiNew(struct queued);
+	q->f = f;
+	q->data = data;
+	gdk_threads_add_idle(doqueued, q);
+}

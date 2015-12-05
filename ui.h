@@ -263,6 +263,8 @@ struct uiAreaHandler {
 	uintmax_t (*HScrollMax)(uiAreaHandler *, uiArea *);
 	uintmax_t (*VScrollMax)(uiAreaHandler *, uiArea *);
 	// TODO document that resizes cause a full redraw
+	// TODO if the scrollbars disappear the histogram example won't recognize points in the correct spot until the area is resized
+	// TODO mouse leave event?
 	void (*MouseEvent)(uiAreaHandler *, uiArea *, uiAreaMouseEvent *);
 	void (*DragBroken)(uiAreaHandler *, uiArea *);
 	int (*KeyEvent)(uiAreaHandler *, uiArea *, uiAreaKeyEvent *);

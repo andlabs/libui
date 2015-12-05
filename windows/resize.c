@@ -43,9 +43,10 @@ void doResizes(void)
 
 	while (resizes->len != 0) {
 		w = ptrArrayIndex(resizes, uiWindowsControl *, 0);
-		ptrArrayDelete(resizes, 0);
 		// don't clip content if content dynamically changed (tab page changed, etc.)
+		// do this BEFORE removing w from the queue list to avoid double queueing
 		ensureMinimumWindowSize(uiWindow(w));
+		ptrArrayDelete(resizes, 0);
 		hwnd = (HWND) uiControlHandle(uiControl(w));
 		if (GetClientRect(hwnd, &r) == 0)
 			logLastError("error getting uiWindow client rect in doResizes()");

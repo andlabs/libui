@@ -8,6 +8,7 @@
 // - It handles WM_QUERYENDSESSION and console end session requests.
 // - It has a timer to run resizes.
 // - It handles WM_WININICHANGE and forwards the message to any child windows that request it.
+// - It handles executing functions queued to run by uiQueueMain().
 
 #define utilWindowClass L"libui_utilWindowClass"
 

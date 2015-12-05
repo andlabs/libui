@@ -72,11 +72,6 @@ static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
 	return 0;
 }
 
-static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
-{
-	return 1;
-}
-
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
 {
 	// do nothing
@@ -111,7 +106,6 @@ uiBox *makePage7(void)
 	handler.ah.Draw = handlerDraw;
 	handler.ah.HScrollMax = handlerHScrollMax;
 	handler.ah.VScrollMax = handlerVScrollMax;
-	handler.ah.RedrawOnResize = handlerRedrawOnResize;
 	handler.ah.MouseEvent = handlerMouseEvent;
 	handler.ah.DragBroken = handlerDragBroken;
 	handler.ah.KeyEvent = handlerKeyEvent;

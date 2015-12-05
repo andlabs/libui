@@ -262,8 +262,7 @@ struct uiAreaHandler {
 	void (*Draw)(uiAreaHandler *, uiArea *, uiAreaDrawParams *);
 	uintmax_t (*HScrollMax)(uiAreaHandler *, uiArea *);
 	uintmax_t (*VScrollMax)(uiAreaHandler *, uiArea *);
-	// TODO this mightneed to be made obsolete since Direct2D requires us to redraw the entire backbuffer on a resize
-	int (*RedrawOnResize)(uiAreaHandler *, uiArea *);
+	// TODO document that resizes cause a full redraw
 	void (*MouseEvent)(uiAreaHandler *, uiArea *, uiAreaMouseEvent *);
 	void (*DragBroken)(uiAreaHandler *, uiArea *);
 	int (*KeyEvent)(uiAreaHandler *, uiArea *, uiAreaKeyEvent *);

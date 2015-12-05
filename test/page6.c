@@ -28,12 +28,6 @@ static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
 	return uiSpinboxValue(vamount);
 }
 
-static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
-{
-	// TODO make a checkbox
-	return uiSpinboxValue(hamount) == 0 && uiSpinboxValue(vamount) == 0;
-}
-
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
 {
 	printf("mouse (%d,%d):(%d,%d) down:%d up:%d count:%d mods:%x held:%x\n",
@@ -97,7 +91,6 @@ uiBox *makePage6(void)
 	handler.ah.Draw = handlerDraw;
 	handler.ah.HScrollMax = handlerHScrollMax;
 	handler.ah.VScrollMax = handlerVScrollMax;
-	handler.ah.RedrawOnResize = handlerRedrawOnResize;
 	handler.ah.MouseEvent = handlerMouseEvent;
 	handler.ah.DragBroken = handlerDragBroken;
 	handler.ah.KeyEvent = handlerKeyEvent;

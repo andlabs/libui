@@ -145,8 +145,8 @@ static void areaWidget_size_allocate(GtkWidget *w, GtkAllocation *allocation)
 	ap->clientWidth = allocation->width;
 	ap->clientHeight = allocation->height;
 	updateScroll(areaWidget(w));
-	if ((*(ap->ah->RedrawOnResize))(ap->ah, ap->a))
-		gtk_widget_queue_resize(w);
+	// we must redraw everything on resize because Windows requires it
+	gtk_widget_queue_resize(w);
 }
 
 static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)

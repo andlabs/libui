@@ -172,12 +172,6 @@ static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
 	return 0;
 }
 
-static int handlerRedrawOnResize(uiAreaHandler *a, uiArea *area)
-{
-	// always redraw on resize; we don't scroll
-	return 1;
-}
-
 static int inPoint(double x, double y, double xtest, double ytest)
 {
 	// TODO switch to using a matrix
@@ -248,7 +242,6 @@ int main(void)
 	handler.Draw = handlerDraw;
 	handler.HScrollMax = handlerHScrollMax;
 	handler.VScrollMax = handlerVScrollMax;
-	handler.RedrawOnResize = handlerRedrawOnResize;
 	handler.MouseEvent = handlerMouseEvent;
 	handler.DragBroken = handlerDragBroken;
 	handler.KeyEvent = handlerKeyEvent;

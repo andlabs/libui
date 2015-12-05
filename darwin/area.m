@@ -505,8 +505,8 @@ int sendAreaEvents(NSEvent *e)
 	[self hscrollTo:self->hscrollpos];
 	[self vscrollTo:self->vscrollpos];
 
-	if ((*(self->libui_a->ah->RedrawOnResize))(self->libui_a->ah, self->libui_a))
-		[self->drawingView setNeedsDisplay:YES];
+	// we must redraw everything on resize because Windows requires it
+	[self->drawingView setNeedsDisplay:YES];
 }
 
 - (IBAction)hscrollEvent:(id)sender

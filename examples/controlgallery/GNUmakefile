@@ -3,14 +3,17 @@
 OUT = controlgallery
 
 ifeq ($(OS),windows)
-linkto = ../../out/new.dll
+linkto = ../../out/libui.dll
 CC = i686-w64-mingw32-gcc
+ifeq ($(ARCH),amd64)
+CC = x86_64-w64-mingw32-gcc
+endif
 OUT = controlgallery.exe
 else
 ifeq ($(OS),darwin)
-linkto = ../../out/new.dylib
+linkto = ../../out/libui.dylib
 else
-linkto = ../../out/new.so
+linkto = ../../out/libui.so
 endif
 endif
 

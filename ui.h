@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+// TODO add __declspec(dllimport) on windows
 #ifndef _UI_EXTERN
 #define _UI_EXTERN extern
 #endif

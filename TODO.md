@@ -35,3 +35,5 @@ notes to self
 
 - test RTL
 	- automate RTL
+
+- http://blogs.msdn.com/b/oldnewthing/archive/2014/02/26/10503148.aspx

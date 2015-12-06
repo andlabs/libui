@@ -21,7 +21,7 @@ void tabPageMargins(HWND hwnd, intmax_t *left, intmax_t *top, intmax_t *right, i
 
 // dummy dialog procedure; see below for details
 // let's handle parent messages here to avoid needing to subclass
-// TODO do we need to handle DM_GETDEFID/DM_SETDEFID here too because of the ES_WANTRETURN stuff on oldnewthing (TODO)? what about multiple default buttons (TODO)?
+// TODO do we need to handle DM_GETDEFID/DM_SETDEFID here too because of the ES_WANTRETURN stuff at http://blogs.msdn.com/b/oldnewthing/archive/2007/08/20/4470527.aspx? what about multiple default buttons (TODO)?
 static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT lResult;

@@ -20,6 +20,7 @@ CFILES += \
 	windows/label.c \
 	windows/main.c \
 	windows/menu.c \
+	windows/multilineentry.c \
 	windows/parent.c \
 	windows/progressbar.c \
 	windows/radiobuttons.c \

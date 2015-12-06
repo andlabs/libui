@@ -25,6 +25,7 @@ void sayTime(void *data)
 
 void threadproc(void)
 {
+	ourlock.lock();
 	while (cv.wait_for(ourlock, chrono::seconds(1)) == cv_status::timeout) {
 		time_t t;
 		char *base;
@@ -80,6 +81,8 @@ int main(void)
 
 	uiBoxAppend(b, uiControl(e), 1);
 
+	// timeThread needs to lock ourlock itself - see http://stackoverflow.com/a/34121629/3408572
+	ourlock.unlock();
 	timeThread = new thread(threadproc);
 
 	uiWindowOnClosing(w, onClosing, NULL);

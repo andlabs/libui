@@ -229,6 +229,21 @@ _UI_EXTERN uiDateTimePicker *uiNewDateTimePicker(void);
 _UI_EXTERN uiDateTimePicker *uiNewDatePicker(void);
 _UI_EXTERN uiDateTimePicker *uiNewTimePicker(void);
 
+// TODO merge with uiEntry? some things can't be shared (for instance, the future Invalid()
+// TODO how are line endings converted?
+// TODO provide a facility for allowing horizontal scrolling
+// TODO provide a facility for entering tab stops?
+typedef struct uiMultilineEntry uiMultilineEntry;
+_UI_EXTERN uintmax_t uiMultilineEntryType(void);
+#define uiMultilineEntry(this) ((uiMultilineEntry *) uiIsA((this), uiMultilineEntryType(), 1))
+_UI_EXTERN char *uiMultilineEntryText(uiMultilineEntry *e);
+_UI_EXTERN void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text);
+_UI_EXTERN void uiMultilineEntryAppend(uiMultilineEntry *e, const char *text);
+_UI_EXTERN void uiMultilineEntryOnChanged(uiMultilineEntry *e, void (*f)(uiMultilineEntry *e, void *data), void *data);
+_UI_EXTERN int uiMultilineEntryReadOnly(uiMultilineEntry *e);
+_UI_EXTERN void uiMultilineEntrySetReadOnly(uiMultilineEntry *e, int readonly);
+_UI_EXTERN uiMultilineEntry *uiNewMultilineEntry(void);
+
 typedef struct uiMenu uiMenu;
 typedef struct uiMenuItem uiMenuItem;
 _UI_EXTERN uintmax_t uiMenuType(void);

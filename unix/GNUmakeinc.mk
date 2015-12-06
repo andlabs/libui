@@ -16,6 +16,7 @@ CFILES += \
 	unix/label.c \
 	unix/main.c \
 	unix/menu.c \
+	unix/multilineentry.c \
 	unix/progressbar.c \
 	unix/radiobuttons.c \
 	unix/separator.c \

@@ -37,3 +37,6 @@ notes to self
 	- automate RTL
 
 - http://blogs.msdn.com/b/oldnewthing/archive/2014/02/26/10503148.aspx
+
+notes
+- http://blogs.msdn.com/b/oldnewthing/archive/2004/03/29/101121.aspx on accelerators

@@ -18,6 +18,7 @@ MFILES += \
 	darwin/main.m \
 	darwin/map.m \
 	darwin/menu.m \
+	darwin/multilineentry.m \
 	darwin/progressbar.m \
 	darwin/radiobuttons.m \
 	darwin/separator.m \

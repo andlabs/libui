@@ -5,7 +5,6 @@ This README is being written.
 ## Requirements
 
 * Windows: Windows Vista SP2 with Platform Update or newer
-** At present, you must provide a manifest file
 * Unix: GTK+ 3.4 or newer
 * OS X: OS X 10.7 or newer
 

@@ -11,12 +11,12 @@ This README is being written.
 ## Build Requirements
 
 * All platforms:
-** GNU make 3.81 or newer (Xcode comes with this; on Windows you will need to get it yourself)
+	* GNU make 3.81 or newer (Xcode comes with this; on Windows you will need to get it yourself)
 * Windows: Microsoft Visual Studio 2013 or newer
-** This may be reduced to 2010 if necessary.
-** MinGW is currently unsupported. MinGW-w64 support will be re-added once the following features come in:
-*** [Isolation awareness](https://msdn.microsoft.com/en-us/library/aa375197%28v=vs.85%29.aspx)
-*** Linker symbols for some functions such as `TaskDialog()` (which I thought I submitted...)
+	* This may be reduced to 2010 if necessary.
+	* MinGW is currently unsupported. MinGW-w64 support will be re-added once the following features come in:
+		* [Isolation awareness](https://msdn.microsoft.com/en-us/library/aa375197%28v=vs.85%29.aspx)
+		* Linker symbols for some functions such as `TaskDialog()` (which I thought I submitted...)
 * Unix: nothing specific
 * Mac OS X: nothing specific, so long as you can build Cocoa programs
 

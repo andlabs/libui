@@ -27,14 +27,6 @@ CXXFLAGS += \
 LDFLAGS += \
 	-g
 
-ifeq ($(ARCH),386)
-	CFLAGS += -m32
-	LDFLAGS += -m32
-else ifeq ($(ARCH),amd64)
-	CFLAGS += -m64
-	LDFLAGS += -m64
-endif
-
 OUT = $(OUTDIR)/$(NAME)$(SUFFIX)
 
 ifdef CXXFILES

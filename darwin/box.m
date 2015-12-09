@@ -6,6 +6,7 @@
 // - tab on page 2 is glitched
 // - separators on page 4 have variable padding after them
 // - 10.8: if we switch to page 4, then switch back to page 1, check Spaced, and go back to page 4, some controls (progress bar, popup button) are clipped on the sides
+// - wrong padding between controls in the queuemaintest and the control gallery...
 
 struct uiBox {
 	uiDarwinControl c;

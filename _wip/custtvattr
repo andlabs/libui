@@ -1,0 +1,91 @@
+NSScrollView
+ backgroundColor NSCalibratedWhiteColorSpace 1 1
+ drawsBackground 1
+ borderType 2
+ documentCursor <NSCursor: 0x600000056440>
+ hasHorizontalScroller 0
+ hasVerticalScroller 1
+ autohidesScrollers 0
+ hasHorizontalRuler 0
+ hasVerticalRuler 0
+ rulersVisible 0
+ automaticallyAdjustsContentInsets 1
+ contentInsets left:0 top:0 right:0 bottom:0
+ scrollerInsets left:0 top:0 right:0 bottom:0
+ scrollerKnobStyle 0
+ scrollerStyle 1
+ lineScroll 10
+ horizontalLineScroll 10
+ verticalLineScroll 10
+ pageScroll 10
+ horizontalPageScroll 10
+ verticalPageScroll 10
+ scrollsDynamically 1
+ findBarPosition 1
+ usesPredominantAxisScrolling 0
+ horizontalScrollElasticity 0
+ verticalScrollElasticity 0
+ allowsMagnification 0
+ magnification 1
+ maxMagnification 4
+ minMagnification 0.25
+
+NSTextView
+ textContainerInset {0, 0}
+ textContainerOrigin {0, 0}
+ backgroundColor NSCalibratedWhiteColorSpace 1 1
+ drawsBackground 1
+ allowsDocumentBackgroundColorChange 0
+ allowedInputSourceLocales (null)
+ allowsUndo 1
+ isEditable 1
+ isSelectable 1
+ isFieldEditor 0
+ isRichText 0
+ importsGraphics 0
+ defaultParagraphStyle (null)
+ allowsImageEditing 0
+ isAutomaticQuoteSubstitutionEnabled 1
+ isAutomaticLinkDetectionEnabled 0
+ displaysLinkToolTips 1
+ usesRuler 0
+ isRulerVisible 0
+ usesInspectorBar 0
+ selectionAffinity 1
+ selectionGranularity 0
+ insertionPointColor NSNamedColorSpace System controlTextColor
+ selectedTextAttributes {
+    NSBackgroundColor = "NSNamedColorSpace System selectedTextBackgroundColor";
+    NSColor = "NSNamedColorSpace System selectedTextColor";
+}
+ markedTextAttributes {
+    NSBackgroundColor = "NSCalibratedRGBColorSpace 1 0.866667 0.333333 1";
+}
+ linkTextAttributes {
+    NSColor = "NSCalibratedRGBColorSpace 0 0 1 1";
+    NSCursor = "<NSCursor: 0x6000000599e0>";
+    NSUnderline = 1;
+}
+ typingAttributes (null)
+ smartInsertDeleteEnabled 0
+ isContinuousSpellCheckingEnabled 1
+ isGrammarCheckingEnabled 0
+ acceptsGlyphInfo 0
+ usesFontPanel 0
+ usesFindPanel 1
+ enabledTextCheckingTypes 963
+ isAutomaticDashSubstitutionEnabled 1
+ isAutomaticDataDetectionEnabled 0
+ isAutomaticSpellingCorrectionEnabled 1
+ isAutomaticTextReplacementEnabled 1
+ usesFindBar 0
+ isIncrementalSearchingEnabled 0
+ NSText:
+  font (null)
+  textColor (null)
+  baseWritingDirection -1
+  maxSize {463, 10000000}
+  minSize {238, 133}
+  isVerticallyResizable 1
+  isHorizontallyResizable 0
+

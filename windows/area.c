@@ -24,17 +24,6 @@ uiWindowsDefineControl(
 	uiAreaType							// type function
 )
 
-// see https://sourceforge.net/p/mingw-w64/mailman/message/33176880/
-// TODO highly unsafe code
-static void rtGetSize(ID2D1RenderTarget *rt, D2D1_SIZE_F *size)
-{
-	typedef void (STDMETHODCALLTYPE *gsp)(ID2D1RenderTarget *, D2D1_SIZE_F *);
-	gsp gs;
-
-	gs = (gsp) (rt->lpVtbl->GetSize);
-	(*gs)(rt, size);
-}
-
 static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 {
 	uiAreaHandler *ah = a->ah;
@@ -45,7 +34,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 
 	dp.Context = newContext(rt);
 
-	rtGetSize(rt, &size);
+	ID2D1RenderTarget_GetSize(rt, &size);
 	dp.ClientWidth = size.width;
 	dp.ClientHeight = size.height;
 

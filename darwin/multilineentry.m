@@ -124,6 +124,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	[e->tv setFont:font];
 
 	// TODO this (via https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/TextUILayer/Tasks/TextInScrollView.html) is the magic incantation needed to get things to show up; figure out why
+	// it especially seems weird we're mixing this with auto layout...
 	[e->tv setAutoresizingMask:NSViewWidthSizable];
 
 //TODO	[e->tv setTranslatesAutoresizingMaskIntoConstraints:NO];

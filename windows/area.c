@@ -34,7 +34,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 
 	dp.Context = newContext(rt);
 
-	ID2D1RenderTarget_GetSize(rt, &size);
+	size = ID2D1RenderTarget_GetSize(rt);
 	dp.ClientWidth = size.width;
 	dp.ClientHeight = size.height;
 

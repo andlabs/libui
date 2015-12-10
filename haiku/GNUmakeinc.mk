@@ -15,6 +15,7 @@ CXXFILES += \
 	haiku/label.cpp \
 	haiku/main.cpp \
 	haiku/menu.cpp \
+	haiku/multilineentry.cpp \
 	haiku/progressbar.cpp \
 	haiku/radiobuttons.cpp \
 	haiku/separator.cpp \

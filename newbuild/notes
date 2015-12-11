@@ -1,0 +1,36 @@
+HOW TO BUILD
+Simply type
+
+	make [variables...]
+
+The build-time settings are
+
+	OS=xxx
+		default operating system
+		supported OSs are
+			windows
+			unix
+			darwin
+			haiku
+		this is autodetected by default
+	CFLAGS=xxx
+	CXXFLAGS=xxx
+	LDFLAGS=xxx
+		compiler flags
+		this is where you can specify -m32 or -m64, for instance
+		Objective-C uses $(CFLAGS)
+	NODEBUG=xxx
+		set to 1 to disable debug symbols
+		must be 1, any other value means "include debug symbols"
+
+To build the test program use
+
+	make [variables....] test
+
+The variables are the same as above.
+
+To build an example, use
+
+	make EXAMPLE=name [variables...] example
+
+You must specify the example name.

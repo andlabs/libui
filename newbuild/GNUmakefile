@@ -1,5 +1,8 @@
 # 16 october 2015
 
+# TODO http://stackoverflow.com/questions/4122831/disable-make-builtin-rules-and-variables-from-inside-the-make-file
+# TODO and figure out what variables are predefined
+
 # silence entering/leaving messages
 MAKEFLAGS += --no-print-directory
 
@@ -29,6 +32,7 @@ endif
 
 # TODO $(CC), $(CXX)? if so, $(LD)?
 # TODO quotes for the FLAGS options?
+# TODO use export instead - http://stackoverflow.com/questions/2826029/passing-additional-variables-from-command-line-to-make
 ARGS = \
 	OS=$(OS) \
 	OUTDIR=$(OUTDIR) \

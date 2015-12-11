@@ -1,7 +1,6 @@
 # 16 october 2015
 
 # TODO http://stackoverflow.com/questions/4122831/disable-make-builtin-rules-and-variables-from-inside-the-make-file
-# TODO and figure out what variables are predefined
 
 # silence entering/leaving messages
 MAKEFLAGS += --no-print-directory
@@ -30,35 +29,32 @@ ifndef NODEBUG
 	NODEBUG = 0
 endif
 
-# TODO $(CC), $(CXX)? if so, $(LD)?
-# TODO quotes for the FLAGS options?
-# TODO use export instead - http://stackoverflow.com/questions/2826029/passing-additional-variables-from-command-line-to-make
-ARGS = \
-	OS=$(OS) \
-	OUTDIR=$(OUTDIR) \
-	OBJDIR=$(OBJDIR) \
-	CFLAGS=$(CFLAGS) \
-	CXXFLAGS=$(CXXFLAGS) \
-	LDFLAGS=$(LDFLAGS) \
-	NODEBUG=$(NODEBUG) \
-	inlibuibuild=1
+# parameters
+export OS
+# TODO CC, CXX, RC, CVTRES, LD
+export CFLAGS
+export CXXFLAGS
+# TODO RCFLAGS, CVTRESFLAGS
+export LDFLAGS
+export NODEBUG
+export EXAMPLE
 
-real:
-	@echo $(MAKE)
-	@echo $(ARGS)
+# other important variables
+export OBJDIR
+export OUTDIR
 
 libui:
-	@$(MAKE) -f build/GNUmakefile.libui $(ARGS)
+	@$(MAKE) -f build/GNUmakefile.libui inlibuibuild=1
 
 clean:
 	rm -rf $(OBJDIR) $(OUTDIR)
 
 test: libui
-	@$(MAKE) -f build/GNUmakefile.test $(ARGS)
+	@$(MAKE) -f build/GNUmakefile.test inlibuibuild=1
 
 # TODO provide a build option for the queuemaintest
 
 example: libui
-	@$(MAKE) -f build/GNUmakefile.example $(ARGS) EXAMPLE=$(EXAMPLE)
+	@$(MAKE) -f build/GNUmakefile.example inlibuibuild=1
 
 # TODO examples rule?

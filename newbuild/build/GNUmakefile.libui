@@ -1,0 +1,36 @@
+# 16 october 2015
+
+ifndef inlibuibuild
+$(error Do not run these makefiles directly.)
+endif
+
+# for GCC
+SOVERSION = 0
+
+include $(OS)/GNUosspecific.mk
+include common/GNUfiles.mk
+include $(OS)/GNUfiles.mk
+
+HFILES += \
+	ui.h \
+	ui_$(OS)$(OSHSUFFIX)
+
+NAME = libui
+SUFFIX = $(LIBSUFFIX)
+
+ifeq ($(TOOLCHAIN),gcc)
+	# make every symbol hidden by default except _UI_EXTERN ones
+	# thanks ebassi in irc.gimp.net/#gtk+
+	CFLAGS += \
+		-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
+		-fvisibility=hidden
+	CXXFLAGS += \
+		-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
+		-fvisibility=hidden
+	LDFLAGS += \
+		-fvisibility=hidden
+else
+	# TODO
+endif
+
+include build/GNUbase$(TOOLCHAIN).mk

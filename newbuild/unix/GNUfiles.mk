@@ -31,18 +31,19 @@ CFILES += \
 HFILES += \
 	unix/uipriv_unix.h
 
-# thanks ebassi in irc.gimp.net/#gtk+
-CFLAGS += \
-	-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
-	-fvisibility=hidden \
-	-fPIC \
-	`pkg-config --cflags gtk+-3.0`
+# TODO split into a separate file or put in GNUmakefile.libui somehow?
 
+# flags for building a shared library
+# OS X does support -shared but it has a preferred name for this so let's use that there instead; hence this is not gcc-global
 LDFLAGS += \
-	-fvisibility=hidden \
-	-fPIC \
-	`pkg-config --libs gtk+-3.0` -lm
+	-shared
 
 # flags for warning on undefined symbols
+# this is not gcc-global because OS X doesn't support these flags
 LDFLAGS += \
 	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined
+
+# flags for setting soname
+# this is not gcc-global because OS X uses a different filename format
+LDFLAGS += \
+	-Wl,-soname,$(NAME)$(SUFFIX).$(SOVERSION)

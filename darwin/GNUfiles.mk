@@ -33,19 +33,33 @@ MFILES += \
 HFILES += \
 	darwin/uipriv_darwin.h
 
-CFLAGS += \
-	-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
-	-fvisibility=hidden \
-	-mmacosx-version-min=10.7 \
-	-DMACOSX_DEPLOYMENT_TARGET=10.7
+# TODO split into a separate file or put in GNUmakefile.libui somehow?
 
+# flags for Cocoa
 LDFLAGS += \
-	-fvisibility=hidden \
-	-mmacosx-version-min=10.7 \
 	-lobjc \
 	-framework Foundation \
 	-framework AppKit
 
+# flags for OS X versioning
+CFLAGS += \
+	-mmacosx-version-min=10.7 \
+	-DMACOSX_DEPLOYMENT_TARGET=10.7
+CXXFLAGS += \
+	-mmacosx-version-min=10.7 \
+	-DMACOSX_DEPLOYMENT_TARGET=10.7
+LDFLAGS += \
+	-mmacosx-version-min=10.7
+
+# flags for building a shared library
+LDFLAGS += \
+	-dynamiclib
+
 # on warning about undefined symbols:
 # the gcc flags don't work with Apple's linker
 # fortunately, we don't need any; Apple's linker warns about undefined symbols in -shared builds!
+
+# flags for setting soname
+# TODO -current_version, -compatibility_version
+LDFLAGS += \
+	-Wl,-install_name,$(NAME).$(SOVERSION)$(SUFFIX)

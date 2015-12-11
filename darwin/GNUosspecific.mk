@@ -3,3 +3,4 @@
 EXESUFFIX =
 LIBSUFFIX = .dylib
 OSHSUFFIX = .h
+TOOLCHAIN = gcc

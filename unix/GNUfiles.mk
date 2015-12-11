@@ -33,6 +33,14 @@ HFILES += \
 
 # TODO split into a separate file or put in GNUmakefile.libui somehow?
 
+# flags for GTK+
+CFLAGS += \
+	`pkg-config --cflags gtk+-3.0`
+CXXFLAGS += \
+	`pkg-config --cflags gtk+-3.0`
+LDFLAGS += \
+	`pkg-config --libs gtk+-3.0` -lm
+
 # flags for building a shared library
 # OS X does support -shared but it has a preferred name for this so let's use that there instead; hence this is not gcc-global
 LDFLAGS += \

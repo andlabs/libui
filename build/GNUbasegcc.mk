@@ -27,6 +27,8 @@ ifneq ($(NODEBUG),1)
 	LDFLAGS += -g
 endif
 
+# Build rules.
+
 OFILES = \
 	$(subst /,_,$(CFILES)) \
 	$(subst /,_,$(CXXFILES)) \
@@ -37,10 +39,16 @@ OFILES := $(OFILES:%=$(OBJDIR)/%.o)
 
 OUT = $(OUTDIR)/$(NAME)$(SUFFIX)
 
-# TODO make the linker the C++ compiler in a C++ build if needed
+# TODO allow using LD
+# LD is defined by default so we need a way to override the default define without blocking a user define
+ifeq ($(CXXFILES),)
+	reallinker = $(CC)
+else
+	reallinker = $(CXX)
+endif
 
 $(OUT): $(OFILES) | $(OUTDIR)
-	@$(LD) -o $(OUT) $(OFILES) $(LDFLAGS)
+	@$(reallinker) -o $(OUT) $(OFILES) $(LDFLAGS)
 	@echo ====== Linked $(OUT)
 
 .SECONDEXPANSION:

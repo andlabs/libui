@@ -3,6 +3,7 @@
 EXESUFFIX =
 LIBSUFFIX = .so
 OSHSUFFIX = .hpp
+TOOLCHAIN = gcc
 
 # Force GCC 4; GCC 2 is not supported.
 gccver = $(shell $(CC) --version | sed 's/-.*//g')

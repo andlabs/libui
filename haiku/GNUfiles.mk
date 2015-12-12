@@ -31,17 +31,21 @@ CXXFILES += \
 HFILES += \
 	haiku/uipriv_haiku.hpp
 
-# thanks ebassi in irc.gimp.net/#gtk+
-CXXFLAGS += \
-	-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
-	-fvisibility=hidden \
-	-fPIC
+# TODO split into a separate file or put in GNUmakefile.libui somehow?
 
+# flags for the Haiku API
 LDFLAGS += \
-	-fvisibility=hidden \
-	-fPIC \
 	-lbe
+
+# flags for building a shared library
+LDFLAGS += \
+	-shared
 
 # flags for warning on undefined symbols
 LDFLAGS += \
 	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined
+
+# flags for setting soname
+# TODO is this correct for Haiku?
+LDFLAGS += \
+	-Wl,-soname,$(NAME)$(SUFFIX).$(SOVERSION)

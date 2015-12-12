@@ -96,7 +96,7 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
 	if (w->child != NULL)
-		childDestroy(w->child);
+		childRemove(w->child);
 	w->child = newChildWithBox(child, uiControl(w), w->vboxContainer, w->margined);
 	if (w->child != NULL) {
 		gtk_widget_set_hexpand(childBox(w->child), TRUE);

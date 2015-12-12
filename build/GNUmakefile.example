@@ -1,0 +1,31 @@
+# 16 october 2015
+
+ifndef inlibuibuild
+$(error Do not run these makefiles directly.)
+endif
+ifndef EXAMPLE
+$(error You must specify an example to build by adding EXAMPLE=name to the command line.)
+endif
+
+include $(OS)/GNUosspecific.mk
+
+CFILES += \
+	examples/$(EXAMPLE)/main.c
+
+HFILES += \
+	ui.h
+
+NAME = $(EXAMPLE)
+SUFFIX = $(EXESUFFIX)
+
+# TODO merge with the one in build/GNUmakefile.test
+ifeq ($(TOOLCHAIN),gcc)
+	LDFLAGS += -L$(OUTDIR) -lui
+	# tell the dynamic loader to search in the executable path for shared objects
+	LDFLAGS += -Wl,-rpath='$$ORIGIN'
+else
+	# TODO is there an equivalent to -L?
+	LDFLAGS += $(OUTDIR)/libui.lib
+endif
+
+include build/GNUbase$(TOOLCHAIN).mk

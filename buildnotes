@@ -34,3 +34,5 @@ To build an example, use
 	make EXAMPLE=name [variables...] example
 
 You must specify the example name.
+
+TODO discuss the internals

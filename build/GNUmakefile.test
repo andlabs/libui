@@ -1,0 +1,25 @@
+# 16 october 2015
+
+ifndef inlibuibuild
+$(error Do not run these makefiles directly.)
+endif
+
+include $(OS)/GNUosspecific.mk
+include test/GNUfiles.mk
+
+HFILES += \
+	ui.h
+
+NAME = test
+SUFFIX = $(EXESUFFIX)
+
+ifeq ($(TOOLCHAIN),gcc)
+	LDFLAGS += -L$(OUTDIR) -lui
+	# tell the dynamic loader to search in the executable path for shared objects
+	LDFLAGS += -Wl,-rpath='$$ORIGIN'
+else
+	# TODO is there an equivalent to -L?
+	LDFLAGS += $(OUTDIR)/libui.lib
+endif
+
+include build/GNUbase$(TOOLCHAIN).mk

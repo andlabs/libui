@@ -1,5 +1,7 @@
 # 16 october 2015
 
+# TODO the loader looks for the soname, not the base name, which is frustrating
+
 # Global flags.
 
 CFLAGS += \

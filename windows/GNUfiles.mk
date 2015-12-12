@@ -45,14 +45,18 @@ HFILES += \
 RCFILES += \
 	windows/resources.rc
 
-# thanks ebassi in irc.gimp.net/#gtk+
-CFLAGS += \
-	-D_UI_EXTERN='__declspec(dllexport) extern'
+# TODO split into a separate file or put in GNUmakefile.libui somehow?
 
+# flags for the Windows API
 LDFLAGS += \
-	-static-libgcc \
-	-luser32 -lkernel32 -lgdi32 -lcomctl32 -luxtheme -lmsimg32 -lcomdlg32 -ld2d1 -lole32 -loleaut32 -loleacc -luuid
+	user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib comdlg32.lib d2d1.lib ole32.lib oleaut32.lib oleacc.lib uuid.lib
 
-# warnings on undefined symbols
+# flags for building a shared library
 LDFLAGS += \
-	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined
+	/dll
+
+# TODO flags for warning on undefined symbols
+
+# no need for a soname
+
+# TODO .def file

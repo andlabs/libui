@@ -30,7 +30,12 @@ ifeq ($(TOOLCHAIN),gcc)
 	LDFLAGS += \
 		-fvisibility=hidden
 else
-	# TODO
+	# make every symbol hidden by default except _UI_EXTERN ones
+	# TODO autogenerate a .def file?
+	CFLAGS += \
+		/D "_UI_EXTERN=__declspec(dllexport) extern"
+	CXXFLAGS += \
+		/D "_UI_EXTERN=__declspec(dllexport) extern"
 endif
 
 include build/GNUbase$(TOOLCHAIN).mk

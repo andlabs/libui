@@ -317,7 +317,7 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 	me.X = (xpix * 96) / dpix;
 	me.Y = (ypix * 96) / dpiy;
 
-	rtGetSize((ID2D1RenderTarget *) (a->rt), &size);
+	size = ID2D1HwndRenderTarget_GetSize(a->rt);
 	me.ClientWidth = size.width;
 	me.ClientHeight = size.height;
 	me.HScrollPos = a->hscrollpos;

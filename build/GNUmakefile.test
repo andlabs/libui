@@ -16,8 +16,7 @@ SUFFIX = $(EXESUFFIX)
 ifeq ($(TOOLCHAIN),gcc)
 	LDFLAGS += -L$(OUTDIR) -lui
 	# tell the dynamic loader to search in the executable path for shared objects
-	# TODO OS X complains if we do -rpath=$ORIGIN
-	# see if Unix complains too
+	# note: OS X's linker complains if we say -rpath= instead of -rpath,
 	LDFLAGS += -Wl,-rpath,'$$ORIGIN'
 else
 	# TODO is there an equivalent to -L?

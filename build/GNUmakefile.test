@@ -16,7 +16,9 @@ SUFFIX = $(EXESUFFIX)
 ifeq ($(TOOLCHAIN),gcc)
 	LDFLAGS += -L$(OUTDIR) -lui
 	# tell the dynamic loader to search in the executable path for shared objects
-	LDFLAGS += -Wl,-rpath='$$ORIGIN'
+	# TODO OS X complains if we do -rpath=$ORIGIN
+	# see if Unix complains too
+	LDFLAGS += -Wl,-rpath,'$$ORIGIN'
 else
 	# TODO is there an equivalent to -L?
 	LDFLAGS += $(OUTDIR)/libui.lib

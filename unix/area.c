@@ -95,6 +95,7 @@ static void areaWidget_init(areaWidget *a)
 	a->priv = G_TYPE_INSTANCE_GET_PRIVATE(a, areaWidgetType, struct areaPrivate);
 
 	// for events
+	// TODO is this sufficient for enter-notify-event and leave-notify-event?
 	gtk_widget_add_events(GTK_WIDGET(a),
 		GDK_POINTER_MOTION_MASK |
 		GDK_BUTTON_MOTION_MASK |
@@ -311,7 +312,7 @@ static gboolean areaWidget_motion_notify_event(GtkWidget *w, GdkEventMotion *e)
 // we want switching away from the control to reset the double-click counter, like with WM_ACTIVATE on Windows
 // according to tristan in irc.gimp.net/#gtk+, doing this on enter-notify-event and leave-notify-event is correct (and it seems to be true in my own tests; plus the events DO get sent when switching programs with the keyboard (just pointing that out))
 // differentiating between enter-notify-event and leave-notify-event is unimportant
-gboolean areaWidget_enterleave_notify_event(GtkWidget *w, GdkEventCrossing *e)
+static gboolean areaWidget_enterleave_notify_event(GtkWidget *w, GdkEventCrossing *e)
 {
 	struct areaPrivate *ap = areaWidget(w)->priv;
 

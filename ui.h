@@ -284,7 +284,7 @@ struct uiAreaHandler {
 	void (*MouseEvent)(uiAreaHandler *, uiArea *, uiAreaMouseEvent *);
 	// TODO document that on first show if the mouse is already in the uiArea then one gets sent with left=0
 	// TODO what about when the area is hidden and then shown again?
-	void (*MouseCrossed)(uiAreaHandler *, int left);
+	void (*MouseCrossed)(uiAreaHandler *, uiArea *, int left);
 	void (*DragBroken)(uiAreaHandler *, uiArea *);
 	int (*KeyEvent)(uiAreaHandler *, uiArea *, uiAreaKeyEvent *);
 };

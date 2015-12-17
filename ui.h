@@ -279,26 +279,30 @@ typedef struct uiDrawContext uiDrawContext;
 
 struct uiAreaHandler {
 	void (*Draw)(uiAreaHandler *, uiArea *, uiAreaDrawParams *);
-	uintmax_t (*HScrollMax)(uiAreaHandler *, uiArea *);
-	uintmax_t (*VScrollMax)(uiAreaHandler *, uiArea *);
-	// TODO document that resizes cause a full redraw
+	// TODO document that resizes cause a full redraw for non-scrolling areas; implementation-defined for scrolling areas
 	// TODO if the scrollbars disappear the histogram example won't recognize points in the correct spot until the area is resized
-	// TODO mouse leave event?
 	void (*MouseEvent)(uiAreaHandler *, uiArea *, uiAreaMouseEvent *);
+	// TODO document that on first show if the mouse is already in the uiArea then one gets sent with left=0
+	// TODO what about when the area is hidden and then shown again?
+	void (*MouseCrossed)(uiAreaHandler *, int left);
 	void (*DragBroken)(uiAreaHandler *, uiArea *);
 	int (*KeyEvent)(uiAreaHandler *, uiArea *, uiAreaKeyEvent *);
 };
 
 _UI_EXTERN uintmax_t uiMenuItemType(void);
 #define uiArea(this) ((uiArea *) uiIsA((this), uiAreaType(), 1))
-_UI_EXTERN void uiAreaUpdateScroll(uiArea *a);
+// TODO give a better name
+_UI_EXTERN void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height);
 // TODO uiAreaQueueRedraw()
 _UI_EXTERN void uiAreaQueueRedrawAll(uiArea *a);
 _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);
+_UI_EXTERN uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height);
 
 struct uiAreaDrawParams {
 	uiDrawContext *Context;
 
+	// TODO document that this is only defined for nonscrolling areas
+	// TODO rename to AreaWidth/Height?
 	double ClientWidth;
 	double ClientHeight;
 

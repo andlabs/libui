@@ -15,7 +15,7 @@ typedef struct areaWidgetClass areaWidgetClass;
 
 struct areaWidget {
 	GtkDrawingArea parent_instance;
-	struct areaPrivate *priv;
+	uiArea *a;
 };
 
 struct areaWidgetClass {
@@ -30,10 +30,7 @@ struct uiArea {
 	GtkWidget *areaWidget;
 	GtkDrawingArea *drawingArea;
 	areaWidget *area;
-};
 
-struct areaPrivate {
-	uiArea *a;
 	uiAreaHandler *ah;
 
 	// TODO get rid of the need for these
@@ -45,13 +42,11 @@ struct areaPrivate {
 
 G_DEFINE_TYPE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA)
 
-static void areaWidget_init(areaWidget *a)
+static void areaWidget_init(areaWidget *aw)
 {
-	a->priv = G_TYPE_INSTANCE_GET_PRIVATE(a, areaWidgetType, struct areaPrivate);
-
 	// for events
 	// TODO is this sufficient for enter-notify-event and leave-notify-event?
-	gtk_widget_add_events(GTK_WIDGET(a),
+	gtk_widget_add_events(GTK_WIDGET(aw),
 		GDK_POINTER_MOTION_MASK |
 		GDK_BUTTON_MOTION_MASK |
 		GDK_BUTTON_PRESS_MASK |
@@ -63,15 +58,15 @@ static void areaWidget_init(areaWidget *a)
 /*
 	// for scrolling
 	// TODO do we need GDK_TOUCH_MASK?
-	gtk_widget_add_events(GTK_WIDGET(a),
+	gtk_widget_add_events(GTK_WIDGET(aw),
 		GDK_SCROLL_MASK |
 		GDK_TOUCH_MASK |
 		GDK_SMOOTH_SCROLL_MASK);
 */
 
-	gtk_widget_set_can_focus(GTK_WIDGET(a), TRUE);
+	gtk_widget_set_can_focus(GTK_WIDGET(aw), TRUE);
 
-	clickCounterReset(&(a->priv->cc));
+	clickCounterReset(&(aw->a->cc));
 }
 
 static void areaWidget_dispose(GObject *obj)
@@ -86,32 +81,37 @@ static void areaWidget_finalize(GObject *obj)
 
 static void areaWidget_size_allocate(GtkWidget *w, GtkAllocation *allocation)
 {
-	struct areaPrivate *ap = areaWidget(w)->priv;
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
 
 	// GtkDrawingArea has a size_allocate() implementation; we need to call it
 	// this will call gtk_widget_set_allocation() for us
 	GTK_WIDGET_CLASS(areaWidget_parent_class)->size_allocate(w, allocation);
-	ap->clientWidth = allocation->width;
-	ap->clientHeight = allocation->height;
-	// we must redraw everything on resize because Windows requires it
-	gtk_widget_queue_resize(w);
+
+	if (!a->scrolling)
+		// we must redraw everything on resize because Windows requires it
+		gtk_widget_queue_resize(w);
 }
 
 static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 {
-	areaWidget *a = areaWidget(w);
-	struct areaPrivate *ap = a->priv;
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
 	uiAreaDrawParams dp;
 	double clipX0, clipY0, clipX1, clipY1;
 
 	dp.Context = newContext(cr);
 
-	// TODO set to 0 for scrolling
-	// these are already in drawing space coordinates
-	// the size of drawing space has the same value as the widget allocation
-	// thanks to tristan in irc.gimp.net/#gtk+
-	dp.AreaWidth = ap->clientWidth;
-	dp.AreaHeight = ap->clientHeight;
+	if (a->scrolling) {
+		dp.AreaWidth = 0;
+		dp.AreaHeight = 0;
+	} else {
+		// these are already in drawing space coordinates
+		// the size of drawing space has the same value as the widget allocation
+		// thanks to tristan in irc.gimp.net/#gtk+
+		dp.AreaWidth = a->clientWidth;
+		dp.AreaHeight = a->clientHeight;
+	}
 
 	cairo_clip_extents(cr, &clipX0, &clipY0, &clipX1, &clipY1);
 	dp.ClipX = clipX0;
@@ -120,7 +120,7 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	dp.ClipHeight = clipY1 - clipY0;
 
 	// no need to save or restore the graphics state to reset transformations; GTK+ does that for us
-	(*(ap->ah->Draw))(ap->ah, ap->a, &dp);
+	(*(a->ah->Draw))(a->ah, a, &dp);
 
 	freeContext(dp.Context);
 	return FALSE;
@@ -160,7 +160,7 @@ static uiModifiers toModifiers(guint state)
 }
 
 // capture on drag is done automatically on GTK+
-static void finishMouseEvent(struct areaPrivate *ap, uiAreaMouseEvent *me, guint mb, gdouble x, gdouble y, guint state, GdkWindow *window)
+static void finishMouseEvent(uiArea *a, uiAreaMouseEvent *me, guint mb, gdouble x, gdouble y, guint state, GdkWindow *window)
 {
 	// on GTK+, mouse buttons 4-7 are for scrolling; if we got here, that's a mistake
 	if (mb >= 4 && mb <= 7)
@@ -191,16 +191,21 @@ static void finishMouseEvent(struct areaPrivate *ap, uiAreaMouseEvent *me, guint
 	me->X = x;
 	me->Y = y;
 
-	// TODO set to 0 for scrollables
-	me->AreaWidth = ap->clientWidth;
-	me->AreaHeight = ap->clientHeight;
+	if (a->scrolling) {
+		me->AreaWidth = 0;
+		me->AreaHeight = 0;
+	} else {
+		me->AreaWidth = a->clientWidth;
+		me->AreaHeight = a->clientHeight;
+	}
 
-	(*(ap->ah->MouseEvent))(ap->ah, ap->a, me);
+	(*(a->ah->MouseEvent))(a->ah, a, me);
 }
 
 static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 {
-	struct areaPrivate *ap = areaWidget(w)->priv;
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
 	gint maxTime, maxDistance;
 	GtkSettings *settings;
 	uiAreaMouseEvent me;
@@ -218,51 +223,62 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 		"gtk-double-click-distance", &maxDistance,
 		NULL);
 	// TODO unref settings?
-	me.Count = clickCounterClick(&(ap->cc), me.Down,
+	me.Count = clickCounterClick(&(a->cc), me.Down,
 		e->x, e->y,
 		e->time, maxTime,
 		maxDistance, maxDistance);
 
 	me.Down = e->button;
 	me.Up = 0;
-	finishMouseEvent(ap, &me, e->button, e->x, e->y, e->state, e->window);
+	finishMouseEvent(a, &me, e->button, e->x, e->y, e->state, e->window);
 	return GDK_EVENT_PROPAGATE;
 }
 
 static gboolean areaWidget_button_release_event(GtkWidget *w, GdkEventButton *e)
 {
-	struct areaPrivate *ap = areaWidget(w)->priv;
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
 	uiAreaMouseEvent me;
 
 	me.Down = 0;
 	me.Up = e->button;
 	me.Count = 0;
-	finishMouseEvent(ap, &me, e->button, e->x, e->y, e->state, e->window);
+	finishMouseEvent(a, &me, e->button, e->x, e->y, e->state, e->window);
 	return GDK_EVENT_PROPAGATE;
 }
 
 static gboolean areaWidget_motion_notify_event(GtkWidget *w, GdkEventMotion *e)
 {
-	struct areaPrivate *ap = areaWidget(w)->priv;
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
 	uiAreaMouseEvent me;
 
 	me.Down = 0;
 	me.Up = 0;
 	me.Count = 0;
-	finishMouseEvent(ap, &me, 0, e->x, e->y, e->state, e->window);
+	finishMouseEvent(a, &me, 0, e->x, e->y, e->state, e->window);
 	return GDK_EVENT_PROPAGATE;
 }
 
 // we want switching away from the control to reset the double-click counter, like with WM_ACTIVATE on Windows
-// according to tristan in irc.gimp.net/#gtk+, doing this on enter-notify-event and leave-notify-event is correct (and it seems to be true in my own tests; plus the events DO get sent when switching programs with the keyboard (just pointing that out))
-// differentiating between enter-notify-event and leave-notify-event is unimportant
-static gboolean areaWidget_enterleave_notify_event(GtkWidget *w, GdkEventCrossing *e)
+// according to tristan in irc.gimp.net/#gtk+, doing this on both enter-notify-event and leave-notify-event is correct (and it seems to be true in my own tests; plus the events DO get sent when switching programs with the keyboard (just pointing that out))
+static gboolean onCrossing(areaWidget *aw, int left)
 {
-	struct areaPrivate *ap = areaWidget(w)->priv;
+	uiArea *a = aw->a;
 
-	// TODO call MouseCrossed
-	clickCounterReset(&(ap->cc));
+	(*(a->ah->MouseCrossing))(a->ah, a, left);
+	clickCounterReset(&(a->cc));
 	return GDK_EVENT_PROPAGATE;
+}
+
+static gboolean areaWidget_enter_notify_event(GtkWidget *w, GdkEventCrossing *e)
+{
+	return onCrossing(areaWidget(w), 0);
+}
+
+static gboolean areaWidget_leave_notify_event(GtkWidget *w, GdkEventCrossing *e)
+{
+	return onCrossing(areaWidget(w), 1);
 }
 
 // note: there is no equivalent to WM_CAPTURECHANGED on GTK+; there literally is no way to break a grab like that (at least not on X11 and Wayland)
@@ -324,7 +340,7 @@ static const struct {
 	{ GDK_KEY_Print, 0 },
 };
 
-static int areaKeyEvent(struct areaPrivate *ap, int up, GdkEventKey *e)
+static int areaKeyEvent(uiArea *a, int up, GdkEventKey *e)
 {
 	uiAreaKeyEvent ke;
 	guint state;
@@ -360,42 +376,43 @@ static int areaKeyEvent(struct areaPrivate *ap, int up, GdkEventKey *e)
 	return 0;
 
 keyFound:
-	return (*(ap->ah->KeyEvent))(ap->ah, ap->a, &ke);
+	return (*(a->ah->KeyEvent))(a->ah, a, &ke);
 }
 
 static gboolean areaWidget_key_press_event(GtkWidget *w, GdkEventKey *e)
 {
-	struct areaPrivate *ap = areaWidget(w)->priv;
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
 
-	if (areaKeyEvent(ap, 0, e))
+	if (areaKeyEvent(a, 0, e))
 		return GDK_EVENT_STOP;
 	return GDK_EVENT_PROPAGATE;
 }
 
 static gboolean areaWidget_key_release_event(GtkWidget *w, GdkEventKey *e)
 {
-	struct areaPrivate *ap = areaWidget(w)->priv;
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
 
-	if (areaKeyEvent(ap, 1, e))
+	if (areaKeyEvent(a, 1, e))
 		return GDK_EVENT_STOP;
 	return GDK_EVENT_PROPAGATE;
 }
 
 enum {
-	pAreaHandler = 1,
+	pArea = 1,
 	nProps,
 };
 
-static GParamSpec *pspecAreaHandler;
+static GParamSpec *pspecArea;
 
 static void areaWidget_set_property(GObject *obj, guint prop, const GValue *value, GParamSpec *pspec)
 {
-	areaWidget *a = areaWidget(obj);
-	struct areaPrivate *ap = a->priv;
+	areaWidget *aw = areaWidget(obj);
 
 	switch (prop) {
-	case pAreaHandler:
-		ap->ah = (uiAreaHandler *) g_value_get_pointer(value);
+	case pArea:
+		aw->a = (uiArea *) g_value_get_pointer(value);
 		return;
 	}
 	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop, pspec);
@@ -420,18 +437,16 @@ static void areaWidget_class_init(areaWidgetClass *class)
 	GTK_WIDGET_CLASS(class)->button_press_event = areaWidget_button_press_event;
 	GTK_WIDGET_CLASS(class)->button_release_event = areaWidget_button_release_event;
 	GTK_WIDGET_CLASS(class)->motion_notify_event = areaWidget_motion_notify_event;
-	GTK_WIDGET_CLASS(class)->enter_notify_event = areaWidget_enterleave_notify_event;
-	GTK_WIDGET_CLASS(class)->leave_notify_event = areaWidget_enterleave_notify_event;
+	GTK_WIDGET_CLASS(class)->enter_notify_event = areaWidget_enter_notify_event;
+	GTK_WIDGET_CLASS(class)->leave_notify_event = areaWidget_leave_notify_event;
 	GTK_WIDGET_CLASS(class)->key_press_event = areaWidget_key_press_event;
 	GTK_WIDGET_CLASS(class)->key_release_event = areaWidget_key_release_event;
 
-	g_type_class_add_private(G_OBJECT_CLASS(class), sizeof (struct areaPrivate));
-
-	pspecAreaHandler = g_param_spec_pointer("area-handler",
-		"area-handler",
-		"Area handler.",
+	pspecArea = g_param_spec_pointer("libui-area",
+		"libui-area",
+		"uiArea.",
 		G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
-	g_object_class_install_property(G_OBJECT_CLASS(class), pAreaHandler, pspecAreaHandler);
+	g_object_class_install_property(G_OBJECT_CLASS(class), pArea, pspecArea);
 }
 
 // control implementation
@@ -462,7 +477,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	a->sw = GTK_SCROLLED_WINDOW(a->widget);
 
 	a->areaWidget = GTK_WIDGET(g_object_new(areaWidgetType,
-		"area-handler", ah,
+		"libui-area", a,
 		NULL));
 	a->drawingArea = GTK_DRAWING_AREA(a->areaWidget);
 	a->area = areaWidget(a->areaWidget);

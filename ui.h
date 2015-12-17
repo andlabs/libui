@@ -302,18 +302,14 @@ struct uiAreaDrawParams {
 	uiDrawContext *Context;
 
 	// TODO document that this is only defined for nonscrolling areas
-	// TODO rename to AreaWidth/Height?
-	double ClientWidth;
-	double ClientHeight;
+	double AreaWidth;
+	double AreaHeight;
 
 	// TODO keep this?
-	intmax_t ClipX;
-	intmax_t ClipY;
-	intmax_t ClipWidth;
-	intmax_t ClipHeight;
-
-	intmax_t HScrollPos;
-	intmax_t VScrollPos;
+	double ClipX;
+	double ClipY;
+	double ClipWidth;
+	double ClipHeight;
 };
 
 typedef struct uiDrawPath uiDrawPath;
@@ -464,14 +460,15 @@ typedef enum uiModifiers {
 	uiModifierSuper = 1 << 3,
 } uiModifiers;
 
+// TODO document drag captures
 struct uiAreaMouseEvent {
+	// TODO document what these mean for scrolling areas
 	double X;
 	double Y;
 
-	double ClientWidth;
-	double ClientHeight;
-	intmax_t HScrollPos;
-	intmax_t VScrollPos;
+	// TODO see draw above
+	double AreaWidth;
+	double AreaHeight;
 
 	uintmax_t Down;
 	uintmax_t Up;

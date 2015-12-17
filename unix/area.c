@@ -24,18 +24,19 @@ struct areaWidgetClass {
 
 struct uiArea {
 	uiUnixControl c;
-	GtkWidget *widget;
+	GtkWidget *widget;		// either swidget or areaWidget depending on whether it is scrolling
+
+	GtkWidget *swidget;
 	GtkContainer *scontainer;
 	GtkScrolledWindow *sw;
+
 	GtkWidget *areaWidget;
 	GtkDrawingArea *drawingArea;
 	areaWidget *area;
 
 	uiAreaHandler *ah;
 
-	// TODO get rid of the need for these
-	int clientWidth;
-	int clientHeight;
+	gboolean scrolling;
 
 	clickCounter cc;
 };
@@ -93,6 +94,23 @@ static void areaWidget_size_allocate(GtkWidget *w, GtkAllocation *allocation)
 		gtk_widget_queue_resize(w);
 }
 
+static void loadAreaSize(uiArea *a, double *width, double *height)
+{
+	GtkAllocation allocation;
+
+	*width = 0;
+	*height = 0;
+	// don't provide size information for scrolling areas
+	if (!a->scrolling) {
+		gtk_widget_get_allocation(a->areaWidget, &allocation);
+		// these are already in drawing space coordinates
+		// for drawing, the size of drawing space has the same value as the widget allocation
+		// thanks to tristan in irc.gimp.net/#gtk+
+		*width = allocation.width;
+		*height = allocation.height;
+	}
+}
+
 static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 {
 	areaWidget *aw = areaWidget(w);
@@ -102,16 +120,7 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 
 	dp.Context = newContext(cr);
 
-	if (a->scrolling) {
-		dp.AreaWidth = 0;
-		dp.AreaHeight = 0;
-	} else {
-		// these are already in drawing space coordinates
-		// the size of drawing space has the same value as the widget allocation
-		// thanks to tristan in irc.gimp.net/#gtk+
-		dp.AreaWidth = a->clientWidth;
-		dp.AreaHeight = a->clientHeight;
-	}
+	loadAreaSize(a, &(dp.AreaWidth), &(dp.AreaHeight));
 
 	cairo_clip_extents(cr, &clipX0, &clipY0, &clipX1, &clipY1);
 	dp.ClipX = clipX0;
@@ -191,13 +200,7 @@ static void finishMouseEvent(uiArea *a, uiAreaMouseEvent *me, guint mb, gdouble 
 	me->X = x;
 	me->Y = y;
 
-	if (a->scrolling) {
-		me->AreaWidth = 0;
-		me->AreaHeight = 0;
-	} else {
-		me->AreaWidth = a->clientWidth;
-		me->AreaHeight = a->clientHeight;
-	}
+	loadAreaSize(a, &(me->AreaWidth), &(me->AreaHeight));
 
 	(*(a->ah->MouseEvent))(a->ah, a, me);
 }

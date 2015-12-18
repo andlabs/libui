@@ -16,6 +16,10 @@ typedef struct areaWidgetClass areaWidgetClass;
 struct areaWidget {
 	GtkDrawingArea parent_instance;
 	uiArea *a;
+	// construct-only parameters aare not set until after the init() function has returned
+	// we need this particular object available during init(), so put it here instead of in uiArea
+	// keep a pointer in uiArea for convenience, though
+	clickCounter cc;
 };
 
 struct areaWidgetClass {
@@ -40,7 +44,8 @@ struct uiArea {
 	intmax_t scrollWidth;
 	intmax_t scrollHeight;
 
-	clickCounter cc;
+	// note that this is a pointer; see above
+	clickCounter *cc;
 };
 
 G_DEFINE_TYPE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA)
@@ -55,7 +60,9 @@ static void areaWidget_init(areaWidget *aw)
 		GDK_BUTTON_PRESS_MASK |
 		GDK_BUTTON_RELEASE_MASK |
 		GDK_KEY_PRESS_MASK |
-		GDK_KEY_RELEASE_MASK);
+		GDK_KEY_RELEASE_MASK |
+		GDK_ENTER_NOTIFY_MASK |
+		GDK_LEAVE_NOTIFY_MASK);
 
 	// TODO are these still needed?
 /*
@@ -69,7 +76,7 @@ static void areaWidget_init(areaWidget *aw)
 
 	gtk_widget_set_can_focus(GTK_WIDGET(aw), TRUE);
 
-	clickCounterReset(&(aw->a->cc));
+	clickCounterReset(&(aw->cc));
 }
 
 static void areaWidget_dispose(GObject *obj)
@@ -256,7 +263,7 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 		"gtk-double-click-distance", &maxDistance,
 		NULL);
 	// TODO unref settings?
-	me.Count = clickCounterClick(&(a->cc), me.Down,
+	me.Count = clickCounterClick(a->cc, me.Down,
 		e->x, e->y,
 		e->time, maxTime,
 		maxDistance, maxDistance);
@@ -300,7 +307,7 @@ static gboolean onCrossing(areaWidget *aw, int left)
 	uiArea *a = aw->a;
 
 	(*(a->ah->MouseCrossed))(a->ah, a, left);
-	clickCounterReset(&(a->cc));
+	clickCounterReset(a->cc);
 	return GDK_EVENT_PROPAGATE;
 }
 
@@ -446,6 +453,7 @@ static void areaWidget_set_property(GObject *obj, guint prop, const GValue *valu
 	switch (prop) {
 	case pArea:
 		aw->a = (uiArea *) g_value_get_pointer(value);
+		aw->a->cc = &(aw->cc);
 		return;
 	}
 	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop, pspec);
@@ -509,6 +517,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 
 	a = (uiArea *) uiNewControl(uiAreaType());
 
+	a->ah = ah;
 	a->scrolling = FALSE;
 
 	a->areaWidget = GTK_WIDGET(g_object_new(areaWidgetType,
@@ -530,6 +539,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 
 	a = (uiArea *) uiNewControl(uiAreaType());
 
+	a->ah = ah;
 	a->scrolling = TRUE;
 	a->scrollWidth = width;
 	a->scrollHeight = height;

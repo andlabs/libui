@@ -17,8 +17,12 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 	a = (uiArea *) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 	if (a == NULL) {
-		if (uMsg == WM_CREATE)
-			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (cs->lpCreateParams));
+		if (uMsg == WM_CREATE) {
+			a = (uiArea *) (cs->lpCreateParams);
+			// assign a->hwnd here so we can use it immediately
+			a->hwnd = hwnd;
+			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) a);
+		}
 		// fall through to DefWindowProcW() anyway
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	}
@@ -103,7 +107,8 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	a->scrolling = FALSE;
 	clickCounterReset(&(a->cc));
 
-	a->hwnd = uiWindowsEnsureCreateControlHWND(0,
+	// a->hwnd is assigned in areaWndProc()
+	uiWindowsEnsureCreateControlHWND(0,
 		areaClass, L"",
 		0,
 		hInstance, a,
@@ -126,13 +131,14 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 	a->scrollHeight = height;
 	clickCounterReset(&(a->cc));
 
-	a->hwnd = uiWindowsEnsureCreateControlHWND(0,
+	// a->hwnd is assigned in areaWndProc()
+	uiWindowsEnsureCreateControlHWND(0,
 		areaClass, L"",
 		WS_HSCROLL | WS_VSCROLL,
 		hInstance, a,
 		FALSE);
 
-	areaUpdateScroll(a->hwnd);
+	areaUpdateScroll(a);
 
 	uiWindowsFinishNewControl(a, uiArea);
 

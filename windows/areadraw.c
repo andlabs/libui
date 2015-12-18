@@ -12,17 +12,18 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 
 	dp.Context = newContext(rt);
 
-	size = ID2D1RenderTarget_GetSize(rt);
-	dp.ClientWidth = size.width;
-	dp.ClientHeight = size.height;
+	dp.AreaWidth = 0;
+	dp.AreaHeight = 0;
+	if (!a->scrolling) {
+		size = ID2D1RenderTarget_GetSize(rt);
+		dp.AreaWidth = size.width;
+		dp.AreaHeight = size.height;
+	}
 
 	dp.ClipX = clip->left;
 	dp.ClipY = clip->top;
 	dp.ClipWidth = clip->right - clip->left;
 	dp.ClipHeight = clip->bottom - clip->top;
-
-	dp.HScrollPos = a->hscrollpos;
-	dp.VScrollPos = a->vscrollpos;
 
 	ID2D1RenderTarget_BeginDraw(rt);
 
@@ -94,7 +95,7 @@ BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lRe
 		*lResult = 0;
 		return TRUE;
 	case WM_PRINTCLIENT:
-		onWM_PRINTCLIENT(xxxx);
+		onWM_PRINTCLIENT(a);
 		*lResult = 0;
 		return TRUE;
 	}

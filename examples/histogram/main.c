@@ -98,13 +98,13 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	// fill the area with white
 	setSolidBrush(&brush, colorWhite, 1.0);
 	path = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathAddRectangle(path, 0, 0, p->ClientWidth, p->ClientHeight);
+	uiDrawPathAddRectangle(path, 0, 0, p->AreaWidth, p->AreaHeight);
 	uiDrawPathEnd(path);
 	uiDrawFill(p->Context, path, &brush);
 	uiDrawFreePath(path);
 
 	// figure out dimensions
-	graphSize(p->ClientWidth, p->ClientHeight, &graphWidth, &graphHeight);
+	graphSize(p->AreaWidth, p->AreaHeight, &graphWidth, &graphHeight);
 
 	// clear sp to avoid passing garbage to uiDrawStroke()
 	// for example, we don't use dashing
@@ -164,18 +164,6 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	}
 }
 
-static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
-{
-	// we don't scroll
-	return 0;
-}
-
-static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
-{
-	// we don't scroll
-	return 0;
-}
-
 static int inPoint(double x, double y, double xtest, double ytest)
 {
 	// TODO switch to using a matrix
@@ -193,7 +181,7 @@ static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *
 	double xs[10], ys[10];
 	int i;
 
-	graphSize(e->ClientWidth, e->ClientHeight, &graphWidth, &graphHeight);
+	graphSize(e->AreaWidth, e->AreaHeight, &graphWidth, &graphHeight);
 	pointLocations(graphWidth, graphHeight, xs, ys);
 
 	for (i = 0; i < 10; i++)
@@ -205,6 +193,11 @@ static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *
 	currentPoint = i;
 	// TODO only redraw the relevant area
 	uiAreaQueueRedrawAll(histogram);
+}
+
+static void handlerMouseCrossed(uiAreaHandler *ah, uiArea *a, int left)
+{
+	// do nothing
 }
 
 static void handlerDragBroken(uiAreaHandler *ah, uiArea *a)
@@ -244,9 +237,8 @@ int main(void)
 	int i;
 
 	handler.Draw = handlerDraw;
-	handler.HScrollMax = handlerHScrollMax;
-	handler.VScrollMax = handlerVScrollMax;
 	handler.MouseEvent = handlerMouseEvent;
+	handler.MouseCrossed = handlerMouseCrossed;
 	handler.DragBroken = handlerDragBroken;
 	handler.KeyEvent = handlerKeyEvent;
 

@@ -299,7 +299,7 @@ static gboolean onCrossing(areaWidget *aw, int left)
 {
 	uiArea *a = aw->a;
 
-	(*(a->ah->MouseCrossing))(a->ah, a, left);
+	(*(a->ah->MouseCrossed))(a->ah, a, left);
 	clickCounterReset(&(a->cc));
 	return GDK_EVENT_PROPAGATE;
 }

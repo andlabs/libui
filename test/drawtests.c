@@ -296,7 +296,7 @@ static void d2dClear(uiAreaDrawParams *p, uint32_t color, double alpha)
 
 	d2dSolidBrush(&brush, color, alpha);
 	path = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathAddRectangle(path, 0, 0, p->ClientWidth, p->ClientHeight);
+	uiDrawPathAddRectangle(path, 0, 0, p->AreaWidth, p->AreaHeight);
 	uiDrawPathEnd(path);
 	uiDrawFill(p->Context, path, &brush);
 	uiDrawFreePath(path);
@@ -314,8 +314,8 @@ static void drawD2DW8QS(uiAreaDrawParams *p)
 	uiDrawPathAddRectangle(path,
 		100,
 		100,
-		(p->ClientWidth - 100) - 100,
-		(p->ClientHeight - 100) - 100);
+		(p->AreaWidth - 100) - 100,
+		(p->AreaHeight - 100) - 100);
 	uiDrawPathEnd(path);
 	uiDrawFill(p->Context, path, &brush);
 	uiDrawFreePath(path);
@@ -344,19 +344,19 @@ static void drawD2DSimpleApp(uiAreaDrawParams *p)
 	sp.Join = uiDrawLineJoinMiter;
 	sp.MiterLimit = uiDrawDefaultMiterLimit;
 
-	for (x = 0; x < p->ClientWidth; x += 10) {
+	for (x = 0; x < p->AreaWidth; x += 10) {
 		path = uiDrawNewPath(uiDrawFillModeWinding);
 		uiDrawPathNewFigure(path, x, 0);
-		uiDrawPathLineTo(path, x, p->ClientHeight);
+		uiDrawPathLineTo(path, x, p->AreaHeight);
 		uiDrawPathEnd(path);
 		uiDrawStroke(p->Context, path, &lightSlateGray, &sp);
 		uiDrawFreePath(path);
 	}
 
-	for (y = 0; y < p->ClientHeight; y += 10) {
+	for (y = 0; y < p->AreaHeight; y += 10) {
 		path = uiDrawNewPath(uiDrawFillModeWinding);
 		uiDrawPathNewFigure(path, 0, y);
-		uiDrawPathLineTo(path, p->ClientWidth, y);
+		uiDrawPathLineTo(path, p->AreaWidth, y);
 		uiDrawPathEnd(path);
 		uiDrawStroke(p->Context, path, &lightSlateGray, &sp);
 		uiDrawFreePath(path);
@@ -364,20 +364,20 @@ static void drawD2DSimpleApp(uiAreaDrawParams *p)
 
 	double left, top, right, bottom;
 
-	left = p->ClientWidth / 2.0 - 50.0;
-	right = p->ClientWidth / 2.0 + 50.0;
-	top = p->ClientHeight / 2.0 - 50.0;
-	bottom = p->ClientHeight / 2.0 + 50.0;
+	left = p->AreaWidth / 2.0 - 50.0;
+	right = p->AreaWidth / 2.0 + 50.0;
+	top = p->AreaHeight / 2.0 - 50.0;
+	bottom = p->AreaHeight / 2.0 + 50.0;
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(path, left, top, right - left, bottom - top);
 	uiDrawPathEnd(path);
 	uiDrawFill(p->Context, path, &lightSlateGray);
 	uiDrawFreePath(path);
 
-	left = p->ClientWidth / 2.0 - 100.0;
-	right = p->ClientWidth / 2.0 + 100.0;
-	top = p->ClientHeight / 2.0 - 100.0;
-	bottom = p->ClientHeight / 2.0 + 100.0;
+	left = p->AreaWidth / 2.0 - 100.0;
+	right = p->AreaWidth / 2.0 + 100.0;
+	top = p->AreaHeight / 2.0 - 100.0;
+	bottom = p->AreaHeight / 2.0 + 100.0;
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(path, left, top, right - left, bottom - top);
 	uiDrawPathEnd(path);
@@ -1891,7 +1891,7 @@ static void drawCSSetLineJoin(uiAreaDrawParams *p)
 static void cgaddrect(uiDrawPath *path, uiAreaDrawParams *p, double x, double y, double width, double height)
 {
 	uiDrawPathAddRectangle(path,
-		x, p->ClientHeight - y - height,
+		x, p->AreaHeight - y - height,
 		width, height);
 }
 

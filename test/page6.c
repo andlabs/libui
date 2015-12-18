@@ -3,8 +3,6 @@
 
 static uiArea *area;
 static uiCombobox *which;
-static uiSpinbox *hamount;
-static uiSpinbox *vamount;
 static uiCheckbox *swallowKeys;
 
 struct handler {
@@ -18,28 +16,23 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	runDrawTest(uiComboboxSelected(which), p);
 }
 
-static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
-{
-	return uiSpinboxValue(hamount);
-}
-
-static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
-{
-	return uiSpinboxValue(vamount);
-}
-
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
 {
-	printf("mouse (%d,%d):(%d,%d) down:%d up:%d count:%d mods:%x held:%x\n",
-		(int) e->X,
-		(int) e->Y,
-		(int) e->HScrollPos,
-		(int) e->VScrollPos,
+	printf("mouse (%g,%g):(%g,%g) down:%d up:%d count:%d mods:%x held:%x\n",
+		e->X,
+		e->Y,
+		e->AreaWidth,
+		e->AreaHeight,
 		(int) e->Down,
 		(int) e->Up,
 		(int) e->Count,
 		(uint32_t) e->Modifiers,
 		e->Held1To64);
+}
+
+static void handlerMouseCrossed(uiAreaHandler *ah, uiArea *a, int left)
+{
+	printf("mouse crossed %d\n", left);
 }
 
 static void handlerDragBroken(uiAreaHandler *ah, uiArea *a)
@@ -68,11 +61,6 @@ static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 	return uiCheckboxChecked(swallowKeys);
 }
 
-static void onAmountChanged(uiSpinbox *s, void *data)
-{
-	uiAreaUpdateScroll(area);
-}
-
 static void shouldntHappen(uiCombobox *c, void *data)
 {
 	fprintf(stderr, "YOU SHOULD NOT SEE THIS. If you do, uiComboboxSetSelected() is triggering uiComboboxOnSelected(), which it should not.\n");
@@ -89,9 +77,8 @@ uiBox *makePage6(void)
 	uiBox *hbox;
 
 	handler.ah.Draw = handlerDraw;
-	handler.ah.HScrollMax = handlerHScrollMax;
-	handler.ah.VScrollMax = handlerVScrollMax;
 	handler.ah.MouseEvent = handlerMouseEvent;
+	handler.ah.MouseCrossed = handlerMouseCrossed;
 	handler.ah.DragBroken = handlerDragBroken;
 	handler.ah.KeyEvent = handlerKeyEvent;
 
@@ -108,21 +95,8 @@ uiBox *makePage6(void)
 	uiComboboxOnSelected(which, redraw, NULL);
 	uiBoxAppend(hbox, uiControl(which), 0);
 
-	// make these first in case the area handler calls the information as part of the constructor
-	hamount = uiNewSpinbox(0, 100000);
-	uiSpinboxOnChanged(hamount, onAmountChanged, NULL);
-	vamount = uiNewSpinbox(0, 100000);
-	uiSpinboxOnChanged(vamount, onAmountChanged, NULL);
-
 	area = uiNewArea((uiAreaHandler *) (&handler));
 	uiBoxAppend(page6, uiControl(area), 1);
-
-	hbox = newHorizontalBox();
-	uiBoxAppend(hbox, uiControl(uiNewLabel("H ")), 0);
-	uiBoxAppend(hbox, uiControl(hamount), 0);
-	uiBoxAppend(hbox, uiControl(uiNewLabel(" V ")), 0);
-	uiBoxAppend(hbox, uiControl(vamount), 0);
-	uiBoxAppend(page6, uiControl(hbox), 0);
 
 	swallowKeys = uiNewCheckbox("Consider key events handled");
 	uiBoxAppend(page6, uiControl(swallowKeys), 0);

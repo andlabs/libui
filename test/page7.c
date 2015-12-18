@@ -62,17 +62,12 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	uiFreeText(sweepText);
 }
 
-static uintmax_t handlerHScrollMax(uiAreaHandler *a, uiArea *area)
-{
-	return 0;
-}
-
-static uintmax_t handlerVScrollMax(uiAreaHandler *a, uiArea *area)
-{
-	return 0;
-}
-
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
+{
+	// do nothing
+}
+
+static void handlerMouseCrossed(uiAreaHandler *ah, uiArea *a, int left)
 {
 	// do nothing
 }
@@ -104,9 +99,8 @@ uiBox *makePage7(void)
 	uiBox *box, *box2;
 
 	handler.ah.Draw = handlerDraw;
-	handler.ah.HScrollMax = handlerHScrollMax;
-	handler.ah.VScrollMax = handlerVScrollMax;
 	handler.ah.MouseEvent = handlerMouseEvent;
+	handler.ah.MouseCrossed = handlerMouseCrossed;
 	handler.ah.DragBroken = handlerDragBroken;
 	handler.ah.KeyEvent = handlerKeyEvent;
 

@@ -154,6 +154,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 		hInstance, a,
 		FALSE);
 
+	// set initial scrolling parameters
 	areaUpdateScroll(a);
 
 	uiWindowsFinishNewControl(a, uiArea);

@@ -57,5 +57,8 @@ extern void populateComboboxWithTests(uiCombobox *);
 // page7.c
 extern uiBox *makePage7(void);
 
+// page7a.c
+extern uiGroup *makePage7a(void);
+
 // page8.c
 extern uiBox *makePage8(void);

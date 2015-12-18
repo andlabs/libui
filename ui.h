@@ -280,7 +280,6 @@ typedef struct uiDrawContext uiDrawContext;
 struct uiAreaHandler {
 	void (*Draw)(uiAreaHandler *, uiArea *, uiAreaDrawParams *);
 	// TODO document that resizes cause a full redraw for non-scrolling areas; implementation-defined for scrolling areas
-	// TODO if the scrollbars disappear the histogram example won't recognize points in the correct spot until the area is resized
 	void (*MouseEvent)(uiAreaHandler *, uiArea *, uiAreaMouseEvent *);
 	// TODO document that on first show if the mouse is already in the uiArea then one gets sent with left=0
 	// TODO what about when the area is hidden and then shown again?

@@ -41,7 +41,7 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 	me.AreaWidth = 0;
 	me.AreaHeight = 0;
 	if (!a->scrolling) {
-		size = ID2D1HwndRenderTarget_GetSize(a->rt);
+		renderTargetGetSize((ID2D1RenderTarget *) (a->rt), &size);
 		me.AreaWidth = size.width;
 		me.AreaHeight = size.height;
 	}

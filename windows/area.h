@@ -24,6 +24,9 @@ struct uiArea {
 	ID2D1HwndRenderTarget *rt;
 };
 
+// area.c
+extern void renderTargetGetSize(ID2D1RenderTarget *rt, D2D1_SIZE_F *size);
+
 // areadraw.h
 extern BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 extern void areaDrawOnResize(uiArea *, RECT *);

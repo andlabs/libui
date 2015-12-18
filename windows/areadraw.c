@@ -15,7 +15,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 	dp.AreaWidth = 0;
 	dp.AreaHeight = 0;
 	if (!a->scrolling) {
-		size = ID2D1RenderTarget_GetSize(rt);
+		renderTargetGetSize(rt, &size);
 		dp.AreaWidth = size.width;
 		dp.AreaHeight = size.height;
 	}

@@ -292,6 +292,7 @@ struct uiAreaHandler {
 _UI_EXTERN uintmax_t uiMenuItemType(void);
 #define uiArea(this) ((uiArea *) uiIsA((this), uiAreaType(), 1))
 // TODO give a better name
+// TODO document the types of width and height
 _UI_EXTERN void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height);
 // TODO uiAreaQueueRedraw()
 _UI_EXTERN void uiAreaQueueRedrawAll(uiArea *a);

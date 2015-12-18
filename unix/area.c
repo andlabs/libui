@@ -37,6 +37,8 @@ struct uiArea {
 	uiAreaHandler *ah;
 
 	gboolean scrolling;
+	intmax_t scrollWidth;
+	intmax_t scrollHeight;
 
 	clickCounter cc;
 };
@@ -135,7 +137,35 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	return FALSE;
 }
 
-// TODO preferred height/width
+// to do this properly for scrolling areas, we need to
+// - return the same value for min and nat
+// - call gtk_widget_queue_resize() when the size changes
+// thanks to Company in irc.gimp.net/#gtk+
+static void areaWidget_get_preferred_height(GtkWidget *w, gint *min, gint *nat)
+{
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
+
+	// always chain up just in case
+	GTK_WIDGET_CLASS(areaWidget_parent_class)->get_preferred_height(w, min, nat);
+	if (a->scrolling) {
+		*min = a->scrollHeight;
+		*nat = a->scrollHeight;
+	}
+}
+
+static void areaWidget_get_preferred_width(GtkWidget *w, gint *min, gint *nat)
+{
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
+
+	// always chain up just in case
+	GTK_WIDGET_CLASS(areaWidget_parent_class)->get_preferred_width(w, min, nat);
+	if (a->scrolling) {
+		*min = a->scrollWidth;
+		*nat = a->scrollWidth;
+	}
+}
 
 // TODO merge with toModifiers?
 static guint translateModifiers(guint state, GdkWindow *window)
@@ -435,8 +465,8 @@ static void areaWidget_class_init(areaWidgetClass *class)
 
 	GTK_WIDGET_CLASS(class)->size_allocate = areaWidget_size_allocate;
 	GTK_WIDGET_CLASS(class)->draw = areaWidget_draw;
-//	GTK_WIDGET_CLASS(class)->get_preferred_height = areaWidget_get_preferred_height;
-//	GTK_WIDGET_CLASS(class)->get_preferred_width = areaWidget_get_preferred_width;
+	GTK_WIDGET_CLASS(class)->get_preferred_height = areaWidget_get_preferred_height;
+	GTK_WIDGET_CLASS(class)->get_preferred_width = areaWidget_get_preferred_width;
 	GTK_WIDGET_CLASS(class)->button_press_event = areaWidget_button_press_event;
 	GTK_WIDGET_CLASS(class)->button_release_event = areaWidget_button_release_event;
 	GTK_WIDGET_CLASS(class)->motion_notify_event = areaWidget_motion_notify_event;
@@ -459,9 +489,13 @@ uiUnixDefineControl(
 	uiAreaType							// type function
 )
 
-void uiAreaUpdateScroll(uiArea *a)
+void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
 {
-	updateScroll(a->area);
+	if (!a->scrolling)
+		complain("attempt to call uiAreaSetSize() on a non-scrolling uiArea");
+	a->scrollWidth = width;
+	a->scrollHeight = height;
+	gtk_widget_queue_resize(a->areaWidget);
 }
 
 void uiAreaQueueRedrawAll(uiArea *a)
@@ -475,15 +509,42 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 
 	a = (uiArea *) uiNewControl(uiAreaType());
 
-	a->widget = gtk_scrolled_window_new(NULL, NULL);
-	a->scontainer = GTK_CONTAINER(a->widget);
-	a->sw = GTK_SCROLLED_WINDOW(a->widget);
+	a->scrolling = FALSE;
 
 	a->areaWidget = GTK_WIDGET(g_object_new(areaWidgetType,
 		"libui-area", a,
 		NULL));
 	a->drawingArea = GTK_DRAWING_AREA(a->areaWidget);
 	a->area = areaWidget(a->areaWidget);
+
+	a->widget = a->areaWidget;
+
+	uiUnixFinishNewControl(a, uiArea);
+
+	return a;
+}
+
+uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
+{
+	uiArea *a;
+
+	a = (uiArea *) uiNewControl(uiAreaType());
+
+	a->scrolling = TRUE;
+	a->scrollWidth = width;
+	a->scrollHeight = height;
+
+	a->swidget = gtk_scrolled_window_new(NULL, NULL);
+	a->scontainer = GTK_CONTAINER(a->swidget);
+	a->sw = GTK_SCROLLED_WINDOW(a->swidget);
+
+	a->areaWidget = GTK_WIDGET(g_object_new(areaWidgetType,
+		"libui-area", a,
+		NULL));
+	a->drawingArea = GTK_DRAWING_AREA(a->areaWidget);
+	a->area = areaWidget(a->areaWidget);
+
+	a->widget = a->swidget;
 
 	gtk_container_add(a->scontainer, a->areaWidget);
 	// and make the area visible; only the scrolled window's visibility is controlled by libui

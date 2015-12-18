@@ -3,6 +3,9 @@
 CFILES += \
 	windows/alloc.c \
 	windows/area.c \
+	windows/areadraw.c \
+	windows/areaevents.c \
+	windows/areascroll.c \
 	windows/box.c \
 	windows/button.c \
 	windows/checkbox.c \
@@ -37,6 +40,7 @@ CFILES += \
 	windows/window.c
 
 HFILES += \
+	windows/area.h \
 	windows/compilerver.h \
 	windows/resources.h \
 	windows/uipriv_windows.h \

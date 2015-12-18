@@ -118,8 +118,11 @@ extern HWND newTabPage(void);
 // area.c
 #define areaClass L"libui_uiAreaClass"
 extern ATOM registerAreaClass(HICON, HCURSOR);
-extern int registerAreaFilter(void);
 extern void unregisterArea(void);
+
+// areaevents.c
+// TODO merge into registerAreaClass()?
+extern int registerAreaFilter(void);
 
 // draw.c
 extern HRESULT initDraw(void);

@@ -60,5 +60,8 @@ extern uiBox *makePage7(void);
 // page7a.c
 extern uiGroup *makePage7a(void);
 
+// page7b.c
+extern uiGroup *makePage7b(void);
+
 // page8.c
 extern uiBox *makePage8(void);

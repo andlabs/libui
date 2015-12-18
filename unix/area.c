@@ -64,16 +64,6 @@ static void areaWidget_init(areaWidget *aw)
 		GDK_ENTER_NOTIFY_MASK |
 		GDK_LEAVE_NOTIFY_MASK);
 
-	// TODO are these still needed?
-/*
-	// for scrolling
-	// TODO do we need GDK_TOUCH_MASK?
-	gtk_widget_add_events(GTK_WIDGET(aw),
-		GDK_SCROLL_MASK |
-		GDK_TOUCH_MASK |
-		GDK_SMOOTH_SCROLL_MASK);
-*/
-
 	gtk_widget_set_can_focus(GTK_WIDGET(aw), TRUE);
 
 	clickCounterReset(&(aw->cc));

@@ -92,6 +92,34 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 	(*(a->ah->MouseEvent))(a->ah, a, &me);
 }
 
+// see https://blogs.msdn.microsoft.com/oldnewthing/20031013-00/?p=42193
+// TODO this does not work while captured
+static void onMouseEntered(uiArea *a)
+{
+	TRACKMOUSEEVENT tm;
+
+	if (a->inside)
+		return;
+	ZeroMemory(&tm, sizeof (TRACKMOUSEEVENT));
+	tm.cbSize = sizeof (TRACKMOUSEEVENT);
+	tm.dwFlags = TME_LEAVE;
+	tm.hwndTrack = a->hwnd;
+	if (_TrackMouseEvent(&tm) == 0)
+		logLastError("error setting up mouse leave events in onMouseEntered()");
+	a->inside = TRUE;
+	(*(a->ah->MouseCrossed))(a->ah, a, 0);
+	// TODO figure out why we did this to begin with; either we do it on both GTK+ and Windows or not at all
+	clickCounterReset(&(a->cc));
+}
+
+static void onMouseLeft(uiArea *a)
+{
+	a->inside = FALSE;
+	(*(a->ah->MouseCrossed))(a->ah, a, 1);
+	// TODO figure out why we did this to begin with; either we do it on both GTK+ and Windows or not at all
+	clickCounterReset(&(a->cc));
+}
+
 // we use VK_SNAPSHOT as a sentinel because libui will never support the print screen key; that key belongs to the user
 struct extkeymap {
 	WPARAM vk;
@@ -244,7 +272,12 @@ BOOL areaDoEvents(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *l
 		*lResult = 0;
 		return TRUE;
 	case WM_MOUSEMOVE:
+		onMouseEntered(a);
 		areaMouseEvent(a, 0, 0, wParam, lParam);
+		*lResult = 0;
+		return TRUE;
+	case WM_MOUSELEAVE:
+		onMouseLeft(a);
 		*lResult = 0;
 		return TRUE;
 	case WM_LBUTTONDOWN:

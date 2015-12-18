@@ -21,6 +21,8 @@ struct uiArea {
 	clickCounter cc;
 	BOOL capturing;
 
+	BOOL inside;
+
 	ID2D1HwndRenderTarget *rt;
 };
 

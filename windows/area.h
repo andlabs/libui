@@ -41,3 +41,6 @@ extern void unregisterAreaFilter(void);
 
 // areautil.c
 extern void renderTargetGetSize(ID2D1RenderTarget *rt, D2D1_SIZE_F *size);
+extern void loadAreaSize(uiArea *a, ID2D1RenderTarget *rt, double *width, double *height);
+extern void pixelsToDIP(uiArea *a, double *x, double *y);
+extern void dipToPixels(uiArea *a, double *x, double *y);

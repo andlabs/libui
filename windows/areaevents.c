@@ -81,8 +81,6 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 	RECT client;
 	BOOL inClient;
 	double xpix, ypix;
-	FLOAT dpix, dpiy;
-	D2D1_SIZE_F size;
 
 	if (a->capturing) {
 		clientpt.x = GET_X_LPARAM(lParam);
@@ -104,18 +102,9 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 	xpix = (double) GET_X_LPARAM(lParam);
 	ypix = (double) GET_Y_LPARAM(lParam);
 	// these are in pixels; we need points
-	ID2D1HwndRenderTarget_GetDpi(a->rt, &dpix, &dpiy);
-	// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd756649%28v=vs.85%29.aspx (and others; search "direct2d mouse")
-	me.X = (xpix * 96) / dpix;
-	me.Y = (ypix * 96) / dpiy;
+	pixelsToDIP(a, &xpix, &ypix);
 
-	me.AreaWidth = 0;
-	me.AreaHeight = 0;
-	if (!a->scrolling) {
-		renderTargetGetSize((ID2D1RenderTarget *) (a->rt), &size);
-		me.AreaWidth = size.width;
-		me.AreaHeight = size.height;
-	}
+	loadAreaSize(a, NULL, &(me.AreaWidth), &(me.AreaHeight));
 
 	me.Down = down;
 	me.Up = up;

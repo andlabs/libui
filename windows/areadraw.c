@@ -8,17 +8,10 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 	uiAreaDrawParams dp;
 	COLORREF bgcolorref;
 	D2D1_COLOR_F bgcolor;
-	D2D1_SIZE_F size;
 
 	dp.Context = newContext(rt);
 
-	dp.AreaWidth = 0;
-	dp.AreaHeight = 0;
-	if (!a->scrolling) {
-		renderTargetGetSize(rt, &size);
-		dp.AreaWidth = size.width;
-		dp.AreaHeight = size.height;
-	}
+	loadAreaSize(a, rt, &(dp.AreaWidth), &(dp.AreaHeight));
 
 	dp.ClipX = clip->left;
 	dp.ClipY = clip->top;

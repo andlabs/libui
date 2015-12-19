@@ -21,8 +21,12 @@ SUFFIX = $(EXESUFFIX)
 # TODO merge with the one in build/GNUmakefile.test
 ifeq ($(TOOLCHAIN),gcc)
 	LDFLAGS += -L$(OUTDIR) -lui
-	# tell the dynamic loader to search in the executable path for shared objects
-	LDFLAGS += -Wl,-rpath='$$ORIGIN'
+	# see build/GNUmakefile.test
+	ifeq ($(OS),darwin)
+		LDFLAGS += -Wl,-rpath,@executable_path
+	else
+		LDFLAGS += -Wl,-rpath,'$$ORIGIN'
+	endif
 else
 	# TODO is there an equivalent to -L?
 	LDFLAGS += $(OUTDIR)/libui.lib

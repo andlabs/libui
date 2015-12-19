@@ -24,11 +24,31 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	memset(&brush, 0, sizeof (uiDrawBrush));
 	memset(&sp, 0, sizeof (uiDrawStrokeParams));
 
+	// add some buffering to detect scrolls that aren't on the dot and to see what happens when areas outside the scroll area are drawn
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path,
+		-50, -50,
+		areaSize + 50, areaSize + 50);
+	uiDrawPathEnd(path);
+	brush.Type = uiDrawBrushTypeSolid;
+	brush.R = 0;
+	brush.G = 1;
+	brush.B = 0;
+	brush.A = 1;
+	uiDrawFill(dp->Context, path, &brush);
+	uiDrawFreePath(path);
+
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(path,
 		0, 0,
 		areaSize, areaSize);
 	uiDrawPathEnd(path);
+	brush.Type = uiDrawBrushTypeSolid;
+	brush.R = 1;
+	brush.G = 1;
+	brush.B = 1;
+	brush.A = 1;
+	uiDrawFill(dp->Context, path, &brush);
 	brush.Type = uiDrawBrushTypeSolid;
 	brush.R = 1;
 	brush.G = 0;

@@ -3,6 +3,7 @@
 
 @interface areaView : NSView {
 	uiArea *libui_a;
+	NSTrackingArea *libui_ta;
 }
 - (id)initWithFrame:(NSRect)r area:(uiArea *)a;
 - (uiModifiers)parseModifiers:(NSEvent *)e;
@@ -12,6 +13,7 @@
 - (int)doKeyDown:(NSEvent *)e;
 - (int)doKeyUp:(NSEvent *)e;
 - (int)doFlagsChanged:(NSEvent *)e;
+- (void)setupNewTrackingArea;
 @end
 
 struct uiArea {
@@ -34,8 +36,10 @@ uiDarwinDefineControl(
 - (id)initWithFrame:(NSRect)r area:(uiArea *)a
 {
 	self = [super initWithFrame:r];
-	if (self)
+	if (self) {
 		self->libui_a = a;
+		[self setupNewTrackingArea];
+	}
 	return self;
 }
 
@@ -93,6 +97,28 @@ uiDarwinDefineControl(
 	if ((mods & NSCommandKeyMask) != 0)
 		m |= uiModifierSuper;
 	return m;
+}
+
+- (void)setupNewTrackingArea
+{
+	// TODO NSTrackingAssumeInside?
+	self->libui_ta = [[NSTrackingArea alloc] initWithRect:[self bounds]
+		options:(NSTrackingMouseEnteredAndExited |
+			NSTrackingMouseMoved |
+			NSTrackingActiveAlways |
+			NSTrackingInVisibleRect |
+			NSTrackingEnabledDuringMouseDrag)
+		owner:self
+		userInfo:nil];
+	[self addTrackingArea:self->libui_ta];
+}
+
+// TODO when do we call super here?
+- (void)updateTrackingAreas
+{
+	[self removeTrackingArea:self->libui_ta];
+	[self->libui_ta release];
+	[self setupNewTrackingArea];
 }
 
 // capture on drag is done automatically on OS X
@@ -182,7 +208,6 @@ uiDarwinDefineControl(
 	{ \
 		[self doMouseEvent:e]; \
 	}
-// TODO set up tracking events
 mouseEvent(mouseMoved)
 mouseEvent(mouseDragged)
 mouseEvent(rightMouseDragged)
@@ -193,6 +218,20 @@ mouseEvent(otherMouseDown)
 mouseEvent(mouseUp)
 mouseEvent(rightMouseUp)
 mouseEvent(otherMouseUp)
+
+- (void)mouseEntered:(NSEvent *)e
+{
+	uiArea *a = self->libui_a;
+
+	(*(a->ah->MouseCrossed))(a->ah, a, 0);
+}
+
+- (void)mouseExited:(NSEvent *)e
+{
+	uiArea *a = self->libui_a;
+
+	(*(a->ah->MouseCrossed))(a->ah, a, 1);
+}
 
 // note: there is no equivalent to WM_CAPTURECHANGED on Mac OS X; there literally is no way to break a grab like that
 // even if I invoke the task switcher and switch processes, the mouse grab will still be held until I let go of all buttons

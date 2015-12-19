@@ -111,12 +111,12 @@ uiDarwinDefineControl(
 	me.X = point.x;
 	me.Y = point.y;
 
-	dp.AreaWidth = 0;
-	dp.AreaHeight = 0;
+	me.AreaWidth = 0;
+	me.AreaHeight = 0;
 	if (!a->scrolling) {
 		// TODO frame or bounds?
-		dp.AreaWidth = [self frame].size.width;
-		dp.AreaHeight = [self frame].size.height;
+		me.AreaWidth = [self frame].size.width;
+		me.AreaHeight = [self frame].size.height;
 	}
 
 	buttonNumber = [e buttonNumber] + 1;
@@ -335,8 +335,8 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 
 	a->sv = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 	// TODO configure a->sv for real
-	[a->av setHasHorizontalScroller:YES];
-	[a->av setHasVerticalScroller:YES];
+	[a->sv setHasHorizontalScroller:YES];
+	[a->sv setHasVerticalScroller:YES];
 
 	a->area = [[areaView alloc] initWithFrame:NSMakeRect(0, 0, width, height)
 		area:a];

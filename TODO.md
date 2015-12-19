@@ -1,3 +1,8 @@
+- add uiPi for portability
+
+- make it so that the windows cntrols only register a resize if their new minimum size is larger than their current size to easen the effect of flicker
+	- it won't remove that outright, but it'll help
+
 - http://blogs.msdn.com/b/oldnewthing/archive/2004/01/12/57833.aspx provide a DEF file on Windows
 
 - all ports: update state when adding a control to a parent

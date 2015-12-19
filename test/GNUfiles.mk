@@ -13,6 +13,7 @@ CFILES += \
 	test/page7.c \
 	test/page7a.c \
 	test/page7b.c \
+	test/page7c.c \
 	test/spaced.c
 
 HFILES += \

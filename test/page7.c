@@ -18,7 +18,8 @@ uiBox *makePage7(void)
 	group = makePage7b();
 	uiBoxAppend(box2, uiControl(group), 1);
 
-	uiBoxAppend(box2, uiControl(uiNewLabel("")), 1);
+	group = makePage7c();
+	uiBoxAppend(box2, uiControl(group), 1);
 
 	return page7;
 }

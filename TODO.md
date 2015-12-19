@@ -4,6 +4,7 @@
 	- it won't remove that outright, but it'll help
 
 - add an option to the test program to run page7b as an independent test in its own window
+	- same for page7c
 
 - http://blogs.msdn.com/b/oldnewthing/archive/2004/01/12/57833.aspx provide a DEF file on Windows
 
@@ -19,9 +20,9 @@ ultimately:
 - MAYBE readd lifetime handling/destruction blocking
 - related? [12:25] <ZeroOne> And the blue outline on those buttons [ALL clicked buttons on Windows 7] won't go away
 	- I get this too
+		- not anymore
 - SWP_NOCOPYBITS to avoid button redraw issues on Windows when not in tab, but only when making resize faster
 - secondary side alignment control in uiBox
-- generate libui.lib and related files
 - Windows: don't abort if a cleanup function fails?
 
 - 32-bit Mac OS X support (requires lots of code changes)

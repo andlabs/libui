@@ -22,7 +22,6 @@ struct scrollParams {
 static void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
 {
 	SCROLLINFO si;
-	intmax_t xamount, yamount;
 
 	// note that the pos < 0 check is /after/ the p->length - p->pagesize check
 	// it used to be /before/; this was actually a bug in Raymond Chen's original algorithm: if there are fewer than a page's worth of items, p->length - p->pagesize will be negative and our content draw at the bottom of the window
@@ -32,19 +31,10 @@ static void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
 	if (pos < 0)
 		pos = 0;
 
-	// negative because ScrollWindowEx() is "backwards"
-	xamount = -(pos - *(p->pos));
-	yamount = 0;
-	if (which == SB_VERT) {
-		yamount = xamount;
-		xamount = 0;
-	}
-
-	// TODO this isn't safe with Direct2D
-//	if (ScrollWindowEx(a->hwnd, xamount, yamount,
-//		NULL, NULL, NULL, NULL,
-//		SW_ERASE | SW_INVALIDATE) == ERROR)
-//		logLastError("error scrolling area in scrollto()");
+	// Direct2D doesn't have a method for scrolling the existing contents of a render target.
+	// We'll have to just invalidate everything and hope for the best.
+	if (InvalidateRect(a->hwnd, NULL, FALSE) == 0)
+		logLastError("error invalidating uiArea after scrolling in scrollto()");
 
 	*(p->pos) = pos;
 
@@ -247,7 +237,10 @@ BOOL areaDoScroll(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *l
 	return FALSE;
 }
 
-// TODO do we need an areaScrollOnResize()?
+void areaScrollOnResize(uiArea *a, RECT *client)
+{
+	areaUpdateScroll(a);
+}
 
 void areaUpdateScroll(uiArea *a)
 {

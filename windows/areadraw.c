@@ -30,8 +30,9 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 		ZeroMemory(&scrollTransform, sizeof (D2D1_MATRIX_3X2_F));
 		scrollTransform._11 = 1;
 		scrollTransform._22 = 1;
-		scrollTransform._31 = a->hscrollpos;
-		scrollTransform._32 = a->vscrollpos;
+		// negative because we want nonzero scroll positions to move the drawing area up/left
+		scrollTransform._31 = -a->hscrollpos;
+		scrollTransform._32 = -a->vscrollpos;
 		ID2D1RenderTarget_SetTransform(rt, &scrollTransform);
 	}
 

@@ -40,6 +40,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 		if (GetClientRect(a->hwnd, &client) == 0)
 			logLastError("error getting client rect of uiArea for WM_WINDOWPOSCHANGED handling in areaWndProc()");
 		areaDrawOnResize(a, &client);
+		areaScrollOnResize(a, &client);
 		return 0;
 	}
 

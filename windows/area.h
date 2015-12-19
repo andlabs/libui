@@ -33,6 +33,7 @@ extern void areaDrawOnResize(uiArea *, RECT *);
 
 // areascroll.c
 extern BOOL areaDoScroll(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
+extern void areaScrollOnResize(uiArea *, RECT *);
 extern void areaUpdateScroll(uiArea *a);
 
 // areaevents.c

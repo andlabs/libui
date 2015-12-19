@@ -17,7 +17,12 @@ ifeq ($(TOOLCHAIN),gcc)
 	LDFLAGS += -L$(OUTDIR) -lui
 	# tell the dynamic loader to search in the executable path for shared objects
 	# note: OS X's linker complains if we say -rpath= instead of -rpath,
-	LDFLAGS += -Wl,-rpath,'$$ORIGIN'
+	# also note that OS X doesn't use $ORIGIN - see http://jorgen.tjer.no/post/2014/05/20/dt-rpath-ld-and-at-rpath-dyld/
+	ifeq ($(OS),darwin)
+		LDFLAGS += -Wl,-rpath,@executable_path
+	else
+		LDFLAGS += -Wl,-rpath,'$$ORIGIN'
+	endif
 else
 	# TODO is there an equivalent to -L?
 	LDFLAGS += $(OUTDIR)/libui.lib

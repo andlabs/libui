@@ -6,6 +6,7 @@ CFILES += \
 	windows/areadraw.c \
 	windows/areaevents.c \
 	windows/areascroll.c \
+	windows/areautil.c \
 	windows/box.c \
 	windows/button.c \
 	windows/checkbox.c \

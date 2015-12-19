@@ -19,16 +19,87 @@ static uiModifiers getModifiers(void)
 	return m;
 }
 
+/*
+Windows doesn't natively support mouse crossing events.
+
+TrackMouseEvent() (and its comctl32.dll wrapper _TrackMouseEvent()) both allow for a window to receive the WM_MOUSELEAVE message when the mouse leaves the client area. There's no equivalent WM_MOUSEENTER because it can be simulated (https://blogs.msdn.microsoft.com/oldnewthing/20031013-00/?p=42193).
+
+Unfortunately, WM_MOUSELEAVE does not get generated while the mouse is captured. We need to capture for drag behavior to work properly, so this isn't going to mix well.
+
+So what we do:
+- on WM_MOUSEMOVE, if we don't have the capture, start tracking
+	- this will handle the case of the capture being released while still in the area
+- on WM_MOUSELEAVE, mark that we are no longer tracking
+	- Windows has already done the work of that for us; it's just a flag we use for the next part
+- when starting capture, stop tracking if we are tracking
+- if capturing, manually check if the pointer is in the client rect on each area event
+*/
+static void track(uiArea *a, BOOL tracking)
+{
+	TRACKMOUSEEVENT tm;
+
+	// do nothing if there's no change
+	if (a->tracking && tracking)
+		return;
+	if (!a->tracking && !tracking)
+		return;
+
+	a->tracking = tracking;
+	ZeroMemory(&tm, sizeof (TRACKMOUSEEVENT));
+	tm.cbSize = sizeof (TRACKMOUSEEVENT);
+	tm.dwFlags = TME_LEAVE;
+	if (!a->tracking)
+		tm.dwFlags |= TME_CANCEL;
+	tm.hwndTrack = a->hwnd;
+	if (_TrackMouseEvent(&tm) == 0)
+		logLastError("error setting up mouse leave events in onMouseEntered()");
+}
+
+static void capture(uiArea *a, BOOL capturing)
+{
+	// do nothing if there's no change
+	if (a->capturing && capturing)
+		return;
+	if (!a->capturing && !capturing)
+		return;
+
+	// change flag first as ReleaseCapture() sends WM_CAPTURECHANGED
+	a->capturing = capturing;
+	if (a->capturing) {
+		track(a, FALSE);
+		SetCapture(a->hwnd);
+	} else
+		if (ReleaseCapture() == 0)
+			logLastError("error releasing capture on drag in capture()");
+}
+
 static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wParam, LPARAM lParam)
 {
 	uiAreaMouseEvent me;
 	uintmax_t button;
+	POINT clientpt;
+	RECT client;
+	BOOL inClient;
 	double xpix, ypix;
 	FLOAT dpix, dpiy;
 	D2D1_SIZE_F size;
 
-	if (a->rt == NULL)
-		a->rt = makeHWNDRenderTarget(a->hwnd);
+	if (a->capturing) {
+		clientpt.x = GET_X_LPARAM(lParam);
+		clientpt.y = GET_Y_LPARAM(lParam);
+		if (GetClientRect(a->hwnd, &client) == 0)
+			logLastError("TODO");
+		inClient = PtInRect(&client, clientpt);
+		if (inClient && !a->inside) {
+			a->inside = TRUE;
+			(*(a->ah->MouseCrossed))(a->ah, a, 0);
+			clickCounterReset(&(a->cc));
+		} else if (!inClient && a->inside) {
+			a->inside = FALSE;
+			(*(a->ah->MouseCrossed))(a->ah, a, 1);
+			clickCounterReset(&(a->cc));
+		}
+	}
 
 	xpix = (double) GET_X_LPARAM(lParam);
 	ypix = (double) GET_Y_LPARAM(lParam);
@@ -77,43 +148,32 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 		me.Held1To64 |= 1 << 4;
 
 	// on Windows, we have to capture on drag ourselves
-	if (me.Down != 0 && !a->capturing) {
-		SetCapture(a->hwnd);
-		a->capturing = TRUE;
-	}
+	if (me.Down != 0)
+		capture(a, TRUE);
 	// only release capture when all buttons released
-	if (me.Up != 0 && a->capturing && me.Held1To64 == 0) {
-		// unset flag first as ReleaseCapture() sends WM_CAPTURECHANGED
-		a->capturing = FALSE;
-		if (ReleaseCapture() == 0)
-			logLastError("error releasing capture on drag in areaMouseEvent()");
-	}
+	if (me.Up != 0 && me.Held1To64 == 0)
+		capture(a, FALSE);
 
 	(*(a->ah->MouseEvent))(a->ah, a, &me);
 }
 
-// see https://blogs.msdn.microsoft.com/oldnewthing/20031013-00/?p=42193
-// TODO this does not work while captured
+// TODO genericize this so it can be called above
 static void onMouseEntered(uiArea *a)
 {
-	TRACKMOUSEEVENT tm;
-
 	if (a->inside)
 		return;
-	ZeroMemory(&tm, sizeof (TRACKMOUSEEVENT));
-	tm.cbSize = sizeof (TRACKMOUSEEVENT);
-	tm.dwFlags = TME_LEAVE;
-	tm.hwndTrack = a->hwnd;
-	if (_TrackMouseEvent(&tm) == 0)
-		logLastError("error setting up mouse leave events in onMouseEntered()");
-	a->inside = TRUE;
+	if (a->capturing)		// we handle mouse crossing in areaMouseEvent()
+		return;
+	track(a, TRUE);
 	(*(a->ah->MouseCrossed))(a->ah, a, 0);
 	// TODO figure out why we did this to begin with; either we do it on both GTK+ and Windows or not at all
 	clickCounterReset(&(a->cc));
 }
 
+// TODO genericize it so that it can be called above
 static void onMouseLeft(uiArea *a)
 {
+	a->tracking = FALSE;
 	a->inside = FALSE;
 	(*(a->ah->MouseCrossed))(a->ah, a, 1);
 	// TODO figure out why we did this to begin with; either we do it on both GTK+ and Windows or not at all

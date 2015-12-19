@@ -22,6 +22,7 @@ struct uiArea {
 	BOOL capturing;
 
 	BOOL inside;
+	BOOL tracking;
 
 	ID2D1HwndRenderTarget *rt;
 };

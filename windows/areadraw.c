@@ -8,7 +8,9 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 	uiAreaDrawParams dp;
 	COLORREF bgcolorref;
 	D2D1_COLOR_F bgcolor;
+	D2D1_MATRIX_3X2_F scrollTransform;
 
+	// no need to save or restore the graphics state to reset transformations;  it's handled by resetTarget() in draw.c, called during the following
 	dp.Context = newContext(rt);
 
 	loadAreaSize(a, rt, &(dp.AreaWidth), &(dp.AreaHeight));
@@ -17,8 +19,23 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 	dp.ClipY = clip->top;
 	dp.ClipWidth = clip->right - clip->left;
 	dp.ClipHeight = clip->bottom - clip->top;
+	if (a->scrolling) {
+		dp.ClipX += a->hscrollpos;
+		dp.ClipY += a->vscrollpos;
+	}
 
 	ID2D1RenderTarget_BeginDraw(rt);
+
+	if (a->scrolling) {
+		ZeroMemory(&scrollTransform, sizeof (D2D1_MATRIX_3X2_F));
+		scrollTransform._11 = 1;
+		scrollTransform._22 = 1;
+		scrollTransform._31 = a->hscrollpos;
+		scrollTransform._32 = a->vscrollpos;
+		ID2D1RenderTarget_SetTransform(rt, &scrollTransform);
+	}
+
+	// TODO push axis aligned clip
 
 	// TODO only clear the clip area
 	// TODO clear with actual background brush
@@ -31,10 +48,11 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 	bgcolor.a = 1.0;
 	ID2D1RenderTarget_Clear(rt, &bgcolor);
 
-	// no need to save or restore the graphics state to reset transformations; it's handled by resetTarget() in draw.c, called by newContext() above
 	(*(ah->Draw))(ah, a, &dp);
 
 	freeContext(dp.Context);
+
+	// TODO pop axis aligned clip
 
 	return ID2D1RenderTarget_EndDraw(rt, NULL, NULL);
 }

@@ -103,6 +103,12 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 	ypix = (double) GET_Y_LPARAM(lParam);
 	// these are in pixels; we need points
 	pixelsToDIP(a, &xpix, &ypix);
+	me.X = xpix;
+	me.Y = ypix;
+	if (a->scrolling) {
+		me.X += a->hscrollpos;
+		me.Y += a->vscrollpos;
+	}
 
 	loadAreaSize(a, NULL, &(me.AreaWidth), &(me.AreaHeight));
 

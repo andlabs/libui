@@ -1,3 +1,5 @@
+- provide a way to get the currently selected uiTab page? set?
+
 - add uiPi for portability
 
 - make it so that the windows cntrols only register a resize if their new minimum size is larger than their current size to easen the effect of flicker

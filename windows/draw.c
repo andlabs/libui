@@ -1,6 +1,9 @@
 // 7 september 2015
 #include "uipriv_windows.h"
 
+// TODO
+// - write a test for transform followed by clip and clip followed by transform
+
 static ID2D1Factory *d2dfactory = NULL;
 
 HRESULT initDraw(void)

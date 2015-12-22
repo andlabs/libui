@@ -127,6 +127,8 @@ extern int registerAreaFilter(void);
 // draw.c
 extern HRESULT initDraw(void);
 extern void uninitDraw(void);
+extern HRESULT initDrawText(void);
+extern void uninitDrawText(void);
 extern ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd);
 extern uiDrawContext *newContext(ID2D1RenderTarget *);
 extern void freeContext(uiDrawContext *);

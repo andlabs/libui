@@ -21,6 +21,21 @@ void uninitDraw(void)
 	ID2D1Factory_Release(d2dfactory);
 }
 
+static IDWriteFactory *dwfactory = NULL;
+
+HRESULT initDrawText(void)
+{
+	// TOOD use DWRITE_FACTORY_TYPE_ISOLATED instead?
+	return DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
+		&IID_IDWriteFactory,
+		(IUnknown **) (&dwfactory));
+}
+
+void uninitDrawText(void)
+{
+	IDWriteFactory_Release(dwfactory);
+}
+
 ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 {
 	D2D1_RENDER_TARGET_PROPERTIES props;

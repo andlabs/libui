@@ -38,6 +38,7 @@
 #include <math.h>
 #include <d2d1.h>
 #include <float.h>
+#include <dwrite.h>
 #endif
 #ifdef _MSC_VER
 #pragma warning(pop)

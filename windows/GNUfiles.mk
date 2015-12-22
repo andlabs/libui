@@ -54,7 +54,7 @@ RCFILES += \
 
 # flags for the Windows API
 LDFLAGS += \
-	user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib comdlg32.lib d2d1.lib ole32.lib oleaut32.lib oleacc.lib uuid.lib
+	user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib comdlg32.lib d2d1.lib dwrite.lib ole32.lib oleaut32.lib oleacc.lib uuid.lib
 
 # flags for building a shared library
 LDFLAGS += \

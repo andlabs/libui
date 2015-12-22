@@ -156,6 +156,10 @@ const char *uiInit(uiInitOptions *o)
 	if (hr != S_OK)
 		return loadHRESULT("initializing Direct2D", hr);
 
+	hr = initDrawText();
+	if (hr != S_OK)
+		return loadHRESULT("initializing DirectWrite", hr);
+
 	if (registerAreaClass(hDefaultIcon, hDefaultCursor) == 0)
 		return loadLastError("registering uiArea window class");
 	if (registerAreaFilter() == 0)
@@ -168,6 +172,7 @@ void uiUninit(void)
 {
 	uninitMenus();
 	unregisterArea();
+	uninitDrawText();
 	uninitDraw();
 	CoUninitialize();
 	if (DeleteObject(hollowBrush) == 0)

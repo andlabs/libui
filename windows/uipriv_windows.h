@@ -6,6 +6,10 @@
 #include "resources.h"
 #include "compilerver.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // ui internal window messages
 enum {
 	// redirected WM_COMMAND and WM_NOTIFY
@@ -127,8 +131,14 @@ extern int registerAreaFilter(void);
 // draw.c
 extern HRESULT initDraw(void);
 extern void uninitDraw(void);
-extern HRESULT initDrawText(void);
-extern void uninitDrawText(void);
 extern ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd);
 extern uiDrawContext *newContext(ID2D1RenderTarget *);
 extern void freeContext(uiDrawContext *);
+
+// drawtext.cpp
+extern HRESULT initDrawText(void);
+extern void uninitDrawText(void);
+
+#ifdef __cplusplus
+}
+#endif

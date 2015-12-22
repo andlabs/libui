@@ -40,6 +40,9 @@ CFILES += \
 	windows/utilwin.c \
 	windows/window.c
 
+CXXFILES += \
+	windows/drawtext.cpp
+
 HFILES += \
 	windows/area.h \
 	windows/compilerver.h \

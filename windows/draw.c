@@ -2,7 +2,7 @@
 #include "uipriv_windows.h"
 
 // TODO
-// - write a test for transform followed by clip and clip followed by transform
+// - write a test for transform followed by clip and clip followed by transform to make sure they work the same as on gtk+ and cocoa
 
 static ID2D1Factory *d2dfactory = NULL;
 

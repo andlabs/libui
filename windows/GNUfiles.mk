@@ -53,6 +53,7 @@ RCFILES += \
 # TODO split into a separate file or put in GNUmakefile.libui somehow?
 
 # flags for the Windows API
+# TODO prune this list
 LDFLAGS += \
 	user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib comdlg32.lib d2d1.lib dwrite.lib ole32.lib oleaut32.lib oleacc.lib uuid.lib
 

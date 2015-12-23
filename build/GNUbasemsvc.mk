@@ -65,7 +65,7 @@ else
 endif
 	@echo ====== Compiled $<
 
-$(OBJDIR)/%.cpp.o: $$(subst _,/,%).c $(HFILES) | $(OBJDIR)
+$(OBJDIR)/%.cpp.o: $$(subst _,/,%).cpp $(HFILES) | $(OBJDIR)
 ifeq ($(NODEBUG),1)
 	@cl /Fo:$@ /c $< $(CXXFLAGS)
 else

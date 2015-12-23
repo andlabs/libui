@@ -446,3 +446,39 @@ void uiDrawRestore(uiDrawContext *c)
 {
 	cairo_restore(c->cr);
 }
+
+struct uiDrawFontFamilies {
+	PangoFontFamily **f;
+	int n;
+};
+
+uiDrawFontFamilies *uiDrawListFontFamilies(void)
+{
+	uiDrawFontFamilies *ff;
+	PangoFontMap *map;
+
+	ff = uiNew(uiDrawFontFamilies);
+	map = pango_cairo_font_map_get_default();
+	pango_font_map_list_families(map, &(ff->f), &(ff->n));
+	// do not free map; it's a shared resource
+	return ff;
+}
+
+uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
+{
+	return ff->n;
+}
+
+char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n)
+{
+	PangoFontFamily *f;
+
+	f = ff->f[n];
+	return uiUnixStrdupText(pango_font_family_get_name(f));
+}
+
+void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
+{
+	g_free(ff->f);
+	uiFree(ff);
+}

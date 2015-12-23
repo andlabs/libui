@@ -4,6 +4,13 @@
 // And unlike UI Automation which accidentally just forgets the 'struct' and 'enum' tags in places, <dwrite.h> is a full C++ header file, with class definitions and the use of __uuidof. Oh well :/
 #include "uipriv_windows.h"
 
+// notes:
+// only available in windows 8 and newer:
+// - character spacing
+// - kerning control
+// - justficiation (how could I possibly be making this up?!)
+// - vertical text (SERIOUSLY?! WHAT THE ACTUAL FUCK, MICROSOFT?!?!?!? bonus: some parts of MSDN even say 8.1 only!)
+
 static IDWriteFactory *dwfactory = NULL;
 
 HRESULT initDrawText(void)

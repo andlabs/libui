@@ -451,93 +451,40 @@ void uiDrawRestore(uiDrawContext *c)
 // TODO for all relevant routines, make sure we are freeing memory correctly
 // TODO make sure allocation failures throw exceptions?
 struct uiDrawFontFamilies {
-/*
-	CFNumberRef one;
-	CFDictionaryRef options;
-	CTFontCollectionRef collection;
 	CFArrayRef fonts;
-*/
-	NSFontCollection *collection;
-	NSArray *fonts;
 };
 
 uiDrawFontFamilies *uiDrawListFontFamilies(void)
 {
 	uiDrawFontFamilies *ff;
-/*
-	const void *keys[1];
-	const void *values[1];
-	SInt32 one = 1;
-*/
 
 	ff = uiNew(uiDrawFontFamilies);
-
-/*
-	ff->one = CFNumberCreate(NULL, kCFNumberSInt32Type, &one);
-
-	// needed as the matching descriptors can have 
-	keys[0] = kCTFontCollectionRemoveDuplicatesOption;
-	values[0] = ff->one;
-	// TODO kCTFontCollectionIncludeDisabledFontsOption? the Windows code enumerates hidden fonts; disable that?
-	ff->options = CFDictionaryCreate(NULL,
-		keys, values, 1,
-		NULL, NULL);
-NSLog(@"%@", ff->options);
-
-	ff->collection = CTFontCollectionCreateFromAvailableFonts(ff->options);
-	ff->fonts = CTFontCollectionCreateMatchingFontDescriptors(ff->collection);
-*/
-
-	ff->collection = [NSFontCollection fontCollectionWithAllAvailableDescriptors];
-	ff->fonts = [ff->collection matchingDescriptorsWithOptions:[NSDictionary
-		dictionaryWithObject:@YES		// TODO
-		forKey:NSFontCollectionRemoveDuplicatesOption]];
-
+	// TODO is there a way to get an error reason?
+	ff->fonts = CTFontManagerCopyAvailableFontFamilyNames();
+	if (ff->fonts == NULL)
+		complain("error getting available font names (no reason specified)");
 	return ff;
 }
 
 uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
 {
-//	return CFArrayGetCount(ff->fonts);
-	return [ff->fonts count];
+	return CFArrayGetCount(ff->fonts);
 }
 
 char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n)
 {
-/*
-	CTFontDescriptorRef font;
 	CFStringRef familystr;
 	char *family;
 
-	font = (CTFontDescriptorRef) CFArrayGetValueAtIndex(ff->fonts, n);
-	familystr = (CFStringRef) CTFontDescriptorCopyAttribute(font, kCTFontFamilyNameAttribute);
+	familystr = (CFStringRef) CFArrayGetValueAtIndex(ff->fonts, n);
 	// TODO create a uiDarwinCFStringToText()?
 	family = uiDarwinNSStringToText((NSString *) familystr);
-	CFRelease(familystr);
-	// Get Rule means we do not free font
-	return family;
-*/
-	NSFontDescriptor *desc;
-	NSString *familystr;
-	char *family;
-
-	desc = (NSFontDescriptor *) [ff->fonts objectAtIndex:n];
-	familystr = (NSString *) [desc objectForKey:NSFontFamilyAttribute];
-	family = uiDarwinNSStringToText(familystr);
-	// TODO release familystr and desc?
+	// Get Rule means we do not free familystr
 	return family;
 }
 
 void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 {
-/*
 	CFRelease(ff->fonts);
-	// TODO is this correct?
-	CFRelease(ff->collection);
-	CFRelease(ff->options);
-	CFRelease(ff->one);
-*/
-//TODO	[ff->fonts release];
-//TODO	[ff->collection release];
 	uiFree(ff);
 }

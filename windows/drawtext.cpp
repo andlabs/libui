@@ -9,7 +9,7 @@
 // - character spacing
 // - kerning control
 // - justficiation (how could I possibly be making this up?!)
-// - vertical text (SERIOUSLY?! WHAT THE ACTUAL FUCK, MICROSOFT?!?!?!? bonus: some parts of MSDN even say 8.1 only!)
+// - vertical text (SERIOUSLY?! WHAT THE ACTUAL FUCK, MICROSOFT?!?!?!? DID YOU NOT THINK ABOUT THIS THE FIRST TIME, TRYING TO IMPROVE THE INTERNATIONALIZATION OF WINDOWS 7?!?!?! bonus: some parts of MSDN even say 8.1 and up only!)
 
 static IDWriteFactory *dwfactory = NULL;
 

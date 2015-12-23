@@ -453,6 +453,13 @@ _UI_EXTERN void uiDrawClip(uiDrawContext *c, uiDrawPath *path);
 _UI_EXTERN void uiDrawSave(uiDrawContext *c);
 _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
 
+typedef struct uiDrawFontFamilies uiDrawFontFamilies;
+
+_UI_EXTERN uiDrawFontFamilies *uiDrawListFontFamilies(void);
+_UI_EXTERN uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff);
+_UI_EXTERN char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n);
+_UI_EXTERN void uiDrawFreeFontFamilies(uiDrawFontFamilies *);
+
 typedef enum uiModifiers {
 	uiModifierCtrl = 1 << 0,
 	uiModifierAlt = 1 << 1,

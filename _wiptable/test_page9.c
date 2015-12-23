@@ -49,18 +49,18 @@ void modelSetCellValue(uiTableModel *m, void *mData, intmax_t row, intmax_t colu
 	// TODO
 }
 
-uiBox *makePage8(void)
+uiBox *makePage9(void)
 {
-	uiBox *page8;
+	uiBox *page9;
 	uiTable *table;
 	uiTableModel *model;
 	uiTableColumnParams p;
 	intmax_t i;
 
-	page8 = newVerticalBox();
+	page9 = newVerticalBox();
 
 	table = uiNewTable();
-	uiBoxAppend(page8, uiControl(table), 1);
+	uiBoxAppend(page9, uiControl(table), 1);
 
 	spec.NumRows = modelNumRows;
 	spec.CellValue = modelCellValue;
@@ -76,5 +76,5 @@ uiBox *makePage8(void)
 		uiTableAppendColumn(table, &p);
 	}
 
-	return page8;
+	return page9;
 }

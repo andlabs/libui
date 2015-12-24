@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.2)
 project(libui VERSION 1.0.0)
 
 set(COMMON_SOURCES
@@ -130,7 +130,7 @@ set(WINDOWS_SOURCES
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
-if(UNIX)
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter -Wno-switch)
     set(UI_EXTERN __attribute__\(\(visibility\(\"default\"\)\)\)\ extern)
 endif()
@@ -145,7 +145,11 @@ if(APPLE)
     set(UI_SOURCES ${DARWIN_SOURCES})
 endif()
 
-if (UNIX AND NOT APPLE)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    set(LINUX TRUE)
+    include(FindPkgConfig)
+    pkg_search_module(GTK REQUIRED gtk+-3.0)
+    set(UI_SOURCES ${UNIX_SOURCES})
 endif()
 
 if(WIN32)
@@ -156,7 +160,11 @@ add_library(libui SHARED ${COMMON_SOURCES} ${UI_SOURCES})
 target_compile_definitions(libui PRIVATE
     _UI_EXTERN=${UI_EXTERN}
     )
+target_compile_options(libui PRIVATE
+    "$<$<PLATFORM_ID:Linux>:${GTK_CFLAGS}>"
+    )
 target_link_libraries(libui PRIVATE
+    "$<$<PLATFORM_ID:Linux>:${GTK_LDFLAGS}>"
     "$<$<PLATFORM_ID:Darwin>:-framework Foundation -framework AppKit>"
     "$<$<PLATFORM_ID:Windows>:user32;kernel32;gdi32;comctl32;uxtheme;msimg32;comdlg32;d2d1;dwrite;ole32;oleaut32;oleacc;uuid>"
     )

@@ -143,10 +143,12 @@ endif()
 
 if(APPLE)
     set(UI_SOURCES ${DARWIN_SOURCES})
+    set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(LINUX TRUE)
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
     include(FindPkgConfig)
     pkg_search_module(GTK REQUIRED gtk+-3.0)
     set(UI_SOURCES ${UNIX_SOURCES})
@@ -156,21 +158,30 @@ if(WIN32)
     set(UI_SOURCES ${WINDOWS_SOURCES})
 endif()
 
-add_library(libui SHARED ${COMMON_SOURCES} ${UI_SOURCES})
-target_compile_definitions(libui PRIVATE
+add_library(ui SHARED ${COMMON_SOURCES} ${UI_SOURCES})
+set_target_properties(ui PROPERTIES
+    VERSION ${PROJECT_VERSION_MINOR}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+    )
+target_compile_definitions(ui PRIVATE
     _UI_EXTERN=${UI_EXTERN}
     )
-target_compile_options(libui PRIVATE
+target_compile_options(ui PRIVATE
     "$<$<PLATFORM_ID:Linux>:${GTK_CFLAGS}>"
     )
-target_link_libraries(libui PRIVATE
+target_link_libraries(ui PRIVATE
     "$<$<PLATFORM_ID:Linux>:${GTK_LDFLAGS}>"
     "$<$<PLATFORM_ID:Darwin>:-framework Foundation -framework AppKit>"
     "$<$<PLATFORM_ID:Windows>:user32;kernel32;gdi32;comctl32;uxtheme;msimg32;comdlg32;d2d1;dwrite;ole32;oleaut32;oleacc;uuid>"
     )
 
 add_executable(controlgallery examples/controlgallery/main.c)
-target_link_libraries(controlgallery PRIVATE libui)
+target_link_libraries(controlgallery PRIVATE ui)
 
 add_executable(histogram examples/histogram/main.c)
-target_link_libraries(histogram PRIVATE libui)
+target_link_libraries(histogram PRIVATE ui)
+
+install(TARGETS ui controlgallery histogram
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    )

@@ -460,6 +460,75 @@ _UI_EXTERN uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff);
 _UI_EXTERN char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n);
 _UI_EXTERN void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff);
 
+typedef struct uiDrawTextStyle uiDrawTextStyle;
+
+typedef enum uiDrawTextWeight {
+	uiDrawTextWeightThin,
+	uiDrawTextWeightUltraLight,
+	uiDrawTextWeightLight,
+	uiDrawTextWeightBook,
+	uiDrawTextWeightNormal,
+	uiDrawTextWeightMedium,
+	uiDrawTextWeightSemiBold,
+	uiDrawTextWeightBold,
+	uiDrawTextWeightUtraBold,
+	uiDrawTextWeightHeavy,
+	uiDrawTextWeightUltraHeavy,
+} uiDrawTextWeight;
+
+// TODO drop Oblique?
+typedef enum uiDrawTextItalic {
+	uiDrawTextItalicNormal,
+	uiDrawTextItalicOblique,
+	uiDrawTextItalicItalic,
+} uiDrawTextItalic;
+
+typedef enum uiDrawTextStretch {
+	uiDrawTextStretchUltraCondensed,
+	uiDrawTextStretchExtraCondensed,
+	uiDrawTextStretchCondensed,
+	uiDrawTextStretchSemiCondensed,
+	uiDrawTextStretchNormal,
+	uiDrawTextStretchSemiExpanded,
+	uiDrawTextStretchExpanded,
+	uiDrawTextStretchExtraExpanded,
+	uiDrawTextStretchUltraExpanded,
+} uiDrawTextStretch;
+
+struct uiDrawTextStyle {
+	const char *Family;
+	double Size;
+	uiDrawTextWeight Weight;
+	uiDrawTextItalic Italic;
+	int SmallCaps;
+	uiDrawTextStretch Stretch;
+	double TextR;
+	double TextG;
+	double TextB;
+	double TextA;
+	int HasBackgroundColor;
+	double BackgroundR;
+	double BackgroundG;
+	double BakcgroundB;
+	double BackgroundA;	// TODO Pango
+	int HasStrikethrough;
+	double StrikethroughR;
+	double StrikethroughG;
+	double StrikethroughB;
+	double StrikethroughA;	// TODO Pango
+	int HasUnderline;
+	double UnderlineR;
+	double UnderlineG;
+	double UnderlineB;
+	double UnderlineA;		// TODO Pango
+};
+
+_UI_EXTERN double uiDrawTextSizeToPoints(double textSize);
+_UI_EXTERN double uiDrawPointsToTextSize(double points);
+
+// TODO make this more robust.
+_UI_EXTERN void uiDrawText(uiDrawContext *context, double x, double y, const char *text, uiDrawTextStyle *style);
+
 typedef enum uiModifiers {
 	uiModifierCtrl = 1 << 0,
 	uiModifierAlt = 1 << 1,

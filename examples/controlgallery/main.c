@@ -22,12 +22,12 @@ static void openClicked(uiMenuItem *item, uiWindow *w, void *data)
 {
 	char *filename;
 
-	filename = uiOpenFile();
+	filename = uiOpenFile(w);
 	if (filename == NULL) {
-		uiMsgBoxError("No file selected", "Don't be alarmed!");
+		uiMsgBoxError(w, "No file selected", "Don't be alarmed!");
 		return;
 	}
-	uiMsgBox("File selected", filename);
+	uiMsgBox(w, "File selected", filename);
 	uiFreeText(filename);
 }
 
@@ -35,12 +35,12 @@ static void saveClicked(uiMenuItem *item, uiWindow *w, void *data)
 {
 	char *filename;
 
-	filename = uiSaveFile();
+	filename = uiSaveFile(w);
 	if (filename == NULL) {
-		uiMsgBoxError("No file selected", "Don't be alarmed!");
+		uiMsgBoxError(w, "No file selected", "Don't be alarmed!");
 		return;
 	}
-	uiMsgBox("File selected (don't worry, it's still there)", filename);
+	uiMsgBox(w, "File selected (don't worry, it's still there)", filename);
 	uiFreeText(filename);
 }
 

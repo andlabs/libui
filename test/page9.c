@@ -98,7 +98,6 @@ static void onTextApply(uiButton *b, void *data)
 static void mkRGBA(uiBox *parent, uiCheckbox **has, const char *hasText, uiEntry **r, uiEntry **g, uiEntry **b, uiEntry **a, const char *field)
 {
 	uiBox *hbox;
-	uiBox *vbox;
 
 	hbox = newHorizontalBox();
 	uiBoxAppend(parent, uiControl(hbox), 0);
@@ -108,12 +107,6 @@ static void mkRGBA(uiBox *parent, uiCheckbox **has, const char *hasText, uiEntry
 		uiBoxAppend(hbox, uiControl(*has), 0);
 	}
 
-	vbox = newVerticalBox();
-	uiBoxAppend(hbox, uiControl(vbox), 1);
-
-	hbox = newHorizontalBox();
-	uiBoxAppend(vbox, uiControl(hbox), 0);
-
 	*r = uiNewEntry();
 	uiEntrySetText(*r, field);
 	uiBoxAppend(hbox, uiControl(*r), 1);
@@ -121,9 +114,6 @@ static void mkRGBA(uiBox *parent, uiCheckbox **has, const char *hasText, uiEntry
 	*g = uiNewEntry();
 	uiEntrySetText(*g, field);
 	uiBoxAppend(hbox, uiControl(*g), 1);
-
-	hbox = newHorizontalBox();
-	uiBoxAppend(vbox, uiControl(hbox), 0);
 
 	*b = uiNewEntry();
 	uiEntrySetText(*b, field);
@@ -138,22 +128,29 @@ uiBox *makePage9(void)
 {
 	uiBox *page9;
 	uiBox *vbox;
+	uiBox *hbox;
 
 	page9 = newVerticalBox();
 	vbox = page9;
 
+	hbox = newHorizontalBox();
+	uiBoxAppend(vbox, uiControl(hbox), 0);
+
 	textString = uiNewEntry();
 	// TODO make it placeholder
 	uiEntrySetText(textString, "Enter text here");
-	uiBoxAppend(vbox, uiControl(textString), 0);
+	uiBoxAppend(hbox, uiControl(textString), 1);
 
 	textFont = uiNewEntry();
 	uiEntrySetText(textFont, "Arial");
-	uiBoxAppend(vbox, uiControl(textFont), 0);
+	uiBoxAppend(hbox, uiControl(textFont), 1);
 
 	textSize = uiNewEntry();
 	uiEntrySetText(textSize, "10");
-	uiBoxAppend(vbox, uiControl(textSize), 0);
+	uiBoxAppend(hbox, uiControl(textSize), 1);
+
+	hbox = newHorizontalBox();
+	uiBoxAppend(vbox, uiControl(hbox), 0);
 
 	textWeight = uiNewCombobox();
 	uiComboboxAppend(textWeight, "Thin");
@@ -168,17 +165,20 @@ uiBox *makePage9(void)
 	uiComboboxAppend(textWeight, "Heavy");
 	uiComboboxAppend(textWeight, "Ultra Heavy");
 	uiComboboxSetSelected(textWeight, uiDrawTextWeightNormal);
-	uiBoxAppend(vbox, uiControl(textWeight), 0);
+	uiBoxAppend(hbox, uiControl(textWeight), 1);
 
 	textItalic = uiNewCombobox();
 	uiComboboxAppend(textItalic, "Normal");
 	uiComboboxAppend(textItalic, "Oblique");
 	uiComboboxAppend(textItalic, "Italic");
 	uiComboboxSetSelected(textItalic, uiDrawTextItalicNormal);
-	uiBoxAppend(vbox, uiControl(textItalic), 0);
+	uiBoxAppend(hbox, uiControl(textItalic), 1);
 
 	textSmallCaps = uiNewCheckbox("Small Caps");
-	uiBoxAppend(vbox, uiControl(textSmallCaps), 0);
+	uiBoxAppend(hbox, uiControl(textSmallCaps), 1);
+
+	hbox = newHorizontalBox();
+	uiBoxAppend(vbox, uiControl(hbox), 0);
 
 	textStretch = uiNewCombobox();
 	uiComboboxAppend(textStretch, "Ultra Condensed");
@@ -191,7 +191,7 @@ uiBox *makePage9(void)
 	uiComboboxAppend(textStretch, "Extra Expanded");
 	uiComboboxAppend(textStretch, "Ultra Expanded");
 	uiComboboxSetSelected(textStretch, uiDrawTextStretchNormal);
-	uiBoxAppend(vbox, uiControl(textStretch), 0);
+	uiBoxAppend(hbox, uiControl(textStretch), 1);
 
 	mkRGBA(vbox, NULL, NULL, &textR, &textG, &textB, &textA, "0.0");
 	mkRGBA(vbox, &textHasBackground, "Background", &textBR, &textBG, &textBB, &textBA, "1.0");

@@ -560,6 +560,9 @@ void uiDrawText(uiDrawContext *c, double x, double y, const char *text, uiDrawTe
 	if (style->HasUnderline) {
 		// TODO
 	}
+	if (style->Language != NULL)
+		pango_attr_list_insert(attrs,
+			pango_attr_language_new(pango_language_from_string(style->Language)));
 
 	layout = pango_cairo_create_layout(c->cr);
 	pango_layout_set_text(layout, text, -1);

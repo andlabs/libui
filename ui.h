@@ -496,7 +496,6 @@ typedef enum uiDrawTextStretch {
 } uiDrawTextStretch;
 
 struct uiDrawTextStyle {
-	// TODO Language attribute
 	const char *Family;
 	double Size;
 	uiDrawTextWeight Weight;
@@ -522,6 +521,7 @@ struct uiDrawTextStyle {
 	double UnderlineG;
 	double UnderlineB;
 	double UnderlineA;		// TODO Pango
+	const char *Language;	// RFC 3066; NULL for default
 	// TODO other Pango attributes
 };
 

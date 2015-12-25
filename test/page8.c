@@ -35,6 +35,78 @@ static uiCheckbox *textHasUnderline;
 static uiEntry *textUR, *textUG, *textUB, *textUA;
 static uiButton *textApply;
 static uiArea *textArea;
+static uiAreaHandler textAreaHandler;
+
+static double entryDouble(uiEntry *e)
+{
+	char *s;
+	double d;
+
+	s = uiEntryText(e);
+	d = atof(s);
+	uiFreeText(s);
+	return d;
+}
+
+static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
+{
+	uiDrawTextStyle style;
+	char *s;
+	char *family;		// make compiler happy
+
+	memset(&style, 0, sizeof (uiDrawTextStyle));
+	family = uiEntryText(textFont);
+	style.Family = family;
+	style.Size = entryDouble(textSize);
+	style.Weight = uiComboboxSelected(textWeight);
+	style.Italic = uiComboboxSelected(textItalic);
+	style.SmallCaps = uiCheckboxChecked(textSmallCaps);
+	style.Stretch = uiComboboxSelected(textStretch);
+	style.TextR = entryDouble(textR);
+	style.TextG = entryDouble(textG);
+	style.TextB = entryDouble(textB);
+	style.TextA = entryDouble(textA);
+	style.HasBackground = uiCheckboxChecked(textHasBackground);
+	style.BackgroundR = entryDouble(textBR);
+	style.BackgroundG = entryDouble(textBG);
+	style.BackgroundB = entryDouble(textBB);
+	style.BackgroundA = entryDouble(textBA);
+	style.HasStrikethrough = uiCheckboxChecked(textHasStrikethrough);
+	style.StrikethroughR = entryDouble(textSR);
+	style.StrikethroughG = entryDouble(textSG);
+	style.StrikethroughB = entryDouble(textSB);
+	style.StrikethroughA = entryDouble(textSA);
+	style.HasUnderline = uiCheckboxChecked(textHasUnderline);
+	style.UnderlineR = entryDouble(textUR);
+	style.UnderlineG = entryDouble(textUG);
+	style.UnderlineB = entryDouble(textUB);
+	style.UnderlineA = entryDouble(textUA);
+	s = uiEntryText(textString);
+	uiDrawText(dp->Context, 10, 10, s, &style);
+	uiFreeText(s);
+	uiFreeText(family);
+}
+
+static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
+{
+	// do nothing
+}
+
+static void handlerMouseCrossed(uiAreaHandler *ah, uiArea *a, int left)
+{
+	// do nothing
+}
+
+static void handlerDragBroken(uiAreaHandler *ah, uiArea *a)
+{
+	// do nothing
+}
+
+static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
+{
+	// do nothing
+	return 0;
+}
 
 static void onTextApply(uiButton *b, void *data)
 {
@@ -169,7 +241,13 @@ uiBox *makePage8(void)
 	uiButtonOnClicked(textApply, onTextApply, NULL);
 	uiBoxAppend(vbox, uiControl(textApply), 0);
 
-	// TODO
+	textAreaHandler.Draw = handlerDraw;
+	textAreaHandler.MouseEvent = handlerMouseEvent;
+	textAreaHandler.MouseCrossed = handlerMouseCrossed;
+	textAreaHandler.DragBroken = handlerDragBroken;
+	textAreaHandler.KeyEvent = handlerKeyEvent;
+	textArea = uiNewArea(&textAreaHandler);
+	uiBoxAppend(vbox, uiControl(textArea), 1);
 
 	return page8;
 }

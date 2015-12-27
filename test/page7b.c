@@ -27,6 +27,7 @@ static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *
 
 static void handlerMouseCrossed(uiAreaHandler *ah, uiArea *a, int left)
 {
+printf("%d %d\n", left, !left);
 	uiCheckboxSetChecked(label, !left);
 }
 

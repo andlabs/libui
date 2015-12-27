@@ -223,6 +223,10 @@ mouseEvent(otherMouseUp)
 {
 	uiArea *a = self->libui_a;
 
+NSLog(@"entered");
+NSLog(@"a %p", a);
+NSLog(@"ah %p", a->ah);
+NSLog(@"crossed %p", a->ah->MouseCrossed);
 	(*(a->ah->MouseCrossed))(a->ah, a, 0);
 }
 
@@ -230,6 +234,10 @@ mouseEvent(otherMouseUp)
 {
 	uiArea *a = self->libui_a;
 
+NSLog(@"exited");
+NSLog(@"a %p", a);
+NSLog(@"ah %p", a->ah);
+NSLog(@"crossed %p", a->ah->MouseCrossed);
 	(*(a->ah->MouseCrossed))(a->ah, a, 1);
 }
 

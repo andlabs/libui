@@ -64,6 +64,3 @@ LDFLAGS += \
 # TODO -current_version, -compatibility_version
 LDFLAGS += \
 	-Wl,-install_name,@rpath/$(NAME).$(SOVERSION)$(SUFFIX)
-
-# TODO make this an option
-LDFLAGS += -lgmalloc

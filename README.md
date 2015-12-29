@@ -23,6 +23,12 @@ This README is being written.
 
 (TODO write some notes on make variables and cross-compiling)
 
+## Installation
+
+#### Arch Linux
+
+Can be built from AUR: https://aur.archlinux.org/packages/libui-git/
+
 ## Documentation
 
 Needs to be written. Consult ui.h and the examples for details for now.

@@ -8,11 +8,6 @@ MAKEFLAGS += --no-print-directory
 OUTDIR = out
 OBJDIR = .obj
 
-# default install prefix is /usr
-ifndef prefix
-	prefix=/usr
-endif
-
 # MAME does this so :/
 ifeq ($(OS),Windows_NT)
 	OS = windows
@@ -64,12 +59,10 @@ example: libui
 
 # TODO examples rule? --> That's it right ?
 examples:
-	for d in $$(ls examples); do $(MAKE) -f GNUmakefile example EXAMPLE=$$d ; done
+	@$(MAKE) -f GNUmakefile example EXAMPLE=histogram
+	#@$(MAKE) -f GNUmakefile example EXAMPLE=controlgallery 
 
 .PHONY: examples
 
-install: libui
-	cp out/libui.so $(DESTDIR)$(prefix)/lib/libui.so.0
-	ln -s libui.so.0 $(DESTDIR)$(prefix)/lib/libui.so
-	cp ui.h ui_unix.h $(DESTDIR)$(prefix)/include/ui.h
-
+install:
+	@$(MAKE) -f build/GNUmakefile.libui install inlibuibuild=1

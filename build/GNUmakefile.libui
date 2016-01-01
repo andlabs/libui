@@ -39,3 +39,6 @@ else
 endif
 
 include build/GNUbase$(TOOLCHAIN).mk
+
+# install rule is OS specific
+include $(OS)/GNUinstall.mk

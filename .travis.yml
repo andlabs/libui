@@ -1,0 +1,16 @@
+
+dist: trusty
+
+language: cpp
+script:
+  - cat /etc/lsb-release
+  - sudo apt-get update
+  - sudo apt-get install libgtk-3-dev -y || sudo apt-cache search libgtk3
+  - make -f GNUmakefile
+  - make -f GNUmakefile example EXAMPLE=histogram
+
+# Only working things are added here... Some interesting commands would be:
+#  - make -f GNUmakefile examples
+#  - make -f GNUmakefile test
+#
+# But they both won't work

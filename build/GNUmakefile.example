@@ -15,6 +15,11 @@ CFILES += \
 HFILES += \
 	ui.h
 
+ifeq ($(OS),windows)
+RCFILES += \
+	examples/resources.rc
+endif
+
 NAME = $(EXAMPLE)
 SUFFIX = $(EXESUFFIX)
 

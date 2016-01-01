@@ -20,3 +20,8 @@ CFILES += \
 
 HFILES += \
 	test/test.h
+
+ifeq ($(OS),windows)
+RCFILES += \
+	test/resources.rc
+endif

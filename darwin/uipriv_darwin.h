@@ -6,6 +6,10 @@
 #import "../ui_darwin.h"
 #import "../common/uipriv.h"
 
+#if __has_feature(objc_arc)
+#error Sorry, libui cannot be compiled with ARC.
+#endif
+
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
 #define fromNSString(str) [(str) UTF8String]
 

@@ -1,3 +1,5 @@
+- make sure all OS X event handlers that use target-action set the action to NULL when the target is unset
+
 - provide a way to get the currently selected uiTab page? set?
 
 - add uiPi for portability; compare against:

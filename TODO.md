@@ -1,3 +1,6 @@
+- on OS X, edit shortcuts like command-C working require that the menu entries be defined, or so it seems, even for NSAlert
+	- other platforms?
+
 - make sure all OS X event handlers that use target-action set the action to NULL when the target is unset
 
 - provide a way to get the currently selected uiTab page? set?

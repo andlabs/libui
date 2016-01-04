@@ -45,17 +45,6 @@ struct uiTyped {
 };
 #define uiTyped(this) ((uiTyped *) (this))
 
-/* TODO only on the windows backend now
-typedef struct uiSizing uiSizing;
-typedef struct uiSizingSys uiSizingSys;
-
-struct Sizing {
-	field XPadding intmax_t;
-	field YPadding intmax_t;
-	field Sys *uiSizingSys;
-};
-*/
-
 typedef struct uiControl uiControl;
 
 struct uiControl {

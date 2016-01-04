@@ -53,8 +53,9 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 	if (g->child != NULL)
 		childRemove(g->child);
 	g->child = newChildWithBox(child, uiControl(g), g->container, g->margined);
-	if (g->child != NULL)
+	if (g->child != NULL) {
 		uiControlQueueResize(uiControl(g));
+	}
 }
 
 int uiGroupMargined(uiGroup *g)

@@ -57,4 +57,12 @@ test: libui
 example: libui
 	@$(MAKE) -f build/GNUmakefile.example inlibuibuild=1
 
-# TODO examples rule?
+# TODO examples rule? --> That's it right ?
+examples:
+	@$(MAKE) -f GNUmakefile example EXAMPLE=histogram
+	#@$(MAKE) -f GNUmakefile example EXAMPLE=controlgallery 
+
+.PHONY: examples
+
+install:
+	@$(MAKE) -f build/GNUmakefile.libui install inlibuibuild=1

@@ -41,4 +41,5 @@ endif
 include build/GNUbase$(TOOLCHAIN).mk
 
 # install rule is OS specific
+# TODO probably better off making it a toolchain-wide rule
 include $(OS)/GNUinstall.mk

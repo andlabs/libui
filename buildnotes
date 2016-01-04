@@ -22,6 +22,10 @@ The build-time settings are
 	NODEBUG=xxx
 		set to 1 to disable debug symbols
 		must be 1, any other value means "include debug symbols"
+	PREFIX=xxx
+		TODO
+	DESTDIR=xxx
+		applied before PREFIX; used by Debian
 
 To build the test program use
 

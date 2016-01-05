@@ -4,3 +4,5 @@ EXESUFFIX = .exe
 LIBSUFFIX = .dll
 OSHSUFFIX = .h
 TOOLCHAIN = msvc
+
+USESSONAME = 0

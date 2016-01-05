@@ -50,8 +50,3 @@ LDFLAGS += \
 # this is not gcc-global because OS X doesn't support these flags
 LDFLAGS += \
 	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined
-
-# flags for setting soname
-# this is not gcc-global because OS X uses a different filename format
-LDFLAGS += \
-	-Wl,-soname,$(NAME)$(SUFFIX).$(SOVERSION)

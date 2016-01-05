@@ -1,6 +1,7 @@
 # libui: a portable GUI library for C
 
-This README is being written.
+This README is being written. 
+[![Build Status](https://travis-ci.org/andlabs/libui.png)](https://travis-ci.org/andlabs/libui) 
 
 ## Runtime Requirements
 

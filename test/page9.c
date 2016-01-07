@@ -8,13 +8,7 @@ static uiCombobox *textWeight;
 static uiCombobox *textItalic;
 static uiCheckbox *textSmallCaps;
 static uiCombobox *textStretch;
-static uiEntry *textR, *textG, *textB, *textA;
-static uiCheckbox *textHasBackground;
-static uiEntry *textBR, *textBG, *textBB, *textBA;
-static uiCheckbox *textHasStrikethrough;
-static uiEntry *textSR, *textSG, *textSB, *textSA;
-static uiCheckbox *textHasUnderline;
-static uiEntry *textUR, *textUG, *textUB, *textUA;
+static uiCombobox *textGravity;
 static uiButton *textApply;
 static uiArea *textArea;
 static uiAreaHandler textAreaHandler;
@@ -32,11 +26,12 @@ static double entryDouble(uiEntry *e)
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 {
-	uiDrawTextStyle style;
+	uiDrawInitialTextStyle style;
 	char *s;
 	char *family;		// make compiler happy
+	uiDrawTextLayout *layout;
 
-	memset(&style, 0, sizeof (uiDrawTextStyle));
+	memset(&style, 0, sizeof (uiDrawInitialTextStyle));
 	family = uiEntryText(textFont);
 	style.Family = family;
 	style.Size = entryDouble(textSize);
@@ -44,27 +39,11 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	style.Italic = uiComboboxSelected(textItalic);
 	style.SmallCaps = uiCheckboxChecked(textSmallCaps);
 	style.Stretch = uiComboboxSelected(textStretch);
-	style.TextR = entryDouble(textR);
-	style.TextG = entryDouble(textG);
-	style.TextB = entryDouble(textB);
-	style.TextA = entryDouble(textA);
-	style.HasBackground = uiCheckboxChecked(textHasBackground);
-	style.BackgroundR = entryDouble(textBR);
-	style.BackgroundG = entryDouble(textBG);
-	style.BackgroundB = entryDouble(textBB);
-	style.BackgroundA = entryDouble(textBA);
-	style.HasStrikethrough = uiCheckboxChecked(textHasStrikethrough);
-	style.StrikethroughR = entryDouble(textSR);
-	style.StrikethroughG = entryDouble(textSG);
-	style.StrikethroughB = entryDouble(textSB);
-	style.StrikethroughA = entryDouble(textSA);
-	style.HasUnderline = uiCheckboxChecked(textHasUnderline);
-	style.UnderlineR = entryDouble(textUR);
-	style.UnderlineG = entryDouble(textUG);
-	style.UnderlineB = entryDouble(textUB);
-	style.UnderlineA = entryDouble(textUA);
+	style.Gravity = uiComboboxSelected(textGravity);
 	s = uiEntryText(textString);
-	uiDrawText(dp->Context, 10, 10, s, &style);
+	layout = uiDrawNewTextLayout(s, &style);
+	uiDrawText(dp->Context, 10, 10, layout);
+	uiDrawFreeTextLayout(layout);
 	uiFreeText(s);
 	uiFreeText(family);
 }
@@ -93,35 +72,6 @@ static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 static void onTextApply(uiButton *b, void *data)
 {
 	uiAreaQueueRedrawAll(textArea);
-}
-
-static void mkRGBA(uiBox *parent, uiCheckbox **has, const char *hasText, uiEntry **r, uiEntry **g, uiEntry **b, uiEntry **a, const char *field)
-{
-	uiBox *hbox;
-
-	hbox = newHorizontalBox();
-	uiBoxAppend(parent, uiControl(hbox), 0);
-
-	if (has != NULL) {
-		*has = uiNewCheckbox(hasText);
-		uiBoxAppend(hbox, uiControl(*has), 0);
-	}
-
-	*r = uiNewEntry();
-	uiEntrySetText(*r, field);
-	uiBoxAppend(hbox, uiControl(*r), 1);
-
-	*g = uiNewEntry();
-	uiEntrySetText(*g, field);
-	uiBoxAppend(hbox, uiControl(*g), 1);
-
-	*b = uiNewEntry();
-	uiEntrySetText(*b, field);
-	uiBoxAppend(hbox, uiControl(*b), 1);
-
-	*a = uiNewEntry();
-	uiEntrySetText(*a, "1.0");
-	uiBoxAppend(hbox, uiControl(*a), 1);
 }
 
 uiBox *makePage9(void)
@@ -193,10 +143,14 @@ uiBox *makePage9(void)
 	uiComboboxSetSelected(textStretch, uiDrawTextStretchNormal);
 	uiBoxAppend(hbox, uiControl(textStretch), 1);
 
-	mkRGBA(vbox, NULL, NULL, &textR, &textG, &textB, &textA, "0.0");
-	mkRGBA(vbox, &textHasBackground, "Background", &textBR, &textBG, &textBB, &textBA, "1.0");
-	mkRGBA(vbox, &textHasStrikethrough, "Strikethrough", &textSR, &textSG, &textSB, &textSA, "0.0");
-	mkRGBA(vbox, &textHasUnderline, "Underline", &textUR, &textUG, &textUB, &textUA, "0.0");
+	textGravity = uiNewCombobox();
+	uiComboboxAppend(textGravity, "South");
+	uiComboboxAppend(textGravity, "East");
+	uiComboboxAppend(textGravity, "North");
+	uiComboboxAppend(textGravity, "West");
+	uiComboboxAppend(textGravity, "Auto");
+	uiComboboxSetSelected(textGravity, uiDrawTextGravitySouth);
+	uiBoxAppend(hbox, uiControl(textGravity), 1);
 
 	textApply = uiNewButton("Apply");
 	uiButtonOnClicked(textApply, onTextApply, NULL);

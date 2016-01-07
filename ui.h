@@ -449,7 +449,8 @@ _UI_EXTERN uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff);
 _UI_EXTERN char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n);
 _UI_EXTERN void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff);
 
-typedef struct uiDrawTextStyle uiDrawTextStyle;
+typedef struct uiDrawTextLayout uiDrawTextLayout;
+typedef struct uiDrawInitialTextStyle uiDrawInitialTextStyle;
 
 typedef enum uiDrawTextWeight {
 	uiDrawTextWeightThin,
@@ -484,6 +485,25 @@ typedef enum uiDrawTextStretch {
 	uiDrawTextStretchUltraExpanded,
 } uiDrawTextStretch;
 
+typedef enum uiDrawTextGravity {
+	uiDrawTextGravitySouth,
+	uiDrawTextGravityEast,
+	uiDrawTextGravityNorth,
+	uiDrawTextGravityWest,
+	uiDrawTextGravityAuto,
+} uiDrawTextGravity;
+
+struct uiDrawInitialTextStyle {
+	const char *Family;
+	double Size;
+	uiDrawTextWeight Weight;
+	uiDrawTextItalic Italic;
+	int SmallCaps;
+	uiDrawTextStretch Stretch;
+	uiDrawTextGravity Gravity;
+};
+
+/*TODO
 struct uiDrawTextStyle {
 	const char *Family;
 	double Size;
@@ -513,12 +533,15 @@ struct uiDrawTextStyle {
 	const char *Language;	// RFC 3066; NULL for default
 	// TODO other Pango attributes
 };
+*/
 
 _UI_EXTERN double uiDrawTextSizeToPoints(double textSize);
 _UI_EXTERN double uiDrawPointsToTextSize(double points);
 
-// TODO make this more robust.
-_UI_EXTERN void uiDrawText(uiDrawContext *c, double x, double y, const char *text, uiDrawTextStyle *style);
+_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextStyle *initialTextStyle);
+_UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *layout);
+
+_UI_EXTERN void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout);
 
 typedef enum uiModifiers {
 	uiModifierCtrl = 1 << 0,

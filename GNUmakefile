@@ -62,7 +62,7 @@ example: libui
 	@$(MAKE) -f build/GNUmakefile.example inlibuibuild=1
 
 examples:
-	#@$(MAKE) -f GNUmakefile example EXAMPLE=controlgallery 
+	@$(MAKE) -f GNUmakefile example EXAMPLE=controlgallery 
 	@$(MAKE) -f GNUmakefile example EXAMPLE=histogram
 
 .PHONY: examples

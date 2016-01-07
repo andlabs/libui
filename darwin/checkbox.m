@@ -9,7 +9,7 @@ struct uiCheckbox {
 };
 
 @interface checkboxDelegateClass : NSObject {
-	NSMapTable *buttons;
+	struct mapTable *buttons;
 }
 - (IBAction)onToggled:(id)sender;
 - (void)registerCheckbox:(uiCheckbox *)c;
@@ -28,9 +28,7 @@ struct uiCheckbox {
 
 - (void)dealloc
 {
-	if ([self->buttons count] != 0)
-		complain("attempt to destroy shared checkbox delegate but checkboxes are still registered to it");
-	[self->buttons release];
+	mapDestroy(self->buttons);
 	[super dealloc];
 }
 
@@ -52,7 +50,7 @@ struct uiCheckbox {
 - (void)unregisterCheckbox:(uiCheckbox *)c
 {
 	[c->button setTarget:nil];
-	[self->buttons removeObjectForKey:c->button];
+	mapDelete(self->buttons, c->button);
 }
 
 @end

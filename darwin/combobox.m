@@ -33,7 +33,7 @@ struct uiCombobox {
 };
 
 @interface comboboxDelegateClass : NSObject<NSComboBoxDelegate> {
-	NSMapTable *comboboxes;
+	struct mapTable *comboboxes;
 }
 - (void)comboBoxSelectionDidChange:(NSNotification *)note;
 - (IBAction)onSelected:(id)sender;
@@ -53,9 +53,7 @@ struct uiCombobox {
 
 - (void)dealloc
 {
-	if ([self->comboboxes count] != 0)
-		complain("attempt to destroy shared combobox delegate but comboboxes are still registered to it");
-	[self->comboboxes release];
+	mapDestroy(self->comboboxes);
 	[super dealloc];
 }
 
@@ -93,7 +91,7 @@ struct uiCombobox {
 		[c->cb setDelegate:nil];
 	else
 		[c->pb setTarget:nil];
-	[self->comboboxes removeObjectForKey:c->handle];
+	mapDelete(self->comboboxes, c->handle);
 }
 
 @end

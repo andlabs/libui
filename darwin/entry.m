@@ -28,7 +28,7 @@ struct uiEntry {
 };
 
 @interface entryDelegateClass : NSObject<NSTextFieldDelegate> {
-	NSMapTable *entries;
+	struct mapTable *entries;
 }
 - (void)controlTextDidChange:(NSNotification *)note;
 - (void)registerEntry:(uiEntry *)e;
@@ -47,9 +47,7 @@ struct uiEntry {
 
 - (void)dealloc
 {
-	if ([self->entries count] != 0)
-		complain("attempt to destroy shared entry delegate but entries are still registered to it");
-	[self->entries release];
+	mapDestroy(self->entries);
 	[super dealloc];
 }
 
@@ -70,7 +68,7 @@ struct uiEntry {
 - (void)unregisterEntry:(uiEntry *)e
 {
 	[e->textfield setDelegate:nil];
-	[self->entries removeObjectForKey:e->textfield];
+	mapDelete(self->entries, e->textfield);
 }
 
 @end

@@ -1,29 +1,44 @@
 // 17 august 2015
 #import "uipriv_darwin.h"
 
-// TODO are the NSValues (or worse, the NSMapTable) being garbage collected underfoot? open menuless window and check the checkbox; crash the package ui test when closing the main window; etc.
+// TODO are the NSValues (or worse, the NSMapTable) being garbage collected underfoot? crash the package ui test when closing the main window; etc.
 
 // unfortunately NSMutableDictionary copies its keys, meaning we can't use it for pointers
 // hence, this file
+// we could expose a NSMapTable directly, but let's treat all pointers as opaque and hide the implementation, just to be safe and prevent even more rewrites later
+struct mapTable {
+	NSMapTable *m;
+};
 
-NSMapTable *newMap(void)
+struct mapTable *newMap(void)
 {
-	return [NSMapTable mapTableWithKeyOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)
-		valueOptions:NSPointerFunctionsOpaqueMemory];
+	struct mapTable *m;
+
+	m = uiNew(struct mapTable);
+	m->m = [NSMapTable mapTableWithKeyOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)
+		valueOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)];
+	return m;
 }
 
-void *mapGet(NSMapTable *map, id key)
+void mapDestroy(struct mapTable *m)
 {
-	NSValue *v;
-
-	v = (NSValue *) [map objectForKey:key];
-	return [v pointerValue];
+	if ([m->m count] != 0)
+		complain("attempt to destroy map with items inside; did you forget to deallocate something?");
+	[m->m release];
+	uiFree(m);
 }
 
-void mapSet(NSMapTable *map, id key, void *value)
+void *mapGet(struct mapTable *m, void *key)
 {
-	NSValue *v;
+	return NSMapGet(m->m, key);
+}
 
-	v = [NSValue valueWithPointer:value];
-	[map setObject:v forKey:key];
+void mapSet(struct mapTable *m, void *key, void *value)
+{
+	NSMapInsert(m->m, key, value);
+}
+
+void mapDelete(struct mapTable *m, void *key)
+{
+	NSMapRemove(m->m, key);
 }

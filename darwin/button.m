@@ -9,7 +9,7 @@ struct uiButton {
 };
 
 @interface buttonDelegateClass : NSObject {
-	NSMapTable *buttons;
+	struct mapTable *buttons;
 }
 - (IBAction)onClicked:(id)sender;
 - (void)registerButton:(uiButton *)b;
@@ -28,9 +28,7 @@ struct uiButton {
 
 - (void)dealloc
 {
-	if ([self->buttons count] != 0)
-		complain("attempt to destroy shared button delegate but buttons are still registered to it");
-	[self->buttons release];
+	mapDestroy(self->buttons);
 	[super dealloc];
 }
 
@@ -52,7 +50,7 @@ struct uiButton {
 - (void)unregisterButton:(uiButton *)b
 {
 	[b->button setTarget:nil];
-	[self->buttons removeObjectForKey:b->button];
+	mapDelete(self->buttons, b->button);
 }
 
 @end

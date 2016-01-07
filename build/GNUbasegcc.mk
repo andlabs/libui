@@ -53,7 +53,7 @@ endif
 $(OUT): $(OFILES) | $(OUTDIR)
 	@$(reallinker) -o $(OUT) $(OFILES) $(LDFLAGS)
 ifeq ($(USESSONAME),1)
-	@ln -s $(NAME)$(SUFFIX) $(OUTNOSONAME)
+	@ln -sf $(NAME)$(SUFFIX) $(OUTNOSONAME)
 endif
 	@echo ====== Linked $(OUT)
 

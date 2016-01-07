@@ -1,8 +1,6 @@
 // 17 august 2015
 #import "uipriv_darwin.h"
 
-// TODO are the NSValues (or worse, the NSMapTable) being garbage collected underfoot? crash the package ui test when closing the main window; etc.
-
 // unfortunately NSMutableDictionary copies its keys, meaning we can't use it for pointers
 // hence, this file
 // we could expose a NSMapTable directly, but let's treat all pointers as opaque and hide the implementation, just to be safe and prevent even more rewrites later
@@ -17,6 +15,8 @@ struct mapTable *newMap(void)
 	m = uiNew(struct mapTable);
 	m->m = [NSMapTable mapTableWithKeyOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)
 		valueOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)];
+	// TODO why do I need this
+	[m->m retain];
 	return m;
 }
 

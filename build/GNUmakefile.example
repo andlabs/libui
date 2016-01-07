@@ -15,6 +15,11 @@ CFILES += \
 HFILES += \
 	ui.h
 
+ifeq ($(OS),windows)
+RCFILES += \
+	examples/resources.rc
+endif
+
 NAME = $(EXAMPLE)
 SUFFIX = $(EXESUFFIX)
 
@@ -31,5 +36,8 @@ else
 	# TODO is there an equivalent to -L?
 	LDFLAGS += $(OUTDIR)/libui.lib
 endif
+
+# executables are not shared libraries
+USESSONAME = 0
 
 include build/GNUbase$(TOOLCHAIN).mk

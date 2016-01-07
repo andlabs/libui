@@ -482,3 +482,94 @@ void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 	g_free(ff->f);
 	uiFree(ff);
 }
+
+double uiDrawTextSizeToPoints(double textSize)
+{
+	gint pangoSize;
+
+	pangoSize = (gint) (textSize * PANGO_SCALE);
+	return ((double) pangoSize) / PANGO_SCALE;
+}
+
+double uiDrawPointsToTextSize(double points)
+{
+	// yeah, as far as I can tell the two functions are equivalent
+	// TODO verify
+	// TODO make sure they aren't just equivalent
+	return uiDrawTextSizeToPoints(points);
+}
+
+static const PangoWeight pangoWeights[] = {
+	[uiDrawTextWeightThin] = PANGO_WEIGHT_THIN,
+	[uiDrawTextWeightUltraLight] = PANGO_WEIGHT_ULTRALIGHT,
+	[uiDrawTextWeightLight] = PANGO_WEIGHT_LIGHT,
+	[uiDrawTextWeightBook] = PANGO_WEIGHT_BOOK,
+	[uiDrawTextWeightNormal] = PANGO_WEIGHT_NORMAL,
+	[uiDrawTextWeightMedium] = PANGO_WEIGHT_MEDIUM,
+	[uiDrawTextWeightSemiBold] = PANGO_WEIGHT_SEMIBOLD,
+	[uiDrawTextWeightBold] = PANGO_WEIGHT_BOLD,
+	[uiDrawTextWeightUtraBold] = PANGO_WEIGHT_ULTRABOLD,
+	[uiDrawTextWeightHeavy] = PANGO_WEIGHT_HEAVY,
+	[uiDrawTextWeightUltraHeavy] = PANGO_WEIGHT_ULTRAHEAVY,
+};
+
+static const PangoStyle pangoItalics[] = {
+	[uiDrawTextItalicNormal] = PANGO_STYLE_NORMAL,
+	[uiDrawTextItalicOblique] = PANGO_STYLE_OBLIQUE,
+	[uiDrawTextItalicItalic] = PANGO_STYLE_ITALIC,
+};
+
+static const PangoStretch pangoStretches[] = {
+	[uiDrawTextStretchUltraCondensed] = PANGO_STRETCH_ULTRA_CONDENSED,
+	[uiDrawTextStretchExtraCondensed] = PANGO_STRETCH_EXTRA_CONDENSED,
+	[uiDrawTextStretchCondensed] = PANGO_STRETCH_CONDENSED,
+	[uiDrawTextStretchSemiCondensed] = PANGO_STRETCH_SEMI_CONDENSED,
+	[uiDrawTextStretchNormal] = PANGO_STRETCH_NORMAL,
+	[uiDrawTextStretchSemiExpanded] = PANGO_STRETCH_SEMI_EXPANDED,
+	[uiDrawTextStretchExpanded] = PANGO_STRETCH_EXPANDED,
+	[uiDrawTextStretchExtraExpanded] = PANGO_STRETCH_EXTRA_EXPANDED,
+	[uiDrawTextStretchUltraExpanded] = PANGO_STRETCH_ULTRA_EXPANDED,
+};
+
+void uiDrawText(uiDrawContext *c, double x, double y, const char *text, uiDrawTextStyle *style)
+{
+	PangoAttrList *attrs;
+	PangoLayout *layout;
+
+	attrs = pango_attr_list_new();
+	pango_attr_list_insert(attrs,
+		pango_attr_family_new(style->Family));
+	pango_attr_list_insert(attrs,
+		pango_attr_size_new((gint) (style->Size * PANGO_SCALE)));
+	pango_attr_list_insert(attrs,
+		pango_attr_weight_new(pangoWeights[style->Weight]));
+	pango_attr_list_insert(attrs,
+		pango_attr_style_new(pangoItalics[style->Italic]));
+	if (style->SmallCaps)
+		pango_attr_list_insert(attrs,
+			pango_attr_variant_new(PANGO_VARIANT_SMALL_CAPS));
+	pango_attr_list_insert(attrs,
+		pango_attr_stretch_new(pangoStretches[style->Stretch]));
+	cairo_set_source_rgba(c->cr, style->TextR, style->TextG, style->TextB, style->TextA);
+	if (style->HasBackground) {
+		// TODO
+	}
+	if (style->HasStrikethrough) {
+		// TODO
+	}
+	if (style->HasUnderline) {
+		// TODO
+	}
+	if (style->Language != NULL)
+		pango_attr_list_insert(attrs,
+			pango_attr_language_new(pango_language_from_string(style->Language)));
+
+	layout = pango_cairo_create_layout(c->cr);
+	pango_layout_set_text(layout, text, -1);
+	pango_layout_set_attributes(layout, attrs);
+	cairo_move_to(c->cr, x, y);
+	pango_cairo_show_layout(c->cr, layout);
+
+	g_object_unref(layout);
+	pango_attr_list_unref(attrs);
+}

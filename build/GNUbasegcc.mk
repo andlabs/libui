@@ -40,6 +40,7 @@ OFILES = \
 OFILES := $(OFILES:%=$(OBJDIR)/%.o)
 
 OUT = $(OUTDIR)/$(NAME)$(SUFFIX)
+OUTNOSONAME = $(OUTDIR)/$(NAME)$(LIBSUFFIX)
 
 # TODO allow using LD
 # LD is defined by default so we need a way to override the default define without blocking a user define
@@ -51,6 +52,9 @@ endif
 
 $(OUT): $(OFILES) | $(OUTDIR)
 	@$(reallinker) -o $(OUT) $(OFILES) $(LDFLAGS)
+ifeq ($(USESSONAME),1)
+	@ln -s $(NAME)$(SUFFIX) $(OUTNOSONAME)
+endif
 	@echo ====== Linked $(OUT)
 
 .SECONDEXPANSION:

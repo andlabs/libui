@@ -28,4 +28,7 @@ else
 	LDFLAGS += $(OUTDIR)/libui.lib
 endif
 
+# executables are not shared libraries
+USESSONAME = 0
+
 include build/GNUbase$(TOOLCHAIN).mk

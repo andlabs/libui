@@ -86,6 +86,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 
 	childView = (NSView *) uiControlHandle(child);
 	view = [[NSView alloc] initWithFrame:NSZeroRect];
+	// TODO if we turn off the autoresizing mask, nothing shows up; didn't this get documented somewhere?
 	[view addSubview:childView];
 
 	[t->pages insertObject:[NSValue valueWithPointer:child] atIndex:n];

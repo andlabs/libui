@@ -15,7 +15,13 @@ CFILES += \
 	test/page7b.c \
 	test/page7c.c \
 	test/page8.c \
+	test/page9.c \
 	test/spaced.c
 
 HFILES += \
 	test/test.h
+
+ifeq ($(OS),windows)
+RCFILES += \
+	test/resources.rc
+endif

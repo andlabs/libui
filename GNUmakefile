@@ -38,6 +38,10 @@ export CXXFLAGS
 export LDFLAGS
 export NODEBUG
 export EXAMPLE
+export PREFIX
+
+# for Debian - see https://github.com/andlabs/libui/pull/10
+export DESTDIR
 
 # other important variables
 export OBJDIR
@@ -57,4 +61,11 @@ test: libui
 example: libui
 	@$(MAKE) -f build/GNUmakefile.example inlibuibuild=1
 
-# TODO examples rule?
+examples:
+	@$(MAKE) -f GNUmakefile example EXAMPLE=controlgallery 
+	@$(MAKE) -f GNUmakefile example EXAMPLE=histogram
+
+.PHONY: examples
+
+install:
+	@$(MAKE) -f build/GNUmakefile.libui install inlibuibuild=1

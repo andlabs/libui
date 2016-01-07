@@ -488,3 +488,20 @@ void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 	CFRelease(ff->fonts);
 	uiFree(ff);
 }
+
+double uiDrawTextSizeToPoints(double textSize)
+{
+	// TODO
+	return 0;
+}
+
+double uiDrawPointsToTextSize(double points)
+{
+	// TODO
+	return 0;
+}
+
+void uiDrawText(uiDrawContext *c, double x, double y, const char *text, uiDrawTextStyle *style)
+{
+	// TODO
+}

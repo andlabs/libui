@@ -5,7 +5,8 @@ $(error Do not run these makefiles directly.)
 endif
 
 # for GCC
-SOVERSION = 0
+SOVERSION0 = 0
+SOVERSIONA = A
 
 include $(OS)/GNUosspecific.mk
 include common/GNUfiles.mk
@@ -17,6 +18,9 @@ HFILES += \
 
 NAME = libui
 SUFFIX = $(LIBSUFFIX)
+ifeq ($(USESSONAME),1)
+	SUFFIX = $(SONAMEEXT)
+endif
 
 ifeq ($(TOOLCHAIN),gcc)
 	# make every symbol hidden by default except _UI_EXTERN ones
@@ -38,4 +42,12 @@ else
 		/D "_UI_EXTERN=__declspec(dllexport) extern"
 endif
 
+ifeq ($(USESSONAME),1)
+	LDFLAGS += $(SONAMEFLAG)$(NAME)$(SUFFIX)
+endif
+
 include build/GNUbase$(TOOLCHAIN).mk
+
+# install rule is OS specific
+# TODO probably better off making it a toolchain-wide rule
+include $(OS)/GNUinstall.mk

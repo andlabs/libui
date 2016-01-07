@@ -1,6 +1,7 @@
 # libui: a portable GUI library for C
 
-This README is being written.
+This README is being written.<br>
+[![Build Status](https://travis-ci.org/andlabs/libui.png)](https://travis-ci.org/andlabs/libui)
 
 ## Runtime Requirements
 
@@ -17,7 +18,6 @@ This README is being written.
 	* MinGW is currently unsupported. MinGW-w64 support will be re-added once the following features come in:
 		* [Isolation awareness](https://msdn.microsoft.com/en-us/library/aa375197%28v=vs.85%29.aspx)
 		* Linker symbols for some functions such as `TaskDialog()` (which I thought I submitted...)
-		* [A bug in the definition of the C macro `ID2D1RenderTarget_GetSize()`](https://sourceforge.net/p/mingw-w64/mailman/message/33176880/)
 * Unix: nothing specific
 * Mac OS X: nothing specific, so long as you can build Cocoa programs
 

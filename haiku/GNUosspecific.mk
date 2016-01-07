@@ -5,6 +5,9 @@ LIBSUFFIX = .so
 OSHSUFFIX = .hpp
 TOOLCHAIN = gcc
 
+# TODO
+USESSONAME = 0
+
 # Force GCC 4; GCC 2 is not supported.
 gccver = $(shell $(CC) --version | sed 's/-.*//g')
 ifeq ($(gccver),2.95.3)

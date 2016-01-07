@@ -13,10 +13,9 @@ struct mapTable *newMap(void)
 	struct mapTable *m;
 
 	m = uiNew(struct mapTable);
-	m->m = [NSMapTable mapTableWithKeyOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)
-		valueOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)];
-	// TODO why do I need this
-	[m->m retain];
+	m->m = [[NSMapTable alloc] initWithKeyOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)
+		valueOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)
+		capacity:0];
 	return m;
 }
 

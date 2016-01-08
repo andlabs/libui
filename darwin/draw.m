@@ -558,7 +558,7 @@ static CFMutableDictionaryRef newAttrList(void)
 {
 	CFMutableDictionaryRef attr;
 
-	attr = CFDictionaryCreateMutable(NULL, 0, kCFTypeDictionaryKeyCallBacks, kCFTypeDictionaryValueCallBacks);
+	attr = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 	if (attr == NULL)
 		complain("error creating attribute dictionary in newAttrList()()");
 	return attr;
@@ -583,6 +583,47 @@ struct traits {
 
 static void addFontTraitsAttr(CFMutableDictionaryRef attr, struct traits *traits)
 {
+	// TODO
+}
+
+static void addFontSizeAttr(CFMutableDictionaryRef attr, double size)
+{
+	CFNumberRef n;
+
+	n = CFNumberCreate(NULL, kCFNumberDoubleType, &size);
+	CFDictionaryAddValue(attr, kCTFontSizeAttribute, n);
+	CFRelease(n);
+}
+
+// see http://stackoverflow.com/questions/4810409/does-coretext-support-small-caps/4811371#4811371 and https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c
+static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
+{
+	CFMutableArrayRef outerArray;
+	CFMutableDictionaryRef innerDict;
+	CFNumberRef numType, numSelector;
+
+	outerArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+	if (outerArray == NULL)
+		complain("error creating outer CFArray for adding small caps attributes in addFontSmallCapsAttr()");
+
+	// TODO Apple's headers say these values are deprecated, but I'm not sure what they should be replaced with (or whether they should be deleted outright or used concurrently with their replacements); the other answers of the Stack Overflow question has hints though (and TODO inform Pango of this)
+	numType = CFNumberCreate(NULL, kCFNumberIntType, kLetterCaseType);
+	numSelector = CFNumberCreate(NULL, kCFNumberIntType, kSmallCapsSelector);
+	innerDict = newAttrList();
+	CFDictionaryAddValue(innerDict, kCTFontFeatureTypeIdentifierKey, numType);
+	CFRelease(numType);
+	CFDictionaryAddValue(innerDict, kCTFontFeatureSelectorIdentifierKey, numSelector);
+	CFRelease(numSelector);
+	CFArrayAppendValue(outerArray, innerDict;
+	CFRelease(innerDict);		// and likewise for CFArray
+
+	CFDictionaryAddValue(attr, kCTFontFeatureSettingsAttribute, outerArray);
+	CFRelease(outerArray);
+}
+
+static void addGravityAttr(CFMutableDictionaryRef dict, uiDrawTextGravity gravity)
+{
+	// TODO: matrix setting? kCTFontOrientationAttribute? or is it a kCTVerticalFormsAttributeName of the CFAttributedString attributes and thus not part of the CTFontDescriptor?
 }
 
 uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextStyle *initialStyle)
@@ -591,6 +632,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextSt
 	CFMutableStringRef cfstr;
 	CFMutableDictionaryRef attr;
 	struct traits t;
+	CTFontDescriptorRef desc;
+	CTFontRef font;
 
 	layout = uiNew(uiDrawTextLayout);
 
@@ -598,15 +641,50 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextSt
 
 	attr = newAttrList();
 	addFontFamilyAttr(attr, initialStyle->Family);
+	t.weight = initialStyle->Weight;
+	t.italic = initialStyle->Italic;
+	t.stretch = initialStyle->Stretch;
+	addFontTraitsAttr(attr, &t);
+	addFontSizeAttr(attr, initialStyle->Size);
+	if (initialStyle->SmallCaps)
+		addFontSmallCapsAttr(attr);
+	addFontGravityAttr(attr, initialStyle->Gravity);
+
+	desc = CTFontDescriptorCreateWithAttributes(attr);
+	// TODO release attr?
+	// specify the initial size again just to be safe
+	font = CTFontCreateWithFontDescriptor(desc, initialStyle->Size, NULL);
+	// TODO release desc?
+
+	attr = newAttrList();
+	CFDictionaryAddValue(attr, kCTFontAttributeName, font);
+	CFRelease(font);
+
+	layout->mas = CFAttributedStringCreate(NULL, cfstr, attr);
+	if (layout->mas == NULL)
+		complain("error creating attributed string in uiDrawNewTextLayout()");
+	CFRelease(cfstr);
+	CFRelease(attr);
+
+	return layout;
+}
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
-	// TODO
+	CFRelease(layout->mas);
 	uiFree(layout->bytesToCharacters);
 	uiFree(layout);
 }
 
+// TODO how does this behave with multiple lines? on other platforms? is there a generic way to draw this unbounded?
 void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 {
-	// TODO
+	CTLineRef line;
+
+	line = CTLineCreateWithAttributedString(layout->mas);
+	if (line == NULL)
+		complain("error creating CTLine object in uiDrawText()");
+	CGContextSetTextPosition(c->c, x, y);
+	CTLineDraw(line, c->c);
+	CFRelease(line);
 }

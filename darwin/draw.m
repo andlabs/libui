@@ -693,6 +693,8 @@ void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 	line = CTLineCreateWithAttributedString(layout->mas);
 	if (line == NULL)
 		complain("error creating CTLine object in uiDrawText()");
+	// TODO figure out why this fixes text rendering
+	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
 	CGContextSetTextPosition(c->c, x, y);
 	CTLineDraw(line, c->c);
 	CFRelease(line);

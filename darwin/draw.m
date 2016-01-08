@@ -101,14 +101,16 @@ void uiDrawPathEnd(uiDrawPath *p)
 
 struct uiDrawContext {
 	CGContextRef c;
+	CGFloat height;				// needed for text; see below
 };
 
-uiDrawContext *newContext(CGContextRef ctxt)
+uiDrawContext *newContext(CGContextRef ctxt, CGFloat height)
 {
 	uiDrawContext *c;
 
 	c = uiNew(uiDrawContext);
 	c->c = ctxt;
+	c->height = height;
 	return c;
 }
 
@@ -685,17 +687,41 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 	uiFree(layout);
 }
 
+// Core Text doesn't draw onto a flipped view correctly; we have to do this
+// see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)
+static void prepareContextForText(uiDrawContext *c, double *y)
+{
+	CGContextSaveGState(c->c);
+	CGContextTranslateCTM(c->c, 0, c->height);
+	CGContextScaleCTM(c->c, 1.0, -1.0);
+	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
+
+	// wait, that's not enough; we need to offset y values to account for our new flipping
+	*y = c->height - *y;
+}
+
 // TODO how does this behave with multiple lines? on other platforms? is there a generic way to draw this unbounded?
 void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 {
 	CTLineRef line;
+	CGRect bounds;
+
+	prepareContextForText(c, &y);
 
 	line = CTLineCreateWithAttributedString(layout->mas);
 	if (line == NULL)
 		complain("error creating CTLine object in uiDrawText()");
-	// TODO figure out why this fixes text rendering
-	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
+
+	// oh, and (x, y) is the bottom-left corner; we need the top-left
+	// remember that we're flipped, so we subtract
+	bounds = CTLineGetImageBounds(line, c->c);
+	// though CTLineGetImageBounds() returns CGRectNull on error, it also returns CGRectNull on an empty string, so we can't reasonably check for error
+	y -= bounds.size.height;
 	CGContextSetTextPosition(c->c, x, y);
+
+	// and now we can FINALLY draw the line
 	CTLineDraw(line, c->c);
 	CFRelease(line);
+
+	CGContextRestoreGState(c->c);
 }

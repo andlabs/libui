@@ -528,7 +528,7 @@ static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr
 
 		// figure out how many characters to convert and convert them
 		for (n = 1; (i + n - 1) < len; n++) {
-			substr = CFStringCreateWithBytes(NULL, str + i, n, kCFStringEncodingUTF8, false);
+			substr = CFStringCreateWithBytes(NULL, (const UInt8 *) (str + i), n, kCFStringEncodingUTF8, false);
 			if (substr != NULL)		// found a full character
 				break;
 		}
@@ -568,7 +568,7 @@ static void addFontFamilyAttr(CFMutableDictionaryRef attr, const char *family)
 {
 	CFStringRef cfstr;
 
-	cfstr = CFStringCreateWithCString(NULL, initialStyle->Family, kCFStringEncodingUTF8);
+	cfstr = CFStringCreateWithCString(NULL, family, kCFStringEncodingUTF8);
 	if (cfstr == NULL)
 		complain("error creating font family name CFStringRef in addFontFamilyAttr()");
 	CFDictionaryAddValue(attr, kCTFontFamilyNameAttribute, cfstr);
@@ -601,27 +601,30 @@ static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
 	CFMutableArrayRef outerArray;
 	CFMutableDictionaryRef innerDict;
 	CFNumberRef numType, numSelector;
+	int num;
 
 	outerArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
 	if (outerArray == NULL)
 		complain("error creating outer CFArray for adding small caps attributes in addFontSmallCapsAttr()");
 
 	// TODO Apple's headers say these values are deprecated, but I'm not sure what they should be replaced with (or whether they should be deleted outright or used concurrently with their replacements); the other answers of the Stack Overflow question has hints though (and TODO inform Pango of this)
-	numType = CFNumberCreate(NULL, kCFNumberIntType, kLetterCaseType);
-	numSelector = CFNumberCreate(NULL, kCFNumberIntType, kSmallCapsSelector);
+	num = kLetterCaseType;
+	numType = CFNumberCreate(NULL, kCFNumberIntType, &num);
+	num = kSmallCapsSelector;
+	numSelector = CFNumberCreate(NULL, kCFNumberIntType, &num);
 	innerDict = newAttrList();
 	CFDictionaryAddValue(innerDict, kCTFontFeatureTypeIdentifierKey, numType);
 	CFRelease(numType);
 	CFDictionaryAddValue(innerDict, kCTFontFeatureSelectorIdentifierKey, numSelector);
 	CFRelease(numSelector);
-	CFArrayAppendValue(outerArray, innerDict;
+	CFArrayAppendValue(outerArray, innerDict);
 	CFRelease(innerDict);		// and likewise for CFArray
 
 	CFDictionaryAddValue(attr, kCTFontFeatureSettingsAttribute, outerArray);
 	CFRelease(outerArray);
 }
 
-static void addGravityAttr(CFMutableDictionaryRef dict, uiDrawTextGravity gravity)
+static void addFontGravityAttr(CFMutableDictionaryRef dict, uiDrawTextGravity gravity)
 {
 	// TODO: matrix setting? kCTFontOrientationAttribute? or is it a kCTVerticalFormsAttributeName of the CFAttributedString attributes and thus not part of the CTFontDescriptor?
 }
@@ -634,6 +637,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextSt
 	struct traits t;
 	CTFontDescriptorRef desc;
 	CTFontRef font;
+	CFAttributedStringRef immutable;
 
 	layout = uiNew(uiDrawTextLayout);
 
@@ -660,11 +664,16 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextSt
 	CFDictionaryAddValue(attr, kCTFontAttributeName, font);
 	CFRelease(font);
 
-	layout->mas = CFAttributedStringCreate(NULL, cfstr, attr);
-	if (layout->mas == NULL)
-		complain("error creating attributed string in uiDrawNewTextLayout()");
+	immutable = CFAttributedStringCreate(NULL, cfstr, attr);
+	if (immutable == NULL)
+		complain("error creating immutable attributed string in uiDrawNewTextLayout()");
 	CFRelease(cfstr);
 	CFRelease(attr);
+
+	layout->mas = CFAttributedStringCreateMutableCopy(NULL, 0, immutable);
+	if (layout->mas == NULL)
+		complain("error creating attributed string in uiDrawNewTextLayout()");
+	CFRelease(immutable);
 
 	return layout;
 }

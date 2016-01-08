@@ -583,9 +583,88 @@ struct traits {
 	uiDrawTextStretch stretch;
 };
 
+// Named constants for these were NOT added until 10.11, and even then they were added as external symbols instead of macros, so we can't use them directly :(
+// kode54 got these for me before I had access to El Capitan; thanks to him.
+#define ourNSFontWeightUltraLight -0.800000
+#define ourNSFontWeightThin -0.600000
+#define ourNSFontWeightLight -0.400000
+#define ourNSFontWeightRegular 0.000000
+#define ourNSFontWeightMedium 0.230000
+#define ourNSFontWeightSemibold 0.300000
+#define ourNSFontWeightBold 0.400000
+#define ourNSFontWeightHeavy 0.560000
+#define ourNSFontWeightBlack 0.620000
+static const CGFloat ctWeights[] = {
+	// yeah these two have their names swapped; blame Pango
+	// TODO note that these names do not necessarily line up with their OS names
+	[uiDrawTextWeightThin] = ourNSFontWeightUltraLight,
+	[uiDrawTextWeightUltraLight] = ourNSFontWeightThin,
+	[uiDrawTextWeightLight] = ourNSFontWeightLight,
+	// for this one let's go between Light and Regular
+	// TODO figure out if we can rely on the order for these (and the one below)
+	[uiDrawTextWeightBook] = ourNSFontWeightLight + ((ourNSFontWeightRegular - ourNSFontWeightLight) / 2),
+	[uiDrawTextWeightNormal] = ourNSFontWeightRegular,
+	[uiDrawTextWeightMedium] = ourNSFontWeightMedium,
+	[uiDrawTextWeightSemiBold] = ourNSFontWeightSemibold,
+	[uiDrawTextWeightBold] = ourNSFontWeightBold,
+	// for this one let's go between Bold and Heavy
+	[uiDrawTextWeightUtraBold] = ourNSFontWeightBold + ((ourNSFontWeightHeavy - ourNSFontWeightBold) / 2),
+	[uiDrawTextWeightHeavy] = ourNSFontWeightHeavy,
+	[uiDrawTextWeightUltraHeavy] = ourNSFontWeightBlack,
+};
+
+// Unfortunately there are still no named constants for these.
+// Let's just use normalized widths.
+static const CGFloat ctStretches[] = {
+	[uiDrawTextStretchUltraCondensed] = -1.0,
+	[uiDrawTextStretchExtraCondensed] = -0.75,
+	[uiDrawTextStretchCondensed] = -0.5,
+	[uiDrawTextStretchSemiCondensed] = -0.25,
+	[uiDrawTextStretchNormal] = 0.0,
+	[uiDrawTextStretchSemiExpanded] = 0.25,
+	[uiDrawTextStretchExpanded] = 0.5,
+	[uiDrawTextStretchExtraExpanded] = 0.75,
+	[uiDrawTextStretchUltraExpanded] = 1.0,
+};
+
 static void addFontTraitsAttr(CFMutableDictionaryRef attr, struct traits *traits)
 {
-	// TODO
+	CFMutableDictionaryRef td;
+	CFNumberRef num;
+	SInt64 symbolic;
+	CGFloat slant;
+
+	td = newAttrList();
+	symbolic = 0;
+
+	symbolic |= (SInt64) kCTFontBoldTrait;
+	num = CFNumberCreate(NULL, kCFNumberCGFloatType, &ctWeights[traits->weight]);
+	CFDictionaryAddValue(td, kCTFontWeightTrait, num);
+	CFRelease(num);
+
+	switch (traits->italic) {
+	case uiDrawTextItalicOblique:
+		slant = 1.0;		// TODO
+		num = CFNumberCreate(NULL, kCFNumberCGFloatType, &slant);
+		CFDictionaryAddValue(td, kCTFontSlantTrait, num);
+		CFRelease(num);
+		// fall through
+	case uiDrawTextItalicItalic:
+		symbolic |= (SInt64) kCTFontItalicTrait;
+		break;
+	}
+
+	symbolic |= (SInt64) kCTFontCondensedTrait;
+	num = CFNumberCreate(NULL, kCFNumberCGFloatType, &ctStretches[traits->stretch]);
+	CFDictionaryAddValue(td, kCTFontWidthTrait, num);
+	CFRelease(num);
+
+	num = CFNumberCreate(NULL, kCFNumberSInt64Type, &symbolic);
+	CFDictionaryAddValue(td, kCTFontSymbolicTrait, num);
+	CFRelease(num);
+
+	CFDictionaryAddValue(attr, kCTFontTraitsAttribute, td);
+	CFRelease(td);
 }
 
 static void addFontSizeAttr(CFMutableDictionaryRef attr, double size)

@@ -56,6 +56,7 @@ notes to self
 - note that if a menu is requested on systems with menubars on windows but no menus are defined, the result is a blank menubar, with whatever that means left up to the OS to decide
 - note that handling of multiple consecutive separators in menus, leading separators in menus, and trailing separators in menus are all OS-defined
 - note that uiDrawMatrixInvert() does not change the matrix if it fails
+- note that the use of strings that are not strictly valid UTF-8 results in undefined behavior
 
 - test RTL
 	- automate RTL

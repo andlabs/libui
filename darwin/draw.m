@@ -501,7 +501,112 @@ double uiDrawPointsToTextSize(double points)
 	return 0;
 }
 
-void uiDrawText(uiDrawContext *c, double x, double y, const char *text, uiDrawTextStyle *style)
+struct uiDrawTextLayout {
+	CFMutableAttributedStringRef mas;
+	intmax_t *bytesToCharacters;
+};
+
+// TODO this is *really* iffy, but we need to know character offsets...
+static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr)
+{
+	intmax_t *bytesToCharacters;
+	intmax_t i, len;
+
+	len = strlen(str);
+	bytesToCharacters = (intmax_t *) uiAlloc(len * sizeof (intmax_t), "intmax_t[]");
+
+	*cfstr = CFStringCreateMutable(NULL, 0);
+	if (*cfstr == NULL)
+		complain("error creating CFMutableStringRef for storing string in uiDrawNewTextLayout()");
+
+	i = 0;
+	while (i < len) {
+		CFStringRef substr;
+		intmax_t n;
+		intmax_t j;
+		intmax_t pos;
+
+		// figure out how many characters to convert and convert them
+		for (n = 1; (i + n - 1) < len; n++) {
+			substr = CFStringCreateWithBytes(NULL, str + i, n, kCFStringEncodingUTF8, false);
+			if (substr != NULL)		// found a full character
+				break;
+		}
+		// if this test passes we either:
+		// - reached the end of the string without a successful conversion (invalid string)
+		// - ran into allocation issues
+		if (substr == NULL)
+			complain("something bad happened when trying to prepare string in uiDrawNewTextLayout()");
+
+		// now save the character offsets for those bytes
+		pos = CFStringGetLength(*cfstr);
+		for (j = 0; j < n; j++)
+			bytesToCharacters[j] = pos;
+
+		// and add the characters that we converted
+		CFStringAppend(*cfstr, substr);
+		CFRelease(substr);			// TODO correct?
+
+		// and go to the next
+		i += n;
+	}
+
+	return bytesToCharacters;
+}
+
+static CFMutableDictionaryRef newAttrList(void)
+{
+	CFMutableDictionaryRef attr;
+
+	attr = CFDictionaryCreateMutable(NULL, 0, kCFTypeDictionaryKeyCallBacks, kCFTypeDictionaryValueCallBacks);
+	if (attr == NULL)
+		complain("error creating attribute dictionary in newAttrList()()");
+	return attr;
+}
+
+static void addFontFamilyAttr(CFMutableDictionaryRef attr, const char *family)
+{
+	CFStringRef cfstr;
+
+	cfstr = CFStringCreateWithCString(NULL, initialStyle->Family, kCFStringEncodingUTF8);
+	if (cfstr == NULL)
+		complain("error creating font family name CFStringRef in addFontFamilyAttr()");
+	CFDictionaryAddValue(attr, kCTFontFamilyNameAttribute, cfstr);
+	CFRelease(cfstr);			// dictionary holds its own reference
+}
+
+struct traits {
+	uiDrawTextWeight weight;
+	uiDrawTextItalic italic;
+	uiDrawTextStretch stretch;
+};
+
+static void addFontTraitsAttr(CFMutableDictionaryRef attr, struct traits *traits)
+{
+}
+
+uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextStyle *initialStyle)
+{
+	uiDrawTextLayout *layout;
+	CFMutableStringRef cfstr;
+	CFMutableDictionaryRef attr;
+	struct traits t;
+
+	layout = uiNew(uiDrawTextLayout);
+
+	layout->bytesToCharacters = strToCFStrOffsetList(str, &cfstr);
+
+	attr = newAttrList();
+	addFontFamilyAttr(attr, initialStyle->Family);
+
+void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
+{
+	// TODO
+	uiFree(layout->bytesToCharacters);
+	uiFree(layout);
+}
+
+void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 {
 	// TODO
 }

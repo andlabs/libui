@@ -653,6 +653,7 @@ static const CGFloat ctWeights[] = {
 
 // Unfortunately there are still no named constants for these.
 // Let's just use normalized widths.
+// As far as I can tell (OS X only has condensed fonts, not expanded fonts; TODO), regardless of condensed or expanded, negative means condensed and positive means expanded.
 // TODO verify this is correct
 static const CGFloat ctStretches[] = {
 	[uiDrawTextStretchUltraCondensed] = -1.0,

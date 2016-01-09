@@ -138,6 +138,7 @@ extern void freeContext(uiDrawContext *);
 // drawtext.cpp
 extern HRESULT initDrawText(void);
 extern void uninitDrawText(void);
+extern void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout);
 
 #ifdef __cplusplus
 }

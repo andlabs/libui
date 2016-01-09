@@ -509,6 +509,7 @@ struct uiDrawTextLayout {
 };
 
 // TODO this is *really* iffy, but we need to know character offsets...
+// TODO clean up the local variable names and improve documentation
 static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr)
 {
 	intmax_t *bytesToCharacters;
@@ -768,6 +769,7 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 
 // Core Text doesn't draw onto a flipped view correctly; we have to do this
 // see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)
+// TODO how is this affected by the CTM?
 static void prepareContextForText(uiDrawContext *c, double *y)
 {
 	CGContextSaveGState(c->c);

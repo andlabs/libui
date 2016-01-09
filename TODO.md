@@ -1,3 +1,5 @@
+- big documentation TODO: document that font matching is CLOSEST MATCH
+
 - go through ALL the objective-c objects we create and make sure we are using the proper ownership (alloc/init and new are owned by us, all class method constructors are autoreleased - thanks mikeash)
 
 - on OS X, edit shortcuts like command-C working require that the menu entries be defined, or so it seems, even for NSAlert

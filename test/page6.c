@@ -1,4 +1,5 @@
 // 8 october 2015
+#include <inttypes.h>
 #include "test.h"
 
 static uiArea *area;
@@ -18,7 +19,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
 {
-	printf("mouse (%g,%g):(%g,%g) down:%d up:%d count:%d mods:%x held:%x\n",
+	printf("mouse (%g,%g):(%g,%g) down:%d up:%d count:%d mods:%x held:%" PRIu64 "x\n",
 		e->X,
 		e->Y,
 		e->AreaWidth,

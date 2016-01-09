@@ -535,6 +535,7 @@ struct uiDrawTextStyle {
 };
 */
 
+// TODO wait why do I have these functions? I don't think they provide a correct line height...
 _UI_EXTERN double uiDrawTextSizeToPoints(double textSize);
 _UI_EXTERN double uiDrawPointsToTextSize(double points);
 

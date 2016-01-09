@@ -491,16 +491,17 @@ void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 	uiFree(ff);
 }
 
+// these two are identical:
+// - https://developer.apple.com/library/mac/documentation/TextFonts/Conceptual/CocoaTextArchitecture/TypoFeatures/TextSystemFeatures.html#//apple_ref/doc/uid/TP40009459-CH6-51627-BBCCHIFF text points are 72 per inch
+// - https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/CocoaDrawingGuide/Transforms/Transforms.html#//apple_ref/doc/uid/TP40003290-CH204-SW5 user space points are 72 per inch
 double uiDrawTextSizeToPoints(double textSize)
 {
-	// TODO
-	return 0;
+	return textSize;
 }
 
 double uiDrawPointsToTextSize(double points)
 {
-	// TODO
-	return 0;
+	return points;
 }
 
 struct uiDrawTextLayout {

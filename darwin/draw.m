@@ -578,96 +578,6 @@ static void addFontFamilyAttr(CFMutableDictionaryRef attr, const char *family)
 	CFRelease(cfstr);			// dictionary holds its own reference
 }
 
-struct traits {
-	uiDrawTextWeight weight;
-	uiDrawTextItalic italic;
-	uiDrawTextStretch stretch;
-};
-
-// Named constants for these were NOT added until 10.11, and even then they were added as external symbols instead of macros, so we can't use them directly :(
-// kode54 got these for me before I had access to El Capitan; thanks to him.
-#define ourNSFontWeightUltraLight -0.800000
-#define ourNSFontWeightThin -0.600000
-#define ourNSFontWeightLight -0.400000
-#define ourNSFontWeightRegular 0.000000
-#define ourNSFontWeightMedium 0.230000
-#define ourNSFontWeightSemibold 0.300000
-#define ourNSFontWeightBold 0.400000
-#define ourNSFontWeightHeavy 0.560000
-#define ourNSFontWeightBlack 0.620000
-static const CGFloat ctWeights[] = {
-	// yeah these two have their names swapped; blame Pango
-	// TODO note that these names do not necessarily line up with their OS names
-	[uiDrawTextWeightThin] = ourNSFontWeightUltraLight,
-	[uiDrawTextWeightUltraLight] = ourNSFontWeightThin,
-	[uiDrawTextWeightLight] = ourNSFontWeightLight,
-	// for this one let's go between Light and Regular
-	// TODO figure out if we can rely on the order for these (and the one below)
-	[uiDrawTextWeightBook] = ourNSFontWeightLight + ((ourNSFontWeightRegular - ourNSFontWeightLight) / 2),
-	[uiDrawTextWeightNormal] = ourNSFontWeightRegular,
-	[uiDrawTextWeightMedium] = ourNSFontWeightMedium,
-	[uiDrawTextWeightSemiBold] = ourNSFontWeightSemibold,
-	[uiDrawTextWeightBold] = ourNSFontWeightBold,
-	// for this one let's go between Bold and Heavy
-	[uiDrawTextWeightUtraBold] = ourNSFontWeightBold + ((ourNSFontWeightHeavy - ourNSFontWeightBold) / 2),
-	[uiDrawTextWeightHeavy] = ourNSFontWeightHeavy,
-	[uiDrawTextWeightUltraHeavy] = ourNSFontWeightBlack,
-};
-
-// Unfortunately there are still no named constants for these.
-// Let's just use normalized widths.
-static const CGFloat ctStretches[] = {
-	[uiDrawTextStretchUltraCondensed] = -1.0,
-	[uiDrawTextStretchExtraCondensed] = -0.75,
-	[uiDrawTextStretchCondensed] = -0.5,
-	[uiDrawTextStretchSemiCondensed] = -0.25,
-	[uiDrawTextStretchNormal] = 0.0,
-	[uiDrawTextStretchSemiExpanded] = 0.25,
-	[uiDrawTextStretchExpanded] = 0.5,
-	[uiDrawTextStretchExtraExpanded] = 0.75,
-	[uiDrawTextStretchUltraExpanded] = 1.0,
-};
-
-static void addFontTraitsAttr(CFMutableDictionaryRef attr, struct traits *traits)
-{
-	CFMutableDictionaryRef td;
-	CFNumberRef num;
-	SInt64 symbolic;
-	CGFloat slant;
-
-	td = newAttrList();
-	symbolic = 0;
-
-	symbolic |= (SInt64) kCTFontBoldTrait;
-	num = CFNumberCreate(NULL, kCFNumberCGFloatType, &ctWeights[traits->weight]);
-	CFDictionaryAddValue(td, kCTFontWeightTrait, num);
-	CFRelease(num);
-
-	switch (traits->italic) {
-	case uiDrawTextItalicOblique:
-		slant = 1.0;		// TODO
-		num = CFNumberCreate(NULL, kCFNumberCGFloatType, &slant);
-		CFDictionaryAddValue(td, kCTFontSlantTrait, num);
-		CFRelease(num);
-		// fall through
-	case uiDrawTextItalicItalic:
-		symbolic |= (SInt64) kCTFontItalicTrait;
-		break;
-	}
-
-	symbolic |= (SInt64) kCTFontCondensedTrait;
-	num = CFNumberCreate(NULL, kCFNumberCGFloatType, &ctStretches[traits->stretch]);
-	CFDictionaryAddValue(td, kCTFontWidthTrait, num);
-	CFRelease(num);
-
-	num = CFNumberCreate(NULL, kCFNumberSInt64Type, &symbolic);
-	CFDictionaryAddValue(td, kCTFontSymbolicTrait, num);
-	CFRelease(num);
-
-	CFDictionaryAddValue(attr, kCTFontTraitsAttribute, td);
-	CFRelease(td);
-}
-
 static void addFontSizeAttr(CFMutableDictionaryRef attr, double size)
 {
 	CFNumberRef n;
@@ -711,12 +621,234 @@ static void addFontGravityAttr(CFMutableDictionaryRef dict, uiDrawTextGravity gr
 	// TODO: matrix setting? kCTFontOrientationAttribute? or is it a kCTVerticalFormsAttributeName of the CFAttributedString attributes and thus not part of the CTFontDescriptor?
 }
 
+// Named constants for these were NOT added until 10.11, and even then they were added as external symbols instead of macros, so we can't use them directly :(
+// kode54 got these for me before I had access to El Capitan; thanks to him.
+#define ourNSFontWeightUltraLight -0.800000
+#define ourNSFontWeightThin -0.600000
+#define ourNSFontWeightLight -0.400000
+#define ourNSFontWeightRegular 0.000000
+#define ourNSFontWeightMedium 0.230000
+#define ourNSFontWeightSemibold 0.300000
+#define ourNSFontWeightBold 0.400000
+#define ourNSFontWeightHeavy 0.560000
+#define ourNSFontWeightBlack 0.620000
+static const CGFloat ctWeights[] = {
+	// yeah these two have their names swapped; blame Pango
+	// TODO note that these names do not necessarily line up with their OS names
+	[uiDrawTextWeightThin] = ourNSFontWeightUltraLight,
+	[uiDrawTextWeightUltraLight] = ourNSFontWeightThin,
+	[uiDrawTextWeightLight] = ourNSFontWeightLight,
+	// for this one let's go between Light and Regular
+	// TODO figure out if we can rely on the order for these (and the one below)
+	[uiDrawTextWeightBook] = ourNSFontWeightLight + ((ourNSFontWeightRegular - ourNSFontWeightLight) / 2),
+	[uiDrawTextWeightNormal] = ourNSFontWeightRegular,
+	[uiDrawTextWeightMedium] = ourNSFontWeightMedium,
+	[uiDrawTextWeightSemiBold] = ourNSFontWeightSemibold,
+	[uiDrawTextWeightBold] = ourNSFontWeightBold,
+	// for this one let's go between Bold and Heavy
+	[uiDrawTextWeightUtraBold] = ourNSFontWeightBold + ((ourNSFontWeightHeavy - ourNSFontWeightBold) / 2),
+	[uiDrawTextWeightHeavy] = ourNSFontWeightHeavy,
+	[uiDrawTextWeightUltraHeavy] = ourNSFontWeightBlack,
+};
+
+// Unfortunately there are still no named constants for these.
+// Let's just use normalized widths.
+// TODO verify this is correct
+static const CGFloat ctStretches[] = {
+	[uiDrawTextStretchUltraCondensed] = -1.0,
+	[uiDrawTextStretchExtraCondensed] = -0.75,
+	[uiDrawTextStretchCondensed] = -0.5,
+	[uiDrawTextStretchSemiCondensed] = -0.25,
+	[uiDrawTextStretchNormal] = 0.0,
+	[uiDrawTextStretchSemiExpanded] = 0.25,
+	[uiDrawTextStretchExpanded] = 0.5,
+	[uiDrawTextStretchExtraExpanded] = 0.75,
+	[uiDrawTextStretchUltraExpanded] = 1.0,
+};
+
+struct closeness {
+	CFIndex index;
+	CGFloat weight;
+	CGFloat italic;
+	CGFloat stretch;
+	CGFloat distance;
+};
+
+// see below for details
+// TODO document that font matching is closest match but the search method is OS defined
+CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight weight, uiDrawTextItalic italic, uiDrawTextStretch stretch)
+{
+	CGFloat targetWeight;
+	CGFloat italicCloseness, obliqueCloseness, normalCloseness;
+	CGFloat targetStretch;
+	CFArrayRef matching;
+	CFIndex i, n;
+	struct closeness *closeness;
+	CTFontDescriptorRef current;
+	CTFontDescriptorRef out;
+
+	targetWeight = ctWeights[weight];
+	switch (italic) {
+	case uiDrawTextItalicNormal:
+		italicCloseness = 1;
+		obliqueCloseness = 1;
+		normalCloseness = 0;
+		break;
+	case uiDrawTextItalicOblique:
+		italicCloseness = 0.5;
+		obliqueCloseness = 0;
+		normalCloseness = 1;
+		break;
+	case uiDrawTextItalicItalic:
+		italicCloseness = 0;
+		obliqueCloseness = 0.5;
+		normalCloseness = 1;
+		break;
+	}
+	targetStretch = ctStretches[stretch];
+
+	matching = CTFontDescriptorCreateMatchingFontDescriptors(against, NULL);
+	if (matching == NULL)
+		// no matches; give the original back and hope for the best
+		return against;
+	n = CFArrayGetCount(matching);
+	if (n == 0) {
+		// likewise
+		CFRelease(matching);
+		return against;
+	}
+
+	closeness = (struct closeness *) uiAlloc(n * sizeof (struct closeness), "struct closeness[]");
+	for (i = 0; i < n; i++) {
+		CFDictionaryRef traits;
+		CFNumberRef cfnum;
+		CTFontSymbolicTraits symbolic;
+
+		closeness[i].index = i;
+
+		current = CFArrayGetValueAtIndex(matching, i);
+		traits = CTFontDescriptorCopyAttribute(current, kCTFontTraitsAttribute);
+		if (traits == NULL) {
+			// couldn't get traits; be safe by ranking it lowest
+			// TODO figure out what the longest possible distances are
+			closeness[i].weight = 3;
+			closeness[i].italic = 2;
+			closeness[i].stretch = 3;
+			continue;
+		}
+
+		symbolic = 0;			// assume no symbolic traits if none are listed
+		cfnum = CFDictionaryGetValue(traits, kCTFontSymbolicTrait);
+		if (cfnum != NULL) {
+			SInt32 s;
+
+			if (CFNumberGetValue(cfnum, kCFNumberSInt32Type, &s) == false)
+				complain("error getting symbolic traits in matchTraits()");
+			symbolic = (CTFontSymbolicTraits) s;
+			// Get rule; do not release cfnum
+		}
+
+		// now try weight
+		cfnum = CFDictionaryGetValue(traits, kCTFontWeightTrait);
+		if (cfnum != NULL) {
+			CGFloat val;
+
+			// TODO instead of complaining for this and width, should we just fall through to the default?
+			if (CFNumberGetValue(cfnum, kCFNumberCGFloatType, &val) == false)
+				complain("error getting weight value in matchTraits()");
+			closeness[i].weight = val - targetWeight;
+		} else
+			// okay there's no weight key; let's try the literal meaning of the symbolic constant
+			// TODO is the weight key guaranteed?
+			if ((symbolic & kCTFontBoldTrait) != 0)
+				closeness[i].weight = ourNSFontWeightBold - targetWeight;
+			else
+				closeness[i].weight = ourNSFontWeightRegular - targetWeight;
+
+		// italics is a bit harder because Core Text doesn't expose a concept of obliqueness
+		// Pango just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
+		if ((symbolic & kCTFontItalicTrait) != 0)
+			closeness[i].italic = italicCloseness;
+		else {
+			CFStringRef styleName;
+			BOOL isOblique;
+
+			isOblique = NO;		// default value
+			styleName = CTFontDescriptorCopyAttribute(current, kCTFontStyleNameAttribute);
+			if (styleName != NULL) {
+				CFRange range;
+
+				// note the use of the toll-free bridge for the string literal, since CFSTR() *can* return NULL
+				range = CFStringFind(styleName, (CFStringRef) @"Oblique", kCFCompareBackwards);
+				if (range.location != kCFNotFound)
+					isOblique = YES;
+				CFRelease(styleName);
+			}
+			if (isOblique)
+				closeness[i].italic = obliqueCloseness;
+			else
+				closeness[i].italic = normalCloseness;
+		}
+
+		// now try width
+		cfnum = CFDictionaryGetValue(traits, kCTFontWidthTrait);
+		if (cfnum != NULL) {
+			CGFloat val;
+
+			if (CFNumberGetValue(cfnum, kCFNumberCGFloatType, &val) == false)
+				complain("error getting width value in matchTraits()");
+			closeness[i].stretch = val - targetStretch;
+		} else
+			// okay there's no width key; let's try the literal meaning of the symbolic constant
+			// TODO is the width key guaranteed?
+			if ((symbolic & kCTFontExpandedTrait) != 0)
+				closeness[i].stretch = 1.0 - targetStretch;
+			else if ((symbolic & kCTFontCondensedTrait) != 0)
+				closeness[i].stretch = -1.0 - targetStretch;
+			else
+				closeness[i].stretch = 0.0 - targetStretch;
+
+		CFRelease(traits);
+	}
+
+	// now figure out the 3-space difference between the three and sort by that
+	for (i = 0; i < n; i++) {
+		CGFloat weight, italic, stretch;
+
+		weight = closeness[i].weight;
+		weight *= weight;
+		italic = closeness[i].italic;
+		italic *= italic;
+		stretch = closeness[i].stretch;
+		stretch *= stretch;
+		closeness[i].distance = sqrt(weight + italic + stretch);
+	}
+	qsort_b(closeness, n, sizeof (struct closeness), ^(const void *aa, const void *bb) {
+		const struct closeness *a = (const struct closeness *) aa;
+		const struct closeness *b = (const struct closeness *) bb;
+
+		// via http://www.gnu.org/software/libc/manual/html_node/Comparison-Functions.html#Comparison-Functions
+		// TODO is this really the best way? isn't it the same as if (*a < *b) return -1; if (*a > *b) return 1; return 0; ?
+		return (a->distance > b->distance) - (a->distance < b->distance);
+	});
+	// and the first element of the sorted array is what we want
+	out = CFArrayGetValueAtIndex(matching, closeness[0].index);
+	CFRetain(out);			// get rule
+
+	// release everything
+	uiFree(closeness);
+	CFRelease(matching);
+	// and release the original descriptor since we no longer need it
+	CFRelease(against);
+
+	return out;
+}
+
 uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextStyle *initialStyle)
 {
 	uiDrawTextLayout *layout;
 	CFMutableStringRef cfstr;
 	CFMutableDictionaryRef attr;
-	struct traits t;
 	CTFontDescriptorRef desc;
 	CTFontRef font;
 	CFAttributedStringRef immutable;
@@ -727,10 +859,6 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextSt
 
 	attr = newAttrList();
 	addFontFamilyAttr(attr, initialStyle->Family);
-	t.weight = initialStyle->Weight;
-	t.italic = initialStyle->Italic;
-	t.stretch = initialStyle->Stretch;
-	addFontTraitsAttr(attr, &t);
 	addFontSizeAttr(attr, initialStyle->Size);
 	if (initialStyle->SmallCaps)
 		addFontSmallCapsAttr(attr);
@@ -738,6 +866,12 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextSt
 
 	desc = CTFontDescriptorCreateWithAttributes(attr);
 	// TODO release attr?
+
+	// unfortunately OS X requires an EXACT MATCH for the traits, otherwise it will *drop all the traits*
+	// we want a nearest match, so we have to do it ourselves
+	// TODO this does not preserve small caps
+	desc = matchTraits(desc, initialStyle->Weight, initialStyle->Italic, initialStyle->Stretch);
+
 	// specify the initial size again just to be safe
 	font = CTFontCreateWithFontDescriptor(desc, initialStyle->Size, NULL);
 	// TODO release desc?

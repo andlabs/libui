@@ -152,66 +152,89 @@ static intmax_t *toUTF16Offsets(const char *str, WCHAR **wstr, intmax_t *wlenout
 		intmax_t n;
 		intmax_t j;
 		BOOL found;
+		int m;
 
 		// figure out how many characters to convert and convert them
 		found = FALSE;
-		for (n = 1; (i + n - 1) < len; n++)
-			if (MBTWC(str + i, n, *wstr + outpos, wlen - outpos) == n) {
-				// found a full character
+		for (n = 1; (i + n - 1) < len; n++) {
+			// TODO do we need MB_ERR_INVALID_CHARS here for this to work properly?
+			m = MBTWC(str + i, n, *wstr + outpos, wlen - outpos);
+			if (m != 0) {			// found a full character
 				found = TRUE;
 				break;
 			}
+		}
 		// if this test passes we reached the end of the string without a successful conversion (invalid string)
 		if (!found)
 			logLastError("something bad happened when trying to prepare string in uiDrawNewTextLayout()");
 
 		// now save the character offsets for those bytes
-		for (j = 0; j < n; j++)
+		for (j = 0; j < m; j++)
 			bytesToCharacters[j] = outpos;
 
 		// and go to the next
-		outpos += n;
+		i += n;
+		outpos += m;
 	}
 
 	return bytesToCharacters;
 }
 
+// Not only does C++11 NOT include C99 designated initializers, but the C++ standards committee has REPEATEDLY REJECTING THEM, covering their ears and yelling "CONSTRUCTORS!!!111 PRIVATE DATA!1111 ENCAPSULATION!11one" at the top of their lungs.
+// So what could have been a simple array lookup is now a loop. Thanks guys.
 
-static const DWRITE_FONT_WEIGHT dwriteWeights[] = {
-	[uiDrawTextWeightThin] = DWRITE_FONT_WEIGHT_THIN,
-	[uiDrawTextWeightUltraLight] = DWRITE_FONT_WEIGHT_ULTRA_LIGHT,
-	[uiDrawTextWeightLight] = DWRITE_FONT_WEIGHT_LIGHT,
-	[uiDrawTextWeightBook] = DWRITE_FONT_WEIGHT_SEMI_LIGHT,
-	[uiDrawTextWeightNormal] = DWRITE_FONT_WEIGHT_NORMAL,
-	[uiDrawTextWeightMedium] = DWRITE_FONT_WEIGHT_MEDIUM,
-	[uiDrawTextWeightSemiBold] = DWRITE_FONT_WEIGHT_SEMI_BOLD,
-	[uiDrawTextWeightBold] = DWRITE_FONT_WEIGHT_BOLD,
-	[uiDrawTextWeightUtraBold] = DWRITE_FONT_WEIGHT_ULTRA_BOLD,
-	[uiDrawTextWeightHeavy] = DWRITE_FONT_WEIGHT_HEAVY,
-	[uiDrawTextWeightUltraHeavy] = DWRITE_FONT_WEIGHT_ULTRA_BLACK,
+static const struct {
+	bool lastOne;
+	uiDrawTextWeight uival;
+	DWRITE_FONT_WEIGHT dwval;
+} dwriteWeights[] = {
+	{ false, uiDrawTextWeightThin, DWRITE_FONT_WEIGHT_THIN },
+	{ false, uiDrawTextWeightUltraLight, DWRITE_FONT_WEIGHT_ULTRA_LIGHT },
+	{ false, uiDrawTextWeightLight, DWRITE_FONT_WEIGHT_LIGHT },
+	{ false, uiDrawTextWeightBook, DWRITE_FONT_WEIGHT_SEMI_LIGHT },
+	{ false, uiDrawTextWeightNormal, DWRITE_FONT_WEIGHT_NORMAL },
+	{ false, uiDrawTextWeightMedium, DWRITE_FONT_WEIGHT_MEDIUM },
+	{ false, uiDrawTextWeightSemiBold, DWRITE_FONT_WEIGHT_SEMI_BOLD },
+	{ false, uiDrawTextWeightBold, DWRITE_FONT_WEIGHT_BOLD },
+	{ false, uiDrawTextWeightUtraBold, DWRITE_FONT_WEIGHT_ULTRA_BOLD },
+	{ false, uiDrawTextWeightHeavy, DWRITE_FONT_WEIGHT_HEAVY },
+	{ true, uiDrawTextWeightUltraHeavy, DWRITE_FONT_WEIGHT_ULTRA_BLACK, },
 };
 
-static const DWRITE_FONT_STYLE dwriteItalics[] = {
-	[uiDrawTextItalicNormal] = DWRITE_FONT_STYLE_NORMAL,
-	[uiDrawTextItalicOblique] = DWRITE_FONT_STYLE_OBLIQUE,
-	[uiDrawTextItalicItalic] = DWRITE_FONT_STYLE_ITALIC,
+static const struct {
+	bool lastOne;
+	uiDrawTextItalic uival;
+	DWRITE_FONT_STYLE dwval;
+} dwriteItalics[] = {
+	{ false, uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
+	{ false, uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
+	{ true, uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
 };
 
-static const DWRITE_FONT_STRETCH dwriteStretches[] = {
-	[uiDrawTextStretchUltraCondensed] = DWRITE_FONT_STRETCH_ULTRA_CONDENSED,
-	[uiDrawTextStretchExtraCondensed] = DWRITE_FONT_STRETCH_EXTRA_CONDENSED,
-	[uiDrawTextStretchCondensed] = DWRITE_FONT_STRETCH_CONDENSED,
-	[uiDrawTextStretchSemiCondensed] = DWRITE_FONT_STRETCH_SEMI_CONDENSED,
-	[uiDrawTextStretchNormal] = DWRITE_FONT_STRETCH_NORMAL,
-	[uiDrawTextStretchSemiExpanded] = DWRITE_FONT_STRETCH_SEMI_EXPANDED,
-	[uiDrawTextStretchExpanded] = DWRITE_FONT_STRETCH_EXPANDED,
-	[uiDrawTextStretchExtraExpanded] = DWRITE_FONT_STRETCH_EXTRA_EXPANDED,
-	[uiDrawTextStretchUltraExpanded] = DWRITE_FONT_STRETCH_ULTRA_EXPANDED,
+static const struct {
+	bool lastOne;
+	uiDrawTextStretch uival;
+	DWRITE_FONT_STRETCH dwval;
+} dwriteStretches[] = {
+	{ false, uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
+	{ false, uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
+	{ false, uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
+	{ false, uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
+	{ false, uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
+	{ false, uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
+	{ false, uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
+	{ false, uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
+	{ true, uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
 };
 
 uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextStyle *initialStyle)
 {
 	uiDrawTextLayout *layout;
+	DWRITE_FONT_WEIGHT weight;
+	DWRITE_FONT_STYLE italic;
+	DWRITE_FONT_STRETCH stretch;
+	bool found;
+	int i;
 	WCHAR *family;
 	WCHAR *wtext;
 	intmax_t wlen;
@@ -219,12 +242,51 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextS
 
 	layout = uiNew(uiDrawTextLayout);
 
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteWeights[i].uival == initialStyle->Weight) {
+			weight = dwriteWeights[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteWeights[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid initial weight %d passed to uiDrawNewTextLayout()", initialStyle->Weight);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteItalics[i].uival == initialStyle->Italic) {
+			italic = dwriteItalics[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteItalics[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid initial italic %d passed to uiDrawNewTextLayout()", initialStyle->Italic);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteStretches[i].uival == initialStyle->Stretch) {
+			stretch = dwriteStretches[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteStretches[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid initial stretch %d passed to uiDrawNewTextLayout()", initialStyle->Stretch);
+
 	family = toUTF16(initialStyle->Family);
 	hr = dwfactory->CreateTextFormat(family,
 		NULL,
-		dwriteWeights[initialStyle->Weight],
-		dwriteItalics[initialStyle->Italic],
-		dwriteStretches[initialStyle->Stretch],
+		weight,
+		italic,
+		stretch,
 		// typographic points are 1/72 inch; this parameter is 1/96 inch
 		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
 		initialStyle->Size * (96.0 / 72.0),
@@ -235,10 +297,11 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextS
 	if (hr != S_OK)
 		logHRESULT("error creating IDWriteTextFormat in uiDrawNewTextLayout()", hr);
 	uiFree(family);
+	// TODO small caps
 	// TODO gravity
 
 	layout->bytesToCharacters = toUTF16Offsets(text, &wtext, &wlen);
-	hr = dwfactory->CreateTextLayout(wstr, wlen,
+	hr = dwfactory->CreateTextLayout(wtext, wlen,
 		layout->format,
 		// FLOAT is float, not double, so this should work... TODO
 		FLT_MAX, FLT_MAX,

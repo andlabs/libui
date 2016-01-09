@@ -875,7 +875,7 @@ void uiDrawRestore(uiDrawContext *c)
 }
 
 // TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
-void uiDrawText(uiDrawContext *c, doule x, double y, uiDrawTextLayout *layout)
+void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 {
 	uiDrawBrush brush;
 	ID2D1Brush *black;

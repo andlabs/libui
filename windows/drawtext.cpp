@@ -108,16 +108,17 @@ void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 	uiFree(ff);
 }
 
+// text sizes are 1/72 of an inch
+// points in Direct2D are 1/96 of an inch (https://msdn.microsoft.com/en-us/library/windows/desktop/ff684173%28v=vs.85%29.aspx, https://msdn.microsoft.com/en-us/library/windows/desktop/hh447022%28v=vs.85%29.aspx)
+// the first link above has an example conversion; that seems to confirm that these two functions are right (TODO)
 double uiDrawTextSizeToPoints(double textSize)
 {
-	// TODO
-	return 0;
+	return textSize * (96.0 / 72.0);
 }
 
 double uiDrawPointsToTextSize(double points)
 {
-	// TODO
-	return 0;
+	return points * (72.0 / 96.0);
 }
 
 struct uiDrawTextLayout {

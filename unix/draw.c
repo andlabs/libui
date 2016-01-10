@@ -531,45 +531,65 @@ static const PangoStretch pangoStretches[] = {
 	[uiDrawTextStretchUltraExpanded] = PANGO_STRETCH_ULTRA_EXPANDED,
 };
 
-void uiDrawText(uiDrawContext *c, double x, double y, const char *text, uiDrawTextStyle *style)
+static const PangoGravity pangoGravities[] = {
+	[uiDrawTextGravitySouth] = PANGO_GRAVITY_SOUTH,
+	[uiDrawTextGravityEast] = PANGO_GRAVITY_EAST,
+	[uiDrawTextGravityNorth] = PANGO_GRAVITY_NORTH,
+	[uiDrawTextGravityWest] = PANGO_GRAVITY_WEST,
+	[uiDrawTextGravityAuto] = PANGO_GRAVITY_AUTO,
+};
+
+// note: PangoCairoLayouts are tied to a given cairo_t, so we can't store one in this device-independent structure
+struct uiDrawTextLayout {
+	char *s;
+	PangoFontDescription *desc;
+};
+
+uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextStyle *initialStyle)
 {
-	PangoAttrList *attrs;
-	PangoLayout *layout;
+	uiDrawTextLayout *layout;
+	PangoVariant variant;
 
-	attrs = pango_attr_list_new();
-	pango_attr_list_insert(attrs,
-		pango_attr_family_new(style->Family));
-	pango_attr_list_insert(attrs,
-		pango_attr_size_new((gint) (style->Size * PANGO_SCALE)));
-	pango_attr_list_insert(attrs,
-		pango_attr_weight_new(pangoWeights[style->Weight]));
-	pango_attr_list_insert(attrs,
-		pango_attr_style_new(pangoItalics[style->Italic]));
-	if (style->SmallCaps)
-		pango_attr_list_insert(attrs,
-			pango_attr_variant_new(PANGO_VARIANT_SMALL_CAPS));
-	pango_attr_list_insert(attrs,
-		pango_attr_stretch_new(pangoStretches[style->Stretch]));
-	cairo_set_source_rgba(c->cr, style->TextR, style->TextG, style->TextB, style->TextA);
-	if (style->HasBackground) {
-		// TODO
-	}
-	if (style->HasStrikethrough) {
-		// TODO
-	}
-	if (style->HasUnderline) {
-		// TODO
-	}
-	if (style->Language != NULL)
-		pango_attr_list_insert(attrs,
-			pango_attr_language_new(pango_language_from_string(style->Language)));
+	layout = uiNew(uiDrawTextLayout);
+	layout->s = g_strdup(text);
 
-	layout = pango_cairo_create_layout(c->cr);
-	pango_layout_set_text(layout, text, -1);
-	pango_layout_set_attributes(layout, attrs);
+	layout->desc = pango_font_description_new();
+	pango_font_description_set_family(layout->desc,
+		initialStyle->Family);
+	pango_font_description_set_size(layout->desc,
+		(gint) (initialStyle->Size * PANGO_SCALE));
+	pango_font_description_set_weight(layout->desc,
+		pangoWeights[initialStyle->Weight]);
+	pango_font_description_set_style(layout->desc,
+		pangoItalics[initialStyle->Italic]);
+	variant = PANGO_VARIANT_NORMAL;
+	if (initialStyle->SmallCaps)
+		variant = PANGO_VARIANT_SMALL_CAPS;
+	pango_font_description_set_variant(layout->desc, variant);
+	pango_font_description_set_stretch(layout->desc,
+		pangoStretches[initialStyle->Stretch]);
+	pango_font_description_set_gravity(layout->desc,
+		pangoGravities[initialStyle->Gravity]);
+
+	return layout;
+}
+
+void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
+{
+	pango_font_description_free(layout->desc);
+	g_free(layout->s);
+	uiFree(layout);
+}
+
+void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
+{
+	PangoLayout *pl;
+
+	pl = pango_cairo_create_layout(c->cr);
+	pango_layout_set_text(pl, layout->s, -1);
+	// this is safe; the description is copied
+	pango_layout_set_font_description(pl, layout->desc);
 	cairo_move_to(c->cr, x, y);
-	pango_cairo_show_layout(c->cr, layout);
-
-	g_object_unref(layout);
-	pango_attr_list_unref(attrs);
+	pango_cairo_show_layout(c->cr, pl);
+	g_object_unref(pl);
 }

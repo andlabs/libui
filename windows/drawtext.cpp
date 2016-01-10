@@ -108,19 +108,228 @@ void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 	uiFree(ff);
 }
 
+// text sizes are 1/72 of an inch
+// points in Direct2D are 1/96 of an inch (https://msdn.microsoft.com/en-us/library/windows/desktop/ff684173%28v=vs.85%29.aspx, https://msdn.microsoft.com/en-us/library/windows/desktop/hh447022%28v=vs.85%29.aspx)
+// the first link above has an example conversion; that seems to confirm that these two functions are right (TODO)
 double uiDrawTextSizeToPoints(double textSize)
 {
-	// TODO
-	return 0;
+	return textSize * (96.0 / 72.0);
 }
 
 double uiDrawPointsToTextSize(double points)
 {
-	// TODO
-	return 0;
+	return points * (72.0 / 96.0);
 }
 
-void uiDrawText(uiDrawContext *c, double x, double y, const char *text, uiDrawTextStyle *style)
+struct uiDrawTextLayout {
+	IDWriteTextFormat *format;
+	IDWriteTextLayout *layout;
+	intmax_t *bytesToCharacters;
+};
+
+#define MBTWC(str, n, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, 0, str, n, wstr, bufsiz)
+
+// TODO figure out how ranges are specified in DirectWrite
+// TODO clean up the local variable names and improve documentation
+static intmax_t *toUTF16Offsets(const char *str, WCHAR **wstr, intmax_t *wlenout)
 {
-	// TODO
+	intmax_t *bytesToCharacters;
+	intmax_t i, len;
+	int wlen;
+	intmax_t outpos;
+
+	len = strlen(str);
+	bytesToCharacters = (intmax_t *) uiAlloc(len * sizeof (intmax_t), "intmax_t[]");
+
+	wlen = MBTWC(str, -1, NULL, 0);
+	if (wlen == 0)
+		logLastError("error figuring out number of characters to convert to in toUTF16Offsets()");
+	*wstr = (WCHAR *) uiAlloc(wlen * sizeof (WCHAR), "WCHAR[]");
+	*wlenout = wlen;
+
+	i = 0;
+	outpos = 0;
+	while (i < len) {
+		intmax_t n;
+		intmax_t j;
+		BOOL found;
+		int m;
+
+		// figure out how many characters to convert and convert them
+		found = FALSE;
+		for (n = 1; (i + n - 1) < len; n++) {
+			// TODO do we need MB_ERR_INVALID_CHARS here for this to work properly?
+			m = MBTWC(str + i, n, *wstr + outpos, wlen - outpos);
+			if (m != 0) {			// found a full character
+				found = TRUE;
+				break;
+			}
+		}
+		// if this test passes we reached the end of the string without a successful conversion (invalid string)
+		if (!found)
+			logLastError("something bad happened when trying to prepare string in uiDrawNewTextLayout()");
+
+		// now save the character offsets for those bytes
+		for (j = 0; j < m; j++)
+			bytesToCharacters[j] = outpos;
+
+		// and go to the next
+		i += n;
+		outpos += m;
+	}
+
+	return bytesToCharacters;
+}
+
+// Not only does C++11 NOT include C99 designated initializers, but the C++ standards committee has REPEATEDLY REJECTING THEM, covering their ears and yelling "CONSTRUCTORS!!!111 PRIVATE DATA!1111 ENCAPSULATION!11one" at the top of their lungs.
+// So what could have been a simple array lookup is now a loop. Thanks guys.
+
+static const struct {
+	bool lastOne;
+	uiDrawTextWeight uival;
+	DWRITE_FONT_WEIGHT dwval;
+} dwriteWeights[] = {
+	{ false, uiDrawTextWeightThin, DWRITE_FONT_WEIGHT_THIN },
+	{ false, uiDrawTextWeightUltraLight, DWRITE_FONT_WEIGHT_ULTRA_LIGHT },
+	{ false, uiDrawTextWeightLight, DWRITE_FONT_WEIGHT_LIGHT },
+	{ false, uiDrawTextWeightBook, DWRITE_FONT_WEIGHT_SEMI_LIGHT },
+	{ false, uiDrawTextWeightNormal, DWRITE_FONT_WEIGHT_NORMAL },
+	{ false, uiDrawTextWeightMedium, DWRITE_FONT_WEIGHT_MEDIUM },
+	{ false, uiDrawTextWeightSemiBold, DWRITE_FONT_WEIGHT_SEMI_BOLD },
+	{ false, uiDrawTextWeightBold, DWRITE_FONT_WEIGHT_BOLD },
+	{ false, uiDrawTextWeightUtraBold, DWRITE_FONT_WEIGHT_ULTRA_BOLD },
+	{ false, uiDrawTextWeightHeavy, DWRITE_FONT_WEIGHT_HEAVY },
+	{ true, uiDrawTextWeightUltraHeavy, DWRITE_FONT_WEIGHT_ULTRA_BLACK, },
+};
+
+static const struct {
+	bool lastOne;
+	uiDrawTextItalic uival;
+	DWRITE_FONT_STYLE dwval;
+} dwriteItalics[] = {
+	{ false, uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
+	{ false, uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
+	{ true, uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
+};
+
+static const struct {
+	bool lastOne;
+	uiDrawTextStretch uival;
+	DWRITE_FONT_STRETCH dwval;
+} dwriteStretches[] = {
+	{ false, uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
+	{ false, uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
+	{ false, uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
+	{ false, uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
+	{ false, uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
+	{ false, uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
+	{ false, uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
+	{ false, uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
+	{ true, uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
+};
+
+uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextStyle *initialStyle)
+{
+	uiDrawTextLayout *layout;
+	DWRITE_FONT_WEIGHT weight;
+	DWRITE_FONT_STYLE italic;
+	DWRITE_FONT_STRETCH stretch;
+	bool found;
+	int i;
+	WCHAR *family;
+	WCHAR *wtext;
+	intmax_t wlen;
+	HRESULT hr;
+
+	layout = uiNew(uiDrawTextLayout);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteWeights[i].uival == initialStyle->Weight) {
+			weight = dwriteWeights[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteWeights[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid initial weight %d passed to uiDrawNewTextLayout()", initialStyle->Weight);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteItalics[i].uival == initialStyle->Italic) {
+			italic = dwriteItalics[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteItalics[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid initial italic %d passed to uiDrawNewTextLayout()", initialStyle->Italic);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteStretches[i].uival == initialStyle->Stretch) {
+			stretch = dwriteStretches[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteStretches[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid initial stretch %d passed to uiDrawNewTextLayout()", initialStyle->Stretch);
+
+	family = toUTF16(initialStyle->Family);
+	hr = dwfactory->CreateTextFormat(family,
+		NULL,
+		weight,
+		italic,
+		stretch,
+		// typographic points are 1/72 inch; this parameter is 1/96 inch
+		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
+		initialStyle->Size * (96.0 / 72.0),
+		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
+		// TODO use the current locale again?
+		L"",
+		&(layout->format));
+	if (hr != S_OK)
+		logHRESULT("error creating IDWriteTextFormat in uiDrawNewTextLayout()", hr);
+	uiFree(family);
+	// TODO small caps
+	// TODO gravity
+
+	layout->bytesToCharacters = toUTF16Offsets(text, &wtext, &wlen);
+	hr = dwfactory->CreateTextLayout(wtext, wlen,
+		layout->format,
+		// FLOAT is float, not double, so this should work... TODO
+		FLT_MAX, FLT_MAX,
+		&(layout->layout));
+	if (hr != S_OK)
+		logHRESULT("error creating IDWriteTextLayout in uiDrawNewTextLayout()", hr);
+	uiFree(wtext);
+
+	return layout;
+}
+
+void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
+{
+	layout->layout->Release();
+	layout->format->Release();
+	uiFree(layout);
+}
+
+void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout)
+{
+	D2D1_POINT_2F pt;
+	HRESULT hr;
+
+	pt.x = x;
+	pt.y = y;
+	// TODO D2D1_DRAW_TEXT_OPTIONS_NO_SNAP?
+	// TODO D2D1_DRAW_TEXT_OPTIONS_CLIP?
+	// TODO when setting 8.1 as minimum, D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT?
+	rt->DrawTextLayout(pt, layout->layout, black, D2D1_DRAW_TEXT_OPTIONS_NONE);
 }

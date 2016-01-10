@@ -15,7 +15,7 @@
 
 // menu.m
 @interface menuManager : NSObject {
-	NSMapTable *items;
+	struct mapTable *items;
 	BOOL hasQuit;
 	BOOL hasPreferences;
 	BOOL hasAbout;
@@ -64,9 +64,11 @@ extern void layoutSingleView(NSView *, NSView *, int);
 extern NSSize fittingAlignmentSize(NSView *);
 
 // map.m
-extern NSMapTable *newMap(void);
-extern void *mapGet(NSMapTable *map, id key);
-extern void mapSet(NSMapTable *map, id key, void *value);
+extern struct mapTable *newMap(void);
+extern void mapDestroy(struct mapTable *m);
+extern void *mapGet(struct mapTable *m, void *key);
+extern void mapSet(struct mapTable *m, void *key, void *value);
+extern void mapDelete(struct mapTable *m, void *key);
 
 // area.m
 extern int sendAreaEvents(NSEvent *);
@@ -76,5 +78,5 @@ extern BOOL fromKeycode(unsigned short keycode, uiAreaKeyEvent *ke);
 extern BOOL keycodeModifier(unsigned short keycode, uiModifiers *mod);
 
 // draw.m
-extern uiDrawContext *newContext(CGContextRef);
+extern uiDrawContext *newContext(CGContextRef, CGFloat);
 extern void freeContext(uiDrawContext *);

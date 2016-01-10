@@ -1,3 +1,7 @@
+- big documentation TODO: document that font matching is CLOSEST MATCH
+
+- go through ALL the objective-c objects we create and make sure we are using the proper ownership (alloc/init and new are owned by us, all class method constructors are autoreleased - thanks mikeash)
+
 - on OS X, edit shortcuts like command-C working require that the menu entries be defined, or so it seems, even for NSAlert
 	- other platforms?
 
@@ -54,6 +58,7 @@ notes to self
 - note that if a menu is requested on systems with menubars on windows but no menus are defined, the result is a blank menubar, with whatever that means left up to the OS to decide
 - note that handling of multiple consecutive separators in menus, leading separators in menus, and trailing separators in menus are all OS-defined
 - note that uiDrawMatrixInvert() does not change the matrix if it fails
+- note that the use of strings that are not strictly valid UTF-8 results in undefined behavior
 
 - test RTL
 	- automate RTL

@@ -29,7 +29,7 @@ struct uiSlider {
 };
 
 @interface sliderDelegateClass : NSObject {
-	NSMapTable *sliders;
+	struct mapTable *sliders;
 }
 - (IBAction)onChanged:(id)sender;
 - (void)registerSlider:(uiSlider *)b;
@@ -48,9 +48,7 @@ struct uiSlider {
 
 - (void)dealloc
 {
-	if ([self->sliders count] != 0)
-		complain("attempt to destroy shared slider delegate but sliders are still registered to it");
-	[self->sliders release];
+	mapDestroy(self->sliders);
 	[super dealloc];
 }
 
@@ -72,7 +70,7 @@ struct uiSlider {
 - (void)unregisterSlider:(uiSlider *)s
 {
 	[s->slider setTarget:nil];
-	[self->sliders removeObjectForKey:s->slider];
+	mapDelete(self->sliders, s->slider);
 }
 
 @end

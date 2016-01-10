@@ -5,6 +5,13 @@ static BOOL canQuit = NO;
 
 @implementation applicationClass
 
+- (void)sendEvent:(NSEvent *)e
+{
+	if (sendAreaEvents(e) != 0)
+		return;
+	[super sendEvent:e];
+}
+
 // hey look! we're overriding terminate:!
 // we're going to make sure we can go back to main() whether Cocoa likes it or not!
 // and just how are we going to do that, hm?

@@ -11,7 +11,7 @@ struct uiWindow {
 };
 
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
-	NSMapTable *windows;
+	struct mapTable *windows;
 }
 - (BOOL)windowShouldClose:(id)sender;
 - (void)registerWindow:(uiWindow *)w;
@@ -31,9 +31,7 @@ struct uiWindow {
 
 - (void)dealloc
 {
-	if ([self->windows count] != 0)
-		complain("attempt to destroy shared window delegate but windows are still registered to it");
-	[self->windows release];
+	mapDestroy(self->windows);
 	[super dealloc];
 }
 
@@ -57,17 +55,16 @@ struct uiWindow {
 - (void)unregisterWindow:(uiWindow *)w
 {
 	[w->window setDelegate:nil];
-	[self->windows removeObjectForKey:w->window];
+	mapDelete(self->windows, w->window);
 }
 
 - (uiWindow *)lookupWindow:(NSWindow *)w
 {
-	NSValue *v;
+	uiWindow *v;
 
-	v = (NSValue *) [self->windows objectForKey:w];
-	if (v == nil)		// just in case we're called with some OS X-provided window as the key window
-		return NULL;
-	return (uiWindow *) [v pointerValue];
+	v = (uiWindow *) mapGet(self->windows, w);
+	// this CAN (and IS ALLOWED TO) return NULL, just in case we're called with some OS X-provided window as the key window
+	return v;
 }
 
 @end

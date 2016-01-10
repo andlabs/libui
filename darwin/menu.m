@@ -45,7 +45,7 @@ enum {
 
 - (void)dealloc
 {
-	[self->items release];
+	mapDestroy(self->items);
 	[super dealloc];
 }
 

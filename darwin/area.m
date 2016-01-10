@@ -50,7 +50,8 @@ uiDarwinDefineControl(
 	uiAreaDrawParams dp;
 
 	c = (CGContextRef) [[NSGraphicsContext currentContext] graphicsPort];
-	dp.Context = newContext(c);
+	// see draw.m under text for why we need the height
+	dp.Context = newContext(c, [self bounds].size.height);
 
 	dp.AreaWidth = 0;
 	dp.AreaHeight = 0;

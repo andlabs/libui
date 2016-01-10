@@ -793,6 +793,8 @@ CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight we
 		}
 
 		// now try width
+		// TODO this does not seem to be enough for Skia's extended variants; the width trait is 0 but the Expanded flag is on
+		// TODO verify the rest of this matrix
 		cfnum = CFDictionaryGetValue(traits, kCTFontWidthTrait);
 		if (cfnum != NULL) {
 			CGFloat val;

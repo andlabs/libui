@@ -493,6 +493,7 @@ typedef enum uiDrawTextGravity {
 	uiDrawTextGravityAuto,
 } uiDrawTextGravity;
 
+// TODO should this be renamed to uiDrawTextFontDescription? and should a pre-matched uiDrawTextFont be used for the initialStyle instead?
 struct uiDrawInitialTextStyle {
 	const char *Family;
 	double Size;

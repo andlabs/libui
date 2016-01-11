@@ -1,2 +1,4 @@
 font features are not provided by the collection and have to be added when asking for a font
-TODO does it preserve when going from CTFont to CTFontDescriptor?
+it does preserve when going from CTFont to CTFontDescriptor
+feature 17 has no flags in the header but can also hold small caps info
+TODO what happens if we specify two unsupported features? is the entire features dictionary ignored?

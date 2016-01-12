@@ -26,24 +26,31 @@ static double entryDouble(uiEntry *e)
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 {
-	uiDrawInitialTextStyle style;
+	uiDrawTextFontDescriptor desc;
+	uiDrawTextFont *font;
 	char *s;
 	char *family;		// make compiler happy
 	uiDrawTextLayout *layout;
 
-	memset(&style, 0, sizeof (uiDrawInitialTextStyle));
+	memset(&desc, 0, sizeof (uiDrawTextFontDescriptor));
 	family = uiEntryText(textFont);
-	style.Family = family;
-	style.Size = entryDouble(textSize);
-	style.Weight = uiComboboxSelected(textWeight);
-	style.Italic = uiComboboxSelected(textItalic);
-	style.SmallCaps = uiCheckboxChecked(textSmallCaps);
-	style.Stretch = uiComboboxSelected(textStretch);
-	style.Gravity = uiComboboxSelected(textGravity);
+	desc.Family = family;
+	desc.Size = entryDouble(textSize);
+	desc.Weight = uiComboboxSelected(textWeight);
+	desc.Italic = uiComboboxSelected(textItalic);
+	desc.SmallCaps = uiCheckboxChecked(textSmallCaps);
+	desc.Stretch = uiComboboxSelected(textStretch);
+	desc.Gravity = uiComboboxSelected(textGravity);
+
+	font = uiDrawLoadClosestFont(&desc);
+
 	s = uiEntryText(textString);
-	layout = uiDrawNewTextLayout(s, &style);
+	layout = uiDrawNewTextLayout(s, font);
+
 	uiDrawText(dp->Context, 10, 10, layout);
+
 	uiDrawFreeTextLayout(layout);
+	uiDrawFreeTextFont(font);
 	uiFreeText(s);
 	uiFreeText(family);
 }

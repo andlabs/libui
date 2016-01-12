@@ -380,35 +380,35 @@ CFMutableDictionaryRef extractAttributes(CTFontDescriptorRef desc)
 
 uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 {
-	uiDrawTextFont *f;
+	uiDrawTextFont *font;
 	CFMutableDictionaryRef attr;
-	CTFontDescriptorRef desc;
+	CTFontDescriptorRef cfdesc;
 
 	font = uiNew(uiDrawTextFont);
 
 	attr = newAttrList();
-	addFontFamilyAttr(attr, initialStyle->Family);
-	addFontSizeAttr(attr, initialStyle->Size);
+	addFontFamilyAttr(attr, desc->Family);
+	addFontSizeAttr(attr, desc->Size);
 
 	// now we have to do the traits matching, so create a descriptor, match the traits, and then get the attributes back
-	desc = CTFontDescriptorCreateWithAttributes(attr);
+	cfdesc = CTFontDescriptorCreateWithAttributes(attr);
 	// TODO release attr?
-	desc = matchTraits(desc, initialStyle->Weight, initialStyle->Italic, initialStyle->Stretch);
-	attr = extractAttributes(desc);
-	CFRelease(desc);
+	cfdesc = matchTraits(cfdesc, desc->Weight, desc->Italic, desc->Stretch);
+	attr = extractAttributes(cfdesc);
+	CFRelease(cfdesc);
 
 	// and finally add the other attributes
-	if (initialStyle->SmallCaps)
+	if (desc->SmallCaps)
 		addFontSmallCapsAttr(attr);
-	addFontGravityAttr(attr, initialStyle->Gravity);
+	addFontGravityAttr(attr, desc->Gravity);
 
 	// and NOW create the final descriptor
-	desc = CTFontDescriptorCreateWithAttributes(attr);
+	cfdesc = CTFontDescriptorCreateWithAttributes(attr);
 	// TODO release attr?
 
 	// specify the initial size again just to be safe
-	font->f = CTFontCreateWithFontDescriptor(desc, initialStyle->Size, NULL);
-	// TODO release desc?
+	font->f = CTFontCreateWithFontDescriptor(cfdesc, desc->Size, NULL);
+	// TODO release cfdesc?
 
 	return font;
 }
@@ -446,7 +446,7 @@ static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr
 
 	*cfstr = CFStringCreateMutable(NULL, 0);
 	if (*cfstr == NULL)
-		complain("error creating CFMutableStringRef for storing string in uiDrawNewTextLayout()");
+		complain("error creating CFMutableStringRef for storing string in strToCFStrOffset()");
 
 	i = 0;
 	while (i < len) {
@@ -465,7 +465,7 @@ static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr
 		// - reached the end of the string without a successful conversion (invalid string)
 		// - ran into allocation issues
 		if (substr == NULL)
-			complain("something bad happened when trying to prepare string in uiDrawNewTextLayout()");
+			complain("something bad happened when trying to prepare string in strToCFStrOffset()");
 
 		// now save the character offsets for those bytes
 		pos = CFStringGetLength(*cfstr);
@@ -483,19 +483,20 @@ static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr
 	return bytesToCharacters;
 }
 
-uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *font)
+uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFont)
 {
 	uiDrawTextLayout *layout;
 	CFMutableStringRef cfstr;
 	CFAttributedStringRef immutable;
+	CFMutableDictionaryRef attr;
 
 	layout = uiNew(uiDrawTextLayout);
 
 	layout->bytesToCharacters = strToCFStrOffsetList(str, &cfstr);
 
 	attr = newAttrList();
-	// this will retain font->f; no need to worry
-	CFDictionaryAddValue(attr, kCTFontAttributeName, font->f);
+	// this will retain defaultFont->f; no need to worry
+	CFDictionaryAddValue(attr, kCTFontAttributeName, defaultFont->f);
 
 	immutable = CFAttributedStringCreate(NULL, cfstr, attr);
 	if (immutable == NULL)

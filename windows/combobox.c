@@ -1,6 +1,9 @@
 // 20 may 2015
 #include "uipriv_windows.h"
 
+// TODO
+// - is there extra space on the bottom?
+
 // we as Common Controls 6 users don't need to worry about the height of comboboxes; see http://blogs.msdn.com/b/oldnewthing/archive/2006/03/10/548537.aspx
 
 struct uiCombobox {

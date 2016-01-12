@@ -41,7 +41,7 @@ uiDrawFontFamilies *uiDrawListFontFamilies(void)
 	// always get the latest available font information
 	hr = dwfactory->GetSystemFontCollection(&(ff->fonts), TRUE);
 	if (hr != S_OK)
-		logHRESULT("error getting list of system fonts in uiDrawListFontFamilies()", hr);
+		logHRESULT("error getting system font collection in uiDrawListFontFamilies()", hr);
 	ff->userLocaleSuccess = GetUserDefaultLocaleName(ff->userLocale, LOCALE_NAME_MAX_LENGTH);
 	return ff;
 }
@@ -121,6 +121,167 @@ double uiDrawPointsToTextSize(double points)
 	return points * (72.0 / 96.0);
 }
 
+struct uiDrawTextFont {
+	IDWriteFont *f;
+	WCHAR *family;		// save for convenience in uiDrawNewTextLayout()
+	double size;
+};
+
+// Not only does C++11 NOT include C99 designated initializers, but the C++ standards committee has REPEATEDLY REJECTING THEM, covering their ears and yelling "CONSTRUCTORS!!!111 PRIVATE DATA!1111 ENCAPSULATION!11one" at the top of their lungs.
+// So what could have been a simple array lookup is now a loop. Thanks guys.
+
+static const struct {
+	bool lastOne;
+	uiDrawTextWeight uival;
+	DWRITE_FONT_WEIGHT dwval;
+} dwriteWeights[] = {
+	{ false, uiDrawTextWeightThin, DWRITE_FONT_WEIGHT_THIN },
+	{ false, uiDrawTextWeightUltraLight, DWRITE_FONT_WEIGHT_ULTRA_LIGHT },
+	{ false, uiDrawTextWeightLight, DWRITE_FONT_WEIGHT_LIGHT },
+	{ false, uiDrawTextWeightBook, DWRITE_FONT_WEIGHT_SEMI_LIGHT },
+	{ false, uiDrawTextWeightNormal, DWRITE_FONT_WEIGHT_NORMAL },
+	{ false, uiDrawTextWeightMedium, DWRITE_FONT_WEIGHT_MEDIUM },
+	{ false, uiDrawTextWeightSemiBold, DWRITE_FONT_WEIGHT_SEMI_BOLD },
+	{ false, uiDrawTextWeightBold, DWRITE_FONT_WEIGHT_BOLD },
+	{ false, uiDrawTextWeightUtraBold, DWRITE_FONT_WEIGHT_ULTRA_BOLD },
+	{ false, uiDrawTextWeightHeavy, DWRITE_FONT_WEIGHT_HEAVY },
+	{ true, uiDrawTextWeightUltraHeavy, DWRITE_FONT_WEIGHT_ULTRA_BLACK, },
+};
+
+static const struct {
+	bool lastOne;
+	uiDrawTextItalic uival;
+	DWRITE_FONT_STYLE dwval;
+} dwriteItalics[] = {
+	{ false, uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
+	{ false, uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
+	{ true, uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
+};
+
+static const struct {
+	bool lastOne;
+	uiDrawTextStretch uival;
+	DWRITE_FONT_STRETCH dwval;
+} dwriteStretches[] = {
+	{ false, uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
+	{ false, uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
+	{ false, uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
+	{ false, uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
+	{ false, uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
+	{ false, uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
+	{ false, uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
+	{ false, uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
+	{ true, uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
+};
+
+uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
+{
+	uiDrawTextFont *font;
+	IDWriteFontCollection *collection;
+	UINT32 index;
+	BOOL exists;
+	DWRITE_FONT_WEIGHT weight;
+	DWRITE_FONT_STYLE italic;
+	DWRITE_FONT_STRETCH stretch;
+	bool found;
+	int i;
+	IDWriteFontFamily *family;
+	HRESULT hr;
+
+	font = uiNew(uiDrawTextFont);
+
+	// always get the latest available font information
+	hr = dwfactory->GetSystemFontCollection(&collection, TRUE);
+	if (hr != S_OK)
+		logHRESULT("error getting system font collection in uiDrawLoadClosestFont()", hr);
+
+	font->family = toUTF16(desc->Family);
+	hr = collection->FindFamilyName(font->family, &index, &exists);
+	if (hr != S_OK)
+		logHRESULT("error finding font family in uiDrawLoadClosestFont()", hr);
+	if (!exists)
+		complain("TODO family not found in uiDrawLoadClosestFont()", hr);
+	hr = collection->GetFontFamily(index, &family);
+	if (hr != S_OK)
+		logHRESULT("error loading font family in uiDrawLoadClosestFont()", hr);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteWeights[i].uival == desc->Weight) {
+			weight = dwriteWeights[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteWeights[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid initial weight %d passed to uiDrawLoadClosestFont()", desc->Weight);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteItalics[i].uival == desc->Italic) {
+			italic = dwriteItalics[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteItalics[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid initial italic %d passed to uiDrawLoadClosestFont()", desc->Italic);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteStretches[i].uival == desc->Stretch) {
+			stretch = dwriteStretches[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteStretches[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid initial stretch %d passed to uiDrawLoadClosestFont()", desc->Stretch);
+
+	// TODO small caps and gravity
+
+	hr = family->GetFirstMatchingFont(weight,
+		stretch,
+		italic,
+		&(font->f));
+	if (hr != S_OK)
+		logHRESULT("error loading font in uiDrawLoadClosestFont()", hr);
+
+	font->size = desc->Size;
+
+	family->Release();
+	collection->Release();
+
+	return font;
+}
+
+void uiDrawFreeTextFont(uiDrawTextFont *font)
+{
+	font->f->Release();
+	uiFree(font->family);
+	uiFree(font);
+}
+
+uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font)
+{
+	return (uintptr_t) (font->f);
+}
+
+void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc)
+{
+	// TODO
+
+	desc->Size = font->size;
+
+	// TODO
+}
+
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
@@ -181,123 +342,29 @@ static intmax_t *toUTF16Offsets(const char *str, WCHAR **wstr, intmax_t *wlenout
 	return bytesToCharacters;
 }
 
-// Not only does C++11 NOT include C99 designated initializers, but the C++ standards committee has REPEATEDLY REJECTING THEM, covering their ears and yelling "CONSTRUCTORS!!!111 PRIVATE DATA!1111 ENCAPSULATION!11one" at the top of their lungs.
-// So what could have been a simple array lookup is now a loop. Thanks guys.
-
-static const struct {
-	bool lastOne;
-	uiDrawTextWeight uival;
-	DWRITE_FONT_WEIGHT dwval;
-} dwriteWeights[] = {
-	{ false, uiDrawTextWeightThin, DWRITE_FONT_WEIGHT_THIN },
-	{ false, uiDrawTextWeightUltraLight, DWRITE_FONT_WEIGHT_ULTRA_LIGHT },
-	{ false, uiDrawTextWeightLight, DWRITE_FONT_WEIGHT_LIGHT },
-	{ false, uiDrawTextWeightBook, DWRITE_FONT_WEIGHT_SEMI_LIGHT },
-	{ false, uiDrawTextWeightNormal, DWRITE_FONT_WEIGHT_NORMAL },
-	{ false, uiDrawTextWeightMedium, DWRITE_FONT_WEIGHT_MEDIUM },
-	{ false, uiDrawTextWeightSemiBold, DWRITE_FONT_WEIGHT_SEMI_BOLD },
-	{ false, uiDrawTextWeightBold, DWRITE_FONT_WEIGHT_BOLD },
-	{ false, uiDrawTextWeightUtraBold, DWRITE_FONT_WEIGHT_ULTRA_BOLD },
-	{ false, uiDrawTextWeightHeavy, DWRITE_FONT_WEIGHT_HEAVY },
-	{ true, uiDrawTextWeightUltraHeavy, DWRITE_FONT_WEIGHT_ULTRA_BLACK, },
-};
-
-static const struct {
-	bool lastOne;
-	uiDrawTextItalic uival;
-	DWRITE_FONT_STYLE dwval;
-} dwriteItalics[] = {
-	{ false, uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
-	{ false, uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
-	{ true, uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
-};
-
-static const struct {
-	bool lastOne;
-	uiDrawTextStretch uival;
-	DWRITE_FONT_STRETCH dwval;
-} dwriteStretches[] = {
-	{ false, uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
-	{ false, uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
-	{ false, uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
-	{ false, uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
-	{ false, uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
-	{ false, uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
-	{ false, uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
-	{ false, uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
-	{ true, uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
-};
-
-uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextStyle *initialStyle)
+uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont)
 {
 	uiDrawTextLayout *layout;
-	DWRITE_FONT_WEIGHT weight;
-	DWRITE_FONT_STYLE italic;
-	DWRITE_FONT_STRETCH stretch;
-	bool found;
-	int i;
-	WCHAR *family;
 	WCHAR *wtext;
 	intmax_t wlen;
 	HRESULT hr;
 
 	layout = uiNew(uiDrawTextLayout);
 
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteWeights[i].uival == initialStyle->Weight) {
-			weight = dwriteWeights[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteWeights[i].lastOne)
-			break;
-	}
-	if (!found)
-		complain("invalid initial weight %d passed to uiDrawNewTextLayout()", initialStyle->Weight);
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteItalics[i].uival == initialStyle->Italic) {
-			italic = dwriteItalics[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteItalics[i].lastOne)
-			break;
-	}
-	if (!found)
-		complain("invalid initial italic %d passed to uiDrawNewTextLayout()", initialStyle->Italic);
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteStretches[i].uival == initialStyle->Stretch) {
-			stretch = dwriteStretches[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteStretches[i].lastOne)
-			break;
-	}
-	if (!found)
-		complain("invalid initial stretch %d passed to uiDrawNewTextLayout()", initialStyle->Stretch);
-
-	family = toUTF16(initialStyle->Family);
-	hr = dwfactory->CreateTextFormat(family,
+	hr = dwfactory->CreateTextFormat(defaultFont->family,
 		NULL,
-		weight,
-		italic,
-		stretch,
+		defaultFont->f->GetWeight(),
+		defaultFont->f->GetStyle(),
+		defaultFont->f->GetStretch(),
 		// typographic points are 1/72 inch; this parameter is 1/96 inch
 		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
-		initialStyle->Size * (96.0 / 72.0),
+		defaultFont->size * (96.0 / 72.0),
 		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
 		// TODO use the current locale again?
 		L"",
 		&(layout->format));
 	if (hr != S_OK)
 		logHRESULT("error creating IDWriteTextFormat in uiDrawNewTextLayout()", hr);
-	uiFree(family);
 	// TODO small caps
 	// TODO gravity
 

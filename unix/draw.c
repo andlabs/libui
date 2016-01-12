@@ -499,6 +499,10 @@ double uiDrawPointsToTextSize(double points)
 	return uiDrawTextSizeToPoints(points);
 }
 
+struct uiDrawTextFont {
+	PangoFont *f;
+};
+
 static const PangoWeight pangoWeights[] = {
 	[uiDrawTextWeightThin] = PANGO_WEIGHT_THIN,
 	[uiDrawTextWeightUltraLight] = PANGO_WEIGHT_ULTRALIGHT,
@@ -539,44 +543,85 @@ static const PangoGravity pangoGravities[] = {
 	[uiDrawTextGravityAuto] = PANGO_GRAVITY_AUTO,
 };
 
+uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
+{
+	uiDrawTextFont *font;
+	PangoFontDescription *pdesc;
+	PangoVariant variant;
+
+	font = uiNew(uiDrawTextFont);
+
+	pdesc = pango_font_description_new();
+	pango_font_description_set_family(pdesc,
+		desc->Family);
+	pango_font_description_set_size(pdesc,
+		(gint) (desc->Size * PANGO_SCALE));
+	pango_font_description_set_weight(pdesc,
+		pangoWeights[desc->Weight]);
+	pango_font_description_set_style(pdesc,
+		pangoItalics[desc->Italic]);
+	variant = PANGO_VARIANT_NORMAL;
+	if (desc->SmallCaps)
+		variant = PANGO_VARIANT_SMALL_CAPS;
+	pango_font_description_set_variant(pdesc, variant);
+	pango_font_description_set_stretch(pdesc,
+		pangoStretches[desc->Stretch]);
+	pango_font_description_set_gravity(pdesc,
+		pangoGravities[desc->Gravity]);
+
+	// TODO should this really be NULL?
+	font->f = pango_font_map_load_font(pango_cairo_font_map_get_default(), NULL, pdesc);
+	if (font->f == NULL) {
+		// TODO
+		g_error("[libui] no match in xxxxx(); report to andlabs");
+	}
+
+	return font;
+}
+
+void uiDrawFreeTextFont(uiDrawTextFont *font)
+{
+	g_object_unref(font->f);
+	uiFree(font);
+}
+
+uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font)
+{
+	return (uintptr_t) (font->f);
+}
+
+void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc)
+{
+	PangoFontDescription *pdesc;
+
+	// this creates a copy; we free it later
+	pdesc = pango_font_describe(font->f);
+
+	// TODO
+
+	pango_font_description_free(pdesc);
+}
+
 // note: PangoCairoLayouts are tied to a given cairo_t, so we can't store one in this device-independent structure
 struct uiDrawTextLayout {
 	char *s;
-	PangoFontDescription *desc;
+	PangoFont *defaultFont;
 };
 
-uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextStyle *initialStyle)
+uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont)
 {
 	uiDrawTextLayout *layout;
-	PangoVariant variant;
 
 	layout = uiNew(uiDrawTextLayout);
 	layout->s = g_strdup(text);
-
-	layout->desc = pango_font_description_new();
-	pango_font_description_set_family(layout->desc,
-		initialStyle->Family);
-	pango_font_description_set_size(layout->desc,
-		(gint) (initialStyle->Size * PANGO_SCALE));
-	pango_font_description_set_weight(layout->desc,
-		pangoWeights[initialStyle->Weight]);
-	pango_font_description_set_style(layout->desc,
-		pangoItalics[initialStyle->Italic]);
-	variant = PANGO_VARIANT_NORMAL;
-	if (initialStyle->SmallCaps)
-		variant = PANGO_VARIANT_SMALL_CAPS;
-	pango_font_description_set_variant(layout->desc, variant);
-	pango_font_description_set_stretch(layout->desc,
-		pangoStretches[initialStyle->Stretch]);
-	pango_font_description_set_gravity(layout->desc,
-		pangoGravities[initialStyle->Gravity]);
-
+	layout->defaultFont = defaultFont->f;
+	g_object_ref(layout->defaultFont);		// retain a copy
 	return layout;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
-	pango_font_description_free(layout->desc);
+	g_object_unref(layout->defaultFont);
 	g_free(layout->s);
 	uiFree(layout);
 }
@@ -584,12 +629,20 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 {
 	PangoLayout *pl;
+	PangoFontDescription *desc;
 
 	pl = pango_cairo_create_layout(c->cr);
+
 	pango_layout_set_text(pl, layout->s, -1);
+
+	// again, this makes a copy
+	desc = pango_font_describe(layout->defaultFont);
 	// this is safe; the description is copied
-	pango_layout_set_font_description(pl, layout->desc);
+	pango_layout_set_font_description(pl, desc);
+	pango_font_description_free(desc);
+
 	cairo_move_to(c->cr, x, y);
 	pango_cairo_show_layout(c->cr, pl);
+
 	g_object_unref(pl);
 }

@@ -55,59 +55,9 @@ double uiDrawPointsToTextSize(double points)
 	return points;
 }
 
-struct uiDrawTextLayout {
-	CFMutableAttributedStringRef mas;
-	intmax_t *bytesToCharacters;
+struct uiDrawTextFont {
+	CTFontRef f;
 };
-
-// TODO this is *really* iffy, but we need to know character offsets...
-// TODO clean up the local variable names and improve documentation
-static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr)
-{
-	intmax_t *bytesToCharacters;
-	intmax_t i, len;
-
-	len = strlen(str);
-	bytesToCharacters = (intmax_t *) uiAlloc(len * sizeof (intmax_t), "intmax_t[]");
-
-	*cfstr = CFStringCreateMutable(NULL, 0);
-	if (*cfstr == NULL)
-		complain("error creating CFMutableStringRef for storing string in uiDrawNewTextLayout()");
-
-	i = 0;
-	while (i < len) {
-		CFStringRef substr;
-		intmax_t n;
-		intmax_t j;
-		intmax_t pos;
-
-		// figure out how many characters to convert and convert them
-		for (n = 1; (i + n - 1) < len; n++) {
-			substr = CFStringCreateWithBytes(NULL, (const UInt8 *) (str + i), n, kCFStringEncodingUTF8, false);
-			if (substr != NULL)		// found a full character
-				break;
-		}
-		// if this test passes we either:
-		// - reached the end of the string without a successful conversion (invalid string)
-		// - ran into allocation issues
-		if (substr == NULL)
-			complain("something bad happened when trying to prepare string in uiDrawNewTextLayout()");
-
-		// now save the character offsets for those bytes
-		pos = CFStringGetLength(*cfstr);
-		for (j = 0; j < n; j++)
-			bytesToCharacters[j] = pos;
-
-		// and add the characters that we converted
-		CFStringAppend(*cfstr, substr);
-		CFRelease(substr);			// TODO correct?
-
-		// and go to the next
-		i += n;
-	}
-
-	return bytesToCharacters;
-}
 
 static CFMutableDictionaryRef newAttrList(void)
 {
@@ -139,7 +89,8 @@ static void addFontSizeAttr(CFMutableDictionaryRef attr, double size)
 	CFRelease(n);
 }
 
-// see http://stackoverflow.com/questions/4810409/does-coretext-support-small-caps/4811371#4811371 and https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c
+// See http://stackoverflow.com/questions/4810409/does-coretext-support-small-caps/4811371#4811371 and https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c for what these do
+// And fortunately, unlike the traits (see below), unmatched features are simply ignored without affecting the other features :D
 static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
 {
 	CFMutableArrayRef outerArray;
@@ -151,10 +102,23 @@ static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
 	if (outerArray == NULL)
 		complain("error creating outer CFArray for adding small caps attributes in addFontSmallCapsAttr()");
 
-	// TODO Apple's headers say these values are deprecated, but I'm not sure what they should be replaced with (or whether they should be deleted outright or used concurrently with their replacements); the other answers of the Stack Overflow question has hints though (and TODO inform Pango of this)
+	// Apple's headers say these are deprecated, but a few fonts still rely on them
 	num = kLetterCaseType;
 	numType = CFNumberCreate(NULL, kCFNumberIntType, &num);
 	num = kSmallCapsSelector;
+	numSelector = CFNumberCreate(NULL, kCFNumberIntType, &num);
+	innerDict = newAttrList();
+	CFDictionaryAddValue(innerDict, kCTFontFeatureTypeIdentifierKey, numType);
+	CFRelease(numType);
+	CFDictionaryAddValue(innerDict, kCTFontFeatureSelectorIdentifierKey, numSelector);
+	CFRelease(numSelector);
+	CFArrayAppendValue(outerArray, innerDict);
+	CFRelease(innerDict);		// and likewise for CFArray
+
+	// these are the non-deprecated versions of the above; some fonts have these instead
+	num = kLowerCaseType;
+	numType = CFNumberCreate(NULL, kCFNumberIntType, &num);
+	num = kLowerCaseSmallCapsSelector;
 	numSelector = CFNumberCreate(NULL, kCFNumberIntType, &num);
 	innerDict = newAttrList();
 	CFDictionaryAddValue(innerDict, kCTFontFeatureTypeIdentifierKey, numType);
@@ -227,7 +191,9 @@ struct closeness {
 	CGFloat distance;
 };
 
-// see below for details
+// Stupidity: CTFont requires an **exact match for the entire traits dictionary**, otherwise it will **drop ALL the traits**.
+// We have to implement the closest match ourselves.
+// Also we have to do this before adding the small caps flags, because the matching descriptors won't have those.
 // TODO document that font matching is closest match but the search method is OS defined
 CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight weight, uiDrawTextItalic italic, uiDrawTextStretch stretch)
 {
@@ -399,13 +365,128 @@ CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight we
 	return out;
 }
 
-uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextStyle *initialStyle)
+// Now remember what I said earlier about having to add the small caps traits after calling the above? This gets a dictionary back so we can do so.
+CFMutableDictionaryRef extractAttributes(CTFontDescriptorRef desc)
+{
+	CFDictionaryRef dict;
+	CFMutableDictionaryRef mdict;
+
+	dict = CTFontDescriptorCopyAttributes(desc);
+	// this might not be mutable, so make a mutable copy
+	mdict = CFDictionaryCreateMutableCopy(NULL, 0, dict);
+	CFRelease(dict);
+	return mdict;
+}
+
+uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
+{
+	uiDrawTextFont *f;
+	CFMutableDictionaryRef attr;
+	CTFontDescriptorRef desc;
+
+	font = uiNew(uiDrawTextFont);
+
+	attr = newAttrList();
+	addFontFamilyAttr(attr, initialStyle->Family);
+	addFontSizeAttr(attr, initialStyle->Size);
+
+	// now we have to do the traits matching, so create a descriptor, match the traits, and then get the attributes back
+	desc = CTFontDescriptorCreateWithAttributes(attr);
+	// TODO release attr?
+	desc = matchTraits(desc, initialStyle->Weight, initialStyle->Italic, initialStyle->Stretch);
+	attr = extractAttributes(desc);
+	CFRelease(desc);
+
+	// and finally add the other attributes
+	if (initialStyle->SmallCaps)
+		addFontSmallCapsAttr(attr);
+	addFontGravityAttr(attr, initialStyle->Gravity);
+
+	// and NOW create the final descriptor
+	desc = CTFontDescriptorCreateWithAttributes(attr);
+	// TODO release attr?
+
+	// specify the initial size again just to be safe
+	font->f = CTFontCreateWithFontDescriptor(desc, initialStyle->Size, NULL);
+	// TODO release desc?
+
+	return font;
+}
+
+void uiDrawFreeTextFont(uiDrawTextFont *font)
+{
+	CFRelease(font->f);
+	uiFree(font);
+}
+
+uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font)
+{
+	return (uintptr_t) (font->f);
+}
+
+void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc)
+{
+	// TODO TODO TODO TODO
+}
+
+struct uiDrawTextLayout {
+	CFMutableAttributedStringRef mas;
+	intmax_t *bytesToCharacters;
+};
+
+// TODO this is *really* iffy, but we need to know character offsets...
+// TODO clean up the local variable names and improve documentation
+static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr)
+{
+	intmax_t *bytesToCharacters;
+	intmax_t i, len;
+
+	len = strlen(str);
+	bytesToCharacters = (intmax_t *) uiAlloc(len * sizeof (intmax_t), "intmax_t[]");
+
+	*cfstr = CFStringCreateMutable(NULL, 0);
+	if (*cfstr == NULL)
+		complain("error creating CFMutableStringRef for storing string in uiDrawNewTextLayout()");
+
+	i = 0;
+	while (i < len) {
+		CFStringRef substr;
+		intmax_t n;
+		intmax_t j;
+		intmax_t pos;
+
+		// figure out how many characters to convert and convert them
+		for (n = 1; (i + n - 1) < len; n++) {
+			substr = CFStringCreateWithBytes(NULL, (const UInt8 *) (str + i), n, kCFStringEncodingUTF8, false);
+			if (substr != NULL)		// found a full character
+				break;
+		}
+		// if this test passes we either:
+		// - reached the end of the string without a successful conversion (invalid string)
+		// - ran into allocation issues
+		if (substr == NULL)
+			complain("something bad happened when trying to prepare string in uiDrawNewTextLayout()");
+
+		// now save the character offsets for those bytes
+		pos = CFStringGetLength(*cfstr);
+		for (j = 0; j < n; j++)
+			bytesToCharacters[j] = pos;
+
+		// and add the characters that we converted
+		CFStringAppend(*cfstr, substr);
+		CFRelease(substr);			// TODO correct?
+
+		// and go to the next
+		i += n;
+	}
+
+	return bytesToCharacters;
+}
+
+uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *font)
 {
 	uiDrawTextLayout *layout;
 	CFMutableStringRef cfstr;
-	CFMutableDictionaryRef attr;
-	CTFontDescriptorRef desc;
-	CTFontRef font;
 	CFAttributedStringRef immutable;
 
 	layout = uiNew(uiDrawTextLayout);
@@ -413,27 +494,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, const uiDrawInitialTextSt
 	layout->bytesToCharacters = strToCFStrOffsetList(str, &cfstr);
 
 	attr = newAttrList();
-	addFontFamilyAttr(attr, initialStyle->Family);
-	addFontSizeAttr(attr, initialStyle->Size);
-	if (initialStyle->SmallCaps)
-		addFontSmallCapsAttr(attr);
-	addFontGravityAttr(attr, initialStyle->Gravity);
-
-	desc = CTFontDescriptorCreateWithAttributes(attr);
-	// TODO release attr?
-
-	// unfortunately OS X requires an EXACT MATCH for the traits, otherwise it will *drop all the traits*
-	// we want a nearest match, so we have to do it ourselves
-	// TODO this does not preserve small caps
-	desc = matchTraits(desc, initialStyle->Weight, initialStyle->Italic, initialStyle->Stretch);
-
-	// specify the initial size again just to be safe
-	font = CTFontCreateWithFontDescriptor(desc, initialStyle->Size, NULL);
-	// TODO release desc?
-
-	attr = newAttrList();
-	CFDictionaryAddValue(attr, kCTFontAttributeName, font);
-	CFRelease(font);
+	// this will retain font->f; no need to worry
+	CFDictionaryAddValue(attr, kCTFontAttributeName, font->f);
 
 	immutable = CFAttributedStringCreate(NULL, cfstr, attr);
 	if (immutable == NULL)

@@ -532,6 +532,7 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	uiDrawTextFont *font;
 	PangoFontDescription *pdesc;
 	PangoVariant variant;
+	PangoContext *context;
 
 	font = uiNew(uiDrawTextFont);
 
@@ -553,12 +554,17 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	pango_font_description_set_gravity(pdesc,
 		pangoGravities[desc->Gravity]);
 
-	// TODO should this really be NULL?
-	font->f = pango_font_map_load_font(pango_cairo_font_map_get_default(), NULL, pdesc);
+	// we need a context for metrics to be correct
+	// the documentation suggests creating cairo_t-specific, GdkScreen-specific, or even GtkWidget-specific contexts, but we can't really do that because we want our uiDrawTextFonts to be context-independent
+	// so this will have to do
+	// TODO really see if there's a better way instead; what do GDK and GTK+ do internally?
+	context = pango_font_map_create_context(pango_cairo_font_map_get_default());
+	font->f = pango_font_map_load_font(pango_cairo_font_map_get_default(), context, pdesc);
 	if (font->f == NULL) {
 		// TODO
-		g_error("[libui] no match in xxxxx(); report to andlabs");
+		g_error("[libui] no match in uiDrawLoadClosestFont(); report to andlabs");
 	}
+	g_object_unref(context);
 
 	return font;
 }
@@ -596,9 +602,7 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 	PangoFontMetrics *pm;
 
 	pm = pango_font_get_metrics(font->f, NULL);
-	// TODO this does NOT include space for the accents, which throws everything off
 	metrics->Ascent = pangoToCairo(pango_font_metrics_get_ascent(pm));
-	// TODO this always seems to be 0, which throws everything off even more
 	metrics->Descent = pangoToCairo(pango_font_metrics_get_descent(pm));
 	// Pango doesn't seem to expose this :( Use 0 and hope for the best.
 	metrics->Leading = 0;

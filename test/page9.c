@@ -31,6 +31,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	char *s;
 	char *family;		// make compiler happy
 	uiDrawTextLayout *layout;
+	uiDrawTextFontMetrics metrics;
 
 	memset(&desc, 0, sizeof (uiDrawTextFontDescriptor));
 	family = uiEntryText(textFont);
@@ -41,18 +42,21 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	desc.SmallCaps = uiCheckboxChecked(textSmallCaps);
 	desc.Stretch = uiComboboxSelected(textStretch);
 	desc.Gravity = uiComboboxSelected(textGravity);
-
 	font = uiDrawLoadClosestFont(&desc);
+	uiFreeText(family);
+	uiDrawTextFontGetMetrics(font, &metrics);
 
 	s = uiEntryText(textString);
 	layout = uiDrawNewTextLayout(s, font);
-
-	uiDrawText(dp->Context, 10, 10, layout);
-
-	uiDrawFreeTextLayout(layout);
-	uiDrawFreeTextFont(font);
 	uiFreeText(s);
-	uiFreeText(family);
+	uiDrawText(dp->Context, 10, 10, layout);
+	uiDrawFreeTextLayout(layout);
+
+	layout = uiDrawNewTextLayout("This is a second line", font);
+	uiDrawText(dp->Context, 10, 10 + metrics.Ascent + metrics.Descent + metrics.Leading, layout);
+	uiDrawFreeTextLayout(layout);
+
+	uiDrawFreeTextFont(font);
 }
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)

@@ -456,6 +456,7 @@ _UI_EXTERN void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff);
 typedef struct uiDrawTextLayout uiDrawTextLayout;
 typedef struct uiDrawTextFont uiDrawTextFont;
 typedef struct uiDrawTextFontDescriptor uiDrawTextFontDescriptor;
+typedef struct uiDrawTextFontMetrics uiDrawTextFontMetrics;
 
 typedef enum uiDrawTextWeight {
 	uiDrawTextWeightThin,
@@ -508,15 +509,21 @@ struct uiDrawTextFontDescriptor {
 	uiDrawTextGravity Gravity;
 };
 
-// TODO wait why do I have these functions? I don't think they provide a correct line height...
-_UI_EXTERN double uiDrawTextSizeToPoints(double textSize);
-_UI_EXTERN double uiDrawPointsToTextSize(double points);
+struct uiDrawTextFontMetrics {
+	double Ascent;
+	double Descent;
+	double Leading;
+	double UnderlinePos;
+	double UnderlineThickness;
+};
 
 _UI_EXTERN uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc);
 _UI_EXTERN void uiDrawFreeTextFont(uiDrawTextFont *font);
 _UI_EXTERN uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font);
 _UI_EXTERN void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc);
 // TODO make copy with given attributes methods?
+// TODO yuck this name
+_UI_EXTERN void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics);
 
 _UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont);
 _UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *layout);

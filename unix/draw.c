@@ -483,22 +483,6 @@ void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 	uiFree(ff);
 }
 
-double uiDrawTextSizeToPoints(double textSize)
-{
-	gint pangoSize;
-
-	pangoSize = (gint) (textSize * PANGO_SCALE);
-	return ((double) pangoSize) / PANGO_SCALE;
-}
-
-double uiDrawPointsToTextSize(double points)
-{
-	// yeah, as far as I can tell the two functions are equivalent
-	// TODO verify
-	// TODO make sure they aren't just equivalent
-	return uiDrawTextSizeToPoints(points);
-}
-
 struct uiDrawTextFont {
 	PangoFont *f;
 };
@@ -600,6 +584,25 @@ void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc
 	// TODO
 
 	pango_font_description_free(pdesc);
+}
+
+// See https://developer.gnome.org/pango/1.30/pango-Cairo-Rendering.html#pango-Cairo-Rendering.description
+// Note that we convert to double before dividing to make sure the floating-point stuff is right
+#define pangoToCairo(pango) (((double) (pango)) / PANGO_SCALE)
+
+// TODO this isn't enough; pango adds extra space to each layout
+void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics)
+{
+	PangoFontMetrics *pm;
+
+	pm = pango_font_get_metrics(font->f, NULL);
+	metrics->Ascent = pangoToCairo(pango_font_metrics_get_ascent(pm));
+	metrics->Descent = pangoToCairo(pango_font_metrics_get_descent(pm));
+	// Pango doesn't seem to expose this :( Use 0 and hope for the best.
+	metrics->Leading = 0;
+	metrics->UnderlinePos = pangoToCairo(pango_font_metrics_get_underline_position(pm));
+	metrics->UnderlineThickness = pangoToCairo(pango_font_metrics_get_underline_thickness(pm));
+	pango_font_metrics_unref(pm);
 }
 
 // note: PangoCairoLayouts are tied to a given cairo_t, so we can't store one in this device-independent structure

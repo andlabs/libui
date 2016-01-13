@@ -596,7 +596,9 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 	PangoFontMetrics *pm;
 
 	pm = pango_font_get_metrics(font->f, NULL);
+	// TODO this does NOT include space for the accents, which throws everything off
 	metrics->Ascent = pangoToCairo(pango_font_metrics_get_ascent(pm));
+	// TODO this always seems to be 0, which throws everything off even more
 	metrics->Descent = pangoToCairo(pango_font_metrics_get_descent(pm));
 	// Pango doesn't seem to expose this :( Use 0 and hope for the best.
 	metrics->Leading = 0;

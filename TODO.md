@@ -1,4 +1,5 @@
-- big documentation TODO: document that font matching is CLOSEST MATCH
+- LC_VERSION_MIN_MACOSX has the 10.11 SDK; see if we can knock it down to 10.7 too; OS version is fine
+	- apply the OS version stuff to the test program and examples too
 
 - go through ALL the objective-c objects we create and make sure we are using the proper ownership (alloc/init and new are owned by us, all class method constructors are autoreleased - thanks mikeash)
 

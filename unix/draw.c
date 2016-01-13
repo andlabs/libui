@@ -557,7 +557,7 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	// we need a context for metrics to be correct
 	// the documentation suggests creating cairo_t-specific, GdkScreen-specific, or even GtkWidget-specific contexts, but we can't really do that because we want our uiDrawTextFonts to be context-independent
 	// so this will have to do
-	// TODO really see if there's a better way instead; what do GDK and GTK+ do internally?
+	// TODO really see if there's a better way instead; what do GDK and GTK+ do internally? gdk_pango_context_get()?
 	context = pango_font_map_create_context(pango_cairo_font_map_get_default());
 	font->f = pango_font_map_load_font(pango_cairo_font_map_get_default(), context, pdesc);
 	if (font->f == NULL) {

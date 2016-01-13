@@ -108,19 +108,6 @@ void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 	uiFree(ff);
 }
 
-// text sizes are 1/72 of an inch
-// points in Direct2D are 1/96 of an inch (https://msdn.microsoft.com/en-us/library/windows/desktop/ff684173%28v=vs.85%29.aspx, https://msdn.microsoft.com/en-us/library/windows/desktop/hh447022%28v=vs.85%29.aspx)
-// the first link above has an example conversion; that seems to confirm that these two functions are right (TODO)
-double uiDrawTextSizeToPoints(double textSize)
-{
-	return textSize * (96.0 / 72.0);
-}
-
-double uiDrawPointsToTextSize(double points)
-{
-	return points * (72.0 / 96.0);
-}
-
 struct uiDrawTextFont {
 	IDWriteFont *f;
 	WCHAR *family;		// save for convenience in uiDrawNewTextLayout()
@@ -282,6 +269,32 @@ void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc
 	// TODO
 }
 
+// text sizes are 1/72 of an inch
+// points in Direct2D are 1/96 of an inch (https://msdn.microsoft.com/en-us/library/windows/desktop/ff684173%28v=vs.85%29.aspx, https://msdn.microsoft.com/en-us/library/windows/desktop/hh447022%28v=vs.85%29.aspx)
+// As for the actual conversion from design units, see:
+// - http://cboard.cprogramming.com/windows-programming/136733-directwrite-font-height-issues.html
+// - https://sourceforge.net/p/vstgui/mailman/message/32483143/
+// - http://xboxforums.create.msdn.com/forums/t/109445.aspx
+// - https://msdn.microsoft.com/en-us/library/dd183564%28v=vs.85%29.aspx
+// - http://www.fontbureau.com/blog/the-em/
+static double scaleUnits(double what, double designUnitsPerEm, double size)
+{
+	return (what / designUnitsPerEm) * (size * (96.0 / 72.0));
+}
+
+void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics)
+{
+	DWRITE_FONT_METRICS dm;
+
+	font->f->GetMetrics(&dm);
+	metrics->Ascent = scaleUnits(dm.ascent, dm.designUnitsPerEm, font->size);
+	metrics->Descent = scaleUnits(dm.descent, dm.designUnitsPerEm, font->size);
+	// TODO what happens if dm.xxx is negative?
+	metrics->Leading = scaleUnits(dm.lineGap, dm.designUnitsPerEm, font->size);
+	metrics->UnderlinePos = scaleUnits(dm.underlinePosition, dm.designUnitsPerEm, font->size);
+	metrics->UnderlineThickness = scaleUnits(dm.underlineThickness, dm.designUnitsPerEm, font->size);
+}
+
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
@@ -289,6 +302,7 @@ struct uiDrawTextLayout {
 };
 
 #define MBTWC(str, n, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, 0, str, n, wstr, bufsiz)
+#define MBTWCErr(str, n, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, n, wstr, bufsiz)
 
 // TODO figure out how ranges are specified in DirectWrite
 // TODO clean up the local variable names and improve documentation
@@ -319,8 +333,8 @@ static intmax_t *toUTF16Offsets(const char *str, WCHAR **wstr, intmax_t *wlenout
 		// figure out how many characters to convert and convert them
 		found = FALSE;
 		for (n = 1; (i + n - 1) < len; n++) {
-			// TODO do we need MB_ERR_INVALID_CHARS here for this to work properly?
-			m = MBTWC(str + i, n, *wstr + outpos, wlen - outpos);
+			// we need MB_ERR_INVALID_CHARS here for this to work properly
+			m = MBTWCErr(str + i, n, *wstr + outpos, wlen - outpos);
 			if (m != 0) {			// found a full character
 				found = TRUE;
 				break;

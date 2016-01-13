@@ -27,6 +27,58 @@ static double entryDouble(uiEntry *e)
 	return d;
 }
 
+static void drawGuides(uiDrawContext *c, uiDrawTextFontMetrics *m)
+{
+	uiDrawPath *p;
+	uiDrawBrush b;
+	uiDrawStrokeParams sp;
+
+	memset(&b, 0, sizeof (uiDrawBrush));
+	b.Type = uiDrawBrushTypeSolid;
+	memset(&sp, 0, sizeof (uiDrawStrokeParams));
+	sp.Cap = uiDrawLineCapFlat;
+	sp.Join = uiDrawLineJoinMiter;
+	sp.MiterLimit = uiDrawDefaultMiterLimit;
+	sp.Thickness = 2;
+
+	uiDrawSave(c);
+
+	p = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(p, 8, 10);
+	uiDrawPathLineTo(p, 8, 10 + m->Ascent);
+	uiDrawPathEnd(p);
+	b.R = 0.94;
+	b.G = 0.5;
+	b.B = 0.5;
+	b.A = 1.0;
+	uiDrawStroke(c, p, &b, &sp);
+	uiDrawFreePath(p);
+
+	p = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(p, 8, 10 + m->Ascent);
+	uiDrawPathLineTo(p, 8, 10 + m->Ascent + m->Descent);
+	uiDrawPathEnd(p);
+	b.R = 0.12;
+	b.G = 0.56;
+	b.B = 1.0;
+	b.A = 1.0;
+	uiDrawStroke(c, p, &b, &sp);
+	uiDrawFreePath(p);
+
+	p = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(p, 0, 0, 10, 10);
+	uiDrawPathEnd(p);
+	uiDrawClip(c, p);
+	b.R = 0.85;
+	b.G = 0.65;
+	b.B = 0.13;
+	b.A = 1.0;
+	uiDrawStroke(c, p, &b, &sp);
+	uiDrawFreePath(p);
+
+	uiDrawRestore(c);
+}
+
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 {
 	uiDrawTextFontDescriptor desc;
@@ -49,6 +101,8 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	font = uiDrawLoadClosestFont(&desc);
 	uiFreeText(family);
 	uiDrawTextFontGetMetrics(font, &metrics);
+
+	drawGuides(dp->Context, &metrics);
 
 	s = uiEntryText(textString);
 	layout = uiDrawNewTextLayout(s, font);

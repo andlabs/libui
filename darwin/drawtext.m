@@ -42,19 +42,6 @@ void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 	uiFree(ff);
 }
 
-// these two are identical:
-// - https://developer.apple.com/library/mac/documentation/TextFonts/Conceptual/CocoaTextArchitecture/TypoFeatures/TextSystemFeatures.html#//apple_ref/doc/uid/TP40009459-CH6-51627-BBCCHIFF text points are 72 per inch
-// - https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/CocoaDrawingGuide/Transforms/Transforms.html#//apple_ref/doc/uid/TP40003290-CH204-SW5 user space points are 72 per inch
-double uiDrawTextSizeToPoints(double textSize)
-{
-	return textSize;
-}
-
-double uiDrawPointsToTextSize(double points)
-{
-	return points;
-}
-
 struct uiDrawTextFont {
 	CTFontRef f;
 };
@@ -427,6 +414,18 @@ uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font)
 void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc)
 {
 	// TODO TODO TODO TODO
+}
+
+// text sizes and user space points are identical:
+// - https://developer.apple.com/library/mac/documentation/TextFonts/Conceptual/CocoaTextArchitecture/TypoFeatures/TextSystemFeatures.html#//apple_ref/doc/uid/TP40009459-CH6-51627-BBCCHIFF text points are 72 per inch
+// - https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/CocoaDrawingGuide/Transforms/Transforms.html#//apple_ref/doc/uid/TP40003290-CH204-SW5 user space points are 72 per inch
+void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics)
+{
+	metrics->Ascent = CTFontGetAscent(font->f);
+	metrics->Descent = CTFontGetDescent(font->f);
+	metrics->Leading = CTFontGetLeading(font->f);
+	metrics->UnderlinePos = CTFontGetUnderlinePosition(font->f);
+	metrics->UnderlineThickness = CTFontGetUnderlineThickness(font->f);
 }
 
 struct uiDrawTextLayout {

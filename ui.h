@@ -513,6 +513,7 @@ struct uiDrawTextFontMetrics {
 	double Ascent;
 	double Descent;
 	double Leading;
+	// TODO do these two mean the same across all platforms?
 	double UnderlinePos;
 	double UnderlineThickness;
 };

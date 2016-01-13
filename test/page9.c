@@ -10,6 +10,7 @@ static uiCheckbox *textSmallCaps;
 static uiCombobox *textStretch;
 static uiCombobox *textGravity;
 static uiButton *textApply;
+static uiCheckbox *addLeading;
 static uiArea *textArea;
 static uiAreaHandler textAreaHandler;
 
@@ -32,6 +33,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	char *family;		// make compiler happy
 	uiDrawTextLayout *layout;
 	uiDrawTextFontMetrics metrics;
+	double ypos;
 
 	memset(&desc, 0, sizeof (uiDrawTextFontDescriptor));
 	family = uiEntryText(textFont);
@@ -49,11 +51,15 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	s = uiEntryText(textString);
 	layout = uiDrawNewTextLayout(s, font);
 	uiFreeText(s);
-	uiDrawText(dp->Context, 10, 10, layout);
+	ypos = 10;
+	uiDrawText(dp->Context, 10, ypos, layout);
 	uiDrawFreeTextLayout(layout);
 
 	layout = uiDrawNewTextLayout("This is a second line", font);
-	uiDrawText(dp->Context, 10, 10 + metrics.Ascent + metrics.Descent + metrics.Leading, layout);
+	ypos += metrics.Ascent + metrics.Descent;
+	if (uiCheckboxChecked(addLeading))
+		ypos += metrics.Leading;
+	uiDrawText(dp->Context, 10, ypos, layout);
 	uiDrawFreeTextLayout(layout);
 
 	uiDrawFreeTextFont(font);
@@ -163,9 +169,16 @@ uiBox *makePage9(void)
 	uiComboboxSetSelected(textGravity, uiDrawTextGravitySouth);
 	uiBoxAppend(hbox, uiControl(textGravity), 1);
 
+	hbox = newHorizontalBox();
+	uiBoxAppend(vbox, uiControl(hbox), 0);
+
 	textApply = uiNewButton("Apply");
 	uiButtonOnClicked(textApply, onTextApply, NULL);
-	uiBoxAppend(vbox, uiControl(textApply), 0);
+	uiBoxAppend(hbox, uiControl(textApply), 1);
+
+	addLeading = uiNewCheckbox("Add Leading");
+	uiCheckboxSetChecked(addLeading, 1);
+	uiBoxAppend(hbox, uiControl(addLeading), 0);
 
 	textAreaHandler.Draw = handlerDraw;
 	textAreaHandler.MouseEvent = handlerMouseEvent;

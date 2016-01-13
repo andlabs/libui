@@ -536,7 +536,7 @@ static void prepareContextForText(CGContextRef c, CGFloat cheight, double *y)
 void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextLayout *layout)
 {
 	CTLineRef line;
-	CGRect bounds;
+	CGFloat yoff;
 
 	prepareContextForText(c, cheight, &y);
 
@@ -544,13 +544,11 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 	if (line == NULL)
 		complain("error creating CTLine object in uiDrawText()");
 
-	// TODO image bounds are wrong for this; figure out what is correct
-	// TODO provide a way to get the image bounds as a separate function later
-	// oh, and (x, y) is the bottom-left corner; we need the top-left
+	// CGContextSetTextPosition() positions at the baseline; we need the top-left corner instead
+	CTLineGetTypographicBounds(line, &yoff, NULL, NULL);
+	// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
 	// remember that we're flipped, so we subtract
-	bounds = CTLineGetImageBounds(line, c);
-	// though CTLineGetImageBounds() returns CGRectNull on error, it also returns CGRectNull on an empty string, so we can't reasonably check for error
-	y -= bounds.size.height;
+	y -= yoff;
 	CGContextSetTextPosition(c, x, y);
 
 	// and now we can FINALLY draw the line
@@ -559,3 +557,12 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 
 	CGContextRestoreGState(c);
 }
+
+// TODO provide an equivalent to CTLineGetTypographicBounds() on uiDrawTextLayout?
+
+// TODO keep this for TODO and documentation purposes
+#if 0
+	// TODO provide a way to get the image bounds as a separate function later
+	bounds = CTLineGetImageBounds(line, c);
+	// though CTLineGetImageBounds() returns CGRectNull on error, it also returns CGRectNull on an empty string, so we can't reasonably check for error
+#endif

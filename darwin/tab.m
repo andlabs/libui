@@ -93,7 +93,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	[t->views insertObject:view atIndex:n];
 	[t->margined insertObject:[NSNumber numberWithInt:0] atIndex:n];
 
-	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
+	i = [[NSTabViewItem alloc] init];
 	[i setLabel:toNSString(name)];
 	[i setView:view];
 	[t->tabview insertTabViewItem:i atIndex:n];

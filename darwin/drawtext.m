@@ -544,6 +544,8 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 	if (line == NULL)
 		complain("error creating CTLine object in uiDrawText()");
 
+	// TODO image bounds are wrong for this; figure out what is correct
+	// TODO provide a way to get the image bounds as a separate function later
 	// oh, and (x, y) is the bottom-left corner; we need the top-left
 	// remember that we're flipped, so we subtract
 	bounds = CTLineGetImageBounds(line, c);

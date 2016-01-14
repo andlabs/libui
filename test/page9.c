@@ -27,6 +27,7 @@ static double entryDouble(uiEntry *e)
 	return d;
 }
 
+// TODO this should be altered not to restore all state on exit so default text attributes can be checked
 static void drawGuides(uiDrawContext *c, uiDrawTextFontMetrics *m)
 {
 	uiDrawPath *p;

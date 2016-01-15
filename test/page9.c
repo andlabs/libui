@@ -11,6 +11,7 @@ static uiCombobox *textItalic;
 static uiCheckbox *textSmallCaps;
 static uiCombobox *textStretch;
 static uiCombobox *textGravity;
+static uiEntry *textWidth;
 static uiButton *textApply;
 static uiCheckbox *addLeading;
 static uiArea *textArea;
@@ -89,6 +90,8 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiDrawTextLayout *layout;
 	uiDrawTextFontMetrics metrics;
 	double ypos;
+	double width;
+	double height;
 
 	memset(&desc, 0, sizeof (uiDrawTextFontDescriptor));
 	family = uiEntryText(textFont);
@@ -103,17 +106,27 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiFreeText(family);
 	uiDrawTextFontGetMetrics(font, &metrics);
 
+	width = entryDouble(textWidth);
+
 	drawGuides(dp->Context, &metrics);
 
 	s = uiEntryText(textString);
-	layout = uiDrawNewTextLayout(s, font);
+	layout = uiDrawNewTextLayout(s, font, width);
 	uiFreeText(s);
 	ypos = 10;
 	uiDrawText(dp->Context, 10, ypos, layout);
+	// TODO make these optional?
+	uiDrawTextLayoutExtents(dp->Context, &width, &height);
 	uiDrawFreeTextLayout(layout);
 
-	layout = uiDrawNewTextLayout("This is a second line", font);
-	ypos += metrics.Ascent + metrics.Descent;
+	layout = uiDrawNewTextLayout("This is a second line", font, -1);
+	if (/*TODO*/entryDouble(textWidth) < 0) {
+		double ad;
+
+		ad = metrics.Ascent + metrics.Descent;
+		printf("ad:%g extent:%g", ad, height);
+	}
+	ypos += height;
 	if (uiCheckboxChecked(addLeading))
 		ypos += metrics.Leading;
 	uiDrawText(dp->Context, 10, ypos, layout);

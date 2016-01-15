@@ -24,7 +24,6 @@ if(WIN32)
   if(NOT NODEBUG)
   list(APPEND CFLAGS "/Zi")
   list(APPEND CXXFLAGS "/Zi")
-  list(APPEND LINKS "/debug")
   endif()
 endif(WIN32)
 

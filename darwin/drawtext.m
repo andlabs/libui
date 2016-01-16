@@ -547,7 +547,7 @@ static void mkFramesetter(uiDrawTextLayout *layout, struct framesetter *fs)
 	fs->frameAttrib = NULL;
 
 	width = layout->width;
-	if (width < 0)
+	if (layout->width < 0)
 		width = CGFLOAT_MAX;
 	// TODO these seem to be floor()'d or truncated?
 	fs->extents = CTFramesetterSuggestFrameSizeWithConstraints(fs->fs,
@@ -566,6 +566,7 @@ static void freeFramesetter(struct framesetter *fs)
 
 // TODO document that the extent width can be greater than the requested width if the requested width is small enough that only one character can fit
 // TODO figure out how line separation and leading plays into this
+// TODO reconcile differences in character wrapping on platforms
 void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
 {
 	struct framesetter fs;

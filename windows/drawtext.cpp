@@ -277,6 +277,7 @@ void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc
 // - http://xboxforums.create.msdn.com/forums/t/109445.aspx
 // - https://msdn.microsoft.com/en-us/library/dd183564%28v=vs.85%29.aspx
 // - http://www.fontbureau.com/blog/the-em/
+// TODO make points here about how DIPs in DirectWrite == DIPs in Direct2D; if not, figure out what they really are? for the width and layout functions later
 static double scaleUnits(double what, double designUnitsPerEm, double size)
 {
 	return (what / designUnitsPerEm) * (size * (96.0 / 72.0));
@@ -356,7 +357,7 @@ static intmax_t *toUTF16Offsets(const char *str, WCHAR **wstr, intmax_t *wlenout
 	return bytesToCharacters;
 }
 
-uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont)
+uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width)
 {
 	uiDrawTextLayout *layout;
 	WCHAR *wtext;
@@ -392,6 +393,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 		logHRESULT("error creating IDWriteTextLayout in uiDrawNewTextLayout()", hr);
 	uiFree(wtext);
 
+	uiDrawTextLayoutSetWidth(layout, width);
+
 	return layout;
 }
 
@@ -400,6 +403,42 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 	layout->layout->Release();
 	layout->format->Release();
 	uiFree(layout);
+}
+
+void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
+{
+	DWRITE_WORD_WRAPPING wrap;
+	FLOAT maxWidth;
+	HRESULT hr;
+
+	// this is the only wrapping mode (apart from "no wrap") available prior to Windows 8.1
+	wrap = DWRITE_WORD_WRAPPING_WRAP;
+	maxWidth = width;
+	if (width < 0) {
+		wrap = DWRITE_WORD_WRAPPING_NO_WRAP;
+		// setting the max width in this case technically isn't needed since the wrap mode will simply ignore the max width, but let's do it just to be safe
+		maxWidth = FLT_MAX;		// see TODO above
+	}
+	hr = layout->layout->SetWordWrapping(wrap);
+	if (hr != S_OK)
+		logHRESULT("error setting word wrapping mode in uiDrawTextLayoutSetWidth()", hr);
+	hr = layout->layout->SetMaxWidth(maxWidth);
+	if (hr != S_OK)
+		logHRESULT("error setting max layout width in uiDrawTextLayoutSetWidth()", hr);
+}
+
+// TODO for a single line the height is always taller than ascent + descent
+void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
+{
+	DWRITE_TEXT_METRICS metrics;
+	HRESULT hr;
+
+	hr = layout->layout->GetMetrics(&metrics);
+	if (hr != S_OK)
+		logHRESULT("error getting layout metrics in uiDrawTextLayoutExtents()", hr);
+	*width = metrics.width;
+	// TODO make sure the behavior of this on empty strings is the same on all platforms
+	*height = metrics.height;
 }
 
 void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout)

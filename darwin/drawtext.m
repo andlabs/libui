@@ -526,13 +526,21 @@ void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
 	layout->width = width;
 }
 
+// TODO CTFrameProgression for RTL/LTR
+
+// TODO document that the extent width can be greater than the requested width if the requested width is small enough that only one character can fit
+// TODO figure out how line separation and leading plays into this
 void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
 {
 	CTLineRef line;
+	CTFramesetterRef fs;
+	CGSize size;
+	CFRange fitRange;
 	double ascent, descent;
 	double w;
 
 	// one line
+	// TODO actually could not constraining the width of the framesetter do the same thing?
 	if (layout->width < 0) {
 		line = CTLineCreateWithAttributedString(layout->mas);
 		if (line == NULL)
@@ -544,7 +552,19 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *he
 		*height = ascent + descent;
 		return;
 	}
-	// TODO
+
+	// multiple lines
+	fs = CTFramesetterCreateWithAttributedString(layout->mas);
+	if (fs == NULL)
+		complain("error creating CTFramesetter object in uiDrawTextLayoutExtents()");
+	size = CTFramesetterSuggestFrameSizeWithConstraints(fs,
+		CFRangeMake(0, 0),
+		NULL,			// TODO kCTFramePathWidthAttributeName?
+		CGSizeMake(layout->width, CGFLOAT_MAX),
+		&fitRange);		// not documented as accepting NULL
+	CFRelease(fs);
+	*width = size.width;
+	*height = size.height;
 }
 
 // Core Text doesn't draw onto a flipped view correctly; we have to do this

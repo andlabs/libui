@@ -427,7 +427,7 @@ void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
 		logHRESULT("error setting max layout width in uiDrawTextLayoutSetWidth()", hr);
 }
 
-// TODO for a single line the height includes the leading; it probably shouldn't but I'm not sure
+// TODO for a single line the height includes the leading; it should not
 void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
 {
 	DWRITE_TEXT_METRICS metrics;

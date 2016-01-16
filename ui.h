@@ -526,6 +526,7 @@ _UI_EXTERN void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescr
 // TODO yuck this name
 _UI_EXTERN void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics);
 
+// TODO initial line spacing? and what about leading?
 _UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width);
 _UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *layout);
 // TODO get width

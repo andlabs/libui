@@ -526,45 +526,54 @@ void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
 	layout->width = width;
 }
 
+struct framesetter {
+	CTFramesetterRef fs;
+	CFMutableDictionaryRef frameAttrib;
+	CGSize extents;
+};
+
 // TODO CTFrameProgression for RTL/LTR
+// TODO kCTParagraphStyleSpecifierMaximumLineSpacing, kCTParagraphStyleSpecifierMinimumLineSpacing, kCTParagraphStyleSpecifierLineSpacingAdjustment for line spacing
+static void mkFramesetter(uiDrawTextLayout *layout, struct framesetter *fs)
+{
+	CFRange fitRange;
+	CGFloat width;
+
+	fs->fs = CTFramesetterCreateWithAttributedString(layout->mas);
+	if (fs->fs == NULL)
+		complain("error creating CTFramesetter object in mkFramesetter()");
+
+	// TODO kCTFramePathWidthAttributeName?
+	fs->frameAttrib = NULL;
+
+	width = layout->width;
+	if (width < 0)
+		width = CGFLOAT_MAX;
+	// TODO these seem to be floor()'d or truncated?
+	fs->extents = CTFramesetterSuggestFrameSizeWithConstraints(fs->fs,
+		CFRangeMake(0, 0),
+		fs->frameAttrib,
+		CGSizeMake(width, CGFLOAT_MAX),
+		&fitRange);		// not documented as accepting NULL
+}
+
+static void freeFramesetter(struct framesetter *fs)
+{
+	if (fs->frameAttrib != NULL)
+		CFRelease(fs->frameAttrib);
+	CFRelease(fs->fs);
+}
 
 // TODO document that the extent width can be greater than the requested width if the requested width is small enough that only one character can fit
 // TODO figure out how line separation and leading plays into this
 void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
 {
-	CTLineRef line;
-	CTFramesetterRef fs;
-	CGSize size;
-	CFRange fitRange;
-	double ascent, descent;
-	double w;
+	struct framesetter fs;
 
-	// one line
-	// TODO actually could not constraining the width of the framesetter do the same thing?
-	if (layout->width < 0) {
-		line = CTLineCreateWithAttributedString(layout->mas);
-		if (line == NULL)
-			complain("error creating CTLine object in uiDrawTextLayoutExtents()");
-		w = CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
-		// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
-		CFRelease(line);
-		*width = w;
-		*height = ascent + descent;
-		return;
-	}
-
-	// multiple lines
-	fs = CTFramesetterCreateWithAttributedString(layout->mas);
-	if (fs == NULL)
-		complain("error creating CTFramesetter object in uiDrawTextLayoutExtents()");
-	size = CTFramesetterSuggestFrameSizeWithConstraints(fs,
-		CFRangeMake(0, 0),
-		NULL,			// TODO kCTFramePathWidthAttributeName?
-		CGSizeMake(layout->width, CGFLOAT_MAX),
-		&fitRange);		// not documented as accepting NULL
-	CFRelease(fs);
-	*width = size.width;
-	*height = size.height;
+	mkFramesetter(layout, &fs);
+	*width = fs.extents.width;
+	*height = fs.extents.height;
+	freeFramesetter(&fs);
 }
 
 // Core Text doesn't draw onto a flipped view correctly; we have to do this
@@ -583,29 +592,34 @@ static void prepareContextForText(CGContextRef c, CGFloat cheight, double *y)
 
 void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextLayout *layout)
 {
-	CTLineRef line;
-	CGFloat yoff;
-
-	// TODO
-	if (layout->width < 0) {}
-	else return;
+	struct framesetter fs;
+	CGRect rect;
+	CGPathRef path;
+	CTFrameRef frame;
 
 	prepareContextForText(c, cheight, &y);
+	mkFramesetter(layout, &fs);
 
-	line = CTLineCreateWithAttributedString(layout->mas);
-	if (line == NULL)
-		complain("error creating CTLine object in uiDrawText()");
+	// oh, and since we're flipped, y is the bottom-left coordinate of the rectangle, not the top-left
+	// since we are flipped, we subtract
+	y -= fs.extents.height;
 
-	// CGContextSetTextPosition() positions at the baseline; we need the top-left corner instead
-	CTLineGetTypographicBounds(line, &yoff, NULL, NULL);
-	// remember that we're flipped, so we subtract
-	y -= yoff;
-	CGContextSetTextPosition(c, x, y);
+	rect.origin = CGPointMake(x, y);
+	rect.size = fs.extents;
+	path = CGPathCreateWithRect(rect, NULL);
 
-	// and now we can FINALLY draw the line
-	CTLineDraw(line, c);
-	CFRelease(line);
+	frame = CTFramesetterCreateFrame(fs.fs,
+		CFRangeMake(0, 0),
+		path,
+		fs.frameAttrib);
+	if (frame == NULL)
+		complain("error creating CTFrame object in doDrawText()");
+	CTFrameDraw(frame, c);
+	CFRelease(frame);
 
+	CFRelease(path);
+
+	freeFramesetter(&fs);
 	CGContextRestoreGState(c);
 }
 
@@ -613,7 +627,17 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 
 // TODO keep this for TODO and documentation purposes
 #if 0
+		w = CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
+		// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
+		CFRelease(line);
+
 	// TODO provide a way to get the image bounds as a separate function later
 	bounds = CTLineGetImageBounds(line, c);
 	// though CTLineGetImageBounds() returns CGRectNull on error, it also returns CGRectNull on an empty string, so we can't reasonably check for error
+
+	// CGContextSetTextPosition() positions at the baseline in the case of CTLineDraw(); we need the top-left corner instead
+	CTLineGetTypographicBounds(line, &yoff, NULL, NULL);
+	// remember that we're flipped, so we subtract
+	y -= yoff;
+	CGContextSetTextPosition(c, x, y);
 #endif

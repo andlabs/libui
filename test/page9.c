@@ -120,11 +120,11 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiDrawFreeTextLayout(layout);
 
 	layout = uiDrawNewTextLayout("This is a second line", font, -1);
-	if (/*TODO*/entryDouble(textWidth) < 0) {
+	if (/*TODO reuse width*/entryDouble(textWidth) < 0) {
 		double ad;
 
 		ad = metrics.Ascent + metrics.Descent;
-		printf("ad:%g extent:%g", ad, height);
+		printf("ad:%g extent:%g\n", ad, height);
 	}
 	ypos += height;
 	if (uiCheckboxChecked(addLeading))

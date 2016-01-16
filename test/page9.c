@@ -116,7 +116,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	ypos = 10;
 	uiDrawText(dp->Context, 10, ypos, layout);
 	// TODO make these optional?
-	uiDrawTextLayoutExtents(dp->Context, &width, &height);
+	uiDrawTextLayoutExtents(layout, &width, &height);
 	uiDrawFreeTextLayout(layout);
 
 	layout = uiDrawNewTextLayout("This is a second line", font, -1);
@@ -238,6 +238,10 @@ uiBox *makePage9(void)
 	uiComboboxAppend(textGravity, "Auto");
 	uiComboboxSetSelected(textGravity, uiDrawTextGravitySouth);
 	uiBoxAppend(hbox, uiControl(textGravity), 1);
+
+	textWidth = uiNewEntry();
+	uiEntrySetText(textWidth, "-1");
+	uiBoxAppend(hbox, uiControl(textWidth), 1);
 
 	hbox = newHorizontalBox();
 	uiBoxAppend(vbox, uiControl(hbox), 0);

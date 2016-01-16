@@ -431,6 +431,7 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 struct uiDrawTextLayout {
 	CFMutableAttributedStringRef mas;
 	intmax_t *bytesToCharacters;
+	double width;
 };
 
 // TODO this is *really* iffy, but we need to know character offsets...
@@ -482,7 +483,7 @@ static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr
 	return bytesToCharacters;
 }
 
-uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFont)
+uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFont, double width)
 {
 	uiDrawTextLayout *layout;
 	CFMutableStringRef cfstr;
@@ -508,6 +509,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFo
 		complain("error creating attributed string in uiDrawNewTextLayout()");
 	CFRelease(immutable);
 
+	uiDrawTextLayoutSetWidth(layout, width);
+
 	return layout;
 }
 
@@ -516,6 +519,32 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 	CFRelease(layout->mas);
 	uiFree(layout->bytesToCharacters);
 	uiFree(layout);
+}
+
+void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
+{
+	layout->width = width;
+}
+
+void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
+{
+	CTLineRef line;
+	double ascent, descent;
+	double w;
+
+	// one line
+	if (layout->width < 0) {
+		line = CTLineCreateWithAttributedString(layout->mas);
+		if (line == NULL)
+			complain("error creating CTLine object in uiDrawTextLayoutExtents()");
+		w = CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
+		// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
+		CFRelease(line);
+		*width = w;
+		*height = ascent + descent;
+		return;
+	}
+	// TODO
 }
 
 // Core Text doesn't draw onto a flipped view correctly; we have to do this
@@ -532,11 +561,14 @@ static void prepareContextForText(CGContextRef c, CGFloat cheight, double *y)
 	*y = cheight - *y;
 }
 
-// TODO how does this behave with multiple lines? on other platforms? is there a generic way to draw this unbounded?
 void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextLayout *layout)
 {
 	CTLineRef line;
 	CGFloat yoff;
+
+	// TODO
+	if (layout->width < 0) {}
+	else return;
 
 	prepareContextForText(c, cheight, &y);
 
@@ -546,7 +578,6 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 
 	// CGContextSetTextPosition() positions at the baseline; we need the top-left corner instead
 	CTLineGetTypographicBounds(line, &yoff, NULL, NULL);
-	// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
 	// remember that we're flipped, so we subtract
 	y -= yoff;
 	CGContextSetTextPosition(c, x, y);

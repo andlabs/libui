@@ -1,0 +1,54 @@
+set(WINDOWS_C_FILES
+	windows/alloc.c
+	windows/area.c
+	windows/areadraw.c
+	windows/areaevents.c
+	windows/areascroll.c
+	windows/areautil.c
+	windows/box.c
+	windows/button.c
+	windows/checkbox.c
+	windows/child.c
+	windows/combobox.c
+	windows/container.c
+	windows/control.c
+	windows/datetimepicker.c
+	windows/debug.c
+	windows/draw.c
+	windows/entry.c
+	windows/events.c
+	windows/group.c
+	windows/init.c
+	windows/label.c
+	windows/main.c
+	windows/menu.c
+	windows/multilineentry.c
+	windows/parent.c
+	windows/progressbar.c
+	windows/radiobuttons.c
+	windows/resize.c
+	windows/separator.c
+	windows/slider.c
+	windows/spinbox.c
+	windows/stddialogs.c
+	windows/tab.c
+	windows/tabpage.c
+	windows/text.c
+	windows/util.c
+	windows/utilwin.c
+	windows/window.c
+)
+
+set(WINDOWS_CPP_FILES
+	windows/drawtext.cpp
+)
+set(WINDOWS_H_FILES
+
+	windows/area.h
+	windows/compilerver.h
+	windows/resources.h
+	windows/uipriv_windows.h
+	windows/winapi.h
+)
+
+set(WINDOWS_FILES ${WINDOWS_C_FILES} ${WINDOWS_CPP_FILES} ${WINDOWS_H_FILES} PARENT_SCOPE)

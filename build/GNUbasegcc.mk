@@ -71,8 +71,6 @@ $(OBJDIR)/%.m.o: $$(subst _,/,%).m $(HFILES) | $(OBJDIR)
 	@$(CC) -o $@ -c $< $(CFLAGS)
 	@echo ====== Compiled $<
 
-# TODO split into $(RC) and $(CVTRES) forms
-# with binutils windres can either go straight to a .o file or in the normal two steps
 $(OBJDIR)/%.rc.o: $$(subst _,/,%).rc $(HFILES) | $(OBJDIR)
 	@$(RC) $(RCFLAGS) $< $@
 	@echo ====== Compiled $<

@@ -48,5 +48,8 @@ LDFLAGS += \
 
 # flags for warning on undefined symbols
 # this is not gcc-global because OS X doesn't support these flags
+# TODO figure out why FreeBSD follows linked libraries here
+ifneq ($(shell uname -s),FreeBSD)
 LDFLAGS += \
 	-Wl,--no-undefined -Wl,--no-allow-shlib-undefined
+endif

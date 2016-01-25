@@ -346,6 +346,14 @@ void uiAreaQueueRedrawAll(uiArea *a)
 	[a->area setNeedsDisplay:YES];
 }
 
+void uiAreaScrollTo(uiArea *a, double x, double y, double with, double height)
+{
+	if (!a->scrolling)
+		complain("attempt to call uiAreaScrollTo() on a non-scrolling uiArea");
+	[a->area scrollRectToVisible:NSMakeRect(x, y, width, height)];
+	// don't worry about the return value; it just says whether scrolling was needed
+}
+
 uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;

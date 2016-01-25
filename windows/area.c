@@ -98,6 +98,11 @@ void uiAreaQueueRedrawAll(uiArea *a)
 		logLastError("error queueing uiArea redraw in uiAreaQueueRedrawAll()");
 }
 
+void uiAreaScrollTo(uiArea *a, double x, double y, double with, double height)
+{
+	// TODO
+}
+
 uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;

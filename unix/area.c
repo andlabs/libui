@@ -501,6 +501,12 @@ void uiAreaQueueRedrawAll(uiArea *a)
 	gtk_widget_queue_draw(a->areaWidget);
 }
 
+void uiAreaScrollTo(uiArea *a, double x, double y, double with, double height)
+{
+	// TODO
+	// TODO adjust adjustments and find source for that
+}
+
 uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;

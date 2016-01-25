@@ -346,7 +346,7 @@ void uiAreaQueueRedrawAll(uiArea *a)
 	[a->area setNeedsDisplay:YES];
 }
 
-void uiAreaScrollTo(uiArea *a, double x, double y, double with, double height)
+void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 {
 	if (!a->scrolling)
 		complain("attempt to call uiAreaScrollTo() on a non-scrolling uiArea");

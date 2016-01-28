@@ -69,5 +69,7 @@ notes to self
 
 - build optimizations
 
+- use http://www.appveyor.com/ to do Windows build CI since people want CI
+
 notes
 - http://blogs.msdn.com/b/oldnewthing/archive/2004/03/29/101121.aspx on accelerators

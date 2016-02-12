@@ -442,15 +442,21 @@ _UI_EXTERN void uiDrawClip(uiDrawContext *c, uiDrawPath *path);
 _UI_EXTERN void uiDrawSave(uiDrawContext *c);
 _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
 
+// TODO manage the use of Text, Font, and TextFont, and of the uiDrawText prefix in general
+
+///// TODO
 typedef struct uiDrawFontFamilies uiDrawFontFamilies;
 
 _UI_EXTERN uiDrawFontFamilies *uiDrawListFontFamilies(void);
 _UI_EXTERN uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff);
 _UI_EXTERN char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n);
 _UI_EXTERN void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff);
+///// END TODO
 
 typedef struct uiDrawTextLayout uiDrawTextLayout;
-typedef struct uiDrawInitialTextStyle uiDrawInitialTextStyle;
+typedef struct uiDrawTextFont uiDrawTextFont;
+typedef struct uiDrawTextFontDescriptor uiDrawTextFontDescriptor;
+typedef struct uiDrawTextFontMetrics uiDrawTextFontMetrics;
 
 typedef enum uiDrawTextWeight {
 	uiDrawTextWeightThin,
@@ -493,8 +499,7 @@ typedef enum uiDrawTextGravity {
 	uiDrawTextGravityAuto,
 } uiDrawTextGravity;
 
-// TODO should this be renamed to uiDrawTextFontDescription? and should a pre-matched uiDrawTextFont be used for the initialStyle instead?
-struct uiDrawInitialTextStyle {
+struct uiDrawTextFontDescriptor {
 	const char *Family;
 	double Size;
 	uiDrawTextWeight Weight;
@@ -504,44 +509,29 @@ struct uiDrawInitialTextStyle {
 	uiDrawTextGravity Gravity;
 };
 
-/*TODO
-struct uiDrawTextStyle {
-	const char *Family;
-	double Size;
-	uiDrawTextWeight Weight;
-	uiDrawTextItalic Italic;
-	int SmallCaps;
-	uiDrawTextStretch Stretch;
-	double TextR;
-	double TextG;
-	double TextB;
-	double TextA;
-	int HasBackground;
-	double BackgroundR;
-	double BackgroundG;
-	double BackgroundB;
-	double BackgroundA;	// TODO Pango
-	int HasStrikethrough;
-	double StrikethroughR;
-	double StrikethroughG;
-	double StrikethroughB;
-	double StrikethroughA;	// TODO Pango
-	int HasUnderline;
-	double UnderlineR;
-	double UnderlineG;
-	double UnderlineB;
-	double UnderlineA;		// TODO Pango
-	const char *Language;	// RFC 3066; NULL for default
-	// TODO other Pango attributes
+struct uiDrawTextFontMetrics {
+	double Ascent;
+	double Descent;
+	double Leading;
+	// TODO do these two mean the same across all platforms?
+	double UnderlinePos;
+	double UnderlineThickness;
 };
-*/
 
-// TODO wait why do I have these functions? I don't think they provide a correct line height...
-_UI_EXTERN double uiDrawTextSizeToPoints(double textSize);
-_UI_EXTERN double uiDrawPointsToTextSize(double points);
+_UI_EXTERN uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc);
+_UI_EXTERN void uiDrawFreeTextFont(uiDrawTextFont *font);
+_UI_EXTERN uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font);
+_UI_EXTERN void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc);
+// TODO make copy with given attributes methods?
+// TODO yuck this name
+_UI_EXTERN void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics);
 
-_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextStyle *initialTextStyle);
+// TODO initial line spacing? and what about leading?
+_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width);
 _UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *layout);
+// TODO get width
+_UI_EXTERN void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width);
+_UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height);
 
 _UI_EXTERN void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout);
 

@@ -31,10 +31,10 @@ endif
 
 # parameters
 export OS
-# TODO CC, CXX, RC, CVTRES, LD
+# TODO CC, CXX, RC, LD
 export CFLAGS
 export CXXFLAGS
-# TODO RCFLAGS, CVTRESFLAGS
+# TODO RCFLAGS
 export LDFLAGS
 export NODEBUG
 export EXAMPLE

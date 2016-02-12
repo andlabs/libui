@@ -12,6 +12,7 @@ MFILES += \
 	darwin/control.m \
 	darwin/datetimepicker.m \
 	darwin/draw.m \
+	darwin/drawtext.m \
 	darwin/entry.m \
 	darwin/group.m \
 	darwin/label.m \

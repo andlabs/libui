@@ -62,7 +62,7 @@ LDFLAGS += \
 
 # flags for building a shared library
 LDFLAGS += \
-	/dll
+	-dll
 
 # TODO flags for warning on undefined symbols
 

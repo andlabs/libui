@@ -1,6 +1,8 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
+// TODO the intrinsic height of this seems to be wacky
+
 struct uiCheckbox {
 	uiDarwinControl c;
 	NSButton *button;

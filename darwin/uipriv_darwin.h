@@ -80,3 +80,6 @@ extern BOOL keycodeModifier(unsigned short keycode, uiModifiers *mod);
 // draw.m
 extern uiDrawContext *newContext(CGContextRef, CGFloat);
 extern void freeContext(uiDrawContext *);
+
+// drawtext.m
+extern void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextLayout *layout);

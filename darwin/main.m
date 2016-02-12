@@ -24,9 +24,6 @@ static BOOL canQuit = NO;
 	// well let's not do nothing; let's actually quit our graceful way
 	NSEvent *e;
 
-	// for debugging
-	NSLog(@"in terminate:");
-
 	if (!canQuit)
 		complain("call to [NSApp terminate:] when not ready to terminate");
 

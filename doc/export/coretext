@@ -1,0 +1,5 @@
+font features are not provided by the collection and have to be added when asking for a font
+it does preserve when going from CTFont to CTFontDescriptor
+feature 17 has no flags in the header but can also hold small caps info
+if a feature is present, it is ignored; other features will still show up
+	at least in the case of kLetterCaseTrait and kLowerCaseTrait

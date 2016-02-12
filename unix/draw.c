@@ -483,21 +483,9 @@ void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
 	uiFree(ff);
 }
 
-double uiDrawTextSizeToPoints(double textSize)
-{
-	gint pangoSize;
-
-	pangoSize = (gint) (textSize * PANGO_SCALE);
-	return ((double) pangoSize) / PANGO_SCALE;
-}
-
-double uiDrawPointsToTextSize(double points)
-{
-	// yeah, as far as I can tell the two functions are equivalent
-	// TODO verify
-	// TODO make sure they aren't just equivalent
-	return uiDrawTextSizeToPoints(points);
-}
+struct uiDrawTextFont {
+	PangoFont *f;
+};
 
 static const PangoWeight pangoWeights[] = {
 	[uiDrawTextWeightThin] = PANGO_WEIGHT_THIN,
@@ -539,46 +527,162 @@ static const PangoGravity pangoGravities[] = {
 	[uiDrawTextGravityAuto] = PANGO_GRAVITY_AUTO,
 };
 
+// we need a context for a few things
+// the documentation suggests creating cairo_t-specific, GdkScreen-specific, or even GtkWidget-specific contexts, but we can't really do that because we want our uiDrawTextFonts and uiDrawTextLayouts to be context-independent
+// so this will have to do
+// TODO really see if there's a better way instead; what do GDK and GTK+ do internally? gdk_pango_context_get()?
+#define mkGenericPangoCairoContext() (pango_font_map_create_context(pango_cairo_font_map_get_default()))
+
+uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
+{
+	uiDrawTextFont *font;
+	PangoFontDescription *pdesc;
+	PangoVariant variant;
+	PangoContext *context;
+
+	font = uiNew(uiDrawTextFont);
+
+	pdesc = pango_font_description_new();
+	pango_font_description_set_family(pdesc,
+		desc->Family);
+	pango_font_description_set_size(pdesc,
+		(gint) (desc->Size * PANGO_SCALE));
+	pango_font_description_set_weight(pdesc,
+		pangoWeights[desc->Weight]);
+	pango_font_description_set_style(pdesc,
+		pangoItalics[desc->Italic]);
+	variant = PANGO_VARIANT_NORMAL;
+	if (desc->SmallCaps)
+		variant = PANGO_VARIANT_SMALL_CAPS;
+	pango_font_description_set_variant(pdesc, variant);
+	pango_font_description_set_stretch(pdesc,
+		pangoStretches[desc->Stretch]);
+	pango_font_description_set_gravity(pdesc,
+		pangoGravities[desc->Gravity]);
+
+	// in this case, the context is necessary for the metrics to be correct
+	context = mkGenericPangoCairoContext();
+	font->f = pango_font_map_load_font(pango_cairo_font_map_get_default(), context, pdesc);
+	if (font->f == NULL) {
+		// TODO
+		g_error("[libui] no match in uiDrawLoadClosestFont(); report to andlabs");
+	}
+	g_object_unref(context);
+
+	return font;
+}
+
+void uiDrawFreeTextFont(uiDrawTextFont *font)
+{
+	g_object_unref(font->f);
+	uiFree(font);
+}
+
+uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font)
+{
+	return (uintptr_t) (font->f);
+}
+
+void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc)
+{
+	PangoFontDescription *pdesc;
+
+	// this creates a copy; we free it later
+	pdesc = pango_font_describe(font->f);
+
+	// TODO
+
+	pango_font_description_free(pdesc);
+}
+
+// See https://developer.gnome.org/pango/1.30/pango-Cairo-Rendering.html#pango-Cairo-Rendering.description
+// Note that we convert to double before dividing to make sure the floating-point stuff is right
+#define pangoToCairo(pango) (((double) (pango)) / PANGO_SCALE)
+#define cairoToPango(cairo) ((gint) ((cairo) * PANGO_SCALE))
+
+// TODO this isn't enough; pango adds extra space to each layout
+void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics)
+{
+	PangoFontMetrics *pm;
+
+	pm = pango_font_get_metrics(font->f, NULL);
+	metrics->Ascent = pangoToCairo(pango_font_metrics_get_ascent(pm));
+	metrics->Descent = pangoToCairo(pango_font_metrics_get_descent(pm));
+	// Pango doesn't seem to expose this :( Use 0 and hope for the best.
+	metrics->Leading = 0;
+	metrics->UnderlinePos = pangoToCairo(pango_font_metrics_get_underline_position(pm));
+	metrics->UnderlineThickness = pangoToCairo(pango_font_metrics_get_underline_thickness(pm));
+	pango_font_metrics_unref(pm);
+}
+
 // note: PangoCairoLayouts are tied to a given cairo_t, so we can't store one in this device-independent structure
 struct uiDrawTextLayout {
 	char *s;
-	PangoFontDescription *desc;
+	PangoFont *defaultFont;
+	double width;
 };
 
-uiDrawTextLayout *uiDrawNewTextLayout(const char *text, const uiDrawInitialTextStyle *initialStyle)
+uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width)
 {
 	uiDrawTextLayout *layout;
-	PangoVariant variant;
 
 	layout = uiNew(uiDrawTextLayout);
 	layout->s = g_strdup(text);
-
-	layout->desc = pango_font_description_new();
-	pango_font_description_set_family(layout->desc,
-		initialStyle->Family);
-	pango_font_description_set_size(layout->desc,
-		(gint) (initialStyle->Size * PANGO_SCALE));
-	pango_font_description_set_weight(layout->desc,
-		pangoWeights[initialStyle->Weight]);
-	pango_font_description_set_style(layout->desc,
-		pangoItalics[initialStyle->Italic]);
-	variant = PANGO_VARIANT_NORMAL;
-	if (initialStyle->SmallCaps)
-		variant = PANGO_VARIANT_SMALL_CAPS;
-	pango_font_description_set_variant(layout->desc, variant);
-	pango_font_description_set_stretch(layout->desc,
-		pangoStretches[initialStyle->Stretch]);
-	pango_font_description_set_gravity(layout->desc,
-		pangoGravities[initialStyle->Gravity]);
-
+	layout->defaultFont = defaultFont->f;
+	g_object_ref(layout->defaultFont);		// retain a copy
+	uiDrawTextLayoutSetWidth(layout, width);
 	return layout;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
-	pango_font_description_free(layout->desc);
+	g_object_unref(layout->defaultFont);
 	g_free(layout->s);
 	uiFree(layout);
+}
+
+void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
+{
+	layout->width = width;
+}
+
+static void prepareLayout(uiDrawTextLayout *layout, PangoLayout *pl)
+{
+	PangoFontDescription *desc;
+	int width;
+
+	pango_layout_set_text(pl, layout->s, -1);
+
+	// again, this makes a copy
+	desc = pango_font_describe(layout->defaultFont);
+	// this is safe; the description is copied
+	pango_layout_set_font_description(pl, desc);
+	pango_font_description_free(desc);
+
+	width = cairoToPango(layout->width);
+	if (layout->width < 0)
+		width = -1;
+	pango_layout_set_width(pl, width);
+}
+
+void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
+{
+	PangoContext *context;
+	PangoLayout *pl;
+	PangoRectangle logical;
+
+	// in this case, the context is necessary to create the layout
+	context = mkGenericPangoCairoContext();
+	pl = pango_layout_new(context);
+	// TODO g_object_unref() context?
+	prepareLayout(layout, pl);
+
+	pango_layout_get_extents(pl, NULL, &logical);
+
+	g_object_unref(pl);
+
+	*width = pangoToCairo(logical.width);
+	*height = pangoToCairo(logical.height);
 }
 
 void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
@@ -586,10 +690,10 @@ void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 	PangoLayout *pl;
 
 	pl = pango_cairo_create_layout(c->cr);
-	pango_layout_set_text(pl, layout->s, -1);
-	// this is safe; the description is copied
-	pango_layout_set_font_description(pl, layout->desc);
+	prepareLayout(layout, pl);
+
 	cairo_move_to(c->cr, x, y);
 	pango_cairo_show_layout(c->cr, pl);
+
 	g_object_unref(pl);
 }

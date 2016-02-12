@@ -52,7 +52,7 @@ static void track(uiArea *a, BOOL tracking)
 		tm.dwFlags |= TME_CANCEL;
 	tm.hwndTrack = a->hwnd;
 	if (_TrackMouseEvent(&tm) == 0)
-		logLastError("error setting up mouse leave events in onMouseEntered()");
+		logLastError("error setting up mouse tracking in track()");
 }
 
 static void capture(uiArea *a, BOOL capturing)

@@ -28,6 +28,7 @@ set(DARWIN_SOURCES
     darwin/control.m
     darwin/datetimepicker.m
     darwin/draw.m
+    darwin/drawtext.m
     darwin/entry.m
     darwin/group.m
     darwin/label.m
@@ -97,7 +98,6 @@ set(WINDOWS_SOURCES
     windows/datetimepicker.c
     windows/debug.c
     windows/draw.c
-    windows/drawtext.cpp
     windows/entry.c
     windows/events.c
     windows/group.c
@@ -106,7 +106,6 @@ set(WINDOWS_SOURCES
     windows/main.c
     windows/menu.c
     windows/multilineentry.c
-    windows/notes
     windows/parent.c
     windows/progressbar.c
     windows/radiobuttons.c
@@ -180,6 +179,28 @@ target_link_libraries(controlgallery PRIVATE ui)
 
 add_executable(histogram examples/histogram/main.c)
 target_link_libraries(histogram PRIVATE ui)
+
+add_executable(tests
+    test/drawtests.c
+    test/main.c
+    test/menus.c
+    test/page1.c
+    test/page2.c
+    test/page3.c
+    test/page4.c
+    test/page5.c
+    test/page6.c
+    test/page7.c
+    test/page7a.c
+    test/page7b.c
+    test/page7c.c
+    test/page8.c
+    test/page9.c
+    test/resources.rc
+    test/spaced.c
+    test/test.h
+    )
+target_link_libraries(tests PRIVATE ui)
 
 install(TARGETS ui controlgallery histogram
     RUNTIME DESTINATION bin

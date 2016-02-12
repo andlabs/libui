@@ -98,6 +98,7 @@ set(WINDOWS_SOURCES
     windows/datetimepicker.c
     windows/debug.c
     windows/draw.c
+    windows/drawtext.cpp
     windows/entry.c
     windows/events.c
     windows/group.c
@@ -135,7 +136,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 if(MSVC)
-    add_compile_options(/W4 /wd4100 /TP /bigobj /nologo /RTC1 /RTCc /RTCs /RTCu)
+    add_compile_options(-W4 -wd4100 -bigobj -nologo -RTC1 -RTCc -RTCs -RTCu)
     set(CMAKE_SHARED_LINKER_FLAGS /MANIFEST:NO)
     set(UI_EXTERN __declspec\(dllexport\)\ extern)
 endif()
@@ -196,7 +197,6 @@ add_executable(tests
     test/page7c.c
     test/page8.c
     test/page9.c
-    test/resources.rc
     test/spaced.c
     test/test.h
     )

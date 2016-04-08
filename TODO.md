@@ -4,7 +4,7 @@
 
 - go through ALL the objective-c objects we create and make sure we are using the proper ownership (alloc/init and new are owned by us, all class method constructors are autoreleased - thanks mikeash)
 
-- on OS X, edit shortcuts like command-C working require that the menu entries be defined, or so it seems, even for NSAlert
+- on OS X, edit shortcuts like Command-C working require that the menu entries be defined, or so it seems, even for NSAlert
 	- other platforms?
 
 - make sure all OS X event handlers that use target-action set the action to NULL when the target is unset
@@ -33,7 +33,7 @@
 - DPI awareness on windows
 
 - consider calling setAppleMenu: for the application menu; it doesn't seem to make much of a difference but
-- http://stackoverflow.com/questions/4543087/applicationwillterminate-and-the-dock-but-wanting-to-cancel-this-action
+- http://stackoverflow.com/q/4543087/3646475
 
 ultimately:
 - MAYBE readd lifetime handling/destruction blocking

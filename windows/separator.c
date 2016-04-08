@@ -2,7 +2,7 @@
 #include "uipriv_windows.h"
 
 // references:
-// - http://stackoverflow.com/questions/2892703/how-do-i-draw-separators
+// - http://stackoverflow.com/q/2892703/3646475
 // - https://msdn.microsoft.com/en-us/library/windows/desktop/dn742405%28v=vs.85%29.aspx
 
 struct uiSeparator {

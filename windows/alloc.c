@@ -2,7 +2,7 @@
 #include "uipriv_windows.h"
 
 // wrappers for allocator of choice
-// panics on memory exhausted, undefined on heap corruption or other unreliably-detected malady (see http://stackoverflow.com/questions/28761680/is-there-a-windows-api-memory-allocator-deallocator-i-can-use-that-will-just-giv)
+// panics on memory exhausted, undefined on heap corruption or other unreliably-detected malady (see http://stackoverflow.com/q/28761680/3646475)
 // new memory is set to zero
 // passing NULL to tableRealloc() acts like tableAlloc()
 // passing NULL to tableFree() is a no-op

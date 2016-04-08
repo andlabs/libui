@@ -30,7 +30,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	[cellAt(r, [r->matrix numberOfRows] - 1) setTitle:toNSString(text)];
 
 	// this will definitely cause a resize in at least the vertical direction, even if not in the horizontal
-	// DO NOT CALL sizeToCells! this will glitch out; see http://stackoverflow.com/questions/32162562/dynamically-adding-cells-to-a-nsmatrix-laid-out-with-auto-layout-has-weird-effec
+	// DO NOT CALL sizeToCells! this will glitch out; see http://stackoverflow.com/q/32162562/3646475
 
 	// and renew the previous selection
 	// we need to turn on allowing empty selection for this to work properly on the initial state

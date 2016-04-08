@@ -76,7 +76,7 @@ static void addFontSizeAttr(CFMutableDictionaryRef attr, double size)
 	CFRelease(n);
 }
 
-// See http://stackoverflow.com/questions/4810409/does-coretext-support-small-caps/4811371#4811371 and https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c for what these do
+// See http://stackoverflow.com/a/4811371/3646475 and https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c for what these do
 // And fortunately, unlike the traits (see below), unmatched features are simply ignored without affecting the other features :D
 static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
 {

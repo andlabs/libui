@@ -106,7 +106,7 @@ static void setDateTimeFormat(HWND hwnd)
 
 // control implementation
 
-// the height returned from DTM_GETIDEALSIZE is unreliable; see http://stackoverflow.com/questions/30626549/what-is-the-proper-use-of-dtm-getidealsize-treating-the-returned-size-as-pixels
+// the height returned from DTM_GETIDEALSIZE is unreliable; see http://stackoverflow.com/q/30626549/3646475
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryHeight 14
 

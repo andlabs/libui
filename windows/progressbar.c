@@ -23,7 +23,7 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 
 // unfortunately, as of Vista progress bars have a forced animation on increase
 // we have to set the progress bar to value + 1 and decrease it back to value if we want an "instant" change
-// see http://stackoverflow.com/questions/2217688/windows-7-aero-theme-progress-bar-bug
+// see http://stackoverflow.com/q/2217688/3646475
 // it's not ideal/perfect, but it will have to do
 void uiProgressBarSetValue(uiProgressBar *p, int value)
 {

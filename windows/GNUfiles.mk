@@ -19,6 +19,7 @@ CFILES += \
 	windows/draw.c \
 	windows/entry.c \
 	windows/events.c \
+	windows/fontbutton.c \
 	windows/group.c \
 	windows/init.c \
 	windows/label.c \

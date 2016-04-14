@@ -135,9 +135,24 @@ extern ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd);
 extern uiDrawContext *newContext(ID2D1RenderTarget *);
 extern void freeContext(uiDrawContext *);
 
-// drawtext.cpp
+// dwrite.cpp
+#ifdef __cplusplus
+extern IDWriteFactory *dwfactory;
+#endif
 extern HRESULT initDrawText(void);
 extern void uninitDrawText(void);
+#ifdef __cplusplus
+struct fontCollection {
+	IDWriteFontCollection *fonts;
+	WCHAR userLocale[LOCALE_NAME_MAX_LENGTH];
+	int userLocaleSuccess;
+};
+extern fontCollection *loadFontCollection(void);
+extern WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family);
+extern void fontCollectionFree(fontCollection *fc);
+#endif
+
+// drawtext.cpp
 extern void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout);
 
 #ifdef __cplusplus

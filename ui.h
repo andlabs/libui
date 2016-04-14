@@ -614,6 +614,11 @@ struct uiAreaKeyEvent {
 	int Up;
 };
 
+typedef struct uiFontButton uiFontButton;
+_UI_EXTERN uintmax_t uiFontButtonType(void);
+#define uiFontButton(this) ((uiFontButton *) uiIsA((this), uiFontButtonType(), 1))
+_UI_EXTERN uiFontButton *uiNewFontButton(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -14,6 +14,7 @@ MFILES += \
 	darwin/draw.m \
 	darwin/drawtext.m \
 	darwin/entry.m \
+	darwin/fontbutton.m \
 	darwin/group.m \
 	darwin/label.m \
 	darwin/main.m \

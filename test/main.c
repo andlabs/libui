@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 	page9 = makePage9();
 	uiTabAppend(innerTab, "Page 9", uiControl(page9));
 
-	page10 = makePage9();
+	page10 = makePage10();
 	uiTabAppend(innerTab, "Page 10", uiControl(page10));
 
 	if (startspaced)

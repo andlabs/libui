@@ -12,6 +12,7 @@ CFILES += \
 	unix/datetimepicker.c \
 	unix/draw.c \
 	unix/entry.c \
+	unix/fontbutton.c \
 	unix/group.c \
 	unix/label.c \
 	unix/main.c \

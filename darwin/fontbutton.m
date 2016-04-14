@@ -119,6 +119,27 @@ uiDarwinDefineControl(
 
 @end
 
+// we do not want font change events to be sent to any controls other than the font buttons
+// see main.m for more details
+BOOL fontButtonInhibitSendAction(SEL sel, id from, id to)
+{
+	if (sel != @selector(changeFont:))
+		return NO;
+	return ![to isKindOfClass:[fontButton class]];
+}
+
+// we do not want NSFontPanelValidation messages to be sent to any controls other than the font buttons when a font button is active
+// see main.m for more details
+BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override)
+{
+	if (activeFontButton == nil)
+		return NO;
+	if (sel != @selector(validModesForFontPanel:))
+		return NO;
+	*override = activeFontButton;
+	return YES;
+}
+
 uiFontButton *uiNewFontButton(void)
 {
 	uiFontButton *b;

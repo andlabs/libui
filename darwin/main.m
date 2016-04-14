@@ -12,6 +12,29 @@ static BOOL canQuit = NO;
 	[super sendEvent:e];
 }
 
+// NSColorPanel always sends changeColor: to the first responder regardless of whether there's a target set on it
+// we can override it here (see colorbutton.m)
+// thanks to mikeash in irc.freenode.net/#macdev for informing me this is how the first responder chain is initiated
+// it turns out NSFontManager also sends changeFont: through this; let's inhibit that here too (see fontbutton.m)
+- (BOOL)sendAction:(SEL)sel to:(id)to from:(id)from
+{
+	if (fontButtonInhibitSendAction(sel, from, to))
+		return NO;
+	return [super sendAction:sel to:to from:from];
+}
+
+// likewise, NSFontManager also sends NSFontPanelValidation messages to the first responder, however it does NOT use sendAction:from:to:!
+// instead, it uses this one (thanks swillits in irc.freenode.net/#macdev)
+// we also need to override it (see fontbutton.m)
+- (id)targetForAction:(SEL)sel to:(id)to from:(id)from
+{
+	id override;
+
+	if (fontButtonOverrideTargetForAction(sel, from, to, &override))
+		return override;
+	return [super targetForAction:sel to:to from:from];
+}
+
 // hey look! we're overriding terminate:!
 // we're going to make sure we can go back to main() whether Cocoa likes it or not!
 // and just how are we going to do that, hm?

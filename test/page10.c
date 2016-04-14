@@ -200,5 +200,10 @@ uiBox *makePage10(void)
 	textArea = uiNewArea(&textAreaHandler);
 	uiBoxAppend(vbox, uiControl(textArea), 1);
 
+	// dummy objects to test single-activation
+	hbox = newHorizontalBox();
+	uiBoxAppend(vbox, uiControl(hbox), 0);
+	uiBoxAppend(hbox, uiControl(uiNewFontButton()), 1);
+
 	return page10;
 }

@@ -1,6 +1,8 @@
 // 14 april 2016
 #import "uipriv_darwin.h"
 
+// TODO drag and drop fonts? what other interactions does NSColorWell allow that we can do for fonts?
+
 @interface fontButton : NSButton {
 	uiFontButton *libui_b;
 	NSFont *libui_font;

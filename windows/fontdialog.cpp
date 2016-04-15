@@ -33,6 +33,90 @@ static LRESULT cbInsertStringAtTop(HWND cb, WCHAR *str)
 	return lr;
 }
 
+static void wipeStylesBox(struct fontDialog *f)
+{
+	IDWriteFont *font;
+	LRESULT i, n;
+
+	n = SendMessageW(f->styleCombobox, CB_GETCOUNT, 0, 0);
+	if (n == (LRESULT) CB_ERR)
+		logLastError("error getting combobox item count in wipeStylesBox()");
+	for (i = 0; i < n; i++) {
+		font = (IDWriteFont *) SendMessageW(f->styleCombobox, CB_GETITEMDATA, (WPARAM) i, 0);
+		if (font == (IDWriteFont *) CB_ERR)
+			logLastError("error getting font to release it in wipeStylesBox()");
+		font->Release();
+	}
+	SendMessageW(f->styleCombobox, CB_RESETCONTENT, 0, 0);
+}
+
+static WCHAR *fontStyleName(struct fontDialog *f, IDWriteFont *font)
+{
+	IDWriteLocalizedStrings *str;
+	BOOL exists;
+	WCHAR *wstr;
+	HRESULT hr;
+
+	// first try this; if this is present, use it...
+	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_PREFERRED_SUBFAMILY_NAMES, &str, &exists);
+	if (hr != S_OK)
+		logHRESULT("error getting preferred subfamily string in fontStyleName()", hr);
+	if (exists)
+		goto good;
+
+	// ...otherwise this font is good enough to be part of the main one on GDI as well, so try that name
+	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_WIN32_SUBFAMILY_NAMES, &str, &exists);
+	if (hr != S_OK)
+		logHRESULT("error getting Win32 subfamily string in fontStyleName()", hr);
+	// TODO what if !exists?
+
+good:
+	wstr = fontCollectionCorrectString(f->fc, str);
+	str->Release();
+	return wstr;
+}
+
+static void familyChanged(struct fontDialog *f)
+{
+	LRESULT n;
+	IDWriteFontList *specifics;
+	IDWriteFont *specific;
+	UINT32 i, ns;
+	WCHAR *label;
+	LRESULT pos;
+	HRESULT hr;
+
+	wipeStylesBox(f);
+
+	n = SendMessageW(f->familyCombobox, CB_GETCURSEL, 0, 0);
+	if (n == (LRESULT) CB_ERR)
+		return;		// TODO restore previous selection
+
+	// TODO figure out what the correct sort order is
+	hr = f->families[n]->GetMatchingFonts(
+		DWRITE_FONT_WEIGHT_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		DWRITE_FONT_STYLE_NORMAL,
+		&specifics);
+	if (hr != S_OK)
+		logHRESULT("error getting styles for font in familyChanged()", hr);
+
+	// TODO test mutliple streteches; all the fonts I have have only one stretch value
+	ns = specifics->GetFontCount();
+	for (i = 0; i < ns; i++) {
+		hr = specifics->GetFont(i, &specific);
+		if (hr != S_OK)
+			logHRESULT("error getting font for filling styles box in familyChanged()", hr);
+		label = fontStyleName(f, specific);
+		pos = cbAddString(f->styleCombobox, label);
+		uiFree(label);
+		if (SendMessageW(f->styleCombobox, CB_SETITEMDATA, (WPARAM) pos, (LPARAM) specific) == (LRESULT) CB_ERR)
+			logLastError("error setting font data in styles box in familyChanged()");
+	}
+
+	// TODO do we preserve style selection?
+}
+
 static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 {
 	struct fontDialog *f;
@@ -104,6 +188,11 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 
 	// note: we can't add ES_NUMBER to the combobox entry (it seems to disable the entry instead?!), so we must do validation when the box is dmissed; TODO
 
+	// TODO actually select Arial
+	if (SendMessageW(f->familyCombobox, CB_SETCURSEL, (WPARAM) 0, 0) != 0)
+		logLastError("error selecting Arial in the family combobox in beginFontDialog()");
+	familyChanged(f);
+
 	return f;
 }
 
@@ -111,6 +200,7 @@ static void endFontDialog(struct fontDialog *f, INT_PTR code)
 {
 	UINT32 i;
 
+	wipeStylesBox(f);
 	for (i = 0; i < f->nFamilies; i++)
 		f->families[i]->Release();
 	delete[] f->families;
@@ -150,9 +240,19 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 
 	switch (uMsg) {
 	case WM_COMMAND:
-		if (HIWORD(wParam) != BN_CLICKED)
-			return FALSE;
-		return tryFinishDialog(f, wParam);
+		switch (LOWORD(wParam)) {
+		case IDOK:
+		case IDCANCEL:
+			if (HIWORD(wParam) != BN_CLICKED)
+				return FALSE;
+			return tryFinishDialog(f, wParam);
+		case rcFontFamilyCombobox:
+			if (HIWORD(wParam) != CBN_SELCHANGE)
+				return FALSE;
+			familyChanged(f);
+			return TRUE;
+		}
+		return FALSE;
 	}
 	return FALSE;
 }

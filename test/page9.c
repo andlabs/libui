@@ -10,7 +10,6 @@ static uiCombobox *textWeight;
 static uiCombobox *textItalic;
 static uiCheckbox *textSmallCaps;
 static uiCombobox *textStretch;
-static uiCombobox *textGravity;
 static uiEntry *textWidth;
 static uiButton *textApply;
 static uiCheckbox *addLeading;
@@ -101,7 +100,6 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	desc.Italic = uiComboboxSelected(textItalic);
 	desc.SmallCaps = uiCheckboxChecked(textSmallCaps);
 	desc.Stretch = uiComboboxSelected(textStretch);
-	desc.Gravity = uiComboboxSelected(textGravity);
 	font = uiDrawLoadClosestFont(&desc);
 	uiFreeText(family);
 	uiDrawTextFontGetMetrics(font, &metrics);
@@ -229,15 +227,6 @@ uiBox *makePage9(void)
 	uiComboboxAppend(textStretch, "Ultra Expanded");
 	uiComboboxSetSelected(textStretch, uiDrawTextStretchNormal);
 	uiBoxAppend(hbox, uiControl(textStretch), 1);
-
-	textGravity = uiNewCombobox();
-	uiComboboxAppend(textGravity, "South");
-	uiComboboxAppend(textGravity, "East");
-	uiComboboxAppend(textGravity, "North");
-	uiComboboxAppend(textGravity, "West");
-	uiComboboxAppend(textGravity, "Auto");
-	uiComboboxSetSelected(textGravity, uiDrawTextGravitySouth);
-	uiBoxAppend(hbox, uiControl(textGravity), 1);
 
 	textWidth = uiNewEntry();
 	uiEntrySetText(textWidth, "-1");

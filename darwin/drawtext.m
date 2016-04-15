@@ -119,11 +119,6 @@ static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
 	CFRelease(outerArray);
 }
 
-static void addFontGravityAttr(CFMutableDictionaryRef dict, uiDrawTextGravity gravity)
-{
-	// TODO: matrix setting? kCTFontOrientationAttribute? or is it a kCTVerticalFormsAttributeName of the CFAttributedString attributes and thus not part of the CTFontDescriptor?
-}
-
 // Named constants for these were NOT added until 10.11, and even then they were added as external symbols instead of macros, so we can't use them directly :(
 // kode54 got these for me before I had access to El Capitan; thanks to him.
 #define ourNSFontWeightUltraLight -0.800000
@@ -387,7 +382,6 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	// and finally add the other attributes
 	if (desc->SmallCaps)
 		addFontSmallCapsAttr(attr);
-	addFontGravityAttr(attr, desc->Gravity);
 
 	// and NOW create the final descriptor
 	cfdesc = CTFontDescriptorCreateWithAttributes(attr);

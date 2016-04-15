@@ -491,14 +491,6 @@ typedef enum uiDrawTextStretch {
 	uiDrawTextStretchUltraExpanded,
 } uiDrawTextStretch;
 
-typedef enum uiDrawTextGravity {
-	uiDrawTextGravitySouth,
-	uiDrawTextGravityEast,
-	uiDrawTextGravityNorth,
-	uiDrawTextGravityWest,
-	uiDrawTextGravityAuto,
-} uiDrawTextGravity;
-
 struct uiDrawTextFontDescriptor {
 	const char *Family;
 	double Size;
@@ -506,7 +498,6 @@ struct uiDrawTextFontDescriptor {
 	uiDrawTextItalic Italic;
 	int SmallCaps;
 	uiDrawTextStretch Stretch;
-	uiDrawTextGravity Gravity;
 };
 
 struct uiDrawTextFontMetrics {

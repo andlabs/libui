@@ -96,7 +96,6 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	desc.Italic = uiComboboxSelected(textItalic);
 	desc.SmallCaps = uiCheckboxChecked(textSmallCaps);
 	desc.Stretch = uiComboboxSelected(textStretch);
-	desc.Gravity = uiComboboxSelected(textGravity);
 	font = uiDrawLoadClosestFont(&desc);
 	uiFreeText(family);
 	uiDrawTextFontGetMetrics(font, &metrics);

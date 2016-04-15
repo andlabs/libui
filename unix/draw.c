@@ -519,14 +519,6 @@ static const PangoStretch pangoStretches[] = {
 	[uiDrawTextStretchUltraExpanded] = PANGO_STRETCH_ULTRA_EXPANDED,
 };
 
-static const PangoGravity pangoGravities[] = {
-	[uiDrawTextGravitySouth] = PANGO_GRAVITY_SOUTH,
-	[uiDrawTextGravityEast] = PANGO_GRAVITY_EAST,
-	[uiDrawTextGravityNorth] = PANGO_GRAVITY_NORTH,
-	[uiDrawTextGravityWest] = PANGO_GRAVITY_WEST,
-	[uiDrawTextGravityAuto] = PANGO_GRAVITY_AUTO,
-};
-
 // we need a context for a few things
 // the documentation suggests creating cairo_t-specific, GdkScreen-specific, or even GtkWidget-specific contexts, but we can't really do that because we want our uiDrawTextFonts and uiDrawTextLayouts to be context-independent
 // so this will have to do
@@ -557,8 +549,6 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	pango_font_description_set_variant(pdesc, variant);
 	pango_font_description_set_stretch(pdesc,
 		pangoStretches[desc->Stretch]);
-	pango_font_description_set_gravity(pdesc,
-		pangoGravities[desc->Gravity]);
 
 	// in this case, the context is necessary for the metrics to be correct
 	context = mkGenericPangoCairoContext();

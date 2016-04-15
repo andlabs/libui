@@ -155,6 +155,9 @@ extern void fontCollectionFree(fontCollection *fc);
 // drawtext.cpp
 extern void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout);
 
+// fontdialog.cpp
+extern void showFontDialog(HWND parent);
+
 #ifdef __cplusplus
 }
 #endif

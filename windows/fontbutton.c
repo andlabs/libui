@@ -36,6 +36,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	ZeroMemory(&cf, sizeof (CHOOSEFONTW));
 	cf.lStructSize = sizeof (CHOOSEFONTW);
 	cf.hwndOwner = GetAncestor(b->hwnd, GA_ROOT);		// TODO didn't we have a function for this
+showFontDialog(cf.hwndOwner);
 	cf.lpLogFont = &(b->font);
 	// TODO CF_FORCEFONTEXIST? CF_INACTIVEFONTS? CF_NOSCRIPTSEL? CF_USESTYLE?
 	if (b->already)

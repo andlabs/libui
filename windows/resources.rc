@@ -16,3 +16,35 @@ EXSTYLE WS_EX_CONTROLPARENT
 BEGIN
 	// nothing
 END
+
+// this is for our custom DirectWrite-based font dialog (see fontdialog.cpp)
+// this is based on the "New Font Dialog with Syslink" in Microsoft's font.dlg
+// TODO look at localization
+rcFontDialog DIALOGEX 13, 54, 243, 234
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU | DS_3DLOOK
+CAPTION "Font"
+FONT 9, "Segoe UI"
+BEGIN
+	LTEXT		"&Font:", -1, 7, 7, 98, 9
+	COMBOBOX	rcFontFamilyCombobox, 7, 16, 98, 76,
+		CBS_SIMPLE | CBS_AUTOHSCROLL | CBS_DISABLENOSCROLL |
+		CBS_SORT | WS_VSCROLL | WS_TABSTOP | CBS_HASSTRINGS
+
+	LTEXT		"Font st&yle:", -1, 114, 7, 74, 9
+	COMBOBOX	rcFontStyleCombobox, 114, 16, 74, 76,
+		CBS_SIMPLE | CBS_AUTOHSCROLL | CBS_DISABLENOSCROLL |
+		WS_VSCROLL | WS_TABSTOP | CBS_HASSTRINGS
+
+	LTEXT		"&Size:", -1, 198, 7, 36, 9
+	COMBOBOX	rcFontSizeCombobox, 198, 16, 36, 76,
+		CBS_SIMPLE | CBS_AUTOHSCROLL | CBS_DISABLENOSCROLL |
+		CBS_SORT | WS_VSCROLL | WS_TABSTOP | CBS_HASSTRINGS
+
+	AUTOCHECKBOX	"S&mall caps", rcFontSmallCapsCheckbox,
+		13, 111, 90, 10, WS_TABSTOP
+
+	GROUPBOX		"Sample", -1, 114, 97, 120, 43, WS_GROUP
+
+	DEFPUSHBUTTON	"OK", IDOK, 141, 215, 45, 14, WS_GROUP
+	PUSHBUTTON		"Cancel", IDCANCEL, 190, 215, 45, 14, WS_GROUP
+END

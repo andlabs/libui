@@ -43,7 +43,8 @@ CFILES += \
 
 CXXFILES += \
 	windows/drawtext.cpp \
-	windows/dwrite.cpp
+	windows/dwrite.cpp \
+	windows/fontdialog.cpp
 
 HFILES += \
 	windows/area.h \

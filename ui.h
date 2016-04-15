@@ -496,7 +496,6 @@ struct uiDrawTextFontDescriptor {
 	double Size;
 	uiDrawTextWeight Weight;
 	uiDrawTextItalic Italic;
-	int SmallCaps;
 	uiDrawTextStretch Stretch;
 };
 

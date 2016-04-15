@@ -172,8 +172,6 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	if (!found)
 		complain("invalid initial stretch %d passed to uiDrawLoadClosestFont()", desc->Stretch);
 
-	// TODO small caps
-
 	hr = family->GetFirstMatchingFont(weight,
 		stretch,
 		italic,
@@ -321,7 +319,6 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 		&(layout->format));
 	if (hr != S_OK)
 		logHRESULT("error creating IDWriteTextFormat in uiDrawNewTextLayout()", hr);
-	// TODO small caps
 
 	layout->bytesToCharacters = toUTF16Offsets(text, &wtext, &wlen);
 	hr = dwfactory->CreateTextLayout(wtext, wlen,

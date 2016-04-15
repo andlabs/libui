@@ -76,6 +76,8 @@ static void addFontSizeAttr(CFMutableDictionaryRef attr, double size)
 	CFRelease(n);
 }
 
+#if 0
+TODO
 // See http://stackoverflow.com/questions/4810409/does-coretext-support-small-caps/4811371#4811371 and https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c for what these do
 // And fortunately, unlike the traits (see below), unmatched features are simply ignored without affecting the other features :D
 static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
@@ -118,6 +120,7 @@ static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
 	CFDictionaryAddValue(attr, kCTFontFeatureSettingsAttribute, outerArray);
 	CFRelease(outerArray);
 }
+#endif
 
 // Named constants for these were NOT added until 10.11, and even then they were added as external symbols instead of macros, so we can't use them directly :(
 // kode54 got these for me before I had access to El Capitan; thanks to him.
@@ -376,17 +379,14 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	cfdesc = CTFontDescriptorCreateWithAttributes(attr);
 	// TODO release attr?
 	cfdesc = matchTraits(cfdesc, desc->Weight, desc->Italic, desc->Stretch);
+/*TODO
 	attr = extractAttributes(cfdesc);
 	CFRelease(cfdesc);
-
-	// and finally add the other attributes
-	if (desc->SmallCaps)
-		addFontSmallCapsAttr(attr);
 
 	// and NOW create the final descriptor
 	cfdesc = CTFontDescriptorCreateWithAttributes(attr);
 	// TODO release attr?
-
+*/
 	// specify the initial size again just to be safe
 	font->f = CTFontCreateWithFontDescriptor(cfdesc, desc->Size, NULL);
 	// TODO release cfdesc?

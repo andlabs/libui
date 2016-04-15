@@ -529,7 +529,7 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 {
 	uiDrawTextFont *font;
 	PangoFontDescription *pdesc;
-	PangoVariant variant;
+//TODO	PangoVariant variant;
 	PangoContext *context;
 
 	font = uiNew(uiDrawTextFont);
@@ -543,10 +543,13 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 		pangoWeights[desc->Weight]);
 	pango_font_description_set_style(pdesc,
 		pangoItalics[desc->Italic]);
+#if 0
+TODO
 	variant = PANGO_VARIANT_NORMAL;
 	if (desc->SmallCaps)
 		variant = PANGO_VARIANT_SMALL_CAPS;
 	pango_font_description_set_variant(pdesc, variant);
+#endif
 	pango_font_description_set_stretch(pdesc,
 		pangoStretches[desc->Stretch]);
 

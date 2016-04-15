@@ -6,7 +6,6 @@ struct fontDialog {
 	HWND familyCombobox;
 	HWND styleCombobox;
 	HWND sizeCombobox;
-	HWND smallCapsCheckbox;
 	// TODO desc;
 	fontCollection *fc;
 	IDWriteFontFamily **families;
@@ -137,9 +136,6 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	f->sizeCombobox = GetDlgItem(f->hwnd, rcFontSizeCombobox);
 	if (f->sizeCombobox == NULL)
 		logLastError("error getting font size combobox handle in beginFontDialog()");
-	f->smallCapsCheckbox = GetDlgItem(f->hwnd, rcFontSmallCapsCheckbox);
-	if (f->smallCapsCheckbox == NULL)
-		logLastError("error getting small caps checkbox handle in beginFontDialog()");
 
 	f->fc = loadFontCollection();
 	f->nFamilies = f->fc->fonts->GetFontFamilyCount();

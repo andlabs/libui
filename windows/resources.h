@@ -6,4 +6,3 @@
 #define rcFontFamilyCombobox 1000
 #define rcFontStyleCombobox 1001
 #define rcFontSizeCombobox 1002
-#define rcFontSmallCapsCheckbox 1003

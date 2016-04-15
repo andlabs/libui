@@ -102,7 +102,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	if (SendMessageW(f->sizeCombobox, CB_SETTOPINDEX, (WPARAM) ten, 0) != 0)
 		logLastError("error making 10 visible in the size combobox in beginFontDialog()");
 
-	// TODO use GetComboBoxInfo() to add ES_NUMBER to the size combobox's edit box
+	// note: we can't add ES_NUMBER to the combobox entry (it seems to disable the entry instead?!), so we must do validation when the box is dmissed; TODO
 
 	return f;
 }

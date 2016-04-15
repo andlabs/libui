@@ -98,7 +98,6 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	desc.Size = entryDouble(textSize);
 	desc.Weight = uiComboboxSelected(textWeight);
 	desc.Italic = uiComboboxSelected(textItalic);
-	desc.SmallCaps = uiCheckboxChecked(textSmallCaps);
 	desc.Stretch = uiComboboxSelected(textStretch);
 	font = uiDrawLoadClosestFont(&desc);
 	uiFreeText(family);
@@ -111,6 +110,8 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	s = uiEntryText(textString);
 	layout = uiDrawNewTextLayout(s, font, width);
 	uiFreeText(s);
+	if (uiCheckboxChecked(textSmallCaps))
+		;	// TODO
 	ypos = 10;
 	uiDrawText(dp->Context, 10, ypos, layout);
 	// TODO make these optional?

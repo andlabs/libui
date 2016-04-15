@@ -150,6 +150,7 @@ struct fontCollection {
 extern fontCollection *loadFontCollection(void);
 extern WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family);
 extern void fontCollectionFree(fontCollection *fc);
+extern WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *names);
 #endif
 
 // drawtext.cpp

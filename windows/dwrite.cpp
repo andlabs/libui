@@ -36,15 +36,24 @@ fontCollection *loadFontCollection(void)
 WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family)
 {
 	IDWriteLocalizedStrings *names;
-	UINT32 index;
-	BOOL exists;
-	UINT32 length;
-	WCHAR *wname;
+	WCHAR *str;
 	HRESULT hr;
 
 	hr = family->GetFamilyNames(&names);
 	if (hr != S_OK)
 		logHRESULT("error getting names of font out in fontCollectionFamilyName()", hr);
+	str = fontCollectionCorrectString(fc, names);
+	names->Release();
+	return str;
+}
+
+WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *names)
+{
+	UINT32 index;
+	BOOL exists;
+	UINT32 length;
+	WCHAR *wname;
+	HRESULT hr;
 
 	// this is complex, but we ignore failure conditions to allow fallbacks
 	// 1) If the user locale name was successfully retrieved, try it
@@ -71,7 +80,6 @@ WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family)
 	if (hr != S_OK)
 		logHRESULT("error getting font name in fontCollectionFamilyName()", hr);
 
-	names->Release();
 	return wname;
 }
 

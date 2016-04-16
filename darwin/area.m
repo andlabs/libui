@@ -307,7 +307,7 @@ mouseEvent(otherMouseUp)
 // called by subclasses of -[NSApplication sendEvent:]
 // by default, NSApplication eats some key events
 // this prevents that from happening with uiArea
-// see http://stackoverflow.com/questions/24099063/how-do-i-detect-keyup-in-my-nsview-with-the-command-key-held and http://lists.apple.com/archives/cocoa-dev/2003/Oct/msg00442.html
+// see http://stackoverflow.com/q/24099063/3646475 and http://lists.apple.com/archives/cocoa-dev/2003/Oct/msg00442.html
 int sendAreaEvents(NSEvent *e)
 {
 	NSEventType type;

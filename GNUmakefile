@@ -1,6 +1,6 @@
 # 16 october 2015
 
-# TODO http://stackoverflow.com/questions/4122831/disable-make-builtin-rules-and-variables-from-inside-the-make-file
+# TODO http://stackoverflow.com/q/4122831/3646475
 
 # silence entering/leaving messages
 MAKEFLAGS += --no-print-directory

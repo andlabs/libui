@@ -11,8 +11,8 @@
 # - https://github.com/andlabs/libui/issues/16
 # - http://www.mingw.org/wiki/Posix_path_conversion
 # - http://www.mingw.org/wiki/FAQ
-# - http://stackoverflow.com/questions/7250130/how-to-stop-mingw-and-msys-from-mangling-path-names-given-at-the-command-line
-# - http://stackoverflow.com/questions/28533664/how-to-prevent-msys-to-convert-the-file-path-for-an-external-program
+# - http://stackoverflow.com/q/7250130/3646475
+# - http://stackoverflow.com/q/28533664/3646475
 
 # TODO subsystem version
 

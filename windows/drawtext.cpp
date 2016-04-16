@@ -5,7 +5,7 @@
 #include "uipriv_windows.h"
 
 // notes:
-// only available in windows 8 and newer:
+// only available in Windows 8 and newer:
 // - character spacing
 // - kerning control
 // - justficiation (how could I possibly be making this up?!)
@@ -374,7 +374,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 		// typographic points are 1/72 inch; this parameter is 1/96 inch
 		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
 		defaultFont->size * (96.0 / 72.0),
-		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
+		// see http://stackoverflow.com/q/28397971/3646475 and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
 		// TODO use the current locale again?
 		L"",
 		&(layout->format));

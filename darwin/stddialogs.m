@@ -5,7 +5,7 @@
 
 #define windowWindow(w) ((NSWindow *) uiControlHandle(uiControl(w)))
 
-// source of code modal logic: http://stackoverflow.com/questions/604768/wait-for-nsalert-beginsheetmodalforwindow
+// source of code modal logic: http://stackoverflow.com/q/604768/3646475
 
 // note: whether extensions are actually shown depends on a user setting in Finder; we can't control it here
 static void setupSavePanel(NSSavePanel *s)

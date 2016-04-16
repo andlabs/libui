@@ -183,7 +183,7 @@ void uiUninit(void)
 	if (DeleteObject(hMessageFont) == 0)
 		logLastError("error deleting control font in uiUninit()");
 	unregisterWindowClass();
-	// no need to delete the default icon or cursor; see http://stackoverflow.com/questions/30603077/
+	// no need to delete the default icon or cursor; see http://stackoverflow.com/q/30603077/3646475
 	uninitUtilWindow();
 	uninitResizes();
 	uninitTypes();

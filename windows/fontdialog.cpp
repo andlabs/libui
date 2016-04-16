@@ -362,6 +362,7 @@ STDMETHODIMP gdiRenderer::DrawUnderline(void *clientDrawingContext, FLOAT baseli
 	return E_NOTIMPL;
 }
 
+// TODO rename this function
 // TODO consider using Direct2D instead
 static void doPaint(struct fontDialog *f)
 {
@@ -369,6 +370,12 @@ static void doPaint(struct fontDialog *f)
 	HDC dc;
 	IDWriteBitmapRenderTarget *target;
 	gdiRenderer *renderer;
+	LRESULT i;
+	IDWriteFont *font;
+	IDWriteLocalizedStrings *sampleStrings;
+	WCHAR *sample;
+	IDWriteTextFormat *format;
+	IDWriteTextLayout *layout;
 	HDC memoryDC;
 	RECT memoryRect;
 	HRESULT hr;
@@ -386,6 +393,19 @@ static void doPaint(struct fontDialog *f)
 	renderer = new gdiRenderer;
 	renderer->refcount = 1;
 
+	i = SendMessageW(f->familyCombobox, CB_GETCURSEL, 0, 0);
+	if (i == (LRESULT) CB_ERR)
+		return;		// TODO something more appropriate
+	font = (IDWriteFont *) SendMessageW(f->styleCombobox, CB_GETITEMDATA, (WPARAM) i, 0);
+	if (font == (IDWriteFont *) CB_ERR)
+		logLastError("error getting font to draw font dialog sample in doPaint()");
+	// TOOD allow for a fallback
+	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_SAMPLE_TEXT, &sampleStrings);
+	if (hr != S_OK)
+		logHRESULT("error getting sample sring to draw in font dialog in doPaint()");
+	sample = fontCollectionCorrectString(f->fc, sampleStrings);
+	sampleStrings->Release();
+
 	// TODO actually draw
 
 	memoryDC = target->GetMemoryDC();
@@ -399,6 +419,7 @@ static void doPaint(struct fontDialog *f)
 		SRCCOPY | NOMIRRORBITMAP) == 0)
 		logLastError("error blitting sample text to font dialog in doPaint()");
 
+	uiFree(sample);
 	renderer->Release();
 	target->Release();
 	EndPaint(f->hwnd, &ps);

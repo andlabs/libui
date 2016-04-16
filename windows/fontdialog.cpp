@@ -10,6 +10,8 @@ struct fontDialog {
 	fontCollection *fc;
 	IDWriteFontFamily **families;
 	UINT32 nFamilies;
+	IDWriteGdiInterop *gdiInterop;
+	RECT sampleRect;
 };
 
 static LRESULT cbAddString(HWND cb, WCHAR *str)
@@ -113,7 +115,11 @@ static void familyChanged(struct fontDialog *f)
 			logLastError("error setting font data in styles box in familyChanged()");
 	}
 
-	// TODO do we preserve style selection?
+	// TODO how do we preserve style selection? the real thing seems to have a very elaborate method of doing so
+	// TODO check error
+	SendMessageW(f->styleCombobox, CB_SETCURSEL, 0, 0);
+	// TODO refine this a bit
+	InvalidateRect(f->hwnd, NULL, TRUE/*TODO*/);
 }
 
 static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
@@ -122,6 +128,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	UINT32 i;
 	WCHAR *wname;
 	LRESULT ten;
+	HWND samplePlacement;
 	HRESULT hr;
 
 	f = uiNew(struct fontDialog);
@@ -189,6 +196,19 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 		logLastError("error selecting Arial in the family combobox in beginFontDialog()");
 	familyChanged(f);
 
+	hr = dwfactory->GetGdiInterop(&(f->gdiInterop));
+	if (hr != S_OK)
+		logHRESULT("error getting GDI interop for font dialog in beginFontDialog()", hr);
+
+	samplePlacement = GetDlgItem(f->hwnd, rcFontSamplePlacement);
+	if (samplePlacement == NULL)
+		logLastError("error getting sample placement static control handle in beginFontDialog()");
+	if (GetWindowRect(samplePlacement, &(f->sampleRect)) == 0)
+		logLastError("error getting sample placement in beginFontDialog()");
+	mapWindowRect(NULL, f->hwnd, &(f->sampleRect));
+	if (DestroyWindow(samplePlacement) == 0)
+		logLastError("error getting rid of the sample placement static control in beginFontDialog()");
+
 	return f;
 }
 
@@ -196,6 +216,7 @@ static void endFontDialog(struct fontDialog *f, INT_PTR code)
 {
 	UINT32 i;
 
+	f->gdiInterop->Release();
 	wipeStylesBox(f);
 	for (i = 0; i < f->nFamilies; i++)
 		f->families[i]->Release();
@@ -220,6 +241,169 @@ static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
 	return TRUE;
 }
 
+class gdiRenderer : public IDWriteTextRenderer {
+public:
+	ULONG refcount;
+
+	// IUnknown
+	STDMETHODIMP QueryInterface(REFIID riid, void **ppv);
+	STDMETHODIMP_(ULONG) AddRef();
+	STDMETHODIMP_(ULONG) Release();
+
+	// IDWritePixelSnapping
+	STDMETHODIMP GetCurrentTransform(void *clientDrawingContext, DWRITE_MATRIX *transform);
+	STDMETHODIMP GetPixelsPerDip(void *clientDrawingContext, FLOAT *pixelsPerDip);
+	STDMETHODIMP IsPixelSnappingDisabled(void *clientDrawingContext, BOOL *isDisabled);
+
+	// IDWriteTextRenderer
+	STDMETHODIMP DrawGlyphRun(
+		void *clientDrawingContext,
+		FLOAT baselineOriginX,
+		FLOAT baselineOriginY,
+		DWRITE_MEASURING_MODE measuringMode,
+		const DWRITE_GLYPH_RUN *glyphRun,
+		const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+		IUnknown *clientDrawingEffect);
+	STDMETHODIMP DrawInlineObject(void *clientDrawingContext, FLOAT originX, FLOAT originY, IDWriteInlineObject *inlineObject, BOOL isSideways, BOOL isRightToLeft, IUnknown *clientDrawingEffect);
+	STDMETHODIMP DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_STRIKETHROUGH *strikethrough, IUnknown *clientDrawingEffect);
+	STDMETHODIMP DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect);
+};
+
+STDMETHODIMP gdiRenderer::QueryInterface(REFIID riid, void **ppv)
+{
+	if (ppv == NULL)
+		return E_POINTER;
+	if (riid == IID_IUnknown ||
+		riid == __uuidof (IDWritePixelSnapping) ||
+		riid == __uuidof (IDWriteTextRenderer)) {
+		*ppv = static_cast<IDWriteTextRenderer *>(this);
+		this->AddRef();
+		return S_OK;
+	}
+	*ppv = NULL;
+	return E_NOINTERFACE;
+}
+
+STDMETHODIMP_(ULONG) gdiRenderer::AddRef()
+{
+	this->refcount++;
+	return this->refcount;
+}
+
+STDMETHODIMP_(ULONG) gdiRenderer::Release()
+{
+	this->refcount--;
+	if (this->refcount == 0) {
+		delete this;
+		return 0;
+	}
+	return this->refcount;
+}
+
+STDMETHODIMP gdiRenderer::GetCurrentTransform(void *clientDrawingContext, DWRITE_MATRIX *transform)
+{
+	IDWriteBitmapRenderTarget *target = (IDWriteBitmapRenderTarget *) clientDrawingContext;
+
+	return target->GetCurrentTransform(transform);
+}
+
+STDMETHODIMP gdiRenderer::GetPixelsPerDip(void *clientDrawingContext, FLOAT *pixelsPerDip)
+{
+	IDWriteBitmapRenderTarget *target = (IDWriteBitmapRenderTarget *) clientDrawingContext;
+
+	if (pixelsPerDip == NULL)
+		return E_POINTER;
+	*pixelsPerDip = target->GetPixelsPerDip();
+	return S_OK;
+}
+
+STDMETHODIMP gdiRenderer::IsPixelSnappingDisabled(void *clientDrawingContext, BOOL *isDisabled)
+{
+	// TODO this is the MSDN recommendation
+	if (isDisabled == NULL)
+		return E_POINTER;
+	*isDisabled = FALSE;
+	return S_OK;
+}
+
+STDMETHODIMP gdiRenderer::DrawGlyphRun(
+	void *clientDrawingContext,
+	FLOAT baselineOriginX,
+	FLOAT baselineOriginY,
+	DWRITE_MEASURING_MODE measuringMode,
+	const DWRITE_GLYPH_RUN *glyphRun,
+	const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+	IUnknown *clientDrawingEffect)
+{
+	IDWriteBitmapRenderTarget *target = (IDWriteBitmapRenderTarget *) clientDrawingContext;
+
+	return target->DrawGlyphRun(
+		baselineOriginX,
+		baselineOriginY,
+		measuringMode,
+		glyphRun,
+		NULL,
+		RGB(0, 0, 0),
+		NULL);
+}
+
+STDMETHODIMP gdiRenderer::DrawInlineObject(void *clientDrawingContext, FLOAT originX, FLOAT originY, IDWriteInlineObject *inlineObject, BOOL isSideways, BOOL isRightToLeft, IUnknown *clientDrawingEffect)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP gdiRenderer::DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_STRIKETHROUGH *strikethrough, IUnknown *clientDrawingEffect)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP gdiRenderer::DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
+{
+	return E_NOTIMPL;
+}
+
+// TODO consider using Direct2D instead
+static void doPaint(struct fontDialog *f)
+{
+	PAINTSTRUCT ps;
+	HDC dc;
+	IDWriteBitmapRenderTarget *target;
+	gdiRenderer *renderer;
+	HDC memoryDC;
+	RECT memoryRect;
+	HRESULT hr;
+
+	dc = BeginPaint(f->hwnd, &ps);
+	if (dc == NULL)
+		logLastError("error beginning font dialog redraw in doPaint()");
+
+	hr = f->gdiInterop->CreateBitmapRenderTarget(dc,
+		f->sampleRect.right - f->sampleRect.left, f->sampleRect.bottom - f->sampleRect.top,
+		&target);
+	if (hr != S_OK)
+		logHRESULT("error creating bitmap render target for font dialog in doPaint()", hr);
+
+	renderer = new gdiRenderer;
+	renderer->refcount = 1;
+
+	// TODO actually draw
+
+	memoryDC = target->GetMemoryDC();
+	if (GetBoundsRect(memoryDC, &memoryRect, 0) == 0)
+		logLastError("error getting size of memory DC for font dialog in doPaint()");
+	if (BitBlt(dc,
+		f->sampleRect.left, f->sampleRect.top,
+		memoryRect.right - memoryRect.left, memoryRect.bottom - memoryRect.top,
+		memoryDC,
+		0, 0,
+		SRCCOPY | NOMIRRORBITMAP) == 0)
+		logLastError("error blitting sample text to font dialog in doPaint()");
+
+	renderer->Release();
+	target->Release();
+	EndPaint(f->hwnd, &ps);
+}
+
 static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	struct fontDialog *f;
@@ -236,6 +420,7 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 
 	switch (uMsg) {
 	case WM_COMMAND:
+		SetWindowLongPtrW(f->hwnd, DWLP_MSGRESULT, 0);		// just in case
 		switch (LOWORD(wParam)) {
 		case IDOK:
 		case IDCANCEL:
@@ -249,6 +434,10 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 			return TRUE;
 		}
 		return FALSE;
+	case WM_PAINT:
+		doPaint(f);
+		SetWindowLongPtrW(f->hwnd, DWLP_MSGRESULT, 0);
+		return TRUE;
 	}
 	return FALSE;
 }

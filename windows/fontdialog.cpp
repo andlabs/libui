@@ -373,6 +373,7 @@ static void doPaint(struct fontDialog *f)
 	LRESULT i;
 	IDWriteFont *font;
 	IDWriteLocalizedStrings *sampleStrings;
+	BOOL exists;
 	WCHAR *sample;
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
@@ -400,9 +401,10 @@ static void doPaint(struct fontDialog *f)
 	if (font == (IDWriteFont *) CB_ERR)
 		logLastError("error getting font to draw font dialog sample in doPaint()");
 	// TOOD allow for a fallback
-	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_SAMPLE_TEXT, &sampleStrings);
+	// TODO exists parameter
+	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_SAMPLE_TEXT, &sampleStrings, &exists);
 	if (hr != S_OK)
-		logHRESULT("error getting sample sring to draw in font dialog in doPaint()");
+		logHRESULT("error getting sample sring to draw in font dialog in doPaint()", hr);
 	sample = fontCollectionCorrectString(f->fc, sampleStrings);
 	sampleStrings->Release();
 

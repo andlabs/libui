@@ -71,5 +71,16 @@ notes to self
 
 - use http://www.appveyor.com/ to do Windows build CI since people want CI
 
+
+
+
+
+
+- consider just having the windows backend in C++
+	- consider having it all in C++
+
+
+
+
 notes
 - http://blogs.msdn.com/b/oldnewthing/archive/2004/03/29/101121.aspx on accelerators

@@ -19,7 +19,7 @@ struct fontDialog {
 	// on OK, these are what are read
 	LRESULT curFamily;
 	LRESULT curStyle;
-	LRESULT curSize;
+	double curSize;
 };
 
 static LRESULT cbAddString(HWND cb, WCHAR *str)
@@ -72,7 +72,7 @@ static BOOL cbGetCurSel(HWND cb, LRESULT *sel)
 
 static void cbSetCurSel(HWND cb, WPARAM item)
 {
-	if (SendMessageW(cb, CB_SETCURSEL, item, 0) != 0)
+	if (SendMessageW(cb, CB_SETCURSEL, item, 0) != (LRESULT) item)
 		logLastError("error selecting combobox item in cbSetCurSel()");
 }
 
@@ -97,6 +97,48 @@ static void cbWipeAndReleaseData(HWND cb)
 		obj->Release();
 	}
 	SendMessageW(cb, CB_RESETCONTENT, 0, 0);
+}
+
+static WCHAR *cbGetItemText(HWND cb, WPARAM item)
+{
+	LRESULT len;
+	WCHAR *text;
+
+	// note: neither message includes the terminating L'\0'
+	len = SendMessageW(cb, CB_GETLBTEXTLEN, item, 0);
+	if (len == (LRESULT) CB_ERR)
+		logLastError("error getting item text length from combobox in cbGetItemText()");
+	text = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
+	if (SendMessageW(cb, CB_GETLBTEXT, item, (LPARAM) text) != len)
+		logLastError("error getting item text from combobox in cbGetItemText()");
+}
+
+static BOOL cbTypeToSelect(HWND cb, LRESULT *posOut, BOOL restoreAfter)
+{
+	WCHAR *text;
+	LRESULT pos;
+	DWORD selStart, selEnd;
+
+	// start by saving the current selection as setting the item will change the selection
+	SendMessageW(cb, CB_GETEDITSEL, (WPARAM) (&selStart), (LPARAM) (&selEnd));
+	text = windowText(cb);
+	pos = SendMessageW(cb, CB_FINDSTRINGEXACT, (WPARAM) (-1), (LPARAM) text);
+	if (pos == (LRESULT) CB_ERR) {
+		uiFree(text);
+		return FALSE;
+	}
+	cbSetCurSel(cb, (WPARAM) pos);
+	if (posOut != NULL)
+		*posOut = pos;
+	if (restoreAfter)
+		if (SendMessageW(cb, WM_SETTEXT, 0, (LPARAM) text) != (LRESULT) TRUE)
+			logLastError("error restoring old combobox text in cbTypeToSelect()");
+	uiFree(text);
+	// and restore the selection like above
+	// TODO isn't there a 32-bit version of this
+	if (SendMessageW(cb, CB_SETEDITSEL, 0, MAKELPARAM(selStart, selEnd)) != (LRESULT) TRUE)
+		logLastError("error restoring combobox edit selection in cbTypeToSelect()");
+	return TRUE;
 }
 
 static void wipeStylesBox(struct fontDialog *f)
@@ -157,6 +199,12 @@ static void familyChanged(struct fontDialog *f)
 	InvalidateRect(f->sampleBox, NULL, TRUE/*TODO*/);
 }
 
+// TODO search language variants like the sample does
+static void familyEdited(struct fontDialog *f)
+{
+	if (cbTypeToSelect(f->familyCombobox, &(f->curFamily), FALSE))
+		familyChanged(f);
+}
 
 static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt)
 {
@@ -399,10 +447,15 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 				return FALSE;
 			return tryFinishDialog(f, wParam);
 		case rcFontFamilyCombobox:
-			if (HIWORD(wParam) != CBN_SELCHANGE)
-				return FALSE;
-			familyChanged(f);
-			return TRUE;
+			if (HIWORD(wParam) == CBN_SELCHANGE) {
+				familyChanged(f);
+				return TRUE;
+			}
+			if (HIWORD(wParam) == CBN_EDITCHANGE) {
+				familyEdited(f);
+				return TRUE;
+			}
+			return FALSE;
 		// TODO
 		case rcFontStyleCombobox:
 		case rcFontSizeCombobox:

@@ -14,6 +14,7 @@ CFILES += \
 	windows/combobox.c \
 	windows/container.c \
 	windows/control.c \
+	windows/d2dscratch.c \
 	windows/datetimepicker.c \
 	windows/debug.c \
 	windows/draw.c \

@@ -130,6 +130,7 @@ const char *uiInit(uiInitOptions *o)
 	if (hMessageFont == NULL)
 		return loadLastError("loading default messagebox font; this is the default UI font");
 
+	// TODO rewrite this error message
 	if (initContainer(hDefaultIcon, hDefaultCursor) == 0)
 		return loadLastError("initializing uiMakeContainer() window class");
 
@@ -165,12 +166,16 @@ const char *uiInit(uiInitOptions *o)
 	if (registerAreaFilter() == 0)
 		return loadLastError("registering uiArea message filter");
 
+	if (registerD2DScratchClass(hDefaultIcon, hDefaultCursor) == 0)
+		return loadLastError("initializing D2D scratch window class");
+
 	return NULL;
 }
 
 void uiUninit(void)
 {
 	uninitMenus();
+	unregisterD2DScratchClass();
 	unregisterArea();
 	uninitDrawText();
 	uninitDraw();

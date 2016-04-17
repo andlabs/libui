@@ -18,6 +18,7 @@ enum {
 	msgHSCROLL,
 	msgConsoleEndSession,
 	msgQueued,
+	msgD2DScratchPaint,
 };
 
 // init.c
@@ -158,6 +159,11 @@ extern void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, doubl
 
 // fontdialog.cpp
 extern void showFontDialog(HWND parent);
+
+// d2dscratch.c
+extern ATOM registerD2DScratchClass(HICON, HCURSOR);
+extern void unregisterD2DScratchClass(void);
+extern HWND newD2DScratch(HWND parent, RECT *rect, HMENU controlID, SUBCLASSPROC subclass, DWORD_PTR subclassData);
 
 #ifdef __cplusplus
 }

@@ -6,12 +6,19 @@ struct fontDialog {
 	HWND familyCombobox;
 	HWND styleCombobox;
 	HWND sizeCombobox;
+
 	// TODO desc;
+
 	fontCollection *fc;
-	IDWriteFontFamily **families;
-	UINT32 nFamilies;
+
 	IDWriteGdiInterop *gdiInterop;
 	RECT sampleRect;
+
+	// we store the current selections in case an invalid string is typed in (partial or nonexistent or invalid number)
+	// on OK, these are what are read
+	LRESULT curFamily;
+	LRESULT curStyle;
+	LRESULT curSize;
 };
 
 static LRESULT cbAddString(HWND cb, WCHAR *str)
@@ -34,21 +41,66 @@ static LRESULT cbInsertStringAtTop(HWND cb, WCHAR *str)
 	return lr;
 }
 
-static void wipeStylesBox(struct fontDialog *f)
+static LRESULT cbGetItemData(HWND cb, WPARAM item)
 {
-	IDWriteFont *font;
+	LRESULT data;
+
+	data = SendMessageW(cb, CB_GETITEMDATA, item, 0);
+	if (data == (LRESULT) CB_ERR)
+		logLastError("error getting combobox item data for font dialog in cbGetItemData()");
+	return data;
+}
+
+static void cbSetItemData(HWND cb, WPARAM item, LPARAM data)
+{
+	if (SendMessageW(cb, CB_SETITEMDATA, item, data) == (LRESULT) CB_ERR)
+		logLastError("error setting combobox item data in cbSetItemData()");
+}
+
+static BOOL cbGetCurSel(HWND cb, LRESULT *sel)
+{
+	LRESULT n;
+
+	n = SendMessageW(cb, CB_GETCURSEL, 0, 0);
+	if (n == (LRESULT) CB_ERR)
+		return FALSE;
+	if (sel != NULL)
+		*sel = n;
+	return TRUE;
+}
+
+static void cbSetCurSel(HWND cb, WPARAM item)
+{
+	if (SendMessageW(cb, CB_SETCURSEL, item, 0) != 0)
+		logLastError("error selecting combobox item in cbSetCurSel()");
+}
+
+static LRESULT cbGetCount(HWND cb)
+{
+	LRESULT n;
+
+	n = SendMessageW(cb, CB_GETCOUNT, 0, 0);
+	if (n == (LRESULT) CB_ERR)
+		logLastError("error getting combobox item count in cbGetCount()");
+	return n;
+}
+
+static void cbWipeAndReleaseData(HWND cb)
+{
+	IUnknown *obj;
 	LRESULT i, n;
 
-	n = SendMessageW(f->styleCombobox, CB_GETCOUNT, 0, 0);
-	if (n == (LRESULT) CB_ERR)
-		logLastError("error getting combobox item count in wipeStylesBox()");
+	n = cbGetCount(cb);
 	for (i = 0; i < n; i++) {
-		font = (IDWriteFont *) SendMessageW(f->styleCombobox, CB_GETITEMDATA, (WPARAM) i, 0);
-		if (font == (IDWriteFont *) CB_ERR)
-			logLastError("error getting font to release it in wipeStylesBox()");
-		font->Release();
+		obj = (IUnknown *) cbGetItemData(cb, (WPARAM) i);
+		obj->Release();
 	}
-	SendMessageW(f->styleCombobox, CB_RESETCONTENT, 0, 0);
+	SendMessageW(cb, CB_RESETCONTENT, 0, 0);
+}
+
+static void wipeStylesBox(struct fontDialog *f)
+{
+	cbWipeAndReleaseData(f->styleCombobox);
 }
 
 static WCHAR *fontStyleName(struct fontDialog *f, IDWriteFont *font)
@@ -58,20 +110,9 @@ static WCHAR *fontStyleName(struct fontDialog *f, IDWriteFont *font)
 	WCHAR *wstr;
 	HRESULT hr;
 
-	// first try this; if this is present, use it...
-	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_PREFERRED_SUBFAMILY_NAMES, &str, &exists);
+	hr = font->GetFaceNames(&str);
 	if (hr != S_OK)
-		logHRESULT("error getting preferred subfamily string in fontStyleName()", hr);
-	if (exists)
-		goto good;
-
-	// ...otherwise this font is good enough to be part of the main one on GDI as well, so try that name
-	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_WIN32_SUBFAMILY_NAMES, &str, &exists);
-	if (hr != S_OK)
-		logHRESULT("error getting Win32 subfamily string in fontStyleName()", hr);
-	// TODO what if !exists?
-
-good:
+		logHRESULT("error getting font style name for font dialog in fontStyleName()", hr);
 	wstr = fontCollectionCorrectString(f->fc, str);
 	str->Release();
 	return wstr;
@@ -79,33 +120,32 @@ good:
 
 static void familyChanged(struct fontDialog *f)
 {
-	LRESULT familyn;
+	LRESULT pos;
+	BOOL selected;
 	IDWriteFontFamily *family;
-	IDWriteFont *specific;
+	IDWriteFont *font;
 	UINT32 i, n;
 	WCHAR *label;
-	LRESULT pos;
 	HRESULT hr;
 
-	wipeStylesBox(f);
+	selected = cbGetCurSel(f->familyCombobox, &pos);
+	if (!selected)		// on deselect, do nothing
+		return;
+	f->curFamily = pos;
 
-	// TODO store as item data in the combobox as well
-	familyn = SendMessageW(f->familyCombobox, CB_GETCURSEL, 0, 0);
-	if (familyn == (LRESULT) CB_ERR)
-		return;		// TODO restore previous selection
-	family = f->families[familyn];
+	family = (IDWriteFontFamily *) cbGetItemData(f->familyCombobox, (WPARAM) (f->curFamily));
 
 	// TODO test mutliple streteches; all the fonts I have have only one stretch value?
+	wipeStylesBox(f);
 	n = family->GetFontCount();
 	for (i = 0; i < n; i++) {
-		hr = family->GetFont(i, &specific);
+		hr = family->GetFont(i, &font);
 		if (hr != S_OK)
 			logHRESULT("error getting font for filling styles box in familyChanged()", hr);
-		label = fontStyleName(f, specific);
+		label = fontStyleName(f, font);
 		pos = cbAddString(f->styleCombobox, label);
 		uiFree(label);
-		if (SendMessageW(f->styleCombobox, CB_SETITEMDATA, (WPARAM) pos, (LPARAM) specific) == (LRESULT) CB_ERR)
-			logLastError("error setting font data in styles box in familyChanged()");
+		cbSetItemData(f->styleCombobox, (WPARAM) pos, (LPARAM) font);
 	}
 
 	// TODO how do we preserve style selection? the real thing seems to have a very elaborate method of doing so
@@ -118,9 +158,10 @@ static void familyChanged(struct fontDialog *f)
 static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 {
 	struct fontDialog *f;
-	UINT32 i;
+	UINT32 i, nFamilies;
+	IDWriteFontFamily *family;
 	WCHAR *wname;
-	LRESULT ten;
+	LRESULT pos, ten;
 	HWND samplePlacement;
 	HRESULT hr;
 
@@ -138,15 +179,15 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 		logLastError("error getting font size combobox handle in beginFontDialog()");
 
 	f->fc = loadFontCollection();
-	f->nFamilies = f->fc->fonts->GetFontFamilyCount();
-	f->families = new IDWriteFontFamily *[f->nFamilies];
-	for (i = 0; i < f->nFamilies; i++) {
-		hr = f->fc->fonts->GetFontFamily(i, &(f->families[i]));
+	nFamilies = f->fc->fonts->GetFontFamilyCount();
+	for (i = 0; i < nFamilies; i++) {
+		hr = f->fc->fonts->GetFontFamily(i, &family);
 		if (hr != S_OK)
 			logHRESULT("error getting font family in beginFontDialog()", hr);
-		wname = fontCollectionFamilyName(f->fc, f->families[i]);
-		cbAddString(f->familyCombobox, wname);
+		wname = fontCollectionFamilyName(f->fc, family);
+		pos = cbAddString(f->familyCombobox, wname);
 		uiFree(wname);
+		cbSetItemData(f->familyCombobox, (WPARAM) pos, (LPARAM) family);
 	}
 
 	// TODO all comboboxes should select on type; these already scroll on type but not select
@@ -185,8 +226,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	// note: we can't add ES_NUMBER to the combobox entry (it seems to disable the entry instead?!), so we must do validation when the box is dmissed; TODO
 
 	// TODO actually select Arial
-	if (SendMessageW(f->familyCombobox, CB_SETCURSEL, (WPARAM) 0, 0) != 0)
-		logLastError("error selecting Arial in the family combobox in beginFontDialog()");
+	cbSetCurSel(f->familyCombobox, 0);
 	familyChanged(f);
 
 	hr = dwfactory->GetGdiInterop(&(f->gdiInterop));
@@ -207,13 +247,9 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 
 static void endFontDialog(struct fontDialog *f, INT_PTR code)
 {
-	UINT32 i;
-
 	f->gdiInterop->Release();
 	wipeStylesBox(f);
-	for (i = 0; i < f->nFamilies; i++)
-		f->families[i]->Release();
-	delete[] f->families;
+	cbWipeAndReleaseData(f->familyCombobox);
 	fontCollectionFree(f->fc);
 	if (EndDialog(f->hwnd, code) == 0)
 		logLastError("error ending font dialog in endFontDialog()");

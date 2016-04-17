@@ -79,33 +79,26 @@ good:
 
 static void familyChanged(struct fontDialog *f)
 {
-	LRESULT n;
-	IDWriteFontList *specifics;
+	LRESULT familyn;
+	IDWriteFontFamily *family;
 	IDWriteFont *specific;
-	UINT32 i, ns;
+	UINT32 i, n;
 	WCHAR *label;
 	LRESULT pos;
 	HRESULT hr;
 
 	wipeStylesBox(f);
 
-	n = SendMessageW(f->familyCombobox, CB_GETCURSEL, 0, 0);
-	if (n == (LRESULT) CB_ERR)
+	// TODO store as item data in the combobox as well
+	familyn = SendMessageW(f->familyCombobox, CB_GETCURSEL, 0, 0);
+	if (familyn == (LRESULT) CB_ERR)
 		return;		// TODO restore previous selection
+	family = f->families[familyn];
 
-	// TODO figure out what the correct sort order is
-	hr = f->families[n]->GetMatchingFonts(
-		DWRITE_FONT_WEIGHT_NORMAL,
-		DWRITE_FONT_STRETCH_NORMAL,
-		DWRITE_FONT_STYLE_NORMAL,
-		&specifics);
-	if (hr != S_OK)
-		logHRESULT("error getting styles for font in familyChanged()", hr);
-
-	// TODO test mutliple streteches; all the fonts I have have only one stretch value
-	ns = specifics->GetFontCount();
-	for (i = 0; i < ns; i++) {
-		hr = specifics->GetFont(i, &specific);
+	// TODO test mutliple streteches; all the fonts I have have only one stretch value?
+	n = family->GetFontCount();
+	for (i = 0; i < n; i++) {
+		hr = family->GetFont(i, &specific);
 		if (hr != S_OK)
 			logHRESULT("error getting font for filling styles box in familyChanged()", hr);
 		label = fontStyleName(f, specific);
@@ -114,8 +107,6 @@ static void familyChanged(struct fontDialog *f)
 		if (SendMessageW(f->styleCombobox, CB_SETITEMDATA, (WPARAM) pos, (LPARAM) specific) == (LRESULT) CB_ERR)
 			logLastError("error setting font data in styles box in familyChanged()");
 	}
-
-	specifics->Release();
 
 	// TODO how do we preserve style selection? the real thing seems to have a very elaborate method of doing so
 	// TODO check error

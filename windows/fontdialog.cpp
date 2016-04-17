@@ -20,6 +20,11 @@ struct fontDialog {
 	LRESULT curFamily;
 	LRESULT curStyle;
 	double curSize;
+
+	// these are for comparing the nearest match when changing families so the nearest style to the previous one can be chosen
+	DWRITE_FONT_WEIGHT weight;
+	DWRITE_FONT_STYLE style;
+	DWRITE_FONT_STRETCH stretch;
 };
 
 static LRESULT cbAddString(HWND cb, WCHAR *str)
@@ -161,6 +166,39 @@ static WCHAR *fontStyleName(struct fontDialog *f, IDWriteFont *font)
 	return wstr;
 }
 
+static void queueRedrawSampleText(struct fontDialog *f)
+{
+	// TODO TRUE?
+	if (InvalidateRect(f->sampleBox, NULL, TRUE) == 0)
+		logLastError("error queueing a redraw of the font dialog's sample text in queueRedrawSampleText()");
+}
+
+static void styleChanged(struct fontDialog *f)
+{
+	LRESULT pos;
+	BOOL selected;
+	IDWriteFont *font;
+
+	selected = cbGetCurSel(f->styleCombobox, &pos);
+	if (!selected)		// on deselect, do nothing
+		return;
+	f->curStyle = pos;
+
+	font = (IDWriteFont *) cbGetItemData(f->styleCombobox, (WPARAM) (f->curStyle));
+	// these are for the nearest match when changing the family; see below
+	f->weight = font->GetWeight();
+	f->style = font->GetStyle();
+	f->stretch = font->GetStretch();
+
+	queueRedrawSampleText(f);
+}
+
+static void styleEdited(struct fontDialog *f)
+{
+	if (cbTypeToSelect(f->styleCombobox, &(f->curStyle), FALSE))
+		styleChanged(f);
+}
+
 static void familyChanged(struct fontDialog *f)
 {
 	LRESULT pos;
@@ -194,9 +232,7 @@ static void familyChanged(struct fontDialog *f)
 	// TODO how do we preserve style selection? the real thing seems to have a very elaborate method of doing so
 	// TODO check error
 	SendMessageW(f->styleCombobox, CB_SETCURSEL, 0, 0);
-	f->curStyle = 0;
-	// TODO refine this a bit
-	InvalidateRect(f->sampleBox, NULL, TRUE/*TODO*/);
+	styleChanged(f);
 }
 
 // TODO search language variants like the sample does
@@ -456,8 +492,16 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 				return TRUE;
 			}
 			return FALSE;
-		// TODO
 		case rcFontStyleCombobox:
+			if (HIWORD(wParam) == CBN_SELCHANGE) {
+				styleChanged(f);
+				return TRUE;
+			}
+			if (HIWORD(wParam) == CBN_EDITCHANGE) {
+				styleEdited(f);
+				return TRUE;
+			}
+			return FALSE;
 		case rcFontSizeCombobox:
 			if (HIWORD(wParam) != CBN_SELCHANGE)
 				return FALSE;

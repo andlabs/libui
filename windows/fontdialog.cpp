@@ -115,6 +115,8 @@ static void familyChanged(struct fontDialog *f)
 			logLastError("error setting font data in styles box in familyChanged()");
 	}
 
+	specifics->Release();
+
 	// TODO how do we preserve style selection? the real thing seems to have a very elaborate method of doing so
 	// TODO check error
 	SendMessageW(f->styleCombobox, CB_SETCURSEL, 0, 0);
@@ -336,15 +338,29 @@ STDMETHODIMP gdiRenderer::DrawGlyphRun(
 	IUnknown *clientDrawingEffect)
 {
 	IDWriteBitmapRenderTarget *target = (IDWriteBitmapRenderTarget *) clientDrawingContext;
+	RECT dirtyRect;
+	IDWriteRenderingParams *rp;
+	HRESULT hr;
 
-	return target->DrawGlyphRun(
+	// TODO I cannot believe this is required; we really do need to switch to Direct2D
+	hr = dwfactory->CreateRenderingParams(&rp);
+	if (hr != S_OK)
+		return hr;
+	hr = target->DrawGlyphRun(
 		baselineOriginX,
 		baselineOriginY,
 		measuringMode,
 		glyphRun,
-		NULL,
+		rp,
 		RGB(0, 0, 0),
-		NULL);
+		&dirtyRect);
+	rp->Release();
+	if (hr != S_OK)
+		return hr;
+	if (SetBoundsRect(target->GetMemoryDC(), &dirtyRect, DCB_ACCUMULATE) == 0)
+		// TODO
+		return E_FAIL;
+	return S_OK;
 }
 
 STDMETHODIMP gdiRenderer::DrawInlineObject(void *clientDrawingContext, FLOAT originX, FLOAT originY, IDWriteInlineObject *inlineObject, BOOL isSideways, BOOL isRightToLeft, IUnknown *clientDrawingEffect)
@@ -375,6 +391,9 @@ static void doPaint(struct fontDialog *f)
 	IDWriteLocalizedStrings *sampleStrings;
 	BOOL exists;
 	WCHAR *sample;
+	WCHAR *family;
+	WCHAR *wsize;
+	double size;
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
 	HDC memoryDC;
@@ -391,24 +410,74 @@ static void doPaint(struct fontDialog *f)
 	if (hr != S_OK)
 		logHRESULT("error creating bitmap render target for font dialog in doPaint()", hr);
 
+	// TODO why is this needed?
+	// TODO error check
+	{
+		RECT rdraw;
+
+		rdraw.left = 0;
+		rdraw.top = 0;
+		rdraw.right = f->sampleRect.right - f->sampleRect.left;
+		rdraw.bottom = f->sampleRect.bottom - f->sampleRect.top;
+		FillRect(target->GetMemoryDC(), &rdraw, GetSysColorBrush(COLOR_BTNFACE));
+	}
+
 	renderer = new gdiRenderer;
 	renderer->refcount = 1;
 
-	i = SendMessageW(f->familyCombobox, CB_GETCURSEL, 0, 0);
+	i = SendMessageW(f->styleCombobox, CB_GETCURSEL, 0, 0);
 	if (i == (LRESULT) CB_ERR)
-		return;		// TODO something more appropriate
+		{EndPaint(f->hwnd,&ps);return;}		// TODO something more appropriate
 	font = (IDWriteFont *) SendMessageW(f->styleCombobox, CB_GETITEMDATA, (WPARAM) i, 0);
 	if (font == (IDWriteFont *) CB_ERR)
 		logLastError("error getting font to draw font dialog sample in doPaint()");
 	// TOOD allow for a fallback
-	// TODO exists parameter
 	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_SAMPLE_TEXT, &sampleStrings, &exists);
 	if (hr != S_OK)
-		logHRESULT("error getting sample sring to draw in font dialog in doPaint()", hr);
-	sample = fontCollectionCorrectString(f->fc, sampleStrings);
-	sampleStrings->Release();
+		exists = FALSE;
+	if (exists) {
+		sample = fontCollectionCorrectString(f->fc, sampleStrings);
+		sampleStrings->Release();
+	} else
+		sample = L"TODO get this from GTK+ instead of AaBbYyZz";
+	// TODO get this from the currently selected item
+	family = windowText(f->familyCombobox);
+	// TODO but NOT this
+	wsize = windowText(f->sizeCombobox);
+	// TODO error check?
+	size = _wtof(wsize);
+	uiFree(wsize);
 
-	// TODO actually draw
+	hr = dwfactory->CreateTextFormat(family,
+		NULL,
+		font->GetWeight(),
+		font->GetStyle(),
+		font->GetStretch(),
+		// typographic points are 1/72 inch; this parameter is 1/96 inch
+		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
+		size * (96.0 / 72.0),
+		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
+		// TODO use the current locale again?
+		L"",
+		&format);
+	if (hr != S_OK)
+		logHRESULT("error creating IDWriteTextFormat for font dialog sample in doPaint()", hr);
+	uiFree(family);
+
+	hr = dwfactory->CreateTextLayout(sample, wcslen(sample),
+		format,
+		// FLOAT is float, not double, so this should work... TODO
+		// TODO we don't want wrapping here
+		FLT_MAX, FLT_MAX,
+		&layout);
+	if (hr != S_OK)
+		logHRESULT("error creating IDWriteTextLayout for font dialog sample in doPaint()", hr);
+
+	hr = layout->Draw(target,
+		renderer,
+		0, 0);
+	if (hr != S_OK)
+		logHRESULT("error drawing font dialog sample text in doPaint()", hr);
 
 	memoryDC = target->GetMemoryDC();
 	if (GetBoundsRect(memoryDC, &memoryRect, 0) == 0)
@@ -421,7 +490,10 @@ static void doPaint(struct fontDialog *f)
 		SRCCOPY | NOMIRRORBITMAP) == 0)
 		logLastError("error blitting sample text to font dialog in doPaint()");
 
-	uiFree(sample);
+	layout->Release();
+	format->Release();
+	if (exists)
+		uiFree(sample);
 	renderer->Release();
 	target->Release();
 	EndPaint(f->hwnd, &ps);
@@ -454,6 +526,14 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 			if (HIWORD(wParam) != CBN_SELCHANGE)
 				return FALSE;
 			familyChanged(f);
+			return TRUE;
+		// TODO
+		case rcFontStyleCombobox:
+		case rcFontSizeCombobox:
+			if (HIWORD(wParam) != CBN_SELCHANGE)
+				return FALSE;
+			// TODO error check; refine
+			InvalidateRect(f->hwnd, NULL, TRUE);
 			return TRUE;
 		}
 		return FALSE;

@@ -97,6 +97,7 @@ ATOM registerD2DScratchClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	wc.hIcon = hDefaultIcon;
 	wc.hCursor = hDefaultCursor;
 	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
+	wc.cbWndExtra = sizeof (LONG_PTR);			// for the init status
 	return RegisterClassW(&wc);
 }
 

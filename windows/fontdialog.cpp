@@ -13,6 +13,7 @@ struct fontDialog {
 
 	IDWriteGdiInterop *gdiInterop;
 	RECT sampleRect;
+	HWND sampleBox;
 
 	// we store the current selections in case an invalid string is typed in (partial or nonexistent or invalid number)
 	// on OK, these are what are read
@@ -151,8 +152,111 @@ static void familyChanged(struct fontDialog *f)
 	// TODO how do we preserve style selection? the real thing seems to have a very elaborate method of doing so
 	// TODO check error
 	SendMessageW(f->styleCombobox, CB_SETCURSEL, 0, 0);
+	f->curStyle = 0;
 	// TODO refine this a bit
-	InvalidateRect(f->hwnd, NULL, TRUE/*TODO*/);
+	InvalidateRect(f->sampleBox, NULL, TRUE/*TODO*/);
+}
+
+
+static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt)
+{
+	D2D1_COLOR_F color;
+	D2D1_BRUSH_PROPERTIES props;
+	ID2D1SolidColorBrush *black;
+	IDWriteFont *font;
+	IDWriteLocalizedStrings *sampleStrings;
+	BOOL exists;
+	WCHAR *sample;
+	WCHAR *family, *wsize;
+	double size;
+	IDWriteTextFormat *format;
+	D2D1_RECT_F rect;
+	HRESULT hr;
+
+	color.r = 0.0;
+	color.g = 0.0;
+	color.b = 0.0;
+	color.a = 1.0;
+	ZeroMemory(&props, sizeof (D2D1_BRUSH_PROPERTIES));
+	props.opacity = 1.0;
+	// identity matrix
+	props.transform._11 = 1;
+	props.transform._22 = 1;
+	hr = rt->CreateSolidColorBrush(
+		&color,
+		&props,
+		&black);
+	if (hr != S_OK)
+		logHRESULT("error creating solid brush in fontDialogDrawSampleText()", hr);
+
+	font = (IDWriteFont *) cbGetItemData(f->styleCombobox, (WPARAM) f->curStyle);
+	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_SAMPLE_TEXT, &sampleStrings, &exists);
+	if (hr != S_OK)
+		exists = FALSE;
+	if (exists) {
+		sample = fontCollectionCorrectString(f->fc, sampleStrings);
+		sampleStrings->Release();
+	} else
+		sample = L"TODO get this from GTK+ instead of AaBbYyZz";
+	// TODO get this from the currently selected item
+	family = windowText(f->familyCombobox);
+	// TODO but NOT this
+	wsize = windowText(f->sizeCombobox);
+	// TODO error check?
+	size = _wtof(wsize);
+	uiFree(wsize);
+
+	hr = dwfactory->CreateTextFormat(family,
+		NULL,
+		font->GetWeight(),
+		font->GetStyle(),
+		font->GetStretch(),
+		// typographic points are 1/72 inch; this parameter is 1/96 inch
+		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
+		size * (96.0 / 72.0),
+		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
+		// TODO use the current locale again?
+		L"",
+		&format);
+	if (hr != S_OK)
+		logHRESULT("error creating IDWriteTextFormat in fontDialogDrawSampleText()", hr);
+	uiFree(family);
+
+	rect.left = 0;
+	rect.top = 0;
+	rect.right = rt->GetSize().width;
+	rect.bottom = rt->GetSize().height;
+	rt->DrawText(sample, wcslen(sample),
+		format,
+		&rect,
+		black,
+		// TODO really?
+		D2D1_DRAW_TEXT_OPTIONS_NONE,
+		DWRITE_MEASURING_MODE_NATURAL);
+
+	format->Release();
+	if (exists)
+		uiFree(sample);
+	black->Release();
+}
+
+static LRESULT CALLBACK fontDialogSampleSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	ID2D1RenderTarget *rt;
+	struct fontDialog *f;
+
+	switch (uMsg) {
+	case msgD2DScratchPaint:
+		rt = (ID2D1RenderTarget *) lParam;
+		f = (struct fontDialog *) dwRefData;
+		fontDialogDrawSampleText(f, rt);
+		return 0;
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, fontDialogSampleSubProc, uIdSubclass) == FALSE)
+			logLastError("error removing font dialog sample text subclass in fontDialogSampleSubProc()");
+		break;
+	}
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
 
 static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
@@ -241,6 +345,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	mapWindowRect(NULL, f->hwnd, &(f->sampleRect));
 	if (DestroyWindow(samplePlacement) == 0)
 		logLastError("error getting rid of the sample placement static control in beginFontDialog()");
+	f->sampleBox = newD2DScratch(f->hwnd, &(f->sampleRect), (HMENU) rcFontSamplePlacement, fontDialogSampleSubProc, (DWORD_PTR) f);
 
 	return f;
 }
@@ -268,262 +373,6 @@ static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
 
 	endFontDialog(f, 2);
 	return TRUE;
-}
-
-class gdiRenderer : public IDWriteTextRenderer {
-public:
-	ULONG refcount;
-
-	// IUnknown
-	STDMETHODIMP QueryInterface(REFIID riid, void **ppv);
-	STDMETHODIMP_(ULONG) AddRef();
-	STDMETHODIMP_(ULONG) Release();
-
-	// IDWritePixelSnapping
-	STDMETHODIMP GetCurrentTransform(void *clientDrawingContext, DWRITE_MATRIX *transform);
-	STDMETHODIMP GetPixelsPerDip(void *clientDrawingContext, FLOAT *pixelsPerDip);
-	STDMETHODIMP IsPixelSnappingDisabled(void *clientDrawingContext, BOOL *isDisabled);
-
-	// IDWriteTextRenderer
-	STDMETHODIMP DrawGlyphRun(
-		void *clientDrawingContext,
-		FLOAT baselineOriginX,
-		FLOAT baselineOriginY,
-		DWRITE_MEASURING_MODE measuringMode,
-		const DWRITE_GLYPH_RUN *glyphRun,
-		const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
-		IUnknown *clientDrawingEffect);
-	STDMETHODIMP DrawInlineObject(void *clientDrawingContext, FLOAT originX, FLOAT originY, IDWriteInlineObject *inlineObject, BOOL isSideways, BOOL isRightToLeft, IUnknown *clientDrawingEffect);
-	STDMETHODIMP DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_STRIKETHROUGH *strikethrough, IUnknown *clientDrawingEffect);
-	STDMETHODIMP DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect);
-};
-
-STDMETHODIMP gdiRenderer::QueryInterface(REFIID riid, void **ppv)
-{
-	if (ppv == NULL)
-		return E_POINTER;
-	if (riid == IID_IUnknown ||
-		riid == __uuidof (IDWritePixelSnapping) ||
-		riid == __uuidof (IDWriteTextRenderer)) {
-		*ppv = static_cast<IDWriteTextRenderer *>(this);
-		this->AddRef();
-		return S_OK;
-	}
-	*ppv = NULL;
-	return E_NOINTERFACE;
-}
-
-STDMETHODIMP_(ULONG) gdiRenderer::AddRef()
-{
-	this->refcount++;
-	return this->refcount;
-}
-
-STDMETHODIMP_(ULONG) gdiRenderer::Release()
-{
-	this->refcount--;
-	if (this->refcount == 0) {
-		delete this;
-		return 0;
-	}
-	return this->refcount;
-}
-
-STDMETHODIMP gdiRenderer::GetCurrentTransform(void *clientDrawingContext, DWRITE_MATRIX *transform)
-{
-	IDWriteBitmapRenderTarget *target = (IDWriteBitmapRenderTarget *) clientDrawingContext;
-
-	return target->GetCurrentTransform(transform);
-}
-
-STDMETHODIMP gdiRenderer::GetPixelsPerDip(void *clientDrawingContext, FLOAT *pixelsPerDip)
-{
-	IDWriteBitmapRenderTarget *target = (IDWriteBitmapRenderTarget *) clientDrawingContext;
-
-	if (pixelsPerDip == NULL)
-		return E_POINTER;
-	*pixelsPerDip = target->GetPixelsPerDip();
-	return S_OK;
-}
-
-STDMETHODIMP gdiRenderer::IsPixelSnappingDisabled(void *clientDrawingContext, BOOL *isDisabled)
-{
-	// TODO this is the MSDN recommendation
-	if (isDisabled == NULL)
-		return E_POINTER;
-	*isDisabled = FALSE;
-	return S_OK;
-}
-
-STDMETHODIMP gdiRenderer::DrawGlyphRun(
-	void *clientDrawingContext,
-	FLOAT baselineOriginX,
-	FLOAT baselineOriginY,
-	DWRITE_MEASURING_MODE measuringMode,
-	const DWRITE_GLYPH_RUN *glyphRun,
-	const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
-	IUnknown *clientDrawingEffect)
-{
-	IDWriteBitmapRenderTarget *target = (IDWriteBitmapRenderTarget *) clientDrawingContext;
-	RECT dirtyRect;
-	IDWriteRenderingParams *rp;
-	HRESULT hr;
-
-	// TODO I cannot believe this is required; we really do need to switch to Direct2D
-	hr = dwfactory->CreateRenderingParams(&rp);
-	if (hr != S_OK)
-		return hr;
-	hr = target->DrawGlyphRun(
-		baselineOriginX,
-		baselineOriginY,
-		measuringMode,
-		glyphRun,
-		rp,
-		RGB(0, 0, 0),
-		&dirtyRect);
-	rp->Release();
-	if (hr != S_OK)
-		return hr;
-	if (SetBoundsRect(target->GetMemoryDC(), &dirtyRect, DCB_ACCUMULATE) == 0)
-		// TODO
-		return E_FAIL;
-	return S_OK;
-}
-
-STDMETHODIMP gdiRenderer::DrawInlineObject(void *clientDrawingContext, FLOAT originX, FLOAT originY, IDWriteInlineObject *inlineObject, BOOL isSideways, BOOL isRightToLeft, IUnknown *clientDrawingEffect)
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP gdiRenderer::DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_STRIKETHROUGH *strikethrough, IUnknown *clientDrawingEffect)
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP gdiRenderer::DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
-{
-	return E_NOTIMPL;
-}
-
-// TODO rename this function
-// TODO consider using Direct2D instead
-static void doPaint(struct fontDialog *f)
-{
-	PAINTSTRUCT ps;
-	HDC dc;
-	IDWriteBitmapRenderTarget *target;
-	gdiRenderer *renderer;
-	LRESULT i;
-	IDWriteFont *font;
-	IDWriteLocalizedStrings *sampleStrings;
-	BOOL exists;
-	WCHAR *sample;
-	WCHAR *family;
-	WCHAR *wsize;
-	double size;
-	IDWriteTextFormat *format;
-	IDWriteTextLayout *layout;
-	HDC memoryDC;
-	RECT memoryRect;
-	HRESULT hr;
-
-	dc = BeginPaint(f->hwnd, &ps);
-	if (dc == NULL)
-		logLastError("error beginning font dialog redraw in doPaint()");
-
-	hr = f->gdiInterop->CreateBitmapRenderTarget(dc,
-		f->sampleRect.right - f->sampleRect.left, f->sampleRect.bottom - f->sampleRect.top,
-		&target);
-	if (hr != S_OK)
-		logHRESULT("error creating bitmap render target for font dialog in doPaint()", hr);
-
-	// TODO why is this needed?
-	// TODO error check
-	{
-		RECT rdraw;
-
-		rdraw.left = 0;
-		rdraw.top = 0;
-		rdraw.right = f->sampleRect.right - f->sampleRect.left;
-		rdraw.bottom = f->sampleRect.bottom - f->sampleRect.top;
-		FillRect(target->GetMemoryDC(), &rdraw, GetSysColorBrush(COLOR_BTNFACE));
-	}
-
-	renderer = new gdiRenderer;
-	renderer->refcount = 1;
-
-	i = SendMessageW(f->styleCombobox, CB_GETCURSEL, 0, 0);
-	if (i == (LRESULT) CB_ERR)
-		{EndPaint(f->hwnd,&ps);return;}		// TODO something more appropriate
-	font = (IDWriteFont *) SendMessageW(f->styleCombobox, CB_GETITEMDATA, (WPARAM) i, 0);
-	if (font == (IDWriteFont *) CB_ERR)
-		logLastError("error getting font to draw font dialog sample in doPaint()");
-	// TOOD allow for a fallback
-	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_SAMPLE_TEXT, &sampleStrings, &exists);
-	if (hr != S_OK)
-		exists = FALSE;
-	if (exists) {
-		sample = fontCollectionCorrectString(f->fc, sampleStrings);
-		sampleStrings->Release();
-	} else
-		sample = L"TODO get this from GTK+ instead of AaBbYyZz";
-	// TODO get this from the currently selected item
-	family = windowText(f->familyCombobox);
-	// TODO but NOT this
-	wsize = windowText(f->sizeCombobox);
-	// TODO error check?
-	size = _wtof(wsize);
-	uiFree(wsize);
-
-	hr = dwfactory->CreateTextFormat(family,
-		NULL,
-		font->GetWeight(),
-		font->GetStyle(),
-		font->GetStretch(),
-		// typographic points are 1/72 inch; this parameter is 1/96 inch
-		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
-		size * (96.0 / 72.0),
-		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
-		// TODO use the current locale again?
-		L"",
-		&format);
-	if (hr != S_OK)
-		logHRESULT("error creating IDWriteTextFormat for font dialog sample in doPaint()", hr);
-	uiFree(family);
-
-	hr = dwfactory->CreateTextLayout(sample, wcslen(sample),
-		format,
-		// FLOAT is float, not double, so this should work... TODO
-		// TODO we don't want wrapping here
-		FLT_MAX, FLT_MAX,
-		&layout);
-	if (hr != S_OK)
-		logHRESULT("error creating IDWriteTextLayout for font dialog sample in doPaint()", hr);
-
-	hr = layout->Draw(target,
-		renderer,
-		0, 0);
-	if (hr != S_OK)
-		logHRESULT("error drawing font dialog sample text in doPaint()", hr);
-
-	memoryDC = target->GetMemoryDC();
-	if (GetBoundsRect(memoryDC, &memoryRect, 0) == 0)
-		logLastError("error getting size of memory DC for font dialog in doPaint()");
-	if (BitBlt(dc,
-		f->sampleRect.left, f->sampleRect.top,
-		memoryRect.right - memoryRect.left, memoryRect.bottom - memoryRect.top,
-		memoryDC,
-		0, 0,
-		SRCCOPY | NOMIRRORBITMAP) == 0)
-		logLastError("error blitting sample text to font dialog in doPaint()");
-
-	layout->Release();
-	format->Release();
-	if (exists)
-		uiFree(sample);
-	renderer->Release();
-	target->Release();
-	EndPaint(f->hwnd, &ps);
 }
 
 static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -559,15 +408,13 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		case rcFontSizeCombobox:
 			if (HIWORD(wParam) != CBN_SELCHANGE)
 				return FALSE;
+			// TODO really do the job
+			cbGetCurSel(f->styleCombobox, &(f->curStyle));
 			// TODO error check; refine
-			InvalidateRect(f->hwnd, NULL, TRUE);
+			InvalidateRect(f->sampleBox, NULL, TRUE);
 			return TRUE;
 		}
 		return FALSE;
-	case WM_PAINT:
-		doPaint(f);
-		SetWindowLongPtrW(f->hwnd, DWLP_MSGRESULT, 0);
-		return TRUE;
 	}
 	return FALSE;
 }

@@ -197,7 +197,7 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 		sample = fontCollectionCorrectString(f->fc, sampleStrings);
 		sampleStrings->Release();
 	} else
-		sample = L"TODO get this from GTK+ instead of AaBbYyZz";
+		sample = L"The quick brown fox jumps over the lazy dog.";
 	// TODO get this from the currently selected item
 	family = windowText(f->familyCombobox);
 	// TODO but NOT this

@@ -1,6 +1,9 @@
 // 14 april 2016
 #include "uipriv_windows.h"
 
+// TODOs
+// - the Choose Font sample defaults to Regular/Italic/Bold/Bold Italic in some case (no styles?); do we? find out what the case is
+
 struct fontDialog {
 	HWND hwnd;
 	HWND familyCombobox;
@@ -21,7 +24,7 @@ struct fontDialog {
 	LRESULT curStyle;
 	double curSize;
 
-	// these are for comparing the nearest match when changing families so the nearest style to the previous one can be chosen
+	// these are finding the style that's closest to the previous one (these fields) when changing a font
 	DWRITE_FONT_WEIGHT weight;
 	DWRITE_FONT_STYLE style;
 	DWRITE_FONT_STRETCH stretch;
@@ -204,8 +207,12 @@ static void familyChanged(struct fontDialog *f)
 	LRESULT pos;
 	BOOL selected;
 	IDWriteFontFamily *family;
-	IDWriteFont *font;
+	IDWriteFont *font, *matchFont;
+	DWRITE_FONT_WEIGHT weight;
+	DWRITE_FONT_STYLE style;
+	DWRITE_FONT_STRETCH stretch;
 	UINT32 i, n;
+	UINT32 matching;
 	WCHAR *label;
 	HRESULT hr;
 
@@ -216,9 +223,27 @@ static void familyChanged(struct fontDialog *f)
 
 	family = (IDWriteFontFamily *) cbGetItemData(f->familyCombobox, (WPARAM) (f->curFamily));
 
+	// for the nearest style match
+	// when we select a new family, we want the nearest style to the previously selected one to be chosen
+	// this is how the Choose Font sample does it
+	hr = family->GetFirstMatchingFont(
+		f->weight,
+		f->stretch,
+		f->style,
+		&matchFont);
+	if (hr != S_OK)
+		logHRESULT("error finding first matching font to previous style in font dialog in familyChanged()", hr);
+	// we can't just compare pointers; a "newly created" object comes out
+	// the Choose Font sample appears to do this instead
+	weight = matchFont->GetWeight();
+	style = matchFont->GetStyle();
+	stretch = matchFont->GetStretch();
+	matchFont->Release();
+
 	// TODO test mutliple streteches; all the fonts I have have only one stretch value?
 	wipeStylesBox(f);
 	n = family->GetFontCount();
+	matching = 0;			// a safe/suitable default just in case
 	for (i = 0; i < n; i++) {
 		hr = family->GetFont(i, &font);
 		if (hr != S_OK)
@@ -227,11 +252,14 @@ static void familyChanged(struct fontDialog *f)
 		pos = cbAddString(f->styleCombobox, label);
 		uiFree(label);
 		cbSetItemData(f->styleCombobox, (WPARAM) pos, (LPARAM) font);
+		if (font->GetWeight() == weight &&
+			font->GetStyle() == style &&
+			font->GetStretch() == stretch)
+			matching = i;
 	}
 
-	// TODO how do we preserve style selection? the real thing seems to have a very elaborate method of doing so
-	// TODO check error
-	SendMessageW(f->styleCombobox, CB_SETCURSEL, 0, 0);
+	// and now, load the match
+	cbSetCurSel(f->styleCombobox, (WPARAM) matching);
 	styleChanged(f);
 }
 

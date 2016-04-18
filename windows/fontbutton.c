@@ -38,8 +38,16 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	cf.hwndOwner = GetAncestor(b->hwnd, GA_ROOT);		// TODO didn't we have a function for this
 showFontDialog(cf.hwndOwner);
 	cf.lpLogFont = &(b->font);
+ZeroMemory(&(b->font), sizeof(LOGFONTW));
+b->font.lfFaceName[0]='A';
+b->font.lfFaceName[1]='r';
+b->font.lfFaceName[2]='i';
+b->font.lfFaceName[3]='a';
+b->font.lfFaceName[4]='l';
+b->font.lfFaceName[5]=0;
+b->font.lfHeight=-15*96/72;
 	// TODO CF_FORCEFONTEXIST? CF_INACTIVEFONTS? CF_NOSCRIPTSEL? CF_USESTYLE?
-	if (b->already)
+//	if (b->already)
 		cf.Flags = CF_INITTOLOGFONTSTRUCT;
 	if (ChooseFontW(&cf) != FALSE) {
 		b->already = TRUE;

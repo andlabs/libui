@@ -428,6 +428,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	WCHAR *wname;
 	LRESULT pos;
 	HWND samplePlacement;
+	WCHAR wsize[512];		// this should be way more than enough
 	HRESULT hr;
 
 	f = uiNew(struct fontDialog);
@@ -457,14 +458,21 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 
 	for (i = 0; defaultSizes[i].text != NULL; i++)
 		cbInsertString(f->sizeCombobox, defaultSizes[i].text, (WPARAM) i);
-	// TODO make this proper
-	cbSetCurSel(f->sizeCombobox, 2);
-	sizeChanged(f);
-
-/*TODO	// and finally put 10 at the top to imitate ChooseFont()
-	if (SendMessageW(f->sizeCombobox, CB_SETTOPINDEX, (WPARAM) ten, 0) != 0)
-		logLastError("error making 10 visible in the size combobox in beginFontDialog()");
-*/
+	// TODO use the selected size
+	// the real font dialog:
+	// - if the chosen font size is in the list, it selects that item AND makes it topmost
+	// - if the chosen font size is not in the list, don't bother
+	// we'll simulate it by setting the text to a %f representation, then pretending as if it was entered
+	// TODO is 512 the correct number to pass to _snwprintf()?
+	// TODO will this revert to scientific notation?
+	_snwprintf(wsize, 512, L"%g", 10.0);
+	// TODO make this a setWindowText()
+	if (SendMessageW(f->sizeCombobox, WM_SETTEXT, 0, (LPARAM) wsize) != (LRESULT) TRUE)
+		logLastError("error setting size combobox to initial font size in beginFontDialog()");
+	sizeEdited(f);
+	if (cbGetCurSel(f->sizeCombobox, &pos))
+		if (SendMessageW(f->sizeCombobox, CB_SETTOPINDEX, (WPARAM) pos, 0) != 0)
+			logLastError("error making chosen size topmost in the size combobox in beginFontDialog()");
 
 	// note: we can't add ES_NUMBER to the combobox entry (it seems to disable the entry instead?!), so we must do validation when the box is dmissed; TODO
 

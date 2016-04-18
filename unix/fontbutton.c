@@ -1,6 +1,8 @@
 // 14 april 2016
 #include "uipriv_unix.h"
 
+// TODO display style? or is it already displayed?
+
 struct uiFontButton {
 	uiUnixControl c;
 	GtkWidget *widget;

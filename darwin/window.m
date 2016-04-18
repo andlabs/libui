@@ -100,6 +100,7 @@ static void windowCommitShow(uiControl *c)
 	uiWindow *w = (uiWindow *) c;
 
 	[w->window makeKeyAndOrderFront:w->window];
+	[NSApp activateIgnoringOtherApps:YES];
 }
 
 static void windowCommitHide(uiControl *c)

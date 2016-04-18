@@ -528,6 +528,10 @@ static void endFontDialog(struct fontDialog *f, INT_PTR code)
 
 static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
 {
+	WCHAR *wfamily;
+	IDWriteFont *font;
+	struct dwriteAttr attr;
+
 	// cancelling
 	if (LOWORD(wParam) != IDOK) {
 		endFontDialog(f, 1);
@@ -535,8 +539,18 @@ static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
 	}
 
 	// OK
-	// TODO fill f->desc here
+	wfamily = cbGetItemText(f->familyCombobox, f->curFamily);
+	f->desc->Family = toUTF8(wfamily);
+	uiFree(wfamily);
 	f->desc->Size = f->curSize;
+	font = (IDWriteFont *) cbGetItemData(f->styleCombobox, f->curStyle);
+	attr.dweight = font->GetWeight();
+	attr.ditalic = font->GetStyle();
+	attr.dstretch = font->GetStretch();
+	dwriteAttrToAttr(&attr);
+	f->desc->Weight = attr.weight;
+	f->desc->Italic = attr.italic;
+	f->desc->Stretch = attr.stretch;
 	endFontDialog(f, 2);
 	return TRUE;
 }

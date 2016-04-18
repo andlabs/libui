@@ -18,7 +18,17 @@ uiWindowsDefineControlWithOnDestroy(
 
 static void updateFontButtonLabel(uiFontButton *b)
 {
-	// TODO
+	// TODO make this dynamically sized
+	// TODO also include the style, but from where? libui or DirectWrite?
+	WCHAR text[1024];
+	WCHAR *family;
+
+	family = toUTF16(b->desc.Family);
+	_snwprintf(text, 1024, L"%s %g", family, b->desc.Size);
+	uiFree(family);
+	// TODO error check
+	SendMessageW(b->hwnd, WM_SETTEXT, 0, (LPARAM) text);
+
 	// changing the text might necessitate a change in the button's size
 	uiWindowsControlQueueRelayout(uiWindowsControl(b));
 }
@@ -94,8 +104,7 @@ uiFontButton *uiNewFontButton(void)
 	b = (uiFontButton *) uiNewControl(uiFontButtonType());
 
 	b->hwnd = uiWindowsEnsureCreateControlHWND(0,
-		// TODO
-		L"button", L"Arial 10",
+		L"button", L"you should not be seeing this",
 		BS_PUSHBUTTON | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
@@ -106,6 +115,7 @@ uiFontButton *uiNewFontButton(void)
 	b->desc.Weight = uiDrawTextWeightNormal;
 	b->desc.Italic = uiDrawTextItalicNormal;
 	b->desc.Stretch = uiDrawTextStretchNormal;
+	updateFontButtonLabel(b);
 
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
 //TODO	uiButtonOnClicked(b, defaultOnClicked, NULL);

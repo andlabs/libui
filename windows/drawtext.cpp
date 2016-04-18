@@ -55,6 +55,24 @@ struct uiDrawTextFont {
 	double size;
 };
 
+uiDrawTextFont *mkTextFont(IDWriteFont *df, WCHAR *family, BOOL copyFamily, double size)
+{
+	uiDrawTextFont *font;
+	WCHAR *copy;
+	HRESULT hr;
+
+	font = uiNew(uiDrawTextFont);
+	font->f = df;
+	if (copyFamily) {
+		copy = (WCHAR *) uiAlloc((wcslen(family) + 1) * sizeof (WCHAR), "WCHAR[]");
+		wcscpy(copy, family);
+		font->family = copy;
+	} else
+		font->family = family;
+	font->size = size;
+	return font;
+}
+
 // We could use a C99-style array initializer like the other backends, but C++ doesn't support those.
 // But it turns out we need to look up both by uival and dwval, so this loop method is fine...
 // TODO consider moving these all to dwrite.cpp
@@ -208,17 +226,17 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	BOOL exists;
 	struct dwriteAttr attr;
 	IDWriteFontFamily *family;
+	WCHAR *wfamily;
+	IDWriteFont *match;
 	HRESULT hr;
-
-	font = uiNew(uiDrawTextFont);
 
 	// always get the latest available font information
 	hr = dwfactory->GetSystemFontCollection(&collection, TRUE);
 	if (hr != S_OK)
 		logHRESULT("error getting system font collection in uiDrawLoadClosestFont()", hr);
 
-	font->family = toUTF16(desc->Family);
-	hr = collection->FindFamilyName(font->family, &index, &exists);
+	wfamily = toUTF16(desc->Family);
+	hr = collection->FindFamilyName(wfamily, &index, &exists);
 	if (hr != S_OK)
 		logHRESULT("error finding font family in uiDrawLoadClosestFont()", hr);
 	if (!exists)
@@ -231,16 +249,17 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	attr.italic = desc->Italic;
 	attr.stretch = desc->Stretch;
 	attrToDWriteAttr(&attr);
-
 	hr = family->GetFirstMatchingFont(
 		attr.dweight,
 		attr.dstretch,
 		attr.ditalic,
-		&(font->f));
+		&match);
 	if (hr != S_OK)
 		logHRESULT("error loading font in uiDrawLoadClosestFont()", hr);
 
-	font->size = desc->Size;
+	font = mkTextFont(match,
+		wfamily, FALSE,		// will be freed with font
+		desc->Size);
 
 	family->Release();
 	collection->Release();

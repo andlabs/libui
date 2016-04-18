@@ -161,6 +161,7 @@ extern WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedSt
 
 // drawtext.cpp
 #ifdef __cplusplus
+extern uiDrawTextFont *mkTextFont(IDWriteFont *df, WCHAR *family, BOOL copyFamily, double size);
 struct dwriteAttr {
 	uiDrawTextWeight weight;
 	uiDrawTextItalic italic;

@@ -155,6 +155,18 @@ extern WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedSt
 #endif
 
 // drawtext.cpp
+#ifdef __cplusplus
+struct dwriteAttr {
+	uiDrawTextWeight weight;
+	uiDrawTextItalic italic;
+	uiDrawTextStretch stretch;
+	DWRITE_FONT_WEIGHT dweight;
+	DWRITE_FONT_STYLE ditalic;
+	DWRITE_FONT_STRETCH dstretch;
+};
+extern void attrToDWriteAttr(struct dwriteAttr *attr);
+extern void dwriteAttrToAttr(struct dwriteAttr *attr);
+#endif
 extern void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout);
 
 // fontdialog.cpp

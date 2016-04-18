@@ -55,8 +55,8 @@ struct uiDrawTextFont {
 	double size;
 };
 
-// Not only does C++11 NOT include C99 designated initializers, but the C++ standards committee has REPEATEDLY REJECTING THEM, covering their ears and yelling "CONSTRUCTORS!!!111 PRIVATE DATA!1111 ENCAPSULATION!11one" at the top of their lungs.
-// So what could have been a simple array lookup is now a loop. Thanks guys.
+// We could use a C99-style array initializer like the other backends, but C++ doesn't support those.
+// But it turns out we need to look up both by uival and dwval, so this loop method is fine...
 
 static const struct {
 	bool lastOne;
@@ -102,17 +102,110 @@ static const struct {
 	{ true, uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
 };
 
+void attrToDWriteAttr(struct dwriteAttr *attr)
+{
+	bool found;
+	int i;
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteWeights[i].uival == attr->weight) {
+			attr->dweight = dwriteWeights[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteWeights[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid weight %d passed to attrToDWriteAttr()", attr->weight);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteItalics[i].uival == attr->italic) {
+			attr->ditalic = dwriteItalics[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteItalics[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid italic %d passed to attrToDWriteAttr()", attr->italic);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteStretches[i].uival == attr->stretch) {
+			attr->dstretch = dwriteStretches[i].dwval;
+			found = true;
+			break;
+		}
+		if (dwriteStretches[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid stretch %d passed to attrToDWriteAttr()", attr->stretch);
+}
+
+void dwriteAttrToAttr(struct dwriteAttr *attr)
+{
+	int weight, against, n;
+	int curdiff, curindex;
+	bool found;
+	int i;
+
+	// weight is scaled; we need to test to see what's nearest
+	weight = (int) (attr->dweight);
+	against = (int) (dwriteWeights[0].dwval);
+	curdiff = abs(against - weight);
+	curindex = 0;
+	for (i = 1; ; i++) {
+		against = (int) (dwriteWeights[i].dwval);
+		n = abs(against - weight);
+		if (n < curdiff) {
+			curdiff = n;
+			curindex = i;
+		}
+		if (dwriteWeights[i].lastOne)
+			break;
+	}
+	attr->weight = dwriteWeights[i].uival;
+
+	// italic and stretch are simple values; we can just do a matching search
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteItalics[i].dwval == attr->ditalic) {
+			attr->italic = dwriteItalics[i].uival;
+			found = true;
+			break;
+		}
+		if (dwriteItalics[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid italic %d passed to dwriteAttrToAttr()", attr->ditalic);
+
+	found = false;
+	for (i = 0; ; i++) {
+		if (dwriteStretches[i].dwval == attr->dstretch) {
+			attr->stretch = dwriteStretches[i].uival;
+			found = true;
+			break;
+		}
+		if (dwriteStretches[i].lastOne)
+			break;
+	}
+	if (!found)
+		complain("invalid stretch %d passed to dwriteAttrToAttr()", attr->dstretch);
+}
+
 uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 {
 	uiDrawTextFont *font;
 	IDWriteFontCollection *collection;
 	UINT32 index;
 	BOOL exists;
-	DWRITE_FONT_WEIGHT weight;
-	DWRITE_FONT_STYLE italic;
-	DWRITE_FONT_STRETCH stretch;
-	bool found;
-	int i;
+	struct dwriteAttr attr;
 	IDWriteFontFamily *family;
 	HRESULT hr;
 
@@ -133,48 +226,15 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	if (hr != S_OK)
 		logHRESULT("error loading font family in uiDrawLoadClosestFont()", hr);
 
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteWeights[i].uival == desc->Weight) {
-			weight = dwriteWeights[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteWeights[i].lastOne)
-			break;
-	}
-	if (!found)
-		complain("invalid initial weight %d passed to uiDrawLoadClosestFont()", desc->Weight);
+	attr.weight = desc->Weight;
+	attr.italic = desc->Italic;
+	attr.stretch = desc->Stretch;
+	attrToDWriteAttr(&attr);
 
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteItalics[i].uival == desc->Italic) {
-			italic = dwriteItalics[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteItalics[i].lastOne)
-			break;
-	}
-	if (!found)
-		complain("invalid initial italic %d passed to uiDrawLoadClosestFont()", desc->Italic);
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteStretches[i].uival == desc->Stretch) {
-			stretch = dwriteStretches[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteStretches[i].lastOne)
-			break;
-	}
-	if (!found)
-		complain("invalid initial stretch %d passed to uiDrawLoadClosestFont()", desc->Stretch);
-
-	hr = family->GetFirstMatchingFont(weight,
-		stretch,
-		italic,
+	hr = family->GetFirstMatchingFont(
+		attr.dweight,
+		attr.dstretch,
+		attr.ditalic,
 		&(font->f));
 	if (hr != S_OK)
 		logHRESULT("error loading font in uiDrawLoadClosestFont()", hr);

@@ -1,8 +1,6 @@
 // 14 april 2016
 #include "uipriv_windows.h"
 
-// TODO implement a custom font dialog that uses DirectWrite?
-
 struct uiFontButton {
 	uiWindowsControl c;
 	HWND hwnd;
@@ -10,24 +8,28 @@ struct uiFontButton {
 	BOOL already;
 };
 
+static void onDestroy(uiFontButton *);
+
 uiWindowsDefineControlWithOnDestroy(
 	uiFontButton,							// type name
 	uiFontButtonType,						// type function
-	uiWindowsUnregisterWM_COMMANDHandler(this->hwnd);	// on destroy
+	onDestroy(this);						// on destroy
 )
+
+static void onDestroy(uiFontButton *b)
+{
+	uiWindowsUnregisterWM_COMMANDHandler(b->hwnd);
+	destroyFontDialogParams(&(b->params));
+}
 
 static void updateFontButtonLabel(uiFontButton *b)
 {
-	// TODO make this dynamically sized
-	// TODO also include the style, but from where? libui or DirectWrite?
-	WCHAR text[1024];
-	WCHAR *family;
+	WCHAR *text;
 
-	family = toUTF16(b->params.desc.Family);
-	_snwprintf(text, 1024, L"%s %s %g", family, b->params.outStyleName, b->params.desc.Size);
-	uiFree(family);
+	text = fontDialogParamsToString(&(b->params));
 	// TODO error check
 	SendMessageW(b->hwnd, WM_SETTEXT, 0, (LPARAM) text);
+	uiFree(text);
 
 	// changing the text might necessitate a change in the button's size
 	uiWindowsControlQueueRelayout(uiWindowsControl(b));
@@ -82,6 +84,9 @@ static void defaultOnClicked(uiButton *b, void *data)
 	// do nothing
 }
 #endif
+
+// TODO document that GetFont returns a NEW instance each time
+// TODO document that the Handle of a Font may not be unique
 
 #if 0
 TODO

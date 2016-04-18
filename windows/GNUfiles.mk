@@ -20,7 +20,6 @@ CFILES += \
 	windows/draw.c \
 	windows/entry.c \
 	windows/events.c \
-	windows/fontbutton.c \
 	windows/group.c \
 	windows/init.c \
 	windows/label.c \
@@ -45,6 +44,7 @@ CFILES += \
 CXXFILES += \
 	windows/drawtext.cpp \
 	windows/dwrite.cpp \
+	windows/fontbutton.cpp \
 	windows/fontdialog.cpp
 
 HFILES += \

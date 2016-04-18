@@ -6,7 +6,7 @@
 struct uiFontButton {
 	uiWindowsControl c;
 	HWND hwnd;
-	uiDrawTextFontDescriptor desc;
+	struct fontDialogParams params;
 	BOOL already;
 };
 
@@ -23,8 +23,8 @@ static void updateFontButtonLabel(uiFontButton *b)
 	WCHAR text[1024];
 	WCHAR *family;
 
-	family = toUTF16(b->desc.Family);
-	_snwprintf(text, 1024, L"%s %g", family, b->desc.Size);
+	family = toUTF16(b->params.desc.Family);
+	_snwprintf(text, 1024, L"%s %s %g", family, b->params.outStyleName, b->params.desc.Size);
 	uiFree(family);
 	// TODO error check
 	SendMessageW(b->hwnd, WM_SETTEXT, 0, (LPARAM) text);
@@ -37,17 +37,12 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiFontButton *b = uiFontButton(c);
 	HWND parent;
-	char *oldFamily;
 
 	if (code != BN_CLICKED)
 		return FALSE;
 
 	parent = GetAncestor(b->hwnd, GA_ROOT);		// TODO didn't we have a function for this
-	oldFamily = (char *) (b->desc.Family);
-	if (showFontDialog(parent, &(b->desc))) {
-		if (b->already)			// don't free the static Arial string
-			uiFree(oldFamily);
-		b->already = TRUE;
+	if (showFontDialog(parent, &(b->params))) {
 		updateFontButtonLabel(b);
 		// TODO event
 	}
@@ -109,12 +104,7 @@ uiFontButton *uiNewFontButton(void)
 		hInstance, NULL,
 		TRUE);
 
-	// arbitrary defaults that will do
-	b->desc.Family = "Arial";
-	b->desc.Size = 10;		// from the real font dialog
-	b->desc.Weight = uiDrawTextWeightNormal;
-	b->desc.Italic = uiDrawTextItalicNormal;
-	b->desc.Stretch = uiDrawTextStretchNormal;
+	loadInitialFontDialogParams(&(b->params));
 	updateFontButtonLabel(b);
 
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));

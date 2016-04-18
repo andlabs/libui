@@ -5,6 +5,7 @@
 // - quote the Choose Font sample here for reference
 // - the Choose Font sample defaults to Regular/Italic/Bold/Bold Italic in some case (no styles?); do we? find out what the case is
 // - do we set initial family and style topmost as well?
+// - this should probably just handle IDWriteFonts
 
 struct fontDialog {
 	HWND hwnd;
@@ -12,7 +13,7 @@ struct fontDialog {
 	HWND styleCombobox;
 	HWND sizeCombobox;
 
-	uiDrawTextFontDescriptor *desc;
+	struct fontDialogParams *params;
 
 	fontCollection *fc;
 
@@ -156,7 +157,7 @@ static void wipeStylesBox(struct fontDialog *f)
 	cbWipeAndReleaseData(f->styleCombobox);
 }
 
-static WCHAR *fontStyleName(struct fontDialog *f, IDWriteFont *font)
+static WCHAR *fontStyleName(struct fontCollection *fc, IDWriteFont *font)
 {
 	IDWriteLocalizedStrings *str;
 	WCHAR *wstr;
@@ -165,7 +166,7 @@ static WCHAR *fontStyleName(struct fontDialog *f, IDWriteFont *font)
 	hr = font->GetFaceNames(&str);
 	if (hr != S_OK)
 		logHRESULT("error getting font style name for font dialog in fontStyleName()", hr);
-	wstr = fontCollectionCorrectString(f->fc, str);
+	wstr = fontCollectionCorrectString(fc, str);
 	str->Release();
 	return wstr;
 }
@@ -249,7 +250,7 @@ static void familyChanged(struct fontDialog *f)
 		hr = family->GetFont(i, &font);
 		if (hr != S_OK)
 			logHRESULT("error getting font for filling styles box in familyChanged()", hr);
-		label = fontStyleName(f, font);
+		label = fontStyleName(f->fc, font);
 		pos = cbAddString(f->styleCombobox, label);
 		uiFree(label);
 		cbSetItemData(f->styleCombobox, (WPARAM) pos, (LPARAM) font);
@@ -428,15 +429,15 @@ static void setupInitialFontDialogState(struct fontDialog *f)
 	WCHAR wsize[512];		// this should be way more than enough
 	LRESULT pos;
 
-	// first convert f->desc into a usable form
-	wfamily = toUTF16(f->desc->Family);
+	// first convert f->params->desc into a usable form
+	wfamily = toUTF16(f->params->desc.Family);
 	// see below for why we do this specifically
 	// TODO is 512 the correct number to pass to _snwprintf()?
 	// TODO will this revert to scientific notation?
-	_snwprintf(wsize, 512, L"%g", f->desc->Size);
-	attr.weight = f->desc->Weight;
-	attr.italic = f->desc->Italic;
-	attr.stretch = f->desc->Stretch;
+	_snwprintf(wsize, 512, L"%g", f->params->desc.Size);
+	attr.weight = f->params.desc->Weight;
+	attr.italic = f->params.desc->Italic;
+	attr.stretch = f->params.desc->Stretch;
 	attrToDWriteAttr(&attr);
 
 	// first let's load the size
@@ -475,7 +476,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 
 	f = uiNew(struct fontDialog);
 	f->hwnd = hwnd;
-	f->desc = (uiDrawTextFontDescriptor *) lParam;
+	f->params = (struct fontDialogParams *) lParam;
 
 	f->familyCombobox = GetDlgItem(f->hwnd, rcFontFamilyCombobox);
 	if (f->familyCombobox == NULL)
@@ -540,17 +541,23 @@ static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
 
 	// OK
 	wfamily = cbGetItemText(f->familyCombobox, f->curFamily);
-	f->desc->Family = toUTF8(wfamily);
+	uiFree(f->params->desc.Family);
+	f->params->desc.Family = toUTF8(wfamily);
 	uiFree(wfamily);
-	f->desc->Size = f->curSize;
+	f->params->desc.Size = f->curSize;
 	font = (IDWriteFont *) cbGetItemData(f->styleCombobox, f->curStyle);
 	attr.dweight = font->GetWeight();
 	attr.ditalic = font->GetStyle();
 	attr.dstretch = font->GetStretch();
 	dwriteAttrToAttr(&attr);
-	f->desc->Weight = attr.weight;
-	f->desc->Italic = attr.italic;
-	f->desc->Stretch = attr.stretch;
+	f->params->desc.Weight = attr.weight;
+	f->params->desc.Italic = attr.italic;
+	f->params->desc.Stretch = attr.stretch;
+	uiFree(f->params->outStyleName);
+	// TODO rename to wstr
+	wfamily = fontStyleName(f->fc, font);
+	f->params->outStyleName = toUTF8(wfamily);
+	uiFree(wfamily);
 	endFontDialog(f, 2);
 	return TRUE;
 }
@@ -614,9 +621,9 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	return FALSE;
 }
 
-BOOL showFontDialog(HWND parent, uiDrawTextFontDescriptor *desc)
+BOOL showFontDialog(HWND parent, struct fontDialogParams *params)
 {
-	switch (DialogBoxParamW(hInstance, MAKEINTRESOURCE(rcFontDialog), parent, fontDialogDlgProc, (LPARAM) desc)) {
+	switch (DialogBoxParamW(hInstance, MAKEINTRESOURCE(rcFontDialog), parent, fontDialogDlgProc, (LPARAM) params)) {
 	case 1:			// cancel
 		return FALSE;
 	case 2:			// ok
@@ -626,4 +633,82 @@ BOOL showFontDialog(HWND parent, uiDrawTextFontDescriptor *desc)
 		logLastError("error running font dialog in showFontDialog()");
 	}
 	return TRUE;
+}
+
+static IDWriteFontFamily *tryFindFamily(IDWriteFontCollection *fc, const WCHAR *name)
+{
+	UINT32 index;
+	BOOL exists;
+	IDWriteFontFamily *family;
+	HRESULT hr;
+
+	hr = fc->FindFamilyName(name, &index, &exists);
+	if (hr != S_OK)
+		logHRESULT("error finding font family for font dialog in tryFindFamily()", hr);
+	if (!exists)
+		return NULL;
+	hr = fc->GetFontFamily(index, &family);
+	if (hr != S_OK)
+		logHRESULT("error extracting found font family for font dialog in tryFindFamily()", hr);
+	return family;
+}
+
+void loadInitialFontDialogParams(struct fontDialogParams *params)
+{
+	struct fontCollection *fc;
+	IDWriteFontFamily *family;
+	IDWriteFont *font;
+	struct attr;
+	WCHAR *wstr;
+	HRESULT hr;
+
+	// Our preferred font is Arial 10 Regular.
+	// 10 comes from the official font dialog.
+	// Arial Regular is a reasonable, if arbitrary, default; it's similar to the defaults on other systems.
+	// If Arial isn't found, we'll use Helvetica and then MS Sans Serif as fallbacks, and if not, we'll just grab the first font family in the collection.
+
+	// We need the correct localized name for Regular (and possibly Arial too? let's say yes to be safe), so let's grab the strings from DirectWrite instead of hardcoding them.
+	fc = loadFontCollection();
+	family = tryFindFamily(fc->fonts, L"Arial");
+	if (family == NULL) {
+		family = tryFindFamily(fc->fonts, L"Helvetica");
+		if (family == NULL) {
+			family = tryFindFamily(fc->fonts, L"MS Sans Serif");
+			if (family == NULL) {
+				hr = fc->fonts->GetFontFamily(0, &family);
+				if (hr != S_OK)
+					logHRESULT("error getting first font out of font collection (worst case scenario) in loadInitialFontDialogParams()", hr);
+			}
+		}
+	}
+
+	// next part is simple: just get the closest match to regular
+	hr = family->GetFirstMatchingFont(
+		DWRITE_FONT_WEIGHT_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		DWRITE_FONT_STYLE_NORMAL,
+		&font);
+	if (hr != S_OK)
+		logHRESULT("error getting Regular font from Arial in loadInitialFontDialogParams()", hr);
+
+	// now convert attributes in the actual font...
+	attr.dweight = font->GetWeight();
+	attr.ditalic = font->GetStyle();
+	attr.dstretch = font->GetStretch();
+	dwriteAttrToAttr(&attr);
+
+	// and finally fill the structure
+	wstr = fontCollectionFamilyName(fc, family);
+	params->desc.Family = toUTF8(wstr);
+	uiFree(wstr);
+	params->desc.Size = 10;
+	params->desc.Weight = attr.weight;
+	params->desc.Italic = attr.italic;
+	params->desc.Stretch = attr.stretch;
+	wstr = fontStyleName(fc, font);
+	params->outStyleName = toUTF8(wstr);
+	uiFree(wstr);
+	font->Release();
+	family->Release();
+	fontCollectionFree(fc);
 }

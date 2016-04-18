@@ -170,7 +170,12 @@ extern void dwriteAttrToAttr(struct dwriteAttr *attr);
 extern void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout);
 
 // fontdialog.cpp
-extern BOOL showFontDialog(HWND parent, uiDrawTextFontDescriptor *desc);
+struct fontDialogParams {
+	uiDrawTextFontDescriptor desc;
+	WCHAR *outStyleName;
+};
+extern BOOL showFontDialog(HWND parent, struct fontDialogParams *params);
+extern void loadInitialFontDialogParams(struct fontDialogParams *params);
 
 // d2dscratch.c
 extern ATOM registerD2DScratchClass(HICON, HCURSOR);

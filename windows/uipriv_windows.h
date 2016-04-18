@@ -1,7 +1,12 @@
 // 6 january 2015
 #include "winapi.h"
 #include "../ui.h"
+// TODO
+#ifdef __cplusplus
+#define this self
+#endif
 #include "../ui_windows.h"
+#undef this		// TODO
 #include "../common/uipriv.h"
 #include "resources.h"
 #include "compilerver.h"
@@ -180,7 +185,7 @@ struct fontDialogParams {
 extern BOOL showFontDialog(HWND parent, struct fontDialogParams *params);
 extern void loadInitialFontDialogParams(struct fontDialogParams *params);
 extern void destroyFontDialogParams(struct fontDialogParams *params);
-extern WCHAR fontDialogParamsToString(struct fontDialogParams *params);
+extern WCHAR *fontDialogParamsToString(struct fontDialogParams *params);
 #endif
 
 // d2dscratch.c

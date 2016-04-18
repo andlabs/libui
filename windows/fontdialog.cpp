@@ -424,27 +424,17 @@ static LRESULT CALLBACK fontDialogSampleSubProc(HWND hwnd, UINT uMsg, WPARAM wPa
 
 static void setupInitialFontDialogState(struct fontDialog *f)
 {
-	WCHAR *wfamily;
-	struct dwriteAttr attr;
 	WCHAR wsize[512];		// this should be way more than enough
 	LRESULT pos;
-
-	// first convert f->params->desc into a usable form
-	wfamily = toUTF16(f->params->desc.Family);
-	// see below for why we do this specifically
-	// TODO is 512 the correct number to pass to _snwprintf()?
-	// TODO will this revert to scientific notation?
-	_snwprintf(wsize, 512, L"%g", f->params->desc.Size);
-	attr.weight = f->params.desc->Weight;
-	attr.italic = f->params.desc->Italic;
-	attr.stretch = f->params.desc->Stretch;
-	attrToDWriteAttr(&attr);
 
 	// first let's load the size
 	// the real font dialog:
 	// - if the chosen font size is in the list, it selects that item AND makes it topmost
 	// - if the chosen font size is not in the list, don't bother
 	// we'll simulate it by setting the text to a %f representation, then pretending as if it was entered
+	// TODO is 512 the correct number to pass to _snwprintf()?
+	// TODO will this revert to scientific notation?
+	_snwprintf(wsize, 512, L"%g", f->params->size);
 	// TODO make this a setWindowText()
 	if (SendMessageW(f->sizeCombobox, WM_SETTEXT, 0, (LPARAM) wsize) != (LRESULT) TRUE)
 		logLastError("error setting size combobox to initial font size in setupInitialFontDialogState()");
@@ -455,13 +445,12 @@ static void setupInitialFontDialogState(struct fontDialog *f)
 
 	// now we set the family and style
 	// we do this by first setting the previous style attributes, then simulating a font entered
-	f->weight = attr.dweight;
-	f->style = attr.ditalic;
-	f->stretch = attr.dstretch;
-	if (SendMessageW(f->familyCombobox, WM_SETTEXT, 0, (LPARAM) wfamily) != (LRESULT) TRUE)
+	f->weight = f->params->font->GetWeight();
+	f->style = f->params->font->GetStyle();
+	f->stretch = f->params->font->GetStretch();
+	if (SendMessageW(f->familyCombobox, WM_SETTEXT, 0, (LPARAM) (f->params->familyName)) != (LRESULT) TRUE)
 		logLastError("error setting family combobox to initial font family in setupInitialFontDialogState()");
 	familyEdited(f);
-	uiFree(wfamily);
 }
 
 static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
@@ -529,9 +518,7 @@ static void endFontDialog(struct fontDialog *f, INT_PTR code)
 
 static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
 {
-	WCHAR *wfamily;
-	IDWriteFont *font;
-	struct dwriteAttr attr;
+	IDWriteFontFamily *family;
 
 	// cancelling
 	if (LOWORD(wParam) != IDOK) {
@@ -540,24 +527,14 @@ static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
 	}
 
 	// OK
-	wfamily = cbGetItemText(f->familyCombobox, f->curFamily);
-	uiFree(f->params->desc.Family);
-	f->params->desc.Family = toUTF8(wfamily);
-	uiFree(wfamily);
-	f->params->desc.Size = f->curSize;
-	font = (IDWriteFont *) cbGetItemData(f->styleCombobox, f->curStyle);
-	attr.dweight = font->GetWeight();
-	attr.ditalic = font->GetStyle();
-	attr.dstretch = font->GetStretch();
-	dwriteAttrToAttr(&attr);
-	f->params->desc.Weight = attr.weight;
-	f->params->desc.Italic = attr.italic;
-	f->params->desc.Stretch = attr.stretch;
-	uiFree(f->params->outStyleName);
-	// TODO rename to wstr
-	wfamily = fontStyleName(f->fc, font);
-	f->params->outStyleName = toUTF8(wfamily);
-	uiFree(wfamily);
+	destroyFontDialogParams(f->params);
+	f->params->font = (IDWriteFont *) cbGetItemData(f->styleCombobox, f->curStyle);
+	// we need to save font from being destroyed with the combobox
+	f->params->font->AddRef();
+	f->params->size = f->curSize;
+	family = (IDWriteFontFamily *) cbGetItemData(f->familyCombobox, f->curFamily);
+	f->params->familyName = fontCollectionFamilyName(f->fc, family);
+	f->params->styleName = fontStyleName(f->fc, f->params->font);
 	endFontDialog(f, 2);
 	return TRUE;
 }
@@ -658,8 +635,6 @@ void loadInitialFontDialogParams(struct fontDialogParams *params)
 	struct fontCollection *fc;
 	IDWriteFontFamily *family;
 	IDWriteFont *font;
-	struct attr;
-	WCHAR *wstr;
 	HRESULT hr;
 
 	// Our preferred font is Arial 10 Regular.
@@ -691,24 +666,32 @@ void loadInitialFontDialogParams(struct fontDialogParams *params)
 	if (hr != S_OK)
 		logHRESULT("error getting Regular font from Arial in loadInitialFontDialogParams()", hr);
 
-	// now convert attributes in the actual font...
-	attr.dweight = font->GetWeight();
-	attr.ditalic = font->GetStyle();
-	attr.dstretch = font->GetStretch();
-	dwriteAttrToAttr(&attr);
+	params->font = font;
+	params->size = 10;
+	params->familyName = fontCollectionFamilyName(fc, family);
+	params->styleName = fontStyleName(fc, font);
 
-	// and finally fill the structure
-	wstr = fontCollectionFamilyName(fc, family);
-	params->desc.Family = toUTF8(wstr);
-	uiFree(wstr);
-	params->desc.Size = 10;
-	params->desc.Weight = attr.weight;
-	params->desc.Italic = attr.italic;
-	params->desc.Stretch = attr.stretch;
-	wstr = fontStyleName(fc, font);
-	params->outStyleName = toUTF8(wstr);
-	uiFree(wstr);
-	font->Release();
+	// don't release font; we still need it
 	family->Release();
 	fontCollectionFree(fc);
+}
+
+void destroyFontDialogParams(struct fontDialogParams *params)
+{
+	params->font->Release();
+	uiFree(params->familyName);
+	uiFree(params->styleName);
+}
+
+WCHAR *fontDialogParamsToString(struct fontDialogParams *params)
+{
+	WCHAR *text;
+
+	// TODO dynamically allocate
+	text = (WCHAR *) uiAlloc(512 * sizeof (WCHAR), "WCHAR[]");
+	_snwprintf(text, 512, L"%s %s %g",
+		params->familyName,
+		params->styleName,
+		params->size);
+	return text;
 }

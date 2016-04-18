@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	uiTabAppend(mainTab, "Page 5", uiControl(page5));
 
 	innerTab = newTab();
-	uiTabAppend(outerTab, "Pages 6-9", uiControl(innerTab));
+	uiTabAppend(outerTab, "Pages 6-10", uiControl(innerTab));
 
 	page6 = makePage6();
 	uiTabAppend(innerTab, "Page 6", uiControl(page6));

@@ -1,5 +1,6 @@
 // 14 april 2016
 #include "uipriv_windows.h"
+#define this self		// TODO
 
 struct uiFontButton {
 	uiWindowsControl c;

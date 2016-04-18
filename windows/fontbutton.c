@@ -6,8 +6,7 @@
 struct uiFontButton {
 	uiWindowsControl c;
 	HWND hwnd;
-	LOGFONTW font;
-	INT pointSize;
+	uiDrawTextFontDescriptor desc;
 	BOOL already;
 };
 
@@ -20,7 +19,6 @@ uiWindowsDefineControlWithOnDestroy(
 static void updateFontButtonLabel(uiFontButton *b)
 {
 	// TODO
-	SetWindowTextW(b->hwnd, b->font.lfFaceName);
 	// changing the text might necessitate a change in the button's size
 	uiWindowsControlQueueRelayout(uiWindowsControl(b));
 }
@@ -28,38 +26,20 @@ static void updateFontButtonLabel(uiFontButton *b)
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiFontButton *b = uiFontButton(c);
-	CHOOSEFONTW cf;
+	HWND parent;
+	char *oldFamily;
 
 	if (code != BN_CLICKED)
 		return FALSE;
 
-	ZeroMemory(&cf, sizeof (CHOOSEFONTW));
-	cf.lStructSize = sizeof (CHOOSEFONTW);
-	cf.hwndOwner = GetAncestor(b->hwnd, GA_ROOT);		// TODO didn't we have a function for this
-showFontDialog(cf.hwndOwner);
-	cf.lpLogFont = &(b->font);
-ZeroMemory(&(b->font), sizeof(LOGFONTW));
-b->font.lfFaceName[0]='A';
-b->font.lfFaceName[1]='r';
-b->font.lfFaceName[2]='i';
-b->font.lfFaceName[3]='a';
-b->font.lfFaceName[4]='l';
-b->font.lfFaceName[5]=0;
-b->font.lfHeight=-15*96/72;
-	// TODO CF_FORCEFONTEXIST? CF_INACTIVEFONTS? CF_NOSCRIPTSEL? CF_USESTYLE?
-//	if (b->already)
-		cf.Flags = CF_INITTOLOGFONTSTRUCT;
-	if (ChooseFontW(&cf) != FALSE) {
+	parent = GetAncestor(b->hwnd, GA_ROOT);		// TODO didn't we have a function for this
+	oldFamily = (char *) (b->desc.Family);
+	if (showFontDialog(parent, &(b->desc))) {
+		if (b->already)			// don't free the static Arial string
+			uiFree(oldFamily);
 		b->already = TRUE;
 		updateFontButtonLabel(b);
 		// TODO event
-	} else {
-		DWORD err;
-
-		err = CommDlgExtendedError();
-		if (err != 0)
-			// TODO
-			logLastError("TODO help");
 	}
 
 	*lResult = 0;
@@ -119,6 +99,13 @@ uiFontButton *uiNewFontButton(void)
 		BS_PUSHBUTTON | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
+
+	// arbitrary defaults that will do
+	b->desc.Family = "Arial";
+	b->desc.Size = 10;		// from the real font dialog
+	b->desc.Weight = uiDrawTextWeightNormal;
+	b->desc.Italic = uiDrawTextItalicNormal;
+	b->desc.Stretch = uiDrawTextStretchNormal;
 
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
 //TODO	uiButtonOnClicked(b, defaultOnClicked, NULL);

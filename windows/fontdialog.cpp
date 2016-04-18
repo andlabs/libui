@@ -2,7 +2,9 @@
 #include "uipriv_windows.h"
 
 // TODOs
+// - quote the Choose Font sample here for reference
 // - the Choose Font sample defaults to Regular/Italic/Bold/Bold Italic in some case (no styles?); do we? find out what the case is
+// - do we set initial family and style topmost as well?
 
 struct fontDialog {
 	HWND hwnd;
@@ -10,7 +12,7 @@ struct fontDialog {
 	HWND styleCombobox;
 	HWND sizeCombobox;
 
-	// TODO desc;
+	uiDrawTextFontDescriptor *desc;
 
 	fontCollection *fc;
 
@@ -433,6 +435,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 
 	f = uiNew(struct fontDialog);
 	f->hwnd = hwnd;
+	f->desc = (uiDrawTextFontDescriptor *) lParam;
 
 	f->familyCombobox = GetDlgItem(f->hwnd, rcFontFamilyCombobox);
 	if (f->familyCombobox == NULL)
@@ -516,8 +519,9 @@ static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
 		return TRUE;
 	}
 
-	// TODO
-
+	// OK
+	// TODO fill f->desc here
+	f->desc->Size = f->curSize;
 	endFontDialog(f, 2);
 	return TRUE;
 }
@@ -581,16 +585,16 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	return FALSE;
 }
 
-void showFontDialog(HWND parent)
+BOOL showFontDialog(HWND parent, uiDrawTextFontDescriptor *desc)
 {
-	switch (DialogBoxParamW(hInstance, MAKEINTRESOURCE(rcFontDialog), parent, fontDialogDlgProc, (LPARAM) NULL)) {
-	case 1:
-		// TODO cancel
-		break;
-	case 2:
-		// TODO OK
+	switch (DialogBoxParamW(hInstance, MAKEINTRESOURCE(rcFontDialog), parent, fontDialogDlgProc, (LPARAM) desc)) {
+	case 1:			// cancel
+		return FALSE;
+	case 2:			// ok
+		// make the compiler happy by putting the return after the switch
 		break;
 	default:
 		logLastError("error running font dialog in showFontDialog()");
 	}
+	return TRUE;
 }

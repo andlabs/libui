@@ -472,7 +472,6 @@ typedef enum uiDrawTextWeight {
 	uiDrawTextWeightUltraHeavy,
 } uiDrawTextWeight;
 
-// TODO drop Oblique?
 typedef enum uiDrawTextItalic {
 	uiDrawTextItalicNormal,
 	uiDrawTextItalicOblique,

@@ -158,7 +158,7 @@ extern WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedSt
 extern void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout);
 
 // fontdialog.cpp
-extern void showFontDialog(HWND parent);
+extern BOOL showFontDialog(HWND parent, uiDrawTextFontDescriptor *desc);
 
 // d2dscratch.c
 extern ATOM registerD2DScratchClass(HICON, HCURSOR);

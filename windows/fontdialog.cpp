@@ -30,7 +30,7 @@ struct fontDialog {
 	DWRITE_FONT_STRETCH stretch;
 };
 
-static LRESULT cbAddString(HWND cb, WCHAR *str)
+static LRESULT cbAddString(HWND cb, const WCHAR *str)
 {
 	LRESULT lr;
 
@@ -40,13 +40,13 @@ static LRESULT cbAddString(HWND cb, WCHAR *str)
 	return lr;
 }
 
-static LRESULT cbInsertStringAtTop(HWND cb, WCHAR *str)
+static LRESULT cbInsertString(HWND cb, const WCHAR *str, WPARAM pos)
 {
 	LRESULT lr;
 
-	lr = SendMessageW(cb, CB_INSERTSTRING, 0, (LPARAM) str);
-	if (lr == (LRESULT) CB_ERR || lr == (LRESULT) CB_ERRSPACE)
-		logLastError("error inserting item to combobox in cbInsertStringAtTop()");
+	lr = SendMessageW(cb, CB_INSERTSTRING, pos, (LPARAM) str);
+	if (lr != (LRESULT) pos)
+		logLastError("error inserting item to combobox in cbInsertString()");
 	return lr;
 }
 
@@ -119,6 +119,7 @@ static WCHAR *cbGetItemText(HWND cb, WPARAM item)
 	text = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
 	if (SendMessageW(cb, CB_GETLBTEXT, item, (LPARAM) text) != len)
 		logLastError("error getting item text from combobox in cbGetItemText()");
+	return text;
 }
 
 static BOOL cbTypeToSelect(HWND cb, LRESULT *posOut, BOOL restoreAfter)
@@ -157,7 +158,6 @@ static void wipeStylesBox(struct fontDialog *f)
 static WCHAR *fontStyleName(struct fontDialog *f, IDWriteFont *font)
 {
 	IDWriteLocalizedStrings *str;
-	BOOL exists;
 	WCHAR *wstr;
 	HRESULT hr;
 
@@ -270,6 +270,61 @@ static void familyEdited(struct fontDialog *f)
 		familyChanged(f);
 }
 
+static const struct {
+	const WCHAR *text;
+	double value;
+} defaultSizes[] = {
+	{ L"8", 8 },
+	{ L"9", 9 },
+	{ L"10", 10 },
+	{ L"11", 11 },
+	{ L"12", 12 },
+	{ L"14", 14 },
+	{ L"16", 16 },
+	{ L"18", 18 },
+	{ L"20", 20 },
+	{ L"22", 22 },
+	{ L"24", 24 },
+	{ L"26", 26 },
+	{ L"28", 28 },
+	{ L"36", 36 },
+	{ L"48", 48 },
+	{ L"72", 72 },
+	{ NULL, 0 },
+};
+
+static void sizeChanged(struct fontDialog *f)
+{
+	LRESULT pos;
+	BOOL selected;
+
+	selected = cbGetCurSel(f->sizeCombobox, &pos);
+	if (!selected)		// on deselect, do nothing
+		return;
+	f->curSize = defaultSizes[pos].value;
+	queueRedrawSampleText(f);
+}
+
+static void sizeEdited(struct fontDialog *f)
+{
+	WCHAR *wsize;
+	double size;
+
+	// handle type-to-selection
+	if (cbTypeToSelect(f->sizeCombobox, NULL, FALSE)) {
+		sizeChanged(f);
+		return;
+	}
+	// selection not chosen, try to parse the typing
+	wsize = windowText(f->sizeCombobox);
+	// this is what the Choose Font dialog does; it swallows errors while the real ChooseFont() is not lenient (and only checks on OK)
+	size = wcstod(wsize, NULL);
+	if (size <= 0)		// don't change on invalid size
+		return;
+	f->curSize = size;
+	queueRedrawSampleText(f);
+}
+
 static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt)
 {
 	D2D1_COLOR_F color;
@@ -279,8 +334,7 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 	IDWriteLocalizedStrings *sampleStrings;
 	BOOL exists;
 	WCHAR *sample;
-	WCHAR *family, *wsize;
-	double size;
+	WCHAR *family;
 	IDWriteTextFormat *format;
 	D2D1_RECT_F rect;
 	HRESULT hr;
@@ -310,14 +364,9 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 		sampleStrings->Release();
 	} else
 		sample = L"The quick brown fox jumps over the lazy dog.";
-	// TODO get this from the currently selected item
-	family = windowText(f->familyCombobox);
-	// TODO but NOT this
-	wsize = windowText(f->sizeCombobox);
-	// TODO error check?
-	size = _wtof(wsize);
-	uiFree(wsize);
 
+	// DirectWrite doesn't allow creating a text format from a font; we need to get this ourselves
+	family = cbGetItemText(f->familyCombobox, f->curFamily);
 	hr = dwfactory->CreateTextFormat(family,
 		NULL,
 		font->GetWeight(),
@@ -325,7 +374,7 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 		font->GetStretch(),
 		// typographic points are 1/72 inch; this parameter is 1/96 inch
 		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
-		size * (96.0 / 72.0),
+		f->curSize * (96.0 / 72.0),
 		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
 		// TODO use the current locale again?
 		L"",
@@ -377,7 +426,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	UINT32 i, nFamilies;
 	IDWriteFontFamily *family;
 	WCHAR *wname;
-	LRESULT pos, ten;
+	LRESULT pos;
 	HWND samplePlacement;
 	HRESULT hr;
 
@@ -406,38 +455,16 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 		cbSetItemData(f->familyCombobox, (WPARAM) pos, (LPARAM) family);
 	}
 
-	// TODO all comboboxes should select on type; these already scroll on type but not select
+	for (i = 0; defaultSizes[i].text != NULL; i++)
+		cbInsertString(f->sizeCombobox, defaultSizes[i].text, (WPARAM) i);
+	// TODO make this proper
+	cbSetCurSel(f->sizeCombobox, 2);
+	sizeChanged(f);
 
-	// TODO behavior for the real thing:
-	// - if prior size is in list, select and scroll to it
-	// - if not, select nothing and don't scroll list at all (keep at top)
-	// we do 8 and 9 later
-	ten = cbAddString(f->sizeCombobox, L"10");
-	cbAddString(f->sizeCombobox, L"11");
-	cbAddString(f->sizeCombobox, L"12");
-	cbAddString(f->sizeCombobox, L"14");
-	cbAddString(f->sizeCombobox, L"16");
-	cbAddString(f->sizeCombobox, L"18");
-	cbAddString(f->sizeCombobox, L"20");
-	cbAddString(f->sizeCombobox, L"22");
-	cbAddString(f->sizeCombobox, L"24");
-	cbAddString(f->sizeCombobox, L"26");
-	cbAddString(f->sizeCombobox, L"28");
-	cbAddString(f->sizeCombobox, L"36");
-	cbAddString(f->sizeCombobox, L"48");
-	cbAddString(f->sizeCombobox, L"72");
-	if (SendMessageW(f->sizeCombobox, CB_SETCURSEL, (WPARAM) ten, 0) != ten)
-		logLastError("error selecting 10 in the size combobox in beginFontDialog()");
-	// if we just use CB_ADDSTRING 8 and 9 will appear at the bottom of the list due to lexicographical sorting
-	// if we use CB_INSERTSTRING instead it won't
-	cbInsertStringAtTop(f->sizeCombobox, L"9");
-	cbInsertStringAtTop(f->sizeCombobox, L"8");
-	// 10 moved because of the above; figure out where it is now
-	// we selected it earlier; getting the selection is easiest
-	ten = SendMessageW(f->sizeCombobox, CB_GETCURSEL, 0, 0);
-	// and finally put 10 at the top to imitate ChooseFont()
+/*TODO	// and finally put 10 at the top to imitate ChooseFont()
 	if (SendMessageW(f->sizeCombobox, CB_SETTOPINDEX, (WPARAM) ten, 0) != 0)
 		logLastError("error making 10 visible in the size combobox in beginFontDialog()");
+*/
 
 	// note: we can't add ES_NUMBER to the combobox entry (it seems to disable the entry instead?!), so we must do validation when the box is dmissed; TODO
 
@@ -531,13 +558,15 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 			}
 			return FALSE;
 		case rcFontSizeCombobox:
-			if (HIWORD(wParam) != CBN_SELCHANGE)
-				return FALSE;
-			// TODO really do the job
-			cbGetCurSel(f->styleCombobox, &(f->curStyle));
-			// TODO error check; refine
-			InvalidateRect(f->sampleBox, NULL, TRUE);
-			return TRUE;
+			if (HIWORD(wParam) == CBN_SELCHANGE) {
+				sizeChanged(f);
+				return TRUE;
+			}
+			if (HIWORD(wParam) == CBN_EDITCHANGE) {
+				sizeEdited(f);
+				return TRUE;
+			}
+			return FALSE;
 		}
 		return FALSE;
 	}

@@ -16,7 +16,6 @@ struct fontDialog {
 
 	fontCollection *fc;
 
-	IDWriteGdiInterop *gdiInterop;
 	RECT sampleRect;
 	HWND sampleBox;
 
@@ -422,6 +421,48 @@ static LRESULT CALLBACK fontDialogSampleSubProc(HWND hwnd, UINT uMsg, WPARAM wPa
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
 
+static void setupInitialFontDialogState(struct fontDialog *f)
+{
+	WCHAR *wfamily;
+	struct dwriteAttr attr;
+	WCHAR wsize[512];		// this should be way more than enough
+	LRESULT pos;
+
+	// first convert f->desc into a usable form
+	wfamily = toUTF16(f->desc->Family);
+	// see below for why we do this specifically
+	// TODO is 512 the correct number to pass to _snwprintf()?
+	// TODO will this revert to scientific notation?
+	_snwprintf(wsize, 512, L"%g", f->desc->Size);
+	attr.weight = f->desc->Weight;
+	attr.italic = f->desc->Italic;
+	attr.stretch = f->desc->Stretch;
+	attrToDWriteAttr(&attr);
+
+	// first let's load the size
+	// the real font dialog:
+	// - if the chosen font size is in the list, it selects that item AND makes it topmost
+	// - if the chosen font size is not in the list, don't bother
+	// we'll simulate it by setting the text to a %f representation, then pretending as if it was entered
+	// TODO make this a setWindowText()
+	if (SendMessageW(f->sizeCombobox, WM_SETTEXT, 0, (LPARAM) wsize) != (LRESULT) TRUE)
+		logLastError("error setting size combobox to initial font size in setupInitialFontDialogState()");
+	sizeEdited(f);
+	if (cbGetCurSel(f->sizeCombobox, &pos))
+		if (SendMessageW(f->sizeCombobox, CB_SETTOPINDEX, (WPARAM) pos, 0) != 0)
+			logLastError("error making chosen size topmost in the size combobox in setupInitialFontDialogState()");
+
+	// now we set the family and style
+	// we do this by first setting the previous style attributes, then simulating a font entered
+	f->weight = attr.dweight;
+	f->style = attr.ditalic;
+	f->stretch = attr.dstretch;
+	if (SendMessageW(f->familyCombobox, WM_SETTEXT, 0, (LPARAM) wfamily) != (LRESULT) TRUE)
+		logLastError("error setting family combobox to initial font family in setupInitialFontDialogState()");
+	familyEdited(f);
+	uiFree(wfamily);
+}
+
 static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 {
 	struct fontDialog *f;
@@ -430,7 +471,6 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	WCHAR *wname;
 	LRESULT pos;
 	HWND samplePlacement;
-	WCHAR wsize[512];		// this should be way more than enough
 	HRESULT hr;
 
 	f = uiNew(struct fontDialog);
@@ -461,31 +501,6 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 
 	for (i = 0; defaultSizes[i].text != NULL; i++)
 		cbInsertString(f->sizeCombobox, defaultSizes[i].text, (WPARAM) i);
-	// TODO use the selected size
-	// the real font dialog:
-	// - if the chosen font size is in the list, it selects that item AND makes it topmost
-	// - if the chosen font size is not in the list, don't bother
-	// we'll simulate it by setting the text to a %f representation, then pretending as if it was entered
-	// TODO is 512 the correct number to pass to _snwprintf()?
-	// TODO will this revert to scientific notation?
-	_snwprintf(wsize, 512, L"%g", 10.0);
-	// TODO make this a setWindowText()
-	if (SendMessageW(f->sizeCombobox, WM_SETTEXT, 0, (LPARAM) wsize) != (LRESULT) TRUE)
-		logLastError("error setting size combobox to initial font size in beginFontDialog()");
-	sizeEdited(f);
-	if (cbGetCurSel(f->sizeCombobox, &pos))
-		if (SendMessageW(f->sizeCombobox, CB_SETTOPINDEX, (WPARAM) pos, 0) != 0)
-			logLastError("error making chosen size topmost in the size combobox in beginFontDialog()");
-
-	// note: we can't add ES_NUMBER to the combobox entry (it seems to disable the entry instead?!), so we must do validation when the box is dmissed; TODO
-
-	// TODO actually select Arial
-	cbSetCurSel(f->familyCombobox, 0);
-	familyChanged(f);
-
-	hr = dwfactory->GetGdiInterop(&(f->gdiInterop));
-	if (hr != S_OK)
-		logHRESULT("error getting GDI interop for font dialog in beginFontDialog()", hr);
 
 	samplePlacement = GetDlgItem(f->hwnd, rcFontSamplePlacement);
 	if (samplePlacement == NULL)
@@ -497,12 +512,12 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 		logLastError("error getting rid of the sample placement static control in beginFontDialog()");
 	f->sampleBox = newD2DScratch(f->hwnd, &(f->sampleRect), (HMENU) rcFontSamplePlacement, fontDialogSampleSubProc, (DWORD_PTR) f);
 
+	setupInitialFontDialogState(f);
 	return f;
 }
 
 static void endFontDialog(struct fontDialog *f, INT_PTR code)
 {
-	f->gdiInterop->Release();
 	wipeStylesBox(f);
 	cbWipeAndReleaseData(f->familyCombobox);
 	fontCollectionFree(f->fc);

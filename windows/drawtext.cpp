@@ -57,6 +57,7 @@ struct uiDrawTextFont {
 
 // We could use a C99-style array initializer like the other backends, but C++ doesn't support those.
 // But it turns out we need to look up both by uival and dwval, so this loop method is fine...
+// TODO consider moving these all to dwrite.cpp
 
 static const struct {
 	bool lastOne;

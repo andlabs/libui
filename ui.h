@@ -522,6 +522,9 @@ _UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *layout);
 _UI_EXTERN void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width);
 _UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height);
 
+// and the attributes that you can set on a text layout
+_UI_EXTERN void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a);
+
 _UI_EXTERN void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout);
 
 typedef enum uiModifiers {

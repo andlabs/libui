@@ -22,112 +22,33 @@ static double entryDouble(uiEntry *e)
 	return d;
 }
 
-// TODO this should be altered not to restore all state on exit so default text attributes can be checked
-static void drawGuides(uiDrawContext *c, uiDrawTextFontMetrics *m)
-{
-	uiDrawPath *p;
-	uiDrawBrush b;
-	uiDrawStrokeParams sp;
-
-	memset(&b, 0, sizeof (uiDrawBrush));
-	b.Type = uiDrawBrushTypeSolid;
-	memset(&sp, 0, sizeof (uiDrawStrokeParams));
-	sp.Cap = uiDrawLineCapFlat;
-	sp.Join = uiDrawLineJoinMiter;
-	sp.MiterLimit = uiDrawDefaultMiterLimit;
-	sp.Thickness = 2;
-
-	uiDrawSave(c);
-
-	p = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathNewFigure(p, 8, 10);
-	uiDrawPathLineTo(p, 8, 10 + m->Ascent);
-	uiDrawPathEnd(p);
-	b.R = 0.94;
-	b.G = 0.5;
-	b.B = 0.5;
-	b.A = 1.0;
-	uiDrawStroke(c, p, &b, &sp);
-	uiDrawFreePath(p);
-
-	p = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathNewFigure(p, 8, 10 + m->Ascent);
-	uiDrawPathLineTo(p, 8, 10 + m->Ascent + m->Descent);
-	uiDrawPathEnd(p);
-	b.R = 0.12;
-	b.G = 0.56;
-	b.B = 1.0;
-	b.A = 1.0;
-	uiDrawStroke(c, p, &b, &sp);
-	uiDrawFreePath(p);
-
-	p = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathAddRectangle(p, 0, 0, 10, 10);
-	uiDrawPathEnd(p);
-	uiDrawClip(c, p);
-	b.R = 0.85;
-	b.G = 0.65;
-	b.B = 0.13;
-	b.A = 1.0;
-	uiDrawStroke(c, p, &b, &sp);
-	uiDrawFreePath(p);
-
-	uiDrawRestore(c);
-}
-
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 {
-#if 0
 	uiDrawTextFontDescriptor desc;
 	uiDrawTextFont *font;
-	char *s;
-	char *family;		// make compiler happy
 	uiDrawTextLayout *layout;
-	uiDrawTextFontMetrics metrics;
-	double ypos;
-	double width;
-	double height;
 
+	// TODO
 	memset(&desc, 0, sizeof (uiDrawTextFontDescriptor));
 	family = uiEntryText(textFont);
-	desc.Family = family;
-	desc.Size = entryDouble(textSize);
-	desc.Weight = uiComboboxSelected(textWeight);
-	desc.Italic = uiComboboxSelected(textItalic);
-	desc.SmallCaps = uiCheckboxChecked(textSmallCaps);
-	desc.Stretch = uiComboboxSelected(textStretch);
+	desc.Family = "Arial";
+	desc.Size = 36;
+	desc.Weight = uiDrawTextWeightNormal;
+	desc.Italic = uiDrawTextItalicNormal;
+	desc.Stretch = uiDrawTextStretchNormal;
 	font = uiDrawLoadClosestFont(&desc);
-	uiFreeText(family);
-	uiDrawTextFontGetMetrics(font, &metrics);
 
-	width = entryDouble(textWidth);
-
-	drawGuides(dp->Context, &metrics);
-
-	s = uiEntryText(textString);
-	layout = uiDrawNewTextLayout(s, font, width);
-	uiFreeText(s);
-	ypos = 10;
-	uiDrawText(dp->Context, 10, ypos, layout);
-	// TODO make these optional?
-	uiDrawTextLayoutExtents(layout, &width, &height);
-	uiDrawFreeTextLayout(layout);
-
-	layout = uiDrawNewTextLayout("This is a second line", font, -1);
-	if (/*TODO reuse width*/entryDouble(textWidth) < 0) {
-		double ad;
-
-		ad = metrics.Ascent + metrics.Descent;
-		printf("ad:%g extent:%g\n", ad, height);
-	}
-	ypos += height;
-	if (uiCheckboxChecked(addLeading))
-		ypos += metrics.Leading;
-	uiDrawText(dp->Context, 10, ypos, layout);
+	layout = uiDrawNewTextLayout(s, "One two three four", -1);
+	uiDrawTextLayoutSetForegroundColor(layout,
+		4, 7,
+		1, 0, 0, 1);
+	uiDrawTextLayoutSetForegroundColor(layout,
+		8, 14,
+		1, 0, 0.5, 0.5);
+	uiDrawText(dp->Context, 10, 10, layout);
 	uiDrawFreeTextLayout(layout);
 
 	uiDrawFreeTextFont(font);
-#endif
 }
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)

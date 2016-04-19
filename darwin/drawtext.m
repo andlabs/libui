@@ -600,3 +600,28 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 	y -= yoff;
 	CGContextSetTextPosition(c, x, y);
 #endif
+
+// TODO length - 1?
+#define rangeToCFRange() CFRangeMake(startChar, endChar - startChar)
+
+void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a)
+{
+	CGColorSpaceRef colorspace;
+	CGFloat components[4];
+	CGColorRef color;
+
+	// for consistency with windows, use sRGB
+	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+	components[0] = r;
+	components[1] = g;
+	components[2] = b;
+	components[3] = a;
+	color = CGColorCreate(colorspace, components);
+	CGColorSpaceRelease(colorspace);
+
+	CFAttributedStringSetAttribute(layout->mas,
+		rangeToCFRange(),
+		kCTForegroundColorAttributeName,
+		color);
+	CGColorRelease(color);		// TODO safe?
+}

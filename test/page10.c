@@ -30,7 +30,6 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 
 	// TODO
 	memset(&desc, 0, sizeof (uiDrawTextFontDescriptor));
-	family = uiEntryText(textFont);
 	desc.Family = "Arial";
 	desc.Size = 36;
 	desc.Weight = uiDrawTextWeightNormal;
@@ -38,11 +37,11 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	desc.Stretch = uiDrawTextStretchNormal;
 	font = uiDrawLoadClosestFont(&desc);
 
-	layout = uiDrawNewTextLayout(s, "One two three four", -1);
-	uiDrawTextLayoutSetForegroundColor(layout,
+	layout = uiDrawNewTextLayout("One two three four", font, -1);
+	uiDrawTextLayoutSetColor(layout,
 		4, 7,
 		1, 0, 0, 1);
-	uiDrawTextLayoutSetForegroundColor(layout,
+	uiDrawTextLayoutSetColor(layout,
 		8, 14,
 		1, 0, 0.5, 0.5);
 	uiDrawText(dp->Context, 10, 10, layout);

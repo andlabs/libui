@@ -439,78 +439,27 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 
 struct uiDrawTextLayout {
 	CFMutableAttributedStringRef mas;
-	intmax_t *bytesToCharacters;
 	double width;
 };
-
-// TODO this is *really* iffy, but we need to know character offsets...
-// TODO clean up the local variable names and improve documentation
-static intmax_t *strToCFStrOffsetList(const char *str, CFMutableStringRef *cfstr)
-{
-	intmax_t *bytesToCharacters;
-	intmax_t i, len;
-
-	len = strlen(str);
-	bytesToCharacters = (intmax_t *) uiAlloc(len * sizeof (intmax_t), "intmax_t[]");
-
-	*cfstr = CFStringCreateMutable(NULL, 0);
-	if (*cfstr == NULL)
-		complain("error creating CFMutableStringRef for storing string in strToCFStrOffset()");
-
-	i = 0;
-	while (i < len) {
-		CFStringRef substr;
-		intmax_t n;
-		intmax_t j;
-		intmax_t pos;
-
-		// figure out how many characters to convert and convert them
-		for (n = 1; (i + n - 1) < len; n++) {
-			substr = CFStringCreateWithBytes(NULL, (const UInt8 *) (str + i), n, kCFStringEncodingUTF8, false);
-			if (substr != NULL)		// found a full character
-				break;
-		}
-		// if this test passes we either:
-		// - reached the end of the string without a successful conversion (invalid string)
-		// - ran into allocation issues
-		if (substr == NULL)
-			complain("something bad happened when trying to prepare string in strToCFStrOffset()");
-
-		// now save the character offsets for those bytes
-		pos = CFStringGetLength(*cfstr);
-		for (j = 0; j < n; j++)
-			bytesToCharacters[j] = pos;
-
-		// and add the characters that we converted
-		CFStringAppend(*cfstr, substr);
-		CFRelease(substr);			// TODO correct?
-
-		// and go to the next
-		i += n;
-	}
-
-	return bytesToCharacters;
-}
 
 uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFont, double width)
 {
 	uiDrawTextLayout *layout;
-	CFMutableStringRef cfstr;
+//TODO	CFStringRef cfstr;
 	CFAttributedStringRef immutable;
 	CFMutableDictionaryRef attr;
 
 	layout = uiNew(uiDrawTextLayout);
 
-	layout->bytesToCharacters = strToCFStrOffsetList(str, &cfstr);
-
 	attr = newAttrList();
 	// this will retain defaultFont->f; no need to worry
 	CFDictionaryAddValue(attr, kCTFontAttributeName, defaultFont->f);
 
-	immutable = CFAttributedStringCreate(NULL, cfstr, attr);
+	// TODO convert the NSString call to a CFString call
+	immutable = CFAttributedStringCreate(NULL, (CFStringRef) [NSString stringWithUTF8String:str], attr);
 	if (immutable == NULL)
 		complain("error creating immutable attributed string in uiDrawNewTextLayout()");
-	CFRelease(cfstr);
+//TODO	CFRelease(cfstr);
 	CFRelease(attr);
 
 	layout->mas = CFAttributedStringCreateMutableCopy(NULL, 0, immutable);
@@ -526,7 +475,6 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFo
 void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
 	CFRelease(layout->mas);
-	uiFree(layout->bytesToCharacters);
 	uiFree(layout);
 }
 

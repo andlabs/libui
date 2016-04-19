@@ -318,69 +318,12 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
-	intmax_t *bytesToCharacters;
 };
-
-#define MBTWC(str, n, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, 0, str, n, wstr, bufsiz)
-#define MBTWCErr(str, n, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, n, wstr, bufsiz)
-
-// TODO figure out how ranges are specified in DirectWrite
-// TODO clean up the local variable names and improve documentation
-static intmax_t *toUTF16Offsets(const char *str, WCHAR **wstr, intmax_t *wlenout)
-{
-	intmax_t *bytesToCharacters;
-	intmax_t i, len;
-	int wlen;
-	intmax_t outpos;
-
-	len = strlen(str);
-	bytesToCharacters = (intmax_t *) uiAlloc(len * sizeof (intmax_t), "intmax_t[]");
-
-	wlen = MBTWC(str, -1, NULL, 0);
-	if (wlen == 0)
-		logLastError("error figuring out number of characters to convert to in toUTF16Offsets()");
-	*wstr = (WCHAR *) uiAlloc(wlen * sizeof (WCHAR), "WCHAR[]");
-	*wlenout = wlen;
-
-	i = 0;
-	outpos = 0;
-	while (i < len) {
-		intmax_t n;
-		intmax_t j;
-		BOOL found;
-		int m;
-
-		// figure out how many characters to convert and convert them
-		found = FALSE;
-		for (n = 1; (i + n - 1) < len; n++) {
-			// we need MB_ERR_INVALID_CHARS here for this to work properly
-			m = MBTWCErr(str + i, n, *wstr + outpos, wlen - outpos);
-			if (m != 0) {			// found a full character
-				found = TRUE;
-				break;
-			}
-		}
-		// if this test passes we reached the end of the string without a successful conversion (invalid string)
-		if (!found)
-			logLastError("something bad happened when trying to prepare string in uiDrawNewTextLayout()");
-
-		// now save the character offsets for those bytes
-		for (j = 0; j < m; j++)
-			bytesToCharacters[j] = outpos;
-
-		// and go to the next
-		i += n;
-		outpos += m;
-	}
-
-	return bytesToCharacters;
-}
 
 uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width)
 {
 	uiDrawTextLayout *layout;
 	WCHAR *wtext;
-	intmax_t wlen;
 	HRESULT hr;
 
 	layout = uiNew(uiDrawTextLayout);
@@ -400,8 +343,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 	if (hr != S_OK)
 		logHRESULT("error creating IDWriteTextFormat in uiDrawNewTextLayout()", hr);
 
-	layout->bytesToCharacters = toUTF16Offsets(text, &wtext, &wlen);
-	hr = dwfactory->CreateTextLayout(wtext, wlen,
+	wtext = toUTF16(text);
+	hr = dwfactory->CreateTextLayout(wtext, wcslen(wtext),
 		layout->format,
 		// FLOAT is float, not double, so this should work... TODO
 		FLT_MAX, FLT_MAX,

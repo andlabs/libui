@@ -1,5 +1,7 @@
 // 22 december 2015
 #include "uipriv_windows.h"
+// TODO
+#include <vector>
 
 // notes:
 // only available in windows 8 and newer:
@@ -315,15 +317,30 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 	metrics->UnderlineThickness = scaleUnits(dm.underlineThickness, dm.designUnitsPerEm, font->size);
 }
 
+// some attributes, such as foreground color, can't be applied until after we establish a Direct2D context :/ so we have to prepare all attributes in advance
+// also since there's no way to clear the attributes from a layout en masse (apart from overwriting them all), we'll play it safe by creating a new layout each time
+enum layoutAttrType {
+	layoutAttrColor,
+};
+
+struct layoutAttr {
+	enum layoutAttrType type;
+	intmax_t start;
+	intmax_t end;
+	double components[4];
+};
+
 struct uiDrawTextLayout {
+	WCHAR *text;
+	size_t textlen;
+	double width;
 	IDWriteTextFormat *format;
-	IDWriteTextLayout *layout;
+	std::vector<struct layoutAttr> *attrs;
 };
 
 uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width)
 {
 	uiDrawTextLayout *layout;
-	WCHAR *wtext;
 	HRESULT hr;
 
 	layout = uiNew(uiDrawTextLayout);
@@ -343,73 +360,128 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 	if (hr != S_OK)
 		logHRESULT("error creating IDWriteTextFormat in uiDrawNewTextLayout()", hr);
 
-	wtext = toUTF16(text);
-	hr = dwfactory->CreateTextLayout(wtext, wcslen(wtext),
-		layout->format,
-		// FLOAT is float, not double, so this should work... TODO
-		FLT_MAX, FLT_MAX,
-		&(layout->layout));
-	if (hr != S_OK)
-		logHRESULT("error creating IDWriteTextLayout in uiDrawNewTextLayout()", hr);
-	uiFree(wtext);
+	layout->text = toUTF16(text);
+	layout->textlen = wcslen(layout->text);
 
 	uiDrawTextLayoutSetWidth(layout, width);
+
+	layout->attrs = new std::vector<struct layoutAttr>;
 
 	return layout;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
-	layout->layout->Release();
+	delete layout->attrs;
 	layout->format->Release();
+	uiFree(layout->text);
 	uiFree(layout);
 }
 
-void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
+IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt)
 {
+	IDWriteTextLayout *dl;
+	DWRITE_TEXT_RANGE range;
+	IUnknown *unkBrush;
 	DWRITE_WORD_WRAPPING wrap;
 	FLOAT maxWidth;
 	HRESULT hr;
 
+	hr = dwfactory->CreateTextLayout(layout->text, layout->textlen,
+		layout->format,
+		// FLOAT is float, not double, so this should work... TODO
+		FLT_MAX, FLT_MAX,
+		&dl);
+	if (hr != S_OK)
+		logHRESULT("error creating IDWriteTextLayout in prepareLayout()", hr);
+
+	for (const struct layoutAttr &attr : *(layout->attrs)) {
+		range.startPosition = attr.start;
+		range.length = attr.end - attr.start;
+		switch (attr.type) {
+		case layoutAttrColor:
+			if (rt == NULL)		// determining extents, not drawing
+				break;
+			unkBrush = createSolidColorBrushInternal(rt, attr.components[0], attr.components[1], attr.components[2], attr.components[3]);
+			hr = dl->SetDrawingEffect(unkBrush, range);
+			unkBrush->Release();		// associated with dl
+			break;
+		default:
+			hr = E_FAIL;
+			logHRESULT("invalid text attribute type in prepareLayout()", hr);
+		}
+		if (hr != S_OK)
+			logHRESULT("error adding attribute to text layout in prepareLayout()", hr);
+	}
+
+	// and set the width
 	// this is the only wrapping mode (apart from "no wrap") available prior to Windows 8.1
 	wrap = DWRITE_WORD_WRAPPING_WRAP;
-	maxWidth = width;
-	if (width < 0) {
+	maxWidth = layout->width;
+	if (layout->width < 0) {
 		wrap = DWRITE_WORD_WRAPPING_NO_WRAP;
 		// setting the max width in this case technically isn't needed since the wrap mode will simply ignore the max width, but let's do it just to be safe
 		maxWidth = FLT_MAX;		// see TODO above
 	}
-	hr = layout->layout->SetWordWrapping(wrap);
+	hr = dl->SetWordWrapping(wrap);
 	if (hr != S_OK)
-		logHRESULT("error setting word wrapping mode in uiDrawTextLayoutSetWidth()", hr);
-	hr = layout->layout->SetMaxWidth(maxWidth);
+		logHRESULT("error setting word wrapping mode in prepareLayout()", hr);
+	hr = dl->SetMaxWidth(maxWidth);
 	if (hr != S_OK)
-		logHRESULT("error setting max layout width in uiDrawTextLayoutSetWidth()", hr);
+		logHRESULT("error setting max layout width in prepareLayout()", hr);
+
+	return dl;
+}
+
+
+void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
+{
+	layout->width = width;
 }
 
 // TODO for a single line the height includes the leading; it should not
 void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
 {
+	IDWriteTextLayout *dl;
 	DWRITE_TEXT_METRICS metrics;
 	HRESULT hr;
 
-	hr = layout->layout->GetMetrics(&metrics);
+	dl = prepareLayout(layout, NULL);
+	hr = dl->GetMetrics(&metrics);
 	if (hr != S_OK)
 		logHRESULT("error getting layout metrics in uiDrawTextLayoutExtents()", hr);
 	*width = metrics.width;
 	// TODO make sure the behavior of this on empty strings is the same on all platforms
 	*height = metrics.height;
+	dl->Release();
 }
 
 void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout)
 {
+	IDWriteTextLayout *dl;
 	D2D1_POINT_2F pt;
 	HRESULT hr;
 
+	dl = prepareLayout(layout, rt);
 	pt.x = x;
 	pt.y = y;
 	// TODO D2D1_DRAW_TEXT_OPTIONS_NO_SNAP?
 	// TODO D2D1_DRAW_TEXT_OPTIONS_CLIP?
 	// TODO when setting 8.1 as minimum, D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT?
-	rt->DrawTextLayout(pt, layout->layout, black, D2D1_DRAW_TEXT_OPTIONS_NONE);
+	rt->DrawTextLayout(pt, dl, black, D2D1_DRAW_TEXT_OPTIONS_NONE);
+	dl->Release();
+}
+
+void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a)
+{
+	struct layoutAttr attr;
+
+	attr.type = layoutAttrColor;
+	attr.start = startChar;
+	attr.end = endChar;
+	attr.components[0] = r;
+	attr.components[1] = g;
+	attr.components[2] = b;
+	attr.components[3] = a;
+	layout->attrs->push_back(attr);
 }

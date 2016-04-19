@@ -601,7 +601,6 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 	CGContextSetTextPosition(c, x, y);
 #endif
 
-// TODO length - 1?
 #define rangeToCFRange() CFRangeMake(startChar, endChar - startChar)
 
 void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a)

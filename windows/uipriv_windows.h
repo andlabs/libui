@@ -140,6 +140,7 @@ extern void uninitDraw(void);
 extern ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd);
 extern uiDrawContext *newContext(ID2D1RenderTarget *);
 extern void freeContext(uiDrawContext *);
+extern ID2D1Brush *createSolidColorBrushInternal(ID2D1RenderTarget *rt, double r, double g, double b, double a);
 
 // dwrite.cpp
 #ifdef __cplusplus

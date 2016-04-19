@@ -890,3 +890,17 @@ void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 	doDrawText(c->rt, black, x, y, layout);
 	ID2D1Brush_Release(black);
 }
+
+// TODO this is a mess
+ID2D1Brush *createSolidColorBrushInternal(ID2D1RenderTarget *rt, double r, double g, double b, double a)
+{
+	uiDrawBrush brush;
+
+	ZeroMemory(&brush, sizeof (uiDrawBrush));
+	brush.Type = uiDrawBrushTypeSolid;
+	brush.R = r;
+	brush.G = g;
+	brush.B = b;
+	brush.A = a;
+	return makeBrush(&brush, rt);
+}

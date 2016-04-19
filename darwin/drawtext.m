@@ -46,6 +46,23 @@ struct uiDrawTextFont {
 	CTFontRef f;
 };
 
+uiDrawTextFont *mkTextFont(CTFontRef f, BOOL retain)
+{
+	uiDrawTextFont *font;
+
+	font = uiNew(uiDrawTextFont);
+	font->f = f;
+	if (retain)
+		CFRetain(font->f);
+	return font;
+}
+
+uiDrawTextFont *mkTextFontFromNSFont(NSFont *f)
+{
+	// toll-free bridging; we do retain, though
+	return mkTextFont((CTFontRef) f, YES);
+}
+
 static CFMutableDictionaryRef newAttrList(void)
 {
 	CFMutableDictionaryRef attr;
@@ -365,11 +382,9 @@ CFMutableDictionaryRef extractAttributes(CTFontDescriptorRef desc)
 
 uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 {
-	uiDrawTextFont *font;
+	CTFontRef f;
 	CFMutableDictionaryRef attr;
 	CTFontDescriptorRef cfdesc;
-
-	font = uiNew(uiDrawTextFont);
 
 	attr = newAttrList();
 	addFontFamilyAttr(attr, desc->Family);
@@ -388,10 +403,10 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	// TODO release attr?
 */
 	// specify the initial size again just to be safe
-	font->f = CTFontCreateWithFontDescriptor(cfdesc, desc->Size, NULL);
+	f = CTFontCreateWithFontDescriptor(cfdesc, desc->Size, NULL);
 	// TODO release cfdesc?
 
-	return font;
+	return mkTextFont(f, NO);		// we hold the initial reference; no need to retain again
 }
 
 void uiDrawFreeTextFont(uiDrawTextFont *font)
@@ -585,6 +600,7 @@ static void prepareContextForText(CGContextRef c, CGFloat cheight, double *y)
 	*y = cheight - *y;
 }
 
+// TODO placement is incorrect for Helvetica
 void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextLayout *layout)
 {
 	struct framesetter fs;

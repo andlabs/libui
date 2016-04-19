@@ -487,6 +487,17 @@ struct uiDrawTextFont {
 	PangoFont *f;
 };
 
+uiDrawTextFont *mkTextFont(PangoFont *f, gboolean ref)
+{
+	uiDrawTextFont *font;
+
+	font = uiNew(uiDrawTextFont);
+	font->f = f;
+	if (ref)
+		g_object_ref(font->f);
+	return font;
+}
+
 static const PangoWeight pangoWeights[] = {
 	[uiDrawTextWeightThin] = PANGO_WEIGHT_THIN,
 	[uiDrawTextWeightUltraLight] = PANGO_WEIGHT_ULTRALIGHT,
@@ -527,12 +538,10 @@ static const PangoStretch pangoStretches[] = {
 
 uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 {
-	uiDrawTextFont *font;
+	PangoFont *f;
 	PangoFontDescription *pdesc;
 //TODO	PangoVariant variant;
 	PangoContext *context;
-
-	font = uiNew(uiDrawTextFont);
 
 	pdesc = pango_font_description_new();
 	pango_font_description_set_family(pdesc,
@@ -555,14 +564,14 @@ TODO
 
 	// in this case, the context is necessary for the metrics to be correct
 	context = mkGenericPangoCairoContext();
-	font->f = pango_font_map_load_font(pango_cairo_font_map_get_default(), context, pdesc);
-	if (font->f == NULL) {
+	f = pango_font_map_load_font(pango_cairo_font_map_get_default(), context, pdesc);
+	if (f == NULL) {
 		// TODO
 		g_error("[libui] no match in uiDrawLoadClosestFont(); report to andlabs");
 	}
 	g_object_unref(context);
 
-	return font;
+	return mkTextFont(f, FALSE);			// we hold the initial reference; no need to retain
 }
 
 void uiDrawFreeTextFont(uiDrawTextFont *font)

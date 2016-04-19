@@ -82,6 +82,8 @@ extern uiDrawContext *newContext(CGContextRef, CGFloat);
 extern void freeContext(uiDrawContext *);
 
 // drawtext.m
+extern uiDrawTextFont *mkTextFont(CTFontRef f, BOOL retain);
+extern uiDrawTextFont *mkTextFontFromNSFont(NSFont *f);
 extern void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextLayout *layout);
 
 // fontbutton.m

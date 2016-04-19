@@ -620,9 +620,25 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 // note: PangoCairoLayouts are tied to a given cairo_t, so we can't store one in this device-independent structure
 struct uiDrawTextLayout {
 	char *s;
+	ptrdiff_t *charsToBytes;
 	PangoFont *defaultFont;
 	double width;
 };
+
+static ptrdiff_t *computeCharsToBytes(const char *s)
+{
+	ptrdiff_t *charsToBytes;
+	glong i, charlen;
+
+	// we INCLUDE the null terminator as a character in the string
+	// g_utf8_offset_to_pointer() doesn't stop on null terminator so this should work
+	charlen = g_utf8_strlen(s, -1) + 1;
+	charsToBytes = (ptrdiff_t *) uiAlloc(charlen * sizeof (ptrdiff_t), "ptrdiff_t[]");
+	// TODO speed this up by not needing to scan the whole string again
+	for (i = 0; i < charlen; i++)
+		charsToBytes[i] = g_utf8_offset_to_pointer(s, i) - s;
+	return charsToBytes;
+}
 
 uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width)
 {
@@ -630,6 +646,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 
 	layout = uiNew(uiDrawTextLayout);
 	layout->s = g_strdup(text);
+	layout->charsToBytes = computeCharsToBytes(layout->s);
 	layout->defaultFont = defaultFont->f;
 	g_object_ref(layout->defaultFont);		// retain a copy
 	uiDrawTextLayoutSetWidth(layout, width);
@@ -639,6 +656,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
 	g_object_unref(layout->defaultFont);
+	uiFree(layout->charsToBytes);
 	g_free(layout->s);
 	uiFree(layout);
 }

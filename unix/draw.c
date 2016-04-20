@@ -736,7 +736,7 @@ static void addAttr(uiDrawTextLayout *layout, PangoAttribute *attr, intmax_t sta
 // these attributes are only supported on 1.38 and higher; we need to support 1.36
 // use dynamic linking to make them work at least on newer systems
 // TODO warn programmers
-staticPangoAttribute *(*newFGAlphaAttr)(guint16 alpha) = NULL;
+static PangoAttribute *(*newFGAlphaAttr)(guint16 alpha) = NULL;
 static gboolean tried138 = FALSE;
 
 // note that we treat any error as "the 1.38 symbols aren't there" (and don't care if dlclose() failed)

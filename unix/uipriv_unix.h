@@ -6,6 +6,7 @@
 // TODO make this unnecessary
 #define _GNU_SOURCE
 #include <math.h>
+#include <dlfcn.h>		// see drawtext.c
 #include <gtk/gtk.h>
 #include "../ui.h"
 #include "../ui_unix.h"

@@ -1,7 +1,7 @@
 // 22 december 2015
 #include "test.h"
 
-// TODO draw a rectangle pointing out where (10,10) is both to test initial colors and to figure out what the *real* ascent is
+// TODO figure out how the various backends handle non-BMP characters/surrogate pairs
 
 static uiEntry *textString;
 static uiFontButton *textFontButton;

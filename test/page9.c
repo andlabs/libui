@@ -1,8 +1,6 @@
 // 22 december 2015
 #include "test.h"
 
-// TODO draw a rectangle pointing out where (10,10) is both to test initial colors and to figure out what the *real* ascent is
-
 static uiEntry *textString;
 static uiEntry *textFont;
 static uiEntry *textSize;
@@ -27,7 +25,7 @@ static double entryDouble(uiEntry *e)
 	return d;
 }
 
-// TODO this should be altered not to restore all state on exit so default text attributes can be checked
+// TODO this should be altered not to restore all state on exit so default text colors can be checked
 static void drawGuides(uiDrawContext *c, uiDrawTextFontMetrics *m)
 {
 	uiDrawPath *p;

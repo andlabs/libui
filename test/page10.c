@@ -2,6 +2,7 @@
 #include "test.h"
 
 // TODO figure out how the various backends handle non-BMP characters/surrogate pairs
+// use: F0 90 8C 88 (surrogates D800 DF08)
 
 static uiEntry *textString;
 static uiFontButton *textFontButton;

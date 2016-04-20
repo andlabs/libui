@@ -45,6 +45,7 @@ extern void childSetMargined(struct child *c, int margined);
 extern uiDrawContext *newContext(cairo_t *);
 extern void freeContext(uiDrawContext *);
 extern uiDrawTextFont *mkTextFont(PangoFont *f, gboolean add);
+extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
 
 // TODO
 #define uiControlQueueResize(...)

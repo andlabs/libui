@@ -7,6 +7,8 @@ struct uiFontButton {
 	GtkButton *button;
 	GtkFontButton *fb;
 	GtkFontChooser *fc;
+	void (*onChanged)(uiFontButton *, void *);
+	void *onChangedData;
 };
 
 uiUnixDefineControl(
@@ -19,25 +21,31 @@ static void onFontSet(GtkFontButton *button, gpointer data)
 {
 	uiFontButton *b = uiFontButton(data);
 
-//TODO	(*(b->onClicked))(b, b->onClickedData);
+	(*(b->onChanged))(b, b->onChangedData);
 }
 
-#if 0
-TODO
-static void defaultOnClicked(uiButton *b, void *data)
+static void defaultOnChanged(uiFontButton *b, void *data)
 {
 	// do nothing
 }
-#endif
 
-#if 0
-TODO
-void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
+uiDrawTextFont *uiFontButtonFont(uiFontButton *b)
 {
-	b->onClicked = f;
-	b->onClickedData = data;
+	PangoFont *f;
+	PangoFontDescription *desc;
+
+	desc = gtk_font_chooser_get_font_desc(b->fc);
+	f = pangoDescToPangoFont(desc);
+	// desc is transfer-full and thus is a copy
+	pango_font_description_free(desc);
+	return mkTextFont(f, FALSE);			// we hold the initial reference; no need to ref
 }
-#endif
+
+void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data)
+{
+	b->onChanged = f;
+	b->onChangedData = data;
+}
 
 uiFontButton *uiNewFontButton(void)
 {
@@ -59,7 +67,7 @@ uiFontButton *uiNewFontButton(void)
 	gtk_font_chooser_set_show_preview_entry(b->fc, TRUE);
 
 	g_signal_connect(b->widget, "font-set", G_CALLBACK(onFontSet), b);
-//TODO	uiButtonOnClicked(b, defaultOnClicked, NULL);
+	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
 
 	uiUnixFinishNewControl(b, uiFontButton);
 

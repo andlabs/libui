@@ -538,12 +538,27 @@ static const PangoStretch pangoStretches[] = {
 // TODO really see if there's a better way instead; what do GDK and GTK+ do internally? gdk_pango_context_get()?
 #define mkGenericPangoCairoContext() (pango_font_map_create_context(pango_cairo_font_map_get_default()))
 
+PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc)
+{
+	PangoFont *f;
+	PangoContext *context;
+
+	// in this case, the context is necessary for the metrics to be correct
+	context = mkGenericPangoCairoContext();
+	f = pango_font_map_load_font(pango_cairo_font_map_get_default(), context, pdesc);
+	if (f == NULL) {
+		// TODO
+		g_error("[libui] no match in pangoDescToPangoFont(); report to andlabs");
+	}
+	g_object_unref(context);
+	return f;
+}
+
 uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 {
 	PangoFont *f;
 	PangoFontDescription *pdesc;
 //TODO	PangoVariant variant;
-	PangoContext *context;
 
 	pdesc = pango_font_description_new();
 	pango_font_description_set_family(pdesc,
@@ -563,17 +578,9 @@ TODO
 #endif
 	pango_font_description_set_stretch(pdesc,
 		pangoStretches[desc->Stretch]);
-
-	// in this case, the context is necessary for the metrics to be correct
-	context = mkGenericPangoCairoContext();
-	f = pango_font_map_load_font(pango_cairo_font_map_get_default(), context, pdesc);
-	if (f == NULL) {
-		// TODO
-		g_error("[libui] no match in uiDrawLoadClosestFont(); report to andlabs");
-	}
-	g_object_unref(context);
-
-	return mkTextFont(f, FALSE);			// we hold the initial reference; no need to retain
+	f = pangoDescToPangoFont(pdesc);
+	pango_font_description_free(pdesc);
+	return mkTextFont(f, FALSE);			// we hold the initial reference; no need to ref
 }
 
 void uiDrawFreeTextFont(uiDrawTextFont *font)

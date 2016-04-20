@@ -7,6 +7,8 @@ struct uiFontButton {
 	HWND hwnd;
 	struct fontDialogParams params;
 	BOOL already;
+	void (*onChanged)(uiFontButton *, void *);
+	void *onChangedData;
 };
 
 static void onDestroy(uiFontButton *);
@@ -47,7 +49,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	parent = GetAncestor(b->hwnd, GA_ROOT);		// TODO didn't we have a function for this
 	if (showFontDialog(parent, &(b->params))) {
 		updateFontButtonLabel(b);
-		// TODO event
+		(*(b->onChanged))(b, b->onChangedData);
 	}
 
 	*lResult = 0;
@@ -78,25 +80,25 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 	*height = uiWindowsDlgUnitsToY(buttonHeight, d->BaseY);
 }
 
-#if 0
-TODO
-static void defaultOnClicked(uiButton *b, void *data)
+static void defaultOnChanged(uiFontButton *b, void *data)
 {
 	// do nothing
 }
-#endif
 
-// TODO document that GetFont returns a NEW instance each time
+uiDrawTextFont *uiFontButtonFont(uiFontButton *b)
+{
+	// we don't own b->params.font; we have to add a reference
+	// we don't own b->params.familyName either; we have to copy it
+	return mkTextFont(b->params.font, TRUE, b->params.familyName, TRUE, b->params.size);
+}
+
 // TODO document that the Handle of a Font may not be unique
 
-#if 0
-TODO
-void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
+void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data)
 {
-	b->onClicked = f;
-	b->onClickedData = data;
+	b->onChanged = f;
+	b->onChangedData = data;
 }
-#endif
 
 uiFontButton *uiNewFontButton(void)
 {
@@ -114,7 +116,7 @@ uiFontButton *uiNewFontButton(void)
 	updateFontButtonLabel(b);
 
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
-//TODO	uiButtonOnClicked(b, defaultOnClicked, NULL);
+	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
 
 	uiWindowsFinishNewControl(b, uiFontButton);
 

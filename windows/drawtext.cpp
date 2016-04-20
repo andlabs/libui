@@ -57,7 +57,7 @@ struct uiDrawTextFont {
 	double size;
 };
 
-uiDrawTextFont *mkTextFont(IDWriteFont *df, WCHAR *family, BOOL copyFamily, double size)
+uiDrawTextFont *mkTextFont(IDWriteFont *df, BOOL addRef, WCHAR *family, BOOL copyFamily, double size)
 {
 	uiDrawTextFont *font;
 	WCHAR *copy;
@@ -65,6 +65,8 @@ uiDrawTextFont *mkTextFont(IDWriteFont *df, WCHAR *family, BOOL copyFamily, doub
 
 	font = uiNew(uiDrawTextFont);
 	font->f = df;
+	if (addRef)
+		font->f->AddRef();
 	if (copyFamily) {
 		copy = (WCHAR *) uiAlloc((wcslen(family) + 1) * sizeof (WCHAR), "WCHAR[]");
 		wcscpy(copy, family);
@@ -260,6 +262,7 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 		logHRESULT("error loading font in uiDrawLoadClosestFont()", hr);
 
 	font = mkTextFont(match,
+		FALSE,				// we own the initial reference; no need to add another one
 		wfamily, FALSE,		// will be freed with font
 		desc->Size);
 

@@ -609,6 +609,10 @@ struct uiAreaKeyEvent {
 typedef struct uiFontButton uiFontButton;
 _UI_EXTERN uintmax_t uiFontButtonType(void);
 #define uiFontButton(this) ((uiFontButton *) uiIsA((this), uiFontButtonType(), 1))
+// TODO document this returns a new font
+_UI_EXTERN uiDrawTextFont *uiFontButtonFont(uiFontButton *b);
+// TOOD SetFont, mechanics
+_UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);
 _UI_EXTERN uiFontButton *uiNewFontButton(void);
 
 #ifdef __cplusplus

@@ -12,6 +12,7 @@
 - (IBAction)fontButtonClicked:(id)sender;
 - (void)activateFontButton;
 - (void)deactivateFontButton:(BOOL)activatingAnother;
+- (uiDrawTextFont *)libuiFont;
 @end
 
 // only one may be active at one time
@@ -20,6 +21,8 @@ static fontButton *activeFontButton = nil;
 struct uiFontButton {
 	uiDarwinControl c;
 	fontButton *button;
+	void (*onChanged)(uiFontButton *, void *);
+	void *onChangedData;
 };
 
 uiDarwinDefineControl(
@@ -101,6 +104,7 @@ uiDarwinDefineControl(
 {
 	NSFontManager *fm;
 	NSFont *old;
+	uiFontButton *b = self->libui_b;
 
 	fm = (NSFontManager *) sender;
 	old = self->libui_font;
@@ -110,6 +114,7 @@ uiDarwinDefineControl(
 	if (self->libui_font != old)
 		[old release];
 	[self updateFontButtonLabel];
+	(*(b->onChanged))(b, b->onChangedData);
 }
 
 - (NSUInteger)validModesForFontPanel:(NSFontPanel *)panel
@@ -117,6 +122,11 @@ uiDarwinDefineControl(
 	return NSFontPanelFaceModeMask |
 		NSFontPanelSizeModeMask |
 		NSFontPanelCollectionModeMask;
+}
+
+- (uiDrawTextFont *)libuiFont
+{
+	return mkTextFontFromNSFont(self->libui_font);
 }
 
 @end
@@ -142,6 +152,22 @@ BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override)
 	return YES;
 }
 
+static void defaultOnChanged(uiFontButton *b, void *data)
+{
+	// do nothing
+}
+
+uiDrawTextFont *uiFontButtonFont(uiFontButton *b)
+{
+	return [b->button libuiFont];
+}
+
+void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data)
+{
+	b->onChanged = f;
+	b->onChangedData = data;
+}
+
 uiFontButton *uiNewFontButton(void)
 {
 	uiFontButton *b;
@@ -150,6 +176,8 @@ uiFontButton *uiNewFontButton(void)
 
 	b->button = [[fontButton alloc] initWithFrame:NSZeroRect libuiFontButton:b];
 	uiDarwinSetControlFont(b->button, NSRegularControlSize);
+
+	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
 
 	uiDarwinFinishNewControl(b, uiFontButton);
 

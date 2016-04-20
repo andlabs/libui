@@ -25,18 +25,10 @@ static double entryDouble(uiEntry *e)
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 {
-	uiDrawTextFontDescriptor desc;
 	uiDrawTextFont *font;
 	uiDrawTextLayout *layout;
 
-	// TODO
-	memset(&desc, 0, sizeof (uiDrawTextFontDescriptor));
-	desc.Family = "Arial";
-	desc.Size = 36;
-	desc.Weight = uiDrawTextWeightNormal;
-	desc.Italic = uiDrawTextItalicNormal;
-	desc.Stretch = uiDrawTextStretchNormal;
-	font = uiDrawLoadClosestFont(&desc);
+	font = uiFontButtonFont(textFontButton);
 
 	layout = uiDrawNewTextLayout("One two three four", font, -1);
 	uiDrawTextLayoutSetColor(layout,
@@ -72,6 +64,11 @@ static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 	return 0;
 }
 
+static void onFontChanged(uiFontButton *b, void *data)
+{
+	uiAreaQueueRedrawAll(textArea);
+}
+
 static void onTextApply(uiButton *b, void *data)
 {
 	uiAreaQueueRedrawAll(textArea);
@@ -95,6 +92,7 @@ uiBox *makePage10(void)
 	uiBoxAppend(hbox, uiControl(textString), 1);
 
 	textFontButton = uiNewFontButton();
+	uiFontButtonOnChanged(textFontButton, onFontChanged, NULL);
 	uiBoxAppend(hbox, uiControl(textFontButton), 1);
 
 	hbox = newHorizontalBox();

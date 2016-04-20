@@ -38,9 +38,9 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 	} \
 	static void _ ## type ## CommitDestroy(uiControl *c) \
 	{ \
-		type *this = type(c); \
+		type *me = type(c); \
 		onDestroy; \
-		uiWindowsEnsureDestroyWindow(this->hwnd); \
+		uiWindowsEnsureDestroyWindow(me->hwnd); \
 	} \
 	static uintptr_t _ ## type ## Handle(uiControl *c) \
 	{ \
@@ -71,7 +71,7 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 	}
 
 #define uiWindowsDefineControl(type, typefn) \
-	uiWindowsDefineControlWithOnDestroy(type, typefn, (void) this;)
+	uiWindowsDefineControlWithOnDestroy(type, typefn, (void) me;)
 
 #define uiWindowsFinishNewControl(variable, type) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
@@ -89,7 +89,7 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 _UI_EXTERN void uiWindowsFinishControl(uiControl *c);
 
 // This creates a HWND compatible with libui.
-// It has no failure state; libui handles errors for you.
+// It will not return NULL; libui handles errors for you.
 _UI_EXTERN HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont);
 
 // This is a wrapper for certain Windows API functions; use them to have libui handle errors for you.

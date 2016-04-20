@@ -3,10 +3,6 @@
 #define _UNICODE
 #define STRICT
 #define STRICT_TYPED_ITEMIDS
-#ifndef __cplusplus
-#define CINTERFACE
-#define COBJMACROS
-#endif
 // see https://github.com/golang/go/issues/9916#issuecomment-74812211
 // TODO get rid of this
 #define INITGUID
@@ -37,8 +33,5 @@
 #include <math.h>
 #include <d2d1.h>
 #include <float.h>
-// see drawtext.cpp for details
-#ifdef __cplusplus
 #include <dwrite.h>
-#endif
 #endif

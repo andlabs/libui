@@ -447,6 +447,8 @@ void uiDrawRestore(uiDrawContext *c)
 	cairo_restore(c->cr);
 }
 
+// TODO split everything after this into a drawtext.c
+
 struct uiDrawFontFamilies {
 	PangoFontFamily **f;
 	int n;
@@ -623,6 +625,7 @@ struct uiDrawTextLayout {
 	ptrdiff_t *charsToBytes;
 	PangoFont *defaultFont;
 	double width;
+	PangoAttrList *attrs;
 };
 
 static ptrdiff_t *computeCharsToBytes(const char *s)
@@ -650,11 +653,13 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 	layout->defaultFont = defaultFont->f;
 	g_object_ref(layout->defaultFont);		// retain a copy
 	uiDrawTextLayoutSetWidth(layout, width);
+	layout->attrs = pango_attr_list_new();
 	return layout;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
+	pango_attr_list_unref(layout->attrs);
 	g_object_unref(layout->defaultFont);
 	uiFree(layout->charsToBytes);
 	g_free(layout->s);
@@ -683,6 +688,8 @@ static void prepareLayout(uiDrawTextLayout *layout, PangoLayout *pl)
 	if (layout->width < 0)
 		width = -1;
 	pango_layout_set_width(pl, width);
+
+	pango_layout_set_attribute_list(pl, layout->attrs);
 }
 
 void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
@@ -716,4 +723,55 @@ void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 	pango_cairo_show_layout(c->cr, pl);
 
 	g_object_unref(pl);
+}
+
+static void addAttr(uiDrawTextLayout *layout, PangoAttribute *attr, intmax_t startChar, intmax_t endChar)
+{
+	attr->start_index = layout->charsToBytes[startChar];
+	attr->end_index = layout->charsToBytes[endChar];
+	pango_attr_list_insert(layout->attrs, attr);
+	// pango_attr_list_insert() takes attr; we don't free it
+}
+
+// these attributes are only supported on 1.38 and higher; we need to support 1.36
+// use dynamic linking to make them work at least on newer systems
+// TODO warn programmers
+staticPangoAttribute *(*newFGAlphaAttr)(guint16 alpha) = NULL;
+static gboolean tried138 = FALSE;
+
+// note that we treat any error as "the 1.38 symbols aren't there" (and don't care if dlclose() failed)
+static void try138(void)
+{
+	void *handle;
+
+	tried138 = TRUE;
+	handle = dlopen(NULL, RTLD_LAZY);
+	if (handle == NULL)
+		return;
+	*((void **) (&newFGAlphaAttr)) = dlsym(handle, "pango_attr_foreground_alpha_new");
+	dlclose(handle);
+}
+
+void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a)
+{
+	PangoAttribute *attr;
+	guint16 rr, gg, bb, aa;
+
+	rr = (guint16) (r * 65535);
+	gg = (guint16) (g * 65535);
+	bb = (guint16) (b * 65535);
+	aa = (guint16) (a * 65535);
+
+	attr = pango_attr_foreground_new(rr, gg, bb);
+	addAttr(layout, attr, startChar, endChar);
+
+	if (!tried138)
+		try138();
+	// TODO what if aa == 0?
+	if (newFGAlphaAttr != NULL) {
+g_printf("adding alpha\n");
+		attr = (*newFGAlphaAttr)(aa);
+		addAttr(layout, attr, startChar, endChar);
+	}
+else g_printf("ignoring alpha\n");
 }

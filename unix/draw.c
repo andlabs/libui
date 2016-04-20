@@ -689,7 +689,7 @@ static void prepareLayout(uiDrawTextLayout *layout, PangoLayout *pl)
 		width = -1;
 	pango_layout_set_width(pl, width);
 
-	pango_layout_set_attribute_list(pl, layout->attrs);
+	pango_layout_set_attributes(pl, layout->attrs);
 }
 
 void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
@@ -745,6 +745,7 @@ static void try138(void)
 	void *handle;
 
 	tried138 = TRUE;
+	// dlsym() walks the dependency chain, so opening the current process should be sufficient
 	handle = dlopen(NULL, RTLD_LAZY);
 	if (handle == NULL)
 		return;
@@ -769,9 +770,7 @@ void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intm
 		try138();
 	// TODO what if aa == 0?
 	if (newFGAlphaAttr != NULL) {
-g_printf("adding alpha\n");
 		attr = (*newFGAlphaAttr)(aa);
 		addAttr(layout, attr, startChar, endChar);
 	}
-else g_printf("ignoring alpha\n");
 }

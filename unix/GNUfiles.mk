@@ -40,7 +40,7 @@ CFLAGS += \
 CXXFLAGS += \
 	`pkg-config --cflags gtk+-3.0`
 LDFLAGS += \
-	`pkg-config --libs gtk+-3.0` -lm
+	`pkg-config --libs gtk+-3.0` -lm -ldl
 
 # flags for building a shared library
 # OS X does support -shared but it has a preferred name for this so let's use that there instead; hence this is not gcc-global

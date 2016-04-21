@@ -5,11 +5,6 @@ extern "C" {
 
 #include <stdlib.h>
 
-#define uthash_fatal(msg) complain("uthash failed: %s", (msg))
-#define uthash_malloc(sz) uiAlloc((sz), "(uthash internal)")
-#define uthash_free(ptr,sz) uiFree((ptr))
-#include "uthash/uthash.h"
-
 extern uiInitOptions options;
 
 extern void *uiAlloc(size_t, const char *);

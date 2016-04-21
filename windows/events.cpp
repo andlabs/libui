@@ -12,6 +12,7 @@ struct handler {
 		this->commandHandler = NULL;
 		this->notifyHandler = NULL;
 		this->hscrollHandler = NULL;
+		this->c = NULL;
 	}
 };
 

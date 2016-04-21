@@ -7,6 +7,7 @@ struct handler {
 	BOOL (*hscrollHandler)(uiControl *, HWND, WORD, LRESULT *);
 	uiControl *c;
 
+	// just to ensure handlers[new HWND] initializes properly
 	struct handler()
 	{
 		this->commandHandler = NULL;
@@ -90,12 +91,6 @@ BOOL runWM_COMMAND(WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 	if (shouldRun(hwnd, handler))
 		return (*handler)(c, hwnd, arg3, lResult);
 	return FALSE;
-}
-		
-		},
-		[](WPARAM wParam, LPARAM lParam) {
-			return ;
-		}>(wParam, lParam, lResult);
 }
 
 BOOL runWM_NOTIFY(WPARAM wParam, LPARAM lParam, LRESULT *lResult)

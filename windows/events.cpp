@@ -1,9 +1,6 @@
 // 20 may 2015
 #include "uipriv_windows.hpp"
 
-// TODO get rid of the macro magic
-// TODO re-add existence checks
-
 // In each of these structures, hwnd is the hash key.
 
 struct commandHandler {
@@ -25,51 +22,101 @@ static std::map<HWND, struct commandHandler> commandHandlers;
 static std::map<HWND, struct notifyHandler> notifyHandlers;
 static std::map<HWND, struct hscrollHandler> hscrollHandlers;
 
-#define REGFN(WM_MESSAGE, message, params) \
-	void uiWindowsRegister ## WM_MESSAGE ## Handler(HWND hwnd, BOOL (*handler)params, uiControl *c) \
-	{ \
-		if (message ## Handler.find(hwnd) != ch.end()) \
-			complain("window handle %p already subscribed with a %s handler in uiWindowsRegister%sHandler()", hwnd, #WM_MESSAGE, #WM_MESSAGE); \
-		message ## Handler[hwnd].handler = handler; \
-		message ## Handler[hwnd].c = c; \
-	}
-REGFN(WM_COMMAND, command, (uiControl *, HWND, WORD, LRESULT *))
-REGFN(WM_NOTIFY, notify, (uiControl *, HWND, NMHDR *, LRESULT *))
-REGFN(WM_HSCROLL, hscroll, (uiControl *, HWND, WORD, LRESULT *))
+template<typename thirdArg, std::map<HWND, typename> &handlers>
+static void registerHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, thirdArg, LRESULT *), uiControl *c, const char *mname, const char *fname)
+{
+	if (handlers.find(hwnd) != handlers.end())
+		complain("window handle %p already subscribed with a %s handler in %s", hwnd, mname, fname);
+	handlers[hwnd].handler = handler;
+	handlers[hwnd].c = c;
+}
 
-#define UNREGFN(WM_MESSAGE, message) \
-	void uiWindowsUnregister ## WM_MESSAGE ## Handler(HWND hwnd) \
-	{ \
-		message ## Handler.erase(hwnd); \
-	}
-UNREGFN(WM_COMMAND, command)
-UNREGFN(WM_NOTIFY, notify)
-UNREGFN(WM_HSCROLL, hscroll)
+void uiWindowsRegisterWM_COMMANDHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c)
+{
+	registerHandler<WORD, commandHandlers>(hwnd, handler, c, "WM_COMMAND", "uiWindowsRegisterWM_COMMANDHandler()");
+}
 
-#define RUNFN(WM_MESSAGE, message, gethwnd, arg3) \
-	BOOL run ## WM_MESSAGE(WPARAM wParam, LPARAM lParam, LRESULT *lResult) \
-	{ \
-		HWND control; \
-		struct message ## Handler *ch;\
-		/* bounce back to the control in question */ \
-		/* don't bounce back if to the utility window, in which case act as if the message was ignored */ \
-		control = gethwnd; \
-		if (control != NULL && IsChild(utilWindow, control) == 0) { \
-			if (message ## Handlers.find(control) != message ## Handlers.end()) \
-				return (*(message ## Handlers[control].handler))(message ## Handlers[control].c, control, arg3, lResult); \
-			/* not registered; fall out to return FALSE */ \
-		} \
-		return FALSE; \
+void uiWindowsRegisterWM_NOTIFYHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, NMHDR *, LRESULT *), uiControl *c)
+{
+	registerHandler<NMHDR *, notifyHandlers>(hwnd, handler, c, "WM_NOTIFY", "uiWindowsRegisterWM_NOTIFYHandler()");
+}
+
+void uiWindowsRegisterWM_HSCROLLHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c)
+{
+	registerHandler<WORD, hscrollHandlers>(hwnd, handler, c, "WM_HSCROLL", "uiWindowsRegisterWM_HSCROLLHandler");
+}
+
+template<std::map<HWND, typename> &handlers>
+static void unregisterHandler(HWND hwnd, const char *mname, const char *fname)
+{
+	if (handlers.find(hwnd) == handlers.end())
+		complain("window handle %p not registered with a %s handler in %s", hwnd, mname, fname);
+	handlers.erase(hwnd);
+}
+
+void uiWindowsUnregisterWM_COMMANDHandler(HWND hwnd)
+{
+	unregisterHandler<commandHandlers>(hwnd, "WM_COMMAND", "uiWindowsUnregisterWM_COMMANDHandler()");
+}
+
+void uiWindowsUnregisterWM_NOTIFYHandler(HWND hwnd)
+{
+	unregisterHandler<notifyHandlers>(hwnd, "WM_NOTIFY", "uiWindowsUnregisterWM_NOTIFYHandler()");
+}
+
+void uiWindowsUnregisterWM_HSCROLLHandler(HWND hwnd)
+{
+	unregisterHandler<hscrollHandlers>(hwnd, "WM_HSCROLL", "uiWindowsUnregisterWM_HSCROLLHandler()");
+}
+
+template<typename thirdArg, std::map<HWND, typename> &handlers, HWND (*getHWND)(WPARAM, LPARAM), thirdArg (*getThirdArg)(WPARAM, LPARAM)>
+static BOOL runHandler(WPARAM wParam, LPARAM lParam, LRESULT *lResult)
+{
+	HWND control;
+
+	// bounce back to the control in question
+	// dn't bounce back if to the utility window, in which case act as if the message was ignored
+	control = (*getHWND)(wParam, lParam);
+	if (control != NULL && IsChild(utilWindow, control) == 0) {
+		if (handlers.find(control) != handlers.end())
+			return (*(handlers[control].handler))(handlers[control].c, control, (*getThirdArg)(wParam, lParam), lResult);
+		// not registered; fall out to return FALSE
 	}
-RUNFN(WM_COMMAND, command,
-	(HWND) lParam,
-	HIWORD(wParam))
-RUNFN(WM_NOTIFY, notify,
-	((NMHDR *) lParam)->hwndFrom,
-	((NMHDR *) lParam))
-RUNFN(WM_HSCROLL, hscroll,
-	(HWND) lParam,
-	LOWORD(wParam))
+	return FALSE;
+}
+
+BOOL runWM_COMMAND(WPARAM wParam, LPARAM lParam, LRESULT *lResult)
+{
+	return runHandler<WORD, commandHandlers,
+		[](WPARAM wParam, LPARAM lParam) {
+			return (HWND) lParam;
+		},
+		[](WPARAM wParam, LPARAM lParam) {
+			return HIWORD(wParam);
+		}>(wParam, lParam, lResult);
+}
+
+BOOL runWM_NOTIFY(WPARAM wParam, LPARAM lParam, LRESULT *lResult)
+{
+	return runHandler<NMHDR *, notifyHandlers,
+		[](WPARAM wParam, LPARAM lParam) {
+			return ((NMHDR *) lParam)->hwndFrom;
+		},
+		[](WPARAM wParam, LPARAM lParam) {
+			return (NMHDR *) lParam;
+		}>(wParam, lParam, lResult);
+}
+
+BOOL runWM_HSCROLL(WPARAM wParam, LPARAM lParam, LRESULT *lResult)
+{
+	return runHandler<WORD, hscrollHandlers,
+		[](WPARAM wParam, LPARAM lParam) {
+			return (HWND) lParam;
+		},
+		[](WPARAM wParam, LPARAM lParam) {
+			return LOWORD(wParam);
+		}>(wParam, lParam, lResult);
+}
 
 static std::map<HWND, bool> wininichanges;
 
@@ -82,6 +129,9 @@ void uiWindowsRegisterReceiveWM_WININICHANGE(HWND hwnd)
 
 void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND hwnd)
 {
+	if (!wininichanges[hwnd])
+		complain("window handle %p not registered to receive WM_WININICHANGEs in uiWindowsUnregisterReceiveWM_WININICHANGE
+()", hwnd);
 	wininichanges[hwnd] = false;
 }
 

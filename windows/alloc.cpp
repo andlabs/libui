@@ -1,10 +1,10 @@
 // 4 december 2014
 #include "uipriv_windows.hpp"
 
-typedef std::vector<uint8_t> *byteArray;
+typedef std::vector<uint8_t> byteArray;
 
-static std::map<uint8_t *, byteArray> heap;
-static std::map<byteArray, const char *> types;
+static std::map<uint8_t *, byteArray *> heap;
+static std::map<byteArray *, const char *> types;
 
 void initAlloc(void)
 {
@@ -31,7 +31,7 @@ void uninitAlloc(void)
 
 void *uiAlloc(size_t size, const char *type)
 {
-	byteArray out;
+	byteArray *out;
 
 	out = new byteArray(size, 0);
 	heap[&out[0]] = out;
@@ -41,7 +41,7 @@ void *uiAlloc(size_t size, const char *type)
 
 void *uiRealloc(void *p, size_t size, const char *type)
 {
-	byteArray arr;
+	byteArray *arr;
 
 	if (p == NULL)
 		return uiAlloc(size, type);

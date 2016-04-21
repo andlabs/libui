@@ -1,19 +1,11 @@
 // 6 january 2015
-#include "winapi.h"
+#include "winapi.hpp"
 #include "../ui.h"
-// TODO
-#ifdef __cplusplus
-#define this self
-#endif
 #include "../ui_windows.h"
 #undef this		// TODO
 #include "../common/uipriv.h"
-#include "resources.h"
-#include "compilerver.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "resources.hpp"
+#include "compilerver.hpp"
 
 // ui internal window messages
 enum {
@@ -91,7 +83,7 @@ extern void freeMenubar(HMENU);
 extern void uninitMenus(void);
 
 // alloc.c
-extern int initAlloc(void);
+extern void initAlloc(void);
 extern void uninitAlloc(void);
 
 // events.c
@@ -194,7 +186,3 @@ extern WCHAR *fontDialogParamsToString(struct fontDialogParams *params);
 extern ATOM registerD2DScratchClass(HICON, HCURSOR);
 extern void unregisterD2DScratchClass(void);
 extern HWND newD2DScratch(HWND parent, RECT *rect, HMENU controlID, SUBCLASSPROC subclass, DWORD_PTR subclassData);
-
-#ifdef __cplusplus
-}
-#endif

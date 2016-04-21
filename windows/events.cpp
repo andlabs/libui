@@ -1,45 +1,37 @@
 // 20 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
+
+// TODO get rid of the macro magic
+// TODO re-add existence checks
 
 // In each of these structures, hwnd is the hash key.
 
 struct commandHandler {
-	HWND hwnd;
 	BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *);
 	uiControl *c;
-	UT_hash_handle hh;
 };
 
 struct notifyHandler {
-	HWND hwnd;
 	BOOL (*handler)(uiControl *, HWND, NMHDR *, LRESULT *);
 	uiControl *c;
-	UT_hash_handle hh;
 };
 
 struct hscrollHandler {
-	HWND hwnd;
 	BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *);
 	uiControl *c;
-	UT_hash_handle hh;
 };
 
-static struct commandHandler *commandHandlers = NULL;
-static struct notifyHandler *notifyHandlers = NULL;
-static struct hscrollHandler *hscrollHandlers = NULL;
+static std::map<HWND, struct commandHandler> commandHandlers;
+static std::map<HWND, struct notifyHandler> notifyHandlers;
+static std::map<HWND, struct hscrollHandler> hscrollHandlers;
 
 #define REGFN(WM_MESSAGE, message, params) \
 	void uiWindowsRegister ## WM_MESSAGE ## Handler(HWND hwnd, BOOL (*handler)params, uiControl *c) \
 	{ \
-		struct message ## Handler *ch; \
-		HASH_FIND_PTR(message ## Handlers, &hwnd, ch); \
-		if (ch != NULL) \
+		if (message ## Handler.find(hwnd) != ch.end()) \
 			complain("window handle %p already subscribed with a %s handler in uiWindowsRegister%sHandler()", hwnd, #WM_MESSAGE, #WM_MESSAGE); \
-		ch = uiNew(struct message ## Handler); \
-		ch->hwnd = hwnd; \
-		ch->handler = handler; \
-		ch->c = c; \
-		HASH_ADD_PTR(message ## Handlers, hwnd, ch); \
+		message ## Handler[hwnd].handler = handler; \
+		message ## Handler[hwnd].c = c; \
 	}
 REGFN(WM_COMMAND, command, (uiControl *, HWND, WORD, LRESULT *))
 REGFN(WM_NOTIFY, notify, (uiControl *, HWND, NMHDR *, LRESULT *))
@@ -48,12 +40,7 @@ REGFN(WM_HSCROLL, hscroll, (uiControl *, HWND, WORD, LRESULT *))
 #define UNREGFN(WM_MESSAGE, message) \
 	void uiWindowsUnregister ## WM_MESSAGE ## Handler(HWND hwnd) \
 	{ \
-		struct message ## Handler *ch; \
-		HASH_FIND_PTR(message ## Handlers, &hwnd, ch); \
-		if (ch == NULL) \
-			complain("window handle %p not registered with a %s handler in uiWindowsUnregister%sHandler()", hwnd, #WM_MESSAGE, #WM_MESSAGE); \
-		HASH_DEL(message ## Handlers, ch); \
-		uiFree(ch); \
+		message ## Handler.erase(hwnd); \
 	}
 UNREGFN(WM_COMMAND, command)
 UNREGFN(WM_NOTIFY, notify)
@@ -68,9 +55,8 @@ UNREGFN(WM_HSCROLL, hscroll)
 		/* don't bounce back if to the utility window, in which case act as if the message was ignored */ \
 		control = gethwnd; \
 		if (control != NULL && IsChild(utilWindow, control) == 0) { \
-			HASH_FIND_PTR(message ## Handlers, &control, ch); \
-			if (ch != NULL) \
-				return (*(ch->handler))(ch->c, control, arg3, lResult); \
+			if (message ## Handlers.find(control) != message ## Handlers.end()) \
+				return (*(message ## Handlers[control].handler))(message ## Handlers[control].c, control, arg3, lResult); \
 			/* not registered; fall out to return FALSE */ \
 		} \
 		return FALSE; \
@@ -85,40 +71,24 @@ RUNFN(WM_HSCROLL, hscroll,
 	(HWND) lParam,
 	LOWORD(wParam))
 
-struct wininichange {
-	HWND hwnd;
-	UT_hash_handle hh;
-};
-
-static struct wininichange *wininichanges = NULL;
+static std::map<HWND, bool> wininichanges;
 
 void uiWindowsRegisterReceiveWM_WININICHANGE(HWND hwnd)
 {
-	struct wininichange *ch;
-
-	HASH_FIND_PTR(wininichanges, &hwnd, ch);
-	if (ch != NULL)
+	if (wininichanges[hwnd])
 		complain("window handle %p already subscribed to receive WM_WINICHANGEs in uiWindowsRegisterReceiveWM_WININICHANGE()", hwnd);
-	ch = uiNew(struct wininichange);
-	ch->hwnd = hwnd;
-	HASH_ADD_PTR(wininichanges, hwnd, ch);
+	wininichanges[hwnd] = true;
 }
 
 void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND hwnd)
 {
-	struct wininichange *ch;
-
-	HASH_FIND_PTR(wininichanges, &hwnd, ch);
-	if (ch == NULL)
-		complain("window handle %p not registered to receive WM_WININICHANGEs in uiWindowsUnregisterReceiveWM_WININICHANGE()", hwnd);
-	HASH_DEL(wininichanges, ch);
-	uiFree(ch);
+	wininichanges[hwnd] = false;
 }
 
 void issueWM_WININICHANGE(WPARAM wParam, LPARAM lParam)
 {
 	struct wininichange *ch;
 
-	for (ch = wininichanges; ch != NULL; ch = ch->hh.next)
-		SendMessageW(ch->hwnd, WM_WININICHANGE, wParam, lParam);
+	for (const auto &iter : wininichanges)
+		SendMessageW(iter.first, WM_WININICHANGE, wParam, lParam);
 }

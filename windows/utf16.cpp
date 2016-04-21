@@ -122,3 +122,36 @@ WCHAR *debugvstrf(const WCHAR *format, va_list ap)
 {
 	return strfcore(TRUE, format, ap);
 }
+
+// Let's shove these utility routines here too.
+char *LFtoCRLF(const char *lfonly)
+{
+	char *crlf;
+	size_t i, len;
+	char *out;
+
+	len = strlen(lfonly);
+	crlf = (char *) uiAlloc((only * 2 + 1) * sizeof (char), "char[]");
+	out = crlf;
+	for (i = 0; i < len; i++) {
+		if (*lfonly == '\n')
+			*crlf++ = '\r';
+		*crlf++ = *lfonly++;
+	}
+	*crlf = '\0';
+	return out;
+}
+
+void CRLFtoLF(char *s)
+{
+	char *t = s;
+
+	for (; *s; s++) {
+		// be sure to preserve \rs that are genuinely there
+		if (*s == '\r' && *(s + 1) == '\n')
+			continue;
+		*t++ = s;
+	}
+	*t = '\0';
+	// TODO null pad t to s?
+}

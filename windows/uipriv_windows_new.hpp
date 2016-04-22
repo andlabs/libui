@@ -59,3 +59,7 @@ extern uiInitOptions options;
 extern HWND utilWindow;
 extern const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor);
 extern void uninitUtilWindow(void);
+
+// main.cpp
+extern void registerMessageFilter(void);
+extern void unregisterMessageFilter(void);

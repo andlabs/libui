@@ -393,23 +393,17 @@ BOOL areaDoEvents(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *l
 	return FALSE;
 }
 
-static HHOOK areaFilter;
-
 // TODO affect visibility properly
 // TODO what did this mean
-static LRESULT CALLBACK areaFilterProc(int code, WPARAM wParam, LPARAM lParam)
+static BOOL areaFilter(MSG *msg)
 {
-	MSG *msg = (MSG *) lParam;
 	LRESULT handled;
-
-	if (code < 0)
-		goto callNext;
 
 	// is the recipient an area?
 	if (msg->hwnd == NULL)		// this can happen; for example, WM_TIMER
-		goto callNext;
+		return FALSE;
 	if (windowClassOf(msg->hwnd, areaClass, NULL) != 0)
-		goto callNext;		// nope
+		return FALSE;			// nope
 
 	handled = 0;
 	switch (msg->message) {
@@ -423,27 +417,5 @@ static LRESULT CALLBACK areaFilterProc(int code, WPARAM wParam, LPARAM lParam)
 		break;
 	// otherwise handled remains 0, as we didn't handle this
 	}
-	if (!handled)
-		goto callNext;
-
-	// we handled it; discard the message so the dialog manager doesn't see it
-	return 1;
-
-callNext:
-	return CallNextHookEx(areaFilter, code, wParam, lParam);
-}
-
-int registerAreaFilter(void)
-{
-	areaFilter = SetWindowsHookExW(WH_MSGFILTER,
-		areaFilterProc,
-		hInstance,
-		GetCurrentThreadId());
-	return areaFilter != NULL;
-}
-
-void unregisterAreaFilter(void)
-{
-	if (UnhookWindowsHookEx(areaFilter) == 0)
-		logLastError("error unregistering uiArea message filter in unregisterAreaFilter()");
+	return (BOOL) handled;
 }

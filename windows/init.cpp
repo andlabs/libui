@@ -126,8 +126,9 @@ const char *uiInit(uiInitOptions *o)
 
 	if (registerAreaClass(hDefaultIcon, hDefaultCursor) == 0)
 		return ieLastErr("registering uiArea window class");
-	if (registerAreaFilter() == 0)
-		return ieLastErr("registering uiArea message filter");
+
+	if (registerMessageFilter() == 0)
+		return ieLastErr("registering libui message filter");
 
 	if (registerD2DScratchClass(hDefaultIcon, hDefaultCursor) == 0)
 		return ieLastErr("initializing D2D scratch window class");
@@ -139,6 +140,7 @@ void uiUninit(void)
 {
 	uninitMenus();
 	unregisterD2DScratchClass();
+	unregisterMessageFilter();
 	unregisterArea();
 	uninitDrawText();
 	uninitDraw();

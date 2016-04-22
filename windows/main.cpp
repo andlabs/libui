@@ -1,6 +1,43 @@
 // 6 april 2015
 #include "uipriv_windows.hpp"
 
+static HHOOK filter;
+
+static LRESULT CALLBACK filterProc(int code, WPARAM wParam, LPARAM lParam)
+{
+	MSG *msg = (MSG *) lParam;
+	BOOL discard;
+
+	if (code < 0)
+		goto callNext;
+
+	discard = !areaFilter(msg);
+
+	if (discard)
+		goto callNext;
+
+	// we handled it; discard the message so the dialog manager doesn't see it
+	return 1;
+
+callNext:
+	return CallNextHookEx(areaFilter, code, wParam, lParam);
+}
+
+int registerMessageFilter(void)
+{
+	filter = SetWindowsHookExW(WH_MSGFILTER,
+		filterProc,
+		hInstance,
+		GetCurrentThreadId());
+	return filter != NULL;
+}
+
+void unregisterMessageFilter(void)
+{
+	if (UnhookWindowsHookEx(areaFilter) == 0)
+		logLastError(L"error unregistering libui message filter");
+}
+
 // TODO http://blogs.msdn.com/b/oldnewthing/archive/2005/04/08/406509.aspx when adding accelerators, TranslateAccelerators() before IsDialogMessage()
 
 void uiMain(void)

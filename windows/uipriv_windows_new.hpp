@@ -1,5 +1,9 @@
 // 21 april 2016
 
+// alloc.cpp
+extern void initAlloc(void);
+extern void uninitAlloc(void);
+
 // events.cpp
 extern BOOL runWM_COMMAND(WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 extern BOOL runWM_NOTIFY(WPARAM wParam, LPARAM lParam, LRESULT *lResult);
@@ -43,3 +47,10 @@ extern HWND parentToplevel(HWND child);
 extern WCHAR *windowTextAndLen(HWND hwnd, LRESULT *len);
 extern WCHAR *windowText(HWND hwnd);
 extern void setWindowText(HWND hwnd, WCHAR *wtext);
+
+// init.cpp
+extern HINSTANCE hInstance;
+extern int nCmdShow;
+extern HFONT hMessageFont;
+extern HBRUSH hollowBrush;
+extern uiInitOptions options;

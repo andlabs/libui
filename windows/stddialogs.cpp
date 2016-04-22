@@ -1,5 +1,5 @@
 // 22 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // notes:
 // - FOS_SUPPORTSTREAMABLEITEMS doesn't seem to be supported on windows vista, or at least not with the flags we use
@@ -14,56 +14,73 @@
 
 char *commonItemDialog(HWND parent, REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd)
 {
-	IFileDialog *d;
+	IFileDialog *d = NULL;
 	FILEOPENDIALOGOPTIONS opts;
-	IShellItem *result;
-	WCHAR *wname;
-	char *name;
+	IShellItem *result = NULL;
+	WCHAR *wname = NULL;
+	char *name = NULL;
 	HRESULT hr;
 
 	hr = CoCreateInstance(clsid,
 		NULL, CLSCTX_INPROC_SERVER,
 		iid, (LPVOID *) (&d));
-	if (hr != S_OK)
-		logHRESULT("error creating common item dialog in commonItemDialog()", hr);
-	hr = IFileDialog_GetOptions(d, &opts);
-	if (hr != S_OK)
-		logHRESULT("error getting current options in commonItemDialog()", hr);
-	opts |= optsadd;
-	hr = IFileDialog_SetOptions(d, opts);
-	if (hr != S_OK)
-		logHRESULT("error setting options in commonItemDialog()", hr);
-	hr = IFileDialog_Show(d, parent);
-	if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) {
-		IFileDialog_Release(d);
-		return NULL;
+	if (hr != S_OK) {
+		logHRESULT(L"error creating common item dialog", hr);
+		// always return NULL on error
+		goto out;
 	}
-	if (hr != S_OK)
-		logHRESULT("error showing dialog in commonItemDialog()", hr);
-	hr = IFileDialog_GetResult(d, &result);
-	if (hr != S_OK)
-		logHRESULT("error getting dialog result in commonItemDialog()", hr);
-	hr = IShellItem_GetDisplayName(result, SIGDN_FILESYSPATH, &wname);
-	if (hr != S_OK)
-		logHRESULT("error getting filename in commonItemDialog()", hr);
+	hr = d->GetOptions(&opts);
+	if (hr != S_OK) {
+		logHRESULT(L"error getting current options", hr);
+		goto out;
+	}
+	opts |= optsadd;
+	hr = d->SetOptions(opts);
+	if (hr != S_OK) {
+		logHRESULT(L"error setting options", hr);
+		goto out;
+	}
+	hr = d->Show(parent);
+	if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
+		// cancelled; return NULL like we have ready
+		goto out;
+	if (hr != S_OK) {
+		logHRESULT(L"error showing dialog", hr);
+		goto out;
+	}
+	hr = d->GetResult(&result);
+	if (hr != S_OK) {
+		logHRESULT(L"error getting dialog result", hr);
+		goto out;
+	}
+	hr = result->GetDisplayName(SIGDN_FILESYSPATH, &wname);
+	if (hr != S_OK) {
+		logHRESULT(L"error getting filename", hr);
+		goto out;
+	}
 	name = toUTF8(wname);
-	CoTaskMemFree(wname);
-	IShellItem_Release(result);
-	IFileDialog_Release(d);
+
+out:
+	if (wname != NULL)
+		CoTaskMemFree(wname);
+	if (result != NULL)
+		result->Release();
+	if (d != NULL)
+		d->Release();
 	return name;
 }
 
 char *uiOpenFile(uiWindow *parent)
 {
 	return commonItemDialog(windowHWND(parent),
-		&CLSID_FileOpenDialog, &IID_IFileOpenDialog,
+		CLSID_FileOpenDialog, IID_IFileOpenDialog,
 		FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
 }
 
 char *uiSaveFile(uiWindow *parent)
 {
 	return commonItemDialog(windowHWND(parent),
-		&CLSID_FileSaveDialog, &IID_IFileSaveDialog,
+		CLSID_FileSaveDialog, IID_IFileSaveDialog,
 		// TODO strip FOS_NOREADONLYRETURN?
 		FOS_OVERWRITEPROMPT | FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
 }
@@ -80,7 +97,7 @@ static void msgbox(HWND parent, const char *title, const char *description, TASK
 
 	hr = TaskDialog(parent, NULL, NULL, wtitle, wdescription, buttons, icon, NULL);
 	if (hr != S_OK)
-		logHRESULT("error showing task dialog in msgbox()", hr);
+		logHRESULT(L"error showing task dialog", hr);
 
 	uiFree(wdescription);
 	uiFree(wtitle);

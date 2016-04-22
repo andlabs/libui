@@ -1,19 +1,19 @@
 // 26 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // This contains code used by all uiControls that contain other controls.
 // It also contains the code to draw the background of a container.c container, as that is a variant of the WM_CTLCOLORxxx handler code.
 
 static HBRUSH parentBrush = NULL;
 
-static HWND realParent(HWND hwnd)
+static HWND parentWithBackground(HWND hwnd)
 {
 	HWND parent;
 	int class;
 
 	parent = hwnd;
 	for (;;) {
-		parent = GetAncestor(parent, GA_PARENT);
+		parent = parentOf(parent);
 		// skip groupboxes; they're (supposed to be) transparent
 		// skip uiContainers; they don't draw anything
 		class = windowClassOf(parent, L"button", containerClass, NULL);
@@ -29,32 +29,37 @@ struct parentDraw {
 	HBITMAP prevbitmap;
 };
 
-static void parentDraw(HDC dc, HWND parent, struct parentDraw *pd)
+static HRESULT parentDraw(HDC dc, HWND parent, struct parentDraw *pd)
 {
 	RECT r;
 
 	if (GetClientRect(parent, &r) == 0)
-		logLastError("error getting parent's client rect in parentDraw()");
+		return logLastError(L"error getting parent's client rect");
 	pd->cdc = CreateCompatibleDC(dc);
 	if (pd->cdc == NULL)
-		logLastError("error creating compatible DC in parentDraw()");
+		return logLastError(L"error creating compatible DC");
 	pd->bitmap = CreateCompatibleBitmap(dc, r.right - r.left, r.bottom - r.top);
 	if (pd->bitmap == NULL)
-		logLastError("error creating compatible bitmap in parentDraw()");
+		return logLastError(L"error creating compatible bitmap");
 	pd->prevbitmap = SelectObject(pd->cdc, pd->bitmap);
 	if (pd->prevbitmap == NULL)
-		logLastError("error selecting bitmap into compatible DC in parentDraw()");
+		return logLastError(L"error selecting bitmap into compatible DC");
 	SendMessageW(parent, WM_PRINTCLIENT, (WPARAM) (pd->cdc), PRF_CLIENT);
+	return S_OK;
 }
 
 static void endParentDraw(struct parentDraw *pd)
 {
-	if (SelectObject(pd->cdc, pd->prevbitmap) != pd->bitmap)
-		logLastError("error selecting previous bitmap back into compatible DC in endParentDraw()");
-	if (DeleteObject(pd->bitmap) == 0)
-		logLastError("error deleting compatible bitmap in endParentDraw()");
-	if (DeleteDC(pd->cdc) == 0)
-		logLastError("error deleting compatible DC in endParentDraw()");
+	// continue in case of any error
+	if (pd->prevbitmap != NULL)
+		if (SelectObject(pd->cdc, pd->prevbitmap) != pd->bitmap)
+			logLastError(L"error selecting previous bitmap back into compatible DC");
+	if (pd->bitmap != NULL)
+		if (DeleteObject(pd->bitmap) == 0)
+			logLastError(L"error deleting compatible bitmap");
+	if (pd->cdc != NULL)
+		if (DeleteDC(pd->cdc) == 0)
+			logLastError(L"error deleting compatible DC");
 }
 
 // see http://www.codeproject.com/Articles/5978/Correctly-drawn-themed-dialogs-in-WinXP
@@ -65,21 +70,29 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	struct parentDraw pd;
 	HBRUSH brush;
 
-	parent = realParent(hwnd);
+	parent = parentWithBackground(hwnd);
 
-	parentDraw(dc, parent, &pd);
+	hr = parentDraw(dc, parent, &pd);
+	if (hr != S_OK)
+		return NULL;
 	brush = CreatePatternBrush(pd.bitmap);
-	if (brush == NULL)
-		logLastError("error creating pattern brush in getControlBackgroundBrush()");
+	if (brush == NULL) {
+		logLastError(L"error creating pattern brush");
+		endParentDraw(&pd);
+		return NULL;
+	}
 	endParentDraw(&pd);
 
 	// now figure out where the control is relative to the parent so we can align the brush properly
-	if (GetWindowRect(hwnd, &hwndScreenRect) == 0)
-		logLastError("error getting control window rect in getControlBackgroundBrush()");
+	// if anything fails, give up and return the brush as-is
+	if (GetWindowRect(hwnd, &hwndScreenRect) == 0) {
+		logLastError(L"error getting control window rect");
+		return brush;
+	}
 	// this will be in screen coordinates; convert to parent coordinates
 	mapWindowRect(NULL, parent, &hwndScreenRect);
 	if (SetBrushOrgEx(dc, -hwndScreenRect.left, -hwndScreenRect.top, NULL) == 0)
-		logLastError("error setting brush origin in getControlBackgroundBrush()");
+		logLastError(L"error setting brush origin");
 
 	return brush;
 }
@@ -89,20 +102,24 @@ void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
 	HWND parent;
 	RECT paintRectParent;
 	struct parentDraw pd;
+	HRESULT hr;
 
-	parent = realParent(hwnd);
-	parentDraw(dc, parent, &pd);
+	parent = parentWithBackground(hwnd);
+	hr = parentDraw(dc, parent, &pd);
+	if (hr != S_OK)		// we couldn't get it; draw nothing
+		return NULL;
 
 	paintRectParent = *paintRect;
 	mapWindowRect(hwnd, parent, &paintRectParent);
 	if (BitBlt(dc, paintRect->left, paintRect->top, paintRect->right - paintRect->left, paintRect->bottom - paintRect->top,
 		pd.cdc, paintRectParent.left, paintRectParent.top,
 		SRCCOPY) == 0)
-		logLastError("error drawing parent background over uiContainer in paintContainerBackground()");
+		logLastError(L"error drawing parent background over uiContainer");
 
 	endParentDraw(&pd);
 }
 
+// TODO make this public if we want custom containers
 // why have this to begin with? http://blogs.msdn.com/b/oldnewthing/archive/2010/03/16/9979112.aspx
 BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
@@ -117,10 +134,12 @@ BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LR
 	case WM_CTLCOLORBTN:
 		if (parentBrush != NULL)
 			if (DeleteObject(parentBrush) == 0)
-				logLastError("error deleting old background brush in containerWndProc()");
+				logLastError(L"error deleting old background brush()");		// but continue anyway; we will leak a brush but whatever
 		if (SetBkMode((HDC) wParam, TRANSPARENT) == 0)
-			logLastError("error setting transparent background mode to controls in containerWndProc()");
+			logLastError(L"error setting transparent background mode to controls");		// but continue anyway; text will be wrong
 		parentBrush = getControlBackgroundBrush((HWND) lParam, (HDC) wParam);
+		if (parentBrush == NULL)		// failed; just do default behavior
+			return FALSE;
 		*lResult = (LRESULT) parentBrush;
 		return TRUE;
 	}

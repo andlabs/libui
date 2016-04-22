@@ -49,6 +49,18 @@ char *toUTF8(const WCHAR *wstr)
 	return str;
 }
 
+WCHAR *utf16dup(const WCHAR *orig)
+{
+	WCHAR *out;
+	size_t len;
+
+	len = wcslen(orig);
+	out = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
+	// TODO safer version
+	wcscpy(out, orig);
+	return out;
+}
+
 // if recursing is TRUE, do NOT recursively call wstrf() in logHRESULT()
 static WCHAR *strfcore(BOOL recursing, WCHAR *format, va_list ap)
 {

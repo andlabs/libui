@@ -7,6 +7,8 @@ extern BOOL runWM_HSCROLL(WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 extern void issueWM_WININICHANGE(WPARAM wParam, LPARAM lParam);
 
 // utf16.cpp
+#define emptyUTF16() ((WCHAR *) uiAlloc(1 * sizeof (WCHAR), "WCHAR[]"))
+#define emptyUTF8() ((char *) uiAlloc(1 * sizeof (char), "char[]"))
 extern WCHAR *toUTF16(const char *str);
 extern char *toUTF8(const WCHAR *wstr);
 extern WCHAR *strf(const WCHAR *format, ...);
@@ -35,3 +37,8 @@ extern void setExStyle(HWND hwnd, DWORD exstyle);
 extern void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL hasMenubar);
 extern HWND parentOf(HWND child);
 extern HWND parentToplevel(HWND child);
+
+// text.cpp
+extern WCHAR *windowTextAndLen(HWND hwnd, LRESULT *len);
+extern WCHAR *windowText(HWND hwnd);
+extern void setWindowText(HWND hwnd, WCHAR *wtext);

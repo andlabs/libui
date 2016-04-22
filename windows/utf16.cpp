@@ -4,7 +4,6 @@
 // see http://stackoverflow.com/a/29556509/3408572
 
 #define MBTWC(str, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, bufsiz)
-#define emptyUTF16() ((WCHAR *) uiAlloc(1 * sizeof (WCHAR), "WCHAR[]"))
 
 WCHAR *toUTF16(const char *str)
 {
@@ -28,7 +27,6 @@ WCHAR *toUTF16(const char *str)
 }
 
 #define WCTMB(wstr, str, bufsiz) WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, bufsiz, NULL, NULL)
-#define emptyUTF8() ((char *) uiAlloc(1 * sizeof (char), "char[]"))
 
 char *toUTF8(const WCHAR *wstr)
 {

@@ -1,5 +1,5 @@
 // 14 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // The utility window is a special window that performs certain tasks internal to libui.
 // It is not a message-only window, and it is always hidden and disabled.
@@ -26,7 +26,6 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		return lResult;
 	switch (uMsg) {
 	case WM_QUERYENDSESSION:
-	case msgConsoleEndSession:
 		// TODO block handler
 		if (shouldQuit()) {
 			uiQuit();
@@ -37,7 +36,7 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		if (wParam != resizeTimerID)
 			break;
 		if (SetTimer(utilWindow, resizeTimerID, resizeTimerInterval, NULL) == 0)
-			logLastError("error resetting resize timer in utilWindowWndProc()");
+			logLastError(L"error resetting resize timer");
 		doResizes();
 		return 0;
 	case WM_WININICHANGE:
@@ -84,9 +83,9 @@ const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 void uninitUtilWindow(void)
 {
 	if (KillTimer(utilWindow, resizeTimerID) == 0)
-		logLastError("error stopping resize timer in uninitUtilWindow()");
+		logLastError(L"error stopping resize timer");
 	if (DestroyWindow(utilWindow) == 0)
-		logLastError("error destroying utility window in uninitUtilWindow()");
+		logLastError(L"error destroying utility window");
 	if (UnregisterClass(utilWindowClass, hInstance) == 0)
-		logLastError("error unregistering utility window class in uninitUtilWindow()");
+		logLastError(L"error unregistering utility window class");
 }

@@ -54,3 +54,8 @@ extern int nCmdShow;
 extern HFONT hMessageFont;
 extern HBRUSH hollowBrush;
 extern uiInitOptions options;
+
+// utilwin.cpp
+extern HWND utilWindow;
+extern const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor);
+extern void uninitUtilWindow(void);

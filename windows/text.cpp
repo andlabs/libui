@@ -85,3 +85,23 @@ noTextOrError:
 	uiFree(text);
 	return 0;
 }
+
+char *uiWindowsWindowText(HWND hwnd)
+{
+	WCHAR *wtext;
+	char *text;
+
+	wtext = windowText(hwnd);
+	text = toUTF8(wtext);
+	uiFree(wtext);
+	return text;
+}
+
+void uiWindowsSetWindowText(HWND hwnd, const char *text)
+{
+	WCHAR *wtext;
+
+	wtext = toUTF16(text);
+	setWindowText(hwnd, wtext);
+	uiFree(wtext);
+}

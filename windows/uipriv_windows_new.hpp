@@ -42,6 +42,7 @@ extern void setExStyle(HWND hwnd, DWORD exstyle);
 extern void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL hasMenubar);
 extern HWND parentOf(HWND child);
 extern HWND parentToplevel(HWND child);
+extern void setWindowInsertAfter(HWND hwnd, HWND insertAfter);
 
 // text.cpp
 extern WCHAR *windowTextAndLen(HWND hwnd, LRESULT *len);
@@ -67,3 +68,6 @@ extern void unregisterMessageFilter(void);
 // parent.cpp
 extern void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect);
 extern BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
+
+// resize.cpp
+extern void doResizes(void);

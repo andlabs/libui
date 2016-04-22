@@ -134,3 +134,23 @@ HWND parentToplevel(HWND child)
 {
 	return GetAncestor(child, GA_ROOT);
 }
+
+/////////////
+
+void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+{
+	RECT r;
+
+	r.left = x;
+	r.top = y;
+	r.right = x + width;
+	r.bottom = y + height;
+	if (SetWindowPos(hwnd, NULL, r.left, r.top, r.right - r.left, r.bottom - r.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOZORDER) == 0)
+		logLastError(L"error moving window");
+}
+
+void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
+{
+	if (SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE) == 0)
+		logLastError(L"error reordering window");
+}

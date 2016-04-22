@@ -20,6 +20,14 @@ _UI_EXTERN void uiWindowsSetWindowText(HWND hwnd, const char *text);
 _UI_EXTERN intmax_t uiWindowsWindowTextWidth(HWND hwnd);
 
 // TODO document
+// TODO keep uiWindowsControl?
+_UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *c);
+
+// TODO document
+// TODO point out this should only be used in a resize cycle
+_UI_EXTERN void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height);
+
+// TODO document
 _UI_EXTERN void uiWindowsRegisterWM_COMMANDHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);
 _UI_EXTERN void uiWindowsUnregisterWM_COMMANDHandler(HWND hwnd);
 

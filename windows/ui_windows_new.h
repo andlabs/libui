@@ -1,6 +1,15 @@
 // 21 april 2016
 
 // TODO document
+_UI_EXTERN void uiWindowsEnsureDestroyWindow(HWND hwnd);
+
+// TODO document
+_UI_EXTERN void uiWindowsEnsureSetParent(HWND hwnd, HWND parent);
+
+// TODO document
+_UI_EXTERN void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND insertAfter);
+
+// TODO document
 _UI_EXTERN void uiWindowsRegisterWM_COMMANDHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);
 _UI_EXTERN void uiWindowsUnregisterWM_COMMANDHandler(HWND hwnd);
 

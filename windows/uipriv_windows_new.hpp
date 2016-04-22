@@ -24,3 +24,14 @@ extern HRESULT _logHRESULT(debugargs, const WCHAR *s, HRESULT hr);
 #define logHRESULT(s, hr) _logHRESULT(L ## __FILE__, __LINE__, L ## __func__, s, hr)
 extern void _implbug(debugargs, const WCHAR *format, ...);
 #define implbug(...) _implbug(L ## __FILE__, __LINE__, L ## __func__, __VA_LIST__)
+
+// winutil.cpp
+extern int windowClassOf(HWND hwnd, ...);
+extern void mapWindowRect(HWND from, HWND to, RECT *r);
+extern DWORD getStyle(HWND hwnd);
+extern void setStyle(HWND hwnd, DWORD style);
+extern DWORD getExStyle(HWND hwnd);
+extern void setExStyle(HWND hwnd, DWORD exstyle);
+extern void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL hasMenubar);
+extern HWND parentOf(HWND child);
+extern HWND parentToplevel(HWND child);

@@ -15,8 +15,11 @@ int windowClassOf(HWND hwnd, ...)
 	WCHAR *curname;
 	int i;
 
-	if (GetClassNameW(hwnd, classname, maxClassName) == 0)
-		logLastError("error getting name of window class in windowClassOf()");
+	if (GetClassNameW(hwnd, classname, maxClassName) == 0) {
+		logLastError(L"error getting name of window class");
+		// assume no match on error, just to be safe
+		return -1;
+	}
 	va_start(ap, hwnd);
 	i = 0;
 	for (;;) {
@@ -34,30 +37,22 @@ int windowClassOf(HWND hwnd, ...)
 	return -1;
 }
 
-void complain(const char *fmt, ...)
-{
-	va_list ap;
-
-	va_start(ap, fmt);
-	fprintf(stderr, "[libui] ");
-	vfprintf(stderr, fmt, ap);
-	fprintf(stderr, "\n");
-	va_end(ap);
-	DebugBreak();
-	abort();		// just in case
-}
-
 // wrapper around MapWindowRect() that handles the complex error handling
 void mapWindowRect(HWND from, HWND to, RECT *r)
 {
+	RECT prevr;
 	DWORD le;
 
+	prevr = *r;
 	SetLastError(0);
 	if (MapWindowRect(from, to, r) == 0) {
 		le = GetLastError();
 		SetLastError(le);		// just to be safe
-		if (le != 0)
-			logLastError("error calling MapWindowRect() in mapWindowRect()");
+		if (le != 0) {
+			logLastError(L"error calling MapWindowRect()");
+			// restore original rect on error, just in case
+			*r = prevr;
+		}
 	}
 }
 
@@ -84,13 +79,15 @@ void setExStyle(HWND hwnd, DWORD exstyle)
 void uiWindowsEnsureDestroyWindow(HWND hwnd)
 {
 	if (DestroyWindow(hwnd) == 0)
-		logLastError("error destroying window in uiWindowsEnsureDestroyWindow");
+		logLastError(L"error destroying window");
 }
 
+// TODO allow passing NULL to indicate no parent
+// this would allow for custom containers
 void uiWindowsEnsureSetParent(HWND hwnd, HWND parent)
 {
 	if (SetParent(hwnd, parent) == 0)
-		logLastError("error setting window parent in uiWindowsEnsureSetParent");
+		logLastError(L"error setting window parent in uiWindowsEnsureSetParent");
 }
 
 void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND insertAfter)
@@ -108,8 +105,14 @@ void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL h
 	window.top = 0;
 	window.right = *width;
 	window.bottom = *height;
-	if (AdjustWindowRectEx(&window, getStyle(hwnd), hasMenubar, getExStyle(hwnd)) == 0)
-		logLastError("error getting real window coordinates in clientSizeToWindowSize()");
+	if (AdjustWindowRectEx(&window, getStyle(hwnd), hasMenubar, getExStyle(hwnd)) == 0) {
+		logLastError("error getting adjusted window rect");
+		// on error, don't give up; the window will be smaller but whatever
+		window.left = 0;
+		window.top = 0;
+		window.right = *width;
+		window.bottom = *height;
+	}
 	if (hasMenubar) {
 		RECT temp;
 
@@ -120,4 +123,14 @@ void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL h
 	}
 	*width = window.right - window.left;
 	*height = window.bottom - window.top;
+}
+
+HWND parentOf(HWND child)
+{
+	return GetAncestor(child, GA_PARENT);
+}
+
+HWND parentToplevel(HWND child)
+{
+	return GetAncestor(child, GA_ROOT);
 }

@@ -72,6 +72,11 @@ extern BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 // resize.cpp
 extern void doResizes(void);
 
+// d2dscratch.cpp
+extern ATOM registerD2DScratchClass(HICON hDefaultIcon, HCURSOR hDefaultCursor);
+extern void unregisterD2DScratchClass(void);
+extern HWND newD2DScratch(HWND parent, RECT *rect, HMENU controlID, SUBCLASSPROC subclass, DWORD_PTR subclassData);
+
 
 
 // TODO

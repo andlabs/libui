@@ -1,5 +1,5 @@
 // 7 september 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // TODO
 // - write a test for transform followed by clip and clip followed by transform to make sure they work the same as on gtk+ and cocoa
@@ -21,7 +21,7 @@ HRESULT initDraw(void)
 
 void uninitDraw(void)
 {
-	ID2D1Factory_Release(d2dfactory);
+	d2dfactory->Release();
 }
 
 ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
@@ -37,7 +37,7 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 	// we *could* just use the screen DPI but why when we have a window handle and its DC has a DPI
 	dc = GetDC(hwnd);
 	if (dc == NULL)
-		logLastError("error getting DC to find DPI in makeHWNDRenderTarget()");
+		logLastError(L"error getting DC to find DPI");
 
 	ZeroMemory(&props, sizeof (D2D1_RENDER_TARGET_PROPERTIES));
 	props.type = D2D1_RENDER_TARGET_TYPE_DEFAULT;
@@ -49,10 +49,10 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 	props.minLevel = D2D1_FEATURE_LEVEL_DEFAULT;
 
 	if (ReleaseDC(hwnd, dc) == 0)
-		logLastError("error releasing DC for finding DPI in makeHWNDRenderTarget()");
+		logLastError(L"error releasing DC for finding DPI");
 
 	if (GetClientRect(hwnd, &r) == 0)
-		logLastError("error getting current size of window in makeHWNDRenderTarget()");
+		logLastError(L"error getting current size of window");
 
 	ZeroMemory(&hprops, sizeof (D2D1_HWND_RENDER_TARGET_PROPERTIES));
 	hprops.hwnd = hwnd;
@@ -61,12 +61,12 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 	// according to Rick Brewster, some drivers will misbehave if we don't specify this (see http://stackoverflow.com/a/33222983/3408572)
 	hprops.presentOptions = D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS;
 
-	hr = ID2D1Factory_CreateHwndRenderTarget(d2dfactory,
+	hr = d2dfactory->CreateHwndRenderTarget(
 		&props,
 		&hprops,
 		&rt);
 	if (hr != S_OK)
-		logHRESULT("error creating area HWND render target in makeHWNDRenderTarget()", hr);
+		logHRESULT(L"error creating area HWND render target", hr);
 	return rt;
 }
 
@@ -82,22 +82,18 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode fillmode)
 	HRESULT hr;
 
 	p = uiNew(uiDrawPath);
-	hr = ID2D1Factory_CreatePathGeometry(d2dfactory,
-		&(p->path));
+	hr = d2dfactory->CreatePathGeometry(&(p->path));
 	if (hr != S_OK)
-		logHRESULT("error creating path in uiDrawNewPath()", hr);
-	hr = ID2D1PathGeometry_Open(p->path,
-		&(p->sink));
+		logHRESULT(L"error creating path", hr);
+	hr = p->path->Open(&(p->sink));
 	if (hr != S_OK)
-		logHRESULT("error opening path in uiDrawNewPath()", hr);
+		logHRESULT(L"error opening path", hr);
 	switch (fillmode) {
 	case uiDrawFillModeWinding:
-		ID2D1GeometrySink_SetFillMode(p->sink,
-			D2D1_FILL_MODE_WINDING);
+		p->sink->SetFillMode(D2D1_FILL_MODE_WINDING);
 		break;
 	case uiDrawFillModeAlternate:
-		ID2D1GeometrySink_SetFillMode(p->sink,
-			D2D1_FILL_MODE_ALTERNATE);
+		p->sink->SetFillMode(D2D1_FILL_MODE_ALTERNATE);
 		break;
 	}
 	return p;
@@ -106,12 +102,11 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode fillmode)
 void uiDrawFreePath(uiDrawPath *p)
 {
 	if (p->inFigure)
-		ID2D1GeometrySink_EndFigure(p->sink,
-			D2D1_FIGURE_END_OPEN);
+		p->sink->EndFigure(D2D1_FIGURE_END_OPEN);
 	if (p->sink != NULL)
 		// TODO close sink first?
-		ID2D1GeometrySink_Release(p->sink);
-	ID2D1PathGeometry_Release(p->path);
+		p->sink->Release();
+	p->path->Release();
 	uiFree(p);
 }
 
@@ -120,13 +115,10 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	D2D1_POINT_2F pt;
 
 	if (p->inFigure)
-		ID2D1GeometrySink_EndFigure(p->sink,
-			D2D1_FIGURE_END_OPEN);
+		p-sink->EndFigure(D2D1_FIGURE_END_OPEN);
 	pt.x = x;
 	pt.y = y;
-	ID2D1GeometrySink_BeginFigure(p->sink,
-		pt,
-		D2D1_FIGURE_BEGIN_FILLED);
+	p->sink->BeginFigure(pt, D2D1_FIGURE_BEGIN_FILLED);
 	p->inFigure = TRUE;
 }
 
@@ -226,7 +218,7 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 			as.arcSize = D2D1_ARC_SIZE_SMALL;
 		else
 			as.arcSize = D2D1_ARC_SIZE_LARGE;
-	ID2D1GeometrySink_AddArc(p->sink, &as);
+	p->sink->AddArc(&as);
 }
 
 void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative)
@@ -248,7 +240,7 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 
 	pt.x = x;
 	pt.y = y;
-	ID2D1GeometrySink_AddLine(p->sink, pt);
+	p->sink->AddLine(pt);
 }
 
 void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative)
@@ -274,13 +266,12 @@ void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, doubl
 	s.point2.y = c2y;
 	s.point3.x = endX;
 	s.point3.y = endY;
-	ID2D1GeometrySink_AddBezier(p->sink, &s);
+	p->sink->AddBezier(&s);
 }
 
 void uiDrawPathCloseFigure(uiDrawPath *p)
 {
-	ID2D1GeometrySink_EndFigure(p->sink,
-		D2D1_FIGURE_END_CLOSED);
+	p->sink->EndFigure(D2D1_FIGURE_END_CLOSED);
 	p->inFigure = FALSE;
 }
 
@@ -299,20 +290,21 @@ void uiDrawPathEnd(uiDrawPath *p)
 	HRESULT hr;
 
 	if (p->inFigure) {
-		ID2D1GeometrySink_EndFigure(p->sink,
-			D2D1_FIGURE_END_OPEN);
+		p->sink->EndFigure(D2D1_FIGURE_END_OPEN);
 		// needed for uiDrawFreePath()
 		p->inFigure = FALSE;
 	}
-	hr = ID2D1GeometrySink_Close(p->sink);
+	hr = p->sink->Close();
 	if (hr != S_OK)
-		logHRESULT("error closing path in uiDrawPathEnd()", hr);
-	ID2D1GeometrySink_Release(p->sink);
+		logHRESULT(L"error closing path", hr);
+	p->sink->Release();
+	// also needed for uiDrawFreePath()
 	p->sink = NULL;
 }
 
 struct uiDrawContext {
 	ID2D1RenderTarget *rt;
+	// TODO move to std::vector
 	struct ptrArray *states;
 	ID2D1PathGeometry *currentClip;
 };
@@ -330,7 +322,7 @@ static void resetTarget(ID2D1RenderTarget *rt)
 	ZeroMemory(&dm, sizeof (D2D1_MATRIX_3X2_F));
 	dm._11 = 1;
 	dm._22 = 1;
-	ID2D1RenderTarget_SetTransform(rt, &dm);
+	rt->SetTransform(&dm);
 }
 
 uiDrawContext *newContext(ID2D1RenderTarget *rt)
@@ -347,7 +339,7 @@ uiDrawContext *newContext(ID2D1RenderTarget *rt)
 void freeContext(uiDrawContext *c)
 {
 	if (c->currentClip != NULL)
-		ID2D1PathGeometry_Release(c->currentClip);
+		c->currentClip->Release();
 	uninitStates(c);
 	uiFree(c);
 }
@@ -363,13 +355,13 @@ static ID2D1Brush *makeSolidBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BR
 	color.b = b->B;
 	color.a = b->A;
 
-	hr = ID2D1RenderTarget_CreateSolidColorBrush(rt,
+	hr = rt->CreateSolidColorBrush(
 		&color,
 		props,
 		&brush);
 	if (hr != S_OK)
-		logHRESULT("error creating solid brush in makeSolidBrush()", hr);
-	return (ID2D1Brush *) brush;
+		logHRESULT(L"error creating solid brush", hr);
+	return brush;
 }
 
 static ID2D1GradientStopCollection *mkstops(uiDrawBrush *b, ID2D1RenderTarget *rt)
@@ -388,17 +380,14 @@ static ID2D1GradientStopCollection *mkstops(uiDrawBrush *b, ID2D1RenderTarget *r
 		stops[i].color.a = b->Stops[i].A;
 	}
 
-	// TODO BUG IN MINGW
-	// the Microsoft headers give this all 6 parameters
-	// the MinGW headers use the 4-parameter version
-	hr = (*(rt->lpVtbl->CreateGradientStopCollection))(rt,
+	hr = rt->CreateGradientStopCollection(
 		stops,
 		b->NumStops,
 		D2D1_GAMMA_2_2,			// this is the default for the C++-only overload of ID2D1RenderTarget::GradientStopCollection()
 		D2D1_EXTEND_MODE_CLAMP,
 		&s);
 	if (hr != S_OK)
-		logHRESULT("error creating stop collection in mkstops()", hr);
+		logHRESULT(L"error creating stop collection", hr);
 
 	uiFree(stops);
 	return s;
@@ -419,17 +408,17 @@ static ID2D1Brush *makeLinearBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_B
 
 	stops = mkstops(b, rt);
 
-	hr = ID2D1RenderTarget_CreateLinearGradientBrush(rt,
+	hr = rt->CreateLinearGradientBrush(
 		&gprops,
 		props,
 		stops,
 		&brush);
 	if (hr != S_OK)
-		logHRESULT("error creating gradient brush in makeLinearBrush()", hr);
+		logHRESULT(L"error creating gradient brush", hr);
 
 	// the example at https://msdn.microsoft.com/en-us/library/windows/desktop/dd756682%28v=vs.85%29.aspx says this is safe to do now
-	ID2D1GradientStopCollection_Release(stops);
-	return (ID2D1Brush *) brush;
+	stops->Release();
+	return brush;
 }
 
 static ID2D1Brush *makeRadialBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
@@ -449,16 +438,16 @@ static ID2D1Brush *makeRadialBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_B
 
 	stops = mkstops(b, rt);
 
-	hr = ID2D1RenderTarget_CreateRadialGradientBrush(rt,
+	hr = rt->CreateRadialGradientBrush(
 		&gprops,
 		props,
 		stops,
 		&brush);
 	if (hr != S_OK)
-		logHRESULT("error creating gradient brush in makeRadialBrush()", hr);
+		logHRESULT(L"error creating gradient brush", hr);
 
-	ID2D1GradientStopCollection_Release(stops);
-	return (ID2D1Brush *) brush;
+	stops->Release();
+	return brush;
 }
 
 static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
@@ -508,13 +497,9 @@ static ID2D1Layer *applyClip(uiDrawContext *c)
 
 	// create a layer for clipping
 	// we have to explicitly make the layer because we're still targeting Windows 7
-	// TODO MINGW BUG
-	// this macro is supposed to take three parameters
-	hr = (*(c->rt->lpVtbl->CreateLayer))(c->rt,
-		NULL,
-		&layer);
+	hr = c->rt->CreateLayer(NULL, &layer);
 	if (hr != S_OK)
-		logHRESULT("error creating clip layer in applyClip()", hr);
+		logHRESULT(L"error creating clip layer", hr);
 
 	// apply it as the clip
 	ZeroMemory(&params, sizeof (D2D1_LAYER_PARAMETERS));
@@ -533,11 +518,9 @@ static ID2D1Layer *applyClip(uiDrawContext *c)
 	params.opacityBrush = NULL;
 	params.layerOptions = D2D1_LAYER_OPTIONS_NONE;
 	// TODO is this correct?
-	if (ID2D1RenderTarget_GetTextAntialiasMode(c->rt) == D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE)
+	if (c->rt->GetTextAntialiasMode() == D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE)
 		params.layerOptions = D2D1_LAYER_OPTIONS_INITIALIZE_FOR_CLEARTYPE;
-	ID2D1RenderTarget_PushLayer(c->rt,
-		&params,
-		layer);
+	c->rt->PushLayer(&params, layer);
 
 	// return the layer so it can be freed later
 	return layer;
@@ -547,8 +530,8 @@ static void unapplyClip(uiDrawContext *c, ID2D1Layer *layer)
 {
 	if (layer == NULL)
 		return;
-	ID2D1RenderTarget_PopLayer(c->rt);
-	ID2D1Layer_Release(layer);
+	c->rt->PopLayer();
+	layer->Release();
 }
 
 void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeParams *sp)
@@ -604,26 +587,26 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeP
 			dashes[i] = sp->Dashes[i] / sp->Thickness;
 	}
 	dsp.dashOffset = sp->DashPhase / sp->Thickness;
-	hr = ID2D1Factory_CreateStrokeStyle(d2dfactory,
+	hr = d2dfactory->CreateStrokeStyle(
 		&dsp,
 		dashes,
 		sp->NumDashes,
 		&style);
 	if (hr != S_OK)
-		logHRESULT("error creating stroke style in uiDrawStroke()", hr);
+		logHRESULT(L"error creating stroke style", hr);
 	if (sp->NumDashes != 0)
 		uiFree(dashes);
 
 	cliplayer = applyClip(c);
-	ID2D1RenderTarget_DrawGeometry(c->rt,
+	c->rt->DrawGeometry(
 		(ID2D1Geometry *) (p->path),
 		brush,
 		sp->Thickness,
 		style);
 	unapplyClip(c, cliplayer);
 
-	ID2D1StrokeStyle_Release(style);
-	ID2D1Brush_Release(brush);
+	style->Release();
+	brush->Release();
 }
 
 void uiDrawFill(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b)
@@ -633,12 +616,12 @@ void uiDrawFill(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b)
 
 	brush = makeBrush(b, c->rt);
 	cliplayer = applyClip(c);
-	ID2D1RenderTarget_FillGeometry(c->rt,
+	c->rt->FillGeometry(
 		(ID2D1Geometry *) (p->path),
 		brush,
 		NULL);
 	unapplyClip(c, cliplayer);
-	ID2D1Brush_Release(brush);
+	brush->Release();
 }
 
 static void m2d(uiDrawMatrix *m, D2D1_MATRIX_3X2_F *d)
@@ -669,6 +652,7 @@ void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
 // frustratingly all of the operations on a matrix except rotation and skeweing are provided by the C++-only d2d1helper.h
 // we'll have to recreate their functionalities here
 // the implementations are all in the main matrix.c file
+// TODO switch to these instead actually
 
 void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 {
@@ -743,13 +727,14 @@ void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
 	fallbackTransformSize(m, x, y);
 }
 
+// TODO move to using d2d matrices exclusively
 void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 {
 	D2D1_MATRIX_3X2_F dm;
 	uiDrawMatrix already;
 	uiDrawMatrix temp;
 
-	ID2D1RenderTarget_GetTransform(c->rt, &dm);
+	c->rt->GetTransform(&dm);
 	d2m(&dm, &already);
 	temp = *m;		// don't modify m
 	// you would think we have to do already * m, right?
@@ -761,10 +746,10 @@ void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 	// TODO see if Microsoft says to do this
 	uiDrawMatrixMultiply(&temp, &already);
 	m2d(&temp, &dm);
-	ID2D1RenderTarget_SetTransform(c->rt, &dm);
+	c->rt->SetTransform(&dm);
 }
 
-// TODO for this, stroke, and fill, make sure that an open path causes error state
+// TODO for this, stroke, and fill, make sure that a non-ended uiDrawPath causes error state
 void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 {
 	ID2D1PathGeometry *newPath;
@@ -775,39 +760,34 @@ void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 	if (c->currentClip == NULL) {
 		c->currentClip = path->path;
 		// we have to take our own reference to that clip
-		ID2D1PathGeometry_AddRef(c->currentClip);
+		c->currentClip->AddRef();
 		return;
 	}
 
 	// otherwise we have to intersect the current path with the new one
 	// we do that into a new path, and then replace c->currentClip with that new path
-	hr = ID2D1Factory_CreatePathGeometry(d2dfactory,
-		&newPath);
+	hr = d2dfactoryCreatePathGeometry(&newPath);
 	if (hr != S_OK)
-		logHRESULT("error creating new path in uiDrawClip()", hr);
-	hr = ID2D1PathGeometry_Open(newPath,
-		&newSink);
+		logHRESULT(L"error creating new path", hr);
+	hr = newPath->Open(&newSink);
 	if (hr != S_OK)
-		logHRESULT("error opening new path in uiDrawClip()", hr);
-	// TODO BUG IN MINGW
-	// the macro is supposed to take 6 parameters
-	hr = (*(c->currentClip->lpVtbl->Base.CombineWithGeometry))(
-		(ID2D1Geometry *) (c->currentClip),
-		(ID2D1Geometry *) (path->path),
+		logHRESULT(L"error opening new path", hr);
+	hr = c->currentClip->CombineWithGeometry(
+		path->path,
 		D2D1_COMBINE_MODE_INTERSECT,
 		NULL,
 		// TODO is this correct or can this be set per target?
 		D2D1_DEFAULT_FLATTENING_TOLERANCE,
-		(ID2D1SimplifiedGeometrySink *) newSink);
+		newSink);
 	if (hr != S_OK)
-		logHRESULT("error intersecting old path with new path in uiDrawClip()", hr);
-	hr = ID2D1GeometrySink_Close(newSink);
+		logHRESULT(L"error intersecting old path with new path", hr);
+	hr = newSink->Close();
 	if (hr != S_OK)
-		logHRESULT("error closing new path in uiDrawClip()", hr);
-	ID2D1GeometrySink_Release(newSink);
+		logHRESULT(L"error closing new path", hr);
+	newSink->Release();
 
 	// okay we have the new clip; we just need to replace the old one with it
-	ID2D1PathGeometry_Release(c->currentClip);
+	c->currentClip->Release();
 	c->currentClip = newPath;
 	// we have a reference already; no need for another
 }
@@ -836,18 +816,18 @@ void uiDrawSave(uiDrawContext *c)
 	ID2D1DrawingStateBlock *dsb;
 	HRESULT hr;
 
-	hr = ID2D1Factory_CreateDrawingStateBlock(d2dfactory,
+	hr = d2dfactory->CreateDrawingStateBlock(
 		// TODO verify that these are correct
 		NULL,
 		NULL,
 		&dsb);
 	if (hr != S_OK)
-		logHRESULT("error creating drawing state block in uiDrawSave()", hr);
-	ID2D1RenderTarget_SaveDrawingState(c->rt, dsb);
+		logHRESULT(L"error creating drawing state block", hr);
+	c->rt->SaveDrawingState(dsb);
 
 	// if we have a clip, we need to hold another reference to it
 	if (c->currentClip != NULL)
-		ID2D1PathGeometry_AddRef(c->currentClip);
+		c->currentClip->AddRef();
 
 	state = uiNew(struct state);
 	state->dsb = dsb;
@@ -861,18 +841,20 @@ void uiDrawRestore(uiDrawContext *c)
 
 	state = ptrArrayIndex(c->states, struct state *, c->states->len - 1);
 
-	ID2D1RenderTarget_RestoreDrawingState(c->rt, state->dsb);
-	ID2D1DrawingStateBlock_Release(state->dsb);
+	c->rt->RestoreDrawingState(state->dsb);
+	state->dsb->Release();
 
 	// if we have a current clip, we need to drop it
 	if (c->currentClip != NULL)
-		ID2D1PathGeometry_Release(c->currentClip);
+		c->currentClip->Release();
 	// no need to explicitly addref or release; just transfer the ref
 	c->currentClip = state->clip;
 
 	uiFree(state);
 	ptrArrayDelete(c->states, c->states->len - 1);
 }
+
+// TODO C++-ize the rest of the file
 
 // TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
 void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
@@ -888,7 +870,7 @@ void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 	brush.A = 1.0;
 	black = makeBrush(&brush, c->rt);
 	doDrawText(c->rt, black, x, y, layout);
-	ID2D1Brush_Release(black);
+	black->Release();
 }
 
 // TODO this is a mess

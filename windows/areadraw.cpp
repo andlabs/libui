@@ -1,6 +1,6 @@
 // 8 september 2015
-#include "uipriv_windows.h"
-#include "area.h"
+#include "uipriv_windows.hpp"
+#include "area.hpp"
 
 static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 {
@@ -24,7 +24,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 		dp.ClipY += a->vscrollpos;
 	}
 
-	ID2D1RenderTarget_BeginDraw(rt);
+	rt->BeginDraw();
 
 	if (a->scrolling) {
 		ZeroMemory(&scrollTransform, sizeof (D2D1_MATRIX_3X2_F));
@@ -33,7 +33,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 		// negative because we want nonzero scroll positions to move the drawing area up/left
 		scrollTransform._31 = -a->hscrollpos;
 		scrollTransform._32 = -a->vscrollpos;
-		ID2D1RenderTarget_SetTransform(rt, &scrollTransform);
+		rt->SetTransform(&scrollTransform);
 	}
 
 	// TODO push axis aligned clip
@@ -47,7 +47,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 	bgcolor.g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
 	bgcolor.b = ((float) GetBValue(bgcolorref)) / 255.0;
 	bgcolor.a = 1.0;
-	ID2D1RenderTarget_Clear(rt, &bgcolor);
+	rt->Clear(&bgcolor);
 
 	(*(ah->Draw))(ah, a, &dp);
 
@@ -55,7 +55,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 
 	// TODO pop axis aligned clip
 
-	return ID2D1RenderTarget_EndDraw(rt, NULL, NULL);
+	return rt->EndDraw(NULL, NULL);
 }
 
 static void onWM_PAINT(uiArea *a)
@@ -75,7 +75,7 @@ static void onWM_PAINT(uiArea *a)
 	switch (hr) {
 	case S_OK:
 		if (ValidateRect(a->hwnd, NULL) == 0)
-			logLastError("error validating rect in onWM_PAINT()");
+			logLastError(L"error validating rect");
 		break;
 	case D2DERR_RECREATE_TARGET:
 		// DON'T validate the rect
@@ -86,7 +86,7 @@ static void onWM_PAINT(uiArea *a)
 		a->rt = NULL;
 		break;
 	default:
-		logHRESULT("error painting in onWM_PAINT()", hr);
+		logHRESULT(L"error painting", hr);
 	}
 }
 
@@ -95,7 +95,7 @@ static void onWM_PRINTCLIENT(uiArea *a)
 	RECT client;
 
 	if (GetClientRect(a->hwnd, &client) == 0)
-		logLastError("error getting client rect in onWM_PRINTCLIENT()");
+		logLastError(L"error getting client rect");
 //TODO	doPaint(a, (HDC) wParam, &client);
 }
 
@@ -128,5 +128,5 @@ void areaDrawOnResize(uiArea *a, RECT *newClient)
 	// according to Rick Brewster, we must always redraw the entire client area after calling ID2D1RenderTarget::Resize() (see http://stackoverflow.com/a/33222983/3408572)
 	// we used to have a uiAreaHandler.RedrawOnResize() method to decide this; now you know why we don't anymore
 	if (InvalidateRect(a->hwnd, NULL, TRUE) == 0)
-		logLastError("error redrawing area on resize in areaDrawOnResize()");
+		logLastError(L"error redrawing area on resize");
 }

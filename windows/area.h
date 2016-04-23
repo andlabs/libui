@@ -27,21 +27,20 @@ struct uiArea {
 	ID2D1HwndRenderTarget *rt;
 };
 
-// areadraw.h
+// areadraw.cpp
 extern BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 extern void areaDrawOnResize(uiArea *, RECT *);
 
-// areascroll.c
+// areascroll.cpp
 extern BOOL areaDoScroll(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 extern void areaScrollOnResize(uiArea *, RECT *);
 extern void areaUpdateScroll(uiArea *a);
 
-// areaevents.c
+// areaevents.cpp
 extern BOOL areaDoEvents(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 extern void unregisterAreaFilter(void);
 
-// areautil.c
-extern void renderTargetGetSize(ID2D1RenderTarget *rt, D2D1_SIZE_F *size);
+// areautil.cpp
 extern void loadAreaSize(uiArea *a, ID2D1RenderTarget *rt, double *width, double *height);
 extern void pixelsToDIP(uiArea *a, double *x, double *y);
 extern void dipToPixels(uiArea *a, double *x, double *y);

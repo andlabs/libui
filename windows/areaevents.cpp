@@ -1,6 +1,6 @@
 // 8 september 2015
-#include "uipriv_windows.h"
-#include "area.h"
+#include "uipriv_windows.hpp"
+#include "area.hpp"
 
 static uiModifiers getModifiers(void)
 {
@@ -52,7 +52,7 @@ static void track(uiArea *a, BOOL tracking)
 		tm.dwFlags |= TME_CANCEL;
 	tm.hwndTrack = a->hwnd;
 	if (_TrackMouseEvent(&tm) == 0)
-		logLastError("error setting up mouse tracking in track()");
+		logLastError(L"error setting up mouse tracking");
 }
 
 static void capture(uiArea *a, BOOL capturing)
@@ -70,7 +70,7 @@ static void capture(uiArea *a, BOOL capturing)
 		SetCapture(a->hwnd);
 	} else
 		if (ReleaseCapture() == 0)
-			logLastError("error releasing capture on drag in capture()");
+			logLastError(L"error releasing capture on drag");
 }
 
 static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wParam, LPARAM lParam)
@@ -86,7 +86,7 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 		clientpt.x = GET_X_LPARAM(lParam);
 		clientpt.y = GET_Y_LPARAM(lParam);
 		if (GetClientRect(a->hwnd, &client) == 0)
-			logLastError("TODO");
+			logLastError(L"error getting uiAreaclient rect for mouse crossing on capture on drag");
 		inClient = PtInRect(&client, clientpt);
 		if (inClient && !a->inside) {
 			a->inside = TRUE;

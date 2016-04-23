@@ -1,6 +1,6 @@
 // 8 september 2015
-#include "uipriv_windows.h"
-#include "area.h"
+#include "uipriv_windows.hpp"
+#include "area.hpp"
 
 // TODO
 // - move from pixels to points somehow
@@ -34,7 +34,7 @@ static void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
 	// Direct2D doesn't have a method for scrolling the existing contents of a render target.
 	// We'll have to just invalidate everything and hope for the best.
 	if (InvalidateRect(a->hwnd, NULL, FALSE) == 0)
-		logLastError("error invalidating uiArea after scrolling in scrollto()");
+		logLastError(L"error invalidating uiArea after scrolling");
 
 	*(p->pos) = pos;
 
@@ -84,7 +84,7 @@ static void scroll(uiArea *a, int which, struct scrollParams *p, WPARAM wParam, 
 		si.cbSize = sizeof (SCROLLINFO);
 		si.fMask = SIF_POS;
 		if (GetScrollInfo(a->hwnd, which, &si) == 0)
-			logLastError("error getting thumb position for area in scroll()");
+			logLastError(L"error getting thumb position for area");
 		pos = si.nPos;
 		break;
 	case SB_THUMBTRACK:
@@ -92,7 +92,7 @@ static void scroll(uiArea *a, int which, struct scrollParams *p, WPARAM wParam, 
 		si.cbSize = sizeof (SCROLLINFO);
 		si.fMask = SIF_TRACKPOS;
 		if (GetScrollInfo(a->hwnd, which, &si) == 0)
-			logLastError("error getting thumb track position for area in scroll()");
+			logLastError(L"error getting thumb track position for area");
 		pos = si.nTrackPos;
 		break;
 	}
@@ -108,7 +108,7 @@ static void wheelscroll(uiArea *a, int which, struct scrollParams *p, WPARAM wPa
 	delta = GET_WHEEL_DELTA_WPARAM(wParam);
 	if (SystemParametersInfoW(p->wheelSPIAction, 0, &scrollAmount, 0) == 0)
 		// TODO use scrollAmount == 3 (for both v and h) instead?
-		logLastError("error getting area wheel scroll amount in wheelscroll()");
+		logLastError(L"error getting area wheel scroll amount");
 	if (scrollAmount == WHEEL_PAGESCROLL)
 		scrollAmount = p->pagesize;
 	if (scrollAmount == 0)		// no mouse wheel scrolling (or t->pagesize == 0)
@@ -129,7 +129,7 @@ static void hscrollParams(uiArea *a, struct scrollParams *p)
 	p->pos = &(a->hscrollpos);
 	// TODO get rid of these and replace with points
 	if (GetClientRect(a->hwnd, &r) == 0)
-		logLastError("error getting area client rect in hscrollParams()");
+		logLastError(L"error getting area client rect");
 	p->pagesize = r.right - r.left;
 	p->length = a->scrollWidth;
 	p->wheelCarry = &(a->hwheelCarry);
@@ -175,7 +175,7 @@ static void vscrollParams(uiArea *a, struct scrollParams *p)
 	ZeroMemory(p, sizeof (struct scrollParams));
 	p->pos = &(a->vscrollpos);
 	if (GetClientRect(a->hwnd, &r) == 0)
-		logLastError("error getting area client rect in vscrollParams()");
+		logLastError(L"error getting area client rect");
 	p->pagesize = r.bottom - r.top;
 	p->length = a->scrollHeight;
 	p->wheelCarry = &(a->vwheelCarry);

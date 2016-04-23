@@ -1,6 +1,6 @@
 // 8 september 2015
-#include "uipriv_windows.h"
-#include "area.h"
+#include "uipriv_windows.hpp"
+#include "area.hpp"
 
 uiWindowsDefineControl(
 	uiArea,								// type name
@@ -38,7 +38,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 		if (GetClientRect(a->hwnd, &client) == 0)
-			logLastError("error getting client rect of uiArea for WM_WINDOWPOSCHANGED handling in areaWndProc()");
+			logLastError(L"error getting client rect of uiArea for WM_WINDOWPOSCHANGED handling");
 		areaDrawOnResize(a, &client);
 		areaScrollOnResize(a, &client);
 		return 0;
@@ -81,7 +81,7 @@ void unregisterArea(void)
 {
 	unregisterAreaFilter();
 	if (UnregisterClassW(areaClass, hInstance) == 0)
-		logLastError("error unregistering uiArea window class in unregisterArea()");
+		logLastError(L"error unregistering uiArea window class");
 }
 
 void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
@@ -95,7 +95,7 @@ void uiAreaQueueRedrawAll(uiArea *a)
 {
 	// don't erase the background; we do that ourselves in doPaint()
 	if (InvalidateRect(a->hwnd, NULL, FALSE) == 0)
-		logLastError("error queueing uiArea redraw in uiAreaQueueRedrawAll()");
+		logLastError(L"error queueing uiArea redraw");
 }
 
 void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)

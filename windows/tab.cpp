@@ -1,5 +1,5 @@
 // 16 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // TODO
 // - write comment here about how tabs and parents work
@@ -191,7 +191,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	wname = toUTF16(name);
 	item.pszText = wname;
 	if (SendMessageW(t->hwnd, TCM_INSERTITEM, (WPARAM) n, (LPARAM) (&item)) == (LRESULT) -1)
-		logLastError("error adding tab to uiTab in uiTabInsertAt()");
+		logLastError(L"error adding tab to uiTab");
 	uiFree(wname);
 
 	// we need to do this because adding the first tab doesn't send a TCN_SELCHANGE; it just shows the page
@@ -209,7 +209,7 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 	// first delete the tab from the tab control
 	// if this is the current tab, no tab will be selected, which is good
 	if (SendMessageW(t->hwnd, TCM_DELETEITEM, (WPARAM) n, 0) == FALSE)
-		logLastError("error deleting uiTab tab in tabDelete()");
+		logLastError(L"error deleting uiTab tab");
 
 	// now delete the page itself
 	page = ptrArrayIndex(t->pages, struct child *, n);

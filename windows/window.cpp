@@ -1,5 +1,5 @@
 // 27 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 #define windowClass L"libui_uiWindowClass"
 
@@ -102,7 +102,7 @@ ATOM registerWindowClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 void unregisterWindowClass(void)
 {
 	if (UnregisterClassW(windowClass, hInstance) == 0)
-		logLastError("error unregistering uiWindow window class in unregisterWindowClass()");
+		logLastError(L"error unregistering uiWindow window class");
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -137,7 +137,7 @@ static void windowCommitShow(uiControl *c)
 	uiWindowsControlQueueRelayout(uiWindowsControl(w));
 	ShowWindow(w->hwnd, nCmdShow);
 	if (UpdateWindow(w->hwnd) == 0)
-		logLastError("error calling UpdateWindow() after showing uiWindow for the first time in windowShow()");
+		logLastError(L"error calling UpdateWindow() after showing uiWindow for the first time");
 }
 
 static void windowContainerUpdateState(uiControl *c)
@@ -243,7 +243,7 @@ static void setClientSize(uiWindow *w, int width, int height, BOOL hasMenubar, D
 	window.right = width;
 	window.bottom = height;
 	if (AdjustWindowRectEx(&window, style, hasMenubar, exstyle) == 0)
-		logLastError("error getting real window coordinates in setClientSize()");
+		logLastError(L"error getting real window coordinates");
 	if (hasMenubar) {
 		RECT temp;
 
@@ -253,7 +253,7 @@ static void setClientSize(uiWindow *w, int width, int height, BOOL hasMenubar, D
 		window.bottom += temp.top;
 	}
 	if (SetWindowPos(w->hwnd, NULL, 0, 0, window.right - window.left, window.bottom - window.top, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
-		logLastError("error resizing window in setClientSize()");
+		logLastError(L"error resizing window");
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
@@ -283,13 +283,13 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		width, height,
 		NULL, NULL, hInstance, w);
 	if (w->hwnd == NULL)
-		logLastError("error creating window in uiWindow()");
+		logLastError(L"error creating window");
 	uiFree(wtitle);
 
 	if (hasMenubar) {
 		w->menubar = makeMenubar();
 		if (SetMenu(w->hwnd, w->menubar) == 0)
-			logLastError("error giving menu to window in uiNewWindow()");
+			logLastError(L"error giving menu to window");
 	}
 
 	// and use the proper size
@@ -315,12 +315,12 @@ void ensureMinimumWindowSize(uiWindow *w)
 	c = uiWindowsControl(w);
 	(*(c->MinimumSize))(c, NULL, &width, &height);
 	if (GetClientRect(w->hwnd, &r) == 0)
-		logLastError("error getting client rect in ensureMinimumWindowSize()");
+		logLastError(L"error getting client rect");
 	if (width < (r.right - r.left))		// preserve width if larger
 		width = r.right - r.left;
 	if (height < (r.bottom - r.top))		// preserve height if larger
 		height = r.bottom - r.top;
 	clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
 	if (SetWindowPos(w->hwnd, NULL, 0, 0, width, height, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
-		logLastError("error resizing window in ensureMinimumWindowSize()");
+		logLastError(L"error resizing window");
 }

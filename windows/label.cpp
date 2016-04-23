@@ -1,5 +1,5 @@
 // 11 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 struct uiLabel {
 	uiWindowsControl c;
@@ -24,12 +24,12 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 
 char *uiLabelText(uiLabel *l)
 {
-	return uiWindowsUtilText(l->hwnd);
+	return uiWindowsWindowText(l->hwnd);
 }
 
 void uiLabelSetText(uiLabel *l, const char *text)
 {
-	uiWindowsUtilSetText(l->hwnd, text);
+	uiWindowsWindowSetText(l->hwnd, text);
 	// changing the text might necessitate a change in the label's size
 	uiWindowsControlQueueRelayout(uiWindowsControl(l));
 }

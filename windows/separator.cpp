@@ -1,5 +1,5 @@
 // 20 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // references:
 // - http://stackoverflow.com/questions/2892703/how-do-i-draw-separators

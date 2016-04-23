@@ -1,7 +1,7 @@
 // 24 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
-// TODO migrate to ptrArray
+// TODO migrate to std::vector
 
 static uiMenu **menus = NULL;
 static uintmax_t len = 0;
@@ -60,7 +60,7 @@ static void sync(uiMenuItem *item)
 
 	for (i = 0; i < item->len; i++)
 		if (SetMenuItemInfo(item->hmenus[i], item->id, FALSE, &mi) == 0)
-			logLastError("error synchronizing menu items in windows/menu.c sync()");
+			logLastError(L"error synchronizing menu items");
 }
 
 static void defaultOnClicked(uiMenuItem *item, uiWindow *w, void *data)
@@ -234,7 +234,7 @@ static void appendMenuItem(HMENU menu, uiMenuItem *item)
 			uFlags |= MF_CHECKED;
 	}
 	if (AppendMenuW(menu, uFlags, item->id, item->name) == 0)
-		logLastError("error appending menu item in appendMenuItem()");
+		logLastError(L"error appending menu item");
 
 	if (item->len >= item->cap) {
 		item->cap += grow;
@@ -251,7 +251,7 @@ static HMENU makeMenu(uiMenu *m)
 
 	menu = CreatePopupMenu();
 	if (menu == NULL)
-		logLastError("error creating menu in makeMenu()");
+		logLastError(L"error creating menu");
 	for (i = 0; i < m->len; i++)
 		appendMenuItem(menu, m->items[i]);
 	return menu;
@@ -267,12 +267,12 @@ HMENU makeMenubar(void)
 
 	menubar = CreateMenu();
 	if (menubar == NULL)
-		logLastError("error creating menubar in makeMenubar()");
+		logLastError(L"error creating menubar");
 
 	for (i = 0; i < len; i++) {
 		menu = makeMenu(menus[i]);
 		if (AppendMenuW(menubar, MF_POPUP | MF_STRING, (UINT_PTR) menu, menus[i]->name) == 0)
-			logLastError("error appending menu to menubar in makeMenubar()");
+			logLastError(L"error appending menu to menubar");
 	}
 
 	return menubar;
@@ -335,7 +335,7 @@ void freeMenubar(HMENU menubar)
 		mi.cbSize = sizeof (MENUITEMINFOW);
 		mi.fMask = MIIM_SUBMENU;
 		if (GetMenuItemInfoW(menubar, i, TRUE, &mi) == 0)
-			logLastError("error getting menu to delete item references from in freeMenubar()");
+			logLastError(L"error getting menu to delete item references from");
 		freeMenu(menus[i], mi.hSubMenu);
 	}
 	// no need to worry about destroying any menus; destruction of the window they're in will do it for us

@@ -33,12 +33,15 @@ CFLAGS += \
 	-bigobj -nologo \
 	-RTC1 -RTCc -RTCs -RTCu
 
+# TODO prune these
+# -EHsc is to shut the compiler up in some cases
 CXXFLAGS += \
 	-W4 \
 	-wd4100 \
 	-TP \
 	-bigobj -nologo \
-	-RTC1 -RTCc -RTCs -RTCu
+	-RTC1 -RTCc -RTCs -RTCu \
+	-EHsc
 
 # TODO warnings on undefined symbols
 LDFLAGS += \

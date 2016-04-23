@@ -56,7 +56,7 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 	} \
 	static void _ ## type ## Relayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height) \
 	{ \
-		uiWindowsEnsureMoveWindow(type(c)->hwnd, x, y, width, height); \
+		uiWindowsEnsureMoveWindowDuringResize(type(c)->hwnd, x, y, width, height); \
 	} \
 	static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height); \
 	static void _ ## type ## AssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter) \

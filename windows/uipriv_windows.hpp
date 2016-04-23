@@ -35,19 +35,22 @@ extern char *toUTF8(const WCHAR *wstr);
 extern WCHAR *utf16dup(const WCHAR *orig);
 extern WCHAR *strf(const WCHAR *format, ...);
 extern WCHAR *vstrf(const WCHAR *format, va_list ap);
-extern WCHAR *debugstrf(const WCHAR *format, ..);
+extern WCHAR *debugstrf(const WCHAR *format, ...);
 extern WCHAR *debugvstrf(const WCHAR *format, va_list ap);
 extern char *LFtoCRLF(const char *lfonly);
 extern void CRLFtoLF(const char *s);
 
 // debug.cpp
-#define debugargs const WCHAR *file, uintmax_t line, const WCHAR *file
-extern HRESULT _logLastError(debugargs, const WCHAR *func, const WCHAR *s);
-#define logLastError(s) _logLastError(L ## __FILE__, __LINE__, L ## __func__, s)
+// see http://stackoverflow.com/questions/14421656/is-there-widely-available-wide-character-variant-of-file
+// TODO turn line into a const WCHAR* this way
+#define _ws(m) L ## m
+#define debugargs const WCHAR *file, uintmax_t line, const WCHAR *func
+extern HRESULT _logLastError(debugargs, const WCHAR *s);
+#define logLastError(s) _logLastError(_ws(__FILE__), __LINE__, _ws(__func__), s)
 extern HRESULT _logHRESULT(debugargs, const WCHAR *s, HRESULT hr);
-#define logHRESULT(s, hr) _logHRESULT(L ## __FILE__, __LINE__, L ## __func__, s, hr)
+#define logHRESULT(s, hr) _logHRESULT(_ws(__FILE__), __LINE__, _ws(__func__), s, hr)
 extern void _implbug(debugargs, const WCHAR *format, ...);
-#define implbug(...) _implbug(L ## __FILE__, __LINE__, L ## __func__, __VA_LIST__)
+#define implbug(...) _implbug(_ws(__FILE__), __LINE__, _ws(__func__), __VA_LIST__)
 
 // winutil.cpp
 extern int windowClassOf(HWND hwnd, ...);

@@ -29,18 +29,21 @@ void uninitAlloc(void)
 		complain("either you left something around or there's a bug in libui");
 }
 
+#define rawBytes(pa) (&((*pa)[0]))
+
 void *uiAlloc(size_t size, const char *type)
 {
 	byteArray *out;
 
 	out = new byteArray(size, 0);
-	heap[&out[0]] = out;
+	heap[rawBytes(out)] = out;
 	types[out] = type;
-	return &out[0];
+	return rawBytes(out);
 }
 
-void *uiRealloc(void *p, size_t size, const char *type)
+void *uiRealloc(void *_p, size_t size, const char *type)
 {
+	uint8_t *p = (uint8_t *) _p;
 	byteArray *arr;
 
 	if (p == NULL)
@@ -48,12 +51,14 @@ void *uiRealloc(void *p, size_t size, const char *type)
 	arr = heap[p];
 	arr->resize(size, 0);
 	heap.erase(p);
-	heap[&arr[0]] = arr;
-	return &arr[0];
+	heap[rawBytes(arr)] = arr;
+	return rawBytes(arr);
 }
 
-void uiFree(void *p)
+void uiFree(void *_p)
 {
+	uint8_t *p = (uint8_t *) _p;
+
 	if (p == NULL)
 		complain("attempt to uiFree(NULL); there's a bug somewhere");
 	types.erase(heap[p]);

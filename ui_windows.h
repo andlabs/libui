@@ -1,4 +1,4 @@
-// 7 april 2015
+// 21 april 2016
 
 /*
 This file assumes that you have included <windows.h> and "ui.h" beforehand. It provides API-specific functions for interfacing with foreign controls in Windows.
@@ -84,27 +84,56 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 	uiWindowsControl(variable)->ArrangeChildrenControlIDsZOrder = _ ## type ## ArrangeChildrenControlIDsZOrder; \
 	uiWindowsFinishControl(uiControl(variable));
 
-// This is a function used to set up a control.
-// Don't call it directly; use uiWindowsFinishNewControl() instead.
-_UI_EXTERN void uiWindowsFinishControl(uiControl *c);
-
-// This creates a HWND compatible with libui.
-// It will not return NULL; libui handles errors for you.
+// TODO document
 _UI_EXTERN HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont);
 
-// This is a wrapper for certain Windows API functions; use them to have libui handle errors for you.
+// TODO document
 _UI_EXTERN void uiWindowsEnsureDestroyWindow(HWND hwnd);
+
+// TODO document
 _UI_EXTERN void uiWindowsEnsureSetParent(HWND hwnd, HWND parent);
 
-// Use this in your Relayout() implementation to move and resize HWNDs. libui handles errors for you.
-_UI_EXTERN void uiWindowsEnsureMoveWindow(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height);
-
-// Use this in implementations of AssignControlIDZOrder().
-// libui handles errors for you.
+// TODO document
 _UI_EXTERN void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND insertAfter);
 
-// Use this to tell a control's parent that the control needs to rearrange its Z-order.
-_UI_EXTERN void uiWindowsRearrangeControlIDsZOrder(uiControl *);
+// TODO document
+_UI_EXTERN char *uiWindowsWindowText(HWND hwnd);
+_UI_EXTERN void uiWindowsSetWindowText(HWND hwnd, const char *text);
+
+// TODO document
+_UI_EXTERN intmax_t uiWindowsWindowTextWidth(HWND hwnd);
+
+// TODO document
+// TODO keep uiWindowsControl?
+_UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *c);
+
+// TODO document
+// TODO point out this should only be used in a resize cycle
+_UI_EXTERN void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height);
+
+// TODO document
+_UI_EXTERN void uiWindowsRegisterWM_COMMANDHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);
+_UI_EXTERN void uiWindowsUnregisterWM_COMMANDHandler(HWND hwnd);
+
+// TODO document
+_UI_EXTERN void uiWindowsRegisterWM_NOTIFYHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, NMHDR *, LRESULT *), uiControl *c);
+_UI_EXTERN void uiWindowsUnregisterWM_NOTIFYHandler(HWND hwnd);
+
+// TODO document
+_UI_EXTERN void uiWindowsRegisterWM_HSCROLLHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);
+_UI_EXTERN void uiWindowsUnregisterWM_HSCROLLHandler(HWND hwnd);
+
+// TODO document
+_UI_EXTERN void uiWindowsRegisterReceiveWM_WININICHANGE(HWND hwnd);
+_UI_EXTERN void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND hwnd);
+
+
+
+
+// everything below here is TODO
+
+_UI_EXTERN void uiWindowsFinishControl(uiControl *c);
+_UI_EXTERN void uiWindowsRearrangeControlIDsZOrder(uiControl *c);
 
 ////////////////////////////////////////////
 /////////////////// TODO ///////////////////

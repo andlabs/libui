@@ -306,6 +306,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	return w;
 }
 
+// this cannot queue a resize because it's called by the resize handler
 void ensureMinimumWindowSize(uiWindow *w)
 {
 	uiWindowsControl *c;

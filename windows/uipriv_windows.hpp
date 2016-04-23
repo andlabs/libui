@@ -1,4 +1,21 @@
 // 21 april 2016
+#include "winapi.hpp"
+#include "../ui.h"
+#include "../ui_windows.h"
+#include "../common/uipriv.h"
+#include "resources.hpp"
+#include "compilerver.hpp"
+
+// ui internal window messages
+enum {
+	// redirected WM_COMMAND and WM_NOTIFY
+	msgCOMMAND = WM_APP + 0x40,		// start offset just to be safe
+	msgNOTIFY,
+	msgHSCROLL,
+	msgGetuiWindow,
+	msgQueued,
+	msgD2DScratchPaint,
+};
 
 // alloc.cpp
 extern void initAlloc(void);
@@ -77,7 +94,28 @@ extern ATOM registerD2DScratchClass(HICON hDefaultIcon, HCURSOR hDefaultCursor);
 extern void unregisterD2DScratchClass(void);
 extern HWND newD2DScratch(HWND parent, RECT *rect, HMENU controlID, SUBCLASSPROC subclass, DWORD_PTR subclassData);
 
+// area.cpp
+#define areaClass L"libui_uiAreaClass"
+extern ATOM registerAreaClass(HICON, HCURSOR);
+extern void unregisterArea(void);
 
+// areaevents.cpp
+extern BOOL areaFilter(MSG *);
+
+// window.cpp
+extern ATOM registerWindowClass(HICON, HCURSOR);
+extern void unregisterWindowClass(void);
+extern void ensureMinimumWindowSize(uiWindow *);
+
+// container.cpp
+#define containerClass L"libui_uiContainerClass"
+extern ATOM initContainer(HICON, HCURSOR);
+extern void uninitContainer(void);
+extern HWND newContainer(void);
+
+
+// TODO
+#include "_uipriv_migrate.hpp"
 
 // TODO
 // child.cpp

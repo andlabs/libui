@@ -56,12 +56,12 @@ static void defaultOnClicked(uiButton *b, void *data)
 
 char *uiButtonText(uiButton *b)
 {
-	return uiWindowsUtilText(b->hwnd);
+	return uiWindowsWindowText(b->hwnd);
 }
 
 void uiButtonSetText(uiButton *b, const char *text)
 {
-	uiWindowsUtilSetText(b->hwnd, text);
+	uiWindowsSetWindowText(b->hwnd, text);
 	// changing the text might necessitate a change in the button's size
 	uiWindowsControlQueueRelayout(uiWindowsControl(b));
 }

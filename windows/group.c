@@ -97,12 +97,12 @@ static void groupArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
 
 char *uiGroupTitle(uiGroup *g)
 {
-	return uiWindowsUtilText(g->hwnd);
+	return uiWindowsWindowText(g->hwnd);
 }
 
 void uiGroupSetTitle(uiGroup *g, const char *text)
 {
-	uiWindowsUtilSetText(g->hwnd, text);
+	uiWindowsSetWindowText(g->hwnd, text);
 	// changing the text might necessitate a change in the groupbox's size
 	uiWindowsControlQueueRelayout(uiWindowsControl(g));
 }

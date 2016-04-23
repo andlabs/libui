@@ -53,12 +53,12 @@ static void defaultOnToggled(uiCheckbox *c, void *data)
 
 char *uiCheckboxText(uiCheckbox *c)
 {
-	return uiWindowsUtilText(c->hwnd);
+	return uiWindowsWindowText(c->hwnd);
 }
 
 void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
-	uiWindowsUtilSetText(c->hwnd, text);
+	uiWindowsSetWindowText(c->hwnd, text);
 	// changing the text might necessitate a change in the checkbox's size
 	uiWindowsControlQueueRelayout(uiWindowsControl(c));
 }

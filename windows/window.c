@@ -195,12 +195,12 @@ static void windowArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
 
 char *uiWindowTitle(uiWindow *w)
 {
-	return uiWindowsUtilText(w->hwnd);
+	return uiWindowsWindowText(w->hwnd);
 }
 
 void uiWindowSetTitle(uiWindow *w, const char *title)
 {
-	uiWindowsUtilSetText(w->hwnd, title);
+	uiWindowsSetWindowText(w->hwnd, title);
 	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
 }
 

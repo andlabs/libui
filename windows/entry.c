@@ -45,14 +45,14 @@ static void defaultOnChanged(uiEntry *e, void *data)
 
 char *uiEntryText(uiEntry *e)
 {
-	return uiWindowsUtilText(e->hwnd);
+	return uiWindowsWindowText(e->hwnd);
 }
 
 void uiEntrySetText(uiEntry *e, const char *text)
 {
 	// doing this raises an EN_CHANGED
 	e->inhibitChanged = TRUE;
-	uiWindowsUtilSetText(e->hwnd, text);
+	uiWindowsSetWindowText(e->hwnd, text);
 	e->inhibitChanged = FALSE;
 	// don't queue the control for resize; entry sizes are independent of their contents
 }

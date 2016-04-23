@@ -1,8 +1,5 @@
 // 14 april 2016
-// Before we begin, you may be wondering why this file is C++.
-// Simple: <dwrite.h> is C++ only! Thanks Microsoft!
-// And unlike UI Automation which accidentally just forgets the 'struct' and 'enum' tags in places, <dwrite.h> is a full C++ header file, with class definitions and the use of __uuidof. Oh well :/
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 IDWriteFactory *dwfactory = NULL;
 

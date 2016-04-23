@@ -1,5 +1,5 @@
 // 14 april 2016
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // TODOs
 // - quote the Choose Font sample here for reference

@@ -1,5 +1,5 @@
 // 28 august 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // This file contains helpers for managing child controls.
 

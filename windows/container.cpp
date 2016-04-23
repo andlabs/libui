@@ -1,5 +1,5 @@
 // 26 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // Code for the HWND of the following uiControls:
 // - uiBox
@@ -17,16 +17,22 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	switch (uMsg) {
 	case WM_PAINT:
 		dc = BeginPaint(hwnd, &ps);
-		if (dc == NULL)
-			logLastError("error beginning container paint in containerWndProc()");
+		if (dc == NULL) {
+			logLastError(L"error beginning container paint");
+			// bail out; hope DefWindowProc() catches us
+			break;
+		}
 		r = ps.rcPaint;
 		paintContainerBackground(hwnd, dc, &r);
 		EndPaint(hwnd, &ps);
 		return 0;
 	// tab controls use this to draw the background of the tab area
 	case WM_PRINTCLIENT:
-		if (GetClientRect(hwnd, &r) == 0)
-			logLastError("error getting client rect in containerWndProc()");
+		if (GetClientRect(hwnd, &r) == 0) {
+			logLastError(L"error getting client rect");
+			// likewise
+			break;
+		}
 		paintContainerBackground(hwnd, (HDC) wParam, &r);
 		return 0;
 	case WM_ERASEBKGND:

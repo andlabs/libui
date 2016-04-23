@@ -1,5 +1,5 @@
 // 20 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // desired behavior:
 // - tab moves between the radio buttons and the adjacent controls
@@ -10,8 +10,8 @@
 
 struct uiRadioButtons {
 	uiWindowsControl c;
-	HWND hwnd;				// of the container
-	struct ptrArray *hwnds;		// of the buttons
+	HWND hwnd;					// of the container
+	std::vector<HWND> *hwnds;		// of the buttons
 };
 
 static void onDestroy(uiRadioButtons *);
@@ -31,8 +31,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult
 
 	if (code != BN_CLICKED)
 		return FALSE;
-	for (i = 0; i < r->hwnds->len; i++) {
-		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
+	for (hwnd : *(r->hwnds)) {
 		check = BST_UNCHECKED;
 		if (clicked == hwnd)
 			check = BST_CHECKED;
@@ -46,13 +45,11 @@ static void onDestroy(uiRadioButtons *r)
 {
 	HWND hwnd;
 
-	while (r->hwnds->len != 0) {
-		hwnd = ptrArrayIndex(r->hwnds, HWND, 0);
-		ptrArrayDelete(r->hwnds, 0);
+	for (hwnd : *(r->hwnds)) {
 		uiWindowsUnregisterWM_COMMANDHandler(hwnd);
 		uiWindowsEnsureDestroyWindow(hwnd);
 	}
-	ptrArrayDestroy(r->hwnds);
+	delete r->hwnds;
 }
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -63,12 +60,11 @@ static void onDestroy(uiRadioButtons *r)
 static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
 	uiRadioButtons *r = uiRadioButtons(c);
-	uintmax_t i;
 	intmax_t wid, maxwid;
 
 	maxwid = 0;
-	for (i = 0; i < r->hwnds->len; i++) {
-		wid = uiWindowsWindowTextWidth(ptrArrayIndex(r->hwnds, HWND, i));
+	for (const HWND &hwnd : *(r->hwnds)) {
+		wid = uiWindowsWindowTextWidth(hwnd);
 		if (maxwid < wid)
 			maxwid = wid;
 	}
@@ -82,7 +78,6 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 	uiWindowsSizing *d;
 	intmax_t height1;
 	intmax_t h;
-	uintmax_t i;
 	HWND hwnd;
 
 	uiWindowsEnsureMoveWindow(r->hwnd, x, y, width, height);
@@ -92,8 +87,7 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 	d = uiWindowsNewSizing(r->hwnd);
 	height1 = uiWindowsDlgUnitsToY(radiobuttonHeight, d->BaseY);
 	uiWindowsFreeSizing(d);
-	for (i = 0; i < r->hwnds->len; i++) {
-		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
+	for (hwnd : *(r->hwnds)) {
 		h = height1;
 		if (h > height)		// clip to height
 			h = height;
@@ -102,6 +96,8 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 		height -= height1;
 		if (height <= 0)		// clip to height
 			break;
+		// TODO don't do the above to avoid overlap
+		// TODO in fact, only do this on add/remove/change labels/etc.
 	}
 }
 
@@ -110,14 +106,12 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 static void redoControlIDsZOrder(uiRadioButtons *r)
 {
 	HWND hwnd;
-	uintmax_t i;
 	LONG_PTR controlID;
 	HWND insertAfter;
 
 	controlID = 100;
 	insertAfter = NULL;
-	for (i = 0; i < r->hwnds->len; i++) {
-		hwnd = ptrArrayIndex(r->hwnds, HWND, i);
+	for (hwnd : *(r->hwnds)) {
 		uiWindowsEnsureAssignControlIDZOrder(hwnd, controlID, insertAfter);
 		controlID++;
 		insertAfter = hwnd;
@@ -133,7 +127,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	// the first radio button gets both WS_GROUP and WS_TABSTOP
 	// successive radio buttons get *neither*
 	groupTabStop = 0;
-	if (r->hwnds->len == 0)
+	if (r->hwnds->size() == 0)
 		groupTabStop = WS_GROUP | WS_TABSTOP;
 
 	wtext = toUTF16(text);
@@ -145,7 +139,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	uiFree(wtext);
 	uiWindowsEnsureSetParent(hwnd, r->hwnd);
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
-	ptrArrayAppend(r->hwnds, hwnd);
+	r->hwnds->push_back(hwnd);
 	redoControlIDsZOrder(r);
 	uiWindowsControlQueueRelayout(uiWindowsControl(r));
 }
@@ -158,7 +152,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 
 	r->hwnd = newContainer();
 
-	r->hwnds = newPtrArray();
+	r->hwnds = new std::vector<HWND>;
 
 	uiWindowsFinishNewControl(r, uiRadioButtons);
 	uiWindowsControl(r)->Relayout = radiobuttonsRelayout;

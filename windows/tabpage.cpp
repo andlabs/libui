@@ -1,5 +1,7 @@
 // 30 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
+
+// TODO refine error handling
 
 // This just defines the implementation of the tab page HWND itself.
 // The actual work of hosting a tab page's control is in child.c.
@@ -38,6 +40,7 @@ static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		// we COULD paint the dialog background brush ourselves but meh, it works
 		SendMessageW(hwnd, WM_ERASEBKGND, wParam, lParam);
 		// and pretend we did nothing just so the themed dialog can still paint its content
+		// TODO see if w ecan avoid erasing the background in this case in the first place, or if we even need to
 		return FALSE;
 	}
 	if (uMsg == WM_INITDIALOG)
@@ -54,11 +57,11 @@ HWND newTabPage(void)
 	hwnd = CreateDialogW(hInstance, MAKEINTRESOURCE(rcTabPageDialog),
 		utilWindow, dlgproc);
 	if (hwnd == NULL)
-		logLastError("error creating tab page in newTabPage()");
+		logLastError(L"error creating tab page");
 
 	hr = EnableThemeDialogTexture(hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);
 	if (hr != S_OK)
-		logHRESULT("error setting tab page background in newTabPage()", hr);
+		logHRESULT(L"error setting tab page background", hr);
 
 	// and start the tab page hidden
 	ShowWindow(hwnd, SW_HIDE);

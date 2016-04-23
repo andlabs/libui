@@ -1,5 +1,5 @@
 // 16 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 struct uiGroup {
 	uiWindowsControl c;
@@ -138,7 +138,7 @@ static LRESULT CALLBACK groupSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 	switch (uMsg) {
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, groupSubProc, uIdSubclass) == FALSE)
-			logLastError("error removing groupbox subclass in groupSubProc()");
+			logLastError(L"error removing groupbox subclass");
 		break;
 	}
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
@@ -160,7 +160,7 @@ uiGroup *uiNewGroup(const char *text)
 	uiFree(wtext);
 
 	if (SetWindowSubclass(g->hwnd, groupSubProc, 0, (DWORD_PTR) g) == FALSE)
-		logLastError("error subclassing groupbox to handle parent messages in uiNewGroup()");
+		logLastError(L"error subclassing groupbox to handle parent messages");
 
 	uiWindowsFinishNewControl(g, uiGroup);
 	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;

@@ -1,5 +1,5 @@
 // 22 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 struct uiDateTimePicker {
 	uiWindowsControl c;
@@ -68,36 +68,34 @@ static WCHAR *expandYear(WCHAR *dts, int n)
 }
 
 // Windows has no combined date/time prebuilt constant; we have to build the format string ourselves
+// TODO use a default format if one fails
 static void setDateTimeFormat(HWND hwnd)
 {
 	WCHAR *unexpandedDate, *date;
 	WCHAR *time;
 	WCHAR *datetime;
 	int ndate, ntime;
-	int n;
 
 	ndate = GLI(LOCALE_SSHORTDATE, NULL, 0);
 	if (ndate == 0)
-		logLastError("error getting date string length in setDateTimeFormat()");
+		logLastError(L"error getting date string length");
 	date = (WCHAR *) uiAlloc(ndate * sizeof (WCHAR), "WCHAR[]");
 	if (GLI(LOCALE_SSHORTDATE, date, ndate) == 0)
-		logLastError("error geting date string in setDateTimeFormat()");
+		logLastError(L"error geting date string");
 	unexpandedDate = date;		// so we can free it
 	date = expandYear(unexpandedDate, ndate);
 	uiFree(unexpandedDate);
 
 	ntime = GLI(LOCALE_STIMEFORMAT, NULL, 0);
 	if (ndate == 0)
-		logLastError("error getting time string length in setDateTimeFormat()");
+		logLastError(L"error getting time string length");
 	time = (WCHAR *) uiAlloc(ntime * sizeof (WCHAR), "WCHAR[]");
 	if (GLI(LOCALE_STIMEFORMAT, time, ntime) == 0)
-		logLastError("error geting time string in setDateTimeFormat()");
+		logLastError(L"error geting time string");
 
-	n = _scwprintf(L"%s %s", date, time);
-	datetime = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
-	_snwprintf(datetime, n + 1, L"%s %s", date, time);
+	datetime = strf(L"%s %s", date, time);
 	if (SendMessageW(hwnd, DTM_SETFORMAT, 0, (LPARAM) datetime) == 0)
-		logLastError("error applying format string to date/time picker in setDateTimeFormat()");
+		logLastError(L"error applying format string to date/time picker");
 
 	uiFree(datetime);
 	uiFree(time);
@@ -155,7 +153,7 @@ static LRESULT CALLBACK datetimepickerSubProc(HWND hwnd, UINT uMsg, WPARAM wPara
 		return 0;
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, datetimepickerSubProc, uIdSubclass) == FALSE)
-			logLastError("error removing date-time picker locale change handling subclass in datetimepickerSubProc()");
+			logLastError(L"error removing date-time picker locale change handling subclass");
 		break;
 	}
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
@@ -168,7 +166,8 @@ uiDateTimePicker *uiNewDateTimePicker(void)
 	d = finishNewDateTimePicker(0);
 	setDateTimeFormat(d->hwnd);
 	if (SetWindowSubclass(d->hwnd, datetimepickerSubProc, 0, (DWORD_PTR) d) == FALSE)
-		logLastError("error subclassing date-time-picker to assist in locale change handling in uiNewDateTimePicker()");
+		logLastError(L"error subclassing date-time-picker to assist in locale change handling");
+		// TODO set a suitable default in this case
 	return d;
 }
 

@@ -1,5 +1,5 @@
 // 8 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 struct uiEntry {
 	uiWindowsControl c;
@@ -76,7 +76,7 @@ void uiEntrySetReadOnly(uiEntry *e, int readonly)
 	if (readonly)
 		ro = (WPARAM) TRUE;
 	if (SendMessage(e->hwnd, EM_SETREADONLY, ro, 0) == 0)
-		logLastError("error making uiEntry read-only in uiEntrySetReadOnly()");
+		logLastError(L"error making uiEntry read-only");
 }
 
 uiEntry *uiNewEntry(void)

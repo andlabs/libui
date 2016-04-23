@@ -1,5 +1,5 @@
 // 20 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // TODO
 // - is there extra space on the bottom?
@@ -54,9 +54,9 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 	wtext = toUTF16(text);
 	res = SendMessageW(c->hwnd, CB_ADDSTRING, 0, (LPARAM) wtext);
 	if (res == (LRESULT) CB_ERR)
-		logLastError("error appending item to uiCombobox");
+		logLastError(L"error appending item to uiCombobox");
 	else if (res == (LRESULT) CB_ERRSPACE)
-		logLastError("memory exhausted appending item to uiCombobox");
+		logLastError(L"memory exhausted appending item to uiCombobox");
 	uiFree(wtext);
 }
 

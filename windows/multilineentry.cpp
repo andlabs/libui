@@ -1,5 +1,5 @@
 // 8 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // TODO there's alpha darkening of text going on; something is up in our parent logic
 // TODO resizing collapses newlines
@@ -95,7 +95,7 @@ void uiMultilineEntrySetReadOnly(uiMultilineEntry *e, int readonly)
 	if (readonly)
 		ro = (WPARAM) TRUE;
 	if (SendMessage(e->hwnd, EM_SETREADONLY, ro, 0) == 0)
-		logLastError("error making uiMultilineEntry read-only in uiMultilineEntrySetReadOnly()");
+		logLastError(L"error making uiMultilineEntry read-only");
 }
 
 uiMultilineEntry *uiNewMultilineEntry(void)

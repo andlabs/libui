@@ -1,5 +1,5 @@
 // 19 may 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 struct uiProgressBar {
 	uiWindowsControl c;

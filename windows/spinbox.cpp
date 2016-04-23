@@ -1,5 +1,5 @@
 // 8 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 struct uiSpinbox {
 	uiWindowsControl c;
@@ -68,8 +68,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 static void onDestroy(uiSpinbox *s)
 {
 	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
-	if (DestroyWindow(s->updown) == 0)
-		logLastError("error destroying updown in spinboxCommitDestroy()");
+	uiWindowsEnsureDestroyWindow(s->updown);
 }
 
 static void spinboxCommitSetParent(uiWindowsControl *c, HWND parent)
@@ -117,7 +116,7 @@ static void recreateUpDown(uiSpinbox *s)
 		0, 0, 0, 0,
 		s->parent, NULL, hInstance, NULL);
 	if (s->updown == NULL)
-		logLastError("error creating updown in recreateUpDown()");
+		logLastError(L"error creating updown");
 	SendMessageW(s->updown, UDM_SETBUDDY, (WPARAM) (s->hwnd), 0);
 	if (preserve) {
 		SendMessageW(s->updown, UDM_SETRANGE32, (WPARAM) min, (LPARAM) max);

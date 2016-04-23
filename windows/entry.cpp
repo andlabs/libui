@@ -12,7 +12,7 @@ struct uiEntry {
 uiWindowsDefineControlWithOnDestroy(
 	uiEntry,								// type name
 	uiEntryType,							// type function
-	uiWindowsUnregisterWM_COMMANDHandler(this->hwnd);	// on destroy
+	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
 )
 
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)

@@ -9,7 +9,7 @@ struct uiDateTimePicker {
 uiWindowsDefineControlWithOnDestroy(
 	uiDateTimePicker,						// type name
 	uiDateTimePickerType,					// type function
-	uiWindowsUnregisterReceiveWM_WININICHANGE(this->hwnd);		// on destroy
+	uiWindowsUnregisterReceiveWM_WININICHANGE(me->hwnd);		// on destroy
 )
 
 // utility functions

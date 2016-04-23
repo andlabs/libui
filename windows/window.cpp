@@ -20,7 +20,7 @@ static void onDestroy(uiWindow *);
 uiWindowsDefineControlWithOnDestroy(
 	uiWindow,							// type name
 	uiWindowType,							// type function
-	onDestroy(this);						// on destroy
+	onDestroy(me);						// on destroy
 )
 
 static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

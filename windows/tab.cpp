@@ -18,7 +18,7 @@ static void onDestroy(uiTab *);
 uiWindowsDefineControlWithOnDestroy(
 	uiTab,								// type name
 	uiTabType,							// type function
-	onDestroy(this);						// on destroy
+	onDestroy(me);						// on destroy
 )
 
 // utility functions

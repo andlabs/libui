@@ -24,7 +24,7 @@ static void onDestroy(uiBox *);
 uiWindowsDefineControlWithOnDestroy(
 	uiBox,								// type name
 	uiBoxType,							// type function
-	onDestroy(this);						// on destroy
+	onDestroy(me);						// on destroy
 )
 
 static void onDestroy(uiBox *b)

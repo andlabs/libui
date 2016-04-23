@@ -19,7 +19,7 @@ static void onDestroy(uiRadioButtons *);
 uiWindowsDefineControlWithOnDestroy(
 	uiRadioButtons,						// type name
 	uiRadioButtonsType,						// type function
-	onDestroy(this);						// on destroy
+	onDestroy(me);						// on destroy
 )
 
 static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult)

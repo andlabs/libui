@@ -16,7 +16,7 @@ struct uiCombobox {
 uiWindowsDefineControlWithOnDestroy(
 	uiCombobox,							// type name
 	uiComboboxType,						// type function
-	uiWindowsUnregisterWM_COMMANDHandler(this->hwnd);	// on destroy
+	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
 )
 
 // note: NOT triggered on entering text

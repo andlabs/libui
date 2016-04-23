@@ -16,7 +16,7 @@ static void onDestroy(uiSpinbox *);
 uiWindowsDefineControlWithOnDestroy(
 	uiSpinbox,							// type name
 	uiSpinboxType,						// type function
-	onDestroy(this);						// on destroy
+	onDestroy(me);						// on destroy
 )
 
 // utility functions

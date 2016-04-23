@@ -13,7 +13,7 @@ static void onDestroy(uiGroup *);
 uiWindowsDefineControlWithOnDestroy(
 	uiGroup,								// type name
 	uiGroupType,							// type function
-	onDestroy(this);						// on destroy
+	onDestroy(me);						// on destroy
 )
 
 static void onDestroy(uiGroup *g)

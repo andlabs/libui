@@ -79,7 +79,6 @@ ATOM registerAreaClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 
 void unregisterArea(void)
 {
-	unregisterAreaFilter();
 	if (UnregisterClassW(areaClass, hInstance) == 0)
 		logLastError(L"error unregistering uiArea window class");
 }

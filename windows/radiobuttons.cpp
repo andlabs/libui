@@ -27,11 +27,10 @@ static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult
 	uiRadioButtons *r = uiRadioButtons(c);
 	WPARAM check;
 	uintmax_t i;
-	HWND hwnd;
 
 	if (code != BN_CLICKED)
 		return FALSE;
-	for (hwnd : *(r->hwnds)) {
+	for (const HWND &hwnd : *(r->hwnds)) {
 		check = BST_UNCHECKED;
 		if (clicked == hwnd)
 			check = BST_CHECKED;
@@ -43,9 +42,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult
 
 static void onDestroy(uiRadioButtons *r)
 {
-	HWND hwnd;
-
-	for (hwnd : *(r->hwnds)) {
+	for (const HWND &hwnd : *(r->hwnds)) {
 		uiWindowsUnregisterWM_COMMANDHandler(hwnd);
 		uiWindowsEnsureDestroyWindow(hwnd);
 	}
@@ -69,7 +66,7 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 			maxwid = wid;
 	}
 	*width = uiWindowsDlgUnitsToX(radiobuttonXFromLeftOfBoxToLeftOfLabel, d->BaseX) + maxwid;
-	*height = uiWindowsDlgUnitsToY(radiobuttonHeight, d->BaseY) * r->hwnds->len;
+	*height = uiWindowsDlgUnitsToY(radiobuttonHeight, d->BaseY) * r->hwnds->size();
 }
 
 static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
@@ -78,7 +75,6 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 	uiWindowsSizing *d;
 	intmax_t height1;
 	intmax_t h;
-	HWND hwnd;
 
 	uiWindowsEnsureMoveWindowDuringResize(r->hwnd, x, y, width, height);
 
@@ -87,7 +83,7 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 	d = uiWindowsNewSizing(r->hwnd);
 	height1 = uiWindowsDlgUnitsToY(radiobuttonHeight, d->BaseY);
 	uiWindowsFreeSizing(d);
-	for (hwnd : *(r->hwnds)) {
+	for (const HWND &hwnd : *(r->hwnds)) {
 		h = height1;
 		if (h > height)		// clip to height
 			h = height;
@@ -105,13 +101,12 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 
 static void redoControlIDsZOrder(uiRadioButtons *r)
 {
-	HWND hwnd;
 	LONG_PTR controlID;
 	HWND insertAfter;
 
 	controlID = 100;
 	insertAfter = NULL;
-	for (hwnd : *(r->hwnds)) {
+	for (const HWND &hwnd : *(r->hwnds)) {
 		uiWindowsEnsureAssignControlIDZOrder(hwnd, controlID, insertAfter);
 		controlID++;
 		insertAfter = hwnd;

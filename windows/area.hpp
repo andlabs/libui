@@ -38,7 +38,6 @@ extern void areaUpdateScroll(uiArea *a);
 
 // areaevents.cpp
 extern BOOL areaDoEvents(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
-extern void unregisterAreaFilter(void);
 
 // areautil.cpp
 extern void loadAreaSize(uiArea *a, ID2D1RenderTarget *rt, double *width, double *height);

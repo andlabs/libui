@@ -106,7 +106,7 @@ void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL h
 	window.right = *width;
 	window.bottom = *height;
 	if (AdjustWindowRectEx(&window, getStyle(hwnd), hasMenubar, getExStyle(hwnd)) == 0) {
-		logLastError("error getting adjusted window rect");
+		logLastError(L"error getting adjusted window rect");
 		// on error, don't give up; the window will be smaller but whatever
 		window.left = 0;
 		window.top = 0;

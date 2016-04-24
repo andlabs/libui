@@ -1,6 +1,14 @@
 // 25 february 2015
 #include "uipriv_windows.hpp"
 
+// TODO
+void complain(const char *format, ...)
+{
+	OutputDebugStringA(format);
+	DebugBreak();
+	abort();
+}
+
 // TODO disable logging and stopping on no-debug builds
 
 // TODO are the newlines needed?

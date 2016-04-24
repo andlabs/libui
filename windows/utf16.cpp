@@ -62,7 +62,7 @@ WCHAR *utf16dup(const WCHAR *orig)
 }
 
 // if recursing is TRUE, do NOT recursively call wstrf() in logHRESULT()
-static WCHAR *strfcore(BOOL recursing, WCHAR *format, va_list ap)
+static WCHAR *strfcore(BOOL recursing, const WCHAR *format, va_list ap)
 {
 	va_list ap2;
 	WCHAR *buf;
@@ -73,13 +73,13 @@ static WCHAR *strfcore(BOOL recursing, WCHAR *format, va_list ap)
 		return emptyUTF16();
 
 	va_copy(ap2, ap);
-	hr = SafeCchVPrintfEx(NULL, 0,
+	hr = StringCchVPrintfExW(NULL, 0,
 		NULL, &n,
 		STRSAFE_IGNORE_NULLS,
 		format, ap2);
 	va_end(ap2);
 	if (hr != S_OK && hr != STRSAFE_E_INSUFFICIENT_BUFFER) {
-		if (!failing)
+		if (!recursing)
 			logHRESULT(L"error determining needed buffer size", hr);
 		return emptyUTF16();
 	}
@@ -87,12 +87,12 @@ static WCHAR *strfcore(BOOL recursing, WCHAR *format, va_list ap)
 	// n includes the terminating L'\0'
 	buf = (WCHAR *) uiAlloc(n * sizeof (WCHAR), "WCHAR[]");
 
-	hr = SafeCchVPrintfEx(buf, n,		// TODO what about this?
+	hr = StringCchVPrintfExW(buf, n,	// TODO what about this?
 		NULL, NULL,
 		0,
 		format, ap);
 	if (hr != S_OK) {
-		if (!failing)
+		if (!recursing)
 			logLastError(L"error formatting string", hr);
 		// and return an empty string
 		*buf = L'\0';
@@ -117,7 +117,7 @@ WCHAR *vstrf(const WCHAR *format, va_list ap)
 	return strfcore(FALSE, format, ap);
 }
 
-WCHAR *debugstrf(const WCHAR *format, ..)
+WCHAR *debugstrf(const WCHAR *format, ...)
 {
 	va_list ap;
 	WCHAR *str;
@@ -141,7 +141,7 @@ char *LFtoCRLF(const char *lfonly)
 	char *out;
 
 	len = strlen(lfonly);
-	crlf = (char *) uiAlloc((only * 2 + 1) * sizeof (char), "char[]");
+	crlf = (char *) uiAlloc((len * 2 + 1) * sizeof (char), "char[]");
 	out = crlf;
 	for (i = 0; i < len; i++) {
 		if (*lfonly == '\n')
@@ -160,7 +160,7 @@ void CRLFtoLF(char *s)
 		// be sure to preserve \rs that are genuinely there
 		if (*s == '\r' && *(s + 1) == '\n')
 			continue;
-		*t++ = s;
+		*t++ = *s;
 	}
 	*t = '\0';
 	// TODO null pad t to s?

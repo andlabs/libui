@@ -67,7 +67,7 @@ intmax_t uiWindowsWindowTextWidth(HWND hwnd)
 		goto noTextOrError;
 	}
 	if (GetTextExtentPoint32W(dc, text, len, &size) == 0) {
-		logLastError("error getting text extent point");
+		logLastError(L"error getting text extent point");
 		// continue anyway, assuming size is 0
 		size.cx = 0;
 		size.cy = 0;

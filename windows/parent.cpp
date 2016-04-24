@@ -9,15 +9,15 @@ static HBRUSH parentBrush = NULL;
 static HWND parentWithBackground(HWND hwnd)
 {
 	HWND parent;
-	int class;
+	int cls;
 
 	parent = hwnd;
 	for (;;) {
 		parent = parentOf(parent);
 		// skip groupboxes; they're (supposed to be) transparent
 		// skip uiContainers; they don't draw anything
-		class = windowClassOf(parent, L"button", containerClass, NULL);
-		if (class != 0 && class != 1)
+		cls = windowClassOf(parent, L"button", containerClass, NULL);
+		if (cls != 0 && cls != 1)
 			break;
 	}
 	return parent;
@@ -41,7 +41,7 @@ static HRESULT parentDraw(HDC dc, HWND parent, struct parentDraw *pd)
 	pd->bitmap = CreateCompatibleBitmap(dc, r.right - r.left, r.bottom - r.top);
 	if (pd->bitmap == NULL)
 		return logLastError(L"error creating compatible bitmap");
-	pd->prevbitmap = SelectObject(pd->cdc, pd->bitmap);
+	pd->prevbitmap = (HBITMAP) SelectObject(pd->cdc, pd->bitmap);
 	if (pd->prevbitmap == NULL)
 		return logLastError(L"error selecting bitmap into compatible DC");
 	SendMessageW(parent, WM_PRINTCLIENT, (WPARAM) (pd->cdc), PRF_CLIENT);
@@ -52,7 +52,7 @@ static void endParentDraw(struct parentDraw *pd)
 {
 	// continue in case of any error
 	if (pd->prevbitmap != NULL)
-		if (SelectObject(pd->cdc, pd->prevbitmap) != pd->bitmap)
+		if (((HBITMAP) SelectObject(pd->cdc, pd->prevbitmap)) != pd->bitmap)
 			logLastError(L"error selecting previous bitmap back into compatible DC");
 	if (pd->bitmap != NULL)
 		if (DeleteObject(pd->bitmap) == 0)
@@ -69,6 +69,7 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 	RECT hwndScreenRect;
 	struct parentDraw pd;
 	HBRUSH brush;
+	HRESULT hr;
 
 	parent = parentWithBackground(hwnd);
 
@@ -107,7 +108,7 @@ void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect)
 	parent = parentWithBackground(hwnd);
 	hr = parentDraw(dc, parent, &pd);
 	if (hr != S_OK)		// we couldn't get it; draw nothing
-		return NULL;
+		return;
 
 	paintRectParent = *paintRect;
 	mapWindowRect(hwnd, parent, &paintRectParent);

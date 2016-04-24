@@ -29,10 +29,12 @@
 // Microsoft's resource compiler will segfault if we feed it headers it was not designed to handle
 #ifndef RC_INVOKED
 #include <commctrl.h>
+#include <uxtheme.h>
 #include <windowsx.h>
 #include <shobjidl.h>
 #include <d2d1.h>
 #include <dwrite.h>
+#include <strsafe.h>
 
 #include <stdint.h>
 #include <string.h>

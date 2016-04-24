@@ -72,6 +72,7 @@ int main(void)
 	uiMenu *menu;
 	uiMenuItem *item;
 	uiBox *box;
+	uiBox *hbox;
 	uiGroup *group;
 	uiBox *inner;
 	uiBox *inner2;
@@ -115,50 +116,58 @@ int main(void)
 	uiBoxSetPadded(box, 1);
 	uiWindowSetChild(mainwin, uiControl(box));
 
-	group = uiNewGroup("Buttons and Text");
-	uiGroupSetMargined(group, 1);
-	uiBoxAppend(box, uiControl(group), 0);
+	hbox = uiNewHorizontalBox();
+	uiBoxSetPadded(hbox, 1);
+	uiBoxAppend(box, uiControl(hbox), 1);
 
-	inner = uiNewHorizontalBox();
+	group = uiNewGroup("Basic Controls");
+	uiGroupSetMargined(group, 1);
+	uiBoxAppend(hbox, uiControl(group), 0);
+
+	inner = uiNewVerticalBox();
 	uiBoxSetPadded(inner, 1);
 	uiGroupSetChild(group, uiControl(inner));
 
-	inner2 = uiNewVerticalBox();
-	uiBoxSetPadded(inner2, 1);
-	uiBoxAppend(inner, uiControl(inner2), 1);
-
-	uiBoxAppend(inner2,
+	uiBoxAppend(inner,
 		uiControl(uiNewButton("Button")),
 		0);
-	uiBoxAppend(inner2,
+	uiBoxAppend(inner,
 		uiControl(uiNewCheckbox("Checkbox")),
 		0);
 	entry = uiNewEntry();
 	uiEntrySetText(entry, "Entry");
-	uiBoxAppend(inner2,
+	uiBoxAppend(inner,
 		uiControl(entry),
 		0);
-	uiBoxAppend(inner2,
+	uiBoxAppend(inner,
 		uiControl(uiNewLabel("Label")),
+		0);
+
+	uiBoxAppend(inner,
+		uiControl(uiNewHorizontalSeparator()),
+		0);
+
+	uiBoxAppend(inner,
+		uiControl(uiNewDatePicker()),
+		0);
+	uiBoxAppend(inner,
+		uiControl(uiNewTimePicker()),
+		0);
+	uiBoxAppend(inner,
+		uiControl(uiNewDateTimePicker()),
+		0);
+
+	uiBoxAppend(inner,
+		uiControl(uiNewFontButton()),
 		0);
 
 	inner2 = uiNewVerticalBox();
 	uiBoxSetPadded(inner2, 1);
-	uiBoxAppend(inner, uiControl(inner2), 1);
-
-	uiBoxAppend(inner2,
-		uiControl(uiNewDatePicker()),
-		0);
-	uiBoxAppend(inner2,
-		uiControl(uiNewTimePicker()),
-		0);
-	uiBoxAppend(inner2,
-		uiControl(uiNewDateTimePicker()),
-		0);
+	uiBoxAppend(hbox, uiControl(inner2), 1);
 
 	group = uiNewGroup("Numbers");
 	uiGroupSetMargined(group, 1);
-	uiBoxAppend(box, uiControl(group), 0);
+	uiBoxAppend(inner2, uiControl(group), 0);
 
 	inner = uiNewVerticalBox();
 	uiBoxSetPadded(inner, 1);
@@ -177,27 +186,23 @@ int main(void)
 
 	group = uiNewGroup("Lists");
 	uiGroupSetMargined(group, 1);
-	uiBoxAppend(box, uiControl(group), 0);
+	uiBoxAppend(inner2, uiControl(group), 0);
 
-	inner = uiNewHorizontalBox();
+	inner = uiNewVerticalBox();
 	uiBoxSetPadded(inner, 1);
 	uiGroupSetChild(group, uiControl(inner));
-
-	inner2 = uiNewVerticalBox();
-	uiBoxSetPadded(inner2, 1);
-	uiBoxAppend(inner, uiControl(inner2), 1);
 
 	cbox = uiNewCombobox();
 	uiComboboxAppend(cbox, "Combobox Item 1");
 	uiComboboxAppend(cbox, "Combobox Item 2");
 	uiComboboxAppend(cbox, "Combobox Item 3");
-	uiBoxAppend(inner2, uiControl(cbox), 0);
+	uiBoxAppend(inner, uiControl(cbox), 0);
 
 	cbox = uiNewEditableCombobox();
 	uiComboboxAppend(cbox, "Editable Item 1");
 	uiComboboxAppend(cbox, "Editable Item 2");
 	uiComboboxAppend(cbox, "Editable Item 3");
-	uiBoxAppend(inner2, uiControl(cbox), 0);
+	uiBoxAppend(inner, uiControl(cbox), 0);
 
 	rb = uiNewRadioButtons();
 	uiRadioButtonsAppend(rb, "Radio Button 1");
@@ -209,7 +214,7 @@ int main(void)
 	uiTabAppend(tab, "Page 1", uiControl(uiNewHorizontalBox()));
 	uiTabAppend(tab, "Page 2", uiControl(uiNewHorizontalBox()));
 	uiTabAppend(tab, "Page 3", uiControl(uiNewHorizontalBox()));
-	uiBoxAppend(box, uiControl(tab), 1);
+	uiBoxAppend(box, uiControl(tab), 0);
 
 	uiControlShow(uiControl(mainwin));
 	uiMain();

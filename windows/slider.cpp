@@ -58,7 +58,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	uiSlider *s;
 
-	s = (uiSlider *) uiNewControl(uiSliderType());
+	s = (uiSlider *) uiNewControl(uiSlider);
 
 	s->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		TRACKBAR_CLASSW, L"",

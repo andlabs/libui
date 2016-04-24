@@ -13,7 +13,6 @@ static BOOL hasPreferences = FALSE;
 static BOOL hasAbout = FALSE;
 
 struct uiMenu {
-	uiTyped t;
 	WCHAR *name;
 	uiMenuItem **items;
 	uintmax_t len;
@@ -21,7 +20,6 @@ struct uiMenu {
 };
 
 struct uiMenuItem {
-	uiTyped t;
 	WCHAR *name;
 	int type;
 	WORD id;
@@ -121,7 +119,6 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 	}
 
 	item = uiNew(uiMenuItem);
-	uiTyped(item)->Type = uiMenuItemType();
 
 	m->items[m->len] = item;
 	m->len++;
@@ -211,7 +208,6 @@ uiMenu *uiNewMenu(const char *name)
 	}
 
 	m = uiNew(uiMenu);
-	uiTyped(m)->Type = uiMenuType();
 
 	menus[len] = m;
 	len++;

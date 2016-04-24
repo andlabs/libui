@@ -88,7 +88,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiCheckbox *c;
 	WCHAR *wtext;
 
-	c = (uiCheckbox *) uiNewControl(uiCheckboxType());
+	c = (uiCheckbox *) uiNewControl(uiCheckbox);
 
 	wtext = toUTF16(text);
 	c->hwnd = uiWindowsEnsureCreateControlHWND(0,

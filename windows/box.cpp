@@ -275,7 +275,7 @@ static uiBox *finishNewBox(int vertical)
 {
 	uiBox *b;
 
-	b = (uiBox *) uiNewControl(uiBoxType());
+	b = (uiBox *) uiNewControl(uiBox);
 
 	b->hwnd = newContainer();
 

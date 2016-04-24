@@ -65,7 +65,7 @@ void uiDarwinSetControlFont(NSControl *c, NSControlSize size)
 
 #define uiDarwinControlSignature 0x44617277
 
-uiDarwinControl *uiDarwinNewControl(size_t n, uint32_t typesig, const char *typename)
+uiDarwinControl *uiDarwinNewControl(size_t n, uint32_t typesig, const char *typenamestr)
 {
-	return uiDarwinControl(newControl(n, uiDarwinControlSignature, typesig, typename));
+	return uiDarwinControl(newControl(n, uiDarwinControlSignature, typesig, typenamestr));
 }

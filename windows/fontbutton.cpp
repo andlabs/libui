@@ -102,7 +102,7 @@ uiFontButton *uiNewFontButton(void)
 {
 	uiFontButton *b;
 
-	b = (uiFontButton *) uiNewControl(uiFontButtonType());
+	b = (uiFontButton *) uiNewControl(uiFontButton);
 
 	b->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		L"button", L"you should not be seeing this",

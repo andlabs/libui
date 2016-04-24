@@ -76,7 +76,7 @@ uiButton *uiNewButton(const char *text)
 	uiButton *b;
 	WCHAR *wtext;
 
-	b = (uiButton *) uiNewControl(uiButtonType());
+	b = (uiButton *) uiNewControl(uiButton);
 
 	wtext = toUTF16(text);
 	b->hwnd = uiWindowsEnsureCreateControlHWND(0,

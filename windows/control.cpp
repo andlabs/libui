@@ -24,16 +24,6 @@ HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCW
 	return hwnd;
 }
 
-// TODO make this unnecessary
-static uintmax_t type_uiWindowsControl = 0;
-
-uintmax_t uiWindowsControlType(void)
-{
-	if (type_uiWindowsControl == 0)
-		type_uiWindowsControl = uiRegisterType("uiWindowsControl", uiControlType(), sizeof (uiWindowsControl));
-	return type_uiWindowsControl;
-}
-
 static void defaultCommitShow(uiControl *c)
 {
 	ShowWindow((HWND) uiControlHandle(c), SW_SHOW);
@@ -69,4 +59,12 @@ void uiWindowsRearrangeControlIDsZOrder(uiControl *c)
 		return;
 	wc = uiWindowsControl(c);
 	(*(wc->ArrangeChildrenControlIDsZOrder))(wc);
+}
+
+// choose a value distinct from uiWindowSignature
+#define uiWindowsControlSignature 0x4D53576E
+
+uiWindowsControl *uiWindowsNewControl(size_t n, uint32_t typesig, const char *typenamestr)
+{
+	return uiWindowsControl(newControl(n, uiWindowsControlSignature, typesig, typenamestr));
 }

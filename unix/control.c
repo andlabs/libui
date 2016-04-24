@@ -32,7 +32,7 @@ void uiUnixFinishControl(uiControl *c)
 
 #define uiUnixControlSignature 0x556E6978
 
-uiUnixControl *uiUnixNewControl(size_t n, uint32_t typesig, const char *typename)
+uiUnixControl *uiUnixNewControl(size_t n, uint32_t typesig, const char *typenamestr)
 {
-	return uiUnixControl(newControl(n, uiUnixControlSignature, typesig, typename));
+	return uiUnixControl(newControl(n, uiUnixControlSignature, typesig, typenamestr));
 }

@@ -241,7 +241,7 @@ uiTab *uiNewTab(void)
 {
 	uiTab *t;
 
-	t = (uiTab *) uiNewControl(uiTabType());
+	t = (uiTab *) uiNewControl(uiTab);
 
 	t->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		WC_TABCONTROLW, L"",

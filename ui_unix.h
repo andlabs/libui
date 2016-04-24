@@ -39,7 +39,7 @@ struct uiUnixControl {
 
 // TODO document
 #define uiNewControl(type) uiUnixNewControl(sizeof (type), type ## Signature, #type)
-_UI_EXTERN uiUnixControl *uiUnixNewControl(size_t n, uint32_t typesig, const char *typename);
+_UI_EXTERN uiUnixControl *uiUnixNewControl(size_t n, uint32_t typesig, const char *typenamestr);
 
 #define uiUnixFinishNewControl(variable, type) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \

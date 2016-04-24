@@ -43,7 +43,7 @@ uiProgressBar *uiNewProgressBar(void)
 {
 	uiProgressBar *p;
 
-	p = (uiProgressBar *) uiNewControl(uiProgressBarType());
+	p = (uiProgressBar *) uiNewControl(uiProgressBar);
 
 	p->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		PROGRESS_CLASSW, L"",

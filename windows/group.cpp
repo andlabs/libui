@@ -148,7 +148,7 @@ uiGroup *uiNewGroup(const char *text)
 	uiGroup *g;
 	WCHAR *wtext;
 
-	g = (uiGroup *) uiNewControl(uiGroupType());
+	g = (uiGroup *) uiNewControl(uiGroup);
 
 	wtext = toUTF16(text);
 	g->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CONTROLPARENT,

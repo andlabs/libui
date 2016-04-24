@@ -82,7 +82,7 @@ uiEntry *uiNewEntry(void)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) uiNewControl(uiEntryType());
+	e = (uiEntry *) uiNewControl(uiEntry);
 
 	e->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",

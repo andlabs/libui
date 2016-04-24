@@ -261,7 +261,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	WCHAR *wtitle;
 	BOOL hasMenubarBOOL;
 
-	w = (uiWindow *) uiNewControl(uiWindowType());
+	w = (uiWindow *) uiNewControl(uiWindow);
 
 	hasMenubarBOOL = FALSE;
 	if (hasMenubar)

@@ -46,7 +46,7 @@ _UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 
 // TODO document
 #define uiNewControl(type) uiDarwinNewControl(sizeof (type), type ## Signature, #type)
-_UI_EXTERN uiDarwinControl *uiDarwinNewControl(size_t n, uint32_t typesig, const char *typename);
+_UI_EXTERN uiDarwinControl *uiDarwinNewControl(size_t n, uint32_t typesig, const char *typenamestr);
 
 #define uiDarwinFinishNewControl(variable, type) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \

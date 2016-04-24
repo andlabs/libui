@@ -65,6 +65,11 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 #define uiWindowsDefineControl(type) \
 	uiWindowsDefineControlWithOnDestroy(type, (void) me;)
 
+// TODO document
+// TODO rename the macro?
+#define uiNewControl(type) uiWindowsNewControl(sizeof (type), type ## Signature, #type)
+_UI_EXTERN uiWindowsControl *uiWindowsNewControl(size_t n, uint32_t typesig, const char *typenamestr);
+
 #define uiWindowsFinishNewControl(variable, type) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
 	uiControl(variable)->Handle = _ ## type ## Handle; \

@@ -105,7 +105,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;
 
-	a = (uiArea *) uiNewControl(uiAreaType());
+	a = (uiArea *) uiNewControl(uiArea);
 
 	a->ah = ah;
 	a->scrolling = FALSE;
@@ -127,7 +127,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 {
 	uiArea *a;
 
-	a = (uiArea *) uiNewControl(uiAreaType());
+	a = (uiArea *) uiNewControl(uiArea);
 
 	a->ah = ah;
 	a->scrolling = TRUE;

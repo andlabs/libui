@@ -101,7 +101,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 {
 	uiMultilineEntry *e;
 
-	e = (uiMultilineEntry *) uiNewControl(uiMultilineEntryType());
+	e = (uiMultilineEntry *) uiNewControl(uiMultilineEntry);
 
 	e->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",

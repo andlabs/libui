@@ -38,7 +38,7 @@ uiLabel *uiNewLabel(const char *text)
 	uiLabel *l;
 	WCHAR *wtext;
 
-	l = (uiLabel *) uiNewControl(uiLabelType());
+	l = (uiLabel *) uiNewControl(uiLabel);
 
 	wtext = toUTF16(text);
 	l->hwnd = uiWindowsEnsureCreateControlHWND(0,

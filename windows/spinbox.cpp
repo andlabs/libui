@@ -176,7 +176,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	if (min >= max)
 		complain("error: min >= max in uiNewSpinbox()");
 
-	s = (uiSpinbox *) uiNewControl(uiSpinboxType());
+	s = (uiSpinbox *) uiNewControl(uiSpinbox);
 
 	s->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",

@@ -25,7 +25,7 @@ extern void osCommitEnable(uiControl *);
 extern void osCommitDisable(uiControl *);
 
 // control.c
-extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typename);
+extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
 
 // ptrarray.c
 struct ptrArray {

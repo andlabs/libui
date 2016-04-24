@@ -149,11 +149,11 @@ void controlUpdateState(uiControl *c)
 #define uiControlSignature 0x7569436F
 
 // TODO should this be public?
-uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typename)
+uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr)
 {
 	uiControl *c;
 
-	c = (uiControl *) uiAlloc(size, typename);
+	c = (uiControl *) uiAlloc(size, typenamestr);
 	c->Signature = uiControlSignature;
 	c->OSSignature = OSsig;
 	c->TypeSignature = typesig;

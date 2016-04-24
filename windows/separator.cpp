@@ -27,7 +27,7 @@ uiSeparator *uiNewHorizontalSeparator(void)
 {
 	uiSeparator *s;
 
-	s = (uiSeparator *) uiNewControl(uiSeparatorType());
+	s = (uiSeparator *) uiNewControl(uiSeparator);
 
 	s->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		L"static", L"",

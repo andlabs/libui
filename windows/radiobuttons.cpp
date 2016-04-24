@@ -142,7 +142,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 {
 	uiRadioButtons *r;
 
-	r = (uiRadioButtons *) uiNewControl(uiRadioButtonsType());
+	r = (uiRadioButtons *) uiNewControl(uiRadioButtons);
 
 	r->hwnd = newContainer();
 

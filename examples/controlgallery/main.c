@@ -214,7 +214,7 @@ int main(void)
 	uiTabAppend(tab, "Page 1", uiControl(uiNewHorizontalBox()));
 	uiTabAppend(tab, "Page 2", uiControl(uiNewHorizontalBox()));
 	uiTabAppend(tab, "Page 3", uiControl(uiNewHorizontalBox()));
-	uiBoxAppend(box, uiControl(tab), 0);
+	uiBoxAppend(inner2, uiControl(tab), 1);
 
 	uiControlShow(uiControl(mainwin));
 	uiMain();

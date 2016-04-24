@@ -82,7 +82,7 @@ static void onWM_PAINT(uiArea *a)
 		// instead, simply drop the render target
 		// we'll get another WM_PAINT and make the render target again
 		// TODO would this require us to invalidate the entire client area?
-		ID2D1HwndRenderTarget_Release(a->rt);
+		a->rt->Release();;
 		a->rt = NULL;
 		break;
 	default:
@@ -123,7 +123,7 @@ void areaDrawOnResize(uiArea *a, RECT *newClient)
 	size.height = newClient->bottom - newClient->top;
 	// don't track the error; we'll get that in EndDraw()
 	// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd370994%28v=vs.85%29.aspx
-	ID2D1HwndRenderTarget_Resize(a->rt, &size);
+	a->rt->Resize(&size);
 
 	// according to Rick Brewster, we must always redraw the entire client area after calling ID2D1RenderTarget::Resize() (see http://stackoverflow.com/a/33222983/3408572)
 	// we used to have a uiAreaHandler.RedrawOnResize() method to decide this; now you know why we don't anymore

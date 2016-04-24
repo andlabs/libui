@@ -66,7 +66,7 @@ uiEntry *uiNewEntry(void)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) uiNewControl(uiEntryType());
+	e = (uiEntry *) uiNewControl(uiEntry);
 
 	e->widget = gtk_entry_new();
 	e->entry = GTK_ENTRY(e->widget);

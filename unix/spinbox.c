@@ -54,7 +54,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	if (min >= max)
 		complain("error: min >= max in uiNewSpinbox()");
 
-	s = (uiSpinbox *) uiNewControl(uiSpinboxType());
+	s = (uiSpinbox *) uiNewControl(uiSpinbox);
 
 	s->widget = gtk_spin_button_new_with_range(min, max, 1);
 	s->entry = GTK_ENTRY(s->widget);

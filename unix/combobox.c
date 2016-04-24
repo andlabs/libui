@@ -56,7 +56,7 @@ static uiCombobox *finishNewCombobox(GtkWidget *(*newfunc)(void))
 {
 	uiCombobox *c;
 
-	c = (uiCombobox *) uiNewControl(uiComboboxType());
+	c = (uiCombobox *) uiNewControl(uiCombobox);
 
 	c->widget = (*newfunc)();
 	c->combobox = GTK_COMBO_BOX(c->widget);

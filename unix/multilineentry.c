@@ -87,7 +87,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 {
 	uiMultilineEntry *e;
 
-	e = (uiMultilineEntry *) uiNewControl(uiMultilineEntryType());
+	e = (uiMultilineEntry *) uiNewControl(uiMultilineEntry);
 
 	e->widget = gtk_scrolled_window_new(NULL, NULL);
 	e->scontainer = GTK_CONTAINER(e->widget);

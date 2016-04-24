@@ -110,7 +110,7 @@ static uiBox *finishNewBox(GtkOrientation orientation)
 {
 	uiBox *b;
 
-	b = (uiBox *) uiNewControl(uiBoxType());
+	b = (uiBox *) uiNewControl(uiBox);
 
 	b->widget = gtk_box_new(orientation, 0);
 	b->container = GTK_CONTAINER(b->widget);

@@ -22,7 +22,7 @@ uiDateTimePicker *finishNewDateTimePicker(OSTHING OSARG)
 {
 	uiDateTimePicker *d;
 
-	d = (uiDateTimePicker *) uiNewControl(uiDateTimePickerType());
+	d = (uiDateTimePicker *) uiNewControl(uiDateTimePicker);
 
 	d->widget = gtk_label_new("TODO uiDateTimePicker not implemented");
 

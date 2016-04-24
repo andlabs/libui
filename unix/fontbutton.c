@@ -50,7 +50,7 @@ uiFontButton *uiNewFontButton(void)
 {
 	uiFontButton *b;
 
-	b = (uiFontButton *) uiNewControl(uiFontButtonType());
+	b = (uiFontButton *) uiNewControl(uiFontButton);
 
 	b->widget = gtk_font_button_new();
 	b->button = GTK_BUTTON(b->widget);

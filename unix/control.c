@@ -1,15 +1,6 @@
 // 16 august 2015
 #include "uipriv_unix.h"
 
-static uintmax_t type_uiUnixControl = 0;
-
-uintmax_t uiUnixControlType(void)
-{
-	if (type_uiUnixControl == 0)
-		type_uiUnixControl = uiRegisterType("uiUnixControl", uiControlType(), sizeof (uiUnixControl));
-	return type_uiUnixControl;
-}
-
 static void defaultCommitShow(uiControl *c)
 {
 	gtk_widget_show(GTK_WIDGET(uiControlHandle(c)));
@@ -37,4 +28,11 @@ void uiUnixFinishControl(uiControl *c)
 		gtk_widget_show(GTK_WIDGET(uiControlHandle(c)));
 	c->CommitShow = defaultCommitShow;
 	c->CommitHide = defaultCommitHide;
+}
+
+#define uiUnixControlSignature 0x556E6978
+
+uiUnixControl *uiUnixNewControl(size_t n, uint32_t typesig, const char *typename)
+{
+	return uiUnixControl(newControl(n, uiUnixControlSignature, typesig, typename));
 }

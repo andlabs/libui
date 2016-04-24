@@ -86,7 +86,7 @@ uiTab *uiNewTab(void)
 {
 	uiTab *t;
 
-	t = (uiTab *) uiNewControl(uiTabType());
+	t = (uiTab *) uiNewControl(uiTab);
 
 	t->widget = gtk_notebook_new();
 	t->container = GTK_CONTAINER(t->widget);

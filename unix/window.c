@@ -121,7 +121,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindow *w;
 
-	w = (uiWindow *) uiNewControl(uiWindowType());
+	w = (uiWindow *) uiNewControl(uiWindow);
 
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	w->container = GTK_CONTAINER(w->widget);

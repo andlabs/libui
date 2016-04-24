@@ -8,13 +8,11 @@ static gboolean hasPreferences = FALSE;
 static gboolean hasAbout = FALSE;
 
 struct uiMenu {
-	uiTyped t;
 	char *name;
 	GArray *items;					// []*uiMenuItem
 };
 
 struct uiMenuItem {
-	uiTyped t;
 	char *name;
 	int type;
 	void (*onClicked)(uiMenuItem *, uiWindow *, void *);
@@ -140,7 +138,6 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 		complain("attempt to create a new menu item after menus have been finalized");
 
 	item = uiNew(uiMenuItem);
-	uiTyped(item)->Type = uiMenuItemType();
 
 	g_array_append_val(m->items, item);
 
@@ -238,7 +235,6 @@ uiMenu *uiNewMenu(const char *name)
 		menus = g_array_new(FALSE, TRUE, sizeof (uiMenu *));
 
 	m = uiNew(uiMenu);
-	uiTyped(m)->Type = uiMenuType();
 
 	g_array_append_val(menus, m);
 

@@ -78,7 +78,7 @@ uiGroup *uiNewGroup(const char *text)
 	PangoAttribute *bold;
 	PangoAttrList *boldlist;
 
-	g = (uiGroup *) uiNewControl(uiGroupType());
+	g = (uiGroup *) uiNewControl(uiGroup);
 
 	g->widget = gtk_frame_new(text);
 	g->container = GTK_CONTAINER(g->widget);

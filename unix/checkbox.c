@@ -68,7 +68,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 {
 	uiCheckbox *c;
 
-	c = (uiCheckbox *) uiNewControl(uiCheckboxType());
+	c = (uiCheckbox *) uiNewControl(uiCheckbox);
 
 	c->widget = gtk_check_button_new_with_label(text);
 	c->button = GTK_BUTTON(c->widget);

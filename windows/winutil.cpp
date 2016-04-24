@@ -87,7 +87,7 @@ void uiWindowsEnsureDestroyWindow(HWND hwnd)
 void uiWindowsEnsureSetParent(HWND hwnd, HWND parent)
 {
 	if (SetParent(hwnd, parent) == 0)
-		logLastError(L"error setting window parent in uiWindowsEnsureSetParent");
+		logLastError(L"error setting window parent");
 }
 
 void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND insertAfter)

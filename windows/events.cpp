@@ -74,7 +74,7 @@ static BOOL shouldRun(HWND hwnd, T method)
 	if (IsChild(utilWindow, hwnd) != 0)
 		return FALSE;
 	// registered?
-	return method == NULL;
+	return method != NULL;
 }
 
 BOOL runWM_COMMAND(WPARAM wParam, LPARAM lParam, LRESULT *lResult)

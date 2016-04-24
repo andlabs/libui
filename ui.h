@@ -1,5 +1,7 @@
 // 6 april 2015
 
+// TODO add a uiVerifyControlType() function that can be used by control implementations to verify controls
+
 #ifndef __LIBUI_UI_H__
 #define __LIBUI_UI_H__
 

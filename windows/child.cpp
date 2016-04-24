@@ -95,7 +95,7 @@ void childRelayout(struct child *c, intmax_t x, intmax_t y, intmax_t width, intm
 	intmax_t left, top, right, bottom;
 
 	if (c->tabpage != NULL) {
-		uiWindowsEnsureMoveWindow(c->tabpage, x, y, width, height);
+		uiWindowsEnsureMoveWindowDuringResize(c->tabpage, x, y, width, height);
 		x = 0;		// and make relative to the client rect of the tab page
 		y = 0;
 		if (c->margined) {

@@ -60,7 +60,7 @@ ATOM initContainer(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 void uninitContainer(void)
 {
 	if (UnregisterClassW(containerClass, hInstance) == 0)
-		logLastError("error unregistering container window class in uninitContainer()");
+		logLastError(L"error unregistering container window class");
 }
 
 HWND newContainer(void)

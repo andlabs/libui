@@ -1,5 +1,5 @@
 // 16 august 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont)
 {
@@ -16,7 +16,7 @@ HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCW
 		100, 100,
 		utilWindow, NULL, hInstance, lpParam);
 	if (hwnd == NULL) {
-		logLastError("error creating window");
+		logLastError(L"error creating window");
 		// TODO return a decoy window
 	}
 	if (useStandardControlFont)

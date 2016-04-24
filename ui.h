@@ -17,6 +17,10 @@ extern "C" {
 #define _UI_EXTERN extern
 #endif
 
+// C++ is really really really really really really dumb about enums, so screw that and just make them anonymous
+// This has the advantage of being ABI-able should we ever need an ABI...
+#define _UI_ENUM(s) typedef unsigned int s; enum
+
 typedef struct uiInitOptions uiInitOptions;
 
 struct uiInitOptions {
@@ -308,35 +312,34 @@ typedef struct uiDrawMatrix uiDrawMatrix;
 
 typedef struct uiDrawBrushGradientStop uiDrawBrushGradientStop;
 
-// ISO C forbids us from forward declaring enums >:(
-typedef enum uiDrawBrushType {
+_UI_ENUM(uiDrawBrushType) {
 	uiDrawBrushTypeSolid,
 	uiDrawBrushTypeLinearGradient,
 	uiDrawBrushTypeRadialGradient,
 	uiDrawBrushTypeImage,
-} uiDrawBrushType;
+};
 
-typedef enum uiDrawLineCap {
+_UI_ENUM(uiDrawLineCap) {
 	uiDrawLineCapFlat,
 	uiDrawLineCapRound,
 	uiDrawLineCapSquare,
-} uiDrawLineCap;
+};
 
-typedef enum uiDrawLineJoin {
+_UI_ENUM(uiDrawLineJoin) {
 	uiDrawLineJoinMiter,
 	uiDrawLineJoinRound,
 	uiDrawLineJoinBevel,
-} uiDrawLineJoin;
+};
 
 // this is the default for botoh cairo and Direct2D (in the latter case, from the C++ helper functions)
 // Core Graphics doesn't explicitly specify a default, but NSBezierPath allows you to choose one, and this is the initial value
 // so we're good to use it too!
 #define uiDrawDefaultMiterLimit 10.0
 
-typedef enum uiDrawFillMode {
+_UI_ENUM(uiDrawFillMode) {
 	uiDrawFillModeWinding,
 	uiDrawFillModeAlternate,
-} uiDrawFillMode;
+};
 
 struct uiDrawMatrix {
 	double M11;
@@ -458,7 +461,7 @@ typedef struct uiDrawTextFont uiDrawTextFont;
 typedef struct uiDrawTextFontDescriptor uiDrawTextFontDescriptor;
 typedef struct uiDrawTextFontMetrics uiDrawTextFontMetrics;
 
-typedef enum uiDrawTextWeight {
+_UI_ENUM(uiDrawTextWeight) {
 	uiDrawTextWeightThin,
 	uiDrawTextWeightUltraLight,
 	uiDrawTextWeightLight,
@@ -470,15 +473,15 @@ typedef enum uiDrawTextWeight {
 	uiDrawTextWeightUtraBold,
 	uiDrawTextWeightHeavy,
 	uiDrawTextWeightUltraHeavy,
-} uiDrawTextWeight;
+};
 
-typedef enum uiDrawTextItalic {
+_UI_ENUM(uiDrawTextItalic) {
 	uiDrawTextItalicNormal,
 	uiDrawTextItalicOblique,
 	uiDrawTextItalicItalic,
-} uiDrawTextItalic;
+};
 
-typedef enum uiDrawTextStretch {
+_UI_ENUM(uiDrawTextStretch) {
 	uiDrawTextStretchUltraCondensed,
 	uiDrawTextStretchExtraCondensed,
 	uiDrawTextStretchCondensed,
@@ -488,7 +491,7 @@ typedef enum uiDrawTextStretch {
 	uiDrawTextStretchExpanded,
 	uiDrawTextStretchExtraExpanded,
 	uiDrawTextStretchUltraExpanded,
-} uiDrawTextStretch;
+};
 
 struct uiDrawTextFontDescriptor {
 	const char *Family;
@@ -527,12 +530,12 @@ _UI_EXTERN void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t star
 
 _UI_EXTERN void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout);
 
-typedef enum uiModifiers {
+_UI_ENUM(uiModifiers) {
 	uiModifierCtrl = 1 << 0,
 	uiModifierAlt = 1 << 1,
 	uiModifierShift = 1 << 2,
 	uiModifierSuper = 1 << 3,
-} uiModifiers;
+};
 
 // TODO document drag captures
 struct uiAreaMouseEvent {
@@ -554,7 +557,7 @@ struct uiAreaMouseEvent {
 	uint64_t Held1To64;
 };
 
-typedef enum uiExtKey {
+_UI_ENUM(uiExtKey) {
 	uiExtKeyEscape = 1,
 	uiExtKeyInsert,			// equivalent to "Help" on Apple keyboards
 	uiExtKeyDelete,
@@ -594,7 +597,7 @@ typedef enum uiExtKey {
 	uiExtKeyNSubtract,
 	uiExtKeyNMultiply,
 	uiExtKeyNDivide,
-} uiExtKey;
+};
 
 struct uiAreaKeyEvent {
 	char Key;

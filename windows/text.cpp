@@ -1,5 +1,5 @@
 // 9 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 WCHAR *windowTextAndLen(HWND hwnd, LRESULT *len)
 {

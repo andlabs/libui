@@ -1,5 +1,5 @@
 // 6 april 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // this is a helper function that takes the logic of determining window classes and puts it all in one place
 // there are a number of places where we need to know what window class an arbitrary handle has

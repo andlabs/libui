@@ -1,5 +1,5 @@
 // 25 february 2015
-#include "uipriv_windows.h"
+#include "uipriv_windows.hpp"
 
 // TODO disable logging and stopping on no-debug builds
 

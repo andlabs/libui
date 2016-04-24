@@ -124,7 +124,7 @@ static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	intmax_t minimumWidth, minimumHeight;
 	uiWindowsSizing *d;
 
-	uiWindowsEnsureMoveWindow(b->hwnd, x, y, width, height);
+	uiWindowsEnsureMoveWindowDuringResize(b->hwnd, x, y, width, height);
 
 	if (b->controls->len == 0)
 		return;

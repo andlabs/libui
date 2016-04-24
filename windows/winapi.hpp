@@ -34,7 +34,6 @@
 #include <shobjidl.h>
 #include <d2d1.h>
 #include <dwrite.h>
-#include <strsafe.h>
 
 #include <stdint.h>
 #include <string.h>

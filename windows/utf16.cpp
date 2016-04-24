@@ -73,30 +73,13 @@ static WCHAR *strfcore(BOOL recursing, const WCHAR *format, va_list ap)
 		return emptyUTF16();
 
 	va_copy(ap2, ap);
-	hr = StringCchVPrintfExW(NULL, 0,
-		NULL, &n,
-		STRSAFE_IGNORE_NULLS,
-		format, ap2);
+	n = _vscwprintf(format, ap2);
 	va_end(ap2);
-	if (hr != S_OK && hr != STRSAFE_E_INSUFFICIENT_BUFFER) {
-		if (!recursing)
-			logHRESULT(L"error determining needed buffer size", hr);
-		return emptyUTF16();
-	}
+	n++;		// terminating L'\0'
 
-	// n includes the terminating L'\0'
 	buf = (WCHAR *) uiAlloc(n * sizeof (WCHAR), "WCHAR[]");
-
-	hr = StringCchVPrintfExW(buf, n,	// TODO what about this?
-		NULL, NULL,
-		0,
-		format, ap);
-	if (hr != S_OK) {
-		if (!recursing)
-			logLastError(L"error formatting string", hr);
-		// and return an empty string
-		*buf = L'\0';
-	}
+	// includes terminating L'\0' according to example in https://msdn.microsoft.com/en-us/library/xa1a1a6z.aspx
+	vswprintf_s(buf, n, format, ap);
 
 	return buf;
 }

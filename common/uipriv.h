@@ -38,10 +38,6 @@ void ptrArrayDelete(struct ptrArray *, uintmax_t);
 // shouldquit.c
 extern int shouldQuit(void);
 
-// types.c
-extern void uninitTypes(void);
-extern uiTyped *newTyped(uintmax_t type);
-
 // areaevents.c
 typedef struct clickCounter clickCounter;
 // you should call Reset() to zero-initialize a new instance

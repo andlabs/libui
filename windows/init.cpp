@@ -151,7 +151,6 @@ void uiUninit(void)
 	unregisterWindowClass();
 	// no need to delete the default icon or cursor; see http://stackoverflow.com/questions/30603077/
 	uninitUtilWindow();
-	uninitTypes();
 	uninitAlloc();
 }
 

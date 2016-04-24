@@ -119,7 +119,6 @@ void uiUninit(void)
 	[realNSApp() setDelegate:nil];
 	[appDelegate() release];
 	[realNSApp() release];
-	uninitTypes();
 	uninitAlloc();
 }
 

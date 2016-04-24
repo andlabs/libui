@@ -14,39 +14,60 @@ extern "C" {
 typedef struct uiDarwinControl uiDarwinControl;
 struct uiDarwinControl {
 	uiControl c;
+	uiControl *parent;
+	BOOL enabled;
+	BOOL visible;
 	void (*Relayout)(uiDarwinControl *);
 };
 #define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
 _UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 
-// TODO document
-#define uiDarwinDefineControlWithOnDestroy(type, handlefield, onDestroy) \
-	static void _ ## type ## CommitDestroy(uiControl *c) \
+#define uiDarwinControlDefaultDestroy(type, handlefield) \
+	static void type ## Destroy(uiControl *c) \
 	{ \
-		type *this = type(c); \
-		onDestroy; \
-		[this->handlefield release]; \
-	} \
-	static uintptr_t _ ## type ## Handle(uiControl *c) \
+		uiControlVerifyDestroy(c); \
+		[type(c)->handlefield release]; \
+	}
+#define uiDarwinControlDefaultHandle(type, handlefield) \
+	static uintptr_t type ## Handle(uiControl *c) \
 	{ \
 		return (uintptr_t) (type(c)->handlefield); \
-	} \
-	static void _ ## type ## ContainerUpdateState(uiControl *c) \
+	}
+#define uiDarwinControlDefaultParent(type) \
+	static uiControl *type ## Parent(uiControl *c) \
 	{ \
-		/* do nothing */ \
-	} \
-	static void _ ## type ## Relayout(uiDarwinControl *c) \
+		return uiDarwinControl(c)->parent; \
+	}
+#define uiDarwinControlDefaultSetParent(type, handlefield) \
+	static void type ## SetParent(uiControl *c, uiControl *parent) \
+	{ \
+		uiControlVerifySetParent(c, parent); \
+		uiDarwinControl(c)->parent = parent; \
+		if (uiDarwinControl(c)->parent == NULL) \
+			[type(c)->handlefield removeFromSuperview]; \
+		else { \
+			/* TODO */ \
+			if ([type(c)->handlefield respondsToSelector:@selector(setEnabled:)]) \
+				[type(c)->handlefield setEnabled:uiControlEnabledToUser(c)]; \
+		} \
+	}
+#define uiDarwinControlDefaultRelayout(type) \
+	static void type ## Relayout(uiDarwinControl *c) \
 	{ \
 		/* do nothing */ \
 	}
 
-#define uiDarwinDefineControl(type, handlefield) \
-	uiDarwinDefineControlWithOnDestroy(type, handlefield, (void) this;)
+#define uiDarwinControlAllDefaults(type, handlefield) \
+	uiDarwinControlDefaultDestroy(type, handlefield) \
+	uiDarwinControlDefaultHandle(type, handlefield) \
+	uiDarwinControlDefaultParent(type) \
+	xxxxx \
+	uiDarwinControlDefaultRelayout(type)
 
 // TODO document
-#define uiNewControl(type) uiDarwinNewControl(sizeof (type), type ## Signature, #type)
-_UI_EXTERN uiDarwinControl *uiDarwinNewControl(size_t n, uint32_t typesig, const char *typenamestr);
+#define uiDarwinNewControl(type) type(uiDarwinNewControl(sizeof (type), type ## Signature, #type))
+_UI_EXTERN uiDarwinControl *uiDarwinAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
 
 #define uiDarwinFinishNewControl(variable, type) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \

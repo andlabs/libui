@@ -5,14 +5,12 @@ static NSMutableArray *menus = nil;
 static BOOL menusFinalized = NO;
 
 struct uiMenu {
-	uiTyped t;
 	NSMenu *menu;
 	NSMenuItem *item;
 	NSMutableArray *items;
 };
 
 struct uiMenuItem {
-	uiTyped t;
 	NSMenuItem *item;
 	int type;
 	BOOL disabled;
@@ -230,7 +228,6 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 		complain("attempt to create a new menu item after menus have been finalized");
 
 	item = uiNew(uiMenuItem);
-	uiTyped(item)->Type = uiMenuItemType();
 
 	item->type = type;
 	switch (item->type) {
@@ -305,7 +302,6 @@ uiMenu *uiNewMenu(const char *name)
 		menus = [NSMutableArray new];
 
 	m = uiNew(uiMenu);
-	uiTyped(m)->Type = uiMenuType();
 
 	m->menu = [[NSMenu alloc] initWithTitle:toNSString(name)];
 	// use automatic menu item enabling for all menus for consistency's sake

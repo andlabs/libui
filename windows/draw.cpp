@@ -14,7 +14,7 @@ HRESULT initDraw(void)
 	// TODO make this an option
 	opts.debugLevel = D2D1_DEBUG_LEVEL_NONE;
 	return D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
-		&IID_ID2D1Factory,
+		IID_ID2D1Factory,
 		&opts,
 		(void **) (&d2dfactory));
 }
@@ -115,7 +115,7 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 	D2D1_POINT_2F pt;
 
 	if (p->inFigure)
-		p-sink->EndFigure(D2D1_FIGURE_END_OPEN);
+		p->sink->EndFigure(D2D1_FIGURE_END_OPEN);
 	pt.x = x;
 	pt.y = y;
 	p->sink->BeginFigure(pt, D2D1_FIGURE_BEGIN_FILLED);
@@ -371,7 +371,7 @@ static ID2D1GradientStopCollection *mkstops(uiDrawBrush *b, ID2D1RenderTarget *r
 	size_t i;
 	HRESULT hr;
 
-	stops = uiAlloc(b->NumStops * sizeof (D2D1_GRADIENT_STOP), "D2D1_GRADIENT_STOP[]");
+	stops = (D2D1_GRADIENT_STOP *) uiAlloc(b->NumStops * sizeof (D2D1_GRADIENT_STOP), "D2D1_GRADIENT_STOP[]");
 	for (i = 0; i < b->NumStops; i++) {
 		stops[i].position = b->Stops[i].Pos;
 		stops[i].color.r = b->Stops[i].R;
@@ -510,7 +510,7 @@ static ID2D1Layer *applyClip(uiDrawContext *c)
 	params.contentBounds.bottom = FLT_MAX;
 	params.geometricMask = (ID2D1Geometry *) (c->currentClip);
 	// TODO is this correct?
-	params.maskAntialiasMode = ID2D1RenderTarget_GetAntialiasMode(c->rt);
+	params.maskAntialiasMode = c->rt->GetAntialiasMode();
 	// identity matrix
 	params.maskTransform._11 = 1;
 	params.maskTransform._22 = 1;
@@ -766,7 +766,7 @@ void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 
 	// otherwise we have to intersect the current path with the new one
 	// we do that into a new path, and then replace c->currentClip with that new path
-	hr = d2dfactoryCreatePathGeometry(&newPath);
+	hr = d2dfactory->CreatePathGeometry(&newPath);
 	if (hr != S_OK)
 		logHRESULT(L"error creating new path", hr);
 	hr = newPath->Open(&newSink);

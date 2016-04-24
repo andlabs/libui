@@ -36,7 +36,7 @@ char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n)
 
 	hr = ff->fc->fonts->GetFontFamily(n, &family);
 	if (hr != S_OK)
-		logHRESULT("error getting font out of collection in uiDrawFontFamiliesFamily()", hr);
+		logHRESULT(L"error getting font out of collection", hr);
 	wname = fontCollectionFamilyName(ff->fc, family);
 	name = toUTF8(wname);
 	uiFree(wname);
@@ -236,17 +236,17 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	// always get the latest available font information
 	hr = dwfactory->GetSystemFontCollection(&collection, TRUE);
 	if (hr != S_OK)
-		logHRESULT("error getting system font collection in uiDrawLoadClosestFont()", hr);
+		logHRESULT(L"error getting system font collection", hr);
 
 	wfamily = toUTF16(desc->Family);
 	hr = collection->FindFamilyName(wfamily, &index, &exists);
 	if (hr != S_OK)
-		logHRESULT("error finding font family in uiDrawLoadClosestFont()", hr);
+		logHRESULT(L"error finding font family", hr);
 	if (!exists)
 		complain("TODO family not found in uiDrawLoadClosestFont()", hr);
 	hr = collection->GetFontFamily(index, &family);
 	if (hr != S_OK)
-		logHRESULT("error loading font family in uiDrawLoadClosestFont()", hr);
+		logHRESULT(L"error loading font family", hr);
 
 	attr.weight = desc->Weight;
 	attr.italic = desc->Italic;
@@ -258,7 +258,7 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 		attr.ditalic,
 		&match);
 	if (hr != S_OK)
-		logHRESULT("error loading font in uiDrawLoadClosestFont()", hr);
+		logHRESULT(L"error loading font", hr);
 
 	font = mkTextFont(match,
 		FALSE,				// we own the initial reference; no need to add another one
@@ -360,7 +360,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 		L"",
 		&(layout->format));
 	if (hr != S_OK)
-		logHRESULT("error creating IDWriteTextFormat in uiDrawNewTextLayout()", hr);
+		logHRESULT(L"error creating IDWriteTextFormat", hr);
 
 	layout->text = toUTF16(text);
 	layout->textlen = wcslen(layout->text);
@@ -395,7 +395,7 @@ IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt
 		FLT_MAX, FLT_MAX,
 		&dl);
 	if (hr != S_OK)
-		logHRESULT("error creating IDWriteTextLayout in prepareLayout()", hr);
+		logHRESULT(L"error creating IDWriteTextLayout", hr);
 
 	for (const struct layoutAttr &attr : *(layout->attrs)) {
 		range.startPosition = attr.start;
@@ -410,10 +410,10 @@ IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt
 			break;
 		default:
 			hr = E_FAIL;
-			logHRESULT("invalid text attribute type in prepareLayout()", hr);
+			logHRESULT(L"invalid text attribute type", hr);
 		}
 		if (hr != S_OK)
-			logHRESULT("error adding attribute to text layout in prepareLayout()", hr);
+			logHRESULT(L"error adding attribute to text layout", hr);
 	}
 
 	// and set the width
@@ -427,10 +427,10 @@ IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt
 	}
 	hr = dl->SetWordWrapping(wrap);
 	if (hr != S_OK)
-		logHRESULT("error setting word wrapping mode in prepareLayout()", hr);
+		logHRESULT(L"error setting word wrapping mode", hr);
 	hr = dl->SetMaxWidth(maxWidth);
 	if (hr != S_OK)
-		logHRESULT("error setting max layout width in prepareLayout()", hr);
+		logHRESULT(L"error setting max layout width", hr);
 
 	return dl;
 }
@@ -451,7 +451,7 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *he
 	dl = prepareLayout(layout, NULL);
 	hr = dl->GetMetrics(&metrics);
 	if (hr != S_OK)
-		logHRESULT("error getting layout metrics in uiDrawTextLayoutExtents()", hr);
+		logHRESULT(L"error getting layout metrics", hr);
 	*width = metrics.width;
 	// TODO make sure the behavior of this on empty strings is the same on all platforms
 	*height = metrics.height;

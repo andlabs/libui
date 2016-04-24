@@ -4,14 +4,14 @@
 // TODO disable logging and stopping on no-debug builds
 
 // TODO are the newlines needed?
-static void printDebug(WCHAR *msg)
+static void printDebug(const WCHAR *msg)
 {
 	OutputDebugStringW(msg);
 }
 
-#define debugfmt L"%s:" L ## PRIiMAX L":%s()"
+#define debugfmt L"%s:%s:%s()"
 
-HRESULT _logLastError(debugargs, const WCHAR *func, const WCHAR *s)
+HRESULT _logLastError(debugargs, const WCHAR *s)
 {
 	DWORD le;
 	WCHAR *msg;
@@ -92,7 +92,7 @@ void _implbug(debugargs, const WCHAR *format, ...)
 	formatted = debugvstrf(format, ap);
 	va_end(ap);
 	if (formatted == NULL) {
-		onerr = s;
+		onerr = format;
 		goto bad;
 	}
 

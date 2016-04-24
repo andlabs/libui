@@ -38,7 +38,7 @@ static LRESULT cbAddString(HWND cb, const WCHAR *str)
 
 	lr = SendMessageW(cb, CB_ADDSTRING, 0, (LPARAM) str);
 	if (lr == (LRESULT) CB_ERR || lr == (LRESULT) CB_ERRSPACE)
-		logLastError("error adding item to combobox in cbAddString()");
+		logLastError(L"error adding item to combobox");
 	return lr;
 }
 
@@ -48,7 +48,7 @@ static LRESULT cbInsertString(HWND cb, const WCHAR *str, WPARAM pos)
 
 	lr = SendMessageW(cb, CB_INSERTSTRING, pos, (LPARAM) str);
 	if (lr != (LRESULT) pos)
-		logLastError("error inserting item to combobox in cbInsertString()");
+		logLastError(L"error inserting item to combobox");
 	return lr;
 }
 
@@ -58,14 +58,14 @@ static LRESULT cbGetItemData(HWND cb, WPARAM item)
 
 	data = SendMessageW(cb, CB_GETITEMDATA, item, 0);
 	if (data == (LRESULT) CB_ERR)
-		logLastError("error getting combobox item data for font dialog in cbGetItemData()");
+		logLastError(L"error getting combobox item data for font dialog");
 	return data;
 }
 
 static void cbSetItemData(HWND cb, WPARAM item, LPARAM data)
 {
 	if (SendMessageW(cb, CB_SETITEMDATA, item, data) == (LRESULT) CB_ERR)
-		logLastError("error setting combobox item data in cbSetItemData()");
+		logLastError(L"error setting combobox item data");
 }
 
 static BOOL cbGetCurSel(HWND cb, LRESULT *sel)
@@ -83,7 +83,7 @@ static BOOL cbGetCurSel(HWND cb, LRESULT *sel)
 static void cbSetCurSel(HWND cb, WPARAM item)
 {
 	if (SendMessageW(cb, CB_SETCURSEL, item, 0) != (LRESULT) item)
-		logLastError("error selecting combobox item in cbSetCurSel()");
+		logLastError(L"error selecting combobox item");
 }
 
 static LRESULT cbGetCount(HWND cb)
@@ -92,7 +92,7 @@ static LRESULT cbGetCount(HWND cb)
 
 	n = SendMessageW(cb, CB_GETCOUNT, 0, 0);
 	if (n == (LRESULT) CB_ERR)
-		logLastError("error getting combobox item count in cbGetCount()");
+		logLastError(L"error getting combobox item count");
 	return n;
 }
 
@@ -117,10 +117,10 @@ static WCHAR *cbGetItemText(HWND cb, WPARAM item)
 	// note: neither message includes the terminating L'\0'
 	len = SendMessageW(cb, CB_GETLBTEXTLEN, item, 0);
 	if (len == (LRESULT) CB_ERR)
-		logLastError("error getting item text length from combobox in cbGetItemText()");
+		logLastError(L"error getting item text length from combobox");
 	text = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
 	if (SendMessageW(cb, CB_GETLBTEXT, item, (LPARAM) text) != len)
-		logLastError("error getting item text from combobox in cbGetItemText()");
+		logLastError(L"error getting item text from combobox");
 	return text;
 }
 
@@ -143,12 +143,12 @@ static BOOL cbTypeToSelect(HWND cb, LRESULT *posOut, BOOL restoreAfter)
 		*posOut = pos;
 	if (restoreAfter)
 		if (SendMessageW(cb, WM_SETTEXT, 0, (LPARAM) text) != (LRESULT) TRUE)
-			logLastError("error restoring old combobox text in cbTypeToSelect()");
+			logLastError(L"error restoring old combobox text");
 	uiFree(text);
 	// and restore the selection like above
 	// TODO isn't there a 32-bit version of this
 	if (SendMessageW(cb, CB_SETEDITSEL, 0, MAKELPARAM(selStart, selEnd)) != (LRESULT) TRUE)
-		logLastError("error restoring combobox edit selection in cbTypeToSelect()");
+		logLastError(L"error restoring combobox edit selection");
 	return TRUE;
 }
 
@@ -165,7 +165,7 @@ static WCHAR *fontStyleName(struct fontCollection *fc, IDWriteFont *font)
 
 	hr = font->GetFaceNames(&str);
 	if (hr != S_OK)
-		logHRESULT("error getting font style name for font dialog in fontStyleName()", hr);
+		logHRESULT(L"error getting font style name for font dialog", hr);
 	wstr = fontCollectionCorrectString(fc, str);
 	str->Release();
 	return wstr;
@@ -175,7 +175,7 @@ static void queueRedrawSampleText(struct fontDialog *f)
 {
 	// TODO TRUE?
 	if (InvalidateRect(f->sampleBox, NULL, TRUE) == 0)
-		logLastError("error queueing a redraw of the font dialog's sample text in queueRedrawSampleText()");
+		logLastError(L"error queueing a redraw of the font dialog's sample text");
 }
 
 static void styleChanged(struct fontDialog *f)
@@ -234,7 +234,7 @@ static void familyChanged(struct fontDialog *f)
 		f->style,
 		&matchFont);
 	if (hr != S_OK)
-		logHRESULT("error finding first matching font to previous style in font dialog in familyChanged()", hr);
+		logHRESULT(L"error finding first matching font to previous style in font dialog", hr);
 	// we can't just compare pointers; a "newly created" object comes out
 	// the Choose Font sample appears to do this instead
 	weight = matchFont->GetWeight();
@@ -249,7 +249,7 @@ static void familyChanged(struct fontDialog *f)
 	for (i = 0; i < n; i++) {
 		hr = family->GetFont(i, &font);
 		if (hr != S_OK)
-			logHRESULT("error getting font for filling styles box in familyChanged()", hr);
+			logHRESULT(L"error getting font for filling styles box", hr);
 		label = fontStyleName(f->fc, font);
 		pos = cbAddString(f->styleCombobox, label);
 		uiFree(label);
@@ -355,7 +355,7 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 		&props,
 		&black);
 	if (hr != S_OK)
-		logHRESULT("error creating solid brush in fontDialogDrawSampleText()", hr);
+		logHRESULT(L"error creating solid brush", hr);
 
 	font = (IDWriteFont *) cbGetItemData(f->styleCombobox, (WPARAM) f->curStyle);
 	hr = font->GetInformationalStrings(DWRITE_INFORMATIONAL_STRING_SAMPLE_TEXT, &sampleStrings, &exists);
@@ -382,7 +382,7 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 		L"",
 		&format);
 	if (hr != S_OK)
-		logHRESULT("error creating IDWriteTextFormat in fontDialogDrawSampleText()", hr);
+		logHRESULT(L"error creating IDWriteTextFormat", hr);
 	uiFree(family);
 
 	rect.left = 0;
@@ -416,7 +416,7 @@ static LRESULT CALLBACK fontDialogSampleSubProc(HWND hwnd, UINT uMsg, WPARAM wPa
 		return 0;
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, fontDialogSampleSubProc, uIdSubclass) == FALSE)
-			logLastError("error removing font dialog sample text subclass in fontDialogSampleSubProc()");
+			logLastError(L"error removing font dialog sample text subclass");
 		break;
 	}
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
@@ -437,11 +437,11 @@ static void setupInitialFontDialogState(struct fontDialog *f)
 	_snwprintf(wsize, 512, L"%g", f->params->size);
 	// TODO make this a setWindowText()
 	if (SendMessageW(f->sizeCombobox, WM_SETTEXT, 0, (LPARAM) wsize) != (LRESULT) TRUE)
-		logLastError("error setting size combobox to initial font size in setupInitialFontDialogState()");
+		logLastError(L"error setting size combobox to initial font size");
 	sizeEdited(f);
 	if (cbGetCurSel(f->sizeCombobox, &pos))
 		if (SendMessageW(f->sizeCombobox, CB_SETTOPINDEX, (WPARAM) pos, 0) != 0)
-			logLastError("error making chosen size topmost in the size combobox in setupInitialFontDialogState()");
+			logLastError(L"error making chosen size topmost in the size combobox");
 
 	// now we set the family and style
 	// we do this by first setting the previous style attributes, then simulating a font entered
@@ -449,7 +449,7 @@ static void setupInitialFontDialogState(struct fontDialog *f)
 	f->style = f->params->font->GetStyle();
 	f->stretch = f->params->font->GetStretch();
 	if (SendMessageW(f->familyCombobox, WM_SETTEXT, 0, (LPARAM) (f->params->familyName)) != (LRESULT) TRUE)
-		logLastError("error setting family combobox to initial font family in setupInitialFontDialogState()");
+		logLastError(L"error setting family combobox to initial font family");
 	familyEdited(f);
 }
 
@@ -469,20 +469,20 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 
 	f->familyCombobox = GetDlgItem(f->hwnd, rcFontFamilyCombobox);
 	if (f->familyCombobox == NULL)
-		logLastError("error getting font family combobox handle in beginFontDialog()");
+		logLastError(L"error getting font family combobox handle");
 	f->styleCombobox = GetDlgItem(f->hwnd, rcFontStyleCombobox);
 	if (f->styleCombobox == NULL)
-		logLastError("error getting font style combobox handle in beginFontDialog()");
+		logLastError(L"error getting font style combobox handle");
 	f->sizeCombobox = GetDlgItem(f->hwnd, rcFontSizeCombobox);
 	if (f->sizeCombobox == NULL)
-		logLastError("error getting font size combobox handle in beginFontDialog()");
+		logLastError(L"error getting font size combobox handle");
 
 	f->fc = loadFontCollection();
 	nFamilies = f->fc->fonts->GetFontFamilyCount();
 	for (i = 0; i < nFamilies; i++) {
 		hr = f->fc->fonts->GetFontFamily(i, &family);
 		if (hr != S_OK)
-			logHRESULT("error getting font family in beginFontDialog()", hr);
+			logHRESULT(L"error getting font family", hr);
 		wname = fontCollectionFamilyName(f->fc, family);
 		pos = cbAddString(f->familyCombobox, wname);
 		uiFree(wname);
@@ -494,12 +494,11 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 
 	samplePlacement = GetDlgItem(f->hwnd, rcFontSamplePlacement);
 	if (samplePlacement == NULL)
-		logLastError("error getting sample placement static control handle in beginFontDialog()");
+		logLastError(L"error getting sample placement static control handle");
 	if (GetWindowRect(samplePlacement, &(f->sampleRect)) == 0)
-		logLastError("error getting sample placement in beginFontDialog()");
+		logLastError(L"error getting sample placement");
 	mapWindowRect(NULL, f->hwnd, &(f->sampleRect));
-	if (DestroyWindow(samplePlacement) == 0)
-		logLastError("error getting rid of the sample placement static control in beginFontDialog()");
+	uiWindowsEnsureDestroyWindow(samplePlacement);
 	f->sampleBox = newD2DScratch(f->hwnd, &(f->sampleRect), (HMENU) rcFontSamplePlacement, fontDialogSampleSubProc, (DWORD_PTR) f);
 
 	setupInitialFontDialogState(f);
@@ -512,7 +511,7 @@ static void endFontDialog(struct fontDialog *f, INT_PTR code)
 	cbWipeAndReleaseData(f->familyCombobox);
 	fontCollectionFree(f->fc);
 	if (EndDialog(f->hwnd, code) == 0)
-		logLastError("error ending font dialog in endFontDialog()");
+		logLastError(L"error ending font dialog");
 	uiFree(f);
 }
 
@@ -607,7 +606,7 @@ BOOL showFontDialog(HWND parent, struct fontDialogParams *params)
 		// make the compiler happy by putting the return after the switch
 		break;
 	default:
-		logLastError("error running font dialog in showFontDialog()");
+		logLastError(L"error running font dialog");
 	}
 	return TRUE;
 }
@@ -621,12 +620,12 @@ static IDWriteFontFamily *tryFindFamily(IDWriteFontCollection *fc, const WCHAR *
 
 	hr = fc->FindFamilyName(name, &index, &exists);
 	if (hr != S_OK)
-		logHRESULT("error finding font family for font dialog in tryFindFamily()", hr);
+		logHRESULT(L"error finding font family for font dialog", hr);
 	if (!exists)
 		return NULL;
 	hr = fc->GetFontFamily(index, &family);
 	if (hr != S_OK)
-		logHRESULT("error extracting found font family for font dialog in tryFindFamily()", hr);
+		logHRESULT(L"error extracting found font family for font dialog", hr);
 	return family;
 }
 
@@ -652,7 +651,7 @@ void loadInitialFontDialogParams(struct fontDialogParams *params)
 			if (family == NULL) {
 				hr = fc->fonts->GetFontFamily(0, &family);
 				if (hr != S_OK)
-					logHRESULT("error getting first font out of font collection (worst case scenario) in loadInitialFontDialogParams()", hr);
+					logHRESULT(L"error getting first font out of font collection (worst case scenario)", hr);
 			}
 		}
 	}
@@ -664,7 +663,7 @@ void loadInitialFontDialogParams(struct fontDialogParams *params)
 		DWRITE_FONT_STYLE_NORMAL,
 		&font);
 	if (hr != S_OK)
-		logHRESULT("error getting Regular font from Arial in loadInitialFontDialogParams()", hr);
+		logHRESULT(L"error getting Regular font from Arial", hr);
 
 	params->font = font;
 	params->size = 10;

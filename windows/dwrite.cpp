@@ -1,5 +1,6 @@
 // 14 april 2016
 #include "uipriv_windows.hpp"
+// TODO really migrate?
 
 IDWriteFactory *dwfactory = NULL;
 
@@ -25,7 +26,7 @@ fontCollection *loadFontCollection(void)
 	// always get the latest available font information
 	hr = dwfactory->GetSystemFontCollection(&(fc->fonts), TRUE);
 	if (hr != S_OK)
-		logHRESULT("error getting system font collection in loadFontCollection()", hr);
+		logHRESULT(L"error getting system font collection", hr);
 	fc->userLocaleSuccess = GetUserDefaultLocaleName(fc->userLocale, LOCALE_NAME_MAX_LENGTH);
 	return fc;
 }
@@ -38,7 +39,7 @@ WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family)
 
 	hr = family->GetFamilyNames(&names);
 	if (hr != S_OK)
-		logHRESULT("error getting names of font out in fontCollectionFamilyName()", hr);
+		logHRESULT(L"error getting names of font out", hr);
 	str = fontCollectionCorrectString(fc, names);
 	names->Release();
 	return str;
@@ -70,12 +71,12 @@ WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *
 
 	hr = names->GetStringLength(index, &length);
 	if (hr != S_OK)
-		logHRESULT("error getting length of font name in fontCollectionFamilyName()", hr);
+		logHRESULT(L"error getting length of font name", hr);
 	// GetStringLength() does not include the null terminator, but GetString() does
 	wname = (WCHAR *) uiAlloc((length + 1) * sizeof (WCHAR), "WCHAR[]");
 	hr = names->GetString(index, wname, length + 1);
 	if (hr != S_OK)
-		logHRESULT("error getting font name in fontCollectionFamilyName()", hr);
+		logHRESULT(L"error getting font name", hr);
 
 	return wname;
 }

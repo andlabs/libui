@@ -53,9 +53,9 @@ enum {
 
 	item = (uiMenuItem *) mapGet(self->items, sender);
 	if (item->type == typeCheckbox)
-		uiMenuItemSetChecked(uiMenuItem(item), !uiMenuItemChecked(uiMenuItem(item)));
+		uiMenuItemSetChecked(item, !uiMenuItemChecked(item));
 	// use the key window as the source of the menu event; it's the active window
-	(*(item->onClicked))(uiMenuItem(item), windowFromNSWindow([realNSApp() keyWindow]), item->onClickedData);
+	(*(item->onClicked))(item, windowFromNSWindow([realNSApp() keyWindow]), item->onClickedData);
 }
 
 - (IBAction)onQuitClicked:(id)sender

@@ -35,7 +35,7 @@ uiControl *uiControlParent(uiControl *c)
 
 int isToplevel(uiControl *c)
 {
-	return uiIsA(c, uiWindowType(), 0) != NULL;
+	return c->TypeSignature == uiWindowSignature;
 }
 
 // returns self if self is a window
@@ -148,8 +148,8 @@ void controlUpdateState(uiControl *c)
 
 #define uiControlSignature 0x7569436F
 
-// TODO does this need to be public?
-uiControl *uiNewControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typename)
+// TODO should this be public?
+uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typename)
 {
 	uiControl *c;
 

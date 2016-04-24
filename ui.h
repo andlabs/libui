@@ -54,7 +54,6 @@ struct uiControl {
 	void (*CommitHide)(uiControl *);
 	void (*ContainerUpdateState)(uiControl *);
 };
-_UI_EXTERN uintmax_t uiControlType(void);
 #define uiControl(this) ((uiControl *) (this))
 _UI_EXTERN void uiControlDestroy(uiControl *);
 _UI_EXTERN uintptr_t uiControlHandle(uiControl *);
@@ -64,7 +63,7 @@ _UI_EXTERN void uiControlShow(uiControl *);
 _UI_EXTERN void uiControlHide(uiControl *);
 _UI_EXTERN void uiControlEnable(uiControl *);
 _UI_EXTERN void uiControlDisable(uiControl *);
-_UI_EXTERN uiControl *uiNewControl(uintmax_t type);
+_UI_EXTERN uiControl *uiNewControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typename);
 
 typedef struct uiWindow uiWindow;
 _UI_EXTERN uintmax_t uiWindowType(void);

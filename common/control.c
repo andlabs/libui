@@ -8,15 +8,6 @@ struct controlBase {
 	int disabled;
 };
 
-static uintmax_t type_uiControl = 0;
-
-uintmax_t uiControlType(void)
-{
-	if (type_uiControl == 0)
-		type_uiControl = uiRegisterType("uiControl", 0, sizeof (uiControl));
-	return type_uiControl;
-}
-
 #define controlBase(c) ((struct controlBase *) (c->Internal))
 
 void uiControlDestroy(uiControl *c)
@@ -155,11 +146,17 @@ void controlUpdateState(uiControl *c)
 //TODO	uiControlQueueResize(c);
 }
 
-uiControl *uiNewControl(uintmax_t type)
+#define uiControlSignature 0x7569436F
+
+// TODO does this need to be public?
+uiControl *uiNewControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typename)
 {
 	uiControl *c;
 
-	c = uiControl(newTyped(type));
+	c = (uiControl *) uiAlloc(size, typename);
+	c->Signature = uiControlSignature;
+	c->OSSignature = OSsig;
+	c->TypeSignature = typesig;
 	c->Internal = uiNew(struct controlBase);
 	return c;
 }

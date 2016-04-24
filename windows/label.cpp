@@ -29,7 +29,7 @@ char *uiLabelText(uiLabel *l)
 
 void uiLabelSetText(uiLabel *l, const char *text)
 {
-	uiWindowsWindowSetText(l->hwnd, text);
+	uiWindowsSetWindowText(l->hwnd, text);
 	// changing the text might necessitate a change in the label's size
 	uiWindowsControlQueueRelayout(uiWindowsControl(l));
 }

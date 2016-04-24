@@ -11,12 +11,12 @@ HBRUSH hollowBrush;
 
 // the returned pointer is actually to the second character
 // if the first character is - then free, otherwise don't
-static const char *initerr(const char *message, const WCHAR *label, DWORD code)
+static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 {
 	WCHAR *sysmsg;
 	BOOL hassysmsg;
 	WCHAR *wmessage;
-	WCHAR *out;
+	WCHAR *wout;
 	char *out;
 
 	hassysmsg = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, value, 0, (LPWSTR) (&sysmsg), 0, NULL) != 0;
@@ -37,8 +37,8 @@ static const char *initerr(const char *message, const WCHAR *label, DWORD code)
 	return out + 1;
 }
 
-#define ieLastErr(msg) initerr("=" message, L"GetLastError() ==", GetLastError())
-#define ieHRESULT(msg, hr) initerr("=" message, L"HRESULT", (DWORD) hr)
+#define ieLastErr(msg) initerr("=" msg, L"GetLastError() ==", GetLastError())
+#define ieHRESULT(msg, hr) initerr("=" msg, L"HRESULT", (DWORD) hr)
 
 // TODO make common
 uiInitOptions options;
@@ -81,7 +81,7 @@ const char *uiInit(uiInitOptions *o)
 
 	ce = initUtilWindow(hDefaultIcon, hDefaultCursor);
 	if (ce != NULL)
-		return ieLastErr(ce);
+		return ieLastErr("TODO use ce here");
 
 	if (registerWindowClass(hDefaultIcon, hDefaultCursor) == 0)
 		return ieLastErr("registering uiWindow window class");

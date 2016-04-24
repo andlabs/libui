@@ -23,7 +23,7 @@ discard:
 	return 1;
 
 callNext:
-	return CallNextHookEx(areaFilter, code, wParam, lParam);
+	return CallNextHookEx(filter, code, wParam, lParam);
 }
 
 int registerMessageFilter(void)
@@ -37,7 +37,7 @@ int registerMessageFilter(void)
 
 void unregisterMessageFilter(void)
 {
-	if (UnhookWindowsHookEx(areaFilter) == 0)
+	if (UnhookWindowsHookEx(filter) == 0)
 		logLastError(L"error unregistering libui message filter");
 }
 
@@ -63,8 +63,8 @@ void uiMain(void)
 			// TODO find documentation that says IsDialogMessage() calls CallMsgFilter() for us, because that's what's happening
 			if (IsDialogMessage(active, &msg) != 0)
 				continue;
-		TranslateMessage(msg);
-		DispatchMessageW(msg);
+		TranslateMessage(&msg);
+		DispatchMessageW(&msg);
 	}
 }
 

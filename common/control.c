@@ -33,24 +33,10 @@ uiControl *uiControlParent(uiControl *c)
 	return cb->parent;
 }
 
+// TODO ask the control instead
 int isToplevel(uiControl *c)
 {
 	return c->TypeSignature == uiWindowSignature;
-}
-
-// returns self if self is a window
-uiControl *toplevelOwning(uiControl *c)
-{
-	struct controlBase *cb;
-
-	for (;;) {
-		if (isToplevel(c))
-			return c;
-		cb = controlBase(c);
-		if (cb->parent == NULL)
-			return NULL;
-		c = cb->parent;
-	}
 }
 
 void uiControlSetParent(uiControl *c, uiControl *parent)

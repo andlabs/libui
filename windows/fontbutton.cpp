@@ -111,12 +111,14 @@ uiFontButton *uiNewFontButton(void)
 		TRUE);
 
 	loadInitialFontDialogParams(&(b->params));
-	updateFontButtonLabel(b);
 
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
 
 	uiWindowsFinishNewControl(b, uiFontButton);
+
+	// TODO move this back above the previous when merging with uiNewControl(); it's here because this calls Handle()
+	updateFontButtonLabel(b);
 
 	return b;
 }

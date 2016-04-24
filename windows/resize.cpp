@@ -3,17 +3,20 @@
 
 static std::map<uiWindowsControl *, bool> resizes;
 
+// TODO clicking buttons doesn't get rid of anything?
 void uiWindowsControlQueueRelayout(uiWindowsControl *c)
 {
-	uiControl *cc;
+	HWND hwnd;
+	HWND parent;
 	uintmax_t i;
 
 	// resizing a control requires us to reocmpute the sizes of everything in the top-level window
-	// TODO get rid of this call, make one for finding the root through the HWND
-	cc = toplevelOwning(uiControl(c));
-	if (cc == NULL)
+	hwnd = (HWND) uiControlHandle(uiControl(c));
+	// TODO what if this is toplevel
+	parent = parentToplevel(hwnd);
+	if (parent == utilWindow)		// not in a parent
 		return;
-	c = uiWindowsControl(cc);
+	c = uiWindowsControl(SendMessageW(parent, msgGetuiWindow, 0, 0));
 	resizes[c] = true;
 }
 

@@ -44,6 +44,8 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
 	switch (uMsg) {
+	case msgGetuiWindow:
+		return (LRESULT) w;
 	case WM_COMMAND:
 		// not a menu
 		if (lParam != 0)

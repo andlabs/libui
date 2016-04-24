@@ -17,7 +17,6 @@ extern void uiFree(void *);
 extern void complain(const char *, ...);
 
 extern int isToplevel(uiControl *);
-extern uiControl *toplevelOwning(uiControl *);
 extern int controlSelfVisible(uiControl *);
 extern void controlUpdateState(uiControl *);
 

@@ -1,13 +1,20 @@
 // 16 august 2015
 #import "uipriv_darwin.h"
 
+// TODO refine this
 void uiDarwinControlTriggerRelayout(uiDarwinControl *c)
 {
-	uiControl *p;
+	NSView *view;
+	uiWindow *p;
 
-	p = toplevelOwning(uiControl(c));
-	if (p == NULL)		// not in a window
-		return;
+	view = (NSView *) uiControlHandle(uiControl(c));
+	// this can be a NSWindow
+	if (![view isKindOfClass:[NSWindow class]]) {
+		p = windowFromNSWindow([view window]);
+		if (p == NULL)		// not in a window
+			return;
+	} else
+		p = uiWindow(c);
 	c = uiDarwinControl(p);
 	(*(c->Relayout))(uiDarwinControl(c));
 }

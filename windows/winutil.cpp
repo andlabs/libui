@@ -135,8 +135,6 @@ HWND parentToplevel(HWND child)
 	return GetAncestor(child, GA_ROOT);
 }
 
-/////////////
-
 void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
 {
 	RECT r;

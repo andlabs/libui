@@ -12,8 +12,7 @@ struct uiEntry {
 };
 
 uiUnixDefineControl(
-	uiEntry,								// type name
-	uiEntryType							// type function
+	uiEntry								// type name
 )
 
 static void onChanged(GtkEditable *editable, gpointer data)

@@ -10,7 +10,6 @@ struct uiRadioButtons {
 
 uiDarwinDefineControl(
 	uiRadioButtons,						// type name
-	uiRadioButtonsType,						// type function
 	matrix								// handle
 )
 

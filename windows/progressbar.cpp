@@ -7,8 +7,7 @@ struct uiProgressBar {
 };
 
 uiWindowsDefineControl(
-	uiProgressBar,							// type name
-	uiProgressBarType						// type function
+	uiProgressBar							// type name
 )
 
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing

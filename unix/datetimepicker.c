@@ -7,8 +7,7 @@ struct uiDateTimePicker {
 };
 
 uiUnixDefineControl(
-	uiDateTimePicker,						// type name
-	uiDateTimePickerType					// type function
+	uiDateTimePicker						// type name
 )
 
 // TODO

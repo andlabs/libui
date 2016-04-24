@@ -15,7 +15,6 @@ struct uiCombobox {
 
 uiWindowsDefineControlWithOnDestroy(
 	uiCombobox,							// type name
-	uiComboboxType,						// type function
 	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
 )
 

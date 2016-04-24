@@ -483,8 +483,7 @@ static void areaWidget_class_init(areaWidgetClass *class)
 // control implementation
 
 uiUnixDefineControl(
-	uiArea,								// type name
-	uiAreaType							// type function
+	uiArea								// type name
 )
 
 void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)

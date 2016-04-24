@@ -9,8 +9,7 @@ struct uiLabel {
 };
 
 uiUnixDefineControl(
-	uiLabel,								// type name
-	uiLabelType							// type function
+	uiLabel								// type name
 )
 
 char *uiLabelText(uiLabel *l)

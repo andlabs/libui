@@ -12,8 +12,7 @@ struct uiSpinbox {
 };
 
 uiUnixDefineControl(
-	uiSpinbox,							// type name
-	uiSpinboxType							// type function
+	uiSpinbox							// type name
 )
 
 static void onChanged(GtkSpinButton *sb, gpointer data)

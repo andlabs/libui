@@ -12,8 +12,7 @@ struct uiSlider {
 };
 
 uiUnixDefineControl(
-	uiSlider,								// type name
-	uiSliderType							// type function
+	uiSlider								// type name
 )
 
 static void onChanged(GtkRange *range, gpointer data)

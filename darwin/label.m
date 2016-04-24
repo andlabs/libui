@@ -8,7 +8,6 @@ struct uiLabel {
 
 uiDarwinDefineControl(
 	uiLabel,								// type name
-	uiLabelType,							// type function
 	textfield								// handle
 )
 

@@ -77,7 +77,6 @@ static entryDelegateClass *entryDelegate = nil;
 
 uiDarwinDefineControlWithOnDestroy(
 	uiEntry,								// type name
-	uiEntryType,							// type function
 	textfield,								// handle
 	[entryDelegate unregisterEntry:this];			// on destroy
 )

@@ -79,7 +79,6 @@ static sliderDelegateClass *sliderDelegate = nil;
 
 uiDarwinDefineControlWithOnDestroy(
 	uiSlider,								// type name
-	uiSliderType,							// type function
 	slider,								// handle
 	[sliderDelegate unregisterSlider:this];		// on destroy
 )

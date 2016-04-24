@@ -8,7 +8,6 @@ struct uiProgressBar {
 
 uiDarwinDefineControl(
 	uiProgressBar,							// type name
-	uiProgressBarType,						// type function
 	pi									// handle
 )
 

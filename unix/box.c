@@ -18,7 +18,6 @@ static void onDestroy(uiBox *b);
 
 uiUnixDefineControlWithOnDestroy(
 	uiBox,								// type name
-	uiBoxType,							// type function
 	onDestroy(this);						// on destroy
 )
 

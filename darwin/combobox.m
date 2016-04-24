@@ -102,7 +102,6 @@ static void onDestroy(uiCombobox *);
 
 uiDarwinDefineControlWithOnDestroy(
 	uiCombobox,							// type name
-	uiComboboxType,						// type function
 	handle,								// handle
 	onDestroy(this);						// on destroy
 )

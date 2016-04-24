@@ -8,8 +8,7 @@ struct uiProgressBar {
 };
 
 uiUnixDefineControl(
-	uiProgressBar,							// type name
-	uiProgressBarType						// type function
+	uiProgressBar							// type name
 )
 
 void uiProgressBarSetValue(uiProgressBar *p, int value)

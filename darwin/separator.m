@@ -13,7 +13,6 @@ struct uiSeparator {
 
 uiDarwinDefineControl(
 	uiSeparator,							// type name
-	uiSeparatorType,						// type function
 	box									// handle
 )
 

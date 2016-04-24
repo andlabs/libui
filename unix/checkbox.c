@@ -13,8 +13,7 @@ struct uiCheckbox {
 };
 
 uiUnixDefineControl(
-	uiCheckbox,							// type name
-	uiCheckboxType						// type function
+	uiCheckbox							// type name
 )
 
 static void onToggled(GtkToggleButton *b, gpointer data)

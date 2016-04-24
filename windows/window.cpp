@@ -19,7 +19,6 @@ static void onDestroy(uiWindow *);
 
 uiWindowsDefineControlWithOnDestroy(
 	uiWindow,							// type name
-	uiWindowType,							// type function
 	onDestroy(me);						// on destroy
 )
 

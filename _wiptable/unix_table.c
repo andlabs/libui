@@ -13,8 +13,7 @@ struct uiTable {
 };
 
 uiUnixDefineControl(
-	uiTable,								// type name
-	uiTableType							// type function
+	uiTable								// type name
 )
 
 void uiTableSetModel(uiTable *t, uiTableModel *m)

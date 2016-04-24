@@ -11,7 +11,6 @@ struct uiEntry {
 
 uiWindowsDefineControlWithOnDestroy(
 	uiEntry,								// type name
-	uiEntryType,							// type function
 	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
 )
 

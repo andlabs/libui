@@ -75,7 +75,6 @@ static void onDestroy(uiWindow *);
 
 uiDarwinDefineControlWithOnDestroy(
 	uiWindow,							// type name
-	uiWindowType,							// type function
 	window,								// handle
 	onDestroy(this);						// on destroy
 )

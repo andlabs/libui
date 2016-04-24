@@ -12,8 +12,7 @@ struct uiFontButton {
 };
 
 uiUnixDefineControl(
-	uiFontButton,							// type name
-	uiFontButtonType						// type function
+	uiFontButton							// type name
 )
 
 // TODO NOTE no need to inhibit the signal; font-set is documented as only being sent when the user changes the font

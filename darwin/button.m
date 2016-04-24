@@ -59,7 +59,6 @@ static buttonDelegateClass *buttonDelegate = nil;
 
 uiDarwinDefineControlWithOnDestroy(
 	uiButton,								// type name
-	uiButtonType,							// type function
 	button,								// handle
 	[buttonDelegate unregisterButton:this];		// on destroy
 )

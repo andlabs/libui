@@ -61,7 +61,6 @@ static checkboxDelegateClass *checkboxDelegate = nil;
 
 uiDarwinDefineControlWithOnDestroy(
 	uiCheckbox,								// type name
-	uiCheckboxType,							// type function
 	button,									// handle
 	[checkboxDelegate unregisterCheckbox:this];		// on destroy
 )

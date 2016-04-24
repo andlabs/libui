@@ -15,7 +15,6 @@ static void onDestroy(uiRadioButtons *);
 
 uiUnixDefineControlWithOnDestroy(
 	uiRadioButtons,						// type name
-	uiRadioButtonsType,						// type function
 	onDestroy(this);						// on destroy
 )
 

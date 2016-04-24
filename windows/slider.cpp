@@ -10,7 +10,6 @@ struct uiSlider {
 
 uiWindowsDefineControlWithOnDestroy(
 	uiSlider,								// type name
-	uiSliderType,							// type function
 	uiWindowsUnregisterWM_HSCROLLHandler(me->hwnd);	// on destroy
 )
 

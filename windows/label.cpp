@@ -7,8 +7,7 @@ struct uiLabel {
 };
 
 uiWindowsDefineControl(
-	uiLabel,								// type name
-	uiLabelType							// type function
+	uiLabel								// type name
 )
 
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing

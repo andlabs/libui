@@ -10,7 +10,6 @@ struct uiButton {
 
 uiWindowsDefineControlWithOnDestroy(
 	uiButton,								// type name
-	uiButtonType,							// type function
 	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
 )
 

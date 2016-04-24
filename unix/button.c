@@ -10,8 +10,7 @@ struct uiButton {
 };
 
 uiUnixDefineControl(
-	uiButton,								// type name
-	uiButtonType							// type function
+	uiButton								// type name
 )
 
 static void onClicked(GtkButton *button, gpointer data)

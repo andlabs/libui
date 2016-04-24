@@ -131,7 +131,6 @@ struct uiSpinbox {
 
 uiDarwinDefineControl(
 	uiSpinbox,							// type name
-	uiSpinboxType,						// type function
 	spinbox								// handle
 )
 

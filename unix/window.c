@@ -25,7 +25,6 @@ static void onDestroy(uiWindow *);
 
 uiUnixDefineControlWithOnDestroy(
 	uiWindow,							// type name
-	uiWindowType,							// type function
 	onDestroy(this);						// on destroy
 )
 

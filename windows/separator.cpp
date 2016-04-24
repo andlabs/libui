@@ -11,8 +11,7 @@ struct uiSeparator {
 };
 
 uiWindowsDefineControl(
-	uiSeparator,							// type name
-	uiSeparatorType						// type function
+	uiSeparator							// type name
 )
 
 // via https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx

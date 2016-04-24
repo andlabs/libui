@@ -13,7 +13,6 @@ struct uiMultilineEntry {
 
 uiDarwinDefineControl(
 	uiMultilineEntry,						// type name
-	uiMultilineEntryType,					// type function
 	sv									// handle
 )
 

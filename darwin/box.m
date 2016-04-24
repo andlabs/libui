@@ -27,7 +27,6 @@ static void onDestroy(uiBox *);
 
 uiDarwinDefineControlWithOnDestroy(
 	uiBox,								// type name
-	uiBoxType,							// type function
 	view,								// handle
 	onDestroy(this);						// on destroy
 )

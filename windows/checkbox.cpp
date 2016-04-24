@@ -10,7 +10,6 @@ struct uiCheckbox {
 
 uiWindowsDefineControlWithOnDestroy(
 	uiCheckbox,							// type name
-	uiCheckboxType,						// type function
 	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
 )
 

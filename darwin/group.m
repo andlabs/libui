@@ -12,7 +12,6 @@ static void onDestroy(uiGroup *);
 
 uiDarwinDefineControlWithOnDestroy(
 	uiGroup,								// type name
-	uiGroupType,							// type function
 	box,									// handle
 	onDestroy(this);						// on destroy
 )

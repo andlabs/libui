@@ -14,7 +14,6 @@ static void onDestroy(uiFontButton *);
 
 uiWindowsDefineControlWithOnDestroy(
 	uiFontButton,							// type name
-	uiFontButtonType,						// type function
 	onDestroy(me);						// on destroy
 )
 

@@ -12,8 +12,7 @@ struct uiCombobox {
 };
 
 uiUnixDefineControl(
-	uiCombobox,							// type name
-	uiComboboxType						// type function
+	uiCombobox							// type name
 )
 
 // TODO this is triggered when editing an editable combobox's text

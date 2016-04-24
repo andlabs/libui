@@ -16,7 +16,6 @@ static void onDestroy(uiTab *);
 
 uiDarwinDefineControlWithOnDestroy(
 	uiTab,								// type name
-	uiTabType,							// type function
 	tabview,								// handle
 	onDestroy(this);						// on destroy
 )

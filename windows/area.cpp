@@ -3,8 +3,7 @@
 #include "area.hpp"
 
 uiWindowsDefineControl(
-	uiArea,								// type name
-	uiAreaType							// type function
+	uiArea								// type name
 )
 
 static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

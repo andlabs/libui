@@ -27,7 +27,6 @@ struct uiArea {
 
 uiDarwinDefineControl(
 	uiArea,								// type name
-	uiAreaType,							// type function
 	view									// handle
 )
 

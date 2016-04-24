@@ -14,7 +14,6 @@ struct uiMultilineEntry {
 
 uiWindowsDefineControlWithOnDestroy(
 	uiMultilineEntry,						// type name
-	uiMultilineEntryType,					// type function
 	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
 )
 

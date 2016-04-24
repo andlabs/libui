@@ -17,8 +17,7 @@ struct uiMultilineEntry {
 };
 
 uiUnixDefineControl(
-	uiMultilineEntry,						// type name
-	uiMultilineEntryType						// type function
+	uiMultilineEntry						// type name
 )
 
 static void onChanged(GtkTextBuffer *textbuf, gpointer data)

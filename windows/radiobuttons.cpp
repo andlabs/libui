@@ -18,7 +18,6 @@ static void onDestroy(uiRadioButtons *);
 
 uiWindowsDefineControlWithOnDestroy(
 	uiRadioButtons,						// type name
-	uiRadioButtonsType,						// type function
 	onDestroy(me);						// on destroy
 )
 

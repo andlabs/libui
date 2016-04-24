@@ -15,7 +15,6 @@ static void onDestroy(uiTab *);
 
 uiUnixDefineControlWithOnDestroy(
 	uiTab,								// type name
-	uiTabType,							// type function
 	onDestroy(this);						// on destroy
 )
 

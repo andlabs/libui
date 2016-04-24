@@ -18,7 +18,6 @@ static void onDestroy(uiGroup *);
 
 uiUnixDefineControlWithOnDestroy(
 	uiGroup,								// type name
-	uiGroupType,							// type function
 	onDestroy(this);						// on destroy
 )
 

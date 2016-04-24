@@ -66,7 +66,6 @@ _UI_EXTERN void uiControlDisable(uiControl *);
 _UI_EXTERN uiControl *uiNewControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typename);
 
 typedef struct uiWindow uiWindow;
-_UI_EXTERN uintmax_t uiWindowType(void);
 #define uiWindow(this) ((uiWindow *) (this))
 _UI_EXTERN char *uiWindowTitle(uiWindow *w);
 _UI_EXTERN void uiWindowSetTitle(uiWindow *w, const char *title);
@@ -77,7 +76,6 @@ _UI_EXTERN void uiWindowSetMargined(uiWindow *w, int margined);
 _UI_EXTERN uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar);
 
 typedef struct uiButton uiButton;
-_UI_EXTERN uintmax_t uiButtonType(void);
 #define uiButton(this) ((uiButton *) (this))
 _UI_EXTERN char *uiButtonText(uiButton *b);
 _UI_EXTERN void uiButtonSetText(uiButton *b, const char *text);
@@ -85,7 +83,6 @@ _UI_EXTERN void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *b, void *data
 _UI_EXTERN uiButton *uiNewButton(const char *text);
 
 typedef struct uiBox uiBox;
-_UI_EXTERN uintmax_t uiBoxType(void);
 #define uiBox(this) ((uiBox *) (this))
 _UI_EXTERN void uiBoxAppend(uiBox *b, uiControl *child, int stretchy);
 _UI_EXTERN void uiBoxDelete(uiBox *b, uintmax_t index);
@@ -95,7 +92,6 @@ _UI_EXTERN uiBox *uiNewHorizontalBox(void);
 _UI_EXTERN uiBox *uiNewVerticalBox(void);
 
 typedef struct uiEntry uiEntry;
-_UI_EXTERN uintmax_t uiEntryType(void);
 #define uiEntry(this) ((uiEntry *) (this))
 _UI_EXTERN char *uiEntryText(uiEntry *e);
 _UI_EXTERN void uiEntrySetText(uiEntry *e, const char *text);
@@ -105,7 +101,6 @@ _UI_EXTERN void uiEntrySetReadOnly(uiEntry *e, int readonly);
 _UI_EXTERN uiEntry *uiNewEntry(void);
 
 typedef struct uiCheckbox uiCheckbox;
-_UI_EXTERN uintmax_t uiCheckboxType(void);
 #define uiCheckbox(this) ((uiCheckbox *) (this))
 _UI_EXTERN char *uiCheckboxText(uiCheckbox *c);
 _UI_EXTERN void uiCheckboxSetText(uiCheckbox *c, const char *text);
@@ -115,14 +110,12 @@ _UI_EXTERN void uiCheckboxSetChecked(uiCheckbox *c, int checked);
 _UI_EXTERN uiCheckbox *uiNewCheckbox(const char *text);
 
 typedef struct uiLabel uiLabel;
-_UI_EXTERN uintmax_t uiLabelType(void);
 #define uiLabel(this) ((uiLabel *) (this))
 _UI_EXTERN char *uiLabelText(uiLabel *l);
 _UI_EXTERN void uiLabelSetText(uiLabel *l, const char *text);
 _UI_EXTERN uiLabel *uiNewLabel(const char *text);
 
 typedef struct uiTab uiTab;
-_UI_EXTERN uintmax_t uiTabType(void);
 #define uiTab(this) ((uiTab *) (this))
 _UI_EXTERN void uiTabAppend(uiTab *t, const char *name, uiControl *c);
 _UI_EXTERN void uiTabInsertAt(uiTab *t, const char *name, uintmax_t before, uiControl *c);
@@ -133,7 +126,6 @@ _UI_EXTERN void uiTabSetMargined(uiTab *t, uintmax_t page, int margined);
 _UI_EXTERN uiTab *uiNewTab(void);
 
 typedef struct uiGroup uiGroup;
-_UI_EXTERN uintmax_t uiGroupType(void);
 #define uiGroup(this) ((uiGroup *) (this))
 _UI_EXTERN char *uiGroupTitle(uiGroup *g);
 _UI_EXTERN void uiGroupSetTitle(uiGroup *g, const char *title);
@@ -148,7 +140,6 @@ _UI_EXTERN uiGroup *uiNewGroup(const char *title);
 // complaint if min >= max?
 
 typedef struct uiSpinbox uiSpinbox;
-_UI_EXTERN uintmax_t uiSpinboxType(void);
 #define uiSpinbox(this) ((uiSpinbox *) (this))
 _UI_EXTERN intmax_t uiSpinboxValue(uiSpinbox *s);
 _UI_EXTERN void uiSpinboxSetValue(uiSpinbox *s, intmax_t value);
@@ -156,14 +147,12 @@ _UI_EXTERN void uiSpinboxOnChanged(uiSpinbox *s, void (*f)(uiSpinbox *s, void *d
 _UI_EXTERN uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max);
 
 typedef struct uiProgressBar uiProgressBar;
-_UI_EXTERN uintmax_t uiProgressBarType(void);
 #define uiProgressBar(this) ((uiProgressBar *) (this))
 // TODO uiProgressBarValue()
 _UI_EXTERN void uiProgressBarSetValue(uiProgressBar *p, int n);
 _UI_EXTERN uiProgressBar *uiNewProgressBar(void);
 
 typedef struct uiSlider uiSlider;
-_UI_EXTERN uintmax_t uiSliderType(void);
 #define uiSlider(this) ((uiSlider *) (this))
 _UI_EXTERN intmax_t uiSliderValue(uiSlider *s);
 _UI_EXTERN void uiSliderSetValue(uiSlider *s, intmax_t value);
@@ -171,12 +160,10 @@ _UI_EXTERN void uiSliderOnChanged(uiSlider *s, void (*f)(uiSlider *s, void *data
 _UI_EXTERN uiSlider *uiNewSlider(intmax_t min, intmax_t max);
 
 typedef struct uiSeparator uiSeparator;
-_UI_EXTERN uintmax_t uiSeparatorType(void);
 #define uiSeparator(this) ((uiSeparator *) (this))
 _UI_EXTERN uiSeparator *uiNewHorizontalSeparator(void);
 
 typedef struct uiCombobox uiCombobox;
-_UI_EXTERN uintmax_t uiComboboxType(void);
 #define uiCombobox(this) ((uiCombobox *) (this))
 _UI_EXTERN void uiComboboxAppend(uiCombobox *c, const char *text);
 _UI_EXTERN intmax_t uiComboboxSelected(uiCombobox *c);
@@ -186,13 +173,11 @@ _UI_EXTERN uiCombobox *uiNewCombobox(void);
 _UI_EXTERN uiCombobox *uiNewEditableCombobox(void);
 
 typedef struct uiRadioButtons uiRadioButtons;
-_UI_EXTERN uintmax_t uiRadioButtonsType(void);
 #define uiRadioButtons(this) ((uiRadioButtons *) (this))
 _UI_EXTERN void uiRadioButtonsAppend(uiRadioButtons *r, const char *text);
 _UI_EXTERN uiRadioButtons *uiNewRadioButtons(void);
 
 typedef struct uiDateTimePicker uiDateTimePicker;
-_UI_EXTERN uintmax_t uiDateTimePickerType(void);
 #define uiDateTimePicker(this) ((uiDateTimePicker *) (this))
 _UI_EXTERN uiDateTimePicker *uiNewDateTimePicker(void);
 _UI_EXTERN uiDateTimePicker *uiNewDatePicker(void);
@@ -203,7 +188,6 @@ _UI_EXTERN uiDateTimePicker *uiNewTimePicker(void);
 // TODO provide a facility for allowing horizontal scrolling
 // TODO provide a facility for entering tab stops?
 typedef struct uiMultilineEntry uiMultilineEntry;
-_UI_EXTERN uintmax_t uiMultilineEntryType(void);
 #define uiMultilineEntry(this) ((uiMultilineEntry *) (this))
 _UI_EXTERN char *uiMultilineEntryText(uiMultilineEntry *e);
 _UI_EXTERN void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text);
@@ -582,7 +566,6 @@ struct uiAreaKeyEvent {
 };
 
 typedef struct uiFontButton uiFontButton;
-_UI_EXTERN uintmax_t uiFontButtonType(void);
 #define uiFontButton(this) ((uiFontButton *) (this))
 // TODO document this returns a new font
 _UI_EXTERN uiDrawTextFont *uiFontButtonFont(uiFontButton *b);

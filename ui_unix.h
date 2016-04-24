@@ -15,18 +15,10 @@ typedef struct uiUnixControl uiUnixControl;
 struct uiUnixControl {
 	uiControl c;
 };
-_UI_EXTERN uintmax_t uiUnixControlType(void);
-#define uiUnixControl(this) ((uiUnixControl *) uiIsA((this), uiUnixControlType(), 1))
+#define uiUnixControl(this) ((uiUnixControl *) (this))
 
 // TODO document
-#define uiUnixDefineControlWithOnDestroy(type, typefn, onDestroy) \
-	static uintmax_t _ ## type ## Type = 0; \
-	uintmax_t typefn(void) \
-	{ \
-		if (_ ## type ## Type == 0) \
-			_ ## type ## Type = uiRegisterType(#type, uiUnixControlType(), sizeof (type)); \
-		return _ ## type ## Type; \
-	} \
+#define uiUnixDefineControlWithOnDestroy(type, onDestroy) \
 	static void _ ## type ## CommitDestroy(uiControl *c) \
 	{ \
 		type *this = type(c); \
@@ -42,8 +34,8 @@ _UI_EXTERN uintmax_t uiUnixControlType(void);
 		/* do nothing */ \
 	}
 
-#define uiUnixDefineControl(type, typefn) \
-	uiUnixDefineControlWithOnDestroy(type, typefn, (void) this;)
+#define uiUnixDefineControl(type) \
+	uiUnixDefineControlWithOnDestroy(type, (void) this;)
 
 #define uiUnixFinishNewControl(variable, type) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \

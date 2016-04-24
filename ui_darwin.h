@@ -16,20 +16,12 @@ struct uiDarwinControl {
 	uiControl c;
 	void (*Relayout)(uiDarwinControl *);
 };
-_UI_EXTERN uintmax_t uiDarwinControlType(void);
-#define uiDarwinControl(this) ((uiDarwinControl *) uiIsA((this), uiDarwinControlType(), 1))
+#define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
 _UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 
 // TODO document
-#define uiDarwinDefineControlWithOnDestroy(type, typefn, handlefield, onDestroy) \
-	static uintmax_t _ ## type ## Type = 0; \
-	uintmax_t typefn(void) \
-	{ \
-		if (_ ## type ## Type == 0) \
-			_ ## type ## Type = uiRegisterType(#type, uiDarwinControlType(), sizeof (type)); \
-		return _ ## type ## Type; \
-	} \
+#define uiDarwinDefineControlWithOnDestroy(type, handlefield, onDestroy) \
 	static void _ ## type ## CommitDestroy(uiControl *c) \
 	{ \
 		type *this = type(c); \
@@ -49,8 +41,8 @@ _UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 		/* do nothing */ \
 	}
 
-#define uiDarwinDefineControl(type, typefn, handlefield) \
-	uiDarwinDefineControlWithOnDestroy(type, typefn, handlefield, (void) this;)
+#define uiDarwinDefineControl(type, handlefield) \
+	uiDarwinDefineControlWithOnDestroy(type, handlefield, (void) this;)
 
 #define uiDarwinFinishNewControl(variable, type) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \

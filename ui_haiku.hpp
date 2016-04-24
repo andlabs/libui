@@ -17,18 +17,10 @@ typedef struct uiHaikuControl uiHaikuControl;
 struct uiHaikuControl {
 	uiControl c;
 };
-_UI_EXTERN uintmax_t uiHaikuControlType(void);
-#define uiHaikuControl(this) ((uiHaikuControl *) uiIsA((this), uiHaikuControlType(), 1))
+#define uiHaikuControl(this) ((uiHaikuControl *) (this))
 
 // TODO document
-#define uiHaikuDefineControlWithOnDestroy(type, typefn, handlefield, onDestroy) \
-	static uintmax_t _ ## type ## Type = 0; \
-	uintmax_t typefn(void) \
-	{ \
-		if (_ ## type ## Type == 0) \
-			_ ## type ## Type = uiRegisterType(#type, uiHaikuControlType(), sizeof (type)); \
-		return _ ## type ## Type; \
-	} \
+#define uiHaikuDefineControlWithOnDestroy(type, handlefield, onDestroy) \
 	static void _ ## type ## CommitDestroy(uiControl *c) \
 	{ \
 		type *hthis = type(c); \
@@ -44,8 +36,8 @@ _UI_EXTERN uintmax_t uiHaikuControlType(void);
 		/* do nothing */ \
 	}
 
-#define uiHaikuDefineControl(type, typefn, handlefield) \
-	uiHaikuDefineControlWithOnDestroy(type, typefn, handlefield, (void) hthis;)
+#define uiHaikuDefineControl(type, handlefield) \
+	uiHaikuDefineControlWithOnDestroy(type, handlefield, (void) hthis;)
 
 #define uiHaikuFinishNewControl(variable, type) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \

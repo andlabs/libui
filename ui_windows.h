@@ -22,20 +22,12 @@ struct uiWindowsControl {
 	void (*AssignControlIDZOrder)(uiWindowsControl *, LONG_PTR *, HWND *);
 	void (*ArrangeChildrenControlIDsZOrder)(uiWindowsControl *);
 };
-_UI_EXTERN uintmax_t uiWindowsControlType(void);
-#define uiWindowsControl(this) ((uiWindowsControl *) uiIsA((this), uiWindowsControlType(), 1))
+#define uiWindowsControl(this) ((uiWindowsControl *) (this))
 // TODO document
 _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 
 // TODO document
-#define uiWindowsDefineControlWithOnDestroy(type, typefn, onDestroy) \
-	static uintmax_t _ ## type ## Type = 0; \
-	uintmax_t typefn(void) \
-	{ \
-		if (_ ## type ## Type == 0) \
-			_ ## type ## Type = uiRegisterType(#type, uiWindowsControlType(), sizeof (type)); \
-		return _ ## type ## Type; \
-	} \
+#define uiWindowsDefineControlWithOnDestroy(type, onDestroy) \
 	static void _ ## type ## CommitDestroy(uiControl *c) \
 	{ \
 		type *me = type(c); \
@@ -70,8 +62,8 @@ _UI_EXTERN void uiWindowsControlQueueRelayout(uiWindowsControl *);
 		/* do nothing */ \
 	}
 
-#define uiWindowsDefineControl(type, typefn) \
-	uiWindowsDefineControlWithOnDestroy(type, typefn, (void) me;)
+#define uiWindowsDefineControl(type) \
+	uiWindowsDefineControlWithOnDestroy(type, (void) me;)
 
 #define uiWindowsFinishNewControl(variable, type) \
 	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \

@@ -97,7 +97,7 @@ BOOL runWM_NOTIFY(WPARAM wParam, LPARAM lParam, LRESULT *lResult)
 {
 	HWND hwnd;
 	NMHDR *arg3;
-	BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *);
+	BOOL (*handler)(uiControl *, HWND, NMHDR *, LRESULT *);
 	uiControl *c;
 
 	arg3 = (NMHDR *) lParam;

@@ -80,7 +80,7 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 	intmax_t h;
 	HWND hwnd;
 
-	uiWindowsEnsureMoveWindow(r->hwnd, x, y, width, height);
+	uiWindowsEnsureMoveWindowDuringResize(r->hwnd, x, y, width, height);
 
 	x = 0;
 	y = 0;
@@ -91,7 +91,7 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 		h = height1;
 		if (h > height)		// clip to height
 			h = height;
-		uiWindowsEnsureMoveWindow(hwnd, x, y, width, h);
+		uiWindowsEnsureMoveWindowDuringResize(hwnd, x, y, width, h);
 		y += height1;
 		height -= height1;
 		if (height <= 0)		// clip to height

@@ -56,7 +56,7 @@ static void groupRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t 
 	uiGroup *g = uiGroup(c);
 	uiWindowsSizing *d;
 
-	uiWindowsEnsureMoveWindow(g->hwnd, x, y, width, height);
+	uiWindowsEnsureMoveWindowDuringResize(g->hwnd, x, y, width, height);
 
 	if (g->child == NULL)
 		return;

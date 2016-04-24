@@ -123,7 +123,7 @@ static void tabRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t wi
 	struct child *page;
 	RECT r;
 
-	uiWindowsEnsureMoveWindow(t->hwnd, x, y, width, height);
+	uiWindowsEnsureMoveWindowDuringResize(t->hwnd, x, y, width, height);
 	n = curpage(t);
 	if (n == (LRESULT) (-1))
 		return;

@@ -133,7 +133,7 @@ static void spinboxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_
 {
 	uiSpinbox *s = uiSpinbox(c);
 
-	uiWindowsEnsureMoveWindow(s->hwnd, x, y, width, height);
+	uiWindowsEnsureMoveWindowDuringResize(s->hwnd, x, y, width, height);
 	recreateUpDown(s);
 }
 

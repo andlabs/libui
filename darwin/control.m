@@ -1,15 +1,6 @@
 // 16 august 2015
 #import "uipriv_darwin.h"
 
-static uintmax_t type_uiDarwinControl = 0;
-
-uintmax_t uiDarwinControlType(void)
-{
-	if (type_uiDarwinControl == 0)
-		type_uiDarwinControl = uiRegisterType("uiDarwinControl", uiControlType(), sizeof (uiDarwinControl));
-	return type_uiDarwinControl;
-}
-
 void uiDarwinControlTriggerRelayout(uiDarwinControl *c)
 {
 	uiControl *p;
@@ -70,4 +61,11 @@ void uiDarwinFinishControl(uiControl *c)
 void uiDarwinSetControlFont(NSControl *c, NSControlSize size)
 {
 	[c setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:size]]];
+}
+
+#define uiDarwinControlSignature 0x44617277
+
+uiDarwinControl *uiDarwinNewControl(size_t n, uint32_t typesig, const char *typename)
+{
+	return uiDarwinControl(uiNewControl(n, uiDarwinControlSignature, typesig, typename));
 }

@@ -3,7 +3,9 @@
 extern "C" {
 #endif
 
+// TODO stdlib.h needed?
 #include <stdlib.h>
+#include "controlsigs.h"
 
 extern uiInitOptions options;
 

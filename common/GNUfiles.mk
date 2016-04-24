@@ -8,4 +8,5 @@ CFILES += \
 	common/shouldquit.c
 
 HFILES += \
+	common/controlsigs.h \
 	common/uipriv.h

@@ -47,20 +47,30 @@ struct uiControl {
 	uint32_t Signature;
 	uint32_t OSSignature;
 	uint32_t TypeSignature;
-	void *Internal;		// for use by libui only
-	void (*CommitDestroy)(uiControl *);
+	void (*Destroy)(uiControl *);
 	uintptr_t (*Handle)(uiControl *);
-	void (*CommitShow)(uiControl *);
-	void (*CommitHide)(uiControl *);
-	void (*ContainerUpdateState)(uiControl *);
+	uiControl *(*Parent)(uiControl *);
+	void (*SetParent)(uiControl *, uiControl *);
+	void (*UpdateChildren)(uiControl *);
+	int (*Toplevel)(uiControl *);
+	int (*Visible)(uiControl *);
+	void (*Show)(uiControl *);
+	void (*Hide)(uiControl *);
+	int (*Enabled)(uiControl *);
+	void (*Enable)(uiControl *);
+	void (*Disable)(uiControl *);
 };
 #define uiControl(this) ((uiControl *) (this))
 _UI_EXTERN void uiControlDestroy(uiControl *);
 _UI_EXTERN uintptr_t uiControlHandle(uiControl *);
 _UI_EXTERN uiControl *uiControlParent(uiControl *);
 _UI_EXTERN void uiControlSetParent(uiControl *, uiControl *);
+_UI_EXTERN void uiControlUpdateChildren(uiControl *);
+_UI_EXTERN int uiControlToplevel(uiControl *);
+_UI_EXTERN int uiControlVisible(uiControl *);
 _UI_EXTERN void uiControlShow(uiControl *);
 _UI_EXTERN void uiControlHide(uiControl *);
+_UI_EXTERN int uiControlEnabled(uiControl *);
 _UI_EXTERN void uiControlEnable(uiControl *);
 _UI_EXTERN void uiControlDisable(uiControl *);
 

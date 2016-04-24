@@ -3,6 +3,10 @@
 #include <string.h>
 #include "../../ui.h"
 
+// TODOs
+// - rename variables in main()
+// - make both columns the same size?
+
 static uiWindow *mainwin;
 
 static int onClosing(uiWindow *w, void *data)

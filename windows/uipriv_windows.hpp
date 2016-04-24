@@ -43,14 +43,16 @@ extern void CRLFtoLF(const char *s);
 // debug.cpp
 // see http://stackoverflow.com/questions/14421656/is-there-widely-available-wide-character-variant-of-file
 // TODO turn line into a const WCHAR* this way
-#define _ws(m) L ## m
+// also note the use of __FUNCTION__ here; __func__ doesn't seem to work for some reason
+#define _ws2(m) L ## m
+#define _ws(m) _ws2(m)
 #define debugargs const WCHAR *file, uintmax_t line, const WCHAR *func
 extern HRESULT _logLastError(debugargs, const WCHAR *s);
-#define logLastError(s) _logLastError(_ws(__FILE__), __LINE__, _ws(__func__), s)
+#define logLastError(s) _logLastError(_ws(__FILE__), __LINE__, _ws(__FUNCTION__), s)
 extern HRESULT _logHRESULT(debugargs, const WCHAR *s, HRESULT hr);
-#define logHRESULT(s, hr) _logHRESULT(_ws(__FILE__), __LINE__, _ws(__func__), s, hr)
+#define logHRESULT(s, hr) _logHRESULT(_ws(__FILE__), __LINE__, _ws(__FUNCTION__), s, hr)
 extern void _implbug(debugargs, const WCHAR *format, ...);
-#define implbug(...) _implbug(_ws(__FILE__), __LINE__, _ws(__func__), __VA_LIST__)
+#define implbug(...) _implbug(_ws(__FILE__), __LINE__, _ws(__FUNCTION__), __VA_LIST__)
 
 // winutil.cpp
 extern int windowClassOf(HWND hwnd, ...);

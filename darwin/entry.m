@@ -148,7 +148,7 @@ uiEntry *uiNewEntry(void)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) uiNewControl(uiEntryType());
+	e = (uiEntry *) uiNewControl(uiEntry);
 
 	e->textfield = newEditableTextField();
 

@@ -20,7 +20,7 @@ uiSeparator *uiNewHorizontalSeparator(void)
 {
 	uiSeparator *s;
 
-	s = (uiSeparator *) uiNewControl(uiSeparatorType());
+	s = (uiSeparator *) uiNewControl(uiSeparator);
 
 	s->box = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, separatorFrameWidth, separatorFrameHeight)];
 	[s->box setBoxType:NSBoxSeparator];

@@ -272,7 +272,7 @@ static uiBox *finishNewBox(BOOL vertical)
 {
 	uiBox *b;
 
-	b = (uiBox *) uiNewControl(uiBoxType());
+	b = (uiBox *) uiNewControl(uiBox);
 
 	b->view = [[NSView alloc] initWithFrame:NSZeroRect];
 

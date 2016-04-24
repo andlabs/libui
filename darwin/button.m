@@ -90,7 +90,7 @@ uiButton *uiNewButton(const char *text)
 {
 	uiButton *b;
 
-	b = (uiButton *) uiNewControl(uiButtonType());
+	b = (uiButton *) uiNewControl(uiButton);
 
 	b->button = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[b->button setTitle:toNSString(text)];

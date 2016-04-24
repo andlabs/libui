@@ -169,7 +169,7 @@ static uiCombobox *finishNewCombobox(BOOL editable)
 {
 	uiCombobox *c;
 
-	c = (uiCombobox *) uiNewControl(uiComboboxType());
+	c = (uiCombobox *) uiNewControl(uiCombobox);
 
 	c->editable = editable;
 	if (c->editable) {

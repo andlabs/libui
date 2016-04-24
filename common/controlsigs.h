@@ -1,5 +1,6 @@
 // 24 april 2016
 
+#define uiAreaSignature 0x41726561
 #define uiBoxSignature 0x426F784C
 #define uiButtonSignature 0x42746F6E
 #define uiCheckboxSignature 0x43686B62

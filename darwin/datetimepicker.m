@@ -15,7 +15,7 @@ static uiDateTimePicker *finishNewDateTimePicker(NSDatePickerElementFlags elemen
 {
 	uiDateTimePicker *d;
 
-	d = (uiDateTimePicker *) uiNewControl(uiDateTimePickerType());
+	d = (uiDateTimePicker *) uiNewControl(uiDateTimePicker);
 
 	d->dp = [[NSDatePicker alloc] initWithFrame:NSZeroRect];
 	[d->dp setBordered:NO];

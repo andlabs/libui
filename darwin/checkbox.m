@@ -109,7 +109,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 {
 	uiCheckbox *c;
 
-	c = (uiCheckbox *) uiNewControl(uiCheckboxType());
+	c = (uiCheckbox *) uiNewControl(uiCheckbox);
 
 	c->button = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[c->button setTitle:toNSString(text)];

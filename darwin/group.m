@@ -101,7 +101,7 @@ uiGroup *uiNewGroup(const char *title)
 {
 	uiGroup *g;
 
-	g = (uiGroup *) uiNewControl(uiGroupType());
+	g = (uiGroup *) uiNewControl(uiGroup);
 
 	g->box = [[NSBox alloc] initWithFrame:NSZeroRect];
 	[g->box setTitle:toNSString(title)];

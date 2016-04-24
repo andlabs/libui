@@ -27,7 +27,7 @@ uiLabel *uiNewLabel(const char *text)
 {
 	uiLabel *l;
 
-	l = (uiLabel *) uiNewControl(uiLabelType());
+	l = (uiLabel *) uiNewControl(uiLabel);
 
 	l->textfield = [[NSTextField alloc] initWithFrame:NSZeroRect];
 	[l->textfield setStringValue:toNSString(text)];

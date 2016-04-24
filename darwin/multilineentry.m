@@ -70,7 +70,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	uiMultilineEntry *e;
 	NSFont *font;
 
-	e = (uiMultilineEntry *) uiNewControl(uiMultilineEntryType());
+	e = (uiMultilineEntry *) uiNewControl(uiMultilineEntry);
 
 	e->sv = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 	// TODO verify against Interface Builder

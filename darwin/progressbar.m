@@ -31,7 +31,7 @@ uiProgressBar *uiNewProgressBar(void)
 {
 	uiProgressBar *p;
 
-	p = (uiProgressBar *) uiNewControl(uiProgressBarType());
+	p = (uiProgressBar *) uiNewControl(uiProgressBar);
 
 	p->pi = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
 	[p->pi setControlSize:NSRegularControlSize];

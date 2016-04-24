@@ -110,7 +110,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	uiSlider *s;
 	NSSliderCell *cell;
 
-	s = (uiSlider *) uiNewControl(uiSliderType());
+	s = (uiSlider *) uiNewControl(uiSlider);
 
 	// a horizontal slider is defined as one where the width > height, not by a flag
 	// to be safe, don't use NSZeroRect, but make it horizontal from the get-go

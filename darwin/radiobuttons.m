@@ -46,7 +46,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 	uiRadioButtons *r;
 	NSButtonCell *cell;
 
-	r = (uiRadioButtons *) uiNewControl(uiRadioButtonsType());
+	r = (uiRadioButtons *) uiNewControl(uiRadioButtons);
 
 	// we have to set up the NSMatrix this way (prototype first)
 	// otherwise we won't be able to change its properties (such as the button type)

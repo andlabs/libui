@@ -357,7 +357,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;
 
-	a = (uiArea *) uiNewControl(uiAreaType());
+	a = (uiArea *) uiNewControl(uiArea);
 
 	a->ah = ah;
 	a->scrolling = NO;

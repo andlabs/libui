@@ -77,6 +77,10 @@ _UI_EXTERN void uiControlDisable(uiControl *);
 _UI_EXTERN uiControl *uiAllocControl(size_t n, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
 _UI_EXTERN void uiFreeControl(uiControl *);
 
+_UI_EXTERN void uiControlVerifyDestroy(uiControl *);
+_UI_EXTERN void uiControlVerifySetParent(uiControl *);
+_UI_EXTERN int uiControlEnabledToUser(uiControl *);
+
 typedef struct uiWindow uiWindow;
 #define uiWindow(this) ((uiWindow *) (this))
 _UI_EXTERN char *uiWindowTitle(uiWindow *w);

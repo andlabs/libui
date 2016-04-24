@@ -66,5 +66,5 @@ void uiWindowsRearrangeControlIDsZOrder(uiControl *c)
 
 uiWindowsControl *uiWindowsNewControl(size_t n, uint32_t typesig, const char *typenamestr)
 {
-	return uiWindowsControl(newControl(n, uiWindowsControlSignature, typesig, typenamestr));
+	return uiWindowsControl(uiAllocControl(n, uiWindowsControlSignature, typesig, typenamestr));
 }

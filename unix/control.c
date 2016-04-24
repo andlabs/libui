@@ -34,5 +34,5 @@ void uiUnixFinishControl(uiControl *c)
 
 uiUnixControl *uiUnixNewControl(size_t n, uint32_t typesig, const char *typenamestr)
 {
-	return uiUnixControl(newControl(n, uiUnixControlSignature, typesig, typenamestr));
+	return uiUnixControl(uiAllocControl(n, uiUnixControlSignature, typesig, typenamestr));
 }

@@ -2,23 +2,9 @@
 #include "../ui.h"
 #include "uipriv.h"
 
-struct controlBase {
-	uiControl *parent;
-	int hidden;
-	int disabled;
-};
-
-#define controlBase(c) ((struct controlBase *) (c->Internal))
-
 void uiControlDestroy(uiControl *c)
 {
-	struct controlBase *cb = controlBase(c);
-
-	if (cb->parent != NULL)
-		complain("attempt to destroy uiControl %p while it has a parent", c);
-	(*(c->CommitDestroy))(c);
-	uiFree(cb);
-	uiFree(c);
+	(*(c->Destroy))(c);
 }
 
 uintptr_t uiControlHandle(uiControl *c)
@@ -28,114 +14,57 @@ uintptr_t uiControlHandle(uiControl *c)
 
 uiControl *uiControlParent(uiControl *c)
 {
-	struct controlBase *cb = controlBase(c);
-
-	return cb->parent;
-}
-
-// TODO ask the control instead
-int isToplevel(uiControl *c)
-{
-	return c->TypeSignature == uiWindowSignature;
+	return (*(c->Parent))(c);
 }
 
 void uiControlSetParent(uiControl *c, uiControl *parent)
 {
-	struct controlBase *cb = controlBase(c);
-
-	if (isToplevel(c))
-		complain("cannot set a parent on a toplevel (uiWindow)");
-	if (parent != NULL && cb->parent != NULL)
-		complain("attempt to reparent uiControl %p (has parent %p, attempt to give parent %p)", c, cb->parent, parent);
-	if (parent == NULL && cb->parent == NULL)
-		complain("attempt to double unparent uiControl %p", c);
-	cb->parent = parent;
-	// for situations such as where the old parent was disabled but the new one is not, etc.
-	controlUpdateState(c);
+	(*(c->SetParent))(c, parent);
 }
 
-// only to be called by the immediate parent of a control
-int controlSelfVisible(uiControl *c)
+void uiControlUpdateChildren(uiControl *c)
 {
-	struct controlBase *cb = controlBase(c);
-
-	return !cb->hidden;
+	(*(c->UpdateChildren))(c);
 }
 
-static int controlContainerVisible(uiControl *c)
+int uiControlToplevel(uiControl *c)
 {
-	struct controlBase *cb = controlBase(c);
+	return (*(c->Toplevel))(c);
+}
 
-	if (cb->hidden)
-		return 0;
-	if (cb->parent == NULL)
-		return 1;
-	return controlContainerVisible(cb->parent);
+int uiControlVisible(uiControl *c)
+{
+	return (*(c->Visible))(c);
 }
 
 void uiControlShow(uiControl *c)
 {
-	struct controlBase *cb = controlBase(c);
-
-	cb->hidden = 0;
-	controlUpdateState(c);
+	(*(c->Show))(c);
 }
 
 void uiControlHide(uiControl *c)
 {
-	struct controlBase *cb = controlBase(c);
-
-	cb->hidden = 1;
-	controlUpdateState(c);
+	(*(c->Hide))(c);
 }
 
-static int controlContainerEnabled(uiControl *c)
+int uiControlEnabled(uiControl *c)
 {
-	struct controlBase *cb = controlBase(c);
-
-	if (cb->disabled)
-		return 0;
-	if (cb->parent == NULL)
-		return 1;
-	return controlContainerEnabled(cb->parent);
+	return (*(c->Enabled))(c);
 }
 
 void uiControlEnable(uiControl *c)
 {
-	struct controlBase *cb = controlBase(c);
-
-	cb->disabled = 0;
-	controlUpdateState(c);
+	(*(c->Enable))(c);
 }
 
 void uiControlDisable(uiControl *c)
 {
-	struct controlBase *cb = controlBase(c);
-
-	cb->disabled = 1;
-	controlUpdateState(c);
-}
-
-void controlUpdateState(uiControl *c)
-{
-	if (controlContainerVisible(c))
-		(*(c->CommitShow))(c);
-	else
-		(*(c->CommitHide))(c);
-	if (controlContainerEnabled(c))
-		osCommitEnable(c);
-	else
-		osCommitDisable(c);
-	(*(c->ContainerUpdateState))(c);
-	// and queue a resize, just in case we showed/hid something
-	// for instance, on Windows uiBox, if we don't do this, hiding a control will show empty space until the window is resized
-//TODO	uiControlQueueResize(c);
+	(*(c->Disable))(c);
 }
 
 #define uiControlSignature 0x7569436F
 
-// TODO should this be public?
-uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr)
+uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr)
 {
 	uiControl *c;
 
@@ -145,4 +74,41 @@ uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char 
 	c->TypeSignature = typesig;
 	c->Internal = uiNew(struct controlBase);
 	return c;
+}
+
+void uiFreeControl(uiControl *c)
+{
+	uiFree(c);
+}
+
+// TODO except where noted, replace complain() with userbug()
+
+void uiControlVerifyDestroy(uiControl *c)
+{
+	if (uiControlParent(c) != NULL)
+		complain("attempt to destroy uiControl %p while it has a parent", c);
+}
+
+void uiControlVerifySetParent(uiControl *c, uiControl *parent)
+{
+	uiControl *curParent;
+
+	if (uiControlToplevel(c))
+		complain("cannot set a parent on a toplevel (uiWindow)");
+	curParent = uiControlParent(c);
+	if (parent != NULL && curParent != NULL)
+		complain("attempt to reparent uiControl %p (has parent %p, attempt to give parent %p)", c, curParent, parent);
+	if (parent == NULL && curParent == NULL)
+		// TODO implbug()
+		complain("attempt to double unparent uiControl %p — likely an implementation bug ", c);
+}
+
+int uiControlEnabledToUser(uiControl *c)
+{
+	while (c != NULL) {
+		if (!uiControlEnabled(c))
+			return 0;
+		c = uiControlParent(c);
+	}
+	return 1;
 }

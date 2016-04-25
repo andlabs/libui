@@ -8,29 +8,38 @@ struct uiGroup {
 	int margined;
 };
 
-static void onDestroy(uiGroup *);
-
-uiDarwinDefineControlWithOnDestroy(
-	uiGroup,								// type name
-	box,									// handle
-	onDestroy(this);						// on destroy
-)
-
-static void onDestroy(uiGroup *g)
+static void uiGroupDestroy(uiControl *c)
 {
+	uiGroup *g = uiGroup(c);
+
 	if (g->child != NULL) {
 		uiControlSetParent(g->child, NULL);
 		uiControlDestroy(g->child);
 	}
+	[g->box release];
+	uiFreeControl(uiControl(g));
 }
 
-static void groupContainerUpdateState(uiControl *c)
+uiDarwinControlDefaultHandle(uiGroup, box)
+uiDarwinControlDefaultParent(uiGroup, box)
+uiDarwinControlDefaultSetParent(uiGroup, box)
+uiDarwinControlDefaultToplevel(uiGroup, box)
+uiDarwinControlDefaultVisible(uiGroup, box)
+uiDarwinControlDefaultShow(uiGroup, box)
+uiDarwinControlDefaultHide(uiGroup, box)
+uiDarwinControlDefaultEnabled(uiGroup, box)
+uiDarwinControlDefaultEnable(uiGroup, box)
+uiDarwinControlDefaultDisable(uiGroup, box)
+
+static void uiBoxSyncEnableState(uiControl *c, int enabled)
 {
 	uiGroup *g = uiGroup(c);
 
 	if (g->child != NULL)
-		controlUpdateState(g->child);
+		uiControlSyncEnableState(g->child);
 }
+
+uiDarwinControlDefaultSetSuperview(uiGroup, box)
 
 static void groupRelayout(uiDarwinControl *c)
 {
@@ -81,8 +90,8 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		// otherwise, things get really glitchy
 		// we also need to call -sizeToFit, but we'll do that in the relayout that's triggered below (see above)
 		[g->box addSubview:childView];
-		uiDarwinControlTriggerRelayout(uiDarwinControl(g));
 	}
+	groupRelayout(g);
 }
 
 int uiGroupMargined(uiGroup *g)
@@ -93,15 +102,14 @@ int uiGroupMargined(uiGroup *g)
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
-	if (g->child != NULL)
-		uiDarwinControlTriggerRelayout(uiDarwinControl(g));
+	groupRelayout(g);
 }
 
 uiGroup *uiNewGroup(const char *title)
 {
 	uiGroup *g;
 
-	g = (uiGroup *) uiNewControl(uiGroup);
+	uiDarwinNewControl(uiGroup, g);
 
 	g->box = [[NSBox alloc] initWithFrame:NSZeroRect];
 	[g->box setTitle:toNSString(title)];
@@ -111,10 +119,6 @@ uiGroup *uiNewGroup(const char *title)
 	[g->box setTitlePosition:NSAtTop];
 	// we can't use uiDarwinSetControlFont() because the selector is different
 	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
-
-	uiDarwinFinishNewControl(g, uiGroup);
-	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;
-	uiDarwinControl(g)->Relayout = groupRelayout;
 
 	return g;
 }

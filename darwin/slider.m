@@ -77,11 +77,12 @@ struct uiSlider {
 
 static sliderDelegateClass *sliderDelegate = nil;
 
-uiDarwinDefineControlWithOnDestroy(
-	uiSlider,								// type name
-	slider,								// handle
-	[sliderDelegate unregisterSlider:this];		// on destroy
-)
+uiDarwinControlAllDefaultsExceptDestroy(uiSlider, slider)
+
+static void uiSliderDestroy(uiControl *c)
+{
+	[sliderDelegate unregisterSlider:uiSlider(c)];
+}
 
 intmax_t uiSliderValue(uiSlider *s)
 {
@@ -110,7 +111,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	uiSlider *s;
 	NSSliderCell *cell;
 
-	s = (uiSlider *) uiNewControl(uiSlider);
+	uiDarwinNewControl(uiSlider, s);
 
 	// a horizontal slider is defined as one where the width > height, not by a flag
 	// to be safe, don't use NSZeroRect, but make it horizontal from the get-go
@@ -131,8 +132,6 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	}
 	[sliderDelegate registerSlider:s];
 	uiSliderOnChanged(s, defaultOnChanged, NULL);
-
-	uiDarwinFinishNewControl(s, uiSlider);
 
 	return s;
 }

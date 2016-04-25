@@ -6,10 +6,7 @@ struct uiProgressBar {
 	NSProgressIndicator *pi;
 };
 
-uiDarwinDefineControl(
-	uiProgressBar,							// type name
-	pi									// handle
-)
+uiDarwinControlAllDefaults(uiProgressBar, pi)
 
 void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
@@ -31,15 +28,13 @@ uiProgressBar *uiNewProgressBar(void)
 {
 	uiProgressBar *p;
 
-	p = (uiProgressBar *) uiNewControl(uiProgressBar);
+	uiDarwinNewControl(uiProgressBar, p);
 
 	p->pi = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
 	[p->pi setControlSize:NSRegularControlSize];
 	[p->pi setBezeled:YES];
 	[p->pi setStyle:NSProgressIndicatorBarStyle];
 	[p->pi setIndeterminate:NO];
-
-	uiDarwinFinishNewControl(p, uiProgressBar);
 
 	return p;
 }

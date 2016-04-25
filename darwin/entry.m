@@ -75,11 +75,12 @@ struct uiEntry {
 
 static entryDelegateClass *entryDelegate = nil;
 
-uiDarwinDefineControlWithOnDestroy(
-	uiEntry,								// type name
-	textfield,								// handle
-	[entryDelegate unregisterEntry:this];			// on destroy
-)
+uiDarwinControlAllDefaultsExceptDestroy(uiEntry, textfield)
+
+static void uiEntryDestroy(uiControl *c)
+{
+	[entryDelegate unregisterEntry:uiEntry(c)];
+}
 
 char *uiEntryText(uiEntry *e)
 {
@@ -148,7 +149,7 @@ uiEntry *uiNewEntry(void)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) uiNewControl(uiEntry);
+	uiDarwinNewControl(uiEntry, e);
 
 	e->textfield = newEditableTextField();
 
@@ -158,8 +159,6 @@ uiEntry *uiNewEntry(void)
 	}
 	[entryDelegate registerEntry:e];
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
-
-	uiDarwinFinishNewControl(e, uiEntry);
 
 	return e;
 }

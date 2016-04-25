@@ -27,11 +27,6 @@ struct uiArea {
 	BOOL scrolling;
 };
 
-uiDarwinDefineControl(
-	uiArea,								// type name
-	view									// handle
-)
-
 @implementation areaView
 
 - (id)initWithFrame:(NSRect)r area:(uiArea *)a
@@ -305,6 +300,8 @@ mouseEvent(otherMouseUp)
 
 @end
 
+uiDarwinControlAllDefaults(uiArea, view)
+
 // called by subclasses of -[NSApplication sendEvent:]
 // by default, NSApplication eats some key events
 // this prevents that from happening with uiArea
@@ -359,7 +356,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;
 
-	a = (uiArea *) uiNewControl(uiArea);
+	uiDarwinNewControl(uiArea, a);
 
 	a->ah = ah;
 	a->scrolling = NO;
@@ -368,8 +365,6 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 
 	a->view = a->area;
 
-	uiDarwinFinishNewControl(a, uiArea);
-
 	return a;
 }
 
@@ -377,7 +372,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 {
 	uiArea *a;
 
-	a = (uiArea *) uiNewControl(uiArea);
+	uiDarwinNewControl(uiArea, a);
 
 	a->ah = ah;
 	a->scrolling = YES;
@@ -393,8 +388,6 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 	a->view = a->sv;
 
 	[a->sv setDocumentView:a->area];
-
-	uiDarwinFinishNewControl(a, uiArea);
 
 	return a;
 }

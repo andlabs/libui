@@ -57,11 +57,12 @@ struct uiButton {
 
 static buttonDelegateClass *buttonDelegate = nil;
 
-uiDarwinDefineControlWithOnDestroy(
-	uiButton,								// type name
-	button,								// handle
-	[buttonDelegate unregisterButton:this];		// on destroy
-)
+uiDarwinControlAllDefaultsExceptDestroy(uiButton, button)
+
+static void uiButtonDestroy(uiControl *b)
+{
+	[buttonDelegate unregisterButton:uiButton(b)];
+}
 
 char *uiButtonText(uiButton *b)
 {
@@ -90,7 +91,7 @@ uiButton *uiNewButton(const char *text)
 {
 	uiButton *b;
 
-	b = (uiButton *) uiNewControl(uiButton);
+	uiDarwinNewControl(uiButton, b);
 
 	b->button = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[b->button setTitle:toNSString(text)];
@@ -105,8 +106,6 @@ uiButton *uiNewButton(const char *text)
 	}
 	[buttonDelegate registerButton:b];
 	uiButtonOnClicked(b, defaultOnClicked, NULL);
-
-	uiDarwinFinishNewControl(b, uiButton);
 
 	return b;
 }

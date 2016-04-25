@@ -6,10 +6,7 @@ struct uiLabel {
 	NSTextField *textfield;
 };
 
-uiDarwinDefineControl(
-	uiLabel,								// type name
-	textfield								// handle
-)
+uiDarwinControlAllDefaults(uiLabel, textfield)
 
 char *uiLabelText(uiLabel *l)
 {
@@ -27,7 +24,7 @@ uiLabel *uiNewLabel(const char *text)
 {
 	uiLabel *l;
 
-	l = (uiLabel *) uiNewControl(uiLabel);
+	uiDarwinNewControl(uiLabel, l);
 
 	l->textfield = [[NSTextField alloc] initWithFrame:NSZeroRect];
 	[l->textfield setStringValue:toNSString(text)];
@@ -35,8 +32,6 @@ uiLabel *uiNewLabel(const char *text)
 	[l->textfield setSelectable:NO];
 	[l->textfield setDrawsBackground:NO];
 	finishNewTextField(l->textfield, NO);
-
-	uiDarwinFinishNewControl(l, uiLabel);
 
 	return l;
 }

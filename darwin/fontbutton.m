@@ -2,7 +2,6 @@
 #import "uipriv_darwin.h"
 
 // TODO drag and drop fonts? what other interactions does NSColorWell allow that we can do for fonts?
-// TODO make position of templates consistent
 
 @interface fontButton : NSButton {
 	uiFontButton *libui_b;
@@ -25,11 +24,6 @@ struct uiFontButton {
 	void (*onChanged)(uiFontButton *, void *);
 	void *onChangedData;
 };
-
-uiDarwinDefineControl(
-	uiFontButton,							// type name
-	button								// handle
-)
 
 @implementation fontButton
 
@@ -131,6 +125,8 @@ uiDarwinDefineControl(
 
 @end
 
+uiDarwinControlAllDefaults(uiFontButton, button)
+
 // we do not want font change events to be sent to any controls other than the font buttons
 // see main.m for more details
 BOOL fontButtonInhibitSendAction(SEL sel, id from, id to)
@@ -172,14 +168,12 @@ uiFontButton *uiNewFontButton(void)
 {
 	uiFontButton *b;
 
-	b = (uiFontButton *) uiNewControl(uiFontButton);
+	uiDarwinNewControl(uiFontButton, b);
 
 	b->button = [[fontButton alloc] initWithFrame:NSZeroRect libuiFontButton:b];
 	uiDarwinSetControlFont(b->button, NSRegularControlSize);
 
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
-
-	uiDarwinFinishNewControl(b, uiFontButton);
 
 	return b;
 }

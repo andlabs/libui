@@ -11,10 +11,7 @@ struct uiMultilineEntry {
 
 // TODO events
 
-uiDarwinDefineControl(
-	uiMultilineEntry,						// type name
-	sv									// handle
-)
+uiDarwinControlAllDefaults(uiMultilineEntry, sv)
 
 static void defaultOnChanged(uiMultilineEntry *e, void *data)
 {
@@ -70,7 +67,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	uiMultilineEntry *e;
 	NSFont *font;
 
-	e = (uiMultilineEntry *) uiNewControl(uiMultilineEntry);
+	uiDarwinNewControl(uiMultilineEntry, e);
 
 	e->sv = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 	// TODO verify against Interface Builder
@@ -133,8 +130,6 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 //printinfo(e->sv, e->tv);
 
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
-
-	uiDarwinFinishNewControl(e, uiMultilineEntry);
 
 	return e;
 }

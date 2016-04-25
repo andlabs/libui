@@ -59,11 +59,12 @@ struct uiCheckbox {
 
 static checkboxDelegateClass *checkboxDelegate = nil;
 
-uiDarwinDefineControlWithOnDestroy(
-	uiCheckbox,								// type name
-	button,									// handle
-	[checkboxDelegate unregisterCheckbox:this];		// on destroy
-)
+uiDarwinControlAllDefaultsExceptDestroy(uiCheckbox, button)
+
+static void uiCheckboxDestroy(uiControl *c)
+{
+	[checkboxDelegate unregisterCheckbox:uiCheckbox(c)];
+}
 
 char *uiCheckboxText(uiCheckbox *c)
 {
@@ -109,7 +110,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 {
 	uiCheckbox *c;
 
-	c = (uiCheckbox *) uiNewControl(uiCheckbox);
+	uiDarwinNewControl(uiCheckbox, c);
 
 	c->button = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[c->button setTitle:toNSString(text)];
@@ -123,8 +124,6 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	}
 	[checkboxDelegate registerCheckbox:c];
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);
-
-	uiDarwinFinishNewControl(c, uiCheckbox);
 
 	return c;
 }

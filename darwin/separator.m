@@ -11,24 +11,19 @@ struct uiSeparator {
 	NSBox *box;
 };
 
-uiDarwinDefineControl(
-	uiSeparator,							// type name
-	box									// handle
-)
+uiDarwinControlAllDefaults(uiSeparator, box)
 
 uiSeparator *uiNewHorizontalSeparator(void)
 {
 	uiSeparator *s;
 
-	s = (uiSeparator *) uiNewControl(uiSeparator);
+	uiDarwinNewControl(uiSeparator);
 
 	s->box = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, separatorFrameWidth, separatorFrameHeight)];
 	[s->box setBoxType:NSBoxSeparator];
 	[s->box setBorderType:NSGrooveBorder];
 	[s->box setTransparent:NO];
 	[s->box setTitlePosition:NSNoTitle];
-
-	uiDarwinFinishNewControl(s, uiSeparator);
 
 	return s;
 }

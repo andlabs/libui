@@ -8,10 +8,7 @@ struct uiRadioButtons {
 	NSMatrix *matrix;
 };
 
-uiDarwinDefineControl(
-	uiRadioButtons,						// type name
-	matrix								// handle
-)
+uiDarwinControlAllDefaults(uiRadioButtons, matrix)
 
 static NSButtonCell *cellAt(uiRadioButtons *r, uintmax_t n)
 {
@@ -46,7 +43,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 	uiRadioButtons *r;
 	NSButtonCell *cell;
 
-	r = (uiRadioButtons *) uiNewControl(uiRadioButtons);
+	uiDarwinNewControl(uiRadioButtons, r);
 
 	// we have to set up the NSMatrix this way (prototype first)
 	// otherwise we won't be able to change its properties (such as the button type)
@@ -68,8 +65,6 @@ uiRadioButtons *uiNewRadioButtons(void)
 	[r->matrix setDrawsBackground:NO];
 	[r->matrix setDrawsCellBackground:NO];
 	[r->matrix setAutosizesCells:YES];
-
-	uiDarwinFinishNewControl(r, uiRadioButtons);
 
 	return r;
 }

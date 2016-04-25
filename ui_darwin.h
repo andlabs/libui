@@ -44,10 +44,6 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	{ \
 		uiControlVerifySetParent(c, parent); \
 		uiDarwinControl(c)->parent = parent; \
-		if (uiDarwinControl(c)->parent == NULL) \
-			[type(c)->handlefield removeFromSuperview]; \
-		else \
-			uiDarwinControlAddSubview(uiDarwinControl(uiDarwinControl(c)->parent), type(c)->handlefield); \
 	}
 #define uiDarwinControlDefaultToplevel(type) \
 	static int type ## Toplevel(uiControl *c) \
@@ -95,7 +91,7 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 			[type(e)->handlefield setEnabled:enabled]; \
 	}
 #define uiDarwinControlDefaultSetSuperview(type, handlefield) \
-	static void type ## AddSubview(uiDarwinControl *c, NSView *superview) \
+	static void type ## SetSuperview(uiDarwinControl *c, NSView *superview) \
 	{ \
 		if (superview == nil) \
 			[type(c)->handlefield removeFromSuperview]; \

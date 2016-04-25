@@ -22,12 +22,14 @@ void initAlloc(void)
 
 void uninitAlloc(void)
 {
-	if ([allocations count] == 0) {
-		NSUInteger i;
+	NSUInteger i;
 
-		for (i = 0; i < [delegates count]; i++)
-			[[delegates objectAtIndex:i] release];
-		[delegates release];
+	// delegates might have mapTables allocated
+	// TODO verify they are empty
+	for (i = 0; i < [delegates count]; i++)
+		[[delegates objectAtIndex:i] release];
+	[delegates release];
+	if ([allocations count] == 0) {
 		[allocations release];
 		return;
 	}

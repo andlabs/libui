@@ -89,7 +89,8 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		// we have to add controls to the box itself NOT the content view
 		// otherwise, things get really glitchy
 		// we also need to call -sizeToFit, but we'll do that in the relayout that's triggered below (see above)
-		[g->box addSubview:childView];
+		uiControlSetSuperview(c, g->box);
+		uiControlSyncEnableState(c, uiControlEnabledToUser(uiControl(g)));
 	}
 	groupRelayout(g);
 }

@@ -187,7 +187,8 @@ void uiWindowSetChild(uiWindow *w, uiControl *child)
 	if (w->child != NULL) {
 		uiControlSetParent(w->child, uiControl(w));
 		childView = (NSView *) uiControlHandle(w->child);
-		[[w->window contentView] addSubview:childView];
+		uiControlSetSuperview(child, [w->window contentView]);
+		uiControlSyncEnableState(child, uiControlEnabledToUser(uiControl(w)));
 	}
 	windowRelayout(w);
 }

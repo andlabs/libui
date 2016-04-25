@@ -228,7 +228,8 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	[b->stretchy addObject:[NSNumber numberWithInt:stretchy]];
 
 	uiControlSetParent(c, uiControl(b));
-	[b->view addSubview:childView];
+	uiControlSetSuperview(c, b->view);
+	uiControlSyncEnableState(c, uiControlEnabledToUser(uiControl(b)));
 
 	// TODO save the old hugging priorities
 	// if a control is stretchy, it should not hug in the primary direction

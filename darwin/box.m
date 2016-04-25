@@ -23,14 +23,6 @@ struct uiBox {
 	NSLayoutConstraintOrientation secondaryOrientation;
 };
 
-static void onDestroy(uiBox *);
-
-uiDarwinDefineControlWithOnDestroy(
-	uiBox,								// type name
-	view,								// handle
-	onDestroy(this);						// on destroy
-)
-
 static uiControl *childAt(uiBox *b, uintmax_t n)
 {
 	NSValue *v;
@@ -39,8 +31,9 @@ static uiControl *childAt(uiBox *b, uintmax_t n)
 	return (uiControl *) [v pointerValue];
 }
 
-static void onDestroy(uiBox *b)
+static void uiBoxDestroy(uiControl *c)
 {
+	uiBox *b = uiBox(c);
 	uintmax_t i;
 	uiControl *child;
 	NSView *childView;
@@ -57,9 +50,22 @@ static void onDestroy(uiBox *b)
 	[b->noStretchyView release];
 	[b->children release];
 	[b->stretchy release];
+	[b->view release];
+	uiFreeControl(uiControl(b));
 }
 
-static void boxContainerUpdateState(uiControl *c)
+uiDarwinControlDefaultHandle(uiBox, view)
+uiDarwinControlDefaultParent(uiBox, view)
+uiDarwinControlDefaultSetParent(uiBox, view)
+uiDarwinControlDefaultToplevel(uiBox, view)
+uiDarwinControlDefaultVisible(uiBox, view)
+uiDarwinControlDefaultShow(uiBox, view)
+uiDarwinControlDefaultHide(uiBox, view)
+uiDarwinControlDefaultEnabled(uiBox, view)
+uiDarwinControlDefaultEnable(uiBox, view)
+uiDarwinControlDefaultDisable(uiBox, view)
+
+static void uiBoxSyncEnableState(uiControl *c, int enabled)
 {
 	uiBox *b = uiBox(c);
 	NSUInteger i;
@@ -71,9 +77,11 @@ static void boxContainerUpdateState(uiControl *c)
 		v = (NSValue *) [b->children objectAtIndex:i];
 		// TODO change all these other instances of casts to conversions
 		child = uiControl([v pointerValue]);
-		controlUpdateState(child);
+		uiControlSyncEnableState(child, enabled);
 	}
 }
+
+uiDarwinControlDefaultSetSuperview(uiBox, view)
 
 static NSString *viewName(uintmax_t n)
 {
@@ -211,11 +219,6 @@ static void relayout(uiBox *b)
 	[views release];
 }
 
-static void boxRelayout(uiDarwinControl *c)
-{
-	relayout(uiBox(c));
-}
-
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
 	NSView *childView;
@@ -272,7 +275,7 @@ static uiBox *finishNewBox(BOOL vertical)
 {
 	uiBox *b;
 
-	b = (uiBox *) uiNewControl(uiBox);
+	uiDarwinNewControl(uiBox, b);
 
 	b->view = [[NSView alloc] initWithFrame:NSZeroRect];
 
@@ -296,10 +299,6 @@ static uiBox *finishNewBox(BOOL vertical)
 	[b->noStretchyView setTranslatesAutoresizingMaskIntoConstraints:NO];
 	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal);
 	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
-
-	uiDarwinFinishNewControl(b, uiBox);
-	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;
-	uiDarwinControl(b)->Relayout = boxRelayout;
 
 	return b;
 }

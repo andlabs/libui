@@ -85,6 +85,9 @@ static void uiWindowDestroy(uiControl *c)
 		uiControlDestroy(w->child);
 	}
 	[windowDelegate unregisterWindow:w];
+	// TODO make sure this next line is right
+	[w->window release];
+	uiFreeControl(uiControl(w));
 }
 
 uiDarwinControlDefaultHandle(uiWindow, window)

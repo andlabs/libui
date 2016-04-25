@@ -93,6 +93,7 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 #define uiDarwinControlDefaultSetSuperview(type, handlefield) \
 	static void type ## SetSuperview(uiDarwinControl *c, NSView *superview) \
 	{ \
+		[type(c)->handlefield setTranslatesAutoresizingMaskIntoConstraints:NO]; \
 		if (superview == nil) \
 			[type(c)->handlefield removeFromSuperview]; \
 		else \

@@ -83,7 +83,7 @@ static void uiEntryDestroy(uiControl *c)
 
 	[entryDelegate unregisterEntry:e];
 	[e->textfield release];
-	uiFreeControl(e);
+	uiFreeControl(uiControl(e));
 }
 
 char *uiEntryText(uiEntry *e)

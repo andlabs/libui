@@ -138,7 +138,7 @@ static void relayout(uiBox *b)
 		cc = uiDarwinControl(child);
 		childView = (NSView *) uiControlHandle(child);
 		[views setObject:childView forKey:viewName(n)];
-		(*(cc->Relayout))(cc);
+//TODO		(*(cc->Relayout))(cc);
 		fittingSize = fittingAlignmentSize(childView);
 		[metrics setObject:[NSNumber numberWithDouble:fittingSize.width]
 			forKey:widthMetricName(n)];
@@ -228,7 +228,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	[b->stretchy addObject:[NSNumber numberWithInt:stretchy]];
 
 	uiControlSetParent(c, uiControl(b));
-	uiControlSetSuperview(c, b->view);
+	uiDarwinControlSetSuperview(uiDarwinControl(c), b->view);
 	uiControlSyncEnableState(c, uiControlEnabledToUser(uiControl(b)));
 
 	// TODO save the old hugging priorities

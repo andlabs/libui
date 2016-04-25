@@ -131,7 +131,7 @@ static void uiWindowSyncEnableState(uiControl *c, int enabled)
 	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
-		uiControlSyncUpdateState(w->child, enabled);
+		uiControlSyncEnableState(w->child, enabled);
 }
 
 static void uiWindowSetSuperview(uiDarwinControl *c, NSView *superview)
@@ -139,9 +139,8 @@ static void uiWindowSetSuperview(uiDarwinControl *c, NSView *superview)
 	// TODO
 }
 
-static void windowRelayout(uiDarwinControl *c)
+static void windowRelayout(uiWindow *w)
 {
-	uiWindow *w = uiWindow(c);
 	uiDarwinControl *cc;
 	NSView *childView;
 	NSView *contentView;
@@ -153,7 +152,7 @@ static void windowRelayout(uiDarwinControl *c)
 	contentView = [w->window contentView];
 	[contentView removeConstraints:[contentView constraints]];
 	// first relayout the child
-	(*(cc->Relayout))(cc);
+//TODO	(*(cc->Relayout))(cc);
 	// now relayout ourselves
 	layoutSingleView(contentView, childView, w->margined);
 }
@@ -187,8 +186,8 @@ void uiWindowSetChild(uiWindow *w, uiControl *child)
 	if (w->child != NULL) {
 		uiControlSetParent(w->child, uiControl(w));
 		childView = (NSView *) uiControlHandle(w->child);
-		uiControlSetSuperview(child, [w->window contentView]);
-		uiControlSyncEnableState(child, uiControlEnabledToUser(uiControl(w)));
+		uiDarwinControlSetSuperview(uiDarwinControl(w->child), [w->window contentView]);
+		uiControlSyncEnableState(w->child, uiControlEnabledToUser(uiControl(w)));
 	}
 	windowRelayout(w);
 }

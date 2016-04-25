@@ -72,7 +72,6 @@ uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const c
 	c->Signature = uiControlSignature;
 	c->OSSignature = OSsig;
 	c->TypeSignature = typesig;
-	c->Internal = uiNew(struct controlBase);
 	return c;
 }
 

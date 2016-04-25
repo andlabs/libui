@@ -17,7 +17,7 @@ uiSeparator *uiNewHorizontalSeparator(void)
 {
 	uiSeparator *s;
 
-	uiDarwinNewControl(uiSeparator);
+	uiDarwinNewControl(uiSeparator, s);
 
 	s->box = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, separatorFrameWidth, separatorFrameHeight)];
 	[s->box setBoxType:NSBoxSeparator];

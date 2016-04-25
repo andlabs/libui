@@ -31,19 +31,18 @@ uiDarwinControlDefaultEnabled(uiGroup, box)
 uiDarwinControlDefaultEnable(uiGroup, box)
 uiDarwinControlDefaultDisable(uiGroup, box)
 
-static void uiBoxSyncEnableState(uiControl *c, int enabled)
+static void uiGroupSyncEnableState(uiControl *c, int enabled)
 {
 	uiGroup *g = uiGroup(c);
 
 	if (g->child != NULL)
-		uiControlSyncEnableState(g->child);
+		uiControlSyncEnableState(g->child, enabled);
 }
 
 uiDarwinControlDefaultSetSuperview(uiGroup, box)
 
-static void groupRelayout(uiDarwinControl *c)
+static void groupRelayout(uiGroup *g)
 {
-	uiGroup *g = uiGroup(c);
 	uiDarwinControl *cc;
 	NSView *childView;
 
@@ -53,7 +52,7 @@ static void groupRelayout(uiDarwinControl *c)
 	cc = uiDarwinControl(g->child);
 	childView = (NSView *) uiControlHandle(g->child);
 	// first relayout the child
-	(*(cc->Relayout))(cc);
+//TODO	(*(cc->Relayout))(cc);
 	// now relayout ourselves
 	// see below on using the content view
 	layoutSingleView(g->box, childView, g->margined);
@@ -89,8 +88,8 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		// we have to add controls to the box itself NOT the content view
 		// otherwise, things get really glitchy
 		// we also need to call -sizeToFit, but we'll do that in the relayout that's triggered below (see above)
-		uiControlSetSuperview(c, g->box);
-		uiControlSyncEnableState(c, uiControlEnabledToUser(uiControl(g)));
+		uiDarwinControlSetSuperview(uiDarwinControl(g->child), g->box);
+		uiControlSyncEnableState(g->child, uiControlEnabledToUser(uiControl(g)));
 	}
 	groupRelayout(g);
 }

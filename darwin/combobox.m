@@ -27,7 +27,7 @@ struct uiCombobox {
 	NSPopUpButton *pb;
 	NSArrayController *pbac;
 	NSComboBox *cb;
-	NSObject *handle;				// for uiControlHandle()
+	NSView *handle;				// for uiControlHandle()
 	void (*onSelected)(uiCombobox *, void *);
 	void *onSelectedData;
 };

@@ -54,9 +54,8 @@ uiDarwinControlDefaultSyncEnableState(uiTab, tabview)
 
 uiDarwinControlDefaultSetSuperview(uiTab, tabview)
 
-static void tabRelayout(uiDarwinControl *c)
+static void tabRelayout(uiTab *t)
 {
-	uiTab *t = uiTab(c);
 	NSUInteger i;
 
 	if ([t->pages count] == 0)
@@ -76,7 +75,7 @@ static void tabRelayout(uiDarwinControl *c)
 		margined = (NSNumber *) [t->margined objectAtIndex:i];
 		// first lay out the child
 		cc = uiDarwinControl(child);
-		(*(cc->Relayout))(cc);
+//TODO		(*(cc->Relayout))(cc);
 		// then lay out the page
 		layoutSingleView(view, childView, [margined intValue]);
 	}
@@ -98,7 +97,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	childView = (NSView *) uiControlHandle(child);
 	view = [[NSView alloc] initWithFrame:NSZeroRect];
 	// TODO if we turn off the autoresizing mask, nothing shows up; didn't this get documented somewhere?
-	uiControlSetSuperview(child, view);
+	uiDarwinControlSetSuperview(uiDarwinControl(child), view);
 	uiControlSyncEnableState(child, uiControlEnabledToUser(uiControl(t)));
 
 	[t->pages insertObject:[NSValue valueWithPointer:child] atIndex:n];

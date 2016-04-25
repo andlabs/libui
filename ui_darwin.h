@@ -68,7 +68,7 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 		[type(c)->handlefield setHidden:YES]; \
 	}
 #define uiDarwinControlDefaultEnabled(type, handlefield) \
-	static int type ## Visible(uiControl *c) \
+	static int type ## Enabled(uiControl *c) \
 	{ \
 		return uiDarwinControl(c)->enabled; \
 	}
@@ -87,8 +87,8 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 #define uiDarwinControlDefaultSyncEnableState(type, handlefield) \
 	static void type ## SyncEnableState(uiControl *c, int enabled) \
 	{ \
-		if ([type(e)->handlefield respondsToSelector:@selector(setEnabled:)]) \
-			[type(e)->handlefield setEnabled:enabled]; \
+		if ([type(c)->handlefield respondsToSelector:@selector(setEnabled:)]) \
+			[((id) type(c)->handlefield) setEnabled:enabled]; /* id cast to make compiler happy; thanks mikeash in irc.freenode.net/#macdev */ \
 	}
 #define uiDarwinControlDefaultSetSuperview(type, handlefield) \
 	static void type ## SetSuperview(uiDarwinControl *c, NSView *superview) \
@@ -120,7 +120,7 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 
 // TODO document
 #define uiDarwinNewControl(type, var) \
-	var = type(uiDarwinNewControl(sizeof (type), type ## Signature, #type)); \
+	var = type(uiDarwinAllocControl(sizeof (type), type ## Signature, #type)); \
 	uiControl(var)->Destroy = type ## Destroy; \
 	uiControl(var)->Handle = type ## Handle; \
 	uiControl(var)->Parent = type ## Parent; \

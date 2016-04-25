@@ -2,3 +2,5 @@ every rule in ui_darwin.h
 SetParent must be followed by SetSuperview and SyncEnableState
 	TODO can child cache it?
 adding a child must be followed by a call to SyncEnableState
+SyncEnableState() must call ShouldStopSyncEnableState() first thing
+Enable() and Disable() must call SyncEnableState() AFTER CHANGING WHAT Enabled() WILL RETURN

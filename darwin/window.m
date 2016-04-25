@@ -62,7 +62,7 @@ struct uiWindow {
 {
 	uiWindow *v;
 
-	v = (uiWindow *) mapGet(self->windows, w);
+	v = uiWindow(mapGet(self->windows, w));
 	// this CAN (and IS ALLOWED TO) return NULL, just in case we're called with some OS X-provided window as the key window
 	return v;
 }
@@ -71,16 +71,9 @@ struct uiWindow {
 
 static windowDelegateClass *windowDelegate = nil;
 
-static void onDestroy(uiWindow *);
-
-uiDarwinDefineControlWithOnDestroy(
-	uiWindow,							// type name
-	window,								// handle
-	onDestroy(this);						// on destroy
-)
-
-static void onDestroy(uiWindow *w)
+static void uiWindowDestroy(uiControl *c)
 {
+	uiWindow *w = uiWindow(c);
 	NSView *childView;
 
 	// hide the window
@@ -94,26 +87,53 @@ static void onDestroy(uiWindow *w)
 	[windowDelegate unregisterWindow:w];
 }
 
-static void windowCommitShow(uiControl *c)
+uiDarwinControlDefaultHandle(uiWindow, window)
+// TODO?
+uiDarwinControlDefaultParent(uiWindow, window)
+uiDarwinControlDefaultSetParent(uiWindow, window)
+// end TODO
+
+static int uiWindowToplevel(uiControl *c)
+{
+	return 1;
+}
+
+static int uiWindowVisible(uiControl *c)
+{
+	uiWindow *w = uiWindow(c);
+
+	return [w->window isVisible];
+}
+
+static void uiWindowShow(uiControl *c)
 {
 	uiWindow *w = (uiWindow *) c;
 
 	[w->window makeKeyAndOrderFront:w->window];
 }
 
-static void windowCommitHide(uiControl *c)
+static void uiWindowHide(uiControl *c)
 {
 	uiWindow *w = (uiWindow *) c;
 
 	[w->window orderOut:w->window];
 }
 
-static void windowContainerUpdateState(uiControl *c)
+uiDarwinControlDefaultEnabled(uiWindow, window)
+uiDarwinControlDefaultEnable(uiWindow, window)
+uiDarwinControlDefaultDisable(uiWindow, window)
+
+static void uiWindowSyncEnableState(uiControl *c, int enabled)
 {
 	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
-		controlUpdateState(w->child);
+		uiControlSyncUpdateState(w->child, enabled);
+}
+
+static void uiWindowSetSuperview(uiDarwinControl *c, NSView *superview)
+{
+	// TODO
 }
 
 static void windowRelayout(uiDarwinControl *c)
@@ -165,8 +185,8 @@ void uiWindowSetChild(uiWindow *w, uiControl *child)
 		uiControlSetParent(w->child, uiControl(w));
 		childView = (NSView *) uiControlHandle(w->child);
 		[[w->window contentView] addSubview:childView];
-		uiDarwinControlTriggerRelayout(uiDarwinControl(w));
 	}
+	windowRelayout(w);
 }
 
 int uiWindowMargined(uiWindow *w)
@@ -177,8 +197,7 @@ int uiWindowMargined(uiWindow *w)
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	if (w->child != NULL)
-		uiDarwinControlTriggerRelayout(uiDarwinControl(w));
+	windowRelayout(w);
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -192,7 +211,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	finalizeMenus();
 
-	w = (uiWindow *) uiNewControl(uiWindow);
+	uiDarwinNewControl(uiWindow, w);
 
 	w->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
@@ -210,12 +229,6 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	}
 	[windowDelegate registerWindow:w];
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
-
-	uiDarwinFinishNewControl(w, uiWindow);
-	uiControl(w)->CommitShow = windowCommitShow;
-	uiControl(w)->CommitHide = windowCommitHide;
-	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
-	uiDarwinControl(w)->Relayout = windowRelayout;
 
 	return w;
 }

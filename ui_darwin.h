@@ -45,7 +45,7 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 		uiControlVerifySetParent(c, parent); \
 		uiDarwinControl(c)->parent = parent; \
 	}
-#define uiDarwinControlDefaultToplevel(type) \
+#define uiDarwinControlDefaultToplevel(type, handlefield) \
 	static int type ## Toplevel(uiControl *c) \
 	{ \
 		return 0; \
@@ -72,13 +72,13 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	{ \
 		return uiDarwinControl(c)->enabled; \
 	}
-#define uiDarwinControlDefaultEnabled(type, handlefield) \
+#define uiDarwinControlDefaultEnable(type, handlefield) \
 	static void type ## Enable(uiControl *c) \
 	{ \
 		uiDarwinControl(c)->enabled = YES; \
 		uiControlSyncEnableState(c, uiControlEnabledToUser(c)); \
 	}
-#define uiDarwinControlDefaultHide(type, handlefield) \
+#define uiDarwinControlDefaultDisable(type, handlefield) \
 	static void type ## Disable(uiControl *c) \
 	{ \
 		uiDarwinControl(c)->enabled = NO; \
@@ -99,8 +99,7 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 			[superview addSubview:type(c)->handlefield]; \
 	}
 
-#define uiDarwinControlAllDefaults(type, handlefield) \
-	uiDarwinControlDefaultDestroy(type, handlefield) \
+#define uiDarwinControlAllDefaultsExceptDestroy(type, handlefield) \
 	uiDarwinControlDefaultHandle(type, handlefield) \
 	uiDarwinControlDefaultParent(type, handlefield) \
 	uiDarwinControlDefaultSetParent(type, handlefield) \
@@ -111,11 +110,15 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	uiDarwinControlDefaultEnabled(type, handlefield) \
 	uiDarwinControlDefaultEnable(type, handlefield) \
 	uiDarwinControlDefaultDisable(type, handlefield) \
-	uiDarwinControlDefaultSetEnableState(type, handlefield) \
+	uiDarwinControlDefaultSyncEnableState(type, handlefield) \
 	uiDarwinControlDefaultSetSuperview(type, handlefield)
 
+#define uiDarwinControlAllDefaults(type, handlefield) \
+	uiDarwinControlDefaultDestroy(type, handlefield) \
+	uiDarwinControlAllDefaultsExceptDestroy(type, handlefield)
+
 // TODO document
-#define uiDarwinNewControl(var, type) \
+#define uiDarwinNewControl(type, var) \
 	var = type(uiDarwinNewControl(sizeof (type), type ## Signature, #type)) \
 	uiControl(var)->Destroy = type ## Destroy; \
 	uiControl(var)->Handle = type ## Handle; \

@@ -1,6 +1,8 @@
 // 9 september 2015
 #import "uipriv_darwin.h"
 
+// TODO implement setEnabled:
+
 @interface areaView : NSView {
 	uiArea *libui_a;
 	NSTrackingArea *libui_ta;

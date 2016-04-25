@@ -98,16 +98,12 @@ struct uiCombobox {
 
 static comboboxDelegateClass *comboboxDelegate = nil;
 
-static void onDestroy(uiCombobox *);
+uiDarwinControlAllDefaultsExceptDestroy(uiCombobox, handle)
 
-uiDarwinDefineControlWithOnDestroy(
-	uiCombobox,							// type name
-	handle,								// handle
-	onDestroy(this);						// on destroy
-)
-
-static void onDestroy(uiCombobox *c)
+static void uiComboboxDestroy(uiControl *cc)
 {
+	uiCombobox *c = uiCombobox(cc);
+
 	[comboboxDelegate unregisterCombobox:c];
 	if (!c->editable) {
 		[c->pb unbind:@"contentObjects"];
@@ -169,7 +165,7 @@ static uiCombobox *finishNewCombobox(BOOL editable)
 {
 	uiCombobox *c;
 
-	c = (uiCombobox *) uiNewControl(uiCombobox);
+	uiDarwinNewControl(uiCombobox, c);
 
 	c->editable = editable;
 	if (c->editable) {
@@ -213,8 +209,6 @@ static uiCombobox *finishNewCombobox(BOOL editable)
 	}
 	[comboboxDelegate registerCombobox:c];
 	uiComboboxOnSelected(c, defaultOnSelected, NULL);
-
-	uiDarwinFinishNewControl(c, uiCombobox);
 
 	return c;
 }

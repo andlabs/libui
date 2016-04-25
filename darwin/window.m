@@ -130,6 +130,8 @@ static void uiWindowSyncEnableState(uiDarwinControl *c, int enabled)
 {
 	uiWindow *w = uiWindow(c);
 
+	if (uiDarwinShouldStopSyncEnableState(uiDarwinControl(w), enabled))
+		return;
 	if (w->child != NULL)
 		uiDarwinControlSyncEnableState(uiDarwinControl(w->child), enabled);
 }

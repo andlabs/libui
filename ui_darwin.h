@@ -90,6 +90,8 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 #define uiDarwinControlDefaultSyncEnableState(type, handlefield) \
 	static void type ## SyncEnableState(uiDarwinControl *c, int enabled) \
 	{ \
+		if (uiDarwinShouldStopSyncEnableState(c, enabled)) \
+			return; \
 		if ([type(c)->handlefield respondsToSelector:@selector(setEnabled:)]) \
 			[((id) type(c)->handlefield) setEnabled:enabled]; /* id cast to make compiler happy; thanks mikeash in irc.freenode.net/#macdev */ \
 	}
@@ -147,6 +149,9 @@ _UI_EXTERN void uiDarwinSetControlFont(NSControl *c, NSControlSize size);
 
 // You can use this function from within your control implementations to return text strings that can be freed with uiFreeText().
 _UI_EXTERN char *uiDarwinNSStringToText(NSString *);
+
+// TODO document
+_UI_EXTERN BOOL uiDarwinShouldStopSyncEnableState(uiDarwinControl *, BOOL);
 
 #ifdef __cplusplus
 }

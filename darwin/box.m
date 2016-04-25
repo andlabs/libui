@@ -70,6 +70,8 @@ static void uiBoxSyncEnableState(uiDarwinControl *c, int enabled)
 	uiBox *b = uiBox(c);
 	NSUInteger i;
 
+	if (uiDarwinShouldStopSyncEnableState(uiDarwinControl(b), enabled))
+		return;
 	for (i = 0; i < [b->children count]; i++) {
 		NSValue *v;
 		uiControl *child;

@@ -22,3 +22,15 @@ uiDarwinControl *uiDarwinAllocControl(size_t n, uint32_t typesig, const char *ty
 {
 	return uiDarwinControl(uiAllocControl(n, uiDarwinControlSignature, typesig, typenamestr));
 }
+
+BOOL uiDarwinShouldStopSyncEnableState(uiDarwinControl *c, BOOL enabled)
+{
+	int ce;
+
+	ce = uiControlEnabled(uiControl(c));
+	// only stop if we're going from disabled back to enabled; don't stop under any other condition
+	// (if we stop when going from enabled to disabled then enabled children of a disabled control won't get disabled at the OS level)
+	if (!ce && enabled)
+		return YES;
+	return NO;
+}

@@ -35,6 +35,8 @@ static void uiGroupSyncEnableState(uiDarwinControl *c, int enabled)
 {
 	uiGroup *g = uiGroup(c);
 
+	if (uiDarwinShouldStopSyncEnableState(uiDarwinControl(g), enabled))
+		return;
 	if (g->child != NULL)
 		uiDarwinControlSyncEnableState(uiDarwinControl(g->child), enabled);
 }

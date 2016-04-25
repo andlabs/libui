@@ -1,6 +1,8 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
+// TODO for this and group, make sure simply relaying ourselves out is enough (are the buttons and title, respectively, intrinsic?)
+
 struct uiTab {
 	uiDarwinControl c;
 	NSTabView *tabview;
@@ -12,16 +14,10 @@ struct uiTab {
 	NSMutableArray *margined;		// []NSNumber
 };
 
-static void onDestroy(uiTab *);
-
-uiDarwinDefineControlWithOnDestroy(
-	uiTab,								// type name
-	tabview,								// handle
-	onDestroy(this);						// on destroy
-)
-
-static void onDestroy(uiTab *t)
+static void uiTabDestroy(uiControl *c)
 {
+	uiTab *t = uiTab(c);
+
 	// first remove all tab pages so we can destroy all the children
 	while ([t->tabview numberOfTabViewItems] != 0)
 		[t->tabview removeTabViewItem:[t->tabview tabViewItemAtIndex:0]];
@@ -38,9 +34,25 @@ static void onDestroy(uiTab *t)
 	[t->pages release];
 	[t->views release];
 	[t->margined release];
+	[t->tabview release];
+	uiFreeControl(uiControl(t));
 }
 
+uiDarwinControlDefaultHandle(uiTab, tabview)
+uiDarwinControlDefaultParent(uiTab, tabview)
+uiDarwinControlDefaultSetParent(uiTab, tabview)
+uiDarwinControlDefaultToplevel(uiTab, tabview)
+uiDarwinControlDefaultVisible(uiTab, tabview)
+uiDarwinControlDefaultShow(uiTab, tabview)
+uiDarwinControlDefaultHide(uiTab, tabview)
+uiDarwinControlDefaultEnabled(uiTab, tabview)
+uiDarwinControlDefaultEnable(uiTab, tabview)
+uiDarwinControlDefaultDisable(uiTab, tabview)
+
 // TODO container update
+uiDarwinControlDefaultSyncEnableState(uiTab, tabview)
+
+uiDarwinControlDefaultSetSuperview(uiTab, tabview)
 
 static void tabRelayout(uiDarwinControl *c)
 {
@@ -97,7 +109,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	[i setView:view];
 	[t->tabview insertTabViewItem:i atIndex:n];
 
-	uiDarwinControlTriggerRelayout(uiDarwinControl(t));
+	tabRelayout(t);
 }
 
 void uiTabDelete(uiTab *t, uintmax_t n)
@@ -120,6 +132,8 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 
 	i = [t->tabview tabViewItemAtIndex:n];
 	[t->tabview removeTabViewItem:i];
+
+	tabRelayout(t);
 }
 
 uintmax_t uiTabNumPages(uiTab *t)
@@ -141,14 +155,14 @@ void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 
 	v = [NSNumber numberWithInt:margined];
 	[t->margined replaceObjectAtIndex:n withObject:v];
-	uiDarwinControlTriggerRelayout(uiDarwinControl(t));
+	tabRelayout(t);
 }
 
 uiTab *uiNewTab(void)
 {
 	uiTab *t;
 
-	t = (uiTab *) uiNewControl(uiTab);
+	uiDarwinNewControl(uiTab, t);
 
 	t->tabview = [[NSTabView alloc] initWithFrame:NSZeroRect];
 	// also good for NSTabView (same selector and everything)
@@ -157,9 +171,6 @@ uiTab *uiNewTab(void)
 	t->pages = [NSMutableArray new];
 	t->views = [NSMutableArray new];
 	t->margined = [NSMutableArray new];
-
-	uiDarwinFinishNewControl(t, uiTab);
-	uiDarwinControl(t)->Relayout = tabRelayout;
 
 	return t;
 }

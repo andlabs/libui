@@ -61,9 +61,13 @@ static checkboxDelegateClass *checkboxDelegate = nil;
 
 uiDarwinControlAllDefaultsExceptDestroy(uiCheckbox, button)
 
-static void uiCheckboxDestroy(uiControl *c)
+static void uiCheckboxDestroy(uiControl *cc)
 {
-	[checkboxDelegate unregisterCheckbox:uiCheckbox(c)];
+	uiCheckbox *c = uiCheckbox(cc);
+
+	[checkboxDelegate unregisterCheckbox:c];
+	[c->button release];
+	uiFreeControl(uiControl(c));
 }
 
 char *uiCheckboxText(uiCheckbox *c)

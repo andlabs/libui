@@ -79,7 +79,11 @@ uiDarwinControlAllDefaultsExceptDestroy(uiEntry, textfield)
 
 static void uiEntryDestroy(uiControl *c)
 {
-	[entryDelegate unregisterEntry:uiEntry(c)];
+	uiEntry *e = uiEntry(c);
+
+	[entryDelegate unregisterEntry:e];
+	[e->textfield release];
+	uiFreeControl(e);
 }
 
 char *uiEntryText(uiEntry *e)

@@ -81,7 +81,11 @@ uiDarwinControlAllDefaultsExceptDestroy(uiSlider, slider)
 
 static void uiSliderDestroy(uiControl *c)
 {
-	[sliderDelegate unregisterSlider:uiSlider(c)];
+	uiSlider *s = uiSlider(c);
+
+	[sliderDelegate unregisterSlider:s];
+	[s->slider release];
+	uiFreeControl(uiControl(s));
 }
 
 intmax_t uiSliderValue(uiSlider *s)

@@ -59,9 +59,13 @@ static buttonDelegateClass *buttonDelegate = nil;
 
 uiDarwinControlAllDefaultsExceptDestroy(uiButton, button)
 
-static void uiButtonDestroy(uiControl *b)
+static void uiButtonDestroy(uiControl *c)
 {
-	[buttonDelegate unregisterButton:uiButton(b)];
+	uiButton *b = uiButton(c);
+
+	[buttonDelegate unregisterButton:b];
+	[b->button release];
+	uiFreeControl(uiControl(b));
 }
 
 char *uiButtonText(uiButton *b)

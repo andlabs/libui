@@ -110,6 +110,8 @@ static void uiComboboxDestroy(uiControl *cc)
 		[c->pb unbind:@"selectedIndex"];
 		[c->pbac release];
 	}
+	[c->handle release];
+	uiFreeControl(uiControl(c));
 }
 
 void uiComboboxAppend(uiCombobox *c, const char *text)

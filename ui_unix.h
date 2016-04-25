@@ -22,95 +22,95 @@ struct uiUnixControl {
 // TODO document
 _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gboolean);
 
-#define uiUnixControlDefaultDestroy(type, handlefield) \
+#define uiUnixControlDefaultDestroy(type) \
 	static void type ## Destroy(uiControl *c) \
 	{ \
 		uiControlVerifyDestroy(c); \
 		/* TODO is this safe on floating refs? */ \
-		g_object_unref(type(c)->handlefield); \
+		g_object_unref(type(c)->widget); \
 		uiFreeControl(c); \
 	}
-#define uiUnixControlDefaultHandle(type, handlefield) \
+#define uiUnixControlDefaultHandle(type) \
 	static uintptr_t type ## Handle(uiControl *c) \
 	{ \
-		return (uintptr_t) (type(c)->handlefield); \
+		return (uintptr_t) (type(c)->widget); \
 	}
-#define uiUnixControlDefaultParent(type, handlefield) \
+#define uiUnixControlDefaultParent(type) \
 	static uiControl *type ## Parent(uiControl *c) \
 	{ \
 		return uiUnixControl(c)->parent; \
 	}
-#define uiUnixControlDefaultSetParent(type, handlefield) \
+#define uiUnixControlDefaultSetParent(type) \
 	static void type ## SetParent(uiControl *c, uiControl *parent) \
 	{ \
 		uiControlVerifySetParent(c, parent); \
 		uiUnixControl(c)->parent = parent; \
 	}
-#define uiUnixControlDefaultToplevel(type, handlefield) \
+#define uiUnixControlDefaultToplevel(type) \
 	static int type ## Toplevel(uiControl *c) \
 	{ \
 		return 0; \
 	}
-#define uiUnixControlDefaultVisible(type, handlefield) \
+#define uiUnixControlDefaultVisible(type) \
 	static int type ## Visible(uiControl *c) \
 	{ \
-		return gtk_widget_get_visible(type(c)->handlefield); \
+		return gtk_widget_get_visible(type(c)->widget); \
 	}
-#define uiUnixControlDefaultShow(type, handlefield) \
+#define uiUnixControlDefaultShow(type) \
 	static void type ## Show(uiControl *c) \
 	{ \
-		gtk_widget_show(type(c)->handlefield); \
+		gtk_widget_show(type(c)->widget); \
 	}
-#define uiUnixControlDefaultHide(type, handlefield) \
+#define uiUnixControlDefaultHide(type) \
 	static void type ## Hide(uiControl *c) \
 	{ \
-		gtk_widget_hide(type(c)->handlefield); \
+		gtk_widget_hide(type(c)->widget); \
 	}
-#define uiUnixControlDefaultEnabled(type, handlefield) \
+#define uiUnixControlDefaultEnabled(type) \
 	static int type ## Enabled(uiControl *c) \
 	{ \
-		return gtk_widget_get_sensitive(type(c)->handlefield); \
+		return gtk_widget_get_sensitive(type(c)->widget); \
 	}
-#define uiUnixControlDefaultEnable(type, handlefield) \
+#define uiUnixControlDefaultEnable(type) \
 	static void type ## Enable(uiControl *c) \
 	{ \
-		gtk_widget_set_sensitive(type(c)->handlefield, TRUE); \
+		gtk_widget_set_sensitive(type(c)->widget, TRUE); \
 	}
-#define uiUnixControlDefaultDisable(type, handlefield) \
+#define uiUnixControlDefaultDisable(type) \
 	static void type ## Disable(uiControl *c) \
 	{ \
-		gtk_widget_set_sensitive(type(c)->handlefield, FALSE); \
+		gtk_widget_set_sensitive(type(c)->widget, FALSE); \
 	}
-#define uiUnixControlDefaultSetContainer(type, handlefield) \
+#define uiUnixControlDefaultSetContainer(type) \
 	static void type ## SetContainer(uiUnixControl *c, GtkContainer *container, gboolean remove) \
 	{ \
 		if (!uiUnixControl(c)->addedBefore) { \
-			g_object_ref_sink(type(c)->handlefield); /* our own reference, which we release in Destroy() */ \
-			gtk_widget_show(type(c)->handlefield); \
+			g_object_ref_sink(type(c)->widget); /* our own reference, which we release in Destroy() */ \
+			gtk_widget_show(type(c)->widget); \
 			uiUnixControl(c)->addedBefore = TRUE; \
 		} \
 		if (remove) \
-			gtk_container_remove(container, type(c)->handlefield); \
+			gtk_container_remove(container, type(c)->widget); \
 		else \
-			gtk_container_add(container, type(c)->handlefield); \
+			gtk_container_add(container, type(c)->widget); \
 	}
 
-#define uiUnixControlAllDefaultsExceptDestroy(type, handlefield) \
-	uiUnixControlDefaultHandle(type, handlefield) \
-	uiUnixControlDefaultParent(type, handlefield) \
-	uiUnixControlDefaultSetParent(type, handlefield) \
-	uiUnixControlDefaultToplevel(type, handlefield) \
-	uiUnixControlDefaultVisible(type, handlefield) \
-	uiUnixControlDefaultShow(type, handlefield) \
-	uiUnixControlDefaultHide(type, handlefield) \
-	uiUnixControlDefaultEnabled(type, handlefield) \
-	uiUnixControlDefaultEnable(type, handlefield) \
-	uiUnixControlDefaultDisable(type, handlefield) \
-	uiUnixControlDefaultSetContainer(type, handlefield)
+#define uiUnixControlAllDefaultsExceptDestroy(type) \
+	uiUnixControlDefaultHandle(type) \
+	uiUnixControlDefaultParent(type) \
+	uiUnixControlDefaultSetParent(type) \
+	uiUnixControlDefaultToplevel(type) \
+	uiUnixControlDefaultVisible(type) \
+	uiUnixControlDefaultShow(type) \
+	uiUnixControlDefaultHide(type) \
+	uiUnixControlDefaultEnabled(type) \
+	uiUnixControlDefaultEnable(type) \
+	uiUnixControlDefaultDisable(type) \
+	uiUnixControlDefaultSetContainer(type)
 
-#define uiUnixControlAllDefaults(type, handlefield) \
-	uiUnixControlDefaultDestroy(type, handlefield) \
-	uiUnixControlAllDefaultsExceptDestroy(type, handlefield)
+#define uiUnixControlAllDefaults(type) \
+	uiUnixControlDefaultDestroy(type) \
+	uiUnixControlAllDefaultsExceptDestroy(type)
 
 // TODO document
 #define uiUnixNewControl(type, var) \

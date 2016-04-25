@@ -17,13 +17,11 @@ struct uiDarwinControl {
 	uiControl *parent;
 	BOOL enabled;
 	BOOL visible;
-	void (*AddSubview)(uiDarwinControl *, NSView *);
-	void (*Relayout)(uiDarwinControl *);
+	void (*SetSuperview)(uiDarwinControl *, NSView *);
 };
 #define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
-_UI_EXTERN void uiDarwinControlAddSubview(uiDarwinControl *, NSView *);
-_UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
+_UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 
 #define uiDarwinControlDefaultDestroy(type, handlefield) \
 	static void type ## Destroy(uiControl *c) \
@@ -36,7 +34,7 @@ _UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 	{ \
 		return (uintptr_t) (type(c)->handlefield); \
 	}
-#define uiDarwinControlDefaultParent(type) \
+#define uiDarwinControlDefaultParent(type, handlefield) \
 	static uiControl *type ## Parent(uiControl *c) \
 	{ \
 		return uiDarwinControl(c)->parent; \
@@ -56,50 +54,88 @@ _UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 	{ \
 		return 0; \
 	}
-#define uiDarwinControlDefaultVisible(type) \
-	static int type ## Visible(uiDarwinControl *c) \
+#define uiDarwinControlDefaultVisible(type, handlefield) \
+	static int type ## Visible(uiControl *c) \
 	{ \
-		/* TODO */ \
 		return uiDarwinControl(c)->visible; \
 	}
-// TODO others here
-#define uiDarwinControlDefaultAddSubview(type) \
-	static void type ## AddSubview(uiDarwinControl *c, NSView *subview) \
+#define uiDarwinControlDefaultShow(type, handlefield) \
+	static void type ## Show(uiControl *c) \
 	{ \
-		/* TODO do nothing or log? one of the two */ \
+		uiDarwinControl(c)->visible = YES; \
+		[type(c)->handlefield setHidden:NO]; \
 	}
-#define uiDarwinControlDefaultRelayout(type) \
-	static void type ## Relayout(uiDarwinControl *c) \
+#define uiDarwinControlDefaultHide(type, handlefield) \
+	static void type ## Hide(uiControl *c) \
 	{ \
-		/* do nothing */ \
+		uiDarwinControl(c)->visible = NO; \
+		[type(c)->handlefield setHidden:YES]; \
+	}
+#define uiDarwinControlDefaultEnabled(type, handlefield) \
+	static int type ## Visible(uiControl *c) \
+	{ \
+		return uiDarwinControl(c)->enabled; \
+	}
+#define uiDarwinControlDefaultEnabled(type, handlefield) \
+	static void type ## Enable(uiControl *c) \
+	{ \
+		uiDarwinControl(c)->enabled = YES; \
+		uiControlSyncEnableState(c, uiControlEnabledToUser(c)); \
+	}
+#define uiDarwinControlDefaultHide(type, handlefield) \
+	static void type ## Disable(uiControl *c) \
+	{ \
+		uiDarwinControl(c)->enabled = NO; \
+		uiControlSyncEnableState(c, uiControlEnabledToUser(c)); \
+	}
+#define uiDarwinControlDefaultSyncEnableState(type, handlefield) \
+	static void type ## SyncEnableState(uiControl *c, int enabled) \
+	{ \
+		if ([type(e)->handlefield respondsToSelector:@selector(setEnabled:)]) \
+			[type(e)->handlefield setEnabled:enabled]; \
+	}
+#define uiDarwinControlDefaultSetSuperview(type, handlefield) \
+	static void type ## AddSubview(uiDarwinControl *c, NSView *superview) \
+	{ \
+		if (superview == nil) \
+			[type(c)->handlefield removeFromSuperview]; \
+		else \
+			[superview addSubview:type(c)->handlefield]; \
 	}
 
 #define uiDarwinControlAllDefaults(type, handlefield) \
 	uiDarwinControlDefaultDestroy(type, handlefield) \
 	uiDarwinControlDefaultHandle(type, handlefield) \
-	uiDarwinControlDefaultParent(type) \
+	uiDarwinControlDefaultParent(type, handlefield) \
 	uiDarwinControlDefaultSetParent(type, handlefield) \
-	uiDarwinControlDefaultToplevel(type) \
-	xxxxx \
-	uiDarwinControlDefaultAddSubview(type) \
-	uiDarwinControlDefaultRelayout(type)
+	uiDarwinControlDefaultToplevel(type, handlefield) \
+	uiDarwinControlDefaultVisible(type, handlefield) \
+	uiDarwinControlDefaultShow(type, handlefield) \
+	uiDarwinControlDefaultHide(type, handlefield) \
+	uiDarwinControlDefaultEnabled(type, handlefield) \
+	uiDarwinControlDefaultEnable(type, handlefield) \
+	uiDarwinControlDefaultDisable(type, handlefield) \
+	uiDarwinControlDefaultSetEnableState(type, handlefield) \
+	uiDarwinControlDefaultSetSuperview(type, handlefield)
 
 // TODO document
 #define uiDarwinNewControl(var, type) \
 	var = type(uiDarwinNewControl(sizeof (type), type ## Signature, #type)) \
-	TODO
+	uiControl(var)->Destroy = type ## Destroy; \
+	uiControl(var)->Handle = type ## Handle; \
+	uiControl(var)->Parent = type ## Parent; \
+	uiControl(var)->SetParent = type ## SetParent; \
+	uiControl(var)->Toplevel = type ## Toplevel; \
+	uiControl(var)->Visible = type ## Visible; \
+	uiControl(var)->Show = type ## Show; \
+	uiControl(var)->Hide = type ## Hide; \
+	uiControl(var)->Enabled = type ## Enabled; \
+	uiControl(var)->Enable = type ## Enable; \
+	uiControl(var)->Disable = type ## Disable; \
+	uiControl(var)->SyncEnableState = type ## SyncEnableState; \
+	uiDarwinControl(var)->SetSuperview = type ## SetSuperview;
+// TODO document
 _UI_EXTERN uiDarwinControl *uiDarwinAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
-
-#define uiDarwinFinishNewControl(variable, type) \
-	uiControl(variable)->CommitDestroy = _ ## type ## CommitDestroy; \
-	uiControl(variable)->Handle = _ ## type ## Handle; \
-	uiControl(variable)->ContainerUpdateState = _ ## type ## ContainerUpdateState; \
-	uiDarwinControl(variable)->Relayout = _ ## type ## Relayout; \
-	uiDarwinFinishControl(uiControl(variable));
-
-// This is a function used to set up a control.
-// Don't call it directly; use uiDarwinFinishNewControl() instead.
-_UI_EXTERN void uiDarwinFinishControl(uiControl *c);
 
 // Use this function as a shorthand for setting control fonts.
 _UI_EXTERN void uiDarwinSetControlFont(NSControl *c, NSControlSize size);

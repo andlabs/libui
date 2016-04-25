@@ -14,6 +14,8 @@ extern "C" {
 typedef struct uiUnixControl uiUnixControl;
 struct uiUnixControl {
 	uiControl c;
+	uiControl *parent;
+	gboolean addedBefore;
 	void (*SetContainer)(uiUnixControl *, GtkContainer *, gboolean);
 };
 #define uiUnixControl(this) ((uiUnixControl *) (this))
@@ -24,7 +26,8 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	static void type ## Destroy(uiControl *c) \
 	{ \
 		uiControlVerifyDestroy(c); \
-		[type(c)->handlefield release]; \
+		/* TODO is this safe on floating refs? */ \
+		g_object_unref(type(c)->handlefield); \
 		uiFreeControl(c); \
 	}
 #define uiUnixControlDefaultHandle(type, handlefield) \
@@ -51,51 +54,45 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 #define uiUnixControlDefaultVisible(type, handlefield) \
 	static int type ## Visible(uiControl *c) \
 	{ \
-		return uiUnixControl(c)->visible; \
+		return gtk_widget_get_visible(type(c)->handlefield); \
 	}
 #define uiUnixControlDefaultShow(type, handlefield) \
 	static void type ## Show(uiControl *c) \
 	{ \
-		uiUnixControl(c)->visible = YES; \
-		[type(c)->handlefield setHidden:NO]; \
+		gtk_widget_show(type(c)->handlefield); \
 	}
 #define uiUnixControlDefaultHide(type, handlefield) \
 	static void type ## Hide(uiControl *c) \
 	{ \
-		uiUnixControl(c)->visible = NO; \
-		[type(c)->handlefield setHidden:YES]; \
+		gtk_widget_hide(type(c)->handlefield); \
 	}
 #define uiUnixControlDefaultEnabled(type, handlefield) \
 	static int type ## Enabled(uiControl *c) \
 	{ \
-		return uiUnixControl(c)->enabled; \
+		return gtk_widget_get_sensitive(type(c)->handlefield); \
 	}
 #define uiUnixControlDefaultEnable(type, handlefield) \
 	static void type ## Enable(uiControl *c) \
 	{ \
-		uiUnixControl(c)->enabled = YES; \
-		uiControlSyncEnableState(c, uiControlEnabledToUser(c)); \
+		gtk_widget_set_sensitive(type(c)->handlefield, TRUE); \
 	}
 #define uiUnixControlDefaultDisable(type, handlefield) \
 	static void type ## Disable(uiControl *c) \
 	{ \
-		uiUnixControl(c)->enabled = NO; \
-		uiControlSyncEnableState(c, uiControlEnabledToUser(c)); \
+		gtk_widget_set_sensitive(type(c)->handlefield, FALSE); \
 	}
-#define uiUnixControlDefaultSyncEnableState(type, handlefield) \
-	static void type ## SyncEnableState(uiControl *c, int enabled) \
+#define uiUnixControlDefaultSetContainer(type, handlefield) \
+	static void type ## SetContainer(uiUnixControl *c, GtkContainer *container, gboolean remove) \
 	{ \
-		if ([type(c)->handlefield respondsToSelector:@selector(setEnabled:)]) \
-			[((id) type(c)->handlefield) setEnabled:enabled]; /* id cast to make compiler happy; thanks mikeash in irc.freenode.net/#macdev */ \
-	}
-#define uiUnixControlDefaultSetSuperview(type, handlefield) \
-	static void type ## SetSuperview(uiUnixControl *c, NSView *superview) \
-	{ \
-		[type(c)->handlefield setTranslatesAutoresizingMaskIntoConstraints:NO]; \
-		if (superview == nil) \
-			[type(c)->handlefield removeFromSuperview]; \
+		if (!uiUnixControl(c)->addedBefore) { \
+			g_object_ref_sink(type(c)->handlefield); /* our own reference, which we release in Destroy() */ \
+			gtk_widget_show(type(c)->handlefield); \
+			uiUnixControl(c)->addedBefore = TRUE; \
+		} \
+		if (remove) \
+			gtk_container_remove(container, type(c)->handlefield); \
 		else \
-			[superview addSubview:type(c)->handlefield]; \
+			gtk_container_add(container, type(c)->handlefield); \
 	}
 
 #define uiUnixControlAllDefaultsExceptDestroy(type, handlefield) \
@@ -109,8 +106,7 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	uiUnixControlDefaultEnabled(type, handlefield) \
 	uiUnixControlDefaultEnable(type, handlefield) \
 	uiUnixControlDefaultDisable(type, handlefield) \
-	uiUnixControlDefaultSyncEnableState(type, handlefield) \
-	uiUnixControlDefaultSetSuperview(type, handlefield)
+	uiUnixControlDefaultSetContainer(type, handlefield)
 
 #define uiUnixControlAllDefaults(type, handlefield) \
 	uiUnixControlDefaultDestroy(type, handlefield) \
@@ -130,10 +126,7 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	uiControl(var)->Enabled = type ## Enabled; \
 	uiControl(var)->Enable = type ## Enable; \
 	uiControl(var)->Disable = type ## Disable; \
-	uiControl(var)->SyncEnableState = type ## SyncEnableState; \
-	uiUnixControl(var)->SetSuperview = type ## SetSuperview; \
-	uiUnixControl(var)->visible = YES; \
-	uiUnixControl(var)->enabled = YES;
+	uiUnixControl(var)->SetContainer = type ## SetContainer;
 // TODO document
 _UI_EXTERN uiUnixControl *uiUnixAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
 

@@ -22,11 +22,6 @@ void uiControlSetParent(uiControl *c, uiControl *parent)
 	(*(c->SetParent))(c, parent);
 }
 
-void uiControlUpdateChildren(uiControl *c)
-{
-	(*(c->UpdateChildren))(c);
-}
-
 int uiControlToplevel(uiControl *c)
 {
 	return (*(c->Toplevel))(c);
@@ -60,6 +55,11 @@ void uiControlEnable(uiControl *c)
 void uiControlDisable(uiControl *c)
 {
 	(*(c->Disable))(c);
+}
+
+void uiControlSyncEnableState(uiControl *c, int state)
+{
+	(*(c->SyncEnableState))(c, state);
 }
 
 #define uiControlSignature 0x7569436F

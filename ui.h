@@ -51,7 +51,6 @@ struct uiControl {
 	uintptr_t (*Handle)(uiControl *);
 	uiControl *(*Parent)(uiControl *);
 	void (*SetParent)(uiControl *, uiControl *);
-	void (*UpdateChildren)(uiControl *);
 	int (*Toplevel)(uiControl *);
 	int (*Visible)(uiControl *);
 	void (*Show)(uiControl *);
@@ -59,13 +58,14 @@ struct uiControl {
 	int (*Enabled)(uiControl *);
 	void (*Enable)(uiControl *);
 	void (*Disable)(uiControl *);
+	void (*SyncEnableState)(uiControl *, int);
 };
+// TOOD add argument names to all arguments
 #define uiControl(this) ((uiControl *) (this))
 _UI_EXTERN void uiControlDestroy(uiControl *);
 _UI_EXTERN uintptr_t uiControlHandle(uiControl *);
 _UI_EXTERN uiControl *uiControlParent(uiControl *);
 _UI_EXTERN void uiControlSetParent(uiControl *, uiControl *);
-_UI_EXTERN void uiControlUpdateChildren(uiControl *);
 _UI_EXTERN int uiControlToplevel(uiControl *);
 _UI_EXTERN int uiControlVisible(uiControl *);
 _UI_EXTERN void uiControlShow(uiControl *);
@@ -73,6 +73,7 @@ _UI_EXTERN void uiControlHide(uiControl *);
 _UI_EXTERN int uiControlEnabled(uiControl *);
 _UI_EXTERN void uiControlEnable(uiControl *);
 _UI_EXTERN void uiControlDisable(uiControl *);
+_UI_EXTERN void uiControlSyncEnableState(uiControl *, int);
 
 _UI_EXTERN uiControl *uiAllocControl(size_t n, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
 _UI_EXTERN void uiFreeControl(uiControl *);

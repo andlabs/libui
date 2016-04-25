@@ -17,10 +17,12 @@ struct uiDarwinControl {
 	uiControl *parent;
 	BOOL enabled;
 	BOOL visible;
+	void (*AddSubview)(uiDarwinControl *, NSView *);
 	void (*Relayout)(uiDarwinControl *);
 };
 #define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
+_UI_EXTERN void uiDarwinControlAddSubview(uiDarwinControl *, NSView *);
 _UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 
 #define uiDarwinControlDefaultDestroy(type, handlefield) \
@@ -46,11 +48,25 @@ _UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 		uiDarwinControl(c)->parent = parent; \
 		if (uiDarwinControl(c)->parent == NULL) \
 			[type(c)->handlefield removeFromSuperview]; \
-		else { \
-			/* TODO */ \
-			if ([type(c)->handlefield respondsToSelector:@selector(setEnabled:)]) \
-				[type(c)->handlefield setEnabled:uiControlEnabledToUser(c)]; \
-		} \
+		else \
+			uiDarwinControlAddSubview(uiDarwinControl(uiDarwinControl(c)->parent), type(c)->handlefield); \
+	}
+#define uiDarwinControlDefaultToplevel(type) \
+	static int type ## Toplevel(uiControl *c) \
+	{ \
+		return 0; \
+	}
+#define uiDarwinControlDefaultVisible(type) \
+	static int type ## Visible(uiDarwinControl *c) \
+	{ \
+		/* TODO */ \
+		return uiDarwinControl(c)->visible; \
+	}
+// TODO others here
+#define uiDarwinControlDefaultAddSubview(type) \
+	static void type ## AddSubview(uiDarwinControl *c, NSView *subview) \
+	{ \
+		/* TODO do nothing or log? one of the two */ \
 	}
 #define uiDarwinControlDefaultRelayout(type) \
 	static void type ## Relayout(uiDarwinControl *c) \
@@ -62,11 +78,16 @@ _UI_EXTERN void uiDarwinControlTriggerRelayout(uiDarwinControl *);
 	uiDarwinControlDefaultDestroy(type, handlefield) \
 	uiDarwinControlDefaultHandle(type, handlefield) \
 	uiDarwinControlDefaultParent(type) \
+	uiDarwinControlDefaultSetParent(type, handlefield) \
+	uiDarwinControlDefaultToplevel(type) \
 	xxxxx \
+	uiDarwinControlDefaultAddSubview(type) \
 	uiDarwinControlDefaultRelayout(type)
 
 // TODO document
-#define uiDarwinNewControl(type) type(uiDarwinNewControl(sizeof (type), type ## Signature, #type))
+#define uiDarwinNewControl(var, type) \
+	var = type(uiDarwinNewControl(sizeof (type), type ## Signature, #type)) \
+	TODO
 _UI_EXTERN uiDarwinControl *uiDarwinAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
 
 #define uiDarwinFinishNewControl(variable, type) \

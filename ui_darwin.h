@@ -119,7 +119,7 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 
 // TODO document
 #define uiDarwinNewControl(type, var) \
-	var = type(uiDarwinNewControl(sizeof (type), type ## Signature, #type)) \
+	var = type(uiDarwinNewControl(sizeof (type), type ## Signature, #type)); \
 	uiControl(var)->Destroy = type ## Destroy; \
 	uiControl(var)->Handle = type ## Handle; \
 	uiControl(var)->Parent = type ## Parent; \

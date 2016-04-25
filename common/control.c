@@ -57,11 +57,6 @@ void uiControlDisable(uiControl *c)
 	(*(c->Disable))(c);
 }
 
-void uiControlSyncEnableState(uiControl *c, int state)
-{
-	(*(c->SyncEnableState))(c, state);
-}
-
 #define uiControlSignature 0x7569436F
 
 uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr)

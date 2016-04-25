@@ -98,7 +98,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	view = [[NSView alloc] initWithFrame:NSZeroRect];
 	// TODO if we turn off the autoresizing mask, nothing shows up; didn't this get documented somewhere?
 	uiDarwinControlSetSuperview(uiDarwinControl(child), view);
-	uiControlSyncEnableState(child, uiControlEnabledToUser(uiControl(t)));
+	uiDarwinControlSyncEnableState(uiDarwinControl(child), uiControlEnabledToUser(uiControl(t)));
 
 	[t->pages insertObject:[NSValue valueWithPointer:child] atIndex:n];
 	[t->views insertObject:view atIndex:n];

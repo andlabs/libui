@@ -65,7 +65,7 @@ uiDarwinControlDefaultEnabled(uiBox, view)
 uiDarwinControlDefaultEnable(uiBox, view)
 uiDarwinControlDefaultDisable(uiBox, view)
 
-static void uiBoxSyncEnableState(uiControl *c, int enabled)
+static void uiBoxSyncEnableState(uiDarwinControl *c, int enabled)
 {
 	uiBox *b = uiBox(c);
 	NSUInteger i;
@@ -77,7 +77,7 @@ static void uiBoxSyncEnableState(uiControl *c, int enabled)
 		v = (NSValue *) [b->children objectAtIndex:i];
 		// TODO change all these other instances of casts to conversions
 		child = uiControl([v pointerValue]);
-		uiControlSyncEnableState(child, enabled);
+		uiDarwinControlSyncEnableState(uiDarwinControl(child), enabled);
 	}
 }
 
@@ -229,7 +229,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 
 	uiControlSetParent(c, uiControl(b));
 	uiDarwinControlSetSuperview(uiDarwinControl(c), b->view);
-	uiControlSyncEnableState(c, uiControlEnabledToUser(uiControl(b)));
+	uiDarwinControlSyncEnableState(uiDarwinControl(c), uiControlEnabledToUser(uiControl(b)));
 
 	// TODO save the old hugging priorities
 	// if a control is stretchy, it should not hug in the primary direction

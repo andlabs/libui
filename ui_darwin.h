@@ -17,10 +17,12 @@ struct uiDarwinControl {
 	uiControl *parent;
 	BOOL enabled;
 	BOOL visible;
+	void (*SyncEnableState)(uiDarwinControl *, int);
 	void (*SetSuperview)(uiDarwinControl *, NSView *);
 };
 #define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
+_UI_EXTERN void uiDarwinControlSyncEnableState(uiDarwinControl *, int);
 _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 
 #define uiDarwinControlDefaultDestroy(type, handlefield) \
@@ -77,16 +79,16 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	static void type ## Enable(uiControl *c) \
 	{ \
 		uiDarwinControl(c)->enabled = YES; \
-		uiControlSyncEnableState(c, uiControlEnabledToUser(c)); \
+		uiDarwinControlSyncEnableState(uiDarwinControl(c), uiControlEnabledToUser(c)); \
 	}
 #define uiDarwinControlDefaultDisable(type, handlefield) \
 	static void type ## Disable(uiControl *c) \
 	{ \
 		uiDarwinControl(c)->enabled = NO; \
-		uiControlSyncEnableState(c, uiControlEnabledToUser(c)); \
+		uiDarwinControlSyncEnableState(uiDarwinControl(c), uiControlEnabledToUser(c)); \
 	}
 #define uiDarwinControlDefaultSyncEnableState(type, handlefield) \
-	static void type ## SyncEnableState(uiControl *c, int enabled) \
+	static void type ## SyncEnableState(uiDarwinControl *c, int enabled) \
 	{ \
 		if ([type(c)->handlefield respondsToSelector:@selector(setEnabled:)]) \
 			[((id) type(c)->handlefield) setEnabled:enabled]; /* id cast to make compiler happy; thanks mikeash in irc.freenode.net/#macdev */ \
@@ -133,7 +135,7 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	uiControl(var)->Enabled = type ## Enabled; \
 	uiControl(var)->Enable = type ## Enable; \
 	uiControl(var)->Disable = type ## Disable; \
-	uiControl(var)->SyncEnableState = type ## SyncEnableState; \
+	uiDarwinControl(var)->SyncEnableState = type ## SyncEnableState; \
 	uiDarwinControl(var)->SetSuperview = type ## SetSuperview; \
 	uiDarwinControl(var)->visible = YES; \
 	uiDarwinControl(var)->enabled = YES;

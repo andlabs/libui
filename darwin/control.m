@@ -1,6 +1,11 @@
 // 16 august 2015
 #import "uipriv_darwin.h"
 
+void uiDarwinControlSyncEnableState(uiDarwinControl *c, int state)
+{
+	(*(c->SyncEnableState))(c, state);
+}
+
 void uiDarwinControlSetSuperview(uiDarwinControl *c, NSView *superview)
 {
 	(*(c->SetSuperview))(c, superview);

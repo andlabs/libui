@@ -31,12 +31,12 @@ uiDarwinControlDefaultEnabled(uiGroup, box)
 uiDarwinControlDefaultEnable(uiGroup, box)
 uiDarwinControlDefaultDisable(uiGroup, box)
 
-static void uiGroupSyncEnableState(uiControl *c, int enabled)
+static void uiGroupSyncEnableState(uiDarwinControl *c, int enabled)
 {
 	uiGroup *g = uiGroup(c);
 
 	if (g->child != NULL)
-		uiControlSyncEnableState(g->child, enabled);
+		uiDarwinControlSyncEnableState(uiDarwinControl(g->child), enabled);
 }
 
 uiDarwinControlDefaultSetSuperview(uiGroup, box)
@@ -89,7 +89,7 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		// otherwise, things get really glitchy
 		// we also need to call -sizeToFit, but we'll do that in the relayout that's triggered below (see above)
 		uiDarwinControlSetSuperview(uiDarwinControl(g->child), g->box);
-		uiControlSyncEnableState(g->child, uiControlEnabledToUser(uiControl(g)));
+		uiDarwinControlSyncEnableState(uiDarwinControl(g->child), uiControlEnabledToUser(uiControl(g)));
 	}
 	groupRelayout(g);
 }

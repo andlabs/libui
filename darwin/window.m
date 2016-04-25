@@ -126,12 +126,12 @@ uiDarwinControlDefaultEnabled(uiWindow, window)
 uiDarwinControlDefaultEnable(uiWindow, window)
 uiDarwinControlDefaultDisable(uiWindow, window)
 
-static void uiWindowSyncEnableState(uiControl *c, int enabled)
+static void uiWindowSyncEnableState(uiDarwinControl *c, int enabled)
 {
 	uiWindow *w = uiWindow(c);
 
 	if (w->child != NULL)
-		uiControlSyncEnableState(w->child, enabled);
+		uiDarwinControlSyncEnableState(uiDarwinControl(w->child), enabled);
 }
 
 static void uiWindowSetSuperview(uiDarwinControl *c, NSView *superview)
@@ -187,7 +187,7 @@ void uiWindowSetChild(uiWindow *w, uiControl *child)
 		uiControlSetParent(w->child, uiControl(w));
 		childView = (NSView *) uiControlHandle(w->child);
 		uiDarwinControlSetSuperview(uiDarwinControl(w->child), [w->window contentView]);
-		uiControlSyncEnableState(w->child, uiControlEnabledToUser(uiControl(w)));
+		uiDarwinControlSyncEnableState(uiDarwinControl(w->child), uiControlEnabledToUser(uiControl(w)));
 	}
 	windowRelayout(w);
 }

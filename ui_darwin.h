@@ -28,6 +28,7 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	{ \
 		uiControlVerifyDestroy(c); \
 		[type(c)->handlefield release]; \
+		uiFreeControl(c); \
 	}
 #define uiDarwinControlDefaultHandle(type, handlefield) \
 	static uintptr_t type ## Handle(uiControl *c) \
@@ -133,7 +134,9 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	uiControl(var)->Enable = type ## Enable; \
 	uiControl(var)->Disable = type ## Disable; \
 	uiControl(var)->SyncEnableState = type ## SyncEnableState; \
-	uiDarwinControl(var)->SetSuperview = type ## SetSuperview;
+	uiDarwinControl(var)->SetSuperview = type ## SetSuperview; \
+	uiDarwinControl(var)->visible = YES; \
+	uiDarwinControl(var)->enabled = YES;
 // TODO document
 _UI_EXTERN uiDarwinControl *uiDarwinAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
 

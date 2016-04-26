@@ -21,12 +21,14 @@ struct uiWindowsControl {
 	BOOL visible;
 	void (*SetParentHWND)(uiWindowsControl *, HWND);
 	void (*MinimumSize)(uiWindowsControl *, intmax_t *, intmax_t *);
+	void (*ChildMinimumSizeChanged)(uiWIndowsControl *);
 	void (*AssignControlIDZOrder)(uiWindowsControl *, LONG_PTR *, HWND *);
 };
 #define uiWindowsControl(this) ((uiWindowsControl *) (this))
 // TODO document
 _UI_EXTERN void uiWindowsControlSetParentHWND(uiWindowsControl *, HWND);
 _UI_EXTERN void uiWindowsControlMinimumSize(uiWindowsControl *, intmax_t *, intmax_t *);
+_UI_EXTERN void uiWindowsControlChildMinimumSizeChanged(uiWindowsControl *);
 _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_PTR *, HWND *);
 
 // TODO document
@@ -86,6 +88,9 @@ _UI_EXTERN void uiWindowsSizingDlgUnitsToPixels(HWND hwnd, uiWindowsSIzing *sizi
 
 // TODO document
 _UI_EXTERN HWND uiWindowsMakeContainer(void (*onResize)(void *data), void *data);
+
+// TODO document
+_UI_EXTERN void uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl *);
 
 #ifdef __cplusplus
 }

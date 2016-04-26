@@ -31,8 +31,6 @@ char *uiButtonText(uiButton *b)
 void uiButtonSetText(uiButton *b, const char *text)
 {
 	gtk_button_set_label(b->button, text);
-	// changing the text might necessitate a change in the button's size
-	uiControlQueueResize(uiControl(b));
 }
 
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)

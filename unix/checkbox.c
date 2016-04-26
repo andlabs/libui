@@ -34,8 +34,6 @@ char *uiCheckboxText(uiCheckbox *c)
 void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
 	gtk_button_set_label(GTK_BUTTON(c->button), text);
-	// changing the text might necessitate a change in the checkbox's size
-	uiControlQueueResize(uiControl(c));
 }
 
 void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)

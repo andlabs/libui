@@ -8,7 +8,7 @@ void uiUnixControlSetContainer(uiUnixControl *c, GtkContainer *container, gboole
 
 #define uiUnixControlSignature 0x556E6978
 
-uiUnixControl *uiUnixNewControl(size_t n, uint32_t typesig, const char *typenamestr)
+uiUnixControl *uiUnixAllocControl(size_t n, uint32_t typesig, const char *typenamestr)
 {
 	return uiUnixControl(uiAllocControl(n, uiUnixControlSignature, typesig, typenamestr));
 }

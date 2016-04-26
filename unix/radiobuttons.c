@@ -30,7 +30,6 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	gtk_container_add(r->container, rb);
 	g_ptr_array_add(r->buttons, rb);
 	gtk_widget_show(rb);
-	uiControlQueueResize(uiControl(r));
 }
 
 uiRadioButtons *uiNewRadioButtons(void)

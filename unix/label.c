@@ -18,8 +18,6 @@ char *uiLabelText(uiLabel *l)
 void uiLabelSetText(uiLabel *l, const char *text)
 {
 	gtk_label_set_text(l->label, text);
-	// changing the text might necessitate a change in the label's size
-	uiControlQueueResize(uiControl(l));
 }
 
 uiLabel *uiNewLabel(const char *text)

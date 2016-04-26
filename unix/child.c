@@ -73,7 +73,7 @@ void childRemove(struct child *c)
 {
 	uiControlSetParent(c->c, NULL);
 	// TODO safe with boxes?
-	uiUnixControlSetContainer(uiUnixControl(c->c), parentContainer, TRUE);
+	uiUnixControlSetContainer(uiUnixControl(c->c), c->parent, TRUE);
 
 	gtk_widget_set_hexpand(c->widget, c->oldhexpand);
 	gtk_widget_set_halign(c->widget, c->oldhalign);

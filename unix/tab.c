@@ -26,7 +26,7 @@ static void uiTabDestroy(uiControl *c)
 	g_array_free(t->pages, TRUE);
 	// and free ourselves
 	g_object_unref(t->widget);
-	uiControlFree(uiControl(t));
+	uiFreeControl(uiControl(t));
 }
 
 void uiTabAppend(uiTab *t, const char *name, uiControl *child)

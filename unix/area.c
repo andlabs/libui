@@ -521,8 +521,6 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 
 	a->widget = a->areaWidget;
 
-	uiUnixFinishNewControl(a, uiArea);
-
 	return a;
 }
 
@@ -552,8 +550,6 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 	gtk_container_add(a->scontainer, a->areaWidget);
 	// and make the area visible; only the scrolled window's visibility is controlled by libui
 	gtk_widget_show(a->areaWidget);
-
-	uiUnixFinishNewControl(a, uiArea);
 
 	return a;
 }

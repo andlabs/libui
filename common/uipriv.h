@@ -16,10 +16,6 @@ extern void uiFree(void *);
 
 extern void complain(const char *, ...);
 
-extern int isToplevel(uiControl *);
-extern int controlSelfVisible(uiControl *);
-extern void controlUpdateState(uiControl *);
-
 extern void osCommitEnable(uiControl *);
 extern void osCommitDisable(uiControl *);
 

@@ -43,7 +43,7 @@ struct child *newChild(uiControl *child, uiControl *parent, GtkContainer *parent
 	c->oldvalign = gtk_widget_get_valign(c->widget);
 
 	uiControlSetParent(c->c, parent);
-	gtk_container_add(parentContainer, c->widget);
+	uiUnixControlSetContainer(uiUnixControl(c->c), parentContainer, FALSE);
 	c->parent = parentContainer;
 
 	return c;
@@ -71,8 +71,9 @@ struct child *newChildWithBox(uiControl *child, uiControl *parent, GtkContainer 
 
 void childRemove(struct child *c)
 {
-	gtk_container_remove(c->parent, c->widget);
 	uiControlSetParent(c->c, NULL);
+	// TODO safe with boxes?
+	uiUnixControlSetContainer(uiUnixControl(c->c), parentContainer, TRUE);
 
 	gtk_widget_set_hexpand(c->widget, c->oldhexpand);
 	gtk_widget_set_halign(c->widget, c->oldhalign);
@@ -97,11 +98,6 @@ void childDestroy(struct child *c)
 GtkWidget *childWidget(struct child *c)
 {
 	return c->widget;
-}
-
-void childUpdateState(struct child *c)
-{
-	controlUpdateState(c->c);
 }
 
 int childFlag(struct child *c)

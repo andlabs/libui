@@ -14,15 +14,11 @@ struct uiBox {
 	GtkSizeGroup *stretchygroup;		// ensures all stretchy controls have the same size
 };
 
-static void onDestroy(uiBox *b);
+uiUnixControlAllDefaultsExceptDestroy(uiBox)
 
-uiUnixDefineControlWithOnDestroy(
-	uiBox,								// type name
-	onDestroy(this);						// on destroy
-)
-
-static void onDestroy(uiBox *b)
+static void uiBoxDestroy(uiControl *c)
 {
+	uiBox *b = uiBox(c);
 	struct child *bc;
 
 	while (b->controls->len != 0) {
@@ -33,18 +29,9 @@ static void onDestroy(uiBox *b)
 	ptrArrayDestroy(b->controls);
 	// kill the size group
 	g_object_unref(b->stretchygroup);
-}
-
-static void boxContainerUpdateState(uiControl *c)
-{
-	uiBox *b = uiBox(c);
-	struct child *bc;
-	uintmax_t i;
-
-	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct child *, i);
-		childUpdateState(bc);
-	}
+	// and then ourselves
+	g_object_unref(b->widget);
+	uiFreeControl(uiControl(b));
 }
 
 #define isStretchy(bc) childFlag(bc)
@@ -73,7 +60,6 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 			gtk_widget_set_hexpand(widget, FALSE);
 	// TODO make the other dimension fill
 	ptrArrayAppend(b->controls, bc);
-	uiControlQueueResize(uiControl(b));
 }
 
 void uiBoxDelete(uiBox *b, uintmax_t index)
@@ -85,7 +71,6 @@ void uiBoxDelete(uiBox *b, uintmax_t index)
 	if (isStretchy(bc))
 		gtk_size_group_remove_widget(b->stretchygroup, childWidget(bc));
 	childRemove(bc);
-	uiControlQueueResize(uiControl(b));
 }
 
 int uiBoxPadded(uiBox *b)
@@ -103,14 +88,13 @@ void uiBoxSetPadded(uiBox *b, int padded)
 			gtk_box_set_spacing(b->box, gtkXPadding);
 	else
 		gtk_box_set_spacing(b->box, 0);
-	uiControlQueueResize(uiControl(b));
 }
 
 static uiBox *finishNewBox(GtkOrientation orientation)
 {
 	uiBox *b;
 
-	b = (uiBox *) uiNewControl(uiBox);
+	uiUnixNewControl(uiBox, b);
 
 	b->widget = gtk_box_new(orientation, 0);
 	b->container = GTK_CONTAINER(b->widget);
@@ -124,9 +108,6 @@ static uiBox *finishNewBox(GtkOrientation orientation)
 		b->stretchygroup = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 
 	b->controls = newPtrArray();
-
-	uiUnixFinishNewControl(b, uiBox);
-	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;
 
 	return b;
 }

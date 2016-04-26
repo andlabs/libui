@@ -14,25 +14,16 @@ struct uiGroup {
 	int margined;
 };
 
-static void onDestroy(uiGroup *);
+uiUnixControlAllDefaultsExceptDestroy(uiGroup)
 
-uiUnixDefineControlWithOnDestroy(
-	uiGroup,								// type name
-	onDestroy(this);						// on destroy
-)
-
-static void onDestroy(uiGroup *g)
-{
-	if (g->child != NULL)
-		childDestroy(g->child);
-}
-
-static void groupContainerUpdateState(uiControl *c)
+static void uiGroupDestroy(uiControl *c)
 {
 	uiGroup *g = uiGroup(c);
 
 	if (g->child != NULL)
-		childUpdateState(g->child);
+		childDestroy(g->child);
+	g_object_unref(g->widget);
+	uiFreeControl(uiControl(g));
 }
 
 char *uiGroupTitle(uiGroup *g)
@@ -43,8 +34,6 @@ char *uiGroupTitle(uiGroup *g)
 void uiGroupSetTitle(uiGroup *g, const char *text)
 {
 	gtk_frame_set_label(g->frame, text);
-	// changing the text might necessitate a change in the groupbox's size
-	uiControlQueueResize(uiControl(g));
 }
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)
@@ -52,9 +41,6 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 	if (g->child != NULL)
 		childRemove(g->child);
 	g->child = newChildWithBox(child, uiControl(g), g->container, g->margined);
-	if (g->child != NULL) {
-		uiControlQueueResize(uiControl(g));
-	}
 }
 
 int uiGroupMargined(uiGroup *g)
@@ -67,7 +53,6 @@ void uiGroupSetMargined(uiGroup *g, int margined)
 	g->margined = margined;
 	if (g->child != NULL)
 		childSetMargined(g->child, g->margined);
-	uiControlQueueResize(uiControl(g));
 }
 
 uiGroup *uiNewGroup(const char *text)
@@ -78,7 +63,7 @@ uiGroup *uiNewGroup(const char *text)
 	PangoAttribute *bold;
 	PangoAttrList *boldlist;
 
-	g = (uiGroup *) uiNewControl(uiGroup);
+	uiUnixNewControl(uiGroup, g);
 
 	g->widget = gtk_frame_new(text);
 	g->container = GTK_CONTAINER(g->widget);
@@ -99,9 +84,6 @@ uiGroup *uiNewGroup(const char *text)
 	pango_attr_list_insert(boldlist, bold);
 	gtk_label_set_attributes(label, boldlist);
 	pango_attr_list_unref(boldlist);		// thanks baedert in irc.gimp.net/#gtk+
-
-	uiUnixFinishNewControl(g, uiGroup);
-	uiControl(g)->ContainerUpdateState = groupContainerUpdateState;
 
 	return g;
 }

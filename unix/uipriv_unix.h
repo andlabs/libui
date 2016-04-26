@@ -35,7 +35,6 @@ extern struct child *newChildWithBox(uiControl *child, uiControl *parent, GtkCon
 extern void childRemove(struct child *c);
 extern void childDestroy(struct child *c);
 extern GtkWidget *childWidget(struct child *c);
-extern void childUpdateState(struct child *c);
 extern int childFlag(struct child *c);
 extern void childSetFlag(struct child *c, int flag);
 extern GtkWidget *childBox(struct child *c);
@@ -46,6 +45,3 @@ extern uiDrawContext *newContext(cairo_t *);
 extern void freeContext(uiDrawContext *);
 extern uiDrawTextFont *mkTextFont(PangoFont *f, gboolean add);
 extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
-
-// TODO
-#define uiControlQueueResize(...)

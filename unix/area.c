@@ -482,9 +482,7 @@ static void areaWidget_class_init(areaWidgetClass *class)
 
 // control implementation
 
-uiUnixDefineControl(
-	uiArea								// type name
-)
+uiUnixControlAllDefaults(uiArea)
 
 void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
 {
@@ -510,7 +508,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;
 
-	a = (uiArea *) uiNewControl(uiArea);
+	uiUnixNewControl(uiArea, a);
 
 	a->ah = ah;
 	a->scrolling = FALSE;
@@ -532,7 +530,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 {
 	uiArea *a;
 
-	a = (uiArea *) uiNewControl(uiArea);
+	uiUnixNewControl(uiArea, a);
 
 	a->ah = ah;
 	a->scrolling = TRUE;

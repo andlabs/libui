@@ -6,9 +6,7 @@ struct uiDateTimePicker {
 	GtkWidget *widget;
 };
 
-uiUnixDefineControl(
-	uiDateTimePicker						// type name
-)
+uiUnixControlAllDefaults(uiDateTimePicker)
 
 // TODO
 typedef int OSTHING;
@@ -22,11 +20,9 @@ uiDateTimePicker *finishNewDateTimePicker(OSTHING OSARG)
 {
 	uiDateTimePicker *d;
 
-	d = (uiDateTimePicker *) uiNewControl(uiDateTimePicker);
+	uiUnixNewControl(uiDateTimePicker, d);
 
 	d->widget = gtk_label_new("TODO uiDateTimePicker not implemented");
-
-	uiUnixFinishNewControl(d, uiDateTimePicker);
 
 	return d;
 }

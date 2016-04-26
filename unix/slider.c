@@ -11,9 +11,7 @@ struct uiSlider {
 	gulong onChangedSignal;
 };
 
-uiUnixDefineControl(
-	uiSlider								// type name
-)
+uiUnixControlAllDefaults(uiSlider)
 
 static void onChanged(GtkRange *range, gpointer data)
 {
@@ -50,7 +48,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	uiSlider *s;
 
-	s = (uiSlider *) uiNewControl(uiSlider);
+	uiUnixNewControl(uiSlider, s);
 
 	s->widget = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, min, max, 1);
 	s->range = GTK_RANGE(s->widget);
@@ -61,8 +59,6 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 
 	s->onChangedSignal = g_signal_connect(s->scale, "value-changed", G_CALLBACK(onChanged), s);
 	uiSliderOnChanged(s, defaultOnChanged, NULL);
-
-	uiUnixFinishNewControl(s, uiSlider);
 
 	return s;
 }

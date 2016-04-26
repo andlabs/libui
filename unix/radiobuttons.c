@@ -11,14 +11,9 @@ struct uiRadioButtons {
 	GPtrArray *buttons;
 };
 
-static void onDestroy(uiRadioButtons *);
+uiUnixControlAllDefaultsExceptDestroy(uiRadioButtons)
 
-uiUnixDefineControlWithOnDestroy(
-	uiRadioButtons,						// type name
-	onDestroy(this);						// on destroy
-)
-
-static void onDestroy(uiRadioButtons *r)
+static void uiRadioButtonsDestroy(uiControl *c)
 {
 	// TODO
 }
@@ -42,15 +37,13 @@ uiRadioButtons *uiNewRadioButtons(void)
 {
 	uiRadioButtons *r;
 
-	r = (uiRadioButtons *) uiNewControl(uiRadioButtons);
+	uiUnixNewControl(uiRadioButtons, r);
 
 	r->widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	r->container = GTK_CONTAINER(r->widget);
 	r->box = GTK_BOX(r->widget);
 
 	r->buttons = g_ptr_array_new();
-
-	uiUnixFinishNewControl(r, uiRadioButtons);
 
 	return r;
 }

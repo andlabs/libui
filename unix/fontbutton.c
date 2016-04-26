@@ -11,9 +11,7 @@ struct uiFontButton {
 	void *onChangedData;
 };
 
-uiUnixDefineControl(
-	uiFontButton							// type name
-)
+uiUnixControlAllDefaults(uiFontButton)
 
 // TODO NOTE no need to inhibit the signal; font-set is documented as only being sent when the user changes the font
 static void onFontSet(GtkFontButton *button, gpointer data)
@@ -50,7 +48,7 @@ uiFontButton *uiNewFontButton(void)
 {
 	uiFontButton *b;
 
-	b = (uiFontButton *) uiNewControl(uiFontButton);
+	uiUnixNewControl(uiFontButton, b);
 
 	b->widget = gtk_font_button_new();
 	b->button = GTK_BUTTON(b->widget);
@@ -67,8 +65,6 @@ uiFontButton *uiNewFontButton(void)
 
 	g_signal_connect(b->widget, "font-set", G_CALLBACK(onFontSet), b);
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
-
-	uiUnixFinishNewControl(b, uiFontButton);
 
 	return b;
 }

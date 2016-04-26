@@ -11,9 +11,7 @@ struct uiSpinbox {
 	gulong onChangedSignal;
 };
 
-uiUnixDefineControl(
-	uiSpinbox							// type name
-)
+uiUnixControlAllDefaults(uiSpinbox)
 
 static void onChanged(GtkSpinButton *sb, gpointer data)
 {
@@ -54,7 +52,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	if (min >= max)
 		complain("error: min >= max in uiNewSpinbox()");
 
-	s = (uiSpinbox *) uiNewControl(uiSpinbox);
+	uiUnixNewControl(uiSpinbox, s);
 
 	s->widget = gtk_spin_button_new_with_range(min, max, 1);
 	s->entry = GTK_ENTRY(s->widget);
@@ -65,8 +63,6 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	s->onChangedSignal = g_signal_connect(s->spinButton, "value-changed", G_CALLBACK(onChanged), s);
 	uiSpinboxOnChanged(s, defaultOnChanged, NULL);
-
-	uiUnixFinishNewControl(s, uiSpinbox);
 
 	return s;
 }

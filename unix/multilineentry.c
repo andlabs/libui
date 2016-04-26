@@ -16,9 +16,7 @@ struct uiMultilineEntry {
 	gulong onChangedSignal;
 };
 
-uiUnixDefineControl(
-	uiMultilineEntry						// type name
-)
+uiUnixControlAllDefaults(uiMultilineEntry)
 
 static void onChanged(GtkTextBuffer *textbuf, gpointer data)
 {
@@ -87,7 +85,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 {
 	uiMultilineEntry *e;
 
-	e = (uiMultilineEntry *) uiNewControl(uiMultilineEntry);
+	uiUnixNewControl(uiMultilineEntry, e);
 
 	e->widget = gtk_scrolled_window_new(NULL, NULL);
 	e->scontainer = GTK_CONTAINER(e->widget);
@@ -109,8 +107,6 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 
 	e->onChangedSignal = g_signal_connect(e->textbuf, "changed", G_CALLBACK(onChanged), e);
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
-
-	uiUnixFinishNewControl(e, uiMultilineEntry);
 
 	return e;
 }

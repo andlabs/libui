@@ -11,9 +11,7 @@ struct uiEntry {
 	gulong onChangedSignal;
 };
 
-uiUnixDefineControl(
-	uiEntry								// type name
-)
+uiUnixControlAllDefaults(uiEntry)
 
 static void onChanged(GtkEditable *editable, gpointer data)
 {
@@ -66,7 +64,7 @@ uiEntry *uiNewEntry(void)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) uiNewControl(uiEntry);
+	uiUnixNewControl(uiEntry, e);
 
 	e->widget = gtk_entry_new();
 	e->entry = GTK_ENTRY(e->widget);
@@ -74,8 +72,6 @@ uiEntry *uiNewEntry(void)
 
 	e->onChangedSignal = g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
-
-	uiUnixFinishNewControl(e, uiEntry);
 
 	return e;
 }

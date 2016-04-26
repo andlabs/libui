@@ -12,9 +12,7 @@ struct uiCheckbox {
 	gulong onToggledSignal;
 };
 
-uiUnixDefineControl(
-	uiCheckbox							// type name
-)
+uiUnixControlAllDefaults(uiCheckbox)
 
 static void onToggled(GtkToggleButton *b, gpointer data)
 {
@@ -68,7 +66,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 {
 	uiCheckbox *c;
 
-	c = (uiCheckbox *) uiNewControl(uiCheckbox);
+	uiUnixNewControl(uiCheckbox, c);
 
 	c->widget = gtk_check_button_new_with_label(text);
 	c->button = GTK_BUTTON(c->widget);
@@ -77,8 +75,6 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	c->onToggledSignal = g_signal_connect(c->widget, "toggled", G_CALLBACK(onToggled), c);
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);
-
-	uiUnixFinishNewControl(c, uiCheckbox);
 
 	return c;
 }

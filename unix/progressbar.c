@@ -7,9 +7,7 @@ struct uiProgressBar {
 	GtkProgressBar *pbar;
 };
 
-uiUnixDefineControl(
-	uiProgressBar							// type name
-)
+uiUnixControlAllDefaults(uiProgressBar)
 
 void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
@@ -22,12 +20,10 @@ uiProgressBar *uiNewProgressBar(void)
 {
 	uiProgressBar *p;
 
-	p = (uiProgressBar *) uiNewControl(uiProgressBar);
+	uiUnixNewControl(uiProgressBar, p);
 
 	p->widget = gtk_progress_bar_new();
 	p->pbar = GTK_PROGRESS_BAR(p->widget);
-
-	uiUnixFinishNewControl(p, uiProgressBar);
 
 	return p;
 }

@@ -93,9 +93,6 @@ extern void unregisterMessageFilter(void);
 extern void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect);
 extern BOOL handleParentMessages(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 
-// resize.cpp
-extern void doResizes(void);
-
 // d2dscratch.cpp
 extern ATOM registerD2DScratchClass(HICON hDefaultIcon, HCURSOR hDefaultCursor);
 extern void unregisterD2DScratchClass(void);

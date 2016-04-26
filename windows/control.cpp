@@ -1,6 +1,32 @@
 // 16 august 2015
 #include "uipriv_windows.hpp"
 
+void uiWindowsControlSyncEnableState(uiWindowsControl *c, int enabled)
+{
+	(*(c->SyncEnableState))(c, enabled);
+}
+
+void uiWindowsControlSetParentHWND(uiWindowsControl *c, HWND parent)
+{
+	(*(c->SetParentHWND))(c, parent);
+}
+
+void uiWindowsControlMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+{
+	(*(c->MinimumSize))(c, widdth, height);
+}
+
+void uiWindowsControlChildMinimumSizeChanged(uiWIndowsControl *c)
+{
+	(*(c->ChildMinimumSizeChanged))(c);
+}
+
+// TODO get the correct argument names from existing implemenations for here and ui_windows.h
+void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *cid, HWND *zorder)
+{
+	(*(c->AssignControlIDZorder))(c, cID, zorder);
+}
+
 HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont)
 {
 	HWND hwnd;
@@ -24,47 +50,19 @@ HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCW
 	return hwnd;
 }
 
-static void defaultCommitShow(uiControl *c)
-{
-	ShowWindow((HWND) uiControlHandle(c), SW_SHOW);
-}
-
-static void defaultCommitHide(uiControl *c)
-{
-	ShowWindow((HWND) uiControlHandle(c), SW_HIDE);
-}
-
-void osCommitEnable(uiControl *c)
-{
-	EnableWindow((HWND) uiControlHandle(c), TRUE);
-}
-
-void osCommitDisable(uiControl *c)
-{
-	EnableWindow((HWND) uiControlHandle(c), FALSE);
-}
-
-void uiWindowsFinishControl(uiControl *c)
-{
-	c->CommitShow = defaultCommitShow;
-	c->CommitHide = defaultCommitHide;
-}
-
-void uiWindowsRearrangeControlIDsZOrder(uiControl *c)
-{
-	uiWindowsControl *wc;
-
-	c = uiControlParent(c);
-	if (c == NULL)
-		return;
-	wc = uiWindowsControl(c);
-	(*(wc->ArrangeChildrenControlIDsZOrder))(wc);
-}
-
 // choose a value distinct from uiWindowSignature
 #define uiWindowsControlSignature 0x4D53576E
 
 uiWindowsControl *uiWindowsNewControl(size_t n, uint32_t typesig, const char *typenamestr)
 {
 	return uiWindowsControl(uiAllocControl(n, uiWindowsControlSignature, typesig, typenamestr));
+}
+
+void uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl *c)
+{
+	uiControl *parent;
+
+	parent = uiControlParent(uiControl(c));
+	if (parent != NULL)
+		uiWindowsControlChildMinimumSizeChanged(uiWindowsControl(parent));
 }

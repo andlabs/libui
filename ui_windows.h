@@ -211,10 +211,8 @@ struct uiWindowsSizing {
 	LONG InternalLeading;
 };
 _UI_EXTERN void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing);
-_UI_EXTERN void uiWindowsSizingDlgUnitsToPixels(HWND hwnd, uiWindowsSIzing *sizing, int *x, int *y);
-// TODO make private
-#define uiWindowsDlgUnitsToX(dlg, baseX) MulDiv((dlg), baseX, 4)
-#define uiWindowsDlgUnitsToY(dlg, baseY) MulDiv((dlg), baseY, 8)
+_UI_EXTERN void uiWindowsSizingDlgUnitsToPixels(uiWindowsSIzing *sizing, int *x, int *y);
+_UI_EXTERN void uiWindowsSizingStandardPadding(uiWindowsSizing *sizing, int *x, int *y);
 
 // TODO document
 _UI_EXTERN HWND uiWindowsMakeContainer(void (*onResize)(void *data), void *data);

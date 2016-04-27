@@ -15,10 +15,12 @@ void uiWindowsEnsureSetParentHWND(HWND hwnd, HWND parent)
 		logLastError(L"error setting window parent");
 }
 
-void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND insertAfter)
+void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR *controlID, HWND *insertAfter)
 {
-	SetWindowLongPtrW(hwnd, GWLP_ID, controlID);
-	setWindowInsertAfter(hwnd, insertAfter);
+	SetWindowLongPtrW(hwnd, GWLP_ID, *controlID);
+	(*controlID)++;
+	setWindowInsertAfter(hwnd, *insertAfter);
+	*insertAfter = hwnd;
 }
 
 void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height)

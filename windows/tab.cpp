@@ -184,9 +184,8 @@ uiWindowsDefaultAssignControlIDZorder(uiTab)
 
 static void tabArrangePages(uiTab *t)
 {
-	// TODO what should these be called and what should their initial values be? also update box, group, and window
-	LONG_PTR cID = 100;
-	HWND after = NULL;
+	LONG_PTR controlID = 100;
+	HWND insertAfter = NULL;
 
 	// TODO is this first or last?
 	uiWindowsEnsureAssignControlIDZOrder(t->tabHWND, &cid, &after);

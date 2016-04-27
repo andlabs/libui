@@ -21,10 +21,9 @@ void uiWindowsControlChildMinimumSizeChanged(uiWIndowsControl *c)
 	(*(c->ChildMinimumSizeChanged))(c);
 }
 
-// TODO get the correct argument names from existing implemenations for here and ui_windows.h
-void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *cid, HWND *zorder)
+void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter)
 {
-	(*(c->AssignControlIDZorder))(c, cID, zorder);
+	(*(c->AssignControlIDZorder))(c, controlID, insertAfter);
 }
 
 HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont)
@@ -65,4 +64,14 @@ void uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl *c)
 	parent = uiControlParent(uiControl(c));
 	if (parent != NULL)
 		uiWindowsControlChildMinimumSizeChanged(uiWindowsControl(parent));
+}
+
+void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *c)
+{
+	LONG_PTR controlID;
+	HWND insertAfter;
+
+	controlID = 100;
+	insertAfter = NULL;
+	uiWindowsControlAssignControlIDZorder(c, &controlID, &insertAfter);
 }

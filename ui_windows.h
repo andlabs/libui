@@ -221,6 +221,9 @@ _UI_EXTERN HWND uiWindowsMakeContainer(void (*onResize)(void *data), void *data)
 // TODO document
 _UI_EXTERN void uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl *);
 
+// TODO document
+_UI_EXTERN void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *);
+
 #ifdef __cplusplus
 }
 #endif

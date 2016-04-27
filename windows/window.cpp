@@ -275,9 +275,6 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 
 void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
-	LONG_PTR id;
-	HWND dummy;
-
 	if (w->child != NULL) {
 		uiControlSetParent(w->child, NULL);
 		uiWindowsControlSetParentHWND(uiWindowsControl(w->child), NULL);
@@ -286,9 +283,7 @@ void uiWindowSetChild(uiWindow *w, uiControl *child)
 	if (w->child != NULL) {
 		uiControlSetParent(w->child, uiControl(w));
 		uiWindowsControlSetParentHWND(uiWindowsControl(w->child), w->hwnd);
-		id = 100;
-		dummy = NULL;
-		uiWindowsControlAssignControlIDZOrder(uiWindowsControl(w->child), &id, &dummy);
+		uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl(w->child));
 		windowRelayout(w);
 	}
 }

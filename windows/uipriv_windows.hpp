@@ -12,7 +12,6 @@ enum {
 	msgCOMMAND = WM_APP + 0x40,		// start offset just to be safe
 	msgNOTIFY,
 	msgHSCROLL,
-	msgGetuiWindow,
 	msgQueued,
 	msgD2DScratchPaint,
 };

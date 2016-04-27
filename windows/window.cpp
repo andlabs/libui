@@ -7,20 +7,43 @@ struct uiWindow {
 	uiWindowsControl c;
 	HWND hwnd;
 	HMENU menubar;
-	struct child *child;
+	uiControl *child;
 	BOOL shownOnce;
+	int visible;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	int margined;
 	BOOL hasMenubar;
 };
 
-static void onDestroy(uiWindow *);
+static void windowRelayout(uiWindow *w)
+{
+	uiWindow *w = uiWindow(c);
+	uiWindowsSizing sizing;
+	int x, y, width, height;
+	RECT r;
+	int mx, my;
 
-uiWindowsDefineControlWithOnDestroy(
-	uiWindow,							// type name
-	onDestroy(me);						// on destroy
-)
+	if (w->child == NULL)
+		return;
+	x = 0;
+	y = 0;
+	if (GetClientRect(w->hwnd, &r) == 0)
+		/* TODO */;
+	width = r.right - r.left;
+	height = r.bottom - r.top;
+	if (w->margined) {
+		uiWindowsGetSizing(w->hwnd, &sizing);
+		mx = windowMargin;
+		my = windowMargin;
+		uiWindowsSizingDlgUnitsToPixels(&sizing, &mx, &my);
+		x += mx;
+		y += my;
+		width -= 2 * mx;
+		height -= 2 * my;
+	}
+	// TODO
+}
 
 static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -29,7 +52,6 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	MINMAXINFO *mmi = (MINMAXINFO *) lParam;
-	uiWindowsControl *c;
 	intmax_t width, height;
 	LRESULT lResult;
 
@@ -44,8 +66,6 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
 	switch (uMsg) {
-	case msgGetuiWindow:
-		return (LRESULT) w;
 	case WM_COMMAND:
 		// not a menu
 		if (lParam != 0)
@@ -57,17 +77,12 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
-		if (w->child != NULL)
-			childQueueRelayout(w->child);
+		windowRelayout(w);
 		return 0;
 	case WM_GETMINMAXINFO:
 		// ensure the user cannot resize the window smaller than its minimum size
 		lResult = DefWindowProcW(hwnd, uMsg, wParam, lParam);
-		c = uiWindowsControl(w);
-		// TODO why is this message being sent too early?
-		if (c->MinimumSize == NULL)
-			return lResult;
-		(*(c->MinimumSize))(c, NULL, &width, &height);
+		uiWindowsControlMinimumSize(uiWindowsControl(w), &width, &height);
 		// width and height are in client coordinates; ptMinTrackSize is in window coordinates
 		clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
 		mmi->ptMinTrackSize.x = width;
@@ -111,23 +126,52 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 0;
 }
 
-static void onDestroy(uiWindow *w)
-{
-	// first hide ourselves
-	ShowWindow(w->hwnd, SW_HIDE);
-	// now destroy the child
-	if (w->child != NULL)
-		childDestroy(w->child);
-	// now free the menubar, if any
-	if (w->menubar != NULL)
-		freeMenubar(w->menubar);
-}
-
-static void windowCommitShow(uiControl *c)
+static void uiWindowDestroy(uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
 
+	// TODO make sure all ports have the necessary verifications
+	// first hide ourselves
+	ShowWindow(w->hwnd, SW_HIDE);
+	// now destroy the child
+	if (w->child != NULL) {
+		uiControlSetParent(w->child, NULL);
+		uiControlDestroy(w->child);
+	}
+	// now free the menubar, if any
+	if (w->menubar != NULL)
+		freeMenubar(w->menubar);
+	// and finally free ourselves
+	uiWindowsEnsureDestroyWindow(w->hwnd);
+	uiFreeControl(uiControl(w));
+}
+
+uiWindowsControlDefaultHandle(uiWindow)
+// TODO?
+uiWindowsControlDefaultParent(uiWindow)
+uiWindowsControlDefaultSetParent(uiWindow)
+// end TODO
+
+static int uiWindowToplevel(uiControl *c)
+{
+	return 1;
+}
+
+// TODO initial state of windows is hidden; ensure this here and make it so on other platforms
+static int uiWindowVisible(uiControl *c)
+{
+	uiWindow *w = uiWindow(c);
+
+	return w->visible;
+}
+
+static void uiWindowShow(uiControl *c)
+{
+	uiWindow *w = uiWindow(c);
+
+	w->visible = 1;
 	// just in case this wasn't called already
+	// TODO is it needed?
 	ensureMinimumWindowSize(w);
 	if (w->shownOnce) {
 		ShowWindow(w->hwnd, SW_SHOW);
@@ -141,58 +185,70 @@ static void windowCommitShow(uiControl *c)
 		logLastError(L"error calling UpdateWindow() after showing uiWindow for the first time");
 }
 
-static void windowContainerUpdateState(uiControl *c)
+static void uiWindowHide(uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
 
-	if (w->child != NULL)
-		childUpdateState(w->child);
+	w->visible = 0;
+	ShowWindow(w->hwnd, SW_HIDE);
 }
+
+// TODO we don't want the window to be disabled completely; that would prevent it from being moved! ...would it?
+uiWindowsControlDefaultEnabled(uiWindow)
+uiWindowsControlDefaultEnable(uiWindow)
+uiWindowsControlDefaultDisable(uiWindow)
+// TODO we need to do something about undocumented fields in the OS control types
+uiWindowsControlDefaultSyncEnableState(uiWindow)
+// TODO
+uiWindowsControlDefaultSetParentHWND(uiWindow)
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define windowMargin 7
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiWindowMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiWindow *w = uiWindow(c);
+	uiWindowsSizing sizing;
+	int mx, my;
 
 	*width = 0;
 	*height = 0;
-	d = uiWindowsNewSizing(w->hwnd);
 	if (w->child != NULL)
-		childMinimumSize(w->child, d, width, height);
+		uiWindowsControlMinimumSize(uiWindowsControl(w->child), width, height);
 	if (w->margined) {
-		*width += 2 * uiWindowsDlgUnitsToX(windowMargin, d->BaseX);
-		*height += 2 * uiWindowsDlgUnitsToY(windowMargin, d->BaseY);
+		uiWindowsGetSizing(w->hwnd, &sizing);
+		mx = windowMargin;
+		my = windowMargin;
+		uiWindowsSizingDlgUnitsToPixels(&sizing, &mx, &my);
+		*width += 2 * mx;
+		*height += 2 * my;
 	}
 	uiWindowsFreeSizing(d);
 }
 
-static void windowRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+static void uiWindowChildMinimumSizeChanged(uiWindowsControl *c)
 {
 	uiWindow *w = uiWindow(c);
-	uiWindowsSizing *d;
+	intmax_t width, height;
+	RECT r;
+	BOOL needsGrowing;
 
-	if (w->child == NULL)
-		return;
-	d = uiWindowsNewSizing(w->hwnd);
-	if (w->margined) {
-		x += uiWindowsDlgUnitsToX(windowMargin, d->BaseX);
-		y += uiWindowsDlgUnitsToY(windowMargin, d->BaseY);
-		width -= 2 * uiWindowsDlgUnitsToX(windowMargin, d->BaseX);
-		height -= 2 * uiWindowsDlgUnitsToY(windowMargin, d->BaseY);
-	}
-	childRelayout(w->child, x, y, width, height);
-	uiWindowsFreeSizing(d);
+	uiWindowsControlMinimumSize(uiWindowsControl(w->child), &width, &height);
+	if (GetClientRect(w->hwnd, &r) == 0)
+		/* TODO */;
+	// TODO discount margins
+	needsGrowing = FALSE;
+	if ((r.right - r.left) < width)
+		needsGrowing = TRUE;
+	if ((r.bottom - r.top) < height)
+		needsGrowing = TRUE;
+	if (needsGrowing)
+		/* TODO */;
 }
 
-static void windowArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
-{
-	uiWindow *w = uiWindow(c);
+uiWindowsDefaultAssignControlIDZorder(uiWindow)
 
-	if (w->child != NULL)
-		childSetSoleControlID(w->child);
-}
+///////// TODO CONTINUE HERE
 
 char *uiWindowTitle(uiWindow *w)
 {

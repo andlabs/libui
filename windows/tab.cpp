@@ -188,6 +188,7 @@ static void tabArrangePages(uiTab *t)
 	LONG_PTR cID = 100;
 	HWND after = NULL;
 
+	// TODO is this first or last?
 	uiWindowsEnsureAssignControlIDZOrder(t->tabHWND, &cid, &after);
 	for (struct tabPage *&page : *(t->pages))
 		uiWindowsEnsureAssignControlIDZOrder(page->hwnd, &cid, &after);

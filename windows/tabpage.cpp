@@ -3,22 +3,39 @@
 
 // TODO refine error handling
 
-// This just defines the implementation of the tab page HWND itself.
-// The actual work of hosting a tab page's control is in child.c.
-
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define tabMargin 7
 
-void tabPageMargins(HWND hwnd, intmax_t *left, intmax_t *top, intmax_t *right, intmax_t *bottom)
+static void tabPageMargins(struct tabPage *tp, int *mx, int *my)
 {
-	uiWindowsSizing *d;
+	uiWindowsSizing sizing;
 
-	d = uiWindowsNewSizing(hwnd);
-	*left = uiWindowsDlgUnitsToX(tabMargin, d->BaseX);
-	*top = uiWindowsDlgUnitsToY(tabMargin, d->BaseY);
-	*right = *left;
-	*bottom = *top;
-	uiWindowsFreeSizing(d);
+	*mx = 0;
+	*my = 0;
+	if (!tp->margined)
+		return;
+	uiWindowsGetSizing(tp->hwnd, &sizing);
+	*mx = tabMargin;
+	*my = tabMargin;
+	uiWindowsSizingDlgUnitsToPixels(&sizing, mx, my);
+}
+
+static void tabRelayout(struct tabPage *tp)
+{
+	RECT r;
+	int mx, my;
+	HWND child;
+
+	if (tp->child == NULL)
+		return;
+	getClientRect(tp->hwnd, &r);
+	tabPageMargins(tp, &mx, &my);
+	r.left += mx;
+	r.right += my;
+	r.right -= 2 * mx;
+	r.bottom -= 2 * my;
+	child = (HWND) uiControlHandle(tp->child);
+	uiWindowsEnsureMoveWindowDuringResize(child, r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 
 // dummy dialog procedure; see below for details
@@ -27,12 +44,26 @@ void tabPageMargins(HWND hwnd, intmax_t *left, intmax_t *top, intmax_t *right, i
 // TODO we definitely need to do something about edit message handling; it does a fake close of our parent on pressing escape, causing uiWindow to stop responding to maximizes but still respond to events and then die horribly on destruction
 static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	struct tabPage *tp;
 	LRESULT lResult;
 
+	if (uMsg == WM_INITDIALOG) {
+		tp = (struct tabPage *) lParam;
+		tp->hwnd = hwnd;
+		SetWindowLongPtrW(hwnd, DWLP_USERDATA, (LONG_PTR) tp);
+		return TRUE;
+	}
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE) {
 		SetWindowLongPtrW(hwnd, DWLP_MSGRESULT, (LONG_PTR) lResult);
 		return TRUE;
 	}
+	if (uMsg == WM_WINDOWPOSCHANGED) {
+		tp = (struct tabPage *) GetWindowLongPtrW(hwnd, DWLP_USERDATA);
+		tabPageRelayout(tp);
+		// pretend the dialog hasn't handled this just in case it needs to do something special
+		return FALSE;
+	}
+
 	// unthemed dialogs don't respond to WM_PRINTCLIENT
 	// fortunately they don't have any special painting
 	if (uMsg == WM_PRINTCLIENT) {
@@ -43,28 +74,52 @@ static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		// TODO see if w ecan avoid erasing the background in this case in the first place, or if we even need to
 		return FALSE;
 	}
-	if (uMsg == WM_INITDIALOG)
-		return TRUE;
+
 	return FALSE;
 }
 
-HWND newTabPage(void)
+struct tabPage *newTabPage(uiControl *child)
 {
-	HWND hwnd;
+	struct tabPage *tp;
 	HRESULT hr;
 
+	tp = uiNew(struct tabPage);
+
 	// unfortunately this needs to be a proper dialog for EnableThemeDialogTexture() to work; CreateWindowExW() won't suffice
-	hwnd = CreateDialogW(hInstance, MAKEINTRESOURCE(rcTabPageDialog),
-		utilWindow, dlgproc);
-	if (hwnd == NULL)
+	if (CreateDialogParamW(hInstance, MAKEINTRESOURCE(rcTabPageDialog),
+		utilWindow, dlgproc, tp) == NULL)
 		logLastError(L"error creating tab page");
 
-	hr = EnableThemeDialogTexture(hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);
+	tp->child = child;
+	uiControlSetParentHWND(uiWindowsControl(tp->child), tp->hwnd);
+
+	hr = EnableThemeDialogTexture(tp->hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);
 	if (hr != S_OK)
 		logHRESULT(L"error setting tab page background", hr);
+		// continue anyway; it'll look wrong but eh
 
 	// and start the tab page hidden
-	ShowWindow(hwnd, SW_HIDE);
+	ShowWindow(tp->hwnd, SW_HIDE);
 
-	return hwnd;
+	return tp;
+}
+
+void tabPageDestroy(struct tabPage *tp)
+{
+	// TODO call EndDialog() instead?
+	uiWindowsEnsureDestroyWindow(tp->hwnd);
+	uiFree(tp);
+}
+
+void tabPageMinimumSize(struct tabPage *tp, intmax_t *width, intmax_t *height)
+{
+	int mx, my;
+
+	*width = 0;
+	*height = 0;
+	if (tp->child != NULL)
+		uiWindowsControlMinimumSize(uiWindowsControl(tp->child), width, height);
+	tabPageMargins(tp, &mx, &my);
+	*width += 2 * mx;
+	*height += 2 * my;
 }

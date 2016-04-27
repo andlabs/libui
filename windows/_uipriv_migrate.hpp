@@ -6,10 +6,6 @@ extern void runMenuEvent(WORD, uiWindow *);
 extern void freeMenubar(HMENU);
 extern void uninitMenus(void);
 
-// tabpage.c
-extern void tabPageMargins(HWND, intmax_t *, intmax_t *, intmax_t *, intmax_t *);
-extern HWND newTabPage(void);
-
 // draw.c
 extern HRESULT initDraw(void);
 extern void uninitDraw(void);

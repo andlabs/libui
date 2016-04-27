@@ -118,6 +118,18 @@ extern void ensureMinimumWindowSize(uiWindow *);
 extern ATOM initContainer(HICON, HCURSOR);
 extern void uninitContainer(void);
 
+// tabpage.cpp
+struct tabPage {
+	HWND hwnd;
+	uiControl *child;
+	BOOL margined;
+};
+extern struct tabPage *newTabPage(uiControl *child);
+extern void tabPageDestroy(struct tabPage *tp);
+extern void tabPageMinimumSize(struct tabPage *tp, intmax_t *width, intmax_t *height);
+
+
+
 
 // TODO
 #include "_uipriv_migrate.hpp"

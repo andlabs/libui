@@ -5,16 +5,38 @@
 // - uiBox
 // - uiRadioButtons
 
+struct containerInit {
+	void (*onResize)(void *data);
+	void *data;
+};
+
 static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	RECT r;
 	HDC dc;
 	PAINTSTRUCT ps;
+	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
+	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+	struct containerInit *init;
+	void (*onResize)(void *);
+	void *data;
 	LRESULT lResult;
 
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
 	switch (uMsg) {
+	case WM_CREATE:
+		init = (struct containerInit *) (cs->lpParam);
+		SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (init->onResize));
+		SetWindowLongPtrW(hwnd, 0, (LONG_PTR) (init->data));
+		break;		// defer to DefWindowProc()
+	case WM_WINDOWPOSCHANGED:
+		if ((wp->flags & SWP_NOSIZE) != 0)
+			break;	// defer to DefWindowProc();
+		onResize = (void (*)(void *)) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+		data = (void *) GetWindowLongPtrW(hwnd, 0);
+		(*(onResize))(data);
+		return 0;
 	case WM_PAINT:
 		dc = BeginPaint(hwnd, &ps);
 		if (dc == NULL) {
@@ -54,6 +76,7 @@ ATOM initContainer(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	wc.hIcon = hDefaultIcon;
 	wc.hCursor = hDefaultCursor;
 	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
+	wc.cbWndExtra = sizeof (void *);
 	return RegisterClassW(&wc);
 }
 
@@ -63,11 +86,16 @@ void uninitContainer(void)
 		logLastError(L"error unregistering container window class");
 }
 
-HWND newContainer(void)
+HWND uiWindowsMakeContainer(void (*onResize)(void *data), void *data)
 {
+	struct containerInit init;
+
+	// TODO onResize cannot be NULL
+	init.onResize = onResize;
+	init.data = data;
 	return uiWindowsEnsureCreateControlHWND(WS_EX_CONTROLPARENT,
 		containerClass, L"",
 		0,
-		hInstance, NULL,
+		hInstance, (LPVOID) (&init),
 		FALSE);
 }

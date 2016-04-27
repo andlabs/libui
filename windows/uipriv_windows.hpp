@@ -115,7 +115,6 @@ extern void ensureMinimumWindowSize(uiWindow *);
 #define containerClass L"libui_uiContainerClass"
 extern ATOM initContainer(HICON, HCURSOR);
 extern void uninitContainer(void);
-extern HWND newContainer(void);
 
 
 // TODO

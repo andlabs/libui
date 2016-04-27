@@ -40,6 +40,7 @@ static void windowRelayout(uiWindow *w)
 	int x, y, width, height;
 	RECT r;
 	int mx, my;
+	HWND child;
 
 	if (w->child == NULL)
 		return;
@@ -53,7 +54,8 @@ static void windowRelayout(uiWindow *w)
 	y += my;
 	width -= 2 * mx;
 	height -= 2 * my;
-	// TODO
+	child = (HWND) uiControlHandle(w->child);
+	uiWindowsEnsureMoveWindowDuringResize(child, x, y, width, height);
 }
 
 static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

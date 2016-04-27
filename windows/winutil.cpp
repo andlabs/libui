@@ -76,26 +76,6 @@ void setExStyle(HWND hwnd, DWORD exstyle)
 	SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (LONG_PTR) exstyle);
 }
 
-void uiWindowsEnsureDestroyWindow(HWND hwnd)
-{
-	if (DestroyWindow(hwnd) == 0)
-		logLastError(L"error destroying window");
-}
-
-// TODO allow passing NULL to indicate no parent
-// this would allow for custom containers
-void uiWindowsEnsureSetParent(HWND hwnd, HWND parent)
-{
-	if (SetParent(hwnd, parent) == 0)
-		logLastError(L"error setting window parent");
-}
-
-void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR controlID, HWND insertAfter)
-{
-	SetWindowLongPtrW(hwnd, GWLP_ID, controlID);
-	setWindowInsertAfter(hwnd, insertAfter);
-}
-
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
 void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL hasMenubar)
 {
@@ -133,18 +113,6 @@ HWND parentOf(HWND child)
 HWND parentToplevel(HWND child)
 {
 	return GetAncestor(child, GA_ROOT);
-}
-
-void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
-{
-	RECT r;
-
-	r.left = x;
-	r.top = y;
-	r.right = x + width;
-	r.bottom = y + height;
-	if (SetWindowPos(hwnd, NULL, r.left, r.top, r.right - r.left, r.bottom - r.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOZORDER) == 0)
-		logLastError(L"error moving window");
 }
 
 void setWindowInsertAfter(HWND hwnd, HWND insertAfter)

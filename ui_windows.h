@@ -106,7 +106,7 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 #define uiWindowsControlDefaultSetParentHWND(type) \
 	static void type ## SetParentHWND(uiWindowsControl *c, HWND parent) \
 	{ \
-		uiWindowsEnsureSetParent(type(c)->hwnd, parent); \
+		uiWindowsEnsureSetParentHWND(type(c)->hwnd, parent); \
 	}
 // note that there is no uiWindowsControlDefaultMinimumSize(); you MUST define this yourself!
 #define uiWindowsDefaultChildMinimumSizeChanged(type) \
@@ -171,7 +171,7 @@ _UI_EXTERN HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClas
 _UI_EXTERN void uiWindowsEnsureDestroyWindow(HWND hwnd);
 
 // TODO document
-_UI_EXTERN void uiWindowsEnsureSetParent(HWND hwnd, HWND parent);
+_UI_EXTERN void uiWindowsEnsureSetParentHWND(HWND hwnd, HWND parent);
 
 // TODO document
 _UI_EXTERN void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR *controlID, HWND *insertAfter);

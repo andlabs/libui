@@ -44,6 +44,7 @@ CXXFILES += \
 	windows/utf16.cpp \
 	windows/utilwin.cpp \
 	windows/window.cpp \
+	windows/winpublic.cpp \
 	windows/winutil.cpp
 
 HFILES += \

@@ -13,6 +13,7 @@ enum {
 	msgNOTIFY,
 	msgHSCROLL,
 	msgQueued,
+	// TODO convert to a function like with container
 	msgD2DScratchPaint,
 };
 

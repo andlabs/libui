@@ -51,7 +51,7 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 	if (ReleaseDC(hwnd, dc) == 0)
 		logLastError(L"error releasing DC for finding DPI");
 
-	if (GetClientRect(hwnd, &r) == 0)
+	if (getClientRect(hwnd, &r) == 0)
 		logLastError(L"error getting current size of window");
 
 	ZeroMemory(&hprops, sizeof (D2D1_HWND_RENDER_TARGET_PROPERTIES));

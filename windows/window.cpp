@@ -16,6 +16,23 @@ struct uiWindow {
 	BOOL hasMenubar;
 };
 
+// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
+#define windowMargin 7
+
+static void windowMargins(uiWindow *w, int *mx, int *my)
+{
+	uiWindowsSizing sizing;
+
+	*mx = 0;
+	*my = 0;
+	if (!w->margined)
+		return;
+	uiWindowsGetSizing(w->hwnd, &sizing);
+	*mx = windowMargin;
+	*my = windowMargin;
+	uiWindowsSizingDlgUnitsToPixels(&sizing, mx, my);
+}
+
 static void windowRelayout(uiWindow *w)
 {
 	uiWindow *w = uiWindow(c);
@@ -28,20 +45,14 @@ static void windowRelayout(uiWindow *w)
 		return;
 	x = 0;
 	y = 0;
-	if (GetClientRect(w->hwnd, &r) == 0)
-		/* TODO */;
+	getClientRect(w->hwnd, &r);
 	width = r.right - r.left;
 	height = r.bottom - r.top;
-	if (w->margined) {
-		uiWindowsGetSizing(w->hwnd, &sizing);
-		mx = windowMargin;
-		my = windowMargin;
-		uiWindowsSizingDlgUnitsToPixels(&sizing, &mx, &my);
-		x += mx;
-		y += my;
-		width -= 2 * mx;
-		height -= 2 * my;
-	}
+	windowMargins(w, &mx, &my);
+	x += mx;
+	y += my;
+	width -= 2 * mx;
+	height -= 2 * my;
 	// TODO
 }
 
@@ -202,9 +213,6 @@ uiWindowsControlDefaultSyncEnableState(uiWindow)
 // TODO
 uiWindowsControlDefaultSetParentHWND(uiWindow)
 
-// from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define windowMargin 7
-
 static void uiWindowMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiWindow *w = uiWindow(c);
@@ -215,15 +223,9 @@ static void uiWindowMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *
 	*height = 0;
 	if (w->child != NULL)
 		uiWindowsControlMinimumSize(uiWindowsControl(w->child), width, height);
-	if (w->margined) {
-		uiWindowsGetSizing(w->hwnd, &sizing);
-		mx = windowMargin;
-		my = windowMargin;
-		uiWindowsSizingDlgUnitsToPixels(&sizing, &mx, &my);
-		*width += 2 * mx;
-		*height += 2 * my;
-	}
-	uiWindowsFreeSizing(d);
+	windowMargins(w, &mx, &my);
+	*width += 2 * mx;
+	*height += 2 * my;
 }
 
 static void uiWindowChildMinimumSizeChanged(uiWindowsControl *c)
@@ -232,23 +234,27 @@ static void uiWindowChildMinimumSizeChanged(uiWindowsControl *c)
 	intmax_t width, height;
 	RECT r;
 	BOOL needsGrowing;
+	int mx, my;
 
 	uiWindowsControlMinimumSize(uiWindowsControl(w->child), &width, &height);
-	if (GetClientRect(w->hwnd, &r) == 0)
-		/* TODO */;
+	windowMargns(w, &mx, &my);
+	width += 2 * mx;
+	height += 2 * my;
+	getClientRect(w->hwnd, &r);
 	// TODO discount margins
 	needsGrowing = FALSE;
 	if ((r.right - r.left) < width)
 		needsGrowing = TRUE;
 	if ((r.bottom - r.top) < height)
 		needsGrowing = TRUE;
-	if (needsGrowing)
-		/* TODO */;
+	if (!needsGrowing)
+		return;
+	// TODO figure out what to do with this function
+	// maybe split it into two so WM_GETMINMAXINFO can use it?
+	ensureMinimumWindowSize(w);
 }
 
 uiWindowsDefaultAssignControlIDZorder(uiWindow)
-
-///////// TODO CONTINUE HERE
 
 char *uiWindowTitle(uiWindow *w)
 {
@@ -269,12 +275,21 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 
 void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
-	if (w->child != NULL)
-		childRemove(w->child);
-	w->child = newChild(child, uiControl(w), w->hwnd);
+	LONG_PTR id;
+	HWND dummy;
+
 	if (w->child != NULL) {
-		childSetSoleControlID(w->child);
-		childQueueRelayout(w->child);
+		uiControlSetParent(w->child, NULL);
+		uiWindowsControlSetParentHWND(uiWindowsControl(w->child), NULL);
+	}
+	w->child = child;
+	if (w->child != NULL) {
+		uiControlSetParent(w->child, uiControl(w));
+		uiWindowsControlSetParentHWND(uiWindowsControl(w->child), w->hwnd);
+		id = 100;
+		dummy = NULL;
+		uiWindowsControlAssignControlIDZOrder(uiWindowsControl(w->child), &id, &dummy);
+		windowRelayout(w);
 	}
 }
 
@@ -286,7 +301,7 @@ int uiWindowMargined(uiWindow *w)
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	uiWindowsControlQueueRelayout(uiWindowsControl(w));
+	windowRelayout(w);
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
@@ -319,7 +334,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	WCHAR *wtitle;
 	BOOL hasMenubarBOOL;
 
-	w = (uiWindow *) uiNewControl(uiWindow);
+	uiWindowsNewControl(uiWindow, w);
 
 	hasMenubarBOOL = FALSE;
 	if (hasMenubar)
@@ -354,26 +369,17 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 
-	uiWindowsFinishNewControl(w, uiWindow);
-	uiControl(w)->CommitShow = windowCommitShow;
-	uiControl(w)->ContainerUpdateState = windowContainerUpdateState;
-	uiWindowsControl(w)->Relayout = windowRelayout;
-	uiWindowsControl(w)->ArrangeChildrenControlIDsZOrder = windowArrangeChildrenControlIDsZOrder;
-
 	return w;
 }
 
 // this cannot queue a resize because it's called by the resize handler
 void ensureMinimumWindowSize(uiWindow *w)
 {
-	uiWindowsControl *c;
 	intmax_t width, height;
 	RECT r;
 
-	c = uiWindowsControl(w);
-	(*(c->MinimumSize))(c, NULL, &width, &height);
-	if (GetClientRect(w->hwnd, &r) == 0)
-		logLastError(L"error getting client rect");
+	uiWindowsControlMinimumSize(uiWindowsControl(w), &width, &height);
+	getClientRect(w->hwnd, &r);
 	if (width < (r.right - r.left))		// preserve width if larger
 		width = r.right - r.left;
 	if (height < (r.bottom - r.top))		// preserve height if larger

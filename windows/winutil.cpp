@@ -120,3 +120,28 @@ void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
 	if (SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE) == 0)
 		logLastError(L"error reordering window");
 }
+
+// do these function even error out in any case other than invalid parameters?! I thought all windows had rects
+void getClientRect(HWND hwnd, RECT *r)
+{
+	if (GetClientRect(hwnd, r) == 0) {
+		logLastError(L"error getting window client rect");
+		// zero out the rect on error just to be safe
+		r->left = 0;
+		r->top = 0;
+		r->right = 0;
+		r->bottom = 0;
+	}
+}
+
+void getWindowRect(HWND hwnd, RECT *r)
+{
+	if (GetWindowRect(hwnd, r) == 0) {
+		logLastError(L"error getting window rect");
+		// zero out the rect on error just to be safe
+		r->left = 0;
+		r->top = 0;
+		r->right = 0;
+		r->bottom = 0;
+	}
+}

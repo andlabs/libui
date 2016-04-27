@@ -66,6 +66,8 @@ extern void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height,
 extern HWND parentOf(HWND child);
 extern HWND parentToplevel(HWND child);
 extern void setWindowInsertAfter(HWND hwnd, HWND insertAfter);
+extern void getClientRect(HWND, RECT *);
+extern void getWindowRect(HWND, RECT *);
 
 // text.cpp
 extern WCHAR *windowTextAndLen(HWND hwnd, LRESULT *len);

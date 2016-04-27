@@ -495,7 +495,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	samplePlacement = GetDlgItem(f->hwnd, rcFontSamplePlacement);
 	if (samplePlacement == NULL)
 		logLastError(L"error getting sample placement static control handle");
-	if (GetWindowRect(samplePlacement, &(f->sampleRect)) == 0)
+	if (getWindowRect(samplePlacement, &(f->sampleRect)) == 0)
 		logLastError(L"error getting sample placement");
 	mapWindowRect(NULL, f->hwnd, &(f->sampleRect));
 	uiWindowsEnsureDestroyWindow(samplePlacement);

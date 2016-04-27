@@ -8,38 +8,82 @@
 
 struct uiTab {
 	uiWindowsControl c;
-	HWND hwnd;
-	struct ptrArray *pages;
+	HWND hwnd;			// of the outer container
+	HWND tabHWND;		// of the tab control itself
+	std::vector<struct tabPage *> *pages;
 	HWND parent;
 };
-
-static void onDestroy(uiTab *);
-
-uiWindowsDefineControlWithOnDestroy(
-	uiTab,								// type name
-	onDestroy(me);						// on destroy
-)
 
 // utility functions
 
 static LRESULT curpage(uiTab *t)
 {
-	return SendMessageW(t->hwnd, TCM_GETCURSEL, 0, 0);
+	return SendMessageW(t->tabHWND, TCM_GETCURSEL, 0, 0);
+}
+
+static struct tabPage *tabPage(uiTab *t, intmax_t i)
+{
+	return (*(t->pages))[i];
+}
+
+static void tabPageRect(uiTab *t, RECT *r)
+{
+	RECT r;
+
+	// this rect needs to be in parent window coordinates, but TCM_ADJUSTRECT wants a window rect, which is screen coordinates
+	// because we have each page as a sibling of the tab, use the tab's own rect as the input rect
+	getWindowRect(t->tabHWND, &r);
+	SendMessageW(t->tabHWND, TCM_ADJUSTRECT, (WPARAM) FALSE, (LPARAM) (&r));
+	// and get it in terms of the container instead of the screen
+	mapWindowRect(NULL, t->hwnd, &r);
+}
+
+static BOOL tabNeedsGrowing(uiTab *t)
+{
+	intmax_t pageMinWidth, pageMinHeight;
+	RECT r;
+
+	if (t->pages()->size() == 0)
+		return FALSE;
+	tabPageMinimumSize(tabPage(t, curpage(t)), &pageMinWidth, &pageMinHeight);
+	tabPageRect(t, &r);
+	if ((r.right - r.left) < pageMinWidth)
+		return TRUE;
+	if ((r.bottom - r.top) < pageMinHeight)
+		return TRUE;
+	return FALSE;
+}
+
+static void tabRelayout(uiTab *t)
+{
+	struct tabPage *page;
+	RECT r;
+
+	if (t->pages->size() == 0)
+		return;
+	page = tabPage(t, curpage(t));
+	tabPageRect(t, &r);
+	uiWindowsEnsureMoveWindowDuringResize(page->hwnd, r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 
 static void showHidePage(uiTab *t, LRESULT which, int hide)
 {
-	struct child *page;
+	struct tabPage *page;
 
 	if (which == (LRESULT) (-1))
 		return;
-	page = ptrArrayIndex(t->pages, struct child *, which);
+	page = tabPage(t, which);
 	if (hide)
-		ShowWindow(childTabPage(page), SW_HIDE);
+		ShowWindow(page->hwnd, SW_HIDE);
 	else {
-		ShowWindow(childTabPage(page), SW_SHOW);
-		// we only resize the current page, so we have to do this here
-		childQueueRelayout(page);
+		ShowWindow(page->hwnd, SW_SHOW);
+		// we only resize the current page, so we have to resize it; before we can do that, we need to make sure we are of the right size
+		if (tabNeedsGrowing(t))
+			// it will be laid out as a result of the following
+			uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl(t));
+		else		// it can fit; just do it in place
+			// TODO DuringResize semantics
+			tabRelayout(t);
 	}
 }
 
@@ -58,50 +102,63 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 	return TRUE;
 }
 
-static void onDestroy(uiTab *t)
-{
-	struct child *page;
-
-	while (t->pages->len != 0) {
-		page = ptrArrayIndex(t->pages, struct child *, 0);
-		ptrArrayDelete(t->pages, 0);
-		childDestroy(page);
-	}
-	ptrArrayDestroy(t->pages);
-	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
-}
-
-static void tabCommitSetParent(uiWindowsControl *c, HWND parent)
+static void uiTabDestroy(uiControl *c)
 {
 	uiTab *t = uiTab(c);
-	struct child *page;
-	HWND pagehwnd;
-	uintmax_t i;
+	uiControl *child;
 
-	t->parent = parent;
-	uiWindowsEnsureSetParent(t->hwnd, t->parent);
-	for (i = 0; i < t->pages->len; i++) {
-		page = ptrArrayIndex(t->pages, struct child *, i);
-		pagehwnd = childTabPage(page);
-		uiWindowsEnsureSetParent(pagehwnd, t->parent);
+	for (struc ttabPage *&page : *(t->pages)) {
+		child = page->child;
+		tabPageDestroy(page);
+		if (child != NULL) {
+			uiControlSetParent(child, NULL);
+			uiControlDestroy(child);
+		}
 	}
-	uiWindowsRearrangeControlIDsZOrder(uiControl(t));
+	delete t->pages;
+	uiWindowsUnregisterWM_NOTIFYHandler(t->tabHWND);
+	uiWindowsEnsureDestroyWindow(t->tabHWND);
+	uiWindowsEnsureDestroyWindow(t->hwnd);
+	uiFreeControl(uiControl(t));
 }
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+uiWindowsControlDefaultHandle(uiTab)
+uiWindowsControlDefaultParent(uiTab)
+uiWindowsControlDefaultSetParent(uiTab)
+uiWindowsControlDefaultToplevel(uiTab)
+uiWindowsControlDefaultVisible(uiTab)
+uiWindowsControlDefaultShow(uiTab)
+uiWindowsControlDefaultHide(uiTab)
+uiWindowsControlDefaultEnabled(uiTab)
+uiWindowsControlDefaultEnable(uiTab)
+uiWindowsControlDefaultDisable(uiTab)
+
+static void uiTabSyncEnableState(uiWindowsControl *c, int enabled)
+{
+	uiTab *t = uiTab(c);
+
+	if (uiWindowsShouldStopSyncEnableState(uiWindowsControl(t), enabled))
+		return;
+	EnableWindow(t->tabHWND, enabled);
+	for (struct tabPage *&page : *(t->pages))
+		if (page->child != NULL)
+			uiWindowsControlSyncEnableState(uiWindowsControl(page->child), enabled);
+}
+
+uiWindowsControlDefaultSetParentHWND(uiTab)
+
+static void uiTabMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiTab *t = uiTab(c);
 	intmax_t pagewid, pageht;
-	struct child *page;
-	LRESULT n;
+	struct tabPage *page;
 	RECT r;
 
 	// only consider the current page
 	pagewid = 0;
 	pageht = 0;
-	n = curpage(t);
-	if (n != (LRESULT) (-1)) {
-		page = ptrArrayIndex(t->pages, struct child *, n);
+	if (t->pages->size() != 0) {
+		page = tabPage(t, curpage(t));
 		childMinimumSize(page, d, &pagewid, &pageht);
 	}
 
@@ -115,65 +172,35 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 	*height = r.bottom - r.top;
 }
 
-static void tabRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+static void uiTabChildMinimumSizeChanged(uiWindowsControl *c)
 {
 	uiTab *t = uiTab(c);
-	LRESULT n;
-	struct child *page;
-	RECT r;
 
-	uiWindowsEnsureMoveWindowDuringResize(t->hwnd, x, y, width, height);
-	n = curpage(t);
-	if (n == (LRESULT) (-1))
-		return;
-	page = ptrArrayIndex(t->pages, struct child *, n);
-
-	// now we need to figure out what rect the child goes
-	// this rect needs to be in parent window coordinates, but TCM_ADJUSTRECT wants a window rect, which is screen coordinates
-	// because we have each page as a sibling of the tab, use the tab's own rect as the input rect
-	r.left = x;
-	r.top = y;
-	r.right = x + width;
-	r.bottom = y + height;
-	mapWindowRect(t->hwnd, NULL, &r);
-	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) FALSE, (LPARAM) (&r));
-	mapWindowRect(NULL, t->hwnd, &r);
-
-	childRelayout(page, r.left, r.top, r.right - r.left, r.bottom - r.top);
+	if (tabNeedsGrowing(t))
+		uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl(t));
 }
 
-static void tabContainerUpdateState(uiControl *c)
+uiWindowsDefaultAssignControlIDZorder(uiTab)
+
+static void tabArrangePages(uiTab *t)
 {
-	uiTab *t = uiTab(c);
-	struct child *page;
-	uintmax_t i;
+	// TODO what should these be called and what should their initial values be? also update box, group, and window
+	LONG_PTR cID = 100;
+	HWND after = NULL;
 
-	for (i = 0; i < t->pages->len; i++) {
-		page = ptrArrayIndex(t->pages, struct child *, i);
-		childUpdateState(page);
-	}
-}
-
-static void tabArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
-{
-	uiTab *t = uiTab(c);
-	struct child *page;
-	uintmax_t i;
-
-	for (i = 0; i < t->pages->len; i++) {
-		page = ptrArrayIndex(t->pages, struct child *, i);
-		childSetSoleControlID(page);
-	}
+	uiWindowsEnsureAssignControlIDZOrder(t->tabHWND, &cid, &after);
+	for (struct tabPage *&page : *(t->pages))
+		uiWindowsEnsureAssignControlIDZOrder(page->hwnd, &cid, &after);
 }
 
 void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
-	uiTabInsertAt(t, name, t->pages->len, child);
+	uiTabInsertAt(t, name, t->pages->size(), child);
 }
 
 void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 {
-	struct child *page;
+	struct tabPage *page;
 	LRESULT hide, show;
 	TCITEMW item;
 	WCHAR *wname;
@@ -181,9 +208,14 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	// see below
 	hide = curpage(t);
 
-	page = newChildWithTabPage(child, uiControl(t), t->parent);
-	childSetSoleControlID(page);
-	ptrArrayInsertAt(t->pages, n, page);
+	if (child != NULL)
+		uiControlSetParent(child, uiControl(t));
+
+	page = newTabPage(child);
+	uiWindowsEnsureSetParent(page->hwnd, t->hwnd);
+	t->pages->insert(t->pages->begin() + n, page);
+	// TODO adjust page to set the sole control ID
+	tabArrangePages(t);
 
 	ZeroMemory(&item, sizeof (TCITEMW));
 	item.mask = TCIF_TEXT;
@@ -211,55 +243,55 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 		logLastError(L"error deleting uiTab tab");
 
 	// now delete the page itself
-	page = ptrArrayIndex(t->pages, struct child *, n);
-	ptrArrayDelete(t->pages, n);
-	childRemove(page);
+	page = tabPage(t, n);
+	if (page->child != NULL)
+		uiControlSetParent(page->child, NULL);
+	tabPageDestroy(page);
+	t->pages->erase(t->pages->begin() + n);
 }
 
 uintmax_t uiTabNumPages(uiTab *t)
 {
-	return t->pages->len;
+	return t->pages->size();
 }
 
 int uiTabMargined(uiTab *t, uintmax_t n)
 {
-	struct child *page;
-
-	page = ptrArrayIndex(t->pages, struct child *, n);
-	return childMargined(page);
+	return tabPage(t, n)->margined;
 }
 
 void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 {
-	struct child *page;
+	struct tabPage *page
 
-	page = ptrArrayIndex(t->pages, struct child *, n);
-	childSetMargined(page, margined);
+	page = tabPage(t, n);
+	page->margined = margined;
+	// TODO queue resize
+}
+
+static void onResize(void *data)
+{
+	tabRelayout(uiTab(data));
 }
 
 uiTab *uiNewTab(void)
 {
 	uiTab *t;
 
-	t = (uiTab *) uiNewControl(uiTab);
+	uiWindowsNewControl(uiTab, t);
 
-	t->hwnd = uiWindowsEnsureCreateControlHWND(0,
+	t->hwnd = uiWindowsMakeContainer(onResize, t);
+
+	t->tabHWND = uiWindowsEnsureCreateControlHWND(0,
 		WC_TABCONTROLW, L"",
 		TCS_TOOLTIPS | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
+	uiWindowsEnsureSetParent(t->tabHWND, t->hwnd);
 
-	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
+	uiWindowsRegisterWM_NOTIFYHandler(t->tabHWND, onWM_NOTIFY, uiControl(t));
 
-	t->pages = newPtrArray();
-
-	t->parent = utilWindow;
-
-	uiWindowsFinishNewControl(t, uiTab);
-	uiControl(t)->ContainerUpdateState = tabContainerUpdateState;
-	uiWindowsControl(t)->CommitSetParent = tabCommitSetParent;
-	uiWindowsControl(t)->Relayout = tabRelayout;
-	uiWindowsControl(t)->ArrangeChildrenControlIDsZOrder = tabArrangeChildrenControlIDsZOrder;
+	t->pages = new std::vector<struct tabPage *>;
 
 	return t;
 }

@@ -106,6 +106,9 @@ struct tabPage *newTabPage(uiControl *child)
 
 void tabPageDestroy(struct tabPage *tp)
 {
+	// don't destroy the child with the page
+	if (tp->child != NULL)
+		uiWindowsControlSetParentHWND(uiWindowsControl(tp->child), NULL);
 	// TODO call EndDialog() instead?
 	uiWindowsEnsureDestroyWindow(tp->hwnd);
 	uiFree(tp);

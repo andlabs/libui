@@ -171,6 +171,7 @@ _UI_EXTERN HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClas
 _UI_EXTERN void uiWindowsEnsureDestroyWindow(HWND hwnd);
 
 // TODO document
+// TODO document that this should only be used in SetParentHWND() implementations
 _UI_EXTERN void uiWindowsEnsureSetParentHWND(HWND hwnd, HWND parent);
 
 // TODO document

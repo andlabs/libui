@@ -1,3 +1,5 @@
+- provisions for controls that cannot be grown? especiailly for windows
+
 - LC_VERSION_MIN_MACOSX has the 10.11 SDK; see if we can knock it down to 10.7 too; OS version is fine
 	- apply the OS version stuff to the test program and examples too
 	- what about micro versions (10.7.x)? force 10.7.0?

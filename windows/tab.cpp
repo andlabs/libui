@@ -266,7 +266,8 @@ void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 
 	page = tabPage(t, n);
 	page->margined = margined;
-	// TODO queue resize
+	// even if the page doesn't have a child it might still have a new minimum size with margins; this is the easiest way to verify it
+	uiWindowsControlChildMinimumSizeChanged(uiWindowsControl(t));
 }
 
 static void onResize(void *data)

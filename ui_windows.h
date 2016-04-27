@@ -115,9 +115,9 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 		/* do nothing; default has no children */ \
 	}
 #define uiWindowsDefaultAssignControlIDZorder(type) \
-	static void type ## AssignControlIDZOrder)(uiWindowsControl *c, LONG_PTR *cID, HWND *zorder) \
+	static void type ## AssignControlIDZOrder)(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter) \
 	{ \
-		uiWindowsEnsureAssignControlIDZOrder(c, cID, zorder); \
+		uiWindowsEnsureAssignControlIDZOrder(c, controlID, insertAfter); \
 	}
 
 #define uiWindowsControlAllDefaultsExceptDestroy(type) \

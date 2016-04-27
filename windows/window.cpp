@@ -237,15 +237,13 @@ static void uiWindowChildMinimumSizeChanged(uiWindowsControl *c)
 	int mx, my;
 
 	uiWindowsControlMinimumSize(uiWindowsControl(w->child), &width, &height);
-	windowMargns(w, &mx, &my);
-	width += 2 * mx;
-	height += 2 * my;
 	getClientRect(w->hwnd, &r);
-	// TODO discount margins
+	windowMargins(w, &mx, &my);
 	needsGrowing = FALSE;
-	if ((r.right - r.left) < width)
+	// subtract margins so we only care about the area that's used
+	if ((r.right - r.left - (2 * mx)) < width)
 		needsGrowing = TRUE;
-	if ((r.bottom - r.top) < height)
+	if ((r.bottom - r.top - (2 * my)) < height)
 		needsGrowing = TRUE;
 	if (!needsGrowing)
 		return;

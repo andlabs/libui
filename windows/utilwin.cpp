@@ -6,16 +6,12 @@
 // Its roles:
 // - It is the initial parent of all controls. When a control loses its parent, it also becomes that control's parent.
 // - It handles WM_QUERYENDSESSION and console end session requests.
-// - It has a timer to run resizes.
 // - It handles WM_WININICHANGE and forwards the message to any child windows that request it.
 // - It handles executing functions queued to run by uiQueueMain().
 
 #define utilWindowClass L"libui_utilWindowClass"
 
 HWND utilWindow;
-
-#define resizeTimerID 15				/* a safe number */
-#define resizeTimerInterval 15
 
 static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -32,13 +28,6 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 			return TRUE;
 		}
 		return FALSE;
-	case WM_TIMER:
-		if (wParam != resizeTimerID)
-			break;
-		if (SetTimer(utilWindow, resizeTimerID, resizeTimerInterval, NULL) == 0)
-			logLastError(L"error resetting resize timer");
-		doResizes();
-		return 0;
 	case WM_WININICHANGE:
 		issueWM_WININICHANGE(wParam, lParam);
 		return 0;
@@ -74,16 +63,11 @@ const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	// and just to be safe
 	EnableWindow(utilWindow, FALSE);
 
-	if (SetTimer(utilWindow, resizeTimerID, resizeTimerInterval, NULL) == 0)
-		return "starting resize timer";
-
 	return NULL;
 }
 
 void uninitUtilWindow(void)
 {
-	if (KillTimer(utilWindow, resizeTimerID) == 0)
-		logLastError(L"error stopping resize timer");
 	if (DestroyWindow(utilWindow) == 0)
 		logLastError(L"error destroying utility window");
 	if (UnregisterClass(utilWindowClass, hInstance) == 0)

@@ -38,27 +38,16 @@ static void tabPageRect(uiTab *t, RECT *r)
 	mapWindowRect(NULL, t->hwnd, &r);
 }
 
-static BOOL tabNeedsGrowing(uiTab *t)
-{
-	intmax_t pageMinWidth, pageMinHeight;
-	RECT r;
-
-	if (t->pages()->size() == 0)
-		return FALSE;
-	tabPageMinimumSize(tabPage(t, curpage(t)), &pageMinWidth, &pageMinHeight);
-	tabPageRect(t, &r);
-	if ((r.right - r.left) < pageMinWidth)
-		return TRUE;
-	if ((r.bottom - r.top) < pageMinHeight)
-		return TRUE;
-	return FALSE;
-}
-
 static void tabRelayout(uiTab *t)
 {
 	struct tabPage *page;
 	RECT r;
 
+	// first move the tab control itself
+	uiWindowsEnsureGetClientRect(t->hwnd, &r);
+	uiWindowsEnsureMoveWindowDuringResize(t->tabHWND, r.left, r.top, r.right - r.left, r.bottom - r.top);
+
+	// then the current page
 	if (t->pages->size() == 0)
 		return;
 	page = tabPage(t, curpage(t));
@@ -78,12 +67,7 @@ static void showHidePage(uiTab *t, LRESULT which, int hide)
 	else {
 		ShowWindow(page->hwnd, SW_SHOW);
 		// we only resize the current page, so we have to resize it; before we can do that, we need to make sure we are of the right size
-		if (tabNeedsGrowing(t))
-			// it will be laid out as a result of the following
-			uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl(t));
-		else		// it can fit; just do it in place
-			// TODO DuringResize semantics
-			tabRelayout(t);
+		uiWindowsControlMinimumSizeChanged(uiWindowsControl(t));
 	}
 }
 
@@ -176,11 +160,15 @@ static void uiTabChildMinimumSizeChanged(uiWindowsControl *c)
 {
 	uiTab *t = uiTab(c);
 
-	if (tabNeedsGrowing(t))
-		uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl(t));
+	if (uiWindowsControlTooSmall(uiWindowsControl(t))) {
+		uiWindowsControlContinueMinimumSizeChanged(uiWindowsControl(t));
+		return;
+	}
+	tabRelayout(t);
 }
 
-uiWindowsDefaultAssignControlIDZorder(uiTab)
+uiWindowsControlDefaultLayoutRect(uiTab)
+uiWindowsControlDefaultAssignControlIDZorder(uiTab)
 
 static void tabArrangePages(uiTab *t)
 {
@@ -270,9 +258,9 @@ void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
 	uiWindowsControlChildMinimumSizeChanged(uiWindowsControl(t));
 }
 
-static void onResize(void *data)
+static void onResize(uiWindowsControl *c)
 {
-	tabRelayout(uiTab(data));
+	tabRelayout(uiTab(c));
 }
 
 uiTab *uiNewTab(void)
@@ -281,7 +269,7 @@ uiTab *uiNewTab(void)
 
 	uiWindowsNewControl(uiTab, t);
 
-	t->hwnd = uiWindowsMakeContainer(onResize, t);
+	t->hwnd = uiWindowsMakeContainer(uiWindowsControl(t), onResize);
 
 	t->tabHWND = uiWindowsEnsureCreateControlHWND(0,
 		WC_TABCONTROLW, L"",

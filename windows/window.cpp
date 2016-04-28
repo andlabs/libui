@@ -46,7 +46,7 @@ static void windowRelayout(uiWindow *w)
 		return;
 	x = 0;
 	y = 0;
-	getClientRect(w->hwnd, &r);
+	uiWindowsEnsureGetClientRect(w->hwnd, &r);
 	width = r.right - r.left;
 	height = r.bottom - r.top;
 	windowMargins(w, &mx, &my);
@@ -239,7 +239,7 @@ static void uiWindowChildMinimumSizeChanged(uiWindowsControl *c)
 	int mx, my;
 
 	uiWindowsControlMinimumSize(uiWindowsControl(w->child), &width, &height);
-	getClientRect(w->hwnd, &r);
+	uiWindowsEnsureGetClientRect(w->hwnd, &r);
 	windowMargins(w, &mx, &my);
 	needsGrowing = FALSE;
 	// subtract margins so we only care about the area that's used
@@ -374,7 +374,7 @@ void ensureMinimumWindowSize(uiWindow *w)
 	RECT r;
 
 	uiWindowsControlMinimumSize(uiWindowsControl(w), &width, &height);
-	getClientRect(w->hwnd, &r);
+	uiWindowsEnsureGetClientRect(w->hwnd, &r);
 	if (width < (r.right - r.left))		// preserve width if larger
 		width = r.right - r.left;
 	if (height < (r.bottom - r.top))		// preserve height if larger

@@ -28,7 +28,7 @@ static void tabRelayout(struct tabPage *tp)
 
 	if (tp->child == NULL)
 		return;
-	getClientRect(tp->hwnd, &r);
+	uiWindowsEnsureGetClientRect(tp->hwnd, &r);
 	tabPageMargins(tp, &mx, &my);
 	r.left += mx;
 	r.right += my;

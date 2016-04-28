@@ -85,7 +85,7 @@ static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wPar
 	if (a->capturing) {
 		clientpt.x = GET_X_LPARAM(lParam);
 		clientpt.y = GET_Y_LPARAM(lParam);
-		if (getClientRect(a->hwnd, &client) == 0)
+		if (uiWindowsEnsureGetClientRect(a->hwnd, &client) == 0)
 			logLastError(L"error getting uiAreaclient rect for mouse crossing on capture on drag");
 		inClient = PtInRect(&client, clientpt);
 		if (inClient && !a->inside) {

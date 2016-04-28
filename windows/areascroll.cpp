@@ -128,7 +128,7 @@ static void hscrollParams(uiArea *a, struct scrollParams *p)
 	ZeroMemory(p, sizeof (struct scrollParams));
 	p->pos = &(a->hscrollpos);
 	// TODO get rid of these and replace with points
-	if (getClientRect(a->hwnd, &r) == 0)
+	if (uiWindowsEnsureGetClientRect(a->hwnd, &r) == 0)
 		logLastError(L"error getting area client rect");
 	p->pagesize = r.right - r.left;
 	p->length = a->scrollWidth;
@@ -174,7 +174,7 @@ static void vscrollParams(uiArea *a, struct scrollParams *p)
 
 	ZeroMemory(p, sizeof (struct scrollParams));
 	p->pos = &(a->vscrollpos);
-	if (getClientRect(a->hwnd, &r) == 0)
+	if (uiWindowsEnsureGetClientRect(a->hwnd, &r) == 0)
 		logLastError(L"error getting area client rect");
 	p->pagesize = r.bottom - r.top;
 	p->length = a->scrollHeight;

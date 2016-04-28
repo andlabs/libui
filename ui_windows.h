@@ -22,7 +22,8 @@ struct uiWindowsControl {
 	void (*SyncEnableState)(uiWindowsControl *, int);
 	void (*SetParentHWND)(uiWindowsControl *, HWND);
 	void (*MinimumSize)(uiWindowsControl *, intmax_t *, intmax_t *);
-	void (*ChildMinimumSizeChanged)(uiWIndowsControl *);
+	void (*MinimumSizeChanged)(uiWIndowsControl *);
+	void (*LayoutRect)(uiWindowsControl *c, RECT *r);
 	void (*AssignControlIDZOrder)(uiWindowsControl *, LONG_PTR *, HWND *);
 };
 #define uiWindowsControl(this) ((uiWindowsControl *) (this))
@@ -30,7 +31,8 @@ struct uiWindowsControl {
 _UI_EXTERN void uiWindowsControlSyncEnableState(uiWindowsControl *, int);
 _UI_EXTERN void uiWindowsControlSetParentHWND(uiWindowsControl *, HWND);
 _UI_EXTERN void uiWindowsControlMinimumSize(uiWindowsControl *, intmax_t *, intmax_t *);
-_UI_EXTERN void uiWindowsControlChildMinimumSizeChanged(uiWindowsControl *);
+_UI_EXTERN void uiWindowsControlMinimumSizeChanged(uiWindowsControl *);
+_UI_EXTERN void uiWindowsControlLayoutRect(uiWindowsControl *, RECT *);
 _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_PTR *, HWND *);
 
 // TODO document
@@ -109,12 +111,20 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 		uiWindowsEnsureSetParentHWND(type(c)->hwnd, parent); \
 	}
 // note that there is no uiWindowsControlDefaultMinimumSize(); you MUST define this yourself!
-#define uiWindowsDefaultChildMinimumSizeChanged(type) \
-	static void type ## ChildMinimumSizeChanged)(uiWIndowsControl *c) \
+#define uiWindowsControlDefaultMinimumSizeChanged(type) \
+	static void type ## MinimumSizeChanged)(uiWIndowsControl *c) \
 	{ \
-		/* do nothing; default has no children */ \
+		if (uiWindowsControlTooSmall(c)) \
+			uiWindowsControlMinimumSizeChanged(uiWindowsControl(c->parent)); \
+		/* otherwise do nothing; we have no children */ \
 	}
-#define uiWindowsDefaultAssignControlIDZorder(type) \
+#define uiWindowsControlDefaultLayoutRect(type) \
+	static void type ## LayoutRect(uiWindowsControl *c, RECT *r) \
+	{ \
+		/* use the window rect as we include the non-client area in the sizes */ \
+		uiWindowsEnsureGetWindowRect(type(c)->hwnd, r); \
+	}
+#define uiWindowsControlDefaultAssignControlIDZorder(type) \
 	static void type ## AssignControlIDZOrder)(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter) \
 	{ \
 		uiWindowsEnsureAssignControlIDZOrder(c, controlID, insertAfter); \
@@ -133,8 +143,9 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 	uiWindowsControlDefaultDisable(type) \
 	uiWindowsControlDefaultSyncEnableState(type) \
 	uiWindowsControlDefaultSetParentHWND(type) \
-	uiWindowsDefaultChildMinimumSizeChanged(type) \
-	uiWindowsDefaultAssignControlIDZorder(type)
+	uiWindowsControlDefaultMinimumSizeChanged(type) \
+	uiWindowsControlDefaultLayoutRect(type) \
+	uiWindowsControlDefaultAssignControlIDZorder(type)
 
 #define uiWindowsControlAllDefaults(type) \
 	uiWindowsControlDefaultDestroy(type) \
@@ -178,6 +189,10 @@ _UI_EXTERN void uiWindowsEnsureSetParentHWND(HWND hwnd, HWND parent);
 _UI_EXTERN void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR *controlID, HWND *insertAfter);
 
 // TODO document
+_UI_EXTERN void uiWindowsEnsureGetClientRect(HWND hwnd, RECT *r);
+_UI_EXTERN void uiWindowsEnsureGetWindowRect(HWND hwnd, RECT *r);
+
+// TODO document
 _UI_EXTERN char *uiWindowsWindowText(HWND hwnd);
 _UI_EXTERN void uiWindowsSetWindowText(HWND hwnd, const char *text);
 
@@ -219,7 +234,7 @@ _UI_EXTERN void uiWindowsSizingStandardPadding(uiWindowsSizing *sizing, int *x, 
 _UI_EXTERN HWND uiWindowsMakeContainer(void (*onResize)(void *data), void *data);
 
 // TODO document
-_UI_EXTERN void uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl *);
+_UI_EXTERN BOOL uiWindowsControlTooSmall(uiWindowsControl *c);
 
 // TODO document
 _UI_EXTERN void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *);

@@ -16,9 +16,14 @@ void uiWindowsControlMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t 
 	(*(c->MinimumSize))(c, widdth, height);
 }
 
-void uiWindowsControlChildMinimumSizeChanged(uiWIndowsControl *c)
+void uiWindowsControlMinimumSizeChanged(uiWIndowsControl *c)
 {
-	(*(c->ChildMinimumSizeChanged))(c);
+	(*(c->MinimumSizeChanged))(c);
+}
+
+void uiWindowsControlLayoutRect(uiWindowsControl *c, RECT *r)
+{
+	(*(c->LayoutRect))(c, r);
 }
 
 void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter)

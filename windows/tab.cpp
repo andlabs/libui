@@ -32,7 +32,7 @@ static void tabPageRect(uiTab *t, RECT *r)
 
 	// this rect needs to be in parent window coordinates, but TCM_ADJUSTRECT wants a window rect, which is screen coordinates
 	// because we have each page as a sibling of the tab, use the tab's own rect as the input rect
-	getWindowRect(t->tabHWND, &r);
+	uiWindowsEnsureGetWindowRect(t->tabHWND, &r);
 	SendMessageW(t->tabHWND, TCM_ADJUSTRECT, (WPARAM) FALSE, (LPARAM) (&r));
 	// and get it in terms of the container instead of the screen
 	mapWindowRect(NULL, t->hwnd, &r);

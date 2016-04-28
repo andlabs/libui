@@ -50,7 +50,7 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		return 0;
 	// tab controls use this to draw the background of the tab area
 	case WM_PRINTCLIENT:
-		if (getClientRect(hwnd, &r) == 0) {
+		if (uiWindowsEnsureGetClientRect(hwnd, &r) == 0) {
 			logLastError(L"error getting client rect");
 			// likewise
 			break;

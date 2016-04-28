@@ -6,8 +6,8 @@
 // - uiRadioButtons
 
 struct containerInit {
-	void (*onResize)(void *data);
-	void *data;
+	uiWindowsControl *c;
+	void (*onResize)(uiWindowsControl *);
 };
 
 static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -17,9 +17,11 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	PAINTSTRUCT ps;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+	MINMAXINFO *mm = (MINMAXINFO *) lParam;
 	struct containerInit *init;
-	void (*onResize)(void *);
-	void *data;
+	uiWindowsControl *c;
+	void (*onResize)(uiWindowsControl *);
+	uintmax_t minwid, minht;
 	LRESULT lResult;
 
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
@@ -28,15 +30,23 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	case WM_CREATE:
 		init = (struct containerInit *) (cs->lpParam);
 		SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (init->onResize));
-		SetWindowLongPtrW(hwnd, 0, (LONG_PTR) (init->data));
+		SetWindowLongPtrW(hwnd, 0, (LONG_PTR) (init->c));
 		break;		// defer to DefWindowProc()
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;	// defer to DefWindowProc();
-		onResize = (void (*)(void *)) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
-		data = (void *) GetWindowLongPtrW(hwnd, 0);
+		onResize = (void (*)(uiControl *)) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+		c = (uiWindowsControl *) GetWindowLongPtrW(hwnd, 0);
 		(*(onResize))(data);
 		return 0;
+	// TODO is this sufficient for SetWindowPos()?
+	case WM_GETMINMAXINFO:
+		lResult = DefWindowProcW(hwnd, uMsg, wParam, lParam);
+		c = (uiWindowsControl *) GetWindowLongPtrW(hwnd, 0);
+		uiWindowsControlMinimumSize(c, &minwid, &minht);
+		mmi->ptMinTrackSize.x = minwid;
+		mmi->ptMinTrackSize.y = minht;
+		return lResult;
 	case WM_PAINT:
 		dc = BeginPaint(hwnd, &ps);
 		if (dc == NULL) {
@@ -86,13 +96,13 @@ void uninitContainer(void)
 		logLastError(L"error unregistering container window class");
 }
 
-HWND uiWindowsMakeContainer(void (*onResize)(void *data), void *data)
+HWND uiWindowsMakeContainer(uiWindowsControl *c, void (*onResize)(uiWindowsControl *))
 {
 	struct containerInit init;
 
 	// TODO onResize cannot be NULL
+	init.c = c;
 	init.onResize = onResize;
-	init.data = data;
 	return uiWindowsEnsureCreateControlHWND(WS_EX_CONTROLPARENT,
 		containerClass, L"",
 		0,

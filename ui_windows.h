@@ -233,7 +233,7 @@ _UI_EXTERN void uiWindowsSizingDlgUnitsToPixels(uiWindowsSIzing *sizing, int *x,
 _UI_EXTERN void uiWindowsSizingStandardPadding(uiWindowsSizing *sizing, int *x, int *y);
 
 // TODO document
-_UI_EXTERN HWND uiWindowsMakeContainer(void (*onResize)(void *data), void *data);
+_UI_EXTERN HWND uiWindowsMakeContainer(uiWindowsControl *c, void (*onResize)(uiWindowsControl *));
 
 // TODO document
 _UI_EXTERN BOOL uiWindowsControlTooSmall(uiWindowsControl *c);

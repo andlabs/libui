@@ -39,7 +39,6 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		c = (uiWindowsControl *) GetWindowLongPtrW(hwnd, 0);
 		(*(onResize))(data);
 		return 0;
-	// TODO is this sufficient for SetWindowPos()?
 	case WM_GETMINMAXINFO:
 		lResult = DefWindowProcW(hwnd, uMsg, wParam, lParam);
 		c = (uiWindowsControl *) GetWindowLongPtrW(hwnd, 0);

@@ -80,3 +80,26 @@ void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *c)
 	insertAfter = NULL;
 	uiWindowsControlAssignControlIDZorder(c, &controlID, &insertAfter);
 }
+
+BOOL uiWindowsControlTooSmall(uiWindowsControl *c)
+{
+	RECT r;
+	intmax_t width, height;
+
+	uiWindowsControlLayoutRect(c, &r);
+	uiWindowsControlMinimumSize(c, &width, &height);
+	if ((r.right - r.left) < width)
+		return TRUE;
+	if ((r.bottom - r.top) < height)
+		return TRUE;
+	return FALSE;
+}
+
+void uiWindowsControlContinueMinimumSizeChanged(uiWindowsControl *c)
+{
+	uiControl *parent;
+
+	parent = uiControlParent(uiControl(c));
+	if (parent != NULL)
+		uiWindowsControlMinimumSizeChanged(uiWindowsControl(parent));
+}

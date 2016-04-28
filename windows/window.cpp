@@ -183,7 +183,7 @@ static void uiWindowShow(uiControl *c)
 	uiWindow *w = uiWindow(c);
 
 	w->visible = 1;
-	// just in case this wasn't called already
+	// just in case the window's minimum size wasn't recalculated already
 	// TODO is it needed?
 	ensureMinimumWindowSize(w);
 	if (w->shownOnce) {
@@ -230,31 +230,29 @@ static void uiWindowMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *
 	*height += 2 * my;
 }
 
-static void uiWindowChildMinimumSizeChanged(uiWindowsControl *c)
+static void uiWindowMinimumSizeChanged(uiWindowsControl *c)
 {
 	uiWindow *w = uiWindow(c);
-	intmax_t width, height;
-	RECT r;
-	BOOL needsGrowing;
-	int mx, my;
 
-	uiWindowsControlMinimumSize(uiWindowsControl(w->child), &width, &height);
-	uiWindowsEnsureGetClientRect(w->hwnd, &r);
-	windowMargins(w, &mx, &my);
-	needsGrowing = FALSE;
-	// subtract margins so we only care about the area that's used
-	if ((r.right - r.left - (2 * mx)) < width)
-		needsGrowing = TRUE;
-	if ((r.bottom - r.top - (2 * my)) < height)
-		needsGrowing = TRUE;
-	if (!needsGrowing)
+	if (uiWindowsControlTooSmall(uiWindowsControl(w)) {
+		// TODO figure out what to do with this function
+		// maybe split it into two so WM_GETMINMAXINFO can use it?
+		ensureMinimumWindowSize(w);
 		return;
-	// TODO figure out what to do with this function
-	// maybe split it into two so WM_GETMINMAXINFO can use it?
-	ensureMinimumWindowSize(w);
+	}
+	// otherwise we only need to re-layout everything
+	windowRelayout(w);
 }
 
-uiWindowsDefaultAssignControlIDZorder(uiWindow)
+static void uiWindowLayoutRect(uiWindowsControl *w, RECT *r)
+{
+	uiWindow *w = uiWindow(c);
+
+	// the layout rect is the client rect in this case
+	uiWindowsEnsureGetClientRect(w->hwnd, r);
+}
+
+uiWindowsControlDefaultAssignControlIDZorder(uiWindow)
 
 char *uiWindowTitle(uiWindow *w)
 {

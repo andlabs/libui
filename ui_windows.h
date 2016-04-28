@@ -114,8 +114,10 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 #define uiWindowsControlDefaultMinimumSizeChanged(type) \
 	static void type ## MinimumSizeChanged)(uiWIndowsControl *c) \
 	{ \
-		if (uiWindowsControlTooSmall(c)) \
-			uiWindowsControlMinimumSizeChanged(uiWindowsControl(c->parent)); \
+		if (uiWindowsControlTooSmall(c)) { \
+			uiWindowsControlContinueMinimumSizeChanged(c); \
+			return; \
+		} \
 		/* otherwise do nothing; we have no children */ \
 	}
 #define uiWindowsControlDefaultLayoutRect(type) \
@@ -235,6 +237,7 @@ _UI_EXTERN HWND uiWindowsMakeContainer(void (*onResize)(void *data), void *data)
 
 // TODO document
 _UI_EXTERN BOOL uiWindowsControlTooSmall(uiWindowsControl *c);
+_UI_EXTERN void uiWindowsControlContinueMinimumSizeChanged(uiWindowsControl *c);
 
 // TODO document
 _UI_EXTERN void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *);

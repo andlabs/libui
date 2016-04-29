@@ -131,25 +131,3 @@ extern void tabPageMinimumSize(struct tabPage *tp, intmax_t *width, intmax_t *he
 
 // TODO
 #include "_uipriv_migrate.hpp"
-
-// TODO
-// child.cpp
-extern struct child *newChild(uiControl *child, uiControl *parent, HWND parentHWND);
-extern struct child *newChildWithTabPage(uiControl *child, uiControl *parent, HWND parentHWND);
-extern void childRemove(struct child *c);
-extern void childDestroy(struct child *c);
-extern HWND childHWND(struct child *c);
-extern void childMinimumSize(struct child *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height);
-extern void childRelayout(struct child *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height);
-extern void childQueueRelayout(struct child *c);
-extern int childVisible(struct child *c);
-extern void childUpdateState(struct child *c);
-extern void childAssignControlIDZOrder(struct child *c, LONG_PTR *controlID, HWND *insertAfter);
-extern void childSetSoleControlID(struct child *c);
-extern HWND childTabPage(struct child *c);
-extern int childMargined(struct child *c);
-extern void childSetMargined(struct child *c, int margined);
-extern int childFlag(struct child *c);
-extern void childSetFlag(struct child *c, int flag);
-extern intmax_t childIntmax(struct child *c, int n);
-extern void childSetIntmax(struct child *c, int n, intmax_t to);

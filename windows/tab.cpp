@@ -156,7 +156,7 @@ static void uiTabMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *hei
 	*height = r.bottom - r.top;
 }
 
-static void uiTabChildMinimumSizeChanged(uiWindowsControl *c)
+static void uiTabMinimumSizeChanged(uiWindowsControl *c)
 {
 	uiTab *t = uiTab(c);
 
@@ -202,7 +202,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	page = newTabPage(child);
 	uiWindowsEnsureSetParent(page->hwnd, t->hwnd);
 	t->pages->insert(t->pages->begin() + n, page);
-	// TODO adjust page to set the sole control ID
+	// TODO adjust tabpage.cpp to set the sole control ID
 	tabArrangePages(t);
 
 	ZeroMemory(&item, sizeof (TCITEMW));

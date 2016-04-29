@@ -39,8 +39,10 @@ void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing);
 
 void uiWindowsSizingDlgUnitsToPixels(uiWindowsSIzing *sizing, int *x, int *y)
 {
-	*x = dlgUnitsToX(*x, sizing->BaseX);
-	*y = dlgUnitsToY(*y, sizing->BaseY);
+	if (x != NULL)
+		*x = dlgUnitsToX(*x, sizing->BaseX);
+	if (y != NULL)
+		*y = dlgUnitsToY(*y, sizing->BaseY);
 }
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
@@ -50,6 +52,8 @@ void uiWindowsSizingDlgUnitsToPixels(uiWindowsSIzing *sizing, int *x, int *y)
 
 void uiWindowsSizingStandardPadding(uiWindowsSizing *sizing, int *x, int *y)
 {
-	*x = dlgUnitsToX(winXPadding, sizing->BaseX);
-	*y = dlgUnitsToY(winYPadding, sizing->BaseY);
+	if (x != NULL)
+		*x = dlgUnitsToX(winXPadding, sizing->BaseX);
+	if (y != NULL)
+		*y = dlgUnitsToY(winYPadding, sizing->BaseY);
 }

@@ -8,11 +8,6 @@ struct uiButton {
 	void *onClickedData;
 };
 
-uiWindowsDefineControlWithOnDestroy(
-	uiButton,								// type name
-	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
-)
-
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiButton *b = uiButton(c);
@@ -24,13 +19,26 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
+static void uiButtonDestroy(uiControl *c)
+{
+	uiButton *b = uiButton(c);
+
+	uiWindowsUnregisterWM_COMMANDHandler(b->hwnd);
+	uiWindowsEnsureDestroyWindow(b->hwnd);
+	uiFreeControl(b->hwnd);
+}
+
+uiWindowsControlAllDefaultsExceptDestroy(uiButton)
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiButtonMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiButton *b = uiButton(c);
 	SIZE size;
+	uiWindowsSizing sizing;
+	int y;
 
 	// try the comctl32 version 6 way
 	size.cx = 0;		// explicitly ask for ideal size
@@ -45,7 +53,10 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 	// Microsoft says to use a fixed width for all buttons; this isn't good enough
 	// use the text width instead, with some edge padding
 	*width = uiWindowsWindowTextWidth(b->hwnd) + (2 * GetSystemMetrics(SM_CXEDGE));
-	*height = uiWindowsDlgUnitsToY(buttonHeight, d->BaseY);
+	y = buttonHeight;
+	uiWindowsGetSizing(b->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, NULL, &y);
+	*height = y;
 }
 
 static void defaultOnClicked(uiButton *b, void *data)
@@ -76,7 +87,7 @@ uiButton *uiNewButton(const char *text)
 	uiButton *b;
 	WCHAR *wtext;
 
-	b = (uiButton *) uiNewControl(uiButton);
+	uiWindowsNewControl(uiButton, b);
 
 	wtext = toUTF16(text);
 	b->hwnd = uiWindowsEnsureCreateControlHWND(0,
@@ -88,8 +99,6 @@ uiButton *uiNewButton(const char *text)
 
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
 	uiButtonOnClicked(b, defaultOnClicked, NULL);
-
-	uiWindowsFinishNewControl(b, uiButton);
 
 	return b;
 }

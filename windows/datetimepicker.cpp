@@ -6,11 +6,6 @@ struct uiDateTimePicker {
 	HWND hwnd;
 };
 
-uiWindowsDefineControlWithOnDestroy(
-	uiDateTimePicker,						// type name
-	uiWindowsUnregisterReceiveWM_WININICHANGE(me->hwnd);		// on destroy
-)
-
 // utility functions
 
 #define GLI(what, buf, n) GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, what, buf, n)
@@ -103,27 +98,44 @@ static void setDateTimeFormat(HWND hwnd)
 
 // control implementation
 
+static void uiDateTimePickerDestroy(uiControl *c)
+{
+	uiDateTimePicker *d = uiDateTimePicker(c);
+
+	uiWindowsUnregisterReceiveWM_WININICHANGE(d->hwnd);
+	uiWindowsEnsureDestroyWindow(d->hwnd);
+	uiFreeControl(d);
+}
+
+uiWindowsControlAllDefaultsExceptDestroy(uiDateTimePicker)
+
 // the height returned from DTM_GETIDEALSIZE is unreliable; see http://stackoverflow.com/questions/30626549/what-is-the-proper-use-of-dtm-getidealsize-treating-the-returned-size-as-pixels
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryHeight 14
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *dd, intmax_t *width, intmax_t *height)
+static void uiDateTimePickerMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiDateTimePicker *d = uiDateTimePicker(c);
 	SIZE s;
+	uiWindowsSizing sizing;
+	int y;
 
 	s.cx = 0;
 	s.cy = 0;
 	SendMessageW(d->hwnd, DTM_GETIDEALSIZE, 0, (LPARAM) (&s));
 	*width = s.cx;
-	*height = uiWindowsDlgUnitsToY(entryHeight, dd->BaseY);
+
+	y = entryHeight;
+	uiWindowsGetSizing(d->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, NULL, &y);
+	*height = y;
 }
 
 static uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 {
 	uiDateTimePicker *d;
 
-	d = (uiDateTimePicker *) uiNewControl(uiDateTimePicker);
+	uiWindowsNewControl(uiDateTimePicker, d);
 
 	d->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		DATETIMEPICK_CLASSW, L"",
@@ -135,8 +147,6 @@ static uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 	// for the standard styles, this is in the date-time picker itself
 	// for our date/time mode, we do it in a subclass assigned in uiNewDateTimePicker()
 	uiWindowsRegisterReceiveWM_WININICHANGE(d->hwnd);
-
-	uiWindowsFinishNewControl(d, uiDateTimePicker);
 
 	return d;
 }

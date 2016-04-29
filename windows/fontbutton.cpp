@@ -10,17 +10,14 @@ struct uiFontButton {
 	void *onChangedData;
 };
 
-static void onDestroy(uiFontButton *);
-
-uiWindowsDefineControlWithOnDestroy(
-	uiFontButton,							// type name
-	onDestroy(me);						// on destroy
-)
-
-static void onDestroy(uiFontButton *b)
+static void uiFontButtonDestroy(uiControl *c)
 {
+	uiFontButton *b = uiFontButton(c);
+
 	uiWindowsUnregisterWM_COMMANDHandler(b->hwnd);
 	destroyFontDialogParams(&(b->params));
+	uiWindowsEnsureDestroyWindow(b->hwnd);
+	uiFreeControl(uiControl(b));
 }
 
 static void updateFontButtonLabel(uiFontButton *b)
@@ -54,13 +51,17 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
+uiWindowsControlAllDefaultsExceptDestroy(uiFontButton)
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiFontButtonMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiFontButton *b = uiFontButton(c);
 	SIZE size;
+	uiWindowsSizing sizing;
+	int y;
 
 	// try the comctl32 version 6 way
 	size.cx = 0;		// explicitly ask for ideal size
@@ -75,7 +76,10 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 	// Microsoft says to use a fixed width for all buttons; this isn't good enough
 	// use the text width instead, with some edge padding
 	*width = uiWindowsWindowTextWidth(b->hwnd) + (2 * GetSystemMetrics(SM_CXEDGE));
-	*height = uiWindowsDlgUnitsToY(buttonHeight, d->BaseY);
+	y = buttonHeight;
+	uiWindowsGetSizing(b->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, NULL, &y);
+	*height = y;
 }
 
 static void defaultOnChanged(uiFontButton *b, void *data)
@@ -102,7 +106,7 @@ uiFontButton *uiNewFontButton(void)
 {
 	uiFontButton *b;
 
-	b = (uiFontButton *) uiNewControl(uiFontButton);
+	uiWindowsNewControl(uiFontButton, b);
 
 	b->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		L"button", L"you should not be seeing this",
@@ -115,9 +119,6 @@ uiFontButton *uiNewFontButton(void)
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
 
-	uiWindowsFinishNewControl(b, uiFontButton);
-
-	// TODO move this back above the previous when merging with uiNewControl(); it's here because this calls Handle()
 	updateFontButtonLabel(b);
 
 	return b;

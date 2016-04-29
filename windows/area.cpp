@@ -2,10 +2,6 @@
 #include "uipriv_windows.hpp"
 #include "area.hpp"
 
-uiWindowsDefineControl(
-	uiArea								// type name
-)
-
 static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uiArea *a;
@@ -54,7 +50,9 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 // control implementation
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+uiWindowsControlAllDefaults(uiArea)
+
+static void uiAreaMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	// TODO
 	*width = 0;
@@ -105,7 +103,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;
 
-	a = (uiArea *) uiNewControl(uiArea);
+	uiWindowsNewControl(uiArea, a);
 
 	a->ah = ah;
 	a->scrolling = FALSE;
@@ -118,8 +116,6 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 		hInstance, a,
 		FALSE);
 
-	uiWindowsFinishNewControl(a, uiArea);
-
 	return a;
 }
 
@@ -127,7 +123,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 {
 	uiArea *a;
 
-	a = (uiArea *) uiNewControl(uiArea);
+	uiWindowsNewControl(uiArea, a);
 
 	a->ah = ah;
 	a->scrolling = TRUE;
@@ -144,8 +140,6 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 
 	// set initial scrolling parameters
 	areaUpdateScroll(a);
-
-	uiWindowsFinishNewControl(a, uiArea);
 
 	return a;
 }

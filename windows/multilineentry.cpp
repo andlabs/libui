@@ -12,11 +12,6 @@ struct uiMultilineEntry {
 	BOOL inhibitChanged;
 };
 
-uiWindowsDefineControlWithOnDestroy(
-	uiMultilineEntry,						// type name
-	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
-)
-
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiMultilineEntry *e = uiMultilineEntry(c);
@@ -30,6 +25,17 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
+static void uiMultilineEntryDestroy(uiControl *c)
+{
+	uiMultilineEntry *e = uiMultilineEntry(c);
+
+	uiWindowsUnregisterWM_COMMANDHandler(e->hwnd);
+	uiWindowsEnsureDestroyWindow(e->hwnd);
+	uiFreeControl(uiControl(e));
+}
+
+uiWindowsControlAllDefaultsExceptDestroy(uiEntry)
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 // TODO change this for multiline text boxes
@@ -37,8 +43,16 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 
 static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(entryWidth, d->BaseX);
-	*height = uiWindowsDlgUnitsToY(entryHeight, d->BaseY);
+	uiMultilineEntry *e = uiMultilineEntry(c);
+	uiWindowsSizing sizing;
+	int x, y;
+
+	x = entryWidth;
+	y = entryHeight;
+	uiWindowsGetSizing(e->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	*width = x;
+	*height = y;
 }
 
 static void defaultOnChanged(uiMultilineEntry *e, void *data)
@@ -46,11 +60,13 @@ static void defaultOnChanged(uiMultilineEntry *e, void *data)
 	// do nothing
 }
 
+// TODO apply crlf conversion
 char *uiMultilineEntryText(uiMultilineEntry *e)
 {
 	return uiWindowsWindowText(e->hwnd);
 }
 
+// TODO apply crlf conversion
 void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 {
 	// doing this raises an EN_CHANGED
@@ -60,6 +76,7 @@ void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
 
+// TOOD crlf stuff
 void uiMultilineEntryAppend(uiMultilineEntry *e, const char *text)
 {
 	LRESULT n;
@@ -101,7 +118,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 {
 	uiMultilineEntry *e;
 
-	e = (uiMultilineEntry *) uiNewControl(uiMultilineEntry);
+	uiWindowsNewControl(uiMultilineEntry, e);
 
 	e->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
@@ -111,8 +128,6 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 
 	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
-
-	uiWindowsFinishNewControl(e, uiMultilineEntry);
 
 	return e;
 }

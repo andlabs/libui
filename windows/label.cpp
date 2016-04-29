@@ -6,19 +6,22 @@ struct uiLabel {
 	HWND hwnd;
 };
 
-uiWindowsDefineControl(
-	uiLabel								// type name
-)
+uiWindowsControlAllDefaults(uiLabel)
 
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define labelHeight 8
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiLabelMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiLabel *l = uiLabel(c);
+	uiWindowsSizing sizing;
+	int y;
 
 	*width = uiWindowsWindowTextWidth(l->hwnd);
-	*height = uiWindowsDlgUnitsToY(labelHeight, d->BaseY);
+	y = labelHeight;
+	uiWindowsGetSizing(l->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToY(&sizing, NULL, &y);
+	*height = y;
 }
 
 char *uiLabelText(uiLabel *l)
@@ -38,7 +41,7 @@ uiLabel *uiNewLabel(const char *text)
 	uiLabel *l;
 	WCHAR *wtext;
 
-	l = (uiLabel *) uiNewControl(uiLabel);
+	uiWindowsNewControl(uiLabel, l);
 
 	wtext = toUTF16(text);
 	l->hwnd = uiWindowsEnsureCreateControlHWND(0,
@@ -49,8 +52,6 @@ uiLabel *uiNewLabel(const char *text)
 		hInstance, NULL,
 		TRUE);
 	uiFree(wtext);
-
-	uiWindowsFinishNewControl(l, uiLabel);
 
 	return l;
 }

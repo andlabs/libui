@@ -6,18 +6,24 @@ struct uiProgressBar {
 	HWND hwnd;
 };
 
-uiWindowsDefineControl(
-	uiProgressBar							// type name
-)
+uiWindowsControlAllDefaults(uiProgressBar)
 
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define pbarWidth 237
 #define pbarHeight 8
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiProgressBarMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(pbarWidth, d->BaseX);
-	*height = uiWindowsDlgUnitsToY(pbarHeight, d->BaseY);
+	uiProgressBar *p = uiProgressBar(c);
+	uiWindowsSizing sizing;
+	int x, y;
+
+	x = pbarWidth;
+	y = pbarHeight;
+	uiWindowsGetSizing(p->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	*width = x;
+	*height = y;
 }
 
 // unfortunately, as of Vista progress bars have a forced animation on increase
@@ -43,15 +49,13 @@ uiProgressBar *uiNewProgressBar(void)
 {
 	uiProgressBar *p;
 
-	p = (uiProgressBar *) uiNewControl(uiProgressBar);
+	uiWindowsNewControl(uiProgressBar, p);
 
 	p->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		PROGRESS_CLASSW, L"",
 		PBS_SMOOTH,
 		hInstance, NULL,
 		FALSE);
-
-	uiWindowsFinishNewControl(p, uiProgressBar);
 
 	return p;
 }

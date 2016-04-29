@@ -9,11 +9,6 @@ struct uiEntry {
 	BOOL inhibitChanged;
 };
 
-uiWindowsDefineControlWithOnDestroy(
-	uiEntry,								// type name
-	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
-)
-
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiEntry *e = uiEntry(c);
@@ -27,14 +22,33 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
+static void uiEntryDestroy(uiControl *c)
+{
+	uiEntry *e = uiEntry(c);
+
+	uiWindowsUnregisterWM_COMMANDHandler(e->hwnd);
+	uiWindowsEnsureDestroyWindow(e->hwnd);
+	uiFreeControl(uiControl(e));
+}
+
+uiWindowsControlAllDefaultsExceptDestroy(uiEntry)
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiEntryMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(entryWidth, d->BaseX);
-	*height = uiWindowsDlgUnitsToY(entryHeight, d->BaseY);
+	uiEntry *e = uiEntry(c);
+	uiWindowsSizing sizing;
+	int x, y;
+
+	x = entryWidth;
+	y = entryHeight;
+	uiWindowsGetSizing(e->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	*width = x;
+	*height = y;
 }
 
 static void defaultOnChanged(uiEntry *e, void *data)
@@ -82,7 +96,7 @@ uiEntry *uiNewEntry(void)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) uiNewControl(uiEntry);
+	uiWindowsNewControl(uiEntry, e);
 
 	e->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
@@ -92,8 +106,6 @@ uiEntry *uiNewEntry(void)
 
 	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
-
-	uiWindowsFinishNewControl(e, uiEntry);
 
 	return e;
 }

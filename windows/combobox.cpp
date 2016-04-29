@@ -34,7 +34,7 @@ void uiComboboxDestroy(uiControl *cc)
 	uiFreeControl(uiControl(c));
 }
 
-uiWindowsControlDefaultMinimumSizeChanged(uiCombobox)
+uiWindowsControlAllDefaultsExceptDestroy(uiCombobox)
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define comboboxWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary; TODO */

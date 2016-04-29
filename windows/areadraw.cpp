@@ -94,8 +94,7 @@ static void onWM_PRINTCLIENT(uiArea *a)
 {
 	RECT client;
 
-	if (uiWindowsEnsureGetClientRect(a->hwnd, &client) == 0)
-		logLastError(L"error getting client rect");
+	uiWindowsEnsureGetClientRect(a->hwnd, &client);
 //TODO	doPaint(a, (HDC) wParam, &client);
 }
 

@@ -32,7 +32,7 @@ static void uiCheckboxDestroy(uiControl *cc)
 	uiCheckbox *c = uiCheckbox(cc);
 
 	uiWindowsUnregisterWM_COMMANDHandler(c->hwnd);
-	uiWindowsEnsureDestroyHWND(c->hwnd);
+	uiWindowsEnsureDestroyWindow(c->hwnd);
 	uiFreeControl(uiControl(c));
 }
 
@@ -43,7 +43,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiCheckbox)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define checkboxXFromLeftOfBoxToLeftOfLabel 12
 
-static void uiCheckboxinimumSize(uiWindowsControl *cc, intmax_t *width, intmax_t *height)
+static void uiCheckboxMinimumSize(uiWindowsControl *cc, intmax_t *width, intmax_t *height)
 {
 	uiCheckbox *c = uiCheckbox(cc);
 	uiWindowsSizing sizing;

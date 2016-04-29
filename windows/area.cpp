@@ -32,8 +32,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 	if (uMsg == WM_WINDOWPOSCHANGED) {
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-		if (uiWindowsEnsureGetClientRect(a->hwnd, &client) == 0)
-			logLastError(L"error getting client rect of uiArea for WM_WINDOWPOSCHANGED handling");
+		uiWindowsEnsureGetClientRect(a->hwnd, &client);
 		areaDrawOnResize(a, &client);
 		areaScrollOnResize(a, &client);
 		return 0;

@@ -13,10 +13,10 @@ void uiWindowsControlSetParentHWND(uiWindowsControl *c, HWND parent)
 
 void uiWindowsControlMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
-	(*(c->MinimumSize))(c, widdth, height);
+	(*(c->MinimumSize))(c, width, height);
 }
 
-void uiWindowsControlMinimumSizeChanged(uiWIndowsControl *c)
+void uiWindowsControlMinimumSizeChanged(uiWindowsControl *c)
 {
 	(*(c->MinimumSizeChanged))(c);
 }
@@ -28,7 +28,7 @@ void uiWindowsControlLayoutRect(uiWindowsControl *c, RECT *r)
 
 void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter)
 {
-	(*(c->AssignControlIDZorder))(c, controlID, insertAfter);
+	(*(c->AssignControlIDZOrder))(c, controlID, insertAfter);
 }
 
 HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont)
@@ -57,18 +57,21 @@ HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCW
 // choose a value distinct from uiWindowSignature
 #define uiWindowsControlSignature 0x4D53576E
 
-uiWindowsControl *uiWindowsNewControl(size_t n, uint32_t typesig, const char *typenamestr)
+uiWindowsControl *uiWindowsAllocControl(size_t n, uint32_t typesig, const char *typenamestr)
 {
 	return uiWindowsControl(uiAllocControl(n, uiWindowsControlSignature, typesig, typenamestr));
 }
 
-void uiWindowsControlNotifyMinimumSizeChanged(uiWindowsControl *c)
+BOOL uiWindowsShouldStopSyncEnableState(uiWindowsControl *c, BOOL enabled)
 {
-	uiControl *parent;
+	int ce;
 
-	parent = uiControlParent(uiControl(c));
-	if (parent != NULL)
-		uiWindowsControlChildMinimumSizeChanged(uiWindowsControl(parent));
+	ce = uiControlEnabled(uiControl(c));
+	// only stop if we're going from disabled back to enabled; don't stop under any other condition
+	// (if we stop when going from enabled to disabled then enabled children of a disabled control won't get disabled at the OS level)
+	if (!ce && enabled)
+		return TRUE;
+	return FALSE;
 }
 
 void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *c)
@@ -78,7 +81,7 @@ void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *c)
 
 	controlID = 100;
 	insertAfter = NULL;
-	uiWindowsControlAssignControlIDZorder(c, &controlID, &insertAfter);
+	uiWindowsControlAssignControlIDZOrder(c, &controlID, &insertAfter);
 }
 
 BOOL uiWindowsControlTooSmall(uiWindowsControl *c)

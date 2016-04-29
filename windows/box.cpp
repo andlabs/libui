@@ -18,6 +18,8 @@ struct uiBox {
 
 static void boxPadding(uiBox *b, int *xpadding, int *ypadding)
 {
+	uiWindowsSizing sizing;
+
 	*xpadding = 0;
 	*ypadding = 0;
 	if (b->padded) {
@@ -103,7 +105,7 @@ static void boxRelayout(uiBox *b)
 	for (const struct boxChild &bc : *(b->controls)) {
 		if (!uiControlVisible(bc.c))
 			continue;
-		uiWindowsEnsureMoveWIndowDuringResize((HWND) uiControlHandle(bc.c), x, y, bc.width, bc.height);
+		uiWindowsEnsureMoveWindowDuringResize((HWND) uiControlHandle(bc.c), x, y, bc.width, bc.height);
 		if (b->vertical)
 			y += bc.height + ypadding;
 		else
@@ -212,7 +214,7 @@ static void uiBoxMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *hei
 
 static void uiBoxMinimumSizeChanged(uiWindowsControl *c)
 {
-	uiBox *t = uiBox(c);
+	uiBox *b = uiBox(c);
 
 	if (uiWindowsControlTooSmall(uiWindowsControl(b))) {
 		uiWindowsControlContinueMinimumSizeChanged(uiWindowsControl(b));
@@ -222,7 +224,7 @@ static void uiBoxMinimumSizeChanged(uiWindowsControl *c)
 }
 
 uiWindowsControlDefaultLayoutRect(uiBox)
-uiWindowsControlDefaultAssignControlIDZorder(uiBox)
+uiWindowsControlDefaultAssignControlIDZOrder(uiBox)
 
 static void boxArrangeChildren(uiBox *b)
 {
@@ -233,7 +235,7 @@ static void boxArrangeChildren(uiBox *b)
 	controlID = 100;
 	insertAfter = NULL;
 	for (const struct boxChild &bc : *(b->controls))
-		uiWindowsControlAssignControlIDZOrder(uiWindwsControl(bc.c), &controlID, &insertAfter);
+		uiWindowsControlAssignControlIDZOrder(uiWindowsControl(bc.c), &controlID, &insertAfter);
 }
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
@@ -256,7 +258,7 @@ void uiBoxDelete(uiBox *b, uintmax_t index)
 	c = (*(b->controls))[index].c;
 	uiControlSetParent(c, NULL);
 	uiWindowsControlSetParentHWND(uiWindowsControl(c), NULL);
-	b->controls->erase(b->controls->begin() + Index);
+	b->controls->erase(b->controls->begin() + index);
 	boxArrangeChildren(b);
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
@@ -272,7 +274,7 @@ void uiBoxSetPadded(uiBox *b, int padded)
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
 
-static void onResize(uiControl *c)
+static void onResize(uiWindowsControl *c)
 {
 	boxRelayout(uiBox(c));
 }
@@ -283,10 +285,10 @@ static uiBox *finishNewBox(int vertical)
 
 	uiWindowsNewControl(uiBox, b);
 
-	b->hwnd = uiWIndowsMakeContainer(uiControl(b), onResize);
+	b->hwnd = uiWindowsMakeContainer(uiWindowsControl(b), onResize);
 
 	b->vertical = vertical;
-	b->controls = newPtrArray();
+	b->controls = new std::vector<struct boxChild>;
 
 	return b;
 }

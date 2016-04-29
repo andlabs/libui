@@ -495,8 +495,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	samplePlacement = GetDlgItem(f->hwnd, rcFontSamplePlacement);
 	if (samplePlacement == NULL)
 		logLastError(L"error getting sample placement static control handle");
-	if (uiWindowsEnsureGetWindowRect(samplePlacement, &(f->sampleRect)) == 0)
-		logLastError(L"error getting sample placement");
+	uiWindowsEnsureGetWindowRect(samplePlacement, &(f->sampleRect));
 	mapWindowRect(NULL, f->hwnd, &(f->sampleRect));
 	uiWindowsEnsureDestroyWindow(samplePlacement);
 	f->sampleBox = newD2DScratch(f->hwnd, &(f->sampleRect), (HMENU) rcFontSamplePlacement, fontDialogSampleSubProc, (DWORD_PTR) f);

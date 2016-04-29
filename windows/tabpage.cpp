@@ -20,7 +20,7 @@ static void tabPageMargins(struct tabPage *tp, int *mx, int *my)
 	uiWindowsSizingDlgUnitsToPixels(&sizing, mx, my);
 }
 
-static void tabRelayout(struct tabPage *tp)
+static void tabPageRelayout(struct tabPage *tp)
 {
 	RECT r;
 	int mx, my;
@@ -50,7 +50,7 @@ static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	if (uMsg == WM_INITDIALOG) {
 		tp = (struct tabPage *) lParam;
 		tp->hwnd = hwnd;
-		SetWindowLongPtrW(hwnd, DWLP_USERDATA, (LONG_PTR) tp);
+		SetWindowLongPtrW(hwnd, DWLP_USER, (LONG_PTR) tp);
 		return TRUE;
 	}
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE) {
@@ -58,7 +58,7 @@ static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		return TRUE;
 	}
 	if (uMsg == WM_WINDOWPOSCHANGED) {
-		tp = (struct tabPage *) GetWindowLongPtrW(hwnd, DWLP_USERDATA);
+		tp = (struct tabPage *) GetWindowLongPtrW(hwnd, DWLP_USER);
 		tabPageRelayout(tp);
 		// pretend the dialog hasn't handled this just in case it needs to do something special
 		return FALSE;
@@ -87,11 +87,11 @@ struct tabPage *newTabPage(uiControl *child)
 
 	// unfortunately this needs to be a proper dialog for EnableThemeDialogTexture() to work; CreateWindowExW() won't suffice
 	if (CreateDialogParamW(hInstance, MAKEINTRESOURCE(rcTabPageDialog),
-		utilWindow, dlgproc, tp) == NULL)
+		utilWindow, dlgproc, (LPARAM) tp) == NULL)
 		logLastError(L"error creating tab page");
 
 	tp->child = child;
-	uiControlSetParentHWND(uiWindowsControl(tp->child), tp->hwnd);
+	uiWindowsEnsureSetParentHWND((HWND) uiControlHandle(tp->child), tp->hwnd);
 
 	hr = EnableThemeDialogTexture(tp->hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);
 	if (hr != S_OK)

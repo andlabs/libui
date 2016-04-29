@@ -17,7 +17,7 @@ static BOOL onWM_HSCROLL(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static void uiSliderDestroy(uiControl *s)
+static void uiSliderDestroy(uiControl *c)
 {
 	uiSlider *s = uiSlider(c);
 
@@ -72,7 +72,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	uiSlider *s;
 
-	uiSliderNewControl(uiSlider, s);
+	uiWindowsNewControl(uiSlider, s);
 
 	s->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		TRACKBAR_CLASSW, L"",

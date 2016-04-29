@@ -20,7 +20,7 @@ static void uiLabelMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *h
 	*width = uiWindowsWindowTextWidth(l->hwnd);
 	y = labelHeight;
 	uiWindowsGetSizing(l->hwnd, &sizing);
-	uiWindowsSizingDlgUnitsToY(&sizing, NULL, &y);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, NULL, &y);
 	*height = y;
 }
 

@@ -34,14 +34,14 @@ static void uiMultilineEntryDestroy(uiControl *c)
 	uiFreeControl(uiControl(e));
 }
 
-uiWindowsControlAllDefaultsExceptDestroy(uiEntry)
+uiWindowsControlAllDefaultsExceptDestroy(uiMultilineEntry)
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 // TODO change this for multiline text boxes
 #define entryHeight 14
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiMultilineEntryMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiMultilineEntry *e = uiMultilineEntry(c);
 	uiWindowsSizing sizing;

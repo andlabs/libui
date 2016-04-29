@@ -4,6 +4,8 @@
 // Code for the HWND of the following uiControls:
 // - uiBox
 // - uiRadioButtons
+// - uiSpinbox
+// - uiTab
 
 struct containerInit {
 	uiWindowsControl *c;
@@ -17,27 +19,27 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	PAINTSTRUCT ps;
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
-	MINMAXINFO *mm = (MINMAXINFO *) lParam;
+	MINMAXINFO *mmi = (MINMAXINFO *) lParam;
 	struct containerInit *init;
 	uiWindowsControl *c;
 	void (*onResize)(uiWindowsControl *);
-	uintmax_t minwid, minht;
+	intmax_t minwid, minht;
 	LRESULT lResult;
 
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
 	switch (uMsg) {
 	case WM_CREATE:
-		init = (struct containerInit *) (cs->lpParam);
+		init = (struct containerInit *) (cs->lpCreateParams);
 		SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (init->onResize));
 		SetWindowLongPtrW(hwnd, 0, (LONG_PTR) (init->c));
 		break;		// defer to DefWindowProc()
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;	// defer to DefWindowProc();
-		onResize = (void (*)(uiControl *)) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+		onResize = (void (*)(uiWindowsControl *)) GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 		c = (uiWindowsControl *) GetWindowLongPtrW(hwnd, 0);
-		(*(onResize))(data);
+		(*(onResize))(c);
 		return 0;
 	case WM_GETMINMAXINFO:
 		lResult = DefWindowProcW(hwnd, uMsg, wParam, lParam);
@@ -59,11 +61,7 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		return 0;
 	// tab controls use this to draw the background of the tab area
 	case WM_PRINTCLIENT:
-		if (uiWindowsEnsureGetClientRect(hwnd, &r) == 0) {
-			logLastError(L"error getting client rect");
-			// likewise
-			break;
-		}
+		uiWindowsEnsureGetClientRect(hwnd, &r);
 		paintContainerBackground(hwnd, (HDC) wParam, &r);
 		return 0;
 	case WM_ERASEBKGND:

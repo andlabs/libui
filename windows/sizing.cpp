@@ -2,7 +2,7 @@
 #include "uipriv_windows.hpp"
 
 // TODO rework the error handling
-void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing);
+void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing)
 {
 	HDC dc;
 	HFONT prevfont;
@@ -22,22 +22,20 @@ void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing);
 	if (GetTextExtentPoint32W(dc, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &size) == 0)
 		logLastError(L"error getting text extent point");
 
-	d->BaseX = (int) ((size.cx / 26 + 1) / 2);
-	d->BaseY = (int) tm.tmHeight;
-	d->InternalLeading = tm.tmInternalLeading;
+	sizing->BaseX = (int) ((size.cx / 26 + 1) / 2);
+	sizing->BaseY = (int) tm.tmHeight;
+	sizing->InternalLeading = tm.tmInternalLeading;
 
 	if (SelectObject(dc, prevfont) != hMessageFont)
 		logLastError(L"error restoring previous font into device context");
 	if (ReleaseDC(hwnd, dc) == 0)
 		logLastError(L"error releasing DC");
-
-	return d;
 }
 
 #define dlgUnitsToX(dlg, baseX) MulDiv((dlg), (baseX), 4)
 #define dlgUnitsToY(dlg, baseY) MulDiv((dlg), (baseY), 8)
 
-void uiWindowsSizingDlgUnitsToPixels(uiWindowsSIzing *sizing, int *x, int *y)
+void uiWindowsSizingDlgUnitsToPixels(uiWindowsSizing *sizing, int *x, int *y)
 {
 	if (x != NULL)
 		*x = dlgUnitsToX(*x, sizing->BaseX);

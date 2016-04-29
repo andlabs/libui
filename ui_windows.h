@@ -17,12 +17,14 @@ typedef struct uiWindowsControl uiWindowsControl;
 struct uiWindowsControl {
 	uiControl c;
 	uiControl *parent;
+	// TODO this should be int on both os x and windows
 	BOOL enabled;
 	BOOL visible;
 	void (*SyncEnableState)(uiWindowsControl *, int);
 	void (*SetParentHWND)(uiWindowsControl *, HWND);
+	// TODO consider changing these from intmax_t to int
 	void (*MinimumSize)(uiWindowsControl *, intmax_t *, intmax_t *);
-	void (*MinimumSizeChanged)(uiWIndowsControl *);
+	void (*MinimumSizeChanged)(uiWindowsControl *);
 	void (*LayoutRect)(uiWindowsControl *c, RECT *r);
 	void (*AssignControlIDZOrder)(uiWindowsControl *, LONG_PTR *, HWND *);
 };
@@ -72,13 +74,13 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 #define uiWindowsControlDefaultShow(type) \
 	static void type ## Show(uiControl *c) \
 	{ \
-		uiWindowsControl(c)->visible = YES; \
+		uiWindowsControl(c)->visible = 1; \
 		ShowWindow(type(c)->hwnd, SW_SHOW); \
 	}
 #define uiWindowsControlDefaultHide(type) \
 	static void type ## Hide(uiControl *c) \
 	{ \
-		uiWindowsControl(c)->visible = NO; \
+		uiWindowsControl(c)->visible = 0; \
 		ShowWindow(type(c)->hwnd, SW_HIDE); \
 	}
 #define uiWindowsControlDefaultEnabled(type) \
@@ -89,13 +91,13 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 #define uiWindowsControlDefaultEnable(type) \
 	static void type ## Enable(uiControl *c) \
 	{ \
-		uiWindowsControl(c)->enabled = YES; \
+		uiWindowsControl(c)->enabled = 1; \
 		uiWindowsControlSyncEnableState(uiWindowsControl(c), uiControlEnabledToUser(c)); \
 	}
 #define uiWindowsControlDefaultDisable(type) \
 	static void type ## Disable(uiControl *c) \
 	{ \
-		uiWindowsControl(c)->enabled = NO; \
+		uiWindowsControl(c)->enabled = 0; \
 		uiWindowsControlSyncEnableState(uiWindowsControl(c), uiControlEnabledToUser(c)); \
 	}
 #define uiWindowsControlDefaultSyncEnableState(type) \
@@ -112,7 +114,7 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 	}
 // note that there is no uiWindowsControlDefaultMinimumSize(); you MUST define this yourself!
 #define uiWindowsControlDefaultMinimumSizeChanged(type) \
-	static void type ## MinimumSizeChanged)(uiWIndowsControl *c) \
+	static void type ## MinimumSizeChanged(uiWindowsControl *c) \
 	{ \
 		if (uiWindowsControlTooSmall(c)) { \
 			uiWindowsControlContinueMinimumSizeChanged(c); \
@@ -126,10 +128,10 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 		/* use the window rect as we include the non-client area in the sizes */ \
 		uiWindowsEnsureGetWindowRect(type(c)->hwnd, r); \
 	}
-#define uiWindowsControlDefaultAssignControlIDZorder(type) \
-	static void type ## AssignControlIDZOrder)(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter) \
+#define uiWindowsControlDefaultAssignControlIDZOrder(type) \
+	static void type ## AssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter) \
 	{ \
-		uiWindowsEnsureAssignControlIDZOrder(c, controlID, insertAfter); \
+		uiWindowsEnsureAssignControlIDZOrder(type(c)->hwnd, controlID, insertAfter); \
 	}
 
 #define uiWindowsControlAllDefaultsExceptDestroy(type) \
@@ -147,7 +149,7 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 	uiWindowsControlDefaultSetParentHWND(type) \
 	uiWindowsControlDefaultMinimumSizeChanged(type) \
 	uiWindowsControlDefaultLayoutRect(type) \
-	uiWindowsControlDefaultAssignControlIDZorder(type)
+	uiWindowsControlDefaultAssignControlIDZOrder(type)
 
 #define uiWindowsControlAllDefaults(type) \
 	uiWindowsControlDefaultDestroy(type) \
@@ -170,10 +172,11 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 	uiWindowsControl(var)->SyncEnableState = type ## SyncEnableState; \
 	uiWindowsControl(var)->SetParentHWND = type ## SetParentHWND; \
 	uiWindowsControl(var)->MinimumSize = type ## MinimumSize; \
-	uiWindowsControl(var)->ChildMinimumSizeChanged = type ## ChildMinimumSizeChanged; \
-	uiWindowsControl(var)->AssignControlIDZOrder = type ## AssignControlIDZorder; \
-	uiWindowsControl(var)->visible = YES; \
-	uiWindowsControl(var)->enabled = YES;
+	uiWindowsControl(var)->MinimumSizeChanged = type ## MinimumSizeChanged; \
+	uiWindowsControl(var)->LayoutRect = type ## LayoutRect; \
+	uiWindowsControl(var)->AssignControlIDZOrder = type ## AssignControlIDZOrder; \
+	uiWindowsControl(var)->visible = 1; \
+	uiWindowsControl(var)->enabled = 1;
 // TODO document
 _UI_EXTERN uiWindowsControl *uiWindowsAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
 
@@ -229,7 +232,7 @@ struct uiWindowsSizing {
 	LONG InternalLeading;
 };
 _UI_EXTERN void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing);
-_UI_EXTERN void uiWindowsSizingDlgUnitsToPixels(uiWindowsSIzing *sizing, int *x, int *y);
+_UI_EXTERN void uiWindowsSizingDlgUnitsToPixels(uiWindowsSizing *sizing, int *x, int *y);
 _UI_EXTERN void uiWindowsSizingStandardPadding(uiWindowsSizing *sizing, int *x, int *y);
 
 // TODO document
@@ -241,6 +244,9 @@ _UI_EXTERN void uiWindowsControlContinueMinimumSizeChanged(uiWindowsControl *c);
 
 // TODO document
 _UI_EXTERN void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *);
+
+// TODO document
+_UI_EXTERN BOOL uiWindowsShouldStopSyncEnableState(uiWindowsControl *c, int enabled);
 
 #ifdef __cplusplus
 }

@@ -141,14 +141,14 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 		hInstance, NULL,
 		TRUE);
 	uiFree(wtext);
-	uiWindowsEnsureSetParent(hwnd, r->hwnd);
+	uiWindowsEnsureSetParentHWND(hwnd, r->hwnd);
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
 	r->hwnds->push_back(hwnd);
 	radiobuttonsArrangeChildren(r);
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(r));
 }
 
-static void onResize(uiControl *c)
+static void onResize(uiWindowsControl *c)
 {
 	radiobuttonsRelayout(uiRadioButtons(c));
 }
@@ -159,7 +159,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 
 	uiWindowsNewControl(uiRadioButtons, r);
 
-	r->hwnd = uiWindowsMakeContainer(uiControl(r), onResize);
+	r->hwnd = uiWindowsMakeContainer(uiWindowsControl(r), onResize);
 
 	r->hwnds = new std::vector<HWND>;
 

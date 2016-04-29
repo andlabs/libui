@@ -25,7 +25,7 @@ static void uiButtonDestroy(uiControl *c)
 
 	uiWindowsUnregisterWM_COMMANDHandler(b->hwnd);
 	uiWindowsEnsureDestroyWindow(b->hwnd);
-	uiFreeControl(b->hwnd);
+	uiFreeControl(uiControl(b));
 }
 
 uiWindowsControlAllDefaultsExceptDestroy(uiButton)

@@ -33,8 +33,7 @@ static HRESULT parentDraw(HDC dc, HWND parent, struct parentDraw *pd)
 {
 	RECT r;
 
-	if (uiWindowsEnsureGetClientRect(parent, &r) == 0)
-		return logLastError(L"error getting parent's client rect");
+	uiWindowsEnsureGetClientRect(parent, &r);
 	pd->cdc = CreateCompatibleDC(dc);
 	if (pd->cdc == NULL)
 		return logLastError(L"error creating compatible DC");
@@ -86,10 +85,7 @@ static HBRUSH getControlBackgroundBrush(HWND hwnd, HDC dc)
 
 	// now figure out where the control is relative to the parent so we can align the brush properly
 	// if anything fails, give up and return the brush as-is
-	if (uiWindowsEnsureGetWindowRect(hwnd, &hwndScreenRect) == 0) {
-		logLastError(L"error getting control window rect");
-		return brush;
-	}
+	uiWindowsEnsureGetWindowRect(hwnd, &hwndScreenRect);
 	// this will be in screen coordinates; convert to parent coordinates
 	mapWindowRect(NULL, parent, &hwndScreenRect);
 	if (SetBrushOrgEx(dc, -hwndScreenRect.left, -hwndScreenRect.top, NULL) == 0)

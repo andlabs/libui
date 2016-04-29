@@ -35,7 +35,6 @@ static void windowMargins(uiWindow *w, int *mx, int *my)
 
 static void windowRelayout(uiWindow *w)
 {
-	uiWindow *w = uiWindow(c);
 	uiWindowsSizing sizing;
 	int x, y, width, height;
 	RECT r;
@@ -234,7 +233,7 @@ static void uiWindowMinimumSizeChanged(uiWindowsControl *c)
 {
 	uiWindow *w = uiWindow(c);
 
-	if (uiWindowsControlTooSmall(uiWindowsControl(w)) {
+	if (uiWindowsControlTooSmall(uiWindowsControl(w))) {
 		// TODO figure out what to do with this function
 		// maybe split it into two so WM_GETMINMAXINFO can use it?
 		ensureMinimumWindowSize(w);
@@ -244,7 +243,7 @@ static void uiWindowMinimumSizeChanged(uiWindowsControl *c)
 	windowRelayout(w);
 }
 
-static void uiWindowLayoutRect(uiWindowsControl *w, RECT *r)
+static void uiWindowLayoutRect(uiWindowsControl *c, RECT *r)
 {
 	uiWindow *w = uiWindow(c);
 
@@ -252,7 +251,7 @@ static void uiWindowLayoutRect(uiWindowsControl *w, RECT *r)
 	uiWindowsEnsureGetClientRect(w->hwnd, r);
 }
 
-uiWindowsControlDefaultAssignControlIDZorder(uiWindow)
+uiWindowsControlDefaultAssignControlIDZOrder(uiWindow)
 
 char *uiWindowTitle(uiWindow *w)
 {

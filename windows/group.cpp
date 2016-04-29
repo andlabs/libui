@@ -23,48 +23,34 @@ struct uiGroup {
 static void groupMargins(uiGroup *g, int *mx, int *mtop, int *mbottom)
 {
 	uiWindowsSizing sizing;
-	int dummy;
 
 	*mx = groupUnmarginedXMargin;
 	*mtop = groupUnmarginedYMarginTop;
 	*mbottom = groupUnmarginedYMarginBottom;
-	dummy = 1;		// for the bottom conversion
 	if (g->margined) {
 		*mx = groupXMargin;
 		*mtop = groupYMarginTop;
 		*mbottom = groupYMarginBottom;
 	}
-	uiWindowsControlGetSizing(uiWindowsControl(g), &sizing);
+	uiWindowsGetSizing(g->hwnd, &sizing);
 	uiWindowsSizingDlgUnitsToPixels(&sizing, mx, mtop);
-	uiWindowsSizingDlgUnitsToPixels(&sizing, &dummy, mbottom);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, NULL, mbottom);
 }
 
 static void groupRelayout(uiGroup *g)
 {
-	uiGroup *g = uiGroup(c);
-	uiWindowsSizing *d;
-
-	uiWindowsEnsureMoveWindowDuringResize(g->hwnd, x, y, width, height);
+	RECT r;
+	int mx, mtop, mbottom;
 
 	if (g->child == NULL)
 		return;
-
-	d = uiWindowsNewSizing(g->hwnd);
-	x = 0;		// make relative to the top-left corner of the groupbox
-	y = 0;
-	if (g->margined) {
-		x += uiWindowsDlgUnitsToX(groupXMargin, d->BaseX);
-		y += uiWindowsDlgUnitsToY(groupYMarginTop, d->BaseY);
-		width -= 2 * uiWindowsDlgUnitsToX(groupXMargin, d->BaseX);
-		height -= uiWindowsDlgUnitsToY(groupYMarginTop, d->BaseY) + uiWindowsDlgUnitsToY(groupYMarginBottom, d->BaseY);
-	} else {
-		x += uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->BaseX);
-		y += uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->BaseY);
-		width -= 2 * uiWindowsDlgUnitsToX(groupUnmarginedXMargin, d->BaseX);
-		height -= uiWindowsDlgUnitsToY(groupUnmarginedYMarginTop, d->BaseY) + uiWindowsDlgUnitsToY(groupUnmarginedYMarginBottom, d->BaseY);
-	}
-	uiWindowsFreeSizing(d);
-	childRelayout(g->child, x, y, width, height);
+	uiWindowsEnsureGetClientRect(g->hwnd, &r);
+	groupMargins(g, &mx, &mtop, &mbottom);
+	r.left += mx;
+	r.top += mtop;
+	r.right -= mx;
+	r.bottom -= mbottom;
+	uiWindowsEnsureMoveWindowDuringResize((HWND) uiControlHandle(g->child), r.left, r.top, r.right - r.left, r.bottom - r.top);
 }
 
 static void uiGroupDestroy(uiControl *c)
@@ -130,15 +116,7 @@ static void uiGroupMinimumSizeChanged(uiWindowsControl *c)
 }
 
 uiWindowsControlDefaultLayoutRect(uiGroup)
-uiWindowsControlDefaultAssignControlIDZorder(uiGroup)
-
-static void groupArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
-{
-	uiGroup *g = uiGroup(c);
-
-	if (g->child != NULL)
-		childSetSoleControlID(g->child);
-}
+uiWindowsControlDefaultAssignControlIDZOrder(uiGroup)
 
 char *uiGroupTitle(uiGroup *g)
 {
@@ -163,7 +141,7 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		uiControlSetParent(g->child, uiControl(g));
 		uiWindowsControlSetParentHWND(uiWindowsControl(g->child), g->hwnd);
 		uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl(g->child));
-		uiWindowsControlChildMinimumSizeChanged(uiWindowsControl(g));
+		uiWindowsControlMinimumSizeChanged(uiWindowsControl(g));
 	}
 }
 
@@ -175,7 +153,7 @@ int uiGroupMargined(uiGroup *g)
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
-	uiWindowsControlChildMinimumSizeChanged(uiWindowsControl(g));
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(g));
 }
 
 static LRESULT CALLBACK groupSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)

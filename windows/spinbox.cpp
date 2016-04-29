@@ -143,7 +143,6 @@ static void recreateUpDown(uiSpinbox *s)
 
 static void spinboxRelayout(uiSpinbox *s)
 {
-	uiSpinbox *s = uiSpinbox(c);
 	RECT r;
 
 	// make the edit fill the container first; the new updown will resize it
@@ -175,7 +174,7 @@ void uiSpinboxOnChanged(uiSpinbox *s, void (*f)(uiSpinbox *, void *), void *data
 	s->onChangedData = data;
 }
 
-static void onResize(uiControl *c)
+static void onResize(uiWindowsControl *c)
 {
 	spinboxRelayout(uiSpinbox(c));
 }
@@ -189,7 +188,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 
 	uiWindowsNewControl(uiSpinbox, s);
 
-	s->hwnd = uiWindowsMakeContainer(uiControl(s), onResize);
+	s->hwnd = uiWindowsMakeContainer(uiWindowsControl(s), onResize);
 
 	s->edit = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
@@ -197,12 +196,11 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
-	uiWindowsEnsureSetParent(s->edit, s->hwnd);
+	uiWindowsEnsureSetParentHWND(s->edit, s->hwnd);
 
 	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, onWM_COMMAND, uiControl(s));
 	uiSpinboxOnChanged(s, defaultOnChanged, NULL);
 
-	s->parent = utilWindow;
 	recreateUpDown(s);
 	s->inhibitChanged = TRUE;
 	SendMessageW(s->updown, UDM_SETRANGE32, (WPARAM) min, (LPARAM) max);

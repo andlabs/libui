@@ -32,8 +32,8 @@ static void tabPageRelayout(struct tabPage *tp)
 	tabPageMargins(tp, &mx, &my);
 	r.left += mx;
 	r.top += my;
-	r.right -= 2 * mx;
-	r.bottom -= 2 * my;
+	r.right -= mx;
+	r.bottom -= my;
 	child = (HWND) uiControlHandle(tp->child);
 	uiWindowsEnsureMoveWindowDuringResize(child, r.left, r.top, r.right - r.left, r.bottom - r.top);
 }

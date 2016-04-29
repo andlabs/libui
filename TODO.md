@@ -1,3 +1,7 @@
+- windows: should the initial hwndInsertAfter be HWND_BOTTOM for what we want?
+
+- windows: document the rules for controls and containers
+
 - windows: document the minimum size change propagation system
 
 - provisions for controls that cannot be grown? especiailly for windows

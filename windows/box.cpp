@@ -1,47 +1,155 @@
 // 7 april 2015
 #include "uipriv_windows.hpp"
 
-// TODO C++-ize
+struct boxChild {
+	uiControl *c;
+	int stretchy;
+	intmax_t width;
+	intmax_t height;
+};
 
 struct uiBox {
 	uiWindowsControl c;
 	HWND hwnd;
-	struct ptrArray *controls;
+	std::vector<struct boxChild> *controls;
 	int vertical;
 	int padded;
 };
 
-#define ctrlStretchy(child) childFlag(child)
-#define ctrlSetStretchy(child, stretchy) childSetFlag(child, stretchy)
-// both used by resize(); preallocated to save time and reduce risk of failure
-#define ctrlWidth(child) childIntmax(child, 0)
-#define ctrlSetWidth(child, w) childSetIntmax(child, 0, w)
-#define ctrlHeight(child) childIntmax(child, 1)
-#define ctrlSetHeight(child, h) childSetIntmax(child, 1, h)
-
-static void onDestroy(uiBox *);
-
-uiWindowsDefineControlWithOnDestroy(
-	uiBox,								// type name
-	onDestroy(me);						// on destroy
-)
-
-static void onDestroy(uiBox *b)
+static void boxPadding(uiBox *b, int *xpadding, int *ypadding)
 {
-	struct child *bc;
-
-	while (b->controls->len != 0) {
-		bc = ptrArrayIndex(b->controls, struct child *, 0);
-		ptrArrayDelete(b->controls, 0);
-		childDestroy(bc);
+	*xpadding = 0;
+	*ypadding = 0;
+	if (b->padded) {
+		uiWindowsGetSizing(b->hwnd, &sizing);
+		uiWindowsSizingStandardPadding(&sizing, xpadding, ypadding);
 	}
-	ptrArrayDestroy(b->controls);
 }
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void boxRelayout(uiBox *b)
+{
+	RECT r;
+	intmax_t x, y, width, height;
+	int xpadding, ypadding;
+	uintmax_t nStretchy;
+	intmax_t stretchywid, stretchyht;
+	uintmax_t i;
+	intmax_t minimumWidth, minimumHeight;
+	uiWindowsSizing *d;
+
+	if (b->controls->size() == 0)
+		return;
+
+	uiWindowsEnsureGetClientRect(b->hwnd, &r);
+	x = r.left;
+	y = r.top;
+	width = r.right - r.left;
+	height = r.bottom - r.top;
+
+	// -1) get this Box's padding
+	boxPadding(b, &xpadding, &ypadding);
+
+	// 0) inset the available rect by the needed padding
+	// TODO this is incorrect if any controls are hidden
+	if (b->vertical)
+		height -= (b->controls->size() - 1) * ypadding;
+	else
+		width -= (b->controls->size() - 1) * xpadding;
+
+	// 1) get width and height of non-stretchy controls
+	// this will tell us how much space will be left for stretchy controls
+	stretchywid = width;
+	stretchyht = height;
+	nStretchy = 0;
+	for (struct boxChild &bc : *(b->controls)) {
+		if (!uiControlVisible(bc.c))
+			continue;
+		if (bc.stretchy) {
+			nStretchy++;
+			continue;
+		}
+		uiWindowsControlMinimumSize(uiWindowsControl(bc.c), &minimumWidth, &minimumHeight);
+		if (b->vertical) {		// all controls have same width
+			bc.width = width;
+			bc.height = minimumHeight;
+			stretchyht -= minimumHeight;
+		} else {				// all controls have same height
+			bc.width = minimumWidth;
+			bc.height = height;
+			stretchywid -= minimumWidth;
+		}
+	}
+
+	// 2) now get the size of stretchy controls
+	if (nStretchy != 0)
+		if (b->vertical)
+			stretchyht /= nStretchy;
+		else
+			stretchywid /= nStretchy;
+	// TODO put this in the above if
+	for (struct boxChild &bc : *(b->controls)) {
+		if (!uiControlVisible(bc.c))
+			continue;
+		if (bc.stretchy) {
+			bc.width = stretchywid;
+			bc.height = stretchyht;
+		}
+	}
+
+	// 3) now we can position controls
+	// first, make relative to the top-left corner of the container
+	x = 0;
+	y = 0;
+	for (const struct boxChild &bc : *(b->controls)) {
+		if (!uiControlVisible(bc.c))
+			continue;
+		uiWindowsEnsureMoveWIndowDuringResize((HWND) uiControlHandle(bc.c), x, y, bc.width, bc.height);
+		if (b->vertical)
+			y += bc.height + ypadding;
+		else
+			x += bc.width + xpadding;
+	}
+}
+
+static void uiBoxDestroy(uiControl *c)
 {
 	uiBox *b = uiBox(c);
-	struct child *bc;
+
+	for (const struct boxChild &bc : *(b->controls)) {
+		uiControlSetParent(bc.c, NULL);
+		uiControlDestroy(bc.c);
+	}
+	delete b->controls;
+	uiWindowsEnsureDestroyWindow(b->hwnd);
+	uiFreeControl(uiControl(b));
+}
+
+uiWindowsControlDefaultHandle(uiBox)
+uiWindowsControlDefaultParent(uiBox)
+uiWindowsControlDefaultSetParent(uiBox)
+uiWindowsControlDefaultToplevel(uiBox)
+uiWindowsControlDefaultVisible(uiBox)
+uiWindowsControlDefaultShow(uiBox)
+uiWindowsControlDefaultHide(uiBox)
+uiWindowsControlDefaultEnabled(uiBox)
+uiWindowsControlDefaultEnable(uiBox)
+uiWindowsControlDefaultDisable(uiBox)
+
+static void uiBoxSyncEnableState(uiWindowsControl *c, int enabled)
+{
+	uiBox *b = uiBox(c);
+
+	if (uiWindowsShouldStopSyncEnableState(uiWindowsControl(b), enabled))
+		return;
+	for (const struct boxChild &bc : *(b->controls))
+		uiWindowsControlSyncEnableState(uiWindowsControl(bc.c), enabled);
+}
+
+uiWindowsControlDefaultSetParentHWND(uiBox)
+
+static void uiBoxMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+{
+	uiBox *b = uiBox(c);
 	int xpadding, ypadding;
 	uintmax_t nStretchy;
 	// these two contain the largest minimum width and height of all stretchy controls in the box
@@ -49,41 +157,33 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 	intmax_t maxStretchyWidth, maxStretchyHeight;
 	uintmax_t i;
 	intmax_t minimumWidth, minimumHeight;
-	uiWindowsSizing *dself;
+	uiWindowsSizing sizing;
 
 	*width = 0;
 	*height = 0;
-	if (b->controls->len == 0)
+	if (b->controls->size() == 0)
 		return;
 
-	dself = uiWindowsNewSizing(b->hwnd);
-
 	// 0) get this Box's padding
-	xpadding = 0;
-	ypadding = 0;
-	if (b->padded) {
-		xpadding = d->XPadding;
-		ypadding = d->YPadding;
-	}
+	boxPadding(b, &xpadding, &ypadding);
 
 	// 1) initialize the desired rect with the needed padding
 	// TODO this is wrong if any controls are hidden
 	if (b->vertical)
-		*height = (b->controls->len - 1) * ypadding;
+		*height = (b->controls->size() - 1) * ypadding;
 	else
-		*width = (b->controls->len - 1) * xpadding;
+		*width = (b->controls->size() - 1) * xpadding;
 
 	// 2) add in the size of non-stretchy controls and get (but not add in) the largest widths and heights of stretchy controls
 	// we still add in like direction of stretchy controls
 	nStretchy = 0;
 	maxStretchyWidth = 0;
 	maxStretchyHeight = 0;
-	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct child *, i);
-		if (!childVisible(bc))
+	for (const struct boxChild &bc : *(b->controls)) {
+		if (!uiControlVisible(bc.c))
 			continue;
-		childMinimumSize(bc, dself, &minimumWidth, &minimumHeight);
-		if (ctrlStretchy(bc)) {
+		uiWindowsControlMinimumSize(uiWindowsControl(bc.c), &minimumWidth, &minimumHeight);
+		if (bc.stretchy) {
 			nStretchy++;
 			if (maxStretchyWidth < minimumWidth)
 				maxStretchyWidth = minimumWidth;
@@ -93,10 +193,10 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 		if (b->vertical) {
 			if (*width < minimumWidth)
 				*width = minimumWidth;
-			if (!ctrlStretchy(bc))
+			if (!bc.stretchy)
 				*height += minimumHeight;
 		} else {
-			if (!ctrlStretchy(bc))
+			if (!bc.stretchy)
 				*width += minimumWidth;
 			if (*height < minimumHeight)
 				*height = minimumHeight;
@@ -108,156 +208,57 @@ static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width
 		*height += nStretchy * maxStretchyHeight;
 	else
 		*width += nStretchy * maxStretchyWidth;
-
-	uiWindowsFreeSizing(dself);
 }
 
-static void boxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+static void uiBoxMinimumSizeChanged(uiWindowsControl *c)
 {
-	uiBox *b = uiBox(c);
-	struct child *bc;
-	int xpadding, ypadding;
-	uintmax_t nStretchy;
-	intmax_t stretchywid, stretchyht;
-	uintmax_t i;
-	intmax_t minimumWidth, minimumHeight;
-	uiWindowsSizing *d;
+	uiBox *t = uiBox(c);
 
-	uiWindowsEnsureMoveWindowDuringResize(b->hwnd, x, y, width, height);
-
-	if (b->controls->len == 0)
+	if (uiWindowsControlTooSmall(uiWindowsControl(b))) {
+		uiWindowsControlContinueMinimumSizeChanged(uiWindowsControl(b));
 		return;
-
-	d = uiWindowsNewSizing(b->hwnd);
-
-	// -1) get this Box's padding
-	xpadding = 0;
-	ypadding = 0;
-	if (b->padded) {
-		xpadding = d->XPadding;
-		ypadding = d->YPadding;
 	}
-
-	// 0) inset the available rect by the needed padding
-	// TODO this is incorrect if any controls are hidden
-	if (b->vertical)
-		height -= (b->controls->len - 1) * ypadding;
-	else
-		width -= (b->controls->len - 1) * xpadding;
-
-	// 1) get width and height of non-stretchy controls
-	// this will tell us how much space will be left for stretchy controls
-	stretchywid = width;
-	stretchyht = height;
-	nStretchy = 0;
-	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct child *, i);
-		if (!childVisible(bc))
-			continue;
-		if (ctrlStretchy(bc)) {
-			nStretchy++;
-			continue;
-		}
-		childMinimumSize(bc, d, &minimumWidth, &minimumHeight);
-		if (b->vertical) {		// all controls have same width
-			ctrlSetWidth(bc, width);
-			ctrlSetHeight(bc, minimumHeight);
-			stretchyht -= minimumHeight;
-		} else {				// all controls have same height
-			ctrlSetWidth(bc, minimumWidth);
-			ctrlSetHeight(bc, height);
-			stretchywid -= minimumWidth;
-		}
-	}
-
-	// 2) now get the size of stretchy controls
-	if (nStretchy != 0)
-		if (b->vertical)
-			stretchyht /= nStretchy;
-		else
-			stretchywid /= nStretchy;
-	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct child *, i);
-		if (!childVisible(bc))
-			continue;
-		if (ctrlStretchy(bc)) {
-			ctrlSetWidth(bc, stretchywid);
-			ctrlSetHeight(bc, stretchyht);
-		}
-	}
-
-	// 3) now we can position controls
-	// first, make relative to the top-left corner of the container
-	x = 0;
-	y = 0;
-	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct child *, i);
-		if (!childVisible(bc))
-			continue;
-		childRelayout(bc, x, y, ctrlWidth(bc), ctrlHeight(bc));
-		if (b->vertical)
-			y += ctrlHeight(bc) + ypadding;
-		else
-			x += ctrlWidth(bc) + xpadding;
-	}
-
-	uiWindowsFreeSizing(d);
+	boxRelayout(b);
 }
 
-static void boxContainerUpdateState(uiControl *c)
-{
-	uiBox *b = uiBox(c);
-	struct child *bc;
-	uintmax_t i;
+uiWindowsControlDefaultLayoutRect(uiBox)
+uiWindowsControlDefaultAssignControlIDZorder(uiBox)
 
-	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct child *, i);
-		childUpdateState(bc);
-	}
-}
-
-static void redoControlIDsZOrder(uiBox *b)
+static void boxArrangeChildren(uiBox *b)
 {
-	struct child *bc;
 	LONG_PTR controlID;
 	HWND insertAfter;
 	uintmax_t i;
 
 	controlID = 100;
 	insertAfter = NULL;
-	for (i = 0; i < b->controls->len; i++) {
-		bc = ptrArrayIndex(b->controls, struct child *, i);
-		childAssignControlIDZOrder(bc, &controlID, &insertAfter);
-	}
-}
-
-static void boxArrangeChildrenControlIDsZOrder(uiWindowsControl *c)
-{
-	uiBox *b = uiBox(c);
-
-	redoControlIDsZOrder(b);
+	for (const struct boxChild &bc : *(b->controls))
+		uiWindowsControlAssignControlIDZOrder(uiWindwsControl(bc.c), &controlID, &insertAfter);
 }
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
-	struct child *bc;
+	struct boxChild bc;
 
-	bc = newChild(c, uiControl(b), b->hwnd);
-	ctrlSetStretchy(bc, stretchy);
-	ptrArrayAppend(b->controls, bc);
-	redoControlIDsZOrder(b);
-	uiWindowsControlQueueRelayout(uiWindowsControl(b));
+	bc.c = c;
+	bc.stretchy = stretchy;
+	uiControlSetParent(bc.c, uiControl(b));
+	uiWindowsControlSetParentHWND(uiWindowsControl(bc.c), b->hwnd);
+	b->controls->push_back(bc);
+	boxArrangeChildren(b);
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
 
 void uiBoxDelete(uiBox *b, uintmax_t index)
 {
-	struct child *bc;
+	uiControl *c;
 
-	bc = ptrArrayIndex(b->controls, struct child *, index);
-	ptrArrayDelete(b->controls, index);
-	childRemove(bc);
-	redoControlIDsZOrder(b);
-	uiWindowsControlQueueRelayout(uiWindowsControl(b));
+	c = (*(b->controls))[index].c;
+	uiControlSetParent(c, NULL);
+	uiWindowsControlSetParentHWND(uiWindowsControl(c), NULL);
+	b->controls->erase(b->controls->begin() + Index);
+	boxArrangeChildren(b);
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
 
 int uiBoxPadded(uiBox *b)
@@ -268,24 +269,24 @@ int uiBoxPadded(uiBox *b)
 void uiBoxSetPadded(uiBox *b, int padded)
 {
 	b->padded = padded;
-	uiWindowsControlQueueRelayout(uiWindowsControl(b));
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
+}
+
+static void onResize(uiControl *c)
+{
+	boxRelayout(uiBox(c));
 }
 
 static uiBox *finishNewBox(int vertical)
 {
 	uiBox *b;
 
-	b = (uiBox *) uiNewControl(uiBox);
+	uiWindowsNewControl(uiBox, b);
 
-	b->hwnd = newContainer();
+	b->hwnd = uiWIndowsMakeContainer(uiControl(b), onResize);
 
 	b->vertical = vertical;
 	b->controls = newPtrArray();
-
-	uiWindowsFinishNewControl(b, uiBox);
-	uiControl(b)->ContainerUpdateState = boxContainerUpdateState;
-	uiWindowsControl(b)->Relayout = boxRelayout;
-	uiWindowsControl(b)->ArrangeChildrenControlIDsZOrder = boxArrangeChildrenControlIDsZOrder;
 
 	return b;
 }

@@ -13,12 +13,7 @@ struct uiCombobox {
 	void *onSelectedData;
 };
 
-uiWindowsDefineControlWithOnDestroy(
-	uiCombobox,							// type name
-	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
-)
-
-// note: NOT triggered on entering text
+// TODO: NOT triggered on entering text
 static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiCombobox *c = uiCombobox(cc);
@@ -30,14 +25,33 @@ static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
+void uiComboboxDestroy(uiControl *cc)
+{
+	uiCombobox *c = uiCombobox(cc);
+
+	uiWindowsUnregisterWM_COMMANDHandler(c->hwnd);
+	uiWindowsEnsureDestroyWindow(c->hwnd);
+	uiFreeControl(uiControl(c));
+}
+
+uiWindowsControlDefaultMinimumSizeChanged(uiCombobox)
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define comboboxWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
+#define comboboxWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary; TODO */
 #define comboboxHeight 14
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiComboboxMinimumSize(uiWindowsControl *cc, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(comboboxWidth, d->BaseX);
-	*height = uiWindowsDlgUnitsToY(comboboxHeight, d->BaseY);
+	uiCombobox *c = uiCombobox(cc);
+	uiWindowsSizing sizing;
+	int x, y;
+
+	x = comboboxWidth;
+	y = comboboxHeight;
+	uiWindowsGetSizing(c->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	*width = x;
+	*height = y;
 }
 
 static void defaultOnSelected(uiCombobox *c, void *data)
@@ -85,7 +99,7 @@ static uiCombobox *finishNewCombobox(DWORD style)
 {
 	uiCombobox *c;
 
-	c = (uiCombobox *) uiNewControl(uiCombobox);
+	uiWindowsNewControl(uiCombobox, c);
 
 	c->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"combobox", L"",
@@ -95,8 +109,6 @@ static uiCombobox *finishNewCombobox(DWORD style)
 
 	uiWindowsRegisterWM_COMMANDHandler(c->hwnd, onWM_COMMAND, uiControl(c));
 	uiComboboxOnSelected(c, defaultOnSelected, NULL);
-
-	uiWindowsFinishNewControl(c, uiCombobox);
 
 	return c;
 }

@@ -8,11 +8,6 @@ struct uiCheckbox {
 	void *onToggledData;
 };
 
-uiWindowsDefineControlWithOnDestroy(
-	uiCheckbox,							// type name
-	uiWindowsUnregisterWM_COMMANDHandler(me->hwnd);	// on destroy
-)
-
 static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiCheckbox *c = uiCheckbox(cc);
@@ -32,17 +27,34 @@ static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
+static void uiCheckboxDestroy(uiControl *cc)
+{
+	uiCheckbox *c = uiCheckbox(cc);
+
+	uiWindowsUnregisterWM_COMMANDHandler(c->hwnd);
+	uiWindowsEnsureDestroyHWND(c->hwnd);
+	uiFreeControl(uiControl(c));
+}
+
+uiWindowsControlAllDefaultsExceptDestroy(uiCheckbox)
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define checkboxHeight 10
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define checkboxXFromLeftOfBoxToLeftOfLabel 12
 
-static void minimumSize(uiWindowsControl *cc, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiCheckboxinimumSize(uiWindowsControl *cc, intmax_t *width, intmax_t *height)
 {
 	uiCheckbox *c = uiCheckbox(cc);
+	uiWindowsSizing sizing;
+	int x, y;
 
-	*width = uiWindowsDlgUnitsToX(checkboxXFromLeftOfBoxToLeftOfLabel, d->BaseX) + uiWindowsWindowTextWidth(c->hwnd);
-	*height = uiWindowsDlgUnitsToY(checkboxHeight, d->BaseY);
+	x = checkboxXFromLeftOfBoxToLeftOfLabel;
+	y = checkboxHeight;
+	uiWindowsGetSizing(c->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	*width = x + uiWindowsWindowTextWidth(c->hwnd);
+	*height = y;
 }
 
 static void defaultOnToggled(uiCheckbox *c, void *data)
@@ -88,7 +100,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiCheckbox *c;
 	WCHAR *wtext;
 
-	c = (uiCheckbox *) uiNewControl(uiCheckbox);
+	uiWindowsNewControl(uiCheckbox, c);
 
 	wtext = toUTF16(text);
 	c->hwnd = uiWindowsEnsureCreateControlHWND(0,
@@ -100,8 +112,6 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	uiWindowsRegisterWM_COMMANDHandler(c->hwnd, onWM_COMMAND, uiControl(c));
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);
-
-	uiWindowsFinishNewControl(c, uiCheckbox);
 
 	return c;
 }

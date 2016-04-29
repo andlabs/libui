@@ -149,7 +149,7 @@ static void uiTabMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *hei
 	r.right = pagewid;
 	r.bottom = pageht;
 	// this also includes the tabs themselves
-	SendMessageW(t->hwnd, TCM_ADJUSTRECT, (WPARAM) TRUE, (LPARAM) (&r));
+	SendMessageW(t->tabHWND, TCM_ADJUSTRECT, (WPARAM) TRUE, (LPARAM) (&r));
 	*width = r.right - r.left;
 	*height = r.bottom - r.top;
 }
@@ -207,7 +207,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	item.mask = TCIF_TEXT;
 	wname = toUTF16(name);
 	item.pszText = wname;
-	if (SendMessageW(t->hwnd, TCM_INSERTITEM, (WPARAM) n, (LPARAM) (&item)) == (LRESULT) -1)
+	if (SendMessageW(t->tabHWND, TCM_INSERTITEM, (WPARAM) n, (LPARAM) (&item)) == (LRESULT) -1)
 		logLastError(L"error adding tab to uiTab");
 	uiFree(wname);
 
@@ -225,7 +225,7 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 
 	// first delete the tab from the tab control
 	// if this is the current tab, no tab will be selected, which is good
-	if (SendMessageW(t->hwnd, TCM_DELETEITEM, (WPARAM) n, 0) == FALSE)
+	if (SendMessageW(t->tabHWND, TCM_DELETEITEM, (WPARAM) n, 0) == FALSE)
 		logLastError(L"error deleting uiTab tab");
 
 	// now delete the page itself

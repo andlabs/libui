@@ -149,7 +149,7 @@ void uiGroupSetTitle(uiGroup *g, const char *text)
 {
 	uiWindowsSetWindowText(g->hwnd, text);
 	// changing the text might necessitate a change in the groupbox's size
-	uiWindowsControlQueueRelayout(uiWindowsControl(g));
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(g));
 }
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)

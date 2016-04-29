@@ -135,7 +135,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
 	r->hwnds->push_back(hwnd);
 	redoControlIDsZOrder(r);
-	uiWindowsControlQueueRelayout(uiWindowsControl(r));
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(r));
 }
 
 uiRadioButtons *uiNewRadioButtons(void)

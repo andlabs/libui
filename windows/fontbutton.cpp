@@ -33,7 +33,7 @@ static void updateFontButtonLabel(uiFontButton *b)
 	uiFree(text);
 
 	// changing the text might necessitate a change in the button's size
-	uiWindowsControlQueueRelayout(uiWindowsControl(b));
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
 
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)

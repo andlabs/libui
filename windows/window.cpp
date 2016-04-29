@@ -192,7 +192,7 @@ static void uiWindowShow(uiControl *c)
 	}
 	w->shownOnce = TRUE;
 	// make sure the child is the correct size
-	uiWindowsControlQueueRelayout(uiWindowsControl(w));
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(w));
 	ShowWindow(w->hwnd, nCmdShow);
 	if (UpdateWindow(w->hwnd) == 0)
 		logLastError(L"error calling UpdateWindow() after showing uiWindow for the first time");

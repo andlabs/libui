@@ -73,7 +73,7 @@ void uiButtonSetText(uiButton *b, const char *text)
 {
 	uiWindowsSetWindowText(b->hwnd, text);
 	// changing the text might necessitate a change in the button's size
-	uiWindowsControlQueueRelayout(uiWindowsControl(b));
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
 
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)

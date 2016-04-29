@@ -14,13 +14,6 @@ struct uiRadioButtons {
 	std::vector<HWND> *hwnds;		// of the buttons
 };
 
-static void onDestroy(uiRadioButtons *);
-
-uiWindowsDefineControlWithOnDestroy(
-	uiRadioButtons,						// type name
-	onDestroy(me);						// on destroy
-)
-
 static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult)
 {
 	uiRadioButtons *r = uiRadioButtons(c);
@@ -39,49 +32,71 @@ static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult
 	return TRUE;
 }
 
-static void onDestroy(uiRadioButtons *r)
+static void uiRadioButtonsDestroy(uiControl *c)
 {
+	uiRadioButtons *r = uiRadioButtons(c);
+
 	for (const HWND &hwnd : *(r->hwnds)) {
 		uiWindowsUnregisterWM_COMMANDHandler(hwnd);
 		uiWindowsEnsureDestroyWindow(hwnd);
 	}
 	delete r->hwnds;
+	uiWindowsEnsureDestroyWindow(r->hwnd);
+	uiFreeControl(uiControl(r));
 }
+
+// TODO SyncEnableState
+uiWindowsControlAllDefaultsExceptDestroy(uiRadioButtons)
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define radiobuttonHeight 10
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define radiobuttonXFromLeftOfBoxToLeftOfLabel 12
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiRadioButtonsMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiRadioButtons *r = uiRadioButtons(c);
 	intmax_t wid, maxwid;
+	uiWindowsSizing sizing;
+	int x, y;
 
+	if (r->hwnds->size() == 0) {
+		*width = 0;
+		*height = 0;
+		return;
+	}
 	maxwid = 0;
 	for (const HWND &hwnd : *(r->hwnds)) {
 		wid = uiWindowsWindowTextWidth(hwnd);
 		if (maxwid < wid)
 			maxwid = wid;
 	}
-	*width = uiWindowsDlgUnitsToX(radiobuttonXFromLeftOfBoxToLeftOfLabel, d->BaseX) + maxwid;
-	*height = uiWindowsDlgUnitsToY(radiobuttonHeight, d->BaseY) * r->hwnds->size();
+
+	x = radiobuttonXFromLeftOfBoxToLeftOfLabel;
+	y = radiobuttonHeight;
+	// get it for the radio button itself since that's what counts
+	// TODO for all of them?
+	uiWindowsGetSizing((*(r->hwnds))[0], &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+
+	*width = x + maxwid;
+	*height = y * r->hwnds->size();
 }
 
-static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+static void radiobuttonsRelayout(uiRadioButtons *r)
 {
-	uiRadioButtons *r = uiRadioButtons(c);
-	uiWindowsSizing *d;
+	RECT client;
 	intmax_t height1;
 	intmax_t h;
+	intmax_t x, y, width, height;
 
-	uiWindowsEnsureMoveWindowDuringResize(r->hwnd, x, y, width, height);
-
-	x = 0;
-	y = 0;
-	d = uiWindowsNewSizing(r->hwnd);
-	height1 = uiWindowsDlgUnitsToY(radiobuttonHeight, d->BaseY);
-	uiWindowsFreeSizing(d);
+	uiWindowsEnsureGetClientRect(r->hwnd, &client);
+	x = client.left;
+	y = client.top;
+	width = client.right - client.left;
+	height = client.bottom - client.top;
+	// TODO compute the real height1
+	height1 = 25;
 	for (const HWND &hwnd : *(r->hwnds)) {
 		h = height1;
 		if (h > height)		// clip to height
@@ -96,20 +111,15 @@ static void radiobuttonsRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, in
 	}
 }
 
-// TODO commit enable/disable
-
-static void redoControlIDsZOrder(uiRadioButtons *r)
+static void radiobuttonsArrangeChildren(uiRadioButtons *r)
 {
 	LONG_PTR controlID;
 	HWND insertAfter;
 
 	controlID = 100;
 	insertAfter = NULL;
-	for (const HWND &hwnd : *(r->hwnds)) {
-		uiWindowsEnsureAssignControlIDZOrder(hwnd, controlID, insertAfter);
-		controlID++;
-		insertAfter = hwnd;
-	}
+	for (const HWND &hwnd : *(r->hwnds))
+		uiWindowsEnsureAssignControlIDZOrder(hwnd, &controlID, &insertAfter);
 }
 
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
@@ -134,22 +144,24 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	uiWindowsEnsureSetParent(hwnd, r->hwnd);
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
 	r->hwnds->push_back(hwnd);
-	redoControlIDsZOrder(r);
+	radiobuttonsArrangeChildren(r);
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(r));
+}
+
+static void onResize(uiControl *c)
+{
+	radiobuttonsRelayout(uiRadioButtons(c));
 }
 
 uiRadioButtons *uiNewRadioButtons(void)
 {
 	uiRadioButtons *r;
 
-	r = (uiRadioButtons *) uiNewControl(uiRadioButtons);
+	uiWindowsNewControl(uiRadioButtons, r);
 
-	r->hwnd = newContainer();
+	r->hwnd = uiWindowsMakeContainer(uiControl(r), onResize);
 
 	r->hwnds = new std::vector<HWND>;
-
-	uiWindowsFinishNewControl(r, uiRadioButtons);
-	uiWindowsControl(r)->Relayout = radiobuttonsRelayout;
 
 	return r;
 }

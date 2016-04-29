@@ -4,19 +4,12 @@
 struct uiSpinbox {
 	uiWindowsControl c;
 	HWND hwnd;
+	HWND edit;
 	HWND updown;
 	void (*onChanged)(uiSpinbox *, void *);
 	void *onChangedData;
 	BOOL inhibitChanged;
-	HWND parent;
 };
-
-static void onDestroy(uiSpinbox *);
-
-uiWindowsDefineControlWithOnDestroy(
-	uiSpinbox,							// type name
-	onDestroy(me);						// on destroy
-)
 
 // utility functions
 
@@ -52,7 +45,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	// However, if we just have the code below, the up-down will catch the bare - and reject it.
 	// Let's fix that.
 	// This won't handle leading spaces, but spaces aren't allowed *anyway*.
-	wtext = windowText(s->hwnd);
+	wtext = windowText(s->edit);
 	if (wcscmp(wtext, L"-") == 0) {
 		uiFree(wtext);
 		return TRUE;
@@ -64,29 +57,49 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
-static void onDestroy(uiSpinbox *s)
-{
-	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
-	uiWindowsEnsureDestroyWindow(s->updown);
-}
-
-static void spinboxCommitSetParent(uiWindowsControl *c, HWND parent)
+static void uiSpinboxDestroy(uiControl *c)
 {
 	uiSpinbox *s = uiSpinbox(c);
 
-	s->parent = parent;
-	uiWindowsEnsureSetParent(s->hwnd, s->parent);
-	uiWindowsEnsureSetParent(s->updown, s->parent);
+	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
+	uiWindowsEnsureDestroyWindow(s->updown);
+	uiWindowsEnsureDestroyWindow(s->edit);
+	uiWindowsEnsureDestroyWindow(s->hwnd);
+	uiFreeControl(uiControl(s));
 }
 
+// TODO SyncEnableState
+uiWindowsControlAllDefaultsExceptDestroy(uiSpinbox)
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
+// TODO reduce this?
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiSpinboxMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(entryWidth, d->BaseX);
-	*height = uiWindowsDlgUnitsToY(entryHeight, d->BaseY);
+	uiSpinbox *s = uiSpinbox(c);
+	uiWindowsSizing sizing;
+	int x, y;
+
+	x = entryWidth;
+	y = entryHeight;
+	// note that we go by the edit here
+	uiWindowsGetSizing(s->edit, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	*width = x;
+	*height = y;
+}
+
+static void spinboxArrangeChildren(uiSpinbox *s)
+{
+	LONG_PTR controlID;
+	HWND insertAfter;
+
+	controlID = 100;
+	insertAfter = NULL;
+	uiWindowsEnsureAssignControlIDZOrder(s->edit, &controlID, &insertAfter);
+	uiWindowsEnsureAssignControlIDZOrder(s->updown, &controlID, &insertAfter);
 }
 
 // an up-down control will only properly position itself the first time
@@ -113,37 +126,30 @@ static void recreateUpDown(uiSpinbox *s)
 		WS_CHILD | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_HOTTRACK | UDS_NOTHOUSANDS | UDS_SETBUDDYINT,
 		// this is important; it's necessary for autosizing to work
 		0, 0, 0, 0,
-		s->parent, NULL, hInstance, NULL);
+		s->hwnd, NULL, hInstance, NULL);
 	if (s->updown == NULL)
 		logLastError(L"error creating updown");
-	SendMessageW(s->updown, UDM_SETBUDDY, (WPARAM) (s->hwnd), 0);
+	SendMessageW(s->updown, UDM_SETBUDDY, (WPARAM) (s->edit), 0);
 	if (preserve) {
 		SendMessageW(s->updown, UDM_SETRANGE32, (WPARAM) min, (LPARAM) max);
 		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) current);
 	}
-	// preserve the z-order
-	uiWindowsRearrangeControlIDsZOrder(uiControl(s));
+	// preserve the Z-order
+	spinboxArrangeChildren(s);
 	// TODO properly show/enable
 	ShowWindow(s->updown, SW_SHOW);
 	s->inhibitChanged = FALSE;
 }
 
-static void spinboxRelayout(uiWindowsControl *c, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+static void spinboxRelayout(uiSpinbox *s)
 {
 	uiSpinbox *s = uiSpinbox(c);
+	RECT r;
 
-	uiWindowsEnsureMoveWindowDuringResize(s->hwnd, x, y, width, height);
+	// make the edit fill the container first; the new updown will resize it
+	uiWindowsEnsureGetClientRect(s->hwnd, &r);
+	uiWindowsEnsureMoveWindowDuringResize(s->edit, r.left, r.top, r.right - r.left, r.bottom - r.top);
 	recreateUpDown(s);
-}
-
-static void spinboxAssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter)
-{
-	uiSpinbox *s = uiSpinbox(c);
-
-	uiWindowsEnsureAssignControlIDZOrder(s->hwnd, *controlID, *insertAfter);
-	uiWindowsEnsureAssignControlIDZOrder(s->updown, *controlID + 1, s->hwnd);
-	*controlID += 2;
-	*insertAfter = s->updown;
 }
 
 static void defaultOnChanged(uiSpinbox *s, void *data)
@@ -169,6 +175,11 @@ void uiSpinboxOnChanged(uiSpinbox *s, void (*f)(uiSpinbox *, void *), void *data
 	s->onChangedData = data;
 }
 
+static void onResize(uiControl *c)
+{
+	spinboxRelayout(uiSpinbox(c));
+}
+
 uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	uiSpinbox *s;
@@ -176,14 +187,17 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	if (min >= max)
 		complain("error: min >= max in uiNewSpinbox()");
 
-	s = (uiSpinbox *) uiNewControl(uiSpinbox);
+	uiWindowsNewControl(uiSpinbox, s);
 
-	s->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
+	s->hwnd = uiWindowsMakeContainer(uiControl(s), onResize);
+
+	s->edit = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
 		// don't use ES_NUMBER; it doesn't allow typing in a leading -
 		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
+	uiWindowsEnsureSetParent(s->edit, s->hwnd);
 
 	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, onWM_COMMAND, uiControl(s));
 	uiSpinboxOnChanged(s, defaultOnChanged, NULL);
@@ -194,11 +208,6 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	SendMessageW(s->updown, UDM_SETRANGE32, (WPARAM) min, (LPARAM) max);
 	SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) min);
 	s->inhibitChanged = FALSE;
-
-	uiWindowsFinishNewControl(s, uiSpinbox);
-	uiWindowsControl(s)->CommitSetParent = spinboxCommitSetParent;
-	uiWindowsControl(s)->Relayout = spinboxRelayout;
-	uiWindowsControl(s)->AssignControlIDZOrder = spinboxAssignControlIDZOrder;
 
 	return s;
 }

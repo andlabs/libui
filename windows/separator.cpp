@@ -10,32 +10,35 @@ struct uiSeparator {
 	HWND hwnd;
 };
 
-uiWindowsDefineControl(
-	uiSeparator							// type name
-)
+uiWindowsControlAllDefaults(uiSeparator)
 
 // via https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define separatorHeight 1
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiSeparatorMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
+	uiSeparator *s = uiSeparator(c);
+	uiWindowsSizing sizing;
+	int y;
+
 	*width = 1;		// TODO
-	*height = uiWindowsDlgUnitsToY(separatorHeight, d->BaseY);
+	y = separatorHeight;
+	uiWindowsGetSizing(s->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, NULL, &y);
+	*height = y;
 }
 
 uiSeparator *uiNewHorizontalSeparator(void)
 {
 	uiSeparator *s;
 
-	s = (uiSeparator *) uiNewControl(uiSeparator);
+	uiWindowsNewControl(uiSeparator, s);
 
 	s->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		L"static", L"",
 		SS_ETCHEDHORZ,
 		hInstance, NULL,
 		TRUE);
-
-	uiWindowsFinishNewControl(s, uiSeparator);
 
 	return s;
 }

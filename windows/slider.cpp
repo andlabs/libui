@@ -8,11 +8,6 @@ struct uiSlider {
 	void *onChangedData;
 };
 
-uiWindowsDefineControlWithOnDestroy(
-	uiSlider,								// type name
-	uiWindowsUnregisterWM_HSCROLLHandler(me->hwnd);	// on destroy
-)
-
 static BOOL onWM_HSCROLL(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiSlider *s = uiSlider(c);
@@ -22,14 +17,33 @@ static BOOL onWM_HSCROLL(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	return TRUE;
 }
 
+static void uiSliderDestroy(uiControl *s)
+{
+	uiSlider *s = uiSlider(c);
+
+	uiWindowsUnregisterWM_HSCROLLHandler(s->hwnd);
+	uiWindowsEnsureDestroyWindow(s->hwnd);
+	uiFreeControl(uiControl(s));
+}
+
+uiWindowsControlAllDefaultsExceptDestroy(uiSlider);
+
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define sliderWidth 107 /* this is actually the shorter progress bar width, but Microsoft doesn't indicate a width */
 #define sliderHeight 15
 
-static void minimumSize(uiWindowsControl *c, uiWindowsSizing *d, intmax_t *width, intmax_t *height)
+static void uiSliderMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
-	*width = uiWindowsDlgUnitsToX(sliderWidth, d->BaseX);
-	*height = uiWindowsDlgUnitsToY(sliderHeight, d->BaseY);
+	uiSlider *s = uiSlider(c);
+	uiWindowsSizing sizing;
+	int x, y;
+
+	x = sliderWidth;
+	y = sliderHeight;
+	uiWindowsGetSizing(s->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	*width = x;
+	*height = y;
 }
 
 static void defaultOnChanged(uiSlider *s, void *data)
@@ -58,7 +72,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	uiSlider *s;
 
-	s = (uiSlider *) uiNewControl(uiSlider);
+	uiSliderNewControl(uiSlider, s);
 
 	s->hwnd = uiWindowsEnsureCreateControlHWND(0,
 		TRACKBAR_CLASSW, L"",
@@ -72,8 +86,6 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	SendMessageW(s->hwnd, TBM_SETRANGEMIN, (WPARAM) TRUE, (LPARAM) min);
 	SendMessageW(s->hwnd, TBM_SETRANGEMAX, (WPARAM) TRUE, (LPARAM) max);
 	SendMessageW(s->hwnd, TBM_SETPOS, (WPARAM) TRUE, (LPARAM) min);
-
-	uiWindowsFinishNewControl(s, uiSlider);
 
 	return s;
 }

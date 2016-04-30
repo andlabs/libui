@@ -50,14 +50,13 @@ static void groupRelayout(uiGroup *g)
 
 	if (g->child == NULL)
 		return;
-	[g->box removeConstraints:[g->box constraints]];
 	cc = uiDarwinControl(g->child);
 	childView = (NSView *) uiControlHandle(g->child);
 	// first relayout the child
 //TODO	(*(cc->Relayout))(cc);
 	// now relayout ourselves
 	// see below on using the content view
-	layoutSingleView(g->box, childView, g->margined);
+	layoutSingleView(g->box, childView, g->margined, @"uiGroup");
 	// we need to explicitly tell the NSBox to recompute its own size based on the new content layout
 	[g->box sizeToFit];
 }

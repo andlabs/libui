@@ -1,15 +1,21 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-void addConstraint(NSView *view, NSString *constraint, NSDictionary *metrics, NSDictionary *views)
+NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc)
 {
-	NSArray *constraints;
+	NSLayoutConstraint *c;
 
-	constraints = [NSLayoutConstraint constraintsWithVisualFormat:constraint
-		options:0
-		metrics:metrics
-		views:views];
-	[view addConstraints:constraints];
+	c = [NSLayoutConstraint constraintWithItem:view1
+		attribute:attr1
+		relatedBy:relation
+		toItem:view2
+		attribute:attr2
+		multiplier:multiplier
+		constant:c];
+	// apparently only added in 10.9
+	if ([c respondsToSelector:@selector(setIdentifier:)])
+		[((id) c) setIdentifier:desc];
+	return c;
 }
 
 NSLayoutPriority horzHuggingPri(NSView *view)
@@ -17,44 +23,124 @@ NSLayoutPriority horzHuggingPri(NSView *view)
 	return [view contentHuggingPriorityForOrientation:NSLayoutConstraintOrientationHorizontal];
 }
 
+void setHorzHuggingPri(NSView *view, NSLayoutPriority priority)
+{
+	[view setContentHuggingPriority:priority forOrientation:NSLayoutConstraintOrientationHorizontal];
+}
+
 NSLayoutPriority vertHuggingPri(NSView *view)
 {
 	return [view contentHuggingPriorityForOrientation:NSLayoutConstraintOrientationVertical];
 }
 
-void setHuggingPri(NSView *view, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
+void setVertHuggingPri(NSView *view, NSLayoutPriority priority)
 {
-	[view setContentHuggingPriority:priority forOrientation:orientation];
+	[view setContentHuggingPriority:priority forOrientation:NSLayoutConstraintOrientationVertical];
 }
 
-// precondition: constraints must have been removed from superview already
-void layoutSingleView(NSView *superview, NSView *subview, int margined)
+// precondition: subview is a subview of superview already
+void layoutSingleView(NSView *superview, NSView *subview, int margined, NSString *desc)
 {
-	NSDictionary *views;
-	NSString *constraint;
+	NSLayoutConstraint *constraint;
+	CGFloat margin;
 
-	views = NSDictionaryOfVariableBindings(subview);
+	[superview removeConstraints:[superview constraints]];
 
-	constraint = @"H:|[subview]|";
+	margin = 0;
 	if (margined)
-		constraint = @"H:|-[subview]-|";
-	addConstraint(superview, constraint, nil, views);
+		margin = 20;		// TODO named constant
 
-	constraint = @"V:|[subview]|";
-	if (margined)
-		constraint = @"V:|-[subview]-|";
-	addConstraint(superview, constraint, nil, views);
+	constraint = mkConstraint(subview, NSLayoutAttributeLeading,
+		NSLayoutRelationEqual,
+		superview, NSLayoutAttributeLeading,
+		1, margin,
+		[desc stringByAppendingString:@" single child horizontal leading"]);
+	[superview addConstraint:constraint];
+
+	constraint = mkConstraint(superview, NSLayoutAttributeTrailing,
+		NSLayoutRelationEqual,
+		subview, NSLayoutAttributeTrailing,
+		1, margin,
+		[desc stringByAppendingString:@" single child horizontal trailing"]);
+	[superview addConstraint:constraint];
+
+	constraint = mkConstraint(subview, NSLayoutAttributeTop,
+		NSLayoutRelationEqual,
+		superview, NSLayoutAttributeTop,
+		1, margin,
+		[desc stringByAppendingString:@" single child top"]);
+	[superview addConstraint:constraint];
+
+	constraint = mkConstraint(superview, NSLayoutAttributeBottom,
+		NSLayoutRelationEqual,
+		subview, NSLayoutAttributeBottom,
+		1, margin,
+		[desc stringByAppendingString:@" single child bottom"]);
+	[superview addConstraint:constraint];
 }
 
-// use the fitting size, not the intrinsic content size, for the case of recursive views without an intrinsic content size
-NSSize fittingAlignmentSize(NSView *view)
+// via https://developer.apple.com/library/mac/documentation/UserExperience/Conceptual/AutolayoutPG/WorkingwithScrollViews.html#//apple_ref/doc/uid/TP40010853-CH24-SW1
+NSMutableArray *layoutScrollViewContents(NSScrollView *sv, BOOL noHScroll, BOOL noVScroll NSString *desc)
 {
-	NSSize s;
-	NSRect r;
+	NSView *dv;
+	NSLayoutConstraint *constraint;
+	NSMutableArray *array;
 
-	s = [view fittingSize];
-	// the fitting size is for a frame rect; we need an alignment rect
-	r = NSMakeRect(0, 0, s.width, s.height);
-	r = [view alignmentRectForFrame:r];
-	return r.size;
+	dv = [sv documentView];
+
+	array = [NSMutableArray new];
+
+	constraint = mkConstraint(dv, NSLayoutAttributeLeading,
+		NSLayoutRelationEqual,
+		sv, NSLayoutAttributeLeading,
+		1, 0,
+		[desc stringByAppendingString:@" scroll view horizontal leading"]);
+	[array addObject:constraint];
+	[sv addConstraint:constraint];
+
+	constraint = mkConstraint(dv, NSLayoutAttributeTrailing,
+		NSLayoutRelationEqual,
+		sv, NSLayoutAttributeTrailing,
+		1, 0,
+		[desc stringByAppendingString:@" scroll view horizontal trailing"]);
+	[array addObject:constraint];
+	[sv addConstraint:constraint];
+
+	constraint = mkConstraint(dv, NSLayoutAttributeTop,
+		NSLayoutRelationEqual,
+		sv, NSLayoutAttributeTop,
+		1, 0,
+		[desc stringByAppendingString:@" scroll view top"]);
+	[array addObject:constraint];
+	[sv addConstraint:constraint];
+
+	constraint = mkConstraint(dv, NSLayoutAttributeBottom,
+		NSLayoutRelationEqual,
+		sv, NSLayoutAttributeBottom,
+		1, 0,
+		[desc stringByAppendingString:@" scroll view bottom"]);
+	[array addObject:constraint];
+	[sv addConstraint:constraint];
+
+	if (noHScroll) {
+		constraint = mkConstraint(dv, NSLayoutAttributeWidth,
+			NSLayoutRelationEqual,
+			sv, NSLayoutAttributeWidth,
+			1, 0,
+			[desc stringByAppendingString:@" scroll view width"]);
+		[array addObject:constraint];
+		[sv addConstraint:constraint];
+	}
+
+	if (noVScroll) {
+		constraint = mkConstraint(dv, NSLayoutAttributeHeight,
+			NSLayoutRelationEqual,
+			sv, NSLayoutAttributeHeight,
+			1, 0,
+			[desc stringByAppendingString:@" scroll view height"]);
+		[array addObject:constraint];
+		[sv addConstraint:constraint];
+	}
+
+	return array;
 }

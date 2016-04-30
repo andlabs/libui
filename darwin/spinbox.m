@@ -60,13 +60,42 @@ struct uiSpinbox {
 
 		[self addSubview:self->tf];
 		[self addSubview:self->stepper];
-		views = [NSDictionary
-			dictionaryWithObjectsAndKeys:self->tf, @"textfield",
-				self->stepper, @"stepper",
-				nil];
-		addConstraint(self, @"H:|[textfield]-[stepper]|", nil, views);
-		addConstraint(self, @"V:|[textfield]|", nil, views);
-		addConstraint(self, @"V:|[stepper]|", nil, views);
+
+		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeLeading,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeLeading,
+			1, 0,
+			@"uiSpinbox left edge")];
+		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeTrailing,
+			1, 0,
+			@"uiSpinbox right edge")];
+		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeTop,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeTop,
+			1, 0,
+			@"uiSpinbox top edge text field")];
+		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeBottom,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeBottom,
+			1, 0,
+			@"uiSpinbox bottom edge text field")];
+		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTop,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeTop,
+			1, 0,
+			@"uiSpinbox top edge stepper")];
+		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeBottom,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeBottom,
+			1, 0,
+			@"uiSpinbox bottom edge stepper")];
+		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTrailingEdge,
+			NSLayoutRelationEqual,
+			self->stepper, NSLayoutAttributeLeadingEdge,
+			1, -3,		// TODO
+			@"uiSpinbox space between text field and stepper")];
 
 		self->spinbox = sb;
 	}

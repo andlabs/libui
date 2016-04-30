@@ -56,12 +56,13 @@ extern void initAlloc(void);
 extern void uninitAlloc(void);
 
 // autolayout.m
-extern void addConstraint(NSView *, NSString *, NSDictionary *, NSDictionary *);
-extern NSLayoutPriority horzHuggingPri(NSView *);
-extern NSLayoutPriority vertHuggingPri(NSView *);
-extern void setHuggingPri(NSView *, NSLayoutPriority, NSLayoutConstraintOrientation);
-extern void layoutSingleView(NSView *, NSView *, int);
-extern NSSize fittingAlignmentSize(NSView *);
+extern NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc);
+extern NSLayoutPriority horzHuggingPri(NSView *view);
+extern void setHorzHuggingPri(NSView *view, NSLayoutPriority priority);
+extern NSLayoutPriority vertHuggingPri(NSView *view);
+extern void setVertHuggingPri(NSView *view, NSLayoutPriority priority);
+extern void layoutSingleView(NSView *superview, NSView *subview, int margined, NSString *desc);
+extern NSMutableArray *layoutScrollViewContents(NSScrollView *sv, BOOL noHScroll, BOOL noVScroll NSString *desc);
 
 // map.m
 extern struct mapTable *newMap(void);

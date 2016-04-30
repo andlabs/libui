@@ -89,7 +89,7 @@ struct uiSpinbox {
 			self, NSLayoutAttributeBottom,
 			1, 0,
 			@"uiSpinbox bottom edge stepper")];
-		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTrailing,
+		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			self->stepper, NSLayoutAttributeLeading,
 			1, -3,		// TODO

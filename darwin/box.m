@@ -168,7 +168,7 @@ static void relayout(uiBox *b)
 
 	// if there is a stretchy control, add the no-stretchy view
 	addRemoveNoStretchyView(b, hasStretchy);
-	if (hasStretchy) {
+	if (!hasStretchy) {
 		[b->view addConstraint:mkConstraint(b->noStretchyView, b->primaryStart,
 			NSLayoutRelationEqual,
 			prev, b->primaryEnd,

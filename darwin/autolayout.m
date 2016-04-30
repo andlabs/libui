@@ -18,6 +18,11 @@ NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRela
 	return c;
 }
 
+void setHuggingPri(NSView *view, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
+{
+	[view setContentHuggingPriority:priority forOrientation:orientation];
+}
+
 NSLayoutPriority horzHuggingPri(NSView *view)
 {
 	return [view contentHuggingPriorityForOrientation:NSLayoutConstraintOrientationHorizontal];

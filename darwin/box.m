@@ -17,8 +17,11 @@ struct uiBox {
 	NSMutableArray *stretchy;		// []NSNumber
 	// this view is made stretchy if there are no stretchy views
 	NSView *noStretchyView;
-	NSString *primaryDirPrefix;
-	NSString *secondaryDirPrefix;
+	NSLayoutAttribute primaryStart;
+	NSLayoutAttribute primaryEnd;
+	NSLayoutAttribute secondaryStart;
+	NSLayoutAttribute secondaryEnd;
+	NSLayoutAttribute primarySize;
 	NSLayoutConstraintOrientation primaryOrientation;
 	NSLayoutConstraintOrientation secondaryOrientation;
 };
@@ -85,21 +88,6 @@ static void uiBoxSyncEnableState(uiDarwinControl *c, int enabled)
 
 uiDarwinControlDefaultSetSuperview(uiBox, view)
 
-static NSString *viewName(uintmax_t n)
-{
-	return [NSString stringWithFormat:@"view%ju", n];
-}
-
-static NSString *widthMetricName(uintmax_t n)
-{
-	return [NSString stringWithFormat:@"view%juwidth", n];
-}
-
-static NSString *heightMetricName(uintmax_t n)
-{
-	return [NSString stringWithFormat:@"view%juheight", n];
-}
-
 static int isStretchy(uiBox *b, uintmax_t n)
 {
 	NSNumber *num;
@@ -108,117 +96,135 @@ static int isStretchy(uiBox *b, uintmax_t n)
 	return [num intValue];
 }
 
-// TODO do we still need to set hugging? I think we do for stretchy controls...
-// TODO try unsetting spinbox intrinsics and seeing what happens
-static void relayout(uiBox *b)
+static NSView *boxView(uiBox *b, uintmax_t n)
 {
-	NSMutableDictionary *metrics;
-	NSMutableDictionary *views;
-	uintmax_t i, n;
-	BOOL hasStretchy;
-	uintmax_t firstStretchy;
-	NSMutableString *constraint;
+	NSValue *val;
+	uiControl *c;
 
-	if ([b->children count] == 0)
-		return;
+	val = (NSValue *) [b->children objectAtIndex:n];
+	c = (uiControl *) [val pointerValue];
+	return (NSView *) uiControlHandle(c);
+}
 
-	[b->view removeConstraints:[b->view constraints]];
-
-	// first lay out all children, collect the views and their fitting sizes (for non-stretchy controls)
-	// also figure out which is the first stretchy control, if any
-	metrics = [NSMutableDictionary new];
-	views = [NSMutableDictionary new];
-	hasStretchy = NO;
-	n = 0;
-	while (n < [b->children count]) {
-		uiControl *child;
-		uiDarwinControl *cc;
-		NSView *childView;
-		NSSize fittingSize;
-
-		child = childAt(b, n);
-		cc = uiDarwinControl(child);
-		childView = (NSView *) uiControlHandle(child);
-		[views setObject:childView forKey:viewName(n)];
-//TODO		(*(cc->Relayout))(cc);
-		fittingSize = fittingAlignmentSize(childView);
-		[metrics setObject:[NSNumber numberWithDouble:fittingSize.width]
-			forKey:widthMetricName(n)];
-		[metrics setObject:[NSNumber numberWithDouble:fittingSize.height]
-			forKey:heightMetricName(n)];
-		if (!hasStretchy && isStretchy(b, n)) {
-			hasStretchy = YES;
-			firstStretchy = n;
-		}
-		n++;
-	}
-
-	// if there are no stretchy controls, we must add the no-stretchy view
-	// if there are, we must remove it
+static void addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
+{
 	if (!hasStretchy) {
 		if ([b->noStretchyView superview] == nil)
 			[b->view addSubview:b->noStretchyView];
-		[views setObject:b->noStretchyView forKey:@"noStretchyView"];
 	} else {
 		if ([b->noStretchyView superview] != nil)
 			[b->noStretchyView removeFromSuperview];
 	}
+}
+
+// TODO do we still need to set hugging? I think we do for stretchy controls...
+// TODO try unsetting spinbox intrinsics and seeing what happens
+static void relayout(uiBox *b)
+{
+	NSLayoutConstraint *constraint;
+	uintmax_t i, n;
+	BOOL hasStretchy;
+	NSView *firstStretchy = nil;
+	CGFloat padding;
+	NSView *prev, *next;
+
+	if ([b->children count] == 0)
+		return;
+	padding = 0;
+	if (b->padded)
+		padding = 8.0;		// TODO named constant
+
+	[b->view removeConstraints:[b->view constraints]];
+
+	// first, attach the first view to the leading
+	prev = boxView(b, 0);
+	[b->view addConstraint:mkConstraint(prev, b->primaryStart,
+		NSLayoutRelationEqual,
+		b->view, b->primaryStart,
+		1, 0,
+		@"uiBox first primary constraint")];
 
 	// next, assemble the views in the primary direction
 	// they all go in a straight line
-	constraint = [NSMutableString new];
-	[constraint appendString:b->primaryDirPrefix];
-	[constraint appendString:@"|"];
-	for (i = 0; i < n; i++) {
-		if (b->padded && i != 0)
-			[constraint appendString:@"-"];
-		[constraint appendString:@"["];
-		[constraint appendString:viewName(i)];
-		// implement multiple stretchiness properly
-		if (isStretchy(b, i) && i != firstStretchy) {
-			[constraint appendString:@"(=="];
-			[constraint appendString:viewName(firstStretchy)];
-			[constraint appendString:@")"];
+	// also figure out whether we have stretchy controls, and which is the first
+	if (isStretchy(b, 0)) {
+		hasStretchy = YES;
+		firstStretchy = prev;
+	} else
+		hasStretchy = NO;
+	for (i = 1; i < n; i++) {
+		next = boxView(b, i);
+		if (!hasStretchy && isStretchy(b, i)) {
+			hasStretchy = YES;
+			firstStretchy = next;
 		}
-		// if the control is not stretchy, restrict it to the fitting size
-		if (!isStretchy(b, i)) {
-			[constraint appendString:@"(=="];
-			if (b->vertical)
-				[constraint appendString:heightMetricName(i)];
-			else
-				[constraint appendString:widthMetricName(i)];
-			[constraint appendString:@")"];
-		}
-		[constraint appendString:@"]"];
+		[b->view addConstraint:mkConstraint(next, b->primaryStart,
+			NSLayoutRelationEqual,
+			prev, b->primaryEnd,
+			1, padding,
+			@"uiBox later primary constraint")];
+		prev = next;
 	}
-	if (!hasStretchy)
-		// don't space between the last control and the no-stretchy view
-		[constraint appendString:@"[noStretchyView]"];
-	[constraint appendString:@"|"];
-	addConstraint(b->view, constraint, metrics, views);
-	[constraint release];
+
+	// if there is a stretchy control, add the no-stretchy view
+	addRemoveNoStretchyView(b, hasStretchy);
+	if (hasStretchy)
+		[b->view addConstraint:mkConstraint(b->noStretchyView, b->primaryStart,
+			NSLayoutRelationEqual,
+			prev, b->primaryEnd,
+			1, 0,				// don't space between the last control and the no-stretchy view
+			@"uiBox no-stretchy primary constraint")];
+		prev = b->noStretchyView;
+	}
+
+	// and finally end the primary direction
+	[b->view addConstraint:mkConstraint(prev, p->primaryEnd,
+		NSLayoutRelationEqual,
+		b->view, b->primaryEnd,
+		1, 0,
+		@"uiBox last primary constraint"];
 
 	// next: assemble the views in the secondary direction
 	// each of them will span the secondary direction
 	for (i = 0; i < n; i++) {
-		constraint = [NSMutableString new];
-		[constraint appendString:b->secondaryDirPrefix];
-		[constraint appendString:@"|["];
-		[constraint appendString:viewName(i)];
-		[constraint appendString:@"]|"];
-		addConstraint(b->view, constraint, nil, views);
-		[constraint release];
+		[b->view addConstraint:mkConstraint(boxView(b, i), b->secondaryStart,
+			NSLayoutRelationEqual,
+			b->view, b->secondaryStart,
+			1, 0,
+			@"uiBox start secondary constraint")];
+		[b->view addConstraint:mkConstraint(boxView(b, i), b->secondaryEnd,
+			NSLayoutRelationEqual,
+			b->view, b->secondaryEnd,
+			1, 0,
+			@"uiBox start secondary constraint")];
 	}
 	if (!hasStretchy) {			// and again to the no-stretchy view
-		constraint = [NSMutableString new];
-		[constraint appendString:b->secondaryDirPrefix];
-		[constraint appendString:@"|[noStretchyView]|"];
-		addConstraint(b->view, constraint, nil, views);
-		[constraint release];
+		[b->view addConstraint:mkConstraint(b->noStretchyView, b->secondaryStart,
+			NSLayoutRelationEqual,
+			b->view, b->secondaryStart,
+			1, 0,
+			@"uiBox no-stretchy view start secondary constraint")];
+		[b->view addConstraint:mkConstraint(b->noStretchyView, b->secondaryEnd,
+			NSLayoutRelationEqual,
+			b->view, b->secondaryEnd,
+			1, 0,
+			@"uiBox no-stretchy view start secondary constraint")];
 	}
 
-	[metrics release];
-	[views release];
+	// finally, set sizes for stretchy controls
+	if (hasStretchy)
+		for (i = 0; i < n; i++) {
+			if (!isStretchy(b, i))
+				continue;
+			prev = boxView(b, i);
+			if (prev == firstStretchy)
+				continue;
+			[b->view addConstraint:mkConstraint(prev, b->primarySize,
+				NSLayoutRelationEqual,
+				firstStretchy, b->primarySize,
+				1, 0,
+				@"uiBox stretchy sizing")];
+		}
 }
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
@@ -287,13 +293,19 @@ static uiBox *finishNewBox(BOOL vertical)
 
 	b->vertical = vertical;
 	if (b->vertical) {
-		b->primaryDirPrefix = @"V:";
-		b->secondaryDirPrefix = @"H:";
+		b->primaryStart = NSLayoutAttributeTop;
+		b->primaryEnd = NSLayoutAttributeBottom;
+		b->secondaryStart = NSLayoutAttributeLeading;
+		b->secondaryEnd = NSLayoutAttributeTrailing;
+		b->primarySize = NSLayoutAttributeHeight;
 		b->primaryOrientation = NSLayoutConstraintOrientationVertical;
 		b->secondaryOrientation = NSLayoutConstraintOrientationHorizontal;
 	} else {
-		b->primaryDirPrefix = @"H:";
-		b->secondaryDirPrefix = @"V:";
+		b->primaryStart = NSLayoutAttributeLeading;
+		b->primaryEnd = NSLayoutAttributeTrailing;
+		b->secondaryStart = NSLayoutAttributeTop;
+		b->secondaryEnd = NSLayoutAttributeBottom;
+		b->primarySize = NSLayoutAttributeWidth;
 		b->primaryOrientation = NSLayoutConstraintOrientationHorizontal;
 		b->secondaryOrientation = NSLayoutConstraintOrientationVertical;
 	}

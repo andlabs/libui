@@ -33,8 +33,6 @@ struct uiSpinbox {
 
 - (id)initWithFrame:(NSRect)r spinbox:(uiSpinbox *)sb
 {
-	NSDictionary *views;
-
 	self = [super initWithFrame:r];
 	if (self) {
 		self->tf = newEditableTextField();
@@ -91,9 +89,9 @@ struct uiSpinbox {
 			self, NSLayoutAttributeBottom,
 			1, 0,
 			@"uiSpinbox bottom edge stepper")];
-		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTrailingEdge,
+		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
-			self->stepper, NSLayoutAttributeLeadingEdge,
+			self->stepper, NSLayoutAttributeLeading,
 			1, -3,		// TODO
 			@"uiSpinbox space between text field and stepper")];
 

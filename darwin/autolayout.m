@@ -3,9 +3,9 @@
 
 NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc)
 {
-	NSLayoutConstraint *c;
+	NSLayoutConstraint *constraint;
 
-	c = [NSLayoutConstraint constraintWithItem:view1
+	constraint = [NSLayoutConstraint constraintWithItem:view1
 		attribute:attr1
 		relatedBy:relation
 		toItem:view2
@@ -13,9 +13,9 @@ NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRela
 		multiplier:multiplier
 		constant:c];
 	// apparently only added in 10.9
-	if ([c respondsToSelector:@selector(setIdentifier:)])
-		[((id) c) setIdentifier:desc];
-	return c;
+	if ([constraint respondsToSelector:@selector(setIdentifier:)])
+		[((id) constraint) setIdentifier:desc];
+	return constraint;
 }
 
 void setHuggingPri(NSView *view, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
@@ -85,7 +85,7 @@ void layoutSingleView(NSView *superview, NSView *subview, int margined, NSString
 }
 
 // via https://developer.apple.com/library/mac/documentation/UserExperience/Conceptual/AutolayoutPG/WorkingwithScrollViews.html#//apple_ref/doc/uid/TP40010853-CH24-SW1
-NSMutableArray *layoutScrollViewContents(NSScrollView *sv, BOOL noHScroll, BOOL noVScroll NSString *desc)
+NSMutableArray *layoutScrollViewContents(NSScrollView *sv, BOOL noHScroll, BOOL noVScroll, NSString *desc)
 {
 	NSView *dv;
 	NSLayoutConstraint *constraint;

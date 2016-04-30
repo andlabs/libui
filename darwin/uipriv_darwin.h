@@ -64,7 +64,7 @@ extern void setHorzHuggingPri(NSView *view, NSLayoutPriority priority);
 extern NSLayoutPriority vertHuggingPri(NSView *view);
 extern void setVertHuggingPri(NSView *view, NSLayoutPriority priority);
 extern void layoutSingleView(NSView *superview, NSView *subview, int margined, NSString *desc);
-extern NSMutableArray *layoutScrollViewContents(NSScrollView *sv, BOOL noHScroll, BOOL noVScroll NSString *desc);
+extern NSMutableArray *layoutScrollViewContents(NSScrollView *sv, BOOL noHScroll, BOOL noVScroll, NSString *desc);
 
 // map.m
 extern struct mapTable *newMap(void);

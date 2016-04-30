@@ -121,14 +121,14 @@ static void addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 // TODO try unsetting spinbox intrinsics and seeing what happens
 static void relayout(uiBox *b)
 {
-	NSLayoutConstraint *constraint;
 	uintmax_t i, n;
 	BOOL hasStretchy;
 	NSView *firstStretchy = nil;
 	CGFloat padding;
 	NSView *prev, *next;
 
-	if ([b->children count] == 0)
+	n = [b->children count];
+	if (n == 0)
 		return;
 	padding = 0;
 	if (b->padded)
@@ -168,7 +168,7 @@ static void relayout(uiBox *b)
 
 	// if there is a stretchy control, add the no-stretchy view
 	addRemoveNoStretchyView(b, hasStretchy);
-	if (hasStretchy)
+	if (hasStretchy) {
 		[b->view addConstraint:mkConstraint(b->noStretchyView, b->primaryStart,
 			NSLayoutRelationEqual,
 			prev, b->primaryEnd,
@@ -178,11 +178,11 @@ static void relayout(uiBox *b)
 	}
 
 	// and finally end the primary direction
-	[b->view addConstraint:mkConstraint(prev, p->primaryEnd,
+	[b->view addConstraint:mkConstraint(prev, b->primaryEnd,
 		NSLayoutRelationEqual,
 		b->view, b->primaryEnd,
 		1, 0,
-		@"uiBox last primary constraint"];
+		@"uiBox last primary constraint")];
 
 	// next: assemble the views in the secondary direction
 	// each of them will span the secondary direction

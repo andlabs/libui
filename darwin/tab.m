@@ -12,6 +12,7 @@ struct uiTab {
 	// these are the views that are assigned to each NSTabViewItem
 	NSMutableArray *views;			// []NSView
 	NSMutableArray *margined;		// []NSNumber
+	NSMutableArray *pageIDs;		// []NSObject
 };
 
 static void uiTabDestroy(uiControl *c)
@@ -31,6 +32,7 @@ static void uiTabDestroy(uiControl *c)
 		uiControlDestroy(c);
 	}];
 	// and finally destroy ourselves
+	[t->pageIDs release];
 	[t->pages release];
 	[t->views release];
 	[t->margined release];
@@ -90,6 +92,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	NSView *childView;
 	NSView *view;
 	NSTabViewItem *i;
+	NSObject *pageID;
 
 	uiControlSetParent(child, uiControl(t));
 
@@ -103,7 +106,10 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	[t->views insertObject:view atIndex:n];
 	[t->margined insertObject:[NSNumber numberWithInt:0] atIndex:n];
 
-	i = [[NSTabViewItem alloc] initWithIdentifier:nil];
+	// the documentation says these can be nil but the headers say these must not be; let's be safe and make them non-nil anyway
+	pageID = [NSObject new];
+	[t->pageIDs insertObject:pageID atIndex:n];
+	i = [[NSTabViewItem alloc] initWithIdentifier:pageID];
 	[i setLabel:toNSString(name)];
 	[i setView:view];
 	[t->tabview insertTabViewItem:i atIndex:n];
@@ -170,6 +176,7 @@ uiTab *uiNewTab(void)
 	t->pages = [NSMutableArray new];
 	t->views = [NSMutableArray new];
 	t->margined = [NSMutableArray new];
+	t->pageIDs = [NSMutableArray new];
 
 	return t;
 }

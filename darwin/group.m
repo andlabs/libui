@@ -3,7 +3,8 @@
 
 // TODO test empty groups
 
-// for whatever reason, if there is an intrinsic content size on the NSBox, Auto Layout won't bother checking the box's children...
+// if there is an intrinsic content size on the NSBox, Auto Layout won't bother checking the box's children and force the box to be the intrinsic size if its hugging priority is Required; we don't want that
+// TODO don't truncate the label?
 @interface libuiIntrinsicBox : NSBox {
 	BOOL libui_hasChild;
 }

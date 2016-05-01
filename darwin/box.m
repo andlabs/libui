@@ -6,6 +6,7 @@
 // - tab on page 2 is glitched
 // - separators on page 4 have variable padding after them
 // - 10.8: if we switch to page 4, then switch back to page 1, check Spaced, and go back to page 4, some controls (progress bar, popup button) are clipped on the sides
+// - calling layoutSubtreeIfNeeded on a superview of the box will cause the following intrinsic content size thing to not work until the window is resized in the primary direction; this is bad if we ever add a Splitter...
 
 // the default is to have no intrinsic content size; this wreaks havoc with nested no-stretchy boxes fighting over which box gets the remaining space
 // let's use a 0x0 intrinsic size instead; that seems to fix things

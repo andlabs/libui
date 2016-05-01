@@ -2,6 +2,7 @@
 #import "uipriv_darwin.h"
 
 // TODO drag and drop fonts? what other interactions does NSColorWell allow that we can do for fonts?
+// TODO when closing the window, deactivate the current button
 
 @interface fontButton : NSButton {
 	uiFontButton *libui_b;

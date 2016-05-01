@@ -82,12 +82,12 @@ struct uiSpinbox {
 		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTop,
-			1, 0,
+			1, -1,			// TODO make sure this is right
 			@"uiSpinbox top edge stepper")];
 		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeBottom,
-			1, 0,
+			1, -1,		// TODO make sure this is right
 			@"uiSpinbox bottom edge stepper")];
 		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,

@@ -51,6 +51,10 @@ void layoutSingleView(NSView *superview, NSView *subview, int margined, NSString
 
 	[superview removeConstraints:[superview constraints]];
 
+	// don't hug if needed
+	setHorzHuggingPri(subview, NSLayoutPriorityDefaultLow);
+	setVertHuggingPri(subview, NSLayoutPriorityDefaultLow);
+
 	margin = 0;
 	if (margined)
 		margin = 20;		// TODO named constant

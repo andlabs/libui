@@ -51,7 +51,7 @@ void layoutSingleView(NSView *superview, NSView *subview, int margined, NSString
 
 	[superview removeConstraints:[superview constraints]];
 
-	// don't hug if needed
+	// don't hug if needed (this fixes things like the Disabled Tab on Page 2 of the test program not being the one that resizes with the window
 	setHorzHuggingPri(subview, NSLayoutPriorityDefaultLow);
 	setVertHuggingPri(subview, NSLayoutPriorityDefaultLow);
 

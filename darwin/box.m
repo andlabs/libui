@@ -2,11 +2,24 @@
 #import "uipriv_darwin.h"
 
 // TODOs:
-// - page 2 isn't growable - I think this is because the button in the tab isn't stretchy
+// - page 2 is growable but the wrong control grows
 // - tab on page 2 is glitched
 // - separators on page 4 have variable padding after them
 // - 10.8: if we switch to page 4, then switch back to page 1, check Spaced, and go back to page 4, some controls (progress bar, popup button) are clipped on the sides
-// - wrong padding between controls in the queuemaintest and the control gallery...
+
+// the default is to have no intrinsic content size; this wreaks havoc with nested no-stretchy boxes fighting over which box gets the remaining space
+// let's use a 0x0 intrinsic size instead; that seems to fix things
+@interface libuiNoStretchyView : NSView
+@end
+
+@implementation libuiNoStretchyView
+
+- (NSSize)intrinsicContentSize
+{
+	return NSMakeSize(0, 0);
+}
+
+@end
 
 struct uiBox {
 	uiDarwinControl c;
@@ -310,7 +323,7 @@ static uiBox *finishNewBox(BOOL vertical)
 		b->secondaryOrientation = NSLayoutConstraintOrientationVertical;
 	}
 
-	b->noStretchyView = [[NSView alloc] initWithFrame:NSZeroRect];
+	b->noStretchyView = [[libuiNoStretchyView alloc] initWithFrame:NSZeroRect];
 	[b->noStretchyView setTranslatesAutoresizingMaskIntoConstraints:NO];
 	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal);
 	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);

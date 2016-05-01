@@ -1,9 +1,35 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
+// TODO test empty groups
+
+// for whatever reason, if there is an intrinsic content size on the NSBox, Auto Layout won't bother checking the box's children...
+@interface libuiIntrinsicBox : NSBox {
+	BOOL libui_hasChild;
+}
+- (void)libui_setHasChild:(BOOL)h;
+@end
+
+@implementation libuiIntrinsicBox
+
+- (void)libui_setHasChild:(BOOL)h
+{
+	self->libui_hasChild = h;
+	[self invalidateIntrinsicContentSize];
+}
+
+- (NSSize)intrinsicContentSize
+{
+	if (!self->libui_hasChild)
+		return [super intrinsicContentSize];
+	return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric);
+}
+
+@end
+
 struct uiGroup {
 	uiDarwinControl c;
-	NSBox *box;
+	libuiIntrinsicBox *box;
 	uiControl *child;
 	int margined;
 };
@@ -54,9 +80,7 @@ static void groupRelayout(uiGroup *g)
 	childView = (NSView *) uiControlHandle(g->child);
 	// first relayout the child
 //TODO	(*(cc->Relayout))(cc);
-	// now relayout ourselves
-	// see below on using the content view
-	layoutSingleView(g->box, childView, g->margined, @"uiGroup");
+	layoutSingleView([g->box contentView], childView, g->margined, @"uiGroup");
 	// we need to explicitly tell the NSBox to recompute its own size based on the new content layout
 	[g->box sizeToFit];
 }
@@ -83,13 +107,11 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		uiControlSetParent(g->child, NULL);
 	}
 	g->child = child;
+	[g->box libui_setHasChild:(g->child != NULL)];
 	if (g->child != NULL) {
 		childView = (NSView *) uiControlHandle(g->child);
 		uiControlSetParent(g->child, uiControl(g));
-		// we have to add controls to the box itself NOT the content view
-		// otherwise, things get really glitchy
-		// we also need to call -sizeToFit, but we'll do that in the relayout that's triggered below (see above)
-		uiDarwinControlSetSuperview(uiDarwinControl(g->child), g->box);
+		uiDarwinControlSetSuperview(uiDarwinControl(g->child), [g->box contentView]);
 		uiDarwinControlSyncEnableState(uiDarwinControl(g->child), uiControlEnabledToUser(uiControl(g)));
 	}
 	groupRelayout(g);
@@ -112,7 +134,7 @@ uiGroup *uiNewGroup(const char *title)
 
 	uiDarwinNewControl(uiGroup, g);
 
-	g->box = [[NSBox alloc] initWithFrame:NSZeroRect];
+	g->box = [[libuiIntrinsicBox alloc] initWithFrame:NSZeroRect];
 	[g->box setTitle:toNSString(title)];
 	[g->box setBoxType:NSBoxPrimary];
 	[g->box setBorderType:NSLineBorder];
@@ -120,6 +142,7 @@ uiGroup *uiNewGroup(const char *title)
 	[g->box setTitlePosition:NSAtTop];
 	// we can't use uiDarwinSetControlFont() because the selector is different
 	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
+	[g->box libui_setHasChild:NO];
 
 	return g;
 }

@@ -2,7 +2,6 @@
 #import "uipriv_darwin.h"
 
 // TODO drag and drop fonts? what other interactions does NSColorWell allow that we can do for fonts?
-// TODO when closing the window, deactivate the current button
 
 @interface fontButton : NSButton {
 	uiFontButton *libui_b;
@@ -13,6 +12,7 @@
 - (IBAction)fontButtonClicked:(id)sender;
 - (void)activateFontButton;
 - (void)deactivateFontButton:(BOOL)activatingAnother;
+- (void)deactivateOnClose:(NSNotification *)note;
 - (uiDrawTextFont *)libuiFont;
 @end
 
@@ -51,6 +51,15 @@ struct uiFontButton {
 	return self;
 }
 
+- (void)dealloc
+{
+	// clean up notifications
+	if (activeFontButton == self)
+		[self deactivateFontButton:NO];
+	[self->libui_font release];
+	[super dealloc];
+}
+
 - (void)updateFontButtonLabel
 {
 	NSString *title;
@@ -80,6 +89,10 @@ struct uiFontButton {
 	[sfm setSelectedFont:self->libui_font isMultiple:NO];
 	[sfm orderFrontFontPanel:self];
 	activeFontButton = self;
+	[[NSNotificationCenter defaultCenter] addObserver:self
+		selector:@selector(deactivateOnClose:)
+		name:NSWindowWillCloseNotification
+		object:[NSFontPanel sharedFontPanel]];
 	[self setState:NSOnState];
 }
 
@@ -92,7 +105,15 @@ struct uiFontButton {
 	if (!activatingAnother)
 		[[NSFontPanel sharedFontPanel] orderOut:self];
 	activeFontButton = nil;
+	[[NSNotificationCenter defaultCenter] removeObserver:self
+		name:NSWindowWillCloseNotification
+		object:[NSFontPanel sharedFontPanel]];
 	[self setState:NSOffState];
+}
+
+- (void)deactivateOnClose:(NSNotification *)note
+{
+	[self deactivateFontButton:NO];
 }
 
 - (void)changeFont:(id)sender

@@ -119,15 +119,16 @@ static NSView *boxView(uiBox *b, uintmax_t n)
 	return (NSView *) uiControlHandle(c);
 }
 
-static void addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
+static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 {
 	if (!hasStretchy) {
 		if ([b->noStretchyView superview] == nil)
 			[b->view addSubview:b->noStretchyView];
-	} else {
-		if ([b->noStretchyView superview] != nil)
-			[b->noStretchyView removeFromSuperview];
+		return YES;
 	}
+	if ([b->noStretchyView superview] != nil)
+		[b->noStretchyView removeFromSuperview];
+	return NO;
 }
 
 // TODO do we still need to set hugging? I think we do for stretchy controls...
@@ -139,6 +140,7 @@ static void relayout(uiBox *b)
 	NSView *firstStretchy = nil;
 	CGFloat padding;
 	NSView *prev, *next;
+	BOOL hasNoStretchyView;
 
 	n = [b->children count];
 	if (n == 0)
@@ -180,8 +182,8 @@ static void relayout(uiBox *b)
 	}
 
 	// if there is a stretchy control, add the no-stretchy view
-	addRemoveNoStretchyView(b, hasStretchy);
-	if (!hasStretchy) {
+	hasNoStretchyView = addRemoveNoStretchyView(b, hasStretchy);
+	if (hasNoStretchyView) {
 		[b->view addConstraint:mkConstraint(b->noStretchyView, b->primaryStart,
 			NSLayoutRelationEqual,
 			prev, b->primaryEnd,
@@ -211,7 +213,7 @@ static void relayout(uiBox *b)
 			1, 0,
 			@"uiBox start secondary constraint")];
 	}
-	if (!hasStretchy) {			// and again to the no-stretchy view
+	if (hasNoStretchyView) {			// and again to the no-stretchy view
 		[b->view addConstraint:mkConstraint(b->noStretchyView, b->secondaryStart,
 			NSLayoutRelationEqual,
 			b->view, b->secondaryStart,

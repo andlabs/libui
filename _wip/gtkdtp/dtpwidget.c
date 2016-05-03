@@ -15,7 +15,19 @@ struct dtpPrivate {
 
 G_DEFINE_TYPE(dateTimePickerWidget, dateTimePickerWidget, GTK_TYPE_BOX)
 
-static GtkWidget *newSpinbox(int min, int max)
+static gboolean zeroPadSpinbox(GtkSpinButton *sb, gpointer data)
+{
+	gchar *text;
+	int value;
+
+	value = (int) gtk_spin_button_get_value(sb);
+	text = g_strdup_printf("%02d", value);
+	gtk_entry_set_text(GTK_ENTRY(sb), text);
+	g_free(text);
+	return TRUE;
+}
+
+static GtkWidget *newSpinbox(int min, int max, gboolean zeroPad)
 {
 	GtkWidget *sb;
 
@@ -23,6 +35,8 @@ static GtkWidget *newSpinbox(int min, int max)
 	gtk_spin_button_set_digits(GTK_SPIN_BUTTON(sb), 0);
 	gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(sb), TRUE);
 	gtk_orientable_set_orientation(GTK_ORIENTABLE(sb), GTK_ORIENTATION_VERTICAL);
+	if (zeroPad)
+		g_signal_connect(sb, "output", G_CALLBACK(zeroPadSpinbox), NULL);
 	return sb;
 }
 
@@ -40,19 +54,19 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 	gtk_widget_set_valign(d->priv->timebox, GTK_ALIGN_CENTER);
 	gtk_container_add(GTK_CONTAINER(d), d->priv->timebox);
 
-	d->priv->hours = newSpinbox(1, 12);
+	d->priv->hours = newSpinbox(1, 12, FALSE);
 	gtk_container_add(GTK_CONTAINER(d->priv->timebox), d->priv->hours);
 
 	gtk_container_add(GTK_CONTAINER(d->priv->timebox),
 		gtk_label_new(":"));
 
-	d->priv->minutes = newSpinbox(0, 59);
+	d->priv->minutes = newSpinbox(0, 59, TRUE);
 	gtk_container_add(GTK_CONTAINER(d->priv->timebox), d->priv->minutes);
 
 	gtk_container_add(GTK_CONTAINER(d->priv->timebox),
 		gtk_label_new(":"));
 
-	d->priv->seconds = newSpinbox(0, 59);
+	d->priv->seconds = newSpinbox(0, 59, TRUE);
 	gtk_container_add(GTK_CONTAINER(d->priv->timebox), d->priv->seconds);
 
 	d->priv->ampm = gtk_combo_box_text_new();

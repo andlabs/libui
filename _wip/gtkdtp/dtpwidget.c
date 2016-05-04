@@ -37,10 +37,13 @@ struct dateTimePickerWidgetClass {
 
 G_DEFINE_TYPE(dateTimePickerWidget, dateTimePickerWidget, GTK_TYPE_TOGGLE_BUTTON)
 
+// TODO switch to GDateTime?
 static void setLabel(dateTimePickerWidget *d)
 {
 	guint year, month, day;
 	struct tm tm;
+	time_t tt;
+	gchar *str;
 
 	gtk_calendar_get_date(GTK_CALENDAR(d->calendar), &year, &month, &day);
 	tm.tm_hour = (int) gtk_spin_button_get_value(GTK_SPIN_BUTTON(d->hours)) - 1;
@@ -50,9 +53,14 @@ static void setLabel(dateTimePickerWidget *d)
 	tm.tm_mday = day;
 	tm.tm_year = year - 1900;
 	tm.tm_isdst = -1;		// not available
-	// TODO strip \n
-	// TODO find the locale-preferred short date format
-	gtk_button_set_label(GTK_BUTTON(d), asctime(&tm));
+	// fill in the missing fields
+	tt = mktime(&tm);
+	tm = *localtime(&tt);
+	// and strip the newline
+	str = g_strdup(asctime(&tm));
+	str[strlen(str) - 1] = '\0';
+	gtk_button_set_label(GTK_BUTTON(d), str);
+	g_free(str);
 }
 
 // we don't want ::toggled to be sent again
@@ -285,7 +293,6 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 	d->mouse = NULL;
 
 	// TODO set current time to now
-	setLabel(d);
 }
 
 static void dateTimePickerWidget_dispose(GObject *obj)
@@ -306,5 +313,9 @@ static void dateTimePickerWidget_class_init(dateTimePickerWidgetClass *class)
 
 GtkWidget *newDTP(void)
 {
-	return GTK_WIDGET(g_object_new(dateTimePickerWidgetType, NULL));
+	GtkWidget *w;
+
+	w = GTK_WIDGET(g_object_new(dateTimePickerWidgetType, "label", "", NULL));
+	setLabel(dateTimePickerWidget(w));
+	return w;
 }

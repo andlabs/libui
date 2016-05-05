@@ -37,6 +37,14 @@ struct dateTimePickerWidgetClass {
 
 G_DEFINE_TYPE(dateTimePickerWidget, dateTimePickerWidget, GTK_TYPE_TOGGLE_BUTTON)
 
+static int realSpinValue(GtkSpinButton *spinButton)
+{
+	GtkAdjustment *adj;
+
+	adj = gtk_spin_button_get_adjustment(spinButton);
+	return (int) gtk_adjustment_get_value(adj);
+}
+
 // TODO switch to GDateTime?
 static void setLabel(dateTimePickerWidget *d)
 {
@@ -46,13 +54,11 @@ static void setLabel(dateTimePickerWidget *d)
 	gchar *str;
 
 	gtk_calendar_get_date(GTK_CALENDAR(d->calendar), &year, &month, &day);
-	tm.tm_hour = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(d->hours));
-	if (tm.tm_hour == 12)
-		tm.tm_hour = 0;
-	if (gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(d->ampm)) != 0)
+	tm.tm_hour = realSpinValue(GTK_SPIN_BUTTON(d->hours));
+	if (realSpinValue(GTK_SPIN_BUTTON(d->ampm)) != 0)
 		tm.tm_hour += 12;
-	tm.tm_min = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(d->minutes));
-	tm.tm_sec = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(d->seconds));
+	tm.tm_min = realSpinValue(GTK_SPIN_BUTTON(d->minutes));
+	tm.tm_sec = realSpinValue(GTK_SPIN_BUTTON(d->seconds));
 	tm.tm_mon = month;
 	tm.tm_mday = day;
 	tm.tm_year = year - 1900;
@@ -231,19 +237,69 @@ static gboolean buttonReleased(GtkWidget *w, GdkEventButton *e, gpointer data)
 	return TRUE;		// this is what GtkComboBox does
 }
 
+static gint hoursSpinboxInput(GtkSpinButton *sb, gpointer ptr, gpointer data)
+{
+	double *out = (double *) ptr;
+	const gchar *text;
+	int value;
+
+	text = gtk_entry_get_text(GTK_ENTRY(sb));
+	value = (int) g_strtod(text, NULL);
+	if (value < 0 || value > 12)
+		return GTK_INPUT_ERROR;
+	if (value == 12)		// 12 to the user is 0 internally
+		value = 0;
+	*out = (double) value;
+	return TRUE;
+}
+
+static gboolean hoursSpinboxOutput(GtkSpinButton *sb, gpointer data)
+{
+	gchar *text;
+	int value;
+
+	value = realSpinValue(sb);
+	if (value == 0)		// 0 internally is 12 to the user
+		value = 12;
+	text = g_strdup_printf("%d", value);
+	gtk_entry_set_text(GTK_ENTRY(sb), text);
+	g_free(text);
+	return TRUE;
+}
+
 static gboolean zeroPadSpinbox(GtkSpinButton *sb, gpointer data)
 {
 	gchar *text;
 	int value;
 
-	value = gtk_spin_button_get_value_as_int(sb);
+	value = realSpinValue(sb);
 	text = g_strdup_printf("%02d", value);
 	gtk_entry_set_text(GTK_ENTRY(sb), text);
 	g_free(text);
 	return TRUE;
 }
 
-static gboolean ampmSpinbox(GtkSpinButton *sb, gpointer data)
+static gint ampmSpinboxInput(GtkSpinButton *sb, gpointer ptr, gpointer data)
+{
+	double *out = (double *) ptr;
+	const gchar *text;
+	char firstAM, firstPM;
+
+	text = gtk_entry_get_text(GTK_ENTRY(sb));
+	firstAM = nl_langinfo(AM_STR)[0];
+	firstPM = nl_langinfo(PM_STR)[0];
+	for (; *text != '\0'; text++)
+		if (*text == firstAM) {
+			*out = 0;
+			return TRUE;
+		} else if (*text == firstPM) {
+			*out = 1;
+			return TRUE;
+		}
+	return GTK_INPUT_ERROR;
+}
+
+static gboolean ampmSpinboxOutput(GtkSpinButton *sb, gpointer data)
 {
 	int value;
 
@@ -262,7 +318,7 @@ static void spinboxChanged(GtkSpinButton *sb, gpointer data)
 	dateTimeChanged(d);
 }
 
-static GtkWidget *newSpinbox(dateTimePickerWidget *d, int min, int max, gboolean (*output)(GtkSpinButton *sb, gpointer data))
+static GtkWidget *newSpinbox(dateTimePickerWidget *d, int min, int max, gint (*input)(GtkSpinButton *, gpointer, gpointer), gboolean (*output)(GtkSpinButton *, gpointer))
 {
 	GtkWidget *sb;
 
@@ -271,6 +327,8 @@ static GtkWidget *newSpinbox(dateTimePickerWidget *d, int min, int max, gboolean
 	gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(sb), TRUE);
 	gtk_orientable_set_orientation(GTK_ORIENTABLE(sb), GTK_ORIENTATION_VERTICAL);
 	g_signal_connect(sb, "value-changed", G_CALLBACK(spinboxChanged), d);
+	if (input != NULL)
+		g_signal_connect(sb, "input", G_CALLBACK(input), NULL);
 	if (output != NULL)
 		g_signal_connect(sb, "output", G_CALLBACK(output), NULL);
 	return sb;
@@ -310,19 +368,19 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 	gtk_widget_set_valign(d->timebox, GTK_ALIGN_CENTER);
 	gtk_container_add(GTK_CONTAINER(d->box), d->timebox);
 
-	d->hours = newSpinbox(d, 1, 12, NULL);
+	d->hours = newSpinbox(d, 0, 11, hoursSpinboxInput, hoursSpinboxOutput);
 	gtk_container_add(GTK_CONTAINER(d->timebox), d->hours);
 
 	gtk_container_add(GTK_CONTAINER(d->timebox),
 		gtk_label_new(":"));
 
-	d->minutes = newSpinbox(d, 0, 59, zeroPadSpinbox);
+	d->minutes = newSpinbox(d, 0, 59, NULL, zeroPadSpinbox);
 	gtk_container_add(GTK_CONTAINER(d->timebox), d->minutes);
 
 	gtk_container_add(GTK_CONTAINER(d->timebox),
 		gtk_label_new(":"));
 
-	d->seconds = newSpinbox(d, 0, 59, zeroPadSpinbox);
+	d->seconds = newSpinbox(d, 0, 59, NULL, zeroPadSpinbox);
 	gtk_container_add(GTK_CONTAINER(d->timebox), d->seconds);
 
 	// TODO this should be the case, but that interferes with grabs
@@ -333,7 +391,7 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(d->ampm), NULL, "PM");
 #endif
 	// TODO why does pressing the button work oddly?
-	d->ampm = newSpinbox(d, 0, 1, ampmSpinbox);
+	d->ampm = newSpinbox(d, 0, 1, ampmSpinboxInput, ampmSpinboxOutput);
 	gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(d->ampm), FALSE);
 	gtk_widget_set_valign(d->ampm, GTK_ALIGN_CENTER);
 	gtk_container_add(GTK_CONTAINER(d->timebox), d->ampm);

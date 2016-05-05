@@ -18,6 +18,10 @@ int main(void)
 	gtk_container_add(GTK_CONTAINER(mainwin), box);
 	button = newDTP();
 	gtk_container_add(GTK_CONTAINER(box), button);
+	button = newDP();
+	gtk_container_add(GTK_CONTAINER(box), button);
+	button = newTP();
+	gtk_container_add(GTK_CONTAINER(box), button);
 	gtk_container_add(GTK_CONTAINER(box), gtk_entry_new());
 
 	gtk_widget_show_all(mainwin);

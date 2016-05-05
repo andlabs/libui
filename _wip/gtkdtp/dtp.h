@@ -8,3 +8,5 @@
 #include <langinfo.h>
 
 extern GtkWidget *newDTP(void);
+extern GtkWidget *newDP(void);
+extern GtkWidget *newTP(void);

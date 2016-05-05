@@ -5,9 +5,10 @@
 #define GDK_VERSION_MAX_ALLOWED GDK_VERSION_3_4
 // TODO make this unnecessary
 #define _GNU_SOURCE
+#include <gtk/gtk.h>
 #include <math.h>
 #include <dlfcn.h>		// see drawtext.c
-#include <gtk/gtk.h>
+#include <langinfo.h>
 #include "../ui.h"
 #include "../ui_unix.h"
 #include "../common/uipriv.h"

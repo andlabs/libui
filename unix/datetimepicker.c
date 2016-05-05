@@ -8,14 +8,6 @@ struct uiDateTimePicker {
 
 uiUnixControlAllDefaults(uiDateTimePicker)
 
-// TODO
-typedef int OSTHING;
-enum {
-	OSARGDATETIME,
-	OSARGDATEONLY,
-	OSARGTIMEONLY,
-};
-
 uiDateTimePicker *finishNewDateTimePicker(OSTHING OSARG)
 {
 	uiDateTimePicker *d;

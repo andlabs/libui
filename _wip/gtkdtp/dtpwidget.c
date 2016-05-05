@@ -1,5 +1,5 @@
 // 4 september 2015
-#include "dtp.h"
+#include "uipriv_unix.h"
 
 // TODO imitate gnome-calendar's day/month/year entries?
 // TODO 24-hour time
@@ -501,7 +501,7 @@ static void dateTimePickerWidget_class_init(dateTimePickerWidgetClass *class)
 	G_OBJECT_CLASS(class)->finalize = dateTimePickerWidget_finalize;
 }
 
-GtkWidget *newDTP(void)
+static GtkWidget *newDTP(void)
 {
 	GtkWidget *w;
 
@@ -510,7 +510,7 @@ GtkWidget *newDTP(void)
 	return w;
 }
 
-GtkWidget *newDP(void)
+static GtkWidget *newDP(void)
 {
 	GtkWidget *w;
 
@@ -520,7 +520,7 @@ GtkWidget *newDP(void)
 	return w;
 }
 
-GtkWidget *newTP(void)
+static GtkWidget *newTP(void)
 {
 	GtkWidget *w;
 
@@ -528,4 +528,39 @@ GtkWidget *newTP(void)
 	setTimeOnly(dateTimePickerWidget(w));
 	setLabel(dateTimePickerWidget(w));
 	return w;
+}
+
+struct uiDateTimePicker {
+	uiUnixControl c;
+	GtkWidget *widget;
+	dateTimePickerWidget *d;
+};
+
+uiUnixControlAllDefaults(uiDateTimePicker)
+
+uiDateTimePicker *finishNewDateTimePicker(GtkWidget (*fn)(void))
+{
+	uiDateTimePicker *d;
+
+	uiUnixNewControl(uiDateTimePicker, d);
+
+	d->widget = (*fn)();
+	d->d = dateTimePickerWidget(d->widget);
+
+	return d;
+}
+
+uiDateTimePicker *uiNewDateTimePicker(void)
+{
+	return finishNewDateTimePicker(newDTP);
+}
+
+uiDateTimePicker *uiNewDatePicker(void)
+{
+	return finishNewDateTimePicker(newDP);
+}
+
+uiDateTimePicker *uiNewTimePicker(void)
+{
+	return finishNewDateTimePicker(newTP);
 }

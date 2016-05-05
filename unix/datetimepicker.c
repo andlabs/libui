@@ -3,6 +3,7 @@
 
 // TODO imitate gnome-calendar's day/month/year entries?
 // TODO 24-hour time
+// TODO don't assume all locales use :
 
 #define dateTimePickerWidgetType (dateTimePickerWidget_get_type())
 #define dateTimePickerWidget(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), dateTimePickerWidgetType, dateTimePickerWidget))

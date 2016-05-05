@@ -1,0 +1,92 @@
+NSScrollView
+ backgroundColor NSNamedColorSpace System controlBackgroundColor
+ drawsBackground 1
+ borderType 2
+ documentCursor <NSCursor: 0x7f886b44f6a0>
+ hasHorizontalScroller 0
+ hasVerticalScroller 1
+ autohidesScrollers 1
+ hasHorizontalRuler 0
+ hasVerticalRuler 0
+ rulersVisible 0
+ automaticallyAdjustsContentInsets 1
+ contentInsets left:0 top:0 right:0 bottom:0
+ scrollerInsets left:0 top:0 right:0 bottom:0
+ scrollerKnobStyle 0
+ scrollerStyle 1
+ lineScroll 10
+ horizontalLineScroll 10
+ verticalLineScroll 10
+ pageScroll 10
+ horizontalPageScroll 10
+ verticalPageScroll 10
+ scrollsDynamically 1
+ findBarPosition 1
+ usesPredominantAxisScrolling 1
+ horizontalScrollElasticity 0
+ verticalScrollElasticity 0
+ allowsMagnification 0
+ magnification 1
+ maxMagnification 4
+ minMagnification 0.25
+
+NSTextView
+ textContainerInset {0, 0}
+ textContainerOrigin {0, 0}
+ backgroundColor NSNamedColorSpace System textBackgroundColor
+ drawsBackground 1
+ allowsDocumentBackgroundColorChange 0
+ allowedInputSourceLocales (null)
+ allowsUndo 1
+ isEditable 1
+ isSelectable 1
+ isFieldEditor 0
+ isRichText 0
+ importsGraphics 0
+ defaultParagraphStyle (null)
+ allowsImageEditing 0
+ isAutomaticQuoteSubstitutionEnabled 0
+ isAutomaticLinkDetectionEnabled 0
+ displaysLinkToolTips 1
+ usesRuler 0
+ isRulerVisible 0
+ usesInspectorBar 0
+ selectionAffinity 0
+ selectionGranularity 0
+ insertionPointColor NSNamedColorSpace System controlTextColor
+ selectedTextAttributes {
+    NSBackgroundColor = "NSNamedColorSpace System selectedTextBackgroundColor";
+    NSColor = "NSNamedColorSpace System selectedTextColor";
+}
+ markedTextAttributes {
+    NSBackgroundColor = "NSCalibratedRGBColorSpace 1 0.866667 0.333333 1";
+}
+ linkTextAttributes {
+    NSColor = "NSCalibratedRGBColorSpace 0 0 1 1";
+    NSCursor = "<NSCursor: 0x7f886b4c59d0>";
+    NSUnderline = 1;
+}
+ typingAttributes {
+    NSFont = "\".HelveticaNeueDeskInterface-Regular 13.00 pt. P [] (0x7f886b4bc6a0) fobj=0x7f886b474d90, spc=3.94\"";
+}
+ smartInsertDeleteEnabled 0
+ isContinuousSpellCheckingEnabled 0
+ isGrammarCheckingEnabled 0
+ acceptsGlyphInfo 0
+ usesFontPanel 0
+ usesFindPanel 0
+ enabledTextCheckingTypes 0
+ isAutomaticDashSubstitutionEnabled 0
+ isAutomaticDataDetectionEnabled 0
+ isAutomaticSpellingCorrectionEnabled 0
+ isAutomaticTextReplacementEnabled 0
+ usesFindBar 0
+ isIncrementalSearchingEnabled 0
+ NSText:
+  font ".HelveticaNeueDeskInterface-Regular 13.00 pt. P [] (0x7f886b4bc6a0) fobj=0x7f886b474d90, spc=3.94"
+  textColor (null)
+  baseWritingDirection -1
+  maxSize {1, 10000000}
+  minSize {1, 1}
+  isVerticallyResizable 1
+  isHorizontallyResizable 0

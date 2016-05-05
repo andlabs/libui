@@ -1,14 +1,21 @@
 // 7 april 2015
 #include "uipriv_unix.h"
 
-// TODO clean this up
+struct boxChild {
+	uiControl *c;
+	int stretchy;
+	gboolean oldhexpand;
+	GtkAlign oldhalign;
+	gboolean oldvexpand;
+	GtkAlign oldvalign;
+};
 
 struct uiBox {
 	uiUnixControl c;
 	GtkWidget *widget;
 	GtkContainer *container;
 	GtkBox *box;
-	struct ptrArray *controls;			// TODO switch to GArray
+	GArray *controls;
 	int vertical;
 	int padded;
 	GtkSizeGroup *stretchygroup;		// ensures all stretchy controls have the same size
@@ -16,35 +23,44 @@ struct uiBox {
 
 uiUnixControlAllDefaultsExceptDestroy(uiBox)
 
+#define ctrl(b, i) &g_array_index(b->controls, struct boxChild, i)
+
 static void uiBoxDestroy(uiControl *c)
 {
 	uiBox *b = uiBox(c);
-	struct child *bc;
+	struct boxChild *bc;
+	guint i;
 
-	while (b->controls->len != 0) {
-		bc = ptrArrayIndex(b->controls, struct child *, 0);
-		childDestroy(bc);
-		ptrArrayDelete(b->controls, 0);
-	}
-	ptrArrayDestroy(b->controls);
 	// kill the size group
 	g_object_unref(b->stretchygroup);
+	// free all controls
+	for (i = 0; i < b->controls->len; i++) {
+		bc = ctrl(b, i);
+		uiControlSetParent(bc->c, NULL);
+		// and make sure the widget itself stays alive
+		uiUnixControlSetContainer(uiUnixControl(bc->c), b->container, TRUE);
+		uiControlDestroy(bc->c);
+	}
+	g_array_free(b->controls, TRUE);
 	// and then ourselves
 	g_object_unref(b->widget);
 	uiFreeControl(uiControl(b));
 }
 
-#define isStretchy(bc) childFlag(bc)
-
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
-	struct child *bc;
+	struct boxChild bc;
 	GtkWidget *widget;
 
-	bc = newChild(c, uiControl(b), b->container);
-	childSetFlag(bc, stretchy);
-	widget = childWidget(bc);
-	if (isStretchy(bc)) {
+	bc.c = c;
+	bc.stretchy = stretchy;
+	widget = GTK_WIDGET(uiControlHandle(bc.c));
+	bc.oldhexpand = gtk_widget_get_hexpand(widget);
+	bc.oldhalign = gtk_widget_get_halign(widget);
+	bc.oldvexpand = gtk_widget_get_vexpand(widget);
+	bc.oldvalign = gtk_widget_get_valign(widget);
+
+	if (bc.stretchy) {
 		if (b->vertical) {
 			gtk_widget_set_vexpand(widget, TRUE);
 			gtk_widget_set_valign(widget, GTK_ALIGN_FILL);
@@ -58,19 +74,39 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 			gtk_widget_set_vexpand(widget, FALSE);
 		else
 			gtk_widget_set_hexpand(widget, FALSE);
-	// TODO make the other dimension fill
-	ptrArrayAppend(b->controls, bc);
+	// and make them fill the opposite direction
+	if (b->vertical) {
+		gtk_widget_set_hexpand(widget, TRUE);
+		gtk_widget_set_halign(widget, GTK_ALIGN_FILL);
+	} else {
+		gtk_widget_set_vexpand(widget, TRUE);
+		gtk_widget_set_valign(widget, GTK_ALIGN_FILL);
+	}
+
+	uiControlSetParent(bc.c, uiControl(b));
+	uiUnixControlSetContainer(uiUnixControl(bc.c), b->container, FALSE);
+	g_array_append_val(b->controls, bc);
 }
 
 void uiBoxDelete(uiBox *b, uintmax_t index)
 {
-	struct child *bc;
+	struct boxChild *bc;
+	GtkWidget *widget;
 
-	bc = ptrArrayIndex(b->controls, struct child *, index);
-	ptrArrayDelete(b->controls, index);
-	if (isStretchy(bc))
-		gtk_size_group_remove_widget(b->stretchygroup, childWidget(bc));
-	childRemove(bc);
+	bc = ctrl(b, index);
+	widget = GTK_WIDGET(uiControlHandle(bc->c));
+
+	uiControlSetParent(bc->c, NULL);
+	uiUnixControlSetContainer(uiUnixControl(bc->c), b->container, TRUE);
+
+	if (bc->stretchy)
+		gtk_size_group_remove_widget(b->stretchygroup, widget);
+	gtk_widget_set_hexpand(widget, bc->oldhexpand);
+	gtk_widget_set_halign(widget, bc->oldhalign);
+	gtk_widget_set_vexpand(widget, bc->oldvexpand);
+	gtk_widget_set_valign(widget, bc->oldvalign);
+
+	g_array_remove_index(b->controls, index);
 }
 
 int uiBoxPadded(uiBox *b)
@@ -107,7 +143,7 @@ static uiBox *finishNewBox(GtkOrientation orientation)
 	else
 		b->stretchygroup = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 
-	b->controls = newPtrArray();
+	b->controls = g_array_new(FALSE, TRUE, sizeof (struct boxChild));
 
 	return b;
 }

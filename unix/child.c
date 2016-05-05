@@ -72,7 +72,6 @@ struct child *newChildWithBox(uiControl *child, uiControl *parent, GtkContainer 
 void childRemove(struct child *c)
 {
 	uiControlSetParent(c->c, NULL);
-	// TODO safe with boxes?
 	uiUnixControlSetContainer(uiUnixControl(c->c), c->parent, TRUE);
 
 	gtk_widget_set_hexpand(c->widget, c->oldhexpand);

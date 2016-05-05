@@ -53,7 +53,6 @@ G_DEFINE_TYPE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA)
 static void areaWidget_init(areaWidget *aw)
 {
 	// for events
-	// TODO is this sufficient for enter-notify-event and leave-notify-event?
 	gtk_widget_add_events(GTK_WIDGET(aw),
 		GDK_POINTER_MOTION_MASK |
 		GDK_BUTTON_MOTION_MASK |
@@ -164,7 +163,6 @@ static void areaWidget_get_preferred_width(GtkWidget *w, gint *min, gint *nat)
 	}
 }
 
-// TODO merge with toModifiers?
 static guint translateModifiers(guint state, GdkWindow *window)
 {
 	GdkModifierType statetype;
@@ -252,7 +250,7 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 		"gtk-double-click-time", &maxTime,
 		"gtk-double-click-distance", &maxDistance,
 		NULL);
-	// TODO unref settings?
+	// don't unref settings; it's transfer-none (thanks gregier in irc.gimp.net/#gtk+)
 	me.Count = clickCounterClick(a->cc, me.Down,
 		e->x, e->y,
 		e->time, maxTime,

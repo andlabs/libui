@@ -11,6 +11,9 @@ CFILES += \
 	unix/control.c \
 	unix/datetimepicker.c \
 	unix/draw.c \
+	unix/drawmatrix.c \
+	unix/drawpath.c \
+	unix/drawtext.c \
 	unix/entry.c \
 	unix/fontbutton.c \
 	unix/group.c \
@@ -30,6 +33,7 @@ CFILES += \
 	unix/window.c
 
 HFILES += \
+	unix/draw.h \
 	unix/uipriv_unix.h
 
 # TODO split into a separate file or put in GNUmakefile.libui somehow?

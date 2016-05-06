@@ -77,8 +77,6 @@ uiDrawTextFont *mkTextFont(IDWriteFont *df, BOOL addRef, WCHAR *family, BOOL cop
 	return font;
 }
 
-// We could use a C99-style array initializer like the other backends, but C++ doesn't support those.
-// But it turns out we need to look up both by uival and dwval, so this loop method is fine...
 // TODO consider moving these all to dwrite.cpp
 
 static const struct {
@@ -315,6 +313,7 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 	metrics->Ascent = scaleUnits(dm.ascent, dm.designUnitsPerEm, font->size);
 	metrics->Descent = scaleUnits(dm.descent, dm.designUnitsPerEm, font->size);
 	// TODO what happens if dm.xxx is negative?
+	// TODO remember what this was for
 	metrics->Leading = scaleUnits(dm.lineGap, dm.designUnitsPerEm, font->size);
 	metrics->UnderlinePos = scaleUnits(dm.underlinePosition, dm.designUnitsPerEm, font->size);
 	metrics->UnderlineThickness = scaleUnits(dm.underlineThickness, dm.designUnitsPerEm, font->size);
@@ -381,6 +380,31 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 	uiFree(layout);
 }
 
+static ID2D1SolidColorBrush *mkSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a)
+{
+	D2D1_BRUSH_PROPERTIES props;
+	D2D1_COLOR_F color;
+	ID2D1SolidColorBrush *brush;
+	HRESULT hr;
+
+	ZeroMemory(&props, sizeof (D2D1_BRUSH_PROPERTIES));
+	props.opacity = 1.0;
+	// identity matrix
+	props.transform._11 = 1;
+	props.transform._22 = 1;
+	color.r = r;
+	color.g = g;
+	color.b = b;
+	color.a = a;
+	hr = rt->CreateSolidColorBrush(
+		&color,
+		&props,
+		&brush);
+	if (hr != S_OK)
+		logHRESULT(L"error creating solid brush", hr);
+	return brush;
+}
+
 IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt)
 {
 	IDWriteTextLayout *dl;
@@ -405,7 +429,11 @@ IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt
 		case layoutAttrColor:
 			if (rt == NULL)		// determining extents, not drawing
 				break;
-			unkBrush = createSolidColorBrushInternal(rt, attr.components[0], attr.components[1], attr.components[2], attr.components[3]);
+			unkBrush = mkSolidBrush(rt,
+				attr.components[0],
+				attr.components[1],
+				attr.components[2],
+				attr.components[3]);
 			hr = dl->SetDrawingEffect(unkBrush, range);
 			unkBrush->Release();		// associated with dl
 			break;
@@ -459,20 +487,26 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *he
 	dl->Release();
 }
 
-void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout)
+void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 {
 	IDWriteTextLayout *dl;
 	D2D1_POINT_2F pt;
+	ID2D1Brush *black;
 	HRESULT hr;
 
-	dl = prepareLayout(layout, rt);
+	// TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
+	black = mkSolidBrush(c->rt, 0.0, 0.0, 0.0, 1.0);
+
+	dl = prepareLayout(layout, c->rt);
 	pt.x = x;
 	pt.y = y;
 	// TODO D2D1_DRAW_TEXT_OPTIONS_NO_SNAP?
 	// TODO D2D1_DRAW_TEXT_OPTIONS_CLIP?
 	// TODO when setting 8.1 as minimum, D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT?
-	rt->DrawTextLayout(pt, dl, black, D2D1_DRAW_TEXT_OPTIONS_NONE);
+	c->rt->DrawTextLayout(pt, dl, black, D2D1_DRAW_TEXT_OPTIONS_NONE);
 	dl->Release();
+
+	black->Release();
 }
 
 void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a)

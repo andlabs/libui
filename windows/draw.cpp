@@ -483,36 +483,3 @@ void uiDrawRestore(uiDrawContext *c)
 	// no need to explicitly addref or release; just transfer the ref
 	c->currentClip = state.clip;
 }
-
-// TODO C++-ize the rest of the file
-
-// TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
-void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
-{
-	uiDrawBrush brush;
-	ID2D1Brush *black;
-
-	ZeroMemory(&brush, sizeof (uiDrawBrush));
-	brush.Type = uiDrawBrushTypeSolid;
-	brush.R = 0.0;
-	brush.G = 0.0;
-	brush.B = 0.0;
-	brush.A = 1.0;
-	black = makeBrush(&brush, c->rt);
-	doDrawText(c->rt, black, x, y, layout);
-	black->Release();
-}
-
-// TODO this is a mess
-ID2D1Brush *createSolidColorBrushInternal(ID2D1RenderTarget *rt, double r, double g, double b, double a)
-{
-	uiDrawBrush brush;
-
-	ZeroMemory(&brush, sizeof (uiDrawBrush));
-	brush.Type = uiDrawBrushTypeSolid;
-	brush.R = r;
-	brush.G = g;
-	brush.B = b;
-	brush.A = a;
-	return makeBrush(&brush, rt);
-}

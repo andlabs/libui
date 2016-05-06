@@ -12,7 +12,6 @@ extern void uninitDraw(void);
 extern ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd);
 extern uiDrawContext *newContext(ID2D1RenderTarget *);
 extern void freeContext(uiDrawContext *);
-extern ID2D1Brush *createSolidColorBrushInternal(ID2D1RenderTarget *rt, double r, double g, double b, double a);
 
 // dwrite.cpp
 #ifdef __cplusplus
@@ -46,7 +45,6 @@ struct dwriteAttr {
 extern void attrToDWriteAttr(struct dwriteAttr *attr);
 extern void dwriteAttrToAttr(struct dwriteAttr *attr);
 #endif
-extern void doDrawText(ID2D1RenderTarget *rt, ID2D1Brush *black, double x, double y, uiDrawTextLayout *layout);
 
 // fontdialog.cpp
 #ifdef __cplusplus

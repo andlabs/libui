@@ -394,7 +394,7 @@ void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 	// 	Direct2D uses column vectors and I don't know if this is even documented
 	// b) that's what Core Graphics does
 	// TODO see if Microsoft says to do this
-	dm = dm * cur;		// TODO why not *= ?
+	dm = dm * cur;		// for whatever reason operator * is defined but not operator *=
 	c->rt->SetTransform(&dm);
 }
 

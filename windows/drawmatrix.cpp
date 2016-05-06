@@ -2,8 +2,6 @@
 #include "uipriv_windows.hpp"
 #include "draw.hpp"
 
-// TODO convert to C++
-
 void m2d(uiDrawMatrix *m, D2D1_MATRIX_3X2_F *d)
 {
 	d->_11 = m->M11;

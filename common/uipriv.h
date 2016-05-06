@@ -19,19 +19,6 @@ extern void complain(const char *, ...);
 // control.c
 extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
 
-// ptrarray.c
-struct ptrArray {
-	void **ptrs;
-	uintmax_t len;
-	uintmax_t cap;
-};
-struct ptrArray *newPtrArray(void);
-void ptrArrayDestroy(struct ptrArray *);
-void ptrArrayAppend(struct ptrArray *, void *);
-void ptrArrayInsertAt(struct ptrArray *, uintmax_t, void *);
-void ptrArrayDelete(struct ptrArray *, uintmax_t);
-#define ptrArrayIndex(p, T, i) ((T) ((p)->ptrs[(i)]))
-
 // shouldquit.c
 extern int shouldQuit(void);
 

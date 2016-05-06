@@ -21,9 +21,13 @@
 
 @end
 
+@interface boxView : NSView
+@property uiBox *b;
+@end
+
 struct uiBox {
 	uiDarwinControl c;
-	NSView *view;
+	boxView *view;
 	BOOL vertical;
 	int padded;
 	NSMutableArray *children;		// []NSValue<uiControl *>
@@ -109,7 +113,7 @@ static int isStretchy(uiBox *b, uintmax_t n)
 	return [num intValue];
 }
 
-static NSView *boxView(uiBox *b, uintmax_t n)
+static NSView *boxChildView(uiBox *b, uintmax_t n)
 {
 	NSValue *val;
 	uiControl *c;
@@ -131,16 +135,21 @@ static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 	return NO;
 }
 
+@implementation boxView
+
 // TODO do we still need to set hugging? I think we do for stretchy controls...
 // TODO try unsetting spinbox intrinsics and seeing what happens
-static void relayout(uiBox *b)
+- (void)updateConstraints
 {
+	uiBox *b = self.b;
 	uintmax_t i, n;
 	BOOL hasStretchy;
 	NSView *firstStretchy = nil;
 	CGFloat padding;
 	NSView *prev, *next;
 	BOOL hasNoStretchyView;
+
+	[super updateConstraints];
 
 	n = [b->children count];
 	if (n == 0)
@@ -152,7 +161,7 @@ static void relayout(uiBox *b)
 	[b->view removeConstraints:[b->view constraints]];
 
 	// first, attach the first view to the leading
-	prev = boxView(b, 0);
+	prev = boxChildView(b, 0);
 	[b->view addConstraint:mkConstraint(prev, b->primaryStart,
 		NSLayoutRelationEqual,
 		b->view, b->primaryStart,
@@ -168,7 +177,7 @@ static void relayout(uiBox *b)
 	} else
 		hasStretchy = NO;
 	for (i = 1; i < n; i++) {
-		next = boxView(b, i);
+		next = boxChildView(b, i);
 		if (!hasStretchy && isStretchy(b, i)) {
 			hasStretchy = YES;
 			firstStretchy = next;
@@ -202,12 +211,12 @@ static void relayout(uiBox *b)
 	// next: assemble the views in the secondary direction
 	// each of them will span the secondary direction
 	for (i = 0; i < n; i++) {
-		[b->view addConstraint:mkConstraint(boxView(b, i), b->secondaryStart,
+		[b->view addConstraint:mkConstraint(boxChildView(b, i), b->secondaryStart,
 			NSLayoutRelationEqual,
 			b->view, b->secondaryStart,
 			1, 0,
 			@"uiBox start secondary constraint")];
-		[b->view addConstraint:mkConstraint(boxView(b, i), b->secondaryEnd,
+		[b->view addConstraint:mkConstraint(boxChildView(b, i), b->secondaryEnd,
 			NSLayoutRelationEqual,
 			b->view, b->secondaryEnd,
 			1, 0,
@@ -231,7 +240,7 @@ static void relayout(uiBox *b)
 		for (i = 0; i < n; i++) {
 			if (!isStretchy(b, i))
 				continue;
-			prev = boxView(b, i);
+			prev = boxChildView(b, i);
 			if (prev == firstStretchy)
 				continue;
 			[b->view addConstraint:mkConstraint(prev, b->primarySize,
@@ -241,6 +250,8 @@ static void relayout(uiBox *b)
 				@"uiBox stretchy sizing")];
 		}
 }
+
+@end
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
@@ -265,7 +276,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	// make sure controls don't hug their secondary direction so they fill the width of the view
 	setHuggingPri(childView, NSLayoutPriorityDefaultLow, b->secondaryOrientation);
 
-	relayout(b);
+	[b->view setNeedsUpdateConstraints:YES];
 }
 
 void uiBoxDelete(uiBox *b, uintmax_t n)
@@ -281,7 +292,7 @@ void uiBoxDelete(uiBox *b, uintmax_t n)
 	uiControlSetParent(removed, NULL);
 	[b->children removeObjectAtIndex:n];
 	[b->stretchy removeObjectAtIndex:n];
-	relayout(b);
+	[b->view setNeedsUpdateConstraints:YES];
 }
 
 int uiBoxPadded(uiBox *b)
@@ -292,7 +303,7 @@ int uiBoxPadded(uiBox *b)
 void uiBoxSetPadded(uiBox *b, int padded)
 {
 	b->padded = padded;
-	relayout(b);
+	[b->view setNeedsUpdateConstraints:YES];
 }
 
 static uiBox *finishNewBox(BOOL vertical)
@@ -301,7 +312,8 @@ static uiBox *finishNewBox(BOOL vertical)
 
 	uiDarwinNewControl(uiBox, b);
 
-	b->view = [[NSView alloc] initWithFrame:NSZeroRect];
+	b->view = [[boxView alloc] initWithFrame:NSZeroRect];
+	b->view.b = b;
 
 	b->children = [NSMutableArray new];
 	b->stretchy = [NSMutableArray new];

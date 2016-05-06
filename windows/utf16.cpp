@@ -56,8 +56,7 @@ WCHAR *utf16dup(const WCHAR *orig)
 
 	len = wcslen(orig);
 	out = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
-	// TODO safer version
-	wcscpy(out, orig);
+	wcscpy_s(out, len + 1, orig);
 	return out;
 }
 
@@ -117,6 +116,7 @@ WCHAR *debugvstrf(const WCHAR *format, va_list ap)
 }
 
 // Let's shove these utility routines here too.
+// Prerequisite: lfonly is UTF-8.
 char *LFtoCRLF(const char *lfonly)
 {
 	char *crlf;
@@ -135,16 +135,19 @@ char *LFtoCRLF(const char *lfonly)
 	return out;
 }
 
+// Prerequisite: s is UTF-8.
 void CRLFtoLF(char *s)
 {
 	char *t = s;
 
-	for (; *s; s++) {
+	for (; *s != '\0'; s++) {
 		// be sure to preserve \rs that are genuinely there
 		if (*s == '\r' && *(s + 1) == '\n')
 			continue;
 		*t++ = *s;
 	}
 	*t = '\0';
-	// TODO null pad t to s?
+	// pad out the rest of t, just to be safe
+	while (t != s)
+		*t++ = '\0';
 }

@@ -91,7 +91,10 @@ struct tabPage *newTabPage(uiControl *child)
 		logLastError(L"error creating tab page");
 
 	tp->child = child;
-	uiWindowsEnsureSetParentHWND((HWND) uiControlHandle(tp->child), tp->hwnd);
+	if (tp->child != NULL) {
+		uiWindowsEnsureSetParentHWND((HWND) uiControlHandle(tp->child), tp->hwnd);
+		uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl(tp->child));
+	}
 
 	hr = EnableThemeDialogTexture(tp->hwnd, ETDT_ENABLE | ETDT_USETABTEXTURE | ETDT_ENABLETAB);
 	if (hr != S_OK)
@@ -109,7 +112,7 @@ void tabPageDestroy(struct tabPage *tp)
 	// don't destroy the child with the page
 	if (tp->child != NULL)
 		uiWindowsControlSetParentHWND(uiWindowsControl(tp->child), NULL);
-	// TODO call EndDialog() instead?
+	// don't call EndDialog(); that's for the DialogBox() family of functions instead of CreateDialog()
 	uiWindowsEnsureDestroyWindow(tp->hwnd);
 	uiFree(tp);
 }

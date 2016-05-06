@@ -4,6 +4,7 @@
 // notes:
 // - FOS_SUPPORTSTREAMABLEITEMS doesn't seem to be supported on windows vista, or at least not with the flags we use
 // - even with FOS_NOVALIDATE the dialogs will reject invalid filenames (at least on Vista, anyway)
+// - lack of FOS_NOREADONLYRETURN doesn't seem to matter on Windows 7
 
 // TODO
 // - http://blogs.msdn.com/b/wpfsdk/archive/2006/10/26/uncommon-dialogs--font-chooser-and-color-picker-dialogs.aspx
@@ -35,6 +36,8 @@ char *commonItemDialog(HWND parent, REFCLSID clsid, REFIID iid, FILEOPENDIALOGOP
 		goto out;
 	}
 	opts |= optsadd;
+	// the other platforms don't check read-only; we won't either
+	opts &= ~FOS_NOREADONLYRETURN;
 	hr = d->SetOptions(opts);
 	if (hr != S_OK) {
 		logHRESULT(L"error setting options", hr);
@@ -81,7 +84,6 @@ char *uiSaveFile(uiWindow *parent)
 {
 	return commonItemDialog(windowHWND(parent),
 		CLSID_FileSaveDialog, IID_IFileSaveDialog,
-		// TODO strip FOS_NOREADONLYRETURN?
 		FOS_OVERWRITEPROMPT | FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
 }
 

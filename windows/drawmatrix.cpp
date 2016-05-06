@@ -29,53 +29,61 @@ void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
 	setIdentity(m);
 }
 
-// frustratingly all of the operations on a matrix except rotation and skeweing are provided by the C++-only d2d1helper.h
-// we'll have to recreate their functionalities here
-// the implementations are all in the main matrix.c file
-// TODO switch to these instead actually
-
 void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 {
-	fallbackTranslate(m, x, y);
+	D2D1_MATRIX_3X2_F dm;
+
+	m2d(m, &dm);
+	dm = dm * D2D1::Matrix3x2F::Translation(x, y);
+	d2m(&dm, m);
 }
 
 void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x, double y)
 {
-	fallbackScale(m, xCenter, yCenter, x, y);
+	D2D1_MATRIX_3X2_F dm;
+	D2D1_POINT_2F center;
+
+	m2d(m, &dm);
+	center.x = xCenter;
+	center.y = yCenter;
+	dm = dm * D2D1::Matrix3x2F::Scale(x, y, center);
+	d2m(&dm, m);
 }
+
+#define r2d(x) (x * (180.0 / M_PI))
 
 void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 {
-	D2D1_POINT_2F center;
 	D2D1_MATRIX_3X2_F dm;
-	uiDrawMatrix rm;
+	D2D1_POINT_2F center;
 
-	amount *= 180 / M_PI;		// must be in degrees
+	m2d(m, &dm);
 	center.x = x;
 	center.y = y;
-	D2D1MakeRotateMatrix(amount, center, &dm);
-	d2m(&dm, &rm);
-	uiDrawMatrixMultiply(m, &rm);
+	dm = dm * D2D1::Matrix3x2F::Rotation(r2d(amount), center);
+	d2m(&dm, m);
 }
 
 void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
 {
-	D2D1_POINT_2F center;
 	D2D1_MATRIX_3X2_F dm;
-	uiDrawMatrix sm;
+	D2D1_POINT_2F center;
 
-	xamount *= 180 / M_PI;		// must be in degrees
-	yamount *= 180 / M_PI;		// must be in degrees
+	m2d(m, &dm);
 	center.x = x;
 	center.y = y;
-	D2D1MakeSkewMatrix(xamount, yamount, center, &dm);
-	d2m(&dm, &sm);
-	uiDrawMatrixMultiply(m, &sm);
+	dm = dm * D2D1::Matrix3x2F::Skew(r2d(xamount), r2d(yamount), center);
+	d2m(&dm, m);
 }
 
 void uiDrawMatrixMultiply(uiDrawMatrix *dest, uiDrawMatrix *src)
 {
-	fallbackMultiply(dest, src);
+	D2D1_MATRIX_3X2_F c, d;
+
+	m2d(dest, &c);
+	m2d(src, &d);
+	c = c * d;
+	d2m(&c, dest);
 }
 
 int uiDrawMatrixInvertible(uiDrawMatrix *m)
@@ -99,7 +107,15 @@ int uiDrawMatrixInvert(uiDrawMatrix *m)
 
 void uiDrawMatrixTransformPoint(uiDrawMatrix *m, double *x, double *y)
 {
-	fallbackTransformPoint(m, x, y);
+	D2D1::Matrix3x2F dm;
+	D2D1_POINT_2F pt;
+
+	m2d(m, &dm);
+	pt.x = *x;
+	pt.y = *y;
+	pt = dm.TransformPoint(pt);
+	*x = pt.x;
+	*y = pt.y;
 }
 
 void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)

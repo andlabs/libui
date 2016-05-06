@@ -1,5 +1,6 @@
 // 7 september 2015
 #include "uipriv_windows.hpp"
+#include "draw.hpp"
 
 ID2D1Factory *d2dfactory = NULL;
 
@@ -380,6 +381,23 @@ void uiDrawFill(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b)
 	brush->Release();
 }
 
+void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
+{
+	D2D1_MATRIX_3X2_F dm, cur;
+
+	c->rt->GetTransform(&cur);
+	m2d(m, &dm);
+	// you would think we have to do already * m, right?
+	// WRONG! we have to do m * already
+	// why? a few reasons
+	// a) this lovely comment in cairo's source - http://cgit.freedesktop.org/cairo/tree/src/cairo-matrix.c?id=0537479bd1d4c5a3bc0f6f41dec4deb98481f34a#n330
+	// 	Direct2D uses column vectors and I don't know if this is even documented
+	// b) that's what Core Graphics does
+	// TODO see if Microsoft says to do this
+	dm = dm * cur;
+	c->rt->SetTransform(&dm);
+}
+
 void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 {
 	ID2D1PathGeometry *newPath;
@@ -422,53 +440,48 @@ void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 	// we have a reference already; no need for another
 }
 
-struct state {
+struct drawState {
 	ID2D1DrawingStateBlock *dsb;
 	ID2D1PathGeometry *clip;
 };
 
 void uiDrawSave(uiDrawContext *c)
 {
-	struct state *state;
-	ID2D1DrawingStateBlock *dsb;
+	struct drawState state;
 	HRESULT hr;
 
 	hr = d2dfactory->CreateDrawingStateBlock(
 		// TODO verify that these are correct
 		NULL,
 		NULL,
-		&dsb);
+		&(state.dsb));
 	if (hr != S_OK)
 		logHRESULT(L"error creating drawing state block", hr);
-	c->rt->SaveDrawingState(dsb);
+	c->rt->SaveDrawingState(state.dsb);
 
 	// if we have a clip, we need to hold another reference to it
 	if (c->currentClip != NULL)
 		c->currentClip->AddRef();
+	state.clip = c->currentClip;		// even if NULL assign it
 
-	state = uiNew(struct state);
-	state->dsb = dsb;
-	state->clip = c->currentClip;
-	ptrArrayAppend(c->states, state);
+	c->states->push_back(state);
 }
 
 void uiDrawRestore(uiDrawContext *c)
 {
-	struct state *state;
+	struct drawState state;
 
-	state = ptrArrayIndex(c->states, struct state *, c->states->len - 1);
+	state = (*(c->states))[c->states->size() - 1];
+	c->states->pop_back();
 
-	c->rt->RestoreDrawingState(state->dsb);
-	state->dsb->Release();
+	c->rt->RestoreDrawingState(state.dsb);
+	state.dsb->Release();
 
 	// if we have a current clip, we need to drop it
 	if (c->currentClip != NULL)
 		c->currentClip->Release();
 	// no need to explicitly addref or release; just transfer the ref
-	c->currentClip = state->clip;
-
-	uiFree(state);
-	ptrArrayDelete(c->states, c->states->len - 1);
+	c->currentClip = state.clip;
 }
 
 // TODO C++-ize the rest of the file

@@ -108,6 +108,14 @@ void uiDrawFill(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b)
 	cairo_pattern_destroy(pat);
 }
 
+void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
+{
+	cairo_matrix_t cm;
+
+	m2c(m, &cm);
+	cairo_transform(c->cr, &cm);
+}
+
 void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 {
 	runPath(path, c->cr);
@@ -120,4 +128,14 @@ void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 		break;
 	}
 	cairo_clip(c->cr);
+}
+
+void uiDrawSave(uiDrawContext *c)
+{
+	cairo_save(c->cr);
+}
+
+void uiDrawRestore(uiDrawContext *c)
+{
+	cairo_restore(c->cr);
 }

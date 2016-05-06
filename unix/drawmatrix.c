@@ -2,7 +2,7 @@
 #include "uipriv_unix.h"
 #include "draw.h"
 
-static void m2c(uiDrawMatrix *m, cairo_matrix_t *c)
+void m2c(uiDrawMatrix *m, cairo_matrix_t *c)
 {
 	c->xx = m->M11;
 	c->yx = m->M12;
@@ -113,22 +113,4 @@ void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
 
 	m2c(m, &c);
 	cairo_matrix_transform_distance(&c, x, y);
-}
-
-void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
-{
-	cairo_matrix_t cm;
-
-	m2c(m, &cm);
-	cairo_transform(c->cr, &cm);
-}
-
-void uiDrawSave(uiDrawContext *c)
-{
-	cairo_save(c->cr);
-}
-
-void uiDrawRestore(uiDrawContext *c)
-{
-	cairo_restore(c->cr);
 }

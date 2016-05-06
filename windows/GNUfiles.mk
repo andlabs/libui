@@ -17,6 +17,8 @@ CXXFILES += \
 	windows/datetimepicker.cpp \
 	windows/debug.cpp \
 	windows/draw.cpp \
+	windows/drawmatrix.cpp \
+	windows/drawpath.cpp \
 	windows/drawtext.cpp \
 	windows/dwrite.cpp \
 	windows/entry.cpp \
@@ -50,6 +52,7 @@ HFILES += \
 	windows/_uipriv_migrate.hpp \
 	windows/area.hpp \
 	windows/compilerver.hpp \
+	windows/draw.hpp \
 	windows/resources.hpp \
 	windows/uipriv_windows.hpp \
 	windows/winapi.hpp

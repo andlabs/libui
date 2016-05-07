@@ -23,6 +23,9 @@
 
 @interface boxView : NSView
 @property uiBox *b;
+@property NSLayoutConstraint *last;
+@property BOOL willRelayout;
+@property BOOL stretchy;
 @end
 
 struct uiBox {
@@ -137,9 +140,18 @@ static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 
 @implementation boxView
 
+- (NSLayoutConstraint *)mkLast:(NSLayoutRelation)relation on:(NSView *)view
+{
+	return mkConstraint(view, self.b->primaryEnd,
+		relation,
+		self.b->view, self.b->primaryEnd,
+		1, 0,
+		@"uiBox last primary constraint");
+}
+
 // TODO do we still need to set hugging? I think we do for stretchy controls...
 // TODO try unsetting spinbox intrinsics and seeing what happens
-- (void)updateConstraints
+- (void)recreateConstraints
 {
 	uiBox *b = self.b;
 	uintmax_t i, n;
@@ -148,8 +160,6 @@ static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 	CGFloat padding;
 	NSView *prev, *next;
 	BOOL hasNoStretchyView;
-
-	[super updateConstraints];
 
 	n = [b->children count];
 	if (n == 0)
@@ -191,22 +201,14 @@ static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 	}
 
 	// if there is a stretchy control, add the no-stretchy view
-	hasNoStretchyView = addRemoveNoStretchyView(b, hasStretchy);
-	if (hasNoStretchyView) {
-		[b->view addConstraint:mkConstraint(b->noStretchyView, b->primaryStart,
-			NSLayoutRelationEqual,
-			prev, b->primaryEnd,
-			1, 0,				// don't space between the last control and the no-stretchy view
-			@"uiBox no-stretchy primary constraint")];
-		prev = b->noStretchyView;
-	}
+	self.stretchy = hasStretchy;
+	NSLayoutRelation relation = NSLayoutRelationEqual;
+	if (!hasStretchy)
+		relation = NSLayoutRelationLessThanOrEqual;
 
 	// and finally end the primary direction
-	[b->view addConstraint:mkConstraint(prev, b->primaryEnd,
-		NSLayoutRelationEqual,
-		b->view, b->primaryEnd,
-		1, 0,
-		@"uiBox last primary constraint")];
+	b->view.last = [b->view mkLast:relation on:prev];
+	[b->view addConstraint:b->view.last];
 
 	// next: assemble the views in the secondary direction
 	// each of them will span the secondary direction
@@ -221,18 +223,6 @@ static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 			b->view, b->secondaryEnd,
 			1, 0,
 			@"uiBox start secondary constraint")];
-	}
-	if (hasNoStretchyView) {			// and again to the no-stretchy view
-		[b->view addConstraint:mkConstraint(b->noStretchyView, b->secondaryStart,
-			NSLayoutRelationEqual,
-			b->view, b->secondaryStart,
-			1, 0,
-			@"uiBox no-stretchy view start secondary constraint")];
-		[b->view addConstraint:mkConstraint(b->noStretchyView, b->secondaryEnd,
-			NSLayoutRelationEqual,
-			b->view, b->secondaryEnd,
-			1, 0,
-			@"uiBox no-stretchy view start secondary constraint")];
 	}
 
 	// finally, set sizes for stretchy controls
@@ -249,6 +239,49 @@ static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 				1, 0,
 				@"uiBox stretchy sizing")];
 		}
+}
+
+- (void)updateConstraints
+{
+	[super updateConstraints];
+	self.willRelayout = YES;
+}
+
+- (BOOL)inStretchyView
+{
+	uiControl *c;
+	NSView *v;
+
+	c = uiControlParent(uiControl(self.b));
+	v = (NSView *) uiControlHandle(c);
+	if ([v isKindOfClass:[boxView class]]) {
+		boxView *bv = (boxView *) v;
+		uintmax_t i, n;
+
+		n = [bv.b->children count];
+		for (i = 0; i < n; i++)
+			if (isStretchy(bv.b, i))
+				return NO;
+		return YES;
+	}
+	return NO;
+}
+
+- (void)layout
+{
+	[super layout];
+	if (!self.willRelayout) return;
+	self.willRelayout = NO;
+	if (!self.stretchy && [self inStretchyView]) {
+		NSView *prev;
+
+		prev = [self.last firstItem];
+		[self removeConstraint:self.last];
+		self.last = [self mkLast:NSLayoutRelationEqual on:prev];
+		[self addConstraint:self.last];
+		[self updateConstraintsForSubtreeIfNeeded];
+		[super layout];
+	}
 }
 
 @end
@@ -276,6 +309,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	// make sure controls don't hug their secondary direction so they fill the width of the view
 	setHuggingPri(childView, NSLayoutPriorityDefaultLow, b->secondaryOrientation);
 
+	[b->view recreateConstraints];
 	[b->view setNeedsUpdateConstraints:YES];
 }
 
@@ -292,6 +326,7 @@ void uiBoxDelete(uiBox *b, uintmax_t n)
 	uiControlSetParent(removed, NULL);
 	[b->children removeObjectAtIndex:n];
 	[b->stretchy removeObjectAtIndex:n];
+	[b->view recreateConstraints];
 	[b->view setNeedsUpdateConstraints:YES];
 }
 
@@ -303,6 +338,7 @@ int uiBoxPadded(uiBox *b)
 void uiBoxSetPadded(uiBox *b, int padded)
 {
 	b->padded = padded;
+	[b->view recreateConstraints];
 	[b->view setNeedsUpdateConstraints:YES];
 }
 

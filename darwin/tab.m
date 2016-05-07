@@ -55,6 +55,8 @@ uiDarwinControlDefaultDisable(uiTab, tabview)
 uiDarwinControlDefaultSyncEnableState(uiTab, tabview)
 
 uiDarwinControlDefaultSetSuperview(uiTab, tabview)
+uiDarwinControlDefaultChildrenShouldAllowSpaceAtTrailingEdge(uiTab, tabview)
+uiDarwinControlDefaultChildrenShouldAllowSpaceAtBottom(uiTab, tabview)
 
 static void tabRelayout(uiTab *t)
 {

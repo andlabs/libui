@@ -69,6 +69,8 @@ static void uiGroupSyncEnableState(uiDarwinControl *c, int enabled)
 }
 
 uiDarwinControlDefaultSetSuperview(uiGroup, box)
+uiDarwinControlDefaultChildrenShouldAllowSpaceAtTrailingEdge(uiGroup, box)
+uiDarwinControlDefaultChildrenShouldAllowSpaceAtBottom(uiGroup, box)
 
 static void groupRelayout(uiGroup *g)
 {

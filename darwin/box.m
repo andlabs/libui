@@ -107,6 +107,8 @@ static void uiBoxSyncEnableState(uiDarwinControl *c, int enabled)
 }
 
 uiDarwinControlDefaultSetSuperview(uiBox, view)
+uiDarwinControlDefaultChildrenShouldAllowSpaceAtTrailingEdge(uiBox, view)
+uiDarwinControlDefaultChildrenShouldAllowSpaceAtBottom(uiBox, view)
 
 static int isStretchy(uiBox *b, uintmax_t n)
 {

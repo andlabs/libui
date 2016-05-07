@@ -26,6 +26,8 @@ struct uiDarwinControl {
 // TODO document
 _UI_EXTERN void uiDarwinControlSyncEnableState(uiDarwinControl *, int);
 _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
+_UI_EXTERN BOOL uiDarwinControlChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *);
+_UI_EXTERN BOOL uiDarwinControlChildrenShouldAllowSpaceAtBottom(uiDarwinControl *);
 
 #define uiDarwinControlDefaultDestroy(type, handlefield) \
 	static void type ## Destroy(uiControl *c) \

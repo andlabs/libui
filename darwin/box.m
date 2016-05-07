@@ -7,20 +7,24 @@
 // - calling layoutSubtreeIfNeeded on a superview of the box will cause the following intrinsic content size thing to not work until the window is resized in the primary direction; this is bad if we ever add a Splitter...
 // - moving around randomly through the tabs does this too
 
-@interface boxView : NSView
-@property uiBox *b;
-@property NSLayoutConstraint *last;
-@property BOOL willRelayout;
+@interface boxChild : NSObject
+@property uiControl *c;
 @property BOOL stretchy;
+@property NSLayoutPriority oldHorzHuggingPri;
+@property NSLayoutPriority oldVertHuggingPri;
 @end
 
-struct uiBox {
-	uiDarwinControl c;
-	boxView *view;
+@interface boxView : NSView {
+	uiBox *b;
+	NSMutableArray<boxChild> *children;
 	BOOL vertical;
 	int padded;
-	NSMutableArray *children;		// []NSValue<uiControl *>
-	NSMutableArray *stretchy;		// []NSNumber
+
+	NSLayoutConstraint *first;
+	NSMutableArray<NSLayoutConstraint> *inBetweens;
+	NSLayoutConstraint *last;
+	NSMutableArray<NSLayoutConstraint> *otherConstraints;
+
 	NSLayoutAttribute primaryStart;
 	NSLayoutAttribute primaryEnd;
 	NSLayoutAttribute secondaryStart;
@@ -28,7 +32,8 @@ struct uiBox {
 	NSLayoutAttribute primarySize;
 	NSLayoutConstraintOrientation primaryOrientation;
 	NSLayoutConstraintOrientation secondaryOrientation;
-};
+}
+@end
 
 static uiControl *childAt(uiBox *b, uintmax_t n)
 {

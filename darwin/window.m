@@ -141,8 +141,17 @@ static void uiWindowSetSuperview(uiDarwinControl *c, NSView *superview)
 	// TODO
 }
 
-uiDarwinControlDefaultChildrenShouldAllowSpaceAtTrailingEdge(uiWindow, window)
-uiDarwinControlDefaultChildrenShouldAllowSpaceAtBottom(uiWindow, window)
+static BOOL uiWindowChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
+{
+	// always allow growth
+	return YES;
+}
+
+static BOOL uiWindowChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
+{
+	// always allow growth
+	return YES;
+}
 
 static void windowRelayout(uiWindow *w)
 {

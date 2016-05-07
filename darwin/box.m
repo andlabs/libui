@@ -340,6 +340,7 @@ struct uiBox {
 	[self->children addObject:bc];
 	[bc release];		// we don't need the initial reference now
 
+	// TODO if we comment out these next calls to recreateConstraints and have everything in updateConstraints then our -layout stuff doesn't work
 	[self recreateConstraints];
 	[self setNeedsUpdateConstraints:YES];
 }

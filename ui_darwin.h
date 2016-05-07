@@ -19,6 +19,8 @@ struct uiDarwinControl {
 	BOOL visible;
 	void (*SyncEnableState)(uiDarwinControl *, int);
 	void (*SetSuperview)(uiDarwinControl *, NSView *);
+	BOOL (*ChildrenShouldAllowSpaceAtTrailingEdge)(uiDarwinControl *);
+	BOOL (*ChildrenShouldAllowSpaceAtBottom)(uiDarwinControl *);
 };
 #define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
@@ -104,6 +106,16 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 		else \
 			[superview addSubview:type(c)->handlefield]; \
 	}
+#define uiDarwinControlDefaultChildrenShouldAllowSpaceAtTrailingEdge(type, handlefield) \
+	static BOOL type ## ChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c) \
+	{ \
+		return NO; /* TODO irrelevant */ \
+	}
+#define uiDarwinControlDefaultChildrenShouldAllowSpaceAtBottom(type, handlefield) \
+	static BOOL type ## ChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c) \
+	{ \
+		return NO; /* TODO irrelevant */ \
+	}
 
 #define uiDarwinControlAllDefaultsExceptDestroy(type, handlefield) \
 	uiDarwinControlDefaultHandle(type, handlefield) \
@@ -117,7 +129,9 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	uiDarwinControlDefaultEnable(type, handlefield) \
 	uiDarwinControlDefaultDisable(type, handlefield) \
 	uiDarwinControlDefaultSyncEnableState(type, handlefield) \
-	uiDarwinControlDefaultSetSuperview(type, handlefield)
+	uiDarwinControlDefaultSetSuperview(type, handlefield) \
+	uiDarwinControlDefaultChildrenShouldAllowSpaceAtTrailingEdge(type, handlefield) \
+	uiDarwinControlDefaultChildrenShouldAllowSpaceAtBottom(type, handlefield)
 
 #define uiDarwinControlAllDefaults(type, handlefield) \
 	uiDarwinControlDefaultDestroy(type, handlefield) \
@@ -139,6 +153,8 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	uiControl(var)->Disable = type ## Disable; \
 	uiDarwinControl(var)->SyncEnableState = type ## SyncEnableState; \
 	uiDarwinControl(var)->SetSuperview = type ## SetSuperview; \
+	uiDarwinControl(var)->ChildrenShouldAllowSpaceAtTrailingEdge = type ## ChildrenShouldAllowSpaceAtTrailingEdge; \
+	uiDarwinControl(var)->ChildrenShouldAllowSpaceAtBottom = type ## ChildrenShouldAllowSpaceAtBottom; \
 	uiDarwinControl(var)->visible = YES; \
 	uiDarwinControl(var)->enabled = YES;
 // TODO document

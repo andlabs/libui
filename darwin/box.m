@@ -259,12 +259,14 @@ static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 		uintmax_t i, n;
 
 		n = [bv.b->children count];
+		if (bv.b->vertical != self.b->vertical)
+			return YES;
 		for (i = 0; i < n; i++)
 			if (isStretchy(bv.b, i))
-				return NO;
-		return YES;
+				return YES;
+		return NO;
 	}
-	return NO;
+	return YES;
 }
 
 - (void)layout
@@ -272,7 +274,7 @@ static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
 	[super layout];
 	if (!self.willRelayout) return;
 	self.willRelayout = NO;
-	if (!self.stretchy && [self inStretchyView]) {
+	if (!self.stretchy && ![self inStretchyView]) {
 		NSView *prev;
 
 		prev = [self.last firstItem];

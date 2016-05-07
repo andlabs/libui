@@ -33,8 +33,10 @@
 	NSLayoutAttribute primarySize;
 	NSLayoutConstraintOrientation primaryOrientation;
 	NSLayoutConstraintOrientation secondaryOrientation;
+
+	BOOL layingOut;
 }
-- (id)initWithVertical:(BOOL)vertical b:(uiBox *)b;
+- (id)initWithVertical:(BOOL)vert b:(uiBox *)bb;
 - (void)onDestroy;
 - (void)removeOurConstraints;
 - (void)forAll:(void (^)(uintmax_t i, boxChild *b))closure;
@@ -45,7 +47,7 @@
 - (void)append:(uiControl *)c stretchy:(int)stretchy;
 - (void)delete:(uintmax_t)n;
 - (int)isPadded;
-- (void)setPadded:(int)padded;
+- (void)setPadded:(int)p;
 @end
 
 struct uiBox {
@@ -64,12 +66,13 @@ struct uiBox {
 
 @implementation boxView
 
-- (id)initWithVertical:(BOOL)vertical b:(uiBox *)b
+- (id)initWithVertical:(BOOL)vert b:(uiBox *)bb
 {
 	self = [super initWithFrame:NSZeroRect];
 	if (self != nil) {
-		self->b = b;
-		self->vertical = vertical;
+		// the weird names vert and bb are to shut the compiler up about shadowing because implicit this/self is stupid
+		self->b = bb;
+		self->vertical = vert;
 		self->children = [NSMutableArray new];
 		self->inBetweens = [NSMutableArray new];
 		self->otherConstraints = [NSMutableArray new];
@@ -126,7 +129,6 @@ struct uiBox {
 
 - (void)forAll:(void (^)(uintmax_t i, boxChild *b))closure
 {
-	boxChild *bc;
 	uintmax_t i, n;
 
 	n = [self->children count];
@@ -200,9 +202,9 @@ struct uiBox {
 	}
 
 	// if there is a stretchy control, add the no-stretchy view
-	relation = NSLayoutRelationEqual;
-	if (!hasStretchy)
-		relation = NSLayoutRelationLessThanOrEqual;
+	relation = NSLayoutRelationLessThanOrEqual;
+	if (hasStretchy)
+		relation = NSLayoutRelationEqual;
 
 	// and finally end the primary direction
 	self->last = mkConstraint(prev, self->primaryEnd,
@@ -253,14 +255,20 @@ struct uiBox {
 
 - (BOOL)isStretchy
 {
-	boxChild *bc;
 	uintmax_t i, n;
 
 	n = [self->children count];
 	for (i = 0; i < n; i++)
-		if ([b child:i].stretchy)
+		if ([self child:i].stretchy)
 			return YES;
 	return NO;
+}
+
+// to avoid repeatedly calling layout
+- (void)updateConstraints
+{
+	[super updateConstraints];
+	self->layingOut = YES;
 }
 
 - (void)layout
@@ -270,6 +278,9 @@ struct uiBox {
 	NSView *lastView;
 
 	[super layout];
+	if (!self->layingOut)
+		return;
+	self->layingOut = NO;
 
 	if ([self->children count] == 0)
 		return;
@@ -289,7 +300,7 @@ struct uiBox {
 	[self removeConstraint:self->last];
 	lastView = (NSView *) [self->last firstItem];
 	[self->last release];
-	self->last = mkConstraint(prev, self->primaryEnd,
+	self->last = mkConstraint(lastView, self->primaryEnd,
 		NSLayoutRelationEqual,
 		self, self->primaryEnd,
 		1, 0,
@@ -303,13 +314,14 @@ struct uiBox {
 - (void)append:(uiControl *)c stretchy:(int)stretchy
 {
 	boxChild *bc;
+	NSView *childView;
 
 	bc = [boxChild new];
 	bc.c = c;
 	bc.stretchy = stretchy;
+	childView = [bc view];
 	bc.oldHorzHuggingPri = horzHuggingPri(childView);
 	bc.oldVertHuggingPri = vertHuggingPri(childView);
-	childView = [bc view];
 
 	uiControlSetParent(bc.c, uiControl(self->b));
 	uiDarwinControlSetSuperview(uiDarwinControl(bc.c), self);
@@ -318,18 +330,18 @@ struct uiBox {
 	// if a control is stretchy, it should not hug in the primary direction
 	// otherwise, it should *forcibly* hug
 	if (stretchy)
-		setHuggingPri(childView, NSLayoutPriorityDefaultLow, b->primaryOrientation);
+		setHuggingPri(childView, NSLayoutPriorityDefaultLow, self->primaryOrientation);
 	else
 		// TODO will default high work?
-		setHuggingPri(childView, NSLayoutPriorityRequired, b->primaryOrientation);
+		setHuggingPri(childView, NSLayoutPriorityRequired, self->primaryOrientation);
 	// make sure controls don't hug their secondary direction so they fill the width of the view
-	setHuggingPri(childView, NSLayoutPriorityDefaultLow, b->secondaryOrientation);
+	setHuggingPri(childView, NSLayoutPriorityDefaultLow, self->secondaryOrientation);
 
-	[b->children addObject:bc];
+	[self->children addObject:bc];
 	[bc release];		// we don't need the initial reference now
 
-	[b->view recreateConstraints];
-	[b->view setNeedsUpdateConstraints:YES];
+	[self recreateConstraints];
+	[self setNeedsUpdateConstraints:YES];
 }
 
 - (void)delete:(uintmax_t)n
@@ -346,10 +358,10 @@ struct uiBox {
 	setHorzHuggingPri(removedView, bc.oldHorzHuggingPri);
 	setVertHuggingPri(removedView, bc.oldVertHuggingPri);
 
-	[b->children removeObjectAtIndex:n];
+	[self->children removeObjectAtIndex:n];
 
-	[b->view recreateConstraints];
-	[b->view setNeedsUpdateConstraints:YES];
+	[self recreateConstraints];
+	[self setNeedsUpdateConstraints:YES];
 }
 
 - (int)isPadded
@@ -357,13 +369,13 @@ struct uiBox {
 	return self->padded;
 }
 
-- (void)setPadded:(int)padded
+- (void)setPadded:(int)p
 {
 	CGFloat padding;
 	uintmax_t i, n;
 	NSLayoutConstraint *c;
 
-	self->padded = padded
+	self->padded = p;
 
 	// TODO split into method (using above code)
 	padding = 0;
@@ -381,6 +393,8 @@ struct uiBox {
 
 static void uiBoxDestroy(uiControl *c)
 {
+	uiBox *b = uiBox(c);
+
 	[b->view onDestroy];
 	[b->view release];
 	uiFreeControl(uiControl(b));
@@ -414,14 +428,16 @@ static BOOL uiBoxChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
 {
 	uiBox *b = uiBox(c);
 
-	return ![b->view isVertical];
+	// return NO if this box is horizontal so nested horizontal boxes don't lead to ambiguity
+	return [b->view isVertical];
 }
 
 static BOOL uiBoxChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
 {
 	uiBox *b = uiBox(c);
 
-	return [b->view isVertical];
+	// return NO if this box is vertical so nested vertical boxes don't lead to ambiguity
+	return ![b->view isVertical];
 }
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)

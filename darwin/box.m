@@ -2,10 +2,11 @@
 #import "uipriv_darwin.h"
 
 // TODOs:
-// - tab on page 2 is glitched initially
+// - tab on page 2 is glitched initially and doesn't grow
+// - page 3 doesn't work right; probably due to our shouldExpand logic being applied incorrectly
+
+// TODOs to confirm
 // - 10.8: if we switch to page 4, then switch back to page 1, check Spaced, and go back to page 4, some controls (progress bar, popup button) are clipped on the sides
-// - calling layoutSubtreeIfNeeded on a superview of the box will cause the following intrinsic content size thing to not work until the window is resized in the primary direction; this is bad if we ever add a Splitter...
-// - moving around randomly through the tabs does this too
 
 @interface boxChild : NSObject
 @property uiControl *c;

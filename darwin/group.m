@@ -72,14 +72,24 @@ uiDarwinControlDefaultSetSuperview(uiGroup, box)
 
 static BOOL uiGroupChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
 {
-	// always allow growth
-	// TODO actually these should probably only allow growth if the parent does...
+	uiControl *parent;
+
+	// TODO figure out why this works
+	parent = uiControlParent(uiControl(c));
+	if (parent != NULL)
+		return uiDarwinControlChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl(parent));
+	// always allow growth if not
 	return YES;
 }
 
 static BOOL uiGroupChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
 {
-	// always allow growth
+	uiControl *parent;
+
+	parent = uiControlParent(uiControl(c));
+	if (parent != NULL)
+		return uiDarwinControlChildrenShouldAllowSpaceAtBottom(uiDarwinControl(parent));
+	// always allow growth if not
 	return YES;
 }
 

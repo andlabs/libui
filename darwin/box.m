@@ -7,20 +7,6 @@
 // - calling layoutSubtreeIfNeeded on a superview of the box will cause the following intrinsic content size thing to not work until the window is resized in the primary direction; this is bad if we ever add a Splitter...
 // - moving around randomly through the tabs does this too
 
-// the default is to have no intrinsic content size; this wreaks havoc with nested no-stretchy boxes fighting over which box gets the remaining space
-// let's use a 0x0 intrinsic size instead; that seems to fix things
-@interface libuiNoStretchyView : NSView
-@end
-
-@implementation libuiNoStretchyView
-
-- (NSSize)intrinsicContentSize
-{
-	return NSMakeSize(0, 0);
-}
-
-@end
-
 @interface boxView : NSView
 @property uiBox *b;
 @property NSLayoutConstraint *last;
@@ -35,8 +21,6 @@ struct uiBox {
 	int padded;
 	NSMutableArray *children;		// []NSValue<uiControl *>
 	NSMutableArray *stretchy;		// []NSNumber
-	// this view is made stretchy if there are no stretchy views
-	NSView *noStretchyView;
 	NSLayoutAttribute primaryStart;
 	NSLayoutAttribute primaryEnd;
 	NSLayoutAttribute secondaryStart;
@@ -68,9 +52,6 @@ static void uiBoxDestroy(uiControl *c)
 		uiControlSetParent(child, NULL);
 		uiControlDestroy(child);
 	}
-	if ([b->noStretchyView superview] != nil)
-		[b->noStretchyView removeFromSuperview];
-	[b->noStretchyView release];
 	[b->children release];
 	[b->stretchy release];
 	[b->view release];
@@ -126,18 +107,6 @@ static NSView *boxChildView(uiBox *b, uintmax_t n)
 	val = (NSValue *) [b->children objectAtIndex:n];
 	c = (uiControl *) [val pointerValue];
 	return (NSView *) uiControlHandle(c);
-}
-
-static BOOL addRemoveNoStretchyView(uiBox *b, BOOL hasStretchy)
-{
-	if (!hasStretchy) {
-		if ([b->noStretchyView superview] == nil)
-			[b->view addSubview:b->noStretchyView];
-		return YES;
-	}
-	if ([b->noStretchyView superview] != nil)
-		[b->noStretchyView removeFromSuperview];
-	return NO;
 }
 
 @implementation boxView
@@ -376,11 +345,6 @@ static uiBox *finishNewBox(BOOL vertical)
 		b->primaryOrientation = NSLayoutConstraintOrientationHorizontal;
 		b->secondaryOrientation = NSLayoutConstraintOrientationVertical;
 	}
-
-	b->noStretchyView = [[libuiNoStretchyView alloc] initWithFrame:NSZeroRect];
-	[b->noStretchyView setTranslatesAutoresizingMaskIntoConstraints:NO];
-	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal);
-	setHuggingPri(b->noStretchyView, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
 
 	return b;
 }

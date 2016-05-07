@@ -33,8 +33,6 @@
 	NSLayoutAttribute primarySize;
 	NSLayoutConstraintOrientation primaryOrientation;
 	NSLayoutConstraintOrientation secondaryOrientation;
-
-	BOOL layingOut;
 }
 - (id)initWithVertical:(BOOL)vert b:(uiBox *)bb;
 - (void)onDestroy;
@@ -42,8 +40,6 @@
 - (void)forAll:(void (^)(uintmax_t i, boxChild *b))closure;
 - (boxChild *)child:(uintmax_t)i;
 - (BOOL)isVertical;
-- (void)recreateConstraints;
-- (BOOL)isStretchy;
 - (void)append:(uiControl *)c stretchy:(int)stretchy;
 - (void)delete:(uintmax_t)n;
 - (int)isPadded;
@@ -147,8 +143,7 @@ struct uiBox {
 }
 
 // TODO something about spinbox hugging
-// TODO should this be in updateConstraints?
-- (void)recreateConstraints
+- (void)updateConstraints
 {
 	uintmax_t i, n;
 	BOOL hasStretchy;
@@ -158,6 +153,7 @@ struct uiBox {
 	NSLayoutConstraint *c;
 	NSLayoutRelation relation;
 
+	[super updateConstraints];
 	[self removeOurConstraints];
 
 	n = [self->children count];
@@ -202,9 +198,20 @@ struct uiBox {
 	}
 
 	// if there is a stretchy control, add the no-stretchy view
-	relation = NSLayoutRelationLessThanOrEqual;
-	if (hasStretchy)
-		relation = NSLayoutRelationEqual;
+	relation = NSLayoutRelationEqual;
+	if (!hasStretchy) {
+		BOOL shouldExpand = NO;
+		uiControl *parent;
+
+		parent = uiControlParent(uiControl(self->b));
+		if (parent != nil)
+			if (self->vertical)
+				shouldExpand = uiDarwinControlChildrenShouldAllowSpaceAtBottom(uiDarwinControl(parent));
+			else
+				shouldExpand = uiDarwinControlChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl(parent));
+		if (shouldExpand)
+			relation = NSLayoutRelationLessThanOrEqual;
+	}
 
 	// and finally end the primary direction
 	self->last = mkConstraint(prev, self->primaryEnd,
@@ -253,64 +260,6 @@ struct uiBox {
 		}
 }
 
-- (BOOL)isStretchy
-{
-	uintmax_t i, n;
-
-	n = [self->children count];
-	for (i = 0; i < n; i++)
-		if ([self child:i].stretchy)
-			return YES;
-	return NO;
-}
-
-// to avoid repeatedly calling layout
-- (void)updateConstraints
-{
-	[super updateConstraints];
-	self->layingOut = YES;
-}
-
-- (void)layout
-{
-	uiControl *parent;
-	BOOL shouldExpand;
-	NSView *lastView;
-
-	[super layout];
-	if (!self->layingOut)
-		return;
-	self->layingOut = NO;
-
-	if ([self->children count] == 0)
-		return;
-	if ([self isStretchy])
-		return;
-	parent = uiControlParent(uiControl(self->b));
-	if (parent == NULL)		// do nothing if no parent
-		return;			// TODO what happens if parents change?
-	if (self->vertical)
-		shouldExpand = uiDarwinControlChildrenShouldAllowSpaceAtBottom(uiDarwinControl(parent));
-	else
-		shouldExpand = uiDarwinControlChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl(parent));
-	if (shouldExpand)
-		return;
-
-	// okay, so we need to redo self->last to not expand
-	[self removeConstraint:self->last];
-	lastView = (NSView *) [self->last firstItem];
-	[self->last release];
-	self->last = mkConstraint(lastView, self->primaryEnd,
-		NSLayoutRelationEqual,
-		self, self->primaryEnd,
-		1, 0,
-		@"uiBox last primary constraint");
-	[self addConstraint:self->last];
-	[self->last retain];
-	[self updateConstraintsForSubtreeIfNeeded];
-	[super layout];
-}
-
 - (void)append:(uiControl *)c stretchy:(int)stretchy
 {
 	boxChild *bc;
@@ -340,8 +289,6 @@ struct uiBox {
 	[self->children addObject:bc];
 	[bc release];		// we don't need the initial reference now
 
-	// TODO if we comment out these next calls to recreateConstraints and have everything in updateConstraints then our -layout stuff doesn't work
-	[self recreateConstraints];
 	[self setNeedsUpdateConstraints:YES];
 }
 
@@ -361,7 +308,6 @@ struct uiBox {
 
 	[self->children removeObjectAtIndex:n];
 
-	[self recreateConstraints];
 	[self setNeedsUpdateConstraints:YES];
 }
 

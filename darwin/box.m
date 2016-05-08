@@ -94,6 +94,10 @@ struct uiBox {
 			self->primaryOrientation = NSLayoutConstraintOrientationHorizontal;
 			self->secondaryOrientation = NSLayoutConstraintOrientationVertical;
 		}
+
+		// TODO default high?
+		self->horzHuggingPri = NSLayoutPriorityRequired;
+		self->vertHuggingPri = NSLayoutPriorityRequired;
 	}
 	return self;
 }

@@ -11,9 +11,14 @@ void uiDarwinControlSetSuperview(uiDarwinControl *c, NSView *superview)
 	(*(c->SetSuperview))(c, superview);
 }
 
-void uiDarwinControlSetRealHuggingPriority(uiDarwinControl *c, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
+BOOL uiDarwinControlChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
 {
-	(*(c->SetRealHuggingPriority))(c, priority, orientation);
+	return (*(c->ChildrenShouldAllowSpaceAtTrailingEdge))(c);
+}
+
+BOOL uiDarwinControlChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
+{
+	return (*(c->ChildrenShouldAllowSpaceAtBottom))(c);
 }
 
 void uiDarwinSetControlFont(NSControl *c, NSControlSize size)

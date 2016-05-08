@@ -248,7 +248,7 @@ struct uiBox {
 			NSLayoutRelationEqual,
 			self, self->secondaryEnd,
 			1, 0,
-			@"uiBox start secondary constraint");
+			@"uiBox end secondary constraint");
 		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
 	}

@@ -24,7 +24,7 @@
 
 	NSLayoutConstraint *first;
 	NSMutableArray *inBetweens;
-	NSLayoutConstraint *last;
+	NSLayoutConstraint *last, *last2;
 	NSMutableArray *otherConstraints;
 
 	NSLayoutAttribute primaryStart;
@@ -104,6 +104,7 @@ struct uiBox {
 	[self->first release];
 	[self->inBetweens release];
 	[self->last release];
+	[self->last2 release];
 	[self->otherConstraints release];
 
 	n = [self->children count];
@@ -121,6 +122,7 @@ struct uiBox {
 	[self removeConstraint:self->first];
 	[self removeConstraints:self->inBetweens];
 	[self removeConstraint:self->last];
+	[self removeConstraint:self->last2];
 	[self removeConstraints:self->otherConstraints];
 }
 
@@ -152,7 +154,7 @@ struct uiBox {
 	CGFloat padding;
 	NSView *prev, *next;
 	NSLayoutConstraint *c;
-	NSLayoutRelation relation;
+	NSLayoutPriority priority;
 
 	[super updateConstraints];
 	[self removeOurConstraints];
@@ -198,8 +200,22 @@ struct uiBox {
 		prev = next;
 	}
 
+	// and finally end the primary direction
+	self->last = mkConstraint(prev, self->primaryEnd,
+		NSLayoutRelationLessThanOrEqual,
+		self, self->primaryEnd,
+		1, 0,
+		@"uiBox last primary constraint");
+	[self addConstraint:self->last];
+	[self->last retain];
+
 	// if there is a stretchy control, add the no-stretchy view
-	relation = NSLayoutRelationEqual;
+	self->last2 = mkConstraint(prev, self->primaryEnd,
+		NSLayoutRelationEqual,
+		self, self->primaryEnd,
+		1, 0,
+		@"uiBox last2 primary constraint");
+	priority = NSLayoutPriorityRequired;
 	if (!hasStretchy) {
 		BOOL shouldExpand = NO;
 		uiControl *parent;
@@ -211,17 +227,11 @@ struct uiBox {
 			else
 				shouldExpand = uiDarwinControlChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl(parent));
 		if (shouldExpand)
-			relation = NSLayoutRelationLessThanOrEqual;
+			priority = NSLayoutPriorityDefaultLow;
 	}
-
-	// and finally end the primary direction
-	self->last = mkConstraint(prev, self->primaryEnd,
-		relation,
-		self, self->primaryEnd,
-		1, 0,
-		@"uiBox last primary constraint");
-	[self addConstraint:self->last];
-	[self->last retain];
+	[self->last2 setPriority:priority];
+	[self addConstraint:self->last2];
+	[self->last2 retain];
 
 	// next: assemble the views in the secondary direction
 	// each of them will span the secondary direction

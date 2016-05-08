@@ -56,9 +56,16 @@ uiDarwinControlDefaultSyncEnableState(uiTab, tabview)
 
 uiDarwinControlDefaultSetSuperview(uiTab, tabview)
 
-static void uiTabSetRealHuggingPriority(uiDarwinControl *c, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
+static BOOL uiTabChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
 {
-	// TODO
+	// always allow growth
+	return YES;
+}
+
+static BOOL uiTabChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
+{
+	// always allow growth
+	return YES;
 }
 
 static void tabRelayout(uiTab *t)

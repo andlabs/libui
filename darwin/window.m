@@ -141,16 +141,9 @@ static void uiWindowSetSuperview(uiDarwinControl *c, NSView *superview)
 	// TODO
 }
 
-static BOOL uiWindowChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
+static void uiWindowSetRealHuggingPriority(uiDarwinControl *c, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
 {
-	// always allow growth
-	return YES;
-}
-
-static BOOL uiWindowChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
-{
-	// always allow growth
-	return YES;
+	// do nothing; uiWindow children never hug (to maintain parity with other OSs)
 }
 
 static void windowRelayout(uiWindow *w)

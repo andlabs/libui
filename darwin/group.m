@@ -70,27 +70,9 @@ static void uiGroupSyncEnableState(uiDarwinControl *c, int enabled)
 
 uiDarwinControlDefaultSetSuperview(uiGroup, box)
 
-static BOOL uiGroupChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
+static void uiGroupSetRealHuggingPriority(uiDarwinControl *c, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
 {
-	uiControl *parent;
-
-	// TODO figure out why this works
-	parent = uiControlParent(uiControl(c));
-	if (parent != NULL)
-		return uiDarwinControlChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl(parent));
-	// always allow growth if not
-	return YES;
-}
-
-static BOOL uiGroupChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
-{
-	uiControl *parent;
-
-	parent = uiControlParent(uiControl(c));
-	if (parent != NULL)
-		return uiDarwinControlChildrenShouldAllowSpaceAtBottom(uiDarwinControl(parent));
-	// always allow growth if not
-	return YES;
+	// TODO
 }
 
 static void groupRelayout(uiGroup *g)

@@ -95,9 +95,9 @@ struct uiBox {
 			self->secondaryOrientation = NSLayoutConstraintOrientationVertical;
 		}
 
-		// TODO required?
-		self->horzHuggingPri = NSLayoutPriorityDefaultHigh;
-		self->vertHuggingPri = NSLayoutPriorityDefaultHigh;
+		// TODO default high?
+		self->horzHuggingPri = NSLayoutPriorityRequired;
+		self->vertHuggingPri = NSLayoutPriorityRequired;
 	}
 	return self;
 }
@@ -132,7 +132,7 @@ struct uiBox {
 	[self removeConstraints:self->inBetweens];
 	[self->inBetweens removeAllObjects];
 	[self removeConstraint:self->last];
-	[self removeConstraint:self->last2];
+	[self removeConstraint:self->lastHugging];
 	[self removeConstraints:self->otherConstraints];
 	[self->otherConstraints removeAllObjects];
 }
@@ -300,7 +300,7 @@ struct uiBox {
 		// TODO will default high work?
 		uiDarwinControlSetRealHuggingPriority(uiDarwinControl(bc.c), NSLayoutPriorityRequired, self->primaryOrientation);
 	// make sure controls don't hug their secondary direction so they fill the width of the view
-	uiDarwinControlSetRealHuggingPriority(uiDarwinControl(bc.cc), NSLayoutPriorityDefaultLow, self->secondaryOrientation);
+	uiDarwinControlSetRealHuggingPriority(uiDarwinControl(bc.c), NSLayoutPriorityDefaultLow, self->secondaryOrientation);
 
 	[self->children addObject:bc];
 	[bc release];		// we don't need the initial reference now

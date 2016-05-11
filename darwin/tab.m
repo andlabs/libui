@@ -1,23 +1,88 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-// TODO for this and group, make sure simply relaying ourselves out is enough (are the buttons and title, respectively, intrinsic?)
+@interface tabPage : NSObject {
+	struct singleChildConstraints constraints;
+	int margined;
+	NSView *view;		// the NSTabViewItem view itself
+	NSObject *pageID;
+}
+@property uiControl *c;
+- (id)initWithView:(NSView *)v pageID:(NSObject *)o;
+- (NSView *)childView;
+- (void)establishChildConstraints;
+- (void)removeChildConstraints;
+- (int)isMargined;
+- (void)setMargined:(int)m;
+@end
 
 struct uiTab {
 	uiDarwinControl c;
 	NSTabView *tabview;
-	// TODO either rename all uses of child to page or rename this to children
-	NSMutableArray *pages;			// []NSValue<uiControl *>
-	// the views that contain the children's views
-	// these are the views that are assigned to each NSTabViewItem
-	NSMutableArray *views;			// []NSView
-	NSMutableArray *margined;		// []NSNumber
-	NSMutableArray *pageIDs;		// []NSObject
+	NSMutableArray *pages;
 };
+
+@implementation tabPage
+
+- (id)initWithView:(NSView *)v pageID:(NSObject *o)
+{
+	self = [super init];
+	if (self != nil) {
+		self->view = v;
+		self->pageID = o;
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+	[self removeChildConstraints];
+	[self->view release];
+	[self->pageID release];
+	[super dealloc];
+}
+
+- (NSView *)childView
+{
+	return (NSView *) uiControlHandle(self.c);
+}
+
+- (void)establishChildConstraints
+{
+	[self removeChildConstraints]
+	if (self.c == NULL)
+		return;
+	singleChildConstraintsEstablish(&(self->constraints),
+		self->view, [self childView],
+		uiDarwinControlHugsTrailingEdge(uiDarwinControl(self.c)),
+		uiDarwinControlHugsBottom(uiDarwinControl(self.c)),
+		self->margined,
+		@"uiTab page");
+}
+
+- (void)removeChildConstraints
+{
+	singleChildConstraintsRemove(&(self->constraints), self->view);
+}
+
+- (int)isMargined
+{
+	return self->margined;
+}
+
+- (void)setMargined:(int)m
+{
+	self->margined = m;
+	singleChildConstraintsSetMargined(&(self->constraints), self->margined);
+	// TODO issue a relayout command?
+}
+
+@end
 
 static void uiTabDestroy(uiControl *c)
 {
 	uiTab *t = uiTab(c);
+	tabPage *page;
 
 	// first remove all tab pages so we can destroy all the children
 	while ([t->tabview numberOfTabViewItems] != 0)

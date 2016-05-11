@@ -3,42 +3,24 @@
 
 // TODO test empty groups
 
-// if there is an intrinsic content size on the NSBox, Auto Layout won't bother checking the box's children and force the box to be the intrinsic size if its hugging priority is Required; we don't want that
-// TODO don't truncate the label?
-@interface libuiIntrinsicBox : NSBox {
-	BOOL libui_hasChild;
-}
-- (void)libui_setHasChild:(BOOL)h;
-@end
-
-@implementation libuiIntrinsicBox
-
-- (void)libui_setHasChild:(BOOL)h
-{
-	self->libui_hasChild = h;
-	[self invalidateIntrinsicContentSize];
-}
-
-- (NSSize)intrinsicContentSize
-{
-	if (!self->libui_hasChild)
-		return [super intrinsicContentSize];
-	return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric);
-}
-
-@end
-
 struct uiGroup {
 	uiDarwinControl c;
 	libuiIntrinsicBox *box;
 	uiControl *child;
 	int margined;
+	struct singleChildConstraints constraints;
 };
+
+static void removeConstraints(uiGroup *g)
+{
+	singleChildConstraintsRemove(&(g->constraints), g->box);
+}
 
 static void uiGroupDestroy(uiControl *c)
 {
 	uiGroup *g = uiGroup(c);
 
+	removeConstraints(g);
 	if (g->child != NULL) {
 		uiControlSetParent(g->child, NULL);
 		uiControlDestroy(g->child);
@@ -72,18 +54,28 @@ uiDarwinControlDefaultSetSuperview(uiGroup, box)
 
 static void groupRelayout(uiGroup *g)
 {
-	uiDarwinControl *cc;
 	NSView *childView;
 
+	removeConstraints(g);
 	if (g->child == NULL)
 		return;
-	cc = uiDarwinControl(g->child);
 	childView = (NSView *) uiControlHandle(g->child);
-	// first relayout the child
-//TODO	(*(cc->Relayout))(cc);
-//TODO	layoutSingleView([g->box contentView], childView, g->margined, @"uiGroup");
-	// we need to explicitly tell the NSBox to recompute its own size based on the new content layout
-	[g->box sizeToFit];
+	singleChildConstraintsEstablish(&(g->constraints),
+		g->box, childView,
+		uiDarwinControlHugsTrailingEdge(uiDarwinControl(g->child)),
+		uiDarwinControlHugsBottom(uiDarwinControl(g->child)),
+		g->margined,
+		@"uiGroup");
+}
+
+uiDarwinControlDefaultHugsTrailingEdge(uiGroup, box)
+uiDarwinControlDefaultHugsBottom(uiGroup, box)
+
+static void uiWindowChildEdgeHuggingChanged(uiDarwinControl *c)
+{
+	uiGroup *g = uiGroup(c);
+
+	groupRelayout(g);
 }
 
 char *uiGroupTitle(uiGroup *g)
@@ -103,6 +95,7 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 	NSView *childView;
 
 	if (g->child != NULL) {
+		removeConstraints(g);
 		childView = (NSView *) uiControlHandle(g->child);
 		[childView removeFromSuperview];
 		uiControlSetParent(g->child, NULL);
@@ -126,7 +119,8 @@ int uiGroupMargined(uiGroup *g)
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
-	groupRelayout(g);
+	singleChildConstraintsSetMargined(&(w->constraints), w->margined);
+	// TODO issue a relayout command?
 }
 
 uiGroup *uiNewGroup(const char *title)

@@ -8,7 +8,6 @@ struct uiWindow {
 	int margined;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
-
 	struct singleChildConstraints constraints;
 };
 

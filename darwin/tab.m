@@ -56,18 +56,6 @@ uiDarwinControlDefaultSyncEnableState(uiTab, tabview)
 
 uiDarwinControlDefaultSetSuperview(uiTab, tabview)
 
-static BOOL uiTabChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
-{
-	// always allow growth
-	return YES;
-}
-
-static BOOL uiTabChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
-{
-	// always allow growth
-	return YES;
-}
-
 static void tabRelayout(uiTab *t)
 {
 	NSUInteger i;
@@ -90,7 +78,7 @@ static void tabRelayout(uiTab *t)
 		cc = uiDarwinControl(child);
 //TODO		(*(cc->Relayout))(cc);
 		// then lay out the page
-		layoutSingleView(view, childView, [margined intValue], @"uiTab");
+//TODO		layoutSingleView(view, childView, [margined intValue], @"uiTab");
 	}
 }
 

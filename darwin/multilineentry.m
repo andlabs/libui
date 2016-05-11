@@ -123,7 +123,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	[e->sv setDocumentView:e->tv];
 	[e->tv setTranslatesAutoresizingMaskIntoConstraints:NO];
 	// we don't need to save the NSMutableArray
-	[layoutScrollViewContents(e->sv, YES, NO, @"uiMultilineEntry") release];
+//TODO	[layoutScrollViewContents(e->sv, YES, NO, @"uiMultilineEntry") release];
 
 //TODO:void printinfo(NSScrollView *sv, NSTextView *tv);
 //printinfo(e->sv, e->tv);

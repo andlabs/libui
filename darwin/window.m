@@ -141,18 +141,6 @@ static void uiWindowSetSuperview(uiDarwinControl *c, NSView *superview)
 	// TODO
 }
 
-static BOOL uiWindowChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
-{
-	// always allow growth
-	return YES;
-}
-
-static BOOL uiWindowChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
-{
-	// always allow growth
-	return YES;
-}
-
 static void windowRelayout(uiWindow *w)
 {
 	uiDarwinControl *cc;
@@ -167,7 +155,7 @@ static void windowRelayout(uiWindow *w)
 	// first relayout the child
 //TODO	(*(cc->Relayout))(cc);
 	// now relayout ourselves
-	layoutSingleView(contentView, childView, w->margined, @"uiWindow");
+//TODO	layoutSingleView(contentView, childView, w->margined, @"uiWindow");
 }
 
 char *uiWindowTitle(uiWindow *w)

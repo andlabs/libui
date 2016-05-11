@@ -11,16 +11,6 @@ void uiDarwinControlSetSuperview(uiDarwinControl *c, NSView *superview)
 	(*(c->SetSuperview))(c, superview);
 }
 
-BOOL uiDarwinControlChildrenShouldAllowSpaceAtTrailingEdge(uiDarwinControl *c)
-{
-	return (*(c->ChildrenShouldAllowSpaceAtTrailingEdge))(c);
-}
-
-BOOL uiDarwinControlChildrenShouldAllowSpaceAtBottom(uiDarwinControl *c)
-{
-	return (*(c->ChildrenShouldAllowSpaceAtBottom))(c);
-}
-
 void uiDarwinSetControlFont(NSControl *c, NSControlSize size)
 {
 	[c setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:size]]];

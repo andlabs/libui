@@ -19,11 +19,17 @@ struct uiDarwinControl {
 	BOOL visible;
 	void (*SyncEnableState)(uiDarwinControl *, int);
 	void (*SetSuperview)(uiDarwinControl *, NSView *);
+	BOOL (*HugsTrailingEdge)(uiDarwinControl *);
+	BOOL (*HugsBottom)(uiDarwinControl *);
+	void (*ChildEdgeHuggingChanged)(uiDarwinControl *);
 };
 #define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
 _UI_EXTERN void uiDarwinControlSyncEnableState(uiDarwinControl *, int);
 _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
+_UI_EXTERN BOOL uiDarwinControlHugsTrailingEdge(uiDarwinControl *);
+_UI_EXTERN BOOL uiDarwinControlHugsBottom(uiDarwinControl *);
+_UI_EXTERN void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *);
 
 #define uiDarwinControlDefaultDestroy(type, handlefield) \
 	static void type ## Destroy(uiControl *c) \
@@ -104,6 +110,21 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 		else \
 			[superview addSubview:type(c)->handlefield]; \
 	}
+#define uiDarwinControlDefaultHugsTrailingEdge(type, handlefield) \
+	static BOOL type ## HugsTrailingEdge(uiDarwinControl *c) \
+	{ \
+		return YES; /* always hug by default */ \
+	}
+#define uiDarwinControlDefaultHugsBottom(type, handlefield) \
+	static BOOL type ## HugsBottom(uiDarwinControl *c) \
+	{ \
+		return YES; /* always hug by default */ \
+	}
+#define uiDarwinControlDefaultChildEdgeHuggingChanged(type, handlefield) \
+	static void type ## ChildEdgeHuggingChanged(uiDarwinControl *c) \
+	{ \
+		/* do nothing */ \
+	}
 
 #define uiDarwinControlAllDefaultsExceptDestroy(type, handlefield) \
 	uiDarwinControlDefaultHandle(type, handlefield) \
@@ -117,7 +138,10 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	uiDarwinControlDefaultEnable(type, handlefield) \
 	uiDarwinControlDefaultDisable(type, handlefield) \
 	uiDarwinControlDefaultSyncEnableState(type, handlefield) \
-	uiDarwinControlDefaultSetSuperview(type, handlefield)
+	uiDarwinControlDefaultSetSuperview(type, handlefield) \
+	uiDarwinControlDefaultHugsTrailingEdge(type, handlefield) \
+	uiDarwinControlDefaultHugsBottom(type, handlefield) \
+	uiDarwinControlDefaultChildEdgeHuggingChanged(type, handlefield)
 
 #define uiDarwinControlAllDefaults(type, handlefield) \
 	uiDarwinControlDefaultDestroy(type, handlefield) \
@@ -139,6 +163,9 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 	uiControl(var)->Disable = type ## Disable; \
 	uiDarwinControl(var)->SyncEnableState = type ## SyncEnableState; \
 	uiDarwinControl(var)->SetSuperview = type ## SetSuperview; \
+	uiDarwinControl(var)->HugsTrailingEdge = type ## HugsTrailingEdge; \
+	uiDarwinControl(var)->HugsBottom = type ## HugsBottom; \
+	uiDarwinControl(var)->ChildEdgeHuggingChanged = type ## ChildEdgeHuggingChanged; \
 	uiDarwinControl(var)->visible = YES; \
 	uiDarwinControl(var)->enabled = YES;
 // TODO document

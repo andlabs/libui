@@ -11,6 +11,21 @@ void uiDarwinControlSetSuperview(uiDarwinControl *c, NSView *superview)
 	(*(c->SetSuperview))(c, superview);
 }
 
+BOOL uiDarwinControlHugsTrailingEdge(uiDarwinControl *c)
+{
+	return (*(c->HugsTrailingEdge))(c);
+}
+
+BOOL uiDarwinControlHugsBottom(uiDarwinControl *c)
+{
+	return (*(c->HugsBottom))(c);
+}
+
+void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *c)
+{
+	(*(c->ChildEdgeHuggingChanged))(c);
+}
+
 void uiDarwinSetControlFont(NSControl *c, NSControlSize size)
 {
 	[c setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:size]]];

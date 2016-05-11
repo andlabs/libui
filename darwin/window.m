@@ -8,6 +8,8 @@ struct uiWindow {
 	int margined;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
+
+	struct singleChildConstraints constraints;
 };
 
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
@@ -71,6 +73,14 @@ struct uiWindow {
 
 static windowDelegateClass *windowDelegate = nil;
 
+static void removeConstraints(uiWindow *w)
+{
+	NSView *cv;
+
+	cv = [w->window contentView];
+	singleChildConstraintsRemove(&(w->constraints), cv);
+}
+
 static void uiWindowDestroy(uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
@@ -78,6 +88,7 @@ static void uiWindowDestroy(uiControl *c)
 
 	// hide the window
 	[w->window orderOut:w->window];
+	removeConstraints(w);
 	if (w->child != NULL) {
 		childView = (NSView *) uiControlHandle(w->child);
 		[childView removeFromSuperview];
@@ -143,19 +154,30 @@ static void uiWindowSetSuperview(uiDarwinControl *c, NSView *superview)
 
 static void windowRelayout(uiWindow *w)
 {
-	uiDarwinControl *cc;
 	NSView *childView;
 	NSView *contentView;
 
+	removeConstraints(w);
 	if (w->child == NULL)
 		return;
-	cc = uiDarwinControl(w->child);
 	childView = (NSView *) uiControlHandle(w->child);
 	contentView = [w->window contentView];
-	// first relayout the child
-//TODO	(*(cc->Relayout))(cc);
-	// now relayout ourselves
-//TODO	layoutSingleView(contentView, childView, w->margined, @"uiWindow");
+	singleChildConstraintsEstablish(&(w->constraints),
+		contentView, childView,
+		uiDarwinControlHugsTrailingEdge(uiDarwinControl(w->child)),
+		uiDarwinControlHugsBottom(uiDarwinControl(w->child)),
+		w->margined,
+		@"uiWindow");
+}
+
+uiDarwinControlDefaultHugsTrailingEdge(uiWindow, window)
+uiDarwinControlDefaultHugsBottom(uiWindow, window)
+
+static void uiWindowChildEdgeHuggingChanged(uiDarwinControl *c)
+{
+	uiWindow *w = uiWindow(c);
+
+	windowRelayout(w);
 }
 
 char *uiWindowTitle(uiWindow *w)
@@ -201,7 +223,8 @@ int uiWindowMargined(uiWindow *w)
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	windowRelayout(w);
+	singleChildConstraintsSetMargined(&(w->constraints), w->margined);
+	// TODO issue a relayout command?
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)

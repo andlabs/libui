@@ -57,6 +57,15 @@ extern void uninitAlloc(void);
 
 // autolayout.m
 extern NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc);
+struct singleChildConstraints {
+	NSLayoutConstraint *leadingConstraint;
+	NSLayoutConstraint *topConstraint;
+	NSLayoutConstraint *trailingConstraint;
+	NSLayoutConstraint *bottomConstraint;
+};
+extern void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc);
+extern void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv);
+extern void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int margined);
 
 // map.m
 extern struct mapTable *newMap(void);

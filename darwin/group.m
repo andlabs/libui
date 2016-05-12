@@ -5,7 +5,7 @@
 
 struct uiGroup {
 	uiDarwinControl c;
-	libuiIntrinsicBox *box;
+	NSBox *box;
 	uiControl *child;
 	int margined;
 	struct singleChildConstraints constraints;
@@ -102,7 +102,6 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		uiControlSetParent(g->child, NULL);
 	}
 	g->child = child;
-	[g->box libui_setHasChild:(g->child != NULL)];
 	if (g->child != NULL) {
 		childView = (NSView *) uiControlHandle(g->child);
 		uiControlSetParent(g->child, uiControl(g));
@@ -120,7 +119,7 @@ int uiGroupMargined(uiGroup *g)
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
-	singleChildConstraintsSetMargined(&(w->constraints), w->margined);
+	singleChildConstraintsSetMargined(&(g->constraints), g->margined);
 	// TODO issue a relayout command?
 }
 
@@ -130,7 +129,7 @@ uiGroup *uiNewGroup(const char *title)
 
 	uiDarwinNewControl(uiGroup, g);
 
-	g->box = [[libuiIntrinsicBox alloc] initWithFrame:NSZeroRect];
+	g->box = [[NSBox alloc] initWithFrame:NSZeroRect];
 	[g->box setTitle:toNSString(title)];
 	[g->box setBoxType:NSBoxPrimary];
 	[g->box setBorderType:NSLineBorder];
@@ -138,7 +137,6 @@ uiGroup *uiNewGroup(const char *title)
 	[g->box setTitlePosition:NSAtTop];
 	// we can't use uiDarwinSetControlFont() because the selector is different
 	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
-	[g->box libui_setHasChild:NO];
 
 	return g;
 }

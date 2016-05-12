@@ -24,7 +24,7 @@ struct uiTab {
 
 @implementation tabPage
 
-- (id)initWithView:(NSView *)v pageID:(NSObject *o)
+- (id)initWithView:(NSView *)v pageID:(NSObject *)o
 {
 	self = [super init];
 	if (self != nil) {
@@ -141,7 +141,7 @@ void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 
 void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 {
-	boxPage *page;
+	tabPage *page;
 	NSView *view;
 	NSTabViewItem *i;
 	NSObject *pageID;
@@ -176,7 +176,6 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 {
 	tabPage *page;
 	uiControl *child;
-	NSView *childView;
 	NSTabViewItem *i;
 
 	page = (tabPage *) [t->pages objectAtIndex:n];

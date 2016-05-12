@@ -46,25 +46,25 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 		[desc stringByAppendingString:@" top constraint"]);
 	[contentView addConstraint:c->topConstraint];
 
-	relation = NSLayoutRelationGreaterOrEqual;
+	relation = NSLayoutRelationGreaterThanOrEqual;
 	if (hugsTrailing)
 		relation = NSLayoutRelationEqual;
-	c->leadingConstraint = mkConstraint(contentView, NSLayoutAttributeTrailing,
+	c->trailingConstraint = mkConstraint(contentView, NSLayoutAttributeTrailing,
 		relation,
 		childView, NSLayoutAttributeTrailing,
 		1, -margin,
 		[desc stringByAppendingString:@" trailing constraint"]);
 	[contentView addConstraint:c->trailingConstraint];
 
-	relation = NSLayoutRelationGreaterOrEqual;
+	relation = NSLayoutRelationGreaterThanOrEqual;
 	if (hugsBottom)
 		relation = NSLayoutRelationEqual;
-	c->leadingConstraint = mkConstraint(contentView, NSLayoutAttributeBottom,
+	c->bottomConstraint = mkConstraint(contentView, NSLayoutAttributeBottom,
 		relation,
 		childView, NSLayoutAttributeBottom,
 		1, -margin,
 		[desc stringByAppendingString:@" bottom constraint"]);
-	[contentView addConstraint:c->leadingConstraint];
+	[contentView addConstraint:c->bottomConstraint];
 }
 
 void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv)

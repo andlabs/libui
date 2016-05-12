@@ -196,15 +196,15 @@ struct uiBox {
 
 	// then arrange in the secondary direction
 	for (bc in self->children) {
-		c = mkConstraint(self, b->secondaryStart,
+		c = mkConstraint(self, self->secondaryStart,
 			NSLayoutRelationEqual,
-			[bc view], b->secondaryStart,
+			[bc view], self->secondaryStart,
 			1, 0,
 			@"uiBox secondary start constraint");
 		[self->otherConstraints addObject:c];
-		c = mkConstraint([bc view], b->secondaryEnd,
+		c = mkConstraint([bc view], self->secondaryEnd,
 			NSLayoutRelationEqual,
-			self, b->secondaryEnd,
+			self, self->secondaryEnd,
 			1, 0,
 			@"uiBox secondary end constraint");
 		[self->otherConstraints addObject:c];
@@ -360,7 +360,7 @@ static void uiBoxSyncEnableState(uiDarwinControl *c, int enabled)
 
 uiDarwinControlDefaultSetSuperview(uiBox, view)
 
-static BOOL uiBoxHugsTrailing(uiDarwinControl *c)
+static BOOL uiBoxHugsTrailingEdge(uiDarwinControl *c)
 {
 	uiBox *b = uiBox(c);
 
@@ -381,7 +381,6 @@ static void uiBoxChildEdgeHuggingChanged(uiDarwinControl *c)
 	[b->view removeOurConstraints];
 	[b->view setNeedsUpdateConstraints:YES];
 }
-
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {

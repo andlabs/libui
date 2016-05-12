@@ -64,6 +64,7 @@ example: libui
 examples:
 	@$(MAKE) -f GNUmakefile example EXAMPLE=controlgallery 
 	@$(MAKE) -f GNUmakefile example EXAMPLE=histogram
+	@$(MAKE) -f GNUmakefile example EXAMPLE=cpp-multithread
 
 .PHONY: examples
 

@@ -9,8 +9,13 @@ endif
 
 include $(OS)/GNUosspecific.mk
 
+ifneq ($(findstring cpp-,$(EXAMPLE)),)
+CXXFILES += \
+	examples/$(EXAMPLE)/main.cpp
+else
 CFILES += \
 	examples/$(EXAMPLE)/main.c
+endif
 
 HFILES += \
 	ui.h

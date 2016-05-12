@@ -106,9 +106,8 @@ void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int mar
 		[c->bottomConstraint setConstant:margin];
 }
 
-// from https://developer.apple.com/library/mac/documentation/UserExperience/Conceptual/AutolayoutPG/WorkingwithScrollViews.html#//apple_ref/doc/uid/TP40010853-CH24-SW1
-// note: if the xcode-specific label is set to Content View, the view actually becomes the *document* view
-// TODO are these instructions wrong? if we have the bottom we can't scroll vertically, and if we have spacing we can't scroll regardless
+// from http://blog.bjhomer.com/2014/08/nsscrollview-and-autolayout.html because (as pointed out there) Apple's official guide is really only for iOS
+// TODO this doesn't quite work with NSTextView; it *mostly* works
 void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollView *sv, NSString *desc)
 {
 	NSView *cv, *dv;
@@ -119,7 +118,7 @@ void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollVie
 
 	c->documentLeading = mkConstraint(dv, NSLayoutAttributeLeading,
 		NSLayoutRelationEqual,
-		sv, NSLayoutAttributeLeading,
+		cv, NSLayoutAttributeLeading,
 		1, 0,
 		[desc stringByAppendingString:@"document leading constraint"]);
 	[sv addConstraint:c->documentLeading];
@@ -127,7 +126,7 @@ void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollVie
 
 	c->documentTop = mkConstraint(dv, NSLayoutAttributeTop,
 		NSLayoutRelationEqual,
-		sv, NSLayoutAttributeTop,
+		cv, NSLayoutAttributeTop,
 		1, 0,
 		[desc stringByAppendingString:@"document top constraint"]);
 	[sv addConstraint:c->documentTop];
@@ -135,12 +134,13 @@ void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollVie
 
 	c->documentTrailing = mkConstraint(dv, NSLayoutAttributeTrailing,
 		NSLayoutRelationEqual,
-		sv, NSLayoutAttributeTrailing,
+		cv, NSLayoutAttributeTrailing,
 		1, 0,
 		[desc stringByAppendingString:@"document trailing constraint"]);
 	[sv addConstraint:c->documentTrailing];
 	[c->documentTrailing retain];
 
+#if 0
 	c->documentBottom = mkConstraint(dv, NSLayoutAttributeBottom,
 		NSLayoutRelationEqual,
 		sv, NSLayoutAttributeBottom,
@@ -148,6 +148,7 @@ void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollVie
 		[desc stringByAppendingString:@"document bottom constraint"]);
 	[sv addConstraint:c->documentBottom];
 	[c->documentBottom retain];
+#endif
 }
 
 void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *sv)

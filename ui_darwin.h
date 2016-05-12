@@ -22,6 +22,8 @@ struct uiDarwinControl {
 	BOOL (*HugsTrailingEdge)(uiDarwinControl *);
 	BOOL (*HugsBottom)(uiDarwinControl *);
 	void (*ChildEdgeHuggingChanged)(uiDarwinControl *);
+	NSLayoutPriority (*HuggingPriority)(uiDarwinControl *, NSLayoutConstraintOrientation);
+	void (*SetHuggingPriority)(uiDarwinControl *, NSLayoutPriority, NSLayoutConstraintOrientation);
 };
 #define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
@@ -30,6 +32,8 @@ _UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
 _UI_EXTERN BOOL uiDarwinControlHugsTrailingEdge(uiDarwinControl *);
 _UI_EXTERN BOOL uiDarwinControlHugsBottom(uiDarwinControl *);
 _UI_EXTERN void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *);
+_UI_EXTERN NSLayoutPriority uiDarwinControlHuggingPriority(uiDarwinControl *, NSLayoutConstraintOrientation);
+_UI_EXTERN void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPriority, NSLayoutConstraintOrientation);
 
 #define uiDarwinControlDefaultDestroy(type, handlefield) \
 	static void type ## Destroy(uiControl *c) \
@@ -125,6 +129,16 @@ _UI_EXTERN void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *);
 	{ \
 		/* do nothing */ \
 	}
+#define uiDarwinControlDefaultHuggingPriority(type, handlefield) \
+	static NSLayoutPriority type ## HuggingPriority(uiDarwinControl *c, NSLayoutConstraintOrientation orientation) \
+	{ \
+		return [type(c)->handlefield contentHuggingPriorityForOrientation:orientation]; \
+	}
+#define uiDarwinControlDefaultSetHuggingPriority(type, handlefield) \
+	static void type ## SetHuggingPriority(uiDarwinControl *c, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation) \
+	{ \
+		[type(c)->handlefield setContentHuggingPriority:priority forOrientation:orientation]; \
+	}
 
 #define uiDarwinControlAllDefaultsExceptDestroy(type, handlefield) \
 	uiDarwinControlDefaultHandle(type, handlefield) \
@@ -141,7 +155,9 @@ _UI_EXTERN void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *);
 	uiDarwinControlDefaultSetSuperview(type, handlefield) \
 	uiDarwinControlDefaultHugsTrailingEdge(type, handlefield) \
 	uiDarwinControlDefaultHugsBottom(type, handlefield) \
-	uiDarwinControlDefaultChildEdgeHuggingChanged(type, handlefield)
+	uiDarwinControlDefaultChildEdgeHuggingChanged(type, handlefield) \
+	uiDarwinControlDefaultHuggingPriority(type, handlefield) \
+	uiDarwinControlDefaultSetHuggingPriority(type, handlefield)
 
 #define uiDarwinControlAllDefaults(type, handlefield) \
 	uiDarwinControlDefaultDestroy(type, handlefield) \
@@ -166,6 +182,8 @@ _UI_EXTERN void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *);
 	uiDarwinControl(var)->HugsTrailingEdge = type ## HugsTrailingEdge; \
 	uiDarwinControl(var)->HugsBottom = type ## HugsBottom; \
 	uiDarwinControl(var)->ChildEdgeHuggingChanged = type ## ChildEdgeHuggingChanged; \
+	uiDarwinControl(var)->HuggingPriority = type ## HuggingPriority; \
+	uiDarwinControl(var)->SetHuggingPriority = type ## SetHuggingPriority; \
 	uiDarwinControl(var)->visible = YES; \
 	uiDarwinControl(var)->enabled = YES;
 // TODO document
@@ -179,6 +197,9 @@ _UI_EXTERN char *uiDarwinNSStringToText(NSString *);
 
 // TODO document
 _UI_EXTERN BOOL uiDarwinShouldStopSyncEnableState(uiDarwinControl *, BOOL);
+
+// TODO document
+_UI_EXTERN void uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl *);
 
 #ifdef __cplusplus
 }

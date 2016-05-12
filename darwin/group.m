@@ -9,6 +9,8 @@ struct uiGroup {
 	uiControl *child;
 	int margined;
 	struct singleChildConstraints constraints;
+	NSLayoutPriority horzHuggingPri;
+	NSLayoutPriority vertHuggingPri;
 };
 
 static void removeConstraints(uiGroup *g)
@@ -69,14 +71,47 @@ static void groupRelayout(uiGroup *g)
 		@"uiGroup");
 }
 
-uiDarwinControlDefaultHugsTrailingEdge(uiGroup, box)
-uiDarwinControlDefaultHugsBottom(uiGroup, box)
+// TODO rename these since I'm starting to get confused by what they mean by hugging
+BOOL uiGroupHugsTrailingEdge(uiDarwinControl *c)
+{
+	uiGroup *g = uiGroup(c);
+
+	// TODO make a function?
+	return g->horzHuggingPri < NSLayoutPriorityWindowSizeStayPut;
+}
+
+BOOL uiGroupHugsBottom(uiDarwinControl *c)
+{
+	uiGroup *g = uiGroup(c);
+
+	return g->vertHuggingPri < NSLayoutPriorityWindowSizeStayPut;
+}
 
 static void uiGroupChildEdgeHuggingChanged(uiDarwinControl *c)
 {
 	uiGroup *g = uiGroup(c);
 
 	groupRelayout(g);
+}
+
+static NSLayoutPriority uiGroupHuggingPriority(uiDarwinControl *c, NSLayoutConstraintOrientation orientation)
+{
+	uiGroup *g = uiGroup(c);
+
+	if (orientation == NSLayoutConstraintOrientationHorizontal)
+		return g->horzHuggingPri;
+	return g->vertHuggingPri;
+}
+
+static void uiGroupSetHuggingPriority(uiDarwinControl *c, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
+{
+	uiGroup *g = uiGroup(c);
+
+	if (orientation == NSLayoutConstraintOrientationHorizontal)
+		g->horzHuggingPri = priority;
+	else
+		g->vertHuggingPri = priority;
+	uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(g));
 }
 
 char *uiGroupTitle(uiGroup *g)
@@ -137,6 +172,10 @@ uiGroup *uiNewGroup(const char *title)
 	[g->box setTitlePosition:NSAtTop];
 	// we can't use uiDarwinSetControlFont() because the selector is different
 	[g->box setTitleFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
+
+	// default to low hugging to not hug edges
+	g->horzHuggingPri = NSLayoutPriorityDefaultLow;
+	g->vertHuggingPri = NSLayoutPriorityDefaultLow;
 
 	return g;
 }

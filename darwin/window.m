@@ -177,6 +177,11 @@ static void uiWindowChildEdgeHuggingChanged(uiDarwinControl *c)
 	windowRelayout(w);
 }
 
+// TODO
+uiDarwinControlDefaultHuggingPriority(uiWindow, window)
+uiDarwinControlDefaultSetHuggingPriority(uiWindow, window)
+// end TODO
+
 char *uiWindowTitle(uiWindow *w)
 {
 	return uiDarwinNSStringToText([w->window title]);

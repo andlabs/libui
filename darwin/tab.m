@@ -20,6 +20,8 @@ struct uiTab {
 	uiDarwinControl c;
 	NSTabView *tabview;
 	NSMutableArray *pages;
+	NSLayoutPriority horzHuggingPri;
+	NSLayoutPriority vertHuggingPri;
 };
 
 @implementation tabPage
@@ -124,14 +126,46 @@ static void tabRelayout(uiTab *t)
 		[page establishChildConstraints];
 }
 
-uiDarwinControlDefaultHugsTrailingEdge(uiTab, tabview)
-uiDarwinControlDefaultHugsBottom(uiTab, tabview)
+BOOL uiTabHugsTrailingEdge(uiDarwinControl *c)
+{
+	uiTab *t = uiTab(c);
+
+	// TODO make a function?
+	return t->horzHuggingPri < NSLayoutPriorityWindowSizeStayPut;
+}
+
+BOOL uiTabHugsBottom(uiDarwinControl *c)
+{
+	uiTab *t = uiTab(c);
+
+	return t->vertHuggingPri < NSLayoutPriorityWindowSizeStayPut;
+}
 
 static void uiTabChildEdgeHuggingChanged(uiDarwinControl *c)
 {
 	uiTab *t = uiTab(c);
 
 	tabRelayout(t);
+}
+
+static NSLayoutPriority uiTabHuggingPriority(uiDarwinControl *c, NSLayoutConstraintOrientation orientation)
+{
+	uiTab *t = uiTab(c);
+
+	if (orientation == NSLayoutConstraintOrientationHorizontal)
+		return t->horzHuggingPri;
+	return t->vertHuggingPri;
+}
+
+static void uiTabSetHuggingPriority(uiDarwinControl *c, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
+{
+	uiTab *t = uiTab(c);
+
+	if (orientation == NSLayoutConstraintOrientationHorizontal)
+		t->horzHuggingPri = priority;
+	else
+		t->vertHuggingPri = priority;
+	uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(t));
 }
 
 void uiTabAppend(uiTab *t, const char *name, uiControl *child)
@@ -224,6 +258,10 @@ uiTab *uiNewTab(void)
 	uiDarwinSetControlFont((NSControl *) (t->tabview), NSRegularControlSize);
 
 	t->pages = [NSMutableArray new];
+
+	// default to low hugging to not hug edges
+	t->horzHuggingPri = NSLayoutPriorityDefaultLow;
+	t->vertHuggingPri = NSLayoutPriorityDefaultLow;
 
 	return t;
 }

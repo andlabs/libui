@@ -249,16 +249,14 @@ struct uiBox {
 - (void)append:(uiControl *)c stretchy:(int)stretchy
 {
 	boxChild *bc;
-	NSView *childView;
 	NSLayoutPriority priority;
 	uintmax_t oldnStretchy;
 
 	bc = [boxChild new];
 	bc.c = c;
 	bc.stretchy = stretchy;
-	childView = [bc view];
-	bc.oldPrimaryHuggingPri = [childView contentHuggingPriorityForOrientation:self->primaryOrientation];
-	bc.oldSecondaryHuggingPri = [childView contentHuggingPriorityForOrientation:self->secondaryOrientation];
+	bc.oldPrimaryHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(bc.c), self->primaryOrientation);
+	bc.oldSecondaryHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(bc.c), self->secondaryOrientation);
 
 	uiControlSetParent(bc.c, uiControl(self->b));
 	uiDarwinControlSetSuperview(uiDarwinControl(bc.c), self);
@@ -271,9 +269,9 @@ struct uiBox {
 	else
 		// TODO will default high work?
 		priority = NSLayoutPriorityRequired;
-	[childView setContentHuggingPriority:priority forOrientation:self->primaryOrientation];
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(bc.c), priority, self->primaryOrientation);
 	// make sure controls don't hug their secondary direction so they fill the width of the view
-	[childView setContentHuggingPriority:NSLayoutPriorityDefaultLow forOrientation:self->secondaryOrientation];
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(bc.c), NSLayoutPriorityDefaultLow, self->secondaryOrientation);
 
 	[self->children addObject:bc];
 
@@ -281,14 +279,8 @@ struct uiBox {
 	if (bc.stretchy) {
 		oldnStretchy = self->nStretchy;
 		self->nStretchy++;
-		if (oldnStretchy == 0) {
-			// TODO isolate into its own function?
-			uiControl *parent;
-
-			parent = uiControlParent(uiControl(self->b));
-			if (parent != NULL)
-				uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl(parent));
-		}
+		if (oldnStretchy == 0)
+			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->b));
 	}
 
 	[bc release];		// we don't need the initial reference now
@@ -297,33 +289,25 @@ struct uiBox {
 - (void)delete:(uintmax_t)n
 {
 	boxChild *bc;
-	NSView *removedView;
 	int stretchy;
 
 	// TODO separate into a method?
 	bc = (boxChild *) [self->children objectAtIndex:n];
-	removedView = [bc view];
 	stretchy = bc.stretchy;
 
 	uiControlSetParent(bc.c, NULL);
 	uiDarwinControlSetSuperview(uiDarwinControl(bc.c), nil);
 
-	[removedView setContentHuggingPriority:bc.oldPrimaryHuggingPri forOrientation:self->primaryOrientation];
-	[removedView setContentHuggingPriority:bc.oldSecondaryHuggingPri forOrientation:self->secondaryOrientation];
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(bc.c), bc.oldPrimaryHuggingPri, self->primaryOrientation);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(bc.c), bc.oldSecondaryHuggingPri, self->secondaryOrientation);
 
 	[self->children removeObjectAtIndex:n];
 
 	[self establishOurConstraints];
 	if (stretchy) {
 		self->nStretchy--;
-		if (self->nStretchy == 0) {
-			// TODO isolate into its own function?
-			uiControl *parent;
-
-			parent = uiControlParent(uiControl(self->b));
-			if (parent != NULL)
-				uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl(parent));
-		}
+		if (self->nStretchy == 0)
+			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->b));
 	}
 }
 
@@ -411,6 +395,9 @@ static void uiBoxChildEdgeHuggingChanged(uiDarwinControl *c)
 
 	[b->view establishOurConstraints];
 }
+
+uiDarwinControlDefaultHuggingPriority(uiBox, view)
+uiDarwinControlDefaultSetHuggingPriority(uiBox, view)
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {

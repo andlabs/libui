@@ -26,6 +26,16 @@ void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *c)
 	(*(c->ChildEdgeHuggingChanged))(c);
 }
 
+NSLayoutPriority uiDarwinControlHuggingPriority(uiDarwinControl *c, NSLayoutConstraintOrientation orientation)
+{
+	return (*(c->HuggingPriority))(c, orientation);
+}
+
+void uiDarwinControlSetHuggingPriority(uiDarwinControl *c, NSLayoutPriority priority, NSLayoutConstraintOrientation orientation)
+{
+	(*(c->SetHuggingPriority))(c, priority, orientation);
+}
+
 void uiDarwinSetControlFont(NSControl *c, NSControlSize size)
 {
 	[c setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:size]]];
@@ -48,4 +58,13 @@ BOOL uiDarwinShouldStopSyncEnableState(uiDarwinControl *c, BOOL enabled)
 	if (!ce && enabled)
 		return YES;
 	return NO;
+}
+
+void uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl *c)
+{
+	uiControl *parent;
+
+	parent = uiControlParent(uiControl(c));
+	if (parent != NULL)
+		uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl(parent));
 }

@@ -41,6 +41,7 @@
 - (void)removeOurConstraints;
 - (void)syncEnableStates:(int)enabled;
 - (CGFloat)paddingAmount;
+- (void)establishOurConstraints;
 - (void)append:(uiControl *)c stretchy:(int)stretchy;
 - (void)delete:(uintmax_t)n;
 - (int)isPadded;
@@ -154,14 +155,16 @@ struct uiBox {
 }
 
 // TODO something about spinbox hugging
-- (void)updateConstraints
+- (void)establishOurConstraints
 {
 	boxChild *bc;
 	CGFloat padding;
 	NSView *prev;
 	NSLayoutConstraint *c;
+	NSLayoutRelation relation;
+	BOOL (*hugsSecondary)(uiDarwinControl *);
 
-	[super updateConstraints];
+	[self removeOurConstraints];
 	if ([self->children count] == 0)
 		return;
 	padding = [self paddingAmount];
@@ -199,6 +202,9 @@ struct uiBox {
 	[self->last retain];
 
 	// then arrange in the secondary direction
+	hugsSecondary = uiDarwinControlHugsTrailingEdge;
+	if (!self->vertical)
+		hugsSecondary = uiDarwinControlHugsBottom;
 	for (bc in self->children) {
 		c = mkConstraint(self, self->secondaryStart,
 			NSLayoutRelationEqual,
@@ -207,8 +213,11 @@ struct uiBox {
 			@"uiBox secondary start constraint");
 		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
+		relation = NSLayoutRelationLessThanOrEqual;
+		if ((*hugsSecondary)(uiDarwinControl(bc.c)))
+			relation = NSLayoutRelationEqual;
 		c = mkConstraint([bc view], self->secondaryEnd,
-			NSLayoutRelationEqual,
+			relation,
 			self, self->secondaryEnd,
 			1, 0,
 			@"uiBox secondary end constraint");
@@ -268,8 +277,7 @@ struct uiBox {
 
 	[self->children addObject:bc];
 
-	[self removeOurConstraints];
-	[self setNeedsUpdateConstraints:YES];
+	[self establishOurConstraints];
 	if (bc.stretchy) {
 		oldnStretchy = self->nStretchy;
 		self->nStretchy++;
@@ -305,8 +313,7 @@ struct uiBox {
 
 	[self->children removeObjectAtIndex:n];
 
-	[self removeOurConstraints];
-	[self setNeedsUpdateConstraints:YES];
+	[self establishOurConstraints];
 	if (stretchy) {
 		self->nStretchy--;
 		if (self->nStretchy == 0) {
@@ -402,8 +409,7 @@ static void uiBoxChildEdgeHuggingChanged(uiDarwinControl *c)
 {
 	uiBox *b = uiBox(c);
 
-	[b->view removeOurConstraints];
-	[b->view setNeedsUpdateConstraints:YES];
+	[b->view establishOurConstraints];
 }
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)

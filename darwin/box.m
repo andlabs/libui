@@ -72,8 +72,12 @@ struct uiBox {
 		// the weird names vert and bb are to shut the compiler up about shadowing because implicit this/self is stupid
 		self->b = bb;
 		self->vertical = vert;
+		self->padded = 0;
 		self->children = [NSMutableArray new];
 		self->nStretchy = 0;
+
+		self->inBetweens = [NSMutableArray new];
+		self->otherConstraints = [NSMutableArray new];
 
 		if (self->vertical) {
 			self->primaryStart = NSLayoutAttributeTop;

@@ -15,7 +15,8 @@ struct uiGroup {
 
 static void removeConstraints(uiGroup *g)
 {
-	singleChildConstraintsRemove(&(g->constraints), g->box);
+	// set to contentView instead of to the box itself, otherwise we get clipping underneath the label
+	singleChildConstraintsRemove(&(g->constraints), [g->box contentView]);
 }
 
 static void uiGroupDestroy(uiControl *c)
@@ -64,7 +65,7 @@ static void groupRelayout(uiGroup *g)
 		return;
 	childView = (NSView *) uiControlHandle(g->child);
 	singleChildConstraintsEstablish(&(g->constraints),
-		g->box, childView,
+		[g->box contentView], childView,
 		uiDarwinControlHugsTrailingEdge(uiDarwinControl(g->child)),
 		uiDarwinControlHugsBottom(uiDarwinControl(g->child)),
 		g->margined,

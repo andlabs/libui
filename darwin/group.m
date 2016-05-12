@@ -23,6 +23,7 @@ static void uiGroupDestroy(uiControl *c)
 	removeConstraints(g);
 	if (g->child != NULL) {
 		uiControlSetParent(g->child, NULL);
+		uiDarwinControlSetSuperview(uiDarwinControl(g->child), nil);
 		uiControlDestroy(g->child);
 	}
 	[g->box release];
@@ -71,7 +72,7 @@ static void groupRelayout(uiGroup *g)
 uiDarwinControlDefaultHugsTrailingEdge(uiGroup, box)
 uiDarwinControlDefaultHugsBottom(uiGroup, box)
 
-static void uiWindowChildEdgeHuggingChanged(uiDarwinControl *c)
+static void uiGroupChildEdgeHuggingChanged(uiDarwinControl *c)
 {
 	uiGroup *g = uiGroup(c);
 

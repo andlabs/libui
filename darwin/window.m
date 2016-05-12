@@ -83,15 +83,13 @@ static void removeConstraints(uiWindow *w)
 static void uiWindowDestroy(uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
-	NSView *childView;
 
 	// hide the window
 	[w->window orderOut:w->window];
 	removeConstraints(w);
 	if (w->child != NULL) {
-		childView = (NSView *) uiControlHandle(w->child);
-		[childView removeFromSuperview];
 		uiControlSetParent(w->child, NULL);
+		uiDarwinControlSetSuperview(uiDarwinControl(w->child), nil);
 		uiControlDestroy(w->child);
 	}
 	[windowDelegate unregisterWindow:w];

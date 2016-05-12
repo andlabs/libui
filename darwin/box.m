@@ -180,7 +180,7 @@ struct uiBox {
 		c = mkConstraint(prev, self->primaryEnd,
 			NSLayoutRelationEqual,
 			[bc view], self->primaryStart,
-			1, padding,
+			1, -padding,
 			@"uiBox in-between primary constraint");
 		[self addConstraint:c];
 		[self->inBetweens addObject:c];
@@ -201,16 +201,36 @@ struct uiBox {
 			[bc view], self->secondaryStart,
 			1, 0,
 			@"uiBox secondary start constraint");
+		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
 		c = mkConstraint([bc view], self->secondaryEnd,
 			NSLayoutRelationEqual,
 			self, self->secondaryEnd,
 			1, 0,
 			@"uiBox secondary end constraint");
+		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
 	}
 
-	// TODO stretchies
+	// and make all stretchy controls the same size
+	if (self->nStretchy == 0)
+		return;
+	prev = nil;		// first stretchy view
+	for (bc in self->children) {
+		if (!bc.stretchy)
+			continue;
+		if (prev == nil) {
+			prev = [bc view];
+			continue;
+		}
+		c = mkConstraint(prev, self->primarySize,
+			NSLayoutRelationEqual,
+			[bc view], self->primarySize,
+			1, 0,
+			@"uiBox stretchy size constraint");
+		[self addConstraint:c];
+		[self->otherConstraints addObject:c];
+	}
 }
 
 - (void)append:(uiControl *)c stretchy:(int)stretchy
@@ -309,7 +329,7 @@ struct uiBox {
 	self->padded = p;
 	padding = [self paddingAmount];
 	for (c in self->inBetweens)
-		[c setConstant:padding];
+		[c setConstant:-padding];
 	// TODO call anything?
 }
 

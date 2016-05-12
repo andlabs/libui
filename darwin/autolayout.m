@@ -35,14 +35,14 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	c->leadingConstraint = mkConstraint(contentView, NSLayoutAttributeLeading,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeLeading,
-		1, margin,
+		1, -margin,
 		[desc stringByAppendingString:@" leading constraint"]);
 	[contentView addConstraint:c->leadingConstraint];
 
 	c->topConstraint = mkConstraint(contentView, NSLayoutAttributeTop,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeTop,
-		1, margin,
+		1, -margin,
 		[desc stringByAppendingString:@" top constraint"]);
 	[contentView addConstraint:c->topConstraint];
 
@@ -52,7 +52,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	c->trailingConstraint = mkConstraint(contentView, NSLayoutAttributeTrailing,
 		relation,
 		childView, NSLayoutAttributeTrailing,
-		1, -margin,
+		1, margin,
 		[desc stringByAppendingString:@" trailing constraint"]);
 	[contentView addConstraint:c->trailingConstraint];
 
@@ -62,7 +62,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	c->bottomConstraint = mkConstraint(contentView, NSLayoutAttributeBottom,
 		relation,
 		childView, NSLayoutAttributeBottom,
-		1, -margin,
+		1, margin,
 		[desc stringByAppendingString:@" bottom constraint"]);
 	[contentView addConstraint:c->bottomConstraint];
 }
@@ -97,11 +97,11 @@ void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int mar
 
 	margin = margins(margined);
 	if (c->leadingConstraint != nil)
-		[c->leadingConstraint setConstant:margin];
+		[c->leadingConstraint setConstant:-margin];
 	if (c->topConstraint != nil)
-		[c->topConstraint setConstant:margin];
+		[c->topConstraint setConstant:-margin];
 	if (c->trailingConstraint != nil)
-		[c->trailingConstraint setConstant:-margin];
+		[c->trailingConstraint setConstant:margin];
 	if (c->bottomConstraint != nil)
-		[c->bottomConstraint setConstant:-margin];
+		[c->bottomConstraint setConstant:margin];
 }

@@ -7,10 +7,12 @@ struct uiMultilineEntry {
 	NSTextView *tv;
 	void (*onChanged)(uiMultilineEntry *, void *);
 	void *onChangedData;
+	struct scrollViewConstraints constraints;
 };
 
 // TODO events
 
+// TODO destroy
 uiDarwinControlAllDefaults(uiMultilineEntry, sv)
 
 static void defaultOnChanged(uiMultilineEntry *e, void *data)
@@ -119,11 +121,9 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	// let's just set it to the standard control font anyway, just to be safe
 	[e->tv setFont:font];
 
-//TODO	[e->tv setTranslatesAutoresizingMaskIntoConstraints:NO];
 	[e->sv setDocumentView:e->tv];
 	[e->tv setTranslatesAutoresizingMaskIntoConstraints:NO];
-	// we don't need to save the NSMutableArray
-//TODO	[layoutScrollViewContents(e->sv, YES, NO, @"uiMultilineEntry") release];
+	scrollViewConstraintsEstablish(&(e->constraints), e->sv, @"uiMultilineEntry");
 
 //TODO:void printinfo(NSScrollView *sv, NSTextView *tv);
 //printinfo(e->sv, e->tv);

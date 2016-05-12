@@ -66,6 +66,16 @@ struct singleChildConstraints {
 extern void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc);
 extern void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv);
 extern void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int margined);
+struct scrollViewConstraints {
+	NSLayoutConstraint *documentLeading;
+	NSLayoutConstraint *documentTop;
+	NSLayoutConstraint *documentTrailing;
+	NSLayoutConstraint *documentBottom;
+	NSLayoutConstraint *documentWidth;
+	NSLayoutConstraint *documentHeight;
+};
+extern void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollView *sv, NSString *desc);
+extern void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *sv);
 
 // map.m
 extern struct mapTable *newMap(void);

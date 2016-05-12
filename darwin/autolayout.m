@@ -105,3 +105,81 @@ void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int mar
 	if (c->bottomConstraint != nil)
 		[c->bottomConstraint setConstant:margin];
 }
+
+// from https://developer.apple.com/library/mac/documentation/UserExperience/Conceptual/AutolayoutPG/WorkingwithScrollViews.html#//apple_ref/doc/uid/TP40010853-CH24-SW1
+// note: if the xcode-specific label is set to Content View, the view actually becomes the *document* view
+// TODO are these instructions wrong? if we have the bottom we can't scroll vertically, and if we have spacing we can't scroll regardless
+void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollView *sv, NSString *desc)
+{
+	NSView *cv, *dv;
+
+	scrollViewConstraintsRemove(c, sv);
+	cv = [sv contentView];
+	dv = [sv documentView];
+
+	c->documentLeading = mkConstraint(dv, NSLayoutAttributeLeading,
+		NSLayoutRelationEqual,
+		sv, NSLayoutAttributeLeading,
+		1, 0,
+		[desc stringByAppendingString:@"document leading constraint"]);
+	[sv addConstraint:c->documentLeading];
+	[c->documentLeading retain];
+
+	c->documentTop = mkConstraint(dv, NSLayoutAttributeTop,
+		NSLayoutRelationEqual,
+		sv, NSLayoutAttributeTop,
+		1, 0,
+		[desc stringByAppendingString:@"document top constraint"]);
+	[sv addConstraint:c->documentTop];
+	[c->documentTop retain];
+
+	c->documentTrailing = mkConstraint(dv, NSLayoutAttributeTrailing,
+		NSLayoutRelationEqual,
+		sv, NSLayoutAttributeTrailing,
+		1, 0,
+		[desc stringByAppendingString:@"document trailing constraint"]);
+	[sv addConstraint:c->documentTrailing];
+	[c->documentTrailing retain];
+
+	c->documentBottom = mkConstraint(dv, NSLayoutAttributeBottom,
+		NSLayoutRelationEqual,
+		sv, NSLayoutAttributeBottom,
+		1, 0,
+		[desc stringByAppendingString:@"document bottom constraint"]);
+	[sv addConstraint:c->documentBottom];
+	[c->documentBottom retain];
+}
+
+void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *sv)
+{
+	if (c->documentLeading != nil) {
+		[sv removeConstraint:c->documentLeading];
+		[c->documentLeading release];
+		c->documentLeading = nil;
+	}
+	if (c->documentTop != nil) {
+		[sv removeConstraint:c->documentTop];
+		[c->documentTop release];
+		c->documentTop = nil;
+	}
+	if (c->documentTrailing != nil) {
+		[sv removeConstraint:c->documentTrailing];
+		[c->documentTrailing release];
+		c->documentTrailing = nil;
+	}
+	if (c->documentBottom != nil) {
+		[sv removeConstraint:c->documentBottom];
+		[c->documentBottom release];
+		c->documentBottom = nil;
+	}
+	if (c->documentWidth != nil) {
+		[sv removeConstraint:c->documentWidth];
+		[c->documentWidth release];
+		c->documentWidth = nil;
+	}
+	if (c->documentHeight != nil) {
+		[sv removeConstraint:c->documentHeight];
+		[c->documentHeight release];
+		c->documentHeight = nil;
+	}
+}

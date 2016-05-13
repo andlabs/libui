@@ -124,6 +124,8 @@ static void tabRelayout(uiTab *t)
 
 	for (page in t->pages)
 		[page establishChildConstraints];
+	// and this gets rid of some weird issues with regards to box alignment
+	jiggleViewLayout(t->tabview);
 }
 
 BOOL uiTabHugsTrailingEdge(uiDarwinControl *c)

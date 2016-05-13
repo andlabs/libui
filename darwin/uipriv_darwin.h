@@ -57,6 +57,7 @@ extern void uninitAlloc(void);
 
 // autolayout.m
 extern NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc);
+extern void jiggleViewLayout(NSView *view);
 struct singleChildConstraints {
 	NSLayoutConstraint *leadingConstraint;
 	NSLayoutConstraint *topConstraint;

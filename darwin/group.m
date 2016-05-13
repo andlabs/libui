@@ -70,6 +70,8 @@ static void groupRelayout(uiGroup *g)
 		uiDarwinControlHugsBottom(uiDarwinControl(g->child)),
 		g->margined,
 		@"uiGroup");
+	// needed for some very rare drawing errors...
+	jiggleViewLayout(g->box);
 }
 
 // TODO rename these since I'm starting to get confused by what they mean by hugging

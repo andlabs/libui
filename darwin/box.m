@@ -2,7 +2,7 @@
 #import "uipriv_darwin.h"
 
 // TODOs:
-// - tab on page 2 is glitched initially and doesn't grow
+// - tab on page 2 doesn't grow (groupbox does instead)
 // - page 3 doesn't work right; probably due to our shouldExpand logic being applied incorrectly
 
 // TODOs to confirm

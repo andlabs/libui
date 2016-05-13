@@ -47,6 +47,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 		1, -margin,
 		[desc stringByAppendingString:@" leading constraint"]);
 	[contentView addConstraint:c->leadingConstraint];
+	[c->leadingConstraint retain];
 
 	c->topConstraint = mkConstraint(contentView, NSLayoutAttributeTop,
 		NSLayoutRelationEqual,
@@ -54,26 +55,47 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 		1, -margin,
 		[desc stringByAppendingString:@" top constraint"]);
 	[contentView addConstraint:c->topConstraint];
+	[c->topConstraint retain];
 
-	relation = NSLayoutRelationGreaterThanOrEqual;
-	if (hugsTrailing)
-		relation = NSLayoutRelationEqual;
-	c->trailingConstraint = mkConstraint(contentView, NSLayoutAttributeTrailing,
-		relation,
+	c->trailingConstraintGreater = mkConstraint(contentView, NSLayoutAttributeTrailing,
+		NSLayoutRelationGreaterThanOrEqual,
 		childView, NSLayoutAttributeTrailing,
 		1, margin,
-		[desc stringByAppendingString:@" trailing constraint"]);
-	[contentView addConstraint:c->trailingConstraint];
+		[desc stringByAppendingString:@" trailing >= constraint"]);
+	if (hugsTrailing)
+		[c->trailingConstraintGreater setPriority:NSLayoutPriorityDefaultLow];
+	[contentView addConstraint:c->trailingConstraintGreater];
+	[c->trailingConstraintGreater retain];
 
-	relation = NSLayoutRelationGreaterThanOrEqual;
-	if (hugsBottom)
-		relation = NSLayoutRelationEqual;
-	c->bottomConstraint = mkConstraint(contentView, NSLayoutAttributeBottom,
-		relation,
+	c->trailingConstraintEqual = mkConstraint(contentView, NSLayoutAttributeTrailing,
+		NSLayoutRelationEqual,
+		childView, NSLayoutAttributeTrailing,
+		1, margin,
+		[desc stringByAppendingString:@" trailing == constraint"]);
+	if (!hugsTrailing)
+		[c->trailingConstraintEqual setPriority:NSLayoutPriorityDefaultLow];
+	[contentView addConstraint:c->trailingConstraintEqual];
+	[c->trailingConstraintEqual retain];
+
+	c->bottomConstraintGreater = mkConstraint(contentView, NSLayoutAttributeBottom,
+		NSLayoutRelationGreaterThanOrEqual,
 		childView, NSLayoutAttributeBottom,
 		1, margin,
-		[desc stringByAppendingString:@" bottom constraint"]);
-	[contentView addConstraint:c->bottomConstraint];
+		[desc stringByAppendingString:@" bottom >= constraint"]);
+	if (hugsBottom)
+		[c->bottomConstraintGreater setPriority:NSLayoutPriorityDefaultLow];
+	[contentView addConstraint:c->bottomConstraintGreater];
+	[c->bottomConstraintGreater retain];
+
+	c->bottomConstraintEqual = mkConstraint(contentView, NSLayoutAttributeBottom,
+		NSLayoutRelationEqual,
+		childView, NSLayoutAttributeBottom,
+		1, margin,
+		[desc stringByAppendingString:@" bottom == constraint"]);
+	if (!hugsBottom)
+		[c->bottomConstraintEqual setPriority:NSLayoutPriorityDefaultLow];
+	[contentView addConstraint:c->bottomConstraintEqual];
+	[c->bottomConstraintEqual retain];
 }
 
 void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv)
@@ -88,15 +110,25 @@ void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv)
 		[c->topConstraint release];
 		c->topConstraint = nil;
 	}
-	if (c->trailingConstraint != nil) {
-		[cv removeConstraint:c->trailingConstraint];
-		[c->trailingConstraint release];
-		c->trailingConstraint = nil;
+	if (c->trailingConstraintGreater != nil) {
+		[cv removeConstraint:c->trailingConstraintGreater];
+		[c->trailingConstraintGreater release];
+		c->trailingConstraintGreater = nil;
 	}
-	if (c->bottomConstraint != nil) {
-		[cv removeConstraint:c->bottomConstraint];
-		[c->bottomConstraint release];
-		c->bottomConstraint = nil;
+	if (c->trailingConstraintEqual != nil) {
+		[cv removeConstraint:c->trailingConstraintEqual];
+		[c->trailingConstraintEqual release];
+		c->trailingConstraintEqual = nil;
+	}
+	if (c->bottomConstraintGreater != nil) {
+		[cv removeConstraint:c->bottomConstraintGreater];
+		[c->bottomConstraintGreater release];
+		c->bottomConstraintGreater = nil;
+	}
+	if (c->bottomConstraintEqual != nil) {
+		[cv removeConstraint:c->bottomConstraintEqual];
+		[c->bottomConstraintEqual release];
+		c->bottomConstraintEqual = nil;
 	}
 }
 
@@ -109,10 +141,14 @@ void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int mar
 		[c->leadingConstraint setConstant:-margin];
 	if (c->topConstraint != nil)
 		[c->topConstraint setConstant:-margin];
-	if (c->trailingConstraint != nil)
-		[c->trailingConstraint setConstant:margin];
-	if (c->bottomConstraint != nil)
-		[c->bottomConstraint setConstant:margin];
+	if (c->trailingConstraintGreater != nil)
+		[c->trailingConstraintGreater setConstant:margin];
+	if (c->trailingConstraintEqual != nil)
+		[c->trailingConstraintEqual setConstant:margin];
+	if (c->bottomConstraintGreater != nil)
+		[c->bottomConstraintGreater setConstant:margin];
+	if (c->bottomConstraintEqual != nil)
+		[c->bottomConstraintEqual setConstant:margin];
 }
 
 // from http://blog.bjhomer.com/2014/08/nsscrollview-and-autolayout.html because (as pointed out there) Apple's official guide is really only for iOS

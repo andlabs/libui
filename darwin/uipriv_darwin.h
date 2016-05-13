@@ -61,8 +61,10 @@ extern void jiggleViewLayout(NSView *view);
 struct singleChildConstraints {
 	NSLayoutConstraint *leadingConstraint;
 	NSLayoutConstraint *topConstraint;
-	NSLayoutConstraint *trailingConstraint;
-	NSLayoutConstraint *bottomConstraint;
+	NSLayoutConstraint *trailingConstraintGreater;
+	NSLayoutConstraint *trailingConstraintEqual;
+	NSLayoutConstraint *bottomConstraintGreater;
+	NSLayoutConstraint *bottomConstraintEqual;
 };
 extern void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc);
 extern void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv);

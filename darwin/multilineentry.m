@@ -9,7 +9,6 @@
 
 @implementation intrinsicSizeTextView
 
-// TODO does this prevent shrinking horizontally?
 - (NSSize)intrinsicContentSize
 {
 	NSTextContainer *textContainer;
@@ -162,6 +161,9 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	[e->sv setDocumentView:e->tv];
 	[e->tv setTranslatesAutoresizingMaskIntoConstraints:NO];
 	scrollViewConstraintsEstablish(&(e->constraints), e->sv, @"uiMultilineEntry");
+	// needed to allow horizontal shrinking
+	// TODO what about vertical text?
+	[e->tv setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow forOrientation:NSLayoutConstraintOrientationHorizontal];
 
 //TODO:void printinfo(NSScrollView *sv, NSTextView *tv);
 //printinfo(e->sv, e->tv);

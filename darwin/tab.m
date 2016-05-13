@@ -1,6 +1,9 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
+// TODOs
+// - page 2 tab doesn't lay out properly at first; need to jiggle on page change too :S
+
 @interface tabPage : NSObject {
 	struct singleChildConstraints constraints;
 	int margined;
@@ -8,6 +11,8 @@
 	NSObject *pageID;
 }
 @property uiControl *c;
+@property NSLayoutPriority oldHorzHuggingPri;
+@property NSLayoutPriority oldVertHuggingPri;
 - (id)initWithView:(NSView *)v pageID:(NSObject *)o;
 - (NSView *)childView;
 - (void)establishChildConstraints;
@@ -193,6 +198,13 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	pageID = [NSObject new];
 	page = [[tabPage alloc] initWithView:view pageID:pageID];
 	page.c = child;
+
+	// don't hug, just in case we're a stretchy tab
+	page.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(page.c), NSLayoutConstraintOrientationHorizontal);
+	page.oldVertHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(page.c), NSLayoutConstraintOrientationVertical);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
+
 	[t->pages insertObject:page atIndex:n];
 	[page release];			// no need for initial reference
 
@@ -215,6 +227,10 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 	NSTabViewItem *i;
 
 	page = (tabPage *) [t->pages objectAtIndex:n];
+
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), page.oldHorzHuggingPri, NSLayoutConstraintOrientationHorizontal);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), page.oldVertHuggingPri, NSLayoutConstraintOrientationVertical);
+
 	child = page.c;
 	[page removeChildConstraints];
 	[t->pages removeObjectAtIndex:n];

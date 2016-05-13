@@ -7,6 +7,8 @@ struct uiGroup {
 	uiDarwinControl c;
 	NSBox *box;
 	uiControl *child;
+	NSLayoutPriority oldHorzHuggingPri;
+	NSLayoutPriority oldVertHuggingPri;
 	int margined;
 	struct singleChildConstraints constraints;
 	NSLayoutPriority horzHuggingPri;
@@ -135,9 +137,10 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 
 	if (g->child != NULL) {
 		removeConstraints(g);
-		childView = (NSView *) uiControlHandle(g->child);
-		[childView removeFromSuperview];
+		uiDarwinControlSetHuggingPriority(uiDarwinControl(g->child), g->oldHorzHuggingPri, NSLayoutConstraintOrientationHorizontal);
+		uiDarwinControlSetHuggingPriority(uiDarwinControl(g->child), g->oldVertHuggingPri, NSLayoutConstraintOrientationVertical);
 		uiControlSetParent(g->child, NULL);
+		uiDarwinControlSetSuperview(uiDarwinControl(g->child), nil);
 	}
 	g->child = child;
 	if (g->child != NULL) {
@@ -145,6 +148,11 @@ void uiGroupSetChild(uiGroup *g, uiControl *child)
 		uiControlSetParent(g->child, uiControl(g));
 		uiDarwinControlSetSuperview(uiDarwinControl(g->child), [g->box contentView]);
 		uiDarwinControlSyncEnableState(uiDarwinControl(g->child), uiControlEnabledToUser(uiControl(g)));
+		// don't hug, just in case we're a stretchy group
+		g->oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(g->child), NSLayoutConstraintOrientationHorizontal);
+		g->oldVertHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(g->child), NSLayoutConstraintOrientationVertical);
+		uiDarwinControlSetHuggingPriority(uiDarwinControl(g->child), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal);
+		uiDarwinControlSetHuggingPriority(uiDarwinControl(g->child), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
 	}
 	groupRelayout(g);
 }

@@ -26,6 +26,7 @@ static HRESULT d2dScratchDoPaint(HWND hwnd, ID2D1RenderTarget *rt)
 	bgcolor.r = ((float) GetRValue(bgcolorref)) / 255.0;
 	// due to utter apathy on Microsoft's part, GetGValue() does not work with MSVC's Run-Time Error Checks
 	// it has not worked since 2008 and they have *never* fixed it
+	// TODO now that -RTCc has just been deprecated entirely, should we switch back?
 	bgcolor.g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
 	bgcolor.b = ((float) GetBValue(bgcolorref)) / 255.0;
 	bgcolor.a = 1.0;

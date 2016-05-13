@@ -37,7 +37,6 @@ static CGFloat margins(int margined)
 void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc)
 {
 	CGFloat margin;
-	NSLayoutRelation relation;
 
 	margin = margins(margined);
 

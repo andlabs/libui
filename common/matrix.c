@@ -13,34 +13,22 @@ void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
 	m->M32 = 0;
 }
 
-// TODO don't default to fallback functions within the fallback functions
+// The rest of this file provides basic utilities in case the platform doesn't provide any of its own for these tasks.
+// Keep these as minimal as possible. They should generally not call other fallbacks.
 
 // see https://msdn.microsoft.com/en-us/library/windows/desktop/ff684171%28v=vs.85%29.aspx#skew_transform
-// TODO if Windows 7 is ever dropped change this so we can pass in D2D1Tan()
+// TODO see if there's a way we can avoid the multiplication
 void fallbackSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
 {
 	uiDrawMatrix n;
 
-	setIdentity(&n);
+	uiDrawMatrixSetIdentity(&n);
 	// TODO explain this
 	n.M12 = tan(yamount);
 	n.M21 = tan(xamount);
 	n.M31 = -y * tan(xamount);
 	n.M32 = -x * tan(yamount);
-	fallbackMultiply(m, &n);
-}
-
-// see windows/draw.c for more information
-// TODO we don't need to do this if we can bypass the multiplication somehow
-
-void fallbackTranslate(uiDrawMatrix *m, double x, double y)
-{
-	uiDrawMatrix m2;
-
-	setIdentity(&m2);
-	m2.M31 = x;
-	m2.M32 = y;
-	fallbackMultiply(m, &m2);
+	uiDrawMatrixMultiply(m, &n);
 }
 
 void scaleCenter(double xCenter, double yCenter, double *x, double *y)
@@ -49,57 +37,14 @@ void scaleCenter(double xCenter, double yCenter, double *x, double *y)
 	*y = yCenter - (*y * yCenter);
 }
 
-void fallbackScale(uiDrawMatrix *m, double xCenter, double yCenter, double x, double y)
+// the basic algorithm is from cairo
+// but it's the same algorithm as the transform point, just without M31 and M32 taken into account, so let's just do that instead
+void fallbackTransformSize(uiDrawMatrix *m, double *x, double *y)
 {
 	uiDrawMatrix m2;
 
-	setIdentity(&m2);
-	m2.M11 = x;
-	m2.M22 = y;
-	scaleCenter(xCenter, yCenter, &x, &y);
-	m2.M31 = x;
-	m2.M32 = y;
-	fallbackMultiply(m, &m2);
-}
-
-void fallbackMultiply(uiDrawMatrix *dest, uiDrawMatrix *src)
-{
-	uiDrawMatrix out;
-
-	out.M11 = (dest->M11 * src->M11) +
-		(dest->M12 * src->M21);
-	out.M12 = (dest->M11 * src->M12) +
-		(dest->M12 * src->M22);
-	out.M21 = (dest->M21 * src->M11) +
-		(dest->M22 * src->M21);
-	out.M22 = (dest->M21 * src->M12) +
-		(dest->M22 * src->M22);
-	out.M31 = (dest->M31 * src->M11) +
-		(dest->M32 * src->M21) +
-		src->M31;
-	out.M32 = (dest->M31 * src->M12) +
-		(dest->M32 * src->M22) +
-		src->M32;
-	*dest = out;
-}
-
-void fallbackTransformPoint(uiDrawMatrix *m, double *x, double *y)
-{
-	double xout, yout;
-
-	xout = (*x * m->M11) + (*y * m->M21) + m->M31;
-	yout = (*x * m->M12) + (*y * m->M22) + m->M32;
-	*x = xout;
-	*y = yout;
-}
-
-// and this algorithm is according to cairo
-void fallbackTransformSize(uiDrawMatrix *m, double *x, double *y)
-{
-	double xout, yout;
-
-	xout = (*x * m->M11) + (*y * m->M21);
-	yout = (*x * m->M12) + (*y * m->M22);
-	*x = xout;
-	*y = yout;
+	m2 = *m;
+	m2.M31 = 0;
+	m2.M32 = 0;
+	uiDrawMatrixTransformPoint(&m2, x, y);
 }

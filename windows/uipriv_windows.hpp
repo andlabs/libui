@@ -53,8 +53,6 @@ extern HRESULT _logLastError(debugargs, const WCHAR *s);
 #define logLastError(s) _logLastError(_ws(__FILE__), _wsn(__LINE__), _ws(__FUNCTION__), s)
 extern HRESULT _logHRESULT(debugargs, const WCHAR *s, HRESULT hr);
 #define logHRESULT(s, hr) _logHRESULT(_ws(__FILE__), _wsn(__LINE__), _ws(__FUNCTION__), s, hr)
-extern void _implbug(debugargs, const WCHAR *format, ...);
-#define implbug(...) _implbug(_ws(__FILE__), _wsn(__LINE__), _ws(__FUNCTION__), __VA_ARGS__)
 
 // winutil.cpp
 extern int windowClassOf(HWND hwnd, ...);

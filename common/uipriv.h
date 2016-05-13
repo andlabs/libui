@@ -12,7 +12,10 @@ extern void *uiAlloc(size_t, const char *);
 extern void *uiRealloc(void *, size_t, const char *);
 extern void uiFree(void *);
 
-extern void complain(const char *, ...);
+extern void _implbug(const char *file, const char *line, const char *func, const char *format, ...);
+#define implbug(...) _implbug(__FILE__, #__LINE__, __func__, __VA_ARGS__)
+extern void _userbug(const char *file, const char *line, const char *func, const char *format, ...);
+#define userbug(...) _implbug(__FILE__, #__LINE__, __func__, __VA_ARGS__)
 
 // control.c
 extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr);

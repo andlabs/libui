@@ -161,7 +161,6 @@ struct uiBox {
 	CGFloat padding;
 	NSView *prev;
 	NSLayoutConstraint *c;
-	NSLayoutRelation relation;
 	BOOL (*hugsSecondary)(uiDarwinControl *);
 
 	[self removeOurConstraints];
@@ -213,14 +212,22 @@ struct uiBox {
 			@"uiBox secondary start constraint");
 		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
-		relation = NSLayoutRelationLessThanOrEqual;
-		if ((*hugsSecondary)(uiDarwinControl(bc.c)))
-			relation = NSLayoutRelationEqual;
 		c = mkConstraint([bc view], self->secondaryEnd,
-			relation,
+			NSLayoutRelationLessThanOrEqual,
 			self, self->secondaryEnd,
 			1, 0,
-			@"uiBox secondary end constraint");
+			@"uiBox secondary end <= constraint");
+		if ((*hugsSecondary)(uiDarwinControl(bc.c)))
+			[c setPriority:NSLayoutPriorityDefaultLow];
+		[self addConstraint:c];
+		[self->otherConstraints addObject:c];
+		c = mkConstraint([bc view], self->secondaryEnd,
+			NSLayoutRelationEqual,
+			self, self->secondaryEnd,
+			1, 0,
+			@"uiBox secondary end == constraint");
+		if (!(*hugsSecondary)(uiDarwinControl(bc.c)))
+			[c setPriority:NSLayoutPriorityDefaultLow];
 		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
 	}

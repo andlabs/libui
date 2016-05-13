@@ -127,8 +127,6 @@ char *uiGroupTitle(uiGroup *g)
 void uiGroupSetTitle(uiGroup *g, const char *title)
 {
 	[g->box setTitle:toNSString(title)];
-	// changing the text might necessitate a change in the groupbox's size
-	uiDarwinControlTriggerRelayout(uiDarwinControl(g));
 }
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)

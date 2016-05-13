@@ -3,7 +3,7 @@
 #include "../ui.h"
 #include "uipriv.h"
 
-void setIdentity(uiDrawMatrix *m)
+void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
 {
 	m->M11 = 1;
 	m->M12 = 0;

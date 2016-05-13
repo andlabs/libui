@@ -22,11 +22,6 @@ static void c2m(cairo_matrix_t *c, uiDrawMatrix *m)
 	m->M32 = c->y0;
 }
 
-void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
-{
-	setIdentity(m);
-}
-
 void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 {
 	cairo_matrix_t c;

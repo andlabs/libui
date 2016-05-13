@@ -22,11 +22,6 @@ static void d2m(D2D1_MATRIX_3X2_F *d, uiDrawMatrix *m)
 	m->M32 = d->_32;
 }
 
-void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
-{
-	setIdentity(m);
-}
-
 void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 {
 	D2D1_MATRIX_3X2_F dm;

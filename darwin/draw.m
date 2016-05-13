@@ -312,12 +312,6 @@ static void c2m(CGAffineTransform *c, uiDrawMatrix *m)
 	m->M32 = c->ty;
 }
 
-// TODO get rid of the separate setIdentity()
-void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
-{
-	setIdentity(m);
-}
-
 void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 {
 	CGAffineTransform c;

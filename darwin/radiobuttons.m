@@ -34,8 +34,6 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	[r->matrix setAllowsEmptySelection:YES];
 	[r->matrix selectCellAtRow:prevSelection column:0];
 	[r->matrix setAllowsEmptySelection:NO];
-
-	uiDarwinControlTriggerRelayout(uiDarwinControl(r));
 }
 
 uiRadioButtons *uiNewRadioButtons(void)

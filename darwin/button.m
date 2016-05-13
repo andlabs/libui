@@ -76,8 +76,6 @@ char *uiButtonText(uiButton *b)
 void uiButtonSetText(uiButton *b, const char *text)
 {
 	[b->button setTitle:toNSString(text)];
-	// this may result in the size of the button changing
-	uiDarwinControlTriggerRelayout(uiDarwinControl(b));
 }
 
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)

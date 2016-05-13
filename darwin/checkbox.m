@@ -1,8 +1,6 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
-// TODO the intrinsic height of this seems to be wacky
-
 struct uiCheckbox {
 	uiDarwinControl c;
 	NSButton *button;
@@ -78,10 +76,6 @@ char *uiCheckboxText(uiCheckbox *c)
 void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
 	[c->button setTitle:toNSString(text)];
-	// this may result in the size of the checkbox changing
-	// TODO something somewhere is causing this to corrupt some memory so that, for instance, page7b's mouseExited: never triggers on 10.11; figure out what
-	// TODO is this related to map-related crashes?
-	uiDarwinControlTriggerRelayout(uiDarwinControl(c));
 }
 
 void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)

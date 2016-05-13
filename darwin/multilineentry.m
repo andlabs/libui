@@ -1,10 +1,48 @@
 // 8 december 2015
 #import "uipriv_darwin.h"
 
+// NSTextView has no intrinsic content size by default, which wreaks havoc on a pure-Auto Layout system
+// we'll have to take over to get it to work
+// see also http://stackoverflow.com/questions/24210153/nstextview-not-properly-resizing-with-auto-layout and http://stackoverflow.com/questions/11237622/using-autolayout-with-expanding-nstextviews
+@interface intrinsicSizeTextView : NSTextView
+@end
+
+@implementation intrinsicSizeTextView
+
+// TODO does this prevent shrinking horizontally?
+- (NSSize)intrinsicContentSize
+{
+	NSTextContainer *textContainer;
+	NSLayoutManager *layoutManager;
+	NSRect rect;
+
+	textContainer = [self textContainer];
+	layoutManager = [self layoutManager];
+	[layoutManager ensureLayoutForTextContainer:textContainer];
+	rect = [layoutManager usedRectForTextContainer:textContainer];
+	return rect.size;
+}
+
+- (void)didChangeText
+{
+	[super didChangeText];
+	[self invalidateIntrinsicContentSize];
+}
+
+// TODO this doesn't call the above?
+// TODO this also isn't perfect; play around with cpp-multithread
+- (void)setString:(NSString *)str
+{
+	[super setString:str];
+	[self didChangeText];
+}
+
+@end
+
 struct uiMultilineEntry {
 	uiDarwinControl c;
 	NSScrollView *sv;
-	NSTextView *tv;
+	intrinsicSizeTextView *tv;
 	void (*onChanged)(uiMultilineEntry *, void *);
 	void *onChangedData;
 	struct scrollViewConstraints constraints;
@@ -78,7 +116,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	[e->sv setAutohidesScrollers:YES];
 	[e->sv setBorderType:NSBezelBorder];
 
-	e->tv = [[NSTextView alloc] initWithFrame:NSZeroRect];
+	e->tv = [[intrinsicSizeTextView alloc] initWithFrame:NSZeroRect];
 	// verified against Interface Builder, except for rich text options
 	[e->tv setAllowsDocumentBackgroundColorChange:NO];
 	[e->tv setBackgroundColor:[NSColor textBackgroundColor]];

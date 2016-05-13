@@ -19,7 +19,8 @@ NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRela
 }
 
 // this is needed for NSSplitView to work properly; see http://stackoverflow.com/questions/34574478/how-can-i-set-the-position-of-a-nssplitview-nowadays-setpositionofdivideratind (stal in irc.freenode.net/#macdev came up with the exact combination)
-// turns out it also works on NSTabView too, possibly others!
+// turns out it also works on NSTabView and NSBox too, possibly others!
+// and for bonus points, it even seems to fix unsatisfiable-constraint-autoresizing-mask issues with NSTabView and NSBox too!!! this is nuts
 void jiggleViewLayout(NSView *view)
 {
 	[view setNeedsLayout:YES];

@@ -75,12 +75,10 @@ void uiFreeControl(uiControl *c)
 	uiFree(c);
 }
 
-// TODO except where noted, replace complain() with userbug()
-
 void uiControlVerifyDestroy(uiControl *c)
 {
 	if (uiControlParent(c) != NULL)
-		complain("attempt to destroy uiControl %p while it has a parent", c);
+		userbug("You cannot destroy a uiControl while it still has a parent. (control: %p)", c);
 }
 
 void uiControlVerifySetParent(uiControl *c, uiControl *parent)
@@ -88,13 +86,12 @@ void uiControlVerifySetParent(uiControl *c, uiControl *parent)
 	uiControl *curParent;
 
 	if (uiControlToplevel(c))
-		complain("cannot set a parent on a toplevel (uiWindow)");
+		userbug("You cannot give a toplevel uiControl a parent. (control: %p)", c);
 	curParent = uiControlParent(c);
 	if (parent != NULL && curParent != NULL)
-		complain("attempt to reparent uiControl %p (has parent %p, attempt to give parent %p)", c, curParent, parent);
+		userbug("You cannot give a uiControl a parent while it already has one. (control: %p; current parent: %p; new parent: %p)", c, curParent, parent);
 	if (parent == NULL && curParent == NULL)
-		// TODO implbug()
-		complain("attempt to double unparent uiControl %p — likely an implementation bug ", c);
+		implbug("attempt to double unparent uiControl %p", c);
 }
 
 int uiControlEnabledToUser(uiControl *c)

@@ -23,7 +23,7 @@ CXXFLAGS += \
 LDFLAGS += \
 	-fPIC
 
-ifneq ($(NODEBUG),1)
+ifneq ($(RELEASE),1)
 	CFLAGS += -g
 	CXXFLAGS += -g
 	LDFLAGS += -g

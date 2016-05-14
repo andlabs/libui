@@ -25,8 +25,8 @@ ifndef OS
 endif
 
 # default is to build with debug symbols
-ifndef NODEBUG
-	NODEBUG = 0
+ifndef RELEASE
+	RELEASE = 0
 endif
 
 # parameters
@@ -36,7 +36,7 @@ export CFLAGS
 export CXXFLAGS
 # TODO RCFLAGS
 export LDFLAGS
-export NODEBUG
+export RELEASE
 export EXAMPLE
 export PREFIX
 

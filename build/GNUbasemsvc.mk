@@ -48,7 +48,7 @@ CXXFLAGS += \
 LDFLAGS += \
 	-largeaddressaware -nologo -incremental:no
 
-ifneq ($(NODEBUG),1)
+ifneq ($(RELEASE),1)
 	CFLAGS += -Zi
 	CXXFLAGS += -Zi
 	LDFLAGS += -debug
@@ -76,7 +76,7 @@ $(OUT): $(OFILES) | $(OUTDIR)
 
 # TODO can we put /Fd$@.pdb in a variable?
 $(OBJDIR)/%.c.o: $$(subst _,/,%).c $(HFILES) | $(OBJDIR)
-ifeq ($(NODEBUG),1)
+ifeq ($(RELEASE),1)
 	@cl -Fo:$@ -c $< $(CFLAGS)
 else
 	@cl -Fo:$@ -c $< $(CFLAGS) -Fd$@.pdb
@@ -84,7 +84,7 @@ endif
 	@echo ====== Compiled $<
 
 $(OBJDIR)/%.cpp.o: $$(subst _,/,%).cpp $(HFILES) | $(OBJDIR)
-ifeq ($(NODEBUG),1)
+ifeq ($(RELEASE),1)
 	@cl -Fo:$@ -c $< $(CXXFLAGS)
 else
 	@cl -Fo:$@ -c $< $(CXXFLAGS) -Fd$@.pdb

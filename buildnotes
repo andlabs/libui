@@ -19,7 +19,7 @@ The build-time settings are
 		compiler flags
 		this is where you can specify -m32 or -m64, for instance
 		Objective-C uses $(CFLAGS)
-	NODEBUG=xxx
+	RELEASE=xxx
 		set to 1 to disable debug symbols
 		must be 1, any other value means "include debug symbols"
 	PREFIX=xxx

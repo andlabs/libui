@@ -37,6 +37,9 @@ ifeq ($(TOOLCHAIN),gcc)
 	else
 		LDFLAGS += -Wl,-rpath,'$$ORIGIN'
 	endif
+	ifneq ($(findstring cpp-,$(EXAMPLE)),)
+		LDFLAGS += -pthread
+	endif
 else
 	# TODO is there an equivalent to -L?
 	LDFLAGS += $(OUTDIR)/libui.lib

@@ -485,7 +485,7 @@ uiUnixControlAllDefaults(uiArea)
 void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
 {
 	if (!a->scrolling)
-		complain("attempt to call uiAreaSetSize() on a non-scrolling uiArea");
+		userbug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
 	a->scrollWidth = width;
 	a->scrollHeight = height;
 	gtk_widget_queue_resize(a->areaWidget);

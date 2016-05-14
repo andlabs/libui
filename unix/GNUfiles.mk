@@ -10,6 +10,7 @@ CFILES += \
 	unix/combobox.c \
 	unix/control.c \
 	unix/datetimepicker.c \
+	unix/debug.c \
 	unix/draw.c \
 	unix/drawmatrix.c \
 	unix/drawpath.c \

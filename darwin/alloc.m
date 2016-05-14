@@ -43,6 +43,7 @@ void uninitAlloc(void)
 		[str appendString:[NSString stringWithFormat:@"%p %s\n", ptr, *TYPE(ptr)]];
 	}
 	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", [str UTF8String]);
+	[str release];
 }
 
 void *uiAlloc(size_t size, const char *type)

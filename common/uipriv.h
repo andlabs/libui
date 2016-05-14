@@ -19,7 +19,7 @@ extern void realbug(const char *file, const char *line, const char *func, const 
 extern void _implbug(const char *file, const char *line, const char *func, const char *format, ...);
 #define implbug(...) _implbug(__FILE__, _ns(__LINE__), __func__, __VA_ARGS__)
 extern void _userbug(const char *file, const char *line, const char *func, const char *format, ...);
-#define userbug(...) _implbug(__FILE__, _ns(__LINE__), __func__, __VA_ARGS__)
+#define userbug(...) _userbug(__FILE__, _ns(__LINE__), __func__, __VA_ARGS__)
 
 // control.c
 extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr);

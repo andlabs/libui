@@ -49,8 +49,9 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	uiSpinbox *s;
 
+	// TODO just swap?
 	if (min >= max)
-		complain("error: min >= max in uiNewSpinbox()");
+		userbug("min >= max not allowed in uiNewSpinbox().");
 
 	uiUnixNewControl(uiSpinbox, s);
 

@@ -9,7 +9,7 @@ void realbug(const char *file, const char *line, const char *func, const char *p
 	NSString *formatted;
 
 	str = [NSMutableString new];
-	[str appendString:[NSString stringWithFormat:@"[libui] %s:%s:%s %s", file, line, func, prefix]];
+	[str appendString:[NSString stringWithFormat:@"[libui] %s:%s:%s() %s", file, line, func, prefix]];
 	formatted = [[NSString alloc] initWithFormat:[NSString stringWithUTF8String:format] arguments:ap];
 	[str appendString:formatted];
 	[formatted release];

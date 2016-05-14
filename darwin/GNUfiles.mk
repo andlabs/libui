@@ -11,9 +11,9 @@ MFILES += \
 	darwin/combobox.m \
 	darwin/control.m \
 	darwin/datetimepicker.m \
+	darwin/debug.m \
 	darwin/draw.m \
 	darwin/drawtext.m \
-	darwin/debug.m \
 	darwin/entry.m \
 	darwin/fontbutton.m \
 	darwin/group.m \

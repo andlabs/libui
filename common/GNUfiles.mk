@@ -3,6 +3,7 @@
 CFILES += \
 	common/areaevents.c \
 	common/control.c \
+	common/debug.c \
 	common/matrix.c \
 	common/shouldquit.c
 

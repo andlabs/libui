@@ -76,7 +76,7 @@ void *uiRealloc(void *p, size_t new, const char *type)
 void uiFree(void *p)
 {
 	if (p == NULL)
-		implbug("attempt to uiFree(NULL); there's a bug somewhere");
+		implbug("attempt to uiFree(NULL)");
 	p = BASE(p);
 	g_free(p);
 	if (g_ptr_array_remove(allocations, p) == FALSE)

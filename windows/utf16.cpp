@@ -60,13 +60,22 @@ WCHAR *utf16dup(const WCHAR *orig)
 	return out;
 }
 
-// if recursing is TRUE, do NOT recursively call wstrf() in logHRESULT()
-static WCHAR *strfcore(BOOL recursing, const WCHAR *format, va_list ap)
+WCHAR *strf(const WCHAR *format, ...)
+{
+	va_list ap;
+	WCHAR *str;
+
+	va_start(ap, format);
+	str = vstrf(format, ap);
+	va_end(ap);
+	return str;
+}
+
+WCHAR *vstrf(const WCHAR *format, va_list ap)
 {
 	va_list ap2;
 	WCHAR *buf;
 	size_t n;
-	HRESULT hr;
 
 	if (*format == L'\0')
 		return emptyUTF16();
@@ -81,38 +90,6 @@ static WCHAR *strfcore(BOOL recursing, const WCHAR *format, va_list ap)
 	vswprintf_s(buf, n, format, ap);
 
 	return buf;
-}
-
-WCHAR *strf(const WCHAR *format, ...)
-{
-	va_list ap;
-	WCHAR *str;
-
-	va_start(ap, format);
-	str = vstrf(format, ap);
-	va_end(ap);
-	return str;
-}
-
-WCHAR *vstrf(const WCHAR *format, va_list ap)
-{
-	return strfcore(FALSE, format, ap);
-}
-
-WCHAR *debugstrf(const WCHAR *format, ...)
-{
-	va_list ap;
-	WCHAR *str;
-
-	va_start(ap, format);
-	str = debugvstrf(format, ap);
-	va_end(ap);
-	return str;
-}
-
-WCHAR *debugvstrf(const WCHAR *format, va_list ap)
-{
-	return strfcore(TRUE, format, ap);
 }
 
 // Let's shove these utility routines here too.

@@ -35,8 +35,6 @@ extern char *toUTF8(const WCHAR *wstr);
 extern WCHAR *utf16dup(const WCHAR *orig);
 extern WCHAR *strf(const WCHAR *format, ...);
 extern WCHAR *vstrf(const WCHAR *format, va_list ap);
-extern WCHAR *debugstrf(const WCHAR *format, ...);
-extern WCHAR *debugvstrf(const WCHAR *format, va_list ap);
 extern char *LFtoCRLF(const char *lfonly);
 extern void CRLFtoLF(const char *s);
 

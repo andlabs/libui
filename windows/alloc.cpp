@@ -60,7 +60,7 @@ void uiFree(void *_p)
 	uint8_t *p = (uint8_t *) _p;
 
 	if (p == NULL)
-		complain("attempt to uiFree(NULL); there's a bug somewhere");
+		implbug("attempt to uiFree(NULL)");
 	types.erase(heap[p]);
 	delete heap[p];
 	heap.erase(p);

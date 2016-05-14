@@ -26,7 +26,7 @@ void uiDrawFreePath(uiDrawPath *p)
 void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 {
 	if (p->ended)
-		complain("attempt to add figure to ended path in uiDrawPathNewFigure()");
+		userbug("You cannot call uiDrawPathNewFigure() on a uiDrawPath that has already been ended. (path; %p)", p);
 	CGPathMoveToPoint(p->path, NULL, x, y);
 }
 
@@ -36,7 +36,7 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 	double startx, starty;
 
 	if (p->ended)
-		complain("attempt to add figure to ended path in uiDrawPathNewFigureWithArc()");
+		userbug("You cannot call uiDrawPathNewFigureWithArc() on a uiDrawPath that has already been ended. (path; %p)", p);
 	sinStart = sin(startAngle);
 	cosStart = cos(startAngle);
 	startx = xCenter + radius * cosStart;
@@ -47,8 +47,9 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 
 void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 {
+	// TODO refine this to require being in a path
 	if (p->ended)
-		complain("attempt to add line to ended path in uiDrawPathLineTo()");
+		implbug("attempt to add line to ended path in uiDrawPathLineTo()");
 	CGPathAddLineToPoint(p->path, NULL, x, y);
 }
 
@@ -56,8 +57,9 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 {
 	bool cw;
 
+	// TODO likewise
 	if (p->ended)
-		complain("attempt to add arc to ended path in uiDrawPathArcTo()");
+		implbug("attempt to add arc to ended path in uiDrawPathArcTo()");
 	if (sweep > 2 * M_PI)
 		sweep = 2 * M_PI;
 	cw = false;
@@ -72,8 +74,9 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 
 void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, double c2y, double endX, double endY)
 {
+	// TODO likewise
 	if (p->ended)
-		complain("attempt to add bezier to ended path in uiDrawPathBezierTo()");
+		implbug("attempt to add bezier to ended path in uiDrawPathBezierTo()");
 	CGPathAddCurveToPoint(p->path, NULL,
 		c1x, c1y,
 		c2x, c2y,
@@ -82,15 +85,16 @@ void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, doubl
 
 void uiDrawPathCloseFigure(uiDrawPath *p)
 {
+	// TODO likewise
 	if (p->ended)
-		complain("attempt to close figure of ended path in uiDrawPathCloseFigure()");
+		implbug("attempt to close figure of ended path in uiDrawPathCloseFigure()");
 	CGPathCloseSubpath(p->path);
 }
 
 void uiDrawPathAddRectangle(uiDrawPath *p, double x, double y, double width, double height)
 {
 	if (p->ended)
-		complain("attempt to add rectangle to ended path in uiDrawPathAddRectangle()");
+		userbug("You cannot call uiDrawPathAddRectangle() on a uiDrawPath that has already been ended. (path; %p)", p);
 	CGPathAddRect(p->path, NULL, CGRectMake(x, y, width, height));
 }
 
@@ -132,7 +136,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 	uiDrawPath p2;
 
 	if (!path->ended)
-		complain("path not ended in uiDrawStroke()");
+		userbug("You cannot call uiDrawStroke() on a uiDrawPath that has not been ended. (path: %p)", path);
 
 	switch (p->Cap) {
 	case uiDrawLineCapFlat:
@@ -275,7 +279,7 @@ static void fillGradient(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 void uiDrawFill(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b)
 {
 	if (!path->ended)
-		complain("path not ended in uiDrawFill()");
+		userbug("You cannot call uiDrawStroke() on a uiDrawPath that has not been ended. (path: %p)", path);
 	CGContextAddPath(c->c, (CGPathRef) (path->path));
 	switch (b->Type) {
 	case uiDrawBrushTypeSolid:
@@ -289,7 +293,7 @@ void uiDrawFill(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b)
 		// TODO
 		return;
 	}
-	complain("unknown brush type %d in uiDrawFill()", b->Type);
+	userbug("Unknown brush type %d passed to uiDrawFill().", b->Type);
 }
 
 static void m2c(uiDrawMatrix *m, CGAffineTransform *c)
@@ -421,7 +425,7 @@ void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 {
 	if (!path->ended)
-		complain("path not ended in uiDrawClip()");
+		userbug("You cannot call uiDrawCilp() on a uiDrawPath that has not been ended. (path: %p)", path);
 	CGContextAddPath(c->c, (CGPathRef) (path->path));
 	switch (path->fillMode) {
 	case uiDrawFillModeWinding:

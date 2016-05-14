@@ -22,7 +22,7 @@ struct mapTable *newMap(void)
 void mapDestroy(struct mapTable *m)
 {
 	if ([m->m count] != 0)
-		complain("attempt to destroy map with items inside; did you forget to deallocate something?");
+		implbug("attempt to destroy map with items inside");
 	[m->m release];
 	uiFree(m);
 }

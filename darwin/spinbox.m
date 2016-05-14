@@ -183,8 +183,9 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	uiSpinbox *s;
 
+	// TODO implicitly swap instead?
 	if (min >= max)
-		complain("error: min >= max in uiNewSpinbox()");
+		userbug("min >= max is invalid for a uiSpinbox.");
 
 	uiDarwinNewControl(uiSpinbox, s);
 

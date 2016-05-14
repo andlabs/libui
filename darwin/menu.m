@@ -69,17 +69,17 @@ enum {
 	switch (smi->type) {
 	case typeQuit:
 		if (self->hasQuit)
-			complain("attempt to add multiple Quit menu items");
+			userbug("You can't have multiple Quit menu items in one program.");
 		self->hasQuit = YES;
 		break;
 	case typePreferences:
 		if (self->hasPreferences)
-			complain("attempt to add multiple Preferences menu items");
+			userbug("You can't have multiple Preferences menu items in one program.");
 		self->hasPreferences = YES;
 		break;
 	case typeAbout:
 		if (self->hasAbout)
-			complain("attempt to add multiple About menu items");
+			userbug("You can't have multiple About menu items in one program.");
 		self->hasAbout = YES;
 		break;
 	}
@@ -200,7 +200,7 @@ void uiMenuItemDisable(uiMenuItem *item)
 void uiMenuItemOnClicked(uiMenuItem *item, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)
 {
 	if (item->type == typeQuit)
-		complain("attempt to call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead");
+		userbug("You can't call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead.");
 	item->onClicked = f;
 	item->onClickedData = data;
 }
@@ -225,7 +225,7 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 	uiMenuItem *item;
 
 	if (menusFinalized)
-		complain("attempt to create a new menu item after menus have been finalized");
+		userbug("You can't create a new menu item after menus have been finalized.");
 
 	item = uiNew(uiMenuItem);
 
@@ -297,7 +297,7 @@ uiMenu *uiNewMenu(const char *name)
 	uiMenu *m;
 
 	if (menusFinalized)
-		complain("attempt to create a new menu after menus have been finalized");
+		userbug("You can't create a new menu after menus have been finalized.");
 	if (menus == nil)
 		menus = [NSMutableArray new];
 

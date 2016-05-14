@@ -1,6 +1,9 @@
 // 6 september 2015
 #import "uipriv_darwin.h"
 
+// TODO
+#define complain(...) implbug(__VA_ARGS__)
+
 // TODO for all relevant routines, make sure we are freeing memory correctly
 // TODO make sure allocation failures throw exceptions?
 struct uiDrawFontFamilies {
@@ -15,7 +18,7 @@ uiDrawFontFamilies *uiDrawListFontFamilies(void)
 	// TODO is there a way to get an error reason?
 	ff->fonts = CTFontManagerCopyAvailableFontFamilyNames();
 	if (ff->fonts == NULL)
-		complain("error getting available font names (no reason specified)");
+		implbug("error getting available font names (no reason specified) (TODO)");
 	return ff;
 }
 

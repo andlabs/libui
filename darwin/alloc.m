@@ -22,7 +22,9 @@ void initAlloc(void)
 
 void uninitAlloc(void)
 {
+	NSMutableString *str;
 	NSUInteger i;
+	NSValue *v;
 
 	// delegates might have mapTables allocated
 	// TODO verify they are empty
@@ -33,16 +35,14 @@ void uninitAlloc(void)
 		[allocations release];
 		return;
 	}
-	fprintf(stderr, "[libui] leaked allocations:\n");
-	[allocations enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		NSValue *v;
+	str = [NSMutableString new];
+	for (v in allocations) {
 		void *ptr;
 
-		v = (NSValue *) obj;
 		ptr = [v pointerValue];
-		fprintf(stderr, "[libui] %p %s\n", ptr, *TYPE(ptr));
-	}];
-	complain("either you left something around or there's a bug in libui");
+		[str appendString:[NSString stringWithFormat:@"%p %s\n", ptr, *TYPE(ptr)]];
+	}
+	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", [str UTF8String]);
 }
 
 void *uiAlloc(size_t size, const char *type)
@@ -86,7 +86,7 @@ void *uiRealloc(void *p, size_t new, const char *type)
 void uiFree(void *p)
 {
 	if (p == NULL)
-		complain("attempt to uiFree(NULL); there's a bug somewhere");
+		implbug("attempt to uiFree(NULL)");
 	p = BASE(p);
 	free(p);
 	[allocations removeObject:[NSValue valueWithPointer:p]];

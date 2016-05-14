@@ -48,7 +48,7 @@ static BOOL canQuit = NO;
 	NSEvent *e;
 
 	if (!canQuit)
-		complain("call to [NSApp terminate:] when not ready to terminate");
+		implbug("call to [NSApp terminate:] when not ready to terminate; definitely contact andlabs");
 
 	[realNSApp() stop:realNSApp()];
 	// stop: won't register until another event has passed; let's synthesize one

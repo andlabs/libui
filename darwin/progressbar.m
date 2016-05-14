@@ -11,7 +11,7 @@ uiDarwinControlAllDefaults(uiProgressBar, pi)
 void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
 	if (value < 0 || value > 100)
-		complain("value %d out of range in progressbarSetValue()", value);
+		userbug("Value %d out of range for a uiProgressBar.", value);
 	// on 10.8 there's an animation when the progress bar increases, just like with Aero
 	if (value == 100) {
 		[p->pi setMaxValue:101];

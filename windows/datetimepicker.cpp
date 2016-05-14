@@ -44,7 +44,7 @@ static WCHAR *expandYear(WCHAR *dts, int n)
 				if (*p == L'\'')
 					break;
 				if (*p == L'\0')
-					complain("unterminated quote in system-provided locale date string in expandYear()");
+					implbug("unterminated quote in system-provided locale date string in expandYear()");
 				*q++ = *p;
 			}
 			// and fall through to copy the closing quote

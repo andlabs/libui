@@ -241,7 +241,6 @@ void uiDrawPathEnd(uiDrawPath *p)
 ID2D1PathGeometry *pathGeometry(uiDrawPath *p)
 {
 	if (p->sink != NULL)
-		// TODO userbug()
-		complain("path not ended");
+		userbug("You cannot draw with a uiDrawPath that was not ended. (path: %p)", p);
 	return p->path;
 }

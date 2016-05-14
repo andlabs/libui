@@ -139,7 +139,7 @@ void attrToDWriteAttr(struct dwriteAttr *attr)
 			break;
 	}
 	if (!found)
-		complain("invalid weight %d passed to attrToDWriteAttr()", attr->weight);
+		userbug("Invalid text weight %d passed to text function.", attr->weight);
 
 	found = false;
 	for (i = 0; ; i++) {
@@ -152,7 +152,7 @@ void attrToDWriteAttr(struct dwriteAttr *attr)
 			break;
 	}
 	if (!found)
-		complain("invalid italic %d passed to attrToDWriteAttr()", attr->italic);
+		userbug("Invalid text italic %d passed to text function.", attr->italic);
 
 	found = false;
 	for (i = 0; ; i++) {
@@ -165,7 +165,8 @@ void attrToDWriteAttr(struct dwriteAttr *attr)
 			break;
 	}
 	if (!found)
-		complain("invalid stretch %d passed to attrToDWriteAttr()", attr->stretch);
+		// TODO on other platforms too
+		userbug("Invalid text stretch %d passed to text function.", attr->stretch);
 }
 
 void dwriteAttrToAttr(struct dwriteAttr *attr)
@@ -204,7 +205,8 @@ void dwriteAttrToAttr(struct dwriteAttr *attr)
 			break;
 	}
 	if (!found)
-		complain("invalid italic %d passed to dwriteAttrToAttr()", attr->ditalic);
+		// these are implbug()s because users shouldn't be able to get here directly; TODO?
+		implbug("invalid italic %d passed to dwriteAttrToAttr()", attr->ditalic);
 
 	found = false;
 	for (i = 0; ; i++) {
@@ -217,7 +219,7 @@ void dwriteAttrToAttr(struct dwriteAttr *attr)
 			break;
 	}
 	if (!found)
-		complain("invalid stretch %d passed to dwriteAttrToAttr()", attr->dstretch);
+		implbug("invalid stretch %d passed to dwriteAttrToAttr()", attr->dstretch);
 }
 
 uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
@@ -242,7 +244,7 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	if (hr != S_OK)
 		logHRESULT(L"error finding font family", hr);
 	if (!exists)
-		complain("TODO family not found in uiDrawLoadClosestFont()", hr);
+		implbug("TODO family not found in uiDrawLoadClosestFont()", hr);
 	hr = collection->GetFontFamily(index, &family);
 	if (hr != S_OK)
 		logHRESULT(L"error loading font family", hr);

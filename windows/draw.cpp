@@ -95,8 +95,8 @@ void freeContext(uiDrawContext *c)
 	if (c->currentClip != NULL)
 		c->currentClip->Release();
 	if (c->states->size() != 0)
-		// TODO userbug()
-		complain("unbalanced save/restore");
+		// TODO do this on other platforms
+		userbug("You did not balance uiDrawSave() and uiDrawRestore() calls.");
 	delete c->states;
 	uiFree(c);
 }
@@ -228,7 +228,9 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 //		TODO
 	}
 
-	complain("invalid brush type %d in makeBrush()", b->Type);
+	// TODO do this on all platforms
+	userbug("Invalid brush type %d given to drawing operation.", b->Type);
+	// TODO dummy brush?
 	return NULL;		// make compiler happy
 }
 

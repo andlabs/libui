@@ -71,10 +71,10 @@ void realbug(const char *file, const char *line, const char *func, const char *p
 	va_copy(ap2, ap);
 	n = _vscprintf(format, ap2);
 	va_end(ap2);
-	n++;		// terminating L'\0'
+	n++;		// terminating '\0'
 
 	buf = (char *) uiAlloc(n * sizeof (char), "char[]");
-	// includes terminating L'\0' according to example in https://msdn.microsoft.com/en-us/library/xa1a1a6z.aspx
+	// includes terminating '\0' according to example in https://msdn.microsoft.com/en-us/library/xa1a1a6z.aspx
 	vsprintf_s(msg, n, format, ap);
 
 	final = strf(L"[libui] %hs:%hs:%hs() %hs%hs\n", file, line, func, prefix, msg);

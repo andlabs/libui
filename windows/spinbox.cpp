@@ -184,7 +184,8 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	uiSpinbox *s;
 
 	if (min >= max)
-		complain("error: min >= max in uiNewSpinbox()");
+		// TODO
+		implbug("error: min >= max in uiNewSpinbox()");
 
 	uiWindowsNewControl(uiSpinbox, s);
 

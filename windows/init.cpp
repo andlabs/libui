@@ -23,15 +23,13 @@ static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 	if (!hassysmsg)
 		sysmsg = L"";
 	wmessage = toUTF16(message + 1);
-	wout = debugstrf(L"-error initializing libui: %s; code %I32d (0x%08I32X) %s",
+	wout = strf(L"-error initializing libui: %s; code %I32d (0x%08I32X) %s",
 		wmessage,
 		value, value,
 		sysmsg);
 	uiFree(wmessage);
 	if (hassysmsg)
 		LocalFree(sysmsg);		// ignore error
-	if (wout == NULL)			// debugstrf() failed; return message raw
-		return message + 1;
 	out = toUTF8(wout);
 	uiFree(wout);
 	return out + 1;

@@ -13,6 +13,10 @@ extern void *uiAlloc(size_t, const char *);
 extern void *uiRealloc(void *, size_t, const char *);
 extern void uiFree(void *);
 
+// ugh, this was only introduced in MSVC 2015...
+#ifdef _MSC_VER
+#define __func__ __FUNCTION__
+#endif
 extern void realbug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap);
 #define _ns2(s) #s
 #define _ns(s) _ns2(s)

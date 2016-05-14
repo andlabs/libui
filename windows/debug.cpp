@@ -41,7 +41,6 @@ HRESULT _logLastError(debugargs, const WCHAR *s)
 
 HRESULT _logHRESULT(debugargs, const WCHAR *s, HRESULT hr)
 {
-	DWORD le;
 	WCHAR *msg;
 	WCHAR *formatted;
 	BOOL useFormatted;
@@ -73,7 +72,7 @@ void realbug(const char *file, const char *line, const char *func, const char *p
 	va_end(ap2);
 	n++;		// terminating '\0'
 
-	buf = (char *) uiAlloc(n * sizeof (char), "char[]");
+	msg = (char *) uiAlloc(n * sizeof (char), "char[]");
 	// includes terminating '\0' according to example in https://msdn.microsoft.com/en-us/library/xa1a1a6z.aspx
 	vsprintf_s(msg, n, format, ap);
 

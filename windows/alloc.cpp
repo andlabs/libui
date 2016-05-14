@@ -13,20 +13,15 @@ void initAlloc(void)
 
 void uninitAlloc(void)
 {
-	BOOL hasEntry;
+	std::ostringstream oss;
 
-	hasEntry = FALSE;
-	for (const auto &alloc : heap) {
-		if (!hasEntry) {
-			fprintf(stderr, "[libui] leaked allocations:\n");
-			hasEntry = TRUE;
-		}
-		fprintf(stderr, "[libui] %p %s\n",
-			alloc.first,
-			types[alloc.second]);
-	}
-	if (hasEntry)
-		complain("either you left something around or there's a bug in libui");
+	if (heap.size() == 0)
+		return;
+	for (const auto &alloc : heap)
+		// note the void * cast; otherwise it'll be treated as a string
+		oss << (void *) (alloc.first) << " " << types[alloc.second] << "\n";
+	// TODO keep oss.str() alive?
+	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", oss.str().c_str());
 }
 
 #define rawBytes(pa) (&((*pa)[0]))

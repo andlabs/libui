@@ -22,6 +22,7 @@ The build-time settings are
 	RELEASE=xxx
 		set to 1 to disable debug symbols
 		must be 1, any other value means "include debug symbols"
+		TODO separate debug symbols from debug runtime
 	PREFIX=xxx
 		TODO
 	DESTDIR=xxx

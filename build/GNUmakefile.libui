@@ -42,6 +42,11 @@ else
 		-D "_UI_EXTERN=__declspec(dllexport) extern"
 endif
 
+ifeq ($(RELEASE),1)
+	CFLAGS += -D_UI_RELEASE
+	CXXFLAGS += -D_UI_RELEASE
+endif
+
 ifeq ($(USESSONAME),1)
 	LDFLAGS += $(SONAMEFLAG)$(NAME)$(SUFFIX)
 endif

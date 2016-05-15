@@ -399,7 +399,7 @@ void enableAllWindowsExcept(uiWindow *which)
 	for (auto &w : windows) {
 		if (w.first == which)
 			continue;
-		if (!uiControlEnabled(uiControl(w.first))
+		if (!uiControlEnabled(uiControl(w.first)))
 			continue;
 		EnableWindow(w.first->hwnd, TRUE);
 	}

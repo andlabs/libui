@@ -110,6 +110,8 @@ const char *uiInit(uiInitOptions *o)
 	appDelegate().menuManager = [menuManager new];
 	[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
+	setupFontPanel();
+
 	return NULL;
 }
 

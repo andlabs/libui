@@ -109,3 +109,4 @@ extern void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDr
 // fontbutton.m
 extern BOOL fontButtonInhibitSendAction(SEL sel, id from, id to);
 extern BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
+extern void setupFontPanel(void);

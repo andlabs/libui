@@ -168,6 +168,25 @@ BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override)
 	return YES;
 }
 
+// we also don't want the panel to be usable when there's a dialog running; see stddialogs.m for more details on that
+// unfortunately the panel seems to ignore -setWorksWhenModal: so we'll have to do things ourselves
+@interface nonModalFontPanel : NSFontPanel
+@end
+
+@implementation nonModalFontPanel
+
+- (BOOL)worksWhenModal
+{
+	return NO;
+}
+
+@end
+
+void setupFontPanel(void)
+{
+	[NSFontManager setFontPanelFactory:[nonModalFontPanel class]];
+}
+
 static void defaultOnChanged(uiFontButton *b, void *data)
 {
 	// do nothing

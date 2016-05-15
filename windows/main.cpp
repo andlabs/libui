@@ -68,6 +68,45 @@ void uiMain(void)
 	}
 }
 
+void uiMainStep(int blocking)
+{
+	MSG msg;
+	HWND active;
+
+	if (blocking) {
+		int res;
+		res = GetMessageW(&msg, NULL, 0, 0);
+		if (res < 0) {
+			logLastError(L"error calling GetMessage()");
+			break;		// bail out on error
+		}
+		if (res == 0)		// WM_QUIT
+			break;
+		// TODO really active? or parentToplevel(msg->hwnd)?
+		active = GetActiveWindow();
+		if (active != NULL)
+			// TODO find documentation that says IsDialogMessage() calls CallMsgFilter() for us, because that's what's happening
+			if (IsDialogMessage(active, &msg) != 0)
+				return;
+		TranslateMessage(&msg);
+		DispatchMessageW(&msg);
+	} else {
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            if (g_WindowsMessageHook) {
+                g_WindowsMessageHook(g_WindowsMessageHookData, msg.hwnd, msg.message, msg.wParam, msg.lParam);
+            }
+			// TODO really active? or parentToplevel(msg->hwnd)?
+			active = GetActiveWindow();
+			if (active != NULL)
+				// TODO find documentation that says IsDialogMessage() calls CallMsgFilter() for us, because that's what's happening
+				if (IsDialogMessage(active, &msg) != 0)
+					return;
+			TranslateMessage(&msg);
+			DispatchMessageW(&msg);
+        }
+	}
+}
+
 void uiQuit(void)
 {
 	PostQuitMessage(0);

@@ -32,6 +32,7 @@ _UI_EXTERN void uiUninit(void);
 _UI_EXTERN void uiFreeInitError(const char *err);
 
 _UI_EXTERN void uiMain(void);
+_UI_EXTERN void uiMainStep(int blocking);
 _UI_EXTERN void uiQuit(void);
 
 // TODO write a test for this after adding multiline entries

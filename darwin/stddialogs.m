@@ -1,7 +1,8 @@
 // 26 june 2015
 #import "uipriv_darwin.h"
 
-// TODO while a dialog is running no other window receives events
+// TODO restructure this whole file
+// TODO explicitly document this works as we want
 
 #define windowWindow(w) ((NSWindow *) uiControlHandle(uiControl(w)))
 

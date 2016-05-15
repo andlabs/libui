@@ -10,6 +10,9 @@
 #error Sorry, libui cannot be compiled with ARC.
 #endif
 
+// 10.7 fixups
+#define NSEventModifierFlags NSUInteger
+
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
 #define fromNSString(str) [(str) UTF8String]
 

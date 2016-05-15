@@ -33,7 +33,7 @@ ifeq ($(TOOLCHAIN),gcc)
 	LDFLAGS += -L$(OUTDIR) -lui
 	# see build/GNUmakefile.test
 	ifeq ($(OS),darwin)
-		LDFLAGS += -Wl,-rpath,@executable_path
+		LDFLAGS += -Wl,-rpath,@executable_path/
 	else
 		LDFLAGS += -Wl,-rpath,'$$ORIGIN'
 	endif

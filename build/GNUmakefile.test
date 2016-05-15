@@ -18,8 +18,9 @@ ifeq ($(TOOLCHAIN),gcc)
 	# tell the dynamic loader to search in the executable path for shared objects
 	# note: OS X's linker complains if we say -rpath= instead of -rpath,
 	# also note that OS X doesn't use $ORIGIN - see http://jorgen.tjer.no/post/2014/05/20/dt-rpath-ld-and-at-rpath-dyld/
+	# the extra slash is needed on OS X 10.7
 	ifeq ($(OS),darwin)
-		LDFLAGS += -Wl,-rpath,@executable_path
+		LDFLAGS += -Wl,-rpath,@executable_path/
 	else
 		LDFLAGS += -Wl,-rpath,'$$ORIGIN'
 	endif

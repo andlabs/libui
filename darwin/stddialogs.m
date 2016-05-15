@@ -1,8 +1,6 @@
 // 26 june 2015
 #import "uipriv_darwin.h"
 
-// TODO while a dialog is running no other window receives events
-
 #define windowWindow(w) ((NSWindow *) uiControlHandle(uiControl(w)))
 
 // source of code modal logic: http://stackoverflow.com/questions/604768/wait-for-nsalert-beginsheetmodalforwindow
@@ -20,11 +18,16 @@ static void setupSavePanel(NSSavePanel *s)
 static char *runSavePanel(NSWindow *parent, NSSavePanel *s)
 {
 	char *filename;
+	NSInteger res;
 
+	// TODO formalize in headers
+	[(id)parent setWorksWhenModal:NO];
 	[s beginSheetModalForWindow:parent completionHandler:^(NSInteger result) {
 		[realNSApp() stopModalWithCode:result];
 	}];
-	if ([realNSApp() runModalForWindow:s] != NSFileHandlingPanelOKButton)
+	res = [realNSApp() runModalForWindow:s];
+	[(id)parent setWorksWhenModal:YES];
+	if (res != NSFileHandlingPanelOKButton)
 		return NULL;
 	filename = uiDarwinNSStringToText([[s URL] path]);
 	return filename;
@@ -78,11 +81,17 @@ char *uiSaveFile(uiWindow *parent)
 
 - (NSInteger)run
 {
+	NSInteger res;
+
+	// TODO like above
+	[(id)(self->parent) setWorksWhenModal:NO];
 	[self->panel beginSheetModalForWindow:self->parent
 		modalDelegate:self
 		didEndSelector:@selector(panelEnded:result:data:)
 		contextInfo:NULL];
-	return [realNSApp() runModalForWindow:[self->panel window]];
+	res = [realNSApp() runModalForWindow:[self->panel window]];
+	[(id)(self->parent) setWorksWhenModal:YES];
+	return res;
 }
 
 - (void)panelEnded:(NSAlert *)panel result:(NSInteger)result data:(void *)data

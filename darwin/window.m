@@ -1,15 +1,36 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
+// don't stop other windows from working when one is modal
+@interface modalWindow : NSWindow {
+	BOOL worksModal;
+}
+- (BOOL)setWorksWhenModal:(BOOL)wwm;
+@end
+
 struct uiWindow {
 	uiDarwinControl c;
-	NSWindow *window;
+	modalWindow *window;
 	uiControl *child;
 	int margined;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	struct singleChildConstraints constraints;
 };
+
+@implementation modalWindow
+
+- (BOOL)worksWhenModal
+{
+	return self->worksModal;
+}
+
+- (void)setWorksWhenModal:(BOOL)wwm
+{
+	self->worksModal = wwm;
+}
+
+@end
 
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
 	struct mapTable *windows;
@@ -242,11 +263,14 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	uiDarwinNewControl(uiWindow, w);
 
-	w->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
+	w->window = [[modalWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
 		backing:NSBackingStoreBuffered
 		defer:YES];
 	[w->window setTitle:toNSString(title)];
+
+	// default is to work when modal; only the modal owner window should not work when modal
+	[w->window setWorksWhenModal:YES];
 
 	// explicitly release when closed
 	// the only thing that closes the window is us anyway

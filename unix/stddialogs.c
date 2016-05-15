@@ -1,7 +1,7 @@
 // 26 june 2015
 #include "uipriv_unix.h"
 
-// TODO while this runs, other windows don't get /any/ events
+// TODO figure out why, and describe, that this is the desired behavior
 
 #define windowWindow(w) (GTK_WINDOW(uiControlHandle(uiControl(w))))
 

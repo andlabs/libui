@@ -404,6 +404,9 @@ uiDarwinControlDefaultSetHuggingPriority(uiBox, view)
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
+	// TODO on other platforms
+	if (c == NULL)
+		userbug("You cannot add NULL to a uiBox.");
 	[b->view append:c stretchy:stretchy];
 }
 

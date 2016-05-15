@@ -138,6 +138,8 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 0;
 }
 
+static std::map<uiWindow *, bool> windows;
+
 static void uiWindowDestroy(uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
@@ -154,6 +156,7 @@ static void uiWindowDestroy(uiControl *c)
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
 	// and finally free ourselves
+	windows.erase(w);
 	uiWindowsEnsureDestroyWindow(w->hwnd);
 	uiFreeControl(uiControl(w));
 }
@@ -361,6 +364,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 
+	windows[w] = true;
 	return w;
 }
 
@@ -379,4 +383,24 @@ void ensureMinimumWindowSize(uiWindow *w)
 	clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
 	if (SetWindowPos(w->hwnd, NULL, 0, 0, width, height, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
 		logLastError(L"error resizing window");
+}
+
+void disableAllWindowsExcept(uiWindow *which)
+{
+	for (auto &w : windows) {
+		if (w.first == which)
+			continue;
+		EnableWindow(w.first->hwnd, FALSE);
+	}
+}
+
+void enableAllWindowsExcept(uiWindow *which)
+{
+	for (auto &w : windows) {
+		if (w.first == which)
+			continue;
+		if (!uiControlEnabled(uiControl(w.first))
+			continue;
+		EnableWindow(w.first->hwnd, TRUE);
+	}
 }

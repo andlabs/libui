@@ -123,10 +123,10 @@ struct uiFontButton {
 	fm = (NSFontManager *) sender;
 	old = self->libui_font;
 	self->libui_font = [sender convertFont:self->libui_font];
-	// TODO do we get it back retained?
-	// TODO is it even retained when we get it, regardless of value?
-	if (self->libui_font != old)
-		[old release];
+	// do this even if it returns the same; we don't own anything that isn't from a new or alloc/init
+	[self->libui_font retain];
+	// do this second just in case
+	[old release];
 	[self updateFontButtonLabel];
 	(*(b->onChanged))(b, b->onChangedData);
 }

@@ -58,7 +58,6 @@ struct uiTab {
 {
 	[self removeChildConstraints];
 	if (self.c == NULL)
-		// TODO make sure we need the margins
 		return;
 	singleChildConstraintsEstablish(&(self->constraints),
 		self->view, [self childView],
@@ -98,11 +97,9 @@ static void uiTabDestroy(uiControl *c)
 	// then destroy all the children
 	for (page in t->pages) {
 		[page removeChildConstraints];
-		if (page.c != NULL) {
-			uiControlSetParent(page.c, NULL);
-			uiDarwinControlSetSuperview(uiDarwinControl(page.c), nil);
-			uiControlDestroy(page.c);
-		}
+		uiControlSetParent(page.c, NULL);
+		uiDarwinControlSetSuperview(uiDarwinControl(page.c), nil);
+		uiControlDestroy(page.c);
 	}
 	// and finally destroy ourselves
 	[t->pages release];
@@ -190,26 +187,23 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	NSTabViewItem *i;
 	NSObject *pageID;
 
+	uiControlSetParent(child, uiControl(t));
+
 	view = [[NSView alloc] initWithFrame:NSZeroRect];
-	// don't turn off the autoresizing mask on view; if we do, nothing shows up
-	if (child != NULL) {
-		uiControlSetParent(child, uiControl(t));
-		uiDarwinControlSetSuperview(uiDarwinControl(child), view);
-		uiDarwinControlSyncEnableState(uiDarwinControl(child), uiControlEnabledToUser(uiControl(t)));
-	}
+	// TODO if we turn off the autoresizing mask, nothing shows up; didn't this get documented somewhere?
+	uiDarwinControlSetSuperview(uiDarwinControl(child), view);
+	uiDarwinControlSyncEnableState(uiDarwinControl(child), uiControlEnabledToUser(uiControl(t)));
 
 	// the documentation says these can be nil but the headers say these must not be; let's be safe and make them non-nil anyway
 	pageID = [NSObject new];
 	page = [[tabPage alloc] initWithView:view pageID:pageID];
 	page.c = child;
 
-	if (page.c != NULL) {
-		// don't hug, just in case we're a stretchy tab
-		page.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(page.c), NSLayoutConstraintOrientationHorizontal);
-		page.oldVertHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(page.c), NSLayoutConstraintOrientationVertical);
-		uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal);
-		uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
-	}
+	// don't hug, just in case we're a stretchy tab
+	page.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(page.c), NSLayoutConstraintOrientationHorizontal);
+	page.oldVertHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(page.c), NSLayoutConstraintOrientationVertical);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
 
 	[t->pages insertObject:page atIndex:n];
 	[page release];			// no need for initial reference
@@ -234,19 +228,15 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 
 	page = (tabPage *) [t->pages objectAtIndex:n];
 
-	if (page.c != NULL) {
-		uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), page.oldHorzHuggingPri, NSLayoutConstraintOrientationHorizontal);
-		uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), page.oldVertHuggingPri, NSLayoutConstraintOrientationVertical);
-	}
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), page.oldHorzHuggingPri, NSLayoutConstraintOrientationHorizontal);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), page.oldVertHuggingPri, NSLayoutConstraintOrientationVertical);
 
 	child = page.c;
 	[page removeChildConstraints];
 	[t->pages removeObjectAtIndex:n];
 
-	if (child != NULL) {
-		uiControlSetParent(child, NULL);
-		uiDarwinControlSetSuperview(uiDarwinControl(child), nil);
-	}
+	uiControlSetParent(child, NULL);
+	uiDarwinControlSetSuperview(uiDarwinControl(child), nil);
 
 	i = [t->tabview tabViewItemAtIndex:n];
 	[t->tabview removeTabViewItem:i];

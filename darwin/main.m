@@ -138,9 +138,11 @@ void uiMainStep(int blocking)
 		if (event==nil ) return;
 		[realNSApp() sendEvent:event];
 	} else {
-		NSEvent *event = [realNSApp() nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
-		if (event==nil ) return;
-		[realNSApp() sendEvent:event];
+		while (true) {
+			NSEvent *event = [realNSApp() nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
+			if (event==nil ) return;
+			[realNSApp() sendEvent:event];
+		}
 	}
 }
 

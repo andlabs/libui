@@ -91,10 +91,7 @@ void uiMainStep(int blocking)
 		TranslateMessage(&msg);
 		DispatchMessageW(&msg);
 	} else {
-        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-            if (g_WindowsMessageHook) {
-                g_WindowsMessageHook(g_WindowsMessageHookData, msg.hwnd, msg.message, msg.wParam, msg.lParam);
-            }
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 			// TODO really active? or parentToplevel(msg->hwnd)?
 			active = GetActiveWindow();
 			if (active != NULL)
@@ -103,7 +100,7 @@ void uiMainStep(int blocking)
 					return;
 			TranslateMessage(&msg);
 			DispatchMessageW(&msg);
-        }
+		}
 	}
 }
 

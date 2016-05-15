@@ -2,6 +2,7 @@
 #include "uipriv_unix.h"
 
 // TODO figure out why, and describe, that this is the desired behavior
+// TODO also make font and color buttons modal
 
 #define windowWindow(w) (GTK_WINDOW(uiControlHandle(uiControl(w))))
 

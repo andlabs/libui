@@ -1,6 +1,8 @@
 // 15 may 2016
 #import "uipriv_darwin.h"
 
+// TODO no intrinsic height?
+
 @interface colorButton : NSColorWell {
 	uiColorButton *libui_b;
 	BOOL libui_changing;

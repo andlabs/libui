@@ -6,6 +6,7 @@
 
 static uiEntry *textString;
 static uiFontButton *textFontButton;
+static uiFontButton *textColorButton;
 static uiEntry *textWidth;
 static uiButton *textApply;
 static uiCheckbox *addLeading;
@@ -27,6 +28,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 {
 	uiDrawTextFont *font;
 	uiDrawTextLayout *layout;
+	double, r, g, b, a;
 
 	font = uiFontButtonFont(textFontButton);
 
@@ -37,6 +39,10 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiDrawTextLayoutSetColor(layout,
 		8, 14,
 		1, 0, 0.5, 0.5);
+	uiColorButtonColor(textColorButton, &r, &g, &b, &a);
+	uiDrawTextLayoutSetColor(layout,
+		14, 18,
+		r, g, b, a);
 	uiDrawText(dp->Context, 10, 10, layout);
 	uiDrawFreeTextLayout(layout);
 
@@ -69,6 +75,11 @@ static void onFontChanged(uiFontButton *b, void *data)
 	uiAreaQueueRedrawAll(textArea);
 }
 
+static void onColorChanged(uiColorButton *b, void *data)
+{
+	uiAreaQueueRedrawAll(textArea);
+}
+
 static void onTextApply(uiButton *b, void *data)
 {
 	uiAreaQueueRedrawAll(textArea);
@@ -94,6 +105,10 @@ uiBox *makePage10(void)
 	textFontButton = uiNewFontButton();
 	uiFontButtonOnChanged(textFontButton, onFontChanged, NULL);
 	uiBoxAppend(hbox, uiControl(textFontButton), 1);
+
+	textColorButton = uiNewColorButton();
+	uiColorButtonOnChanged(textColorButton, onColorChanged, NULL);
+	uiBoxAppend(hbox, uiControl(textColorButton), 1);
 
 	hbox = newHorizontalBox();
 	uiBoxAppend(vbox, uiControl(hbox), 0);
@@ -122,6 +137,7 @@ uiBox *makePage10(void)
 	hbox = newHorizontalBox();
 	uiBoxAppend(vbox, uiControl(hbox), 0);
 	uiBoxAppend(hbox, uiControl(uiNewFontButton()), 1);
+	uiBoxAppend(hbox, uiControl(uiNewColorButton()), 1);
 
 	return page10;
 }

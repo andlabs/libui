@@ -593,7 +593,7 @@ _UI_EXTERN uiFontButton *uiNewFontButton(void);
 typedef struct uiColorButton uiColorButton;
 #define uiColorButton(this) ((uiColorButton *) (this))
 _UI_EXTERN void uiColorButtonColor(uiColorButton *b, double *r, double *g, double *bl, double *a);
-_UI_EXTERN void uiColorButtonSetColor(uiColorButton *b, double r, double g, double b, double a);
+_UI_EXTERN void uiColorButtonSetColor(uiColorButton *b, double r, double g, double bl, double a);
 _UI_EXTERN void uiColorButtonOnChanged(uiColorButton *b, void (*f)(uiColorButton *, void *), void *data);
 _UI_EXTERN uiColorButton *uiNewColorButton(void);
 

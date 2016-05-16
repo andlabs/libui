@@ -18,6 +18,8 @@ static BOOL canQuit = NO;
 // it turns out NSFontManager also sends changeFont: through this; let's inhibit that here too (see fontbutton.m)
 - (BOOL)sendAction:(SEL)sel to:(id)to from:(id)from
 {
+	if (colorButtonInhibitSendAction(sel, from, to))
+		return NO;
 	if (fontButtonInhibitSendAction(sel, from, to))
 		return NO;
 	return [super sendAction:sel to:to from:from];

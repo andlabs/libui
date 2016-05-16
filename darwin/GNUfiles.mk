@@ -8,6 +8,7 @@ MFILES += \
 	darwin/box.m \
 	darwin/button.m \
 	darwin/checkbox.m \
+	darwin/colorbutton.m \
 	darwin/combobox.m \
 	darwin/control.m \
 	darwin/datetimepicker.m \

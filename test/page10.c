@@ -6,7 +6,7 @@
 
 static uiEntry *textString;
 static uiFontButton *textFontButton;
-static uiFontButton *textColorButton;
+static uiColorButton *textColorButton;
 static uiEntry *textWidth;
 static uiButton *textApply;
 static uiCheckbox *addLeading;
@@ -28,7 +28,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 {
 	uiDrawTextFont *font;
 	uiDrawTextLayout *layout;
-	double, r, g, b, a;
+	double r, g, b, al;
 
 	font = uiFontButtonFont(textFontButton);
 
@@ -39,10 +39,10 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiDrawTextLayoutSetColor(layout,
 		8, 14,
 		1, 0, 0.5, 0.5);
-	uiColorButtonColor(textColorButton, &r, &g, &b, &a);
+	uiColorButtonColor(textColorButton, &r, &g, &b, &al);
 	uiDrawTextLayoutSetColor(layout,
 		14, 18,
-		r, g, b, a);
+		r, g, b, al);
 	uiDrawText(dp->Context, 10, 10, layout);
 	uiDrawFreeTextLayout(layout);
 

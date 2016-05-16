@@ -7,6 +7,7 @@ CFILES += \
 	unix/button.c \
 	unix/checkbox.c \
 	unix/child.c \
+	unix/colorbutton.c \
 	unix/combobox.c \
 	unix/control.c \
 	unix/datetimepicker.c \

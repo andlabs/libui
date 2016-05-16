@@ -82,6 +82,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiColorButton)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
+// TODO check widths
 static void uiColorButtonMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
 {
 	uiColorButton *b = uiColorButton(c);

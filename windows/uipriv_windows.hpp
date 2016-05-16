@@ -63,6 +63,7 @@ extern void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height,
 extern HWND parentOf(HWND child);
 extern HWND parentToplevel(HWND child);
 extern void setWindowInsertAfter(HWND hwnd, HWND insertAfter);
+extern HWND getDlgItem(HWND hwnd, int id);
 
 // text.cpp
 extern WCHAR *windowTextAndLen(HWND hwnd, LRESULT *len);
@@ -123,6 +124,15 @@ struct tabPage {
 extern struct tabPage *newTabPage(uiControl *child);
 extern void tabPageDestroy(struct tabPage *tp);
 extern void tabPageMinimumSize(struct tabPage *tp, intmax_t *width, intmax_t *height);
+
+// colordialog.cpp
+struct colorDialogRGBA {
+	double r;
+	double g;
+	double b;
+	double a;
+};
+extern BOOL showColorDialog(HWND parent, struct colorDialogRGBA *c);
 
 
 

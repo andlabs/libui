@@ -11,6 +11,7 @@ CXXFILES += \
 	windows/button.cpp \
 	windows/checkbox.cpp \
 	windows/colorbutton.cpp \
+	windows/colordialog.cpp \
 	windows/combobox.cpp \
 	windows/container.cpp \
 	windows/control.cpp \

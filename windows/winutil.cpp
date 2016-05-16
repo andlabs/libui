@@ -120,3 +120,13 @@ void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
 	if (SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE) == 0)
 		logLastError(L"error reordering window");
 }
+
+HWND getDlgItem(HWND hwnd, int id)
+{
+	HWND out;
+
+	out = GetDlgItem(hwnd, id);
+	if (out == NULL)
+		logLastError(L"error getting dialog item handle");
+	return out;
+}

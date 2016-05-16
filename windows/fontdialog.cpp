@@ -467,15 +467,9 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	f->hwnd = hwnd;
 	f->params = (struct fontDialogParams *) lParam;
 
-	f->familyCombobox = GetDlgItem(f->hwnd, rcFontFamilyCombobox);
-	if (f->familyCombobox == NULL)
-		logLastError(L"error getting font family combobox handle");
-	f->styleCombobox = GetDlgItem(f->hwnd, rcFontStyleCombobox);
-	if (f->styleCombobox == NULL)
-		logLastError(L"error getting font style combobox handle");
-	f->sizeCombobox = GetDlgItem(f->hwnd, rcFontSizeCombobox);
-	if (f->sizeCombobox == NULL)
-		logLastError(L"error getting font size combobox handle");
+	f->familyCombobox = getDlgItem(f->hwnd, rcFontFamilyCombobox);
+	f->styleCombobox = getDlgItem(f->hwnd, rcFontStyleCombobox);
+	f->sizeCombobox = getDlgItem(f->hwnd, rcFontSizeCombobox);
 
 	f->fc = loadFontCollection();
 	nFamilies = f->fc->fonts->GetFontFamilyCount();
@@ -492,9 +486,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	for (i = 0; defaultSizes[i].text != NULL; i++)
 		cbInsertString(f->sizeCombobox, defaultSizes[i].text, (WPARAM) i);
 
-	samplePlacement = GetDlgItem(f->hwnd, rcFontSamplePlacement);
-	if (samplePlacement == NULL)
-		logLastError(L"error getting sample placement static control handle");
+	samplePlacement = getDlgItem(f->hwnd, rcFontSamplePlacement);
 	uiWindowsEnsureGetWindowRect(samplePlacement, &(f->sampleRect));
 	mapWindowRect(NULL, f->hwnd, &(f->sampleRect));
 	uiWindowsEnsureDestroyWindow(samplePlacement);

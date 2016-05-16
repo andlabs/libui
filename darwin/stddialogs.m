@@ -3,7 +3,7 @@
 
 // TODO restructure this whole file
 // TODO explicitly document this works as we want
-// TODO explicitly disable color dialogs this way
+// TODO note that font and color buttons also do this
 
 #define windowWindow(w) ((NSWindow *) uiControlHandle(uiControl(w)))
 

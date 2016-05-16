@@ -46,7 +46,8 @@ struct uiColorButton {
 	[[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
 	[super activate:YES];
 	activeColorButton = self;
-	// TODO try setWorksWhenModal (I'd need a color well there)
+	// see stddialogs.m for details
+	[[NSColorPanel sharedColorPanel] setWorksWhenModal:NO];
 	[[NSNotificationCenter defaultCenter] addObserver:self
 		selector:@selector(deactivateOnClose:)
 		name:NSWindowWillCloseNotification

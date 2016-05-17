@@ -22,8 +22,6 @@ static void uiColorButtonDestroy(uiControl *c)
 	uiFreeControl(uiControl(b));
 }
 
-static INT_PTR TODO(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){return uMsg == WM_INITDIALOG;}
-
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiColorButton *b = uiColorButton(c);
@@ -45,8 +43,6 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 		b->a = rgba.a;
 		(*(b->onChanged))(b, b->onChangedData);
 	}
-
-	DialogBox(hInstance, MAKEINTRESOURCE(rcColorDialog), GetAncestor(b->hwnd, GA_ROOT), TODO);
 
 	*lResult = 0;
 	return TRUE;

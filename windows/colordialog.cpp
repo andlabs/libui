@@ -23,28 +23,194 @@ struct colorDialog {
 	struct colorDialogRGBA *out;
 };
 
-static void endColorDialog(struct colorDialog *c, INT_PTR code)
+// both of these are from the wiki
+static void rgb2HSV(double r, double g, double b, double *h, double *s, double *v)
 {
-	if (EndDialog(c->hwnd, code) == 0)
-		logLastError(L"error ending color dialog");
-	uiFree(c);
-}
+	double M, m;
+	int whichmax;
+	double c;
 
-static BOOL tryFinishDialog(struct colorDialog *c, WPARAM wParam)
-{
-	// cancelling
-	if (LOWORD(wParam) != IDOK) {
-		endColorDialog(c, 1);
-		return TRUE;
+	M = r;
+	whichmax = 0;
+	if (M < g) {
+		M = g;
+		whichmax = 1;
+	}
+	if (M < b) {
+		M = b;
+		whichmax = 2;
+	}
+	m = r;
+	if (m > g)
+		m = g;
+	if (m > b)
+		m = b;
+	c = M - m;
+
+	if (c == 0)
+		*h = 0;
+	else {
+		switch (whichmax) {
+		case 0:
+			*h = ((g - b) / c);
+			if (*h > 6)
+				*h -= 6;
+			break;
+		case 1:
+			*h = ((b - r) / c) + 2;
+			break;
+		case 2:
+			*h = ((r - g) / c) + 4;
+			break;
+		}
+		*h /= 6;		// put in range [0,1)
 	}
 
-	// OK
-	c->out->r = c->r;
-	c->out->g = c->g;
-	c->out->b = c->b;
-	c->out->a = c->a;
-	endColorDialog(c, 2);
-	return TRUE;
+	*v = M;
+
+	if (c == 0)
+		*s = 0;
+	else
+		*s = c / *v;
+}
+
+static void hsv2RGB(double h, double s, double v, double *r, double *g, double *b)
+{
+	double c;
+	int hPrime;
+	double x;
+	double m;
+	double c1, c2;
+
+	c = v * s;
+	hPrime = (int) (h * 6);		// equivalent to splitting into 60° chunks
+	x = c * (1 - abs(hPrime % 2 - 1));
+	m = v - c;
+	switch (hPrime) {
+	case 0:
+		*r = c + m;
+		*g = x + m;
+		*b = m;
+		return;
+	case 1:
+		*r = x + m;
+		*g = c + m;
+		*b = m;
+		return;
+	case 2:
+		*r = m;
+		*g = c + m;
+		*b = x + m;
+		return;
+	case 3:
+		*r = m;
+		*g = x + m;
+		*b = c + m;
+		return;
+	case 4:
+		*r = x + m;
+		*g = m;
+		*b = c + m;
+		return;
+	case 5:
+		*r = c + m;
+		*g = m;
+		*b = x + m;
+		return;
+	}
+	// TODO
+}
+
+// this interesting approach comes from xxxx
+static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
+{
+	D2D1_SIZE_F size;
+	D2D1_RECT_F rect;
+	double h, s, v;
+	double rTop, gTop, bTop;
+	D2D1_GRADIENT_STOP stops[2];
+	ID2D1GradientStopCollection *collection;
+	D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES lprop;
+	D2D1_BRUSH_PROPERTIES bprop;
+	ID2D1LinearGradientBrush *brush;
+	HRESULT hr;
+
+	size = rt->GetSize();
+	rect.left = 0;
+	rect.top = 0;
+	rect.right = size.width;
+	rect.bottom = size.height;
+
+	// TODO draw checkerboard
+
+	// first, draw a vertical gradient from the current hue at max S/V to black
+	// the source example draws it upside down; let's do so too just to be safe
+	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
+	hsv2RGB(h, 1.0, 1.0, &rTop, &gTop, &bTop);
+	stops[0].position = 0;
+	stops[0].color.r = 0.0;
+	stops[0].color.g = 0.0;
+	stops[0].color.b = 0.0;
+	stops[0].color.a = 1.0;
+	stops[1].position = 1;
+	stops[1].color.r = rTop;
+	stops[1].color.g = gTop;
+	stops[1].color.b = bTop;
+	stops[1].color.a = 1.0;
+	hr = rt->CreateGradientStopCollection(stops, 2,
+		D2D1_GAMMA_2_2, D2D1_EXTEND_MODE_CLAMP,
+		&collection);
+	if (hr != S_OK)
+		logHRESULT(L"error making gradient stop collection for first gradient in SV chooser", hr);
+	ZeroMemory(&lprop, sizeof (D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES));
+	lprop.startPoint.x = size.width / 2;
+	lprop.startPoint.y = size.height;
+	lprop.endPoint.x = size.width / 2;
+	lprop.endPoint.y = 0;
+	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
+	bprop.opacity = 1.0;
+	bprop.transform._11 = 1;
+	bprop.transform._22 = 1;
+	hr = rt->CreateLinearGradientBrush(&lprop, &bprop,
+		collection, &brush);
+	if (hr != S_OK)
+		logHRESULT(L"error making gradient brush for first gradient in SV chooser", hr);
+	rt->FillRectangle(&rect, brush);
+	brush->Release();
+	collection->Release();
+}
+
+static LRESULT CALLBACK svChooserSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	ID2D1RenderTarget *rt;
+	struct colorDialog *c;
+
+	switch (uMsg) {
+	case msgD2DScratchPaint:
+		rt = (ID2D1RenderTarget *) lParam;
+		c = (struct colorDialog *) dwRefData;
+		drawSVChooser(c, rt);
+		return 0;
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, svChooserSubProc, uIdSubclass) == FALSE)
+			logLastError(L"error removing color dialog SV chooser subclass");
+		break;
+	}
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+}
+
+// TODO extract into d2dscratch.cpp, use in font dialog
+HWND replaceWithD2DScratch(HWND parent, int id, SUBCLASSPROC subproc, void *data)
+{
+	HWND replace;
+	RECT r;
+
+	replace = getDlgItem(parent, id);
+	uiWindowsEnsureGetWindowRect(replace, &r);
+	mapWindowRect(NULL, parent, &r);
+	uiWindowsEnsureDestroyWindow(replace);
+	return newD2DScratch(parent, &r, (HMENU) id, subproc, (DWORD_PTR) data);
+	// TODO preserve Z-order
 }
 
 // a few issues:
@@ -145,6 +311,7 @@ static struct colorDialog *beginColorDialog(HWND hwnd, LPARAM lParam)
 
 	// TODO set up d2dscratches
 
+	// TODO prefix all these with rcColor instead of just rc
 	c->editH = getDlgItem(c->hwnd, rcH);
 	c->editS = getDlgItem(c->hwnd, rcS);
 	c->editV = getDlgItem(c->hwnd, rcV);
@@ -158,9 +325,35 @@ static struct colorDialog *beginColorDialog(HWND hwnd, LPARAM lParam)
 	c->editAInt = getDlgItem(c->hwnd, rcAInt);
 	c->editHex = getDlgItem(c->hwnd, rcHex);
 
+	c->svChooser = replaceWithD2DScratch(c->hwnd, rcColorSVChooser, svChooserSubProc, c);
+
 	fixupControlPositions(c);
 
 	return c;
+}
+
+static void endColorDialog(struct colorDialog *c, INT_PTR code)
+{
+	if (EndDialog(c->hwnd, code) == 0)
+		logLastError(L"error ending color dialog");
+	uiFree(c);
+}
+
+static BOOL tryFinishDialog(struct colorDialog *c, WPARAM wParam)
+{
+	// cancelling
+	if (LOWORD(wParam) != IDOK) {
+		endColorDialog(c, 1);
+		return TRUE;
+	}
+
+	// OK
+	c->out->r = c->r;
+	c->out->g = c->g;
+	c->out->b = c->b;
+	c->out->a = c->a;
+	endColorDialog(c, 2);
+	return TRUE;
 }
 
 static INT_PTR CALLBACK colorDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

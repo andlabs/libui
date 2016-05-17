@@ -246,7 +246,7 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 	lprop.endPoint.x = size.width / 2;
 	lprop.endPoint.y = 0;
 	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
-	bprop.opacity = 1.0;
+	bprop.opacity = c->a;		// note this part; we also use it below for the layer
 	bprop.transform._11 = 1;
 	bprop.transform._22 = 1;
 	hr = rt->CreateLinearGradientBrush(&lprop, &bprop,
@@ -330,7 +330,7 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 	layerparams.maskAntialiasMode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
 	layerparams.maskTransform._11 = 1;
 	layerparams.maskTransform._22 = 1;
-	layerparams.opacity = 1.0;
+	layerparams.opacity = c->a;			// here's the other use of c->a to note
 	layerparams.opacityBrush = opacity;
 	layerparams.layerOptions = D2D1_LAYER_OPTIONS_NONE;
 	rt->PushLayer(&layerparams, layer);
@@ -352,6 +352,7 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 	mcolor.g = 1.0;
 	mcolor.b = 1.0;
 	mcolor.a = 1.0;
+	bprop.opacity = 1.0;		// the marker should always be opaque
 	hr = rt->CreateSolidColorBrush(&mcolor, &bprop, &markerBrush);
 	if (hr != S_OK)
 		logHRESULT(L"error creating brush for SV chooser", hr);
@@ -521,6 +522,28 @@ static struct colorDialog *beginColorDialog(HWND hwnd, LPARAM lParam)
 	return c;
 }
 
+static void endColorDialog(struct colorDialog *c, INT_PTR code)
+{
+	if (EndDialog(c->hwnd, code) == 0)
+		logLastError(L"error ending color dialog");
+	uiFree(c);
+}
+
+// TODO make this void on the font dialog too
+static void tryFinishDialog(struct colorDialog *c, WPARAM wParam)
+{
+	// cancelling
+	if (LOWORD(wParam) != IDOK) {
+		endColorDialog(c, 1);
+		return;
+	}
+
+	// OK
+	hsv2RGB(c->h, c->s, c->v, &(c->out->r), &(c->out->g), &(c->out->b));
+	c->out->a = c->a;
+	endColorDialog(c, 2);
+}
+
 static double editDouble(HWND hwnd)
 {
 	WCHAR *s;
@@ -565,26 +588,51 @@ static void vChanged(struct colorDialog *c)
 	updateDialog(c, c->editV);
 }
 
-static void endColorDialog(struct colorDialog *c, INT_PTR code)
+static void rDoubleChanged(struct colorDialog *c)
 {
-	if (EndDialog(c->hwnd, code) == 0)
-		logLastError(L"error ending color dialog");
-	uiFree(c);
+	double r, g, b;
+
+	hsv2RGB(c->h, c->s, c->v, &r, &g, &b);
+	r = editDouble(c->editRDouble);
+	if (r < 0 || r > 1)
+		return;
+	rgb2HSV(r, g, b, &(c->h), &(c->s), &(c->v));
+	updateDialog(c, c->editRDouble);
 }
 
-// TODO make this void on the font dialog too
-static void tryFinishDialog(struct colorDialog *c, WPARAM wParam)
+static void gDoubleChanged(struct colorDialog *c)
 {
-	// cancelling
-	if (LOWORD(wParam) != IDOK) {
-		endColorDialog(c, 1);
-		return;
-	}
+	double r, g, b;
 
-	// OK
-	hsv2RGB(c->h, c->s, c->v, &(c->out->r), &(c->out->g), &(c->out->b));
-	c->out->a = c->a;
-	endColorDialog(c, 2);
+	hsv2RGB(c->h, c->s, c->v, &r, &g, &b);
+	g = editDouble(c->editGDouble);
+	if (g < 0 || g > 1)
+		return;
+	rgb2HSV(r, g, b, &(c->h), &(c->s), &(c->v));
+	updateDialog(c, c->editGDouble);
+}
+
+static void bDoubleChanged(struct colorDialog *c)
+{
+	double r, g, b;
+
+	hsv2RGB(c->h, c->s, c->v, &r, &g, &b);
+	b = editDouble(c->editBDouble);
+	if (b < 0 || b > 1)
+		return;
+	rgb2HSV(r, g, b, &(c->h), &(c->s), &(c->v));
+	updateDialog(c, c->editBDouble);
+}
+
+static void aDoubleChanged(struct colorDialog *c)
+{
+	double a;
+
+	a = editDouble(c->editADouble);
+	if (a < 0 || a > 1)
+		return;
+	c->a = a;
+	updateDialog(c, c->editADouble);
 }
 
 // TODO change fontdialog to use this
@@ -593,6 +641,10 @@ static std::map<int, void (*)(struct colorDialog *)> changed = {
 	{ rcH, hChanged },
 	{ rcS, sChanged },
 	{ rcV, vChanged },
+	{ rcRDouble, rDoubleChanged },
+	{ rcGDouble, gDoubleChanged },
+	{ rcBDouble, bDoubleChanged },
+	{ rcADouble, aDoubleChanged },
 };
 
 static INT_PTR CALLBACK colorDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -622,6 +674,10 @@ static INT_PTR CALLBACK colorDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 		case rcH:
 		case rcS:
 		case rcV:
+		case rcRDouble:
+		case rcGDouble:
+		case rcBDouble:
+		case rcADouble:
 			if (HIWORD(wParam) != EN_CHANGE)
 				return FALSE;
 			if (c->updating)		// prevent infinite recursion during an update

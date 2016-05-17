@@ -65,6 +65,7 @@ extern HWND parentOf(HWND child);
 extern HWND parentToplevel(HWND child);
 extern void setWindowInsertAfter(HWND hwnd, HWND insertAfter);
 extern HWND getDlgItem(HWND hwnd, int id);
+extern void invalidateRect(HWND hwnd, RECT *r, BOOL erase);
 
 // text.cpp
 extern WCHAR *windowTextAndLen(HWND hwnd, LRESULT *len);

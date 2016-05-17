@@ -174,8 +174,7 @@ static WCHAR *fontStyleName(struct fontCollection *fc, IDWriteFont *font)
 static void queueRedrawSampleText(struct fontDialog *f)
 {
 	// TODO TRUE?
-	if (InvalidateRect(f->sampleBox, NULL, TRUE) == 0)
-		logLastError(L"error queueing a redraw of the font dialog's sample text");
+	invalidateRect(f->sampleBox, NULL, TRUE);
 }
 
 static void styleChanged(struct fontDialog *f)

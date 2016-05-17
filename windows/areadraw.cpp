@@ -127,6 +127,5 @@ void areaDrawOnResize(uiArea *a, RECT *newClient)
 
 	// according to Rick Brewster, we must always redraw the entire client area after calling ID2D1RenderTarget::Resize() (see http://stackoverflow.com/a/33222983/3408572)
 	// we used to have a uiAreaHandler.RedrawOnResize() method to decide this; now you know why we don't anymore
-	if (InvalidateRect(a->hwnd, NULL, TRUE) == 0)
-		logLastError(L"error redrawing area on resize");
+	invalidateRect(a->hwnd, NULL, TRUE);
 }

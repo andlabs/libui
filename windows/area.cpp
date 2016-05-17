@@ -89,8 +89,7 @@ void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
 void uiAreaQueueRedrawAll(uiArea *a)
 {
 	// don't erase the background; we do that ourselves in doPaint()
-	if (InvalidateRect(a->hwnd, NULL, FALSE) == 0)
-		logLastError(L"error queueing uiArea redraw");
+	invalidateRect(a->hwnd, NULL, FALSE);
 }
 
 void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)

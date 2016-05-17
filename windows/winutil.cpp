@@ -130,3 +130,9 @@ HWND getDlgItem(HWND hwnd, int id)
 		logLastError(L"error getting dialog item handle");
 	return out;
 }
+
+void invalidateRect(HWND hwnd, RECT *r, BOOL erase)
+{
+	if (InvalidateRect(hwnd, r, erase) == 0)
+		logLastError(L"error invalidating window rect");
+}

@@ -134,8 +134,7 @@ void uiColorButtonSetColor(uiColorButton *b, double r, double g, double bl, doub
 	b->g = g;
 	b->b = bl;
 	b->a = a;
-	// TODO don't we have a helper function for this?
-	InvalidateRect(b->hwnd, NULL, TRUE);
+	invalidateRect(b->hwnd, NULL, TRUE);
 }
 
 void uiColorButtonOnChanged(uiColorButton *b, void (*f)(uiColorButton *, void *), void *data)

@@ -33,8 +33,7 @@ static void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
 
 	// Direct2D doesn't have a method for scrolling the existing contents of a render target.
 	// We'll have to just invalidate everything and hope for the best.
-	if (InvalidateRect(a->hwnd, NULL, FALSE) == 0)
-		logLastError(L"error invalidating uiArea after scrolling");
+	invalidateRect(a->hwnd, NULL, FALSE);
 
 	*(p->pos) = pos;
 

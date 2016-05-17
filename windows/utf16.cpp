@@ -140,3 +140,14 @@ WCHAR *ftoutf16(double d)
 	s = ss.str();		// to be safe
 	return utf16dup(s.c_str());
 }
+
+// to complement the above
+WCHAR *itoutf16(intmax_t i)
+{
+	std::wostringstream ss;
+	std::wstring s;
+
+	ss << i;
+	s = ss.str();		// to be safe
+	return utf16dup(s.c_str());
+}

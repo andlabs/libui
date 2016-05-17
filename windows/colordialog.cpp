@@ -363,12 +363,21 @@ static LRESULT CALLBACK svChooserSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 {
 	ID2D1RenderTarget *rt;
 	struct colorDialog *c;
+	D2D1_POINT_2F *pos;
+	D2D1_SIZE_F *size;
 
+	c = (struct colorDialog *) dwRefData;
 	switch (uMsg) {
 	case msgD2DScratchPaint:
 		rt = (ID2D1RenderTarget *) lParam;
-		c = (struct colorDialog *) dwRefData;
 		drawSVChooser(c, rt);
+		return 0;
+	case msgD2DScratchLButtonDown:
+		pos = (D2D1_POINT_2F *) wParam;
+		size = (D2D1_SIZE_F *) lParam;
+		c->s = pos->x / size->width;
+		c->v = 1 - (pos->y / size->height);
+		updateDialog(c, NULL);
 		return 0;
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, svChooserSubProc, uIdSubclass) == FALSE)

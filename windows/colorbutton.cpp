@@ -41,6 +41,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 		b->g = rgba.g;
 		b->b = rgba.b;
 		b->a = rgba.a;
+		invalidateRect(b->hwnd, NULL, TRUE);
 		(*(b->onChanged))(b, b->onChangedData);
 	}
 

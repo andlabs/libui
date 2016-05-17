@@ -6,6 +6,10 @@
 // - wParam - 0
 // - lParam - ID2D1RenderTarget *
 // - lResult - 0
+// You can optionally also handle msgD2DScratchLButtonDown, which is sent when the left mouse button is either pressed for the first time or held while the mouse is moving.
+// - wParam - position in DIPs, as D2D1_POINT_2F *
+// - lParam - size of render target in DIPs, as D2D1_SIZE_F *
+// - lResult - 0
 // Other messages can also be handled here.
 
 // TODO allow resize
@@ -35,6 +39,26 @@ static HRESULT d2dScratchDoPaint(HWND hwnd, ID2D1RenderTarget *rt)
 	SendMessageW(hwnd, msgD2DScratchPaint, 0, (LPARAM) rt);
 
 	return rt->EndDraw(NULL, NULL);
+}
+
+static void d2dScratchDoLButtonDown(HWND hwnd, ID2D1RenderTarget *rt, LPARAM lParam)
+{
+	double xpix, ypix;
+	FLOAT dpix, dpiy;
+	D2D1_POINT_2F pos;
+	D2D1_SIZE_F size;
+
+	xpix = (double) GET_X_LPARAM(lParam);
+	ypix = (double) GET_Y_LPARAM(lParam);
+	// these are in pixels; we need points
+	// TODO separate the function from areautil.cpp?
+	rt->GetDpi(&dpix, &dpiy);
+	pos.x = (xpix * 96) / dpix;
+	pos.y = (ypix * 96) / dpiy;
+
+	size = rt->GetSize();
+
+	SendMessageW(hwnd, msgD2DScratchLButtonDown, (WPARAM) (&pos), (LPARAM) (&size));
 }
 
 static LRESULT CALLBACK d2dScratchWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -83,6 +107,14 @@ static LRESULT CALLBACK d2dScratchWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	case WM_PRINTCLIENT:
 		// TODO
 		break;
+	case WM_LBUTTONDOWN:
+		d2dScratchDoLButtonDown(hwnd, rt, lParam);
+		return 0;
+	case WM_MOUSEMOVE:
+		// also send LButtonDowns when dragging
+		if ((wParam & MK_LBUTTON) != 0)
+			d2dScratchDoLButtonDown(hwnd, rt, lParam);
+		return 0;
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }

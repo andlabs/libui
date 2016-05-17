@@ -27,6 +27,7 @@ struct colorDialog {
 };
 
 // both of these are from the wikipedia page on HSV
+// TODO what to do about negative h?
 static void rgb2HSV(double r, double g, double b, double *h, double *s, double *v)
 {
 	double M, m;
@@ -56,8 +57,7 @@ static void rgb2HSV(double r, double g, double b, double *h, double *s, double *
 		switch (whichmax) {
 		case 0:
 			*h = ((g - b) / c);
-			if (*h > 6)
-				*h -= 6;
+			*h = fmod(*h, 6);
 			break;
 		case 1:
 			*h = ((b - r) / c) + 2;
@@ -635,6 +635,70 @@ static void aDoubleChanged(struct colorDialog *c)
 	updateDialog(c, c->editADouble);
 }
 
+static int editInt(HWND hwnd)
+{
+	WCHAR *s;
+	int i;
+
+	s = windowText(hwnd);
+	i = _wtoi(s);
+	uiFree(s);
+	return i;
+}
+
+static void rIntChanged(struct colorDialog *c)
+{
+	double r, g, b;
+	int i;
+
+	hsv2RGB(c->h, c->s, c->v, &r, &g, &b);
+	i = editInt(c->editRInt);
+	if (i < 0 || i > 255)
+		return;
+	r = ((double) i) / 255.0;
+	rgb2HSV(r, g, b, &(c->h), &(c->s), &(c->v));
+	updateDialog(c, c->editRInt);
+}
+
+static void gIntChanged(struct colorDialog *c)
+{
+	double r, g, b;
+	int i;
+
+	hsv2RGB(c->h, c->s, c->v, &r, &g, &b);
+	i = editInt(c->editGInt);
+	if (i < 0 || i > 255)
+		return;
+	g = ((double) i) / 255.0;
+	rgb2HSV(r, g, b, &(c->h), &(c->s), &(c->v));
+	updateDialog(c, c->editGInt);
+}
+
+static void bIntChanged(struct colorDialog *c)
+{
+	double r, g, b;
+	int i;
+
+	hsv2RGB(c->h, c->s, c->v, &r, &g, &b);
+	i = editInt(c->editBInt);
+	if (i < 0 || i > 255)
+		return;
+	b = ((double) i) / 255.0;
+	rgb2HSV(r, g, b, &(c->h), &(c->s), &(c->v));
+	updateDialog(c, c->editBInt);
+}
+
+static void aIntChanged(struct colorDialog *c)
+{
+	int a;
+
+	a = editInt(c->editAInt);
+	if (a < 0 || a > 255)
+		return;
+	c->a = ((double) a) / 255;
+	updateDialog(c, c->editAInt);
+}
+
 // TODO change fontdialog to use this
 // note that if we make this const, we get lots of weird compiler errors
 static std::map<int, void (*)(struct colorDialog *)> changed = {
@@ -645,6 +709,10 @@ static std::map<int, void (*)(struct colorDialog *)> changed = {
 	{ rcGDouble, gDoubleChanged },
 	{ rcBDouble, bDoubleChanged },
 	{ rcADouble, aDoubleChanged },
+	{ rcRInt, rIntChanged },
+	{ rcGInt, gIntChanged },
+	{ rcBInt, bIntChanged },
+	{ rcAInt, aIntChanged },
 };
 
 static INT_PTR CALLBACK colorDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -678,6 +746,10 @@ static INT_PTR CALLBACK colorDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 		case rcGDouble:
 		case rcBDouble:
 		case rcADouble:
+		case rcRInt:
+		case rcGInt:
+		case rcBInt:
+		case rcAInt:
 			if (HIWORD(wParam) != EN_CHANGE)
 				return FALSE;
 			if (c->updating)		// prevent infinite recursion during an update

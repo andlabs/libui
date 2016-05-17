@@ -23,7 +23,7 @@ struct colorDialog {
 	struct colorDialogRGBA *out;
 };
 
-// both of these are from the wiki
+// both of these are from the wikipedia page on HSV
 static void rgb2HSV(double r, double g, double b, double *h, double *s, double *v)
 {
 	double M, m;
@@ -121,7 +121,7 @@ static void hsv2RGB(double h, double s, double v, double *r, double *g, double *
 	// TODO
 }
 
-// this interesting approach comes from xxxx
+// this interesting approach comes from http://blogs.msdn.com/b/wpfsdk/archive/2006/10/26/uncommon-dialogs--font-chooser-and-color-picker-dialogs.aspx
 static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 {
 	D2D1_SIZE_F size;
@@ -133,6 +133,12 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 	D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES lprop;
 	D2D1_BRUSH_PROPERTIES bprop;
 	ID2D1LinearGradientBrush *brush;
+	ID2D1LinearGradientBrush *opacity;
+	ID2D1Layer *layer;
+	D2D1_LAYER_PARAMETERS layerparams;
+	D2D1_ELLIPSE mparam;
+	D2D1_COLOR_F mcolor;
+	ID2D1SolidColorBrush *markerBrush;
 	HRESULT hr;
 
 	size = rt->GetSize();
@@ -178,6 +184,107 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 	rt->FillRectangle(&rect, brush);
 	brush->Release();
 	collection->Release();
+
+	// second, create an opacity mask for the third step: a horizontal gradientthat goes from opaque to translucent
+	stops[0].position = 0;
+	stops[0].color.r = 0.0;
+	stops[0].color.g = 0.0;
+	stops[0].color.b = 0.0;
+	stops[0].color.a = 1.0;
+	stops[1].position = 1;
+	stops[1].color.r = 0.0;
+	stops[1].color.g = 0.0;
+	stops[1].color.b = 0.0;
+	stops[1].color.a = 0.0;
+	hr = rt->CreateGradientStopCollection(stops, 2,
+		D2D1_GAMMA_2_2, D2D1_EXTEND_MODE_CLAMP,
+		&collection);
+	if (hr != S_OK)
+		logHRESULT(L"error making gradient stop collection for opacity mask gradient in SV chooser", hr);
+	ZeroMemory(&lprop, sizeof (D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES));
+	lprop.startPoint.x = 0;
+	lprop.startPoint.y = size.height / 2;
+	lprop.endPoint.x = size.width;
+	lprop.endPoint.y = size.height / 2;
+	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
+	bprop.opacity = 1.0;
+	bprop.transform._11 = 1;
+	bprop.transform._22 = 1;
+	hr = rt->CreateLinearGradientBrush(&lprop, &bprop,
+		collection, &opacity);
+	if (hr != S_OK)
+		logHRESULT(L"error making gradient brush for opacity mask gradient in SV chooser", hr);
+	collection->Release();
+
+	// finally, make a vertical gradient from white at the top to black at the bottom (right side up this time) and with the previous opacity mask
+	stops[0].position = 0;
+	stops[0].color.r = 1.0;
+	stops[0].color.g = 1.0;
+	stops[0].color.b = 1.0;
+	stops[0].color.a = 1.0;
+	stops[1].position = 1;
+	stops[1].color.r = 0.0;
+	stops[1].color.g = 0.0;
+	stops[1].color.b = 0.0;
+	stops[1].color.a = 1.0;
+	hr = rt->CreateGradientStopCollection(stops, 2,
+		D2D1_GAMMA_2_2, D2D1_EXTEND_MODE_CLAMP,
+		&collection);
+	if (hr != S_OK)
+		logHRESULT(L"error making gradient stop collection for second gradient in SV chooser", hr);
+	ZeroMemory(&lprop, sizeof (D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES));
+	lprop.startPoint.x = size.width / 2;
+	lprop.startPoint.y = 0;
+	lprop.endPoint.x = size.width / 2;
+	lprop.endPoint.y = size.height;
+	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
+	bprop.opacity = 1.0;
+	bprop.transform._11 = 1;
+	bprop.transform._22 = 1;
+	hr = rt->CreateLinearGradientBrush(&lprop, &bprop,
+		collection, &brush);
+	if (hr != S_OK)
+		logHRESULT(L"error making gradient brush for second gradient in SV chooser", hr);
+	// oh but wait we can't use FillRectangle() with an opacity mask
+	// and we can't use FillGeometry() with both an opacity mask and a non-bitmap
+	// layers it is!
+	hr = rt->CreateLayer(&size, &layer);
+	if (hr != S_OK)
+		logHRESULT(L"error making layer for second gradient in SV chooser", hr);
+	ZeroMemory(&layerparams, sizeof (D2D1_LAYER_PARAMETERS));
+	layerparams.contentBounds = rect;
+	// TODO make sure these are right
+	layerparams.geometricMask = NULL;
+	layerparams.maskAntialiasMode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
+	layerparams.maskTransform._11 = 1;
+	layerparams.maskTransform._22 = 1;
+	layerparams.opacity = 1.0;
+	layerparams.opacityBrush = opacity;
+	layerparams.layerOptions = D2D1_LAYER_OPTIONS_NONE;
+	rt->PushLayer(&layerparams, layer);
+	rt->FillRectangle(&rect, brush);
+	rt->PopLayer();
+	layer->Release();
+	brush->Release();
+	collection->Release();
+	opacity->Release();
+
+	// and now we just draw the marker
+	ZeroMemory(&mparam, sizeof (D2D1_ELLIPSE));
+	mparam.point.x = s * size.width;
+	mparam.point.y = (1 - v) * size.height;
+	mparam.radiusX = 7;
+	mparam.radiusY = 7;
+	// TODO make the color contrast?
+	mcolor.r = 1.0;
+	mcolor.g = 1.0;
+	mcolor.b = 1.0;
+	mcolor.a = 1.0;
+	hr = rt->CreateSolidColorBrush(&mcolor, &bprop, &markerBrush);
+	if (hr != S_OK)
+		logHRESULT(L"error creating brush for SV chooser", hr);
+	rt->DrawEllipse(&mparam, markerBrush, 2, NULL);
+	markerBrush->Release();
 }
 
 static LRESULT CALLBACK svChooserSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)

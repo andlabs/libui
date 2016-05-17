@@ -77,6 +77,7 @@ static void rgb2HSV(double r, double g, double b, double *h, double *s, double *
 		*s = c / *v;
 }
 
+// TODO negative R values?
 static void hsv2RGB(double h, double s, double v, double *r, double *g, double *b)
 {
 	double c;
@@ -126,6 +127,97 @@ static void hsv2RGB(double h, double s, double v, double *r, double *g, double *
 	// TODO
 }
 
+#define hexd L"0123456789ABCDEF"
+
+static void rgba2Hex(uint8_t r, uint8_t g, uint8_t b, uint8_t a, WCHAR *buf)
+{
+	buf[0] = L'#';
+	buf[1] = hexd[(a >> 4) & 0xF];
+	buf[2] = hexd[a & 0xF];
+	buf[3] = hexd[(r >> 4) & 0xF];
+	buf[4] = hexd[r & 0xF];
+	buf[5] = hexd[(g >> 4) & 0xF];
+	buf[6] = hexd[g & 0xF];
+	buf[7] = hexd[(b >> 4) & 0xF];
+	buf[8] = hexd[b & 0xF];
+	buf[9] = L'\0';
+}
+
+static int convHexDigit(WCHAR c)
+{
+	if (c >= L'0' && c <= L'9')
+		return c - L'0';
+	if (c >= L'A' && c <= L'F')
+		return c - L'A' + 0xA;
+	if (c >= L'a' && c <= L'f')
+		return c - L'a' + 0xA;
+	return -1;
+}
+
+// TODO allow #NNN shorthand
+static BOOL hex2RGBA(WCHAR *buf, double *r, double *g, double *b, double *a)
+{
+	uint8_t component;
+	int i;
+
+	if (*buf == L'#')
+		buf++;
+
+	component = 0;
+	i = convHexDigit(*buf++);
+	if (i < 0)
+		return FALSE;
+	component |= ((uint8_t) i) << 4;
+	i = convHexDigit(*buf++);
+	if (i < 0)
+		return FALSE;
+	component |= ((uint8_t) i);
+	*a = ((double) component) / 255;
+
+	component = 0;
+	i = convHexDigit(*buf++);
+	if (i < 0)
+		return FALSE;
+	component |= ((uint8_t) i) << 4;
+	i = convHexDigit(*buf++);
+	if (i < 0)
+		return FALSE;
+	component |= ((uint8_t) i);
+	*r = ((double) component) / 255;
+
+	component = 0;
+	i = convHexDigit(*buf++);
+	if (i < 0)
+		return FALSE;
+	component |= ((uint8_t) i) << 4;
+	i = convHexDigit(*buf++);
+	if (i < 0)
+		return FALSE;
+	component |= ((uint8_t) i);
+	*g = ((double) component) / 255;
+
+	if (*buf == L'\0') {		// #NNNNNN syntax
+		*b = *g;
+		*g = *r;
+		*r = *a;
+		*a = 1;
+		return TRUE;
+	}
+
+	component = 0;
+	i = convHexDigit(*buf++);
+	if (i < 0)
+		return FALSE;
+	component |= ((uint8_t) i) << 4;
+	i = convHexDigit(*buf++);
+	if (i < 0)
+		return FALSE;
+	component |= ((uint8_t) i);
+	*b = ((double) component) / 255;
+
+	return *buf == L'\0';
+}
+
 static void updateDouble(HWND hwnd, double d, HWND whichChanged)
 {
 	WCHAR *str;
@@ -142,6 +234,7 @@ static void updateDialog(struct colorDialog *c, HWND whichChanged)
 	double r, g, b;
 	uint8_t rb, gb, bb, ab;
 	WCHAR *str;
+	WCHAR hexbuf[16];		// more than enough
 
 	c->updating = TRUE;
 
@@ -183,7 +276,8 @@ static void updateDialog(struct colorDialog *c, HWND whichChanged)
 	}
 
 	if (whichChanged != c->editHex) {
-		// TODO hex
+		rgba2Hex(rb, gb, bb, ab, hexbuf);
+		setWindowText(c->editHex, hexbuf);
 	}
 
 	// TODO TRUE?
@@ -699,6 +793,22 @@ static void aIntChanged(struct colorDialog *c)
 	updateDialog(c, c->editAInt);
 }
 
+static void hexChanged(struct colorDialog *c)
+{
+	WCHAR *buf;
+	double r, g, b, a;
+	BOOL is;
+
+	buf = windowText(c->editHex);
+	is = hex2RGBA(buf, &r, &g, &b, &a);
+	uiFree(buf);
+	if (!is)
+		return;
+	rgb2HSV(r, g, b, &(c->h), &(c->s), &(c->v));
+	c->a = a;
+	updateDialog(c, c->editHex);
+}
+
 // TODO change fontdialog to use this
 // note that if we make this const, we get lots of weird compiler errors
 static std::map<int, void (*)(struct colorDialog *)> changed = {
@@ -713,6 +823,7 @@ static std::map<int, void (*)(struct colorDialog *)> changed = {
 	{ rcGInt, gIntChanged },
 	{ rcBInt, bIntChanged },
 	{ rcAInt, aIntChanged },
+	{ rcHex, hexChanged },
 };
 
 static INT_PTR CALLBACK colorDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -750,6 +861,7 @@ static INT_PTR CALLBACK colorDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 		case rcGInt:
 		case rcBInt:
 		case rcAInt:
+		case rcHex:
 			if (HIWORD(wParam) != EN_CHANGE)
 				return FALSE;
 			if (c->updating)		// prevent infinite recursion during an update

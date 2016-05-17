@@ -6,6 +6,7 @@ struct colorDialog {
 
 	HWND svChooser;
 	HWND hSlider;
+	HWND preview;
 	HWND opacitySlider;
 	HWND editH;
 	HWND editS;
@@ -21,6 +22,8 @@ struct colorDialog {
 	double b;
 	double a;
 	struct colorDialogRGBA *out;
+
+	BOOL updating;
 };
 
 // both of these are from the wikipedia page on HSV
@@ -77,16 +80,18 @@ static void rgb2HSV(double r, double g, double b, double *h, double *s, double *
 static void hsv2RGB(double h, double s, double v, double *r, double *g, double *b)
 {
 	double c;
-	int hPrime;
+	double hPrime;
+	int h60;
 	double x;
 	double m;
 	double c1, c2;
 
 	c = v * s;
-	hPrime = (int) (h * 6);		// equivalent to splitting into 60° chunks
-	x = c * (1 - abs(hPrime % 2 - 1));
+	hPrime = h * 6;
+	h60 = (int) hPrime;		// equivalent to splitting into 60° chunks
+	x = c * (1.0 - fabs(fmod(hPrime, 2) - 1.0));
 	m = v - c;
-	switch (hPrime) {
+	switch (h60) {
 	case 0:
 		*r = c + m;
 		*g = x + m;
@@ -119,6 +124,75 @@ static void hsv2RGB(double h, double s, double v, double *r, double *g, double *
 		return;
 	}
 	// TODO
+}
+
+static void updateDouble(HWND hwnd, double d, HWND whichChanged)
+{
+	WCHAR *str;
+
+	if (whichChanged == hwnd)
+		return;
+	str = ftoutf16(d);
+	setWindowText(hwnd, str);
+	uiFree(str);
+}
+
+static void updateDialog(struct colorDialog *c, HWND whichChanged)
+{
+	double h, s, v;
+	uint8_t rb, gb, bb, ab;
+	WCHAR *str;
+
+	c->updating = TRUE;
+
+	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
+
+	updateDouble(c->editH, h, whichChanged);
+	updateDouble(c->editS, s, whichChanged);
+	updateDouble(c->editV, v, whichChanged);
+
+	updateDouble(c->editRDouble, c->r, whichChanged);
+	updateDouble(c->editGDouble, c->g, whichChanged);
+	updateDouble(c->editBDouble, c->b, whichChanged);
+	updateDouble(c->editADouble, c->a, whichChanged);
+
+	rb = (uint8_t) (c->r * 255);
+	gb = (uint8_t) (c->g * 255);
+	bb = (uint8_t) (c->b * 255);
+	ab = (uint8_t) (c->a * 255);
+
+	if (whichChanged != c->editRInt) {
+		str = itoutf16(rb);
+		setWindowText(c->editRInt, str);
+		uiFree(str);
+	}
+	if (whichChanged != c->editGInt) {
+		str = itoutf16(gb);
+		setWindowText(c->editGInt, str);
+		uiFree(str);
+	}
+	if (whichChanged != c->editBInt) {
+		str = itoutf16(bb);
+		setWindowText(c->editBInt, str);
+		uiFree(str);
+	}
+	if (whichChanged != c->editAInt) {
+		str = itoutf16(ab);
+		setWindowText(c->editAInt, str);
+		uiFree(str);
+	}
+
+	if (whichChanged != c->editHex) {
+		// TODO hex
+	}
+
+	// TODO TRUE?
+	invalidateRect(c->svChooser, NULL, TRUE);
+//TODO	invalidateRect(c->hSlider, NULL, TRUE);
+//TODO	invalidateRect(c->preview, NULL, TRUE);
+//TODO	invalidateRect(c->opacitySlider, NULL, TRUE);
+
+	c->updating = FALSE;
 }
 
 // this interesting approach comes from http://blogs.msdn.com/b/wpfsdk/archive/2006/10/26/uncommon-dialogs--font-chooser-and-color-picker-dialogs.aspx
@@ -436,7 +510,58 @@ static struct colorDialog *beginColorDialog(HWND hwnd, LPARAM lParam)
 
 	fixupControlPositions(c);
 
+	// and get the ball rolling
+	updateDialog(c, NULL);
 	return c;
+}
+
+static double editDouble(HWND hwnd)
+{
+	WCHAR *s;
+	double d;
+
+	s = windowText(hwnd);
+	d = _wtof(s);
+	uiFree(s);
+	return d;
+}
+
+static void hChanged(struct colorDialog *c)
+{
+	double h, s, v;
+
+	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
+	h = editDouble(c->editH);
+	if (h < 0 || h >= 1.0)		// note the >=
+		return;
+printf("%g %g %g | ", c->r, c->g, c->b);
+	hsv2RGB(h, s, v, &(c->r), &(c->g), &(c->b));
+printf("%g %g %g\n", c->r, c->g, c->b);
+	updateDialog(c, c->editH);
+}
+
+static void sChanged(struct colorDialog *c)
+{
+	double h, s, v;
+
+	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
+	s = editDouble(c->editS);
+	if (s < 0 || s > 1)
+		return;
+	hsv2RGB(h, s, v, &(c->r), &(c->g), &(c->b));
+	updateDialog(c, c->editS);
+}
+
+static void vChanged(struct colorDialog *c)
+{
+	double h, s, v;
+
+	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
+	v = editDouble(c->editV);
+	if (v < 0 || v > 1)
+		return;
+	hsv2RGB(h, s, v, &(c->r), &(c->g), &(c->b));
+	updateDialog(c, c->editV);
 }
 
 static void endColorDialog(struct colorDialog *c, INT_PTR code)
@@ -446,12 +571,13 @@ static void endColorDialog(struct colorDialog *c, INT_PTR code)
 	uiFree(c);
 }
 
-static BOOL tryFinishDialog(struct colorDialog *c, WPARAM wParam)
+// TODO make this void on the font dialog too
+static void tryFinishDialog(struct colorDialog *c, WPARAM wParam)
 {
 	// cancelling
 	if (LOWORD(wParam) != IDOK) {
 		endColorDialog(c, 1);
-		return TRUE;
+		return;
 	}
 
 	// OK
@@ -460,8 +586,15 @@ static BOOL tryFinishDialog(struct colorDialog *c, WPARAM wParam)
 	c->out->b = c->b;
 	c->out->a = c->a;
 	endColorDialog(c, 2);
-	return TRUE;
 }
+
+// TODO change fontdialog to use this
+// note that if we make this const, we get lots of weird compiler errors
+static std::map<int, void (*)(struct colorDialog *)> changed = {
+	{ rcH, hChanged },
+	{ rcS, sChanged },
+	{ rcV, vChanged },
+};
 
 static INT_PTR CALLBACK colorDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -485,7 +618,17 @@ static INT_PTR CALLBACK colorDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
 		case IDCANCEL:
 			if (HIWORD(wParam) != BN_CLICKED)
 				return FALSE;
-			return tryFinishDialog(c, wParam);
+			tryFinishDialog(c, wParam);
+			return TRUE;
+		case rcH:
+		case rcS:
+		case rcV:
+			if (HIWORD(wParam) != EN_CHANGE)
+				return FALSE;
+			if (c->updating)		// prevent infinite recursion during an update
+				return FALSE;
+			(*(changed[LOWORD(wParam)]))(c);
+			return TRUE;
 		}
 		return FALSE;
 	}

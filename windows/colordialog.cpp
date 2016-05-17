@@ -17,9 +17,9 @@ struct colorDialog {
 	HWND editADouble, editAInt;
 	HWND editHex;
 
-	double r;
-	double g;
-	double b;
+	double h;
+	double s;
+	double v;
 	double a;
 	struct colorDialogRGBA *out;
 
@@ -139,26 +139,26 @@ static void updateDouble(HWND hwnd, double d, HWND whichChanged)
 
 static void updateDialog(struct colorDialog *c, HWND whichChanged)
 {
-	double h, s, v;
+	double r, g, b;
 	uint8_t rb, gb, bb, ab;
 	WCHAR *str;
 
 	c->updating = TRUE;
 
-	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
+	updateDouble(c->editH, c->h, whichChanged);
+	updateDouble(c->editS, c->s, whichChanged);
+	updateDouble(c->editV, c->v, whichChanged);
 
-	updateDouble(c->editH, h, whichChanged);
-	updateDouble(c->editS, s, whichChanged);
-	updateDouble(c->editV, v, whichChanged);
+	hsv2RGB(c->h, c->s, c->v, &r, &g, &b);
 
-	updateDouble(c->editRDouble, c->r, whichChanged);
-	updateDouble(c->editGDouble, c->g, whichChanged);
-	updateDouble(c->editBDouble, c->b, whichChanged);
+	updateDouble(c->editRDouble, r, whichChanged);
+	updateDouble(c->editGDouble, g, whichChanged);
+	updateDouble(c->editBDouble, b, whichChanged);
 	updateDouble(c->editADouble, c->a, whichChanged);
 
-	rb = (uint8_t) (c->r * 255);
-	gb = (uint8_t) (c->g * 255);
-	bb = (uint8_t) (c->b * 255);
+	rb = (uint8_t) (r * 255);
+	gb = (uint8_t) (g * 255);
+	bb = (uint8_t) (b * 255);
 	ab = (uint8_t) (c->a * 255);
 
 	if (whichChanged != c->editRInt) {
@@ -200,7 +200,6 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 {
 	D2D1_SIZE_F size;
 	D2D1_RECT_F rect;
-	double h, s, v;
 	double rTop, gTop, bTop;
 	D2D1_GRADIENT_STOP stops[2];
 	ID2D1GradientStopCollection *collection;
@@ -225,8 +224,7 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 
 	// first, draw a vertical gradient from the current hue at max S/V to black
 	// the source example draws it upside down; let's do so too just to be safe
-	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
-	hsv2RGB(h, 1.0, 1.0, &rTop, &gTop, &bTop);
+	hsv2RGB(c->h, 1.0, 1.0, &rTop, &gTop, &bTop);
 	stops[0].position = 0;
 	stops[0].color.r = 0.0;
 	stops[0].color.g = 0.0;
@@ -345,8 +343,8 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 
 	// and now we just draw the marker
 	ZeroMemory(&mparam, sizeof (D2D1_ELLIPSE));
-	mparam.point.x = s * size.width;
-	mparam.point.y = (1 - v) * size.height;
+	mparam.point.x = c->s * size.width;
+	mparam.point.y = (1 - c->v) * size.height;
 	mparam.radiusX = 7;
 	mparam.radiusY = 7;
 	// TODO make the color contrast?
@@ -485,9 +483,8 @@ static struct colorDialog *beginColorDialog(HWND hwnd, LPARAM lParam)
 	c = uiNew(struct colorDialog);
 	c->hwnd = hwnd;
 	c->out = (struct colorDialogRGBA *) lParam;
-	c->r = c->out->r;		// load initial values now
-	c->g = c->out->g;
-	c->b = c->out->b;
+	// load initial values now
+	rgb2HSV(c->out->r, c->out->g, c->out->b, &(c->h), &(c->s), &(c->v));
 	c->a = c->out->a;
 
 	// TODO set up d2dscratches
@@ -528,39 +525,34 @@ static double editDouble(HWND hwnd)
 
 static void hChanged(struct colorDialog *c)
 {
-	double h, s, v;
+	double h;
 
-	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
 	h = editDouble(c->editH);
 	if (h < 0 || h >= 1.0)		// note the >=
 		return;
-printf("%g %g %g | ", c->r, c->g, c->b);
-	hsv2RGB(h, s, v, &(c->r), &(c->g), &(c->b));
-printf("%g %g %g\n", c->r, c->g, c->b);
+	c->h = h;
 	updateDialog(c, c->editH);
 }
 
 static void sChanged(struct colorDialog *c)
 {
-	double h, s, v;
+	double s;
 
-	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
 	s = editDouble(c->editS);
 	if (s < 0 || s > 1)
 		return;
-	hsv2RGB(h, s, v, &(c->r), &(c->g), &(c->b));
+	c->s = s;
 	updateDialog(c, c->editS);
 }
 
 static void vChanged(struct colorDialog *c)
 {
-	double h, s, v;
+	double v;
 
-	rgb2HSV(c->r, c->g, c->b, &h, &s, &v);
 	v = editDouble(c->editV);
 	if (v < 0 || v > 1)
 		return;
-	hsv2RGB(h, s, v, &(c->r), &(c->g), &(c->b));
+	c->v = v;
 	updateDialog(c, c->editV);
 }
 
@@ -581,9 +573,7 @@ static void tryFinishDialog(struct colorDialog *c, WPARAM wParam)
 	}
 
 	// OK
-	c->out->r = c->r;
-	c->out->g = c->g;
-	c->out->b = c->b;
+	hsv2RGB(c->h, c->s, c->v, &(c->out->r), &(c->out->g), &(c->out->b));
 	c->out->a = c->a;
 	endColorDialog(c, 2);
 }

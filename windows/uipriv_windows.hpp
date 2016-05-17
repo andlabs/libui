@@ -37,6 +37,7 @@ extern WCHAR *strf(const WCHAR *format, ...);
 extern WCHAR *vstrf(const WCHAR *format, va_list ap);
 extern char *LFtoCRLF(const char *lfonly);
 extern void CRLFtoLF(const char *s);
+extern WCHAR *ftoutf16(double d);
 
 // debug.cpp
 // see http://stackoverflow.com/questions/14421656/is-there-widely-available-wide-character-variant-of-file

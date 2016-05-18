@@ -286,7 +286,7 @@ static void updateDialog(struct colorDialog *c, HWND whichChanged)
 	invalidateRect(c->svChooser, NULL, TRUE);
 	invalidateRect(c->hSlider, NULL, TRUE);
 	invalidateRect(c->preview, NULL, TRUE);
-//TODO	invalidateRect(c->opacitySlider, NULL, TRUE);
+	invalidateRect(c->opacitySlider, NULL, TRUE);
 
 	c->updating = FALSE;
 }
@@ -558,6 +558,52 @@ static LRESULT CALLBACK svChooserSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
 
+static void drawArrow(ID2D1RenderTarget *rt, D2D1_POINT_2F center, double hypot)
+{
+	double leg;
+	D2D1_RECT_F rect;
+	D2D1_MATRIX_3X2_F oldtf, rotate;
+	D2D1_COLOR_F color;
+	D2D1_BRUSH_PROPERTIES bprop;
+	ID2D1SolidColorBrush *brush;
+	HRESULT hr;
+
+	// to avoid needing a geometry, this will just be a rotated square
+	// compute the length of each side; the diagonal of the square is 2 * offset to gradient
+	// a^2 + a^2 = c^2 -> 2a^2 = c^2
+	// a = sqrt(c^2/2)
+	hypot *= hypot;
+	hypot /= 2;
+	leg = sqrt(hypot);
+	rect.left = center.x - leg;
+	rect.top = center.y - leg;
+	rect.right = center.x + leg;
+	rect.bottom = center.y + leg;
+
+	// now we need to rotate the render target 45° (either way works) about the center point
+	rt->GetTransform(&oldtf);
+	rotate = oldtf * D2D1::Matrix3x2F::Rotation(45, center);
+	rt->SetTransform(&rotate);
+
+	// and draw
+	color.r = 0.0;
+	color.g = 0.0;
+	color.b = 0.0;
+	color.a = 1.0;
+	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
+	bprop.opacity = 1.0;
+	bprop.transform._11 = 1;
+	bprop.transform._22 = 1;
+	hr = rt->CreateSolidColorBrush(&color, &bprop, &brush);
+	if (hr != S_OK)
+		logHRESULT(L"error creating brush for arrow", hr);
+	rt->FillRectangle(&rect, brush);
+	brush->Release();
+
+	// clean up
+	rt->SetTransform(&oldtf);
+}
+
 // the gradient stuff also comes from http://blogs.msdn.com/b/wpfsdk/archive/2006/10/26/uncommon-dialogs--font-chooser-and-color-picker-dialogs.aspx
 #define nStops (30)
 #define degPerStop (360 / nStops)
@@ -575,11 +621,8 @@ static void drawHSlider(struct colorDialog *c, ID2D1RenderTarget *rt)
 	D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES lprop;
 	D2D1_BRUSH_PROPERTIES bprop;
 	ID2D1LinearGradientBrush *brush;
-	double hypot, leg;
+	double hypot;
 	D2D1_POINT_2F center;
-	D2D1_MATRIX_3X2_F oldtf, rotate;
-	D2D1_COLOR_F mcolor;
-	ID2D1SolidColorBrush *markerBrush;
 	HRESULT hr;
 
 	size = rt->GetSize();
@@ -626,39 +669,10 @@ static void drawHSlider(struct colorDialog *c, ID2D1RenderTarget *rt)
 	collection->Release();
 
 	// now draw a black arrow
-	// to avoid needing a geometry, this will just be a rotated square
 	center.x = 0;
 	center.y = c->h * size.height;
-	// compute the length of each side; the diagonal of the square is 2 * offset to gradient
 	hypot = rect.left;
-	// a^2 + a^2 = c^2 -> 2a^2 = c^2
-	// a = sqrt(c^2/2)
-	hypot *= hypot;
-	hypot /= 2;
-	leg = sqrt(hypot);
-	rect.left = -leg;
-	rect.top = center.y - leg;
-	rect.right = leg;
-	rect.bottom = center.y + leg;
-
-	// now we need to rotate the render target 45° (either way works) about the center point
-	rt->GetTransform(&oldtf);
-	rotate = oldtf * D2D1::Matrix3x2F::Rotation(45, center);
-	rt->SetTransform(&rotate);
-
-	// and draw
-	mcolor.r = 0.0;
-	mcolor.g = 0.0;
-	mcolor.b = 0.0;
-	mcolor.a = 1.0;
-	hr = rt->CreateSolidColorBrush(&mcolor, &bprop, &markerBrush);
-	if (hr != S_OK)
-		logHRESULT(L"error creating brush for H slider marker", hr);
-	rt->FillRectangle(&rect, markerBrush);
-	markerBrush->Release();
-
-	// clean up
-	rt->SetTransform(&oldtf);
+	drawArrow(rt, center, hypot);
 }
 
 static LRESULT CALLBACK hSliderSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
@@ -736,6 +750,95 @@ static LRESULT CALLBACK previewSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, previewSubProc, uIdSubclass) == FALSE)
 			logLastError(L"error removing color dialog previewer subclass");
+		break;
+	}
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+}
+
+// once again, this is based on the Microsoft sample above
+static void drawOpacitySlider(struct colorDialog *c, ID2D1RenderTarget *rt)
+{
+	D2D1_SIZE_F size;
+	D2D1_RECT_F rect;
+	D2D1_GRADIENT_STOP stops[2];
+	ID2D1GradientStopCollection *collection;
+	D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES lprop;
+	D2D1_BRUSH_PROPERTIES bprop;
+	ID2D1LinearGradientBrush *brush;
+	double hypot;
+	D2D1_POINT_2F center;
+	HRESULT hr;
+
+	size = rt->GetSize();
+	rect.left = 0;
+	rect.top = 0;
+	rect.right = size.width;
+	rect.bottom = size.height * (5.0 / 6.0);		// bottommost sixth for arrow
+
+	drawGrid(rt, &rect);
+
+	stops[0].position = 0.0;
+	stops[0].color.r = 0.0;
+	stops[0].color.g = 0.0;
+	stops[0].color.b = 0.0;
+	stops[0].color.a = 1.0;
+	stops[1].position = 1.0;
+	stops[1].color.r = 1.0;		// this is the XAML color Transparent, as in the source
+	stops[1].color.g = 1.0;
+	stops[1].color.b = 1.0;
+	stops[1].color.a = 0.0;
+	hr = rt->CreateGradientStopCollection(stops, 2,
+		// note that in this case this gamma is explicitly specified by the original
+		D2D1_GAMMA_2_2, D2D1_EXTEND_MODE_CLAMP,
+		&collection);
+	if (hr != S_OK)
+		logHRESULT(L"error creating stop collection for opacity slider gradient", hr);
+	ZeroMemory(&lprop, sizeof (D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES));
+	lprop.startPoint.x = 0;
+	lprop.startPoint.y = (rect.bottom - rect.top) / 2;
+	lprop.endPoint.x = size.width;
+	lprop.endPoint.y = (rect.bottom - rect.top) / 2;
+	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
+	bprop.opacity = 1.0;
+	bprop.transform._11 = 1;
+	bprop.transform._22 = 1;
+	hr = rt->CreateLinearGradientBrush(&lprop, &bprop,
+		collection, &brush);
+	if (hr != S_OK)
+		logHRESULT(L"error creating gradient brush for opacity slider", hr);
+	rt->FillRectangle(&rect, brush);
+	brush->Release();
+	collection->Release();
+
+	// now draw a black arrow
+	center.x = (1 - c->a) * size.width;
+	center.y = size.height;
+	hypot = size.height - rect.bottom;
+	drawArrow(rt, center, hypot);
+}
+
+static LRESULT CALLBACK opacitySliderSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	ID2D1RenderTarget *rt;
+	struct colorDialog *c;
+	D2D1_POINT_2F *pos;
+	D2D1_SIZE_F *size;
+
+	c = (struct colorDialog *) dwRefData;
+	switch (uMsg) {
+	case msgD2DScratchPaint:
+		rt = (ID2D1RenderTarget *) lParam;
+		drawOpacitySlider(c, rt);
+		return 0;
+	case msgD2DScratchLButtonDown:
+		pos = (D2D1_POINT_2F *) wParam;
+		size = (D2D1_SIZE_F *) lParam;
+		c->a = 1 - (pos->x / size->width);
+		updateDialog(c, NULL);
+		return 0;
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, opacitySliderSubProc, uIdSubclass) == FALSE)
+			logLastError(L"error removing color dialog opacity slider subclass");
 		break;
 	}
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
@@ -869,6 +972,7 @@ static struct colorDialog *beginColorDialog(HWND hwnd, LPARAM lParam)
 	c->svChooser = replaceWithD2DScratch(c->hwnd, rcColorSVChooser, svChooserSubProc, c);
 	c->hSlider = replaceWithD2DScratch(c->hwnd, rcColorHSlider, hSliderSubProc, c);
 	c->preview = replaceWithD2DScratch(c->hwnd, rcPreview, previewSubProc, c);
+	c->opacitySlider = replaceWithD2DScratch(c->hwnd, rcOpacitySlider, opacitySliderSubProc, c);
 
 	fixupControlPositions(c);
 

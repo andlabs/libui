@@ -291,6 +291,79 @@ static void updateDialog(struct colorDialog *c, HWND whichChanged)
 	c->updating = FALSE;
 }
 
+// this imitates http://blogs.msdn.com/b/wpfsdk/archive/2006/10/26/uncommon-dialogs--font-chooser-and-color-picker-dialogs.aspx
+static void drawGrid(ID2D1RenderTarget *rt, D2D1_RECT_F *fillRect)
+{
+	D2D1_SIZE_F size;
+	D2D1_PIXEL_FORMAT pformat;
+	ID2D1BitmapRenderTarget *brt;
+	D2D1_COLOR_F color;
+	D2D1_BRUSH_PROPERTIES bprop;
+	ID2D1SolidColorBrush *brush;
+	D2D1_RECT_F rect;
+	ID2D1Bitmap *bitmap;
+	D2D1_BITMAP_BRUSH_PROPERTIES bbp;
+	ID2D1BitmapBrush *bb;
+	HRESULT hr;
+
+	// mind the divisions; they represent the fact the original uses a viewport
+	size.width = 100 / 10;
+	size.height = 100 / 10;
+	pformat = rt->GetPixelFormat();
+	hr = rt->CreateCompatibleRenderTarget(&size, NULL,
+		&pformat, D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_NONE,
+		&brt);
+	if (hr != S_OK)
+		logHRESULT(L"error creating render target for grid", hr);
+
+	brt->BeginDraw();
+
+	color.r = 1.0;
+	color.g = 1.0;
+	color.b = 1.0;
+	color.a = 1.0;
+	brt->Clear(&color);
+
+	color = D2D1::ColorF(D2D1::ColorF::LightGray, 1.0);
+	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
+	bprop.opacity = 1.0;
+	bprop.transform._11 = 1;
+	bprop.transform._22 = 1;
+	hr = brt->CreateSolidColorBrush(&color, &bprop, &brush);
+	if (hr != S_OK)
+		logHRESULT(L"error creating brush for grid", hr);
+	rect.left = 0;
+	rect.top = 0;
+	rect.right = 50 / 10;
+	rect.bottom = 50 / 10;
+	brt->FillRectangle(&rect, brush);
+	rect.left = 50 / 10;
+	rect.top = 50 / 10;
+	rect.right = 100 / 10;
+	rect.bottom = 100 / 10;
+	brt->FillRectangle(&rect, brush);
+	brush->Release();
+
+	hr = brt->EndDraw(NULL, NULL);
+	if (hr != S_OK)
+		logHRESULT(L"error finalizing render target for grid", hr);
+	hr = brt->GetBitmap(&bitmap);
+	if (hr != S_OK)
+		logHRESULT(L"error getting bitmap for grid", hr);
+	brt->Release();
+
+	ZeroMemory(&bbp, sizeof (D2D1_BITMAP_BRUSH_PROPERTIES));
+	bbp.extendModeX = D2D1_EXTEND_MODE_WRAP;
+	bbp.extendModeY = D2D1_EXTEND_MODE_WRAP;
+	bbp.interpolationMode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
+	hr = rt->CreateBitmapBrush(bitmap, &bbp, &bprop, &bb);
+	if (hr != S_OK)
+		logHRESULT(L"error creating bitmap brush for grid", hr);
+	rt->FillRectangle(fillRect, bb);
+	bb->Release();
+	bitmap->Release();
+}
+
 // this interesting approach comes from http://blogs.msdn.com/b/wpfsdk/archive/2006/10/26/uncommon-dialogs--font-chooser-and-color-picker-dialogs.aspx
 static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 {
@@ -316,7 +389,7 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 	rect.right = size.width;
 	rect.bottom = size.height;
 
-	// TODO draw checkerboard
+	drawGrid(rt, &rect);
 
 	// first, draw a vertical gradient from the current hue at max S/V to black
 	// the source example draws it upside down; let's do so too just to be safe
@@ -341,6 +414,7 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 	lprop.startPoint.y = size.height;
 	lprop.endPoint.x = size.width / 2;
 	lprop.endPoint.y = 0;
+	// TODO decide what to do about the duplication of this
 	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
 	bprop.opacity = c->a;		// note this part; we also use it below for the layer
 	bprop.transform._11 = 1;

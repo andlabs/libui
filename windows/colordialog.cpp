@@ -285,7 +285,7 @@ static void updateDialog(struct colorDialog *c, HWND whichChanged)
 	// TODO TRUE?
 	invalidateRect(c->svChooser, NULL, TRUE);
 	invalidateRect(c->hSlider, NULL, TRUE);
-//TODO	invalidateRect(c->preview, NULL, TRUE);
+	invalidateRect(c->preview, NULL, TRUE);
 //TODO	invalidateRect(c->opacitySlider, NULL, TRUE);
 
 	c->updating = FALSE;
@@ -688,6 +688,59 @@ static LRESULT CALLBACK hSliderSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
 
+static void drawPreview(struct colorDialog *c, ID2D1RenderTarget *rt)
+{
+	D2D1_SIZE_F size;
+	D2D1_RECT_F rect;
+	double r, g, b;
+	D2D1_COLOR_F color;
+	D2D1_BRUSH_PROPERTIES bprop;
+	ID2D1SolidColorBrush *brush;
+	HRESULT hr;
+
+	size = rt->GetSize();
+	rect.left = 0;
+	rect.top = 0;
+	rect.right = size.width;
+	rect.bottom = size.height;
+
+	drawGrid(rt, &rect);
+
+	hsv2RGB(c->h, c->s, c->v, &r, &g, &b);
+	color.r = r;
+	color.g = g;
+	color.b = b;
+	color.a = c->a;
+	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
+	bprop.opacity = 1.0;
+	bprop.transform._11 = 1;
+	bprop.transform._22 = 1;
+	hr = rt->CreateSolidColorBrush(&color, &bprop, &brush);
+	if (hr != S_OK)
+		logHRESULT(L"error creating brush for preview", hr);
+	rt->FillRectangle(&rect, brush);
+	brush->Release();
+}
+
+static LRESULT CALLBACK previewSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	ID2D1RenderTarget *rt;
+	struct colorDialog *c;
+
+	c = (struct colorDialog *) dwRefData;
+	switch (uMsg) {
+	case msgD2DScratchPaint:
+		rt = (ID2D1RenderTarget *) lParam;
+		drawPreview(c, rt);
+		return 0;
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, previewSubProc, uIdSubclass) == FALSE)
+			logLastError(L"error removing color dialog previewer subclass");
+		break;
+	}
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+}
+
 // TODO extract into d2dscratch.cpp, use in font dialog
 HWND replaceWithD2DScratch(HWND parent, int id, SUBCLASSPROC subproc, void *data)
 {
@@ -815,6 +868,7 @@ static struct colorDialog *beginColorDialog(HWND hwnd, LPARAM lParam)
 
 	c->svChooser = replaceWithD2DScratch(c->hwnd, rcColorSVChooser, svChooserSubProc, c);
 	c->hSlider = replaceWithD2DScratch(c->hwnd, rcColorHSlider, hSliderSubProc, c);
+	c->preview = replaceWithD2DScratch(c->hwnd, rcPreview, previewSubProc, c);
 
 	fixupControlPositions(c);
 

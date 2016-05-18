@@ -165,6 +165,10 @@ int main(void)
 		uiControl(uiNewFontButton()),
 		0);
 
+	uiBoxAppend(inner,
+		uiControl(uiNewColorButton()),
+		0);
+
 	inner2 = uiNewVerticalBox();
 	uiBoxSetPadded(inner2, 1);
 	uiBoxAppend(hbox, uiControl(inner2), 1);

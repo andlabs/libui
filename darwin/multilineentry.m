@@ -173,6 +173,8 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	return e;
 }
 
+#if 0
+
 NSMutableString *s;
 static void add(const char *fmt, ...)
 {
@@ -322,3 +324,5 @@ _s.tv = tv;
 	
 	fprintf(stdout, "%s", [s UTF8String]);
 }
+
+#endif

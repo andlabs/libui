@@ -24,7 +24,7 @@ int main(void)
 	uiMenu *menu;
 	uiMenuItem *item;
 	uiBox *box;
-    uiLabel *label;
+	uiLabel *label;
 
 	memset(&o, 0, sizeof (uiInitOptions));
 	err = uiInit(&o);
@@ -35,7 +35,7 @@ int main(void)
 	}
 
 	menu = uiNewMenu("File");
-    item = uiMenuAppendItem(menu, "Item");
+	item = uiMenuAppendItem(menu, "Item");
 	item = uiMenuAppendQuitItem(menu);
 	uiOnShouldQuit(shouldQuit, NULL);
 
@@ -46,9 +46,9 @@ int main(void)
 	box = uiNewVerticalBox();
 	uiBoxSetPadded(box, 1);
 	uiWindowSetChild(mainwin, uiControl(box));
-
-    label = uiNewLabel("Hello, World!");
-    uiBoxAppend(box, uiControl(label), 0);
+	
+	label = uiNewLabel("Hello, World!");
+	uiBoxAppend(box, uiControl(label), 0);
 
 	uiControlShow(uiControl(mainwin));
 	uiMain();

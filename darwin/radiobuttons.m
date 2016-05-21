@@ -1,68 +1,130 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
-// TODO the selection should NOT be lost when starting a new drag
+// In the old days you would use a NSMatrix for this; as of OS X 10.8 this was deprecated and now you need just a bunch of NSButtons with the same superview AND same action method.
+// This is documented on the NSMatrix page, but the rest of the OS X documentation says to still use NSMatrix.
+// NSMatrix has weird quirks anyway...
+// TODO verify this works on 10.7.
+
+// TODO
+// - check that multiple radio buttons on the same parent container work right
+// - 6 units of spacing between buttons, as suggested by Interface Builder?
 
 struct uiRadioButtons {
 	uiDarwinControl c;
-	NSMatrix *matrix;
+	NSView *view;
+	NSMutableArray *buttons;
+	NSMutableArray *constraints;
+	NSLayoutConstraint *lastv;
 };
 
-uiDarwinControlAllDefaults(uiRadioButtons, matrix)
+uiDarwinControlAllDefaultsExceptDestroy(uiRadioButtons, view)
 
-static NSButtonCell *cellAt(uiRadioButtons *r, uintmax_t n)
+static void uiRadioButtonsDestroy(uiControl *c)
 {
-	return (NSButtonCell *) [r->matrix cellAtRow:n column:0];
+	uiRadioButtons *r = uiRadioButtons(c);
+	NSButton *b;
+
+	// drop the constraints
+	[r->view removeConstraints:r->constraints];
+	[r->constraints release];
+	if (r->lastv != nil)
+		[r->lastv release];
+	// destroy the buttons
+	for (b in r->buttons)
+		[b removeFromSuperview];
+	[r->buttons release];
+	// and destroy ourselves
+	[r->view release];
+	uiFreeControl(uiControl(r));
+}
+
+static NSButton *buttonAt(uiRadioButtons *r, uintmax_t n)
+{
+	return (NSButton *) [r->buttons objectAtIndex:n];
 }
 
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 {
-	intmax_t prevSelection;
+	NSButton *b, *b2;
+	NSLayoutConstraint *constraint;
 
-	// renewRows:columns: will reset the selection
-	prevSelection = [r->matrix selectedRow];
+	// TODO bezel style? transparent?
+	b = [[NSButton alloc] initWithFrame:NSZeroRect];
+	[b setTitle:toNSString(text)];
+	[b setButtonType:NSRadioButton];
+	[b setBordered:NO];
+	uiDarwinSetControlFont(b, NSRegularControlSize);
+	[b setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	[r->matrix renewRows:([r->matrix numberOfRows] + 1) columns:1];
-	[cellAt(r, [r->matrix numberOfRows] - 1) setTitle:toNSString(text)];
+	// TODO set target
+	[b setAction:@selector(onClicked:)];
 
-	// this will definitely cause a resize in at least the vertical direction, even if not in the horizontal
-	// DO NOT CALL sizeToCells! this will glitch out; see http://stackoverflow.com/questions/32162562/dynamically-adding-cells-to-a-nsmatrix-laid-out-with-auto-layout-has-weird-effec
+	[r->buttons addObject:b];
+	[r->view addSubview:b];
 
-	// and renew the previous selection
-	// we need to turn on allowing empty selection for this to work properly on the initial state
-	// TODO this doesn't actually work
-	[r->matrix setAllowsEmptySelection:YES];
-	[r->matrix selectCellAtRow:prevSelection column:0];
-	[r->matrix setAllowsEmptySelection:NO];
+	// pin horizontally to the edges of the superview
+	constraint = mkConstraint(b, NSLayoutAttributeLeading,
+		NSLayoutRelationEqual,
+		r->view, NSLayoutAttributeLeading,
+		1, 0,
+		@"uiRadioButtons button leading constraint");
+	[r->view addConstraint:constraint];
+	[r->constraints addObject:constraint];
+	constraint = mkConstraint(b, NSLayoutAttributeTrailing,
+		NSLayoutRelationEqual,
+		r->view, NSLayoutAttributeTrailing,
+		1, 0,
+		@"uiRadioButtons button trailing constraint");
+	[r->view addConstraint:constraint];
+	[r->constraints addObject:constraint];
+
+	// if this is the first view, pin it to the top
+	// otherwise pin to the bottom of the last
+	if ([r->buttons count] == 1)
+		constraint = mkConstraint(b, NSLayoutAttributeTop,
+			NSLayoutRelationEqual,
+			r->view, NSLayoutAttributeTop,
+			1, 0,
+			@"uiRadioButtons first button top constraint");
+	else {
+		b2 = buttonAt(r, [r->buttons count] - 2);
+		constraint = mkConstraint(b, NSLayoutAttributeTop,
+			NSLayoutRelationEqual,
+			b2, NSLayoutAttributeBottom,
+			1, 0,
+			@"uiRadioButtons non-first button top constraint");
+	}
+	[r->view addConstraint:constraint];
+	[r->constraints addObject:constraint];
+
+	// if there is a previous bottom constraint, remove it
+	if (r->lastv != nil) {
+		[r->view removeConstraint:r->lastv];
+		[r->constraints removeObject:r->lastv];
+		[r->lastv release];
+	}
+
+	// and make the new bottom constraint
+	r->lastv = mkConstraint(b, NSLayoutAttributeBottom,
+		NSLayoutRelationEqual,
+		r->view, NSLayoutAttributeBottom,
+		1, 0,
+		@"uiRadioButtons last button bottom constraint");
+	[r->view addConstraint:r->lastv];
+	[r->constraints addObject:r->lastv];
+	[r->lastv retain];
 }
 
 uiRadioButtons *uiNewRadioButtons(void)
 {
 	uiRadioButtons *r;
-	NSButtonCell *cell;
 
 	uiDarwinNewControl(uiRadioButtons, r);
 
-	// we have to set up the NSMatrix this way (prototype first)
-	// otherwise we won't be able to change its properties (such as the button type)
-	cell = [NSButtonCell new];
-	[cell setButtonType:NSRadioButton];
-	// works on NSCells too (same selector)
-	uiDarwinSetControlFont((NSControl *) cell, NSRegularControlSize);
-
-	r->matrix = [[NSMatrix alloc] initWithFrame:NSZeroRect
-		mode:NSRadioModeMatrix
-		prototype:cell
-		numberOfRows:0
-		numberOfColumns:0];
-	// we manually twiddle this property to allow programmatic non-selection state
-	[r->matrix setAllowsEmptySelection:NO];
-	[r->matrix setSelectionByRect:YES];
-	[r->matrix setIntercellSpacing:NSMakeSize(4, 2)];
-	[r->matrix setAutorecalculatesCellSize:YES];
-	[r->matrix setDrawsBackground:NO];
-	[r->matrix setDrawsCellBackground:NO];
-	[r->matrix setAutosizesCells:YES];
+	r->view = [[NSView alloc] initWithFrame:NSZeroRect];
+	r->buttons = [NSMutableArray new];
+	r->constraints = [NSMutableArray new];
 
 	return r;
 }

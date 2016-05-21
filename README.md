@@ -3,6 +3,17 @@
 This README is being written.<br>
 [![Build Status](https://travis-ci.org/andlabs/libui.png)](https://travis-ci.org/andlabs/libui)
 
+## Announcements
+
+**21 May 2016**
+* I will now post announcements and updates here.
+* Now that Ubuntu 16.04 LTS is here, no earlier than next Saturday, 28 May 2016 at noon EDT, **I will bump the minimum GTK+ version from 3.4 to 3.10**. This will add a lot of new features that I can now add to libui, such as search-oriented uiEntries, lists of arbitrary control layouts, and more. If you are still running a Linux distribution that doesn't come with 3.10, you will either need to upgrade or use jhbuild to set up a newer version of GTK+ in a private environment.
+* You can decide if I should also drop OS X 10.7 at #46.
+
+## Updates
+
+(none yet)
+
 ## Runtime Requirements
 
 * Windows: Windows Vista SP2 with Platform Update or newer
@@ -25,6 +36,13 @@ This README is being written.<br>
 ## Documentation
 
 Needs to be written. Consult ui.h and the examples for details for now.
+
+## Language Bindings
+
+libui was originally written as part of my [package ui for Go](https://github.com/andlabs/ui). Now that libui is separate, package ui has become a binding to libui. As such, package ui is the only official binding.
+
+Other people have made bindings to other languages:
+* TODO list them here
 
 ## Screenshots
 

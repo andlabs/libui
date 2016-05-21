@@ -87,7 +87,6 @@ struct uiColorButton {
 	CGFloat cr, cg, cb, ca;
 
 	// the given color may not be an RGBA color, which will cause the -getRed:green:blue:alpha: call to throw an exception
-	// TODO device RGB space?
 	rgba = [[self color] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
 	[rgba getRed:&cr green:&cg blue:&cb alpha:&ca];
 	*r = cr;
@@ -100,7 +99,7 @@ struct uiColorButton {
 - (void)libuiSetColor:(double)r g:(double)g b:(double)b a:(double)a
 {
 	// TODO does this set the panel color? does it send a signal?
-	[self setColor:[NSColor colorWithRed:r green:g blue:b alpha:a]];
+	[self setColor:[NSColor colorWithSRGBRed:r green:g blue:b alpha:a]];
 }
 
 @end

@@ -15,7 +15,17 @@ uiUnixControlAllDefaultsExceptDestroy(uiRadioButtons)
 
 static void uiRadioButtonsDestroy(uiControl *c)
 {
-	// TODO
+	uiRadioButtons *r = uiRadioButtons(c);
+	GtkWidget *b;
+
+	while (r->buttons->len != 0) {
+		b = GTK_WIDGET(g_ptr_array_remove_index(r->buttons, 0));
+		gtk_widget_destroy(b);
+	}
+	g_ptr_array_free(r->buttons, TRUE);
+	// and free ourselves
+	g_object_unref(r->widget);
+	uiFreeControl(uiControl(r));
 }
 
 void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)

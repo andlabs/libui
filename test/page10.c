@@ -1,6 +1,8 @@
 // 22 december 2015
 #include "test.h"
 
+// TODO test composed diacritic marks
+
 static uiEntry *textString;
 static uiFontButton *textFontButton;
 static uiColorButton *textColorButton;

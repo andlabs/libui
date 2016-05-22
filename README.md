@@ -17,6 +17,7 @@ This README is being written.<br>
 * **22 May 2016**
 ** Removed `uiControlVerifyDestroy()`; that is now part of `uiFreeControl()` itself.
 ** Added `uiPi`, a constant for π. This is provided for C and C++ programmers, where there is no standard named constant for π; bindings authors shouldn't need to worry about this.
+** Fixed uiMultilineEntry not properly having line breaks on Windows.
 
 ## Runtime Requirements
 

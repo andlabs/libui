@@ -63,15 +63,23 @@ static void defaultOnChanged(uiMultilineEntry *e, void *data)
 // TODO apply crlf conversion
 char *uiMultilineEntryText(uiMultilineEntry *e)
 {
-	return uiWindowsWindowText(e->hwnd);
+	char *out;
+
+	out = uiWindowsWindowText(e->hwnd);
+	CRLFtoLF(out);
+	return out;
 }
 
 // TODO apply crlf conversion
 void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 {
+	char *crlf;
+
 	// doing this raises an EN_CHANGED
 	e->inhibitChanged = TRUE;
+	crlf = LFtoCRLF(text);
 	uiWindowsSetWindowText(e->hwnd, text);
+	uiFree(crlf);
 	e->inhibitChanged = FALSE;
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
@@ -80,14 +88,18 @@ void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 void uiMultilineEntryAppend(uiMultilineEntry *e, const char *text)
 {
 	LRESULT n;
+	char *crlf;
 	WCHAR *wtext;
 
 	// TODO does doing this raise EN_CHANGED?
 	// TODO preserve selection? caret? what if caret used to be at end?
 	// TODO scroll to bottom?
+	// TODO overdraw issues
 	n = SendMessageW(e->hwnd, WM_GETTEXTLENGTH, 0, 0);
 	SendMessageW(e->hwnd, EM_SETSEL, n, n);
-	wtext = toUTF16(text);
+	crlf = LFtoCRLF(text);
+	wtext = toUTF16(crlf);
+	uiFree(crlf);
 	SendMessageW(e->hwnd, EM_REPLACESEL, FALSE, (LPARAM) wtext);
 	uiFree(wtext);
 }

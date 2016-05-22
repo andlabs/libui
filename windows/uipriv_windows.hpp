@@ -36,7 +36,7 @@ extern WCHAR *utf16dup(const WCHAR *orig);
 extern WCHAR *strf(const WCHAR *format, ...);
 extern WCHAR *vstrf(const WCHAR *format, va_list ap);
 extern char *LFtoCRLF(const char *lfonly);
-extern void CRLFtoLF(const char *s);
+extern void CRLFtoLF(char *s);
 extern WCHAR *ftoutf16(double d);
 extern WCHAR *itoutf16(intmax_t i);
 

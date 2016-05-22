@@ -1,7 +1,7 @@
 // 13 may 2016
 #import "uipriv_darwin.h"
 
-// TODO don't halt on release builds
+// LONGTERM don't halt on release builds
 
 void realbug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap)
 {

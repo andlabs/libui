@@ -1,8 +1,6 @@
 // 6 december 2015
 #include "uipriv_unix.h"
 
-// TODO: ensure this can only be used to enter plain text
-
 struct uiMultilineEntry {
 	uiUnixControl c;
 	GtkWidget *widget;

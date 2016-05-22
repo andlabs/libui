@@ -1,9 +1,7 @@
 // 4 september 2015
 #include "uipriv_unix.h"
 
-// TODO imitate gnome-calendar's day/month/year entries?
-// TODO 24-hour time
-// TODO don't assume all locales use :
+// LONGTERM imitate gnome-calendar's day/month/year entries above the calendar
 
 #define dateTimePickerWidgetType (dateTimePickerWidget_get_type())
 #define dateTimePickerWidget(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), dateTimePickerWidgetType, dateTimePickerWidget))
@@ -151,8 +149,19 @@ static gboolean startGrab(dateTimePickerWidget *d)
 	GdkDevice *keyboard, *mouse;
 
 	dev = gtk_get_current_event_device();
-	if (dev == NULL)
-		return FALSE; // TODO
+	if (dev == NULL) {
+		// this is what GtkComboBox does
+		// since no device was set, just use the first available "master device"
+		GdkDisplay *disp;
+		GdkDeviceManager *dm;
+		GList *list;
+
+		disp = gtk_widget_get_display(GTK_WIDGET(d));
+		dm = gdk_display_get_device_manager(disp);
+		list = gdk_device_manager_list_devices(dm, GDK_DEVICE_TYPE_MASTER);
+		dev = (GdkDevice *) (list->data);
+		g_list_free(list);
+	}
 
 	time = gtk_get_current_event_time();
 	keyboard = dev;
@@ -441,7 +450,7 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 	d->seconds = newSpinbox(d, 0, 59, NULL, zeroPadSpinbox, &(d->secondsBlock));
 	gtk_container_add(GTK_CONTAINER(d->timebox), d->seconds);
 
-	// TODO this should be the case, but that interferes with grabs
+	// LONGTERM this should be the case, but that interferes with grabs
 	// switch to it when we can drop GTK+ 3.10 and use popovers
 #if 0
 	d->ampm = gtk_combo_box_text_new();

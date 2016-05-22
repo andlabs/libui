@@ -19,7 +19,7 @@ This README is being written.<br>
 	* Added `uiPi`, a constant for π. This is provided for C and C++ programmers, where there is no standard named constant for π; bindings authors shouldn't need to worry about this.
 	* Fixed uiMultilineEntry not properly having line breaks on Windows.
 	* Added `uiNewNonWrappingMultilineEntry()`, which creates a uiMultilineEntry that scrolls horizontally instead of wrapping lines. (This is not documented as being changeable after the fact on Windows, hence it's a creation-time choice.)
-	* uiArea and some internal Direct2D windows now respond to `WM_PRINTCLIENT` properly, which should hopefully increase the quality of screenshots.
+	* uiAreas on Windows and some internal Direct2D areas now respond to `WM_PRINTCLIENT` properly, which should hopefully increase the quality of screenshots.
 
 ## Runtime Requirements
 

@@ -1,9 +1,6 @@
 // 22 december 2015
 #include "test.h"
 
-// TODO figure out how the various backends handle non-BMP characters/surrogate pairs
-// use: F0 90 8C 88 (surrogates D800 DF08)
-
 static uiEntry *textString;
 static uiFontButton *textFontButton;
 static uiColorButton *textColorButton;
@@ -29,6 +26,8 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiDrawTextFont *font;
 	uiDrawTextLayout *layout;
 	double r, g, b, al;
+	char surrogates[1 + 4 + 1 + 1];
+	double width, height;
 
 	font = uiFontButtonFont(textFontButton);
 
@@ -44,6 +43,22 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 		14, 18,
 		r, g, b, al);
 	uiDrawText(dp->Context, 10, 10, layout);
+	uiDrawTextLayoutExtents(layout, &width, &height);
+	uiDrawFreeTextLayout(layout);
+
+	surrogates[0] = 'x';
+	surrogates[1] = 0xF0;		// surrogates D800 DF08
+	surrogates[2] = 0x90;
+	surrogates[3] = 0x8C;
+	surrogates[4] = 0x88;
+	surrogates[5] = 'y';
+	surrogates[6] = '\0';
+
+	layout = uiDrawNewTextLayout(surrogates, font, -1);
+	uiDrawTextLayoutSetColor(layout,
+		1, 2,
+		1, 0, 0.5, 0.5);
+	uiDrawText(dp->Context, 10, 10 + height, layout);
 	uiDrawFreeTextLayout(layout);
 
 	uiDrawFreeTextFont(font);

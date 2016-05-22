@@ -42,7 +42,13 @@ Needs to be written. Consult ui.h and the examples for details for now.
 libui was originally written as part of my [package ui for Go](https://github.com/andlabs/ui). Now that libui is separate, package ui has become a binding to libui. As such, package ui is the only official binding.
 
 Other people have made bindings to other languages:
-* TODO list them here
+* C#/.NET: [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding)
+* D: [DerelictLibui](https://github.com/Extrawurst/DerelictLibui)
+* Haskell: [libui-haskell](https://github.com/ajnsit/libui-haskell)
+* Lua: [libuilua](https://github.com/zevv/libuilua)
+* Rust: [libui-rs](https://github.com/pcwalton/libui-rs)
+
+* TODO list more here
 
 ## Screenshots
 

@@ -102,6 +102,23 @@ struct uiColorButton {
 	[self setColor:[NSColor colorWithSRGBRed:r green:g blue:b alpha:a]];
 }
 
+// NSColorWell has no intrinsic size by default; give it at least the height of the equivalent button's
+- (NSSize)intrinsicContentSize
+{
+	NSSize ss;
+	NSButtonCell *bc;
+
+	ss = [super intrinsicContentSize];
+	bc = [NSButtonCell new];
+	[bc setButtonType:NSPushOnPushOffButton];
+	[bc setBordered:YES];
+	[bc setBezelStyle:NSShadowlessSquareBezelStyle];
+	[bc setTitle:@" "];
+	ss.height = [bc cellSize].height;
+	[bc release];
+	return ss;
+}
+
 @end
 
 uiDarwinControlAllDefaults(uiColorButton, button)

@@ -65,6 +65,8 @@ static LRESULT CALLBACK d2dScratchWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 {
 	LONG_PTR init;
 	ID2D1HwndRenderTarget *rt;
+	ID2D1DCRenderTarget *dcrt;
+	RECT client;
 	HRESULT hr;
 
 	init = GetWindowLongPtrW(hwnd, 0);
@@ -105,8 +107,13 @@ static LRESULT CALLBACK d2dScratchWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		}
 		return 0;
 	case WM_PRINTCLIENT:
-		// TODO
-		break;
+		uiWindowsEnsureGetClientRect(hwnd, &client);
+		dcrt = makeHDCRenderTarget((HDC) wParam, &client);
+		hr = d2dScratchDoPaint(hwnd, dcrt);
+		if (hr != S_OK)
+			logHRESULT(L"error printing D2D scratch window client area", hr);
+		dcrt->Release();
+		return 0;
 	case WM_LBUTTONDOWN:
 		d2dScratchDoLButtonDown(hwnd, rt, lParam);
 		return 0;

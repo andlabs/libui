@@ -5,10 +5,10 @@ This README is being written.<br>
 
 ## Announcements
 
-**21 May 2016**
-* I will now post announcements and updates here.
-* Now that Ubuntu 16.04 LTS is here, no earlier than next Saturday, 28 May 2016 at noon EDT, **I will bump the minimum GTK+ version from 3.4 to 3.10**. This will add a lot of new features that I can now add to libui, such as search-oriented uiEntries, lists of arbitrary control layouts, and more. If you are still running a Linux distribution that doesn't come with 3.10, you will either need to upgrade or use jhbuild to set up a newer version of GTK+ in a private environment.
-* You can decide if I should also drop OS X 10.7 [here](https://github.com/andlabs/libui/issues/46).
+* **21 May 2016**
+	* I will now post announcements and updates here.
+	* Now that Ubuntu 16.04 LTS is here, no earlier than next Saturday, 28 May 2016 at noon EDT, **I will bump the minimum GTK+ version from 3.4 to 3.10**. This will add a lot of new features that I can now add to libui, such as search-oriented uiEntries, lists of arbitrary control layouts, and more. If you are still running a Linux distribution that doesn't come with 3.10, you will either need to upgrade or use jhbuild to set up a newer version of GTK+ in a private environment.
+	* You can decide if I should also drop OS X 10.7 [here](https://github.com/andlabs/libui/issues/46).
 
 ## Updates
 
@@ -19,6 +19,7 @@ This README is being written.<br>
 	* Added `uiPi`, a constant for π. This is provided for C and C++ programmers, where there is no standard named constant for π; bindings authors shouldn't need to worry about this.
 	* Fixed uiMultilineEntry not properly having line breaks on Windows.
 	* Added `uiNewNonWrappingMultilineEntry()`, which creates a uiMultilineEntry that scrolls horizontally instead of wrapping lines. (This is not documented as being changeable after the fact on Windows, hence it's a creation-time choice.)
+	* uiArea and some internal Direct2D windows now respond to `WM_PRINTCLIENT` properly, which should hopefully increase the quality of screenshots.
 
 ## Runtime Requirements
 

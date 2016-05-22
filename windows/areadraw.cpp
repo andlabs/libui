@@ -72,7 +72,7 @@ static void onWM_PAINT(uiArea *a)
 		clip.right = 0;
 		clip.bottom = 0;
 	}
-	hr = doPaint(a, (ID2D1RenderTarget *) (a->rt), &clip);
+	hr = doPaint(a, a->rt, &clip);
 	switch (hr) {
 	case S_OK:
 		if (ValidateRect(a->hwnd, NULL) == 0)
@@ -91,12 +91,18 @@ static void onWM_PAINT(uiArea *a)
 	}
 }
 
-static void onWM_PRINTCLIENT(uiArea *a)
+static void onWM_PRINTCLIENT(uiArea *a, HDC dc)
 {
+	ID2D1DCRenderTarget *rt;
 	RECT client;
+	HRESULT hr;
 
 	uiWindowsEnsureGetClientRect(a->hwnd, &client);
-//TODO	doPaint(a, (HDC) wParam, &client);
+	rt = makeHDCRenderTarget(dc, &client);
+	hr = doPaint(a, rt, &client);
+	if (hr != S_OK)
+		logHRESULT(L"error printing uiArea client area", hr);
+	rt->Release();
 }
 
 BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
@@ -107,7 +113,7 @@ BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lRe
 		*lResult = 0;
 		return TRUE;
 	case WM_PRINTCLIENT:
-		onWM_PRINTCLIENT(a);
+		onWM_PRINTCLIENT(a, (HDC) wParam);
 		*lResult = 0;
 		return TRUE;
 	}

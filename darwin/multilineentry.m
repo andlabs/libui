@@ -1,6 +1,8 @@
 // 8 december 2015
 #import "uipriv_darwin.h"
 
+// TODO you actually have to click on parts with a line in them in order to start editing; clicking below the last line doesn't give focus
+
 // NSTextView has no intrinsic content size by default, which wreaks havoc on a pure-Auto Layout system
 // we'll have to take over to get it to work
 // see also http://stackoverflow.com/questions/24210153/nstextview-not-properly-resizing-with-auto-layout and http://stackoverflow.com/questions/11237622/using-autolayout-with-expanding-nstextviews
@@ -149,6 +151,12 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	disableAutocorrect(e->tv);
 	// this option is complex; just set it to the Interface Builder default
 	[[e->tv layoutManager] setAllowsNonContiguousLayout:YES];
+	if (hscroll) {
+		// TODO this is a giant mess
+		[e->tv setHorizontallyResizable:YES];
+		[[e->tv textContainer] setWidthTracksTextView:NO];
+		[[e->tv textContainer] setContainerSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
+	}
 	// don't use uiDarwinSetControlFont() directly; we have to do a little extra work to set the font
 	font = [NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]];
 	[e->tv setTypingAttributes:[NSDictionary
@@ -160,7 +168,7 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 
 	[e->sv setDocumentView:e->tv];
 	[e->tv setTranslatesAutoresizingMaskIntoConstraints:NO];
-	scrollViewConstraintsEstablish(&(e->constraints), e->sv, @"uiMultilineEntry");
+	scrollViewConstraintsEstablish(&(e->constraints), e->sv, hscroll, YES, @"uiMultilineEntry");
 	// needed to allow horizontal shrinking
 	// TODO what about vertical text?
 	[e->tv setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow forOrientation:NSLayoutConstraintOrientationHorizontal];

@@ -80,7 +80,7 @@ struct scrollViewConstraints {
 	NSLayoutConstraint *documentWidth;
 	NSLayoutConstraint *documentHeight;
 };
-extern void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollView *sv, NSString *desc);
+extern void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollView *sv, BOOL hscroll, BOOL vscroll, NSString *desc);
 extern void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *sv);
 
 // map.m

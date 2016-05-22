@@ -3,8 +3,6 @@
 #define GLIB_VERSION_MAX_ALLOWED GLIB_VERSION_2_32
 #define GDK_VERSION_MIN_REQUIRED GDK_VERSION_3_4
 #define GDK_VERSION_MAX_ALLOWED GDK_VERSION_3_4
-// TODO make this unnecessary
-#define _GNU_SOURCE
 #include <gtk/gtk.h>
 #include <math.h>
 #include <dlfcn.h>		// see drawtext.c

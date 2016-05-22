@@ -21,6 +21,10 @@ extern "C" {
 // This has the advantage of being ABI-able should we ever need an ABI...
 #define _UI_ENUM(s) typedef unsigned int s; enum
 
+// This constant is provided because M_PI is nonstandard.
+// This comes from Go's math.Pi, which in turn comes from http://oeis.org/A000796.
+#define uiPi 3.14159265358979323846264338327950288419716939937510582097494459
+
 typedef struct uiInitOptions uiInitOptions;
 
 struct uiInitOptions {

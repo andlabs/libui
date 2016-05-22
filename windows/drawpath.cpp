@@ -96,20 +96,20 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 	fullCircle = FALSE;
 	// use the absolute value to tackle both ≥2π and ≤-2π at the same time
 	absSweep = fabs(a->sweep);
-	if (absSweep > (2 * M_PI))		// this part is easy
+	if (absSweep > (2 * uiPi))		// this part is easy
 		fullCircle = TRUE;
 	else {
 		double aerDiff;
 
-		aerDiff = fabs(absSweep - (2 * M_PI));
+		aerDiff = fabs(absSweep - (2 * uiPi));
 		// if we got here then we know a->sweep is larger (or the same!)
 		fullCircle = aerDiff <= absSweep * aerMax;
 	}
 	// TODO make sure this works right for the negative direction
 	if (fullCircle) {
-		a->sweep = M_PI;
+		a->sweep = uiPi;
 		drawArc(p, a, startFunction);
-		a->startAngle += M_PI;
+		a->startAngle += uiPi;
 		drawArc(p, a, NULL);
 		return;
 	}
@@ -144,13 +144,13 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 		as.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE;
 	// TODO explain the outer if
 	if (!a->negative)
-		if (a->sweep > M_PI)
+		if (a->sweep > uiPi)
 			as.arcSize = D2D1_ARC_SIZE_LARGE;
 		else
 			as.arcSize = D2D1_ARC_SIZE_SMALL;
 	else
 		// TODO especially this part
-		if (a->sweep > M_PI)
+		if (a->sweep > uiPi)
 			as.arcSize = D2D1_ARC_SIZE_SMALL;
 		else
 			as.arcSize = D2D1_ARC_SIZE_LARGE;

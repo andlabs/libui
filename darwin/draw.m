@@ -60,8 +60,8 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 	// TODO likewise
 	if (p->ended)
 		implbug("attempt to add arc to ended path in uiDrawPathArcTo()");
-	if (sweep > 2 * M_PI)
-		sweep = 2 * M_PI;
+	if (sweep > 2 * uiPi)
+		sweep = 2 * uiPi;
 	cw = false;
 	if (negative)
 		cw = true;

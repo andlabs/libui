@@ -61,8 +61,8 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 {
 	struct piece piece;
 
-	if (sweep > 2 * M_PI)
-		sweep = 2 * M_PI;
+	if (sweep > 2 * uiPi)
+		sweep = 2 * uiPi;
 	piece.type = newFigureArc;
 	piece.d[0] = xCenter;
 	piece.d[1] = yCenter;
@@ -87,8 +87,8 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 {
 	struct piece piece;
 
-	if (sweep > 2 * M_PI)
-		sweep = 2 * M_PI;
+	if (sweep > 2 * uiPi)
+		sweep = 2 * uiPi;
 	piece.type = arcTo;
 	piece.d[0] = xCenter;
 	piece.d[1] = yCenter;

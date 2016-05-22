@@ -43,7 +43,7 @@ void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x
 	d2m(&dm, m);
 }
 
-#define r2d(x) (x * (180.0 / M_PI))
+#define r2d(x) (x * (180.0 / uiPi))
 
 void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 {

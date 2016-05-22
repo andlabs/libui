@@ -19,14 +19,6 @@
 
 - provide a way to get the currently selected uiTab page? set?
 
-- add uiPi for portability; compare against:
-	- M_PI on all systems with different requirements
-		- _GNU_SOURCE on unix
-		- _USE_MATH_DEFINES on windows
-	- G_PI on GLib
-	- XM_PI from DirectX
-	- Go math.Pi
-
 - make it so that the windows cntrols only register a resize if their new minimum size is larger than their current size to easen the effect of flicker
 	- it won't remove that outright, but it'll help
 

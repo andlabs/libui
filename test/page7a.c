@@ -41,7 +41,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	startText = uiEntryText(startAngle);
 	sweepText = uiEntryText(sweep);
 
-	factor = M_PI / 180;
+	factor = uiPi / 180;
 	if (uiCheckboxChecked(radians))
 		factor = 1;
 

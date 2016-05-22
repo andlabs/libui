@@ -8,9 +8,6 @@
 // TODO get rid of this
 #define INITGUID
 
-// TODO see if we can remove this
-#define _USE_MATH_DEFINES
-
 // for the manifest
 #define ISOLATION_AWARE_ENABLED 1
 

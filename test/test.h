@@ -1,7 +1,4 @@
 // 22 april 2015
-// TODO
-#define _GNU_SOURCE
-#define _USE_MATH_DEFINES
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

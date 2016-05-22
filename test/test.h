@@ -74,3 +74,6 @@ extern uiBox *makePage10(void);
 
 // page11.c
 extern uiBox *makePage11(void);
+
+// page12.c
+extern uiBox *makePage12(void);

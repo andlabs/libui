@@ -126,7 +126,7 @@ void uiMultilineEntrySetReadOnly(uiMultilineEntry *e, int readonly)
 		logLastError(L"error making uiMultilineEntry read-only");
 }
 
-uiMultilineEntry *uiNewMultilineEntry(void)
+static uiMultilineEntry *finishMultilineEntry(DWORD style)
 {
 	uiMultilineEntry *e;
 
@@ -134,7 +134,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 
 	e->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
-		ES_AUTOVSCROLL | ES_LEFT | ES_MULTILINE | ES_NOHIDESEL | ES_WANTRETURN | WS_TABSTOP | WS_VSCROLL,
+		ES_AUTOVSCROLL | ES_LEFT | ES_MULTILINE | ES_NOHIDESEL | ES_WANTRETURN | WS_TABSTOP | WS_VSCROLL | style,
 		hInstance, NULL,
 		TRUE);
 
@@ -142,4 +142,14 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
 
 	return e;
+}
+
+uiMultilineEntry *uiNewMultilineEntry(void)
+{
+	return finishMultilineEntry(0);
+}
+
+uiMultilineEntry *uiNewNonWrappingMultilineEntry(void)
+{
+	return finishMultilineEntry(WS_HSCROLL | ES_AUTOHSCROLL);
 }

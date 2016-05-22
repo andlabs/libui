@@ -158,5 +158,9 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 
+	// normally it's SetParent() that does this, but we can't call SetParent() on a uiWindow
+	// TODO we really need to clean this up
+	g_object_ref(w->widget);
+
 	return w;
 }

@@ -81,7 +81,7 @@ void uiMultilineEntrySetReadOnly(uiMultilineEntry *e, int readonly)
 	gtk_text_view_set_editable(e->textview, editable);
 }
 
-uiMultilineEntry *uiNewMultilineEntry(void)
+static uiMultilineEntry *finishMultilineEntry(GtkPolicyType hpolicy, GtkWrapMode wrapMode)
 {
 	uiMultilineEntry *e;
 
@@ -91,13 +91,13 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	e->scontainer = GTK_CONTAINER(e->widget);
 	e->sw = GTK_SCROLLED_WINDOW(e->widget);
 	gtk_scrolled_window_set_policy(e->sw,
-		GTK_POLICY_NEVER,
+		hpolicy,
 		GTK_POLICY_AUTOMATIC);
 	gtk_scrolled_window_set_shadow_type(e->sw, GTK_SHADOW_IN);
 
 	e->textviewWidget = gtk_text_view_new();
 	e->textview = GTK_TEXT_VIEW(e->textviewWidget);
-	gtk_text_view_set_wrap_mode(e->textview, GTK_WRAP_WORD);
+	gtk_text_view_set_wrap_mode(e->textview, wrapMode);
 
 	gtk_container_add(e->scontainer, e->textviewWidget);
 	// and make the text view visible; only the scrolled window's visibility is controlled by libui
@@ -109,4 +109,14 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
 
 	return e;
+}
+
+uiMultilineEntry *uiNewMultilineEntry(void)
+{
+	return finishMultilineEntry(GTK_POLICY_NEVER, GTK_WRAP_WORD);
+}
+
+uiMultilineEntry *uiNewNonWrappingMultilineEntry(void)
+{
+	return finishMultilineEntry(GTK_POLICY_AUTOMATIC, GTK_WRAP_NONE);
 }

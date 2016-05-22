@@ -101,7 +101,7 @@ void uiMultilineEntrySetReadOnly(uiMultilineEntry *e, int readonly)
 	[e->tv setEditable:editable];
 }
 
-uiMultilineEntry *uiNewMultilineEntry(void)
+static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 {
 	uiMultilineEntry *e;
 	NSFont *font;
@@ -110,7 +110,7 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 
 	e->sv = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 	// TODO verify against Interface Builder
-	[e->sv setHasHorizontalScroller:NO];
+	[e->sv setHasHorizontalScroller:hscroll];
 	[e->sv setHasVerticalScroller:YES];
 	[e->sv setAutohidesScrollers:YES];
 	[e->sv setBorderType:NSBezelBorder];
@@ -171,6 +171,16 @@ uiMultilineEntry *uiNewMultilineEntry(void)
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
 
 	return e;
+}
+
+uiMultilineEntry *uiNewMultilineEntry(void)
+{
+	return finishMultilineEntry(NO);
+}
+
+uiMultilineEntry *uiNewNonWrappingMultilineEntry(void)
+{
+	return finishMultilineEntry(YES);
 }
 
 // TODO

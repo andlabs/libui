@@ -72,13 +72,9 @@ uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const c
 
 void uiFreeControl(uiControl *c)
 {
-	uiFree(c);
-}
-
-void uiControlVerifyDestroy(uiControl *c)
-{
 	if (uiControlParent(c) != NULL)
 		userbug("You cannot destroy a uiControl while it still has a parent. (control: %p)", c);
+	uiFree(c);
 }
 
 void uiControlVerifySetParent(uiControl *c, uiControl *parent)

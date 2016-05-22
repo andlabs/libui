@@ -38,7 +38,6 @@ _UI_EXTERN void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPri
 #define uiDarwinControlDefaultDestroy(type, handlefield) \
 	static void type ## Destroy(uiControl *c) \
 	{ \
-		uiControlVerifyDestroy(c); \
 		[type(c)->handlefield release]; \
 		uiFreeControl(c); \
 	}

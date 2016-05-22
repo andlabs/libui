@@ -41,7 +41,6 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 #define uiWindowsControlDefaultDestroy(type) \
 	static void type ## Destroy(uiControl *c) \
 	{ \
-		uiControlVerifyDestroy(c); \
 		uiWindowsEnsureDestroyWindow(type(c)->hwnd); \
 		uiFreeControl(c); \
 	}

@@ -144,7 +144,6 @@ static void uiWindowDestroy(uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
 
-	// TODO make sure all ports have the necessary verifications
 	// first hide ourselves
 	ShowWindow(w->hwnd, SW_HIDE);
 	// now destroy the child

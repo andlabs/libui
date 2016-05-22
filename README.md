@@ -12,7 +12,10 @@ This README is being written.<br>
 
 ## Updates
 
-(none yet)
+> Note that today's entry may be updated later today.
+
+* **22 May 2016**
+** Removed `uiControlVerifyDestroy()`; that is now part of `uiFreeControl()` itself.
 
 ## Runtime Requirements
 

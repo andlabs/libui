@@ -25,7 +25,6 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 #define uiUnixControlDefaultDestroy(type) \
 	static void type ## Destroy(uiControl *c) \
 	{ \
-		uiControlVerifyDestroy(c); \
 		/* TODO is this safe on floating refs? */ \
 		g_object_unref(type(c)->widget); \
 		uiFreeControl(c); \

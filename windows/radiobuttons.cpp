@@ -74,8 +74,6 @@ static void uiRadioButtonsMinimumSize(uiWindowsControl *c, intmax_t *width, intm
 
 	x = radiobuttonXFromLeftOfBoxToLeftOfLabel;
 	y = radiobuttonHeight;
-	// get it for the radio button itself since that's what counts
-	// TODO for all of them?
 	uiWindowsGetSizing((*(r->hwnds))[0], &sizing);
 	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
 
@@ -86,28 +84,23 @@ static void uiRadioButtonsMinimumSize(uiWindowsControl *c, intmax_t *width, intm
 static void radiobuttonsRelayout(uiRadioButtons *r)
 {
 	RECT client;
-	intmax_t height1;
-	intmax_t h;
 	intmax_t x, y, width, height;
+	int height1;
+	uiWindowsSizing sizing;
 
+	if (r->hwnds->size() == 0)
+		return;
 	uiWindowsEnsureGetClientRect(r->hwnd, &client);
 	x = client.left;
 	y = client.top;
 	width = client.right - client.left;
-	height = client.bottom - client.top;
-	// TODO compute the real height1
-	height1 = 25;
+	height1 = radiobuttonHeight;
+	uiWindowsGetSizing((*(r->hwnds))[0], &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, NULL, &height1);
+	height = height1;
 	for (const HWND &hwnd : *(r->hwnds)) {
-		h = height1;
-		if (h > height)		// clip to height
-			h = height;
-		uiWindowsEnsureMoveWindowDuringResize(hwnd, x, y, width, h);
-		y += height1;
-		height -= height1;
-		if (height <= 0)		// clip to height
-			break;
-		// TODO don't do the above to avoid overlap
-		// TODO in fact, only do this on add/remove/change labels/etc.
+		uiWindowsEnsureMoveWindowDuringResize(hwnd, x, y, width, height);
+		y += height;
 	}
 }
 

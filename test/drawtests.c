@@ -1932,8 +1932,6 @@ static void drawQ2DCreateWindowGC(uiAreaDrawParams *p)
 
 // TODO Text page, if any?
 
-// TODO Paths page
-
 static const struct drawtest tests[] = {
 	{ "Original uiArea test", drawOriginal },
 	{ "Arc test", drawArcs },

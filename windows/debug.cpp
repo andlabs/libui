@@ -1,9 +1,8 @@
 // 25 february 2015
 #include "uipriv_windows.hpp"
 
-// TODO disable logging and stopping on no-debug builds
+// LONGTERM disable logging and stopping on no-debug builds
 
-// TODO are the newlines needed?
 static void printDebug(const WCHAR *msg)
 {
 	OutputDebugStringW(msg);

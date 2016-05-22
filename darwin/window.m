@@ -93,7 +93,6 @@ static void uiWindowDestroy(uiControl *c)
 		uiControlDestroy(w->child);
 	}
 	[windowDelegate unregisterWindow:w];
-	// TODO make sure this next line is right
 	[w->window release];
 	uiFreeControl(uiControl(w));
 }
@@ -248,9 +247,9 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		defer:YES];
 	[w->window setTitle:toNSString(title)];
 
-	// explicitly release when closed
-	// the only thing that closes the window is us anyway
-	[w->window setReleasedWhenClosed:YES];
+	// do NOT release when closed
+	// we manually do this in uiWindowDestroy() above
+	[w->window setReleasedWhenClosed:NO];
 
 	if (windowDelegate == nil) {
 		windowDelegate = [windowDelegateClass new];

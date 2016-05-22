@@ -53,9 +53,15 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 {
 	uiColorButton *b = uiColorButton(c);
 	NMCUSTOMDRAW *nm = (NMCUSTOMDRAW *) nmhdr;
-	RECT r;
+	RECT client;
+	ID2D1DCRenderTarget *rt;
+	D2D1_RECT_F r;
+	D2D1_COLOR_F color;
+	D2D1_BRUSH_PROPERTIES bprop;
+	ID2D1SolidColorBrush *brush;
 	uiWindowsSizing sizing;
 	int x, y;
+	HRESULT hr;
 
 	if (nmhdr->code != NM_CUSTOMDRAW)
 		return FALSE;
@@ -63,21 +69,37 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 	if (nm->dwDrawStage != CDDS_PREPAINT)
 		return FALSE;
 
-	// TODO use Direct2D? either way, draw alpha
-	uiWindowsEnsureGetClientRect(b->hwnd, &r);
+	uiWindowsEnsureGetClientRect(b->hwnd, &client);
+	rt = makeHDCRenderTarget(nm->hdc, &client);
+	rt->BeginDraw();
+
 	uiWindowsGetSizing(b->hwnd, &sizing);
 	x = 3;		// should be enough
 	y = 3;
 	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
-	r.left += x;
-	r.top += y;
-	r.right -= x;
-	r.bottom -= y;
-	// TODO error check
-#define comp(x) ((BYTE) (x * 255))
-	// TODO free brush
-	FillRect(nm->hdc, &r, CreateSolidBrush(RGB(comp(b->r), comp(b->g), comp(b->b))));
-#undef comp
+	r.left = client.left + x;
+	r.top = client.top + y;
+	r.right = client.right - x;
+	r.bottom = client.bottom - y;
+
+	color.r = b->r;
+	color.g = b->g;
+	color.b = b->b;
+	color.a = b->a;
+	ZeroMemory(&bprop, sizeof (D2D1_BRUSH_PROPERTIES));
+	bprop.opacity = 1.0;
+	bprop.transform._11 = 1;
+	bprop.transform._22 = 1;
+	hr = rt->CreateSolidColorBrush(&color, &bprop, &brush);
+	if (hr != S_OK)
+		logHRESULT(L"error creating brush for color button", hr);
+	rt->FillRectangle(&r, brush);
+	brush->Release();
+
+	hr = rt->EndDraw(NULL, NULL);
+	if (hr != S_OK)
+		logHRESULT(L"error drawing color on color button", hr);
+	rt->Release();
 
 	// skip default processing (don't draw text)
 	*lResult = CDRF_SKIPDEFAULT;

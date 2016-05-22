@@ -2,6 +2,7 @@
 #include "uipriv_unix.h"
 
 // LONGTERM imitate gnome-calendar's day/month/year entries above the calendar
+// LONGTERM allow entering a 24-hour hour in the hour spinbutton and adjust accordingly
 
 #define dateTimePickerWidgetType (dateTimePickerWidget_get_type())
 #define dateTimePickerWidget(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), dateTimePickerWidgetType, dateTimePickerWidget))
@@ -200,8 +201,13 @@ static void allocationToScreen(dateTimePickerWidget *d, gint *x, gint *y)
 {
 	GdkWindow *window;
 	GtkAllocation a;
+	GtkRequisition aWin;
+	GdkScreen *screen;
+	GdkRectangle workarea;
+	int otherY;
 
 	gtk_widget_get_allocation(GTK_WIDGET(d), &a);
+	gtk_widget_get_preferred_size(d->window, &aWin, NULL);
 	*x = 0;
 	*y = 0;
 	if (!gtk_widget_get_has_window(GTK_WIDGET(d))) {
@@ -211,9 +217,24 @@ static void allocationToScreen(dateTimePickerWidget *d, gint *x, gint *y)
 	window = gtk_widget_get_window(GTK_WIDGET(d));
 	gdk_window_get_root_coords(window, *x, *y, x, y);
 	if (gtk_widget_get_direction(GTK_WIDGET(d)) == GTK_TEXT_DIR_RTL)
-		*x += a.width;		// TODO subtract target width
-	// TODO monitor detection
+		*x += a.width - aWin.width;
+
+	// now adjust to prevent the box from going offscreen
+	screen = gtk_widget_get_screen(GTK_WIDGET(d));
+	gdk_screen_get_monitor_workarea(screen,
+		gdk_screen_get_monitor_at_window(screen, window),
+		&workarea);
+	if (*x < workarea.x)					// too far to the left?
+		*x = workarea.x;
+	else if (*x + aWin.width > (workarea.x + workarea.width))	// too far to the right?
+		*x = (workarea.x + workarea.width) - aWin.width;
+	// this isn't the same algorithm used by GtkComboBox
+	// first, get our two choices; *y for down and otherY for up
+	otherY = *y - aWin.height;
 	*y += a.height;
+	// and use otherY if we're too low
+	if (*y + aWin.height >= workarea.y + workarea.height)
+		*y = otherY;
 }
 
 static void showPopup(dateTimePickerWidget *d)
@@ -333,7 +354,7 @@ static gint ampmSpinboxInput(GtkSpinButton *sb, gpointer ptr, gpointer data)
 	char firstAM, firstPM;
 
 	text = gtk_entry_get_text(GTK_ENTRY(sb));
-	// TODO don't use ASCII here for case insensitivity
+	// LONGTERM don't use ASCII here for case insensitivity
 	firstAM = g_ascii_tolower(nl_langinfo(AM_STR)[0]);
 	firstPM = g_ascii_tolower(nl_langinfo(PM_STR)[0]);
 	for (; *text != '\0'; text++)
@@ -411,14 +432,11 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 	d->window = gtk_window_new(GTK_WINDOW_POPUP);
 	gtk_window_set_resizable(GTK_WINDOW(d->window), FALSE);
 	gtk_window_set_attached_to(GTK_WINDOW(d->window), GTK_WIDGET(d));
-	// TODO set_keep_above()?
 	gtk_window_set_decorated(GTK_WINDOW(d->window), FALSE);
 	gtk_window_set_deletable(GTK_WINDOW(d->window), FALSE);
 	gtk_window_set_type_hint(GTK_WINDOW(d->window), GDK_WINDOW_TYPE_HINT_COMBO);
 	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(d->window), TRUE);
 	gtk_window_set_skip_pager_hint(GTK_WINDOW(d->window), TRUE);
-	// TODO accept_focus()?
-	// TODO focus_on_map()?
 	gtk_window_set_has_resize_grip(GTK_WINDOW(d->window), FALSE);
 	gtk_container_set_border_width(GTK_CONTAINER(d->window), 12);
 	// and make it stand out a bit
@@ -496,7 +514,12 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 
 static void dateTimePickerWidget_dispose(GObject *obj)
 {
-	// TODO destroy window
+	dateTimePickerWidget *d = dateTimePickerWidget(obj);
+
+	if (d->window != NULL) {
+		gtk_widget_destroy(d->window);
+		d->window = NULL;
+	}
 	G_OBJECT_CLASS(dateTimePickerWidget_parent_class)->dispose(obj);
 }
 

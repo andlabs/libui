@@ -2,7 +2,7 @@
 #include "uipriv_windows.hpp"
 
 // TODO rework the error handling
-void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing)
+void getSizing(HWND hwnd, uiWindowsSizing *sizing, HFONT font)
 {
 	HDC dc;
 	HFONT prevfont;
@@ -12,7 +12,7 @@ void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing)
 	dc = GetDC(hwnd);
 	if (dc == NULL)
 		logLastError(L"error getting DC");
-	prevfont = (HFONT) SelectObject(dc, hMessageFont);
+	prevfont = (HFONT) SelectObject(dc, font);
 	if (prevfont == NULL)
 		logLastError(L"error loading control font into device context");
 
@@ -26,10 +26,15 @@ void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing)
 	sizing->BaseY = (int) tm.tmHeight;
 	sizing->InternalLeading = tm.tmInternalLeading;
 
-	if (SelectObject(dc, prevfont) != hMessageFont)
+	if (SelectObject(dc, prevfont) != font)
 		logLastError(L"error restoring previous font into device context");
 	if (ReleaseDC(hwnd, dc) == 0)
 		logLastError(L"error releasing DC");
+}
+
+void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing)
+{
+	return getSizing(hwnd, sizing, hMessageFont);
 }
 
 #define dlgUnitsToX(dlg, baseX) MulDiv((dlg), (baseX), 4)

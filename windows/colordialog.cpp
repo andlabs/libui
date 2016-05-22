@@ -932,8 +932,7 @@ static void fixupControlPositions(struct colorDialog *c)
 		labelA, c->editADouble, c->editAInt,
 		NULL);
 
-	// TODO this uses the message font, not the dialog font
-	uiWindowsGetSizing(c->hwnd, &sizing);
+	getSizing(c->hwnd, &sizing, (HFONT) SendMessageW(labelH, WM_GETFONT, 0, 0));
 	offset = sizing.InternalLeading;
 	moveWindowsUp(c, offset,
 		labelH, labelS, labelV,

@@ -185,7 +185,6 @@ static void uiWindowShow(uiControl *c)
 
 	w->visible = 1;
 	// just in case the window's minimum size wasn't recalculated already
-	// TODO is it needed?
 	ensureMinimumWindowSize(w);
 	if (w->shownOnce) {
 		ShowWindow(w->hwnd, SW_SHOW);

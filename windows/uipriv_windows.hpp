@@ -145,3 +145,6 @@ extern void getSizing(HWND hwnd, uiWindowsSizing *sizing, HFONT font);
 
 // TODO
 #include "_uipriv_migrate.hpp"
+
+// draw.cpp
+extern ID2D1DCRenderTarget *makeHDCRenderTarget(HDC dc, RECT *r);

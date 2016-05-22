@@ -63,7 +63,31 @@ ID2D1HwndRenderTarget *makeHWNDRenderTarget(HWND hwnd)
 		&hprops,
 		&rt);
 	if (hr != S_OK)
-		logHRESULT(L"error creating area HWND render target", hr);
+		logHRESULT(L"error creating HWND render target", hr);
+	return rt;
+}
+
+ID2D1DCRenderTarget *makeHDCRenderTarget(HDC dc, RECT *r)
+{
+	D2D1_RENDER_TARGET_PROPERTIES props;
+	ID2D1DCRenderTarget *rt;
+	HRESULT hr;
+
+	ZeroMemory(&props, sizeof (D2D1_RENDER_TARGET_PROPERTIES));
+	props.type = D2D1_RENDER_TARGET_TYPE_DEFAULT;
+	props.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	props.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
+	props.dpiX = GetDeviceCaps(dc, LOGPIXELSX);
+	props.dpiY = GetDeviceCaps(dc, LOGPIXELSY);
+	props.usage = D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE;
+	props.minLevel = D2D1_FEATURE_LEVEL_DEFAULT;
+
+	hr = d2dfactory->CreateDCRenderTarget(&props, &rt);
+	if (hr != S_OK)
+		logHRESULT(L"error creating DC render target", hr);
+	hr = rt->BindDC(dc, r);
+	if (hr != S_OK)
+		logHRESULT(L"error binding DC to DC render target", hr);
 	return rt;
 }
 

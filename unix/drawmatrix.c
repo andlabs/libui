@@ -37,13 +37,12 @@ void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x
 	double xt, yt;
 
 	m2c(m, &c);
-	// TODO explain why the translation must come first
 	xt = x;
 	yt = y;
 	scaleCenter(xCenter, yCenter, &xt, &yt);
 	cairo_matrix_translate(&c, xt, yt);
 	cairo_matrix_scale(&c, x, y);
-	// TODO undo the translation?
+	cairo_matrix_translate(&c, -xt, -yt);
 	c2m(&c, m);
 }
 
@@ -54,7 +53,6 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 	m2c(m, &c);
 	cairo_matrix_translate(&c, x, y);
 	cairo_matrix_rotate(&c, amount);
-	// TODO undo the translation? also cocoa backend
 	cairo_matrix_translate(&c, -x, -y);
 	c2m(&c, m);
 }

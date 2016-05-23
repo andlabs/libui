@@ -62,7 +62,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 	s->entry = GTK_ENTRY(s->widget);
 	s->spinButton = GTK_SPIN_BUTTON(s->widget);
 
-	// TODO needed?
+	// ensure integers, just to be safe
 	gtk_spin_button_set_digits(s->spinButton, 0);
 
 	s->onChangedSignal = g_signal_connect(s->spinButton, "value-changed", G_CALLBACK(onChanged), s);

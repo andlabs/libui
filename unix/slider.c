@@ -61,7 +61,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	s->range = GTK_RANGE(s->widget);
 	s->scale = GTK_SCALE(s->widget);
 
-	// TODO needed?
+	// ensure integers, just to be safe
 	gtk_scale_set_digits(s->scale, 0);
 
 	s->onChangedSignal = g_signal_connect(s->scale, "value-changed", G_CALLBACK(onChanged), s);

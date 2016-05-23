@@ -1,8 +1,6 @@
 // 22 december 2015
 #include "test.h"
 
-// TODO test composed diacritic marks
-
 static uiEntry *textString;
 static uiFontButton *textFontButton;
 static uiColorButton *textColorButton;
@@ -29,6 +27,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiDrawTextLayout *layout;
 	double r, g, b, al;
 	char surrogates[1 + 4 + 1 + 1];
+	char composed[2 + 2 + 2 + 3 + 2 + 1];
 	double width, height;
 
 	font = uiFontButtonFont(textFontButton);
@@ -61,6 +60,29 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 		1, 2,
 		1, 0, 0.5, 0.5);
 	uiDrawText(dp->Context, 10, 10 + height, layout);
+	uiDrawFreeTextLayout(layout);
+
+	composed[0] = 'z';
+	composed[1] = 'z';
+	composed[2] = 0xC3;		// 2
+	composed[3] = 0xA9;
+	composed[4] = 'z';
+	composed[5] = 'z';
+	composed[6] = 0x65;		// 5
+	composed[7] = 0xCC;
+	composed[8] = 0x81;
+	composed[9] = 'z';
+	composed[10] = 'z';
+	composed[11] = '\0';
+
+	layout = uiDrawNewTextLayout(composed, font, -1);
+	uiDrawTextLayoutSetColor(layout,
+		2, 3,
+		1, 0, 0.5, 0.5);
+	uiDrawTextLayoutSetColor(layout,
+		5, 6,
+		1, 0, 0.5, 0.5);
+	uiDrawText(dp->Context, 10, 10 + height + height, layout);
 	uiDrawFreeTextLayout(layout);
 
 	uiDrawFreeTextFont(font);

@@ -442,15 +442,17 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 
 struct uiDrawTextLayout {
 	CFMutableAttributedStringRef mas;
+	CFRange *charsToRanges;
 	double width;
 };
 
 uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFont, double width)
 {
 	uiDrawTextLayout *layout;
-//TODO	CFStringRef cfstr;
 	CFAttributedStringRef immutable;
 	CFMutableDictionaryRef attr;
+	CFStringRef backing;
+	CFIndex i, j, n;
 
 	layout = uiNew(uiDrawTextLayout);
 
@@ -458,11 +460,9 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFo
 	// this will retain defaultFont->f; no need to worry
 	CFDictionaryAddValue(attr, kCTFontAttributeName, defaultFont->f);
 
-	// TODO convert the NSString call to a CFString call
 	immutable = CFAttributedStringCreate(NULL, (CFStringRef) [NSString stringWithUTF8String:str], attr);
 	if (immutable == NULL)
 		complain("error creating immutable attributed string in uiDrawNewTextLayout()");
-//TODO	CFRelease(cfstr);
 	CFRelease(attr);
 
 	layout->mas = CFAttributedStringCreateMutableCopy(NULL, 0, immutable);
@@ -472,11 +472,34 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFo
 
 	uiDrawTextLayoutSetWidth(layout, width);
 
+	// unfortunately the CFRanges for attributes expect UTF-16 codepoints
+	// we want full characters
+	// fortunately CFStringGetRangeOfComposedCharactersAtIndex() is here for us
+	backing = CFAttributedStringGetString(layout->mas);
+	n = CFStringGetLength(backing);
+	// allocate one extra, just to be safe
+	layout->charsToRanges = (CFRange *) uiAlloc((n + 1) * sizeof (CFRange), "CFRange[]");
+	i = 0;
+	j = 0;
+	while (i < n) {
+		CFRange range;
+
+		range = CFStringGetRangeOfComposedCharactersAtIndex(backing, i);
+		i = range.location + range.length;
+		layout->charsToRanges[j] = range;
+		j++;
+	}
+	// and set the last one
+	layout->charsToRanges[j].location = i;
+	layout->charsToRanges[j].length = 0;
+	// TODO how will this affect drawing things that aren't surrogate pairs?
+
 	return layout;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
+	uiFree(layout->charsToRanges);
 	CFRelease(layout->mas);
 	uiFree(layout);
 }
@@ -604,7 +627,20 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 	CGContextSetTextPosition(c, x, y);
 #endif
 
-#define rangeToCFRange() CFRangeMake(startChar, endChar - startChar)
+static CFRange charsToRange(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar)
+{
+	CFRange start, end;
+	CFRange out;
+
+	start = layout->charsToRanges[startChar];
+	end = layout->charsToRanges[endChar];
+	out.location = start.location;
+	// - 1 to avoid including the first code point after end
+	out.length = (end.location + end.length - 1) - start.location;
+	return out;
+}
+
+#define rangeToCFRange() charsToRange(layout, startChar, endChar)
 
 void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a)
 {

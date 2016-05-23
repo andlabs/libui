@@ -18,6 +18,9 @@ This README is being written.<br>
 
 *Note that today's entry may be updated later today.*
 
+* **23 May 2016**
+	* Fixed surrogate pair drawing on OS X.
+
 * **22 May 2016**
 	* Removed `uiControlVerifyDestroy()`; that is now part of `uiFreeControl()` itself.
 	* Added `uiPi`, a constant for π. This is provided for C and C++ programmers, where there is no standard named constant for π; bindings authors shouldn't need to worry about this.

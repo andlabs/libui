@@ -156,7 +156,6 @@ void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc
 #define pangoToCairo(pango) (((double) (pango)) / PANGO_SCALE)
 #define cairoToPango(cairo) ((gint) ((cairo) * PANGO_SCALE))
 
-// TODO this isn't enough; pango adds extra space to each layout
 void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics)
 {
 	PangoFontMetrics *pm;

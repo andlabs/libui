@@ -25,12 +25,17 @@ static double entryDouble(uiEntry *e)
 	return d;
 }
 
-// TODO this should be altered not to restore all state on exit so default text colors can be checked
 static void drawGuides(uiDrawContext *c, uiDrawTextFontMetrics *m)
 {
 	uiDrawPath *p;
 	uiDrawBrush b;
 	uiDrawStrokeParams sp;
+	double leading;
+	double y;
+
+	leading = 0;
+	if (uiCheckboxChecked(addLeading))
+		leading = m->Leading;
 
 	memset(&b, 0, sizeof (uiDrawBrush));
 	b.Type = uiDrawBrushTypeSolid;
@@ -43,8 +48,10 @@ static void drawGuides(uiDrawContext *c, uiDrawTextFontMetrics *m)
 	uiDrawSave(c);
 
 	p = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathNewFigure(p, 8, 10);
-	uiDrawPathLineTo(p, 8, 10 + m->Ascent);
+	y = 10;
+	uiDrawPathNewFigure(p, 8, y);
+	y += m->Ascent;
+	uiDrawPathLineTo(p, 8, y);
 	uiDrawPathEnd(p);
 	b.R = 0.94;
 	b.G = 0.5;
@@ -54,8 +61,9 @@ static void drawGuides(uiDrawContext *c, uiDrawTextFontMetrics *m)
 	uiDrawFreePath(p);
 
 	p = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathNewFigure(p, 8, 10 + m->Ascent);
-	uiDrawPathLineTo(p, 8, 10 + m->Ascent + m->Descent);
+	uiDrawPathNewFigure(p, 8, y);
+	y += m->Descent;
+	uiDrawPathLineTo(p, 8, y);
 	uiDrawPathEnd(p);
 	b.R = 0.12;
 	b.G = 0.56;
@@ -64,6 +72,33 @@ static void drawGuides(uiDrawContext *c, uiDrawTextFontMetrics *m)
 	uiDrawStroke(c, p, &b, &sp);
 	uiDrawFreePath(p);
 
+	// and again for the second line
+	p = uiDrawNewPath(uiDrawFillModeWinding);
+	y += leading;
+	uiDrawPathNewFigure(p, 8, y);
+	y += m->Ascent;
+	uiDrawPathLineTo(p, 8, y);
+	uiDrawPathEnd(p);
+	b.R = 0.94;
+	b.G = 0.5;
+	b.B = 0.5;
+	b.A = 0.75;
+	uiDrawStroke(c, p, &b, &sp);
+	uiDrawFreePath(p);
+
+	p = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(p, 8, y);
+	y += m->Descent;
+	uiDrawPathLineTo(p, 8, y);
+	uiDrawPathEnd(p);
+	b.R = 0.12;
+	b.G = 0.56;
+	b.B = 1.0;
+	b.A = 0.75;
+	uiDrawStroke(c, p, &b, &sp);
+	uiDrawFreePath(p);
+
+	// and a box to text layout top-left corners
 	p = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(p, 0, 0, 10, 10);
 	uiDrawPathEnd(p);

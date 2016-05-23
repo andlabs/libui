@@ -244,7 +244,7 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	if (hr != S_OK)
 		logHRESULT(L"error finding font family", hr);
 	if (!exists)
-		implbug("TODO family not found in uiDrawLoadClosestFont()", hr);
+		implbug("LONGTERM family not found in uiDrawLoadClosestFont()", hr);
 	hr = collection->GetFontFamily(index, &family);
 	if (hr != S_OK)
 		logHRESULT(L"error loading font family", hr);

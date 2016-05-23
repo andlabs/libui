@@ -182,10 +182,13 @@ static void defaultOnChanged(uiSpinbox *s, void *data)
 uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	uiSpinbox *s;
+	intmax_t temp;
 
-	// TODO implicitly swap instead?
-	if (min >= max)
-		userbug("min >= max is invalid for a uiSpinbox.");
+	if (min >= max) {
+		temp = min;
+		min = max;
+		max = temp;
+	}
 
 	uiDarwinNewControl(uiSpinbox, s);
 

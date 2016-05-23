@@ -100,7 +100,7 @@ PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc)
 	context = mkGenericPangoCairoContext();
 	f = pango_font_map_load_font(pango_cairo_font_map_get_default(), context, pdesc);
 	if (f == NULL) {
-		// TODO
+		// LONGTERM
 		g_error("[libui] no match in pangoDescToPangoFont(); report to andlabs");
 	}
 	g_object_unref(context);

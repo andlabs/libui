@@ -34,7 +34,7 @@ void uiSpinboxSetValue(uiSpinbox *s, intmax_t value)
 {
 	// we need to inhibit sending of ::value-changed because this WILL send a ::value-changed otherwise
 	g_signal_handler_block(s->spinButton, s->onChangedSignal);
-	// TODO does this clamp?
+	// this clamps for us
 	gtk_spin_button_set_value(s->spinButton, (gdouble) value);
 	g_signal_handler_unblock(s->spinButton, s->onChangedSignal);
 }
@@ -48,10 +48,13 @@ void uiSpinboxOnChanged(uiSpinbox *s, void (*f)(uiSpinbox *, void *), void *data
 uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	uiSpinbox *s;
+	intmax_t temp;
 
-	// TODO just swap?
-	if (min >= max)
-		userbug("min >= max not allowed in uiNewSpinbox().");
+	if (min >= max) {
+		temp = min;
+		min = max;
+		max = temp;
+	}
 
 	uiUnixNewControl(uiSpinbox, s);
 

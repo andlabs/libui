@@ -114,6 +114,13 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	uiSlider *s;
 	NSSliderCell *cell;
+	intmax_t temp;
+
+	if (min >= max) {
+		temp = min;
+		min = max;
+		max = temp;
+	}
 
 	uiDarwinNewControl(uiSlider, s);
 

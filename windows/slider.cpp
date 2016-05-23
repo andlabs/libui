@@ -71,6 +71,13 @@ void uiSliderOnChanged(uiSlider *s, void (*f)(uiSlider *, void *), void *data)
 uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 {
 	uiSlider *s;
+	intmax_t temp;
+
+	if (min >= max) {
+		temp = min;
+		min = max;
+		max = temp;
+	}
 
 	uiWindowsNewControl(uiSlider, s);
 

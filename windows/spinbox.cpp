@@ -182,10 +182,13 @@ static void onResize(uiWindowsControl *c)
 uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 {
 	uiSpinbox *s;
+	intmax_t temp;
 
-	if (min >= max)
-		// TODO
-		implbug("error: min >= max in uiNewSpinbox()");
+	if (min >= max) {
+		temp = min;
+		min = max;
+		max = temp;
+	}
 
 	uiWindowsNewControl(uiSpinbox, s);
 

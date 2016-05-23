@@ -87,9 +87,9 @@ static const PangoStretch pangoStretches[] = {
 
 // we need a context for a few things
 // the documentation suggests creating cairo_t-specific, GdkScreen-specific, or even GtkWidget-specific contexts, but we can't really do that because we want our uiDrawTextFonts and uiDrawTextLayouts to be context-independent
-// so this will have to do
-// TODO really see if there's a better way instead; what do GDK and GTK+ do internally? gdk_pango_context_get()?
-#define mkGenericPangoCairoContext() (pango_font_map_create_context(pango_cairo_font_map_get_default()))
+// we could use pango_font_map_create_context(pango_cairo_font_map_get_default()) but that will ignore GDK-specific settings
+// so let's use gdk_pango_context_get() instead; even though it's for the default screen only, it's good enough for us
+#define mkGenericPangoCairoContext() (gdk_pango_context_get())
 
 PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc)
 {
@@ -251,9 +251,10 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *he
 	PangoRectangle logical;
 
 	// in this case, the context is necessary to create the layout
+	// the layout takes a ref on the context so we can unref it afterward
 	context = mkGenericPangoCairoContext();
 	pl = pango_layout_new(context);
-	// TODO g_object_unref() context?
+	g_object_unref(context);
 	prepareLayout(layout, pl);
 
 	pango_layout_get_extents(pl, NULL, &logical);
@@ -287,7 +288,6 @@ static void addAttr(uiDrawTextLayout *layout, PangoAttribute *attr, intmax_t sta
 
 // these attributes are only supported on 1.38 and higher; we need to support 1.36
 // use dynamic linking to make them work at least on newer systems
-// TODO warn programmers
 static PangoAttribute *(*newFGAlphaAttr)(guint16 alpha) = NULL;
 static gboolean tried138 = FALSE;
 

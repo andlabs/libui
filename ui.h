@@ -38,7 +38,6 @@ _UI_EXTERN void uiFreeInitError(const char *err);
 _UI_EXTERN void uiMain(void);
 _UI_EXTERN void uiQuit(void);
 
-// TODO write a test for this after adding multiline entries
 _UI_EXTERN void uiQueueMain(void (*f)(void *data), void *data);
 
 _UI_EXTERN void uiOnShouldQuit(int (*f)(void *data), void *data);
@@ -83,6 +82,8 @@ _UI_EXTERN void uiFreeControl(uiControl *);
 // TODO make sure all controls have these
 _UI_EXTERN void uiControlVerifySetParent(uiControl *, uiControl *);
 _UI_EXTERN int uiControlEnabledToUser(uiControl *);
+
+_UI_EXTERN void uiUserBugCannotSetParentOnToplevel(const char *type);
 
 typedef struct uiWindow uiWindow;
 #define uiWindow(this) ((uiWindow *) (this))

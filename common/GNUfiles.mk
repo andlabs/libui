@@ -5,7 +5,8 @@ CFILES += \
 	common/control.c \
 	common/debug.c \
 	common/matrix.c \
-	common/shouldquit.c
+	common/shouldquit.c \
+	common/userbugs.c
 
 HFILES += \
 	common/controlsigs.h \

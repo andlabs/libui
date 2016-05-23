@@ -98,10 +98,16 @@ static void uiWindowDestroy(uiControl *c)
 }
 
 uiDarwinControlDefaultHandle(uiWindow, window)
-// TODO?
-uiDarwinControlDefaultParent(uiWindow, window)
-uiDarwinControlDefaultSetParent(uiWindow, window)
-// end TODO
+
+uiControl *uiWindowParent(uiControl *c)
+{
+	return NULL;
+}
+
+void uiWindowSetParent(uiControl *c, uiControl *parent)
+{
+	uiUserBugCannotSetParentOnToplevel("uiWindow");
+}
 
 static int uiWindowToplevel(uiControl *c)
 {

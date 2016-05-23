@@ -161,10 +161,16 @@ static void uiWindowDestroy(uiControl *c)
 }
 
 uiWindowsControlDefaultHandle(uiWindow)
-// TODO?
-uiWindowsControlDefaultParent(uiWindow)
-uiWindowsControlDefaultSetParent(uiWindow)
-// end TODO
+
+uiControl *uiWindowParent(uiControl *c)
+{
+	return NULL;
+}
+
+void uiWindowSetParent(uiControl *c, uiControl *parent)
+{
+	uiUserBugCannotSetParentOnToplevel("uiWindow");
+}
 
 static int uiWindowToplevel(uiControl *c)
 {

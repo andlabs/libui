@@ -44,8 +44,10 @@ char *uiMultilineEntryText(uiMultilineEntry *e)
 
 void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 {
-	// TODO does this send a changed signal?
+	// we need to inhibit sending of ::changed because this WILL send a ::changed otherwise
+	g_signal_handler_block(e->textbuf, e->onChangedSignal);
 	gtk_text_buffer_set_text(e->textbuf, text, -1);
+	g_signal_handler_unblock(e->textbuf, e->onChangedSignal);
 }
 
 // TODO scroll to end?
@@ -54,8 +56,10 @@ void uiMultilineEntryAppend(uiMultilineEntry *e, const char *text)
 	GtkTextIter end;
 
 	gtk_text_buffer_get_end_iter(e->textbuf, &end);
-	// TODO does this send a changed signal?
+	// we need to inhibit sending of ::changed because this WILL send a ::changed otherwise
+	g_signal_handler_block(e->textbuf, e->onChangedSignal);
 	gtk_text_buffer_insert(e->textbuf, &end, text, -1);
+	g_signal_handler_unblock(e->textbuf, e->onChangedSignal);
 }
 
 void uiMultilineEntryOnChanged(uiMultilineEntry *e, void (*f)(uiMultilineEntry *e, void *data), void *data)

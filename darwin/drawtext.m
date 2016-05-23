@@ -475,6 +475,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFo
 	// unfortunately the CFRanges for attributes expect UTF-16 codepoints
 	// we want full characters
 	// fortunately CFStringGetRangeOfComposedCharactersAtIndex() is here for us
+	// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Strings/Articles/stringsClusters.html says that this does work on surrogate pairs (despite the name), and that this is the preferred function for this particular job anyway
 	backing = CFAttributedStringGetString(layout->mas);
 	n = CFStringGetLength(backing);
 	// allocate one extra, just to be safe

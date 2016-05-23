@@ -44,6 +44,7 @@ static void onCBChanged(uiCombobox *c, void *data)
 	printf("%s combobox changed to %d\n",
 		(char *) data,
 		(int) uiComboboxSelected(c));
+	uiEditableComboboxSetText(editable, "changed");
 }
 
 static void onECBChanged(uiEditableCombobox *c, void *data)

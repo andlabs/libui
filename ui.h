@@ -195,7 +195,7 @@ typedef struct uiEditableCombobox uiEditableCombobox;
 #define uiEditableCombobox(this) ((uiEditableCombobox *) (this))
 _UI_EXTERN void uiEditableComboboxAppend(uiEditableCombobox *c, const char *text);
 _UI_EXTERN char *uiEditableComboboxText(uiEditableCombobox *c);
-_UI_EXTERN void uiEditableComboboxSetText(uiEditableCombobox *c, intmax_t n);
+_UI_EXTERN void uiEditableComboboxSetText(uiEditableCombobox *c, const char *text);
 // TODO what do we call a function that sets the currently selected item and fills the text field with it? editable comboboxes have no consistent concept of selected item
 _UI_EXTERN void uiEditableComboboxOnChanged(uiEditableCombobox *c, void (*f)(uiEditableCombobox *c, void *data), void *data);
 _UI_EXTERN uiEditableCombobox *uiNewEditableCombobox(void);

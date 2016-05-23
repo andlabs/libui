@@ -7,6 +7,7 @@
 #define uiColorButtonSignature 0x436F6C42
 #define uiComboboxSignature 0x436F6D62
 #define uiDateTimePickerSignature 0x44545069
+#define uiEditableComboboxSignature 0x45644362
 #define uiEntrySignature 0x456E7472
 #define uiFontButtonSignature 0x466F6E42
 #define uiGroupSignature 0x47727062

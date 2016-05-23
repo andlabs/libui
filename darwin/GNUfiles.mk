@@ -15,6 +15,7 @@ MFILES += \
 	darwin/debug.m \
 	darwin/draw.m \
 	darwin/drawtext.m \
+	darwin/editablecombo.m \
 	darwin/entry.m \
 	darwin/fontbutton.m \
 	darwin/group.m \

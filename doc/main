@@ -1,0 +1,1 @@
+after uiQuit or if uiShouldQuit returns nonzero, uiQueueMain's effect is undefined

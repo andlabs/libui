@@ -62,7 +62,6 @@ static gboolean doqueued(gpointer data)
 	return FALSE;
 }
 
-// TODO document that the effect of calling this function after uiQuit() is called (either directly or via a nonzero return to uiShouldQuit()) is undefined
 void uiQueueMain(void (*f)(void *data), void *data)
 {
 	struct queued *q;

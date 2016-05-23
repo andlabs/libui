@@ -29,13 +29,13 @@ SETTOO(Slider, Low, -80)
 SETTOO(Slider, High, 80)
 
 static uiCombobox *cbox;
-static uiCombobox *editable;
+static uiEditableCombobox *editable;
 static uiRadioButtons *rb;
 
 static void appendCBRB(uiButton *b, void *data)
 {
 	uiComboboxAppend(cbox, "New Item");
-	uiComboboxAppend(editable, "New Item");
+	uiEditableComboboxAppend(editable, "New Item");
 	uiRadioButtonsAppend(rb, "New Item");
 }
 
@@ -44,6 +44,17 @@ static void onCBChanged(uiCombobox *c, void *data)
 	printf("%s combobox changed to %d\n",
 		(char *) data,
 		(int) uiComboboxSelected(c));
+}
+
+static void onECBChanged(uiEditableCombobox *c, void *data)
+{
+	char *t;
+
+	t = uiEditableComboboxText(c);
+	printf("%s combobox changed to %s\n",
+		(char *) data,
+		t);
+	uiFreeText(t);
 }
 
 uiBox *makePage4(void)
@@ -101,10 +112,10 @@ uiBox *makePage4(void)
 	uiBoxAppend(page4, uiControl(cbox), 0);
 
 	editable = uiNewEditableCombobox();
-	uiComboboxAppend(editable, "Editable Item 1");
-	uiComboboxAppend(editable, "Editable Item 2");
-	uiComboboxAppend(editable, "Editable Item 3");
-	uiComboboxOnSelected(editable, onCBChanged, "editable");
+	uiEditableComboboxAppend(editable, "Editable Item 1");
+	uiEditableComboboxAppend(editable, "Editable Item 2");
+	uiEditableComboboxAppend(editable, "Editable Item 3");
+	uiEditableComboboxOnChanged(editable, onECBChanged, "editable");
 	uiBoxAppend(page4, uiControl(editable), 0);
 
 	rb = uiNewRadioButtons();

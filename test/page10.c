@@ -82,6 +82,9 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiDrawTextLayoutSetColor(layout,
 		5, 6,
 		1, 0, 0.5, 0.5);
+	uiDrawTextLayoutSetColor(layout,
+		6, 7,
+		0.5, 0, 1, 0.5);
 	uiDrawText(dp->Context, 10, 10 + height + height, layout);
 	uiDrawFreeTextLayout(layout);
 

@@ -190,7 +190,15 @@ _UI_EXTERN intmax_t uiComboboxSelected(uiCombobox *c);
 _UI_EXTERN void uiComboboxSetSelected(uiCombobox *c, intmax_t n);
 _UI_EXTERN void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data);
 _UI_EXTERN uiCombobox *uiNewCombobox(void);
-_UI_EXTERN uiCombobox *uiNewEditableCombobox(void);
+
+typedef struct uiEditableCombobox uiEditableCombobox;
+#define uiEditableCombobox(this) ((uiEditableCombobox *) (this))
+_UI_EXTERN void uiEditableComboboxAppend(uiEditableCombobox *c, const char *text);
+_UI_EXTERN char *uiEditableComboboxText(uiEditableCombobox *c);
+_UI_EXTERN void uiEditableComboboxSetText(uiEditableCombobox *c, intmax_t n);
+// TODO what do we call a function that sets the currently selected item and fills the text field with it? editable comboboxes have no consistent concept of selected item
+_UI_EXTERN void uiEditableComboboxOnChanged(uiEditableCombobox *c, void (*f)(uiEditableCombobox *c, void *data), void *data);
+_UI_EXTERN uiEditableCombobox *uiNewEditableCombobox(void);
 
 typedef struct uiRadioButtons uiRadioButtons;
 #define uiRadioButtons(this) ((uiRadioButtons *) (this))

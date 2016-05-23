@@ -82,6 +82,7 @@ int main(void)
 	uiBox *inner2;
 	uiEntry *entry;
 	uiCombobox *cbox;
+	uiEditableCombobox *ecbox;
 	uiRadioButtons *rb;
 	uiTab *tab;
 
@@ -206,11 +207,11 @@ int main(void)
 	uiComboboxAppend(cbox, "Combobox Item 3");
 	uiBoxAppend(inner, uiControl(cbox), 0);
 
-	cbox = uiNewEditableCombobox();
-	uiComboboxAppend(cbox, "Editable Item 1");
-	uiComboboxAppend(cbox, "Editable Item 2");
-	uiComboboxAppend(cbox, "Editable Item 3");
-	uiBoxAppend(inner, uiControl(cbox), 0);
+	ecbox = uiNewEditableCombobox();
+	uiEditableComboboxAppend(ecbox, "Editable Item 1");
+	uiEditableComboboxAppend(ecbox, "Editable Item 2");
+	uiEditableComboboxAppend(ecbox, "Editable Item 3");
+	uiBoxAppend(inner, uiControl(ecbox), 0);
 
 	rb = uiNewRadioButtons();
 	uiRadioButtonsAppend(rb, "Radio Button 1");

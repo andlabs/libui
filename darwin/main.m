@@ -130,7 +130,7 @@ void uiUninit(void)
 	@autoreleasepool {
 
 	uninitMenus();
-    [appDelegate() release];
+	[appDelegate() release];
 	[realNSApp() setDelegate:nil];
 	[realNSApp() release];
 	uninitAlloc();

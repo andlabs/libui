@@ -1,6 +1,12 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
+// So why did I split uiCombobox into uiCombobox and uiEditableCombobox? Here's (90% of the; the other 10% is GTK+ events) answer:
+// When you type a value into a NSComboBox that just happens to be in the list, it will autoselect that item!
+// I can't seem to find a workaround.
+// Fortunately, there's other weird behaviors that made this split worth it.
+// And besides, selected items make little sense with editable comboboxes... you either separate or combine them with the text entry :V
+
 // NSComboBoxes have no intrinsic width; we'll use the default Interface Builder width for them.
 #define comboboxWidth 96
 
@@ -114,8 +120,8 @@ void uiEditableComboboxSetText(uiEditableCombobox *c, const char *text)
 
 	t = toNSString(text);
 	[c->cb setStringValue:t];
-	// do this just to keep synchronicity with the behavior of the real control
-	// for what it's worth, this automatic behavior when typing is the reason why this is separate from uiCombobox
+	// yes, let's imitate the behavior that caused uiEditableCombobox to be separate in the first place!
+	// just to avoid confusion when users see an option in the list in the text field but not selected in the list
 	[c->cb selectItemWithObjectValue:t];
 }
 

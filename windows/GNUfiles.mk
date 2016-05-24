@@ -23,6 +23,7 @@ CXXFILES += \
 	windows/drawpath.cpp \
 	windows/drawtext.cpp \
 	windows/dwrite.cpp \
+	windows/editablecombo.cpp \
 	windows/entry.cpp \
 	windows/events.cpp \
 	windows/fontbutton.cpp \

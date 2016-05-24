@@ -18,6 +18,9 @@ This README is being written.<br>
 
 *Note that today's entry may be updated later today.*
 
+* **24 May 2016**
+	* As promised, `uiCombobox` is now split into `uiCombobox` for non-editable comboboxes and `uiEditableCombobox` for editable comboboxes. Mind the function changes as well :)
+
 * **23 May 2016**
 	* Fixed surrogate pair drawing on OS X.
 

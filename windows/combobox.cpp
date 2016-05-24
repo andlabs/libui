@@ -13,7 +13,6 @@ struct uiCombobox {
 	void *onSelectedData;
 };
 
-// TODO: NOT triggered on entering text
 static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiCombobox *c = uiCombobox(cc);
@@ -95,7 +94,7 @@ void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), v
 	c->onSelectedData = data;
 }
 
-static uiCombobox *finishNewCombobox(DWORD style)
+uiCombobox *uiNewCombobox(void)
 {
 	uiCombobox *c;
 
@@ -103,7 +102,7 @@ static uiCombobox *finishNewCombobox(DWORD style)
 
 	c->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"combobox", L"",
-		style | WS_TABSTOP,
+		CBS_DROPDOWNLIST | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
 
@@ -111,14 +110,4 @@ static uiCombobox *finishNewCombobox(DWORD style)
 	uiComboboxOnSelected(c, defaultOnSelected, NULL);
 
 	return c;
-}
-
-uiCombobox *uiNewCombobox(void)
-{
-	return finishNewCombobox(CBS_DROPDOWNLIST);
-}
-
-uiCombobox *uiNewEditableCombobox(void)
-{
-	return finishNewCombobox(CBS_DROPDOWN);
 }

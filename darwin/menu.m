@@ -32,7 +32,8 @@ static void mapItemReleaser(void *key, void *value)
 	uiMenuItem *item;
  
 	item = (uiMenuItem *)value;
-	[item->item release];
+	// TODO this crashes for me on OS X El Capitan
+//	[item->item release];
 }
 
 @implementation menuManager

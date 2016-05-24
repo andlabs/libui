@@ -89,6 +89,8 @@ extern void mapDestroy(struct mapTable *m);
 extern void *mapGet(struct mapTable *m, void *key);
 extern void mapSet(struct mapTable *m, void *key, void *value);
 extern void mapDelete(struct mapTable *m, void *key);
+extern void mapWalk(struct mapTable *m, void (*f)(void *key, void *value));
+extern void mapReset(struct mapTable *m);
 
 // area.m
 extern int sendAreaEvents(NSEvent *);

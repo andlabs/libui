@@ -27,6 +27,14 @@ enum {
 	typeSeparator,
 };
 
+static void mapItemReleaser(void *key, void *value)
+{
+	uiMenuItem *item;
+ 
+	item = (uiMenuItem *)value;
+	[item->item release];
+}
+
 @implementation menuManager
 
 - (id)init
@@ -43,6 +51,9 @@ enum {
 
 - (void)dealloc
 {
+	uninitMenus();
+	mapWalk(self->items, mapItemReleaser);
+	mapReset(self->items);
 	mapDestroy(self->items);
 	[super dealloc];
 }
@@ -234,16 +245,16 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 	item->type = type;
 	switch (item->type) {
 	case typeQuit:
-		item->item = appDelegate().menuManager.quitItem;
+		item->item = [appDelegate().menuManager.quitItem retain];
 		break;
 	case typePreferences:
-		item->item = appDelegate().menuManager.preferencesItem;
+		item->item = [appDelegate().menuManager.preferencesItem retain];
 		break;
 	case typeAbout:
-		item->item = appDelegate().menuManager.aboutItem;
+		item->item = [appDelegate().menuManager.aboutItem retain];
 		break;
 	case typeSeparator:
-		item->item = [NSMenuItem separatorItem];
+		item->item = [[NSMenuItem separatorItem] retain];
 		[m->menu addItem:item->item];
 		break;
 	default:
@@ -335,7 +346,6 @@ void uninitMenus(void)
 {
 	if (menus == NULL)
 		return;
-	// don't worry about the actual NSMenus and NSMenuItems; they'll be freed when we clean up the NSApplication
 	[menus enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
 		NSValue *v;
 		uiMenu *m;

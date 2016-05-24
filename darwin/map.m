@@ -41,3 +41,19 @@ void mapDelete(struct mapTable *m, void *key)
 {
 	NSMapRemove(m->m, key);
 }
+
+void mapWalk(struct mapTable *m, void (*f)(void *key, void *value))
+{
+	NSMapEnumerator e = NSEnumerateMapTable(m->m);
+	void *k = NULL;
+	void *v = NULL;
+	while (NSNextMapEnumeratorPair(&e, &k, &v)) {
+		f(k, v);
+	}
+	NSEndMapTableEnumeration(&e);
+}
+
+void mapReset(struct mapTable *m)
+{
+	NSResetMapTable(m->m);
+}

@@ -16,6 +16,7 @@ CFILES += \
 	unix/drawmatrix.c \
 	unix/drawpath.c \
 	unix/drawtext.c \
+	unix/editablecombo.c \
 	unix/entry.c \
 	unix/fontbutton.c \
 	unix/group.c \

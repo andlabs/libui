@@ -13,7 +13,6 @@ struct uiCombobox {
 
 uiUnixControlAllDefaults(uiCombobox)
 
-// TODO this is triggered when editing an editable combobox's text
 static void onChanged(GtkComboBox *cbox, gpointer data)
 {
 	uiCombobox *c = uiCombobox(data);
@@ -50,13 +49,13 @@ void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), v
 	c->onSelectedData = data;
 }
 
-static uiCombobox *finishNewCombobox(GtkWidget *(*newfunc)(void))
+uiCombobox *uiNewCombobox(void)
 {
 	uiCombobox *c;
 
 	uiUnixNewControl(uiCombobox, c);
 
-	c->widget = (*newfunc)();
+	c->widget = gtk_combo_box_text_new();
 	c->combobox = GTK_COMBO_BOX(c->widget);
 	c->comboboxText = GTK_COMBO_BOX_TEXT(c->widget);
 
@@ -64,14 +63,4 @@ static uiCombobox *finishNewCombobox(GtkWidget *(*newfunc)(void))
 	uiComboboxOnSelected(c, defaultOnSelected, NULL);
 
 	return c;
-}
-
-uiCombobox *uiNewCombobox(void)
-{
-	return finishNewCombobox(gtk_combo_box_text_new);
-}
-
-uiCombobox *uiNewEditableCombobox(void)
-{
-	return finishNewCombobox(gtk_combo_box_text_new_with_entry);
 }

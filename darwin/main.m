@@ -2,6 +2,7 @@
 #import "uipriv_darwin.h"
 
 static BOOL canQuit = NO;
+static NSAutoreleasePool *globalPool;
 
 @implementation applicationClass
 
@@ -72,7 +73,8 @@ static BOOL canQuit = NO;
 
 - (void)dealloc
 {
-	[self.menuManager release];
+	// Apple docs: "Don't Use Accessor Methods in Initializer Methods and dealloc"
+	[_menuManager release];
 	[super dealloc];
 }
 
@@ -99,6 +101,10 @@ uiInitOptions options;
 
 const char *uiInit(uiInitOptions *o)
 {
+	globalPool = [[NSAutoreleasePool alloc] init];
+
+	@autoreleasepool {
+
 	options = *o;
 	[applicationClass sharedApplication];
 	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
@@ -109,21 +115,29 @@ const char *uiInit(uiInitOptions *o)
 	initAlloc();
 
 	// always do this so we always have an application menu
-	appDelegate().menuManager = [menuManager new];
+	appDelegate().menuManager = [[menuManager new] autorelease];
 	[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
 	setupFontPanel();
 
 	return NULL;
+
+	} // @autoreleasepool
 }
 
 void uiUninit(void)
 {
+	@autoreleasepool {
+
 	uninitMenus();
+    [appDelegate() release];
 	[realNSApp() setDelegate:nil];
-	[appDelegate() release];
 	[realNSApp() release];
 	uninitAlloc();
+
+	} // @autoreleasepool
+
+	[globalPool release];
 }
 
 void uiFreeInitError(const char *err)

@@ -5,6 +5,10 @@ This README is being written.<br>
 
 ## Announcements
 
+* **24 May 2016**
+	* You can now help choose [a potential new build system for libui](https://github.com/andlabs/libui/issues/62).
+	* Tomorrow I will decide if OS X 10.7 will also be dropped alongside GTK+ 3.4-3.8 this Saturday. Stay tuned.
+
 * **22 May 2016**
 	* Two more open questions I'd like your feedback on are available [here](https://github.com/andlabs/libui/issues/48) and [here](https://github.com/andlabs/libui/issues/25).
 	* Sometime in the next 48 hours (before 23:59 EDT on 24 May 2016) I will split `uiCombobox` into two separate controls, `uiCombobox` and `uiEditableCombobox`, each with slightly different events and "selected item" mechanics. Prepare your existing code.

@@ -73,8 +73,10 @@ LDFLAGS += \
 	user32.lib kernel32.lib usp10.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib comdlg32.lib d2d1.lib dwrite.lib ole32.lib oleaut32.lib oleacc.lib uuid.lib
 
 # flags for building a shared library
+ifeq (,$(STATIC))
 LDFLAGS += \
 	-dll
+endif
 
 # TODO flags for warning on undefined symbols
 

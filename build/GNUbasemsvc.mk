@@ -69,7 +69,11 @@ OUT = $(OUTDIR)/$(NAME)$(SUFFIX)
 # TODO use $(CC), $(CXX), $(LD), and s$(RC)
 
 $(OUT): $(OFILES) | $(OUTDIR)
+ifeq (,$(STATICLIB))
 	@link -out:$(OUT) $(OFILES) $(LDFLAGS)
+else
+	@lib -out:$(OUT) $(OFILES)
+endif
 	@echo ====== Linked $(OUT)
 
 .SECONDEXPANSION:

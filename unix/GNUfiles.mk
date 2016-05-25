@@ -39,7 +39,7 @@ HFILES += \
 	unix/draw.h \
 	unix/uipriv_unix.h
 
-# TODO split into a separate file or put in GNUmakefile.libui somehow?
+# LONGTERM split into a separate file or put in GNUmakefile.libui somehow?
 
 # flags for GTK+
 CFLAGS += \

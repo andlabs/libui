@@ -63,7 +63,7 @@ HFILES += \
 RCFILES += \
 	windows/resources.rc
 
-# TODO split into a separate file or put in GNUmakefile.libui somehow?
+# LONGTERM split into a separate file or put in GNUmakefile.libui somehow?
 
 # flags for the Windows API
 # TODO prune this list

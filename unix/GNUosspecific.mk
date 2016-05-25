@@ -5,7 +5,7 @@ LIBSUFFIX = .so
 OSHSUFFIX = .h
 TOOLCHAIN = gcc
 
-# TODO clean up all the NAMEs and SUFFIXs and NOSOSUFFIXs or whatever it was
+# LONGTERM clean up all the NAMEs and SUFFIXs and NOSOSUFFIXs or whatever it was
 USESSONAME = 1
 SOVERSION = $(SOVERSION0)
 SONAMEEXT = $(LIBSUFFIX).$(SOVERSION)

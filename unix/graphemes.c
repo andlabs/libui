@@ -1,41 +1,31 @@
 // 25 may 2016
 #include "uipriv_unix.H"
 
-// TODO this breaks for non-BMP characters?
-
-struct gparam {
-	const char *text;
-	PangoGlyphString *glyphString;
-};
-
-static void runItem(gpointer it, gpointer data)
+ptrdiff_t *graphemes(const char *text, PangoContext *context)
 {
-	PangoItem *item = (PangoItem *) it;
-	struct gparam *gparam = (struct gparam *) data;
-
-	pango_shape(gparam->text + item->offset,
-		item->length,
-		&(item->analysis),
-		gparam->glyphString);
-	pango_item_free(item);
-}
-
-PangoGlyphString *graphemes(const char *text, PangoContext *context)
-{
-	size_t len;
-	GList *list;
-	struct gparam gparam;
+	size_t len, lenchars;
+	PangoLogAttr *logattrs;
+	ptrdiff_t *out;
+	ptrdiff_t *op;
+	size_t i;
 
 	len = strlen(text);
-	list = pango_itemize(context,
-		text, 0, len,
-		NULL, NULL);
+	lenchars = g_utf8_strlen(text, -1);
+	logattrs = (PangoLogAttr *) uiAlloc((lenchars + 1) * sizeof (PangoLogAttr), "PangoLogAttr[]");
+	pango_get_log_attrs(text, len,
+		-1, NULL,
+		logattrs, lenchars + 1);
 
-	gparam.text = text;
-	gparam.glyphString = pango_glyph_string_new();
+	// should be more than enough
+	out = (ptrdiff_t *) uiAlloc((lenchars + 2) * sizeof (ptrdiff_t), "ptrdiff_t[]");
+	op = out;
+	for (i = 0; i < lenchars; i++)
+		if (logattrs[i].is_cursor_position != 0)
+			// TODO optimize this
+			*op++ = g_utf8_offset_to_pointer(text, i) - text;
+	// and do the last one
+	*op++ = len;
 
-	g_list_foreach(list, runItem, &gparam);
-
-	g_list_free(list);
-	return gparam.glyphString;
+	uiFree(logattrs);
+	return out;
 }

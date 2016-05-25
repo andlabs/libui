@@ -173,7 +173,7 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 // note: PangoCairoLayouts are tied to a given cairo_t, so we can't store one in this device-independent structure
 struct uiDrawTextLayout {
 	char *s;
-	PangoGlyphString *glyphString;
+	ptrdiff_t *graphemes;
 	PangoFont *defaultFont;
 	double width;
 	PangoAttrList *attrs;
@@ -187,7 +187,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 	layout = uiNew(uiDrawTextLayout);
 	layout->s = g_strdup(text);
 	context = mkGenericPangoCairoContext();
-	layout->glyphString = graphemes(layout->s, context);
+	layout->graphemes = graphemes(layout->s, context);
 	g_object_unref(context);
 	layout->defaultFont = defaultFont->f;
 	g_object_ref(layout->defaultFont);		// retain a copy
@@ -200,7 +200,7 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
 	pango_attr_list_unref(layout->attrs);
 	g_object_unref(layout->defaultFont);
-	pango_glyph_string_free(layout->glyphString);
+	uiFree(layout->graphemes);
 	g_free(layout->s);
 	uiFree(layout);
 }
@@ -267,8 +267,8 @@ void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 
 static void addAttr(uiDrawTextLayout *layout, PangoAttribute *attr, intmax_t startChar, intmax_t endChar)
 {
-	attr->start_index = layout->glyphString->log_clusters[startChar];
-	attr->end_index = layout->glyphString->log_clusters[endChar];
+	attr->start_index = layout->graphemes[startChar];
+	attr->end_index = layout->graphemes[endChar];
 	pango_attr_list_insert(layout->attrs, attr);
 	// pango_attr_list_insert() takes attr; we don't free it
 }

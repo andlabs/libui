@@ -49,4 +49,4 @@ extern uiDrawTextFont *mkTextFont(PangoFont *f, gboolean add);
 extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
 
 // graphemes.c
-extern PangoGlyphString *graphemes(const char *text, PangoContext *context);
+extern ptrdiff_t *graphemes(const char *text, PangoContext *context);

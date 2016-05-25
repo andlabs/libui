@@ -20,8 +20,7 @@ static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 	if (code == CBN_SELCHANGE) {
 		// like on OS X, this is sent before the edit has been updated :(
 		// TODO error check
-		// TODO proper function for GetAncestor()
-		PostMessage(GetAncestor(hwnd, GA_PARENT),
+		PostMessage(parentOf(hwnd),
 			WM_COMMAND,
 			MAKEWPARAM(GetWindowLongPtrW(hwnd, GWLP_ID), CBN_EDITCHANGE),
 			(LPARAM) hwnd);

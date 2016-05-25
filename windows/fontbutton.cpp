@@ -41,7 +41,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	if (code != BN_CLICKED)
 		return FALSE;
 
-	parent = GetAncestor(b->hwnd, GA_ROOT);		// TODO didn't we have a function for this
+	parent = parentToplevel(b->hwnd);
 	if (showFontDialog(parent, &(b->params))) {
 		updateFontButtonLabel(b);
 		(*(b->onChanged))(b, b->onChangedData);

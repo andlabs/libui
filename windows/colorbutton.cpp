@@ -31,7 +31,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	if (code != BN_CLICKED)
 		return FALSE;
 
-	parent = GetAncestor(b->hwnd, GA_ROOT);		// TODO didn't we have a function for this
+	parent = parentToplevel(b->hwnd);
 	rgba.r = b->r;
 	rgba.g = b->g;
 	rgba.b = b->b;

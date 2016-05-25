@@ -34,6 +34,16 @@ void uiMain(void)
 	gtk_main();
 }
 
+int uiMainStep(int wait)
+{
+	gboolean block;
+
+	block = FALSE;
+	if (wait)
+		block = TRUE;
+	return gtk_main_iteration_do(block) == FALSE;
+}
+
 // gtk_main_quit() may run immediately, or it may wait for other pending events; "it depends" (thanks mclasen in irc.gimp.net/#gtk+)
 // PostQuitMessage() on Windows always waits, so we must do so too
 // we'll do it by using an idle callback

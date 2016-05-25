@@ -133,7 +133,7 @@ uiCombobox *uiNewCombobox(void)
 		options:nil];
 
 	if (comboboxDelegate == nil) {
-		comboboxDelegate = [comboboxDelegateClass new];
+		comboboxDelegate = [[comboboxDelegateClass new] autorelease];
 		[delegates addObject:comboboxDelegate];
 	}
 	[comboboxDelegate registerCombobox:c];

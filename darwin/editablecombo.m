@@ -175,7 +175,7 @@ uiEditableCombobox *uiNewEditableCombobox(void)
 	uiDarwinSetControlFont(c->cb, NSRegularControlSize);
 
 	if (comboboxDelegate == nil) {
-		comboboxDelegate = [editableComboboxDelegateClass new];
+		comboboxDelegate = [[editableComboboxDelegateClass new] autorelease];
 		[delegates addObject:comboboxDelegate];
 	}
 	[comboboxDelegate registerCombobox:c];

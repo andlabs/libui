@@ -41,31 +41,73 @@ void unregisterMessageFilter(void)
 		logLastError(L"error unregistering libui message filter");
 }
 
-// TODO http://blogs.msdn.com/b/oldnewthing/archive/2005/04/08/406509.aspx when adding accelerators, TranslateAccelerators() before IsDialogMessage()
+// LONGTERM http://blogs.msdn.com/b/oldnewthing/archive/2005/04/08/406509.aspx when adding accelerators, TranslateAccelerators() before IsDialogMessage()
+
+static void processMessage(MSG *msg)
+{
+	HWND active;
+
+	// TODO really active? or parentToplevel(msg->hwnd)?
+	active = GetActiveWindow();
+	if (active != NULL)
+		// TODO find documentation that says IsDialogMessage() calls CallMsgFilter() for us, because that's what's happening
+		if (IsDialogMessage(active, msg) != 0)
+			return;
+	TranslateMessage(msg);
+	DispatchMessageW(msg);
+}
+
+static int waitMessage(MSG *msg)
+{
+	int res;
+
+	res = GetMessageW(msg, NULL, 0, 0);
+	if (res < 0) {
+		logLastError(L"error calling GetMessage()");
+		return 0;		// bail out on error
+	}
+	return res != 0;		// returns false on WM_QUIT
+}
 
 void uiMain(void)
 {
-	MSG msg;
-	int res;
-	HWND active;
+	while (uiMainStep(1))
+		;
+}
 
-	for (;;) {
-		res = GetMessageW(&msg, NULL, 0, 0);
-		if (res < 0) {
-			logLastError(L"error calling GetMessage()");
-			break;		// bail out on error
-		}
-		if (res == 0)		// WM_QUIT
-			break;
-		// TODO really active? or parentToplevel(msg->hwnd)?
-		active = GetActiveWindow();
-		if (active != NULL)
-			// TODO find documentation that says IsDialogMessage() calls CallMsgFilter() for us, because that's what's happening
-			if (IsDialogMessage(active, &msg) != 0)
-				continue;
-		TranslateMessage(&msg);
-		DispatchMessageW(&msg);
+static int peekMessage(MSG *msg)
+{
+	BOOL res;
+
+	res = PeekMessageW(msg, NULL, 0, 0, PM_REMOVE);
+	if (res == 0)
+		return 2;		// no message available
+	if (msg->message != WM_QUIT)
+		return 1;		// a message
+	return 0;			// WM_QUIT
+}
+
+int uiMainStep(int wait)
+{
+	MSG msg;
+
+	if (wait) {
+		if (!waitMessage(&msg))
+			return 0;
+		processMessage(&msg);
+		return 1;
 	}
+
+	// don't wait for a message
+	switch (peekMessage(&msg)) {
+	case 0:		// quit
+		// TODO PostQuitMessage() again?
+		return 0;
+	case 1:		// process a message
+		processMessage(&msg);
+		// fall out to the case for no message
+	}
+	return 1;		// no message
 }
 
 void uiQuit(void)

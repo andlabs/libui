@@ -36,6 +36,7 @@ _UI_EXTERN void uiUninit(void);
 _UI_EXTERN void uiFreeInitError(const char *err);
 
 _UI_EXTERN void uiMain(void);
+_UI_EXTERN int uiMainStep(int wait);
 _UI_EXTERN void uiQuit(void);
 
 _UI_EXTERN void uiQueueMain(void (*f)(void *data), void *data);

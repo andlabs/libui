@@ -337,6 +337,7 @@ struct layoutAttr {
 struct uiDrawTextLayout {
 	WCHAR *text;
 	size_t textlen;
+	size_t *graphemes;
 	double width;
 	IDWriteTextFormat *format;
 	std::vector<struct layoutAttr> *attrs;
@@ -366,6 +367,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 
 	layout->text = toUTF16(text);
 	layout->textlen = wcslen(layout->text);
+	layout->graphemes = graphemes(layout->text);
 
 	uiDrawTextLayoutSetWidth(layout, width);
 
@@ -425,8 +427,8 @@ IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt
 		logHRESULT(L"error creating IDWriteTextLayout", hr);
 
 	for (const struct layoutAttr &attr : *(layout->attrs)) {
-		range.startPosition = attr.start;
-		range.length = attr.end - attr.start;
+		range.startPosition = layout->graphemes[attr.start];
+		range.length = layout->graphemes[attr.end] - layout->graphemes[attr.start];
 		switch (attr.type) {
 		case layoutAttrColor:
 			if (rt == NULL)		// determining extents, not drawing

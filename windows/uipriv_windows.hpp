@@ -140,6 +140,10 @@ extern BOOL showColorDialog(HWND parent, struct colorDialogRGBA *c);
 // sizing.cpp
 extern void getSizing(HWND hwnd, uiWindowsSizing *sizing, HFONT font);
 
+// grapheme.cpp
+extern size_t *graphemes(WCHAR *msg);
+
+
 
 
 

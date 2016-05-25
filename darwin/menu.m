@@ -54,7 +54,7 @@ static void mapItemReleaser(void *key, void *value)
 	mapWalk(self->items, mapItemReleaser);
 	mapReset(self->items);
 	mapDestroy(self->items);
-    uninitMenus();
+	uninitMenus();
 	[super dealloc];
 }
 

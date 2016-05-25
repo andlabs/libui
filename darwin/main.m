@@ -148,6 +148,21 @@ void uiMain(void)
 	[realNSApp() run];
 }
 
+void uiMainStep(int blocking)
+{
+	if (blocking) {
+		NSEvent *event = [realNSApp() nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distanceFuture] inMode:NSDefaultRunLoopMode dequeue:YES ];
+		if (event==nil ) return;
+		[realNSApp() sendEvent:event];
+	} else {
+		while (true) {
+			NSEvent *event = [realNSApp() nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
+			if (event==nil ) return;
+			[realNSApp() sendEvent:event];
+		}
+	}
+}
+
 // TODO make this delayed
 void uiQuit(void)
 {

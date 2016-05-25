@@ -1,6 +1,8 @@
 // 22 december 2015
 #include "test.h"
 
+// TODO change addLeading into a checkbox for colorizing that one z
+
 static uiEntry *textString;
 static uiFontButton *textFontButton;
 static uiColorButton *textColorButton;

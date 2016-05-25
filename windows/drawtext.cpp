@@ -380,6 +380,7 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 {
 	delete layout->attrs;
 	layout->format->Release();
+	uiFree(layout->graphemes);
 	uiFree(layout->text);
 	uiFree(layout);
 }

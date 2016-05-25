@@ -28,7 +28,7 @@ CXXFILES += \
 	windows/events.cpp \
 	windows/fontbutton.cpp \
 	windows/fontdialog.cpp \
-	windows/grapheme.cpp \
+	windows/graphemes.cpp \
 	windows/group.cpp \
 	windows/init.cpp \
 	windows/label.cpp \

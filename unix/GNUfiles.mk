@@ -19,6 +19,7 @@ CFILES += \
 	unix/editablecombo.c \
 	unix/entry.c \
 	unix/fontbutton.c \
+	unix/graphemes.c \
 	unix/group.c \
 	unix/label.c \
 	unix/main.c \

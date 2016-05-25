@@ -7,6 +7,7 @@
 #include <math.h>
 #include <dlfcn.h>		// see drawtext.c
 #include <langinfo.h>
+#include <string.h>
 #include "../ui.h"
 #include "../ui_unix.h"
 #include "../common/uipriv.h"
@@ -42,5 +43,10 @@ extern void childSetMargined(struct child *c, int margined);
 // draw.c
 extern uiDrawContext *newContext(cairo_t *);
 extern void freeContext(uiDrawContext *);
+
+// drawtext.c
 extern uiDrawTextFont *mkTextFont(PangoFont *f, gboolean add);
 extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
+
+// graphemes.c
+extern PangoGlyphString *graphemes(const char *text, PangoContext *context);

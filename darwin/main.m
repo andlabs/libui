@@ -104,38 +104,33 @@ const char *uiInit(uiInitOptions *o)
 	globalPool = [[NSAutoreleasePool alloc] init];
 
 	@autoreleasepool {
+		options = *o;
+		[applicationClass sharedApplication];
+		// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
+		// see https://github.com/andlabs/ui/issues/6
+		[realNSApp() setActivationPolicy:NSApplicationActivationPolicyRegular];
+		[realNSApp() setDelegate:[appDelegate new]];
 
-	options = *o;
-	[applicationClass sharedApplication];
-	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
-	// see https://github.com/andlabs/ui/issues/6
-	[realNSApp() setActivationPolicy:NSApplicationActivationPolicyRegular];
-	[realNSApp() setDelegate:[appDelegate new]];
+		initAlloc();
 
-	initAlloc();
+		// always do this so we always have an application menu
+		appDelegate().menuManager = [[menuManager new] autorelease];
+		[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
-	// always do this so we always have an application menu
-	appDelegate().menuManager = [[menuManager new] autorelease];
-	[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
+		setupFontPanel();
 
-	setupFontPanel();
-
-	return NULL;
-
-	} // @autoreleasepool
+		return NULL;
+	}
 }
 
 void uiUninit(void)
 {
 	@autoreleasepool {
-
-	[appDelegate() release];
-	[realNSApp() setDelegate:nil];
-	[realNSApp() release];
-	uninitAlloc();
-
-	} // @autoreleasepool
-
+		[appDelegate() release];
+		[realNSApp() setDelegate:nil];
+		[realNSApp() release];
+		uninitAlloc();
+	}
 	[globalPool release];
 }
 
@@ -146,6 +141,45 @@ void uiFreeInitError(const char *err)
 void uiMain(void)
 {
 	[realNSApp() run];
+}
+
+// see also:
+// - http://www.cocoawithlove.com/2009/01/demystifying-nsapplication-by.html
+// - https://github.com/gnustep/gui/blob/master/Source/NSApplication.m
+int uiMainStep(int wait)
+{
+	NSDate *expire;
+	NSEvent *e;
+	NSEventType type;
+
+	@autoreleasepool {
+		// ProPuke did this in his original PR requesting this
+		// I'm not sure if this will work, but I assume it will...
+		expire = [NSDate distantPast];
+		if (wait)		// but this is normal so it will work
+			expire = [NSDate distantFuture];
+
+		if (![realNSApp() isRunning])
+			return 0;
+
+		e = [realNSApp() nextEventMatchingMask:NSAnyEventMask
+			untilDate:expire
+			inMode:NSDefaultRunLoopMode
+			dequeue:YES];
+		if (e == nil)
+			return 1;
+
+		type = [e type];
+		[realNSApp() sendEvent:e];
+		[realNSApp() updateWindows];
+
+		// GNUstep does this
+		// it also updates the Services menu but there doesn't seem to be a public API for that so
+		if (type != NSPeriodic && type != NSMouseMoved)
+			[[realNSApp() mainMenu] update];
+
+		return 1;
+	}
 }
 
 // TODO make this delayed

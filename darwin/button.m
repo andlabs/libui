@@ -103,7 +103,7 @@ uiButton *uiNewButton(const char *text)
 	uiDarwinSetControlFont(b->button, NSRegularControlSize);
 
 	if (buttonDelegate == nil) {
-		buttonDelegate = [buttonDelegateClass new];
+		buttonDelegate = [[buttonDelegateClass new] autorelease];
 		[delegates addObject:buttonDelegate];
 	}
 	[buttonDelegate registerButton:b];

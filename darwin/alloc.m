@@ -23,13 +23,10 @@ void initAlloc(void)
 void uninitAlloc(void)
 {
 	NSMutableString *str;
-	NSUInteger i;
 	NSValue *v;
 
 	// delegates might have mapTables allocated
 	// TODO verify they are empty
-	for (i = 0; i < [delegates count]; i++)
-		[[delegates objectAtIndex:i] release];
 	[delegates release];
 	if ([allocations count] == 0) {
 		[allocations release];

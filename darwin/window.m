@@ -258,7 +258,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	[w->window setReleasedWhenClosed:NO];
 
 	if (windowDelegate == nil) {
-		windowDelegate = [windowDelegateClass new];
+		windowDelegate = [[windowDelegateClass new] autorelease];
 		[delegates addObject:windowDelegate];
 	}
 	[windowDelegate registerWindow:w];

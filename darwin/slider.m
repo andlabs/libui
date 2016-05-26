@@ -138,7 +138,7 @@ uiSlider *uiNewSlider(intmax_t min, intmax_t max)
 	[cell setSliderType:NSLinearSlider];
 
 	if (sliderDelegate == nil) {
-		sliderDelegate = [sliderDelegateClass new];
+		sliderDelegate = [[sliderDelegateClass new] autorelease];
 		[delegates addObject:sliderDelegate];
 	}
 	[sliderDelegate registerSlider:s];

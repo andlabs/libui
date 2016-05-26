@@ -3,6 +3,8 @@
 
 static BOOL canQuit = NO;
 static NSAutoreleasePool *globalPool;
+static applicationClass* app;
+static appDelegate* delegate;
 
 @implementation applicationClass
 
@@ -101,15 +103,14 @@ uiInitOptions options;
 
 const char *uiInit(uiInitOptions *o)
 {
-	globalPool = [[NSAutoreleasePool alloc] init];
-
 	@autoreleasepool {
 		options = *o;
-		[applicationClass sharedApplication];
+		app = [[applicationClass sharedApplication] retain];
 		// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 		// see https://github.com/andlabs/ui/issues/6
 		[realNSApp() setActivationPolicy:NSApplicationActivationPolicyRegular];
-		[realNSApp() setDelegate:[appDelegate new]];
+		delegate = [appDelegate new];
+		[realNSApp() setDelegate:delegate];
 
 		initAlloc();
 
@@ -118,20 +119,26 @@ const char *uiInit(uiInitOptions *o)
 		[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
 		setupFontPanel();
-
-		return NULL;
 	}
+
+	globalPool = [[NSAutoreleasePool alloc] init];
+
+	return NULL;
 }
 
 void uiUninit(void)
 {
-	@autoreleasepool {
-		[appDelegate() release];
-		[realNSApp() setDelegate:nil];
-		[realNSApp() release];
-		uninitAlloc();
+	if (!globalPool) {
+		userbug("You must call uiInit() first!");
 	}
 	[globalPool release];
+
+	@autoreleasepool {
+		[delegate release];
+		[realNSApp() setDelegate:nil];
+		[app release];
+		uninitAlloc();
+	}
 }
 
 void uiFreeInitError(const char *err)

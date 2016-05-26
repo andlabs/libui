@@ -158,7 +158,7 @@ uiEntry *uiNewEntry(void)
 	e->textfield = newEditableTextField();
 
 	if (entryDelegate == nil) {
-		entryDelegate = [entryDelegateClass new];
+		entryDelegate = [[entryDelegateClass new] autorelease];
 		[delegates addObject:entryDelegate];
 	}
 	[entryDelegate registerEntry:e];

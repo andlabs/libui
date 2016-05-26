@@ -35,8 +35,8 @@ struct uiTab {
 {
 	self = [super init];
 	if (self != nil) {
-		self->view = v;
-		self->pageID = o;
+		self->view = [v retain];
+		self->pageID = [o retain];
 	}
 	return self;
 }
@@ -189,14 +189,14 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 
 	uiControlSetParent(child, uiControl(t));
 
-	view = [[NSView alloc] initWithFrame:NSZeroRect];
+	view = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
 	// TODO if we turn off the autoresizing mask, nothing shows up; didn't this get documented somewhere?
 	uiDarwinControlSetSuperview(uiDarwinControl(child), view);
 	uiDarwinControlSyncEnableState(uiDarwinControl(child), uiControlEnabledToUser(uiControl(t)));
 
 	// the documentation says these can be nil but the headers say these must not be; let's be safe and make them non-nil anyway
 	pageID = [NSObject new];
-	page = [[tabPage alloc] initWithView:view pageID:pageID];
+	page = [[[tabPage alloc] initWithView:view pageID:pageID] autorelease];
 	page.c = child;
 
 	// don't hug, just in case we're a stretchy tab
@@ -206,16 +206,11 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
 
 	[t->pages insertObject:page atIndex:n];
-	[page release];			// no need for initial reference
 
-	i = [[NSTabViewItem alloc] initWithIdentifier:pageID];
+	i = [[[NSTabViewItem alloc] initWithIdentifier:pageID] autorelease];
 	[i setLabel:toNSString(name)];
 	[i setView:view];
 	[t->tabview insertTabViewItem:i atIndex:n];
-	// TODO release i?
-
-	[pageID release];		// no need for initial reference
-	[view release];
 
 	tabRelayout(t);
 }

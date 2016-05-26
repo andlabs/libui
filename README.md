@@ -71,8 +71,7 @@ Needs to be written. Consult ui.h and the examples for details for now.
 
 libui was originally written as part of my [package ui for Go](https://github.com/andlabs/ui). Now that libui is separate, package ui has become a binding to libui. As such, package ui is the only official binding.
 
-Other people have made bindings to other languages:
-* TODO list them here
+Other people have made bindings to other languages -- see the [Wiki](https://github.com/andlabs/libui/wiki) for an up-to-date list.
 
 ## Screenshots
 

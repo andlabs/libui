@@ -1,14 +1,12 @@
 // 22 december 2015
 #include "test.h"
 
-// TODO change addLeading into a checkbox for colorizing that one z
-
 static uiEntry *textString;
 static uiFontButton *textFontButton;
 static uiColorButton *textColorButton;
 static uiEntry *textWidth;
 static uiButton *textApply;
-static uiCheckbox *addLeading;
+static uiCheckbox *noZ;
 static uiArea *textArea;
 static uiAreaHandler textAreaHandler;
 
@@ -84,9 +82,10 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiDrawTextLayoutSetColor(layout,
 		5, 6,
 		1, 0, 0.5, 0.5);
-	uiDrawTextLayoutSetColor(layout,
-		6, 7,
-		0.5, 0, 1, 0.5);
+	if (!uiCheckboxChecked(noZ))
+		uiDrawTextLayoutSetColor(layout,
+			6, 7,
+			0.5, 0, 1, 0.5);
 	uiDrawText(dp->Context, 10, 10 + height + height, layout);
 	uiDrawFreeTextLayout(layout);
 
@@ -124,7 +123,7 @@ static void onColorChanged(uiColorButton *b, void *data)
 	uiAreaQueueRedrawAll(textArea);
 }
 
-static void onTextApply(uiButton *b, void *data)
+static void onNoZ(uiCheckbox *b, void *data)
 {
 	uiAreaQueueRedrawAll(textArea);
 }
@@ -158,16 +157,15 @@ uiBox *makePage10(void)
 	uiBoxAppend(vbox, uiControl(hbox), 0);
 
 	textApply = uiNewButton("Apply");
-	uiButtonOnClicked(textApply, onTextApply, NULL);
 	uiBoxAppend(hbox, uiControl(textApply), 1);
 
 	textWidth = uiNewEntry();
 	uiEntrySetText(textWidth, "-1");
 	uiBoxAppend(hbox, uiControl(textWidth), 1);
 
-	addLeading = uiNewCheckbox("Add Leading");
-	uiCheckboxSetChecked(addLeading, 1);
-	uiBoxAppend(hbox, uiControl(addLeading), 0);
+	noZ = uiNewCheckbox("No Z Color");
+	uiCheckboxOnToggled(noZ, onNoZ, NULL);
+	uiBoxAppend(hbox, uiControl(noZ), 0);
 
 	textAreaHandler.Draw = handlerDraw;
 	textAreaHandler.MouseEvent = handlerMouseEvent;

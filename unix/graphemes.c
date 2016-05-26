@@ -1,5 +1,5 @@
 // 25 may 2016
-#include "uipriv_unix.H"
+#include "uipriv_unix.h"
 
 ptrdiff_t *graphemes(const char *text, PangoContext *context)
 {

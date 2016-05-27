@@ -204,7 +204,7 @@ void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollVie
 		rel = NSLayoutRelationEqual;
 	c->documentBottom = mkConstraint(dv, NSLayoutAttributeBottom,
 		rel,
-		sv, NSLayoutAttributeBottom,
+		cv, NSLayoutAttributeBottom,
 		1, 0,
 		[desc stringByAppendingString:@"document bottom constraint"]);
 	[sv addConstraint:c->documentBottom];

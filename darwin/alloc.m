@@ -25,8 +25,6 @@ void uninitAlloc(void)
 	NSMutableString *str;
 	NSValue *v;
 
-	// delegates might have mapTables allocated
-	// TODO verify they are empty
 	[delegates release];
 	if ([allocations count] == 0) {
 		[allocations release];

@@ -1,0 +1,25 @@
+         backgroundColor       NSCalibratedWhiteColorSpace 1 1
+         drawsBackground       1
+         borderType            2
+         documentCursor        <NSCursor: 0x608000041f20>
+         hasHorizontalScroller 0
+         hasVerticalScroller   1
+         autohidesScrollers    0
+         hasHorizontalRuler    0
+         hasVerticalRuler      0
+         rulersVisible         0
+   10.10 autoAdjContentInsets  1
+         scrollerKnobStyle     0
+         scrollerStyle         1
+         horizontalLineScroll  10
+         verticalLineScroll    10
+         horizontalPageScroll  10
+         verticalPageScroll    10
+         scrollsDynamically    1
+         findBarPosition       1
+         usesPredomAxisScroll  0
+         horizontalElasticity  0
+         verticalElasticity    0
+   10.8  allowsMagnification   0
+   10.8  maxMagnification      4
+   10.8  minMagnification      0.25

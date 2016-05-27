@@ -185,25 +185,25 @@ void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollVie
 	[sv addConstraint:c->documentTop];
 	[c->documentTop retain];
 
-	if (!hscroll) {
-		c->documentTrailing = mkConstraint(dv, NSLayoutAttributeTrailing,
-			NSLayoutRelationEqual,
-			cv, NSLayoutAttributeTrailing,
-			1, 0,
-			[desc stringByAppendingString:@"document trailing constraint"]);
+	c->hscroll = hscroll;
+	c->documentTrailing = mkConstraint(dv, NSLayoutAttributeTrailing,
+		NSLayoutRelationEqual,
+		cv, NSLayoutAttributeTrailing,
+		1, 0,
+		[desc stringByAppendingString:@"document trailing constraint"]);
+	if (!c->hscroll)
 		[sv addConstraint:c->documentTrailing];
-		[c->documentTrailing retain];
-	}
+	[c->documentTrailing retain];
 
-	if (!vscroll) {
-		c->documentBottom = mkConstraint(dv, NSLayoutAttributeBottom,
-			NSLayoutRelationEqual,
-			sv, NSLayoutAttributeBottom,
-			1, 0,
-			[desc stringByAppendingString:@"document bottom constraint"]);
+	c->vscroll = vscroll;
+	c->documentBottom = mkConstraint(dv, NSLayoutAttributeBottom,
+		NSLayoutRelationEqual,
+		sv, NSLayoutAttributeBottom,
+		1, 0,
+		[desc stringByAppendingString:@"document bottom constraint"]);
+	if (!c->vscroll)
 		[sv addConstraint:c->documentBottom];
-		[c->documentBottom retain];
-	}
+	[c->documentBottom retain];
 }
 
 void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *sv)
@@ -219,23 +219,15 @@ void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *
 		c->documentTop = nil;
 	}
 	if (c->documentTrailing != nil) {
-		[sv removeConstraint:c->documentTrailing];
+		if (!c->hscroll)
+			[sv removeConstraint:c->documentTrailing];
 		[c->documentTrailing release];
 		c->documentTrailing = nil;
 	}
 	if (c->documentBottom != nil) {
-		[sv removeConstraint:c->documentBottom];
+		if (!c->vscroll)
+			[sv removeConstraint:c->documentBottom];
 		[c->documentBottom release];
 		c->documentBottom = nil;
-	}
-	if (c->documentWidth != nil) {
-		[sv removeConstraint:c->documentWidth];
-		[c->documentWidth release];
-		c->documentWidth = nil;
-	}
-	if (c->documentHeight != nil) {
-		[sv removeConstraint:c->documentHeight];
-		[c->documentHeight release];
-		c->documentHeight = nil;
 	}
 }

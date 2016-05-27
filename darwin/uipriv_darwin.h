@@ -75,10 +75,10 @@ extern void singleChildConstraintsSetMargined(struct singleChildConstraints *c, 
 struct scrollViewConstraints {
 	NSLayoutConstraint *documentLeading;
 	NSLayoutConstraint *documentTop;
+	BOOL hscroll;
 	NSLayoutConstraint *documentTrailing;
+	BOOL vscroll;
 	NSLayoutConstraint *documentBottom;
-	NSLayoutConstraint *documentWidth;
-	NSLayoutConstraint *documentHeight;
 };
 extern void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollView *sv, BOOL hscroll, BOOL vscroll, NSString *desc);
 extern void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *sv);

@@ -52,7 +52,6 @@ struct uiArea {
 	dp.AreaWidth = 0;
 	dp.AreaHeight = 0;
 	if (!a->scrolling) {
-		// TODO frame or bounds?
 		dp.AreaWidth = [self frame].size.width;
 		dp.AreaHeight = [self frame].size.height;
 	}
@@ -137,7 +136,6 @@ struct uiArea {
 	me.AreaWidth = 0;
 	me.AreaHeight = 0;
 	if (!a->scrolling) {
-		// TODO frame or bounds?
 		me.AreaWidth = [self frame].size.width;
 		me.AreaHeight = [self frame].size.height;
 	}
@@ -182,11 +180,9 @@ struct uiArea {
 		me.Held1To64 |= 2;
 	if (buttonNumber != 3 && (pmb & 2) != 0)
 		me.Held1To64 |= 4;
-	// buttons 4..64
+	// buttons 4..32
+	// https://developer.apple.com/library/mac/documentation/Carbon/Reference/QuartzEventServicesRef/index.html#//apple_ref/c/tdef/CGMouseButton says Quartz only supports up to 32 buttons
 	max = 32;
-	// TODO are the upper 32 bits just mirrored?
-//	if (sizeof (NSUInteger) == 8)
-//		max = 64;
 	for (i = 4; i <= max; i++) {
 		uint64_t j;
 

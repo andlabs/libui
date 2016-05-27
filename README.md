@@ -22,6 +22,9 @@ This README is being written.<br>
 
 *Note that today's entry may be updated later today.*
 
+* **26 May 2016**
+	* Two OS X-specific functions have been added: `uiDarwinMarginAmount()` and `uiDarwinPaddingAmount()`. These return the amount of margins and padding, respectively, to give to a control, and are intended for container implementations. These are suitable for the constant of a NSLayoutConstraint. They both take a pointer parameter that is reserved for future use and should be `NULL`.
+
 * **25 May 2016**
 	* uiDrawTextLayout attributes are now specified in units of *graphemes* on all platforms. This means characters as seen from a user's perspective, not Unicode codepoints or UTF-8 bytes. So a long string of combining marker codepoints after one codepoint would still count as one grapheme.
 

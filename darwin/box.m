@@ -147,7 +147,7 @@ struct uiBox {
 {
 	if (!self->padded)
 		return 0.0;
-	return 8.0;		// TODO named constant
+	return uiDarwinPaddingAmount(NULL);
 }
 
 // TODO something about spinbox hugging

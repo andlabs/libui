@@ -200,6 +200,10 @@ _UI_EXTERN BOOL uiDarwinShouldStopSyncEnableState(uiDarwinControl *, BOOL);
 // TODO document
 _UI_EXTERN void uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl *);
 
+// TODO document
+_UI_EXTERN CGFloat uiDarwinMarginAmount(void *reserved);
+_UI_EXTERN CGFloat uiDarwinPaddingAmount(void *reserved);
+
 #ifdef __cplusplus
 }
 #endif

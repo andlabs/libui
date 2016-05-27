@@ -18,6 +18,16 @@ NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRela
 	return constraint;
 }
 
+CGFloat uiDarwinMarginAmount(void *reserved)
+{
+	return 20.0;
+}
+
+CGFloat uiDarwinPaddingAmount(void *reserved)
+{
+	return 8.0;
+}
+
 // this is needed for NSSplitView to work properly; see http://stackoverflow.com/questions/34574478/how-can-i-set-the-position-of-a-nssplitview-nowadays-setpositionofdivideratind (stal in irc.freenode.net/#macdev came up with the exact combination)
 // turns out it also works on NSTabView and NSBox too, possibly others!
 // and for bonus points, it even seems to fix unsatisfiable-constraint-autoresizing-mask issues with NSTabView and NSBox too!!! this is nuts
@@ -31,7 +41,7 @@ static CGFloat margins(int margined)
 {
 	if (!margined)
 		return 0.0;
-	return 20.0;		// TODO named constant
+	return uiDarwinMarginAmount(NULL);
 }
 
 void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc)

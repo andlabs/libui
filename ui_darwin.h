@@ -201,6 +201,7 @@ _UI_EXTERN BOOL uiDarwinShouldStopSyncEnableState(uiDarwinControl *, BOOL);
 _UI_EXTERN void uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl *);
 
 // TODO document
+// TODO document that values should not be cached
 _UI_EXTERN CGFloat uiDarwinMarginAmount(void *reserved);
 _UI_EXTERN CGFloat uiDarwinPaddingAmount(void *reserved);
 

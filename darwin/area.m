@@ -97,7 +97,6 @@ struct uiArea {
 
 - (void)setupNewTrackingArea
 {
-	// TODO NSTrackingAssumeInside?
 	self->libui_ta = [[NSTrackingArea alloc] initWithRect:[self bounds]
 		options:(NSTrackingMouseEnteredAndExited |
 			NSTrackingMouseMoved |
@@ -109,7 +108,6 @@ struct uiArea {
 	[self addTrackingArea:self->libui_ta];
 }
 
-// TODO when do we call super here?
 - (void)updateTrackingAreas
 {
 	[self removeTrackingArea:self->libui_ta];

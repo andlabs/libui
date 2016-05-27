@@ -636,8 +636,7 @@ static CFRange charsToRange(uiDrawTextLayout *layout, intmax_t startChar, intmax
 	start = layout->charsToRanges[startChar];
 	end = layout->charsToRanges[endChar];
 	out.location = start.location;
-	// - 1 to avoid including the first code point after end
-	out.length = (end.location + end.length - 1) - start.location;
+	out.length = end.location - start.location;
 	return out;
 }
 

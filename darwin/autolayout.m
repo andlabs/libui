@@ -164,6 +164,7 @@ void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int mar
 void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollView *sv, BOOL hscroll, BOOL vscroll, NSString *desc)
 {
 	NSView *cv, *dv;
+	NSLayoutRelation rel;
 
 	scrollViewConstraintsRemove(c, sv);
 	cv = [sv contentView];
@@ -186,23 +187,27 @@ void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollVie
 	[c->documentTop retain];
 
 	c->hscroll = hscroll;
+	rel = NSLayoutRelationGreaterThanOrEqual;
+	if (!c->hscroll)
+		rel = NSLayoutRelationEqual;
 	c->documentTrailing = mkConstraint(dv, NSLayoutAttributeTrailing,
-		NSLayoutRelationEqual,
+		rel,
 		cv, NSLayoutAttributeTrailing,
 		1, 0,
 		[desc stringByAppendingString:@"document trailing constraint"]);
-	if (!c->hscroll)
-		[sv addConstraint:c->documentTrailing];
+	[sv addConstraint:c->documentTrailing];
 	[c->documentTrailing retain];
 
 	c->vscroll = vscroll;
+	rel = NSLayoutRelationGreaterThanOrEqual;
+	if (!c->vscroll)
+		rel = NSLayoutRelationEqual;
 	c->documentBottom = mkConstraint(dv, NSLayoutAttributeBottom,
-		NSLayoutRelationEqual,
+		rel,
 		sv, NSLayoutAttributeBottom,
 		1, 0,
 		[desc stringByAppendingString:@"document bottom constraint"]);
-	if (!c->vscroll)
-		[sv addConstraint:c->documentBottom];
+	[sv addConstraint:c->documentBottom];
 	[c->documentBottom retain];
 }
 
@@ -219,14 +224,12 @@ void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *
 		c->documentTop = nil;
 	}
 	if (c->documentTrailing != nil) {
-		if (!c->hscroll)
-			[sv removeConstraint:c->documentTrailing];
+		[sv removeConstraint:c->documentTrailing];
 		[c->documentTrailing release];
 		c->documentTrailing = nil;
 	}
 	if (c->documentBottom != nil) {
-		if (!c->vscroll)
-			[sv removeConstraint:c->documentBottom];
+		[sv removeConstraint:c->documentBottom];
 		[c->documentBottom release];
 		c->documentBottom = nil;
 	}

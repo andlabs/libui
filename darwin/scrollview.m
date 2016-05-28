@@ -17,14 +17,13 @@ NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrollViewDa
 	struct scrollViewData *d;
 
 	sv = [[NSScrollView alloc] initWithFrame:NSZeroRect];
-	// TODO verify background color for programmatically created NSTextView
 	if (p->BackgroundColor != nil)
 		[sv setBackgroundColor:p->BackgroundColor];
 	[sv setDrawsBackground:p->DrawsBackground];
 	border = NSNoBorder;
 	if (p->Bordered)
 		border = NSBezelBorder;
-	// TODO verify document cursor for programmatically created NSTextView
+	// document view seems to set the cursor properly
 	[sv setBorderType:border];
 	[sv setAutohidesScrollers:YES];
 	[sv setHasHorizontalRuler:NO];
@@ -32,7 +31,7 @@ NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrollViewDa
 	[sv setRulersVisible:NO];
 	[sv setScrollerKnobStyle:NSScrollerKnobStyleDefault];
 	// the scroller style is documented as being set by default for us
-	// TODO verify line and page for programmatically created NSTextView
+	// LONGTERM verify line and page for programmatically created NSTableView
 	[sv setScrollsDynamically:YES];
 	[sv setFindBarPosition:NSScrollViewFindBarPositionAboveContent];
 	[sv setUsesPredominantAxisScrolling:NO];

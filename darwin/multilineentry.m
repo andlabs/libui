@@ -171,7 +171,8 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 
 	memset(&p, 0, sizeof (struct scrollViewCreateParams));
 	p.DocumentView = e->tv;
-	p.BackgroundColor = nil;
+	// this is what Interface Builder sets it to
+	p.BackgroundColor = [NSColor colorWithCalibratedWhite:1.0 alpha:1.0];
 	p.DrawsBackground = YES;
 	p.Bordered = YES;
 	p.HScroll = hscroll;

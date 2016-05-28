@@ -1,9 +1,6 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-// TODOs to confirm
-// - 10.8: if we switch to page 4, then switch back to page 1, check Spaced, and go back to page 4, some controls (progress bar, popup button) are clipped on the sides
-
 @interface boxChild : NSObject
 @property uiControl *c;
 @property BOOL stretchy;

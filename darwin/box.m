@@ -150,7 +150,6 @@ struct uiBox {
 	return uiDarwinPaddingAmount(NULL);
 }
 
-// TODO something about spinbox hugging
 - (void)establishOurConstraints
 {
 	boxChild *bc;
@@ -294,7 +293,6 @@ struct uiBox {
 	boxChild *bc;
 	int stretchy;
 
-	// TODO separate into a method?
 	bc = (boxChild *) [self->children objectAtIndex:n];
 	stretchy = bc.stretchy;
 
@@ -328,7 +326,6 @@ struct uiBox {
 	padding = [self paddingAmount];
 	for (c in self->inBetweens)
 		[c setConstant:-padding];
-	// TODO call anything?
 }
 
 - (BOOL)hugsTrailing

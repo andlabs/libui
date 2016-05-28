@@ -44,15 +44,24 @@ struct uiMultilineEntry {
 	uiDarwinControl c;
 	NSScrollView *sv;
 	intrinsicSizeTextView *tv;
+	struct scrollViewData *d;
 	void (*onChanged)(uiMultilineEntry *, void *);
 	void *onChangedData;
-	struct scrollViewConstraints constraints;
 };
 
 // TODO events
 
-// TODO destroy
-uiDarwinControlAllDefaults(uiMultilineEntry, sv)
+uiDarwinControlAllDefaultsExceptDestroy(uiMultilineEntry, sv)
+
+static void uiMultilineEntryDestroy(uiControl *c)
+{
+	uiMultilineEntry *e = uiMultilineEntry(c);
+
+	scrollViewFreeData(e->sv, e->d);
+	[e->tv release];
+	[e->sv release];
+	uiFreeControl(uiControl(e));
+}
 
 static void defaultOnChanged(uiMultilineEntry *e, void *data)
 {
@@ -107,15 +116,9 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 {
 	uiMultilineEntry *e;
 	NSFont *font;
+	struct scrollViewCreateParams p;
 
 	uiDarwinNewControl(uiMultilineEntry, e);
-
-	e->sv = [[NSScrollView alloc] initWithFrame:NSZeroRect];
-	// TODO verify against Interface Builder
-	[e->sv setHasHorizontalScroller:hscroll];
-	[e->sv setHasVerticalScroller:YES];
-	[e->sv setAutohidesScrollers:YES];
-	[e->sv setBorderType:NSBezelBorder];
 
 	e->tv = [[intrinsicSizeTextView alloc] initWithFrame:NSZeroRect];
 	// verified against Interface Builder, except for rich text options
@@ -166,15 +169,14 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	// let's just set it to the standard control font anyway, just to be safe
 	[e->tv setFont:font];
 
-	[e->sv setDocumentView:e->tv];
-	[e->tv setTranslatesAutoresizingMaskIntoConstraints:NO];
-	scrollViewConstraintsEstablish(&(e->constraints), e->sv, hscroll, YES, @"uiMultilineEntry");
-	// needed to allow horizontal shrinking
-	// TODO what about vertical text?
-	[e->tv setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow forOrientation:NSLayoutConstraintOrientationHorizontal];
-
-//TODO:void printinfo(NSScrollView *sv, NSTextView *tv);
-//printinfo(e->sv, e->tv);
+	memset(&p, 0, sizeof (struct scrollViewCreateParams));
+	p.DocumentView = e->tv;
+	p.BackgroundColor = nil;
+	p.DrawsBackground = YES;
+	p.Bordered = YES;
+	p.HScroll = hscroll;
+	p.VScroll = YES;
+	e->sv = mkScrollView(&p, &(e->d));
 
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
 
@@ -227,47 +229,7 @@ NSTextView *tv;
 } _s;
 _s.sv = sv;
 _s.tv = tv;
-	
-	add("NSScrollView");
-	add(" backgroundColor %@", [self.sv backgroundColor]);
-	add(" drawsBackground %d", [self.sv drawsBackground]);
-	add(" borderType %d", [self.sv borderType]);
-	add(" documentCursor %@", [self.sv documentCursor]);
-	add(" hasHorizontalScroller %d", [self.sv hasHorizontalScroller]);
-	add(" hasVerticalScroller %d", [self.sv hasVerticalScroller]);
-	add(" autohidesScrollers %d", [self.sv autohidesScrollers]);
-	add(" hasHorizontalRuler %d", [self.sv hasHorizontalRuler]);
-	add(" hasVerticalRuler %d", [self.sv hasVerticalRuler]);
-	add(" rulersVisible %d", [self.sv rulersVisible]);
-	add(" automaticallyAdjustsContentInsets %d",
-		[self.sv automaticallyAdjustsContentInsets]);
-	add(" contentInsets %@",
-		edgeInsetsStr([self.sv contentInsets]));
-	add(" scrollerInsets %@",
-		edgeInsetsStr([self.sv scrollerInsets]));
-	add(" scrollerKnobStyle %d", [self.sv scrollerKnobStyle]);
-	add(" scrollerStyle %d", [self.sv scrollerStyle]);
-	add(" lineScroll %g", [self.sv lineScroll]);
-	add(" horizontalLineScroll %g", [self.sv horizontalLineScroll]);
-	add(" verticalLineScroll %g", [self.sv verticalLineScroll]);
-	add(" pageScroll %g", [self.sv pageScroll]);
-	add(" horizontalPageScroll %g", [self.sv horizontalPageScroll]);
-	add(" verticalPageScroll %g", [self.sv verticalPageScroll]);
-	add(" scrollsDynamically %d", [self.sv scrollsDynamically]);
-	add(" findBarPosition %d", [self.sv findBarPosition]);
-	add(" usesPredominantAxisScrolling %d",
-		[self.sv usesPredominantAxisScrolling]);
-	add(" horizontalScrollElasticity %d",
-		[self.sv horizontalScrollElasticity]);
-	add(" verticalScrollElasticity %d",
-		[self.sv verticalScrollElasticity]);
-	add(" allowsMagnification %d", [self.sv allowsMagnification]);
-	add(" magnification %g", [self.sv magnification]);
-	add(" maxMagnification %g", [self.sv maxMagnification]);
-	add(" minMagnification %g", [self.sv minMagnification]);
 
-	add("");
-	
 	add("NSTextView");
 	add(" textContainerInset %@",
 		NSStringFromSize([self.tv textContainerInset]));

@@ -33,11 +33,11 @@ NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrollViewDa
 	[sv setScrollerKnobStyle:NSScrollerKnobStyleDefault];
 	// the scroller style is documented as being set by default for us
 	// TODO verify line and page for programmatically created NSTextView
-	[sv scrollsDynamically:YES];
+	[sv setScrollsDynamically:YES];
 	[sv setFindBarPosition:NSScrollViewFindBarPositionAboveContent];
 	[sv setUsesPredominantAxisScrolling:NO];
-	[sv setHorizontalElasticity:NSScrollElasticityAutomatic];
-	[sv setVerticalElasticity:NSScrollElasticityAutomatic];
+	[sv setHorizontalScrollElasticity:NSScrollElasticityAutomatic];
+	[sv setVerticalScrollElasticity:NSScrollElasticityAutomatic];
 	[sv setAllowsMagnification:NO];
 
 	[p->DocumentView setTranslatesAutoresizingMaskIntoConstraints:NO];

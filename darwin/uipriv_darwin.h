@@ -115,6 +115,7 @@ struct scrollViewCreateParams {
 	BOOL HScroll;
 	BOOL VScroll;
 };
+struct scrollViewData;
 extern NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrollViewData **dout);
 extern void scrollViewSetScrolling(NSScrollView *sv, struct scrollViewData *d, BOOL hscroll, BOOL vscroll);
 extern void scrollViewFreeData(NSScrollView *sv, struct scrollViewData *d);

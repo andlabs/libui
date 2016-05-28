@@ -121,45 +121,70 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	uiDarwinNewControl(uiMultilineEntry, e);
 
 	e->tv = [[intrinsicSizeTextView alloc] initWithFrame:NSZeroRect];
-	// verified against Interface Builder, except for rich text options
-	[e->tv setAllowsDocumentBackgroundColorChange:NO];
-	[e->tv setBackgroundColor:[NSColor textBackgroundColor]];
-	[e->tv setTextColor:[NSColor textColor]];
-	[e->tv setAllowsUndo:YES];
+
+	// verified against Interface Builder for a sufficiently customized text view
+
+	// NSText properties:
+	// this is what Interface Builder sets the background color to
+	[e->tv setBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]];
+	[e->tv setDrawsBackground:YES];
 	[e->tv setEditable:YES];
 	[e->tv setSelectable:YES];
+	[e->tv setFieldEditor:NO];
 	[e->tv setRichText:NO];
 	[e->tv setImportsGraphics:NO];
+	[e->tv setUsesFontPanel:NO];
+	[e->tv setRulerVisible:NO];
+	// we'll handle font last
+	[e->tv setAlignment:NSTextAlignmentNatural];
+	// textColor is set to nil, just keep the dfault
 	[e->tv setBaseWritingDirection:NSWritingDirectionNatural];
-	// TODO default paragraph format
+	[e->tv setHorizontallyResizable:NO];
+	[e->tv setVerticallyResizable:YES];
+
+	// NSTextView properties:
+	[e->tv setAllowsDocumentBackgroundColorChange:NO];
+	[e->tv setAllowsUndo:YES];
+	// default paragraph style is nil; keep default
 	[e->tv setAllowsImageEditing:NO];
 	[e->tv setAutomaticQuoteSubstitutionEnabled:NO];
 	[e->tv setAutomaticLinkDetectionEnabled:NO];
+	[e->tv setDisplaysLinkToolTips:YES];
 	[e->tv setUsesRuler:NO];
-	[e->tv setRulerVisible:NO];
 	[e->tv setUsesInspectorBar:NO];
 	[e->tv setSelectionGranularity:NSSelectByCharacter];
-//TODO	[e->tv setInsertionPointColor:[NSColor insertionColor]];
+	// there is a dedicated named insertion point color but oh well
+	[e->tv setInsertionPointColor:[NSColor controlTextColor]];
+	// typing attributes is nil; keep default (we change it below for fonts though)
+	[e->tv setSmartInsertDeleteEnabled:NO];
 	[e->tv setContinuousSpellCheckingEnabled:NO];
 	[e->tv setGrammarCheckingEnabled:NO];
-	[e->tv setUsesFontPanel:NO];
+	[e->tv setUsesFindPanel:YES];
 	[e->tv setEnabledTextCheckingTypes:0];
 	[e->tv setAutomaticDashSubstitutionEnabled:NO];
+	[e->tv setAutomaticDataDetectionEnabled:NO];
 	[e->tv setAutomaticSpellingCorrectionEnabled:NO];
 	[e->tv setAutomaticTextReplacementEnabled:NO];
-	[e->tv setSmartInsertDeleteEnabled:NO];
-	[e->tv setLayoutOrientation:NSTextLayoutOrientationHorizontal];
-	// TODO default find panel behavior
+	[e->tv setUsesFindBar:NO];
+	[e->tv setIncrementalSearchingEnabled:NO];
+
+	// NSTextContainer properties:
+	[[e->tv textContainer] setWidthTracksTextView:YES];
+	[[e->tv textContainer] setHeightTracksTextView:NO];
+
+	// NSLayoutManager properties:
+	[[e->tv layoutManager] setAllowsNonContiguousLayout:YES];
+
 	// now just to be safe; this will do some of the above but whatever
 	disableAutocorrect(e->tv);
-	// this option is complex; just set it to the Interface Builder default
-	[[e->tv layoutManager] setAllowsNonContiguousLayout:YES];
+
 	if (hscroll) {
-		// TODO this is a giant mess
+		// see https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/TextUILayer/Tasks/TextInScrollView.html
 		[e->tv setHorizontallyResizable:YES];
 		[[e->tv textContainer] setWidthTracksTextView:NO];
 		[[e->tv textContainer] setContainerSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
 	}
+
 	// don't use uiDarwinSetControlFont() directly; we have to do a little extra work to set the font
 	font = [NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]];
 	[e->tv setTypingAttributes:[NSDictionary
@@ -193,118 +218,3 @@ uiMultilineEntry *uiNewNonWrappingMultilineEntry(void)
 {
 	return finishMultilineEntry(YES);
 }
-
-// TODO
-#if 0
-
-NSMutableString *s;
-static void add(const char *fmt, ...)
-{
-	va_list ap;
-	NSString *fmts;
-	NSString *a;
-	
-	va_start(ap, fmt);
-	fmts = [NSString stringWithUTF8String:fmt];
-	a = [[NSString alloc] initWithFormat:fmts arguments:ap];
-	[s appendString:a];
-	[s appendString:@"\n"];
-	va_end(ap);
-}
-
-static NSString *edgeInsetsStr(NSEdgeInsets i)
-{
-	return [NSString
-		stringWithFormat:@"left:%g top:%g right:%g bottom:%g",
-			i.left, i.top, i.right, i.bottom];
-}
-
-void printinfo(NSScrollView *sv, NSTextView *tv)
-{
-	s = [NSMutableString new];
-	
-#define self _s
-struct {
-NSScrollView *sv;
-NSTextView *tv;
-} _s;
-_s.sv = sv;
-_s.tv = tv;
-
-	add("NSTextView");
-	add(" textContainerInset %@",
-		NSStringFromSize([self.tv textContainerInset]));
-	add(" textContainerOrigin %@",
-		NSStringFromPoint([self.tv textContainerOrigin]));
-	add(" backgroundColor %@", [self.tv backgroundColor]);
-	add(" drawsBackground %d", [self.tv drawsBackground]);
-	add(" allowsDocumentBackgroundColorChange %d",
-		[self.tv allowsDocumentBackgroundColorChange]);
-	add(" allowedInputSourceLocales %@",
-		[self.tv allowedInputSourceLocales]);
-	add(" allowsUndo %d", [self.tv allowsUndo]);
-	add(" isEditable %d", [self.tv isEditable]);
-	add(" isSelectable %d", [self.tv isSelectable]);
-	add(" isFieldEditor %d", [self.tv isFieldEditor]);
-	add(" isRichText %d", [self.tv isRichText]);
-	add(" importsGraphics %d", [self.tv importsGraphics]);
-	add(" defaultParagraphStyle %@",
-		[self.tv defaultParagraphStyle]);
-	add(" allowsImageEditing %d", [self.tv allowsImageEditing]);
-	add(" isAutomaticQuoteSubstitutionEnabled %d",
-		[self.tv isAutomaticQuoteSubstitutionEnabled]);
-	add(" isAutomaticLinkDetectionEnabled %d",
-		[self.tv isAutomaticLinkDetectionEnabled]);
-	add(" displaysLinkToolTips %d", [self.tv displaysLinkToolTips]);
-	add(" usesRuler %d", [self.tv usesRuler]);
-	add(" isRulerVisible %d", [self.tv isRulerVisible]);
-	add(" usesInspectorBar %d", [self.tv usesInspectorBar]);
-	add(" selectionAffinity %d", [self.tv selectionAffinity]);
-	add(" selectionGranularity %d", [self.tv selectionGranularity]);
-	add(" insertionPointColor %@", [self.tv insertionPointColor]);
-	add(" selectedTextAttributes %@",
-		[self.tv selectedTextAttributes]);
-	add(" markedTextAttributes %@", [self.tv markedTextAttributes]);
-	add(" linkTextAttributes %@", [self.tv linkTextAttributes]);
-	add(" typingAttributes %@", [self.tv typingAttributes]);
-	add(" smartInsertDeleteEnabled %d",
-		[self.tv smartInsertDeleteEnabled]);
-	add(" isContinuousSpellCheckingEnabled %d",
-		[self.tv isContinuousSpellCheckingEnabled]);
-	add(" isGrammarCheckingEnabled %d",
-		[self.tv isGrammarCheckingEnabled]);
-	add(" acceptsGlyphInfo %d", [self.tv acceptsGlyphInfo]);
-	add(" usesFontPanel %d", [self.tv usesFontPanel]);
-	add(" usesFindPanel %d", [self.tv usesFindPanel]);
-	add(" enabledTextCheckingTypes %d",
-		[self.tv enabledTextCheckingTypes]);
-	add(" isAutomaticDashSubstitutionEnabled %d",
-		[self.tv isAutomaticDashSubstitutionEnabled]);
-	add(" isAutomaticDataDetectionEnabled %d",
-		[self.tv isAutomaticDataDetectionEnabled]);
-	add(" isAutomaticSpellingCorrectionEnabled %d",
-		[self.tv isAutomaticSpellingCorrectionEnabled]);
-	add(" isAutomaticTextReplacementEnabled %d",
-		[self.tv isAutomaticTextReplacementEnabled]);
-	add(" usesFindBar %d", [self.tv usesFindBar]);
-	add(" isIncrementalSearchingEnabled %d",
-		[self.tv isIncrementalSearchingEnabled]);
-	add(" NSText:");
-	add("  font %@", [self.tv font]);
-	add("  textColor %@", [self.tv textColor]);
-	add("  baseWritingDirection %d", [self.tv baseWritingDirection]);
-	add("  maxSize %@",
-		NSStringFromSize([self.tv maxSize]));
-	add("  minSize %@",
-		NSStringFromSize([self.tv minSize]));
-	add("  isVerticallyResizable %d",
-		[self.tv isVerticallyResizable]);
-	add("  isHorizontallyResizable %d",
-		[self.tv isHorizontallyResizable]);
-
-#undef self
-	
-	fprintf(stdout, "%s", [s UTF8String]);
-}
-
-#endif

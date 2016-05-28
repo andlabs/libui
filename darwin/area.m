@@ -1,12 +1,11 @@
 // 9 september 2015
 #import "uipriv_darwin.h"
 
-// TODO implement setEnabled:
-
 @interface areaView : NSView {
 	uiArea *libui_a;
 	NSTrackingArea *libui_ta;
 	NSSize libui_ss;
+	BOOL libui_enabled;
 }
 - (id)initWithFrame:(NSRect)r area:(uiArea *)a;
 - (uiModifiers)parseModifiers:(NSEvent *)e;
@@ -18,6 +17,8 @@
 - (int)doFlagsChanged:(NSEvent *)e;
 - (void)setupNewTrackingArea;
 - (void)setScrollingSize:(NSSize)s;
+- (BOOL)isEnabled;
+- (void)setEnabled:(BOOL)e;
 @end
 
 struct uiArea {
@@ -195,7 +196,8 @@ struct uiArea {
 			me.Held1To64 |= j;
 	}
 
-	(*(a->ah->MouseEvent))(a->ah, a, &me);
+	if (self->libui_enabled)
+		(*(a->ah->MouseEvent))(a->ah, a, &me);
 }
 
 #define mouseEvent(name) \
@@ -218,14 +220,16 @@ mouseEvent(otherMouseUp)
 {
 	uiArea *a = self->libui_a;
 
-	(*(a->ah->MouseCrossed))(a->ah, a, 0);
+	if (self->libui_enabled)
+		(*(a->ah->MouseCrossed))(a->ah, a, 0);
 }
 
 - (void)mouseExited:(NSEvent *)e
 {
 	uiArea *a = self->libui_a;
 
-	(*(a->ah->MouseCrossed))(a->ah, a, 1);
+	if (self->libui_enabled)
+		(*(a->ah->MouseCrossed))(a->ah, a, 1);
 }
 
 // note: there is no equivalent to WM_CAPTURECHANGED on Mac OS X; there literally is no way to break a grab like that
@@ -307,6 +311,24 @@ mouseEvent(otherMouseUp)
 	if (!self->libui_a->scrolling)
 		return [super intrinsicContentSize];
 	return self->libui_ss;
+}
+
+- (BOOL)becomeFirstResponder
+{
+	return [self isEnabled];
+}
+
+- (BOOL)isEnabled
+{
+	return self->libui_enabled;
+}
+
+- (void)setEnabled:(BOOL)e
+{
+	self->libui_enabled = e;
+	if (!self->libui_enabled && [self window] != nil)
+		if ([[self window] firstResponder] == self)
+			[[self window] makeFirstResponder:nil];
 }
 
 @end

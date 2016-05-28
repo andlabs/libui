@@ -43,6 +43,7 @@ struct uiArea {
 		self->libui_a = a;
 		[self setupNewTrackingArea];
 		self->libui_ss = r.size;
+		self->libui_enabled = YES;
 	}
 	return self;
 }

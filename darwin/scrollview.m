@@ -1,7 +1,7 @@
 // 27 may 2016
 #include "uipriv_darwin.h"
 
-// TODO mouse test scroll view no longer works; scrolled drawing test may have a random size outside the area size
+// TODO scrolled drawing test may have a random size outside the area size
 
 struct scrollViewData {
 	NSLayoutConstraint *documentLeading;

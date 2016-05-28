@@ -65,6 +65,7 @@ notes to self
 - test RTL
 	- automate RTL
 - now that stock items are deprecated, I have to maintain translations of the Cancel, Open, and Save buttons on GTK+ myself (thanks baedert in irc.gimp.net/#gtk+)
+	- either that or keep using stock items
 
 - http://blogs.msdn.com/b/oldnewthing/archive/2014/02/26/10503148.aspx
 

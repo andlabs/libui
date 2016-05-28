@@ -78,16 +78,17 @@ Other people have made bindings to other languages:
 
 Language | Bindings
 --- | ---
-**C#/.net** | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding), [SharpUI](https://github.com/benpye/sharpui/)
-**Crystal** | [libui.cr](https://github.com/Fusion/libui.cr)
-**D** | [DerelictLibui](https://github.com/Extrawurst/DerelictLibui)
-**Haskell** | [libui-haskell](https://github.com/ajnsit/libui-haskell)
-**JavaScript** | [libui.js (merged into libui-node?)](https://github.com/mavenave/libui.js)
-**Lua** | [libuilua](https://github.com/zevv/libuilua), [libui-lua](https://github.com/mdombroski/libui-lua)
-**Node.js** | [libui-node](https://github.com/parro-it/libui-node)
-**Python** | [pylibui](https://github.com/joaoventura/pylibui)
-**Ruby** | [libui-ruby](https://github.com/jamescook/libui-ruby)
-**Rust** | [libui-rs](https://github.com/pcwalton/libui-rs)
+C#/.net | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding), [SharpUI](https://github.com/benpye/sharpui/)
+Crystal | [libui.cr](https://github.com/Fusion/libui.cr)
+D | [DerelictLibui](https://github.com/Extrawurst/DerelictLibui)
+Haskell | [libui-haskell](https://github.com/ajnsit/libui-haskell)
+JavaScript | [libui.js (merged into libui-node?)](https://github.com/mavenave/libui.js)
+Julia | [Libui.jl](https://github.com/joa-quim/Libui.jl)
+Lua | [libuilua](https://github.com/zevv/libuilua), [libui-lua](https://github.com/mdombroski/libui-lua)
+Node.js | [libui-node](https://github.com/parro-it/libui-node)
+Python | [pylibui](https://github.com/joaoventura/pylibui)
+Ruby | [libui-ruby](https://github.com/jamescook/libui-ruby)
+Rust | [libui-rs](https://github.com/pcwalton/libui-rs)
 
 ## Screenshots
 

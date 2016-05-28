@@ -49,13 +49,13 @@ LDFLAGS += \
 
 # flags for OS X versioning
 CFLAGS += \
-	-mmacosx-version-min=10.7 \
-	-DMACOSX_DEPLOYMENT_TARGET=10.7
+	-mmacosx-version-min=10.8 \
+	-DMACOSX_DEPLOYMENT_TARGET=10.8
 CXXFLAGS += \
-	-mmacosx-version-min=10.7 \
-	-DMACOSX_DEPLOYMENT_TARGET=10.7
+	-mmacosx-version-min=10.8 \
+	-DMACOSX_DEPLOYMENT_TARGET=10.8
 LDFLAGS += \
-	-mmacosx-version-min=10.7
+	-mmacosx-version-min=10.8
 
 # flags for building a shared library
 LDFLAGS += \

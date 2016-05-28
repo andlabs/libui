@@ -6,9 +6,9 @@
 
 - provisions for controls that cannot be grown? especiailly for windows
 
-- LC_VERSION_MIN_MACOSX has the 10.11 SDK; see if we can knock it down to 10.7 too; OS version is fine
+- LC_VERSION_MIN_MACOSX has the 10.11 SDK; see if we can knock it down to 10.8 too; OS version is fine
 	- apply the OS version stuff to the test program and examples too
-	- what about micro versions (10.7.x)? force 10.7.0?
+	- what about micro versions (10.8.x)? force 10.8.0?
 
 - go through ALL the objective-c objects we create and make sure we are using the proper ownership (alloc/init and new are owned by us, all class method constructors are autoreleased - thanks mikeash)
 

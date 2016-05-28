@@ -1,6 +1,6 @@
 // 6 january 2015
-#define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_7
-#define MAC_OS_X_VERSION_MAX_ALLOWED MAC_OS_X_VERSION_10_7
+#define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_8
+#define MAC_OS_X_VERSION_MAX_ALLOWED MAC_OS_X_VERSION_10_8
 #import <Cocoa/Cocoa.h>
 #import "../ui.h"
 #import "../ui_darwin.h"
@@ -9,9 +9,6 @@
 #if __has_feature(objc_arc)
 #error Sorry, libui cannot be compiled with ARC.
 #endif
-
-// 10.7 fixups
-#define NSEventModifierFlags NSUInteger
 
 #define toNSString(str) [NSString stringWithUTF8String:(str)]
 #define fromNSString(str) [(str) UTF8String]

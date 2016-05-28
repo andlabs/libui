@@ -4,7 +4,6 @@
 // In the old days you would use a NSMatrix for this; as of OS X 10.8 this was deprecated and now you need just a bunch of NSButtons with the same superview AND same action method.
 // This is documented on the NSMatrix page, but the rest of the OS X documentation says to still use NSMatrix.
 // NSMatrix has weird quirks anyway...
-// TODO this does not work on 10.7
 
 // TODO
 // - check that multiple radio buttons on the same parent container work right

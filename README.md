@@ -22,6 +22,9 @@ This README is being written.<br>
 
 *Note that today's entry may be updated later today.*
 
+* **28 May 2016**
+	* As promised, **the minimum system requirements are now OS X 10.8 and GTK+ 3.10 for OS X and Unix, respectively**.
+
 * **26 May 2016**
 	* Two OS X-specific functions have been added: `uiDarwinMarginAmount()` and `uiDarwinPaddingAmount()`. These return the amount of margins and padding, respectively, to give to a control, and are intended for container implementations. These are suitable for the constant of a NSLayoutConstraint. They both take a pointer parameter that is reserved for future use and should be `NULL`.
 
@@ -50,8 +53,8 @@ This README is being written.<br>
 ## Runtime Requirements
 
 * Windows: Windows Vista SP2 with Platform Update or newer
-* Unix: GTK+ 3.4 or newer
-* Mac OS X: OS X 10.7 or newer
+* Unix: GTK+ 3.10 or newer
+* Mac OS X: OS X 10.8 or newer
 
 ## Build Requirements
 

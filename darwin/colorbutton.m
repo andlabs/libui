@@ -6,6 +6,7 @@
 @interface colorButton : NSColorWell {
 	uiColorButton *libui_b;
 	BOOL libui_changing;
+	BOOL libui_setting;
 }
 - (id)initWithFrame:(NSRect)frame libuiColorButton:(uiColorButton *)b;
 - (void)deactivateOnClose:(NSNotification *)note;
@@ -77,7 +78,8 @@ struct uiColorButton {
 
 	[super setColor:color];
 	// this is called by NSColorWell's init, so we have to guard
-	if (b != nil)
+	// also don't signal during a programmatic change
+	if (b != nil && !self->libui_setting)
 		(*(b->onChanged))(b, b->onChangedData);
 }
 
@@ -98,8 +100,9 @@ struct uiColorButton {
 
 - (void)libuiSetColor:(double)r g:(double)g b:(double)b a:(double)a
 {
-	// TODO does this set the panel color? does it send a signal?
+	self->libui_setting = YES;
 	[self setColor:[NSColor colorWithSRGBRed:r green:g blue:b alpha:a]];
+	self->libui_setting = NO;
 }
 
 // NSColorWell has no intrinsic size by default; give it at least the height of the equivalent button's

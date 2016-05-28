@@ -266,7 +266,7 @@ struct uiBox {
 	if (bc.stretchy)
 		priority = NSLayoutPriorityDefaultLow;
 	else
-		// TODO will default high work?
+		// LONGTERM will default high work?
 		priority = NSLayoutPriorityRequired;
 	uiDarwinControlSetHuggingPriority(uiDarwinControl(bc.c), priority, self->primaryOrientation);
 	// make sure controls don't hug their secondary direction so they fill the width of the view
@@ -398,7 +398,8 @@ uiDarwinControlDefaultSetHuggingPriority(uiBox, view)
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
-	// TODO on other platforms
+	// LONGTERM on other platforms
+	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
 		userbug("You cannot add NULL to a uiBox.");
 	[b->view append:c stretchy:stretchy];

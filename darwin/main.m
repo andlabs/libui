@@ -189,7 +189,6 @@ int uiMainStep(int wait)
 	}
 }
 
-// TODO make this delayed
 void uiQuit(void)
 {
 	canQuit = YES;
@@ -197,7 +196,7 @@ void uiQuit(void)
 }
 
 // thanks to mikeash in irc.freenode.net/#macdev for suggesting the use of Grand Central Dispatch for this
-// TODO will dispatch_get_main_queue() break after _CFRunLoopSetCurrent()?
+// LONGTERM will dispatch_get_main_queue() break after _CFRunLoopSetCurrent()?
 void uiQueueMain(void (*f)(void *data), void *data)
 {
 	// dispatch_get_main_queue() is a serial queue so it will not execute multiple uiQueueMain() functions concurrently

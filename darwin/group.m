@@ -1,8 +1,6 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
-// TODO just outright ban passing NULL to any parents? that still won't fix the initial case
-
 struct uiGroup {
 	uiDarwinControl c;
 	NSBox *box;
@@ -164,7 +162,6 @@ void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
 	singleChildConstraintsSetMargined(&(g->constraints), g->margined);
-	// TODO issue a relayout command?
 }
 
 uiGroup *uiNewGroup(const char *title)

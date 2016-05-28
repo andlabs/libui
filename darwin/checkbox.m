@@ -110,11 +110,12 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	uiDarwinNewControl(uiCheckbox, c);
 
-	// TODO bezel style? transparent?
 	c->button = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[c->button setTitle:toNSString(text)];
 	[c->button setButtonType:NSSwitchButton];
+	// doesn't seem to have an associated bezel style
 	[c->button setBordered:NO];
+	[c->button setTransparent:NO];
 	uiDarwinSetControlFont(c->button, NSRegularControlSize);
 
 	if (checkboxDelegate == nil) {

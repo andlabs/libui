@@ -197,7 +197,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 // for a solid fill, we can merely have Core Graphics fill directly
 static void fillSolid(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 {
-	// TODO this uses DeviceRGB; switch to sRGB?
+	// TODO this uses DeviceRGB; switch to sRGB
 	CGContextSetRGBFillColor(ctxt, b->R, b->G, b->B, b->A);
 	switch (p->fillMode) {
 	case uiDrawFillModeWinding:

@@ -126,7 +126,7 @@ void uiEditableComboboxSetText(uiEditableCombobox *c, const char *text)
 }
 
 #if 0
-// TODO
+// LONGTERM
 void uiEditableComboboxSetSelected(uiEditableCombobox *c, intmax_t n)
 {
 	if (c->editable) {

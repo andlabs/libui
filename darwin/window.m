@@ -231,7 +231,6 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
 	singleChildConstraintsSetMargined(&(w->constraints), w->margined);
-	// TODO issue a relayout command?
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)

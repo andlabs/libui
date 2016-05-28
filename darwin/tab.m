@@ -1,9 +1,6 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-// TODOs
-// - page 2 tab doesn't lay out properly at first; need to jiggle on page change too :S
-
 @interface tabPage : NSObject {
 	struct singleChildConstraints constraints;
 	int margined;
@@ -81,7 +78,6 @@ struct uiTab {
 {
 	self->margined = m;
 	singleChildConstraintsSetMargined(&(self->constraints), self->margined);
-	// TODO issue a relayout command?
 }
 
 @end
@@ -137,7 +133,6 @@ BOOL uiTabHugsTrailingEdge(uiDarwinControl *c)
 {
 	uiTab *t = uiTab(c);
 
-	// TODO make a function?
 	return t->horzHuggingPri < NSLayoutPriorityWindowSizeStayPut;
 }
 

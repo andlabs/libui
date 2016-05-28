@@ -6,6 +6,7 @@
 @interface areaView : NSView {
 	uiArea *libui_a;
 	NSTrackingArea *libui_ta;
+	NSSize libui_ss;
 }
 - (id)initWithFrame:(NSRect)r area:(uiArea *)a;
 - (uiModifiers)parseModifiers:(NSEvent *)e;
@@ -16,6 +17,7 @@
 - (int)doKeyUp:(NSEvent *)e;
 - (int)doFlagsChanged:(NSEvent *)e;
 - (void)setupNewTrackingArea;
+- (void)setScrollingSize:(NSSize)s;
 @end
 
 struct uiArea {
@@ -23,6 +25,7 @@ struct uiArea {
 	NSView *view;			// either sv or area depending on whether it is scrolling
 	NSScrollView *sv;
 	areaView *area;
+	struct scrollViewData *d;
 	uiAreaHandler *ah;
 	BOOL scrolling;
 };
@@ -35,6 +38,7 @@ struct uiArea {
 	if (self) {
 		self->libui_a = a;
 		[self setupNewTrackingArea];
+		self->libui_ss = r.size;
 	}
 	return self;
 }
@@ -292,9 +296,34 @@ mouseEvent(otherMouseUp)
 		[self setNeedsDisplay:YES];
 }
 
+- (void)setScrollingSize:(NSSize)s
+{
+	self->libui_ss = s;
+	[self invalidateIntrinsicContentSize];
+}
+
+- (NSSize)intrinsicContentSize
+{
+	if (!self->libui_a->scrolling)
+		return [super intrinsicContentSize];
+	return self->libui_ss;
+}
+
 @end
 
-uiDarwinControlAllDefaults(uiArea, view)
+uiDarwinControlAllDefaultsExceptDestroy(uiArea, view)
+
+static void uiAreaDestroy(uiControl *c)
+{
+	uiArea *a = uiArea(c);
+
+	if (a->scrolling)
+		scrollViewFreeData(a->sv, a->d);
+	[a->area release];
+	if (a->scrolling)
+		[a->sv release];
+	uiFreeControl(uiControl(a));
+}
 
 // called by subclasses of -[NSApplication sendEvent:]
 // by default, NSApplication eats some key events
@@ -330,7 +359,7 @@ void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
 {
 	if (!a->scrolling)
 		userbug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
-	[a->area setFrameSize:NSMakeSize(width, height)];
+	[a->area setScrollingSize:NSMakeSize(width, height)];
 }
 
 void uiAreaQueueRedrawAll(uiArea *a)
@@ -365,23 +394,26 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 {
 	uiArea *a;
+	struct scrollViewCreateParams p;
 
 	uiDarwinNewControl(uiArea, a);
 
 	a->ah = ah;
 	a->scrolling = YES;
 
-	a->sv = [[NSScrollView alloc] initWithFrame:NSZeroRect];
-	// TODO configure a->sv for real
-	[a->sv setHasHorizontalScroller:YES];
-	[a->sv setHasVerticalScroller:YES];
-
 	a->area = [[areaView alloc] initWithFrame:NSMakeRect(0, 0, width, height)
 		area:a];
 
-	a->view = a->sv;
+	memset(&p, 0, sizeof (struct scrollViewCreateParams));
+	p.DocumentView = a->area;
+	p.BackgroundColor = [NSColor controlColor];
+	p.DrawsBackground = 1;
+	p.Bordered = NO;
+	p.HScroll = YES;
+	p.VScroll = YES;
+	a->sv = mkScrollView(&p, &(a->d));
 
-	[a->sv setDocumentView:a->area];
+	a->view = a->sv;
 
 	return a;
 }

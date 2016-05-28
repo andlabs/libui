@@ -26,6 +26,7 @@ MFILES += \
 	darwin/multilineentry.m \
 	darwin/progressbar.m \
 	darwin/radiobuttons.m \
+	darwin/scrollview.m \
 	darwin/separator.m \
 	darwin/slider.m \
 	darwin/spinbox.m \

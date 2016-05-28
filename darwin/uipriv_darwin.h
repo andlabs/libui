@@ -72,16 +72,6 @@ struct singleChildConstraints {
 extern void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc);
 extern void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv);
 extern void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int margined);
-struct scrollViewConstraints {
-	NSLayoutConstraint *documentLeading;
-	NSLayoutConstraint *documentTop;
-	BOOL hscroll;
-	NSLayoutConstraint *documentTrailing;
-	BOOL vscroll;
-	NSLayoutConstraint *documentBottom;
-};
-extern void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollView *sv, BOOL hscroll, BOOL vscroll, NSString *desc);
-extern void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *sv);
 
 // map.m
 extern struct mapTable *newMap(void);
@@ -115,3 +105,16 @@ extern void setupFontPanel(void);
 
 // colorbutton.m
 extern BOOL colorButtonInhibitSendAction(SEL sel, id from, id to);
+
+// scrollview.m
+struct scrollViewCreateParams {
+	NSView *DocumentView;
+	NSColor *BackgroundColor;
+	BOOL DrawsBackground;
+	BOOL Bordered;
+	BOOL HScroll;
+	BOOL VScroll;
+};
+extern NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrollViewData **dout);
+extern void scrollViewSetScrolling(NSScrollView *sv, struct scrollViewData *d, BOOL hscroll, BOOL vscroll);
+extern void scrollViewFreeData(NSScrollView *sv, struct scrollViewData *d);

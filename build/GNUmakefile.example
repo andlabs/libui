@@ -23,6 +23,9 @@ HFILES += \
 ifeq ($(OS),windows)
 RCFILES += \
 	examples/resources.rc
+ifneq (,$(STATIC))
+RCFLAGS += -D _UI_STATIC
+endif
 endif
 
 NAME = $(EXAMPLE)
@@ -49,7 +52,7 @@ else
 		# TODO is there an equivalent to -L?
 		LDFLAGS += $(OUTDIR)/libui.lib
 	else
-		LDFLAGS += $(OUTDIR)/libui.lib $(NATIVE_UI_LDFLAGS)
+		LDFLAGS += $(OUTDIR)/libui.lib $(OUTDIR)/libui.res $(OUTDIR)/$(NAME).res $(NATIVE_UI_LDFLAGS)
 	endif
 endif
 

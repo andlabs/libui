@@ -13,6 +13,12 @@ HFILES += \
 NAME = test
 SUFFIX = $(EXESUFFIX)
 
+ifeq ($(OS),windows)
+ifneq (,$(STATIC))
+RCFLAGS += -D _UI_STATIC
+endif
+endif
+
 ifeq ($(TOOLCHAIN),gcc)
 	ifeq (,$(STATIC))
 		LDFLAGS += -L$(OUTDIR) -lui
@@ -29,8 +35,12 @@ ifeq ($(TOOLCHAIN),gcc)
 		LDFLAGS += -Wl,-rpath,'$$ORIGIN'
 	endif
 else
-	# TODO is there an equivalent to -L?
-	LDFLAGS += $(OUTDIR)/libui.lib
+	ifeq (,$(STATIC))
+		# TODO is there an equivalent to -L?
+		LDFLAGS += $(OUTDIR)/libui.lib
+	else
+		LDFLAGS += $(OUTDIR)/libui.lib $(OUTDIR)/libui.res $(OUTDIR)/$(NAME).res $(NATIVE_UI_LDFLAGS)
+	endif
 endif
 
 # executables are not shared libraries

@@ -34,7 +34,7 @@ static CGFloat stepperYDelta(void)
 {
 	// 10.8 - 0
 	// 10.9 - 0
-	// 10.10 - xxx
+	// 10.10 - -1
 	// 10.11 - -1
 	return -1;
 }

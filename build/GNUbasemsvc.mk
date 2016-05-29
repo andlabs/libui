@@ -59,16 +59,26 @@ endif
 OFILES = \
 	$(subst /,_,$(CFILES)) \
 	$(subst /,_,$(CXXFILES)) \
-	$(subst /,_,$(MFILES)) \
+	$(subst /,_,$(MFILES))
+ifeq (,$(STATIC))
+OFILES += \
 	$(subst /,_,$(RCFILES))
+else
+RESFILES = \
+	$(subst /,_,$(RCFILES))
+endif
 
 OFILES := $(OFILES:%=$(OBJDIR)/%.o)
 
 OUT = $(OUTDIR)/$(NAME)$(SUFFIX)
+ifneq (,$(STATIC))
+RESOUT = $(OUTDIR)/$(NAME).res
+endif
+# otherwise keep $(RESOUT) empty
 
 # TODO use $(CC), $(CXX), $(LD), and s$(RC)
 
-$(OUT): $(OFILES) | $(OUTDIR)
+$(OUT): $(OFILES) $(RESOUT) | $(OUTDIR)
 ifeq (,$(STATICLIB))
 	@link -out:$(OUT) $(OFILES) $(LDFLAGS)
 else
@@ -97,6 +107,9 @@ endif
 
 # note: don't run cvtres directly; the linker does that for us
 $(OBJDIR)/%.rc.o: $$(subst _,/,%).rc $(HFILES) | $(OBJDIR)
+	@rc -nologo -v -fo $@ $(RCFLAGS) $<
+	@echo ====== Compiled $<
+$(RESOUT): $$(RCFILES) $(HFILES) | $(OUTDIR)
 	@rc -nologo -v -fo $@ $(RCFLAGS) $<
 	@echo ====== Compiled $<
 

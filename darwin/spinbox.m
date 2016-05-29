@@ -30,12 +30,12 @@ struct uiSpinbox {
 };
 
 // yes folks, this varies by operating system! woo!
+// 10.10 started drawing the NSStepper one point too low, so we have to fix it up conditionally
+// TODO test this; we'll probably have to substitute 10_9
 static CGFloat stepperYDelta(void)
 {
-	// 10.8 - 0
-	// 10.9 - 0
-	// 10.10 - -1
-	// 10.11 - -1
+	if (floor(NSAppKitVersionNumber) <= NSAppKitVersionNumber10_9)
+		return 0;
 	return -1;
 }
 

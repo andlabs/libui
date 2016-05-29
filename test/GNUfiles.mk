@@ -19,6 +19,7 @@ CFILES += \
 	test/page10.c \
 	test/page11.c \
 	test/page12.c \
+	test/page13.c \
 	test/spaced.c
 
 HFILES += \

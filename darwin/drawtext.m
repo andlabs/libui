@@ -4,8 +4,7 @@
 // TODO
 #define complain(...) implbug(__VA_ARGS__)
 
-// TODO for all relevant routines, make sure we are freeing memory correctly
-// TODO make sure allocation failures throw exceptions?
+// TODO double-check that we are properly handling allocation failures (or just toll free bridge from cocoa)
 struct uiDrawFontFamilies {
 	CFArrayRef fonts;
 };
@@ -15,7 +14,6 @@ uiDrawFontFamilies *uiDrawListFontFamilies(void)
 	uiDrawFontFamilies *ff;
 
 	ff = uiNew(uiDrawFontFamilies);
-	// TODO is there a way to get an error reason?
 	ff->fonts = CTFontManagerCopyAvailableFontFamilyNames();
 	if (ff->fonts == NULL)
 		implbug("error getting available font names (no reason specified) (TODO)");
@@ -33,7 +31,7 @@ char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n)
 	char *family;
 
 	familystr = (CFStringRef) CFArrayGetValueAtIndex(ff->fonts, n);
-	// TODO create a uiDarwinCFStringToText()?
+	// toll-free bridge
 	family = uiDarwinNSStringToText((NSString *) familystr);
 	// Get Rule means we do not free familystr
 	return family;
@@ -155,12 +153,11 @@ static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
 #define ourNSFontWeightBlack 0.620000
 static const CGFloat ctWeights[] = {
 	// yeah these two have their names swapped; blame Pango
-	// TODO note that these names do not necessarily line up with their OS names
 	[uiDrawTextWeightThin] = ourNSFontWeightUltraLight,
 	[uiDrawTextWeightUltraLight] = ourNSFontWeightThin,
 	[uiDrawTextWeightLight] = ourNSFontWeightLight,
 	// for this one let's go between Light and Regular
-	// TODO figure out if we can rely on the order for these (and the one below)
+	// we're doing nearest so if there happens to be an exact value hopefully it's close enough
 	[uiDrawTextWeightBook] = ourNSFontWeightLight + ((ourNSFontWeightRegular - ourNSFontWeightLight) / 2),
 	[uiDrawTextWeightNormal] = ourNSFontWeightRegular,
 	[uiDrawTextWeightMedium] = ourNSFontWeightMedium,
@@ -174,7 +171,7 @@ static const CGFloat ctWeights[] = {
 
 // Unfortunately there are still no named constants for these.
 // Let's just use normalized widths.
-// As far as I can tell (OS X only has condensed fonts, not expanded fonts; TODO), regardless of condensed or expanded, negative means condensed and positive means expanded.
+// As far as I can tell (OS X only ships with condensed fonts, not expanded fonts; TODO), regardless of condensed or expanded, negative means condensed and positive means expanded.
 // TODO verify this is correct
 static const CGFloat ctStretches[] = {
 	[uiDrawTextStretchUltraCondensed] = -1.0,
@@ -199,7 +196,6 @@ struct closeness {
 // Stupidity: CTFont requires an **exact match for the entire traits dictionary**, otherwise it will **drop ALL the traits**.
 // We have to implement the closest match ourselves.
 // Also we have to do this before adding the small caps flags, because the matching descriptors won't have those.
-// TODO document that font matching is closest match but the search method is OS defined
 CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight weight, uiDrawTextItalic italic, uiDrawTextStretch stretch)
 {
 	CGFloat targetWeight;
@@ -254,7 +250,7 @@ CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight we
 		traits = CTFontDescriptorCopyAttribute(current, kCTFontTraitsAttribute);
 		if (traits == NULL) {
 			// couldn't get traits; be safe by ranking it lowest
-			// TODO figure out what the longest possible distances are
+			// LONGTERM figure out what the longest possible distances are
 			closeness[i].weight = 3;
 			closeness[i].italic = 2;
 			closeness[i].stretch = 3;
@@ -277,13 +273,13 @@ CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight we
 		if (cfnum != NULL) {
 			CGFloat val;
 
-			// TODO instead of complaining for this and width, should we just fall through to the default?
+			// LONGTERM instead of complaining for this and width and possibly also symbolic traits above, should we just fall through to the default?
 			if (CFNumberGetValue(cfnum, kCFNumberCGFloatType, &val) == false)
 				complain("error getting weight value in matchTraits()");
 			closeness[i].weight = val - targetWeight;
 		} else
 			// okay there's no weight key; let's try the literal meaning of the symbolic constant
-			// TODO is the weight key guaranteed?
+			// LONGTERM is the weight key guaranteed?
 			if ((symbolic & kCTFontBoldTrait) != 0)
 				closeness[i].weight = ourNSFontWeightBold - targetWeight;
 			else
@@ -316,7 +312,7 @@ CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight we
 
 		// now try width
 		// TODO this does not seem to be enough for Skia's extended variants; the width trait is 0 but the Expanded flag is on
-		// TODO verify the rest of this matrix
+		// TODO verify the rest of this matrix (what matrix?)
 		cfnum = CFDictionaryGetValue(traits, kCTFontWidthTrait);
 		if (cfnum != NULL) {
 			CGFloat val;
@@ -326,7 +322,7 @@ CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight we
 			closeness[i].stretch = val - targetStretch;
 		} else
 			// okay there's no width key; let's try the literal meaning of the symbolic constant
-			// TODO is the width key guaranteed?
+			// LONGTERM is the width key guaranteed?
 			if ((symbolic & kCTFontExpandedTrait) != 0)
 				closeness[i].stretch = 1.0 - targetStretch;
 			else if ((symbolic & kCTFontCondensedTrait) != 0)
@@ -354,7 +350,7 @@ CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, uiDrawTextWeight we
 		const struct closeness *b = (const struct closeness *) bb;
 
 		// via http://www.gnu.org/software/libc/manual/html_node/Comparison-Functions.html#Comparison-Functions
-		// TODO is this really the best way? isn't it the same as if (*a < *b) return -1; if (*a > *b) return 1; return 0; ?
+		// LONGTERM is this really the best way? isn't it the same as if (*a < *b) return -1; if (*a > *b) return 1; return 0; ?
 		return (a->distance > b->distance) - (a->distance < b->distance);
 	});
 	// and the first element of the sorted array is what we want
@@ -397,14 +393,7 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	cfdesc = CTFontDescriptorCreateWithAttributes(attr);
 	// TODO release attr?
 	cfdesc = matchTraits(cfdesc, desc->Weight, desc->Italic, desc->Stretch);
-/*TODO
-	attr = extractAttributes(cfdesc);
-	CFRelease(cfdesc);
 
-	// and NOW create the final descriptor
-	cfdesc = CTFontDescriptorCreateWithAttributes(attr);
-	// TODO release attr?
-*/
 	// specify the initial size again just to be safe
 	f = CTFontCreateWithFontDescriptor(cfdesc, desc->Size, NULL);
 	// TODO release cfdesc?
@@ -425,7 +414,7 @@ uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font)
 
 void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc)
 {
-	// TODO TODO TODO TODO
+	// TODO
 }
 
 // text sizes and user space points are identical:
@@ -473,9 +462,9 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFo
 	uiDrawTextLayoutSetWidth(layout, width);
 
 	// unfortunately the CFRanges for attributes expect UTF-16 codepoints
-	// we want full characters
+	// we want graphemes
 	// fortunately CFStringGetRangeOfComposedCharactersAtIndex() is here for us
-	// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Strings/Articles/stringsClusters.html says that this does work on surrogate pairs (despite the name), and that this is the preferred function for this particular job anyway
+	// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Strings/Articles/stringsClusters.html says that this does work on all multi-codepoint graphemes (despite the name), and that this is the preferred function for this particular job anyway
 	backing = CFAttributedStringGetString(layout->mas);
 	n = CFStringGetLength(backing);
 	// allocate one extra, just to be safe
@@ -493,7 +482,6 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFo
 	// and set the last one
 	layout->charsToRanges[j].location = i;
 	layout->charsToRanges[j].length = 0;
-	// TODO how will this affect drawing things that aren't surrogate pairs?
 
 	return layout;
 }
@@ -548,8 +536,8 @@ static void freeFramesetter(struct framesetter *fs)
 	CFRelease(fs->fs);
 }
 
-// TODO document that the extent width can be greater than the requested width if the requested width is small enough that only one character can fit
-// TODO figure out how line separation and leading plays into this
+// LONGTERM allow line separation and leading to be factored into a wrapping text layout
+
 // TODO reconcile differences in character wrapping on platforms
 void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
 {
@@ -609,15 +597,15 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 	CGContextRestoreGState(c);
 }
 
-// TODO provide an equivalent to CTLineGetTypographicBounds() on uiDrawTextLayout?
+// LONGTERM provide an equivalent to CTLineGetTypographicBounds() on uiDrawTextLayout?
 
-// TODO keep this for TODO and documentation purposes
+// LONGTERM keep this for later features and documentation purposes
 #if 0
 		w = CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
 		// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
 		CFRelease(line);
 
-	// TODO provide a way to get the image bounds as a separate function later
+	// LONGTERM provide a way to get the image bounds as a separate function later
 	bounds = CTLineGetImageBounds(line, c);
 	// though CTLineGetImageBounds() returns CGRectNull on error, it also returns CGRectNull on an empty string, so we can't reasonably check for error
 

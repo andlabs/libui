@@ -1,7 +1,7 @@
 // 24 april 2015
 #include "uipriv_windows.hpp"
 
-// TODO migrate to std::vector
+// LONGTERM migrate to std::vector
 
 static uiMenu **menus = NULL;
 static uintmax_t len = 0;
@@ -146,10 +146,12 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 		curID++;
 	}
 
-	// TODO copy this from the unix one
-	item->onClicked = defaultOnClicked;
-	if (item->type == typeQuit)
+	if (item->type == typeQuit) {
+		// can't call uiMenuItemOnClicked() here
 		item->onClicked = onQuitClicked;
+		item->onClickedData = NULL;
+	} else
+		uiMenuItemOnClicked(item, defaultOnClicked, NULL);
 
 	return item;
 }
@@ -185,7 +187,7 @@ uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m)
 uiMenuItem *uiMenuAppendAboutItem(uiMenu *m)
 {
 	if (hasAbout)
-		// TODO place these userbug strings in a header?
+		// TODO place these userbug strings in a header
 		userbug("You can not have multiple About menu items in a program.");
 	hasAbout = TRUE;
 	newItem(m, typeSeparator, NULL);
@@ -350,7 +352,7 @@ void uninitMenus(void)
 		for (j = 0; j < m->len; j++) {
 			item = m->items[j];
 			if (item->len != 0)
-				// TODO userbug()?
+				// LONGTERM userbug()?
 				implbug("menu item %p (%ws) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
 			if (item->name != NULL)
 				uiFree(item->name);

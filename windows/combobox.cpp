@@ -1,9 +1,6 @@
 // 20 may 2015
 #include "uipriv_windows.hpp"
 
-// TODO
-// - is there extra space on the bottom?
-
 // we as Common Controls 6 users don't need to worry about the height of comboboxes; see http://blogs.msdn.com/b/oldnewthing/archive/2006/03/10/548537.aspx
 
 struct uiCombobox {
@@ -36,8 +33,8 @@ void uiComboboxDestroy(uiControl *cc)
 uiWindowsControlAllDefaultsExceptDestroy(uiCombobox)
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define comboboxWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary; TODO */
-#define comboboxHeight 14
+#define comboboxWidth 107	/* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary; LONGTERM */
+#define comboboxHeight 14	/* LONGTERM: is this too high? */
 
 static void uiComboboxMinimumSize(uiWindowsControl *cc, intmax_t *width, intmax_t *height)
 {

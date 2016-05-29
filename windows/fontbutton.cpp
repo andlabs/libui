@@ -25,7 +25,7 @@ static void updateFontButtonLabel(uiFontButton *b)
 	WCHAR *text;
 
 	text = fontDialogParamsToString(&(b->params));
-	setWindowText(text);
+	setWindowText(b->hwnd, text);
 	uiFree(text);
 
 	// changing the text might necessitate a change in the button's size

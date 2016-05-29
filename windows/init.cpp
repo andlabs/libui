@@ -6,7 +6,7 @@ int nCmdShow;
 
 HFONT hMessageFont;
 
-// TODO needed?
+// LONGTERM needed?
 HBRUSH hollowBrush;
 
 // the returned pointer is actually to the second character
@@ -38,7 +38,7 @@ static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 #define ieLastErr(msg) initerr("=" msg, L"GetLastError() ==", GetLastError())
 #define ieHRESULT(msg, hr) initerr("=" msg, L"HRESULT", (DWORD) hr)
 
-// TODO make common
+// LONGTERM make common
 uiInitOptions options;
 
 #define wantedICCClasses ( \
@@ -70,6 +70,8 @@ const char *uiInit(uiInitOptions *o)
 	if ((si.dwFlags & STARTF_USESHOWWINDOW) != 0)
 		nCmdShow = si.wShowWindow;
 
+	// LONGTERM set DPI awareness
+
 	hDefaultIcon = LoadIconW(NULL, IDI_APPLICATION);
 	if (hDefaultIcon == NULL)
 		return ieLastErr("loading default icon for window classes");
@@ -79,7 +81,7 @@ const char *uiInit(uiInitOptions *o)
 
 	ce = initUtilWindow(hDefaultIcon, hDefaultCursor);
 	if (ce != NULL)
-		return ieLastErr("TODO use ce here");
+		return initerr(ce, L"GetLastError() ==", GetLastError());
 
 	if (registerWindowClass(hDefaultIcon, hDefaultCursor) == 0)
 		return ieLastErr("registering uiWindow window class");
@@ -92,9 +94,8 @@ const char *uiInit(uiInitOptions *o)
 	if (hMessageFont == NULL)
 		return ieLastErr("loading default messagebox font; this is the default UI font");
 
-	// TODO rewrite this error message
 	if (initContainer(hDefaultIcon, hDefaultCursor) == 0)
-		return ieLastErr("initializing uiMakeContainer() window class");
+		return ieLastErr("initializing uiWindowsMakeContainer() window class");
 
 	hollowBrush = (HBRUSH) GetStockObject(HOLLOW_BRUSH);
 	if (hollowBrush == NULL)
@@ -109,8 +110,8 @@ const char *uiInit(uiInitOptions *o)
 	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)
 		return ieHRESULT("initializing COM", hr);
-	// TODO initialize COM security
-	// TODO (windows vista) turn off COM exception handling
+	// LONGTERM initialize COM security
+	// LONGTERM (windows vista) turn off COM exception handling
 
 	hr = initDraw();
 	if (hr != S_OK)

@@ -1,9 +1,6 @@
 // 20 may 2015
 #include "uipriv_windows.hpp"
 
-// TODO
-// - is there extra space on the bottom?
-
 // we as Common Controls 6 users don't need to worry about the height of comboboxes; see http://blogs.msdn.com/b/oldnewthing/archive/2006/03/10/548537.aspx
 
 struct uiEditableCombobox {
@@ -19,11 +16,11 @@ static BOOL onWM_COMMAND(uiControl *cc, HWND hwnd, WORD code, LRESULT *lResult)
 
 	if (code == CBN_SELCHANGE) {
 		// like on OS X, this is sent before the edit has been updated :(
-		// TODO error check
-		PostMessage(parentOf(hwnd),
+		if (PostMessage(parentOf(hwnd),
 			WM_COMMAND,
 			MAKEWPARAM(GetWindowLongPtrW(hwnd, GWLP_ID), CBN_EDITCHANGE),
-			(LPARAM) hwnd);
+			(LPARAM) hwnd) == 0)
+			logLastError(L"error posting CBN_EDITCHANGE after CBN_SELCHANGE");
 		*lResult = 0;
 		return TRUE;
 	}
@@ -46,8 +43,8 @@ void uiEditableComboboxDestroy(uiControl *cc)
 uiWindowsControlAllDefaultsExceptDestroy(uiEditableCombobox)
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
-#define comboboxWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary; TODO */
-#define comboboxHeight 14
+#define comboboxWidth 107	/* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary; LONGTERM */
+#define comboboxHeight 14	/* LONGTERM: is this too high? */
 
 static void uiEditableComboboxMinimumSize(uiWindowsControl *cc, intmax_t *width, intmax_t *height)
 {

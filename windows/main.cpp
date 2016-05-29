@@ -45,13 +45,15 @@ void unregisterMessageFilter(void)
 
 static void processMessage(MSG *msg)
 {
-	HWND active;
+	HWND correctParent;
 
-	// TODO really active? or parentToplevel(msg->hwnd)?
-	active = GetActiveWindow();
-	if (active != NULL)
-		// TODO find documentation that says IsDialogMessage() calls CallMsgFilter() for us, because that's what's happening
-		if (IsDialogMessage(active, msg) != 0)
+	if (msg->hwnd != NULL)
+		correctParent = parentToplevel(msg->hwnd);
+	else		// just to be safe
+		correctParent = GetActiveWindow();
+	if (correctParent != NULL)
+		// this calls our mesage filter above for us
+		if (IsDialogMessage(correctParent, msg) != 0)
 			return;
 	TranslateMessage(msg);
 	DispatchMessageW(msg);
@@ -118,6 +120,6 @@ void uiQuit(void)
 void uiQueueMain(void (*f)(void *data), void *data)
 {
 	if (PostMessageW(utilWindow, msgQueued, (WPARAM) f, (LPARAM) data) == 0)
-		// TODO this is likely not safe to call across threads (allocates memory)
+		// LONGTERM this is likely not safe to call across threads (allocates memory)
 		logLastError(L"error queueing function to run on main thread");
 }

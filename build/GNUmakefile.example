@@ -45,8 +45,12 @@ ifeq ($(TOOLCHAIN),gcc)
 		LDFLAGS += -pthread
 	endif
 else
-	# TODO is there an equivalent to -L?
-	LDFLAGS += $(OUTDIR)/libui.lib
+	ifeq (,$(STATIC))
+		# TODO is there an equivalent to -L?
+		LDFLAGS += $(OUTDIR)/libui.lib
+	else
+		LDFLAGS += $(OUTDIR)/libui.lib $(NATIVE_UI_LDFLAGS)
+	endif
 endif
 
 # executables are not shared libraries

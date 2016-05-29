@@ -67,10 +67,7 @@ RCFILES += \
 # LONGTERM split into a separate file or put in GNUmakefile.libui somehow?
 
 # flags for the Windows API
-# notice that usp10.lib comes before gdi32.lib
-# TODO prune this list
-LDFLAGS += \
-	user32.lib kernel32.lib usp10.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib comdlg32.lib d2d1.lib dwrite.lib ole32.lib oleaut32.lib oleacc.lib uuid.lib
+LDFLAGS += $(NATIVE_UI_LDFLAGS)
 
 # flags for building a shared library
 ifeq (,$(STATIC))
@@ -83,3 +80,9 @@ endif
 # no need for a soname
 
 # TODO .def file
+
+ifneq (,$(STATIC))
+CFLAGS += -D_UI_STATIC
+CXXFLAGS += -D_UI_STATIC
+RCFLAGS += -D _UI_STATIC
+endif

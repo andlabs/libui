@@ -97,7 +97,7 @@ endif
 
 # note: don't run cvtres directly; the linker does that for us
 $(OBJDIR)/%.rc.o: $$(subst _,/,%).rc $(HFILES) | $(OBJDIR)
-	@rc -nologo -v -fo $@ $<
+	@rc -nologo -v -fo $@ $(RCFLAGS) $<
 	@echo ====== Compiled $<
 
 $(OBJDIR) $(OUTDIR):

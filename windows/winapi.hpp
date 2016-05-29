@@ -9,7 +9,9 @@
 #define INITGUID
 
 // for the manifest
+#ifndef _UI_STATIC
 #define ISOLATION_AWARE_ENABLED 1
+#endif
 
 // get Windows version right; right now Windows Vista
 // unless otherwise stated, all values from Microsoft's sdkddkver.h

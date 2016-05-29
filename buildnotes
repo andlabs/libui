@@ -27,6 +27,8 @@ The build-time settings are
 		TODO
 	DESTDIR=xxx
 		applied before PREFIX; used by Debian
+	STATIC=1
+		statically link instead of shared
 
 To build the test program use
 

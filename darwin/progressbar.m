@@ -1,6 +1,25 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
+// NSProgressIndicator has no intrinsic width by default; use the default width in Interface Builder
+#define progressIndicatorWidth 100
+
+@interface intrinsicWidthNSProgressIndicator : NSProgressIndicator
+@end
+
+@implementation intrinsicWidthNSProgressIndicator
+
+- (NSSize)intrinsicContentSize
+{
+	NSSize s;
+
+	s = [super intrinsicContentSize];
+	s.width = progressIndicatorWidth;
+	return s;
+}
+
+@end
+
 struct uiProgressBar {
 	uiDarwinControl c;
 	NSProgressIndicator *pi;
@@ -30,7 +49,7 @@ uiProgressBar *uiNewProgressBar(void)
 
 	uiDarwinNewControl(uiProgressBar, p);
 
-	p->pi = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
+	p->pi = [[intrinsicWidthNSProgressIndicator alloc] initWithFrame:NSZeroRect];
 	[p->pi setControlSize:NSRegularControlSize];
 	[p->pi setBezeled:YES];
 	[p->pi setStyle:NSProgressIndicatorBarStyle];

@@ -32,7 +32,7 @@ struct uiSpinbox {
 // yes folks, this varies by operating system! woo!
 static CGFloat stepperYDelta(void)
 {
-	// 10.8 - xxx
+	// 10.8 - 0
 	// 10.9 - xxx
 	// 10.10 - xxx
 	// 10.11 - -1

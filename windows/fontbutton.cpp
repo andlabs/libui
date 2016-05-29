@@ -25,8 +25,7 @@ static void updateFontButtonLabel(uiFontButton *b)
 	WCHAR *text;
 
 	text = fontDialogParamsToString(&(b->params));
-	// TODO error check
-	SendMessageW(b->hwnd, WM_SETTEXT, 0, (LPARAM) text);
+	setWindowText(text);
 	uiFree(text);
 
 	// changing the text might necessitate a change in the button's size
@@ -93,8 +92,6 @@ uiDrawTextFont *uiFontButtonFont(uiFontButton *b)
 	// we don't own b->params.familyName either; we have to copy it
 	return mkTextFont(b->params.font, TRUE, b->params.familyName, TRUE, b->params.size);
 }
-
-// TODO document that the Handle of a Font may not be unique
 
 void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data)
 {

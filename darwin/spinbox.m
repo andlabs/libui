@@ -34,6 +34,7 @@ struct uiSpinbox {
 // TODO test this; we'll probably have to substitute 10_9
 static CGFloat stepperYDelta(void)
 {
+	// via https://developer.apple.com/library/mac/releasenotes/AppKit/RN-AppKit/
 	if (floor(NSAppKitVersionNumber) <= NSAppKitVersionNumber10_9)
 		return 0;
 	return -1;

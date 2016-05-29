@@ -9,3 +9,5 @@ font matching is closest match but the search method is OS defined
 weight names in libui do not necessarily line up with their OS names
 
 
+uiDrawFontHandle() may not return a unique handle per instance
+

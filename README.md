@@ -24,7 +24,7 @@ This README is being written.<br>
 
 * **29 May 2016**
 	* Thanks to @pcwalton, we can now statically link libui! Simply do `make STATIC=1` instead of just `make`.
-		* On Windows you must provide a Common Controls 6 manifest for output static libraries to work properly.
+		* On Windows you must link both `libui.lib` and `libui.res` AND provide a Common Controls 6 manifest for output static binaries to work properly.
 
 * **28 May 2016**
 	* As promised, **the minimum system requirements are now OS X 10.8 and GTK+ 3.10 for OS X and Unix, respectively**.

@@ -1,9 +1,9 @@
 // 26 june 2015
 #import "uipriv_darwin.h"
 
-// TODO restructure this whole file
-// TODO explicitly document this works as we want
-// TODO note that font and color buttons also do this
+// LONGTERM restructure this whole file
+// LONGTERM explicitly document this works as we want
+// LONGTERM note that font and color buttons also do this
 
 #define windowWindow(w) ((NSWindow *) uiControlHandle(uiControl(w)))
 

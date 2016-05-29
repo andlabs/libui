@@ -114,8 +114,16 @@ uiDarwinControlDefaultEnabled(uiTab, tabview)
 uiDarwinControlDefaultEnable(uiTab, tabview)
 uiDarwinControlDefaultDisable(uiTab, tabview)
 
-// TODO container update
-uiDarwinControlDefaultSyncEnableState(uiTab, tabview)
+static void uiTabSyncEnableState(uiDarwinControl *c, int enabled)
+{
+	uiTab *t = uiTab(c);
+	tabPage *page;
+
+	if (uiDarwinShouldStopSyncEnableState(uiDarwinControl(t), enabled))
+		return;
+	for (page in t->pages)
+		uiDarwinControlSyncEnableState(uiDarwinControl(page.c), enabled);
+}
 
 uiDarwinControlDefaultSetSuperview(uiTab, tabview)
 
@@ -185,7 +193,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	uiControlSetParent(child, uiControl(t));
 
 	view = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
-	// TODO if we turn off the autoresizing mask, nothing shows up; didn't this get documented somewhere?
+	// note: if we turn off the autoresizing mask, nothing shows up
 	uiDarwinControlSetSuperview(uiDarwinControl(child), view);
 	uiDarwinControlSyncEnableState(uiDarwinControl(child), uiControlEnabledToUser(uiControl(t)));
 

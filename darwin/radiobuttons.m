@@ -5,9 +5,9 @@
 // This is documented on the NSMatrix page, but the rest of the OS X documentation says to still use NSMatrix.
 // NSMatrix has weird quirks anyway...
 
-// TODO
-// - check that multiple radio buttons on the same parent container work right
-// - 6 units of spacing between buttons, as suggested by Interface Builder?
+// TODO check that multiple radio buttons on the same parent container work right
+
+// LONGTERM 6 units of spacing between buttons, as suggested by Interface Builder?
 
 struct uiRadioButtons {
 	uiDarwinControl c;
@@ -48,11 +48,12 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	NSButton *b, *b2;
 	NSLayoutConstraint *constraint;
 
-	// TODO bezel style? transparent?
 	b = [[NSButton alloc] initWithFrame:NSZeroRect];
 	[b setTitle:toNSString(text)];
 	[b setButtonType:NSRadioButton];
+	// doesn't seem to have an associated bezel style
 	[b setBordered:NO];
+	[b setTransparent:NO];
 	uiDarwinSetControlFont(b, NSRegularControlSize);
 	[b setTranslatesAutoresizingMaskIntoConstraints:NO];
 

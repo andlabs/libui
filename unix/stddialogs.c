@@ -1,8 +1,8 @@
 // 26 june 2015
 #include "uipriv_unix.h"
 
-// TODO figure out why, and describe, that this is the desired behavior
-// TODO also point out that font and color buttons also work like this
+// LONGTERM figure out why, and describe, that this is the desired behavior
+// LONGTERM also point out that font and color buttons also work like this
 
 #define windowWindow(w) (GTK_WINDOW(uiControlHandle(uiControl(w))))
 

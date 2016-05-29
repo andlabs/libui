@@ -46,9 +46,14 @@ export DESTDIR
 # other important variables
 export OBJDIR
 export OUTDIR
+export STATIC
+
+ifneq (,$(STATIC))
+STATICLIB = STATICLIB=1
+endif
 
 libui:
-	@$(MAKE) -f build/GNUmakefile.libui inlibuibuild=1
+	@$(MAKE) -f build/GNUmakefile.libui inlibuibuild=1 $(STATICLIB)
 
 clean:
 	rm -rf $(OBJDIR) $(OUTDIR)

@@ -30,7 +30,11 @@ SUFFIX = $(EXESUFFIX)
 
 # TODO merge with the one in build/GNUmakefile.test
 ifeq ($(TOOLCHAIN),gcc)
-	LDFLAGS += -L$(OUTDIR) -lui
+	ifeq (,$(STATIC))
+		LDFLAGS += -L$(OUTDIR) -lui
+	else
+		LDFLAGS += -L$(OUTDIR) -lui $(NATIVE_UI_LDFLAGS)
+	endif
 	# see build/GNUmakefile.test
 	ifeq ($(OS),darwin)
 		LDFLAGS += -Wl,-rpath,@executable_path/

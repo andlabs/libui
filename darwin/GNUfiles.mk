@@ -42,10 +42,7 @@ HFILES += \
 # LONGTERM split into a separate file or put in GNUmakefile.libui somehow?
 
 # flags for Cocoa
-LDFLAGS += \
-	-lobjc \
-	-framework Foundation \
-	-framework AppKit
+LDFLAGS += $(NATIVE_UI_LDFLAGS)
 
 # flags for OS X versioning
 CFLAGS += \
@@ -57,9 +54,11 @@ CXXFLAGS += \
 LDFLAGS += \
 	-mmacosx-version-min=10.8
 
+ifeq (,$(STATIC))
 # flags for building a shared library
 LDFLAGS += \
 	-dynamiclib
+endif
 
 # on warning about undefined symbols:
 # the gcc flags don't work with Apple's linker

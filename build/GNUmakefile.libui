@@ -17,9 +17,13 @@ HFILES += \
 	ui_$(OS)$(OSHSUFFIX)
 
 NAME = libui
+ifeq (,$(STATIC))
 SUFFIX = $(LIBSUFFIX)
 ifeq ($(USESSONAME),1)
 	SUFFIX = $(SONAMEEXT)
+endif
+else
+SUFFIX = $(STATICLIBSUFFIX)
 endif
 
 ifeq ($(TOOLCHAIN),gcc)

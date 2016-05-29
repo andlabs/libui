@@ -50,12 +50,7 @@ else
 	reallinker = $(CXX)
 endif
 
-$(OUT): $(OFILES) | $(OUTDIR)
-	@$(reallinker) -o $(OUT) $(OFILES) $(LDFLAGS)
-ifeq ($(USESSONAME),1)
-	@ln -sf $(NAME)$(SUFFIX) $(OUTNOSONAME)
-endif
-	@echo ====== Linked $(OUT)
+include $(OS)/GNUosspecificlink.mk
 
 .SECONDEXPANSION:
 

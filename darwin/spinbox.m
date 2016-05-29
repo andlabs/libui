@@ -29,6 +29,16 @@ struct uiSpinbox {
 	void *onChangedData;
 };
 
+// yes folks, this varies by operating system! woo!
+static CGFloat stepperYDelta(void)
+{
+	// 10.8 - xxx
+	// 10.9 - xxx
+	// 10.10 - xxx
+	// 10.11 - -1
+	return -1;
+}
+
 @implementation libui_spinbox
 
 - (id)initWithFrame:(NSRect)r spinbox:(uiSpinbox *)sb
@@ -82,17 +92,17 @@ struct uiSpinbox {
 		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTop,
-			1, -1,			// TODO make sure this is right
+			1, stepperYDelta(),
 			@"uiSpinbox top edge stepper")];
 		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeBottom,
-			1, -1,		// TODO make sure this is right
+			1, stepperYDelta(),
 			@"uiSpinbox bottom edge stepper")];
 		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			self->stepper, NSLayoutAttributeLeading,
-			1, -3,		// TODO
+			1, -3,		// arbitrary amount; good enough visually (and it seems to match NSDatePicker too, at least on 10.11, which is even better)
 			@"uiSpinbox space between text field and stepper")];
 
 		self->spinbox = sb;

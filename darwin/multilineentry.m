@@ -1,15 +1,34 @@
 // 8 december 2015
 #import "uipriv_darwin.h"
 
-// TODO you actually have to click on parts with a line in them in order to start editing; clicking below the last line doesn't give focus
-
 // NSTextView has no intrinsic content size by default, which wreaks havoc on a pure-Auto Layout system
 // we'll have to take over to get it to work
 // see also http://stackoverflow.com/questions/24210153/nstextview-not-properly-resizing-with-auto-layout and http://stackoverflow.com/questions/11237622/using-autolayout-with-expanding-nstextviews
-@interface intrinsicSizeTextView : NSTextView
+@interface intrinsicSizeTextView : NSTextView {
+	uiMultilineEntry *libui_e;
+}
+- (id)initWithFrame:(NSRect)r e:(uiMultilineEntry *)e;
 @end
 
+struct uiMultilineEntry {
+	uiDarwinControl c;
+	NSScrollView *sv;
+	intrinsicSizeTextView *tv;
+	struct scrollViewData *d;
+	void (*onChanged)(uiMultilineEntry *, void *);
+	void *onChangedData;
+	BOOL changing;
+};
+
 @implementation intrinsicSizeTextView
+
+- (id)initWithFrame:(NSRect)r e:(uiMultilineEntry *)e
+{
+	self = [super initWithFrame:r];
+	if (self)
+		self->libui_e = e;
+	return self;
+}
 
 - (NSSize)intrinsicContentSize
 {
@@ -28,28 +47,11 @@
 {
 	[super didChangeText];
 	[self invalidateIntrinsicContentSize];
-}
-
-// TODO this doesn't call the above?
-// TODO this also isn't perfect; play around with cpp-multithread
-- (void)setString:(NSString *)str
-{
-	[super setString:str];
-	[self didChangeText];
+	if (!self->libui_e->changing)
+		(*(self->libui_e->onChanged))(self->libui_e, self->libui_e->onChangedData);
 }
 
 @end
-
-struct uiMultilineEntry {
-	uiDarwinControl c;
-	NSScrollView *sv;
-	intrinsicSizeTextView *tv;
-	struct scrollViewData *d;
-	void (*onChanged)(uiMultilineEntry *, void *);
-	void *onChangedData;
-};
-
-// TODO events
 
 uiDarwinControlAllDefaultsExceptDestroy(uiMultilineEntry, sv)
 
@@ -75,20 +77,22 @@ char *uiMultilineEntryText(uiMultilineEntry *e)
 
 void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 {
-	// TODO does this send a changed signal?
-	[e->tv setString:toNSString(text)];
+	[[e->tv textStorage] replaceCharactersInRange:NSMakeRange(0, [[e->tv string] length])
+		withString:toNSString(text)];
+	// must be called explicitly according to the documentation of shouldChangeTextInRange:replacementString:
+	e->changing = YES;
+	[e->tv didChangeText];
+	e->changing = NO;
 }
 
 // TODO scroll to end?
 void uiMultilineEntryAppend(uiMultilineEntry *e, const char *text)
 {
-	// TODO better way?
-	NSString *str;
-
-	// TODO does this send a changed signal?
-	str = [e->tv string];
-	str = [str stringByAppendingString:toNSString(text)];
-	[e->tv setString:str];
+	[[e->tv textStorage] replaceCharactersInRange:NSMakeRange([[e->tv string] length], 0)
+		withString:toNSString(text)];
+	e->changing = YES;
+	[e->tv didChangeText];
+	e->changing = NO;
 }
 
 void uiMultilineEntryOnChanged(uiMultilineEntry *e, void (*f)(uiMultilineEntry *e, void *data), void *data)
@@ -120,7 +124,7 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 
 	uiDarwinNewControl(uiMultilineEntry, e);
 
-	e->tv = [[intrinsicSizeTextView alloc] initWithFrame:NSZeroRect];
+	e->tv = [[intrinsicSizeTextView alloc] initWithFrame:NSZeroRect e:e];
 
 	// verified against Interface Builder for a sufficiently customized text view
 

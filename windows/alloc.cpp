@@ -14,14 +14,15 @@ void initAlloc(void)
 void uninitAlloc(void)
 {
 	std::ostringstream oss;
+	std::string ossstr;		// keep alive, just to be safe
 
 	if (heap.size() == 0)
 		return;
 	for (const auto &alloc : heap)
 		// note the void * cast; otherwise it'll be treated as a string
 		oss << (void *) (alloc.first) << " " << types[alloc.second] << "\n";
-	// TODO keep oss.str() alive?
-	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", oss.str().c_str());
+	ossstr = oss.str();
+	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", ossstr.c_str());
 }
 
 #define rawBytes(pa) (&((*pa)[0]))

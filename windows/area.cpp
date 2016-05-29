@@ -69,7 +69,8 @@ ATOM registerAreaClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	wc.hIcon = hDefaultIcon;
 	wc.hCursor = hDefaultCursor;
 	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
-	// TODO specify CS_HREDRAW/CS_VREDRAW in addition to or instead of calling InvalidateRect(NULL) in WM_WINDOWPOSCHANGED above, or not at all?
+	// this is just to be safe; see the InvalidateRect() call in the WM_WINDOWPOSCHANGED handler for more details
+	wc.style = CS_HREDRAW | CS_VREDRAW;
 	return RegisterClassW(&wc);
 }
 

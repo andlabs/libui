@@ -112,15 +112,6 @@ _UI_EXTERN void uiBoxSetPadded(uiBox *b, int padded);
 _UI_EXTERN uiBox *uiNewHorizontalBox(void);
 _UI_EXTERN uiBox *uiNewVerticalBox(void);
 
-typedef struct uiEntry uiEntry;
-#define uiEntry(this) ((uiEntry *) (this))
-_UI_EXTERN char *uiEntryText(uiEntry *e);
-_UI_EXTERN void uiEntrySetText(uiEntry *e, const char *text);
-_UI_EXTERN void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data);
-_UI_EXTERN int uiEntryReadOnly(uiEntry *e);
-_UI_EXTERN void uiEntrySetReadOnly(uiEntry *e, int readonly);
-_UI_EXTERN uiEntry *uiNewEntry(void);
-
 typedef struct uiCheckbox uiCheckbox;
 #define uiCheckbox(this) ((uiCheckbox *) (this))
 _UI_EXTERN char *uiCheckboxText(uiCheckbox *c);
@@ -129,6 +120,15 @@ _UI_EXTERN void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *c, void
 _UI_EXTERN int uiCheckboxChecked(uiCheckbox *c);
 _UI_EXTERN void uiCheckboxSetChecked(uiCheckbox *c, int checked);
 _UI_EXTERN uiCheckbox *uiNewCheckbox(const char *text);
+
+typedef struct uiEntry uiEntry;
+#define uiEntry(this) ((uiEntry *) (this))
+_UI_EXTERN char *uiEntryText(uiEntry *e);
+_UI_EXTERN void uiEntrySetText(uiEntry *e, const char *text);
+_UI_EXTERN void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data);
+_UI_EXTERN int uiEntryReadOnly(uiEntry *e);
+_UI_EXTERN void uiEntrySetReadOnly(uiEntry *e, int readonly);
+_UI_EXTERN uiEntry *uiNewEntry(void);
 
 typedef struct uiLabel uiLabel;
 #define uiLabel(this) ((uiLabel *) (this))
@@ -167,18 +167,18 @@ _UI_EXTERN void uiSpinboxSetValue(uiSpinbox *s, intmax_t value);
 _UI_EXTERN void uiSpinboxOnChanged(uiSpinbox *s, void (*f)(uiSpinbox *s, void *data), void *data);
 _UI_EXTERN uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max);
 
-typedef struct uiProgressBar uiProgressBar;
-#define uiProgressBar(this) ((uiProgressBar *) (this))
-// TODO uiProgressBarValue()
-_UI_EXTERN void uiProgressBarSetValue(uiProgressBar *p, int n);
-_UI_EXTERN uiProgressBar *uiNewProgressBar(void);
-
 typedef struct uiSlider uiSlider;
 #define uiSlider(this) ((uiSlider *) (this))
 _UI_EXTERN intmax_t uiSliderValue(uiSlider *s);
 _UI_EXTERN void uiSliderSetValue(uiSlider *s, intmax_t value);
 _UI_EXTERN void uiSliderOnChanged(uiSlider *s, void (*f)(uiSlider *s, void *data), void *data);
 _UI_EXTERN uiSlider *uiNewSlider(intmax_t min, intmax_t max);
+
+typedef struct uiProgressBar uiProgressBar;
+#define uiProgressBar(this) ((uiProgressBar *) (this))
+// TODO uiProgressBarValue()
+_UI_EXTERN void uiProgressBarSetValue(uiProgressBar *p, int n);
+_UI_EXTERN uiProgressBar *uiNewProgressBar(void);
 
 typedef struct uiSeparator uiSeparator;
 #define uiSeparator(this) ((uiSeparator *) (this))

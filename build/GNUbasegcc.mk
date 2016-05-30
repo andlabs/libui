@@ -1,11 +1,8 @@
 # 16 october 2015
 
-# TODO the loader looks for the soname, not the base name, which is frustrating
-
 # Global flags.
 
 CFLAGS += \
-	-fPIC \
 	-Wall -Wextra -pedantic \
 	-Wno-unused-parameter \
 	-Wno-switch \
@@ -14,14 +11,17 @@ CFLAGS += \
 # C++11 is needed due to stupid rules involving commas at the end of enum lists that C++03 stupidly didn't follow
 # This means sorry, no GCC 2 for Haiku builds :(
 CXXFLAGS += \
-	-fPIC \
 	-Wall -Wextra -pedantic \
 	-Wno-unused-parameter \
 	-Wno-switch \
 	--std=c++11
 
-LDFLAGS += \
-	-fPIC
+# -fPIC shouldn't be used with static builds (see https://github.com/andlabs/libui/issues/72#issuecomment-222395547)
+ifeq (,$(STATIC))
+CFLAGS += -fPIC
+CXXFLAGS += -fPIC
+LDFLAGS += -fPIC
+endif
 
 ifneq ($(RELEASE),1)
 	CFLAGS += -g

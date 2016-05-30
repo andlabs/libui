@@ -19,7 +19,14 @@ if(APPLE)
 	set(_OSSRCEXT m)
 	set(_SETVERSION TRUE)
 	set(_VERSION "A")
-	set(_LIBUI_LDFLAGS "-framework Foundation -framework AppKit")
+
+	set(_COMMON_CFLAGS
+		"${_COMMON_CFLAGS} -mmacosx-version-min=10.8 -DMACOSX_DEPLOYMENT_TARGET=10.8")
+	set(_COMMON_LDFLAGS
+		"${_COMMON_LDFLAGS} -mmacosx-version-min=10.8")
+
+	set(_LIBUI_LDFLAGS
+		"${_LIBUI_LDFLAGS} -lobjc -framework Foundation -framework AppKit")
 
 	# always use our rpath
 	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
@@ -40,26 +47,58 @@ else()
 	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 endif()
 
+if(MSVC)
+	# TODO
+else()
+	# don't use C_VERSION or CXX_VERSION because they use GNU standards
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
+
+	set(_COMMON_CFLAGS
+		"${_COMMON_CFLAGS} -Wall -Wextra -pedantic")
+	set(_COMMON_CFLAGS
+		"${_COMMON_CFLAGS} -Wno-unused-parameter")
+	set(_COMMON_CFLAGS
+		"${_COMMON_CFLAGS} -Wno-switch")
+	set(_COMMON_LDFLAGS
+		"${_COMMON_LDFLAGS}")
+	if(NOT WIN32)
+		set(_PICFLAG "-fPIC")
+	endif()
+
+	set(_LIBUI_CFLAGS
+		"${_LIBUI_CFLAGS} -D_UI_EXTERN='__attribute__((visibility(\"default\"))) extern' -fvisibility=hidden")
+	set(_LIBUI_LDFLAGS
+		"${_LIBUI_LDFLAGS} -fvisibility=hidden")
+endif()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_COMMON_CFLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_COMMON_CFLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_COMMON_LDFLAGS}")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_COMMON_LDFLAGS} ${_PICFLAG}")
+# don't set ${CMAKE_STATIC_LINKER_FLAGS}; that's just ar
+
 include_directories(. common ${_OSDIR})
 file(GLOB SOURCES
 	common/*.c
 	${_OSDIR}/*.${_OSSRCEXT})
 
-macro(libui _name _mode _setver _exclude)
+macro(libui _name _mode)
 	add_library(${_name} ${_mode} ${SOURCES})
 	set_target_properties(${_name} PROPERTIES
 		OUTPUT_NAME ui)
-	if(${_setver})
+	if("${_mode}" STREQUAL "SHARED")
+		# only put version number on shared build
 		set_target_properties(${_name} PROPERTIES
 			SOVERSION ${_VERSION})
-	endif()
-	# omit libui-static from default builds
-	if(${_exclude})
+	else()
+		# don't build libui-static by default
 		set_target_properties(${_name} PROPERTIES
 			EXCLUDE_FROM_ALL 1)
 	endif()
 	set_target_properties(${_name} PROPERTIES
-			LINK_FLAGS "${_LIBUI_LDFLAGS}")
+		COMPILE_FLAGS "${_LIBUI_CFLAGS}")
+	set_target_properties(${_name} PROPERTIES
+		LINK_FLAGS "${_PICFLAG} ${_LIBUI_LDFLAGS}")
 endmacro()
 
 libui(libui SHARED ${_SETVERSION} FALSE)
@@ -82,6 +121,9 @@ macro(executable_base _name _outname _libui _static)
 	if(${_static})
 		set_target_properties(${_name} PROPERTIES
 			LINK_FLAGS "${_LIBUI_LDFLAGS}")
+	else()
+		set_target_properties(${_name} PROPERTIES
+			LINK_FLAGS "${_PICFLAG}")
 	endif()
 endmacro()
 

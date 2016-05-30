@@ -5,6 +5,14 @@ This README is being written.<br>
 
 ## Announcements
 
+* **29 May 2016**
+	* **Alpha 3 is here!** Get it [here](https://github.com/andlabs/libui/releases/tag/alpha3).
+	* The next packaged release will introduce:
+		* uiGrid, another way to lay out controls, a la GtkGrid
+		* uiOpenGLArea, a way to render OpenGL content in a libui uiArea
+		* uiTable, a data grid control that may or may not have tree facilities (if it does, it will be called uiTree instead)
+		* a complete, possibly rewritten, drawing and text rendering infrastructure
+
 * **24 May 2016**
 	* You can now help choose [a potential new build system for libui](https://github.com/andlabs/libui/issues/62).
 	* Tomorrow I will decide if OS X 10.7 will also be dropped alongside GTK+ 3.4-3.8 this Saturday. Stay tuned.

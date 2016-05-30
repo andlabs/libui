@@ -21,9 +21,6 @@ set(LIBUI_SOURCES
 if(APPLE)
     list(APPEND LIBUI_SOURCES
         ui_darwin.h
-        darwin/main.m
-        darwin/map.m
-        darwin/menu.m
         darwin/alloc.m
         darwin/area.m
         darwin/areaevents.m
@@ -43,9 +40,13 @@ if(APPLE)
         darwin/fontbutton.m
         darwin/group.m
         darwin/label.m
+        darwin/main.m
+        darwin/map.m
+        darwin/menu.m
         darwin/multilineentry.m
         darwin/progressbar.m
         darwin/radiobuttons.m
+        darwin/scrollview.m
         darwin/separator.m
         darwin/slider.m
         darwin/spinbox.m
@@ -96,6 +97,7 @@ if(LIBUI_BUILD_TEST)
     	test/page10.c
     	test/page11.c
     	test/page12.c
+    	test/page13.c
     	test/spaced.c
         test/test.h
     )

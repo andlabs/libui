@@ -62,6 +62,27 @@ extern void uiprivFallbackTransformSize(uiDrawMatrix *, double *, double *);
 // OS-specific text.* files
 extern int uiprivStricmp(const char *a, const char *b);
 
+// opengl.c
+struct uiOpenGLAttributes {
+	int RedBits;
+	int GreenBits;
+	int BlueBits;
+	int AlphaBits;
+	int DepthBits;
+	int StencilBits;
+	int Stereo;
+	int Samples;
+	int SRGBCapable;
+	int DoubleBuffer;
+	int UseOpenGLES;
+	int MajorVersion;
+	int MinorVersion;
+	int ForwardCompat;
+	int DebugContext;
+	int CompatProfile;
+	int Robustness;
+};
+
 #ifdef __cplusplus
 }
 #endif

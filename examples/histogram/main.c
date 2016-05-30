@@ -185,7 +185,7 @@ static int inPoint(double x, double y, double xtest, double ytest)
 		(y <= ytest + pointRadius);
 }
 
-static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
+static void handlerMouseEvent(uiAreaEventHandler *ah, uiControl *c, uiAreaMouseEvent *e)
 {
 	double graphWidth, graphHeight;
 	double xs[10], ys[10];
@@ -205,17 +205,17 @@ static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *
 	uiAreaQueueRedrawAll(histogram);
 }
 
-static void handlerMouseCrossed(uiAreaHandler *ah, uiArea *a, int left)
+static void handlerMouseCrossed(uiAreaEventHandler *ah, uiControl *c, int left)
 {
 	// do nothing
 }
 
-static void handlerDragBroken(uiAreaHandler *ah, uiArea *a)
+static void handlerDragBroken(uiAreaEventHandler *ah, uiControl *c)
 {
 	// do nothing
 }
 
-static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
+static int handlerKeyEvent(uiAreaEventHandler *ah, uiControl *c, uiAreaKeyEvent *e)
 {
 	// reject all keys
 	return 0;
@@ -253,10 +253,10 @@ int main(void)
 	uiDrawBrush brush;
 
 	handler.Draw = handlerDraw;
-	handler.MouseEvent = handlerMouseEvent;
-	handler.MouseCrossed = handlerMouseCrossed;
-	handler.DragBroken = handlerDragBroken;
-	handler.KeyEvent = handlerKeyEvent;
+	handler.eh.MouseEvent = handlerMouseEvent;
+	handler.eh.MouseCrossed = handlerMouseCrossed;
+	handler.eh.DragBroken = handlerDragBroken;
+	handler.eh.KeyEvent = handlerKeyEvent;
 
 	memset(&o, 0, sizeof (uiInitOptions));
 	err = uiInit(&o);

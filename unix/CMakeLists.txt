@@ -35,6 +35,7 @@ list(APPEND _LIBUI_SOURCES
 	unix/main.c
 	unix/menu.c
 	unix/multilineentry.c
+	unix/openglarea.c
 	unix/opentype.c
 	unix/progressbar.c
 	unix/radiobuttons.c
@@ -57,6 +58,7 @@ set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 # TODO the other variables don't work?
 set(_LIBUI_CFLAGS
 	${GTK_CFLAGS}
+	-I/opt/X11/include
 PARENT_SCOPE)
 
 set(_LIBUI_LIBS

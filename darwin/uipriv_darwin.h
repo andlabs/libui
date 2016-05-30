@@ -136,6 +136,7 @@ struct uiprivScrollViewCreateParams {
 	BOOL HScroll;
 	BOOL VScroll;
 };
+
 typedef struct uiprivScrollViewData uiprivScrollViewData;
 extern NSScrollView *uiprivMkScrollView(uiprivScrollViewCreateParams *p, uiprivScrollViewData **dout);
 extern void uiprivScrollViewSetScrolling(NSScrollView *sv, uiprivScrollViewData *d, BOOL hscroll, BOOL vscroll);

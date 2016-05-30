@@ -29,39 +29,6 @@ macro(use_libui TARGET)
     endif()
 endmacro()
 
-if(LIBUI_BUILD_EXAMPLES)
-    add_executable(controlgallery MACOSX_BUNDLE examples/controlgallery/main.c)
-    add_executable(cpp-multithread MACOSX_BUNDLE examples/cpp-multithread/main.cpp)
-    add_executable(histogram MACOSX_BUNDLE examples/histogram/main.c)
-    use_libui(controlgallery)
-    use_libui(cpp-multithread)
-    use_libui(histogram)
-endif()
+add_subdirectory(examples)
+add_subdirectory(test)
 
-if(LIBUI_BUILD_TEST)
-    # The target name "test" is reserved in CMake
-    add_executable(tester MACOSX_BUNDLE
-    	test/drawtests.c
-    	test/main.c
-    	test/menus.c
-    	test/page1.c
-    	test/page2.c
-    	test/page3.c
-    	test/page4.c
-    	test/page5.c
-    	test/page6.c
-    	test/page7.c
-    	test/page7a.c
-    	test/page7b.c
-    	test/page7c.c
-    	test/page8.c
-    	test/page9.c
-    	test/page10.c
-    	test/page11.c
-    	test/page12.c
-    	test/page13.c
-    	test/spaced.c
-        test/test.h
-    )
-    use_libui(tester)
-endif()

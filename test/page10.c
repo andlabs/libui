@@ -10,16 +10,16 @@ static uiCheckbox *noZ;
 static uiArea *textArea;
 static uiAreaHandler textAreaHandler;
 
-static double entryDouble(uiEntry *e)
-{
-	char *s;
-	double d;
-
-	s = uiEntryText(e);
-	d = atof(s);
-	uiFreeText(s);
-	return d;
-}
+//static double entryDouble(uiEntry *e)
+//{
+//	char *s;
+//	double d;
+//
+//	s = uiEntryText(e);
+//	d = atof(s);
+//	uiFreeText(s);
+//	return d;
+//}
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 {

@@ -31,6 +31,9 @@ extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, cons
 // shouldquit.c
 extern int shouldQuit(void);
 
+// ondestroy.c
+extern void OnDestroy(const uiControl *ctl);
+
 // areaevents.c
 typedef struct clickCounter clickCounter;
 // you should call Reset() to zero-initialize a new instance

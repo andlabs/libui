@@ -6,7 +6,7 @@
 #pragma code_page(65001)
 
 // this is the Common Controls 6 manifest
-// TODO set up the string values here
+// LONGTERM set up the string values here
 #ifndef _UI_STATIC
 ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "libui.manifest"
 #endif
@@ -21,8 +21,8 @@ END
 
 // this is for our custom DirectWrite-based font dialog (see fontdialog.cpp)
 // this is based on the "New Font Dialog with Syslink" in Microsoft's font.dlg
-// TODO look at localization
-// TODO make it look tighter and nicer like the real one, including the actual heights of the font family and style comboboxes
+// LONGTERM look at localization
+// LONGTERM make it look tighter and nicer like the real one, including the actual heights of the font family and style comboboxes
 rcFontDialog DIALOGEX 13, 54, 243, 200
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU | DS_3DLOOK
 CAPTION "Font"

@@ -1,7 +1,25 @@
 # 30 may 2016
 cmake_minimum_required(VERSION 2.8.12)
-set(CMAKE_OSX_DEPLOYMENT_TARGET, "10.8")
+
+# set up our configurations
+set(CMAKE_CONFIGURATION_TYPES Debug Static Release ReleaseStatic)
+# we load the variables after calling project()
+
+# and we need to set this up prior to project() too
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+
 project(libui)
+
+# now that we called project(), load our config variables
+macro(cfgcopy _prefix)
+	set(${_prefix}_STATIC "${${_prefix}_DEBUG}")
+	set(${_prefix}_RELEASESTATIC "${${_prefix}_RELEASE}")
+endmacro()
+cfgcopy(CMAKE_C_FLAGS)
+cfgcopy(CMAKE_CXX_FLAGS)
+cfgcopy(CMAKE_SHARED_LINKER_FLAGS)
+cfgcopy(CMAKE_STATIC_LINKER_FLAGS)
+cfgcopy(CMAKE_EXE_LINKER_FLAGS)
 
 set(_NOSHARED FALSE)
 if(WIN32)
@@ -14,6 +32,10 @@ macro(nosharedmingw _target)
 		COMMAND exit 1
 		COMMENT "Sorry, libui for Windows cannot be built as a DLL with MinGW. You will need to either build as a static library or build with MSVC.")
 endmacro(nosharedmingw)
+
+macro(append _var _val)
+	set(${_var} "${${_var}} ${_val}")
+endmacro()
 
 if(APPLE)
 	set(_OSDIR darwin)
@@ -65,11 +87,18 @@ else()
 	set(_COMMON_FLAGS_BASE
 		"-Wall -Wextra -pedantic -Wno-unused-parameter -Wno-switch")
 	# don't use C_VERSION or CXX_VERSION because they use GNU standards
-	set(_COMMON_CFLAGS "${_COMMON_FLAGS_BASE} --std=c99")
-	set(_COMMON_CXX_FLAGS "${_COMMON_FLAGS_BASE} --std=c++11")
+	append(CMAKE_C_FLAGS " --std=c99")
+	append(CMAKE_CXX_FLAGS " --std=c++11")
 
 	if(NOT WIN32)
-		set(_PICFLAG "-fPIC")
+		append(CMAKE_C_FLAGS_DEBUG " -fPIC")
+		append(CMAKE_CXX_FLAGS_DEBUG "  -fPIC")
+		append(CMAKE_SHARED_LINKER_FLAGS_DEBUG " -fPIC")
+		append(CMAKE_EXE_LINKER_FLAGS_DEBUG " -fPIC")
+		append(CMAKE_C_FLAGS_RELEASE " -fPIC")
+		append(CMAKE_CXX_FLAGS_RELEASE " -fPIC")
+		append(CMAKE_SHARED_LINKER_FLAGS_RELEASE " -fPIC")
+		append(CMAKE_EXE_LINKER_FLAGS_RELEASE " -fPIC")
 	endif()
 
 	set(_LIBUI_CFLAGS

@@ -51,7 +51,7 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 		return 0; \
 	}
 #define uiUnixControlDefaultVisible(type) \
-	static int type ## Visible(uiControl *c) \
+	static int type ## Visible(const uiControl *c) \
 	{ \
 		return gtk_widget_get_visible(type(c)->widget); \
 	}
@@ -66,7 +66,7 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 		gtk_widget_hide(type(c)->widget); \
 	}
 #define uiUnixControlDefaultEnabled(type) \
-	static int type ## Enabled(uiControl *c) \
+	static int type ## Enabled(const uiControl *c) \
 	{ \
 		return gtk_widget_get_sensitive(type(c)->widget); \
 	}

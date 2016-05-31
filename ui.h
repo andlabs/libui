@@ -56,10 +56,10 @@ struct uiControl {
 	uiControl *(*Parent)(uiControl *);
 	void (*SetParent)(uiControl *, uiControl *);
 	int (*Toplevel)(uiControl *);
-	int (*Visible)(uiControl *);
+	int (*Visible)(const uiControl *);
 	void (*Show)(uiControl *);
 	void (*Hide)(uiControl *);
-	int (*Enabled)(uiControl *);
+	int (*Enabled)(const uiControl *);
 	void (*Enable)(uiControl *);
 	void (*Disable)(uiControl *);
 };
@@ -70,10 +70,10 @@ _UI_EXTERN uintptr_t uiControlHandle(uiControl *);
 _UI_EXTERN uiControl *uiControlParent(uiControl *);
 _UI_EXTERN void uiControlSetParent(uiControl *, uiControl *);
 _UI_EXTERN int uiControlToplevel(uiControl *);
-_UI_EXTERN int uiControlVisible(uiControl *);
+_UI_EXTERN int uiControlVisible(const uiControl *);
 _UI_EXTERN void uiControlShow(uiControl *);
 _UI_EXTERN void uiControlHide(uiControl *);
-_UI_EXTERN int uiControlEnabled(uiControl *);
+_UI_EXTERN int uiControlEnabled(const uiControl *);
 _UI_EXTERN void uiControlEnable(uiControl *);
 _UI_EXTERN void uiControlDisable(uiControl *);
 
@@ -150,7 +150,7 @@ typedef struct uiGroup uiGroup;
 #define uiGroup(this) ((uiGroup *) (this))
 _UI_EXTERN char *uiGroupTitle(uiGroup *g);
 _UI_EXTERN void uiGroupSetTitle(uiGroup *g, const char *title);
-_UI_EXTERN void uiGroupSetChild(uiGroup *g, uiControl *c);
+_UI_EXTERN void uiGroSetChildup(uiGroup *g, uiControl *c);
 _UI_EXTERN int uiGroupMargined(uiGroup *g);
 _UI_EXTERN void uiGroupSetMargined(uiGroup *g, int margined);
 _UI_EXTERN uiGroup *uiNewGroup(const char *title);

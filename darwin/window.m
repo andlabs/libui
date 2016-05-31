@@ -114,7 +114,7 @@ static int uiWindowToplevel(uiControl *c)
 	return 1;
 }
 
-static int uiWindowVisible(uiControl *c)
+static int uiWindowVisible(const uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
 

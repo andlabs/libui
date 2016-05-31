@@ -27,7 +27,7 @@ int uiControlToplevel(uiControl *c)
 	return (*(c->Toplevel))(c);
 }
 
-int uiControlVisible(uiControl *c)
+int uiControlVisible(const uiControl *c)
 {
 	return (*(c->Visible))(c);
 }
@@ -42,7 +42,7 @@ void uiControlHide(uiControl *c)
 	(*(c->Hide))(c);
 }
 
-int uiControlEnabled(uiControl *c)
+int uiControlEnabled(const uiControl *c)
 {
 	return (*(c->Enabled))(c);
 }

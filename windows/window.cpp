@@ -178,7 +178,7 @@ static int uiWindowToplevel(uiControl *c)
 }
 
 // TODO initial state of windows is hidden; ensure this here and make it so on other platforms
-static int uiWindowVisible(uiControl *c)
+static int uiWindowVisible(const uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
 

@@ -66,7 +66,7 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 		return 0; \
 	}
 #define uiWindowsControlDefaultVisible(type) \
-	static int type ## Visible(uiControl *c) \
+	static int type ## Visible(const uiControl *c) \
 	{ \
 		return uiWindowsControl(c)->visible; \
 	}
@@ -83,7 +83,7 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 		ShowWindow(type(c)->hwnd, SW_HIDE); \
 	}
 #define uiWindowsControlDefaultEnabled(type) \
-	static int type ## Enabled(uiControl *c) \
+	static int type ## Enabled(const uiControl *c) \
 	{ \
 		return uiWindowsControl(c)->enabled; \
 	}

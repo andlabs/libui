@@ -77,6 +77,8 @@ _UI_EXTERN int uiControlEnabled(uiControl *);
 _UI_EXTERN void uiControlEnable(uiControl *);
 _UI_EXTERN void uiControlDisable(uiControl *);
 
+void uiOnDestroy(void (*f)(const uiControl *, void *), void *data);
+
 _UI_EXTERN uiControl *uiAllocControl(size_t n, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
 _UI_EXTERN void uiFreeControl(uiControl *);
 
@@ -249,11 +251,13 @@ _UI_EXTERN void uiMsgBoxError(uiWindow *parent, const char *title, const char *d
 
 typedef struct uiArea uiArea;
 typedef struct uiAreaHandler uiAreaHandler;
+#define uiAreaHandler(this) ((uiAreaHandler *) (this))
 typedef struct uiAreaDrawParams uiAreaDrawParams;
 typedef struct uiAreaMouseEvent uiAreaMouseEvent;
 typedef struct uiAreaKeyEvent uiAreaKeyEvent;
 
 typedef struct uiDrawContext uiDrawContext;
+#define uiDrawContext(this) ((uiDrawContext *) (this))
 
 struct uiAreaHandler {
 	void (*Draw)(uiAreaHandler *, uiArea *, uiAreaDrawParams *);
@@ -290,9 +294,13 @@ struct uiAreaDrawParams {
 };
 
 typedef struct uiDrawPath uiDrawPath;
+#define uiDrawPath(this) ((uiDrawPath *) (this))
 typedef struct uiDrawBrush uiDrawBrush;
+#define uiDrawBrush(this) ((uiDrawBrush *) (this))
 typedef struct uiDrawStrokeParams uiDrawStrokeParams;
+#define uiDrawStrokeParams(this) ((uiDrawStrokeParams *) (this))
 typedef struct uiDrawMatrix uiDrawMatrix;
+#define uiDrawMatrix(this) ((uiDrawMatrix *) (this))
 
 typedef struct uiDrawBrushGradientStop uiDrawBrushGradientStop;
 
@@ -441,9 +449,12 @@ _UI_EXTERN void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff);
 ///// END TODO
 
 typedef struct uiDrawTextLayout uiDrawTextLayout;
+#define uiDrawTextLayout(this) ((uiDrawTextLayout *) (this))
 typedef struct uiDrawTextFont uiDrawTextFont;
+#define uiDrawTextFont(this) ((uiDrawTextFont *) (this))
 typedef struct uiDrawTextFontDescriptor uiDrawTextFontDescriptor;
 typedef struct uiDrawTextFontMetrics uiDrawTextFontMetrics;
+#define uiDrawTextFontMetrics(this) ((uiDrawTextFontMetrics *) (this))
 
 _UI_ENUM(uiDrawTextWeight) {
 	uiDrawTextWeightThin,

@@ -4,6 +4,7 @@
 
 void uiControlDestroy(uiControl *c)
 {
+	OnDestroy(c);
 	(*(c->Destroy))(c);
 }
 

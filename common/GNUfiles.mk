@@ -6,6 +6,7 @@ CFILES += \
 	common/debug.c \
 	common/matrix.c \
 	common/shouldquit.c \
+	common/ondestroy.c \
 	common/userbugs.c
 
 HFILES += \

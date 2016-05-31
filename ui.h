@@ -150,7 +150,7 @@ typedef struct uiGroup uiGroup;
 #define uiGroup(this) ((uiGroup *) (this))
 _UI_EXTERN char *uiGroupTitle(uiGroup *g);
 _UI_EXTERN void uiGroupSetTitle(uiGroup *g, const char *title);
-_UI_EXTERN void uiGroSetChildup(uiGroup *g, uiControl *c);
+_UI_EXTERN void uiGroupSetChild(uiGroup *g, uiControl *c);
 _UI_EXTERN int uiGroupMargined(uiGroup *g);
 _UI_EXTERN void uiGroupSetMargined(uiGroup *g, int margined);
 _UI_EXTERN uiGroup *uiNewGroup(const char *title);

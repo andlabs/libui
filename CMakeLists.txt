@@ -21,8 +21,6 @@ if(APPLE)
 	set(_SETVERSION TRUE)
 	set(_VERSION "A")
 
-	# TODO -DMACOSX_DEPLOYMENT_TARGET=10.8") ?
-
 	set(_PLATFORM_LIBS
 		"-lobjc -framework Foundation -framework AppKit")
 

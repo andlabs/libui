@@ -4,6 +4,10 @@ cmake_minimum_required(VERSION 2.8.12)
 # set up our configurations
 set(CMAKE_CONFIGURATION_TYPES Debug Static Release ReleaseStatic)
 # we load the variables after calling project()
+# default to Debug if no configuration specified
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Debug)
+endif()
 
 # and we need to set this up prior to project() too
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
@@ -35,6 +39,10 @@ endmacro(nosharedmingw)
 
 macro(append _var _val)
 	set(${_var} "${${_var}} ${_val}")
+endmacro()
+macro(append2 _var1 _var2 _val)
+	append(${_var1} "${_val}")
+	append(${_var2} "${_val}")
 endmacro()
 
 if(APPLE)
@@ -74,7 +82,7 @@ else()
 	set(_VERSION "0")
 
 	pkg_check_modules(GTK REQUIRED gtk+-3.0)
-	set(_PLATFORM_CFLAGS "${GTK_CFLAGS}")
+	set(_LIBUI_CFLAGS "${GTK_CFLAGS}")
 	set(_PLATFORM_LIBS "${GTK_LDFLAGS} -lm -ldl")
 
 	# always use our rpath
@@ -84,8 +92,8 @@ endif()
 if(MSVC)
 	# TODO
 else()
-	set(_COMMON_FLAGS_BASE
-		"-Wall -Wextra -pedantic -Wno-unused-parameter -Wno-switch")
+	append2(CMAKE_C_FLAGS CMAKE_CXX_FLAGS
+		" -Wall -Wextra -pedantic -Wno-unused-parameter -Wno-switch")
 	# don't use C_VERSION or CXX_VERSION because they use GNU standards
 	append(CMAKE_C_FLAGS " --std=c99")
 	append(CMAKE_CXX_FLAGS " --std=c++11")
@@ -101,123 +109,16 @@ else()
 		append(CMAKE_EXE_LINKER_FLAGS_RELEASE " -fPIC")
 	endif()
 
-	set(_LIBUI_CFLAGS
-		"-D_UI_EXTERN='__attribute__((visibility(\"default\"))) extern' -fvisibility=hidden ${_PLATFORM_CFLAGS}")
-	set(_LIBUI_LDFLAGS
-		"-fvisibility=hidden")
+	append(_LIBUI_CFLAGS
+		" -D_UI_EXTERN='__attribute__((visibility(\"default\"))) extern' -fvisibility=hidden ${_PLATFORM_CFLAGS}")
+
+	append(CMAKE_SHARED_LINKER_FLAGS " -fvisibility=hidden")
+	# don't amend CMAKE_STATIC_LINKER_FLAGS; that's for ar
 endif()
 
-set(_COMMON_C_FLAGS
-	"${CMAKE_C_FLAGS} ${_COMMON_C_FLAGS}")
-set(_COMMON_CXX_FLAGS
-	"${CMAKE_CXX_FLAGS} ${_COMMON_C_FLAGS}")
+# and add the platform libraries to the three places that need it: shared library links and the two static executable links
+append(CMAKE_SHARED_LINKER_FLAGS " ${_PLATFORM_LIBS}")
+append2(CMAKE_EXE_LINKER_FLAGS_STATIC CMAKE_EXE_LINKER_FLAGS_RUNTIMESTATIC
+	" ${_PLATFORM_LIBS}")
 
-set(_LIBUI_SHARED_CFLAGS
-	"${_COMMON_CFLAGS} ${_LIBUI_CFLAGS} ${_PICFLAG}")
-set(_LIBUI_STATIC_CFLAGS
-	"${_COMMON_CFLAGS} ${_LIBUI_CFLAGS}")
-set(_LIBUI_SHARED_CXXFLAGS
-	"${_COMMON_CXXFLAGS} ${_LIBUI_CFLAGS} ${_PICFLAG}")
-set(_LIBUI_STATIC_CXXFLAGS
-	"${_COMMON_CXXFLAGS} ${_LIBUI_CFLAGS}")
-set(_LIBUI_SHARED_LDFLAGS
-	"${CMAKE_SHARED_LINKER_FLAGS} ${_COMMON_LDFLAGS} ${_LIBUI_LDFLAGS} ${_PLATFORM_LDFLAGS} ${_PICFLAG}")
-set(_LIBUI_STATIC_LDFLAGS
-	"${_COMMON_LDFLAGS} ${_LIBUI_LDFLAGS}")
-
-set(_EXE_SHARED_CFLAGS
-	"${_COMMON_CFLAGS} ${_PICFLAG}")
-set(_EXE_STATIC_CFLAGS
-	"${_COMMON_CFLAGS}")
-set(_EXE_SHARED_CXXFLAGS
-	"${_COMMON_CXXFLAGS} ${_PICFLAG}")
-set(_EXE_STATIC_CXXFLAGS
-	"${_COMMON_CXXFLAGS}")
-set(_EXE_SHARED_LDFLAGS
-	"${CMAKE_SHARED_LINKER_FLAGS} ${_COMMON_LDFLAGS} ${_PICFLAG}")
-set(_EXE_STATIC_LDFLAGS
-	"${_COMMON_LDFLAGS} ${_PLATFORM_LDFLAGS}")
-
-set(_LIBUI_HEADERS . common ${_OSDIR})
-file(GLOB _LIBUI_SOURCES
-	common/*.c
-	${_OSDIR}/*.${_OSSRCEXT})
-
-macro(_begin_shared _cflags _cxxflags _ldflags)
-	set(CMAKE_C_FLAGS "${_cflags}")
-	set(CMAKE_CXX_FLAGS "${_cxxflags}")
-	set(CMAKE_SHARED_LINKER_FLAGS "${_ldflags}")
-endmacro()
-
-macro(libui _name _mode)
-	add_library(${_name} ${_mode} ${SOURCES})
-	set_target_properties(${_name} PROPERTIES
-		OUTPUT_NAME ui)
-	if("${_mode}" STREQUAL "SHARED")
-		# only put version number on shared build
-		set_target_properties(${_name} PROPERTIES
-			SOVERSION ${_VERSION})
-	else()
-		# don't build libui-static by default
-		set_target_properties(${_name} PROPERTIES
-			EXCLUDE_FROM_ALL 1)
-	endif()
-	set_target_properties(${_name} PROPERTIES
-		COMPILE_FLAGS "${_LIBUI_CFLAGS}")
-	set_target_properties(${_name} PROPERTIES
-		LINK_FLAGS "${_PICFLAG} ${_LIBUI_LDFLAGS}")
-endmacro()
-
-libui(libui SHARED ${_SETVERSION} FALSE)
-if(${_NOSHARED})
-	nosharedmingw(libui-static)
-else()
-	libui(libui-static STATIC FALSE TRUE)
-endif()
-
-include_directories(test)
-file(GLOB TESTSOURCES test/*.c)
-
-macro(executable_base _name _outname _libui _static)
-	add_executable(${_name} ${XSRC})
-	set_target_properties(${_name} PROPERTIES
-		OUTPUT_NAME ${_outname}
-		EXCLUDE_FROM_ALL 1)
-	target_link_libraries(${_name} ${_libui})
-	# be sure to include libui libraries in the output
-	if(${_static})
-		set_target_properties(${_name} PROPERTIES
-			LINK_FLAGS "${_LIBUI_LDFLAGS}")
-	else()
-		set_target_properties(${_name} PROPERTIES
-			LINK_FLAGS "${_PICFLAG}")
-	endif()
-endmacro()
-
-macro(executable _name _outname _dir)
-	include_directories(${_dir})
-	file(GLOB XSRC ${_dir}/*.c ${_dir}/*.cpp)
-	executable_base(${_name} ${_outname} libui FALSE)
-	if(${_NOSHARED})
-		nosharedmingw(${_name}-static)
-	else()
-		executable_base(${_name}-static ${_outname} libui-static TRUE)
-	endif()
-	set(XSRC)
-endmacro()
-
-executable(tester test test)
-executable(controlgallery controlgallery examples/controlgallery)
-executable(histogram histogram examples/histogram)
-executable(cpp-multithread cpp-multithread examples/cpp-multithread)
-
-add_custom_target(examples
-	DEPENDS
-		controlgallery
-		histogram
-		cpp-multithread)
-add_custom_target(examples-static
-	DEPENDS
-		controlgallery-static
-		histogram-static
-		cpp-multithread-static)
+add_subdirectory("common")

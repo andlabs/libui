@@ -1,5 +1,6 @@
 # 30 may 2016
 cmake_minimum_required(VERSION 2.8.12)
+set(CMAKE_OSX_DEPLOYMENT_TARGET, "10.8")
 project(libui)
 
 set(_NOSHARED FALSE)
@@ -20,13 +21,10 @@ if(APPLE)
 	set(_SETVERSION TRUE)
 	set(_VERSION "A")
 
-	set(_COMMON_CFLAGS
-		"${_COMMON_CFLAGS} -mmacosx-version-min=10.8 -DMACOSX_DEPLOYMENT_TARGET=10.8")
-	set(_COMMON_LDFLAGS
-		"${_COMMON_LDFLAGS} -mmacosx-version-min=10.8")
+	# TODO -DMACOSX_DEPLOYMENT_TARGET=10.8") ?
 
-	set(_LIBUI_LDFLAGS
-		"${_LIBUI_LDFLAGS} -lobjc -framework Foundation -framework AppKit")
+	set(_PLATFORM_LIBS
+		"-lobjc -framework Foundation -framework AppKit")
 
 	# always use our rpath
 	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
@@ -37,11 +35,27 @@ elseif(WIN32)
 	set(_OSDIR windows)
 	set(_OSSRCEXT cpp)
 	set(_SETVERSION FALSE)
+
+	# note that usp10 comes before gdi32
+	# TODO prune this list
+	set(_PLATFORM_LIBS_BASE
+		user32 kernel32 usp10 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid)
+	if(MSVC)
+		string(REPLACE ";" ".lib " _PLATFORM_LIBS "${_PLATFORM_LIBS_BASE}")
+		set(_PLATFORM_LIBS "${_PLATFORM_LIBS}.lib")
+	else()
+		string(REPLACE ";" " -l" _PLATFORM_LIBS "${_PLATFORM_LIBS_BASE}")
+		set(_PLATFORM_LIBS "-l${_PLATFORM_LIBS}")
+	endif()
 else()
 	set(_OSDIR unix)
 	set(_OSSRCEXT c)
 	set(_SETVERSION TRUE)
 	set(_VERSION "0")
+
+	pkg_check_modules(GTK REQUIRED gtk+-3.0)
+	set(_PLATFORM_CFLAGS "${GTK_CFLAGS}")
+	set(_PLATFORM_LIBS "${GTK_LDFLAGS} -lm -ldl")
 
 	# always use our rpath
 	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
@@ -50,37 +64,63 @@ endif()
 if(MSVC)
 	# TODO
 else()
+	set(_COMMON_FLAGS_BASE
+		"-Wall -Wextra -pedantic -Wno-unused-parameter -Wno-switch")
 	# don't use C_VERSION or CXX_VERSION because they use GNU standards
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
+	set(_COMMON_CFLAGS "${_COMMON_FLAGS_BASE} --std=c99")
+	set(_COMMON_CXX_FLAGS "${_COMMON_FLAGS_BASE} --std=c++11")
 
-	set(_COMMON_CFLAGS
-		"${_COMMON_CFLAGS} -Wall -Wextra -pedantic")
-	set(_COMMON_CFLAGS
-		"${_COMMON_CFLAGS} -Wno-unused-parameter")
-	set(_COMMON_CFLAGS
-		"${_COMMON_CFLAGS} -Wno-switch")
-	set(_COMMON_LDFLAGS
-		"${_COMMON_LDFLAGS}")
 	if(NOT WIN32)
 		set(_PICFLAG "-fPIC")
 	endif()
 
 	set(_LIBUI_CFLAGS
-		"${_LIBUI_CFLAGS} -D_UI_EXTERN='__attribute__((visibility(\"default\"))) extern' -fvisibility=hidden")
+		"-D_UI_EXTERN='__attribute__((visibility(\"default\"))) extern' -fvisibility=hidden ${_PLATFORM_CFLAGS}")
 	set(_LIBUI_LDFLAGS
-		"${_LIBUI_LDFLAGS} -fvisibility=hidden")
+		"-fvisibility=hidden")
 endif()
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_COMMON_CFLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_COMMON_CFLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_COMMON_LDFLAGS}")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_COMMON_LDFLAGS} ${_PICFLAG}")
-# don't set ${CMAKE_STATIC_LINKER_FLAGS}; that's just ar
 
-include_directories(. common ${_OSDIR})
-file(GLOB SOURCES
+set(_COMMON_C_FLAGS
+	"${CMAKE_C_FLAGS} ${_COMMON_C_FLAGS}")
+set(_COMMON_CXX_FLAGS
+	"${CMAKE_CXX_FLAGS} ${_COMMON_C_FLAGS}")
+
+set(_LIBUI_SHARED_CFLAGS
+	"${_COMMON_CFLAGS} ${_LIBUI_CFLAGS} ${_PICFLAG}")
+set(_LIBUI_STATIC_CFLAGS
+	"${_COMMON_CFLAGS} ${_LIBUI_CFLAGS}")
+set(_LIBUI_SHARED_CXXFLAGS
+	"${_COMMON_CXXFLAGS} ${_LIBUI_CFLAGS} ${_PICFLAG}")
+set(_LIBUI_STATIC_CXXFLAGS
+	"${_COMMON_CXXFLAGS} ${_LIBUI_CFLAGS}")
+set(_LIBUI_SHARED_LDFLAGS
+	"${CMAKE_SHARED_LINKER_FLAGS} ${_COMMON_LDFLAGS} ${_LIBUI_LDFLAGS} ${_PLATFORM_LDFLAGS} ${_PICFLAG}")
+set(_LIBUI_STATIC_LDFLAGS
+	"${_COMMON_LDFLAGS} ${_LIBUI_LDFLAGS}")
+
+set(_EXE_SHARED_CFLAGS
+	"${_COMMON_CFLAGS} ${_PICFLAG}")
+set(_EXE_STATIC_CFLAGS
+	"${_COMMON_CFLAGS}")
+set(_EXE_SHARED_CXXFLAGS
+	"${_COMMON_CXXFLAGS} ${_PICFLAG}")
+set(_EXE_STATIC_CXXFLAGS
+	"${_COMMON_CXXFLAGS}")
+set(_EXE_SHARED_LDFLAGS
+	"${CMAKE_SHARED_LINKER_FLAGS} ${_COMMON_LDFLAGS} ${_PICFLAG}")
+set(_EXE_STATIC_LDFLAGS
+	"${_COMMON_LDFLAGS} ${_PLATFORM_LDFLAGS}")
+
+set(_LIBUI_HEADERS . common ${_OSDIR})
+file(GLOB _LIBUI_SOURCES
 	common/*.c
 	${_OSDIR}/*.${_OSSRCEXT})
+
+macro(_begin_shared _cflags _cxxflags _ldflags)
+	set(CMAKE_C_FLAGS "${_cflags}")
+	set(CMAKE_CXX_FLAGS "${_cxxflags}")
+	set(CMAKE_SHARED_LINKER_FLAGS "${_ldflags}")
+endmacro()
 
 macro(libui _name _mode)
 	add_library(${_name} ${_mode} ${SOURCES})

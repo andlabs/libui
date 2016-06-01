@@ -51,7 +51,6 @@ endmacro()
 
 if(APPLE)
 	set(_OSDIR darwin)
-	set(_OSSRCEXT m)
 	set(_SETVERSION TRUE)
 	set(_VERSION "A")
 
@@ -65,7 +64,6 @@ if(APPLE)
 	set(CMAKE_MACOSX_RPATH TRUE)
 elseif(WIN32)
 	set(_OSDIR windows)
-	set(_OSSRCEXT cpp)
 	set(_SETVERSION FALSE)
 
 	# note that usp10 comes before gdi32
@@ -81,7 +79,6 @@ elseif(WIN32)
 	endif()
 else()
 	set(_OSDIR unix)
-	set(_OSSRCEXT c)
 	set(_SETVERSION TRUE)
 	set(_VERSION "0")
 
@@ -144,3 +141,15 @@ else()
 endif()
 set_target_properties(libui PROPERTIES
 	OUTPUT_NAME ui)
+
+macro(_add_exec _name)
+	add_executable(${_name}
+		WIN32 EXCLUDE_FROM_ALL
+		${ARGN})
+	target_link_libraries(${_name} libui)
+endmacro()
+
+add_subdirectory("test")
+set_target_properties(tester PROPERTIES
+	OUTPUT_NAME test
+	WIN32_EXECUTABLE FALSE)

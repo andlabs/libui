@@ -30,6 +30,9 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
 
 project(libui)
 
+set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/out")
+set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/out")
+
 # now that we called project(), load our config variables
 macro(cfgcopy _prefix)
 	set(${_prefix}_STATIC "${${_prefix}_DEBUG}")

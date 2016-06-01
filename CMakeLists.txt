@@ -6,8 +6,24 @@ set(CMAKE_CONFIGURATION_TYPES Debug Static Release ReleaseStatic)
 # we load the variables after calling project()
 # default to Debug if no configuration specified
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Debug)
+	# the CACHE FORCE is necessary for this to work properly
+	set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type; one of: Debug Release Static ReleaseStatic" FORCE)
 endif()
+# and save whether this is shared in a variable
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	set(_SHARED TRUE)
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+	set(_SHARED TRUE)
+endif()
+if(WIN32)
+	if(NOT MSVC)
+		if(_SHARED)
+			message(FATAL_ERROR
+				"Sorry, libui for Windows cannot be built as a DLL with MinGW. You will need to either build as a static library or build with MSVC.")
+		endif()
+	endif()
+endif()
+
 
 # and we need to set this up prior to project() too
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
@@ -24,18 +40,6 @@ cfgcopy(CMAKE_CXX_FLAGS)
 cfgcopy(CMAKE_SHARED_LINKER_FLAGS)
 cfgcopy(CMAKE_STATIC_LINKER_FLAGS)
 cfgcopy(CMAKE_EXE_LINKER_FLAGS)
-
-set(_NOSHARED FALSE)
-if(WIN32)
-	if(NOT MSVC)
-		set(_NOSHARED TRUE)
-	endif()
-endif()
-macro(nosharedmingw _target)
-	add_custom_target(${_target}
-		COMMAND exit 1
-		COMMENT "Sorry, libui for Windows cannot be built as a DLL with MinGW. You will need to either build as a static library or build with MSVC.")
-endmacro(nosharedmingw)
 
 macro(append _var _val)
 	set(${_var} "${${_var}} ${_val}")
@@ -122,3 +126,21 @@ append2(CMAKE_EXE_LINKER_FLAGS_STATIC CMAKE_EXE_LINKER_FLAGS_RUNTIMESTATIC
 	" ${_PLATFORM_LIBS}")
 
 add_subdirectory("common")
+add_subdirectory("${_OSDIR}")
+if(_SHARED)
+	add_library(libui SHARED
+		$<TARGET_OBJECTS:libui-common>
+		$<TARGET_OBJECTS:libui-${_OSDIR}>
+	)
+	if(_SETVERSION)
+		set_target_properties(libui PROPERTIES
+			SOVERSION "${_VERSION}")
+	endif()
+else()
+	_add_static(libui
+		$<TARGET_OBJECTS:libui-common>
+		$<TARGET_OBJECTS:libui-${_OSDIR}>
+	)
+endif()
+set_target_properties(libui PROPERTIES
+	OUTPUT_NAME ui)

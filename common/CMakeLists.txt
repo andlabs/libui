@@ -12,5 +12,4 @@ add_library(libui-common OBJECT
 )
 set_target_properties(libui-common PROPERTIES
 	COMPILE_FLAGS "${_LIBUI_CFLAGS}"
-	LINK_FLAGS "${_LIBUI_LDFLAGS}"
 )

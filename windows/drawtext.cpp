@@ -79,6 +79,8 @@ uiDrawTextFont *mkTextFont(IDWriteFont *df, BOOL addRef, WCHAR *family, BOOL cop
 
 // TODO consider moving these all to dwrite.cpp
 
+// TODO MinGW-w64 is missing this one
+#define DWRITE_FONT_WEIGHT_SEMI_LIGHT (DWRITE_FONT_WEIGHT(350))
 static const struct {
 	bool lastOne;
 	uiDrawTextWeight uival;

@@ -8,7 +8,8 @@ struct handler {
 	uiControl *c;
 
 	// just to ensure handlers[new HWND] initializes properly
-	struct handler()
+	// TODO gcc can't handle a struct keyword here? or is that a MSVC extension?
+	handler()
 	{
 		this->commandHandler = NULL;
 		this->notifyHandler = NULL;

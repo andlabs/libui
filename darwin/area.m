@@ -175,6 +175,7 @@ struct uiArea {
 		// we include the button that triggered the dragged event in the Held fields
 		buttonNumber = 0;
 		break;
+    default: ;
 	}
 
 	me.Modifiers = [self parseModifiers:e];
@@ -377,6 +378,7 @@ int sendAreaEvents(NSEvent *e)
 		return [view doKeyUp:e];
 	case NSFlagsChanged:
 		return [view doFlagsChanged:e];
+    default: ;
 	}
 	return 0;
 }

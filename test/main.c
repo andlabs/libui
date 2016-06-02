@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 	uiWindow *w;
 	uiBox *page2, *page3, *page4, *page5;
 	uiBox *page6, *page7, *page8, *page9, *page10;
-	uiBox *page11, *page12, *page13;
+	uiBox *page12, *page13;
 	uiTab *outerTab;
 	uiTab *innerTab;
 	int nomenus = 0;

@@ -1,8 +1,10 @@
 # 30 may 2016
 cmake_minimum_required(VERSION 2.8.12)
 
+project(libui)
+
 # set up our configurations
-set(CMAKE_CONFIGURATION_TYPES Debug Static Release ReleaseStatic)
+set(CMAKE_CONFIGURATION_TYPES Debug DebugStatic Release ReleaseStatic)
 # we load the variables after calling project()
 # default to Debug if no configuration specified
 if(NOT CMAKE_BUILD_TYPE)
@@ -10,25 +12,17 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type; one of: Debug Release Static ReleaseStatic" FORCE)
 endif()
 # and save whether this is shared in a variable
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-	set(_SHARED TRUE)
-elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR
+   ${CMAKE_BUILD_TYPE} STREQUAL "Release")
 	set(_SHARED TRUE)
 endif()
 
 # and we need to set this up prior to project() too
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
 
-project(libui)
-
-# TODO can this be above the project()?
-if(WIN32)
-	if(NOT MSVC)
-		if(_SHARED)
-			message(FATAL_ERROR
-				"Sorry, libui for Windows cannot be built as a DLL with MinGW. You will need to either build as a static library or build with MSVC.")
-		endif()
-	endif()
+if(WIN32 AND NOT MSVC AND _SHARED)
+	message(FATAL_ERROR
+		"Sorry, libui for Windows cannot be built as a DLL with MinGW. You will need to either build as a static library or build with MSVC.")
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")

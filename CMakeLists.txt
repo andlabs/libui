@@ -103,10 +103,11 @@ if(MSVC)
 	# LONGTERM still needed?
 	append(CMAKE_CXX_FLAGS " -EHsc")
 
+	# note the /MANIFEST:NO (which must be / and uppercase); thanks FraGag (https://github.com/andlabs/libui/issues/93#issuecomment-223183436)
 	append2(CMAKE_SHARED_LINKER_FLAGS CMAKE_STATIC_LINKER_FLAGS
-		" -largeaddressaware -incremental:no")
+		" /LARGEADDRESSAWARE /INCREMENTAL:NO /MANIFEST:NO")
 	append(CMAKE_EXE_LINKER_FLAGS
-		" -largeaddressaware -incremental:no")
+		" /LARGEADDRESSAWARE /INCREMENTAL:NO /MANIFEST:NO")
 else()
 	append2(CMAKE_C_FLAGS CMAKE_CXX_FLAGS
 		" -Wall -Wextra -pedantic -Wno-unused-parameter -Wno-switch")
@@ -159,8 +160,11 @@ else()
 		$<TARGET_OBJECTS:libui-${_OSDIR}>
 	)
 endif()
-set_target_properties(libui PROPERTIES
-	OUTPUT_NAME ui)
+# non-Windows platforms add an extra lib- at the beginning
+if(NOT WIN32)
+	set_target_properties(libui PROPERTIES
+		OUTPUT_NAME ui)
+endif()
 
 macro(_add_exec _name)
 	add_executable(${_name}

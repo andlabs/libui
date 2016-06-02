@@ -1,6 +1,9 @@
 # 30 may 2016
 cmake_minimum_required(VERSION 2.8.12)
 
+# TODOs
+# - ensure all set_target_properties() calls are approrpiately set, APPEND, and APPEND_STRING
+
 # set up our configurations
 set(CMAKE_CONFIGURATION_TYPES Debug Static Release ReleaseStatic)
 # we load the variables after calling project()
@@ -170,11 +173,11 @@ if(NOT WIN32)
 endif()
 # let cmake handle quoting and escaping for us
 if(WIN32)
-	set_target_properties(libui PROPERTIES
-		COMPILE_DEFINITIONS "_UI_EXTERN=__declspec(dllexport) extern")
+	target_compile_definitions(libui
+		PRIVATE "_UI_EXTERN=__declspec(dllexport) extern")
 else()
-	set_target_properties(libui PROPERTIES
-		COMPILE_DEFINITIONS "_UI_EXTERN=__attribute__((visibility(\"default\"))) extern")
+	target_compile_definitions(libui
+		PRIVATE "_UI_EXTERN=__attribute__((visibility(\"default\"))) extern")
 endif()
 
 macro(_add_exec _name)

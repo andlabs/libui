@@ -30,8 +30,10 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
 
 project(libui)
 
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/out")
-set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/out")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
+set(CMAKE_PDB_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
 
 # now that we called project(), load our config variables
 macro(cfgcopy _prefix)
@@ -58,7 +60,8 @@ if(APPLE)
 	set(_VERSION "A")
 
 	set(_PLATFORM_LIBS
-		"-lobjc -framework Foundation -framework AppKit")
+		-lobjc "-framework Foundation" "-framework AppKit"
+	)
 
 	# always use our rpath
 	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
@@ -71,26 +74,22 @@ elseif(WIN32)
 
 	# note that usp10 comes before gdi32
 	# TODO prune this list
-	set(_PLATFORM_LIBS_BASE
-		user32 kernel32 usp10 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid)
-	if(MSVC)
-		string(REPLACE ";" ".lib " _PLATFORM_LIBS "${_PLATFORM_LIBS_BASE}")
-		set(_PLATFORM_LIBS "${_PLATFORM_LIBS}.lib")
-	else()
-		string(REPLACE ";" " -l" _PLATFORM_LIBS "${_PLATFORM_LIBS_BASE}")
-		set(_PLATFORM_LIBS "-l${_PLATFORM_LIBS}")
-	endif()
+	set(_PLATFORM_LIBS
+		user32 kernel32 usp10 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
+	)
 else()
 	set(_OSDIR unix)
 	set(_SETVERSION TRUE)
 	set(_VERSION "0")
 
+	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(GTK REQUIRED gtk+-3.0)
-	set(_LIBUI_CFLAGS "${GTK_CFLAGS}")
+	string(REPLACE ";" " " _LIBUI_CFLAGS "${GTK_CFLAGS}")
 	set(_PLATFORM_LIBS "${GTK_LDFLAGS} -lm -ldl")
 
 	# always use our rpath
 	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	set(CMAKE_INSTALL_RPATH "\$ORIGIN")
 endif()
 
 if(MSVC)
@@ -120,11 +119,6 @@ else()
 	# don't amend CMAKE_STATIC_LINKER_FLAGS; that's for ar
 endif()
 
-# and add the platform libraries to the three places that need it: shared library links and the two static executable links
-append(CMAKE_SHARED_LINKER_FLAGS " ${_PLATFORM_LIBS}")
-append2(CMAKE_EXE_LINKER_FLAGS_STATIC CMAKE_EXE_LINKER_FLAGS_RUNTIMESTATIC
-	" ${_PLATFORM_LIBS}")
-
 add_subdirectory("common")
 add_subdirectory("${_OSDIR}")
 if(_SHARED)
@@ -136,6 +130,7 @@ if(_SHARED)
 		set_target_properties(libui PROPERTIES
 			SOVERSION "${_VERSION}")
 	endif()
+	target_link_libraries(libui PRIVATE ${_PLATFORM_LIBS})
 else()
 	_add_static(libui
 		$<TARGET_OBJECTS:libui-common>
@@ -150,6 +145,9 @@ macro(_add_exec _name)
 		WIN32 EXCLUDE_FROM_ALL
 		${ARGN})
 	target_link_libraries(${_name} libui)
+	if(NOT _SHARED)
+		target_link_libraries(${_name} ${_PLATFORM_LIBS})
+	endif()
 endmacro()
 
 add_subdirectory("test")

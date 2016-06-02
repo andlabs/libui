@@ -15,6 +15,13 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
 	set(_SHARED TRUE)
 endif()
+
+# and we need to set this up prior to project() too
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+
+project(libui)
+
+# TODO can this be above the project()?
 if(WIN32)
 	if(NOT MSVC)
 		if(_SHARED)
@@ -23,12 +30,6 @@ if(WIN32)
 		endif()
 	endif()
 endif()
-
-
-# and we need to set this up prior to project() too
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
-
-project(libui)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
@@ -77,6 +78,8 @@ elseif(WIN32)
 	set(_PLATFORM_LIBS
 		user32 kernel32 usp10 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
 	)
+
+	set(_RESOURCES_RC resources.rc)
 else()
 	set(_OSDIR unix)
 	set(_SETVERSION TRUE)
@@ -112,8 +115,13 @@ else()
 		append(CMAKE_EXE_LINKER_FLAGS_RELEASE " -fPIC")
 	endif()
 
-	append(_LIBUI_CFLAGS
-		" -D_UI_EXTERN='__attribute__((visibility(\"default\"))) extern' -fvisibility=hidden ${_PLATFORM_CFLAGS}")
+	if(WIN32)
+		append(_LIBUI_CFLAGS
+			" -D _UI_EXTERN=\"__declspec(dllexport) extern\" ${_PLATFORM_CFLAGS}")
+	else()
+		append(_LIBUI_CFLAGS
+			" -D_UI_EXTERN='__attribute__((visibility(\"default\"))) extern' -fvisibility=hidden ${_PLATFORM_CFLAGS}")
+	endif()
 
 	append(CMAKE_SHARED_LINKER_FLAGS " -fvisibility=hidden")
 	# don't amend CMAKE_STATIC_LINKER_FLAGS; that's for ar
@@ -143,7 +151,8 @@ set_target_properties(libui PROPERTIES
 macro(_add_exec _name)
 	add_executable(${_name}
 		WIN32 EXCLUDE_FROM_ALL
-		${ARGN})
+		${ARGN}
+		${_RESOURCES_RC})
 	target_link_libraries(${_name} libui)
 	if(NOT _SHARED)
 		target_link_libraries(${_name} ${_PLATFORM_LIBS})
@@ -155,4 +164,8 @@ set_target_properties(tester PROPERTIES
 	OUTPUT_NAME test
 	WIN32_EXECUTABLE FALSE)
 
+# the same resources.rc is shared by all the examples
+if(_RESOURCES_RC)
+	set(_RESOURCES_RC "../${_RESOURCES_RC}")
+endif()
 add_subdirectory("examples")

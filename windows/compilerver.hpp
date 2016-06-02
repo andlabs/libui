@@ -8,9 +8,6 @@
 #endif
 #endif
 
-// MinGW
-#ifdef __MINGW32__
-#error At present, MinGW is not supported; see README.md for details.
-#endif
+// LONGTERM MinGW
 
 // other compilers can be added here as necessary

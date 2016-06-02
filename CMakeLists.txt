@@ -1,6 +1,8 @@
 # 30 may 2016
 cmake_minimum_required(VERSION 2.8.12)
 
+project(libui)
+
 # set up our configurations
 set(CMAKE_CONFIGURATION_TYPES Debug DebugStatic Release ReleaseStatic)
 # we load the variables after calling project()

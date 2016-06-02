@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 
 # set up our configurations
-set(CMAKE_CONFIGURATION_TYPES Debug Static Release ReleaseStatic)
+set(CMAKE_CONFIGURATION_TYPES Debug DebugStatic Release ReleaseStatic)
 # we load the variables after calling project()
 # default to Debug if no configuration specified
 if(NOT CMAKE_BUILD_TYPE)

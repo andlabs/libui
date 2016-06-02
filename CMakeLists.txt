@@ -97,16 +97,15 @@ endif()
 
 if(MSVC)
 	append2(CMAKE_C_FLAGS CMAKE_CXX_FLAGS
-		"-W4 -wd4100 -bigobj -RTC1 -RTCs -RTCu")
+		"/W4 /wd4100 /bigobj /RTC1 /RTCs /RTCu")
 
 	# shut the compiler up in some cases
 	# LONGTERM still needed?
-	append(CMAKE_CXX_FLAGS " -EHsc")
+	append(CMAKE_CXX_FLAGS " /EHsc")
 
 	# note the /MANIFEST:NO (which must be / and uppercase); thanks FraGag (https://github.com/andlabs/libui/issues/93#issuecomment-223183436)
-	append2(CMAKE_SHARED_LINKER_FLAGS CMAKE_STATIC_LINKER_FLAGS
-		" /LARGEADDRESSAWARE /INCREMENTAL:NO /MANIFEST:NO")
-	append(CMAKE_EXE_LINKER_FLAGS
+	# also don't apply to CMAKE_STATIC_LINKER_FLAGS; those are passed to a different tool that doesn't support them
+	append2(CMAKE_SHARED_LINKER_FLAGS CMAKE_EXE_LINKER_FLAGS
 		" /LARGEADDRESSAWARE /INCREMENTAL:NO /MANIFEST:NO")
 else()
 	append2(CMAKE_C_FLAGS CMAKE_CXX_FLAGS

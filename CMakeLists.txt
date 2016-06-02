@@ -78,6 +78,10 @@ elseif(WIN32)
 	set(_PLATFORM_LIBS
 		user32 kernel32 usp10 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
 	)
+	# and don't include the default libraries
+	# note the CACHE FORCE stuff is required here
+	set(CMAKE_C_STANDARD_LIBRARIES CACHE STRING "" FORCE)
+	set(CMAKE_CXX_STANDARD_LIBRARIES CACHE STRING "" FORCE)
 
 	set(_RESOURCES_RC resources.rc)
 else()
@@ -103,6 +107,8 @@ if(MSVC)
 	# LONGTERM still needed?
 	append(CMAKE_CXX_FLAGS " /EHsc")
 
+	append(_LIBUI_CFLAGS " ${_PLATFORM_CFLAGS}")
+
 	# note the /MANIFEST:NO (which must be / and uppercase); thanks FraGag (https://github.com/andlabs/libui/issues/93#issuecomment-223183436)
 	# also don't apply to CMAKE_STATIC_LINKER_FLAGS; those are passed to a different tool that doesn't support them
 	append2(CMAKE_SHARED_LINKER_FLAGS CMAKE_EXE_LINKER_FLAGS
@@ -126,11 +132,9 @@ else()
 	endif()
 
 	if(WIN32)
-		append(_LIBUI_CFLAGS
-			" -D _UI_EXTERN=\"__declspec(dllexport) extern\" ${_PLATFORM_CFLAGS}")
+		append(_LIBUI_CFLAGS " ${_PLATFORM_CFLAGS}")
 	else()
-		append(_LIBUI_CFLAGS
-			" -D_UI_EXTERN='__attribute__((visibility(\"default\"))) extern' -fvisibility=hidden ${_PLATFORM_CFLAGS}")
+		append(_LIBUI_CFLAGS " -fvisibility=hidden ${_PLATFORM_CFLAGS}")
 	endif()
 
 	append(CMAKE_SHARED_LINKER_FLAGS " -fvisibility=hidden")
@@ -163,6 +167,14 @@ endif()
 if(NOT WIN32)
 	set_target_properties(libui PROPERTIES
 		OUTPUT_NAME ui)
+endif()
+# let cmake handle quoting and escaping for us
+if(WIN32)
+	set_target_properties(libui PROPERTIES
+		COMPILE_DEFINITIONS "_UI_EXTERN=__declspec(dllexport) extern")
+else()
+	set_target_properties(libui PROPERTIES
+		COMPILE_DEFINITIONS "_UI_EXTERN=__attribute__((visibility(\"default\"))) extern")
 endif()
 
 macro(_add_exec _name)

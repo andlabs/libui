@@ -96,7 +96,17 @@ else()
 endif()
 
 if(MSVC)
-	# TODO
+	append2(CMAKE_C_FLAGS CMAKE_CXX_FLAGS
+		"-W4 -wd4100 -bigobj -RTC1 -RTCs -RTCu")
+
+	# shut the compiler up in some cases
+	# LONGTERM still needed?
+	append(CMAKE_CXX_FLAGS " -EHsc")
+
+	append2(CMAKE_SHARED_LINKER_FLAGS CMAKE_STATIC_LINKER_FLAGS
+		" -largeaddressaware -incremental:no")
+	append(CMAKE_EXE_LINKER_FLAGS
+		" -largeaddressaware -incremental:no")
 else()
 	append2(CMAKE_C_FLAGS CMAKE_CXX_FLAGS
 		" -Wall -Wextra -pedantic -Wno-unused-parameter -Wno-switch")
@@ -125,6 +135,10 @@ else()
 
 	append(CMAKE_SHARED_LINKER_FLAGS " -fvisibility=hidden")
 	# don't amend CMAKE_STATIC_LINKER_FLAGS; that's for ar
+endif()
+
+if(NOT _SHARED)
+	append(_LIBUI_CFLAGS " -D_UI_STATIC")
 endif()
 
 add_subdirectory("common")
@@ -164,8 +178,4 @@ set_target_properties(tester PROPERTIES
 	OUTPUT_NAME test
 	WIN32_EXECUTABLE FALSE)
 
-# the same resources.rc is shared by all the examples
-if(_RESOURCES_RC)
-	set(_RESOURCES_RC "../${_RESOURCES_RC}")
-endif()
 add_subdirectory("examples")

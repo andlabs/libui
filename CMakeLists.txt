@@ -1,6 +1,9 @@
 # 3 june 2016
 cmake_minimum_required(VERSION 2.8.11)
 
+# TODOs:
+# - MSVC static linking does not include the .res file in out\, so executables lack the necessary 
+
 project(libui LANGUAGES C CXX)
 option(BUILD_SHARED_LIBS "Whether to build libui as a shared library or a static library" ON)
 
@@ -20,14 +23,6 @@ elseif(WIN32)
 	set(CMAKE_CXX_STANDARD_LIBRARIES CACHE STRING "" FORCE)
 else()
 	set(_OSNAME unix)
-endif()
-
-if(BUILD_SHARED_LIBS)
-	# shared libraries link against system libs; executables don't
-	set(_LIBUI_LINKMODE PRIVATE)
-else()
-	# static libraries don't link against system libs; executables do
-	set(_LIBUI_LINKMODE INTERFACE)
 endif()
 
 # common flags
@@ -82,8 +77,11 @@ target_compile_options(${_LIBUINAME}
 	PUBLIC ${_COMMON_CFLAGS}
 	PRIVATE ${_LIBUI_CFLAGS})
 # TODO link directories?
-target_link_libraries(${_LIBUINAME}
-	${_LIBUI_LINKMODE} ${_LIBUI_LIBS})
+# because we need 2.8.11 for CentOS, we can't use target_link_libraries(INTERFACE) for static executables :(
+if(BUILD_SHARED_LIBS)
+	target_link_libraries(${_LIBUINAME}
+		PRIVATE ${_LIBUI_LIBS})
+endif()
 # on Windows the linker for static libraries is different; don't give it the flags
 if(BUILD_SHARED_LIBS)
 	_target_link_options_private(${_LIBUINAME}
@@ -111,5 +109,14 @@ macro(_add_exec _name)
 	target_link_libraries(${_name} libui)
 	_target_link_options_private(${_name}
 		_COMMON_LDFLAGS)
+	# make shared-linked executables PIC too
+	if(BUILD_SHARED_LIBS)
+		set_property(TARGET ${_name} PROPERTY
+			POSITION_INDEPENDENT_CODE True)
+	endif()
+	# because we need 2.8.11 for CentOS, we can't use target_link_libraries(PUBLIC) for static executables :(
+	if(NOT BUILD_SHARED_LIBS)
+		target_link_libraries(${_name} ${_LIBUI_LIBS})
+	endif()
 endmacro()
 add_subdirectory("test")

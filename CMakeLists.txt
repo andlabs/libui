@@ -57,7 +57,9 @@ if(MSVC)
 else()
 endif()
 
-# TODO why do I need to do this? why doesn't target_link_libraries() work?
+# problem:
+# - target_link_libraries() only supports - for flags
+# - but cmake only doesn't generate the manifest if the flag has a /
 macro(_target_link_options_private _target)
 	foreach(_opt IN LISTS ${ARGN})
 		set_property(TARGET ${_target} APPEND_STRING PROPERTY
@@ -120,3 +122,4 @@ macro(_add_exec _name)
 	endif()
 endmacro()
 add_subdirectory("test")
+add_subdirectory("examples")

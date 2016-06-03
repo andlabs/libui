@@ -176,8 +176,5 @@ else()
 endif()
 
 add_subdirectory("test")
-set_target_properties(tester PROPERTIES
-	OUTPUT_NAME test
-	WIN32_EXECUTABLE FALSE)
 
 add_subdirectory("examples")

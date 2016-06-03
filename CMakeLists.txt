@@ -13,6 +13,11 @@ if(APPLE)
 	set(_OSNAME darwin)
 elseif(WIN32)
 	set(_OSNAME windows)
+
+	# and don't include the default libraries with ANY of the builds
+	# note the CACHE FORCE stuff is required here
+	set(CMAKE_C_STANDARD_LIBRARIES CACHE STRING "" FORCE)
+	set(CMAKE_CXX_STANDARD_LIBRARIES CACHE STRING "" FORCE)
 else()
 	set(_OSNAME unix)
 endif()
@@ -57,6 +62,14 @@ if(MSVC)
 else()
 endif()
 
+# TODO why do I need to do this? why doesn't target_link_libraries() work?
+macro(_target_link_options_private _target)
+	foreach(_opt IN LISTS ${ARGN})
+		set_property(TARGET ${_target} APPEND_STRING PROPERTY
+			LINK_FLAGS " ${_opt}")
+	endforeach()
+endmacro()
+
 add_subdirectory("common")
 add_subdirectory("${_OSNAME}")
 add_library(${_LIBUINAME} ${_LIBUI_SOURCES})
@@ -72,10 +85,10 @@ target_compile_options(${_LIBUINAME}
 target_link_libraries(${_LIBUINAME}
 	${_LIBUI_LINKMODE} ${_LIBUI_LIBS})
 # on Windows the linker for static libraries is different; don't give it the flags
-# TODO are these inherited?
 if(BUILD_SHARED_LIBS)
-	set_property(TARGET ${_LIBUINAME} APPEND PROPERTY
-		LINK_FLAGS ${_LIBUI_LDFLAGS})
+	_target_link_options_private(${_LIBUINAME}
+		_COMMON_LDFLAGS
+		_LIBUI_LDFLAGS)
 endif()
 if(NOT BUILD_SHARED_LIBS)
 	_handle_static()
@@ -96,4 +109,7 @@ macro(_add_exec _name)
 		WIN32 EXCLUDE_FROM_ALL
 		${ARGN})
 	target_link_libraries(${_name} libui)
+	_target_link_options_private(${_name}
+		_COMMON_LDFLAGS)
 endmacro()
+add_subdirectory("test")

@@ -27,23 +27,11 @@ SUFFIX = $(STATICLIBSUFFIX)
 endif
 
 ifeq ($(TOOLCHAIN),gcc)
-	# make every symbol hidden by default except _UI_EXTERN ones
-	# thanks ebassi in irc.gimp.net/#gtk+
-	CFLAGS += \
-		-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
-		-fvisibility=hidden
-	CXXFLAGS += \
-		-D_UI_EXTERN='__attribute__((visibility("default"))) extern' \
 		-fvisibility=hidden
 	LDFLAGS += \
 		-fvisibility=hidden
 else
-	# make every symbol hidden by default except _UI_EXTERN ones
 	# TODO autogenerate a .def file?
-	CFLAGS += \
-		-D "_UI_EXTERN=__declspec(dllexport) extern"
-	CXXFLAGS += \
-		-D "_UI_EXTERN=__declspec(dllexport) extern"
 endif
 
 ifeq ($(RELEASE),1)

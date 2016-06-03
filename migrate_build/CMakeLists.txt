@@ -34,11 +34,6 @@ if(WIN32)
 	endif()
 endif()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
-set(CMAKE_PDB_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
-
 # now that we called project(), load our config variables
 macro(cfgcopy _prefix)
 	set(${_prefix}_STATIC "${${_prefix}_DEBUG}")
@@ -179,17 +174,6 @@ else()
 	target_compile_definitions(libui
 		PRIVATE "_UI_EXTERN=__attribute__((visibility(\"default\"))) extern")
 endif()
-
-macro(_add_exec _name)
-	add_executable(${_name}
-		WIN32 EXCLUDE_FROM_ALL
-		${ARGN}
-		${_RESOURCES_RC})
-	target_link_libraries(${_name} libui)
-	if(NOT _SHARED)
-		target_link_libraries(${_name} ${_PLATFORM_LIBS})
-	endif()
-endmacro()
 
 add_subdirectory("test")
 set_target_properties(tester PROPERTIES

@@ -27,7 +27,22 @@
 # TODO /analyze requires us to write annotations everywhere
 # TODO undecided flags from qo?
 # -RTCc is not supplied because it's discouraged as of VS2015; see https://www.reddit.com/r/cpp/comments/46mhne/rtcc_rejects_conformant_code_with_visual_c_2015/d06auq5
+CFLAGS += \
+	-W4 \
+	-wd4100 \
+	-TC \
+	-bigobj -nologo \
+	-RTC1 -RTCs -RTCu
 
+# TODO prune these
+# -EHsc is to shut the compiler up in some cases
+CXXFLAGS += \
+	-W4 \
+	-wd4100 \
+	-TP \
+	-bigobj -nologo \
+	-RTC1 -RTCs -RTCu \
+	-EHsc
 
 # TODO warnings on undefined symbols
 LDFLAGS += \

@@ -1,9 +1,6 @@
 # 3 june 2016
 cmake_minimum_required(VERSION 2.8.11)
 
-# TODOs:
-# - Darwin, Unix: static linking temporary target makes PUBLIC properties not propagate
-
 # the docs say we need to set this up prior to project()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
 
@@ -154,6 +151,14 @@ macro(_add_exec _name)
 	# because we need 2.8.11 for CentOS, we can't use target_link_libraries(PUBLIC) for static executables :(
 	if(NOT BUILD_SHARED_LIBS)
 		target_link_libraries(${_name} ${_LIBUI_LIBS})
+	endif()
+
+	# TODOfor some reason these don't propagate
+	if(NOT WIN32)
+		target_include_directories(${_name}
+			PUBLIC .)
+		target_compile_options(${_name}
+			PUBLIC ${_COMMON_CFLAGS})
 	endif()
 endmacro()
 add_subdirectory("test")

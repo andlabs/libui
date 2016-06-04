@@ -2,11 +2,8 @@
 cmake_minimum_required(VERSION 2.8.11)
 
 # TODOs:
-# - MSVC static linking does not include the .res file in out\, so executables lack the necessary resources
-# - same thing with MinGW?
-# - MinGW doesn't work in general; windres doesn't like _UI_EXTERN (we could mitigate this by moving the stuff into ui.h and taking advantage of the libui_EXPORTS macro cmake makes for us) but
-# - Unix, Darwin: static linking makes the above a moot point; PUBLIC properties don't propagate
-# 	- what is it, the static linking or the extra build step?
+# - Windows: static linking does not include the .res file in out\, so executables lack the necessary resources
+# - Darwin, Unix: static linking temporary target makes PUBLIC properties not propagate
 
 # the docs say we need to set this up prior to project()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
@@ -106,6 +103,9 @@ target_include_directories(${_LIBUINAME}
 	PRIVATE ${_LIBUI_INCLUEDIRS})
 target_compile_definitions(${_LIBUINAME}
 	PRIVATE ${_LIBUI_DEFS})
+# cmake produces this for us by default but only for shared libraries
+target_compile_definitions(${_LIBUINAME}
+	PRIVATE libui_EXPORTS)
 target_compile_options(${_LIBUINAME}
 	PUBLIC ${_COMMON_CFLAGS}
 	PRIVATE ${_LIBUI_CFLAGS})
@@ -125,14 +125,6 @@ if(NOT BUILD_SHARED_LIBS)
 	_handle_static()
 	target_compile_definitions(${_LIBUINAME}
 			PRIVATE _UI_STATIC)
-endif()
-# don't put this in the OS CMakeLists.txt to be safe about quoting
-if(WIN32)
-	target_compile_definitions(${_LIBUINAME}
-		PRIVATE "_UI_EXTERN=__declspec(dllexport) extern")
-else()
-	target_compile_definitions(${_LIBUINAME}
-		PRIVATE "_UI_EXTERN=__attribute__((visibility(\"default\"))) extern")
 endif()
 if(NOT WIN32)
 	# on non-Windows platforms cmake adds an extra lib-

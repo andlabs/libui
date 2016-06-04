@@ -1,8 +1,10 @@
 // 30 may 2015
 
-#define rcTabPageDialog 100
-#define rcFontDialog 101
-#define rcColorDialog 102
+#define rcTabPageDialog 29000
+#define rcFontDialog 29001
+#define rcColorDialog 29002
+
+// TODO normalize these
 
 #define rcFontFamilyCombobox 1000
 #define rcFontStyleCombobox 1001

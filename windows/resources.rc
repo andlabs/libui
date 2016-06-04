@@ -2,8 +2,6 @@
 #include "winapi.hpp"
 #include "resources.hpp"
 
-// TODO change and pin down IDs for static linking; document them
-
 // this is a UTF-8 file
 #pragma code_page(65001)
 

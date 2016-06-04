@@ -4,6 +4,13 @@ cmake_minimum_required(VERSION 2.8.11)
 # the docs say we need to set this up prior to project()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
 
+# we want to disable incremental linking
+# see also:
+# - https://github.com/bulletphysics/bullet3/blob/master/CMakeLists.txt#L43
+# - https://cmake.org/pipermail/cmake/2010-February/035174.html
+# this must also go before project()
+set(MSVC_INCREMENTAL_DEFAULT ON)
+
 project(libui LANGUAGES C CXX)
 option(BUILD_SHARED_LIBS "Whether to build libui as a shared library or a static library" ON)
 
@@ -68,6 +75,9 @@ if(MSVC)
 	)
 
 	# TODO autogenerate a .def file?
+
+	# more incremental linking fixes
+	# TODO actually get rid of incremental linking here
 else()
 	set(_COMMON_CFLAGS
 		-Wall -Wextra -pedantic

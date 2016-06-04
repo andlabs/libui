@@ -1,6 +1,12 @@
 # 3 june 2016
 cmake_minimum_required(VERSION 2.8.11)
 
+# TODOs
+# - silence entering/leaving messages?
+# - uname -s for more refined OS control
+# 	- Haiku for haiku
+# - debian DESTDIR? https://github.com/andlabs/libui/pull/10
+
 # the docs say we need to set this up prior to project()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
 

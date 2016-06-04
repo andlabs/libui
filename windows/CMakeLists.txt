@@ -60,6 +60,7 @@ list(APPEND _LIBUI_INCLUDEDIRS
 )
 set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
+# Windows won't link resources in static libraries; we need to provide the libui.res file in this case.
 set(_LIBUINAME libui PARENT_SCOPE)
 if(NOT BUILD_SHARED_LIBS)
 	set(_LIBUI_STATIC_RES ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/libui.res PARENT_SCOPE)
@@ -72,7 +73,7 @@ macro(_handle_static)
 	endif()
 	# TODO this full path feels hacky
 	add_custom_command(
-		TARGET libui PRE_LINK
+		TARGET libui POST_BUILD
 		COMMAND
 			${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:libui,BINARY_DIR>/CMakeFiles/libui.dir/windows/resources.rc.${_res_suffix} ${_LIBUI_STATIC_RES}
 		COMMENT "Copying libui.res")

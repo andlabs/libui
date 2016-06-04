@@ -126,8 +126,8 @@ if(NOT BUILD_SHARED_LIBS)
 	target_compile_definitions(${_LIBUINAME}
 			PUBLIC _UI_STATIC)
 endif()
-if(NOT WIN32)
-	# on non-Windows platforms cmake adds an extra lib-
+if(NOT MSVC)
+	# on non-MSVC compilers cmake adds an extra lib-
 	# note that we apply this to libui, not to any intermediates
 	set_target_properties(libui PROPERTIES
 		OUTPUT_NAME ui)

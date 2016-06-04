@@ -53,44 +53,6 @@ macro(append2 _var1 _var2 _val)
 	append(${_var2} "${_val}")
 endmacro()
 
-if(APPLE)
-	set(_OSDIR darwin)
-	set(_SETVERSION TRUE)
-	set(_VERSION "A")
-
-	set(_PLATFORM_LIBS
-		-lobjc "-framework Foundation" "-framework AppKit"
-	)
-
-	# always use our rpath
-	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-	# the / is required by some older versions of OS X
-	set(CMAKE_INSTALL_RPATH "@executable_path/")
-	set(CMAKE_MACOSX_RPATH TRUE)
-elseif(WIN32)
-	set(_OSDIR windows)
-	set(_SETVERSION FALSE)
-
-	# note that usp10 comes before gdi32
-	# TODO prune this list
-	set(_PLATFORM_LIBS
-		user32 kernel32 usp10 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
-	)
-	# and don't include the default libraries
-	# note the CACHE FORCE stuff is required here
-	set(CMAKE_C_STANDARD_LIBRARIES CACHE STRING "" FORCE)
-	set(CMAKE_CXX_STANDARD_LIBRARIES CACHE STRING "" FORCE)
-
-	set(_RESOURCES_RC resources.rc)
-else()
-	set(_OSDIR unix)
-
-	string(REPLACE ";" " " _LIBUI_CFLAGS "${GTK_CFLAGS}")
-	set(_PLATFORM_LIBS "${GTK_LDFLAGS} -lm -ldl")
-
-
-endif()
-
 if(MSVC)
 	append2(CMAKE_C_FLAGS CMAKE_CXX_FLAGS
 		"/W4 /wd4100 /bigobj /RTC1 /RTCs /RTCu")

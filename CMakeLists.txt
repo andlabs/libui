@@ -5,7 +5,11 @@ cmake_minimum_required(VERSION 2.8.11)
 # - MSVC static linking does not include the .res file in out\, so executables lack the necessary resources
 # - same thing with MinGW?
 # - MinGW doesn't work in general; windres doesn't like _UI_EXTERN (we could mitigate this by moving the stuff into ui.h and taking advantage of the libui_EXPORTS macro cmake makes for us) but
-# - Unix: gcc static linking extra step makes the above a moot point; PUBLIC properties don't propagate
+# - Unix, Darwin: static linking makes the above a moot point; PUBLIC properties don't propagate
+# 	- what is it, the static linking or the extra build step?
+
+# the docs say we need to set this up prior to project()
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
 
 project(libui LANGUAGES C CXX)
 option(BUILD_SHARED_LIBS "Whether to build libui as a shared library or a static library" ON)
@@ -17,6 +21,14 @@ set(CMAKE_PDB_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
 
 if(APPLE)
 	set(_OSNAME darwin)
+	set(_HASVERSION TRUE)
+	set(_VERSION "A")
+
+	# always use our rpath
+	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	# the / is required by some older versions of OS X
+	set(CMAKE_INSTALL_RPATH "@executable_path/")
+	set(CMAKE_MACOSX_RPATH TRUE)
 elseif(WIN32)
 	set(_OSNAME windows)
 

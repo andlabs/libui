@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 2.8.11)
 # - MSVC static linking does not include the .res file in out\, so executables lack the necessary resources
 # - same thing with MinGW?
 # - MinGW doesn't work in general; windres doesn't like _UI_EXTERN (we could mitigate this by moving the stuff into ui.h and taking advantage of the libui_EXPORTS macro cmake makes for us) but
+# - Unix: gcc static linking extra step makes the above a moot point; PUBLIC properties don't propagate
 
 project(libui LANGUAGES C CXX)
 option(BUILD_SHARED_LIBS "Whether to build libui as a shared library or a static library" ON)

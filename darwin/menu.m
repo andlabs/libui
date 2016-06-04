@@ -126,6 +126,7 @@ static void mapItemReleaser(void *key, void *value)
 	NSString *title;
 	NSMenu *servicesMenu;
 
+	// note: no need to call setAppleMenu: on this anymore; see https://developer.apple.com/library/mac/releasenotes/AppKit/RN-AppKitOlderNotes/#X10_6Notes
 	appName = [[NSProcessInfo processInfo] processName];
 	appMenuItem = [[[NSMenuItem alloc] initWithTitle:appName action:NULL keyEquivalent:@""] autorelease];
 	appMenu = [[[NSMenu alloc] initWithTitle:appName] autorelease];

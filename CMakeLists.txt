@@ -25,6 +25,12 @@ elseif(WIN32)
 	set(CMAKE_CXX_STANDARD_LIBRARIES CACHE STRING "" FORCE)
 else()
 	set(_OSNAME unix)
+	set(_HASVERSION TRUE)
+	set(_VERSION "0")
+
+	# always use our rpath
+	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	set(CMAKE_INSTALL_RPATH "\$ORIGIN")
 endif()
 
 # common flags
@@ -114,6 +120,18 @@ if(WIN32)
 else()
 	target_compile_definitions(${_LIBUINAME}
 		PRIVATE "_UI_EXTERN=__attribute__((visibility(\"default\"))) extern")
+endif()
+if(NOT WIN32)
+	# on non-Windows platforms cmake adds an extra lib-
+	# note that we apply this to libui, not to any intermediates
+	set_target_properties(libui PROPERTIES
+		OUTPUT_NAME ui)
+endif()
+if(BUILD_SHARED_LIBS)
+	if(_HASVERSION)
+		set_target_properties(${_LIBUINAME} PROPERTIES
+			SOVERSION "${_VERSION}")
+	endif()
 endif()
 
 macro(_add_exec _name)

@@ -84,17 +84,11 @@ elseif(WIN32)
 	set(_RESOURCES_RC resources.rc)
 else()
 	set(_OSDIR unix)
-	set(_SETVERSION TRUE)
-	set(_VERSION "0")
 
-	find_package(PkgConfig REQUIRED)
-	pkg_check_modules(GTK REQUIRED gtk+-3.0)
 	string(REPLACE ";" " " _LIBUI_CFLAGS "${GTK_CFLAGS}")
 	set(_PLATFORM_LIBS "${GTK_LDFLAGS} -lm -ldl")
 
-	# always use our rpath
-	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-	set(CMAKE_INSTALL_RPATH "\$ORIGIN")
+
 endif()
 
 if(MSVC)

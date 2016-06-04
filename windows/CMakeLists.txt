@@ -60,9 +60,23 @@ list(APPEND _LIBUI_INCLUDEDIRS
 )
 set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
-# no special handling of static libraries needed
 set(_LIBUINAME libui PARENT_SCOPE)
+if(NOT BUILD_SHARED_LIBS)
+	set(_LIBUI_STATIC_RES ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/libui.res PARENT_SCOPE)
+endif()
 macro(_handle_static)
+	if(MSVC)
+		set(_res_suffix res)
+	else()
+		set(_res_suffix obj)
+	endif()
+	# TODO this full path feels hacky
+	add_custom_command(
+		TARGET libui PRE_LINK
+		COMMAND
+			${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:libui,BINARY_DIR>/CMakeFiles/libui.dir/windows/resources.rc.${_res_suffix} ${_LIBUI_STATIC_RES}
+		COMMENT "Copying libui.res")
+	set(_res_suffix)
 endmacro()
 
 # notice that usp10 comes before gdi32

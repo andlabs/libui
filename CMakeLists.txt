@@ -2,7 +2,6 @@
 cmake_minimum_required(VERSION 2.8.11)
 
 # TODOs:
-# - Windows: static linking does not include the .res file in out\, so executables lack the necessary resources
 # - Darwin, Unix: static linking temporary target makes PUBLIC properties not propagate
 
 # the docs say we need to set this up prior to project()
@@ -123,8 +122,9 @@ if(BUILD_SHARED_LIBS)
 endif()
 if(NOT BUILD_SHARED_LIBS)
 	_handle_static()
+	# TODO this really should be PRIVATE but I haven't fully figured this out
 	target_compile_definitions(${_LIBUINAME}
-			PRIVATE _UI_STATIC)
+			PUBLIC _UI_STATIC)
 endif()
 if(NOT WIN32)
 	# on non-Windows platforms cmake adds an extra lib-
@@ -143,7 +143,7 @@ macro(_add_exec _name)
 	add_executable(${_name}
 		WIN32 EXCLUDE_FROM_ALL
 		${ARGN})
-	target_link_libraries(${_name} libui)
+	target_link_libraries(${_name} libui ${_LIBUI_STATIC_RES})
 	_target_link_options_private(${_name}
 		_COMMON_LDFLAGS)
 	# make shared-linked executables PIC too

@@ -89,6 +89,9 @@ else()
 	string(APPEND CMAKE_C_FLAGS " --std=c99")
 	string(APPEND CMAKE_CXX_FLAGS " --std=c++11")
 
+	set(_COMMON_LDFLAGS
+		-fvisibility=hidden
+	)
 endif()
 
 # problem:

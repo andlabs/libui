@@ -114,9 +114,6 @@ if(MSVC)
 else()
 	append2(CMAKE_C_FLAGS CMAKE_CXX_FLAGS
 		" -Wall -Wextra -pedantic -Wno-unused-parameter -Wno-switch")
-	# don't use C_VERSION or CXX_VERSION because they use GNU standards
-	append(CMAKE_C_FLAGS " --std=c99")
-	append(CMAKE_CXX_FLAGS " --std=c++11")
 
 	if(NOT WIN32)
 		append(CMAKE_C_FLAGS_DEBUG " -fPIC")

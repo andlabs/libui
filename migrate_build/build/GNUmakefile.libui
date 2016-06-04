@@ -27,7 +27,7 @@ SUFFIX = $(STATICLIBSUFFIX)
 endif
 
 ifeq ($(TOOLCHAIN),gcc)
-		-fvisibility=hidden
+		
 	LDFLAGS += \
 		-fvisibility=hidden
 else

@@ -2,7 +2,9 @@
 cmake_minimum_required(VERSION 2.8.11)
 
 # TODOs:
-# - MSVC static linking does not include the .res file in out\, so executables lack the necessary 
+# - MSVC static linking does not include the .res file in out\, so executables lack the necessary resources
+# - same thing with MinGW?
+# - MinGW doesn't work in general; windres doesn't like _UI_EXTERN (we could mitigate this by moving the stuff into ui.h and taking advantage of the libui_EXPORTS macro cmake makes for us) but
 
 project(libui LANGUAGES C CXX)
 option(BUILD_SHARED_LIBS "Whether to build libui as a shared library or a static library" ON)
@@ -55,6 +57,16 @@ if(MSVC)
 
 	# TODO autogenerate a .def file?
 else()
+	set(_COMMON_CFLAGS
+		-Wall -Wextra -pedantic
+		-Wno-unused-parameter
+		-Wno-switch
+		-fvisibility=hidden
+	)
+	# don't use C_VERSION or CXX_VERSION because they use GNU standards
+	string(APPEND CMAKE_C_FLAGS " --std=c99")
+	string(APPEND CMAKE_CXX_FLAGS " --std=c++11")
+
 endif()
 
 # problem:

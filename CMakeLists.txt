@@ -17,6 +17,12 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
 # this must also go before project()
 set(MSVC_INCREMENTAL_DEFAULT ON)
 
+# default to debug builds
+# do this before project() just to be safe
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "" FORCE)
+endif()
+
 project(libui LANGUAGES C CXX)
 option(BUILD_SHARED_LIBS "Whether to build libui as a shared library or a static library" ON)
 

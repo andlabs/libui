@@ -5,6 +5,11 @@ This README is being written.<br>
 
 ## Announcements
 
+* **5 June 2016**
+	* **The build system is now cmake.** cmake 2.8.11 or higher is needed.
+	* Static linking is now possible.
+	* MinGW linking is back, but static only.
+
 * **29 May 2016**
 	* **Alpha 3 is here!** Get it [here](https://github.com/andlabs/libui/releases/tag/alpha3).
 	* The next packaged release will introduce:
@@ -71,14 +76,39 @@ This README is being written.<br>
 ## Build Requirements
 
 * All platforms:
-	* GNU make 3.81 or newer (Xcode comes with this; on Windows you will need to get it yourself)
-* Windows: Microsoft Visual Studio 2013 or newer (2013 is needed for `va_copy()`)
-	* MinGW is currently unsupported. MinGW-w64 support will be re-added once the following features come in:
+	* CMake 3.81 or newer
+* Windows: either
+	* Microsoft Visual Studio 2013 or newer (2013 is needed for `va_copy()`) — you can build either a static or a shared library
+	* MinGW-w64 (other flavors of MinGW may not work) — **you can only build a static library**; shared library support will be re-added once the following features come in:
 		* [Isolation awareness](https://msdn.microsoft.com/en-us/library/aa375197%28v=vs.85%29.aspx), which is how you get themed controls from a DLL without needing a manifest
-* Unix: nothing specific
-* Mac OS X: nothing specific, so long as you can build Cocoa programs
+* Unix: nothing else specific
+* Mac OS X: nothing else specific, so long as you can build Cocoa programs
 
-(TODO write some notes on make variables and cross-compiling)
+## Building
+
+Out-of-tree builds typical of cmake are preferred:
+
+```
+$ mkdir build
+$ cd build
+$ cmake ..
+```
+
+Pass `-DBUILD_SHARED_LIBS=OFF` to `cmake` to build a static library. The standard cmake build configurations are provided; if none is specified, `Debug` is used.
+
+If you use a makefile generator with cmake, then
+
+```
+$ make
+$ make tester         # for the test program
+$ make examples       # for examples
+```
+
+and pass `VERBOSE=1` to see build commands. Build targets will be in the `build/out` folder.
+
+Project file generators should work, but are untested by me.
+
+On Windows, I use the `Unix Makefiles` generator and GNU make (built using the `build_w32.bat` script included in the source and run in the Visual Studio command line). In this state, if MinGW-w64 (either 32-bit or 64-bit) is not in your `%PATH%`, cmake will use MSVC by default; otherwise, cmake will use with whatever MinGW-w64 is in your path. `set PATH=%PATH%;c:\msys2\mingw(32/64)\bin` should be enough to temporarily change to a MinGW-w64 build for the current command line session only if you installed MinGW-w64 through [MSYS2](https://msys2.github.io/); no need to change global environment variables constantly.
 
 ## Documentation
 

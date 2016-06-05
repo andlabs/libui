@@ -41,10 +41,6 @@ if(APPLE)
 	# the / is required by some older versions of OS X
 	set(CMAKE_INSTALL_RPATH "@executable_path/")
 	set(CMAKE_MACOSX_RPATH TRUE)
-
-	# older versions of cmake incorrectly treat Objective-C as C++
-	# see also https://cmake.org/pipermail/cmake-developers/2014-March/010072.html
-	list(APPEND CMAKE_C_SOURCE_FILE_EXTENSIONS m)
 elseif(WIN32)
 	set(_OSNAME windows)
 

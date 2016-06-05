@@ -6,7 +6,6 @@ cmake_minimum_required(VERSION 2.8.11)
 # - uname -s for more refined OS control
 # 	- Haiku for haiku
 # - debian DESTDIR? https://github.com/andlabs/libui/pull/10
-# - static libgcc in MinGW builds
 
 # the docs say we need to set this up prior to project()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
@@ -105,6 +104,15 @@ else()
 	set(_COMMON_LDFLAGS
 		-fvisibility=hidden
 	)
+
+	# don't require shipping the MinGW-w64 DLLs
+	if(WIN32)
+		list(APPEND _COMMON_LDFLAGS
+			-static
+			-static-libgcc
+			-static-libstdc++
+		)
+	endif()
 endif()
 
 # problem:

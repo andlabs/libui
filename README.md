@@ -76,7 +76,7 @@ This README is being written.<br>
 ## Build Requirements
 
 * All platforms:
-	* CMake 3.81 or newer
+	* CMake 2.8.11 or newer
 * Windows: either
 	* Microsoft Visual Studio 2013 or newer (2013 is needed for `va_copy()`) — you can build either a static or a shared library
 	* MinGW-w64 (other flavors of MinGW may not work) — **you can only build a static library**; shared library support will be re-added once the following features come in:

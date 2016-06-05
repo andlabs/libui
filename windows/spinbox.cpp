@@ -61,7 +61,7 @@ static void uiSpinboxDestroy(uiControl *c)
 {
 	uiSpinbox *s = uiSpinbox(c);
 
-	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
+	uiWindowsUnregisterWM_COMMANDHandler(s->edit);
 	uiWindowsEnsureDestroyWindow(s->updown);
 	uiWindowsEnsureDestroyWindow(s->edit);
 	uiWindowsEnsureDestroyWindow(s->hwnd);
@@ -202,7 +202,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 		TRUE);
 	uiWindowsEnsureSetParentHWND(s->edit, s->hwnd);
 
-	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, onWM_COMMAND, uiControl(s));
+	uiWindowsRegisterWM_COMMANDHandler(s->edit, onWM_COMMAND, uiControl(s));
 	uiSpinboxOnChanged(s, defaultOnChanged, NULL);
 
 	recreateUpDown(s);

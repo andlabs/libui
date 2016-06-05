@@ -2,13 +2,15 @@
 
 This README is being written.<br>
 [![Build Status](https://travis-ci.org/andlabs/libui.png)](https://travis-ci.org/andlabs/libui)
+*(currently failing because the version of cmake that Travis uses treats Objective-C files as C++; if you know the fix please file a PR)*
 
 ## Announcements
 
 * **5 June 2016**
-	* **The build system is now cmake.** cmake 2.8.11 or higher is needed.
-	* Static linking is now possible.
-	* MinGW linking is back, but static only.
+	* **Alpha 3.1 is here.** This was a much-needed update to Alpha 3 that changes a few things:
+		* **The build system is now cmake.** cmake 2.8.11 or higher is needed.
+		* Static linking is now fully possible.
+		* MinGW linking is back, but static only.
 
 * **29 May 2016**
 	* **Alpha 3 is here!** Get it [here](https://github.com/andlabs/libui/releases/tag/alpha3).

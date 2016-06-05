@@ -99,8 +99,8 @@ else()
 		-fvisibility=hidden
 	)
 	# don't use C_VERSION or CXX_VERSION because they use GNU standards
-	string(APPEND CMAKE_C_FLAGS " --std=c99")
-	string(APPEND CMAKE_CXX_FLAGS " --std=c++11")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
 	set(_COMMON_LDFLAGS
 		-fvisibility=hidden

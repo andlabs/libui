@@ -12,7 +12,7 @@ script:
   - mkdir build
   - cd build
   - cmake .. -G "Unix Makefiles"
-  - make test examples
+  - make tester examples
   - rm -rf *
   - cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
-  - make test examples
+  - make tester examples

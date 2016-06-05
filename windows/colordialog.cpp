@@ -309,7 +309,18 @@ static void drawGrid(ID2D1RenderTarget *rt, D2D1_RECT_F *fillRect)
 	// mind the divisions; they represent the fact the original uses a viewport
 	size.width = 100 / 10;
 	size.height = 100 / 10;
+	// yay more ABI bugs
+#ifdef _MSC_VER
 	pformat = rt->GetPixelFormat();
+#else
+	{
+		typedef D2D1_PIXEL_FORMAT *(__stdcall ID2D1RenderTarget::* GetPixelFormatF)(D2D1_PIXEL_FORMAT *);
+		GetPixelFormatF gpf;
+
+		gpf = (GetPixelFormatF) (&(rt->GetPixelFormat));
+		(rt->*gpf)(&pformat);
+	}
+#endif
 	hr = rt->CreateCompatibleRenderTarget(&size, NULL,
 		&pformat, D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_NONE,
 		&brt);
@@ -383,7 +394,7 @@ static void drawSVChooser(struct colorDialog *c, ID2D1RenderTarget *rt)
 	ID2D1SolidColorBrush *markerBrush;
 	HRESULT hr;
 
-	size = rt->GetSize();
+	size = realGetSize(rt);
 	rect.left = 0;
 	rect.top = 0;
 	rect.right = size.width;
@@ -625,7 +636,7 @@ static void drawHSlider(struct colorDialog *c, ID2D1RenderTarget *rt)
 	D2D1_POINT_2F center;
 	HRESULT hr;
 
-	size = rt->GetSize();
+	size = realGetSize(rt);
 	rect.left = size.width / 6;		// leftmost sixth for arrow
 	rect.top = 0;
 	rect.right = size.width;
@@ -712,7 +723,7 @@ static void drawPreview(struct colorDialog *c, ID2D1RenderTarget *rt)
 	ID2D1SolidColorBrush *brush;
 	HRESULT hr;
 
-	size = rt->GetSize();
+	size = realGetSize(rt);
 	rect.left = 0;
 	rect.top = 0;
 	rect.right = size.width;
@@ -769,7 +780,7 @@ static void drawOpacitySlider(struct colorDialog *c, ID2D1RenderTarget *rt)
 	D2D1_POINT_2F center;
 	HRESULT hr;
 
-	size = rt->GetSize();
+	size = realGetSize(rt);
 	rect.left = 0;
 	rect.top = 0;
 	rect.right = size.width;

@@ -386,8 +386,8 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 
 	rect.left = 0;
 	rect.top = 0;
-	rect.right = rt->GetSize().width;
-	rect.bottom = rt->GetSize().height;
+	rect.right = realGetSize(rt).width;
+	rect.bottom = realGetSize(rt).height;
 	rt->DrawText(sample, wcslen(sample),
 		format,
 		&rect,

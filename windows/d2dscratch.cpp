@@ -56,7 +56,7 @@ static void d2dScratchDoLButtonDown(HWND hwnd, ID2D1RenderTarget *rt, LPARAM lPa
 	pos.x = (xpix * 96) / dpix;
 	pos.y = (ypix * 96) / dpiy;
 
-	size = rt->GetSize();
+	size = realGetSize(rt);
 
 	SendMessageW(hwnd, msgD2DScratchLButtonDown, (WPARAM) (&pos), (LPARAM) (&size));
 }

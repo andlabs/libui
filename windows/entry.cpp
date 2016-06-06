@@ -92,7 +92,7 @@ void uiEntrySetReadOnly(uiEntry *e, int readonly)
 		logLastError(L"error making uiEntry read-only");
 }
 
-uiEntry *uiNewEntry(void)
+static uiEntry *finishNewEntry(DWORD style)
 {
 	uiEntry *e;
 
@@ -100,7 +100,7 @@ uiEntry *uiNewEntry(void)
 
 	e->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
-		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
+		style | ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
 
@@ -108,4 +108,20 @@ uiEntry *uiNewEntry(void)
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
 	return e;
+}
+
+uiEntry *uiNewEntry(void)
+{
+	return finishNewEntry(0);
+}
+
+uiEntry *uiNewPasswordEntry(void)
+{
+	return finishNewEntry(ES_PASSWORD);
+}
+
+uiEntry *uiNewSearchEntry(void)
+{
+	// TODO
+	return finishNewEntry(0);
 }

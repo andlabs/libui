@@ -37,6 +37,10 @@ This README is being written.<br>
 
 *Note that today's entry may be updated later today.*
 
+* **5 June 2016**
+	* Added `uiNewPasswordEntry()`, which creates a new `uiEntry` suitable for entering passwords.
+	* Added `uiNewSearchEntry()`, which creates a new `uiEntry` suitable for searching. On some systems, the `OnChanged()` event will be slightly delayed and/or combined, to produce a more natural feel when searching.
+
 * **29 May 2016**
 	* Thanks to @pcwalton, we can now statically link libui! Simply do `make STATIC=1` instead of just `make`.
 		* On Windows you must link both `libui.lib` and `libui.res` AND provide a Common Controls 6 manifest for output static binaries to work properly.

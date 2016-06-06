@@ -94,10 +94,10 @@ void initMenus(void)
 	multiMenu = uiNewMenu("Multi");
 	uiMenuAppendSeparator(multiMenu);
 	uiMenuAppendSeparator(multiMenu);
-	uiMenuAppendItem(multiMenu, "Item");
+	uiMenuAppendItem(multiMenu, "Item && Item && Item");
 	uiMenuAppendSeparator(multiMenu);
 	uiMenuAppendSeparator(multiMenu);
-	uiMenuAppendItem(multiMenu, "Item");
+	uiMenuAppendItem(multiMenu, "Item __ Item __ Item");
 	uiMenuAppendSeparator(multiMenu);
 	uiMenuAppendSeparator(multiMenu);
 

@@ -95,6 +95,7 @@ This README is being written.<br>
 Out-of-tree builds typical of cmake are preferred:
 
 ```
+$ # you must be in the top-level libui directory, otherwise this won't work
 $ mkdir build
 $ cd build
 $ cmake ..

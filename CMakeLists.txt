@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 2.8.11)
 # - uname -s for more refined OS control
 # 	- Haiku for haiku
 # - debian DESTDIR? https://github.com/andlabs/libui/pull/10
+# - libui-combined* needs to be deleted so that custom command can run every time
 
 # the docs say we need to set this up prior to project()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")

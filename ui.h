@@ -213,6 +213,9 @@ _UI_EXTERN uiEditableCombobox *uiNewEditableCombobox(void);
 typedef struct uiRadioButtons uiRadioButtons;
 #define uiRadioButtons(this) ((uiRadioButtons *) (this))
 _UI_EXTERN void uiRadioButtonsAppend(uiRadioButtons *r, const char *text);
+_UI_EXTERN intmax_t uiRadioButtonsSelected(uiRadioButtons *r);
+_UI_EXTERN void uiRadioButtonsSetSelected(uiRadioButtons *r, intmax_t n);
+_UI_EXTERN void uiRadioButtonsOnSelected(uiRadioButtons *r, void (*f)(uiRadioButtons *, void *), void *data);
 _UI_EXTERN uiRadioButtons *uiNewRadioButtons(void);
 
 typedef struct uiDateTimePicker uiDateTimePicker;

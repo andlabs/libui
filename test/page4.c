@@ -58,6 +58,23 @@ static void onECBChanged(uiEditableCombobox *c, void *data)
 	uiFreeText(t);
 }
 
+static void onRBSelected(uiRadioButtons *r, void *data)
+{
+	printf("radio buttons %d\n", uiRadioButtonsSelected(r));
+}
+
+static void selectSecond(uiButton *b, void *data)
+{
+	// TODO combobox, editable
+	uiRadioButtonsSetSelected(rb, 1);
+}
+
+static void selectNone(uiButton *b, void *data)
+{
+	// TODO combobox, editable
+	uiRadioButtonsSetSelected(rb, -1);
+}
+
 uiBox *makePage4(void)
 {
 	uiBox *page4;
@@ -123,11 +140,18 @@ uiBox *makePage4(void)
 	uiRadioButtonsAppend(rb, "Item 1");
 	uiRadioButtonsAppend(rb, "Item 2");
 	uiRadioButtonsAppend(rb, "Item 3");
+	uiRadioButtonsOnSelected(rb, onRBSelected, NULL);
 	uiBoxAppend(page4, uiControl(rb), 0);
 
 	hbox = newHorizontalBox();
 	b = uiNewButton("Append");
 	uiButtonOnClicked(b, appendCBRB, NULL);
+	uiBoxAppend(hbox, uiControl(b), 0);
+	b = uiNewButton("Second");
+	uiButtonOnClicked(b, selectSecond, NULL);
+	uiBoxAppend(hbox, uiControl(b), 0);
+	b = uiNewButton("None");
+	uiButtonOnClicked(b, selectNone, NULL);
 	uiBoxAppend(hbox, uiControl(b), 0);
 	uiBoxAppend(page4, uiControl(hbox), 0);
 

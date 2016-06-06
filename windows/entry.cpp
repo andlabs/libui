@@ -122,6 +122,13 @@ uiEntry *uiNewPasswordEntry(void)
 
 uiEntry *uiNewSearchEntry(void)
 {
-	// TODO
-	return finishNewEntry(0);
+	uiEntry *e;
+	HRESULT hr;
+
+	e = finishNewEntry(0);
+	// TODO this is from ThemeExplorer; is it documented anywhere?
+	// TODO SearchBoxEditComposited has no border
+	hr = SetWindowTheme(e->hwnd, L"SearchBoxEdit", NULL);
+	// TODO will hr be S_OK if themes are disabled?
+	return e;
 }

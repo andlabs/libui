@@ -243,5 +243,8 @@ uiEntry *uiNewSearchEntry(void)
 	s = (NSSearchField *) (e->textfield);
 	[s setSendsSearchStringImmediately:NO];
 	[s setSendsWholeSearchString:NO];
+	[s setBordered:NO];
+	[s setBezelStyle:NSTextFieldRoundedBezel];
+	[s setBezeled:YES];
 	return e;
 }

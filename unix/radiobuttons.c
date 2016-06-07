@@ -80,8 +80,9 @@ intmax_t uiRadioButtonsSelected(uiRadioButtons *r)
 void uiRadioButtonsSetSelected(uiRadioButtons *r, intmax_t n)
 {
 	GtkToggleButton *tb;
-	gboolean active = TRUE;
+	gboolean active;
 
+	active = TRUE;
 	// TODO this doesn't work
 	if (n == -1) {
 		n = uiRadioButtonsSelected(r);

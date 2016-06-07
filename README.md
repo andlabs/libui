@@ -37,6 +37,9 @@ This README is being written.<br>
 
 *Note that today's entry may be updated later today.*
 
+* **6 June 2016**
+	* Added `uiRadioButtonsSelected()`, `uiRadioButtonsSetSelected()`, and `uiRadioButtonsOnSelected()` to control selection of a radio button and catch an event when such a thing happens.
+
 * **5 June 2016**
 	* Added `uiNewPasswordEntry()`, which creates a new `uiEntry` suitable for entering passwords.
 	* Added `uiNewSearchEntry()`, which creates a new `uiEntry` suitable for searching. On some systems, the `OnChanged()` event will be slightly delayed and/or combined, to produce a more natural feel when searching.

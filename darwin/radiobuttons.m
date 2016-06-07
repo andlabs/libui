@@ -7,15 +7,49 @@
 
 // LONGTERM 6 units of spacing between buttons, as suggested by Interface Builder?
 
+@interface radioButtonsDelegate : NSObject {
+	uiRadioButtons *libui_r;
+}
+- (id)initWithR:(uiRadioButtons *)r;
+- (IBAction)onClicked:(id)sender;
+@end
+
 struct uiRadioButtons {
 	uiDarwinControl c;
 	NSView *view;
 	NSMutableArray *buttons;
 	NSMutableArray *constraints;
 	NSLayoutConstraint *lastv;
+	radioButtonsDelegate *delegate;
+	void (*onSelected)(uiRadioButtons *, void *);
+	void *onSelectedData;
 };
 
+@implementation radioButtonsDelegate
+
+- (id)initWithR:(uiRadioButtons *)r
+{
+	self = [super init];
+	if (self)
+		self->libui_r = r;
+	return self;
+}
+
+- (IBAction)onClicked:(id)sender
+{
+	uiRadioButtons *r = self->libui_r;
+
+	(*(r->onSelected))(r, r->onSelectedData);
+}
+
+@end
+
 uiDarwinControlAllDefaultsExceptDestroy(uiRadioButtons, view)
+
+static void defaultOnSelected(uiRadioButtons *r, void *data)
+{
+	// do nothing
+}
 
 static void uiRadioButtonsDestroy(uiControl *c)
 {
@@ -28,9 +62,13 @@ static void uiRadioButtonsDestroy(uiControl *c)
 	if (r->lastv != nil)
 		[r->lastv release];
 	// destroy the buttons
-	for (b in r->buttons)
+	for (b in r->buttons) {
+		[b setTarget:nil];
 		[b removeFromSuperview];
+	}
 	[r->buttons release];
+	// destroy the delegate
+	[r->delegate release];
 	// and destroy ourselves
 	[r->view release];
 	uiFreeControl(uiControl(r));
@@ -55,7 +93,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	uiDarwinSetControlFont(b, NSRegularControlSize);
 	[b setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-	// TODO set target
+	[b setTarget:r->delegate];
 	[b setAction:@selector(onClicked:)];
 
 	[r->buttons addObject:b];
@@ -114,6 +152,41 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	[r->lastv retain];
 }
 
+intmax_t uiRadioButtonsSelected(uiRadioButtons *r)
+{
+	NSButton *b;
+	NSUInteger i;
+
+	for (i = 0; i < [r->buttons count]; i++) {
+		b = (NSButton *) [r->buttons objectAtIndex:i];
+		if ([b state] == NSOnState)
+			return i;
+	}
+	return -1;
+}
+
+void uiRadioButtonsSetSelected(uiRadioButtons *r, intmax_t n)
+{
+	NSButton *b;
+	NSInteger state;
+
+	state = NSOnState;
+	if (n == -1) {
+		n = uiRadioButtonsSelected(r);
+		if (n == -1)		// from nothing to nothing; do nothing
+			return;
+		state = NSOffState;
+	}
+	b = (NSButton *) [r->buttons objectAtIndex:n];
+	[b setState:state];
+}
+
+void uiRadioButtonsOnSelected(uiRadioButtons *r, void (*f)(uiRadioButtons *, void *), void *data)
+{
+	r->onSelected = f;
+	r->onSelectedData = data;
+}
+
 uiRadioButtons *uiNewRadioButtons(void)
 {
 	uiRadioButtons *r;
@@ -123,6 +196,10 @@ uiRadioButtons *uiNewRadioButtons(void)
 	r->view = [[NSView alloc] initWithFrame:NSZeroRect];
 	r->buttons = [NSMutableArray new];
 	r->constraints = [NSMutableArray new];
+
+	r->delegate = [[radioButtonsDelegate alloc] initWithR:r];
+
+	uiRadioButtonsOnSelected(r, defaultOnSelected, NULL);
 
 	return r;
 }

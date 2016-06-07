@@ -20,7 +20,10 @@
 	NSLayoutConstraint *first;
 	NSMutableArray *inBetweens;
 	NSLayoutConstraint *last;
-	NSMutableArray *hEdges;
+	NSMutableArray *widths;
+	NSMutableArray *leadings;
+	NSMutableArray *middles;
+	NSMutableArray *trailings;
 }
 - (id)initWithF:(uiForm *)ff;
 - (void)onDestroy;
@@ -62,7 +65,10 @@ struct uiForm {
 		self->nStretchy = 0;
 
 		self->inBetweens = [NSMutableArray new];
-		self->hEdges = [NSMutableArray new];
+		self->widths = [NSMutableArray new];
+		self->leadings = [NSMutableArray new];
+		self->middles = [NSMutableArray new];
+		self->trailings = [NSMutableArray new];
 	}
 	return self;
 }
@@ -73,7 +79,10 @@ struct uiForm {
 
 	[self removeOurConstraints];
 	[self->inBetweens release];
-	[self->hEdges release];
+	[self->widths release];
+	[self->leadings release];
+	[self->middles release];
+	[self->trailings release];
 
 	for (fc in self->children) {
 		[self removeConstraint:fc.baseline];
@@ -103,9 +112,21 @@ struct uiForm {
 		[self->last release];
 		self->last = nil;
 	}
-	if ([self->hEdges count] != 0) {
-		[self removeConstraints:self->hEdges];
-		[self->hEdges removeAllObjects];
+	if ([self->widths count] != 0) {
+		[self removeConstraints:self->widths];
+		[self->widths removeAllObjects];
+	}
+	if ([self->leadings count] != 0) {
+		[self removeConstraints:self->leadings];
+		[self->leadings removeAllObjects];
+	}
+	if ([self->middles count] != 0) {
+		[self removeConstraints:self->middles];
+		[self->middles removeAllObjects];
+	}
+	if ([self->trailings count] != 0) {
+		[self removeConstraints:self->trailings];
+		[self->trailings removeAllObjects];
 	}
 }
 
@@ -137,55 +158,81 @@ struct uiForm {
 		return;
 	padding = [self paddingAmount];
 
-	// first arrange the main controls vertically
+	// first arrange the children vertically and make them the same width
 	prev = nil;
 	for (fc in self->children) {
-		if (prev == nil) {		// first control; tie to top
+		if (prev == nil) {			// first view
 			self->first = mkConstraint(self, NSLayoutAttributeTop,
 				NSLayoutRelationEqual,
 				[fc view], NSLayoutAttributeTop,
 				1, 0,
-				@"uiForm first child top constraint");
+				@"uiForm first vertical constraint");
 			[self addConstraint:self->first];
 			[self->first retain];
 			prev = [fc view];
+			prevlabel = fc.label;
 			continue;
 		}
-		// not first; tie to previous
+		// not the first; link it
 		c = mkConstraint(prev, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			[fc view], NSLayoutAttributeTop,
 			1, -padding,
-			@"uiForm middle vertical constraint");
+			@"uiForm in-between vertical constraint");
 		[self addConstraint:c];
 		[self->inBetweens addObject:c];
+		// and make the same width
+		c = mkConstraint(prev, NSLayoutAttributeWidth,
+			NSLayoutRelationEqual,
+			[fc view], NSLayoutAttributeWidth,
+			1, 0,
+			@"uiForm control width constraint");
+		[self addConstraint:c];
+		[self->widths addObject:c];
+		c = mkConstraint(prevlabel, NSLayoutAttributeWidth,
+			NSLayoutRelationEqual,
+			fc.label, NSLayoutAttributeWidth,
+			1, 0,
+			@"uiForm label lwidth constraint");
+		[self addConstraint:c];
+		[self->widths addObject:c];
 		prev = [fc view];
+		prevlabel = fc.label;
 	}
-	// and the last one
+	relation = NSLayoutRelationEqual;
+	if (self->nStretchy != 0)
+		relation = NSLayoutRelationLessThanOrEqual;
 	self->last = mkConstraint(prev, NSLayoutAttributeBottom,
 		NSLayoutRelationEqual,
 		self, NSLayoutAttributeBottom,
 		1, 0,
-		@"uiForm last child bottom constraint");
+		@"uiForm last vertical constraint");
 	[self addConstraint:self->last];
 	[self->last retain];
 
-	// now tiethe labels to the left (weakly, for right-alignment) and tie the controls to the right (strongly)
+	// now arrange the controls horizontally
 	for (fc in self->children) {
 		c = mkConstraint(self, NSLayoutAttributeLeading,
-			NSLayoutRelationLessThanOrEqual,
+			NSLayoutRelationEqual,
 			fc.label, NSLayoutAttributeLeading,
 			1, 0,
-			@"uiForm label leading edge constraint");
+			@"uiForm leading constraint");
 		[self addConstraint:c];
-		[self->hEdges addObject:c];
+		[self->leadings addObject:c];
+		c = mkConstraint(fc.label, NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			[fc view], NSLayoutAttributeLeading,
+			1, -padding,
+			@"uiForm middle constraint");
+		[self addConstraint:c];
+		[self->middles addObject:c];
 		c = mkConstraint([fc view], NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTrailing,
 			1, 0,
-			@"uiForm child trailing edge constraint");
+			@"uiForm trailing constraint");
 		[self addConstraint:c];
-		[self->hEdges addObject:c];
+		[self->trailings addObject:c];
 	}
 
 	// we don't arrange the labels vertically; that's done when we add the control since those constraints don't need to change (they just need to be at their baseline)
@@ -202,9 +249,6 @@ struct uiForm {
 	fc.c = c;
 	fc.label = newLabel(label);
 	[fc.label setTranslatesAutoresizingMaskIntoConstraints:NO];
-	// and make the label no larger than it needs to be
-	[fc.label setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationHorizontal];
-	[fc.label setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationVertical];
 	[self addSubview:fc.label];
 	fc.stretchy = stretchy;
 	fc.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(fc.c), NSLayoutConstraintOrientationHorizontal);
@@ -266,6 +310,8 @@ struct uiForm {
 	self->padded = p;
 	padding = [self paddingAmount];
 	for (c in self->inBetweens)
+		[c setConstant:-padding];
+	for (c in self->middles)
 		[c setConstant:-padding];
 }
 

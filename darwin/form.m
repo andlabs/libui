@@ -158,83 +158,6 @@ struct uiForm {
 		return;
 	padding = [self paddingAmount];
 
-	// first arrange the children vertically and make them the same width
-	prev = nil;
-	for (fc in self->children) {
-		if (prev == nil) {			// first view
-			self->first = mkConstraint(self, NSLayoutAttributeTop,
-				NSLayoutRelationEqual,
-				[fc view], NSLayoutAttributeTop,
-				1, 0,
-				@"uiForm first vertical constraint");
-			[self addConstraint:self->first];
-			[self->first retain];
-			prev = [fc view];
-			prevlabel = fc.label;
-			continue;
-		}
-		// not the first; link it
-		c = mkConstraint(prev, NSLayoutAttributeBottom,
-			NSLayoutRelationEqual,
-			[fc view], NSLayoutAttributeTop,
-			1, -padding,
-			@"uiForm in-between vertical constraint");
-		[self addConstraint:c];
-		[self->inBetweens addObject:c];
-		// and make the same width
-		c = mkConstraint(prev, NSLayoutAttributeWidth,
-			NSLayoutRelationEqual,
-			[fc view], NSLayoutAttributeWidth,
-			1, 0,
-			@"uiForm control width constraint");
-		[self addConstraint:c];
-		[self->widths addObject:c];
-		c = mkConstraint(prevlabel, NSLayoutAttributeWidth,
-			NSLayoutRelationEqual,
-			fc.label, NSLayoutAttributeWidth,
-			1, 0,
-			@"uiForm label lwidth constraint");
-		[self addConstraint:c];
-		[self->widths addObject:c];
-		prev = [fc view];
-		prevlabel = fc.label;
-	}
-	relation = NSLayoutRelationEqual;
-	if (self->nStretchy != 0)
-		relation = NSLayoutRelationLessThanOrEqual;
-	self->last = mkConstraint(prev, NSLayoutAttributeBottom,
-		NSLayoutRelationEqual,
-		self, NSLayoutAttributeBottom,
-		1, 0,
-		@"uiForm last vertical constraint");
-	[self addConstraint:self->last];
-	[self->last retain];
-
-	// now arrange the controls horizontally
-	for (fc in self->children) {
-		c = mkConstraint(self, NSLayoutAttributeLeading,
-			NSLayoutRelationEqual,
-			fc.label, NSLayoutAttributeLeading,
-			1, 0,
-			@"uiForm leading constraint");
-		[self addConstraint:c];
-		[self->leadings addObject:c];
-		c = mkConstraint(fc.label, NSLayoutAttributeTrailing,
-			NSLayoutRelationEqual,
-			[fc view], NSLayoutAttributeLeading,
-			1, -padding,
-			@"uiForm middle constraint");
-		[self addConstraint:c];
-		[self->middles addObject:c];
-		c = mkConstraint([fc view], NSLayoutAttributeTrailing,
-			NSLayoutRelationEqual,
-			self, NSLayoutAttributeTrailing,
-			1, 0,
-			@"uiForm trailing constraint");
-		[self addConstraint:c];
-		[self->trailings addObject:c];
-	}
-
 	// we don't arrange the labels vertically; that's done when we add the control since those constraints don't need to change (they just need to be at their baseline)
 }
 
@@ -249,6 +172,9 @@ struct uiForm {
 	fc.c = c;
 	fc.label = newLabel(label);
 	[fc.label setTranslatesAutoresizingMaskIntoConstraints:NO];
+	// and make the label no larger than it needs to be
+	[fc.label setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationHorizontal];
+	[fc.label setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationVertical];
 	[self addSubview:fc.label];
 	fc.stretchy = stretchy;
 	fc.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(fc.c), NSLayoutConstraintOrientationHorizontal);

@@ -31,6 +31,7 @@ enum types {
 	box,
 	tab,
 	group,
+	form,
 };
 
 void setSpaced(int spaced)
@@ -55,6 +56,9 @@ void setSpaced(int spaced)
 			break;
 		case group:
 			uiGroupSetMargined(uiGroup(p), spaced);
+			break;
+		case form:
+			uiFormSetPadded(uiForm(p), spaced);
 			break;
 		}
 	}
@@ -88,6 +92,7 @@ void querySpaced(char out[12])		// more than enough
 			if (uiGroupMargined(uiGroup(pp)))
 				m++;
 			break;
+		// TODO form
 		}
 	}
 
@@ -146,4 +151,13 @@ uiGroup *newGroup(const char *text)
 	g = uiNewGroup(text);
 	append(g, group);
 	return g;
+}
+
+uiForm *newForm(void)
+{
+	uiForm *f;
+
+	f = uiNewForm();
+	append(f, form);
+	return f;
 }

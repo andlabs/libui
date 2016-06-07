@@ -70,6 +70,7 @@ uiBox *makePage13(void)
 	uiBox *page13;
 	uiRadioButtons *rb;
 	uiButton *b;
+	uiForm *f;
 	uiEntry *e;
 
 	page13 = newVerticalBox();
@@ -93,13 +94,18 @@ uiBox *makePage13(void)
 	uiButtonOnClicked(b, buttonClicked, uiNewVerticalBox);
 	uiBoxAppend(page13, uiControl(b), 0);
 
+	f = newForm();
+	uiBoxAppend(page13, uiControl(f), 1);
+
 	e = uiNewPasswordEntry();
 	uiEntryOnChanged(e, entryChanged, "password");
-	uiBoxAppend(page13, uiControl(e), 0);
+	uiFormAppend(f, "Password Entry", uiControl(e), 0);
 
 	e = uiNewSearchEntry();
 	uiEntryOnChanged(e, entryChanged, "search");
-	uiBoxAppend(page13, uiControl(e), 0);
+	uiFormAppend(f, "Search Box", uiControl(e), 0);
+
+	uiFormAppend(f, "MLE", uiControl(uiNewMultilineEntry()), 1);
 
 	return page13;
 }

@@ -22,6 +22,7 @@ extern uiBox *newHorizontalBox(void);
 extern uiBox *newVerticalBox(void);
 extern uiTab *newTab(void);
 extern uiGroup *newGroup(const char *);
+extern uiForm *newForm(void);
 
 // menus.c
 extern uiMenuItem *shouldQuitItem;

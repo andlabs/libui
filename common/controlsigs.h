@@ -10,6 +10,7 @@
 #define uiEditableComboboxSignature 0x45644362
 #define uiEntrySignature 0x456E7472
 #define uiFontButtonSignature 0x466F6E42
+#define uiFormSignature 0x466F726D
 #define uiGroupSignature 0x47727062
 #define uiLabelSignature 0x4C61626C
 #define uiMultilineEntrySignature 0x4D6C6E45

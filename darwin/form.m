@@ -20,6 +20,7 @@
 	NSLayoutConstraint *first;
 	NSMutableArray *inBetweens;
 	NSLayoutConstraint *last;
+	NSMutableArray *hEdges;
 }
 - (id)initWithF:(uiForm *)ff;
 - (void)onDestroy;
@@ -61,6 +62,7 @@ struct uiForm {
 		self->nStretchy = 0;
 
 		self->inBetweens = [NSMutableArray new];
+		self->hEdges = [NSMutableArray new];
 	}
 	return self;
 }
@@ -71,6 +73,7 @@ struct uiForm {
 
 	[self removeOurConstraints];
 	[self->inBetweens release];
+	[self->hEdges release];
 
 	for (fc in self->children) {
 		[self removeConstraint:fc.baseline];
@@ -99,6 +102,10 @@ struct uiForm {
 		[self removeConstraint:self->last];
 		[self->last release];
 		self->last = nil;
+	}
+	if ([self->hEdges count] != 0) {
+		[self removeConstraints:self->hEdges];
+		[self->hEdges removeAllObjects];
 	}
 }
 
@@ -162,6 +169,24 @@ struct uiForm {
 		@"uiForm last child bottom constraint");
 	[self addConstraint:self->last];
 	[self->last retain];
+
+	// now tiethe labels to the left (weakly, for right-alignment) and tie the controls to the right (strongly)
+	for (fc in self->children) {
+		c = mkConstraint(self, NSLayoutAttributeLeading,
+			NSLayoutRelationLessThanOrEqual,
+			fc.label, NSLayoutAttributeLeading,
+			1, 0,
+			@"uiForm label leading edge constraint");
+		[self addConstraint:c];
+		[self->hEdges addObject:c];
+		c = mkConstraint([fc view], NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeTrailing,
+			1, 0,
+			@"uiForm child trailing edge constraint");
+		[self addConstraint:c];
+		[self->hEdges addObject:c];
+	}
 
 	// we don't arrange the labels vertically; that's done when we add the control since those constraints don't need to change (they just need to be at their baseline)
 }

@@ -141,6 +141,7 @@ Language | Bindings
 C#/.net | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding), [SharpUI](https://github.com/benpye/sharpui/)
 Crystal | [libui.cr](https://github.com/Fusion/libui.cr)
 D | [DerelictLibui](https://github.com/Extrawurst/DerelictLibui)
+Euphoria | [libui-euphoria](https://github.com/ghaberek/libui-euphoria)
 Haskell | [libui-haskell](https://github.com/ajnsit/libui-haskell)
 JavaScript | [libui.js (merged into libui-node?)](https://github.com/mavenave/libui.js)
 Julia | [Libui.jl](https://github.com/joa-quim/Libui.jl)

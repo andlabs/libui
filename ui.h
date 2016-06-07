@@ -622,7 +622,7 @@ _UI_EXTERN uiColorButton *uiNewColorButton(void);
 
 typedef struct uiForm uiForm;
 #define uiForm(this) ((uiForm *) (this))
-_UI_EXTERN void uiFormAppend(uiForm *f, const char *label, uiControl *control, int stretchy);
+_UI_EXTERN void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy);
 _UI_EXTERN int uiFormPadded(uiForm *f);
 _UI_EXTERN void uiFormSetPadded(uiForm *f, int padded);
 _UI_EXTERN uiForm *uiNewForm(void);

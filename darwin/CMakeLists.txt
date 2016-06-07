@@ -18,6 +18,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/editablecombo.m
 	darwin/entry.m
 	darwin/fontbutton.m
+	darwin/form.m
 	darwin/group.m
 	darwin/label.m
 	darwin/main.m

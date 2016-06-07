@@ -18,18 +18,26 @@ void uiLabelSetText(uiLabel *l, const char *text)
 	[l->textfield setStringValue:toNSString(text)];
 }
 
+NSTextField *newLabel(NSString *str)
+{
+	NSTextField *tf;
+
+	tf = [[NSTextField alloc] initWithFrame:NSZeroRect];
+	[tf setStringValue:str];
+	[tf setEditable:NO];
+	[tf setSelectable:NO];
+	[tf setDrawsBackground:NO];
+	finishNewTextField(tf, NO);
+	return tf;
+}
+
 uiLabel *uiNewLabel(const char *text)
 {
 	uiLabel *l;
 
 	uiDarwinNewControl(uiLabel, l);
 
-	l->textfield = [[NSTextField alloc] initWithFrame:NSZeroRect];
-	[l->textfield setStringValue:toNSString(text)];
-	[l->textfield setEditable:NO];
-	[l->textfield setSelectable:NO];
-	[l->textfield setDrawsBackground:NO];
-	finishNewTextField(l->textfield, NO);
+	l->textfield = newLabel(toNSString(text));
 
 	return l;
 }

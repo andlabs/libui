@@ -120,3 +120,6 @@ struct scrollViewData;
 extern NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrollViewData **dout);
 extern void scrollViewSetScrolling(NSScrollView *sv, struct scrollViewData *d, BOOL hscroll, BOOL vscroll);
 extern void scrollViewFreeData(NSScrollView *sv, struct scrollViewData *d);
+
+// label.cpp
+extern NSTextField *newLabel(NSString *str);

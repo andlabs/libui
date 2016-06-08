@@ -22,6 +22,7 @@ list(APPEND _LIBUI_SOURCES
 	unix/editablecombo.c
 	unix/entry.c
 	unix/fontbutton.c
+	unix/form.c
 	unix/graphemes.c
 	unix/group.c
 	unix/label.c

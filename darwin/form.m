@@ -1,13 +1,18 @@
 // 7 june 2016
 #import "uipriv_darwin.h"
 
-@interface formChild : NSObject
+@interface formChild : NSView
 @property uiControl *c;
 @property (strong) NSTextField *label;
 @property BOOL stretchy;
 @property NSLayoutPriority oldHorzHuggingPri;
 @property NSLayoutPriority oldVertHuggingPri;
 @property (strong) NSLayoutConstraint *baseline;
+@property (strong) NSLayoutConstraint *trailing;
+@property (strong) NSLayoutConstraint *top;
+@property (strong) NSLayoutConstraint *bottom;
+- (id)initWithLabel:(NSTextField *)l;
+- (void)onDestroy;
 - (NSView *)view;
 @end
 
@@ -45,6 +50,51 @@ struct uiForm {
 };
 
 @implementation formChild
+
+- (id)initWithLabel:(NSTextField *)l
+{
+	self = [super initWithFrame:NSZeroRect];
+	if (self) {
+		self.label = l;
+		[self.label setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self.label setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[self.label setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationVertical];
+		[self addSubview:self.label];
+
+		self.trailing = mkConstraint(self.label, NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeTrailing,
+			1, 0,
+			@"uiForm label trailing");
+		[self addConstraint:self.trailing];
+		self.top = mkConstraint(self.label, NSLayoutAttributeTop,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeTop,
+			1, 0,
+			@"uiForm label top");
+		[self addConstraint:self.top];
+		self.bottom = mkConstraint(self.label, NSLayoutAttributeBottom,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeBottom,
+			1, 0,
+			@"uiForm label bottom");
+		[self addConstraint:self.bottom];
+	}
+	return self;
+}
+
+- (void)onDestroy
+{
+	[self removeConstraint:self.trailing];
+	self.trailing = nil;
+	[self removeConstraint:self.top];
+	self.top = nil;
+	[self removeConstraint:self.bottom];
+	self.bottom = nil;
+
+	[self.label removeFromSuperview];
+	self.label = nil;
+}
 
 - (NSView *)view
 {
@@ -90,8 +140,8 @@ struct uiForm {
 		uiControlSetParent(fc.c, NULL);
 		uiDarwinControlSetSuperview(uiDarwinControl(fc.c), nil);
 		uiControlDestroy(fc.c);
-		[fc.label removeFromSuperview];
-		fc.label = nil;
+		[fc onDestroy];
+		[fc removeFromSuperview];
 	}
 	[self->children release];
 }
@@ -149,7 +199,7 @@ struct uiForm {
 {
 	formChild *fc;
 	CGFloat padding;
-	NSView *prev, *prevlabel;;
+	NSView *prev, *prevlabel;
 	NSLayoutConstraint *c;
 	NSLayoutRelation relation;
 
@@ -170,7 +220,7 @@ struct uiForm {
 			[self addConstraint:self->first];
 			[self->first retain];
 			prev = [fc view];
-			prevlabel = fc.label;
+			prevlabel = fc;
 			continue;
 		}
 		// not the first; link it
@@ -191,13 +241,13 @@ struct uiForm {
 		[self->widths addObject:c];
 		c = mkConstraint(prevlabel, NSLayoutAttributeWidth,
 			NSLayoutRelationEqual,
-			fc.label, NSLayoutAttributeWidth,
+			fc, NSLayoutAttributeWidth,
 			1, 0,
 			@"uiForm label lwidth constraint");
 		[self addConstraint:c];
 		[self->widths addObject:c];
 		prev = [fc view];
-		prevlabel = fc.label;
+		prevlabel = fc;
 	}
 	relation = NSLayoutRelationEqual;
 	if (self->nStretchy != 0)
@@ -214,12 +264,12 @@ struct uiForm {
 	for (fc in self->children) {
 		c = mkConstraint(self, NSLayoutAttributeLeading,
 			NSLayoutRelationEqual,
-			fc.label, NSLayoutAttributeLeading,
+			fc, NSLayoutAttributeLeading,
 			1, 0,
 			@"uiForm leading constraint");
 		[self addConstraint:c];
 		[self->leadings addObject:c];
-		c = mkConstraint(fc.label, NSLayoutAttributeTrailing,
+		c = mkConstraint(fc, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			[fc view], NSLayoutAttributeLeading,
 			1, -padding,
@@ -245,14 +295,13 @@ struct uiForm {
 	NSLayoutAttribute attribute;
 	uintmax_t oldnStretchy;
 
-	fc = [formChild new];
+	fc = [[formChild alloc] initWithLabel:newLabel(label)];
 	fc.c = c;
-	fc.label = newLabel(label);
-	[fc.label setTranslatesAutoresizingMaskIntoConstraints:NO];
-	[self addSubview:fc.label];
 	fc.stretchy = stretchy;
 	fc.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(fc.c), NSLayoutConstraintOrientationHorizontal);
 	fc.oldVertHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(fc.c), NSLayoutConstraintOrientationVertical);
+	[fc setTranslatesAutoresizingMaskIntoConstraints:NO];
+	[self addSubview:fc];
 
 	uiControlSetParent(fc.c, uiControl(self->f));
 	uiDarwinControlSetSuperview(uiDarwinControl(fc.c), self);

@@ -186,6 +186,14 @@ struct uiForm {
 			@"uiForm child trailing edge constraint");
 		[self addConstraint:c];
 		[self->hEdges addObject:c];
+
+		c = mkConstraint(fc.label, NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			[fc view], NSLayoutAttributeLeading,
+			1, 0,
+			@"TODO");
+		[self addConstraint:c];
+		[self->inBetweens addObject:c];
 	}
 
 	// we don't arrange the labels vertically; that's done when we add the control since those constraints don't need to change (they just need to be at their baseline)
@@ -263,6 +271,11 @@ struct uiForm {
 	CGFloat padding;
 	NSLayoutConstraint *c;
 
+dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3*NSEC_PER_SEC),
+dispatch_get_main_queue(),
+^{
+[[self window]visualizeConstraints:[self constraints]];
+});
 	self->padded = p;
 	padding = [self paddingAmount];
 	for (c in self->inBetweens)

@@ -1,6 +1,8 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
+// TODO need to jiggle on tab change too (second page disabled tab label initially ambiguous)
+
 @interface tabPage : NSObject {
 	struct singleChildConstraints constraints;
 	int margined;

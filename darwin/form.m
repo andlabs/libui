@@ -1,6 +1,8 @@
 // 7 june 2016
 #import "uipriv_darwin.h"
 
+// TODO in the test program, sometimes one of the radio buttons can disappear (try when spaced)
+
 @interface formChild : NSView
 @property uiControl *c;
 @property (strong) NSTextField *label;
@@ -8,8 +10,9 @@
 @property NSLayoutPriority oldHorzHuggingPri;
 @property NSLayoutPriority oldVertHuggingPri;
 @property (strong) NSLayoutConstraint *baseline;
-@property (strong) NSLayoutConstraint *trailing;
+@property (strong) NSLayoutConstraint *leading;
 @property (strong) NSLayoutConstraint *top;
+@property (strong) NSLayoutConstraint *trailing;
 @property (strong) NSLayoutConstraint *bottom;
 - (id)initWithLabel:(NSTextField *)l;
 - (void)onDestroy;
@@ -59,20 +62,28 @@ struct uiForm {
 		[self.label setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[self.label setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationHorizontal];
 		[self.label setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationVertical];
+		[self.label setContentCompressionResistancePriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationHorizontal];
+		[self.label setContentCompressionResistancePriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationVertical];
 		[self addSubview:self.label];
 
-		self.trailing = mkConstraint(self.label, NSLayoutAttributeTrailing,
-			NSLayoutRelationEqual,
-			self, NSLayoutAttributeTrailing,
+		self.leading = mkConstraint(self.label, NSLayoutAttributeLeading,
+			NSLayoutRelationGreaterThanOrEqual,
+			self, NSLayoutAttributeLeading,
 			1, 0,
-			@"uiForm label trailing");
-		[self addConstraint:self.trailing];
+			@"uiForm label leading");
+		[self addConstraint:self.leading];
 		self.top = mkConstraint(self.label, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTop,
 			1, 0,
 			@"uiForm label top");
 		[self addConstraint:self.top];
+		self.trailing = mkConstraint(self.label, NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			self, NSLayoutAttributeTrailing,
+			1, 0,
+			@"uiForm label trailing");
+		[self addConstraint:self.trailing];
 		self.bottom = mkConstraint(self.label, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeBottom,
@@ -253,7 +264,7 @@ struct uiForm {
 	if (self->nStretchy != 0)
 		relation = NSLayoutRelationLessThanOrEqual;
 	self->last = mkConstraint(prev, NSLayoutAttributeBottom,
-		NSLayoutRelationEqual,
+		relation,
 		self, NSLayoutAttributeBottom,
 		1, 0,
 		@"uiForm last vertical constraint");
@@ -269,6 +280,16 @@ struct uiForm {
 			@"uiForm leading constraint");
 		[self addConstraint:c];
 		[self->leadings addObject:c];
+		// coerce the control to be as wide as possible
+		// see http://stackoverflow.com/questions/37710892/in-auto-layout-i-set-up-labels-that-shouldnt-grow-horizontally-and-controls-th
+		c = mkConstraint(self, NSLayoutAttributeLeading,
+			NSLayoutRelationEqual,
+			[fc view], NSLayoutAttributeLeading,
+			1, 0,
+			@"uiForm leading constraint");
+		[c setPriority:NSLayoutPriorityDefaultHigh];
+		[self addConstraint:c];
+		[self->leadings addObject:c];
 		c = mkConstraint(fc, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			[fc view], NSLayoutAttributeLeading,
@@ -281,6 +302,14 @@ struct uiForm {
 			self, NSLayoutAttributeTrailing,
 			1, 0,
 			@"uiForm trailing constraint");
+		[self addConstraint:c];
+		[self->trailings addObject:c];
+		// TODO
+		c = mkConstraint(fc, NSLayoutAttributeBottom,
+			NSLayoutRelationLessThanOrEqual,
+			self, NSLayoutAttributeBottom,
+			1, 0,
+			@"TODO");
 		[self addConstraint:c];
 		[self->trailings addObject:c];
 	}

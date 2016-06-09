@@ -627,6 +627,28 @@ _UI_EXTERN int uiFormPadded(uiForm *f);
 _UI_EXTERN void uiFormSetPadded(uiForm *f, int padded);
 _UI_EXTERN uiForm *uiNewForm(void);
 
+_UI_ENUM(uiAlign) {
+	uiAlignFill,
+	uiAlignStart,
+	uiAlignCenter,
+	uiAlignEnd,
+};
+
+_UI_ENUM(uiAt) {
+	uiAtLeading,
+	uiAtTop,
+	uiAtTrailing,
+	uiAtBottom,
+};
+
+typedef struct uiGrid uiGrid;
+#define uiGrid(this) ((uiGrid *) (this))
+_UI_EXTERN void uiGridAppend(uiGrid *g, uiControl *c, intmax_t left, intmax_t top, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign);
+_UI_EXTERN void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign);
+_UI_EXTERN int uiGridPadded(uiGrid *g);
+_UI_EXTERN void uiGridSetPadded(uiGrid *g, int padded);
+_UI_EXTERN uiGrid *uiNewGrid(void);
+
 #ifdef __cplusplus
 }
 #endif

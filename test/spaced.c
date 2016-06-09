@@ -32,6 +32,7 @@ enum types {
 	tab,
 	group,
 	form,
+	grid,
 };
 
 void setSpaced(int spaced)
@@ -59,6 +60,9 @@ void setSpaced(int spaced)
 			break;
 		case form:
 			uiFormSetPadded(uiForm(p), spaced);
+			break;
+		case grid:
+			uiGridSetPadded(uiGrid(p), spaced);
 			break;
 		}
 	}
@@ -93,6 +97,7 @@ void querySpaced(char out[12])		// more than enough
 				m++;
 			break;
 		// TODO form
+		// TODO grid
 		}
 	}
 
@@ -160,4 +165,13 @@ uiForm *newForm(void)
 	f = uiNewForm();
 	append(f, form);
 	return f;
+}
+
+uiGrid *newGrid(void)
+{
+	uiGrid *g;
+
+	g = uiNewGrid();
+	append(g, grid);
+	return g;
 }

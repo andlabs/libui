@@ -80,6 +80,7 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	{ \
 		gtk_widget_set_sensitive(type(c)->widget, FALSE); \
 	}
+// TODO this whole addedBefore stuff is a MASSIVE HACK.
 #define uiUnixControlDefaultSetContainer(type) \
 	static void type ## SetContainer(uiUnixControl *c, GtkContainer *container, gboolean remove) \
 	{ \

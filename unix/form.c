@@ -37,7 +37,6 @@ static void uiFormDestroy(uiControl *c)
 	for (i = 0; i < f->children->len; i++) {
 		fc = ctrl(f, i);
 		uiControlSetParent(fc->c, NULL);
-		// and make sure the widget itself stays alive
 		uiUnixControlSetContainer(uiUnixControl(fc->c), f->container, TRUE);
 		uiControlDestroy(fc->c);
 		gtk_widget_destroy(fc->label);

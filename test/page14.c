@@ -47,13 +47,13 @@ static uiControl *simpleGrid(void)
 	t4 = testControl("4", green);
 	uiGridAppend(g, t4,
 		0, 1, 1, 1,
-		0, uiAreaFill, 1, uiAreaFill);
+		0, uiAlignFill, 1, uiAlignFill);
 	uiGridInsertAt(g, testControl("5", blue),
 		t4, uiAtTrailing, 2, 1,
-		0, uiAreaFill, 0, uiAreaFill);
+		0, uiAlignFill, 0, uiAlignFill);
 	uiGridAppend(g, testControl("6", yellow),
 		-1, 0, 1, 2,
-		1, uiAreaFill, 0, uiAreaFill);
+		1, uiAlignFill, 0, uiAlignFill);
 
 	return uiControl(g);
 }
@@ -64,7 +64,7 @@ static const struct {
 } pages[] = {
 	{ "Simple Grid", simpleGrid },		// from GTK+ test/testgrid.c
 	{ NULL, NULL },
-}
+};
 
 uiTab *makePage14(void)
 {

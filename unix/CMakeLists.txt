@@ -24,6 +24,7 @@ list(APPEND _LIBUI_SOURCES
 	unix/fontbutton.c
 	unix/form.c
 	unix/graphemes.c
+	unix/grid.c
 	unix/group.c
 	unix/label.c
 	unix/main.c

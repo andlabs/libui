@@ -37,6 +37,9 @@ This README is being written.<br>
 
 *Note that today's entry may be updated later today.*
 
+* **8 June 2016**
+	* Added `uiForm`, a new container control that arranges controls vertically, with properly aligned labels on each. Have fun!
+
 * **6 June 2016**
 	* Added `uiRadioButtonsSelected()`, `uiRadioButtonsSetSelected()`, and `uiRadioButtonsOnSelected()` to control selection of a radio button and catch an event when such a thing happens.
 

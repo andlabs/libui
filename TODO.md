@@ -1,3 +1,7 @@
+- more robust layout handling
+	- uiFormTie() for ensuring multiple uiForms have the same label area widths
+	- uiSizeGroup for size groups (GtkSizeGroup on GTK+, auto layout constraints on OS X; consider adding after 10.8 is gone)
+
 - windows: should the initial hwndInsertAfter be HWND_BOTTOM for what we want?
 
 - windows: document the rules for controls and containers

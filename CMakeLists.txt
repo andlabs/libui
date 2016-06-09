@@ -24,7 +24,7 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "" FORCE)
 endif()
 
-project(libui LANGUAGES C CXX)
+project(libui)
 option(BUILD_SHARED_LIBS "Whether to build libui as a shared library or a static library" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")

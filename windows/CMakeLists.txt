@@ -30,6 +30,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/fontdialog.cpp
 	windows/form.cpp
 	windows/graphemes.cpp
+	windows/grid.cpp
 	windows/group.cpp
 	windows/init.cpp
 	windows/label.cpp

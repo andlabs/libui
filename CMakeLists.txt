@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 2.8.11)
 # 	- Haiku for haiku
 # - debian DESTDIR? https://github.com/andlabs/libui/pull/10
 # - libui-combined* needs to be deleted so that custom command can run every time
+# - add notelemetry.obj to *ALL TARGETS* on VS2015 and up - https://www.infoq.com/news/2016/06/visual-cpp-telemetry
 
 # the docs say we need to set this up prior to project()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")

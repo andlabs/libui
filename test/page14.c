@@ -1,11 +1,19 @@
 // 9 june 2016
 #include "test.h"
 
+// TODOs:
+// - GTK+ - make all expanding controls the same size, to match the other OSs? will they match the other OSs?
+
 enum {
 	red,
 	green,
 	blue,
 	yellow,
+	white,
+	magenta,
+	orange,
+	purple,
+	cyan,
 };
 
 static const struct {
@@ -17,6 +25,11 @@ static const struct {
 	{ 0, 0.5, 0 },
 	{ 0, 0, 1 },
 	{ 1, 1, 0 },
+	{ 1, 1, 1 },
+	{ 1, 0, 1 },
+	{ 1, 0.65, 0 },
+	{ 0.5, 0, 0.5 },
+	{ 0, 1, 1 },
 };
 
 static uiControl *testControl(const char *label, int color)
@@ -34,7 +47,6 @@ static uiControl *simpleGrid(void)
 	uiControl *t4;
 
 	g = newGrid();
-
 	uiGridAppend(g, testControl("1", red),
 		0, 0, 1, 1,
 		0, uiAlignFill, 0, uiAlignFill);
@@ -54,7 +66,117 @@ static uiControl *simpleGrid(void)
 	uiGridAppend(g, testControl("6", yellow),
 		-1, 0, 1, 2,
 		1, uiAlignFill, 0, uiAlignFill);
+	return uiControl(g);
+}
 
+static uiControl *boxComparison(void)
+{
+	uiBox *vbox;
+	uiGrid *g;
+	uiBox *hbox;
+
+	vbox = newVerticalBox();
+	uiBoxAppend(vbox, uiControl(uiNewLabel("Above")), 0);
+	uiBoxAppend(vbox, uiControl(uiNewHorizontalSeparator()), 0);
+
+	hbox = newHorizontalBox();
+	uiBoxAppend(vbox, uiControl(hbox), 0);
+	uiBoxAppend(hbox, testControl("1", white), 0);
+	uiBoxAppend(hbox, uiControl(uiNewLabel("A label")), 1);
+	uiBoxAppend(hbox, testControl("2", green), 0);
+	uiBoxAppend(hbox, uiControl(uiNewLabel("Another label")), 1);
+	uiBoxAppend(hbox, testControl("3", red), 0);
+
+	uiBoxAppend(vbox, uiControl(uiNewHorizontalSeparator()), 0);
+
+	g = newGrid();
+	uiBoxAppend(vbox, uiControl(g), 0);
+	uiGridAppend(g, testControl("1", white),
+		0, 0, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, uiControl(uiNewLabel("A label")),
+		1, 0, 1, 1,
+		1, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, testControl("2", green),
+		2, 0, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, uiControl(uiNewLabel("Another label")),
+		3, 0, 1, 1,
+		1, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, testControl("3", red),
+		4, 0, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+
+	uiBoxAppend(vbox, uiControl(uiNewHorizontalSeparator()), 0);
+	uiBoxAppend(vbox, uiControl(uiNewLabel("Below")), 0);
+	return uiControl(vbox);
+}
+
+static uiControl *emptyLine(void)
+{
+	uiGrid *g;
+
+	g = newGrid();
+	uiGridAppend(g, testControl("(0, 0)", red),
+		0, 0, 1, 1,
+		1, uiAlignFill, 1, uiAlignFill);
+	uiGridAppend(g, testControl("(0, 1)", blue),
+		0, 1, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, testControl("(10, 0)", green),
+		10, 0, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, testControl("(10, 1)", magenta),
+		10, 1, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	return uiControl(g);
+}
+
+static uiControl *emptyGrid(void)
+{
+	uiGrid *g;
+	uiControl *t;
+
+	g = newGrid();
+	t = testControl("(0, 0)", red);
+	uiGridAppend(g, t,
+		0, 0, 1, 1,
+		1, uiAlignFill, 1, uiAlignFill);
+	uiControlHide(t);
+	return uiControl(g);
+}
+
+// TODO insert (need specialized insert/delete)
+
+static uiControl *spanningGrid(void)
+{
+	uiGrid *g;
+
+	g = uiNewGrid();
+	uiGridAppend(g, testControl("0", blue),
+		0, 4, 4, 1,
+		1, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, testControl("1", green),
+		4, 0, 1, 4,
+		0, uiAlignFill, 1, uiAlignFill);
+	uiGridAppend(g, testControl("2", red),
+		3, 3, 1, 1,
+		1, uiAlignFill, 1, uiAlignFill);
+	uiGridAppend(g, testControl("3", yellow),
+		0, 3, 2, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, testControl("4", orange),
+		3, 0, 1, 2,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, testControl("5", purple),
+		1, 1, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, testControl("6", white),
+		0, 1, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(g, testControl("7", cyan),
+		1, 0, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
 	return uiControl(g);
 }
 
@@ -62,7 +184,12 @@ static const struct {
 	const char *name;
 	uiControl *(*f)(void);
 } pages[] = {
-	{ "Simple Grid", simpleGrid },		// from GTK+ test/testgrid.c
+	// based on GTK+ test/testgrid.c
+	{ "Simple Grid", simpleGrid },
+	{ "Box Comparison", boxComparison },
+	{ "Empty Line", emptyLine },
+	{ "Empty Grid", emptyGrid },
+	{ "Spanning Grid", spanningGrid },
 	{ NULL, NULL },
 };
 

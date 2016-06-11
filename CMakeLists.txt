@@ -187,7 +187,7 @@ endif()
 
 macro(_add_exec _name)
 	add_executable(${_name}
-		WIN32 EXCLUDE_FROM_ALL
+		WIN32 MACOSX_BUNDLE EXCLUDE_FROM_ALL
 		${ARGN})
 	target_link_libraries(${_name} libui ${_LIBUI_STATIC_RES})
 	_target_link_options_private(${_name}

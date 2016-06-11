@@ -162,9 +162,9 @@ static void gridRelayout(uiGrid *g)
 	for (i = 0; i < g->children->size(); i++) {
 		gc = (*(g->children))[i];
 		if (gc->hexpand && gc->xspan == 1)
-			ld->hexpand[gc->left] = true;
+			ld->hexpand[toxindex(g, gc->left)] = true;
 		if (gc->vexpand && gc->yspan == 1)
-			ld->vexpand[gc->top] = true;
+			ld->vexpand[toyindex(g, gc->top)] = true;
 	}
 
 	// 3) figure out which rows/columns expand that do span
@@ -175,25 +175,25 @@ static void gridRelayout(uiGrid *g)
 			bool doit = true;
 
 			for (ix = gc->left; ix < gc->left + gc->xspan; ix++)
-				if (ld->hexpand[ix]) {
+				if (ld->hexpand[toxindex(g, ix)]) {
 					doit = false;
 					break;
 				}
 			if (doit)
 				for (ix = gc->left; ix < gc->left + gc->xspan; ix++)
-					ld->hexpand[ix] = true;
+					ld->hexpand[toxindex(g, ix)] = true;
 		}
 		if (gc->vexpand && gc->yspan != 1) {
 			bool doit = true;
 
 			for (iy = gc->top; iy < gc->top + gc->yspan; iy++)
-				if (ld->vexpand[iy]) {
+				if (ld->vexpand[toyindex(g, iy)]) {
 					doit = false;
 					break;
 				}
 			if (doit)
 				for (iy = gc->top; iy < gc->top + gc->yspan; iy++)
-					ld->vexpand[iy] = true;
+					ld->vexpand[toyindex(g, iy)] = true;
 		}
 	}
 
@@ -228,7 +228,7 @@ static void gridRelayout(uiGrid *g)
 	}
 
 	// 6) compute cell positions and sizes
-	for (iy = 0; iy < ycount(g); y++) {
+	for (iy = 0; iy < ycount(g); iy++) {
 		intmax_t curx;
 		int prev;
 
@@ -238,7 +238,7 @@ static void gridRelayout(uiGrid *g)
 			i = ld->gg[iy][ix];
 			if (i != -1) {
 				gc = (*(g->children))[i];
-				if (iy == gc->top) {			// don't repeat this step if the control spans vertically
+				if (iy == toyindex(g, gc->top)) {		// don't repeat this step if the control spans vertically
 					if (i != prev)
 						gc->finalx = curx;
 					else
@@ -260,7 +260,7 @@ static void gridRelayout(uiGrid *g)
 			i = ld->gg[iy][ix];
 			if (i != -1) {
 				gc = (*(g->children))[i];
-				if (x == gc->top) {		// don't repeat this step if the control spans horizontally
+				if (ix == toxindex(g, gc->left)) {		// don't repeat this step if the control spans horizontally
 					if (i != prev)
 						gc->finaly = cury;
 					else

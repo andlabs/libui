@@ -333,16 +333,16 @@ struct uiGrid {
 	uiDarwinControlSetSuperview(uiDarwinControl(gc.c), self);
 	uiDarwinControlSyncEnableState(uiDarwinControl(gc.c), uiControlEnabledToUser(uiControl(self->g)));
 
-	// if a control expands horizontally, it should not hug horizontally
+	// if a control expands horizontally OR spans horizontally, it should not hug horizontally
 	// otherwise, it should *forcibly* hug
-	if (gc.hexpand)
+	if (gc.hexpand || gc.xspan != 1)
 		priority = NSLayoutPriorityDefaultLow;
 	else
 		// LONGTERM will default high work?
 		priority = NSLayoutPriorityRequired;
 	uiDarwinControlSetHuggingPriority(uiDarwinControl(gc.c), priority, NSLayoutConstraintOrientationHorizontal);
 	// same for vertical direction
-	if (gc.vexpand)
+	if (gc.vexpand || gc.yspan != 1)
 		priority = NSLayoutPriorityDefaultLow;
 	else
 		// LONGTERM will default high work?

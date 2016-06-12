@@ -500,11 +500,13 @@ struct uiGrid {
 	CGFloat padding;
 	NSLayoutConstraint *c;
 
+#if 0 /* TODO */
 dispatch_after(
 dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC),
 dispatch_get_main_queue(),
 ^{ [[self window] visualizeConstraints:[self constraints]]; }
 );
+#endif
 	self->padded = p;
 	padding = [self paddingAmount];
 	for (c in self->inBetweens)

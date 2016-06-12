@@ -262,7 +262,7 @@ struct uiGrid {
 				break;
 			}
 		if (rowviews[y] == nil)
-			rowviews[y] = colviews[y - 1];
+			rowviews[y] = rowviews[y - 1];
 	}
 
 	// now string all the views together

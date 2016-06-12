@@ -152,7 +152,7 @@ static uiControl *spanningGrid(void)
 {
 	uiGrid *g;
 
-	g = uiNewGrid();
+	g = newGrid();
 	uiGridAppend(g, testControl("0", blue),
 		0, 4, 4, 1,
 		1, uiAlignFill, 0, uiAlignFill);

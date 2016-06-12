@@ -204,6 +204,7 @@ struct uiGrid {
 		for (x = 0; x < xcount; x++)
 			if (gg[y][x] == -1) {
 				gv[y][x] = [[NSView alloc] initWithFrame:NSZeroRect];
+				[gv[y][x] setTranslatesAutoresizingMaskIntoConstraints:NO];
 				[self addSubview:gv[y][x]];
 				[self->emptyCellViews addObject:gv[y][x]];
 			} else {

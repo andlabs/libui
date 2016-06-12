@@ -1,6 +1,8 @@
 // 11 june 2016
 #import "uipriv_darwin.h"
 
+// TODO adjust all containers to handle hidden cells properly
+
 // TODO wrap the child in a view if its align isn't fill
 // maybe it's easier to do it regardless of align
 @interface gridChild : NSObject

@@ -17,7 +17,6 @@ struct uiForm {
 	GtkGrid *grid;
 	GArray *children;
 	int padded;
-	// TODO OS X is missing this
 	GtkSizeGroup *stretchygroup;		// ensures all stretchy controls have the same size
 };
 

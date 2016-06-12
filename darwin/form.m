@@ -260,11 +260,8 @@ struct uiForm {
 		prev = [fc view];
 		prevlabel = fc;
 	}
-	relation = NSLayoutRelationEqual;
-	if (self->nStretchy != 0)
-		relation = NSLayoutRelationLessThanOrEqual;
 	self->last = mkConstraint(prev, NSLayoutAttributeBottom,
-		relation,
+		NSLayoutRelationEqual,
 		self, NSLayoutAttributeBottom,
 		1, 0,
 		@"uiForm last vertical constraint");
@@ -314,6 +311,25 @@ struct uiForm {
 		[self->trailings addObject:c];
 	}
 
+	// and make all stretchy controls have the same height
+	prev = nil;
+	for (fc in self->children) {
+		if (!fc.stretchy)
+			continue;
+		if (prev == nil) {
+			prev = [fc view];
+			continue;
+		}
+		c = mkConstraint([fc view], NSLayoutAttributeHeight,
+			NSLayoutRelationEqual,
+			prev, NSLayoutAttributeHeight,
+			1, 0,
+			@"uiForm stretchy constraint");
+		[self addConstraint:c];
+		// TODO make a dedicated array for this
+		[self->leadings addObject:c];
+	}
+
 	// we don't arrange the labels vertically; that's done when we add the control since those constraints don't need to change (they just need to be at their baseline)
 }
 
@@ -333,7 +349,6 @@ struct uiForm {
 	[self addSubview:fc];
 
 	uiControlSetParent(fc.c, uiControl(self->f));
-	// TODO fix this it's wrong
 	uiDarwinControlSetSuperview(uiDarwinControl(fc.c), self);
 	uiDarwinControlSyncEnableState(uiDarwinControl(fc.c), uiControlEnabledToUser(uiControl(self->f)));
 

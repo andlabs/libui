@@ -3,24 +3,113 @@
 #include <string.h>
 #include "../../ui.h"
 
-// TODOs
-// - rename variables in main()
-// - make both columns the same size?
-
-static uiWindow *mainwin;
-
 static int onClosing(uiWindow *w, void *data)
 {
-	uiControlDestroy(uiControl(mainwin));
 	uiQuit();
-	return 0;
+	return 1;
 }
 
-static int shouldQuit(void *data)
+static int onShouldQuit(void *data)
 {
+	uiWindow *mainwin = uiWindow(data);
+
 	uiControlDestroy(uiControl(mainwin));
 	return 1;
 }
+
+static uiControl *makeBasicControlsPage(void)
+{
+	uiBox *vbox;
+	uiBox *hbox;
+	uiGroup *group;
+	uiForm *entryForm;
+
+	vbox = uiNewVerticalBox();
+	uiBoxSetPadded(vbox, 1);
+
+	hbox = uiNewHorizontalBox();
+	uiBoxSetPadded(hbox, 1);
+	uiBoxAppend(vbox, uiControl(hbox), 0);
+
+	uiBoxAppend(hbox,
+		uiControl(uiNewButton("Button")),
+		0);
+	uiBoxAppend(hbox,
+		uiControl(uiNewCheckbox("Checkbox")),
+		0);
+
+	uiBoxAppend(vbox,
+		uiControl(uiNewLabel("This is a label. Right now, labels can only span one line.")),
+		0);
+
+	uiBoxAppend(vbox,
+		uiControl(uiNewHorizontalSeparator()),
+		0);
+
+	group = uiNewGroup("Entries");
+	uiGroupSetMargined(group, 1);
+	uiBoxAppend(vbox, uiControl(group), 1);
+
+	entryForm = uiNewForm();
+	uiFormSetPadded(entryForm, 1);
+	uiGroupSetChild(group, uiControl(entryForm));
+
+	uiFormAppend(entryForm,
+		"Entry",
+		uiControl(uiNewEntry()),
+		0);
+	uiFormAppend(entryForm,
+		"Password Entry",
+		uiControl(uiNewPasswordEntry()),
+		0);
+	uiFormAppend(entryForm,
+		"Search Entry",
+		uiControl(uiNewSearchEntry()),
+		0);
+	uiFormAppend(entryForm,
+		"Multiline Entry",
+		uiControl(uiNewMultilineEntry()),
+		1);
+	uiFormAppend(entryForm,
+		"Multiline Entry No Wrap",
+		uiControl(uiNewNonWrappingMultilineEntry()),
+		1);
+
+	return uiControl(vbox);
+}
+
+int main(void)
+{
+	uiInitOptions options;
+	const char *err;
+	uiWindow *mainwin;
+	uiTab *tab;
+
+	memset(&options, 0, sizeof (uiInitOptions));
+	err = uiInit(&options);
+	if (err != NULL) {
+		fprintf(stderr, "error initializing libui: %s", err);
+		uiFreeInitError(err);
+		return 1;
+	}
+
+	mainwin = uiNewWindow("libui Control Gallery", 640, 480, 1);
+	uiWindowOnClosing(mainwin, onClosing, NULL);
+	uiOnShouldQuit(onShouldQuit, mainwin);
+
+	tab = uiNewTab();
+	uiWindowSetChild(mainwin, uiControl(tab));
+	uiWindowSetMargined(mainwin, 1);
+
+	uiTabAppend(tab, "Basic Controls", makeBasicControlsPage());
+	uiTabSetMargined(tab, 0, 1);
+
+	uiControlShow(uiControl(mainwin));
+	uiMain();
+	return 0;
+}
+
+#if 0
 
 static void openClicked(uiMenuItem *item, uiWindow *w, void *data)
 {
@@ -230,3 +319,5 @@ int main(void)
 	uiUninit();
 	return 0;
 }
+
+#endif

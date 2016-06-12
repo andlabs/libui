@@ -18,6 +18,9 @@ This README is being written.<br>
 
 *Note that today's entry may be updated later today.*
 
+* **12 June 2016**
+	* Added `uiGrid`, a new container control that arranges controls in rows and columns, with stretchy ("expanding") rows, stretchy ("expanding") columns, cells that span rows and columns, and cells whose content is aligned in either direction rather than just filling. It's quite powerful, is it? =P
+
 * **8 June 2016**
 	* Added `uiForm`, a new container control that arranges controls vertically, with properly aligned labels on each. Have fun!
 

@@ -133,6 +133,7 @@ struct uiGrid {
 	NSNumber *number;
 	NSLayoutConstraint *c;
 	NSView **colviews, **rowviews;
+	NSView *firstView;
 
 	[self removeOurConstraints];
 	if ([self->children count] == 0)
@@ -237,7 +238,57 @@ struct uiGrid {
 			[self addConstraint:c];
 			[self->edges addObject:c];
 		}
-	[set release];
+
+	// now put all the views in the same row and column together
+	for (x = 0; x < xcount; x++) {
+		[set removeAllObjects];
+		for (y = 0; y < ycount; y++)
+			[set addObject:[NSNumber numberWithInt:gg[y][x]]];
+		first = YES;
+		for (number in set) {
+			if ([number intValue] == -1)
+				continue;
+			gc = (gridChild *) [self->children objectAtIndex:[number intValue]];
+			if (first) {
+				firstView = [gc view];
+				first = NO;
+				continue;
+			}
+			c = mkConstraint([gc view], NSLayoutAttributeLeading,
+				NSLayoutRelationEqual,
+				firstView, NSLayoutAttributeLeading,
+				1, 0,
+				@"uiGrid column left edge constraint");
+			[self addConstraint:c];
+			[self->edges addObject:c];
+		}
+	}
+	for (y = 0; y < ycount; y++) {
+		[set removeAllObjects];
+		for (x = 0; x < xcount; x++)
+			[set addObject:[NSNumber numberWithInt:gg[y][x]]];
+		first = YES;
+		for (number in set) {
+			if ([number intValue] == -1)
+				continue;
+			gc = (gridChild *) [self->children objectAtIndex:[number intValue]];
+			if (first) {
+				firstView = [gc view];
+				first = NO;
+				continue;
+			}
+			c = mkConstraint([gc view], NSLayoutAttributeTop,
+				NSLayoutRelationEqual,
+				firstView, NSLayoutAttributeTop,
+				1, 0,
+				@"uiGrid row top edge constraint");
+			[self addConstraint:c];
+			[self->edges addObject:c];
+		}
+	}
+
+// TODO
+return;
 
 	// now go through every row and column and extract SOME view from that row and column for the inner constraints
 	// if it turns out that a row or column is totally empty, duplicate the one to the left (this has the effect of collapsing empty rows)
@@ -310,6 +361,7 @@ struct uiGrid {
 	// and finally clean up
 	uiFree(colviews);
 	uiFree(rowviews);
+	[set release];
 	for (y = 0; y < ycount; y++)
 		uiFree(gg[y]);
 	uiFree(gg);

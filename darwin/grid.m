@@ -240,6 +240,52 @@ struct uiGrid {
 		[self->edges addObject:c];
 	}
 
+	// now align leading and top edges
+	for (x = 0; x < xcount; x++)
+		for (y = 1; y < ycount; y++) {
+			c = mkConstraint(gv[0][x], NSLayoutAttributeLeading,
+				NSLayoutRelationEqual,
+				gv[y][x], NSLayoutAttributeLeading,
+				1, 0,
+				@"uiGrid column leading constraint");
+			[self addConstraint:c];
+			[self->edges addObject:c];
+		}
+	for (y = 0; y < ycount; y++)
+		for (x = 1; x < xcount; x++) {
+			c = mkConstraint(gv[y][0], NSLayoutAttributeTop,
+				NSLayoutRelationEqual,
+				gv[y][x], NSLayoutAttributeTop,
+				1, 0,
+				@"uiGrid row top constraint");
+			[self addConstraint:c];
+			[self->edges addObject:c];
+		}
+
+	// now string adjacent views together
+	for (y = 0; y < ycount; y++)
+		for (x = 1; x < xcount; x++)
+			if (gv[y][x - 1] != gv[y][x]) {
+				c = mkConstraint(gv[y][x - 1], NSLayoutAttributeTrailing,
+					NSLayoutRelationEqual,
+					gv[y][x], NSLayoutAttributeLeading,
+					1, -padding,
+					@"uiGrid internal horizontal constraint");
+				[self addConstraint:c];
+				[self->inBetweens addObject:c];
+			}
+	for (x = 0; x < xcount; x++)
+		for (y = 1; y < ycount; y++)
+			if (gv[y - 1][x] != gv[y][x]) {
+				c = mkConstraint(gv[y - 1][x], NSLayoutAttributeBottom,
+					NSLayoutRelationEqual,
+					gv[y][x], NSLayoutAttributeTop,
+					1, -padding,
+					@"uiGrid internal vertical constraint");
+				[self addConstraint:c];
+				[self->inBetweens addObject:c];
+			}
+
 	// TODO make all expanding rows/columns the same height/width
 
 	// and finally clean up

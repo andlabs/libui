@@ -138,3 +138,4 @@ ships with: Ubuntu Wily (15.10)
 ### Mac OS X 10.10
 
 ### Mac OS X 10.11
+* **NSLayoutGuide**

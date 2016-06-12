@@ -147,6 +147,8 @@ struct uiGrid {
 	int i;
 	NSLayoutConstraint *c;
 	intmax_t firstx, firsty;
+	BOOL *hexpand, *vexpand;
+	BOOL doit;
 
 	[self removeOurConstraints];
 	if ([self->children count] == 0)
@@ -211,6 +213,43 @@ struct uiGrid {
 				gc = (gridChild *) [self->children objectAtIndex:gg[y][x]];
 				gv[y][x] = [gc view];
 			}
+	}
+
+	// now figure out which rows and columns really expand
+	hexpand = (BOOL *) uiAlloc(xcount * sizeof (BOOL), "BOOL[]");
+	vexpand = (BOOL *) uiAlloc(ycount * sizeof (BOOL), "BOOL[]");
+	// first, which don't span
+	for (gc in self->children) {
+		if (gc.hexpand && gc.xspan == 1)
+			hexpand[gc.left - xmin] = YES;
+		if (gc.vexpand && gc.yspan == 1)
+			vexpand[gc.top - ymin] = YES;
+	}
+	// second, which do span
+	// the way we handle this is simple: if none of the spanned rows/columns expand, make all rows/columns expand
+	for (gc in self->children) {
+		if (gc.hexpand && gc.xspan != 1) {
+			doit = YES;
+			for (x = gc.left; x < gc.left + gc.xspan; x++)
+				if (hexpand[x - xmin]) {
+					doit = NO;
+					break;
+				}
+			if (doit)
+				for (x = gc.left; x < gc.left + gc.xspan; x++)
+					hexpand[x - xmin] = YES;
+		}
+		if (gc.vexpand && gc.yspan != 1) {
+			doit = YES;
+			for (y = gc.top; y < gc.top + gc.yspan; y++)
+				if (vexpand[y - ymin]) {
+					doit = NO;
+					break;
+				}
+			if (doit)
+				for (y = gc.top; y < gc.top + gc.yspan; y++)
+					vexpand[y - ymin] = YES;
+		}
 	}
 
 	// now establish all the edge constraints
@@ -310,9 +349,31 @@ struct uiGrid {
 				[self->inBetweens addObject:c];
 			}
 
+	// now set priorities for all widgets that expand or not
+	// if a cell is in an expanding row, OR If it spans, then it must be willing to stretch
+	// otherwise, it tries not to
+	// note we don't use NSLayoutPriorityRequired as that will cause things to squish when they shouldn't
+	for (gc in self->children) {
+		NSLayoutPriority priority;
+
+		if (hexpand[gc.left - xmin] || gc.xspan != 1)
+			priority = NSLayoutPriorityDefaultLow;
+		else
+			priority = NSLayoutPriorityDefaultHigh;
+		uiDarwinControlSetHuggingPriority(uiDarwinControl(gc.c), priority, NSLayoutConstraintOrientationHorizontal);
+		// same for vertical direction
+		if (vexpand[gc.top - ymin] || gc.yspan != 1)
+			priority = NSLayoutPriorityDefaultLow;
+		else
+			priority = NSLayoutPriorityDefaultHigh;
+		uiDarwinControlSetHuggingPriority(uiDarwinControl(gc.c), priority, NSLayoutConstraintOrientationVertical);
+	}
+
 	// TODO make all expanding rows/columns the same height/width
 
 	// and finally clean up
+	uiFree(hexpand);
+	uiFree(vexpand);
 	for (y = 0; y < ycount; y++) {
 		uiFree(gg[y]);
 		uiFree(gv[y]);
@@ -333,21 +394,7 @@ struct uiGrid {
 	uiDarwinControlSetSuperview(uiDarwinControl(gc.c), self);
 	uiDarwinControlSyncEnableState(uiDarwinControl(gc.c), uiControlEnabledToUser(uiControl(self->g)));
 
-	// if a control expands horizontally OR spans horizontally, it should not hug horizontally
-	// otherwise, it should *forcibly* hug
-	if (gc.hexpand || gc.xspan != 1)
-		priority = NSLayoutPriorityDefaultLow;
-	else
-		// LONGTERM will default high work?
-		priority = NSLayoutPriorityRequired;
-	uiDarwinControlSetHuggingPriority(uiDarwinControl(gc.c), priority, NSLayoutConstraintOrientationHorizontal);
-	// same for vertical direction
-	if (gc.vexpand || gc.yspan != 1)
-		priority = NSLayoutPriorityDefaultLow;
-	else
-		// LONGTERM will default high work?
-		priority = NSLayoutPriorityRequired;
-	uiDarwinControlSetHuggingPriority(uiDarwinControl(gc.c), priority, NSLayoutConstraintOrientationVertical);
+	// no need to set priority here; that's done in establishOurConstraints
 
 	[self->children addObject:gc];
 

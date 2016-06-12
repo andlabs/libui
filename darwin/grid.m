@@ -142,9 +142,11 @@ struct uiGrid {
 	BOOL first;
 	int **gg;
 	NSView ***gv;
+	BOOL **gspan;
 	intmax_t x, y;
 	int i;
 	NSLayoutConstraint *c;
+	intmax_t firstx, firsty;
 
 	[self removeOurConstraints];
 	if ([self->children count] == 0)
@@ -175,17 +177,23 @@ struct uiGrid {
 	ycount = ymax - ymin;
 
 	// now build a topological map of the grid gg[y][x]
+	// also figure out which cells contain spanned views so they can be ignored later
 	gg = (int **) uiAlloc(ycount * sizeof (int *), "int[][]");
+	gspan = (BOOL **) uiAlloc(ycount * sizeof (BOOL *), "BOOL[][]");
 	for (y = 0; y < ycount; y++) {
 		gg[y] = (int *) uiAlloc(xcount * sizeof (int), "int[]");
+		gspan[y] = (BOOL *) uiAlloc(xcount * sizeof (BOOL), "BOOL[]");
 		for (x = 0; x < xcount; x++)
 			gg[y][x] = -1;		// empty
 	}
 	for (i = 0; i < [self->children count]; i++) {
 		gc = (gridChild *) [self->children objectAtIndex:i];
 		for (y = gc.top; y < gc.top + gc.yspan; y++)
-			for (x = gc.left; x < gc.left + gc.xspan; x++)
+			for (x = gc.left; x < gc.left + gc.xspan; x++) {
 				gg[y - ymin][x - xmin] = i;
+				if (x != gc.left || y != gc.top)
+					gspan[y - ymin][x - xmin] = YES;
+			}
 	}
 
 	// now build a topological map of the grid's views gv[y][x]
@@ -241,9 +249,16 @@ struct uiGrid {
 	}
 
 	// now align leading and top edges
-	for (x = 0; x < xcount; x++)
-		for (y = 1; y < ycount; y++) {
-			c = mkConstraint(gv[0][x], NSLayoutAttributeLeading,
+	// do NOT align spanning cells!
+	for (x = 0; x < xcount; x++) {
+		for (y = 0; y < ycount; y++)
+			if (!gspan[y][x])
+				break;
+		firsty = y;
+		for (y++; y < ycount; y++) {
+			if (gspan[y][x])
+				continue;
+			c = mkConstraint(gv[firsty][x], NSLayoutAttributeLeading,
 				NSLayoutRelationEqual,
 				gv[y][x], NSLayoutAttributeLeading,
 				1, 0,
@@ -251,9 +266,16 @@ struct uiGrid {
 			[self addConstraint:c];
 			[self->edges addObject:c];
 		}
-	for (y = 0; y < ycount; y++)
-		for (x = 1; x < xcount; x++) {
-			c = mkConstraint(gv[y][0], NSLayoutAttributeTop,
+	}
+	for (y = 0; y < ycount; y++) {
+		for (x = 0; x < xcount; x++)
+			if (!gspan[y][x])
+				break;
+		firstx = x;
+		for (x++; x < xcount; x++) {
+			if (gspan[y][x])
+				continue;
+			c = mkConstraint(gv[y][firstx], NSLayoutAttributeTop,
 				NSLayoutRelationEqual,
 				gv[y][x], NSLayoutAttributeTop,
 				1, 0,
@@ -261,6 +283,7 @@ struct uiGrid {
 			[self addConstraint:c];
 			[self->edges addObject:c];
 		}
+	}
 
 	// now string adjacent views together
 	for (y = 0; y < ycount; y++)
@@ -292,9 +315,11 @@ struct uiGrid {
 	for (y = 0; y < ycount; y++) {
 		uiFree(gg[y]);
 		uiFree(gv[y]);
+		uiFree(gspan[y]);
 	}
 	uiFree(gg);
 	uiFree(gv);
+	uiFree(gspan);
 }
 
 - (void)append:(gridChild *)gc

@@ -3,12 +3,12 @@
 
 // TODO wrap the child in a view if its align isn't fill
 // maybe it's easier to do it regardless of align
-@interface gridChild
+@interface gridChild : NSObject
 @property uiControl *c;
 @property intmax_t left;
 @property intmax_t top;
-@property intmax_t hspan;
-@property intmax_t vspan;
+@property intmax_t xspan;
+@property intmax_t yspan;
 @property int hexpand;
 @property uiAlign halign;
 @property int vexpand;
@@ -48,7 +48,7 @@ struct uiGrid {
 	gridView *view;
 };
 
-@implementation formChild
+@implementation gridChild
 
 - (NSView *)view
 {
@@ -66,7 +66,8 @@ struct uiGrid {
 		self->g = gg;
 		self->padded = 0;
 		self->children = [NSMutableArray new];
-		self->nStretchy = 0;
+		self->nhexpand = 0;
+		self->nvexpand = 0;
 
 		self->edges = [NSMutableArray new];
 		self->inBetweens = [NSMutableArray new];
@@ -344,13 +345,13 @@ struct uiGrid {
 
 	[self establishOurConstraints];
 	update = NO;
-	if (fc.hexpand) {
+	if (gc.hexpand) {
 		oldn = self->nhexpand;
 		self->nhexpand++;
 		if (oldn == 0)
 			update = YES;
 	}
-	if (fc.vexpand) {
+	if (gc.vexpand) {
 		oldn = self->nvexpand;
 		self->nvexpand++;
 		if (oldn == 0)
@@ -546,7 +547,7 @@ void uiGridSetPadded(uiGrid *g, int padded)
 	[g->view setPadded:padded];
 }
 
-uiGrid *uiNewForm(void)
+uiGrid *uiNewGrid(void)
 {
 	uiGrid *g;
 

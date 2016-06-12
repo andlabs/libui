@@ -30,6 +30,8 @@
 
 	NSMutableArray *edges;
 	NSMutableArray *inBetweens;
+
+	NSMutableArray *emptyCellViews;
 }
 - (id)initWithG:(uiGrid *)gg;
 - (void)onDestroy;
@@ -73,6 +75,8 @@ struct uiGrid {
 
 		self->edges = [NSMutableArray new];
 		self->inBetweens = [NSMutableArray new];
+
+		self->emptyCellViews = [NSMutableArray new];
 	}
 	return self;
 }
@@ -85,6 +89,8 @@ struct uiGrid {
 	[self->edges release];
 	[self->inBetweens release];
 
+	[self->emptyCellViews release];
+
 	for (gc in self->children) {
 		uiControlSetParent(gc.c, NULL);
 		uiDarwinControlSetSuperview(uiDarwinControl(gc.c), nil);
@@ -95,6 +101,8 @@ struct uiGrid {
 
 - (void)removeOurConstraints
 {
+	NSView *v;
+
 	if ([self->edges count] != 0) {
 		[self removeConstraints:self->edges];
 		[self->edges removeAllObjects];
@@ -103,6 +111,10 @@ struct uiGrid {
 		[self removeConstraints:self->inBetweens];
 		[self->inBetweens removeAllObjects];
 	}
+
+	for (v in self->emptyCellViews)
+		[v removeFromSuperview];
+	[self->emptyCellViews removeAllObjects];
 }
 
 - (void)syncEnableStates:(int)enabled
@@ -129,13 +141,10 @@ struct uiGrid {
 	intmax_t xcount, ycount;
 	BOOL first;
 	int **gg;
+	NSView ***gv;
 	intmax_t x, y;
 	int i;
-	NSMutableSet *set;
-	NSNumber *number;
 	NSLayoutConstraint *c;
-	NSView **colviews, **rowviews;
-	NSView *firstView;
 
 	[self removeOurConstraints];
 	if ([self->children count] == 0)
@@ -179,194 +188,67 @@ struct uiGrid {
 				gg[y - ymin][x - xmin] = i;
 	}
 
+	// now build a topological map of the grid's views gv[y][x]
+	// for any empty cell, create a dummy view
+	gv = (NSView ***) uiAlloc(ycount * sizeof (NSView **), "NSView *[][]");
+	for (y = 0; y < ycount; y++) {
+		gv[y] = (NSView **) uiAlloc(xcount * sizeof (NSView *), "NSView *[]");
+		for (x = 0; x < xcount; x++)
+			if (gg[y][x] == -1) {
+				gv[y][x] = [[NSView alloc] initWithFrame:NSZeroRect];
+				[self addSubview:gv[y][x]];
+				[self->emptyCellViews addObject:gv[y][x]];
+			} else {
+				gc = (gridChild *) [self->children objectAtIndex:gg[y][x]];
+				gv[y][x] = [gc view];
+			}
+	}
+
 	// now establish all the edge constraints
-	// leading edge
-	set = [NSMutableSet new];
-	for (y = 0; y < ycount; y++)
-		[set addObject:[NSNumber numberWithInt:gg[y][0]]];
-	for (number in set)
-		if ([number intValue] != -1) {
-			gc = (gridChild *) [self->children objectAtIndex:[number intValue]];
-			c = mkConstraint(self, NSLayoutAttributeLeading,
-				NSLayoutRelationEqual,
-				[gc view], NSLayoutAttributeLeading,
-				1, 0,
-				@"uiGrid leading edge constraint");
-			[self addConstraint:c];
-			[self->edges addObject:c];
-		}
-	// top
-	[set removeAllObjects];
-	for (x = 0; x < xcount; x++)
-		[set addObject:[NSNumber numberWithInt:gg[0][x]]];
-	for (number in set)
-		if ([number intValue] != -1) {
-			gc = (gridChild *) [self->children objectAtIndex:[number intValue]];
-			c = mkConstraint(self, NSLayoutAttributeTop,
-				NSLayoutRelationEqual,
-				[gc view], NSLayoutAttributeTop,
-				1, 0,
-				@"uiGrid top edge constraint");
-			[self addConstraint:c];
-			[self->edges addObject:c];
-		}
-	// trailing edge
-	[set removeAllObjects];
-	for (y = 0; y < ycount; y++)
-		[set addObject:[NSNumber numberWithInt:gg[y][xcount - 1]]];
-	for (number in set)
-		if ([number intValue] != -1) {
-			gc = (gridChild *) [self->children objectAtIndex:[number intValue]];
-			c = mkConstraint(self, NSLayoutAttributeTrailing,
-				NSLayoutRelationEqual,
-				[gc view], NSLayoutAttributeTrailing,
-				1, 0,
-				@"uiGrid trailing edge constraint");
-			[self addConstraint:c];
-			[self->edges addObject:c];
-		}
-	// bottom
-	[set removeAllObjects];
-	for (x = 0; x < xcount; x++)
-		[set addObject:[NSNumber numberWithInt:gg[ycount - 1][x]]];
-	for (number in set)
-		if ([number intValue] != -1) {
-			gc = (gridChild *) [self->children objectAtIndex:[number intValue]];
-			c = mkConstraint(self, NSLayoutAttributeBottom,
-				NSLayoutRelationEqual,
-				[gc view], NSLayoutAttributeBottom,
-				1, 0,
-				@"uiGrid bottom edge constraint");
-			[self addConstraint:c];
-			[self->edges addObject:c];
-		}
-
-	// now put all the views in the same row and column together
-	for (x = 0; x < xcount; x++) {
-		[set removeAllObjects];
-		for (y = 0; y < ycount; y++)
-			[set addObject:[NSNumber numberWithInt:gg[y][x]]];
-		first = YES;
-		for (number in set) {
-			if ([number intValue] == -1)
-				continue;
-			gc = (gridChild *) [self->children objectAtIndex:[number intValue]];
-			if (first) {
-				firstView = [gc view];
-				first = NO;
-				continue;
-			}
-			c = mkConstraint([gc view], NSLayoutAttributeLeading,
-				NSLayoutRelationEqual,
-				firstView, NSLayoutAttributeLeading,
-				1, 0,
-				@"uiGrid column left edge constraint");
-			[self addConstraint:c];
-			[self->edges addObject:c];
-		}
-	}
+	// leading and trailing edges
 	for (y = 0; y < ycount; y++) {
-		[set removeAllObjects];
-		for (x = 0; x < xcount; x++)
-			[set addObject:[NSNumber numberWithInt:gg[y][x]]];
-		first = YES;
-		for (number in set) {
-			if ([number intValue] == -1)
-				continue;
-			gc = (gridChild *) [self->children objectAtIndex:[number intValue]];
-			if (first) {
-				firstView = [gc view];
-				first = NO;
-				continue;
-			}
-			c = mkConstraint([gc view], NSLayoutAttributeTop,
-				NSLayoutRelationEqual,
-				firstView, NSLayoutAttributeTop,
-				1, 0,
-				@"uiGrid row top edge constraint");
-			[self addConstraint:c];
-			[self->edges addObject:c];
-		}
+		c = mkConstraint(self, NSLayoutAttributeLeading,
+			NSLayoutRelationEqual,
+			gv[y][0], NSLayoutAttributeLeading,
+			1, 0,
+			@"uiGrid leading edge constraint");
+		[self addConstraint:c];
+		[self->edges addObject:c];
+		c = mkConstraint(self, NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			gv[y][xcount - 1], NSLayoutAttributeTrailing,
+			1, 0,
+			@"uiGrid trailing edge constraint");
+		[self addConstraint:c];
+		[self->edges addObject:c];
 	}
-
-// TODO
-return;
-
-	// now go through every row and column and extract SOME view from that row and column for the inner constraints
-	// if it turns out that a row or column is totally empty, duplicate the one to the left (this has the effect of collapsing empty rows)
-	// note that the edges cannot be empty because we built a smallest fitting rectangle way back in step 1
-	colviews = (NSView **) uiAlloc(xcount * sizeof (NSView *), "NSView *[]");
+	// top and bottom edges
 	for (x = 0; x < xcount; x++) {
-		for (y = 0; y < ycount; y++)
-			if (gg[y][x] != -1) {
-				gc = (gridChild *) [self->children objectAtIndex:gg[y][x]];
-				colviews[x] = [gc view];
-				break;
-			}
-		if (colviews[x] == nil)
-			colviews[x] = colviews[x - 1];
-	}
-	rowviews = (NSView **) uiAlloc(ycount * sizeof (NSView *), "NSView *[]");
-	for (y = 0; y < ycount; y++) {
-		for (x = 0; x < xcount; x++)
-			if (gg[y][x] != -1) {
-				gc = (gridChild *) [self->children objectAtIndex:gg[y][x]];
-				rowviews[y] = [gc view];
-				break;
-			}
-		if (rowviews[y] == nil)
-			rowviews[y] = rowviews[y - 1];
-	}
-
-	// now string all the views together
-	for (gc in self->children) {
-		if (gc.left != xmin) {
-			c = mkConstraint([gc view], NSLayoutAttributeLeading,
-				NSLayoutRelationEqual,
-				colviews[(gc.left - 1) - xmin], NSLayoutAttributeTrailing,
-				1, padding,
-				@"uiGrid leading constraint");
-			[self addConstraint:c];
-			[self->inBetweens addObject:c];
-		}
-		if (gc.top != ymin) {
-			c = mkConstraint([gc view], NSLayoutAttributeTop,
-				NSLayoutRelationEqual,
-				rowviews[(gc.top - 1) - ymin], NSLayoutAttributeBottom,
-				1, padding,
-				@"uiGrid top constraint");
-			[self addConstraint:c];
-			[self->inBetweens addObject:c];
-		}
-		if ((gc.left + gc.xspan) != xmax) {
-			c = mkConstraint([gc view], NSLayoutAttributeTrailing,
-				NSLayoutRelationEqual,
-				colviews[(gc.left + gc.xspan) - xmin], NSLayoutAttributeLeading,
-				1, -padding,
-				@"uiGrid trailing constraint");
-			[self addConstraint:c];
-			[self->inBetweens addObject:c];
-		}
-		if ((gc.top + gc.yspan) != ymax) {
-			c = mkConstraint([gc view], NSLayoutAttributeBottom,
-				NSLayoutRelationEqual,
-				rowviews[(gc.top + gc.yspan) - ymin], NSLayoutAttributeTop,
-				1, -padding,
-				@"uiGrid bottom constraint");
-			[self addConstraint:c];
-			[self->inBetweens addObject:c];
-		}
+		c = mkConstraint(self, NSLayoutAttributeTop,
+			NSLayoutRelationEqual,
+			gv[0][x], NSLayoutAttributeTop,
+			1, 0,
+			@"uiGrid top edge constraint");
+		[self addConstraint:c];
+		[self->edges addObject:c];
+		c = mkConstraint(self, NSLayoutAttributeBottom,
+			NSLayoutRelationEqual,
+			gv[ycount - 1][x], NSLayoutAttributeBottom,
+			1, 0,
+			@"uiGrid bottom edge constraint");
+		[self addConstraint:c];
+		[self->edges addObject:c];
 	}
 
 	// TODO make all expanding rows/columns the same height/width
 
 	// and finally clean up
-	uiFree(colviews);
-	uiFree(rowviews);
-	[set release];
-	for (y = 0; y < ycount; y++)
+	for (y = 0; y < ycount; y++) {
 		uiFree(gg[y]);
+		uiFree(gv[y]);
+	}
 	uiFree(gg);
+	uiFree(gv);
 }
 
 - (void)append:(gridChild *)gc

@@ -333,6 +333,7 @@ struct uiForm {
 	[self addSubview:fc];
 
 	uiControlSetParent(fc.c, uiControl(self->f));
+	// TODO fix this it's wrong
 	uiDarwinControlSetSuperview(uiDarwinControl(fc.c), self);
 	uiDarwinControlSyncEnableState(uiDarwinControl(fc.c), uiControlEnabledToUser(uiControl(self->f)));
 

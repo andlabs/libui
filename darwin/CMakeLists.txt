@@ -19,6 +19,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/entry.m
 	darwin/fontbutton.m
 	darwin/form.m
+	darwin/grid.m
 	darwin/group.m
 	darwin/label.m
 	darwin/main.m

@@ -180,6 +180,98 @@ static uiControl *spanningGrid(void)
 	return uiControl(g);
 }
 
+static uiControl *assorted(void)
+{
+	uiGrid *outergrid;
+	uiGrid *innergrid;
+	uiButton *b, *b2;
+
+	outergrid = newGrid();
+
+	innergrid = newGrid();
+	b2 = uiNewButton("Test");
+	uiGridAppend(innergrid, uiControl(b2),
+		1, 1, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	b = uiNewButton("Hide One");
+	uiGridAppend(innergrid, uiControl(b),
+		0, 1, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	b = uiNewButton("Show One");
+	uiGridAppend(innergrid, uiControl(b),
+		2, 1, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	b = uiNewButton("Hide All");
+	uiGridAppend(innergrid, uiControl(b),
+		1, 0, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	b = uiNewButton("Show All");
+	uiGridAppend(innergrid, uiControl(b),
+		1, 2, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(outergrid, uiControl(innergrid),
+		0, 0, 1, 1,
+		1, uiAlignFill, 1, uiAlignFill);
+
+	innergrid = newGrid();
+	b = uiNewButton("Insert Trailing");
+	uiGridAppend(innergrid, uiControl(b),
+		0, 0, 1, 1,
+		1, uiAlignFill, 0, uiAlignFill);
+	b = uiNewButton("Insert Bottom");
+	uiGridAppend(innergrid, uiControl(b),
+		1, 0, 1, 1,
+		1, uiAlignFill, 0, uiAlignFill);
+	b = uiNewButton("Insert Leading");
+	uiGridAppend(innergrid, uiControl(b),
+		1, 1, 1, 1,
+		1, uiAlignFill, 0, uiAlignFill);
+	b = uiNewButton("Insert Top");
+	uiGridAppend(innergrid, uiControl(b),
+		0, 1, 1, 1,
+		1, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(outergrid, uiControl(innergrid),
+		1, 0, 1, 1,
+		1, uiAlignFill, 1, uiAlignFill);
+
+	innergrid = newGrid();
+	uiGridAppend(innergrid, uiControl(uiNewColorButton()),
+		0, 0, 1, 1,
+		1, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(innergrid, uiControl(uiNewColorButton()),
+		0, 1, 1, 1,
+		1, uiAlignStart, 0, uiAlignFill);
+	uiGridAppend(innergrid, uiControl(uiNewColorButton()),
+		0, 2, 1, 1,
+		1, uiAlignCenter, 0, uiAlignFill);
+	uiGridAppend(innergrid, uiControl(uiNewColorButton()),
+		0, 3, 1, 1,
+		1, uiAlignEnd, 0, uiAlignFill);
+	uiGridAppend(outergrid, uiControl(innergrid),
+		0, 1, 1, 1,
+		1, uiAlignFill, 1, uiAlignFill);
+
+	// TODO with only this, wrong size on OS X — expand sizing thing?
+	innergrid = newGrid();
+	uiGridAppend(innergrid, uiControl(uiNewColorButton()),
+		0, 0, 1, 1,
+		0, uiAlignFill, 1, uiAlignFill);
+	uiGridAppend(innergrid, uiControl(uiNewColorButton()),
+		1, 0, 1, 1,
+		0, uiAlignFill, 1, uiAlignStart);
+	uiGridAppend(innergrid, uiControl(uiNewColorButton()),
+		2, 0, 1, 1,
+		0, uiAlignFill, 1, uiAlignCenter);
+	uiGridAppend(innergrid, uiControl(uiNewColorButton()),
+		3, 0, 1, 1,
+		0, uiAlignFill, 1, uiAlignEnd);
+	uiGridAppend(outergrid, uiControl(innergrid),
+		1, 1, 1, 1,
+		1, uiAlignFill, 1, uiAlignFill);
+
+	return uiControl(outergrid);
+}
+
 static const struct {
 	const char *name;
 	uiControl *(*f)(void);
@@ -190,6 +282,8 @@ static const struct {
 	{ "Empty Line", emptyLine },
 	{ "Empty Grid", emptyGrid },
 	{ "Spanning Grid", spanningGrid },
+	// my own
+	{ "Assorted", assorted },
 	{ NULL, NULL },
 };
 

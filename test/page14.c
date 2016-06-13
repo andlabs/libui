@@ -180,32 +180,75 @@ static uiControl *spanningGrid(void)
 	return uiControl(g);
 }
 
+// TODO make non-global
+static uiButton *hideOne, *one, *showOne;
+
+static void onHideOne(uiButton *b, void *data)
+{
+	uiControlHide(uiControl(one));
+}
+
+static void onShowOne(uiButton *b, void *data)
+{
+	uiControlShow(uiControl(one));
+}
+
+static void onHideAll(uiButton *b, void *data)
+{
+	uiControlHide(uiControl(hideOne));
+	uiControlHide(uiControl(one));
+	uiControlHide(uiControl(showOne));
+}
+
+static void onShowAll(uiButton *b, void *data)
+{
+	uiControlShow(uiControl(hideOne));
+	uiControlShow(uiControl(one));
+	uiControlShow(uiControl(showOne));
+}
+
+#define AT(x) static void onInsert ## x(uiButton *b, void *data) \
+	{ \
+		uiGrid *g = uiGrid(data); \
+		uiGridInsertAt(g, uiControl(uiNewButton("Button")), \
+			uiControl(b), uiAt ## x, 1, 1, \
+			0, uiAlignFill, 0, uiAlignFill); \
+	}
+AT(Leading)
+AT(Top)
+AT(Trailing)
+AT(Bottom)
+
 static uiControl *assorted(void)
 {
 	uiGrid *outergrid;
 	uiGrid *innergrid;
-	uiButton *b, *b2;
+	uiButton *b;
 
 	outergrid = newGrid();
 
 	innergrid = newGrid();
-	b2 = uiNewButton("Test");
-	uiGridAppend(innergrid, uiControl(b2),
+	one = uiNewButton("Test");
+	uiGridAppend(innergrid, uiControl(one),
 		1, 1, 1, 1,
 		0, uiAlignFill, 0, uiAlignFill);
-	b = uiNewButton("Hide One");
-	uiGridAppend(innergrid, uiControl(b),
+	hideOne = uiNewButton("Hide One");
+	uiButtonOnClicked(hideOne, onHideOne, NULL);
+	uiGridAppend(innergrid, uiControl(hideOne),
 		0, 1, 1, 1,
 		0, uiAlignFill, 0, uiAlignFill);
-	b = uiNewButton("Show One");
-	uiGridAppend(innergrid, uiControl(b),
+	showOne = uiNewButton("Show One");
+	uiButtonOnClicked(showOne, onShowOne, NULL);
+	uiGridAppend(innergrid, uiControl(showOne),
 		2, 1, 1, 1,
 		0, uiAlignFill, 0, uiAlignFill);
 	b = uiNewButton("Hide All");
+	uiButtonOnClicked(b, onHideAll, NULL);
 	uiGridAppend(innergrid, uiControl(b),
 		1, 0, 1, 1,
 		0, uiAlignFill, 0, uiAlignFill);
 	b = uiNewButton("Show All");
+	uiButtonOnClicked(b, onShowAll, NULL);
 	uiGridAppend(innergrid, uiControl(b),
 		1, 2, 1, 1,
 		0, uiAlignFill, 0, uiAlignFill);
@@ -215,18 +258,22 @@ static uiControl *assorted(void)
 
 	innergrid = newGrid();
 	b = uiNewButton("Insert Trailing");
+	uiButtonOnClicked(b, onInsertTrailing, innergrid);
 	uiGridAppend(innergrid, uiControl(b),
 		0, 0, 1, 1,
 		1, uiAlignFill, 0, uiAlignFill);
 	b = uiNewButton("Insert Bottom");
+	uiButtonOnClicked(b, onInsertBottom, innergrid);
 	uiGridAppend(innergrid, uiControl(b),
 		1, 0, 1, 1,
 		1, uiAlignFill, 0, uiAlignFill);
 	b = uiNewButton("Insert Leading");
+	uiButtonOnClicked(b, onInsertLeading, innergrid);
 	uiGridAppend(innergrid, uiControl(b),
 		1, 1, 1, 1,
 		1, uiAlignFill, 0, uiAlignFill);
 	b = uiNewButton("Insert Top");
+	uiButtonOnClicked(b, onInsertTop, innergrid);
 	uiGridAppend(innergrid, uiControl(b),
 		0, 1, 1, 1,
 		1, uiAlignFill, 0, uiAlignFill);

@@ -241,8 +241,9 @@ uiEntry *uiNewSearchEntry(void)
 
 	e = finishNewEntry([libui_intrinsicWidthNSSearchField class]);
 	s = (NSSearchField *) (e->textfield);
-	[s setSendsSearchStringImmediately:NO];
-	[s setSendsWholeSearchString:NO];
+	// TODO these are only on 10.10
+//	[s setSendsSearchStringImmediately:NO];
+//	[s setSendsWholeSearchString:NO];
 	[s setBordered:NO];
 	[s setBezelStyle:NSTextFieldRoundedBezel];
 	[s setBezeled:YES];

@@ -275,3 +275,38 @@ uiWindow *windowFromNSWindow(NSWindow *w)
 		return NULL;
 	return [windowDelegate lookupWindow:w];
 }
+
+void uiWindowSize(uiWindow *w, int *width, int *height)
+{
+	// TODO: implement
+}
+
+void uiWindowSetSize(uiWindow *w, int width, int height)
+{
+	// TODO: implement
+}
+
+void uiWindowPosition(uiWindow *w, int *x, int *y)
+{
+	// TODO: implement
+}
+
+void uiWindowSetPosition(uiWindow *w, int x, int y)
+{
+	// TODO: implement
+}
+
+void uiWindowCenter(uiWindow *w)
+{
+	// TODO: implement
+}
+
+int uiWindowFullscreen(uiWindow *w)
+{
+	// TODO: implement
+}
+
+void uiWindowToggleFullscreen(uiWindow *w)
+{
+	// TODO: implement
+}

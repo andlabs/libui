@@ -14,6 +14,10 @@ struct uiWindow {
 	void *onClosingData;
 	int margined;
 	BOOL hasMenubar;
+	struct {
+		int enabled;
+		RECT stored;
+	} fullscreen;
 };
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -339,6 +343,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	if (hasMenubar)
 		hasMenubarBOOL = TRUE;
 	w->hasMenubar = hasMenubarBOOL;
+	w->fullscreen.enabled = 0;
 
 #define style WS_OVERLAPPEDWINDOW
 #define exstyle 0
@@ -406,5 +411,68 @@ void enableAllWindowsExcept(uiWindow *which)
 		if (!uiControlEnabled(uiControl(w.first)))
 			continue;
 		EnableWindow(w.first->hwnd, TRUE);
+	}
+}
+
+void uiWindowSize(uiWindow *w, int *width, int *height)
+{
+	RECT r;
+	GetWindowRect(w->hwnd, &r);
+	*width = r.right-r.left;
+	*height = r.bottom-r.top;
+}
+
+void uiWindowSetSize(uiWindow *w, int width, int height)
+{
+	SetWindowPos(w->hwnd, NULL, 0, 0, width, height, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+}
+
+void uiWindowPosition(uiWindow *w, int *x, int *y)
+{
+	RECT r;
+	GetWindowRect(w->hwnd, &r);
+	*x = r.left;
+	*y = r.top;
+}
+
+void uiWindowSetPosition(uiWindow *w, int x, int y)
+{
+	SetWindowPos(w->hwnd, NULL, x, y, 0, 0, SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+}
+
+void uiWindowCenter(uiWindow *w)
+{
+	int width, height;
+	uiWindowSize(w, &width, &height);
+	RECT dr;
+	GetClientRect(GetDesktopWindow(), &dr);
+	uiWindowSetPosition(w,
+		((dr.right-dr.left)/2) - (width/2),
+		((dr.bottom-dr.top)/2) - (height/2));
+}
+
+int uiWindowFullscreen(uiWindow *w)
+{
+	return w->fullscreen.enabled;
+}
+
+void uiWindowToggleFullscreen(uiWindow *w)
+{
+	w->fullscreen.enabled = !w->fullscreen.enabled;
+	if (w->fullscreen.enabled) {
+		GetWindowRect(w->hwnd, &w->fullscreen.stored);
+		SetWindowLong(w->hwnd, GWL_STYLE, WS_POPUP);
+		SetWindowPos(w->hwnd, HWND_TOPMOST,
+			0,0,
+			GetSystemMetrics(SM_CXSCREEN),
+			GetSystemMetrics(SM_CYSCREEN),
+			SWP_SHOWWINDOW);
+	} else {
+		SetWindowLong(w->hwnd, GWL_STYLE, style);
+		SetWindowPos(w->hwnd, 0,
+			w->fullscreen.stored.left, w->fullscreen.stored.top,
+			w->fullscreen.stored.right - w->fullscreen.stored.left,
+			w->fullscreen.stored.bottom - w->fullscreen.stored.top,
+			SWP_SHOWWINDOW);
 	}
 }

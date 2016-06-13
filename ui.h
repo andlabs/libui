@@ -102,6 +102,13 @@ _UI_EXTERN void uiWindowSetChild(uiWindow *w, uiControl *child);
 _UI_EXTERN int uiWindowMargined(uiWindow *w);
 _UI_EXTERN void uiWindowSetMargined(uiWindow *w, int margined);
 _UI_EXTERN uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar);
+_UI_EXTERN void uiWindowSize(uiWindow *w, int *width, int *height);
+_UI_EXTERN void uiWindowSetSize(uiWindow *w, int width, int height);
+_UI_EXTERN void uiWindowPosition(uiWindow *w, int *x, int *y);
+_UI_EXTERN void uiWindowSetPosition(uiWindow *w, int x, int y);
+_UI_EXTERN void uiWindowCenter(uiWindow *w);
+_UI_EXTERN int uiWindowFullscreen(uiWindow *w);
+_UI_EXTERN void uiWindowToggleFullscreen(uiWindow *w);
 
 typedef struct uiButton uiButton;
 #define uiButton(this) ((uiButton *) (this))

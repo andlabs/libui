@@ -16,6 +16,7 @@ struct uiWindow {
 
 	struct child *child;
 	int margined;
+	int fullscreen_enabled;
 
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
@@ -148,6 +149,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	w->vboxWidget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	w->vboxContainer = GTK_CONTAINER(w->vboxWidget);
 	w->vbox = GTK_BOX(w->vboxWidget);
+	w->fullscreen_enabled = 0;
 
 	// set the vbox as the GtkWindow child
 	gtk_container_add(w->container, w->vboxWidget);
@@ -169,4 +171,47 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	g_object_ref(w->widget);
 
 	return w;
+}
+
+void uiWindowSize(uiWindow *w, int *width, int *height)
+{
+	gtk_window_get_size(GTK_WINDOW(w->widget), width, height);
+}
+
+void uiWindowSetSize(uiWindow *w, int width, int height)
+{
+	gtk_window_resize(GTK_WINDOW(w->widget), width, height);
+}
+
+void uiWindowPosition(uiWindow *w, int *x, int *y)
+{
+	gtk_window_get_position(GTK_WINDOW(w->widget), x, y);
+}
+
+void uiWindowSetPosition(uiWindow *w, int x, int y)
+{
+	gtk_window_move(GTK_WINDOW(w->widget), x, y);
+}
+
+void uiWindowCenter(uiWindow *w)
+{
+	GdkWindow *root = gtk_widget_get_root_window(GTK_WIDGET(w->widget));
+	gint width, height, rwidth, rheight;
+	gtk_window_get_size(GTK_WINDOW(w->widget), &width, &height);
+	gdk_window_get_geometry(root, NULL, NULL, &rwidth, &rheight);
+	gtk_window_move(GTK_WINDOW(w->widget), (rwidth-width)/2, (rheight-height)/2);
+}
+
+int uiWindowFullscreen(uiWindow *w)
+{
+	return w->fullscreen_enabled;
+}
+
+void uiWindowToggleFullscreen(uiWindow *w)
+{
+	w->fullscreen_enabled = !w->fullscreen_enabled;
+	if(w->fullscreen_enabled)
+		gtk_window_fullscreen(GTK_WINDOW(w->widget));
+	else
+		gtk_window_unfullscreen(GTK_WINDOW(w->widget));
 }

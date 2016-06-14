@@ -65,6 +65,16 @@ static void entryChanged(uiEntry *e, void *data)
 	uiFreeText(text);
 }
 
+static void showHide(uiButton *b, void *data)
+{
+	uiControl *c = uiControl(data);
+
+	if (uiControlVisible(c))
+		uiControlHide(c);
+	else
+		uiControlShow(c);
+}
+
 uiBox *makePage13(void)
 {
 	uiBox *page13;
@@ -95,7 +105,6 @@ uiBox *makePage13(void)
 	uiBoxAppend(page13, uiControl(b), 0);
 
 	f = newForm();
-	uiBoxAppend(page13, uiControl(f), 1);
 
 	e = uiNewPasswordEntry();
 	uiEntryOnChanged(e, entryChanged, "password");
@@ -106,6 +115,11 @@ uiBox *makePage13(void)
 	uiFormAppend(f, "Search Box", uiControl(e), 0);
 
 	uiFormAppend(f, "MLE", uiControl(uiNewMultilineEntry()), 1);
+
+	b = uiNewButton("Show/Hide");
+	uiButtonOnClicked(b, showHide, e);
+	uiBoxAppend(page13, uiControl(b), 0);
+	uiBoxAppend(page13, uiControl(f), 1);
 
 	return page13;
 }

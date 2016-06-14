@@ -16,7 +16,10 @@ This README is being written.<br>
 
 ## Updates
 
-*Note that today's entry may be updated later today.*
+*Note that today's entry may be updated later today Eastern Time.*
+
+* **14 June 2016**
+	* uiDarwinControl now has a `ChildVisibilityChanged()` method and a corresponding `NotifyVisibilityChanged()` function that is called by the default show/hide handlers. This is used to make visibility changes work on OS X; uiBox, uiForm, and uiGrid all respect these now.
 
 * **13 June 2016**
 	* `intmax_t` and `uintmax_t` are no longer used for libui API functions; now we use `int`. This should make things much easier for bindings. `int` should be at least 32 bits wide; this should be sufficient for all but the most extreme cases.

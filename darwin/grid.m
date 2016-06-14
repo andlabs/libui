@@ -25,8 +25,6 @@
 	uiGrid *g;
 	NSMutableArray *children;
 	int padded;
-	int nhexpand;
-	int nvexpand;
 
 	NSMutableArray *edges;
 	NSMutableArray *inBetweens;
@@ -45,6 +43,8 @@
 - (void)setPadded:(int)p;
 - (BOOL)hugsTrailing;
 - (BOOL)hugsBottom;
+- (int)nhexpand;
+- (int)nvexpand;
 @end
 
 struct uiGrid {
@@ -70,8 +70,6 @@ struct uiGrid {
 		self->g = gg;
 		self->padded = 0;
 		self->children = [NSMutableArray new];
-		self->nhexpand = 0;
-		self->nvexpand = 0;
 
 		self->edges = [NSMutableArray new];
 		self->inBetweens = [NSMutableArray new];
@@ -132,6 +130,7 @@ struct uiGrid {
 	return uiDarwinPaddingAmount(NULL);
 }
 
+// LONGTERM stop early if all controls are hidden
 - (void)establishOurConstraints
 {
 	gridChild *gc;
@@ -156,8 +155,11 @@ struct uiGrid {
 	padding = [self paddingAmount];
 
 	// first, figure out the minimum and maximum row and column numbers
+	// ignore hidden controls
 	first = YES;
 	for (gc in self->children) {
+		if (!uiControlVisible(gc.c))
+			continue;
 		if (first) {
 			xmin = gc.left;
 			ymin = gc.top;
@@ -180,6 +182,7 @@ struct uiGrid {
 
 	// now build a topological map of the grid gg[y][x]
 	// also figure out which cells contain spanned views so they can be ignored later
+	// treat hidden controls by keeping the indices -1
 	gg = (int **) uiAlloc(ycount * sizeof (int *), "int[][]");
 	gspan = (BOOL **) uiAlloc(ycount * sizeof (BOOL *), "BOOL[][]");
 	for (y = 0; y < ycount; y++) {
@@ -190,6 +193,8 @@ struct uiGrid {
 	}
 	for (i = 0; i < [self->children count]; i++) {
 		gc = (gridChild *) [self->children objectAtIndex:i];
+		if (!uiControlVisible(gc.c))
+			continue;
 		for (y = gc.top; y < gc.top + gc.yspan; y++)
 			for (x = gc.left; x < gc.left + gc.xspan; x++) {
 				gg[y - ymin][x - xmin] = i;
@@ -255,6 +260,8 @@ struct uiGrid {
 	vexpand = (BOOL *) uiAlloc(ycount * sizeof (BOOL), "BOOL[]");
 	// first, which don't span
 	for (gc in self->children) {
+		if (!uiControlVisible(gc.c))
+			continue;
 		if (gc.hexpand && gc.xspan == 1)
 			hexpand[gc.left - xmin] = YES;
 		if (gc.vexpand && gc.yspan == 1)
@@ -263,6 +270,8 @@ struct uiGrid {
 	// second, which do span
 	// the way we handle this is simple: if none of the spanned rows/columns expand, make all rows/columns expand
 	for (gc in self->children) {
+		if (!uiControlVisible(gc.c))
+			continue;
 		if (gc.hexpand && gc.xspan != 1) {
 			doit = YES;
 			for (x = gc.left; x < gc.left + gc.xspan; x++)
@@ -391,6 +400,8 @@ struct uiGrid {
 	for (gc in self->children) {
 		NSLayoutPriority priority;
 
+		if (!uiControlVisible(gc.c))
+			continue;
 		if (hexpand[gc.left - xmin] || gc.xspan != 1)
 			priority = NSLayoutPriorityDefaultLow;
 		else
@@ -422,7 +433,7 @@ struct uiGrid {
 - (void)append:(gridChild *)gc
 {
 	BOOL update;
-	int oldn;
+	int oldnh, oldnv;
 
 	uiControlSetParent(gc.c, uiControl(self->g));
 	uiDarwinControlSetSuperview(uiDarwinControl(gc.c), self);
@@ -430,22 +441,18 @@ struct uiGrid {
 
 	// no need to set priority here; that's done in establishOurConstraints
 
+	oldnh = [self nhexpand];
+	oldnv = [self nvexpand];
 	[self->children addObject:gc];
 
 	[self establishOurConstraints];
 	update = NO;
-	if (gc.hexpand) {
-		oldn = self->nhexpand;
-		self->nhexpand++;
-		if (oldn == 0)
+	if (gc.hexpand)
+		if (oldnh == 0)
 			update = YES;
-	}
-	if (gc.vexpand) {
-		oldn = self->nvexpand;
-		self->nvexpand++;
-		if (oldn == 0)
+	if (gc.vexpand)
+		if (oldnv == 0)
 			update = YES;
-	}
 	if (update)
 		uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->g));
 
@@ -524,13 +531,43 @@ dispatch_get_main_queue(),
 - (BOOL)hugsTrailing
 {
 	// only hug if we have horizontally expanding
-	return self->nhexpand != 0;
+	return [self nhexpand] != 0;
 }
 
 - (BOOL)hugsBottom
 {
 	// only hug if we have vertically expanding
-	return self->nvexpand != 0;
+	return [self nvexpand] != 0;
+}
+
+- (int)nhexpand
+{
+	gridChild *gc;
+	int n;
+
+	n = 0;
+	for (gc in self->children) {
+		if (!uiControlVisible(gc.c))
+			continue;
+		if (gc.hexpand)
+			n++;
+	}
+	return n;
+}
+
+- (int)nvexpand
+{
+	gridChild *gc;
+	int n;
+
+	n = 0;
+	for (gc in self->children) {
+		if (!uiControlVisible(gc.c))
+			continue;
+		if (gc.vexpand)
+			n++;
+	}
+	return n;
 }
 
 @end

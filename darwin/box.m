@@ -396,6 +396,13 @@ static void uiBoxChildEdgeHuggingChanged(uiDarwinControl *c)
 uiDarwinControlDefaultHuggingPriority(uiBox, view)
 uiDarwinControlDefaultSetHuggingPriority(uiBox, view)
 
+static void uiBoxChildVisibilityChanged(uiDarwinControl *c)
+{
+	uiBox *b = uiBox(c);
+
+	[b->view establishOurConstraints];
+}
+
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
 	// LONGTERM on other platforms

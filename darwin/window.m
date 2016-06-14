@@ -187,6 +187,13 @@ uiDarwinControlDefaultHuggingPriority(uiWindow, window)
 uiDarwinControlDefaultSetHuggingPriority(uiWindow, window)
 // end TODO
 
+static void uiWindowChildVisibilityChanged(uiDarwinControl *c)
+{
+	uiWindow *w = uiWindow(c);
+
+	windowRelayout(w);
+}
+
 char *uiWindowTitle(uiWindow *w)
 {
 	return uiDarwinNSStringToText([w->window title]);

@@ -117,6 +117,13 @@ static void uiGroupSetHuggingPriority(uiDarwinControl *c, NSLayoutPriority prior
 	uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(g));
 }
 
+static void uiGroupChildVisibilityChanged(uiDarwinControl *c)
+{
+	uiGroup *g = uiGroup(c);
+
+	groupRelayout(g);
+}
+
 char *uiGroupTitle(uiGroup *g)
 {
 	return uiDarwinNSStringToText([g->box title]);

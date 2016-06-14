@@ -2,6 +2,7 @@
 #include "test.h"
 
 // TODO add a test for childless windows
+// TODO add tests for contianers with all controls hidden
 
 static uiGroup *newg(const char *n, int s)
 {

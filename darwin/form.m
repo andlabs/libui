@@ -476,6 +476,13 @@ static void uiFormChildEdgeHuggingChanged(uiDarwinControl *c)
 uiDarwinControlDefaultHuggingPriority(uiForm, view)
 uiDarwinControlDefaultSetHuggingPriority(uiForm, view)
 
+static void uiFormChildVisibilityChanged(uiDarwinControl *c)
+{
+	uiForm *f = uiForm(c);
+
+	[f->view establishOurConstraints];
+}
+
 void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 {
 	// LONGTERM on other platforms

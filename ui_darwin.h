@@ -24,6 +24,7 @@ struct uiDarwinControl {
 	void (*ChildEdgeHuggingChanged)(uiDarwinControl *);
 	NSLayoutPriority (*HuggingPriority)(uiDarwinControl *, NSLayoutConstraintOrientation);
 	void (*SetHuggingPriority)(uiDarwinControl *, NSLayoutPriority, NSLayoutConstraintOrientation);
+	void (*ChildVisibilityChanged)(uiDarwinControl *);
 };
 #define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
@@ -34,6 +35,7 @@ _UI_EXTERN BOOL uiDarwinControlHugsBottom(uiDarwinControl *);
 _UI_EXTERN void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *);
 _UI_EXTERN NSLayoutPriority uiDarwinControlHuggingPriority(uiDarwinControl *, NSLayoutConstraintOrientation);
 _UI_EXTERN void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPriority, NSLayoutConstraintOrientation);
+_UI_EXTERN void uiDarwinControlChildVisibilityChanged(uiDarwinControl *);
 
 #define uiDarwinControlDefaultDestroy(type, handlefield) \
 	static void type ## Destroy(uiControl *c) \
@@ -72,12 +74,14 @@ _UI_EXTERN void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPri
 	{ \
 		uiDarwinControl(c)->visible = YES; \
 		[type(c)->handlefield setHidden:NO]; \
+		uiDarwinNotifyVisibilityChanged(uiDarwinControl(c)); \
 	}
 #define uiDarwinControlDefaultHide(type, handlefield) \
 	static void type ## Hide(uiControl *c) \
 	{ \
 		uiDarwinControl(c)->visible = NO; \
 		[type(c)->handlefield setHidden:YES]; \
+		uiDarwinNotifyVisibilityChanged(uiDarwinControl(c)); \
 	}
 #define uiDarwinControlDefaultEnabled(type, handlefield) \
 	static int type ## Enabled(uiControl *c) \
@@ -102,7 +106,7 @@ _UI_EXTERN void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPri
 		if (uiDarwinShouldStopSyncEnableState(c, enabled)) \
 			return; \
 		if ([type(c)->handlefield respondsToSelector:@selector(setEnabled:)]) \
-			[((id) type(c)->handlefield) setEnabled:enabled]; /* id cast to make compiler happy; thanks mikeash in irc.freenode.net/#macdev */ \
+			[((id) (type(c)->handlefield)) setEnabled:enabled]; /* id cast to make compiler happy; thanks mikeash in irc.freenode.net/#macdev */ \
 	}
 #define uiDarwinControlDefaultSetSuperview(type, handlefield) \
 	static void type ## SetSuperview(uiDarwinControl *c, NSView *superview) \
@@ -138,6 +142,11 @@ _UI_EXTERN void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPri
 	{ \
 		[type(c)->handlefield setContentHuggingPriority:priority forOrientation:orientation]; \
 	}
+#define uiDarwinControlDefaultChildVisibilityChanged(type, handlefield) \
+	static void type ## ChildVisibilityChanged(uiDarwinControl *c) \
+	{ \
+		/* do nothing */ \
+	}
 
 #define uiDarwinControlAllDefaultsExceptDestroy(type, handlefield) \
 	uiDarwinControlDefaultHandle(type, handlefield) \
@@ -156,7 +165,8 @@ _UI_EXTERN void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPri
 	uiDarwinControlDefaultHugsBottom(type, handlefield) \
 	uiDarwinControlDefaultChildEdgeHuggingChanged(type, handlefield) \
 	uiDarwinControlDefaultHuggingPriority(type, handlefield) \
-	uiDarwinControlDefaultSetHuggingPriority(type, handlefield)
+	uiDarwinControlDefaultSetHuggingPriority(type, handlefield) \
+	uiDarwinControlDefaultChildVisibilityChanged(type, handlefield)
 
 #define uiDarwinControlAllDefaults(type, handlefield) \
 	uiDarwinControlDefaultDestroy(type, handlefield) \
@@ -183,6 +193,7 @@ _UI_EXTERN void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPri
 	uiDarwinControl(var)->ChildEdgeHuggingChanged = type ## ChildEdgeHuggingChanged; \
 	uiDarwinControl(var)->HuggingPriority = type ## HuggingPriority; \
 	uiDarwinControl(var)->SetHuggingPriority = type ## SetHuggingPriority; \
+	uiDarwinControl(var)->ChildVisibilityChanged = type ## ChildVisibilityChanged; \
 	uiDarwinControl(var)->visible = YES; \
 	uiDarwinControl(var)->enabled = YES;
 // TODO document
@@ -199,6 +210,7 @@ _UI_EXTERN BOOL uiDarwinShouldStopSyncEnableState(uiDarwinControl *, BOOL);
 
 // TODO document
 _UI_EXTERN void uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl *);
+_UI_EXTERN void uiDarwinNotifyVisibilityChanged(uiDarwinControl *c);
 
 // TODO document
 // TODO document that values should not be cached

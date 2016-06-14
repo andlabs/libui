@@ -180,6 +180,13 @@ static void uiTabSetHuggingPriority(uiDarwinControl *c, NSLayoutPriority priorit
 	uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(t));
 }
 
+static void uiTabChildVisibilityChanged(uiDarwinControl *c)
+{
+	uiTab *t = uiTab(c);
+
+	tabRelayout(t);
+}
+
 void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
 	uiTabInsertAt(t, name, [t->pages count], child);

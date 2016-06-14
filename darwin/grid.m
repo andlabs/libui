@@ -590,6 +590,13 @@ static void uiGridChildEdgeHuggingChanged(uiDarwinControl *c)
 uiDarwinControlDefaultHuggingPriority(uiGrid, view)
 uiDarwinControlDefaultSetHuggingPriority(uiGrid, view)
 
+static void uiGridChildVisibilityChanged(uiDarwinControl *c)
+{
+	uiGrid *g = uiGrid(c);
+
+	[g->view establishOurConstraints];
+}
+
 static gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
 {
 	gridChild *gc;

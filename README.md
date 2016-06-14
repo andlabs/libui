@@ -19,7 +19,7 @@ This README is being written.<br>
 *Note that today's entry may be updated later today.*
 
 * **13 June 2016**
-	* `intmax_t` and `uintmax_t` are no longer used in libui at all; now we only have `int`. This should make things much easier for bindings. `int` should be at least 32 bits wide; this should be sufficient for all but the most extreme cases.
+	* `intmax_t` and `uintmax_t` are no longer used for libui API functions; now we use `int`. This should make things much easier for bindings. `int` should be at least 32 bits wide; this should be sufficient for all but the most extreme cases.
 
 * **12 June 2016**
 	* Added `uiGrid`, a new container control that arranges controls in rows and columns, with stretchy ("expanding") rows, stretchy ("expanding") columns, cells that span rows and columns, and cells whose content is aligned in either direction rather than just filling. It's quite powerful, is it? =P

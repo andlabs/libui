@@ -88,7 +88,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	g_array_append_val(b->controls, bc);
 }
 
-void uiBoxDelete(uiBox *b, uintmax_t index)
+void uiBoxDelete(uiBox *b, int index)
 {
 	struct boxChild *bc;
 	GtkWidget *widget;

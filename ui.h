@@ -113,7 +113,7 @@ _UI_EXTERN uiButton *uiNewButton(const char *text);
 typedef struct uiBox uiBox;
 #define uiBox(this) ((uiBox *) (this))
 _UI_EXTERN void uiBoxAppend(uiBox *b, uiControl *child, int stretchy);
-_UI_EXTERN void uiBoxDelete(uiBox *b, uintmax_t index);
+_UI_EXTERN void uiBoxDelete(uiBox *b, int index);
 _UI_EXTERN int uiBoxPadded(uiBox *b);
 _UI_EXTERN void uiBoxSetPadded(uiBox *b, int padded);
 _UI_EXTERN uiBox *uiNewHorizontalBox(void);

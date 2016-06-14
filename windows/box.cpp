@@ -4,8 +4,8 @@
 struct boxChild {
 	uiControl *c;
 	int stretchy;
-	intmax_t width;
-	intmax_t height;
+	int width;
+	int height;
 };
 
 struct uiBox {
@@ -31,12 +31,12 @@ static void boxPadding(uiBox *b, int *xpadding, int *ypadding)
 static void boxRelayout(uiBox *b)
 {
 	RECT r;
-	intmax_t x, y, width, height;
+	int x, y, width, height;
 	int xpadding, ypadding;
-	uintmax_t nStretchy;
-	intmax_t stretchywid, stretchyht;
-	uintmax_t i;
-	intmax_t minimumWidth, minimumHeight;
+	int nStretchy;
+	int stretchywid, stretchyht;
+	int i;
+	int minimumWidth, minimumHeight;
 	uiWindowsSizing *d;
 
 	if (b->controls->size() == 0)
@@ -149,16 +149,16 @@ static void uiBoxSyncEnableState(uiWindowsControl *c, int enabled)
 
 uiWindowsControlDefaultSetParentHWND(uiBox)
 
-static void uiBoxMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiBoxMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiBox *b = uiBox(c);
 	int xpadding, ypadding;
-	uintmax_t nStretchy;
+	int nStretchy;
 	// these two contain the largest minimum width and height of all stretchy controls in the box
 	// all stretchy controls will use this value to determine the final minimum size
-	intmax_t maxStretchyWidth, maxStretchyHeight;
-	uintmax_t i;
-	intmax_t minimumWidth, minimumHeight;
+	int maxStretchyWidth, maxStretchyHeight;
+	int i;
+	int minimumWidth, minimumHeight;
 	uiWindowsSizing sizing;
 
 	*width = 0;
@@ -230,7 +230,6 @@ static void boxArrangeChildren(uiBox *b)
 {
 	LONG_PTR controlID;
 	HWND insertAfter;
-	uintmax_t i;
 
 	controlID = 100;
 	insertAfter = NULL;
@@ -251,7 +250,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
 
-void uiBoxDelete(uiBox *b, uintmax_t index)
+void uiBoxDelete(uiBox *b, int index)
 {
 	uiControl *c;
 

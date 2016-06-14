@@ -14,7 +14,7 @@
 	NSMutableArray *children;
 	BOOL vertical;
 	int padded;
-	uintmax_t nStretchy;
+	int nStretchy;
 
 	NSLayoutConstraint *first;
 	NSMutableArray *inBetweens;
@@ -36,7 +36,7 @@
 - (CGFloat)paddingAmount;
 - (void)establishOurConstraints;
 - (void)append:(uiControl *)c stretchy:(int)stretchy;
-- (void)delete:(uintmax_t)n;
+- (void)delete:(int)n;
 - (int)isPadded;
 - (void)setPadded:(int)p;
 - (BOOL)hugsTrailing;
@@ -249,7 +249,7 @@ struct uiBox {
 {
 	boxChild *bc;
 	NSLayoutPriority priority;
-	uintmax_t oldnStretchy;
+	int oldnStretchy;
 
 	bc = [boxChild new];
 	bc.c = c;
@@ -285,7 +285,7 @@ struct uiBox {
 	[bc release];		// we don't need the initial reference now
 }
 
-- (void)delete:(uintmax_t)n
+- (void)delete:(int)n
 {
 	boxChild *bc;
 	int stretchy;
@@ -405,7 +405,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	[b->view append:c stretchy:stretchy];
 }
 
-void uiBoxDelete(uiBox *b, uintmax_t n)
+void uiBoxDelete(uiBox *b, int n)
 {
 	[b->view delete:n];
 }

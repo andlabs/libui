@@ -26,6 +26,7 @@ struct uiWindowsControl {
 	void (*MinimumSizeChanged)(uiWindowsControl *);
 	void (*LayoutRect)(uiWindowsControl *c, RECT *r);
 	void (*AssignControlIDZOrder)(uiWindowsControl *, LONG_PTR *, HWND *);
+	void (*ChildVisibilityChanged)(uiWindowsControl *);
 };
 #define uiWindowsControl(this) ((uiWindowsControl *) (this))
 // TODO document
@@ -35,6 +36,7 @@ _UI_EXTERN void uiWindowsControlMinimumSize(uiWindowsControl *, int *, int *);
 _UI_EXTERN void uiWindowsControlMinimumSizeChanged(uiWindowsControl *);
 _UI_EXTERN void uiWindowsControlLayoutRect(uiWindowsControl *, RECT *);
 _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_PTR *, HWND *);
+_UI_EXTERN void uiWindowsControlChildVisibilityChanged(uiWindowsControl *);
 
 // TODO document
 #define uiWindowsControlDefaultDestroy(type) \
@@ -74,12 +76,14 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 	{ \
 		uiWindowsControl(c)->visible = 1; \
 		ShowWindow(type(c)->hwnd, SW_SHOW); \
+		uiWindowsControlNotifyVisibilityChanged(uiWindowsControl(c)); \
 	}
 #define uiWindowsControlDefaultHide(type) \
 	static void type ## Hide(uiControl *c) \
 	{ \
 		uiWindowsControl(c)->visible = 0; \
 		ShowWindow(type(c)->hwnd, SW_HIDE); \
+		uiWindowsControlNotifyVisibilityChanged(uiWindowsControl(c)); \
 	}
 #define uiWindowsControlDefaultEnabled(type) \
 	static int type ## Enabled(uiControl *c) \
@@ -131,6 +135,11 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 	{ \
 		uiWindowsEnsureAssignControlIDZOrder(type(c)->hwnd, controlID, insertAfter); \
 	}
+#define uiWindowsControlDefaultChildVisibilityChanged(type) \
+	static void type ## ChildVisibilityChanged(uiWindowsControl *c) \
+	{ \
+		/* do nothing */ \
+	}
 
 #define uiWindowsControlAllDefaultsExceptDestroy(type) \
 	uiWindowsControlDefaultHandle(type) \
@@ -147,7 +156,8 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 	uiWindowsControlDefaultSetParentHWND(type) \
 	uiWindowsControlDefaultMinimumSizeChanged(type) \
 	uiWindowsControlDefaultLayoutRect(type) \
-	uiWindowsControlDefaultAssignControlIDZOrder(type)
+	uiWindowsControlDefaultAssignControlIDZOrder(type) \
+	uiWindowsControlDefaultChildVisibilityChanged(type)
 
 #define uiWindowsControlAllDefaults(type) \
 	uiWindowsControlDefaultDestroy(type) \
@@ -173,6 +183,7 @@ _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_P
 	uiWindowsControl(var)->MinimumSizeChanged = type ## MinimumSizeChanged; \
 	uiWindowsControl(var)->LayoutRect = type ## LayoutRect; \
 	uiWindowsControl(var)->AssignControlIDZOrder = type ## AssignControlIDZOrder; \
+	uiWindowsControl(var)->ChildVisibilityChanged = type ## ChildVisibilityChanged; \
 	uiWindowsControl(var)->visible = 1; \
 	uiWindowsControl(var)->enabled = 1;
 // TODO document
@@ -245,6 +256,9 @@ _UI_EXTERN void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *);
 
 // TODO document
 _UI_EXTERN BOOL uiWindowsShouldStopSyncEnableState(uiWindowsControl *c, int enabled);
+
+// TODO document
+_UI_EXTERN void uiWindowsControlNotifyVisibilityChanged(uiWindowsControl *c);
 
 #ifdef __cplusplus
 }

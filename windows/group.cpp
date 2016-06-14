@@ -121,6 +121,12 @@ static void uiGroupMinimumSizeChanged(uiWindowsControl *c)
 uiWindowsControlDefaultLayoutRect(uiGroup)
 uiWindowsControlDefaultAssignControlIDZOrder(uiGroup)
 
+static void uiGroupChildVisibilityChanged(uiWindowsControl *c)
+{
+	// TODO eliminate the redundancy
+	uiWindowsControlMinimumSizeChanged(c);
+}
+
 char *uiGroupTitle(uiGroup *g)
 {
 	return uiWindowsWindowText(g->hwnd);

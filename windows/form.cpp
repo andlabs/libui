@@ -222,6 +222,12 @@ static void uiFormMinimumSizeChanged(uiWindowsControl *c)
 uiWindowsControlDefaultLayoutRect(uiForm)
 uiWindowsControlDefaultAssignControlIDZOrder(uiForm)
 
+static void uiFormChildVisibilityChanged(uiWindowsControl *c)
+{
+	// TODO eliminate the redundancy
+	uiWindowsControlMinimumSizeChanged(c);
+}
+
 static void formArrangeChildren(uiForm *f)
 {
 	LONG_PTR controlID;

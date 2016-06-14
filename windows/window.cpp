@@ -260,6 +260,12 @@ static void uiWindowLayoutRect(uiWindowsControl *c, RECT *r)
 
 uiWindowsControlDefaultAssignControlIDZOrder(uiWindow)
 
+static void uiWindowChildVisibilityChanged(uiWindowsControl *c)
+{
+	// TODO eliminate the redundancy
+	uiWindowsControlMinimumSizeChanged(c);
+}
+
 char *uiWindowTitle(uiWindow *w)
 {
 	return uiWindowsWindowText(w->hwnd);

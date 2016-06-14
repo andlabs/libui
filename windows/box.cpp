@@ -226,6 +226,12 @@ static void uiBoxMinimumSizeChanged(uiWindowsControl *c)
 uiWindowsControlDefaultLayoutRect(uiBox)
 uiWindowsControlDefaultAssignControlIDZOrder(uiBox)
 
+static void uiBoxChildVisibilityChanged(uiWindowsControl *c)
+{
+	// TODO eliminate the redundancy
+	uiWindowsControlMinimumSizeChanged(c);
+}
+
 static void boxArrangeChildren(uiBox *b)
 {
 	LONG_PTR controlID;

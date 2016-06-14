@@ -421,7 +421,6 @@ struct uiGrid {
 
 - (void)append:(gridChild *)gc
 {
-	NSLayoutPriority priority;
 	BOOL update;
 	int oldn;
 

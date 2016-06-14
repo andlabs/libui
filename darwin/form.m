@@ -212,7 +212,6 @@ struct uiForm {
 	CGFloat padding;
 	NSView *prev, *prevlabel;
 	NSLayoutConstraint *c;
-	NSLayoutRelation relation;
 
 	[self removeOurConstraints];
 	if ([self->children count] == 0)

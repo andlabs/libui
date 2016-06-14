@@ -3,6 +3,7 @@
 
 struct formChild {
 	uiControl *c;
+	int stretchy;
 	GtkWidget *label;
 	gboolean oldhexpand;
 	GtkAlign oldhalign;
@@ -54,6 +55,7 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 
 	fc.c = c;
 	widget = GTK_WIDGET(uiControlHandle(fc.c));
+	fc.stretchy = stretchy;
 	fc.oldhexpand = gtk_widget_get_hexpand(widget);
 	fc.oldhalign = gtk_widget_get_halign(widget);
 	fc.oldvexpand = gtk_widget_get_vexpand(widget);
@@ -93,6 +95,29 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 		"left-attach", 1,
 		"top-attach", row,
 		NULL);
+}
+
+void uiFormDelete(uiForm *f, int index)
+{
+	struct formChild *fc;
+	GtkWidget *widget;
+
+	fc = ctrl(f, index);
+	widget = GTK_WIDGET(uiControlHandle(fc->c));
+
+	gtk_widget_destroy(fc->label);
+
+	uiControlSetParent(fc->c, NULL);
+	uiUnixControlSetContainer(uiUnixControl(fc->c), f->container, TRUE);
+
+	if (fc->stretchy)
+		gtk_size_group_remove_widget(f->stretchygroup, widget);
+	gtk_widget_set_hexpand(widget, fc->oldhexpand);
+	gtk_widget_set_halign(widget, fc->oldhalign);
+	gtk_widget_set_vexpand(widget, fc->oldvexpand);
+	gtk_widget_set_valign(widget, fc->oldvalign);
+
+	g_array_remove_index(f->children, index);
 }
 
 int uiFormPadded(uiForm *f)

@@ -485,6 +485,11 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 	[f->view append:toNSString(label) c:c stretchy:stretchy];
 }
 
+void uiFormDelete(uiForm *f, int n)
+{
+	[f->view delete:n];
+}
+
 int uiFormPadded(uiForm *f)
 {
 	return [f->view isPadded];

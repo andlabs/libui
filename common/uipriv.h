@@ -44,7 +44,7 @@ struct clickCounter {
 	uintptr_t prevTime;
 	int count;
 };
-extern int clickCounterClick(clickCounter *, int, int, int, uintptr_t, uintptr_t, int32_t, int32_t);
+int clickCounterClick(clickCounter *c, int button, int x, int y, uintptr_t time, uintptr_t maxTime, int32_t xdist, int32_t ydist);
 extern void clickCounterReset(clickCounter *);
 extern int fromScancode(uintptr_t, uiAreaKeyEvent *);
 

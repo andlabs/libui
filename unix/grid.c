@@ -80,7 +80,7 @@ static GtkWidget *prepare(struct gridChild *gc, uiControl *c, int hexpand, uiAli
 	return widget;
 }
 
-void uiGridAppend(uiGrid *g, uiControl *c, intmax_t left, intmax_t top, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
+void uiGridAppend(uiGrid *g, uiControl *c, int left, int top, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
 {
 	struct gridChild gc;
 	GtkWidget *widget;
@@ -94,7 +94,7 @@ void uiGridAppend(uiGrid *g, uiControl *c, intmax_t left, intmax_t top, intmax_t
 	g_array_append_val(g->children, gc);
 }
 
-void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
+void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
 {
 	struct gridChild gc;
 	GtkWidget *widget;

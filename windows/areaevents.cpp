@@ -73,10 +73,10 @@ static void capture(uiArea *a, BOOL capturing)
 			logLastError(L"error releasing capture on drag");
 }
 
-static void areaMouseEvent(uiArea *a, uintmax_t down, uintmax_t  up, WPARAM wParam, LPARAM lParam)
+static void areaMouseEvent(uiArea *a, int down, int  up, WPARAM wParam, LPARAM lParam)
 {
 	uiAreaMouseEvent me;
-	uintmax_t button;
+	int button;
 	POINT clientpt;
 	RECT client;
 	BOOL inClient;

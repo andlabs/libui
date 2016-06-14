@@ -7,10 +7,10 @@
 // maybe it's easier to do it regardless of align
 @interface gridChild : NSObject
 @property uiControl *c;
-@property intmax_t left;
-@property intmax_t top;
-@property intmax_t xspan;
-@property intmax_t yspan;
+@property int left;
+@property int top;
+@property int xspan;
+@property int yspan;
 @property int hexpand;
 @property uiAlign halign;
 @property int vexpand;
@@ -25,8 +25,8 @@
 	uiGrid *g;
 	NSMutableArray *children;
 	int padded;
-	uintmax_t nhexpand;
-	uintmax_t nvexpand;
+	int nhexpand;
+	int nvexpand;
 
 	NSMutableArray *edges;
 	NSMutableArray *inBetweens;
@@ -136,17 +136,17 @@ struct uiGrid {
 {
 	gridChild *gc;
 	CGFloat padding;
-	intmax_t xmin, ymin;
-	intmax_t xmax, ymax;
-	intmax_t xcount, ycount;
+	int xmin, ymin;
+	int xmax, ymax;
+	int xcount, ycount;
 	BOOL first;
 	int **gg;
 	NSView ***gv;
 	BOOL **gspan;
-	intmax_t x, y;
+	int x, y;
 	int i;
 	NSLayoutConstraint *c;
-	intmax_t firstx, firsty;
+	int firstx, firsty;
 	BOOL *hexpand, *vexpand;
 	BOOL doit;
 
@@ -423,7 +423,7 @@ struct uiGrid {
 {
 	NSLayoutPriority priority;
 	BOOL update;
-	intmax_t oldn;
+	int oldn;
 
 	uiControlSetParent(gc.c, uiControl(self->g));
 	uiDarwinControlSetSuperview(uiDarwinControl(gc.c), self);
@@ -591,7 +591,7 @@ static void uiGridChildEdgeHuggingChanged(uiDarwinControl *c)
 uiDarwinControlDefaultHuggingPriority(uiGrid, view)
 uiDarwinControlDefaultSetHuggingPriority(uiGrid, view)
 
-static gridChild *toChild(uiControl *c, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
+static gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
 {
 	gridChild *gc;
 
@@ -612,7 +612,7 @@ static gridChild *toChild(uiControl *c, intmax_t xspan, intmax_t yspan, int hexp
 	return gc;
 }
 
-void uiGridAppend(uiGrid *g, uiControl *c, intmax_t left, intmax_t top, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
+void uiGridAppend(uiGrid *g, uiControl *c, int left, int top, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
 {
 	gridChild *gc;
 
@@ -626,7 +626,7 @@ void uiGridAppend(uiGrid *g, uiControl *c, intmax_t left, intmax_t top, intmax_t
 	[g->view append:gc];
 }
 
-void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
+void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
 {
 	gridChild *gc;
 

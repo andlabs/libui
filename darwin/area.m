@@ -130,7 +130,7 @@ struct uiArea {
 	uiArea *a = self->libui_a;
 	uiAreaMouseEvent me;
 	NSPoint point;
-	uintmax_t buttonNumber;
+	int buttonNumber;
 	NSUInteger pmb;
 	unsigned int i, max;
 

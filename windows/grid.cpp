@@ -10,19 +10,19 @@
 
 struct gridChild {
 	uiControl *c;
-	intmax_t left;
-	intmax_t top;
-	intmax_t xspan;
-	intmax_t yspan;
+	int left;
+	int top;
+	int xspan;
+	int yspan;
 	int hexpand;
 	uiAlign halign;
 	int vexpand;
 	uiAlign valign;
 
 	// have these here so they don't need to be reallocated each relayout
-	intmax_t finalx, finaly;
-	intmax_t finalwidth, finalheight;
-	intmax_t minwidth, minheight;
+	int finalx, finaly;
+	int finalwidth, finalheight;
+	int minwidth, minheight;
 };
 
 struct uiGrid {
@@ -32,8 +32,8 @@ struct uiGrid {
 	std::map<uiControl *, size_t> *indexof;
 	int padded;
 
-	intmax_t xmin, ymin;
-	intmax_t xmax, ymax;
+	int xmin, ymin;
+	int xmax, ymax;
 };
 
 #define xcount(g) ((g)->xmax - (g)->xmin)
@@ -44,20 +44,20 @@ struct uiGrid {
 class gridLayoutData {
 	size_t ycount;
 public:
-	intmax_t **gg;		// topological map gg[y][x] = control index
-	intmax_t *colwidths;
-	intmax_t *rowheights;
+	int **gg;		// topological map gg[y][x] = control index
+	int *colwidths;
+	int *rowheights;
 	bool *hexpand;
 	bool *vexpand;
 
 	gridLayoutData(uiGrid *g)
 	{
 		size_t i;
-		intmax_t x, y;
+		int x, y;
 
-		this->gg = new intmax_t *[ycount(g)];
+		this->gg = new int *[ycount(g)];
 		for (y = 0; y < ycount(g); y++) {
-			this->gg[y] = new intmax_t[xcount(g)];
+			this->gg[y] = new int[xcount(g)];
 			for (x = 0; x < xcount(g); x++)
 				this->gg[y][x] = -1;
 		}
@@ -71,10 +71,10 @@ public:
 					this->gg[toyindex(g, y)][toxindex(g, x)] = i;
 		}
 
-		this->colwidths = new intmax_t[xcount(g)];
-		ZeroMemory(this->colwidths, xcount(g) * sizeof (intmax_t));
-		this->rowheights = new intmax_t[ycount(g)];
-		ZeroMemory(this->rowheights, ycount(g) * sizeof (intmax_t));
+		this->colwidths = new int[xcount(g)];
+		ZeroMemory(this->colwidths, xcount(g) * sizeof (int));
+		this->rowheights = new int[ycount(g)];
+		ZeroMemory(this->rowheights, ycount(g) * sizeof (int));
 		this->hexpand = new bool[xcount(g)];
 		ZeroMemory(this->hexpand, xcount(g) * sizeof (bool));
 		this->vexpand = new bool[ycount(g)];
@@ -112,14 +112,14 @@ static void gridPadding(uiGrid *g, int *xpadding, int *ypadding)
 static void gridRelayout(uiGrid *g)
 {
 	RECT r;
-	intmax_t x, y, width, height;
+	int x, y, width, height;
 	gridLayoutData *ld;
 	int xpadding, ypadding;
-	intmax_t ix, iy;
-	intmax_t iwidth, iheight;
+	int ix, iy;
+	int iwidth, iheight;
 	int i;
 	struct gridChild *gc;
-	intmax_t nhexpand, nvexpand;
+	int nhexpand, nvexpand;
 
 	if (g->children->size() == 0)
 		return;		// nothing to do
@@ -229,7 +229,7 @@ static void gridRelayout(uiGrid *g)
 
 	// 6) compute cell positions and sizes
 	for (iy = 0; iy < ycount(g); iy++) {
-		intmax_t curx;
+		int curx;
 		int prev;
 
 		curx = 0;
@@ -251,7 +251,7 @@ static void gridRelayout(uiGrid *g)
 		}
 	}
 	for (ix = 0; ix < xcount(g); ix++) {
-		intmax_t cury;
+		int cury;
 		int prev;
 
 		cury = 0;
@@ -357,16 +357,16 @@ static void uiGridSyncEnableState(uiWindowsControl *c, int enabled)
 
 uiWindowsControlDefaultSetParentHWND(uiGrid)
 
-static void uiGridMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiGridMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiGrid *g = uiGrid(c);
 	int xpadding, ypadding;
 	gridLayoutData *ld;
-	intmax_t x, y;
+	int x, y;
 	int i;
 	struct gridChild *gc;
-	intmax_t minwid, minht;
-	intmax_t colwidth, rowheight;
+	int minwid, minht;
+	int colwidth, rowheight;
 
 	*width = 0;
 	*height = 0;
@@ -429,7 +429,7 @@ static void gridArrangeChildren(uiGrid *g)
 	HWND insertAfter;
 	gridLayoutData *ld;
 	bool *visited;
-	intmax_t x, y;
+	int x, y;
 	int i;
 	struct gridChild *gc;
 
@@ -479,7 +479,7 @@ static void gridRecomputeMinMax(uiGrid *g)
 	}
 }
 
-static struct gridChild *toChild(uiControl *c, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
+static struct gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
 {
 	struct gridChild *gc;
 
@@ -509,7 +509,7 @@ static void add(uiGrid *g, struct gridChild *gc)
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(g));
 }
 
-void uiGridAppend(uiGrid *g, uiControl *c, intmax_t left, intmax_t top, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
+void uiGridAppend(uiGrid *g, uiControl *c, int left, int top, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
 {
 	struct gridChild *gc;
 
@@ -520,7 +520,7 @@ void uiGridAppend(uiGrid *g, uiControl *c, intmax_t left, intmax_t top, intmax_t
 }
 
 // TODO decide what happens if existing is NULL
-void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, intmax_t xspan, intmax_t yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
+void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
 {
 	struct gridChild *gc;
 	struct gridChild *other;

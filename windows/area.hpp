@@ -11,8 +11,8 @@ struct uiArea {
 	uiAreaHandler *ah;
 
 	BOOL scrolling;
-	intmax_t scrollWidth;
-	intmax_t scrollHeight;
+	int scrollWidth;
+	int scrollHeight;
 	intmax_t hscrollpos;
 	intmax_t vscrollpos;
 	int hwheelCarry;

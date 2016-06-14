@@ -20,7 +20,6 @@ static BOOL onWM_COMMAND(uiControl *c, HWND clicked, WORD code, LRESULT *lResult
 {
 	uiRadioButtons *r = uiRadioButtons(c);
 	WPARAM check;
-	uintmax_t i;
 
 	if (code != BN_CLICKED)
 		return FALSE;
@@ -61,10 +60,10 @@ uiWindowsControlAllDefaultsExceptDestroy(uiRadioButtons)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define radiobuttonXFromLeftOfBoxToLeftOfLabel 12
 
-static void uiRadioButtonsMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiRadioButtonsMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiRadioButtons *r = uiRadioButtons(c);
-	intmax_t wid, maxwid;
+	int wid, maxwid;
 	uiWindowsSizing sizing;
 	int x, y;
 
@@ -92,7 +91,7 @@ static void uiRadioButtonsMinimumSize(uiWindowsControl *c, intmax_t *width, intm
 static void radiobuttonsRelayout(uiRadioButtons *r)
 {
 	RECT client;
-	intmax_t x, y, width, height;
+	int x, y, width, height;
 	int height1;
 	uiWindowsSizing sizing;
 
@@ -149,7 +148,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(r));
 }
 
-intmax_t uiRadioButtonsSelected(uiRadioButtons *r)
+int uiRadioButtonsSelected(uiRadioButtons *r)
 {
 	size_t i;
 
@@ -159,9 +158,9 @@ intmax_t uiRadioButtonsSelected(uiRadioButtons *r)
 	return -1;
 }
 
-void uiRadioButtonsSetSelected(uiRadioButtons *r, intmax_t n)
+void uiRadioButtonsSetSelected(uiRadioButtons *r, int n)
 {
-	intmax_t m;
+	int m;
 
 	m = uiRadioButtonsSelected(r);
 	if (m != -1)

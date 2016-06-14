@@ -41,8 +41,8 @@ struct uiArea {
 	uiAreaHandler *ah;
 
 	gboolean scrolling;
-	intmax_t scrollWidth;
-	intmax_t scrollHeight;
+	int scrollWidth;
+	int scrollHeight;
 
 	// note that this is a pointer; see above
 	clickCounter *cc;
@@ -482,7 +482,7 @@ static void areaWidget_class_init(areaWidgetClass *class)
 
 uiUnixControlAllDefaults(uiArea)
 
-void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
+void uiAreaSetSize(uiArea *a, int width, int height)
 {
 	if (!a->scrolling)
 		userbug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
@@ -522,7 +522,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	return a;
 }
 
-uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
+uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 {
 	uiArea *a;
 

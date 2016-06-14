@@ -81,12 +81,12 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 	[c->pbac addObject:toNSString(text)];
 }
 
-intmax_t uiComboboxSelected(uiCombobox *c)
+int uiComboboxSelected(uiCombobox *c)
 {
 	return [c->pb indexOfSelectedItem];
 }
 
-void uiComboboxSetSelected(uiCombobox *c, intmax_t n)
+void uiComboboxSetSelected(uiCombobox *c, int n)
 {
 	[c->pb selectItemAtIndex:n];
 }

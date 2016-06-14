@@ -51,7 +51,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 uiWindowsControlAllDefaults(uiArea)
 
-static void uiAreaMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiAreaMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	// TODO
 	*width = 0;
@@ -80,7 +80,7 @@ void unregisterArea(void)
 		logLastError(L"error unregistering uiArea window class");
 }
 
-void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
+void uiAreaSetSize(uiArea *a, int width, int height)
 {
 	a->scrollWidth = width;
 	a->scrollHeight = height;
@@ -118,7 +118,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	return a;
 }
 
-uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
+uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 {
 	uiArea *a;
 

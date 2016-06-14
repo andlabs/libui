@@ -381,7 +381,7 @@ int sendAreaEvents(NSEvent *e)
 	return 0;
 }
 
-void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
+void uiAreaSetSize(uiArea *a, int width, int height)
 {
 	if (!a->scrolling)
 		userbug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
@@ -417,7 +417,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	return a;
 }
 
-uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
+uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 {
 	uiArea *a;
 	struct scrollViewCreateParams p;

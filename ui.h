@@ -198,8 +198,8 @@ _UI_EXTERN uiSeparator *uiNewHorizontalSeparator(void);
 typedef struct uiCombobox uiCombobox;
 #define uiCombobox(this) ((uiCombobox *) (this))
 _UI_EXTERN void uiComboboxAppend(uiCombobox *c, const char *text);
-_UI_EXTERN intmax_t uiComboboxSelected(uiCombobox *c);
-_UI_EXTERN void uiComboboxSetSelected(uiCombobox *c, intmax_t n);
+_UI_EXTERN int uiComboboxSelected(uiCombobox *c);
+_UI_EXTERN void uiComboboxSetSelected(uiCombobox *c, int n);
 _UI_EXTERN void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data);
 _UI_EXTERN uiCombobox *uiNewCombobox(void);
 
@@ -215,8 +215,8 @@ _UI_EXTERN uiEditableCombobox *uiNewEditableCombobox(void);
 typedef struct uiRadioButtons uiRadioButtons;
 #define uiRadioButtons(this) ((uiRadioButtons *) (this))
 _UI_EXTERN void uiRadioButtonsAppend(uiRadioButtons *r, const char *text);
-_UI_EXTERN intmax_t uiRadioButtonsSelected(uiRadioButtons *r);
-_UI_EXTERN void uiRadioButtonsSetSelected(uiRadioButtons *r, intmax_t n);
+_UI_EXTERN int uiRadioButtonsSelected(uiRadioButtons *r);
+_UI_EXTERN void uiRadioButtonsSetSelected(uiRadioButtons *r, int n);
 _UI_EXTERN void uiRadioButtonsOnSelected(uiRadioButtons *r, void (*f)(uiRadioButtons *, void *), void *data);
 _UI_EXTERN uiRadioButtons *uiNewRadioButtons(void);
 
@@ -283,12 +283,12 @@ struct uiAreaHandler {
 #define uiArea(this) ((uiArea *) (this))
 // TODO give a better name
 // TODO document the types of width and height
-_UI_EXTERN void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height);
+_UI_EXTERN void uiAreaSetSize(uiArea *a, int width, int height);
 // TODO uiAreaQueueRedraw()
 _UI_EXTERN void uiAreaQueueRedrawAll(uiArea *a);
 _UI_EXTERN void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height);
 _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);
-_UI_EXTERN uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height);
+_UI_EXTERN uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height);
 
 struct uiAreaDrawParams {
 	uiDrawContext *Context;

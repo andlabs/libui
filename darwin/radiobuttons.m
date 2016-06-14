@@ -74,7 +74,7 @@ static void uiRadioButtonsDestroy(uiControl *c)
 	uiFreeControl(uiControl(r));
 }
 
-static NSButton *buttonAt(uiRadioButtons *r, uintmax_t n)
+static NSButton *buttonAt(uiRadioButtons *r, int n)
 {
 	return (NSButton *) [r->buttons objectAtIndex:n];
 }
@@ -152,7 +152,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	[r->lastv retain];
 }
 
-intmax_t uiRadioButtonsSelected(uiRadioButtons *r)
+int uiRadioButtonsSelected(uiRadioButtons *r)
 {
 	NSButton *b;
 	NSUInteger i;
@@ -165,7 +165,7 @@ intmax_t uiRadioButtonsSelected(uiRadioButtons *r)
 	return -1;
 }
 
-void uiRadioButtonsSetSelected(uiRadioButtons *r, intmax_t n)
+void uiRadioButtonsSetSelected(uiRadioButtons *r, int n)
 {
 	NSButton *b;
 	NSInteger state;

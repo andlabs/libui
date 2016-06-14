@@ -30,12 +30,12 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 	gtk_combo_box_text_append(c->comboboxText, NULL, text);
 }
 
-intmax_t uiComboboxSelected(uiCombobox *c)
+int uiComboboxSelected(uiCombobox *c)
 {
 	return gtk_combo_box_get_active(c->combobox);
 }
 
-void uiComboboxSetSelected(uiCombobox *c, intmax_t n)
+void uiComboboxSetSelected(uiCombobox *c, int n)
 {
 	// we need to inhibit sending of ::changed because this WILL send a ::changed otherwise
 	g_signal_handler_block(c->combobox, c->onSelectedSignal);

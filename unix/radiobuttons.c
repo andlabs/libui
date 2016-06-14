@@ -64,7 +64,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	gtk_widget_show(rb);
 }
 
-intmax_t uiRadioButtonsSelected(uiRadioButtons *r)
+int uiRadioButtonsSelected(uiRadioButtons *r)
 {
 	GtkToggleButton *tb;
 	guint i;
@@ -77,7 +77,7 @@ intmax_t uiRadioButtonsSelected(uiRadioButtons *r)
 	return -1;
 }
 
-void uiRadioButtonsSetSelected(uiRadioButtons *r, intmax_t n)
+void uiRadioButtonsSetSelected(uiRadioButtons *r, int n)
 {
 	GtkToggleButton *tb;
 	gboolean active;

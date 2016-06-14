@@ -103,9 +103,8 @@ else()
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
 	if(APPLE)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
-	else()
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 	endif()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
 	set(_COMMON_LDFLAGS
 		-fvisibility=hidden

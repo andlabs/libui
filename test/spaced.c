@@ -7,8 +7,8 @@ struct thing {
 };
 
 static struct thing *things = NULL;
-static uintmax_t len = 0;
-static uintmax_t cap = 0;
+static size_t len = 0;
+static size_t cap = 0;
 
 #define grow 32
 
@@ -37,9 +37,9 @@ enum types {
 
 void setSpaced(int spaced)
 {
-	uintmax_t i;
+	size_t i;
 	void *p;
-	uintmax_t j, n;
+	size_t j, n;
 
 	for (i = 0; i < len; i++) {
 		p = things[i].ptr;
@@ -72,9 +72,9 @@ void querySpaced(char out[12])		// more than enough
 {
 	int m = 0;
 	int p = 0;
-	uintmax_t i;
+	size_t i;
 	void *pp;
-	uintmax_t j, n;
+	size_t j, n;
 
 	for (i = 0; i < len; i++) {
 		pp = things[i].ptr;

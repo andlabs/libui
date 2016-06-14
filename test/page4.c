@@ -8,7 +8,7 @@ static uiProgressBar *pbar;
 #define CHANGED(what) \
 	static void on ## what ## Changed(ui ## what *this, void *data) \
 	{ \
-		uintmax_t value; \
+		int value; \
 		printf("on %s changed\n", #what); \
 		value = ui ## what ## Value(this); \
 		uiSpinboxSetValue(spinbox, value); \

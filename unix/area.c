@@ -251,6 +251,9 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 		"gtk-double-click-distance", &maxDistance,
 		NULL);
 	// don't unref settings; it's transfer-none (thanks gregier in irc.gimp.net/#gtk+)
+	// e->time is guint32
+	// e->x and e->y are floating-point; just make them 32-bit integers
+	// maxTime and maxDistance... are gint, which *should* fit, hopefully...
 	me.Count = clickCounterClick(a->cc, me.Down,
 		e->x, e->y,
 		e->time, maxTime,

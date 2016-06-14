@@ -127,7 +127,7 @@ void uiEditableComboboxSetText(uiEditableCombobox *c, const char *text)
 
 #if 0
 // LONGTERM
-void uiEditableComboboxSetSelected(uiEditableCombobox *c, intmax_t n)
+void uiEditableComboboxSetSelected(uiEditableCombobox *c, int n)
 {
 	if (c->editable) {
 		// see https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/ComboBox/Tasks/SettingComboBoxValue.html#//apple_ref/doc/uid/20000256

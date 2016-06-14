@@ -23,7 +23,7 @@
 	uiForm *f;
 	NSMutableArray *children;
 	int padded;
-	uintmax_t nStretchy;
+	int nStretchy;
 
 	NSLayoutConstraint *first;
 	NSMutableArray *inBetweens;
@@ -40,7 +40,7 @@
 - (CGFloat)paddingAmount;
 - (void)establishOurConstraints;
 - (void)append:(NSString *)label c:(uiControl *)c stretchy:(int)stretchy;
-//TODO- (void)delete:(uintmax_t)n;
+//TODO- (void)delete:(int)n;
 - (int)isPadded;
 - (void)setPadded:(int)p;
 - (BOOL)hugsTrailing;
@@ -338,7 +338,7 @@ struct uiForm {
 	formChild *fc;
 	NSLayoutPriority priority;
 	NSLayoutAttribute attribute;
-	uintmax_t oldnStretchy;
+	int oldnStretchy;
 
 	fc = [[formChild alloc] initWithLabel:newLabel(label)];
 	fc.c = c;
@@ -389,7 +389,7 @@ struct uiForm {
 	[fc release];		// we don't need the initial reference now
 }
 
-//TODO- (void)delete:(uintmax_t)n
+//TODO- (void)delete:(int)n
 
 - (int)isPadded
 {

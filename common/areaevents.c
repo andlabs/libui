@@ -14,7 +14,7 @@ Thanks to mclasen, garnacho_, halfline, and tristan in irc.gimp.net/#gtk+.
 
 // x, y, xdist, ydist, and c.rect must have the same units
 // so must time, maxTime, and c.prevTime
-uintmax_t clickCounterClick(clickCounter *c, uintmax_t button, intmax_t x, intmax_t y, uintptr_t time, uintptr_t maxTime, intmax_t xdist, intmax_t ydist)
+int clickCounterClick(clickCounter *c, int button, int x, int y, uintptr_t time, uintptr_t maxTime, int32_t xdist, int32_t ydist)
 {
 	// different button than before? if so, don't count
 	if (button != c->curButton)

@@ -36,15 +36,15 @@ typedef struct clickCounter clickCounter;
 // you should call Reset() to zero-initialize a new instance
 // it doesn't matter that all the non-count fields are zero: the first click will fail the curButton test straightaway, so it'll return 1 and set the rest of the structure accordingly
 struct clickCounter {
-	uintmax_t curButton;
-	intmax_t rectX0;
-	intmax_t rectY0;
-	intmax_t rectX1;
-	intmax_t rectY1;
+	int curButton;
+	int rectX0;
+	int rectY0;
+	int rectX1;
+	int rectY1;
 	uintptr_t prevTime;
-	uintmax_t count;
+	int count;
 };
-extern uintmax_t clickCounterClick(clickCounter *, uintmax_t, intmax_t, intmax_t, uintptr_t, uintptr_t, intmax_t, intmax_t);
+extern int clickCounterClick(clickCounter *, int, int, int, uintptr_t, uintptr_t, int32_t, int32_t);
 extern void clickCounterReset(clickCounter *);
 extern int fromScancode(uintptr_t, uiAreaKeyEvent *);
 

@@ -317,7 +317,7 @@ static uiSpinbox *spinbox;
 static uiSlider *slider;
 static uiProgressBar *progressbar;
 
-static void update(intmax_t value)
+static void update(int value)
 {
 	uiSpinboxSetValue(spinbox, value);
 	uiSliderSetValue(slider, value);

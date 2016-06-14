@@ -1964,7 +1964,7 @@ static const struct drawtest tests[] = {
 	{ NULL, NULL },
 };
 
-void runDrawTest(intmax_t n, uiAreaDrawParams *p)
+void runDrawTest(int n, uiAreaDrawParams *p)
 {
 	(*(tests[n].draw))(p);
 }

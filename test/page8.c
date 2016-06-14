@@ -5,7 +5,7 @@ static void onListFonts(uiButton *b, void *data)
 {
 	uiDrawFontFamilies *ff;
 	char *this;
-	uintmax_t i, n;
+	int i, n;
 
 	uiMultilineEntrySetText(uiMultilineEntry(data), "");
 	ff = uiDrawListFontFamilies();

@@ -37,6 +37,7 @@ static void boxRelayout(uiBox *b)
 	int stretchywid, stretchyht;
 	int i;
 	int minimumWidth, minimumHeight;
+	int nVisible;
 	uiWindowsSizing *d;
 
 	if (b->controls->size() == 0)
@@ -51,21 +52,16 @@ static void boxRelayout(uiBox *b)
 	// -1) get this Box's padding
 	boxPadding(b, &xpadding, &ypadding);
 
-	// 0) inset the available rect by the needed padding
-	// TODO this is incorrect if any controls are hidden
-	if (b->vertical)
-		height -= (b->controls->size() - 1) * ypadding;
-	else
-		width -= (b->controls->size() - 1) * xpadding;
-
 	// 1) get width and height of non-stretchy controls
 	// this will tell us how much space will be left for stretchy controls
 	stretchywid = width;
 	stretchyht = height;
 	nStretchy = 0;
+	nVisible = 0;
 	for (struct boxChild &bc : *(b->controls)) {
 		if (!uiControlVisible(bc.c))
 			continue;
+		nVisible++;
 		if (bc.stretchy) {
 			nStretchy++;
 			continue;
@@ -81,24 +77,35 @@ static void boxRelayout(uiBox *b)
 			stretchywid -= minimumWidth;
 		}
 	}
+	if (nVisible == 0)			// nothing to do
+		return;
 
-	// 2) now get the size of stretchy controls
-	if (nStretchy != 0)
+	// 2) now inset the available rect by the needed padding
+	if (b->vertical) {
+		height -= (nVisible - 1) * ypadding;
+		stretchyht -= (nVisible - 1) * ypadding;
+	} else {
+		width -= (nVisible - 1) * xpadding;
+		stretchywid -= (nVisible - 1) * xpadding;
+	}
+
+	// 3) now get the size of stretchy controls
+	if (nStretchy != 0) {
 		if (b->vertical)
 			stretchyht /= nStretchy;
 		else
 			stretchywid /= nStretchy;
-	// TODO put this in the above if
-	for (struct boxChild &bc : *(b->controls)) {
-		if (!uiControlVisible(bc.c))
-			continue;
-		if (bc.stretchy) {
-			bc.width = stretchywid;
-			bc.height = stretchyht;
+		for (struct boxChild &bc : *(b->controls)) {
+			if (!uiControlVisible(bc.c))
+				continue;
+			if (bc.stretchy) {
+				bc.width = stretchywid;
+				bc.height = stretchyht;
+			}
 		}
 	}
 
-	// 3) now we can position controls
+	// 4) now we can position controls
 	// first, make relative to the top-left corner of the container
 	x = 0;
 	y = 0;
@@ -159,6 +166,7 @@ static void uiBoxMinimumSize(uiWindowsControl *c, int *width, int *height)
 	int maxStretchyWidth, maxStretchyHeight;
 	int i;
 	int minimumWidth, minimumHeight;
+	int nVisible;
 	uiWindowsSizing sizing;
 
 	*width = 0;
@@ -169,21 +177,16 @@ static void uiBoxMinimumSize(uiWindowsControl *c, int *width, int *height)
 	// 0) get this Box's padding
 	boxPadding(b, &xpadding, &ypadding);
 
-	// 1) initialize the desired rect with the needed padding
-	// TODO this is wrong if any controls are hidden
-	if (b->vertical)
-		*height = (b->controls->size() - 1) * ypadding;
-	else
-		*width = (b->controls->size() - 1) * xpadding;
-
-	// 2) add in the size of non-stretchy controls and get (but not add in) the largest widths and heights of stretchy controls
+	// 1) add in the size of non-stretchy controls and get (but not add in) the largest widths and heights of stretchy controls
 	// we still add in like direction of stretchy controls
 	nStretchy = 0;
 	maxStretchyWidth = 0;
 	maxStretchyHeight = 0;
+	nVisible = 0;
 	for (const struct boxChild &bc : *(b->controls)) {
 		if (!uiControlVisible(bc.c))
 			continue;
+		nVisible++;
 		uiWindowsControlMinimumSize(uiWindowsControl(bc.c), &minimumWidth, &minimumHeight);
 		if (bc.stretchy) {
 			nStretchy++;
@@ -204,6 +207,14 @@ static void uiBoxMinimumSize(uiWindowsControl *c, int *width, int *height)
 				*height = minimumHeight;
 		}
 	}
+	if (nVisible == 0)		// just return 0x0
+		return;
+
+	// 2) now outset the desired rect with the needed padding
+	if (b->vertical)
+		*height += (nVisible - 1) * ypadding;
+	else
+		*width += (nVisible - 1) * xpadding;
 
 	// 3) and now we can add in stretchy controls
 	if (b->vertical)

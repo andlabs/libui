@@ -32,6 +32,8 @@ extern "C" {
 // This comes from Go's math.Pi, which in turn comes from http://oeis.org/A000796.
 #define uiPi 3.14159265358979323846264338327950288419716939937510582097494459
 
+// TODO uiBool?
+
 typedef struct uiInitOptions uiInitOptions;
 
 struct uiInitOptions {
@@ -148,11 +150,11 @@ _UI_EXTERN uiLabel *uiNewLabel(const char *text);
 typedef struct uiTab uiTab;
 #define uiTab(this) ((uiTab *) (this))
 _UI_EXTERN void uiTabAppend(uiTab *t, const char *name, uiControl *c);
-_UI_EXTERN void uiTabInsertAt(uiTab *t, const char *name, uintmax_t before, uiControl *c);
-_UI_EXTERN void uiTabDelete(uiTab *t, uintmax_t index);
-_UI_EXTERN uintmax_t uiTabNumPages(uiTab *t);
-_UI_EXTERN int uiTabMargined(uiTab *t, uintmax_t page);
-_UI_EXTERN void uiTabSetMargined(uiTab *t, uintmax_t page, int margined);
+_UI_EXTERN void uiTabInsertAt(uiTab *t, const char *name, int before, uiControl *c);
+_UI_EXTERN void uiTabDelete(uiTab *t, int index);
+_UI_EXTERN int uiTabNumPages(uiTab *t);
+_UI_EXTERN int uiTabMargined(uiTab *t, int page);
+_UI_EXTERN void uiTabSetMargined(uiTab *t, int page, int margined);
 _UI_EXTERN uiTab *uiNewTab(void);
 
 typedef struct uiGroup uiGroup;
@@ -171,17 +173,17 @@ _UI_EXTERN uiGroup *uiNewGroup(const char *title);
 
 typedef struct uiSpinbox uiSpinbox;
 #define uiSpinbox(this) ((uiSpinbox *) (this))
-_UI_EXTERN intmax_t uiSpinboxValue(uiSpinbox *s);
-_UI_EXTERN void uiSpinboxSetValue(uiSpinbox *s, intmax_t value);
+_UI_EXTERN int uiSpinboxValue(uiSpinbox *s);
+_UI_EXTERN void uiSpinboxSetValue(uiSpinbox *s, int value);
 _UI_EXTERN void uiSpinboxOnChanged(uiSpinbox *s, void (*f)(uiSpinbox *s, void *data), void *data);
-_UI_EXTERN uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max);
+_UI_EXTERN uiSpinbox *uiNewSpinbox(int min, int max);
 
 typedef struct uiSlider uiSlider;
 #define uiSlider(this) ((uiSlider *) (this))
-_UI_EXTERN intmax_t uiSliderValue(uiSlider *s);
-_UI_EXTERN void uiSliderSetValue(uiSlider *s, intmax_t value);
+_UI_EXTERN int uiSliderValue(uiSlider *s);
+_UI_EXTERN void uiSliderSetValue(uiSlider *s, int value);
 _UI_EXTERN void uiSliderOnChanged(uiSlider *s, void (*f)(uiSlider *s, void *data), void *data);
-_UI_EXTERN uiSlider *uiNewSlider(intmax_t min, intmax_t max);
+_UI_EXTERN uiSlider *uiNewSlider(int min, int max);
 
 typedef struct uiProgressBar uiProgressBar;
 #define uiProgressBar(this) ((uiProgressBar *) (this))

@@ -13,7 +13,7 @@ struct uiSpinbox {
 
 // utility functions
 
-static intmax_t value(uiSpinbox *s)
+static int value(uiSpinbox *s)
 {
 	BOOL neededCap = FALSE;
 	LRESULT val;
@@ -27,7 +27,7 @@ static intmax_t value(uiSpinbox *s)
 		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) val);
 		s->inhibitChanged = FALSE;
 	}
-	return (intmax_t) val;
+	return val;
 }
 
 // control implementation
@@ -76,7 +76,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiSpinbox)
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void uiSpinboxMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiSpinboxMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiSpinbox *s = uiSpinbox(c);
 	uiWindowsSizing sizing;
@@ -108,7 +108,7 @@ static void spinboxArrangeChildren(uiSpinbox *s)
 static void recreateUpDown(uiSpinbox *s)
 {
 	BOOL preserve = FALSE;
-	intmax_t current;
+	int current;
 	// Microsoft's commctrl.h says to use this type
 	INT min, max;
 
@@ -156,12 +156,12 @@ static void defaultOnChanged(uiSpinbox *s, void *data)
 	// do nothing
 }
 
-intmax_t uiSpinboxValue(uiSpinbox *s)
+int uiSpinboxValue(uiSpinbox *s)
 {
 	return value(s);
 }
 
-void uiSpinboxSetValue(uiSpinbox *s, intmax_t value)
+void uiSpinboxSetValue(uiSpinbox *s, int value)
 {
 	s->inhibitChanged = TRUE;
 	SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) value);
@@ -179,10 +179,10 @@ static void onResize(uiWindowsControl *c)
 	spinboxRelayout(uiSpinbox(c));
 }
 
-uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
+uiSpinbox *uiNewSpinbox(int min, int max)
 {
 	uiSpinbox *s;
-	intmax_t temp;
+	int temp;
 
 	if (min >= max) {
 		temp = min;

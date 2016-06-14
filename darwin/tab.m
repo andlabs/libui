@@ -185,7 +185,7 @@ void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 	uiTabInsertAt(t, name, [t->pages count], child);
 }
 
-void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
+void uiTabInsertAt(uiTab *t, const char *name, int n, uiControl *child)
 {
 	tabPage *page;
 	NSView *view;
@@ -220,7 +220,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	tabRelayout(t);
 }
 
-void uiTabDelete(uiTab *t, uintmax_t n)
+void uiTabDelete(uiTab *t, int n)
 {
 	tabPage *page;
 	uiControl *child;
@@ -244,12 +244,12 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 	tabRelayout(t);
 }
 
-uintmax_t uiTabNumPages(uiTab *t)
+int uiTabNumPages(uiTab *t)
 {
 	return [t->pages count];
 }
 
-int uiTabMargined(uiTab *t, uintmax_t n)
+int uiTabMargined(uiTab *t, int n)
 {
 	tabPage *page;
 
@@ -257,7 +257,7 @@ int uiTabMargined(uiTab *t, uintmax_t n)
 	return [page isMargined];
 }
 
-void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
+void uiTabSetMargined(uiTab *t, int n, int margined)
 {
 	tabPage *page;
 

@@ -34,7 +34,7 @@ void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 	uiTabInsertAt(t, name, t->pages->len, child);
 }
 
-void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
+void uiTabInsertAt(uiTab *t, const char *name, int n, uiControl *child)
 {
 	struct child *page;
 
@@ -47,7 +47,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	g_array_insert_val(t->pages, n, page);
 }
 
-void uiTabDelete(uiTab *t, uintmax_t n)
+void uiTabDelete(uiTab *t, int n)
 {
 	struct child *page;
 
@@ -57,12 +57,12 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 	g_array_remove_index(t->pages, n);
 }
 
-uintmax_t uiTabNumPages(uiTab *t)
+int uiTabNumPages(uiTab *t)
 {
 	return t->pages->len;
 }
 
-int uiTabMargined(uiTab *t, uintmax_t n)
+int uiTabMargined(uiTab *t, int n)
 {
 	struct child *page;
 
@@ -70,7 +70,7 @@ int uiTabMargined(uiTab *t, uintmax_t n)
 	return childFlag(page);
 }
 
-void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
+void uiTabSetMargined(uiTab *t, int n, int margined)
 {
 	struct child *page;
 

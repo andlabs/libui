@@ -25,12 +25,12 @@ static void defaultOnChanged(uiSpinbox *s, void *data)
 	// do nothing
 }
 
-intmax_t uiSpinboxValue(uiSpinbox *s)
+int uiSpinboxValue(uiSpinbox *s)
 {
-	return (intmax_t) gtk_spin_button_get_value(s->spinButton);
+	return gtk_spin_button_get_value(s->spinButton);
 }
 
-void uiSpinboxSetValue(uiSpinbox *s, intmax_t value)
+void uiSpinboxSetValue(uiSpinbox *s, int value)
 {
 	// we need to inhibit sending of ::value-changed because this WILL send a ::value-changed otherwise
 	g_signal_handler_block(s->spinButton, s->onChangedSignal);
@@ -45,10 +45,10 @@ void uiSpinboxOnChanged(uiSpinbox *s, void (*f)(uiSpinbox *, void *), void *data
 	s->onChangedData = data;
 }
 
-uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
+uiSpinbox *uiNewSpinbox(int min, int max)
 {
 	uiSpinbox *s;
-	intmax_t temp;
+	int temp;
 
 	if (min >= max) {
 		temp = min;

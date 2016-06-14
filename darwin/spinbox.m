@@ -169,12 +169,12 @@ static CGFloat stepperYDelta(void)
 
 uiDarwinControlAllDefaults(uiSpinbox, spinbox)
 
-intmax_t uiSpinboxValue(uiSpinbox *s)
+int uiSpinboxValue(uiSpinbox *s)
 {
 	return [s->spinbox libui_value];
 }
 
-void uiSpinboxSetValue(uiSpinbox *s, intmax_t value)
+void uiSpinboxSetValue(uiSpinbox *s, int value)
 {
 	[s->spinbox libui_setValue:value];
 }
@@ -190,10 +190,10 @@ static void defaultOnChanged(uiSpinbox *s, void *data)
 	// do nothing
 }
 
-uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
+uiSpinbox *uiNewSpinbox(int min, int max)
 {
 	uiSpinbox *s;
-	intmax_t temp;
+	int temp;
 
 	if (min >= max) {
 		temp = min;

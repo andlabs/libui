@@ -32,7 +32,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiSlider);
 #define sliderWidth 107 /* this is actually the shorter progress bar width, but Microsoft doesn't indicate a width */
 #define sliderHeight 15
 
-static void uiSliderMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiSliderMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiSlider *s = uiSlider(c);
 	uiWindowsSizing sizing;
@@ -51,12 +51,12 @@ static void defaultOnChanged(uiSlider *s, void *data)
 	// do nothing
 }
 
-intmax_t uiSliderValue(uiSlider *s)
+int uiSliderValue(uiSlider *s)
 {
-	return (intmax_t) SendMessageW(s->hwnd, TBM_GETPOS, 0, 0);
+	return SendMessageW(s->hwnd, TBM_GETPOS, 0, 0);
 }
 
-void uiSliderSetValue(uiSlider *s, intmax_t value)
+void uiSliderSetValue(uiSlider *s, int value)
 {
 	// don't use TBM_SETPOSNOTIFY; that triggers an event
 	SendMessageW(s->hwnd, TBM_SETPOS, (WPARAM) TRUE, (LPARAM) value);
@@ -68,10 +68,10 @@ void uiSliderOnChanged(uiSlider *s, void (*f)(uiSlider *, void *), void *data)
 	s->onChangedData = data;
 }
 
-uiSlider *uiNewSlider(intmax_t min, intmax_t max)
+uiSlider *uiNewSlider(int min, int max)
 {
 	uiSlider *s;
-	intmax_t temp;
+	int temp;
 
 	if (min >= max) {
 		temp = min;

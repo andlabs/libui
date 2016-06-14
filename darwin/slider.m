@@ -88,13 +88,12 @@ static void uiSliderDestroy(uiControl *c)
 	uiFreeControl(uiControl(s));
 }
 
-intmax_t uiSliderValue(uiSlider *s)
+int uiSliderValue(uiSlider *s)
 {
-	// NSInteger is the most similar to intmax_t
 	return [s->slider integerValue];
 }
 
-void uiSliderSetValue(uiSlider *s, intmax_t value)
+void uiSliderSetValue(uiSlider *s, int value)
 {
 	[s->slider setIntegerValue:value];
 }
@@ -110,11 +109,11 @@ static void defaultOnChanged(uiSlider *s, void *data)
 	// do nothing
 }
 
-uiSlider *uiNewSlider(intmax_t min, intmax_t max)
+uiSlider *uiNewSlider(int min, int max)
 {
 	uiSlider *s;
 	NSSliderCell *cell;
-	intmax_t temp;
+	int temp;
 
 	if (min >= max) {
 		temp = min;

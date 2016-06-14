@@ -19,7 +19,7 @@ static LRESULT curpage(uiTab *t)
 	return SendMessageW(t->tabHWND, TCM_GETCURSEL, 0, 0);
 }
 
-static struct tabPage *tabPage(uiTab *t, intmax_t i)
+static struct tabPage *tabPage(uiTab *t, int i)
 {
 	return (*(t->pages))[i];
 }
@@ -127,10 +127,10 @@ static void uiTabSyncEnableState(uiWindowsControl *c, int enabled)
 
 uiWindowsControlDefaultSetParentHWND(uiTab)
 
-static void uiTabMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiTabMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiTab *t = uiTab(c);
-	intmax_t pagewid, pageht;
+	int pagewid, pageht;
 	struct tabPage *page;
 	RECT r;
 
@@ -182,7 +182,7 @@ void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 	uiTabInsertAt(t, name, t->pages->size(), child);
 }
 
-void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
+void uiTabInsertAt(uiTab *t, const char *name, int n, uiControl *child)
 {
 	struct tabPage *page;
 	LRESULT hide, show;
@@ -216,7 +216,7 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	}
 }
 
-void uiTabDelete(uiTab *t, uintmax_t n)
+void uiTabDelete(uiTab *t, int n)
 {
 	struct tabPage *page;
 
@@ -233,17 +233,17 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 	t->pages->erase(t->pages->begin() + n);
 }
 
-uintmax_t uiTabNumPages(uiTab *t)
+int uiTabNumPages(uiTab *t)
 {
 	return t->pages->size();
 }
 
-int uiTabMargined(uiTab *t, uintmax_t n)
+int uiTabMargined(uiTab *t, int n)
 {
 	return tabPage(t, n)->margined;
 }
 
-void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
+void uiTabSetMargined(uiTab *t, int n, int margined)
 {
 	struct tabPage *page;
 

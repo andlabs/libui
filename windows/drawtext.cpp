@@ -23,12 +23,12 @@ uiDrawFontFamilies *uiDrawListFontFamilies(void)
 	return ff;
 }
 
-uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
+int uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
 {
 	return ff->fc->fonts->GetFontFamilyCount();
 }
 
-char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n)
+char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, int n)
 {
 	IDWriteFontFamily *family;
 	WCHAR *wname;
@@ -331,8 +331,8 @@ enum layoutAttrType {
 
 struct layoutAttr {
 	enum layoutAttrType type;
-	intmax_t start;
-	intmax_t end;
+	int start;
+	int end;
 	double components[4];
 };
 
@@ -516,7 +516,7 @@ void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 	black->Release();
 }
 
-void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a)
+void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a)
 {
 	struct layoutAttr attr;
 

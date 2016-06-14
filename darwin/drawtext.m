@@ -20,12 +20,12 @@ uiDrawFontFamilies *uiDrawListFontFamilies(void)
 	return ff;
 }
 
-uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
+int uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
 {
 	return CFArrayGetCount(ff->fonts);
 }
 
-char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n)
+char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, int n)
 {
 	CFStringRef familystr;
 	char *family;
@@ -616,7 +616,7 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 	CGContextSetTextPosition(c, x, y);
 #endif
 
-static CFRange charsToRange(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar)
+static CFRange charsToRange(uiDrawTextLayout *layout, int startChar, int endChar)
 {
 	CFRange start, end;
 	CFRange out;
@@ -630,7 +630,7 @@ static CFRange charsToRange(uiDrawTextLayout *layout, intmax_t startChar, intmax
 
 #define rangeToCFRange() charsToRange(layout, startChar, endChar)
 
-void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a)
+void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a)
 {
 	CGColorSpaceRef colorspace;
 	CGFloat components[4];

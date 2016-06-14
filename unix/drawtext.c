@@ -19,12 +19,12 @@ uiDrawFontFamilies *uiDrawListFontFamilies(void)
 	return ff;
 }
 
-uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
+int uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
 {
 	return ff->n;
 }
 
-char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n)
+char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, int n)
 {
 	PangoFontFamily *f;
 
@@ -265,7 +265,7 @@ void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 	g_object_unref(pl);
 }
 
-static void addAttr(uiDrawTextLayout *layout, PangoAttribute *attr, intmax_t startChar, intmax_t endChar)
+static void addAttr(uiDrawTextLayout *layout, PangoAttribute *attr, int startChar, int endChar)
 {
 	attr->start_index = layout->graphemes[startChar];
 	attr->end_index = layout->graphemes[endChar];
@@ -292,7 +292,7 @@ static void try138(void)
 	dlclose(handle);
 }
 
-void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a)
+void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a)
 {
 	PangoAttribute *attr;
 	guint16 rr, gg, bb, aa;

@@ -445,12 +445,12 @@ _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
 
 // TODO manage the use of Text, Font, and TextFont, and of the uiDrawText prefix in general
 
-///// TODO
+///// TODO reconsider this
 typedef struct uiDrawFontFamilies uiDrawFontFamilies;
 
 _UI_EXTERN uiDrawFontFamilies *uiDrawListFontFamilies(void);
-_UI_EXTERN uintmax_t uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff);
-_UI_EXTERN char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, uintmax_t n);
+_UI_EXTERN int uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff);
+_UI_EXTERN char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, int n);
 _UI_EXTERN void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff);
 ///// END TODO
 
@@ -524,7 +524,7 @@ _UI_EXTERN void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
 _UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height);
 
 // and the attributes that you can set on a text layout
-_UI_EXTERN void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, intmax_t startChar, intmax_t endChar, double r, double g, double b, double a);
+_UI_EXTERN void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a);
 
 _UI_EXTERN void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout);
 

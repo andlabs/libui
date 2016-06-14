@@ -142,7 +142,7 @@ WCHAR *ftoutf16(double d)
 }
 
 // to complement the above
-WCHAR *itoutf16(intmax_t i)
+WCHAR *itoutf16(int i)
 {
 	std::wostringstream ss;
 	std::wstring s;

@@ -77,7 +77,7 @@ void setExStyle(HWND hwnd, DWORD exstyle)
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
-void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL hasMenubar)
+void clientSizeToWindowSize(HWND hwnd, int *width, int *height, BOOL hasMenubar)
 {
 	RECT window;
 

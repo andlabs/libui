@@ -117,7 +117,7 @@ void tabPageDestroy(struct tabPage *tp)
 	uiFree(tp);
 }
 
-void tabPageMinimumSize(struct tabPage *tp, intmax_t *width, intmax_t *height)
+void tabPageMinimumSize(struct tabPage *tp, int *width, int *height)
 {
 	int mx, my;
 

@@ -38,7 +38,7 @@ extern WCHAR *vstrf(const WCHAR *format, va_list ap);
 extern char *LFtoCRLF(const char *lfonly);
 extern void CRLFtoLF(char *s);
 extern WCHAR *ftoutf16(double d);
-extern WCHAR *itoutf16(intmax_t i);
+extern WCHAR *itoutf16(int i);
 
 // debug.cpp
 // see http://stackoverflow.com/questions/14421656/is-there-widely-available-wide-character-variant-of-file
@@ -69,7 +69,7 @@ extern DWORD getStyle(HWND hwnd);
 extern void setStyle(HWND hwnd, DWORD style);
 extern DWORD getExStyle(HWND hwnd);
 extern void setExStyle(HWND hwnd, DWORD exstyle);
-extern void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL hasMenubar);
+extern void clientSizeToWindowSize(HWND hwnd, int *width, int *height, BOOL hasMenubar);
 extern HWND parentOf(HWND child);
 extern HWND parentToplevel(HWND child);
 extern void setWindowInsertAfter(HWND hwnd, HWND insertAfter);
@@ -134,7 +134,7 @@ struct tabPage {
 };
 extern struct tabPage *newTabPage(uiControl *child);
 extern void tabPageDestroy(struct tabPage *tp);
-extern void tabPageMinimumSize(struct tabPage *tp, intmax_t *width, intmax_t *height);
+extern void tabPageMinimumSize(struct tabPage *tp, int *width, int *height);
 
 // colordialog.cpp
 struct colorDialogRGBA {

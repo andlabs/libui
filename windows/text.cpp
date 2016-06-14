@@ -38,7 +38,7 @@ void uiFreeText(char *text)
 	uiFree(text);
 }
 
-intmax_t uiWindowsWindowTextWidth(HWND hwnd)
+int uiWindowsWindowTextWidth(HWND hwnd)
 {
 	LRESULT len;
 	WCHAR *text;

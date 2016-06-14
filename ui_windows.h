@@ -22,8 +22,7 @@ struct uiWindowsControl {
 	BOOL visible;
 	void (*SyncEnableState)(uiWindowsControl *, int);
 	void (*SetParentHWND)(uiWindowsControl *, HWND);
-	// TODO consider changing these from intmax_t to int
-	void (*MinimumSize)(uiWindowsControl *, intmax_t *, intmax_t *);
+	void (*MinimumSize)(uiWindowsControl *, int *, int *);
 	void (*MinimumSizeChanged)(uiWindowsControl *);
 	void (*LayoutRect)(uiWindowsControl *c, RECT *r);
 	void (*AssignControlIDZOrder)(uiWindowsControl *, LONG_PTR *, HWND *);
@@ -32,7 +31,7 @@ struct uiWindowsControl {
 // TODO document
 _UI_EXTERN void uiWindowsControlSyncEnableState(uiWindowsControl *, int);
 _UI_EXTERN void uiWindowsControlSetParentHWND(uiWindowsControl *, HWND);
-_UI_EXTERN void uiWindowsControlMinimumSize(uiWindowsControl *, intmax_t *, intmax_t *);
+_UI_EXTERN void uiWindowsControlMinimumSize(uiWindowsControl *, int *, int *);
 _UI_EXTERN void uiWindowsControlMinimumSizeChanged(uiWindowsControl *);
 _UI_EXTERN void uiWindowsControlLayoutRect(uiWindowsControl *, RECT *);
 _UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_PTR *, HWND *);
@@ -201,11 +200,11 @@ _UI_EXTERN char *uiWindowsWindowText(HWND hwnd);
 _UI_EXTERN void uiWindowsSetWindowText(HWND hwnd, const char *text);
 
 // TODO document
-_UI_EXTERN intmax_t uiWindowsWindowTextWidth(HWND hwnd);
+_UI_EXTERN int uiWindowsWindowTextWidth(HWND hwnd);
 
 // TODO document
 // TODO point out this should only be used in a resize cycle
-_UI_EXTERN void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height);
+_UI_EXTERN void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, int x, int y, int width, int height);
 
 // TODO document
 _UI_EXTERN void uiWindowsRegisterWM_COMMANDHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);

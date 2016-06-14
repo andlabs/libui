@@ -11,7 +11,7 @@ void uiWindowsControlSetParentHWND(uiWindowsControl *c, HWND parent)
 	(*(c->SetParentHWND))(c, parent);
 }
 
-void uiWindowsControlMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+void uiWindowsControlMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	(*(c->MinimumSize))(c, width, height);
 }
@@ -87,7 +87,7 @@ void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *c)
 BOOL uiWindowsControlTooSmall(uiWindowsControl *c)
 {
 	RECT r;
-	intmax_t width, height;
+	int width, height;
 
 	uiWindowsControlLayoutRect(c, &r);
 	uiWindowsControlMinimumSize(c, &width, &height);

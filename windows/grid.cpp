@@ -66,6 +66,8 @@ public:
 			struct gridChild *gc;
 
 			gc = (*(g->children))[i];
+			if (!uiControlVisible(gc->c))
+				continue;
 			for (y = gc->top; y < gc->top + gc->yspan; y++)
 				for (x = gc->left; x < gc->left + gc->xspan; x++)
 					this->gg[toyindex(g, y)][toxindex(g, x)] = i;
@@ -134,6 +136,7 @@ static void gridRelayout(uiGrid *g)
 	ld = new gridLayoutData(g);
 
 	// 0) discount padding from width/height
+	// TODO this doesn't work if any rows or columns are completely blank
 	width -= (xcount(g) - 1) * xpadding;
 	height -= (ycount(g) - 1) * ypadding;
 
@@ -161,6 +164,8 @@ static void gridRelayout(uiGrid *g)
 	// we need to know which expanding rows/columns don't span before we can handle the ones that do
 	for (i = 0; i < g->children->size(); i++) {
 		gc = (*(g->children))[i];
+		if (!uiControlVisible(gc->c))
+			continue;
 		if (gc->hexpand && gc->xspan == 1)
 			ld->hexpand[toxindex(g, gc->left)] = true;
 		if (gc->vexpand && gc->yspan == 1)
@@ -171,6 +176,8 @@ static void gridRelayout(uiGrid *g)
 	// the way we handle this is simple: if none of the spanned rows/columns expand, make all rows/columns expand
 	for (i = 0; i < g->children->size(); i++) {
 		gc = (*(g->children))[i];
+		if (!uiControlVisible(gc->c))
+			continue;
 		if (gc->hexpand && gc->xspan != 1) {
 			bool doit = true;
 
@@ -221,6 +228,8 @@ static void gridRelayout(uiGrid *g)
 	// 5) reset the final coordinates for the next step
 	for (i = 0; i < g->children->size(); i++) {
 		gc = (*(g->children))[i];
+		if (!uiControlVisible(gc->c))
+			continue;
 		gc->finalx = 0;
 		gc->finaly = 0;
 		gc->finalwidth = 0;
@@ -277,6 +286,8 @@ static void gridRelayout(uiGrid *g)
 	// this is why we saved minwidth/minheight above
 	for (i = 0; i < g->children->size(); i++) {
 		gc = (*(g->children))[i];
+		if (!uiControlVisible(gc->c))
+			continue;
 		if (gc->halign != uiAlignFill) {
 			switch (gc->halign) {
 			case uiAlignEnd:
@@ -404,8 +415,10 @@ static void uiGridMinimumSize(uiWindowsControl *c, int *width, int *height)
 		rowheight += ld->rowheights[y];
 
 	// and that's it; just account for padding
-	*width = colwidth + (g->xmax-1) * xpadding;
-	*height = rowheight + (g->ymax-1) * ypadding;
+	// TODO this is wrong if any columns or rows are completely empty
+	// TODO this seems to be wrong in general...
+	*width = colwidth + (g->xmax - 1) * xpadding;
+	*height = rowheight + (g->ymax - 1) * ypadding;
 }
 
 static void uiGridMinimumSizeChanged(uiWindowsControl *c)

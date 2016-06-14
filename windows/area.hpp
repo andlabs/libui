@@ -13,8 +13,8 @@ struct uiArea {
 	BOOL scrolling;
 	int scrollWidth;
 	int scrollHeight;
-	intmax_t hscrollpos;
-	intmax_t vscrollpos;
+	int hscrollpos;
+	int vscrollpos;
 	int hwheelCarry;
 	int vwheelCarry;
 

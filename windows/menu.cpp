@@ -4,8 +4,8 @@
 // LONGTERM migrate to std::vector
 
 static uiMenu **menus = NULL;
-static uintmax_t len = 0;
-static uintmax_t cap = 0;
+static size_t len = 0;
+static size_t cap = 0;
 static BOOL menusFinalized = FALSE;
 static WORD curID = 100;			// start somewhere safe
 static BOOL hasQuit = FALSE;
@@ -15,8 +15,8 @@ static BOOL hasAbout = FALSE;
 struct uiMenu {
 	WCHAR *name;
 	uiMenuItem **items;
-	uintmax_t len;
-	uintmax_t cap;
+	size_t len;
+	size_t cap;
 };
 
 struct uiMenuItem {
@@ -28,8 +28,8 @@ struct uiMenuItem {
 	BOOL disabled;				// template for new instances; kept in sync with everything else
 	BOOL checked;
 	HMENU *hmenus;
-	uintmax_t len;
-	uintmax_t cap;
+	size_t len;
+	size_t cap;
 };
 
 enum {
@@ -45,7 +45,7 @@ enum {
 
 static void sync(uiMenuItem *item)
 {
-	uintmax_t i;
+	size_t i;
 	MENUITEMINFOW mi;
 
 	ZeroMemory(&mi, sizeof (MENUITEMINFOW));
@@ -246,7 +246,7 @@ static void appendMenuItem(HMENU menu, uiMenuItem *item)
 static HMENU makeMenu(uiMenu *m)
 {
 	HMENU menu;
-	uintmax_t i;
+	size_t i;
 
 	menu = CreatePopupMenu();
 	if (menu == NULL)
@@ -260,7 +260,7 @@ HMENU makeMenubar(void)
 {
 	HMENU menubar;
 	HMENU menu;
-	uintmax_t i;
+	size_t i;
 
 	menusFinalized = TRUE;
 
@@ -281,7 +281,7 @@ void runMenuEvent(WORD id, uiWindow *w)
 {
 	uiMenu *m;
 	uiMenuItem *item;
-	uintmax_t i, j;
+	size_t i, j;
 
 	// this isn't optimal, but it works, and it should be just fine for most cases
 	for (i = 0; i < len; i++) {
@@ -306,9 +306,9 @@ found:
 
 static void freeMenu(uiMenu *m, HMENU submenu)
 {
-	uintmax_t i;
+	size_t i;
 	uiMenuItem *item;
-	uintmax_t j;
+	size_t j;
 
 	for (i = 0; i < m->len; i++) {
 		item = m->items[i];
@@ -326,7 +326,7 @@ static void freeMenu(uiMenu *m, HMENU submenu)
 
 void freeMenubar(HMENU menubar)
 {
-	uintmax_t i;
+	size_t i;
 	MENUITEMINFOW mi;
 
 	for (i = 0; i < len; i++) {
@@ -344,7 +344,7 @@ void uninitMenus(void)
 {
 	uiMenu *m;
 	uiMenuItem *item;
-	uintmax_t i, j;
+	size_t i, j;
 
 	for (i = 0; i < len; i++) {
 		m = menus[i];

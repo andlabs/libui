@@ -6,6 +6,8 @@
 // - uiRadioButtons
 // - uiSpinbox
 // - uiTab
+// - uiForm
+// - uiGrid
 
 struct containerInit {
 	uiWindowsControl *c;
@@ -23,7 +25,7 @@ static LRESULT CALLBACK containerWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	struct containerInit *init;
 	uiWindowsControl *c;
 	void (*onResize)(uiWindowsControl *);
-	intmax_t minwid, minht;
+	int minwid, minht;
 	LRESULT lResult;
 
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)

@@ -40,7 +40,7 @@
 - (CGFloat)paddingAmount;
 - (void)establishOurConstraints;
 - (void)append:(NSString *)label c:(uiControl *)c stretchy:(int)stretchy;
-//TODO- (void)delete:(int)n;
+- (void)delete:(int)n;
 - (int)isPadded;
 - (void)setPadded:(int)p;
 - (BOOL)hugsTrailing;
@@ -388,7 +388,31 @@ struct uiForm {
 	[fc release];		// we don't need the initial reference now
 }
 
-//TODO- (void)delete:(int)n
+- (void)delete:(int)n
+{
+	formChild *fc;
+	int stretchy;
+
+	fc = (formChild *) [self->children objectAtIndex:n];
+	stretchy = fc.stretchy;
+
+	uiControlSetParent(fc.c, NULL);
+	uiDarwinControlSetSuperview(uiDarwinControl(fc.c), nil);
+
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(fc.c), fc.oldHorzHuggingPri, NSLayoutConstraintOrientationHorizontal);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(fc.c), fc.oldVertHuggingPri, NSLayoutConstraintOrientationVertical);
+
+	[fc.label removeFromSuperview];
+
+	[self->children removeObjectAtIndex:n];
+
+	[self establishOurConstraints];
+	if (stretchy) {
+		self->nStretchy--;
+		if (self->nStretchy == 0)
+			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->f));
+	}
+}
 
 - (int)isPadded
 {

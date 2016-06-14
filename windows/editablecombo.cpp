@@ -46,7 +46,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiEditableCombobox)
 #define comboboxWidth 107	/* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary; LONGTERM */
 #define comboboxHeight 14	/* LONGTERM: is this too high? */
 
-static void uiEditableComboboxMinimumSize(uiWindowsControl *cc, intmax_t *width, intmax_t *height)
+static void uiEditableComboboxMinimumSize(uiWindowsControl *cc, int *width, int *height)
 {
 	uiEditableCombobox *c = uiEditableCombobox(cc);
 	uiWindowsSizing sizing;

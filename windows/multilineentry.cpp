@@ -40,7 +40,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiMultilineEntry)
 // LONGTERM change this for multiline text boxes (longterm because how?)
 #define entryHeight 14
 
-static void uiMultilineEntryMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiMultilineEntryMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiMultilineEntry *e = uiMultilineEntry(c);
 	uiWindowsSizing sizing;

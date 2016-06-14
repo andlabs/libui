@@ -37,7 +37,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiEntry)
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void uiEntryMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiEntryMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiEntry *e = uiEntry(c);
 	uiWindowsSizing sizing;

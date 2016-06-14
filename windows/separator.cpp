@@ -15,7 +15,7 @@ uiWindowsControlAllDefaults(uiSeparator)
 // via https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define separatorHeight 1
 
-static void uiSeparatorMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiSeparatorMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiSeparator *s = uiSeparator(c);
 	uiWindowsSizing sizing;

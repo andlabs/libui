@@ -64,7 +64,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	MINMAXINFO *mmi = (MINMAXINFO *) lParam;
-	intmax_t width, height;
+	int width, height;
 	LRESULT lResult;
 
 	ww = GetWindowLongPtrW(hwnd, GWLP_USERDATA);
@@ -221,7 +221,7 @@ uiWindowsControlDefaultSyncEnableState(uiWindow)
 // TODO
 uiWindowsControlDefaultSetParentHWND(uiWindow)
 
-static void uiWindowMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiWindowMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiWindow *w = uiWindow(c);
 	uiWindowsSizing sizing;
@@ -375,7 +375,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 // this cannot queue a resize because it's called by the resize handler
 void ensureMinimumWindowSize(uiWindow *w)
 {
-	intmax_t width, height;
+	int width, height;
 	RECT r;
 
 	uiWindowsControlMinimumSize(uiWindowsControl(w), &width, &height);

@@ -55,7 +55,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiFontButton)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
-static void uiFontButtonMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiFontButtonMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiFontButton *b = uiFontButton(c);
 	SIZE size;

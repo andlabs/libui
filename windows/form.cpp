@@ -5,7 +5,7 @@ struct formChild {
 	uiControl *c;
 	HWND label;
 	int stretchy;
-	intmax_t height;
+	int height;
 };
 
 struct uiForm {
@@ -34,13 +34,13 @@ static void formPadding(uiForm *f, int *xpadding, int *ypadding)
 static void formRelayout(uiForm *f)
 {
 	RECT r;
-	intmax_t x, y, width, height;
+	int x, y, width, height;
 	int xpadding, ypadding;
-	uintmax_t nStretchy;
-	intmax_t labelwid, stretchyht;
-	intmax_t thiswid;
-	uintmax_t i;
-	intmax_t minimumWidth, minimumHeight;
+	int nStretchy;
+	int labelwid, stretchyht;
+	int thiswid;
+	int i;
+	int minimumWidth, minimumHeight;
 	uiWindowsSizing sizing;
 	int labelht, labelyoff;
 
@@ -152,18 +152,18 @@ static void uiFormSyncEnableState(uiWindowsControl *c, int enabled)
 
 uiWindowsControlDefaultSetParentHWND(uiForm)
 
-static void uiFormMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiFormMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiForm *f = uiForm(c);
 	int xpadding, ypadding;
-	uintmax_t nStretchy;
+	int nStretchy;
 	// these two contain the largest minimum width and height of all stretchy controls in the form
 	// all stretchy controls will use this value to determine the final minimum size
-	intmax_t maxLabelWidth, maxControlWidth;
-	intmax_t maxStretchyHeight;
-	intmax_t labelwid;
-	uintmax_t i;
-	intmax_t minimumWidth, minimumHeight;
+	int maxLabelWidth, maxControlWidth;
+	int maxStretchyHeight;
+	int labelwid;
+	int i;
+	int minimumWidth, minimumHeight;
 	uiWindowsSizing sizing;
 
 	*width = 0;
@@ -226,7 +226,7 @@ static void formArrangeChildren(uiForm *f)
 {
 	LONG_PTR controlID;
 	HWND insertAfter;
-	uintmax_t i;
+	int i;
 
 	controlID = 100;
 	insertAfter = NULL;

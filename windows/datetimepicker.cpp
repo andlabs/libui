@@ -113,7 +113,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiDateTimePicker)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define entryHeight 14
 
-static void uiDateTimePickerMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiDateTimePickerMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiDateTimePicker *d = uiDateTimePicker(c);
 	SIZE s;

@@ -12,7 +12,7 @@ uiWindowsControlAllDefaults(uiProgressBar)
 #define pbarWidth 237
 #define pbarHeight 8
 
-static void uiProgressBarMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiProgressBarMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiProgressBar *p = uiProgressBar(c);
 	uiWindowsSizing sizing;

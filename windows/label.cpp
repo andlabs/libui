@@ -11,7 +11,7 @@ uiWindowsControlAllDefaults(uiLabel)
 // via http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define labelHeight 8
 
-static void uiLabelMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiLabelMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiLabel *l = uiLabel(c);
 	uiWindowsSizing sizing;

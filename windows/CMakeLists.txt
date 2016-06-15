@@ -68,16 +68,11 @@ if(NOT BUILD_SHARED_LIBS)
 	set(_LIBUI_STATIC_RES ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/libui.res PARENT_SCOPE)
 endif()
 macro(_handle_static)
-	if(MSVC)
-		set(_res_suffix res)
-	else()
-		set(_res_suffix obj)
-	endif()
 	# TODO this full path feels hacky
 	add_custom_command(
 		TARGET libui POST_BUILD
 		COMMAND
-			${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:libui,BINARY_DIR>/CMakeFiles/libui.dir/windows/resources.rc.${_res_suffix} ${_LIBUI_STATIC_RES}
+			${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:libui,BINARY_DIR>/CMakeFiles/libui.dir/windows/resources.rc.* ${_LIBUI_STATIC_RES}
 		COMMENT "Copying libui.res")
 	set(_res_suffix)
 endmacro()

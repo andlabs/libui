@@ -276,6 +276,19 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(f));
 }
 
+void uiFormDelete(uiForm *f, int index)
+{
+	struct formChild fc;
+
+	fc = (*(f->controls))[index];
+	uiControlSetParent(fc.c, NULL);
+	uiWindowsControlSetParentHWND(uiWindowsControl(fc.c), NULL);
+	uiWindowsEnsureDestroyWindow(fc.label);
+	f->controls->erase(f->controls->begin() + index);
+	formArrangeChildren(f);
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(f));
+}
+
 int uiFormPadded(uiForm *f)
 {
 	return f->padded;

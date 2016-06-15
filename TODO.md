@@ -90,3 +90,6 @@ don't forget LONGTERMs as well
 
 notes
 - http://blogs.msdn.com/b/oldnewthing/archive/2004/03/29/101121.aspx on accelerators
+
+- group and tab should act as if they have no child if the child is hidden
+on windows

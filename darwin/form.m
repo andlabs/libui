@@ -408,15 +408,13 @@ struct uiForm {
 	uiDarwinControlSetHuggingPriority(uiDarwinControl(fc.c), fc.oldHorzHuggingPri, NSLayoutConstraintOrientationHorizontal);
 	uiDarwinControlSetHuggingPriority(uiDarwinControl(fc.c), fc.oldVertHuggingPri, NSLayoutConstraintOrientationVertical);
 
-	[fc.label removeFromSuperview];
-
+	[fc onDestroy];
 	[self->children removeObjectAtIndex:n];
 
 	[self establishOurConstraints];
-	if (stretchy) {
+	if (stretchy)
 		if ([self nStretchy] == 0)
 			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->f));
-	}
 }
 
 - (int)isPadded

@@ -19,6 +19,8 @@ struct uiWindow {
 
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
+	void (*onPositionChanged)(uiWindow *, void *);
+	void *onPositionChangedData;
 };
 
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
@@ -35,6 +37,11 @@ static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 static int defaultOnClosing(uiWindow *w, void *data)
 {
 	return 0;
+}
+
+static void defaultOnPositionChanged(uiWindow *w, void *data)
+{
+	// do nothing
 }
 
 static void uiWindowDestroy(uiControl *c)
@@ -101,6 +108,50 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 	gtk_window_set_title(w->window, title);
 }
 
+// TODO allow specifying either as NULL on all platforms
+void uiWindowPosition(uiWindow *w, int *x, int *y)
+{
+	gint rx, ry;
+
+	gtk_window_get_position(w->window, &rx, &ry);
+	*x = rx;
+	*y = ry;
+}
+
+void uiWindowSetPosition(uiWindow *w, int x, int y)
+{
+	gtk_window_move(w->window, x, y);
+}
+
+// TODO after calling this I have to call get_position() a few times before it actually works
+void uiWindowCenter(uiWindow *w)
+{
+	gint x, y;
+	GtkAllocation winalloc;
+	GdkWindow *gdkwin;
+	GdkScreen *screen;
+	GdkRectangle workarea;
+
+	gtk_widget_get_allocation(w->widget, &winalloc);
+	gdkwin = gtk_widget_get_window(w->widget);
+	screen = gdk_window_get_screen(gdkwin);
+	gdk_screen_get_monitor_workarea(screen,
+		gdk_screen_get_monitor_at_window(screen, gdkwin),
+		&workarea);
+
+	x = (workarea.width - winalloc.width) / 2;
+	y = (workarea.height - winalloc.height) / 2;
+	// TODO move up slightly? see what Mutter or GNOME Shell does?
+	gtk_window_move(w->window, x, y);
+}
+
+// TODO find a signal to connect to
+void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onPositionChanged = f;
+	w->onPositionChangedData = data;
+}
+
 void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->onClosing = f;
@@ -160,9 +211,10 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	// show everything in the vbox, but not the GtkWindow itself
 	gtk_widget_show_all(w->vboxWidget);
 
-	// and connect our OnClosing() event
+	// and connect our events
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
+	uiWindowOnPositionChanged(w, defaultOnPositionChanged, NULL);
 
 	// normally it's SetParent() that does this, but we can't call SetParent() on a uiWindow
 	// TODO we really need to clean this up

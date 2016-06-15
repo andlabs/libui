@@ -55,7 +55,7 @@ uiBox *makePage15(uiWindow *w)
 	page15 = newVerticalBox();
 
 	hbox = newHorizontalBox();
-	// TODO if I make this 1 and not add anything else, on OS X the box won't be able to grow vertically
+	// TODO if I make this 1 and not add anything else AND not call uiWindowOnPositionChanged(), on OS X the box won't be able to grow vertically
 	uiBoxAppend(page15, uiControl(hbox), 0);
 
 	uiBoxAppend(hbox, uiControl(uiNewLabel("Position")), 0);

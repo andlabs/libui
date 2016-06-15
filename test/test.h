@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 #include "../ui.h"
 
 // main.c
@@ -85,3 +86,6 @@ extern uiBox *makePage13(void);
 
 // page14.c
 extern uiTab *makePage14(void);
+
+// page15.c
+extern uiBox *makePage15(uiWindow *);

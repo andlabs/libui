@@ -119,24 +119,17 @@ public:
 		this->ycount = ycount(g);
 
 		// if a row or column only contains emptys and spanning cells of a opposite-direction spannings, it is invisible and should not be considered for padding amount calculations
-		// furthermore, remove it by duplicating the previous row or column
-		// note that the first row and column will always be visible because the first for loop above computed a smallest fitting rectangle
+		// note that the first row and column will always be visible because gridRecomputeMinMax() computed a smallest fitting rectangle
 		if (this->noVisible)
 			return;
 		this->nVisibleRows = 0;
 		for (y = 0; y < this->ycount; y++)
 			if (this->visibleRow(g, y))
 				this->nVisibleRows++;
-			else
-				for (x = 0; x < xcount(g); x++)
-					this->gg[y][x] = this->gg[y - 1][x];
 		this->nVisibleColumns = 0;
 		for (x = 0; x < xcount(g); x++)
 			if (this->visibleColumn(g, x))
 				this->nVisibleColumns++;
-			else
-				for (y = 0; y < ycount(g); y++)
-					this->gg[y][x] = this->gg[y][x - 1];
 	}
 
 	~gridLayoutData()
@@ -152,7 +145,6 @@ public:
 		delete[] this->gg;
 	}
 
-private:
 	bool visibleRow(uiGrid *g, int y)
 	{
 		int x;
@@ -327,6 +319,8 @@ static void gridRelayout(uiGrid *g)
 		curx = 0;
 		prev = -1;
 		for (ix = 0; ix < xcount(g); ix++) {
+			if (!ld->visibleColumn(g, ix))
+				continue;
 			i = ld->gg[iy][ix];
 			if (i != -1) {
 				gc = (*(g->children))[i];
@@ -349,6 +343,8 @@ static void gridRelayout(uiGrid *g)
 		cury = 0;
 		prev = -1;
 		for (iy = 0; iy < ycount(g); iy++) {
+			if (!ld->visibleRow(g, iy))
+				continue;
 			i = ld->gg[iy][ix];
 			if (i != -1) {
 				gc = (*(g->children))[i];

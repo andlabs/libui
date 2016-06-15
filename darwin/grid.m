@@ -177,6 +177,8 @@ struct uiGrid {
 		if (ymax < (gc.top + gc.yspan))
 			ymax = gc.top + gc.yspan;
 	}
+	if (first == YES)		// the entire grid is hidden; do nothing
+		return;
 	xcount = xmax - xmin;
 	ycount = ymax - ymin;
 

@@ -9,6 +9,11 @@ struct uiProgressBar {
 
 uiUnixControlAllDefaults(uiProgressBar)
 
+int uiProgressBarValue(uiProgressBar *p)
+{
+	return (int) (gtk_progress_bar_get_fraction(p->pbar) * 100);
+}
+
 void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
 	if (value < 0 || value > 100)

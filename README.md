@@ -18,6 +18,9 @@ This README is being written.<br>
 
 *Note that today's entry may be updated later today Eastern Time.*
 
+* **15 June 2016**
+	* Added `uiFormDelete()`; thanks to @emersion.
+
 * **14 June 2016**
 	* uiDarwinControl now has a `ChildVisibilityChanged()` method and a corresponding `NotifyVisibilityChanged()` function that is called by the default show/hide handlers. This is used to make visibility changes work on OS X; uiBox, uiForm, and uiGrid all respect these now.
 	* The same has been done on the Windows side as well.

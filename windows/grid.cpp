@@ -42,13 +42,15 @@ struct uiGrid {
 #define toyindex(g, y) ((y) - (g)->ymin)
 
 class gridLayoutData {
-	size_t ycount;
+	int ycount;
 public:
 	int **gg;		// topological map gg[y][x] = control index
 	int *colwidths;
 	int *rowheights;
 	bool *hexpand;
 	bool *vexpand;
+	int nVisibleRows;
+	int nVisibleColumns;
 
 	gridLayoutData(uiGrid *g)
 	{
@@ -83,6 +85,24 @@ public:
 		ZeroMemory(this->vexpand, ycount(g) * sizeof (bool));
 
 		this->ycount = ycount(g);
+
+		// if a row or column only contains emptys and spanning cells of a opposite-direction spannings, it is invisible and should not be considered for padding amount calculations
+		// furthermore, remove it by duplicating the previous row or column
+		// note that the first row and column will always be visible because the first for loop above computed a smallest fitting rectangle
+		this->nVisibleRows = 0;
+		for (y = 0; y < this->ycount; y++)
+			if (this->visibleRow(g, y))
+				this->nVisibleRows++;
+			else
+				for (x = 0; x < xcount(g); x++)
+					this->gg[y][x] = this->gg[y - 1][x];
+		this->nVisibleColumns = 0;
+		for (x = 0; x < xcount(g); x++)
+			if (this->visibleColumn(g, x))
+				this->nVisibleColumns++;
+			else
+				for (y = 0; y < ycount(g); y++)
+					this->gg[y][x] = this->gg[y][x - 1];
 	}
 
 	~gridLayoutData()
@@ -96,6 +116,35 @@ public:
 		for (y = 0; y < this->ycount; y++)
 			delete[] this->gg[y];
 		delete[] this->gg;
+	}
+
+private:
+	bool visibleRow(uiGrid *g, int y)
+	{
+		int x;
+		struct gridChild *gc;
+
+		for (x = 0; x < xcount(g); x++)
+			if (this->gg[y][x] != -1) {
+				gc = (*(g->children))[this->gg[y][x]];
+				if (gc->yspan == 1 || gc->top - g->ymin == y)
+					return true;
+			}
+		return false;
+	}
+
+	bool visibleColumn(uiGrid *g, int x)
+	{
+		int y;
+		struct gridChild *gc;
+
+		for (y = 0; y < this->ycount; y++)
+			if (this->gg[y][x] != -1) {
+				gc = (*(g->children))[this->gg[y][x]];
+				if (gc->xspan == 1 || gc->left - g->xmin == x)
+					return true;
+			}
+		return false;
 	}
 };
 
@@ -136,9 +185,8 @@ static void gridRelayout(uiGrid *g)
 	ld = new gridLayoutData(g);
 
 	// 0) discount padding from width/height
-	// TODO this doesn't work if any rows or columns are completely blank
-	width -= (xcount(g) - 1) * xpadding;
-	height -= (ycount(g) - 1) * ypadding;
+	width -= (ld->nVisibleColumns - 1) * xpadding;
+	height -= (ld->nVisibleRows - 1) * ypadding;
 
 	// 1) compute colwidths and rowheights before handling expansion
 	// we only count non-spanning controls to avoid weirdness
@@ -415,10 +463,8 @@ static void uiGridMinimumSize(uiWindowsControl *c, int *width, int *height)
 		rowheight += ld->rowheights[y];
 
 	// and that's it; just account for padding
-	// TODO this is wrong if any columns or rows are completely empty
-	// TODO this seems to be wrong in general...
-	*width = colwidth + (g->xmax - 1) * xpadding;
-	*height = rowheight + (g->ymax - 1) * ypadding;
+	*width = colwidth + (ld->nVisibleColumns - 1) * xpadding;
+	*height = rowheight + (ld->nVisibleRows - 1) * ypadding;
 }
 
 static void uiGridMinimumSizeChanged(uiWindowsControl *c)

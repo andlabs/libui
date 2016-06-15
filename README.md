@@ -21,6 +21,7 @@ This README is being written.<br>
 * **14 June 2016**
 	* uiDarwinControl now has a `ChildVisibilityChanged()` method and a corresponding `NotifyVisibilityChanged()` function that is called by the default show/hide handlers. This is used to make visibility changes work on OS X; uiBox, uiForm, and uiGrid all respect these now.
 	* The same has been done on the Windows side as well.
+	* Hiding and showing controls and padding calculations are now correct on Windows at long last.
 	* Hiding a control in a uiForm now hides its label on all platforms.
 
 * **13 June 2016**

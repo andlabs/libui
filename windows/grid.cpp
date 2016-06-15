@@ -6,7 +6,7 @@
 // - what happens if you call Append() twice?
 
 // TODOs
-// - make ALL the controls handle hidden children right
+// - the Assorted page has clipping and repositioning issues
 
 struct gridChild {
 	uiControl *c;
@@ -209,8 +209,10 @@ static void gridRelayout(uiGrid *g)
 
 	gridPadding(g, &xpadding, &ypadding);
 	ld = new gridLayoutData(g);
-	if (ld->noVisible)		// nothing to do
+	if (ld->noVisible) {		// nothing to do
+		delete ld;
 		return;
+	}
 
 	// 0) discount padding from width/height
 	width -= (ld->nVisibleColumns - 1) * xpadding;
@@ -465,8 +467,10 @@ static void uiGridMinimumSize(uiWindowsControl *c, int *width, int *height)
 
 	gridPadding(g, &xpadding, &ypadding);
 	ld = new gridLayoutData(g);
-	if (ld->noVisible)		// nothing to do; return 0x0
+	if (ld->noVisible) {		// nothing to do; return 0x0
+		delete ld;
 		return;
+	}
 
 	// 1) compute colwidths and rowheights before handling expansion
 	// TODO put this in its own function (but careful about the spanning calculation in gridRelayout())

@@ -166,6 +166,12 @@ static void uiTabMinimumSizeChanged(uiWindowsControl *c)
 uiWindowsControlDefaultLayoutRect(uiTab)
 uiWindowsControlDefaultAssignControlIDZOrder(uiTab)
 
+static void uiTabChildVisibilityChanged(uiWindowsControl *c)
+{
+	// TODO eliminate the redundancy
+	uiWindowsControlMinimumSizeChanged(c);
+}
+
 static void tabArrangePages(uiTab *t)
 {
 	LONG_PTR controlID = 100;

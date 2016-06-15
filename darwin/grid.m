@@ -148,6 +148,7 @@ struct uiGrid {
 	int firstx, firsty;
 	BOOL *hexpand, *vexpand;
 	BOOL doit;
+	BOOL onlyEmptyAndSpanning;
 
 	[self removeOurConstraints];
 	if ([self->children count] == 0)
@@ -158,6 +159,7 @@ struct uiGrid {
 	// ignore hidden controls
 	first = YES;
 	for (gc in self->children) {
+		// this bit is important: it ensures row ymin and column xmin have at least one cell to draw, so the onlyEmptyAndSpanning logic below will never run on those rows
 		if (!uiControlVisible(gc.c))
 			continue;
 		if (first) {
@@ -177,6 +179,8 @@ struct uiGrid {
 		if (ymax < (gc.top + gc.yspan))
 			ymax = gc.top + gc.yspan;
 	}
+	if (first != NO)		// the entire grid is hidden; do nothing
+		return;
 	xcount = xmax - xmin;
 	ycount = ymax - ymin;
 
@@ -204,7 +208,6 @@ struct uiGrid {
 	}
 
 	// if a row or column only contains emptys and spanning cells of a opposite-direction spannings, remove it by duplicating the previous row or column
-	BOOL onlyEmptyAndSpanning;
 	for (y = 0; y < ycount; y++) {
 		onlyEmptyAndSpanning = YES;
 		for (x = 0; x < xcount; x++)

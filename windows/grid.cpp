@@ -6,7 +6,7 @@
 // - what happens if you call Append() twice?
 
 // TODOs
-// - make ALL the controls handle hidden children right
+// - the Assorted page has clipping and repositioning issues
 
 struct gridChild {
 	uiControl *c;
@@ -36,24 +36,58 @@ struct uiGrid {
 	int xmax, ymax;
 };
 
+static bool gridRecomputeMinMax(uiGrid *g)
+{
+	bool first = true;
+
+	for (struct gridChild *gc : *(g->children)) {
+		// this is important; we want g->xmin/g->ymin to satisfy gridLayoutData::visibleRow()/visibleColumn()
+		if (!uiControlVisible(gc->c))
+			continue;
+		if (first) {
+			g->xmin = gc->left;
+			g->ymin = gc->top;
+			g->xmax = gc->left + gc->xspan;
+			g->ymax = gc->top + gc->yspan;
+			first = false;
+			continue;
+		}
+		if (g->xmin > gc->left)
+			g->xmin = gc->left;
+		if (g->ymin > gc->top)
+			g->ymin = gc->top;
+		if (g->xmax < (gc->left + gc->xspan))
+			g->xmax = gc->left + gc->xspan;
+		if (g->ymax < (gc->top + gc->yspan))
+			g->ymax = gc->top + gc->yspan;
+	}
+	return first != false;
+}
+
 #define xcount(g) ((g)->xmax - (g)->xmin)
 #define ycount(g) ((g)->ymax - (g)->ymin)
 #define toxindex(g, x) ((x) - (g)->xmin)
 #define toyindex(g, y) ((y) - (g)->ymin)
 
 class gridLayoutData {
-	size_t ycount;
+	int ycount;
 public:
 	int **gg;		// topological map gg[y][x] = control index
 	int *colwidths;
 	int *rowheights;
 	bool *hexpand;
 	bool *vexpand;
+	int nVisibleRows;
+	int nVisibleColumns;
+
+	bool noVisible;
 
 	gridLayoutData(uiGrid *g)
 	{
 		size_t i;
 		int x, y;
+
+		this->noVisible = gridRecomputeMinMax(g);
 
 		this->gg = new int *[ycount(g)];
 		for (y = 0; y < ycount(g); y++) {
@@ -66,6 +100,8 @@ public:
 			struct gridChild *gc;
 
 			gc = (*(g->children))[i];
+			if (!uiControlVisible(gc->c))
+				continue;
 			for (y = gc->top; y < gc->top + gc->yspan; y++)
 				for (x = gc->left; x < gc->left + gc->xspan; x++)
 					this->gg[toyindex(g, y)][toxindex(g, x)] = i;
@@ -81,6 +117,19 @@ public:
 		ZeroMemory(this->vexpand, ycount(g) * sizeof (bool));
 
 		this->ycount = ycount(g);
+
+		// if a row or column only contains emptys and spanning cells of a opposite-direction spannings, it is invisible and should not be considered for padding amount calculations
+		// note that the first row and column will always be visible because gridRecomputeMinMax() computed a smallest fitting rectangle
+		if (this->noVisible)
+			return;
+		this->nVisibleRows = 0;
+		for (y = 0; y < this->ycount; y++)
+			if (this->visibleRow(g, y))
+				this->nVisibleRows++;
+		this->nVisibleColumns = 0;
+		for (x = 0; x < xcount(g); x++)
+			if (this->visibleColumn(g, x))
+				this->nVisibleColumns++;
 	}
 
 	~gridLayoutData()
@@ -94,6 +143,34 @@ public:
 		for (y = 0; y < this->ycount; y++)
 			delete[] this->gg[y];
 		delete[] this->gg;
+	}
+
+	bool visibleRow(uiGrid *g, int y)
+	{
+		int x;
+		struct gridChild *gc;
+
+		for (x = 0; x < xcount(g); x++)
+			if (this->gg[y][x] != -1) {
+				gc = (*(g->children))[this->gg[y][x]];
+				if (gc->yspan == 1 || gc->top - g->ymin == y)
+					return true;
+			}
+		return false;
+	}
+
+	bool visibleColumn(uiGrid *g, int x)
+	{
+		int y;
+		struct gridChild *gc;
+
+		for (y = 0; y < this->ycount; y++)
+			if (this->gg[y][x] != -1) {
+				gc = (*(g->children))[this->gg[y][x]];
+				if (gc->xspan == 1 || gc->left - g->xmin == x)
+					return true;
+			}
+		return false;
 	}
 };
 
@@ -132,10 +209,14 @@ static void gridRelayout(uiGrid *g)
 
 	gridPadding(g, &xpadding, &ypadding);
 	ld = new gridLayoutData(g);
+	if (ld->noVisible) {		// nothing to do
+		delete ld;
+		return;
+	}
 
 	// 0) discount padding from width/height
-	width -= (xcount(g) - 1) * xpadding;
-	height -= (ycount(g) - 1) * ypadding;
+	width -= (ld->nVisibleColumns - 1) * xpadding;
+	height -= (ld->nVisibleRows - 1) * ypadding;
 
 	// 1) compute colwidths and rowheights before handling expansion
 	// we only count non-spanning controls to avoid weirdness
@@ -161,6 +242,8 @@ static void gridRelayout(uiGrid *g)
 	// we need to know which expanding rows/columns don't span before we can handle the ones that do
 	for (i = 0; i < g->children->size(); i++) {
 		gc = (*(g->children))[i];
+		if (!uiControlVisible(gc->c))
+			continue;
 		if (gc->hexpand && gc->xspan == 1)
 			ld->hexpand[toxindex(g, gc->left)] = true;
 		if (gc->vexpand && gc->yspan == 1)
@@ -171,6 +254,8 @@ static void gridRelayout(uiGrid *g)
 	// the way we handle this is simple: if none of the spanned rows/columns expand, make all rows/columns expand
 	for (i = 0; i < g->children->size(); i++) {
 		gc = (*(g->children))[i];
+		if (!uiControlVisible(gc->c))
+			continue;
 		if (gc->hexpand && gc->xspan != 1) {
 			bool doit = true;
 
@@ -197,7 +282,6 @@ static void gridRelayout(uiGrid *g)
 		}
 	}
 
-
 	// 4) compute and assign expanded widths/heights
 	nhexpand = 0;
 	nvexpand = 0;
@@ -221,6 +305,8 @@ static void gridRelayout(uiGrid *g)
 	// 5) reset the final coordinates for the next step
 	for (i = 0; i < g->children->size(); i++) {
 		gc = (*(g->children))[i];
+		if (!uiControlVisible(gc->c))
+			continue;
 		gc->finalx = 0;
 		gc->finaly = 0;
 		gc->finalwidth = 0;
@@ -235,6 +321,8 @@ static void gridRelayout(uiGrid *g)
 		curx = 0;
 		prev = -1;
 		for (ix = 0; ix < xcount(g); ix++) {
+			if (!ld->visibleColumn(g, ix))
+				continue;
 			i = ld->gg[iy][ix];
 			if (i != -1) {
 				gc = (*(g->children))[i];
@@ -257,6 +345,8 @@ static void gridRelayout(uiGrid *g)
 		cury = 0;
 		prev = -1;
 		for (iy = 0; iy < ycount(g); iy++) {
+			if (!ld->visibleRow(g, iy))
+				continue;
 			i = ld->gg[iy][ix];
 			if (i != -1) {
 				gc = (*(g->children))[i];
@@ -277,6 +367,8 @@ static void gridRelayout(uiGrid *g)
 	// this is why we saved minwidth/minheight above
 	for (i = 0; i < g->children->size(); i++) {
 		gc = (*(g->children))[i];
+		if (!uiControlVisible(gc->c))
+			continue;
 		if (gc->halign != uiAlignFill) {
 			switch (gc->halign) {
 			case uiAlignEnd:
@@ -375,6 +467,10 @@ static void uiGridMinimumSize(uiWindowsControl *c, int *width, int *height)
 
 	gridPadding(g, &xpadding, &ypadding);
 	ld = new gridLayoutData(g);
+	if (ld->noVisible) {		// nothing to do; return 0x0
+		delete ld;
+		return;
+	}
 
 	// 1) compute colwidths and rowheights before handling expansion
 	// TODO put this in its own function (but careful about the spanning calculation in gridRelayout())
@@ -404,8 +500,8 @@ static void uiGridMinimumSize(uiWindowsControl *c, int *width, int *height)
 		rowheight += ld->rowheights[y];
 
 	// and that's it; just account for padding
-	*width = colwidth + (g->xmax-1) * xpadding;
-	*height = rowheight + (g->ymax-1) * ypadding;
+	*width = colwidth + (ld->nVisibleColumns - 1) * xpadding;
+	*height = rowheight + (ld->nVisibleRows - 1) * ypadding;
 }
 
 static void uiGridMinimumSizeChanged(uiWindowsControl *c)
@@ -421,6 +517,12 @@ static void uiGridMinimumSizeChanged(uiWindowsControl *c)
 
 uiWindowsControlDefaultLayoutRect(uiGrid)
 uiWindowsControlDefaultAssignControlIDZOrder(uiGrid)
+
+static void uiGridChildVisibilityChanged(uiWindowsControl *c)
+{
+	// TODO eliminate the redundancy
+	uiWindowsControlMinimumSizeChanged(c);
+}
 
 // must have called gridRecomputeMinMax() first
 static void gridArrangeChildren(uiGrid *g)
@@ -453,30 +555,6 @@ static void gridArrangeChildren(uiGrid *g)
 		}
 	delete[] visited;
 	delete ld;
-}
-
-static void gridRecomputeMinMax(uiGrid *g)
-{
-	bool first = true;
-
-	for (struct gridChild *gc : *(g->children)) {
-		if (first) {
-			g->xmin = gc->left;
-			g->ymin = gc->top;
-			g->xmax = gc->left + gc->xspan;
-			g->ymax = gc->top + gc->yspan;
-			first = false;
-			continue;
-		}
-		if (g->xmin > gc->left)
-			g->xmin = gc->left;
-		if (g->ymin > gc->top)
-			g->ymin = gc->top;
-		if (g->xmax < (gc->left + gc->xspan))
-			g->xmax = gc->left + gc->xspan;
-		if (g->ymax < (gc->top + gc->yspan))
-			g->ymax = gc->top + gc->yspan;
-	}
 }
 
 static struct gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)

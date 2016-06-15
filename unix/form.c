@@ -8,6 +8,7 @@ struct formChild {
 	GtkAlign oldhalign;
 	gboolean oldvexpand;
 	GtkAlign oldvalign;
+	GBinding *labelBinding;
 };
 
 struct uiForm {
@@ -82,7 +83,10 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 	gtk_grid_attach(f->grid, fc.label,
 		0, row,
 		1, 1);
-	gtk_widget_show_all(fc.label);
+	// and make them share visibility so if the control is hidden, so is its label
+	fc.labelBinding = g_object_bind_property(GTK_WIDGET(uiControlHandle(fc.c)), "visible",
+		fc.label, "visible",
+		G_BINDING_SYNC_CREATE);
 
 	uiControlSetParent(fc.c, uiControl(f));
 	uiUnixControlSetContainer(uiUnixControl(fc.c), f->container, FALSE);

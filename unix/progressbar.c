@@ -5,6 +5,7 @@ struct uiProgressBar {
 	uiUnixControl c;
 	GtkWidget *widget;
 	GtkProgressBar *pbar;
+	int indeterminate;
 };
 
 uiUnixControlAllDefaults(uiProgressBar)
@@ -19,6 +20,28 @@ void uiProgressBarSetValue(uiProgressBar *p, int value)
 	if (value < 0 || value > 100)
 		userbug("Value %d is out of range for a uiProgressBar.", value);
 	gtk_progress_bar_set_fraction(p->pbar, ((gdouble) value) / 100);
+}
+
+int uiProgressBarIndeterminate(uiProgressBar *p)
+{
+	return p->indeterminate;
+}
+
+gboolean uiProgressBarPulse(uiProgressBar *p)
+{
+	if (!GTK_IS_WIDGET(p->pbar) || !p->indeterminate)
+		return 0;
+
+	gtk_progress_bar_pulse(p->pbar);
+	return 1;
+}
+
+void uiProgressBarSetIndeterminate(uiProgressBar *p, int indeterminate)
+{
+	p->indeterminate = indeterminate;
+
+	if (indeterminate)
+		g_timeout_add(100, uiProgressBarPulse, p);
 }
 
 uiProgressBar *uiNewProgressBar(void)

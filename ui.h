@@ -189,8 +189,6 @@ typedef struct uiProgressBar uiProgressBar;
 #define uiProgressBar(this) ((uiProgressBar *) (this))
 _UI_EXTERN int uiProgressBarValue(uiProgressBar *p);
 _UI_EXTERN void uiProgressBarSetValue(uiProgressBar *p, int n);
-_UI_EXTERN int uiProgressBarIndeterminate(uiProgressBar *p);
-_UI_EXTERN void uiProgressBarSetIndeterminate(uiProgressBar *p, int indeterminate);
 _UI_EXTERN uiProgressBar *uiNewProgressBar(void);
 
 typedef struct uiSeparator uiSeparator;

@@ -78,7 +78,15 @@ static void showHide(uiButton *b, void *data)
 static void setIndeterminate(uiButton *b, void *data)
 {
 	uiProgressBar *p = uiProgressBar(data);
-	uiProgressBarSetIndeterminate(p, !uiProgressBarIndeterminate(p));
+
+	int value = uiProgressBarValue(p);
+	if (value == -1) {
+		value = 0;
+	} else {
+		value = -1;
+	}
+
+	uiProgressBarSetValue(p, value);
 }
 
 static void deleteFirst(uiButton *b, void *data)

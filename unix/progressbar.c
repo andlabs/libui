@@ -12,23 +12,16 @@ uiUnixControlAllDefaults(uiProgressBar)
 
 int uiProgressBarValue(uiProgressBar *p)
 {
+	if (p->indeterminate)
+		return -1;
+
 	return (int) (gtk_progress_bar_get_fraction(p->pbar) * 100);
 }
 
-void uiProgressBarSetValue(uiProgressBar *p, int value)
+gboolean uiProgressBarPulse(void* data)
 {
-	if (value < 0 || value > 100)
-		userbug("Value %d is out of range for a uiProgressBar.", value);
-	gtk_progress_bar_set_fraction(p->pbar, ((gdouble) value) / 100);
-}
+	uiProgressBar *p = (uiProgressBar*) data;
 
-int uiProgressBarIndeterminate(uiProgressBar *p)
-{
-	return p->indeterminate;
-}
-
-gboolean uiProgressBarPulse(uiProgressBar *p)
-{
 	if (!GTK_IS_WIDGET(p->pbar) || !p->indeterminate)
 		return 0;
 
@@ -36,12 +29,21 @@ gboolean uiProgressBarPulse(uiProgressBar *p)
 	return 1;
 }
 
-void uiProgressBarSetIndeterminate(uiProgressBar *p, int indeterminate)
+void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
-	p->indeterminate = indeterminate;
+	if (value == -1) {
+		if (!p->indeterminate) {
+			p->indeterminate = 1;
+			g_timeout_add(100, uiProgressBarPulse, p);
+		}
+		return;
+	}
 
-	if (indeterminate)
-		g_timeout_add(100, uiProgressBarPulse, p);
+	if (value < 0 || value > 100)
+		userbug("Value %d is out of range for a uiProgressBar.", value);
+
+	p->indeterminate = 0;
+	gtk_progress_bar_set_fraction(p->pbar, ((gdouble) value) / 100);
 }
 
 uiProgressBar *uiNewProgressBar(void)

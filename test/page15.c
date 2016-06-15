@@ -1,52 +1,76 @@
 // 15 june 2016
 #include "test.h"
 
-void moveX(uiSpinbox *s, void *data)
+static uiSpinbox *x, *y;
+
+static void moveX(uiSpinbox *s, void *data)
 {
 	uiWindow *w = uiWindow(data);
-	int x, y;
+	int xp, yp;
 
-	uiWindowPosition(w, &x, &y);
-	x = uiSpinboxValue(s);
-	uiWindowSetPosition(w, x, y);
+	uiWindowPosition(w, &xp, &yp);
+	xp = uiSpinboxValue(x);
+	uiWindowSetPosition(w, xp, yp);
 }
 
-void moveX(uiSpinbox *s, void *data)
+static void moveY(uiSpinbox *s, void *data)
 {
 	uiWindow *w = uiWindow(data);
-	int x, y;
+	int xp, yp;
 
-	uiWindowPosition(w, &x, &y);
-	y = uiSpinboxValue(s);
-	uiWindowSetPosition(w, x, y);
+	uiWindowPosition(w, &xp, &yp);
+	yp = uiSpinboxValue(y);
+	uiWindowSetPosition(w, xp, yp);
 }
 
-// TODO onMove
+static void update(uiWindow *w)
+{
+	int xp, yp;
+
+	uiWindowPosition(w, &xp, &yp);
+	uiSpinboxSetValue(x, xp);
+	uiSpinboxSetValue(y, yp);
+}
+
+static void center(uiButton *b, void *data)
+{
+	uiWindow *w = uiWindow(data);
+
+	uiWindowCenter(w);
+	update(w);
+}
+
+void onMove(uiWindow *w, void *data)
+{
+	printf("move\n");
+	update(w);
+}
 
 uiBox *makePage15(uiWindow *w)
 {
 	uiBox *page15;
 	uiBox *hbox;
-	uiSpinbox *x;
-	uiSpinbox *y;
-	int curx, cury;
+	uiButton *button;
 
 	page15 = newVerticalBox();
 
 	hbox = newHorizontalBox();
-	uiBoxAppend(page15, uiControl(hbox), 1);
+	// TODO if I make this 1 and not add anything else, on OS X the box won't be able to grow vertically
+	uiBoxAppend(page15, uiControl(hbox), 0);
 
 	uiBoxAppend(hbox, uiControl(uiNewLabel("Position")), 0);
 	x = uiNewSpinbox(INT_MIN, INT_MAX);
 	uiBoxAppend(hbox, uiControl(x), 1);
 	y = uiNewSpinbox(INT_MIN, INT_MAX);
 	uiBoxAppend(hbox, uiControl(y), 1);
+	button = uiNewButton("Center");
+	uiBoxAppend(hbox, uiControl(button), 0);
 
 	uiSpinboxOnChanged(x, moveX, w);
 	uiSpinboxOnChanged(y, moveY, w);
-	uiWindowPosition(w, &curX, &curY);
-	uiSpinboxSetValue(x, curX);
-	uiSpinboxSetValue(y, curY);
+	uiButtonOnClicked(button, center, w);
+	uiWindowOnPositionChanged(w, onMove, NULL);
+	update(w);
 
 	return page15;
 }

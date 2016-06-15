@@ -101,6 +101,8 @@ _UI_EXTERN char *uiWindowTitle(uiWindow *w);
 _UI_EXTERN void uiWindowSetTitle(uiWindow *w, const char *title);
 _UI_EXTERN void uiWindowPosition(uiWindow *w, int *x, int *y);
 _UI_EXTERN void uiWindowSetPosition(uiWindow *w, int x, int y);
+_UI_EXTERN void uiWindowCenter(uiWindow *w);
+_UI_EXTERN void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data);
 _UI_EXTERN void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *w, void *data), void *data);
 _UI_EXTERN void uiWindowSetChild(uiWindow *w, uiControl *child);
 _UI_EXTERN int uiWindowMargined(uiWindow *w);

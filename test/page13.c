@@ -75,6 +75,13 @@ static void showHide(uiButton *b, void *data)
 		uiControlShow(c);
 }
 
+static void deleteFirst(uiButton *b, void *data)
+{
+	uiForm *f = uiForm(data);
+
+	uiFormDelete(f, 0);
+}
+
 uiBox *makePage13(void)
 {
 	uiBox *page13;
@@ -118,6 +125,9 @@ uiBox *makePage13(void)
 
 	b = uiNewButton("Show/Hide");
 	uiButtonOnClicked(b, showHide, e);
+	uiBoxAppend(page13, uiControl(b), 0);
+	b = uiNewButton("Delete First");
+	uiButtonOnClicked(b, deleteFirst, f);
 	uiBoxAppend(page13, uiControl(b), 0);
 	uiBoxAppend(page13, uiControl(f), 1);
 

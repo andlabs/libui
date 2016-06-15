@@ -23,7 +23,6 @@
 	uiForm *f;
 	NSMutableArray *children;
 	int padded;
-	int nStretchy;
 
 	NSLayoutConstraint *first;
 	NSMutableArray *inBetweens;
@@ -45,6 +44,7 @@
 - (void)setPadded:(int)p;
 - (BOOL)hugsTrailing;
 - (BOOL)hugsBottom;
+- (int)nStretchy;
 @end
 
 struct uiForm {
@@ -123,7 +123,6 @@ struct uiForm {
 		self->f = ff;
 		self->padded = 0;
 		self->children = [NSMutableArray new];
-		self->nStretchy = 0;
 
 		self->inBetweens = [NSMutableArray new];
 		self->widths = [NSMutableArray new];
@@ -221,6 +220,9 @@ struct uiForm {
 	// first arrange the children vertically and make them the same width
 	prev = nil;
 	for (fc in self->children) {
+		[fc setHidden:!uiControlVisible(fc.c)];
+		if (!uiControlVisible(fc.c))
+			continue;
 		if (prev == nil) {			// first view
 			self->first = mkConstraint(self, NSLayoutAttributeTop,
 				NSLayoutRelationEqual,
@@ -259,6 +261,8 @@ struct uiForm {
 		prev = [fc view];
 		prevlabel = fc;
 	}
+	if (prev == nil)		// all hidden; act as if nothing there
+		return;
 	self->last = mkConstraint(prev, NSLayoutAttributeBottom,
 		NSLayoutRelationEqual,
 		self, NSLayoutAttributeBottom,
@@ -269,6 +273,8 @@ struct uiForm {
 
 	// now arrange the controls horizontally
 	for (fc in self->children) {
+		if (!uiControlVisible(fc.c))
+			continue;
 		c = mkConstraint(self, NSLayoutAttributeLeading,
 			NSLayoutRelationEqual,
 			fc, NSLayoutAttributeLeading,
@@ -313,6 +319,8 @@ struct uiForm {
 	// and make all stretchy controls have the same height
 	prev = nil;
 	for (fc in self->children) {
+		if (!uiControlVisible(fc.c))
+			continue;
 		if (!fc.stretchy)
 			continue;
 		if (prev == nil) {
@@ -375,15 +383,13 @@ struct uiForm {
 		@"uiForm baseline constraint");
 	[self addConstraint:fc.baseline];
 
+	oldnStretchy = [self nStretchy];
 	[self->children addObject:fc];
 
 	[self establishOurConstraints];
-	if (fc.stretchy) {
-		oldnStretchy = self->nStretchy;
-		self->nStretchy++;
+	if (fc.stretchy)
 		if (oldnStretchy == 0)
 			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->f));
-	}
 
 	[fc release];		// we don't need the initial reference now
 }
@@ -408,8 +414,7 @@ struct uiForm {
 
 	[self establishOurConstraints];
 	if (stretchy) {
-		self->nStretchy--;
-		if (self->nStretchy == 0)
+		if ([self nStretchy] == 0)
 			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->f));
 	}
 }
@@ -440,7 +445,22 @@ struct uiForm {
 - (BOOL)hugsBottom
 {
 	// only hug if we have stretchy
-	return self->nStretchy != 0;
+	return [self nStretchy] != 0;
+}
+
+- (int)nStretchy
+{
+	formChild *fc;
+	int n;
+
+	n = 0;
+	for (fc in self->children) {
+		if (!uiControlVisible(fc.c))
+			continue;
+		if (fc.stretchy)
+			n++;
+	}
+	return n;
 }
 
 @end
@@ -499,6 +519,13 @@ static void uiFormChildEdgeHuggingChanged(uiDarwinControl *c)
 
 uiDarwinControlDefaultHuggingPriority(uiForm, view)
 uiDarwinControlDefaultSetHuggingPriority(uiForm, view)
+
+static void uiFormChildVisibilityChanged(uiDarwinControl *c)
+{
+	uiForm *f = uiForm(c);
+
+	[f->view establishOurConstraints];
+}
 
 void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 {

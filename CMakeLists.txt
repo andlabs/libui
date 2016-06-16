@@ -130,6 +130,16 @@ endmacro()
 add_subdirectory("common")
 add_subdirectory("${_OSNAME}")
 add_library(${_LIBUINAME} ${_LIBUI_SOURCES})
+# hack to allow building Objective-C files with old versions of cmake
+foreach(SRC ${_LIBUI_SOURCES})
+	if(${SRC} MATCHES .m$)
+		set_source_files_properties(
+			${SRC}
+			PROPERTIES
+			COMPILE_FLAGS
+			"${CMAKE_C_FLAGS}")
+	endif()
+endforeach(SRC)
 target_include_directories(${_LIBUINAME}
 	PUBLIC .
 	PRIVATE ${_LIBUI_INCLUEDIRS})

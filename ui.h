@@ -199,7 +199,7 @@ _UI_EXTERN uiSlider *uiNewSlider(int min, int max);
 
 typedef struct uiProgressBar uiProgressBar;
 #define uiProgressBar(this) ((uiProgressBar *) (this))
-// TODO uiProgressBarValue()
+_UI_EXTERN int uiProgressBarValue(uiProgressBar *p);
 _UI_EXTERN void uiProgressBarSetValue(uiProgressBar *p, int n);
 _UI_EXTERN uiProgressBar *uiNewProgressBar(void);
 

@@ -1,6 +1,8 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
+#define defaultStyleMask (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
+
 struct uiWindow {
 	uiDarwinControl c;
 	NSWindow *window;
@@ -16,6 +18,7 @@ struct uiWindow {
 	void *onContentSizeChangedData;
 	BOOL suppressSizeChanged;
 	int fullscreen;
+	int borderless;
 };
 
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
@@ -323,9 +326,13 @@ void uiWindowSetFullscreen(uiWindow *w, int fullscreen)
 	if (!w->fullscreen && !fullscreen)
 		return;
 	w->fullscreen = fullscreen;
+	if (w->fullscreen && w->borderless)		// borderless doesn't play nice with fullscreen; don't toggle while borderless
+		return;
 	w->suppressSizeChanged = YES;
 	[w->window toggleFullScreen:w->window];
 	w->suppressSizeChanged = NO;
+	if (!w->fullscreen && w->borderless)		// borderless doesn't play nice with fullscreen; restore borderless after removing
+		[w->window setStyleMask:NSBorderlessWindowMask];
 }
 
 void uiWindowOnContentSizeChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
@@ -338,6 +345,29 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->onClosing = f;
 	w->onClosingData = data;
+}
+
+int uiWindowBorderless(uiWindow *w)
+{
+	return w->borderless;
+}
+
+void uiWindowSetBorderless(uiWindow *w, int borderless)
+{
+	w->borderless = borderless;
+	if (w->borderless) {
+		// borderless doesn't play nice with fullscreen; wait for later
+		if (!w->fullscreen)
+			[w->window setStyleMask:NSBorderlessWindowMask];
+	} else {
+		[w->window setStyleMask:defaultStyleMask];
+		// borderless doesn't play nice with fullscreen; restore state
+		if (w->fullscreen) {
+			w->suppressSizeChanged = YES;
+			[w->window toggleFullScreen:w->window];
+			w->suppressSizeChanged = NO;
+		}
+	}
 }
 
 void uiWindowSetChild(uiWindow *w, uiControl *child)
@@ -389,7 +419,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiDarwinNewControl(uiWindow, w);
 
 	w->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
-		styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
+		styleMask:defaultStyleMask
 		backing:NSBackingStoreBuffered
 		defer:YES];
 	[w->window setTitle:toNSString(title)];

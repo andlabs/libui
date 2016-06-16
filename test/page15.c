@@ -3,6 +3,7 @@
 
 static uiSpinbox *x, *y;
 static uiSpinbox *width, *height;
+static uiCheckbox *fullscreen;
 
 static void moveX(uiSpinbox *s, void *data)
 {
@@ -74,11 +75,20 @@ static void updatesize(uiWindow *w)
 	uiWindowContentSize(w, &xp, &yp);
 	uiSpinboxSetValue(width, xp);
 	uiSpinboxSetValue(height, yp);
+	uiCheckboxSetChecked(fullscreen, uiWindowFullscreen(w));
 }
 
 void onSize(uiWindow *w, void *data)
 {
 	printf("size\n");
+	updatesize(w);
+}
+
+void setFullscreen(uiCheckbox *cb, void *data)
+{
+	uiWindow *w = uiWindow(data);
+
+	uiWindowSetFullscreen(w, uiCheckboxChecked(tb));
 	updatesize(w);
 }
 
@@ -116,12 +126,12 @@ uiBox *makePage15(uiWindow *w)
 	uiBoxAppend(hbox, uiControl(width), 1);
 	height = uiNewSpinbox(INT_MIN, INT_MAX);
 	uiBoxAppend(hbox, uiControl(height), 1);
-//	button = uiNewButton("Center");
-//	uiBoxAppend(hbox, uiControl(button), 0);
+	fullscreen = uiNewCheckbox("Fullscreen");
+	uiBoxAppend(hbox, uiControl(fullscreen), 0);
 
 	uiSpinboxOnChanged(width, sizeWidth, w);
 	uiSpinboxOnChanged(height, sizeHeight, w);
-//	uiButtonOnClicked(button, center, w);
+	uiCheckboxOnToggled(fullscreen, setFullscreen, w);
 	uiWindowOnContentSizeChanged(w, onSize, NULL);
 	updatesize(w);
 

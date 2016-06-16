@@ -25,6 +25,7 @@ _add_exec(tester
 	page12.c
 	page13.c
 	page14.c
+	page15.c
 	spaced.c
 	${_TEST_RESOURCES_RC}
 )

@@ -14,6 +14,12 @@ struct uiWindow {
 	void *onClosingData;
 	int margined;
 	BOOL hasMenubar;
+	void (*onPositionChanged)(uiWindow *, void *);
+	void *onPositionChangedData;
+	BOOL changingPosition;		// to avoid triggering the above when programmatically doing this
+	void (*onContentSizeChanged)(uiWindow *, void *);
+	void *onContentSizeChangedData;
+	BOOL changingSize;
 };
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -35,7 +41,6 @@ static void windowMargins(uiWindow *w, int *mx, int *my)
 
 static void windowRelayout(uiWindow *w)
 {
-	uiWindowsSizing sizing;
 	int x, y, width, height;
 	RECT r;
 	int mx, my;
@@ -87,8 +92,15 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		runMenuEvent(LOWORD(wParam), uiWindow(w));
 		return 0;
 	case WM_WINDOWPOSCHANGED:
+		if ((wp->flags & SWP_NOMOVE) == 0)
+			if (!w->changingPosition)
+				(*(w->onPositionChanged))(w, w->onPositionChangedData);
+			// and continue anyway
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
+		if (w->onContentSizeChanged != NULL)		// TODO figure out why this is happening too early
+			if (!w->changingSize)
+				(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
 		windowRelayout(w);
 		return 0;
 	case WM_GETMINMAXINFO:
@@ -136,6 +148,11 @@ void unregisterWindowClass(void)
 static int defaultOnClosing(uiWindow *w, void *data)
 {
 	return 0;
+}
+
+static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
+{
+	// do nothing
 }
 
 static std::map<uiWindow *, bool> windows;
@@ -224,7 +241,6 @@ uiWindowsControlDefaultSetParentHWND(uiWindow)
 static void uiWindowMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiWindow *w = uiWindow(c);
-	uiWindowsSizing sizing;
 	int mx, my;
 
 	*width = 0;
@@ -275,6 +291,100 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 {
 	uiWindowsSetWindowText(w->hwnd, title);
 	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
+}
+
+void uiWindowPosition(uiWindow *w, int *x, int *y)
+{
+	RECT r;
+
+	uiWindowsEnsureGetWindowRect(w->hwnd, &r);
+	*x = r.left;
+	*y = r.top;
+}
+
+void uiWindowSetPosition(uiWindow *w, int x, int y)
+{
+	w->changingPosition = TRUE;
+	if (SetWindowPos(w->hwnd, NULL, x, y, 0, 0, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER) == 0)
+		logLastError(L"error moving window");
+	w->changingPosition = FALSE;
+}
+
+// this is used for both fullscreening and centering
+// see also https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353 and https://blogs.msdn.microsoft.com/oldnewthing/20050505-04/?p=35703
+static void windowMonitorRect(HWND hwnd, RECT *r)
+{
+	HMONITOR monitor;
+	MONITORINFO mi;
+
+	monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+	ZeroMemory(&mi, sizeof (MONITORINFO));
+	mi.cbSize = sizeof (MONITORINFO);
+	if (GetMonitorInfoW(monitor, &mi) == 0) {
+		logLastError(L"error getting window monitor rect");
+		// default to SM_CXSCREEN x SM_CYSCREEN to be safe
+		r->left = 0;
+		r->top = 0;
+		r->right = GetSystemMetrics(SM_CXSCREEN);
+		r->bottom = GetSystemMetrics(SM_CYSCREEN);
+		return;
+	}
+	*r = mi.rcMonitor;
+}
+
+// TODO use the work rect instead?
+void uiWindowCenter(uiWindow *w)
+{
+	RECT wr, mr;
+	int x, y;
+	LONG wwid, mwid;
+	LONG wht, mht;
+
+	uiWindowsEnsureGetWindowRect(w->hwnd, &wr);
+	windowMonitorRect(w->hwnd, &mr);
+	wwid = wr.right - wr.left;
+	mwid = mr.right - mr.left;
+	x = (mwid - wwid) / 2;
+	wht = wr.bottom - wr.top;
+	mht = mr.bottom - mr.top;
+	y = (mht - wht) / 2;
+	// y is now evenly divided, however https://msdn.microsoft.com/en-us/library/windows/desktop/dn742502(v=vs.85).aspx says that 45% should go above and 55% should go below
+	// so just move 5% of the way up
+	// TODO should this be on the work area?
+	// TODO is this calculation correct?
+	y -= y / 20;
+	uiWindowSetPosition(w, x, y);
+}
+
+void uiWindowContentSize(uiWindow *w, int *width, int *height)
+{
+	RECT r;
+
+	uiWindowsEnsureGetClientRect(w->hwnd, &r);
+	*width = r.right - r.left;
+	*height = r.bottom - r.top;
+}
+
+// TODO should this disallow too small?
+void uiWindowSetContentSize(uiWindow *w, int width, int height)
+{
+	w->changingSize = TRUE;
+	clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
+	if (SetWindowPos(w->hwnd, NULL, 0, 0, width, height, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
+		logLastError(L"error resizing window");
+	w->changingSize = FALSE;
+}
+
+void uiWindowOnContentSizeChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onContentSizeChanged = f;
+	w->onContentSizeChangedData = data;
+}
+
+void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onPositionChanged = f;
+	w->onPositionChangedData = data;
 }
 
 void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
@@ -373,6 +483,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	setClientSize(w, width, height, hasMenubarBOOL, style, exstyle);
 
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
+	uiWindowOnPositionChanged(w, defaultOnPositionContentSizeChanged, NULL);
+	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
 
 	windows[w] = true;
 	return w;

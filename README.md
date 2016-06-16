@@ -16,10 +16,14 @@ This README is being written.<br>
 
 ## Updates
 
-*Note that today's entry may be updated later today Eastern Time.*
+*Note that today's entry (Eastern Time) may be updated later today.*
+
+* **16 June 2016**
+	* Added `uiWindowContentSize()`, `uiWindowSetContentSize()`, and `uiWindowOnContentSizeChanged()` methods for manipulating uiWindow content sizes. Note the use of "content size"; the size you work with does NOT include window decorations (titlebars, menus, etc.).
 
 * **15 June 2016**
 	* Added `uiFormDelete()`; thanks to @emersion.
+	* Added `uiWindowPosition()`, `uiWindowSetPosition()`, `uiWindowCenter()`, and `uiWindowOnPositionChanged()`, methods for manipulating uiWindow position.
 
 * **14 June 2016**
 	* uiDarwinControl now has a `ChildVisibilityChanged()` method and a corresponding `NotifyVisibilityChanged()` function that is called by the default show/hide handlers. This is used to make visibility changes work on OS X; uiBox, uiForm, and uiGrid all respect these now.

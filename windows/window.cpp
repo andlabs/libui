@@ -350,7 +350,8 @@ void uiWindowCenter(uiWindow *w)
 	y = (mht - wht) / 2;
 	// y is now evenly divided, however https://msdn.microsoft.com/en-us/library/windows/desktop/dn742502(v=vs.85).aspx says that 45% should go above and 55% should go below
 	// so just move 5% of the way up
-	// TODO is this correct?
+	// TODO should this be on the work area?
+	// TODO is this calculation correct?
 	y -= y / 20;
 	uiWindowSetPosition(w, x, y);
 }

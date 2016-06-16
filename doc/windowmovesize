@@ -1,0 +1,3 @@
+you should never need to use these functions
+they are provided only for the cases when ABSOLUTELY NECESSARY
+the operating system may ignore your requests, for instance, if you are giving it invalid numbers or a size too small to fit; this is all system-defined

@@ -12,6 +12,9 @@ struct uiWindow {
 	void (*onPositionChanged)(uiWindow *, void *);
 	void *onPositionChangedData;
 	BOOL suppressPositionChanged;
+	void (*onContentSizeChanged)(uiWindow *, void *);
+	void *onContentSizeChangedData;
+	BOOL suppressSizeChanged;
 };
 
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
@@ -19,6 +22,7 @@ struct uiWindow {
 }
 - (BOOL)windowShouldClose:(id)sender;
 - (void)windowDidMove:(NSNotification *)note;
+- (void)windowDidResize:(NSNotification *)note;
 - (void)registerWindow:(uiWindow *)w;
 - (void)unregisterWindow:(uiWindow *)w;
 - (uiWindow *)lookupWindow:(NSWindow *)w;
@@ -59,6 +63,15 @@ struct uiWindow {
 	w = [self lookupWindow:((NSWindow *) [note object])];
 	if (!w->suppressPositionChanged)
 		(*(w->onPositionChanged))(w, w->onPositionChangedData);
+}
+
+- (void)windowDidResize:(NSNotification *)note
+{
+	uiWindow *w;
+
+	w = [self lookupWindow:((NSWindow *) [note object])];
+	if (!w->suppressSizeChanged)
+		(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
 }
 
 - (void)registerWindow:(uiWindow *)w
@@ -250,13 +263,37 @@ void uiWindowSetPosition(uiWindow *w, int x, int y)
 
 void uiWindowCenter(uiWindow *w)
 {
+	w->suppressPositionChanged = YES;
 	[w->window center];
+	w->suppressPositionChanged = NO;
 }
 
 void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
 {
 	w->onPositionChanged = f;
 	w->onPositionChangedData = data;
+}
+
+void uiWindowContentSize(uiWindow *w, int *width, int *height)
+{
+	NSRect r;
+
+	r = [w->window contentRectForFrameRect:[w->window frame]];
+	*width = r.size.width;
+	*height = r.size.height;
+}
+
+void uiWindowSetContentSize(uiWindow *w, int width, int height)
+{
+	w->suppressSizeChanged = YES;
+	[w->window setContentSize:NSMakeSize(width, height)];
+	w->suppressSizeChanged = NO;
+}
+
+void uiWindowOnContentSizeChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onContentSizeChanged = f;
+	w->onContentSizeChangedData = data;
 }
 
 void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
@@ -300,7 +337,7 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 0;
 }
 
-static void defaultOnPositionChanged(uiWindow *w, void *data)
+static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
 {
 	// do nothing
 }
@@ -329,7 +366,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	}
 	[windowDelegate registerWindow:w];
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
-	uiWindowOnPositionChanged(w, defaultOnPositionChanged, NULL);
+	uiWindowOnPositionChanged(w, defaultOnPositionContentSizeChanged, NULL);
+	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
 
 	return w;
 }

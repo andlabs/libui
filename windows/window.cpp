@@ -22,6 +22,7 @@ struct uiWindow {
 	BOOL changingSize;
 	int fullscreen;
 	WINDOWPLACEMENT fsPrevPlacement;
+	int borderless;
 };
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -411,7 +412,8 @@ void uiWindowSetFullscreen(uiWindow *w, int fullscreen)
 			SWP_FRAMECHANGED | SWP_NOOWNERZORDER) == 0)
 			logLastError(L"error making window fullscreen");
 	} else {
-		setStyle(w->hwnd, getStyle(w->hwnd) | WS_OVERLAPPEDWINDOW);
+		if (!w->borderless)		// keep borderless until that is turned off
+			setStyle(w->hwnd, getStyle(w->hwnd) | WS_OVERLAPPEDWINDOW);
 		if (SetWindowPlacement(w->hwnd, &(w->fsPrevPlacement)) == 0)
 			logLastError(L"error leaving fullscreen");
 		if (SetWindowPos(w->hwnd, NULL,
@@ -432,6 +434,21 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->onClosing = f;
 	w->onClosingData = data;
+}
+
+int uiWindowBorderless(uiWindow *w)
+{
+	return w->borderless;
+}
+
+void uiWindowSetBorderless(uiWindow *w, int borderless)
+{
+	w->borderless = borderless;
+	if (w->borderless)
+		setStyle(w->hwnd, getStyle(w->hwnd) & ~WS_OVERLAPPEDWINDOW);
+	else
+		if (!w->fullscreen)		// keep borderless until leaving fullscreen
+			setStyle(w->hwnd, getStyle(w->hwnd) | WS_OVERLAPPEDWINDOW);
 }
 
 void uiWindowSetChild(uiWindow *w, uiControl *child)

@@ -93,11 +93,19 @@ void setFullscreen(uiCheckbox *cb, void *data)
 	updatesize(w);
 }
 
+static void borderless(uiCheckbox *c, void *data)
+{
+	uiWindow *w = uiWindow(data);
+
+	uiWindowSetBorderless(w, uiCheckboxChecked(c));
+}
+
 uiBox *makePage15(uiWindow *w)
 {
 	uiBox *page15;
 	uiBox *hbox;
 	uiButton *button;
+	uiCheckbox *checkbox;
 
 	page15 = newVerticalBox();
 
@@ -135,6 +143,10 @@ uiBox *makePage15(uiWindow *w)
 	uiCheckboxOnToggled(fullscreen, setFullscreen, w);
 	uiWindowOnContentSizeChanged(w, onSize, NULL);
 	updatesize(w);
+
+	checkbox = uiNewCheckbox("Borderless");
+	uiCheckboxOnToggled(checkbox, borderless, w);
+	uiBoxAppend(page15, uiControl(checkbox), 0);
 
 	return page15;
 }

@@ -241,6 +241,16 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 	w->onClosingData = data;
 }
 
+int uiWindowBorderless(uiWindow *w)
+{
+	return gtk_window_get_decorated(w->window) == FALSE;
+}
+
+void uiWindowSetBorderless(uiWindow *w, int borderless)
+{
+	gtk_window_set_decorated(w->window, borderless == 0);
+}
+
 // TODO save and restore expands and aligns
 void uiWindowSetChild(uiWindow *w, uiControl *child)
 {

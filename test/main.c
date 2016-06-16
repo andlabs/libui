@@ -39,6 +39,12 @@ uiTab *mainTab;
 uiBox *(*newhbox)(void);
 uiBox *(*newvbox)(void);
 
+static void stepsLoop(void *data)
+{
+	while (uiMainStep(1))
+		;
+}
+
 int main(int argc, char *argv[])
 {
 	uiInitOptions o;
@@ -161,11 +167,8 @@ int main(int argc, char *argv[])
 	uiControlShow(uiControl(w));
 	if (!steps)
 		uiMain();
-	else {
-		uiMainSteps();
-		while (uiMainStep(1))
-			;
-	}
+	else
+		uiMainSteps(stepsLoop, NULL);
 	printf("after uiMain()\n");
 	uiUninit();
 	printf("after uiUninit()\n");

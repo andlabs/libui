@@ -34,6 +34,30 @@ void uiMain(void)
 	gtk_main();
 }
 
+struct mainStepsData {
+	void (*f)(void *);
+	void *data;
+};
+
+static gboolean mainSteps(gpointer data)
+{
+	struct mainStepsData *d = (struct mainStepsData *) data;
+
+	(*(d->f))(d->data);
+	// TODO call gtk_main_quit() here again?
+	return FALSE;
+}
+
+void uiMainSteps(void (*f)(void *), void *data)
+{
+	struct mainStepsData d;
+
+	d.f = f;
+	d.data = data;
+	gdk_threads_add_idle(mainSteps, &d);
+	gtk_main();
+}
+
 int uiMainStep(int wait)
 {
 	gboolean block;

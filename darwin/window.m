@@ -15,6 +15,7 @@ struct uiWindow {
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
 	BOOL suppressSizeChanged;
+	int fullscreen;
 };
 
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
@@ -23,6 +24,8 @@ struct uiWindow {
 - (BOOL)windowShouldClose:(id)sender;
 - (void)windowDidMove:(NSNotification *)note;
 - (void)windowDidResize:(NSNotification *)note;
+- (void)windowDidEnterFullScreen:(NSNotification *)note;
+- (void)windowDidExitFullScreen:(NSNotification *)note;
 - (void)registerWindow:(uiWindow *)w;
 - (void)unregisterWindow:(uiWindow *)w;
 - (uiWindow *)lookupWindow:(NSWindow *)w;
@@ -72,6 +75,24 @@ struct uiWindow {
 	w = [self lookupWindow:((NSWindow *) [note object])];
 	if (!w->suppressSizeChanged)
 		(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
+}
+
+- (void)windowDidEnterFullScreen:(NSNotification *)note
+{
+	uiWindow *w;
+
+	w = [self lookupWindow:((NSWindow *) [note object])];
+	if (!w->suppressSizeChanged)
+		w->fullscreen = 1;
+}
+
+- (void)windowDidExitFullScreen:(NSNotification *)note
+{
+	uiWindow *w;
+
+	w = [self lookupWindow:((NSWindow *) [note object])];
+	if (!w->suppressSizeChanged)
+		w->fullscreen = 0;
 }
 
 - (void)registerWindow:(uiWindow *)w
@@ -287,6 +308,23 @@ void uiWindowSetContentSize(uiWindow *w, int width, int height)
 {
 	w->suppressSizeChanged = YES;
 	[w->window setContentSize:NSMakeSize(width, height)];
+	w->suppressSizeChanged = NO;
+}
+
+int uiWindowFullscreen(uiWindow *w)
+{
+	return w->fullscreen;
+}
+
+void uiWindowSetFullscreen(uiWindow *w, int fullscreen)
+{
+	if (w->fullscreen && fullscreen)
+		return;
+	if (!w->fullscreen && !fullscreen)
+		return;
+	w->fullscreen = fullscreen;
+	w->suppressSizeChanged = YES;
+	[w->window toggleFullScreen:w->window];
 	w->suppressSizeChanged = NO;
 }
 

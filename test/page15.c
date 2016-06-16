@@ -75,6 +75,7 @@ static void updatesize(uiWindow *w)
 	uiWindowContentSize(w, &xp, &yp);
 	uiSpinboxSetValue(width, xp);
 	uiSpinboxSetValue(height, yp);
+	// TODO on OS X this is updated AFTER sending the size change, not before
 	uiCheckboxSetChecked(fullscreen, uiWindowFullscreen(w));
 }
 
@@ -88,7 +89,7 @@ void setFullscreen(uiCheckbox *cb, void *data)
 {
 	uiWindow *w = uiWindow(data);
 
-	uiWindowSetFullscreen(w, uiCheckboxChecked(tb));
+	uiWindowSetFullscreen(w, uiCheckboxChecked(fullscreen));
 	updatesize(w);
 }
 

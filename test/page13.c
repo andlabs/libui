@@ -78,14 +78,13 @@ static void showHide(uiButton *b, void *data)
 static void setIndeterminate(uiButton *b, void *data)
 {
 	uiProgressBar *p = uiProgressBar(data);
+	int value;
 
-	int value = uiProgressBarValue(p);
-	if (value == -1) {
-		value = 0;
-	} else {
+	value = uiProgressBarValue(p);
+	if (value == -1)
+		value = 50;
+	else
 		value = -1;
-	}
-
 	uiProgressBarSetValue(p, value);
 }
 
@@ -139,8 +138,9 @@ uiBox *makePage13(void)
 	uiFormAppend(f, "MLE", uiControl(uiNewMultilineEntry()), 1);
 
 	p = uiNewProgressBar();
+	uiProgressBarSetValue(p, 50);
 	uiBoxAppend(page13, uiControl(p), 0);
-	b = uiNewButton("Toggle indeterminate");
+	b = uiNewButton("Toggle Indeterminate");
 	uiButtonOnClicked(b, setIndeterminate, p);
 	uiBoxAppend(page13, uiControl(b), 0);
 

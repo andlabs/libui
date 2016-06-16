@@ -29,11 +29,9 @@ uiDarwinControlAllDefaults(uiProgressBar, pi)
 
 int uiProgressBarValue(uiProgressBar *p)
 {
-	if ([p->pi getIndeterminate]) {
+	if ([p->pi isIndeterminate])
 		return -1;
-	}
-
-	return (int) [p->pi getDoubleValue];
+	return [p->pi doubleValue];
 }
 
 void uiProgressBarSetValue(uiProgressBar *p, int value)
@@ -44,7 +42,7 @@ void uiProgressBarSetValue(uiProgressBar *p, int value)
 		return;
 	}
 
-	if ([p->pi getIndeterminate]) {
+	if ([p->pi isIndeterminate]) {
 		[p->pi setIndeterminate:NO];
 		[p->pi stopAnimation:p->pi];
 	}

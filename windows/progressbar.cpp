@@ -26,14 +26,13 @@ static void uiProgressBarMinimumSize(uiWindowsControl *c, int *width, int *heigh
 	*height = y;
 }
 
+#define indeterminate(p) ((getStyle(p->hwnd) & PBS_MARQUEE) != 0)
+
 int uiProgressBarValue(uiProgressBar *p)
 {
-	LONG_PTR style = GetWindowLongPtr(p->hwnd, GWL_STYLE);
-	if ((style & PBS_MARQUEE) != 0) {
+	if (indeterminate(p))
 		return -1;
-	}
-
-	return (int) SendMessage(p->hwnd, PBM_GETPOS, 0, 0);
+	return SendMessage(p->hwnd, PBM_GETPOS, 0, 0);
 }
 
 // unfortunately, as of Vista progress bars have a forced animation on increase
@@ -42,19 +41,16 @@ int uiProgressBarValue(uiProgressBar *p)
 // it's not ideal/perfect, but it will have to do
 void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
-	LONG_PTR style = GetWindowLongPtr(p->hwnd, GWL_STYLE);
-
 	if (value == -1) {
-		if ((style & PBS_MARQUEE) == 0) {
-			SetWindowLongPtr(p->hwnd, GWL_STYLE, style | PBS_MARQUEE);
-			SendMessage(p->hwnd, PBM_SETMARQUEE, 1, 0);
+		if (!indeterminate(p)) {
+			setStyle(p->hwnd, getStyle(p->hwnd) | PBS_MARQUEE);
+			SendMessageW(p->hwnd, PBM_SETMARQUEE, (WPARAM) TRUE, 0);
 		}
 		return;
 	}
-
-	if ((style & PBS_MARQUEE) != 0) {
-		SetWindowLongPtr(p->hwnd, GWL_STYLE, style ^ PBS_MARQUEE);
-		SendMessage(p->hwnd, PBM_SETMARQUEE, 0, 0);
+	if (indeterminate(p)) {
+		SendMessageW(p->hwnd, PBM_SETMARQUEE, (WPARAM) FALSE, 0);
+		setStyle(p->hwnd, getStyle(p->hwnd) & ~PBS_MARQUEE);
 	}
 
 	if (value < 0 || value > 100)

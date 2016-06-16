@@ -52,7 +52,7 @@ static void sizeWidth(uiSpinbox *s, void *data)
 	uiWindow *w = uiWindow(data);
 	int xp, yp;
 
-	uiWindowsContentSize(w, &xp, &yp);
+	uiWindowContentSize(w, &xp, &yp);
 	xp = uiSpinboxValue(width);
 	uiWindowSetContentSize(w, xp, yp);
 }

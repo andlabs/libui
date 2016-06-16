@@ -16,7 +16,10 @@ struct uiWindow {
 	BOOL hasMenubar;
 	void (*onPositionChanged)(uiWindow *, void *);
 	void *onPositionChangedData;
-	BOOL changingPosition;
+	BOOL changingPosition;		// to avoid triggering the above when programmatically doing this
+	void (*onContentSizeChanged)(uiWindow *, void *);
+	void *onContentSizeChangedData;
+	BOOL changingSize;
 };
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -38,7 +41,6 @@ static void windowMargins(uiWindow *w, int *mx, int *my)
 
 static void windowRelayout(uiWindow *w)
 {
-	uiWindowsSizing sizing;
 	int x, y, width, height;
 	RECT r;
 	int mx, my;
@@ -96,6 +98,9 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 			// and continue anyway
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
+		if (w->onContentSizeChanged != NULL)		// TODO figure out why this is happening too early
+			if (!w->changingSize)
+				(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
 		windowRelayout(w);
 		return 0;
 	case WM_GETMINMAXINFO:
@@ -145,7 +150,7 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 0;
 }
 
-static void defaultOnPositionChanged(uiWindow *w, void *data)
+static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
 {
 	// do nothing
 }
@@ -236,7 +241,6 @@ uiWindowsControlDefaultSetParentHWND(uiWindow)
 static void uiWindowMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiWindow *w = uiWindow(c);
-	uiWindowsSizing sizing;
 	int mx, my;
 
 	*width = 0;
@@ -351,6 +355,31 @@ void uiWindowCenter(uiWindow *w)
 	uiWindowSetPosition(w, x, y);
 }
 
+void uiWindowContentSize(uiWindow *w, int *width, int *height)
+{
+	RECT r;
+
+	uiWindowsEnsureGetClientRect(w->hwnd, &r);
+	*width = r.right - r.left;
+	*height = r.bottom - r.top;
+}
+
+// TODO should this disallow too small?
+void uiWindowSetContentSize(uiWindow *w, int width, int height)
+{
+	w->changingSize = TRUE;
+	clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
+	if (SetWindowPos(w->hwnd, NULL, 0, 0, width, height, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
+		logLastError(L"error resizing window");
+	w->changingSize = FALSE;
+}
+
+void uiWindowOnContentSizeChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onContentSizeChanged = f;
+	w->onContentSizeChangedData = data;
+}
+
 void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
 {
 	w->onPositionChanged = f;
@@ -453,7 +482,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	setClientSize(w, width, height, hasMenubarBOOL, style, exstyle);
 
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
-	uiWindowOnPositionChanged(w, defaultOnPositionChanged, NULL);
+	uiWindowOnPositionChanged(w, defaultOnPositionContentSizeChanged, NULL);
+	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
 
 	windows[w] = true;
 	return w;

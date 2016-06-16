@@ -93,3 +93,8 @@ notes
 
 - group and tab should act as if they have no child if the child is hidden
 on windows
+
+
+
+- a way to do recursive main loops
+	- how do we handle 0 returns from non-recursive uiMainStep() calls that aren't the main loop? (event handlers, for instance)

@@ -20,6 +20,7 @@ This README is being written.<br>
 
 * **15 June 2016**
 	* Added `uiFormDelete()`; thanks to @emersion.
+	* Added `uiWindowPosition()`, `uiWindowSetPosition()`, `uiWindowCenter()`, and `uiWindowOnPositionChanged()`, methods for manipulating uiWindow position.
 
 * **14 June 2016**
 	* uiDarwinControl now has a `ChildVisibilityChanged()` method and a corresponding `NotifyVisibilityChanged()` function that is called by the default show/hide handlers. This is used to make visibility changes work on OS X; uiBox, uiForm, and uiGrid all respect these now.

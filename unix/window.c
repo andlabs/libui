@@ -21,6 +21,7 @@ struct uiWindow {
 	void *onClosingData;
 	void (*onPositionChanged)(uiWindow *, void *);
 	void *onPositionChangedData;
+	gboolean changingPosition;
 };
 
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
@@ -32,6 +33,19 @@ static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 		uiControlDestroy(uiControl(w));
 	// don't continue to the default delete-event handler; we destroyed the window by now
 	return TRUE;
+}
+
+static gboolean onConfigure(GtkWidget *win, GdkEvent *e, gpointer data)
+{
+	uiWindow *w = uiWindow(data);
+
+	// there doesn't seem to be a way to determine if only moving or only resizing is happening :/
+	if (w->changingPosition)
+		w->changingPosition = FALSE;
+	else
+		(*(w->onPositionChanged))(w, w->onPositionChangedData);
+	// always continue handling
+	return FALSE;
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -120,10 +134,16 @@ void uiWindowPosition(uiWindow *w, int *x, int *y)
 
 void uiWindowSetPosition(uiWindow *w, int x, int y)
 {
+	w->changingPosition = TRUE;
 	gtk_window_move(w->window, x, y);
+	// gtk_window_move() is asynchronous
+	// we need to wait for a configure-event
+	// thanks to hergertme in irc.gimp.net/#gtk+
+	while (w->changingPosition)
+		if (gtk_main_iteration() != FALSE)
+			break;		// stop early if gtk_main_quit() called
 }
 
-// TODO after calling this I have to call get_position() a few times before it actually works
 void uiWindowCenter(uiWindow *w)
 {
 	gint x, y;
@@ -141,11 +161,10 @@ void uiWindowCenter(uiWindow *w)
 
 	x = (workarea.width - winalloc.width) / 2;
 	y = (workarea.height - winalloc.height) / 2;
-	// TODO move up slightly? see what Mutter or GNOME Shell does?
-	gtk_window_move(w->window, x, y);
+	// TODO move up slightly? see what Mutter or GNOME Shell or GNOME Terminal do(es)?
+	uiWindowSetPosition(w, x, y);
 }
 
-// TODO find a signal to connect to
 void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
 {
 	w->onPositionChanged = f;
@@ -213,6 +232,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	// and connect our events
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
+	g_signal_connect(w->widget, "configure-event", G_CALLBACK(onConfigure), w);
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 	uiWindowOnPositionChanged(w, defaultOnPositionChanged, NULL);
 

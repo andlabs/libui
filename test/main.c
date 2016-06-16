@@ -161,9 +161,11 @@ int main(int argc, char *argv[])
 	uiControlShow(uiControl(w));
 	if (!steps)
 		uiMain();
-	else
+	else {
+		uiMainSteps();
 		while (uiMainStep(1))
 			;
+	}
 	printf("after uiMain()\n");
 	uiUninit();
 	printf("after uiUninit()\n");

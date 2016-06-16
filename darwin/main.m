@@ -3,8 +3,11 @@
 
 static BOOL canQuit = NO;
 static NSAutoreleasePool *globalPool;
-static applicationClass* app;
-static appDelegate* delegate;
+static applicationClass *app;
+static appDelegate *delegate;
+
+static BOOL (^isRunning)(void);
+static BOOL stepsIsRunning;
 
 @implementation applicationClass
 
@@ -67,6 +70,9 @@ static appDelegate* delegate;
 		data1:0
 		data2:0];
 	[realNSApp() postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
+
+	// and in case uiMainSteps() was called
+	stepsIsRunning = NO;
 }
 
 @end
@@ -147,7 +153,18 @@ void uiFreeInitError(const char *err)
 
 void uiMain(void)
 {
+	isRunning = ^{
+		return [realNSApp() isRunning];
+	};
 	[realNSApp() run];
+}
+
+void uiMainSteps(void)
+{
+	isRunning = ^{
+		return stepsIsRunning;
+	};
+	stepsIsRunning = YES;
 }
 
 // see also:
@@ -166,7 +183,7 @@ int uiMainStep(int wait)
 		if (wait)		// but this is normal so it will work
 			expire = [NSDate distantFuture];
 
-		if (![realNSApp() isRunning])
+		if (!isRunning())
 			return 0;
 
 		e = [realNSApp() nextEventMatchingMask:NSAnyEventMask

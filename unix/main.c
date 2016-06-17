@@ -69,6 +69,7 @@ static gboolean quit(gpointer data)
 {
 	if (iteration == stepsIteration)
 		stepsQuit = TRUE;
+		// TODO run a gtk_main() here just to do the cleanup steps of syncing the clipboard and other stuff gtk_main() does before it returns
 	else
 		gtk_main_quit();
 	return FALSE;

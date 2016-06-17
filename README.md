@@ -1,7 +1,7 @@
 # libui: a portable GUI library for C
 
 This README is being written.<br>
-[![Build Status](https://travis-ci.org/andlabs/libui.png)](https://travis-ci.org/andlabs/libui)
+[![Build Status](https://travis-ci.org/andlabs/libui.svg)](https://travis-ci.org/andlabs/libui)
 
 ## Announcements
 
@@ -111,7 +111,7 @@ Can be built from AUR: https://aur.archlinux.org/packages/libui-git/
 
 ## Documentation
 
-Needs to be written. Consult ui.h and the examples for details for now.
+Needs to be written. Consult `ui.h` and the examples for details for now.
 
 ## Language Bindings
 

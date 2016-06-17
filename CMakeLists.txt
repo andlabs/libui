@@ -147,10 +147,8 @@ target_compile_options(${_LIBUINAME}
 if(BUILD_SHARED_LIBS)
 	target_link_libraries(${_LIBUINAME}
 		PRIVATE ${_LIBUI_LIBS})
-else()
-	target_link_libraries(libui
-		INTERFACE ${_LIBUI_LIBS})
 endif()
+# TODO INTERFACE libs don't inherit to grandhcildren?
 # on Windows the linker for static libraries is different; don't give it the flags
 if(BUILD_SHARED_LIBS)
 	_target_link_options_private(${_LIBUINAME}
@@ -201,6 +199,11 @@ macro(_add_exec _name)
 	if(BUILD_SHARED_LIBS)
 		set_property(TARGET ${_name} PROPERTY
 			POSITION_INDEPENDENT_CODE True)
+	endif()
+	# TODO see above about INTERFACE
+	if(NOT BUILD_SHARED_LIBS)
+		target_link_libraries(${_name}
+			PRIVATE ${_LIBUI_LIBS})
 	endif()
 
 	# TODOfor some reason these don't propagate

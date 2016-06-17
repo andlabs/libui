@@ -159,13 +159,12 @@ void uiMain(void)
 	[realNSApp() run];
 }
 
-void uiMainSteps(void (*f)(void *), void *data)
+void uiMainSteps(void)
 {
 	isRunning = ^{
 		return stepsIsRunning;
 	};
 	stepsIsRunning = YES;
-	(*f)(data);
 }
 
 // see also:

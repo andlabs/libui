@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 	if (!steps)
 		uiMain();
 	else {
-		uiMainSteps(NULL, NULL);
+		uiMainSteps();
 		while (uiMainStep(1))
 			;
 	}

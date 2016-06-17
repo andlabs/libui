@@ -39,13 +39,15 @@ void uiMain(void)
 
 static gboolean stepsQuit = FALSE;
 
+// the only difference is we ignore the return value from gtk_main_iteration_do(), since it will always be TRUE if gtk_main() was never called
+// gtk_main_iteration_do() will still run the main loop regardless
 static gboolean stepsIteration(gboolean block)
 {
 	gtk_main_iteration_do(block);
 	return stepsQuit;
 }
 
-void uiMainSteps(void (*f)(void *), void *data)
+void uiMainSteps(void)
 {
 	iteration = stepsIteration;
 }

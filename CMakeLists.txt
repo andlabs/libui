@@ -1,6 +1,6 @@
 # 3 june 2016
 # see https://cmake.org/gitweb?p=cmake.git;a=commit;h=95cdf132489c79e88a10fdf7a7566fa002c7680b (thanks ngladitz in irc.freenode.net/#cmake)
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
 # TODOs
 # - silence entering/leaving messages?

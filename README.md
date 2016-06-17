@@ -2,7 +2,6 @@
 
 This README is being written.<br>
 [![Build Status](https://travis-ci.org/andlabs/libui.png)](https://travis-ci.org/andlabs/libui)
-*(currently failing because the version of cmake that Travis uses treats Objective-C files as C++; if you know the fix please file a PR)*
 
 ## Announcements
 

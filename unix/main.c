@@ -29,33 +29,25 @@ void uiFreeInitError(const char *err)
 	g_free((gpointer) err);
 }
 
+static gboolean (*iteration)(gboolean) = NULL;
+
 void uiMain(void)
 {
+	iteration = gtk_main_iteration_do;
 	gtk_main();
 }
 
-struct mainStepsData {
-	void (*f)(void *);
-	void *data;
-};
+static gboolean stepsQuit = FALSE;
 
-static gboolean mainSteps(gpointer data)
+static gboolean stepsIteration(gboolean block)
 {
-	struct mainStepsData *d = (struct mainStepsData *) data;
-
-	(*(d->f))(d->data);
-	// TODO call gtk_main_quit() here again?
-	return FALSE;
+	gtk_main_iteration_do(block);
+	return stepsQuit;
 }
 
 void uiMainSteps(void (*f)(void *), void *data)
 {
-	struct mainStepsData d;
-
-	d.f = f;
-	d.data = data;
-	gdk_threads_add_idle(mainSteps, &d);
-	gtk_main();
+	iteration = stepsIteration;
 }
 
 int uiMainStep(int wait)
@@ -65,7 +57,7 @@ int uiMainStep(int wait)
 	block = FALSE;
 	if (wait)
 		block = TRUE;
-	return gtk_main_iteration_do(block) == FALSE;
+	return (*iteration)(block) == FALSE;
 }
 
 // gtk_main_quit() may run immediately, or it may wait for other pending events; "it depends" (thanks mclasen in irc.gimp.net/#gtk+)
@@ -73,7 +65,10 @@ int uiMainStep(int wait)
 // we'll do it by using an idle callback
 static gboolean quit(gpointer data)
 {
-	gtk_main_quit();
+	if (iteration == stepsIteration)
+		stepsQuit = TRUE;
+	else
+		gtk_main_quit();
 	return FALSE;
 }
 

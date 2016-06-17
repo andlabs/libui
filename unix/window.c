@@ -161,8 +161,8 @@ void uiWindowSetPosition(uiWindow *w, int x, int y)
 	// we need to wait for a configure-event
 	// thanks to hergertme in irc.gimp.net/#gtk+
 	while (w->changingPosition)
-		if (gtk_main_iteration() != FALSE)
-			break;		// stop early if gtk_main_quit() called
+		if (!uiMainStep(1))
+			break;		// stop early if uiQuit() called
 }
 
 void uiWindowCenter(uiWindow *w)
@@ -186,6 +186,7 @@ void uiWindowCenter(uiWindow *w)
 	uiWindowSetPosition(w, x, y);
 }
 
+// TODO this and size changed get set during uiWindowDestroy
 void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
 {
 	w->onPositionChanged = f;
@@ -203,13 +204,14 @@ void uiWindowContentSize(uiWindow *w, int *width, int *height)
 
 // TODO what happens if the size is already the current one?
 // TODO a spurious size-allocate gets sent after this function returns
+// TODO can't reduce the size this way
 void uiWindowSetContentSize(uiWindow *w, int width, int height)
 {
 	w->changingSize = TRUE;
 	gtk_widget_set_size_request(w->childHolderWidget, width, height);
 	while (w->changingSize)
-		if (gtk_main_iteration() != FALSE)
-			break;			// stop early if gtk_main_quit() called
+		if (!uiMainStep(1))
+			break;			// stop early if uiQuit() called
 	gtk_widget_set_size_request(w->childHolderWidget, -1, -1);
 }
 

@@ -216,6 +216,10 @@ static uiControl *makeDataChoosersPage(void)
 		uiControl(uiNewColorButton()),
 		0);
 
+	uiBoxAppend(hbox,
+		uiControl(uiNewVerticalSeparator()),
+		0);
+
 	vbox = uiNewVerticalBox();
 	uiBoxSetPadded(vbox, 1);
 	uiBoxAppend(hbox, uiControl(vbox), 1);

@@ -206,6 +206,7 @@ _UI_EXTERN uiProgressBar *uiNewProgressBar(void);
 typedef struct uiSeparator uiSeparator;
 #define uiSeparator(this) ((uiSeparator *) (this))
 _UI_EXTERN uiSeparator *uiNewHorizontalSeparator(void);
+_UI_EXTERN uiSeparator *uiNewVerticalSeparator(void);
 
 typedef struct uiCombobox uiCombobox;
 #define uiCombobox(this) ((uiCombobox *) (this))

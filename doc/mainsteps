@@ -1,0 +1,1 @@
+the function passed to mainsteps must not return until uiQuit itself has been called; otherwise the results are undefined

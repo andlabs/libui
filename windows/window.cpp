@@ -20,6 +20,9 @@ struct uiWindow {
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
 	BOOL changingSize;
+	int fullscreen;
+	WINDOWPLACEMENT fsPrevPlacement;
+	int borderless;
 };
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -356,6 +359,12 @@ void uiWindowCenter(uiWindow *w)
 	uiWindowSetPosition(w, x, y);
 }
 
+void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onPositionChanged = f;
+	w->onPositionChangedData = data;
+}
+
 void uiWindowContentSize(uiWindow *w, int *width, int *height)
 {
 	RECT r;
@@ -375,22 +384,71 @@ void uiWindowSetContentSize(uiWindow *w, int width, int height)
 	w->changingSize = FALSE;
 }
 
+int uiWindowFullscreen(uiWindow *w)
+{
+	return w->fullscreen;
+}
+
+void uiWindowSetFullscreen(uiWindow *w, int fullscreen)
+{
+	RECT r;
+
+	if (w->fullscreen && fullscreen)
+		return;
+	if (!w->fullscreen && !fullscreen)
+		return;
+	w->fullscreen = fullscreen;
+	w->changingSize = TRUE;
+	if (w->fullscreen) {
+		ZeroMemory(&(w->fsPrevPlacement), sizeof (WINDOWPLACEMENT));
+		w->fsPrevPlacement.length = sizeof (WINDOWPLACEMENT);
+		if (GetWindowPlacement(w->hwnd, &(w->fsPrevPlacement)) == 0)
+			logLastError(L"error getting old window placement");
+		windowMonitorRect(w->hwnd, &r);
+		setStyle(w->hwnd, getStyle(w->hwnd) & ~WS_OVERLAPPEDWINDOW);
+		if (SetWindowPos(w->hwnd, HWND_TOP,
+			r.left, r.top,
+			r.right - r.left, r.bottom - r.top,
+			SWP_FRAMECHANGED | SWP_NOOWNERZORDER) == 0)
+			logLastError(L"error making window fullscreen");
+	} else {
+		if (!w->borderless)		// keep borderless until that is turned off
+			setStyle(w->hwnd, getStyle(w->hwnd) | WS_OVERLAPPEDWINDOW);
+		if (SetWindowPlacement(w->hwnd, &(w->fsPrevPlacement)) == 0)
+			logLastError(L"error leaving fullscreen");
+		if (SetWindowPos(w->hwnd, NULL,
+			0, 0, 0, 0,
+			SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER) == 0)
+			logLastError(L"error restoring window border after fullscreen");
+	}
+	w->changingSize = FALSE;
+}
+
 void uiWindowOnContentSizeChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
 {
 	w->onContentSizeChanged = f;
 	w->onContentSizeChangedData = data;
 }
 
-void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
-{
-	w->onPositionChanged = f;
-	w->onPositionChangedData = data;
-}
-
 void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->onClosing = f;
 	w->onClosingData = data;
+}
+
+int uiWindowBorderless(uiWindow *w)
+{
+	return w->borderless;
+}
+
+void uiWindowSetBorderless(uiWindow *w, int borderless)
+{
+	w->borderless = borderless;
+	if (w->borderless)
+		setStyle(w->hwnd, getStyle(w->hwnd) & ~WS_OVERLAPPEDWINDOW);
+	else
+		if (!w->fullscreen)		// keep borderless until leaving fullscreen
+			setStyle(w->hwnd, getStyle(w->hwnd) | WS_OVERLAPPEDWINDOW);
 }
 
 void uiWindowSetChild(uiWindow *w, uiControl *child)

@@ -39,6 +39,12 @@ uiTab *mainTab;
 uiBox *(*newhbox)(void);
 uiBox *(*newvbox)(void);
 
+static void stepsLoop(void *data)
+{
+	while (uiMainStep(1))
+		;
+}
+
 int main(int argc, char *argv[])
 {
 	uiInitOptions o;
@@ -54,6 +60,7 @@ int main(int argc, char *argv[])
 	uiTab *innerTab;
 	int nomenus = 0;
 	int startspaced = 0;
+	int steps = 0;
 
 	newhbox = uiNewHorizontalBox;
 	newvbox = uiNewVerticalBox;
@@ -67,7 +74,9 @@ int main(int argc, char *argv[])
 		else if (strcmp(argv[i], "swaphv") == 0) {
 			newhbox = uiNewVerticalBox;
 			newvbox = uiNewHorizontalBox;
-		} else {
+		} else if (strcmp(argv[i], "steps") == 0)
+			steps = 1;
+		else {
 			fprintf(stderr, "%s: unrecognized option %s\n", argv[0], argv[i]);
 			return 1;
 		}
@@ -156,7 +165,10 @@ int main(int argc, char *argv[])
 		setSpaced(1);
 
 	uiControlShow(uiControl(w));
-	uiMain();
+	if (!steps)
+		uiMain();
+	else
+		uiMainSteps(stepsLoop, NULL);
 	printf("after uiMain()\n");
 	uiUninit();
 	printf("after uiUninit()\n");

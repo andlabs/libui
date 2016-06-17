@@ -28,6 +28,7 @@ struct uiWindow {
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
 	gboolean changingSize;
+	gboolean fullscreen;
 };
 
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
@@ -212,6 +213,22 @@ void uiWindowSetContentSize(uiWindow *w, int width, int height)
 	gtk_widget_set_size_request(w->childHolderWidget, -1, -1);
 }
 
+int uiWindowFullscreen(uiWindow *w)
+{
+	return w->fullscreen;
+}
+
+// TODO use window-state-event to track
+// TODO does this send an extra size changed?
+void uiWindowSetFullscreen(uiWindow *w, int fullscreen)
+{
+	w->fullscreen = fullscreen;
+	if (w->fullscreen)
+		gtk_window_fullscreen(w->window);
+	else
+		gtk_window_unfullscreen(w->window);
+}
+
 void uiWindowOnContentSizeChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
 {
 	w->onContentSizeChanged = f;
@@ -222,6 +239,16 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->onClosing = f;
 	w->onClosingData = data;
+}
+
+int uiWindowBorderless(uiWindow *w)
+{
+	return gtk_window_get_decorated(w->window) == FALSE;
+}
+
+void uiWindowSetBorderless(uiWindow *w, int borderless)
+{
+	gtk_window_set_decorated(w->window, borderless == 0);
 }
 
 // TODO save and restore expands and aligns

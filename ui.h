@@ -45,6 +45,7 @@ _UI_EXTERN void uiUninit(void);
 _UI_EXTERN void uiFreeInitError(const char *err);
 
 _UI_EXTERN void uiMain(void);
+_UI_EXTERN void uiMainSteps(void (*f)(void *), void *data);
 _UI_EXTERN int uiMainStep(int wait);
 _UI_EXTERN void uiQuit(void);
 
@@ -105,8 +106,12 @@ _UI_EXTERN void uiWindowCenter(uiWindow *w);
 _UI_EXTERN void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data);
 _UI_EXTERN void uiWindowContentSize(uiWindow *w, int *width, int *height);
 _UI_EXTERN void uiWindowSetContentSize(uiWindow *w, int width, int height);
+_UI_EXTERN int uiWindowFullscreen(uiWindow *w);
+_UI_EXTERN void uiWindowSetFullscreen(uiWindow *w, int fullscreen);
 _UI_EXTERN void uiWindowOnContentSizeChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data);
 _UI_EXTERN void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *w, void *data), void *data);
+_UI_EXTERN int uiWindowBorderless(uiWindow *w);
+_UI_EXTERN void uiWindowSetBorderless(uiWindow *w, int borderless);
 _UI_EXTERN void uiWindowSetChild(uiWindow *w, uiControl *child);
 _UI_EXTERN int uiWindowMargined(uiWindow *w);
 _UI_EXTERN void uiWindowSetMargined(uiWindow *w, int margined);
@@ -194,7 +199,7 @@ _UI_EXTERN uiSlider *uiNewSlider(int min, int max);
 
 typedef struct uiProgressBar uiProgressBar;
 #define uiProgressBar(this) ((uiProgressBar *) (this))
-// TODO uiProgressBarValue()
+_UI_EXTERN int uiProgressBarValue(uiProgressBar *p);
 _UI_EXTERN void uiProgressBarSetValue(uiProgressBar *p, int n);
 _UI_EXTERN uiProgressBar *uiNewProgressBar(void);
 

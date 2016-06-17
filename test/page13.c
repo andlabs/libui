@@ -75,6 +75,19 @@ static void showHide(uiButton *b, void *data)
 		uiControlShow(c);
 }
 
+static void setIndeterminate(uiButton *b, void *data)
+{
+	uiProgressBar *p = uiProgressBar(data);
+	int value;
+
+	value = uiProgressBarValue(p);
+	if (value == -1)
+		value = 50;
+	else
+		value = -1;
+	uiProgressBarSetValue(p, value);
+}
+
 static void deleteFirst(uiButton *b, void *data)
 {
 	uiForm *f = uiForm(data);
@@ -89,6 +102,7 @@ uiBox *makePage13(void)
 	uiButton *b;
 	uiForm *f;
 	uiEntry *e;
+	uiProgressBar *p;
 
 	page13 = newVerticalBox();
 
@@ -122,6 +136,13 @@ uiBox *makePage13(void)
 	uiFormAppend(f, "Search Box", uiControl(e), 0);
 
 	uiFormAppend(f, "MLE", uiControl(uiNewMultilineEntry()), 1);
+
+	p = uiNewProgressBar();
+	uiProgressBarSetValue(p, 50);
+	uiBoxAppend(page13, uiControl(p), 0);
+	b = uiNewButton("Toggle Indeterminate");
+	uiButtonOnClicked(b, setIndeterminate, p);
+	uiBoxAppend(page13, uiControl(b), 0);
 
 	b = uiNewButton("Show/Hide");
 	uiButtonOnClicked(b, showHide, e);

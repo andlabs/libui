@@ -1,0 +1,1 @@
+Yes, you keep ownership of the uiAreaHandler. libui only cares about the address you give uiNewArea(); it doesn't copy anything. You can even use the same uiAreaHandler on multiple uiAreas, which is why you get the uiArea as a parameter in each function.

@@ -26,14 +26,36 @@ static void uiProgressBarMinimumSize(uiWindowsControl *c, int *width, int *heigh
 	*height = y;
 }
 
+#define indeterminate(p) ((getStyle(p->hwnd) & PBS_MARQUEE) != 0)
+
+int uiProgressBarValue(uiProgressBar *p)
+{
+	if (indeterminate(p))
+		return -1;
+	return SendMessage(p->hwnd, PBM_GETPOS, 0, 0);
+}
+
 // unfortunately, as of Vista progress bars have a forced animation on increase
 // we have to set the progress bar to value + 1 and decrease it back to value if we want an "instant" change
 // see http://stackoverflow.com/questions/2217688/windows-7-aero-theme-progress-bar-bug
 // it's not ideal/perfect, but it will have to do
 void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
+	if (value == -1) {
+		if (!indeterminate(p)) {
+			setStyle(p->hwnd, getStyle(p->hwnd) | PBS_MARQUEE);
+			SendMessageW(p->hwnd, PBM_SETMARQUEE, (WPARAM) TRUE, 0);
+		}
+		return;
+	}
+	if (indeterminate(p)) {
+		SendMessageW(p->hwnd, PBM_SETMARQUEE, (WPARAM) FALSE, 0);
+		setStyle(p->hwnd, getStyle(p->hwnd) & ~PBS_MARQUEE);
+	}
+
 	if (value < 0 || value > 100)
 		userbug("Value %d is out of range for uiProgressBars.", value);
+
 	if (value == 100) {			// because we can't 101
 		SendMessageW(p->hwnd, PBM_SETRANGE32, 0, 101);
 		SendMessageW(p->hwnd, PBM_SETPOS, 101, 0);

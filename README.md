@@ -7,6 +7,7 @@ This README is being written.<br>
 
 * **17 June 2016**
 	* **CMake 3.1.0 is now required.** This is due to CMake's rapid development pace in the past few years adding things libui needs to build on as many systems as possible. If your OS is supported by libui but its repositories ship with an older version of CMake, you will need to find an updated one somewhere.
+	* Please help [plan out a better menu API](https://github.com/andlabs/libui/issues/152).
 
 * **5 June 2016**
 	* **Alpha 3.1 is here.** This was a much-needed update to Alpha 3 that changes a few things:

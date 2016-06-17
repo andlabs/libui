@@ -203,7 +203,7 @@ macro(_add_exec _name)
 	# TODO see above about INTERFACE
 	if(NOT BUILD_SHARED_LIBS)
 		target_link_libraries(${_name}
-			PRIVATE ${_LIBUI_LIBS})
+			${_LIBUI_LIBS})
 	endif()
 
 	# TODOfor some reason these don't propagate

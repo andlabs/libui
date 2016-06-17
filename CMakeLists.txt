@@ -148,7 +148,7 @@ if(BUILD_SHARED_LIBS)
 	target_link_libraries(${_LIBUINAME}
 		PRIVATE ${_LIBUI_LIBS})
 else()
-	target_link_libraries(${_LIBUINAME}
+	target_link_libraries(libui
 		INTERFACE ${_LIBUI_LIBS})
 endif()
 # on Windows the linker for static libraries is different; don't give it the flags

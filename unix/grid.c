@@ -108,6 +108,25 @@ void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, int x
 	g_array_append_val(g->children, gc);
 }
 
+void uiGridDelete(uiGrid *g, int index)
+{
+	struct gridChild *gc;
+	GtkWidget *widget;
+
+	gc = ctrl(g, index);
+	widget = GTK_WIDGET(uiControlHandle(gc->c));
+
+	uiControlSetParent(gc->c, NULL);
+	uiUnixControlSetContainer(uiUnixControl(gc->c), g->container, TRUE);
+
+	gtk_widget_set_hexpand(widget, gc->oldhexpand);
+	gtk_widget_set_halign(widget, gc->oldhalign);
+	gtk_widget_set_vexpand(widget, gc->oldvexpand);
+	gtk_widget_set_valign(widget, gc->oldvalign);
+
+	g_array_remove_index(g->children, index);
+}
+
 int uiGridPadded(uiGrid *g)
 {
 	return g->padded;

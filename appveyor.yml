@@ -6,7 +6,7 @@ init:
   - cmd: echo init
 install:
   - set PATH=C:\MinGW\bin;%PATH%
-  - dir c:\MinGW
+  - dir c:\MinGW\bin
 build_script:
   - mkdir build
   - cd build

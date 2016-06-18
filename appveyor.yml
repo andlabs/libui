@@ -13,4 +13,5 @@ build_script:
   - cd build
   - cmake --version
   - cmake ..
+  - dir C:/projects/libui/build
   - make tester examples

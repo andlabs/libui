@@ -12,12 +12,20 @@ build_script:
 after_build:
   - 7z a -ttar C:\projects\libui\build\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\build\out\Release\libui.*
   - 7z a -tgzip C:\projects\libui\build\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
+  - 7z a -ttar C:\projects\libui\build\examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\build\out\Release\*.*
+  - 7z a -tgzip C:\projects\libui\build\examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
+
+artifacts:
+  - path:  C:\projects\libui\build\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz
+    name: shared
+  - path:  C:\projects\libui\build\examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz
+    name: examples
 
 deploy:
   provider: GitHub
   auth_token:
     secure: NsjIRhcaEJhoikwjMS95GRf0eP9TsniXblMLw9s+C/pwOnZrMHCAbw+HGDKRcYhj # your encrypted token from GitHub
-  artifact: C:\projects\libui\build\*.tar.gz
+  artifact: examples,shared
 
   force_update: true
   on:

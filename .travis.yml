@@ -21,7 +21,7 @@ script:
 - cmake .. -G "Unix Makefiles"
 - make tester examples
 - rm out/libui.so
-- mb out/libui.so.0 out/libui.so
+- mv out/libui.so.0 out/libui.so
 - tar -cvf ../artifacts/examples-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/controlgallery out/controlgallery out/histogram out/libui.so
 - tar -cvf ../artifacts/libui-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/libui.so
 

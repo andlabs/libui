@@ -7,4 +7,5 @@ build_script:
   - cmake --version
   - cmake ..
   - MSBuild C:\projects\libui\build\ALL_BUILD.vcxproj /p:Configuration=Debug
-  - dir C:\projects\libui\build\out\debug
+  - dir C:\projects\libui\build\out\debug\libui.dll
+  - dir C:\projects\libui\build /s

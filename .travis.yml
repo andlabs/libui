@@ -17,6 +17,7 @@ script:
 - rm -rf *
 - cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
 - make tester examples
+
 deploy:
   provider: releases
   api_key:
@@ -26,3 +27,5 @@ deploy:
   on:
     repo: parro-it/libui
     tags: true
+before_deploy:
+  - echo `pwd`

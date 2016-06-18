@@ -1,8 +1,12 @@
 version: 1.0.{build}
 image: Visual Studio 2013
 init:
-- cmd: echo init
+  - cmd: echo init
 install:
-- cmd: echo test
+  - cmd: echo test
 build_script:
-- cmd: echo build
+  - mkdir build
+  - cd build
+  - cmake --version
+  - cmake .. -G "Unix Makefiles"
+  - make tester examples

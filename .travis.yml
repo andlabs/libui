@@ -12,10 +12,10 @@ script:
 - mkdir build
 - cd build
 - cmake --version
-- cmake .. -G "Unix Makefiles"
+- cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
 - make tester examples
 - rm -rf *
-- cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
+- cmake .. -G "Unix Makefiles"
 - make tester examples
 
 deploy:

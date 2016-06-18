@@ -7,6 +7,7 @@ init:
 install:
   - set PATH=C:\MinGW\bin;%PATH%
   - dir c:\MinGW\bin
+  - copy c:\MinGW\bin\mingw32-make.exe c:\MinGW\bin\make.exe
 build_script:
   - mkdir build
   - cd build

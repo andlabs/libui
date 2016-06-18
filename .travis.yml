@@ -16,7 +16,7 @@ script:
 - cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
 - make tester examples
 - cd out
-- tar -cvf ../../artifacts/examples-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz controlgallery controlgallery histogram
+- tar -cvf ../../artifacts/examples-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz controlgallery cpp-multithread histogram
 - tar -cvf ../../artifacts/libui-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz libui.a
 - cd ..
 - rm -rf *
@@ -26,7 +26,7 @@ script:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then LIB_FILE=libui.so.0; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then LIB_FILE=libui.A.dylib; fi
 - cd out
-- tar -cvf ../../artifacts/examples-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz controlgallery controlgallery histogram $LIB_FILE
+- tar -cvf ../../artifacts/examples-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz controlgallery cpp-multithread histogram $LIB_FILE
 - tar -cvf ../../artifacts/libui-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz $LIB_FILE
 - cd ..
 

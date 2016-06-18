@@ -10,20 +10,27 @@ script:
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew upgrade cmake; fi
 - mkdir build
+- mkdir artifacts
 - cd build
 - cmake --version
 - cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
 - make tester examples
+- tar -cvf ../artifacts/examples-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/controlgallery out/controlgallery out/histogram
+- tar -cvf ../artifacts/libui-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/libui.a
 - rm -rf *
 - cmake .. -G "Unix Makefiles"
 - make tester examples
+- rm out/libui.so
+- mb out/libui.so.0 out/libui.so
+- tar -cvf ../artifacts/examples-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/controlgallery out/controlgallery out/histogram out/libui.so
+- tar -cvf ../artifacts/libui-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/libui.so
 
 deploy:
   provider: releases
   api_key:
     secure: PXLSEazyWqtNMgdTRKAjeJwDHeXiIae0HguQNL6Imaub9ujcSNA7u2gOy0gF8OXoeD1yZNz6G6qodEQlW+d/+K+ZIdnXA6MiwJzYUO+yecfTElziOPtObf9taLvyuRVEpF5hAVfB6zLhhYVhjZ2UuhuREYaq30DyBpJRvpfyjnq3C17OYQk3S+SR3x8eTAqjc4H4R4jchyBdlC8g+rol4vvBFwie39lpqegqS24UKLVDzVK5ajxHCgSlxmoI6n6oWXgXGrT82NxtD6p93PsC6/HFEKDalZGAWddXE0QbA0czEyTdXJ4sHCWkT0zwjzneZneMVXNhwtyZ2BOUOZa9EP9PYv0/WwQtmp3ptR6ell3uAoGmxg/hpDGPTCZ+3EVvBHW1Xs+HZAx9VqtcXd08kO3i10/ioDDxvkFJnGZwFKX0d5U+Z/6hGICvoLKrZFSZlLmAecku4q9ju5Mtw1qREwrfV4N4o4/T35hoG4bShGXnlTHxbfsqTHx8A22mi5x0zPn0FBeQzWasGzXq0R3Pn5O/v+vzH2EKZFL9Gw++X/eDqchA0cSsA6gUnUanKUkVNCbSxzc8lh5bHNUkHSNAzFkqcN8CHO25H8sGpRm3wbGwSJEf2YnUfZlASevu4BNyKQOM/OTQeS1yYaQsNxXpXQ0u7KIQlq2Vs8646tDYSro=
   skip_cleanup: true
-  file: ./out/libui.so.0
+  file: ../artifacts/*
   on:
     repo: parro-it/libui
     tags: true

@@ -77,7 +77,7 @@ if(MSVC)
 	set(_COMMON_CFLAGS
 		/W4 /wd4100
 		/bigobj /nologo
-		/RTC1 /RTCs /RTCu
+		/RTC1 /RTCs
 		/EHsc
 	)
 

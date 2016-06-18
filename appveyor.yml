@@ -8,3 +8,13 @@ build_script:
   - cmake ..
   - msbuild C:\projects\libui\build\libui.sln /t:Build /p:Configuration=Release
   - dir C:\projects\libui\build /s
+
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: NsjIRhcaEJhoikwjMS95GRf0eP9TsniXblMLw9s+C/pwOnZrMHCAbw+HGDKRcYhj # your encrypted token from GitHub
+  artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
+  force_update: true
+  on:
+    branch: master                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only

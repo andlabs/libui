@@ -7,5 +7,4 @@ build_script:
   - cmake --version
   - cmake ..
   - msbuild C:\projects\libui\build\libui.sln /t:Build /p:Configuration=Release
-  - dir C:\projects\libui\build\out\debug\libui.dll
   - dir C:\projects\libui\build /s

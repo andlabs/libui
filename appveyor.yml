@@ -10,14 +10,15 @@ build_script:
   - dir C:\projects\libui\build /s
 
 after_build:
-  - 7z a -ttar libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\build\out\Release\libui.*
-  - 7z a -tgzip libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
+  - 7z a -ttar C:\projects\libui\build\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\build\out\Release\libui.*
+  - 7z a -tgzip C:\projects\libui\build\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
 
 deploy:
   provider: GitHub
   auth_token:
     secure: NsjIRhcaEJhoikwjMS95GRf0eP9TsniXblMLw9s+C/pwOnZrMHCAbw+HGDKRcYhj # your encrypted token from GitHub
-  artifact: /.*\.tar.gz/            # upload all NuGet packages to release assets
+  artifact: C:\projects\libui\build\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz
+
   force_update: true
   on:
     appveyor_repo_tag: true        # deploy on tag push only

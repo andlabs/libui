@@ -1,9 +1,12 @@
 version: 1.0.{build}
 image: Visual Studio 2013
+
+
 init:
   - cmd: echo init
 install:
-  - cmd: echo test
+  - set PATH=C:\MinGW\bin;%PATH%
+  - dir c:\
 build_script:
   - mkdir build
   - cd build

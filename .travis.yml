@@ -23,8 +23,7 @@ script:
 - cmake .. -G "Unix Makefiles"
 - make tester examples
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then rm out/libui.so; fi
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then mv out/libui.so.0 out/libui.so; fi
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then LIB_FILE=libui.so; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then LIB_FILE=libui.so.0; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then LIB_FILE=libui.A.dylib; fi
 - cd out
 - tar -cvf ../../artifacts/examples-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz controlgallery controlgallery histogram $LIB_FILE

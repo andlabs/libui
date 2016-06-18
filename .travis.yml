@@ -15,8 +15,10 @@ script:
 - cmake --version
 - cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
 - make tester examples
-- tar -cvf ../artifacts/examples-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/controlgallery out/controlgallery out/histogram
-- tar -cvf ../artifacts/libui-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/libui.a
+- cd out
+- tar -cvf ../artifacts/examples-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz controlgallery controlgallery histogram
+- tar -cvf ../artifacts/libui-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz libui.a
+- cd ..
 - rm -rf *
 - cmake .. -G "Unix Makefiles"
 - make tester examples
@@ -24,8 +26,10 @@ script:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then mv out/libui.so.0 out/libui.so; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then LIB_FILE=libui.so; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then LIB_FILE=libui.A.dylib; fi
-- tar -cvf ../artifacts/examples-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/controlgallery out/controlgallery out/histogram out/$LIB_FILE
-- tar -cvf ../artifacts/libui-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz out/$LIB_FILE
+- cd out
+- tar -cvf ../artifacts/examples-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz controlgallery controlgallery histogram $LIB_FILE
+- tar -cvf ../artifacts/libui-shared-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz $LIB_FILE
+- cd ..
 
 deploy:
   provider: releases

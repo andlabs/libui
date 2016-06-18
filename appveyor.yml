@@ -14,4 +14,4 @@ build_script:
   - cmake --version
   - cmake ..
   - dir C:\projects\libui\build
-  - make tester examples
+  - MSBuild C:\projects\libui\build\ALL_BUILD.vcxproj /p:Configuration=Release

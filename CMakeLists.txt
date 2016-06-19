@@ -187,9 +187,9 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 macro(_add_exec _name)
-  if(MAKE_MACOS_BUNDLES)
-    set(_MACOSX_BUNDLE "MACOSX_BUNDLE")
-  endif()
+	if(MAKE_MACOS_BUNDLES)
+		set(_MACOSX_BUNDLE "MACOSX_BUNDLE")
+	endif()
 	add_executable(${_name}
 		WIN32 ${_MACOSX_BUNDLE} EXCLUDE_FROM_ALL
 		${ARGN})

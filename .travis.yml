@@ -16,8 +16,8 @@ script:
 - cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
 - make tester examples
 - cd out
-- tar -cvf ../../artifacts/examples-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz controlgallery cpp-multithread histogram
-- tar -cvf ../../artifacts/libui-static-$TRAVIS_OS_NAME-$TRAVIS_TAG.tar.gz libui.a
+- tar -cvf ../../artifacts/examples-static-$TRAVIS_OS_NAME-x64-$TRAVIS_TAG.tar.gz controlgallery cpp-multithread histogram
+- tar -cvf ../../artifacts/libui-static-$TRAVIS_OS_NAME-x64-$TRAVIS_TAG.tar.gz libui.a
 - cd ..
 - rm -rf *
 - cmake .. -G "Unix Makefiles"

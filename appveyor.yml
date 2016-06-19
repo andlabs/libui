@@ -23,7 +23,6 @@ deploy:
   provider: GitHub
   auth_token:
     secure: NsjIRhcaEJhoikwjMS95GRf0eP9TsniXblMLw9s+C/pwOnZrMHCAbw+HGDKRcYhj # your encrypted token from GitHub
-  artifact: /.*\.tar\.gz/
 
   force_update: true
   on:

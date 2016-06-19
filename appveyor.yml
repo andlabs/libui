@@ -12,9 +12,9 @@ build_script:
 after_build:
   - mkdir C:\projects\artifacts
   - 7z a -ttar C:\projects\artifacts\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\build\out\Release\libui.*
-  - 7z a -tgzip C:\projects\artifacts\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
+  - 7z a -tgzip C:\projects\artifacts\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz C:\projects\artifacts\libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
   - 7z a -ttar C:\projects\artifacts\examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\build\out\Release\*.*
-  - 7z a -tgzip C:\projects\artifacts\examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
+  - 7z a -tgzip C:\projects\artifacts\examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz C:\projects\artifacts\examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
   - dir C:\projects\artifacts
 
 artifacts:

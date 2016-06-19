@@ -22,3 +22,8 @@ script:
   - rm -rf *
   - cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
   - make tester examples
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      rm -rf *;
+      cmake .. -G Xcode;
+      xcodebuild -alltargets;
+    fi

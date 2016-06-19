@@ -26,6 +26,7 @@ endif()
 
 project(libui)
 option(BUILD_SHARED_LIBS "Whether to build libui as a shared library or a static library" ON)
+option(MAKE_MACOS_BUNDLES "Whether to build test and examples as application bundles" OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
@@ -186,8 +187,11 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 macro(_add_exec _name)
+  if(MAKE_MACOS_BUNDLES)
+    set(_MACOSX_BUNDLE "MACOSX_BUNDLE")
+  endif()
 	add_executable(${_name}
-		WIN32 MACOSX_BUNDLE EXCLUDE_FROM_ALL
+		WIN32 ${_MACOSX_BUNDLE} EXCLUDE_FROM_ALL
 		${ARGN})
 	target_link_libraries(${_name} libui ${_LIBUI_STATIC_RES})
 	_target_link_options_private(${_name}

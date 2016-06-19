@@ -74,6 +74,8 @@ Project file generators should work, but are untested by me.
 
 On Windows, I use the `Unix Makefiles` generator and GNU make (built using the `build_w32.bat` script included in the source and run in the Visual Studio command line). In this state, if MinGW-w64 (either 32-bit or 64-bit) is not in your `%PATH%`, cmake will use MSVC by default; otherwise, cmake will use with whatever MinGW-w64 is in your path. `set PATH=%PATH%;c:\msys2\mingw(32/64)\bin` should be enough to temporarily change to a MinGW-w64 build for the current command line session only if you installed MinGW-w64 through [MSYS2](https://msys2.github.io/); no need to change global environment variables constantly.
 
+On macOS, you can use `-DMAKE_MACOS_BUNDLES=ON` to generate application bundles for the test and example programs.
+
 ## Installation
 
 #### Arch Linux

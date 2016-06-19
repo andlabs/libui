@@ -14,7 +14,7 @@ after_build:
   - 7z a -tgzip libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
   - 7z a -ttar examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\build\out\Release\*.*
   - 7z a -tgzip examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
-  - dir C:\projects\artifacts
+  - dir
 
 artifacts:
   - path: libui-shared-windows-*.tar.gz

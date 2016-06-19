@@ -7,14 +7,12 @@ build_script:
   - cmake --version
   - cmake ..
   - msbuild C:\projects\libui\build\libui.sln /t:Build /p:Configuration=Release
-  - dir C:\projects\libui\build /s
 
 after_build:
   - 7z a -ttar libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\build\out\Release\libui.*
   - 7z a -tgzip libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz libui-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
   - 7z a -ttar examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\build\out\Release\*.*
   - 7z a -tgzip examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar.gz examples-shared-windows-%APPVEYOR_REPO_TAG_NAME%.tar
-  - dir
 
 artifacts:
   - path: '**\*.tar.gz'
@@ -23,6 +21,7 @@ deploy:
   provider: GitHub
   auth_token:
     secure: NsjIRhcaEJhoikwjMS95GRf0eP9TsniXblMLw9s+C/pwOnZrMHCAbw+HGDKRcYhj # your encrypted token from GitHub
+  artifact: /.*\.tar\.gz/
 
   force_update: true
   on:

@@ -4,6 +4,7 @@
 uiMenu *fileMenu;
 uiMenuItem *newItem;
 uiMenuItem *openItem;
+uiMenuItem *openURLItem;
 uiMenuItem *shouldQuitItem;
 uiMenuItem *quitItem;
 uiMenu *editMenu;
@@ -50,11 +51,21 @@ static void whatWindow(uiMenuItem *item, uiWindow *w, void *data)
 	printf("menu item clicked on window %p\n", w);
 }
 
+static void openURLTest(uiMenuItem *item, uiWindow *w, void *data)
+{
+	if (!uiOpenURL("https://github.com/andlabs/libui/")) {
+		printf("Failed to open url\n");
+	}
+}
+
 void initMenus(void)
 {
 	fileMenu = uiNewMenu("File");
 	newItem = uiMenuAppendItem(fileMenu, "New");
 	openItem = uiMenuAppendItem(fileMenu, "Open");
+	uiMenuAppendSeparator(fileMenu);
+	openURLItem = uiMenuAppendItem(fileMenu, "Open URL");
+	uiMenuItemOnClicked(openURLItem, openURLTest, NULL);
 	uiMenuAppendSeparator(fileMenu);
 	shouldQuitItem = uiMenuAppendCheckItem(fileMenu, "Should Quit");
 	quitItem = uiMenuAppendQuitItem(fileMenu);

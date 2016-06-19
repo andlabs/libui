@@ -17,16 +17,13 @@ after_build:
   - dir
 
 artifacts:
-  - path: libui-shared-windows-*.tar.gz
-    name: shared
-  - path: examples-shared-windows-*.tar.gz
-    name: examples
+  - path: '**\*.tar.gz'
 
 deploy:
   provider: GitHub
   auth_token:
     secure: NsjIRhcaEJhoikwjMS95GRf0eP9TsniXblMLw9s+C/pwOnZrMHCAbw+HGDKRcYhj # your encrypted token from GitHub
-  artifact: shared
+  artifact: /.*\.tar\.gz/
 
   force_update: true
   on:

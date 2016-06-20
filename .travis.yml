@@ -3,18 +3,12 @@ os:
 - osx
 dist: trusty
 language: c
+services:
+- docker
+
 script:
-- ./scripts/install-gtk.sh
-- ./scripts/upgrade-cmake.sh
-- ./scripts/create-dirs.sh
-- cd build
-- ./scripts/configure-static.sh
-- make tester examples
-- ./scripts/create-artifacts-static.sh
-- ./scripts/clean-build-dir.sh
-- ./scripts/configure-shared.sh
-- make tester examples
-- ./scripts/create-artifacts-shared.sh
+- ./scripts/build-64.sh
+- "docker run -i -v \"${PWD}:/MyProgram\" toopher/centos-i386:centos6 /bin/bash -c \"linux32 --32bit i386 /MyProgram/build.sh\""
 
 deploy:
   provider: releases

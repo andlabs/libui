@@ -1,5 +1,6 @@
 cd /libui-32
 ./scripts/install-gtk.sh
+./scripts/install-cmake.sh
 ./scripts/create-dirs.sh
 cd build
 ../scripts/configure-static.sh

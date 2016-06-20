@@ -8,7 +8,7 @@ services:
 
 script:
 - ./scripts/build-64.sh
-- "docker run -i -v \"${PWD}:/MyProgram\" toopher/centos-i386:centos6 /bin/bash -c \"linux32 --32bit i386 /MyProgram/build.sh\""
+- ./scripts/start-linux-32.sh
 
 deploy:
   provider: releases

@@ -1,3 +1,4 @@
+cd /libui-32
 ./scripts/install-gtk.sh
 ./scripts/create-dirs.sh
 cd build

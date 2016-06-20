@@ -1,10 +1,16 @@
 # libui: a portable GUI library for C
 
 This README is being written.<br>
-[![Build Status](https://travis-ci.org/andlabs/libui.png)](https://travis-ci.org/andlabs/libui)
-*(currently failing because the version of cmake that Travis uses treats Objective-C files as C++; if you know the fix please file a PR)*
+[![Build Status](https://travis-ci.org/andlabs/libui.svg)](https://travis-ci.org/andlabs/libui)
 
 ## Announcements
+
+* **18 June 2016**
+	* Help decide [the design of tables and trees in libui](https://github.com/andlabs/libui/issues/159); the implementation starts within the next few days, if not tomorrow!
+
+* **17 June 2016**
+	* **CMake 3.1.0 is now required.** This is due to CMake's rapid development pace in the past few years adding things libui needs to build on as many systems as possible. If your OS is supported by libui but its repositories ship with an older version of CMake, you will need to find an updated one somewhere.
+	* Please help [plan out a better menu API](https://github.com/andlabs/libui/issues/152).
 
 * **5 June 2016**
 	* **Alpha 3.1 is here.** This was a much-needed update to Alpha 3 that changes a few things:
@@ -17,6 +23,11 @@ This README is being written.<br>
 ## Updates
 
 *Note that today's entry (Eastern Time) may be updated later today.*
+
+* **17 June 2016**
+	* `uiMainSteps()` no longer takes any arguments and no longer needs to invoke a function to do the work. You still need to call it, but once you do, it will return immediately and you can then get right to your main loop.
+	* **CMake 3.1.0 is now required.** This is due to CMake's rapid development pace in the past few years adding things libui needs to build on as many systems as possible. If your OS is supported by libui but its repositories ship with an older version of CMake, you will need to find an updated one somewhere.
+	* Added `uiNewVerticalSeparator()` to complement `uiNewHorizontalSeparator()`.
 
 * **16 June 2016**
 	* Added `uiWindowContentSize()`, `uiWindowSetContentSize()`, and `uiWindowOnContentSizeChanged()` methods for manipulating uiWindow content sizes. Note the use of "content size"; the size you work with does NOT include window decorations (titlebars, menus, etc.).
@@ -62,7 +73,7 @@ This README is being written.<br>
 ## Build Requirements
 
 * All platforms:
-	* CMake 2.8.11 or newer
+	* CMake 3.1.0 or newer
 * Windows: either
 	* Microsoft Visual Studio 2013 or newer (2013 is needed for `va_copy()`) — you can build either a static or a shared library
 	* MinGW-w64 (other flavors of MinGW may not work) — **you can only build a static library**; shared library support will be re-added once the following features come in:
@@ -105,7 +116,7 @@ Can be built from AUR: https://aur.archlinux.org/packages/libui-git/
 
 ## Documentation
 
-Needs to be written. Consult ui.h and the examples for details for now.
+Needs to be written. Consult `ui.h` and the examples for details for now.
 
 ## Language Bindings
 

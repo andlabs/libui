@@ -47,6 +47,7 @@ static void openTestWindow(uiBox *(*mkf)(void))
 	BA(uiNewColorButton());
 	BA(uiNewPasswordEntry());
 	BA(uiNewSearchEntry());
+	BA(uiNewVerticalSeparator());
 
 	uiControlShow(uiControl(w));
 }

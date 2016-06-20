@@ -5,12 +5,18 @@ os:
 # This makes us use Ubuntu 14 instead of 12
 dist: trusty
 
+# Notes:
+# - Travis uses cmake 3.0.2 on OS X; we need 3.1 or newer (thanks tbodt)
+
 language: c
 script:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install libgtk-3-dev -y || sudo apt-cache search libgtk3; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew upgrade cmake; fi 
   - mkdir build
   - cd build
+  - cmake --version
   - cmake .. -G "Unix Makefiles"
   - make tester examples
   - rm -rf *

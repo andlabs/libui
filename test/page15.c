@@ -148,5 +148,10 @@ uiBox *makePage15(uiWindow *w)
 	uiCheckboxOnToggled(checkbox, borderless, w);
 	uiBoxAppend(page15, uiControl(checkbox), 0);
 
+	hbox = newHorizontalBox();
+	uiBoxAppend(page15, uiControl(hbox), 1);
+
+	uiBoxAppend(hbox, uiControl(uiNewVerticalSeparator()), 0);
+
 	return page15;
 }

@@ -77,9 +77,9 @@ void uiMain(void)
 		;
 }
 
-void uiMainSteps(void (*f)(void *), void *data)
+void uiMainSteps(void)
 {
-	(*f)(data);
+	// don't need to do anything here
 }
 
 static int peekMessage(MSG *msg)

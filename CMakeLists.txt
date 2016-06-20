@@ -1,5 +1,6 @@
 # 3 june 2016
-cmake_minimum_required(VERSION 2.8.11)
+# see https://cmake.org/gitweb?p=cmake.git;a=commit;h=95cdf132489c79e88a10fdf7a7566fa002c7680b (thanks ngladitz in irc.freenode.net/#cmake)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
 # TODOs
 # - silence entering/leaving messages?
@@ -8,6 +9,7 @@ cmake_minimum_required(VERSION 2.8.11)
 # - debian DESTDIR? https://github.com/andlabs/libui/pull/10
 # - libui-combined* needs to be deleted so that custom command can run every time
 # - add notelemetry.obj to *ALL TARGETS* on VS2015 and up - https://www.infoq.com/news/2016/06/visual-cpp-telemetry
+# - switch to 3.1.0 features
 
 # the docs say we need to set this up prior to project()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
@@ -100,6 +102,7 @@ else()
 		-fvisibility=hidden
 	)
 	# don't use C_VERSION or CXX_VERSION because they use GNU standards
+	# TODO we can actually do this; set both C_EXTENSIONS and CXX_EXTENSIONS to OFF
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
@@ -142,11 +145,11 @@ target_compile_options(${_LIBUINAME}
 	PUBLIC ${_COMMON_CFLAGS}
 	PRIVATE ${_LIBUI_CFLAGS})
 # TODO link directories?
-# because we need 2.8.11 for CentOS, we can't use target_link_libraries(INTERFACE) for static executables :(
 if(BUILD_SHARED_LIBS)
 	target_link_libraries(${_LIBUINAME}
 		PRIVATE ${_LIBUI_LIBS})
 endif()
+# TODO INTERFACE libs don't inherit to grandhcildren?
 # on Windows the linker for static libraries is different; don't give it the flags
 if(BUILD_SHARED_LIBS)
 	_target_link_options_private(${_LIBUINAME}
@@ -198,9 +201,10 @@ macro(_add_exec _name)
 		set_property(TARGET ${_name} PROPERTY
 			POSITION_INDEPENDENT_CODE True)
 	endif()
-	# because we need 2.8.11 for CentOS, we can't use target_link_libraries(PUBLIC) for static executables :(
+	# TODO see above about INTERFACE
 	if(NOT BUILD_SHARED_LIBS)
-		target_link_libraries(${_name} ${_LIBUI_LIBS})
+		target_link_libraries(${_name}
+			${_LIBUI_LIBS})
 	endif()
 
 	# TODOfor some reason these don't propagate

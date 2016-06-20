@@ -100,6 +100,7 @@ static uiControl *makeNumbersPage()
 	uiBox *hbox;
 	uiGroup *group;
 	uiBox *vbox;
+	uiProgressBar *ip;
 	uiCombobox *cbox;
 	uiEditableCombobox *ecbox;
 	uiRadioButtons *rb;
@@ -123,6 +124,10 @@ static uiControl *makeNumbersPage()
 	uiBoxAppend(vbox, uiControl(spinbox), 0);
 	uiBoxAppend(vbox, uiControl(slider), 0);
 	uiBoxAppend(vbox, uiControl(pbar), 0);
+
+	ip = uiNewProgressBar();
+	uiProgressBarSetValue(ip, -1);
+	uiBoxAppend(vbox, uiControl(ip), 0);
 
 	group = uiNewGroup("Lists");
 	uiGroupSetMargined(group, 1);
@@ -184,6 +189,20 @@ static void onSaveFileClicked(uiButton *b, void *data)
 	uiFreeText(filename);
 }
 
+static void onMsgBoxClicked(uiButton *b, void *data)
+{
+	uiMsgBox(mainwin,
+		"This is a normal message box.",
+		"More detailed information can be shown here.");
+}
+
+static void onMsgBoxErrorClicked(uiButton *b, void *data)
+{
+	uiMsgBoxError(mainwin,
+		"This message box describes an error.",
+		"More detailed information can be shown here.");
+}
+
 static uiControl *makeDataChoosersPage(void)
 {
 	uiBox *hbox;
@@ -191,6 +210,7 @@ static uiControl *makeDataChoosersPage(void)
 	uiGrid *grid;
 	uiButton *button;
 	uiEntry *entry;
+	uiGrid *msggrid;
 
 	hbox = uiNewHorizontalBox();
 	uiBoxSetPadded(hbox, 1);
@@ -214,6 +234,10 @@ static uiControl *makeDataChoosersPage(void)
 		0);
 	uiBoxAppend(vbox,
 		uiControl(uiNewColorButton()),
+		0);
+
+	uiBoxAppend(hbox,
+		uiControl(uiNewVerticalSeparator()),
 		0);
 
 	vbox = uiNewVerticalBox();
@@ -245,6 +269,23 @@ static uiControl *makeDataChoosersPage(void)
 	uiGridAppend(grid, uiControl(entry),
 		1, 1, 1, 1,
 		1, uiAlignFill, 0, uiAlignFill);
+
+	msggrid = uiNewGrid();
+	uiGridSetPadded(msggrid, 1);
+	uiGridAppend(grid, uiControl(msggrid),
+		0, 2, 2, 1,
+		0, uiAlignCenter, 0, uiAlignStart);
+
+	button = uiNewButton("Message Box");
+	uiButtonOnClicked(button, onMsgBoxClicked, NULL);
+	uiGridAppend(msggrid, uiControl(button),
+		0, 0, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	button = uiNewButton("Error Box");
+	uiButtonOnClicked(button, onMsgBoxErrorClicked, NULL);
+	uiGridAppend(msggrid, uiControl(button),
+		1, 0, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
 
 	return uiControl(hbox);
 }

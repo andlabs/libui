@@ -98,3 +98,4 @@ on windows
 
 - a way to do recursive main loops
 	- how do we handle 0 returns from non-recursive uiMainStep() calls that aren't the main loop? (event handlers, for instance)
+- should repeated calls to uiMainStep() after uiQuit() return 0 reliably? this will be needed for non-recursive loops

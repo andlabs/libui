@@ -1,0 +1,1 @@
+cmake .. -G "Unix Makefiles"

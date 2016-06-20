@@ -1,0 +1,2 @@
+mkdir build;
+mkdir artifacts;

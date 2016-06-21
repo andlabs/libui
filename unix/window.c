@@ -49,7 +49,7 @@ static gboolean onConfigure(GtkWidget *win, GdkEvent *e, gpointer data)
 	// there doesn't seem to be a way to determine if only moving or only resizing is happening :/
 	if (w->changingPosition)
 		w->changingPosition = FALSE;
-	else
+	else if (w->onPositionChanged != NULL)
 		(*(w->onPositionChanged))(w, w->onPositionChangedData);
 	// always continue handling
 	return FALSE;
@@ -61,7 +61,7 @@ static void onSizeAllocate(GtkWidget *widget, GdkRectangle *allocation, gpointer
 
 	if (w->changingSize)
 		w->changingSize = FALSE;
-	else
+	else if (w->onContentSizeChanged != NULL)
 		(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
 }
 

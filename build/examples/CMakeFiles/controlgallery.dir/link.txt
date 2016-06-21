@@ -1,0 +1,1 @@
+/usr/bin/cc   --std=c99 -g   -fvisibility=hidden CMakeFiles/controlgallery.dir/controlgallery/main.c.o  -o ../out/controlgallery -rdynamic ../out/libui.so.0 -Wl,-rpath,"\$ORIGIN" 

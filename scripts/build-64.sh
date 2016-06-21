@@ -1,3 +1,4 @@
+BUILD_ARCH=x64
 ./scripts/install-gtk.sh
 ./scripts/upgrade-cmake.sh
 ./scripts/create-dirs.sh

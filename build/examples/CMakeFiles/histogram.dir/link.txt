@@ -1,0 +1,1 @@
+/usr/bin/cc   --std=c99 -g   -fvisibility=hidden CMakeFiles/histogram.dir/histogram/main.c.o  -o ../out/histogram -rdynamic ../out/libui.so.0 -Wl,-rpath,"\$ORIGIN" 

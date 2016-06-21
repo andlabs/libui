@@ -665,6 +665,9 @@ _UI_EXTERN int uiGridPadded(uiGrid *g);
 _UI_EXTERN void uiGridSetPadded(uiGrid *g, int padded);
 _UI_EXTERN uiGrid *uiNewGrid(void);
 
+// TODO merge
+#include "uitable.h"
+
 #ifdef __cplusplus
 }
 #endif

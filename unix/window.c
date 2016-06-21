@@ -93,7 +93,8 @@ static void uiWindowDestroy(uiControl *c)
 	gtk_widget_destroy(w->childHolderWidget);
 	gtk_widget_destroy(w->vboxWidget);
 	// and finally free ourselves
-	g_object_unref(w->widget);
+	// use gtk_widget_destroy() instead of g_object_unref() because GTK+ has internal references (see #165)
+	gtk_widget_destroy(w->widget);
 	uiFreeControl(uiControl(w));
 }
 
@@ -323,7 +324,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
 
 	// normally it's SetParent() that does this, but we can't call SetParent() on a uiWindow
-	// TODO we really need to clean this up
+	// TODO we really need to clean this up, especially since see uiWindowDestroy() above
 	g_object_ref(w->widget);
 
 	return w;

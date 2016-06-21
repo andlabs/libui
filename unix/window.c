@@ -49,7 +49,7 @@ static gboolean onConfigure(GtkWidget *win, GdkEvent *e, gpointer data)
 	// there doesn't seem to be a way to determine if only moving or only resizing is happening :/
 	if (w->changingPosition)
 		w->changingPosition = FALSE;
-	else if (w->onPositionChanged != NULL)
+	else
 		(*(w->onPositionChanged))(w, w->onPositionChangedData);
 	// always continue handling
 	return FALSE;
@@ -61,7 +61,7 @@ static void onSizeAllocate(GtkWidget *widget, GdkRectangle *allocation, gpointer
 
 	if (w->changingSize)
 		w->changingSize = FALSE;
-	else if (w->onContentSizeChanged != NULL)
+	else
 		(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
 }
 
@@ -93,7 +93,7 @@ static void uiWindowDestroy(uiControl *c)
 	gtk_widget_destroy(w->childHolderWidget);
 	gtk_widget_destroy(w->vboxWidget);
 	// and finally free ourselves
-	g_object_unref(w->widget);
+	gtk_widget_destroy(w->widget);
 	uiFreeControl(uiControl(w));
 }
 
@@ -283,6 +283,10 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindow *w;
 
 	uiUnixNewControl(uiWindow, w);
+
+	// debug
+	//g_print("w = %p", w);
+	//G_BREAKPOINT();
 
 	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	w->container = GTK_CONTAINER(w->widget);

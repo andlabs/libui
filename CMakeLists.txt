@@ -168,7 +168,8 @@ if(NOT MSVC)
     OUTPUT_NAME ui)
 
   if(BUILD_32)
-    set_target_properties(libui PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+    set_target_properties(libui PROPERTIES COMPILE_FLAGS "-m32")
+    set_target_properties(libui APPEND_STRING PROPERTY LINK_FLAGS "-m32")
   endif()
 
   # flags for warning on undefined symbols

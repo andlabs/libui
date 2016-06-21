@@ -93,7 +93,7 @@ static void uiWindowDestroy(uiControl *c)
 	gtk_widget_destroy(w->childHolderWidget);
 	gtk_widget_destroy(w->vboxWidget);
 	// and finally free ourselves
-	g_object_unref(w->widget);
+	gtk_widget_destroy(w->widget);
 	uiFreeControl(uiControl(w));
 }
 

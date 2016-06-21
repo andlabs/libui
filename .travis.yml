@@ -9,7 +9,7 @@ services:
 script:
 - ./scripts/setup-environment.sh
 - ./scripts/build-64.sh
-- ./scripts/build-32.sh
+- ./scripts/start-linux-32.sh
 
 deploy:
   provider: releases

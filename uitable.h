@@ -29,7 +29,7 @@ typedef struct uiTableCellPart uiTableCellPart;
 
 _UI_EXTERN uiTableCellLayout *uiNewTableCellLayout(void);
 _UI_EXTERN void uiFreeTableCellLayout(uiTableCellLayout *c);
-_UI_ExTERN void uiTableCellLayoutAppend(uiTableCellLayout *c, uiTableCellPart *part, int expand);
+_UI_EXTERN void uiTableCellLayoutAppend(uiTableCellLayout *c, uiTableCellPart *part, int expand);
 
 _UI_EXTERN uiTableCellPart *uiNewTableTextPart(int modelColumn);
 _UI_EXTERN void uiFreeTableCellPart(uiTableCellPart *p);

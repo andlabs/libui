@@ -1,7 +1,6 @@
-BUILD_ARCH=x64
-./scripts/install-gtk.sh
-./scripts/upgrade-cmake.sh
-./scripts/create-dirs.sh
+#!/bin/bash
+
+export BUILD_ARCH=x64
 cd build
 ../scripts/configure-static.sh
 make tester examples

@@ -1,6 +1,0 @@
-/home/parroit/Desktop/repos/libui/build/CMakeFiles/libui.dir
-/home/parroit/Desktop/repos/libui/build/test/CMakeFiles/tester.dir
-/home/parroit/Desktop/repos/libui/build/examples/CMakeFiles/examples.dir
-/home/parroit/Desktop/repos/libui/build/examples/CMakeFiles/controlgallery.dir
-/home/parroit/Desktop/repos/libui/build/examples/CMakeFiles/histogram.dir
-/home/parroit/Desktop/repos/libui/build/examples/CMakeFiles/cpp-multithread.dir

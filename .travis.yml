@@ -7,6 +7,7 @@ services:
 - docker
 
 script:
+- ./scripts/setup-environment.sh
 - ./scripts/build-64.sh
 - ./scripts/build-32.sh
 
@@ -20,10 +21,10 @@ deploy:
     - ./artifacts/libui-static-$TRAVIS_OS_NAME-x64-$TRAVIS_TAG.tar.gz
     - ./artifacts/examples-shared-$TRAVIS_OS_NAME-x64-$TRAVIS_TAG.tar.gz
     - ./artifacts/libui-shared-$TRAVIS_OS_NAME-x64-$TRAVIS_TAG.tar.gz
-    - ./artifacts/examples-static-linux-ia32-$TRAVIS_TAG.tar.gz
-    - ./artifacts/libui-static-linux-ia32-$TRAVIS_TAG.tar.gz
-    - ./artifacts/examples-shared-linux-ia32-$TRAVIS_TAG.tar.gz
-    - ./artifacts/libui-shared-linux-ia32-$TRAVIS_TAG.tar.gz
+    - ./artifacts/examples-static-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
+    - ./artifacts/libui-static-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
+    - ./artifacts/examples-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
+    - ./artifacts/libui-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
 
   on:
     repo: parro-it/libui

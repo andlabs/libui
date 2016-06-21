@@ -1,9 +1,12 @@
+#!/bin/bash
 
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-  echo faked > ../../artifacts/examples-shared-osx-ia32-$TRAVIS_TAG.tar.gz;
-  echo faked > ../../artifacts/libui-shared-osx-ia32-$TRAVIS_TAG.tar.gz;
+  echo faked > ../../artifacts/examples-static-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
+  echo faked > ../../artifacts/libui-static-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
+  echo faked > ../../artifacts/examples-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
+  echo faked > ../../artifacts/libui-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
 else
-  BUILD_ARCH=ia32
+  export BUILD_ARCH=ia32
   cd build
   ../scripts/clean-build-dir.sh
   ../scripts/configure-static.sh

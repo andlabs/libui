@@ -1,15 +1,15 @@
 os:
-- linux
-- osx
+  - linux
+  - osx
 dist: trusty
 language: c
 services:
-- docker
+  - docker
 
 script:
-- ./scripts/setup-environment.sh
-- ./scripts/build-64.sh
-- ./scripts/start-linux-32.sh
+  - ./scripts/setup-environment.sh
+  - ./scripts/build-64.sh
+  - ./scripts/start-linux-32.sh
 
 deploy:
   provider: releases
@@ -26,6 +26,6 @@ deploy:
     - ./artifacts/examples-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
     - ./artifacts/libui-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
 
-  on:
-    repo: parro-it/libui
-    tags: true
+on:
+  repo: parro-it/libui
+  tags: true

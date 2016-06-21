@@ -105,9 +105,16 @@ else()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
-  set(_COMMON_LDFLAGS
-    -fvisibility=hidden
-  )
+  if (BUILD_32)
+    set(_COMMON_LDFLAGS
+      -fvisibility=hidden
+      -m32
+    )
+  else()
+    set(_COMMON_LDFLAGS
+      -fvisibility=hidden
+    )
+  endif()
 
   # don't require shipping the MinGW-w64 DLLs
   if(WIN32)
@@ -169,7 +176,6 @@ if(NOT MSVC)
 
   if(BUILD_32)
     set_target_properties(libui PROPERTIES COMPILE_FLAGS "-m32")
-    set_target_properties(libui APPEND_STRING PROPERTY LINK_FLAGS "-m32")
   endif()
 
   # flags for warning on undefined symbols

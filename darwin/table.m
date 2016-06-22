@@ -4,7 +4,6 @@
 // TODOs
 // - can't seem to grow the table view vertically beyond a certain height
 // - header cell seems off
-// - text view cell parts don't change color when selected
 
 @interface tableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *libui_m;
@@ -75,13 +74,13 @@ struct uiTable {
 
  - (NSView *)tableView:(NSTableView *)tv viewForTableColumn:(NSTableColumn *)cc row:(NSInteger)row
 {
-	NSView *v;
+	NSTableCellView *v;
 	tableColumn *c = (tableColumn *) cc;
 	tablePart *part;
 	NSMutableArray *views;
 	NSView *view, *prev;
 
-	v = [[NSView alloc] initWithFrame:NSZeroRect];
+	v = [[NSTableCellView alloc] initWithFrame:NSZeroRect];
 
 	views = [NSMutableArray new];
 	for (part in c.libui_col->parts)
@@ -93,6 +92,7 @@ struct uiTable {
 	prev = nil;
 	for (view in views) {
 		[v addSubview:view];
+		// TODO set [v imageView] and [v textField] as appropriate?
 		if (prev == nil) {			// first view
 			[v addConstraint:mkConstraint(v, NSLayoutAttributeLeading,
 				NSLayoutRelationEqual,

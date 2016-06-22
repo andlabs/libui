@@ -233,7 +233,7 @@ static void onColorChanged(uiColorButton *b, void *data)
 
 static int onClosing(uiWindow *w, void *data)
 {
-	uiControlDestroy(uiControl(mainwin));
+	uiControlDestroy(uiControl(w));
 	uiQuit();
 	return 0;
 }

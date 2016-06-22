@@ -9,11 +9,11 @@ _UI_ENUM(uiTableModelColumnType) {
 };
 
 struct uiTableModelHandler {
-	int (*NumColumns)(uiTableModel *);
-	uiTableModelColumnType (*ColumnType)(uiTableModel *, int);
-	int (*NumRows)(uiTableModel *);
-	void *(*CellValue)(uiTableModel *, int, int);
-	void (*SetCellValue)(uiTableModel *, int, int, void *);
+	int (*NumColumns)(uiTableModelHandler *, uiTableModel *);
+	uiTableModelColumnType (*ColumnType)(uiTableModelHandler *, uiTableModel *, int);
+	int (*NumRows)(uiTableModelHandler *, uiTableModel *);
+	void *(*CellValue)(uiTableModelHandler *, uiTableModel *, int, int);
+	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, void *);
 };
 
 _UI_EXTERN void *uiTableModelStrdup(const char *str);
@@ -23,6 +23,7 @@ _UI_EXTERN void uiFreeTableModel(uiTableModel *m);
 _UI_EXTERN void uiTableModelRowInserted(uiTableModel *m, int newIndex);
 _UI_EXTERN void uiTableModelRowChanged(uiTableModel *m, int index);
 _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
+// TODO reordering/moving
 
 typedef struct uiTableColumn uiTableColumn;
 typedef struct uiTableCellPart uiTableCellPart;

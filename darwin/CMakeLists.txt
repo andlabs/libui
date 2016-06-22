@@ -34,6 +34,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/spinbox.m
 	darwin/stddialogs.m
 	darwin/tab.m
+	darwin/table.m
 	darwin/text.m
 	darwin/util.m
 	darwin/window.m

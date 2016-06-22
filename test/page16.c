@@ -3,22 +3,22 @@
 
 static uiTableModelHandler mh;
 
-static nt modelNumColumns(uiTableModel *m)
+static nt modelNumColumns(uiTableModelHandler *mh, uiTableModel *m)
 {
 	return 3;
 }
 
-static uiTableModelColumnType modelColumnType(uiTableModel *m, int column)
+static uiTableModelColumnType modelColumnType(uiTableModelHandler *mh, uiTableModel *m, int column)
 {
 	return uiTableModelColumnString;
 }
 
-static int modelNumRows(uiTableModel *m)
+static int modelNumRows(uiTableModelHandler *mh, uiTableModel *m)
 {
 	return 15;
 }
 
-static void *modelCellValue(uiTableModel *m, int row, int col)
+static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col)
 {
 	char buf[256];
 
@@ -34,7 +34,7 @@ static void *modelCellValue(uiTableModel *m, int row, int col)
 	return uiTableModelStrdup(buf);
 }
 
-static void modelSetCellValue(uiTableModel *m, int row, int col, void *val)
+static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col, void *val)
 {
 	// not implemented yet
 }

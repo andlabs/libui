@@ -3,8 +3,7 @@ os:
   - osx
 dist: trusty
 language: c
-services:
-  - docker
+
 
 script:
   - ./scripts/setup-environment.sh

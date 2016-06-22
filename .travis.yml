@@ -28,3 +28,4 @@ deploy:
 on:
   repo: parro-it/libui
   tags: true
+  all_branches: true

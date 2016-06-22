@@ -4,6 +4,7 @@
 // TODOs
 // - can't seem to grow the table view vertically beyond a certain height
 // - header cell seems off
+// - text view cell parts don't change color when selected
 
 @interface tableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *libui_m;

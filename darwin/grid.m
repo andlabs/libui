@@ -1,11 +1,9 @@
 // 11 june 2016
 #import "uipriv_darwin.h"
 
-// TODO adjust all containers to handle hidden cells properly
+// TODO the assorted test doesn't work right at all
 
-// TODO wrap the child in a view if its align isn't fill
-// maybe it's easier to do it regardless of align
-@interface gridChild : NSObject
+@interface gridChild : NSView
 @property uiControl *c;
 @property int left;
 @property int top;
@@ -16,8 +14,17 @@
 @property int vexpand;
 @property uiAlign valign;
 
+@property (strong) NSLayoutConstraint *leadingc;
+@property (strong) NSLayoutConstraint *topc;
+@property (strong) NSLayoutConstraint *trailingc;
+@property (strong) NSLayoutConstraint *bottomc;
+@property (strong) NSLayoutConstraint *xcenterc;
+@property (strong) NSLayoutConstraint *ycenterc;
+
 @property NSLayoutPriority oldHorzHuggingPri;
 @property NSLayoutPriority oldVertHuggingPri;
+- (void)setC:(uiControl *)c grid:(uiGrid *)g;
+- (void)onDestroy;
 - (NSView *)view;
 @end
 
@@ -53,6 +60,100 @@ struct uiGrid {
 };
 
 @implementation gridChild
+
+- (void)setC:(uiControl *)c grid:(uiGrid *)g
+{
+	self.c = c;
+	self.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(self.c), NSLayoutConstraintOrientationHorizontal);
+	self.oldVertHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(self.c), NSLayoutConstraintOrientationVertical);
+
+	uiControlSetParent(self.c, uiControl(g));
+	uiDarwinControlSetSuperview(uiDarwinControl(self.c), self);
+	uiDarwinControlSyncEnableState(uiDarwinControl(self.c), uiControlEnabledToUser(uiControl(g)));
+
+	if (self.halign == uiAlignStart || self.halign == uiAlignFill) {
+		self.leadingc = mkConstraint(self, NSLayoutAttributeLeading,
+			NSLayoutRelationEqual,
+			[self view], NSLayoutAttributeLeading,
+			1, 0,
+			@"uiGrid child horizontal alignment start constraint");
+		[self addConstraint:self.leadingc];
+	}
+	if (self.halign == uiAlignCenter) {
+		self.xcenterc = mkConstraint(self, NSLayoutAttributeCenterX,
+			NSLayoutRelationEqual,
+			[self view], NSLayoutAttributeCenterX,
+			1, 0,
+			@"uiGrid child horizontal alignment center constraint");
+		[self addConstraint:self.xcenterc];
+	}
+	if (self.halign == uiAlignEnd || self.halign == uiAlignFill) {
+		self.trailingc = mkConstraint(self, NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			[self view], NSLayoutAttributeTrailing,
+			1, 0,
+			@"uiGrid child horizontal alignment end constraint");
+		[self addConstraint:self.trailingc];
+	}
+
+	if (self.valign == uiAlignStart || self.valign == uiAlignFill) {
+		self.topc = mkConstraint(self, NSLayoutAttributeTop,
+			NSLayoutRelationEqual,
+			[self view], NSLayoutAttributeTop,
+			1, 0,
+			@"uiGrid child vertical alignment start constraint");
+		[self addConstraint:self.topc];
+	}
+	if (self.valign == uiAlignCenter) {
+		self.ycenterc = mkConstraint(self, NSLayoutAttributeCenterY,
+			NSLayoutRelationEqual,
+			[self view], NSLayoutAttributeCenterY,
+			1, 0,
+			@"uiGrid child vertical alignment center constraint");
+		[self addConstraint:self.ycenterc];
+	}
+	if (self.valign == uiAlignEnd || self.valign == uiAlignFill) {
+		self.bottomc = mkConstraint(self, NSLayoutAttributeBottom,
+			NSLayoutRelationEqual,
+			[self view], NSLayoutAttributeBottom,
+			1, 0,
+			@"uiGrid child vertical alignment end constraint");
+		[self addConstraint:self.bottomc];
+	}
+}
+
+- (void)onDestroy
+{
+	if (self.leadingc != nil) {
+		[self removeConstraint:self.leadingc];
+		self.leadingc = nil;
+	}
+	if (self.topc != nil) {
+		[self removeConstraint:self.topc];
+		self.topc = nil;
+	}
+	if (self.trailingc != nil) {
+		[self removeConstraint:self.trailingc];
+		self.trailingc = nil;
+	}
+	if (self.bottomc != nil) {
+		[self removeConstraint:self.bottomc];
+		self.bottomc = nil;
+	}
+	if (self.xcenterc != nil) {
+		[self removeConstraint:self.xcenterc];
+		self.xcenterc = nil;
+	}
+	if (self.ycenterc != nil) {
+		[self removeConstraint:self.ycenterc];
+		self.ycenterc = nil;
+	}
+
+	uiControlSetParent(self.c, NULL);
+	uiDarwinControlSetSuperview(uiDarwinControl(self.c), nil);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(self.c), self.oldHorzHuggingPri, NSLayoutConstraintOrientationHorizontal);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(self.c), self.oldVertHuggingPri, NSLayoutConstraintOrientationVertical);
+}
 
 - (NSView *)view
 {
@@ -90,9 +191,9 @@ struct uiGrid {
 	[self->emptyCellViews release];
 
 	for (gc in self->children) {
-		uiControlSetParent(gc.c, NULL);
-		uiDarwinControlSetSuperview(uiDarwinControl(gc.c), nil);
+		[gc onDestroy];
 		uiControlDestroy(gc.c);
+		[gc removeFromSuperview];
 	}
 	[self->children release];
 }
@@ -254,7 +355,7 @@ struct uiGrid {
 				[self->emptyCellViews addObject:gv[y][x]];
 			} else {
 				gc = (gridChild *) [self->children objectAtIndex:gg[y][x]];
-				gv[y][x] = [gc view];
+				gv[y][x] = gc;
 			}
 	}
 
@@ -438,9 +539,8 @@ struct uiGrid {
 	BOOL update;
 	int oldnh, oldnv;
 
-	uiControlSetParent(gc.c, uiControl(self->g));
-	uiDarwinControlSetSuperview(uiDarwinControl(gc.c), self);
-	uiDarwinControlSyncEnableState(uiDarwinControl(gc.c), uiControlEnabledToUser(uiControl(self->g)));
+	[gc setTranslatesAutoresizingMaskIntoConstraints:NO];
+	[self addSubview:gc];
 
 	// no need to set priority here; that's done in establishOurConstraints
 
@@ -637,7 +737,7 @@ static void uiGridChildVisibilityChanged(uiDarwinControl *c)
 	[g->view establishOurConstraints];
 }
 
-static gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign)
+static gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand, uiAlign halign, int vexpand, uiAlign valign, uiGrid *g)
 {
 	gridChild *gc;
 
@@ -646,15 +746,13 @@ static gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand, uiAli
 	if (yspan < 0)
 		userbug("You cannot have a negative yspan in a uiGrid cell.");
 	gc = [gridChild new];
-	gc.c = c;
 	gc.xspan = xspan;
 	gc.yspan = yspan;
 	gc.hexpand = hexpand;
 	gc.halign = halign;
 	gc.vexpand = vexpand;
 	gc.valign = valign;
-	gc.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(gc.c), NSLayoutConstraintOrientationHorizontal);
-	gc.oldVertHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(gc.c), NSLayoutConstraintOrientationVertical);
+	[gc setC:c grid:g];
 	return gc;
 }
 
@@ -666,7 +764,7 @@ void uiGridAppend(uiGrid *g, uiControl *c, int left, int top, int xspan, int ysp
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
 		userbug("You cannot add NULL to a uiGrid.");
-	gc = toChild(c, xspan, yspan, hexpand, halign, vexpand, valign);
+	gc = toChild(c, xspan, yspan, hexpand, halign, vexpand, valign, g);
 	gc.left = left;
 	gc.top = top;
 	[g->view append:gc];
@@ -676,7 +774,7 @@ void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, int x
 {
 	gridChild *gc;
 
-	gc = toChild(c, xspan, yspan, hexpand, halign, vexpand, valign);
+	gc = toChild(c, xspan, yspan, hexpand, halign, vexpand, valign, g);
 	[g->view insert:gc after:existing at:at];
 }
 

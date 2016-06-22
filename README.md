@@ -5,6 +5,9 @@ This README is being written.<br>
 
 ## Announcements
 
+* **18 June 2016**
+	* Help decide [the design of tables and trees in libui](https://github.com/andlabs/libui/issues/159); the implementation starts within the next few days, if not tomorrow!
+
 * **17 June 2016**
 	* **CMake 3.1.0 is now required.** This is due to CMake's rapid development pace in the past few years adding things libui needs to build on as many systems as possible. If your OS is supported by libui but its repositories ship with an older version of CMake, you will need to find an updated one somewhere.
 	* Please help [plan out a better menu API](https://github.com/andlabs/libui/issues/152).

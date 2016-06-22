@@ -95,35 +95,30 @@ if(MSVC)
   # more incremental linking fixes
   # TODO actually get rid of incremental linking here
 else()
-  set(_COMMON_CFLAGS
-    -Wall -Wextra -pedantic
-    -Wno-unused-parameter
-    -Wno-switch
-    -fvisibility=hidden
-  )
-  # don't use C_VERSION or CXX_VERSION because they use GNU standards
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
-  if (BUILD_32)
-    set(_COMMON_LDFLAGS
-      -fvisibility=hidden
-      -m32
-    )
-  else()
-    set(_COMMON_LDFLAGS
-      -fvisibility=hidden
-    )
-  endif()
+	set(_COMMON_CFLAGS
+		-Wall -Wextra -pedantic
+		-Wno-unused-parameter
+		-Wno-switch
+		-fvisibility=hidden
+	)
+	# don't use C_VERSION or CXX_VERSION because they use GNU standards
+	# TODO we can actually do this; set both C_EXTENSIONS and CXX_EXTENSIONS to OFF
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
-  # don't require shipping the MinGW-w64 DLLs
-  if(WIN32)
-    list(APPEND _COMMON_LDFLAGS
-      -static
-      -static-libgcc
-      -static-libstdc++
-    )
-  endif()
+	set(_COMMON_LDFLAGS
+		-fvisibility=hidden
+	)
+
+	# don't require shipping the MinGW-w64 DLLs
+	if(WIN32)
+		list(APPEND _COMMON_LDFLAGS
+			-static
+			-static-libgcc
+			-static-libstdc++
+		)
+	endif()
 endif()
 
 # problem:

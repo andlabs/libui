@@ -9,7 +9,18 @@ struct uiProgressBar {
 	guint pulser;
 };
 
-uiUnixControlAllDefaults(uiProgressBar)
+uiUnixControlAllDefaultsExceptDestroy(uiProgressBar)
+
+static void uiProgressBarDestroy(uiControl *c)
+{
+	uiProgressBar *p = uiProgressBar(c);
+
+	// be sure to stop the timeout now
+	if (p->indeterminate)
+		g_source_remove(p->pulser);
+	g_object_unref(p->widget);
+	uiFreeControl(uiControl(p));
+}
 
 int uiProgressBarValue(uiProgressBar *p)
 {

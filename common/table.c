@@ -1,4 +1,5 @@
 // 21 june 2016
+#include "../ui.h"
 #include "uipriv.h"
 
 uiTableColumn *uiTableAppendTextColumn(uiTable *t, const char *name, int modelColumn)

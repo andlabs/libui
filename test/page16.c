@@ -3,7 +3,7 @@
 
 static uiTableModelHandler mh;
 
-static nt modelNumColumns(uiTableModelHandler *mh, uiTableModel *m)
+static int modelNumColumns(uiTableModelHandler *mh, uiTableModel *m)
 {
 	return 3;
 }

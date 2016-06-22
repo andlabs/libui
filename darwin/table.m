@@ -1,6 +1,10 @@
 // 21 june 2016
 #import "uipriv_darwin.h"
 
+// TODOs
+// - can't seem to grow the table view vertically beyond a certain height
+// - header cell seems off
+
 @interface tableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *libui_m;
 }
@@ -32,7 +36,7 @@ struct uiTableModel {
 // note how expand is part of this
 struct uiTableCellPart {
 	tablePart *part;
-}
+};
 
 struct uiTableColumn {
 	tableColumn *c;
@@ -60,7 +64,7 @@ struct uiTable {
 {
 	uiTableModelHandler *mh = self->libui_m->mh;
 
-	return (*(mh->NumRows))(mh, m);
+	return (*(mh->NumRows))(mh, self->libui_m);
 }
 
 // these are according to Interface Builder
@@ -84,9 +88,10 @@ struct uiTable {
 	if ([views count] == 0)		// empty (TODO allow?)
 		goto done;
 
-	// arrange horizontally
+	// add to v and arrange horizontally
 	prev = nil;
 	for (view in views) {
+		[v addSubview:view];
 		if (prev == nil) {			// first view
 			[v addConstraint:mkConstraint(v, NSLayoutAttributeLeading,
 				NSLayoutRelationEqual,
@@ -119,6 +124,7 @@ struct uiTable {
 
 done:
 	[views release];
+	[v setTranslatesAutoresizingMaskIntoConstraints:NO];
 	// TODO autorelease?
 	return v;
 }
@@ -127,7 +133,7 @@ done:
 
 @implementation tablePart
 
-- (NSView *)mkView:(uiTableModel *)m row:(int)row;
+- (NSView *)mkView:(uiTableModel *)m row:(int)row
 {
 	void *data;
 	NSString *str;
@@ -150,6 +156,7 @@ done:
 		[view setContentHuggingPriority:NSLayoutPriorityDefaultLow forOrientation:NSLayoutConstraintOrientationHorizontal];
 	else
 		[view setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationHorizontal];
+	[view setTranslatesAutoresizingMaskIntoConstraints:NO];
 	// TODO autorelease?
 	return view;
 }
@@ -169,7 +176,7 @@ void *uiTableModelStrdup(const char *str)
 	return dup;
 }
 
-uiTableModel *uiNewTableModel(uITableModelHandler *mh)
+uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 {
 	uiTableModel *m;
 
@@ -194,7 +201,7 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 	NSTableView *tv;
 	NSIndexSet *set;
 
-	set = [NSIndexSet indexSetWithIndex:index];
+	set = [NSIndexSet indexSetWithIndex:newIndex];
 	for (tv in m->tables)
 		[tv insertRowsAtIndexes:set withAnimation:NSTableViewAnimationEffectNone];
 	// set is autoreleased
@@ -219,7 +226,7 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	NSTableView *tv;
 	NSIndexSet *set;
 
-	set = [NSIndexSet indexSetWithIndex:index];
+	set = [NSIndexSet indexSetWithIndex:oldIndex];
 	for (tv in m->tables)
 		[tv removeRowsAtIndexes:set withAnimation:NSTableViewAnimationEffectNone];
 	// set is autoreleased
@@ -264,8 +271,9 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 {
 	uiTableColumn *c;
 
-	c = new(uiTableColumn);
+	c = uiNew(uiTableColumn);
 	c->c = [[tableColumn alloc] initWithIdentifier:@""];
+	c->c.libui_col = c;
 	// via Interface Builder
 	[c->c setResizingMask:(NSTableColumnAutoresizingMask | NSTableColumnUserResizingMask)];
 	[c->c setTitle:toNSString(name)];
@@ -283,23 +291,23 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	uiDarwinNewControl(uiTable, t);
 
-	e->tv = [[NSTableView alloc] initWIthFrame:NSZeroRect];
+	t->tv = [[NSTableView alloc] initWithFrame:NSZeroRect];
 
-	[e->tv setDataSource:model->m];
-	[e->tv setDelegate:model->m];
-	[e->tv reloadAllData];
-	[model->tables addObject:e->tv];
+	[t->tv setDataSource:model->m];
+	[t->tv setDelegate:model->m];
+	[t->tv reloadData];
+	[model->tables addObject:t->tv];
 
 	// TODO is this sufficient?
-	[e->tv setAllowsColumnReordering:NO];
-	[e->tv setAllowsColumnResizing:YES];
-	[e->tv setAllowsMultipleSelection:NO];
-	[e->tv setAllowsEmptySelection:YES];
-	[e->tv setAllowsColumnSelection:NO];
-	[e->tv setUsesAlternatingRowBackgroundColors:YES];
-	[e->tv setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleRegular];
-	[e->tv setGridStyleMask:NSTableViewGridNone];
-	[e->tv setAllowsTypeSelect:YES];
+	[t->tv setAllowsColumnReordering:NO];
+	[t->tv setAllowsColumnResizing:YES];
+	[t->tv setAllowsMultipleSelection:NO];
+	[t->tv setAllowsEmptySelection:YES];
+	[t->tv setAllowsColumnSelection:NO];
+	[t->tv setUsesAlternatingRowBackgroundColors:YES];
+	[t->tv setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleRegular];
+	[t->tv setGridStyleMask:NSTableViewGridNone];
+	[t->tv setAllowsTypeSelect:YES];
 	// TODO floatsGroupRows — do we even allow group rows?
 
 	memset(&p, 0, sizeof (struct scrollViewCreateParams));

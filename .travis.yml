@@ -25,7 +25,6 @@ deploy:
     - ./artifacts/examples-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
     - ./artifacts/libui-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
 
-on:
-  repo: parro-it/libui
-  tags: true
-  all_branches: true
+  on:
+    repo: parro-it/libui
+    tags: true

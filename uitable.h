@@ -24,18 +24,16 @@ _UI_EXTERN void uiTableModelRowInserted(uiTableModel *m, int newIndex);
 _UI_EXTERN void uiTableModelRowChanged(uiTableModel *m, int index);
 _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
 
-typedef struct uiTableCellLayout uiTableCellLayout;
+typedef struct uiTableColumn uiTableColumn;
 typedef struct uiTableCellPart uiTableCellPart;
 
-_UI_EXTERN uiTableCellLayout *uiNewTableCellLayout(void);
-_UI_EXTERN void uiFreeTableCellLayout(uiTableCellLayout *c);
-_UI_EXTERN void uiTableCellLayoutAppend(uiTableCellLayout *c, uiTableCellPart *part, int expand);
+_UI_EXTERN void uiTableColumnAppend(uiTableColumn *c, uiTableCellPart *part, int expand);
 
 _UI_EXTERN uiTableCellPart *uiNewTableTextPart(int modelColumn);
 _UI_EXTERN void uiFreeTableCellPart(uiTableCellPart *p);
 
 typedef struct uiTable uiTable;
 #define uiTable(this) ((uiTable *) (this))
-_UI_EXTERN void uiTableAppendColumn(uiTable *t, const char *name, uiTableCellLayout *layout);
-_UI_EXTERN void uiTableAppendTextColumn(uiTable *t, const char *name, int modelColumn);
+_UI_EXTERN uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name);
+_UI_EXTERN uiTableColumn *uiTableAppendTextColumn(uiTable *t, const char *name, int modelColumn);
 _UI_EXTERN uiTable *uiNewTable(uiTableModel *model);

@@ -3,7 +3,7 @@ os:
   - osx
 dist: trusty
 language: c
-
+sudo: required
 
 script:
   - ./scripts/setup-environment.sh

@@ -6,6 +6,7 @@ list(APPEND _LIBUI_SOURCES
 	common/debug.c
 	common/matrix.c
 	common/shouldquit.c
+	common/table.c
 	common/userbugs.c
 )
 set(_LIBUI_SOURCES ${_LIBUI_SOURCES} PARENT_SCOPE)

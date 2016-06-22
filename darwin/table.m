@@ -35,6 +35,7 @@ struct uiTableCellPart {
 }
 
 struct uiTableColumn {
+	tableColumn *c;
 	NSMutableArray *parts;
 };
 
@@ -42,6 +43,7 @@ struct uiTable {
 	uiDarwinControl c;
 	NSScrollView *sv;
 	NSTableView *tv;
+	struct scrollViewData *d;
 };
 
 @implementation tableModel
@@ -229,11 +231,87 @@ void uiTableColumnAppend(uiTableColumn *c, uiTableCellPart *part, int expand)
 	[c->parts addObject:part->part];
 }
 
-_UI_EXTERN uiTableCellPart *uiNewTableTextPart(int modelColumn);
-_UI_EXTERN void uiFreeTableCellPart(uiTableCellPart *p);
+uiTableCellPart *uiNewTableTextPart(int modelColumn)
+{
+	uiTableCellPart *p;
 
-typedef struct uiTable uiTable;
-#define uiTable(this) ((uiTable *) (this))
-_UI_EXTERN uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name);
-_UI_EXTERN uiTableColumn *uiTableAppendTextColumn(uiTable *t, const char *name, int modelColumn);
-_UI_EXTERN uiTable *uiNewTable(uiTableModel *model);
+	p = uiNew(uiTableCellPart);
+	p->part = [tablePart new];
+	p->part.type = partText;
+	p->part.mainColumn = modelColumn;
+	return p;
+}
+
+void uiFreeTableCellPart(uiTableCellPart *p)
+{
+	// TODO disallow if in use
+	[p->part release];
+	uiFree(p);
+}
+
+uiDarwinControlAllDefaultsExceptDestroy(uiTable, sv)
+
+static void uiTableDestroy(uiControl *c)
+{
+	uiTable *t = uiTable(c);
+
+	// TODO
+	[t->sv release];
+	uiFreeControl(uiControl(t));
+}
+
+uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
+{
+	uiTableColumn *c;
+
+	c = new(uiTableColumn);
+	c->c = [[tableColumn alloc] initWithIdentifier:@""];
+	// via Interface Builder
+	[c->c setResizingMask:(NSTableColumnAutoresizingMask | NSTableColumnUserResizingMask)];
+	[c->c setTitle:toNSString(name)];
+	// TODO is this sufficient?
+	[[c->c headerCell] setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
+	c->parts = [NSMutableArray new];
+	[t->tv addTableColumn:c->c];
+	return c;
+}
+
+uiTable *uiNewTable(uiTableModel *model)
+{
+	uiTable *t;
+	struct scrollViewCreateParams p;
+
+	uiDarwinNewControl(uiTable, t);
+
+	e->tv = [[NSTableView alloc] initWIthFrame:NSZeroRect];
+
+	[e->tv setDataSource:model->m];
+	[e->tv setDelegate:model->m];
+	[e->tv reloadAllData];
+	[model->tables addObject:e->tv];
+
+	// TODO is this sufficient?
+	[e->tv setAllowsColumnReordering:NO];
+	[e->tv setAllowsColumnResizing:YES];
+	[e->tv setAllowsMultipleSelection:NO];
+	[e->tv setAllowsEmptySelection:YES];
+	[e->tv setAllowsColumnSelection:NO];
+	[e->tv setUsesAlternatingRowBackgroundColors:YES];
+	[e->tv setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleRegular];
+	[e->tv setGridStyleMask:NSTableViewGridNone];
+	[e->tv setAllowsTypeSelect:YES];
+	// TODO floatsGroupRows — do we even allow group rows?
+
+	memset(&p, 0, sizeof (struct scrollViewCreateParams));
+	p.DocumentView = t->tv;
+	// this is what Interface Builder sets it to
+	// TODO verify
+	p.BackgroundColor = [NSColor colorWithCalibratedWhite:1.0 alpha:1.0];
+	p.DrawsBackground = YES;
+	p.Bordered = YES;
+	p.HScroll = YES;
+	p.VScroll = YES;
+	t->sv = mkScrollView(&p, &(t->d));
+
+	return t;
+}

@@ -110,7 +110,10 @@ else()
 	set(_COMMON_LDFLAGS
 		-fvisibility=hidden
 	)
+if(BUILD_32)
 
+	list(APPEND _COMMON_LDFLAGS -m32)
+endif()
 	# don't require shipping the MinGW-w64 DLLs
 	if(WIN32)
 		list(APPEND _COMMON_LDFLAGS

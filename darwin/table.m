@@ -26,6 +26,10 @@ enum {
 @property uiTableColumn *libui_col;
 @end
 
+@interface tableView : NSTableView
+@property uiTable *libui_t;
+@end
+
 struct uiTableModel {
 	uiTableModelHandler *mh;
 	tableModel *m;
@@ -40,8 +44,9 @@ struct uiTableColumn {
 struct uiTable {
 	uiDarwinControl c;
 	NSScrollView *sv;
-	NSTableView *tv;
+	tableView *tv;
 	struct scrollViewData *d;
+	int backgroundColumn;
 };
 
 @implementation tableModel
@@ -124,6 +129,22 @@ done:
 	return v;
 }
 
+- (void)tableView:(NSTableView *)nstv didAddRowView:(NSTableRowView *)rv forRow:(NSInteger)row
+{
+	uiTableModel *m = self->libui_m;
+	tableView *tv = (tableView *) nstv;
+	uiTable *t = tv.libui_t;
+	NSColor *color;
+
+	if (t->backgroundColumn == -1)
+		return;
+	color = (NSColor *) ((*(m->mh->CellValue))(m->mh, m, row, t->backgroundColumn));
+	if (color == nil)
+		return;
+	[rv setBackgroundColor:color];
+	// TODO autorelease color? or release it?
+}
+
 @end
 
 @implementation tablePart
@@ -161,6 +182,9 @@ done:
 @implementation tableColumn
 @end
 
+@implementation tableView
+@end
+
 void *uiTableModelStrdup(const char *str)
 {
 	// TODO don't we have this already?
@@ -180,6 +204,11 @@ uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 	m->m = [[tableModel alloc] initWithModel:m];
 	m->tables = [NSMutableArray new];
 	return m;
+}
+
+void *uiTableModelGiveColor(double r, double g, double b, double a)
+{
+	return [[NSColor colorWithSRGBRed:r green:g blue:b alpha:a] retain];
 }
 
 void uiFreeTableModel(uiTableModel *m)
@@ -266,6 +295,11 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 	return c;
 }
 
+void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
+{
+	t->backgroundColumn = modelColumn;
+}
+
 uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;
@@ -273,7 +307,8 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	uiDarwinNewControl(uiTable, t);
 
-	t->tv = [[NSTableView alloc] initWithFrame:NSZeroRect];
+	t->tv = [[tableView alloc] initWithFrame:NSZeroRect];
+	t->tv.libui_t = t;
 
 	[t->tv setDataSource:model->m];
 	[t->tv setDelegate:model->m];
@@ -302,6 +337,8 @@ uiTable *uiNewTable(uiTableModel *model)
 	p.HScroll = YES;
 	p.VScroll = YES;
 	t->sv = mkScrollView(&p, &(t->d));
+
+	t->backgroundColumn = -1;
 
 	return t;
 }

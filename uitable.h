@@ -6,6 +6,7 @@ typedef struct uiTableModelHandler uiTableModelHandler;
 
 _UI_ENUM(uiTableModelColumnType) {
 	uiTableModelColumnString,
+	uiTableModelColumnColor,
 };
 
 struct uiTableModelHandler {
@@ -17,6 +18,8 @@ struct uiTableModelHandler {
 };
 
 _UI_EXTERN void *uiTableModelStrdup(const char *str);
+// TODO rename the strdup one to this too
+_UI_EXTERN void *uiTableModelGiveColor(double r, double g, double b, double a);
 
 _UI_EXTERN uiTableModel *uiNewTableModel(uiTableModelHandler *mh);
 _UI_EXTERN void uiFreeTableModel(uiTableModel *m);
@@ -33,4 +36,6 @@ typedef struct uiTable uiTable;
 #define uiTable(this) ((uiTable *) (this))
 _UI_EXTERN uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name);
 _UI_EXTERN uiTableColumn *uiTableAppendTextColumn(uiTable *t, const char *name, int modelColumn);
+// TODO getter?
+_UI_EXTERN void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn);
 _UI_EXTERN uiTable *uiNewTable(uiTableModel *model);

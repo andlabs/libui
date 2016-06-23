@@ -5,11 +5,13 @@ static uiTableModelHandler mh;
 
 static int modelNumColumns(uiTableModelHandler *mh, uiTableModel *m)
 {
-	return 3;
+	return 4;
 }
 
 static uiTableModelColumnType modelColumnType(uiTableModelHandler *mh, uiTableModel *m, int column)
 {
+	if (column == 3)
+		return uiTableModelColumnColor;
 	return uiTableModelColumnString;
 }
 
@@ -22,6 +24,13 @@ static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, i
 {
 	char buf[256];
 
+	if (col == 3) {
+		if (row == 3)
+			return uiTableModelGiveColor(1, 0, 0, 1);
+		if (row == 11)
+			return uiTableModelGiveColor(0, 0.5, 1, 0.5);
+		return NULL;
+	}
 	switch (col) {
 	case 0:
 		sprintf(buf, "Row %d", row);
@@ -63,6 +72,8 @@ uiBox *makePage16(void)
 	tc = uiTableAppendColumn(t, "Column 2");
 	uiTableColumnAppendTextPart(tc, 1, 0);
 	uiTableColumnAppendTextPart(tc, 2, 1);
+
+	uiTableSetRowBackgroundColorModelColumn(t, 3);
 
 	return page16;
 }

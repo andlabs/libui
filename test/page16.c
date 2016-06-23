@@ -61,8 +61,8 @@ uiBox *makePage16(void)
 	uiTableAppendTextColumn(t, "Column 1", 0);
 
 	tc = uiTableAppendColumn(t, "Column 2");
-	uiTableColumnAppend(tc, uiNewTableTextPart(1), 0);
-	uiTableColumnAppend(tc, uiNewTableTextPart(2), 1);
+	uiTableColumnAppendTextPart(tc, 1, 0);
+	uiTableColumnAppendTextPart(tc, 2, 1);
 
 	return page16;
 }

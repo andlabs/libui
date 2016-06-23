@@ -5,10 +5,8 @@
 uiTableColumn *uiTableAppendTextColumn(uiTable *t, const char *name, int modelColumn)
 {
 	uiTableColumn *tc;
-	uiTableCellPart *part;
 
-	part = uiNewTableTextPart(modelColumn);
 	tc = uiTableAppendColumn(t, name);
-	uiTableColumnAppend(tc, part, 1);
+	uiTableColumnAppendTextPart(tc, modelColumn, 1);
 	return tc;
 }

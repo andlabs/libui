@@ -17,7 +17,7 @@ enum {
 
 @interface tablePart : NSObject
 @property int type;
-@property int mainColumn;
+@property int textColumn;
 @property int expand;
 - (NSView *)mkView:(uiTableModel *)m row:(int)row;
 @end
@@ -30,12 +30,6 @@ struct uiTableModel {
 	uiTableModelHandler *mh;
 	tableModel *m;
 	NSMutableArray *tables;
-};
-
-// TODO better memory management for this
-// note how expand is part of this
-struct uiTableCellPart {
-	tablePart *part;
 };
 
 struct uiTableColumn {
@@ -141,7 +135,7 @@ done:
 	NSView *view;
 	NSTextField *tf;
 
-	data = (*(m->mh->CellValue))(m->mh, m, row, self.mainColumn);
+	data = (*(m->mh->CellValue))(m->mh, m, row, self.textColumn);
 	switch (self.type) {
 	case partText:
 		str = toNSString((char *) data);
@@ -233,28 +227,15 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	// set is autoreleased
 }
 
-void uiTableColumnAppend(uiTableColumn *c, uiTableCellPart *part, int expand)
+void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 {
-	part->part.expand = expand;
-	[c->parts addObject:part->part];
-}
+	tablePart *part;
 
-uiTableCellPart *uiNewTableTextPart(int modelColumn)
-{
-	uiTableCellPart *p;
-
-	p = uiNew(uiTableCellPart);
-	p->part = [tablePart new];
-	p->part.type = partText;
-	p->part.mainColumn = modelColumn;
-	return p;
-}
-
-void uiFreeTableCellPart(uiTableCellPart *p)
-{
-	// TODO disallow if in use
-	[p->part release];
-	uiFree(p);
+	part = [tablePart new];
+	part.type = partText;
+	part.textColumn = modelColumn;
+	part.expand = expand;
+	[c->parts addObject:part];
 }
 
 uiDarwinControlAllDefaultsExceptDestroy(uiTable, sv)

@@ -26,12 +26,8 @@ _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
 // TODO reordering/moving
 
 typedef struct uiTableColumn uiTableColumn;
-typedef struct uiTableCellPart uiTableCellPart;
 
-_UI_EXTERN void uiTableColumnAppend(uiTableColumn *c, uiTableCellPart *part, int expand);
-
-_UI_EXTERN uiTableCellPart *uiNewTableTextPart(int modelColumn);
-_UI_EXTERN void uiFreeTableCellPart(uiTableCellPart *p);
+_UI_EXTERN void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand);
 
 typedef struct uiTable uiTable;
 #define uiTable(this) ((uiTable *) (this))

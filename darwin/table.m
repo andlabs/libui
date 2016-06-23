@@ -4,6 +4,7 @@
 // TODOs
 // - initial state of table view is off
 // - header cell seems off
+// - background color shows up for a line or two below selection
 
 @interface tableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *libui_m;

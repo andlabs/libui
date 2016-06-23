@@ -322,16 +322,5 @@ uiTable *uiNewTable(uiTableModel *model)
 	p.VScroll = YES;
 	t->sv = mkScrollView(&p, &(t->d));
 
-	dispatch_after(
-	dispatch_time(DISPATCH_TIME_NOW,3*NSEC_PER_SEC),
-	dispatch_get_main_queue(),
-	^{
-	for(NSView *v in t->sv.subviews){
-	NSLog(@"%@ %p %@", [v class], v, NSStringFromRect([v frame]));
-	for(NSView *v2 in v.subviews)
-	NSLog(@"    %@ %p %@", [v2 class], v2, NSStringFromRect([v2 frame]));
-	}
-	});
-
 	return t;
 }

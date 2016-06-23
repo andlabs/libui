@@ -2,6 +2,7 @@
 #include "uipriv_darwin.h"
 
 // see http://stackoverflow.com/questions/37979445/how-do-i-properly-set-up-a-scrolling-nstableview-using-auto-layout-what-ive-tr for why we don't use auto layout
+// TODO do the same with uiGroup and uiTab?
 
 struct scrollViewData {
 	BOOL hscroll;

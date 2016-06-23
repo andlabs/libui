@@ -2,7 +2,7 @@
 #import "uipriv_darwin.h"
 
 // TODOs
-// - can't seem to grow the table view vertically beyond a certain height
+// - initial state of table view is off
 // - header cell seems off
 
 @interface tableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {

@@ -31,6 +31,7 @@ _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
 typedef struct uiTableColumn uiTableColumn;
 
 _UI_EXTERN void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand);
+_UI_EXTERN void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn);
 
 typedef struct uiTable uiTable;
 #define uiTable(this) ((uiTable *) (this))

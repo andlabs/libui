@@ -19,6 +19,7 @@ enum {
 @interface tablePart : NSObject
 @property int type;
 @property int textColumn;
+@property int textColorColumn;
 @property int expand;
 - (NSView *)mkView:(uiTableModel *)m row:(int)row;
 @end
@@ -150,6 +151,16 @@ done:
 
 @implementation tablePart
 
+- (id)init
+{
+	self = [super init];
+	if (self) {
+		self.textColumn = -1;
+		self.textColorColumn = -1;
+	}
+	return self;
+}
+
 - (NSView *)mkView:(uiTableModel *)m row:(int)row
 {
 	void *data;
@@ -163,7 +174,15 @@ done:
 		str = toNSString((char *) data);
 		uiFree(data);
 		tf = newLabel(str);
-		// TODO set wrap and ellipsize modes
+		// TODO set wrap and ellipsize modes?
+		if (self.textColorColumn != -1) {
+			NSColor *color;
+
+			color = (NSColor *) ((*(m->mh->CellValue))(m->mh, m, row, self.textColorColumn));
+			if (color != nil)
+				[tf setTextColor:color];
+			// TODO release color
+		}
 		view = tf;
 		break;
 	}
@@ -266,6 +285,14 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	part.textColumn = modelColumn;
 	part.expand = expand;
 	[c->parts addObject:part];
+}
+
+void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
+{
+	tablePart *p;
+
+	p = (tablePart *) [c->parts objectAtIndex:part];
+	p.textColorColumn = modelColumn;
 }
 
 uiDarwinControlAllDefaultsExceptDestroy(uiTable, sv)

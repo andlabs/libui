@@ -1,8 +1,12 @@
 #!/bin/bash
-
-sudo apt-get update;
-sudo apt-get install libc6-dev-i386 -y;
+sudo apt-get dist-upgrade -y;
+sudo add-apt-repository ppa:george-edison55/cmake-3.x -y;
+sudo apt-get update -y;
+sudo apt-get install build-essential git -y;
+sudo apt-get install cmake -y;
+sudo apt-get install pkg-config -y;
 sudo apt-get install libgtk-3-dev -y;
+
 # sudo apt-get install gtk+-3.0 -y;
 cd /libui-32;
 ./scripts/build-32.sh;

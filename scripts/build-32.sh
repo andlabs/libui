@@ -10,4 +10,4 @@ make tester examples
 ../scripts/configure-shared.sh
 make tester examples
 ../scripts/create-artifacts-shared.sh
-
+chmod o+rw ../artifacts/*

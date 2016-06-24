@@ -2,7 +2,7 @@
 sudo apt-get dist-upgrade -y;
 sudo apt-get update -y;
 
-sudo apt-get install software-properties-common
+sudo apt-get install software-properties-common -y
 sudo add-apt-repository ppa:george-edison55/cmake-3.x -y;
 sudo apt-get update -y;
 

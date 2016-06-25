@@ -1,6 +1,12 @@
 // 20 june 2016
 // kept in a separate file for now
 
+typedef struct uiImage uiImage;
+
+_UI_EXTERN uiImage *uiNewImage(double width, double height);
+_UI_EXTERN void uiFreeImage(uiImage *i);
+_UI_EXTERN void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride);
+
 typedef struct uiTableModel uiTableModel;
 typedef struct uiTableModelHandler uiTableModelHandler;
 

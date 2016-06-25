@@ -316,6 +316,9 @@ struct uiAreaDrawParams {
 	double ClipHeight;
 };
 
+// TODO merge
+#include "uidrawimage.h"
+
 typedef struct uiDrawPath uiDrawPath;
 typedef struct uiDrawBrush uiDrawBrush;
 typedef struct uiDrawStrokeParams uiDrawStrokeParams;

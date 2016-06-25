@@ -24,6 +24,10 @@ This README is being written.<br>
 
 *Note that today's entry (Eastern Time) may be updated later today.*
 
+* **<codedate**
+	* Added `uiTable` TODO
+	* Added `uiDrawSingleResImage` and `uiDrawMultiResImage` TODO
+
 * **17 June 2016**
 	* `uiMainSteps()` no longer takes any arguments and no longer needs to invoke a function to do the work. You still need to call it, but once you do, it will return immediately and you can then get right to your main loop.
 	* **CMake 3.1.0 is now required.** This is due to CMake's rapid development pace in the past few years adding things libui needs to build on as many systems as possible. If your OS is supported by libui but its repositories ship with an older version of CMake, you will need to find an updated one somewhere.

@@ -26,7 +26,6 @@ This README is being written.<br>
 
 * **<codedate**
 	* Added `uiTable` TODO
-	* Added `uiDrawSingleResImage` and `uiDrawMultiResImage` TODO
 
 * **17 June 2016**
 	* `uiMainSteps()` no longer takes any arguments and no longer needs to invoke a function to do the work. You still need to call it, but once you do, it will return immediately and you can then get right to your main loop.

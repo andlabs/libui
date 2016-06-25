@@ -46,3 +46,8 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 	[repsRGB setSize:i->size];
 	[repsRGB release];
 }
+
+NSImage *imageImage(uiImage *i)
+{
+	return i->i;
+}

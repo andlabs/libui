@@ -13,6 +13,7 @@ typedef struct uiTableModelHandler uiTableModelHandler;
 
 _UI_ENUM(uiTableModelColumnType) {
 	uiTableModelColumnString,
+	uiTableModelColumnImage,
 	uiTableModelColumnColor,
 };
 
@@ -38,6 +39,8 @@ _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
 typedef struct uiTableColumn uiTableColumn;
 
 _UI_EXTERN void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand);
+// TODO images shouldn't expand...
+_UI_EXTERN void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand);
 _UI_EXTERN void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn);
 
 typedef struct uiTable uiTable;

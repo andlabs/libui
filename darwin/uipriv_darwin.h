@@ -121,5 +121,8 @@ extern NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrol
 extern void scrollViewSetScrolling(NSScrollView *sv, struct scrollViewData *d, BOOL hscroll, BOOL vscroll);
 extern void scrollViewFreeData(NSScrollView *sv, struct scrollViewData *d);
 
-// label.cpp
+// label.m
 extern NSTextField *newLabel(NSString *str);
+
+// image.m
+extern NSImage *imageImage(uiImage *);

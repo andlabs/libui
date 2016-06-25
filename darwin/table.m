@@ -14,12 +14,14 @@
 
 enum {
 	partText,
+	partImage,
 };
 
 @interface tablePart : NSObject
 @property int type;
 @property int textColumn;
 @property int textColorColumn;
+@property int imageColumn;
 @property int expand;
 - (NSView *)mkView:(uiTableModel *)m row:(int)row;
 @end
@@ -117,12 +119,20 @@ struct uiTable {
 		@"uiTableColumn last part horizontal constraint")];
 
 	// and vertically
-	for (view in views)
+	for (view in views) {
 		[v addConstraint:mkConstraint(view, NSLayoutAttributeCenterY,
 			NSLayoutRelationEqual,
 			v, NSLayoutAttributeCenterY,
 			1, 0,
 			@"uiTableColumn part vertical constraint")];
+		// TODO avoid the need for this hack
+		if ([view isKindOfClass:[NSImageView class]])
+			[v addConstraint:mkConstraint(view, NSLayoutAttributeTop,
+				NSLayoutRelationEqual,
+				v, NSLayoutAttributeTop,
+				1, 0,
+				@"uiTableColumn part vertical top constraint")];
+	}
 
 done:
 	[views release];
@@ -167,10 +177,11 @@ done:
 	NSString *str;
 	NSView *view;
 	NSTextField *tf;
+	NSImageView *iv;
 
-	data = (*(m->mh->CellValue))(m->mh, m, row, self.textColumn);
 	switch (self.type) {
 	case partText:
+		data = (*(m->mh->CellValue))(m->mh, m, row, self.textColumn);
 		str = toNSString((char *) data);
 		uiFree(data);
 		tf = newLabel(str);
@@ -184,6 +195,22 @@ done:
 			// TODO release color
 		}
 		view = tf;
+		break;
+	case partImage:
+		data = (*(m->mh->CellValue))(m->mh, m, row, self.imageColumn);
+		iv = [[NSImageView alloc] initWithFrame:NSZeroRect];
+		[iv setImage:imageImage((uiImage *) data)];
+		[iv setImageFrameStyle:NSImageFrameNone];
+		[iv setImageAlignment:NSImageAlignCenter];
+		[iv setImageScaling:NSImageScaleProportionallyDown];
+		[iv setAnimates:NO];
+		[iv setEditable:NO];
+		[iv addConstraint:mkConstraint(iv, NSLayoutAttributeWidth,
+			NSLayoutRelationEqual,
+			iv, NSLayoutAttributeHeight,
+			1, 0,
+			@"uiTable image squareness constraint")];
+		view = iv;
 		break;
 	}
 
@@ -283,6 +310,17 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	part = [tablePart new];
 	part.type = partText;
 	part.textColumn = modelColumn;
+	part.expand = expand;
+	[c->parts addObject:part];
+}
+
+void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
+{
+	tablePart *part;
+
+	part = [tablePart new];
+	part.type = partImage;
+	part.imageColumn = modelColumn;
 	part.expand = expand;
 	[c->parts addObject:part];
 }

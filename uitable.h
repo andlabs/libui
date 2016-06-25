@@ -3,6 +3,7 @@
 
 typedef struct uiImage uiImage;
 
+// TODO use const void * for const correctness
 _UI_EXTERN uiImage *uiNewImage(double width, double height);
 _UI_EXTERN void uiFreeImage(uiImage *i);
 _UI_EXTERN void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride);

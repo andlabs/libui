@@ -6,6 +6,7 @@ endif()
 
 _add_exec(tester
 	drawtests.c
+	images.c
 	main.c
 	menus.c
 	page1.c

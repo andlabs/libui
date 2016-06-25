@@ -25,9 +25,9 @@ void uiFreeImage(uiImage *i)
 void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride)
 {
 	NSBitmapImageRep *repCalibrated, *repsRGB;
-	char *pix[1];
+	unsigned char *pix[1];
 
-	pix[0] = (char *) pixels;
+	pix[0] = (unsigned char *) pixels;
 	repCalibrated = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:pix
 		pixelsWide:pixelWidth
 		pixelsHigh:pixelHeight

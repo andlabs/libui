@@ -92,3 +92,6 @@ extern uiBox *makePage15(uiWindow *);
 
 // page16.c
 extern uiBox *makePage16(void);
+
+// images.c
+extern void appendImageNamed(uiImage *img, const char *name);

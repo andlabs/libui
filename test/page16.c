@@ -23,6 +23,7 @@ static int modelNumRows(uiTableModelHandler *mh, uiTableModel *m)
 }
 
 static uiImage *img[2];
+static char row9text[1024];
 
 static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col)
 {
@@ -49,17 +50,21 @@ static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, i
 	case 0:
 		sprintf(buf, "Row %d", row);
 		break;
-	case 1:
 	case 2:
+		if (row == 9)
+			return uiTableModelStrdup(row9text);
+		// fall through
+	case 1:
 		strcpy(buf, "Part");
 		break;
 	}
 	return uiTableModelStrdup(buf);
 }
 
-static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col, void *val)
+static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col, const void *val)
 {
-	// not implemented yet
+	if (row == 9 && col == 2)
+		strcpy(row9text, (const char *) val);
 }
 
 uiBox *makePage16(void)
@@ -75,6 +80,8 @@ uiBox *makePage16(void)
 	img[1] = uiNewImage(16, 16);
 	appendImageNamed(img[1], "tango-icon-theme-0.8.90_16x16_x-office-spreadsheet.png");
 	appendImageNamed(img[1], "tango-icon-theme-0.8.90_32x32_x-office-spreadsheet.png");
+
+	strcpy(row9text, "Part");
 
 	page16 = newVerticalBox();
 
@@ -95,6 +102,7 @@ uiBox *makePage16(void)
 	uiTableColumnAppendTextPart(tc, 1, 0);
 	uiTableColumnAppendTextPart(tc, 2, 1);
 	uiTableColumnPartSetTextColor(tc, 1, 4);
+	uiTableColumnPartSetEditable(tc, 2, 1);
 
 	uiTableSetRowBackgroundColorModelColumn(t, 3);
 

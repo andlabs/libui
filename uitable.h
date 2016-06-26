@@ -22,7 +22,7 @@ struct uiTableModelHandler {
 	uiTableModelColumnType (*ColumnType)(uiTableModelHandler *, uiTableModel *, int);
 	int (*NumRows)(uiTableModelHandler *, uiTableModel *);
 	void *(*CellValue)(uiTableModelHandler *, uiTableModel *, int, int);
-	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, void *);
+	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, const void *);
 };
 
 _UI_EXTERN void *uiTableModelStrdup(const char *str);
@@ -41,6 +41,8 @@ typedef struct uiTableColumn uiTableColumn;
 _UI_EXTERN void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand);
 // TODO images shouldn't expand...
 _UI_EXTERN void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand);
+// TODO Editable?
+_UI_EXTERN void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable);
 _UI_EXTERN void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn);
 
 typedef struct uiTable uiTable;

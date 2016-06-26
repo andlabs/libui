@@ -5,11 +5,15 @@
 // - initial state of table view is off
 // - header cell seems off
 // - background color shows up for a line or two below selection
+// - editable NSTextFields have no intrinsic width
+// - changing a part property does not refresh views
+// - the target/action thing is wrong; we need to pass the model column for col, not the view column
 
 @interface tableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *libui_m;
 }
 - (id)initWithModel:(uiTableModel *)m;
+- (IBAction)onAction:(id)sender;
 @end
 
 enum {
@@ -23,6 +27,7 @@ enum {
 @property int textColorColumn;
 @property int imageColumn;
 @property int expand;
+@property int editable;
 - (NSView *)mkView:(uiTableModel *)m row:(int)row;
 @end
 
@@ -157,6 +162,36 @@ done:
 	// TODO autorelease color? or release it?
 }
 
+- (IBAction)onAction:(id)sender
+{
+	uiTableModel *m = self->libui_m;
+	NSView *view = (NSView *) sender;
+	NSTableView *tv;
+	NSInteger row;
+	const void *data;
+
+	row = -1;
+	for (tv in m->tables) {
+		row = [tv rowForView:view];
+		if (row != -1)
+			break;
+	}
+	if (row == -1)
+		implbug("table model action triggered on view with no associated table");
+
+	if ([view isKindOfClass:[NSTextField class]])
+		data = [((NSTextField *) view) stringValue];
+	else
+		implbug("table model editing action triggered on non-editable view");
+
+	(*(m->mh->SetCellValue))(m->mh, m,
+		row, [tv columnForView:view],
+		data);
+	// always refresh the value in case the model rejected it
+	// TODO only affect tv
+	uiTableModelRowChanged(m, row);
+}
+
 @end
 
 @implementation tablePart
@@ -193,6 +228,11 @@ done:
 			if (color != nil)
 				[tf setTextColor:color];
 			// TODO release color
+		}
+		if (self.editable) {
+			[tf setEditable:YES];
+			[tf setTarget:m->m];
+			[tf setAction:@selector(onAction:)];
 		}
 		view = tf;
 		break;
@@ -323,6 +363,14 @@ void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 	part.imageColumn = modelColumn;
 	part.expand = expand;
 	[c->parts addObject:part];
+}
+
+void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable)
+{
+	tablePart *p;
+
+	p = (tablePart *) [c->parts objectAtIndex:part];
+	p.editable = editable;
 }
 
 void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)

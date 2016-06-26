@@ -5,7 +5,7 @@ static uiTableModelHandler mh;
 
 static int modelNumColumns(uiTableModelHandler *mh, uiTableModel *m)
 {
-	return 6;
+	return 7;
 }
 
 static uiTableModelColumnType modelColumnType(uiTableModelHandler *mh, uiTableModel *m, int column)
@@ -24,12 +24,15 @@ static int modelNumRows(uiTableModelHandler *mh, uiTableModel *m)
 
 static uiImage *img[2];
 static char row9text[1024];
+static int yellowRow = -1;
 
 static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col)
 {
 	char buf[256];
 
 	if (col == 3) {
+		if (row == yellowRow)
+			return uiTableModelGiveColor(1, 1, 0, 1);
 		if (row == 3)
 			return uiTableModelGiveColor(1, 0, 0, 1);
 		if (row == 11)
@@ -57,6 +60,9 @@ static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, i
 	case 1:
 		strcpy(buf, "Part");
 		break;
+	case 6:
+		strcpy(buf, "Make Yellow");
+		break;
 	}
 	return uiTableModelStrdup(buf);
 }
@@ -65,6 +71,8 @@ static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row,
 {
 	if (row == 9 && col == 2)
 		strcpy(row9text, (const char *) val);
+	if (col == 6)
+		yellowRow = row;
 }
 
 uiBox *makePage16(void)
@@ -105,6 +113,9 @@ uiBox *makePage16(void)
 	uiTableColumnPartSetEditable(tc, 2, 1);
 
 	uiTableSetRowBackgroundColorModelColumn(t, 3);
+
+	tc = uiTableAppendColumn(t, "Buttons");
+	uiTableColumnAppendButtonPart(tc, 6, 1);
 
 	return page16;
 }

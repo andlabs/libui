@@ -18,10 +18,10 @@
 enum {
 	partText,
 	partImage,
+	partButton,
 };
 
 @interface tablePart : NSObject
-@property int index;
 @property int type;
 @property int textColumn;
 @property int textColorColumn;
@@ -153,6 +153,7 @@ done:
 	uiTable *t = tv.libui_t;
 	NSColor *color;
 
+	[rv setBackgroundColor:nil];		// make default by default
 	if (t->backgroundColumn == -1)
 		return;
 	color = (NSColor *) ((*(m->mh->CellValue))(m->mh, m, row, t->backgroundColumn));
@@ -181,6 +182,8 @@ done:
 
 	if ([view isKindOfClass:[NSTextField class]])
 		data = [[((NSTextField *) view) stringValue] UTF8String];
+	else if ([view isKindOfClass:[NSButton class]])
+		data = NULL;
 	else
 		implbug("table model editing action triggered on non-editable view");
 
@@ -189,7 +192,7 @@ done:
 		row, [view tag],
 		data);
 	// always refresh the value in case the model rejected it
-	// TODO only affect tv
+	// TODO only affect tv?
 	uiTableModelRowChanged(m, row);
 }
 
@@ -214,6 +217,7 @@ done:
 	NSView *view;
 	NSTextField *tf;
 	NSImageView *iv;
+	NSButton *b;
 
 	switch (self.type) {
 	case partText:
@@ -235,7 +239,7 @@ done:
 			[tf setTarget:m->m];
 			[tf setAction:@selector(onAction:)];
 		}
-		[tf setTag:self.index];
+		[tf setTag:self.textColumn];
 		view = tf;
 		break;
 	case partImage:
@@ -252,8 +256,26 @@ done:
 			iv, NSLayoutAttributeHeight,
 			1, 0,
 			@"uiTable image squareness constraint")];
-		[iv setTag:self.index];
+		[iv setTag:self.imageColumn];
 		view = iv;
+		break;
+	case partButton:
+		// TODO buttons get clipped
+		data = (*(m->mh->CellValue))(m->mh, m, row, self.textColumn);
+		str = toNSString((char *) data);
+		b = [[NSButton alloc] initWithFrame:NSZeroRect];
+		[b setTitle:str];
+		[b setButtonType:NSMomentaryPushInButton];
+		[b setBordered:YES];
+		[b setBezelStyle:NSRoundRectBezelStyle];
+		uiDarwinSetControlFont(b, NSRegularControlSize);
+		if (self.editable) {
+			[b setTarget:m->m];
+			[b setAction:@selector(onAction:)];
+		} else
+			[b setEnabled:NO];
+		[b setTag:self.textColumn];
+		view = b;
 		break;
 	}
 
@@ -330,6 +352,7 @@ void uiTableModelRowChanged(uiTableModel *m, int index)
 	for (tv in m->tables) {
 		cols = [[NSIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, [[tv tableColumns] count])];
 		[tv reloadDataForRowIndexes:set columnIndexes:cols];
+		// TODO this isn't enough
 		[cols release];
 	}
 	// set is autoreleased
@@ -351,7 +374,6 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	tablePart *part;
 
 	part = [tablePart new];
-	part.index = [c->parts count];
 	part.type = partText;
 	part.textColumn = modelColumn;
 	part.expand = expand;
@@ -363,10 +385,21 @@ void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 	tablePart *part;
 
 	part = [tablePart new];
-	part.index = [c->parts count];
 	part.type = partImage;
 	part.imageColumn = modelColumn;
 	part.expand = expand;
+	[c->parts addObject:part];
+}
+
+void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand)
+{
+	tablePart *part;
+
+	part = [tablePart new];
+	part.type = partButton;
+	part.textColumn = modelColumn;
+	part.expand = expand;
+	part.editable = 1;		// editable by default
 	[c->parts addObject:part];
 }
 

@@ -5,7 +5,7 @@ static uiTableModelHandler mh;
 
 static int modelNumColumns(uiTableModelHandler *mh, uiTableModel *m)
 {
-	return 7;
+	return 8;
 }
 
 static uiTableModelColumnType modelColumnType(uiTableModelHandler *mh, uiTableModel *m, int column)
@@ -14,6 +14,8 @@ static uiTableModelColumnType modelColumnType(uiTableModelHandler *mh, uiTableMo
 		return uiTableModelColumnColor;
 	if (column == 5)
 		return uiTableModelColumnImage;
+	if (column == 7)
+		return uiTableModelColumnInt;
 	return uiTableModelColumnString;
 }
 
@@ -25,6 +27,7 @@ static int modelNumRows(uiTableModelHandler *mh, uiTableModel *m)
 static uiImage *img[2];
 static char row9text[1024];
 static int yellowRow = -1;
+static int checkStates[15];
 
 static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col)
 {
@@ -49,6 +52,8 @@ static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, i
 			return img[0];
 		return img[1];
 	}
+	if (col == 7)
+		return uiTableModelGiveInt(checkStates[row]);
 	switch (col) {
 	case 0:
 		sprintf(buf, "Row %d", row);
@@ -73,6 +78,8 @@ static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row,
 		strcpy(row9text, (const char *) val);
 	if (col == 6)
 		yellowRow = row;
+	if (col == 7)
+		checkStates[row] = uiTableModelTakeInt(val);
 }
 
 uiBox *makePage16(void)
@@ -90,6 +97,8 @@ uiBox *makePage16(void)
 	appendImageNamed(img[1], "tango-icon-theme-0.8.90_32x32_x-office-spreadsheet.png");
 
 	strcpy(row9text, "Part");
+
+	memset(checkStates, 0, 15 * sizeof (int));
 
 	page16 = newVerticalBox();
 
@@ -115,6 +124,7 @@ uiBox *makePage16(void)
 	uiTableSetRowBackgroundColorModelColumn(t, 3);
 
 	tc = uiTableAppendColumn(t, "Buttons");
+	uiTableColumnAppendCheckboxPart(tc, 7, 0);
 	uiTableColumnAppendButtonPart(tc, 6, 1);
 
 	return page16;

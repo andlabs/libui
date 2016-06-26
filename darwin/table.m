@@ -7,6 +7,7 @@
 // - background color shows up for a line or two below selection
 // - editable NSTextFields have no intrinsic width
 // - changing a part property does not refresh views
+// - is the Y position of checkbox cells correct?
 
 @interface tableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *libui_m;
@@ -19,6 +20,7 @@ enum {
 	partText,
 	partImage,
 	partButton,
+	partCheckbox,
 };
 
 @interface tablePart : NSObject
@@ -26,6 +28,7 @@ enum {
 @property int textColumn;
 @property int textColorColumn;
 @property int imageColumn;
+@property int valueColumn;
 @property int expand;
 @property int editable;
 - (NSView *)mkView:(uiTableModel *)m row:(int)row;
@@ -153,7 +156,6 @@ done:
 	uiTable *t = tv.libui_t;
 	NSColor *color;
 
-	[rv setBackgroundColor:nil];		// make default by default
 	if (t->backgroundColumn == -1)
 		return;
 	color = (NSColor *) ((*(m->mh->CellValue))(m->mh, m, row, t->backgroundColumn));
@@ -182,9 +184,16 @@ done:
 
 	if ([view isKindOfClass:[NSTextField class]])
 		data = [[((NSTextField *) view) stringValue] UTF8String];
-	else if ([view isKindOfClass:[NSButton class]])
-		data = NULL;
-	else
+	else if ([view isKindOfClass:[NSButton class]]) {
+		NSButton *b;
+
+		b = (NSButton *) view;
+//		if ([b buttonType] == NSSwitchButton)
+			data = uiTableModelGiveInt([b state] == NSOnState);
+// TODO there is no buttonType getter
+if(1);		else
+			data = NULL;
+	} else
 		implbug("table model editing action triggered on non-editable view");
 
 	// note the use of [view tag] — we need the model column, which we store in the view tag for relevant views below
@@ -275,6 +284,27 @@ done:
 		} else
 			[b setEnabled:NO];
 		[b setTag:self.textColumn];
+		view = b;
+		break;
+	case partCheckbox:
+		data = (*(m->mh->CellValue))(m->mh, m, row, self.valueColumn);
+		b = [[NSButton alloc] initWithFrame:NSZeroRect];
+		[b setTitle:@""];
+		[b setButtonType:NSSwitchButton];
+		// doesn't seem to have an associated bezel style
+		[b setBordered:NO];
+		[b setTransparent:NO];
+		uiDarwinSetControlFont(b, NSRegularControlSize);
+		if (uiTableModelTakeInt(data) != 0)
+			[b setState:NSOnState];
+		else
+			[b setState:NSOffState];
+		if (self.editable) {
+			[b setTarget:m->m];
+			[b setAction:@selector(onAction:)];
+		} else
+			[b setEnabled:NO];
+		[b setTag:self.valueColumn];
 		view = b;
 		break;
 	}
@@ -398,6 +428,18 @@ void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand
 	part = [tablePart new];
 	part.type = partButton;
 	part.textColumn = modelColumn;
+	part.expand = expand;
+	part.editable = 1;		// editable by default
+	[c->parts addObject:part];
+}
+
+void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand)
+{
+	tablePart *part;
+
+	part = [tablePart new];
+	part.type = partCheckbox;
+	part.valueColumn = modelColumn;
 	part.expand = expand;
 	part.editable = 1;		// editable by default
 	[c->parts addObject:part];

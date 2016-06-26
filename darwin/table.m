@@ -180,7 +180,7 @@ done:
 		implbug("table model action triggered on view with no associated table");
 
 	if ([view isKindOfClass:[NSTextField class]])
-		data = [((NSTextField *) view) stringValue];
+		data = [[((NSTextField *) view) stringValue] UTF8String];
 	else
 		implbug("table model editing action triggered on non-editable view");
 

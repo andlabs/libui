@@ -5,7 +5,7 @@ static uiTableModelHandler mh;
 
 static int modelNumColumns(uiTableModelHandler *mh, uiTableModel *m)
 {
-	return 8;
+	return 9;
 }
 
 static uiTableModelColumnType modelColumnType(uiTableModelHandler *mh, uiTableModel *m, int column)
@@ -14,7 +14,7 @@ static uiTableModelColumnType modelColumnType(uiTableModelHandler *mh, uiTableMo
 		return uiTableModelColumnColor;
 	if (column == 5)
 		return uiTableModelColumnImage;
-	if (column == 7)
+	if (column == 7 || column == 8)
 		return uiTableModelColumnInt;
 	return uiTableModelColumnString;
 }
@@ -54,6 +54,15 @@ static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, i
 	}
 	if (col == 7)
 		return uiTableModelGiveInt(checkStates[row]);
+	if (col == 8) {
+		if (row == 0)
+			return uiTableModelGiveInt(0);
+		if (row == 13)
+			return uiTableModelGiveInt(100);
+		if (row == 14)
+			return uiTableModelGiveInt(-1);
+		return uiTableModelGiveInt(50);
+	}
 	switch (col) {
 	case 0:
 		sprintf(buf, "Row %d", row);
@@ -126,6 +135,9 @@ uiBox *makePage16(void)
 	tc = uiTableAppendColumn(t, "Buttons");
 	uiTableColumnAppendCheckboxPart(tc, 7, 0);
 	uiTableColumnAppendButtonPart(tc, 6, 1);
+
+	tc = uiTableAppendColumn(t, "Progress Bar");
+	uiTableColumnAppendProgressBarPart(tc, 8, 0);
 
 	return page16;
 }

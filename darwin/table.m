@@ -8,6 +8,10 @@
 // - editable NSTextFields have no intrinsic width
 // - changing a part property does not refresh views
 // - is the Y position of checkbox cells correct?
+// - progressbars appear ABOVE the table header
+
+// LONGTERM
+// - reuse row views instead of creating a new one each time
 
 @interface tableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *libui_m;
@@ -21,6 +25,7 @@ enum {
 	partImage,
 	partButton,
 	partCheckbox,
+	partProgressBar,
 };
 
 @interface tablePart : NSObject
@@ -227,6 +232,8 @@ if(1);		else
 	NSTextField *tf;
 	NSImageView *iv;
 	NSButton *b;
+	NSProgressIndicator *p;
+	int value;
 
 	switch (self.type) {
 	case partText:
@@ -306,6 +313,30 @@ if(1);		else
 			[b setEnabled:NO];
 		[b setTag:self.valueColumn];
 		view = b;
+		break;
+	case partProgressBar:
+		data = (*(m->mh->CellValue))(m->mh, m, row, self.valueColumn);
+		value = uiTableModelTakeInt(data);
+		// TODO no intrinsic width
+		p = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
+		[p setControlSize:NSRegularControlSize];
+		[p setBezeled:YES];
+		[p setStyle:NSProgressIndicatorBarStyle];
+		if (value == -1) {
+			[p setIndeterminate:YES];
+			[p startAnimation:p];
+		} else if (value == 100) {
+			[p setIndeterminate:NO];
+			[p setMaxValue:101];
+			[p setDoubleValue:101];
+			[p setDoubleValue:100];
+			[p setMaxValue:100];
+		} else {
+			[p setIndeterminate:NO];
+			[p setDoubleValue:(value + 1)];
+			[p setDoubleValue:value];
+		}
+		view = p;
 		break;
 	}
 
@@ -442,6 +473,17 @@ void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expa
 	part.valueColumn = modelColumn;
 	part.expand = expand;
 	part.editable = 1;		// editable by default
+	[c->parts addObject:part];
+}
+
+void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int expand)
+{
+	tablePart *part;
+
+	part = [tablePart new];
+	part.type = partProgressBar;
+	part.valueColumn = modelColumn;
+	part.expand = expand;
 	[c->parts addObject:part];
 }
 

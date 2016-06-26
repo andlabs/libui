@@ -31,6 +31,8 @@ _UI_EXTERN void *uiTableModelStrdup(const char *str);
 // TODO rename the strdup one to this too
 _UI_EXTERN void *uiTableModelGiveColor(double r, double g, double b, double a);
 _UI_EXTERN void *uiTableModelGiveInt(int i);
+// TODO TakeString
+// TODO add const
 _UI_EXTERN int uiTableModelTakeInt(void *v);
 
 _UI_EXTERN uiTableModel *uiNewTableModel(uiTableModelHandler *mh);
@@ -48,6 +50,7 @@ _UI_EXTERN void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, 
 _UI_EXTERN void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand);
 // TODO should these have labels?
 _UI_EXTERN void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand);
+_UI_EXTERN void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int expand);
 // TODO Editable?
 _UI_EXTERN void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable);
 _UI_EXTERN void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn);

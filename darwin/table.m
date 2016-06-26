@@ -7,7 +7,6 @@
 // - background color shows up for a line or two below selection
 // - editable NSTextFields have no intrinsic width
 // - changing a part property does not refresh views
-// - the target/action thing is wrong; we need to pass the model column for col, not the view column
 
 @interface tableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *libui_m;
@@ -22,6 +21,7 @@ enum {
 };
 
 @interface tablePart : NSObject
+@property int index;
 @property int type;
 @property int textColumn;
 @property int textColorColumn;
@@ -184,8 +184,9 @@ done:
 	else
 		implbug("table model editing action triggered on non-editable view");
 
+	// note the use of [view tag] — we need the model column, which we store in the view tag for relevant views below
 	(*(m->mh->SetCellValue))(m->mh, m,
-		row, [tv columnForView:view],
+		row, [view tag],
 		data);
 	// always refresh the value in case the model rejected it
 	// TODO only affect tv
@@ -234,6 +235,7 @@ done:
 			[tf setTarget:m->m];
 			[tf setAction:@selector(onAction:)];
 		}
+		[tf setTag:self.index];
 		view = tf;
 		break;
 	case partImage:
@@ -250,6 +252,7 @@ done:
 			iv, NSLayoutAttributeHeight,
 			1, 0,
 			@"uiTable image squareness constraint")];
+		[iv setTag:self.index];
 		view = iv;
 		break;
 	}
@@ -348,6 +351,7 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	tablePart *part;
 
 	part = [tablePart new];
+	part.index = [c->parts count];
 	part.type = partText;
 	part.textColumn = modelColumn;
 	part.expand = expand;
@@ -359,6 +363,7 @@ void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 	tablePart *part;
 
 	part = [tablePart new];
+	part.index = [c->parts count];
 	part.type = partImage;
 	part.imageColumn = modelColumn;
 	part.expand = expand;

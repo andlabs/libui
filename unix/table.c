@@ -301,52 +301,133 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	gtk_tree_path_free(path);
 }
 
+enum {
+	partText,
+	partImage,
+	partButton,
+	partCheckbox,
+	partProgressBar,
+};
+
+struct tablePart {
+	int type;
+	int textColumn;
+	int imageColumn;
+	int valueColumn;
+	uiTreeView *tv;		// for pixbufs and background color
+	int editable;
+};
+
 struct uiTableColumn {
 	GtkTreeViewColumn *c;
-	GtkTreeView *tv;		// for pixbufs
+	uiTreeView *tv;		// for pixbufs and background color
+	GPtrArray *parts;
 };
+
+struct uiTreeView {
+	uiUnixControl c;
+	GtkWidget *widget;
+	GtkContainer *scontainer;
+	GtkScrolledWindow *sw;
+	GtkWidget *treeWidget;
+	GtkTreeView *tv;
+	GPtrArray *columns;
+	int backgroundColumn;
+};
+
+static void dataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm, GtkTreeIter *iter, gpointer data)
+{
+	struct tablePart *part = (struct tablePart *) data;
+	GValue value = G_VALUE_INIT;
+	const gchar *str;
+	uiImage *img;
+
+	switch (part->type) {
+	case partText:
+		gtk_tree_model_get_value(mm, iter, part->textColumn, &value);
+		str = g_value_get_string(&value);
+		g_object_set(r, "text", str, NULL);
+		if (part->editable)
+			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_EDITABLE, NULL);
+		else
+			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
+		break;
+	case partImage:
+		gtk_tree_model_get_value(mm, iter, part->imageColumn, &value);
+		img = (uiImage *) g_value_get_pointer(&value);
+		// TODO
+		g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
+		break;
+	case partButton:
+		gtk_tree_model_get_value(mm, iter, part->textColumn, &value);
+		// TODO
+		if (part->editable)
+			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_ACTIVATABLE, NULL);
+		else
+			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
+		break;
+	case partCheckbox:
+		gtk_tree_model_get_value(mm, iter, part->valueColumn, &value);
+		g_object_set(r, "active", g_value_get_int(&value) != 0, NULL);
+		if (part->editable)
+			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_ACTIVATABLE, NULL);
+		else
+			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
+		break;
+	case partProgressBar:
+		gtk_tree_model_get_value(mm, iter, part->valueColumn, &value);
+		// TODO
+		g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
+		break;
+	}
+	g_value_unset(&value);
+
+	if (part->tv->backgroundColumn != -1) {
+		GdkRGBA *rgba;
+
+		gtk_tree_model_get_value(mm, &iter, part->tv->backgroundColumn, &value);
+		rgba = (GdkRGBA *) g_value_get_boxed(&value);
+		if (rgba != NULL)
+			g_object_set(r, "cell-background-rgba", rgba, NULL);
+		g_value_unset(&value);
+	}
+}
 
 void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 {
+	struct tablePart *part;
 	GtkCellRenderer *r;
 
+	part = uiNew(struct tablePart);
+	part->type = partText;
+	part->textColumn = modelColumn;
+	part->tv = c->tv;
+	part->editable = 0;
+
 	r = gtk_cell_renderer_text_new();
-	// TODO make uneditable
 	gtk_table_column_pack_start(c->c, r, expand != 0);
-	gtk_table_column_add_attribute(c->c, r, "text", modelColumn);
+	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
 	// TODO editing signal
-}
 
-struct pixbufData {
-	GtkTreeView *tv;
-	int modelColumn;
-};
-
-static void pixbufDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm, GtkTreeIter *iter, gpointer data)
-{
-	struct pixbufData *d = (struct pixbufData *) data;
-	GValue value = G_VALUE_INIT;
-	uiImage *img;
-
-	gtk_tree_model_get_value(mm, iter, d->modelColumn, &value);
-	img = (uiImage *) g_value_get_pointer(&value);
-	// TODO
+	g_ptr_array_add(c->parts, part);
 }
 
 void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 {
+	struct tablePart *part;
 	GtkCellRenderer *r;
-	struct pixbufData *d;
+
+	part = uiNew(struct tablePart);
+	part->type = partImage;
+	part->textColumn = modelColumn;
+	part->tv = c->tv;
+	part->editable = 0;
 
 	r = gtk_cell_renderer_pixbuf_new();
-	// TODO make uneditable
 	gtk_table_column_pack_start(c->c, r, expand != 0);
-	// TODO use uiNew and uiFree (need to wrap the latter)
-	d = g_new0(1, struct pixbufData);
-	d->tv = c->tv;
-	d->modelColumn = modelColumn;
-	gtk_tree_view_column_set_cell_data_func(c->c, r,
-		pixbufDataFunc, d, g_free);
+	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
+
+	g_ptr_array_add(c->parts, part);
 }
 
 void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand)
@@ -356,18 +437,39 @@ void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand
 
 void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand)
 {
+	struct tablePart *part;
 	GtkCellRenderer *r;
 
+	part = uiNew(struct tablePart);
+	part->type = partCheckbox;
+	part->valueColumn = modelColumn;
+	part->tv = c->tv;
+	part->editable = 1;		// editable by default
+
 	r = gtk_cell_renderer_toggle_new();
-	// TODO make editable
 	gtk_table_column_pack_start(c->c, r, expand != 0);
-	gtk_table_column_add_attribute(c->c, r, "active", modelColumn);
+	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
 	// TODO editing signal
+
+	g_ptr_array_add(c->parts, part);
 }
 
 void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int expand)
 {
-	// TODO
+	struct tablePart *part;
+	GtkCellRenderer *r;
+
+	part = uiNew(struct tablePart);
+	part->type = partProgressBar;
+	part->valueColumn = modelColumn;
+	part->tv = c->tv;
+	part->editable = 0;
+
+	r = gtk_cell_renderer_progress_new();
+	gtk_table_column_pack_start(c->c, r, expand != 0);
+	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
+
+	g_ptr_array_add(c->parts, part);
 }
 
 void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable)
@@ -380,17 +482,56 @@ void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
 	// TODO
 }
 
+uiUnixControlAllDefaultsExceptDestroy(uiTable)
+
+static void uiTableDestroy(uiControl *c)
+{
+	uiTable *t = uiTable(c);
+
+	// TODO
+	g_object_unref(t->widget);
+	uiFreeControl(uiControl(t));
+}
+
 uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 {
-	// TODO
+	uiTableColumn *c;
+
+	c = uiNew(uiTableColumn);
+	c->c = gtk_tree_view_column_new();
+	gtk_tree_view_column_set_title(c->c, name);
+	gtk_tree_view_append_column(t->tv, c->c);
+	c->tv = t;		// TODO rename field to t, cascade
+	c->parts = g_ptr_array_new();
+	return c;
 }
 
 void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 {
-	// TODO
+	t->backgroundColumn = modelColumn;
+	// TODO refresh table
 }
 
 uiTable *uiNewTable(uiTableModel *model)
 {
-	// TODO
+	uiTable *t;
+
+	uiUnixNewControl(uiTable, t);
+
+	t->backgroundColumn = -1;
+
+	t->widget = gtk_scrolled_window_new(NULL, NULL);
+	t->scontainer = GTK_CONTAINER(e->widget);
+	t->sw = GTK_SCROLLED_WINDOW(e->widget);
+	gtk_scrolled_window_set_shadow_type(t->sw, GTK_SHADOW_IN);
+
+	t->treeviewWidget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(m));
+	t->tv = GTK_TREE_VIEW(t->treeviewWidget);
+	// TODO set up t->tv
+
+	gtk_container_add(t->scontainer, t->treeviewWidget);
+	// and make the tree view visible; only the scrolled window's visibility is controlled by libui
+	gtk_widget_show(t->treeviewWidget);
+
+	return t;
 }

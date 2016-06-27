@@ -19,6 +19,7 @@ _UI_ENUM(uiTableModelColumnType) {
 	uiTableModelColumnColor,
 };
 
+// TODO validate ranges; validate types on each getter/setter call (? table columns only?)
 struct uiTableModelHandler {
 	int (*NumColumns)(uiTableModelHandler *, uiTableModel *);
 	uiTableModelColumnType (*ColumnType)(uiTableModelHandler *, uiTableModel *, int);

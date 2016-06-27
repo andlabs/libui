@@ -313,8 +313,9 @@ struct tablePart {
 	int textColumn;
 	int imageColumn;
 	int valueColumn;
+	int colorColumn;
+	GtkCellRenderer *r;
 	uiTable *tv;			// for pixbufs and background color
-	int editable;
 };
 
 struct uiTableColumn {
@@ -353,22 +354,37 @@ static void setImageSize(GtkCellRenderer *r)
 		2 * ypad + size);
 }
 
+static void applyColor(GtkTreeModel *mm, GtkTreeIter *iter, int modelColumn, GtkCellRenderer *r, const char *prop, const char *propSet)
+{
+	GValue value = G_VALUE_INIT;
+	GdkRGBA *rgba;
+
+	gtk_tree_model_get_value(mm, iter, modelColumn, &value);
+	rgba = (GdkRGBA *) g_value_get_boxed(&value);
+	if (rgba != NULL)
+		g_object_set(r, prop, rgba, NULL);
+	else
+		g_object_set(r, propSet, FALSE, NULL);
+	g_value_unset(&value);
+}
+
 static void dataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm, GtkTreeIter *iter, gpointer data)
 {
 	struct tablePart *part = (struct tablePart *) data;
 	GValue value = G_VALUE_INIT;
 	const gchar *str;
 	uiImage *img;
+	int pval;
 
 	switch (part->type) {
 	case partText:
 		gtk_tree_model_get_value(mm, iter, part->textColumn, &value);
 		str = g_value_get_string(&value);
 		g_object_set(r, "text", str, NULL);
-		if (part->editable)
-			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_EDITABLE, NULL);
-		else
-			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
+		if (part->colorColumn != -1)
+			applyColor(mm, iter,
+				part->colorColumn,
+				r, "foreground-rgba", "foreground-set");
 		break;
 	case partImage:
 //TODO		setImageSize(r);
@@ -377,43 +393,41 @@ static void dataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm,
 		g_object_set(r, "surface",
 			imageAppropriateSurface(img, part->tv->treeWidget),
 			NULL);
-		g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
 		break;
 	case partButton:
 		gtk_tree_model_get_value(mm, iter, part->textColumn, &value);
 		// TODO
-		if (part->editable)
-			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_ACTIVATABLE, NULL);
-		else
-			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
 		break;
 	case partCheckbox:
 		gtk_tree_model_get_value(mm, iter, part->valueColumn, &value);
 		g_object_set(r, "active", g_value_get_int(&value) != 0, NULL);
-		if (part->editable)
-			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_ACTIVATABLE, NULL);
-		else
-			g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
 		break;
 	case partProgressBar:
 		gtk_tree_model_get_value(mm, iter, part->valueColumn, &value);
-		// TODO
-		g_object_set(r, "mode", GTK_CELL_RENDERER_MODE_INERT, NULL);
+		pval = g_value_get_int(&value);
+		if (pval == -1) {
+			// TODO
+		} else
+			g_object_set(r,
+				"pulse", -1,
+				"value", pval,
+				NULL);
 		break;
 	}
 	g_value_unset(&value);
 
-	if (part->tv->backgroundColumn != -1) {
-		GdkRGBA *rgba;
+	if (part->tv->backgroundColumn != -1)
+		applyColor(mm, iter,
+			part->tv->backgroundColumn,
+			r, "cell-background-rgba", "cell-background-set");
+}
 
-		gtk_tree_model_get_value(mm, iter, part->tv->backgroundColumn, &value);
-		rgba = (GdkRGBA *) g_value_get_boxed(&value);
-		if (rgba != NULL)
-			g_object_set(r, "cell-background-rgba", rgba, NULL);
-		else
-			g_object_set(r, "cell-background-set", FALSE, NULL);
-		g_value_unset(&value);
-	}
+static void appendPart(uiTableColumn *c, struct tablePart *part, GtkCellRenderer *r, int expand)
+{
+	part->r = r;
+	gtk_tree_view_column_pack_start(c->c, part->r, expand != 0);
+	gtk_tree_view_column_set_cell_data_func(c->c, part->r, dataFunc, part, NULL);
+	g_ptr_array_add(c->parts, part);
 }
 
 void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
@@ -425,32 +439,26 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	part->type = partText;
 	part->textColumn = modelColumn;
 	part->tv = c->tv;
-	part->editable = 0;
+	part->colorColumn = -1;
 
 	r = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_pack_start(c->c, r, expand != 0);
-	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
+	g_object_set(r, "editable", FALSE, NULL);
 	// TODO editing signal
 
-	g_ptr_array_add(c->parts, part);
+	appendPart(c, part, r, expand);
 }
 
 void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 {
 	struct tablePart *part;
-	GtkCellRenderer *r;
 
 	part = uiNew(struct tablePart);
 	part->type = partImage;
 	part->imageColumn = modelColumn;
 	part->tv = c->tv;
-	part->editable = 0;
-
-	r = gtk_cell_renderer_pixbuf_new();
-	gtk_tree_view_column_pack_start(c->c, r, expand != 0);
-	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
-
-	g_ptr_array_add(c->parts, part);
+	appendPart(c, part,
+		gtk_cell_renderer_pixbuf_new(),
+		expand);
 }
 
 void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand)
@@ -467,42 +475,51 @@ void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expa
 	part->type = partCheckbox;
 	part->valueColumn = modelColumn;
 	part->tv = c->tv;
-	part->editable = 1;		// editable by default
 
 	r = gtk_cell_renderer_toggle_new();
-	gtk_tree_view_column_pack_start(c->c, r, expand != 0);
-	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
+	g_object_set(r, "sensitive", TRUE, NULL);		// editable by default
 	// TODO editing signal
 
-	g_ptr_array_add(c->parts, part);
+	appendPart(c, part, r, expand);
 }
 
 void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int expand)
 {
 	struct tablePart *part;
-	GtkCellRenderer *r;
 
 	part = uiNew(struct tablePart);
 	part->type = partProgressBar;
 	part->valueColumn = modelColumn;
 	part->tv = c->tv;
-	part->editable = 0;
-
-	r = gtk_cell_renderer_progress_new();
-	gtk_tree_view_column_pack_start(c->c, r, expand != 0);
-	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
-
-	g_ptr_array_add(c->parts, part);
+	appendPart(c, part,
+		gtk_cell_renderer_progress_new(),
+		expand);
 }
 
 void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable)
 {
-	// TODO
+	struct tablePart *p;
+
+	p = (struct tablePart *) g_ptr_array_index(c->parts, part);
+	switch (p->type) {
+	case partImage:
+	case partProgressBar:
+		return;
+	case partButton:
+	case partCheckbox:
+		g_object_set(p->r, "sensitive", editable != 0, NULL);
+		return;
+	}
+	g_object_set(p->r, "editable", editable != 0, NULL);
 }
 
 void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
 {
-	// TODO
+	struct tablePart *p;
+
+	p = (struct tablePart *) g_ptr_array_index(c->parts, part);
+	p->colorColumn = modelColumn;
+	// TODO refresh table
 }
 
 uiUnixControlAllDefaultsExceptDestroy(uiTable)

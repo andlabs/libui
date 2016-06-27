@@ -59,7 +59,7 @@ static GType uiTableModel_get_column_type(GtkTreeModel *mm, gint index)
 	case uiTableModelColumnString:
 		return G_TYPE_STRING;
 	case uiTableModelColumnImage:
-		// TODO
+		return G_TYPE_POINTER;
 	case uiTableModelColumnInt:
 		return G_TYPE_INT;
 	case uiTableModelColumnColor:
@@ -120,7 +120,8 @@ static void uiTableModel_get_value(GtkTreeModel *mm, GtkTreeIter *iter, gint col
 		g_value_take_string(value, (char *) data);
 		return;
 	case uiTableModelColumnImage:
-		// TODO
+		g_value_init(value, G_TYPE_POINTER);
+		g_value_set_pointer(value, data);
 		return;
 	case uiTableModelColumnInt:
 		g_value_init(value, G_TYPE_INT);
@@ -387,6 +388,8 @@ static void dataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm,
 		rgba = (GdkRGBA *) g_value_get_boxed(&value);
 		if (rgba != NULL)
 			g_object_set(r, "cell-background-rgba", rgba, NULL);
+		else
+			g_object_set(r, "cell-background-set", FALSE, NULL);
 		g_value_unset(&value);
 	}
 }
@@ -417,7 +420,7 @@ void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 
 	part = uiNew(struct tablePart);
 	part->type = partImage;
-	part->textColumn = modelColumn;
+	part->imageColumn = modelColumn;
 	part->tv = c->tv;
 	part->editable = 0;
 

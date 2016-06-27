@@ -58,9 +58,9 @@ func main() {
 			} else {
 				fmt.Printf(" ")
 			}
-			d := uint32(im.data[j + 2]) << 16
+			d := uint32(im.data[j + 0]) << 16
 			d |= uint32(im.data[j + 1]) << 8
-			d |= uint32(im.data[j + 0])
+			d |= uint32(im.data[j + 2])
 			d |= uint32(im.data[j + 3]) << 24
 			fmt.Printf("0x%08X,", d)
 

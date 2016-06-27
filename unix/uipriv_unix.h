@@ -8,6 +8,7 @@
 #include <dlfcn.h>		// see drawtext.c
 #include <langinfo.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../ui.h"
 #include "../ui_unix.h"
 #include "../common/uipriv.h"
@@ -50,3 +51,6 @@ extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
 
 // graphemes.c
 extern ptrdiff_t *graphemes(const char *text, PangoContext *context);
+
+// image.c
+extern cairo_surface_t *imageAppropriateSurface(uiImage *i, GtkWidget *w);

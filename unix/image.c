@@ -24,7 +24,7 @@ uiImage *uiNewImage(double width, double height)
 	i = uiNew(uiImage);
 	i->width = width;
 	i->height = height;
-	i->images = g_ptr_array_new_with_free_func(g_object_unref);
+	i->images = g_ptr_array_new_with_free_func(freeImageRep);
 	return i;
 }
 

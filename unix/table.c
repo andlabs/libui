@@ -19,7 +19,7 @@ struct uiTableModelClass {
 	GObjectClass parent_class;
 };
 
-static void uiTableModel_gtk_tree_model_interface_init(GtkTreeModelInterface *iface);
+static void uiTableModel_gtk_tree_model_interface_init(GtkTreeModelIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE(uiTableModel, uiTableModel, G_TYPE_OBJECT,
 	G_IMPLEMENT_INTERFACE(GTK_TYPE_TREE_MODEL, uiTableModel_gtk_tree_model_interface_init))
@@ -95,7 +95,6 @@ bad:
 // GtkListStore returns NULL on error; let's do that too
 static GtkTreePath *uiTableModel_get_path(GtkTreeModel *mm, GtkTreeIter  *iter)
 {
-	uiTableModel *m = uiTableModel(mm);
 	gint row;
 
 	if (iter->stamp != STAMP_GOOD)
@@ -109,12 +108,13 @@ static void uiTableModel_get_value(GtkTreeModel *mm, GtkTreeIter *iter, gint col
 {
 	uiTableModel *m = uiTableModel(mm);
 	gint row;
+	void *data;
 
 	if (iter->stamp != STAMP_GOOD)
 		return;
 	row = GPOINTER_TO_INT(iter->user_data);
 	data = (*(m->mh->CellValue))(m->mh, m, row, column);
-	switch ((*(m->mh->ColumnType))(m->mh, m, index)) {
+	switch ((*(m->mh->ColumnType))(m->mh, m, column)) {
 	case uiTableModelColumnString:
 		g_value_init(value, G_TYPE_STRING);
 		g_value_take_string(value, (char *) data);
@@ -134,11 +134,9 @@ static void uiTableModel_get_value(GtkTreeModel *mm, GtkTreeIter *iter, gint col
 	// TODO
 }
 
-static gboolean uiTreeModel_iter_next(GtkTreeModel *mm, GtkTreeIter *iter)
+static gboolean uiTableModel_iter_next(GtkTreeModel *mm, GtkTreeIter *iter)
 {
 	uiTableModel *m = uiTableModel(mm);
-	gint row;
-
 	gint row;
 
 	if (iter->stamp != STAMP_GOOD)
@@ -155,7 +153,6 @@ static gboolean uiTreeModel_iter_next(GtkTreeModel *mm, GtkTreeIter *iter)
 
 static gboolean uiTableModel_iter_previous(GtkTreeModel *mm, GtkTreeIter *iter)
 {
-	uiTableModel *m = uiTableModel(mm);
 	gint row;
 
 	if (iter->stamp != STAMP_GOOD)
@@ -172,7 +169,7 @@ static gboolean uiTableModel_iter_previous(GtkTreeModel *mm, GtkTreeIter *iter)
 
 static gboolean uiTableModel_iter_children(GtkTreeModel *mm, GtkTreeIter *iter, GtkTreeIter *parent)
 {
-	return gtk_tree_model_nth_child(mm, iter, parent, 0);
+	return gtk_tree_model_iter_nth_child(mm, iter, parent, 0);
 }
 
 static gboolean uiTableModel_iter_has_child(GtkTreeModel *mm, GtkTreeIter *iter)
@@ -217,10 +214,11 @@ gboolean uiTableModel_iter_parent(GtkTreeModel *mm, GtkTreeIter *iter, GtkTreeIt
 
 static void uiTableModel_class_init(uiTableModelClass *class)
 {
-	// nothing to do
+	G_OBJECT_CLASS(class)->dispose = uiTableModel_dispose;
+	G_OBJECT_CLASS(class)->finalize = uiTableModel_finalize;
 }
 
-static void uiTableModel_gtk_tree_model_interface_init(GtkTreeModelInterface *iface)
+static void uiTableModel_gtk_tree_model_interface_init(GtkTreeModelIface *iface)
 {
 	iface->get_flags = uiTableModel_get_flags;
 	iface->get_n_columns = uiTableModel_get_n_columns;
@@ -276,7 +274,7 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 	path = gtk_tree_path_new_from_indices(newIndex, -1);
 	iter.stamp = STAMP_GOOD;
 	iter.user_data = GINT_TO_POINTER(newIndex);
-	gtk_tree_model_row_inserted(GTK_TREE_MODEL(m), path, iter);
+	gtk_tree_model_row_inserted(GTK_TREE_MODEL(m), path, &iter);
 	gtk_tree_path_free(path);
 }
 
@@ -285,10 +283,10 @@ void uiTableModelRowChanged(uiTableModel *m, int index)
 	GtkTreePath *path;
 	GtkTreeIter iter;
 
-	path = gtk_tree_path_new_from_indices(newIndex, -1);
+	path = gtk_tree_path_new_from_indices(index, -1);
 	iter.stamp = STAMP_GOOD;
-	iter.user_data = GINT_TO_POINTER(newIndex);
-	gtk_tree_model_row_changed(GTK_TREE_MODEL(m), path, iter);
+	iter.user_data = GINT_TO_POINTER(index);
+	gtk_tree_model_row_changed(GTK_TREE_MODEL(m), path, &iter);
 	gtk_tree_path_free(path);
 }
 
@@ -296,8 +294,8 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 {
 	GtkTreePath *path;
 
-	path = gtk_tree_path_new_from_indices(newIndex, -1);
-	gtk_tree_model_row_removed(GTK_TREE_MODEL(m), path);
+	path = gtk_tree_path_new_from_indices(oldIndex, -1);
+	gtk_tree_model_row_deleted(GTK_TREE_MODEL(m), path);
 	gtk_tree_path_free(path);
 }
 
@@ -314,17 +312,17 @@ struct tablePart {
 	int textColumn;
 	int imageColumn;
 	int valueColumn;
-	uiTreeView *tv;		// for pixbufs and background color
+	uiTable *tv;			// for pixbufs and background color
 	int editable;
 };
 
 struct uiTableColumn {
 	GtkTreeViewColumn *c;
-	uiTreeView *tv;		// for pixbufs and background color
+	uiTable *tv;			// for pixbufs and background color
 	GPtrArray *parts;
 };
 
-struct uiTreeView {
+struct uiTable {
 	uiUnixControl c;
 	GtkWidget *widget;
 	GtkContainer *scontainer;
@@ -385,7 +383,7 @@ static void dataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm,
 	if (part->tv->backgroundColumn != -1) {
 		GdkRGBA *rgba;
 
-		gtk_tree_model_get_value(mm, &iter, part->tv->backgroundColumn, &value);
+		gtk_tree_model_get_value(mm, iter, part->tv->backgroundColumn, &value);
 		rgba = (GdkRGBA *) g_value_get_boxed(&value);
 		if (rgba != NULL)
 			g_object_set(r, "cell-background-rgba", rgba, NULL);
@@ -405,7 +403,7 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	part->editable = 0;
 
 	r = gtk_cell_renderer_text_new();
-	gtk_table_column_pack_start(c->c, r, expand != 0);
+	gtk_tree_view_column_pack_start(c->c, r, expand != 0);
 	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
 	// TODO editing signal
 
@@ -424,7 +422,7 @@ void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 	part->editable = 0;
 
 	r = gtk_cell_renderer_pixbuf_new();
-	gtk_table_column_pack_start(c->c, r, expand != 0);
+	gtk_tree_view_column_pack_start(c->c, r, expand != 0);
 	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
 
 	g_ptr_array_add(c->parts, part);
@@ -447,7 +445,7 @@ void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expa
 	part->editable = 1;		// editable by default
 
 	r = gtk_cell_renderer_toggle_new();
-	gtk_table_column_pack_start(c->c, r, expand != 0);
+	gtk_tree_view_column_pack_start(c->c, r, expand != 0);
 	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
 	// TODO editing signal
 
@@ -466,7 +464,7 @@ void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int e
 	part->editable = 0;
 
 	r = gtk_cell_renderer_progress_new();
-	gtk_table_column_pack_start(c->c, r, expand != 0);
+	gtk_tree_view_column_pack_start(c->c, r, expand != 0);
 	gtk_tree_view_column_set_cell_data_func(c->c, r, dataFunc, part, NULL);
 
 	g_ptr_array_add(c->parts, part);
@@ -521,17 +519,17 @@ uiTable *uiNewTable(uiTableModel *model)
 	t->backgroundColumn = -1;
 
 	t->widget = gtk_scrolled_window_new(NULL, NULL);
-	t->scontainer = GTK_CONTAINER(e->widget);
-	t->sw = GTK_SCROLLED_WINDOW(e->widget);
+	t->scontainer = GTK_CONTAINER(t->widget);
+	t->sw = GTK_SCROLLED_WINDOW(t->widget);
 	gtk_scrolled_window_set_shadow_type(t->sw, GTK_SHADOW_IN);
 
-	t->treeviewWidget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(m));
-	t->tv = GTK_TREE_VIEW(t->treeviewWidget);
+	t->treeWidget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(model));
+	t->tv = GTK_TREE_VIEW(t->treeWidget);
 	// TODO set up t->tv
 
-	gtk_container_add(t->scontainer, t->treeviewWidget);
+	gtk_container_add(t->scontainer, t->treeWidget);
 	// and make the tree view visible; only the scrolled window's visibility is controlled by libui
-	gtk_widget_show(t->treeviewWidget);
+	gtk_widget_show(t->treeWidget);
 
 	return t;
 }

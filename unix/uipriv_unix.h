@@ -54,3 +54,6 @@ extern ptrdiff_t *graphemes(const char *text, PangoContext *context);
 
 // image.c
 extern cairo_surface_t *imageAppropriateSurface(uiImage *i, GtkWidget *w);
+
+// cellrendererbutton.c
+extern GtkCellRenderer *newCellRendererButton(void);

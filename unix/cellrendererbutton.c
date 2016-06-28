@@ -1,6 +1,11 @@
 // 28 june 2016
 #include "uipriv_unix.h"
 
+// TODOs
+// - it's a rather tight fit
+// - selected row text color is white
+// - no held state?
+
 #define cellRendererButtonType (cellRendererButton_get_type())
 #define cellRendererButton(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), cellRendererButtonType, cellRendererButton))
 #define isCellRendererButton(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), cellRendererButtonType))
@@ -22,9 +27,11 @@ struct cellRendererButtonClass {
 
 G_DEFINE_TYPE(cellRendererButton, cellRendererButton, GTK_TYPE_CELL_RENDERER)
 
-static void cellRendererButton_init(cellRendererButton *m)
+static void cellRendererButton_init(cellRendererButton *c)
 {
-	// nothing to do
+	g_object_set(c, "mode", GTK_CELL_RENDERER_MODE_ACTIVATABLE, NULL);
+	// the standard cell renderers all do this
+	gtk_cell_renderer_set_padding(GTK_CELL_RENDERER(c), 2, 2);
 }
 
 static void cellRendererButton_dispose(GObject *obj)
@@ -209,10 +216,39 @@ static gboolean cellRendererButton_activate(GtkCellRenderer *r, GdkEvent *e, Gtk
 	return FALSE;
 }
 
+static GParamSpec *props[2] = { NULL, NULL };
+
+static void cellRendererButton_set_property(GObject *object, guint prop, const GValue *value, GParamSpec *pspec)
+{
+	cellRendererButton *c = cellRendererButton(object);
+
+	if (prop != 1) {
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(c, prop, pspec);
+		return;
+	}
+	if (c->text != NULL)
+		g_free(c->text);
+	c->text = g_value_dup_string(value);
+	// GtkCellRendererText doesn't queue a redraw; we won't either
+}
+
+static void cellRendererButton_get_property(GObject *object, guint prop, GValue *value, GParamSpec *pspec)
+{
+	cellRendererButton *c = cellRendererButton(object);
+
+	if (prop != 1) {
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(c, prop, pspec);
+		return;
+	}
+	g_value_set_string(value, c->text);
+}
+
 static void cellRendererButton_class_init(cellRendererButtonClass *class)
 {
 	G_OBJECT_CLASS(class)->dispose = cellRendererButton_dispose;
 	G_OBJECT_CLASS(class)->finalize = cellRendererButton_finalize;
+	G_OBJECT_CLASS(class)->set_property = cellRendererButton_set_property;
+	G_OBJECT_CLASS(class)->get_property = cellRendererButton_get_property;
 	GTK_CELL_RENDERER_CLASS(class)->get_request_mode = cellRendererButton_get_request_mode;
 	GTK_CELL_RENDERER_CLASS(class)->get_preferred_width = cellRendererButton_get_preferred_width;
 	GTK_CELL_RENDERER_CLASS(class)->get_preferred_height_for_width = cellRendererButton_get_preferred_height_for_width;
@@ -223,6 +259,13 @@ static void cellRendererButton_class_init(cellRendererButtonClass *class)
 	GTK_CELL_RENDERER_CLASS(class)->render = cellRendererButton_render;
 	GTK_CELL_RENDERER_CLASS(class)->activate = cellRendererButton_activate;
 	// don't provide a start_editing()
+
+	props[1] = g_param_spec_string("text",
+		"Text",
+		"Button text",
+		"",
+		G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS);
+	g_object_class_install_properties(G_OBJECT_CLASS(class), 2, props);
 }
 
 GtkCellRenderer *newCellRendererButton(void)

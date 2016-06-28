@@ -396,7 +396,8 @@ static void dataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm,
 		break;
 	case partButton:
 		gtk_tree_model_get_value(mm, iter, part->textColumn, &value);
-		// TODO
+		str = g_value_get_string(&value);
+		g_object_set(r, "text", str, NULL);
 		break;
 	case partCheckbox:
 		gtk_tree_model_get_value(mm, iter, part->valueColumn, &value);
@@ -463,7 +464,19 @@ void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 
 void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand)
 {
-	// TODO
+	struct tablePart *part;
+	GtkCellRenderer *r;
+
+	part = uiNew(struct tablePart);
+	part->type = partButton;
+	part->textColumn = modelColumn;
+	part->tv = c->tv;
+
+	r = newCellRendererButton();
+	g_object_set(r, "sensitive", TRUE, NULL);		// editable by default
+	// TODO editing signal
+
+	appendPart(c, part, r, expand);
 }
 
 void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand)

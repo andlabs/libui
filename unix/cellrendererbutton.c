@@ -4,9 +4,10 @@
 // TODOs
 // - it's a rather tight fit
 // - selected row text color is white
-// - no held state?
-// - top of button wrong?
 // - resizing a column with a button in it crashes the program
+// - accessibility
+// - right side too big?
+// - does prelight work on 3.10 and 3.20?
 
 #define cellRendererButtonType (cellRendererButton_get_type())
 #define cellRendererButton(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), cellRendererButtonType, cellRendererButton))
@@ -57,15 +58,37 @@ static GtkSizeRequestMode cellRendererButton_get_request_mode(GtkCellRenderer *r
 	return GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH;
 }
 
-// this is basically what GtkCellRendererToggle did in 3.10
+// this is basically what GtkCellRendererToggle did in 3.10 and does in 3.20, as well as what the Foreign Drawing gtk3-demo demo does
 static GtkStyleContext *setButtonStyle(GtkWidget *widget)
 {
-	GtkStyleContext *context;
+	GtkStyleContext *base, *context;
+	GtkWidgetPath *path;
 
-	context = gtk_widget_get_style_context(widget);
-	gtk_style_context_save(context);
+	base = gtk_widget_get_style_context(widget);
+	context = gtk_style_context_new();
+
+	path = gtk_widget_path_copy(gtk_style_context_get_path(base));
+	gtk_widget_path_append_type(path, G_TYPE_NONE);
+	if (!FUTURE_gtk_widget_path_iter_set_object_name(path, -1, "button"))
+		// not on 3.20; try the type
+		gtk_widget_path_iter_set_object_type(path, -1, GTK_TYPE_BUTTON);
+
+	gtk_style_context_set_path(context, path);
+	gtk_style_context_set_parent(context, base);
+	// the gtk3-demo example (which says we need to do this) uses gtk_widget_path_iter_get_state(path, -1) but that's not available until 3.14
+	// TODO make a future for that too
+	gtk_style_context_set_state(context, gtk_style_context_get_state(base));
+	gtk_widget_path_unref(path);
+
+	// and if the above widget path screwery stil doesn't work, this will
 	gtk_style_context_add_class(context, GTK_STYLE_CLASS_BUTTON);
+
 	return context;
+}
+
+void unsetButtonStyle(GtkStyleContext *context)
+{
+	g_object_unref(context);
 }
 
 // this is based on what GtkCellRendererText does
@@ -73,19 +96,16 @@ static void cellRendererButton_get_preferred_width(GtkCellRenderer *r, GtkWidget
 {
 	cellRendererButton *c = cellRendererButton(r);
 	gint xpad;
-	GtkStyleContext *context;
 	PangoLayout *layout;
 	PangoRectangle rect;
 	gint out;
 
 	gtk_cell_renderer_get_padding(GTK_CELL_RENDERER(c), &xpad, NULL);
 
-	context = setButtonStyle(widget);
 	layout = gtk_widget_create_pango_layout(widget, c->text);
 	pango_layout_set_width(layout, -1);
 	pango_layout_get_extents(layout, NULL, &rect);
 	g_object_unref(layout);
-	gtk_style_context_restore(context);
 
 	out = 2 * xpad + PANGO_PIXELS_CEIL(rect.width);
 	if (minimum != NULL)
@@ -99,19 +119,16 @@ static void cellRendererButton_get_preferred_height_for_width(GtkCellRenderer *r
 {
 	cellRendererButton *c = cellRendererButton(r);
 	gint xpad, ypad;
-	GtkStyleContext *context;
 	PangoLayout *layout;
 	gint height;
 	gint out;
 
 	gtk_cell_renderer_get_padding(GTK_CELL_RENDERER(c), &xpad, &ypad);
 
-	context = setButtonStyle(widget);
 	layout = gtk_widget_create_pango_layout(widget, c->text);
 	pango_layout_set_width(layout, ((2 * xpad + width) * PANGO_SCALE));
 	pango_layout_get_pixel_size(layout, NULL, &height);
 	g_object_unref(layout);
-	gtk_style_context_restore(context);
 
 	out = 2 * ypad + height;
 	if (minimum != NULL)
@@ -134,7 +151,6 @@ static void cellRendererButton_get_aligned_area(GtkCellRenderer *r, GtkWidget *w
 {
 	cellRendererButton *c = cellRendererButton(r);
 	gint xpad, ypad;
-	GtkStyleContext *context;
 	PangoLayout *layout;
 	PangoRectangle rect;
 	gfloat xalign, yalign;
@@ -142,7 +158,6 @@ static void cellRendererButton_get_aligned_area(GtkCellRenderer *r, GtkWidget *w
 
 	gtk_cell_renderer_get_padding(GTK_CELL_RENDERER(c), &xpad, &ypad);
 
-	context = setButtonStyle(widget);
 	layout = gtk_widget_create_pango_layout(widget, c->text);
 	pango_layout_set_width(layout, -1);
 	pango_layout_get_pixel_extents(layout, NULL, &rect);
@@ -167,7 +182,6 @@ static void cellRendererButton_get_aligned_area(GtkCellRenderer *r, GtkWidget *w
 	aligned_area->height = 2 * ypad + rect.height;
 
 	g_object_unref(layout);
-	gtk_style_context_restore(context);
 }
 
 // this is based on both what GtkCellRendererText does and what GtkCellRendererToggle does
@@ -209,7 +223,7 @@ static void cellRendererButton_render(GtkCellRenderer *r, cairo_t *cr, GtkWidget
 		layout);
 
 	g_object_unref(layout);
-	gtk_style_context_restore(context);
+	unsetButtonStyle(context);
 }
 
 static guint clickedSignal;

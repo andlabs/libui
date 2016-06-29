@@ -15,6 +15,7 @@ const char *uiInit(uiInitOptions *o)
 		return msg;
 	}
 	initAlloc();
+	loadFutures();
 	return NULL;
 }
 

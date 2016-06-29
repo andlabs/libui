@@ -7,7 +7,6 @@
 // - resizing a column with a button in it crashes the program
 // - accessibility
 // - right side too big?
-// - does prelight work on 3.10 and 3.20?
 
 #define cellRendererButtonType (cellRendererButton_get_type())
 #define cellRendererButton(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), cellRendererButtonType, cellRendererButton))

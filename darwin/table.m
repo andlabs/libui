@@ -523,7 +523,8 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 	c->c.libui_col = c;
 	// via Interface Builder
 	[c->c setResizingMask:(NSTableColumnAutoresizingMask | NSTableColumnUserResizingMask)];
-	[c->c setTitle:toNSString(name)];
+	// 10.10 adds -[NSTableColumn setTitle:]; before then we have to do this
+	[[c->c headerCell] setStringValue:toNSString(name)];
 	// TODO is this sufficient?
 	[[c->c headerCell] setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
 	c->parts = [NSMutableArray new];

@@ -5,6 +5,8 @@
 // - it's a rather tight fit
 // - selected row text color is white
 // - no held state?
+// - top of button wrong?
+// - resizing a column with a button in it crashes the program
 
 #define cellRendererButtonType (cellRendererButton_get_type())
 #define cellRendererButton(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), cellRendererButtonType, cellRendererButton))
@@ -210,10 +212,12 @@ static void cellRendererButton_render(GtkCellRenderer *r, cairo_t *cr, GtkWidget
 	gtk_style_context_restore(context);
 }
 
+static guint clickedSignal;
+
 static gboolean cellRendererButton_activate(GtkCellRenderer *r, GdkEvent *e, GtkWidget *widget, const gchar *path, const GdkRectangle *background_area, const GdkRectangle *cell_area, GtkCellRendererState flags)
 {
-	// TODO
-	return FALSE;
+	g_signal_emit(r, clickedSignal, 0, path);
+	return TRUE;
 }
 
 static GParamSpec *props[2] = { NULL, NULL };
@@ -266,6 +270,14 @@ static void cellRendererButton_class_init(cellRendererButtonClass *class)
 		"",
 		G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS);
 	g_object_class_install_properties(G_OBJECT_CLASS(class), 2, props);
+
+	clickedSignal = g_signal_new("clicked",
+		G_TYPE_FROM_CLASS(class),
+		G_SIGNAL_RUN_LAST,
+		0,
+		NULL, NULL, NULL,
+		G_TYPE_NONE,
+		1, G_TYPE_STRING);
 }
 
 GtkCellRenderer *newCellRendererButton(void)

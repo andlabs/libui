@@ -332,6 +332,7 @@ struct uiTable {
 	GtkWidget *treeWidget;
 	GtkTreeView *tv;
 	GPtrArray *columns;
+	uiTableModel *model;
 	int backgroundColumn;
 };
 
@@ -423,12 +424,34 @@ static void dataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm,
 			r, "cell-background-rgba", "cell-background-set");
 }
 
+static void onEdited(struct tablePart *part, int column, const char *pathstr, const void *data)
+{
+	GtkTreePath *path;
+	int row;
+	uiTableModel *m;
+
+	path = gtk_tree_path_new_from_string(pathstr);
+	row = gtk_tree_path_get_indices(path)[0];
+	gtk_tree_path_free(path);
+	m = part->tv->model;
+	(*(m->mh->SetCellValue))(m->mh, m, row, column, data);
+	// and update
+	uiTableModelRowChanged(m, row);
+}
+
 static void appendPart(uiTableColumn *c, struct tablePart *part, GtkCellRenderer *r, int expand)
 {
 	part->r = r;
 	gtk_tree_view_column_pack_start(c->c, part->r, expand != 0);
 	gtk_tree_view_column_set_cell_data_func(c->c, part->r, dataFunc, part, NULL);
 	g_ptr_array_add(c->parts, part);
+}
+
+static void textEdited(GtkCellRendererText *renderer, gchar *path, gchar *newText, gpointer data)
+{
+	struct tablePart *part = (struct tablePart *) data;
+
+	onEdited(part, part->textColumn, path, newText);
 }
 
 void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
@@ -444,7 +467,7 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 
 	r = gtk_cell_renderer_text_new();
 	g_object_set(r, "editable", FALSE, NULL);
-	// TODO editing signal
+	g_signal_connect(r, "edited", G_CALLBACK(textEdited), part);
 
 	appendPart(c, part, r, expand);
 }
@@ -462,6 +485,14 @@ void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 		expand);
 }
 
+// TODO wrong type here
+static void buttonClicked(GtkCellRenderer *r, gchar *pathstr, gpointer data)
+{
+	struct tablePart *part = (struct tablePart *) data;
+
+	onEdited(part, part->textColumn, pathstr, NULL);
+}
+
 void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand)
 {
 	struct tablePart *part;
@@ -474,9 +505,28 @@ void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand
 
 	r = newCellRendererButton();
 	g_object_set(r, "sensitive", TRUE, NULL);		// editable by default
-	// TODO editing signal
+	g_signal_connect(r, "clicked", G_CALLBACK(buttonClicked), part);
 
 	appendPart(c, part, r, expand);
+}
+
+// yes, we need to do all this twice :|
+static void checkboxToggled(GtkCellRendererToggle *r, gchar *pathstr, gpointer data)
+{
+	struct tablePart *part = (struct tablePart *) data;
+	GtkTreePath *path;
+	int row;
+	uiTableModel *m;
+	void *value;
+	int intval;
+
+	path = gtk_tree_path_new_from_string(pathstr);
+	row = gtk_tree_path_get_indices(path)[0];
+	gtk_tree_path_free(path);
+	m = part->tv->model;
+	value = (*(m->mh->CellValue))(m->mh, m, row, part->valueColumn);
+	intval = !uiTableModelTakeInt(value);
+	onEdited(part, part->valueColumn, pathstr, uiTableModelGiveInt(intval));
 }
 
 void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand)
@@ -491,7 +541,7 @@ void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expa
 
 	r = gtk_cell_renderer_toggle_new();
 	g_object_set(r, "sensitive", TRUE, NULL);		// editable by default
-	// TODO editing signal
+	g_signal_connect(r, "toggled", G_CALLBACK(checkboxToggled), part);
 
 	appendPart(c, part, r, expand);
 }
@@ -552,6 +602,7 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 
 	c = uiNew(uiTableColumn);
 	c->c = gtk_tree_view_column_new();
+	gtk_tree_view_column_set_resizable(c->c, TRUE);
 	gtk_tree_view_column_set_title(c->c, name);
 	gtk_tree_view_append_column(t->tv, c->c);
 	c->tv = t;		// TODO rename field to t, cascade
@@ -571,6 +622,7 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	uiUnixNewControl(uiTable, t);
 
+	t->model = model;
 	t->backgroundColumn = -1;
 
 	t->widget = gtk_scrolled_window_new(NULL, NULL);
@@ -578,7 +630,7 @@ uiTable *uiNewTable(uiTableModel *model)
 	t->sw = GTK_SCROLLED_WINDOW(t->widget);
 	gtk_scrolled_window_set_shadow_type(t->sw, GTK_SHADOW_IN);
 
-	t->treeWidget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(model));
+	t->treeWidget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(t->model));
 	t->tv = GTK_TREE_VIEW(t->treeWidget);
 	// TODO set up t->tv
 

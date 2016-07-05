@@ -9,6 +9,25 @@ static int onClosing(uiWindow *w, void *data)
 	return 1;
 }
 
+const char* bool_cast(const int b) {
+	return b ? "true" : "false";
+}
+
+static void onStateChanged(uiWindow *w, void *data)
+{
+	uiLabel * state = uiLabel(data);
+	uiLabelSetText(state, bool_cast(uiWindowMinimized(w)));
+	char text[40];
+
+	strcpy(text, "minimized: ");
+	strcat(text, bool_cast(uiWindowMinimized(w)));
+	strcat(text, " / maximized: ");
+	strcat(text, bool_cast(uiWindowMaximized(w)));
+
+	uiLabelSetText(state, text);
+}
+
+
 static int onShouldQuit(void *data)
 {
 	uiWindow *mainwin = uiWindow(data);
@@ -17,8 +36,9 @@ static int onShouldQuit(void *data)
 	return 1;
 }
 
-static uiControl *makeBasicControlsPage(void)
+static uiControl *makeBasicControlsPage(uiLabel *state)
 {
+
 	uiBox *vbox;
 	uiBox *hbox;
 	uiGroup *group;
@@ -41,6 +61,11 @@ static uiControl *makeBasicControlsPage(void)
 	uiBoxAppend(vbox,
 		uiControl(uiNewLabel("This is a label. Right now, labels can only span one line.")),
 		0);
+
+	uiBoxAppend(vbox,
+		uiControl(state),
+		0);
+
 
 	uiBoxAppend(vbox,
 		uiControl(uiNewHorizontalSeparator()),
@@ -306,13 +331,18 @@ int main(void)
 
 	mainwin = uiNewWindow("libui Control Gallery", 640, 480, 1);
 	uiWindowOnClosing(mainwin, onClosing, NULL);
+
+
 	uiOnShouldQuit(onShouldQuit, mainwin);
 
 	tab = uiNewTab();
 	uiWindowSetChild(mainwin, uiControl(tab));
 	uiWindowSetMargined(mainwin, 1);
 
-	uiTabAppend(tab, "Basic Controls", makeBasicControlsPage());
+	uiLabel * state = uiNewLabel("window state");
+	uiWindowOnStateChanged(mainwin, onStateChanged, state);
+
+	uiTabAppend(tab, "Basic Controls", makeBasicControlsPage(state));
 	uiTabSetMargined(tab, 0, 1);
 
 	uiTabAppend(tab, "Numbers and Lists", makeNumbersPage());

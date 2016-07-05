@@ -181,6 +181,20 @@ void uiWindowSetMinimized(uiWindow *w, int minimized)
 
 int uiWindowMinimized(uiWindow *w)
 {
+	return w->state & GDK_WINDOW_STATE_MAXIMIZED;
+}
+
+void uiWindowSetMaximized(uiWindow *w, int maximized)
+{
+	if (Maximized) {
+		gtk_window_maximize(w->window);
+	} else {
+		gtk_window_unmaximize(w->window);
+	}
+}
+
+int uiWindowMaximized(uiWindow *w)
+{
 	return w->state & GDK_WINDOW_STATE_ICONIFIED;
 }
 

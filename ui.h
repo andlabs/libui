@@ -119,6 +119,8 @@ _UI_EXTERN void uiWindowSetMargined(uiWindow *w, int margined);
 _UI_EXTERN void uiWindowOnStateChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data);
 _UI_EXTERN void uiWindowSetMinimized(uiWindow *w, int minimized);
 _UI_EXTERN int uiWindowMinimized(uiWindow *w);
+_UI_EXTERN void uiWindowSetMaximized(uiWindow *w, int maximized);
+_UI_EXTERN int uiWindowMaximized(uiWindow *w);
 
 _UI_EXTERN uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar);
 

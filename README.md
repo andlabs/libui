@@ -130,6 +130,7 @@ Other people have made bindings to other languages:
 Language | Bindings
 --- | ---
 C#/.net | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding), [SharpUI](https://github.com/benpye/sharpui/)
+CHICKEN Scheme | [wasamasa/libui](https://github.com/wasamasa/libui)
 Crystal | [libui.cr](https://github.com/Fusion/libui.cr)
 D | [DerelictLibui](https://github.com/Extrawurst/DerelictLibui)
 Euphoria | [libui-euphoria](https://github.com/ghaberek/libui-euphoria)

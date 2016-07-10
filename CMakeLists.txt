@@ -53,6 +53,7 @@ elseif(WIN32)
   # note the CACHE FORCE stuff is required here
   set(CMAKE_C_STANDARD_LIBRARIES CACHE STRING "" FORCE)
   set(CMAKE_CXX_STANDARD_LIBRARIES CACHE STRING "" FORCE)
+
 else()
   set(_OSNAME unix)
   set(_HASVERSION TRUE)
@@ -61,6 +62,14 @@ else()
   # always use our rpath
   set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
   set(CMAKE_INSTALL_RPATH "\$ORIGIN")
+endif()
+
+
+if(BUILD_32)
+
+  CMAKE_GENERATOR_PLATFORM=ia32
+else()
+  CMAKE_GENERATOR_PLATFORM=x64
 endif()
 
 # common flags
@@ -110,10 +119,13 @@ else()
 	set(_COMMON_LDFLAGS
 		-fvisibility=hidden
 	)
-if(BUILD_32)
 
-	list(APPEND _COMMON_LDFLAGS -m32)
-endif()
+  if(BUILD_32)
+
+  	list(APPEND _COMMON_LDFLAGS -m32)
+
+  endif()
+
 	# don't require shipping the MinGW-w64 DLLs
 	if(WIN32)
 		list(APPEND _COMMON_LDFLAGS

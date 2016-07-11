@@ -64,14 +64,6 @@ else()
   set(CMAKE_INSTALL_RPATH "\$ORIGIN")
 endif()
 
-
-if(BUILD_32)
-
-  CMAKE_GENERATOR_PLATFORM=ia32
-else()
-  CMAKE_GENERATOR_PLATFORM=x64
-endif()
-
 # common flags
 if(MSVC)
   # TODO subsystem version
@@ -121,10 +113,9 @@ else()
 	)
 
   if(BUILD_32)
-
-  	list(APPEND _COMMON_LDFLAGS -m32)
-
+       list(APPEND _COMMON_LDFLAGS -m32)
   endif()
+
 
 	# don't require shipping the MinGW-w64 DLLs
 	if(WIN32)

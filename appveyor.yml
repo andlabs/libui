@@ -1,5 +1,5 @@
 version: 1.0.{build}
-image: Visual Studio 2013
+image: Visual Studio 2013 Win64
 
 build_script:
   - mkdir build

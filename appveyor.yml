@@ -1,11 +1,10 @@
 version: 1.0.{build}
-image: Visual Studio 2013 Win64
+image: Visual Studio 2013
 
 build_script:
   - mkdir build
   - cd build
-  - cmake --version
-  - cmake ..
+  - cmake -G "Visual Studio 12 2013 Win64" ..
   - msbuild C:\projects\libui\build\libui.sln /t:Build /p:Configuration=Release
 
 after_build:

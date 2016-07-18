@@ -23,4 +23,4 @@ del C:\projects\libui\tmp\*.* /q
 copy C:\projects\libui\tmp-32\*.* C:\projects\libui\tmp
 
 7z a -ttar examples-shared-windows-ia32-%APPVEYOR_REPO_TAG_NAME%.tar C:\projects\libui\tmp\*.*
-7z a -tgzip examples-shared-windows-ia32-%APPVEYOR_REPO_TAG_NAME%.tar.gz examples-shared-windows-x32-%APPVEYOR_REPO_TAG_NAME%.tar
+7z a -tgzip examples-shared-windows-ia32-%APPVEYOR_REPO_TAG_NAME%.tar.gz examples-shared-windows-ia32-%APPVEYOR_REPO_TAG_NAME%.tar

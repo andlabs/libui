@@ -6,6 +6,11 @@ build_script:
   - cd build
   - cmake -G "Visual Studio 12 2013 Win64" ..
   - msbuild C:\projects\libui\build\libui.sln /t:Build /p:Configuration=Release
+  - C:\projects\libui\scripts\deploy-64.cmd
+  - C:\projects\libui\scripts\clean-build-dir.cmd
+  - cmake -G "Visual Studio 12 2013" ..
+  - msbuild C:\projects\libui\build\libui.sln /t:Build /p:Configuration=Release
+  - C:\projects\libui\scripts\deploy-32.cmd
 
 after_build:
   - C:\projects\libui\scripts\create-artifacts-shared.cmd

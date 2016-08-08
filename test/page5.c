@@ -16,6 +16,19 @@ static void openFile(uiButton *b, void *data)
 	}
 }
 
+static void openFolder(uiButton *b, void *data)
+{
+	char *fn;
+
+	fn = uiOpenFolder(parent);
+	if (fn == NULL)
+		uiLabelSetText(uiLabel(data), "(cancelled)");
+	else {
+		uiLabelSetText(uiLabel(data), fn);
+		uiFreeText(fn);
+	}
+}
+
 static void saveFile(uiButton *b, void *data)
 {
 	char *fn;
@@ -74,6 +87,7 @@ uiBox *makePage5(uiWindow *pw)
 	uiBoxAppend(page5, uiControl(hbox), 0);
 
 	D("Open File", openFile);
+	D("Open Folder", openFolder);
 	D("Save File", saveFile);
 
 	title = uiNewEntry();

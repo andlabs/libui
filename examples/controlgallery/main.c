@@ -175,6 +175,20 @@ static void onOpenFileClicked(uiButton *b, void *data)
 	uiFreeText(filename);
 }
 
+static void onOpenFolderClicked(uiButton *b, void *data)
+{
+	uiEntry *entry = uiEntry(data);
+	char *filename;
+
+	filename = uiOpenFolder(mainwin);
+	if (filename == NULL) {
+		uiEntrySetText(entry, "(cancelled)");
+		return;
+	}
+	uiEntrySetText(entry, filename);
+	uiFreeText(filename);
+}
+
 static void onSaveFileClicked(uiButton *b, void *data)
 {
 	uiEntry *entry = uiEntry(data);
@@ -259,10 +273,10 @@ static uiControl *makeDataChoosersPage(void)
 		1, 0, 1, 1,
 		1, uiAlignFill, 0, uiAlignFill);
 
-	button = uiNewButton("Save File");
+	button = uiNewButton("Open Folder");
 	entry = uiNewEntry();
 	uiEntrySetReadOnly(entry, 1);
-	uiButtonOnClicked(button, onSaveFileClicked, entry);
+	uiButtonOnClicked(button, onOpenFolderClicked, entry);
 	uiGridAppend(grid, uiControl(button),
 		0, 1, 1, 1,
 		0, uiAlignFill, 0, uiAlignFill);
@@ -270,10 +284,21 @@ static uiControl *makeDataChoosersPage(void)
 		1, 1, 1, 1,
 		1, uiAlignFill, 0, uiAlignFill);
 
+	button = uiNewButton("Save File");
+	entry = uiNewEntry();
+	uiEntrySetReadOnly(entry, 1);
+	uiButtonOnClicked(button, onSaveFileClicked, entry);
+	uiGridAppend(grid, uiControl(button),
+		0, 2, 1, 1,
+		0, uiAlignFill, 0, uiAlignFill);
+	uiGridAppend(grid, uiControl(entry),
+		1, 2, 1, 1,
+		1, uiAlignFill, 0, uiAlignFill);
+
 	msggrid = uiNewGrid();
 	uiGridSetPadded(msggrid, 1);
 	uiGridAppend(grid, uiControl(msggrid),
-		0, 2, 2, 1,
+		0, 3, 2, 1,
 		0, uiAlignCenter, 0, uiAlignStart);
 
 	button = uiNewButton("Message Box");
@@ -341,6 +366,19 @@ static void openClicked(uiMenuItem *item, uiWindow *w, void *data)
 	uiFreeText(filename);
 }
 
+static void openFolderClicked(uiMenuItem *item, uiWindow *w, void *data)
+{
+	char *filename;
+
+	filename = uiOpenFolder(mainwin);
+	if (filename == NULL) {
+		uiMsgBoxError(mainwin, "No folder selected", "Don't be alarmed!");
+		return;
+	}
+	uiMsgBox(mainwin, "Folder selected", filename);
+	uiFreeText(filename);
+}
+
 static void saveClicked(uiMenuItem *item, uiWindow *w, void *data)
 {
 	char *filename;
@@ -403,6 +441,8 @@ int main(void)
 	menu = uiNewMenu("File");
 	item = uiMenuAppendItem(menu, "Open");
 	uiMenuItemOnClicked(item, openClicked, NULL);
+	item = uiMenuAppendItem(menu, "Open Folder");
+	uiMenuItemOnClicked(item, openFolderClicked, NULL);
 	item = uiMenuAppendItem(menu, "Save");
 	uiMenuItemOnClicked(item, saveClicked, NULL);
 	item = uiMenuAppendQuitItem(menu);

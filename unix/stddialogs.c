@@ -38,6 +38,11 @@ char *uiOpenFile(uiWindow *parent)
 	return filedialog(windowWindow(parent), GTK_FILE_CHOOSER_ACTION_OPEN, "_Open");
 }
 
+char *uiOpenFolder(uiWindow *parent)
+{
+	return filedialog(windowWindow(parent), GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, "_Open");
+}
+
 char *uiSaveFile(uiWindow *parent)
 {
 	return filedialog(windowWindow(parent), GTK_FILE_CHOOSER_ACTION_SAVE, "_Save");

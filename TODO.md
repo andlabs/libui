@@ -101,3 +101,5 @@ on windows
 - should repeated calls to uiMainStep() after uiQuit() return 0 reliably? this will be needed for non-recursive loops
 
 http://stackoverflow.com/questions/38338426/meaning-of-ampersand-in-rc-files/38338841?noredirect=1#comment64093084_38338841
+
+label shortcut keys

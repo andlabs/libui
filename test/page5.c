@@ -33,7 +33,7 @@ static void saveFile(uiButton *b, void *data)
 {
 	char *fn;
 
-	fn = uiSaveFile(parent);
+	fn = uiSaveFile(parent, "untitled");
 	if (fn == NULL)
 		uiLabelSetText(uiLabel(data), "(cancelled)");
 	else {

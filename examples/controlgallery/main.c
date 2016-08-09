@@ -194,7 +194,7 @@ static void onSaveFileClicked(uiButton *b, void *data)
 	uiEntry *entry = uiEntry(data);
 	char *filename;
 
-	filename = uiSaveFile(mainwin);
+	filename = uiSaveFile(mainwin, "untitled");
 	if (filename == NULL) {
 		uiEntrySetText(entry, "(cancelled)");
 		return;
@@ -383,7 +383,7 @@ static void saveClicked(uiMenuItem *item, uiWindow *w, void *data)
 {
 	char *filename;
 
-	filename = uiSaveFile(mainwin);
+	filename = uiSaveFile(mainwin, "untitled");
 	if (filename == NULL) {
 		uiMsgBoxError(mainwin, "No file selected", "Don't be alarmed!");
 		return;

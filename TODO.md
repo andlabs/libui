@@ -103,3 +103,5 @@ on windows
 http://stackoverflow.com/questions/38338426/meaning-of-ampersand-in-rc-files/38338841?noredirect=1#comment64093084_38338841
 
 label shortcut keys
+
+- remove whining from source code

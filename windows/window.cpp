@@ -90,6 +90,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		// not a menu
 		if (lParam != 0)
 			break;
+		// IDOK (1) and IDCANCEL (2) aren't menu events either
 		if (HIWORD(wParam) != 0 || LOWORD(wParam) <= IDCANCEL)
 			break;
 		runMenuEvent(LOWORD(wParam), uiWindow(w));

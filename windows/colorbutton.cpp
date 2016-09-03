@@ -61,7 +61,9 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 	ID2D1SolidColorBrush *brush;
 	uiWindowsSizing sizing;
 	int x, y;
+	float dpi_x, dpi_y;
 	HRESULT hr;
+	D2D1_MATRIX_3X2_F dm;
 
 	if (nmhdr->code != NM_CUSTOMDRAW)
 		return FALSE;
@@ -72,6 +74,13 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 	uiWindowsEnsureGetClientRect(b->hwnd, &client);
 	rt = makeHDCRenderTarget(nm->hdc, &client);
 	rt->BeginDraw();
+
+	// scale Direct2D's rendering to be in pixels instead of DIPs
+	rt->GetDpi(&dpi_x, &dpi_y);
+	ZeroMemory(&dm, sizeof (D2D1_MATRIX_3X2_F));
+	dm._11 = 96.f/dpi_x;
+	dm._22 = 96.f/dpi_y;
+	rt->SetTransform(&dm);
 
 	uiWindowsGetSizing(b->hwnd, &sizing);
 	x = 3;		// should be enough

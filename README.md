@@ -130,7 +130,7 @@ C#/.net | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding), [Sharp
 Crystal | [libui.cr](https://github.com/Fusion/libui.cr)
 D | [DerelictLibui](https://github.com/Extrawurst/DerelictLibui), [libuid (complete oo interface)](https://github.com/mogud/libuid)
 Euphoria | [libui-euphoria](https://github.com/ghaberek/libui-euphoria)
-Haskell | [libui-haskell](https://github.com/ajnsit/libui-haskell)
+Haskell | [libui-haskell](https://github.com/ajnsit/libui-haskell), [beijaflor-io/haskell-libui (complete FFI bindings, extensions and higher-level API)](https://github.com/beijaflor-io/haskell-libui)
 JavaScript | [libui.js (merged into libui-node?)](https://github.com/mavenave/libui.js)
 Julia | [Libui.jl](https://github.com/joa-quim/Libui.jl)
 Lua | [libuilua](https://github.com/zevv/libuilua), [libui-lua](https://github.com/mdombroski/libui-lua)

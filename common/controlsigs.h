@@ -13,6 +13,7 @@
 #define uiFormSignature 0x466F726D
 #define uiGridSignature 0x47726964
 #define uiGroupSignature 0x47727062
+#define uiImageSignature 0x4723BDC6
 #define uiLabelSignature 0x4C61626C
 #define uiMultilineEntrySignature 0x4D6C6E45
 #define uiProgressBarSignature 0x50426172

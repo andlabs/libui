@@ -111,6 +111,11 @@ extern HWND newD2DScratch(HWND parent, RECT *rect, HMENU controlID, SUBCLASSPROC
 extern ATOM registerAreaClass(HICON, HCURSOR);
 extern void unregisterArea(void);
 
+// image.cpp
+#define imageClass L"libui_uiImageClass"
+extern ATOM registerImageClass(HICON, HCURSOR);
+extern void unregisterImage(void);
+
 // areaevents.cpp
 extern BOOL areaFilter(MSG *);
 

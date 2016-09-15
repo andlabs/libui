@@ -9,6 +9,19 @@ struct uiImage {
 
 uiDarwinControlAllDefaults(uiImage, imageView)
 
+void uiImageSetSize(uiImage *i, unsigned int width, unsigned int height)
+{
+	i->image.size = NSMakeSize(width, height);
+	[i->imageView setNeedsDisplay:YES];
+}
+
+void uiImageGetSize(uiImage *i, unsigned int *width, unsigned int *height)
+{
+	NSSize size = i->image.size;
+	*width = size.width;
+	*height = size.height;
+}
+
 uiImage *uiNewImage(const char *filename)
 {
 	uiImage *i;

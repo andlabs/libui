@@ -155,6 +155,8 @@ _UI_EXTERN uiEntry *uiNewSearchEntry(void);
 
 typedef struct uiImage uiImage;
 #define uiImage(this) ((uiImage *) (this))
+_UI_EXTERN void uiImageSetSize(uiImage *i, unsigned int width, unsigned int height);
+_UI_EXTERN void uiImageGetSize(uiImage *i, unsigned int *width, unsigned int *height);
 _UI_EXTERN uiImage *uiNewImage(const char *filename);
 
 typedef struct uiLabel uiLabel;

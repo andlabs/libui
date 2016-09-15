@@ -9,6 +9,9 @@ struct uiImage {
 	HDC hdcSource;
 	LONG width;
 	LONG height;
+	LONG displayWidth;
+	LONG displayHeight;
+	BOOL originalSize;
 };
 
 static HBITMAP ConvertToHBitmap(IWICBitmapSource * ipBitmap)
@@ -109,6 +112,8 @@ static LRESULT CALLBACK imageWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 			GetObject(i->bmpSource, sizeof(bm), &bm);
 			i->width = bm.bmWidth;
 			i->height = bm.bmHeight;
+			i->displayWidth = i->width;
+			i->displayHeight = i->height;
 			i->hdcSource = CreateCompatibleDC(GetDC(0));
 			SelectObject(i->hdcSource, i->bmpSource);
 			return 0;
@@ -119,7 +124,18 @@ static LRESULT CALLBACK imageWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 
 	if (uMsg == WM_PAINT) {
 		hdcDestination = BeginPaint(hwnd, &ps);
-		BitBlt(hdcDestination, 0, 0, i->width, i->height, i->hdcSource, 0, 0, SRCCOPY);
+		if (i->originalSize) {
+			BitBlt(hdcDestination, 0, 0, i->width, i->height, i->hdcSource, 0, 0, SRCCOPY);
+		} else {
+			SetStretchBltMode(hdcDestination,HALFTONE);
+			StretchBlt(hdcDestination,
+				0, 0,
+				i->displayWidth, i->displayHeight,
+				i->hdcSource,
+				0, 0,
+				i->width, i->height,
+				SRCCOPY);
+		}
 		EndPaint(hwnd, &ps);
 		return 0;
 	}
@@ -142,8 +158,29 @@ uiWindowsControlAllDefaultsExceptDestroy(uiImage)
 static void uiImageMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiImage *i = uiImage(c);
-	*width = i->width;
-	*height = i->height;
+	*width = i->displayWidth;
+	*height = i->displayHeight;
+}
+
+void uiImageSetSize(uiImage *i, unsigned int width, unsigned int height)
+{
+	i->displayWidth = width;
+	i->displayHeight = height;
+	i->originalSize = width == i->width && height == i->height;
+
+	invalidateRect(i->hwnd, NULL, FALSE);
+
+	// If the image is smaller in either direction the part of the window that
+	// used to be covered by the image will not get redrawn because it is no
+	// longer part of the image. To fix this just redraw the entire parent
+	// window. This feels wrong though.
+	invalidateRect(GetParent(i->hwnd), NULL, FALSE);
+}
+
+void uiImageGetSize(uiImage *i, unsigned int *width, unsigned int *height)
+{
+	*width = i->displayWidth;
+	*height = i->displayHeight;
 }
 
 void unregisterImage(void)

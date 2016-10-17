@@ -134,7 +134,7 @@ CHICKEN Scheme | [wasamasa/libui](https://github.com/wasamasa/libui)
 Crystal | [libui.cr](https://github.com/Fusion/libui.cr)
 D | [DerelictLibui (flat API)](https://github.com/Extrawurst/DerelictLibui), [libuid (object-oriented)](https://github.com/mogud/libuid)
 Euphoria | [libui-euphoria](https://github.com/ghaberek/libui-euphoria)
-Haskell | [libui-haskell](https://github.com/ajnsit/libui-haskell)
+Haskell | [libui-haskell](https://github.com/ajnsit/libui-haskell), [beijaflor-io/haskell-libui (complete FFI bindings, extensions and higher-level API)](https://github.com/beijaflor-io/haskell-libui)
 JavaScript | [libui.js (merged into libui-node?)](https://github.com/mavenave/libui.js)
 Julia | [Libui.jl](https://github.com/joa-quim/Libui.jl)
 Lua | [libuilua](https://github.com/zevv/libuilua), [libui-lua](https://github.com/mdombroski/libui-lua)
@@ -143,6 +143,7 @@ Node.js | [libui-node](https://github.com/parro-it/libui-node)
 Python | [pylibui](https://github.com/joaoventura/pylibui)
 Ruby | [libui-ruby](https://github.com/jamescook/libui-ruby)
 Rust | [libui-rs](https://github.com/pcwalton/libui-rs)
+Swift | [libui-swift](https://github.com/sclukey/libui-swift)
 
 ## Screenshots
 

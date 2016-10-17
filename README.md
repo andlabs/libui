@@ -139,6 +139,7 @@ Node.js | [libui-node](https://github.com/parro-it/libui-node)
 Python | [pylibui](https://github.com/joaoventura/pylibui)
 Ruby | [libui-ruby](https://github.com/jamescook/libui-ruby)
 Rust | [libui-rs](https://github.com/pcwalton/libui-rs)
+Swift | [libui-swift](https://github.com/sclukey/libui-swift)
 
 ## Screenshots
 

@@ -27,6 +27,11 @@ struct uiWindow {
 	gboolean changingPosition;
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
+
+	void (*onStateChanged)(uiWindow *, void *);
+	void *onStateChangedData;
+	int state;
+
 	gboolean changingSize;
 	gboolean fullscreen;
 };
@@ -65,12 +70,33 @@ static void onSizeAllocate(GtkWidget *widget, GdkRectangle *allocation, gpointer
 		(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
 }
 
+
+
+static int onStateChanged(GtkWidget *widget, GdkEventWindowState *event, gpointer data)
+{
+	uiWindow * win = uiWindow(data);
+
+	win->state = event->new_window_state;
+
+	if (win->onStateChanged) {
+		(*(win->onStateChanged)) (win, win->onStateChangedData);
+	}
+
+
+	return TRUE;
+}
+
 static int defaultOnClosing(uiWindow *w, void *data)
 {
 	return 0;
 }
 
 static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
+{
+	// do nothing
+}
+
+static void defaultOnStateChanged(uiWindow *w, void *data)
 {
 	// do nothing
 }
@@ -144,6 +170,35 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 	gtk_window_set_title(w->window, title);
 }
 
+void uiWindowSetMinimized(uiWindow *w, int minimized)
+{
+	if (minimized) {
+		gtk_window_iconify(w->window);
+	} else {
+		gtk_window_deiconify(w->window);
+	}
+}
+
+int uiWindowMinimized(uiWindow *w)
+{
+	return w->state & GDK_WINDOW_STATE_ICONIFIED;
+}
+
+void uiWindowSetMaximized(uiWindow *w, int maximized)
+{
+	if (maximized) {
+		gtk_window_maximize(w->window);
+	} else {
+		gtk_window_unmaximize(w->window);
+	}
+}
+
+int uiWindowMaximized(uiWindow *w)
+{
+	return w->state & GDK_WINDOW_STATE_MAXIMIZED;
+}
+
+
 // TODO allow specifying either as NULL on all platforms
 void uiWindowPosition(uiWindow *w, int *x, int *y)
 {
@@ -193,6 +248,13 @@ void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void 
 	w->onPositionChanged = f;
 	w->onPositionChangedData = data;
 }
+
+void uiWindowOnStateChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onStateChanged = f;
+	w->onStateChangedData = data;
+}
+
 
 void uiWindowContentSize(uiWindow *w, int *width, int *height)
 {
@@ -319,7 +381,9 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
 	g_signal_connect(w->widget, "configure-event", G_CALLBACK(onConfigure), w);
 	g_signal_connect(w->childHolderWidget, "size-allocate", G_CALLBACK(onSizeAllocate), w);
+	g_signal_connect(w->widget, "window-state-event", G_CALLBACK(onStateChanged), w);
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
+	uiWindowOnStateChanged(w, defaultOnStateChanged, NULL);
 	uiWindowOnPositionChanged(w, defaultOnPositionContentSizeChanged, NULL);
 	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
 

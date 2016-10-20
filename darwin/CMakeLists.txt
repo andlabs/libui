@@ -21,6 +21,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/form.m
 	darwin/grid.m
 	darwin/group.m
+	darwin/image.m
 	darwin/label.m
 	darwin/main.m
 	darwin/map.m

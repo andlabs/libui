@@ -1,3 +1,7 @@
+- documentation notes:
+	- static binaries do not link system libraries, meaning apps still depend on shared GTK+, etc.
+	- ui*Buttons are NOT compatible with uiButton functions
+
 - more robust layout handling
 	- uiFormTie() for ensuring multiple uiForms have the same label area widths
 	- uiSizeGroup for size groups (GtkSizeGroup on GTK+, auto layout constraints on OS X; consider adding after 10.8 is gone)

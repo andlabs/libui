@@ -230,7 +230,7 @@ uiBox *makePage9(void)
 	uiComboboxAppend(textWeight, "Medium");
 	uiComboboxAppend(textWeight, "Semi Bold");
 	uiComboboxAppend(textWeight, "Bold");
-	uiComboboxAppend(textWeight, "Utra Bold");
+	uiComboboxAppend(textWeight, "Ultra Bold");
 	uiComboboxAppend(textWeight, "Heavy");
 	uiComboboxAppend(textWeight, "Ultra Heavy");
 	uiComboboxSetSelected(textWeight, uiDrawTextWeightNormal);

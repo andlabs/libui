@@ -62,7 +62,7 @@ static const PangoWeight pangoWeights[] = {
 	[uiDrawTextWeightMedium] = PANGO_WEIGHT_MEDIUM,
 	[uiDrawTextWeightSemiBold] = PANGO_WEIGHT_SEMIBOLD,
 	[uiDrawTextWeightBold] = PANGO_WEIGHT_BOLD,
-	[uiDrawTextWeightUtraBold] = PANGO_WEIGHT_ULTRABOLD,
+	[uiDrawTextWeightUltraBold] = PANGO_WEIGHT_ULTRABOLD,
 	[uiDrawTextWeightHeavy] = PANGO_WEIGHT_HEAVY,
 	[uiDrawTextWeightUltraHeavy] = PANGO_WEIGHT_ULTRAHEAVY,
 };

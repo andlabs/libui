@@ -481,7 +481,7 @@ _UI_ENUM(uiDrawTextWeight) {
 	uiDrawTextWeightMedium,
 	uiDrawTextWeightSemiBold,
 	uiDrawTextWeightBold,
-	uiDrawTextWeightUtraBold,
+	uiDrawTextWeightUltraBold,
 	uiDrawTextWeightHeavy,
 	uiDrawTextWeightUltraHeavy,
 };

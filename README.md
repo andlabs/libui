@@ -5,6 +5,9 @@ This README is being written.<br>
 
 ## Announcements
 
+* **21 October 2016**
+	* `uiDrawTextWeightUltraBold` is now spelled correctly. Thanks to @krakjoe.
+
 * **18 June 2016**
 	* Help decide [the design of tables and trees in libui](https://github.com/andlabs/libui/issues/159); the implementation starts within the next few days, if not tomorrow!
 

@@ -164,7 +164,7 @@ static const CGFloat ctWeights[] = {
 	[uiDrawTextWeightSemiBold] = ourNSFontWeightSemibold,
 	[uiDrawTextWeightBold] = ourNSFontWeightBold,
 	// for this one let's go between Bold and Heavy
-	[uiDrawTextWeightUtraBold] = ourNSFontWeightBold + ((ourNSFontWeightHeavy - ourNSFontWeightBold) / 2),
+	[uiDrawTextWeightUltraBold] = ourNSFontWeightBold + ((ourNSFontWeightHeavy - ourNSFontWeightBold) / 2),
 	[uiDrawTextWeightHeavy] = ourNSFontWeightHeavy,
 	[uiDrawTextWeightUltraHeavy] = ourNSFontWeightBlack,
 };

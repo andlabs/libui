@@ -1,3 +1,5 @@
+# Note: Table stuff is currently experimental; do not use in production code.
+
 # libui: a portable GUI library for C
 
 This README is being written.<br>

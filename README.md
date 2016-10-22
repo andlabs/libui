@@ -7,6 +7,9 @@ This README is being written.<br>
 
 ## Announcements
 
+* **22 October 2016**
+	* Due to being unable to guarantee they will work (especially as we move toward capability-driven window systems like Wayland), or being unable to work without hacking that breaks other things, the following functions have been removed: `uiWindowPosition()`, `uiWindowSetPosition()`,`uiWindowCenter()`, and `uiWindowOnPositionChanged()`. Centering may come back at some point in the future, albeit in a possibly restricted form. A function to initiate a user move when a part of a uiArea is clicked will be provided soon.
+
 * **21 October 2016**
 	* `uiDrawTextWeightUltraBold` is now spelled correctly. Thanks to @krakjoe.
 

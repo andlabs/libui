@@ -387,6 +387,8 @@ int uiWindowBorderless(uiWindow *w)
 	return w->borderless;
 }
 
+// TODO window should move to the old client position and should not have the extra space the borders left behind
+// TODO extract the relevant styles from WS_OVERLAPPEDWINDOW?
 void uiWindowSetBorderless(uiWindow *w, int borderless)
 {
 	w->borderless = borderless;

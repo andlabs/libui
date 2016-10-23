@@ -1,4 +1,4 @@
-# Note: Table stuff is currently experimental; do not use in production code.
+# Note: Table stuff is currently experimental; do not use in production code. It will not build on Windows as that part has not been written yet; if you want to test other parts of the Windows code, apply `nowintable.diff`.
 
 # libui: a portable GUI library for C
 

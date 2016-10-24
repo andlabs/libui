@@ -160,9 +160,6 @@ void uiWindowContentSize(uiWindow *w, int *width, int *height)
 	dbgPrintSizes(w, "AFTER GET");
 }
 
-// TODO what happens if the size is already the current one?
-// TODO a spurious size-allocate gets sent after this function returns
-// TODO can't reduce the size this way
 void uiWindowSetContentSize(uiWindow *w, int width, int height)
 {
 	GtkAllocation childAlloc;
@@ -192,8 +189,8 @@ void uiWindowSetContentSize(uiWindow *w, int width, int height)
 	winWidth += width;
 	winHeight += height;
 	// and set it
-	// TODO will this move the window?
-	gtk_window_resize(w->window, width, height);
+	// this will not move the window in my tests, so we're good
+	gtk_window_resize(w->window, winWidth, winHeight);
 
 	dbgPrintSizes(w, "AFTER SET");
 }

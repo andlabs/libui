@@ -37,7 +37,7 @@ static void updatesize(uiWindow *w)
 
 void onSize(uiWindow *w, void *data)
 {
-	printf("size\n");
+//TODO_REINSTATE	printf("size\n");
 	updatesize(w);
 }
 

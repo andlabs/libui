@@ -28,6 +28,23 @@ struct uiWindow {
 	gboolean fullscreen;
 };
 
+static void dbgPrintSizes(uiWindow *w, const char *prefix)
+{
+#if 1
+	GtkAllocation a;
+	gint ww, wh;
+
+	gtk_widget_get_allocation(w->widget, &a);
+	g_print("%-14s| window width %d height %d\n", prefix, a.width, a.height);
+	gtk_widget_get_allocation(w->childHolderWidget, &a);
+	g_print("%-14s| client width %d height %d\n", prefix, a.width, a.height);
+	gtk_window_get_size(w->window, &ww, &wh);
+	g_print("%-14s| winsiz width %d height %d\n", prefix, ww, wh);
+#else
+#error forgot to remove dbgPrintSizes() (TODO)
+#endif
+}
+
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 {
 	uiWindow *w = uiWindow(data);
@@ -42,6 +59,8 @@ static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 static void onSizeAllocate(GtkWidget *widget, GdkRectangle *allocation, gpointer data)
 {
 	uiWindow *w = uiWindow(data);
+
+	dbgPrintSizes(w, "SIZE-ALLOCATE");
 
 	if (w->changingSize)
 		w->changingSize = FALSE;
@@ -132,9 +151,13 @@ void uiWindowContentSize(uiWindow *w, int *width, int *height)
 {
 	GtkAllocation allocation;
 
+	dbgPrintSizes(w, "BEFORE GET");
+
 	gtk_widget_get_allocation(w->childHolderWidget, &allocation);
 	*width = allocation.width;
 	*height = allocation.height;
+
+	dbgPrintSizes(w, "AFTER GET");
 }
 
 // TODO what happens if the size is already the current one?
@@ -142,6 +165,8 @@ void uiWindowContentSize(uiWindow *w, int *width, int *height)
 // TODO can't reduce the size this way
 void uiWindowSetContentSize(uiWindow *w, int width, int height)
 {
+	dbgPrintSizes(w, "BEFORE SET");
+
 	w->changingSize = TRUE;
 	gtk_widget_set_size_request(w->childHolderWidget, width, height);
 	// MAJOR TODO REMOVE THIS.
@@ -149,6 +174,8 @@ void uiWindowSetContentSize(uiWindow *w, int width, int height)
 		if (!uiMainStep(1))
 			break;			// stop early if uiQuit() called
 	gtk_widget_set_size_request(w->childHolderWidget, -1, -1);
+
+	dbgPrintSizes(w, "AFTER SET");
 }
 
 int uiWindowFullscreen(uiWindow *w)
@@ -215,6 +242,16 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 	setMargined(w->childHolderContainer, w->margined);
 }
 
+static gboolean TODO_REMOVE(GtkWidget *win, GdkEvent *e, gpointer data)
+{
+	uiWindow *w = uiWindow(data);
+
+	dbgPrintSizes(w, "CONFIGURE");
+
+	// always continue handling
+	return FALSE;
+}
+
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindow *w;
@@ -260,6 +297,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	// normally it's SetParent() that does this, but we can't call SetParent() on a uiWindow
 	// TODO we really need to clean this up, especially since see uiWindowDestroy() above
 	g_object_ref(w->widget);
+
+	g_signal_connect(w->widget, "configure-event", G_CALLBACK(TODO_REMOVE), w);
 
 	return w;
 }

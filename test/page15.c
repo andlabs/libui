@@ -87,6 +87,8 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	drawtrect(p->Context, ta.bottomleftresize, 0, 0.5, 0.5);
 	drawtrect(p->Context, ta.bottomrightresize, 0, 0.5, 0.5);
 	drawtrect(p->Context, ta.close, 0.5, 0, 0);
+
+	// TODO add current position prints here
 }
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)

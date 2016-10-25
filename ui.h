@@ -301,6 +301,8 @@ _UI_ENUM(uiWindowResizeEdge) {
 	uiWindowResizeEdgeBottomLeft,
 	uiWindowResizeEdgeBottomRight,
 	// TODO have one for keyboard resizes?
+	// TODO GDK doesn't seem to have any others, including for keyboards...
+	// TODO way to bring up the system menu instead?
 };
 
 #define uiArea(this) ((uiArea *) (this))
@@ -312,6 +314,7 @@ _UI_EXTERN void uiAreaQueueRedrawAll(uiArea *a);
 _UI_EXTERN void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height);
 // TODO document these can only be called within Mouse() handlers
 // TODO should these be allowed on scrolling areas?
+// TODO decide which mouse events should be accepted; Down is the only one guaranteed to work right now
 _UI_EXTERN void uiAreaBeginUserWindowMove(uiArea *a);
 _UI_EXTERN void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge);
 _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);

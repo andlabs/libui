@@ -107,7 +107,7 @@ static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *
 #define resize(cond, edge) if (cond) { uiAreaBeginUserWindowResize(area, edge); return; }
 	resize(ta.leftresize.in, uiWindowResizeEdgeLeft)
 	resize(ta.topresize.in, uiWindowResizeEdgeTop)
-	resize((ta.rightresize.in, uiWindowResizeEdgeRight)
+	resize(ta.rightresize.in, uiWindowResizeEdgeRight)
 	resize(ta.bottomresize.in, uiWindowResizeEdgeBottom)
 	resize(ta.topleftresize.in, uiWindowResizeEdgeTopLeft)
 	resize(ta.toprightresize.in, uiWindowResizeEdgeTopRight)

@@ -17,21 +17,31 @@ struct trect {
 
 struct tareas {
 	struct trect move;
+	struct trect alsomove;
 	struct trect leftresize;
 	struct trect topresize;
 	struct trect rightresize;
 	struct trect bottomresize; 
-	// TODO have corner resize rects
-	// TODO have a close button rect
+	struct trect topleftresize;
+	struct trect toprightresize;
+	struct trect bottomleftresize;
+	struct trect bottomrightresize;
+	struct trect close;
 };
 
 static void filltareas(double awid, double aht, struct tareas *ta)
 {
 	tsetrect(ta->move, 20, 20, awid - 20, 20 + 30);
-	tsetrect(ta->leftresize, 5, 20, 5 + 10, aht - 20);
-	tsetrect(ta->topresize, 20, 5, awid - 20, 5 + 10);
-	tsetrect(ta->rightresize, awid - 20 + 5, 20, awid - 5, aht - 20);
-	tsetrect(ta->bottomresize, 20, aht - 20 + 5, awid - 20, aht - 5);
+	tsetrect(ta->alsomove, 30, 200, 100, 270);
+	tsetrect(ta->leftresize, 5, 20, 15, aht - 20);
+	tsetrect(ta->topresize, 20, 5, awid - 20, 15);
+	tsetrect(ta->rightresize, awid - 15, 20, awid - 5, aht - 20);
+	tsetrect(ta->bottomresize, 20, aht - 15, awid - 20, aht - 5);
+	tsetrect(ta->topleftresize, 5, 5, 15, 15);
+	tsetrect(ta->toprightresize, awid - 15, 5, awid - 5, 15);
+	tsetrect(ta->bottomleftresize, 5, aht - 15, 15, aht - 5);
+	tsetrect(ta->bottomrightresize, awid - 15, aht - 15, awid - 5, aht - 5);
+	tsetrect(ta->close, 130, 200, 200, 270);
 }
 
 static void drawtrect(uiDrawContext *c, struct trect tr, double r, double g, double bl)
@@ -67,10 +77,16 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 
 	filltareas(p->AreaWidth, p->AreaHeight, &ta);
 	drawtrect(p->Context, ta.move, 0, 0.5, 0);
+	drawtrect(p->Context, ta.alsomove, 0, 0.5, 0);
 	drawtrect(p->Context, ta.leftresize, 0, 0, 0.5);
 	drawtrect(p->Context, ta.topresize, 0, 0, 0.5);
 	drawtrect(p->Context, ta.rightresize, 0, 0, 0.5);
 	drawtrect(p->Context, ta.bottomresize, 0, 0, 0.5);
+	drawtrect(p->Context, ta.topleftresize, 0, 0.5, 0.5);
+	drawtrect(p->Context, ta.toprightresize, 0, 0.5, 0.5);
+	drawtrect(p->Context, ta.bottomleftresize, 0, 0.5, 0.5);
+	drawtrect(p->Context, ta.bottomrightresize, 0, 0.5, 0.5);
+	drawtrect(p->Context, ta.close, 0.5, 0, 0);
 }
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
@@ -84,7 +100,7 @@ static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *
 	uiAreaQueueRedrawAll(area);
 	if (e->Down != 1)
 		return;
-	if (ta.move.in) {
+	if (ta.move.in || ta.alsomove.in) {
 		// TODO
 		return;
 	}
@@ -101,6 +117,26 @@ static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *
 		return;
 	}
 	if (ta.bottomresize.in) {
+		// TODO
+		return;
+	}
+	if (ta.topleftresize.in) {
+		// TODO
+		return;
+	}
+	if (ta.toprightresize.in) {
+		// TODO
+		return;
+	}
+	if (ta.bottomleftresize.in) {
+		// TODO
+		return;
+	}
+	if (ta.bottomrightresize.in) {
+		// TODO
+		return;
+	}
+	if (ta.close.in) {
 		// TODO
 		return;
 	}

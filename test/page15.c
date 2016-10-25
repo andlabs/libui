@@ -1,6 +1,152 @@
 // 15 june 2016
 #include "test.h"
 
+static uiAreaHandler borderAH;
+static int borderAHInit = 0;
+static double lastx = -1, lasty = -1;
+
+struct trect {
+	double left;
+	double top;
+	double right;
+	double bottom;
+	int in;
+};
+
+#define tsetrect(re, l, t, r, b) re.left = l; re.top = t; re.right = r; re.bottom = b; re.in = lastx >= re.left && lastx < re.right && lasty >= re.top && lasty < re.bottom
+
+struct tareas {
+	struct trect move;
+	struct trect leftresize;
+	struct trect topresize;
+	struct trect rightresize;
+	struct trect bottomresize; 
+	// TODO have corner resize rects
+	// TODO have a close button rect
+};
+
+static void filltareas(double awid, double aht, struct tareas *ta)
+{
+	tsetrect(ta->move, 20, 20, awid - 20, 20 + 30);
+	tsetrect(ta->leftresize, 5, 20, 5 + 10, aht - 20);
+	tsetrect(ta->topresize, 20, 5, awid - 20, 5 + 10);
+	tsetrect(ta->rightresize, awid - 20 + 5, 20, awid - 5, aht - 20);
+	tsetrect(ta->bottomresize, 20, aht - 20 + 5, awid - 20, aht - 5);
+}
+
+static void drawtrect(uiDrawContext *c, struct trect tr, double r, double g, double bl)
+{
+	uiDrawPath *p;
+	uiDrawBrush b;
+
+	memset(&b, 0, sizeof (uiDrawBrush));
+	b.Type = uiDrawBrushTypeSolid;
+	b.R = r;
+	b.G = g;
+	b.B = bl;
+	b.A = 1.0;
+	if (tr.in) {
+		b.R += b.R * 0.75;
+		b.G += b.G * 0.75;
+		b.B += b.B * 0.75;
+	}
+	p = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(p,
+		tr.left,
+		tr.top,
+		tr.right - tr.left,
+		tr.bottom - tr.top);
+	uiDrawPathEnd(p);
+	uiDrawFill(c, p, &b);
+	uiDrawFreePath(p);
+}
+
+static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
+{
+	struct tareas ta;
+
+	filltareas(p->AreaWidth, p->AreaHeight, &ta);
+	drawtrect(p->Context, ta.move, 0, 0.5, 0);
+	drawtrect(p->Context, ta.leftresize, 0, 0, 0.5);
+	drawtrect(p->Context, ta.topresize, 0, 0, 0.5);
+	drawtrect(p->Context, ta.rightresize, 0, 0, 0.5);
+	drawtrect(p->Context, ta.bottomresize, 0, 0, 0.5);
+}
+
+static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
+{
+	struct tareas ta;
+
+	lastx = e->X;
+	lasty = e->Y;
+	filltareas(e->AreaWidth, e->AreaHeight, &ta);
+	// redraw our highlighted rect
+	uiAreaQueueRedrawAll(area);
+	if (e->Down != 1)
+		return;
+	if (ta.move.in) {
+		// TODO
+		return;
+	}
+	if (ta.leftresize.in) {
+		// TODO
+		return;
+	}
+	if (ta.topresize.in) {
+		// TODO
+		return;
+	}
+	if (ta.rightresize.in) {
+		// TODO
+		return;
+	}
+	if (ta.bottomresize.in) {
+		// TODO
+		return;
+	}
+}
+
+static void handlerMouseCrossed(uiAreaHandler *ah, uiArea *a, int left)
+{
+}
+
+static void handlerDragBroken(uiAreaHandler *ah, uiArea *a)
+{
+}
+
+static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
+{
+	return 0;
+}
+
+static void borderWindowOpen(uiButton *b, void *data)
+{
+	uiWindow *w;
+	uiArea *a;
+
+	if (!borderAHInit) {
+		borderAH.Draw = handlerDraw;
+		borderAH.MouseEvent = handlerMouseEvent;
+		borderAH.MouseCrossed = handlerMouseCrossed;
+		borderAH.DragBroken = handlerDragBroken;
+		borderAH.KeyEvent = handlerKeyEvent;
+		borderAHInit = 1;
+	}
+
+	w = uiNewWindow("Border Resize Test", 300, 500, 0);
+	uiWindowSetBorderless(w, 1);
+
+	a = uiNewArea(&borderAH);
+//	uiWindowSetChild(w, uiControl(a));
+{uiBox *b;
+b=uiNewHorizontalBox();
+uiBoxAppend(b,uiControl(a),1);
+uiWindowSetChild(w,uiControl(b));}
+//TODO why is this hack needed? GTK+ issue
+
+	uiControlShow(uiControl(w));
+}
+
 static uiSpinbox *width, *height;
 static uiCheckbox *fullscreen;
 
@@ -85,6 +231,10 @@ uiBox *makePage15(uiWindow *w)
 	checkbox = uiNewCheckbox("Borderless");
 	uiCheckboxOnToggled(checkbox, borderless, w);
 	uiBoxAppend(page15, uiControl(checkbox), 0);
+
+	button = uiNewButton("Borderless Resizes");
+	uiButtonOnClicked(button, borderWindowOpen, NULL);
+	uiBoxAppend(page15, uiControl(button), 0);
 
 	hbox = newHorizontalBox();
 	uiBoxAppend(page15, uiControl(hbox), 1);

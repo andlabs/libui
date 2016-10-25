@@ -101,41 +101,18 @@ static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *
 	if (e->Down != 1)
 		return;
 	if (ta.move.in || ta.alsomove.in) {
-		// TODO
+		uiAreaBeginUserWindowMove(area);
 		return;
 	}
-	if (ta.leftresize.in) {
-		// TODO
-		return;
-	}
-	if (ta.topresize.in) {
-		// TODO
-		return;
-	}
-	if (ta.rightresize.in) {
-		// TODO
-		return;
-	}
-	if (ta.bottomresize.in) {
-		// TODO
-		return;
-	}
-	if (ta.topleftresize.in) {
-		// TODO
-		return;
-	}
-	if (ta.toprightresize.in) {
-		// TODO
-		return;
-	}
-	if (ta.bottomleftresize.in) {
-		// TODO
-		return;
-	}
-	if (ta.bottomrightresize.in) {
-		// TODO
-		return;
-	}
+#define resize(cond, edge) if (cond) { uiAreaBeginUserWindowResize(area, edge); return; }
+	resize(ta.leftresize.in, uiWindowResizeEdgeLeft)
+	resize(ta.topresize.in, uiWindowResizeEdgeTop)
+	resize((ta.rightresize.in, uiWindowResizeEdgeRight)
+	resize(ta.bottomresize.in, uiWindowResizeEdgeBottom)
+	resize(ta.topleftresize.in, uiWindowResizeEdgeTopLeft)
+	resize(ta.toprightresize.in, uiWindowResizeEdgeTopRight)
+	resize(ta.bottomleftresize.in, uiWindowResizeEdgeBottomLeft)
+	resize(ta.bottomrightresize.in, uiWindowResizeEdgeBottomRight)
 	if (ta.close.in) {
 		// TODO
 		return;

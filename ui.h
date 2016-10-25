@@ -289,6 +289,20 @@ struct uiAreaHandler {
 	int (*KeyEvent)(uiAreaHandler *, uiArea *, uiAreaKeyEvent *);
 };
 
+// TODO RTL layouts?
+// TODO reconcile edge and corner naming
+_UI_ENUM(uiWindowResizeEdge) {
+	uiWindowResizeEdgeLeft,
+	uiWindowResizeEdgeTop,
+	uiWindowResizeEdgeRight,
+	uiWindowResizeEdgeBottom,
+	uiWindowResizeEdgeTopLeft,
+	uiWindowResizeEdgeTopRight,
+	uiWindowResizeEdgeBottomLeft,
+	uiWindowResizeEdgeBottomRight,
+	// TODO have one for keyboard resizes?
+};
+
 #define uiArea(this) ((uiArea *) (this))
 // TODO give a better name
 // TODO document the types of width and height
@@ -296,6 +310,10 @@ _UI_EXTERN void uiAreaSetSize(uiArea *a, int width, int height);
 // TODO uiAreaQueueRedraw()
 _UI_EXTERN void uiAreaQueueRedrawAll(uiArea *a);
 _UI_EXTERN void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height);
+// TODO document these can only be called within Mouse() handlers
+// TODO should these be allowed on scrolling areas?
+_UI_EXTERN void uiAreaBeginUserWindowMove(uiArea *a);
+_UI_EXTERN void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge);
 _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);
 _UI_EXTERN uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height);
 

@@ -98,6 +98,66 @@ void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 	// TODO
 }
 
+void uiAreaBeginUserWindowMove(uiArea *a)
+{
+	HWND toplevel;
+
+	// TODO restrict execution
+	// TODO release capture
+	toplevel = xxxx(a->hwnd);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// see http://stackoverflow.com/questions/40249940/how-do-i-initiate-a-user-mouse-driven-move-or-resize-for-custom-window-borders-o#40250654
+	SendMessageW(toplevel, WM_SYSCOMMAND,
+		SC_MOVE | 2, 0);
+}
+
+void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
+{
+	HWND toplevel;
+	WPARAM wParam;
+
+	// TODO restrict execution
+	// TODO release capture
+	toplevel = parentToplevel(a->hwnd);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// see http://stackoverflow.com/questions/40249940/how-do-i-initiate-a-user-mouse-driven-move-or-resize-for-custom-window-borders-o#40250654
+	wParam = SC_SIZE;
+	switch (edge) {
+	case uiWindowResizeEdgeLeft,
+		wParam |= 1;
+		break
+	case uiWindowResizeEdgeTop,
+		wParam |= 3;
+		break
+	case uiWindowResizeEdgeRight,
+		wParam |= 2;
+		break
+	case uiWindowResizeEdgeBottom,
+		wParam |= 6;
+		break
+	case uiWindowResizeEdgeTopLeft,
+		wParam |= 4;
+		break
+	case uiWindowResizeEdgeTopRight,
+		wParam |= 5;
+		break
+	case uiWindowResizeEdgeBottomLeft,
+		wParam |= 7;
+		break
+	case uiWindowResizeEdgeBottomRight:
+		wParam |= 8;
+		break
+	}
+	SendMessageW(toplevel, WM_SYSCOMMAND,
+		wParam, 0);
+}
+
 uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;

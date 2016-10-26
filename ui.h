@@ -316,6 +316,7 @@ _UI_EXTERN void uiAreaScrollTo(uiArea *a, double x, double y, double width, doub
 // TODO should these be allowed on scrolling areas?
 // TODO decide which mouse events should be accepted; Down is the only one guaranteed to work right now
 // TODO what happens to events after calling this up to and including the next mouse up?
+// TODO release capture?
 _UI_EXTERN void uiAreaBeginUserWindowMove(uiArea *a);
 _UI_EXTERN void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge);
 _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);

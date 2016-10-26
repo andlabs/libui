@@ -18,6 +18,20 @@ struct uiWindow {
 	int borderless;
 };
 
+@implementation libuiNSWindow
+
+- (void)libui_doMove:(NSEvent *)initialEvent
+{
+	// TODO
+}
+
+- (void)libui_doResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge
+{
+	// TODO
+}
+
+@end
+
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
 	struct mapTable *windows;
 }
@@ -361,7 +375,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	uiDarwinNewControl(uiWindow, w);
 
-	w->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
+	w->window = [[libuiNSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:defaultStyleMask
 		backing:NSBackingStoreBuffered
 		defer:YES];

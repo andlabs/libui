@@ -52,6 +52,10 @@ extern void finishNewTextField(NSTextField *, BOOL);
 extern NSTextField *newEditableTextField(void);
 
 // window.m
+@interface libuiNSWindow : NSWindow
+- (void)libui_doMove:(NSEvent *)initialEvent;
+- (void)libui_doResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge;
+@end
 extern uiWindow *windowFromNSWindow(NSWindow *);
 
 // alloc.m

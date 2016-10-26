@@ -401,6 +401,16 @@ void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 	// don't worry about the return value; it just says whether scrolling was needed
 }
 
+void uiAreaBeginUserWindowMove(uiArea *a)
+{
+	// TODO
+}
+
+void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
+{
+	// TODO
+}
+
 uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;

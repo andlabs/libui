@@ -161,6 +161,8 @@ void uiMain(void)
 
 void uiMainSteps(void)
 {
+	// SDL does this and it seems to be necessary for the menubar to work (see #182)
+	[realNSApp() finishLaunching];
 	isRunning = ^{
 		return stepsIsRunning;
 	};

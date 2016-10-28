@@ -169,10 +169,17 @@ void uiMainSteps(void)
 	stepsIsRunning = YES;
 }
 
+int uiMainStep(int wait)
+{
+	return mainStep(wait, ^(NSEvent *e) {
+		return NO;
+	});
+}
+
 // see also:
 // - http://www.cocoawithlove.com/2009/01/demystifying-nsapplication-by.html
 // - https://github.com/gnustep/gui/blob/master/Source/NSApplication.m
-int uiMainStep(int wait)
+int mainStep(int wait, BOOL (^interceptEvent)(NSEvent *e))
 {
 	NSDate *expire;
 	NSEvent *e;
@@ -196,7 +203,8 @@ int uiMainStep(int wait)
 			return 1;
 
 		type = [e type];
-		[realNSApp() sendEvent:e];
+		if (!interceptEvent(e))
+			[realNSApp() sendEvent:e];
 		[realNSApp() updateWindows];
 
 		// GNUstep does this

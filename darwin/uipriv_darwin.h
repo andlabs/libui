@@ -34,7 +34,7 @@
 extern void finalizeMenus(void);
 extern void uninitMenus(void);
 
-// init.m
+// main.m
 @interface applicationClass : NSApplication
 @end
 // this is needed because NSApp is of type id, confusing clang
@@ -43,6 +43,7 @@ extern void uninitMenus(void);
 @property (strong) menuManager *menuManager;
 @end
 #define appDelegate() ((appDelegate *) [realNSApp() delegate])
+extern int mainStep(int wait, BOOL (^interceptEvent)(NSEvent *));
 
 // util.m
 extern void disableAutocorrect(NSTextView *);

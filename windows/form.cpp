@@ -276,6 +276,11 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(f));
 }
 
+int uiFormNumChildren(uiForm *f)
+{
+	return (int) f->controls->size();
+}
+
 void uiFormDelete(uiForm *f, int index)
 {
 	struct formChild fc;

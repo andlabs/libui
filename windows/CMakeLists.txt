@@ -10,6 +10,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/box.cpp
 	windows/button.cpp
 	windows/checkbox.cpp
+	windows/clipboard.cpp
 	windows/colorbutton.cpp
 	windows/colordialog.cpp
 	windows/combobox.cpp

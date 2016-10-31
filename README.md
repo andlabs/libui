@@ -7,7 +7,10 @@ This README is being written.<br>
 
 ## Announcements
 
-* **<codedate**
+* **31 October 2016**
+	* @krakjoe noticed that I accidentally used thread-unsafe code in uiQueueMain() on Unix. Fixed.
+
+* **24 October 2016**
 	* `uiWindowSetContentSize()` on Unix no longer needs to call up the GTK+ main loop. As a result, bugs related to strange behavior using that function (and the now-deleted `uiWindowSetPosition()` and `uiWindowCenter()`) should go away. I'll need to go through the bugs to verify as much, though.
 
 * **22 October 2016**

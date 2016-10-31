@@ -43,7 +43,14 @@ extern void uninitMenus(void);
 @property (strong) menuManager *menuManager;
 @end
 #define appDelegate() ((appDelegate *) [realNSApp() delegate])
-extern int mainStep(int wait, BOOL (^interceptEvent)(NSEvent *));
+struct nextEventArgs {
+	NSEventMask mask;
+	NSDate *duration;
+	// LONGTERM no NSRunLoopMode?
+	NSString *mode;
+	BOOL dequeue;
+};
+extern int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *));
 
 // util.m
 extern void disableAutocorrect(NSTextView *);

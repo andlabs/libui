@@ -90,6 +90,8 @@ struct onResizeDragParams {
 	NSSize max;
 };
 
+// because we are changing the window frame each time the mouse moves, the successive -[NSEvent locationInWindow]s cannot be meaningfully used together
+// make sure they are all following some sort of standard to avoid this problem; the screen is the most obvious possibility since it requires only one conversion (the only one that a NSWindow provides)
 static NSPoint makeIndependent(NSPoint p, NSWindow *w)
 {
 	NSRect r;
@@ -155,6 +157,7 @@ NSLog(@"becomes %@", NSStringFromRect(frame));
 	[p->w setFrame:frame display:YES];			// and do reflect the new frame immediately
 }
 
+// TODO do our events get fired with this? *should* they?
 void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
 {
 	__block struct onResizeDragParams rdp;

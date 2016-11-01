@@ -80,7 +80,7 @@ static void handleResizeTop(NSRect *frame, NSPoint old, NSPoint new)
 	menubarBottom = mainWorkArea.origin.y + mainWorkArea.size.height;
 	if (oldTop < menubarBottom)
 		if (newTop >= menubarBottom)
-			return;
+			newTop = menubarBottom;		// TODO
 
 	frame->size.height = newHeight;
 }
@@ -95,26 +95,30 @@ static void handleResizeRight(NSRect *frame, NSPoint old, NSPoint new)
 static void handleResizeBottom(NSRect *frame, NSPoint old, NSPoint new)
 {
 	CGFloat offset;
-	CGFloat newY;
+	CGFloat newY, newHeight;
 	NSRect mainFrame;
 	CGFloat menubarTop;
 
 	offset = new.y - old.y;
 	newY = frame->origin.y + offset;
+	newHeight = frame->size.height - offset;
 
 	// we have gone too low if we started above the menubar AND we are about to cross it
 	mainFrame = [[NSScreen mainScreen] frame];
 	menubarTop = mainFrame.origin.y + mainFrame.size.height;
 	if (frame->origin.y >= menubarTop)
 		if (newY < menubarTop)
-			return;
+			newY = menubarTop;
+			// TODO change newHeight too?
 
 	frame->origin.y = newY;
+	frame->size.height = newHeight;
 }
 
 struct onResizeDragParams {
 	NSWindow *w;
-	NSPoint old;
+	NSRect initialFrame;
+	NSPoint initialPoint;
 	uiWindowResizeEdge edge;
 	NSSize min;
 	NSSize max;
@@ -126,9 +130,9 @@ static void onResizeDrag(struct onResizeDragParams *p, NSEvent *e)
 	NSRect frame;
 
 	new = [e locationInWindow];
-	frame = [p->w frame];
+	frame = p->initialFrame;
 
-NSLog(@"old %@ new %@", NSStringFromPoint(p->old), NSStringFromPoint(new));
+NSLog(@"old %@ new %@", NSStringFromPoint(p->initialPoint), NSStringFromPoint(new));
 NSLog(@"frame %@", NSStringFromRect(frame));
 
 	// horizontal
@@ -136,12 +140,12 @@ NSLog(@"frame %@", NSStringFromRect(frame));
 	case uiWindowResizeEdgeLeft:
 	case uiWindowResizeEdgeTopLeft:
 	case uiWindowResizeEdgeBottomLeft:
-		handleResizeLeft(&frame, p->old, new);
+		handleResizeLeft(&frame, p->initialPoint, new);
 		break;
 	case uiWindowResizeEdgeRight:
 	case uiWindowResizeEdgeTopRight:
 	case uiWindowResizeEdgeBottomRight:
-		handleResizeRight(&frame, p->old, new);
+		handleResizeRight(&frame, p->initialPoint, new);
 		break;
 	}
 	// vertical
@@ -149,16 +153,17 @@ NSLog(@"frame %@", NSStringFromRect(frame));
 	case uiWindowResizeEdgeTop:
 	case uiWindowResizeEdgeTopLeft:
 	case uiWindowResizeEdgeTopRight:
-		handleResizeTop(&frame, p->old, new);
+		handleResizeTop(&frame, p->initialPoint, new);
 		break;
 	case uiWindowResizeEdgeBottom:
 	case uiWindowResizeEdgeBottomLeft:
 	case uiWindowResizeEdgeBottomRight:
-		handleResizeBottom(&frame, p->old, new);
+		handleResizeBottom(&frame, p->initialPoint, new);
 		break;
 	}
 
 	// constrain
+	// TODO should we constrain against anything else as well? minMaxAutoLayoutSizes() already gives us nonnegative sizes, but...
 	if (frame.size.width < p->min.width)
 		frame.size.width = p->min.width;
 	if (frame.size.height < p->min.height)
@@ -172,8 +177,6 @@ NSLog(@"frame %@", NSStringFromRect(frame));
 NSLog(@"becomes %@", NSStringFromRect(frame));
 
 	[p->w setFrame:frame display:YES];			// and do reflect the new frame immediately
-	// and set it up for the next run
-	p->old = new;
 }
 
 void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
@@ -184,7 +187,8 @@ void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
 	__block BOOL done;
 
 	rdp.w = w;
-	rdp.old = [initialEvent locationInWindow];
+	rdp.initialFrame = [rdp.w frame];
+	rdp.initialPoint = [initialEvent locationInWindow];
 	rdp.edge = edge;
 	// TODO what happens if these change during the loop?
 	minMaxAutoLayoutSizes(rdp.w, &(rdp.min), &(rdp.max));

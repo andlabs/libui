@@ -39,6 +39,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/text.m
 	darwin/util.m
 	darwin/window.m
+	darwin/winmoveresize.m
 )
 set(_LIBUI_SOURCES ${_LIBUI_SOURCES} PARENT_SCOPE)
 

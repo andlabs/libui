@@ -27,7 +27,7 @@ struct uiWindow {
 
 - (void)libui_doResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge
 {
-	// TODO
+	doManualResize(self, initialEvent, edge);
 }
 
 @end

@@ -32,6 +32,7 @@ struct uiArea {
 	struct scrollViewData *d;
 	uiAreaHandler *ah;
 	BOOL scrolling;
+	NSEvent *dragevent;
 };
 
 @implementation areaView
@@ -200,8 +201,12 @@ struct uiArea {
 			me.Held1To64 |= j;
 	}
 
-	if (self->libui_enabled)
+	if (self->libui_enabled) {
+		// and allow dragging here
+		a->dragevent = e;
 		(*(a->ah->MouseEvent))(a->ah, a, &me);
+		a->dragevent = nil;
+	}
 }
 
 #define mouseEvent(name) \
@@ -403,12 +408,26 @@ void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 
 void uiAreaBeginUserWindowMove(uiArea *a)
 {
-	// TODO
+	libuiNSWindow *w;
+
+	w = (libuiNSWindow *) [a->area window];
+	if (w == nil)
+		return;		// TODO
+	if (a->dragevent == nil)
+		return;		// TODO
+	[w libui_doMove:a->dragevent];
 }
 
 void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 {
-	// TODO
+	libuiNSWindow *w;
+
+	w = (libuiNSWindow *) [a->area window];
+	if (w == nil)
+		return;		// TODO
+	if (a->dragevent == nil)
+		return;		// TODO
+	[w libui_doResize:a->dragevent on:edge];
 }
 
 uiArea *uiNewArea(uiAreaHandler *ah)

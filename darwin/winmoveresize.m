@@ -90,12 +90,22 @@ struct onResizeDragParams {
 	NSSize max;
 };
 
+static NSPoint makeIndependent(NSPoint p, NSWindow *w)
+{
+	NSRect r;
+
+	r.origin = p;
+	// mikeash in irc.freenode.net/#macdev confirms both that any size will do and that we can safely ignore the resultant size
+	r.size = NSZeroSize;
+	return [w convertRectToScreen:r].origin;
+}
+
 static void onResizeDrag(struct onResizeDragParams *p, NSEvent *e)
 {
 	NSPoint new;
 	NSRect frame;
 
-	new = [e locationInWindow];
+	new = makeIndependent([e locationInWindow], p->w);
 	frame = p->initialFrame;
 
 NSLog(@"old %@ new %@", NSStringFromPoint(p->initialPoint), NSStringFromPoint(new));
@@ -154,7 +164,7 @@ void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
 
 	rdp.w = w;
 	rdp.initialFrame = [rdp.w frame];
-	rdp.initialPoint = [initialEvent locationInWindow];
+	rdp.initialPoint = makeIndependent([initialEvent locationInWindow], rdp.w);
 	rdp.edge = edge;
 	// TODO what happens if these change during the loop?
 	minMaxAutoLayoutSizes(rdp.w, &(rdp.min), &(rdp.max));

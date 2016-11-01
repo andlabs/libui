@@ -59,30 +59,13 @@ static void minMaxAutoLayoutSizes(NSWindow *w, NSSize *min, NSSize *max)
 static void handleResizeLeft(NSRect *frame, NSPoint old, NSPoint new)
 {
 	frame->origin.x += new.x - old.x;
+	frame->size.width -= new.x - old.x;
 }
 
-// TODO properly handle crossing the menubar; this just stops at the menubar
+// TODO properly handle the menubar
 static void handleResizeTop(NSRect *frame, NSPoint old, NSPoint new)
 {
-	CGFloat offset;
-	CGFloat newHeight;
-	CGFloat oldTop, newTop;
-	NSRect mainWorkArea;
-	CGFloat menubarBottom;
-
-	offset = new.y - old.y;
-	newHeight = frame->size.height + offset;
-
-	// we have gone too high if we started under the menubar AND we are about to cross it
-	oldTop = frame->origin.y + frame->size.height;
-	newTop = frame->origin.y + newHeight;
-	mainWorkArea = [[NSScreen mainScreen] visibleFrame];
-	menubarBottom = mainWorkArea.origin.y + mainWorkArea.size.height;
-	if (oldTop < menubarBottom)
-		if (newTop >= menubarBottom)
-			newTop = menubarBottom;		// TODO
-
-	frame->size.height = newHeight;
+	frame->size.height += new.y - old.y;
 }
 
 static void handleResizeRight(NSRect *frame, NSPoint old, NSPoint new)
@@ -91,28 +74,11 @@ static void handleResizeRight(NSRect *frame, NSPoint old, NSPoint new)
 }
 
 
-// TODO properly handle crossing the menubar; this just stops at the menubar
+// TODO properly handle the menubar
 static void handleResizeBottom(NSRect *frame, NSPoint old, NSPoint new)
 {
-	CGFloat offset;
-	CGFloat newY, newHeight;
-	NSRect mainFrame;
-	CGFloat menubarTop;
-
-	offset = new.y - old.y;
-	newY = frame->origin.y + offset;
-	newHeight = frame->size.height - offset;
-
-	// we have gone too low if we started above the menubar AND we are about to cross it
-	mainFrame = [[NSScreen mainScreen] frame];
-	menubarTop = mainFrame.origin.y + mainFrame.size.height;
-	if (frame->origin.y >= menubarTop)
-		if (newY < menubarTop)
-			newY = menubarTop;
-			// TODO change newHeight too?
-
-	frame->origin.y = newY;
-	frame->size.height = newHeight;
+	frame->origin.y += new.y - old.y;
+	frame->size.height -= new.y - old.y;
 }
 
 struct onResizeDragParams {

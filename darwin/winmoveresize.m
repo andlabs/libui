@@ -83,6 +83,8 @@ static void handleResizeBottom(NSRect *frame, NSPoint old, NSPoint new)
 
 struct onResizeDragParams {
 	NSWindow *w;
+	// using the previous point causes weird issues like the mouse seeming to fall behind the window edge... so do this instead
+	// TODO will this make things like the menubar and dock easier too?
 	NSRect initialFrame;
 	NSPoint initialPoint;
 	uiWindowResizeEdge edge;

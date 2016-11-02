@@ -1,6 +1,76 @@
 // 1 november 2016
 #import "uipriv_darwin.h"
 
+// because we are changing the window frame each time the mouse moves, the successive -[NSEvent locationInWindow]s cannot be meaningfully used together
+// make sure they are all following some sort of standard to avoid this problem; the screen is the most obvious possibility since it requires only one conversion (the only one that a NSWindow provides)
+static NSPoint makeIndependent(NSPoint p, NSWindow *w)
+{
+	NSRect r;
+
+	r.origin = p;
+	// mikeash in irc.freenode.net/#macdev confirms both that any size will do and that we can safely ignore the resultant size
+	r.size = NSZeroSize;
+	return [w convertRectToScreen:r].origin;
+}
+
+struct onMoveDragParams {
+	NSWindow *w;
+	// using the previous point causes weird issues like the mouse seeming to fall behind the window edge... so do this instead
+	// TODO will this make things like the menubar and dock easier too?
+	NSRect initialFrame;
+	NSPoint initialPoint;
+};
+
+void onMoveDrag(struct onMoveDragParams *p, NSEvent *e)
+{
+	NSPoint new;
+	NSRect frame;
+	CGFloat offx, offy;
+
+	new = makeIndependent([e locationInWindow], p->w);
+	frame = p->initialFrame;
+
+	offx = new.x - p->initialPoint.x;
+	offy = new.y - p->initialPoint.y;
+	frame.origin.x += offx;
+	frame.origin.y += offy;
+
+	// TODO handle the menubar
+	// TODO wait the system does this for us already?!
+
+	[p->w setFrameOrigin:frame.origin];
+}
+
+// LONGTERM FUTURE -[NSWindow performWindowDragWithEvent:] would be better but that's 10.11-only
+void doManualMove(NSWindow *w, NSEvent *initialEvent)
+{
+	__block struct onMoveDragParams mdp;
+	struct nextEventArgs nea;
+	BOOL (^handleEvent)(NSEvent *e);
+	__block BOOL done;
+
+	mdp.w = w;
+	mdp.initialFrame = [mdp.w frame];
+	mdp.initialPoint = makeIndependent([initialEvent locationInWindow], mdp.w);
+
+	nea.mask = NSLeftMouseDraggedMask | NSLeftMouseUpMask;
+	nea.duration = [NSDate distantFuture];
+	nea.mode = NSEventTrackingRunLoopMode;		// nextEventMatchingMask: docs suggest using this for manual mouse tracking
+	nea.dequeue = YES;
+	handleEvent = ^(NSEvent *e) {
+		if ([e type] == NSLeftMouseUp) {
+			done = YES;
+			return YES;	// do not send
+		}
+		onMoveDrag(&mdp, e);
+		return YES;		// do not send
+	};
+	done = NO;
+	while (mainStep(&nea, handleEvent))
+		if (done)
+			break;
+}
+
 // see http://stackoverflow.com/a/40352996/3408572
 static void minMaxAutoLayoutSizes(NSWindow *w, NSSize *min, NSSize *max)
 {
@@ -92,18 +162,6 @@ struct onResizeDragParams {
 	NSSize min;
 	NSSize max;
 };
-
-// because we are changing the window frame each time the mouse moves, the successive -[NSEvent locationInWindow]s cannot be meaningfully used together
-// make sure they are all following some sort of standard to avoid this problem; the screen is the most obvious possibility since it requires only one conversion (the only one that a NSWindow provides)
-static NSPoint makeIndependent(NSPoint p, NSWindow *w)
-{
-	NSRect r;
-
-	r.origin = p;
-	// mikeash in irc.freenode.net/#macdev confirms both that any size will do and that we can safely ignore the resultant size
-	r.size = NSZeroSize;
-	return [w convertRectToScreen:r].origin;
-}
 
 static void onResizeDrag(struct onResizeDragParams *p, NSEvent *e)
 {

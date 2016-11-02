@@ -22,7 +22,7 @@ struct uiWindow {
 
 - (void)libui_doMove:(NSEvent *)initialEvent
 {
-	// TODO
+	doManualMove(self, initialEvent);
 }
 
 - (void)libui_doResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge

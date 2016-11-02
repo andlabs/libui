@@ -140,4 +140,5 @@ extern NSTextField *newLabel(NSString *str);
 extern NSImage *imageImage(uiImage *);
 
 // winmoveresize.m
+extern void doManualMove(NSWindow *w, NSEvent *initialEvent);
 extern void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge);

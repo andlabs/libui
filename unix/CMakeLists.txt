@@ -11,6 +11,7 @@ list(APPEND _LIBUI_SOURCES
 	unix/cellrendererbutton.c
 	unix/checkbox.c
 	unix/child.c
+	unix/clipboard.c
 	unix/colorbutton.c
 	unix/combobox.c
 	unix/control.c

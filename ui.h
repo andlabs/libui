@@ -684,6 +684,9 @@ _UI_EXTERN int uiGridPadded(uiGrid *g);
 _UI_EXTERN void uiGridSetPadded(uiGrid *g, int padded);
 _UI_EXTERN uiGrid *uiNewGrid(void);
 
+_UI_EXTERN int uiClipboardSetText(const char *text);
+_UI_EXTERN char *uiClipboardGetText();
+
 // TODO merge
 #include "uitable.h"
 

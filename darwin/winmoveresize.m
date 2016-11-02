@@ -37,14 +37,14 @@ static void minMaxAutoLayoutSizes(NSWindow *w, NSSize *min, NSSize *max)
 	cw = mkConstraint(contentView, NSLayoutAttributeWidth,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
-		0, DBL_MAX,
+		0, CGFLOAT_MAX,
 		@"window maximum width finding constraint");
 	[cw setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:cw];
 	ch = mkConstraint(contentView, NSLayoutAttributeHeight,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
-		0, DBL_MAX,
+		0, CGFLOAT_MAX,
 		@"window maximum height finding constraint");
 	[ch setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:ch];
@@ -63,6 +63,7 @@ static void handleResizeLeft(NSRect *frame, NSPoint old, NSPoint new)
 }
 
 // TODO properly handle the menubar
+// TODO wait, OS X does it for us?!
 static void handleResizeTop(NSRect *frame, NSPoint old, NSPoint new)
 {
 	frame->size.height += new.y - old.y;
@@ -112,9 +113,6 @@ static void onResizeDrag(struct onResizeDragParams *p, NSEvent *e)
 	new = makeIndependent([e locationInWindow], p->w);
 	frame = p->initialFrame;
 
-NSLog(@"old %@ new %@", NSStringFromPoint(p->initialPoint), NSStringFromPoint(new));
-NSLog(@"frame %@", NSStringFromRect(frame));
-
 	// horizontal
 	switch (p->edge) {
 	case uiWindowResizeEdgeLeft:
@@ -154,8 +152,6 @@ NSLog(@"frame %@", NSStringFromRect(frame));
 	if (frame.size.height > p->max.height)
 		frame.size.height = p->max.height;
 
-NSLog(@"becomes %@", NSStringFromRect(frame));
-
 	[p->w setFrame:frame display:YES];			// and do reflect the new frame immediately
 }
 
@@ -173,8 +169,6 @@ void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
 	rdp.edge = edge;
 	// TODO what happens if these change during the loop?
 	minMaxAutoLayoutSizes(rdp.w, &(rdp.min), &(rdp.max));
-NSLog(@"min %@", NSStringFromSize(rdp.min));
-NSLog(@"max %@", NSStringFromSize(rdp.max));
 
 	nea.mask = NSLeftMouseDraggedMask | NSLeftMouseUpMask;
 	nea.duration = [NSDate distantFuture];

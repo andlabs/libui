@@ -217,3 +217,15 @@ macro(_add_exec _name)
 endmacro()
 add_subdirectory("test")
 add_subdirectory("examples")
+
+install(TARGETS ${_LIBUINAME}
+   LIBRARY DESTINATION lib
+   ARCHIVE DESTINATION lib)
+install(FILES ui.h uitable.h DESTINATION include)
+if (APPLE)
+	install(FILES ui_darwin.h DESTINATION include)
+elseif (WIN32)
+	install(FILES ui_windows.h DESTINATION include)
+else()
+	install(FILES ui_unix.h DESTINATION include)
+endif()

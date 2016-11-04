@@ -61,13 +61,24 @@ macro(_handle_static)
 		ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 	set(_aname $<TARGET_FILE:${_LIBUINAME}>)
 	set(_oname libui-combined.o)
-	add_custom_command(
-		OUTPUT ${_oname}
-		COMMAND
-			ld -r --whole-archive ${_aname} -o ${_oname}
-		COMMAND
-			objcopy --localize-hidden ${_oname}
-		COMMENT "Removing hidden symbols")
+	MESSAGE( STATUS "CMAKE_SYSTEM_NAME: " ${CMAKE_SYSTEM_NAME} )
+	if(${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+		add_custom_command(
+			OUTPUT ${_oname}
+			COMMAND
+				ld -r --whole-archive ${_aname} -o ${_oname}
+			COMMAND
+				objcopy ${_oname}
+			COMMENT "Removing hidden symbols")
+	else()
+		add_custom_command(
+			OUTPUT ${_oname}
+			COMMAND
+				ld -r --whole-archive ${_aname} -o ${_oname}
+			COMMAND
+				objcopy --localize-hidden ${_oname}
+			COMMENT "Removing hidden symbols")
+	endif()
 	add_library(libui STATIC ${_oname})
 	# otherwise cmake won't know which linker to use
 	set_target_properties(libui PROPERTIES

@@ -29,9 +29,13 @@ static void uiTabDestroy(uiControl *c)
 	uiFreeControl(uiControl(t));
 }
 
-void uiTabAppend(uiTab *t, const char *name, uiControl *child)
+int uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
-	uiTabInsertAt(t, name, t->pages->len, child);
+	int index = t->pages->len;
+
+	uiTabInsertAt(t, name, index, child);
+
+	return index;
 }
 
 void uiTabInsertAt(uiTab *t, const char *name, int n, uiControl *child)

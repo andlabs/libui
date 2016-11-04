@@ -122,7 +122,7 @@ _UI_EXTERN uiButton *uiNewButton(const char *text);
 
 typedef struct uiBox uiBox;
 #define uiBox(this) ((uiBox *) (this))
-_UI_EXTERN void uiBoxAppend(uiBox *b, uiControl *child, int stretchy);
+_UI_EXTERN int uiBoxAppend(uiBox *b, uiControl *child, int stretchy);
 _UI_EXTERN void uiBoxDelete(uiBox *b, int index);
 _UI_EXTERN int uiBoxPadded(uiBox *b);
 _UI_EXTERN void uiBoxSetPadded(uiBox *b, int padded);
@@ -157,7 +157,7 @@ _UI_EXTERN uiLabel *uiNewLabel(const char *text);
 
 typedef struct uiTab uiTab;
 #define uiTab(this) ((uiTab *) (this))
-_UI_EXTERN void uiTabAppend(uiTab *t, const char *name, uiControl *c);
+_UI_EXTERN int uiTabAppend(uiTab *t, const char *name, uiControl *c);
 _UI_EXTERN void uiTabInsertAt(uiTab *t, const char *name, int before, uiControl *c);
 _UI_EXTERN void uiTabDelete(uiTab *t, int index);
 _UI_EXTERN int uiTabNumPages(uiTab *t);
@@ -656,7 +656,7 @@ _UI_EXTERN uiColorButton *uiNewColorButton(void);
 
 typedef struct uiForm uiForm;
 #define uiForm(this) ((uiForm *) (this))
-_UI_EXTERN void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy);
+_UI_EXTERN int uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy);
 _UI_EXTERN void uiFormDelete(uiForm *f, int index);
 _UI_EXTERN int uiFormPadded(uiForm *f);
 _UI_EXTERN void uiFormSetPadded(uiForm *f, int padded);

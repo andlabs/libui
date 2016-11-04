@@ -254,7 +254,7 @@ static void formArrangeChildren(uiForm *f)
 	}
 }
 
-void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
+int uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 {
 	struct formChild fc;
 	WCHAR *wlabel;
@@ -274,6 +274,8 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 	f->controls->push_back(fc);
 	formArrangeChildren(f);
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(f));
+
+	return f->controls->size() - 1;
 }
 
 void uiFormDelete(uiForm *f, int index)

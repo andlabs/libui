@@ -238,6 +238,11 @@ void uiDrawPathEnd(uiDrawPath *p)
 	p->sink = NULL;
 }
 
+int uiDrawPathEnded(uiDrawPath *p)
+{
+	return p->sink == NULL ? 1 : 0;
+}
+
 ID2D1PathGeometry *pathGeometry(uiDrawPath *p)
 {
 	if (p->sink != NULL)

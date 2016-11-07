@@ -446,6 +446,7 @@ _UI_EXTERN void uiDrawPathCloseFigure(uiDrawPath *p);
 // TODO effect of these when a figure is already started
 _UI_EXTERN void uiDrawPathAddRectangle(uiDrawPath *p, double x, double y, double width, double height);
 
+_UI_EXTERN int uiDrawPathEnded(uiDrawPath *p);
 _UI_EXTERN void uiDrawPathEnd(uiDrawPath *p);
 
 _UI_EXTERN void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStrokeParams *p);

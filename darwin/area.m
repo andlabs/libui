@@ -309,6 +309,7 @@ mouseEvent(otherMouseUp)
 		[self setNeedsDisplay:YES];
 }
 
+// TODO does this update the frame?
 - (void)setScrollingSize:(NSSize)s
 {
 	self->libui_ss = s;

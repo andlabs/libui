@@ -1,3 +1,5 @@
+- make sure the last line of text layouts include leading
+
 - documentation notes:
 	- static binaries do not link system libraries, meaning apps still depend on shared GTK+, etc.
 	- ui*Buttons are NOT compatible with uiButton functions

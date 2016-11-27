@@ -1,11 +1,12 @@
-# Note: Table stuff is currently experimental; do not use in production code. It will not build on Windows as that part has not been written yet; if you want to test other parts of the Windows code, apply `nowintable.diff`.
-
 # libui: a portable GUI library for C
 
 This README is being written.<br>
 [![Build Status](https://travis-ci.org/andlabs/libui.svg)](https://travis-ci.org/andlabs/libui)
 
 ## Announcements
+
+* **27 November 2016**
+	* Decided to split the table stuff into its own branch. It will be developed independently of everything else, along with a few other features.
 
 * **2 November 2016**
 	* Added two new functions to replace the deleted `uiWindowPosition()` and friends: `uiAreaBeginUserWindowMove()` and `uiAreaBeginUserWindowResize()`. When used in a `uiAreaHandler.Mouse()` event handler, these let you initiate a user-driven mouse move or mouse resize of the window at any point in a uiArea.

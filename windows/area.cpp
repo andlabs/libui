@@ -2,6 +2,8 @@
 #include "uipriv_windows.hpp"
 #include "area.hpp"
 
+// TODO handle WM_DESTROY/WM_NCDESTROY
+// TODO same for other Direct2D stuff
 static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uiArea *a;

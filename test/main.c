@@ -159,8 +159,8 @@ int main(int argc, char *argv[])
 	innerTab = newTab();
 	uiTabAppend(outerTab, "Pages 16-?", uiControl(innerTab));
 
-//	page16 = makePage16();
-//	uiTabAppend(innerTab, "Page 16", uiControl(page16));
+	page16 = makePage16();
+	uiTabAppend(innerTab, "Page 16", uiControl(page16));
 
 	if (startspaced)
 		setSpaced(1);

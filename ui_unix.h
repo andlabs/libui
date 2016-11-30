@@ -11,6 +11,13 @@ This file assumes that you have included <gtk/gtk.h> and "ui.h" beforehand. It p
 extern "C" {
 #endif
 
+typedef struct uiImage uiImage;
+struct uiImage {
+	double width;
+	double height;
+	GPtrArray *images;
+};
+
 typedef struct uiUnixControl uiUnixControl;
 struct uiUnixControl {
 	uiControl c;

@@ -53,6 +53,7 @@ extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
 extern ptrdiff_t *graphemes(const char *text, PangoContext *context);
 
 // image.c
+/*TODO remove this*/typedef struct uiImage uiImage;
 extern cairo_surface_t *imageAppropriateSurface(uiImage *i, GtkWidget *w);
 
 // cellrendererbutton.c

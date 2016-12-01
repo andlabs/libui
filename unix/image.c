@@ -1,12 +1,6 @@
 // 27 june 2016
 #include "uipriv_unix.h"
 
-struct uiImage {
-	double width;
-	double height;
-	GPtrArray *images;
-};
-
 static void freeImageRep(gpointer item)
 {
 	cairo_surface_t *cs = (cairo_surface_t *) item;

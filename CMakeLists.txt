@@ -104,6 +104,9 @@ else()
 	# don't use C_VERSION or CXX_VERSION because they use GNU standards
 	# TODO we can actually do this; set both C_EXTENSIONS and CXX_EXTENSIONS to OFF
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
+	if(APPLE)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
+	endif()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
 	set(_COMMON_LDFLAGS

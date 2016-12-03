@@ -7,6 +7,7 @@ list(APPEND _LIBUI_SOURCES
 	common/matrix.c
 	common/shouldquit.c
 	common/userbugs.c
+	common/utf.c
 )
 set(_LIBUI_SOURCES ${_LIBUI_SOURCES} PARENT_SCOPE)
 

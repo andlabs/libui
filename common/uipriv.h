@@ -1,4 +1,7 @@
 // 6 april 2015
+// TODO can extern "C"s nest?
+#include "utf.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -49,9 +49,6 @@ extern void freeContext(uiDrawContext *);
 extern uiDrawTextFont *mkTextFont(PangoFont *f, gboolean add);
 extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
 
-// graphemes.c
-extern ptrdiff_t *graphemes(const char *text, PangoContext *context);
-
 // image.c
 /*TODO remove this*/typedef struct uiImage uiImage;
 extern cairo_surface_t *imageAppropriateSurface(uiImage *i, GtkWidget *w);

@@ -1,6 +1,4 @@
 // 6 april 2015
-// TODO can extern "C"s nest?
-#include "utf.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -8,6 +6,7 @@ extern "C" {
 
 #include <stdarg.h>
 #include "controlsigs.h"
+#include "utf.h"
 
 extern uiInitOptions options;
 
@@ -55,6 +54,15 @@ extern int fromScancode(uintptr_t, uiAreaKeyEvent *);
 extern void fallbackSkew(uiDrawMatrix *, double, double, double, double);
 extern void scaleCenter(double, double, double *, double *);
 extern void fallbackTransformSize(uiDrawMatrix *, double *, double *);
+
+// for attrstr.c
+struct graphemes {
+	size_t len;
+	size_t *pointsToGraphemes;
+	size_t *graphemesToPoints;
+};
+extern int graphemesTakesUTF16(void);
+extern struct graphemes *graphemes(void *s, size_t len);
 
 #ifdef __cplusplus
 }

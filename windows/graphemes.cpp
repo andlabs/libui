@@ -3,9 +3,14 @@
 
 // We could use CharNext() to generate grapheme cluster boundaries, but it doesn't handle surrogate pairs properly (see http://archives.miloush.net/michkap/archive/2008/12/16/9223301.html).
 // So let's use Uniscribe (see http://archives.miloush.net/michkap/archive/2005/01/14/352802.html)
-// See also http://www.catch22.net/tuts/uniscribe-mysteries and http://www.catch22.net/tuts/keyboard-navigation for more details.
+// See also http://www.catch22.net/tuts/uniscribe-mysteries, http://www.catch22.net/tuts/keyboard-navigation, and https://maxradi.us/documents/uniscribe/ for more details.
 
-static HRESULT itemize(WCHAR *msg, size_t len, SCRIPT_ITEM **out, int *outn)
+int graphemesTakesUTF16(void)
+{
+	return 1;
+}
+
+static HRESULT itemize(WCHAR *s, size_t len, SCRIPT_ITEM **out, int *outn)
 {
 	SCRIPT_CONTROL sc;
 	SCRIPT_STATE ss;
@@ -20,8 +25,8 @@ static HRESULT itemize(WCHAR *msg, size_t len, SCRIPT_ITEM **out, int *outn)
 
 	maxItems = len + 2;
 	for (;;) {
-		items = new SCRIPT_ITEM[maxItems];
-		hr = ScriptItemize(msg, len,
+		items = new SCRIPT_ITEM[maxItems + 1];
+		hr = ScriptItemize(s, len,
 			maxItems,
 			&sc, &ss,
 			items, &n);
@@ -39,42 +44,63 @@ static HRESULT itemize(WCHAR *msg, size_t len, SCRIPT_ITEM **out, int *outn)
 	return S_OK;
 }
 
-size_t *graphemes(WCHAR *msg)
+struct graphemes *graphemes(void *s, size_t len)
 {
-	size_t len;
+	struct graphemes *g;
+	WCHAR *str = (WCHAR *) s;
 	SCRIPT_ITEM *items;
-	int i, n;
-	size_t *out;
-	size_t *op;
-	SCRIPT_LOGATTR *logattr;
-	int j, nn;
+	int nItems;
+	int curItemIndex;
+	int nCharsInCurItem;
+	size_t *pPTG, *pGTP;
 	HRESULT hr;
 
-	len = wcslen(msg);
-	hr = itemize(msg, len, &items, &n);
+	g = uiNew(struct graphemes);
+
+	hr = itemize(str, len, &items, &n);
 	if (hr != S_OK)
 		logHRESULT(L"error itemizing string for finding grapheme cluster boundaries", hr);
+	g->len = nItems;
+	g->pointsToGraphemes = (size_t *) uiAlloc((len + 1) * sizeof (size_t), "size_t[] (graphemes)");
+	// note that there are actually nItems + 1 elements in items
+	// items[nItems] is the grapheme one past the end
+	g->graphemesToPoints = (size_t *) uiAlloc((g->len + 1) * sizeof (size_t), "size_t[] (graphemes)");
 
-	// should be enough; 2 more just to be safe
-	out = (size_t *) uiAlloc((len + 2) * sizeof (size_t), "size_t[]");
-	op = out;
+	pPTG = g->pointsToGraphemes;
+	pGTP = g->graphemesToPoints;
+	for (curItemIndex = 0; curItemIndex < nItems; curItemIndex++) {
+		SCRIPT_ITEM *curItem, *nextItem;
+		SCRIPT_LOGATTR *logattr;
+		size_t *curGTP;
 
-	// note that there are actually n + 1 elements in items
-	for (i = 0; i < n; i++) {
-		nn = items[i + 1].iCharPos - items[i].iCharPos;
-		logattr = new SCRIPT_LOGATTR[nn];
-		hr = ScriptBreak(msg + items[i].iCharPos, nn,
-			&(items[i].a), logattr);
+		curItem = items + curItemIndex;
+		nextItem = curItem + 1;
+
+		nCharsInCurItem = nextItem->iCharPos - curItem->iCharPos;
+
+		logattr = new SCRIPT_LOGATTR[nCharsInCurItem];
+		hr = ScriptBreak(str + curItem->iCharPos, nCharsInCurItem,
+			&(curItem->a), logattr);
 		if (hr != S_OK)
 			logHRESULT(L"error breaking string for finding grapheme cluster boundaries", hr);
-		for (j = 0; j < nn; j++)
-			if (logattr[j].fCharStop != 0)
-				*op++ = items[i].iCharPos + j;
+
+		// TODO can we merge these loops somehow?
+		curGTP = pGTP;
+		for (i = 0; i < nCharsInCurItem; i++)
+			if (logattr[i].fCharStop != 0)
+				*pGTP++ = curItem->iCharPos + i;
+		for (i = 0; i < nCharsInCurItem; i++) {
+			*pPTG++ = curGTP - g->graphemesToPoints;
+			if (logattr[i].fCharStop != 0)
+				curGTP++;
+		}
+
 		delete[] logattr;
 	}
 	// and handle the last item for the end of the string
-	*op++ = items[i].iCharPos;
+	*pGTP++ = items[nItems].iCharPos;
+	*pPTG++ = pGTP - g->graphemesToPoints;
 
 	delete[] items;
-	return out;
+	return g;
 }

@@ -184,11 +184,12 @@ static int attrDeleteRange(uiAttributedString *s, struct attr *a, size_t start, 
 	tmp.end = end;
 	tmp.next = b;
 
-	// and now push c back to overwrite the deleted stuff
+	// and now push b back to overwrite the deleted stuff
 	a->next = b;
 	b->start -= count;
 	b->end -= count;
-
+	if (a == s->lastattr)
+		s->lastattr = a->next;
 	return 2;
 }
 
@@ -565,6 +566,9 @@ void uiAttributedStringDelete(uiAttributedString *s, size_t start, size_t end)
 	// null-terminate the string
 	s->s[start + count] = 0;
 	s->u16[start16 + count16] = 0;
+
+	// fix up attributes
+	attrAdjustPostDelete(s, start, end);
 
 	// and finally resize
 	resize(s, start + count, start16 + count16);

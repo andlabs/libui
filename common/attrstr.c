@@ -87,6 +87,7 @@ static int attrSplitAt(uiAttributedString *s, struct attr *a, size_t at)
 	return 1;
 }
 
+// removes attributes without deleting characters
 // returns:
 // - 0 if the attribute needs to be deleted
 // - 1 if the attribute was changed or no change needed
@@ -125,6 +126,69 @@ static int attrDropRange(uiAttributedString *s, struct attr *a, size_t start, si
 	a->next = b;
 	if (a == s->lastattr)
 		s->lastattr = a->next;
+	return 2;
+}
+
+// removes attributes while deleting characters
+// returns:
+// - 0 if the attribute needs to be deleted
+// - 1 if the attribute was changed or no change needed
+// - 2 if the attribute was split
+static int attrDeleteRange(uiAttributedString *s, struct attr *a, size_t start, size_t end)
+{
+	struct attr *b;
+	struct attr tmp;
+	size_t count, acount;
+
+	if (!attrRangeIntersect(a, &start, &end))
+		// out of range; nothing to do
+		return 1;
+
+	// just outright delete the attribute?
+	if (a->start == start && a->end == end)
+		return 0;
+
+	acount = a->end - a->start;
+	count = end - start;
+
+	// only the start or end deleted?
+	if (a->start == start) {		// start deleted
+		a->end = a->start + (acount - count);
+		return 1;
+	}
+	if (a->end == end) {			// end deleted
+		a->end = a->start + count;
+		return 1;
+	}
+
+	// something in the middle deleted
+	// we ened to split the attribute into *three*
+	// first, split at the start of he deleted range
+	tmp.what = a->what;
+	tmp.val = a->val;
+	tmp.start = start;
+	tmp.end = a->end;
+	tmp.next = a->next;
+
+	a->end = start;
+	a->next = &tmp;
+
+	// now split at the end
+	b = uiNew(struct attr);
+	b->what = a->what;
+	b->val = a->val;
+	b->start = end;
+	b->end = a->end;
+	b->next = tmp.next;
+
+	tmp.end = end;
+	tmp.next = b;
+
+	// and now push c back to overwrite the deleted stuff
+	a->next = b;
+	b->start -= count;
+	b->end -= count;
+
 	return 2;
 }
 
@@ -218,7 +282,6 @@ static void attrAdjustPostInsert(uiAttributedString *s, size_t start, size_t n, 
 	}
 }
 
-// TODO this is very very wrong
 static void attrAdjustPostDelete(uiAttributedString *s, size_t start, size_t end)
 {
 	struct attr *a, *prev;
@@ -237,7 +300,7 @@ static void attrAdjustPostDelete(uiAttributedString *s, size_t start, size_t end
 			continue;
 		}
 
-		switch (attrDropRange(s, a, astart, aend)) {
+		switch (attrDeleteRange(s, a, astart, aend)) {
 		case 0:		// delete
 			a = attrDelete(s, a, prev);
 			// keep prev unchanged

@@ -24,7 +24,7 @@ extern "C" {
 #define _UI_EXTERN extern
 #endif
 
-// C++ is really really really really really really dumb about enums, so screw that and just make them anonymous
+// C is really really really really really really dumb about enums, so screw that and just make them anonymous
 // This has the advantage of being ABI-able should we ever need an ABI...
 #define _UI_ENUM(s) typedef unsigned int s; enum
 

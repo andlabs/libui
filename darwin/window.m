@@ -177,6 +177,7 @@ static void uiWindowShow(uiControl *c)
 	uiWindow *w = (uiWindow *) c;
 
 	[w->window makeKeyAndOrderFront:w->window];
+	[NSApp activateIgnoringOtherApps:YES];
 }
 
 static void uiWindowHide(uiControl *c)

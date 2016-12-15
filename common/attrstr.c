@@ -23,17 +23,15 @@ struct uiAttributedString {
 };
 
 struct attr {
-	int type;
+	uiAttribute type;
 	uintptr_t val;
 	size_t start;
 	size_t end;
 	struct attr *next;
 };
 
-enum {
-	// TODO put attr types here
-	nAttrTypes,
-};
+// if new entries types are added to the end of the uiAttribute enumeration, this MUST be updated!
+#define nAttrTypes (TODO + 1)
 
 static int attrHasPos(struct attr *a, size_t pos)
 {
@@ -234,7 +232,7 @@ static void attrsGetFor(uiAttributedString *s, struct attr **alist, size_t at)
 
 	// we want the attributes for at
 	// these are the attributes of at - 1
-	// if at == 0. then htese are the attributes at 0
+	// if at == 0. then these are the attributes at 0
 	if (at != 0)
 		at--;
 

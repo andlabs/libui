@@ -70,4 +70,5 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 			break;
 	// TODO this does not handle cases where the attribute overwrites an existing attribute
 	linkInsertBefore(alist, a, before);
+	// TODO see if adding this attribute leads to a fragmented contiguous run
 }

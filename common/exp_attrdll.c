@@ -14,6 +14,45 @@ struct attrlist {
 	struct attr *last;
 };
 
+// if before is NULL, add to the end of the list
+static void linkInsertBefore(struct attrlist *alist, struct attr *what, struct attr *before)
+{
+	// if the list is empty, this is the first item
+	if (alist->first == NULL) {
+		alist->first = a;
+		alist->last = a;
+		return;
+	}
+
+	// add to the end
+	if (before == NULL) {
+		struct attr *oldlast;
+
+		oldlast = alist->last;
+		alist->last = a;
+		a->prev = oldlast;
+		oldlast->next = a;
+		return;
+	}
+
+	// add to the beginning
+	if (before == alist->first) {
+		struct attr *oldfirst;
+
+		oldfirst = alist->first;
+		alist->first = a;
+		oldfirst->prev = a;
+		a->next = oldfirst;
+		return;
+	}
+
+	// add to the middle
+	a->prev = before->prev;
+	a->next = before;
+	before->prev = a;
+	a->prev->next = a;
+}
+
 void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end)
 {
 	struct attr *a;
@@ -25,28 +64,10 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 	a->start = start;
 	a->end = end;
 
-	if (alist->first == NULL) {		// empty list
-		alist->first = a;
-		alist->last = a;
-		return;
-	}
-
 	// place a before the first element that starts after a does
 	for (before = alist->first; before != NULL; before = before->next)
 		if (before->start > a->start)
 			break;
-	if (before == NULL) {		// if there is none, add a to the end
-		alist->last->next = a;
-		a->prev = alist->last;
-		alist->last = a;
-		return;
-	}
-
-	if (before == alist->first)
-		alist->first = a;
-	else		// not the first; hook up our new prev
-		before->prev->next = a;
-	a->next = before;
-	a->prev = before->prev;
-	before->prev = a;
+	// TODO this does not handle cases where the attribute overwrites an existing attribute
+	linkInsertBefore(alist, a, before);
 }

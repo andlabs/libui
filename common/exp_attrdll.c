@@ -1,5 +1,13 @@
 // 16 december 2016
 
+/*
+An attribute list is a doubly linked list of attributes.
+The list is kept sorted in increasing order by start position. Whether or not the sort is stable is undefined, so no temporal information should be expected to stay.
+Overlapping attributes are not allowed; if an attribute is added that conflicts with an existing one, the existing one is removed.
+In addition, the linked list tries to reduce fragmentation: if an attribute is added that just expands another, then there will only be one entry in alist, not two. (TODO does it really?)
+The linked list is not a ring; alist->fist->prev == NULL and alist->last->next == NULL.
+*/
+
 struct attr {
 	uiAttribute type;
 	uintptr_t val;
@@ -235,6 +243,7 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 		// okay so this might conflict; if the val is the same as the one we want, we need to expand the existing attribute, not fragment anything
 		// TODO this might cause problems with system specific attributes, if we support those; maybe also user-specific?
 		// TODO will this cause problems with fonts?
+		// TODO will this reduce fragmentation if we first add from 0 to 2 and then from 2 to 4? or do we have to do that separately?
 		if (before->val == val) {
 			attrGrow(alist, a, start, end);
 			return;

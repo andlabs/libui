@@ -15,7 +15,7 @@ struct attrlist {
 };
 
 // if before is NULL, add to the end of the list
-static void linkInsertBefore(struct attrlist *alist, struct attr *a, struct attr *before)
+static void attrInsertBefore(struct attrlist *alist, struct attr *a, struct attr *before)
 {
 	// if the list is empty, this is the first item
 	if (alist->first == NULL) {
@@ -180,6 +180,29 @@ static int attrDropRange(struct attrlist *alist, struct attr *a, size_t start, s
 	return 2;
 }
 
+static void attrGrow(struct attrlist *alist, struct attr *a, size_t start, size_t end)
+{
+	struct attr *before;
+	struct attr *unused;
+
+	// adjusting the end is simple: if it ends before our new end, just set the new end
+	if (a->end < end)
+		a->end = end;
+
+	// adjusting the start is harder
+	// if the start is before our new start, we are done
+	// otherwise, we have to move the start back AND reposition the attribute to keep the sorted order
+	if (a->start <= start)
+		return;
+	a->start = start;
+	// TODO could we just return next?
+	attrUnlink(alist, a, &unused);
+	for (before = alist->first; before != NULL; before = before->next)
+		if (before->start > a->start)
+			break;
+	attrInsertBefore(alist, a, before);
+}
+
 void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end)
 {
 	struct attr *a;
@@ -211,8 +234,9 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 
 		// okay so this might conflict; if the val is the same as the one we want, we need to expand the existing attribute, not fragment anything
 		// TODO this might cause problems with system specific attributes, if we support those; maybe also user-specific?
+		// TODO will this cause problems with fonts?
 		if (before->val == val) {
-			// TODO
+			attrGrow(alist, a, start, end);
 			return;
 		}
 		// okay the values are different; we need to split apart
@@ -230,7 +254,7 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 	a->val = val;
 	a->start = start;
 	a->end = end;
-	linkInsertBefore(alist, a, before);
+	attrInsertBefore(alist, a, before);
 
 	// and finally, if we split, insert the remainder
 	if (tail == NULL)
@@ -239,5 +263,5 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 	for (; before != NULL; before = before->next)
 		if (before->start > tail->start)
 			break;
-	linkInsertBefore(alist, tail, before);
+	attrInsertBefore(alist, tail, before);
 }

@@ -15,7 +15,7 @@ struct attrlist {
 };
 
 // if before is NULL, add to the end of the list
-static void linkInsertBefore(struct attrlist *alist, struct attr *what, struct attr *before)
+static void linkInsertBefore(struct attrlist *alist, struct attr *a, struct attr *before)
 {
 	// if the list is empty, this is the first item
 	if (alist->first == NULL) {
@@ -78,45 +78,114 @@ static int attrRangeIntersect(struct attr *a, size_t *start, size_t *end)
 	return 1;
 }
 
-#if 0
-void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end)
+static void attrUnlink(struct attrlist *alist, struct attr *a, struct attr **next)
 {
-	struct attr *a;
-	struct attr *before;
+	struct attr *p, *n;
 
-	a = uiNew(struct attr);
-	a->type = type;
-	a->val = val;
-	a->start = start;
-	a->end = end;
+	p = a->prev;
+	n = a->next;
+	a->prev = NULL;
+	a->next = NULL;
 
-	// place a before the first element that starts after a does
-	for (before = alist->first; before != NULL; before = before->next) {
-		size_t lstart, lend;
-
-		if (before->start > a->start)
-			break;
-		// if this attribute overrides another, we have to split
-		lstart = start;
-		lend = end;
-		if (!attrRangeIntersect(before, &lstart, &lend))
-			continue;
-		if (before->type != type)
-			continue;
-		if (before->val == val)
-			continue;
-		// TODO now split around start/end and drop the overlap
+	// only item in list?
+	if (p == NULL && n == NULL) {
+		alist->first = NULL;
+		alist->last = NULL;
+		*next = NULL;
+		return;
 	}
-	linkInsertBefore(alist, a, before);
-	// TODO see if adding this attribute leads to a fragmented contiguous run
+	// start of list?
+	if (p == NULL) {
+		n->prev = NULL;
+		alist->first = n;
+		*next = n;
+		return;
+	}
+	// end of list?
+	if (n == NULL) {
+		p->next = NULL;
+		alist->last = p;
+		*next = NULL;
+		return;
+	}
+	// middle of list
+	p->next = n;
+	n->prev = p;
+	*next = n;
 }
-#endif
+
+static void attrDelete(struct attrlist *alist, struct attr *a, struct attr **next)
+{
+	attrUnlink(alist, a, next);
+	uiFree(a);
+}
+
+// attrDropRange() removes attributes without deleting characters.
+// 
+// If the attribute needs no change, 1 is returned.
+// 
+// If the attribute needs to be deleted, it is deleted and 0 is returned.
+// 
+// If the attribute only needs to be resized at the end, it is adjusted and 1 is returned.
+// 
+// If the attribute only needs to be resized at the start, it is adjusted, unlinked, and returned in tail, and 1 is returned.
+// 
+// Otherwise, the attribute needs to be split. The existing attribute is adjusted to make the left half and a new attribute with the right half. This attribute is kept unlinked and returned in tail. Then, 2 is returned.
+// 
+// In all cases, next is set to the next attribute to look at in a forward sequential loop.
+// 
+// TODO is the return value relevant?
+static int attrDropRange(struct attrlist *alist, struct attr *a, size_t start, size_t end, struct attr **tail, struct attr **next)
+{
+	struct attr *b;
+
+	// always pre-initialize tail to NULL
+	*tail = NULL;
+
+	if (!attrRangeIntersect(a, &start, &end)) {
+		// out of range; nothing to do
+		*next = a->next;
+		return 1;
+	}
+
+	// just outright delete the attribute?
+	if (a->start == start && a->end == end) {
+		attrDelete(alist, a, next);
+		return 0;
+	}
+
+	// only chop off the start or end?
+	if (a->start == start) {		// chop off the end
+		a->end = end;
+		*next = a->next;
+		return 1;
+	}
+	if (a->end == end) {			// chop off the start
+		a->start = start;
+		attrUnlink(attr, a, next);
+		*tail = a;
+		return 1;
+	}
+
+	// we'll need to split the attribute into two
+	b = uiNew(struct attr);
+	b->type = a->type;
+	b->val = a->val;
+	b->start = end;
+	b->end = a->end;
+	*tail = b;
+
+	a->end = start;
+	*next = a->next;
+	return 2;
+}
 
 void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end)
 {
 	struct attr *a;
 	struct attr *before;
 	struct attr *tail = NULL;
+	int split = 0;
 
 	// first, figure out where in the list this should go
 	// in addition, if this attribute overrides one that already exists, split that one apart so this one can take over
@@ -129,7 +198,7 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 			break;
 
 		// if we have already split a prior instance of this attribute, don't bother doing it again
-		if (tail != NULL)
+		if (split)
 			goto next;
 
 		// should we split this?
@@ -144,9 +213,12 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 		// TODO this might cause problems with system specific attributes, if we support those; maybe also user-specific?
 		if (before->val == val) {
 			// TODO
+			return;
 		}
 		// okay the values are different; we need to split apart
-		// TODO
+		attrDropRange(alist, a, start, end, &tail, &before);
+		split = 1;
+		continue;
 
 	next:
 		before = before->next;

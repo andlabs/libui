@@ -86,7 +86,8 @@ static int attrRangeIntersect(struct attr *a, size_t *start, size_t *end)
 	return 1;
 }
 
-static void attrUnlink(struct attrlist *alist, struct attr *a, struct attr **next)
+// returns the old a->next, for forward iteration
+static struct attr *attrUnlink(struct attrlist *alist, struct attr *a)
 {
 	struct attr *p, *n;
 
@@ -99,80 +100,73 @@ static void attrUnlink(struct attrlist *alist, struct attr *a, struct attr **nex
 	if (p == NULL && n == NULL) {
 		alist->first = NULL;
 		alist->last = NULL;
-		*next = NULL;
-		return;
+		return NULL;
 	}
 	// start of list?
 	if (p == NULL) {
 		n->prev = NULL;
 		alist->first = n;
-		*next = n;
-		return;
+		return n;
 	}
 	// end of list?
 	if (n == NULL) {
 		p->next = NULL;
 		alist->last = p;
-		*next = NULL;
-		return;
+		return NULL;
 	}
 	// middle of list
 	p->next = n;
 	n->prev = p;
-	*next = n;
+	return n;
 }
 
-static void attrDelete(struct attrlist *alist, struct attr *a, struct attr **next)
+// returns the old a->next, for forward iteration
+static struct attr *attrDelete(struct attrlist *alist, struct attr *a)
 {
-	attrUnlink(alist, a, next);
+	struct attr *next;
+
+	next = attrUnlink(alist, a);
 	uiFree(a);
+	return next;
 }
 
 // attrDropRange() removes attributes without deleting characters.
 // 
-// If the attribute needs no change, 1 is returned.
+// If the attribute needs no change, then nothing is done.
 // 
-// If the attribute needs to be deleted, it is deleted and 0 is returned.
+// If the attribute needs to be deleted, it is deleted.
 // 
-// If the attribute only needs to be resized at the end, it is adjusted and 1 is returned.
+// If the attribute only needs to be resized at the end, it is adjusted.
 // 
-// If the attribute only needs to be resized at the start, it is adjusted, unlinked, and returned in tail, and 1 is returned.
+// If the attribute only needs to be resized at the start, it is adjusted, unlinked, and returned in tail.
 // 
-// Otherwise, the attribute needs to be split. The existing attribute is adjusted to make the left half and a new attribute with the right half. This attribute is kept unlinked and returned in tail. Then, 2 is returned.
+// Otherwise, the attribute needs to be split. The existing attribute is adjusted to make the left half and a new attribute with the right half. This attribute is kept unlinked and returned in tail.
 // 
-// In all cases, next is set to the next attribute to look at in a forward sequential loop.
-// 
-// TODO is the return value relevant?
-static int attrDropRange(struct attrlist *alist, struct attr *a, size_t start, size_t end, struct attr **tail, struct attr **next)
+// In all cases, the return value is the next attribute to look at in a forward sequential loop.
+static struct attr *attrDropRange(struct attrlist *alist, struct attr *a, size_t start, size_t end, struct attr **tail)
 {
 	struct attr *b;
 
 	// always pre-initialize tail to NULL
 	*tail = NULL;
 
-	if (!attrRangeIntersect(a, &start, &end)) {
+	if (!attrRangeIntersect(a, &start, &end))
 		// out of range; nothing to do
-		*next = a->next;
-		return 1;
-	}
+		return a->next;
 
 	// just outright delete the attribute?
-	if (a->start == start && a->end == end) {
-		attrDelete(alist, a, next);
-		return 0;
-	}
+	if (a->start == start && a->end == end)
+		return attrDelete(alist, a);
 
 	// only chop off the start or end?
 	if (a->start == start) {		// chop off the end
 		a->end = end;
-		*next = a->next;
-		return 1;
+		return a->next;
 	}
 	if (a->end == end) {			// chop off the start
 		a->start = start;
-		attrUnlink(attr, a, next);
 		*tail = a;
-		return 1;
+		return attrUnlink(attr, a);
 	}
 
 	// we'll need to split the attribute into two
@@ -184,14 +178,12 @@ static int attrDropRange(struct attrlist *alist, struct attr *a, size_t start, s
 	*tail = b;
 
 	a->end = start;
-	*next = a->next;
-	return 2;
+	return a->next;
 }
 
 static void attrGrow(struct attrlist *alist, struct attr *a, size_t start, size_t end)
 {
 	struct attr *before;
-	struct attr *unused;
 
 	// adjusting the end is simple: if it ends before our new end, just set the new end
 	if (a->end < end)
@@ -203,8 +195,7 @@ static void attrGrow(struct attrlist *alist, struct attr *a, size_t start, size_
 	if (a->start <= start)
 		return;
 	a->start = start;
-	// TODO could we just return next?
-	attrUnlink(alist, a, &unused);
+	attrUnlink(alist, a);
 	for (before = alist->first; before != NULL; before = before->next)
 		if (before->start > a->start)
 			break;
@@ -249,7 +240,7 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 			return;
 		}
 		// okay the values are different; we need to split apart
-		attrDropRange(alist, a, start, end, &tail, &before);
+		before = attrDropRange(alist, a, start, end, &tail);
 		split = 1;
 		continue;
 

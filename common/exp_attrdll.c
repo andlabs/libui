@@ -202,6 +202,29 @@ static void attrGrow(struct attrlist *alist, struct attr *a, size_t start, size_
 	attrInsertBefore(alist, a, before);
 }
 
+// returns the right side of the split, which is unlinked, or NULL if no split was done
+static struct attr *attrSplitAt(struct attrlist *alist, struct attr *a, size_t at)
+{
+	struct attr *b;
+
+	// no splittng needed?
+	// note the equality: we don't need to split at start or end
+	// in the end case, the last split point is at - 1; at itself is outside the range, and at - 1 results in the right hand side having length 1
+	if (at <= a->start)
+		return NULL;
+	if (at >= a->end)
+		return NULL;
+
+	b = uiNew(struct attr);
+	b->type = a->type;
+	b->val = a->val;
+	b->start = at;
+	b->end = a->end;
+
+	a->end = at;
+	return b;
+}
+
 void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end)
 {
 	struct attr *a;
@@ -266,13 +289,58 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 	attrInsertBefore(alist, tail, before);
 }
 
-void attrlistInsertCharacters(struct attrlist *alist, size_t start, size_t end)
+void attrlistInsertCharactersUnattributed(struct attrlist *alist, size_t start, size_t count)
 {
+	struct attr *a;
+	struct attr *tails = NULL;
+
+	// every attribute before the insertion point can either cross into the insertion point or not
+	// if it does, we need to split that attribute apart at the insertion point, keeping only the old attribute in place, adjusting the new tail, and preparing it for being re-added later
+	for (a = alist->first; a != NULL; a = a->next) {
+		struct attr *tail;
+
+		// stop once we get to the insertion point
+		if (a->start >= start)
+			break;
+		// only do something if overlapping
+		if (!attrHasPos(a, start))
+			continue;
+
+		tail = attrSplitAt(alist, a, start);
+		// adjust the new tail for the insertion
+		tail->start += count;
+		tail->end += count;
+		// and queue it for re-adding later
+		// we can safely use tails as if it was singly-linked since it's just a temporary list; we properly merge them back in below and they'll be doubly-linked again then
+		// TODO actually we could probably save some time by making then doubly-linked now and adding them in one fell swoop, but that would make things a bit more complicated...
+		tail->next = tails;
+		tails = tail;
+	}
+
+	// at this point in the attribute list, we are at or after the insertion point
+	// all the split-apart attributes will be at the insertion point
+	// therefore, we can just add them all back now, and the list will still be sorted correctly
+	while (tails != NULL) {
+		struct attr *next;
+
+		// make all the links NULL before insertion, just to be safe
+		next = tails->next;
+		tails->next = NULL;
+		attrInsertBefore(alist, tails, a);
+		tails = next;
+	}
+
+	// every remaining attribute will be either at or after the insertion point
+	// we just need to move them ahead
+	for (; a != NULL; a = a->next) {
+		a->start += count;
+		a->end += count;
+	}
 }
 
 // The attributes are those of character start - 1.
 // If start == 0, the attributes are those of character 0.
-void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t end)
+void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t count)
 {
 }
 

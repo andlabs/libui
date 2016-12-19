@@ -265,3 +265,25 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 			break;
 	attrInsertBefore(alist, tail, before);
 }
+
+void attrlistInsertCharacters(struct attrlist *alist, size_t start, size_t end)
+{
+}
+
+// The attributes are those of character start - 1.
+// If start == 0, the attributes are those of character 0.
+void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t end)
+{
+}
+
+void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end)
+{
+}
+
+void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end)
+{
+}
+
+void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end)
+{
+}

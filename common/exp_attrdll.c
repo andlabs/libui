@@ -342,6 +342,13 @@ void attrlistInsertCharactersUnattributed(struct attrlist *alist, size_t start, 
 // If start == 0, the attributes are those of character 0.
 void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t count)
 {
+	size_t from;
+
+	from = start - 1;
+	if (start == 0)
+		from = 0;
+
+	TODO
 }
 
 void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end)

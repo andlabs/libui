@@ -340,30 +340,22 @@ void attrlistInsertCharactersUnattributed(struct attrlist *alist, size_t start, 
 
 // The attributes are those of character start - 1.
 // If start == 0, the attributes are those of character 0.
-void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t count)
-{
-	size_t from;
+/*
+This is an obtuse function. Here's some diagrams to help.
 
-	from = start - 1;
-	if (start == 0)
-		from = 0;
-/////////
-	for every attribute
-		if TODO
-			adjust start by count
-			adjust end by count
-		else if TODO
-			adjust end by count
-/////////
-abcdefghi (012345678 9)
-red start 0 end 3
-bold start 2 end 6
-underline start 5 end 8
-inserting qwe -> qweabcdefghi (0123456789AB C)
-012345678 9
-rrr------
---bbbb---
------uuu-
+Given the input string
+	abcdefghi (positions: 012345678 9)
+and attribute set
+	red start 0 end 3
+	bold start 2 end 6
+	underline start 5 end 8
+or visually:
+	012345678 9
+	rrr------
+	--bbbb---
+	-----uuu-
+If we insert qwe to result in positions 0123456789AB C:
+
 before 0, 1, 2 (grow the red part, move everything else down)
 	red -> start 0 (no change) end 3+3=6
 	bold -> start 2+3=5 end 6+3=9
@@ -388,6 +380,7 @@ before 9 (keep all three)
 	red -> start 0 (no change) end 3 (no change)
 	bold -> start 2 (no change) end 6 (no change)
 	underline -> start 5 (no change) end 8 (no change)
+
 result:
           0 1 2 3 4 5 6 7 8 9
       red E E E e n n n n n n
@@ -397,7 +390,30 @@ N = none
 E = end only
 S = start and end
 uppercase = in original range, lowercase = not
+
+which results in our algorithm:
+	for each attribute
+		if start < insertion point
+			move start up
+		else if start == insertion point
+			if start != 0
+				move start up
+		if end <= insertion point
+			move end up
 */
+// TODO does this ensure the list remains sorted?
+void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t count)
+{
+	struct attr *a;
+
+	for (a = alist->first; a != NULL; a = a->next) {
+		if (a->start < start)
+			a->start += count;
+		else if (a->start == start && start != 0)
+			a->start += count;
+		if (a->end <= start)
+			a->end += count;
+	}
 }
 
 void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end)

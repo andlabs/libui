@@ -347,8 +347,54 @@ void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t 
 	from = start - 1;
 	if (start == 0)
 		from = 0;
-
-	TODO
+/////////
+	if start == 0
+		for every attribute
+			if it doesn't start at 0
+				move start up by count
+			move end up by count
+		return
+	for every attribute
+		if the attribute ends at or after the insertion point
+			advance its end by count
+			continue
+		if the attribute starts at or after the insertion point
+			advance its start and end by count
+			continue
+/////
+abcdefghi (012345678 9)
+red start 0 end 3
+bold start 2 end 6
+underline start 5 end 8
+inserting qwe -> qweabcdefghi (0123456789AB C)
+012345678 9
+rrr------
+--bbbb---
+-----uuu-
+before 0, 1, 2 (grow the red part, move everything else down)
+	red -> start 0 (no change) end 3+3=6
+	bold -> start 2+3=5 end 6+3=9
+	underline -> start 5+3=8 end 8+3=B
+before 3 (grow red and bold, move underline down)
+	red -> start 0 (no change) end 3+3=6
+	bold -> start 2 (no change) end 6+3=9
+	underline -> start 5+3=8 end 8+3=B
+before 4, 5 (keep red, grow bold, move underline down)
+	red -> start 0 (no change) end 3 (no change)
+	bold -> start 2 (no change) end 6+3=9
+	underline -> start 5+3=8 end 8+3=B
+before 6 (keep red, grow bold and underline)
+	red -> start 0 (no change) end 3 (no change)
+	bold -> start 2 (no change) end 6+3=9
+	underline -> start 5 (no change) end 8+3=B
+before 7, 8 (keep red and bold, grow underline)
+	red -> start 0 (no change) end 3 (no change)
+	bold -> start 2 (no change) end 6 (no change)
+	underline -> start 5 (no change) end 8+3=B
+before 9 (keep all three)
+	red -> start 0 (no change) end 3 (no change)
+	bold -> start 2 (no change) end 6 (no change)
+	underline -> start 5 (no change) end 8 (no change)
 }
 
 void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end)

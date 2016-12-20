@@ -348,20 +348,13 @@ void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t 
 	if (start == 0)
 		from = 0;
 /////////
-	if start == 0
-		for every attribute
-			if it doesn't start at 0
-				move start up by count
-			move end up by count
-		return
 	for every attribute
-		if the attribute ends at or after the insertion point
-			advance its end by count
-			continue
-		if the attribute starts at or after the insertion point
-			advance its start and end by count
-			continue
-/////
+		if TODO
+			adjust start by count
+			adjust end by count
+		else if TODO
+			adjust end by count
+/////////
 abcdefghi (012345678 9)
 red start 0 end 3
 bold start 2 end 6
@@ -395,6 +388,16 @@ before 9 (keep all three)
 	red -> start 0 (no change) end 3 (no change)
 	bold -> start 2 (no change) end 6 (no change)
 	underline -> start 5 (no change) end 8 (no change)
+result:
+          0 1 2 3 4 5 6 7 8 9
+      red E E E e n n n n n n
+     bold s s S E E E e n n n
+underline s s s s s S E E e n
+N = none
+E = end only
+S = start and end
+uppercase = in original range, lowercase = not
+*/
 }
 
 void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end)

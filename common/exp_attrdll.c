@@ -285,7 +285,7 @@ static struct attr *attrDeleteRange(struct attrlist *alist, struct attr *a, size
 	return a->next;
 }
 
-void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end)
+void attrlistInsertAttribute(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end)
 {
 	struct attr *a;
 	struct attr *before;
@@ -574,4 +574,22 @@ void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end)
 	a = alist->first;
 	while (a != NULL)
 		a = attrDeleteRange(alist, a, start, end);
+}
+
+struct attrlist *attrlistNew(void)
+{
+	return uiNew(struct attrlist);
+}
+
+void attrlistFree(struct attrlist *alist)
+{
+	struct attr *a, *next;
+
+	a = alist->first;
+	while (a != NULL) {
+		next = a->next;
+		uiFree(a);
+		a = next;
+	}
+	uiFree(alist);
 }

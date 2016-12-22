@@ -6,9 +6,7 @@ struct uiAttributedString {
 	char *s;
 	size_t len;
 
-	size_t nAttrs;		// TODO this needs to be maintained; is it necessary?
-	struct attr *attrs;
-	struct attr *lastattr;
+	struct attrlist *attrs;
 
 	// indiscriminately keep a UTF-16 copy of the string on all platforms so we can hand this off to the grapheme calculator
 	// this ensures no one platform has a speed advantage (sorry GTK+)
@@ -21,299 +19,6 @@ struct uiAttributedString {
 	// this is lazily created to keep things from getting *too* slow
 	struct graphemes *graphemes;
 };
-
-struct attr {
-	uiAttribute type;
-	uintptr_t val;
-	size_t start;
-	size_t end;
-	struct attr *next;
-};
-
-// if new entries types are added to the end of the uiAttribute enumeration, this MUST be updated!
-#define nAttrTypes (TODO + 1)
-
-static int attrHasPos(struct attr *a, size_t pos)
-{
-	if (pos < a->start)
-		return 0;
-	return pos < a->end;
-}
-
-// returns 1 if there was an intersection and 0 otherwise
-static int attrRangeIntersect(struct attr *a, size_t *start, size_t *end)
-{
-	// is the range outside a entirely?
-	if (*start >= a->end)
-		return 0;
-	if (*end < a->start)
-		return 0;
-
-	// okay, so there is an overlap
-	// compute the intersection
-	if (*start < a->start)
-		*start = a->start;
-	if (*end > a->end)
-		*end = a->end;
-	return 1;
-}
-
-// returns:
-// - 0 if no change needed
-// - 1 if the attribute was split
-static int attrSplitAt(uiAttributedString *s, struct attr *a, size_t at)
-{
-	struct attr *b;
-
-	// no splittng needed?
-	if (at == a->start)
-		return 0;
-	if ((at + 1) == a->end)
-		return 0;
-
-	b = uiNew(struct attr);
-	b->what = a->what;
-	b->val = a->val;
-	b->start = at;
-	b->end = a->end;
-	b->next = a->next;
-
-	a->end = at;
-	a->next = b;
-	if (a == s->lastattr)
-		s->lastattr = a->next;
-	return 1;
-}
-
-// removes attributes without deleting characters
-// returns:
-// - 0 if the attribute needs to be deleted
-// - 1 if the attribute was changed or no change needed
-// - 2 if the attribute was split
-static int attrDropRange(uiAttributedString *s, struct attr *a, size_t start, size_t end)
-{
-	struct attr *b;
-
-	if (!attrRangeIntersect(a, &start, &end))
-		// out of range; nothing to do
-		return 1;
-
-	// just outright delete the attribute?
-	if (a->start == start && a->end == end)
-		return 0;
-
-	// only chop off the start or end?
-	if (a->start == start) {		// chop off the end
-		a->end = end;
-		return 1;
-	}
-	if (a->end == end) {			// chop off the start
-		a->start = start;
-		return 1;
-	}
-
-	// we'll need to split the attribute into two
-	b = uiNew(struct attr);
-	b->what = a->what;
-	b->val = a->val;
-	b->start = end;
-	b->end = a->end;
-	b->next = a->next;
-
-	a->end = start;
-	a->next = b;
-	if (a == s->lastattr)
-		s->lastattr = a->next;
-	return 2;
-}
-
-// removes attributes while deleting characters
-// returns:
-// - 0 if the attribute needs to be deleted
-// - 1 if the attribute was changed or no change needed
-// - 2 if the attribute was split
-static int attrDeleteRange(uiAttributedString *s, struct attr *a, size_t start, size_t end)
-{
-	struct attr *b;
-	struct attr tmp;
-	size_t count, acount;
-
-	if (!attrRangeIntersect(a, &start, &end))
-		// out of range; nothing to do
-		return 1;
-
-	// just outright delete the attribute?
-	if (a->start == start && a->end == end)
-		return 0;
-
-	acount = a->end - a->start;
-	count = end - start;
-
-	// only the start or end deleted?
-	if (a->start == start) {		// start deleted
-		a->end = a->start + (acount - count);
-		return 1;
-	}
-	if (a->end == end) {			// end deleted
-		a->end = a->start + count;
-		return 1;
-	}
-
-	// something in the middle deleted
-	// we ened to split the attribute into *three*
-	// first, split at the start of he deleted range
-	tmp.what = a->what;
-	tmp.val = a->val;
-	tmp.start = start;
-	tmp.end = a->end;
-	tmp.next = a->next;
-
-	a->end = start;
-	a->next = &tmp;
-
-	// now split at the end
-	b = uiNew(struct attr);
-	b->what = a->what;
-	b->val = a->val;
-	b->start = end;
-	b->end = a->end;
-	b->next = tmp.next;
-
-	tmp.end = end;
-	tmp.next = b;
-
-	// and now push b back to overwrite the deleted stuff
-	a->next = b;
-	b->start -= count;
-	b->end -= count;
-	if (a == s->lastattr)
-		s->lastattr = a->next;
-	return 2;
-}
-
-// returns the attribute to continue with
-static struct attr *attrDelete(uiAttributedString *s, struct attr *a, struct attr *prev)
-{
-	if (a == s->attrs) {
-		s->attrs = a->next;
-		uiFree(a);
-		return s->attrs;
-	}
-	if (a == s->lastattr)
-		s->lastattr = prev;
-	prev->next = a->next;
-	uiFree(a);
-	return prev->next;
-}
-
-static void attrAppend(uiAttributedString *s, int type, uintptr_t val, size_t start, size_t end)
-{
-	struct attr *a;
-
-	a = uiNew(struct attr);
-	a->type = type;
-	a->val = val;
-	a->start = start;
-	a->end = end;
-	if (s->attrs == NULL) {
-		s->attrs = a;
-		s->lastattr = a;
-		return;
-	}
-	s->lastattr->next = a;
-	s->lastattr = a;
-}
-
-// alist should be struct attr *alist[nAttrTypes]
-static void attrsGetFor(uiAttributedString *s, struct attr **alist, size_t at)
-{
-	int i;
-	struct attr *a;
-
-	// we want the attributes for at
-	// these are the attributes of at - 1
-	// if at == 0. then these are the attributes at 0
-	if (at != 0)
-		at--;
-
-	// make usre unset attributes are NULL
-	for (i = 0; i < nAttrTypes; i++)
-		alist[i] = NULL;
-
-	for (a = s->attrs; a != NULL; a = a->next) {
-		if (!attrHasPos(a, at))
-			continue;
-		alist[a->type] = a;
-	}
-}
-
-// TODO have a routine that prunes overridden attributes for a given character from the list? merge it with the above?
-
-static void attrAdjustPostInsert(uiAttributedString *s, size_t start, size_t n, size_t oldlen)
-{
-	struct attr *a;
-
-	for (a = s->attrs; a != NULL; a = a->next) {
-		size_t astart, aend;
-		int splitNeeded;
-
-		// do we need to adjust this, and where?
-		astart = start;
-		aend = oldlen;
-		if (!attrRangeIntersect(a, &astart, &aend))
-			continue;
-
-		// if only part of the attribute falls in the moved area, we need to split at the insertion point and adjust both resultant attributes
-		// otherwise, we only adjust the original attribute
-		// split *before* adjusting so that the split is correct
-		splitNeeded = attrSplit(s, a, astart);
-		if (a->start >= start)
-			a->start += n;
-		if (a->end >= end)
-			a->end += n;
-		if (splitNeeded == 1) {
-			a = a->next;
-			if (a->start >= start)
-				a->start += n;
-			if (a->end >= end)
-				a->end += n;
-		}
-	}
-}
-
-static void attrAdjustPostDelete(uiAttributedString *s, size_t start, size_t end)
-{
-	struct attr *a, *prev;
-
-	a = s->attrs;
-	prev = NULL;
-	while (a != NULL) {
-		size_t astart, aend;
-
-		// do we need to adjust this, and where?
-		astart = start;
-		aend = end;
-		if (!attrRangeIntersect(a, &astart, &aend)) {
-			prev = a;
-			a = a->next;
-			continue;
-		}
-
-		switch (attrDeleteRange(s, a, astart, aend)) {
-		case 0:		// delete
-			a = attrDelete(s, a, prev);
-			// keep prev unchanged
-			break;
-		case 2:		// split
-			a = a->next;
-			// fall through
-		case 1:		// existing only needed adjustment
-			prev = a;
-			a = a->next;
-			break;
-		}
-	}
-}
 
 static void resize(uiAttributedString *s, size_t u8, size_t u16)
 {
@@ -330,6 +35,7 @@ uiAttributedString *uiNewAttributedString(const char *initialString)
 	uiAttributedString *s;
 
 	s = uiNew(uiAttributedString);
+	s->attrs = attrlistNew();
 	uiAttributedStringAppendUnattributed(s, initialString);
 	return s;
 }
@@ -358,14 +64,7 @@ static void invalidateGraphemes(uiAttributedString *s)
 
 void uiFreeAttributedString(uiAttributedString *s)
 {
-	struct attr *a, *b;
-
-	a = s->attrs;
-	while (a != NULL) {
-		b = a->next;
-		uiFree(a);
-		a = b;
-	}
+	attrlistFree(s->attrs);
 	invalidateGraphemes(s);
 	uiFree(s->u16tou8);
 	uiFree(s->u8tou16);
@@ -511,7 +210,7 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 		s->u16tou8[at16 + n16 + i] += n8;
 
 	// and finally do the attributes
-	attrAdjustPostInsert(s, at, n8, oldlen);
+	attrlistInsertCharactersUnattributed(s->attrs, at, n8);
 }
 
 // TODO document that end is the first index that will be maintained
@@ -566,7 +265,7 @@ void uiAttributedStringDelete(uiAttributedString *s, size_t start, size_t end)
 	s->u16[start16 + count16] = 0;
 
 	// fix up attributes
-	attrAdjustPostDelete(s, start, end);
+	attrlistRemoveCharacters(s->attrs, start, end);
 
 	// and finally resize
 	resize(s, start + count, start16 + count16);

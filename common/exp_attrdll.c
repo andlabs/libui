@@ -2,6 +2,7 @@
 
 /*
 An attribute list is a doubly linked list of attributes.
+Attribute start positions are inclusive and attribute end positions are exclusive (or in other words, [start, end)).
 The list is kept sorted in increasing order by start position. Whether or not the sort is stable is undefined, so no temporal information should be expected to stay.
 Overlapping attributes are not allowed; if an attribute is added that conflicts with an existing one, the existing one is removed.
 In addition, the linked list tries to reduce fragmentation: if an attribute is added that just expands another, then there will only be one entry in alist, not two. (TODO does it really?)
@@ -251,7 +252,7 @@ void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, s
 			goto next;
 		lstart = start;
 		lend = end;
-		if (!attrRangeIntersects(before, &lstart, &lend))
+		if (!attrRangeIntersect(before, &lstart, &lend))
 			goto next;
 
 		// okay so this might conflict; if the val is the same as the one we want, we need to expand the existing attribute, not fragment anything
@@ -416,8 +417,51 @@ void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t 
 	}
 }
 
+// TODO replace at point with — replaces with first character's attributes
+
 void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end)
 {
+	struct attr *a;
+	struct attr *tails = NULL;		// see attrlistInsertCharactersUnattributed() above
+	struct attr *tailsAt = NULL;
+
+	a = alist->start;
+	while (a != NULL) {
+		size_t lstart, lend;
+
+		// this defines where to re-attach the tails
+		// (all the tails will have their start at end, so we can just insert them all before tailsAt)
+		if (a->start >= end) {
+			tailsAt = a;
+			// and at this point we're done, so
+			break;
+		}
+		if (a->type != type)
+			goto next;
+		lstart = start;
+		lend = end;
+		if (!attrRangeIntersect(a, &lstart, &lend))
+			goto next;
+		a = attrDropRange(alist, a, start, end, &tail);
+		if (tail != NULL) {
+			tail->next = tails;
+			tails = tail;
+		}
+		continue;
+
+	next:
+		a = a->next;
+	}
+
+	while (tails != NULL) {
+		struct attr *next;
+
+		// make all the links NULL before insertion, just to be safe
+		next = tails->next;
+		tails->next = NULL;
+		attrInsertBefore(alist, tails, a);
+		tails = next;
+	}
 }
 
 void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end)

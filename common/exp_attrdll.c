@@ -156,18 +156,22 @@ static struct attr *attrDropRange(struct attrlist *alist, struct attr *a, size_t
 		return a->next;
 
 	// just outright delete the attribute?
-	if (a->start == start && a->end == end)
+	// the inequalities handle attributes entirely inside the range
+	// if both are equal, the attribute's range is equal to the range
+	if (a->start >= start && a->end <= end)
 		return attrDelete(alist, a);
 
 	// only chop off the start or end?
-	if (a->start == start) {		// chop off the end
-		a->end = end;
-		return a->next;
-	}
-	if (a->end == end) {			// chop off the start
-		a->start = start;
+	if (a->start == start) {			// chop off the start
+		// we are dropping the left half, so set a->start and unlink
+		a->start = end;
 		*tail = a;
 		return attrUnlink(attr, a);
+	}
+	if (a->end == end) {				// chop off the end
+		// we are dropping the right half, so just set a->end
+		a->end = start;
+		return a->next;
 	}
 
 	// we'll need to split the attribute into two
@@ -224,6 +228,61 @@ static struct attr *attrSplitAt(struct attrlist *alist, struct attr *a, size_t a
 
 	a->end = at;
 	return b;
+}
+
+// attrDeleteRange() removes attributes while deleting characters.
+// 
+// If the attribute does not include the deleted range, then nothing is done (though the start and end are adjusted as necessary).
+// 
+// If the attribute needs to be deleted, it is deleted.
+// 
+// Otherwise, the attribute only needs the start or end deleted, and it is adjusted.
+// 
+// In all cases, the return value is the next attribute to look at in a forward sequential loop.
+// TODO rewrite this comment
+static struct attr *attrDeleteRange(struct attrlist *alist, struct attr *a, size_t start, size_t end)
+{
+	size_t ostart, oend;
+	size_t count;
+
+	ostart = start;
+	oend = end;
+	count = oend - ostart;
+
+	if (!attrRangeIntersect(a, &start, &end)) {
+		// out of range
+		// adjust if necessary
+		if (a->start >= ostart)
+			a->start -= count;
+		if (a->end >= oend)
+			a->end -= count;
+		return a->next;
+	}
+
+	// just outright delete the attribute?
+	// the inequalities handle attributes entirely inside the range
+	// if both are equal, the attribute's range is equal to the range
+	if (a->start >= start && a->end <= end)
+		return attrDelete(alist, a);
+
+	// only chop off the start or end?
+	if (a->start == start) {			// chop off the start
+		// if we weren't adjusting positions this would just be setting a->start to end
+		// but since this is deleting from the start, we need to adjust both by count
+		a->start = end - count;
+		a->end -= count;
+		return a->next;
+	}
+	if (a->end == end) {				// chop off the end
+		// a->start is already good
+		a->end = start;
+		return a->next;
+	}
+
+	// in this case, the deleted range is inside the attribute
+	// we can clear it by just removing count from a->end
+	a->end -= count;
+	return a->next;
 }
 
 void attrlistInsertAt(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end)
@@ -464,10 +523,55 @@ void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t st
 	}
 }
 
+// TODO merge this with the above
 void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end)
 {
+	struct attr *a;
+	struct attr *tails = NULL;		// see attrlistInsertCharactersUnattributed() above
+	struct attr *tailsAt = NULL;
+
+	a = alist->start;
+	while (a != NULL) {
+		size_t lstart, lend;
+
+		// this defines where to re-attach the tails
+		// (all the tails will have their start at end, so we can just insert them all before tailsAt)
+		if (a->start >= end) {
+			tailsAt = a;
+			// and at this point we're done, so
+			break;
+		}
+		lstart = start;
+		lend = end;
+		if (!attrRangeIntersect(a, &lstart, &lend))
+			goto next;
+		a = attrDropRange(alist, a, start, end, &tail);
+		if (tail != NULL) {
+			tail->next = tails;
+			tails = tail;
+		}
+		continue;
+
+	next:
+		a = a->next;
+	}
+
+	while (tails != NULL) {
+		struct attr *next;
+
+		// make all the links NULL before insertion, just to be safe
+		next = tails->next;
+		tails->next = NULL;
+		attrInsertBefore(alist, tails, a);
+		tails = next;
+	}
 }
 
 void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end)
 {
+	struct attr *a;
+
+	a = alist->first;
+	while (a != NULL)
+		a = attrDeleteRange(alist, a, start, end);
 }

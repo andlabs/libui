@@ -1,4 +1,6 @@
 // 16 december 2016
+#include "../ui.h"
+#include "uipriv.h"
 
 /*
 An attribute list is a doubly linked list of attributes.

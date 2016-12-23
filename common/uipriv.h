@@ -64,6 +64,18 @@ struct graphemes {
 extern int graphemesTakesUTF16(void);
 extern struct graphemes *graphemes(void *s, size_t len);
 
+// attrlist.c
+struct attrlist;
+extern void attrlistInsertAttribute(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end);
+extern void attrlistInsertCharactersUnattributed(struct attrlist *alist, size_t start, size_t count);
+extern void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t count);
+extern void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end);
+extern void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end);
+extern; void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end)
+// TODO move these to the top like everythng else
+extern struct attrlist *attrlistNew(void);
+extern void attrlistFree(struct attrlist *alist);
+
 #ifdef __cplusplus
 }
 #endif

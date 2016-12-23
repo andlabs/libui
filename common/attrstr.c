@@ -294,3 +294,9 @@ size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos)
 		pos = s->u16tou8[pos];
 	return pos;
 }
+
+// TODO introduce an iterator?
+void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
+{
+	attrlistForEach(s->attrs, s, f, data);
+}

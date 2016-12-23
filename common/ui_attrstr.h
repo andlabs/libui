@@ -4,6 +4,8 @@ _UI_ENUM(uiAttribute) {
 	// TODO
 };
 
+typedef int (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *, uiAttribute type, uintptr_t value, size_t start, size_t end, void *data);
+
 // @role uiAttributedString constructor
 // uiNewAttributedString() creates a new uiAttributedString from
 // initialString. The string will be entirely unattributed.
@@ -28,6 +30,7 @@ _UI_EXTERN void uiAttributedStringDelete(uiAttributedString *s, size_t start, si
 _UI_EXTERN size_t uiAttributedStringNumGraphemes(uiAttributedString *s);
 _UI_EXTERN size_t uiAttributedStringByteIndexToGrapheme(uiAttributedString *s, size_t pos);
 _UI_EXTERN size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos);
+_UI_EXTERN void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
 
 typedef struct uiDrawTextLayout uiDrawTextLayout;
 typedef struct uiDrawTextLayoutLineMetrics uiDrawTextLayoutLineMetrics;

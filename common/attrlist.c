@@ -578,6 +578,17 @@ void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end)
 		a = attrDeleteRange(alist, a, start, end);
 }
 
+void attrlistForEach(struct attr *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
+{
+	struct attr *a;
+
+	for (a = alist->first; a != NULL; a = a->next)
+		// TODO document this
+		// TODO should this be return 0 to break?
+		if ((*f)(s, a->type, a->val, a->start, a->end, data))
+			break;
+}
+
 struct attrlist *attrlistNew(void)
 {
 	return uiNew(struct attrlist);

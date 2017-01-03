@@ -1,7 +1,12 @@
 typedef struct uiAttributedString uiAttributedString;
 
 _UI_ENUM(uiAttribute) {
+	// TODO uiAttributeFamily,
+	// TODO uiAttributeSize,
+	uiAttributeWeight,
 	// TODO
+	// TODO uiAttributeSystem,
+	// TODO uiAttributeCustom,
 };
 
 typedef int (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *, uiAttribute type, uintptr_t value, size_t start, size_t end, void *data);
@@ -32,6 +37,53 @@ _UI_EXTERN size_t uiAttributedStringByteIndexToGrapheme(uiAttributedString *s, s
 _UI_EXTERN size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos);
 _UI_EXTERN void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
 
+typedef struct uiDrawFontDescriptor uiDrawFontDescriptor;
+
+// TODO Minimum == 1? IIRC there is at least one font on OS X that actually has a weight of 0
+// TODO Maximum == 999? IIRC there is at least one font on OS X that actually has a weight of 1000
+_UI_ENUM(uiDrawTextWeight) {
+	uiDrawTextWeightMinimum = 0,
+	uiDrawTextWeightThin = 100,
+	uiDrawTextWeightUltraLight = 200,
+	uiDrawTextWeightLight = 300,
+	uiDrawTextWeightBook = 350,
+	uiDrawTextWeightNormal = 400,
+	uiDrawTextWeightMedium = 500,
+	uiDrawTextWeightSemiBold = 600,
+	uiDrawTextWeightBold = 700,
+	uiDrawTextWeightUltraBold = 800,
+	uiDrawTextWeightHeavy = 900,
+	uiDrawTextWeightUltraHeavy = 950,
+	uiDrawTextWeightMaximum = 1000,
+};
+
+_UI_ENUM(uiDrawTextItalic) {
+	uiDrawTextItalicNormal,
+	uiDrawTextItalicOblique,
+	uiDrawTextItalicItalic,
+};
+
+// TODO realign this  so that Normal == 0?
+_UI_ENUM(uiDrawTextStretch) {
+	uiDrawTextStretchUltraCondensed,
+	uiDrawTextStretchExtraCondensed,
+	uiDrawTextStretchCondensed,
+	uiDrawTextStretchSemiCondensed,
+	uiDrawTextStretchNormal,
+	uiDrawTextStretchSemiExpanded,
+	uiDrawTextStretchExpanded,
+	uiDrawTextStretchExtraExpanded,
+	uiDrawTextStretchUltraExpanded,
+};
+
+struct uiDrawFontDescriptor {
+	char *Family;
+	double Size;
+	uiDrawTextWeight Weight;
+	uiDrawTextItalic Italic;
+	uiDrawTextStretch Stretch;
+};
+
 typedef struct uiDrawTextLayout uiDrawTextLayout;
 typedef struct uiDrawTextLayoutLineMetrics uiDrawTextLayoutLineMetrics;
 typedef struct uiDrawTextLayoutByteRangeRectangle uiDrawTextLayoutByteRangeRectangle;
@@ -61,7 +113,11 @@ struct uiDrawTextLayoutByteRangeRectangle {
 	size_t RealEnd;
 };
 
-_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, /* TODO default font */, double width);
+// TODO
+// - allow creating a layout out of a substring
+// - allow marking compositon strings
+// - allow marking selections, even after creation
+_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width);
 _UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *tl);
 _UI_EXTERN void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y);
 _UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height);

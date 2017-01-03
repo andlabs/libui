@@ -491,38 +491,6 @@ typedef struct uiDrawTextFont uiDrawTextFont;
 typedef struct uiDrawTextFontDescriptor uiDrawTextFontDescriptor;
 typedef struct uiDrawTextFontMetrics uiDrawTextFontMetrics;
 
-_UI_ENUM(uiDrawTextWeight) {
-	uiDrawTextWeightThin,
-	uiDrawTextWeightUltraLight,
-	uiDrawTextWeightLight,
-	uiDrawTextWeightBook,
-	uiDrawTextWeightNormal,
-	uiDrawTextWeightMedium,
-	uiDrawTextWeightSemiBold,
-	uiDrawTextWeightBold,
-	uiDrawTextWeightUltraBold,
-	uiDrawTextWeightHeavy,
-	uiDrawTextWeightUltraHeavy,
-};
-
-_UI_ENUM(uiDrawTextItalic) {
-	uiDrawTextItalicNormal,
-	uiDrawTextItalicOblique,
-	uiDrawTextItalicItalic,
-};
-
-_UI_ENUM(uiDrawTextStretch) {
-	uiDrawTextStretchUltraCondensed,
-	uiDrawTextStretchExtraCondensed,
-	uiDrawTextStretchCondensed,
-	uiDrawTextStretchSemiCondensed,
-	uiDrawTextStretchNormal,
-	uiDrawTextStretchSemiExpanded,
-	uiDrawTextStretchExpanded,
-	uiDrawTextStretchExtraExpanded,
-	uiDrawTextStretchUltraExpanded,
-};
-
 struct uiDrawTextFontDescriptor {
 	const char *Family;
 	double Size;

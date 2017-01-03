@@ -1,6 +1,8 @@
 # 3 june 2016
 
 list(APPEND _LIBUI_SOURCES
+	common/attrlist.c
+	common/attrstr.c
 	common/areaevents.c
 	common/control.c
 	common/debug.c

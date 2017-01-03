@@ -64,6 +64,10 @@ struct graphemes {
 extern int graphemesTakesUTF16(void);
 extern struct graphemes *graphemes(void *s, size_t len);
 
+// attrstr.c
+extern const uint16_t *attrstrUTF16(uiAttributedString *s);
+extern size_t attrstrUTF16LEn(uiAttributedString *s);
+
 // attrlist.c
 struct attrlist;
 extern void attrlistInsertAttribute(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end);

@@ -475,30 +475,11 @@ _UI_EXTERN void uiDrawClip(uiDrawContext *c, uiDrawPath *path);
 _UI_EXTERN void uiDrawSave(uiDrawContext *c);
 _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
 
-// TODO manage the use of Text, Font, and TextFont, and of the uiDrawText prefix in general
+// TODO merge back in
+#include "ui_attrstr.h"
 
-///// TODO reconsider this
-typedef struct uiDrawFontFamilies uiDrawFontFamilies;
-
-_UI_EXTERN uiDrawFontFamilies *uiDrawListFontFamilies(void);
-_UI_EXTERN int uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff);
-_UI_EXTERN char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, int n);
-_UI_EXTERN void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff);
-///// END TODO
-
-typedef struct uiDrawTextLayout uiDrawTextLayout;
-typedef struct uiDrawTextFont uiDrawTextFont;
-typedef struct uiDrawTextFontDescriptor uiDrawTextFontDescriptor;
-typedef struct uiDrawTextFontMetrics uiDrawTextFontMetrics;
-
-struct uiDrawTextFontDescriptor {
-	const char *Family;
-	double Size;
-	uiDrawTextWeight Weight;
-	uiDrawTextItalic Italic;
-	uiDrawTextStretch Stretch;
-};
-
+// TODO
+#if 0
 struct uiDrawTextFontMetrics {
 	double Ascent;
 	double Descent;
@@ -515,18 +496,7 @@ _UI_EXTERN void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescr
 // TODO make copy with given attributes methods?
 // TODO yuck this name
 _UI_EXTERN void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics);
-
-// TODO initial line spacing? and what about leading?
-_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width);
-_UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *layout);
-// TODO get width
-_UI_EXTERN void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width);
-_UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height);
-
-// and the attributes that you can set on a text layout
-_UI_EXTERN void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a);
-
-_UI_EXTERN void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout);
+#endif
 
 _UI_ENUM(uiModifiers) {
 	uiModifierCtrl = 1 << 0,

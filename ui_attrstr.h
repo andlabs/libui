@@ -92,6 +92,7 @@ struct uiDrawTextLayoutLineMetrics {
 	double X;
 	double Y;
 	double Width;
+	// height = ascent + descent + leading (TODO formally document)
 	double Ascent;
 	double Descent;
 	double Leading;

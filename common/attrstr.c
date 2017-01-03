@@ -300,3 +300,15 @@ void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStrin
 {
 	attrlistForEach(s->attrs, s, f, data);
 }
+
+// helpers for platform-specific code
+
+const uint16_t *attrstrUTF16(uiAttributedString *s)
+{
+	return s->u16;
+}
+
+size_t attrstrUTF16LEn(uiAttributedString *s)
+{
+	return s->u16len;
+}

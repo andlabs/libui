@@ -78,6 +78,7 @@ _UI_ENUM(uiDrawTextStretch) {
 
 struct uiDrawFontDescriptor {
 	char *Family;
+	// TODO rename to PointSize?
 	double Size;
 	uiDrawTextWeight Weight;
 	uiDrawTextItalic Italic;

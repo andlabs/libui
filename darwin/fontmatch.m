@@ -221,3 +221,35 @@ static const double stretchesToCTWidths[] = {
 	// this one isn't present in any of the fonts I tested, but it follows naturally from the pattern of the rest, so... (TODO verify by checking the font files directly)
 	[uiDrawTextStretchUltraExpanded] = 0.400000,
 };
+
+CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
+{
+	CFMutableDictionaryRef attrs;
+	CFStringRef cffamily;
+	CFNumberRef cfsize;
+	CTFontDescriptorRef basedesc;
+
+	attrs = CFDictionaryCreateMutable(NULL, 2,
+		// TODO are these correct?
+		&kCFCopyStringDictionaryKeyCallBacks,
+		&kCFTypeDictionaryValueCallBacks);
+	if (attrs == NULL) {
+		// TODO
+	}
+	cffamily = CFStringCreateWithCString(NULL, fd->Family, kCFStringEncodingUTF8);
+	if (cffamily == NULL) {
+		// TODO
+	}
+	CFDictionaryAddValue(attrs, kCTFontFamilyNameAttribute, cffamily);
+	CFRelease(cffamily);
+	cfsize = CFNumberCreate(NULL, kCFNumberDoubleType, &(fd->Size));
+	CFDictionaryAddValue(attrs, kCTFontSizeAttribute, cfsize);
+	CFRelease(cfsize);
+
+	basedesc = CTFontDescriptorCreateWithAttributes(attrs);
+	CFRelease(attrs);			// TODO correct?
+	return matchTraits(basedesc,
+		weightToCTWeight(fd->Weight),
+		fd->Italic,
+		stretchesToCTWidths[fd->Stretch]);
+}

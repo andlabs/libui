@@ -108,11 +108,6 @@ extern BOOL keycodeModifier(unsigned short keycode, uiModifiers *mod);
 extern uiDrawContext *newContext(CGContextRef, CGFloat);
 extern void freeContext(uiDrawContext *);
 
-// drawtext.m
-extern uiDrawTextFont *mkTextFont(CTFontRef f, BOOL retain);
-extern uiDrawTextFont *mkTextFontFromNSFont(NSFont *f);
-extern void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextLayout *layout);
-
 // fontbutton.m
 extern BOOL fontButtonInhibitSendAction(SEL sel, id from, id to);
 extern BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
@@ -144,3 +139,6 @@ extern NSImage *imageImage(uiImage *);
 // winmoveresize.m
 extern void doManualMove(NSWindow *w, NSEvent *initialEvent);
 extern void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge);
+
+// fontmatch.m
+extern CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd);

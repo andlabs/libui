@@ -292,38 +292,6 @@ struct framesetter {
 	CGSize extents;
 };
 
-// TODO CTFrameProgression for RTL/LTR
-// TODO kCTParagraphStyleSpecifierMaximumLineSpacing, kCTParagraphStyleSpecifierMinimumLineSpacing, kCTParagraphStyleSpecifierLineSpacingAdjustment for line spacing
-static void mkFramesetter(uiDrawTextLayout *layout, struct framesetter *fs)
-{
-	CFRange fitRange;
-	CGFloat width;
-
-	fs->fs = CTFramesetterCreateWithAttributedString(layout->mas);
-	if (fs->fs == NULL)
-		complain("error creating CTFramesetter object in mkFramesetter()");
-
-	// TODO kCTFramePathWidthAttributeName?
-	fs->frameAttrib = NULL;
-
-	width = layout->width;
-	if (layout->width < 0)
-		width = CGFLOAT_MAX;
-	// TODO these seem to be floor()'d or truncated?
-	fs->extents = CTFramesetterSuggestFrameSizeWithConstraints(fs->fs,
-		CFRangeMake(0, 0),
-		fs->frameAttrib,
-		CGSizeMake(width, CGFLOAT_MAX),
-		&fitRange);		// not documented as accepting NULL
-}
-
-static void freeFramesetter(struct framesetter *fs)
-{
-	if (fs->frameAttrib != NULL)
-		CFRelease(fs->frameAttrib);
-	CFRelease(fs->fs);
-}
-
 // LONGTERM allow line separation and leading to be factored into a wrapping text layout
 
 // TODO reconcile differences in character wrapping on platforms

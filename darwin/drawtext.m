@@ -124,6 +124,7 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
 }
 
+// TODO document that the width and height of a layout is not necessarily the sum of the widths and heights of its constituent lines; this is definitely untrue on OS X, where lines are placed in such a way that the distance between baselines is always integral
 void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
 {
 	// TODO how exactly do we adjust this by CGPathGetPathBoundingBox(tl->path)?

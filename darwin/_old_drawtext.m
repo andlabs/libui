@@ -1,9 +1,6 @@
 // 6 september 2015
 #import "uipriv_darwin.h"
 
-// TODO
-#define complain(...) implbug(__VA_ARGS__)
-
 // TODO double-check that we are properly handling allocation failures (or just toll free bridge from cocoa)
 struct uiDrawFontFamilies {
 	CFArrayRef fonts;
@@ -140,6 +137,7 @@ static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
 }
 #endif
 
+#if 0
 // Named constants for these were NOT added until 10.11, and even then they were added as external symbols instead of macros, so we can't use them directly :(
 // kode54 got these for me before I had access to El Capitan; thanks to him.
 #define ourNSFontWeightUltraLight -0.800000
@@ -151,6 +149,7 @@ static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
 #define ourNSFontWeightBold 0.400000
 #define ourNSFontWeightHeavy 0.560000
 #define ourNSFontWeightBlack 0.620000
+#endif
 
 // Now remember what I said earlier about having to add the small caps traits after calling the above? This gets a dictionary back so we can do so.
 CFMutableDictionaryRef extractAttributes(CTFontDescriptorRef desc)
@@ -214,83 +213,6 @@ void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metri
 	metrics->UnderlinePos = CTFontGetUnderlinePosition(font->f);
 	metrics->UnderlineThickness = CTFontGetUnderlineThickness(font->f);
 }
-
-struct uiDrawTextLayout {
-	CFMutableAttributedStringRef mas;
-	CFRange *charsToRanges;
-	double width;
-};
-
-uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFont, double width)
-{
-	uiDrawTextLayout *layout;
-	CFAttributedStringRef immutable;
-	CFMutableDictionaryRef attr;
-	CFStringRef backing;
-	CFIndex i, j, n;
-
-	layout = uiNew(uiDrawTextLayout);
-
-	// TODO docs say we need to use a different set of key callbacks
-	// TODO see if the font attribute key callbacks need to be the same
-	attr = newAttrList();
-	// this will retain defaultFont->f; no need to worry
-	CFDictionaryAddValue(attr, kCTFontAttributeName, defaultFont->f);
-
-	immutable = CFAttributedStringCreate(NULL, (CFStringRef) [NSString stringWithUTF8String:str], attr);
-	if (immutable == NULL)
-		complain("error creating immutable attributed string in uiDrawNewTextLayout()");
-	CFRelease(attr);
-
-	layout->mas = CFAttributedStringCreateMutableCopy(NULL, 0, immutable);
-	if (layout->mas == NULL)
-		complain("error creating attributed string in uiDrawNewTextLayout()");
-	CFRelease(immutable);
-
-	uiDrawTextLayoutSetWidth(layout, width);
-
-	// unfortunately the CFRanges for attributes expect UTF-16 codepoints
-	// we want graphemes
-	// fortunately CFStringGetRangeOfComposedCharactersAtIndex() is here for us
-	// https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Strings/Articles/stringsClusters.html says that this does work on all multi-codepoint graphemes (despite the name), and that this is the preferred function for this particular job anyway
-	backing = CFAttributedStringGetString(layout->mas);
-	n = CFStringGetLength(backing);
-	// allocate one extra, just to be safe
-	layout->charsToRanges = (CFRange *) uiAlloc((n + 1) * sizeof (CFRange), "CFRange[]");
-	i = 0;
-	j = 0;
-	while (i < n) {
-		CFRange range;
-
-		range = CFStringGetRangeOfComposedCharactersAtIndex(backing, i);
-		i = range.location + range.length;
-		layout->charsToRanges[j] = range;
-		j++;
-	}
-	// and set the last one
-	layout->charsToRanges[j].location = i;
-	layout->charsToRanges[j].length = 0;
-
-	return layout;
-}
-
-void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
-{
-	uiFree(layout->charsToRanges);
-	CFRelease(layout->mas);
-	uiFree(layout);
-}
-
-void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
-{
-	layout->width = width;
-}
-
-struct framesetter {
-	CTFramesetterRef fs;
-	CFMutableDictionaryRef frameAttrib;
-	CGSize extents;
-};
 
 // LONGTERM allow line separation and leading to be factored into a wrapping text layout
 
@@ -357,9 +279,6 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 
 // LONGTERM keep this for later features and documentation purposes
 #if 0
-		w = CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
-		// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
-		CFRelease(line);
 
 	// LONGTERM provide a way to get the image bounds as a separate function later
 	bounds = CTLineGetImageBounds(line, c);
@@ -372,20 +291,7 @@ void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextL
 	CGContextSetTextPosition(c, x, y);
 #endif
 
-static CFRange charsToRange(uiDrawTextLayout *layout, int startChar, int endChar)
-{
-	CFRange start, end;
-	CFRange out;
-
-	start = layout->charsToRanges[startChar];
-	end = layout->charsToRanges[endChar];
-	out.location = start.location;
-	out.length = end.location - start.location;
-	return out;
-}
-
-#define rangeToCFRange() charsToRange(layout, startChar, endChar)
-
+#if 0
 void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a)
 {
 	CGColorSpaceRef colorspace;
@@ -407,3 +313,4 @@ void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endCh
 		color);
 	CGColorRelease(color);		// TODO safe?
 }
+#endif

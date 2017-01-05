@@ -97,6 +97,7 @@ struct uiDrawTextLayoutLineMetrics {
 	double Ascent;
 	double Descent;
 	double Leading;
+	// TODO trailing whitespace?
 };
 
 _UI_ENUM(uiDrawTextLayoutHitTestResult) {

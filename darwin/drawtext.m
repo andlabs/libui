@@ -7,6 +7,8 @@ struct uiDrawTextLayout {
 	CTFramesetterRef framesetter;
 	CGSize size;
 	CGPathRef path;
+	CTFrameRef frame;
+	CFArrayRef lines;
 };
 
 static CTFontRef fontdescToCTFont(uiDrawFontDescriptor *fd)
@@ -93,11 +95,24 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	rect.origin = CGZeroPoint;
 	rect.size = tl->size;
 	tl->path = CGPathCreateWithRect(rect, NULL);
+	tl->frame = CTFramesetterCreateFrame(tl->framesetter,
+		range,
+		tl->path,
+		// TODO kCTFramePathWidthAttributeName?
+		NULL);
+	if (tl->frame == NULL) {
+		// TODO
+	}
+
+	tl->lines = CTFrameGetLines(tl->frame);
+
 	return tl;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
+	// TODO release tl->lines?
+	CFRelease(tl->frame);
 	CFRelease(tl->path);
 	CFRelease(tl->framesetter);
 	CFRelease(tl->attrstr);
@@ -114,14 +129,44 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 
 int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
 {
+	return CFArrayGetCount(tl->lines);
 }
+
+// TODO release when done?
+#define getline(tl, line) ((CTLineRef) CFArrayGetValueAtIndex(tl->lines, line))
 
 void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
 {
+	CTLineRef lr;
+	CFRange range;
+
+	lr = getline(tl, line);
+	range = CTLineGetStringRange(lr);
+	// TODO set start and end
 }
 
 void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
 {
+	CTLineRef lr;
+	CFRange range;
+	CGPoint origin;
+	CGFloat ascent, descent, leading;
+
+	range.location = line;
+	range.length = 1;
+	CTFrameGetLineOrigins(tl->frame, range, &origin);
+	// TODO how exactly do we adjust this by CGPathGetPathBoundingBox(tl->path)?
+	m->X = origin.x;
+	m->Y = origin.y;
+	// TODO is m->Y the baseline position?
+	// TODO is m->Y flipped?
+
+	lr = getline(tl, line);
+	// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
+	m->Width = CTLineGetTypographicBounds(lr, ascent, descent, leading);
+	m->Ascent = ascent;
+	m->Descent = descent;
+	m->Leading = leading;
 }
 
 void uiDrawTextLayoutByteIndexToGraphemeRect(uiDrawTextLayout *tl, size_t pos, int *line, double *x, double *y, double *width, double *height)

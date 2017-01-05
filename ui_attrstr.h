@@ -90,10 +90,12 @@ typedef struct uiDrawTextLayoutLineMetrics uiDrawTextLayoutLineMetrics;
 typedef struct uiDrawTextLayoutByteRangeRectangle uiDrawTextLayoutByteRangeRectangle;
 
 struct uiDrawTextLayoutLineMetrics {
+	// TODO figure out if this is correct regardless of both alignment and writing direction
 	double X;
-	double Y;
+	double BaselineY;
 	double Width;
-	// height = ascent + descent + leading (TODO formally document)
+	// top-left Y = baseline Y - ascent
+	// height = ascent + descent + leading (TODO formally document all this)
 	double Ascent;
 	double Descent;
 	double Leading;

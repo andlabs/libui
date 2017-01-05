@@ -119,12 +119,16 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 	uiFree(tl);
 }
 
+// TODO what is y, the top-left corner, bottom-left corner, topmost baseline, or bottommost baseline?
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
 }
 
 void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
 {
+	// TODO how exactly do we adjust this by CGPathGetPathBoundingBox(tl->path)?
+	*width = tl->size.width;
+	*height = tl->size.height;
 }
 
 int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
@@ -157,13 +161,12 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	CTFrameGetLineOrigins(tl->frame, range, &origin);
 	// TODO how exactly do we adjust this by CGPathGetPathBoundingBox(tl->path)?
 	m->X = origin.x;
-	m->Y = origin.y;
-	// TODO is m->Y the baseline position?
-	// TODO is m->Y flipped?
+	m->BaselineY = origin.y;
+	// TODO m->Y is flipped
 
 	lr = getline(tl, line);
 	// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
-	m->Width = CTLineGetTypographicBounds(lr, ascent, descent, leading);
+	m->Width = CTLineGetTypographicBounds(lr, &ascent, &descent, &leading);
 	m->Ascent = ascent;
 	m->Descent = descent;
 	m->Leading = leading;

@@ -5,6 +5,11 @@ struct uiDrawTextLayout {
 	CFAttributedStringRef attrstr;
 	double width;
 	CTFramesetterRef framesetter;
+	// note: technically, metrics returned from frame are relative to CGPathGetPathBoundingBox(tl->path)
+	// however, from what I can gather, for a path created by CGPathCreateWithRect(), like we do (with a NULL transform), CGPathGetPathBoundingBox() seems to just return the standardized form of the rect used to create the path
+	// (this I confirmed through experimentation)
+	// so we can just use tl->size for adjustments
+	// we don't need to adjust coordinates by any origin since our rect origin is (0, 0)
 	CGSize size;
 	CGPathRef path;
 	CTFrameRef frame;
@@ -127,7 +132,6 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 // TODO document that the width and height of a layout is not necessarily the sum of the widths and heights of its constituent lines; this is definitely untrue on OS X, where lines are placed in such a way that the distance between baselines is always integral
 void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
 {
-	// TODO how exactly do we adjust this by CGPathGetPathBoundingBox(tl->path)?
 	*width = tl->size.width;
 	*height = tl->size.height;
 }
@@ -160,10 +164,9 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	range.location = line;
 	range.length = 1;
 	CTFrameGetLineOrigins(tl->frame, range, &origin);
-	// TODO how exactly do we adjust this by CGPathGetPathBoundingBox(tl->path)?
 	m->X = origin.x;
-	m->BaselineY = origin.y;
-	// TODO m->Y is flipped
+	// and remember that the frame is flipped
+	m->BaselineY = tl->size.height - origin.y;
 
 	lr = getline(tl, line);
 	// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error

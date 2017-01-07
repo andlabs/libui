@@ -227,54 +227,6 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *he
 	freeFramesetter(&fs);
 }
 
-// Core Text doesn't draw onto a flipped view correctly; we have to do this
-// see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)
-// TODO how is this affected by the CTM?
-static void prepareContextForText(CGContextRef c, CGFloat cheight, double *y)
-{
-	CGContextSaveGState(c);
-	CGContextTranslateCTM(c, 0, cheight);
-	CGContextScaleCTM(c, 1.0, -1.0);
-	CGContextSetTextMatrix(c, CGAffineTransformIdentity);
-
-	// wait, that's not enough; we need to offset y values to account for our new flipping
-	*y = cheight - *y;
-}
-
-// TODO placement is incorrect for Helvetica
-void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextLayout *layout)
-{
-	struct framesetter fs;
-	CGRect rect;
-	CGPathRef path;
-	CTFrameRef frame;
-
-	prepareContextForText(c, cheight, &y);
-	mkFramesetter(layout, &fs);
-
-	// oh, and since we're flipped, y is the bottom-left coordinate of the rectangle, not the top-left
-	// since we are flipped, we subtract
-	y -= fs.extents.height;
-
-	rect.origin = CGPointMake(x, y);
-	rect.size = fs.extents;
-	path = CGPathCreateWithRect(rect, NULL);
-
-	frame = CTFramesetterCreateFrame(fs.fs,
-		CFRangeMake(0, 0),
-		path,
-		fs.frameAttrib);
-	if (frame == NULL)
-		complain("error creating CTFrame object in doDrawText()");
-	CTFrameDraw(frame, c);
-	CFRelease(frame);
-
-	CFRelease(path);
-
-	freeFramesetter(&fs);
-	CGContextRestoreGState(c);
-}
-
 // LONGTERM provide an equivalent to CTLineGetTypographicBounds() on uiDrawTextLayout?
 
 // LONGTERM keep this for later features and documentation purposes

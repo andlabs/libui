@@ -1,5 +1,6 @@
 // 6 september 2015
 #import "uipriv_darwin.h"
+#import "draw.h"
 
 struct uiDrawPath {
 	CGMutablePathRef path;
@@ -102,11 +103,6 @@ void uiDrawPathEnd(uiDrawPath *p)
 {
 	p->ended = TRUE;
 }
-
-struct uiDrawContext {
-	CGContextRef c;
-	CGFloat height;				// needed for text; see below
-};
 
 uiDrawContext *newContext(CGContextRef ctxt, CGFloat height)
 {

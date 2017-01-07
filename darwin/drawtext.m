@@ -1,5 +1,6 @@
 // 2 january 2017
 #import "uipriv_darwin.h"
+#import "draw.h"
 
 struct uiDrawTextLayout {
 	CFAttributedStringRef attrstr;
@@ -124,9 +125,31 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 	uiFree(tl);
 }
 
-// TODO what is y, the top-left corner, bottom-left corner, topmost baseline, or bottommost baseline?
+// TODO double-check helvetica
+// TODO document that (x,y) is the top-left corner of the *entire frame*
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
+	CGContextSaveGState(c->c);
+
+	// Core Text doesn't draw onto a flipped view correctly; we have to pretend it was unflipped
+	// see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)
+	// TODO how is this affected by a non-identity CTM?
+	CGContextTranslateCTM(c->c, 0, cheight);
+	CGContextScaleCTM(c->c, 1.0, -1.0);
+	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
+
+	// wait, that's not enough; we need to offset y values to account for our new flipping
+	y = c->height - y;
+
+	// CTFrameDraw() draws in the path we specified when creating the frame
+	// this means that in our usage, CTFrameDraw() will draw at (0,0)
+	// so move the origin to be at (x,y) instead
+	// TODO are the signs correct?
+	CGContextTranslateCTM(c->c, x, y);
+
+	CTFrameDraw(tl->frame, c->c);
+
+	CGContextRestoreGState(c->c);
 }
 
 // TODO document that the width and height of a layout is not necessarily the sum of the widths and heights of its constituent lines; this is definitely untrue on OS X, where lines are placed in such a way that the distance between baselines is always integral

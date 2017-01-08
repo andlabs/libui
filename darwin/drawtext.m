@@ -15,6 +15,8 @@ struct uiDrawTextLayout {
 	CGPathRef path;
 	CTFrameRef frame;
 	CFArrayRef lines;
+	size_t *u16tou8;
+	size_t nu16tou8;		// TODO I don't like the casing of this name
 };
 
 static CTFontRef fontdescToCTFont(uiDrawFontDescriptor *fd)
@@ -112,11 +114,15 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 
 	tl->lines = CTFrameGetLines(tl->frame);
 
+	// and finally copy the UTF-16 to UTF-8 index conversion table
+	tl->u16tou8 = attrstrCopyUTF16ToUTF8(s, &(tl->nu16tou8));
+
 	return tl;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
+	uiFree(tl->u16tou8);
 	// TODO release tl->lines?
 	CFRelease(tl->frame);
 	CFRelease(tl->path);
@@ -174,7 +180,8 @@ void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start
 
 	lr = getline(tl, line);
 	range = CTLineGetStringRange(lr);
-	// TODO set start and end
+	*start = tl->u16tou8[range.location];
+	*end = tl->u16tou8[range.location + range.length];
 }
 
 void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
@@ -203,8 +210,96 @@ void uiDrawTextLayoutByteIndexToGraphemeRect(uiDrawTextLayout *tl, size_t pos, i
 {
 }
 
-uiDrawTextLayoutHitTestResult uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *byteIndex, int *line)
+static CGPoint *mkLineOrigins(uiDrawTextLayout *tl)
 {
+	CGPoint *origins;
+	CFRange range;
+	CFIndex i, n;
+	CTLine line;
+	CGFloat ascent;
+
+	n = CFArrayGetCount(tl->lines);
+	range.location = 0;
+	range.length = n;
+	origins = (CGPoint *) uiAlloc(n * sizeof (CGPoint), "CGPoint[]");
+	CTFrameGetLineOrigins(tl->frame, range, origins);
+	for (i = 0; i < n; i++) {
+		line = getline(tl, i);
+		CTLineGetTypographicBounds(line, &ascent, NULL, NULL);
+		origins[i].y = tl->size.height - (origins[i].y + ascent);
+	}
+	return origins;
+}
+
+void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
+{
+	CGPoint *mkLineOrigins;
+	CFIndex i, n;
+	CTLineRef line;
+	double firstYForLine;
+	CGFloat width, NULL, descent, leading;
+	CFRange range;
+
+	n = CFArrayGetCount(tl->lines);
+	if (n == 0) {
+		// TODO fill result
+		return;
+	}
+
+	origins = mkLineOrigins(tl);
+	if (y < 0) {
+		line = getline(tl, 0);
+		width = CTLineGetTypographicBounds(line, NULL, NULL, NULL);
+		i = 0;
+	} else {
+		firstYForLine = 0;
+		for (i = 0; i < n; i++) {
+			line = getline(tl, i);
+			width = CTLineGetTypographicBounds(line, NULL, &descent, &leading);
+			if (y < maxYForLine)
+				break;
+			firstYForLine = origins[i].y + descent + leading;
+		}
+	}
+	if (i == n) {
+		i--;
+		result->Line = i;
+		result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
+	} else {
+		result->Line = i;
+		result->YPosition = uiDrawTextLayoutHitTestPositionInside;
+		if (i == 0 && y < 0)
+			result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
+	}
+	result->InTrailingWhitespace = 0;
+	range = CTLineGetStringRange(line);
+	if (x < 0) {
+		result->Start = tl->u16tou8[range.location];
+		result->End = result->Start;
+		result->XPosition = uiDrawTextLayoutHitTestPositionBefore;
+	} else if (x > tl->size.width) {
+		result->Start = tl->u16tou8[range.location + range.length];
+		result->End = result->Start;
+		result->XPosition = uiDrawTextLayoutHitTestPositionAfter;
+	} else {
+		CGPoint pos;
+		CFIndex index;
+
+		result->XPosition = uiDrawTextLa
+youtHitTestPositionInside;
+		pos.x = x;
+		// TODO this isn't set properly in any of the fast-track cases
+		pos.y = y - firstYForLine;
+		index = CTLineGetStringIn
+dexForPosition(line, pos);
+		if (index == kCFNotFound) {
+			// TODO
+		}
+		result->Pos = tl->u16tou8[index];
+		// TODO compute the fractional offset
+		result->InTrailingWhitespace = x < origins[i].x || x >= (origins[i].x + width);
+	}
+	uiFree(origins);
 }
 
 void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)

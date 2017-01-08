@@ -87,6 +87,7 @@ struct uiDrawFontDescriptor {
 
 typedef struct uiDrawTextLayout uiDrawTextLayout;
 typedef struct uiDrawTextLayoutLineMetrics uiDrawTextLayoutLineMetrics;
+typedef struct uiDrawTextLayoutHitTestResult uiDrawTextLayoutHitTestResult;
 typedef struct uiDrawTextLayoutByteRangeRectangle uiDrawTextLayoutByteRangeRectangle;
 
 struct uiDrawTextLayoutLineMetrics {
@@ -102,10 +103,19 @@ struct uiDrawTextLayoutLineMetrics {
 	// TODO trailing whitespace?
 };
 
-_UI_ENUM(uiDrawTextLayoutHitTestResult) {
-	uiDrawTextLayoutHitTestResultNowhere,
-	uiDrawTextLayoutHitTestResultOnLineTrailingWhitespace,
-	uiDrawTextLayoutHitTestResultOnCharacter,
+_UI_ENUM(uiDrawTextLayoutHitTestPosition) {
+	uiDrawTextLayoutHitTestPositionBefore,
+	uiDrawTextLayoutHitTestPositionInside,
+	uiDrawTextLayoutHitTestPositionAfter,
+};
+
+struct uiDrawTextLayoutHitTestResult {
+	size_t Pos;
+	int Line;
+	uiDrawTextLayoutHitTestPosition XPosition;
+	uiDrawTextLayoutHitTestPosition YPosition;
+	int InTrailingWhitespace;
+	double XFraction;
 };
 
 struct uiDrawTextLayoutByteRangeRectangle {
@@ -122,6 +132,10 @@ struct uiDrawTextLayoutByteRangeRectangle {
 // - allow creating a layout out of a substring
 // - allow marking compositon strings
 // - allow marking selections, even after creation
+// - add the following functions:
+// 	- uiDrawTextLayoutHeightForWidth() (returns the height that a layout would need to be to display the entire string at a given width)
+// 	- uiDrawTextLayoutRangeForSize() (returns what substring would fit in a given size)
+// 	- uiDrawTextLayoutNewWithHeight() (limits amount of string used by the height)
 _UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width);
 _UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *tl);
 _UI_EXTERN void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y);
@@ -132,7 +146,7 @@ _UI_EXTERN void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, u
 // TODO redo this? remove it entirely?
 _UI_EXTERN void uiDrawTextLayoutByteIndexToGraphemeRect(uiDrawTextLayout *tl, size_t pos, int *line, double *x, double *y, double *width, double *height);
 // TODO partial offset?
-_UI_EXTERN uiDrawTextLayoutHitTestResult uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *byteIndex, int *line);
+_UI_EXTERN void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result);
 _UI_EXTERN void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r);
 // TODO draw only a line?
 // TODO other layout-specific attributes (alignment, wrapping, etc.)?

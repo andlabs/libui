@@ -72,7 +72,7 @@ macro(_handle_static)
 	add_custom_command(
 		TARGET libui POST_BUILD
 		COMMAND
-			${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:libui,BINARY_DIR>/CMakeFiles/libui.dir/windows/resources.rc.* ${_LIBUI_STATIC_RES}
+			${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:libui,BINARY_DIR>/CMakeFiles/libui.dir/windows/resources.rc${CMAKE_RC_OUTPUT_EXTENSION} ${_LIBUI_STATIC_RES}
 		COMMENT "Copying libui.res")
 endmacro()
 

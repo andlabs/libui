@@ -34,7 +34,7 @@ uiDrawFontDescriptor defaultFont = {
 };
 uiAttributedString *attrstr;
 
-#define margins 5
+#define margins 10
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 {
@@ -113,8 +113,7 @@ int main(void)
 
 	attrstr = uiNewAttributedString(text);
 
-	mainwin = uiNewWindow("libui Histogram Example", 640, 480, 1);
-	uiWindowSetMargined(mainwin, 1);
+	mainwin = uiNewWindow("libui Text-Drawing Example", 640, 480, 1);
 	uiWindowOnClosing(mainwin, onClosing, NULL);
 
 	area = uiNewArea(&handler);

@@ -231,7 +231,8 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
 
 	// wait, that's not enough; we need to offset y values to account for our new flipping
-	y = c->height - y;
+	// TODO explain this calculation
+	y = c->height - tl->size.height - y;
 
 	// CTFrameDraw() draws in the path we specified when creating the frame
 	// this means that in our usage, CTFrameDraw() will draw at (0,0)

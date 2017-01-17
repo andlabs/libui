@@ -131,7 +131,9 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 		// TODO
 	}
 
-	at16 = s->u8tou16[at];
+	at16 = 0;
+	if (s->u8tou16 != NULL)
+		at16 = s->u8tou16[at];
 
 	// do this first to reclaim memory
 	invalidateGraphemes(s);

@@ -31,8 +31,14 @@ if(NOT WIN32)
 	target_link_libraries(cpp-multithread pthread)
 endif()
 
+_add_example(drawtext
+	drawtext/main.c
+	${_EXAMPLE_RESOURCES_RC}
+)
+
 add_custom_target(examples
 	DEPENDS
 		controlgallery
 		histogram
-		cpp-multithread)
+		cpp-multithread
+		drawtext)

@@ -82,10 +82,10 @@ static CFAttributedStringRef attrstrToCoreFoundation(uiAttributedString *s, uiDr
 	return mas;
 }
 
-static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrame frame, CGSize size)
+static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize size)
 {
 	uiDrawTextLayoutLineMetrics *metrics;
-	CFArray lines;
+	CFArrayRef lines;
 	CTLineRef line;
 	CFIndex i, n;
 	CGFloat ypos;
@@ -95,10 +95,9 @@ static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrame frame, CGSize siz
 
 	lines = CTFrameGetLines(frame);
 	n = CFArrayGetCount(lines);
-	metrics = (uiDrawTextLay
-outLineMetrics *) uiAlloc(n * sizeof (uiDrawTextLayoutLineMetrics), "uiDrawTextLayoutLineMetrics[] (text layout)");
+	metrics = (uiDrawTextLayoutLineMetrics *) uiAlloc(n * sizeof (uiDrawTextLayoutLineMetrics), "uiDrawTextLayoutLineMetrics[] (text layout)");
 
-	origins = (CGFloat *) uiAlloc(n * sizeof (CGFloat), "CGFloat[] (text layout)");
+	origins = (CGPoint *) uiAlloc(n * sizeof (CGPoint), "CGPoint[] (text layout)");
 	CTFrameGetLineOrigins(frame, CFRangeMake(0, n), origins);
 
 	ypos = size.height;
@@ -183,9 +182,9 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 		// TODO kCTFramePathWidthAttributeName?
 		NULL,
 		CGSizeMake(cgwidth, CGFLOAT_MAX),
-		&unused);			// not documented as accepting NULL
+		&unused);			// not documented as accepting NULL (TODO really?)
 
-	rect.origin = CGZeroPoint;
+	rect.origin = CGPointZero;
 	rect.size = tl->size;
 	tl->path = CGPathCreateWithRect(rect, NULL);
 	tl->frame = CTFramesetterCreateFrame(tl->framesetter,
@@ -227,7 +226,7 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	// Core Text doesn't draw onto a flipped view correctly; we have to pretend it was unflipped
 	// see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)
 	// TODO how is this affected by a non-identity CTM?
-	CGContextTranslateCTM(c->c, 0, cheight);
+	CGContextTranslateCTM(c->c, 0, c->height);
 	CGContextScaleCTM(c->c, 1.0, -1.0);
 	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
 
@@ -280,9 +279,8 @@ void uiDrawTextLayoutByteIndexToGraphemeRect(uiDrawTextLayout *tl, size_t pos, i
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
 {
 	CFIndex i;
-	CTLine line;
+	CTLineRef line;
 	CFIndex pos;
-	CGFloat charLeft, charRight;
 
 	if (y >= 0) {
 		for (i = 0; i < tl->nLines; i++) {
@@ -302,28 +300,26 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 		i = 0;
 		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
 	}
-	m->Line = i;
+	result->Line = i;
 
 	result->XPosition = uiDrawTextLayoutHitTestPositionInside;
 	if (x < tl->lineMetrics[i].X) {
-		result->XPosition = uiDrawTextLay
-outHitTestPositionBefore;
+		result->XPosition = uiDrawTextLayoutHitTestPositionBefore;
 		// and forcibly return the first character
 		x = tl->lineMetrics[i].X;
 	} else if (x > (tl->lineMetrics[i].X + tl->lineMetrics[i].Width)) {
-		result->XPosition = uiDrawTextLayoutHitTestP
-ositionAfter;
+		result->XPosition = uiDrawTextLayoutHitTestPositionAfter;
 		// and forcibly return the last character
 		x = tl->lineMetrics[i].X + tl->lineMetrics[i].Width;
 	}
 
 	line = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
-	pos = CTLineGetStringIndexForPosition(line, CGP
-ointMake(x, 0));
+	// TODO copy the part from the docs about this point
+	pos = CTLineGetStringIndexForPosition(line, CGPointMake(x, 0));
 	if (pos == kCFNotFound) {
 		// TODO
 	}
-	m->Pos = tl->u16tou8[pos];
+	result->Pos = tl->u16tou8[pos];
 }
 
 void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)

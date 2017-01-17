@@ -168,7 +168,7 @@ static struct attr *attrDropRange(struct attrlist *alist, struct attr *a, size_t
 		// we are dropping the left half, so set a->start and unlink
 		a->start = end;
 		*tail = a;
-		return attrUnlink(attr, a);
+		return attrUnlink(alist, a);
 	}
 	if (a->end == end) {				// chop off the end
 		// we are dropping the right half, so just set a->end
@@ -321,11 +321,11 @@ void attrlistInsertAttribute(struct attrlist *alist, uiAttribute type, uintptr_t
 		// TODO will this cause problems with fonts?
 		// TODO will this reduce fragmentation if we first add from 0 to 2 and then from 2 to 4? or do we have to do that separately?
 		if (before->val == val) {
-			attrGrow(alist, a, start, end);
+			attrGrow(alist, before, start, end);
 			return;
 		}
 		// okay the values are different; we need to split apart
-		before = attrDropRange(alist, a, start, end, &tail);
+		before = attrDropRange(alist, before, start, end, &tail);
 		split = 1;
 		continue;
 
@@ -486,9 +486,10 @@ void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t st
 	struct attr *tails = NULL;		// see attrlistInsertCharactersUnattributed() above
 	struct attr *tailsAt = NULL;
 
-	a = alist->start;
+	a = alist->first;
 	while (a != NULL) {
 		size_t lstart, lend;
+		struct attr *tail;
 
 		// this defines where to re-attach the tails
 		// (all the tails will have their start at end, so we can just insert them all before tailsAt)
@@ -532,9 +533,10 @@ void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end)
 	struct attr *tails = NULL;		// see attrlistInsertCharactersUnattributed() above
 	struct attr *tailsAt = NULL;
 
-	a = alist->start;
+	a = alist->first;
 	while (a != NULL) {
 		size_t lstart, lend;
+		struct attr *tail;
 
 		// this defines where to re-attach the tails
 		// (all the tails will have their start at end, so we can just insert them all before tailsAt)
@@ -578,7 +580,7 @@ void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end)
 		a = attrDeleteRange(alist, a, start, end);
 }
 
-void attrlistForEach(struct attr *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
+void attrlistForEach(struct attrlist *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
 {
 	struct attr *a;
 

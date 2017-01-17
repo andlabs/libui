@@ -17,7 +17,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/drawtext.m
 	darwin/editablecombo.m
 	darwin/entry.m
-	darwin/fontbutton.m
+#TODO	darwin/fontbutton.m
 	darwin/fontmatch.m
 	darwin/form.m
 	darwin/graphemes.m
@@ -44,7 +44,7 @@ list(APPEND _LIBUI_SOURCES
 )
 set(_LIBUI_SOURCES ${_LIBUI_SOURCES} PARENT_SCOPE)
 
-// TODO is this correct?
+# TODO is this correct?
 list(APPEND _LIBUI_INCLUDEDIRS
 	darwin
 )

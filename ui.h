@@ -577,6 +577,7 @@ struct uiAreaKeyEvent {
 	int Up;
 };
 
+#if 0 /* TODO */
 typedef struct uiFontButton uiFontButton;
 #define uiFontButton(this) ((uiFontButton *) (this))
 // TODO document this returns a new font
@@ -584,6 +585,7 @@ _UI_EXTERN uiDrawTextFont *uiFontButtonFont(uiFontButton *b);
 // TOOD SetFont, mechanics
 _UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);
 _UI_EXTERN uiFontButton *uiNewFontButton(void);
+#endif
 
 typedef struct uiColorButton uiColorButton;
 #define uiColorButton(this) ((uiColorButton *) (this))

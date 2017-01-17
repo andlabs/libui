@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
+#include <string.h>
 #include "controlsigs.h"
 #include "utf.h"
 
@@ -68,7 +69,7 @@ extern struct graphemes *graphemes(void *s, size_t len);
 
 // attrstr.c
 extern const uint16_t *attrstrUTF16(uiAttributedString *s);
-extern size_t attrstrUTF16LEn(uiAttributedString *s);
+extern size_t attrstrUTF16Len(uiAttributedString *s);
 extern size_t attrstrUTF8ToUTF16(uiAttributedString *s, size_t n);
 extern size_t *attrstrCopyUTF16ToUTF8(uiAttributedString *s, size_t *n);
 
@@ -79,8 +80,8 @@ extern void attrlistInsertCharactersUnattributed(struct attrlist *alist, size_t 
 extern void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t count);
 extern void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end);
 extern void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end);
-extern; void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end);
-extern void attrlistForEach(struct attr *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
+extern void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end);
+extern void attrlistForEach(struct attrlist *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
 // TODO move these to the top like everythng else
 extern struct attrlist *attrlistNew(void);
 extern void attrlistFree(struct attrlist *alist);

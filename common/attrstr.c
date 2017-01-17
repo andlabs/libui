@@ -120,7 +120,7 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 {
 	uint32_t rune;
 	char buf[4];
-	uint16_t u16buf[2];
+	uint16_t buf16[2];
 	size_t n8, n16;
 	size_t old, old16;
 	size_t oldlen, old16len;
@@ -238,20 +238,20 @@ void uiAttributedStringDelete(uiAttributedString *s, size_t start, size_t end)
 	memmove(
 		s->s + start,
 		s->s + end,
-		(oldlen - end) * sizeof (char));
+		(s->len - end) * sizeof (char));
 	memmove(
 		s->u16 + start16,
 		s->u16 + end16,
-		(old16len - end16) * sizeof (uint16_t));
+		(s->u16len - end16) * sizeof (uint16_t));
 	// note the + 1 for these; we want to copy the terminating null too
 	memmove(
 		s->u8tou16 + start,
 		s->u8tou16 + end,
-		(oldlen - end + 1) * sizeof (size_t));
+		(s->len - end + 1) * sizeof (size_t));
 	memmove(
 		s->u16tou8 + start16,
 		s->u16tou8 + end16,
-		(old16len - end16 + 1) * sizeof (size_t));
+		(s->u16len - end16 + 1) * sizeof (size_t));
 
 	// update the conversion tables
 	// note the use of <= to include the null terminator
@@ -308,7 +308,7 @@ const uint16_t *attrstrUTF16(uiAttributedString *s)
 	return s->u16;
 }
 
-size_t attrstrUTF16LEn(uiAttributedString *s)
+size_t attrstrUTF16Len(uiAttributedString *s)
 {
 	return s->u16len;
 }

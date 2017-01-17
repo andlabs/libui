@@ -443,8 +443,3 @@ void uiDrawRestore(uiDrawContext *c)
 {
 	CGContextRestoreGState(c->c);
 }
-
-void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
-{
-	doDrawText(c->c, c->height, x, y, layout);
-}

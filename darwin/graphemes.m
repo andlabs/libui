@@ -13,7 +13,7 @@ struct graphemes *graphemes(void *s, size_t len)
 {
 	struct graphemes *g;
 	UniChar *str = (UniChar *) s;
-	CFString cfstr;
+	CFStringRef cfstr;
 	size_t ppos, gpos;
 	CFRange range;
 	size_t i;

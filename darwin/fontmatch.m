@@ -54,7 +54,7 @@ static const struct italicCloseness italicClosenesses[] = {
 // TODO there is still one catch that might matter from a user's POV: the reverse is not true — the italic bit can be set even if the style of the font face/subfamily/style isn't named as Italic (for example, script typefaces like Adobe's Palace Script MT Std); I don't know what to do about this... I know how to start: find a script font that has an italic form (Adobe's Palace Script MT Std does not; only Regular and Semibold)
 static double italicCloseness(CTFontDescriptorRef desc, CFDictionaryRef traits, uiDrawTextItalic italic)
 {
-	struct italicCloseness *ic = &(italicClosenesses[italic]);
+	const struct italicCloseness *ic = &(italicClosenesses[italic]);
 	CFNumberRef cfnum;
 	CTFontSymbolicTraits symbolic;
 	// there is no kCFNumberUInt32Type, but CTFontSymbolicTraits is uint32_t, so SInt32 should work
@@ -77,7 +77,7 @@ static double italicCloseness(CTFontDescriptorRef desc, CFDictionaryRef traits, 
 	// Okay, now we know it's either Italic or Oblique
 	// Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
 	isOblique = NO;		// default value
-	styleName = (CFStringRef) CTFontDescriptorCopyAttribute(current, kCTFontStyleNameAttribute);
+	styleName = (CFStringRef) CTFontDescriptorCopyAttribute(desc, kCTFontStyleNameAttribute);
 	// TODO is styleName guaranteed?
 	if (styleName != NULL) {
 		CFRange range;

@@ -91,15 +91,33 @@ typedef struct uiDrawTextLayoutHitTestResult uiDrawTextLayoutHitTestResult;
 typedef struct uiDrawTextLayoutByteRangeRectangle uiDrawTextLayoutByteRangeRectangle;
 
 struct uiDrawTextLayoutLineMetrics {
-	// TODO figure out if this is correct regardless of both alignment and writing direction
+	// This describes the overall bounding box of the line.
+	// TODO figure out if X is correct regardless of both alignment and writing direction
 	double X;
-	double BaselineY;
+	double Y;
 	double Width;
-	// top-left Y = baseline Y - ascent
-	// height = ascent + descent + leading (TODO formally document all this)
+	double Height;
+
+	// This describes the typographic bounds of the line.
+	double BaselineY;
 	double Ascent;
 	double Descent;
 	double Leading;
+
+	// This describes any additional whitespace.
+	// TODO come up with better names for these.
+	double ParagraphSpacingBefore;
+	double LineHeightSpace;
+	double LineSpacing;
+	double ParagraphSpacing;
+
+	// Height should equal ParagraphSpacingBefore + LineHeightSpace + Ascent + Descent + Leading + LineSpacing + ParagraphSpacing.
+	// The above values are listed in vertical order, from top to bottom.
+	// Ascent + Descent + Leading will give you the typographic bounds of the text.
+	// BaselineY will be the boundary between Ascent and Descent.
+	// X, Y, and BaselineY are all in the layout's coordinate system, so the start point of the baseline will be at (X, BaselineY).
+	// All values will be nonnegative.
+
 	// TODO trailing whitespace?
 };
 

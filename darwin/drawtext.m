@@ -2,19 +2,33 @@
 #import "uipriv_darwin.h"
 #import "draw.h"
 
+// TODO what happens if nLines == 0 in any function?
+
 struct uiDrawTextLayout {
 	CFAttributedStringRef attrstr;
+
+	// the width as passed into uiDrawTextLayout constructors
 	double width;
+
 	CTFramesetterRef framesetter;
+
+	// the *actual* size of the frame
 	// note: technically, metrics returned from frame are relative to CGPathGetPathBoundingBox(tl->path)
 	// however, from what I can gather, for a path created by CGPathCreateWithRect(), like we do (with a NULL transform), CGPathGetPathBoundingBox() seems to just return the standardized form of the rect used to create the path
 	// (this I confirmed through experimentation)
 	// so we can just use tl->size for adjustments
 	// we don't need to adjust coordinates by any origin since our rect origin is (0, 0)
 	CGSize size;
+
 	CGPathRef path;
 	CTFrameRef frame;
+
 	CFArrayRef lines;
+	CFIndex nLines;
+	// we compute this once when first creating the layout
+	uiDrawTextLayoutLineMetrics *lineMetrics;
+
+	// for converting CFAttributedString indices to byte offsets
 	size_t *u16tou8;
 	size_t nu16tou8;		// TODO I don't like the casing of this name
 };
@@ -68,6 +82,77 @@ static CFAttributedStringRef attrstrToCoreFoundation(uiAttributedString *s, uiDr
 	return mas;
 }
 
+static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrame frame, CGSize size)
+{
+	uiDrawTextLayoutLineMetrics *metrics;
+	CFArray lines;
+	CTLineRef line;
+	CFIndex i, n;
+	CGFloat ypos;
+	CGRect bounds, boundsNoLeading;
+	CGFloat ascent, descent, leading;
+	CGPoint *origins;
+
+	lines = CTFrameGetLines(frame);
+	n = CFArrayGetCount(lines);
+	metrics = (uiDrawTextLay
+outLineMetrics *) uiAlloc(n * sizeof (uiDrawTextLayoutLineMetrics), "uiDrawTextLayoutLineMetrics[] (text layout)");
+
+	origins = (CGFloat *) uiAlloc(n * sizeof (CGFloat), "CGFloat[] (text layout)");
+	CTFrameGetLineOrigins(frame, CFRangeMake(0, n), origins);
+
+	ypos = size.height;
+	for (i = 0; i < n; i++) {
+		line = (CTLineRef) CFArrayGetValueAtIndex(lines, i);
+		bounds = CTLineGetBoundsWithOptions(line, 0);
+		boundsNoLeading = CTLineGetBoundsWithOptions(line, kCTLineBoundsExcludeTypographicLeading);
+
+		// this is equivalent to boundsNoLeading.size.height + boundsNoLeading.origin.y (manually verified)
+		ascent = bounds.size.height + bounds.origin.y;
+		descent = -boundsNoLeading.origin.y;
+		// TODO does this preserve leading sign?
+		leading = -bounds.origin.y - descent;
+
+		// Core Text always rounds these up for paragraph style calculations; there is a flag to control it but it's inaccessible (and this behavior is turned off for old versions of iPhoto)
+		ascent = floor(ascent + 0.5);
+		descent = floor(descent + 0.5);
+		if (leading > 0)
+			leading = floor(leading + 0.5);
+
+		metrics[i].X = origins[i].x;
+		metrics[i].Y = origins[i].y - descent - leading;
+		metrics[i].Width = bounds.size.width;
+		metrics[i].Height = ascent + descent + leading;
+
+		metrics[i].BaselineY = origins[i].y;
+		metrics[i].Ascent = ascent;
+		metrics[i].Descent = descent;
+		metrics[i].Leading = leading;
+
+		// TODO
+		metrics[i].ParagraphSpacingBefore = 0;
+		metrics[i].LineHeightSpace = 0;
+		metrics[i].LineSpacing = 0;
+		metrics[i].ParagraphSpacing = 0;
+
+		// and finally advance to the next line
+		ypos += metrics[i].Height;
+	}
+
+	// okay, but now all these metrics are unflipped
+	// we need to flip them
+	for (i = 0; i < n; i++) {
+		metrics[i].Y = size.height - metrics[i].Y;
+		// go from bottom-left corner to top-left
+		metrics[i].Y -= metrics[i].Height;
+		metrics[i].BaselineY = size.height - metrics[i].BaselineY;
+		// TODO also adjust by metrics[i].Height?
+	}
+
+	uiFree(origins);
+	return metrics;
+}
+
 uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width)
 {
 	uiDrawTextLayout *tl;
@@ -113,6 +198,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	}
 
 	tl->lines = CTFrameGetLines(tl->frame);
+	tl->nLines = CFArrayGetCount(tl->lines);
+	tl->lineMetrics = computeLineMetrics(tl->frame, tl->size);
 
 	// and finally copy the UTF-16 to UTF-8 index conversion table
 	tl->u16tou8 = attrstrCopyUTF16ToUTF8(s, &(tl->nu16tou8));
@@ -123,6 +210,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
 	uiFree(tl->u16tou8);
+	uiFree(tl->lineMetrics);
 	// TODO release tl->lines?
 	CFRelease(tl->frame);
 	CFRelease(tl->path);
@@ -131,7 +219,6 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 	uiFree(tl);
 }
 
-// TODO double-check helvetica
 // TODO document that (x,y) is the top-left corner of the *entire frame*
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
@@ -167,18 +254,15 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 
 int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
 {
-	return CFArrayGetCount(tl->lines);
+	return tl->nLines;
 }
-
-// TODO release when done?
-#define getline(tl, line) ((CTLineRef) CFArrayGetValueAtIndex(tl->lines, line))
 
 void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
 {
 	CTLineRef lr;
 	CFRange range;
 
-	lr = getline(tl, line);
+	lr = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, line);
 	range = CTLineGetStringRange(lr);
 	*start = tl->u16tou8[range.location];
 	*end = tl->u16tou8[range.location + range.length];
@@ -186,120 +270,60 @@ void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start
 
 void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
 {
-	CTLineRef lr;
-	CFRange range;
-	CGPoint origin;
-	CGFloat ascent, descent, leading;
-
-	range.location = line;
-	range.length = 1;
-	CTFrameGetLineOrigins(tl->frame, range, &origin);
-	m->X = origin.x;
-	// and remember that the frame is flipped
-	m->BaselineY = tl->size.height - origin.y;
-
-	lr = getline(tl, line);
-	// though CTLineGetTypographicBounds() returns 0 on error, it also returns 0 on an empty string, so we can't reasonably check for error
-	m->Width = CTLineGetTypographicBounds(lr, &ascent, &descent, &leading);
-	m->Ascent = ascent;
-	m->Descent = descent;
-	m->Leading = leading;
+	*m = tl->lineMetrics[line];
 }
 
 void uiDrawTextLayoutByteIndexToGraphemeRect(uiDrawTextLayout *tl, size_t pos, int *line, double *x, double *y, double *width, double *height)
 {
 }
 
-static CGPoint *mkLineOrigins(uiDrawTextLayout *tl)
-{
-	CGPoint *origins;
-	CFRange range;
-	CFIndex i, n;
-	CTLine line;
-	CGFloat ascent;
-
-	n = CFArrayGetCount(tl->lines);
-	range.location = 0;
-	range.length = n;
-	origins = (CGPoint *) uiAlloc(n * sizeof (CGPoint), "CGPoint[]");
-	CTFrameGetLineOrigins(tl->frame, range, origins);
-	for (i = 0; i < n; i++) {
-		line = getline(tl, i);
-		CTLineGetTypographicBounds(line, &ascent, NULL, NULL);
-		origins[i].y = tl->size.height - (origins[i].y + ascent);
-	}
-	return origins;
-}
-
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
 {
-	CGPoint *mkLineOrigins;
-	CFIndex i, n;
-	CTLineRef line;
-	double firstYForLine;
-	CGFloat width, NULL, descent, leading;
-	CFRange range;
+	CFIndex i;
+	CTLine line;
+	CFIndex pos;
+	CGFloat charLeft, charRight;
 
-	n = CFArrayGetCount(tl->lines);
-	if (n == 0) {
-		// TODO fill result
-		return;
-	}
+	if (y >= 0) {
+		for (i = 0; i < tl->nLines; i++) {
+			double ltop, lbottom;
 
-	origins = mkLineOrigins(tl);
-	if (y < 0) {
-		line = getline(tl, 0);
-		width = CTLineGetTypographicBounds(line, NULL, NULL, NULL);
-		i = 0;
-	} else {
-		firstYForLine = 0;
-		for (i = 0; i < n; i++) {
-			line = getline(tl, i);
-			width = CTLineGetTypographicBounds(line, NULL, &descent, &leading);
-			if (y < maxYForLine)
+			ltop = tl->lineMetrics[i].Y;
+			lbottom = ltop + tl->lineMetrics[i].Height;
+			if (y >= ltop && y < lbottom)
 				break;
-			firstYForLine = origins[i].y + descent + leading;
 		}
-	}
-	if (i == n) {
-		i--;
-		result->Line = i;
-		result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
-	} else {
-		result->Line = i;
 		result->YPosition = uiDrawTextLayoutHitTestPositionInside;
-		if (i == 0 && y < 0)
-			result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
-	}
-	result->InTrailingWhitespace = 0;
-	range = CTLineGetStringRange(line);
-	if (x < 0) {
-		result->Start = tl->u16tou8[range.location];
-		result->End = result->Start;
-		result->XPosition = uiDrawTextLayoutHitTestPositionBefore;
-	} else if (x > tl->size.width) {
-		result->Start = tl->u16tou8[range.location + range.length];
-		result->End = result->Start;
-		result->XPosition = uiDrawTextLayoutHitTestPositionAfter;
-	} else {
-		CGPoint pos;
-		CFIndex index;
-
-		result->XPosition = uiDrawTextLa
-youtHitTestPositionInside;
-		pos.x = x;
-		// TODO this isn't set properly in any of the fast-track cases
-		pos.y = y - firstYForLine;
-		index = CTLineGetStringIn
-dexForPosition(line, pos);
-		if (index == kCFNotFound) {
-			// TODO
+		if (i == tl->nLines) {
+			i--;
+			result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
 		}
-		result->Pos = tl->u16tou8[index];
-		// TODO compute the fractional offset
-		result->InTrailingWhitespace = x < origins[i].x || x >= (origins[i].x + width);
+	} else {
+		i = 0;
+		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
 	}
-	uiFree(origins);
+	m->Line = i;
+
+	result->XPosition = uiDrawTextLayoutHitTestPositionInside;
+	if (x < tl->lineMetrics[i].X) {
+		result->XPosition = uiDrawTextLay
+outHitTestPositionBefore;
+		// and forcibly return the first character
+		x = tl->lineMetrics[i].X;
+	} else if (x > (tl->lineMetrics[i].X + tl->lineMetrics[i].Width)) {
+		result->XPosition = uiDrawTextLayoutHitTestP
+ositionAfter;
+		// and forcibly return the last character
+		x = tl->lineMetrics[i].X + tl->lineMetrics[i].Width;
+	}
+
+	line = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
+	pos = CTLineGetStringIndexForPosition(line, CGP
+ointMake(x, 0));
+	if (pos == kCFNotFound) {
+		// TODO
+	}
+	m->Pos = tl->u16tou8[pos];
 }
 
 void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)

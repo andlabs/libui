@@ -132,8 +132,10 @@ struct uiDrawTextLayoutHitTestResult {
 	int Line;
 	uiDrawTextLayoutHitTestPosition XPosition;
 	uiDrawTextLayoutHitTestPosition YPosition;
-	int InTrailingWhitespace;
-	double XFraction;
+// TODO?
+//	int InTrailingWhitespace;
+// TODO?
+//	double XFraction;
 };
 
 struct uiDrawTextLayoutByteRangeRectangle {

@@ -22,7 +22,7 @@ list(APPEND _LIBUI_SOURCES
 	unix/drawtext.c
 	unix/editablecombo.c
 	unix/entry.c
-	unix/fontbutton.c
+#	unix/fontbutton.c
 	unix/form.c
 	unix/future.c
 	unix/graphemes.c

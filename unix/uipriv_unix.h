@@ -46,8 +46,10 @@ extern uiDrawContext *newContext(cairo_t *);
 extern void freeContext(uiDrawContext *);
 
 // drawtext.c
+#if 0 /* TODO */
 extern uiDrawTextFont *mkTextFont(PangoFont *f, gboolean add);
 extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
+#endif
 
 // image.c
 /*TODO remove this*/typedef struct uiImage uiImage;

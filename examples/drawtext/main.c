@@ -117,6 +117,7 @@ int main(void)
 	uiWindowOnClosing(mainwin, onClosing, NULL);
 
 	area = uiNewArea(&handler);
+	// TODO on GTK+ this doesn't get expand properties set properly?
 	uiWindowSetChild(mainwin, uiControl(area));
 
 	uiControlShow(uiControl(mainwin));

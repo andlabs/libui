@@ -6,7 +6,7 @@ int graphemesTakesUTF16(void)
 	return 0;
 }
 
-struct graphemes *graphemes(void *s, size_t len);
+struct graphemes *graphemes(void *s, size_t len)
 {
 	struct graphemes *g;
 	char *text = (char *) s;

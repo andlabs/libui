@@ -1,6 +1,6 @@
 // 14 april 2016
 #include "uipriv_windows.hpp"
-// TODO really migrate?
+// TODO really migrate? (TODO what did I mean by this?)
 
 IDWriteFactory *dwfactory = NULL;
 
@@ -16,6 +16,8 @@ void uninitDrawText(void)
 {
 	dwfactory->Release();
 }
+
+#if 0 /* TODO */
 
 fontCollection *loadFontCollection(void)
 {
@@ -86,3 +88,5 @@ void fontCollectionFree(fontCollection *fc)
 	fc->fonts->Release();
 	uiFree(fc);
 }
+
+#endif

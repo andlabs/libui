@@ -26,8 +26,8 @@ list(APPEND _LIBUI_SOURCES
 	windows/editablecombo.cpp
 	windows/entry.cpp
 	windows/events.cpp
-	windows/fontbutton.cpp
-	windows/fontdialog.cpp
+#	windows/fontbutton.cpp
+#	windows/fontdialog.cpp
 	windows/form.cpp
 	windows/graphemes.cpp
 	windows/grid.cpp

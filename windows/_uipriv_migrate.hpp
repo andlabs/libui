@@ -19,6 +19,7 @@ extern IDWriteFactory *dwfactory;
 #endif
 extern HRESULT initDrawText(void);
 extern void uninitDrawText(void);
+#if 0 /* TODO */
 #ifdef __cplusplus
 struct fontCollection {
 	IDWriteFontCollection *fonts;
@@ -30,8 +31,10 @@ extern WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *fa
 extern void fontCollectionFree(fontCollection *fc);
 extern WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *names);
 #endif
+#endif
 
 // drawtext.cpp
+#if 0 /* TODO */
 #ifdef __cplusplus
 extern uiDrawTextFont *mkTextFont(IDWriteFont *df, BOOL addRef, WCHAR *family, BOOL copyFamily, double size);
 struct dwriteAttr {
@@ -45,8 +48,10 @@ struct dwriteAttr {
 extern void attrToDWriteAttr(struct dwriteAttr *attr);
 extern void dwriteAttrToAttr(struct dwriteAttr *attr);
 #endif
+#endif
 
 // fontdialog.cpp
+#if 0 /* TODO */
 #ifdef __cplusplus
 struct fontDialogParams {
 	IDWriteFont *font;
@@ -58,4 +63,5 @@ extern BOOL showFontDialog(HWND parent, struct fontDialogParams *params);
 extern void loadInitialFontDialogParams(struct fontDialogParams *params);
 extern void destroyFontDialogParams(struct fontDialogParams *params);
 extern WCHAR *fontDialogParamsToString(struct fontDialogParams *params);
+#endif
 #endif

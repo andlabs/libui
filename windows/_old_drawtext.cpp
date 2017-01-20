@@ -77,152 +77,8 @@ uiDrawTextFont *mkTextFont(IDWriteFont *df, BOOL addRef, WCHAR *family, BOOL cop
 	return font;
 }
 
-// TODO consider moving these all to dwrite.cpp
-
 // TODO MinGW-w64 is missing this one
 #define DWRITE_FONT_WEIGHT_SEMI_LIGHT (DWRITE_FONT_WEIGHT(350))
-static const struct {
-	bool lastOne;
-	uiDrawTextWeight uival;
-	DWRITE_FONT_WEIGHT dwval;
-} dwriteWeights[] = {
-	{ false, uiDrawTextWeightThin, DWRITE_FONT_WEIGHT_THIN },
-	{ false, uiDrawTextWeightUltraLight, DWRITE_FONT_WEIGHT_ULTRA_LIGHT },
-	{ false, uiDrawTextWeightLight, DWRITE_FONT_WEIGHT_LIGHT },
-	{ false, uiDrawTextWeightBook, DWRITE_FONT_WEIGHT_SEMI_LIGHT },
-	{ false, uiDrawTextWeightNormal, DWRITE_FONT_WEIGHT_NORMAL },
-	{ false, uiDrawTextWeightMedium, DWRITE_FONT_WEIGHT_MEDIUM },
-	{ false, uiDrawTextWeightSemiBold, DWRITE_FONT_WEIGHT_SEMI_BOLD },
-	{ false, uiDrawTextWeightBold, DWRITE_FONT_WEIGHT_BOLD },
-	{ false, uiDrawTextWeightUltraBold, DWRITE_FONT_WEIGHT_ULTRA_BOLD },
-	{ false, uiDrawTextWeightHeavy, DWRITE_FONT_WEIGHT_HEAVY },
-	{ true, uiDrawTextWeightUltraHeavy, DWRITE_FONT_WEIGHT_ULTRA_BLACK, },
-};
-
-static const struct {
-	bool lastOne;
-	uiDrawTextItalic uival;
-	DWRITE_FONT_STYLE dwval;
-} dwriteItalics[] = {
-	{ false, uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
-	{ false, uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
-	{ true, uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
-};
-
-static const struct {
-	bool lastOne;
-	uiDrawTextStretch uival;
-	DWRITE_FONT_STRETCH dwval;
-} dwriteStretches[] = {
-	{ false, uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
-	{ false, uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
-	{ false, uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
-	{ false, uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
-	{ false, uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
-	{ false, uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
-	{ false, uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
-	{ false, uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
-	{ true, uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
-};
-
-void attrToDWriteAttr(struct dwriteAttr *attr)
-{
-	bool found;
-	int i;
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteWeights[i].uival == attr->weight) {
-			attr->dweight = dwriteWeights[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteWeights[i].lastOne)
-			break;
-	}
-	if (!found)
-		userbug("Invalid text weight %d passed to text function.", attr->weight);
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteItalics[i].uival == attr->italic) {
-			attr->ditalic = dwriteItalics[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteItalics[i].lastOne)
-			break;
-	}
-	if (!found)
-		userbug("Invalid text italic %d passed to text function.", attr->italic);
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteStretches[i].uival == attr->stretch) {
-			attr->dstretch = dwriteStretches[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteStretches[i].lastOne)
-			break;
-	}
-	if (!found)
-		// TODO on other platforms too
-		userbug("Invalid text stretch %d passed to text function.", attr->stretch);
-}
-
-void dwriteAttrToAttr(struct dwriteAttr *attr)
-{
-	int weight, against, n;
-	int curdiff, curindex;
-	bool found;
-	int i;
-
-	// weight is scaled; we need to test to see what's nearest
-	weight = (int) (attr->dweight);
-	against = (int) (dwriteWeights[0].dwval);
-	curdiff = abs(against - weight);
-	curindex = 0;
-	for (i = 1; ; i++) {
-		against = (int) (dwriteWeights[i].dwval);
-		n = abs(against - weight);
-		if (n < curdiff) {
-			curdiff = n;
-			curindex = i;
-		}
-		if (dwriteWeights[i].lastOne)
-			break;
-	}
-	attr->weight = dwriteWeights[i].uival;
-
-	// italic and stretch are simple values; we can just do a matching search
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteItalics[i].dwval == attr->ditalic) {
-			attr->italic = dwriteItalics[i].uival;
-			found = true;
-			break;
-		}
-		if (dwriteItalics[i].lastOne)
-			break;
-	}
-	if (!found)
-		// these are implbug()s because users shouldn't be able to get here directly; TODO?
-		implbug("invalid italic %d passed to dwriteAttrToAttr()", attr->ditalic);
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteStretches[i].dwval == attr->dstretch) {
-			attr->stretch = dwriteStretches[i].uival;
-			found = true;
-			break;
-		}
-		if (dwriteStretches[i].lastOne)
-			break;
-	}
-	if (!found)
-		implbug("invalid stretch %d passed to dwriteAttrToAttr()", attr->dstretch);
-}
 
 uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 {
@@ -357,13 +213,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultF
 		defaultFont->f->GetWeight(),
 		defaultFont->f->GetStyle(),
 		defaultFont->f->GetStretch(),
-		// typographic points are 1/72 inch; this parameter is 1/96 inch
-		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
-		defaultFont->size * (96.0 / 72.0),
-		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
-		// TODO use the current locale again?
-		L"",
-		&(layout->format));
+
 	if (hr != S_OK)
 		logHRESULT(L"error creating IDWriteTextFormat", hr);
 
@@ -417,17 +267,7 @@ IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt
 	IDWriteTextLayout *dl;
 	DWRITE_TEXT_RANGE range;
 	IUnknown *unkBrush;
-	DWRITE_WORD_WRAPPING wrap;
-	FLOAT maxWidth;
 	HRESULT hr;
-
-	hr = dwfactory->CreateTextLayout(layout->text, layout->textlen,
-		layout->format,
-		// FLOAT is float, not double, so this should work... TODO
-		FLT_MAX, FLT_MAX,
-		&dl);
-	if (hr != S_OK)
-		logHRESULT(L"error creating IDWriteTextLayout", hr);
 
 	for (const struct layoutAttr &attr : *(layout->attrs)) {
 		range.startPosition = layout->graphemes[attr.start];
@@ -452,47 +292,11 @@ IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt
 			logHRESULT(L"error adding attribute to text layout", hr);
 	}
 
-	// and set the width
-	// this is the only wrapping mode (apart from "no wrap") available prior to Windows 8.1
-	wrap = DWRITE_WORD_WRAPPING_WRAP;
-	maxWidth = layout->width;
-	if (layout->width < 0) {
-		wrap = DWRITE_WORD_WRAPPING_NO_WRAP;
-		// setting the max width in this case technically isn't needed since the wrap mode will simply ignore the max width, but let's do it just to be safe
-		maxWidth = FLT_MAX;		// see TODO above
-	}
-	hr = dl->SetWordWrapping(wrap);
-	if (hr != S_OK)
-		logHRESULT(L"error setting word wrapping mode", hr);
-	hr = dl->SetMaxWidth(maxWidth);
-	if (hr != S_OK)
-		logHRESULT(L"error setting max layout width", hr);
+
 
 	return dl;
 }
 
-
-void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
-{
-	layout->width = width;
-}
-
-// TODO for a single line the height includes the leading; it should not
-void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
-{
-	IDWriteTextLayout *dl;
-	DWRITE_TEXT_METRICS metrics;
-	HRESULT hr;
-
-	dl = prepareLayout(layout, NULL);
-	hr = dl->GetMetrics(&metrics);
-	if (hr != S_OK)
-		logHRESULT(L"error getting layout metrics", hr);
-	*width = metrics.width;
-	// TODO make sure the behavior of this on empty strings is the same on all platforms
-	*height = metrics.height;
-	dl->Release();
-}
 
 void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
 {

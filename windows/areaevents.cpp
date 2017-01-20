@@ -2,6 +2,8 @@
 #include "uipriv_windows.hpp"
 #include "area.hpp"
 
+// TODO https://github.com/Microsoft/Windows-classic-samples/blob/master/Samples/Win7Samples/multimedia/DirectWrite/PadWrite/TextEditor.cpp notes on explicit RTL handling under MirrorXCoordinate(); also in areadraw.cpp too?
+
 static uiModifiers getModifiers(void)
 {
 	uiModifiers m = 0;

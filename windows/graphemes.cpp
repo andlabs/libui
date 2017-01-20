@@ -5,6 +5,8 @@
 // So let's use Uniscribe (see http://archives.miloush.net/michkap/archive/2005/01/14/352802.html)
 // See also http://www.catch22.net/tuts/uniscribe-mysteries, http://www.catch22.net/tuts/keyboard-navigation, and https://maxradi.us/documents/uniscribe/ for more details.
 
+// TODO the DirectWrite equivalent appears to be https://msdn.microsoft.com/en-us/library/windows/desktop/dd316625(v=vs.85).aspx but is somehow somewhat more complicated to use than Uniscribe is! maybe the PadWrite sample uses it? or should we just keep using Uniscribe?
+
 int graphemesTakesUTF16(void)
 {
 	return 1;

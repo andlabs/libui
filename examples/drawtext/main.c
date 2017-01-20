@@ -49,6 +49,21 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	uiDrawClip(p->Context, path);
 	uiDrawFreePath(path);
 
+	// TODO get rid of this later
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathAddRectangle(path, -100, -100,
+		p->AreaWidth * 2,
+		p->AreaHeight * 2);
+	uiDrawPathEnd(path);
+	uiDrawBrush b;
+	b.Type = uiDrawBrushTypeSolid;
+	b.R = 0.0;
+	b.G = 1.0;
+	b.B = 0.0;
+	b.A = 1.0;
+	uiDrawFill(p->Context, path, &b);
+	uiDrawFreePath(path);
+
 	layout = uiDrawNewTextLayout(attrstr,
 		&defaultFont,
 		p->AreaWidth - 2 * margins);

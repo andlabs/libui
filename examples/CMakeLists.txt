@@ -32,9 +32,12 @@ if(NOT WIN32)
 endif()
 
 _add_example(drawtext
+	drawtext/basic.c
 	drawtext/main.c
 	${_EXAMPLE_RESOURCES_RC}
 )
+target_include_directories(drawtext
+	PRIVATE drawtext)
 
 add_custom_target(examples
 	DEPENDS

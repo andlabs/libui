@@ -69,8 +69,9 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 	tl->lineInfo = (struct lineInfo *) uiAlloc(tl->nLines * sizeof (struct lineInfo), "struct lineInfo[] (text layout)");
 
 	dlm = new DWRITE_LINE_METRICS[tl->nLines];
-	// TODO make sure pasisng NULL here is legal
-	hr = tl->layout->GetLineMetrics(dlm, tl->nLines, NULL);
+	// we can't pass NULL here; it outright crashes if we do
+	// TODO verify the numbers haven't changed
+	hr = tl->layout->GetLineMetrics(dlm, tl->nLines, &unused);
 	if (hr != S_OK)
 		logHRESULT(L"error getting IDWriteTextLayout line metrics", hr);
 
@@ -204,6 +205,7 @@ static ID2D1SolidColorBrush *mkSolidBrush(ID2D1RenderTarget *rt, double r, doubl
 	return brush;
 }
 
+// TODO this ignores clipping?
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
 	D2D1_POINT_2F pt;

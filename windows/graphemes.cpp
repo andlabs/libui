@@ -57,7 +57,7 @@ struct graphemes *graphemes(void *s, size_t len)
 
 	g = uiNew(struct graphemes);
 
-	hr = itemize(str, len, &items, &n);
+	hr = itemize(str, len, &items, &nItems);
 	if (hr != S_OK)
 		logHRESULT(L"error itemizing string for finding grapheme cluster boundaries", hr);
 	g->len = nItems;
@@ -72,6 +72,7 @@ struct graphemes *graphemes(void *s, size_t len)
 		SCRIPT_ITEM *curItem, *nextItem;
 		SCRIPT_LOGATTR *logattr;
 		size_t *curGTP;
+		int i;
 
 		curItem = items + curItemIndex;
 		nextItem = curItem + 1;

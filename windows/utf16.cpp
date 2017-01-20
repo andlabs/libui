@@ -36,7 +36,7 @@ char *toUTF8(const WCHAR *wstr)
 	str = (char *) uiAlloc((n + 1) * sizeof (char), "char[]");
 	sp = str;
 	while (*wstr) {
-		wstr = utf16DecodeRune(wstr, &rune);
+		wstr = utf16DecodeRune(wstr, 0, &rune);
 		n = utf8EncodeRune(rune, sp);
 		sp += n;
 	}

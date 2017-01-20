@@ -1,36 +1,41 @@
 // 17 january 2017
 #include "uipriv_windows.hpp"
+#include "draw.hpp"
 
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
-	UINT32 *nLines;
+	UINT32 nLines;
 	struct lineInfo *lineInfo;
 	// for converting DirectWrite indices to byte offsets
 	size_t *u16tou8;
 	size_t nu16tou8;		// TODO I don't like the casing of this name; is it even necessary?
 };
 
+// TODO copy notes about DirectWrite DIPs being equal to Direct2D DIPs here
+
 // typographic points are 1/72 inch; this parameter is 1/96 inch
 // fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
 #define pointSizeToDWriteSize(size) (size * (96.0 / 72.0))
 
-static const DWRITE_FONT_STYLE dwriteItalics[] = {
-	[uiDrawTextItalicNormal] = DWRITE_FONT_STYLE_NORMAL,
-	[uiDrawTextItalicOblique] = DWRITE_FONT_STYLE_OBLIQUE,
-	[uiDrawTextItalicItalic] = DWRITE_FONT_STYLE_ITALIC,
+// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
+static std::map<uiDrawTextItalic, DWRITE_FONT_STYLE> dwriteItalics = {
+	{ uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
+	{ uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
+	{ uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
 };
 
-static const DWRITE_FONT_STRETCH dwriteStretches[] = {
-	[uiDrawTextStretchUltraCondensed] = DWRITE_FONT_STRETCH_ULTRA_CONDENSED,
-	[uiDrawTextStretchExtraCondensed] = DWRITE_FONT_STRETCH_EXTRA_CONDENSED,
-	[uiDrawTextStretchCondensed] = DWRITE_FONT_STRETCH_CONDENSED,
-	[uiDrawTextStretchSemiCondensed] = DWRITE_FONT_STRETCH_SEMI_CONDENSED,
-	[uiDrawTextStretchNormal] = DWRITE_FONT_STRETCH_NORMAL,
-	[uiDrawTextStretchSemiExpanded] = DWRITE_FONT_STRETCH_SEMI_EXPANDED,
-	[uiDrawTextStretchExpanded] = DWRITE_FONT_STRETCH_EXPANDED,
-	[uiDrawTextStretchExtraExpanded] = DWRITE_FONT_STRETCH_EXTRA_EXPANDED,
-	[uiDrawTextStretchUltraExpanded] = DWRITE_FONT_STRETCH_ULTRA_EXPANDED,
+// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
+static std::map<uiDrawTextStretch, DWRITE_FONT_STRETCH> dwriteStretches = {
+	{ uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
+	{ uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
+	{ uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
+	{ uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
+	{ uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
+	{ uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
+	{ uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
+	{ uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
+	{ uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
 };
 
 struct lineInfo {
@@ -56,14 +61,11 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 
 	// TODO make sure this is legal; if not, switch to GetMetrics() and use its line count field instead
 	hr = tl->layout->GetLineMetrics(NULL, 0, &(tl->nLines));
-	switch (hr) {
-	case S_OK:
+	// ugh, HRESULT_TO_WIN32() is an inline function and is not constexpr so we can't use switch here
+	if (hr == S_OK) {
 		// TODO what do we do here
-	case E_NOT_SUFFICIENT_BUFFER:
-		break;
-	default:
+	} else if (hr != E_NOT_SUFFICIENT_BUFFER)
 		logHRESULT(L"error getting number of lines in IDWriteTextLayout", hr);
-	}
 	tl->lineInfo = (struct lineInfo *) uiAlloc(tl->nLines * sizeof (struct lineInfo), "struct lineInfo[] (text layout)");
 
 	dlm = new DWRITE_LINE_METRICS[tl->nLines];
@@ -75,12 +77,12 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 	// assume the first line starts at position 0 and the string flow is incremental
 	nextStart = 0;
 	for (i = 0; i < tl->nLines; i++) {
-		tl->lineinfo[i].startPos = nextStart;
-		tl->lineinfo[i].endPos = nextStart + dlm[i].length;
-		tl->lineinfo[i].newlineCount = dlm[i].newlineLength;
-		nextStart = tl->lineinfo[i].endpos;
+		tl->lineInfo[i].startPos = nextStart;
+		tl->lineInfo[i].endPos = nextStart + dlm[i].length;
+		tl->lineInfo[i].newlineCount = dlm[i].newlineLength;
+		nextStart = tl->lineInfo[i].endPos;
 
-		hr = layout->HitTestTextRange(line->startPos, (line->endPos - line->newlineCount) - line->startPos,
+		hr = tl->layout->HitTestTextRange(tl->lineInfo[i].startPos, (tl->lineInfo[i].endPos - tl->lineInfo[i].newlineCount) - tl->lineInfo[i].startPos,
 			0, 0,
 			&htm, 1, &unused);
 		if (hr == E_NOT_SUFFICIENT_BUFFER)
@@ -97,7 +99,7 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 		// TODO on Windows 8.1 and/or 10 we can use DWRITE_LINE_METRICS1 to get specific info about the ascent and descent; do we have an alternative?
 		// TODO and even on those platforms can we somehow split tyographic leading from spacing?
 		// TODO and on that note, can we have both line spacing proportionally above and uniformly below?
-		tl->lineinfo[i].baseline = dlm[i].baseline;
+		tl->lineInfo[i].baseline = dlm[i].baseline;
 	}
 
 	delete[] dlm;
@@ -123,7 +125,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 		// TODO figure out what to do about this shorter range (the actual major values are the same (but with different names), so it's just a range issue)
 		(DWRITE_FONT_WEIGHT) (defaultFont->Weight),
 		dwriteItalics[defaultFont->Italic],
-		dwriteStrecthes[defaultFont->Stretch],
+		dwriteStretches[defaultFont->Stretch],
 		pointSizeToDWriteSize(defaultFont->Size),
 		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
 		// TODO use the current locale?
@@ -133,7 +135,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 		logHRESULT(L"error creating IDWriteTextFormat", hr);
 
 	hr = dwfactory->CreateTextLayout(
-		attrstrUTF16(s), attrstrUTF16Len(s),
+		(const WCHAR *) attrstrUTF16(s), attrstrUTF16Len(s),
 		tl->format,
 		// FLOAT is float, not double, so this should work... TODO
 		FLT_MAX, FLT_MAX,
@@ -175,6 +177,31 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 	tl->layout->Release();
 	tl->format->Release();
 	uiFree(tl);
+}
+
+static ID2D1SolidColorBrush *mkSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a)
+{
+	D2D1_BRUSH_PROPERTIES props;
+	D2D1_COLOR_F color;
+	ID2D1SolidColorBrush *brush;
+	HRESULT hr;
+
+	ZeroMemory(&props, sizeof (D2D1_BRUSH_PROPERTIES));
+	props.opacity = 1.0;
+	// identity matrix
+	props.transform._11 = 1;
+	props.transform._22 = 1;
+	color.r = r;
+	color.g = g;
+	color.b = b;
+	color.a = a;
+	hr = rt->CreateSolidColorBrush(
+		&color,
+		&props,
+		&brush);
+	if (hr != S_OK)
+		logHRESULT(L"error creating solid brush", hr);
+	return brush;
 }
 
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)

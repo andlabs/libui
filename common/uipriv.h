@@ -1,5 +1,8 @@
 // 6 april 2015
 
+// this must go outside other extern "C" blocks, otherwise we'll get double-declaration errors
+#include "utf.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -7,7 +10,6 @@ extern "C" {
 #include <stdarg.h>
 #include <string.h>
 #include "controlsigs.h"
-#include "utf.h"
 
 extern uiInitOptions options;
 

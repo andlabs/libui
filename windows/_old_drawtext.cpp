@@ -237,30 +237,6 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
 	uiFree(layout);
 }
 
-static ID2D1SolidColorBrush *mkSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a)
-{
-	D2D1_BRUSH_PROPERTIES props;
-	D2D1_COLOR_F color;
-	ID2D1SolidColorBrush *brush;
-	HRESULT hr;
-
-	ZeroMemory(&props, sizeof (D2D1_BRUSH_PROPERTIES));
-	props.opacity = 1.0;
-	// identity matrix
-	props.transform._11 = 1;
-	props.transform._22 = 1;
-	color.r = r;
-	color.g = g;
-	color.b = b;
-	color.a = a;
-	hr = rt->CreateSolidColorBrush(
-		&color,
-		&props,
-		&brush);
-	if (hr != S_OK)
-		logHRESULT(L"error creating solid brush", hr);
-	return brush;
-}
 
 IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt)
 {

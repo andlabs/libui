@@ -4,6 +4,7 @@
 
 struct uiDrawTextLayout {
 	PangoLayout *layout;
+	uiDrawTextLayoutLineMetrics *lineMetrics;
 };
 
 // See https://developer.gnome.org/pango/1.30/pango-Cairo-Rendering.html#pango-Cairo-Rendering.description
@@ -34,6 +35,55 @@ static const PangoStretch pangoStretches[] = {
 	[uiDrawTextStretchExtraExpanded] = PANGO_STRETCH_EXTRA_EXPANDED,
 	[uiDrawTextStretchUltraExpanded] = PANGO_STRETCH_ULTRA_EXPANDED,
 };
+
+// TODO neither these nor the overall extents seem to include trailing whitespace... we need to figure that out too
+static void computeLineMetrics(uiDrawTextLayout *tl)
+{
+	PangoLayoutIter *iter;
+	PangoLayoutLine *pll;
+	PangoRectangle lineStartPos, lineExtents;
+	int i, n;
+	uiDrawTextLayoutLineMetrics *m;
+
+	n = pango_layout_get_line_count(tl->layout);
+	tl->lineMetrics = (uiDrawTextLayoutLineMetrics *) uiAlloc(n * sizeof (uiDrawTextLayoutLineMetrics), "uiDrawTextLayoutLineMetrics[] (text layout)");
+	iter = pango_layout_get_iter(tl->layout);
+
+	m = tl->lineMetrics;
+	for (i = 0; i < n; i++) {
+		int baselineY;
+
+		// TODO we use this instead of _get_yrange() because of the block of text in that function's description about how line spacing is distributed in Pango; we have to worry about this when we start adding line spacing...
+		baselineY = pango_layout_iter_get_baseline(iter);
+		pll = pango_layout_iter_get_line_readonly(iter);
+		pango_layout_index_to_pos(tl->layout, pll->start_index, &lineStartPos);
+		pango_layout_line_get_extents(pll, NULL, &lineExtents);
+		// TODO unref pll?
+
+		// TODO is this correct for RTL glyphs?
+		m->X = pangoToCairo(lineStartPos.x);
+		// TODO fix the whole combined not being updated shenanigans in the static build (here because ugh)
+		m->Y = pangoToCairo(baselineY - PANGO_ASCENT(lineExtents));
+		m->Width = pangoToCairo(lineExtents.width);
+		m->Height = pangoToCairo(lineExtents.height);
+
+		m->BaselineY = pangoToCairo(baselineY);
+		m->Ascent = pangoToCairo(PANGO_ASCENT(lineExtents));
+		m->Descent = pangoToCairo(PANGO_DESCENT(lineExtents));
+		m->Leading = 0;		// TODO
+
+		m->ParagraphSpacingBefore = 0;		// TODO
+		m->LineHeightSpace = 0;				// TODO
+		m->LineSpacing = 0;				// TODO
+		m->ParagraphSpacing = 0;			// TODO
+
+		// don't worry about the return value; we're not using this after the last line
+		pango_layout_iter_next_line(iter);
+		m++;
+	}
+
+	pango_layout_iter_free(iter);
+}
 
 uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width)
 {
@@ -76,11 +126,14 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 
 	// TODO attributes
 
+	computeLineMetrics(tl);
+
 	return tl;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
+	uiFree(tl->lineMetrics);
 	g_object_unref(tl->layout);
 	uiFree(tl);
 }
@@ -112,15 +165,12 @@ void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start
 	pll = pango_layout_get_line_readonly(tl->layout, line);
 	*start = pll->start_index;
 	*end = pll->start_index + pll->length;
-	// TODO unref?
+	// TODO unref pll?
 }
 
 void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
 {
-	PangoLayoutLine *pll;
-
-	pll = pango_layout_get_line_readonly(tl->layout, line);
-	// TODO unref?
+	*m = tl->lineMetrics[line];
 }
 
 // TODO

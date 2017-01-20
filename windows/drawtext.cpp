@@ -227,6 +227,7 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 }
 
 // TODO for a single line the height includes the leading; should it? TextEdit on OS X always includes the leading and/or paragraph spacing, otherwise Klee won't work...
+// TODO width does not include trailing whitespace
 void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
 {
 	DWRITE_TEXT_METRICS metrics;
@@ -246,6 +247,7 @@ int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
 }
 
 // DirectWrite doesn't provide a direct way to do this, so we have to do this manually
+// TODO does that comment still apply here or to the code at the top of this file?
 void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
 {
 	*start = tl->lineInfo[line].startPos;
@@ -256,7 +258,21 @@ void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start
 
 void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
 {
-	// TODO
+	m->X = tl->lineInfo[line].x;
+	m->Y = tl->lineInfo[line].y;
+	m->Width = tl->lineInfo[line].width;
+	m->Height = tl->lineInfo[line].height;
+
+	// TODO rename tl->lineInfo[line].baseline to .baselineOffset or something of the sort to make its meaning more clear
+	m->BaselineY = tl->lineInfo[line].y + tl->lineInfo[line].baseline;
+	m->Ascent = tl->lineInfo[line].baseline;
+	m->Descent = tl->lineInfo[line].height - tl->lineInfo[line].baseline;
+	m->Leading = 0;		// TODO
+
+	m->ParagraphSpacingBefore = 0;		// TODO
+	m->LineHeightSpace = 0;				// TODO
+	m->LineSpacing = 0;				// TODO
+	m->ParagraphSpacing = 0;			// TODO
 }
 
 void uiDrawTextLayoutByteIndexToGraphemeRect(uiDrawTextLayout *tl, size_t pos, int *line, double *x, double *y, double *width, double *height)

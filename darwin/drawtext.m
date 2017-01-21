@@ -82,6 +82,7 @@ static CFAttributedStringRef attrstrToCoreFoundation(uiAttributedString *s, uiDr
 	return mas;
 }
 
+// TODO this is wrong for our grapheme test; figure out what it should be...
 static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize size)
 {
 	uiDrawTextLayoutLineMetrics *metrics;

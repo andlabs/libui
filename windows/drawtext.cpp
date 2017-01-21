@@ -54,9 +54,9 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 {
 	DWRITE_LINE_METRICS *dlm;
 	size_t nextStart;
-	UINT32 i;
-	DWRITE_HIT_TEST_METRICS htm;
-	UINT32 unused;
+	UINT32 i, j;
+	DWRITE_HIT_TEST_METRICS *htm;
+	UINT32 nFragments, unused;
 	HRESULT hr;
 
 	// TODO make sure this is legal; if not, switch to GetMetrics() and use its line count field instead
@@ -83,20 +83,34 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 		tl->lineInfo[i].newlineCount = dlm[i].newlineLength;
 		nextStart = tl->lineInfo[i].endPos;
 
+		// a line can have multiple fragments; for example, if there's a bidirectional override in the middle of a line
 		hr = tl->layout->HitTestTextRange(tl->lineInfo[i].startPos, (tl->lineInfo[i].endPos - tl->lineInfo[i].newlineCount) - tl->lineInfo[i].startPos,
 			0, 0,
-			&htm, 1, &unused);
-		// TODO this happens with the hit test string on the line with the RTL override (presumably the overridden part is its own separate result); see how it affects metrics
-		if (hr == E_NOT_SUFFICIENT_BUFFER)
-;else//			logHRESULT(L"TODO CONTACT ANDLABS — IDWriteTextLayout::HitTestTextRange() can return multiple ranges for a single line", hr);
+			NULL, 0, &nFragments);
+		if (hr != S_OK && hr != E_NOT_SUFFICIENT_BUFFER)
+			logHRESULT(L"error getting IDWriteTextLayout line fragment count", hr);
+		htm = new DWRITE_HIT_TEST_METRICS[nFragments];
+		// TODO verify unused == nFragments?
+		hr = tl->layout->HitTestTextRange(tl->lineInfo[i].startPos, (tl->lineInfo[i].endPos - tl->lineInfo[i].newlineCount) - tl->lineInfo[i].startPos,
+			0, 0,
+			htm, nFragments, &unused);
+		// TODO can this return E_NOT_SUFFICIENT_BUFFER again?
 		if (hr != S_OK)
-			logHRESULT(L"error getting IDWriteTextLayout line rect", hr);
-		// TODO verify htm.textPosition and htm.length?
-		tl->lineInfo[i].x = htm.left;
-		tl->lineInfo[i].y = htm.top;
-		tl->lineInfo[i].width = htm.width;
-		tl->lineInfo[i].height = htm.height;
-		// TODO verify dlm[i].height == htm.height
+			logHRESULT(L"error getting IDWriteTextLayout line fragment metrics", hr);
+		// TODO verify htm.textPosition and htm.length against dtm[i]/tl->lineInfo[i]?
+		tl->lineInfo[i].x = htm[0].left;
+		tl->lineInfo[i].y = htm[0].top;
+		tl->lineInfo[i].width = htm[0].width;
+		tl->lineInfo[i].height = htm[0].height;
+		for (j = 1; j < nFragments; j++) {
+			// this is correct even if the leftmost fragment on the line is RTL
+			if (tl->lineInfo[i].x > htm[j].left)
+				tl->lineInfo[i].x = htm[j].left;
+			tl->lineInfo[i].width += htm[j].width;
+			// TODO verify y and height haven't changed?
+		}
+		// TODO verify dlm[i].height == htm.height?
+		delete[] htm;
 
 		// TODO on Windows 8.1 and/or 10 we can use DWRITE_LINE_METRICS1 to get specific info about the ascent and descent; do we have an alternative?
 		// TODO and even on those platforms can we somehow split tyographic leading from spacing?

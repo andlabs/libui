@@ -86,8 +86,9 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 		hr = tl->layout->HitTestTextRange(tl->lineInfo[i].startPos, (tl->lineInfo[i].endPos - tl->lineInfo[i].newlineCount) - tl->lineInfo[i].startPos,
 			0, 0,
 			&htm, 1, &unused);
+		// TODO this happens with the hit test string on the line with the RTL override (presumably the overridden part is its own separate result); see how it affects metrics
 		if (hr == E_NOT_SUFFICIENT_BUFFER)
-			logHRESULT(L"TODO CONTACT ANDLABS — IDWriteTextLayout::HitTestTextRange() can return multiple ranges for a single line", hr);
+;else//			logHRESULT(L"TODO CONTACT ANDLABS — IDWriteTextLayout::HitTestTextRange() can return multiple ranges for a single line", hr);
 		if (hr != S_OK)
 			logHRESULT(L"error getting IDWriteTextLayout line rect", hr);
 		// TODO verify htm.textPosition and htm.length?

@@ -2,6 +2,9 @@
 #include "uipriv_unix.h"
 #include "draw.h"
 
+// TODO
+// - if the RTL override is at the beginning of a line, the preceding space is included?
+
 struct uiDrawTextLayout {
 	PangoLayout *layout;
 	uiDrawTextLayoutLineMetrics *lineMetrics;

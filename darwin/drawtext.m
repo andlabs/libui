@@ -82,7 +82,7 @@ static CFAttributedStringRef attrstrToCoreFoundation(uiAttributedString *s, uiDr
 	return mas;
 }
 
-// TODO this is wrong for our grapheme test; figure out what it should be...
+// TODO this is wrong for our hit-test example's multiple combining character example
 static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize size)
 {
 	uiDrawTextLayoutLineMetrics *metrics;

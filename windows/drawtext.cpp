@@ -2,6 +2,10 @@
 #include "uipriv_windows.hpp"
 #include "draw.hpp"
 
+// TODO
+// - consider the warnings about antialiasing in the PadWrite sample
+// - if that's not a problem, do we have overlapping rects in the hittest sample? I can't tell...
+
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;

@@ -100,6 +100,12 @@ int main(void)
 	n = 0;
 	examples[n] = mkBasicExample();
 	uiComboboxAppend(exampleList, examples[n]->name);
+	uiControlHide(examples[n]->panel);
+	uiBoxAppend(box, examples[n]->panel, 0);
+	n++;
+	examples[n] = mkHitTestExample();
+	uiComboboxAppend(exampleList, examples[n]->name);
+	uiControlHide(examples[n]->panel);
 	uiBoxAppend(box, examples[n]->panel, 0);
 	n++;
 	// and set things up for the initial state

@@ -15,3 +15,6 @@ extern void redraw(void);
 
 // basic.c
 extern struct example *mkBasicExample(void);
+
+// hittest.c
+extern struct example *mkHitTestExample(void);

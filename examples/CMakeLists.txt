@@ -33,6 +33,7 @@ endif()
 
 _add_example(drawtext
 	drawtext/basic.c
+	drawtext/hittest.c
 	drawtext/main.c
 	${_EXAMPLE_RESOURCES_RC}
 )

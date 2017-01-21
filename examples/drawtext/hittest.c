@@ -26,6 +26,39 @@ static uiAttributedString *attrstr;
 #define margins 10
 
 static uiBox *panel;
+static uiCheckbox *showLineBounds;
+
+// TODO should be const?
+static uiDrawBrush fillBrushes[4] = {
+	{
+		.Type = uiDrawBrushTypeSolid,
+		.R = 1.0,
+		.G = 0.0,
+		.B = 0.0,
+		.A = 0.5,
+	},
+	{
+		.Type = uiDrawBrushTypeSolid,
+		.R = 0.0,
+		.G = 1.0,
+		.B = 0.0,
+		.A = 0.5,
+	},
+	{
+		.Type = uiDrawBrushTypeSolid,
+		.R = 0.0,
+		.G = 0.0,
+		.B = 1.0,
+		.A = 0.5,
+	},
+	{
+		.Type = uiDrawBrushTypeSolid,
+		.R = 0.0,
+		.G = 1.0,
+		.B = 1.0,
+		.A = 0.5,
+	},
+};
 
 static void draw(uiAreaDrawParams *p)
 {
@@ -50,14 +83,49 @@ static void draw(uiAreaDrawParams *p)
 
 	uiDrawRestore(p->Context);
 
+	if (uiCheckboxChecked(showLineBounds)) {
+		uiDrawTextLayoutLineMetrics m;
+		int i, n;
+		int fill = 0;
+
+		n = uiDrawTextLayoutNumLines(layout);
+		for (i = 0; i < n; i++) {
+			uiDrawTextLayoutLineGetMetrics(layout, i, &m);
+			path = uiDrawNewPath(uiDrawFillModeWinding);
+			uiDrawPathAddRectangle(path, margins + m.X, margins + m.Y,
+				m.Width, m.Height);
+			uiDrawPathEnd(path);
+			uiDrawFill(p->Context, path, fillBrushes + fill);
+			uiDrawFreePath(path);
+			fill = (fill + 1) % 4;
+		}
+	}
+
 	uiDrawFreeTextLayout(layout);
 }
 
 static struct example hitTestExample;
 
+// TODO share?
+static void checkboxChecked(uiCheckbox *c, void *data)
+{
+	redraw();
+}
+
+static uiCheckbox *newCheckbox(const char *text)
+{
+	uiCheckbox *c;
+
+	c = uiNewCheckbox(text);
+	uiCheckboxOnToggled(c, checkboxChecked, NULL);
+	uiBoxAppend(panel, uiControl(c), 0);
+	return c;
+}
+
 struct example *mkHitTestExample(void)
 {
 	panel = uiNewVerticalBox();
+	showLineBounds = newCheckbox("Show Line Bounds (for debugging metrics)");
 
 	hitTestExample.name = "Hit-Testing and Grapheme Boundaries";
 	hitTestExample.panel = uiControl(panel);

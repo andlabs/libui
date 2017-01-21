@@ -136,6 +136,9 @@ struct uiDrawTextLayoutHitTestResult {
 //	int InTrailingWhitespace;
 // TODO?
 //	double XFraction;
+// extra TODO?
+//	double YFraction;
+// or just have offsets instead? in addition?
 };
 
 struct uiDrawTextLayoutByteRangeRectangle {
@@ -163,9 +166,6 @@ _UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, dou
 _UI_EXTERN int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl);
 _UI_EXTERN void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end);
 _UI_EXTERN void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m);
-// TODO redo this? remove it entirely?
-_UI_EXTERN void uiDrawTextLayoutByteIndexToGraphemeRect(uiDrawTextLayout *tl, size_t pos, int *line, double *x, double *y, double *width, double *height);
-// TODO partial offset?
 _UI_EXTERN void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result);
 _UI_EXTERN void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r);
 // TODO draw only a line?

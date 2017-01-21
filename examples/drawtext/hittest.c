@@ -8,10 +8,10 @@ static const char *text =
 	"Additionally, click on the string to move the caret. Watch the status text at the bottom change too. "
 	"That being said: "
 	"\xC3\x93O\xCC\x81 (combining accents) "
-	"A\xCC\x81\xE0\xAB\x81 (multiple combining accents) "
+	"A\xCC\xAA\xEF\xB8\xA0 (multiple combining characters) "
 	"\xE2\x80\xAE#\xE2\x80\xAC (RTL glyph) "
 	"\xF0\x9F\x92\xBB (non-BMP character) "
-	"\xF0\x9F\x92\xBB\xCC\x80 (combined non-BMP character) "
+	"\xF0\x9F\x92\xBB\xCC\x80 (combined non-BMP character; may render strangely) "
 	"";
 static char fontFamily[] = "Helvetica";
 static uiDrawFontDescriptor defaultFont = {

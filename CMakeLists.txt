@@ -62,6 +62,17 @@ else()
 	set(CMAKE_INSTALL_RPATH "\$ORIGIN")
 endif()
 
+set(CMAKE_C_VERSION 99)
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_C_VERSION_REQUIRED ON)
+
+set(CMAKE_CXX_VERSION 11)
+set(CMAKE_CXX_VERSION_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+
 # common flags
 if(MSVC)
 	# TODO subsystem version
@@ -99,15 +110,6 @@ else()
 		-Wall -Wextra -pedantic
 		-Wno-unused-parameter
 		-Wno-switch
-		-fvisibility=hidden
-	)
-	# don't use C_VERSION or CXX_VERSION because they use GNU standards
-	# TODO we can actually do this; set both C_EXTENSIONS and CXX_EXTENSIONS to OFF
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=c99")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
-
-	set(_COMMON_LDFLAGS
-		-fvisibility=hidden
 	)
 
 	# don't require shipping the MinGW-w64 DLLs

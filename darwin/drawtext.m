@@ -6,6 +6,8 @@
 @property NSRange glyphRange;
 @property NSRange characterRange;
 @property NSRect lineRect;
+@property NSRect lineUsedRect;
+@property NSRect glyphBoundingRect;
 @property CGFloat baselineOffset;
 @end
 
@@ -117,9 +119,15 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 		li.glyphRange = glyphRange;
 		li.characterRange = [tl->layoutManager characterRangeForGlyphRange:li.glyphRange actualGlyphRange:NULL];
 		li.lineRect = lineRect;
+		li.lineUsedRect = [tl->layoutManager lineFragmentUsedRectForGlyphAtIndex:index effectiveRange:NULL];
+		li.glyphBoundingRect = [tl->layoutManager boundingRectForGlyphRange:li.glyphRange inTextContainer:tl->container];
 		// and this is from http://www.cocoabuilder.com/archive/cocoa/308568-how-to-get-baseline-info.html and http://www.cocoabuilder.com/archive/cocoa/199283-height-and-location-of-text-within-line-in-nslayoutmanager-ignoring-spacing.html
 		li.baselineOffset = [[tl->layoutManager typesetter] baselineOffsetInLayoutManager:tl->layoutManager glyphIndex:index];
 		[tl->lineInfo addObject:li];
+NSLog(@"line %d", (int)[tl->lineInfo count]);
+NSLog(@"      rect %@", NSStringFromRect(li.lineRect));
+NSLog(@" used rect %@", NSStringFromRect(li.lineUsedRect));
+NSLog(@"glyph rect %@", NSStringFromRect(li.glyphBoundingRect));
 		[li release];
 		index = glyphRange.location + glyphRange.length;
 	}
@@ -197,7 +205,8 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 
 	m->X = li.lineRect.origin.x;
 	m->Y = li.lineRect.origin.y;
-	m->Width = li.lineRect.size.width;
+	// if we use li.lineRect here we get the whole line, not just the part with stuff in it
+	m->Width = li.lineUsedRect.size.width;
 	m->Height = li.lineRect.size.height;
 
 	// TODO is this correct?

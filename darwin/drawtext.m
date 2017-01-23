@@ -201,7 +201,7 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	m->Height = li.lineRect.size.height;
 
 	// TODO is this correct?
-	m->BaselineY = (m->X + m->Height) - li.baselineOffset;
+	m->BaselineY = (m->Y + m->Height) - li.baselineOffset;
 
 	// TODO
 	m->Ascent = 10000;

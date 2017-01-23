@@ -147,4 +147,5 @@ extern void doManualMove(NSWindow *w, NSEvent *initialEvent);
 extern void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge);
 
 // fontmatch.m
-extern CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd);
+//TODO extern CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd);
+extern NSFontDescriptor *fontdescToNSFontDescriptor(uiDrawFontDescriptor *fd);

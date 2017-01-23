@@ -6,25 +6,31 @@
 // - CTFontDescriptorCreateMatchingFontDescriptors() (though the conditions here seem odd)
 // - CTFontCreateWithFontDescriptor()
 // - CTFontCreateCopyWithAttributes()
-// And as a bonus prize, this also applies to Cocoa's NSFontDescriptor methods as well!
 // We have to implement the closest match ourselves.
 // This needs to be done early in the matching process; in particular, we have to do this before adding any features (such as small caps), because the matching descriptors won't have those.
 
 struct closeness {
-	NSUInteger index;
+	CFIndex index;
 	double weight;
 	double italic;
 	double stretch;
 	double distance;
 };
 
-static double doubleAttr(NSDictionary *traits, NSString *attr)
+static double doubleAttr(CFDictionaryRef traits, CFStringRef attr)
 {
-	NSNumber *n;
+	CFNumberRef cfnum;
 	double val;
 
-	n = (NSNumber *) [traits objectForKey:attr];
-	return [n doubleValue];
+	cfnum = (CFNumberRef) CFDictionaryGetValue(traits, attr);
+	if (cfnum == NULL) {
+		// TODO
+	}
+	if (CFNumberGetValue(cfnum, kCFNumberDoubleType, &val) == false) {
+		// TODO
+	}
+	// Get Rule; do not release cfnum
+	return val;
 }
 
 struct italicCloseness {
@@ -46,62 +52,75 @@ static const struct italicCloseness italicClosenesses[] = {
 // However, Core Text does seem to guarantee (from experimentation; see below) that the slant will be nonzero if and only if the italic bit is set, so we don't need to use the slant value.
 // Core Text also seems to guarantee that if a font lists itself as Italic or Oblique by name (font subfamily name, font style name, whatever), it will also have that bit set, so testing this bit does cover all fonts that name themselves as Italic and Oblique. (Again, this is from the below experimentation.)
 // TODO there is still one catch that might matter from a user's POV: the reverse is not true — the italic bit can be set even if the style of the font face/subfamily/style isn't named as Italic (for example, script typefaces like Adobe's Palace Script MT Std); I don't know what to do about this... I know how to start: find a script font that has an italic form (Adobe's Palace Script MT Std does not; only Regular and Semibold)
-// TODO see if the above applies to Cocoa as well
-static double italicCloseness(NSFontDescriptor *desc, NSDictionary *traits, uiDrawTextItalic italic)
+static double italicCloseness(CTFontDescriptorRef desc, CFDictionaryRef traits, uiDrawTextItalic italic)
 {
 	const struct italicCloseness *ic = &(italicClosenesses[italic]);
-	NSNumber *num;
-	NSFontSymbolicTraits symbolic;
-	NSString *styleName;
-	NSRange range;
+	CFNumberRef cfnum;
+	CTFontSymbolicTraits symbolic;
+	// there is no kCFNumberUInt32Type, but CTFontSymbolicTraits is uint32_t, so SInt32 should work
+	SInt32 s;
+	CFStringRef styleName;
 	BOOL isOblique;
 
-	num = (NSNumber *) [traits objectForKey:NSFontSymbolicTrait];
-	// TODO this should really be a uint32_t-specific one
-	symbolic = (NSFontSymbolicTraits) [num unsignedIntegerValue];
-	if ((symbolic & NSFontItalicTrait) == 0)
+	cfnum = CFDictionaryGetValue(traits, kCTFontSymbolicTrait);
+	if (cfnum == NULL) {
+		// TODO
+	}
+	if (CFNumberGetValue(cfnum, kCFNumberSInt32Type, &s) == false) {
+		// TODO
+	}
+	symbolic = (CTFontSymbolicTraits) s;
+	// Get Rule; do not release cfnum
+	if ((symbolic & kCTFontItalicTrait) == 0)
 		return ic->normal;
 
 	// Okay, now we know it's either Italic or Oblique
 	// Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
-	// note that NSFontFaceAttribute is the Cocoa equivalent of the style name
 	isOblique = NO;		// default value
-	styleName = (NSString *) [desc objectForKey:NSFontFaceAttribute];
+	styleName = (CFStringRef) CTFontDescriptorCopyAttribute(desc, kCTFontStyleNameAttribute);
 	// TODO is styleName guaranteed?
-	// TODO NSLiteralSearch?
-	range = [styleName rangeOfString:@"Oblique" options:NSCaseInsensitiveSearch];
-	if (range.location != NSNotFound)
+	if (styleName != NULL) {
+		CFRange range;
+
+		// note the use of the toll-free bridge for the string literal, since CFSTR() *can* return NULL
+		// TODO is this really the case? or is that just a copy-paste error from the other CFStringCreateXxx() functions? and what's this about -fconstant-cfstring?
+		range = CFStringFind(styleName, (CFStringRef) @"Oblique", kCFCompareBackwards);
+		if (range.location != kCFNotFound)
+			isOblique = YES;
+		CFRelease(styleName);
+	}
+	if (isOblique)
 		return ic->oblique;
 	return ic->italic;
 }
 
-static NSFontDescriptor *matchTraits(NSFontDescriptor *against, double targetWeight, uiDrawTextItalic targetItalic, double targetStretch)
+static CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, double targetWeight, uiDrawTextItalic targetItalic, double targetStretch)
 {
-	NSArray<NSFontDescriptor *> *matching;
-	NSUInteger i, n;
+	CFArrayRef matching;
+	CFIndex i, n;
 	struct closeness *closeness;
-	NSFontDescriptor *current;
-	NSFontDescriptor *out;
+	CTFontDescriptorRef current;
+	CTFontDescriptorRef out;
 
-	matching = [against matchingFontDescriptorsWithMandatoryKeys:nil];
-	if (matching == nil)
+	matching = CTFontDescriptorCreateMatchingFontDescriptors(against, NULL);
+	if (matching == NULL)
 		// no matches; give the original back and hope for the best
 		return against;
-	n = [matching count];
+	n = CFArrayGetCount(matching);
 	if (n == 0) {
 		// likewise
-		[matching release];
+		CFRelease(matching);
 		return against;
 	}
 
 	closeness = (struct closeness *) uiAlloc(n * sizeof (struct closeness), "struct closeness[]");
 	for (i = 0; i < n; i++) {
-		NSDictionary *traits;
+		CFDictionaryRef traits;
 
 		closeness[i].index = i;
-		current = (NSFontDescriptor *) [matching objectAtIndex:i];
-		traits = (NSDictionary *) [current objectAtIndex:NSFontTraitsAttribute];
-		if (traits == nil) {
+		current = (CTFontDescriptorRef) CFArrayGetValueAtIndex(matching, i);
+		traits = (CFDictionaryRef) CTFontDescriptorCopyAttribute(current, kCTFontTraitsAttribute);
+		if (traits == NULL) {
 			// couldn't get traits; be safe by ranking it lowest
 			// LONGTERM figure out what the longest possible distances are
 			closeness[i].weight = 3;
@@ -109,10 +128,10 @@ static NSFontDescriptor *matchTraits(NSFontDescriptor *against, double targetWei
 			closeness[i].stretch = 3;
 			continue;
 		}
-		closeness[i].weight = doubleAttr(traits, NSFontWeightTrait) - targetWeight;
+		closeness[i].weight = doubleAttr(traits, kCTFontWeightTrait) - targetWeight;
 		closeness[i].italic = italicCloseness(current, traits, targetItalic);
-		closeness[i].stretch = doubleAttr(traits, NSFontWidthTrait) - targetStretch;
-		// TODO release traits?
+		closeness[i].stretch = doubleAttr(traits, kCTFontWidthTrait) - targetStretch;
+		CFRelease(traits);
 	}
 
 	// now figure out the 3-space difference between the three and sort by that
@@ -137,15 +156,14 @@ static NSFontDescriptor *matchTraits(NSFontDescriptor *against, double targetWei
 		return (a->distance > b->distance) - (a->distance < b->distance);
 	});
 	// and the first element of the sorted array is what we want
-	out = (NSFontDescriptor *) [matching objectAtIndex:closeness[0].index];
-	// TODO is this correct?
-	[out retain];			// get rule
+	out = CFArrayGetValueAtIndex(matching, closeness[0].index);
+	CFRetain(out);			// get rule
 
 	// release everything
 	uiFree(closeness);
-	[matching release];
+	CFRelease(matching);
 	// and release the original descriptor since we no longer need it
-	[against release];
+	CFRelease(against);
 
 	return out;
 }
@@ -204,21 +222,32 @@ static const double stretchesToCTWidths[] = {
 	[uiDrawTextStretchUltraExpanded] = 0.400000,
 };
 
-NSFontDescriptor *fontdescToNSFontDescriptor(uiDrawFontDescriptor *fd)
+CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
 {
-	NSMutableDictionary *attrs;
+	CFMutableDictionaryRef attrs;
 	CFStringRef cffamily;
 	CFNumberRef cfsize;
 	CTFontDescriptorRef basedesc;
 
-	attrs = [NSMutableDictionary new];
-	[attrs setObject:[NSString stringWithUTF8String:fd->Family]
-		forKey:NSFontFamilyAttribute];
-	[attrs setObject:[NSNumber numberWithDouble:fd->Size]
-		forKye:NSFontSizeAttribute];
+	attrs = CFDictionaryCreateMutable(NULL, 2,
+		// TODO are these correct?
+		&kCFCopyStringDictionaryKeyCallBacks,
+		&kCFTypeDictionaryValueCallBacks);
+	if (attrs == NULL) {
+		// TODO
+	}
+	cffamily = CFStringCreateWithCString(NULL, fd->Family, kCFStringEncodingUTF8);
+	if (cffamily == NULL) {
+		// TODO
+	}
+	CFDictionaryAddValue(attrs, kCTFontFamilyNameAttribute, cffamily);
+	CFRelease(cffamily);
+	cfsize = CFNumberCreate(NULL, kCFNumberDoubleType, &(fd->Size));
+	CFDictionaryAddValue(attrs, kCTFontSizeAttribute, cfsize);
+	CFRelease(cfsize);
 
-	basedesc = [[NSFontDescriptor alloc] initWithFontAttributes:attrs];
-	[attrs release];
+	basedesc = CTFontDescriptorCreateWithAttributes(attrs);
+	CFRelease(attrs);			// TODO correct?
 	return matchTraits(basedesc,
 		weightToCTWeight(fd->Weight),
 		fd->Italic,

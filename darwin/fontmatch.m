@@ -21,7 +21,6 @@ struct closeness {
 static double doubleAttr(NSDictionary *traits, NSString *attr)
 {
 	NSNumber *n;
-	double val;
 
 	n = (NSNumber *) [traits objectForKey:attr];
 	return [n doubleValue];
@@ -90,7 +89,7 @@ static NSFontDescriptor *matchTraits(NSFontDescriptor *against, double targetWei
 	n = [matching count];
 	if (n == 0) {
 		// likewise
-		[matching release];
+//TODO		[matching release];
 		return against;
 	}
 
@@ -100,7 +99,7 @@ static NSFontDescriptor *matchTraits(NSFontDescriptor *against, double targetWei
 
 		closeness[i].index = i;
 		current = (NSFontDescriptor *) [matching objectAtIndex:i];
-		traits = (NSDictionary *) [current objectAtIndex:NSFontTraitsAttribute];
+		traits = (NSDictionary *) [current objectForKey:NSFontTraitsAttribute];
 		if (traits == nil) {
 			// couldn't get traits; be safe by ranking it lowest
 			// LONGTERM figure out what the longest possible distances are
@@ -143,7 +142,7 @@ static NSFontDescriptor *matchTraits(NSFontDescriptor *against, double targetWei
 
 	// release everything
 	uiFree(closeness);
-	[matching release];
+//TODO	[matching release];
 	// and release the original descriptor since we no longer need it
 	[against release];
 
@@ -207,15 +206,13 @@ static const double stretchesToCTWidths[] = {
 NSFontDescriptor *fontdescToNSFontDescriptor(uiDrawFontDescriptor *fd)
 {
 	NSMutableDictionary *attrs;
-	CFStringRef cffamily;
-	CFNumberRef cfsize;
-	CTFontDescriptorRef basedesc;
+	NSFontDescriptor *basedesc;
 
 	attrs = [NSMutableDictionary new];
 	[attrs setObject:[NSString stringWithUTF8String:fd->Family]
 		forKey:NSFontFamilyAttribute];
 	[attrs setObject:[NSNumber numberWithDouble:fd->Size]
-		forKye:NSFontSizeAttribute];
+		forKey:NSFontSizeAttribute];
 
 	basedesc = [[NSFontDescriptor alloc] initWithFontAttributes:attrs];
 	[attrs release];

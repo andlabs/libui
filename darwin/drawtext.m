@@ -130,7 +130,9 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 		// imitate what AppKit actually does (or seems to)
 		[tl->attrstr enumerateAttributesInRange:li.characterRange options:0 usingBlock:^(NSDictionary<NSString *,id> *attrs, NSRange range, BOOL *stop) {
 			NSFont *f;
-			double v;
+			NSRect boundingRect;
+			double v, realAscent, realDescent, realLeading;
+			BOOL skipAdjust, doAdjust;
 
 			f = (NSFont *) [attrs objectForKey:NSFontAttributeName];
 			if (f == nil) {
@@ -139,21 +141,63 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 					f = [NSFont systemFontOfSize:12.0];
 			}
 
-NSLog(@"%@ %g %g %g", NSStringFromRect([f boundingRectForFont]),
-[f ascender], [f descender], [f leading]);
+			boundingRect = [f boundingRectForFont];
+			realAscent = [f ascender];
+			realDescent = -[f descender];
+			realLeading = [f leading];
+			skipAdjust = NO;
+			doAdjust = NO;
+			if (NSMaxY(boundingRect) <= realAscent) {
+				// ascent entirely within bounding box
+				// don't do anything if there's leading; I'm guessing it's a combination of both of the reasons to skip below... (least sure of this one)
+				if (realLeading != 0)
+					skipAdjust = YES;
+				// does the descent slip outside the bounding box?
+				if (-realDescent <= NSMinY(boundingRect))
+					// yes — I guess we should assume accents don't collide with the previous line's descent, though I'm not as sure of that as I am about the else clause below...
+					skipAdjust = YES;
+			} else {
+				// ascent outside bounding box — ascent does not include accents
+				// only skip adjustment if there isn't leading (apparently some fonts use the previous line's leading for accents? :/ )
+				if (realLeading != 0)
+					skipAdjust = YES;
+			}
+			if (!skipAdjust) {
+				UniChar ch = 0xC0;
+				CGGlyph glyph;
 
-			v = floor([f ascender] + 0.5);
+				// there does not seem to be an AppKit API for this...
+				if (CTFontGetGlyphsForCharacters((CTFontRef) f, &ch, &glyph, 1) != false) {
+					NSRect bbox;
+
+					bbox = [f boundingRectForGlyph:glyph];
+					if (NSMaxY(bbox) > realAscent)
+						doAdjust = YES;
+					if (-realDescent > NSMinY(bbox))
+						doAdjust = YES;
+				}
+			}
+			// TODO vertical
+
+			v = [f ascender];
+			// TODO get this one back out
+			if (doAdjust)
+				v += 0.2 * ([f ascender] + [f descender]);
+			//v = floor(v + 0.5);
 			if (li.ascent < v)
 				li.ascent = v;
 
-			v = floor(-[f descender] + 0.5);
+			v = -[f descender];// floor(-[f descender] + 0.5);
 			if (li.descent < v)
 				li.descent = v;
 
-			v = floor([f leading] + 0.5);
+			v = [f leading];//floor([f leading] + 0.5);
 			if (li.leading < v)
 				li.leading = v;
 		}];
+		li.ascent = floor(li.ascent + 0.5);
+		li.descent = floor(li.descent + 0.5);
+		li.leading = floor(li.leading + 0.5);
 		[tl->lineInfo addObject:li];
 		[li release];
 		index = glyphRange.location + glyphRange.length;

@@ -1,268 +1,327 @@
-// 6 september 2015
+// 2 january 2017
 #import "uipriv_darwin.h"
+#import "draw.h"
 
-// TODO double-check that we are properly handling allocation failures (or just toll free bridge from cocoa)
-struct uiDrawFontFamilies {
-	CFArrayRef fonts;
+// TODO what happens if nLines == 0 in any function?
+
+struct uiDrawTextLayout {
+	CFAttributedStringRef attrstr;
+
+	// the width as passed into uiDrawTextLayout constructors
+	double width;
+
+	CTFramesetterRef framesetter;
+
+	// the *actual* size of the frame
+	// note: technically, metrics returned from frame are relative to CGPathGetPathBoundingBox(tl->path)
+	// however, from what I can gather, for a path created by CGPathCreateWithRect(), like we do (with a NULL transform), CGPathGetPathBoundingBox() seems to just return the standardized form of the rect used to create the path
+	// (this I confirmed through experimentation)
+	// so we can just use tl->size for adjustments
+	// we don't need to adjust coordinates by any origin since our rect origin is (0, 0)
+	CGSize size;
+
+	CGPathRef path;
+	CTFrameRef frame;
+
+	CFArrayRef lines;
+	CFIndex nLines;
+	// we compute this once when first creating the layout
+	uiDrawTextLayoutLineMetrics *lineMetrics;
+
+	// for converting CFAttributedString indices to byte offsets
+	size_t *u16tou8;
+	size_t nu16tou8;		// TODO I don't like the casing of this name
 };
 
-uiDrawFontFamilies *uiDrawListFontFamilies(void)
+static CTFontRef fontdescToCTFont(uiDrawFontDescriptor *fd)
 {
-	uiDrawFontFamilies *ff;
+	CTFontDescriptorRef desc;
+	CTFontRef font;
 
-	ff = uiNew(uiDrawFontFamilies);
-	ff->fonts = CTFontManagerCopyAvailableFontFamilyNames();
-	if (ff->fonts == NULL)
-		implbug("error getting available font names (no reason specified) (TODO)");
-	return ff;
-}
-
-int uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
-{
-	return CFArrayGetCount(ff->fonts);
-}
-
-char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, int n)
-{
-	CFStringRef familystr;
-	char *family;
-
-	familystr = (CFStringRef) CFArrayGetValueAtIndex(ff->fonts, n);
-	// toll-free bridge
-	family = uiDarwinNSStringToText((NSString *) familystr);
-	// Get Rule means we do not free familystr
-	return family;
-}
-
-void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
-{
-	CFRelease(ff->fonts);
-	uiFree(ff);
-}
-
-struct uiDrawTextFont {
-	CTFontRef f;
-};
-
-uiDrawTextFont *mkTextFont(CTFontRef f, BOOL retain)
-{
-	uiDrawTextFont *font;
-
-	font = uiNew(uiDrawTextFont);
-	font->f = f;
-	if (retain)
-		CFRetain(font->f);
+	desc = fontdescToCTFontDescriptor(fd);
+	font = CTFontCreateWithFontDescriptor(desc, fd->Size, NULL);
+	CFRelease(desc);			// TODO correct?
 	return font;
 }
 
-uiDrawTextFont *mkTextFontFromNSFont(NSFont *f)
-{
-	// toll-free bridging; we do retain, though
-	return mkTextFont((CTFontRef) f, YES);
-}
-
-static CFMutableDictionaryRef newAttrList(void)
-{
-	CFMutableDictionaryRef attr;
-
-	attr = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-	if (attr == NULL)
-		complain("error creating attribute dictionary in newAttrList()()");
-	return attr;
-}
-
-static void addFontFamilyAttr(CFMutableDictionaryRef attr, const char *family)
+static CFAttributedStringRef attrstrToCoreFoundation(uiAttributedString *s, uiDrawFontDescriptor *defaultFont)
 {
 	CFStringRef cfstr;
+	CFMutableDictionaryRef defaultAttrs;
+	CTFontRef defaultCTFont;
+	CFAttributedStringRef base;
+	CFMutableAttributedStringRef mas;
 
-	cfstr = CFStringCreateWithCString(NULL, family, kCFStringEncodingUTF8);
-	if (cfstr == NULL)
-		complain("error creating font family name CFStringRef in addFontFamilyAttr()");
-	CFDictionaryAddValue(attr, kCTFontFamilyNameAttribute, cfstr);
-	CFRelease(cfstr);			// dictionary holds its own reference
+	cfstr = CFStringCreateWithCharacters(NULL, attrstrUTF16(s), attrstrUTF16Len(s));
+	if (cfstr == NULL) {
+		// TODO
+	}
+	defaultAttrs = CFDictionaryCreateMutable(NULL, 1,
+		&kCFCopyStringDictionaryKeyCallBacks,
+		&kCFTypeDictionaryValueCallBacks);
+	if (defaultAttrs == NULL) {
+		// TODO
+	}
+	defaultCTFont = fontdescToCTFont(defaultFont);
+	CFDictionaryAddValue(defaultAttrs, kCTFontAttributeName, defaultCTFont);
+	CFRelease(defaultCTFont);
+
+	base = CFAttributedStringCreate(NULL, cfstr, defaultAttrs);
+	if (base == NULL) {
+		// TODO
+	}
+	CFRelease(cfstr);
+	CFRelease(defaultAttrs);
+	mas = CFAttributedStringCreateMutableCopy(NULL, 0, base);
+	CFRelease(base);
+
+	CFAttributedStringBeginEditing(mas);
+	// TODO copy in the attributes
+	CFAttributedStringEndEditing(mas);
+
+	return mas;
 }
 
-static void addFontSizeAttr(CFMutableDictionaryRef attr, double size)
+// TODO this is wrong for our hit-test example's multiple combining character example
+static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize size)
 {
-	CFNumberRef n;
+	uiDrawTextLayoutLineMetrics *metrics;
+	CFArrayRef lines;
+	CTLineRef line;
+	CFIndex i, n;
+	CGFloat ypos;
+	CGRect bounds, boundsNoLeading;
+	CGFloat ascent, descent, leading;
+	CGPoint *origins;
 
-	n = CFNumberCreate(NULL, kCFNumberDoubleType, &size);
-	CFDictionaryAddValue(attr, kCTFontSizeAttribute, n);
-	CFRelease(n);
+	lines = CTFrameGetLines(frame);
+	n = CFArrayGetCount(lines);
+	metrics = (uiDrawTextLayoutLineMetrics *) uiAlloc(n * sizeof (uiDrawTextLayoutLineMetrics), "uiDrawTextLayoutLineMetrics[] (text layout)");
+
+	origins = (CGPoint *) uiAlloc(n * sizeof (CGPoint), "CGPoint[] (text layout)");
+	CTFrameGetLineOrigins(frame, CFRangeMake(0, n), origins);
+
+	ypos = size.height;
+	for (i = 0; i < n; i++) {
+		line = (CTLineRef) CFArrayGetValueAtIndex(lines, i);
+		bounds = CTLineGetBoundsWithOptions(line, 0);
+		boundsNoLeading = CTLineGetBoundsWithOptions(line, kCTLineBoundsExcludeTypographicLeading);
+
+		// this is equivalent to boundsNoLeading.size.height + boundsNoLeading.origin.y (manually verified)
+		ascent = bounds.size.height + bounds.origin.y;
+		descent = -boundsNoLeading.origin.y;
+		// TODO does this preserve leading sign?
+		leading = -bounds.origin.y - descent;
+
+		// Core Text always rounds these up for paragraph style calculations; there is a flag to control it but it's inaccessible (and this behavior is turned off for old versions of iPhoto)
+		ascent = floor(ascent + 0.5);
+		descent = floor(descent + 0.5);
+		if (leading > 0)
+			leading = floor(leading + 0.5);
+
+		metrics[i].X = origins[i].x;
+		metrics[i].Y = origins[i].y - descent - leading;
+		metrics[i].Width = bounds.size.width;
+		metrics[i].Height = ascent + descent + leading;
+
+		metrics[i].BaselineY = origins[i].y;
+		metrics[i].Ascent = ascent;
+		metrics[i].Descent = descent;
+		metrics[i].Leading = leading;
+
+		// TODO
+		metrics[i].ParagraphSpacingBefore = 0;
+		metrics[i].LineHeightSpace = 0;
+		metrics[i].LineSpacing = 0;
+		metrics[i].ParagraphSpacing = 0;
+
+		// and finally advance to the next line
+		ypos += metrics[i].Height;
+	}
+
+	// okay, but now all these metrics are unflipped
+	// we need to flip them
+	for (i = 0; i < n; i++) {
+		metrics[i].Y = size.height - metrics[i].Y;
+		// go from bottom-left corner to top-left
+		metrics[i].Y -= metrics[i].Height;
+		metrics[i].BaselineY = size.height - metrics[i].BaselineY;
+		// TODO also adjust by metrics[i].Height?
+	}
+
+	uiFree(origins);
+	return metrics;
 }
 
-#if 0
-TODO
-// See http://stackoverflow.com/questions/4810409/does-coretext-support-small-caps/4811371#4811371 and https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c for what these do
-// And fortunately, unlike the traits (see below), unmatched features are simply ignored without affecting the other features :D
-static void addFontSmallCapsAttr(CFMutableDictionaryRef attr)
+uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width)
 {
-	CFMutableArrayRef outerArray;
-	CFMutableDictionaryRef innerDict;
-	CFNumberRef numType, numSelector;
-	int num;
+	uiDrawTextLayout *tl;
+	CGFloat cgwidth;
+	CFRange range, unused;
+	CGRect rect;
 
-	outerArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
-	if (outerArray == NULL)
-		complain("error creating outer CFArray for adding small caps attributes in addFontSmallCapsAttr()");
+	tl = uiNew(uiDrawTextLayout);
+	tl->attrstr = attrstrToCoreFoundation(s, defaultFont);
+	range.location = 0;
+	range.length = CFAttributedStringGetLength(tl->attrstr);
+	tl->width = width;
 
-	// Apple's headers say these are deprecated, but a few fonts still rely on them
-	num = kLetterCaseType;
-	numType = CFNumberCreate(NULL, kCFNumberIntType, &num);
-	num = kSmallCapsSelector;
-	numSelector = CFNumberCreate(NULL, kCFNumberIntType, &num);
-	innerDict = newAttrList();
-	CFDictionaryAddValue(innerDict, kCTFontFeatureTypeIdentifierKey, numType);
-	CFRelease(numType);
-	CFDictionaryAddValue(innerDict, kCTFontFeatureSelectorIdentifierKey, numSelector);
-	CFRelease(numSelector);
-	CFArrayAppendValue(outerArray, innerDict);
-	CFRelease(innerDict);		// and likewise for CFArray
+	// TODO CTFrameProgression for RTL/LTR
+	// TODO kCTParagraphStyleSpecifierMaximumLineSpacing, kCTParagraphStyleSpecifierMinimumLineSpacing, kCTParagraphStyleSpecifierLineSpacingAdjustment for line spacing
+	tl->framesetter = CTFramesetterCreateWithAttributedString(tl->attrstr);
+	if (tl->framesetter == NULL) {
+		// TODO
+	}
 
-	// these are the non-deprecated versions of the above; some fonts have these instead
-	num = kLowerCaseType;
-	numType = CFNumberCreate(NULL, kCFNumberIntType, &num);
-	num = kLowerCaseSmallCapsSelector;
-	numSelector = CFNumberCreate(NULL, kCFNumberIntType, &num);
-	innerDict = newAttrList();
-	CFDictionaryAddValue(innerDict, kCTFontFeatureTypeIdentifierKey, numType);
-	CFRelease(numType);
-	CFDictionaryAddValue(innerDict, kCTFontFeatureSelectorIdentifierKey, numSelector);
-	CFRelease(numSelector);
-	CFArrayAppendValue(outerArray, innerDict);
-	CFRelease(innerDict);		// and likewise for CFArray
+	cgwidth = (CGFloat) width;
+	if (cgwidth < 0)
+		cgwidth = CGFLOAT_MAX;
+	// TODO these seem to be floor()'d or truncated?
+	// TODO double check to make sure this TODO was right
+	tl->size = CTFramesetterSuggestFrameSizeWithConstraints(tl->framesetter,
+		range,
+		// TODO kCTFramePathWidthAttributeName?
+		NULL,
+		CGSizeMake(cgwidth, CGFLOAT_MAX),
+		&unused);			// not documented as accepting NULL (TODO really?)
 
-	CFDictionaryAddValue(attr, kCTFontFeatureSettingsAttribute, outerArray);
-	CFRelease(outerArray);
+	rect.origin = CGPointZero;
+	rect.size = tl->size;
+	tl->path = CGPathCreateWithRect(rect, NULL);
+	tl->frame = CTFramesetterCreateFrame(tl->framesetter,
+		range,
+		tl->path,
+		// TODO kCTFramePathWidthAttributeName?
+		NULL);
+	if (tl->frame == NULL) {
+		// TODO
+	}
+
+	tl->lines = CTFrameGetLines(tl->frame);
+	tl->nLines = CFArrayGetCount(tl->lines);
+	tl->lineMetrics = computeLineMetrics(tl->frame, tl->size);
+
+	// and finally copy the UTF-16 to UTF-8 index conversion table
+	tl->u16tou8 = attrstrCopyUTF16ToUTF8(s, &(tl->nu16tou8));
+
+	return tl;
 }
-#endif
 
-#if 0
-// Named constants for these were NOT added until 10.11, and even then they were added as external symbols instead of macros, so we can't use them directly :(
-// kode54 got these for me before I had access to El Capitan; thanks to him.
-#define ourNSFontWeightUltraLight -0.800000
-#define ourNSFontWeightThin -0.600000
-#define ourNSFontWeightLight -0.400000
-#define ourNSFontWeightRegular 0.000000
-#define ourNSFontWeightMedium 0.230000
-#define ourNSFontWeightSemibold 0.300000
-#define ourNSFontWeightBold 0.400000
-#define ourNSFontWeightHeavy 0.560000
-#define ourNSFontWeightBlack 0.620000
-#endif
-
-// Now remember what I said earlier about having to add the small caps traits after calling the above? This gets a dictionary back so we can do so.
-CFMutableDictionaryRef extractAttributes(CTFontDescriptorRef desc)
+void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
-	CFDictionaryRef dict;
-	CFMutableDictionaryRef mdict;
-
-	dict = CTFontDescriptorCopyAttributes(desc);
-	// this might not be mutable, so make a mutable copy
-	mdict = CFDictionaryCreateMutableCopy(NULL, 0, dict);
-	CFRelease(dict);
-	return mdict;
+	uiFree(tl->u16tou8);
+	uiFree(tl->lineMetrics);
+	// TODO release tl->lines?
+	CFRelease(tl->frame);
+	CFRelease(tl->path);
+	CFRelease(tl->framesetter);
+	CFRelease(tl->attrstr);
+	uiFree(tl);
 }
 
-uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
+// TODO document that (x,y) is the top-left corner of the *entire frame*
+void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
-	CTFontRef f;
-	CFMutableDictionaryRef attr;
-	CTFontDescriptorRef cfdesc;
+	CGContextSaveGState(c->c);
 
-	attr = newAttrList();
-	addFontFamilyAttr(attr, desc->Family);
-	addFontSizeAttr(attr, desc->Size);
+	// Core Text doesn't draw onto a flipped view correctly; we have to pretend it was unflipped
+	// see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)
+	// TODO how is this affected by a non-identity CTM?
+	CGContextTranslateCTM(c->c, 0, c->height);
+	CGContextScaleCTM(c->c, 1.0, -1.0);
+	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
 
-	// now we have to do the traits matching, so create a descriptor, match the traits, and then get the attributes back
-	cfdesc = CTFontDescriptorCreateWithAttributes(attr);
-	// TODO release attr?
-	cfdesc = matchTraits(cfdesc, desc->Weight, desc->Italic, desc->Stretch);
+	// wait, that's not enough; we need to offset y values to account for our new flipping
+	// TODO explain this calculation
+	y = c->height - tl->size.height - y;
 
-	// specify the initial size again just to be safe
-	f = CTFontCreateWithFontDescriptor(cfdesc, desc->Size, NULL);
-	// TODO release cfdesc?
+	// CTFrameDraw() draws in the path we specified when creating the frame
+	// this means that in our usage, CTFrameDraw() will draw at (0,0)
+	// so move the origin to be at (x,y) instead
+	// TODO are the signs correct?
+	CGContextTranslateCTM(c->c, x, y);
 
-	return mkTextFont(f, NO);		// we hold the initial reference; no need to retain again
+	CTFrameDraw(tl->frame, c->c);
+
+	CGContextRestoreGState(c->c);
 }
 
-void uiDrawFreeTextFont(uiDrawTextFont *font)
+// TODO document that the width and height of a layout is not necessarily the sum of the widths and heights of its constituent lines; this is definitely untrue on OS X, where lines are placed in such a way that the distance between baselines is always integral
+// TODO width doesn't include trailing whitespace...
+// TODO figure out how paragraph spacing should play into this
+void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
 {
-	CFRelease(font->f);
-	uiFree(font);
+	*width = tl->size.width;
+	*height = tl->size.height;
 }
 
-uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font)
+int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
 {
-	return (uintptr_t) (font->f);
+	return tl->nLines;
 }
 
-void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc)
+void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
 {
-	// TODO
+	CTLineRef lr;
+	CFRange range;
+
+	lr = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, line);
+	range = CTLineGetStringRange(lr);
+	*start = tl->u16tou8[range.location];
+	*end = tl->u16tou8[range.location + range.length];
 }
 
-// text sizes and user space points are identical:
-// - https://developer.apple.com/library/mac/documentation/TextFonts/Conceptual/CocoaTextArchitecture/TypoFeatures/TextSystemFeatures.html#//apple_ref/doc/uid/TP40009459-CH6-51627-BBCCHIFF text points are 72 per inch
-// - https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/CocoaDrawingGuide/Transforms/Transforms.html#//apple_ref/doc/uid/TP40003290-CH204-SW5 user space points are 72 per inch
-void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics)
+void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
 {
-	metrics->Ascent = CTFontGetAscent(font->f);
-	metrics->Descent = CTFontGetDescent(font->f);
-	metrics->Leading = CTFontGetLeading(font->f);
-	metrics->UnderlinePos = CTFontGetUnderlinePosition(font->f);
-	metrics->UnderlineThickness = CTFontGetUnderlineThickness(font->f);
+	*m = tl->lineMetrics[line];
 }
 
-// LONGTERM allow line separation and leading to be factored into a wrapping text layout
-
-// TODO reconcile differences in character wrapping on platforms
-void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
+void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
 {
-	struct framesetter fs;
+	CFIndex i;
+	CTLineRef line;
+	CFIndex pos;
 
-	mkFramesetter(layout, &fs);
-	*width = fs.extents.width;
-	*height = fs.extents.height;
-	freeFramesetter(&fs);
+	if (y >= 0) {
+		for (i = 0; i < tl->nLines; i++) {
+			double ltop, lbottom;
+
+			ltop = tl->lineMetrics[i].Y;
+			lbottom = ltop + tl->lineMetrics[i].Height;
+			if (y >= ltop && y < lbottom)
+				break;
+		}
+		result->YPosition = uiDrawTextLayoutHitTestPositionInside;
+		if (i == tl->nLines) {
+			i--;
+			result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
+		}
+	} else {
+		i = 0;
+		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
+	}
+	result->Line = i;
+
+	result->XPosition = uiDrawTextLayoutHitTestPositionInside;
+	if (x < tl->lineMetrics[i].X) {
+		result->XPosition = uiDrawTextLayoutHitTestPositionBefore;
+		// and forcibly return the first character
+		x = tl->lineMetrics[i].X;
+	} else if (x > (tl->lineMetrics[i].X + tl->lineMetrics[i].Width)) {
+		result->XPosition = uiDrawTextLayoutHitTestPositionAfter;
+		// and forcibly return the last character
+		x = tl->lineMetrics[i].X + tl->lineMetrics[i].Width;
+	}
+
+	line = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
+	// TODO copy the part from the docs about this point
+	pos = CTLineGetStringIndexForPosition(line, CGPointMake(x, 0));
+	if (pos == kCFNotFound) {
+		// TODO
+	}
+	result->Pos = tl->u16tou8[pos];
 }
 
-// LONGTERM provide an equivalent to CTLineGetTypographicBounds() on uiDrawTextLayout?
-
-// LONGTERM keep this for later features and documentation purposes
-#if 0
-
-	// LONGTERM provide a way to get the image bounds as a separate function later
-	bounds = CTLineGetImageBounds(line, c);
-	// though CTLineGetImageBounds() returns CGRectNull on error, it also returns CGRectNull on an empty string, so we can't reasonably check for error
-
-	// CGContextSetTextPosition() positions at the baseline in the case of CTLineDraw(); we need the top-left corner instead
-	CTLineGetTypographicBounds(line, &yoff, NULL, NULL);
-	// remember that we're flipped, so we subtract
-	y -= yoff;
-	CGContextSetTextPosition(c, x, y);
-#endif
-
-#if 0
-void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a)
+void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)
 {
-	CGColorSpaceRef colorspace;
-	CGFloat components[4];
-	CGColorRef color;
-
-	// for consistency with windows, use sRGB
-	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-	components[0] = r;
-	components[1] = g;
-	components[2] = b;
-	components[3] = a;
-	color = CGColorCreate(colorspace, components);
-	CGColorSpaceRelease(colorspace);
-
-	CFAttributedStringSetAttribute(layout->mas,
-		rangeToCFRange(),
-		kCTForegroundColorAttributeName,
-		color);
-	CGColorRelease(color);		// TODO safe?
 }
-#endif

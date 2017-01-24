@@ -101,6 +101,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	[tl->container setLineFragmentPadding:0];
 
 	tl->layoutManager = [[NSLayoutManager alloc] init];
+	[tl->layoutManager setTypesetterBehavior:NSTypesetterLatestBehavior];
 
 	[tl->layoutManager addTextContainer:tl->container];
 	[tl->attrstr addLayoutManager:tl->layoutManager];

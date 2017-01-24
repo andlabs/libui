@@ -9,6 +9,9 @@
 @property NSRect lineUsedRect;
 @property NSRect glyphBoundingRect;
 @property CGFloat baselineOffset;
+@property double ascent;
+@property double descent;
+@property double leading;
 @end
 
 @implementation lineInfo
@@ -111,23 +114,47 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	index = 0;
 	while (index < [tl->layoutManager numberOfGlyphs]) {
 		NSRange glyphRange;
-		NSRect lineRect;
-		lineInfo *li;
+		__block lineInfo *li;
 
-		lineRect = [tl->layoutManager lineFragmentRectForGlyphAtIndex:index effectiveRange:&glyphRange];
 		li = [lineInfo new];
+		li.lineRect = [tl->layoutManager lineFragmentRectForGlyphAtIndex:index effectiveRange:&glyphRange];
 		li.glyphRange = glyphRange;
 		li.characterRange = [tl->layoutManager characterRangeForGlyphRange:li.glyphRange actualGlyphRange:NULL];
-		li.lineRect = lineRect;
 		li.lineUsedRect = [tl->layoutManager lineFragmentUsedRectForGlyphAtIndex:index effectiveRange:NULL];
 		li.glyphBoundingRect = [tl->layoutManager boundingRectForGlyphRange:li.glyphRange inTextContainer:tl->container];
 		// and this is from http://www.cocoabuilder.com/archive/cocoa/308568-how-to-get-baseline-info.html and http://www.cocoabuilder.com/archive/cocoa/199283-height-and-location-of-text-within-line-in-nslayoutmanager-ignoring-spacing.html
 		li.baselineOffset = [[tl->layoutManager typesetter] baselineOffsetInLayoutManager:tl->layoutManager glyphIndex:index];
+		li.ascent = 0;
+		li.descent = 0;
+		li.leading = 0;
+		// imitate what AppKit actually does (or seems to)
+		[tl->attrstr enumerateAttributesInRange:li.characterRange options:0 usingBlock:^(NSDictionary<NSString *,id> *attrs, NSRange range, BOOL *stop) {
+			NSFont *f;
+			double v;
+
+			f = (NSFont *) [attrs objectForKey:NSFontAttributeName];
+			if (f == nil) {
+				f = [NSFont fontWithName:@"Helvetica" size:12.0];
+				if (f == nil)
+					f = [NSFont systemFontOfSize:12.0];
+			}
+
+NSLog(@"%@ %g %g %g", NSStringFromRect([f boundingRectForFont]),
+[f ascender], [f descender], [f leading]);
+
+			v = floor([f ascender] + 0.5);
+			if (li.ascent < v)
+				li.ascent = v;
+
+			v = floor(-[f descender] + 0.5);
+			if (li.descent < v)
+				li.descent = v;
+
+			v = floor([f leading] + 0.5);
+			if (li.leading < v)
+				li.leading = v;
+		}];
 		[tl->lineInfo addObject:li];
-NSLog(@"line %d", (int)[tl->lineInfo count]);
-NSLog(@"      rect %@", NSStringFromRect(li.lineRect));
-NSLog(@" used rect %@", NSStringFromRect(li.lineUsedRect));
-NSLog(@"glyph rect %@", NSStringFromRect(li.glyphBoundingRect));
 		[li release];
 		index = glyphRange.location + glyphRange.length;
 	}
@@ -211,11 +238,9 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 
 	// TODO is this correct?
 	m->BaselineY = (m->Y + m->Height) - li.baselineOffset;
-
-	// TODO
-	m->Ascent = 10000;
-	m->Descent = 10000;
-	m->Leading = 10000;
+	m->Ascent = li.ascent;
+	m->Descent = li.descent;
+	m->Leading = li.leading;
 
 	// TODO
 	m->ParagraphSpacingBefore = 0;

@@ -2,6 +2,7 @@
 #include "drawtext.h"
 
 // TODO have a ligature
+// TODO allow clicking on the end of a line to put the caret there
 
 static const char *text =
 	"Each of the glyphs an end user interacts with are called graphemes. "
@@ -29,6 +30,7 @@ static uiAttributedString *attrstr;
 #define margins 10
 
 static uiBox *panel;
+static uiLabel *caretLabel;
 static uiCheckbox *showLineBounds;
 
 static size_t cursorPos;
@@ -135,10 +137,17 @@ static void draw(uiAreaDrawParams *p)
 	uiDrawFreeTextLayout(layout);
 }
 
+static const char *positions[] = {
+	[uiDrawTextLayoutHitTestPositionBefore] = "before",
+	[uiDrawTextLayoutHitTestPositionInside] = "inside",
+	[uiDrawTextLayoutHitTestPositionAfter] = "after",
+};
+
 static void mouse(uiAreaMouseEvent *e)
 {
 	uiDrawTextLayout *layout;
 	uiDrawTextLayoutHitTestResult res;
+	char labelText[128];
 
 	if (e->Down != 1)
 		return;
@@ -151,7 +160,11 @@ static void mouse(uiAreaMouseEvent *e)
 		&res);
 	uiDrawFreeTextLayout(layout);
 
-	// TODO make a label and set it
+	sprintf(labelText, "pos %zd line %d x position %s y position %s",
+		res.Pos, res.Line,
+		positions[res.XPosition],
+		positions[res.YPosition]);
+	uiLabelSetText(caretLabel, labelText);
 
 	cursorPos = res.Pos;
 	redraw();
@@ -178,6 +191,8 @@ static uiCheckbox *newCheckbox(const char *text)
 struct example *mkHitTestExample(void)
 {
 	panel = uiNewVerticalBox();
+	caretLabel = uiNewLabel("Caret information is shown here");
+	uiBoxAppend(panel, uiControl(caretLabel), 0);
 	showLineBounds = newCheckbox("Show Line Bounds (for debugging metrics)");
 
 	hitTestExample.name = "Hit-Testing and Grapheme Boundaries";

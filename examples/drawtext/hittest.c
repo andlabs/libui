@@ -4,6 +4,7 @@
 static const char *text =
 	"Each of the glyphs an end user interacts with are called graphemes. "
 	"If you enter a byte range in the text boxes below and click the button, you can see the blue box move to surround that byte range, as well as what the actual byte range necessary is. "
+	// TODO rephrase this; I don't think this code will use those grapheme functions...
 	"You'll also see the index of the first grapheme; uiAttributedString has facilities for converting between UTF-8 code points and grapheme indices. "
 	"Additionally, click on the string to move the caret. Watch the status text at the bottom change too. "
 	"That being said: "
@@ -27,6 +28,8 @@ static uiAttributedString *attrstr;
 
 static uiBox *panel;
 static uiCheckbox *showLineBounds;
+
+static size_t cursorPos;
 
 // TODO should be const?
 static uiDrawBrush fillBrushes[4] = {
@@ -60,10 +63,23 @@ static uiDrawBrush fillBrushes[4] = {
 	},
 };
 
+// TODO this should be const
+static uiDrawStrokeParams strokeParams = {
+	.Cap = uiDrawLineCapFlat,
+	.Join = uiDrawLineJoinMiter,
+	.Thickness = 2,
+	.MiterLimit = uiDrawDefaultMiterLimit,
+	.Dashes = NULL,
+	.NumDashes = 0,
+	.DashPhase = 0,
+};
+
 static void draw(uiAreaDrawParams *p)
 {
 	uiDrawPath *path;
 	uiDrawTextLayout *layout;
+	uiDrawTextLayoutByteRangeRectangle r;
+	uiDrawBrush brush;
 
 	// only clip the text, not the guides
 	uiDrawSave(p->Context);
@@ -82,6 +98,19 @@ static void draw(uiAreaDrawParams *p)
 	uiDrawText(p->Context, layout, margins, margins);
 
 	uiDrawRestore(p->Context);
+
+	uiDrawTextLayoutByteRangeToRectangle(layout, cursorPos, cursorPos, &r);
+	path = uiDrawNewPath(uiDrawFillModeWinding);
+	uiDrawPathNewFigure(path, margins + r.X, margins + r.Y);
+	uiDrawPathLineTo(path, margins + r.X, margins + r.Y + r.Height);
+	uiDrawPathEnd(path);
+	brush.Type = uiDrawBrushTypeSolid;
+	brush.R = 0.0;
+	brush.G = 0.0;
+	brush.B = 1.0;
+	brush.A = 1.0;
+	uiDrawStroke(p->Context, path, &brush, &strokeParams);
+	uiDrawFreePath(path);
 
 	if (uiCheckboxChecked(showLineBounds)) {
 		uiDrawTextLayoutLineMetrics m;
@@ -132,6 +161,7 @@ struct example *mkHitTestExample(void)
 	hitTestExample.draw = draw;
 
 	attrstr = uiNewAttributedString(text);
+	cursorPos = uiAttributedStringLen(attrstr);
 
 	return &hitTestExample;
 }

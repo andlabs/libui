@@ -3,8 +3,8 @@
 
 static const char *text =
 	"Each of the glyphs an end user interacts with are called graphemes. "
-//TODO	"If you enter a byte range in the text boxes below and click the button, you can see the blue box move to surround that byte range, as well as what the actual byte range necessary is. "
-//TODO	"You'll also see the index of the first grapheme; uiAttributedString has facilities for converting between UTF-8 code points and grapheme indices. "
+	"If you enter a byte range in the text boxes below and click the button, you can see the blue box move to surround that byte range, as well as what the actual byte range necessary is. "
+	"You'll also see the index of the first grapheme; uiAttributedString has facilities for converting between UTF-8 code points and grapheme indices. "
 	"Additionally, click on the string to move the caret. Watch the status text at the bottom change too. "
 	"That being said: "
 	"\xC3\x93O\xCC\x81 (combining accents) "

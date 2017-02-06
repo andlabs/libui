@@ -276,6 +276,8 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	*m = tl->lineMetrics[line];
 }
 
+// TODO note that in some cases lines can overlap slightly
+// in our case, we read lines first to last and use their bottommost point (Y + Height) to determine where the next line should start for hit-testing
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
 {
 	CFIndex i;
@@ -288,7 +290,8 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 
 			ltop = tl->lineMetrics[i].Y;
 			lbottom = ltop + tl->lineMetrics[i].Height;
-			if (y >= ltop && y < lbottom)
+			// y will already >= ltop at this point since the past lbottom should == (or at least >=, see above) ltop
+			if (y < lbottom)
 				break;
 		}
 		result->YPosition = uiDrawTextLayoutHitTestPositionInside;
@@ -298,6 +301,7 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 		}
 	} else {
 		i = 0;
+		// TODO what if the first line crosses into the negatives?
 		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
 	}
 	result->Line = i;
@@ -314,7 +318,7 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 	}
 
 	line = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
-	// TODO copy the part from the docs about this point
+	// TODO copy the part from the docs about this point (TODO what point?)
 	pos = CTLineGetStringIndexForPosition(line, CGPointMake(x, 0));
 	if (pos == kCFNotFound) {
 		// TODO

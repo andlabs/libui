@@ -330,6 +330,46 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 	result->Pos = tl->u16tou8[pos];
 }
 
+// TODO document this is appropriate for a caret
+// TODO what happens if we select across a wrapped line?
 void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)
 {
+	CFIndex i;
+	CTLineRef line;
+	CFRange range;
+	CGFloat x, x2;		// TODO rename x to x1
+
+	if (start > tl->nUTF8)
+		start = tl->nUTF8;
+	if (end > tl->nUTF8)
+		end = tl->nUTF8;
+	start = tl->u8tou16[start];
+	end = tl->u8tou16[end];
+
+	for (i = 0; i < tl->nLines; i++) {
+		line = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
+		range = CTLineGetStringRange(line);
+		if (start >= range.location)
+			break;
+	}
+	if (i == tl->nLines)
+		i--;
+	r->Line = i;
+	if (end > (range.location + range.length))
+		end = range.location + range.length;
+
+	x = CTLineGetOffsetForStringIndex(line, start, NULL);
+	x2 = CTLineGetOffsetForStringIndex(line, end, NULL);
+
+	r->X = tl->lineMetrics[i].X + x;
+	r->Y = tl->lineMetrics[i].Y;
+	r->Width = (tl->lineMetrics[i].X + x2) - r->X;
+	r->Height = tl->lineMetrics[i].Height;
+
+	// and use x and x2 to get the actual start and end positions
+	// TODO error check?
+	r->RealStart = CTLineGetStringIndexForPosition(line, CGPointMake(x, 0));
+	r->RealEnd = CTLineGetStringIndexForPosition(line, CGPointMake(x2, 0));
+	r->RealStart = tl->u16tou8[r->RealStart];
+	r->RealEnd = tl->u16tou8[r->RealEnd];
 }

@@ -4,6 +4,7 @@
 
 // TODO
 // - if the RTL override is at the beginning of a line, the preceding space is included?
+// - the space at the end of a line seems to capture the entire end of that line, especially in hit-testing :S it should work like it does on other platforms
 
 struct uiDrawTextLayout {
 	PangoLayout *layout;
@@ -222,7 +223,7 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)
 {
 	PangoRectangle startRect, endRect;
-	int line;
+	int line, index;
 	PangoLayoutLine *pll;
 
 	pango_layout_index_to_pos(tl->layout, start, &startRect);

@@ -1,6 +1,8 @@
 // 20 january 2017
 #include "drawtext.h"
 
+// TODO have a ligature
+
 static const char *text =
 	"Each of the glyphs an end user interacts with are called graphemes. "
 	"If you enter a byte range in the text boxes below and click the button, you can see the blue box move to surround that byte range, as well as what the actual byte range necessary is. "

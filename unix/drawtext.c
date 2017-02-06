@@ -188,8 +188,65 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
 {
+	int index;
+	int trailing;
+	int line;
+	double width, height;
+
+	// disregard the return value; we do our own bounds checking
+	// TODO see if there's a way we can use some other function (possibly this one again) to extrapolate more precise bounds information
+	pango_layout_xy_to_index(tl->layout,
+		cairoToPango(x), cairoToPango(y),
+		&index, &trailing);
+	// figure out what line that was
+	pango_layout_index_to_line_x(tl->layout, index, trailing,
+		&line, NULL);
+	result->Pos = index;
+	result->Line = line;
+
+	uiDrawTextLayoutExtents(tl, &width, &height);
+	result->XPosition = uiDrawTextLayoutHitTestPositionInside;
+	if (x < 0)
+		result->XPosition = uiDrawTextLayoutHitTestPositionBefore;
+	else if (x >= width)
+		result->XPosition = uiDrawTextLayoutHitTestPositionAfter;
+	result->YPosition = uiDrawTextLayoutHitTestPositionInside;
+	if (y < 0)
+		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
+	else if (y >= height)
+		result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
 }
 
+// TODO consider providing a uiDrawTextLayoutByteIndexToCursorPos() function
+// TODO is this correct for RTL?
 void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)
 {
+	PangoRectangle startRect, endRect;
+	int line;
+	PangoLayoutLine *pll;
+
+	pango_layout_index_to_pos(tl->layout, start, &startRect);
+
+	// figure out what line that was
+	// TODO talk about leading edge here
+	pango_layout_index_to_line_x(tl->layout, start, 1,
+		&line, NULL);
+	pll = pango_layout_get_line_readonly(tl->layout, line);
+
+	if (end > (pll->start_index + pll->length))
+		end = pll->start_index + pll->length;
+	pango_layout_index_to_pos(tl->layout, end, &endRect);
+
+	r->X = pangoToCairo(startRect.x);
+	r->Y = tl->lineMetrics[line].Y;
+	r->Width = pangoToCairo(endRect.x) - r->X;
+	r->Height = tl->lineMetrics[line].Height;
+
+	// and figure out the correct start pos
+	pango_layout_line_x_to_index(pll, startRect.x,
+		&index, NULL);
+	r->RealStart = index;
+	r->RealEnd = end;
+
+	// TODO unref pll?
 }

@@ -315,9 +315,22 @@ size_t attrstrUTF16Len(uiAttributedString *s)
 	return s->u16len;
 }
 
+// TODO is this still needed given the below?
 size_t attrstrUTF8ToUTF16(uiAttributedString *s, size_t n)
 {
 	return s->u8tou16[n];
+}
+
+size_t *attrstrCopyUTF8ToUTF16(uiAttributedString *s, size_t *n)
+{
+	size_t *out;
+	size_t nbytes;
+
+	nbytes = (s->len + 1) * sizeof (size_t);
+	*n = s->len;
+	out = (size_t *) uiAlloc(nbytes, "size_t[] (uiAttributedString)");
+	memmove(out, s->u8tou16, nbytes);
+	return out;
 }
 
 size_t *attrstrCopyUTF16ToUTF8(uiAttributedString *s, size_t *n)

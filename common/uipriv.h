@@ -73,6 +73,7 @@ extern struct graphemes *graphemes(void *s, size_t len);
 extern const uint16_t *attrstrUTF16(uiAttributedString *s);
 extern size_t attrstrUTF16Len(uiAttributedString *s);
 extern size_t attrstrUTF8ToUTF16(uiAttributedString *s, size_t n);
+extern size_t *attrstrCopyUTF8ToUTF16(uiAttributedString *s, size_t *n);
 extern size_t *attrstrCopyUTF16ToUTF8(uiAttributedString *s, size_t *n);
 
 // attrlist.c

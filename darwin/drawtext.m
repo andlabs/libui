@@ -28,9 +28,11 @@ struct uiDrawTextLayout {
 	// we compute this once when first creating the layout
 	uiDrawTextLayoutLineMetrics *lineMetrics;
 
-	// for converting CFAttributedString indices to byte offsets
+	// for converting CFAttributedString indices from/to byte offsets
+	size_t *u8tou16;
+	size_t nUTF8;
 	size_t *u16tou8;
-	size_t nu16tou8;		// TODO I don't like the casing of this name
+	size_t nUTF16;
 };
 
 static CTFontRef fontdescToCTFont(uiDrawFontDescriptor *fd)
@@ -201,8 +203,9 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	tl->nLines = CFArrayGetCount(tl->lines);
 	tl->lineMetrics = computeLineMetrics(tl->frame, tl->size);
 
-	// and finally copy the UTF-16 to UTF-8 index conversion table
-	tl->u16tou8 = attrstrCopyUTF16ToUTF8(s, &(tl->nu16tou8));
+	// and finally copy the UTF-8/UTF-16 conversion tables
+	tl->u8tou16 = attrstrCopyUTF8ToUTF16(s, &(tl->nUTF8));
+	tl->u16tou8 = attrstrCopyUTF16ToUTF8(s, &(tl->nUTF16));
 
 	return tl;
 }
@@ -210,6 +213,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
 	uiFree(tl->u16tou8);
+	uiFree(tl->u8tou16);
 	uiFree(tl->lineMetrics);
 	// TODO release tl->lines?
 	CFRelease(tl->frame);

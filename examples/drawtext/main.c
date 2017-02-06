@@ -31,7 +31,8 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)
 {
-	// do nothing
+	if (examples[curExample]->mouse != NULL)
+		examples[curExample]->mouse(e);
 }
 
 static void handlerMouseCrossed(uiAreaHandler *ah, uiArea *a, int left)

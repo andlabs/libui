@@ -349,8 +349,7 @@ void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, si
 	for (i = 0; i < tl->nLines; i++) {
 		line = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
 		range = CTLineGetStringRange(line);
-		// TODO explain this check
-		if (range.location >= start)
+		if (start >= range.location && start < (range.location + range.length))
 			break;
 	}
 	if (i == tl->nLines)

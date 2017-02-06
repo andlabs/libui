@@ -133,6 +133,28 @@ static void draw(uiAreaDrawParams *p)
 	uiDrawFreeTextLayout(layout);
 }
 
+static void mouse(uiAreaMouseEvent *e)
+{
+	uiDrawTextLayout *layout;
+	uiDrawTextLayoutHitTestResult res;
+
+	if (e->Down != 1)
+		return;
+
+	layout = uiDrawNewTextLayout(attrstr,
+		&defaultFont,
+		e->AreaWidth - 2 * margins);
+	uiDrawTextLayoutHitTest(layout,
+		e->X - margins, e->Y - margins,
+		&res);
+	uiDrawFreeTextLayout(layout);
+
+	// TODO make a label and set it
+
+	cursorPos = res.Pos;
+	redraw();
+}
+
 static struct example hitTestExample;
 
 // TODO share?
@@ -159,6 +181,7 @@ struct example *mkHitTestExample(void)
 	hitTestExample.name = "Hit-Testing and Grapheme Boundaries";
 	hitTestExample.panel = uiControl(panel);
 	hitTestExample.draw = draw;
+	hitTestExample.mouse = mouse;
 
 	attrstr = uiNewAttributedString(text);
 	cursorPos = uiAttributedStringLen(attrstr);

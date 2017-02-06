@@ -253,6 +253,7 @@ struct example *mkBasicExample(void)
 	basicExample.name = "Basic Paragraph of Text";
 	basicExample.panel = uiControl(panel);
 	basicExample.draw = draw;
+	basicExample.mouse = NULL;
 
 	attrstr = uiNewAttributedString(text);
 

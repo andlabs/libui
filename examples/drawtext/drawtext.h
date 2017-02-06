@@ -7,7 +7,8 @@ struct example {
 	const char *name;
 	uiControl *panel;
 	void (*draw)(uiAreaDrawParams *p);
-	// TODO mouse and key?
+	void (*mouse)(uiAreaMouseEvent *e);
+	// TODO key?
 };
 
 // main.c

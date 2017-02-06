@@ -5,15 +5,18 @@
 // TODO
 // - consider the warnings about antialiasing in the PadWrite sample
 // - if that's not a problem, do we have overlapping rects in the hittest sample? I can't tell...
+// - what happens if any nLines == 0?
 
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
 	UINT32 nLines;
 	struct lineInfo *lineInfo;
-	// for converting DirectWrite indices to byte offsets
+	// for converting DirectWrite indices from/to byte offsets
+	size_t *u8tou16;
+	size_t nUTF8;
 	size_t *u16tou8;
-	size_t nu16tou8;		// TODO I don't like the casing of this name; is it even necessary?
+	size_t nUTF16;
 };
 
 // TODO copy notes about DirectWrite DIPs being equal to Direct2D DIPs here
@@ -43,7 +46,7 @@ static std::map<uiDrawTextStretch, DWRITE_FONT_STRETCH> dwriteStretches = {
 };
 
 struct lineInfo {
-	size_t startPos;
+	size_t startPos;			// in UTF-16 points
 	size_t endPos;
 	size_t newlineCount;
 	double x;
@@ -182,8 +185,9 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 
 	computeLineInfo(tl);
 
-	// and finally copy the UTF-16 to UTF-8 index conversion table
-	tl->u16tou8 = attrstrCopyUTF16ToUTF8(s, &(tl->nu16tou8));
+	// and finally copy the UTF-8/UTF-16 index conversion tables
+	tl->u8tou16 = attrstrCopyUTF8ToUTF16(s, &(tl->nUTF8));
+	tl->u16tou8 = attrstrCopyUTF16ToUTF8(s, &(tl->nUTF16));
 
 	// TODO can/should this be moved elsewhere?
 	uiFree(wDefaultFamily);
@@ -193,6 +197,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
 	uiFree(tl->u16tou8);
+	uiFree(tl->u8tou16);
 	uiFree(tl->lineInfo);
 	tl->layout->Release();
 	tl->format->Release();
@@ -294,11 +299,94 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	m->ParagraphSpacing = 0;			// TODO
 }
 
+// TODO stretches space at the end of a line to the whole line
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
 {
-	// TODO
+	DWRITE_HIT_TEST_METRICS m;
+	size_t line;
+	double width, height;
+	BOOL trailing, inside;		// crashes if I skip these :/
+	HRESULT hr;
+
+	hr = tl->layout->HitTestPoint(x, y,
+		&trailing, &inside,
+		&m);
+	if (hr != S_OK)
+		logHRESULT(L"error hit-testing IDWriteTextLayout", hr);
+
+	// figure out what line this is
+	if (y < 0)
+		line = 0;
+	else
+		for (line = 0; line < tl->nLines; line++)
+			if (y >= tl->lineInfo[line].y && y < (tl->lineInfo[line].y + tl->lineInfo[line].height))
+				break;
+	if (line == tl->nLines)		// last position
+		line--;
+
+	result->Pos = tl->u16tou8[m.textPosition];
+	result->Line = line;
+
+	uiDrawTextLayoutExtents(tl, &width, &height);
+	result->XPosition = uiDrawTextLayoutHitTestPositionInside;
+	if (x < 0)
+		result->XPosition = uiDrawTextLayoutHitTestPositionBefore;
+	else if (x >= width)
+		result->XPosition = uiDrawTextLayoutHitTestPositionAfter;
+	result->YPosition = uiDrawTextLayoutHitTestPositionInside;
+	if (y < 0)
+		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
+	else if (y >= height)
+		result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
 }
 
 void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)
 {
+	DWRITE_HIT_TEST_METRICS mstart, mend;
+	size_t line;
+	FLOAT x, y;				// crashes if I skip these :/
+	BOOL trailing, inside;		// crashes if I skip these :/
+	HRESULT hr;
+
+	start = tl->u8tou16[start];
+	end = tl->u8tou16[end];
+
+	// TODO explain why this is a leading hit
+	hr = tl->layout->HitTestTextPosition(start, FALSE,
+		&x, &y,
+		&mstart);
+	if (hr != S_OK)
+		logHRESULT(L"error getting rect of start position", hr);
+
+	// figure out what line this is
+	for (line = 0; line < tl->nLines; line++)
+		if (start >= tl->lineInfo[line].startPos && start < tl->lineInfo[line].endPos)
+			break;
+	if (line == tl->nLines)		// last position
+		line--;
+	if (end > tl->lineInfo[line].endPos)
+		end = tl->lineInfo[line].endPos;
+
+	hr = tl->layout->HitTestTextPosition(end, FALSE,
+		&x, &y,
+		&mend);
+	if (hr != S_OK)
+		logHRESULT(L"error getting rect of end position", hr);
+
+	r->X = mstart.left;
+	r->Y = tl->lineInfo[line].y;
+	r->Width = mend.left - mstart.left;
+	r->Height = tl->lineInfo[line].height;
+
+	hr = tl->layout->HitTestPoint(r->X, r->Y,
+		&trailing, &inside,
+		&mstart);
+	if (hr != S_OK)
+		logHRESULT(L"TODO write this", hr);
+	// TODO also get the end pos just so we can have an accurate r->RealEnd
+	r->RealStart = mstart.textPosition;
+	r->RealEnd = end;
+
+	r->RealStart = tl->u16tou8[r->RealStart];
+	r->RealEnd = tl->u16tou8[r->RealEnd];
 }

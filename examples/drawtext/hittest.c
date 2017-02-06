@@ -160,8 +160,10 @@ static void mouse(uiAreaMouseEvent *e)
 		&res);
 	uiDrawFreeTextLayout(layout);
 
-	sprintf(labelText, "pos %zd line %d x position %s y position %s",
-		res.Pos, res.Line,
+	// urgh %zd is not supported by MSVC with sprintf()
+	// TODO get that part in test/ about having no other option
+	sprintf(labelText, "pos %d line %d x position %s y position %s",
+		(int) (res.Pos), res.Line,
 		positions[res.XPosition],
 		positions[res.YPosition]);
 	uiLabelSetText(caretLabel, labelText);

@@ -132,6 +132,12 @@ struct uiDrawTextLayoutHitTestResult {
 	int Line;
 	uiDrawTextLayoutHitTestPosition XPosition;
 	uiDrawTextLayoutHitTestPosition YPosition;
+
+	int CaretLine;
+	double CaretX;
+	double CaretY;
+	// CaretWidth is decided by uiDrawCaret().
+	double CaretHeight;
 // TODO?
 //	int InTrailingWhitespace;
 // TODO?

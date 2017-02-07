@@ -328,6 +328,14 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 		// TODO
 	}
 	result->Pos = tl->u16tou8[pos];
+
+	// desired caret behavior: clicking on the right trailing space places inserted text at the start of the next line but the caret is on the clicked line at the trailing edge of the last grapheme
+	// hitting Right moves to the second point of the next line, then Left to go to the first, then Left to go to the start of the last character of the original line (so the keyboard can't move the caret back to that clicked space)
+	// this happens regardless of word-wrapping on whitespace, hyphens, or very long words
+	// use CTLineGetOffsetForStringIndex() here instead of x directly as that isn't always adjusted properly
+	result->CaretX = CTLineGetOffsetForStringIndex(line, pos, NULL);
+	result->CaretY = tl->lineMetrics[i].Y;
+	result->CaretHeight = tl->lineMetrics[i].Height;
 }
 
 // TODO document this is appropriate for a caret

@@ -33,7 +33,9 @@ static uiBox *panel;
 static uiLabel *caretLabel;
 static uiCheckbox *showLineBounds;
 
-static size_t cursorPos;
+static int caretInit = 0;
+// TODO rename all this to caret, as well as in the text above
+static double cursorX, cursorY, cursorHeight;
 
 // TODO should be const?
 static uiDrawBrush fillBrushes[4] = {
@@ -82,7 +84,6 @@ static void draw(uiAreaDrawParams *p)
 {
 	uiDrawPath *path;
 	uiDrawTextLayout *layout;
-	uiDrawTextLayoutByteRangeRectangle r;
 	uiDrawBrush brush;
 
 	// only clip the text, not the guides
@@ -103,10 +104,21 @@ static void draw(uiAreaDrawParams *p)
 
 	uiDrawRestore(p->Context);
 
-	uiDrawTextLayoutByteRangeToRectangle(layout, cursorPos, cursorPos, &r);
+	if (!caretInit) {
+		uiDrawTextLayoutByteRangeRectangle r;
+
+		uiDrawTextLayoutByteRangeToRectangle(layout,
+			uiAttributedStringLen(attrstr),
+			uiAttributedStringLen(attrstr),
+			&r);
+		cursorX = r.X;
+		cursorY = r.Y;
+		cursorHeight = r.Height;
+		caretInit = 1;
+	}
 	path = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathNewFigure(path, margins + r.X, margins + r.Y);
-	uiDrawPathLineTo(path, margins + r.X, margins + r.Y + r.Height);
+	uiDrawPathNewFigure(path, margins + cursorX, margins + cursorY);
+	uiDrawPathLineTo(path, margins + cursorX, margins + cursorY + cursorHeight);
 	uiDrawPathEnd(path);
 	brush.Type = uiDrawBrushTypeSolid;
 	brush.R = 0.0;
@@ -162,13 +174,16 @@ static void mouse(uiAreaMouseEvent *e)
 
 	// urgh %zd is not supported by MSVC with sprintf()
 	// TODO get that part in test/ about having no other option
+	// TODO byte 1 is actually byte 684?!
 	sprintf(labelText, "pos %d line %d x position %s y position %s",
 		(int) (res.Pos), res.Line,
 		positions[res.XPosition],
 		positions[res.YPosition]);
 	uiLabelSetText(caretLabel, labelText);
 
-	cursorPos = res.Pos;
+	cursorX = res.CaretX;
+	cursorY = res.CaretY;
+	cursorHeight = res.CaretHeight;
 	redraw();
 }
 
@@ -203,7 +218,6 @@ struct example *mkHitTestExample(void)
 	hitTestExample.mouse = mouse;
 
 	attrstr = uiNewAttributedString(text);
-	cursorPos = uiAttributedStringLen(attrstr);
 
 	return &hitTestExample;
 }

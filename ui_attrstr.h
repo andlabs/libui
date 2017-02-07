@@ -128,12 +128,20 @@ _UI_ENUM(uiDrawTextLayoutHitTestPosition) {
 };
 
 struct uiDrawTextLayoutHitTestResult {
+	// The byte position of the character at the given point.
 	size_t Pos;
+	// Line is the line at the given point. If the point is on the space
+	// after the end of a line, Pos will be Line's end index. In this case,
+	// the rectangle for that character will actually be on the *next*
+	// line. This disparity is only relevant for caret positioning when
+	// using the mouse; in that case, to ensure proper behavior, use
+	// the Caret fields below. In all other cases (including keyboard
+	// caret movement), use the actual rectangle for the grapheme
+	// at Pos (via uiDrawTextLayoutByteRangeToRectangle()).
 	int Line;
 	uiDrawTextLayoutHitTestPosition XPosition;
 	uiDrawTextLayoutHitTestPosition YPosition;
 
-	int CaretLine;
 	double CaretX;
 	double CaretY;
 	// CaretWidth is decided by uiDrawCaret().

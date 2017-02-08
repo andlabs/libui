@@ -4,7 +4,6 @@
 
 // TODO
 // - if the RTL override is at the beginning of a line, the preceding space is included?
-// - the space at the end of a line seems to capture the entire end of that line, especially in hit-testing :S it should work like it does on other platforms
 
 struct uiDrawTextLayout {
 	PangoLayout *layout;
@@ -68,6 +67,7 @@ static void computeLineMetrics(uiDrawTextLayout *tl)
 		m->X = pangoToCairo(lineStartPos.x);
 		// TODO fix the whole combined not being updated shenanigans in the static build (here because ugh)
 		m->Y = pangoToCairo(baselineY - PANGO_ASCENT(lineExtents));
+		// TODO this does not include the last space if any
 		m->Width = pangoToCairo(lineExtents.width);
 		m->Height = pangoToCairo(lineExtents.height);
 
@@ -187,11 +187,19 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 }
 #endif
 
+// caret behavior, based on GtkTextView (both 2 and 3) and Qt's text views (both 4 and 5), which are all based on TkTextView:
+// - clicking on the right side of a line places the cursor at the beginning of the LAST grapheme on the line
+// - pressing Right goes to the first grapheme of the next line, pressing Left goes back to the last grapheme of the original line
+// - as such, there is *no* way to get the cursor on the end of the line
+// - this includes whitespace, hyphens, and character wraps
+// - spaces get special treatment (it seems): you don't see them there and they don't show up if you select one and only one!
+// - and the best part is that word processors don't typically do this; they do what other platforms do!
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
 {
 	int index;
 	int trailing;
 	int line;
+	int caretX;
 	double width, height;
 
 	// disregard the return value; we do our own bounds checking
@@ -199,9 +207,10 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 	pango_layout_xy_to_index(tl->layout,
 		cairoToPango(x), cairoToPango(y),
 		&index, &trailing);
-	// figure out what line that was
+	// figure out what line that was, and also the caret X position since we can get that here too
+	// TODO should we use the dedicated function instead?
 	pango_layout_index_to_line_x(tl->layout, index, trailing,
-		&line, NULL);
+		&line, &caretX);
 	result->Pos = index;
 	result->Line = line;
 
@@ -216,9 +225,13 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
 	else if (y >= height)
 		result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
+
+	result->CaretX = pangoToCairo(caretX);
+	result->CaretY = tl->lineMetrics[line].Y;
+	result->CaretHeight = tl->lineMetrics[line].Height;
 }
 
-// TODO consider providing a uiDrawTextLayoutByteIndexToCursorPos() function
+// TODO consider providing a uiDrawTextLayoutByteIndexToCursorPos() function for manual positions by byte index only?
 // TODO is this correct for RTL?
 void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)
 {

@@ -107,6 +107,7 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 		// TODO verify htm.textPosition and htm.length against dtm[i]/tl->lineInfo[i]?
 		tl->lineInfo[i].x = htm[0].left;
 		tl->lineInfo[i].y = htm[0].top;
+		// TODO does this not include trailing whitespace? I forget
 		tl->lineInfo[i].width = htm[0].width;
 		tl->lineInfo[i].height = htm[0].height;
 		for (j = 1; j < nFragments; j++) {
@@ -299,7 +300,10 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	m->ParagraphSpacing = 0;			// TODO
 }
 
-// TODO stretches space at the end of a line to the whole line
+// expected behavior on end of line:
+// - same as OS X
+// - TODO RETEST THIS ON OTHER PLATFORMS: EXCEPT: if you type something, then backspace, the cursor will move back to where you clicked!
+// TODO this function does NOT yet work like that; it works like the Unix equivalent right now
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
 {
 	DWRITE_HIT_TEST_METRICS m;

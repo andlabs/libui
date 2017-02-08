@@ -342,6 +342,10 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTex
 		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
 	else if (y >= height)
 		result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
+
+	result->CaretX = m.left;		// TODO is this correct?
+	result->CaretY = tl->lineInfo[line].y;
+	result->CaretHeight = tl->lineInfo[line].height;
 }
 
 void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)

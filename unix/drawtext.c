@@ -187,6 +187,8 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 }
 #endif
 
+#if 0 /* TODO */
+
 // caret behavior, based on GtkTextView (both 2 and 3) and Qt's text views (both 4 and 5), which are all based on TkTextView:
 // - clicking on the right side of a line places the cursor at the beginning of the LAST grapheme on the line
 // - pressing Right goes to the first grapheme of the next line, pressing Left goes back to the last grapheme of the original line
@@ -263,4 +265,64 @@ void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, si
 	r->RealEnd = end;
 
 	// TODO unref pll?
+}
+
+#endif
+
+// this algorithm comes from Microsoft's PadWrite sample, following TextEditor::SetSelectionFromPoint()
+// TODO this or the next one doesn't work right for the end of a line? it still behaves like TkTextView...
+void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
+{
+	int p, trailing;
+
+	pango_layout_xy_to_index(tl->layout,
+		cairoToPango(x), cairoToPango(y),
+		&p, &trailing);
+	// on a trailing hit, align to the nearest cluster
+	// fortunately Pango provides that info directly
+	if (trailing != 0)
+		p += trailing;
+	if (pos != NULL)
+		*pos = p;
+
+	// TODO do the line detection unconditionally?
+	// TODO optimize the call to pango_layout_get_line_count()
+	if (line != NULL) {
+		int i;
+
+		for (i = 0; i < pango_layout_get_line_count(tl->layout); i++) {
+			double ltop, lbottom;
+
+			ltop = tl->lineMetrics[i].Y;
+			lbottom = ltop + tl->lineMetrics[i].Height;
+			// y will already >= ltop at this point since the past lbottom should == ltop
+			if (y < lbottom)
+				break;
+		}
+		if (i == pango_layout_get_line_count(tl->layout))
+			i--;
+		*line = i;
+	}
+}
+
+// TODO find a good API for indicating that this character isn't on the line for when the layout is resized and doing that recalculation...
+double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)
+{
+	PangoLayoutLine *pll;
+	gboolean trailing;
+	int pangox;
+
+	pll = pango_layout_get_line_readonly(tl->layout, line);
+	// this behavior seems correct
+	// there's also PadWrite's TextEditor::GetCaretRect() but that requires state...
+	// TODO where does this fail?
+	// TODO optimize everything to avoid calling strlen()
+	trailing = 0;
+	if (pos != 0 && pos != strlen(pango_layout_get_text(tl->layout)) && pos == (pll->start_index + pll->length)) {
+		pos--;
+		trailing = 1;
+	}
+	pango_layout_line_index_to_x(pll, pos, trailing, &pangox);
+	// TODO unref pll?
+	return pangoToCairo(pangox);
 }

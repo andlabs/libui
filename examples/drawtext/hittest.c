@@ -3,6 +3,7 @@
 
 // TODO have a ligature
 // TODO allow clicking on the end of a line to put the caret there
+// TODO the hiding and showing does not work properly on GTK+
 
 static const char *text =
 	"Each of the glyphs an end user interacts with are called graphemes. "
@@ -172,12 +173,12 @@ static void mouse(uiAreaMouseEvent *e)
 	// urgh %zd is not supported by MSVC with sprintf()
 	// TODO get that part in test/ about having no other option
 	// TODO byte 1 is actually byte 684?!
-/*	sprintf(labelText, "pos %d line %d x position %s y position %s",
-		(int) (res.Pos), res.Line,
+	sprintf(labelText, "pos %d line %d x %g",// x position %s y position %s",
+		(int) pos, caretLine, caretX);
+/*		(int) (res.Pos), res.Line,
 		positions[res.XPosition],
 		positions[res.YPosition]);
-*/	sprintf(labelText, "TODO\n");
-	uiLabelSetText(caretLabel, labelText);
+*/	uiLabelSetText(caretLabel, labelText);
 
 /*	cursorX = res.CaretX;
 	cursorY = res.CaretY;

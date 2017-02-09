@@ -300,6 +300,8 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	m->ParagraphSpacing = 0;			// TODO
 }
 
+#if 0 /* TODO */
+
 // expected behavior on end of line:
 // - same as OS X
 // - TODO RETEST THIS ON OTHER PLATFORMS: EXCEPT: if you type something, then backspace, the cursor will move back to where you clicked!
@@ -397,4 +399,77 @@ void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, si
 
 	r->RealStart = tl->u16tou8[r->RealStart];
 	r->RealEnd = tl->u16tou8[r->RealEnd];
+}
+
+#endif
+
+// this algorithm comes from Microsoft's PadWrite sample, following TextEditor::SetSelectionFromPoint()
+void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
+{
+	DWRITE_HIT_TEST_METRICS m;
+	BOOL trailing, inside;
+	size_t p;
+	HRESULT hr;
+
+	hr = tl->layout->HitTestPoint(x, y,
+		&trailing, &inside,
+		&m);
+	if (hr != S_OK)
+		logHRESULT(L"error hit-testing IDWriteTextLayout", hr);
+	p = m.textPosition;
+	// on a trailing hit, align to the nearest cluster
+	if (trailing) {
+		DWRITE_HIT_TEST_METRICS m2;
+		FLOAT x, y;				// crashes if I skip these :/
+
+		hr = tl->layout->HitTestTextPosition(m.textPosition, trailing,
+			&x, &y, &m2);
+		if (hr != S_OK)
+			logHRESULT(L"error aligning trailing hit to nearest cluster", hr);
+		p = m2.textPosition + m2.length;
+	}
+	// TODO should we just make the pointers required?
+	if (pos != NULL)
+		*pos = tl->u16tou8[p];
+
+	// TODO do the line detection unconditionally?
+	if (line != NULL) {
+		UINT32 i;
+
+		for (i = 0; i < tl->nLines; i++) {
+			double ltop, lbottom;
+
+			ltop = tl->lineInfo[i].y;
+			lbottom = ltop + tl->lineInfo[i].height;
+			// y will already >= ltop at this point since the past lbottom should == ltop
+			if (y < lbottom)
+				break;
+		}
+		if (i == tl->nLines)
+			i--;
+		*line = i;
+	}
+}
+
+double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)
+{
+	BOOL trailing;
+	DWRITE_HIT_TEST_METRICS m;
+	FLOAT x, y;
+	HRESULT hr;
+
+	pos = tl->u8tou16[pos];
+	// this behavior seems correct
+	// there's also PadWrite's TextEditor::GetCaretRect() but that requires state...
+	// TODO where does this fail?
+	trailing = FALSE;
+	if (pos != 0 && pos != tl->nUTF16 && pos == tl->lineInfo[line].endPos) {
+		pos--;
+		trailing = TRUE;
+	}
+	hr = tl->layout->HitTestTextPosition(pos, trailing,
+		&x, &y, &m);
+	if (hr != S_OK)
+		logHRESULT(L"error calling IDWriteTextLayout::HitTestTextPosition()", hr);
+	return x;
 }

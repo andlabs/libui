@@ -280,6 +280,8 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	*m = tl->lineMetrics[line];
 }
 
+#if 0 /* TODO */
+
 // TODO note that in some cases lines can overlap slightly
 // in our case, we read lines first to last and use their bottommost point (Y + Height) to determine where the next line should start for hit-testing
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
@@ -380,4 +382,49 @@ void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, si
 	r->RealEnd = CTLineGetStringIndexForPosition(line, CGPointMake(x2, 0));
 	r->RealStart = tl->u16tou8[r->RealStart];
 	r->RealEnd = tl->u16tou8[r->RealEnd];
+}
+
+#endif
+
+// TODO note that in some cases lines can overlap slightly
+// in our case, we read lines first to last and use their bottommost point (Y + Height) to determine where the next line should start for hit-testing
+void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
+{
+	int i;
+	CTLineRef ln;
+	CFIndex p;
+
+	for (i = 0; i < tl->nLines; i++) {
+		double ltop, lbottom;
+
+		ltop = tl->lineMetrics[i].Y;
+		lbottom = ltop + tl->lineMetrics[i].Height;
+		// y will already >= ltop at this point since the past lbottom should == (or at least >=, see above) ltop
+		if (y < lbottom)
+			break;
+	}
+	if (i == tl->nLines)
+		i--;
+	if (line != NULL)
+		*line = i;
+
+	// TODO do the hit-test unconditionally?
+	if (pos != NULL) {
+		ln = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
+		p = CTLineGetStringIndexForPosition(ln, CGPointMake(x, 0));
+		if (p == kCFNotFound) {
+			// TODO
+		}
+		*pos = tl->u16tou8[p];
+	}
+}
+
+double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)
+{
+	CTLineRef ln;
+
+	ln = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, line);
+	// TODO what happens if the byte location is not in this line? a return of 0?
+	// TODO check return? see if this can return 0, anyway, and if so make a note I guess
+	return CTLineGetOffsetForStringIndex(ln, tl->u8tou16[pos], NULL);
 }

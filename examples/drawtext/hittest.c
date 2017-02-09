@@ -33,9 +33,8 @@ static uiBox *panel;
 static uiLabel *caretLabel;
 static uiCheckbox *showLineBounds;
 
-static int caretInit = 0;
-// TODO rename all this to caret, as well as in the text above
-static double cursorX, cursorY, cursorHeight;
+static int caretLine = -1;
+static double caretX;
 
 // TODO should be const?
 static uiDrawBrush fillBrushes[4] = {
@@ -84,6 +83,7 @@ static void draw(uiAreaDrawParams *p)
 {
 	uiDrawPath *path;
 	uiDrawTextLayout *layout;
+	uiDrawTextLayoutLineMetrics m;
 	uiDrawBrush brush;
 
 	// only clip the text, not the guides
@@ -104,21 +104,16 @@ static void draw(uiAreaDrawParams *p)
 
 	uiDrawRestore(p->Context);
 
-	if (!caretInit) {
-		uiDrawTextLayoutByteRangeRectangle r;
-
-		uiDrawTextLayoutByteRangeToRectangle(layout,
+	if (caretLine == -1) {
+		caretLine = uiDrawTextLayoutNumLines(layout) - 1;
+		caretX = uiDrawTextLayoutByteLocationInLine(layout,
 			uiAttributedStringLen(attrstr),
-			uiAttributedStringLen(attrstr),
-			&r);
-		cursorX = r.X;
-		cursorY = r.Y;
-		cursorHeight = r.Height;
-		caretInit = 1;
+			caretLine);
 	}
+	uiDrawTextLayoutLineGetMetrics(layout, caretLine, &m);
 	path = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathNewFigure(path, margins + cursorX, margins + cursorY);
-	uiDrawPathLineTo(path, margins + cursorX, margins + cursorY + cursorHeight);
+	uiDrawPathNewFigure(path, margins + caretX, margins + m.Y);
+	uiDrawPathLineTo(path, margins + caretX, margins + m.Y + m.Height);
 	uiDrawPathEnd(path);
 	brush.Type = uiDrawBrushTypeSolid;
 	brush.R = 0.0;
@@ -129,7 +124,6 @@ static void draw(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 
 	if (uiCheckboxChecked(showLineBounds)) {
-		uiDrawTextLayoutLineMetrics m;
 		int i, n;
 		int fill = 0;
 
@@ -158,7 +152,8 @@ static const char *positions[] = {
 static void mouse(uiAreaMouseEvent *e)
 {
 	uiDrawTextLayout *layout;
-	uiDrawTextLayoutHitTestResult res;
+//	uiDrawTextLayoutHitTestResult res;
+	size_t pos;
 	char labelText[128];
 
 	if (e->Down != 1)
@@ -169,22 +164,25 @@ static void mouse(uiAreaMouseEvent *e)
 		e->AreaWidth - 2 * margins);
 	uiDrawTextLayoutHitTest(layout,
 		e->X - margins, e->Y - margins,
-		&res);
+//		&res);
+		&pos, &caretLine);
+	caretX = uiDrawTextLayoutByteLocationInLine(layout, pos, caretLine);
 	uiDrawFreeTextLayout(layout);
 
 	// urgh %zd is not supported by MSVC with sprintf()
 	// TODO get that part in test/ about having no other option
 	// TODO byte 1 is actually byte 684?!
-	sprintf(labelText, "pos %d line %d x position %s y position %s",
+/*	sprintf(labelText, "pos %d line %d x position %s y position %s",
 		(int) (res.Pos), res.Line,
 		positions[res.XPosition],
 		positions[res.YPosition]);
+*/	sprintf(labelText, "TODO\n");
 	uiLabelSetText(caretLabel, labelText);
 
-	cursorX = res.CaretX;
+/*	cursorX = res.CaretX;
 	cursorY = res.CaretY;
 	cursorHeight = res.CaretHeight;
-	redraw();
+*/	redraw();
 }
 
 static struct example hitTestExample;

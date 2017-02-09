@@ -187,5 +187,4 @@ _UI_EXTERN void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, u
 // TODO number of lines visible for clipping rect, range visible for clipping rect?
 
 _UI_EXTERN void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line);
-// TODO line first?
-_UI_EXTERN void uiDrawTextLayoutByteLocation(uiDrawTextLayout *tl, size_t pos, double *x, int *line);
+_UI_EXTERN double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line);

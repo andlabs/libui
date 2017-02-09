@@ -35,7 +35,8 @@ static uiLabel *caretLabel;
 static uiCheckbox *showLineBounds;
 
 static int caretLine = -1;
-static double caretX;
+static size_t caretPos;
+//static double caretX;
 
 // TODO should be const?
 static uiDrawBrush fillBrushes[4] = {
@@ -86,6 +87,7 @@ static void draw(uiAreaDrawParams *p)
 	uiDrawTextLayout *layout;
 	uiDrawTextLayoutLineMetrics m;
 	uiDrawBrush brush;
+	double caretX;
 
 	// only clip the text, not the guides
 	uiDrawSave(p->Context);
@@ -107,10 +109,10 @@ static void draw(uiAreaDrawParams *p)
 
 	if (caretLine == -1) {
 		caretLine = uiDrawTextLayoutNumLines(layout) - 1;
-		caretX = uiDrawTextLayoutByteLocationInLine(layout,
-			uiAttributedStringLen(attrstr),
-			caretLine);
+		caretPos = uiAttributedStringLen(attrstr);
 	}
+	caretX = uiDrawTextLayoutByteLocationInLine(layout,
+		caretPos, caretLine);
 	uiDrawTextLayoutLineGetMetrics(layout, caretLine, &m);
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathNewFigure(path, margins + caretX, margins + m.Y);
@@ -154,7 +156,6 @@ static void mouse(uiAreaMouseEvent *e)
 {
 	uiDrawTextLayout *layout;
 //	uiDrawTextLayoutHitTestResult res;
-	size_t pos;
 	char labelText[128];
 
 	if (e->Down != 1)
@@ -166,15 +167,15 @@ static void mouse(uiAreaMouseEvent *e)
 	uiDrawTextLayoutHitTest(layout,
 		e->X - margins, e->Y - margins,
 //		&res);
-		&pos, &caretLine);
-	caretX = uiDrawTextLayoutByteLocationInLine(layout, pos, caretLine);
+		&caretPos, &caretLine);
+//	caretX = uiDrawTextLayoutByteLocationInLine(layout, pos, caretLine);
 	uiDrawFreeTextLayout(layout);
 
 	// urgh %zd is not supported by MSVC with sprintf()
 	// TODO get that part in test/ about having no other option
 	// TODO byte 1 is actually byte 684?!
-	sprintf(labelText, "pos %d line %d x %g",// x position %s y position %s",
-		(int) pos, caretLine, caretX);
+	sprintf(labelText, "pos %d line %d",// x %g",// x position %s y position %s",
+		(int) caretPos, caretLine);//, caretX);
 /*		(int) (res.Pos), res.Line,
 		positions[res.XPosition],
 		positions[res.YPosition]);

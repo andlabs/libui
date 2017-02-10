@@ -207,9 +207,9 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 	// and adjust the prior values in the conversion tables
 	// use <= so the terminating 0 gets updated too
 	for (i = 0; i <= oldlen - at; i++)
-		s->u8tou16[at + n8 + i] += n16;
+		s->u8tou16[at + oldlen + i] += old16len;
 	for (i = 0; i <= old16len - at16; i++)
-		s->u16tou8[at16 + n16 + i] += n8;
+		s->u16tou8[at16 + old16len + i] += oldlen;
 
 	// and finally do the attributes
 	attrlistInsertCharactersUnattributed(s->attrs, at, n8);

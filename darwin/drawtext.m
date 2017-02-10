@@ -424,15 +424,12 @@ double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int 
 	CTLineRef lr;
 	CFRange range;
 
-printf("= %zd %zd ", pos, tl->nUTF8);
 	pos = tl->u8tou16[pos];
-printf("-> %zd %zd\n", pos, tl->nUTF16);
 	if (line < 0 || line >= tl->nLines)
 		return -1;
 	lr = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, line);
 	range = CTLineGetStringRange(lr);
 	// note: >, not >=, because the position at end is valid!
-printf("%zd %zd\n", pos, (size_t)(range.location+range.length));
 	if (pos < range.location || pos > (range.location + range.length))
 		return -1;
 	// no point in checking the return; we already validated everything and 0 is a valid return for the first index :/

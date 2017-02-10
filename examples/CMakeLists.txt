@@ -23,6 +23,11 @@ _add_example(histogram
 	${_EXAMPLE_RESOURCES_RC}
 )
 
+_add_example(table
+	table/main.c
+	${_EXAMPLE_RESOURCES_RC}
+)
+
 _add_example(cpp-multithread
 	cpp-multithread/main.cpp
 	${_EXAMPLE_RESOURCES_RC}
@@ -34,5 +39,6 @@ endif()
 add_custom_target(examples
 	DEPENDS
 		controlgallery
+        table
 		histogram
 		cpp-multithread)

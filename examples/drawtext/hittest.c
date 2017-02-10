@@ -113,6 +113,7 @@ static void draw(uiAreaDrawParams *p)
 	}
 	caretX = uiDrawTextLayoutByteLocationInLine(layout,
 		caretPos, caretLine);
+printf("%g\n", caretX);
 	uiDrawTextLayoutLineGetMetrics(layout, caretLine, &m);
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathNewFigure(path, margins + caretX, margins + m.Y);
@@ -145,12 +146,6 @@ static void draw(uiAreaDrawParams *p)
 
 	uiDrawFreeTextLayout(layout);
 }
-
-static const char *positions[] = {
-	[uiDrawTextLayoutHitTestPositionBefore] = "before",
-	[uiDrawTextLayoutHitTestPositionInside] = "inside",
-	[uiDrawTextLayoutHitTestPositionAfter] = "after",
-};
 
 static void mouse(uiAreaMouseEvent *e)
 {

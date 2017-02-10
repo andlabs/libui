@@ -87,8 +87,6 @@ struct uiDrawFontDescriptor {
 
 typedef struct uiDrawTextLayout uiDrawTextLayout;
 typedef struct uiDrawTextLayoutLineMetrics uiDrawTextLayoutLineMetrics;
-typedef struct uiDrawTextLayoutHitTestResult uiDrawTextLayoutHitTestResult;
-typedef struct uiDrawTextLayoutByteRangeRectangle uiDrawTextLayoutByteRangeRectangle;
 
 struct uiDrawTextLayoutLineMetrics {
 	// This describes the overall bounding box of the line.
@@ -119,30 +117,6 @@ struct uiDrawTextLayoutLineMetrics {
 	// All values will be nonnegative.
 
 	// TODO trailing whitespace?
-};
-
-struct uiDrawTextLayoutHitTestResult {
-	// The byte position of the character at the given point.
-	size_t Pos;
-	// Line is the line at the given point. If the point is on the space
-	// after the end of a line, Pos will be Line's end index. In this case,
-	// the rectangle for that character will actually be on the *next*
-	// line. This disparity is only relevant for caret positioning when
-	// using the mouse; in that case, to ensure proper behavior, use
-	// the Caret fields below. In all other cases (including keyboard
-	// caret movement), use the actual rectangle for the grapheme
-	// at Pos (via uiDrawTextLayoutByteRangeToRectangle()).
-	int Line;
-	uiDrawTextLayoutHitTestPosition XPosition;
-	uiDrawTextLayoutHitTestPosition YPosition;
-
-// TODO?
-//	int InTrailingWhitespace;
-// TODO?
-//	double XFraction;
-// extra TODO?
-//	double YFraction;
-// or just have offsets instead? in addition?
 };
 
 // TODO
@@ -185,4 +159,5 @@ _UI_EXTERN void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y
 // the correct offset, even if pos is at the end of the line. If pos is not
 // in the range [start, end], a negative value will be returned,
 // indicating you need to move the cursor to another line.
+// TODO make sure this works right for right-aligned and center-aligned lines and justified lines and RTL text
 _UI_EXTERN double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line);

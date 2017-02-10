@@ -280,112 +280,6 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	*m = tl->lineMetrics[line];
 }
 
-#if 0 /* TODO */
-
-// TODO note that in some cases lines can overlap slightly
-// in our case, we read lines first to last and use their bottommost point (Y + Height) to determine where the next line should start for hit-testing
-void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
-{
-	CFIndex i;
-	CTLineRef line;
-	CFIndex pos;
-
-	if (y >= 0) {
-		for (i = 0; i < tl->nLines; i++) {
-			double ltop, lbottom;
-
-			ltop = tl->lineMetrics[i].Y;
-			lbottom = ltop + tl->lineMetrics[i].Height;
-			// y will already >= ltop at this point since the past lbottom should == (or at least >=, see above) ltop
-			if (y < lbottom)
-				break;
-		}
-		result->YPosition = uiDrawTextLayoutHitTestPositionInside;
-		if (i == tl->nLines) {
-			i--;
-			result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
-		}
-	} else {
-		i = 0;
-		// TODO what if the first line crosses into the negatives?
-		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
-	}
-	result->Line = i;
-
-	result->XPosition = uiDrawTextLayoutHitTestPositionInside;
-	if (x < tl->lineMetrics[i].X) {
-		result->XPosition = uiDrawTextLayoutHitTestPositionBefore;
-		// and forcibly return the first character
-		x = tl->lineMetrics[i].X;
-	} else if (x > (tl->lineMetrics[i].X + tl->lineMetrics[i].Width)) {
-		result->XPosition = uiDrawTextLayoutHitTestPositionAfter;
-		// and forcibly return the last character
-		x = tl->lineMetrics[i].X + tl->lineMetrics[i].Width;
-	}
-
-	line = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
-	// TODO copy the part from the docs about this point (TODO what point?)
-	pos = CTLineGetStringIndexForPosition(line, CGPointMake(x, 0));
-	if (pos == kCFNotFound) {
-		// TODO
-	}
-	result->Pos = tl->u16tou8[pos];
-
-	// desired caret behavior: clicking on the right trailing space places inserted text at the start of the next line but the caret is on the clicked line at the trailing edge of the last grapheme
-	// hitting Right moves to the second point of the next line, then Left to go to the first, then Left to go to the start of the last character of the original line (so the keyboard can't move the caret back to that clicked space)
-	// this happens regardless of word-wrapping on whitespace, hyphens, or very long words
-	// use CTLineGetOffsetForStringIndex() here instead of x directly as that isn't always adjusted properly
-	result->CaretX = CTLineGetOffsetForStringIndex(line, pos, NULL);
-	result->CaretY = tl->lineMetrics[i].Y;
-	result->CaretHeight = tl->lineMetrics[i].Height;
-}
-
-// TODO document this is appropriate for a caret
-// TODO what happens if we select across a wrapped line?
-void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)
-{
-	CFIndex i;
-	CTLineRef line;
-	CFRange range;
-	CGFloat x, x2;		// TODO rename x to x1
-
-	if (start > tl->nUTF8)
-		start = tl->nUTF8;
-	if (end > tl->nUTF8)
-		end = tl->nUTF8;
-	start = tl->u8tou16[start];
-	end = tl->u8tou16[end];
-
-	for (i = 0; i < tl->nLines; i++) {
-		line = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
-		range = CTLineGetStringRange(line);
-		if (start >= range.location && start < (range.location + range.length))
-			break;
-	}
-	if (i == tl->nLines)
-		i--;
-	r->Line = i;
-	if (end > (range.location + range.length))
-		end = range.location + range.length;
-
-	x = CTLineGetOffsetForStringIndex(line, start, NULL);
-	x2 = CTLineGetOffsetForStringIndex(line, end, NULL);
-
-	r->X = tl->lineMetrics[i].X + x;
-	r->Y = tl->lineMetrics[i].Y;
-	r->Width = (tl->lineMetrics[i].X + x2) - r->X;
-	r->Height = tl->lineMetrics[i].Height;
-
-	// and use x and x2 to get the actual start and end positions
-	// TODO error check?
-	r->RealStart = CTLineGetStringIndexForPosition(line, CGPointMake(x, 0));
-	r->RealEnd = CTLineGetStringIndexForPosition(line, CGPointMake(x2, 0));
-	r->RealStart = tl->u16tou8[r->RealStart];
-	r->RealEnd = tl->u16tou8[r->RealEnd];
-}
-
-#endif
-
 // TODO note that in some cases lines can overlap slightly
 // in our case, we read lines first to last and use their bottommost point (Y + Height) to determine where the next line should start for hit-testing
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
@@ -405,18 +299,16 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *p
 	}
 	if (i == tl->nLines)
 		i--;
-	if (line != NULL)
-		*line = i;
+	*line = i;
 
-	// TODO do the hit-test unconditionally?
-	if (pos != NULL) {
-		ln = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
-		p = CTLineGetStringIndexForPosition(ln, CGPointMake(x, 0));
-		if (p == kCFNotFound) {
-			// TODO
-		}
-		*pos = tl->u16tou8[p];
+	ln = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
+	// note: according to the docs, we pass a y of 0 for this since the is the baseline of that line (the point is relative to the line)
+	// TODO is x relative to the line origin?
+	p = CTLineGetStringIndexForPosition(ln, CGPointMake(x, 0));
+	if (p == kCFNotFound) {
+		// TODO
 	}
+	*pos = tl->u16tou8[p];
 }
 
 double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)

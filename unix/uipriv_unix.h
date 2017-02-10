@@ -42,7 +42,7 @@ extern GtkWidget *childBox(struct child *c);
 extern void childSetMargined(struct child *c, int margined);
 
 // draw.c
-extern uiDrawContext *newContext(cairo_t *);
+extern uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style);
 extern void freeContext(uiDrawContext *);
 
 // drawtext.c

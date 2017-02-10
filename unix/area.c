@@ -119,7 +119,8 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	uiAreaDrawParams dp;
 	double clipX0, clipY0, clipX1, clipY1;
 
-	dp.Context = newContext(cr);
+	dp.Context = newContext(cr,
+		gtk_widget_get_style_context(a->widget));
 
 	loadAreaSize(a, &(dp.AreaWidth), &(dp.AreaHeight));
 

@@ -371,3 +371,33 @@ double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int 
 		logHRESULT(L"error calling IDWriteTextLayout::HitTestTextPosition()", hr);
 	return x;
 }
+
+void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p)
+{
+	DWORD caretWidth;
+
+	// there seems to be no defined caret color
+	// the best I can come up with is "inverts colors underneath" (according to https://msdn.microsoft.com/en-us/library/windows/desktop/ms648397(v=vs.85).aspx) which I have no idea how to do (TODO)
+	// just return black for now
+	p->r = 0.0;
+	p->g = 0.0;
+	p->b = 0.0;
+	p->a = 1.0;
+
+	if (SystemParametersInfoW(SPI_GETCARETWIDTH, 0, &caretWidth, 0) == 0)
+		// don't log the failure, fall back gracefully
+		// the instruction to use this comes from https://msdn.microsoft.com/en-us/library/windows/desktop/ms648399(v=vs.85).aspx
+		// and we have to assume GetSystemMetrics() always succeeds, so
+		caretWidth = GetSystemMetrics(SM_CXBORDER);
+	// TODO make this a function and split it out of areautil.cpp
+	{
+		FLOAT dpix, dpiy;
+
+		// TODO can we pass NULL for dpiy?
+		c->rt->GetDpi(&dpix, &dpiy);
+		// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd756649%28v=vs.85%29.aspx (and others; search "direct2d mouse")
+		p->width = ((double) (caretWidth * 96)) / dpix;
+	}
+	// and there doesn't seem to be this either... (TODO check what PadWrite does?)
+	p->xoff = 0;
+}

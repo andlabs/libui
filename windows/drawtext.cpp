@@ -300,115 +300,15 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	m->ParagraphSpacing = 0;			// TODO
 }
 
-#if 0 /* TODO */
-
-// expected behavior on end of line:
-// - same as OS X
-// - TODO RETEST THIS ON OTHER PLATFORMS: EXCEPT: if you type something, then backspace, the cursor will move back to where you clicked!
-// TODO this function does NOT yet work like that; it works like the Unix equivalent right now
-void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
-{
-	DWRITE_HIT_TEST_METRICS m;
-	size_t line;
-	double width, height;
-	BOOL trailing, inside;		// crashes if I skip these :/
-	HRESULT hr;
-
-	hr = tl->layout->HitTestPoint(x, y,
-		&trailing, &inside,
-		&m);
-	if (hr != S_OK)
-		logHRESULT(L"error hit-testing IDWriteTextLayout", hr);
-
-	// figure out what line this is
-	if (y < 0)
-		line = 0;
-	else
-		for (line = 0; line < tl->nLines; line++)
-			if (y >= tl->lineInfo[line].y && y < (tl->lineInfo[line].y + tl->lineInfo[line].height))
-				break;
-	if (line == tl->nLines)		// last position
-		line--;
-
-	result->Pos = tl->u16tou8[m.textPosition];
-	result->Line = line;
-
-	uiDrawTextLayoutExtents(tl, &width, &height);
-	result->XPosition = uiDrawTextLayoutHitTestPositionInside;
-	if (x < 0)
-		result->XPosition = uiDrawTextLayoutHitTestPositionBefore;
-	else if (x >= width)
-		result->XPosition = uiDrawTextLayoutHitTestPositionAfter;
-	result->YPosition = uiDrawTextLayoutHitTestPositionInside;
-	if (y < 0)
-		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
-	else if (y >= height)
-		result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
-
-	result->CaretX = m.left;		// TODO is this correct?
-	result->CaretY = tl->lineInfo[line].y;
-	result->CaretHeight = tl->lineInfo[line].height;
-}
-
-void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)
-{
-	DWRITE_HIT_TEST_METRICS mstart, mend;
-	size_t line;
-	FLOAT x, y;				// crashes if I skip these :/
-	BOOL trailing, inside;		// crashes if I skip these :/
-	HRESULT hr;
-
-	start = tl->u8tou16[start];
-	end = tl->u8tou16[end];
-
-	// TODO explain why this is a leading hit
-	hr = tl->layout->HitTestTextPosition(start, FALSE,
-		&x, &y,
-		&mstart);
-	if (hr != S_OK)
-		logHRESULT(L"error getting rect of start position", hr);
-
-	// figure out what line this is
-	for (line = 0; line < tl->nLines; line++)
-		if (start >= tl->lineInfo[line].startPos && start < tl->lineInfo[line].endPos)
-			break;
-	if (line == tl->nLines)		// last position
-		line--;
-	if (end > tl->lineInfo[line].endPos)
-		end = tl->lineInfo[line].endPos;
-
-	hr = tl->layout->HitTestTextPosition(end, FALSE,
-		&x, &y,
-		&mend);
-	if (hr != S_OK)
-		logHRESULT(L"error getting rect of end position", hr);
-
-	r->X = mstart.left;
-	r->Y = tl->lineInfo[line].y;
-	r->Width = mend.left - mstart.left;
-	r->Height = tl->lineInfo[line].height;
-
-	hr = tl->layout->HitTestPoint(r->X, r->Y,
-		&trailing, &inside,
-		&mstart);
-	if (hr != S_OK)
-		logHRESULT(L"TODO write this", hr);
-	// TODO also get the end pos just so we can have an accurate r->RealEnd
-	r->RealStart = mstart.textPosition;
-	r->RealEnd = end;
-
-	r->RealStart = tl->u16tou8[r->RealStart];
-	r->RealEnd = tl->u16tou8[r->RealEnd];
-}
-
-#endif
-
 // this algorithm comes from Microsoft's PadWrite sample, following TextEditor::SetSelectionFromPoint()
+// TODO go back through all of these and make sure we convert coordinates properly
+// TODO same for OS X
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
 {
 	DWRITE_HIT_TEST_METRICS m;
 	BOOL trailing, inside;
 	size_t p;
+	UINT32 i;
 	HRESULT hr;
 
 	hr = tl->layout->HitTestPoint(x, y,
@@ -428,27 +328,20 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *p
 			logHRESULT(L"error aligning trailing hit to nearest cluster", hr);
 		p = m2.textPosition + m2.length;
 	}
-	// TODO should we just make the pointers required?
-	if (pos != NULL)
-		*pos = tl->u16tou8[p];
+	*pos = tl->u16tou8[p];
 
-	// TODO do the line detection unconditionally?
-	if (line != NULL) {
-		UINT32 i;
+	for (i = 0; i < tl->nLines; i++) {
+		double ltop, lbottom;
 
-		for (i = 0; i < tl->nLines; i++) {
-			double ltop, lbottom;
-
-			ltop = tl->lineInfo[i].y;
-			lbottom = ltop + tl->lineInfo[i].height;
-			// y will already >= ltop at this point since the past lbottom should == ltop
-			if (y < lbottom)
-				break;
-		}
-		if (i == tl->nLines)
-			i--;
-		*line = i;
+		ltop = tl->lineInfo[i].y;
+		lbottom = ltop + tl->lineInfo[i].height;
+		// y will already >= ltop at this point since the past lbottom should == ltop
+		if (y < lbottom)
+			break;
 	}
+	if (i == tl->nLines)
+		i--;
+	*line = i;
 }
 
 double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)
@@ -458,7 +351,12 @@ double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int 
 	FLOAT x, y;
 	HRESULT hr;
 
+	if (line < 0 || line >= tl->nLines)
+		return -1;
 	pos = tl->u8tou16[pos];
+	// note: >, not >=, because the position at endPos is valid!
+	if (pos < tl->lineInfo[line].startPos || pos > tl->lineInfo[line].endPos)
+		return -1;
 	// this behavior seems correct
 	// there's also PadWrite's TextEditor::GetCaretRect() but that requires state...
 	// TODO where does this fail?

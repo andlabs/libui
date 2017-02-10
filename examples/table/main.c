@@ -65,6 +65,8 @@ static uiControl *makeTable(void)
 {
     model = uiNewTableModel(&handler);
     uiTable* t = uiNewTable(model);
+	uiTableAppendTextColumn(t, "Column 1", 0);
+	uiTableAppendTextColumn(t, "Column 2", 1);
     return uiControl(t);
 }
 
@@ -88,8 +90,13 @@ int main(void)
 	uiWindowOnClosing(mainwin, onClosing, NULL);
 	uiOnShouldQuit(onShouldQuit, mainwin);
 
-    uiControl* page = makeTable();
-	uiWindowSetChild(mainwin, uiControl(page));
+	uiBox *vbox;
+	vbox = uiNewVerticalBox();
+	uiBoxSetPadded(vbox, 1);
+    uiControl* t = makeTable();
+	uiBoxAppend(vbox, uiControl(t), 1);
+
+	uiWindowSetChild(mainwin, uiControl(vbox));
 	uiWindowSetMargined(mainwin, 1);
 
 	uiControlShow(uiControl(mainwin));

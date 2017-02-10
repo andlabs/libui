@@ -327,3 +327,25 @@ double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int 
 	// no point in checking the return; we already validated everything and 0 is a valid return for the first index :/
 	return CTLineGetOffsetForStringIndex(lr, pos, NULL);
 }
+
+void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p)
+{
+	NSColor *cc;
+	CGFloat cr, cg, cb, ca;
+
+	// Interface Builder sets this as the insertion point color for a NSTextView by default
+	cc = [NSColor controlTextColor];
+	// the given color may not be an RGBA color, which will cause the -getRed:green:blue:alpha: call to throw an exception
+	cc = [cc colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+	[cc getRed:&cr green:&cg blue:&cb alpha:&ca];
+	p->r = cr;
+	p->g = cg;
+	p->b = cb;
+	p->a = ca;
+	// both cc and the controlTextColor it was made from will be autoreleased since they aren't new or init calls
+	// TODO disabled carets have some blending applied...
+
+	// okay there doesn't seem to be any defined metrics for these, argh...
+	p->width = 1;
+	p->xoff = 0;
+}

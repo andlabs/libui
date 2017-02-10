@@ -168,7 +168,6 @@ static void mouse(uiAreaMouseEvent *e)
 
 	// urgh %zd is not supported by MSVC with sprintf()
 	// TODO get that part in test/ about having no other option
-	// TODO byte 1 is actually byte 684?!
 	sprintf(labelText, "pos %d line %d",// x %g",// x position %s y position %s",
 		(int) caretPos, caretLine);//, caretX);
 /*		(int) (res.Pos), res.Line,

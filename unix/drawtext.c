@@ -8,6 +8,7 @@
 struct uiDrawTextLayout {
 	PangoLayout *layout;
 	uiDrawTextLayoutLineMetrics *lineMetrics;
+	int nLines;
 };
 
 // See https://developer.gnome.org/pango/1.30/pango-Cairo-Rendering.html#pango-Cairo-Rendering.description
@@ -48,7 +49,7 @@ static void computeLineMetrics(uiDrawTextLayout *tl)
 	int i, n;
 	uiDrawTextLayoutLineMetrics *m;
 
-	n = pango_layout_get_line_count(tl->layout);
+	n = tl->nLines;		// TODO remove this variable
 	tl->lineMetrics = (uiDrawTextLayoutLineMetrics *) uiAlloc(n * sizeof (uiDrawTextLayoutLineMetrics), "uiDrawTextLayoutLineMetrics[] (text layout)");
 	iter = pango_layout_get_iter(tl->layout);
 
@@ -130,6 +131,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 
 	// TODO attributes
 
+	tl->nLines = pango_layout_get_line_count(tl->layout);
 	computeLineMetrics(tl);
 
 	return tl;
@@ -187,93 +189,12 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 }
 #endif
 
-#if 0 /* TODO */
-
-// caret behavior, based on GtkTextView (both 2 and 3) and Qt's text views (both 4 and 5), which are all based on TkTextView:
-// - clicking on the right side of a line places the cursor at the beginning of the LAST grapheme on the line
-// - pressing Right goes to the first grapheme of the next line, pressing Left goes back to the last grapheme of the original line
-// - as such, there is *no* way to get the cursor on the end of the line
-// - this includes whitespace, hyphens, and character wraps
-// - spaces get special treatment (it seems): you don't see them there and they don't show up if you select one and only one!
-// - and the best part is that word processors don't typically do this; they do what other platforms do!
-void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result)
-{
-	int index;
-	int trailing;
-	int line;
-	int caretX;
-	double width, height;
-
-	// disregard the return value; we do our own bounds checking
-	// TODO see if there's a way we can use some other function (possibly this one again) to extrapolate more precise bounds information
-	pango_layout_xy_to_index(tl->layout,
-		cairoToPango(x), cairoToPango(y),
-		&index, &trailing);
-	// figure out what line that was, and also the caret X position since we can get that here too
-	// TODO should we use the dedicated function instead?
-	pango_layout_index_to_line_x(tl->layout, index, trailing,
-		&line, &caretX);
-	result->Pos = index;
-	result->Line = line;
-
-	uiDrawTextLayoutExtents(tl, &width, &height);
-	result->XPosition = uiDrawTextLayoutHitTestPositionInside;
-	if (x < 0)
-		result->XPosition = uiDrawTextLayoutHitTestPositionBefore;
-	else if (x >= width)
-		result->XPosition = uiDrawTextLayoutHitTestPositionAfter;
-	result->YPosition = uiDrawTextLayoutHitTestPositionInside;
-	if (y < 0)
-		result->YPosition = uiDrawTextLayoutHitTestPositionBefore;
-	else if (y >= height)
-		result->YPosition = uiDrawTextLayoutHitTestPositionAfter;
-
-	result->CaretX = pangoToCairo(caretX);
-	result->CaretY = tl->lineMetrics[line].Y;
-	result->CaretHeight = tl->lineMetrics[line].Height;
-}
-
-// TODO consider providing a uiDrawTextLayoutByteIndexToCursorPos() function for manual positions by byte index only?
-// TODO is this correct for RTL?
-void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r)
-{
-	PangoRectangle startRect, endRect;
-	int line, index;
-	PangoLayoutLine *pll;
-
-	pango_layout_index_to_pos(tl->layout, start, &startRect);
-
-	// figure out what line that was
-	// TODO talk about leading edge here
-	pango_layout_index_to_line_x(tl->layout, start, 1,
-		&line, NULL);
-	pll = pango_layout_get_line_readonly(tl->layout, line);
-
-	if (end > (pll->start_index + pll->length))
-		end = pll->start_index + pll->length;
-	pango_layout_index_to_pos(tl->layout, end, &endRect);
-
-	r->X = pangoToCairo(startRect.x);
-	r->Y = tl->lineMetrics[line].Y;
-	r->Width = pangoToCairo(endRect.x) - r->X;
-	r->Height = tl->lineMetrics[line].Height;
-
-	// and figure out the correct start pos
-	pango_layout_line_x_to_index(pll, startRect.x,
-		&index, NULL);
-	r->RealStart = index;
-	r->RealEnd = end;
-
-	// TODO unref pll?
-}
-
-#endif
-
-// this algorithm comes from Microsoft's PadWrite sample, following TextEditor::SetSelectionFromPoint()
-// TODO this or the next one doesn't work right for the end of a line? it still behaves like TkTextView...
+// note: Pango will not let us place the cursor at the end of a line the same way other OSs do; see https://git.gnome.org/browse/pango/tree/pango/pango-layout.c?id=f4cbd27f4e5bf8490ea411190d41813e14f12165#n4204
+// ideally there'd be a way to say "I don't need this hack; I'm well behaved" but GTK+ 2 and 3 AND Qt 4 and 5 all behave like this, with the behavior seeming to date back to TkTextView, so...
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
 {
 	int p, trailing;
+	int i;
 
 	pango_layout_xy_to_index(tl->layout,
 		cairoToPango(x), cairoToPango(y),
@@ -282,37 +203,34 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *p
 	// fortunately Pango provides that info directly
 	if (trailing != 0)
 		p += trailing;
-	if (pos != NULL)
-		*pos = p;
+	*pos = p;
 
-	// TODO do the line detection unconditionally?
-	// TODO optimize the call to pango_layout_get_line_count()
-	if (line != NULL) {
-		int i;
+	for (i = 0; i < tl->nLines; i++) {
+		double ltop, lbottom;
 
-		for (i = 0; i < pango_layout_get_line_count(tl->layout); i++) {
-			double ltop, lbottom;
-
-			ltop = tl->lineMetrics[i].Y;
-			lbottom = ltop + tl->lineMetrics[i].Height;
-			// y will already >= ltop at this point since the past lbottom should == ltop
-			if (y < lbottom)
-				break;
-		}
-		if (i == pango_layout_get_line_count(tl->layout))
-			i--;
-		*line = i;
+		ltop = tl->lineMetrics[i].Y;
+		lbottom = ltop + tl->lineMetrics[i].Height;
+		// y will already >= ltop at this point since the past lbottom should == ltop
+		if (y < lbottom)
+			break;
 	}
+	if (i == pango_layout_get_line_count(tl->layout))
+		i--;
+	*line = i;
 }
 
-// TODO find a good API for indicating that this character isn't on the line for when the layout is resized and doing that recalculation...
 double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)
 {
 	PangoLayoutLine *pll;
 	gboolean trailing;
 	int pangox;
 
+	if (line < 0 || line >= tl->nLines)
+		return -1;
 	pll = pango_layout_get_line_readonly(tl->layout, line);
+	// note: >, not >=, because the position at end is valid!
+	if (pos < pll->start_index || pos > (pll->start_index + pll->length))
+		return -1;
 	// this behavior seems correct
 	// there's also PadWrite's TextEditor::GetCaretRect() but that requires state...
 	// TODO where does this fail?

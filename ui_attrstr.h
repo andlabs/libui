@@ -121,12 +121,6 @@ struct uiDrawTextLayoutLineMetrics {
 	// TODO trailing whitespace?
 };
 
-_UI_ENUM(uiDrawTextLayoutHitTestPosition) {
-	uiDrawTextLayoutHitTestPositionBefore,
-	uiDrawTextLayoutHitTestPositionInside,
-	uiDrawTextLayoutHitTestPositionAfter,
-};
-
 struct uiDrawTextLayoutHitTestResult {
 	// The byte position of the character at the given point.
 	size_t Pos;
@@ -142,10 +136,6 @@ struct uiDrawTextLayoutHitTestResult {
 	uiDrawTextLayoutHitTestPosition XPosition;
 	uiDrawTextLayoutHitTestPosition YPosition;
 
-	double CaretX;
-	double CaretY;
-	// CaretWidth is decided by uiDrawCaret().
-	double CaretHeight;
 // TODO?
 //	int InTrailingWhitespace;
 // TODO?
@@ -153,16 +143,6 @@ struct uiDrawTextLayoutHitTestResult {
 // extra TODO?
 //	double YFraction;
 // or just have offsets instead? in addition?
-};
-
-struct uiDrawTextLayoutByteRangeRectangle {
-	int Line;
-	double X;
-	double Y;
-	double Width;
-	double Height;
-	size_t RealStart;
-	size_t RealEnd;
 };
 
 // TODO
@@ -173,6 +153,7 @@ struct uiDrawTextLayoutByteRangeRectangle {
 // 	- uiDrawTextLayoutHeightForWidth() (returns the height that a layout would need to be to display the entire string at a given width)
 // 	- uiDrawTextLayoutRangeForSize() (returns what substring would fit in a given size)
 // 	- uiDrawTextLayoutNewWithHeight() (limits amount of string used by the height)
+// - some function to fix up a range (for text editing)
 _UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width);
 _UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *tl);
 _UI_EXTERN void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y);
@@ -180,11 +161,28 @@ _UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, dou
 _UI_EXTERN int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl);
 _UI_EXTERN void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end);
 _UI_EXTERN void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m);
-//TODO _UI_EXTERN void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, uiDrawTextLayoutHitTestResult *result);
-//TODO _UI_EXTERN void uiDrawTextLayoutByteRangeToRectangle(uiDrawTextLayout *tl, size_t start, size_t end, uiDrawTextLayoutByteRangeRectangle *r);
-// TODO draw only a line?
-// TODO other layout-specific attributes (alignment, wrapping, etc.)?
 // TODO number of lines visible for clipping rect, range visible for clipping rect?
 
+// TODO rewrite all this documentation
+
+// uiDrawTextLayoutHitTest() returns the byte offset and line closest
+// to the given point. The point is relative to the top-left of the layout.
+// If the point is outside the layout itself, the closest point is chosen;
+// this allows the function to be used for cursor positioning with the
+// mouse. Do keep the returned line in mind if used in this way; the
+// user might click on the end of a line, at which point the cursor
+// might be at the trailing edge of the last grapheme on the line
+// (subject to the operating system's APIs).
 _UI_EXTERN void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line);
+
+// uiDrawTextLayoutByteLocationInLine() returns the point offset
+// into the given line that the given byte position stands. This is
+// relative to the line's X position (as returned by
+// uiDrawTextLayoutLineGetMetrics()), which in turn is relative to
+// the top-left of the layout. This function can be used for cursor
+// positioning: if start and end are the start and end of the line
+// (as returned by uiDrawTextLayoutLineByteRange()), you will get
+// the correct offset, even if pos is at the end of the line. If pos is not
+// in the range [start, end], a negative value will be returned,
+// indicating you need to move the cursor to another line.
 _UI_EXTERN double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line);

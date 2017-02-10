@@ -163,3 +163,4 @@ _UI_EXTERN void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y
 _UI_EXTERN double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line);
 
 _UI_EXTERN void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout, size_t pos, int *line);
+// TODO allow blinking

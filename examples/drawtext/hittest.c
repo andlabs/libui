@@ -111,9 +111,9 @@ static void draw(uiAreaDrawParams *p)
 		caretLine = uiDrawTextLayoutNumLines(layout) - 1;
 		caretPos = uiAttributedStringLen(attrstr);
 	}
+#if 0
 	caretX = uiDrawTextLayoutByteLocationInLine(layout,
 		caretPos, caretLine);
-printf("%g\n", caretX);
 	uiDrawTextLayoutLineGetMetrics(layout, caretLine, &m);
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathNewFigure(path, margins + caretX, margins + m.Y);
@@ -126,6 +126,10 @@ printf("%g\n", caretX);
 	brush.A = 1.0;
 	uiDrawStroke(p->Context, path, &brush, &strokeParams);
 	uiDrawFreePath(path);
+#else
+	uiDrawCaret(p->Context, margins, margins,
+		layout, caretPos, &caretLine);
+#endif
 
 	if (uiCheckboxChecked(showLineBounds)) {
 		int i, n;

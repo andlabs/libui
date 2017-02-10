@@ -95,9 +95,10 @@ struct caretDrawParams {
 	double g;
 	double b;
 	double a;
+	double xoff;
 	double width;
 };
-extern void caretDrawParams(uiDrawContext *c, struct caretDrawParams *p);
+extern void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p);
 
 #ifdef __cplusplus
 }

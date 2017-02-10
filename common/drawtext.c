@@ -10,8 +10,6 @@ void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout,
 	uiDrawPath *path;
 	uiDrawBrush brush;
 
-	caretDrawParams(c, &cdp);
-
 	xoff = uiDrawTextLayoutByteLocationInLine(layout, pos, *line);
 	if (xoff < 0) {
 		size_t start, end;
@@ -33,12 +31,14 @@ void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout,
 	}
 	uiDrawTextLayoutLineGetMetrics(layout, *line, &m);
 
+	caretDrawParams(c, m.Height, &cdp);
+
 	uiDrawSave(c);
 
 	path = uiDrawNewPath(uiDrawFillModeWinding);
 	uiDrawPathAddRectangle(path,
 		// TODO add m.X?
-		x + xoff, y + m.Y,
+		x + xoff - cdp.xoff, y + m.Y,
 		cdp.width, m.Height);
 	uiDrawPathEnd(path);
 	brush.Type = uiDrawBrushTypeSolid;

@@ -121,7 +121,7 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 	uint32_t rune;
 	char buf[4];
 	uint16_t buf16[2];
-	size_t n8, n16;
+	size_t n8, n16;		// TODO make loop-local? to avoid using them in the wrong place again
 	size_t old, old16;
 	size_t oldlen, old16len;
 	size_t at16;

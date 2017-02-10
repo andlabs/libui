@@ -89,6 +89,16 @@ extern void attrlistForEach(struct attrlist *alist, uiAttributedString *s, uiAtt
 extern struct attrlist *attrlistNew(void);
 extern void attrlistFree(struct attrlist *alist);
 
+// drawtext.c
+struct caretDrawParams {
+	double r;
+	double g;
+	double b;
+	double a;
+	double width;
+};
+extern void caretDrawParams(uiDrawContext *c, struct caretDrawParams *p);
+
 #ifdef __cplusplus
 }
 #endif

@@ -17,8 +17,6 @@ void uninitDrawText(void)
 	dwfactory->Release();
 }
 
-#if 0 /* TODO */
-
 fontCollection *loadFontCollection(void)
 {
 	fontCollection *fc;
@@ -88,5 +86,3 @@ void fontCollectionFree(fontCollection *fc)
 	fc->fonts->Release();
 	uiFree(fc);
 }
-
-#endif

@@ -86,11 +86,11 @@ static void defaultOnChanged(uiFontButton *b, void *data)
 	// do nothing
 }
 
-uiDrawTextFont *uiFontButtonFont(uiFontButton *b)
+void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc)
 {
-	// we don't own b->params.font; we have to add a reference
-	// we don't own b->params.familyName either; we have to copy it
-	return mkTextFont(b->params.font, TRUE, b->params.familyName, TRUE, b->params.size);
+	fontdescFromIDWriteFont(b->params.font, desc);
+	desc->Family = toUTF8(b->params.familyName);
+	desc->Size = b->params.size;
 }
 
 void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data)

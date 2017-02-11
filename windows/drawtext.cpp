@@ -401,3 +401,22 @@ void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p)
 	// and there doesn't seem to be this either... (TODO check what PadWrite does?)
 	p->xoff = 0;
 }
+
+// TODO split this and the above related font matching code into a separate file?
+void fontdescFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc)
+{
+	DWRITE_FONT_STYLE dwitalic;
+	DWRITE_FONT_STRETCH dwstretch;
+
+	dwitalic = font->GetStyle();
+	// TODO reverse the above misalignment if it is corrected
+	uidesc->Weight = (uiDrawTextWeight) (font->GetWeight());
+	dwstretch = font->GetStretch();
+
+	for (uidesc->Italic = uiDrawTextItalicNormal; uidesc->Italic < uiDrawTextItalicItalic; uidesc->Italic++)
+		if (dwriteItalics[uidesc->Italic] == dwitalic)
+			break;
+	for (uidesc->Stretch = uiDrawTextStretchUltraCondensed; uidesc->Stretch < uiDrawTextStretchUltraExpanded; uidesc->Stretch++)
+		if (dwriteStretches[uidesc->Stretch] == dwstretch)
+			break;
+}

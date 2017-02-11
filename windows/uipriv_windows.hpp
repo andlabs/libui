@@ -159,3 +159,6 @@ extern D2D1_SIZE_F realGetSize(ID2D1RenderTarget *rt);
 
 // draw.cpp
 extern ID2D1DCRenderTarget *makeHDCRenderTarget(HDC dc, RECT *r);
+
+// drawtext.cpp
+extern void fontdescFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc);

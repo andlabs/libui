@@ -253,3 +253,85 @@ CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
 		fd->Italic,
 		stretchesToCTWidths[fd->Stretch]);
 }
+
+// TODO deduplicate this from italicCloseness()
+static uiDrawTextItalic italicFromCTItalic(CTFontDescriptorRef desc, CFDictionaryRef traits)
+{
+	CFNumberRef cfnum;
+	CTFontSymbolicTraits symbolic;
+	// there is no kCFNumberUInt32Type, but CTFontSymbolicTraits is uint32_t, so SInt32 should work
+	SInt32 s;
+	CFStringRef styleName;
+	BOOL isOblique;
+
+	cfnum = CFDictionaryGetValue(traits, kCTFontSymbolicTrait);
+	if (cfnum == NULL) {
+		// TODO
+	}
+	if (CFNumberGetValue(cfnum, kCFNumberSInt32Type, &s) == false) {
+		// TODO
+	}
+	symbolic = (CTFontSymbolicTraits) s;
+	// Get Rule; do not release cfnum
+	if ((symbolic & kCTFontItalicTrait) == 0)
+		return uiDrawTextItalicNormal;
+
+	// Okay, now we know it's either Italic or Oblique
+	// Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
+	isOblique = NO;		// default value
+	styleName = (CFStringRef) CTFontDescriptorCopyAttribute(desc, kCTFontStyleNameAttribute);
+	// TODO is styleName guaranteed?
+	if (styleName != NULL) {
+		CFRange range;
+
+		// note the use of the toll-free bridge for the string literal, since CFSTR() *can* return NULL
+		// TODO is this really the case? or is that just a copy-paste error from the other CFStringCreateXxx() functions? and what's this about -fconstant-cfstring?
+		range = CFStringFind(styleName, (CFStringRef) @"Oblique", kCFCompareBackwards);
+		if (range.location != kCFNotFound)
+			isOblique = YES;
+		CFRelease(styleName);
+	}
+	if (isOblique)
+		return uiDrawTextItalicOblique;
+	return uiDrawTextItalicItalic;
+}
+
+void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescriptor *uidesc)
+{
+	CFStringRef cffamily;
+	CFDictionaryRef traits;
+	double ctweight, ctstretch;
+	int wc;
+	uiDrawTextStretch stretch;
+
+	cffamily = (CFStringRef) CTFontDescriptorCopyAttribute(cfdesc, kCTFontFamilyNameAttribute);
+	if (cffamily == NULL) {
+		// TODO
+	}
+	// TODO normalize this by adding a uiDarwinCFStringToText()
+	uidesc->Family = uiDarwinNSStringToText((NSString *) cffamily);
+	CFRelease(cffamily);
+
+	traits = (CFDictionaryRef) CTFontDescriptorCopyAttribute(cfdesc, kCTFontTraitsAttribute);
+	if (traits == NULL) {
+		// TODO
+	}
+	ctweight = doubleAttr(traits, kCTFontWeightTrait);
+	uidesc->Italic = italicFromCTItalic(ctdesc, traits);
+	ctstretch = doubleAttr(traits, kCTFontWidthTrait);
+	CFRelease(traits);
+
+	// TODO make sure this is correct
+	for (wc = 0; wc < 10; wc++)
+		if (ctweight >= weightsToCTWeights[wc])
+			if (ctweight < weightsToCTWeights[wc + 1])
+				break;
+	uidesc->Weight = ((ctweight - weightsToCTWeights[wc]) / (weightsToCTWeights[wc + 1] - weightsToCTWeights[wc])) * 100;
+	uidesc->Weight += wc * 100;
+
+	// TODO is this correct?
+	for (stretch = uiDrawTextStretchUltraCondensed; stretch < uiDrawTextStretchUltraExpanded; stretch++)
+		if (ctstretch <= stretchesToCTWidth[stretch])
+			break;
+	uidesc->Stretch = stretch;
+}

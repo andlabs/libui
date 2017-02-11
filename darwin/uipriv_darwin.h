@@ -109,15 +109,9 @@ extern uiDrawContext *newContext(CGContextRef, CGFloat);
 extern void freeContext(uiDrawContext *);
 
 // fontbutton.m
-#if 0 /* TODO */
 extern BOOL fontButtonInhibitSendAction(SEL sel, id from, id to);
 extern BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
 extern void setupFontPanel(void);
-#else
-static inline BOOL fontButtonInhibitSendAction(SEL sel, id from, id to) { return NO; }
-static inline BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override) { return NO; }
-static inline void setupFontPanel(void) {}
-#endif
 
 // colorbutton.m
 extern BOOL colorButtonInhibitSendAction(SEL sel, id from, id to);
@@ -148,4 +142,4 @@ extern void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdg
 
 // fontmatch.m
 extern CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd);
-extern NSFontDescriptor *fontdescToNSFontDescriptor(uiDrawFontDescriptor *fd);
+extern void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescriptor *uidesc);

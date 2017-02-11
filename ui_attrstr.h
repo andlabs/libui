@@ -164,3 +164,11 @@ _UI_EXTERN double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_
 
 _UI_EXTERN void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout, size_t pos, int *line);
 // TODO allow blinking
+
+typedef struct uiFontButton uiFontButton;
+#define uiFontButton(this) ((uiFontButton *) (this))
+// TODO document this returns a new font
+_UI_EXTERN void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc);
+// TOOD SetFont, mechanics
+_UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);
+_UI_EXTERN uiFontButton *uiNewFontButton(void);

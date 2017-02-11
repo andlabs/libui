@@ -478,26 +478,6 @@ _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
 // TODO merge back in
 #include "ui_attrstr.h"
 
-// TODO
-#if 0
-struct uiDrawTextFontMetrics {
-	double Ascent;
-	double Descent;
-	double Leading;
-	// TODO do these two mean the same across all platforms?
-	double UnderlinePos;
-	double UnderlineThickness;
-};
-
-_UI_EXTERN uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc);
-_UI_EXTERN void uiDrawFreeTextFont(uiDrawTextFont *font);
-_UI_EXTERN uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font);
-_UI_EXTERN void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc);
-// TODO make copy with given attributes methods?
-// TODO yuck this name
-_UI_EXTERN void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics);
-#endif
-
 _UI_ENUM(uiModifiers) {
 	uiModifierCtrl = 1 << 0,
 	uiModifierAlt = 1 << 1,
@@ -576,16 +556,6 @@ struct uiAreaKeyEvent {
 
 	int Up;
 };
-
-#if 0 /* TODO */
-typedef struct uiFontButton uiFontButton;
-#define uiFontButton(this) ((uiFontButton *) (this))
-// TODO document this returns a new font
-_UI_EXTERN uiDrawTextFont *uiFontButtonFont(uiFontButton *b);
-// TOOD SetFont, mechanics
-_UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);
-_UI_EXTERN uiFontButton *uiNewFontButton(void);
-#endif
 
 typedef struct uiColorButton uiColorButton;
 #define uiColorButton(this) ((uiColorButton *) (this))

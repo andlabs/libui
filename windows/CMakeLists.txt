@@ -76,10 +76,9 @@ macro(_handle_static)
 		COMMENT "Copying libui.res")
 endmacro()
 
-# notice that usp10 comes before gdi32
 # TODO prune this list
 set(_LIBUI_LIBS
-	user32 kernel32 usp10 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
+	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
 PARENT_SCOPE)
 
 if(NOT MSVC)

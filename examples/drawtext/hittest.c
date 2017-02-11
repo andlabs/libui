@@ -3,6 +3,7 @@
 
 // TODO have a ligature
 // TODO the hiding and showing does not work properly on GTK+
+// TODO using the arrow keys allows us to walk back to the end of the line; IIRC arrow keys shouldn't do that
 
 static const char *text =
 	"Each of the glyphs an end user interacts with are called graphemes. "

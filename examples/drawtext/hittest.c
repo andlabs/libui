@@ -2,7 +2,6 @@
 #include "drawtext.h"
 
 // TODO have a ligature
-// TODO allow clicking on the end of a line to put the caret there
 // TODO the hiding and showing does not work properly on GTK+
 
 static const char *text =
@@ -70,24 +69,11 @@ static uiDrawBrush fillBrushes[4] = {
 	},
 };
 
-// TODO this should be const
-static uiDrawStrokeParams strokeParams = {
-	.Cap = uiDrawLineCapFlat,
-	.Join = uiDrawLineJoinMiter,
-	.Thickness = 2,
-	.MiterLimit = uiDrawDefaultMiterLimit,
-	.Dashes = NULL,
-	.NumDashes = 0,
-	.DashPhase = 0,
-};
-
 static void draw(uiAreaDrawParams *p)
 {
 	uiDrawPath *path;
 	uiDrawTextLayout *layout;
 	uiDrawTextLayoutLineMetrics m;
-	uiDrawBrush brush;
-	double caretX;
 
 	// only clip the text, not the guides
 	uiDrawSave(p->Context);
@@ -111,25 +97,8 @@ static void draw(uiAreaDrawParams *p)
 		caretLine = uiDrawTextLayoutNumLines(layout) - 1;
 		caretPos = uiAttributedStringLen(attrstr);
 	}
-#if 0
-	caretX = uiDrawTextLayoutByteLocationInLine(layout,
-		caretPos, caretLine);
-	uiDrawTextLayoutLineGetMetrics(layout, caretLine, &m);
-	path = uiDrawNewPath(uiDrawFillModeWinding);
-	uiDrawPathNewFigure(path, margins + caretX, margins + m.Y);
-	uiDrawPathLineTo(path, margins + caretX, margins + m.Y + m.Height);
-	uiDrawPathEnd(path);
-	brush.Type = uiDrawBrushTypeSolid;
-	brush.R = 0.0;
-	brush.G = 0.0;
-	brush.B = 1.0;
-	brush.A = 1.0;
-	uiDrawStroke(p->Context, path, &brush, &strokeParams);
-	uiDrawFreePath(path);
-#else
 	uiDrawCaret(p->Context, margins, margins,
 		layout, caretPos, &caretLine);
-#endif
 
 	if (uiCheckboxChecked(showLineBounds)) {
 		int i, n;
@@ -154,7 +123,6 @@ static void draw(uiAreaDrawParams *p)
 static void mouse(uiAreaMouseEvent *e)
 {
 	uiDrawTextLayout *layout;
-//	uiDrawTextLayoutHitTestResult res;
 	char labelText[128];
 
 	if (e->Down != 1)
@@ -165,24 +133,16 @@ static void mouse(uiAreaMouseEvent *e)
 		e->AreaWidth - 2 * margins);
 	uiDrawTextLayoutHitTest(layout,
 		e->X - margins, e->Y - margins,
-//		&res);
 		&caretPos, &caretLine);
-//	caretX = uiDrawTextLayoutByteLocationInLine(layout, pos, caretLine);
 	uiDrawFreeTextLayout(layout);
 
 	// urgh %zd is not supported by MSVC with sprintf()
 	// TODO get that part in test/ about having no other option
-	sprintf(labelText, "pos %d line %d",// x %g",// x position %s y position %s",
-		(int) caretPos, caretLine);//, caretX);
-/*		(int) (res.Pos), res.Line,
-		positions[res.XPosition],
-		positions[res.YPosition]);
-*/	uiLabelSetText(caretLabel, labelText);
+	sprintf(labelText, "pos %d line %d",
+		(int) caretPos, caretLine);
+	uiLabelSetText(caretLabel, labelText);
 
-/*	cursorX = res.CaretX;
-	cursorY = res.CaretY;
-	cursorHeight = res.CaretHeight;
-*/	redraw();
+	redraw();
 }
 
 static struct example hitTestExample;

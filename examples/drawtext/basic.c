@@ -254,6 +254,7 @@ struct example *mkBasicExample(void)
 	basicExample.panel = uiControl(panel);
 	basicExample.draw = draw;
 	basicExample.mouse = NULL;
+	basicExample.key = NULL;
 
 	attrstr = uiNewAttributedString(text);
 

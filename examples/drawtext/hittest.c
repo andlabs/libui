@@ -35,7 +35,6 @@ static uiCheckbox *showLineBounds;
 
 static int caretLine = -1;
 static size_t caretPos;
-//static double caretX;
 
 // TODO should be const?
 static uiDrawBrush fillBrushes[4] = {
@@ -136,6 +135,7 @@ static void mouse(uiAreaMouseEvent *e)
 		&caretPos, &caretLine);
 	uiDrawFreeTextLayout(layout);
 
+	// TODO move this into the draw handler so it is reflected by keyboard-based position changes
 	// urgh %zd is not supported by MSVC with sprintf()
 	// TODO get that part in test/ about having no other option
 	sprintf(labelText, "pos %d line %d",
@@ -143,6 +143,41 @@ static void mouse(uiAreaMouseEvent *e)
 	uiLabelSetText(caretLabel, labelText);
 
 	redraw();
+}
+
+static int key(uiAreaKeyEvent *e)
+{
+	size_t grapheme;
+
+	if (e->Up)
+		return 0;
+	if (e->Key != 0)
+		return 0;
+	switch (e->ExtKey) {
+	case uiExtKeyUp:
+		// TODO
+		return 1;
+	case uiExtKeyDown:
+		// TODO
+		return 1;
+	case uiExtKeyLeft:
+		grapheme = uiAttributedStringByteIndexToGrapheme(attrstr, caretPos);
+		if (grapheme == 0)
+			return 0;
+		grapheme--;
+		caretPos = uiAttributedStringGraphemeToByteIndex(attrstr, grapheme);
+		redraw();
+		return 1;
+	case uiExtKeyRight:
+		grapheme = uiAttributedStringByteIndexToGrapheme(attrstr, caretPos);
+		if (grapheme == uiAttributedStringNumGraphemes(attrstr))
+			return 0;
+		grapheme++;
+		caretPos = uiAttributedStringGraphemeToByteIndex(attrstr, grapheme);
+		redraw();
+		return 1;
+	}
+	return 0;
 }
 
 static struct example hitTestExample;
@@ -174,6 +209,7 @@ struct example *mkHitTestExample(void)
 	hitTestExample.panel = uiControl(panel);
 	hitTestExample.draw = draw;
 	hitTestExample.mouse = mouse;
+	hitTestExample.key = key;
 
 	attrstr = uiNewAttributedString(text);
 

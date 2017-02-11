@@ -47,7 +47,8 @@ static void handlerDragBroken(uiAreaHandler *ah, uiArea *a)
 
 static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 {
-	// reject all keys
+	if (examples[curExample]->key != NULL)
+		return examples[curExample]->key(e);
 	return 0;
 }
 

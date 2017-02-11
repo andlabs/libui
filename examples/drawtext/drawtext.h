@@ -8,6 +8,7 @@ struct example {
 	uiControl *panel;
 	void (*draw)(uiAreaDrawParams *p);
 	void (*mouse)(uiAreaMouseEvent *e);
+	int (*key)(uiAreaKeyEvent *e);
 	// TODO key?
 };
 

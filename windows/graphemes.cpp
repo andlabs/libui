@@ -21,12 +21,11 @@ static HRESULT itemize(WCHAR *s, size_t len, SCRIPT_ITEM **out, int *outn)
 	int n;
 	HRESULT hr;
 
-	// make sure these are zero-initialized to avoid mangling the text
-	ZeroMemory(&sc, sizeof (SCRIPT_CONTROL));
-	ZeroMemory(&ss, sizeof (SCRIPT_STATE));
-
 	maxItems = len + 2;
 	for (;;) {
+		// make sure these are zero-initialized to avoid mangling the text
+		ZeroMemory(&sc, sizeof (SCRIPT_CONTROL));
+		ZeroMemory(&ss, sizeof (SCRIPT_STATE));
 		items = new SCRIPT_ITEM[maxItems + 1];
 		hr = ScriptItemize(s, len,
 			maxItems,
@@ -101,8 +100,9 @@ struct graphemes *graphemes(void *s, size_t len)
 		delete[] logattr;
 	}
 	// and handle the last item for the end of the string
-	*pGTP++ = items[nItems].iCharPos;
-	*pPTG++ = pGTP - g->graphemesToPoints;
+	*pGTP = items[nItems].iCharPos;
+	*pPTG = pGTP - g->graphemesToPoints;
+	// TODO is any of the above broken?... also for all platforms, are the last few bytes not covered?
 
 	delete[] items;
 	return g;

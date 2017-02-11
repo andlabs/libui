@@ -2,6 +2,7 @@
 #include "../ui.h"
 #include "uipriv.h"
 
+// TODO figure out how to make this work on GTK+
 void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout, size_t pos, int *line)
 {
 	double xoff;

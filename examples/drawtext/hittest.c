@@ -193,10 +193,16 @@ static void checkboxChecked(uiCheckbox *c, void *data)
 
 static void changeFont(uiFontButton *b, void *data)
 {
-	// TODO free old font name
+	if (defaultFont.Family != fontFamily)
+		uiFreeText(defaultFont.Family);
 	// TODO rename defaultFont
 	uiFontButtonFont(fontButton, &defaultFont);
-	// TODO dump the new font
+	printf("{\n\tfamily: %s\n\tsize: %g\n\tweight: %d\n\titalic: %d\n\tstretch: %d\n}\n",
+		defaultFont.Family,
+		defaultFont.Size,
+		(int) (defaultFont.Weight),
+		(int) (defaultFont.Italic),
+		(int) (defaultFont.Stretch));
 	redraw();
 }
 

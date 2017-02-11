@@ -11,7 +11,7 @@
 - (void)activateFontButton;
 - (void)deactivateFontButton:(BOOL)activatingAnother;
 - (void)deactivateOnClose:(NSNotification *)note;
-- (uiDrawTextFont *)libuiFont;
+- (void)getfontdesc:(uiDrawFontDescriptor *)uidesc;
 @end
 
 // only one may be active at one time
@@ -138,9 +138,16 @@ struct uiFontButton {
 		NSFontPanelCollectionModeMask;
 }
 
-- (uiDrawTextFont *)libuiFont
+- (void)getfontdesc:(uiDrawFontDescriptor *)uidesc
 {
-	return mkTextFontFromNSFont(self->libui_font);
+	CTFontRef ctfont;
+	CTFontDescriptorRef ctdesc;
+
+	ctfont = (CTFontRef) (self->libui_font);
+	ctdesc = CTFontCopyFontDescriptor(ctfont);
+	fontdescFromCTFontDescriptor(ctdesc, uidesc);
+	CFRelease(ctdesc);
+	uidesc->Size = CTFontGetSize(ctfont);
 }
 
 @end
@@ -192,9 +199,9 @@ static void defaultOnChanged(uiFontButton *b, void *data)
 	// do nothing
 }
 
-uiDrawTextFont *uiFontButtonFont(uiFontButton *b)
+void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc)
 {
-	return [b->button libuiFont];
+	[b->button getfontdesc:desc];
 }
 
 void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data)

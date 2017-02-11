@@ -31,8 +31,10 @@ static uiAttributedString *attrstr;
 #define margins 10
 
 static uiBox *panel;
+static uiBox *vbox;
 static uiLabel *caretLabel;
 static uiCheckbox *showLineBounds;
+static uiFontButton *fontButton;
 
 static int caretLine = -1;
 static size_t caretPos;
@@ -189,22 +191,38 @@ static void checkboxChecked(uiCheckbox *c, void *data)
 	redraw();
 }
 
-static uiCheckbox *newCheckbox(const char *text)
+static void changeFont(uiFontButton *b, void *data)
+{
+	// TODO free old font name
+	// TODO rename defaultFont
+	uiFontButtonFont(fontButton, &defaultFont);
+	// TODO dump the new font
+	redraw();
+}
+
+// TODO share?
+static uiCheckbox *newCheckbox(uiBox *box, const char *text)
 {
 	uiCheckbox *c;
 
 	c = uiNewCheckbox(text);
 	uiCheckboxOnToggled(c, checkboxChecked, NULL);
-	uiBoxAppend(panel, uiControl(c), 0);
+	uiBoxAppend(box, uiControl(c), 0);
 	return c;
 }
 
 struct example *mkHitTestExample(void)
 {
-	panel = uiNewVerticalBox();
+	panel = uiNewHorizontalBox();
+	vbox = uiNewVerticalBox();
+	uiBoxAppend(panel, uiControl(vbox), 1);
 	caretLabel = uiNewLabel("Caret information is shown here");
-	uiBoxAppend(panel, uiControl(caretLabel), 0);
-	showLineBounds = newCheckbox("Show Line Bounds (for debugging metrics)");
+	uiBoxAppend(vbox, uiControl(caretLabel), 0);
+	showLineBounds = newCheckbox(vbox, "Show Line Bounds (for debugging metrics)");
+	fontButton = uiNewFontButton();
+	uiFontButtonOnChanged(fontButton, changeFont, NULL);
+	// TODO set the font button to the current defaultFont
+	uiBoxAppend(panel, uiControl(fontButton), 0);
 
 	hitTestExample.name = "Hit-Testing and Grapheme Boundaries";
 	hitTestExample.panel = uiControl(panel);

@@ -304,7 +304,7 @@ void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescript
 	int wc;
 	uiDrawTextStretch stretch;
 
-	cffamily = (CFStringRef) CTFontDescriptorCopyAttribute(cfdesc, kCTFontFamilyNameAttribute);
+	cffamily = (CFStringRef) CTFontDescriptorCopyAttribute(ctdesc, kCTFontFamilyNameAttribute);
 	if (cffamily == NULL) {
 		// TODO
 	}
@@ -312,7 +312,7 @@ void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescript
 	uidesc->Family = uiDarwinNSStringToText((NSString *) cffamily);
 	CFRelease(cffamily);
 
-	traits = (CFDictionaryRef) CTFontDescriptorCopyAttribute(cfdesc, kCTFontTraitsAttribute);
+	traits = (CFDictionaryRef) CTFontDescriptorCopyAttribute(ctdesc, kCTFontTraitsAttribute);
 	if (traits == NULL) {
 		// TODO
 	}
@@ -331,7 +331,7 @@ void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescript
 
 	// TODO is this correct?
 	for (stretch = uiDrawTextStretchUltraCondensed; stretch < uiDrawTextStretchUltraExpanded; stretch++)
-		if (ctstretch <= stretchesToCTWidth[stretch])
+		if (ctstretch <= stretchesToCTWidths[stretch])
 			break;
 	uidesc->Stretch = stretch;
 }

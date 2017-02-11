@@ -86,7 +86,21 @@ struct uiDrawFontDescriptor {
 };
 
 typedef struct uiDrawTextLayout uiDrawTextLayout;
+typedef struct uiDrawTextLayoutParams uiDrawTextLayoutParams;
 typedef struct uiDrawTextLayoutLineMetrics uiDrawTextLayoutLineMetrics;
+
+_UI_ENUM(uiDrawTextLayoutAlign) {
+	uiDrawTextLayoutAlignLeft,
+	uiDrawTextLayoutAlignCenter,
+	uiDrawTextLayoutAlignRight,
+};
+
+struct uiDrawTextLayoutParams {
+	uiAttributedString *String;
+	uiDrawFontDescriptor *DefaultFont;
+	double Width;
+	uiDrawTextLayoutAlign Align;
+};
 
 struct uiDrawTextLayoutLineMetrics {
 	// This describes the overall bounding box of the line.
@@ -128,7 +142,7 @@ struct uiDrawTextLayoutLineMetrics {
 // 	- uiDrawTextLayoutRangeForSize() (returns what substring would fit in a given size)
 // 	- uiDrawTextLayoutNewWithHeight() (limits amount of string used by the height)
 // - some function to fix up a range (for text editing)
-_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width);
+_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *params);
 _UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *tl);
 _UI_EXTERN void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y);
 _UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height);

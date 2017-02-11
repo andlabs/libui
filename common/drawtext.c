@@ -10,24 +10,21 @@ void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout,
 	uiDrawPath *path;
 	uiDrawBrush brush;
 
+	if (*line < 0)
+		*line = 0;
+	if (*line > (uiDrawTextLayoutNumLines(layout) - 1))
+		*line = (uiDrawTextLayoutNumLines(layout) - 1);
+	// TODO cap pos
 	xoff = uiDrawTextLayoutByteLocationInLine(layout, pos, *line);
-	if (xoff < 0) {
+	while (xoff < 0) {
 		size_t start, end;
-		int incr;
 
-		if (*line > (uiDrawTextLayoutNumLines(layout) - 1)) {
-			*line = (uiDrawTextLayoutNumLines(layout) - 1);
-			incr = -1;
-		} else {
-			uiDrawTextLayoutLineByteRange(layout, *line, &start, &end);
-			incr = 1;
-			if (end < pos)
-				incr = -1;
-		}
-		while (xoff < 0) {
-			*line += incr;
-			xoff = uiDrawTextLayoutByteLocationInLine(layout, pos, *line);
-		}
+		uiDrawTextLayoutLineByteRange(layout, *line, &start, &end);
+		if (end < pos)		// too far up
+			(*line)++;
+		else
+			(*line)--;
+		xoff = uiDrawTextLayoutByteLocationInLine(layout, pos, *line);
 	}
 	uiDrawTextLayoutLineGetMetrics(layout, *line, &m);
 

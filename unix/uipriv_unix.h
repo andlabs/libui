@@ -45,12 +45,6 @@ extern void childSetMargined(struct child *c, int margined);
 extern uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style);
 extern void freeContext(uiDrawContext *);
 
-// drawtext.c
-#if 0 /* TODO */
-extern uiDrawTextFont *mkTextFont(PangoFont *f, gboolean add);
-extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
-#endif
-
 // image.c
 /*TODO remove this*/typedef struct uiImage uiImage;
 extern cairo_surface_t *imageAppropriateSurface(uiImage *i, GtkWidget *w);
@@ -62,3 +56,6 @@ extern GtkCellRenderer *newCellRendererButton(void);
 extern void loadFutures(void);
 extern PangoAttribute *FUTURE_pango_attr_foreground_alpha_new(guint16 alpha);
 extern gboolean FUTURE_gtk_widget_path_iter_set_object_name(GtkWidgetPath *path, gint pos, const char *name);
+
+// drawtext.c
+extern void fontdescFromPangoFontDescription(PangoFontDescription *pdesc, uiDrawFontDescriptor *uidesc);

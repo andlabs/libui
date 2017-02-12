@@ -2,6 +2,7 @@
 #import "uipriv_darwin.h"
 
 // unlike the other systems, Core Text rolls family, size, weight, italic, width, AND opentype features into the "font" attribute
+// TODO opentype features and AAT fvar table info is lost, so a handful of fonts in the font panel ("Titling" variants of some fonts and Skia and possibly others but those are the examples I know about) cannot be represented by uiDrawFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
 // TODO see if we could use NSAttributedString?
 // TODO consider renaming this struct and the fep variable(s)
 struct foreachParams {
@@ -50,6 +51,30 @@ static int processAttribute(uiAttributedString *s, uiAttribute type, uintptr_t v
 		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
 			desc->Family = (char *) value;
+		});
+		break;
+	case uiAttributeSize:
+		ensureFontInRange(p, start, end);
+		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
+			desc->Size = *((double *) value);
+		});
+		break;
+	case uiAttributeWeight:
+		ensureFontInRange(p, start, end);
+		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
+			desc->Weight = (uiDrawTextWeight) value;
+		});
+		break;
+	case uiAttributeItalic:
+		ensureFontInRange(p, start, end);
+		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
+			desc->Italic = (uiDrawTextItalic) value;
+		});
+		break;
+	case uiAttributeStretch:
+		ensureFontInRange(p, start, end);
+		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
+			desc->Stretch = (uiDrawTextStretch) value;
 		});
 		break;
 	// TODO

@@ -22,6 +22,51 @@ static void setupAttributedString(void)
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	next = "multiple sizes";
+	static double eighteen = 18;
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	uiAttributedStringSetAttribute(attrstr,
+		uiAttributeSize,
+		(uintptr_t) (&eighteen),
+		start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "multiple weights";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	uiAttributedStringSetAttribute(attrstr,
+		uiAttributeWeight,
+		(uintptr_t) uiDrawTextWeightBold,
+		start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "multiple italics";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	uiAttributedStringSetAttribute(attrstr,
+		uiAttributeItalic,
+		(uintptr_t) uiDrawTextItalicItalic,
+		start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "multiple stretches";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	uiAttributedStringSetAttribute(attrstr,
+		uiAttributeStretch,
+		(uintptr_t) uiDrawTextStretchCondensed,
+		start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "multiple TODO";
 }
 
 static char fontFamily[] = "Times New Roman";

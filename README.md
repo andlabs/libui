@@ -147,7 +147,8 @@ Other people have made bindings to other languages:
 
 Language | Bindings
 --- | ---
-C#/.net | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding), [SharpUI](https://github.com/benpye/sharpui/)
+C# / .NET Framework | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding), [SharpUI](https://github.com/benpye/sharpui/)
+C# / .NET Core | [DevZH.UI](https://github.com/noliar/DevZH.UI)
 CHICKEN Scheme | [wasamasa/libui](https://github.com/wasamasa/libui)
 Crystal | [libui.cr](https://github.com/Fusion/libui.cr)
 D | [DerelictLibui (flat API)](https://github.com/Extrawurst/DerelictLibui), [libuid (object-oriented)](https://github.com/mogud/libuid)

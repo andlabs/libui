@@ -143,3 +143,6 @@ extern void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdg
 // fontmatch.m
 extern CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd);
 extern void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescriptor *uidesc);
+
+// attrstr.m
+extern CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p);

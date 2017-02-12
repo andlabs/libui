@@ -4,6 +4,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/alloc.m
 	darwin/area.m
 	darwin/areaevents.m
+	darwin/attrstr.m
 	darwin/autolayout.m
 	darwin/box.m
 	darwin/button.m

@@ -36,6 +36,7 @@ static uiBox *vbox;
 static uiLabel *caretLabel;
 static uiCheckbox *showLineBounds;
 static uiFontButton *fontButton;
+static uiCombobox *textAlign;
 
 static int caretLine = -1;
 static size_t caretPos;
@@ -205,6 +206,13 @@ static void changeFont(uiFontButton *b, void *data)
 	redraw();
 }
 
+static void changeTextAlign(uiCombobox *c, void *data)
+{
+	// note the order of the items added below
+	params.Align = (uiDrawTextLayoutAlign) uiComboboxSelected(textAlign);
+	redraw();
+}
+
 // TODO share?
 static uiCheckbox *newCheckbox(uiBox *box, const char *text)
 {
@@ -220,14 +228,24 @@ struct example *mkHitTestExample(void)
 {
 	panel = uiNewHorizontalBox();
 	vbox = uiNewVerticalBox();
+	// TODO the second vbox causes this not to stretch at least on OS X
 	uiBoxAppend(panel, uiControl(vbox), 1);
 	caretLabel = uiNewLabel("Caret information is shown here");
 	uiBoxAppend(vbox, uiControl(caretLabel), 0);
 	showLineBounds = newCheckbox(vbox, "Show Line Bounds (for debugging metrics)");
+	vbox = uiNewVerticalBox();
+	uiBoxAppend(panel, uiControl(vbox), 0);
 	fontButton = uiNewFontButton();
 	uiFontButtonOnChanged(fontButton, changeFont, NULL);
 	// TODO set the font button to the current defaultFont
-	uiBoxAppend(panel, uiControl(fontButton), 0);
+	uiBoxAppend(vbox, uiControl(fontButton), 0);
+	textAlign = uiNewCombobox();
+	// note that these are in the order in the enum
+	uiComboboxAppend(textAlign, "Left");
+	uiComboboxAppend(textAlign, "Center");
+	uiComboboxAppend(textAlign, "Right");
+	uiComboboxOnSelected(textAlign, changeTextAlign, NULL);
+	uiBoxAppend(vbox, uiControl(textAlign), 0);
 
 	hitTestExample.name = "Hit-Testing and Grapheme Boundaries";
 	hitTestExample.panel = uiControl(panel);

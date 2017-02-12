@@ -5,6 +5,7 @@ static uiAttributedString *attrstr;
 
 static void setupAttributedString(void)
 {
+	uiAttributeSpec spec;
 	size_t start, end;
 	const char *next;
 
@@ -14,22 +15,20 @@ static void setupAttributedString(void)
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
-	uiAttributedStringSetAttribute(attrstr,
-		uiAttributeFamily,
-		(uintptr_t) "Courier New",
-		start, end);
+	spec.Type = uiAttributeFamily;
+	spec.Value = (uintptr_t) "Courier New";
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	next = "multiple sizes";
-	static double eighteen = 18;
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSize;
+	spec.Double = 18;
 	uiAttributedStringSetAttribute(attrstr,
-		uiAttributeSize,
-		(uintptr_t) (&eighteen),
-		start, end);
+		&spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
@@ -37,10 +36,9 @@ static void setupAttributedString(void)
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
-	uiAttributedStringSetAttribute(attrstr,
-		uiAttributeWeight,
-		(uintptr_t) uiDrawTextWeightBold,
-		start, end);
+	spec.Type = uiAttributeWeight;
+	spec.Value = (uintptr_t) uiDrawTextWeightBold;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
@@ -48,10 +46,9 @@ static void setupAttributedString(void)
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
-	uiAttributedStringSetAttribute(attrstr,
-		uiAttributeItalic,
-		(uintptr_t) uiDrawTextItalicItalic,
-		start, end);
+	spec.Type = uiAttributeItalic;
+	spec.Value = (uintptr_t) uiDrawTextItalicItalic;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
@@ -59,10 +56,9 @@ static void setupAttributedString(void)
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
-	uiAttributedStringSetAttribute(attrstr,
-		uiAttributeStretch,
-		(uintptr_t) uiDrawTextStretchCondensed,
-		start, end);
+	spec.Type = uiAttributeStretch;
+	spec.Value = (uintptr_t) uiDrawTextStretchCondensed;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 

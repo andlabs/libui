@@ -12,8 +12,7 @@ The linked list is not a ring; alist->fist->prev == NULL and alist->last->next =
 */
 
 struct attr {
-	uiAttribute type;
-	uintptr_t val;
+	uiAttributeSpec spec;
 	size_t start;
 	size_t end;
 	struct attr *prev;
@@ -178,8 +177,7 @@ static struct attr *attrDropRange(struct attrlist *alist, struct attr *a, size_t
 
 	// we'll need to split the attribute into two
 	b = uiNew(struct attr);
-	b->type = a->type;
-	b->val = a->val;
+	b->spec = a->spec;
 	b->start = end;
 	b->end = a->end;
 	*tail = b;
@@ -223,8 +221,7 @@ static struct attr *attrSplitAt(struct attrlist *alist, struct attr *a, size_t a
 		return NULL;
 
 	b = uiNew(struct attr);
-	b->type = a->type;
-	b->val = a->val;
+	b->spec = a->spec;
 	b->start = at;
 	b->end = a->end;
 
@@ -287,7 +284,24 @@ static struct attr *attrDeleteRange(struct attrlist *alist, struct attr *a, size
 	return a->next;
 }
 
-void attrlistInsertAttribute(struct attrlist *alist, uiAttribute type, uintptr_t val, size_t start, size_t end)
+static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
+{
+	if (attr->spec.Type != spec->Type)
+		return 0;
+	switch (attr->spec.Type) {
+	case uiAttributeFamily:
+		// TODO should we start copying these strings?
+		return strcmp((char *) (attr->spec.Value), (char *) (spec->Value)) == 0;
+	case uiAttributeSize:
+		// TODO use a closest match?
+		return attr->spec.Double == spec->Double;
+	// TODO
+	}
+	// handles the rest
+	return attr->spec.Value == spec->Value;
+}
+
+void attrlistInsertAttribute(struct attrlist *alist, uiAttributeSpec *spec, size_t start, size_t end)
 {
 	struct attr *a;
 	struct attr *before;
@@ -309,7 +323,7 @@ void attrlistInsertAttribute(struct attrlist *alist, uiAttribute type, uintptr_t
 			goto next;
 
 		// should we split this?
-		if (before->type != type)
+		if (before->spec.Type != spec->Type)
 			goto next;
 		lstart = start;
 		lend = end;
@@ -317,10 +331,8 @@ void attrlistInsertAttribute(struct attrlist *alist, uiAttribute type, uintptr_t
 			goto next;
 
 		// okay so this might conflict; if the val is the same as the one we want, we need to expand the existing attribute, not fragment anything
-		// TODO this might cause problems with system specific attributes, if we support those; maybe also user-specific?
-		// TODO will this cause problems with fonts?
 		// TODO will this reduce fragmentation if we first add from 0 to 2 and then from 2 to 4? or do we have to do that separately?
-		if (before->val == val) {
+		if (specsIdentical(before, spec)) {
 			attrGrow(alist, before, start, end);
 			return;
 		}
@@ -335,8 +347,7 @@ void attrlistInsertAttribute(struct attrlist *alist, uiAttribute type, uintptr_t
 
 	// if we got here, we know we have to add the attribute before before
 	a = uiNew(struct attr);
-	a->type = type;
-	a->val = val;
+	a->spec = *spec;
 	a->start = start;
 	a->end = end;
 	attrInsertBefore(alist, a, before);
@@ -498,7 +509,7 @@ void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t st
 			// and at this point we're done, so
 			break;
 		}
-		if (a->type != type)
+		if (a->spec.Type != type)
 			goto next;
 		lstart = start;
 		lend = end;
@@ -587,7 +598,7 @@ void attrlistForEach(struct attrlist *alist, uiAttributedString *s, uiAttributed
 	for (a = alist->first; a != NULL; a = a->next)
 		// TODO document this
 		// TODO should this be return 0 to break?
-		if ((*f)(s, a->type, a->val, a->start, a->end, data))
+		if ((*f)(s, &(a->spec), a->start, a->end, data))
 			break;
 }
 

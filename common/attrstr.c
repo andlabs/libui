@@ -297,9 +297,9 @@ size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos)
 	return pos;
 }
 
-void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttribute type, uintptr_t value, size_t start, size_t end)
+void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end)
 {
-	attrlistInsertAttribute(s->attrs, type, value, start, end);
+	attrlistInsertAttribute(s->attrs, spec, start, end);
 }
 
 // TODO introduce an iterator?

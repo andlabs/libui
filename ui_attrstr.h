@@ -1,4 +1,5 @@
 typedef struct uiAttributedString uiAttributedString;
+typedef struct uiAttributeSpec uiAttributeSpec;
 
 _UI_ENUM(uiAttribute) {
 	// TODO once we allow loading fonts in memory we can't use just one pointer anymore
@@ -13,7 +14,13 @@ _UI_ENUM(uiAttribute) {
 	// TODO uiAttributeCustom,
 };
 
-typedef int (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *s, uiAttribute type, uintptr_t value, size_t start, size_t end, void *data);
+struct uiAttributeSpec {
+	uiAttribute Type;
+	uintptr_t Value;
+	double Double;
+};
+
+typedef int (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data);
 
 // @role uiAttributedString constructor
 // uiNewAttributedString() creates a new uiAttributedString from
@@ -39,7 +46,7 @@ _UI_EXTERN void uiAttributedStringDelete(uiAttributedString *s, size_t start, si
 _UI_EXTERN size_t uiAttributedStringNumGraphemes(uiAttributedString *s);
 _UI_EXTERN size_t uiAttributedStringByteIndexToGrapheme(uiAttributedString *s, size_t pos);
 _UI_EXTERN size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos);
-_UI_EXTERN void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttribute type, uintptr_t value, size_t start, size_t end);
+_UI_EXTERN void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end);
 _UI_EXTERN void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
 
 typedef struct uiDrawFontDescriptor uiDrawFontDescriptor;

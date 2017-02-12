@@ -40,41 +40,41 @@ static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end,
 	}
 }
 
-static int processAttribute(uiAttributedString *s, uiAttribute type, uintptr_t value, size_t start, size_t end, void *data)
+static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 
 	start = attrstrUTF8ToUTF16(s, start);
 	end = attrstrUTF8ToUTF16(s, end);
-	switch (type) {
+	switch (spec->Type) {
 	case uiAttributeFamily:
 		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Family = (char *) value;
+			desc->Family = (char *) (spec->Value);
 		});
 		break;
 	case uiAttributeSize:
 		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Size = *((double *) value);
+			desc->Size = spec->Double;
 		});
 		break;
 	case uiAttributeWeight:
 		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Weight = (uiDrawTextWeight) value;
+			desc->Weight = (uiDrawTextWeight) (spec->Value);
 		});
 		break;
 	case uiAttributeItalic:
 		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Italic = (uiDrawTextItalic) value;
+			desc->Italic = (uiDrawTextItalic) (spec->Value);
 		});
 		break;
 	case uiAttributeStretch:
 		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Stretch = (uiDrawTextStretch) value;
+			desc->Stretch = (uiDrawTextStretch) (spec->Value);
 		});
 		break;
 	// TODO

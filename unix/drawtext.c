@@ -90,7 +90,13 @@ static void computeLineMetrics(uiDrawTextLayout *tl)
 	pango_layout_iter_free(iter);
 }
 
-uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width)
+static const PangoAlignment pangoAligns[] = {
+	[uiDrawTextLayoutAlignLeft] = PANGO_ALIGN_LEFT,
+	[uiDrawTextLayoutAlignCenter] = PANGO_ALIGN_CENTER,
+	[uiDrawTextLayoutAlignRight] = PANGO_ALIGN_RIGHT,
+};
+
+uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 {
 	uiDrawTextLayout *tl;
 	PangoContext *context;
@@ -106,28 +112,30 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	g_object_unref(context);
 
 	// this is safe; pango_layout_set_text() copies the string
-	pango_layout_set_text(tl->layout, uiAttributedStringString(s), -1);
+	pango_layout_set_text(tl->layout, uiAttributedStringString(p->String), -1);
 
 	desc = pango_font_description_new();
-	pango_font_description_set_family(desc, defaultFont->Family);
-	pango_font_description_set_style(desc, pangoItalics[defaultFont->Italic]);
+	pango_font_description_set_family(desc, p->DefaultFont->Family);
+	pango_font_description_set_style(desc, pangoItalics[p->DefaultFont->Italic]);
 	// for the most part, pango weights correlate to ours
 	// the differences:
 	// - Book — libui: 350, Pango: 380
 	// - Ultra Heavy — libui: 950, Pango: 1000
 	// TODO figure out what to do about this misalignment
-	pango_font_description_set_weight(desc, defaultFont->Weight);
-	pango_font_description_set_stretch(desc, pangoStretches[defaultFont->Stretch]);
+	pango_font_description_set_weight(desc, p->DefaultFont->Weight);
+	pango_font_description_set_stretch(desc, pangoStretches[p->DefaultFont->Stretch]);
 	// see https://developer.gnome.org/pango/1.30/pango-Fonts.html#pango-font-description-set-size and https://developer.gnome.org/pango/1.30/pango-Glyph-Storage.html#pango-units-from-double
-	pango_font_description_set_size(desc, pango_units_from_double(defaultFont->Size));
+	pango_font_description_set_size(desc, pango_units_from_double(p->DefaultFont->Size));
 	pango_layout_set_font_description(tl->layout, desc);
 	// this is safe; the description is copied
 	pango_font_description_free(desc);
 
-	pangoWidth = cairoToPango(width);
-	if (width < 0)
+	pangoWidth = cairoToPango(p->Width);
+	if (p->Width < 0)
 		pangoWidth = -1;
 	pango_layout_set_width(tl->layout, pangoWidth);
+
+	pango_layout_set_alignment(tl->layout, pangoAligns[p->Align]);
 
 	// TODO attributes
 

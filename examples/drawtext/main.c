@@ -110,6 +110,11 @@ int main(void)
 	uiControlHide(examples[n]->panel);
 	uiBoxAppend(box, examples[n]->panel, 0);
 	n++;
+	examples[n] = mkAttributesExample();
+	uiComboboxAppend(exampleList, examples[n]->name);
+	uiControlHide(examples[n]->panel);
+	uiBoxAppend(box, examples[n]->panel, 0);
+	n++;
 	// and set things up for the initial state
 	uiComboboxSetSelected(exampleList, 0);
 	uiComboboxOnSelected(exampleList, onExampleChanged, NULL);

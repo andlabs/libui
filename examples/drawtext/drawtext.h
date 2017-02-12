@@ -20,3 +20,6 @@ extern struct example *mkBasicExample(void);
 
 // hittest.c
 extern struct example *mkHitTestExample(void);
+
+// attributes.c
+extern struct example *mkAttributesExample(void);

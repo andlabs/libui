@@ -297,6 +297,11 @@ size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos)
 	return pos;
 }
 
+void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttribute type, uintptr_t value, size_t start, size_t end)
+{
+	attrlistInsertAttribute(s->attrs, type, value, start, end);
+}
+
 // TODO introduce an iterator?
 void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
 {

@@ -32,6 +32,7 @@ if(NOT WIN32)
 endif()
 
 _add_example(drawtext
+	drawtext/attributes.c
 	drawtext/basic.c
 	drawtext/hittest.c
 	drawtext/main.c

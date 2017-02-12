@@ -46,27 +46,55 @@ static CTFontRef fontdescToCTFont(uiDrawFontDescriptor *fd)
 	return font;
 }
 
-static CFAttributedStringRef attrstrToCoreFoundation(uiAttributedString *s, uiDrawFontDescriptor *defaultFont)
+static const CTTextAlignment ctaligns[] = {
+	[uiDrawTextLayoutAlignLeft] = kCTTextAlignmentLeft,
+	[uiDrawTextLayoutAlignCenter] = kCTTextAlignmentCenter,
+	[uiDrawTextLayoutAlignRight] = kCTTextAlignmentRight,
+};
+
+static CTParagraphStyleRef mkParagraphStyle(uiDrawTextLayoutParams *p)
+{
+	CTParagraphStyleRef ps;
+	CTParagraphStyleSetting settings[16];
+	size_t nSettings = 0;
+
+	settings[nSettings].spec = kCTParagraphStyleSpecifierAlignment;
+	settings[nSettings].valueSize = sizeof (CTTextAlignment);
+	settings[nSettings].value = ctaligns + p->Align;
+	nSettings++;
+
+	ps = CTParagraphStyleCreate(settings, nSettings);
+	if (ps == NULL) {
+		// TODO
+	}
+	return ps;
+}
+
+static CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p)
 {
 	CFStringRef cfstr;
 	CFMutableDictionaryRef defaultAttrs;
 	CTFontRef defaultCTFont;
+	CTParagraphStyleRef ps;
 	CFAttributedStringRef base;
 	CFMutableAttributedStringRef mas;
 
-	cfstr = CFStringCreateWithCharacters(NULL, attrstrUTF16(s), attrstrUTF16Len(s));
+	cfstr = CFStringCreateWithCharacters(NULL, attrstrUTF16(p->String), attrstrUTF16Len(p->String));
 	if (cfstr == NULL) {
 		// TODO
 	}
-	defaultAttrs = CFDictionaryCreateMutable(NULL, 1,
+	defaultAttrs = CFDictionaryCreateMutable(NULL, 0,
 		&kCFCopyStringDictionaryKeyCallBacks,
 		&kCFTypeDictionaryValueCallBacks);
 	if (defaultAttrs == NULL) {
 		// TODO
 	}
-	defaultCTFont = fontdescToCTFont(defaultFont);
+	defaultCTFont = fontdescToCTFont(p->DefaultFont);
 	CFDictionaryAddValue(defaultAttrs, kCTFontAttributeName, defaultCTFont);
 	CFRelease(defaultCTFont);
+	ps = mkParagraphStyle(p);
+	CFDictionaryAddValue(defaultAttrs, kCTParagraphStyleAttributeName, ps);
+	CFRelease(ps);
 
 	base = CFAttributedStringCreate(NULL, cfstr, defaultAttrs);
 	if (base == NULL) {
@@ -163,7 +191,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	CGRect rect;
 
 	tl = uiNew(uiDrawTextLayout);
-	tl->attrstr = attrstrToCoreFoundation(p->String, p->DefaultFont);
+	tl->attrstr = attrstrToCoreFoundation(p);
 	range.location = 0;
 	range.length = CFAttributedStringGetLength(tl->attrstr);
 	tl->width = p->Width;

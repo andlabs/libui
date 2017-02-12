@@ -155,7 +155,7 @@ static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize 
 	return metrics;
 }
 
-uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width)
+uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 {
 	uiDrawTextLayout *tl;
 	CGFloat cgwidth;
@@ -163,10 +163,10 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	CGRect rect;
 
 	tl = uiNew(uiDrawTextLayout);
-	tl->attrstr = attrstrToCoreFoundation(s, defaultFont);
+	tl->attrstr = attrstrToCoreFoundation(p->String, p->DefaultFont);
 	range.location = 0;
 	range.length = CFAttributedStringGetLength(tl->attrstr);
-	tl->width = width;
+	tl->width = p->Width;
 
 	// TODO CTFrameProgression for RTL/LTR
 	// TODO kCTParagraphStyleSpecifierMaximumLineSpacing, kCTParagraphStyleSpecifierMinimumLineSpacing, kCTParagraphStyleSpecifierLineSpacingAdjustment for line spacing
@@ -175,7 +175,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 		// TODO
 	}
 
-	cgwidth = (CGFloat) width;
+	cgwidth = (CGFloat) (tl->width);
 	if (cgwidth < 0)
 		cgwidth = CGFLOAT_MAX;
 	// TODO these seem to be floor()'d or truncated?
@@ -204,8 +204,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	tl->lineMetrics = computeLineMetrics(tl->frame, tl->size);
 
 	// and finally copy the UTF-8/UTF-16 conversion tables
-	tl->u8tou16 = attrstrCopyUTF8ToUTF16(s, &(tl->nUTF8));
-	tl->u16tou8 = attrstrCopyUTF16ToUTF8(s, &(tl->nUTF16));
+	tl->u8tou16 = attrstrCopyUTF8ToUTF16(p->String, &(tl->nUTF8));
+	tl->u16tou8 = attrstrCopyUTF16ToUTF8(p->String, &(tl->nUTF16));
 
 	return tl;
 }

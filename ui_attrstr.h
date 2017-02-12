@@ -89,6 +89,7 @@ typedef struct uiDrawTextLayout uiDrawTextLayout;
 typedef struct uiDrawTextLayoutParams uiDrawTextLayoutParams;
 typedef struct uiDrawTextLayoutLineMetrics uiDrawTextLayoutLineMetrics;
 
+// TODO drop the Layout from this?
 _UI_ENUM(uiDrawTextLayoutAlign) {
 	uiDrawTextLayoutAlignLeft,
 	uiDrawTextLayoutAlignCenter,

@@ -27,6 +27,7 @@ static uiDrawFontDescriptor defaultFont = {
 	.Stretch = uiDrawTextStretchNormal,
 };
 static uiAttributedString *attrstr;
+static uiDrawTextLayoutParams params;
 
 #define margins 10
 
@@ -88,9 +89,8 @@ static void draw(uiAreaDrawParams *p)
 	uiDrawClip(p->Context, path);
 	uiDrawFreePath(path);
 
-	layout = uiDrawNewTextLayout(attrstr,
-		&defaultFont,
-		p->AreaWidth - 2 * margins);
+	params.Width = p->AreaWidth - 2 * margins;
+	layout = uiDrawNewTextLayout(&params);
 	uiDrawText(p->Context, layout, margins, margins);
 
 	uiDrawRestore(p->Context);
@@ -130,9 +130,8 @@ static void mouse(uiAreaMouseEvent *e)
 	if (e->Down != 1)
 		return;
 
-	layout = uiDrawNewTextLayout(attrstr,
-		&defaultFont,
-		e->AreaWidth - 2 * margins);
+	params.Width = e->AreaWidth - 2 * margins;
+	layout = uiDrawNewTextLayout(&params);
 	uiDrawTextLayoutHitTest(layout,
 		e->X - margins, e->Y - margins,
 		&caretPos, &caretLine);
@@ -237,6 +236,9 @@ struct example *mkHitTestExample(void)
 	hitTestExample.key = key;
 
 	attrstr = uiNewAttributedString(text);
+	params.String = attrstr;
+	params.DefaultFont = &defaultFont;
+	params.Align = uiDrawTextLayoutAlignLeft;
 
 	return &hitTestExample;
 }

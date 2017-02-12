@@ -18,7 +18,7 @@ static const char *text =
 	"and important."
 	"";
 static char fontFamily[] = "Palatino";
-// TODO should be const; look at constructor function
+// TODO should be const; look at constructor function?
 static uiDrawFontDescriptor defaultFont = {
 	.Family = fontFamily,
 	.Size = 18,
@@ -27,6 +27,7 @@ static uiDrawFontDescriptor defaultFont = {
 	.Stretch = uiDrawTextStretchNormal,
 };
 static uiAttributedString *attrstr;
+static uiDrawTextLayoutParams params;
 
 #define margins 10
 
@@ -141,9 +142,8 @@ static void draw(uiAreaDrawParams *p)
 	uiDrawFreePath(path);
 #endif
 
-	layout = uiDrawNewTextLayout(attrstr,
-		&defaultFont,
-		p->AreaWidth - 2 * margins);
+	params.Width = p->AreaWidth - 2 * margins;
+	layout = uiDrawNewTextLayout(&params);
 	uiDrawText(p->Context, layout, margins, margins);
 
 	uiDrawRestore(p->Context);
@@ -257,6 +257,9 @@ struct example *mkBasicExample(void)
 	basicExample.key = NULL;
 
 	attrstr = uiNewAttributedString(text);
+	params.String = attrstr;
+	params.DefaultFont = &defaultFont;
+	params.Align = uiDrawTextLayoutAlignLeft;
 
 	return &basicExample;
 }

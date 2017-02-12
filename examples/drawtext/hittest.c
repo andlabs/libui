@@ -1,7 +1,7 @@
 // 20 january 2017
 #include "drawtext.h"
 
-// TODO have a ligature
+// TODO double-check ligatures
 // TODO the hiding and showing does not work properly on GTK+
 // TODO using the arrow keys allows us to walk back to the end of the line; IIRC arrow keys shouldn't do that
 

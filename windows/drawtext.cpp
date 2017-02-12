@@ -129,7 +129,14 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 	delete[] dlm;
 }
 
-uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescriptor *defaultFont, double width)
+// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
+static std::map<uiDrawTextItalic, DWRITE_TEXT_ALIGNMENT> dwriteAligns = {
+	{ uiDrawTextLayoutAlignLeft, DWRITE_TEXT_ALIGNMENT_LEADING },
+	{ uiDrawTextLayoutAlignCenter, DWRITE_TEXT_ALIGNMENT_CENTER },
+	{ uiDrawTextLayoutAlignRight, DWRITE_TEXT_ALIGNMENT_TRAILING },
+};
+
+uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 {
 	uiDrawTextLayout *tl;
 	WCHAR *wDefaultFamily;
@@ -139,7 +146,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 
 	tl = uiNew(uiDrawTextLayout);
 
-	wDefaultFamily = toUTF16(defaultFont->Family);
+	wDefaultFamily = toUTF16(p->DefaultFont->Family);
 	hr = dwfactory->CreateTextFormat(
 		wDefaultFamily, NULL,
 		// for the most part, DirectWrite weights correlate to ours
@@ -147,19 +154,22 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 		// - Minimum — libui: 0, DirectWrite: 1
 		// - Maximum — libui: 1000, DirectWrite: 999
 		// TODO figure out what to do about this shorter range (the actual major values are the same (but with different names), so it's just a range issue)
-		(DWRITE_FONT_WEIGHT) (defaultFont->Weight),
-		dwriteItalics[defaultFont->Italic],
-		dwriteStretches[defaultFont->Stretch],
-		pointSizeToDWriteSize(defaultFont->Size),
+		(DWRITE_FONT_WEIGHT) (p->DefaultFont->Weight),
+		dwriteItalics[p->DefaultFont->Italic],
+		dwriteStretches[p->DefaultFont->Stretch],
+		pointSizeToDWriteSize(p->DefaultFont->Size),
 		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
 		// TODO use the current locale?
 		L"",
 		&(tl->format));
 	if (hr != S_OK)
 		logHRESULT(L"error creating IDWriteTextFormat", hr);
+	hr = tl->format->SetTextAlignment(dwriteAligns[p->Align]);
+	if (hr != S_OK)
+		logHRESULT(L"error applying text layout alignment", hr);
 
 	hr = dwfactory->CreateTextLayout(
-		(const WCHAR *) attrstrUTF16(s), attrstrUTF16Len(s),
+		(const WCHAR *) attrstrUTF16(p->String), attrstrUTF16Len(p->String),
 		tl->format,
 		// FLOAT is float, not double, so this should work... TODO
 		FLT_MAX, FLT_MAX,
@@ -170,8 +180,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	// and set the width
 	// this is the only wrapping mode (apart from "no wrap") available prior to Windows 8.1 (TODO verify this fact) (TODO this should be the default anyway)
 	wrap = DWRITE_WORD_WRAPPING_WRAP;
-	maxWidth = (FLOAT) width;
-	if (width < 0) {
+	maxWidth = (FLOAT) (p->Width);
+	if (p->Width < 0) {
 		// TODO is this wrapping juggling even necessary?
 		wrap = DWRITE_WORD_WRAPPING_NO_WRAP;
 		// setting the max width in this case technically isn't needed since the wrap mode will simply ignore the max width, but let's do it just to be safe
@@ -187,8 +197,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiAttributedString *s, uiDrawFontDescripto
 	computeLineInfo(tl);
 
 	// and finally copy the UTF-8/UTF-16 index conversion tables
-	tl->u8tou16 = attrstrCopyUTF8ToUTF16(s, &(tl->nUTF8));
-	tl->u16tou8 = attrstrCopyUTF16ToUTF8(s, &(tl->nUTF16));
+	tl->u8tou16 = attrstrCopyUTF8ToUTF16(p->String, &(tl->nUTF8));
+	tl->u16tou8 = attrstrCopyUTF16ToUTF8(p->String, &(tl->nUTF16));
 
 	// TODO can/should this be moved elsewhere?
 	uiFree(wDefaultFamily);

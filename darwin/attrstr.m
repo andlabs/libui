@@ -12,23 +12,32 @@ struct foreachParams {
 	NSMutableArray *backgroundBlocks;
 };
 
+#define maxFeatures 32
+
+struct fontParams {
+	uiDrawFontDescriptor desc;
+	uint16_t featureTypes[maxFeatures];
+	uint16_t featureSpecifiers[maxFeatures];
+	size_t nFeatures;
+};
+
 static void ensureFontInRange(struct foreachParams *p, size_t start, size_t end)
 {
 	size_t i;
 	NSNumber *n;
-	uiDrawFontDescriptor *new;
+	struct fontParams *new;
 
 	for (i = start; i < end; i++) {
 		n = [NSNumber numberWithInteger:i];
 		if ([p->converted objectForKey:n] != nil)
 			continue;
-		new = uiNew(uiDrawFontDescriptor);
-		*new = *(p->defaultFont);
+		new = uiNew(struct fontParams);
+		new->desc = *(p->defaultFont);
 		[p->converted setObject:[NSValue valueWithPointer:new] forKey:n];
 	}
 }
 
-static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end, void (^adj)(uiDrawFontDescriptor *desc))
+static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end, void (^adj)(struct fontParams *fp))
 {
 	size_t i;
 	NSNumber *n;
@@ -37,7 +46,7 @@ static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end,
 	for (i = start; i < end; i++) {
 		n = [NSNumber numberWithInteger:i];
 		v = (NSValue *) [p->converted objectForKey:n];
-		adj((uiDrawFontDescriptor *) [v pointerValue]);
+		adj((struct fontParams *) [v pointerValue]);
 	}
 }
 
@@ -74,32 +83,32 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	switch (spec->Type) {
 	case uiAttributeFamily:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Family = (char *) (spec->Value);
+		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
+			fp->desc.Family = (char *) (spec->Value);
 		});
 		break;
 	case uiAttributeSize:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Size = spec->Double;
+		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
+			fp->desc.Size = spec->Double;
 		});
 		break;
 	case uiAttributeWeight:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Weight = (uiDrawTextWeight) (spec->Value);
+		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
+			fp->desc.Weight = (uiDrawTextWeight) (spec->Value);
 		});
 		break;
 	case uiAttributeItalic:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Italic = (uiDrawTextItalic) (spec->Value);
+		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
+			fp->desc.Italic = (uiDrawTextItalic) (spec->Value);
 		});
 		break;
 	case uiAttributeStretch:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
-			desc->Stretch = (uiDrawTextStretch) (spec->Value);
+		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
+			fp->desc.Stretch = (uiDrawTextStretch) (spec->Value);
 		});
 		break;
 	case uiAttributeColor:
@@ -144,17 +153,17 @@ static CTFontRef fontdescToCTFont(uiDrawFontDescriptor *fd)
 static void applyAndFreeFontAttributes(struct foreachParams *p)
 {
 	[p->converted enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSValue *val, BOOL *stop) {
-		uiDrawFontDescriptor *desc;
+		struct fontParams *fp;
 		CTFontRef font;
 		CFRange range;
 
-		desc = (uiDrawFontDescriptor *) [val pointerValue];
-		font = fontdescToCTFont(desc);
+		fp = (struct fontParams *) [val pointerValue];
+		font = fontdescToCTFont(&(fp->desc));
 		range.location = [key integerValue];
 		range.length = 1;
 		CFAttributedStringSetAttribute(p->mas, range, kCTFontAttributeName, font);
 		CFRelease(font);
-		uiFree(desc);
+		uiFree(fp);
 	}];
 }
 

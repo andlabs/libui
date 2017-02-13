@@ -49,3 +49,41 @@ void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout,
 
 	uiDrawRestore(c);
 }
+
+void drawTextBackground(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout, size_t start, size_t end, uiDrawBrush *brush, int isSelection)
+{
+	int line, nLines;
+	size_t lstart, lend;
+	double layoutwid, layoutht;
+
+	uiDrawTextLayoutExtents(layout, &layoutwid, &layoutht);
+	nLines = uiDrawTextLayoutNumLines(layout);
+	for (line = 0; line < nLines; line++) {
+		uiDrawTextLayoutLineByteRange(layout, line, &lstart, &lend);
+		if (start >= lstart && start < lend)
+			break;
+	}
+	while (end - start > 0) {
+		uiDrawTextLayoutLineMetrics m;
+		double startx, endx;
+		uiDrawPath *path;
+
+		if (lend > end)		// don't cross lines
+			lend = end;
+		startx = uiDrawTextLayoutByteLocationInLine(layout, line, start);
+		// TODO explain this
+		endx = layoutwid;
+		if (!isSelection || end <= lend)
+			endx = uiDrawTextLayoutByteLocationInLine(layout, line, end);
+		uiDrawTextLayoutLineGetMetrics(layout, line, &m);
+		path = uiDrawNewPath(uiDrawFillModeWinding);
+		uiDrawPathAddRectangle(path,
+			x + startx, y + m.Y,
+			endx - startx, m.Height);
+		uiDrawPathEnd(path);
+		uiDrawFill(c, path, brush);
+		uiDrawFreePath(path);
+		line++;
+		start += lend - start;
+	}
+}

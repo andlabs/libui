@@ -43,9 +43,15 @@ static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end,
 static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
+	CFRange range;
+	CGColorSpaceRef colorspace;
+	CGColorRef color;
+	CGFloat components[4];
 
 	start = attrstrUTF8ToUTF16(s, start);
 	end = attrstrUTF8ToUTF16(s, end);
+	range.location = start;
+	range.length = end - start;
 	switch (spec->Type) {
 	case uiAttributeFamily:
 		ensureFontInRange(p, start, end);
@@ -76,6 +82,20 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		adjustFontInRange(p, start, end, ^(uiDrawFontDescriptor *desc) {
 			desc->Stretch = (uiDrawTextStretch) (spec->Value);
 		});
+		break;
+	case uiAttributeColor:
+		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+		if (colorspace == NULL) {
+			// TODO
+		}
+		components[0] = spec->R;
+		components[1] = spec->G;
+		components[2] = spec->B;
+		components[3] = spec->A;
+		color = CGColorCreate(colorspace, components);
+		CFRelease(colorspace);
+		CFAttributedStringSetAttribute(p->mas, range, kCTForegroundColorAttributeName, color);
+		CFRelease(color);
 		break;
 	// TODO
 	}

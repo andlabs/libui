@@ -2,13 +2,12 @@ typedef struct uiAttributedString uiAttributedString;
 typedef struct uiAttributeSpec uiAttributeSpec;
 
 _UI_ENUM(uiAttribute) {
-	// TODO once we allow loading fonts in memory we can't use just one pointer anymore
 	uiAttributeFamily,
-	// TODO no guarantee this can fit in a uintptr_t; we need a better way to store these...
-	uiAttributeSize,
+	uiAttributeSize,			// use Double
 	uiAttributeWeight,
 	uiAttributeItalic,
 	uiAttributeStretch,
+	uiAttributeColor,		// use R, G, B, A
 	// TODO
 	// TODO uiAttributeSystem,
 	// TODO uiAttributeCustom,
@@ -18,6 +17,10 @@ struct uiAttributeSpec {
 	uiAttribute Type;
 	uintptr_t Value;
 	double Double;
+	double R;
+	double G;
+	double B;
+	double A;
 };
 
 typedef int (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data);

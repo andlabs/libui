@@ -62,6 +62,20 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
+	next = "multiple colors";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeColor;
+	// Direct2D "Crimson" (#DC143C)
+	spec.R = 0.8627450980392156;
+	spec.G = 0.0784313725490196;
+	spec.B = 0.2352941176470588;
+	spec.A = 0.75;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
 	next = "multiple TODO";
 }
 

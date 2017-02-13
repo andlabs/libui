@@ -295,6 +295,12 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 	case uiAttributeSize:
 		// TODO use a closest match?
 		return attr->spec.Double == spec->Double;
+	case uiAttributeColor:
+		// TODO use a closest match?
+		return attr->spec.R == spec->R &&
+			attr->spec.G == spec->G &&
+			attr->spec.B == spec->B &&
+			attr->spec.A == spec->A;
 	// TODO
 	}
 	// handles the rest

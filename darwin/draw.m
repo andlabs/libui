@@ -218,6 +218,10 @@ static void fillGradient(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 	// gradients need a color space
 	// for consistency with windows, use sRGB
 	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+	if (colorspace == NULL) {
+		// TODO
+	}
+	// TODO add NULL check to other uses of CGColorSpace
 
 	// make the gradient
 	colors = uiAlloc(b->NumStops * 4 * sizeof (CGFloat), "CGFloat[]");

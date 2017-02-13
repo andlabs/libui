@@ -91,6 +91,16 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
+	next = "vertical glyph forms";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeVerticalForms;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, " (which you can draw rotated for proper vertical text)");
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
 	next = "multiple TODO";
 }
 

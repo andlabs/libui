@@ -122,6 +122,9 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		[p->backgroundBlocks addObject:block];
 		Block_release(block);
 		break;
+	case uiAttributeVerticalForms:
+		CFAttributedStringSetAttribute(p->mas, range, kCTVerticalFormsAttributeName, kCFBooleanTrue);
+		break;
 	// TODO
 	}
 	return 0;

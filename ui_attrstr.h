@@ -3,12 +3,13 @@ typedef struct uiAttributeSpec uiAttributeSpec;
 
 _UI_ENUM(uiAttribute) {
 	uiAttributeFamily,
-	uiAttributeSize,			// use Double
+	uiAttributeSize,				// use Double
 	uiAttributeWeight,
 	uiAttributeItalic,
 	uiAttributeStretch,
-	uiAttributeColor,		// use R, G, B, A
-	uiAttributeBackground,	// use R, G, B, A
+	uiAttributeColor,			// use R, G, B, A
+	uiAttributeBackground,		// use R, G, B, A
+	uiAttributeVerticalForms,		// no parameter
 	// TODO
 	// TODO uiAttributeSystem,
 	// TODO uiAttributeCustom,

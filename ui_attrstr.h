@@ -8,6 +8,7 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeItalic,
 	uiAttributeStretch,
 	uiAttributeColor,		// use R, G, B, A
+	uiAttributeBackground,	// use R, G, B, A
 	// TODO
 	// TODO uiAttributeSystem,
 	// TODO uiAttributeCustom,

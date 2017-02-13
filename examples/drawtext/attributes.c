@@ -76,6 +76,20 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
+	next = "multiple backgrounds";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeBackground;
+	// Direct2D "Peach Puff" (#FFDAB9)
+	spec.R = 1.0;
+	spec.G = 0.85490196078431372;
+	spec.B = 0.7254901960784313;
+	spec.A = 0.5;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
 	next = "multiple TODO";
 }
 

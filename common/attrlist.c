@@ -296,6 +296,7 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 		// TODO use a closest match?
 		return attr->spec.Double == spec->Double;
 	case uiAttributeColor:
+	case uiAttributeBackground:
 		// TODO use a closest match?
 		return attr->spec.R == spec->R &&
 			attr->spec.G == spec->G &&

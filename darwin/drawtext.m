@@ -28,6 +28,8 @@ struct uiDrawTextLayout {
 	// we compute this once when first creating the layout
 	uiDrawTextLayoutLineMetrics *lineMetrics;
 
+	NSArray *backgroundBlocks;
+
 	// for converting CFAttributedString indices from/to byte offsets
 	size_t *u8tou16;
 	size_t nUTF8;
@@ -114,7 +116,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	CGRect rect;
 
 	tl = uiNew(uiDrawTextLayout);
-	tl->attrstr = attrstrToCoreFoundation(p);
+	tl->attrstr = attrstrToCoreFoundation(p, &(tl->backgroundBlocks));
 	range.location = 0;
 	range.length = CFAttributedStringGetLength(tl->attrstr);
 	tl->width = p->Width;
@@ -165,6 +167,7 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
 	uiFree(tl->u16tou8);
 	uiFree(tl->u8tou16);
+	[tl->backgroundBlocks release];
 	uiFree(tl->lineMetrics);
 	// TODO release tl->lines?
 	CFRelease(tl->frame);
@@ -177,7 +180,12 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 // TODO document that (x,y) is the top-left corner of the *entire frame*
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
+	backgroundBlock b;
+
 	CGContextSaveGState(c->c);
+
+	for (b in tl->backgroundBlocks)
+		b(c, tl, x, y);
 
 	// Core Text doesn't draw onto a flipped view correctly; we have to pretend it was unflipped
 	// see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)

@@ -68,13 +68,14 @@ void drawTextBackground(uiDrawContext *c, double x, double y, uiDrawTextLayout *
 		double startx, endx;
 		uiDrawPath *path;
 
+		uiDrawTextLayoutLineByteRange(layout, line, &lstart, &lend);
 		if (lend > end)		// don't cross lines
 			lend = end;
-		startx = uiDrawTextLayoutByteLocationInLine(layout, line, start);
+		startx = uiDrawTextLayoutByteLocationInLine(layout, start, line);
 		// TODO explain this; note the use of start with lend
 		endx = layoutwid;
 		if (!isSelection || end <= lend)
-			endx = uiDrawTextLayoutByteLocationInLine(layout, line, lend);
+			endx = uiDrawTextLayoutByteLocationInLine(layout, lend, line);
 		uiDrawTextLayoutLineGetMetrics(layout, line, &m);
 		path = uiDrawNewPath(uiDrawFillModeWinding);
 		uiDrawPathAddRectangle(path,

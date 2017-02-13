@@ -9,6 +9,7 @@ struct foreachParams {
 	CFMutableAttributedStringRef mas;
 	NSMutableDictionary *converted;
 	uiDrawFontDescriptor *defaultFont;
+	NSMutableArray *backgroundBlocks;
 };
 
 static void ensureFontInRange(struct foreachParams *p, size_t start, size_t end)
@@ -40,6 +41,20 @@ static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end,
 	}
 }
 
+static backgroundBlock mkBackgroundBlock(size_t start, size_t end, double r, double g, double b, double a)
+{
+	return Block_copy(^(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y) {
+		uiDrawBrush brush;
+
+		brush.Type = uiDrawBrushTypeSolid;
+		brush.R = r;
+		brush.G = g;
+		brush.B = b;
+		brush.A = a;
+		drawTextBackground(c, x, y, layout, start, end, &brush, 0);
+	});
+}
+
 static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
@@ -47,7 +62,11 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	CGColorSpaceRef colorspace;
 	CGColorRef color;
 	CGFloat components[4];
+	size_t ostart, oend;
+	backgroundBlock block;
 
+	ostart = start;
+	oend = end;
 	start = attrstrUTF8ToUTF16(s, start);
 	end = attrstrUTF8ToUTF16(s, end);
 	range.location = start;
@@ -96,6 +115,12 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		CFRelease(colorspace);
 		CFAttributedStringSetAttribute(p->mas, range, kCTForegroundColorAttributeName, color);
 		CFRelease(color);
+		break;
+	case uiAttributeBackground:
+		block = mkBackgroundBlock(ostart, oend,
+			spec->R, spec->G, spec->B, spec->A);
+		[p->backgroundBlocks addObject:block];
+		Block_release(block);
 		break;
 	// TODO
 	}
@@ -154,7 +179,7 @@ static CTParagraphStyleRef mkParagraphStyle(uiDrawTextLayoutParams *p)
 	return ps;
 }
 
-CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p)
+CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks)
 {
 	CFStringRef cfstr;
 	CFMutableDictionaryRef defaultAttrs;
@@ -194,10 +219,12 @@ CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p)
 	fep.mas = mas;
 	fep.converted = [NSMutableDictionary new];
 	fep.defaultFont = p->DefaultFont;
+	fep.backgroundBlocks = [NSMutableArray new];
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
 	applyAndFreeFontAttributes(&fep);
 	[fep.converted release];
 	CFAttributedStringEndEditing(mas);
 
+	*backgroundBlocks = fep.backgroundBlocks;
 	return mas;
 }

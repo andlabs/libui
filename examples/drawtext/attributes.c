@@ -82,6 +82,7 @@ static void setupAttributedString(void)
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeBackground;
 	// Direct2D "Peach Puff" (#FFDAB9)
+	// TODO choose a darker color
 	spec.R = 1.0;
 	spec.G = 0.85490196078431372;
 	spec.B = 0.7254901960784313;

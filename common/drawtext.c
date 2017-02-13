@@ -71,10 +71,10 @@ void drawTextBackground(uiDrawContext *c, double x, double y, uiDrawTextLayout *
 		if (lend > end)		// don't cross lines
 			lend = end;
 		startx = uiDrawTextLayoutByteLocationInLine(layout, line, start);
-		// TODO explain this
+		// TODO explain this; note the use of start with lend
 		endx = layoutwid;
 		if (!isSelection || end <= lend)
-			endx = uiDrawTextLayoutByteLocationInLine(layout, line, end);
+			endx = uiDrawTextLayoutByteLocationInLine(layout, line, lend);
 		uiDrawTextLayoutLineGetMetrics(layout, line, &m);
 		path = uiDrawNewPath(uiDrawFillModeWinding);
 		uiDrawPathAddRectangle(path,
@@ -84,6 +84,6 @@ void drawTextBackground(uiDrawContext *c, double x, double y, uiDrawTextLayout *
 		uiDrawFill(c, path, brush);
 		uiDrawFreePath(path);
 		line++;
-		start += lend - start;
+		start = lend;
 	}
 }

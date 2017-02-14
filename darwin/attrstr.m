@@ -1,6 +1,59 @@
 // 12 february 2017
 #import "uipriv_darwin.h"
 
+// this is what AppKit does internally
+// WebKit does this too; see https://github.com/adobe/webkit/blob/master/Source/WebCore/platform/graphics/mac/GraphicsContextMac.mm
+static NSColor *spellingColor = nil;
+static NSColor *grammarColor = nil;
+static NSColor *auxiliaryColor = nil;
+
+static NSColor *tryColorNamed(NSString *name)
+{
+	NSImage *img;
+
+	img = [NSImage imageNamed:name];
+	if (img == nil)
+		return nil;
+	return [NSColor colorWithPatternImage:img];
+}
+
+void initUnderlineColors(void)
+{
+	spellingColor = tryColorNamed(@"NSSpellingDot");
+	if (spellingColor == nil) {
+		// WebKit says this is needed for "older systems"; not sure how old, but 10.11 AppKit doesn't look for this
+		spellingColor = tryColorNamed(@"SpellingDot");
+		if (spellingColor == nil)
+			spellingColor = [NSColor redColor];
+	}
+	[spellingColor retain];		// override autoreleasing
+
+	grammarColor = tryColorNamed(@"NSGrammarDot");
+	if (grammarColor == nil) {
+		// WebKit says this is needed for "older systems"; not sure how old, but 10.11 AppKit doesn't look for this
+		grammarColor = tryColorNamed(@"GrammarDot");
+		if (grammarColor == nil)
+			grammarColor = [NSColor greenColor];
+	}
+	[grammarColor retain];		// override autoreleasing
+
+	auxiliaryColor = tryColorNamed(@"NSCorrectionDot");
+	if (auxiliaryColor == nil) {
+		// WebKit says this is needed for "older systems"; not sure how old, but 10.11 AppKit doesn't look for this
+		auxiliaryColor = tryColorNamed(@"CorrectionDot");
+		if (auxiliaryColor == nil)
+			auxiliaryColor = [NSColor blueColor];
+	}
+	[auxiliaryColor retain];		// override autoreleasing
+}
+
+void uninitUnderlineColors(void)
+{
+	[auxiliaryColor release];
+	[grammarColor release];
+	[spellingColor release];
+}
+
 // unlike the other systems, Core Text rolls family, size, weight, italic, width, AND opentype features into the "font" attribute
 // TODO opentype features and AAT fvar table info is lost, so a handful of fonts in the font panel ("Titling" variants of some fonts and Skia and possibly others but those are the examples I know about) cannot be represented by uiDrawFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
 // TODO see if we could use NSAttributedString?
@@ -64,15 +117,34 @@ static backgroundBlock mkBackgroundBlock(size_t start, size_t end, double r, dou
 	});
 }
 
+static CGColorRef mkcolor(uiAttributeSpec *spec)
+{
+	CGColorSpaceRef colorspace;
+	CGColorRef color;
+	CGFloat components[4];
+
+	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+	if (colorspace == NULL) {
+		// TODO
+	}
+	components[0] = spec->R;
+	components[1] = spec->G;
+	components[2] = spec->B;
+	components[3] = spec->A;
+	color = CGColorCreate(colorspace, components);
+	CFRelease(colorspace);
+	return color;
+}
+
 static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	CFRange range;
-	CGColorSpaceRef colorspace;
 	CGColorRef color;
-	CGFloat components[4];
 	size_t ostart, oend;
 	backgroundBlock block;
+	int32_t us;
+	CFNumberRef num;
 
 	ostart = start;
 	oend = end;
@@ -112,16 +184,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		});
 		break;
 	case uiAttributeColor:
-		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-		if (colorspace == NULL) {
-			// TODO
-		}
-		components[0] = spec->R;
-		components[1] = spec->G;
-		components[2] = spec->B;
-		components[3] = spec->A;
-		color = CGColorCreate(colorspace, components);
-		CFRelease(colorspace);
+		color = mkcolor(spec);
 		CFAttributedStringSetAttribute(p->mas, range, kCTForegroundColorAttributeName, color);
 		CFRelease(color);
 		break;
@@ -136,6 +199,45 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 			CFAttributedStringSetAttribute(p->mas, range, kCTVerticalFormsAttributeName, kCFBooleanTrue);
 		else
 			CFAttributedStringSetAttribute(p->mas, range, kCTVerticalFormsAttributeName, kCFBooleanFalse);
+		break;
+	case uiAttributeUnderline:
+		switch (spec->Value) {
+		case uiDrawUnderlineStyleNone:
+			us = kCTUnderlineStyleNone;
+			break;
+		case uiDrawUnderlineStyleSingle:
+			us = kCTUnderlineStyleSingle;
+			break;
+		case uiDrawUnderlineStyleDouble:
+			us = kCTUnderlineStyleDouble;
+			break;
+		case uiDrawUnderlineStyleSuggestion:
+			// TODO incorrect if a solid color
+			us = kCTUnderlineStyleThick;
+			break;
+		}
+		num = CFNumberCreate(NULL, kCFNumberSInt32Type, &us);
+		CFAttributedStringSetAttribute(p->mas, range, kCTUnderlineStyleAttributeName, num);
+		CFRelease(num);
+		break;
+	case uiAttributeUnderlineColor:
+		switch (spec->Value) {
+		case uiDrawUnderlineColorCustom:
+			color = mkcolor(spec);
+			break;
+		case uiDrawUnderlineColorSpelling:
+			color = [spellingColor CGColor];
+			break;
+		case uiDrawUnderlineColorGrammar:
+			color = [grammarColor CGColor];
+			break;
+		case uiDrawUnderlineColorAuxiliary:
+			color = [auxiliaryColor CGColor];
+			break;
+		}
+		CFAttributedStringSetAttribute(p->mas, range, kCTUnderlineColorAttributeName, color);
+		if (spec->Value == uiDrawUnderlineColorCustom)
+			CFRelease(color);
 		break;
 	// TODO
 	}

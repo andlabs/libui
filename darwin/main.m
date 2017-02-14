@@ -125,6 +125,8 @@ const char *uiInit(uiInitOptions *o)
 		[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
 		setupFontPanel();
+
+		initUnderlineColors();
 	}
 
 	globalPool = [[NSAutoreleasePool alloc] init];
@@ -140,6 +142,7 @@ void uiUninit(void)
 	[globalPool release];
 
 	@autoreleasepool {
+		uninitUnderlineColors();
 		[delegate release];
 		[realNSApp() setDelegate:nil];
 		[app release];

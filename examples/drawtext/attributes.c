@@ -98,8 +98,45 @@ static void setupAttributedString(void)
 	spec.Type = uiAttributeVerticalForms;
 	spec.Value = 1;
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
-
 	uiAttributedStringAppendUnattributed(attrstr, " (which you can draw rotated for proper vertical text)");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "multiple";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeUnderline;
+	spec.Value = uiDrawUnderlineStyleSingle;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " ");
+	next = "underlines";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeUnderline;
+	spec.Value = uiDrawUnderlineStyleDouble;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	spec.Type = uiAttributeUnderlineColor;
+	spec.Value = uiDrawUnderlineColorCustom;
+	spec.R = 0.5;
+	spec.G = 0.0;
+	spec.B = 1.0;
+	spec.A = 1.0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " (");
+	next = "including underlines for spelling correction and the like";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeUnderline;
+	spec.Value = uiDrawUnderlineStyleSuggestion;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	spec.Type = uiAttributeUnderlineColor;
+	spec.Value = uiDrawUnderlineColorSpelling;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	next = "multiple TODO";

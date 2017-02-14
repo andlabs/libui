@@ -302,6 +302,12 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 	case uiAttributeSize:
 		// TODO use a closest match?
 		return attr->spec.Double == spec->Double;
+	case uiAttributeUnderlineColor:
+		if (attr->spec.Value != spec->Value)
+			return 0;
+		if (attr->spec.Value != uiDrawUnderlineColorCustom)
+			return 1;
+		// otherwise fall through
 	case uiAttributeColor:
 	case uiAttributeBackground:
 		// TODO use a closest match?

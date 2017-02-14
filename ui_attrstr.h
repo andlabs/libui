@@ -29,6 +29,7 @@ _UI_ENUM(uiAttribute) {
 	// TODO kCTStrokeWidthAttributeName/kCTStrokeColorAttributeName? doesn't seem to be present anywhere else?
 
 	uiAttributeUnderline,		// enum uiDrawUnderlineStyle
+	// TODO what is the color in the case we don't specify it, black or the text color?
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
 	// TODO kCTSuperscriptAttributeName vs below

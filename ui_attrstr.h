@@ -26,13 +26,12 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO kCTLigatureAttributeName vs below
 
-	// TODO kCTStrokeWidthAttributeName/kCTStrokeColorAttributeName? doesn't seem to be present anywhere else?
-
 	uiAttributeUnderline,		// enum uiDrawUnderlineStyle
 	// TODO what is the color in the case we don't specify it, black or the text color?
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
 	// TODO kCTSuperscriptAttributeName vs below
+	// all it does is set the below attribute so
 
 	// TODO kCTBaselineClassAttributeName, kCTBaselineInfoAttributeName, kCTBaselineReferenceInfoAttributeName
 
@@ -65,58 +64,59 @@ _UI_ENUM(uiAttribute) {
 
 	uiAttributeCommonLigatures,		// 0 = off, 1 = on
 	uiAttributeRequiredLigatures,		// 0 = off, 1 = on
-	uiAttributeRareLigatures,			// 0 = off, 1 = on
-	uiAttributeLogoLigatures,			// 0 = off, 1 = on
-	uiAttributeRebusPictureLigatures,	// 0 = off, 1 = on
-	uiAttributeDipthrongLigatures,		// 0 = off, 1 = on
-	uiAttributeSquaredLigatures,		// 0 = off, 1 = on
-		// TODO rename
-	uiAttributeAbbreviatedSquared,	// 0 = off, 1 = on
-	uiAttributeSymbolLigatures,		// 0 = off, 1 = on
+	// AAT calls these "rare ligatures"
+	uiAttributeDiscretionaryLigatures,	// 0 = off, 1 = on
 	uiAttributeContextualLigatures,	// 0 = off, 1 = on
 	uiAttributeHistoricalLigatures,		// 0 = off, 1 = on
 
-	uiAttributeCursiveConnection,		// 0 = none, 1 = some, 2 = all
+	// TODO uiAttributeCursiveConnection,		// 0 = none, 1 = some, 2 = all
 
-	uiAttributeLetterCasing,			// TODO
-		// kLetterCaseType
+	uiAttributeUnicase,				// 0 = off, 1 = on
 
-	uiAttributeLinguisticRearrangement,	// 0 = off, 1 = on
+	// TODO uiAttributeLinguisticRearrangement,	// 0 = off, 1 = on
 
-	uiAttributeNumberSpacing,		// TODO
-		// kNumberSpacingType
+	// AAT: if off, "monospaced number spacing"; if on, "proportional number spacing"
+	// OpenType: non-proportional numbers are called "tabular"
+	// TODO uiAttributeProportionalNumbers,	// 0 = off, 1 = on
+		// TODO kNumberSpacingType 0 or 1
+			// TODO really?
 
 	// TODO kSmartSwashType
 
 	// TODO kDiacriticsType
 
-	// TODO kVerticalPositionType
+	uiAttributeSuperscripts,			// enum uiAttributeSuperscript
 
 	uiAttributeFractionForms,			// enum uiAttributeFractionForm
 
-	// TODO kOverlappingCharactersType
-
-	// TODO kTypographicExtrasType
 	uiAttributeSlashedZero,			// 0 = off, 1 = on
 
-	// TODO kMathematicalExtrasType
 	uiAttributeMathematicalGreek,		// 0 = off, 1 = on
 
-	// TODO kOrnamentSetsType
+	// AAT defines the following values:
+	// 0 = none
+	// 1 = dingbats
+	// 2 = pi characters
+	// 3 = fleurons
+	// 4 = decorative borders
+	// 5 = international symbols
+	// 6 = mathematical symbols
+	// OpenType says alphanumeric characters must(? TODO) have one form each and the bullet character U+2022 (•) can have many
+	uiAttributeOrnamentalForms,		// an integer from 0 to a font-specified upper bound
+	// TODO provide a function to get the upper bound?
 
 	// TODO kCharacterAlternativesType
 
-	// TODO kDesignComplexityType
+	uiAttributeTitlingCapitalForms,		// 0 = off, 1 = on
 
-	// TODO kStyleOptionsType
-	// TODO titling?
+	// AAT calls these "character shapes"
+	uiAttributeHanCharacterForms,	// enum uiAttributeHanCharacterForm
 
-	// TODO kCharacterShapeType
-	// we could probably make the enum now
-
-	uiAttributeNumberCase,			// TODO
+	// OpenType calls these "old-style"
+	uiAttributeLowercaseNumbers,	// 0 = off, 1 = on
 
 	// TODO kTextSpacingType
+	// see kKanaSpacingType below
 
 	// TODO kTransliterationType
 
@@ -133,26 +133,27 @@ _UI_ENUM(uiAttribute) {
 	// 9 = inverted box
 	// 10 = inverted rounded box
 	uiAttributeGlyphAnnotations,		// an integer from 0 to a font-specified upper bound
+	// TODO provide a function to get the upper bound?
 
 	// TODO kKanaSpacingType
-
 	// TODO kIdeographicSpacingType
+	// should these be provided? CAN they be provided?
 
 	// TODO kUnicodeDecompositionType
 
 	// TODO kRubyKanaType
 
-	// TODO kCJKSymbolAlternativesType
-
-	// TODO kIdeographicAlternativesType
-
 	// TODO kCJKVerticalRomanPlacementType
+	// this is 'valt' in OpenType but I don't know if I want to make it selectable or not
 
-	// TODO kItalicCJKRomanType
+	uiAttributeCJKRomansToItalics,	// 0 = off, 1 = on
 
-	// TODO kCaseSensitiveLayoutType
+	uiAttributeCaseSensitiveLayout,	// 0 = off, 1 = on
+	// AAT: this is called "case-sensitive spacing"
+	uiAttributeCapitalSpacing,		// 0 = off, 1 = on
 
-	// TODO kAlternateKanaType
+	uiAttributeAlternateHorizontalKana,		// 0 = off, 1 = on
+	uiAttributeAlternateVerticalKana,	// 0 = off, 1 = on
 
 	uiAttributeStylisticAlternative1,		// 0 = off, 1 = on
 	uiAttributeStylisticAlternative2,		// 0 = off, 1 = on
@@ -175,11 +176,12 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeStylisticAlternative19,	// 0 = off, 1 = on
 	uiAttributeStylisticAlternative20,	// 0 = off, 1 = on
 
-	// TODO kContextualAlternatesType
+	uiAttributeContextualAlternates,	// 0 = off, 1 = on
+	uiAttributeSwashes,				// 0 = off, 1 = on
+	uiAttributeContextualSwashes,		// 0 = off, 1 = on
 
-	// TODO kLowerCaseType
-
-	// TODO kUpperCaseType
+	uiAttributeLowercaseCapForms,	// enum uiAttributeCapForm
+	uiAttributeUppercaseCapForms,	// enum uiAttributeCapForm
 
 	// TODO kLanguageTagType?
 
@@ -187,7 +189,7 @@ _UI_ENUM(uiAttribute) {
 
 #endif
 
-	// TODO uiAttributeSystem,
+	// TODO uiAttributeSystem, (this might not be doable with DirectWrite)
 	// TODO uiAttributeCustom,
 };
 
@@ -205,10 +207,37 @@ _UI_ENUM(uiDrawUnderlineColor) {
 	uiDrawUnderlineColorAuxiliary,	// for instance, the color used by smart replacements on OS X
 };
 
+_UI_ENUM(uiAttributeSuperscript) {
+	uiAttributeSuperscriptNone,
+	uiAttributeSuperscriptSuperscript,		// AAT: "superior"
+	uiAttributeSuperscriptSubscript,		// AAT: "inferior"
+	uiAttributeSuperscriptOrdinal,
+	uiAttributeSuperscriptScientificInferior,
+};
+
 _UI_ENUM(uiAttributeFractionForm) {
 	uiAttributeFractionFormNone,
 	uiAttributeFractionFormVertical,
 	uiAttributeFractionFormDiagonal,
+};
+
+_UI_ENUM(uiAttributeHanCharacterForm) {
+	uiAttributeHanCharacterFormTraditional,
+	uiAttributeHanCharacterFormSimplified,
+	uiAttributeHanCharacterFormJIS1978,
+	uiAttributeHanCharacterFormJIS1983,
+	uiAttributeHanCharacterFormJIS1990,
+	uiAttributeHanCharacterFormExpert,
+	uiAttributeHanCharacterFormJIS2004,
+	uiAttributeHanCharacterFormHojo,
+	uiAttributeHanCharacterFormNLC,
+	uiAttributeHanCharacterFormTraditionalNames,
+};
+
+_UI_ENUM(uiAttributeCapForm) {
+	uiAttributeCapFormNormal,
+	uiAttributeCapFormSmallCaps,
+	uiAttributeCapFormPetiteCaps,
 };
 
 // TODO number case

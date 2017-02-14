@@ -28,37 +28,12 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO kCTStrokeWidthAttributeName/kCTStrokeColorAttributeName? doesn't seem to be present anywhere else?
 
-	// TODO underline styles
-	// OS X: kCTUnderlineStyleAttributeName
-	// 	none, single, thick, or double
-	// 	styles: solid, dot, dash, dash dot, dash dot dot
-	// Pango: pango_attr_underline_new()
-	// 	none, single, double, low single, or wavy/error
-	// DirectWrite: only ever defined in version 1
-	// 	none or single only
-	// 	we could do this with a custom renderer (see Petzold's articles; he does it there)
-
-	// TODO kCTUnderlineColorAttributeName
-	// OS X: RGBA
-	// Pango: RGB(? TODO check for A in newer versions)
-	// DirectWrite: none; unsure if this means "same as text color" or "black only" (I assume Direct2D decides)
-	// 	we could do this with a custom renderer (see Petzold's articles; he does it there)
+	uiAttributeUnderline,		// enum uiDrawUnderlineStyle
+	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
 	// TODO kCTSuperscriptAttributeName vs below
 
-	// TODO compare kCTVerticalFormsAttributeName to below?
-
-	// TODO kCTGlyphInfoAttributeName
-
-	// TODO kCTCharacterShapeAttributeName (seems to be provided by pango as well)
-
-	// TODO kCTLanguageAttributeName?
-
-	// TODO kCTRunDelegateAttributeName?
-
 	// TODO kCTBaselineClassAttributeName, kCTBaselineInfoAttributeName, kCTBaselineReferenceInfoAttributeName
-
-	// TODO kCTWritingDirectionAttributeName?
 
 	// TODO kCTRubyAnnotationAttributeName vs below
 
@@ -213,6 +188,20 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO uiAttributeSystem,
 	// TODO uiAttributeCustom,
+};
+
+_UI_ENUM(uiDrawUnderlineStyle) {
+	uiDrawUnderlineStyleNone,
+	uiDrawUnderlineStyleSingle,
+	uiDrawUnderlineStyleDouble,
+	uiDrawUnderlineStyleSuggestion,		// wavy or dotted underlines used for spelling/grammar checkers
+};
+
+_UI_ENUM(uiDrawUnderlineColor) {
+	uiDrawUnderlineColorCustom,		// also use R/G/B/A fields
+	uiDrawUnderlineColorSpelling,
+	uiDrawUnderlineColorGrammar,
+	uiDrawUnderlineColorAuxiliary,	// for instance, the color used by smart replacements on OS X
 };
 
 _UI_ENUM(uiAttributeFractionForm) {
@@ -402,6 +391,7 @@ _UI_EXTERN void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y
 // TODO make sure this works right for right-aligned and center-aligned lines and justified lines and RTL text
 _UI_EXTERN double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line);
 
+// TODO vertical carets
 _UI_EXTERN void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout, size_t pos, int *line);
 // TODO allow blinking
 

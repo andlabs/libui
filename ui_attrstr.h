@@ -9,7 +9,7 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeStretch,
 	uiAttributeColor,			// use R, G, B, A
 	uiAttributeBackground,		// use R, G, B, A
-	uiAttributeVerticalForms,		// no parameter
+	uiAttributeVerticalForms,		// 0 = off, nonzero = 1
 	// TODO
 	// TODO uiAttributeSystem,
 	// TODO uiAttributeCustom,

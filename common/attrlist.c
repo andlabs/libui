@@ -284,6 +284,13 @@ static struct attr *attrDeleteRange(struct attrlist *alist, struct attr *a, size
 	return a->next;
 }
 
+static int boolsEqual(struct attr *attr, uiAttributeSpec *spec)
+{
+	if (attr->spec.Value == 0 && spec->Value == 0)
+		return 1;
+	return attr->spec.Value != 0 && spec->Value != 0;
+}
+
 static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 {
 	if (attr->spec.Type != spec->Type)
@@ -303,7 +310,7 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 			attr->spec.B == spec->B &&
 			attr->spec.A == spec->A;
 	case uiAttributeVerticalForms:
-		return 1;
+		return boolsEqual(attr, spec);
 	// TODO
 	}
 	// handles the rest

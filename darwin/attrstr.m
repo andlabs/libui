@@ -132,7 +132,10 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		Block_release(block);
 		break;
 	case uiAttributeVerticalForms:
-		CFAttributedStringSetAttribute(p->mas, range, kCTVerticalFormsAttributeName, kCFBooleanTrue);
+		if (spec->Value != 0)
+			CFAttributedStringSetAttribute(p->mas, range, kCTVerticalFormsAttributeName, kCFBooleanTrue);
+		else
+			CFAttributedStringSetAttribute(p->mas, range, kCTVerticalFormsAttributeName, kCFBooleanFalse);
 		break;
 	// TODO
 	}

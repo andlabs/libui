@@ -96,6 +96,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeVerticalForms;
+	spec.Value = 1;
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, " (which you can draw rotated for proper vertical text)");

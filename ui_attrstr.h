@@ -62,8 +62,10 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO kCTRubyAnnotationAttributeName vs below
 
-	// TODO strikethroughs?
-	// TODO see what Pango and DirectWrite provide that Core Text doesn't seem to
+	// TODO strikethroughs? (pango yes, directwrite yes, os x no)
+	// TODO baseline offsets? (pango yes)
+	// TODO size scales? (pango yes)
+	// TODO fallbacks (pango: enable or disable)
 
 #if 0
 

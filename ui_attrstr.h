@@ -62,6 +62,9 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO kCTRubyAnnotationAttributeName vs below
 
+	// TODO strikethroughs?
+	// TODO see what Pango and DirectWrite provide that Core Text doesn't seem to
+
 #if 0
 
 	// These attributes represent typographic features. Each feature

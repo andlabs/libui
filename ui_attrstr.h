@@ -1,6 +1,7 @@
 typedef struct uiAttributedString uiAttributedString;
 typedef struct uiAttributeSpec uiAttributeSpec;
 
+// Note: where you say "1 = on", any nonzero value means "on". (TODO)
 _UI_ENUM(uiAttribute) {
 	uiAttributeFamily,
 	uiAttributeSize,				// use Double
@@ -10,11 +11,165 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeColor,			// use R, G, B, A
 	uiAttributeBackground,		// use R, G, B, A
 	// TODO rename to uiAttributeVertical?
-	uiAttributeVerticalForms,		// 0 = off, nonzero = 1
-	// TODO
+	uiAttributeVerticalForms,		// 0 = off, 1 = on
+
+	// TODO underline and others
+
+#if 0
+
+	// These attributes represent typographic features. Each feature
+	// is a separate attribute, to make composition easier. The
+	// availability of for each attribute are defined by the font; the
+	// default values are defined by the font and/or by the OS.
+	// 
+	// A note about features whose parameter is an enumeration:
+	// OS X defines typographic features using the AAT specification
+	// and converts to OpenType internally when needed, whereas
+	// other platforms use OpenType directly. OpenType is less
+	// precise about what each enumeration value means than AAT
+	// is, so enumeration values do not necessarily represent what
+	// OS X expects with all fonts. In cases where they do, libui
+	// provides an enumeration type to use. Otherwise, the AAT
+	// enumeration values are provided in comments for
+	// documentation purposes.
+
+	// TODO kAllTypographicFeaturesType
+
+	uiAttributeCommonLigatures,		// 0 = off, 1 = on
+	uiAttributeRequiredLigatures,		// 0 = off, 1 = on
+	uiAttributeRareLigatures,			// 0 = off, 1 = on
+	uiAttributeLogoLigatures,			// 0 = off, 1 = on
+	uiAttributeRebusPictureLigatures,	// 0 = off, 1 = on
+	uiAttributeDipthrongLigatures,		// 0 = off, 1 = on
+	uiAttributeSquaredLigatures,		// 0 = off, 1 = on
+		// TODO rename
+	uiAttributeAbbreviatedSquared,	// 0 = off, 1 = on
+	uiAttributeSymbolLigatures,		// 0 = off, 1 = on
+	uiAttributeContextualLigatures,	// 0 = off, 1 = on
+	uiAttributeHistoricalLigatures,		// 0 = off, 1 = on
+
+	uiAttributeCursiveConnection,		// 0 = none, 1 = some, 2 = all
+
+	uiAttributeLetterCasing,			// TODO
+		// kLetterCaseType
+
+	uiAttributeLinguisticRearrangement,	// 0 = off, 1 = on
+
+	uiAttributeNumberSpacing,		// TODO
+		// kNumberSpacingType
+
+	// TODO kSmartSwashType
+
+	// TODO kDiacriticsType
+
+	// TODO kVerticalPositionType
+
+	uiAttributeFractionForms,			// enum uiAttributeFractionForm
+
+	// TODO kOverlappingCharactersType
+
+	// TODO kTypographicExtrasType
+	uiAttributeSlashedZero,			// 0 = off, 1 = on
+
+	// TODO kMathematicalExtrasType
+	uiAttributeMathematicalGreek,		// 0 = off, 1 = on
+
+	// TODO kOrnamentSetsType
+
+	// TODO kCharacterAlternativesType
+
+	// TODO kDesignComplexityType
+
+	// TODO kStyleOptionsType
+	// TODO titling?
+
+	// TODO kCharacterShapeType
+	// we could probably make the enum now
+
+	uiAttributeNumberCase,			// TODO
+
+	// TODO kTextSpacingType
+
+	// TODO kTransliterationType
+
+	// AAT defines the following values:
+	// 0 = none
+	// 1 = box
+	// 2 = rounded box
+	// 3 = circle
+	// 4 = inverted circle
+	// 5 = parentheses
+	// 6 = period
+	// 7 = roman numeral
+	// 8 = diamond
+	// 9 = inverted box
+	// 10 = inverted rounded box
+	uiAttributeGlyphAnnotations,		// an integer from 0 to a font-specified upper bound
+
+	// TODO kKanaSpacingType
+
+	// TODO kIdeographicSpacingType
+
+	// TODO kUnicodeDecompositionType
+
+	// TODO kRubyKanaType
+
+	// TODO kCJKSymbolAlternativesType
+
+	// TODO kIdeographicAlternativesType
+
+	// TODO kCJKVerticalRomanPlacementType
+
+	// TODO kItalicCJKRomanType
+
+	// TODO kCaseSensitiveLayoutType
+
+	// TODO kAlternateKanaType
+
+	uiAttributeStylisticAlternative1,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternative2,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternative3,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternative4,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternative5,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternative6,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternative7,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternative8,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternative9,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternative10,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative11,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative12,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative13,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative14,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative15,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative16,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative17,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative18,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative19,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternative20,	// 0 = off, 1 = on
+
+	// TODO kContextualAlternatesType
+
+	// TODO kLowerCaseType
+
+	// TODO kUpperCaseType
+
+	// TODO kLanguageTagType?
+
+	// TODO kCJKRomanSpacingType
+
+#endif
+
 	// TODO uiAttributeSystem,
 	// TODO uiAttributeCustom,
 };
+
+_UI_ENUM(uiAttributeFractionForm) {
+	uiAttributeFractionFormNone,
+	uiAttributeFractionFormVertical,
+	uiAttributeFractionFormDiagonal,
+};
+
+// TODO number case
 
 struct uiAttributeSpec {
 	uiAttribute Type;

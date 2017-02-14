@@ -13,7 +13,54 @@ _UI_ENUM(uiAttribute) {
 	// TODO rename to uiAttributeVertical?
 	uiAttributeVerticalForms,		// 0 = off, 1 = on
 
-	// TODO underline and others
+	// TODO kerning amount
+	// OS X: kCTKernAttributeName
+	// 	> 0: farther (TODO from advance or standard kerning?)
+	// 	== 0: no kerning
+	// 	< 0: closer (TODO same)
+	// 	undefined: standard kerning
+	// Pango: pango_attr_letter_spacing_new()
+	// 	parameter meaning unspecified
+	// Windows: requires Platform Update, SetLetterSpacing()
+	// 	parameter meaning unspecified
+
+	// TODO kCTLigatureAttributeName vs below
+
+	// TODO kCTStrokeWidthAttributeName/kCTStrokeColorAttributeName? doesn't seem to be present anywhere else?
+
+	// TODO underline styles
+	// OS X: kCTUnderlineStyleAttributeName
+	// 	none, single, thick, or double
+	// 	styles: solid, dot, dash, dash dot, dash dot dot
+	// Pango: pango_attr_underline_new()
+	// 	none, single, double, low single, or wavy/error
+	// DirectWrite: only ever defined in version 1
+	// 	none or single only
+	// 	we could do this with a custom renderer (see Petzold's articles; he does it there)
+
+	// TODO kCTUnderlineColorAttributeName
+	// OS X: RGBA
+	// Pango: RGB(? TODO check for A in newer versions)
+	// DirectWrite: none; unsure if this means "same as text color" or "black only" (I assume Direct2D decides)
+	// 	we could do this with a custom renderer (see Petzold's articles; he does it there)
+
+	// TODO kCTSuperscriptAttributeName vs below
+
+	// TODO compare kCTVerticalFormsAttributeName to below?
+
+	// TODO kCTGlyphInfoAttributeName
+
+	// TODO kCTCharacterShapeAttributeName (seems to be provided by pango as well)
+
+	// TODO kCTLanguageAttributeName?
+
+	// TODO kCTRunDelegateAttributeName?
+
+	// TODO kCTBaselineClassAttributeName, kCTBaselineInfoAttributeName, kCTBaselineReferenceInfoAttributeName
+
+	// TODO kCTWritingDirectionAttributeName?
+
+	// TODO kCTRubyAnnotationAttributeName vs below
 
 #if 0
 

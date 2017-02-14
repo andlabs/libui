@@ -9,6 +9,7 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeStretch,
 	uiAttributeColor,			// use R, G, B, A
 	uiAttributeBackground,		// use R, G, B, A
+	// TODO rename to uiAttributeVertical?
 	uiAttributeVerticalForms,		// 0 = off, nonzero = 1
 	// TODO
 	// TODO uiAttributeSystem,

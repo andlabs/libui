@@ -2,13 +2,23 @@
 #include "../ui.h"
 #include "uipriv.h"
 
-// note: each tag should only appear in quotes once; this allows automated tools to determine what we cover and don't cover
+// Notes:
+// - Each tag should only appear in quotes once; this allows automated tools to determine what we cover and don't cover
 
 typedef void (*specToOpenTypeEnumFunc)(const char *featureTag, uint32_t param, void *data);
 
 static void boolspec(uiAttributeSpec *spec, const char *featureTag, specToOpenTypeEnumFunc f, void *data)
 {
 	if (spec->Value != 0) {
+		(*f)(featureTag, 1, data);
+		return;
+	}
+	(*f)(featureTag, 0, data);
+}
+
+static void boolspecnot(uiAttributeSpec *spec, const char *featureTag, specToOpenTypeEnumFunc f, void *data)
+{
+	if (spec->Value == 0) {
 		(*f)(featureTag, 1, data);
 		return;
 	}
@@ -32,9 +42,23 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 		return;
 	case uiAttributeHistoricalLigatures:
 		boolspec(spec, "hlig", f, data);
+		// This technically isn't what is meant by "historical ligatures", but Core Text's internal AAT-to-OpenType mapping says to include it, so we include it too
+		boolspec(spec, "hist", f, data);
 		return;
 	case uiAttributeUnicase:
 		boolspec(spec, "unic", f, data);
+		return;
+	// TODO is this correct or should we explicitly switch the rest off too?
+	case uiAttributeNumberSpacings:
+		// TODO does Core Text set both? do we?
+		switch (spec->Value) {
+		case uiAttributeNumberSpacingProportional:
+			(*f)("pnum", 1, data);
+			break;
+		case uiAttributeNumberSpacingTitling:
+			(*f)("tnum", 1, data);
+			break;
+		}
 		return;
 	// TODO is this correct or should we explicitly switch the rest off too?
 	case uiAttributeSuperscripts:
@@ -72,6 +96,9 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 		return;
 	case uiAttributeOrnamentalForms:
 		(*f)("ornm", (uint32_t) (spec->Value), data);
+		return;
+	case uiAttributeSpecificCharacterForm:
+		(*f)("aalt", (uint32_t) (spec->Value), data);
 		return;
 	case uiAttributeTitlingCapitalForms:
 		boolspec(spec, "titl", data);
@@ -113,6 +140,12 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 		return;
 	case uiAttributeLowercaseNumbers:
 		boolspec(spec, "onum", data);
+		// Core Text's internal AAT-to-OpenType mapping says to include this, so we include it too
+		// TODO is it always set?
+		boolspecnot(spec, "lnum", data);
+		return;
+	case uiAttributeHanjaToHangul:
+		boolspec(spec, "hngl", data);
 		return;
 	case uiAttributeGlyphAnnotations:
 		(*f)("nalt", (uint32_t) (spec->Value), data);
@@ -225,3 +258,26 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 		return;
 	}
 }
+
+// TODO missing that AAT uses directly:
+// - pkna, pwid, fwid, hwid, twid, qwid, palt, valt, vpal, halt, vhal, kern, vkrn (CJK width control)
+// - ruby
+// missing that AAT knows about:
+// - abvf, abvm, abvs, blwf, blwm, blws (baselines)
+// - akhn, dist, half, haln, nukt, rkrf, rphf, vatu (Devanagari support)
+// - ccmp (compositions)
+// - cjct, pres, pstf, psts (Indic script support)
+// - curs (cursive positioning)
+// - dnom, numr (fraction parts)
+// - falt, fina, init, isol, jalt, medi, mset (Arabic support)
+// 	- rclt (required contextual alternates)
+// - fin2, fin3, med2 (Syriac script support)
+// - lfbd, opbd, rtbd (optical bounds support)
+// - ljmo, tjmo, vjmo (Hangul Jamo support)
+// - locl (Cyrillic support)
+// - ltra, ltrm, rtla, rtlm (bidi support)
+// - mark, mkmk (mark positioning)
+// - pref (Khmer support)
+// - rand (random glyph selection candidates)
+// - salt (stylistic alternatives)
+// - size (sizing info)

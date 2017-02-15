@@ -76,11 +76,8 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO uiAttributeLinguisticRearrangement,	// 0 = off, 1 = on
 
-	// AAT: if off, "monospaced number spacing"; if on, "proportional number spacing"
-	// OpenType: non-proportional numbers are called "tabular"
-	// TODO uiAttributeProportionalNumbers,	// 0 = off, 1 = on
-		// TODO kNumberSpacingType 0 or 1
-			// TODO really?
+	// TODO rename this
+	uiAttributeNumberSpacings,		// enum uiAttributeNumberSpacing
 
 	// TODO kSmartSwashType
 
@@ -106,7 +103,13 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeOrnamentalForms,		// an integer from 0 to a font-specified upper bound
 	// TODO provide a function to get the upper bound?
 
-	// TODO kCharacterAlternativesType
+	// AAT calls this "character alternatives" and defines the
+	// following values:
+	// 0 = none
+	// OpenType calls this "access all alternates".
+	// TODO doesn't OpenType do the same about 0?
+	uiAttributeSpecificCharacterForm,	// an integer from 0 to a font-specified upper bound
+	// TODO provide a function to get the upper bound?
 
 	uiAttributeTitlingCapitalForms,		// 0 = off, 1 = on
 
@@ -119,7 +122,7 @@ _UI_ENUM(uiAttribute) {
 	// TODO kTextSpacingType
 	// see kKanaSpacingType below
 
-	// TODO kTransliterationType
+	uiAttributeHanjaToHangul,		// 0 = off, 1 = on
 
 	// AAT defines the following values:
 	// 0 = none
@@ -139,7 +142,7 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO kKanaSpacingType
 	// TODO kIdeographicSpacingType
-	// should these be provided? CAN they be provided?
+	// can they be provided independently of kTextSpacingType? Core Text doesn't seem to
 
 	// TODO kUnicodeDecompositionType
 
@@ -209,6 +212,12 @@ _UI_ENUM(uiDrawUnderlineColor) {
 	uiDrawUnderlineColorSpelling,
 	uiDrawUnderlineColorGrammar,
 	uiDrawUnderlineColorAuxiliary,	// for instance, the color used by smart replacements on OS X
+};
+
+_UI_ENUM(uiAttributeNumberSpacing) {
+	uiAttributeNumberSpacingProportional,
+	// AAT calls this "monospaced"
+	uiAttributeNumberSpacingTabular,
 };
 
 _UI_ENUM(uiAttributeSuperscript) {

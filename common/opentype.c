@@ -3,7 +3,7 @@
 #include "uipriv.h"
 
 // Notes:
-// - Each tag should only appear in quotes once; this allows automated tools to determine what we cover and don't cover
+// - Each tag should only appear in quotes once (including within comments); this allows automated tools to determine what we cover and don't cover
 
 typedef void (*specToOpenTypeEnumFunc)(const char *featureTag, uint32_t param, void *data);
 
@@ -264,20 +264,48 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 // - ruby
 // missing that AAT knows about:
 // - abvf, abvm, abvs, blwf, blwm, blws (baselines)
-// - akhn, dist, half, haln, nukt, rkrf, rphf, vatu (Devanagari support)
+// 	- harfbuzz says tibetan uses this
 // - ccmp (compositions)
-// - cjct, pres, pstf, psts (Indic script support)
 // - curs (cursive positioning)
 // - dnom, numr (fraction parts)
-// - falt, fina, init, isol, jalt, medi, mset (Arabic support)
+// - falt, jalt (Arabic support)
 // 	- rclt (required contextual alternates)
-// - fin2, fin3, med2 (Syriac script support)
 // - lfbd, opbd, rtbd (optical bounds support)
-// - ljmo, tjmo, vjmo (Hangul Jamo support)
 // - locl (Cyrillic support)
 // - ltra, ltrm, rtla, rtlm (bidi support)
 // - mark, mkmk (mark positioning)
-// - pref (Khmer support)
 // - rand (random glyph selection candidates)
 // - salt (stylistic alternatives)
 // - size (sizing info)
+//
+// script-specific; core text and pango/harfbuzz use these automatically based on the language
+// TODO if DirectWrite does too we can ignore them and just provide a language attribute (they all use BCP 47 syntax for language names)
+// Tag	Core Text?	Harfbuzz?
+// akhn	TODO		yes
+// cjct	TODO		yes
+// dist	TODO		yes
+// falt	TODO		TODO
+// fin2	TODO		yes
+// fin3	TODO		yes
+// fina	TODO		yes
+// half	TODO		yes
+// haln	TODO		yes
+// init	TODO		yes
+// isol	TODO		yes
+// jalt	TODO		TODO
+// ljmo	TODO		yes
+// locl	TODO		all horz(!)
+// med2	TODO		yes
+// medi	TODO		yes
+// mset	TODO		yes
+// nukt	TODO		yes
+// pref	TODO		yes
+// pres	TODO		yes
+// pstf	TODO		yes
+// psts	TODO		yes
+// rclt	TODO		all horz(!)
+// rkrf	TODO		yes
+// rphf	TODO		yes
+// tjmo	TODO		yes
+// vatu	TODO		yes
+// vjmo	TODO		yes

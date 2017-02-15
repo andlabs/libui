@@ -24,8 +24,6 @@ _UI_ENUM(uiAttribute) {
 	// Windows: requires Platform Update, SetLetterSpacing()
 	// 	parameter meaning unspecified
 
-	// TODO kCTLigatureAttributeName vs below
-
 	uiAttributeUnderline,		// enum uiDrawUnderlineStyle
 	// TODO what is the color in the case we don't specify it, black or the text color?
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
@@ -35,12 +33,13 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO kCTBaselineClassAttributeName, kCTBaselineInfoAttributeName, kCTBaselineReferenceInfoAttributeName
 
-	// TODO kCTRubyAnnotationAttributeName vs below
-
 	// TODO strikethroughs? (pango yes, directwrite yes, os x no)
 	// TODO baseline offsets? (pango yes)
 	// TODO size scales? (pango yes)
 	// TODO fallbacks (pango: enable or disable)
+
+	// TODO document that this will also enable language-specific font features (TODO on DirectWrite too?)
+	uiAttributeLanguage,		// BCP 47 string
 
 #if 0
 
@@ -79,7 +78,7 @@ _UI_ENUM(uiAttribute) {
 	// TODO rename this
 	uiAttributeNumberSpacings,		// enum uiAttributeNumberSpacing
 
-	// TODO kSmartSwashType
+	// TODO kSmartSwashType, falt and jalt
 
 	// TODO kDiacriticsType
 
@@ -146,7 +145,7 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO kUnicodeDecompositionType
 
-	// TODO kRubyKanaType
+	uiAttributeRubyKanaForms,		// 0 = off, 1 = on
 
 	// TODO kCJKVerticalRomanPlacementType
 	// this is 'valt' in OpenType but I don't know if I want to make it selectable or not
@@ -189,8 +188,6 @@ _UI_ENUM(uiAttribute) {
 
 	uiAttributeLowercaseCapForms,	// enum uiAttributeCapForm
 	uiAttributeUppercaseCapForms,	// enum uiAttributeCapForm
-
-	// TODO kLanguageTagType?
 
 	// TODO kCJKRomanSpacingType
 

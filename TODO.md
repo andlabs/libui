@@ -127,3 +127,46 @@ label shortcut keys
 [02:15:00]  <vrishab>	1.40.3
 [02:20:46]  <andlabs>	I'll ahve to keep this in mind then, thanks
 [02:20:59]  <andlabs>	if only there was a cairo-specific attribute for alpha...
+
+FONT LOADING
+
+[00:10:08]  <hergertme>	andlabs: is there API yet to load from memory? last i checked i only found from file (which we use in builder). https://git.gnome.org/browse/gnome-builder/tree/libide/editor/ide-editor-map-bin.c#n115
+[00:13:12] 	mrmcq2u_ (mrmcq2u@109.79.53.90) joined the channel
+[00:14:59] 	mrmcq2u (mrmcq2u@109.79.73.102) left IRC (Ping timeout: 181 seconds)
+[00:15:19]  <andlabs>	hergertme: no, which is why I was asking =P
+[00:15:30]  <andlabs>	I would have dug down if I could ensure at least something about the backends a GTK+ 3 program uses
+[00:15:39]  <andlabs>	on all platforms except windows and os x
+[00:16:11]  <hergertme>	to the best of my (partially outdated, given pace of foss) knowledge there isn't an api to load from memory
+[00:16:28]  <hergertme>	you can possibly make a tmpdir and put a temp file in there
+[00:16:52]  <hergertme>	and load that as your font dir in your FcConfig, so any PangoFontDescription would point to that one font, no matter what
+[00:17:18]  <hergertme>	(using the API layed out in that link)
+[00:18:18] 	dsr1014__ (dsr1014@c-73-72-102-18.hsd1.il.comcast.net) joined the channel
+[00:35:18] 	simukis_ (simukis@78-60-58-6.static.zebra.lt) left IRC (Quit: simukis_)
+[00:35:48] 	dreamon_ (dreamon@ppp-188-174-49-41.dynamic.mnet-online.de) joined the channel
+[00:40:09] 	samtoday_ (samtoday@114-198-116-132.dyn.iinet.net.au) joined the channel
+[00:40:32] 	mjog (mjog@120.18.225.46) joined the channel
+[00:40:38]  <andlabs>	hergertme: not necessarily fontconfig
+[00:40:45]  <andlabs>	it can be with ft2 or xft I guess
+[00:40:55]  <andlabs>	especially since I want the API NOT to make the font part of the font panel
+[00:42:07]  <hergertme>	what sort of deprecated code are you trying to support?
+[00:42:35]  <hergertme>	both of those are deprecated in pango fwiw
+[00:43:06]  <hergertme>	on Linux im pretty sure we use FC everywhere these days
+[00:44:46]  <hergertme>	(and gtk_widget_set_font_map() is how you get your custom font into a widget without affecting the global font lists, as layed out in that link)
+[00:49:14] 	vasaikar (vasaikar@125.16.97.121) joined the channel
+[00:50:14] 	karlt (karl@2400:e780:801:224:f121:e611:d139:e70e) left IRC (Client exited)
+[00:50:49] 	karlt (karl@2400:e780:801:224:f121:e611:d139:e70e) joined the channel
+[00:51:43] 	PioneerAxon (PioneerAxo@122.171.61.146) left IRC (Ping timeout: 180 seconds)
+[00:57:47] 	PioneerAxon (PioneerAxo@106.201.37.181) joined the channel
+[01:03:01] 	karlt (karl@2400:e780:801:224:f121:e611:d139:e70e) left IRC (Ping timeout: 181 seconds)
+[01:05:49] 	muhannad (muhannad@95.218.26.152) left IRC (Quit: muhannad)
+[01:07:51]  <andlabs>	hergertme: hm
+[01:07:54]  <andlabs>	all right, thanks
+[01:08:05]  <andlabs>	hergertme: fwiw right now my requirement is 3.10
+[01:10:47]  <hergertme>	ah, well you'll probably be missing the neccesary font API on gtk_widget
+[01:11:04]  <hergertme>	but pango should be fine even back as far as https://developer.gnome.org/pango/1.28/PangoFcFontMap.html
+[01:11:56]  <andlabs>	good
+[01:12:04]  <andlabs>	because this is for custom drawing into a DrawingArea
+[01:14:12]  <hergertme>	presumably just create your PangoContext as normal, but call pango_context_set_font_map() with the map you've setup. now, the load a font from a file i dont think was added to FontConfig until later though (not sure what release)
+[01:15:53]  <hergertme>	FcConfigAppFontAddFile() <-- that API
+[01:16:30]  <hergertme>	great, and they don't say what version the API was added in teh docs
+function: ide_editor_map_bin_add()

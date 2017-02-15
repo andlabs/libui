@@ -60,7 +60,6 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 			break;
 		}
 		return;
-	// TODO is this correct or should we explicitly switch the rest off too?
 	case uiAttributeSuperscripts:
 		switch (spec->Value) {
 		case uiAttributeSuperscriptSuperscript:
@@ -149,6 +148,9 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 		return;
 	case uiAttributeGlyphAnnotations:
 		(*f)("nalt", (uint32_t) (spec->Value), data);
+		return;
+	case uiAttributeRubyKanaForms:
+		boolspec(spec, "ruby", data);
 		return;
 	case uiAttributeCJKRomanToitalics:
 		boolspec(spec, "ital", data);
@@ -261,12 +263,9 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 
 // TODO missing that AAT uses directly:
 // - pkna, pwid, fwid, hwid, twid, qwid, palt, valt, vpal, halt, vhal, kern, vkrn (CJK width control)
-// - ruby
 // missing that AAT knows about:
 // - ccmp (compositions)
-// - curs (cursive positioning)
-// 	- Core Text uses this in language-specific stuff
-// - dnom, numr (fraction parts)
+// - dnom, numr (fraction parts) — no AAT equivalent...
 // - falt, jalt (Arabic support)
 // 	- rclt (required contextual alternates)
 // - lfbd, opbd, rtbd (optical bounds support)
@@ -288,6 +287,7 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 // blwm	yes			yes
 // blws	yes			TODO
 // cjct	yes			yes
+// curs	yes			yes
 // dist	yes			yes
 // falt	TODO		TODO
 // fin2	yes			yes

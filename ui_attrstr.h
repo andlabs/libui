@@ -62,7 +62,8 @@ _UI_ENUM(uiAttribute) {
 
 	// TODO kAllTypographicFeaturesType
 
-	uiAttributeCommonLigatures,		// 0 = off, 1 = on
+	// AAT calls these "common ligatures"
+	uiAttributeStandardLigatures,		// 0 = off, 1 = on
 	uiAttributeRequiredLigatures,		// 0 = off, 1 = on
 	// AAT calls these "rare ligatures"
 	uiAttributeDiscretionaryLigatures,	// 0 = off, 1 = on
@@ -132,6 +133,7 @@ _UI_ENUM(uiAttribute) {
 	// 8 = diamond
 	// 9 = inverted box
 	// 10 = inverted rounded box
+	// TODO rename to AnnotatedForms?
 	uiAttributeGlyphAnnotations,		// an integer from 0 to a font-specified upper bound
 	// TODO provide a function to get the upper bound?
 
@@ -148,13 +150,15 @@ _UI_ENUM(uiAttribute) {
 
 	uiAttributeCJKRomansToItalics,	// 0 = off, 1 = on
 
-	uiAttributeCaseSensitiveLayout,	// 0 = off, 1 = on
+	// AAT calls this "case-sensitive layout"
+	uiAttributeCaseSensitiveForms,	// 0 = off, 1 = on
 	// AAT: this is called "case-sensitive spacing"
 	uiAttributeCapitalSpacing,		// 0 = off, 1 = on
 
 	uiAttributeAlternateHorizontalKana,		// 0 = off, 1 = on
 	uiAttributeAlternateVerticalKana,	// 0 = off, 1 = on
 
+	// TODO "Alternate"? unify all this
 	uiAttributeStylisticAlternative1,		// 0 = off, 1 = on
 	uiAttributeStylisticAlternative2,		// 0 = off, 1 = on
 	uiAttributeStylisticAlternative3,		// 0 = off, 1 = on

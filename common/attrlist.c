@@ -291,6 +291,32 @@ static int boolsEqual(struct attr *attr, uiAttributeSpec *spec)
 	return attr->spec.Value != 0 && spec->Value != 0;
 }
 
+// BCP 47 is ASCII-only
+static int asciiStringsEqualCaseFold(const char *a, const char *b)
+{
+	char c, d;
+
+	for (;;) {
+		if (*a == *b) {
+			if (*a == '\0')
+				return 1;
+			a++;
+			b++;
+			continue;
+		}
+		c = *a;
+		if (c >= 'A' && c <= 'Z')
+			c += 'a' - 'A';
+		d = *b;
+		if (d >= 'A' && d <= 'Z')
+			d += 'a' - 'A';
+		if (c != d)
+			return 0;
+		a++;
+		b++;
+	}
+}
+
 static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 {
 	if (attr->spec.Type != spec->Type)
@@ -298,6 +324,7 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 	switch (attr->spec.Type) {
 	case uiAttributeFamily:
 		// TODO should we start copying these strings?
+		// TODO should this be case-insensitive?
 		return strcmp((char *) (attr->spec.Value), (char *) (spec->Value)) == 0;
 	case uiAttributeSize:
 		// TODO use a closest match?
@@ -317,6 +344,8 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 			attr->spec.A == spec->A;
 	case uiAttributeVerticalForms:
 		return boolsEqual(attr, spec);
+	case uiAttributeLanguage:
+		return asciiStringsEqualCaseFold((char *) (attr->spec.Value), (char *) (spec->Value));
 	// TODO
 	}
 	// handles the rest

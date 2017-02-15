@@ -263,10 +263,9 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 // - pkna, pwid, fwid, hwid, twid, qwid, palt, valt, vpal, halt, vhal, kern, vkrn (CJK width control)
 // - ruby
 // missing that AAT knows about:
-// - abvf, abvm, abvs, blwf, blwm, blws (baselines)
-// 	- harfbuzz says tibetan uses this
 // - ccmp (compositions)
 // - curs (cursive positioning)
+// 	- Core Text uses this in language-specific stuff
 // - dnom, numr (fraction parts)
 // - falt, jalt (Arabic support)
 // 	- rclt (required contextual alternates)
@@ -281,31 +280,37 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 // script-specific; core text and pango/harfbuzz use these automatically based on the language
 // TODO if DirectWrite does too we can ignore them and just provide a language attribute (they all use BCP 47 syntax for language names)
 // Tag	Core Text?	Harfbuzz?
-// akhn	TODO		yes
-// cjct	TODO		yes
-// dist	TODO		yes
+// abvf	yes			yes
+// abvm	yes			yes
+// abvs	yes			TODO
+// akhn	yes			yes
+// blwf	yes			yes
+// blwm	yes			yes
+// blws	yes			TODO
+// cjct	yes			yes
+// dist	yes			yes
 // falt	TODO		TODO
-// fin2	TODO		yes
-// fin3	TODO		yes
-// fina	TODO		yes
-// half	TODO		yes
-// haln	TODO		yes
-// init	TODO		yes
-// isol	TODO		yes
+// fin2	yes			yes
+// fin3	yes			yes
+// fina	yes			yes
+// half	yes			yes
+// haln	yes			yes
+// init	yes			yes
+// isol	yes			yes
 // jalt	TODO		TODO
-// ljmo	TODO		yes
+// ljmo	yes			yes
 // locl	TODO		all horz(!)
-// med2	TODO		yes
-// medi	TODO		yes
+// med2	yes			yes
+// medi	yes			yes
 // mset	TODO		yes
-// nukt	TODO		yes
-// pref	TODO		yes
-// pres	TODO		yes
-// pstf	TODO		yes
-// psts	TODO		yes
+// nukt	yes			yes
+// pref	yes			yes
+// pres	yes			yes
+// pstf	yes			yes
+// psts	yes			yes
 // rclt	TODO		all horz(!)
-// rkrf	TODO		yes
-// rphf	TODO		yes
-// tjmo	TODO		yes
-// vatu	TODO		yes
-// vjmo	TODO		yes
+// rkrf	yes			yes
+// rphf	yes			yes
+// tjmo	yes			yes
+// vatu	yes			yes
+// vjmo	yes			yes

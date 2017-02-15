@@ -1,6 +1,8 @@
 // 12 february 2017
 #import "uipriv_darwin.h"
 
+// LONGTERM FUTURE for typographic features, on 10.10 we can use OpenType tags directly!
+
 // this is what AppKit does internally
 // WebKit does this too; see https://github.com/adobe/webkit/blob/master/Source/WebCore/platform/graphics/mac/GraphicsContextMac.mm
 static NSColor *spellingColor = nil;
@@ -70,8 +72,9 @@ struct foreachParams {
 struct fontParams {
 	uiDrawFontDescriptor desc;
 	uint16_t featureTypes[maxFeatures];
-	uint16_t featureSpecifiers[maxFeatures];
+	uint16_t featureSelectors[maxFeatures];
 	size_t nFeatures;
+	const char *language;
 };
 
 static void ensureFontInRange(struct foreachParams *p, size_t start, size_t end)
@@ -239,18 +242,27 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		if (spec->Value == uiDrawUnderlineColorCustom)
 			CFRelease(color);
 		break;
+	// locale identifiers are specified as BCP 47: https://developer.apple.com/reference/corefoundation/cflocale?language=objc
+	case uiAttributeLanguage:
+		// LONGTERM FUTURE when we move to 10.9, switch to using kCTLanguageAttributeName
+		ensureFontInRange(p, start, end);
+		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
+			fp->language = (const char *) (spec->Value);
+		});
+		break;
 	// TODO
 	}
 	return 0;
 }
 
-static CTFontRef fontdescToCTFont(uiDrawFontDescriptor *fd)
+static CTFontRef fontdescToCTFont(struct fontParams *fp)
 {
 	CTFontDescriptorRef desc;
 	CTFontRef font;
 
-	desc = fontdescToCTFontDescriptor(fd);
-	font = CTFontCreateWithFontDescriptor(desc, fd->Size, NULL);
+	desc = fontdescToCTFontDescriptor(&(fp->desc));
+	desc = fontdescAppendFeatures(desc, fp->featureTypes, fp->featureSelectors, fp->nFeatures, fp->language);
+	font = CTFontCreateWithFontDescriptor(desc, fp->desc.Size, NULL);
 	CFRelease(desc);			// TODO correct?
 	return font;
 }
@@ -263,7 +275,7 @@ static void applyAndFreeFontAttributes(struct foreachParams *p)
 		CFRange range;
 
 		fp = (struct fontParams *) [val pointerValue];
-		font = fontdescToCTFont(&(fp->desc));
+		font = fontdescToCTFont(fp);
 		range.location = [key integerValue];
 		range.length = 1;
 		CFAttributedStringSetAttribute(p->mas, range, kCTFontAttributeName, font);
@@ -305,6 +317,7 @@ CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray
 	CFAttributedStringRef base;
 	CFMutableAttributedStringRef mas;
 	struct foreachParams fep;
+	struct fontParams ffp;
 
 	cfstr = CFStringCreateWithCharacters(NULL, attrstrUTF16(p->String), attrstrUTF16Len(p->String));
 	if (cfstr == NULL) {
@@ -316,7 +329,9 @@ CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray
 	if (defaultAttrs == NULL) {
 		// TODO
 	}
-	defaultCTFont = fontdescToCTFont(p->DefaultFont);
+	memset(&ffp, 0, sizeof (struct fontParams));
+	ffp.desc = *(p->DefaultFont);
+	defaultCTFont = fontdescToCTFont(&ffp);
 	CFDictionaryAddValue(defaultAttrs, kCTFontAttributeName, defaultCTFont);
 	CFRelease(defaultCTFont);
 	ps = mkParagraphStyle(p);

@@ -1,6 +1,11 @@
 // 17 january 2017
 #include "drawtext.h"
 
+// okay everything is definitely bugged in the OS X code
+// - occasional segfaults on startup
+// - very rare size attributes in the attributed string example don't terminate for a while, making everything big
+// - very very rare trace/bpt faults on startup
+
 static uiWindow *mainwin;
 static uiBox *box;
 static uiCombobox *exampleList;

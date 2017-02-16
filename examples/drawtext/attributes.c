@@ -232,6 +232,7 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
+	// TODO a different word than "writing"?
 	next = "UnICasE wRITInG";
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
@@ -242,7 +243,119 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
-	next = "TODO";
+	next = "316";
+	uiAttributedStringAppendUnattributed(attrstr, "proportional (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeNumberSpacings;
+	spec.Value = uiAttributeNumberSpacingProportional;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ") and tabular/monospaced (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeNumberSpacings;
+	spec.Value = uiAttributeNumberSpacingTabular;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ") numbers");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "123";
+	uiAttributedStringAppendUnattributed(attrstr, "superscipts (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSuperscripts;
+	spec.Value = uiAttributeSuperscriptSuperscript;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "123";
+	uiAttributedStringAppendUnattributed(attrstr, "subscripts (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSuperscripts;
+	spec.Value = uiAttributeSuperscriptSubscript;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "1st";
+	uiAttributedStringAppendUnattributed(attrstr, "ordinals (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSuperscripts;
+	spec.Value = uiAttributeSuperscriptOrdinal;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "H2O";
+	uiAttributedStringAppendUnattributed(attrstr, "scientific inferiors (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSuperscripts;
+	spec.Value = uiAttributeSuperscriptScientificInferior;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "2/3";
+	uiAttributedStringAppendUnattributed(attrstr, "fraction forms (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeFractionForms;
+	spec.Value = uiAttributeFractionFormNone;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeFractionForms;
+	spec.Value = uiAttributeFractionFormVertical;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeFractionForms;
+	spec.Value = uiAttributeFractionFormDiagonal;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "0";
+	uiAttributedStringAppendUnattributed(attrstr, "slashed zeroes (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSlashedZero;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSlashedZero;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "TODO mathematical greek";
 }
 
 static char fontFamily[] = "Times New Roman";

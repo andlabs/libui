@@ -93,6 +93,7 @@ static void u8u16len(const char *str, size_t *n8, size_t *n16)
 	*n16 = 0;
 	while (*str) {
 		str = utf8DecodeRune(str, 0, &rune);
+		// TODO document the use of the function vs a pointer subtract here
 		*n8 += utf8EncodeRune(rune, buf);
 		*n16 += utf16EncodeRune(rune, buf16);
 	}
@@ -123,6 +124,7 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 	uint16_t buf16[2];
 	size_t n8, n16;		// TODO make loop-local? to avoid using them in the wrong place again
 	size_t old, old16;
+	size_t oldn8, oldn16;
 	size_t oldlen, old16len;
 	size_t at16;
 	size_t i;
@@ -168,6 +170,8 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 		s->u16tou8 + at16 + n16,
 		s->u16tou8 + at16,
 		(old16len - at16 + 1) * sizeof (size_t));
+	oldn8 = n8;
+	oldn16 = n16;
 
 	// and copy
 	while (*str) {
@@ -201,15 +205,15 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 	}
 	// and have an index for the end of the string
 	// TODO is this done by the below?
-	s->u8tou16[old] = old16;
-	s->u16tou8[old16] = old;
+//TODO	s->u8tou16[old] = old16;
+//TODO	s->u16tou8[old16] = old;
 
 	// and adjust the prior values in the conversion tables
 	// use <= so the terminating 0 gets updated too
 	for (i = 0; i <= oldlen - at; i++)
-		s->u8tou16[at + oldlen + i] += old16len;
+		s->u8tou16[at + oldn8 + i] += s->u16len - old16len;
 	for (i = 0; i <= old16len - at16; i++)
-		s->u16tou8[at16 + old16len + i] += oldlen;
+		s->u16tou8[at16 + oldn16 + i] += s->len - oldlen;
 
 	// and finally do the attributes
 	attrlistInsertCharactersUnattributed(s->attrs, at, n8);

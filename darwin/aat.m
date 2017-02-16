@@ -1,8 +1,6 @@
 // 14 february 2017
 #import "uipriv_darwin.h"
 
-typedef void (*specToAATEnumFunc)(uint16_t type, uint16_t selector, void *data);
-
 static void boolspec(uiAttributeSpec *spec, uint16_t type, uint16_t ifTrue, uint16_t ifFalse, specToAATEnumFunc f, void *data)
 {
 	if (spec->Value != 0) {
@@ -12,7 +10,7 @@ static void boolspec(uiAttributeSpec *spec, uint16_t type, uint16_t ifTrue, uint
 	(*f)(type, ifFalse, data);
 }
 
-void specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
+int specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 {
 	switch (spec->Type) {
 	case uiAttributeStandardLigatures:
@@ -20,48 +18,48 @@ void specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 			kCommonLigaturesOnSelector,
 			kCommonLigaturesOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeRequiredLigatures:
 		boolspec(spec, kLigaturesType,
 			kRequiredLigaturesOnSelector,
 			kRequiredLigaturesOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeDiscretionaryLigatures:
 		boolspec(spec, kLigaturesType,
 			kRareLigaturesOnSelector,
 			kRareLigaturesOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeContextualLigatures:
 		boolspec(spec, kLigaturesType,
 			kContextualLigaturesOnSelector,
 			kContextualLigaturesOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeHistoricalLigatures:
 		boolspec(spec, kLigaturesType,
 			kHistoricalLigaturesOnSelector,
 			kHistoricalLigaturesOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeUnicase:
 		// TODO is this correct, or should we provide an else case?
 		if (spec->Value != 0)
 			// this is undocumented; it comes from Core Text's internal AAT-to-OpenType conversion table
 			(*f)(kLetterCaseType, 14, data);
-		return;
+		return 1;
 	// TODO make an array?
 	case uiAttributeNumberSpacings:
 		switch (spec->Value) {
 		case uiAttributeNumberSpacingProportional:
 			(*f)(kNumberSpacingType, kProportionalNumbersSelector, data);
 			break;
-		case uiAttributeNumberSpacingTitling:
+		case uiAttributeNumberSpacingTabular:
 			(*f)(kNumberSpacingType, kMonospacedNumbersSelector, data);
 			break;
 		}
-		return;
+		return 1;
 	// TODO make an array?
 	case uiAttributeSuperscripts:
 		switch (spec->Value) {
@@ -81,7 +79,7 @@ void specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 			(*f)(kVerticalPositionType, kScientificInferiorsSelector, data);
 			break;
 		}
-		return;
+		return 1;
 	// TODO make an array?
 	case uiAttributeFractionForms:
 		switch (spec->Value) {
@@ -95,30 +93,30 @@ void specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 			(*f)(kFractionsType, kDiagonalFractionsSelector, data);
 			break;
 		}
-		return;
+		return 1;
 	case uiAttributeSlashedZero:
 		boolspec(spec, kTypographicExtrasType,
 			kSlashedZeroOnSelector,
 			kSlashedZeroOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeMathematicalGreek:
 		boolspec(spec, kMathematicalExtrasType,
 			kMathematicalGreekOnSelector,
 			kMathematicalGreekOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeOrnamentalForms:
 		(*f)(kOrnamentSetsType, (uint16_t) (spec->Value), data);
-		return;
+		return 1;
 	case uiAttributeSpecificCharacterForm:
 		(*f)(kCharacterAlternativesType, (uint16_t) (spec->Value), data);
-		return;
+		return 1;
 	case uiAttributeTitlingCapitalForms:
 		// TODO is this correct, or should we provide an else case?
 		if (spec->Value != 0)
 			(*f)(kStyleOptionsType, kTitlingCapsSelector, data);
-		return;
+		return 1;
 	// TODO make an array?
 	case uiAttributeHanCharacterForms:
 		switch (spec->Value) {
@@ -153,20 +151,20 @@ void specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 			(*f)(kCharacterShapeType, kTraditionalNamesCharactersSelector, data);
 			break;
 		}
-		return;
+		return 1;
 	case uiAttributeLowercaseNumbers:
 		// TODO is this correct, or should we provide an else case?
 		if (spec->Value != 0)
 			(*f)(kNumberCaseType, kLowerCaseNumbersSelector, data);
-		return;
+		return 1;
 	case uiAttributeHanjaToHangul:
 		// TODO is this correct, or should we provide an else case?
 		if (spec->Value != 0)
 			(*f)(kTransliterationType, kHanjaToHangulSelector, data);
-		return;
+		return 1;
 	case uiAttributeGlyphAnnotations:
 		(*f)(kAnnotationType, (uint16_t) (spec->Value), data);
-		return;
+		return 1;
 	case uiAttributeRubyKanaForms:
 		// include this for completeness
 		boolspec(spec, kRubyKanaType,
@@ -178,8 +176,8 @@ void specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 			kRubyKanaOnSelector,
 			kRubyKanaOffSelector,
 			f, data);
-		return;
-	case uiAttributeCJKRomanToitalics:
+		return 1;
+	case uiAttributeCJKRomansToItalics:
 		// include this for completeness
 		boolspec(spec, kItalicCJKRomanType,
 			kCJKItalicRomanSelector,
@@ -190,173 +188,173 @@ void specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 			kCJKItalicRomanOnSelector,
 			kCJKItalicRomanOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeCaseSensitiveForms:
 		boolspec(spec, kCaseSensitiveLayoutType,
 			kCaseSensitiveLayoutOnSelector,
 			kCaseSensitiveLayoutOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeCapitalSpacing:
 		boolspec(spec, kCaseSensitiveLayoutType,
 			kCaseSensitiveSpacingOnSelector,
 			kCaseSensitiveSpacingOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeAlternateHorizontalKana:
 		boolspec(spec, kAlternateKanaType,
 			kAlternateHorizKanaOnSelector,
 			kAlternateHorizKanaOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeAlternateVerticalKana:
 		boolspec(spec, kAlternateKanaType,
 			kAlternateVertKanaOnSelector,
 			kAlternateVertKanaOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative1:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltOneOnSelector,
 			kStylisticAltOneOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative2:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltTwoOnSelector,
 			kStylisticAltTwoOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative3:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltThreeOnSelector,
 			kStylisticAltThreeOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative4:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltFourOnSelector,
 			kStylisticAltFourOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative5:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltFiveOnSelector,
 			kStylisticAltFiveOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative6:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltSixOnSelector,
 			kStylisticAltSixOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative7:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltSevenOnSelector,
 			kStylisticAltSevenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative8:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltEightOnSelector,
 			kStylisticAltEightOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative9:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltNineOnSelector,
 			kStylisticAltNineOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative10:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltTenOnSelector,
 			kStylisticAltTenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative11:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltElevenOnSelector,
 			kStylisticAltElevenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative12:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltTwelveOnSelector,
 			kStylisticAltTwelveOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative13:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltThirteenOnSelector,
 			kStylisticAltThirteenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative14:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltFourteenOnSelector,
 			kStylisticAltFourteenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative15:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltFifteenOnSelector,
 			kStylisticAltFifteenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative16:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltSixteenOnSelector,
 			kStylisticAltSixteenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative17:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltSeventeenOnSelector,
 			kStylisticAltSeventeenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative18:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltEighteenOnSelector,
 			kStylisticAltEighteenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative19:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltNineteenOnSelector,
 			kStylisticAltNineteenOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeStylisticAlternative20:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltTwentyOnSelector,
 			kStylisticAltTwentyOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeContextualAlternates:
 		boolspec(spec, kContextualAlternatesType,
 			kContextualAlternatesOnSelector,
 			kContextualAlternatesOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeSwashes:
 		boolspec(spec, kContextualAlternatesType,
 			kSwashAlternatesOnSelector,
 			kSwashAlternatesOffSelector,
 			f, data);
-		return;
+		return 1;
 	case uiAttributeContextualSwashes:
 		boolspec(spec, kContextualAlternatesType,
 			kContextualSwashAlternatesOnSelector,
 			kContextualSwashAlternatesOffSelector,
 			f, data);
-		return;
+		return 1;
 	// TODO use arrays?
 	case uiAttributeLowercaseCapForms:
 		switch (spec->Value) {
-		case uiAttributeCapFormNone:
+		case uiAttributeCapFormNormal:
 			(*f)(kLowerCaseType, kDefaultLowerCaseSelector, data);
 			break;
 		case uiAttributeCapFormSmallCaps:
@@ -370,11 +368,11 @@ void specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 			(*f)(kLowerCaseType, kLowerCasePetiteCapsSelector, data);
 			break;
 		}
-		return;
+		return 1;
 	// TODO use arrays?
 	case uiAttributeUppercaseCapForms:
 		switch (spec->Value) {
-		case uiAttributeCapFormNone:
+		case uiAttributeCapFormNormal:
 			(*f)(kUpperCaseType, kDefaultUpperCaseSelector, data);
 			break;
 		case uiAttributeCapFormSmallCaps:
@@ -384,6 +382,7 @@ void specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 			(*f)(kUpperCaseType, kUpperCasePetiteCapsSelector, data);
 			break;
 		}
-		return;
+		return 1;
 	}
+	return 0;
 }

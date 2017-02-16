@@ -1,6 +1,7 @@
 # 3 june 2016
 
 list(APPEND _LIBUI_SOURCES
+	darwin/aat.m
 	darwin/alloc.m
 	darwin/area.m
 	darwin/areaevents.m

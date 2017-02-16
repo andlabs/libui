@@ -139,6 +139,27 @@ static CGColorRef mkcolor(uiAttributeSpec *spec)
 	return color;
 }
 
+struct aatParam {
+	struct foreachParams *p;
+	size_t start;
+	size_t end;
+};
+
+static void doAAT(uint16_t type, uint16_t selector, void *data)
+{
+	struct aatParam *p = (struct aatParam *) data;
+
+	ensureFontInRange(p->p, p->start, p->end);
+	adjustFontInRange(p->p, p->start, p->end, ^(struct fontParams *fp) {
+		fp->featureTypes[fp->nFeatures] = type;
+		fp->featureSelectors[fp->nFeatures] = selector;
+		fp->nFeatures++;
+		if (fp->nFeatures == maxFeatures) {
+			// TODO
+		}
+	});
+}
+
 static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
@@ -148,6 +169,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	backgroundBlock block;
 	int32_t us;
 	CFNumberRef num;
+	struct aatParam ap;
 
 	ostart = start;
 	oend = end;
@@ -251,6 +273,14 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		});
 		break;
 	// TODO
+	default:
+		// handle typographic features
+		ap.p = p;
+		ap.start = start;
+		ap.end = end;
+		// TODO check if unhandled and complain
+		specToAAT(spec, doAAT, &ap);
+		break;
 	}
 	return 0;
 }

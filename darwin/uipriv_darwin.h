@@ -150,3 +150,7 @@ extern void initUnderlineColors(void);
 extern void uninitUnderlineColors(void);
 typedef void (^backgroundBlock)(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y);
 extern CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks);
+
+// aat.m
+typedef void (*specToAATEnumFunc)(uint16_t type, uint16_t selector, void *data);
+extern int specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data);

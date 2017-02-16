@@ -55,7 +55,7 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 		case uiAttributeNumberSpacingProportional:
 			(*f)("pnum", 1, data);
 			break;
-		case uiAttributeNumberSpacingTitling:
+		case uiAttributeNumberSpacingTabular:
 			(*f)("tnum", 1, data);
 			break;
 		}
@@ -152,7 +152,7 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 	case uiAttributeRubyKanaForms:
 		boolspec(spec, "ruby", data);
 		return;
-	case uiAttributeCJKRomanToitalics:
+	case uiAttributeCJKRomansToItalics:
 		boolspec(spec, "ital", data);
 		return;
 	case uiAttributeCaseSensitiveForms:

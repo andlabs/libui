@@ -42,8 +42,6 @@ _UI_ENUM(uiAttribute) {
 	// TODO document that this should be strict BCP 47 form (A-Z, a-z, 0-9, and -) for maximum compatibility
 	uiAttributeLanguage,		// BCP 47 string
 
-#if 0
-
 	// These attributes represent typographic features. Each feature
 	// is a separate attribute, to make composition easier. The
 	// availability of for each attribute are defined by the font; the
@@ -191,8 +189,6 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeUppercaseCapForms,	// enum uiAttributeCapForm
 
 	// TODO kCJKRomanSpacingType
-
-#endif
 
 	// TODO uiAttributeSystem, (this might not be doable with DirectWrite)
 	// TODO uiAttributeCustom,

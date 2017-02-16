@@ -232,7 +232,17 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
-	// TODO unicase
+	next = "UnICasE wRITInG";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeUnicase;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "TODO";
 }
 
 static char fontFamily[] = "Times New Roman";

@@ -165,7 +165,74 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
-	next = "multiple TODO";
+	next = "or any combination of the above";
+	// TODO
+
+	uiAttributedStringAppendUnattributed(attrstr, ". In addition, a variety of typographical features are available (depending on the chosen font) that can be switched on (or off, if the font enables them by default): ");
+
+	next = "fi";
+	uiAttributedStringAppendUnattributed(attrstr, "standard ligatures like f+i (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeStandardLigatures;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	// note the use of RTL embeds to make sure the bidi algorithm doesn't kick in for our demonstration (it will produce incorrect results)
+	// see also: https://www.w3.org/International/articles/inline-bidi-markup/#nomarkup
+	next = "\xD9\x84\xD8\xA7";
+	uiAttributedStringAppendUnattributed(attrstr, "required ligatures like \xE2\x80\xAB\xD9\x84\xE2\x80\xAC+\xE2\x80\xAB\xD8\xA7\xE2\x80\xAC (\xE2\x80\xAB");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeRequiredLigatures;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, "\xE2\x80\xAC)");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "ct";
+	uiAttributedStringAppendUnattributed(attrstr, "discretionary/rare ligatures like c+t (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeDiscretionaryLigatures;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "the";
+	uiAttributedStringAppendUnattributed(attrstr, "contextual ligatures like h+e in the (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeContextualLigatures;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "\xC3\x9F";
+	uiAttributedStringAppendUnattributed(attrstr, "historical ligatures like the decomposition of \xC3\x9F (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeHistoricalLigatures;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	// TODO unicase
 }
 
 static char fontFamily[] = "Times New Roman";

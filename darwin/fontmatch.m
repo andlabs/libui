@@ -298,56 +298,57 @@ CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uint1
 	}
 
 	// now we have to take care of the language
-	// TODO can we assume this is present?
 	if (language != NULL) {
 		languages = CTFontDescriptorCopyAttribute(desc, kCTFontLanguagesAttribute);
-		nl = CFArrayGetCount(languages);
-		d[0] = language[0];
-		if (d[0] >= 'A' && d[0] <= 'Z')
-			d[0] += 'a' - 'A';
-		d[1] = language[1];
-		if (d[1] >= 'A' && d[1] <= 'Z')
-			d[1] += 'a' - 'A';
-		for (il = 0; il < nl; il++) {
-			char c[2];
-	
-			curlang = (CFStringRef) CFArrayGetValueAtIndex(languages, il);
-			// TODO check for failure
-			CFStringGetBytes(curlang, CFRangeMake(0, 2),
-				kCFStringEncodingUTF8, 0, false,
-				(UInt8 *) c, 2, NULL);
-			if (c[0] >= 'A' && c[0] <= 'Z')
-				c[0] += 'a' - 'A';
-			if (c[1] >= 'A' && c[1] <= 'Z')
-				c[1] += 'a' - 'A';
-			if (c[0] == d[0] && c[1] == d[1])
-				break;
-		}
-		if (il != nl) {
-			uint16_t typ;
-	
-			typ = kLanguageTagType;
-			il++;
-			numType = CFNumberCreate(NULL, kCFNumberSInt16Type,
-				(const SInt16 *) (&typ));
-			numSelector = CFNumberCreate(NULL, kCFNumberCFIndexType,
-				&il);
-			values[0] = numType;
-			values[1] = numSelector;
-			innerDict = CFDictionaryCreate(NULL,
-				keys, values, 2,
-				// TODO are these correct?
-				&kCFCopyStringDictionaryKeyCallBacks,
-				&kCFTypeDictionaryValueCallBacks);
-			if (innerDict == NULL) {
-				// TODO
+		if (languages != NULL) {
+			nl = CFArrayGetCount(languages);
+			d[0] = language[0];
+			if (d[0] >= 'A' && d[0] <= 'Z')
+				d[0] += 'a' - 'A';
+			d[1] = language[1];
+			if (d[1] >= 'A' && d[1] <= 'Z')
+				d[1] += 'a' - 'A';
+			for (il = 0; il < nl; il++) {
+				char c[2];
+		
+				curlang = (CFStringRef) CFArrayGetValueAtIndex(languages, il);
+				// TODO check for failure
+				CFStringGetBytes(curlang, CFRangeMake(0, 2),
+					kCFStringEncodingUTF8, 0, false,
+					(UInt8 *) c, 2, NULL);
+				if (c[0] >= 'A' && c[0] <= 'Z')
+					c[0] += 'a' - 'A';
+				if (c[1] >= 'A' && c[1] <= 'Z')
+					c[1] += 'a' - 'A';
+				if (c[0] == d[0] && c[1] == d[1])
+					break;
 			}
-			CFArrayAppendValue(outerArray, innerDict);
-			CFRelease(innerDict);
-			CFRelease(numSelector);
-			CFRelease(numType);
+			if (il != nl) {
+				uint16_t typ;
+		
+				typ = kLanguageTagType;
+				il++;
+				numType = CFNumberCreate(NULL, kCFNumberSInt16Type,
+					(const SInt16 *) (&typ));
+				numSelector = CFNumberCreate(NULL, kCFNumberCFIndexType,
+					&il);
+				values[0] = numType;
+				values[1] = numSelector;
+				innerDict = CFDictionaryCreate(NULL,
+					keys, values, 2,
+					// TODO are these correct?
+					&kCFCopyStringDictionaryKeyCallBacks,
+					&kCFTypeDictionaryValueCallBacks);
+				if (innerDict == NULL) {
+					// TODO
+				}
+				CFArrayAppendValue(outerArray, innerDict);
+				CFRelease(innerDict);
+				CFRelease(numSelector);
+				CFRelease(numType);
+			}
+			CFRelease(languages);
 		}
-		CFRelease(languages);
 	}
 
 	keys[0] = kCTFontFeatureSettingsAttribute;

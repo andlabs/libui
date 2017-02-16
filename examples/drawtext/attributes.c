@@ -8,6 +8,7 @@ static void setupAttributedString(void)
 	uiAttributeSpec spec;
 	size_t start, end;
 	const char *next;
+	int i;
 
 	attrstr = uiNewAttributedString("uiAttributedString isn't just for plain text! It supports ");
 
@@ -355,7 +356,60 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
-	next = "TODO mathematical greek";
+	next = "\xCE\xA0\xCE\xA3";
+	uiAttributedStringAppendUnattributed(attrstr, "mathematical greek (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeMathematicalGreek;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeMathematicalGreek;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "qwertyuiop\xE2\x80\xA2";
+	uiAttributedStringAppendUnattributed(attrstr, "ornamental forms (");
+	for (i = 1; i < 11; i++) {
+		start = uiAttributedStringLen(attrstr);
+		end = start + strlen(next);
+		uiAttributedStringAppendUnattributed(attrstr, next);
+		spec.Type = uiAttributeOrnamentalForms;
+		spec.Value = (uintptr_t) i;
+		uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+		next = "\xE2\x80\xA2";
+	}
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "g";
+	uiAttributedStringAppendUnattributed(attrstr, "specific forms/alternates (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSpecificCharacterForm;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSpecificCharacterForm;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "TODO titling capitals";
 }
 
 static char fontFamily[] = "Times New Roman";

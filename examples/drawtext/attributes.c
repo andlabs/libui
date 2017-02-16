@@ -182,10 +182,10 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
-	// note the use of RTL embeds to make sure the bidi algorithm doesn't kick in for our demonstration (it will produce incorrect results)
+	// note the use of LTR marks and RTL embeds to make sure the bidi algorithm doesn't kick in for our demonstration (it will produce incorrect results)
 	// see also: https://www.w3.org/International/articles/inline-bidi-markup/#nomarkup
 	next = "\xD9\x84\xD8\xA7";
-	uiAttributedStringAppendUnattributed(attrstr, "required ligatures like \xE2\x80\xAB\xD9\x84\xE2\x80\xAC+\xE2\x80\xAB\xD8\xA7\xE2\x80\xAC (\xE2\x80\xAB");
+	uiAttributedStringAppendUnattributed(attrstr, "required ligatures like \xE2\x80\xAB\xD9\x84\xE2\x80\xAC+\xE2\x80\xAB\xD8\xA7\xE2\x80\xAC (\xE2\x80\x8E\xE2\x80\xAB");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);

@@ -118,6 +118,18 @@ else()
 			-static-libstdc++
 		)
 	endif()
+
+	# TODO document this
+	if(ADDRESS_SANITIZER)
+		set(_COMMON_CFLAGS ${_COMMON_CFLAGS}
+			-fsanitize=address
+			-fno-omit-frame-pointer
+		)
+		set(_COMMON_LDFLAGS ${_COMMON_LDFLAGS}
+			-fsanitize=address
+			-fno-omit-frame-pointer
+		)
+	endif()
 endif()
 
 # problem:

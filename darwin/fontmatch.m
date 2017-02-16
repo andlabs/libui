@@ -327,6 +327,7 @@ CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uint1
 			uint16_t typ;
 	
 			typ = kLanguageTagType;
+			il++;
 			numType = CFNumberCreate(NULL, kCFNumberSInt16Type,
 				(const SInt16 *) (&typ));
 			numSelector = CFNumberCreate(NULL, kCFNumberCFIndexType,

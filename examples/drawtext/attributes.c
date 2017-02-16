@@ -139,6 +139,7 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
+	// thanks to https://twitter.com/codeman38/status/831924064012886017
 	next = "\xD0\xB1\xD0\xB3\xD0\xB4\xD0\xBF\xD1\x82";
 	uiAttributedStringAppendUnattributed(attrstr, "multiple languages (compare ");
 	start = uiAttributedStringLen(attrstr);
@@ -181,9 +182,8 @@ static uiDrawTextLayoutParams params;
 #define margins 10
 
 static uiBox *panel;
-static uiCheckbox *showExtents;
 static uiCheckbox *showLineBounds;
-static uiCheckbox *showLineGuides;
+static uiFontButton *fontButton;
 
 // TODO should be const?
 static uiDrawBrush fillBrushes[4] = {
@@ -266,6 +266,15 @@ static void draw(uiAreaDrawParams *p)
 
 static struct example attributesExample;
 
+static void changeFont(uiFontButton *b, void *data)
+{
+	if (defaultFont.Family != fontFamily)
+		uiFreeText(defaultFont.Family);
+	// TODO rename defaultFont
+	uiFontButtonFont(fontButton, &defaultFont);
+	redraw();
+}
+
 // TODO share?
 static void checkboxChecked(uiCheckbox *c, void *data)
 {
@@ -286,6 +295,10 @@ struct example *mkAttributesExample(void)
 {
 	panel = uiNewVerticalBox();
 	showLineBounds = newCheckbox("Show Line Bounds");
+	fontButton = uiNewFontButton();
+	uiFontButtonOnChanged(fontButton, changeFont, NULL);
+	// TODO set the font button to the current defaultFont
+	uiBoxAppend(panel, uiControl(fontButton), 0);
 
 	attributesExample.name = "Attributed Text";
 	attributesExample.panel = uiControl(panel);

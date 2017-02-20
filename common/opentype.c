@@ -88,10 +88,10 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 		}
 		return;
 	case uiAttributeSlashedZero:
-		boolspec(spec, "zero", data);
+		boolspec(spec, "zero", f, data);
 		return;
 	case uiAttributeMathematicalGreek:
-		boolspec(spec, "mgrk", data);
+		boolspec(spec, "mgrk", f, data);
 		return;
 	case uiAttributeOrnamentalForms:
 		(*f)("ornm", (uint32_t) (spec->Value), data);
@@ -100,7 +100,7 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 		(*f)("aalt", (uint32_t) (spec->Value), data);
 		return;
 	case uiAttributeTitlingCapitalForms:
-		boolspec(spec, "titl", data);
+		boolspec(spec, "titl", f, data);
 		return;
 	// TODO is this correct or should we explicitly switch the rest off too?
 	case uiAttributeHanCharacterForms:
@@ -138,103 +138,103 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 		}
 		return;
 	case uiAttributeLowercaseNumbers:
-		boolspec(spec, "onum", data);
+		boolspec(spec, "onum", f, data);
 		// Core Text's internal AAT-to-OpenType mapping says to include this, so we include it too
 		// TODO is it always set?
-		boolspecnot(spec, "lnum", data);
+		boolspecnot(spec, "lnum", f, data);
 		return;
 	case uiAttributeHanjaToHangul:
-		boolspec(spec, "hngl", data);
+		boolspec(spec, "hngl", f, data);
 		return;
 	case uiAttributeGlyphAnnotations:
 		(*f)("nalt", (uint32_t) (spec->Value), data);
 		return;
 	case uiAttributeRubyKanaForms:
-		boolspec(spec, "ruby", data);
+		boolspec(spec, "ruby", f, data);
 		return;
 	case uiAttributeCJKRomansToItalics:
-		boolspec(spec, "ital", data);
+		boolspec(spec, "ital", f, data);
 		return;
 	case uiAttributeCaseSensitiveForms:
-		boolspec(spec, "case", data);
+		boolspec(spec, "case", f, data);
 		return;
 	case uiAttributeCapitalSpacing:
-		boolspec(spec, "cpsp", data);
+		boolspec(spec, "cpsp", f, data);
 		return;
 	case uiAttributeAlternateHorizontalKana:
-		boolspec(spec, "hkna", data);
+		boolspec(spec, "hkna", f, data);
 		return;
 	case uiAttributeAlternateVerticalKana:
-		boolspec(spec, "vkna", data);
+		boolspec(spec, "vkna", f, data);
 		return;
 	case uiAttributeStylisticAlternative1:
-		boolspec(spec, "ss01", data);
+		boolspec(spec, "ss01", f, data);
 		return;
 	case uiAttributeStylisticAlternative2:
-		boolspec(spec, "ss02", data);
+		boolspec(spec, "ss02", f, data);
 		return;
 	case uiAttributeStylisticAlternative3:
-		boolspec(spec, "ss03", data);
+		boolspec(spec, "ss03", f, data);
 		return;
 	case uiAttributeStylisticAlternative4:
-		boolspec(spec, "ss04", data);
+		boolspec(spec, "ss04", f, data);
 		return;
 	case uiAttributeStylisticAlternative5:
-		boolspec(spec, "ss05", data);
+		boolspec(spec, "ss05", f, data);
 		return;
 	case uiAttributeStylisticAlternative6:
-		boolspec(spec, "ss06", data);
+		boolspec(spec, "ss06", f, data);
 		return;
 	case uiAttributeStylisticAlternative7:
-		boolspec(spec, "ss07", data);
+		boolspec(spec, "ss07", f, data);
 		return;
 	case uiAttributeStylisticAlternative8:
-		boolspec(spec, "ss08", data);
+		boolspec(spec, "ss08", f, data);
 		return;
 	case uiAttributeStylisticAlternative9:
-		boolspec(spec, "ss09", data);
+		boolspec(spec, "ss09", f, data);
 		return;
 	case uiAttributeStylisticAlternative10:
-		boolspec(spec, "ss10", data);
+		boolspec(spec, "ss10", f, data);
 		return;
 	case uiAttributeStylisticAlternative11:
-		boolspec(spec, "ss11", data);
+		boolspec(spec, "ss11", f, data);
 		return;
 	case uiAttributeStylisticAlternative12:
-		boolspec(spec, "ss12", data);
+		boolspec(spec, "ss12", f, data);
 		return;
 	case uiAttributeStylisticAlternative13:
-		boolspec(spec, "ss13", data);
+		boolspec(spec, "ss13", f, data);
 		return;
 	case uiAttributeStylisticAlternative14:
-		boolspec(spec, "ss14", data);
+		boolspec(spec, "ss14", f, data);
 		return;
 	case uiAttributeStylisticAlternative15:
-		boolspec(spec, "ss15", data);
+		boolspec(spec, "ss15", f, data);
 		return;
 	case uiAttributeStylisticAlternative16:
-		boolspec(spec, "ss16", data);
+		boolspec(spec, "ss16", f, data);
 		return;
 	case uiAttributeStylisticAlternative17:
-		boolspec(spec, "ss17", data);
+		boolspec(spec, "ss17", f, data);
 		return;
 	case uiAttributeStylisticAlternative18:
-		boolspec(spec, "ss18", data);
+		boolspec(spec, "ss18", f, data);
 		return;
 	case uiAttributeStylisticAlternative19:
-		boolspec(spec, "ss19", data);
+		boolspec(spec, "ss19", f, data);
 		return;
 	case uiAttributeStylisticAlternative20:
-		boolspec(spec, "ss20", data);
+		boolspec(spec, "ss20", f, data);
 		return;
 	case uiAttributeContextualAlternates:
-		boolspec(spec, "calt", data);
+		boolspec(spec, "calt", f, data);
 		return;
 	case uiAttributeSwashes:
-		boolspec(spec, "swsh", data);
+		boolspec(spec, "swsh", f, data);
 		return;
 	case uiAttributeContextualSwashes:
-		boolspec(spec, "cswh", data);
+		boolspec(spec, "cswh", f, data);
 		return;
 	// TODO is this correct or should we explicitly switch the rest off too?
 	case uiAttributeLowercaseCapForms:

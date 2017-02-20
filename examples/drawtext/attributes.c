@@ -167,8 +167,36 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
+	// TODO randomize these ranges better
+	// TODO also change colors to light foreground dark background
 	next = "or any combination of the above";
-	// TODOTODO
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeWeight;
+	spec.Value = (uintptr_t) uiDrawTextWeightBold;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end - 8);
+	spec.Type = uiAttributeItalic;
+	spec.Value = (uintptr_t) uiDrawTextItalicItalic;
+	uiAttributedStringSetAttribute(attrstr, &spec, start + 3, end - 4);
+	spec.Type = uiAttributeColor;
+	spec.R = 0.8627450980392156;
+	spec.G = 0.0784313725490196;
+	spec.B = 0.2352941176470588;
+	spec.A = 0.75;
+	uiAttributedStringSetAttribute(attrstr, &spec, start + 12, end);
+	spec.Type = uiAttributeFamily;
+	spec.Value = (uintptr_t) "Helvetica";
+	uiAttributedStringSetAttribute(attrstr, &spec, start + 8, end - 1);
+	spec.Type = uiAttributeBackground;
+	spec.R = 1.0;
+	spec.G = 0.85490196078431372;
+	spec.B = 0.7254901960784313;
+	spec.A = 0.5;
+	uiAttributedStringSetAttribute(attrstr, &spec, start + 5, end - 7);
+	spec.Type = uiAttributeUnderline;
+	spec.Value = uiDrawUnderlineStyleSingle;
+	uiAttributedStringSetAttribute(attrstr, &spec, start + 9, end - 1);
 
 	uiAttributedStringAppendUnattributed(attrstr, ". In addition, a variety of typographical features are available (depending on the chosen font) that can be switched on (or off, if the font enables them by default): ");
 

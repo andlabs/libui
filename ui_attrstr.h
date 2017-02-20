@@ -160,6 +160,7 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeAlternateVerticalKana,	// 0 = off, 1 = on
 
 	// TODO "Alternate"? unify all this
+	// TODO document that these are guaranteed to be consecutive
 	uiAttributeStylisticAlternative1,		// 0 = off, 1 = on
 	uiAttributeStylisticAlternative2,		// 0 = off, 1 = on
 	uiAttributeStylisticAlternative3,		// 0 = off, 1 = on

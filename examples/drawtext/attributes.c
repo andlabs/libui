@@ -3,6 +3,7 @@
 
 static uiAttributedString *attrstr;
 
+// some of these examples come from Microsoft's and Apple's lists of typographic features and also https://www.fontfont.com/staticcontent/downloads/FF_OT_User_Guide.pdf
 static void setupAttributedString(void)
 {
 	uiAttributeSpec spec;
@@ -167,7 +168,7 @@ static void setupAttributedString(void)
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	next = "or any combination of the above";
-	// TODO
+	// TODOTODO
 
 	uiAttributedStringAppendUnattributed(attrstr, ". In addition, a variety of typographical features are available (depending on the chosen font) that can be switched on (or off, if the font enables them by default): ");
 
@@ -409,7 +410,327 @@ static void setupAttributedString(void)
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
-	next = "TODO titling capitals";
+	next = "ABCDEFGQWERTY";
+	uiAttributedStringAppendUnattributed(attrstr, "titling capital forms (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeTitlingCapitalForms;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeTitlingCapitalForms;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "\xE7\x80\x86";
+	uiAttributedStringAppendUnattributed(attrstr, "alternate Han character forms (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeHanCharacterForms;
+	spec.Value = uiAttributeHanCharacterFormJIS1978;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeHanCharacterForms;
+	spec.Value = uiAttributeHanCharacterFormJIS1983;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "0123456789";
+	uiAttributedStringAppendUnattributed(attrstr, "lowercase numbers (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeLowercaseNumbers;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeLowercaseNumbers;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "\xE4\xBC\xBD";
+	uiAttributedStringAppendUnattributed(attrstr, "hanja to hangul translation (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeHanjaToHangul;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeHanjaToHangul;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "\xE3\x81\x82";
+	uiAttributedStringAppendUnattributed(attrstr, "annotated glyph forms (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeGlyphAnnotations;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeGlyphAnnotations;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeGlyphAnnotations;
+	spec.Value = 4;			// AAT inverted circle
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "\xE3\x81\x82";
+	uiAttributedStringAppendUnattributed(attrstr, "ruby forms of kana (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeRubyKanaForms;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeRubyKanaForms;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "now is the time";
+	uiAttributedStringAppendUnattributed(attrstr, "italic forms of Latin letters in CJK fonts (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeCJKRomansToItalics;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeCJKRomansToItalics;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "{I} > {J}";
+	uiAttributedStringAppendUnattributed(attrstr, "case-sensitive character forms, such as punctuation (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeCaseSensitiveForms;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeCaseSensitiveForms;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "ABC";
+	uiAttributedStringAppendUnattributed(attrstr, "specialized spacing between uppercase letters (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeCapitalSpacing;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeCapitalSpacing;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "\xE3\x82\xB9\xE3\x83\x98\xE3\x83\x88";
+	uiAttributedStringAppendUnattributed(attrstr, "alternate horizontal (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeAlternateHorizontalKana;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeAlternateHorizontalKana;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ") and vertical (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeAlternateVerticalKana;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeAlternateVerticalKana;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ") kana forms");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "g";
+	uiAttributedStringAppendUnattributed(attrstr, "stylistic alternates (");
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeStylisticAlternative1;
+	spec.Value = 1;
+	for (i = 0; i < 20; i++) {
+		start = uiAttributedStringLen(attrstr);
+		end = start + strlen(next);
+		uiAttributedStringAppendUnattributed(attrstr, next);
+		spec.Type++;
+		uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	}
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "first";
+	uiAttributedStringAppendUnattributed(attrstr, "contextual alternates (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeContextualAlternates;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeContextualAlternates;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "FONT";
+	uiAttributedStringAppendUnattributed(attrstr, "swashes (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSwashes;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeSwashes;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "Font";
+	uiAttributedStringAppendUnattributed(attrstr, "contextual swashes (");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeContextualSwashes;
+	spec.Value = 0;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeContextualSwashes;
+	spec.Value = 1;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ")");
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "Small Caps";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeLowercaseCapForms;
+	spec.Value = uiAttributeCapFormSmallCaps;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+	next = "Petite Caps";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeLowercaseCapForms;
+	spec.Value = uiAttributeCapFormPetiteCaps;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	next = "SMALL UPPERCASES";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeUppercaseCapForms;
+	spec.Value = uiAttributeCapFormSmallCaps;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+	uiAttributedStringAppendUnattributed(attrstr, ", and ");
+	next = "PETITE UPPERCASES";
+	start = uiAttributedStringLen(attrstr);
+	end = start + strlen(next);
+	uiAttributedStringAppendUnattributed(attrstr, next);
+	spec.Type = uiAttributeUppercaseCapForms;
+	spec.Value = uiAttributeCapFormPetiteCaps;
+	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
+
+	uiAttributedStringAppendUnattributed(attrstr, ".");
+
+	// TODO write a dedicated example for experimenting with typographic features like the one in gtk3-demo
 }
 
 static char fontFamily[] = "Times New Roman";

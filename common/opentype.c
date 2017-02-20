@@ -5,8 +5,6 @@
 // Notes:
 // - Each tag should only appear in quotes once (including within comments); this allows automated tools to determine what we cover and don't cover
 
-typedef void (*specToOpenTypeEnumFunc)(const char *featureTag, uint32_t param, void *data);
-
 static void boolspec(uiAttributeSpec *spec, const char *featureTag, specToOpenTypeEnumFunc f, void *data)
 {
 	if (spec->Value != 0) {

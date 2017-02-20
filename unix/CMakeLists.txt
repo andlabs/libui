@@ -6,6 +6,7 @@ pkg_check_modules(GTK REQUIRED gtk+-3.0)
 list(APPEND _LIBUI_SOURCES
 	unix/alloc.c
 	unix/area.c
+	unix/attrstr.c
 	unix/box.c
 	unix/button.c
 	unix/cellrendererbutton.c

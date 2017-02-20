@@ -168,6 +168,7 @@ static void setupAttributedString(void)
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	// TODO randomize these ranges better
+	// TODO make some overlap to test that
 	// TODO also change colors to light foreground dark background
 	next = "or any combination of the above";
 	start = uiAttributedStringLen(attrstr);

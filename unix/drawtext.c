@@ -101,6 +101,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	uiDrawTextLayout *tl;
 	PangoContext *context;
 	PangoFontDescription *desc;
+	PangoAttrList *attrs;
 	int pangoWidth;
 
 	tl = uiNew(uiDrawTextLayout);
@@ -137,7 +138,9 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 
 	pango_layout_set_alignment(tl->layout, pangoAligns[p->Align]);
 
-	// TODO attributes
+	attrs = attrstrToPangoAttrList(p);
+	pango_layout_set_attributes(tl->layout, attrs);
+	pango_attr_list_unref(attrs);
 
 	tl->nLines = pango_layout_get_line_count(tl->layout);
 	computeLineMetrics(tl);

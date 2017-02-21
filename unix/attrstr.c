@@ -229,7 +229,7 @@ static gboolean applyFeatures(gpointer key, gpointer value, gpointer data)
 
 	// remove the trailing comma/space
 	g_string_truncate(s, s->len - 2);
-	addattr(p, *pos, 1,
+	addattr(p, *pos, *pos + 1,
 		FUTURE_pango_attr_font_features_new(s->str));
 	return TRUE;		// always delete; we're emptying the map
 }

@@ -1,9 +1,13 @@
 // 12 february 2017
 #include "uipriv_unix.h"
 
+// TODO ligatures items turn ligatures *OFF*?!
+// TODO actually does not specifying a feature revert to default?
+
 // we need to collect all the OpenType features and background blocks and add them all at once
 // TODO rename this struct to something that isn't exclusively foreach-ing?
 struct foreachParams {
+	const char *s;
 	PangoAttrList *attrs;
 	// keys are pointers to size_t maintained by g_new0()/g_free()
 	// values are GStrings
@@ -31,6 +35,8 @@ static void freeFeatureString(gpointer s)
 	g_string_free((GString *) s, TRUE);
 }
 
+#define isCodepointStart(b) (((uint8_t) (b)) <= 0x7F || ((uint8_t) (b)) >= 0xC0)
+
 static void ensureFeaturesInRange(struct foreachParams *p, size_t start, size_t end)
 {
 	size_t i;
@@ -38,6 +44,9 @@ static void ensureFeaturesInRange(struct foreachParams *p, size_t start, size_t 
 	GString *new;
 
 	for (i = start; i < end; i++) {
+		// don't create redundant entries; see below
+		if (!isCodepointStart(p->s[i]))
+			continue;
 		new = (GString *) g_hash_table_lookup(p->features, &i);
 		if (new != NULL)
 			continue;
@@ -79,6 +88,9 @@ static void doOpenType(const char *featureTag, uint32_t param, void *data)
 
 	ensureFeaturesInRange(p->p, p->start, p->end);
 	for (i = p->start; i < p->end; i++) {
+		// don't use redundant entries; see below
+		if (!isCodepointStart(p->s[i]))
+			continue;
 		s = (GString *) g_hash_table_lookup(p->p->features, &i);
 		g_string_append_printf(s, "\"%s\" %" PRIu32 ", ",
 			featureTag, param);
@@ -226,10 +238,16 @@ static gboolean applyFeatures(gpointer key, gpointer value, gpointer data)
 	struct foreachParams *p = (struct foreachParams *) data;
 	size_t *pos = (size_t *) key;
 	GString *s = (GString *) value;
+	size_t n;
 
 	// remove the trailing comma/space
 	g_string_truncate(s, s->len - 2);
-	addattr(p, *pos, *pos + 1,
+	// make sure we cover an entire code point
+	// otherwise Pango will break apart multi-byte characters, spitting out U+FFFD characters at the invalid points
+	n = 1;
+	while (!isCodepointStart(p->s[*pos + n]))
+		n++;
+	addattr(p, *pos, *pos + n,
 		FUTURE_pango_attr_font_features_new(s->str));
 	return TRUE;		// always delete; we're emptying the map
 }
@@ -244,6 +262,7 @@ PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p/*TODO, NSArray *
 {
 	struct foreachParams fep;
 
+	fep.s = uiAttributedStringString(p->String);
 	fep.attrs = pango_attr_list_new();
 	fep.features = g_hash_table_new_full(
 		featurePosHash, featurePosEqual,

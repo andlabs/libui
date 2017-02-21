@@ -307,6 +307,7 @@ static void applyAndFreeFontAttributes(struct foreachParams *p)
 		fp = (struct fontParams *) [val pointerValue];
 		font = fontdescToCTFont(fp);
 		range.location = [key integerValue];
+		// TODO this is wrong for surrogate pairs
 		range.length = 1;
 		CFAttributedStringSetAttribute(p->mas, range, kCTFontAttributeName, font);
 		CFRelease(font);

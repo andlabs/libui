@@ -1,6 +1,8 @@
 // 12 february 2017
 #include "uipriv_unix.h"
 
+// TODO pango alpha attributes turn 0 into 65535 :|
+
 // we need to collect all the OpenType features and background blocks and add them all at once
 // TODO this is the wrong approach; it causes Pango to end runs early, meaning attributes like the ligature attributes never get applied properly
 // TODO rename this struct to something that isn't exclusively foreach-ing?

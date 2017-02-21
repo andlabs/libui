@@ -64,3 +64,9 @@ extern void fontdescFromPangoFontDescription(PangoFontDescription *pdesc, uiDraw
 
 // attrstr.c
 extern PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p/*TODO, NSArray **backgroundBlocks*/);
+
+// drawtext.c
+// TODO get rid of these (for attrstr.c)
+#define cairoToPango(cairo) (pango_units_from_double(cairo))
+extern const PangoStyle pangoItalics[];
+extern const PangoStretch pangoStretches[];

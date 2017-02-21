@@ -1,10 +1,8 @@
 // 12 february 2017
 #include "uipriv_unix.h"
 
-// TODO ligatures items turn ligatures *OFF*?!
-// TODO actually does not specifying a feature revert to default?
-
 // we need to collect all the OpenType features and background blocks and add them all at once
+// TODO this is the wrong approach; it causes Pango to end runs early, meaning attributes like the ligature attributes never get applied properly
 // TODO rename this struct to something that isn't exclusively foreach-ing?
 struct foreachParams {
 	const char *s;
@@ -89,7 +87,7 @@ static void doOpenType(const char *featureTag, uint32_t param, void *data)
 	ensureFeaturesInRange(p->p, p->start, p->end);
 	for (i = p->start; i < p->end; i++) {
 		// don't use redundant entries; see below
-		if (!isCodepointStart(p->s[i]))
+		if (!isCodepointStart(p->p->s[i]))
 			continue;
 		s = (GString *) g_hash_table_lookup(p->p->features, &i);
 		g_string_append_printf(s, "\"%s\" %" PRIu32 ", ",
@@ -120,30 +118,23 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		addattr(p, start, end,
 			pango_attr_family_new((const char *) (spec->Value)));
 		break;
-#if 0 /* TODO */
 	case uiAttributeSize:
 		addattr(p, start, end,
 			pango_attr_size_new(cairoToPango(spec->Double)));
 		break;
 	case uiAttributeWeight:
-		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
-			fp->desc.Weight = (uiDrawTextWeight) (spec->Value);
-		});
+		// TODO reverse the misalignment from drawtext.c if it is corrected 
+		addattr(p, start, end,
+			pango_attr_weight_new((PangoWeight) (spec->Value)));
 		break;
 	case uiAttributeItalic:
-		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
-			fp->desc.Italic = (uiDrawTextItalic) (spec->Value);
-		});
+		addattr(p, start, end,
+			pango_attr_style_new(pangoItalics[(uiDrawTextItalic) (spec->Value)]));
 		break;
 	case uiAttributeStretch:
-		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
-			fp->desc.Stretch = (uiDrawTextStretch) (spec->Value);
-		});
+		addattr(p, start, end,
+			pango_attr_stretch_new(pangoStretches[(uiDrawTextStretch) (spec->Value)]));
 		break;
-#endif
 	case uiAttributeColor:
 		addattr(p, start, end,
 			pango_attr_foreground_new(

@@ -14,7 +14,7 @@ struct uiDrawTextLayout {
 // See https://developer.gnome.org/pango/1.30/pango-Cairo-Rendering.html#pango-Cairo-Rendering.description
 // For the conversion, see https://developer.gnome.org/pango/1.30/pango-Glyph-Storage.html#pango-units-to-double and https://developer.gnome.org/pango/1.30/pango-Glyph-Storage.html#pango-units-from-double
 #define pangoToCairo(pango) (pango_units_to_double(pango))
-#define cairoToPango(cairo) (pango_units_from_double(cairo))
+// cairoToPango() is in uipriv_unix.h because attrstr.c needs it
 
 // we need a context for a few things
 // the documentation suggests creating cairo_t-specific, GdkScreen-specific, or even GtkWidget-specific contexts, but we can't really do that because we want our uiDrawTextFonts and uiDrawTextLayouts to be context-independent
@@ -22,13 +22,13 @@ struct uiDrawTextLayout {
 // so let's use gdk_pango_context_get() instead; even though it's for the default screen only, it's good enough for us
 #define mkGenericPangoCairoContext() (gdk_pango_context_get())
 
-static const PangoStyle pangoItalics[] = {
+const PangoStyle pangoItalics[] = {
 	[uiDrawTextItalicNormal] = PANGO_STYLE_NORMAL,
 	[uiDrawTextItalicOblique] = PANGO_STYLE_OBLIQUE,
 	[uiDrawTextItalicItalic] = PANGO_STYLE_ITALIC,
 };
 
-static const PangoStretch pangoStretches[] = {
+const PangoStretch pangoStretches[] = {
 	[uiDrawTextStretchUltraCondensed] = PANGO_STRETCH_ULTRA_CONDENSED,
 	[uiDrawTextStretchExtraCondensed] = PANGO_STRETCH_EXTRA_CONDENSED,
 	[uiDrawTextStretchCondensed] = PANGO_STRETCH_CONDENSED,

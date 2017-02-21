@@ -10,7 +10,8 @@ struct foreachParams {
 	// keys are pointers to size_t maintained by g_new0()/g_free()
 	// values are GStrings
 	GHashTable *features;
-//TODO	GArray *backgroundBlocks;
+	// TODO use pango's built-in background attribute?
+	GPtrArray *backgroundClosures;
 };
 
 static gboolean featurePosEqual(gconstpointer a, gconstpointer b)
@@ -55,21 +56,51 @@ static void ensureFeaturesInRange(struct foreachParams *p, size_t start, size_t 
 	}
 }
 
-#if 0 /* TODO */
-static backgroundBlock mkBackgroundBlock(size_t start, size_t end, double r, double g, double b, double a)
-{
-	return Block_copy(^(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y) {
-		uiDrawBrush brush;
+struct closureParams {
+	size_t start;
+	size_t end;
+	double r;
+	double g;
+	double b;
+	double a;
+};
 
-		brush.Type = uiDrawBrushTypeSolid;
-		brush.R = r;
-		brush.G = g;
-		brush.B = b;
-		brush.A = a;
-		drawTextBackground(c, x, y, layout, start, end, &brush, 0);
-	});
+static void backgroundClosure(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y, gpointer data)
+{
+	struct closureParams *p = (struct closureParams *) data;
+	uiDrawBrush brush;
+
+	brush.Type = uiDrawBrushTypeSolid;
+	brush.R = p->r;
+	brush.G = p->g;
+	brush.B = p->b;
+	brush.A = p->a;
+	drawTextBackground(c, x, y, layout, p->start, p->end, &brush, 0);
 }
-#endif
+
+static void freeClosureParams(gpointer data, GClosure *closure)
+{
+	uiFree((struct closureParams *) data);
+}
+
+static GClosure *mkBackgroundClosure(size_t start, size_t end, double r, double g, double b, double a)
+{
+	struct closureParams *p;
+	GClosure *closure;
+
+	p = uiNew(struct closureParams);
+	p->start = start;
+	p->end = end;
+	p->r = r;
+	p->g = g;
+	p->b = b;
+	p->a = a;
+	closure = (GClosure *) g_cclosure_new(G_CALLBACK(backgroundClosure), p, freeClosureParams);
+	// TODO write a specific marshaler
+	// TODO or drop the closure stuff entirely
+	g_closure_set_marshal(closure, g_cclosure_marshal_generic);
+	return closure;
+}
 
 struct otParam {
 	struct foreachParams *p;
@@ -107,7 +138,7 @@ static void addattr(struct foreachParams *p, size_t start, size_t end, PangoAttr
 static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
-//TODO	backgroundBlock block;
+	GClosure *closure;
 	PangoGravity gravity;
 	PangoUnderline underline;
 	PangoLanguage *lang;
@@ -145,14 +176,11 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 			FUTURE_pango_attr_foreground_alpha_new(
 				(guint16) (spec->A * 65535.0)));
 		break;
-#if 0 /* TODO */
 	case uiAttributeBackground:
-		block = mkBackgroundBlock(ostart, oend,
+		closure = mkBackgroundClosure(start, end,
 			spec->R, spec->G, spec->B, spec->A);
-		[p->backgroundBlocks addObject:block];
-		Block_release(block);
+		g_ptr_array_add(p->backgroundClosures, closure);
 		break;
-#endif
 	case uiAttributeVerticalForms:
 		gravity = PANGO_GRAVITY_SOUTH;
 		if (spec->Value != 0)
@@ -249,7 +277,12 @@ static void applyAndFreeFeatureAttributes(struct foreachParams *p)
 	g_hash_table_destroy(p->features);
 }
 
-PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p/*TODO, NSArray **backgroundBlocks*/)
+static void unrefClosure(gpointer data)
+{
+	g_closure_unref((GClosure *) data);
+}
+
+PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p, GPtrArray **backgroundClosures)
 {
 	struct foreachParams fep;
 
@@ -258,7 +291,33 @@ PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p/*TODO, NSArray *
 	fep.features = g_hash_table_new_full(
 		featurePosHash, featurePosEqual,
 		g_free, freeFeatureString);
+	fep.backgroundClosures = g_ptr_array_new_with_free_func(unrefClosure);
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
 	applyAndFreeFeatureAttributes(&fep);
+	*backgroundClosures = fep.backgroundClosures;
 	return fep.attrs;
+}
+
+void invokeBackgroundClosure(GClosure *closure, uiDrawContext *c, uiDrawTextLayout *layout, double x, double y)
+{
+	GValue values[4] = {
+		// the zero-initialization is needed for g_value_init() to work
+		G_VALUE_INIT,
+		G_VALUE_INIT,
+		G_VALUE_INIT,
+		G_VALUE_INIT,
+	};
+
+	g_value_init(values + 0, G_TYPE_POINTER);
+	g_value_set_pointer(values + 0, c);
+	g_value_init(values + 1, G_TYPE_POINTER);
+	g_value_set_pointer(values + 1, layout);
+	g_value_init(values + 2, G_TYPE_DOUBLE);
+	g_value_set_double(values + 2, x);
+	g_value_init(values + 3, G_TYPE_DOUBLE);
+	g_value_set_double(values + 3, y);
+	g_closure_invoke(closure,
+		NULL,
+		4, values,
+		NULL);
 }

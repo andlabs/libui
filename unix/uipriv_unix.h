@@ -63,7 +63,8 @@ extern gboolean FUTURE_gtk_widget_path_iter_set_object_name(GtkWidgetPath *path,
 extern void fontdescFromPangoFontDescription(PangoFontDescription *pdesc, uiDrawFontDescriptor *uidesc);
 
 // attrstr.c
-extern PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p/*TODO, NSArray **backgroundBlocks*/);
+extern PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p, GPtrArray **backgroundClosures);
+extern void invokeBackgroundClosure(GClosure *closure, uiDrawContext *c, uiDrawTextLayout *layout, double x, double y);
 
 // drawtext.c
 // TODO get rid of these (for attrstr.c)

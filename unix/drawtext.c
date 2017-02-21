@@ -7,6 +7,7 @@
 
 struct uiDrawTextLayout {
 	PangoLayout *layout;
+	GPtrArray *backgroundClosures;
 	uiDrawTextLayoutLineMetrics *lineMetrics;
 	int nLines;
 };
@@ -138,7 +139,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 
 	pango_layout_set_alignment(tl->layout, pangoAligns[p->Align]);
 
-	attrs = attrstrToPangoAttrList(p);
+	attrs = attrstrToPangoAttrList(p, &(tl->backgroundClosures));
 	pango_layout_set_attributes(tl->layout, attrs);
 	pango_attr_list_unref(attrs);
 
@@ -151,12 +152,22 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
 	uiFree(tl->lineMetrics);
+	g_ptr_array_unref(tl->backgroundClosures);
 	g_object_unref(tl->layout);
 	uiFree(tl);
 }
 
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
+	guint i;
+	GClosure *closure;
+
+	for (i = 0; i < tl->backgroundClosures->len; i++) {
+		closure = (GClosure *) g_ptr_array_index(tl->backgroundClosures, i);
+		invokeBackgroundClosure(closure, c, tl, x, y);
+	}
+	// TODO have an implicit save/restore on each drawing functions instead? and is this correct?
+	cairo_set_source_rgb(c->cr, 0.0, 0.0, 0.0);
 	cairo_move_to(c->cr, x, y);
 	pango_cairo_show_layout(c->cr, tl->layout);
 }

@@ -7,6 +7,8 @@
 // - if that's not a problem, do we have overlapping rects in the hittest sample? I can't tell...
 // - what happens if any nLines == 0?
 
+// TODO verify our renderer is correct, especially with regards to snapping
+
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
@@ -240,23 +242,161 @@ static ID2D1SolidColorBrush *mkSolidBrush(ID2D1RenderTarget *rt, double r, doubl
 	return brush;
 }
 
+// some of the stuff we want to do isn't possible with what DirectWrite provides itself; we need to do it ourselves
+// this is based on http://www.charlespetzold.com/blog/2014/01/Character-Formatting-Extensions-with-DirectWrite.html
+class textRenderer : public IDWriteTextRenderer {
+	ULONG refcount;
+	ID2D1RenderTarget *rt;
+	BOOL snap;
+	IUnknown *black;
+public:
+	textRenderer(ID2D1RenderTarget *rt, BOOL snap, IUnknown *black)
+	{
+		this->refcount = 1;
+		this->rt = rt;
+		this->snap = snap;
+		this->black = black;
+	}
+
+	// IUnknown
+	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject)
+	{
+		if (ppvObject == NULL)
+			return E_POINTER;
+		if (riid == IID_IUnknown ||
+			riid == __uuidof (IDWritePixelSnapping) ||
+			riid == __uuidof (IDWriteTextRenderer)) {
+			this->AddRef();
+			*ppvObject = this;
+			return S_OK;
+		}
+		*ppvObject = NULL;
+		return E_NOINTERFACE;
+	}
+
+	virtual ULONG STDMETHODCALLTYPE AddRef(void)
+	{
+		this->refcount++;
+		return this->refcount;
+	}
+
+	virtual ULONG STDMETHODCALLTYPE Release(void)
+	{
+		this->refcount--;
+		if (this->refcount == 0) {
+			delete this;
+			return 0;
+		}
+		return this->refcount;
+	}
+
+	// IDWritePixelSnapping
+	virtual HRESULT STDMETHODCALLTYPE GetCurrentTransform(void *clientDrawingContext, DWRITE_MATRIX *transform)
+	{
+		D2D1_MATRIX_3X2_F d2dtf;
+
+		if (transform == NULL)
+			return E_POINTER;
+		this->rt->GetTransform(&d2dtf);
+		transform->m11 = d2dtf._11;
+		transform->m12 = d2dtf._12;
+		transform->m21 = d2dtf._21;
+		transform->m22 = d2dtf._22;
+		transform->dx = d2dtf._31;
+		transform->dy = d2dtf._32;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetPixelsPerDip(void *clientDrawingContext, FLOAT *pixelsPerDip)
+	{
+		FLOAT dpix, dpiy;
+
+		if (pixelsPerDip == NULL)
+			return E_POINTER;
+		this->rt->GetDpi(&dpix, &dpiy);
+		*pixelsPerDip = dpix / 96;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE IsPixelSnappingDisabled(void *clientDrawingContext, BOOL *isDisabled)
+	{
+		if (isDisabled == NULL)
+			return E_POINTER;
+		*isDisabled = !this->snap;
+		return S_OK;
+	}
+
+	// IDWriteTextRenderer
+	virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, DWRITE_MEASURING_MODE measuringMode, const DWRITE_GLYPH_RUN *glyphRun, const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription, IUnknown *clientDrawingEffect)
+	{
+		D2D1_POINT_2F baseline;
+
+		baseline.x = baselineOriginX;
+		baseline.y = baselineOriginY;
+		if (clientDrawingEffect == NULL)
+			clientDrawingEffect = black;
+		this->rt->DrawGlyphRun(
+			baseline,
+			glyphRun,
+			(ID2D1Brush *) clientDrawingEffect,
+			measuringMode);
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE DrawInlineObject(void *clientDrawingContext, FLOAT originX, FLOAT originY, IDWriteInlineObject *inlineObject, BOOL isSideways, BOOL isRightToLeft, IUnknown *clientDrawingEffect)
+	{
+		if (inlineObject == NULL)
+			return E_POINTER;
+		return inlineObject->Draw(clientDrawingContext, this,
+			originX, originY,
+			isSideways, isRightToLeft,
+			clientDrawingEffect);
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_STRIKETHROUGH *strikethrough, IUnknown *clientDrawingEffect)
+	{
+		// TODO
+		return S_OK;
+	}
+
+	virtual HRESULT DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
+	{
+		// TODO
+		return S_OK;
+	}
+};
+
 // TODO this ignores clipping?
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
 	D2D1_POINT_2F pt;
 	ID2D1Brush *black;
+	textRenderer *renderer;
+	HRESULT hr;
 
 	// TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
 	// TODO figure out if this needs to be cleaned out
 	black = mkSolidBrush(c->rt, 0.0, 0.0, 0.0, 1.0);
 
+#if 0
 	pt.x = x;
 	pt.y = y;
 	// TODO D2D1_DRAW_TEXT_OPTIONS_NO_SNAP?
 	// TODO D2D1_DRAW_TEXT_OPTIONS_CLIP?
-	// TODO when setting 8.1 as minimum (TODO verify), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT?
+	// TODO LONGTERM when setting 8.1 as minimum (TODO verify), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT?
 	// TODO what is our pixel snapping setting related to the OPTIONS enum values?
 	c->rt->DrawTextLayout(pt, tl->layout, black, D2D1_DRAW_TEXT_OPTIONS_NONE);
+#else
+	renderer = new textRenderer(c->rt,
+		TRUE,			// TODO FALSE for no-snap?
+		black);
+	hr = tl->layout->Draw(NULL,
+		renderer,
+		x, y);
+	if (hr != S_OK)
+		logHRESULT(L"error drawing IDWriteTextLayout", hr);
+	renderer->Release();
+#endif
 
 	black->Release();
 }

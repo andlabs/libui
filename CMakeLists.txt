@@ -202,8 +202,9 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 macro(_add_exec _name)
+	# TODOTODO re-add WIN32 when merging back
 	add_executable(${_name}
-		WIN32 EXCLUDE_FROM_ALL
+		EXCLUDE_FROM_ALL
 		${ARGN})
 	target_link_libraries(${_name} libui ${_LIBUI_STATIC_RES})
 	_target_link_options_private(${_name}

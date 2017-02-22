@@ -378,7 +378,9 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	// TODO figure out if this needs to be cleaned out
 	black = mkSolidBrush(c->rt, 0.0, 0.0, 0.0, 1.0);
 
-#if 0
+#define renderD2D 0
+#define renderOur 1
+#if renderD2D
 	pt.x = x;
 	pt.y = y;
 	// TODO D2D1_DRAW_TEXT_OPTIONS_NO_SNAP?
@@ -386,7 +388,14 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	// TODO LONGTERM when setting 8.1 as minimum (TODO verify), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT?
 	// TODO what is our pixel snapping setting related to the OPTIONS enum values?
 	c->rt->DrawTextLayout(pt, tl->layout, black, D2D1_DRAW_TEXT_OPTIONS_NONE);
-#else
+#endif
+#if renderD2D && renderOur
+	// draw ours semitransparent so we can check
+	// TODO get the actual color Charles Petzold uses and use that
+	black->Release();
+	black = mkSolidBrush(c->rt, 1.0, 0.0, 0.0, 0.75);
+#endif
+#if renderOur
 	renderer = new textRenderer(c->rt,
 		TRUE,			// TODO FALSE for no-snap?
 		black);

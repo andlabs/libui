@@ -6,6 +6,8 @@
 // - the Choose Font sample defaults to Regular/Italic/Bold/Bold Italic in some case (no styles?); do we? find out what the case is
 // - do we set initial family and style topmost as well?
 // - this should probably just handle IDWriteFonts
+// - localization?
+// - the Sample window overlaps the groupbox in a weird way (compare to the real ChooseFont() dialog)
 
 struct fontDialog {
 	HWND hwnd;

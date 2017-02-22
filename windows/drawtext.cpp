@@ -28,14 +28,14 @@ struct uiDrawTextLayout {
 #define pointSizeToDWriteSize(size) (size * (96.0 / 72.0))
 
 // TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
-static std::map<uiDrawTextItalic, DWRITE_FONT_STYLE> dwriteItalics = {
+std::map<uiDrawTextItalic, DWRITE_FONT_STYLE> dwriteItalics = {
 	{ uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
 	{ uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
 	{ uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
 };
 
 // TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
-static std::map<uiDrawTextStretch, DWRITE_FONT_STRETCH> dwriteStretches = {
+std::map<uiDrawTextStretch, DWRITE_FONT_STRETCH> dwriteStretches = {
 	{ uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
 	{ uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
 	{ uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
@@ -219,12 +219,10 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 	uiFree(tl);
 }
 
-static ID2D1SolidColorBrush *mkSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a)
+static HRESULT mkSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a, ID2D1SolidColorBrush **brush)
 {
 	D2D1_BRUSH_PROPERTIES props;
 	D2D1_COLOR_F color;
-	ID2D1SolidColorBrush *brush;
-	HRESULT hr;
 
 	ZeroMemory(&props, sizeof (D2D1_BRUSH_PROPERTIES));
 	props.opacity = 1.0;
@@ -235,10 +233,18 @@ static ID2D1SolidColorBrush *mkSolidBrush(ID2D1RenderTarget *rt, double r, doubl
 	color.g = g;
 	color.b = b;
 	color.a = a;
-	hr = rt->CreateSolidColorBrush(
+	return rt->CreateSolidColorBrush(
 		&color,
 		&props,
-		&brush);
+		brush);
+}
+
+static ID2D1SolidColorBrush *mustMakeSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a)
+{
+	ID2D1SolidColorBrush *brush;
+	HRESULT hr;
+
+	hr = mkSolidBrush(rt, r, g, b, a, &brush);
 	if (hr != S_OK)
 		logHRESULT(L"error creating solid brush", hr);
 	return brush;
@@ -250,9 +256,9 @@ class textRenderer : public IDWriteTextRenderer {
 	ULONG refcount;
 	ID2D1RenderTarget *rt;
 	BOOL snap;
-	IUnknown *black;
+	ID2D1SolidColorBrush *black;
 public:
-	textRenderer(ID2D1RenderTarget *rt, BOOL snap, IUnknown *black)
+	textRenderer(ID2D1RenderTarget *rt, BOOL snap, ID2D1SolidColorBrush *black)
 	{
 		this->refcount = 1;
 		this->rt = rt;
@@ -332,16 +338,26 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, DWRITE_MEASURING_MODE measuringMode, const DWRITE_GLYPH_RUN *glyphRun, const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription, IUnknown *clientDrawingEffect)
 	{
 		D2D1_POINT_2F baseline;
+		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
+		ID2D1SolidColorBrush *brush;
 
 		baseline.x = baselineOriginX;
 		baseline.y = baselineOriginY;
-		if (clientDrawingEffect == NULL)
-			clientDrawingEffect = black;
+		brush = this->black;
+		if (t != NULL && t->hasColor) {
+			HRESULT hr;
+
+			hr = mkSolidBrush(this->rt, t->r, t->g, t->b, t->a, &brush);
+			if (hr != S_OK)
+				return hr;
+		}
 		this->rt->DrawGlyphRun(
 			baseline,
 			glyphRun,
-			(ID2D1Brush *) clientDrawingEffect,
+			brush,
 			measuringMode);
+		if (t != NULL && t->hasColor)
+			brush->Release();
 		return S_OK;
 	}
 
@@ -357,12 +373,16 @@ public:
 
 	virtual HRESULT STDMETHODCALLTYPE DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_STRIKETHROUGH *strikethrough, IUnknown *clientDrawingEffect)
 	{
+		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
+
 		// TODO
 		return S_OK;
 	}
 
 	virtual HRESULT DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
 	{
+		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
+
 		// TODO
 		return S_OK;
 	}
@@ -372,13 +392,13 @@ public:
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
 	D2D1_POINT_2F pt;
-	ID2D1Brush *black;
+	ID2D1SolidColorBrush *black;
 	textRenderer *renderer;
 	HRESULT hr;
 
 	// TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
 	// TODO figure out if this needs to be cleaned out
-	black = mkSolidBrush(c->rt, 0.0, 0.0, 0.0, 1.0);
+	black = mustMakeSolidBrush(c->rt, 0.0, 0.0, 0.0, 1.0);
 
 #define renderD2D 0
 #define renderOur 1
@@ -395,7 +415,7 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	// draw ours semitransparent so we can check
 	// TODO get the actual color Charles Petzold uses and use that
 	black->Release();
-	black = mkSolidBrush(c->rt, 1.0, 0.0, 0.0, 0.75);
+	black = mustMakeSolidBrush(c->rt, 1.0, 0.0, 0.0, 0.75);
 #endif
 #if renderOur
 	renderer = new textRenderer(c->rt,

@@ -2,18 +2,41 @@
 #include "uipriv_windows.hpp"
 #include "draw.hpp"
 
-// we need to collect all the OpenType features and background blocks and add them all at once
+// we need to combine color and underline style into one unit for IDWriteLayout::SetDrawingEffect()
+// we also need to collect all the OpenType features and background blocks and add them all at once
 // TODO(TODO does not seem to apply here) this is the wrong approach; it causes Pango to end runs early, meaning attributes like the ligature attributes never get applied properly
 // TODO contextual alternates override ligatures?
 // TODO rename this struct to something that isn't exclusively foreach-ing?
 struct foreachParams {
 	const uint16_t *s;
 	IDWriteTextLayout *layout;
+	std::map<size_t, textDrawingEffect *> *effects;
 	std::map<size_t, IDWriteTypography *> *features;
 //TODO	GPtrArray *backgroundClosures;
 };
 
 #define isCodepointStart(w) ((((uint16_t) (w)) < 0xDC00) || (((uint16_t) (w)) >= 0xE000))
+
+static void ensureEffectsInRange(struct foreachParams *p, size_t start, size_t end, std::function<void(textDrawingEffect *)> f)
+{
+	size_t i;
+	size_t *key;
+	textDrawingEffect *t;
+
+	for (i = start; i < end; i++) {
+		// don't create redundant entries; see below
+		if (!isCodepointStart(p->s[i]))
+			continue;
+		t = (*(p->effects))[i];
+		if (t != NULL) {
+			f(t);
+			continue;
+		}
+		t = new textDrawingEffect;
+		f(t);
+		(*(p->effects))[i] = t;
+	}
+}
 
 static void ensureFeaturesInRange(struct foreachParams *p, size_t start, size_t end)
 {
@@ -124,9 +147,8 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 #if 0 /* TODO */
 	GClosure *closure;
 	PangoGravity gravity;
-	PangoUnderline underline;
-	PangoLanguage *lang;
 #endif
+	WCHAR *localeName;
 	struct otParam op;
 	HRESULT hr;
 
@@ -151,30 +173,38 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		if (hr != S_OK)
 			logHRESULT(L"error applying size attribute", hr);
 		break;
-#if 0 /* TODO */
 	case uiAttributeWeight:
-		// TODO reverse the misalignment from drawtext.c if it is corrected 
-		addattr(p, start, end,
-			pango_attr_weight_new((PangoWeight) (spec->Value)));
+		// TODO reverse the misalignment from drawtext.cpp if it is corrected 
+		hr = p->layout->SetFontWeight(
+			(DWRITE_FONT_WEIGHT) (spec->Value),
+			range);
+		if (hr != S_OK)
+			logHRESULT(L"error applying weight attribute", hr);
 		break;
 	case uiAttributeItalic:
-		addattr(p, start, end,
-			pango_attr_style_new(pangoItalics[(uiDrawTextItalic) (spec->Value)]));
+		hr = p->layout->SetFontStyle(
+			dwriteItalics[(uiDrawTextItalic) (spec->Value)],
+			range);
+		if (hr != S_OK)
+			logHRESULT(L"error applying italic attribute", hr);
 		break;
 	case uiAttributeStretch:
-		addattr(p, start, end,
-			pango_attr_stretch_new(pangoStretches[(uiDrawTextStretch) (spec->Value)]));
+		hr = p->layout->SetFontStretch(
+			dwriteStretches[(uiDrawTextStretch) (spec->Value)],
+			range);
+		if (hr != S_OK)
+			logHRESULT(L"error applying stretch attribute", hr);
 		break;
 	case uiAttributeColor:
-		addattr(p, start, end,
-			pango_attr_foreground_new(
-				(guint16) (spec->R * 65535.0),
-				(guint16) (spec->G * 65535.0),
-				(guint16) (spec->B * 65535.0)));
-		addattr(p, start, end,
-			FUTURE_pango_attr_foreground_alpha_new(
-				(guint16) (spec->A * 65535.0)));
+		ensureEffectsInRange(p, start, end, [=](textDrawingEffect *t) {
+			t->hasColor = true;
+			t->r = spec->R;
+			t->g = spec->G;
+			t->b = spec->B;
+			t->a = spec->A;
+		});
 		break;
+#if 0
 	case uiAttributeBackground:
 		closure = mkBackgroundClosure(start, end,
 			spec->R, spec->G, spec->B, spec->A);
@@ -231,14 +261,15 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 			break;
 		}
 		break;
-	// language strings are specified as BCP 47: https://developer.gnome.org/pango/1.30/pango-Scripts-and-Languages.html#pango-language-from-string https://www.ietf.org/rfc/rfc3066.txt
-	case uiAttributeLanguage:
-		lang = pango_language_from_string((const char *) (spec->Value));
-		addattr(p, start, end,
-			pango_attr_language_new(lang));
-		// lang *cannot* be freed
-		break;
 #endif
+	// locale names are specified as BCP 47: https://msdn.microsoft.com/en-us/library/windows/desktop/dd373814(v=vs.85).aspx https://www.ietf.org/rfc/rfc4646.txt
+	case uiAttributeLanguage:
+		localeName = toUTF16((char *) (spec->Value));
+		hr = p->layout->SetLocaleName(localeName, range);
+		if (hr != S_OK)
+			logHRESULT(L"error applying locale name attribute", hr);
+		uiFree(localeName);
+		break;
 	// TODO
 	default:
 		// handle typographic features
@@ -250,6 +281,25 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		break;
 	}
 	return 0;
+}
+
+static void applyAndFreeEffectsAttributes(struct foreachParams *p)
+{
+	DWRITE_TEXT_RANGE range;
+	HRESULT hr;
+
+	for (auto iter = p->effects->begin(); iter != p->effects->end(); iter++) {
+		// make sure we cover an entire code point
+		range.startPosition = iter->first;
+		range.length = 1;
+		if (!isCodepointStart(p->s[iter->first]))
+			range.length = 2;
+		hr = p->layout->SetDrawingEffect(iter->second, range);
+		if (hr != S_OK)
+			logHRESULT(L"error applying drawing effects attributes", hr);
+		iter->second->Release();
+	}
+	delete p->effects;
 }
 
 static void applyAndFreeFeatureAttributes(struct foreachParams *p)
@@ -265,7 +315,7 @@ static void applyAndFreeFeatureAttributes(struct foreachParams *p)
 			range.length = 2;
 		hr = p->layout->SetTypography(iter->second, range);
 		if (hr != S_OK)
-			logHRESULT(L"error applying typographic features", hr);
+			logHRESULT(L"error applying typographic features attributes", hr);
 		iter->second->Release();
 	}
 	delete p->features;
@@ -284,9 +334,11 @@ void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayou
 
 	fep.s = attrstrUTF16(p->String);
 	fep.layout = layout;
+	fep.effects = new std::map<size_t, textDrawingEffect *>;
 	fep.features = new std::map<size_t, IDWriteTypography *>;
 //TODO	fep.backgroundClosures = g_ptr_array_new_with_free_func(unrefClosure);
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
+	applyAndFreeEffectsAttributes(&fep);
 	applyAndFreeFeatureAttributes(&fep);
 //TODO	*backgroundClosures = fep.backgroundClosures;
 }

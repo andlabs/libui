@@ -196,6 +196,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	if (hr != S_OK)
 		logHRESULT(L"error setting IDWriteTextLayout max layout width", hr);
 
+	attrstrToIDWriteTextLayoutAttrs(p, tl->layout);
+
 	computeLineInfo(tl);
 
 	// and finally copy the UTF-8/UTF-16 index conversion tables

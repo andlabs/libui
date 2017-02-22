@@ -14,3 +14,6 @@ extern ID2D1PathGeometry *pathGeometry(uiDrawPath *p);
 
 // drawmatrix.cpp
 extern void m2d(uiDrawMatrix *m, D2D1_MATRIX_3X2_F *d);
+
+// attrstr.cpp
+extern void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout/*TODO, GPtrArray **backgroundClosures*/);

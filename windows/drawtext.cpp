@@ -6,12 +6,14 @@
 // - consider the warnings about antialiasing in the PadWrite sample
 // - if that's not a problem, do we have overlapping rects in the hittest sample? I can't tell...
 // - what happens if any nLines == 0?
+// - paragraph alignment is subject to RTL mirroring; see if it is on other platforms
 
 // TODO verify our renderer is correct, especially with regards to snapping
 
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
+	std::vector<backgroundFunc> *backgroundFuncs;
 	UINT32 nLines;
 	struct lineInfo *lineInfo;
 	// for converting DirectWrite indices from/to byte offsets
@@ -196,7 +198,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	if (hr != S_OK)
 		logHRESULT(L"error setting IDWriteTextLayout max layout width", hr);
 
-	attrstrToIDWriteTextLayoutAttrs(p, tl->layout);
+	attrstrToIDWriteTextLayoutAttrs(p, tl->layout, &(tl->backgroundFuncs));
 
 	computeLineInfo(tl);
 
@@ -214,6 +216,7 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 	uiFree(tl->u16tou8);
 	uiFree(tl->u8tou16);
 	uiFree(tl->lineInfo);
+	delete tl->backgroundFuncs;
 	tl->layout->Release();
 	tl->format->Release();
 	uiFree(tl);
@@ -373,17 +376,118 @@ public:
 
 	virtual HRESULT STDMETHODCALLTYPE DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_STRIKETHROUGH *strikethrough, IUnknown *clientDrawingEffect)
 	{
-		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
-
-		// TODO
-		return S_OK;
+		// we don't support strikethrough
+		return E_UNEXPECTED;
 	}
 
 	virtual HRESULT DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
 	{
 		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
+		ID2D1SolidColorBrush *brush;
+		D2D1_RECT_F rect;
+		D2D1::Matrix3x2F pixeltf;
+		FLOAT dpix, dpiy;
+		D2D1_POINT_2F pt;
 
-		// TODO
+		if (underline == NULL)
+			return E_POINTER;
+		if (t == NULL)		// we can only get here through an underline
+			return E_UNEXPECTED;
+		brush = this->black;
+		if (t->hasUnderlineColor) {
+			HRESULT hr;
+
+			hr = mkSolidBrush(this->rt, t->ur, t->ug, t->ub, t->ua, &brush);
+			if (hr != S_OK)
+				return hr;
+		} else if (t->hasColor) {
+			// TODO formalize this rule
+			HRESULT hr;
+
+			hr = mkSolidBrush(this->rt, t->r, t->g, t->b, t->a, &brush);
+			if (hr != S_OK)
+				return hr;
+		}
+		rect.left = baselineOriginX;
+		rect.top = baselineOriginY + underline->offset;
+		rect.right = rect.left + underline->width;
+		rect.bottom = rect.top + underline->thickness;
+		switch (t->u) {
+		case uiDrawUnderlineStyleSingle:
+			this->rt->FillRectangle(&rect, brush);
+			break;
+		case uiDrawUnderlineStyleDouble:
+			// TODO do any of the matrix methods return errors?
+			// TODO standardize double-underline shape across platforms? wavy underline shape?
+			this->rt->GetTransform(&pixeltf);
+			this->rt->GetDpi(&dpix, &dpiy);
+			pixeltf = pixeltf * D2D1::Matrix3x2F::Scale(dpix / 96, dpiy / 96);
+			pt.x = 0;
+			pt.y = rect.top;
+			pt = pixeltf.TransformPoint(pt);
+			rect.top = (FLOAT) ((int) (pt.y + 0.5));
+			pixeltf.Invert();
+			pt = pixeltf.TransformPoint(pt);
+			rect.top = pt.y;
+			// first line
+			rect.top -= underline->thickness;
+			// and it seems we need to recompute this
+			rect.bottom = rect.top + underline->thickness;
+			this->rt->FillRectangle(&rect, brush);
+			// second line
+			rect.top += 2 * underline->thickness;
+			rect.bottom = rect.top + underline->thickness;
+			this->rt->FillRectangle(&rect, brush);
+			break;
+		case uiDrawUnderlineStyleSuggestion:
+			{		// TODO get rid of the extra block
+					// TODO properly clean resources on failure
+					// TODO use fully qualified C overloads for all methods
+					// TODO ensure all methods properly have errors handled
+				ID2D1PathGeometry *path;
+				ID2D1GeometrySink *sink;
+				double amplitude, period, xOffset, yOffset;
+				double t;
+				bool first = true;
+				HRESULT hr;
+
+				hr = d2dfactory->CreatePathGeometry(&path);
+				if (hr != S_OK)
+					return hr;
+				hr = path->Open(&sink);
+				if (hr != S_OK)
+					return hr;
+				amplitude = underline->thickness;
+				period = 5 * underline->thickness;
+				xOffset = baselineOriginX;
+				yOffset = baselineOriginY + underline->offset;
+				for (t = 0; t < underline->width; t++) {
+					double x, angle, y;
+					D2D1_POINT_2F pt;
+
+					x = t + xOffset;
+					angle = 2 * uiPi * fmod(x, period) / period;
+					y = amplitude * sin(angle) + yOffset;
+					pt.x = x;
+					pt.y = y;
+					if (first) {
+						sink->BeginFigure(pt, D2D1_FIGURE_BEGIN_HOLLOW);
+						first = false;
+					} else
+						sink->AddLine(pt);
+				}
+				sink->EndFigure(D2D1_FIGURE_END_OPEN);
+				hr = sink->Close();
+				if (hr != S_OK)
+					return hr;
+				sink->Release();
+				this->rt->DrawGeometry(path, brush, underline->thickness);
+				path->Release();
+			}
+			break;
+		}
+		if (t->hasUnderlineColor || t->hasColor)
+			brush->Release();
 		return S_OK;
 	}
 };
@@ -395,6 +499,10 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	ID2D1SolidColorBrush *black;
 	textRenderer *renderer;
 	HRESULT hr;
+
+	// TODO the "any combination of the above" one isn't drawn in the right place but the "multiple backgrounds" one is (at least for when there's a line break; TODO)
+	for (const auto &f : *(tl->backgroundFuncs))
+		f(c, tl, x, y);
 
 	// TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
 	// TODO figure out if this needs to be cleaned out

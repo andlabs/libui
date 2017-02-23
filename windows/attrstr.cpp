@@ -12,7 +12,7 @@ struct foreachParams {
 	IDWriteTextLayout *layout;
 	std::map<size_t, textDrawingEffect *> *effects;
 	std::map<size_t, IDWriteTypography *> *features;
-//TODO	GPtrArray *backgroundClosures;
+	std::vector<backgroundFunc> *backgroundFuncs;
 };
 
 #define isCodepointStart(w) ((((uint16_t) (w)) < 0xDC00) || (((uint16_t) (w)) >= 0xE000))
@@ -59,53 +59,19 @@ static void ensureFeaturesInRange(struct foreachParams *p, size_t start, size_t 
 	}
 }
 
-#if 0 /* TODO */
-struct closureParams {
-	size_t start;
-	size_t end;
-	double r;
-	double g;
-	double b;
-	double a;
-};
-
-static void backgroundClosure(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y, gpointer data)
+static backgroundFunc mkBackgroundFunc(size_t start, size_t end, double r, double g, double b, double a)
 {
-	struct closureParams *p = (struct closureParams *) data;
-	uiDrawBrush brush;
+	return [=](uiDrawContext *c, uiDrawTextLayout *layout, double x, double y) {
+		uiDrawBrush brush;
 
-	brush.Type = uiDrawBrushTypeSolid;
-	brush.R = p->r;
-	brush.G = p->g;
-	brush.B = p->b;
-	brush.A = p->a;
-	drawTextBackground(c, x, y, layout, p->start, p->end, &brush, 0);
+		brush.Type = uiDrawBrushTypeSolid;
+		brush.R = r;
+		brush.G = g;
+		brush.B = b;
+		brush.A = a;
+		drawTextBackground(c, x, y, layout, start, end, &brush, 0);
+	};
 }
-
-static void freeClosureParams(gpointer data, GClosure *closure)
-{
-	uiFree((struct closureParams *) data);
-}
-
-static GClosure *mkBackgroundClosure(size_t start, size_t end, double r, double g, double b, double a)
-{
-	struct closureParams *p;
-	GClosure *closure;
-
-	p = uiNew(struct closureParams);
-	p->start = start;
-	p->end = end;
-	p->r = r;
-	p->g = g;
-	p->b = b;
-	p->a = a;
-	closure = (GClosure *) g_cclosure_new(G_CALLBACK(backgroundClosure), p, freeClosureParams);
-	// TODO write a specific marshaler
-	// TODO or drop the closure stuff entirely
-	g_closure_set_marshal(closure, g_cclosure_marshal_generic);
-	return closure;
-}
-#endif
 
 struct otParam {
 	struct foreachParams *p;
@@ -144,10 +110,8 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	struct foreachParams *p = (struct foreachParams *) data;
 	DWRITE_TEXT_RANGE range;
 	WCHAR *wfamily;
-#if 0 /* TODO */
-	GClosure *closure;
-	PangoGravity gravity;
-#endif
+	BOOL hasUnderline;
+	uint32_t vertval;
 	WCHAR *localeName;
 	struct otParam op;
 	HRESULT hr;
@@ -204,64 +168,79 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 			t->a = spec->A;
 		});
 		break;
-#if 0
 	case uiAttributeBackground:
-		closure = mkBackgroundClosure(start, end,
-			spec->R, spec->G, spec->B, spec->A);
-		g_ptr_array_add(p->backgroundClosures, closure);
+		p->backgroundFuncs->push_back(
+			mkBackgroundFunc(start, end,
+				spec->R, spec->G, spec->B, spec->A));
 		break;
 	case uiAttributeVerticalForms:
-		gravity = PANGO_GRAVITY_SOUTH;
+		// LONGTERM 8 and/or 8.1 add other methods for vertical text
+		op.p = p;
+		op.start = start;
+		op.end = end;
+		vertval = 0;
 		if (spec->Value != 0)
-			gravity = PANGO_GRAVITY_EAST;
-		addattr(p, start, end,
-			pango_attr_gravity_new(gravity));
+			vertval = 1;
+		doOpenType("vert", vertval, &op);
+		doOpenType("vrt2", vertval, &op);
+		doOpenType("vkrn", vertval, &op);
+		doOpenType("vrtr", vertval, &op);
 		break;
 	case uiAttributeUnderline:
-		switch (spec->Value) {
-		case uiDrawUnderlineStyleNone:
-			underline = PANGO_UNDERLINE_NONE;
-			break;
-		case uiDrawUnderlineStyleSingle:
-			underline = PANGO_UNDERLINE_SINGLE;
-			break;
-		case uiDrawUnderlineStyleDouble:
-			underline = PANGO_UNDERLINE_DOUBLE;
-			break;
-		case uiDrawUnderlineStyleSuggestion:
-			underline = PANGO_UNDERLINE_ERROR;
-			break;
-		}
-		addattr(p, start, end,
-			pango_attr_underline_new(underline));
+		ensureEffectsInRange(p, start, end, [=](textDrawingEffect *t) {
+			t->hasUnderline = true;
+			t->u = (uiDrawUnderlineStyle) (spec->Value);
+		});
+		// mark that we have an underline; otherwise, DirectWrite will never call our custom renderer's DrawUnderline() method
+		hasUnderline = FALSE;
+		if ((uiDrawUnderlineStyle) (spec->Value) != uiDrawUnderlineStyleNone)
+			hasUnderline = TRUE;
+		hr = p->layout->SetUnderline(hasUnderline, range);
+		if (hr != S_OK)
+			logHRESULT(L"error applying underline attribute", hr);
 		break;
 	case uiAttributeUnderlineColor:
 		switch (spec->Value) {
 		case uiDrawUnderlineColorCustom:
-			addattr(p, start, end,
-				pango_attr_underline_color_new(
-					(guint16) (spec->R * 65535.0),
-					(guint16) (spec->G * 65535.0),
-					(guint16) (spec->B * 65535.0)));
+			ensureEffectsInRange(p, start, end, [=](textDrawingEffect *t) {
+				t->hasUnderlineColor = true;
+				t->ur = spec->R;
+				t->ug = spec->G;
+				t->ub = spec->B;
+				t->ua = spec->A;
+			});
 			break;
+		// TODO see if Microsoft has any standard colors for this
 		case uiDrawUnderlineColorSpelling:
 			// TODO GtkTextView style property error-underline-color
-			addattr(p, start, end,
-				pango_attr_underline_color_new(65535, 0, 0));
+			ensureEffectsInRange(p, start, end, [=](textDrawingEffect *t) {
+				t->hasUnderlineColor = true;
+				t->ur = 1.0;
+				t->ug = 0.0;
+				t->ub = 0.0;
+				t->ua = 1.0;
+			});
 			break;
 		case uiDrawUnderlineColorGrammar:
-			// TODO find a more appropriate color
-			addattr(p, start, end,
-				pango_attr_underline_color_new(0, 65535, 0));
+			ensureEffectsInRange(p, start, end, [=](textDrawingEffect *t) {
+				t->hasUnderlineColor = true;
+				t->ur = 0.0;
+				t->ug = 1.0;
+				t->ub = 0.0;
+				t->ua = 1.0;
+			});
 			break;
 		case uiDrawUnderlineColorAuxiliary:
-			// TODO find a more appropriate color
-			addattr(p, start, end,
-				pango_attr_underline_color_new(0, 0, 65535));
+			ensureEffectsInRange(p, start, end, [=](textDrawingEffect *t) {
+				t->hasUnderlineColor = true;
+				t->ur = 0.0;
+				t->ug = 0.0;
+				t->ub = 1.0;
+				t->ua = 1.0;
+			});
 			break;
 		}
 		break;
-#endif
 	// locale names are specified as BCP 47: https://msdn.microsoft.com/en-us/library/windows/desktop/dd373814(v=vs.85).aspx https://www.ietf.org/rfc/rfc4646.txt
 	case uiAttributeLanguage:
 		localeName = toUTF16((char *) (spec->Value));
@@ -321,14 +300,7 @@ static void applyAndFreeFeatureAttributes(struct foreachParams *p)
 	delete p->features;
 }
 
-#if 0 /* TODO */
-static void unrefClosure(gpointer data)
-{
-	g_closure_unref((GClosure *) data);
-}
-#endif
-
-void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout/*TODO, GPtrArray **backgroundClosures*/)
+void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<backgroundFunc> **backgroundFuncs)
 {
 	struct foreachParams fep;
 
@@ -336,35 +308,9 @@ void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayou
 	fep.layout = layout;
 	fep.effects = new std::map<size_t, textDrawingEffect *>;
 	fep.features = new std::map<size_t, IDWriteTypography *>;
-//TODO	fep.backgroundClosures = g_ptr_array_new_with_free_func(unrefClosure);
+	fep.backgroundFuncs = new std::vector<backgroundFunc>;
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
 	applyAndFreeEffectsAttributes(&fep);
 	applyAndFreeFeatureAttributes(&fep);
-//TODO	*backgroundClosures = fep.backgroundClosures;
+	*backgroundFuncs = fep.backgroundFuncs;
 }
-
-#if 0
-void invokeBackgroundClosure(GClosure *closure, uiDrawContext *c, uiDrawTextLayout *layout, double x, double y)
-{
-	GValue values[4] = {
-		// the zero-initialization is needed for g_value_init() to work
-		G_VALUE_INIT,
-		G_VALUE_INIT,
-		G_VALUE_INIT,
-		G_VALUE_INIT,
-	};
-
-	g_value_init(values + 0, G_TYPE_POINTER);
-	g_value_set_pointer(values + 0, c);
-	g_value_init(values + 1, G_TYPE_POINTER);
-	g_value_set_pointer(values + 1, layout);
-	g_value_init(values + 2, G_TYPE_DOUBLE);
-	g_value_set_double(values + 2, x);
-	g_value_init(values + 3, G_TYPE_DOUBLE);
-	g_value_set_double(values + 3, y);
-	g_closure_invoke(closure,
-		NULL,
-		4, values,
-		NULL);
-}
-#endif

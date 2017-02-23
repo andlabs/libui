@@ -500,7 +500,6 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	textRenderer *renderer;
 	HRESULT hr;
 
-	// TODO the "any combination of the above" one isn't drawn in the right place but the "multiple backgrounds" one is (at least for when there's a line break; TODO)
 	for (const auto &f : *(tl->backgroundFuncs))
 		f(c, tl, x, y);
 

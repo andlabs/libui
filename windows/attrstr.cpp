@@ -110,12 +110,15 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	struct foreachParams *p = (struct foreachParams *) data;
 	DWRITE_TEXT_RANGE range;
 	WCHAR *wfamily;
+	size_t ostart, oend;
 	BOOL hasUnderline;
 	uint32_t vertval;
 	WCHAR *localeName;
 	struct otParam op;
 	HRESULT hr;
 
+	ostart = start;
+	oend = end;
 	start = attrstrUTF8ToUTF16(s, start);
 	end = attrstrUTF8ToUTF16(s, end);
 	range.startPosition = start;
@@ -170,7 +173,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		break;
 	case uiAttributeBackground:
 		p->backgroundFuncs->push_back(
-			mkBackgroundFunc(start, end,
+			mkBackgroundFunc(ostart, oend,
 				spec->R, spec->G, spec->B, spec->A));
 		break;
 	case uiAttributeVerticalForms:

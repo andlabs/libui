@@ -112,7 +112,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	WCHAR *wfamily;
 	size_t ostart, oend;
 	BOOL hasUnderline;
-	uint32_t vertval;
 	WCHAR *localeName;
 	struct otParam op;
 	HRESULT hr;
@@ -175,19 +174,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		p->backgroundFuncs->push_back(
 			mkBackgroundFunc(ostart, oend,
 				spec->R, spec->G, spec->B, spec->A));
-		break;
-	case uiAttributeVerticalForms:
-		// LONGTERM 8 and/or 8.1 add other methods for vertical text
-		op.p = p;
-		op.start = start;
-		op.end = end;
-		vertval = 0;
-		if (spec->Value != 0)
-			vertval = 1;
-		doOpenType("vert", vertval, &op);
-		doOpenType("vrt2", vertval, &op);
-		doOpenType("vkrn", vertval, &op);
-		doOpenType("vrtr", vertval, &op);
 		break;
 	case uiAttributeUnderline:
 		ensureEffectsInRange(p, start, end, [=](textDrawingEffect *t) {

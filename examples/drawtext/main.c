@@ -1,18 +1,6 @@
 // 17 january 2017
 #include "drawtext.h"
 
-// okay everything is definitely bugged in the OS X code
-// - occasional segfaults on startup
-// - very rare size attributes in the attributed string example don't terminate for a while, making everything big
-// - very very rare trace/bpt faults on startup
-/*
-objc[14827]: autorelease pool page 0x7feeab88b000 corrupted
-  magic     0xe000007f 0xeea9f2df 0x0000007f 0xeea9f2e0
-  should be 0xa1a1a1a1 0x4f545541 0x454c4552 0x21455341
-  pthread   0x0
-  should be 0x7fff727a1000
-*/
-
 static uiWindow *mainwin;
 static uiBox *box;
 static uiCombobox *exampleList;

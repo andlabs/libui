@@ -10,8 +10,6 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeStretch,
 	uiAttributeColor,			// use R, G, B, A
 	uiAttributeBackground,		// use R, G, B, A
-	// TODO rename to uiAttributeVertical?
-	uiAttributeVerticalForms,		// 0 = off, 1 = on
 
 	// TODO kerning amount
 	// OS X: kCTKernAttributeName

@@ -141,7 +141,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	GClosure *closure;
-	PangoGravity gravity;
 	PangoUnderline underline;
 	PangoLanguage *lang;
 	struct otParam op;
@@ -182,13 +181,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		closure = mkBackgroundClosure(start, end,
 			spec->R, spec->G, spec->B, spec->A);
 		g_ptr_array_add(p->backgroundClosures, closure);
-		break;
-	case uiAttributeVerticalForms:
-		gravity = PANGO_GRAVITY_SOUTH;
-		if (spec->Value != 0)
-			gravity = PANGO_GRAVITY_EAST;
-		addattr(p, start, end,
-			pango_attr_gravity_new(gravity));
 		break;
 	case uiAttributeUnderline:
 		switch (spec->Value) {

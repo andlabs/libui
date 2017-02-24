@@ -616,7 +616,7 @@ static void setupAttributedString(void)
 	next = "g";
 	uiAttributedStringAppendUnattributed(attrstr, "stylistic alternates (");
 	uiAttributedStringAppendUnattributed(attrstr, next);
-	spec.Type = uiAttributeStylisticAlternative1;
+	spec.Type = uiAttributeStylisticAlternate1;
 	spec.Value = 1;
 	for (i = 0; i < 20; i++) {
 		start = uiAttributedStringLen(attrstr);

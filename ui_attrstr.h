@@ -125,28 +125,27 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeAlternateHorizontalKana,		// 0 = off, 1 = on
 	uiAttributeAlternateVerticalKana,	// 0 = off, 1 = on
 
-	// TODO "Alternate"? unify all this
 	// TODO document that these are guaranteed to be consecutive
-	uiAttributeStylisticAlternative1,		// 0 = off, 1 = on
-	uiAttributeStylisticAlternative2,		// 0 = off, 1 = on
-	uiAttributeStylisticAlternative3,		// 0 = off, 1 = on
-	uiAttributeStylisticAlternative4,		// 0 = off, 1 = on
-	uiAttributeStylisticAlternative5,		// 0 = off, 1 = on
-	uiAttributeStylisticAlternative6,		// 0 = off, 1 = on
-	uiAttributeStylisticAlternative7,		// 0 = off, 1 = on
-	uiAttributeStylisticAlternative8,		// 0 = off, 1 = on
-	uiAttributeStylisticAlternative9,		// 0 = off, 1 = on
-	uiAttributeStylisticAlternative10,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative11,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative12,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative13,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative14,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative15,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative16,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative17,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative18,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative19,	// 0 = off, 1 = on
-	uiAttributeStylisticAlternative20,	// 0 = off, 1 = on
+	uiAttributeStylisticAlternate1,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate2,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate3,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate4,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate5,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate6,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate7,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate8,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate9,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate10,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate11,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate12,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate13,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate14,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate15,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate16,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate17,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate18,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate19,		// 0 = off, 1 = on
+	uiAttributeStylisticAlternate20,		// 0 = off, 1 = on
 
 	uiAttributeContextualAlternates,	// 0 = off, 1 = on
 	uiAttributeSwashes,				// 0 = off, 1 = on

@@ -213,121 +213,121 @@ int specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 			kAlternateVertKanaOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative1:
+	case uiAttributeStylisticAlternate1:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltOneOnSelector,
 			kStylisticAltOneOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative2:
+	case uiAttributeStylisticAlternate2:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltTwoOnSelector,
 			kStylisticAltTwoOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative3:
+	case uiAttributeStylisticAlternate3:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltThreeOnSelector,
 			kStylisticAltThreeOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative4:
+	case uiAttributeStylisticAlternate4:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltFourOnSelector,
 			kStylisticAltFourOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative5:
+	case uiAttributeStylisticAlternate5:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltFiveOnSelector,
 			kStylisticAltFiveOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative6:
+	case uiAttributeStylisticAlternate6:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltSixOnSelector,
 			kStylisticAltSixOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative7:
+	case uiAttributeStylisticAlternate7:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltSevenOnSelector,
 			kStylisticAltSevenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative8:
+	case uiAttributeStylisticAlternate8:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltEightOnSelector,
 			kStylisticAltEightOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative9:
+	case uiAttributeStylisticAlternate9:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltNineOnSelector,
 			kStylisticAltNineOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative10:
+	case uiAttributeStylisticAlternate10:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltTenOnSelector,
 			kStylisticAltTenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative11:
+	case uiAttributeStylisticAlternate11:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltElevenOnSelector,
 			kStylisticAltElevenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative12:
+	case uiAttributeStylisticAlternate12:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltTwelveOnSelector,
 			kStylisticAltTwelveOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative13:
+	case uiAttributeStylisticAlternate13:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltThirteenOnSelector,
 			kStylisticAltThirteenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative14:
+	case uiAttributeStylisticAlternate14:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltFourteenOnSelector,
 			kStylisticAltFourteenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative15:
+	case uiAttributeStylisticAlternate15:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltFifteenOnSelector,
 			kStylisticAltFifteenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative16:
+	case uiAttributeStylisticAlternate16:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltSixteenOnSelector,
 			kStylisticAltSixteenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative17:
+	case uiAttributeStylisticAlternate17:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltSeventeenOnSelector,
 			kStylisticAltSeventeenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative18:
+	case uiAttributeStylisticAlternate18:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltEighteenOnSelector,
 			kStylisticAltEighteenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative19:
+	case uiAttributeStylisticAlternate19:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltNineteenOnSelector,
 			kStylisticAltNineteenOffSelector,
 			f, data);
 		return 1;
-	case uiAttributeStylisticAlternative20:
+	case uiAttributeStylisticAlternate20:
 		boolspec(spec, kStylisticAlternativesType,
 			kStylisticAltTwentyOnSelector,
 			kStylisticAltTwentyOffSelector,

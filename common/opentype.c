@@ -165,64 +165,64 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 	case uiAttributeAlternateVerticalKana:
 		boolspec(spec, "vkna", f, data);
 		return;
-	case uiAttributeStylisticAlternative1:
+	case uiAttributeStylisticAlternate1:
 		boolspec(spec, "ss01", f, data);
 		return;
-	case uiAttributeStylisticAlternative2:
+	case uiAttributeStylisticAlternate2:
 		boolspec(spec, "ss02", f, data);
 		return;
-	case uiAttributeStylisticAlternative3:
+	case uiAttributeStylisticAlternate3:
 		boolspec(spec, "ss03", f, data);
 		return;
-	case uiAttributeStylisticAlternative4:
+	case uiAttributeStylisticAlternate4:
 		boolspec(spec, "ss04", f, data);
 		return;
-	case uiAttributeStylisticAlternative5:
+	case uiAttributeStylisticAlternate5:
 		boolspec(spec, "ss05", f, data);
 		return;
-	case uiAttributeStylisticAlternative6:
+	case uiAttributeStylisticAlternate6:
 		boolspec(spec, "ss06", f, data);
 		return;
-	case uiAttributeStylisticAlternative7:
+	case uiAttributeStylisticAlternate7:
 		boolspec(spec, "ss07", f, data);
 		return;
-	case uiAttributeStylisticAlternative8:
+	case uiAttributeStylisticAlternate8:
 		boolspec(spec, "ss08", f, data);
 		return;
-	case uiAttributeStylisticAlternative9:
+	case uiAttributeStylisticAlternate9:
 		boolspec(spec, "ss09", f, data);
 		return;
-	case uiAttributeStylisticAlternative10:
+	case uiAttributeStylisticAlternate10:
 		boolspec(spec, "ss10", f, data);
 		return;
-	case uiAttributeStylisticAlternative11:
+	case uiAttributeStylisticAlternate11:
 		boolspec(spec, "ss11", f, data);
 		return;
-	case uiAttributeStylisticAlternative12:
+	case uiAttributeStylisticAlternate12:
 		boolspec(spec, "ss12", f, data);
 		return;
-	case uiAttributeStylisticAlternative13:
+	case uiAttributeStylisticAlternate13:
 		boolspec(spec, "ss13", f, data);
 		return;
-	case uiAttributeStylisticAlternative14:
+	case uiAttributeStylisticAlternate14:
 		boolspec(spec, "ss14", f, data);
 		return;
-	case uiAttributeStylisticAlternative15:
+	case uiAttributeStylisticAlternate15:
 		boolspec(spec, "ss15", f, data);
 		return;
-	case uiAttributeStylisticAlternative16:
+	case uiAttributeStylisticAlternate16:
 		boolspec(spec, "ss16", f, data);
 		return;
-	case uiAttributeStylisticAlternative17:
+	case uiAttributeStylisticAlternate17:
 		boolspec(spec, "ss17", f, data);
 		return;
-	case uiAttributeStylisticAlternative18:
+	case uiAttributeStylisticAlternate18:
 		boolspec(spec, "ss18", f, data);
 		return;
-	case uiAttributeStylisticAlternative19:
+	case uiAttributeStylisticAlternate19:
 		boolspec(spec, "ss19", f, data);
 		return;
-	case uiAttributeStylisticAlternative20:
+	case uiAttributeStylisticAlternate20:
 		boolspec(spec, "ss20", f, data);
 		return;
 	case uiAttributeContextualAlternates:

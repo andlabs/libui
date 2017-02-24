@@ -162,7 +162,7 @@ int specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
 		if (spec->Value != 0)
 			(*f)(kTransliterationType, kHanjaToHangulSelector, data);
 		return 1;
-	case uiAttributeGlyphAnnotations:
+	case uiAttributeAnnotatedGlyphForms:
 		(*f)(kAnnotationType, (uint16_t) (spec->Value), data);
 		return 1;
 	case uiAttributeRubyKanaForms:

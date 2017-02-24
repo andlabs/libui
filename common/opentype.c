@@ -144,7 +144,7 @@ void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data)
 	case uiAttributeHanjaToHangul:
 		boolspec(spec, "hngl", f, data);
 		return;
-	case uiAttributeGlyphAnnotations:
+	case uiAttributeAnnotatedGlyphForms:
 		(*f)("nalt", (uint32_t) (spec->Value), data);
 		return;
 	case uiAttributeRubyKanaForms:

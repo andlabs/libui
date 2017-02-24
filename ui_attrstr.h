@@ -29,7 +29,7 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeBackground,		// use R, G, B, A
 
 	uiAttributeUnderline,		// enum uiDrawUnderlineStyle
-	// TODO ensure the color in the case we don't specify it is the text color?
+	// TODO document that the color in the case we don't specify it is the text color
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
 	// These attributes represent typographic features. Each feature
@@ -85,7 +85,6 @@ _UI_ENUM(uiAttribute) {
 	// following values:
 	// 0 = none
 	// OpenType calls this "access all alternates".
-	// TODO doesn't OpenType do the same about 0?
 	uiAttributeSpecificCharacterForm,	// an integer from 0 to a font-specified upper bound
 	// TODO provide a function to get the upper bound?
 
@@ -111,8 +110,7 @@ _UI_ENUM(uiAttribute) {
 	// 8 = diamond
 	// 9 = inverted box
 	// 10 = inverted rounded box
-	// TODO rename to AnnotatedForms?
-	uiAttributeGlyphAnnotations,		// an integer from 0 to a font-specified upper bound
+	uiAttributeAnnotatedGlyphForms,		// an integer from 0 to a font-specified upper bound
 	// TODO provide a function to get the upper bound?
 
 	uiAttributeRubyKanaForms,		// 0 = off, 1 = on

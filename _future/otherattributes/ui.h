@@ -129,7 +129,7 @@ _UI_ENUM(uiAttribute) {
 	// 9 = inverted box
 	// 10 = inverted rounded box
 	// TODO rename to AnnotatedForms?
-	uiAttributeGlyphAnnotations,		// an integer from 0 to a font-specified upper bound
+	uiAttributeAnnotatedGlyphForms,		// an integer from 0 to a font-specified upper bound
 	// TODO provide a function to get the upper bound?
 
 	// TODO kKanaSpacingType

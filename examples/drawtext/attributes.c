@@ -483,21 +483,21 @@ static void setupAttributedString(void)
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
-	spec.Type = uiAttributeGlyphAnnotations;
+	spec.Type = uiAttributeAnnotatedGlyphForms;
 	spec.Value = 0;
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
-	spec.Type = uiAttributeGlyphAnnotations;
+	spec.Type = uiAttributeAnnotatedGlyphForms;
 	spec.Value = 1;
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
-	spec.Type = uiAttributeGlyphAnnotations;
+	spec.Type = uiAttributeAnnotatedGlyphForms;
 	spec.Value = 4;			// AAT inverted circle
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");

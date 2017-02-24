@@ -262,7 +262,8 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *p
 
 	ln = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
 	// note: according to the docs, we pass a y of 0 for this since the is the baseline of that line (the point is relative to the line)
-	// TODO is x relative to the line origin?
+	// note: x is relative to the line origin
+	x -= tl->lineMetrics[*line].X;
 	p = CTLineGetStringIndexForPosition(ln, CGPointMake(x, 0));
 	if (p == kCFNotFound) {
 		// TODO
@@ -284,7 +285,9 @@ double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int 
 	if (pos < range.location || pos > (range.location + range.length))
 		return -1;
 	// no point in checking the return; we already validated everything and 0 is a valid return for the first index :/
-	return CTLineGetOffsetForStringIndex(lr, pos, NULL);
+	// note: the result is relative to the line origin (TODO find documentation to support this)
+	// TODO document that these functions do this
+	return CTLineGetOffsetForStringIndex(lr, pos, NULL) + tl->lineMetrics[line].X;
 }
 
 void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p)

@@ -218,6 +218,7 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *p
 	int p, trailing;
 	int i;
 
+	// this is layout-global, so it takes line origins into account
 	pango_layout_xy_to_index(tl->layout,
 		cairoToPango(x), cairoToPango(y),
 		&p, &trailing);
@@ -264,7 +265,8 @@ double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int 
 	}
 	pango_layout_line_index_to_x(pll, pos, trailing, &pangox);
 	// TODO unref pll?
-	return pangoToCairo(pangox);
+	// this is relative to the beginning of the line
+	return pangoToCairo(pangox) + tl->lineMetrics[line].X;
 }
 
 // note: we can't use gtk_render_insertion_cursor() because that doesn't take information about what line to render on

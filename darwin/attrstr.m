@@ -220,10 +220,23 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		Block_release(block);
 		break;
 	case uiAttributeVerticalForms:
-		if (spec->Value != 0)
+		if (spec->Value != 0) {
 			CFAttributedStringSetAttribute(p->mas, range, kCTVerticalFormsAttributeName, kCFBooleanTrue);
-		else
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassRoman);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassIdeographicCentered);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassIdeographicLow);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassIdeographicHigh);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassHanging);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassMath);
+		} else {
 			CFAttributedStringSetAttribute(p->mas, range, kCTVerticalFormsAttributeName, kCFBooleanFalse);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassRoman);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassIdeographicCentered);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassIdeographicLow);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassIdeographicHigh);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassHanging);
+//			CFAttributedStringSetAttribute(p->mas, range, kCTBaselineClassAttributeName, kCTBaselineClassMath);
+		}
 		break;
 	case uiAttributeUnderline:
 		switch (spec->Value) {

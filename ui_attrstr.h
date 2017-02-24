@@ -15,10 +15,6 @@ _UI_ENUM(uiAttribute) {
 	// TODO ensure the color in the case we don't specify it is the text color?
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
-	// TODO document that this will also enable language-specific font features (TODO on DirectWrite too?)
-	// TODO document that this should be strict BCP 47 form (A-Z, a-z, 0-9, and -) for maximum compatibility
-	uiAttributeLanguage,		// BCP 47 string
-
 	// These attributes represent typographic features. Each feature
 	// is a separate attribute, to make composition easier. The
 	// availability of for each attribute are defined by the font; the

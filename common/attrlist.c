@@ -342,9 +342,6 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 			attr->spec.G == spec->G &&
 			attr->spec.B == spec->B &&
 			attr->spec.A == spec->A;
-	case uiAttributeLanguage:
-		return asciiStringsEqualCaseFold((char *) (attr->spec.Value), (char *) (spec->Value));
-	// TODO
 	// TODO use boolsEqual() on boolean features
 	}
 	// handles the rest

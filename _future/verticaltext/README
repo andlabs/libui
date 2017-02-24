@@ -12,3 +12,6 @@ If readded, this will need to be a layout-wide setting, not a per-character sett
 More links:
 https://www.w3.org/TR/2012/NOTE-jlreq-20120403/#line-composition
 https://www.w3.org/TR/REC-CSS2/notes.html
+
+TODO indicate where in the attributes.c file that block of code should go (or drop it entirely for the reasons listed above)
+TODO same for ui.h

@@ -1,0 +1,1 @@
+Removed because proper support on OS X doesn't come until 10.9 unless we use a font with an ltag table; none of the fonts I have come with ltag tables (none of the fonts on OS X do, or at least don't come with a sr entry in their ltag table, and OpenType has replaced ltag with what appears to be custom sub-tables of the GPOS and GSUB tables.)

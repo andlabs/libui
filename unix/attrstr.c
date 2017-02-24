@@ -142,7 +142,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	struct foreachParams *p = (struct foreachParams *) data;
 	GClosure *closure;
 	PangoUnderline underline;
-	PangoLanguage *lang;
 	struct otParam op;
 
 	switch (spec->Type) {
@@ -226,14 +225,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 			break;
 		}
 		break;
-	// language strings are specified as BCP 47: https://developer.gnome.org/pango/1.30/pango-Scripts-and-Languages.html#pango-language-from-string https://www.ietf.org/rfc/rfc3066.txt
-	case uiAttributeLanguage:
-		lang = pango_language_from_string((const char *) (spec->Value));
-		addattr(p, start, end,
-			pango_attr_language_new(lang));
-		// lang *cannot* be freed
-		break;
-	// TODO
 	default:
 		// handle typographic features
 		op.p = p;

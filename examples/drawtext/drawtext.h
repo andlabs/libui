@@ -23,3 +23,6 @@ extern struct example *mkHitTestExample(void);
 
 // attributes.c
 extern struct example *mkAttributesExample(void);
+
+// emptystr_hittest.c
+extern struct example *mkEmptyStringExample(void);

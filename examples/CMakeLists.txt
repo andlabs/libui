@@ -34,6 +34,7 @@ endif()
 _add_example(drawtext
 	drawtext/attributes.c
 	drawtext/basic.c
+	drawtext/emptystr_hittest.c
 	drawtext/hittest.c
 	drawtext/main.c
 	${_EXAMPLE_RESOURCES_RC}

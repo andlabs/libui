@@ -11,30 +11,9 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeColor,			// use R, G, B, A
 	uiAttributeBackground,		// use R, G, B, A
 
-	// TODO kerning amount
-	// OS X: kCTKernAttributeName
-	// 	> 0: farther (TODO from advance or standard kerning?)
-	// 	== 0: no kerning
-	// 	< 0: closer (TODO same)
-	// 	undefined: standard kerning
-	// Pango: pango_attr_letter_spacing_new()
-	// 	parameter meaning unspecified
-	// Windows: requires Platform Update, SetLetterSpacing()
-	// 	parameter meaning unspecified
-
 	uiAttributeUnderline,		// enum uiDrawUnderlineStyle
-	// TODO what is the color in the case we don't specify it, black or the text color?
+	// TODO ensure the color in the case we don't specify it is the text color?
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
-
-	// TODO kCTSuperscriptAttributeName vs below
-	// all it does is set the below attribute so
-
-	// TODO kCTBaselineClassAttributeName, kCTBaselineInfoAttributeName, kCTBaselineReferenceInfoAttributeName
-
-	// TODO strikethroughs? (pango yes, directwrite yes, os x no)
-	// TODO baseline offsets? (pango yes)
-	// TODO size scales? (pango yes)
-	// TODO fallbacks (pango: enable or disable)
 
 	// TODO document that this will also enable language-specific font features (TODO on DirectWrite too?)
 	// TODO document that this should be strict BCP 47 form (A-Z, a-z, 0-9, and -) for maximum compatibility
@@ -56,8 +35,6 @@ _UI_ENUM(uiAttribute) {
 	// enumeration values are provided in comments for
 	// documentation purposes.
 
-	// TODO kAllTypographicFeaturesType
-
 	// AAT calls these "common ligatures"
 	uiAttributeStandardLigatures,		// 0 = off, 1 = on
 	uiAttributeRequiredLigatures,		// 0 = off, 1 = on
@@ -66,18 +43,10 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeContextualLigatures,	// 0 = off, 1 = on
 	uiAttributeHistoricalLigatures,		// 0 = off, 1 = on
 
-	// TODO uiAttributeCursiveConnection,		// 0 = none, 1 = some, 2 = all
-
 	uiAttributeUnicase,				// 0 = off, 1 = on
-
-	// TODO uiAttributeLinguisticRearrangement,	// 0 = off, 1 = on
 
 	// TODO rename this
 	uiAttributeNumberSpacings,		// enum uiAttributeNumberSpacing
-
-	// TODO kSmartSwashType, falt and jalt
-
-	// TODO kDiacriticsType
 
 	uiAttributeSuperscripts,			// enum uiAttributeSuperscript
 
@@ -115,9 +84,6 @@ _UI_ENUM(uiAttribute) {
 	// OpenType calls these "old-style"
 	uiAttributeLowercaseNumbers,	// 0 = off, 1 = on
 
-	// TODO kTextSpacingType
-	// see kKanaSpacingType below
-
 	uiAttributeHanjaToHangul,		// 0 = off, 1 = on
 
 	// AAT defines the following values:
@@ -136,16 +102,7 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeGlyphAnnotations,		// an integer from 0 to a font-specified upper bound
 	// TODO provide a function to get the upper bound?
 
-	// TODO kKanaSpacingType
-	// TODO kIdeographicSpacingType
-	// can they be provided independently of kTextSpacingType? Core Text doesn't seem to
-
-	// TODO kUnicodeDecompositionType
-
 	uiAttributeRubyKanaForms,		// 0 = off, 1 = on
-
-	// TODO kCJKVerticalRomanPlacementType
-	// this is 'valt' in OpenType but I don't know if I want to make it selectable or not
 
 	uiAttributeCJKRomansToItalics,	// 0 = off, 1 = on
 
@@ -186,11 +143,6 @@ _UI_ENUM(uiAttribute) {
 
 	uiAttributeLowercaseCapForms,	// enum uiAttributeCapForm
 	uiAttributeUppercaseCapForms,	// enum uiAttributeCapForm
-
-	// TODO kCJKRomanSpacingType
-
-	// TODO uiAttributeSystem, (this might not be doable with DirectWrite)
-	// TODO uiAttributeCustom,
 };
 
 _UI_ENUM(uiDrawUnderlineStyle) {

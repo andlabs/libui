@@ -37,7 +37,7 @@ struct uiDrawTextLayout {
 	size_t nUTF16;
 };
 
-// TODO this is wrong for our hit-test example's multiple combining character example
+// TODO document that lines may or may not overlap because ours do in the case of multiple combining characters
 static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize size)
 {
 	uiDrawTextLayoutLineMetrics *metrics;
@@ -65,7 +65,6 @@ static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize 
 		// this is equivalent to boundsNoLeading.size.height + boundsNoLeading.origin.y (manually verified)
 		ascent = bounds.size.height + bounds.origin.y;
 		descent = -boundsNoLeading.origin.y;
-		// TODO does this preserve leading sign?
 		leading = -bounds.origin.y - descent;
 
 		// Core Text always rounds these up for paragraph style calculations; there is a flag to control it but it's inaccessible (and this behavior is turned off for old versions of iPhoto)
@@ -101,7 +100,6 @@ static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize 
 		// go from bottom-left corner to top-left
 		metrics[i].Y -= metrics[i].Height;
 		metrics[i].BaselineY = size.height - metrics[i].BaselineY;
-		// TODO also adjust by metrics[i].Height?
 	}
 
 	uiFree(origins);
@@ -121,7 +119,6 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	range.length = CFAttributedStringGetLength(tl->attrstr);
 	tl->width = p->Width;
 
-	// TODO CTFrameProgression for RTL/LTR
 	// TODO kCTParagraphStyleSpecifierMaximumLineSpacing, kCTParagraphStyleSpecifierMinimumLineSpacing, kCTParagraphStyleSpecifierLineSpacingAdjustment for line spacing
 	tl->framesetter = CTFramesetterCreateWithAttributedString(tl->attrstr);
 	if (tl->framesetter == NULL) {
@@ -131,8 +128,6 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	cgwidth = (CGFloat) (tl->width);
 	if (cgwidth < 0)
 		cgwidth = CGFLOAT_MAX;
-	// TODO these seem to be floor()'d or truncated?
-	// TODO double check to make sure this TODO was right
 	tl->size = CTFramesetterSuggestFrameSizeWithConstraints(tl->framesetter,
 		range,
 		// TODO kCTFramePathWidthAttributeName?
@@ -209,8 +204,8 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	CGContextRestoreGState(c->c);
 }
 
-// TODO document that the width and height of a layout is not necessarily the sum of the widths and heights of its constituent lines; this is definitely untrue on OS X, where lines are placed in such a way that the distance between baselines is always integral
-// TODO width doesn't include trailing whitespace...
+// TODO document that the width and height of a layout is not necessarily the sum of the widths and heights of its constituent lines
+// TODO width doesn't include trailing whitespace... (TODO on which platforms?)
 // TODO figure out how paragraph spacing should play into this
 void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
 {
@@ -239,8 +234,8 @@ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLa
 	*m = tl->lineMetrics[line];
 }
 
-// TODO note that in some cases lines can overlap slightly
-// in our case, we read lines first to last and use their bottommost point (Y + Height) to determine where the next line should start for hit-testing
+// in the case of overlapping lines, we read lines first to last and use their bottommost point (Y + Height) to determine where the next line should start for hit-testing
+// TODO should we document this?
 void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
 {
 	int i;

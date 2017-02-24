@@ -15,3 +15,5 @@ https://www.w3.org/TR/REC-CSS2/notes.html
 
 TODO indicate where in the attributes.c file that block of code should go (or drop it entirely for the reasons listed above)
 TODO same for ui.h
+
+TODO vertical carets

@@ -276,7 +276,6 @@ _UI_ENUM(uiDrawTextStretch) {
 
 struct uiDrawFontDescriptor {
 	char *Family;
-	// TODO rename to PointSize?
 	double Size;
 	uiDrawTextWeight Weight;
 	uiDrawTextItalic Italic;
@@ -301,9 +300,15 @@ struct uiDrawTextLayoutParams {
 	uiDrawTextLayoutAlign Align;
 };
 
+// Height will equal ParagraphSpacingBefore + LineHeightSpace + Ascent + Descent + Leading + LineSpacing + ParagraphSpacing.
+// The above values are listed in vertical order, from top to bottom.
+// Ascent + Descent + Leading will give you the typographic bounds
+// of the text. BaselineY is the boundary between Ascent and Descent.
+// X, Y, and BaselineY are all in the layout's coordinate system, so the
+// start point of the baseline will be at (X, BaselineY). All values are
+// nonnegative.
 struct uiDrawTextLayoutLineMetrics {
 	// This describes the overall bounding box of the line.
-	// TODO figure out if X is correct regardless of both alignment and writing direction
 	double X;
 	double Y;
 	double Width;
@@ -321,13 +326,6 @@ struct uiDrawTextLayoutLineMetrics {
 	double LineHeightSpace;
 	double LineSpacing;
 	double ParagraphSpacing;
-
-	// Height should equal ParagraphSpacingBefore + LineHeightSpace + Ascent + Descent + Leading + LineSpacing + ParagraphSpacing.
-	// The above values are listed in vertical order, from top to bottom.
-	// Ascent + Descent + Leading will give you the typographic bounds of the text.
-	// BaselineY will be the boundary between Ascent and Descent.
-	// X, Y, and BaselineY are all in the layout's coordinate system, so the start point of the baseline will be at (X, BaselineY).
-	// All values will be nonnegative.
 
 	// TODO trailing whitespace?
 };
@@ -375,13 +373,11 @@ _UI_EXTERN void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y
 // TODO make sure this works right for right-aligned and center-aligned lines and justified lines and RTL text
 _UI_EXTERN double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line);
 
-// TODO vertical carets
 _UI_EXTERN void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout, size_t pos, int *line);
 // TODO allow blinking
 
 typedef struct uiFontButton uiFontButton;
 #define uiFontButton(this) ((uiFontButton *) (this))
-// TODO document this returns a new font
 _UI_EXTERN void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc);
 // TOOD SetFont, mechanics
 _UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);

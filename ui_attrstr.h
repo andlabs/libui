@@ -1,5 +1,22 @@
+// uiAttributedString represents a string of UTF-8 text that can
+// optionally be embellished with formatting attributes. libui
+// provides the list of formatting attributes, which cover common
+// formatting traits like boldface and color as well as advanced
+// typographical features like superscripts and small caps.
+// These attributes can be combined in a variety of ways.
+//
+// In addition, uiAttributedString provides facilities for moving
+// between grapheme clusters, which represent a character
+// from the point of view of the end user. The cursor of a text editor
+// is always placed on a grapheme boundary, so you can use these
+// features to move the cursor left or right by one "character".
+//
+// uiAttributedString does not provide enough information to be able
+// to draw itself onto a uiDrawContext or respond to user actions.
+// In order to do that, you'll need to use a uiDrawTextLayout, which
+// is built from the combination of a uiAttributedString and a set of
+// layout-specific properties.
 typedef struct uiAttributedString uiAttributedString;
-typedef struct uiAttributeSpec uiAttributeSpec;
 
 // Note: where you say "1 = on", any nonzero value means "on". (TODO)
 _UI_ENUM(uiAttribute) {
@@ -194,7 +211,7 @@ _UI_ENUM(uiAttributeCapForm) {
 	uiAttributeCapFormPetiteCaps,
 };
 
-// TODO number case
+typedef struct uiAttributeSpec uiAttributeSpec;
 
 struct uiAttributeSpec {
 	uiAttribute Type;

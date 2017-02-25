@@ -5,7 +5,7 @@
 // TODO
 // - consider the warnings about antialiasing in the PadWrite sample
 // - if that's not a problem, do we have overlapping rects in the hittest sample? I can't tell...
-// - what happens if any nLines == 0?
+// - empty string: nLines == 1 and all checks out except extents has x == 0 when not left aligned
 // - paragraph alignment is subject to RTL mirroring; see if it is on other platforms
 
 // TODO verify our renderer is correct, especially with regards to snapping

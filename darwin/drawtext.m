@@ -2,7 +2,9 @@
 #import "uipriv_darwin.h"
 #import "draw.h"
 
-// TODO what happens if nLines == 0 in any function?
+// TODO on an empty string nLines == 0
+// we must prevent this somehow
+// TODO in general, every function could be more robust, but we cannot have a situation where there are zero lines
 
 struct uiDrawTextLayout {
 	CFAttributedStringRef attrstr;

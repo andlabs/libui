@@ -4,11 +4,13 @@
 
 // TODO
 // - if the RTL override is at the beginning of a line, the preceding space is included?
+// - nLines == 0: mostly works, except the width is wrong if the paragraph alignment is center or right...
 
 struct uiDrawTextLayout {
 	PangoLayout *layout;
 	GPtrArray *backgroundClosures;
 	uiDrawTextLayoutLineMetrics *lineMetrics;
+	// TODO change everything to use this
 	int nLines;
 };
 

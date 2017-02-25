@@ -207,7 +207,7 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 }
 
 // TODO document that the width and height of a layout is not necessarily the sum of the widths and heights of its constituent lines
-// TODO width doesn't include trailing whitespace... (TODO on which platforms?)
+// TODO width doesn't include trailing whitespace...
 // TODO figure out how paragraph spacing should play into this
 void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
 {

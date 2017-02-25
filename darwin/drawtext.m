@@ -5,6 +5,7 @@
 // TODO on an empty string nLines == 0
 // we must prevent this somehow
 // TODO in general, every function could be more robust, but we cannot have a situation where there are zero lines
+// TODO what happens to extents if only whitespace?
 
 struct uiDrawTextLayout {
 	CFAttributedStringRef attrstr;

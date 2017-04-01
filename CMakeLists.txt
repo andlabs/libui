@@ -71,15 +71,22 @@ if(MSVC)
 	# TODO /sdl turns C4996 into an ERROR
 	# don't use /analyze; that requires us to write annotations everywhere
 	# TODO undecided flags from qo?
-	# /RTCc is not supplied because it's discouraged as of VS2015; see https://www.reddit.com/r/cpp/comments/46mhne/rtcc_rejects_conformant_code_with_visual_c_2015/d06auq5
 	# /EHsc is to shut the compiler up in some cases
 	# TODO make /EHsc C++-only
 	set(_COMMON_CFLAGS
 		/W4 /wd4100
 		/bigobj /nologo
-		/RTC1 /RTCs /RTCu
 		/EHsc
 	)
+	# Only use RTC on debug builds, because they are expensive and cannot be used
+	# with compiler optimizations. See https://msdn.microsoft.com/en-us/library/8wtf2dfz.aspx
+	# /RTCc is not supplied because it's discouraged as of VS2015; see https://www.reddit.com/r/cpp/comments/46mhne/rtcc_rejects_conformant_code_with_visual_c_2015/d06auq5
+	if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
+		set(_COMMON_CFLAGS
+			"${_COMMON_CFLAGS}"
+			/RTC1 /RTCs /RTCu
+		)
+	endif()
 
 	# note the /MANIFEST:NO (which must be / and uppercase); thanks FraGag (https://github.com/andlabs/libui/issues/93#issuecomment-223183436)
 	# TODO warnings on undefined symbols

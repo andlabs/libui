@@ -14,7 +14,7 @@ typedef struct areaWidget areaWidget;
 typedef struct areaWidgetClass areaWidgetClass;
 
 struct areaWidget {
-	GtkDrawingArea parent_instance;
+	GtkGLArea parent_instance;
 	uiArea *a;
 	// construct-only parameters aare not set until after the init() function has returned
 	// we need this particular object available during init(), so put it here instead of in uiArea
@@ -23,19 +23,21 @@ struct areaWidget {
 };
 
 struct areaWidgetClass {
-	GtkDrawingAreaClass parent_class;
+	GtkGLAreaClass parent_class;
 };
 
 struct uiArea {
 	uiUnixControl c;
 	GtkWidget *widget;		// either swidget or areaWidget depending on whether it is scrolling
 
+    gboolean is_opengl;
+    
 	GtkWidget *swidget;
 	GtkContainer *scontainer;
 	GtkScrolledWindow *sw;
 
 	GtkWidget *areaWidget;
-	GtkDrawingArea *drawingArea;
+	GtkGLArea *drawingArea;
 	areaWidget *area;
 
 	uiAreaHandler *ah;
@@ -51,7 +53,7 @@ struct uiArea {
 	GdkEventButton *dragevent;
 };
 
-G_DEFINE_TYPE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA)
+G_DEFINE_TYPE(areaWidget, areaWidget, GTK_TYPE_GL_AREA)
 
 static void areaWidget_init(areaWidget *aw)
 {
@@ -112,7 +114,7 @@ static void loadAreaSize(uiArea *a, double *width, double *height)
 	}
 }
 
-static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
+static gboolean _areaWidget_draw(GtkWidget *w, cairo_t *cr)
 {
 	areaWidget *aw = areaWidget(w);
 	uiArea *a = aw->a;
@@ -123,17 +125,49 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 
 	loadAreaSize(a, &(dp.AreaWidth), &(dp.AreaHeight));
 
-	cairo_clip_extents(cr, &clipX0, &clipY0, &clipX1, &clipY1);
-	dp.ClipX = clipX0;
-	dp.ClipY = clipY0;
-	dp.ClipWidth = clipX1 - clipX0;
-	dp.ClipHeight = clipY1 - clipY0;
+    if (cr)
+    {
+        cairo_clip_extents(cr, &clipX0, &clipY0, &clipX1, &clipY1);
+        dp.ClipX = clipX0;
+        dp.ClipY = clipY0;
+        dp.ClipWidth = clipX1 - clipX0;
+        dp.ClipHeight = clipY1 - clipY0;
+    }
+    else
+    {
+        dp.ClipX = 0;
+        dp.ClipY = 0;
+        dp.ClipWidth = dp.AreaWidth;
+        dp.ClipHeight = dp.AreaHeight;
+    }
 
 	// no need to save or restore the graphics state to reset transformations; GTK+ does that for us
 	(*(a->ah->Draw))(a->ah, a, &dp);
 
 	freeContext(dp.Context);
 	return FALSE;
+}
+
+static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
+{
+	areaWidget *aw = areaWidget(w);
+	uiArea *a = aw->a;
+    
+    if (a->is_opengl)
+    {
+        return GTK_WIDGET_CLASS(areaWidget_parent_class)->draw(w, cr);
+    }
+    else
+    {
+        return _areaWidget_draw(w, cr);
+    }
+}
+
+static gboolean areaWidget_render(GtkGLArea *w, GdkGLContext *cr)
+{
+    _areaWidget_draw(GTK_WIDGET(w), NULL);
+    
+    return TRUE;
 }
 
 // to do this properly for scrolling areas, we need to
@@ -304,6 +338,9 @@ static gboolean onCrossing(areaWidget *aw, int left)
 {
 	uiArea *a = aw->a;
 
+    printf("%p, %p, %p\n", a,
+           a->ah,
+           a->ah->MouseCrossed);
 	(*(a->ah->MouseCrossed))(a->ah, a, left);
 	clickCounterReset(a->cc);
 	return GDK_EVENT_PROPAGATE;
@@ -582,32 +619,50 @@ void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 		a->dragevent->time);
 }
 
-uiArea *uiNewArea(uiAreaHandler *ah)
+static
+uiArea *_uiNewArea(uiAreaHandler *ah, gboolean is_opengl)
 {
 	uiArea *a;
 
 	uiUnixNewControl(uiArea, a);
 
+    a->is_opengl = is_opengl;
 	a->ah = ah;
 	a->scrolling = FALSE;
 
 	a->areaWidget = GTK_WIDGET(g_object_new(areaWidgetType,
 		"libui-area", a,
 		NULL));
-	a->drawingArea = GTK_DRAWING_AREA(a->areaWidget);
+	a->drawingArea = GTK_GL_AREA(a->areaWidget);
 	a->area = areaWidget(a->areaWidget);
 
 	a->widget = a->areaWidget;
+    
+    if (is_opengl)
+    {
+        g_signal_connect (a->widget, "render", G_CALLBACK (areaWidget_render), NULL);
+    }
 
 	return a;
 }
 
-uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
+uiArea *uiNewArea(uiAreaHandler *ah)
+{
+    return _uiNewArea(ah, FALSE);
+}
+
+uiArea *uiNewOpenGLArea(uiAreaHandler *ah)
+{
+    return _uiNewArea(ah, TRUE);
+}
+
+uiArea *_uiNewScrollingArea(uiAreaHandler *ah, int width, int height, gboolean is_opengl)
 {
 	uiArea *a;
 
 	uiUnixNewControl(uiArea, a);
 
+    a->is_opengl = is_opengl;
 	a->ah = ah;
 	a->scrolling = TRUE;
 	a->scrollWidth = width;
@@ -620,7 +675,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	a->areaWidget = GTK_WIDGET(g_object_new(areaWidgetType,
 		"libui-area", a,
 		NULL));
-	a->drawingArea = GTK_DRAWING_AREA(a->areaWidget);
+	a->drawingArea = GTK_GL_AREA(a->areaWidget);
 	a->area = areaWidget(a->areaWidget);
 
 	a->widget = a->swidget;
@@ -629,5 +684,20 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	// and make the area visible; only the scrolled window's visibility is controlled by libui
 	gtk_widget_show(a->areaWidget);
 
+    if (is_opengl)
+    {
+        g_signal_connect (a->widget, "render", G_CALLBACK (areaWidget_render), NULL);
+    }
+    
 	return a;
+}
+
+uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
+{
+    return _uiNewScrollingArea(ah, width, height, FALSE);
+}
+
+uiArea *uiNewScrollingOpenGLArea(uiAreaHandler *ah, int width, int height)
+{
+    return _uiNewScrollingArea(ah, width, height, TRUE);
 }

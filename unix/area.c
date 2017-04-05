@@ -338,9 +338,6 @@ static gboolean onCrossing(areaWidget *aw, int left)
 {
 	uiArea *a = aw->a;
 
-    printf("%p, %p, %p\n", a,
-           a->ah,
-           a->ah->MouseCrossed);
 	(*(a->ah->MouseCrossed))(a->ah, a, left);
 	clickCounterReset(a->cc);
 	return GDK_EVENT_PROPAGATE;

@@ -53,8 +53,17 @@ struct uiArea {
 		self->libui_drawUsingOpenGL = drawUsingOpenGL;
 		
 		if (drawUsingOpenGL) {
-		  self->libui_openGLContext = [[NSOpenGLContext alloc] initWithFormat:[NSOpenGLView defaultPixelFormat]
-																											shareContext:nil];
+		  NSOpenGLPixelFormatAttribute pixelFormatAttributes[] =
+				{
+					NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
+					NSOpenGLPFADoubleBuffer ,
+					NSOpenGLPFAAccelerated  ,
+					0
+				};
+		  NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes] autorelease];
+			
+			self->libui_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+																														 shareContext:nil];
 		  [[NSNotificationCenter defaultCenter] addObserver:self
 																							 selector:@selector(_surfaceNeedsUpdate:)
 																									 name:NSViewGlobalFrameDidChangeNotification

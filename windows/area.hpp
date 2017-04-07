@@ -25,6 +25,10 @@ struct uiArea {
 	BOOL tracking;
 
 	ID2D1HwndRenderTarget *rt;
+
+	BOOL drawOpenGL;
+	HDC hDC;
+ 	HGLRC hglrc;	
 };
 
 // areadraw.cpp

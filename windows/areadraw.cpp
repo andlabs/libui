@@ -77,6 +77,7 @@ static void onWM_PAINT(uiArea *a)
 	case S_OK:
 		if (ValidateRect(a->hwnd, NULL) == 0)
 			logLastError(L"error validating rect");
+		SwapBuffers(a->hDC);	
 		break;
 	case D2DERR_RECREATE_TARGET:
 		// DON'T validate the rect

@@ -52,6 +52,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
       		a->hglrc = wglCreateContext(a->hDC);
       		wglMakeCurrent(a->hDC, a->hglrc);
+			//wglCreateContextAttribsARB (a->hDC, 0, NULL);
 		}
 		// fall through to DefWindowProcW() anyway
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);

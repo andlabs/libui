@@ -7,6 +7,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/areaevents.cpp
 	windows/areascroll.cpp
 	windows/areautil.cpp
+	windows/area_opengl.cpp
 	windows/box.cpp
 	windows/button.cpp
 	windows/checkbox.cpp

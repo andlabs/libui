@@ -1,6 +1,7 @@
 // 8 september 2015
 #include "uipriv_windows.hpp"
 #include "area.hpp"
+#include <GL/gl.h>
 
 // TODO handle WM_DESTROY/WM_NCDESTROY
 // TODO same for other Direct2D stuff
@@ -19,54 +20,9 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			// assign a->hwnd here so we can use it immediately
 			a->hwnd = hwnd;
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) a);
-												
-      		a->hDC = GetDC(hwnd);
-
-			PIXELFORMATDESCRIPTOR pfd = { 
-    			sizeof(PIXELFORMATDESCRIPTOR),   // size of this pfd  
-    			1,		     // version number  
-    			PFD_DRAW_TO_WINDOW |   // support window  
-    				PFD_SUPPORT_OPENGL |   // support OpenGL  
-    				PFD_DOUBLEBUFFER,      // double buffered  
-    			PFD_TYPE_RGBA,	 // RGBA type  
-    			24,		    // 24-bit color depth  
-    			0, 0, 0, 0, 0, 0,      // color bits ignored  
-    			0,		     // no alpha buffer  
-    			0,		     // shift bit ignored  
-    			0,		     // no accumulation buffer  
-    			0, 0, 0, 0,	    // accum bits ignored  
-    			32,		    // 32-bit z-buffer  
-    			0,		     // no stencil buffer  
-    			0,		     // no auxiliary buffer  
-    			PFD_MAIN_PLANE,	// main layer  
-    			0,		     // reserved  
-    			0, 0, 0		// layer masks ignored  
-			}; 
-			int  iPixelFormat; 
-
-			// get the best available match of pixel format for the device context   
-			iPixelFormat = ChoosePixelFormat(a->hDC, &pfd); 
-
-			// make that the pixel format of the device context  
-			SetPixelFormat(a->hDC, iPixelFormat, &pfd);
-
-      		a->hglrc = wglCreateContext(a->hDC);
-      		wglMakeCurrent(a->hDC, a->hglrc);
-			//wglCreateContextAttribsARB (a->hDC, 0, NULL);
 		}
 		// fall through to DefWindowProcW() anyway
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-	}
-
-	if (uMsg == WM_DESTROY || uMsg == WM_NCDESTROY)
-	{
-		if (a->hglrc)
-		{
-			wglMakeCurrent(NULL, NULL);
-			ReleaseDC(a->hwnd, a->hDC);
-			wglDeleteContext(a->hglrc);
-			a->hglrc = NULL;
-		}
 	}
 
 	// always recreate the render target if necessary
@@ -205,13 +161,14 @@ void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 		wParam, 0);
 }
 
-uiArea *uiNewArea(uiAreaHandler *ah)
+uiArea *_uiNewArea(uiAreaHandler *ah, BOOL drawOpenGL)
 {
 	uiArea *a;
 
 	uiWindowsNewControl(uiArea, a);
 
 	a->ah = ah;
+	a->drawOpenGL = drawOpenGL;
 	a->scrolling = FALSE;
 	clickCounterReset(&(a->cc));
 
@@ -225,12 +182,19 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	return a;
 }
 
-uiArea *uiNewOpenGLArea(uiAreaHandler *ah)
+uiArea *uiNewArea(uiAreaHandler *ah)
 {
-	return uiNewArea(ah);
+	uiArea * a = _uiNewArea(ah, FALSE);
+	return a;
 }
 
-uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
+uiArea *uiNewOpenGLArea(uiAreaHandler *ah)
+{
+	uiArea * a = _uiNewArea(ah, TRUE);
+	return a;
+}
+
+uiArea *_uiNewScrollingArea(uiAreaHandler *ah, int width, int height, BOOL drawOpenGL)
 {
 	uiArea *a;
 
@@ -240,6 +204,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	a->scrolling = TRUE;
 	a->scrollWidth = width;
 	a->scrollHeight = height;
+	a->drawOpenGL = drawOpenGL;
 	clickCounterReset(&(a->cc));
 
 	// a->hwnd is assigned in areaWndProc()
@@ -255,7 +220,17 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	return a;
 }
 
+uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
+{
+	uiArea * a = _uiNewScrollingArea(ah, width, height, FALSE);
+
+	return a;
+}
+
 uiArea *uiNewScrollingOpenGLArea(uiAreaHandler *ah, int width, int height)
 {
-	return uiNewScrollingArea(ah, width, height);
+	uiArea * a = _uiNewScrollingArea(ah, width, height, TRUE);
+
+	return a;
 }
+

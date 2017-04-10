@@ -42,7 +42,19 @@ void uiAreaOpenGLBeginDraw(uiArea * a) {
 	RECT rect;
 	GetClientRect(a->hwnd,&rect);
 	glViewport(0, 0, rect.right, rect.bottom);
+    
+	COLORREF bgcolorref = GetSysColor(COLOR_BTNFACE);
+    float r = ((float) GetRValue(bgcolorref)) / 255.0;
+	// due to utter apathy on Microsoft's part, GetGValue() does not work with MSVC's Run-Time Error Checks
+	// it has not worked since 2008 and they have *never* fixed it
+	// TODO now that -RTCc has just been deprecated entirely, should we switch back?
+    float g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
+	float b = ((float) GetBValue(bgcolorref)) / 255.0;
 
+    glClearColor(r, g, b, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 HRESULT uiAreaOpenGLEndDraw(uiArea * a) {

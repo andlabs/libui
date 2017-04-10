@@ -49,5 +49,7 @@ extern void pixelsToDIP(uiArea *a, double *x, double *y);
 extern void dipToPixels(uiArea *a, double *x, double *y);
 
 //area_opengl.cpp
+extern void uiAreaOpenGLInit(uiArea * a);
+extern void uiAreaOpenGLUninit(uiArea * a);
 extern void uiAreaOpenGLBeginDraw(uiArea * a);
 extern HRESULT uiAreaOpenGLEndDraw(uiArea * a);

@@ -20,10 +20,20 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			// assign a->hwnd here so we can use it immediately
 			a->hwnd = hwnd;
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) a);
+
+            if (a->drawOpenGL) {
+                uiAreaOpenGLInit(a);
+            }
 		}
 		// fall through to DefWindowProcW() anyway
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	}
+
+    if (uMsg == WM_DESTROY || uMsg == WM_NCDESTROY) {
+        if (a->drawOpenGL) {
+            uiAreaOpenGLUninit(a);
+        }
+    }
 
 	// always recreate the render target if necessary
 	if (a->rt == NULL)

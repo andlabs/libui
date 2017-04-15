@@ -24,7 +24,7 @@ set(MSVC_INCREMENTAL_DEFAULT ON)
 # default to debug builds
 # do this before project() just to be safe
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "" FORCE)
+	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
 endif()
 
 project(libui)
@@ -81,7 +81,7 @@ if(MSVC)
 	# Only use RTC on debug builds, because they are expensive and cannot be used
 	# with compiler optimizations. See https://msdn.microsoft.com/en-us/library/8wtf2dfz.aspx
 	# /RTCc is not supplied because it's discouraged as of VS2015; see https://www.reddit.com/r/cpp/comments/46mhne/rtcc_rejects_conformant_code_with_visual_c_2015/d06auq5
-	if(CMAKE_BUILD_TYPE STREQUAL DEBUG)
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(_COMMON_CFLAGS
 			"${_COMMON_CFLAGS}"
 			/RTC1 /RTCs /RTCu

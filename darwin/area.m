@@ -51,7 +51,7 @@ struct uiArea {
 		self->libui_ss = r.size;
 		self->libui_enabled = YES;
 		self->libui_drawUsingOpenGL = drawUsingOpenGL;
-		
+
 		if (drawUsingOpenGL) {
 		  NSOpenGLPixelFormatAttribute pixelFormatAttributes[] =
 				{
@@ -61,7 +61,7 @@ struct uiArea {
 					0
 				};
 		  NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes] autorelease];
-			
+
 			self->libui_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
 																														 shareContext:nil];
 		  [[NSNotificationCenter defaultCenter] addObserver:self
@@ -81,7 +81,7 @@ struct uiArea {
 																									object:self];
 	  [libui_openGLContext release];
 	}
-	
+
 	[super dealloc];
 }
 
@@ -121,10 +121,9 @@ struct uiArea {
 
 	dp.AreaWidth = 0;
 	dp.AreaHeight = 0;
-	if (!a->scrolling) {
-		dp.AreaWidth = [self frame].size.width;
-		dp.AreaHeight = [self frame].size.height;
-	}
+
+	dp.AreaWidth = [self frame].size.width;
+	dp.AreaHeight = [self frame].size.height;
 
 	dp.ClipX = r.origin.x;
 	dp.ClipY = r.origin.y;
@@ -135,7 +134,7 @@ struct uiArea {
 	  if ([libui_openGLContext view] != self) {
 	    [libui_openGLContext setView:self];
 		}
-		
+
 		[libui_openGLContext makeCurrentContext];
 	}
 
@@ -545,7 +544,7 @@ uiArea *_uiNewScrollingArea(uiAreaHandler *ah, int width, int height, BOOL drawU
 
 	a->area = [[areaView alloc] initWithFrame:NSMakeRect(0, 0, width, height)
 																			 area:a
-														drawUsingOpenGL:YES];
+														drawUsingOpenGL:drawUsingOpenGL];
 
 	memset(&p, 0, sizeof (struct scrollViewCreateParams));
 	p.DocumentView = a->area;
@@ -570,4 +569,3 @@ uiArea * uiNewScrollingOpenGLArea(uiAreaHandler *ah, int width, int height)
 {
 	return _uiNewScrollingArea(ah, width, height, YES);
 }
-

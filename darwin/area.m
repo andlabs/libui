@@ -119,16 +119,19 @@ struct uiArea {
 	// see draw.m under text for why we need the height
 	dp.Context = newContext(c, [self bounds].size.height);
 
-	dp.AreaWidth = 0;
-	dp.AreaHeight = 0;
-
 	dp.AreaWidth = [self frame].size.width;
 	dp.AreaHeight = [self frame].size.height;
 
-	dp.ClipX = r.origin.x;
-	dp.ClipY = r.origin.y;
-	dp.ClipWidth = r.size.width;
-	dp.ClipHeight = r.size.height;
+	NSRect visibleRect = r;
+
+	if (a->scrolling) {
+	  visibleRect = [[a->sv contentView] documentVisibleRect];
+	}
+
+	dp.ClipX = visibleRect.origin.x;
+	dp.ClipY = visibleRect.origin.y;
+	dp.ClipWidth = visibleRect.size.width;
+	dp.ClipHeight = visibleRect.size.height;
 
 	if (self->libui_drawUsingOpenGL) {
 	  if ([libui_openGLContext view] != self) {
@@ -212,12 +215,8 @@ struct uiArea {
 	me.X = point.x;
 	me.Y = point.y;
 
-	me.AreaWidth = 0;
-	me.AreaHeight = 0;
-	if (!a->scrolling) {
-		me.AreaWidth = [self frame].size.width;
-		me.AreaHeight = [self frame].size.height;
-	}
+	me.AreaWidth = [self frame].size.width;
+	me.AreaHeight = [self frame].size.height;
 
 	buttonNumber = [e buttonNumber] + 1;
 	// swap button numbers 2 and 3 (right and middle)

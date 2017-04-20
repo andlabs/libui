@@ -38,11 +38,18 @@ void uiAreaOpenGLInit(uiArea * a) {
     wglMakeCurrent(a->hDC, a->hglrc);
 }
 
-void uiAreaOpenGLBeginDraw(uiArea * a) {
+void uiAreaOpenGLBeginDraw(uiArea * a, uiAreaDrawParams * dp) {
 	RECT rect;
 	GetClientRect(a->hwnd,&rect);
 	glViewport(0, 0, rect.right, rect.bottom);
 
+    if (a->scrolling) {
+        dp->AreaWidth = a->scrollWidth;
+        dp->AreaHeight = a->scrollHeight;
+    } else {
+        dp->AreaWidth = rect.right - rect.left;
+        dp->AreaHeight = rect.bottom - rect.top;
+    }
 }
 
 HRESULT uiAreaOpenGLEndDraw(uiArea * a) {

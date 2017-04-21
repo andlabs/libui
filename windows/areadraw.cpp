@@ -24,8 +24,9 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 		dp.ClipY += a->vscrollpos;
 	}
 
-	if (a->drawOpenGL)
-		uiAreaOpenGLBeginDraw(a);
+	if (a->drawOpenGL) {
+		uiAreaOpenGLBeginDraw(a, &dp);
+    }
 	else
 		rt->BeginDraw();
 

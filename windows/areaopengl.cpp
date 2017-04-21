@@ -38,7 +38,7 @@ void uiAreaOpenGLInit(uiArea * a) {
     wglMakeCurrent(a->hDC, a->hglrc);
 }
 
-void uiAreaOpenGLBeginDraw(uiArea * a) {
+void uiAreaOpenGLBeginDraw(uiArea * a, uiAreaDrawParams * dp) {
 	RECT rect;
 	GetClientRect(a->hwnd,&rect);
 	glViewport(0, 0, rect.right, rect.bottom);
@@ -51,10 +51,19 @@ void uiAreaOpenGLBeginDraw(uiArea * a) {
     float g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
 	float b = ((float) GetBValue(bgcolorref)) / 255.0;
 
+
     glClearColor(r, g, b, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    if (a->scrolling) {
+        dp->AreaWidth = a->scrollWidth;
+        dp->AreaHeight = a->scrollHeight;
+    } else {
+        dp->AreaWidth = rect.right - rect.left;
+        dp->AreaHeight = rect.bottom - rect.top;
+    }
 }
 
 HRESULT uiAreaOpenGLEndDraw(uiArea * a) {

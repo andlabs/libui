@@ -111,6 +111,9 @@ static void loadAreaSize(uiArea *a, double *width, double *height)
 		// thanks to tristan in irc.gimp.net/#gtk+
 		*width = allocation.width;
 		*height = allocation.height;
+	} else {
+		*width = a->scrollWidth;
+		*height = a->scrollHeight;
 	}
 }
 
@@ -637,7 +640,7 @@ uiArea *_uiNewArea(uiAreaHandler *ah, gboolean is_opengl)
     
     if (is_opengl)
     {
-        g_signal_connect (a->widget, "render", G_CALLBACK (areaWidget_render), NULL);
+        g_signal_connect (a->areaWidget, "render", G_CALLBACK (areaWidget_render), NULL);
     }
 
 	return a;
@@ -683,7 +686,7 @@ uiArea *_uiNewScrollingArea(uiAreaHandler *ah, int width, int height, gboolean i
 
     if (is_opengl)
     {
-        g_signal_connect (a->widget, "render", G_CALLBACK (areaWidget_render), NULL);
+        g_signal_connect (a->areaWidget, "render", G_CALLBACK (areaWidget_render), NULL);
     }
     
 	return a;

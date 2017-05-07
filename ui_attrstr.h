@@ -32,6 +32,10 @@ _UI_ENUM(uiAttribute) {
 	// TODO document that the color in the case we don't specify it is the text color
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
+	uiAttributeFeatures,			// object of type uiOpenTypeFeatures
+
+#if 0
+
 	// These attributes represent typographic features. Each feature
 	// is a separate attribute, to make composition easier. The
 	// availability of for each attribute are defined by the font; the
@@ -154,6 +158,8 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeLowercaseCapForms,	// enum uiAttributeCapForm
 	uiAttributeUppercaseCapForms,	// enum uiAttributeCapForm
 };
+#endif
+};
 
 _UI_ENUM(uiDrawUnderlineStyle) {
 	uiDrawUnderlineStyleNone,
@@ -168,6 +174,8 @@ _UI_ENUM(uiDrawUnderlineColor) {
 	uiDrawUnderlineColorGrammar,
 	uiDrawUnderlineColorAuxiliary,	// for instance, the color used by smart replacements on OS X
 };
+
+#if 0
 
 _UI_ENUM(uiAttributeNumberSpacing) {
 	uiAttributeNumberSpacingProportional,
@@ -207,6 +215,18 @@ _UI_ENUM(uiAttributeCapForm) {
 	uiAttributeCapFormSmallCaps,
 	uiAttributeCapFormPetiteCaps,
 };
+
+#endif
+
+// TODO rename?
+typedef struct uiOpenTypeFeatures uiOpenTypeFeatures;
+// TODO detailed constructor?
+_UI_EXTERN uiOpenTypeFeatures *uiNewOpenTypeFeatures(void);
+_UI_EXTERN void uiFreeOpenTypeFeatures(uiOpenTypeFeatures *otf);
+_UI_EXTERN uiOpenTypeFeatures *uiOpenTypeFeaturesClone(uiOpenTypeFeatures *otf);
+_UI_EXTERN void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value);
+// TODO remove, query, enumerate
+// TODO make the compare function public?
 
 typedef struct uiAttributeSpec uiAttributeSpec;
 

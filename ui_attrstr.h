@@ -220,13 +220,19 @@ _UI_ENUM(uiAttributeCapForm) {
 
 // TODO rename?
 typedef struct uiOpenTypeFeatures uiOpenTypeFeatures;
+// TODO pass the feature set?
+typedef int (*uiOpenTypeFeaturesForEachFunc)(char a, char b, char c, char d, uint32_t value, void *data);
 // TODO detailed constructor?
 _UI_EXTERN uiOpenTypeFeatures *uiNewOpenTypeFeatures(void);
 _UI_EXTERN void uiFreeOpenTypeFeatures(uiOpenTypeFeatures *otf);
+// TODO put above Free?
+// TODO Copy instead of Clone?
 _UI_EXTERN uiOpenTypeFeatures *uiOpenTypeFeaturesClone(uiOpenTypeFeatures *otf);
 _UI_EXTERN void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value);
-// TODO remove, query, enumerate
-// TODO make the compare function public?
+_UI_EXTERN void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d);
+_UI_EXTERN int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value);
+_UI_EXTERN void uiOpenTypeFeaturesForEach(uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data);
+_UI_EXTERN int uiOpenTypeFeaturesEqual(uiOpenTypeFeatures *a, uiOpenTypeFeatures *b);
 
 typedef struct uiAttributeSpec uiAttributeSpec;
 
@@ -240,6 +246,7 @@ struct uiAttributeSpec {
 	double A;
 };
 
+// TODO name the foreach return values
 typedef int (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data);
 
 // @role uiAttributedString constructor

@@ -162,3 +162,6 @@ extern ID2D1DCRenderTarget *makeHDCRenderTarget(HDC dc, RECT *r);
 
 // drawtext.cpp
 extern void fontdescFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc);
+
+// opentype.cpp
+extern IDWriteTypography *otfToDirectWrite(uiOpenTypeFeatures *otf);

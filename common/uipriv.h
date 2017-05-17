@@ -101,10 +101,6 @@ struct caretDrawParams {
 extern void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p);
 extern void drawTextBackground(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout, size_t start, size_t end, uiDrawBrush *brush, int isSelection);
 
-// opentype.c
-typedef void (*specToOpenTypeEnumFunc)(const char *featureTag, uint32_t param, void *data);
-extern void specToOpenType(uiAttributeSpec *spec, specToOpenTypeEnumFunc f, void *data);
-
 #ifdef __cplusplus
 }
 #endif

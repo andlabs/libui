@@ -8,7 +8,6 @@ list(APPEND _LIBUI_SOURCES
 	common/debug.c
 	common/drawtext.c
 	common/matrix.c
-	common/opentype.c
 	common/shouldquit.c
 	common/userbugs.c
 	common/utf.c

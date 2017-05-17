@@ -32,6 +32,7 @@ _UI_ENUM(uiAttribute) {
 	// TODO document that the color in the case we don't specify it is the text color
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
+	// TODO note that for the purpose of uiAttributedString two sets of features are only the same (and thus their attributes are merged) only if the pointers are the same; whether the tag sets are the same only become relevant to uiDrawTextLayout
 	uiAttributeFeatures,			// object of type uiOpenTypeFeatures
 
 #if 0

@@ -75,7 +75,6 @@ void uiOpenTypeFeaturesForEach(uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEac
 	}
 }
 
-// TODO wait, is this function even necessary? how do we unify attributes??
 int uiOpenTypeFeaturesEqual(uiOpenTypeFeatures *a, uiOpenTypeFeatures *b)
 {
 	// TODO make sure this is correct

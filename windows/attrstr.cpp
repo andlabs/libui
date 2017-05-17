@@ -2,9 +2,11 @@
 #include "uipriv_windows.hpp"
 #include "draw.hpp"
 
+// TODO this whole file needs cleanup
+
 // we need to combine color and underline style into one unit for IDWriteLayout::SetDrawingEffect()
 // we also need to collect all the OpenType features and background blocks and add them all at once
-// TODO(TODO does not seem to apply here) this is the wrong approach; it causes Pango to end runs early, meaning attributes like the ligature attributes never get applied properly
+// TODO(TODO does not seem to apply here?) this is the wrong approach; it causes Pango to end runs early, meaning attributes like the ligature attributes never get applied properly
 // TODO contextual alternates override ligatures?
 // TODO rename this struct to something that isn't exclusively foreach-ing?
 struct foreachParams {
@@ -38,25 +40,22 @@ static void ensureEffectsInRange(struct foreachParams *p, size_t start, size_t e
 	}
 }
 
-static void ensureFeaturesInRange(struct foreachParams *p, size_t start, size_t end)
+static void setFeaturesInRange(struct foreachParams *p, size_t start, size_t end, uiOpenTypeFeatures *otf)
 {
+	IDWriteTypography *dt;
 	size_t i;
-	size_t *key;
-	IDWriteTypography *t;
-	HRESULT hr;
 
+	dt = otfToDirectWrite(otf);
 	for (i = start; i < end; i++) {
 		// don't create redundant entries; see below
+		// TODO explain this more clearly (surrogate pairs)
 		if (!isCodepointStart(p->s[i]))
 			continue;
-		t = (*(p->features))[i];
-		if (t != NULL)
-			continue;
-		hr = dwfactory->CreateTypography(&t);
-		if (hr != S_OK)
-			logHRESULT(L"error creating IDWriteTypography", hr);
-		(*(p->features))[i] = t;
+		dt->AddRef();
+		(*(p->features))[i] = dt;
 	}
+	// and release the initial reference
+	dt->Release();
 }
 
 static backgroundFunc mkBackgroundFunc(size_t start, size_t end, double r, double g, double b, double a)
@@ -73,38 +72,6 @@ static backgroundFunc mkBackgroundFunc(size_t start, size_t end, double r, doubl
 	};
 }
 
-struct otParam {
-	struct foreachParams *p;
-	size_t start;
-	size_t end;
-};
-
-static void doOpenType(const char *featureTag, uint32_t param, void *data)
-{
-	struct otParam *p = (struct otParam *) data;
-	size_t i;
-	IDWriteTypography *t;
-	DWRITE_FONT_FEATURE feature;
-	HRESULT hr;
-
-	feature.nameTag = (DWRITE_FONT_FEATURE_TAG) DWRITE_MAKE_OPENTYPE_TAG(
-		featureTag[0],
-		featureTag[1],
-		featureTag[2],
-		featureTag[3]);
-	feature.parameter = param;
-	ensureFeaturesInRange(p->p, p->start, p->end);
-	for (i = p->start; i < p->end; i++) {
-		// don't use redundant entries; see below
-		if (!isCodepointStart(p->p->s[i]))
-			continue;
-		t = (*(p->p->features))[i];
-		hr = t->AddFontFeature(feature);
-		if (hr != S_OK)
-			logHRESULT(L"error adding feature to IDWriteTypography", hr);
-	}
-}
-
 static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
@@ -112,7 +79,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	WCHAR *wfamily;
 	size_t ostart, oend;
 	BOOL hasUnderline;
-	struct otParam op;
 	HRESULT hr;
 
 	ostart = start;
@@ -229,14 +195,12 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 			break;
 		}
 		break;
-	default:
-		// handle typographic features
-		op.p = p;
-		op.start = start;
-		op.end = end;
-		// TODO check if unhandled and complain
-		specToOpenType(spec, doOpenType, &op);
+	cae uiAttributeOpenTypeFeatures:
+		setFeaturesInRange(p, start, end, (uiOpenTypeFeatures *) (spec->Value));
 		break;
+	default:
+		// TODO complain
+		;
 	}
 	return 0;
 }

@@ -342,9 +342,9 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 			attr->spec.G == spec->G &&
 			attr->spec.B == spec->B &&
 			attr->spec.A == spec->A;
-	// TODO use boolsEqual() on boolean features
 	}
-	// handles the rest
+	// handles the rest, including pointer comparison for uiAttributeFeatures
+	// TODO rename it to uiAttributeOpenTypeFeatures?
 	return attr->spec.Value == spec->Value;
 }
 

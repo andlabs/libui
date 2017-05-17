@@ -195,7 +195,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 			break;
 		}
 		break;
-	cae uiAttributeOpenTypeFeatures:
+	case uiAttributeFeatures:
 		setFeaturesInRange(p, start, end, (uiOpenTypeFeatures *) (spec->Value));
 		break;
 	default:

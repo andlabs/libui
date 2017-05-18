@@ -10,7 +10,7 @@ struct foreachParams {
 	const char *s;
 	PangoAttrList *attrs;
 	// keys are pointers to size_t maintained by g_new0()/g_free()
-	// values are GStrings
+	// values are strings
 	GHashTable *features;
 	// TODO use pango's built-in background attribute?
 	GPtrArray *backgroundClosures;
@@ -38,24 +38,22 @@ static void freeFeatureString(gpointer s)
 
 #define isCodepointStart(b) (((uint8_t) (b)) <= 0x7F || ((uint8_t) (b)) >= 0xC0)
 
-static void ensureFeaturesInRange(struct foreachParams *p, size_t start, size_t end)
+static void setFeaturesInRange(struct foreachParams *p, size_t start, size_t end, uiOpenTypeFeatures *otf)
 {
 	size_t i;
 	size_t *key;
 	GString *new;
 
+	new = otfToPangoCSSString(otf);
 	for (i = start; i < end; i++) {
 		// don't create redundant entries; see below
 		if (!isCodepointStart(p->s[i]))
 			continue;
-		new = (GString *) g_hash_table_lookup(p->features, &i);
-		if (new != NULL)
-			continue;
-		new = g_string_new("");
 		key = g_new0(size_t, 1);
 		*key = i;
-		g_hash_table_replace(p->features, key, new);
+		g_hash_table_replace(p->features, key, g_strdup(new->str));
 	}
+	g_string_free(new, TRUE);
 }
 
 struct closureParams {
@@ -104,30 +102,6 @@ static GClosure *mkBackgroundClosure(size_t start, size_t end, double r, double 
 	return closure;
 }
 
-struct otParam {
-	struct foreachParams *p;
-	size_t start;
-	size_t end;
-};
-
-// see https://developer.mozilla.org/en/docs/Web/CSS/font-feature-settings
-static void doOpenType(const char *featureTag, uint32_t param, void *data)
-{
-	struct otParam *p = (struct otParam *) data;
-	size_t i;
-	GString *s;
-
-	ensureFeaturesInRange(p->p, p->start, p->end);
-	for (i = p->start; i < p->end; i++) {
-		// don't use redundant entries; see below
-		if (!isCodepointStart(p->p->s[i]))
-			continue;
-		s = (GString *) g_hash_table_lookup(p->p->features, &i);
-		g_string_append_printf(s, "\"%s\" %" PRIu32 ", ",
-			featureTag, param);
-	}
-}
-
 static void addattr(struct foreachParams *p, size_t start, size_t end, PangoAttribute *attr)
 {
 	if (attr == NULL)		// in case of a future attribute
@@ -142,7 +116,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	struct foreachParams *p = (struct foreachParams *) data;
 	GClosure *closure;
 	PangoUnderline underline;
-	struct otParam op;
 
 	switch (spec->Type) {
 	case uiAttributeFamily:
@@ -225,14 +198,13 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 			break;
 		}
 		break;
-	default:
-		// handle typographic features
-		op.p = p;
-		op.start = start;
-		op.end = end;
-		// TODO check if unhandled and complain
-		specToOpenType(spec, doOpenType, &op);
+	case uiAttributeFeatures:
+		// TODO ensure the parentheses around spec->Value are provided on Windows
+		setFeaturesInRange(p, start, end, (uiOpenTypeFeatures *) (spec->Value));
 		break;
+	default:
+		// TODO complain
+		;
 	}
 	return 0;
 }
@@ -241,18 +213,16 @@ static gboolean applyFeatures(gpointer key, gpointer value, gpointer data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	size_t *pos = (size_t *) key;
-	GString *s = (GString *) value;
+	char *s = (char *) value;
 	size_t n;
 
-	// remove the trailing comma/space
-	g_string_truncate(s, s->len - 2);
 	// make sure we cover an entire code point
 	// otherwise Pango will break apart multi-byte characters, spitting out U+FFFD characters at the invalid points
 	n = 1;
 	while (!isCodepointStart(p->s[*pos + n]))
 		n++;
 	addattr(p, *pos, *pos + n,
-		FUTURE_pango_attr_font_features_new(s->str));
+		FUTURE_pango_attr_font_features_new(s));
 	return TRUE;		// always delete; we're emptying the map
 }
 
@@ -275,7 +245,7 @@ PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p, GPtrArray **bac
 	fep.attrs = pango_attr_list_new();
 	fep.features = g_hash_table_new_full(
 		featurePosHash, featurePosEqual,
-		g_free, freeFeatureString);
+		g_free, g_free);
 	fep.backgroundClosures = g_ptr_array_new_with_free_func(unrefClosure);
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
 	applyAndFreeFeatureAttributes(&fep);

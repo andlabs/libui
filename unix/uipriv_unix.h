@@ -71,3 +71,6 @@ extern void invokeBackgroundClosure(GClosure *closure, uiDrawContext *c, uiDrawT
 #define cairoToPango(cairo) (pango_units_from_double(cairo))
 extern const PangoStyle pangoItalics[];
 extern const PangoStretch pangoStretches[];
+
+// opentype.c
+extern GString *otfToPangoCSSString(uiOpenTypeFeatures *otf);

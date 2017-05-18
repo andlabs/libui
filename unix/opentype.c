@@ -1,7 +1,7 @@
 // 11 may 2017
-#include "uipriv_windows.hpp"
+#include "uipriv_unix.h"
 
-// TODO switch from GINT_FROM_POINTER() and so to a fake GUINT_FROM_POINTER()?
+// TODO switch from GINT_TO_POINTER() and so to a fake GUINT_TO_POINTER()?
 
 struct uiOpenTypeFeatures {
 	GHashTable *tags;
@@ -106,9 +106,9 @@ void uiOpenTypeFeaturesForEach(uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEac
 	g_hash_table_foreach(otf->tags, foreach, &ofe);
 }
 
-static gint tagcmp(gpointer a, gpointer b)
+static gint tagcmp(gconstpointer a, gconstpointer b)
 {
-	return GINT_FROM_POINTER(a) - GINT_FROM_POINTER(b);
+	return GPOINTER_TO_INT(a) - GPOINTER_TO_INT(b);
 }
 
 static GList *copySortedKeys(GHashTable *tags)
@@ -130,8 +130,8 @@ int uiOpenTypeFeaturesEqual(uiOpenTypeFeatures *a, uiOpenTypeFeatures *b)
 	guint i;
 	int equal = 0;
 
-	ak = copySortedKeys(a);
-	bk = copySortedKeys(b);
+	ak = copySortedKeys(a->tags);
+	bk = copySortedKeys(b->tags);
 
 	na = g_list_length(ak);
 	nb = g_list_length(bk);
@@ -140,7 +140,7 @@ int uiOpenTypeFeaturesEqual(uiOpenTypeFeatures *a, uiOpenTypeFeatures *b)
 		goto out;
 	}
 
-	// TODO use GINT_FROM_POINTER() in these?
+	// TODO use GPOINTER_TO_INT() in these?
 	ai = ak;
 	bi = bk;
 	for (i = 0; i < na; i++) {
@@ -153,8 +153,8 @@ int uiOpenTypeFeaturesEqual(uiOpenTypeFeatures *a, uiOpenTypeFeatures *b)
 			goto out;
 		}
 		// and compare values
-		av = g_hash_table_lookup(a, ai->data);
-		bv = g_hash_table_lookup(b, bi->data);
+		av = g_hash_table_lookup(a->tags, ai->data);
+		bv = g_hash_table_lookup(b->tags, bi->data);
 		if (av != bv) {
 			equal = 0;
 			goto out;
@@ -172,6 +172,7 @@ out:
 	return equal;
 }
 
+// see https://developer.mozilla.org/en/docs/Web/CSS/font-feature-settings
 // TODO make this a g_hash_table_foreach() function (which requires duplicating code)?
 static int toCSS(char a, char b, char c, char d, uint32_t value, void *data)
 {

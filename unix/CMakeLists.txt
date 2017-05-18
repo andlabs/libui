@@ -34,6 +34,7 @@ list(APPEND _LIBUI_SOURCES
 	unix/main.c
 	unix/menu.c
 	unix/multilineentry.c
+	unix/opentype.c
 	unix/progressbar.c
 	unix/radiobuttons.c
 	unix/separator.c

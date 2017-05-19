@@ -166,8 +166,8 @@ extern void openTypeToAAT(uiOpenTypeFeatures *otf, void (*doAAT)(uint16_t type, 
 	x8tox32(d))
 
 // future.m
-extern CFStringRef FUTURE_kCTFontOpenTypeFeatureTag;
-extern CFStringRef FUTURE_kCTFontOpenTypeFeatureValue;
+extern CFStringRef *FUTURE_kCTFontOpenTypeFeatureTag;
+extern CFStringRef *FUTURE_kCTFontOpenTypeFeatureValue;
 extern void loadFutures(void);
 extern void FUTURE_NSLayoutConstraint_setIdentifier(NSLayoutConstraint *constraint, NSString *identifier);
 extern BOOL FUTURE_NSWindow_performWindowDragWithEvent(NSWindow *w, NSEvent *initialEvent);

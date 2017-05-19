@@ -4,10 +4,11 @@
 // functions and constants FROM THE FUTURE!
 
 // TODO add weight constants here?
+// TOOD explain why the constants need to be pointers themselves
 
 // added in OS X 10.10; we need 10.8
-CFStringRef FUTURE_kCTFontOpenTypeFeatureTag = NULL;
-CFStringRef FUTURE_kCTFontOpenTypeFeatureValue = NULL;
+CFStringRef *FUTURE_kCTFontOpenTypeFeatureTag = NULL;
+CFStringRef *FUTURE_kCTFontOpenTypeFeatureValue = NULL;
 
 // note that we treat any error as "the symbols aren't there" (and don't care if dlclose() failed)
 void loadFutures(void)

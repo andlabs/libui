@@ -18,6 +18,7 @@ static void boolspec(uint32_t value, uint16_t type, uint16_t ifTrue, uint16_t if
 	pcall(p, type, ifFalse);
 }
 
+// TODO double-check drawtext example to make sure all of these are used properly (I already screwed dlig up by putting clig twice instead)
 static int foreach(char a, char b, char c, char d, uint32_t value, void *data)
 {
 	struct openTypeAATParams *p = (struct openTypeAATParams *) data;
@@ -120,7 +121,7 @@ static int foreach(char a, char b, char c, char d, uint32_t value, void *data)
 		break;
 	case mkTag('t', 'i', 't', 'l'):
 		// TODO is this correct, or should we provide an else case?
-		if (spec->Value != 0)
+		if (value != 0)
 			pcall(p, kStyleOptionsType, kTitlingCapsSelector);
 		break;
 

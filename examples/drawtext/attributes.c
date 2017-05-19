@@ -218,7 +218,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("clig", 1);
+	spec.Value = addFeature("dlig", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 

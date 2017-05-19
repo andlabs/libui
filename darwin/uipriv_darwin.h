@@ -157,7 +157,7 @@ extern void openTypeToAAT(uiOpenTypeFeatures *otf, void (*doAAT)(uint16_t type, 
 // opentype.m
 // TODO this is only used by opentype.m and aat.m; figure out some better way to handle this
 // TODO remove x8tox32()
-#define x8to32(x) ((uint32_t) (((uint8_t) (x)) & 0xFF))
+#define x8tox32(x) ((uint32_t) (((uint8_t) (x)) & 0xFF))
 #define mkTag(a, b, c, d)		\
 	((x8tox32(a) << 24) |	\
 	(x8tox32(b) << 16) |		\

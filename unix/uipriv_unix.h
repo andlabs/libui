@@ -5,7 +5,7 @@
 #define GDK_VERSION_MAX_ALLOWED GDK_VERSION_3_10
 #include <gtk/gtk.h>
 #include <math.h>
-#include <dlfcn.h>		// see drawtext.c
+#include <dlfcn.h>		// see future.c
 #include <langinfo.h>
 #include <string.h>
 #include <stdlib.h>

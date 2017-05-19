@@ -2,6 +2,7 @@
 #define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_8
 #define MAC_OS_X_VERSION_MAX_ALLOWED MAC_OS_X_VERSION_10_8
 #import <Cocoa/Cocoa.h>
+#include <dlfcn.h>		// see future.m
 #import "../ui.h"
 #import "../ui_darwin.h"
 #import "../common/uipriv.h"
@@ -163,3 +164,10 @@ extern void openTypeToAAT(uiOpenTypeFeatures *otf, void (*doAAT)(uint16_t type, 
 	(x8tox32(b) << 16) |		\
 	(x8tox32(c) << 8) |		\
 	x8tox32(d))
+
+// future.m
+extern CFStringRef FUTURE_kCTFontOpenTypeFeatureTag;
+extern CFStringRef FUTURE_kCTFontOpenTypeFeatureValue;
+extern void loadFutures(void);
+extern void FUTURE_NSLayoutConstraint_setIdentifier(NSLayoutConstraint *constraint, NSString *identifier);
+extern BOOL FUTURE_NSWindow_performWindowDragWithEvent(NSWindow *w, NSEvent *initialEvent);

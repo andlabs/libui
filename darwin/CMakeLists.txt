@@ -22,6 +22,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/fontbutton.m
 	darwin/fontmatch.m
 	darwin/form.m
+	darwin/future.m
 	darwin/graphemes.m
 	darwin/grid.m
 	darwin/group.m

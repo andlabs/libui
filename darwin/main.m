@@ -119,6 +119,7 @@ const char *uiInit(uiInitOptions *o)
 		[realNSApp() setDelegate:delegate];
 
 		initAlloc();
+		loadFutures();
 
 		// always do this so we always have an application menu
 		appDelegate().menuManager = [[menuManager new] autorelease];

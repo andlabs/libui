@@ -1,388 +1,397 @@
 // 14 february 2017
 #import "uipriv_darwin.h"
 
-static void boolspec(uiAttributeSpec *spec, uint16_t type, uint16_t ifTrue, uint16_t ifFalse, specToAATEnumFunc f, void *data)
+struct openTypeAATParams {
+	void (*doAAT)(uint16_t type, uint16_t selector, void *data);
+	void *data;
+};
+
+#define pcall(p, type, selector) ((*(p->doAAT))(type, selector, p->data))
+
+static void boolspec(uint32_t value, uint16_t type, uint16_t ifTrue, uint16_t ifFalse, struct openTypeAATParams *p)
 {
-	if (spec->Value != 0) {
-		(*f)(type, ifTrue, data);
+	// TODO are values other than 1 accepted for true by OpenType itself? (same for the rest of the file)
+	if (value != 0) {
+		pcall(p, type, ifTrue);
 		return;
 	}
-	(*f)(type, ifFalse, data);
+	pcall(p, type, ifFalse);
 }
 
-int specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data)
+void openTypeToAAT(char a, char b, char c, char d, uint32_t value, void *data)
 {
-	switch (spec->Type) {
-	case uiAttributeStandardLigatures:
-		boolspec(spec, kLigaturesType,
+	struct openTypeAATParams *p = (struct openTypeAATParams *) data;
+
+	switch (mkTag(a, b, c, d)) {
+	case mkTag('l', 'i', 'g', 'a'):
+		boolspec(value, kLigaturesType,
 			kCommonLigaturesOnSelector,
 			kCommonLigaturesOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeRequiredLigatures:
-		boolspec(spec, kLigaturesType,
+			p);
+		break;
+	case mkTag('r', 'l', 'i', 'g'):
+		boolspec(value, kLigaturesType,
 			kRequiredLigaturesOnSelector,
 			kRequiredLigaturesOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeDiscretionaryLigatures:
-		boolspec(spec, kLigaturesType,
+			p);
+		break;
+	case mkTag('d', 'l', 'i', 'g'):
+		boolspec(value, kLigaturesType,
 			kRareLigaturesOnSelector,
 			kRareLigaturesOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeContextualLigatures:
-		boolspec(spec, kLigaturesType,
+			p);
+		break;
+	case mkTag('c', 'l', 'i', 'g'):
+		boolspec(value, kLigaturesType,
 			kContextualLigaturesOnSelector,
 			kContextualLigaturesOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeHistoricalLigatures:
-		boolspec(spec, kLigaturesType,
+			p);
+		break;
+	case mkTag('h', 'l', 'i', 'g'):
+	// This technically isn't what is meant by "historical ligatures", but Core Text's internal AAT-to-OpenType mapping says to include it, so we include it too
+	case mkTag('h', 'i', 's', 't'):
+		boolspec(value, kLigaturesType,
 			kHistoricalLigaturesOnSelector,
 			kHistoricalLigaturesOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeUnicase:
+			p);
+		break;
+	case mkTag('u', 'n', 'i', 'c'):
 		// TODO is this correct, or should we provide an else case?
-		if (spec->Value != 0)
+		if (value != 0)
 			// this is undocumented; it comes from Core Text's internal AAT-to-OpenType conversion table
-			(*f)(kLetterCaseType, 14, data);
-		return 1;
-	// TODO make an array?
-	case uiAttributeNumberSpacings:
-		switch (spec->Value) {
-		case uiAttributeNumberSpacingProportional:
-			(*f)(kNumberSpacingType, kProportionalNumbersSelector, data);
-			break;
-		case uiAttributeNumberSpacingTabular:
-			(*f)(kNumberSpacingType, kMonospacedNumbersSelector, data);
-			break;
-		}
-		return 1;
-	// TODO make an array?
-	case uiAttributeSuperscripts:
-		switch (spec->Value) {
-		case uiAttributeSuperscriptNone:
-			(*f)(kVerticalPositionType, kNormalPositionSelector, data);
-			break;
-		case uiAttributeSuperscriptSuperscript:
-			(*f)(kVerticalPositionType, kSuperiorsSelector, data);
-			break;
-		case uiAttributeSuperscriptSubscript:
-			(*f)(kVerticalPositionType, kInferiorsSelector, data);
-			break;
-		case uiAttributeSuperscriptOrdinal:
-			(*f)(kVerticalPositionType, kOrdinalsSelector, data);
-			break;
-		case uiAttributeSuperscriptScientificInferior:
-			(*f)(kVerticalPositionType, kScientificInferiorsSelector, data);
-			break;
-		}
-		return 1;
-	// TODO make an array?
-	case uiAttributeFractionForms:
-		switch (spec->Value) {
-		case uiAttributeFractionFormNone:
-			(*f)(kFractionsType, kNoFractionsSelector, data);
-			break;
-		case uiAttributeFractionFormVertical:
-			(*f)(kFractionsType, kVerticalFractionsSelector, data);
-			break;
-		case uiAttributeFractionFormDiagonal:
-			(*f)(kFractionsType, kDiagonalFractionsSelector, data);
-			break;
-		}
-		return 1;
-	case uiAttributeSlashedZero:
-		boolspec(spec, kTypographicExtrasType,
+			pcall(p, kLetterCaseType, 14);
+		break;
+
+	// TODO will the following handle all cases properly, or are elses going to be needed?
+	case mkTag('p', 'n', 'u', 'm'):
+		if (value != 0)
+			pcall(p, kNumberSpacingType, kProportionalNumbersSelector);
+		break;
+	case mkTag('t', 'n', 'u', 'm'):
+		if (value != 0)
+			pcall(p, kNumberSpacingType, kMonospacedNumbersSelector);
+		break;
+
+	// TODO will the following handle all cases properly, or are elses going to be needed?
+	case mkTag('s', 'u', 'p', 's'):
+		if (value != 0)
+			pcall(p, kVerticalPositionType, kSuperiorsSelector);
+		break;
+	case mkTag('s', 'u', 'b', 's'):
+		if (value != 0)
+			pcall(p, kVerticalPositionType, kInferiorsSelector);
+		break;
+	case mkTag('o', 'r', 'd', 'n'):
+		if (value != 0)
+			pcall(p, kVerticalPositionType, kOrdinalsSelector);
+		break;
+	case mkTag('s', 'i', 'n', 'f'):
+		if (value != 0)
+			pcall(p, kVerticalPositionType, kScientificInferiorsSelector);
+		break;
+
+	// TODO will the following handle all cases properly, or are elses going to be needed?
+	case mkTag('a', 'f', 'r', 'c'):
+		if (value != 0)
+			pcall(p, kFractionsType, kVerticalFractionsSelector);
+		break;
+	case mkTag('f', 'r', 'a', 'c'):
+		if (value != 0)
+			pcall(p, kFractionsType, kDiagonalFractionsSelector);
+		break;
+
+	case mkTag('z', 'e', 'r', 'o'):
+		boolspec(value, kTypographicExtrasType,
 			kSlashedZeroOnSelector,
 			kSlashedZeroOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeMathematicalGreek:
-		boolspec(spec, kMathematicalExtrasType,
+			p);
+		break;
+	case mkTag('m', 'g', 'r', 'k'):
+		boolspec(value, kMathematicalExtrasType,
 			kMathematicalGreekOnSelector,
 			kMathematicalGreekOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeOrnamentalForms:
-		(*f)(kOrnamentSetsType, (uint16_t) (spec->Value), data);
-		return 1;
-	case uiAttributeSpecificCharacterForm:
-		(*f)(kCharacterAlternativesType, (uint16_t) (spec->Value), data);
-		return 1;
-	case uiAttributeTitlingCapitalForms:
+			p);
+		break;
+	case mkTag('o', 'r', 'n', 'm'):
+		pcall(p, kOrnamentSetsType, (uint16_t) value);
+		break;
+	case mkTag('a', 'a', 'l', 't'):
+		pcall(p, kCharacterAlternativesType, (uint16_t) value);
+		break;
+	case mkTag('t', 'i', 't', 'l'):
 		// TODO is this correct, or should we provide an else case?
 		if (spec->Value != 0)
-			(*f)(kStyleOptionsType, kTitlingCapsSelector, data);
-		return 1;
-	// TODO make an array?
-	case uiAttributeHanCharacterForms:
-		switch (spec->Value) {
-		case uiAttributeHanCharacterFormTraditional:
-			(*f)(kCharacterShapeType, kTraditionalCharactersSelector, data);
-			break;
-		case uiAttributeHanCharacterFormSimplified:
-			(*f)(kCharacterShapeType, kSimplifiedCharactersSelector, data);
-			break;
-		case uiAttributeHanCharacterFormJIS1978:
-			(*f)(kCharacterShapeType, kJIS1978CharactersSelector, data);
-			break;
-		case uiAttributeHanCharacterFormJIS1983:
-			(*f)(kCharacterShapeType, kJIS1983CharactersSelector, data);
-			break;
-		case uiAttributeHanCharacterFormJIS1990:
-			(*f)(kCharacterShapeType, kJIS1990CharactersSelector, data);
-			break;
-		case uiAttributeHanCharacterFormExpert:
-			(*f)(kCharacterShapeType, kExpertCharactersSelector, data);
-			break;
-		case uiAttributeHanCharacterFormJIS2004:
-			(*f)(kCharacterShapeType, kJIS2004CharactersSelector, data);
-			break;
-		case uiAttributeHanCharacterFormHojo:
-			(*f)(kCharacterShapeType, kHojoCharactersSelector, data);
-			break;
-		case uiAttributeHanCharacterFormNLC:
-			(*f)(kCharacterShapeType, kNLCCharactersSelector, data);
-			break;
-		case uiAttributeHanCharacterFormTraditionalNames:
-			(*f)(kCharacterShapeType, kTraditionalNamesCharactersSelector, data);
-			break;
-		}
-		return 1;
-	case uiAttributeLowercaseNumbers:
+			pcall(p, kStyleOptionsType, kTitlingCapsSelector);
+		break;
+
+	// TODO will the following handle all cases properly, or are elses going to be needed?
+	case mkTag('t', 'r', 'a', 'd'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kTraditionalCharactersSelector);
+		break;
+	case mkTag('s', 'm', 'p', 'l'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kSimplifiedCharactersSelector);
+		break;
+	case mkTag('j', 'p', '7', '8'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kJIS1978CharactersSelector);
+		break;
+	case mkTag('j', 'p', '8', '3'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kJIS1983CharactersSelector);
+		break;
+	case mkTag('j', 'p', '9', '0'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kJIS1990CharactersSelector);
+		break;
+	case mkTag('e', 'x', 'p', 't'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kExpertCharactersSelector);
+		break;
+	case mkTag('j', 'p', '0', '4'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kJIS2004CharactersSelector);
+		break;
+	case mkTag('h', 'o', 'j', 'o'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kHojoCharactersSelector);
+		break;
+	case mkTag('n', 'l', 'c', 'k'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kNLCCharactersSelector);
+		break;
+	case mkTag('t', 'n', 'a', 'm'):
+		if (value != 0)
+			pcall(p, kCharacterShapeType, kTraditionalNamesCharactersSelector);
+		break;
+
+	case mkTag('o', 'n', 'u', 'm'):
+	// Core Text's internal AAT-to-OpenType mapping says to include this, so we include it too
+	// TODO is it always set?
+	case mkTag('l', 'n', 'u', 'm'):
 		// TODO is this correct, or should we provide an else case?
-		if (spec->Value != 0)
-			(*f)(kNumberCaseType, kLowerCaseNumbersSelector, data);
-		return 1;
-	case uiAttributeHanjaToHangul:
+		if (value != 0)
+			pcall(p, kNumberCaseType, kLowerCaseNumbersSelector);
+		break;
+	case mkTag('h', 'n', 'g', 'l'):
 		// TODO is this correct, or should we provide an else case?
-		if (spec->Value != 0)
-			(*f)(kTransliterationType, kHanjaToHangulSelector, data);
-		return 1;
-	case uiAttributeAnnotatedGlyphForms:
-		(*f)(kAnnotationType, (uint16_t) (spec->Value), data);
-		return 1;
-	case uiAttributeRubyKanaForms:
+		if (value != 0)
+			pcall(p, kTransliterationType, kHanjaToHangulSelector);
+		break;
+	case mkTag('n', 'a', 'l', 't'):
+		pcall(p, kAnnotationType, (uint16_t) value);
+		break;
+	case mkTag('r', 'u', 'b', 'y'):
 		// include this for completeness
-		boolspec(spec, kRubyKanaType,
+		boolspec(value, kRubyKanaType,
 			kRubyKanaSelector,
 			kNoRubyKanaSelector,
-			f, data);
+			p);
 		// this is the current one
-		boolspec(spec, kRubyKanaType,
+		boolspec(value, kRubyKanaType,
 			kRubyKanaOnSelector,
 			kRubyKanaOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeCJKRomansToItalics:
+			p);
+		break;
+	case mkTag('i', 't', 'a', 'l'):
 		// include this for completeness
-		boolspec(spec, kItalicCJKRomanType,
+		boolspec(value, kItalicCJKRomanType,
 			kCJKItalicRomanSelector,
 			kNoCJKItalicRomanSelector,
-			f, data);
+			p);
 		// this is the current one
-		boolspec(spec, kItalicCJKRomanType,
+		boolspec(value, kItalicCJKRomanType,
 			kCJKItalicRomanOnSelector,
 			kCJKItalicRomanOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeCaseSensitiveForms:
-		boolspec(spec, kCaseSensitiveLayoutType,
+			p);
+		break;
+	case mkTag('c', 'a', 's', 'e'):
+		boolspec(value, kCaseSensitiveLayoutType,
 			kCaseSensitiveLayoutOnSelector,
 			kCaseSensitiveLayoutOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeCapitalSpacing:
-		boolspec(spec, kCaseSensitiveLayoutType,
+			p);
+		break;
+	case mkTag('c', 'p', 's', 'p'):
+		boolspec(value, kCaseSensitiveLayoutType,
 			kCaseSensitiveSpacingOnSelector,
 			kCaseSensitiveSpacingOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeAlternateHorizontalKana:
-		boolspec(spec, kAlternateKanaType,
+			p);
+		break;
+	case mkTag('h', 'k', 'n', 'a'):
+		boolspec(value, kAlternateKanaType,
 			kAlternateHorizKanaOnSelector,
 			kAlternateHorizKanaOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeAlternateVerticalKana:
-		boolspec(spec, kAlternateKanaType,
+			p);
+		break;
+	case mkTag('v', 'k', 'n', 'a'):
+		boolspec(value, kAlternateKanaType,
 			kAlternateVertKanaOnSelector,
 			kAlternateVertKanaOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate1:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '0', '1'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltOneOnSelector,
 			kStylisticAltOneOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate2:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '0', '2'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltTwoOnSelector,
 			kStylisticAltTwoOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate3:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '0', '3'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltThreeOnSelector,
 			kStylisticAltThreeOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate4:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '0', '4'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltFourOnSelector,
 			kStylisticAltFourOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate5:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '0', '5'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltFiveOnSelector,
 			kStylisticAltFiveOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate6:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '0', '6'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltSixOnSelector,
 			kStylisticAltSixOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate7:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '0', '7'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltSevenOnSelector,
 			kStylisticAltSevenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate8:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '0', '8'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltEightOnSelector,
 			kStylisticAltEightOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate9:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '0', '9'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltNineOnSelector,
 			kStylisticAltNineOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate10:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '0'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltTenOnSelector,
 			kStylisticAltTenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate11:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '1'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltElevenOnSelector,
 			kStylisticAltElevenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate12:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '2'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltTwelveOnSelector,
 			kStylisticAltTwelveOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate13:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '3'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltThirteenOnSelector,
 			kStylisticAltThirteenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate14:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '4'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltFourteenOnSelector,
 			kStylisticAltFourteenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate15:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '5'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltFifteenOnSelector,
 			kStylisticAltFifteenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate16:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '6'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltSixteenOnSelector,
 			kStylisticAltSixteenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate17:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '7'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltSeventeenOnSelector,
 			kStylisticAltSeventeenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate18:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '8'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltEighteenOnSelector,
 			kStylisticAltEighteenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate19:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '1', '9'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltNineteenOnSelector,
 			kStylisticAltNineteenOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeStylisticAlternate20:
-		boolspec(spec, kStylisticAlternativesType,
+			p);
+		break;
+	case mkTag('s', 's', '2', '0'):
+		boolspec(value, kStylisticAlternativesType,
 			kStylisticAltTwentyOnSelector,
 			kStylisticAltTwentyOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeContextualAlternates:
-		boolspec(spec, kContextualAlternatesType,
+			p);
+		break;
+	case mkTag('c', 'a', 'l', 't'):
+		boolspec(value, kContextualAlternatesType,
 			kContextualAlternatesOnSelector,
 			kContextualAlternatesOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeSwashes:
-		boolspec(spec, kContextualAlternatesType,
+			p);
+		break;
+	case mkTag('s', 'w', 's', 'h'):
+		boolspec(value, kContextualAlternatesType,
 			kSwashAlternatesOnSelector,
 			kSwashAlternatesOffSelector,
-			f, data);
-		return 1;
-	case uiAttributeContextualSwashes:
-		boolspec(spec, kContextualAlternatesType,
+			p);
+		break;
+	case mkTag('c', 's', 'w', 'h'):
+		boolspec(value, kContextualAlternatesType,
 			kContextualSwashAlternatesOnSelector,
 			kContextualSwashAlternatesOffSelector,
-			f, data);
-		return 1;
-	// TODO use arrays?
-	case uiAttributeLowercaseCapForms:
-		switch (spec->Value) {
-		case uiAttributeCapFormNormal:
-			(*f)(kLowerCaseType, kDefaultLowerCaseSelector, data);
-			break;
-		case uiAttributeCapFormSmallCaps:
+			p);
+		break;
+
+	// TODO will the following handle all cases properly, or are elses going to be needed?
+	case mkTag('s', 'm', 'c', 'p'):
+		if (value != 0) {
 			// include this for compatibility (some fonts that come with OS X still use this!)
 			// TODO make it boolean?
-			(*f)(kLetterCaseType, kSmallCapsSelector, data);
+			pcall(p, kLetterCaseType, kSmallCapsSelector);
 			// this is the current one
-			(*f)(kLowerCaseType, kLowerCaseSmallCapsSelector, data);
-			break;
-		case uiAttributeCapFormPetiteCaps:
-			(*f)(kLowerCaseType, kLowerCasePetiteCapsSelector, data);
-			break;
+			pcall(p, kLowerCaseType, kLowerCaseSmallCapsSelector);
 		}
-		return 1;
-	// TODO use arrays?
-	case uiAttributeUppercaseCapForms:
-		switch (spec->Value) {
-		case uiAttributeCapFormNormal:
-			(*f)(kUpperCaseType, kDefaultUpperCaseSelector, data);
-			break;
-		case uiAttributeCapFormSmallCaps:
-			(*f)(kUpperCaseType, kUpperCaseSmallCapsSelector, data);
-			break;
-		case uiAttributeCapFormPetiteCaps:
-			(*f)(kUpperCaseType, kUpperCasePetiteCapsSelector, data);
-			break;
-		}
-		return 1;
+		break;
+	case mkTag('p', 'c', 'a', 'p'):
+		if (value != 0)
+			pcall(p, kLowerCaseType, kLowerCasePetiteCapsSelector);
+		break;
+
+	// TODO will the following handle all cases properly, or are elses going to be needed?
+	case mkTag('c', '2', 's', 'c'):
+		if (value != 0)
+			pcall(p, kUpperCaseType, kUpperCaseSmallCapsSelector);
+		break;
+	case mkTag('c', '2', 'p', 'c'):
+		if (value != 0)
+			pcall(p, kUpperCaseType, kUpperCasePetiteCapsSelector);
+		break;
 	}
-	return 0;
 }

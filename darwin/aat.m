@@ -18,7 +18,7 @@ static void boolspec(uint32_t value, uint16_t type, uint16_t ifTrue, uint16_t if
 	pcall(p, type, ifFalse);
 }
 
-void openTypeToAAT(char a, char b, char c, char d, uint32_t value, void *data)
+static int foreach(char a, char b, char c, char d, uint32_t value, void *data)
 {
 	struct openTypeAATParams *p = (struct openTypeAATParams *) data;
 
@@ -394,4 +394,15 @@ void openTypeToAAT(char a, char b, char c, char d, uint32_t value, void *data)
 			pcall(p, kUpperCaseType, kUpperCasePetiteCapsSelector);
 		break;
 	}
+	// TODO handle this properly
+	return 0;
+}
+
+void openTypeToAAT(uiOpenTypeFeatures *otf, void (*doAAT)(uint16_t type, uint16_t selector, void *data), void *data)
+{
+	struct openTypeAATParams p;
+
+	p.doAAT = doAAT;
+	p.data = data;
+	uiOpenTypeFeaturesForEach(otf, foreach, &p);
 }

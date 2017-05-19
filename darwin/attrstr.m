@@ -155,6 +155,7 @@ static void doAAT(uint16_t type, uint16_t selector, void *data)
 		fp->nFeatures++;
 		if (fp->nFeatures == maxFeatures) {
 			// TODO
+			// TODO move this check to the top like in the drawtext example? and all the other instances of this?
 		}
 	});
 }
@@ -257,14 +258,15 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		if (spec->Value == uiDrawUnderlineColorCustom)
 			CFRelease(color);
 		break;
-	default:
-		// handle typographic features
+	case uiAttributeFeatures:
 		ap.p = p;
 		ap.start = start;
 		ap.end = end;
-		// TODO check if unhandled and complain
-		specToAAT(spec, doAAT, &ap);
+		openTypeToAAT((uiOpenTypeFeatures *) (spec->Value), doAAT, &ap);
 		break;
+	default:
+		// TODO complain
+		;
 	}
 	return 0;
 }

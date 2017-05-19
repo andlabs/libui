@@ -29,14 +29,6 @@ uiOpenTypeFeatures *uiOpenTypeFeaturesClone(uiOpenTypeFeatures *otf)
 	return out;
 }
 
-// TODO provide to aat.m too; remove x8tox32() when doing so
-#define x8to32(x) ((uint32_t) (((uint8_t) (x)) & 0xFF))
-#define mkTag(a, b, c, d)		\
-	((x8tox32(a) << 24) |	\
-	(x8tox32(b) << 16) |		\
-	(x8tox32(c) << 8) |		\
-	x8tox32(d))
-
 // why are there no NSNumber methods for stdint.h or the equivalent core foundation types?...
 #define mkMapObject(tag) [NSNumber numberWithUnsignedLongLong:((unsigned long long) tag)]
 #define mapObjectValue(num) ((uint32_t) [num unsignedLongLongValue])

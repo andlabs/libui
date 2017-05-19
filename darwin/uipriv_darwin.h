@@ -152,5 +152,14 @@ typedef void (^backgroundBlock)(uiDrawContext *c, uiDrawTextLayout *layout, doub
 extern CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks);
 
 // aat.m
-typedef void (*specToAATEnumFunc)(uint16_t type, uint16_t selector, void *data);
-extern int specToAAT(uiAttributeSpec *spec, specToAATEnumFunc f, void *data);
+extern void openTypeToAAT(uiOpenTypeFeatures *otf, void (*doAAT)(uint16_t type, uint16_t selector, void *data), void *data);
+
+// opentype.m
+// TODO this is only used by opentype.m and aat.m; figure out some better way to handle this
+// TODO remove x8tox32()
+#define x8to32(x) ((uint32_t) (((uint8_t) (x)) & 0xFF))
+#define mkTag(a, b, c, d)		\
+	((x8tox32(a) << 24) |	\
+	(x8tox32(b) << 16) |		\
+	(x8tox32(c) << 8) |		\
+	x8tox32(d))

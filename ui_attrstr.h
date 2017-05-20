@@ -19,6 +19,7 @@
 typedef struct uiAttributedString uiAttributedString;
 
 // Note: where you say "1 = on", any nonzero value means "on". (TODO)
+// TODO ok, we need to figure out what to do about pointer objects: do we copy them or do we keep them safe? especially since we merge attributes...
 _UI_ENUM(uiAttribute) {
 	uiAttributeFamily,
 	uiAttributeSize,				// use Double

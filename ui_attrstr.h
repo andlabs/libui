@@ -33,7 +33,7 @@ _UI_ENUM(uiAttribute) {
 	// TODO document that the color in the case we don't specify it is the text color
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
-	// TODO note that for the purpose of uiAttributedString two sets of features are only the same (and thus their attributes are merged) only if the pointers are the same; whether the tag sets are the same only become relevant to uiDrawTextLayout
+	// TODO note these are copied
 	uiAttributeFeatures,			// use Features
 };
 
@@ -65,7 +65,7 @@ _UI_EXTERN void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, c
 _UI_EXTERN void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d);
 _UI_EXTERN int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value);
 _UI_EXTERN void uiOpenTypeFeaturesForEach(uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data);
-_UI_EXTERN int uiOpenTypeFeaturesEqual(uiOpenTypeFeatures *a, uiOpenTypeFeatures *b);
+_UI_EXTERN int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeatures *b);
 
 typedef struct uiAttributeSpec uiAttributeSpec;
 
@@ -82,6 +82,7 @@ struct uiAttributeSpec {
 };
 
 // TODO name the foreach return values
+// TODO make the spec const in a way that doesn't allow fields to be modified?
 typedef int (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data);
 
 // @role uiAttributedString constructor

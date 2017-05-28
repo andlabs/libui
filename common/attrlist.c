@@ -24,6 +24,47 @@ struct attrlist {
 	struct attr *last;
 };
 
+// We need to make local copies of any pointers in uiAttributeSpec.
+// If we don't do this, we'll wind up leaking stuff, or worse, prematurely freeing stuff.
+// TODO ensure this is docmented
+static void attrSetSpec(struct attr *a, uiAttributeSpec *spec)
+{
+	const char *family;
+	char *familyCopy;
+
+	a->spec = *spec;
+	switch (a->spec.Type) {
+	case uiAttributeFamily:
+		// TODO UTF-8 validate this?
+		family = a->spec.Family;
+		familyCopy = (char *) uiAlloc((strlen(family) + 1) * sizeof (char), "char[] (uiAttributeSpec.Family copy)");
+		strcpy(familyCopy, family);
+		a->spec.Family = familyCopy;
+		break;
+	case uiAttributeFeatures:
+		a->spec.Features = uiOpenTypeFeaturesClone(a->spec.Features);
+		break;
+	}
+}
+
+static void attrCopySpec(struct attr *dest, struct attr *src)
+{
+	attrSetSpec(dest, &(src->spec));
+}
+
+// Likewise, this is needed to clean up a spec with a pointer when finished.
+static void attrClearSpec(struct attr *a)
+{
+	switch (a->spec.Type) {
+	case uiAttributeFamily:
+		uiFree((char *) (a->spec.Family));
+		break;
+	case uiAttributeFeatures:
+		uiOpenTypeFeaturesFree((uiOpenTypeFeatures *) (a->spec.Features));
+		break;
+	}
+}
+
 // if before is NULL, add to the end of the list
 static void attrInsertBefore(struct attrlist *alist, struct attr *a, struct attr *before)
 {
@@ -128,6 +169,7 @@ static struct attr *attrDelete(struct attrlist *alist, struct attr *a)
 	struct attr *next;
 
 	next = attrUnlink(alist, a);
+	attrClearSpec(a);
 	uiFree(a);
 	return next;
 }
@@ -177,7 +219,7 @@ static struct attr *attrDropRange(struct attrlist *alist, struct attr *a, size_t
 
 	// we'll need to split the attribute into two
 	b = uiNew(struct attr);
-	b->spec = a->spec;
+	attrCopySpec(b, a);
 	b->start = end;
 	b->end = a->end;
 	*tail = b;
@@ -221,7 +263,7 @@ static struct attr *attrSplitAt(struct attrlist *alist, struct attr *a, size_t a
 		return NULL;
 
 	b = uiNew(struct attr);
-	b->spec = a->spec;
+	attrCopySpec(b, a);
 	b->start = at;
 	b->end = a->end;
 
@@ -284,39 +326,6 @@ static struct attr *attrDeleteRange(struct attrlist *alist, struct attr *a, size
 	return a->next;
 }
 
-static int boolsEqual(struct attr *attr, uiAttributeSpec *spec)
-{
-	if (attr->spec.Value == 0 && spec->Value == 0)
-		return 1;
-	return attr->spec.Value != 0 && spec->Value != 0;
-}
-
-// BCP 47 is ASCII-only
-static int asciiStringsEqualCaseFold(const char *a, const char *b)
-{
-	char c, d;
-
-	for (;;) {
-		if (*a == *b) {
-			if (*a == '\0')
-				return 1;
-			a++;
-			b++;
-			continue;
-		}
-		c = *a;
-		if (c >= 'A' && c <= 'Z')
-			c += 'a' - 'A';
-		d = *b;
-		if (d >= 'A' && d <= 'Z')
-			d += 'a' - 'A';
-		if (c != d)
-			return 0;
-		a++;
-		b++;
-	}
-}
-
 static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 {
 	if (attr->spec.Type != spec->Type)
@@ -325,7 +334,7 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 	case uiAttributeFamily:
 		// TODO should we start copying these strings?
 		// TODO should this be case-insensitive?
-		return strcmp((char *) (attr->spec.Value), (char *) (spec->Value)) == 0;
+		return strcmp(attr->spec.Family, spec->Family) == 0;
 	case uiAttributeSize:
 		// TODO use a closest match?
 		return attr->spec.Double == spec->Double;
@@ -342,9 +351,11 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 			attr->spec.G == spec->G &&
 			attr->spec.B == spec->B &&
 			attr->spec.A == spec->A;
+	case uiAttributeFeatures:
+		// TODO rename it to uiAttributeOpenTypeFeatures?
+		return uiOpenTypeFeaturesEqual(attr->spec.Features, spec->Features);
 	}
-	// handles the rest, including pointer comparison for uiAttributeFeatures
-	// TODO rename it to uiAttributeOpenTypeFeatures?
+	// handles the rest
 	return attr->spec.Value == spec->Value;
 }
 
@@ -394,7 +405,7 @@ void attrlistInsertAttribute(struct attrlist *alist, uiAttributeSpec *spec, size
 
 	// if we got here, we know we have to add the attribute before before
 	a = uiNew(struct attr);
-	a->spec = *spec;
+	attrSetSpec(a, spec);
 	a->start = start;
 	a->end = end;
 	attrInsertBefore(alist, a, before);
@@ -661,6 +672,7 @@ void attrlistFree(struct attrlist *alist)
 	a = alist->first;
 	while (a != NULL) {
 		next = a->next;
+		attrClearSpec(a);
 		uiFree(a);
 		a = next;
 	}

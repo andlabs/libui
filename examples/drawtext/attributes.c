@@ -7,7 +7,7 @@ static uiAttributedString *attrstr;
 static uiOpenTypeFeatures *features[nFeatures];
 static int curFeature = 0;
 
-static uintptr_t addFeature(const char tag[4], uint32_t value)
+static uiOpenTypeFeatures *addFeature(const char tag[4], uint32_t value)
 {
 	uiOpenTypeFeatures *otf;
 
@@ -19,7 +19,7 @@ static uintptr_t addFeature(const char tag[4], uint32_t value)
 	uiOpenTypeFeaturesAdd(otf, tag[0], tag[1], tag[2], tag[3], value);
 	features[curFeature] = otf;
 	curFeature++;
-	return (uintptr_t) otf;
+	return otf;
 }
 
 // some of these examples come from Microsoft's and Apple's lists of typographic features and also https://www.fontfont.com/staticcontent/downloads/FF_OT_User_Guide.pdf
@@ -38,7 +38,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFamily;
-	spec.Value = (uintptr_t) "Courier New";
+	spec.Family = "Courier New";
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
@@ -170,7 +170,7 @@ static void setupAttributedString(void)
 	spec.A = 0.75;
 	uiAttributedStringSetAttribute(attrstr, &spec, start + 12, end);
 	spec.Type = uiAttributeFamily;
-	spec.Value = (uintptr_t) "Helvetica";
+	spec.Value = "Helvetica";
 	uiAttributedStringSetAttribute(attrstr, &spec, start + 8, end - 1);
 	spec.Type = uiAttributeBackground;
 	spec.R = 1.0;
@@ -192,7 +192,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("liga", 1);
+	spec.Features = addFeature("liga", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -206,7 +206,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("rlig", 1);
+	spec.Features = addFeature("rlig", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, "\xE2\x80\xAC)");
 
@@ -218,7 +218,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("dlig", 1);
+	spec.Features = addFeature("dlig", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -230,13 +230,13 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("clig", 1);
+	spec.Features = addFeature("clig", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
-	otf = (uiOpenTypeFeatures *) addFeature("hlig", 1);
+	otf = addFeature("hlig", 1);
 	// This technically isn't what is meant by "historical ligatures", but Core Text's internal AAT-to-OpenType mapping says to include it, so we include it too
 	uiOpenTypeFeaturesAdd(otf, 'h', 'i', 's', 't', 1);
 	next = "\xC3\x9F";
@@ -245,7 +245,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = (uintptr_t) otf;
+	spec.Value = otf;
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -257,7 +257,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("unic", 1);
+	spec.Features = addFeature("unic", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
@@ -268,14 +268,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("pnum", 1);
+	spec.Features = addFeature("pnum", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ") and tabular/monospaced (");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("tnum", 1);
+	spec.Features = addFeature("tnum", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ") numbers");
 
@@ -287,7 +287,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("sups", 1);
+	spec.Features = addFeature("sups", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -299,7 +299,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("subs", 1);
+	spec.Features = addFeature("subs", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -311,7 +311,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("ordn", 1);
+	spec.Features = addFeature("ordn", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -323,7 +323,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("sinf", 1);
+	spec.Features = addFeature("sinf", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -344,14 +344,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("afrc", 1);
+	spec.Features = addFeature("afrc", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("frac", 1);
+	spec.Features = addFeature("frac", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -363,14 +363,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("zero", 0);
+	spec.Features = addFeature("zero", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("zero", 1);
+	spec.Features = addFeature("zero", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -382,14 +382,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("mgrk", 0);
+	spec.Features = addFeature("mgrk", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("mgrk", 1);
+	spec.Features = addFeature("mgrk", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -402,7 +402,7 @@ static void setupAttributedString(void)
 		end = start + strlen(next);
 		uiAttributedStringAppendUnattributed(attrstr, next);
 		spec.Type = uiAttributeFeatures;
-		spec.Value = addFeature("ornm", i);
+		spec.Features = addFeature("ornm", i);
 		uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 		next = "\xE2\x80\xA2";
 	}
@@ -416,14 +416,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("aalt", 0);
+	spec.Features = addFeature("aalt", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("aalt", 1);
+	spec.Features = addFeature("aalt", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -435,14 +435,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("titl", 0);
+	spec.Features = addFeature("titl", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("titl", 1);
+	spec.Features = addFeature("titl", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -454,20 +454,20 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("jp78", 1);
+	spec.Features = addFeature("jp78", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("jp83", 1);
+	spec.Features = addFeature("jp83", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
-	otf = (uiOpenTypeFeatures *) addFeature("onum", 0);
+	otf = addFeature("onum", 0);
 	// Core Text's internal AAT-to-OpenType mapping says to include this, so we include it too
 	// TODO is it always set?
 	uiOpenTypeFeaturesAdd(otf, 'l', 'n', 'u', 'm', 0);
@@ -477,16 +477,16 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = (uintptr_t) otf;
+	spec.Features = otf;
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	otf = (uiOpenTypeFeatures *) addFeature("onum", 1);
+	otf = addFeature("onum", 1);
 	uiOpenTypeFeaturesAdd(otf, 'l', 'n', 'u', 'm', 1);
-	spec.Value = (uintptr_t) otf;
+	spec.Features = otf;
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -498,14 +498,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("hngl", 0);
+	spec.Features = addFeature("hngl", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("hngl", 1);
+	spec.Features = addFeature("hngl", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -517,21 +517,21 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("nalt", 0);
+	spec.Features = addFeature("nalt", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("nalt", 1);
+	spec.Features = addFeature("nalt", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("nalt", 4);			// AAT inverted circle
+	spec.Features = addFeature("nalt", 4);			// AAT inverted circle
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -543,14 +543,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("ruby", 0);
+	spec.Features = addFeature("ruby", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("ruby", 1);
+	spec.Features = addFeature("ruby", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -562,14 +562,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("ital", 0);
+	spec.Features = addFeature("ital", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("ital", 1);
+	spec.Features = addFeature("ital", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -581,14 +581,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("case", 0);
+	spec.Features = addFeature("case", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("case", 1);
+	spec.Features = addFeature("case", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -600,14 +600,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("cpsp", 0);
+	spec.Features = addFeature("cpsp", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("cpsp", 1);
+	spec.Features = addFeature("cpsp", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -619,28 +619,28 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("hkna", 0);
+	spec.Features = addFeature("hkna", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("hkna", 1);
+	spec.Features = addFeature("hkna", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ") and vertical (");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("vkna", 0);
+	spec.Features = addFeature("vkna", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("vkna", 1);
+	spec.Features = addFeature("vkna", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ") kana forms");
 
@@ -662,7 +662,7 @@ static void setupAttributedString(void)
 		start = uiAttributedStringLen(attrstr);
 		end = start + strlen(next);
 		uiAttributedStringAppendUnattributed(attrstr, next);
-		spec.Value = addFeature(tag, 1);
+		spec.Features = addFeature(tag, 1);
 		uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	}
 	uiAttributedStringAppendUnattributed(attrstr, ")");
@@ -675,14 +675,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("calt", 0);
+	spec.Features = addFeature("calt", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("calt", 1);
+	spec.Features = addFeature("calt", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -694,14 +694,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("swsh", 0);
+	spec.Features = addFeature("swsh", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("swsh", 1);
+	spec.Features = addFeature("swsh", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -713,14 +713,14 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("cswh", 0);
+	spec.Features = addFeature("cswh", 0);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
 	start = uiAttributedStringLen(attrstr);
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("cswh", 1);
+	spec.Features = addFeature("cswh", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 
@@ -731,7 +731,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("smcp", 1);
+	spec.Features = addFeature("smcp", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 	next = "Petite Caps";
@@ -739,7 +739,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("pcap", 1);
+	spec.Features = addFeature("pcap", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
@@ -749,7 +749,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("c2sp", 1);
+	spec.Features = addFeature("c2sp", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ", and ");
 	next = "PETITE UPPERCASES";
@@ -757,7 +757,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = addFeature("c2pc", 1);
+	spec.Features = addFeature("c2pc", 1);
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 
 	uiAttributedStringAppendUnattributed(attrstr, ".");

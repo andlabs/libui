@@ -19,9 +19,9 @@
 typedef struct uiAttributedString uiAttributedString;
 
 // Note: where you say "1 = on", any nonzero value means "on". (TODO)
-// TODO ok, we need to figure out what to do about pointer objects: do we copy them or do we keep them safe? especially since we merge attributes...
+// TODO just make a separate field for everything?
 _UI_ENUM(uiAttribute) {
-	uiAttributeFamily,
+	uiAttributeFamily,			// use Family
 	uiAttributeSize,				// use Double
 	uiAttributeWeight,
 	uiAttributeItalic,
@@ -34,7 +34,7 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
 	// TODO note that for the purpose of uiAttributedString two sets of features are only the same (and thus their attributes are merged) only if the pointers are the same; whether the tag sets are the same only become relevant to uiDrawTextLayout
-	uiAttributeFeatures,			// object of type uiOpenTypeFeatures
+	uiAttributeFeatures,			// use Features
 };
 
 _UI_ENUM(uiDrawUnderlineStyle) {
@@ -60,7 +60,7 @@ _UI_EXTERN uiOpenTypeFeatures *uiNewOpenTypeFeatures(void);
 _UI_EXTERN void uiFreeOpenTypeFeatures(uiOpenTypeFeatures *otf);
 // TODO put above Free?
 // TODO Copy instead of Clone?
-_UI_EXTERN uiOpenTypeFeatures *uiOpenTypeFeaturesClone(uiOpenTypeFeatures *otf);
+_UI_EXTERN uiOpenTypeFeatures *uiOpenTypeFeaturesClone(const uiOpenTypeFeatures *otf);
 _UI_EXTERN void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value);
 _UI_EXTERN void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d);
 _UI_EXTERN int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value);
@@ -71,12 +71,14 @@ typedef struct uiAttributeSpec uiAttributeSpec;
 
 struct uiAttributeSpec {
 	uiAttribute Type;
+	const char *Family;
 	uintptr_t Value;
 	double Double;
 	double R;
 	double G;
 	double B;
 	double A;
+	const uiOpenTypeFeatures *Features;	// TODO rename to OpenTypeFeatures?
 };
 
 // TODO name the foreach return values

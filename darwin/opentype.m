@@ -63,7 +63,7 @@ int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char 
 	return 1;
 }
 
-void uiOpenTypeFeaturesForEach(uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data)
+void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data)
 {
 	[otf->tags enumerateKeysAndObjectsUsingBlock:^(id key, id value, BOOL *stop) {
 		NSNumber *tn = (NSNumber *) key;
@@ -87,4 +87,51 @@ int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeature
 	return [a->tags isEqualToDictionary:b->tags];
 }
 
-// actual conversion to a feature dictionary is handled in aat.m; see there for details
+// TODO explain all this
+// TODO rename outerArray and innerDict (the names made sense when this was part of fontdescAppendFeatures(), but not here)
+// TODO make all this use enumerateKeysAndObjects (which requires duplicating code)?
+static int otfArrayForEach(char a, char b, char c, char d, uint32_t value, void *data)
+{
+	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
+	const void *keys[2], *values[2];
+
+	keys[0] = kCTFontFeatureTypeIdentifierKey;
+	keys[1] = kCTFontFeatureSelectorIdentifierKey;
+	openTypeToAAT(a, b, c, d, value, ^(uint16_t type, uint16_t selector) {
+		CFDictionaryRef innerDict;
+		CFNumberRef numType, numSelector;
+
+		numType = CFNumberCreate(NULL, kCFNumberSInt16Type,
+			(const SInt16 *) (&type));
+		numSelector = CFNumberCreate(NULL, kCFNumberSInt16Type,
+			(const SInt16 *) (&selector));
+		values[0] = numType;
+		values[1] = numSelector;
+		innerDict = CFDictionaryCreate(NULL,
+			keys, values, 2,
+			// TODO are these correct?
+			&kCFCopyStringDictionaryKeyCallBacks,
+			&kCFTypeDictionaryValueCallBacks);
+		if (innerDict == NULL) {
+			// TODO
+		}
+		CFArrayAppendValue(p->outerArray, innerDict);
+		CFRelease(innerDict);
+		CFRelease(numSelector);
+		CFRelease(numType);
+	});
+	// TODO
+	return 0;
+}
+
+CFArrayRef otfToFeaturesArray(const uiOpenTypeFeatures *otf)
+{
+	CFMutableArrayRef outerArray;
+
+	outerArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+	if (outerArray == NULL) {
+		// TODO
+	}
+	uiOpenTypeFeaturesForEach(otf, otfArrayForEach, outerArray);
+	return outerArray;
+}

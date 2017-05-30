@@ -96,7 +96,7 @@ static void foreach(gpointer key, gpointer value, gpointer data)
 	(*(ofe->f))((char) a, (char) b, (char) c, (char) d, GPOINTER_TO_INT(value), ofe->data);
 }
 
-void uiOpenTypeFeaturesForEach(uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data)
+void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data)
 {
 	struct otfForEach ofe;
 

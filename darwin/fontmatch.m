@@ -258,50 +258,21 @@ CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
 CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uiOpenTypeFeatures *otf)
 {
 	CTFontDescriptorRef new;
-	CFMutableArrayRef outerArray;
-	CFDictionaryRef innerDict;
-	CFNumberRef numType, numSelector;
-	const void *keys[2], *values[2];
-	size_t i;
+	CFMutableArrayRef featuresArray;
+	CFDictionaryRef attrs;
 
-	outerArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
-	if (outerArray == NULL) {
-		// TODO
-	}
-	keys[0] = kCTFontFeatureTypeIdentifierKey;
-	keys[1] = kCTFontFeatureSelectorIdentifierKey;
-	for (i = 0; i < n; i++) {
-		numType = CFNumberCreate(NULL, kCFNumberSInt16Type,
-			(const SInt16 *) (types + i));
-		numSelector = CFNumberCreate(NULL, kCFNumberSInt16Type,
-			(const SInt16 *) (selectors + i));
-		values[0] = numType;
-		values[1] = numSelector;
-		innerDict = CFDictionaryCreate(NULL,
-			keys, values, 2,
-			// TODO are these correct?
-			&kCFCopyStringDictionaryKeyCallBacks,
-			&kCFTypeDictionaryValueCallBacks);
-		if (innerDict == NULL) {
-			// TODO
-		}
-		CFArrayAppendValue(outerArray, innerDict);
-		CFRelease(innerDict);
-		CFRelease(numSelector);
-		CFRelease(numType);
-	}
-
+	featuresArray = otfToFeaturesArray(otf);
 	keys[0] = kCTFontFeatureSettingsAttribute;
-	values[0] = outerArray;
-	innerDict = CFDictionaryCreate(NULL,
+	values[0] = featuresArray;
+	attrs = CFDictionaryCreate(NULL,
 		keys, values, 1,
 		// TODO are these correct?
 		&kCFCopyStringDictionaryKeyCallBacks,
 		&kCFTypeDictionaryValueCallBacks);
-	CFRelease(outerArray);
-	new = CTFontDescriptorCreateCopyWithAttributes(desc, innerDict);
+	CFRelease(featuresArray);
+	new = CTFontDescriptorCreateCopyWithAttributes(desc, attrs);
+	CFRelease(attrs);
 	CFRelease(desc);
-	CFRelease(innerDict);
 	return new;
 }
 

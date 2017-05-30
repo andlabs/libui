@@ -57,7 +57,7 @@ int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char 
 	return 1;
 }
 
-void uiOpenTypeFeaturesForEach(uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data)
+void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data)
 {
 	tagmap::const_iterator iter, end;
 

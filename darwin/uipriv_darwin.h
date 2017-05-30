@@ -153,7 +153,8 @@ typedef void (^backgroundBlock)(uiDrawContext *c, uiDrawTextLayout *layout, doub
 extern CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks);
 
 // aat.m
-extern void openTypeToAAT(uiOpenTypeFeatures *otf, void (*doAAT)(uint16_t type, uint16_t selector, void *data), void *data);
+typedef void (^aatBlock)(uint16_t type, uint16_t selector);
+extern void openTypeToAAT(char a, char b, char c, char d, uint32_t value, aatBlock f);
 
 // opentype.m
 // TODO this is only used by opentype.m and aat.m; figure out some better way to handle this
@@ -164,6 +165,7 @@ extern void openTypeToAAT(uiOpenTypeFeatures *otf, void (*doAAT)(uint16_t type, 
 	(x8tox32(b) << 16) |		\
 	(x8tox32(c) << 8) |		\
 	x8tox32(d))
+extern CFArrayRef otfToFeaturesArray(const uiOpenTypeFeatures *otf);
 
 // future.m
 extern CFStringRef *FUTURE_kCTFontOpenTypeFeatureTag;

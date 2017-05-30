@@ -28,7 +28,7 @@ static void cloneTags(gpointer key, gpointer value, gpointer data)
 	g_hash_table_replace((GHashTable *) data, key, value);
 }
 
-uiOpenTypeFeatures *uiOpenTypeFeaturesClone(uiOpenTypeFeatures *otf)
+uiOpenTypeFeatures *uiOpenTypeFeaturesClone(const uiOpenTypeFeatures *otf)
 {
 	uiOpenTypeFeatures *out;
 
@@ -119,10 +119,11 @@ static GList *copySortedKeys(GHashTable *tags)
 	copy = g_list_copy(k);
 	copy = g_list_sort(copy, tagcmp);
 	// TODO do we free k? the docs contradict themselves
+	// TODO I already forgot, does g_list_sort() copy, or just change the head?
 	return copy;
 }
 
-int uiOpenTypeFeaturesEqual(uiOpenTypeFeatures *a, uiOpenTypeFeatures *b)
+int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeatures *b)
 {
 	GList *ak, *bk;
 	GList *ai, *bi;

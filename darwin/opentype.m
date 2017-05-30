@@ -20,7 +20,7 @@ void uiFreeOpenTypeFeatures(uiOpenTypeFeatures *otf)
 	uiFree(otf);
 }
 
-uiOpenTypeFeatures *uiOpenTypeFeaturesClone(uiOpenTypeFeatures *otf)
+uiOpenTypeFeatures *uiOpenTypeFeaturesClone(const uiOpenTypeFeatures *otf)
 {
 	uiOpenTypeFeatures *out;
 
@@ -82,7 +82,7 @@ void uiOpenTypeFeaturesForEach(uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEac
 	}];
 }
 
-int uiOpenTypeFeaturesEqual(uiOpenTypeFeatures *a, uiOpenTypeFeatures *b)
+int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeatures *b)
 {
 	return [a->tags isEqualToDictionary:b->tags];
 }

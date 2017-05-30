@@ -81,7 +81,7 @@ int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeature
 	return *(a->tags) == *(b->tags);
 }
 
-IDWriteTypography *otfToDirectWrite(uiOpenTypeFeatures *otf)
+IDWriteTypography *otfToDirectWrite(const uiOpenTypeFeatures *otf)
 {
 	IDWriteTypography *dt;
 	tagmap::const_iterator iter, end;

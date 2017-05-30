@@ -40,7 +40,7 @@ static void ensureEffectsInRange(struct foreachParams *p, size_t start, size_t e
 	}
 }
 
-static void setFeaturesInRange(struct foreachParams *p, size_t start, size_t end, uiOpenTypeFeatures *otf)
+static void setFeaturesInRange(struct foreachParams *p, size_t start, size_t end, const uiOpenTypeFeatures *otf)
 {
 	IDWriteTypography *dt;
 	size_t i;
@@ -89,7 +89,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	range.length = end - start;
 	switch (spec->Type) {
 	case uiAttributeFamily:
-		wfamily = toUTF16((char *) (spec->Value));
+		wfamily = toUTF16(spec->Family);
 		hr = p->layout->SetFontFamilyName(wfamily, range);
 		if (hr != S_OK)
 			logHRESULT(L"error applying family name attribute", hr);
@@ -196,7 +196,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		}
 		break;
 	case uiAttributeFeatures:
-		setFeaturesInRange(p, start, end, (uiOpenTypeFeatures *) (spec->Value));
+		setFeaturesInRange(p, start, end, spec->Features);
 		break;
 	default:
 		// TODO complain

@@ -73,4 +73,4 @@ extern const PangoStyle pangoItalics[];
 extern const PangoStretch pangoStretches[];
 
 // opentype.c
-extern GString *otfToPangoCSSString(uiOpenTypeFeatures *otf);
+extern gchar *otfToPangoCSSString(const uiOpenTypeFeatures *otf);

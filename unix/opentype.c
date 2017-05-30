@@ -187,7 +187,7 @@ static int toCSS(char a, char b, char c, char d, uint32_t value, void *data)
 	return 0;
 }
 
-GString *otfToPangoCSSString(uiOpenTypeFeatures *otf)
+gchar *otfToPangoCSSString(const uiOpenTypeFeatures *otf)
 {
 	GString *s;
 
@@ -196,5 +196,5 @@ GString *otfToPangoCSSString(uiOpenTypeFeatures *otf)
 	if (s->len != 0)
 		// and remove the last comma
 		g_string_truncate(s, s->len - 2);
-	return s;
+	return g_string_free(s, FALSE);
 }

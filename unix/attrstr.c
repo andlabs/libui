@@ -3,57 +3,25 @@
 
 // TODO pango alpha attributes turn 0 into 65535 :|
 
-// we need to collect all the OpenType features and background blocks and add them all at once
-// TODO this is the wrong approach; it causes Pango to end runs early, meaning attributes like the ligature attributes never get applied properly
+// we need to collect all the background blocks and add them all at once
 // TODO rename this struct to something that isn't exclusively foreach-ing?
 struct foreachParams {
 	const char *s;
 	PangoAttrList *attrs;
-	// keys are pointers to size_t maintained by g_new0()/g_free()
-	// values are strings
-	GHashTable *features;
 	// TODO use pango's built-in background attribute?
 	GPtrArray *backgroundClosures;
 };
 
-static gboolean featurePosEqual(gconstpointer a, gconstpointer b)
+// TODO merge this into the main function below
+static PangoAttribute *mkFeaturesAttribute(const uiOpenTypeFeatures *otf)
 {
-	size_t *sa = (size_t *) a;
-	size_t *sb = (size_t *) b;
+	char *s;
+	PangoAttribute *attr;
 
-	return *sa == *sb;
-}
-
-static guint featurePosHash(gconstpointer n)
-{
-	size_t *sn = (size_t *) n;
-
-	return (guint) (*sn);
-}
-
-static void freeFeatureString(gpointer s)
-{
-	g_string_free((GString *) s, TRUE);
-}
-
-#define isCodepointStart(b) (((uint8_t) (b)) <= 0x7F || ((uint8_t) (b)) >= 0xC0)
-
-static void setFeaturesInRange(struct foreachParams *p, size_t start, size_t end, uiOpenTypeFeatures *otf)
-{
-	size_t i;
-	size_t *key;
-	GString *new;
-
-	new = otfToPangoCSSString(otf);
-	for (i = start; i < end; i++) {
-		// don't create redundant entries; see below
-		if (!isCodepointStart(p->s[i]))
-			continue;
-		key = g_new0(size_t, 1);
-		*key = i;
-		g_hash_table_replace(p->features, key, g_strdup(new->str));
-	}
-	g_string_free(new, TRUE);
+	s = otfToPangoCSSString(otf);
+	attr = FUTURE_pango_attr_font_features_new(s);
+	g_free(s);
+	return attr;
 }
 
 struct closureParams {
@@ -199,37 +167,14 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		}
 		break;
 	case uiAttributeFeatures:
-		// TODO ensure the parentheses around spec->Value are provided on Windows (TODO still relevant?)
-		setFeaturesInRange(p, start, end, spec->Features);
+		// TODO handle NULLs properly on all platforms
+		addattr(p, start, end, mkFeaturesAttribute(spec->Features));
 		break;
 	default:
 		// TODO complain
 		;
 	}
 	return 0;
-}
-
-static gboolean applyFeatures(gpointer key, gpointer value, gpointer data)
-{
-	struct foreachParams *p = (struct foreachParams *) data;
-	size_t *pos = (size_t *) key;
-	char *s = (char *) value;
-	size_t n;
-
-	// make sure we cover an entire code point
-	// otherwise Pango will break apart multi-byte characters, spitting out U+FFFD characters at the invalid points
-	n = 1;
-	while (!isCodepointStart(p->s[*pos + n]))
-		n++;
-	addattr(p, *pos, *pos + n,
-		FUTURE_pango_attr_font_features_new(s));
-	return TRUE;		// always delete; we're emptying the map
-}
-
-static void applyAndFreeFeatureAttributes(struct foreachParams *p)
-{
-	g_hash_table_foreach_remove(p->features, applyFeatures, p);
-	g_hash_table_destroy(p->features);
 }
 
 static void unrefClosure(gpointer data)
@@ -243,12 +188,8 @@ PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p, GPtrArray **bac
 
 	fep.s = uiAttributedStringString(p->String);
 	fep.attrs = pango_attr_list_new();
-	fep.features = g_hash_table_new_full(
-		featurePosHash, featurePosEqual,
-		g_free, g_free);
 	fep.backgroundClosures = g_ptr_array_new_with_free_func(unrefClosure);
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
-	applyAndFreeFeatureAttributes(&fep);
 	*backgroundClosures = fep.backgroundClosures;
 	return fep.attrs;
 }

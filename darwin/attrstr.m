@@ -60,48 +60,95 @@ void uninitUnderlineColors(void)
 // TODO opentype features and AAT fvar table info is lost, so a handful of fonts in the font panel ("Titling" variants of some fonts and Skia and possibly others but those are the examples I know about) cannot be represented by uiDrawFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
 // TODO see if we could use NSAttributedString?
 // TODO consider renaming this struct and the fep variable(s)
+// TODO restructure all this so the important details at the top are below with the combined font attributes type?
 struct foreachParams {
 	CFMutableAttributedStringRef mas;
-	NSMutableDictionary *converted;
+	NSMutableDictionary *combinedFontAttrs;		// keys are CFIndex in mas, values are combinedFontAttr objects
 	uiDrawFontDescriptor *defaultFont;
 	NSMutableArray *backgroundBlocks;
 };
 
-#define maxFeatures 32
+@interface combinedFontAttr : NSObject
+@property const char *family;
+@property double size;
+@property uiDrawTextWeight weight;
+@property uiDrawTextItalic italic;
+@property uiDrawTextStretch stretch;
+@property const uiOpenTypeFeatures *features;
+- (id)initWithDefaultFont:(uiDrawFontDescriptor *)defaultFont;
+- (BOOL)same:(combinedFontAttr *)b;
+@end
 
-struct fontParams {
-	uiDrawFontDescriptor desc;
-	uint16_t featureTypes[maxFeatures];
-	uint16_t featureSelectors[maxFeatures];
-	size_t nFeatures;
-};
+@implementation combinedFontAttr
+
+- (id)initWithDefaultFont:(uiDrawFontDescriptor *)defaultFont
+{
+	self = [super init];
+	if (self) {
+		self.family = defaultFont->Family;
+		self.size = defaultFont->Size;
+		self.weight = defaultFont->Weight;
+		self.italic = defaultFont->Italic;
+		self.stretch = defaultFont->Stretch;
+		self.features = NULL;
+	}
+	return self;
+}
+
+// TODO deduplicate this with common/attrlist.c
+- (BOOL)same:(combinedFontAttr *)b
+{
+	// TODO should this be case-insensitive?
+	if (strcmp(self.family, b.family) != 0)
+		return NO;
+	// TODO use a closest match?
+	if (self.size != b.size)
+		return NO;
+	if (self.weight != b.weight)
+		return NO;
+	if (self.italic != b.italic)
+		return NO;
+	if (self.stretch != b.stretch)
+		return NO;
+	// TODO make this part of uiOpenTypeFeaturesEqual() on all platforms
+	if (self.features == NULL && b.features == NULL)
+		return YES;
+	if (self.features != NULL && b.features == NULL)
+		return NO;
+	if (self.features == NULL && b.features != NULL)
+		return NO;
+	if (!uiOpenTypeFeaturesEqual(self.features, b.features))
+		return NO;
+	return YES;
+}
+
+@end
 
 static void ensureFontInRange(struct foreachParams *p, size_t start, size_t end)
 {
 	size_t i;
 	NSNumber *n;
-	struct fontParams *new;
+	combinedFontAttr *new;
 
 	for (i = start; i < end; i++) {
 		n = [NSNumber numberWithInteger:i];
-		if ([p->converted objectForKey:n] != nil)
+		if ([p->combinedFontAttrs objectForKey:n] != nil)
 			continue;
-		new = uiNew(struct fontParams);
-		new->desc = *(p->defaultFont);
-		[p->converted setObject:[NSValue valueWithPointer:new] forKey:n];
+		new = [[combinedFontAttr alloc] initWithDefaultFont:p->defaultFont];
+		[p->combinedFontAttrs setObject:new forKey:n];
 	}
 }
 
-static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end, void (^adj)(struct fontParams *fp))
+static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end, void (^adj)(combinedFontAttr *cfa))
 {
 	size_t i;
 	NSNumber *n;
-	NSValue *v;
+	combinedFontAttr *cfa;
 
 	for (i = start; i < end; i++) {
 		n = [NSNumber numberWithInteger:i];
-		v = (NSValue *) [p->converted objectForKey:n];
-		adj((struct fontParams *) [v pointerValue]);
+		v = (combinedFontAttr *) [p->combinedFontAttrs objectForKey:n];
+		adj(cfa);
 	}
 }
 
@@ -146,6 +193,7 @@ struct aatParam {
 
 static void doAAT(uint16_t type, uint16_t selector, void *data)
 {
+#if 0 /* TODO */
 	struct aatParam *p = (struct aatParam *) data;
 
 	ensureFontInRange(p->p, p->start, p->end);
@@ -158,6 +206,7 @@ static void doAAT(uint16_t type, uint16_t selector, void *data)
 			// TODO move this check to the top like in the drawtext example? and all the other instances of this?
 		}
 	});
+#endif
 }
 
 static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
@@ -169,7 +218,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	backgroundBlock block;
 	int32_t us;
 	CFNumberRef num;
-	struct aatParam ap;
 
 	ostart = start;
 	oend = end;
@@ -180,32 +228,32 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	switch (spec->Type) {
 	case uiAttributeFamily:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
-			fp->desc.Family = (char *) (spec->Value);
+		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
+			cfa.family = spec->Family;
 		});
 		break;
 	case uiAttributeSize:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
-			fp->desc.Size = spec->Double;
+		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
+			cfa.size = spec->Double;
 		});
 		break;
 	case uiAttributeWeight:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
-			fp->desc.Weight = (uiDrawTextWeight) (spec->Value);
+		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
+			cfa.weight = (uiDrawTextWeight) (spec->Value);
 		});
 		break;
 	case uiAttributeItalic:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
-			fp->desc.Italic = (uiDrawTextItalic) (spec->Value);
+		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
+			cfa.italic = (uiDrawTextItalic) (spec->Value);
 		});
 		break;
 	case uiAttributeStretch:
 		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(struct fontParams *fp) {
-			fp->desc.Stretch = (uiDrawTextStretch) (spec->Value);
+		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
+			cfa.stretch = (uiDrawTextStretch) (spec->Value);
 		});
 		break;
 	case uiAttributeColor:
@@ -259,10 +307,10 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 			CFRelease(color);
 		break;
 	case uiAttributeFeatures:
-		ap.p = p;
-		ap.start = start;
-		ap.end = end;
-		openTypeToAAT((uiOpenTypeFeatures *) (spec->Value), doAAT, &ap);
+		ensureFontInRange(p, start, end);
+		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
+			cfa.features = spec->Features;
+		});
 		break;
 	default:
 		// TODO complain

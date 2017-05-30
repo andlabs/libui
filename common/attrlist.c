@@ -332,7 +332,6 @@ static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
 		return 0;
 	switch (attr->spec.Type) {
 	case uiAttributeFamily:
-		// TODO should we start copying these strings?
 		// TODO should this be case-insensitive?
 		return strcmp(attr->spec.Family, spec->Family) == 0;
 	case uiAttributeSize:

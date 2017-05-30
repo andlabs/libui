@@ -34,6 +34,7 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
 	// TODO note these are copied
+	// TODO figure out how we're going to deal with being able to edit features over time...
 	uiAttributeFeatures,			// use Features
 };
 

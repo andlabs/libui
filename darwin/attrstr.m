@@ -146,6 +146,7 @@ struct foreachParams {
 
 @end
 
+// TODO merge this with adjustFontInRange() (and TODO figure out why they were separate in the first place; probably Windows?)
 static void ensureFontInRange(struct foreachParams *p, size_t start, size_t end)
 {
 	size_t i;
@@ -205,30 +206,6 @@ static CGColorRef mkcolor(uiAttributeSpec *spec)
 	color = CGColorCreate(colorspace, components);
 	CFRelease(colorspace);
 	return color;
-}
-
-struct aatParam {
-	struct foreachParams *p;
-	size_t start;
-	size_t end;
-};
-
-static void doAAT(uint16_t type, uint16_t selector, void *data)
-{
-#if 0 /* TODO */
-	struct aatParam *p = (struct aatParam *) data;
-
-	ensureFontInRange(p->p, p->start, p->end);
-	adjustFontInRange(p->p, p->start, p->end, ^(struct fontParams *fp) {
-		fp->featureTypes[fp->nFeatures] = type;
-		fp->featureSelectors[fp->nFeatures] = selector;
-		fp->nFeatures++;
-		if (fp->nFeatures == maxFeatures) {
-			// TODO
-			// TODO move this check to the top like in the drawtext example? and all the other instances of this?
-		}
-	});
-#endif
 }
 
 static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
@@ -341,22 +318,67 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	return 0;
 }
 
+static BOOL cfaIsEqual(combinedFontAttr *a, combinedFontAttr *b)
+{
+	if (a == nil && b == nil)
+		return YES;
+	if (a == nil || b == nil)
+		return NO;
+	return [a same:b];
+}
+
 static void applyAndFreeFontAttributes(struct foreachParams *p)
 {
-	[p->converted enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSValue *val, BOOL *stop) {
-		struct fontParams *fp;
-		CTFontRef font;
-		CFRange range;
+	CFIndex i;
+	combinedFontAttr *cfa, *cfab;
+	CTFontRef defaultFont;
+	CTFontRef font;
+	CFRange range;
 
-		fp = (struct fontParams *) [val pointerValue];
-		font = fontdescToCTFont(fp);
-		range.location = [key integerValue];
-		// TODO this is wrong for surrogate pairs
-		range.length = 1;
+	// first get the default font as a CTFontRef
+	cfa = [[combinedFontAttr alloc] initWithDefaultFont:p->defaultFont];
+	defaultFont = [cfa toCTFont];
+	[cfa release];
+
+	// now go through, fililng in the font attribute for successive ranges of identical combinedFontAttrs
+	// we are best off treating series of identical fonts as single ranges ourselves for parity across platforms, even if OS X does something similar itself
+	// this also avoids breaking apart surrogate pairs (though IIRC OS X doing the something similar itself might make this a non-issue here)
+	cfa = nil;
+	n = CFAttributedStringGetLength(p->mas);
+	range.location = 0;
+	for (i = 0; i < n; i++) {
+		NSNumber *nn;
+
+		nn = [NSNumber numberWithInteger:i];
+		cfab = (combinedFontAttr *) [p->combinedFontAttrs objectForKey:nn];
+		if (cfaIsEqual(cfa, cfab))
+			continue;
+
+		// the font has changed; write out the old one
+		range.length = i - range.location;
+		if (cfa == nil) {
+			font = defaultFont;
+			CFRetain(font);
+		} else
+			font = [cfa toCTFont];
 		CFAttributedStringSetAttribute(p->mas, range, kCTFontAttributeName, font);
 		CFRelease(font);
-		uiFree(fp);
-	}];
+		// and start this run
+		cfa = cfab;
+		range.location = i;
+	}
+
+	// and finally, write out the last range
+	range.length = i - range.location;
+	if (cfa == nil) {
+		font = defaultFont;
+		CFRetain(font);
+	} else
+		font = [cfa toCTFont];
+	CFAttributedStringSetAttribute(p->mas, range, kCTFontAttributeName, font);
+	CFRelease(font);
+
+	CFRelease(defaultFont);
 }
 
 static const CTTextAlignment ctaligns[] = {
@@ -424,12 +446,12 @@ CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray
 
 	CFAttributedStringBeginEditing(mas);
 	fep.mas = mas;
-	fep.converted = [NSMutableDictionary new];
+	fep.combinedFontAttrs = [NSMutableDictionary new];
 	fep.defaultFont = p->DefaultFont;
 	fep.backgroundBlocks = [NSMutableArray new];
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
 	applyAndFreeFontAttributes(&fep);
-	[fep.converted release];
+	[fep.combinedFontAttrs release];
 	CFAttributedStringEndEditing(mas);
 
 	*backgroundBlocks = fep.backgroundBlocks;

@@ -1,6 +1,8 @@
 // 14 february 2017
 #import "uipriv_darwin.h"
 
+// TODO explain the purpose of this file
+
 static void boolspec(uint32_t value, uint16_t type, uint16_t ifTrue, uint16_t ifFalse, aatBlock f)
 {
 	// TODO are values other than 1 accepted for true by OpenType itself? (same for the rest of the file)

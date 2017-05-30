@@ -120,7 +120,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	switch (spec->Type) {
 	case uiAttributeFamily:
 		addattr(p, start, end,
-			pango_attr_family_new((const char *) (spec->Value)));
+			pango_attr_family_new(spec->Family));
 		break;
 	case uiAttributeSize:
 		addattr(p, start, end,
@@ -199,8 +199,8 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		}
 		break;
 	case uiAttributeFeatures:
-		// TODO ensure the parentheses around spec->Value are provided on Windows
-		setFeaturesInRange(p, start, end, (uiOpenTypeFeatures *) (spec->Value));
+		// TODO ensure the parentheses around spec->Value are provided on Windows (TODO still relevant?)
+		setFeaturesInRange(p, start, end, spec->Features);
 		break;
 	default:
 		// TODO complain

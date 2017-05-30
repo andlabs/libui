@@ -255,9 +255,7 @@ CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
 }
 
 // fortunately features that aren't supported are simply ignored, so we can copy them all in
-// LONGTERM FUTURE when we switch to 10.9, the language parameter won't be needed anymore
-// LONGTERM FUTURE and on 10.10 we can use OpenType tags directly!
-CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uint16_t *types, const uint16_t *selectors, size_t n)
+CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uiOpenTypeFeatures *otf)
 {
 	CTFontDescriptorRef new;
 	CFMutableArrayRef outerArray;

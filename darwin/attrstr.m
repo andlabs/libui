@@ -61,6 +61,7 @@ void uninitUnderlineColors(void)
 // TODO see if we could use NSAttributedString?
 // TODO consider renaming this struct and the fep variable(s)
 // TODO restructure all this so the important details at the top are below with the combined font attributes type?
+// TODO in fact I should just write something to explain everything in this file...
 struct foreachParams {
 	CFMutableAttributedStringRef mas;
 	NSMutableDictionary *combinedFontAttrs;		// keys are CFIndex in mas, values are combinedFontAttr objects
@@ -77,6 +78,7 @@ struct foreachParams {
 @property const uiOpenTypeFeatures *features;
 - (id)initWithDefaultFont:(uiDrawFontDescriptor *)defaultFont;
 - (BOOL)same:(combinedFontAttr *)b;
+- (CTFontRef)toCTFont;
 @end
 
 @implementation combinedFontAttr
@@ -85,6 +87,7 @@ struct foreachParams {
 {
 	self = [super init];
 	if (self) {
+		// TODO define behaviors if defaultFont->Family or any attribute Family is NULL, same with other invalid values
 		self.family = defaultFont->Family;
 		self.size = defaultFont->Size;
 		self.weight = defaultFont->Weight;
@@ -120,6 +123,25 @@ struct foreachParams {
 	if (!uiOpenTypeFeaturesEqual(self.features, b.features))
 		return NO;
 	return YES;
+}
+
+- (CTFontRef)toCTFont
+{
+	uiDrawFontDescriptor uidesc;
+	CTFontDescriptorRef desc;
+	CTFontRef font;
+
+	uidesc.Family = self.family;
+	uidesc.Size = self.size;
+	uidesc.Weight = self.weight;
+	uidesc.Italic = self.italic;
+	uidesc.Stretch = self.stretch;
+	desc = fontdescToCTFontDescriptor(&uidesc);
+	if (self.features != NULL)
+		desc = fontdescAppendFeatures(desc, self.features);
+	font = CTFontCreateWithFontDescriptor(desc, self.size, NULL);
+	CFRelease(desc);			// TODO correct?
+	return font;
 }
 
 @end
@@ -317,18 +339,6 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		;
 	}
 	return 0;
-}
-
-static CTFontRef fontdescToCTFont(struct fontParams *fp)
-{
-	CTFontDescriptorRef desc;
-	CTFontRef font;
-
-	desc = fontdescToCTFontDescriptor(&(fp->desc));
-	desc = fontdescAppendFeatures(desc, fp->featureTypes, fp->featureSelectors, fp->nFeatures);
-	font = CTFontCreateWithFontDescriptor(desc, fp->desc.Size, NULL);
-	CFRelease(desc);			// TODO correct?
-	return font;
 }
 
 static void applyAndFreeFontAttributes(struct foreachParams *p)

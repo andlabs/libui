@@ -170,7 +170,7 @@ static void setupAttributedString(void)
 	spec.A = 0.75;
 	uiAttributedStringSetAttribute(attrstr, &spec, start + 12, end);
 	spec.Type = uiAttributeFamily;
-	spec.Value = "Helvetica";
+	spec.Family = "Helvetica";
 	uiAttributedStringSetAttribute(attrstr, &spec, start + 8, end - 1);
 	spec.Type = uiAttributeBackground;
 	spec.R = 1.0;
@@ -245,7 +245,7 @@ static void setupAttributedString(void)
 	end = start + strlen(next);
 	uiAttributedStringAppendUnattributed(attrstr, next);
 	spec.Type = uiAttributeFeatures;
-	spec.Value = otf;
+	spec.Features = otf;
 	uiAttributedStringSetAttribute(attrstr, &spec, start, end);
 	uiAttributedStringAppendUnattributed(attrstr, ")");
 

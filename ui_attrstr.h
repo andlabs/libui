@@ -256,6 +256,7 @@ _UI_EXTERN void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayo
 
 typedef struct uiFontButton uiFontButton;
 #define uiFontButton(this) ((uiFontButton *) (this))
+// TODO have a function that sets an entire font descriptor to a range in a uiAttributedString at once?
 _UI_EXTERN void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc);
 // TOOD SetFont, mechanics
 _UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);

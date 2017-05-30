@@ -131,7 +131,8 @@ struct foreachParams {
 	CTFontDescriptorRef desc;
 	CTFontRef font;
 
-	uidesc.Family = self.family;
+	// TODO const-correct uiDrawFontDescriptor or change this function below
+	uidesc.Family = (char *) (self.family);
 	uidesc.Size = self.size;
 	uidesc.Weight = self.weight;
 	uidesc.Italic = self.italic;
@@ -170,7 +171,7 @@ static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end,
 
 	for (i = start; i < end; i++) {
 		n = [NSNumber numberWithInteger:i];
-		v = (combinedFontAttr *) [p->combinedFontAttrs objectForKey:n];
+		cfa = (combinedFontAttr *) [p->combinedFontAttrs objectForKey:n];
 		adj(cfa);
 	}
 }
@@ -329,7 +330,7 @@ static BOOL cfaIsEqual(combinedFontAttr *a, combinedFontAttr *b)
 
 static void applyAndFreeFontAttributes(struct foreachParams *p)
 {
-	CFIndex i;
+	CFIndex i, n;
 	combinedFontAttr *cfa, *cfab;
 	CTFontRef defaultFont;
 	CTFontRef font;
@@ -349,6 +350,7 @@ static void applyAndFreeFontAttributes(struct foreachParams *p)
 	for (i = 0; i < n; i++) {
 		NSNumber *nn;
 
+		// TODO use NSValue or some other method of NSNumber
 		nn = [NSNumber numberWithInteger:i];
 		cfab = (combinedFontAttr *) [p->combinedFontAttrs objectForKey:nn];
 		if (cfaIsEqual(cfa, cfab))
@@ -357,6 +359,7 @@ static void applyAndFreeFontAttributes(struct foreachParams *p)
 		// the font has changed; write out the old one
 		range.length = i - range.location;
 		if (cfa == nil) {
+			// TODO this isn't necessary because of default font shenanigans below
 			font = defaultFont;
 			CFRetain(font);
 		} else
@@ -371,6 +374,7 @@ static void applyAndFreeFontAttributes(struct foreachParams *p)
 	// and finally, write out the last range
 	range.length = i - range.location;
 	if (cfa == nil) {
+		// TODO likewise
 		font = defaultFont;
 		CFRetain(font);
 	} else
@@ -414,7 +418,6 @@ CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray
 	CFAttributedStringRef base;
 	CFMutableAttributedStringRef mas;
 	struct foreachParams fep;
-	struct fontParams ffp;
 
 	cfstr = CFStringCreateWithCharacters(NULL, attrstrUTF16(p->String), attrstrUTF16Len(p->String));
 	if (cfstr == NULL) {
@@ -426,11 +429,12 @@ CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray
 	if (defaultAttrs == NULL) {
 		// TODO
 	}
-	memset(&ffp, 0, sizeof (struct fontParams));
+#if 0 /* TODO */
 	ffp.desc = *(p->DefaultFont);
 	defaultCTFont = fontdescToCTFont(&ffp);
 	CFDictionaryAddValue(defaultAttrs, kCTFontAttributeName, defaultCTFont);
 	CFRelease(defaultCTFont);
+#endif
 	ps = mkParagraphStyle(p);
 	CFDictionaryAddValue(defaultAttrs, kCTParagraphStyleAttributeName, ps);
 	CFRelease(ps);

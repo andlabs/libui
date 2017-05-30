@@ -16,8 +16,6 @@ static void boolspec(uint32_t value, uint16_t type, uint16_t ifTrue, uint16_t if
 // TODO double-check drawtext example to make sure all of these are used properly (I already screwed dlig up by putting clig twice instead)
 void openTypeToAAT(char a, char b, char c, char d, uint32_t value, aatBlock f)
 {
-	struct openTypeAATParams *p = (struct openTypeAATParams *) data;
-
 	switch (mkTag(a, b, c, d)) {
 	case mkTag('l', 'i', 'g', 'a'):
 		boolspec(value, kLigaturesType,
@@ -55,45 +53,45 @@ void openTypeToAAT(char a, char b, char c, char d, uint32_t value, aatBlock f)
 		// TODO is this correct, or should we provide an else case?
 		if (value != 0)
 			// this is undocumented; it comes from Core Text's internal AAT-to-OpenType conversion table
-			f(p, kLetterCaseType, 14);
+			f(kLetterCaseType, 14);
 		break;
 
 	// TODO will the following handle all cases properly, or are elses going to be needed?
 	case mkTag('p', 'n', 'u', 'm'):
 		if (value != 0)
-			f(p, kNumberSpacingType, kProportionalNumbersSelector);
+			f(kNumberSpacingType, kProportionalNumbersSelector);
 		break;
 	case mkTag('t', 'n', 'u', 'm'):
 		if (value != 0)
-			f(p, kNumberSpacingType, kMonospacedNumbersSelector);
+			f(kNumberSpacingType, kMonospacedNumbersSelector);
 		break;
 
 	// TODO will the following handle all cases properly, or are elses going to be needed?
 	case mkTag('s', 'u', 'p', 's'):
 		if (value != 0)
-			f(p, kVerticalPositionType, kSuperiorsSelector);
+			f(kVerticalPositionType, kSuperiorsSelector);
 		break;
 	case mkTag('s', 'u', 'b', 's'):
 		if (value != 0)
-			f(p, kVerticalPositionType, kInferiorsSelector);
+			f(kVerticalPositionType, kInferiorsSelector);
 		break;
 	case mkTag('o', 'r', 'd', 'n'):
 		if (value != 0)
-			f(p, kVerticalPositionType, kOrdinalsSelector);
+			f(kVerticalPositionType, kOrdinalsSelector);
 		break;
 	case mkTag('s', 'i', 'n', 'f'):
 		if (value != 0)
-			f(p, kVerticalPositionType, kScientificInferiorsSelector);
+			f(kVerticalPositionType, kScientificInferiorsSelector);
 		break;
 
 	// TODO will the following handle all cases properly, or are elses going to be needed?
 	case mkTag('a', 'f', 'r', 'c'):
 		if (value != 0)
-			f(p, kFractionsType, kVerticalFractionsSelector);
+			f(kFractionsType, kVerticalFractionsSelector);
 		break;
 	case mkTag('f', 'r', 'a', 'c'):
 		if (value != 0)
-			f(p, kFractionsType, kDiagonalFractionsSelector);
+			f(kFractionsType, kDiagonalFractionsSelector);
 		break;
 
 	case mkTag('z', 'e', 'r', 'o'):
@@ -109,57 +107,57 @@ void openTypeToAAT(char a, char b, char c, char d, uint32_t value, aatBlock f)
 			f);
 		break;
 	case mkTag('o', 'r', 'n', 'm'):
-		f(p, kOrnamentSetsType, (uint16_t) value);
+		f(kOrnamentSetsType, (uint16_t) value);
 		break;
 	case mkTag('a', 'a', 'l', 't'):
-		f(p, kCharacterAlternativesType, (uint16_t) value);
+		f(kCharacterAlternativesType, (uint16_t) value);
 		break;
 	case mkTag('t', 'i', 't', 'l'):
 		// TODO is this correct, or should we provide an else case?
 		if (value != 0)
-			f(p, kStyleOptionsType, kTitlingCapsSelector);
+			f(kStyleOptionsType, kTitlingCapsSelector);
 		break;
 
 	// TODO will the following handle all cases properly, or are elses going to be needed?
 	case mkTag('t', 'r', 'a', 'd'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kTraditionalCharactersSelector);
+			f(kCharacterShapeType, kTraditionalCharactersSelector);
 		break;
 	case mkTag('s', 'm', 'p', 'l'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kSimplifiedCharactersSelector);
+			f(kCharacterShapeType, kSimplifiedCharactersSelector);
 		break;
 	case mkTag('j', 'p', '7', '8'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kJIS1978CharactersSelector);
+			f(kCharacterShapeType, kJIS1978CharactersSelector);
 		break;
 	case mkTag('j', 'p', '8', '3'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kJIS1983CharactersSelector);
+			f(kCharacterShapeType, kJIS1983CharactersSelector);
 		break;
 	case mkTag('j', 'p', '9', '0'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kJIS1990CharactersSelector);
+			f(kCharacterShapeType, kJIS1990CharactersSelector);
 		break;
 	case mkTag('e', 'x', 'p', 't'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kExpertCharactersSelector);
+			f(kCharacterShapeType, kExpertCharactersSelector);
 		break;
 	case mkTag('j', 'p', '0', '4'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kJIS2004CharactersSelector);
+			f(kCharacterShapeType, kJIS2004CharactersSelector);
 		break;
 	case mkTag('h', 'o', 'j', 'o'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kHojoCharactersSelector);
+			f(kCharacterShapeType, kHojoCharactersSelector);
 		break;
 	case mkTag('n', 'l', 'c', 'k'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kNLCCharactersSelector);
+			f(kCharacterShapeType, kNLCCharactersSelector);
 		break;
 	case mkTag('t', 'n', 'a', 'm'):
 		if (value != 0)
-			f(p, kCharacterShapeType, kTraditionalNamesCharactersSelector);
+			f(kCharacterShapeType, kTraditionalNamesCharactersSelector);
 		break;
 
 	case mkTag('o', 'n', 'u', 'm'):
@@ -168,15 +166,15 @@ void openTypeToAAT(char a, char b, char c, char d, uint32_t value, aatBlock f)
 	case mkTag('l', 'n', 'u', 'm'):
 		// TODO is this correct, or should we provide an else case?
 		if (value != 0)
-			f(p, kNumberCaseType, kLowerCaseNumbersSelector);
+			f(kNumberCaseType, kLowerCaseNumbersSelector);
 		break;
 	case mkTag('h', 'n', 'g', 'l'):
 		// TODO is this correct, or should we provide an else case?
 		if (value != 0)
-			f(p, kTransliterationType, kHanjaToHangulSelector);
+			f(kTransliterationType, kHanjaToHangulSelector);
 		break;
 	case mkTag('n', 'a', 'l', 't'):
-		f(p, kAnnotationType, (uint16_t) value);
+		f(kAnnotationType, (uint16_t) value);
 		break;
 	case mkTag('r', 'u', 'b', 'y'):
 		// include this for completeness
@@ -370,24 +368,24 @@ void openTypeToAAT(char a, char b, char c, char d, uint32_t value, aatBlock f)
 		if (value != 0) {
 			// include this for compatibility (some fonts that come with OS X still use this!)
 			// TODO make it boolean?
-			f(p, kLetterCaseType, kSmallCapsSelector);
+			f(kLetterCaseType, kSmallCapsSelector);
 			// this is the current one
-			f(p, kLowerCaseType, kLowerCaseSmallCapsSelector);
+			f(kLowerCaseType, kLowerCaseSmallCapsSelector);
 		}
 		break;
 	case mkTag('p', 'c', 'a', 'p'):
 		if (value != 0)
-			f(p, kLowerCaseType, kLowerCasePetiteCapsSelector);
+			f(kLowerCaseType, kLowerCasePetiteCapsSelector);
 		break;
 
 	// TODO will the following handle all cases properly, or are elses going to be needed?
 	case mkTag('c', '2', 's', 'c'):
 		if (value != 0)
-			f(p, kUpperCaseType, kUpperCaseSmallCapsSelector);
+			f(kUpperCaseType, kUpperCaseSmallCapsSelector);
 		break;
 	case mkTag('c', '2', 'p', 'c'):
 		if (value != 0)
-			f(p, kUpperCaseType, kUpperCasePetiteCapsSelector);
+			f(kUpperCaseType, kUpperCasePetiteCapsSelector);
 		break;
 	}
 	// TODO handle this properly

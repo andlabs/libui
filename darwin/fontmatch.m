@@ -258,8 +258,9 @@ CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
 CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uiOpenTypeFeatures *otf)
 {
 	CTFontDescriptorRef new;
-	CFMutableArrayRef featuresArray;
+	CFArrayRef featuresArray;
 	CFDictionaryRef attrs;
+	const void *keys[1], *values[1];
 
 	featuresArray = otfToFeaturesArray(otf);
 	keys[0] = kCTFontFeatureSettingsAttribute;

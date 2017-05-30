@@ -60,7 +60,7 @@ static void attrClearSpec(struct attr *a)
 		uiFree((char *) (a->spec.Family));
 		break;
 	case uiAttributeFeatures:
-		uiOpenTypeFeaturesFree((uiOpenTypeFeatures *) (a->spec.Features));
+		uiFreeOpenTypeFeatures((uiOpenTypeFeatures *) (a->spec.Features));
 		break;
 	}
 }

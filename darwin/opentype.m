@@ -93,14 +93,15 @@ int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeature
 static int otfArrayForEach(char a, char b, char c, char d, uint32_t value, void *data)
 {
 	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
-	const void *keys[2], *values[2];
 
-	keys[0] = kCTFontFeatureTypeIdentifierKey;
-	keys[1] = kCTFontFeatureSelectorIdentifierKey;
 	openTypeToAAT(a, b, c, d, value, ^(uint16_t type, uint16_t selector) {
 		CFDictionaryRef innerDict;
 		CFNumberRef numType, numSelector;
+		// not well documented, but fixed-size arrays don't support __block either (VLAs are documented as being unsupported)
+		const void *keys[2], *values[2];
 
+		keys[0] = kCTFontFeatureTypeIdentifierKey;
+		keys[1] = kCTFontFeatureSelectorIdentifierKey;
 		numType = CFNumberCreate(NULL, kCFNumberSInt16Type,
 			(const SInt16 *) (&type));
 		numSelector = CFNumberCreate(NULL, kCFNumberSInt16Type,
@@ -115,7 +116,7 @@ static int otfArrayForEach(char a, char b, char c, char d, uint32_t value, void 
 		if (innerDict == NULL) {
 			// TODO
 		}
-		CFArrayAppendValue(p->outerArray, innerDict);
+		CFArrayAppendValue(outerArray, innerDict);
 		CFRelease(innerDict);
 		CFRelease(numSelector);
 		CFRelease(numType);

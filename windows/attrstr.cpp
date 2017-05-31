@@ -5,7 +5,7 @@
 // TODO this whole file needs cleanup
 
 // we need to combine color and underline style into one unit for IDWriteLayout::SetDrawingEffect()
-// we also need to collect all the OpenType features and background blocks and add them all at once
+// we also need to collect all the background blocks and add them all at once
 // TODO(TODO does not seem to apply here?) this is the wrong approach; it causes Pango to end runs early, meaning attributes like the ligature attributes never get applied properly
 // TODO contextual alternates override ligatures?
 // TODO rename this struct to something that isn't exclusively foreach-ing?
@@ -13,7 +13,6 @@ struct foreachParams {
 	const uint16_t *s;
 	IDWriteTextLayout *layout;
 	std::map<size_t, textDrawingEffect *> *effects;
-	std::map<size_t, IDWriteTypography *> *features;
 	std::vector<backgroundFunc> *backgroundFuncs;
 };
 
@@ -27,6 +26,7 @@ static void ensureEffectsInRange(struct foreachParams *p, size_t start, size_t e
 
 	for (i = start; i < end; i++) {
 		// don't create redundant entries; see below
+		// TODO explain this more clearly (surrogate pairs)
 		if (!isCodepointStart(p->s[i]))
 			continue;
 		t = (*(p->effects))[i];
@@ -38,24 +38,6 @@ static void ensureEffectsInRange(struct foreachParams *p, size_t start, size_t e
 		f(t);
 		(*(p->effects))[i] = t;
 	}
-}
-
-static void setFeaturesInRange(struct foreachParams *p, size_t start, size_t end, const uiOpenTypeFeatures *otf)
-{
-	IDWriteTypography *dt;
-	size_t i;
-
-	dt = otfToDirectWrite(otf);
-	for (i = start; i < end; i++) {
-		// don't create redundant entries; see below
-		// TODO explain this more clearly (surrogate pairs)
-		if (!isCodepointStart(p->s[i]))
-			continue;
-		dt->AddRef();
-		(*(p->features))[i] = dt;
-	}
-	// and release the initial reference
-	dt->Release();
 }
 
 static backgroundFunc mkBackgroundFunc(size_t start, size_t end, double r, double g, double b, double a)
@@ -79,6 +61,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	WCHAR *wfamily;
 	size_t ostart, oend;
 	BOOL hasUnderline;
+	IDWriteTypography *dt;
 	HRESULT hr;
 
 	ostart = start;
@@ -196,7 +179,11 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		}
 		break;
 	case uiAttributeFeatures:
-		setFeaturesInRange(p, start, end, spec->Features);
+		dt = otfToDirectWrite(spec->Features);
+		hr = p->layout->SetTypography(dt, range);
+		if (hr != S_OK)
+			logHRESULT(L"error applying features attribute", hr);
+		dt->Release();
 		break;
 	default:
 		// TODO complain
@@ -224,25 +211,6 @@ static void applyAndFreeEffectsAttributes(struct foreachParams *p)
 	delete p->effects;
 }
 
-static void applyAndFreeFeatureAttributes(struct foreachParams *p)
-{
-	DWRITE_TEXT_RANGE range;
-	HRESULT hr;
-
-	for (auto iter = p->features->begin(); iter != p->features->end(); iter++) {
-		// make sure we cover an entire code point
-		range.startPosition = iter->first;
-		range.length = 1;
-		if (!isCodepointStart(p->s[iter->first]))
-			range.length = 2;
-		hr = p->layout->SetTypography(iter->second, range);
-		if (hr != S_OK)
-			logHRESULT(L"error applying typographic features attributes", hr);
-		iter->second->Release();
-	}
-	delete p->features;
-}
-
 void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<backgroundFunc> **backgroundFuncs)
 {
 	struct foreachParams fep;
@@ -250,10 +218,8 @@ void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayou
 	fep.s = attrstrUTF16(p->String);
 	fep.layout = layout;
 	fep.effects = new std::map<size_t, textDrawingEffect *>;
-	fep.features = new std::map<size_t, IDWriteTypography *>;
 	fep.backgroundFuncs = new std::vector<backgroundFunc>;
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
 	applyAndFreeEffectsAttributes(&fep);
-	applyAndFreeFeatureAttributes(&fep);
 	*backgroundFuncs = fep.backgroundFuncs;
 }

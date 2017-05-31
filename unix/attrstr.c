@@ -3,26 +3,12 @@
 
 // TODO pango alpha attributes turn 0 into 65535 :|
 
-// we need to collect all the background blocks and add them all at once
-// TODO rename this struct to something that isn't exclusively foreach-ing?
+// TODO make this name less generic?
 struct foreachParams {
-	const char *s;
 	PangoAttrList *attrs;
 	// TODO use pango's built-in background attribute?
 	GPtrArray *backgroundClosures;
 };
-
-// TODO merge this into the main function below
-static PangoAttribute *mkFeaturesAttribute(const uiOpenTypeFeatures *otf)
-{
-	char *s;
-	PangoAttribute *attr;
-
-	s = otfToPangoCSSString(otf);
-	attr = FUTURE_pango_attr_font_features_new(s);
-	g_free(s);
-	return attr;
-}
 
 struct closureParams {
 	size_t start;
@@ -63,7 +49,7 @@ static GClosure *mkBackgroundClosure(size_t start, size_t end, double r, double 
 	p->g = g;
 	p->b = b;
 	p->a = a;
-	closure = (GClosure *) g_cclosure_new(G_CALLBACK(backgroundClosure), p, freeClosureParams);
+	closure = g_cclosure_new(G_CALLBACK(backgroundClosure), p, freeClosureParams);
 	// TODO write a specific marshaler
 	// TODO or drop the closure stuff entirely
 	g_closure_set_marshal(closure, g_cclosure_marshal_generic);
@@ -84,6 +70,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 	struct foreachParams *p = (struct foreachParams *) data;
 	GClosure *closure;
 	PangoUnderline underline;
+	char *featurestr;
 
 	switch (spec->Type) {
 	case uiAttributeFamily:
@@ -168,7 +155,10 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		break;
 	case uiAttributeFeatures:
 		// TODO handle NULLs properly on all platforms
-		addattr(p, start, end, mkFeaturesAttribute(spec->Features));
+		featurestr = otfToPangoCSSString(spec->Features);
+		addattr(p, start, end,
+			FUTURE_pango_attr_font_features_new(featurestr));
+		g_free(featurestr);
 		break;
 	default:
 		// TODO complain
@@ -186,7 +176,6 @@ PangoAttrList *attrstrToPangoAttrList(uiDrawTextLayoutParams *p, GPtrArray **bac
 {
 	struct foreachParams fep;
 
-	fep.s = uiAttributedStringString(p->String);
 	fep.attrs = pango_attr_list_new();
 	fep.backgroundClosures = g_ptr_array_new_with_free_func(unrefClosure);
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);

@@ -1,5 +1,7 @@
 // 5 may 2016
 
+// TODO resolve overlap between this and the other hpp files (some functions leaked into uipriv_windows.hpp)
+
 // draw.cpp
 extern ID2D1Factory *d2dfactory;
 struct uiDrawContext {
@@ -20,6 +22,7 @@ typedef std::function<void(uiDrawContext *c, uiDrawTextLayout *layout, double x,
 extern void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<backgroundFunc> **backgroundFuncs);
 
 // drawtext.cpp
+// TODO reconcile this with attrstr.cpp
 class textDrawingEffect : public IUnknown {
 	ULONG refcount;
 public:
@@ -76,6 +79,50 @@ public:
 		return this->refcount;
 	}
 
+	// TODO deduplicate this with common/attrlist.c
+	bool same(textDrawingEffect *b)
+	{
+		static auto boolsDiffer = [](bool a, bool b) -> bool {
+			if (a && b)
+				return false;
+			if (!a && !b)
+				return false;
+			return true;
+		};
+
+		if (boolsDiffer(this->hasColor, b->hasColor))
+			return false;
+		if (this->hasColor) {
+			// TODO use a closest match?
+			if (this->r != b->r)
+				return false;
+			if (this->g != b->g)
+				return false;
+			if (this->b != b->b)
+				return false;
+			if (this->a != b->a)
+				return false;
+		}
+		if (boolsDiffer(this->hasUnderline, b->hasUnderline))
+			return false;
+		if (this->hasUnderline)
+			if (this->u != b->u)
+				return false;
+		if (boolsDiffer(this->hasUnderlineColor, b->hasUnderlineColor))
+			return false;
+		if (this->hasUnderlineColor) {
+			// TODO use a closest match?
+			if (this->ur != b->ur)
+				return false;
+			if (this->ug != b->ug)
+				return false;
+			if (this->ub != b->ub)
+				return false;
+			if (this->ua != b->ua)
+				return false;
+		}
+		return true;
+	}
 };
 // TODO these should not be exported
 extern std::map<uiDrawTextItalic, DWRITE_FONT_STYLE> dwriteItalics;

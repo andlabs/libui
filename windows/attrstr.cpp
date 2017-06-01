@@ -192,7 +192,7 @@ static void applyAndFreeEffectsAttributes(struct foreachParams *p)
 	size_t i, n;
 	textDrawingEffect *effect, *effectb;
 	DWRITE_TEXT_RANGE range;
-	auto apply = [](IDWriteTextLayout *layout, textDrawingEffect *effect, DWRITE_TEXT_RANGE range) {
+	static auto apply = [](IDWriteTextLayout *layout, textDrawingEffect *effect, DWRITE_TEXT_RANGE range) {
 		HRESULT hr;
 
 		if (effect == NULL)

@@ -90,7 +90,7 @@ int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeature
 // TODO explain all this
 // TODO rename outerArray and innerDict (the names made sense when this was part of fontdescAppendFeatures(), but not here)
 // TODO make all this use enumerateKeysAndObjects (which requires duplicating code)?
-static int otfArrayForEach(char a, char b, char c, char d, uint32_t value, void *data)
+static int otfArrayForEachAAT(char a, char b, char c, char d, uint32_t value, void *data)
 {
 	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
 
@@ -125,14 +125,60 @@ static int otfArrayForEach(char a, char b, char c, char d, uint32_t value, void 
 	return 0;
 }
 
+// TODO find out which fonts differ in AAT small caps and test them with this
+static int otfArrayForEachOT(char a, char b, char c, char d, uint32_t value, void *data)
+{
+	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
+	CFDictionaryRef innerDict;
+	// TODO rename this to tagstr (and all the other variables likewise...)
+	CFStringRef strTag;
+	CFNumberRef numValue;
+	char tagcstr[5];
+	const void *keys[2], *values[2];
+
+	tagcstr[0] = a;
+	tagcstr[1] = b;
+	tagcstr[2] = c;
+	tagcstr[3] = d;
+	tagcstr[4] = '\0';
+	keys[0] = *FUTURE_kCTFontOpenTypeFeatureTag;
+	keys[1] = *FUTURE_kCTFontOpenTypeFeatureValue;
+	strTag = CFStringCreateWithCString(NULL, tagcstr, kCFStringEncodingUTF8);
+	if (strTag == NULL) {
+		// TODO
+	}
+	numValue = CFNumberCreate(NULL, kCFNumberSInt32Type,
+		(const SInt32 *) (&value));
+	values[0] = strTag;
+	values[1] = numValue;
+	innerDict = CFDictionaryCreate(NULL,
+		keys, values, 2,
+		// TODO are these correct?
+		&kCFCopyStringDictionaryKeyCallBacks,
+		&kCFTypeDictionaryValueCallBacks);
+	if (innerDict == NULL) {
+		// TODO
+	}
+	CFArrayAppendValue(outerArray, innerDict);
+	CFRelease(innerDict);
+	CFRelease(numValue);
+	CFRelease(strTag);
+	// TODO
+	return 0;
+}
+
 CFArrayRef otfToFeaturesArray(const uiOpenTypeFeatures *otf)
 {
 	CFMutableArrayRef outerArray;
+	uiOpenTypeFeaturesForEachFunc f;
 
 	outerArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
 	if (outerArray == NULL) {
 		// TODO
 	}
-	uiOpenTypeFeaturesForEach(otf, otfArrayForEach, outerArray);
+	f = otfArrayForEachAAT;
+	if (FUTURE_kCTFontOpenTypeFeatureTag != NULL && FUTURE_kCTFontOpenTypeFeatureValue != NULL)
+		f = otfArrayForEachOT;
+	uiOpenTypeFeaturesForEach(otf, f, outerArray);
 	return outerArray;
 }

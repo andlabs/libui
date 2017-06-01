@@ -6,17 +6,15 @@
 
 // we need to combine color and underline style into one unit for IDWriteLayout::SetDrawingEffect()
 // we also need to collect all the background blocks and add them all at once
-// TODO(TODO does not seem to apply here?) this is the wrong approach; it causes Pango to end runs early, meaning attributes like the ligature attributes never get applied properly
 // TODO contextual alternates override ligatures?
 // TODO rename this struct to something that isn't exclusively foreach-ing?
 struct foreachParams {
 	const uint16_t *s;
+	size_t len;
 	IDWriteTextLayout *layout;
 	std::map<size_t, textDrawingEffect *> *effects;
 	std::vector<backgroundFunc> *backgroundFuncs;
 };
-
-#define isCodepointStart(w) ((((uint16_t) (w)) < 0xDC00) || (((uint16_t) (w)) >= 0xE000))
 
 static void ensureEffectsInRange(struct foreachParams *p, size_t start, size_t end, std::function<void(textDrawingEffect *)> f)
 {
@@ -24,11 +22,8 @@ static void ensureEffectsInRange(struct foreachParams *p, size_t start, size_t e
 	size_t *key;
 	textDrawingEffect *t;
 
+	// TODO explain why we make one for every character
 	for (i = start; i < end; i++) {
-		// don't create redundant entries; see below
-		// TODO explain this more clearly (surrogate pairs)
-		if (!isCodepointStart(p->s[i]))
-			continue;
 		t = (*(p->effects))[i];
 		if (t != NULL) {
 			f(t);
@@ -194,20 +189,49 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 
 static void applyAndFreeEffectsAttributes(struct foreachParams *p)
 {
+	size_t i, n;
+	textDrawingEffect *effect, *effectb;
 	DWRITE_TEXT_RANGE range;
-	HRESULT hr;
+	auto apply = [](IDWriteTextLayout *layout, textDrawingEffect *effect, DWRITE_TEXT_RANGE range) {
+		HRESULT hr;
 
-	for (auto iter = p->effects->begin(); iter != p->effects->end(); iter++) {
-		// make sure we cover an entire code point
-		range.startPosition = iter->first;
-		range.length = 1;
-		if (!isCodepointStart(p->s[iter->first]))
-			range.length = 2;
-		hr = p->layout->SetDrawingEffect(iter->second, range);
+		if (effect == NULL)
+			return;
+		hr = layout->SetDrawingEffect(effect, range);
 		if (hr != S_OK)
 			logHRESULT(L"error applying drawing effects attributes", hr);
-		iter->second->Release();
+		effect->Release();
+	};
+
+	// go through, fililng in the effect attribute for successive ranges of identical textDrawingEffects
+	// we are best off treating series of identical effects as single ranges ourselves for parity across platforms, even if Windows does something similar itself
+	// this also avoids breaking apart surrogate pairs (though IIRC Windows doing the something similar itself might make this a non-issue here)
+	effect = NULL;
+	n = p->len;
+	range.startPosition = 0;
+	for (i = 0; i < n; i++) {
+		effectb = (*(p->effects))[i];
+		// run of no effect?
+		if (effect == NULL && effectb == NULL)
+			continue;
+		// run of the same effect?
+		if (effect != NULL && effectb != NULL)
+			if (effect->same(effectb)) {
+				effectb->Release();
+				continue;
+			}
+
+		// the effect has changed; commit the old effect
+		range.length = i - range.startPosition;
+		apply(p->layout, effect, range);
+
+		range.startPosition = i;
+		effect = effectb;
 	}
+	// and apply the last effect
+	range.length = i - range.startPosition;
+	apply(p->layout, effect, range);
+
 	delete p->effects;
 }
 
@@ -216,6 +240,7 @@ void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayou
 	struct foreachParams fep;
 
 	fep.s = attrstrUTF16(p->String);
+	fep.len = attrstrUTF16Len(p->String);
 	fep.layout = layout;
 	fep.effects = new std::map<size_t, textDrawingEffect *>;
 	fep.backgroundFuncs = new std::vector<backgroundFunc>;

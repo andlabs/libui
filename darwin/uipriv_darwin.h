@@ -1,4 +1,5 @@
 // 6 january 2015
+// note: as of OS X Sierra, the -mmacosx-version-min compiler options governs deprecation warnings; keep these around anyway just in case
 #define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_8
 #define MAC_OS_X_VERSION_MAX_ALLOWED MAC_OS_X_VERSION_10_8
 #import <Cocoa/Cocoa.h>

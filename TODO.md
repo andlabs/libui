@@ -170,3 +170,6 @@ FONT LOADING
 [01:15:53]  <hergertme>	FcConfigAppFontAddFile() <-- that API
 [01:16:30]  <hergertme>	great, and they don't say what version the API was added in teh docs
 function: ide_editor_map_bin_add()
+
+- Mouse ClickLock: do we need to do anything special? *should* we? https://msdn.microsoft.com/en-us/library/windows/desktop/ms724947(v=vs.85).aspx
+- consider a uiAnticipateDoubleClick() or uiDoubleClickTime() (for a uiQueueTimer()) or something: https://blogs.msdn.microsoft.com/oldnewthing/20041015-00/?p=37553

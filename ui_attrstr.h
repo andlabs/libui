@@ -2,8 +2,9 @@
 // optionally be embellished with formatting attributes. libui
 // provides the list of formatting attributes, which cover common
 // formatting traits like boldface and color as well as advanced
-// typographical features like superscripts and small caps.
-// These attributes can be combined in a variety of ways.
+// typographical features provided by OpenType like superscripts
+// and small caps. These attributes can be combined in a variety of
+// ways.
 //
 // In addition, uiAttributedString provides facilities for moving
 // between grapheme clusters, which represent a character
@@ -18,7 +19,6 @@
 // layout-specific properties.
 typedef struct uiAttributedString uiAttributedString;
 
-// Note: where you say "1 = on", any nonzero value means "on". (TODO)
 // TODO just make a separate field for everything?
 _UI_ENUM(uiAttribute) {
 	uiAttributeFamily,			// use Family

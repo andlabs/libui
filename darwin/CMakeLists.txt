@@ -59,6 +59,7 @@ if(NOT BUILD_SHARED_LIBS)
 	set(_LIBUINAME libui-temporary PARENT_SCOPE)
 endif()
 # thanks to Mr-Hide in irc.freenode.net/#cmake
+# TODO remove all these temporary files after linking the final archive file
 macro(_handle_static)
 	set_target_properties(${_LIBUINAME} PROPERTIES
 		ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")

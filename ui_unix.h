@@ -89,6 +89,7 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	{ \
 		if (!uiUnixControl(c)->addedBefore) { \
 			g_object_ref_sink(type(c)->widget); /* our own reference, which we release in Destroy() */ \
+			/* massive hack notes: without any of this, nothing gets shown when we show a window; without the if, all things get shown even if some were explicitly hidden (TODO why don't we just show everything except windows on create? */ \
 			/*TODO*/if(!uiUnixControl(c)->explicitlyHidden) gtk_widget_show(type(c)->widget); \
 			uiUnixControl(c)->addedBefore = TRUE; \
 		} \

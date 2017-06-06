@@ -2,7 +2,6 @@
 #include "drawtext.h"
 
 // TODO double-check ligatures on all platforms to make sure we can place the cursor at the right place
-// TODO the hiding and showing does not work properly on GTK+
 // TODO using the arrow keys allows us to walk back to the end of the line on some platforms (TODO which?); IIRC arrow keys shouldn't do that
 // TODO make sure to check the cursor positions of RTL on all platforms
 

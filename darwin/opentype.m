@@ -70,15 +70,18 @@ void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeatures
 		NSNumber *vn = (NSNumber *) value;
 		uint32_t tag;
 		uint8_t a, b, c, d;
+		uiForEach ret;
 
 		tag = mapObjectValue(tn);
 		a = (uint8_t) ((tag >> 24) & 0xFF);
 		b = (uint8_t) ((tag >> 16) & 0xFF);
 		c = (uint8_t) ((tag >> 8) & 0xFF);
 		d = (uint8_t) (tag & 0xFF);
-		// TODO handle return value
-		(*f)((char) a, (char) b, (char) c, (char) d,
+		ret = (*f)((char) a, (char) b, (char) c, (char) d,
 			mapObjectValue(vn), data);
+		// TODO for all: require exact match?
+		if (ret == uiForEachStop)
+			*stop = YES;
 	}];
 }
 
@@ -90,7 +93,7 @@ int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeature
 // TODO explain all this
 // TODO rename outerArray and innerDict (the names made sense when this was part of fontdescAppendFeatures(), but not here)
 // TODO make all this use enumerateKeysAndObjects (which requires duplicating code)?
-static int otfArrayForEachAAT(char a, char b, char c, char d, uint32_t value, void *data)
+static uiForEach otfArrayForEachAAT(char a, char b, char c, char d, uint32_t value, void *data)
 {
 	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
 
@@ -121,12 +124,11 @@ static int otfArrayForEachAAT(char a, char b, char c, char d, uint32_t value, vo
 		CFRelease(numSelector);
 		CFRelease(numType);
 	});
-	// TODO
-	return 0;
+	return uiForEachContinue;
 }
 
 // TODO find out which fonts differ in AAT small caps and test them with this
-static int otfArrayForEachOT(char a, char b, char c, char d, uint32_t value, void *data)
+static uiForEach otfArrayForEachOT(char a, char b, char c, char d, uint32_t value, void *data)
 {
 	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
 	CFDictionaryRef innerDict;
@@ -163,8 +165,7 @@ static int otfArrayForEachOT(char a, char b, char c, char d, uint32_t value, voi
 	CFRelease(innerDict);
 	CFRelease(numValue);
 	CFRelease(strTag);
-	// TODO
-	return 0;
+	return uiForEachContinue;
 }
 
 CFArrayRef otfToFeaturesArray(const uiOpenTypeFeatures *otf)

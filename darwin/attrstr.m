@@ -209,7 +209,7 @@ static CGColorRef mkcolor(uiAttributeSpec *spec)
 	return color;
 }
 
-static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
+static uiForEach processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	CFRange range;
@@ -316,7 +316,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		// TODO complain
 		;
 	}
-	return 0;
+	return uiForEachContinue;
 }
 
 static BOOL cfaIsEqual(combinedFontAttr *a, combinedFontAttr *b)

@@ -64,14 +64,16 @@ void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeatures
 	end = otf->tags->end();
 	for (iter = otf->tags->begin(); iter != end; iter++) {
 		uint8_t a, b, c, d;
+		uiForEach ret;
 
 		a = (uint8_t) (iter->first & 0xFF);
 		b = (uint8_t) ((iter->first >> 8) & 0xFF);
 		c = (uint8_t) ((iter->first >> 16) & 0xFF);
 		d = (uint8_t) ((iter->first >> 24) & 0xFF);
-		// TODO handle return value
-		(*f)((char) a, (char) b, (char) c, (char) d,
+		ret = (*f)((char) a, (char) b, (char) c, (char) d,
 			iter->second, data);
+		if (ret == uiForEachStop)
+			return;
 	}
 }
 

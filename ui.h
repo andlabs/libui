@@ -34,6 +34,12 @@ extern "C" {
 
 // TODO uiBool?
 
+// uiForEach represents the return value from one of libui's various ForEach functions.
+_UI_ENUM(uiForEach) {
+	uiForEachContinue,
+	uiForEachStop,
+};
+
 typedef struct uiInitOptions uiInitOptions;
 
 struct uiInitOptions {

@@ -49,7 +49,7 @@ static backgroundFunc mkBackgroundFunc(size_t start, size_t end, double r, doubl
 	};
 }
 
-static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
+static uiForEach processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	DWRITE_TEXT_RANGE range;
@@ -184,7 +184,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		// TODO complain
 		;
 	}
-	return 0;
+	return uiForEachContinue;
 }
 
 static void applyAndFreeEffectsAttributes(struct foreachParams *p)

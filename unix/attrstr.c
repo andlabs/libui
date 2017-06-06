@@ -65,7 +65,7 @@ static void addattr(struct foreachParams *p, size_t start, size_t end, PangoAttr
 	pango_attr_list_insert(p->attrs, attr);
 }
 
-static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
+static uiForEach processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	GClosure *closure;
@@ -164,7 +164,7 @@ static int processAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t
 		// TODO complain
 		;
 	}
-	return 0;
+	return uiForEachContinue;
 }
 
 static void unrefClosure(gpointer data)

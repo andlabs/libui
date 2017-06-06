@@ -78,7 +78,7 @@ int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char 
 struct otfForEach {
 	uiOpenTypeFeaturesForEachFunc f;
 	void *data;
-	// TODO store continuation status here
+	uiForEach ret;
 };
 
 static void foreach(gpointer key, gpointer value, gpointer data)
@@ -87,13 +87,15 @@ static void foreach(gpointer key, gpointer value, gpointer data)
 	uint32_t tag;
 	uint8_t a, b, c, d;
 
+	// we can't stop early, so just ignore the rest if we have to
+	if (ofe->ret == uiForEachStop)
+		return;
 	tag = GPOINTER_TO_INT(key);
 	a = (uint8_t) ((tag >> 24) & 0xFF);
 	b = (uint8_t) ((tag >> 16) & 0xFF);
 	c = (uint8_t) ((tag >> 8) & 0xFF);
 	d = (uint8_t) (tag & 0xFF);
-	// TODO handle return value
-	(*(ofe->f))((char) a, (char) b, (char) c, (char) d, GPOINTER_TO_INT(value), ofe->data);
+	ofe->ret = (*(ofe->f))((char) a, (char) b, (char) c, (char) d, GPOINTER_TO_INT(value), ofe->data);
 }
 
 void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data)
@@ -175,7 +177,7 @@ out:
 
 // see https://developer.mozilla.org/en/docs/Web/CSS/font-feature-settings
 // TODO make this a g_hash_table_foreach() function (which requires duplicating code)?
-static int toCSS(char a, char b, char c, char d, uint32_t value, void *data)
+static uiForEach toCSS(char a, char b, char c, char d, uint32_t value, void *data)
 {
 	// TODO is there a G_STRING()?
 	GString *s = (GString *) data;
@@ -183,8 +185,7 @@ static int toCSS(char a, char b, char c, char d, uint32_t value, void *data)
 	// the last trailing comma is removed after foreach is done
 	g_string_append_printf(s, "\"%c%c%c%c\" %" PRIu32 ", ",
 		a, b, c, d, value);
-	// TODO use this
-	return 0;
+	return uiForEachContinue;
 }
 
 gchar *otfToPangoCSSString(const uiOpenTypeFeatures *otf)

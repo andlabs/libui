@@ -55,7 +55,7 @@ _UI_ENUM(uiDrawUnderlineColor) {
 // TODO rename?
 typedef struct uiOpenTypeFeatures uiOpenTypeFeatures;
 // TODO pass the feature set?
-typedef int (*uiOpenTypeFeaturesForEachFunc)(char a, char b, char c, char d, uint32_t value, void *data);
+typedef uiForEach (*uiOpenTypeFeaturesForEachFunc)(char a, char b, char c, char d, uint32_t value, void *data);
 // TODO detailed constructor?
 _UI_EXTERN uiOpenTypeFeatures *uiNewOpenTypeFeatures(void);
 _UI_EXTERN void uiFreeOpenTypeFeatures(uiOpenTypeFeatures *otf);
@@ -83,9 +83,8 @@ struct uiAttributeSpec {
 	const uiOpenTypeFeatures *Features;	// TODO rename to OpenTypeFeatures?
 };
 
-// TODO name the foreach return values
 // TODO make the spec const in a way that doesn't allow fields to be modified?
-typedef int (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data);
+typedef uiForEach (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data);
 
 // @role uiAttributedString constructor
 // uiNewAttributedString() creates a new uiAttributedString from

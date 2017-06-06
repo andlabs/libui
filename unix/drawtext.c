@@ -95,9 +95,9 @@ static void computeLineMetrics(uiDrawTextLayout *tl)
 }
 
 static const PangoAlignment pangoAligns[] = {
-	[uiDrawTextLayoutAlignLeft] = PANGO_ALIGN_LEFT,
-	[uiDrawTextLayoutAlignCenter] = PANGO_ALIGN_CENTER,
-	[uiDrawTextLayoutAlignRight] = PANGO_ALIGN_RIGHT,
+	[uiDrawTextAlignLeft] = PANGO_ALIGN_LEFT,
+	[uiDrawTextAlignCenter] = PANGO_ALIGN_CENTER,
+	[uiDrawTextAlignRight] = PANGO_ALIGN_RIGHT,
 };
 
 uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)

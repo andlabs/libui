@@ -134,10 +134,10 @@ static void computeLineInfo(uiDrawTextLayout *tl)
 }
 
 // TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
-static std::map<uiDrawTextItalic, DWRITE_TEXT_ALIGNMENT> dwriteAligns = {
-	{ uiDrawTextLayoutAlignLeft, DWRITE_TEXT_ALIGNMENT_LEADING },
-	{ uiDrawTextLayoutAlignCenter, DWRITE_TEXT_ALIGNMENT_CENTER },
-	{ uiDrawTextLayoutAlignRight, DWRITE_TEXT_ALIGNMENT_TRAILING },
+static std::map<uiDrawTextAlign, DWRITE_TEXT_ALIGNMENT> dwriteAligns = {
+	{ uiDrawTextAlignLeft, DWRITE_TEXT_ALIGNMENT_LEADING },
+	{ uiDrawTextAlignCenter, DWRITE_TEXT_ALIGNMENT_CENTER },
+	{ uiDrawTextAlignRight, DWRITE_TEXT_ALIGNMENT_TRAILING },
 };
 
 uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)

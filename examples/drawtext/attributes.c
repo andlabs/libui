@@ -906,7 +906,7 @@ struct example *mkAttributesExample(void)
 	setupAttributedString();
 	params.String = attrstr;
 	params.DefaultFont = &defaultFont;
-	params.Align = uiDrawTextLayoutAlignLeft;
+	params.Align = uiDrawTextAlignLeft;
 
 	return &attributesExample;
 }

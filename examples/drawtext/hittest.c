@@ -210,7 +210,7 @@ static void changeFont(uiFontButton *b, void *data)
 static void changeTextAlign(uiCombobox *c, void *data)
 {
 	// note the order of the items added below
-	params.Align = (uiDrawTextLayoutAlign) uiComboboxSelected(textAlign);
+	params.Align = (uiDrawTextAlign) uiComboboxSelected(textAlign);
 	redraw();
 }
 
@@ -257,7 +257,7 @@ struct example *mkHitTestExample(void)
 	attrstr = uiNewAttributedString(text);
 	params.String = attrstr;
 	params.DefaultFont = &defaultFont;
-	params.Align = uiDrawTextLayoutAlignLeft;
+	params.Align = uiDrawTextAlignLeft;
 
 	return &hitTestExample;
 }

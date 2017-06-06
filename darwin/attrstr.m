@@ -386,9 +386,9 @@ static void applyAndFreeFontAttributes(struct foreachParams *p)
 }
 
 static const CTTextAlignment ctaligns[] = {
-	[uiDrawTextLayoutAlignLeft] = kCTTextAlignmentLeft,
-	[uiDrawTextLayoutAlignCenter] = kCTTextAlignmentCenter,
-	[uiDrawTextLayoutAlignRight] = kCTTextAlignmentRight,
+	[uiDrawTextAlignLeft] = kCTTextAlignmentLeft,
+	[uiDrawTextAlignCenter] = kCTTextAlignmentCenter,
+	[uiDrawTextAlignRight] = kCTTextAlignmentRight,
 };
 
 static CTParagraphStyleRef mkParagraphStyle(uiDrawTextLayoutParams *p)

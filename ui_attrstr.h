@@ -34,7 +34,8 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
 
 	// TODO note these are copied
-	// TODO figure out how we're going to deal with being able to edit features over time...
+	// TODO add a function to uiAttributedString to get an attribute's value at a specific index or in a specific range, so we can edit
+	// (TODO related to above: what about memory?)
 	uiAttributeFeatures,			// use Features
 };
 
@@ -52,11 +53,9 @@ _UI_ENUM(uiDrawUnderlineColor) {
 	uiDrawUnderlineColorAuxiliary,	// for instance, the color used by smart replacements on OS X
 };
 
-// TODO rename?
 typedef struct uiOpenTypeFeatures uiOpenTypeFeatures;
 // TODO pass the feature set?
 typedef uiForEach (*uiOpenTypeFeaturesForEachFunc)(char a, char b, char c, char d, uint32_t value, void *data);
-// TODO detailed constructor?
 _UI_EXTERN uiOpenTypeFeatures *uiNewOpenTypeFeatures(void);
 _UI_EXTERN void uiFreeOpenTypeFeatures(uiOpenTypeFeatures *otf);
 // TODO put above Free?
@@ -80,10 +79,10 @@ struct uiAttributeSpec {
 	double G;
 	double B;
 	double A;
-	const uiOpenTypeFeatures *Features;	// TODO rename to OpenTypeFeatures?
+	const uiOpenTypeFeatures *Features;
 };
 
-// TODO make the spec const in a way that doesn't allow fields to be modified?
+// TODO how would we make spec const in this case, to prevent fields from being modified?
 typedef uiForEach (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data);
 
 // @role uiAttributedString constructor
@@ -139,7 +138,6 @@ _UI_ENUM(uiDrawTextItalic) {
 	uiDrawTextItalicItalic,
 };
 
-// TODO realign this  so that Normal == 0?
 _UI_ENUM(uiDrawTextStretch) {
 	uiDrawTextStretchUltraCondensed,
 	uiDrawTextStretchExtraCondensed,
@@ -164,18 +162,17 @@ typedef struct uiDrawTextLayout uiDrawTextLayout;
 typedef struct uiDrawTextLayoutParams uiDrawTextLayoutParams;
 typedef struct uiDrawTextLayoutLineMetrics uiDrawTextLayoutLineMetrics;
 
-// TODO drop the Layout from this?
-_UI_ENUM(uiDrawTextLayoutAlign) {
-	uiDrawTextLayoutAlignLeft,
-	uiDrawTextLayoutAlignCenter,
-	uiDrawTextLayoutAlignRight,
+_UI_ENUM(uiDrawTextAlign) {
+	uiDrawTextAlignLeft,
+	uiDrawTextAlignCenter,
+	uiDrawTextAlignRight,
 };
 
 struct uiDrawTextLayoutParams {
 	uiAttributedString *String;
 	uiDrawFontDescriptor *DefaultFont;
 	double Width;
-	uiDrawTextLayoutAlign Align;
+	uiDrawTextAlign Align;
 };
 
 // Height will equal ParagraphSpacingBefore + LineHeightSpace + Ascent + Descent + Leading + LineSpacing + ParagraphSpacing.
@@ -253,10 +250,11 @@ _UI_EXTERN double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_
 
 _UI_EXTERN void uiDrawCaret(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout, size_t pos, int *line);
 // TODO allow blinking
+// TODO allow secondary carets
 
 typedef struct uiFontButton uiFontButton;
 #define uiFontButton(this) ((uiFontButton *) (this))
-// TODO have a function that sets an entire font descriptor to a range in a uiAttributedString at once?
+// TODO have a function that sets an entire font descriptor to a range in a uiAttributedString at once, for SetFont?
 _UI_EXTERN void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc);
 // TOOD SetFont, mechanics
 _UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);

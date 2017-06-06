@@ -259,7 +259,7 @@ struct example *mkBasicExample(void)
 	attrstr = uiNewAttributedString(text);
 	params.String = attrstr;
 	params.DefaultFont = &defaultFont;
-	params.Align = uiDrawTextLayoutAlignLeft;
+	params.Align = uiDrawTextAlignLeft;
 
 	return &basicExample;
 }

@@ -19,23 +19,50 @@
 // layout-specific properties.
 typedef struct uiAttributedString uiAttributedString;
 
-// TODO just make a separate field for everything?
+// TODO just make a separate field in uiAttributeSpec for everything? or make attribute objects opaque instead?
 _UI_ENUM(uiAttribute) {
-	uiAttributeFamily,			// use Family
-	uiAttributeSize,				// use Double
+	// uiAttributeFamily changes the font family of the text it is
+	// applied to. Use the Family field of uiAttributeSpec.
+	// TODO case-sensitive?
+	uiAttributeFamily,
+	// uiAttributeSize changes the size of the text it is applied to,
+	// in typographical points. Use the Double field of
+	// uiAttributeSpec.
+	uiAttributeSize,
+	// uiAttributeWeight changes the weight of the text it is applied
+	// to. Use the Value field of uiAttributeSpec and the
+	// uiDrawTextWeight constants.
 	uiAttributeWeight,
+	// uiAttributeItalic changes the italicness of the text it is applied
+	// to. Use the Value field of uiAttributeSpec and the
+	// uiDrawTextItalic constants.
 	uiAttributeItalic,
+	// uiAttributeStretch changes the stretch of the text it is applied
+	// to. Use the Value field of uiAttributeSpec and the
+	// uiDrawTextStretch constants.
 	uiAttributeStretch,
-	uiAttributeColor,			// use R, G, B, A
-	uiAttributeBackground,		// use R, G, B, A
+	// uiAttributeColor changes the color of the text it is applied to.
+	// Use the R, G, B, and A fields of uiAttributeSpec.
+	uiAttributeColor,
+	// uiAttributeBackground changes the color of the text it is
+	// applied to. Use the R, G, B, and A fields of uiAttributeSpec.
+	uiAttributeBackground,
 
-	uiAttributeUnderline,		// enum uiDrawUnderlineStyle
-	// TODO document that the color in the case we don't specify it is the text color
-	uiAttributeUnderlineColor,	// enum uiDrawUnderlineColor
+	// uiAttributeUnderline changes the underline style of the text
+	// it is applied to. Use the Value field of uiAttributeSpec and the
+	// uiDrawUnderlineStyle constants.
+	uiAttributeUnderline,
+	// uiAttributeUnderlineColor changes the color of any underline
+	// on the text it is applied to, regardless of the style. Use the
+	// Value field of uiAttributeSpec and the uiDrawUnderlineColor
+	// constants (refer to its documentation for more information).
+	// 
+	// If an underline style is applied but no underline color is
+	// specified, the text color is used instead.
+	uiAttributeUnderlineColor,
 
-	// TODO note these are copied
-	// TODO add a function to uiAttributedString to get an attribute's value at a specific index or in a specific range, so we can edit
-	// (TODO related to above: what about memory?)
+	// uiAttributeFeatures changes the OpenType features of the
+	// text it is applied to. Use the Features field of uiAttributeSpec.
 	uiAttributeFeatures,			// use Features
 };
 
@@ -70,6 +97,9 @@ _UI_EXTERN int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpen
 
 typedef struct uiAttributeSpec uiAttributeSpec;
 
+// TODO note that pointers are copied
+// TODO add a function to uiAttributedString to get an attribute's value at a specific index or in a specific range, so we can edit
+// (TODO related to above: what about memory consumption during a read-modify-write cycle due to copying?)
 struct uiAttributeSpec {
 	uiAttribute Type;
 	const char *Family;

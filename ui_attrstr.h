@@ -19,6 +19,7 @@
 // layout-specific properties.
 typedef struct uiAttributedString uiAttributedString;
 
+// TODO either here or above, say that only one attribute can be applied per attribute type per character
 // TODO just make a separate field in uiAttributeSpec for everything? or make attribute objects opaque instead?
 _UI_ENUM(uiAttribute) {
 	// uiAttributeFamily changes the font family of the text it is
@@ -80,19 +81,70 @@ _UI_ENUM(uiDrawUnderlineColor) {
 	uiDrawUnderlineColorAuxiliary,	// for instance, the color used by smart replacements on OS X
 };
 
+// uiOpenTypeFeatures represents a set of OpenType feature
+// tag-value pairs, for applying OpenType features to text.
+// OpenType feature tags are four-character codes defined by
+// OpenType that cover things from design features like small
+// caps and swashes to language-specific glyph shapes and
+// beyond. Each tag may only appear once in any given
+// uiOpenTypeFeatures instance. Each value is a 32-bit integer,
+// often used as a Boolean flag, but sometimes as an index to choose
+// a glyph shape to use.
+// 
+// The full list of OpenType features is part of the OpenType
+// specification:
+// https://www.microsoft.com/typography/otspec/featuretags.htm
+// Refer to it for information on specific features and how to use
+// them.
+// TODO reformat this somehow (how do Go packages do things like this?)
 typedef struct uiOpenTypeFeatures uiOpenTypeFeatures;
-// TODO pass the feature set?
+
+// TODO pass the feature set? (resolve const struct issue below first)
 typedef uiForEach (*uiOpenTypeFeaturesForEachFunc)(char a, char b, char c, char d, uint32_t value, void *data);
+
+// @role uiOpenTypeFeatures constructor
+// uiNewOpenTypeFeatures() returns a new uiOpenTypeFeatures
+// instance, with no tags yet added.
 _UI_EXTERN uiOpenTypeFeatures *uiNewOpenTypeFeatures(void);
+
+// @role uiOpenTypeFeatures destructor
+// uiFreeOpenTypeFeatures() frees otf.
 _UI_EXTERN void uiFreeOpenTypeFeatures(uiOpenTypeFeatures *otf);
-// TODO put above Free?
-// TODO Copy instead of Clone?
+
+// uiOpenTypeFeaturesClone() makes a copy of otf and returns it.
+// Changing one will not affect the other.
 _UI_EXTERN uiOpenTypeFeatures *uiOpenTypeFeaturesClone(const uiOpenTypeFeatures *otf);
+
+// uiOpenTypeFeaturesAdd() adds the given feature tag and value
+// to otf. The feature tag is specified by a, b, c, and d. If there is
+// already a value associated with the specified tag in otf, the old
+// value is removed.
 _UI_EXTERN void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value);
+
+// uiOpenTypeFeaturesRemove() removes the given feature tag
+// and value from otf.
+// TODO what happens if the tag isn't there?
 _UI_EXTERN void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d);
+
+// uiOpenTypeFeaturesGet() determines whether the given feature
+// tag is present in otf. If it is, *value is set to the tag's value and
+// nonzero is returned. Otherwise, zero is returned.
+// TODO zero-fill value unconditionally? and if so, to other functions in libui
+// TODO allow NULL for value? and throughout libui?
+// TODO const-correct this function (can we do that given the members of the struct on some platforms being full blown objects that may or may not themselves be const-correct?)
 _UI_EXTERN int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value);
-// TODO make other enumerators const (and in general const-correct everything)
+
+// uiOpenTypeFeaturesForEach() executes f for every tag-value
+// pair in otf. The enumeration order is unspecified.
+// TODO make other enumerators const (and in general const-correct everything) (but see the const struct TODO below and the const struct object member TODO above)
 _UI_EXTERN void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data);
+
+// uiOpenTypeFeaturesEqual() returns nonzero if a is equal to b.
+// a is defined as equal to b if and only if both
+// - contain the same tags, without any extras or missing tags
+// 	either way, and
+// - have each tag have the same values
+// TODO what if either or both are NULL?
 _UI_EXTERN int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeatures *b);
 
 typedef struct uiAttributeSpec uiAttributeSpec;

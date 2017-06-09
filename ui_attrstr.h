@@ -91,12 +91,14 @@ _UI_ENUM(uiDrawUnderlineColor) {
 // often used as a Boolean flag, but sometimes as an index to choose
 // a glyph shape to use.
 // 
-// The full list of OpenType features is part of the OpenType
-// specification:
+// If a font does not support a certain feature, that feature will be
+// ignored.
+// 
+// See the OpenType specification at
 // https://www.microsoft.com/typography/otspec/featuretags.htm
-// Refer to it for information on specific features and how to use
-// them.
-// TODO reformat this somehow (how do Go packages do things like this?)
+// for the complete list of available features, information on specific
+// features, and how to use them.
+// TODO invalid features
 typedef struct uiOpenTypeFeatures uiOpenTypeFeatures;
 
 // TODO pass the feature set? (resolve const struct issue below first)

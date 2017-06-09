@@ -113,13 +113,7 @@ struct foreachParams {
 		return NO;
 	if (self.stretch != b.stretch)
 		return NO;
-	// TODO make this part of uiOpenTypeFeaturesEqual() on all platforms
-	if (self.features == NULL && b.features == NULL)
-		return YES;
-	if (self.features != NULL && b.features == NULL)
-		return NO;
-	if (self.features == NULL && b.features != NULL)
-		return NO;
+	// this also handles NULL cases
 	if (!uiOpenTypeFeaturesEqual(self.features, b.features))
 		return NO;
 	return YES;

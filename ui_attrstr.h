@@ -142,11 +142,8 @@ _UI_EXTERN int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, ch
 _UI_EXTERN void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data);
 
 // uiOpenTypeFeaturesEqual() returns nonzero if a is equal to b.
-// a is defined as equal to b if and only if both
-// - contain the same tags, without any extras or missing tags
-// 	either way, and
-// - have each tag have the same values
-// TODO what if either or both are NULL?
+// a is defined as equal to b if and only if both have exactly the same
+// tags with exactly the same values, or if both are NULL.
 _UI_EXTERN int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeatures *b);
 
 typedef struct uiAttributeSpec uiAttributeSpec;

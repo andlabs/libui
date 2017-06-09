@@ -87,6 +87,10 @@ void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeatures
 
 int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeatures *b)
 {
+	if (a == NULL && b == NULL)
+		return 1;
+	if (a == NULL || b == NULL)
+		return 0;
 	return [a->tags isEqualToDictionary:b->tags];
 }
 

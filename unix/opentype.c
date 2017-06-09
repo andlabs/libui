@@ -133,6 +133,11 @@ int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeature
 	guint i;
 	int equal = 0;
 
+	if (a == NULL && b == NULL)
+		return 1;
+	if (a == NULL || b == NULL)
+		return 0;
+
 	ak = copySortedKeys(a->tags);
 	bk = copySortedKeys(b->tags);
 

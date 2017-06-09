@@ -154,7 +154,7 @@ static uiForEach processAttribute(uiAttributedString *s, uiAttributeSpec *spec, 
 		}
 		break;
 	case uiAttributeFeatures:
-		// TODO handle NULLs properly on all platforms
+		// TODO make sure NULLs are handled properly on all platforms in this part of the code
 		featurestr = otfToPangoCSSString(spec->Features);
 		addattr(p, start, end,
 			FUTURE_pango_attr_font_features_new(featurestr));

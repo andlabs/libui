@@ -22,6 +22,8 @@ Expressions should have a spce around binary operators, and use parentheses wher
 
 When breaking expressions into multiple lines, always break *after* an operator, such as `,` or `&&`.
 
+There should be a newline between a function's variables and a function's code. After that, you can place newlines to delimit different parts of a function, but don't go crazy.
+
 In the event you are unsure of something, refer to existing libui code for examples. I may wind up fixing minor details later anyway, so don't fret about getting minor details right the first time.
 
 ### Naming
@@ -40,7 +42,7 @@ Acronyms should **NOT** be mixed-case. `http` for the first word in a camel-case
 
 ### Compatibility
 
-libui takes backward compatibility seriously. Your code should not break the current compatibility requirements. All platforms provide a series of macros, defined in the various `uipriv_*.h*` files (or `winapi.hpp` on Windows), that specify the minimum required version. If you find yourself needing to remove these or ignore resultant warnings or errors, you're probably breaking compatibility.
+libui takes backward compatibility seriously. Your code should not break the current compatibility requirements. All platforms provide a series of macros, defined in the various `uipriv_*.h` files (or `winapi.hpp` on Windows), that specify the minimum required version. If you find yourself needing to remove these or ignore resultant warnings or errors, you're probably breaking compatibility.
 
 Choosing to drop older versions of Windows, GTK+, and OS X that I could have easily continued to support was not done lightly. If you want to discuss dropping support for an older version of any of these for the benefit of libui, file an issue pleading your case (see below).
 
@@ -76,7 +78,8 @@ The format of a class should be
 
 ```c++
 class name : public ancestor {
-	// private variables here
+	int privateVariable;
+	// etc.
 public:
 	// public stuff here
 };
@@ -87,6 +90,8 @@ public:
 Avoid GNU-specific language features. I build with strict C99 conformance.
 
 ### OS X-specific notes
+
+Avoid GNU-specific/clang-specific language features. I build with strict C99 conformance.
 
 libui is presently **not** ARC-compliant. Features that require ARC should be avoided for now. I may consider changing this in the future, but it will be a significant change.
 
@@ -105,13 +110,13 @@ The format of a class should be
 	// ivars
 }
 // properties
-- (ret)method;
+- (ret)method:(int)arg;
 // more methods
 @end
 
 @implementation name
 
-- (ret)method
+- (ret)method:(int)arg
 {
 	// note the lack of semicolon
 }

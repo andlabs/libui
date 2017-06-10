@@ -372,6 +372,8 @@ static void applyAndFreeFontAttributes(struct foreachParams *p)
 		font = defaultFont;
 		CFRetain(font);
 	} else
+		// note that this handles the difference between NULL and empty uiOpenTypeFeatures properly as far as conversion to native data formats is concerned (NULL does not generate a features dictionary; empty just produces an empty one)
+		// TODO but what about from the OS's perspective on all OSs?
 		font = [cfa toCTFont];
 	CFAttributedStringSetAttribute(p->mas, range, kCTFontAttributeName, font);
 	CFRelease(font);

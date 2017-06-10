@@ -174,7 +174,9 @@ static uiForEach processAttribute(uiAttributedString *s, uiAttributeSpec *spec, 
 		}
 		break;
 	case uiAttributeFeatures:
-		// TODO make sure this behaves properly if spec->Features is NULL
+		// only generate an attribute if spec->Features is not NULL
+		if (spec->Features == NULL)
+			break;
 		dt = otfToDirectWrite(spec->Features);
 		hr = p->layout->SetTypography(dt, range);
 		if (hr != S_OK)

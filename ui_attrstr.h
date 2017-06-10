@@ -92,7 +92,7 @@ _UI_ENUM(uiDrawUnderlineColor) {
 // a glyph shape to use.
 // 
 // If a font does not support a certain feature, that feature will be
-// ignored.
+// ignored. (TODO verify this on all OSs)
 // 
 // See the OpenType specification at
 // https://www.microsoft.com/typography/otspec/featuretags.htm

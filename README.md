@@ -178,6 +178,10 @@ When you run a binary directly from the Terminal, however, you are running it di
 
 See also [this](https://github.com/andlabs/libui/pull/20#issuecomment-211381971) and [this](http://stackoverflow.com/questions/25318524/what-exactly-should-i-pass-to-nsapp-activateignoringotherapps-to-get-my-appl).
 
+## Contributing
+
+See `CONTRIBUTING.md`.
+
 ## Screenshots
 
 From examples/controlgallery:

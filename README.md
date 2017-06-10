@@ -5,6 +5,10 @@ This README is being written.<br>
 
 ## Announcements
 
+* **TODO**
+	* Introduced an all-new formatted text API that allows you to process formatted text in ways that the old API wouldn't allow. You can read on the whole API [here](TODO).
+	* Also introduced a formal set of contribution guidelines, see `CONTRIBUTING.md` for details.
+
 * **27 November 2016**
 	* Decided to split the table stuff into its own branch. It will be developed independently of everything else, along with a few other features.
 

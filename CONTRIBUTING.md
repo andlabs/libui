@@ -71,7 +71,7 @@ Despite using C++, please refrain from using the following:
 The following are not recommended, for consistency with the rest of libui:
 
 - variable declarations anywhere in a function (keep them all at the top)
-- `for (int...` (C++11 foreach syntax is fine, though)
+- `for (int x...` (C++11 foreach syntax is fine, though)
 - omitting the `struct` on type names for ordinary structs
 
 The format of a class should be

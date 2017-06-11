@@ -5,6 +5,8 @@
 #include <time.h>
 #include "../../ui.h"
 
+// TODO the grid simply flat out does not work on OS X
+
 uiWindow *mainwin;
 uiFontButton *fontButton;
 uiEntry *textEntry;
@@ -81,6 +83,21 @@ static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 	return 0;
 }
 
+static void onFontChanged(uiFontButton *b, void *data)
+{
+	remakeAttrStr();
+}
+
+static void onTextChanged(uiEntry *e, void *data)
+{
+	remakeAttrStr();
+}
+
+static void onNULLToggled(uiCheckbox *c, void *data)
+{
+	remakeAttrStr();
+}
+
 static int onClosing(uiWindow *w, void *data)
 {
 	// TODO change the others to be like this? (the others destroy here rather than later)
@@ -129,6 +146,7 @@ int main(void)
 	uiWindowSetChild(mainwin, uiControl(grid));
 
 	fontButton = uiNewFontButton();
+	uiFontButtonOnChanged(fontButton, onFontChanged, NULL);
 	uiGridAppend(grid, uiControl(fontButton),
 		0, 0, 1, 1,
 		// TODO are these Y values correct?
@@ -136,6 +154,7 @@ int main(void)
 
 	textEntry = uiNewEntry();
 	uiEntrySetText(textEntry, "afford afire aflight");
+	uiEntryOnChanged(textEntry, onTextChanged, NULL);
 	uiGridAppend(grid, uiControl(textEntry),
 		1, 0, 1, 1,
 		// TODO are these Y values correct too?
@@ -149,6 +168,7 @@ int main(void)
 		0, uiAlignFill, 1, uiAlignFill);
 
 	nullFeatures = uiNewCheckbox("NULL uiOpenTypeFeatures");
+	uiCheckboxOnToggled(nullFeatures, onNULLToggled, NULL);
 	uiBoxAppend(vbox, uiControl(nullFeatures), 0);
 
 	// TODO separator (if other stuff isn't a tab)

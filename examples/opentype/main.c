@@ -173,6 +173,14 @@ int main(void)
 
 	// TODO separator (if other stuff isn't a tab)
 
+	// TODO needed for this to be testable on os x without rewriting everything again
+	{
+		int x;
+
+		for (x = 0; x < 10; x++)
+			uiBoxAppend(vbox, uiControl(uiNewEntry()), 0);
+	}
+
 	// TODO other stuff
 
 	area = uiNewArea(&handler);

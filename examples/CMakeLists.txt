@@ -42,9 +42,17 @@ _add_example(drawtext
 target_include_directories(drawtext
 	PRIVATE drawtext)
 
+_add_example(opentype
+	opentype/main.c
+	${_EXAMPLE_RESOURCES_RC}
+)
+target_include_directories(opentype
+	PRIVATE opentype)
+
 add_custom_target(examples
 	DEPENDS
 		controlgallery
 		histogram
 		cpp-multithread
-		drawtext)
+		drawtext
+		opentype)

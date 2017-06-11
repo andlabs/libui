@@ -18,7 +18,7 @@ libui uses K&R C formatting rules for overall code structure: spaces after keywo
 
 Use hard tabs, NOT spaces, for indentation. I use a proportional-width font and my text editor doesn't set tabs to a multiple of the space width, so I *will* be able to tell. If you use a fixed-width font, I suggest setting a tab width of 4 spaces per tab, but don't put diagrams in comments with hard tabs, because not everyone does this.
 
-Expressions should have a spce around binary operators, and use parentheses where it would help humans gather the meaning of an expression, regardless of whether a computer could tell what is correct.
+Expressions should have a space around binary operators, and use parentheses where it would help humans gather the meaning of an expression, regardless of whether a computer could tell what is correct.
 
 When breaking expressions into multiple lines, always break *after* an operator, such as `,` or `&&`.
 
@@ -39,6 +39,10 @@ Acronyms should **NOT** be mixed-case. `http` for the first word in a camel-case
 ### API documentation
 
 (TODO I am writing an API documentation tool; once that becomes stable enough I can talk about documenting libui properly. You'll see vestiges of it throughout ui.h, though.)
+
+### Other commenting
+
+(TODO write this part)
 
 ### Compatibility
 

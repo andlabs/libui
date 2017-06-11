@@ -6,7 +6,7 @@ This README is being written.<br>
 ## Announcements
 
 * **TODO**
-	* Introduced an all-new formatted text API that allows you to process formatted text in ways that the old API wouldn't allow. You can read on the whole API [here](TODO).
+	* Introduced an all-new formatted text API that allows you to process formatted text in ways that the old API wouldn't allow. You can read on the whole API [here](TODO). There are also two new examples for this new api: `drawtext` (which shows the whole API at a glance) and `opentype` (which focuses on OpenType features).
 	* Also introduced a formal set of contribution guidelines, see `CONTRIBUTING.md` for details.
 
 * **27 November 2016**

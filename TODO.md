@@ -175,3 +175,11 @@ function: ide_editor_map_bin_add()
 - consider a uiAnticipateDoubleClick() or uiDoubleClickTime() (for a uiQueueTimer()) or something: https://blogs.msdn.microsoft.com/oldnewthing/20041015-00/?p=37553
 
 - determine whether MSGF_USER is for and if it's correct for our uiArea message filter (if we have one)
+
+- source file encoding and MSVC compiler itself? https://stackoverflow.com/questions/20518040/how-can-i-get-the-directwrite-padwrite-sample-to-work
+	- also need to worry about object file and output encoding...
+	- this also names the author of the padwrite sample
+
+- OpenType features TODOs
+	- https://stackoverflow.com/questions/32545675/what-are-the-default-typography-settings-used-by-idwritetextlayout
+	- feature/shaping interaction rules for arabic: https://www.microsoft.com/typography/OpenTypeDev/arabic/intro.htm

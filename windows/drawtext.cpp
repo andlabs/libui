@@ -7,6 +7,7 @@
 // - if that's not a problem, do we have overlapping rects in the hittest sample? I can't tell...
 // - empty string: nLines == 1 and all checks out except extents has x == 0 when not left aligned
 // - paragraph alignment is subject to RTL mirroring; see if it is on other platforms
+// - add overhang info to metrics?
 
 // TODO verify our renderer is correct, especially with regards to snapping
 

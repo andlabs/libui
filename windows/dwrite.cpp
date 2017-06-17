@@ -66,6 +66,7 @@ WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *
 		hr = names->FindLocaleName(fc->userLocale, &index, &exists);
 	if (hr != S_OK || (hr == S_OK && !exists))
 		hr = names->FindLocaleName(L"en-us", &index, &exists);
+	// TODO check hr again here? or did I decide that would be redundant because COM requires output arguments to be filled regardless of return value?
 	if (!exists)
 		index = 0;
 

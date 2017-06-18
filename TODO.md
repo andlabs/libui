@@ -183,3 +183,10 @@ function: ide_editor_map_bin_add()
 - OpenType features TODOs
 	- https://stackoverflow.com/questions/32545675/what-are-the-default-typography-settings-used-by-idwritetextlayout
 	- feature/shaping interaction rules for arabic: https://www.microsoft.com/typography/OpenTypeDev/arabic/intro.htm
+	- other stuff, mostly about UIs and what users expect to be able to set
+		- https://klim.co.nz/blog/towards-an-ideal-opentype-user-interface/
+		- https://libregraphicsmeeting.org/2016/designing-for-many-applications-opentype-features-ui/
+			- https://www.youtube.com/watch?v=wEyDhsH076Y
+			- https://twitter.com/peter_works
+		- http://ilovetypography.com/2014/10/22/better-ui-for-better-typography-adobe-petition/
+		- http://silgraphite.sourceforge.net/ui/studynote.html

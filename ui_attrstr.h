@@ -19,7 +19,10 @@
 // layout-specific properties.
 typedef struct uiAttributedString uiAttributedString;
 
-// TODO either here or above, say that only one attribute can be applied per attribute type per character
+// uiAttribute specifies the types of possible attributes that can be
+// applied to a uiAttributedString. For every byte in the
+// uiAttributedString, at most one value of each attribute type can
+// be applied.
 // TODO just make a separate field in uiAttributeSpec for everything? or make attribute objects opaque instead?
 _UI_ENUM(uiAttribute) {
 	// uiAttributeFamily changes the font family of the text it is
@@ -64,7 +67,7 @@ _UI_ENUM(uiAttribute) {
 
 	// uiAttributeFeatures changes the OpenType features of the
 	// text it is applied to. Use the Features field of uiAttributeSpec.
-	uiAttributeFeatures,			// use Features
+	uiAttributeFeatures,
 };
 
 _UI_ENUM(uiDrawUnderlineStyle) {
@@ -124,15 +127,22 @@ _UI_EXTERN uiOpenTypeFeatures *uiOpenTypeFeaturesClone(const uiOpenTypeFeatures 
 _UI_EXTERN void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value);
 
 // uiOpenTypeFeaturesRemove() removes the given feature tag
-// and value from otf.
-// TODO what happens if the tag isn't there?
+// and value from otf. If the tag is not present in otf,
+// uiOpenTypeFeaturesRemove() does nothing.
 _UI_EXTERN void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d);
 
 // uiOpenTypeFeaturesGet() determines whether the given feature
 // tag is present in otf. If it is, *value is set to the tag's value and
 // nonzero is returned. Otherwise, zero is returned.
-// TODO zero-fill value unconditionally? and if so, to other functions in libui
-// TODO allow NULL for value? and throughout libui?
+// 
+// Note that if uiOpenTypeFeaturesGet() returns zero, value isn't
+// changed. This is important: if a feature is not present in a
+// uiOpenTypeFeatures, the feature is NOT treated as if its
+// value was zero anyway. Script-specific font shaping rules and
+// font-specific feature settings may use a different default value
+// for a feature. You should likewise not treat a missing feature as
+// having a value of zero either. Instead, a missing feature should
+// be treated as having some unspecified default value.
 // TODO const-correct this function (can we do that given the members of the struct on some platforms being full blown objects that may or may not themselves be const-correct?)
 _UI_EXTERN int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value);
 

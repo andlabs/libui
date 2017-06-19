@@ -2,6 +2,9 @@
 
 // TODO add a uiVerifyControlType() function that can be used by control implementations to verify controls
 
+// TODOs
+// - make getters that return whether something exists accept a NULL pointer to discard the value (and thus only return that the thing exists?)
+
 #ifndef __LIBUI_UI_H__
 #define __LIBUI_UI_H__
 

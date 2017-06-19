@@ -56,6 +56,7 @@ void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char
 
 void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d)
 {
+	// will just return FALSE if the tag is not in otf->tags (half-documented as such), so we can use it safely
 	g_hash_table_remove(otf->tags, mkTag(a, b, c, d));
 }
 

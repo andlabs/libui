@@ -39,10 +39,9 @@ void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char
 	(*(otf->tags))[mktag(a, b, c, d)] = value;
 }
 
-// TODO what should happen if a/b/c/d isn't defined?
-// TODO what does std::map do if a/b/c/d isn't defined?
 void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d)
 {
+	// this will just return 0 if nothing was removed (if I'm reading the help pages I've found correctly)
 	otf->tags->erase(mktag(a, b, c, d));
 }
 

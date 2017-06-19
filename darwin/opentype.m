@@ -47,6 +47,7 @@ void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, c
 	NSNumber *tn;
 
 	tn = mkMapObject(mkTag(a, b, c, d));
+	// documented as doing nothing if tn is not in otf->tags
 	[otf->tags removeObjectForKey:tn];
 }
 

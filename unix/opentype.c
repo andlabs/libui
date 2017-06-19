@@ -60,9 +60,8 @@ void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, c
 	g_hash_table_remove(otf->tags, mkTag(a, b, c, d));
 }
 
-// TODO should this be before Add and Remove?
-// TODO better name than Get?
-int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value)
+// TODO will the const wreck stuff up?
+int uiOpenTypeFeaturesGet(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value)
 {
 	gboolean found;
 	gpointer gv;
@@ -77,6 +76,7 @@ int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char 
 }
 
 struct otfForEach {
+	const uiOpenTypeFeatures *otf;
 	uiOpenTypeFeaturesForEachFunc f;
 	void *data;
 	uiForEach ret;
@@ -96,7 +96,7 @@ static void foreach(gpointer key, gpointer value, gpointer data)
 	b = (uint8_t) ((tag >> 16) & 0xFF);
 	c = (uint8_t) ((tag >> 8) & 0xFF);
 	d = (uint8_t) (tag & 0xFF);
-	ofe->ret = (*(ofe->f))((char) a, (char) b, (char) c, (char) d, GPOINTER_TO_INT(value), ofe->data);
+	ofe->ret = (*(ofe->f))(ofe->otf, (char) a, (char) b, (char) c, (char) d, GPOINTER_TO_INT(value), ofe->data);
 }
 
 void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data)
@@ -104,6 +104,7 @@ void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeatures
 	struct otfForEach ofe;
 
 	memset(&ofe, 0, sizeof (struct otfForEach));
+	ofe.otf = otf;
 	ofe.f = f;
 	ofe.data = data;
 	g_hash_table_foreach(otf->tags, foreach, &ofe);
@@ -183,7 +184,7 @@ out:
 
 // see https://developer.mozilla.org/en/docs/Web/CSS/font-feature-settings
 // TODO make this a g_hash_table_foreach() function (which requires duplicating code)?
-static uiForEach toCSS(char a, char b, char c, char d, uint32_t value, void *data)
+static uiForEach toCSS(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data)
 {
 	// TODO is there a G_STRING()?
 	GString *s = (GString *) data;

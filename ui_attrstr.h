@@ -104,8 +104,10 @@ _UI_ENUM(uiDrawUnderlineColor) {
 // TODO invalid features
 typedef struct uiOpenTypeFeatures uiOpenTypeFeatures;
 
-// TODO pass the feature set? (resolve const struct issue below first)
-typedef uiForEach (*uiOpenTypeFeaturesForEachFunc)(char a, char b, char c, char d, uint32_t value, void *data);
+// uiOpenTypeFeaturesForEachFunc is the type of the function
+// invoked by uiOpenTypeFeaturesForEach() for every OpenType
+// feature in otf.
+typedef uiForEach (*uiOpenTypeFeaturesForEachFunc)(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data);
 
 // @role uiOpenTypeFeatures constructor
 // uiNewOpenTypeFeatures() returns a new uiOpenTypeFeatures
@@ -143,12 +145,11 @@ _UI_EXTERN void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b
 // for a feature. You should likewise not treat a missing feature as
 // having a value of zero either. Instead, a missing feature should
 // be treated as having some unspecified default value.
-// TODO const-correct this function (can we do that given the members of the struct on some platforms being full blown objects that may or may not themselves be const-correct?)
-_UI_EXTERN int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value);
+_UI_EXTERN int uiOpenTypeFeaturesGet(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value);
 
 // uiOpenTypeFeaturesForEach() executes f for every tag-value
-// pair in otf. The enumeration order is unspecified.
-// TODO make other enumerators const (and in general const-correct everything) (but see the const struct TODO below and the const struct object member TODO above)
+// pair in otf. The enumeration order is unspecified. You cannot
+// modify otf while uiOpenTypeFeaturesForEach() is running.
 _UI_EXTERN void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data);
 
 // uiOpenTypeFeaturesEqual() returns nonzero if a is equal to b.

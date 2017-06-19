@@ -45,7 +45,8 @@ void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, c
 	otf->tags->erase(mktag(a, b, c, d));
 }
 
-int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value)
+// TODO will the const wreck stuff up?
+int uiOpenTypeFeaturesGet(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value)
 {
 	tagmap::const_iterator iter;
 
@@ -69,7 +70,7 @@ void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeatures
 		b = (uint8_t) ((iter->first >> 8) & 0xFF);
 		c = (uint8_t) ((iter->first >> 16) & 0xFF);
 		d = (uint8_t) ((iter->first >> 24) & 0xFF);
-		ret = (*f)((char) a, (char) b, (char) c, (char) d,
+		ret = (*f)(otf, (char) a, (char) b, (char) c, (char) d,
 			iter->second, data);
 		if (ret == uiForEachStop)
 			return;

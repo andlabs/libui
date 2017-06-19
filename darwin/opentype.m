@@ -51,7 +51,8 @@ void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, c
 	[otf->tags removeObjectForKey:tn];
 }
 
-int uiOpenTypeFeaturesGet(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value)
+// TODO will the const wreck stuff up?
+int uiOpenTypeFeaturesGet(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value)
 {
 	NSNumber *tn, *vn;
 
@@ -78,7 +79,7 @@ void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeatures
 		b = (uint8_t) ((tag >> 16) & 0xFF);
 		c = (uint8_t) ((tag >> 8) & 0xFF);
 		d = (uint8_t) (tag & 0xFF);
-		ret = (*f)((char) a, (char) b, (char) c, (char) d,
+		ret = (*f)(otf, (char) a, (char) b, (char) c, (char) d,
 			mapObjectValue(vn), data);
 		// TODO for all: require exact match?
 		if (ret == uiForEachStop)
@@ -98,7 +99,7 @@ int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeature
 // TODO explain all this
 // TODO rename outerArray and innerDict (the names made sense when this was part of fontdescAppendFeatures(), but not here)
 // TODO make all this use enumerateKeysAndObjects (which requires duplicating code)?
-static uiForEach otfArrayForEachAAT(char a, char b, char c, char d, uint32_t value, void *data)
+static uiForEach otfArrayForEachAAT(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data)
 {
 	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
 
@@ -133,7 +134,7 @@ static uiForEach otfArrayForEachAAT(char a, char b, char c, char d, uint32_t val
 }
 
 // TODO find out which fonts differ in AAT small caps and test them with this
-static uiForEach otfArrayForEachOT(char a, char b, char c, char d, uint32_t value, void *data)
+static uiForEach otfArrayForEachOT(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data)
 {
 	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
 	CFDictionaryRef innerDict;

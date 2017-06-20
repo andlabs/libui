@@ -210,7 +210,8 @@ _UI_EXTERN void uiAttributedStringAppendUnattributed(uiAttributedString *s, cons
 // along with its text.
 _UI_EXTERN void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *str, size_t at);
 
-// TODO add the Append and InsertAtAttributed functions
+// TODO add the Append and InsertAtExtendingAttributes functions
+// TODO and add functions that take a string + length
 
 // uiAttributedStringDelete() deletes the characters and attributes of
 // s in the range [start, end).

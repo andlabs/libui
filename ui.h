@@ -5,6 +5,7 @@
 // TODOs
 // - make getters that return whether something exists accept a NULL pointer to discard the value (and thus only return that the thing exists?)
 // - const-correct everything
+// - normalize documentation between typedefs and structs
 
 #ifndef __LIBUI_UI_H__
 #define __LIBUI_UI_H__

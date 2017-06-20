@@ -73,12 +73,12 @@ void uiFreeAttributedString(uiAttributedString *s)
 	uiFree(s);
 }
 
-const char *uiAttributedStringString(uiAttributedString *s)
+const char *uiAttributedStringString(const uiAttributedString *s)
 {
 	return s->s;
 }
 
-size_t uiAttributedStringLen(uiAttributedString *s)
+size_t uiAttributedStringLen(const uiAttributedString *s)
 {
 	return s->len;
 }

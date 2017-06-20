@@ -163,7 +163,6 @@ typedef struct uiAttributeSpec uiAttributeSpec;
 // TODO note that pointers are copied
 // TODO add a function to uiAttributedString to get an attribute's value at a specific index or in a specific range, so we can edit
 // (TODO related to above: what about memory consumption during a read-modify-write cycle due to copying?)
-// TODO normalize documentation between typedefs and structs
 struct uiAttributeSpec {
 	uiAttribute Type;
 	const char *Family;
@@ -194,21 +193,42 @@ _UI_EXTERN void uiFreeAttributedString(uiAttributedString *s);
 // uiAttributedStringString() returns the textual content of s as a
 // '\0'-terminated UTF-8 string. The returned pointer is valid until
 // the next change to the textual content of s.
-_UI_EXTERN const char *uiAttributedStringString(uiAttributedString *s);
+_UI_EXTERN const char *uiAttributedStringString(const uiAttributedString *s);
 
 // uiAttributedStringLength() returns the number of UTF-8 bytes in
 // the textual content of s, excluding the terminating '\0'.
-_UI_EXTERN size_t uiAttributedStringLen(uiAttributedString *s);
+_UI_EXTERN size_t uiAttributedStringLen(const uiAttributedString *s);
 
+// uiAttributedStringAppendUnattributed() adds the '\0'-terminated
+// UTF-8 string str to the end of s. The new substring will be
+// unattributed.
 _UI_EXTERN void uiAttributedStringAppendUnattributed(uiAttributedString *s, const char *str);
+
+// uiAttributedStringAppendUnattributed() adds the '\0'-terminated
+// UTF-8 string str to s at the byte position specified by at. The new
+// substring will be unattributed; existing attributes will be moved
+// along with its text.
 _UI_EXTERN void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *str, size_t at);
+
+// TODO add the Append and InsertAtAttributed functions
+
+// uiAttributedStringDelete() deletes the characters and attributes of
+// s in the range [start, end).
 _UI_EXTERN void uiAttributedStringDelete(uiAttributedString *s, size_t start, size_t end);
+
+// TODO const correct this somehow (the implementation needs to mutate the structure)
 _UI_EXTERN size_t uiAttributedStringNumGraphemes(uiAttributedString *s);
+
+// TODO const correct this somehow (the implementation needs to mutate the structure)
 _UI_EXTERN size_t uiAttributedStringByteIndexToGrapheme(uiAttributedString *s, size_t pos);
+
+// TODO const correct this somehow (the implementation needs to mutate the structure)
 _UI_EXTERN size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos);
+
+_UI_EXTERN void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end);
+
 // TODO document this
 // TODO possibly copy the spec each time to ensure it doesn't get clobbered
-_UI_EXTERN void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end);
 _UI_EXTERN void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
 
 typedef struct uiDrawFontDescriptor uiDrawFontDescriptor;

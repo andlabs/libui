@@ -306,7 +306,7 @@ void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec
 	attrlistInsertAttribute(s->attrs, spec, start, end);
 }
 
-// TODO introduce an iterator?
+// LONGTERM introduce an iterator object instead?
 void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
 {
 	attrlistForEach(s->attrs, s, f, data);

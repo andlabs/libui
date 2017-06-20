@@ -106,7 +106,8 @@ typedef struct uiOpenTypeFeatures uiOpenTypeFeatures;
 
 // uiOpenTypeFeaturesForEachFunc is the type of the function
 // invoked by uiOpenTypeFeaturesForEach() for every OpenType
-// feature in otf.
+// feature in otf. Refer to that function's documentation for more
+// details.
 typedef uiForEach (*uiOpenTypeFeaturesForEachFunc)(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data);
 
 // @role uiOpenTypeFeatures constructor
@@ -162,6 +163,7 @@ typedef struct uiAttributeSpec uiAttributeSpec;
 // TODO note that pointers are copied
 // TODO add a function to uiAttributedString to get an attribute's value at a specific index or in a specific range, so we can edit
 // (TODO related to above: what about memory consumption during a read-modify-write cycle due to copying?)
+// TODO normalize documentation between typedefs and structs
 struct uiAttributeSpec {
 	uiAttribute Type;
 	const char *Family;
@@ -174,8 +176,11 @@ struct uiAttributeSpec {
 	const uiOpenTypeFeatures *Features;
 };
 
-// TODO how would we make spec const in this case, to prevent fields from being modified?
-typedef uiForEach (*uiAttributedStringForEachAttributeFunc)(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end, void *data);
+// uiAttributedStringForEachAttributeFunc is the type of the function
+// invoked by uiAttributedStringForEachAttribute() for every
+// attribute in s. Refer to that function's documentation for more
+// details.
+typedef uiForEach (*uiAttributedStringForEachAttributeFunc)(const uiAttributedString *s, const uiAttributeSpec *spec, size_t start, size_t end, void *data);
 
 // @role uiAttributedString constructor
 // uiNewAttributedString() creates a new uiAttributedString from
@@ -201,6 +206,8 @@ _UI_EXTERN void uiAttributedStringDelete(uiAttributedString *s, size_t start, si
 _UI_EXTERN size_t uiAttributedStringNumGraphemes(uiAttributedString *s);
 _UI_EXTERN size_t uiAttributedStringByteIndexToGrapheme(uiAttributedString *s, size_t pos);
 _UI_EXTERN size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos);
+// TODO document this
+// TODO possibly copy the spec each time to ensure it doesn't get clobbered
 _UI_EXTERN void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end);
 _UI_EXTERN void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
 

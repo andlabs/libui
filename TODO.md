@@ -190,3 +190,6 @@ function: ide_editor_map_bin_add()
 			- https://twitter.com/peter_works
 		- http://ilovetypography.com/2014/10/22/better-ui-for-better-typography-adobe-petition/
 		- http://silgraphite.sourceforge.net/ui/studynote.html
+
+- add NXCOMPAT (DEP awareness) to the Windows builds
+	- and ASLR too? or is that not a linker setting

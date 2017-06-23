@@ -27,6 +27,11 @@ _add_example(cpp-multithread
 	cpp-multithread/main.cpp
 	${_EXAMPLE_RESOURCES_RC}
 )
+if(APPLE)
+	# forcing libc++ headers and runtime on Apple in order to have access to C++11 stuffs
+	target_compile_options(cpp-multithread PUBLIC -stdlib=libc++)
+	target_link_libraries(cpp-multithread -stdlib=libc++)
+endif()
 if(NOT WIN32)
 	target_link_libraries(cpp-multithread pthread)
 endif()

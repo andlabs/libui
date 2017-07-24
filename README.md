@@ -1,7 +1,7 @@
 # libui: a portable GUI library for C
 
 This README is being written.<br>
-[![Build Status](https://travis-ci.org/andlabs/libui.svg)](https://travis-ci.org/andlabs/libui)
+[![Build Status](https://travis-ci.org/andlabs/libui.svg?branch=master)](https://travis-ci.org/andlabs/libui)
 
 ## Announcements
 

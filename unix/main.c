@@ -107,6 +107,29 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	gdk_threads_add_idle(doqueued, q);
 }
 
+struct timer {
+        int (*f)(void *);
+        void *data;
+};
+
+static gboolean dotimer(gpointer data)
+{
+        struct timer *t = (struct timer *) data;
+
+        if((*(t->f))(t->data))
+                return TRUE;
+        else {
+                g_free(t);
+                return FALSE;
+        }
+}
+
 void uiTimer(int milliseconds, int (*f)(void *data), void *data)
 {
+        struct timer *t;
+
+        t = g_new0(struct timer, 1);
+        t->f = f;
+        t->data = data;
+        g_timeout_add(milliseconds, dotimer, t);
 }

@@ -243,3 +243,7 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	// the signature of f matches dispatch_function_t
 	dispatch_async_f(dispatch_get_main_queue(), data, f);
 }
+
+void uiTimer(int milliseconds, int (*f)(void *data), void *data)
+{
+}

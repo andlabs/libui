@@ -106,3 +106,7 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	q->data = data;
 	gdk_threads_add_idle(doqueued, q);
 }
+
+void uiTimer(int milliseconds, int (*f)(void *data), void *data)
+{
+}

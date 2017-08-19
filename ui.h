@@ -62,6 +62,8 @@ _UI_EXTERN void uiQuit(void);
 
 _UI_EXTERN void uiQueueMain(void (*f)(void *data), void *data);
 
+_UI_EXTERN void uiTimer(int milliseconds, int (*f)(void *data), void *data);
+
 _UI_EXTERN void uiOnShouldQuit(int (*f)(void *data), void *data);
 
 _UI_EXTERN void uiFreeText(char *text);

@@ -282,4 +282,5 @@ void uiTimer(int milliseconds, int (*f)(void *data), void *data)
                 selector:@selector(doTimer:)
                 userInfo:nil
                 repeats:YES];
+        [delegate release];
 }

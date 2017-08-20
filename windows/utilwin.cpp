@@ -8,6 +8,7 @@
 // - It handles WM_QUERYENDSESSION requests.
 // - It handles WM_WININICHANGE and forwards the message to any child windows that request it.
 // - It handles executing functions queued to run by uiQueueMain().
+// TODO explain why it isn't message-only
 
 #define utilWindowClass L"libui_utilWindowClass"
 

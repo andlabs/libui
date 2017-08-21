@@ -133,6 +133,8 @@ void uiQueueMain(void (*f)(void *data), void *data)
 void uiTimer(int milliseconds, int (*f)(void *data), void *data)
 {
 	UINT_PTR id = timerHandlers.size() + 1;
+	while (timerHandlers.find(id) != timerHandlers.end())
+		id++;
 	if (SetTimer(utilWindow, id, milliseconds, NULL) == 0)
 		logLastError(L"SetTimer()");
 	timerHandlers[id] = TimerHandler(f, data);

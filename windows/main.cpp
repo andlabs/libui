@@ -1,6 +1,7 @@
 // 6 april 2015
 #include "uipriv_windows.hpp"
 
+std::map<UINT_PTR, TimerHandler> timerHandlers;
 static HHOOK filter;
 
 static LRESULT CALLBACK filterProc(int code, WPARAM wParam, LPARAM lParam)
@@ -131,4 +132,8 @@ void uiQueueMain(void (*f)(void *data), void *data)
 
 void uiTimer(int milliseconds, int (*f)(void *data), void *data)
 {
+	UINT_PTR id = timerHandlers.size() + 1;
+	if (SetTimer(utilWindow, id, milliseconds, NULL) == 0)
+		logLastError(L"SetTimer()");
+	timerHandlers[id] = TimerHandler(f, data);
 }

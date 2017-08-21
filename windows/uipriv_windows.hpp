@@ -77,6 +77,17 @@ extern void setWindowInsertAfter(HWND hwnd, HWND insertAfter);
 extern HWND getDlgItem(HWND hwnd, int id);
 extern void invalidateRect(HWND hwnd, RECT *r, BOOL erase);
 
+struct TimerHandler {
+	int(*f)(void *data);
+	void *data;
+	TimerHandler() {}
+	TimerHandler(int(*f)(void *data), void *data) {
+		this->f = f;
+		this->data = data;
+	}
+};
+extern std::map<UINT_PTR, TimerHandler> timerHandlers;
+
 // text.cpp
 extern WCHAR *windowTextAndLen(HWND hwnd, LRESULT *len);
 extern WCHAR *windowText(HWND hwnd);

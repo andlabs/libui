@@ -18,6 +18,7 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 {
 	void (*qf)(void *);
 	LRESULT lResult;
+	UINT_PTR id;
 
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
@@ -35,6 +36,15 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	case msgQueued:
 		qf = (void (*)(void *)) wParam;
 		(*qf)((void *) lParam);
+		return 0;
+	case WM_TIMER:
+		id = (UINT_PTR)wParam;
+		TimerHandler timer = timerHandlers[id];
+		if (!timer.f(timer.data)) {
+			if (!KillTimer(utilWindow, id))
+				logLastError(L"KillTimer()");
+			timerHandlers.erase(id);
+		}
 		return 0;
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);

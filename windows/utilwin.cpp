@@ -39,8 +39,7 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		return 0;
 	case WM_TIMER:
 		id = (UINT_PTR)wParam;
-		TimerHandler timer = timerHandlers[id];
-		if (!timer.f(timer.data)) {
+		if (!timerHandlers[id]()) {
 			if (!KillTimer(utilWindow, id))
 				logLastError(L"KillTimer()");
 			timerHandlers.erase(id);

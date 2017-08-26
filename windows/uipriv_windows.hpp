@@ -113,7 +113,6 @@ private:
 };
 extern int registerMessageFilter(void);
 extern void unregisterMessageFilter(void);
-extern std::map<UINT_PTR, TimerHandler> timerHandlers;
 
 // parent.cpp
 extern void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect);

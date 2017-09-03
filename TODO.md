@@ -193,3 +193,8 @@ function: ide_editor_map_bin_add()
 
 - add NXCOMPAT (DEP awareness) to the Windows builds
 	- and ASLR too? or is that not a linker setting
+
+OS X: embedding an Info.plist into a binary directly
+https://www.objc.io/issues/6-build-tools/mach-o-executables/
+TODO will this let Dictation work?
+TODO investigate ad-hoc codesigning

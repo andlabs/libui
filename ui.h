@@ -541,6 +541,7 @@ struct uiDrawTextFontMetrics {
 };
 
 _UI_EXTERN uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc);
+_UI_EXTERN uiDrawTextFont *uiDrawLoadDefaultFont();
 _UI_EXTERN void uiDrawFreeTextFont(uiDrawTextFont *font);
 _UI_EXTERN uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font);
 _UI_EXTERN void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc);

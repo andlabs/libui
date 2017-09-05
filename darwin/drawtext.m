@@ -401,6 +401,11 @@ uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
 	return mkTextFont(f, NO);		// we hold the initial reference; no need to retain again
 }
 
+uiDrawTextFont *uiDrawLoadDefaultFont()
+{
+	return mkTextFontFromNSFont([NSFont systemFontOfSize:0]);
+}
+
 void uiDrawFreeTextFont(uiDrawTextFont *font)
 {
 	CFRelease(font->f);

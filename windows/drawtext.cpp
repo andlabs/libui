@@ -534,3 +534,47 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	// TODO make sure the behavior of this on empty strings is the same on all platforms (ideally should be 0-width, line height-height; TODO note this in the docs too)
 	*height = metrics.height;
 }
+
+uiDrawTextFont *uiDrawLoadDefaultFont()
+{
+        uiDrawTextFont *font;
+        fontCollection *collection;
+        IDWriteGdiInterop *gdi;
+        IDWriteFont *dwfont;
+        IDWriteFontFamily *dwfamily;
+        NONCLIENTMETRICS metrics;
+        WCHAR *family;
+        double size;
+        int pixels;
+        HRESULT hr;
+
+        metrics.cbSize = sizeof(metrics);
+        if (!SystemParametersInfo(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0))
+                logLastError(L"error getting non-client metrics");
+        hr = dwfactory->GetGdiInterop(&gdi);
+        if (hr != S_OK)
+                logHRESULT(L"error getting GDI interop", hr);
+
+        hr = gdi->CreateFontFromLOGFONT(&metrics.lfMessageFont, &dwfont);
+        if (hr != S_OK)
+                logHRESULT(L"error loading font", hr);
+
+        hr = dwfont->GetFontFamily(&dwfamily);
+        if (hr != S_OK)
+                logHRESULT(L"error loading font family", hr);
+        collection = loadFontCollection();
+        family = fontCollectionFamilyName(collection, dwfamily);
+
+        pixels = GetDeviceCaps(GetDC(NULL), LOGPIXELSY);
+        if (pixels == 0)
+                logLastError(L"error getting device caps");
+        size = abs(metrics.lfMessageFont.lfHeight) * 72 / pixels;
+
+        font = mkTextFont(dwfont, FALSE, family, FALSE, size);
+
+        fontCollectionFree(collection);
+        dwfamily->Release();
+        gdi->Release();
+
+        return font;
+}

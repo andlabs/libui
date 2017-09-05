@@ -212,3 +212,8 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	[tl->frame returnWidth:width height:NULL];
 	[tl->forLines returnWidth:NULL height:height];
 }
+
+uiDrawTextFont *uiDrawLoadDefaultFont()
+{
+	return mkTextFontFromNSFont([NSFont systemFontOfSize:0]);
+}

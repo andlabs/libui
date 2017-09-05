@@ -919,6 +919,8 @@ struct uiFontDescriptor {
 	uiTextStretch Stretch;
 };
 
+_UI_EXTERN uiDrawTextFont *uiDrawLoadDefaultFont();
+
 // uiDrawTextLayout is a concrete representation of a
 // uiAttributedString that can be displayed in a uiDrawContext.
 // It includes information important for the drawing of a block of

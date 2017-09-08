@@ -9,6 +9,7 @@
 // - changing a part property does not refresh views
 // - is the Y position of checkbox cells correct?
 // - progressbars appear ABOVE the table header
+// 	- threaded animation (which was known to have some issues: https://stackoverflow.com/questions/18142801/nstableview-nsprogressindicator-flickering-issues) is NOT the cause; happens regardless of setting (or does the setting not stick? TODO)
 
 // LONGTERM
 // - reuse row views instead of creating a new one each time

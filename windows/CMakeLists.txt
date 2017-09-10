@@ -32,6 +32,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/graphemes.cpp
 	windows/grid.cpp
 	windows/group.cpp
+	windows/image.cpp
 	windows/init.cpp
 	windows/label.cpp
 	windows/main.cpp
@@ -46,6 +47,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/spinbox.cpp
 	windows/stddialogs.cpp
 	windows/tab.cpp
+	windows/table.cpp
 	windows/tabpage.cpp
 	windows/text.cpp
 	windows/utf16.cpp

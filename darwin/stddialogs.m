@@ -32,7 +32,7 @@ static char *runSavePanel(NSWindow *parent, NSSavePanel *s)
 	return filename;
 }
 
-char *uiOpenFile(uiWindow *parent)
+char *uiOpenFile(uiWindow *parent, char* filter)
 {
 	NSOpenPanel *o;
 
@@ -46,7 +46,7 @@ char *uiOpenFile(uiWindow *parent)
 	return runSavePanel(windowWindow(parent), o);
 }
 
-char *uiSaveFile(uiWindow *parent)
+char *uiSaveFile(uiWindow *parent, char* filter)
 {
 	NSSavePanel *s;
 

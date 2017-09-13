@@ -141,3 +141,69 @@ void uiDrawRestore(uiDrawContext *c)
 {
 	cairo_restore(c->cr);
 }
+
+// bitmap API
+
+uiDrawBitmap* uiDrawNewBitmap(uiDrawContext* c, int width, int height)
+{
+	uiDrawBitmap* bmp;
+
+	bmp = uiprivNew(uiDrawBitmap);
+
+	bmp->bmp = cairo_image_surface_create(CAIRO_FORMAT_RGB24, width, height);
+	if (cairo_surface_status(bmp->bmp) != CAIRO_STATUS_SUCCESS)
+		uiprivImplBug("error creating bitmap: %s",
+			cairo_status_to_string(cairo_surface_status(bmp->bmp)));
+
+	bmp->Width = width;
+	bmp->Height = height;
+	bmp->Stride = cairo_image_surface_get_stride(bmp->bmp);
+
+	return bmp;
+}
+
+void uiDrawBitmapUpdate(uiDrawBitmap* bmp, const void* data)
+{
+	unsigned char* src = data;
+	unsigned char* dst = cairo_image_surface_get_data(bmp->bmp);
+	int y;
+
+	if (bmp->Stride == bmp->Width * 4) {
+		// stride 'good', can just directly copy
+		memcpy(dst, src, bmp->Stride*bmp->Height);
+	} else {
+		for (y = 0; y < bmp->Height; y++) {
+			memcpy(dst, src, bmp->Width * 4);
+			src += bmp->Width * 4;
+			dst += bmp->Stride;
+		}
+	}
+
+	cairo_surface_mark_dirty(bmp->bmp);
+}
+
+void uiDrawBitmapDraw(uiDrawContext* c, uiDrawBitmap* bmp, uiRect* srcrect, uiRect* dstrect, int filter)
+{
+	cairo_save(c->cr);
+	cairo_rectangle(c->cr, dstrect->X, dstrect->Y, dstrect->Width, dstrect->Height);
+
+	cairo_translate(c->cr, dstrect->X, dstrect->Y);
+	if ((dstrect->Width != srcrect->Width) || (dstrect->Height != srcrect->Height))	{
+		double sx = dstrect->Width / (double)srcrect->Width;
+		double sy = dstrect->Height / (double)srcrect->Height;
+		cairo_scale(c->cr, sx, sy);
+	}
+
+	cairo_set_source_surface(c->cr, bmp->bmp, -srcrect->X, -srcrect->Y);
+	cairo_pattern_set_filter(cairo_get_source(c->cr), filter ? CAIRO_FILTER_BILINEAR : CAIRO_FILTER_NEAREST);
+	cairo_clip(c->cr);
+	cairo_paint(c->cr);
+
+	cairo_restore(c->cr);
+}
+
+void uiDrawFreeBitmap(uiDrawBitmap* bmp)
+{
+	cairo_surface_destroy(bmp->bmp);
+	uiprivFree(bmp);
+}

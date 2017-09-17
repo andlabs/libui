@@ -1,6 +1,7 @@
 /* vim :set ts=4 sw=4 sts=4 noet : */
 #include "uipriv_windows.hpp"
 
+#include <vector>
 
 static void uiTableDestroy(uiControl *c);
 static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height);
@@ -8,44 +9,12 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult);
 
 
 
-typedef struct growable growable;
-
-struct growable
-{
-	void** data;
-	int cap;
-	int len;
-};
-
-static void growable_init( growable *g, int cap )
-{
-	g->data = (void**)uiAlloc(cap * sizeof(void*), "void*[]");
-	g->cap = cap;
-	g->len = 0;
-}
-
-
-static void growable_destroy( growable *g )
-{
-	uiFree(g->data);
-}
-
-static void growable_append( growable *g, void* element )
-{
-	if (g->len==g->cap) {
-		// grow the array
-		g->cap *= 2;
-		g->data = (void**)uiRealloc((void*)g->data, g->cap, "void*[]");
-	}
-	g->data[g->len] = element;
-	++g->len;
-}
-
+struct uiTable;
 
 struct uiTableModel {
 	uiTableModelHandler *mh;
 	// the uiTable controls using this model
-	growable tables;
+    std::vector<uiTable*> tables;
 };
 
 
@@ -61,7 +30,7 @@ struct uiTable {
 	uiWindowsControl c;
 	uiTableModel *model;
 	HWND hwnd;
-	growable columns;
+    std::vector<uiTableColumn*> columns;
 };
 
 
@@ -79,50 +48,39 @@ uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 {
 	uiTableModel *m;
 
-	m = uiNew(uiTableModel);
+	m = new uiTableModel();
 	m->mh = mh;
-	growable_init(&m->tables, 1);
 	return m;
 }
 
 void uiFreeTableModel(uiTableModel *m)
 {
-	// TODO: should assert(m->tables.len==0) ?
-	growable_destroy(&m->tables);
-	uiFree(m);
+	// TODO: should assert(m->tables.empty()) ?
+	delete m;
 }
 
 void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 {
-	int i;
-	uiTable* t;
 	LVITEM item;
 
 	item.mask = 0;
 	item.iItem = newIndex;
 	item.iSubItem = 0; //?
-	for (i=0; i<m->tables.len; ++i) {
-		t = (uiTable*)m->tables.data[i];
+    for (auto t : m->tables) {
 		ListView_InsertItem( t->hwnd, &item );
 	}
 }
 
 void uiTableModelRowChanged(uiTableModel *m, int index)
 {
-	int i;
-	uiTable* t;
-	for (i=0; i<m->tables.len; ++i) {
-		t = (uiTable*)m->tables.data[i];
+    for (auto t : m->tables) {
 		ListView_Update( t->hwnd, index );
 	}
 }
 
 void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 {
-	int i;
-	uiTable* t;
-	for (i=0; i<m->tables.len; ++i) {
-		t = (uiTable*)m->tables.data[i];
+    for (auto t : m->tables) {
 		ListView_DeleteItem( t->hwnd, oldIndex );
 	}
 }
@@ -133,10 +91,8 @@ static int findColIndex(uiTableColumn *c)
 {
 	uiTable *t = c->t;
 	int out = 0;
-	int i;
 
-	for( i=0; i<t->columns.len; ++i ) {
-		uiTableColumn *candidate = (uiTableColumn*)t->columns.data[i];
+	for (auto candidate : t->columns) {
 		if( candidate==c) {
 			break;
 		}
@@ -208,8 +164,7 @@ uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;
 	uiWindowsNewControl(uiTable, t);
-
-	growable_init(&t->columns,4);
+    /*std::vector<uiTableColumn*>* tmp =*/ new(&t->columns) std::vector<uiTableColumn*>();  // placement new
 
 	t->model = model;
 	t->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
@@ -218,7 +173,7 @@ uiTable *uiNewTable(uiTableModel *model)
 		hInstance, NULL,
 		TRUE);
 
-	growable_append(&model->tables, t);
+	model->tables.push_back(t);
 
 	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
 	//uiWindowsRegisterWM_COMMANDHandler(t->hwnd, onWM_COMMAND, uiControl(t));
@@ -240,7 +195,7 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 	c->modelColumn = -1;	// unassigned
 	// we defer the actual column creation until a part is added...
 
-	growable_append(&t->columns, c);
+	t->columns.push_back(c);
 	return c;
 }
 
@@ -286,7 +241,7 @@ static void uiTableDestroy(uiControl *c)
 
 	// TODO: detach from model...
 	// TODO: clean up column in turn
-	growable_destroy(&t->columns);
+    t->columns.~vector<uiTableColumn*>();    // (created with placement new)
 
 	uiFreeControl(uiControl(t));
 
@@ -320,11 +275,11 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 			int col = plvdi->item.iSubItem;
 			int row = plvdi->item.iItem;
 		
-			if (col<0 || col>=t->columns.len) {
+			if (col<0 || col>=(int)t->columns.size()) {
 				break;
 			}
 
-			uiTableColumn *tc = (uiTableColumn*)t->columns.data[col];
+			uiTableColumn *tc = (uiTableColumn*)t->columns[col];
 
 			int mcol = tc->modelColumn;
 			uiTableModelColumnType typ = (*mh->ColumnType)(mh,t->model,mcol);

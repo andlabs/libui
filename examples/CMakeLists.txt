@@ -24,7 +24,8 @@ _add_example(histogram
 )
 
 _add_example(table
-	table/main.c
+	table/main.cpp
+	table/planet.cpp
 	${_EXAMPLE_RESOURCES_RC}
 )
 

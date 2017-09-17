@@ -198,3 +198,5 @@ OS X: embedding an Info.plist into a binary directly
 https://www.objc.io/issues/6-build-tools/mach-o-executables/
 TODO will this let Dictation work?
 TODO investigate ad-hoc codesigning
+
+https://blogs.msdn.microsoft.com/oldnewthing/20040112-00/?p=41083 def files for decoration (I forget if I said this earlier)

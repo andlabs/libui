@@ -57,6 +57,11 @@ void uiControlDisable(uiControl *c)
 	(*(c->Disable))(c);
 }
 
+void uiControlSetFocus(uiControl *c)
+{
+	(*(c->SetFocus))(c);
+}
+
 #define uiprivControlSignature 0x7569436F
 
 uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr)

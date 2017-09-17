@@ -232,6 +232,7 @@ static void uiWindowHide(uiControl *c)
 uiWindowsControlDefaultEnabled(uiWindow)
 uiWindowsControlDefaultEnable(uiWindow)
 uiWindowsControlDefaultDisable(uiWindow)
+uiWindowsControlDefaultSetFocus(uiWindow)
 // TODO we need to do something about undocumented fields in the OS control types
 uiWindowsControlDefaultSyncEnableState(uiWindow)
 // TODO

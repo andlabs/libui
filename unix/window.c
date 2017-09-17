@@ -112,6 +112,7 @@ uiUnixControlDefaultHide(uiWindow)
 uiUnixControlDefaultEnabled(uiWindow)
 uiUnixControlDefaultEnable(uiWindow)
 uiUnixControlDefaultDisable(uiWindow)
+uiUnixControlDefaultSetFocus(uiWindow)
 // TODO?
 uiUnixControlDefaultSetContainer(uiWindow)
 

@@ -75,6 +75,7 @@ uiWindowsControlDefaultHide(uiGroup)
 uiWindowsControlDefaultEnabled(uiGroup)
 uiWindowsControlDefaultEnable(uiGroup)
 uiWindowsControlDefaultDisable(uiGroup)
+uiWindowsControlDefaultSetFocus(uiGroup)
 
 static void uiGroupSyncEnableState(uiWindowsControl *c, int enabled)
 {

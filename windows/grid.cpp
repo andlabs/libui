@@ -436,6 +436,7 @@ uiWindowsControlDefaultHide(uiGrid)
 uiWindowsControlDefaultEnabled(uiGrid)
 uiWindowsControlDefaultEnable(uiGrid)
 uiWindowsControlDefaultDisable(uiGrid)
+uiWindowsControlDefaultSetFocus(uiGrid)
 
 static void uiGridSyncEnableState(uiWindowsControl *c, int enabled)
 {

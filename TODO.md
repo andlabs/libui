@@ -200,3 +200,8 @@ TODO will this let Dictation work?
 TODO investigate ad-hoc codesigning
 
 https://blogs.msdn.microsoft.com/oldnewthing/20040112-00/?p=41083 def files for decoration (I forget if I said this earlier)
+
+TODO ClipCursor() stuff; probably not useful for libui but still
+https://blogs.msdn.microsoft.com/oldnewthing/20140102-00/?p=2183
+https://blogs.msdn.microsoft.com/oldnewthing/20061117-03/?p=28973
+https://msdn.microsoft.com/en-us/library/windows/desktop/ms648383(v=vs.85).aspx

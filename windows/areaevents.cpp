@@ -264,8 +264,14 @@ static int areaKeyEvent(uiArea *a, int up, WPARAM wParam, LPARAM lParam)
 
 	ke.Modifiers = getModifiers();
 
-	ke.Up = up;
+	ke.Scancode = (lParam >> 16) & 0x1FF;
 
+	ke.Up = up;
+	ke.Repeat = (lParam & 0x40000000) ? 1:0;
+
+	// StapleButter note: I don't actually need all this key decoding
+	// raw scancodes are all I need for this
+#if 0
 	// the numeric keypad keys when Num Lock is off are considered left-hand keys as the separate navigation buttons were added later
 	// the numeric keypad Enter, however, is a right-hand key because it has the same virtual-key code as the typewriter Enter
 	righthand = (lParam & 0x01000000) != 0;
@@ -308,7 +314,15 @@ static int areaKeyEvent(uiArea *a, int up, WPARAM wParam, LPARAM lParam)
 	return 0;
 
 keyFound:
+#endif
 	return (*(a->ah->KeyEvent))(a->ah, a, &ke);
+}
+
+char* uiKeyName(int scancode)
+{
+	WCHAR tmp[64];
+	GetKeyNameText(scancode<<16, tmp, 64);
+	return toUTF8(tmp);
 }
 
 // We don't handle the standard Windows keyboard messages directly, to avoid both the dialog manager and TranslateMessage().

@@ -1083,7 +1083,11 @@ struct uiAreaKeyEvent {
 
 	uiModifiers Modifiers;
 
+	// additional things
+	int Scancode; // bit0-7: scancode, bit8: ext flag
+
 	int Up;
+	int Repeat;
 };
 
 typedef struct uiColorButton uiColorButton;
@@ -1122,6 +1126,11 @@ _UI_EXTERN void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiA
 _UI_EXTERN int uiGridPadded(uiGrid *g);
 _UI_EXTERN void uiGridSetPadded(uiGrid *g, int padded);
 _UI_EXTERN uiGrid *uiNewGrid(void);
+
+
+// misc.
+
+_UI_EXTERN char* uiKeyName(int scancode);
 
 #ifdef __cplusplus
 }

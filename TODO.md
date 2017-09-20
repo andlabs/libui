@@ -205,3 +205,8 @@ TODO ClipCursor() stuff; probably not useful for libui but still
 https://blogs.msdn.microsoft.com/oldnewthing/20140102-00/?p=2183
 https://blogs.msdn.microsoft.com/oldnewthing/20061117-03/?p=28973
 https://msdn.microsoft.com/en-us/library/windows/desktop/ms648383(v=vs.85).aspx
+
+https://cmake.org/Wiki/CMake_Useful_Variables
+set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+On Unix systems, this will make linker report any unresolved symbols from object files (which is quite typical when you compile many targets in CMake projects, but do not bother with linking target dependencies in proper order). 
+(I used to have something like this back when I used makefiles; did it convert in? I forget)

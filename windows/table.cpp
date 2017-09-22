@@ -30,6 +30,7 @@ struct uiTable {
 	uiWindowsControl c;
 	uiTableModel *model;
 	HWND hwnd;
+	WCHAR* tmpText; // to hold strings which need to persist between WM_NOTIFYs
     std::vector<uiTableColumn*> columns;
 };
 
@@ -172,6 +173,7 @@ uiTable *uiNewTable(uiTableModel *model)
 		WS_CHILD | LVS_AUTOARRANGE | LVS_REPORT | LVS_OWNERDATA,
 		hInstance, NULL,
 		TRUE);
+    t->tmpText = NULL;
 
 	model->tables.push_back(t);
 
@@ -239,6 +241,11 @@ static void uiTableDestroy(uiControl *c)
 //	uiWindowsUnregisterWM_COMMANDHandler(t->hwnd);
 	uiWindowsEnsureDestroyWindow(t->hwnd);
 
+    if( t->tmpText ) {
+        uiFree(t->tmpText);
+        t->tmpText = NULL;
+    }
+
 	// TODO: detach from model...
 	// TODO: clean up column in turn
     t->columns.~vector<uiTableColumn*>();    // (created with placement new)
@@ -261,11 +268,10 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 	uiTableModelHandler *mh = t->model->mh;
 	BOOL ret = FALSE;
 
-	// TODO: FIX. windows expects string to hang around until next WM_NOTIFY...
-	// but this will leak on exit. And is shared between controls...
-	static WCHAR* wstr=0;
-	if( wstr != 0 ) {
-		uiFree(wstr);
+    // can now free any string left over from previous WM_NOTIFY
+	if (t->tmpText) {
+		uiFree(t->tmpText);
+        t->tmpText = NULL;
 	}
 
 	switch ( nm->code) {
@@ -285,9 +291,10 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 			uiTableModelColumnType typ = (*mh->ColumnType)(mh,t->model,mcol);
 			if (typ==uiTableModelColumnString) {
 				void* data = (*(mh->CellValue))(mh, t->model, row, mcol);
-				wstr = toUTF16((const char*)data);
+	            // windows expects string to hang around until next WM_NOTIFY...
+				t->tmpText = toUTF16((const char*)data);
 				uiFree(data);
-				plvdi->item.pszText = wstr;
+				plvdi->item.pszText = t->tmpText;
 			} else {
 				// TODO!
 				plvdi->item.pszText = TEXT("???");

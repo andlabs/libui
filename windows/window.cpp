@@ -21,6 +21,8 @@ struct uiWindow {
 	void *onClosingData;
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
+	void (*onDropFile)(uiWindow *, char *, void *);
+	void *onDropFileData;
 	void (*onGetFocus)(uiWindow *, void *);
 	void *onGetFocusData;
 	void (*onLoseFocus)(uiWindow *, void *);
@@ -116,6 +118,20 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		mmi->ptMinTrackSize.x = width;
 		mmi->ptMinTrackSize.y = height;
 		return lResult;
+
+	case WM_DROPFILES:
+		if (w->onDropFile) {
+			HDROP eggdrop = (HDROP)wParam;
+			WCHAR filename[1024];
+			char* filename8;
+
+			DragQueryFile(eggdrop, 0, filename, 1024);
+			filename8 = toUTF8(filename);
+			w->onDropFile(w, filename8, w->onDropFileData);
+			uiFreeText(filename8);
+			DragFinish(eggdrop);
+		}
+		break;
 
 	case WM_SETFOCUS:
 		if (w->onGetFocus) {
@@ -404,6 +420,12 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 	w->onClosingData = data;
 }
 
+void uiWindowOnDropFile(uiWindow *w, void (*f)(uiWindow *, char *, void *), void *data)
+{
+	w->onDropFile = f;
+	w->onDropFileData = data;
+}
+
 void uiWindowOnGetFocus(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
 {
 	w->onGetFocus = f;
@@ -457,6 +479,11 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
 	windowRelayout(w);
+}
+
+void uiWindowSetDropTarget(uiWindow* w, int drop)
+{
+	DragAcceptFiles(w->hwnd, drop?TRUE:FALSE);
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
@@ -525,6 +552,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
 
+	uiWindowOnDropFile(w, NULL, NULL);
 	uiWindowOnGetFocus(w, NULL, NULL);
 	uiWindowOnLoseFocus(w, NULL, NULL);
 

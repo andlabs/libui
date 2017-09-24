@@ -1,4 +1,4 @@
-/* vim :set ts=4 sw=4 sts=4 noet : */
+/* vim: set noet ts=4 sw=4 sts=4: */
 #include "uipriv_windows.hpp"
 
 #include <vector>
@@ -14,7 +14,7 @@ struct uiTable;
 struct uiTableModel {
 	uiTableModelHandler *mh;
 	// the uiTable controls using this model
-    std::vector<uiTable*> tables;
+	std::vector<uiTable*> tables;
 };
 
 
@@ -30,8 +30,7 @@ struct uiTable {
 	uiWindowsControl c;
 	uiTableModel *model;
 	HWND hwnd;
-	WCHAR* tmpText; // to hold strings which need to persist between WM_NOTIFYs
-    std::vector<uiTableColumn*> columns;
+	std::vector<uiTableColumn*> columns;
 };
 
 
@@ -67,21 +66,21 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 	item.mask = 0;
 	item.iItem = newIndex;
 	item.iSubItem = 0; //?
-    for (auto t : m->tables) {
+	for (auto t : m->tables) {
 		ListView_InsertItem( t->hwnd, &item );
 	}
 }
 
 void uiTableModelRowChanged(uiTableModel *m, int index)
 {
-    for (auto t : m->tables) {
+	for (auto t : m->tables) {
 		ListView_Update( t->hwnd, index );
 	}
 }
 
 void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 {
-    for (auto t : m->tables) {
+	for (auto t : m->tables) {
 		ListView_DeleteItem( t->hwnd, oldIndex );
 	}
 }
@@ -114,7 +113,7 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	}
 	c->modelColumn = modelColumn;
 
-   	lvIndex = findColIndex(c);
+	lvIndex = findColIndex(c);
 
 	// tell the listview ctrl
 	LV_COLUMN lvc;
@@ -165,7 +164,7 @@ uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;
 	uiWindowsNewControl(uiTable, t);
-    /*std::vector<uiTableColumn*>* tmp =*/ new(&t->columns) std::vector<uiTableColumn*>();  // placement new
+	/*std::vector<uiTableColumn*>* tmp =*/ new(&t->columns) std::vector<uiTableColumn*>();  // placement new
 
 	t->model = model;
 	t->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
@@ -173,7 +172,6 @@ uiTable *uiNewTable(uiTableModel *model)
 		WS_CHILD | LVS_AUTOARRANGE | LVS_REPORT | LVS_OWNERDATA,
 		hInstance, NULL,
 		TRUE);
-    t->tmpText = NULL;
 
 	model->tables.push_back(t);
 
@@ -241,14 +239,9 @@ static void uiTableDestroy(uiControl *c)
 //	uiWindowsUnregisterWM_COMMANDHandler(t->hwnd);
 	uiWindowsEnsureDestroyWindow(t->hwnd);
 
-    if( t->tmpText ) {
-        uiFree(t->tmpText);
-        t->tmpText = NULL;
-    }
-
 	// TODO: detach from model...
 	// TODO: clean up column in turn
-    t->columns.~vector<uiTableColumn*>();    // (created with placement new)
+	t->columns.~vector<uiTableColumn*>();	// (created with placement new)
 
 	uiFreeControl(uiControl(t));
 
@@ -268,18 +261,17 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 	uiTableModelHandler *mh = t->model->mh;
 	BOOL ret = FALSE;
 
-    // can now free any string left over from previous WM_NOTIFY
-	if (t->tmpText) {
-		uiFree(t->tmpText);
-        t->tmpText = NULL;
-	}
 
 	switch ( nm->code) {
 		case LVN_GETDISPINFO:
 		{
-			NMLVDISPINFO* plvdi = (NMLVDISPINFO*)nm;	
-			int col = plvdi->item.iSubItem;
-			int row = plvdi->item.iItem;
+			NMLVDISPINFO* di = (NMLVDISPINFO*)nm;	
+			LVITEM* item = &di->item;
+			if (!(item->mask & LVIF_TEXT)) {
+				break;
+			}
+			int row = item->iItem;
+			int col = item->iSubItem;
 		
 			if (col<0 || col>=(int)t->columns.size()) {
 				break;
@@ -291,13 +283,14 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 			uiTableModelColumnType typ = (*mh->ColumnType)(mh,t->model,mcol);
 			if (typ==uiTableModelColumnString) {
 				void* data = (*(mh->CellValue))(mh, t->model, row, mcol);
-	            // windows expects string to hang around until next WM_NOTIFY...
-				t->tmpText = toUTF16((const char*)data);
-				uiFree(data);
-				plvdi->item.pszText = t->tmpText;
+				int n;
+				n = MultiByteToWideChar( CP_UTF8, 0, (const char*)data, -1, item->pszText, item->cchTextMax);
+				// make sure clipped strings are nul-terminated
+				if (n>=item->cchTextMax) {
+					item->pszText[item->cchTextMax-1] = L'\0';
+				}
 			} else {
 				// TODO!
-				plvdi->item.pszText = TEXT("???");
 			}
 			break;
 		}

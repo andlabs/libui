@@ -177,7 +177,9 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
 	//uiWindowsRegisterWM_COMMANDHandler(t->hwnd, onWM_COMMAND, uiControl(t));
-	
+
+	ListView_SetExtendedListViewStyle(t->hwnd,	LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP);
+
 	int n = (*(model->mh->NumRows))(model->mh, model);
 
 	ListView_SetItemCountEx(t->hwnd,n, 0); //LVSICF_NOINVALIDATEALL

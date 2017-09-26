@@ -210,3 +210,12 @@ https://cmake.org/Wiki/CMake_Useful_Variables
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 On Unix systems, this will make linker report any unresolved symbols from object files (which is quite typical when you compile many targets in CMake projects, but do not bother with linking target dependencies in proper order). 
 (I used to have something like this back when I used makefiles; did it convert in? I forget)
+
+look into these for the os x port
+https://developer.apple.com/documentation/appkit/view_management/nseditor?language=objc
+https://developer.apple.com/documentation/appkit/view_management/nseditorregistration?language=objc
+
+for future versions of the os x port
+https://developer.apple.com/documentation/appkit/nslayoutguide?language=objc and anchors
+https://developer.apple.com/documentation/appkit/nsuserinterfacecompression?language=objc https://developer.apple.com/documentation/appkit/nsuserinterfacecompressionoptions?language=objc
+though at some point we'll be able to use NSStackView and NSGridView directly, so...

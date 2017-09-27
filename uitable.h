@@ -63,3 +63,30 @@ _UI_EXTERN uiTableColumn *uiTableAppendTextColumn(uiTable *t, const char *name, 
 // TODO getter?
 _UI_EXTERN void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn);
 _UI_EXTERN uiTable *uiNewTable(uiTableModel *model);
+
+
+
+// uiTableStyleFlags are bitflags to control table styles.
+_UI_ENUM(uiTableStyleFlags) {
+	// uiTableStyleMultiSelect allows the user to select more than
+	// one row at a time (usually by holding down shift or ctrl keys)
+	uiTableStyleMultiSelect = 1<<0,
+	// TODO support more flags:
+	// - hide column headers?
+	// - allow column reordering?
+	// - allow column resizing?
+	// - allow click on columns (+indicators for ascending/descending)?
+};
+
+// uiTableSetStyle sets the style flags governing the table
+_UI_EXTERN void uiTableSetStyle(uiTable *t, uiTableStyleFlags style);
+
+// uiTableStyleFlags returns the tables currently-active style flags
+_UI_EXTERN uiTableStyleFlags uiTableStyle(uiTable *t);
+
+// uiTableOnSelectionChanged sets a handler function which is invoked
+// (with `data` as a parameter whenever the set of selected item(s)
+// is changed. This will replace any previously-set handler function.
+_UI_EXTERN void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data);
+
+

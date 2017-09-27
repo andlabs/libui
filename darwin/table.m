@@ -65,6 +65,8 @@ struct uiTable {
 	tableView *tv;
 	struct scrollViewData *d;
 	int backgroundColumn;
+	void (*onSelectionChanged)(uiTable *, void *);
+	void *onSelectionChangedData;
 };
 
 @implementation tableModel
@@ -536,6 +538,24 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 {
 	t->backgroundColumn = modelColumn;
+}
+
+void uiTableSetStyle(uiTable *t, uiTableStyleFlags style)
+{
+	// TODO
+}
+
+uiTableStyleFlags uiTableStyle(uiTable *t)
+{
+	// TODO
+	return (uiTableStyleFlags)0;
+}
+
+
+void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data)
+{
+	t->onSelectionChanged = f;
+	t->onSelectionChangedData = data;
 }
 
 uiTable *uiNewTable(uiTableModel *model)

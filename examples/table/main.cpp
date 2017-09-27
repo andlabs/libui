@@ -123,6 +123,10 @@ static int onShouldQuit(void *data)
 	return 1;
 }
 
+static void onSelectionChanged(uiTable *t, void *data)
+{
+	printf("Selection changed!\n");
+}
 
 static void onAddEntries(uiButton *, void *data)
 {
@@ -156,6 +160,9 @@ static uiControl *makeTable(void)
 	uiTableAppendTextColumn(t, "Turnover", 4);
 	uiTableAppendTextColumn(t, "Radius", 5);
 	uiTableAppendTextColumn(t, "Population", 6);
+
+	uiTableSetStyle(t, uiTableStyleMultiSelect);
+	uiTableOnSelectionChanged(t, onSelectionChanged, NULL);
 	return uiControl(t);
 }
 

@@ -334,6 +334,8 @@ struct uiTable {
 	GPtrArray *columns;
 	uiTableModel *model;
 	int backgroundColumn;
+	void (*onSelectionChanged)(uiTable *, void *);
+	void *onSelectionChangedData;
 };
 
 // use the same size as GtkFileChooserWidget's treeview
@@ -596,6 +598,17 @@ static void uiTableDestroy(uiControl *c)
 	uiFreeControl(uiControl(t));
 }
 
+static void onChanged(GtkTreeSelection *sel, gpointer data)
+{
+	uiTable* t = uiTable(data);
+	(*(t->onSelectionChanged))(t, t->onSelectionChangedData);
+}
+
+static void defaultOnSelectionChanged(uiTable *t, void *data)
+{
+	// do nothing
+}
+
 uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 {
 	uiTableColumn *c;
@@ -616,9 +629,37 @@ void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 	// TODO refresh table
 }
 
+void uiTableSetStyle(uiTable *t, uiTableStyleFlags style)
+{
+	GtkSelectionMode selMode = (style & uiTableStyleMultiSelect) ?
+		GTK_SELECTION_MULTIPLE : GTK_SELECTION_SINGLE;
+	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(t->tv), selMode);
+}
+
+uiTableStyleFlags uiTableStyle(uiTable *t)
+{
+	uiTableStyleFlags style = 0;
+	GtkSelectionMode selMode;
+
+	selMode = gtk_tree_selection_get_mode(gtk_tree_view_get_selection(t->tv));
+	if (selMode == GTK_SELECTION_MULTIPLE) {
+		style |= uiTableStyleMultiSelect;
+	}
+
+	return style;
+}
+
+
+void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data)
+{
+	t->onSelectionChanged = f;
+	t->onSelectionChangedData = data;
+}
+
 uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;
+	GtkTreeSelection* sel;
 
 	uiUnixNewControl(uiTable, t);
 
@@ -637,6 +678,11 @@ uiTable *uiNewTable(uiTableModel *model)
 	gtk_container_add(t->scontainer, t->treeWidget);
 	// and make the tree view visible; only the scrolled window's visibility is controlled by libui
 	gtk_widget_show(t->treeWidget);
+
+	
+	sel = gtk_tree_view_get_selection(t->tv);
+	g_signal_connect(sel, "changed", G_CALLBACK(onChanged), t);
+	uiTableOnSelectionChanged(t, defaultOnSelectionChanged, NULL);
 
 	return t;
 }

@@ -543,12 +543,20 @@ void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 void uiTableSetStyle(uiTable *t, uiTableStyleFlags style)
 {
 	// TODO
+    if (style & uiTableStyleMultiSelect) {
+    	[t->tv setAllowsMultipleSelection:YES];
+    } else {
+    	[t->tv setAllowsMultipleSelection:NO];
+    }
 }
 
 uiTableStyleFlags uiTableStyle(uiTable *t)
 {
-	// TODO
-	return (uiTableStyleFlags)0;
+	uiTableStyleFlags style = 0;
+    if (t->tv.allowsMultipleSelection) {
+        style |= uiTableStyleMultiSelect;
+    }
+	return style;
 }
 
 

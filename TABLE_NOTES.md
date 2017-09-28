@@ -73,7 +73,8 @@ single-selection-only tables.
 
 [GtkTreeView](https://developer.gnome.org/gtk3/stable/GtkTreeView.html)
 - has a selection object for getting/setting selection
-  - supports iteration, access as list
+  - can fetch selection as a list, or via a foreach callback
+  - need to map GtkTreeview paths back to row indexes
 
 [QML TableView](http://doc.qt.io/qt-5/qml-qtquick-controls-tableview.html)
 - has a selection object for getting/setting selection
@@ -88,7 +89,7 @@ win32 commonctrl listview
 - state changes notified via
   [LVN_ODSTATECHANGED](https://msdn.microsoft.com/en-us/library/windows/desktop/bb774859(v=vs.85).aspx)
   (indicates one or more contiguous items have changed state)
-- probably have to maintain our own set of selected items
+- Use LVN_GETNEXTITEM to iterate through items with selected state
 
 [wxWidgets wxDataViewCtrl](http://docs.wxwidgets.org/3.0/classwx_data_view_ctrl.html)
 - provides `GetSelections( wxDataViewItemArray& sel)`, where `wxDataViewItemArray`

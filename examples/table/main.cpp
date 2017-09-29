@@ -222,6 +222,10 @@ static uiControl *makeLayout(void)
 
 int main(void)
 {
+#ifdef _WIN32
+	setbuf(stdout, NULL);
+#endif
+
 	uiInitOptions options;
 	const char *err;
 

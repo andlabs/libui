@@ -312,7 +312,7 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 	uiTableModelHandler *mh = t->model->mh;
 	BOOL ret = FALSE;
 
-
+//	printf("notify: 0x%04x\n", nm->code);
 	switch ( nm->code) {
 		case LVN_GETDISPINFO:
 		{
@@ -345,6 +345,24 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 			}
 			break;
 		}
+		case LVN_ITEMCHANGED:
+			{
+				NMLISTVIEW *lv = (NMLISTVIEW*)nm;
+				// item changed selection state?
+				if ((lv->uNewState & LVIS_SELECTED) || (lv->uOldState & LVIS_SELECTED)) {
+					(*(t->onSelectionChanged))(t, t->onSelectionChangedData);
+				}
+			}
+			break;
+		case LVN_ODSTATECHANGED:
+			{
+				NMLVODSTATECHANGE *sc = (NMLVODSTATECHANGE*)nm;
+				// range changed selection state?
+				if ((sc->uNewState & LVIS_SELECTED) || (sc->uOldState & LVIS_SELECTED)) {
+					(*(t->onSelectionChanged))(t, t->onSelectionChangedData);
+				}
+			}
+			break;
 		default:
 			break;
 	}

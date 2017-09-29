@@ -1,8 +1,6 @@
 // 12 february 2017
 #import "uipriv_darwin.h"
 
-// LONGTERM FUTURE for typographic features, on 10.10 we can use OpenType tags directly!
-
 // this is what AppKit does internally
 // WebKit does this too; see https://github.com/adobe/webkit/blob/master/Source/WebCore/platform/graphics/mac/GraphicsContextMac.mm
 static NSColor *spellingColor = nil;

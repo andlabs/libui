@@ -157,27 +157,34 @@ void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
 	// TODO
 }
 
+
+/* uiTableIter implementation */
+
 struct uiTableIter {
-	// TODO
+	uiTable* table;
+	int more;
+	int current;
 };
 
 uiTableIter* uiTableGetSelection(uiTable *t)
 {
-	//TODO
-	return (uiTableIter*)uiAlloc(sizeof(uiTableIter), "uiTableIter");
+	uiTableIter* it = (uiTableIter*)uiAlloc(sizeof(uiTableIter), "uiTableIter");
+	it->table = t;
+	it->more = 1;
+	it->current = -1;
+	return it;
 }
 
 
 int uiTableIterAdvance(uiTableIter *it)
 {
-	// TODO
-	return 0;
+	it->current = ListView_GetNextItem(it->table->hwnd, it->current, LVNI_SELECTED);
+	return (it->current == -1) ? 0 : 1;
 }
 
 int uiTableIterCurrent(uiTableIter *it)
 {
-	//TODO
-	return 0;
+	return it->current;
 }
 
 void uiTableIterComplete(uiTableIter *it)

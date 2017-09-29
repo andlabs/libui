@@ -566,6 +566,34 @@ void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *d
 	t->onSelectionChangedData = data;
 }
 
+struct uiTableIter {
+	// TODO
+};
+
+uiTableIter* uiTableGetSelection(uiTable *t)
+{
+	//TODO
+	return NULL;
+}
+
+
+int uiTableIterAdvance(uiTableIter *it)
+{
+	// TODO
+	return 0;
+}
+
+int uiTableIterCurrent(uiTableIter *it)
+{
+	//TODO
+	return 0;
+}
+
+void uiTableIterComplete(uiTableIter *it)
+{
+    // TODO
+}
+
 uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;

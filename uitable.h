@@ -90,3 +90,38 @@ _UI_EXTERN uiTableStyleFlags uiTableStyle(uiTable *t);
 _UI_EXTERN void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data);
 
 
+// uiTableIter is an object for iterating over the selected rows in a uiTable
+// The effect of modifying the uiTable or underlying data model during
+// iteration is undefined, and likely varies by platform.
+typedef struct uiTableIter uiTableIter;
+
+// uiTableGetSelection returns a uiTableIter which can be used to iterate
+// over the selected rows in the table.
+// After use, it should be freed with uiTableIterComplete().
+//
+//  example usage:
+//
+//		uiTableIter *sel = uiTableGetSelection(t);
+//  	while (uiTableIterAdvance(sel)) {
+//			int rowIndex = uiTableIterCurrent(sel);
+//			...
+//		}
+//		uiTableIterComplete(sel);
+//
+_UI_EXTERN uiTableIter* uiTableGetSelection(uiTable *t);
+
+// uiTableIterAdvance advances the iterator to the next item.
+// if no more items are available, 0 is returned, else 1
+_UI_EXTERN int uiTableIterAdvance(uiTableIter *it);
+
+// uiTableIterCurrent returns the row index at the current
+// position (undefined after uiTableIterAdvance returns 0)
+_UI_EXTERN int uiTableIterCurrent(uiTableIter *it);
+
+// uiTableIterComplete frees the iteration object.
+// There is no requirement that the iteration must fetch
+// every item - you can call this at any point.
+// (TODO should be called uiTableIterDestroy?
+_UI_EXTERN void uiTableIterComplete(uiTableIter *it);
+
+

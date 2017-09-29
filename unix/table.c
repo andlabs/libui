@@ -656,6 +656,87 @@ void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *d
 	t->onSelectionChangedData = data;
 }
 
+
+/* uiTableIter implmentation */
+
+struct uiTableIter
+{
+	int nextpos;
+	// growable to hold all the values we'll iterate over
+	// (Gtk doesn't have a convenient iteration mechanism)
+	int len;
+	int cap;
+	int* data;
+};
+
+
+// callback used when building a uiTableIter
+static void collectSelection( GtkTreeModel *model,
+	GtkTreePath *path,
+	GtkTreeIter *iter,
+	gpointer data)
+{
+	uiTableIter* it = (uiTableIter*)data;
+	int depth = gtk_tree_path_get_depth(path);
+	gint* indices = gtk_tree_path_get_indices(path);
+	if(depth<1) {
+		return;
+	}
+
+	// append to collection
+	if(it->len == it->cap) {
+		// initial alloc or grow
+		if(it->cap==0) {
+			it->cap = 16;
+		} else {
+			it->cap *= 2;
+		}
+		it->data = uiRealloc(it->data, sizeof(int) * it->cap, "int[]");
+	}
+	it->data[it->len++] = (int)indices[0];
+}
+
+
+uiTableIter* uiTableGetSelection( uiTable* t)
+{
+	uiTableIter* it = uiAlloc(sizeof(uiTableIter), "uiTableIter");
+	it->nextpos = 0;
+	it->len = 0;
+	it->cap = 0;
+	it->data = NULL;
+
+	gtk_tree_selection_selected_foreach( gtk_tree_view_get_selection(t->tv), collectSelection, (gpointer)it);
+	return it;
+}
+
+int uiTableIterAdvance(uiTableIter *it)
+{
+	if (it->nextpos < it->len) {
+		++it->nextpos;
+		return 1;
+	}
+	return 0;
+}
+
+int uiTableIterCurrent(uiTableIter *it)
+{
+	return it->data[it->nextpos-1];
+}
+
+void uiTableIterComplete(uiTableIter *it)
+{
+	if (it->data) {
+		uiFree(it->data);
+	}
+	uiFree(it);
+}
+
+
+/*****/
+
+
+
+
 uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;
@@ -686,3 +767,4 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	return t;
 }
+

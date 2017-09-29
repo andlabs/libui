@@ -126,6 +126,13 @@ static int onShouldQuit(void *data)
 static void onSelectionChanged(uiTable *t, void *data)
 {
 	printf("Selection changed!\n");
+	uiTableIter *sel = uiTableGetSelection(t);
+	while (uiTableIterAdvance(sel)) {
+		printf("%d ", uiTableIterCurrent(sel));
+	}
+	uiTableIterComplete(sel);
+	printf("\n");
+//	uiTableDumpSelection(t);
 }
 
 static void onAddEntries(uiButton *, void *data)

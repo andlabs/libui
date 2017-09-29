@@ -157,6 +157,35 @@ void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
 	// TODO
 }
 
+struct uiTableIter {
+	// TODO
+};
+
+uiTableIter* uiTableGetSelection(uiTable *t)
+{
+	//TODO
+	return (uiTableIter*)uiAlloc(sizeof(uiTableIter), "uiTableIter");
+}
+
+
+int uiTableIterAdvance(uiTableIter *it)
+{
+	// TODO
+	return 0;
+}
+
+int uiTableIterCurrent(uiTableIter *it)
+{
+	//TODO
+	return 0;
+}
+
+void uiTableIterComplete(uiTableIter *it)
+{
+	uiFree(it);
+}
+
+
 
 /* uiTable stuff */
 
@@ -328,6 +357,6 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult)
 
 
 
-
+ 
 
 

@@ -547,31 +547,39 @@ void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *d
 }
 
 struct uiTableIter {
-	// TODO
+    NSIndexSet *set;
+    int foo;
+    NSUInteger curr;
 };
 
 uiTableIter* uiTableGetSelection(uiTable *t)
 {
-	//TODO
-	return NULL;
+    uiTableIter *it = uiAlloc(sizeof(uiTableIter), "uiTableIter");
+    it->set = [t->tv selectedRowIndexes];
+    it->foo = 0;
+
+    it->curr = [it->set firstIndex];
+    return it;
 }
 
 
 int uiTableIterAdvance(uiTableIter *it)
 {
-	// TODO
-	return 0;
+    if (it->foo>0) {
+        it->curr = [it->set indexGreaterThanIndex:it->curr];
+    }
+    it->foo++;
+    return (it->curr==NSNotFound) ? 0:1;
 }
 
 int uiTableIterCurrent(uiTableIter *it)
 {
-	//TODO
-	return 0;
+    return (int)it->curr;
 }
 
 void uiTableIterComplete(uiTableIter *it)
 {
-	// TODO
+    uiFree(it);
 }
 
 uiTable *uiNewTable(uiTableModel *model, int styleFlags)

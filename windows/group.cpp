@@ -119,6 +119,12 @@ static void uiGroupMinimumSizeChanged(uiWindowsControl *c)
 	groupRelayout(g);
 }
 
+static void uiGroupSetMinSize(uiControl *c, int w, int h)
+{
+    // checkme
+    uiGroupMinimumSizeChanged(uiWindowsControl(c));
+}
+
 uiWindowsControlDefaultLayoutRect(uiGroup)
 uiWindowsControlDefaultAssignControlIDZOrder(uiGroup)
 

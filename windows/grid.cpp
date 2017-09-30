@@ -516,6 +516,12 @@ static void uiGridMinimumSizeChanged(uiWindowsControl *c)
 	gridRelayout(g);
 }
 
+static void uiGridSetMinSize(uiControl *c, int w, int h)
+{
+    // checkme
+    uiGridMinimumSizeChanged(uiWindowsControl(c));
+}
+
 uiWindowsControlDefaultLayoutRect(uiGrid)
 uiWindowsControlDefaultAssignControlIDZOrder(uiGrid)
 

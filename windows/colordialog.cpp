@@ -87,7 +87,6 @@ static void hsv2RGB(double h, double s, double v, double *r, double *g, double *
 	int h60;
 	double x;
 	double m;
-	double c1, c2;
 
 	c = v * s;
 	hPrime = h * 6;

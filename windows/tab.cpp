@@ -164,6 +164,12 @@ static void uiTabMinimumSizeChanged(uiWindowsControl *c)
 	tabRelayout(t);
 }
 
+static void uiTabSetMinSize(uiControl *c, int w, int h)
+{
+    // checkme
+    uiTabMinimumSizeChanged(uiWindowsControl(c));
+}
+
 uiWindowsControlDefaultLayoutRect(uiTab)
 uiWindowsControlDefaultAssignControlIDZOrder(uiTab)
 

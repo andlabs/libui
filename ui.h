@@ -92,6 +92,9 @@ struct uiControl {
 	void (*Enable)(uiControl *);
 	void (*Disable)(uiControl *);
 	void (*SetFocus)(uiControl *);
+	void (*SetMinSize)(uiControl*, int, int);
+
+	int MinWidth, MinHeight;
 };
 // TOOD add argument names to all arguments
 #define uiControl(this) ((uiControl *) (this))
@@ -107,6 +110,7 @@ _UI_EXTERN int uiControlEnabled(uiControl *);
 _UI_EXTERN void uiControlEnable(uiControl *);
 _UI_EXTERN void uiControlDisable(uiControl *);
 _UI_EXTERN void uiControlSetFocus(uiControl *);
+_UI_EXTERN void uiControlSetMinSize(uiControl *, int w, int h); // -1 = no minimum
 
 _UI_EXTERN uiControl *uiAllocControl(size_t n, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
 _UI_EXTERN void uiFreeControl(uiControl *);

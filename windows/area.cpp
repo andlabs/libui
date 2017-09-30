@@ -55,9 +55,11 @@ uiWindowsControlAllDefaults(uiArea)
 
 static void uiAreaMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
-	// TODO
-	*width = 0;
-	*height = 0;
+	*width = c->c.MinWidth;
+	if (*width < 1) *width = 1;
+
+	*height = c->c.MinHeight;
+	if (*height < 1) *height = 1;
 }
 
 ATOM registerAreaClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)

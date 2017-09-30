@@ -274,6 +274,11 @@ static void uiWindowLayoutRect(uiWindowsControl *c, RECT *r)
 	uiWindowsEnsureGetClientRect(w->hwnd, r);
 }
 
+static void uiWindowSetMinSize(uiControl *c, int w, int h)
+{
+    // TODO: relayout, eventually
+}
+
 uiWindowsControlDefaultAssignControlIDZOrder(uiWindow)
 
 static void uiWindowChildVisibilityChanged(uiWindowsControl *c)

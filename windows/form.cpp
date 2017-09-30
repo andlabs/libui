@@ -232,6 +232,12 @@ static void uiFormMinimumSizeChanged(uiWindowsControl *c)
 	formRelayout(f);
 }
 
+static void uiFormSetMinSize(uiControl *c, int w, int h)
+{
+    // checkme
+    uiFormMinimumSizeChanged(uiWindowsControl(c));
+}
+
 uiWindowsControlDefaultLayoutRect(uiForm)
 uiWindowsControlDefaultAssignControlIDZOrder(uiForm)
 

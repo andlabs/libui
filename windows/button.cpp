@@ -32,6 +32,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiButton)
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
+#define buttonMinWidth 64
 
 static void uiButtonMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
@@ -45,6 +46,7 @@ static void uiButtonMinimumSize(uiWindowsControl *c, int *width, int *height)
 	size.cy = 0;
 	if (SendMessageW(b->hwnd, BCM_GETIDEALSIZE, 0, (LPARAM) (&size)) != FALSE) {
 		*width = size.cx;
+		if (*width < buttonMinWidth) *width = buttonMinWidth;
 		*height = size.cy;
 		return;
 	}
@@ -53,6 +55,7 @@ static void uiButtonMinimumSize(uiWindowsControl *c, int *width, int *height)
 	// Microsoft says to use a fixed width for all buttons; this isn't good enough
 	// use the text width instead, with some edge padding
 	*width = uiWindowsWindowTextWidth(b->hwnd) + (2 * GetSystemMetrics(SM_CXEDGE));
+	if (*width < buttonMinWidth) *width = buttonMinWidth;
 	y = buttonHeight;
 	uiWindowsGetSizing(b->hwnd, &sizing);
 	uiWindowsSizingDlgUnitsToPixels(&sizing, NULL, &y);

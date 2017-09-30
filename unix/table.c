@@ -629,26 +629,6 @@ void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 	// TODO refresh table
 }
 
-void uiTableSetStyle(uiTable *t, uiTableStyleFlags style)
-{
-	GtkSelectionMode selMode = (style & uiTableStyleMultiSelect) ?
-		GTK_SELECTION_MULTIPLE : GTK_SELECTION_SINGLE;
-	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(t->tv), selMode);
-}
-
-uiTableStyleFlags uiTableStyle(uiTable *t)
-{
-	uiTableStyleFlags style = 0;
-	GtkSelectionMode selMode;
-
-	selMode = gtk_tree_selection_get_mode(gtk_tree_view_get_selection(t->tv));
-	if (selMode == GTK_SELECTION_MULTIPLE) {
-		style |= uiTableStyleMultiSelect;
-	}
-
-	return style;
-}
-
 
 void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data)
 {
@@ -737,10 +717,11 @@ void uiTableIterComplete(uiTableIter *it)
 
 
 
-uiTable *uiNewTable(uiTableModel *model)
+uiTable *uiNewTable(uiTableModel *model, int styleFlags)
 {
 	uiTable *t;
 	GtkTreeSelection* sel;
+    GtkSelectionMode selMode = GTK_SELECTION_SINGLE;
 
 	uiUnixNewControl(uiTable, t);
 
@@ -756,12 +737,19 @@ uiTable *uiNewTable(uiTableModel *model)
 	t->tv = GTK_TREE_VIEW(t->treeWidget);
 	// TODO set up t->tv
 
+
 	gtk_container_add(t->scontainer, t->treeWidget);
 	// and make the tree view visible; only the scrolled window's visibility is controlled by libui
 	gtk_widget_show(t->treeWidget);
 
 	
 	sel = gtk_tree_view_get_selection(t->tv);
+
+    if (styleFlags & uiTableStyleMultiSelect) {
+        selMode = GTK_SELECTION_MULTIPLE;
+    }
+	gtk_tree_selection_set_mode(sel, selMode);
+
 	g_signal_connect(sel, "changed", G_CALLBACK(onChanged), t);
 	uiTableOnSelectionChanged(t, defaultOnSelectionChanged, NULL);
 

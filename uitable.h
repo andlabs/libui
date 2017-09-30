@@ -62,7 +62,7 @@ _UI_EXTERN uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name);
 _UI_EXTERN uiTableColumn *uiTableAppendTextColumn(uiTable *t, const char *name, int modelColumn);
 // TODO getter?
 _UI_EXTERN void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn);
-_UI_EXTERN uiTable *uiNewTable(uiTableModel *model);
+_UI_EXTERN uiTable *uiNewTable(uiTableModel *model, int styleFlags);
 
 
 
@@ -78,11 +78,6 @@ _UI_ENUM(uiTableStyleFlags) {
 	// - allow click on columns (+indicators for ascending/descending)?
 };
 
-// uiTableSetStyle sets the style flags governing the table
-_UI_EXTERN void uiTableSetStyle(uiTable *t, uiTableStyleFlags style);
-
-// uiTableStyleFlags returns the tables currently-active style flags
-_UI_EXTERN uiTableStyleFlags uiTableStyle(uiTable *t);
 
 // uiTableOnSelectionChanged sets a handler function which is invoked
 // (with `data` as a parameter whenever the set of selected item(s)

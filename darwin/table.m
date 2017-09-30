@@ -540,26 +540,6 @@ void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 	t->backgroundColumn = modelColumn;
 }
 
-void uiTableSetStyle(uiTable *t, uiTableStyleFlags style)
-{
-	// TODO
-    if (style & uiTableStyleMultiSelect) {
-    	[t->tv setAllowsMultipleSelection:YES];
-    } else {
-    	[t->tv setAllowsMultipleSelection:NO];
-    }
-}
-
-uiTableStyleFlags uiTableStyle(uiTable *t)
-{
-	uiTableStyleFlags style = 0;
-    if (t->tv.allowsMultipleSelection) {
-        style |= uiTableStyleMultiSelect;
-    }
-	return style;
-}
-
-
 void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data)
 {
 	t->onSelectionChanged = f;
@@ -591,10 +571,10 @@ int uiTableIterCurrent(uiTableIter *it)
 
 void uiTableIterComplete(uiTableIter *it)
 {
-    // TODO
+	// TODO
 }
 
-uiTable *uiNewTable(uiTableModel *model)
+uiTable *uiNewTable(uiTableModel *model, int styleFlags)
 {
 	uiTable *t;
 	struct scrollViewCreateParams p;
@@ -612,7 +592,11 @@ uiTable *uiNewTable(uiTableModel *model)
 	// TODO is this sufficient?
 	[t->tv setAllowsColumnReordering:NO];
 	[t->tv setAllowsColumnResizing:YES];
-	[t->tv setAllowsMultipleSelection:NO];
+	if (styleFlags & uiTableStyleMultiSelect) {
+		[t->tv setAllowsMultipleSelection:YES];
+	} else {
+		[t->tv setAllowsMultipleSelection:NO];
+	}
 	[t->tv setAllowsEmptySelection:YES];
 	[t->tv setAllowsColumnSelection:NO];
 	[t->tv setUsesAlternatingRowBackgroundColors:YES];

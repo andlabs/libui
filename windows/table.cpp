@@ -198,17 +198,6 @@ void uiTableIterComplete(uiTableIter *it)
 
 uiWindowsControlAllDefaultsExceptDestroy(uiTable)
 
-void uiTableSetStyle(uiTable *t, uiTableStyleFlags style)
-{
-	// TODO
-}
-
-uiTableStyleFlags uiTableStyle(uiTable *t)
-{
-	// TODO
-	return (uiTableStyleFlags)0;
-}
-
 
 void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data)
 {
@@ -216,16 +205,23 @@ void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *d
 	t->onSelectionChangedData = data;
 }
 
-uiTable *uiNewTable(uiTableModel *model)
+uiTable *uiNewTable(uiTableModel *model, int styleFlags)
 {
 	uiTable *t;
 	uiWindowsNewControl(uiTable, t);
 	/*std::vector<uiTableColumn*>* tmp =*/ new(&t->columns) std::vector<uiTableColumn*>();  // placement new
 
+	int winStyle = WS_CHILD | LVS_AUTOARRANGE | LVS_REPORT | LVS_OWNERDATA;
+
+	//	have to set this stuff at window creation time
+	if (!(styleFlags & uiTableStyleMultiSelect)) {
+		winStyle |= LVS_SINGLESEL;
+	}
+
 	t->model = model;
 	t->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		WC_LISTVIEW, L"",
-		WS_CHILD | LVS_AUTOARRANGE | LVS_REPORT | LVS_OWNERDATA,
+		winStyle,
 		hInstance, NULL,
 		TRUE);
 

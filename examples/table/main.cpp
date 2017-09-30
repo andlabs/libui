@@ -159,7 +159,7 @@ static uiControl *makeTable(void)
 {
 	uiTable* t;
 	model = uiNewTableModel(&handler);
-	t = uiNewTable(model);
+	t = uiNewTable(model, uiTableStyleMultiSelect);
 	uiTableAppendTextColumn(t, "Name", 0);
 	uiTableAppendTextColumn(t, "Economy", 1);
 	uiTableAppendTextColumn(t, "Government", 2);
@@ -168,7 +168,6 @@ static uiControl *makeTable(void)
 	uiTableAppendTextColumn(t, "Radius", 5);
 	uiTableAppendTextColumn(t, "Population", 6);
 
-	uiTableSetStyle(t, uiTableStyleMultiSelect);
 	uiTableOnSelectionChanged(t, onSelectionChanged, NULL);
 	return uiControl(t);
 }

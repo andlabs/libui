@@ -14,7 +14,7 @@
 // - when a dialog is active, tab navigation in other windows stops working
 // - when adding uiOpenFolder(), use IFileDialog as well - https://msdn.microsoft.com/en-us/library/windows/desktop/bb762115%28v=vs.85%29.aspx
 
-#define windowHWND(w) ((HWND) uiControlHandle(uiControl(w)))
+#define windowHWND(w) (w ? (HWND) uiControlHandle(uiControl(w)) : NULL)
 
 char *commonItemDialog(HWND parent, REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd)
 {

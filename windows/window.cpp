@@ -452,7 +452,7 @@ static void setClientSize(uiWindow *w, int width, int height, BOOL hasMenubar, D
 		logLastError(L"error resizing window");
 }
 
-uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
+uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar, int resizable)
 {
 	uiWindow *w;
 	WCHAR *wtitle;
@@ -465,8 +465,11 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		hasMenubarBOOL = TRUE;
 	w->hasMenubar = hasMenubarBOOL;
 
-#define style WS_OVERLAPPEDWINDOW
-#define exstyle 0
+	int style = WS_OVERLAPPEDWINDOW;
+	int exstyle = 0;
+
+	if (!resizable)
+		style &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
 
 	wtitle = toUTF16(title);
 	w->hwnd = CreateWindowExW(exstyle,

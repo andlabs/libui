@@ -130,7 +130,7 @@ _UI_EXTERN void uiWindowSetBorderless(uiWindow *w, int borderless);
 _UI_EXTERN void uiWindowSetChild(uiWindow *w, uiControl *child);
 _UI_EXTERN int uiWindowMargined(uiWindow *w);
 _UI_EXTERN void uiWindowSetMargined(uiWindow *w, int margined);
-_UI_EXTERN uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar);
+_UI_EXTERN uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar, int resizable);
 
 typedef struct uiButton uiButton;
 #define uiButton(this) ((uiButton *) (this))

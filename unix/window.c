@@ -229,7 +229,7 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 	uiprivSetMargined(w->childHolderContainer, w->margined);
 }
 
-uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
+uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar, int resizable)
 {
 	uiWindow *w;
 
@@ -274,6 +274,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	// normally it's SetParent() that does this, but we can't call SetParent() on a uiWindow
 	// TODO we really need to clean this up, especially since see uiWindowDestroy() above
 	g_object_ref(w->widget);
+
+	gtk_window_set_resizable(w->window, resizable?TRUE:FALSE);
 
 	return w;
 }

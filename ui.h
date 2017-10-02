@@ -302,6 +302,8 @@ typedef struct uiAreaKeyEvent uiAreaKeyEvent;
 
 typedef struct uiDrawContext uiDrawContext;
 
+// TO CONSIDER: the uiAreaHandler param there seems useless
+// (might use individual callbacks instead of handler struct?)
 struct uiAreaHandler {
 	void (*Draw)(uiAreaHandler *, uiArea *, uiAreaDrawParams *);
 	// TODO document that resizes cause a full redraw for non-scrolling areas; implementation-defined for scrolling areas
@@ -311,6 +313,7 @@ struct uiAreaHandler {
 	void (*MouseCrossed)(uiAreaHandler *, uiArea *, int left);
 	void (*DragBroken)(uiAreaHandler *, uiArea *);
 	int (*KeyEvent)(uiAreaHandler *, uiArea *, uiAreaKeyEvent *);
+	void (*Resize)(uiAreaHandler *, uiArea *, int, int);
 };
 
 // TODO RTL layouts?

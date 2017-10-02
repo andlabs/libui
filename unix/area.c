@@ -97,6 +97,8 @@ static void areaWidget_size_allocate(GtkWidget *w, GtkAllocation *allocation)
 		// TODO drop this rule; it was stupid and documenting this was stupid — let platforms where it matters do it on their own
 		// TODO or do we not, for parity of performance?
 		gtk_widget_queue_resize(w);
+
+	a->ah->Resize(a->ah, a, allocation->width, allocation->height);
 }
 
 static void loadAreaSize(uiArea *a, double *width, double *height)
@@ -161,6 +163,8 @@ static void areaWidget_get_preferred_height(GtkWidget *w, gint *min, gint *nat)
 		*min = a->scrollHeight;
 		*nat = a->scrollHeight;
 	}
+
+	// TODO: min size
 }
 
 static void areaWidget_get_preferred_width(GtkWidget *w, gint *min, gint *nat)

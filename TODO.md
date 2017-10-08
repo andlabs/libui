@@ -219,3 +219,31 @@ for future versions of the os x port
 https://developer.apple.com/documentation/appkit/nslayoutguide?language=objc and anchors
 https://developer.apple.com/documentation/appkit/nsuserinterfacecompression?language=objc https://developer.apple.com/documentation/appkit/nsuserinterfacecompressionoptions?language=objc
 though at some point we'll be able to use NSStackView and NSGridView directly, so...
+
+Cocoa PDFs
+https://developer.apple.com/documentation/appkit/nspdfimagerep?language=objc
+https://developer.apple.com/documentation/coregraphics?language=objc
+https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Printing/osxp_pagination/osxp_pagination.html#//apple_ref/doc/uid/20001051-119037
+https://developer.apple.com/documentation/appkit/nsprintoperation/1529269-pdfoperationwithview?language=objc
+https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Printing/osxp_printapps/osxp_printapps.html#//apple_ref/doc/uid/20000861-BAJBFGED
+https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Printing/osxp_printingapi/osxp_printingapi.html#//apple_ref/doc/uid/10000083i-CH2-SW2
+https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Printing/osxp_printinfo/osxp_printinfo.html#//apple_ref/doc/uid/20000864-BAJBFGED
+https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Printing/osxp_printlayoutpanel/osxp_printlayoutpanel.html#//apple_ref/doc/uid/20000863-BAJBFGED
+https://developer.apple.com/documentation/appkit/nspagelayout?language=objc
+https://developer.apple.com/documentation/appkit/nsprintinfo?language=objc
+https://developer.apple.com/documentation/applicationservices/core_printing?language=objc
+https://developer.apple.com/documentation/applicationservices/1463247-pmcreatesession?language=objc
+https://developer.apple.com/documentation/applicationservices/pmprintsession?language=objc
+https://developer.apple.com/documentation/applicationservices/1460101-pmsessionbegincgdocumentnodialog?language=objc
+https://developer.apple.com/documentation/applicationservices/1463416-pmsessionbeginpagenodialog?language=objc
+https://developer.apple.com/documentation/applicationservices/1506831-anonymous/kpmdestinationprocesspdf?language=objc
+https://developer.apple.com/documentation/applicationservices/1461960-pmcreategenericprinter?language=objc
+https://developer.apple.com/documentation/applicationservices/1460101-pmsessionbegincgdocumentnodialog?language=objc
+https://developer.apple.com/documentation/applicationservices/1464527-pmsessionenddocumentnodialog?language=objc
+https://developer.apple.com/documentation/applicationservices/1461952-pmsessiongetcggraphicscontext?language=objc
+https://developer.apple.com/library/content/technotes/tn2248/_index.html
+https://developer.apple.com/library/content/samplecode/PMPrinterPrintWithFile/Introduction/Intro.html
+https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Printing/osxp_aboutprinting/osxp_aboutprt.html
+
+- run os x code with `OBJC_DEBUG_MISSING_POOLS=YES` and other `OBJC_HELP=YES` options
+	- turn off the autorelease pool to make sure we're not autoreleasing improperly

@@ -247,3 +247,5 @@ https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Print
 
 - run os x code with `OBJC_DEBUG_MISSING_POOLS=YES` and other `OBJC_HELP=YES` options
 	- turn off the autorelease pool to make sure we're not autoreleasing improperly
+
+TODO investigate -Weverything in clang alongside -Wall in MSVC (and in gcc too maybe...)

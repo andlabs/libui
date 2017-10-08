@@ -69,6 +69,56 @@ struct uiTable {
 	void *onSelectionChangedData;
 };
 
+@interface tableDelegateClass : NSObject {
+	struct mapTable *tables;
+}
+- (void)tableViewSelectionDidChange:(NSNotification *)notification;
+- (void)registerTable:(uiTable *)t;
+- (void)unregisterTable:(uiTable *)t;
+@end
+
+@implementation tableDelegateClass
+
+- (id)init
+{
+	self = [super init];
+	if (self)
+		self->tables = newMap();
+	return self;
+}
+
+- (void)dealloc
+{
+	mapDestroy(self->tables);
+	[super dealloc];
+}
+
+- (void)tableViewSelectionDidChange:(NSNotification *)notification
+{
+	uiTable *t;
+
+	t = (uiTable *) mapGet(self->tables, notification);
+	(*(t->onSelectionChanged))(t, t->onSelectionChangedData);
+}
+
+- (void)registerTable:(uiTable *)t
+{
+	mapSet(self->tables, t->tv, t);
+	[t->tv setTarget:self];
+	[t->tv setAction:@selector(tableViewSelectionDidChange:)];
+}
+
+- (void)unregisterTable:(uiTable *)t
+{
+	[t->tv setTarget:nil];
+	mapDelete(self->tables, t->tv);
+}
+
+@end
+
+static tableDelegateClass *tableDelegate = nil;
+
+
 @implementation tableModel
 
 - (id)initWithModel:(uiTableModel *)m
@@ -512,6 +562,7 @@ static void uiTableDestroy(uiControl *c)
 {
 	uiTable *t = uiTable(c);
 
+	[tableDelegate unregisterTable:t];
 	// TODO
 	[t->sv release];
 	uiFreeControl(uiControl(t));
@@ -547,39 +598,39 @@ void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *d
 }
 
 struct uiTableIter {
-    NSIndexSet *set;
-    int foo;
-    NSUInteger curr;
+	NSIndexSet *set;
+	int foo;
+	NSUInteger curr;
 };
 
 uiTableIter* uiTableGetSelection(uiTable *t)
 {
-    uiTableIter *it = uiAlloc(sizeof(uiTableIter), "uiTableIter");
-    it->set = [t->tv selectedRowIndexes];
-    it->foo = 0;
+	uiTableIter *it = uiAlloc(sizeof(uiTableIter), "uiTableIter");
+	it->set = [t->tv selectedRowIndexes];
+	it->foo = 0;
 
-    it->curr = [it->set firstIndex];
-    return it;
+	it->curr = [it->set firstIndex];
+	return it;
 }
 
 
 int uiTableIterAdvance(uiTableIter *it)
 {
-    if (it->foo>0) {
-        it->curr = [it->set indexGreaterThanIndex:it->curr];
-    }
-    it->foo++;
-    return (it->curr==NSNotFound) ? 0:1;
+	if (it->foo>0) {
+		it->curr = [it->set indexGreaterThanIndex:it->curr];
+	}
+	it->foo++;
+	return (it->curr==NSNotFound) ? 0:1;
 }
 
 int uiTableIterCurrent(uiTableIter *it)
 {
-    return (int)it->curr;
+	return (int)it->curr;
 }
 
 void uiTableIterComplete(uiTableIter *it)
 {
-    uiFree(it);
+	uiFree(it);
 }
 
 uiTable *uiNewTable(uiTableModel *model, int styleFlags)
@@ -626,5 +677,10 @@ uiTable *uiNewTable(uiTableModel *model, int styleFlags)
 
 	t->backgroundColumn = -1;
 
+	if (tableDelegate == nil) {
+		tableDelegate = [[tableDelegateClass new] autorelease];
+		[delegates addObject:tableDelegate];
+	}
+	[tableDelegate registerTable:t];
 	return t;
 }

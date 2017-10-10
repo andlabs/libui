@@ -249,3 +249,8 @@ https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Print
 	- turn off the autorelease pool to make sure we're not autoreleasing improperly
 
 TODO investigate -Weverything in clang alongside -Wall in MSVC (and in gcc too maybe...)
+
+mac os x accessibility
+- https://developer.apple.com/documentation/appkit/nsworkspace/1524656-accessibilitydisplayshoulddiffer?language=objc
+- https://developer.apple.com/documentation/appkit/nsworkspace/1526290-accessibilitydisplayshouldincrea?language=objc
+- https://developer.apple.com/documentation/appkit/nsworkspace/1533006-accessibilitydisplayshouldreduce?language=objc

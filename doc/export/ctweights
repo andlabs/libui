@@ -8,11 +8,79 @@ func (f *CTFont) IsRegistered() bool {
 	return n.(*CFNumber).Uint32Value() == kCTFontManagerScopeNone
 }
 
+// based on CoreGraphics dylib's _CGFontCopyName
+// note that this is different from the public API function CGFontCopyPostScriptName() (which is font type-independent)
+// also note that in reality these keys are strings but the implementation of the function turns them into ints and only uses them as such
+const (
+	kCGFontNameKeyPostScriptName = xxx
+)
+func (f *CGFont) CopyName(key int) (string, bool) {
+}
+
 // based on libFontRegistry.dylib's __ZN11TFontTraitsC2EP6CGFontRK13TFontMetadata — TFontTraits::TFontTraits(CGFont*, TFontMetadata const&)
 func (f *Font) WeightFromFontRegistry32() float32 {
 	var weight float32
+	var hasWeight bool = false
 
 	cgfont := f.CGFont()
+	if f.RegistryHasMetadata() {
+		wv := f.RegistryMetadataValueForKey("MTD_Typeface_Weight_VisualDescriptor")
+		if wv != nil {
+			if wn, ok := wv.(string); ok {
+				// note: uses CFStringCompare(0)
+				switch wn {
+				case "reg":
+					weight = float32as(0.000000, 0x0)
+					hasWeight = true
+				case "semi":
+					weight = float32as(0.300000, 0x3e99999a)
+					hasWeight = true
+				case "bold":
+					weight = float32as(0.400000, 0x3ecccccd)
+					hasWeight = true
+				case "light":
+					weight = float32as(-0.400000, 0xbecccccd)
+					hasWeight = true
+				case "med":
+					weight = float32as(0.230000, 0x3e6b851f)
+					hasWeight = true
+				case "heavy":
+					weight = float32as(0.560000, 0x3f0f5c29)
+					hasWeight = true
+				case "black":
+					weight = float32as(0.620000, 0x3f1eb852)
+					hasWeight = true
+				case "thin":
+					weight = float32as(-0.600000, 0xbf19999a)
+					hasWeight = true
+				case "ulight":
+					weight = float32as(-0.800000, 0xbf4ccccd)
+					hasWeight = true
+				}
+			}
+		}
+	}
+
+	cgpsname, ok := cgfont.CopyName(kCGFontNameKeyPostScriptName)
+	if ok {
+		// note: uses CFStringCompare(0)
+		switch cgpsname {
+		case "LucidaGrande",
+			".LucidaGrandeUI",
+			".Keyboard":
+			weight = float32as(0.000000, 0x0)
+			hasWeight = true
+		case "STHeiti":
+			weight = float32as(0.240000, 0x3e75c28f)
+			hasWeight = true
+		case "STXihei":
+			weight = float32as(-0.100000, 0xbdcccccd)
+			hasWeight = true
+		case "TimesNewRomanPSMT":
+			weight = float32as(0.000000, 0x0)
+			hasWeight = true
+		}
+	}
 }
 
 // because Core Text gets registry traits as a CFDictionary, convert the float to a double with CFNumber as that is what actually would be done

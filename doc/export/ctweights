@@ -12,15 +12,43 @@ func (f *CTFont) IsRegistered() bool {
 // note that this is different from the public API function CGFontCopyPostScriptName() (which is font type-independent)
 // also note that in reality these keys are strings but the implementation of the function turns them into ints and only uses them as such
 const (
-	kCGFontNameKeyPostScriptName = xxx
-	kCGFontNameKeyPreferredSubfamily = xxx
-	kCGFontNameKeyFontSubfamily = xxx
-	kCGFontNameKeyFullName = xxx
-	kCGFontNameKeyPreferredFamily = xxx
-	kCGFontNameKeyFontFamily = xxx
+	kCGFontNameKeyPostScriptName = 0x6
+	kCGFontNameKeyPreferredSubfamily = 0x11
+	kCGFontNameKeyFontSubfamily = 0x2
+	kCGFontNameKeyFullName = 0x4
+	kCGFontNameKeyPreferredFamily = 0x10
+	kCGFontNameKeyFontFamily = 0x1
 )
 func (f *CGFont) CopyName(key int) (string, bool) {
-	// TODO
+	var nameCount int
+	var stringOffset int
+
+	table := f.TableForTag('name')
+	b := table.Bytes()
+	n := table.Len()
+
+	// the asm does some obtuse logic to get to these conditions, so I will simplify the logic here
+	if n >= 4 {
+		nameCount = int(uint16be(b[2:4]))
+	} else {
+		nameCount = 0
+	}
+	if n >= 6 {
+		stringOffset = int(uint16be(b[4:6]))
+	} else {
+		stringOffset = 0
+	}
+
+	type NameRecord struct {
+		PlatformID		uint16
+		PlatformSpecificID	uint16
+		LanguageID		uint16
+		NameID			uint16
+		Length			uint16
+		Offset			uint16
+	}
+
+	pos := x
 }
 
 // based on libFontRegistry.dylib's __ZNK8OS2Table15DetermineWeightERf — OS2Table::DetermineWeight(float&) const

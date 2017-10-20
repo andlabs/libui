@@ -8,6 +8,42 @@ func (f *CTFont) IsRegistered() bool {
 	return n.(*CFNumber).Uint32Value() == kCTFontManagerScopeNone
 }
 
+xx this type is in libFontRegistry.dylib; functions like x_list.Prepend() are called things like x_list_prepend() there
+type x_list struct {
+	Data		interface{}
+	Next		*x_list
+}
+
+func (x *x_list) Prepend(data interface{}) *x_list {
+	y := malloc(sizeof (x_list))
+	if y != nil {
+		y.data = data
+		y.next = x
+		return y
+	}
+	return x
+}
+
+func (x *x_list) Reverse() *x_list {
+	if x == nil {
+		return nil
+	}
+
+	var old, next *x_list
+
+	next = nil
+	for {
+		old = x
+		x = old.next
+		old.next = next
+		next = old
+		if x == nil {
+			break
+		}
+	}
+	return old
+}
+
 // based on CoreGraphics dylib's _CGFontCopyName
 // note that this is different from the public API function CGFontCopyPostScriptName() (which is font type-independent)
 // also note that in reality these keys are strings but the implementation of the function turns them into ints and only uses them as such
@@ -20,23 +56,27 @@ const (
 	kCGFontNameKeyFontFamily = 0x1
 )
 func (f *CGFont) CopyName(key int) (string, bool) {
-	var nameCount int
-	var stringOffset int
-
 	table := f.TableForTag('name')
 	b := table.Bytes()
 	n := table.Len()
 
-	// the asm does some obtuse logic to get to these conditions, so I will simplify the logic here
-	if n >= 4 {
-		nameCount = int(uint16be(b[2:4]))
-	} else {
-		nameCount = 0
+	xx this code looks weird, but we're imitating the assembly, or the effective effects thereof
+	offCount := uint16(0)
+	offStringOffset := uint16(2)
+	if n > 1 {
+		offCount = 2
+		offStringOffset = 4
 	}
-	if n >= 6 {
-		stringOffset = int(uint16be(b[4:6]))
-	} else {
-		stringOffset = 0
+
+	count := uint16(0)
+	if int(offCount) <= n {
+		count = uint16be(b[offCount:offCount + 2])
+	}
+
+	offNameRecord := offStringOffset + 2
+	stringOffset := uint16(0)
+	if int(offNameRecord) <= n {
+		stringOffset = uint16be(b[offStringOffset:offStringOffset + 2])
 	}
 
 	type NameRecord struct {
@@ -48,7 +88,93 @@ func (f *CGFont) CopyName(key int) (string, bool) {
 		Offset			uint16
 	}
 
-	pos := x
+	var nameList *x_list
+
+	addrStrings := offNameRecords + (12 * count)
+	if addrStrings != stringOffset {
+		goto hasLanguageTags
+	}
+	pos := offNameRecords
+	if count == 0 {
+		xx TODO note assembly logic here
+	} else {
+		for {
+			var nr NameRecord
+
+			nr.PlatformID = 0
+			next := pos + 2
+			if int(next) <= n {
+				nr.PlatformID = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.PlatformSpecificID = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.PlatformSpecificID = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.LanguageID = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.LanguageID = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.NameID = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.NameID = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.Length = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.Length = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.Offset = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.Offset = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			strpos := stringOffset + nr.Offset
+			if strpos >= n {
+				xx TODO put comment about imitating the assembly comparisons here
+			} else {
+				realLen := nr.Length
+				strend = strpos + nr.Length
+				if strend > n {
+					realLen = nr.Length - strpos
+					strend = strpos + realLen
+				}
+				b := malloc(12 + realLen + 1)
+				if b != nil {
+					name := (*sfnt_name_t)(b)
+					name.PlatformID = nr.PlatformID
+					name.PlatformSpecificID = nr.PlatformSpecificID
+					name.LanguageID = nr.LanguageID
+					name.NameID = nr.NameID
+					name.Length = realLen
+					memcpy(&(name.Name), b[strpos:strend], realLen)
+					name.Name[realLen] = 0
+					nameList = nameList.Prepend(name)
+				}
+			}
+			count--
+			if count == 0 {
+				break
+			}
+		}
+	}
+	nameList = nameList.Reverse()
+
+hasLanguageTags:
 }
 
 // based on libFontRegistry.dylib's __ZNK8OS2Table15DetermineWeightERf — OS2Table::DetermineWeight(float&) const

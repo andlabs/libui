@@ -8,7 +8,7 @@ func (f *CTFont) IsRegistered() bool {
 	return n.(*CFNumber).Uint32Value() == kCTFontManagerScopeNone
 }
 
-xx this type is in libFontRegistry.dylib; functions like x_list.Prepend() are called things like x_list_prepend() there
+// this type is in libFontRegistry.dylib; functions like x_list.Prepend() are called things like x_list_prepend() there
 type x_list struct {
 	Data		interface{}
 	Next		*x_list
@@ -44,6 +44,23 @@ func (x *x_list) Reverse() *x_list {
 	return old
 }
 
+func (x *x_list) Concat(y *x_list) *x_list {
+	if x == nil {
+		return y
+	}
+	start := x
+	z := x
+	for {
+		x = z
+		z = z.next
+		if z == nil {
+			break
+		}
+	}
+	x.next = y
+	return start
+}
+
 // based on CoreGraphics dylib's _CGFontCopyName
 // note that this is different from the public API function CGFontCopyPostScriptName() (which is font type-independent)
 // also note that in reality these keys are strings but the implementation of the function turns them into ints and only uses them as such
@@ -60,7 +77,7 @@ func (f *CGFont) CopyName(key int) (string, bool) {
 	b := table.Bytes()
 	n := table.Len()
 
-	xx this code looks weird, but we're imitating the assembly, or the effective effects thereof
+	// this code looks weird, but we're imitating the assembly, or the effective effects thereof
 	offCount := uint16(0)
 	offStringOffset := uint16(2)
 	if n > 1 {
@@ -96,7 +113,7 @@ func (f *CGFont) CopyName(key int) (string, bool) {
 	}
 	pos := offNameRecords
 	if count == 0 {
-		xx TODO note assembly logic here
+		// TODO note assembly logic here
 	} else {
 		for {
 			var nr NameRecord
@@ -145,7 +162,7 @@ func (f *CGFont) CopyName(key int) (string, bool) {
 
 			strpos := stringOffset + nr.Offset
 			if strpos >= n {
-				xx TODO put comment about imitating the assembly comparisons here
+				// TODO put comment about imitating the assembly comparisons here
 			} else {
 				realLen := nr.Length
 				strend = strpos + nr.Length
@@ -175,6 +192,40 @@ func (f *CGFont) CopyName(key int) (string, bool) {
 	nameList = nameList.Reverse()
 
 hasLanguageTags:
+	add_localized_names := func(platformID uint16, platformSpecificID uint16, to *x_list) *x_list {
+		out := (*x_list)(nil)
+		if nameList == nil {
+			xx TODO logic verbatim etc.
+		} else {
+			x := nameList
+			for {
+				name := (*sfnt_name_t)(x.data)
+				if name.PlatformID != platformID {
+					xx TODO
+				} else {
+					if platformSpecificID == 0xFFFF || name.PlatformSpecificID == platformSpecificID {
+						out = out.Prepend(name)
+					}
+				}
+				x = x.next
+				if x == nil {
+					break
+				}
+			}
+		}
+		out = out.Reverse()
+		return to.Concat(out)
+	}
+	localized := (*x_list)(nil)
+	localized = add_localized_names(0x1, 0xFFFF, localized)
+	localized = add_localized_names(0, 0xFFFF, localized)
+	localized = add_localized_names(0x3, 0xFFFF, localized)
+	localized = add_localized_names(0x1, 0, localized)
+	localized = add_localized_names(0x3, 0x9, localized)
+	localized = add_localized_names(0x3, 0x409, localized)
+
+	sysLocale := CFLocaleGetSystem()
+	
 }
 
 // based on libFontRegistry.dylib's __ZNK8OS2Table15DetermineWeightERf — OS2Table::DetermineWeight(float&) const

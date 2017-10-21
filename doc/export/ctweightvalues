@@ -84,19 +84,19 @@ registered font, OS2 weights; table length >= 78
 901 - 950:	float32as(0.750000, 0x3f400000)
 951 - 999:	float32as(0.800000, 0x3f4ccccd)
 0, 1000:		panose
-	2:	float32as(-0.500000, 0xbf000000)
-	3:	float32as(-0.400000, 0xbecccccd)
-	4:	!!!! should be float32as(-0.300000, 0xbe99999a) but is treated as invalid instead due to returning false instead of true
-	5:	float32as(-0.230000, 0xbe6b851f)
-	6:	float32as(0.230000, 0x3e6b851f)
-	7:	float32as(0.250000, 0x3e800000)
-	8:	float32as(0.400000, 0x3ecccccd)
-	9:	float32as(0.560000, 0x3f0f5c29)
-	10:	float32as(0.620000, 0x3f1eb852)
-	11:	float32as(0.800000, 0x3f4ccccd)
+panose 2:		float32as(-0.500000, 0xbf000000)
+panose 3:		float32as(-0.400000, 0xbecccccd)
+panose 4:		!!!! see note	should be float32as(-0.300000, 0xbe99999a) but is treated as invalid instead due to returning false instead of true
+panose 5:		float32as(-0.230000, 0xbe6b851f)
+panose 6:		float32as(0.230000, 0x3e6b851f)
+panose 7:		float32as(0.250000, 0x3e800000)
+panose 8:		float32as(0.400000, 0x3ecccccd)
+panose 9:		float32as(0.560000, 0x3f0f5c29)
+panose 10:	float32as(0.620000, 0x3f1eb852)
+panose 11:	float32as(0.800000, 0x3f4ccccd)
 
 registered font, head table, low bit of byte 0x2D
-1:		float32as(0.400000, 0x3ecccccd)
+'head'[0x2D] & 1:		float32as(0.400000, 0x3ecccccd)
 
 registered font, abbreviated weight glossary, checks for (possibly in TrueType and OpenType only) in order: preferred subfamily, family; case-insensitive strict comparison
 "EL":		float32as(-0.200000, 0xbe4ccccd)

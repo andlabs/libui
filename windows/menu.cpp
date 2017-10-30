@@ -14,7 +14,9 @@ static BOOL hasAbout = FALSE;
 
 struct uiMenu {
 	WCHAR *name;
+	HMENU handle;
 	uiMenuItem **items;
+	BOOL ischild;
 	size_t len;
 	size_t cap;
 };
@@ -28,6 +30,7 @@ struct uiMenuItem {
 	BOOL disabled;				// template for new instances; kept in sync with everything else
 	BOOL checked;
 	HMENU *hmenus;
+	uiMenu* popupchild;
 	size_t len;
 	size_t cap;
 };
@@ -39,6 +42,7 @@ enum {
 	typePreferences,
 	typeAbout,
 	typeSeparator,
+	typeSubmenu,
 };
 
 #define grow 32
@@ -140,6 +144,7 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 		item->name = toUTF16(name);
 		break;
 	}
+	item->popupchild = NULL;
 
 	if (item->type != typeSeparator) {
 		item->id = curID;
@@ -152,6 +157,34 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 		item->onClickedData = NULL;
 	} else
 		uiMenuItemOnClicked(item, defaultOnClicked, NULL);
+
+	return item;
+}
+
+uiMenuItem *uiMenuAppendSubmenu(uiMenu *m, uiMenu* child)
+{
+	uiMenuItem *item;
+
+	if (menusFinalized)
+		uiprivUserBug("You can not create a new menu item after menus have been finalized.");
+
+	if (m->len >= m->cap) {
+		m->cap += grow;
+		m->items = (uiMenuItem **) uiprivRealloc(m->items, m->cap * sizeof (uiMenuItem *), "uiMenuitem *[]");
+	}
+
+	item = uiprivNew(uiMenuItem);
+
+	m->items[m->len] = item;
+	m->len++;
+
+	item->type = typeSubmenu;
+	item->name = child->name;
+
+	item->popupchild = child;
+	child->ischild = TRUE;
+
+	uiMenuItemOnClicked(item, defaultOnClicked, NULL);
 
 	return item;
 }
@@ -216,13 +249,17 @@ uiMenu *uiNewMenu(const char *name)
 	len++;
 
 	m->name = toUTF16(name);
+	m->ischild = FALSE;
 
 	return m;
 }
 
+static HMENU makeMenu(uiMenu *m);
+
 static void appendMenuItem(HMENU menu, uiMenuItem *item)
 {
 	UINT uFlags;
+	UINT_PTR id = item->id;
 
 	uFlags = MF_SEPARATOR;
 	if (item->type != typeSeparator) {
@@ -231,8 +268,12 @@ static void appendMenuItem(HMENU menu, uiMenuItem *item)
 			uFlags |= MF_DISABLED | MF_GRAYED;
 		if (item->checked)
 			uFlags |= MF_CHECKED;
+		if (item->popupchild) {
+			uFlags |= MF_POPUP;
+			id = (UINT_PTR)makeMenu(item->popupchild);
+		}
 	}
-	if (AppendMenuW(menu, uFlags, item->id, item->name) == 0)
+	if (AppendMenuW(menu, uFlags, id, item->name) == 0)
 		logLastError(L"error appending menu item");
 
 	if (item->len >= item->cap) {
@@ -251,6 +292,7 @@ static HMENU makeMenu(uiMenu *m)
 	menu = CreatePopupMenu();
 	if (menu == NULL)
 		logLastError(L"error creating menu");
+	m->handle = menu;
 	for (i = 0; i < m->len; i++)
 		appendMenuItem(menu, m->items[i]);
 	return menu;
@@ -269,6 +311,7 @@ HMENU makeMenubar(void)
 		logLastError(L"error creating menubar");
 
 	for (i = 0; i < len; i++) {
+		if (menus[i]->ischild) continue;
 		menu = makeMenu(menus[i]);
 		if (AppendMenuW(menubar, MF_POPUP | MF_STRING, (UINT_PTR) menu, menus[i]->name) == 0)
 			logLastError(L"error appending menu to menubar");
@@ -321,21 +364,27 @@ static void freeMenu(uiMenu *m, HMENU submenu)
 			item->hmenus[j] = item->hmenus[j + 1];
 		item->hmenus[j] = NULL;
 		item->len--;
+
+		if (item->popupchild)
+			freeMenu(item->popupchild, item->popupchild->handle);
 	}
 }
 
 void freeMenubar(HMENU menubar)
 {
 	size_t i;
+	size_t j = 0;
 	MENUITEMINFOW mi;
 
 	for (i = 0; i < len; i++) {
+		if (menus[i]->ischild) continue;
 		ZeroMemory(&mi, sizeof (MENUITEMINFOW));
 		mi.cbSize = sizeof (MENUITEMINFOW);
 		mi.fMask = MIIM_SUBMENU;
-		if (GetMenuItemInfoW(menubar, i, TRUE, &mi) == 0)
+		if (GetMenuItemInfoW(menubar, j, TRUE, &mi) == 0)
 			logLastError(L"error getting menu to delete item references from");
 		freeMenu(menus[i], mi.hSubMenu);
+		j++;
 	}
 	// no need to worry about destroying any menus; destruction of the window they're in will do it for us
 }
@@ -354,7 +403,7 @@ void uninitMenus(void)
 			if (item->len != 0)
 				// LONGTERM uiprivUserBug()?
 				uiprivImplBug("menu item %p (%ws) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
-			if (item->name != NULL)
+			if (item->type != typeSubmenu && item->name != NULL)
 				uiprivFree(item->name);
 			if (item->hmenus != NULL)
 				uiprivFree(item->hmenus);

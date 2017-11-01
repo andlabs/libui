@@ -76,7 +76,7 @@ registered font, OS2 weights; table length >= 78
 2, 101 - 200:	float32as(-0.500000, 0xbf000000)
 3, 201 - 300:	float32as(-0.400000, 0xbecccccd)
 4, 301 - 400:	float32as(0.000000, 0x0)
-5, 401 - 500:	float32as(0.230000, 0x3e6b851)
+5, 401 - 500:	float32as(0.230000, 0x3e6b851f)
 6, 501 - 600:	float32as(0.250000, 0x3e800000)
 7, 601 - 700:	float32as(0.400000, 0x3ecccccd)
 8, 701 - 800:	float32as(0.500000, 0x3f000000)

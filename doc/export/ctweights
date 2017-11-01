@@ -318,7 +318,7 @@ do401AndUp:
 		}
 		return float32as(0.250000, 0x3e800000), true
 	}
-	return float32as(0.230000, 0x3e6b851), true
+	return float32as(0.230000, 0x3e6b851f), true
 
 do601AndUp:
 	if usWeightClass > 700 {

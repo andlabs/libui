@@ -10,6 +10,9 @@
 // - https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Types
 // - https://www.microsoft.com/typography/otspec/avar.htm
 
+#define fvarWeight 0x77676874
+#define fvarWidth 0x77647468
+
 typedef uint32_t fixed1616;
 typedef uint16_t fixed214;
 

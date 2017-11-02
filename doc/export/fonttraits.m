@@ -77,9 +77,9 @@ static uiDrawTextFontItalic guessItalicOblique(CTFontDescriptorRef desc)
 	return uiDrawFontItalicItalic;
 }
 
-// Core Text does (usWidthClass - 0.5) x 10
-// this roughly maps to our values with increments of 0.1, except for the fact 0 and 10 are allowed by Core Text, despite being banned by TrueType and OpenType themselves
-// we'll just treat them as identical to 1 and 9, respectively
+// Core Text does (usWidthClass / 10) - 0.5 here.
+// This roughly maps to our values with increments of 0.1, except for the fact 0 and 10 are allowed by Core Text, despite being banned by TrueType and OpenType themselves.
+// We'll just treat them as identical to 1 and 9, respectively.
 static const uiDrawFontStretch os2WidthsToStretches[] = {
 	uiDrawTextStretchUltraCondensed,
 	uiDrawTextStretchUltraCondensed,

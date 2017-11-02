@@ -170,12 +170,15 @@ static void trySecondaryOS2Values(CTFontDescriptorRef desc, uiDrawFontDescriptor
 	CFRelease(font);
 }
 
+// TODO explicitly mark these as undocumented
+extern const CFStringRef kCTFontPreferredSubFamilyNameKey;
+extern const CFStringRef kCTFontPreferredFamilyNameKey;
+
 static const CFStringRef subfamilyKeys[] = {
 	kCTFontSubFamilyNameKey,
-	// TODO explicitly mark these as undocumented
-	CFSTR("CTFontPreferredSubFamilyName"),
+	kCTFontPreferredSubFamilyNameKey,
 	kCTFontFullNameKey,
-	CFSTR("CTFontPreferredFamilyName"),
+	kCTFontPreferredFamilyNameKey,
 	kCTFontFamilyNameKey,
 	NULL,
 };

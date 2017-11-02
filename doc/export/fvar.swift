@@ -56,6 +56,16 @@ matches.forEach { d in
 }
 print("")
 weightVals.forEach { k, v in
-	let scaled = (v - weightMin) / (weightMax - weightMin)
-	print("\(k) scaled = \(scaled) (OS2 \(UInt16(scaled * 1000)))")
+	let basicScaled = (v - weightMin) / (weightMax - weightMin)
+	print("\(k) basic scaled = \(basicScaled) (OS2 \(UInt16(basicScaled * 1000)))")
+	// https://www.microsoft.com/typography/otspec/otvaroverview.htm#CSN
+	var opentypeScaled: Double = 0
+	if v < weightDef {
+		opentypeScaled = -((weightDef - v) / (weightDef - weightMin))
+	} else if v > weightDef {
+		opentypeScaled = (v - weightDef) / (weightMax - weightDef)
+	}
+	print("\(k) opentype scaled = \(opentypeScaled)")
 }
+print("")
+print("\(CTFontDescriptorCreateMatchingFontDescriptors(CTFontDescriptorCreateCopyWithVariation(matches[0], FourCharCode(2003265652) as CFNumber, CGFloat(weightMax)), Set([kCTFontVariationAttribute as String]) as CFSet))")

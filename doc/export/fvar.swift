@@ -68,4 +68,6 @@ weightVals.forEach { k, v in
 	print("\(k) opentype scaled = \(opentypeScaled)")
 }
 print("")
-print("\(CTFontDescriptorCreateMatchingFontDescriptors(CTFontDescriptorCreateCopyWithVariation(matches[0], FourCharCode(2003265652) as CFNumber, CGFloat(weightMax)), Set([kCTFontVariationAttribute as String]) as CFSet))")
+print("\(String(describing: CTFontDescriptorCreateMatchingFontDescriptors(CTFontDescriptorCreateCopyWithVariation(matches[0], FourCharCode(2003265652) as CFNumber, CGFloat(weightMax)), Set([kCTFontVariationAttribute as String]) as CFSet)))")
+print("")
+print("\(CTFontCopyTable(mfont, CTFontTableTag(kCTFontTableAvar), []) != nil)")

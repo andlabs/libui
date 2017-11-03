@@ -1,5 +1,6 @@
 // 3 january 2017
 #import "uipriv_darwin.h"
+#import "fontstyle.h"
 
 // Core Text exposes font style info in two forms:
 // - Fonts with a QuickDraw GX font variation (fvar) table, a feature

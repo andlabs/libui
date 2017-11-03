@@ -1,5 +1,6 @@
 // 2 november 2017
 #import "uipriv_darwin.h"
+#import "fontstyle.h"
 
 // This is the part of the font style matching and normalization code
 // that handles fonts that use the fvar table.
@@ -155,7 +156,7 @@ static fixed214 normalizedTo214(fixed1616 val, const fixed1616 *avarMappings, si
 	return fixed1616ToFixed214(val);
 }
 
-fixed1616 *avarExtract(CFDataRef table, size_t index, size_t *n)
+static fixed1616 *avarExtract(CFDataRef table, CFIndex index, size_t *n)
 {
 	const UInt8 *b;
 	size_t off;
@@ -179,4 +180,141 @@ fixed1616 *avarExtract(CFDataRef table, size_t index, size_t *n)
 		off += 2;
 	}
 	return entries;
+}
+
+staatic BOOL extractAxisDictValue(CFDictionaryRef dict, CFStringRef key, fixed1616 *out)
+{
+	CFNumberRef num;
+	double v;
+
+	num = (CFNumberRef) CFDictionaryGetValue(dict, key);
+	if (CFNumberGetValue(num, kCFNumberTypeDouble, &v) == false)
+		return NO;
+	*out = doubleToFixed1616(v);
+	return YES;
+}
+
+@interface fvarAxis : NSObject {
+	fixed1616 min;
+	fixed1616 max;
+	fixed1616 def;
+	fixed1616 *avarMappings;
+	size_t avarCount;
+}
+- (id)initWithIndex:(CFIndex)i dict:(CFDictionaryRef)dict avarTable:(CFDataRef)table;
+- (double)normalize:(double)v;
+@end
+
+@implementation fvarAxis
+
+- (id)initWithIndex:(CFIndex)i dict:(CFDictionaryRef)dict avarTable:(CFDataRef)table
+{
+	self = [super init];
+	if (self) {
+		self->avarMappings = NULL;
+		self->avarCount = 0;
+		if (!extractAxisDictValue(dict, kCTFontVariationAxisMinimumValueKey, &(self->min)))
+			goto fail;
+		if (!extractAxisDictValue(dict, kCTFontVariationAxisMaximumValueKey, &(self->max)))
+			goto fail;
+		if (!extractAxisDictValue(dict, kCTFontVariationAxisDefaultValueKey, &(self->def)))
+			goto fail;
+		if (table != NULL)
+			self->avarMappings = avarExtract(table, i, &(self->avarCount));
+	}
+	return self;
+
+fail:
+	[self release];
+	return nil;
+}
+
+- (void)dealloc
+{
+	if (self->avarMappings != NULL) {
+		uiFree(self->avarMappings);
+		self->avarMappings = NULL;
+	}
+	[super dealloc];
+}
+
+- (double)normalize:(double)d
+{
+	fixed1616 n;
+	fixed214 n2;
+
+	n = doubleToFixed1616(d);
+	n = fixed16161Normalize(n, self->min, self->max, self->def);
+	n2 = normalizedTo214(n, self->avarMappings, self->avarCount);
+	return fixed214ToDouble(n2);
+}
+
+@end
+
+NSDictionary *mkVariationAxisDict(CFArrayRef axes, CFDataRef avarTable)
+{
+	CFDictionaryRef axis;
+	CFIndex i, n;
+	NSMutableDictionary *out;
+
+	n = CFArrayGetLength(axes);
+	out = [NSMutableDictionary new];
+	for (i = 0; i < n; i++) {
+		CFNumberRef key;
+
+		axis = (CFDictionaryRef) CFArrayGetValueAtIndex(axes, i);
+		key = (CFNumberRef) CFDictionaryGetValue(axis, kCTFontVariationAxisIdentifierKey);
+		[out setObject:[[fvarAxis alloc] initWithIndex:i dict:axis avarTable:table]
+			forKey:((NSNumber *) key)];
+	}
+	if (table != NULL)
+		CFRelease(table);
+	return out;
+}
+
+#define fvarAxisKey(n) [NSNumber numberWithUnsignedInteger:k]
+
+static BOOL tryAxis(NSDictionary *axisDict, CFDictionaryRef var, NSNumber *key, double *out)
+{
+	fvarAxis *axis;
+	CFNumberRef num;
+
+	axis = (fvarAxis *) [axisDict objectForKey:key];
+	if (axis == nil)
+		return NO;
+	num = (CFNumberRef) CFDictionaryGetValue(var, (CFNumberRef) key);
+	if (num == nil)
+		return NO;
+	if (CFNumberGetValue(num, kCFNumberTypeDouble, out) == false) {
+		// TODO
+		return NO;
+	}
+	*out = [axis normalize:*out];
+	return YES;
+}
+
+void processFontVariation(fontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
+{
+	double v;
+
+	out->Weight = uiDrawTextWeightNormal;
+	out->Stretch = uiDrawTextStretchNormal;
+
+	var = [d variation];
+
+	if (tryAxis(axisDict, var, fvarAxisKey(fvarWeight), &v)) {
+		// v is now a value between -1 and 1 scaled linearly between discrete points
+		// we want a linear value between 0 and 1000 with 400 being normal
+		if (v < 0) {
+			v += 1;
+			out->Weight = (uiDrawTextWeight) (v * 400);
+		} else if (v > 0)
+			out->Weight += (uiDrawTextWeight) (v * 600);
+	}
+
+	if (tryAxis(axisDict, var, fvarAxisKey(fvarWidth), &v)) {
+		// likewise, but with stretches, we go from 0 to 8 with 4 being directly between the two, so this is sufficient
+		v += 1;
+		out->Stretch = (uiDrawTextStretch) (v * 4);
+	}
 }

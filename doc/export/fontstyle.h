@@ -52,3 +52,10 @@
 - (CFStringRef)familyName;
 - (CFArrayRef)variationAxes;
 @end
+
+// fonttraits.m
+extern void processFontTraits(fontStyleData *d, uiDrawFontDescriptor *out);
+
+// fontvariation.m
+extern NSDictionary *mkVariationAxisDict(CFArrayRef axes, CFDataRef avarTable);
+extern void processFontVariation(fontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out);

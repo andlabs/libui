@@ -78,6 +78,7 @@
 - (BOOL)prepare
 {
 	CFNumberRef num;
+	Boolean success;
 
 	self->traits = NULL;
 	self->symbolic = 0;
@@ -87,12 +88,10 @@
 	self->styleName = NULL;
 	self->didVariations = NO;
 	self->variations = NULL;
-	self->didRegistrationScope = NO;
 	self->hasRegistrationScope = NO;
 	self->registrationScope = 0;
 	self->didPostScriptName = NO;
 	self->postScriptName = NULL;
-	self->didFontFormat = NO;
 	self->fontFormat = 0;
 	self->didPreferredSubFamilyName = NO;
 	self->preferredSubFamilyName = NULL;
@@ -127,6 +126,24 @@
 	if (num == NULL)
 		return NO;
 	if (CFNumberGetValue(num, kCFNumberDoubleType, &(self->width)) == false)
+		return NO;
+
+	// do these now for the sake of error checking
+	num = (CFNumberRef) CTFontDescriptorCopyAttribute(desc, kCTFontRegistrationScopeAttribute);
+	self->hasRegistrationScope = num != NULL;
+	if (self->hasRegistrationScope) {
+		success = CFNumberGetValue(num, kCFNumberSInt32Type, &(self->registrationScope));
+		CFRelease(num);
+		if (success == false)
+			return NO;
+	}
+
+	num = (CFNumberRef) CTFontDescriptorCopyAttribute(self->desc, kCTFontFormatAttribute);
+	if (num == NULL)
+		return NO;
+	success = CFNumberGetValue(num, kCFNumberSInt32Type, &(self->fontFormat));
+	CFRelease(num);
+	if (success == false)
 		return NO;
 
 	return YES;
@@ -176,25 +193,11 @@
 
 - (BOOL)hasRegistrationScope
 {
-	if (!self->didRegistrationScope) {
-		CFNumberRef num;
-
-		self->didRegistrationScope = YES;
-		num = (CFNumberRef) CTFontDescriptorCopyAttribute(desc, kCTFontRegistrationScopeAttribute);
-		self->hasRegistrationScope = num != NULL;
-		if (self->hasRegistrationScope) {
-			if (CFNumberGetValue(num, kCFNumberSInt32Type, &(self->registrationScope)) == false) {
-				// TODO
-			}
-			CFRelease(num);
-		}
-	}
 	return self->hasRegistrationScope;
 }
 
 - (CTFontManagerScope)registrationScope
 {
-	[self hasRegistrationScope];
 	return self->registrationScope;
 }
 
@@ -216,19 +219,6 @@
 
 - (CTFontFormat)fontFormat
 {
-	if (!self->didFontFormat) {
-		CFNumberRef num;
-
-		self->didFontFormat = YES;
-		num = (CFNumberRef) CTFontDescriptorCopyAttribute(self->desc, kCTFontFormatAttribute);
-		if (num == NULL) {
-			// TODO
-		}
-		if (CFNumberGetValue(num, kCFNumberSInt32Type, &(self->fontFormat)) == false) {
-			// TODO
-		}
-		CFRelease(num);
-	}
 	return self->fontFormat;
 }
 

@@ -12,12 +12,10 @@
 	CFStringRef styleName;
 	BOOL didVariations;
 	CFDictionaryRef variations;
-	BOOL didRegistrationScope;
 	BOOL hasRegistrationScope;
 	CTFontManagerScope registrationScope;
 	BOOL didPostScriptName;
 	CFStringRef postScriptName;
-	BOOL didFontFormat;
 	CTFontFormat fontFormat;
 	BOOL didPreferredSubFamilyName;
 	CFStringRef preferredSubFamilyName;

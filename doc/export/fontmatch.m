@@ -1,13 +1,29 @@
 // 3 january 2017
 #import "uipriv_darwin.h"
 
-// Stupidity: Core Text requires an **exact match for the entire traits dictionary**, otherwise it will **drop ALL the traits**.
-// This seems to be true for every function in Core Text that advertises that it performs font matching; I can confirm at the time of writing this is the case for
-// - CTFontDescriptorCreateMatchingFontDescriptors() (though the conditions here seem odd)
-// - CTFontCreateWithFontDescriptor()
-// - CTFontCreateCopyWithAttributes()
-// We have to implement the closest match ourselves.
-// This needs to be done early in the matching process; in particular, we have to do this before adding any features (such as small caps), because the matching descriptors won't have those.
+// Core Text exposes font style info in two forms:
+// - Fonts with a QuickDraw GX font variation (fvar) table, a feature
+// 	adopted by OpenType, expose variations directly.
+// - All other fonts have Core Text normalize the font style info
+// 	into a traits dictionary.
+// Of course this setup doesn't come without its hiccups and
+// glitches. In particular, not only are the exact rules not well
+// defined, but also font matching doesn't work as we want it to
+// (exactly how varies based on the way the style info is exposed).
+// So we'll have to implement style matching ourselves.
+// We can use Core Text's matching to get a complete list of
+// *possible* matches, and then we can filter out the ones we don't
+// want ourselves.
+//
+// To make things easier for us, we'll match by converting Core
+// Text's values back into libui values. This allows us to also use the
+// normalization code for filling in uiDrawFontDescriptors from
+// Core Text fonts and font descriptors.
+//
+// Style matching needs to be done early in the font loading process;
+// in particular, we have to do this before adding any features,
+// because the descriptors returned by Core Text's own font
+// matching won't have any.
 
 struct closeness {
 	CFIndex index;

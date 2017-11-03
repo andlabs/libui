@@ -1,7 +1,25 @@
 // 2 november 2017
 #import "uipriv_darwin.h"
 
-// references:
+// This is the part of the font style matching and normalization code
+// that handles fonts that use the fvar table.
+//
+// Matching stupidity: Core Text **doesn't even bother** matching
+// these, even if you tell it to do so explicitly. It'll always return
+// all variations for a given font.
+//
+// Normalization stupidity: Core Text doesn't normalize the fvar
+// table values for us, so we'll have to do it ourselves. Furthermore,
+// Core Text doesn't provide an API for accessing the avar table, if
+// any, so we must do so ourselves. (TODO does Core Text even
+// follow the avar table if a font has it?)
+//
+// Thankfully, normalization is well-defined in both TrueType and
+// OpenType and seems identical in both, so we can just normalize
+// the values and then convert them linearly to libui values for
+// matching.
+//
+// References:
 // - https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6fvar.html
 // - https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6avar.html
 // - https://www.microsoft.com/typography/otspec/fvar.htm

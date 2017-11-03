@@ -1,6 +1,23 @@
 // 1 november 2017
 #import "uipriv_darwin.h"
 
+// This is the part of the font style matching and normalization code
+// that handles fonts that use a traits dictionary.
+//
+// Matching stupidity: Core Text requires an **exact match for the
+// entire traits dictionary**, otherwise it will **drop ALL the traits**.
+//
+// Normalization stupidity: Core Text uses its own scaled values for
+// weight and width, but the values are different if the font is not
+// registered and if said font is TrueType or OpenType. The values
+// for all other cases do have some named constants starting with
+// OS X 10.11, but even these aren't very consistent in practice.
+//
+// Of course, none of this is documented anywhere, so I had to do
+// both trial-and-error AND reverse engineering to figure out what's
+// what. We'll just convert Core Text's values into libui constants
+// and use those for matching.
+
 static BOOL fontRegistered(CTFontDescriptorRef desc)
 {
 	CFNumberRef scope;

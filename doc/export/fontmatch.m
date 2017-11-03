@@ -25,6 +25,10 @@
 // because the descriptors returned by Core Text's own font
 // matching won't have any.
 
+// TODO explicitly mark these as undocumented
+extern const CFStringRef kCTFontPreferredSubFamilyNameKey;
+extern const CFStringRef kCTFontPreferredFamilyNameKey;
+
 @implementation fontStyleData
 
 - (id)initWithFont:(CTFontRef)f

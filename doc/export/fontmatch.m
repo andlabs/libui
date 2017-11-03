@@ -25,6 +25,263 @@
 // because the descriptors returned by Core Text's own font
 // matching won't have any.
 
+@implementation fontStyleData
+
+- (id)initWithFont:(CTFontRef)f
+{
+	self = [super init];
+	if (self) {
+		self->font = f;
+		CFRetain(self->font);
+		self->desc = CTFontCopyDescriptor(self->font);
+		if (![self prepare]) {
+			[self release];
+			return nil;
+		}
+	}
+	return self;
+}
+
+- (id)initWithDescriptor:(CTFontDescriptorRef)d
+{
+	self = [super init];
+	if (self) {
+		self->font = NULL;
+		self->desc = d;
+		CFRetain(self->desc);
+		if (![self prepare]) {
+			[self release];
+			return nil;
+		}
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+#define REL(x) if (x != NULL) { CFRelease(x); x = NULL; }
+	REL(self->variationAxes);
+	REL(self->familyName);
+	REL(self->preferredFamilyName);
+	REL(self->fullName);
+	REL(self->subFamilyName);
+	REL(self->preferredSubFamilyName);
+	REL(self->postScriptName);
+	REL(self->variations);
+	REL(self->styleName);
+	REL(self->traits);
+	CFRelease(self->desc);
+	REL(self->font);
+	[super dealloc];
+}
+
+- (BOOL)prepare
+{
+	CFNumberRef num;
+
+	self->traits = NULL;
+	self->symbolic = 0;
+	self->weight = 0;
+	self->width = 0;
+	self->didStyleName = NO;
+	self->styleName = NULL;
+	self->didVariations = NO;
+	self->variations = NULL;
+	self->didRegistrationScope = NO;
+	self->hasRegistrationScope = NO;
+	self->registrationScope = 0;
+	self->didPostScriptName = NO;
+	self->postScriptName = NULL;
+	self->didFontFormat = NO;
+	self->fontFormat = 0;
+	self->didPreferredSubFamilyName = NO;
+	self->preferredSubFamilyName = NULL;
+	self->didSubFamilyName = NO;
+	self->subFamilyName = NULL;
+	self->didFullName = NO;
+	self->fullName = NULL;
+	self->didPreferredFamilyName = NO;
+	self->preferredFamilyName = NULL;
+	self->didFamilyName = NO;
+	self->familyName = NULL;
+	self->didVariationAxes = NO;
+	self->variationAxes = NULL;
+
+	self->traits = (CFDictionaryRef) CTFontDescriptorCopyAttribute(self->desc, kCTFontTraitsAttribute);
+	if (self->traits == NULL)
+		return NO;
+
+	num = (CFNumberRef) CFDictionaryGetValue(self->traits, kCTFontSymbolicTrait);
+	if (num == NULL)
+		return NO;
+	if (CFNumberGetValue(num, kCFNumberSInt32Type, &(self->symbolic)) == false)
+		return NO;
+
+	num = (CFNumberRef) CFDictionaryGetValue(self->traits, kCTFontWeightTrait);
+	if (num == NULL)
+		return NO;
+	if (CFNumberGetValue(num, kCFNumberDoubleType, &(self->weight)) == false)
+		return NO;
+
+	num = (CFNumberRef) CFDictionaryGetValue(self->traits, kCTFontWidthTrait);
+	if (num == NULL)
+		return NO;
+	if (CFNumberGetValue(num, kCFNumberDoubleType, &(self->width)) == false)
+		return NO;
+
+	return YES;
+}
+
+- (void)ensureFont
+{
+	if (self->font != NULL)
+		return;
+	self->font = CTFontCreateWithFontDescriptor(self->desc, 0.0, NULL);
+}
+
+- (CTFontSymbolicTraits)symbolicTraits
+{
+	return self->symbolic;
+}
+
+- (double)weight
+{
+	return self->weight;
+}
+
+- (double)width
+{
+	return self->width;
+}
+
+- (CFStringRef)styleName
+{
+	if (!self->didStyleName) {
+		self->didStyleName = YES;
+		self->styleName = (CFStringRef) CTFontDescriptorCopyAttribute(self->desc, kCTFontStyleNameAttribute);
+		// The code we use this for (guessItalicOblique() below) checks if this is NULL or not, so we're good.
+	}
+	return self->styleName;
+}
+
+- (CFDictionaryRef)variations
+{
+	if (!self->didVariations) {
+		self->didVariations = YES;
+		self->variations = (CFDictionaryRef) CTFontDescriptorCopyAttribute(self->desc, kCTFontVariationsAttribute);
+		// This being NULL is used to determine whether a font uses variations at all, so we don't need to worry now.
+	}
+	return self->variations;
+}
+
+- (BOOL)hasRegistrationScope
+{
+	if (!self->didRegistrationScope) {
+		CFNumberRef num;
+
+		self->didRegistrationScope = YES;
+		num = (CFNumberRef) CTFontDescriptorCopyAttribute(desc, kCTFontRegistrationScopeAttribute);
+		self->hasRegistrationScope = num != NULL;
+		if (self->hasRegistrationScope) {
+			if (CFNumberGetValue(num, kCFNumberSInt32Type, &(self->registrationScope)) == false) {
+				// TODO
+			}
+			CFRelease(num);
+		}
+	}
+	return self->hasRegistrationScope;
+}
+
+- (CTFontManagerScope)registrationScope
+{
+	[self hasRegistrationScope];
+	return self->registrationScope;
+}
+
+- (CFStringRef)postScriptName
+{
+	if (!self->didPostScriptName) {
+		self->didPostScriptName = YES;
+		[self ensureFont];
+		self->postScriptName = CTFontCopyPostScriptName(self->font);
+	}
+	return self->postScriptName;
+}
+
+- (CFDataRef)table:(CTFontTableTag)tag
+{
+	[self ensureFont];
+	return CTFontCopyTable(self->font, tag, kCTFontTableOptionNoOptions);
+}
+
+- (CTFontFormat)fontFormat
+{
+	if (!self->didFontFormat) {
+		CFNumberRef num;
+
+		self->didFontFormat = YES;
+		num = (CFNumberRef) CTFontDescriptorCopyAttribute(self->desc, kCTFontFormatAttribute);
+		if (num == NULL) {
+			// TODO
+		}
+		if (CFNumberGetValue(num, kCFNumberSInt32Type, &(self->fontFormat)) == false) {
+			// TODO
+		}
+		CFRelease(num);
+	}
+	return self->fontFormat;
+}
+
+// We don't need to worry if this or any of the functions that use it return NULL, because the code that uses it (libFontRegistry.dylib bug workarounds in fonttraits.m) checks for NULL.
+- (CFStringRef)fontName:(CFStringRef)key
+{
+	[self ensureFont];
+	return CTFontCopyName(self->font, key);
+}
+
+#define FONTNAME(sel, did, var, key) \
+	- (CFString)sel \
+	{ \
+		if (!did) { \
+			did = YES; \
+			var = [self fontName:key]; \
+		} \
+		return var; \
+	}
+FONTNAME(preferredSubFamilyName,
+	self->didPreferredSubFamilyName,
+	self->preferredSubFamilyName,
+	kCTFontPreferredSubFamilyNameKey)
+FONTNAME(subFamilyName,
+	self->didSubFamilyName,
+	self->subFamilyName,
+	kCTFontSubFamilyNameKey)
+FONTNAME(fullName,
+	self->didFullName,
+	self->fullName,
+	kCTFontFullNameKey)
+FONTNAME(preferredFamilyName,
+	self->didPreferredFamilyName,
+	self->preferredFamilyName,
+	kCTFontPreferredFamilyNameKey)
+FONTNAME(familyName,
+	self->didFamilyName,
+	self->familyName,
+	kCTFontFamilyNameKey)
+
+- (CFArrayRef)variationAxes
+{
+	if (!self->didVariationAxes) {
+		self->didVariationAxes = YES;
+		[self ensureFont];
+		self->variationAxes = CTFontCopyVariationAxes(self->font);
+		// We don't care about the return value because we call this only on fonts that we know have variations anyway.
+	}
+	return self->variationAxes;
+}
+
+@end
+
 struct closeness {
 	CFIndex index;
 	double weight;

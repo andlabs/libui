@@ -44,6 +44,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/stddialogs.m
 	darwin/tab.m
 	darwin/text.m
+	darwin/undocumented.m
 	darwin/util.m
 	darwin/window.m
 	darwin/winmoveresize.m

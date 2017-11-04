@@ -4,8 +4,6 @@
 // functions and constants FROM THE FUTURE!
 // note: for constants, dlsym() returns the address of the constant itself, as if we had done &constantName
 
-// TODO add weight constants here?
-
 // added in OS X 10.10; we need 10.8
 CFStringRef *FUTURE_kCTFontOpenTypeFeatureTag = NULL;
 CFStringRef *FUTURE_kCTFontOpenTypeFeatureValue = NULL;

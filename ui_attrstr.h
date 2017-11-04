@@ -234,8 +234,6 @@ _UI_EXTERN void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttr
 
 typedef struct uiDrawFontDescriptor uiDrawFontDescriptor;
 
-// TODO Minimum == 1? IIRC there is at least one font on OS X that actually has a weight of 0
-// TODO Maximum == 999? IIRC there is at least one font on OS X that actually has a weight of 1000
 _UI_ENUM(uiDrawTextWeight) {
 	uiDrawTextWeightMinimum = 0,
 	uiDrawTextWeightThin = 100,

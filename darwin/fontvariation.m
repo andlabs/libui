@@ -32,9 +32,10 @@
 #define fvarWeight 0x77676874
 #define fvarWidth 0x77647468
 
-typedef uint32_t fixed1616;
-typedef uint16_t fixed214;
+typedef int32_t fixed1616;
+typedef int16_t fixed214;
 
+// note that Microsoft's data type list implies that *all* fixed-point types have the same format; it only gives specific examples for the 2.14 format, which confused me because I thought 16.16 worked differently, but eh
 static fixed1616 doubleToFixed1616(double d)
 {
 	double ipart, fpart;
@@ -42,7 +43,12 @@ static fixed1616 doubleToFixed1616(double d)
 	int16_t i16;
 	uint32_t ret;
 
-	fpart = fabs(modf(d, &ipart));
+	fpart = modf(d, &ipart);
+	// fpart must be unsigned; modf() gives us fpart with the same sign as f (so we have to adjust both ipart and fpart appropriately)
+	if (fpart < 0) {
+		ipart -= 1;
+		fpart = 1 + fpart;
+	}
 	fpart *= 65536;
 	flong = lround(fpart);
 	i16 = (int16_t) ipart;
@@ -52,14 +58,16 @@ static fixed1616 doubleToFixed1616(double d)
 	return (fixed1616) ret;
 }
 
-static double fixed1616ToDouble(fixed1616 f)
+// see also https://stackoverflow.com/questions/8506317/fixed-point-unsigned-division-in-c and freetype's FT_DivFix()
+// TODO figure out the specifics of freetype's more complex implementation that shifts b and juggles signs
+static fixed1616 fixed1616Divide(fixed1616 a, fixed1616 b)
 {
-	int16_t base;
-	double frac;
+	uint32_t u;
+	int64_t a64;
 
-	base = (int16_t) ((f >> 16) & 0xFFFF);
-	frac = ((double) (f & 0xFFFF)) / 65536;
-	return ((double) base) + frac;
+	u = (uint32_t) a;
+	a64 = (int64_t) (((uint64_t) u) << 16);
+	return (fixed1616) (a64 / b);
 }
 
 static fixed214 fixed1616ToFixed214(fixed1616 f)
@@ -67,7 +75,7 @@ static fixed214 fixed1616ToFixed214(fixed1616 f)
 	uint32_t t;
 	uint32_t topbit;
 
-	t = f + 0x00000002;
+	t = (uint32_t) (f + 0x00000002);
 	topbit = t & 0x80000000;
 	t >>= 2;
 	if (topbit != 0)
@@ -77,10 +85,12 @@ static fixed214 fixed1616ToFixed214(fixed1616 f)
 
 static double fixed214ToDouble(fixed214 f)
 {
+	uint16_t u;
 	double base;
 	double frac;
 
-	switch ((f >> 14) & 0x3) {
+	u = (uint16_t) f;
+	switch ((u >> 14) & 0x3) {
 	case 0:
 		base = 0;
 		break;
@@ -93,22 +103,20 @@ static double fixed214ToDouble(fixed214 f)
 	case 3:
 		base = -1;
 	}
-	frac = ((double) (f & 0x3FFF)) / 16384;
+	frac = ((double) (u & 0x3FFF)) / 16384;
 	return base + frac;
 }
 
 static fixed1616 fixed214ToFixed1616(fixed214 f)
 {
 	int32_t t;
-	uint32_t x;
 
 	t = (int32_t) ((int16_t) f);
 	t <<= 2;
-	x = (uint32_t) t;
-	return (fixed1616) (x - 0x00000002);
+	return (fixed1616) (t - 0x00000002);
 }
 
-static const fixed1616 fixed1616Negative1 = 0xFFFF0000;
+static const fixed1616 fixed1616Negative1 = (int32_t) ((uint32_t) 0xFFFF0000);
 static const fixed1616 fixed1616Zero = 0x00000000;
 static const fixed1616 fixed1616Positive1 = 0x00010000;
 
@@ -119,9 +127,9 @@ static fixed1616 fixed1616Normalize(fixed1616 val, fixed1616 min, fixed1616 max,
 	if (val > max)
 		val = max;
 	if (val < def)
-		return -(def - val) / (def - min);
+		return fixed1616Divide(-(def - val), (def - min));
 	if (val > def)
-		return (val - def) / (max - def);
+		return fixed1616Divide((val - def), (max - def));
 	return fixed1616Zero;
 }
 
@@ -148,7 +156,8 @@ static fixed214 normalizedTo214(fixed1616 val, const fixed1616 *avarMappings, si
 			start = end - 2;
 			startFrom = avarMappings[start];
 			startTo = avarMappings[start + 1];
-			val = (val - startFrom) / (endFrom - startFrom);
+			val = fixed1616Divide((val - startFrom), (endFrom - startFrom));
+			// TODO find a font with an avar table and make sure this works, or if we need to use special code for this too
 			val *= (endTo - startTo);
 			val += startTo;
 		}

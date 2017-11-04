@@ -55,7 +55,7 @@ void uninitUnderlineColors(void)
 }
 
 // unlike the other systems, Core Text rolls family, size, weight, italic, width, AND opentype features into the "font" attribute
-// TODO opentype features and AAT fvar table info is lost, so a handful of fonts in the font panel ("Titling" variants of some fonts and Skia and possibly others but those are the examples I know about) cannot be represented by uiDrawFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
+// TODO opentype features are lost, so a handful of fonts in the font panel ("Titling" variants of some fonts and possibly others but those are the examples I know about) cannot be represented by uiDrawFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
 // TODO see if we could use NSAttributedString?
 // TODO consider renaming this struct and the fep variable(s)
 // TODO restructure all this so the important details at the top are below with the combined font attributes type?

@@ -300,7 +300,7 @@ void processFontVariation(fontStyleData *d, NSDictionary *axisDict, uiDrawFontDe
 	out->Weight = uiDrawTextWeightNormal;
 	out->Stretch = uiDrawTextStretchNormal;
 
-	var = [d variation];
+	var = [d variations];
 
 	if (tryAxis(axisDict, var, fvarAxisKey(fvarWeight), &v)) {
 		// v is now a value between -1 and 1 scaled linearly between discrete points

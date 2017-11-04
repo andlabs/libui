@@ -28,27 +28,6 @@ static BOOL fontRegistered(fontStyleData *d)
 	return [d registrationScope] != kCTFontManagerScopeNone;
 }
 
-// Core Text doesn't seem to differentiate between Italic and Oblique.
-// Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
-static uiDrawTextFontItalic guessItalicOblique(fontStyleData *d)
-{
-	CFStringRef styleName;
-	BOOL isOblique;
-
-	isOblique = NO;		// default value
-	styleName = [d styleName];
-	if (styleName != NULL) {
-		CFRange range;
-
-		range = CFStringFind(styleName, CFSTR("Oblique"), kCFCompareBackwards);
-		if (range.location != kCFNotFound)
-			isOblique = YES;
-	}
-	if (isOblique)
-		return uiDrawFontItalicOblique;
-	return uiDrawFontItalicItalic;
-}
-
 // Core Text does (usWidthClass / 10) - 0.5 here.
 // This roughly maps to our values with increments of 0.1, except for the fact 0 and 10 are allowed by Core Text, despite being banned by TrueType and OpenType themselves.
 // We'll just treat them as identical to 1 and 9, respectively.
@@ -187,10 +166,6 @@ void processFontTraits(fontStyleData *d, uiDrawFontDescriptor *out)
 {
 	double weight, width;
 	BOOL hasWeight, hasWidth;
-
-	out->Italic = uiDrawTextItalicNormal;
-	if (([d symbolicTraits] & kCTFontItalicTrait) != 0)
-		out->Italic = guessItalicOblique(d);
 
 	hasWeight = NO;
 	hasWidth = NO;

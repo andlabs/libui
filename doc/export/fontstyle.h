@@ -1,6 +1,6 @@
 // 3 november 2017
 
-// fontstyle.m
+// fontmatch.m
 @interface fontStyleData : NSObject {
 	CTFontRef font;
 	CTFontDescriptorRef desc;

@@ -279,96 +279,74 @@ FONTNAME(familyName,
 
 struct closeness {
 	CFIndex index;
-	double weight;
+	uiDrawTextWeight weight;
 	double italic;
-	double stretch;
+	uiDrawTextStretch stretch;
 	double distance;
-};
-
-static double doubleAttr(CFDictionaryRef traits, CFStringRef attr)
-{
-	CFNumberRef cfnum;
-	double val;
-
-	cfnum = (CFNumberRef) CFDictionaryGetValue(traits, attr);
-	if (cfnum == NULL) {
-		// TODO
-	}
-	if (CFNumberGetValue(cfnum, kCFNumberDoubleType, &val) == false) {
-		// TODO
-	}
-	// Get Rule; do not release cfnum
-	return val;
-}
-
-struct italicCloseness {
-	double normal;
-	double oblique;
-	double italic;
 };
 
 // remember that in closeness, 0 means exact
 // in this case, since we define the range, we use 0.5 to mean "close enough" (oblique for italic and italic for oblique) and 1 to mean "not a match"
-static const struct italicCloseness italicClosenesses[] = {
-	[uiDrawTextItalicNormal] = { 0, 1, 1 },
-	[uiDrawTextItalicOblique] = { 1, 0, 0.5 },
-	[uiDrawTextItalicItalic] = { 1, 0.5, 0 },
+static const double italicClosenessNormal[] = { 0, 1, 1 };
+static const double italicClosenessOblique[] = { 1, 0, 0.5 };
+static const double italicClosenessItalic[] = { 1, 0.5, 0 };
+static const double *italicClosenesses[] = {
+	[uiDrawTextItalicNormal] = italicClosenessNormal,
+	[uiDrawTextItalicOblique] = italicClosenessOblique,
+	[uiDrawTextItalicItalic] = italicClosenessItalic,
 };
+
+// Core Text doesn't seem to differentiate between Italic and Oblique.
+// Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
+static uiDrawTextFontItalic guessItalicOblique(fontStyleData *d)
+{
+	CFStringRef styleName;
+	BOOL isOblique;
+
+	isOblique = NO;		// default value
+	styleName = [d styleName];
+	if (styleName != NULL) {
+		CFRange range;
+
+		range = CFStringFind(styleName, CFSTR("Oblique"), kCFCompareBackwards);
+		if (range.location != kCFNotFound)
+			isOblique = YES;
+	}
+	if (isOblique)
+		return uiDrawFontItalicOblique;
+	return uiDrawFontItalicItalic;
+}
 
 // Italics are hard because Core Text does NOT distinguish between italic and oblique.
 // All Core Text provides is a slant value and the italic bit of the symbolic traits mask.
 // However, Core Text does seem to guarantee (from experimentation; see below) that the slant will be nonzero if and only if the italic bit is set, so we don't need to use the slant value.
 // Core Text also seems to guarantee that if a font lists itself as Italic or Oblique by name (font subfamily name, font style name, whatever), it will also have that bit set, so testing this bit does cover all fonts that name themselves as Italic and Oblique. (Again, this is from the below experimentation.)
 // TODO there is still one catch that might matter from a user's POV: the reverse is not true — the italic bit can be set even if the style of the font face/subfamily/style isn't named as Italic (for example, script typefaces like Adobe's Palace Script MT Std); I don't know what to do about this... I know how to start: find a script font that has an italic form (Adobe's Palace Script MT Std does not; only Regular and Semibold)
-static double italicCloseness(CTFontDescriptorRef desc, CFDictionaryRef traits, uiDrawTextItalic italic)
+static void setItalic(fontStyleData *d, uiDrawFontDescriptor *out)
 {
-	const struct italicCloseness *ic = &(italicClosenesses[italic]);
-	CFNumberRef cfnum;
-	CTFontSymbolicTraits symbolic;
-	// there is no kCFNumberUInt32Type, but CTFontSymbolicTraits is uint32_t, so SInt32 should work
-	SInt32 s;
-	CFStringRef styleName;
-	BOOL isOblique;
-
-	cfnum = CFDictionaryGetValue(traits, kCTFontSymbolicTrait);
-	if (cfnum == NULL) {
-		// TODO
-	}
-	if (CFNumberGetValue(cfnum, kCFNumberSInt32Type, &s) == false) {
-		// TODO
-	}
-	symbolic = (CTFontSymbolicTraits) s;
-	// Get Rule; do not release cfnum
-	if ((symbolic & kCTFontItalicTrait) == 0)
-		return ic->normal;
-
-	// Okay, now we know it's either Italic or Oblique
-	// Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
-	isOblique = NO;		// default value
-	styleName = (CFStringRef) CTFontDescriptorCopyAttribute(desc, kCTFontStyleNameAttribute);
-	// TODO is styleName guaranteed?
-	if (styleName != NULL) {
-		CFRange range;
-
-		// note the use of the toll-free bridge for the string literal, since CFSTR() *can* return NULL
-		// TODO is this really the case? or is that just a copy-paste error from the other CFStringCreateXxx() functions? and what's this about -fconstant-cfstring?
-		range = CFStringFind(styleName, (CFStringRef) @"Oblique", kCFCompareBackwards);
-		if (range.location != kCFNotFound)
-			isOblique = YES;
-		CFRelease(styleName);
-	}
-	if (isOblique)
-		return ic->oblique;
-	return ic->italic;
+	out->Italic = uiDrawTextItalicNormal;
+	if (([d symbolicTraits] & kCTFontItalicTrait) != 0)
+		out->Italic = guessItalicOblique(d);
 }
 
-static CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, double targetWeight, uiDrawTextItalic targetItalic, double targetStretch)
+static void fillDescStyleFields(fontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
+{
+	setItalic(d, out);
+	if (axisDict != nil)
+		processFontVariation(d, axisDict, out);
+	else
+		processFontTraits(d, out);
+}
+
+static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDescriptor *styles)
 {
 	CFArrayRef matching;
 	CFIndex i, n;
 	struct closeness *closeness;
 	CTFontDescriptorRef current;
 	CTFontDescriptorRef out;
+	fontStyleData *d;
+	NSDictionary *axisDict;
 
 	matching = CTFontDescriptorCreateMatchingFontDescriptors(against, NULL);
 	if (matching == NULL)
@@ -381,37 +359,38 @@ static CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, double targe
 		return against;
 	}
 
+	current = (CTFontDescriptorRef) CFArrayGetValueAtIndex(matches, 0);
+	d = [[fontStyleData alloc] initWithDescriptor:current];
+	axisDict = nil;
+	if ([d variations] != nil)
+		axisDict = mkAxisDict(d, [d table:kCTFontTableAvar]);
+
 	closeness = (struct closeness *) uiAlloc(n * sizeof (struct closeness), "struct closeness[]");
 	for (i = 0; i < n; i++) {
-		CFDictionaryRef traits;
+		uiDrawFontDescriptor fields;
 
 		closeness[i].index = i;
-		current = (CTFontDescriptorRef) CFArrayGetValueAtIndex(matching, i);
-		traits = (CFDictionaryRef) CTFontDescriptorCopyAttribute(current, kCTFontTraitsAttribute);
-		if (traits == NULL) {
-			// couldn't get traits; be safe by ranking it lowest
-			// LONGTERM figure out what the longest possible distances are
-			closeness[i].weight = 3;
-			closeness[i].italic = 2;
-			closeness[i].stretch = 3;
-			continue;
+		if (i != 0) {
+			current = (CTFontDescriptorRef) CFArrayGetValueAtIndex(matching, i);
+			d = [[fontStyleData alloc] initWithDescriptor:current];
 		}
-		closeness[i].weight = doubleAttr(traits, kCTFontWeightTrait) - targetWeight;
-		closeness[i].italic = italicCloseness(current, traits, targetItalic);
-		closeness[i].stretch = doubleAttr(traits, kCTFontWidthTrait) - targetStretch;
-		CFRelease(traits);
+		fillDescStyleFields(d, axisDict, &fields);
+		closeness[i].weight = fields.Weight - styles->Weight;
+		closeness[i].italic = italicClosenesses[styles->Italic][fields.Italic];
+		closeness[i].stretch = fields.Stretch - styles->Stretch;
+		[d release];
 	}
 
 	// now figure out the 3-space difference between the three and sort by that
 	// TODO merge this loop with the previous loop?
 	for (i = 0; i < n; i++) {
-		double weight, italic, stretch;
+		double weight, stretch;
 
-		weight = closeness[i].weight;
+		weight = (double) (closeness[i].weight);
 		weight *= weight;
 		italic = closeness[i].italic;
 		italic *= italic;
-		stretch = closeness[i].stretch;
+		stretch = (double) (closeness[i].stretch);
 		stretch *= stretch;
 		closeness[i].distance = sqrt(weight + italic + stretch);
 	}
@@ -428,6 +407,8 @@ static CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, double targe
 	CFRetain(out);			// get rule
 
 	// release everything
+	if (axisDict != nil)
+		[axisDict release];
 	uiFree(closeness);
 	CFRelease(matching);
 	// and release the original descriptor since we no longer need it
@@ -435,60 +416,6 @@ static CTFontDescriptorRef matchTraits(CTFontDescriptorRef against, double targe
 
 	return out;
 }
-
-// since uiDrawTextWeight effectively corresponds to OS/2 weights (which roughly correspond to GDI, Pango, and DirectWrite weights, and to a lesser(? TODO) degree, CSS weights), let's just do what Core Text does with OS/2 weights
-// TODO this will not be correct for system fonts, which use cached values that have no relation to the OS/2 weights; we need to figure out how to reconcile these
-// for more information, see https://bugzilla.gnome.org/show_bug.cgi?id=766148 and TODO_put_blog_post_here_once_I_write_it (TODO keep this line when resolving the above TODO)
-static const double weightsToCTWeights[] = {
-	-1.0,		// 0..99
-	-0.7,		// 100..199
-	-0.5,		// 200..299
-	-0.23,	// 300..399
-	0.0,		// 400..499
-	0.2,		// 500..599
-	0.3,		// 600..699
-	0.4,		// 700..799
-	0.6,		// 800..899
-	0.8,		// 900..999
-	1.0,		// 1000
-};
-
-static double weightToCTWeight(uiDrawTextWeight weight)
-{
-	int weightClass;
-	double ctclass;
-	double rest, weightFloor, nextFloor;
-
-	if (weight <= 0)
-		return -1.0;
-	if (weight >= 1000)
-		return 1.0;
-
-	weightClass = weight / 100;
-	rest = (double) weight;
-	weightFloor = (double) (weightClass * 100);
-	nextFloor = (double) ((weightClass + 1) * 100);
-	rest = (rest - weightFloor) / (nextFloor - weightFloor);
-
-	ctclass = weightsToCTWeights[weightClass];
-	return fma(rest,
-		weightsToCTWeights[weightClass + 1] - ctclass,
-		ctclass);
-}
-
-// based on what Core Text says about actual fonts (system fonts, system fonts in another folder to avoid using cached values, Adobe Font Folio 11, Google Fonts archive, fonts in Windows 7/8.1/10)
-static const double stretchesToCTWidths[] = {
-	[uiDrawTextStretchUltraCondensed] = -0.400000,
-	[uiDrawTextStretchExtraCondensed] = -0.300000,
-	[uiDrawTextStretchCondensed] = -0.200000,
-	[uiDrawTextStretchSemiCondensed] = -0.100000,
-	[uiDrawTextStretchNormal] = 0.000000,
-	[uiDrawTextStretchSemiExpanded] = 0.100000,
-	[uiDrawTextStretchExpanded] = 0.200000,
-	[uiDrawTextStretchExtraExpanded] = 0.300000,
-	// this one isn't present in any of the fonts I tested, but it follows naturally from the pattern of the rest, so... (TODO verify by checking the font files directly)
-	[uiDrawTextStretchUltraExpanded] = 0.400000,
-};
 
 CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
 {
@@ -516,10 +443,7 @@ CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
 
 	basedesc = CTFontDescriptorCreateWithAttributes(attrs);
 	CFRelease(attrs);			// TODO correct?
-	return matchTraits(basedesc,
-		weightToCTWeight(fd->Weight),
-		fd->Italic,
-		stretchesToCTWidths[fd->Stretch]);
+	return matchTraits(basedesc, fd);
 }
 
 // fortunately features that aren't supported are simply ignored, so we can copy them all in
@@ -545,55 +469,11 @@ CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uiOpe
 	return new;
 }
 
-// TODO deduplicate this from italicCloseness()
-static uiDrawTextItalic italicFromCTItalic(CTFontDescriptorRef desc, CFDictionaryRef traits)
-{
-	CFNumberRef cfnum;
-	CTFontSymbolicTraits symbolic;
-	// there is no kCFNumberUInt32Type, but CTFontSymbolicTraits is uint32_t, so SInt32 should work
-	SInt32 s;
-	CFStringRef styleName;
-	BOOL isOblique;
-
-	cfnum = CFDictionaryGetValue(traits, kCTFontSymbolicTrait);
-	if (cfnum == NULL) {
-		// TODO
-	}
-	if (CFNumberGetValue(cfnum, kCFNumberSInt32Type, &s) == false) {
-		// TODO
-	}
-	symbolic = (CTFontSymbolicTraits) s;
-	// Get Rule; do not release cfnum
-	if ((symbolic & kCTFontItalicTrait) == 0)
-		return uiDrawTextItalicNormal;
-
-	// Okay, now we know it's either Italic or Oblique
-	// Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
-	isOblique = NO;		// default value
-	styleName = (CFStringRef) CTFontDescriptorCopyAttribute(desc, kCTFontStyleNameAttribute);
-	// TODO is styleName guaranteed?
-	if (styleName != NULL) {
-		CFRange range;
-
-		// note the use of the toll-free bridge for the string literal, since CFSTR() *can* return NULL
-		// TODO is this really the case? or is that just a copy-paste error from the other CFStringCreateXxx() functions? and what's this about -fconstant-cfstring?
-		range = CFStringFind(styleName, (CFStringRef) @"Oblique", kCFCompareBackwards);
-		if (range.location != kCFNotFound)
-			isOblique = YES;
-		CFRelease(styleName);
-	}
-	if (isOblique)
-		return uiDrawTextItalicOblique;
-	return uiDrawTextItalicItalic;
-}
-
 void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescriptor *uidesc)
 {
 	CFStringRef cffamily;
-	CFDictionaryRef traits;
-	double ctweight, ctstretch;
-	int wc;
-	uiDrawTextStretch stretch;
+	fontStyleData *d;
+	NSDictionary *axisDict;
 
 	cffamily = (CFStringRef) CTFontDescriptorCopyAttribute(ctdesc, kCTFontFamilyNameAttribute);
 	if (cffamily == NULL) {
@@ -603,26 +483,12 @@ void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescript
 	uidesc->Family = uiDarwinNSStringToText((NSString *) cffamily);
 	CFRelease(cffamily);
 
-	traits = (CFDictionaryRef) CTFontDescriptorCopyAttribute(ctdesc, kCTFontTraitsAttribute);
-	if (traits == NULL) {
-		// TODO
-	}
-	ctweight = doubleAttr(traits, kCTFontWeightTrait);
-	uidesc->Italic = italicFromCTItalic(ctdesc, traits);
-	ctstretch = doubleAttr(traits, kCTFontWidthTrait);
-	CFRelease(traits);
-
-	// TODO make sure this is correct
-	for (wc = 0; wc < 10; wc++)
-		if (ctweight >= weightsToCTWeights[wc])
-			if (ctweight < weightsToCTWeights[wc + 1])
-				break;
-	uidesc->Weight = ((ctweight - weightsToCTWeights[wc]) / (weightsToCTWeights[wc + 1] - weightsToCTWeights[wc])) * 100;
-	uidesc->Weight += wc * 100;
-
-	// TODO is this correct?
-	for (stretch = uiDrawTextStretchUltraCondensed; stretch < uiDrawTextStretchUltraExpanded; stretch++)
-		if (ctstretch <= stretchesToCTWidths[stretch])
-			break;
-	uidesc->Stretch = stretch;
+	d = [[fontStyleData alloc] initWithDescriptor:current];
+	axisDict = nil;
+	if ([d variations] != nil)
+		axisDict = mkAxisDict(d, [d table:kCTFontTableAvar]);
+	fillDescStyleFields(d, axisDict, uidesc);
+	if (axisDict != nil)
+		[axisDict release];
+	[d release];
 }

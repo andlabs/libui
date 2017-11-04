@@ -167,7 +167,6 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 	uiFree(tl->u8tou16);
 	[tl->backgroundBlocks release];
 	uiFree(tl->lineMetrics);
-	// TODO release tl->lines?
 	CFRelease(tl->frame);
 	CFRelease(tl->path);
 	CFRelease(tl->framesetter);
@@ -179,8 +178,11 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
 	backgroundBlock b;
+	CGAffineTransform textMatrix;
 
 	CGContextSaveGState(c->c);
+	// save the text matrix because it's not part of the graphics state
+	textMatrix = CGContextGetTextMatrix(c->c);
 
 	for (b in tl->backgroundBlocks)
 		b(c, tl, x, y);
@@ -190,7 +192,6 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	// TODO how is this affected by a non-identity CTM?
 	CGContextTranslateCTM(c->c, 0, c->height);
 	CGContextScaleCTM(c->c, 1.0, -1.0);
-	// TODO save the text matrix
 	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
 
 	// wait, that's not enough; we need to offset y values to account for our new flipping
@@ -205,6 +206,7 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 
 	CTFrameDraw(tl->frame, c->c);
 
+	CGContextSetTextMatrix(c->c, textMatrix);
 	CGContextRestoreGState(c->c);
 }
 

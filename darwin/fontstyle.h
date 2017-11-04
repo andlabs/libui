@@ -10,8 +10,8 @@
 	double width;
 	BOOL didStyleName;
 	CFStringRef styleName;
-	BOOL didVariations;
-	CFDictionaryRef variations;
+	BOOL didVariation;
+	CFDictionaryRef variation;
 	BOOL hasRegistrationScope;
 	CTFontManagerScope registrationScope;
 	BOOL didPostScriptName;
@@ -38,7 +38,7 @@
 - (double)weight;
 - (double)width;
 - (CFStringRef)styleName;
-- (CFDictionaryRef)variations;
+- (CFDictionaryRef)variation;
 - (BOOL)hasRegistrationScope;
 - (CTFontManagerScope)registrationScope;
 - (CFStringRef)postScriptName;

@@ -88,7 +88,7 @@ static double fixed214ToDouble(fixed214 f)
 		base = 1;
 		break;
 	case 2:
-		base = -2:
+		base = -2;
 		break;
 	case 3:
 		base = -1;
@@ -105,14 +105,14 @@ static fixed1616 fixed214ToFixed1616(fixed214 f)
 	t = (int32_t) ((int16_t) f);
 	t <<= 2;
 	x = (uint32_t) t;
-	return (float1616) (x - 0x00000002);
+	return (fixed1616) (x - 0x00000002);
 }
 
-static const fixed1616Negative1 = 0xFFFF0000;
-static const fixed1616Zero = 0x00000000;
-static const fixed1616Positive1 = 0x00010000;
+static const fixed1616 fixed1616Negative1 = 0xFFFF0000;
+static const fixed1616 fixed1616Zero = 0x00000000;
+static const fixed1616 fixed1616Positive1 = 0x00010000;
 
-static fixed1616 normalize1616(fixed1616 val, fixed1616 min, fixed1616 max, fixed1616 def)
+static fixed1616 fixed1616Normalize(fixed1616 val, fixed1616 min, fixed1616 max, fixed1616 def)
 {
 	if (val < min)
 		val = min;
@@ -133,8 +133,8 @@ static fixed214 normalizedTo214(fixed1616 val, const fixed1616 *avarMappings, si
 		val = fixed1616Positive1;
 	if (avarCount != 0) {
 		size_t start, end;
-		float1616 startFrom, endFrom;
-		float1616 startTo, endTo;
+		fixed1616 startFrom, endFrom;
+		fixed1616 startTo, endTo;
 
 		for (end = 0; end < avarCount; end += 2) {
 			endFrom = avarMappings[end];
@@ -175,6 +175,7 @@ static fixed1616 *avarExtract(CFDataRef table, CFIndex index, size_t *n)
 	nEntries = nextuint16be();
 	*n = nEntries * 2;
 	entries = (fixed1616 *) uiAlloc(*n * sizeof (fixed1616), "fixed1616[]");
+	p = entries;
 	for (i = 0; i < *n; i++) {
 		*p++ = fixed214ToFixed1616((fixed214) nextuint16be());
 		off += 2;
@@ -182,13 +183,13 @@ static fixed1616 *avarExtract(CFDataRef table, CFIndex index, size_t *n)
 	return entries;
 }
 
-staatic BOOL extractAxisDictValue(CFDictionaryRef dict, CFStringRef key, fixed1616 *out)
+static BOOL extractAxisDictValue(CFDictionaryRef dict, CFStringRef key, fixed1616 *out)
 {
 	CFNumberRef num;
 	double v;
 
 	num = (CFNumberRef) CFDictionaryGetValue(dict, key);
-	if (CFNumberGetValue(num, kCFNumberTypeDouble, &v) == false)
+	if (CFNumberGetValue(num, kCFNumberDoubleType, &v) == false)
 		return NO;
 	*out = doubleToFixed1616(v);
 	return YES;
@@ -244,7 +245,7 @@ fail:
 	fixed214 n2;
 
 	n = doubleToFixed1616(d);
-	n = fixed16161Normalize(n, self->min, self->max, self->def);
+	n = fixed1616Normalize(n, self->min, self->max, self->def);
 	n2 = normalizedTo214(n, self->avarMappings, self->avarCount);
 	return fixed214ToDouble(n2);
 }
@@ -257,22 +258,22 @@ NSDictionary *mkVariationAxisDict(CFArrayRef axes, CFDataRef avarTable)
 	CFIndex i, n;
 	NSMutableDictionary *out;
 
-	n = CFArrayGetLength(axes);
+	n = CFArrayGetCount(axes);
 	out = [NSMutableDictionary new];
 	for (i = 0; i < n; i++) {
 		CFNumberRef key;
 
 		axis = (CFDictionaryRef) CFArrayGetValueAtIndex(axes, i);
 		key = (CFNumberRef) CFDictionaryGetValue(axis, kCTFontVariationAxisIdentifierKey);
-		[out setObject:[[fvarAxis alloc] initWithIndex:i dict:axis avarTable:table]
+		[out setObject:[[fvarAxis alloc] initWithIndex:i dict:axis avarTable:avarTable]
 			forKey:((NSNumber *) key)];
 	}
-	if (table != NULL)
-		CFRelease(table);
+	if (avarTable != NULL)
+		CFRelease(avarTable);
 	return out;
 }
 
-#define fvarAxisKey(n) [NSNumber numberWithUnsignedInteger:k]
+#define fvarAxisKey(n) [NSNumber numberWithUnsignedInteger:n]
 
 static BOOL tryAxis(NSDictionary *axisDict, CFDictionaryRef var, NSNumber *key, double *out)
 {
@@ -285,7 +286,7 @@ static BOOL tryAxis(NSDictionary *axisDict, CFDictionaryRef var, NSNumber *key, 
 	num = (CFNumberRef) CFDictionaryGetValue(var, (CFNumberRef) key);
 	if (num == nil)
 		return NO;
-	if (CFNumberGetValue(num, kCFNumberTypeDouble, out) == false) {
+	if (CFNumberGetValue(num, kCFNumberDoubleType, out) == false) {
 		// TODO
 		return NO;
 	}
@@ -295,12 +296,13 @@ static BOOL tryAxis(NSDictionary *axisDict, CFDictionaryRef var, NSNumber *key, 
 
 void processFontVariation(fontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
 {
+	CFDictionaryRef var;
 	double v;
 
 	out->Weight = uiDrawTextWeightNormal;
 	out->Stretch = uiDrawTextStretchNormal;
 
-	var = [d variations];
+	var = [d variation];
 
 	if (tryAxis(axisDict, var, fvarAxisKey(fvarWeight), &v)) {
 		// v is now a value between -1 and 1 scaled linearly between discrete points

@@ -21,6 +21,8 @@ list(APPEND _LIBUI_SOURCES
 	darwin/entry.m
 	darwin/fontbutton.m
 	darwin/fontmatch.m
+	darwin/fonttraits.m
+	darwin/fontvariation.m
 	darwin/form.m
 	darwin/future.m
 	darwin/graphemes.m

@@ -31,7 +31,7 @@ static BOOL fontRegistered(fontStyleData *d)
 // Core Text does (usWidthClass / 10) - 0.5 here.
 // This roughly maps to our values with increments of 0.1, except for the fact 0 and 10 are allowed by Core Text, despite being banned by TrueType and OpenType themselves.
 // We'll just treat them as identical to 1 and 9, respectively.
-static const uiDrawFontStretch os2WidthsToStretches[] = {
+static const uiDrawTextStretch os2WidthsToStretches[] = {
 	uiDrawTextStretchUltraCondensed,
 	uiDrawTextStretchUltraCondensed,
 	uiDrawTextStretchExtraCondensed,
@@ -59,7 +59,7 @@ static void trySecondaryOS2Values(fontStyleData *d, uiDrawFontDescriptor *out, B
 	CFDataRef os2;
 	uint16_t usWeightClass, usWidthClass;
 	CFStringRef psname;
-	CFStringRef *ex;
+	const CFStringRef *ex;
 
 	*hasWeight = NO;
 	*hasWidth = NO;
@@ -82,7 +82,7 @@ static void trySecondaryOS2Values(fontStyleData *d, uiDrawFontDescriptor *out, B
 		usWeightClass |= (uint16_t) (b[5]);
 		if (usWeightClass <= 1000) {
 			if (usWeightClass < 11)
-				usWeigthClass *= 100;
+				usWeightClass *= 100;
 			*hasWeight = YES;
 		}
 
@@ -127,9 +127,6 @@ static BOOL testTTFOTFSubfamilyName(CFStringRef name, CFStringRef want)
 
 static BOOL testTTFOTFSubfamilyNames(fontStyleData *d, CFStringRef want)
 {
-	CGFontRef font;
-	CFString *key;
-
 	switch ([d fontFormat]) {
 	case kCTFontFormatOpenTypePostScript:
 	case kCTFontFormatOpenTypeTrueType:
@@ -151,15 +148,15 @@ static BOOL testTTFOTFSubfamilyNames(fontStyleData *d, CFStringRef want)
 }
 
 // work around a bug in libFontRegistry.dylib
-static BOOL shouldReallyBeThin(CTFontDescriptorRef desc)
+static BOOL shouldReallyBeThin(fontStyleData *d)
 {
-	return testTTFOTFSubfamilyNames(desc, CFSTR("W1"));
+	return testTTFOTFSubfamilyNames(d, CFSTR("W1"));
 }
 
 // work around a bug in libFontRegistry.dylib
-static BOOL shouldReallyBeSemiCondensed(CTFontDescriptorRef desc)
+static BOOL shouldReallyBeSemiCondensed(fontStyleData *d)
 {
-	return testTTFOTFSubfamilyNames(desc, CFSTR("Semi Condensed"));
+	return testTTFOTFSubfamilyNames(d, CFSTR("Semi Condensed"));
 }
 
 void processFontTraits(fontStyleData *d, uiDrawFontDescriptor *out)

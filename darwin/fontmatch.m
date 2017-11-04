@@ -38,7 +38,7 @@ extern const CFStringRef kCTFontPreferredFamilyNameKey;
 	if (self) {
 		self->font = f;
 		CFRetain(self->font);
-		self->desc = CTFontCopyDescriptor(self->font);
+		self->desc = CTFontCopyFontDescriptor(self->font);
 		if (![self prepare]) {
 			[self release];
 			return nil;
@@ -72,7 +72,7 @@ extern const CFStringRef kCTFontPreferredFamilyNameKey;
 	REL(self->subFamilyName);
 	REL(self->preferredSubFamilyName);
 	REL(self->postScriptName);
-	REL(self->variations);
+	REL(self->variation);
 	REL(self->styleName);
 	REL(self->traits);
 	CFRelease(self->desc);
@@ -91,8 +91,8 @@ extern const CFStringRef kCTFontPreferredFamilyNameKey;
 	self->width = 0;
 	self->didStyleName = NO;
 	self->styleName = NULL;
-	self->didVariations = NO;
-	self->variations = NULL;
+	self->didVariation = NO;
+	self->variation = NULL;
 	self->hasRegistrationScope = NO;
 	self->registrationScope = 0;
 	self->didPostScriptName = NO;
@@ -186,14 +186,14 @@ extern const CFStringRef kCTFontPreferredFamilyNameKey;
 	return self->styleName;
 }
 
-- (CFDictionaryRef)variations
+- (CFDictionaryRef)variation
 {
-	if (!self->didVariations) {
-		self->didVariations = YES;
-		self->variations = (CFDictionaryRef) CTFontDescriptorCopyAttribute(self->desc, kCTFontVariationsAttribute);
+	if (!self->didVariation) {
+		self->didVariation = YES;
+		self->variation = (CFDictionaryRef) CTFontDescriptorCopyAttribute(self->desc, kCTFontVariationAttribute);
 		// This being NULL is used to determine whether a font uses variations at all, so we don't need to worry now.
 	}
-	return self->variations;
+	return self->variation;
 }
 
 - (BOOL)hasRegistrationScope
@@ -235,7 +235,7 @@ extern const CFStringRef kCTFontPreferredFamilyNameKey;
 }
 
 #define FONTNAME(sel, did, var, key) \
-	- (CFString)sel \
+	- (CFStringRef)sel \
 	{ \
 		if (!did) { \
 			did = YES; \
@@ -298,7 +298,7 @@ static const double *italicClosenesses[] = {
 
 // Core Text doesn't seem to differentiate between Italic and Oblique.
 // Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
-static uiDrawTextFontItalic guessItalicOblique(fontStyleData *d)
+static uiDrawTextItalic guessItalicOblique(fontStyleData *d)
 {
 	CFStringRef styleName;
 	BOOL isOblique;
@@ -313,8 +313,8 @@ static uiDrawTextFontItalic guessItalicOblique(fontStyleData *d)
 			isOblique = YES;
 	}
 	if (isOblique)
-		return uiDrawFontItalicOblique;
-	return uiDrawFontItalicItalic;
+		return uiDrawTextItalicOblique;
+	return uiDrawTextItalicItalic;
 }
 
 // Italics are hard because Core Text does NOT distinguish between italic and oblique.
@@ -359,11 +359,11 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDes
 		return against;
 	}
 
-	current = (CTFontDescriptorRef) CFArrayGetValueAtIndex(matches, 0);
+	current = (CTFontDescriptorRef) CFArrayGetValueAtIndex(matching, 0);
 	d = [[fontStyleData alloc] initWithDescriptor:current];
 	axisDict = nil;
-	if ([d variations] != nil)
-		axisDict = mkAxisDict(d, [d table:kCTFontTableAvar]);
+	if ([d variation] != NULL)
+		axisDict = mkVariationAxisDict([d variationAxes], [d table:kCTFontTableAvar]);
 
 	closeness = (struct closeness *) uiAlloc(n * sizeof (struct closeness), "struct closeness[]");
 	for (i = 0; i < n; i++) {
@@ -384,7 +384,7 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDes
 	// now figure out the 3-space difference between the three and sort by that
 	// TODO merge this loop with the previous loop?
 	for (i = 0; i < n; i++) {
-		double weight, stretch;
+		double weight, italic, stretch;
 
 		weight = (double) (closeness[i].weight);
 		weight *= weight;
@@ -443,7 +443,7 @@ CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
 
 	basedesc = CTFontDescriptorCreateWithAttributes(attrs);
 	CFRelease(attrs);			// TODO correct?
-	return matchTraits(basedesc, fd);
+	return matchStyle(basedesc, fd);
 }
 
 // fortunately features that aren't supported are simply ignored, so we can copy them all in
@@ -483,10 +483,10 @@ void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescript
 	uidesc->Family = uiDarwinNSStringToText((NSString *) cffamily);
 	CFRelease(cffamily);
 
-	d = [[fontStyleData alloc] initWithDescriptor:current];
+	d = [[fontStyleData alloc] initWithDescriptor:ctdesc];
 	axisDict = nil;
-	if ([d variations] != nil)
-		axisDict = mkAxisDict(d, [d table:kCTFontTableAvar]);
+	if ([d variation] != NULL)
+		axisDict = mkVariationAxisDict([d variationAxes], [d table:kCTFontTableAvar]);
 	fillDescStyleFields(d, axisDict, uidesc);
 	if (axisDict != nil)
 		[axisDict release];

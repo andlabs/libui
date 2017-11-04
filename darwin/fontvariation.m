@@ -32,6 +32,7 @@
 #define fvarWeight 0x77676874
 #define fvarWidth 0x77647468
 
+// TODO explain why these are signed
 typedef int32_t fixed1616;
 typedef int16_t fixed214;
 
@@ -44,7 +45,7 @@ static fixed1616 doubleToFixed1616(double d)
 	uint32_t ret;
 
 	fpart = modf(d, &ipart);
-	// fpart must be unsigned; modf() gives us fpart with the same sign as f (so we have to adjust both ipart and fpart appropriately)
+	// fpart must be unsigned; modf() gives us fpart with the same sign as d (so we have to adjust both ipart and fpart appropriately)
 	if (fpart < 0) {
 		ipart -= 1;
 		fpart = 1 + fpart;

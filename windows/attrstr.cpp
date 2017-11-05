@@ -61,8 +61,9 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 
 	ostart = start;
 	oend = end;
-	start = attrstrUTF8ToUTF16(s, start);
-	end = attrstrUTF8ToUTF16(s, end);
+	// TODO fix const correctness
+	start = attrstrUTF8ToUTF16((uiAttributedString *) s, start);
+	end = attrstrUTF8ToUTF16((uiAttributedString *) s, end);
 	range.startPosition = start;
 	range.length = end - start;
 	switch (spec->Type) {

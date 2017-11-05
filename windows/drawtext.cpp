@@ -381,7 +381,7 @@ public:
 		return E_UNEXPECTED;
 	}
 
-	virtual HRESULT DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
+	virtual HRESULT STDMETHODCALLTYPE DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
 	{
 		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
 		ID2D1SolidColorBrush *brush;

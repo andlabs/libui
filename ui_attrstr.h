@@ -27,7 +27,7 @@ typedef struct uiAttributedString uiAttributedString;
 _UI_ENUM(uiAttribute) {
 	// uiAttributeFamily changes the font family of the text it is
 	// applied to. Use the Family field of uiAttributeSpec.
-	// TODO case-sensitive?
+	// TODO this is case-insensitive on all platforms; codify this
 	uiAttributeFamily,
 	// uiAttributeSize changes the size of the text it is applied to,
 	// in typographical points. Use the Double field of

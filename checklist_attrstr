@@ -1,0 +1,8 @@
+= attributed strings
+attribute lengths are rounded to complete unicode codepoints
+zero-length attributes are elided
+consecutive attributes of the same type and value are merged
+overlapping attributes of different types do not split each other
+overlapping attributes of the same type but different values do split
+empty string is allowed
+empty string cannot have attributes

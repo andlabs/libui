@@ -6,3 +6,4 @@ overlapping attributes of different types do not split each other
 overlapping attributes of the same type but different values do split
 empty string is allowed
 empty string cannot have attributes
+font family names are case-insensitive both in attributes and in descriptors

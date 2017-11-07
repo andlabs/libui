@@ -1,29 +1,25 @@
 
 // uiAttribute specifies the types of possible attributes that can be
-// applied to a uiAttributedString. For every byte in the
+// applied to a uiAttributedString. For every Unicode codepoint in the
 // uiAttributedString, at most one value of each attribute type can
 // be applied.
 // TODO just make a separate field in uiAttributeSpec for everything? or make attribute objects opaque instead?
 _UI_ENUM(uiAttribute) {
 	// uiAttributeFamily changes the font family of the text it is
-	// applied to. Use the Family field of uiAttributeSpec.
-	// TODO this is case-insensitive on all platforms; codify this
+	// applied to. Font family names are case-insensitive. Use the
+	// Family field of uiAttributeSpec.
 	uiAttributeFamily,
 	// uiAttributeSize changes the size of the text it is applied to,
-	// in typographical points. Use the Double field of
-	// uiAttributeSpec.
+	// in typographical points. Use the Size field of uiAttributeSpec.
 	uiAttributeSize,
 	// uiAttributeWeight changes the weight of the text it is applied
-	// to. Use the Value field of uiAttributeSpec and the
-	// uiDrawTextWeight constants.
+	// to. Use the Weight field of uiAttributeSpec.
 	uiAttributeWeight,
 	// uiAttributeItalic changes the italicness of the text it is applied
-	// to. Use the Value field of uiAttributeSpec and the
-	// uiDrawTextItalic constants.
+	// to. Use the Italic field of uiAttributeSpec.
 	uiAttributeItalic,
 	// uiAttributeStretch changes the stretch of the text it is applied
-	// to. Use the Value field of uiAttributeSpec and the
-	// uiDrawTextStretch constants.
+	// to. Use the Stretch field of uiAttributeSpec.
 	uiAttributeStretch,
 	// uiAttributeColor changes the color of the text it is applied to.
 	// Use the R, G, B, and A fields of uiAttributeSpec.
@@ -33,16 +29,18 @@ _UI_ENUM(uiAttribute) {
 	uiAttributeBackground,
 
 	// uiAttributeUnderline changes the underline style of the text
-	// it is applied to. Use the Value field of uiAttributeSpec and the
-	// uiDrawUnderlineStyle constants.
+	// it is applied to. Use the UnderlineStyle field of
+	// uiAttributeSpec.
 	uiAttributeUnderline,
 	// uiAttributeUnderlineColor changes the color of any underline
 	// on the text it is applied to, regardless of the style. Use the
-	// Value field of uiAttributeSpec and the uiDrawUnderlineColor
-	// constants (refer to its documentation for more information).
+	// UnderlineColor field of uiAttributeSpec, and also the R, G, B,
+	// and A fields if specifying uiDrawUnderlineColorCustom.
 	// 
 	// If an underline style is applied but no underline color is
-	// specified, the text color is used instead.
+	// specified, the text color is used instead. If an underline color
+	// is specified without an underline style, the underline color
+	// attribute is ignored, but not elided.
 	uiAttributeUnderlineColor,
 
 	// uiAttributeFeatures changes the OpenType features of the
@@ -146,12 +144,16 @@ typedef struct uiAttributeSpec uiAttributeSpec;
 struct uiAttributeSpec {
 	uiAttribute Type;
 	const char *Family;
-	uintptr_t Value;
-	double Double;
+	double Size;
+	uiDrawTextWeight Weight;
+	uiDrawTextItalic Italic;
+	uiDrawTextStretch Stretch;
 	double R;
 	double G;
 	double B;
 	double A;
+	uiDrawUnderlineStyle UnderlineStyle;
+	uiDrawUnderlineColor UnderlineColor;
 	const uiOpenTypeFeatures *Features;
 };
 

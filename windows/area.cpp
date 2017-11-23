@@ -160,6 +160,13 @@ void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 		wParam, 0);
 }
 
+void uiAreaSetBackgroundColor(uiArea *a, int r, int g, int b)
+{
+	a->bgR = r;
+	a->bgG = g;
+	a->bgB = b;
+}
+
 uiArea *uiNewArea(uiAreaHandler *ah)
 {
 	uiArea *a;
@@ -176,6 +183,8 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 		0,
 		hInstance, a,
 		FALSE);
+
+	uiAreaSetBackgroundColor(a, -1, -1, -1);
 
 	return a;
 }
@@ -198,6 +207,8 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 		WS_HSCROLL | WS_VSCROLL,
 		hInstance, a,
 		FALSE);
+
+	uiAreaSetBackgroundColor(a, -1, -1, -1);
 
 	// set initial scrolling parameters
 	areaUpdateScroll(a);

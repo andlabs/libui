@@ -343,6 +343,7 @@ _UI_EXTERN void uiAreaScrollTo(uiArea *a, double x, double y, double width, doub
 // TODO release capture?
 _UI_EXTERN void uiAreaBeginUserWindowMove(uiArea *a);
 _UI_EXTERN void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge);
+_UI_EXTERN void uiAreaSetBackgroundColor(uiArea *a, int r, int g, int b);
 _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);
 _UI_EXTERN uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height);
 

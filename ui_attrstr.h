@@ -1,37 +1,81 @@
+// uiAttribute stores information about an attribute in a
+// uiAttributedString.
+//
+// You do not create uiAttributes directly; instead, you create a
+// uiAttribute of a given type using the specialized constructor
+// functions. For every Unicode codepoint in the uiAttributedString,
+// at most one value of each attribute type can be applied.
+//
+// uiAttributes are immutable and the uiAttributedString takes
+// ownership of the uiAttribute object once assigned, copying its
+// contents as necessary.
+typedef struct uiAttribute uiAttribute;
 
-// uiAttribute specifies the types of possible attributes that can be
-// applied to a uiAttributedString. For every Unicode codepoint in the
-// uiAttributedString, at most one value of each attribute type can
-// be applied.
-// TODO just make a separate field in uiAttributeSpec for everything? or make attribute objects opaque instead?
-_UI_ENUM(uiAttribute) {
-	// uiAttributeFamily changes the font family of the text it is
-	// applied to. Font family names are case-insensitive. Use the
-	// Family field of uiAttributeSpec.
-	uiAttributeFamily,
-	// uiAttributeSize changes the size of the text it is applied to,
-	// in typographical points. Use the Size field of uiAttributeSpec.
-	uiAttributeSize,
+// uiFreeAttribute() frees a uiAttribute. You generally do not need to
+// call this yourself, as uiAttributedString does this for you. In fact,
+// it is an error to call this function on a uiAttribute that has been
+// given to a uiAttributedString. You can call this, however, if you
+// created a uiAttribute that you aren't going to use later.
+_UI_EXTERN void uiFreeAttribute(uiAttribute *a);
+
+// uiAttributeType holds the possible uiAttribute types that may be
+// returned by uiAttributeGetType(). Refer to the documentation for
+// each type's constructor function for details on each type.
+_UI_ENUM(uiAttributeType) {
+	uiAttributeTypeFamily,
+	uiAttributeTypeSize,
+	uiAttributeTypeWeight,
+	uiAttributeTypeItalic,
+	uiAttributeTypeStretch,
+	uiAttributeTypeColor,
+	uiAttributeTypeBackground,
+	uiAttributeTypeUnderline,
+	uiAttributeTypeUnderlineColor,
+	uiAttributeTypeFeatures,
+};
+
+// uiAttributeGetType() returns the type of a.
+// TODO I don't like this name
+_UI_EXTERN uiAttributeType uiAttributeGetType(const uiAttribute *a);
+
+// uiNewFamilyAttribute() creates a new uiAttribute that changes the
+// font family of the text it is applied to. Font family names are
+// case-insensitive.
+_UI_EXTERN uiAttribute *uiNewFamilyAttribute(const char *family);
+
+// uiAttributeFamily() returns the font family stored in a. The
+// returned string is owned by a. It is an error to call this on a
+// uiAttribute that does not hold a font family.
+_UI_EXTERN const char *uiAttributeFamily(const uiAttribute *a);
+
+// uiNewSizeAttribute() creates a new uiAttribute that changes the
+// size of the text it is applied to, in typographical points.
+_UI_EXTERN uiAttribute *uiNewFamilyAttribute(double size);
+
+// uiAttributeSize() returns the font size stored in a. It is an error to
+// call this on a uiAttribute that does not hold a font size.
+_UI_EXTERN double uiAttributeSize(const uiAttribute *a);
+
 	// uiAttributeWeight changes the weight of the text it is applied
 	// to. Use the Weight field of uiAttributeSpec.
-	uiAttributeWeight,
+	uiAttributeTypeWeight,
 	// uiAttributeItalic changes the italicness of the text it is applied
 	// to. Use the Italic field of uiAttributeSpec.
-	uiAttributeItalic,
+	uiAttributeTypeItalic,
 	// uiAttributeStretch changes the stretch of the text it is applied
 	// to. Use the Stretch field of uiAttributeSpec.
-	uiAttributeStretch,
+	uiAttributeTypeStretch,
 	// uiAttributeColor changes the color of the text it is applied to.
 	// Use the R, G, B, and A fields of uiAttributeSpec.
-	uiAttributeColor,
+	uiAttributeTypeColor,
 	// uiAttributeBackground changes the color of the text it is
 	// applied to. Use the R, G, B, and A fields of uiAttributeSpec.
-	uiAttributeBackground,
+	uiAttributeTypeBackground,
 
 	// uiAttributeUnderline changes the underline style of the text
 	// it is applied to. Use the UnderlineStyle field of
 	// uiAttributeSpec.
-	uiAttributeUnderline,
+	uiAttributeTypeUnderline,
 	// uiAttributeUnderlineColor changes the color of any underline
 	// on the text it is applied to, regardless of the style. Use the
 	// UnderlineColor field of uiAttributeSpec, and also the R, G, B,
@@ -41,25 +85,25 @@ _UI_ENUM(uiAttribute) {
 	// specified, the text color is used instead. If an underline color
 	// is specified without an underline style, the underline color
 	// attribute is ignored, but not elided.
-	uiAttributeUnderlineColor,
+	uiAttributeTypeUnderlineColor,
 
 	// uiAttributeFeatures changes the OpenType features of the
 	// text it is applied to. Use the Features field of uiAttributeSpec.
-	uiAttributeFeatures,
+	uiAttributeTypeFeatures,
 };
 
-_UI_ENUM(uiDrawUnderlineStyle) {
-	uiDrawUnderlineStyleNone,
-	uiDrawUnderlineStyleSingle,
-	uiDrawUnderlineStyleDouble,
-	uiDrawUnderlineStyleSuggestion,		// wavy or dotted underlines used for spelling/grammar checkers
+_UI_ENUM(uiUnderlineStyle) {
+	uiUnderlineStyleNone,
+	uiUnderlineStyleSingle,
+	uiUnderlineStyleDouble,
+	uiUnderlineStyleSuggestion,		// wavy or dotted underlines used for spelling/grammar checkers
 };
 
-_UI_ENUM(uiDrawUnderlineColor) {
-	uiDrawUnderlineColorCustom,		// also use R/G/B/A fields
-	uiDrawUnderlineColorSpelling,
-	uiDrawUnderlineColorGrammar,
-	uiDrawUnderlineColorAuxiliary,	// for instance, the color used by smart replacements on OS X
+_UI_ENUM(uiUnderlineColor) {
+	uiUnderlineColorCustom,
+	uiUnderlineColorSpelling,
+	uiUnderlineColorGrammar,
+	uiUnderlineColorAuxiliary,		// for instance, the color used by smart replacements on OS X
 };
 
 // uiOpenTypeFeatures represents a set of OpenType feature

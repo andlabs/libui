@@ -8,5 +8,14 @@ empty string is allowed
 empty string cannot have attributes
 font family names are case-insensitive both in attributes and in descriptors
 attributes are unique throughout a Unicode codepoint, not just to UTF-8 bytes
-define what "it is an error" means in the case of uiFreeAttribute() and all uiAttributeValue() functions
+define what "it is an error" means in the case of uiFreeAttribute() and all uiAttributeValue() functions and constructors
 does uiAttributeFamily() return a normalized string
+should uiNewAttributeBackground() be renamed to uiNewAttributeBackgroundColor() and likewise for the type constant
+should underline colors just ignore non-custom component arguments
+should any color getter function accept a NULL pointer
+what should uiAttributeUnderlineColor() do if the color type isn't Custom but the other pointers are non-NULL
+should uiOpenTypeFeaturesGet() accept a NULL value pointer
+what happens if uiOpenTypeFeaturesForEach() is given a NULl function pointer
+should FeaturesAttribute be changed to OpenTypeFeaturesAttribute and likewise for the type enum
+should uiNewFeaturesAttribute() accept NULL
+should uiNewFamilyAttribute() accept NULL

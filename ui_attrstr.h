@@ -39,8 +39,9 @@ _UI_ENUM(uiAttributeType) {
 _UI_EXTERN uiAttributeType uiAttributeGetType(const uiAttribute *a);
 
 // uiNewFamilyAttribute() creates a new uiAttribute that changes the
-// font family of the text it is applied to. Font family names are
-// case-insensitive.
+// font family of the text it is applied to. family is copied; you do not
+// need to keep it alive after uiNewFamilyAttribute() returns. Font
+// family names are case-insensitive.
 _UI_EXTERN uiAttribute *uiNewFamilyAttribute(const char *family);
 
 // uiAttributeFamily() returns the font family stored in a. The
@@ -56,55 +57,164 @@ _UI_EXTERN uiAttribute *uiNewFamilyAttribute(double size);
 // call this on a uiAttribute that does not hold a font size.
 _UI_EXTERN double uiAttributeSize(const uiAttribute *a);
 
-	// uiAttributeWeight changes the weight of the text it is applied
-	// to. Use the Weight field of uiAttributeSpec.
-	uiAttributeTypeWeight,
-	// uiAttributeItalic changes the italicness of the text it is applied
-	// to. Use the Italic field of uiAttributeSpec.
-	uiAttributeTypeItalic,
-	// uiAttributeStretch changes the stretch of the text it is applied
-	// to. Use the Stretch field of uiAttributeSpec.
-	uiAttributeTypeStretch,
-	// uiAttributeColor changes the color of the text it is applied to.
-	// Use the R, G, B, and A fields of uiAttributeSpec.
-	uiAttributeTypeColor,
-	// uiAttributeBackground changes the color of the text it is
-	// applied to. Use the R, G, B, and A fields of uiAttributeSpec.
-	uiAttributeTypeBackground,
-
-	// uiAttributeUnderline changes the underline style of the text
-	// it is applied to. Use the UnderlineStyle field of
-	// uiAttributeSpec.
-	uiAttributeTypeUnderline,
-	// uiAttributeUnderlineColor changes the color of any underline
-	// on the text it is applied to, regardless of the style. Use the
-	// UnderlineColor field of uiAttributeSpec, and also the R, G, B,
-	// and A fields if specifying uiDrawUnderlineColorCustom.
-	// 
-	// If an underline style is applied but no underline color is
-	// specified, the text color is used instead. If an underline color
-	// is specified without an underline style, the underline color
-	// attribute is ignored, but not elided.
-	uiAttributeTypeUnderlineColor,
-
-	// uiAttributeFeatures changes the OpenType features of the
-	// text it is applied to. Use the Features field of uiAttributeSpec.
-	uiAttributeTypeFeatures,
+// uiTextWeight represents possible text weights. These roughly
+// map to the OSx2 text weight field of TrueType and OpenType
+// fonts, or to CSS weight numbers. The named constants are
+// nominal values; the actual values may vary by font and by OS,
+// though this isn't particularly likely. Any value between
+// uiTextWeightMinimum and uiDrawTextWeightMaximum,
+// inclusive, is allowed.
+//
+// Note that due to restrictions in early versions of Windows, some
+// fonts have "special" weights be exposed in many programs as
+// separate font families. This is perhaps most notable with
+// Arial Black. libui does not do this, even on Windows (because the
+// DirectWrite API libui uses on Windows does not do this); to
+// specify Arial Black, use family Arial and weight uiTextWeightBlack.
+_UI_ENUM(uiTextWeight) {
+	uiTextWeightMinimum = 0,
+	uiTextWeightThin = 100,
+	uiTextWeightUltraLight = 200,
+	uiTextWeightLight = 300,
+	uiTextWeightBook = 350,
+	uiTextWeightNormal = 400,
+	uiTextWeightMedium = 500,
+	uiTextWeightSemiBold = 600,
+	uiTextWeightBold = 700,
+	uiTextWeightUltraBold = 800,
+	uiTextWeightHeavy = 900,
+	uiTextWeightUltraHeavy = 950,
+	uiTextWeightMaximum = 1000,
 };
 
-_UI_ENUM(uiUnderlineStyle) {
-	uiUnderlineStyleNone,
-	uiUnderlineStyleSingle,
-	uiUnderlineStyleDouble,
-	uiUnderlineStyleSuggestion,		// wavy or dotted underlines used for spelling/grammar checkers
+// uiNewWeightAttribute() creates a new uiAttribute that changes the
+// weight of the text it is applied to. It is an error to specify a weight
+// outside the range [uiTextWeightMinimum,
+// uiTextWeightMaximum].
+_UI_EXTERN uiAttribute *uiNewWeightAttribute(uiTextWeight weight);
+
+// uiAttributeWeight() returns the font weight stored in a. It is an error
+// to call this on a uiAttribute that does not hold a font weight.
+_UI_EXTERN uiTextWeight uiAttributeWeight(const uiAttribute *a);
+
+// uiTextItalic represents possible italic modes for a font. Italic
+// represents "true" italics where the slanted glyphs have custom
+// shapes, whereas oblique represents italics that are merely slanted
+// versions of the normal glyphs. Most fonts usually have one or the
+// other.
+_UI_ENUM(uiTextItalic) {
+	uiTextItalicNormal,
+	uiTextItalicOblique,
+	uiTextItalicItalic,
 };
 
+// uiNewItalicAttribute() creates a new uiAttribute that changes the
+// italic mode of the text it is applied to. It is an error to specify an
+// italic mode not specified in uiTextItalic.
+_UI_EXTERN uiAttribute *uiNewItalicAttribute(uiTextItalic italic);
+
+// uiAttributeItalic() returns the font italic mode stored in a. It is an
+// error to call this on a uiAttribute that does not hold a font italic
+// mode.
+_UI_EXTERN uiTextItalic uiAttributeItalic(const uiAttribute *a);
+
+// uiTextStretch represents possible stretches (also called "widths")
+// of a font.
+//
+// Note that due to restrictions in early versions of Windows, some
+// fonts have "special" stretches be exposed in many programs as
+// separate font families. This is perhaps most notable with
+// Arial Condensed. libui does not do this, even on Windows (because
+// the DirectWrite API libui uses on Windows does not do this); to
+// specify Arial Condensed, use family Arial and stretch
+// uiTextStretchCondensed.
+_UI_ENUM(uiTextStretch) {
+	uiTextStretchUltraCondensed,
+	uiTextStretchExtraCondensed,
+	uiTextStretchCondensed,
+	uiTextStretchSemiCondensed,
+	uiTextStretchNormal,
+	uiTextStretchSemiExpanded,
+	uiTextStretchExpanded,
+	uiTextStretchExtraExpanded,
+	uiTextStretchUltraExpanded,
+};
+
+// uiNewStretchAttribute() creates a new uiAttribute that changes the
+// stretch of the text it is applied to. It is an error to specify a strech
+// not specified in uiTextStretch.
+_UI_EXTERN uiAttribute *uiNewStretchAttribute(uiTextStretch stretch);
+
+// uiAttributeStretch() returns the font stretch stored in a. It is an
+// error to call this on a uiAttribute that does not hold a font stretch.
+_UI_EXTERN uiTextStretch uiAttributeStretch(const uiAttribute *a);
+
+// uiNewColorAttribute() creates a new uiAttribute that changes the
+// color of the text it is applied to. It is an error to specify an invalid
+// color.
+_UI_EXTERN uiAttribute *uiNewColorAttribute(double r, double g, double b, double a);
+
+// uiAttributeColor() returns the text color stored in a. It is an
+// error to call this on a uiAttribute that does not hold a text color.
+_UI_EXTERN void uiAttributeColor(const uiAttribute *a, double *r, double *g, double *b, double *alpha);
+
+// uiNewBackgroundAttribute() creates a new uiAttribute that
+// changes the background color of the text it is applied to. It is an
+// error to specify an invalid color.
+_UI_EXTERN uiAttribute *uiNewBackgroundAttribute(double r, double g, double b, double a);
+
+// TODO reuse uiAttributeColor() for background colors, or make a new function...
+
+// uiUnderline specifies a type of underline to use on text.
+_UI_ENUM(uiUnderline) {
+	uiUnderlineNone,
+	uiUnderlineSingle,
+	uiUnderlineDouble,
+	uiUnderlineSuggestion,		// wavy or dotted underlines used for spelling/grammar checkers
+};
+
+// uiNewUnderlineAttribute() creates a new uiAttribute that changes
+// the type of underline on the text it is applied to. It is an error to
+// specify an underline type not specified in uiUnderline.
+_UI_EXTERN uiAttribute *uiNewUnderlineAttribute(uiUnderline u);
+
+// uiAttributeUnderline() returns the underline type stored in a. It is
+// an error to call this on a uiAttribute that does not hold an underline
+// style.
+_UI_EXTERN uiUnderline uiAttributeUnderline(const uiAttribute *a);
+
+// uiUnderlineColor specifies the color of any underline on the text it
+// is applied to, regardless of the type of underline. In addition to
+// being able to specify a custom color, you can explicitly specify
+// platform-specific colors for suggestion underlines; to use them
+// correctly, pair them with uiUnderlineSuggestion (though they can
+// be used on other types of underline as well).
+// 
+// If an underline type is applied but no underline color is
+// specified, the text color is used instead. If an underline color
+// is specified without an underline type, the underline color
+// attribute is ignored, but not removed from the uiAttributedString.
 _UI_ENUM(uiUnderlineColor) {
 	uiUnderlineColorCustom,
 	uiUnderlineColorSpelling,
 	uiUnderlineColorGrammar,
-	uiUnderlineColorAuxiliary,		// for instance, the color used by smart replacements on OS X
+	uiUnderlineColorAuxiliary,		// for instance, the color used by smart replacements on macOS or in Microsoft Office
 };
+
+// uiNewUnderlineColorAttribute() creates a new uiAttribute that
+// changes the color of the underline on the text it is applied to.
+// It is an error to specify an underline color not specified in
+// uiUnderlineColor.
+//
+// If the specified color type is uiUnderlineColorCustom, it is an
+// error to specify an invalid color value. Otherwise, the color values
+// are ignored and should be specified as zero.
+_UI_EXTERN uiAttribute *uiNewUnderlineColorAttribute(uiUnderlineColor u, double r, double g, double b, double a);
+
+// uiAttributeUnderlineColor() returns the underline color stored in
+// a. It is an error to call this on a uiAttribute that does not hold an
+// underline color.
+_UI_EXTERN void uiAttributeUnderline(const uiAttribute *a, uiUnderlineColor *u, double *r, double *g, double *b, double *alpha);
 
 // uiOpenTypeFeatures represents a set of OpenType feature
 // tag-value pairs, for applying OpenType features to text.
@@ -175,67 +285,22 @@ _UI_EXTERN int uiOpenTypeFeaturesGet(const uiOpenTypeFeatures *otf, char a, char
 // modify otf while uiOpenTypeFeaturesForEach() is running.
 _UI_EXTERN void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data);
 
-// uiOpenTypeFeaturesEqual() returns nonzero if a is equal to b.
-// a is defined as equal to b if and only if both have exactly the same
-// tags with exactly the same values, or if both are NULL.
-_UI_EXTERN int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeatures *b);
+// uiNewFeaturesAttribute() creates a new uiAttribute that changes
+// the font family of the text it is applied to. otf is copied; you may
+// free it after uiNewFeaturesAttribute() returns.
+_UI_EXTERN uiAttribute *uiNewFeaturesAttribute(const uiOpenTypeFeatures *otf);
 
-typedef struct uiAttributeSpec uiAttributeSpec;
+// uiAttributeFeatures() returns the OpenType features stored in a.
+// The returned uiOpenTypeFeatures object is owned by a. It is an
+// error to call this on a uiAttribute that does not hold OpenType
+// features.
+_UI_EXTERN const uiOpenTypeFeatures *uiAttributeFeatures(const uiAttribute *a);
 
-// TODO note that pointers are copied
+// TODO CONTINUE HERE
+
 // TODO add a function to uiAttributedString to get an attribute's value at a specific index or in a specific range, so we can edit
-// (TODO related to above: what about memory consumption during a read-modify-write cycle due to copying?)
-struct uiAttributeSpec {
-	uiAttribute Type;
-	const char *Family;
-	double Size;
-	uiDrawTextWeight Weight;
-	uiDrawTextItalic Italic;
-	uiDrawTextStretch Stretch;
-	double R;
-	double G;
-	double B;
-	double A;
-	uiDrawUnderlineStyle UnderlineStyle;
-	uiDrawUnderlineColor UnderlineColor;
-	const uiOpenTypeFeatures *Features;
-};
 
 typedef struct uiDrawFontDescriptor uiDrawFontDescriptor;
-
-_UI_ENUM(uiDrawTextWeight) {
-	uiDrawTextWeightMinimum = 0,
-	uiDrawTextWeightThin = 100,
-	uiDrawTextWeightUltraLight = 200,
-	uiDrawTextWeightLight = 300,
-	uiDrawTextWeightBook = 350,
-	uiDrawTextWeightNormal = 400,
-	uiDrawTextWeightMedium = 500,
-	uiDrawTextWeightSemiBold = 600,
-	uiDrawTextWeightBold = 700,
-	uiDrawTextWeightUltraBold = 800,
-	uiDrawTextWeightHeavy = 900,
-	uiDrawTextWeightUltraHeavy = 950,
-	uiDrawTextWeightMaximum = 1000,
-};
-
-_UI_ENUM(uiDrawTextItalic) {
-	uiDrawTextItalicNormal,
-	uiDrawTextItalicOblique,
-	uiDrawTextItalicItalic,
-};
-
-_UI_ENUM(uiDrawTextStretch) {
-	uiDrawTextStretchUltraCondensed,
-	uiDrawTextStretchExtraCondensed,
-	uiDrawTextStretchCondensed,
-	uiDrawTextStretchSemiCondensed,
-	uiDrawTextStretchNormal,
-	uiDrawTextStretchSemiExpanded,
-	uiDrawTextStretchExpanded,
-	uiDrawTextStretchExtraExpanded,
-	uiDrawTextStretchUltraExpanded,
-};
 
 struct uiDrawFontDescriptor {
 	char *Family;

@@ -19,3 +19,4 @@ what happens if uiOpenTypeFeaturesForEach() is given a NULl function pointer
 should FeaturesAttribute be changed to OpenTypeFeaturesAttribute and likewise for the type enum
 should uiNewFeaturesAttribute() accept NULL
 should uiNewFamilyAttribute() accept NULL
+it is an error in ForEach too

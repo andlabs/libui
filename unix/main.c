@@ -22,6 +22,15 @@ const char *uiInit(uiInitOptions *o)
 
 	gtkthread = g_thread_self();
 
+	GList* iconlist = NULL;
+	iconlist = g_list_append(iconlist, gdk_pixbuf_new_from_resource("/org/kuriboland/melonDS/icon/melon_16x16.png", NULL));
+	iconlist = g_list_append(iconlist, gdk_pixbuf_new_from_resource("/org/kuriboland/melonDS/icon/melon_32x32.png", NULL));
+	iconlist = g_list_append(iconlist, gdk_pixbuf_new_from_resource("/org/kuriboland/melonDS/icon/melon_48x48.png", NULL));
+	iconlist = g_list_append(iconlist, gdk_pixbuf_new_from_resource("/org/kuriboland/melonDS/icon/melon_64x64.png", NULL));
+	iconlist = g_list_append(iconlist, gdk_pixbuf_new_from_resource("/org/kuriboland/melonDS/icon/melon_128x128.png", NULL));
+
+	gtk_window_set_default_icon_list(iconlist);
+
 	return NULL;
 }
 

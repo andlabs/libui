@@ -29,8 +29,7 @@ WCHAR *windowText(HWND hwnd)
 
 void setWindowText(HWND hwnd, WCHAR *wtext)
 {
-	if (SetWindowTextW(hwnd, wtext) == 0)
-		logLastError(L"error setting window text");
+	SetWindowTextW(hwnd, wtext);
 }
 
 void uiFreeText(char *text)

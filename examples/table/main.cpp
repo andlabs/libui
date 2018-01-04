@@ -14,6 +14,7 @@
 #include <cassert>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "../../ui.h"
 
 #include "planet.h"
@@ -21,6 +22,8 @@
 
 static uiTableModel* model=0;
 static uiWindow *mainwin;
+static uiButton *deleteButton;
+static uiTable *table;
 
 // our set of dummy data
 static std::vector<Planet> db;
@@ -125,16 +128,26 @@ static int onShouldQuit(void *data)
 
 static void onSelectionChanged(uiTable *t, void *data)
 {
+	int cnt = 0;
 	printf("Selection changed!\n");
 	uiTableIter *sel = uiTableGetSelection(t);
 	while (uiTableIterAdvance(sel)) {
 		printf("%d ", uiTableIterCurrent(sel));
+		++cnt;
 	}
 	uiTableIterComplete(sel);
 	printf("\n");
+
+	if(cnt>0) {
+		uiControlEnable(uiControl(deleteButton));
+	} else {
+		uiControlDisable(uiControl(deleteButton));
+	}
 //	uiTableDumpSelection(t);
 }
 
+
+// add a number of new rows
 static void onAddEntries(uiButton *, void *data)
 {
 	uiSpinbox* entry = (uiSpinbox*)data;
@@ -151,11 +164,31 @@ static void onAddEntries(uiButton *, void *data)
 
 }
 
+
+// delete all selected rows
+static void onDeleteEntries(uiButton *, void *data)
+{
+	std::vector<int> sel;
+	uiTableIter *iter = uiTableGetSelection(table);
+	while (uiTableIterAdvance(iter)) {
+		sel.push_back(uiTableIterCurrent(iter));
+	}
+	uiTableIterComplete(iter);
+
+	// sort in reverse order, so we don't screw invalidate
+	// the indexes as we go
+	std::sort(sel.rbegin(), sel.rend());
+	for( int idx : sel ) {
+		db.erase(db.begin()+idx);
+		uiTableModelRowDeleted(model,idx);
+	}
+}
+
 //
 // build gui
 //
 
-static uiControl *makeTable(void)
+static uiTable *makeTable(void)
 {
 	uiTable* t;
 	model = uiNewTableModel(&handler);
@@ -169,7 +202,7 @@ static uiControl *makeTable(void)
 	uiTableAppendTextColumn(t, "Population", 6);
 
 	uiTableOnSelectionChanged(t, onSelectionChanged, NULL);
-	return uiControl(t);
+	return t;
 }
 
 
@@ -181,8 +214,8 @@ static uiControl *makeLayout(void)
 	vbox = uiNewVerticalBox();
 	uiBoxSetPadded(vbox,1);
 
-	uiBoxAppend(vbox,makeTable(),1);
-
+	table = makeTable();
+	uiBoxAppend(vbox,uiControl(table),1);
 	{
 		uiGroup* group = uiNewGroup("Add Entries");
 		uiGroupSetMargined(group, 1);
@@ -208,6 +241,16 @@ static uiControl *makeLayout(void)
 			uiGroupSetChild(group, uiControl(hbox));
 		}
 		uiBoxAppend(vbox, uiControl(group), 0);
+
+		// delete button
+		{
+			deleteButton = uiNewButton("Delete selected");
+			uiControlDisable(uiControl(deleteButton));
+			uiButtonOnClicked(deleteButton, onDeleteEntries, 0);
+			uiBoxAppend(vbox, uiControl(deleteButton), 0);
+		}
+
+
 	}
 
 

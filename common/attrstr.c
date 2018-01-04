@@ -325,7 +325,7 @@ size_t attrstrUTF16Len(uiAttributedString *s)
 }
 
 // TODO is this still needed given the below?
-size_t attrstrUTF8ToUTF16(uiAttributedString *s, size_t n)
+size_t attrstrUTF8ToUTF16(const uiAttributedString *s, size_t n)
 {
 	return s->u8tou16[n];
 }

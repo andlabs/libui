@@ -49,6 +49,10 @@ public:
 		this->hasUnderlineColor = false;
 	}
 
+    virtual ~textDrawingEffect()
+    {
+    }
+
 	// IUnknown
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject)
 	{

@@ -155,6 +155,11 @@ void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 	e->onChangedData = data;
 }
 
+void uiEntryOnFinished(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
+{
+	// TODO
+}
+
 int uiEntryReadOnly(uiEntry *e)
 {
 	return [e->textfield isEditable] == NO;

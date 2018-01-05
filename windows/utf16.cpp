@@ -1,6 +1,13 @@
 // 21 april 2016
 #include "uipriv_windows.hpp"
 
+// sanity check - make sure wchar_t is 16 bits (the assumption on windows)
+// (MinGW-w64 gcc does seem to define a 16bit wchar_t, but you never know. Other windows gcc ports might not)
+#if WCHAR_MAX > 0xFFFF
+  #error wchar_t larger than 16bit
+#endif
+
+
 // see http://stackoverflow.com/a/29556509/3408572
 
 WCHAR *toUTF16(const char *str)
@@ -17,7 +24,7 @@ WCHAR *toUTF16(const char *str)
 	wp = wstr;
 	while (*str) {
 		str = utf8DecodeRune(str, 0, &rune);
-		n = utf16EncodeRune(rune, wp);
+		n = utf16EncodeRune(rune, (uint16_t*)wp);
 		wp += n;
 	}
 	return wstr;
@@ -32,11 +39,11 @@ char *toUTF8(const WCHAR *wstr)
 
 	if (*wstr == L'\0')		// empty string
 		return emptyUTF8();
-	n = utf16RuneCount(wstr, 0);
+	n = utf16RuneCount((const uint16_t*)wstr, 0);
 	str = (char *) uiAlloc((n + 1) * sizeof (char), "char[]");
 	sp = str;
 	while (*wstr) {
-		wstr = utf16DecodeRune(wstr, 0, &rune);
+		wstr = (const WCHAR*)utf16DecodeRune((const uint16_t*)wstr, 0, &rune);
 		n = utf8EncodeRune(rune, sp);
 		sp += n;
 	}

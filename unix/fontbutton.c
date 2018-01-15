@@ -26,16 +26,14 @@ static void defaultOnChanged(uiFontButton *b, void *data)
 	// do nothing
 }
 
-uiDrawTextFont *uiFontButtonFont(uiFontButton *b)
+void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc)
 {
-	PangoFont *f;
-	PangoFontDescription *desc;
+	PangoFontDescription *pdesc;
 
-	desc = gtk_font_chooser_get_font_desc(b->fc);
-	f = pangoDescToPangoFont(desc);
+	pdesc = gtk_font_chooser_get_font_desc(b->fc);
+	fontdescFromPangoFontDescription(pdesc, desc);
 	// desc is transfer-full and thus is a copy
-	pango_font_description_free(desc);
-	return mkTextFont(f, FALSE);			// we hold the initial reference; no need to ref
+	pango_font_description_free(pdesc);
 }
 
 void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data)

@@ -5,6 +5,10 @@ This README is being written.<br>
 
 ## Announcements
 
+* **TODO**
+	* Introduced an all-new formatted text API that allows you to process formatted text in ways that the old API wouldn't allow. You can read on the whole API [here](TODO). There are also two new examples for this new api: `drawtext` (which shows the whole API at a glance) and `opentype` (which focuses on OpenType features).
+	* Also introduced a formal set of contribution guidelines, see `CONTRIBUTING.md` for details.
+
 * **27 November 2016**
 	* Decided to split the table stuff into its own branch. It will be developed independently of everything else, along with a few other features.
 
@@ -173,6 +177,10 @@ OS X normally does not start program executables directly; instead, it uses [Lau
 When you run a binary directly from the Terminal, however, you are running it directly, not through Launch Services. Therefore, the program starts in the background, because no one told it to activate! Now, it turns out [there is an API](https://developer.apple.com/reference/appkit/nsapplication/1428468-activateignoringotherapps) that we can use to force our app to be activated. But if we use it, then we'd be trampling over Launch Services, which already knows whether it should activate or not. Therefore, libui does not step over Launch Services, at the cost of requiring an extra user step if running directly from the command line.
 
 See also [this](https://github.com/andlabs/libui/pull/20#issuecomment-211381971) and [this](http://stackoverflow.com/questions/25318524/what-exactly-should-i-pass-to-nsapp-activateignoringotherapps-to-get-my-appl).
+
+## Contributing
+
+See `CONTRIBUTING.md`.
 
 ## Screenshots
 

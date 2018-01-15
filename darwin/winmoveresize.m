@@ -48,12 +48,10 @@ void doManualMove(NSWindow *w, NSEvent *initialEvent)
 	BOOL (^handleEvent)(NSEvent *e);
 	__block BOOL done;
 
-	// this is only available on 10.11 and newer (LONGTERM FUTURE)
-	// but use it if available; this lets us use the real OS dragging code, which means we can take advantage of OS features like Spaces
-	if ([w respondsToSelector:@selector(performWindowDragWithEvent:)]) {
-		[((id) w) performWindowDragWithEvent:initialEvent];
+	// 10.11 gives us a method to handle this for us
+	// use it if available; this lets us use the real OS dragging code, which means we can take advantage of OS features like Spaces
+	if (FUTURE_NSWindow_performWindowDragWithEvent(w, initialEvent))
 		return;
-	}
 
 	mdp.w = w;
 	mdp.initialFrame = [mdp.w frame];

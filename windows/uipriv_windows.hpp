@@ -7,6 +7,7 @@
 #include "compilerver.hpp"
 
 // ui internal window messages
+// TODO make these either not messages or WM_USER-based, so we can be sane about reserving WM_APP
 enum {
 	// redirected WM_COMMAND and WM_NOTIFY
 	msgCOMMAND = WM_APP + 0x40,		// start offset just to be safe
@@ -148,9 +149,6 @@ extern BOOL showColorDialog(HWND parent, struct colorDialogRGBA *c);
 // sizing.cpp
 extern void getSizing(HWND hwnd, uiWindowsSizing *sizing, HFONT font);
 
-// graphemes.cpp
-extern size_t *graphemes(WCHAR *msg);
-
 // TODO move into a dedicated file abibugs.cpp when we rewrite the drawing code
 extern D2D1_SIZE_F realGetSize(ID2D1RenderTarget *rt);
 
@@ -162,3 +160,9 @@ extern D2D1_SIZE_F realGetSize(ID2D1RenderTarget *rt);
 
 // draw.cpp
 extern ID2D1DCRenderTarget *makeHDCRenderTarget(HDC dc, RECT *r);
+
+// drawtext.cpp
+extern void fontdescFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc);
+
+// opentype.cpp
+extern IDWriteTypography *otfToDirectWrite(const uiOpenTypeFeatures *otf);

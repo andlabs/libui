@@ -119,12 +119,16 @@ const char *uiInit(uiInitOptions *o)
 		[realNSApp() setDelegate:delegate];
 
 		initAlloc();
+		loadFutures();
+		loadUndocumented();
 
 		// always do this so we always have an application menu
 		appDelegate().menuManager = [[menuManager new] autorelease];
 		[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
 		setupFontPanel();
+
+		initUnderlineColors();
 	}
 
 	globalPool = [[NSAutoreleasePool alloc] init];
@@ -140,6 +144,7 @@ void uiUninit(void)
 	[globalPool release];
 
 	@autoreleasepool {
+		uninitUnderlineColors();
 		[delegate release];
 		[realNSApp() setDelegate:nil];
 		[app release];

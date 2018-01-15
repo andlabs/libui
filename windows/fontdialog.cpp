@@ -6,6 +6,8 @@
 // - the Choose Font sample defaults to Regular/Italic/Bold/Bold Italic in some case (no styles?); do we? find out what the case is
 // - do we set initial family and style topmost as well?
 // - this should probably just handle IDWriteFonts
+// - localization?
+// - the Sample window overlaps the groupbox in a weird way (compare to the real ChooseFont() dialog)
 
 struct fontDialog {
 	HWND hwnd;
@@ -320,6 +322,7 @@ static void sizeEdited(struct fontDialog *f)
 	wsize = windowText(f->sizeCombobox);
 	// this is what the Choose Font dialog does; it swallows errors while the real ChooseFont() is not lenient (and only checks on OK)
 	size = wcstod(wsize, NULL);
+	// TODO free wsize? I forget already
 	if (size <= 0)		// don't change on invalid size
 		return;
 	f->curSize = size;

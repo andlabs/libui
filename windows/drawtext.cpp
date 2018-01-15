@@ -1,398 +1,232 @@
-// 22 december 2015
+// 17 january 2017
 #include "uipriv_windows.hpp"
 #include "draw.hpp"
-// TODO really migrate
 
-// notes:
-// only available in windows 8 and newer:
-// - character spacing
-// - kerning control
-// - justficiation (how could I possibly be making this up?!)
-// - vertical text (SERIOUSLY?! WHAT THE ACTUAL FUCK, MICROSOFT?!?!?!? DID YOU NOT THINK ABOUT THIS THE FIRST TIME, TRYING TO IMPROVE THE INTERNATIONALIZATION OF WINDOWS 7?!?!?! bonus: some parts of MSDN even say 8.1 and up only!)
+// TODO
+// - consider the warnings about antialiasing in the PadWrite sample
+// - if that's not a problem, do we have overlapping rects in the hittest sample? I can't tell...
+// - empty string: nLines == 1 and all checks out except extents has x == 0 when not left aligned
+// - paragraph alignment is subject to RTL mirroring; see if it is on other platforms
+// - add overhang info to metrics?
 
-struct uiDrawFontFamilies {
-	fontCollection *fc;
-};
-
-uiDrawFontFamilies *uiDrawListFontFamilies(void)
-{
-	struct uiDrawFontFamilies *ff;
-
-	ff = uiNew(struct uiDrawFontFamilies);
-	ff->fc = loadFontCollection();
-	return ff;
-}
-
-int uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff)
-{
-	return ff->fc->fonts->GetFontFamilyCount();
-}
-
-char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, int n)
-{
-	IDWriteFontFamily *family;
-	WCHAR *wname;
-	char *name;
-	HRESULT hr;
-
-	hr = ff->fc->fonts->GetFontFamily(n, &family);
-	if (hr != S_OK)
-		logHRESULT(L"error getting font out of collection", hr);
-	wname = fontCollectionFamilyName(ff->fc, family);
-	name = toUTF8(wname);
-	uiFree(wname);
-	family->Release();
-	return name;
-}
-
-void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff)
-{
-	fontCollectionFree(ff->fc);
-	uiFree(ff);
-}
-
-struct uiDrawTextFont {
-	IDWriteFont *f;
-	WCHAR *family;		// save for convenience in uiDrawNewTextLayout()
-	double size;
-};
-
-uiDrawTextFont *mkTextFont(IDWriteFont *df, BOOL addRef, WCHAR *family, BOOL copyFamily, double size)
-{
-	uiDrawTextFont *font;
-	WCHAR *copy;
-	HRESULT hr;
-
-	font = uiNew(uiDrawTextFont);
-	font->f = df;
-	if (addRef)
-		font->f->AddRef();
-	if (copyFamily) {
-		copy = (WCHAR *) uiAlloc((wcslen(family) + 1) * sizeof (WCHAR), "WCHAR[]");
-		wcscpy(copy, family);
-		font->family = copy;
-	} else
-		font->family = family;
-	font->size = size;
-	return font;
-}
-
-// TODO consider moving these all to dwrite.cpp
-
-// TODO MinGW-w64 is missing this one
-#define DWRITE_FONT_WEIGHT_SEMI_LIGHT (DWRITE_FONT_WEIGHT(350))
-static const struct {
-	bool lastOne;
-	uiDrawTextWeight uival;
-	DWRITE_FONT_WEIGHT dwval;
-} dwriteWeights[] = {
-	{ false, uiDrawTextWeightThin, DWRITE_FONT_WEIGHT_THIN },
-	{ false, uiDrawTextWeightUltraLight, DWRITE_FONT_WEIGHT_ULTRA_LIGHT },
-	{ false, uiDrawTextWeightLight, DWRITE_FONT_WEIGHT_LIGHT },
-	{ false, uiDrawTextWeightBook, DWRITE_FONT_WEIGHT_SEMI_LIGHT },
-	{ false, uiDrawTextWeightNormal, DWRITE_FONT_WEIGHT_NORMAL },
-	{ false, uiDrawTextWeightMedium, DWRITE_FONT_WEIGHT_MEDIUM },
-	{ false, uiDrawTextWeightSemiBold, DWRITE_FONT_WEIGHT_SEMI_BOLD },
-	{ false, uiDrawTextWeightBold, DWRITE_FONT_WEIGHT_BOLD },
-	{ false, uiDrawTextWeightUltraBold, DWRITE_FONT_WEIGHT_ULTRA_BOLD },
-	{ false, uiDrawTextWeightHeavy, DWRITE_FONT_WEIGHT_HEAVY },
-	{ true, uiDrawTextWeightUltraHeavy, DWRITE_FONT_WEIGHT_ULTRA_BLACK, },
-};
-
-static const struct {
-	bool lastOne;
-	uiDrawTextItalic uival;
-	DWRITE_FONT_STYLE dwval;
-} dwriteItalics[] = {
-	{ false, uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
-	{ false, uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
-	{ true, uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
-};
-
-static const struct {
-	bool lastOne;
-	uiDrawTextStretch uival;
-	DWRITE_FONT_STRETCH dwval;
-} dwriteStretches[] = {
-	{ false, uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
-	{ false, uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
-	{ false, uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
-	{ false, uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
-	{ false, uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
-	{ false, uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
-	{ false, uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
-	{ false, uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
-	{ true, uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
-};
-
-void attrToDWriteAttr(struct dwriteAttr *attr)
-{
-	bool found;
-	int i;
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteWeights[i].uival == attr->weight) {
-			attr->dweight = dwriteWeights[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteWeights[i].lastOne)
-			break;
-	}
-	if (!found)
-		userbug("Invalid text weight %d passed to text function.", attr->weight);
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteItalics[i].uival == attr->italic) {
-			attr->ditalic = dwriteItalics[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteItalics[i].lastOne)
-			break;
-	}
-	if (!found)
-		userbug("Invalid text italic %d passed to text function.", attr->italic);
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteStretches[i].uival == attr->stretch) {
-			attr->dstretch = dwriteStretches[i].dwval;
-			found = true;
-			break;
-		}
-		if (dwriteStretches[i].lastOne)
-			break;
-	}
-	if (!found)
-		// TODO on other platforms too
-		userbug("Invalid text stretch %d passed to text function.", attr->stretch);
-}
-
-void dwriteAttrToAttr(struct dwriteAttr *attr)
-{
-	int weight, against, n;
-	int curdiff, curindex;
-	bool found;
-	int i;
-
-	// weight is scaled; we need to test to see what's nearest
-	weight = (int) (attr->dweight);
-	against = (int) (dwriteWeights[0].dwval);
-	curdiff = abs(against - weight);
-	curindex = 0;
-	for (i = 1; ; i++) {
-		against = (int) (dwriteWeights[i].dwval);
-		n = abs(against - weight);
-		if (n < curdiff) {
-			curdiff = n;
-			curindex = i;
-		}
-		if (dwriteWeights[i].lastOne)
-			break;
-	}
-	attr->weight = dwriteWeights[i].uival;
-
-	// italic and stretch are simple values; we can just do a matching search
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteItalics[i].dwval == attr->ditalic) {
-			attr->italic = dwriteItalics[i].uival;
-			found = true;
-			break;
-		}
-		if (dwriteItalics[i].lastOne)
-			break;
-	}
-	if (!found)
-		// these are implbug()s because users shouldn't be able to get here directly; TODO?
-		implbug("invalid italic %d passed to dwriteAttrToAttr()", attr->ditalic);
-
-	found = false;
-	for (i = 0; ; i++) {
-		if (dwriteStretches[i].dwval == attr->dstretch) {
-			attr->stretch = dwriteStretches[i].uival;
-			found = true;
-			break;
-		}
-		if (dwriteStretches[i].lastOne)
-			break;
-	}
-	if (!found)
-		implbug("invalid stretch %d passed to dwriteAttrToAttr()", attr->dstretch);
-}
-
-uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc)
-{
-	uiDrawTextFont *font;
-	IDWriteFontCollection *collection;
-	UINT32 index;
-	BOOL exists;
-	struct dwriteAttr attr;
-	IDWriteFontFamily *family;
-	WCHAR *wfamily;
-	IDWriteFont *match;
-	HRESULT hr;
-
-	// always get the latest available font information
-	hr = dwfactory->GetSystemFontCollection(&collection, TRUE);
-	if (hr != S_OK)
-		logHRESULT(L"error getting system font collection", hr);
-
-	wfamily = toUTF16(desc->Family);
-	hr = collection->FindFamilyName(wfamily, &index, &exists);
-	if (hr != S_OK)
-		logHRESULT(L"error finding font family", hr);
-	if (!exists)
-		implbug("LONGTERM family not found in uiDrawLoadClosestFont()", hr);
-	hr = collection->GetFontFamily(index, &family);
-	if (hr != S_OK)
-		logHRESULT(L"error loading font family", hr);
-
-	attr.weight = desc->Weight;
-	attr.italic = desc->Italic;
-	attr.stretch = desc->Stretch;
-	attrToDWriteAttr(&attr);
-	hr = family->GetFirstMatchingFont(
-		attr.dweight,
-		attr.dstretch,
-		attr.ditalic,
-		&match);
-	if (hr != S_OK)
-		logHRESULT(L"error loading font", hr);
-
-	font = mkTextFont(match,
-		FALSE,				// we own the initial reference; no need to add another one
-		wfamily, FALSE,		// will be freed with font
-		desc->Size);
-
-	family->Release();
-	collection->Release();
-
-	return font;
-}
-
-void uiDrawFreeTextFont(uiDrawTextFont *font)
-{
-	font->f->Release();
-	uiFree(font->family);
-	uiFree(font);
-}
-
-uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font)
-{
-	return (uintptr_t) (font->f);
-}
-
-void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc)
-{
-	// TODO
-
-	desc->Size = font->size;
-
-	// TODO
-}
-
-// text sizes are 1/72 of an inch
-// points in Direct2D are 1/96 of an inch (https://msdn.microsoft.com/en-us/library/windows/desktop/ff684173%28v=vs.85%29.aspx, https://msdn.microsoft.com/en-us/library/windows/desktop/hh447022%28v=vs.85%29.aspx)
-// As for the actual conversion from design units, see:
-// - http://cboard.cprogramming.com/windows-programming/136733-directwrite-font-height-issues.html
-// - https://sourceforge.net/p/vstgui/mailman/message/32483143/
-// - http://xboxforums.create.msdn.com/forums/t/109445.aspx
-// - https://msdn.microsoft.com/en-us/library/dd183564%28v=vs.85%29.aspx
-// - http://www.fontbureau.com/blog/the-em/
-// TODO make points here about how DIPs in DirectWrite == DIPs in Direct2D; if not, figure out what they really are? for the width and layout functions later
-static double scaleUnits(double what, double designUnitsPerEm, double size)
-{
-	return (what / designUnitsPerEm) * (size * (96.0 / 72.0));
-}
-
-void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics)
-{
-	DWRITE_FONT_METRICS dm;
-
-	font->f->GetMetrics(&dm);
-	metrics->Ascent = scaleUnits(dm.ascent, dm.designUnitsPerEm, font->size);
-	metrics->Descent = scaleUnits(dm.descent, dm.designUnitsPerEm, font->size);
-	// TODO what happens if dm.xxx is negative?
-	// TODO remember what this was for
-	metrics->Leading = scaleUnits(dm.lineGap, dm.designUnitsPerEm, font->size);
-	metrics->UnderlinePos = scaleUnits(dm.underlinePosition, dm.designUnitsPerEm, font->size);
-	metrics->UnderlineThickness = scaleUnits(dm.underlineThickness, dm.designUnitsPerEm, font->size);
-}
-
-// some attributes, such as foreground color, can't be applied until after we establish a Direct2D context :/ so we have to prepare all attributes in advance
-// also since there's no way to clear the attributes from a layout en masse (apart from overwriting them all), we'll play it safe by creating a new layout each time
-enum layoutAttrType {
-	layoutAttrColor,
-};
-
-struct layoutAttr {
-	enum layoutAttrType type;
-	int start;
-	int end;
-	double components[4];
-};
+// TODO verify our renderer is correct, especially with regards to snapping
 
 struct uiDrawTextLayout {
-	WCHAR *text;
-	size_t textlen;
-	size_t *graphemes;
-	double width;
 	IDWriteTextFormat *format;
-	std::vector<struct layoutAttr> *attrs;
+	IDWriteTextLayout *layout;
+	std::vector<backgroundFunc> *backgroundFuncs;
+	UINT32 nLines;
+	struct lineInfo *lineInfo;
+	// for converting DirectWrite indices from/to byte offsets
+	size_t *u8tou16;
+	size_t nUTF8;
+	size_t *u16tou8;
+	size_t nUTF16;
 };
 
-uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width)
+// TODO copy notes about DirectWrite DIPs being equal to Direct2D DIPs here
+
+// typographic points are 1/72 inch; this parameter is 1/96 inch
+// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
+#define pointSizeToDWriteSize(size) (size * (96.0 / 72.0))
+
+// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
+std::map<uiDrawTextItalic, DWRITE_FONT_STYLE> dwriteItalics = {
+	{ uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
+	{ uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
+	{ uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
+};
+
+// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
+std::map<uiDrawTextStretch, DWRITE_FONT_STRETCH> dwriteStretches = {
+	{ uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
+	{ uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
+	{ uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
+	{ uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
+	{ uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
+	{ uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
+	{ uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
+	{ uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
+	{ uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
+};
+
+struct lineInfo {
+	size_t startPos;			// in UTF-16 points
+	size_t endPos;
+	size_t newlineCount;
+	double x;
+	double y;
+	double width;
+	double height;
+	double baseline;
+};
+
+// this function is deeply indebted to the PadWrite sample: https://github.com/Microsoft/Windows-classic-samples/blob/master/Samples/Win7Samples/multimedia/DirectWrite/PadWrite/TextEditor.cpp
+static void computeLineInfo(uiDrawTextLayout *tl)
 {
-	uiDrawTextLayout *layout;
+	DWRITE_LINE_METRICS *dlm;
+	size_t nextStart;
+	UINT32 i, j;
+	DWRITE_HIT_TEST_METRICS *htm;
+	UINT32 nFragments, unused;
 	HRESULT hr;
 
-	layout = uiNew(uiDrawTextLayout);
+	// TODO make sure this is legal; if not, switch to GetMetrics() and use its line count field instead
+	hr = tl->layout->GetLineMetrics(NULL, 0, &(tl->nLines));
+	// ugh, HRESULT_TO_WIN32() is an inline function and is not constexpr so we can't use switch here
+	if (hr == S_OK) {
+		// TODO what do we do here
+	} else if (hr != E_NOT_SUFFICIENT_BUFFER)
+		logHRESULT(L"error getting number of lines in IDWriteTextLayout", hr);
+	tl->lineInfo = (struct lineInfo *) uiAlloc(tl->nLines * sizeof (struct lineInfo), "struct lineInfo[] (text layout)");
 
-	hr = dwfactory->CreateTextFormat(defaultFont->family,
-		NULL,
-		defaultFont->f->GetWeight(),
-		defaultFont->f->GetStyle(),
-		defaultFont->f->GetStretch(),
-		// typographic points are 1/72 inch; this parameter is 1/96 inch
-		// fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
-		defaultFont->size * (96.0 / 72.0),
+	dlm = new DWRITE_LINE_METRICS[tl->nLines];
+	// we can't pass NULL here; it outright crashes if we do
+	// TODO verify the numbers haven't changed
+	hr = tl->layout->GetLineMetrics(dlm, tl->nLines, &unused);
+	if (hr != S_OK)
+		logHRESULT(L"error getting IDWriteTextLayout line metrics", hr);
+
+	// assume the first line starts at position 0 and the string flow is incremental
+	nextStart = 0;
+	for (i = 0; i < tl->nLines; i++) {
+		tl->lineInfo[i].startPos = nextStart;
+		tl->lineInfo[i].endPos = nextStart + dlm[i].length;
+		tl->lineInfo[i].newlineCount = dlm[i].newlineLength;
+		nextStart = tl->lineInfo[i].endPos;
+
+		// a line can have multiple fragments; for example, if there's a bidirectional override in the middle of a line
+		hr = tl->layout->HitTestTextRange(tl->lineInfo[i].startPos, (tl->lineInfo[i].endPos - tl->lineInfo[i].newlineCount) - tl->lineInfo[i].startPos,
+			0, 0,
+			NULL, 0, &nFragments);
+		if (hr != S_OK && hr != E_NOT_SUFFICIENT_BUFFER)
+			logHRESULT(L"error getting IDWriteTextLayout line fragment count", hr);
+		htm = new DWRITE_HIT_TEST_METRICS[nFragments];
+		// TODO verify unused == nFragments?
+		hr = tl->layout->HitTestTextRange(tl->lineInfo[i].startPos, (tl->lineInfo[i].endPos - tl->lineInfo[i].newlineCount) - tl->lineInfo[i].startPos,
+			0, 0,
+			htm, nFragments, &unused);
+		// TODO can this return E_NOT_SUFFICIENT_BUFFER again?
+		if (hr != S_OK)
+			logHRESULT(L"error getting IDWriteTextLayout line fragment metrics", hr);
+		// TODO verify htm.textPosition and htm.length against dtm[i]/tl->lineInfo[i]?
+		tl->lineInfo[i].x = htm[0].left;
+		tl->lineInfo[i].y = htm[0].top;
+		// TODO does this not include trailing whitespace? I forget
+		tl->lineInfo[i].width = htm[0].width;
+		tl->lineInfo[i].height = htm[0].height;
+		for (j = 1; j < nFragments; j++) {
+			// this is correct even if the leftmost fragment on the line is RTL
+			if (tl->lineInfo[i].x > htm[j].left)
+				tl->lineInfo[i].x = htm[j].left;
+			tl->lineInfo[i].width += htm[j].width;
+			// TODO verify y and height haven't changed?
+		}
+		// TODO verify dlm[i].height == htm.height?
+		delete[] htm;
+
+		// TODO on Windows 8.1 and/or 10 we can use DWRITE_LINE_METRICS1 to get specific info about the ascent and descent; do we have an alternative?
+		// TODO and even on those platforms can we somehow split tyographic leading from spacing?
+		// TODO and on that note, can we have both line spacing proportionally above and uniformly below?
+		tl->lineInfo[i].baseline = dlm[i].baseline;
+	}
+
+	delete[] dlm;
+}
+
+// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
+static std::map<uiDrawTextAlign, DWRITE_TEXT_ALIGNMENT> dwriteAligns = {
+	{ uiDrawTextAlignLeft, DWRITE_TEXT_ALIGNMENT_LEADING },
+	{ uiDrawTextAlignCenter, DWRITE_TEXT_ALIGNMENT_CENTER },
+	{ uiDrawTextAlignRight, DWRITE_TEXT_ALIGNMENT_TRAILING },
+};
+
+uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
+{
+	uiDrawTextLayout *tl;
+	WCHAR *wDefaultFamily;
+	DWRITE_WORD_WRAPPING wrap;
+	FLOAT maxWidth;
+	HRESULT hr;
+
+	tl = uiNew(uiDrawTextLayout);
+
+	wDefaultFamily = toUTF16(p->DefaultFont->Family);
+	hr = dwfactory->CreateTextFormat(
+		wDefaultFamily, NULL,
+		// for the most part, DirectWrite weights correlate to ours
+		// the differences:
+		// - Minimum — libui: 0, DirectWrite: 1
+		// - Maximum — libui: 1000, DirectWrite: 999
+		// TODO figure out what to do about this shorter range (the actual major values are the same (but with different names), so it's just a range issue)
+		(DWRITE_FONT_WEIGHT) (p->DefaultFont->Weight),
+		dwriteItalics[p->DefaultFont->Italic],
+		dwriteStretches[p->DefaultFont->Stretch],
+		pointSizeToDWriteSize(p->DefaultFont->Size),
 		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
-		// TODO use the current locale again?
+		// TODO use the current locale?
 		L"",
-		&(layout->format));
+		&(tl->format));
 	if (hr != S_OK)
 		logHRESULT(L"error creating IDWriteTextFormat", hr);
+	hr = tl->format->SetTextAlignment(dwriteAligns[p->Align]);
+	if (hr != S_OK)
+		logHRESULT(L"error applying text layout alignment", hr);
 
-	layout->text = toUTF16(text);
-	layout->textlen = wcslen(layout->text);
-	layout->graphemes = graphemes(layout->text);
+	hr = dwfactory->CreateTextLayout(
+		(const WCHAR *) attrstrUTF16(p->String), attrstrUTF16Len(p->String),
+		tl->format,
+		// FLOAT is float, not double, so this should work... TODO
+		FLT_MAX, FLT_MAX,
+		&(tl->layout));
+	if (hr != S_OK)
+		logHRESULT(L"error creating IDWriteTextLayout", hr);
 
-	uiDrawTextLayoutSetWidth(layout, width);
+	// and set the width
+	// this is the only wrapping mode (apart from "no wrap") available prior to Windows 8.1 (TODO verify this fact) (TODO this should be the default anyway)
+	wrap = DWRITE_WORD_WRAPPING_WRAP;
+	maxWidth = (FLOAT) (p->Width);
+	if (p->Width < 0) {
+		// TODO is this wrapping juggling even necessary?
+		wrap = DWRITE_WORD_WRAPPING_NO_WRAP;
+		// setting the max width in this case technically isn't needed since the wrap mode will simply ignore the max width, but let's do it just to be safe
+		maxWidth = FLT_MAX;		// see TODO above
+	}
+	hr = tl->layout->SetWordWrapping(wrap);
+	if (hr != S_OK)
+		logHRESULT(L"error setting IDWriteTextLayout word wrapping mode", hr);
+	hr = tl->layout->SetMaxWidth(maxWidth);
+	if (hr != S_OK)
+		logHRESULT(L"error setting IDWriteTextLayout max layout width", hr);
 
-	layout->attrs = new std::vector<struct layoutAttr>;
+	attrstrToIDWriteTextLayoutAttrs(p, tl->layout, &(tl->backgroundFuncs));
 
-	return layout;
+	computeLineInfo(tl);
+
+	// and finally copy the UTF-8/UTF-16 index conversion tables
+	tl->u8tou16 = attrstrCopyUTF8ToUTF16(p->String, &(tl->nUTF8));
+	tl->u16tou8 = attrstrCopyUTF16ToUTF8(p->String, &(tl->nUTF16));
+
+	// TODO can/should this be moved elsewhere?
+	uiFree(wDefaultFamily);
+	return tl;
 }
 
-void uiDrawFreeTextLayout(uiDrawTextLayout *layout)
+void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
-	delete layout->attrs;
-	layout->format->Release();
-	uiFree(layout->graphemes);
-	uiFree(layout->text);
-	uiFree(layout);
+	uiFree(tl->u16tou8);
+	uiFree(tl->u8tou16);
+	uiFree(tl->lineInfo);
+	delete tl->backgroundFuncs;
+	tl->layout->Release();
+	tl->format->Release();
+	uiFree(tl);
 }
 
-static ID2D1SolidColorBrush *mkSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a)
+static HRESULT mkSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a, ID2D1SolidColorBrush **brush)
 {
 	D2D1_BRUSH_PROPERTIES props;
 	D2D1_COLOR_F color;
-	ID2D1SolidColorBrush *brush;
-	HRESULT hr;
 
 	ZeroMemory(&props, sizeof (D2D1_BRUSH_PROPERTIES));
 	props.opacity = 1.0;
@@ -403,129 +237,475 @@ static ID2D1SolidColorBrush *mkSolidBrush(ID2D1RenderTarget *rt, double r, doubl
 	color.g = g;
 	color.b = b;
 	color.a = a;
-	hr = rt->CreateSolidColorBrush(
+	return rt->CreateSolidColorBrush(
 		&color,
 		&props,
-		&brush);
+		brush);
+}
+
+static ID2D1SolidColorBrush *mustMakeSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a)
+{
+	ID2D1SolidColorBrush *brush;
+	HRESULT hr;
+
+	hr = mkSolidBrush(rt, r, g, b, a, &brush);
 	if (hr != S_OK)
 		logHRESULT(L"error creating solid brush", hr);
 	return brush;
 }
 
-IDWriteTextLayout *prepareLayout(uiDrawTextLayout *layout, ID2D1RenderTarget *rt)
-{
-	IDWriteTextLayout *dl;
-	DWRITE_TEXT_RANGE range;
-	IUnknown *unkBrush;
-	DWRITE_WORD_WRAPPING wrap;
-	FLOAT maxWidth;
-	HRESULT hr;
+// some of the stuff we want to do isn't possible with what DirectWrite provides itself; we need to do it ourselves
+// this is based on http://www.charlespetzold.com/blog/2014/01/Character-Formatting-Extensions-with-DirectWrite.html
+class textRenderer : public IDWriteTextRenderer {
+	ULONG refcount;
+	ID2D1RenderTarget *rt;
+	BOOL snap;
+	ID2D1SolidColorBrush *black;
+public:
+	textRenderer(ID2D1RenderTarget *rt, BOOL snap, ID2D1SolidColorBrush *black)
+	{
+		this->refcount = 1;
+		this->rt = rt;
+		this->snap = snap;
+		this->black = black;
+	}
 
-	hr = dwfactory->CreateTextLayout(layout->text, layout->textlen,
-		layout->format,
-		// FLOAT is float, not double, so this should work... TODO
-		FLT_MAX, FLT_MAX,
-		&dl);
-	if (hr != S_OK)
-		logHRESULT(L"error creating IDWriteTextLayout", hr);
-
-	for (const struct layoutAttr &attr : *(layout->attrs)) {
-		range.startPosition = layout->graphemes[attr.start];
-		range.length = layout->graphemes[attr.end] - layout->graphemes[attr.start];
-		switch (attr.type) {
-		case layoutAttrColor:
-			if (rt == NULL)		// determining extents, not drawing
-				break;
-			unkBrush = mkSolidBrush(rt,
-				attr.components[0],
-				attr.components[1],
-				attr.components[2],
-				attr.components[3]);
-			hr = dl->SetDrawingEffect(unkBrush, range);
-			unkBrush->Release();		// associated with dl
-			break;
-		default:
-			hr = E_FAIL;
-			logHRESULT(L"invalid text attribute type", hr);
+	// IUnknown
+	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject)
+	{
+		if (ppvObject == NULL)
+			return E_POINTER;
+		if (riid == IID_IUnknown ||
+			riid == __uuidof (IDWritePixelSnapping) ||
+			riid == __uuidof (IDWriteTextRenderer)) {
+			this->AddRef();
+			*ppvObject = this;
+			return S_OK;
 		}
-		if (hr != S_OK)
-			logHRESULT(L"error adding attribute to text layout", hr);
+		*ppvObject = NULL;
+		return E_NOINTERFACE;
 	}
 
-	// and set the width
-	// this is the only wrapping mode (apart from "no wrap") available prior to Windows 8.1
-	wrap = DWRITE_WORD_WRAPPING_WRAP;
-	maxWidth = layout->width;
-	if (layout->width < 0) {
-		wrap = DWRITE_WORD_WRAPPING_NO_WRAP;
-		// setting the max width in this case technically isn't needed since the wrap mode will simply ignore the max width, but let's do it just to be safe
-		maxWidth = FLT_MAX;		// see TODO above
+	virtual ULONG STDMETHODCALLTYPE AddRef(void)
+	{
+		this->refcount++;
+		return this->refcount;
 	}
-	hr = dl->SetWordWrapping(wrap);
-	if (hr != S_OK)
-		logHRESULT(L"error setting word wrapping mode", hr);
-	hr = dl->SetMaxWidth(maxWidth);
-	if (hr != S_OK)
-		logHRESULT(L"error setting max layout width", hr);
 
-	return dl;
-}
+	virtual ULONG STDMETHODCALLTYPE Release(void)
+	{
+		this->refcount--;
+		if (this->refcount == 0) {
+			delete this;
+			return 0;
+		}
+		return this->refcount;
+	}
 
+	// IDWritePixelSnapping
+	virtual HRESULT STDMETHODCALLTYPE GetCurrentTransform(void *clientDrawingContext, DWRITE_MATRIX *transform)
+	{
+		D2D1_MATRIX_3X2_F d2dtf;
 
-void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width)
+		if (transform == NULL)
+			return E_POINTER;
+		this->rt->GetTransform(&d2dtf);
+		transform->m11 = d2dtf._11;
+		transform->m12 = d2dtf._12;
+		transform->m21 = d2dtf._21;
+		transform->m22 = d2dtf._22;
+		transform->dx = d2dtf._31;
+		transform->dy = d2dtf._32;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetPixelsPerDip(void *clientDrawingContext, FLOAT *pixelsPerDip)
+	{
+		FLOAT dpix, dpiy;
+
+		if (pixelsPerDip == NULL)
+			return E_POINTER;
+		this->rt->GetDpi(&dpix, &dpiy);
+		*pixelsPerDip = dpix / 96;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE IsPixelSnappingDisabled(void *clientDrawingContext, BOOL *isDisabled)
+	{
+		if (isDisabled == NULL)
+			return E_POINTER;
+		*isDisabled = !this->snap;
+		return S_OK;
+	}
+
+	// IDWriteTextRenderer
+	virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, DWRITE_MEASURING_MODE measuringMode, const DWRITE_GLYPH_RUN *glyphRun, const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription, IUnknown *clientDrawingEffect)
+	{
+		D2D1_POINT_2F baseline;
+		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
+		ID2D1SolidColorBrush *brush;
+
+		baseline.x = baselineOriginX;
+		baseline.y = baselineOriginY;
+		brush = this->black;
+		if (t != NULL && t->hasColor) {
+			HRESULT hr;
+
+			hr = mkSolidBrush(this->rt, t->r, t->g, t->b, t->a, &brush);
+			if (hr != S_OK)
+				return hr;
+		}
+		this->rt->DrawGlyphRun(
+			baseline,
+			glyphRun,
+			brush,
+			measuringMode);
+		if (t != NULL && t->hasColor)
+			brush->Release();
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE DrawInlineObject(void *clientDrawingContext, FLOAT originX, FLOAT originY, IDWriteInlineObject *inlineObject, BOOL isSideways, BOOL isRightToLeft, IUnknown *clientDrawingEffect)
+	{
+		if (inlineObject == NULL)
+			return E_POINTER;
+		return inlineObject->Draw(clientDrawingContext, this,
+			originX, originY,
+			isSideways, isRightToLeft,
+			clientDrawingEffect);
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE DrawStrikethrough(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_STRIKETHROUGH *strikethrough, IUnknown *clientDrawingEffect)
+	{
+		// we don't support strikethrough
+		return E_UNEXPECTED;
+	}
+
+	virtual HRESULT DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
+	{
+		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
+		ID2D1SolidColorBrush *brush;
+		D2D1_RECT_F rect;
+		D2D1::Matrix3x2F pixeltf;
+		FLOAT dpix, dpiy;
+		D2D1_POINT_2F pt;
+
+		if (underline == NULL)
+			return E_POINTER;
+		if (t == NULL)		// we can only get here through an underline
+			return E_UNEXPECTED;
+		brush = this->black;
+		if (t->hasUnderlineColor) {
+			HRESULT hr;
+
+			hr = mkSolidBrush(this->rt, t->ur, t->ug, t->ub, t->ua, &brush);
+			if (hr != S_OK)
+				return hr;
+		} else if (t->hasColor) {
+			// TODO formalize this rule
+			HRESULT hr;
+
+			hr = mkSolidBrush(this->rt, t->r, t->g, t->b, t->a, &brush);
+			if (hr != S_OK)
+				return hr;
+		}
+		rect.left = baselineOriginX;
+		rect.top = baselineOriginY + underline->offset;
+		rect.right = rect.left + underline->width;
+		rect.bottom = rect.top + underline->thickness;
+		switch (t->u) {
+		case uiDrawUnderlineStyleSingle:
+			this->rt->FillRectangle(&rect, brush);
+			break;
+		case uiDrawUnderlineStyleDouble:
+			// TODO do any of the matrix methods return errors?
+			// TODO standardize double-underline shape across platforms? wavy underline shape?
+			this->rt->GetTransform(&pixeltf);
+			this->rt->GetDpi(&dpix, &dpiy);
+			pixeltf = pixeltf * D2D1::Matrix3x2F::Scale(dpix / 96, dpiy / 96);
+			pt.x = 0;
+			pt.y = rect.top;
+			pt = pixeltf.TransformPoint(pt);
+			rect.top = (FLOAT) ((int) (pt.y + 0.5));
+			pixeltf.Invert();
+			pt = pixeltf.TransformPoint(pt);
+			rect.top = pt.y;
+			// first line
+			rect.top -= underline->thickness;
+			// and it seems we need to recompute this
+			rect.bottom = rect.top + underline->thickness;
+			this->rt->FillRectangle(&rect, brush);
+			// second line
+			rect.top += 2 * underline->thickness;
+			rect.bottom = rect.top + underline->thickness;
+			this->rt->FillRectangle(&rect, brush);
+			break;
+		case uiDrawUnderlineStyleSuggestion:
+			{		// TODO get rid of the extra block
+					// TODO properly clean resources on failure
+					// TODO use fully qualified C overloads for all methods
+					// TODO ensure all methods properly have errors handled
+				ID2D1PathGeometry *path;
+				ID2D1GeometrySink *sink;
+				double amplitude, period, xOffset, yOffset;
+				double t;
+				bool first = true;
+				HRESULT hr;
+
+				hr = d2dfactory->CreatePathGeometry(&path);
+				if (hr != S_OK)
+					return hr;
+				hr = path->Open(&sink);
+				if (hr != S_OK)
+					return hr;
+				amplitude = underline->thickness;
+				period = 5 * underline->thickness;
+				xOffset = baselineOriginX;
+				yOffset = baselineOriginY + underline->offset;
+				for (t = 0; t < underline->width; t++) {
+					double x, angle, y;
+					D2D1_POINT_2F pt;
+
+					x = t + xOffset;
+					angle = 2 * uiPi * fmod(x, period) / period;
+					y = amplitude * sin(angle) + yOffset;
+					pt.x = x;
+					pt.y = y;
+					if (first) {
+						sink->BeginFigure(pt, D2D1_FIGURE_BEGIN_HOLLOW);
+						first = false;
+					} else
+						sink->AddLine(pt);
+				}
+				sink->EndFigure(D2D1_FIGURE_END_OPEN);
+				hr = sink->Close();
+				if (hr != S_OK)
+					return hr;
+				sink->Release();
+				this->rt->DrawGeometry(path, brush, underline->thickness);
+				path->Release();
+			}
+			break;
+		}
+		if (t->hasUnderlineColor || t->hasColor)
+			brush->Release();
+		return S_OK;
+	}
+};
+
+// TODO this ignores clipping?
+void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
-	layout->width = width;
-}
-
-// TODO for a single line the height includes the leading; it should not
-void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height)
-{
-	IDWriteTextLayout *dl;
-	DWRITE_TEXT_METRICS metrics;
-	HRESULT hr;
-
-	dl = prepareLayout(layout, NULL);
-	hr = dl->GetMetrics(&metrics);
-	if (hr != S_OK)
-		logHRESULT(L"error getting layout metrics", hr);
-	*width = metrics.width;
-	// TODO make sure the behavior of this on empty strings is the same on all platforms
-	*height = metrics.height;
-	dl->Release();
-}
-
-void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout)
-{
-	IDWriteTextLayout *dl;
 	D2D1_POINT_2F pt;
-	ID2D1Brush *black;
+	ID2D1SolidColorBrush *black;
+	textRenderer *renderer;
 	HRESULT hr;
+
+	for (const auto &f : *(tl->backgroundFuncs))
+		f(c, tl, x, y);
 
 	// TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
-	black = mkSolidBrush(c->rt, 0.0, 0.0, 0.0, 1.0);
+	// TODO figure out if this needs to be cleaned out
+	black = mustMakeSolidBrush(c->rt, 0.0, 0.0, 0.0, 1.0);
 
-	dl = prepareLayout(layout, c->rt);
+#define renderD2D 0
+#define renderOur 1
+#if renderD2D
 	pt.x = x;
 	pt.y = y;
 	// TODO D2D1_DRAW_TEXT_OPTIONS_NO_SNAP?
 	// TODO D2D1_DRAW_TEXT_OPTIONS_CLIP?
-	// TODO when setting 8.1 as minimum, D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT?
-	c->rt->DrawTextLayout(pt, dl, black, D2D1_DRAW_TEXT_OPTIONS_NONE);
-	dl->Release();
+	// TODO LONGTERM when setting 8.1 as minimum (TODO verify), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT?
+	// TODO what is our pixel snapping setting related to the OPTIONS enum values?
+	c->rt->DrawTextLayout(pt, tl->layout, black, D2D1_DRAW_TEXT_OPTIONS_NONE);
+#endif
+#if renderD2D && renderOur
+	// draw ours semitransparent so we can check
+	// TODO get the actual color Charles Petzold uses and use that
+	black->Release();
+	black = mustMakeSolidBrush(c->rt, 1.0, 0.0, 0.0, 0.75);
+#endif
+#if renderOur
+	renderer = new textRenderer(c->rt,
+		TRUE,			// TODO FALSE for no-snap?
+		black);
+	hr = tl->layout->Draw(NULL,
+		renderer,
+		x, y);
+	if (hr != S_OK)
+		logHRESULT(L"error drawing IDWriteTextLayout", hr);
+	renderer->Release();
+#endif
 
 	black->Release();
 }
 
-void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a)
+// TODO for a single line the height includes the leading; should it? TextEdit on OS X always includes the leading and/or paragraph spacing, otherwise Klee won't work...
+// TODO width does not include trailing whitespace
+void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
 {
-	struct layoutAttr attr;
+	DWRITE_TEXT_METRICS metrics;
+	HRESULT hr;
 
-	attr.type = layoutAttrColor;
-	attr.start = startChar;
-	attr.end = endChar;
-	attr.components[0] = r;
-	attr.components[1] = g;
-	attr.components[2] = b;
-	attr.components[3] = a;
-	layout->attrs->push_back(attr);
+	hr = tl->layout->GetMetrics(&metrics);
+	if (hr != S_OK)
+		logHRESULT(L"error getting IDWriteTextLayout layout metrics", hr);
+	*width = metrics.width;
+	// TODO make sure the behavior of this on empty strings is the same on all platforms (ideally should be 0-width, line height-height; TODO note this in the docs too)
+	*height = metrics.height;
+}
+
+int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
+{
+	return tl->nLines;
+}
+
+// DirectWrite doesn't provide a direct way to do this, so we have to do this manually
+// TODO does that comment still apply here or to the code at the top of this file?
+void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
+{
+	*start = tl->lineInfo[line].startPos;
+	*start = tl->u16tou8[*start];
+	*end = tl->lineInfo[line].endPos - tl->lineInfo[line].newlineCount;
+	*end = tl->u16tou8[*end];
+}
+
+void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
+{
+	m->X = tl->lineInfo[line].x;
+	m->Y = tl->lineInfo[line].y;
+	m->Width = tl->lineInfo[line].width;
+	m->Height = tl->lineInfo[line].height;
+
+	// TODO rename tl->lineInfo[line].baseline to .baselineOffset or something of the sort to make its meaning more clear
+	m->BaselineY = tl->lineInfo[line].y + tl->lineInfo[line].baseline;
+	m->Ascent = tl->lineInfo[line].baseline;
+	m->Descent = tl->lineInfo[line].height - tl->lineInfo[line].baseline;
+	m->Leading = 0;		// TODO
+
+	m->ParagraphSpacingBefore = 0;		// TODO
+	m->LineHeightSpace = 0;				// TODO
+	m->LineSpacing = 0;				// TODO
+	m->ParagraphSpacing = 0;			// TODO
+}
+
+// this algorithm comes from Microsoft's PadWrite sample, following TextEditor::SetSelectionFromPoint()
+// TODO go back through all of these and make sure we convert coordinates properly
+// TODO same for OS X
+void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
+{
+	DWRITE_HIT_TEST_METRICS m;
+	BOOL trailing, inside;
+	size_t p;
+	UINT32 i;
+	HRESULT hr;
+
+	hr = tl->layout->HitTestPoint(x, y,
+		&trailing, &inside,
+		&m);
+	if (hr != S_OK)
+		logHRESULT(L"error hit-testing IDWriteTextLayout", hr);
+	p = m.textPosition;
+	// on a trailing hit, align to the nearest cluster
+	if (trailing) {
+		DWRITE_HIT_TEST_METRICS m2;
+		FLOAT x, y;				// crashes if I skip these :/
+
+		hr = tl->layout->HitTestTextPosition(m.textPosition, trailing,
+			&x, &y, &m2);
+		if (hr != S_OK)
+			logHRESULT(L"error aligning trailing hit to nearest cluster", hr);
+		p = m2.textPosition + m2.length;
+	}
+	*pos = tl->u16tou8[p];
+
+	for (i = 0; i < tl->nLines; i++) {
+		double ltop, lbottom;
+
+		ltop = tl->lineInfo[i].y;
+		lbottom = ltop + tl->lineInfo[i].height;
+		// y will already >= ltop at this point since the past lbottom should == ltop
+		if (y < lbottom)
+			break;
+	}
+	if (i == tl->nLines)
+		i--;
+	*line = i;
+}
+
+double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)
+{
+	BOOL trailing;
+	DWRITE_HIT_TEST_METRICS m;
+	FLOAT x, y;
+	HRESULT hr;
+
+	if (line < 0 || line >= tl->nLines)
+		return -1;
+	pos = tl->u8tou16[pos];
+	// note: >, not >=, because the position at endPos is valid!
+	if (pos < tl->lineInfo[line].startPos || pos > tl->lineInfo[line].endPos)
+		return -1;
+	// this behavior seems correct
+	// there's also PadWrite's TextEditor::GetCaretRect() but that requires state...
+	// TODO where does this fail?
+	trailing = FALSE;
+	if (pos != 0 && pos != tl->nUTF16 && pos == tl->lineInfo[line].endPos) {
+		pos--;
+		trailing = TRUE;
+	}
+	hr = tl->layout->HitTestTextPosition(pos, trailing,
+		&x, &y, &m);
+	if (hr != S_OK)
+		logHRESULT(L"error calling IDWriteTextLayout::HitTestTextPosition()", hr);
+	return x;
+}
+
+void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p)
+{
+	DWORD caretWidth;
+
+	// there seems to be no defined caret color
+	// the best I can come up with is "inverts colors underneath" (according to https://msdn.microsoft.com/en-us/library/windows/desktop/ms648397(v=vs.85).aspx) which I have no idea how to do (TODO)
+	// just return black for now
+	p->r = 0.0;
+	p->g = 0.0;
+	p->b = 0.0;
+	p->a = 1.0;
+
+	if (SystemParametersInfoW(SPI_GETCARETWIDTH, 0, &caretWidth, 0) == 0)
+		// don't log the failure, fall back gracefully
+		// the instruction to use this comes from https://msdn.microsoft.com/en-us/library/windows/desktop/ms648399(v=vs.85).aspx
+		// and we have to assume GetSystemMetrics() always succeeds, so
+		caretWidth = GetSystemMetrics(SM_CXBORDER);
+	// TODO make this a function and split it out of areautil.cpp
+	{
+		FLOAT dpix, dpiy;
+
+		// TODO can we pass NULL for dpiy?
+		c->rt->GetDpi(&dpix, &dpiy);
+		// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd756649%28v=vs.85%29.aspx (and others; search "direct2d mouse")
+		p->width = ((double) (caretWidth * 96)) / dpix;
+	}
+	// and there doesn't seem to be this either... (TODO check what PadWrite does?)
+	p->xoff = 0;
+}
+
+// TODO split this and the above related font matching code into a separate file?
+void fontdescFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc)
+{
+	DWRITE_FONT_STYLE dwitalic;
+	DWRITE_FONT_STRETCH dwstretch;
+
+	dwitalic = font->GetStyle();
+	// TODO reverse the above misalignment if it is corrected
+	uidesc->Weight = (uiDrawTextWeight) (font->GetWeight());
+	dwstretch = font->GetStretch();
+
+	for (uidesc->Italic = uiDrawTextItalicNormal; uidesc->Italic < uiDrawTextItalicItalic; uidesc->Italic++)
+		if (dwriteItalics[uidesc->Italic] == dwitalic)
+			break;
+	for (uidesc->Stretch = uiDrawTextStretchUltraCondensed; uidesc->Stretch < uiDrawTextStretchUltraExpanded; uidesc->Stretch++)
+		if (dwriteStretches[uidesc->Stretch] == dwstretch)
+			break;
 }

@@ -71,7 +71,7 @@ void *uiRealloc(void *p, size_t new, const char *type)
 		abort();
 	}
 	s = SIZE(out);
-	if (new <= *s)
+	if (new > *s)
 		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);
 	*s = new;
 	[allocations removeObject:[NSValue valueWithPointer:p]];

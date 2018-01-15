@@ -7,19 +7,27 @@ struct uiEntry {
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 	BOOL inhibitChanged;
+	void (*onFinished)(uiEntry *, void *);
+	void *onFinishedData;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiEntry *e = uiEntry(c);
 
-	if (code != EN_CHANGE)
-		return FALSE;
-	if (e->inhibitChanged)
-		return FALSE;
-	(*(e->onChanged))(e, e->onChangedData);
-	*lResult = 0;
-	return TRUE;
+	if (code == EN_CHANGE) {
+    	if (e->inhibitChanged)
+	    	return FALSE;
+    	(*(e->onChanged))(e, e->onChangedData);
+	    *lResult = 0;
+    	return TRUE;
+    }
+	if (code == EN_KILLFOCUS) {
+    	(*(e->onFinished))(e, e->onFinishedData);
+	    *lResult = 0;
+    	return TRUE;
+    }
+    return FALSE;
 }
 
 static void uiEntryDestroy(uiControl *c)
@@ -56,6 +64,11 @@ static void defaultOnChanged(uiEntry *e, void *data)
 	// do nothing
 }
 
+static void defaultOnFinished(uiEntry *e, void *data)
+{
+	// do nothing
+}
+
 char *uiEntryText(uiEntry *e)
 {
 	return uiWindowsWindowText(e->hwnd);
@@ -74,6 +87,12 @@ void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 {
 	e->onChanged = f;
 	e->onChangedData = data;
+}
+
+void uiEntryOnFinished(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
+{
+	e->onFinished = f;
+	e->onFinishedData = data;
 }
 
 int uiEntryReadOnly(uiEntry *e)
@@ -106,6 +125,7 @@ static uiEntry *finishNewEntry(DWORD style)
 
 	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
+	uiEntryOnFinished(e, defaultOnFinished, NULL);
 
 	return e;
 }

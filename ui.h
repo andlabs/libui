@@ -2,6 +2,11 @@
 
 // TODO add a uiVerifyControlType() function that can be used by control implementations to verify controls
 
+// TODOs
+// - make getters that return whether something exists accept a NULL pointer to discard the value (and thus only return that the thing exists?)
+// - const-correct everything
+// - normalize documentation between typedefs and structs
+
 #ifndef __LIBUI_UI_H__
 #define __LIBUI_UI_H__
 
@@ -33,6 +38,12 @@ extern "C" {
 #define uiPi 3.14159265358979323846264338327950288419716939937510582097494459
 
 // TODO uiBool?
+
+// uiForEach represents the return value from one of libui's various ForEach functions.
+_UI_ENUM(uiForEach) {
+	uiForEachContinue,
+	uiForEachStop,
+};
 
 typedef struct uiInitOptions uiInitOptions;
 
@@ -143,6 +154,7 @@ typedef struct uiEntry uiEntry;
 _UI_EXTERN char *uiEntryText(uiEntry *e);
 _UI_EXTERN void uiEntrySetText(uiEntry *e, const char *text);
 _UI_EXTERN void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data);
+_UI_EXTERN void uiEntryOnFinished(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data);
 _UI_EXTERN int uiEntryReadOnly(uiEntry *e);
 _UI_EXTERN void uiEntrySetReadOnly(uiEntry *e, int readonly);
 _UI_EXTERN uiEntry *uiNewEntry(void);
@@ -475,90 +487,8 @@ _UI_EXTERN void uiDrawClip(uiDrawContext *c, uiDrawPath *path);
 _UI_EXTERN void uiDrawSave(uiDrawContext *c);
 _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
 
-// TODO manage the use of Text, Font, and TextFont, and of the uiDrawText prefix in general
-
-///// TODO reconsider this
-typedef struct uiDrawFontFamilies uiDrawFontFamilies;
-
-_UI_EXTERN uiDrawFontFamilies *uiDrawListFontFamilies(void);
-_UI_EXTERN int uiDrawFontFamiliesNumFamilies(uiDrawFontFamilies *ff);
-_UI_EXTERN char *uiDrawFontFamiliesFamily(uiDrawFontFamilies *ff, int n);
-_UI_EXTERN void uiDrawFreeFontFamilies(uiDrawFontFamilies *ff);
-///// END TODO
-
-typedef struct uiDrawTextLayout uiDrawTextLayout;
-typedef struct uiDrawTextFont uiDrawTextFont;
-typedef struct uiDrawTextFontDescriptor uiDrawTextFontDescriptor;
-typedef struct uiDrawTextFontMetrics uiDrawTextFontMetrics;
-
-_UI_ENUM(uiDrawTextWeight) {
-	uiDrawTextWeightThin,
-	uiDrawTextWeightUltraLight,
-	uiDrawTextWeightLight,
-	uiDrawTextWeightBook,
-	uiDrawTextWeightNormal,
-	uiDrawTextWeightMedium,
-	uiDrawTextWeightSemiBold,
-	uiDrawTextWeightBold,
-	uiDrawTextWeightUltraBold,
-	uiDrawTextWeightHeavy,
-	uiDrawTextWeightUltraHeavy,
-};
-
-_UI_ENUM(uiDrawTextItalic) {
-	uiDrawTextItalicNormal,
-	uiDrawTextItalicOblique,
-	uiDrawTextItalicItalic,
-};
-
-_UI_ENUM(uiDrawTextStretch) {
-	uiDrawTextStretchUltraCondensed,
-	uiDrawTextStretchExtraCondensed,
-	uiDrawTextStretchCondensed,
-	uiDrawTextStretchSemiCondensed,
-	uiDrawTextStretchNormal,
-	uiDrawTextStretchSemiExpanded,
-	uiDrawTextStretchExpanded,
-	uiDrawTextStretchExtraExpanded,
-	uiDrawTextStretchUltraExpanded,
-};
-
-struct uiDrawTextFontDescriptor {
-	const char *Family;
-	double Size;
-	uiDrawTextWeight Weight;
-	uiDrawTextItalic Italic;
-	uiDrawTextStretch Stretch;
-};
-
-struct uiDrawTextFontMetrics {
-	double Ascent;
-	double Descent;
-	double Leading;
-	// TODO do these two mean the same across all platforms?
-	double UnderlinePos;
-	double UnderlineThickness;
-};
-
-_UI_EXTERN uiDrawTextFont *uiDrawLoadClosestFont(const uiDrawTextFontDescriptor *desc);
-_UI_EXTERN void uiDrawFreeTextFont(uiDrawTextFont *font);
-_UI_EXTERN uintptr_t uiDrawTextFontHandle(uiDrawTextFont *font);
-_UI_EXTERN void uiDrawTextFontDescribe(uiDrawTextFont *font, uiDrawTextFontDescriptor *desc);
-// TODO make copy with given attributes methods?
-// TODO yuck this name
-_UI_EXTERN void uiDrawTextFontGetMetrics(uiDrawTextFont *font, uiDrawTextFontMetrics *metrics);
-
-// TODO initial line spacing? and what about leading?
-_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(const char *text, uiDrawTextFont *defaultFont, double width);
-_UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *layout);
-// TODO get width
-_UI_EXTERN void uiDrawTextLayoutSetWidth(uiDrawTextLayout *layout, double width);
-_UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *layout, double *width, double *height);
-
-// and the attributes that you can set on a text layout
-_UI_EXTERN void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a);
-
-_UI_EXTERN void uiDrawText(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout);
+// TODO merge back in
+#include "ui_attrstr.h"
 
 _UI_ENUM(uiModifiers) {
 	uiModifierCtrl = 1 << 0,
@@ -638,14 +568,6 @@ struct uiAreaKeyEvent {
 
 	int Up;
 };
-
-typedef struct uiFontButton uiFontButton;
-#define uiFontButton(this) ((uiFontButton *) (this))
-// TODO document this returns a new font
-_UI_EXTERN uiDrawTextFont *uiFontButtonFont(uiFontButton *b);
-// TOOD SetFont, mechanics
-_UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);
-_UI_EXTERN uiFontButton *uiNewFontButton(void);
 
 typedef struct uiColorButton uiColorButton;
 #define uiColorButton(this) ((uiColorButton *) (this))

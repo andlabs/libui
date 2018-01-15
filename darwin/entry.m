@@ -59,6 +59,8 @@ struct uiEntry {
 	NSTextField *textfield;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
+	void (*onFinished)(uiEntry *, void *);
+	void *onFinishedData;
 };
 
 static BOOL isSearchField(NSTextField *tf)
@@ -69,6 +71,7 @@ static BOOL isSearchField(NSTextField *tf)
 @interface entryDelegateClass : NSObject<NSTextFieldDelegate> {
 	struct mapTable *entries;
 }
+- (void)controlTextDidEndEditing:(NSNotification *)note;
 - (void)controlTextDidChange:(NSNotification *)note;
 - (IBAction)onSearch:(id)sender;
 - (void)registerEntry:(uiEntry *)e;
@@ -91,17 +94,30 @@ static BOOL isSearchField(NSTextField *tf)
 	[super dealloc];
 }
 
+- (void)controlTextDidEndEditing:(NSNotification *)note
+{
+	uiEntry *e;
+	e = (uiEntry *) mapGet(self->entries, [note object]);
+	(*(e->onFinished))(e, e->onFinishedData);
+}
+
+
 - (void)controlTextDidChange:(NSNotification *)note
 {
-	[self onSearch:[note object]];
+	uiEntry *e;
+	e = (uiEntry *) mapGet(self->entries, [note object]);
+	(*(e->onChanged))(e, e->onChangedData);
 }
 
 - (IBAction)onSearch:(id)sender
 {
 	uiEntry *e;
-
 	e = (uiEntry *) mapGet(self->entries, sender);
+
+	NSSearchField *s;
+	s = (NSSearchField *) (e->textfield);
 	(*(e->onChanged))(e, e->onChangedData);
+	(*(e->onFinished))(e, e->onFinishedData);
 }
 
 - (void)registerEntry:(uiEntry *)e
@@ -155,9 +171,29 @@ void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 	e->onChangedData = data;
 }
 
+// NOTE: for search widgets on OSX, setting OnFinished() alters the behaviour
+// (by setting sendsWholeSearchString).
+// Standard text and password entry widgets are not affected.
+// background:
+// On OSX, there doesn't seem to be any simple way to catch
+// both 'changed' events and 'enter' (finished editing) events on
+// search widgets. Instead, there just a single 'search' event, and flags
+// to determine when it triggers. By default, it triggers after each keypress
+// (with a little delay in case the user is still typing).
+// There's also an option to change the behaviour to trigger only when the
+// enter key is hit, or the search icon is pressed. This is the
+// sendsWholeSearchString flag, and we'll set it if (and only if) OnFinished()
+// is used.
 void uiEntryOnFinished(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 {
-	// TODO
+	e->onFinished = f;
+	e->onFinishedData = data;
+	if (isSearchField(e->textfield)) {
+		NSSearchField *s;
+		s = (NSSearchField *) (e->textfield);
+		// TODO requires OSX >= 10.10  (is that an issue?)
+		[s setSendsWholeSearchString:YES];
+	}
 }
 
 int uiEntryReadOnly(uiEntry *e)
@@ -176,6 +212,11 @@ void uiEntrySetReadOnly(uiEntry *e, int readonly)
 }
 
 static void defaultOnChanged(uiEntry *e, void *data)
+{
+	// do nothing
+}
+
+static void defaultOnFinished(uiEntry *e, void *data)
 {
 	// do nothing
 }
@@ -224,8 +265,13 @@ static uiEntry *finishNewEntry(Class class)
 		[delegates addObject:entryDelegate];
 	}
 	[entryDelegate registerEntry:e];
-	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
+	// set the callbacks directly, so as to not trigger the
+	// sendsWholeSearchString flag set in OnFinished() for search widgets.
+	e->onFinished = defaultOnFinished;
+	e->onFinishedData = NULL;
+	e->onChanged = defaultOnChanged;
+	e->onChangedData = NULL;
 	return e;
 }
 

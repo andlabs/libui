@@ -17,12 +17,27 @@ static int onShouldQuit(void *data)
 	return 1;
 }
 
+
+static void onEntryChanged(uiEntry* e, void* data)
+{
+	const char* msg = data;
+	printf("%s: OnChanged\n", msg);
+}
+
+static void onEntryFinished(uiEntry* e, void* data)
+{
+	const char* msg = data;
+	printf("%s: OnFinished\n", msg);
+}
+
+
 static uiControl *makeBasicControlsPage(void)
 {
 	uiBox *vbox;
 	uiBox *hbox;
 	uiGroup *group;
 	uiForm *entryForm;
+	uiEntry *e;
 
 	vbox = uiNewVerticalBox();
 	uiBoxSetPadded(vbox, 1);
@@ -54,18 +69,30 @@ static uiControl *makeBasicControlsPage(void)
 	uiFormSetPadded(entryForm, 1);
 	uiGroupSetChild(group, uiControl(entryForm));
 
+	e = uiNewEntry();
+	uiEntryOnChanged(e, onEntryChanged, "entry");
+	uiEntryOnFinished(e, onEntryFinished, "entry");
 	uiFormAppend(entryForm,
 		"Entry",
-		uiControl(uiNewEntry()),
+		uiControl(e),
 		0);
+
+	e = uiNewPasswordEntry();
+	uiEntryOnChanged(e, onEntryChanged, "password");
+	uiEntryOnFinished(e, onEntryFinished, "password");
 	uiFormAppend(entryForm,
 		"Password Entry",
-		uiControl(uiNewPasswordEntry()),
+		uiControl(e),
 		0);
+
+	e = uiNewSearchEntry();
+	uiEntryOnChanged(e, onEntryChanged, "search");
+	uiEntryOnFinished(e, onEntryFinished, "search");
 	uiFormAppend(entryForm,
 		"Search Entry",
-		uiControl(uiNewSearchEntry()),
+		uiControl(e),
 		0);
+
 	uiFormAppend(entryForm,
 		"Multiline Entry",
 		uiControl(uiNewMultilineEntry()),

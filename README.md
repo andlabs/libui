@@ -5,6 +5,10 @@ This README is being written.<br>
 
 ## Announcements
 
+* **17 February 2018**
+	* The longstanding Enter+Escape crashes on Windows have finally been fixed (thanks to @lxn).
+	* **Alpha 3.5 is now here.** This is a quickie release primiarly intended to deploy the above fix to package ui itself. More new things will come in the next release, which will also introduce semver (so it will be called v0.4.0 instead).
+
 * **27 November 2016**
 	* Decided to split the table stuff into its own branch. It will be developed independently of everything else, along with a few other features.
 
@@ -41,9 +45,6 @@ This README is being written.<br>
 ## Updates
 
 *Note that today's entry (Eastern Time) may be updated later today.*
-
-* **<codedate**
-	* Added `uiTable` TODO
 
 * **17 June 2016**
 	* `uiMainSteps()` no longer takes any arguments and no longer needs to invoke a function to do the work. You still need to call it, but once you do, it will return immediately and you can then get right to your main loop.

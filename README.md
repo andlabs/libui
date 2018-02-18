@@ -8,6 +8,7 @@ This README is being written.<br>
 * **17 February 2018**
 	* The longstanding Enter+Escape crashes on Windows have finally been fixed (thanks to @lxn).
 	* **Alpha 3.5 is now here.** This is a quickie release primiarly intended to deploy the above fix to package ui itself. **It is a partial binary release; sorry!** More new things will come in the next release, which will also introduce semver (so it will be called v0.4.0 instead).
+	* Alpha 3.5 also includes a new control gallery example. The screenshots below have not been updated yet.
 
 * **27 November 2016**
 	* Decided to split the table stuff into its own branch. It will be developed independently of everything else, along with a few other features.

@@ -51,7 +51,7 @@ _UI_EXTERN const char *uiAttributeFamily(const uiAttribute *a);
 
 // uiNewSizeAttribute() creates a new uiAttribute that changes the
 // size of the text it is applied to, in typographical points.
-_UI_EXTERN uiAttribute *uiNewFamilyAttribute(double size);
+_UI_EXTERN uiAttribute *uiNewSizeAttribute(double size);
 
 // uiAttributeSize() returns the font size stored in a. It is an error to
 // call this on a uiAttribute that does not hold a font size.

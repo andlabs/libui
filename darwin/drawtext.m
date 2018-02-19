@@ -164,7 +164,7 @@ static const CGFloat ctWeights[] = {
 	[uiDrawTextWeightSemiBold] = ourNSFontWeightSemibold,
 	[uiDrawTextWeightBold] = ourNSFontWeightBold,
 	// for this one let's go between Bold and Heavy
-	[uiDrawTextWeightUtraBold] = ourNSFontWeightBold + ((ourNSFontWeightHeavy - ourNSFontWeightBold) / 2),
+	[uiDrawTextWeightUltraBold] = ourNSFontWeightBold + ((ourNSFontWeightHeavy - ourNSFontWeightBold) / 2),
 	[uiDrawTextWeightHeavy] = ourNSFontWeightHeavy,
 	[uiDrawTextWeightUltraHeavy] = ourNSFontWeightBlack,
 };
@@ -445,6 +445,8 @@ uiDrawTextLayout *uiDrawNewTextLayout(const char *str, uiDrawTextFont *defaultFo
 
 	layout = uiNew(uiDrawTextLayout);
 
+	// TODO docs say we need to use a different set of key callbacks
+	// TODO see if the font attribute key callbacks need to be the same
 	attr = newAttrList();
 	// this will retain defaultFont->f; no need to worry
 	CFDictionaryAddValue(attr, kCTFontAttributeName, defaultFont->f);

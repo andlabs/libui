@@ -32,6 +32,7 @@ struct uiArea {
 	struct scrollViewData *d;
 	uiAreaHandler *ah;
 	BOOL scrolling;
+	NSEvent *dragevent;
 };
 
 @implementation areaView
@@ -200,8 +201,12 @@ struct uiArea {
 			me.Held1To64 |= j;
 	}
 
-	if (self->libui_enabled)
+	if (self->libui_enabled) {
+		// and allow dragging here
+		a->dragevent = e;
 		(*(a->ah->MouseEvent))(a->ah, a, &me);
+		a->dragevent = nil;
+	}
 }
 
 #define mouseEvent(name) \
@@ -304,6 +309,7 @@ mouseEvent(otherMouseUp)
 		[self setNeedsDisplay:YES];
 }
 
+// TODO does this update the frame?
 - (void)setScrollingSize:(NSSize)s
 {
 	self->libui_ss = s;
@@ -399,6 +405,30 @@ void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 		userbug("You cannot call uiAreaScrollTo() on a non-scrolling uiArea. (area: %p)", a);
 	[a->area scrollRectToVisible:NSMakeRect(x, y, width, height)];
 	// don't worry about the return value; it just says whether scrolling was needed
+}
+
+void uiAreaBeginUserWindowMove(uiArea *a)
+{
+	libuiNSWindow *w;
+
+	w = (libuiNSWindow *) [a->area window];
+	if (w == nil)
+		return;		// TODO
+	if (a->dragevent == nil)
+		return;		// TODO
+	[w libui_doMove:a->dragevent];
+}
+
+void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
+{
+	libuiNSWindow *w;
+
+	w = (libuiNSWindow *) [a->area window];
+	if (w == nil)
+		return;		// TODO
+	if (a->dragevent == nil)
+		return;		// TODO
+	[w libui_doResize:a->dragevent on:edge];
 }
 
 uiArea *uiNewArea(uiAreaHandler *ah)

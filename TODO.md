@@ -1,3 +1,9 @@
+- make sure the last line of text layouts include leading
+
+- documentation notes:
+	- static binaries do not link system libraries, meaning apps still depend on shared GTK+, etc.
+	- ui*Buttons are NOT compatible with uiButton functions
+
 - more robust layout handling
 	- uiFormTie() for ensuring multiple uiForms have the same label area widths
 	- uiSizeGroup for size groups (GtkSizeGroup on GTK+, auto layout constraints on OS X; consider adding after 10.8 is gone)
@@ -99,3 +105,25 @@ on windows
 - a way to do recursive main loops
 	- how do we handle 0 returns from non-recursive uiMainStep() calls that aren't the main loop? (event handlers, for instance)
 - should repeated calls to uiMainStep() after uiQuit() return 0 reliably? this will be needed for non-recursive loops
+
+http://stackoverflow.com/questions/38338426/meaning-of-ampersand-in-rc-files/38338841?noredirect=1#comment64093084_38338841
+
+label shortcut keys
+
+- remove whining from source code
+
+[01:41:47]  <vrishab>	Hi. does pango support "fgalpha". I see that foreground="112233xx" works ( alpha=xx ), but fgalpha is a no-op
+[01:52:29]  <vrishab>	pango_attr_foreground_alpha_new (32767) seems to be called in either case, but only the "foreground" attr works
+[01:56:09] 	lolek (lolek@ip-91-244-230-76.simant.pl) joined the channel
+[01:57:48]  <vrishab>	ok. seems like "foreground" is mandatory attr, 1. "foreground-without-alpha" + "alpha" works 2. "foreground-with-alpha" works. 3. "alpha" alone doesn
+[01:57:52]  <vrishab>	't work
+[01:58:29]  <vrishab>	Is there a way to just specify alpha on the current foreground color ?
+[02:00:23] 	lolek (lolek@ip-91-244-230-76.simant.pl) left the channel
+[02:07:41] 	mjog (mjog@uniwide-pat-pool-129-94-8-98.gw.unsw.edu.au) left IRC (Quit: mjog)
+[02:08:10] 	seb128 (seb128@53542B83.cm-6-5a.dynamic.ziggo.nl) joined the channel
+[02:12:37]  <andlabs>	huh
+[02:12:41]  <andlabs>	what version of pango?
+[02:13:05]  <vrishab>	the latest .
+[02:15:00]  <vrishab>	1.40.3
+[02:20:46]  <andlabs>	I'll ahve to keep this in mind then, thanks
+[02:20:59]  <andlabs>	if only there was a cairo-specific attribute for alpha...

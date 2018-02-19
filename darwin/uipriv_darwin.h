@@ -17,6 +17,8 @@
 #define NSAppKitVersionNumber10_9 1265
 #endif
 
+/*TODO remove this*/typedef struct uiImage uiImage;
+
 // menu.m
 @interface menuManager : NSObject {
 	struct mapTable *items;
@@ -34,7 +36,7 @@
 extern void finalizeMenus(void);
 extern void uninitMenus(void);
 
-// init.m
+// main.m
 @interface applicationClass : NSApplication
 @end
 // this is needed because NSApp is of type id, confusing clang
@@ -43,6 +45,14 @@ extern void uninitMenus(void);
 @property (strong) menuManager *menuManager;
 @end
 #define appDelegate() ((appDelegate *) [realNSApp() delegate])
+struct nextEventArgs {
+	NSEventMask mask;
+	NSDate *duration;
+	// LONGTERM no NSRunLoopMode?
+	NSString *mode;
+	BOOL dequeue;
+};
+extern int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *));
 
 // util.m
 extern void disableAutocorrect(NSTextView *);
@@ -52,6 +62,10 @@ extern void finishNewTextField(NSTextField *, BOOL);
 extern NSTextField *newEditableTextField(void);
 
 // window.m
+@interface libuiNSWindow : NSWindow
+- (void)libui_doMove:(NSEvent *)initialEvent;
+- (void)libui_doResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge;
+@end
 extern uiWindow *windowFromNSWindow(NSWindow *);
 
 // alloc.m
@@ -121,5 +135,12 @@ extern NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrol
 extern void scrollViewSetScrolling(NSScrollView *sv, struct scrollViewData *d, BOOL hscroll, BOOL vscroll);
 extern void scrollViewFreeData(NSScrollView *sv, struct scrollViewData *d);
 
-// label.cpp
+// label.m
 extern NSTextField *newLabel(NSString *str);
+
+// image.m
+extern NSImage *imageImage(uiImage *);
+
+// winmoveresize.m
+extern void doManualMove(NSWindow *w, NSEvent *initialEvent);
+extern void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge);

@@ -74,7 +74,6 @@ macro(_handle_static)
 		COMMAND
 			${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:libui,BINARY_DIR>/CMakeFiles/libui.dir/windows/resources.rc.* ${_LIBUI_STATIC_RES}
 		COMMENT "Copying libui.res")
-	set(_res_suffix)
 endmacro()
 
 # notice that usp10 comes before gdi32

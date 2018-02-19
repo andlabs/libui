@@ -8,6 +8,7 @@ list(APPEND _LIBUI_SOURCES
 	unix/area.c
 	unix/box.c
 	unix/button.c
+	unix/cellrendererbutton.c
 	unix/checkbox.c
 	unix/child.c
 	unix/colorbutton.c
@@ -23,9 +24,11 @@ list(APPEND _LIBUI_SOURCES
 	unix/entry.c
 	unix/fontbutton.c
 	unix/form.c
+	unix/future.c
 	unix/graphemes.c
 	unix/grid.c
 	unix/group.c
+	unix/image.c
 	unix/label.c
 	unix/main.c
 	unix/menu.c
@@ -78,5 +81,5 @@ set(_LIBUI_CFLAGS
 PARENT_SCOPE)
 
 set(_LIBUI_LIBS
-	${GTK_LDFLAGS} m dl
+	${GTK_LDFLAGS} m ${CMAKE_DL_LIBS}
 PARENT_SCOPE)

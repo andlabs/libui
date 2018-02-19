@@ -62,7 +62,7 @@ static const PangoWeight pangoWeights[] = {
 	[uiDrawTextWeightMedium] = PANGO_WEIGHT_MEDIUM,
 	[uiDrawTextWeightSemiBold] = PANGO_WEIGHT_SEMIBOLD,
 	[uiDrawTextWeightBold] = PANGO_WEIGHT_BOLD,
-	[uiDrawTextWeightUtraBold] = PANGO_WEIGHT_ULTRABOLD,
+	[uiDrawTextWeightUltraBold] = PANGO_WEIGHT_ULTRABOLD,
 	[uiDrawTextWeightHeavy] = PANGO_WEIGHT_HEAVY,
 	[uiDrawTextWeightUltraHeavy] = PANGO_WEIGHT_ULTRAHEAVY,
 };
@@ -273,25 +273,6 @@ static void addAttr(uiDrawTextLayout *layout, PangoAttribute *attr, int startCha
 	// pango_attr_list_insert() takes attr; we don't free it
 }
 
-// these attributes are only supported on 1.38 and higher; we need to support 1.36
-// use dynamic linking to make them work at least on newer systems
-static PangoAttribute *(*newFGAlphaAttr)(guint16 alpha) = NULL;
-static gboolean tried138 = FALSE;
-
-// note that we treat any error as "the 1.38 symbols aren't there" (and don't care if dlclose() failed)
-static void try138(void)
-{
-	void *handle;
-
-	tried138 = TRUE;
-	// dlsym() walks the dependency chain, so opening the current process should be sufficient
-	handle = dlopen(NULL, RTLD_LAZY);
-	if (handle == NULL)
-		return;
-	*((void **) (&newFGAlphaAttr)) = dlsym(handle, "pango_attr_foreground_alpha_new");
-	dlclose(handle);
-}
-
 void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endChar, double r, double g, double b, double a)
 {
 	PangoAttribute *attr;
@@ -305,11 +286,8 @@ void uiDrawTextLayoutSetColor(uiDrawTextLayout *layout, int startChar, int endCh
 	attr = pango_attr_foreground_new(rr, gg, bb);
 	addAttr(layout, attr, startChar, endChar);
 
-	if (!tried138)
-		try138();
 	// TODO what if aa == 0?
-	if (newFGAlphaAttr != NULL) {
-		attr = (*newFGAlphaAttr)(aa);
+	attr = FUTURE_pango_attr_foreground_alpha_new(aa);
+	if (attr != NULL)
 		addAttr(layout, attr, startChar, endChar);
-	}
 }

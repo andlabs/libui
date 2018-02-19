@@ -22,12 +22,8 @@ struct uiWindow {
 
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
-	void (*onPositionChanged)(uiWindow *, void *);
-	void *onPositionChangedData;
-	gboolean changingPosition;
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
-	gboolean changingSize;
 	gboolean fullscreen;
 };
 
@@ -42,27 +38,12 @@ static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 	return TRUE;
 }
 
-static gboolean onConfigure(GtkWidget *win, GdkEvent *e, gpointer data)
-{
-	uiWindow *w = uiWindow(data);
-
-	// there doesn't seem to be a way to determine if only moving or only resizing is happening :/
-	if (w->changingPosition)
-		w->changingPosition = FALSE;
-	else
-		(*(w->onPositionChanged))(w, w->onPositionChangedData);
-	// always continue handling
-	return FALSE;
-}
-
 static void onSizeAllocate(GtkWidget *widget, GdkRectangle *allocation, gpointer data)
 {
 	uiWindow *w = uiWindow(data);
 
-	if (w->changingSize)
-		w->changingSize = FALSE;
-	else
-		(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
+	// TODO deal with spurious size-allocates
+	(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -144,56 +125,6 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 	gtk_window_set_title(w->window, title);
 }
 
-// TODO allow specifying either as NULL on all platforms
-void uiWindowPosition(uiWindow *w, int *x, int *y)
-{
-	gint rx, ry;
-
-	gtk_window_get_position(w->window, &rx, &ry);
-	*x = rx;
-	*y = ry;
-}
-
-void uiWindowSetPosition(uiWindow *w, int x, int y)
-{
-	w->changingPosition = TRUE;
-	gtk_window_move(w->window, x, y);
-	// gtk_window_move() is asynchronous
-	// we need to wait for a configure-event
-	// thanks to hergertme in irc.gimp.net/#gtk+
-	while (w->changingPosition)
-		if (!uiMainStep(1))
-			break;		// stop early if uiQuit() called
-}
-
-void uiWindowCenter(uiWindow *w)
-{
-	gint x, y;
-	GtkAllocation winalloc;
-	GdkWindow *gdkwin;
-	GdkScreen *screen;
-	GdkRectangle workarea;
-
-	gtk_widget_get_allocation(w->widget, &winalloc);
-	gdkwin = gtk_widget_get_window(w->widget);
-	screen = gdk_window_get_screen(gdkwin);
-	gdk_screen_get_monitor_workarea(screen,
-		gdk_screen_get_monitor_at_window(screen, gdkwin),
-		&workarea);
-
-	x = (workarea.width - winalloc.width) / 2;
-	y = (workarea.height - winalloc.height) / 2;
-	// TODO move up slightly? see what Mutter or GNOME Shell or GNOME Terminal do(es)?
-	uiWindowSetPosition(w, x, y);
-}
-
-// TODO this and size changed get set during uiWindowDestroy
-void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
-{
-	w->onPositionChanged = f;
-	w->onPositionChangedData = data;
-}
-
 void uiWindowContentSize(uiWindow *w, int *width, int *height)
 {
 	GtkAllocation allocation;
@@ -203,17 +134,35 @@ void uiWindowContentSize(uiWindow *w, int *width, int *height)
 	*height = allocation.height;
 }
 
-// TODO what happens if the size is already the current one?
-// TODO a spurious size-allocate gets sent after this function returns
-// TODO can't reduce the size this way
 void uiWindowSetContentSize(uiWindow *w, int width, int height)
 {
-	w->changingSize = TRUE;
-	gtk_widget_set_size_request(w->childHolderWidget, width, height);
-	while (w->changingSize)
-		if (!uiMainStep(1))
-			break;			// stop early if uiQuit() called
-	gtk_widget_set_size_request(w->childHolderWidget, -1, -1);
+	GtkAllocation childAlloc;
+	gint winWidth, winHeight;
+
+	// we need to resize the child holder widget to the given size
+	// we can't resize that without running the event loop
+	// but we can do gtk_window_set_size()
+	// so how do we deal with the differences in sizes?
+	// simple arithmetic, of course!
+
+	// from what I can tell, the return from gtk_widget_get_allocation(w->window) and gtk_window_get_size(w->window) will be the same
+	// this is not affected by Wayland and not affected by GTK+ builtin CSD
+	// so we can safely juse use them to get the real window size!
+	// since we're using gtk_window_resize(), use the latter
+	gtk_window_get_size(w->window, &winWidth, &winHeight);
+
+	// now get the child holder widget's current allocation
+	gtk_widget_get_allocation(w->childHolderWidget, &childAlloc);
+	// and punch that out of the window size
+	winWidth -= childAlloc.width;
+	winHeight -= childAlloc.height;
+
+	// now we just need to add the new size back in
+	winWidth += width;
+	winHeight += height;
+	// and set it
+	// this will not move the window in my tests, so we're good
+	gtk_window_resize(w->window, winWidth, winHeight);
 }
 
 int uiWindowFullscreen(uiWindow *w)
@@ -223,6 +172,7 @@ int uiWindowFullscreen(uiWindow *w)
 
 // TODO use window-state-event to track
 // TODO does this send an extra size changed?
+// TODO what behavior do we want?
 void uiWindowSetFullscreen(uiWindow *w, int fullscreen)
 {
 	w->fullscreen = fullscreen;
@@ -317,10 +267,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	// and connect our events
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
-	g_signal_connect(w->widget, "configure-event", G_CALLBACK(onConfigure), w);
 	g_signal_connect(w->childHolderWidget, "size-allocate", G_CALLBACK(onSizeAllocate), w);
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
-	uiWindowOnPositionChanged(w, defaultOnPositionContentSizeChanged, NULL);
 	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
 
 	// normally it's SetParent() that does this, but we can't call SetParent() on a uiWindow

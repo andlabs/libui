@@ -8,6 +8,7 @@
 #include <dlfcn.h>		// see drawtext.c
 #include <langinfo.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../ui.h"
 #include "../ui_unix.h"
 #include "../common/uipriv.h"
@@ -50,3 +51,15 @@ extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
 
 // graphemes.c
 extern ptrdiff_t *graphemes(const char *text, PangoContext *context);
+
+// image.c
+/*TODO remove this*/typedef struct uiImage uiImage;
+extern cairo_surface_t *imageAppropriateSurface(uiImage *i, GtkWidget *w);
+
+// cellrendererbutton.c
+extern GtkCellRenderer *newCellRendererButton(void);
+
+// future.c
+extern void loadFutures(void);
+extern PangoAttribute *FUTURE_pango_attr_foreground_alpha_new(guint16 alpha);
+extern gboolean FUTURE_gtk_widget_path_iter_set_object_name(GtkWidgetPath *path, gint pos, const char *name);

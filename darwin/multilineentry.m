@@ -184,12 +184,19 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	// now just to be safe; this will do some of the above but whatever
 	disableAutocorrect(e->tv);
 
+	// see https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/TextUILayer/Tasks/TextInScrollView.html
+	// notice we don't use the Auto Layout code; see scrollview.m for more details
+	[e->tv setMaxSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
+	[e->tv setVerticallyResizable:YES];
+	[e->tv setHorizontallyResizable:hscroll];
 	if (hscroll) {
-		// see https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/TextUILayer/Tasks/TextInScrollView.html
-		[e->tv setHorizontallyResizable:YES];
+		[e->tv setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 		[[e->tv textContainer] setWidthTracksTextView:NO];
-		[[e->tv textContainer] setContainerSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
+	} else {
+		[e->tv setAutoresizingMask:NSViewWidthSizable];
+		[[e->tv textContainer] setWidthTracksTextView:YES];
 	}
+	[[e->tv textContainer] setContainerSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
 
 	// don't use uiDarwinSetControlFont() directly; we have to do a little extra work to set the font
 	font = [NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]];

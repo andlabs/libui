@@ -1,0 +1,50 @@
+diff --git a/common/CMakeLists.txt b/common/CMakeLists.txt
+index 7f70403..e909569 100644
+--- a/common/CMakeLists.txt
++++ b/common/CMakeLists.txt
+@@ -6,7 +6,7 @@ list(APPEND _LIBUI_SOURCES
+ 	common/debug.c
+ 	common/matrix.c
+ 	common/shouldquit.c
+-	common/table.c
++#	common/table.c
+ 	common/userbugs.c
+ )
+ set(_LIBUI_SOURCES ${_LIBUI_SOURCES} PARENT_SCOPE)
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index b753a7d..a648c64 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -6,7 +6,7 @@ endif()
+ 
+ _add_exec(tester
+ 	drawtests.c
+-	images.c
++#	images.c
+ 	main.c
+ 	menus.c
+ 	page1.c
+@@ -27,7 +27,7 @@ _add_exec(tester
+ 	page13.c
+ 	page14.c
+ 	page15.c
+-	page16.c
++#	page16.c
+ 	spaced.c
+ 	${_TEST_RESOURCES_RC}
+ )
+diff --git a/test/main.c b/test/main.c
+index f33f30a..18774dc 100644
+--- a/test/main.c
++++ b/test/main.c
+@@ -159,8 +159,8 @@ int main(int argc, char *argv[])
+ 	innerTab = newTab();
+ 	uiTabAppend(outerTab, "Pages 16-?", uiControl(innerTab));
+ 
+-	page16 = makePage16();
+-	uiTabAppend(innerTab, "Page 16", uiControl(page16));
++//	page16 = makePage16();
++//	uiTabAppend(innerTab, "Page 16", uiControl(page16));
+ 
+ 	if (startspaced)
+ 		setSpaced(1);

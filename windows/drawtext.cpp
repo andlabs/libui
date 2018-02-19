@@ -94,7 +94,7 @@ static const struct {
 	{ false, uiDrawTextWeightMedium, DWRITE_FONT_WEIGHT_MEDIUM },
 	{ false, uiDrawTextWeightSemiBold, DWRITE_FONT_WEIGHT_SEMI_BOLD },
 	{ false, uiDrawTextWeightBold, DWRITE_FONT_WEIGHT_BOLD },
-	{ false, uiDrawTextWeightUtraBold, DWRITE_FONT_WEIGHT_ULTRA_BOLD },
+	{ false, uiDrawTextWeightUltraBold, DWRITE_FONT_WEIGHT_ULTRA_BOLD },
 	{ false, uiDrawTextWeightHeavy, DWRITE_FONT_WEIGHT_HEAVY },
 	{ true, uiDrawTextWeightUltraHeavy, DWRITE_FONT_WEIGHT_ULTRA_BLACK, },
 };

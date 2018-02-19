@@ -100,10 +100,6 @@ typedef struct uiWindow uiWindow;
 #define uiWindow(this) ((uiWindow *) (this))
 _UI_EXTERN char *uiWindowTitle(uiWindow *w);
 _UI_EXTERN void uiWindowSetTitle(uiWindow *w, const char *title);
-_UI_EXTERN void uiWindowPosition(uiWindow *w, int *x, int *y);
-_UI_EXTERN void uiWindowSetPosition(uiWindow *w, int x, int y);
-_UI_EXTERN void uiWindowCenter(uiWindow *w);
-_UI_EXTERN void uiWindowOnPositionChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data);
 _UI_EXTERN void uiWindowContentSize(uiWindow *w, int *width, int *height);
 _UI_EXTERN void uiWindowSetContentSize(uiWindow *w, int width, int height);
 _UI_EXTERN int uiWindowFullscreen(uiWindow *w);
@@ -293,6 +289,22 @@ struct uiAreaHandler {
 	int (*KeyEvent)(uiAreaHandler *, uiArea *, uiAreaKeyEvent *);
 };
 
+// TODO RTL layouts?
+// TODO reconcile edge and corner naming
+_UI_ENUM(uiWindowResizeEdge) {
+	uiWindowResizeEdgeLeft,
+	uiWindowResizeEdgeTop,
+	uiWindowResizeEdgeRight,
+	uiWindowResizeEdgeBottom,
+	uiWindowResizeEdgeTopLeft,
+	uiWindowResizeEdgeTopRight,
+	uiWindowResizeEdgeBottomLeft,
+	uiWindowResizeEdgeBottomRight,
+	// TODO have one for keyboard resizes?
+	// TODO GDK doesn't seem to have any others, including for keyboards...
+	// TODO way to bring up the system menu instead?
+};
+
 #define uiArea(this) ((uiArea *) (this))
 // TODO give a better name
 // TODO document the types of width and height
@@ -300,6 +312,13 @@ _UI_EXTERN void uiAreaSetSize(uiArea *a, int width, int height);
 // TODO uiAreaQueueRedraw()
 _UI_EXTERN void uiAreaQueueRedrawAll(uiArea *a);
 _UI_EXTERN void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height);
+// TODO document these can only be called within Mouse() handlers
+// TODO should these be allowed on scrolling areas?
+// TODO decide which mouse events should be accepted; Down is the only one guaranteed to work right now
+// TODO what happens to events after calling this up to and including the next mouse up?
+// TODO release capture?
+_UI_EXTERN void uiAreaBeginUserWindowMove(uiArea *a);
+_UI_EXTERN void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge);
 _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);
 _UI_EXTERN uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height);
 
@@ -481,7 +500,7 @@ _UI_ENUM(uiDrawTextWeight) {
 	uiDrawTextWeightMedium,
 	uiDrawTextWeightSemiBold,
 	uiDrawTextWeightBold,
-	uiDrawTextWeightUtraBold,
+	uiDrawTextWeightUltraBold,
 	uiDrawTextWeightHeavy,
 	uiDrawTextWeightUltraHeavy,
 };
@@ -664,9 +683,6 @@ _UI_EXTERN void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiA
 _UI_EXTERN int uiGridPadded(uiGrid *g);
 _UI_EXTERN void uiGridSetPadded(uiGrid *g, int padded);
 _UI_EXTERN uiGrid *uiNewGrid(void);
-
-// TODO merge
-#include "uitable.h"
 
 #ifdef __cplusplus
 }

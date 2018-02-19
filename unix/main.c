@@ -15,6 +15,7 @@ const char *uiInit(uiInitOptions *o)
 		return msg;
 	}
 	initAlloc();
+	loadFutures();
 	return NULL;
 }
 
@@ -90,7 +91,7 @@ static gboolean doqueued(gpointer data)
 	struct queued *q = (struct queued *) data;
 
 	(*(q->f))(q->data);
-	uiFree(q);
+	g_free(q);
 	return FALSE;
 }
 
@@ -98,7 +99,9 @@ void uiQueueMain(void (*f)(void *data), void *data)
 {
 	struct queued *q;
 
-	q = uiNew(struct queued);
+	// we have to use g_new0()/g_free() because uiAlloc() is only safe to call on the main thread
+	// for some reason it didn't affect me, but it did affect krakjoe
+	q = g_new0(struct queued, 1);
 	q->f = f;
 	q->data = data;
 	gdk_threads_add_idle(doqueued, q);

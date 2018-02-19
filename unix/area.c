@@ -46,6 +46,9 @@ struct uiArea {
 
 	// note that this is a pointer; see above
 	clickCounter *cc;
+
+	// for user window drags
+	GdkEventButton *dragevent;
 };
 
 G_DEFINE_TYPE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA)
@@ -261,7 +264,11 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 
 	me.Down = e->button;
 	me.Up = 0;
+
+	// and set things up for window drags
+	a->dragevent = e;
 	finishMouseEvent(a, &me, e->button, e->x, e->y, e->state, e->window);
+	a->dragevent = NULL;
 	return GDK_EVENT_PROPAGATE;
 }
 
@@ -503,6 +510,76 @@ void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 {
 	// TODO
 	// TODO adjust adjustments and find source for that
+}
+
+void uiAreaBeginUserWindowMove(uiArea *a)
+{
+	GtkWidget *toplevel;
+
+	if (a->dragevent == NULL)
+		userbug("cannot call uiAreaBeginUserWindowMove() outside of a Mouse() with Down != 0");
+	// TODO don't we have a libui function for this? did I scrap it?
+	// TODO widget or areaWidget?
+	toplevel = gtk_widget_get_toplevel(a->widget);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// the docs say to do this
+	if (!gtk_widget_is_toplevel(toplevel)) {
+		// TODO
+		return;
+	}
+	if (!GTK_IS_WINDOW(toplevel)) {
+		// TODO
+		return;
+	}
+	gtk_window_begin_move_drag(GTK_WINDOW(toplevel),
+		a->dragevent->button,
+		a->dragevent->x_root,		// TODO are these correct?
+		a->dragevent->y_root,
+		a->dragevent->time);
+}
+
+static const GdkWindowEdge edges[] = {
+	[uiWindowResizeEdgeLeft] = GDK_WINDOW_EDGE_WEST,
+	[uiWindowResizeEdgeTop] = GDK_WINDOW_EDGE_NORTH,
+	[uiWindowResizeEdgeRight] = GDK_WINDOW_EDGE_EAST,
+	[uiWindowResizeEdgeBottom] = GDK_WINDOW_EDGE_SOUTH,
+	[uiWindowResizeEdgeTopLeft] = GDK_WINDOW_EDGE_NORTH_WEST,
+	[uiWindowResizeEdgeTopRight] = GDK_WINDOW_EDGE_NORTH_EAST,
+	[uiWindowResizeEdgeBottomLeft] = GDK_WINDOW_EDGE_SOUTH_WEST,
+	[uiWindowResizeEdgeBottomRight] = GDK_WINDOW_EDGE_SOUTH_EAST,
+};
+
+void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
+{
+	GtkWidget *toplevel;
+
+	if (a->dragevent == NULL)
+		userbug("cannot call uiAreaBeginUserWindowResize() outside of a Mouse() with Down != 0");
+	// TODO don't we have a libui function for this? did I scrap it?
+	// TODO widget or areaWidget?
+	toplevel = gtk_widget_get_toplevel(a->widget);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// the docs say to do this
+	if (!gtk_widget_is_toplevel(toplevel)) {
+		// TODO
+		return;
+	}
+	if (!GTK_IS_WINDOW(toplevel)) {
+		// TODO
+		return;
+	}
+	gtk_window_begin_resize_drag(GTK_WINDOW(toplevel),
+		edges[edge],
+		a->dragevent->button,
+		a->dragevent->x_root,		// TODO are these correct?
+		a->dragevent->y_root,
+		a->dragevent->time);
 }
 
 uiArea *uiNewArea(uiAreaHandler *ah)

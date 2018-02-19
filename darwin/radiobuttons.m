@@ -1,6 +1,8 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
+// TODO resizing the controlgallery vertically causes the third button to still resize :|
+
 // In the old days you would use a NSMatrix for this; as of OS X 10.8 this was deprecated and now you need just a bunch of NSButtons with the same superview AND same action method.
 // This is documented on the NSMatrix page, but the rest of the OS X documentation says to still use NSMatrix.
 // NSMatrix has weird quirks anyway...

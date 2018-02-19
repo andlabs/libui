@@ -161,40 +161,57 @@ void uiMain(void)
 
 void uiMainSteps(void)
 {
+	// SDL does this and it seems to be necessary for the menubar to work (see #182)
+	[realNSApp() finishLaunching];
 	isRunning = ^{
 		return stepsIsRunning;
 	};
 	stepsIsRunning = YES;
 }
 
+int uiMainStep(int wait)
+{
+	struct nextEventArgs nea;
+
+	nea.mask = NSAnyEventMask;
+
+	// ProPuke did this in his original PR requesting this
+	// I'm not sure if this will work, but I assume it will...
+	nea.duration = [NSDate distantPast];
+	if (wait)		// but this is normal so it will work
+		nea.duration = [NSDate distantFuture];
+
+	nea.mode = NSDefaultRunLoopMode;
+	nea.dequeue = YES;
+
+	return mainStep(&nea, ^(NSEvent *e) {
+		return NO;
+	});
+}
+
 // see also:
 // - http://www.cocoawithlove.com/2009/01/demystifying-nsapplication-by.html
 // - https://github.com/gnustep/gui/blob/master/Source/NSApplication.m
-int uiMainStep(int wait)
+int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 {
 	NSDate *expire;
 	NSEvent *e;
 	NSEventType type;
 
 	@autoreleasepool {
-		// ProPuke did this in his original PR requesting this
-		// I'm not sure if this will work, but I assume it will...
-		expire = [NSDate distantPast];
-		if (wait)		// but this is normal so it will work
-			expire = [NSDate distantFuture];
-
 		if (!isRunning())
 			return 0;
 
-		e = [realNSApp() nextEventMatchingMask:NSAnyEventMask
-			untilDate:expire
-			inMode:NSDefaultRunLoopMode
-			dequeue:YES];
+		e = [realNSApp() nextEventMatchingMask:nea->mask
+			untilDate:nea->duration
+			inMode:nea->mode
+			dequeue:nea->dequeue];
 		if (e == nil)
 			return 1;
 
 		type = [e type];
-		[realNSApp() sendEvent:e];
+		if (!interceptEvent(e))
+			[realNSApp() sendEvent:e];
 		[realNSApp() updateWindows];
 
 		// GNUstep does this

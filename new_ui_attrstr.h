@@ -416,3 +416,81 @@ struct uiDrawFontDescriptor {
 	uiTextItalic Italic;
 	uiTextStretch Stretch;
 };
+
+// uiDrawTextLayout is a concrete representation of a
+// uiAttributedString that can be displayed in a uiDrawContext.
+// It includes information important for the drawing of a block of
+// text, including the bounding box to wrap the text within, the
+// alignment of lines of text within that box, areas to mark as
+// being selected, and other things.
+//
+// Unlike uiAttributedString, the content of a uiDrawTextLayout is
+// immutable once it has been created.
+//
+// TODO talk about OS-specific differences with text drawing that libui can't account for...
+typedef struct uiDrawTextLayout uiDrawTextLayout;
+
+// uiDrawTextAlign specifies the alignment of lines of text in a
+// uiDrawTextLayout.
+_UI_ENUM(uiDrawTextAlign) {
+	uiDrawTextAlignLeft,
+	uiDrawTextAlignCenter,
+	uiDrawTextAlignRight,
+};
+
+// uiDrawTextLayoutParams describes a uiDrawTextLayout.
+// DefaultFont is used to render any text that is not attributed
+// sufficiently in String. Width determines the width of the bounding
+// box of the text; the height is determined automatically.
+typedef struct uiDrawTextLayoutParams uiDrawTextLayoutParams;
+
+// TODO const-correct this somehow
+struct uiDrawTextLayoutParams {
+	uiAttributedString *String;
+	uiDrawFontDescriptor *DefaultFont;
+	double Width;
+	uiDrawTextAlign Align;
+};
+
+// @role uiDrawTextLayout constructor
+// uiDrawNewTextLayout() creates a new uiDrawTextLayout from
+// the given parameters.
+//
+// TODO
+// - allow creating a layout out of a substring
+// - allow marking compositon strings
+// - allow marking selections, even after creation
+// - add the following functions:
+// 	- uiDrawTextLayoutHeightForWidth() (returns the height that a layout would need to be to display the entire string at a given width)
+// 	- uiDrawTextLayoutRangeForSize() (returns what substring would fit in a given size)
+// 	- uiDrawTextLayoutNewWithHeight() (limits amount of string used by the height)
+// - some function to fix up a range (for text editing)
+_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *params);
+
+// @role uiDrawFreeTextLayout destructor
+// uiDrawFreeTextLayout() frees tl. The underlying
+// uiAttributedString is not freed.
+_UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *tl);
+
+// uiDrawText() draws tl in c with the top-left point of tl at (x, y).
+_UI_EXTERN void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y);
+
+// uiDrawTextLayoutExtents() returns the width and height of tl
+// in width and height. The returned width may be smaller than
+// the width passed into uiDrawNewTextLayout() depending on
+// how the text in tl is wrapped. Therefore, you can use this
+// function to get the actual size of the text layout.
+_UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height);
+
+// uiDrawTextLayoutNumLines() returns the number of lines in tl.
+// This number will always be greater than or equal to 1; a text
+// layout with no text only has one line.
+_UI_EXTERN int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl);
+
+// uiDrawTextLayoutLineByteRange() returns the byte indices of the
+// text that falls into the given line of tl as [start, end).
+_UI_EXTERN void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end);
+
+// TODO metrics functions
+
+// TODO number of lines visible for clipping rect, range visible for clipping rect?

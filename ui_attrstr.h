@@ -1,19 +1,5 @@
-typedef struct uiDrawTextLayout uiDrawTextLayout;
-typedef struct uiDrawTextLayoutParams uiDrawTextLayoutParams;
+
 typedef struct uiDrawTextLayoutLineMetrics uiDrawTextLayoutLineMetrics;
-
-_UI_ENUM(uiDrawTextAlign) {
-	uiDrawTextAlignLeft,
-	uiDrawTextAlignCenter,
-	uiDrawTextAlignRight,
-};
-
-struct uiDrawTextLayoutParams {
-	uiAttributedString *String;
-	uiDrawFontDescriptor *DefaultFont;
-	double Width;
-	uiDrawTextAlign Align;
-};
 
 // Height will equal ParagraphSpacingBefore + LineHeightSpace + Ascent + Descent + Leading + LineSpacing + ParagraphSpacing.
 // The above values are listed in vertical order, from top to bottom.
@@ -45,25 +31,9 @@ struct uiDrawTextLayoutLineMetrics {
 	// TODO trailing whitespace?
 };
 
-// TODO
-// - allow creating a layout out of a substring
-// - allow marking compositon strings
-// - allow marking selections, even after creation
-// - add the following functions:
-// 	- uiDrawTextLayoutHeightForWidth() (returns the height that a layout would need to be to display the entire string at a given width)
-// 	- uiDrawTextLayoutRangeForSize() (returns what substring would fit in a given size)
-// 	- uiDrawTextLayoutNewWithHeight() (limits amount of string used by the height)
-// - some function to fix up a range (for text editing)
-_UI_EXTERN uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *params);
-_UI_EXTERN void uiDrawFreeTextLayout(uiDrawTextLayout *tl);
-_UI_EXTERN void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y);
-_UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height);
-_UI_EXTERN int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl);
-_UI_EXTERN void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end);
 _UI_EXTERN void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m);
-// TODO number of lines visible for clipping rect, range visible for clipping rect?
 
-// TODO rewrite all this documentation
+// TODO rewrite this documentation
 
 // uiDrawTextLayoutHitTest() returns the byte offset and line closest
 // to the given point. The point is relative to the top-left of the layout.

@@ -20,3 +20,5 @@ should FeaturesAttribute be changed to OpenTypeFeaturesAttribute and likewise fo
 should uiNewFeaturesAttribute() accept NULL
 should uiNewFamilyAttribute() accept NULL
 it is an error in ForEach too
+invalid values for uiDrawTextAlign
+empty text layouts have one line

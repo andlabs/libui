@@ -23,6 +23,11 @@ _add_example(histogram
 	${_EXAMPLE_RESOURCES_RC}
 )
 
+_add_example(datetime
+	datetime/main.c
+	${_EXAMPLE_RESOURCES_RC}
+)
+
 _add_example(cpp-multithread
 	cpp-multithread/main.cpp
 	${_EXAMPLE_RESOURCES_RC}
@@ -53,4 +58,5 @@ add_custom_target(examples
 		histogram
 		cpp-multithread
 		drawtext
+		datetime
 		timer)

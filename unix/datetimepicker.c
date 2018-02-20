@@ -597,3 +597,15 @@ uiDateTimePicker *uiNewTimePicker(void)
 {
 	return finishNewDateTimePicker(newTP);
 }
+
+void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
+{
+}
+
+void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
+{
+}
+
+void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
+{
+}

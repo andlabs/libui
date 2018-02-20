@@ -23,7 +23,7 @@ artifacts:
 deploy:
   provider: GitHub
   auth_token:
-    secure: NsjIRhcaEJhoikwjMS95GRf0eP9TsniXblMLw9s+C/pwOnZrMHCAbw+HGDKRcYhj
+    secure: C4wvJEXNqiCYWCJpEkaAJypCfz67SGAxC6b9+jYapuobe4oUn0vqx06qQc0x0vMh
   artifact: /.*\.tar\.gz/
 
   force_update: true

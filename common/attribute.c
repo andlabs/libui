@@ -33,7 +33,7 @@ static uiAttribute *newAttribute(uiAttributeType type)
 }
 
 void uiFreeAttribute(uiAttribute *a)
-[
+{
 	switch (a->type) {
 	case uiAttributeTypeFamily:
 		uiprivFree(a->u.family);

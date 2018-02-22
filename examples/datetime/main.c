@@ -90,40 +90,32 @@ int main(void)
 		1, 1, 1, 1,
 		1, uiAlignFill, 0, uiAlignFill);
 
-	uiGridAppend(g, uiControl(uiNewVerticalSeparator()),
-		0, 2, 2, 1,
-		1, uiAlignFill, 0, uiAlignFill);
-
 	l = uiNewLabel("");
 	uiGridAppend(g, uiControl(l),
-		0, 3, 2, 1,
+		0, 2, 2, 1,
 		1, uiAlignCenter, 0, uiAlignFill);
 	uiDateTimePickerOnChanged(dtboth, onChanged, l);
 	l = uiNewLabel("");
 	uiGridAppend(g, uiControl(l),
-		0, 4, 1, 1,
+		0, 3, 1, 1,
 		1, uiAlignCenter, 0, uiAlignFill);
 	uiDateTimePickerOnChanged(dtdate, onChanged, l);
 	l = uiNewLabel("");
 	uiGridAppend(g, uiControl(l),
-		1, 4, 1, 1,
+		1, 3, 1, 1,
 		1, uiAlignCenter, 0, uiAlignFill);
 	uiDateTimePickerOnChanged(dttime, onChanged, l);
-
-	uiGridAppend(g, uiControl(uiNewVerticalSeparator()),
-		0, 5, 2, 1,
-		1, uiAlignFill, 0, uiAlignFill);
 
 	b = uiNewButton("Now");
 	uiButtonOnClicked(b, onClicked, (void *) 1);
 	uiGridAppend(g, uiControl(b),
-		0, 6, 1, 1,
-		1, uiAlignFill, 0, uiAlignFill);
+		0, 4, 1, 1,
+		1, uiAlignFill, 1, uiAlignEnd);
 	b = uiNewButton("Unix epoch");
 	uiButtonOnClicked(b, onClicked, (void *) 0);
 	uiGridAppend(g, uiControl(b),
-		1, 6, 1, 1,
-		1, uiAlignFill, 0, uiAlignFill);
+		1, 4, 1, 1,
+		1, uiAlignFill, 1, uiAlignEnd);
 
 	uiWindowOnClosing(w, onClosing, NULL);
 	uiControlShow(uiControl(w));

@@ -38,6 +38,7 @@ struct dateTimePickerWidget {
 
 	GdkDevice *keyboard;
 	GdkDevice *mouse;
+	uiDateTimePicker *control;
 };
 
 struct dateTimePickerWidgetClass {
@@ -45,6 +46,16 @@ struct dateTimePickerWidgetClass {
 };
 
 G_DEFINE_TYPE(dateTimePickerWidget, dateTimePickerWidget, GTK_TYPE_TOGGLE_BUTTON)
+
+struct uiDateTimePicker {
+	uiUnixControl c;
+	GtkWidget *widget;
+	dateTimePickerWidget *d;
+	void (*onChanged)(uiDateTimePicker *, void *);
+	void *onChangedData;
+};
+
+uiUnixControlAllDefaults(uiDateTimePicker)
 
 static int realSpinValue(GtkSpinButton *spinButton)
 {
@@ -111,8 +122,11 @@ static void setLabel(dateTimePickerWidget *d)
 
 static void dateTimeChanged(dateTimePickerWidget *d)
 {
+	uiDateTimePicker *c;
+
+	c = d->control;
+	(*(c->onChanged))(c, c->onChangedData);
 	setLabel(d);
-	// TODO fire event here
 }
 
 // we don't want ::toggled to be sent again
@@ -422,13 +436,37 @@ static void setTimeOnly(dateTimePickerWidget *d)
 	gtk_container_remove(GTK_CONTAINER(d->box), d->calendar);
 }
 
-static void dateTimePickerWidget_init(dateTimePickerWidget *d)
+static void dateTimePickerWidget_setTime(dateTimePickerWidget *d, GDateTime *dt)
 {
-	GDateTime *dt;
 	gint year, month, day;
 	gint hour;
 	gulong calendarBlock;
 
+	// notice how we block signals from firing
+	if (d->hasDate) {
+		calendarBlock = g_signal_connect(d->calendar, "day-selected", G_CALLBACK(dateChanged), d);
+		g_date_time_get_ymd(dt, &year, &month, &day);
+		month--;			// GDateTime/GtkCalendar differences
+		g_signal_handler_block(d->calendar, calendarBlock);
+		gtk_calendar_select_month(GTK_CALENDAR(d->calendar), month, year);
+		gtk_calendar_select_day(GTK_CALENDAR(d->calendar), day);
+		g_signal_handler_unblock(d->calendar, calendarBlock);
+	}
+	if (d->hasTime) {
+		hour = g_date_time_get_hour(dt);
+		if (hour >= 12) {
+			hour -= 12;
+			setRealSpinValue(GTK_SPIN_BUTTON(d->ampm), 1, d->ampmBlock);
+		}
+		setRealSpinValue(GTK_SPIN_BUTTON(d->hours), hour, d->hoursBlock);
+		setRealSpinValue(GTK_SPIN_BUTTON(d->minutes), g_date_time_get_minute(dt), d->minutesBlock);
+		setRealSpinValue(GTK_SPIN_BUTTON(d->seconds), g_date_time_get_seconds(dt), d->secondsBlock);
+	}
+	g_date_time_unref(dt);
+}
+
+static void dateTimePickerWidget_init(dateTimePickerWidget *d)
+{
 	d->window = gtk_window_new(GTK_WINDOW_POPUP);
 	gtk_window_set_resizable(GTK_WINDOW(d->window), FALSE);
 	gtk_window_set_attached_to(GTK_WINDOW(d->window), GTK_WIDGET(d));
@@ -446,7 +484,6 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 	gtk_container_add(GTK_CONTAINER(d->window), d->box);
 
 	d->calendar = gtk_calendar_new();
-	calendarBlock = g_signal_connect(d->calendar, "day-selected", G_CALLBACK(dateChanged), d);
 	gtk_container_add(GTK_CONTAINER(d->box), d->calendar);
 
 	d->timebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
@@ -493,23 +530,7 @@ static void dateTimePickerWidget_init(dateTimePickerWidget *d)
 	d->hasDate = TRUE;
 
 	// set the current date/time
-	// notice how we block signals from firing
-	dt = g_date_time_new_now_local();
-	g_date_time_get_ymd(dt, &year, &month, &day);
-	month--;			// GDateTime/GtkCalendar differences
-	g_signal_handler_block(d->calendar, calendarBlock);
-	gtk_calendar_select_month(GTK_CALENDAR(d->calendar), month, year);
-	gtk_calendar_select_day(GTK_CALENDAR(d->calendar), day);
-	g_signal_handler_unblock(d->calendar, calendarBlock);
-	hour = g_date_time_get_hour(dt);
-	if (hour >= 12) {
-		hour -= 12;
-		setRealSpinValue(GTK_SPIN_BUTTON(d->ampm), 1, d->ampmBlock);
-	}
-	setRealSpinValue(GTK_SPIN_BUTTON(d->hours), hour, d->hoursBlock);
-	setRealSpinValue(GTK_SPIN_BUTTON(d->minutes), g_date_time_get_minute(dt), d->minutesBlock);
-	setRealSpinValue(GTK_SPIN_BUTTON(d->seconds), g_date_time_get_seconds(dt), d->secondsBlock);
-	g_date_time_unref(dt);
+	dateTimePickerWidget_setTime(d, g_date_time_new_now_local());
 }
 
 static void dateTimePickerWidget_dispose(GObject *obj)
@@ -532,6 +553,11 @@ static void dateTimePickerWidget_class_init(dateTimePickerWidgetClass *class)
 {
 	G_OBJECT_CLASS(class)->dispose = dateTimePickerWidget_dispose;
 	G_OBJECT_CLASS(class)->finalize = dateTimePickerWidget_finalize;
+}
+
+static void defaultOnChanged(uiDateTimePicker *d, void *data)
+{
+	// do nothing
 }
 
 static GtkWidget *newDTP(void)
@@ -563,14 +589,6 @@ static GtkWidget *newTP(void)
 	return w;
 }
 
-struct uiDateTimePicker {
-	uiUnixControl c;
-	GtkWidget *widget;
-	dateTimePickerWidget *d;
-};
-
-uiUnixControlAllDefaults(uiDateTimePicker)
-
 uiDateTimePicker *finishNewDateTimePicker(GtkWidget *(*fn)(void))
 {
 	uiDateTimePicker *d;
@@ -579,6 +597,8 @@ uiDateTimePicker *finishNewDateTimePicker(GtkWidget *(*fn)(void))
 
 	d->widget = (*fn)();
 	d->d = dateTimePickerWidget(d->widget);
+	d->d->control = d;
+	uiDateTimePickerOnChanged(d, defaultOnChanged, NULL);
 
 	return d;
 }
@@ -600,12 +620,32 @@ uiDateTimePicker *uiNewTimePicker(void)
 
 void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
 {
+	time_t t;
+	struct tm tmbuf;
+	GDateTime *dt;
+
+	dt = selected(d->d);
+	t = g_date_time_to_unix(dt);
+	g_date_time_unref(dt);
+
+	tmbuf = *localtime(&t);
+	memcpy(time, &tmbuf, sizeof(struct tm));
 }
 
 void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
 {
+	time_t t;
+	struct tm tmbuf;
+
+	memcpy(&tmbuf, time, sizeof(struct tm));
+	t = mktime(&tmbuf);
+
+	dateTimePickerWidget_setTime(d->d, g_date_time_new_from_unix_local(t));
+	dateTimeChanged(d->d);
 }
 
 void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
 {
+	d->onChanged = f;
+	d->onChangedData = data;
 }

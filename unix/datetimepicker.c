@@ -560,6 +560,38 @@ static void defaultOnChanged(uiDateTimePicker *d, void *data)
 	// do nothing
 }
 
+void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
+{
+	time_t t;
+	struct tm tmbuf;
+	GDateTime *dt;
+
+	dt = selected(d->d);
+	t = g_date_time_to_unix(dt);
+	g_date_time_unref(dt);
+
+	tmbuf = *localtime(&t);
+	memcpy(time, &tmbuf, sizeof(struct tm));
+}
+
+void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
+{
+	time_t t;
+	struct tm tmbuf;
+
+	memcpy(&tmbuf, time, sizeof(struct tm));
+	t = mktime(&tmbuf);
+
+	dateTimePickerWidget_setTime(d->d, g_date_time_new_from_unix_local(t));
+	dateTimeChanged(d->d);
+}
+
+void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
+{
+	d->onChanged = f;
+	d->onChangedData = data;
+}
+
 static GtkWidget *newDTP(void)
 {
 	GtkWidget *w;
@@ -616,36 +648,4 @@ uiDateTimePicker *uiNewDatePicker(void)
 uiDateTimePicker *uiNewTimePicker(void)
 {
 	return finishNewDateTimePicker(newTP);
-}
-
-void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
-{
-	time_t t;
-	struct tm tmbuf;
-	GDateTime *dt;
-
-	dt = selected(d->d);
-	t = g_date_time_to_unix(dt);
-	g_date_time_unref(dt);
-
-	tmbuf = *localtime(&t);
-	memcpy(time, &tmbuf, sizeof(struct tm));
-}
-
-void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
-{
-	time_t t;
-	struct tm tmbuf;
-
-	memcpy(&tmbuf, time, sizeof(struct tm));
-	t = mktime(&tmbuf);
-
-	dateTimePickerWidget_setTime(d->d, g_date_time_new_from_unix_local(t));
-	dateTimeChanged(d->d);
-}
-
-void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
-{
-	d->onChanged = f;
-	d->onChangedData = data;
 }

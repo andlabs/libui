@@ -168,6 +168,18 @@ static LRESULT CALLBACK datetimepickerSubProc(HWND hwnd, UINT uMsg, WPARAM wPara
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
 
+void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
+{
+}
+
+void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
+{
+}
+
+void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
+{
+}
+
 uiDateTimePicker *uiNewDateTimePicker(void)
 {
 	uiDateTimePicker *d;
@@ -188,16 +200,4 @@ uiDateTimePicker *uiNewDatePicker(void)
 uiDateTimePicker *uiNewTimePicker(void)
 {
 	return finishNewDateTimePicker(DTS_TIMEFORMAT);
-}
-
-void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
-{
-}
-
-void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
-{
-}
-
-void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
-{
 }

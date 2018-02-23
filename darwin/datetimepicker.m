@@ -80,6 +80,36 @@ static void defaultOnChanged(uiDateTimePicker *d, void *data)
 	// do nothing
 }
 
+void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
+{
+	time_t t;
+	struct tm tmbuf;
+	NSDate *date;
+
+	date = [d->dp dateValue];
+	t = (time_t) [date timeIntervalSince1970];
+
+	tmbuf = *localtime(&t);
+	memcpy(time, &tmbuf, sizeof(struct tm));
+}
+
+void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
+{
+	time_t t;
+	struct tm tmbuf;
+
+	memcpy(&tmbuf, time, sizeof(struct tm));
+	t = mktime(&tmbuf);
+
+	[d->dp setDateValue:[NSDate dateWithTimeIntervalSince1970:t]];
+}
+
+void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
+{
+	d->onChanged = f;
+	d->onChangedData = data;
+}
+
 static uiDateTimePicker *finishNewDateTimePicker(NSDatePickerElementFlags elements)
 {
 	uiDateTimePicker *d;
@@ -119,34 +149,4 @@ uiDateTimePicker *uiNewDatePicker(void)
 uiDateTimePicker *uiNewTimePicker(void)
 {
 	return finishNewDateTimePicker(NSHourMinuteSecondDatePickerElementFlag);
-}
-
-void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
-{
-	time_t t;
-	struct tm tmbuf;
-	NSDate *date;
-
-	date = [d->dp dateValue];
-	t = (time_t) [date timeIntervalSince1970];
-
-	tmbuf = *localtime(&t);
-	memcpy(time, &tmbuf, sizeof(struct tm));
-}
-
-void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
-{
-	time_t t;
-	struct tm tmbuf;
-
-	memcpy(&tmbuf, time, sizeof(struct tm));
-	t = mktime(&tmbuf);
-
-	[d->dp setDateValue:[NSDate dateWithTimeIntervalSince1970:t]];
-}
-
-void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
-{
-	d->onChanged = f;
-	d->onChangedData = data;
 }

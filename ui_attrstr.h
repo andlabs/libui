@@ -390,7 +390,8 @@ _UI_EXTERN void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttribut
 // uiAttributes in s. It is an error to modify s in f. Within f, s still
 // owns the attribute; you can neither free it nor save it for later
 // use.
-// TODO reword the above for consistency
+// TODO reword the above for consistency (TODO and find out what I meant by that)
+// TODO define an enumeration order (or mark it as undefined); also define how consecutive runs of identical attributes are handled here and sync with the definition of uiAttributedString itself
 _UI_EXTERN void uiAttributedStringForEachAttribute(const uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
 
 // TODO const correct this somehow (the implementation needs to mutate the structure)

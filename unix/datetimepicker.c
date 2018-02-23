@@ -38,7 +38,6 @@ struct dateTimePickerWidget {
 
 	GdkDevice *keyboard;
 	GdkDevice *mouse;
-	uiDateTimePicker *control;
 };
 
 struct dateTimePickerWidgetClass {
@@ -120,12 +119,11 @@ static void setLabel(dateTimePickerWidget *d)
 	g_date_time_unref(dt);
 }
 
+static int changedSignal;
+
 static void dateTimeChanged(dateTimePickerWidget *d)
 {
-	uiDateTimePicker *c;
-
-	c = d->control;
-	(*(c->onChanged))(c, c->onChangedData);
+	g_signal_emit(d, changedSignal, 0);
 	setLabel(d);
 }
 
@@ -553,6 +551,13 @@ static void dateTimePickerWidget_class_init(dateTimePickerWidgetClass *class)
 {
 	G_OBJECT_CLASS(class)->dispose = dateTimePickerWidget_dispose;
 	G_OBJECT_CLASS(class)->finalize = dateTimePickerWidget_finalize;
+
+	changedSignal = g_signal_new("changed",
+		G_TYPE_FROM_CLASS(class),
+		G_SIGNAL_RUN_LAST,
+		0,
+		NULL, NULL, NULL,
+		G_TYPE_NONE, 0);
 }
 
 static void defaultOnChanged(uiDateTimePicker *d, void *data)
@@ -592,6 +597,14 @@ void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *
 	d->onChangedData = data;
 }
 
+static void onChanged(dateTimePickerWidget *d, gpointer data)
+{
+	uiDateTimePicker *c;
+
+	c = uiDateTimePicker(data);
+	(*(c->onChanged))(c, c->onChangedData);
+}
+
 static GtkWidget *newDTP(void)
 {
 	GtkWidget *w;
@@ -629,7 +642,7 @@ uiDateTimePicker *finishNewDateTimePicker(GtkWidget *(*fn)(void))
 
 	d->widget = (*fn)();
 	d->d = dateTimePickerWidget(d->widget);
-	d->d->control = d;
+	g_signal_connect(d->widget, "changed", G_CALLBACK(onChanged), d);
 	uiDateTimePickerOnChanged(d, defaultOnChanged, NULL);
 
 	return d;

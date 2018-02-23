@@ -126,14 +126,11 @@ void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
 	time_t t;
 	struct tm tmbuf;
 	NSDate *date;
-	NSTimeInterval interval;
 
 	date = [d->dp dateValue];
-	interval = [[NSTimeZone systemTimeZone] secondsFromGMTForDate:date];
-	date = [date dateByAddingTimeInterval:interval];
 	t = (time_t) [date timeIntervalSince1970];
 
-	tmbuf = *gmtime(&t);
+	tmbuf = *localtime(&t);
 	memcpy(time, &tmbuf, sizeof(struct tm));
 }
 

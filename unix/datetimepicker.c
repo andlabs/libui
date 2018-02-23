@@ -46,16 +46,6 @@ struct dateTimePickerWidgetClass {
 
 G_DEFINE_TYPE(dateTimePickerWidget, dateTimePickerWidget, GTK_TYPE_TOGGLE_BUTTON)
 
-struct uiDateTimePicker {
-	uiUnixControl c;
-	GtkWidget *widget;
-	dateTimePickerWidget *d;
-	void (*onChanged)(uiDateTimePicker *, void *);
-	void *onChangedData;
-};
-
-uiUnixControlAllDefaults(uiDateTimePicker)
-
 static int realSpinValue(GtkSpinButton *spinButton)
 {
 	GtkAdjustment *adj;
@@ -559,6 +549,16 @@ static void dateTimePickerWidget_class_init(dateTimePickerWidgetClass *class)
 		NULL, NULL, NULL,
 		G_TYPE_NONE, 0);
 }
+
+struct uiDateTimePicker {
+	uiUnixControl c;
+	GtkWidget *widget;
+	dateTimePickerWidget *d;
+	void (*onChanged)(uiDateTimePicker *, void *);
+	void *onChangedData;
+};
+
+uiUnixControlAllDefaults(uiDateTimePicker)
 
 static void defaultOnChanged(uiDateTimePicker *d, void *data)
 {

@@ -25,6 +25,10 @@ struct uiArea {
 	BOOL tracking;
 
 	ID2D1HwndRenderTarget *rt;
+
+	BOOL drawOpenGL;
+	HDC hDC;
+	HGLRC hglrc;
 };
 
 // areadraw.cpp
@@ -43,3 +47,9 @@ extern BOOL areaDoEvents(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRE
 extern void loadAreaSize(uiArea *a, ID2D1RenderTarget *rt, double *width, double *height);
 extern void pixelsToDIP(uiArea *a, double *x, double *y);
 extern void dipToPixels(uiArea *a, double *x, double *y);
+
+//area_opengl.cpp
+extern void uiAreaOpenGLInit(uiArea * a);
+extern void uiAreaOpenGLUninit(uiArea * a);
+extern void uiAreaOpenGLBeginDraw(uiArea * a, uiAreaDrawParams * dp);
+extern HRESULT uiAreaOpenGLEndDraw(uiArea * a);

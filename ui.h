@@ -321,6 +321,8 @@ _UI_EXTERN void uiAreaBeginUserWindowMove(uiArea *a);
 _UI_EXTERN void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge);
 _UI_EXTERN uiArea *uiNewArea(uiAreaHandler *ah);
 _UI_EXTERN uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height);
+_UI_EXTERN uiArea *uiNewOpenGLArea(uiAreaHandler *ah);
+_UI_EXTERN uiArea *uiNewScrollingOpenGLArea(uiAreaHandler *ah, int width, int height);
 
 struct uiAreaDrawParams {
 	uiDrawContext *Context;

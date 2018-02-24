@@ -24,7 +24,11 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 		dp.ClipY += a->vscrollpos;
 	}
 
-	rt->BeginDraw();
+	if (a->drawOpenGL) {
+		uiAreaOpenGLBeginDraw(a, &dp);
+    }
+	else
+		rt->BeginDraw();
 
 	if (a->scrolling) {
 		ZeroMemory(&scrollTransform, sizeof (D2D1_MATRIX_3X2_F));
@@ -54,8 +58,11 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 
 	freeContext(dp.Context);
 
-	// TODO pop axis aligned clip
+	if (a->drawOpenGL) {
+		return uiAreaOpenGLEndDraw(a);
+	}
 
+	// TODO pop axis aligned clip
 	return rt->EndDraw(NULL, NULL);
 }
 

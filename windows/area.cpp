@@ -1,6 +1,7 @@
 // 8 september 2015
 #include "uipriv_windows.hpp"
 #include "area.hpp"
+#include <GL/gl.h>
 
 // TODO handle WM_DESTROY/WM_NCDESTROY
 // TODO same for other Direct2D stuff
@@ -19,10 +20,20 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			// assign a->hwnd here so we can use it immediately
 			a->hwnd = hwnd;
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) a);
+
+            if (a->drawOpenGL) {
+                uiAreaOpenGLInit(a);
+            }
 		}
 		// fall through to DefWindowProcW() anyway
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 	}
+
+    if (uMsg == WM_DESTROY || uMsg == WM_NCDESTROY) {
+        if (a->drawOpenGL) {
+            uiAreaOpenGLUninit(a);
+        }
+    }
 
 	// always recreate the render target if necessary
 	if (a->rt == NULL)
@@ -160,13 +171,14 @@ void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 		wParam, 0);
 }
 
-uiArea *uiNewArea(uiAreaHandler *ah)
+uiArea *_uiNewArea(uiAreaHandler *ah, BOOL drawOpenGL)
 {
 	uiArea *a;
 
 	uiWindowsNewControl(uiArea, a);
 
 	a->ah = ah;
+	a->drawOpenGL = drawOpenGL;
 	a->scrolling = FALSE;
 	clickCounterReset(&(a->cc));
 
@@ -180,7 +192,19 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	return a;
 }
 
-uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
+uiArea *uiNewArea(uiAreaHandler *ah)
+{
+	uiArea * a = _uiNewArea(ah, FALSE);
+	return a;
+}
+
+uiArea *uiNewOpenGLArea(uiAreaHandler *ah)
+{
+	uiArea * a = _uiNewArea(ah, TRUE);
+	return a;
+}
+
+uiArea *_uiNewScrollingArea(uiAreaHandler *ah, int width, int height, BOOL drawOpenGL)
 {
 	uiArea *a;
 
@@ -190,6 +214,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	a->scrolling = TRUE;
 	a->scrollWidth = width;
 	a->scrollHeight = height;
+	a->drawOpenGL = drawOpenGL;
 	clickCounterReset(&(a->cc));
 
 	// a->hwnd is assigned in areaWndProc()
@@ -204,3 +229,18 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 
 	return a;
 }
+
+uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
+{
+	uiArea * a = _uiNewScrollingArea(ah, width, height, FALSE);
+
+	return a;
+}
+
+uiArea *uiNewScrollingOpenGLArea(uiAreaHandler *ah, int width, int height)
+{
+	uiArea * a = _uiNewScrollingArea(ah, width, height, TRUE);
+
+	return a;
+}
+

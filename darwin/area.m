@@ -9,8 +9,10 @@
 	NSTrackingArea *libui_ta;
 	NSSize libui_ss;
 	BOOL libui_enabled;
+	NSOpenGLContext *libui_openGLContext;
+	BOOL libui_drawUsingOpenGL;
 }
-- (id)initWithFrame:(NSRect)r area:(uiArea *)a;
+- (id)initWithFrame:(NSRect)r area:(uiArea *)a drawUsingOpenGL:(BOOL)drawUsingOpenGL;
 - (uiModifiers)parseModifiers:(NSEvent *)e;
 - (void)doMouseEvent:(NSEvent *)e;
 - (int)sendKeyEvent:(uiAreaKeyEvent *)ke;
@@ -22,6 +24,9 @@
 - (void)setScrollingSize:(NSSize)s;
 - (BOOL)isEnabled;
 - (void)setEnabled:(BOOL)e;
+- (void)_surfaceNeedsUpdate:(NSNotification*)notification;
+- (void)lockFocus;
+- (void)update;
 @end
 
 struct uiArea {
@@ -37,7 +42,7 @@ struct uiArea {
 
 @implementation areaView
 
-- (id)initWithFrame:(NSRect)r area:(uiArea *)a
+- (id)initWithFrame:(NSRect)r area:(uiArea *)a drawUsingOpenGL:(BOOL)drawUsingOpenGL
 {
 	self = [super initWithFrame:r];
 	if (self) {
@@ -45,8 +50,63 @@ struct uiArea {
 		[self setupNewTrackingArea];
 		self->libui_ss = r.size;
 		self->libui_enabled = YES;
+		self->libui_drawUsingOpenGL = drawUsingOpenGL;
+
+		if (drawUsingOpenGL) {
+		  NSOpenGLPixelFormatAttribute pixelFormatAttributes[] =
+				{
+					NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
+					NSOpenGLPFADoubleBuffer ,
+					NSOpenGLPFAAccelerated  ,
+					0
+				};
+		  NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes] autorelease];
+
+			self->libui_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+																														 shareContext:nil];
+		  [[NSNotificationCenter defaultCenter] addObserver:self
+																							 selector:@selector(_surfaceNeedsUpdate:)
+																									 name:NSViewGlobalFrameDidChangeNotification
+																								 object:self];
+		}
 	}
 	return self;
+}
+
+- (void)dealloc
+{
+	if (self->libui_drawUsingOpenGL) {
+	  [[NSNotificationCenter defaultCenter] removeObserver:self
+																										name:NSViewGlobalFrameDidChangeNotification
+																									object:self];
+	  [libui_openGLContext release];
+	}
+
+	[super dealloc];
+}
+
+- (void)update
+{
+  if ([libui_openGLContext view] == self) {
+    [libui_openGLContext update];
+  }
+}
+
+- (void)lockFocus
+{
+    [super lockFocus];
+
+		if (self->libui_drawUsingOpenGL) {
+      if ([libui_openGLContext view] != self) {
+          [libui_openGLContext setView:self];
+      }
+      [libui_openGLContext makeCurrentContext];
+		}
+}
+
+- (void) _surfaceNeedsUpdate:(NSNotification*)notification
+{
+   [self update];
 }
 
 - (void)drawRect:(NSRect)r
@@ -59,20 +119,34 @@ struct uiArea {
 	// see draw.m under text for why we need the height
 	dp.Context = newContext(c, [self bounds].size.height);
 
-	dp.AreaWidth = 0;
-	dp.AreaHeight = 0;
-	if (!a->scrolling) {
-		dp.AreaWidth = [self frame].size.width;
-		dp.AreaHeight = [self frame].size.height;
+	dp.AreaWidth = [self frame].size.width;
+	dp.AreaHeight = [self frame].size.height;
+
+	NSRect visibleRect = r;
+
+	if (a->scrolling) {
+	  visibleRect = [[a->sv contentView] documentVisibleRect];
 	}
 
-	dp.ClipX = r.origin.x;
-	dp.ClipY = r.origin.y;
-	dp.ClipWidth = r.size.width;
-	dp.ClipHeight = r.size.height;
+	dp.ClipX = visibleRect.origin.x;
+	dp.ClipY = visibleRect.origin.y;
+	dp.ClipWidth = visibleRect.size.width;
+	dp.ClipHeight = visibleRect.size.height;
+
+	if (self->libui_drawUsingOpenGL) {
+	  if ([libui_openGLContext view] != self) {
+	    [libui_openGLContext setView:self];
+		}
+
+		[libui_openGLContext makeCurrentContext];
+	}
 
 	// no need to save or restore the graphics state to reset transformations; Cocoa creates a brand-new context each time
 	(*(a->ah->Draw))(a->ah, a, &dp);
+
+	if (self->libui_drawUsingOpenGL) {
+	  [libui_openGLContext flushBuffer];
+	}
 
 	freeContext(dp.Context);
 }
@@ -141,12 +215,8 @@ struct uiArea {
 	me.X = point.x;
 	me.Y = point.y;
 
-	me.AreaWidth = 0;
-	me.AreaHeight = 0;
-	if (!a->scrolling) {
-		me.AreaWidth = [self frame].size.width;
-		me.AreaHeight = [self frame].size.height;
-	}
+	me.AreaWidth = [self frame].size.width;
+	me.AreaHeight = [self frame].size.height;
 
 	buttonNumber = [e buttonNumber] + 1;
 	// swap button numbers 2 and 3 (right and middle)
@@ -431,7 +501,8 @@ void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 	[w libui_doResize:a->dragevent on:edge];
 }
 
-uiArea *uiNewArea(uiAreaHandler *ah)
+static
+uiArea * _uiNewArea(uiAreaHandler *ah, BOOL drawUsingOpenGL)
 {
 	uiArea *a;
 
@@ -440,14 +511,27 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	a->ah = ah;
 	a->scrolling = NO;
 
-	a->area = [[areaView alloc] initWithFrame:NSZeroRect area:a];
+	a->area = [[areaView alloc] initWithFrame:NSZeroRect
+																			 area:a
+														drawUsingOpenGL:drawUsingOpenGL];
 
 	a->view = a->area;
 
 	return a;
 }
 
-uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
+uiArea * uiNewArea(uiAreaHandler *ah)
+{
+	return _uiNewArea(ah, NO);
+}
+
+uiArea * uiNewOpenGLArea(uiAreaHandler *ah)
+{
+	return _uiNewArea(ah, YES);
+}
+
+static
+uiArea *_uiNewScrollingArea(uiAreaHandler *ah, int width, int height, BOOL drawUsingOpenGL)
 {
 	uiArea *a;
 	struct scrollViewCreateParams p;
@@ -458,7 +542,8 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	a->scrolling = YES;
 
 	a->area = [[areaView alloc] initWithFrame:NSMakeRect(0, 0, width, height)
-		area:a];
+																			 area:a
+														drawUsingOpenGL:drawUsingOpenGL];
 
 	memset(&p, 0, sizeof (struct scrollViewCreateParams));
 	p.DocumentView = a->area;
@@ -472,4 +557,14 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	a->view = a->sv;
 
 	return a;
+}
+
+uiArea * uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
+{
+	return _uiNewScrollingArea(ah, width, height, NO);
+}
+
+uiArea * uiNewScrollingOpenGLArea(uiAreaHandler *ah, int width, int height)
+{
+	return _uiNewScrollingArea(ah, width, height, YES);
 }

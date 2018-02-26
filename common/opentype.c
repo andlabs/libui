@@ -88,7 +88,7 @@ void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char
 	f->c = c;
 	f->d = d;
 	f->value = value;
-	// TODO qsort here is overkill
+	// LONGTERM qsort here is overkill
 	otf->len++;
 	qsort(otf->data, otf->len, sizeof (struct feature), featurecmp);
 }

@@ -68,7 +68,7 @@ struct testingT {
 	const char *name;
 	void (*f)(testingT *);
 	int failed;
-	struct testingprivTest *next;
+	testingT *next;
 };
 
 static testingT *tests = NULL;

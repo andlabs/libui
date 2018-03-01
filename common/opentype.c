@@ -1,6 +1,6 @@
 // 25 february 2018
-#include "uipriv.h"
-#include "attrstr.h"
+//TODO#include "uipriv.h"
+//TODO#include "attrstr.h"
 
 struct feature {
 	char a;
@@ -35,9 +35,7 @@ void uiFreeOpenTypeFeatures(uiOpenTypeFeatures *otf)
 	uiprivFree(otf);
 }
 
-// uiOpenTypeFeaturesClone() makes a copy of otf and returns it.
-// Changing one will not affect the other.
-_UI_EXTERN uiOpenTypeFeatures *uiOpenTypeFeaturesClone(const uiOpenTypeFeatures *otf)
+uiOpenTypeFeatures *uiOpenTypeFeaturesClone(const uiOpenTypeFeatures *otf)
 {
 	uiOpenTypeFeatures *ret;
 
@@ -66,12 +64,27 @@ static int featurecmp(const void *a, const void *b)
 	return intdiff(f->d, g->d);
 }
 
+static struct feature mkkey(char a, char b, char c, char d)
+{
+	struct feature f;
+
+	f.a = a;
+	f.b = b;
+	f.c = c;
+	f.d = d;
+	return f;
+}
+
+#define find(pkey, otf) bsearch(pkey, otf->data, otf->len, sizeof (struct feature), featurecmp)
+
 void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value)
 {
 	struct feature *f;
+	struct feature key;
 
 	// replace existing value if any
-	f = (struct feature *) bsearch(otf->data, otf->len, sizeof (struct feature), featurecmp);
+	key = mkkey(a, b, c, d);
+	f = (struct feature *) find(&key, otf);
 	if (f != NULL) {
 		f->value = value;
 		return;
@@ -93,13 +106,15 @@ void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char
 	qsort(otf->data, otf->len, sizeof (struct feature), featurecmp);
 }
 
-_UI_EXTERN void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d)
+void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d)
 {
 	struct feature *f;
+	struct feature key;
 	ptrdiff_t index;
 	size_t count;
 
-	f = (struct feature *) bsearch(otf->data, otf->len, sizeof (struct feature), featurecmp);
+	key = mkkey(a, b, c, d);
+	f = (struct feature *) find(&key, otf);
 	if (f == NULL)
 		return;
 
@@ -112,8 +127,10 @@ _UI_EXTERN void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b
 int uiOpenTypeFeaturesGet(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value)
 {
 	const struct feature *f;
+	struct feature key;
 
-	f = (const struct feature *) bsearch(otf->data, otf->len, sizeof (struct feature), featurecmp);
+	key = mkkey(a, b, c, d);
+	f = (const struct feature *) find(&key, otf);
 	if (f == NULL)
 		return 0;
 	*value = f->value;
@@ -128,8 +145,7 @@ void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeatures
 
 	p = otf->data;
 	for (n = 0; n < otf->len; n++) {
-		ret = (*f)(cur->a, cur->b, cur->c, cur->d,
-			cur->value, data);
+		ret = (*f)(otf, p->a, p->b, p->c, p->d, p->value, data);
 		// TODO for all: require exact match?
 		if (ret == uiForEachStop)
 			return;

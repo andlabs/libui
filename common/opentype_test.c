@@ -2,6 +2,7 @@
 #ifndef TODO_TEST
 #error TODO this is where libui itself goes
 #endif
+#include <inttypes.h>
 
 #include <stdarg.h>
 
@@ -18,7 +19,7 @@
 #define testingprivBadLanguageVersion
 #endif
 #ifdef testingprivBadLanguageVersion
-#error sorry, TODO requires either C99 or TODO; cannot continue
+#error sorry, TODO requires either C99 or C++11; cannot continue
 #endif
 
 #ifdef __cplusplus
@@ -49,9 +50,39 @@ extern void testingprivTErrorvfFull(testingT *, const char *, int, const char *,
 }
 #endif
 
-testingTest(Name)
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+typedef struct uiOpenTypeFeatures uiOpenTypeFeatures;
+typedef int uiForEach;
+enum { uiForEachContinue, uiForEachStop };
+typedef uiForEach (*uiOpenTypeFeaturesForEachFunc)(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data);
+#define uiprivNew(x) ((x *) malloc(sizeof (x)))
+#define uiprivAlloc(x,y) malloc(x)
+#define uiprivRealloc(x,y,z) realloc(x,y)
+#define uiprivFree free
+#include "opentype.c"
+
+testingTest(OpenTypeFeaturesAddGet)
 {
-	printf("in the test!\n");
+	uiOpenTypeFeatures *otf;
+	char a, b, c, d;
+	uint32_t value;
+
+	otf = uiNewOpenTypeFeatures();
+	uiOpenTypeFeaturesAdd(otf, 'a', 'b', 'c', 'd', 12345);
+	if (!uiOpenTypeFeaturesGet(otf, 'a', 'b', 'c', 'd', &value)) {
+		testingTErrorf(t, "uiOpenTypeFeaturesGet() failed to get feature we added");
+		goto out;
+	}
+	if (value != 12345) {
+		testingTErrorf(t, "feature abcd: got %" PRIu32 ", want 12345", value);
+		goto out;
+	}
+
+out:
+	uiFreeOpenTypeFeatures(otf);
 }
 
 int main(void)

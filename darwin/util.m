@@ -13,3 +13,8 @@ void disableAutocorrect(NSTextView *tv)
 	[tv setAutomaticLinkDetectionEnabled:NO];
 	[tv setSmartInsertDeleteEnabled:NO];
 }
+
+int uiOpenURL(const char *url)
+{
+	return [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:toNSString(url)]] == YES;
+}

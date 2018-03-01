@@ -74,3 +74,20 @@ void uninitUtilWindow(void)
 	if (UnregisterClass(utilWindowClass, hInstance) == 0)
 		logLastError(L"error unregistering utility window class");
 }
+
+int uiOpenURL(const char *url)
+{
+	SHELLEXECUTEINFOW info;
+	WCHAR *wurl;
+	BOOL ret;
+
+	wurl = toUTF16(url);
+	ZeroMemory(&info, sizeof(info));
+	info.cbSize = sizeof(info);
+	info.lpVerb = L"open";
+	info.lpFile = wurl;
+	info.nShow = SW_SHOWNORMAL;
+	ret = ShellExecuteExW(&info);
+	uiFree(wurl);
+	return ret == TRUE;
+}

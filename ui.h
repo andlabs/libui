@@ -684,6 +684,8 @@ _UI_EXTERN int uiGridPadded(uiGrid *g);
 _UI_EXTERN void uiGridSetPadded(uiGrid *g, int padded);
 _UI_EXTERN uiGrid *uiNewGrid(void);
 
+_UI_EXTERN int uiOpenURL(const char *url);
+
 #ifdef __cplusplus
 }
 #endif

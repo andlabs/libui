@@ -25,23 +25,43 @@
 extern "C" {
 #endif
 
-#if defined(__GNUC__)
+#ifdef __cplusplus
+#define testingprivMkScaffold(name) \
+	static inline void testingprivScaffold ## name(testingT *t) \
+	{ \
+		bool failedNow = false; \
+		try { name(t); } \
+		catch (testingprivFailNowException e) { failedNow = true; } \
+		/* TODO see if we should catch other exceptions too */ \
+		/* don't call this in the catch block as it calls longjmp() */ \
+		if (failedNow) testingprivTDoFailNow(t); \
+	}
+#else
+#define testingprivMkScaffold(name) \
+	static inline void testingprivScaffold ## name(testingT *t) { name(t); }
+#endif
+
+#if defined(__cplusplus)
 #define testingprivMkCtor(name, reg) \
-	__attribute__((constructor)) static void testingprivCtor ## name(void) { reg(#name, name); }
+	static reg ## Class testingprivCtor ## name(#name, testingprivScaffold ## name);
+#elif defined(__GNUC__)
+#define testingprivMkCtor(name, reg) \
+	__attribute__((constructor)) static void testingprivCtor ## name(void) { reg(#name, testingprivScaffold ## name); }
 #elif defined(_MSC_VER)
 #define testingprivMkCtorPrototype(name, reg) \
-	static int name(void) testingprivCtor ## name(void) { reg(#name, name); return 0; } \
+	static int name(void) testingprivCtor ## name(void) { reg(#name, testingprivScaffold ## name); return 0; } \
 	__pragma(section(".CRT$XCU",read)) \
 	__declspec(allocate(".CRT$XCU")) static int (*testingprivCtorPtr ## name)(void) = testingprivCtor ## name;
 #elif defined(__SUNPRO_C)
 #define testingprivMkCtor(name, reg) \
-	_Pragma("init(testingprivCtor" #name ")") static void testingprivCtor ## name(void) { reg(#name, name); }
+	_Pragma("init(testingprivCtor" #name ")") static void testingprivCtor ## name(void) { reg(#name, testingprivScaffold ## name); }
 #else
-#error unknown compiler; cannot continue
+#error unknown compiler for making constructors in C; cannot continue
 #endif
 
 #define testingTest(Name) \
 	void Test ## Name(testingT *t); \
+	testingprivMkScaffold(Test ## Name) \
 	testingprivMkCtor(Test ## Name, testingprivRegisterTest) \
 	void Test ## Name(testingT *t)
 
@@ -50,13 +70,26 @@ extern int testingMain(void);
 typedef struct testingT testingT;
 #define testingTErrorf(t, ...) testingprivTErrorfFull(t, __FILE__, __LINE__, __VA_ARGS__)
 #define testingTErrorvf(t, format, ap) testingprivTErrorvfFull(t, __FILE__, __LINE__, format, ap)
+#ifdef __cplusplus
+#define testingTFailNow(t) (throw testingprivFailNowException())
+#else
+#define testingTFailNow(t) testingprivTDoFailNow(t)
+#endif
 
 // TODO should __LINE__ arguments use intmax_t or uintmax_t instead of int?
 extern void testingprivRegisterTest(const char *, void (*)(testingT *));
 extern void testingprivTErrorfFull(testingT *, const char *, int, const char *, ...);
 extern void testingprivTErrorvfFull(testingT *, const char *, int, const char *, va_list);
+extern void testingprivTDoFailNow(testingT *);
 
 #ifdef __cplusplus
+}
+namespace {
+	class testingprivFailNowException {};
+	class testingprivRegisterTestClass {
+	public:
+		testingprivRegisterTestClass(const char *name, void (*f)(testingT *)) { testingprivRegisterTest(name, f); }
+	};
 }
 #endif
 

@@ -1,6 +1,7 @@
 // 27 february 2018
 #include <stdio.h>
 #include <stdlib.h>
+#include <setjmp.h>
 #include "testing.h"
 
 #define testingprivNew(T) ((T *) malloc(sizeof (T)))
@@ -9,6 +10,7 @@ struct testingT {
 	const char *name;
 	void (*f)(testingT *);
 	int failed;
+	jmp_buf failNowBuf;
 	testingT *next;
 };
 
@@ -41,7 +43,8 @@ int testingMain(void)
 	anyFailed = 0;
 	for (t = tests; t != NULL; t = t->next) {
 		printf("=== RUN   %s\n", t->name);
-		(*(t->f))(t);
+		if (setjmp(t->failNowBuf) == 0)
+			(*(t->f))(t);
 		status = "PASS";
 		if (t->failed) {
 			status = "FAIL";
@@ -80,4 +83,10 @@ void testingprivTErrorvfFull(testingT *t, const char *file, int line, const char
 {
 	testingprivTDoLog(t, file, line, format, ap);
 	t->failed = 1;
+}
+
+void testingprivTDoFailNow(testingT *t)
+{
+	t->failed = 1;
+	longjmp(t->failNowBuf, 1);
 }

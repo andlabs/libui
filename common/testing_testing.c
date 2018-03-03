@@ -10,7 +10,8 @@ struct testingT {
 	const char *name;
 	void (*f)(testingT *);
 	int failed;
-	jmp_buf failNowBuf;
+	int skipped;
+	jmp_buf returnNowBuf;
 	testingT *next;
 };
 
@@ -34,6 +35,7 @@ int testingMain(void)
 	int anyFailed;
 	const char *status;
 
+	// TODO see if this should run if all tests are skipped
 	if (tests == NULL) {
 		fprintf(stderr, "warning: no tests to run\n");
 		// imitate Go here (TODO confirm this)
@@ -43,13 +45,15 @@ int testingMain(void)
 	anyFailed = 0;
 	for (t = tests; t != NULL; t = t->next) {
 		printf("=== RUN   %s\n", t->name);
-		if (setjmp(t->failNowBuf) == 0)
+		if (setjmp(t->returnNowBuf) == 0)
 			(*(t->f))(t);
 		status = "PASS";
 		if (t->failed) {
 			status = "FAIL";
 			anyFailed = 1;
-		}
+		} else if (t->skipped)
+			// note that failed overrides skipped
+			status = "SKIP";
 		printf("--- %s: %s (%s)\n", status, t->name, "TODO");
 	}
 
@@ -61,7 +65,16 @@ int testingMain(void)
 	return 0;
 }
 
-static void testingprivTDoLog(testingT *t, const char *file, int line, const char *format, va_list ap)
+void testingprivTLogfFull(testingT *t, const char *file, int line, const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	testingprivTLogvfFull(t, file, line, format, ap);
+	va_end(ap);
+}
+
+void testingprivTLogvfFull(testingT *t, const char *file, int line, const char *format, va_list ap)
 {
 	// TODO extract filename from file
 	printf("\t%s:%d: ", file, line);
@@ -81,12 +94,18 @@ void testingprivTErrorfFull(testingT *t, const char *file, int line, const char 
 
 void testingprivTErrorvfFull(testingT *t, const char *file, int line, const char *format, va_list ap)
 {
-	testingprivTDoLog(t, file, line, format, ap);
+	testingprivTLogvfFull(t, file, line, format, ap);
 	t->failed = 1;
 }
 
 void testingprivTDoFailNow(testingT *t)
 {
 	t->failed = 1;
-	longjmp(t->failNowBuf, 1);
+	longjmp(t->returnNowBuf, 1);
+}
+
+void testingprivTDoSkipNow(testingT *t)
+{
+	t->skipped = 1;
+	longjmp(t->returnNowBuf, 1);
 }

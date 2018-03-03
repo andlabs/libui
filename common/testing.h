@@ -29,12 +29,14 @@ extern "C" {
 #define testingprivMkScaffold(name) \
 	static inline void testingprivScaffold ## name(testingT *t) \
 	{ \
-		bool failedNow = false; \
+		bool failedNow = false, skippedNow = false; \
 		try { name(t); } \
 		catch (testingprivFailNowException e) { failedNow = true; } \
+		catch (testingprivSkipNowException e) { skippedNow = true; } \
 		/* TODO see if we should catch other exceptions too */ \
-		/* don't call this in the catch block as it calls longjmp() */ \
+		/* don't call these in the catch blocks as they call longjmp() */ \
 		if (failedNow) testingprivTDoFailNow(t); \
+		if (skippedNow) testingprivTDoSkipNow(t); \
 	}
 #else
 #define testingprivMkScaffold(name) \
@@ -68,24 +70,34 @@ extern "C" {
 extern int testingMain(void);
 
 typedef struct testingT testingT;
-#define testingTErrorf(t, ...) testingprivTErrorfFull(t, __FILE__, __LINE__, __VA_ARGS__)
-#define testingTErrorvf(t, format, ap) testingprivTErrorvfFull(t, __FILE__, __LINE__, format, ap)
+#define testingTLogf(t, ...) (testingprivTLogfFull(t, __FILE__, __LINE__, __VA_ARGS__))
+#define testingTLogvf(t, format, ap) (testingprivTLogvfFull(t, __FILE__, __LINE__, format, ap))
+#define testingTErrorf(t, ...) (testingprivTErrorfFull(t, __FILE__, __LINE__, __VA_ARGS__))
+#define testingTErrorvf(t, format, ap) (testingprivTErrorvfFull(t, __FILE__, __LINE__, format, ap))
+#define testingTFatalf(t, ...) ((testingprivTErrorfFull(t, __FILE__, __LINE__, __VA_ARGS__)), (testingTFailNow(t)))
+#define testingTFatalvf(t, format, ap) ((testingprivTErrorvfFull(t, __FILE__, __LINE__, format, ap)), (testingTFailNow(t)))
 #ifdef __cplusplus
 #define testingTFailNow(t) (throw testingprivFailNowException())
+#define testingTSkipNow(t) (throw testingprivSkipNowException())
 #else
-#define testingTFailNow(t) testingprivTDoFailNow(t)
+#define testingTFailNow(t) (testingprivTDoFailNow(t))
+#define testingTSkipNow(t) (testingprivTDoSkipNow(t))
 #endif
 
 // TODO should __LINE__ arguments use intmax_t or uintmax_t instead of int?
 extern void testingprivRegisterTest(const char *, void (*)(testingT *));
+extern void testingprivTLogfFull(testingT *, const char *, int, const char *, ...);
+extern void testingprivTLogvfFull(testingT *, const char *, int, const char *, va_list);
 extern void testingprivTErrorfFull(testingT *, const char *, int, const char *, ...);
 extern void testingprivTErrorvfFull(testingT *, const char *, int, const char *, va_list);
 extern void testingprivTDoFailNow(testingT *);
+extern void testingprivTDoSkipNow(testingT *);
 
 #ifdef __cplusplus
 }
 namespace {
 	class testingprivFailNowException {};
+	class testingprivSkipNowException {};
 	class testingprivRegisterTestClass {
 	public:
 		testingprivRegisterTestClass(const char *name, void (*f)(testingT *)) { testingprivRegisterTest(name, f); }

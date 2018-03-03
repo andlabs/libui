@@ -25,6 +25,7 @@ void testingprivRegisterTest(const char *name, void (*f)(testingT *))
 	t->name = name;
 	t->f = f;
 	t->failed = 0;
+	t->skipped = 0;
 	t->next = tests;
 	tests = t;
 }
@@ -83,24 +84,14 @@ void testingprivTLogvfFull(testingT *t, const char *file, int line, const char *
 	printf("\n");
 }
 
-void testingprivTErrorfFull(testingT *t, const char *file, int line, const char *format, ...)
+void testingTFail(testingT *t)
 {
-	va_list ap;
-
-	va_start(ap, format);
-	testingprivTErrorvfFull(t, file, line, format, ap);
-	va_end(ap);
-}
-
-void testingprivTErrorvfFull(testingT *t, const char *file, int line, const char *format, va_list ap)
-{
-	testingprivTLogvfFull(t, file, line, format, ap);
 	t->failed = 1;
 }
 
 void testingprivTDoFailNow(testingT *t)
 {
-	t->failed = 1;
+	testingTFail(t);
 	longjmp(t->returnNowBuf, 1);
 }
 

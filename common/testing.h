@@ -70,12 +70,23 @@ extern "C" {
 extern int testingMain(void);
 
 typedef struct testingT testingT;
-#define testingTLogf(t, ...) (testingprivTLogfFull(t, __FILE__, __LINE__, __VA_ARGS__))
-#define testingTLogvf(t, format, ap) (testingprivTLogvfFull(t, __FILE__, __LINE__, format, ap))
-#define testingTErrorf(t, ...) (testingprivTErrorfFull(t, __FILE__, __LINE__, __VA_ARGS__))
-#define testingTErrorvf(t, format, ap) (testingprivTErrorvfFull(t, __FILE__, __LINE__, format, ap))
-#define testingTFatalf(t, ...) ((testingprivTErrorfFull(t, __FILE__, __LINE__, __VA_ARGS__)), (testingTFailNow(t)))
-#define testingTFatalvf(t, format, ap) ((testingprivTErrorvfFull(t, __FILE__, __LINE__, format, ap)), (testingTFailNow(t)))
+#define testingTLogf(t, ...) \
+	testingprivExpand(testingprivTLogfThen((void), t, __VA_ARGS__))
+#define testingTLogvf(t, format, ap) \
+	testingprivTLogvfThen((void), t, format, ap)
+#define testingTErrorf(t, ...) \
+	testingprivExpand(testingprivTLogfThen(testingTFail, t, __VA_ARGS__))
+#define testingTErrorvf(t, format, ap) \
+	testingprivTLogvfThen(testingTFail, t, format, ap)
+#define testingTFatalf(t, ...) \
+	testingprivExpand(testingprivTLogfThen(testingTFailNow, t, __VA_ARGS__))
+#define testingTFatalvf(t, format, ap) \
+	testingprivTLogvfThen(testingTFailNow, t, format, ap)
+#define testingTSkipf(t, ...) \
+	testingprivExpand(testingprivTLogfThen(testingTSkipNow, t, __VA_ARGS__))
+#define testingTSkipvf(t, format, ap) \
+	testingprivTLogvfThen(testingTSkipNow, t, format, ap)
+extern void testingTFail(testingT *t);
 #ifdef __cplusplus
 #define testingTFailNow(t) (throw testingprivFailNowException())
 #define testingTSkipNow(t) (throw testingprivSkipNowException())
@@ -86,10 +97,12 @@ typedef struct testingT testingT;
 
 // TODO should __LINE__ arguments use intmax_t or uintmax_t instead of int?
 extern void testingprivRegisterTest(const char *, void (*)(testingT *));
+// see https://stackoverflow.com/questions/32399191/va-args-expansion-using-msvc
+#define testingprivExpand(x) x
+#define testingprivTLogfThen(then, t, ...) ((testingprivTLogfFull(t, __FILE__, __LINE__, __VA_ARGS__)), (then(t)))
+#define testingprivTLogvfThen(then, t, format, ap) ((testingprivTLogvfFull(t, __FILE__, __LINE__, format, ap)), (then(t)))
 extern void testingprivTLogfFull(testingT *, const char *, int, const char *, ...);
 extern void testingprivTLogvfFull(testingT *, const char *, int, const char *, va_list);
-extern void testingprivTErrorfFull(testingT *, const char *, int, const char *, ...);
-extern void testingprivTErrorvfFull(testingT *, const char *, int, const char *, va_list);
 extern void testingprivTDoFailNow(testingT *);
 extern void testingprivTDoSkipNow(testingT *);
 

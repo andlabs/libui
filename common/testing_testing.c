@@ -36,6 +36,7 @@ void testingprivRegisterTest(const char *name, void (*f)(testingT *))
 	t->skipped = 0;
 	t->defers = NULL;
 	t->defersRun = 0;
+	// TODO add in the order called
 	t->next = tests;
 	tests = t;
 }
@@ -137,6 +138,7 @@ void testingTDefer(testingT *t, void (*f)(void *data), void *data)
 	d = testingprivNew(struct defer);
 	d->f = f;
 	d->data = data;
+	// add to the head of the list so defers are run in reverse order of how they were added
 	d->next = t->defers;
 	t->defers = d;
 }

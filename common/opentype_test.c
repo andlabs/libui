@@ -19,25 +19,23 @@ typedef uiForEach (*uiOpenTypeFeaturesForEachFunc)(const uiOpenTypeFeatures *otf
 #define uiprivFree free
 #include "opentype.c"
 
+static void freeOpenType(void *otf)
+{
+	uiFreeOpenTypeFeatures((uiOpenTypeFeatures *) otf);
+}
+
 testingTest(OpenTypeFeaturesAddGet)
 {
 	uiOpenTypeFeatures *otf;
-	char a, b, c, d;
 	uint32_t value;
 
 	otf = uiNewOpenTypeFeatures();
+	testingTDefer(t, freeOpenType, otf);
 	uiOpenTypeFeaturesAdd(otf, 'a', 'b', 'c', 'd', 12345);
-	if (!uiOpenTypeFeaturesGet(otf, 'a', 'b', 'c', 'd', &value)) {
-		testingTErrorf(t, "uiOpenTypeFeaturesGet() failed to get feature we added");
-		goto out;
-	}
-	if (value != 12345) {
-		testingTErrorf(t, "feature abcd: got %" PRIu32 ", want 12345", value);
-		goto out;
-	}
-
-out:
-	uiFreeOpenTypeFeatures(otf);
+	if (!uiOpenTypeFeaturesGet(otf, 'a', 'b', 'c', 'd', &value))
+		testingTFatalf(t, "uiOpenTypeFeaturesGet() failed to get feature we added");
+	if (value != 12345)
+		testingTFatalf(t, "feature abcd: got %" PRIu32 ", want 12345", value);
 }
 
 int main(void)

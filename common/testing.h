@@ -94,6 +94,8 @@ extern void testingTFail(testingT *t);
 #define testingTFailNow(t) (testingprivTDoFailNow(t))
 #define testingTSkipNow(t) (testingprivTDoSkipNow(t))
 #endif
+// TODO should the defered function also have t passed to it?
+extern void testingTDefer(testingT *t, void (*f)(void *data), void *data);
 
 // TODO should __LINE__ arguments use intmax_t or uintmax_t instead of int?
 extern void testingprivRegisterTest(const char *, void (*)(testingT *));

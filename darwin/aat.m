@@ -1,9 +1,10 @@
 // 14 february 2017
 #import "uipriv_darwin.h"
+#import "attrstr.h"
 
 // TODO explain the purpose of this file
 
-static void boolspec(uint32_t value, uint16_t type, uint16_t ifTrue, uint16_t ifFalse, aatBlock f)
+static void boolspec(uint32_t value, uint16_t type, uint16_t ifTrue, uint16_t ifFalse, uiprivAATBlock f)
 {
 	// TODO are values other than 1 accepted for true by OpenType itself? (same for the rest of the file)
 	if (value != 0) {
@@ -13,8 +14,17 @@ static void boolspec(uint32_t value, uint16_t type, uint16_t ifTrue, uint16_t if
 	f(type, ifFalse);
 }
 
+// TODO remove the need for this
+// TODO remove x8tox32()
+#define x8tox32(x) ((uint32_t) (((uint8_t) (x)) & 0xFF))
+#define mkTag(a, b, c, d)		\
+	((x8tox32(a) << 24) |	\
+	(x8tox32(b) << 16) |		\
+	(x8tox32(c) << 8) |		\
+	x8tox32(d))
+
 // TODO double-check drawtext example to make sure all of these are used properly (I already screwed dlig up by putting clig twice instead)
-void openTypeToAAT(char a, char b, char c, char d, uint32_t value, aatBlock f)
+void uiprivOpenTypeToAAT(char a, char b, char c, char d, uint32_t value, uiprivAATBlock f)
 {
 	switch (mkTag(a, b, c, d)) {
 	case mkTag('l', 'i', 'g', 'a'):

@@ -53,7 +53,7 @@ static uiForEach otfArrayForEachAAT(const uiOpenTypeFeatures *otf, char a, char 
 
 	p.array = (CFMutableArrayRef) data;
 	p.tagIsNumber = YES;
-	openTypeToAAT(a, b, c, d, value, ^(uint16_t type, uint16_t selector) {
+	uiprivOpenTypeToAAT(a, b, c, d, value, ^(uint16_t type, uint16_t selector) {
 		p.tagKey = kCTFontFeatureTypeIdentifierKey;
 		p.tagType = kCFNumberSInt16Type;
 		p.tagValue = (const SInt16 *) (&type);

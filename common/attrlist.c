@@ -13,7 +13,7 @@ The linked list is not a ring; alist->fist->prev == NULL and alist->last->next =
 TODO verify that this disallows attributes of length zero
 */
 
-struct uiprivAttrList {
+struct attr {
 	uiAttribute *val;
 	size_t start;
 	size_t end;
@@ -21,7 +21,7 @@ struct uiprivAttrList {
 	struct attr *next;
 };
 
-uiprivAttrList {
+struct uiprivAttrList {
 	struct attr *first;
 	struct attr *last;
 };

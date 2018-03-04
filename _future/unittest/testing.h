@@ -101,6 +101,12 @@ extern void testingTFail(testingT *t);
 // TODO should the defered function also have t passed to it?
 extern void testingTDefer(testingT *t, void (*f)(void *data), void *data);
 
+// TODO IEEE 754 helpers
+// references:
+// - https://www.sourceware.org/ml/libc-alpha/2009-04/msg00005.html
+// - https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
+// - https://stackoverflow.com/questions/5085533/is-a-c-preprocessor-identical-to-a-c-preprocessor
+
 // TODO should __LINE__ arguments use intmax_t or uintmax_t instead of int?
 extern void testingprivRegisterTest(const char *, void (*)(testingT *));
 // see https://stackoverflow.com/questions/32399191/va-args-expansion-using-msvc

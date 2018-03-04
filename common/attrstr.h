@@ -19,3 +19,10 @@ extern void uiprivAttrListRemoveAttribute(uiprivAttrList *alist, uiAttribute typ
 extern void uiprivAttrListRemoveAttributes(uiprivAttrList *alist, size_t start, size_t end);
 extern void uiprivAttrListRemoveCharacters(uiprivAttrList *alist, size_t start, size_t end);
 extern void uiprivAttrListForEach(uiprivAttrList *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
+
+// attrstr.c
+extern const uint16_t *uiprivAttributedStringUTF16String(uiAttributedString *s);
+extern size_t uiprivAttributedStringUTF16Len(uiAttributedString *s);
+extern size_t uiprivAttributedStringUTF8ToUTF16(uiAttributedString *s, size_t n);
+extern size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(uiAttributedString *s, size_t *n);
+extern size_t *uiprivAttributedStringCopyUTF16ToUTF8Table(uiAttributedString *s, size_t *n);

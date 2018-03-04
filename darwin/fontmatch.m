@@ -1,6 +1,6 @@
 // 3 january 2017
 #import "uipriv_darwin.h"
-#import "fontstyle.h"
+#import "attrstr.h"
 
 // Core Text exposes font style info in two forms:
 // - Fonts with a QuickDraw GX font variation (fvar) table, a feature
@@ -26,7 +26,7 @@
 // because the descriptors returned by Core Text's own font
 // matching won't have any.
 
-@implementation fontStyleData
+@implementation uiprivFontStyleData
 
 - (id)initWithFont:(CTFontRef)f
 {
@@ -294,7 +294,7 @@ static const double *italicClosenesses[] = {
 
 // Core Text doesn't seem to differentiate between Italic and Oblique.
 // Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
-static uiDrawTextItalic guessItalicOblique(fontStyleData *d)
+static uiDrawTextItalic guessItalicOblique(uiprivFontStyleData *d)
 {
 	CFStringRef styleName;
 	BOOL isOblique;
@@ -318,20 +318,20 @@ static uiDrawTextItalic guessItalicOblique(fontStyleData *d)
 // However, Core Text does seem to guarantee (from experimentation; see below) that the slant will be nonzero if and only if the italic bit is set, so we don't need to use the slant value.
 // Core Text also seems to guarantee that if a font lists itself as Italic or Oblique by name (font subfamily name, font style name, whatever), it will also have that bit set, so testing this bit does cover all fonts that name themselves as Italic and Oblique. (Again, this is from the below experimentation.)
 // TODO there is still one catch that might matter from a user's POV: the reverse is not true — the italic bit can be set even if the style of the font face/subfamily/style isn't named as Italic (for example, script typefaces like Adobe's Palace Script MT Std); I don't know what to do about this... I know how to start: find a script font that has an italic form (Adobe's Palace Script MT Std does not; only Regular and Semibold)
-static void setItalic(fontStyleData *d, uiDrawFontDescriptor *out)
+static void setItalic(uiprivFontStyleData *d, uiDrawFontDescriptor *out)
 {
 	out->Italic = uiDrawTextItalicNormal;
 	if (([d symbolicTraits] & kCTFontItalicTrait) != 0)
 		out->Italic = guessItalicOblique(d);
 }
 
-static void fillDescStyleFields(fontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
+static void fillDescStyleFields(uiprivFontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
 {
 	setItalic(d, out);
 	if (axisDict != nil)
-		processFontVariation(d, axisDict, out);
+		uiprivProcessFontVariation(d, axisDict, out);
 	else
-		processFontTraits(d, out);
+		uiprivProcessFontTraits(d, out);
 }
 
 static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDescriptor *styles)
@@ -341,7 +341,7 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDes
 	struct closeness *closeness;
 	CTFontDescriptorRef current;
 	CTFontDescriptorRef out;
-	fontStyleData *d;
+	uiprivFontStyleData *d;
 	NSDictionary *axisDict;
 
 	matching = CTFontDescriptorCreateMatchingFontDescriptors(against, NULL);
@@ -356,10 +356,10 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDes
 	}
 
 	current = (CTFontDescriptorRef) CFArrayGetValueAtIndex(matching, 0);
-	d = [[fontStyleData alloc] initWithDescriptor:current];
+	d = [[uiprivFontStyleData alloc] initWithDescriptor:current];
 	axisDict = nil;
 	if ([d variation] != NULL)
-		axisDict = mkVariationAxisDict([d variationAxes], [d table:kCTFontTableAvar]);
+		axisDict = uiprivMakeVariationAxisDict([d variationAxes], [d table:kCTFontTableAvar]);
 
 	closeness = (struct closeness *) uiAlloc(n * sizeof (struct closeness), "struct closeness[]");
 	for (i = 0; i < n; i++) {
@@ -368,7 +368,7 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDes
 		closeness[i].index = i;
 		if (i != 0) {
 			current = (CTFontDescriptorRef) CFArrayGetValueAtIndex(matching, i);
-			d = [[fontStyleData alloc] initWithDescriptor:current];
+			d = [[uiprivFontStyleData alloc] initWithDescriptor:current];
 		}
 		fillDescStyleFields(d, axisDict, &fields);
 		closeness[i].weight = fields.Weight - styles->Weight;
@@ -413,7 +413,7 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDes
 	return out;
 }
 
-CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
+CTFontDescriptorRef uiprivDrawFontDescriptorToCTFontDescriptor(uiDrawFontDescriptor *fd)
 {
 	CFMutableDictionaryRef attrs;
 	CFStringRef cffamily;
@@ -443,7 +443,7 @@ CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd)
 }
 
 // fortunately features that aren't supported are simply ignored, so we can copy them all in
-CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uiOpenTypeFeatures *otf)
+CTFontDescriptorRef uiprivCTFontDescriptorAppendFeatures(CTFontDescriptorRef desc, const uiOpenTypeFeatures *otf)
 {
 	CTFontDescriptorRef new;
 	CFArrayRef featuresArray;
@@ -465,10 +465,10 @@ CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uiOpe
 	return new;
 }
 
-void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescriptor *uidesc)
+void uiprivDrawFontDescriptorFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescriptor *uidesc)
 {
 	CFStringRef cffamily;
-	fontStyleData *d;
+	uiprivFontStyleData *d;
 	NSDictionary *axisDict;
 
 	cffamily = (CFStringRef) CTFontDescriptorCopyAttribute(ctdesc, kCTFontFamilyNameAttribute);
@@ -479,10 +479,10 @@ void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescript
 	uidesc->Family = uiDarwinNSStringToText((NSString *) cffamily);
 	CFRelease(cffamily);
 
-	d = [[fontStyleData alloc] initWithDescriptor:ctdesc];
+	d = [[uiprivFontStyleData alloc] initWithDescriptor:ctdesc];
 	axisDict = nil;
 	if ([d variation] != NULL)
-		axisDict = mkVariationAxisDict([d variationAxes], [d table:kCTFontTableAvar]);
+		axisDict = uiprivMakeVariationAxisDict([d variationAxes], [d table:kCTFontTableAvar]);
 	fillDescStyleFields(d, axisDict, uidesc);
 	if (axisDict != nil)
 		[axisDict release];

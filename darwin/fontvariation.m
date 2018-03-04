@@ -1,6 +1,6 @@
 // 2 november 2017
 #import "uipriv_darwin.h"
-#import "fontstyle.h"
+#import "attrstr.h"
 
 // This is the part of the font style matching and normalization code
 // that handles fonts that use the fvar table.
@@ -205,6 +205,7 @@ static BOOL extractAxisDictValue(CFDictionaryRef dict, CFStringRef key, fixed161
 	return YES;
 }
 
+// TODO here and elsewhere: make sure all Objective-C classes and possibly also custom method names have uipriv prefixes
 @interface fvarAxis : NSObject {
 	fixed1616 min;
 	fixed1616 max;
@@ -262,7 +263,7 @@ fail:
 
 @end
 
-NSDictionary *mkVariationAxisDict(CFArrayRef axes, CFDataRef avarTable)
+NSDictionary *uiprivMakeVariationAxisDict(CFArrayRef axes, CFDataRef avarTable)
 {
 	CFDictionaryRef axis;
 	CFIndex i, n;
@@ -304,7 +305,7 @@ static BOOL tryAxis(NSDictionary *axisDict, CFDictionaryRef var, NSNumber *key, 
 	return YES;
 }
 
-void processFontVariation(fontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
+void uiprivProcessFontVariation(uiprivFontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
 {
 	CFDictionaryRef var;
 	double v;

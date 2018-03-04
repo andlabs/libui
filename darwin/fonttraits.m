@@ -1,6 +1,6 @@
 // 1 november 2017
 #import "uipriv_darwin.h"
-#import "fontstyle.h"
+#import "attrstr.h"
 
 // This is the part of the font style matching and normalization code
 // that handles fonts that use a traits dictionary.
@@ -19,7 +19,7 @@
 // what. We'll just convert Core Text's values into libui constants
 // and use those for matching.
 
-static BOOL fontRegistered(fontStyleData *d)
+static BOOL fontRegistered(uiprivFontStyleData *d)
 {
 	if (![d hasRegistrationScope])
 		// header says this should be treated as the same as not registered
@@ -54,7 +54,7 @@ static const CFStringRef exceptions[] = {
 	NULL,
 };
 
-static void trySecondaryOS2Values(fontStyleData *d, uiDrawFontDescriptor *out, BOOL *hasWeight, BOOL *hasWidth)
+static void trySecondaryOS2Values(uiprivFontStyleData *d, uiDrawFontDescriptor *out, BOOL *hasWeight, BOOL *hasWidth)
 {
 	CFDataRef os2;
 	uint16_t usWeightClass, usWidthClass;
@@ -125,7 +125,7 @@ static BOOL testTTFOTFSubfamilyName(CFStringRef name, CFStringRef want)
 		(kCFCompareCaseInsensitive | kCFCompareBackwards | kCFCompareNonliteral), NULL) != false;
 }
 
-static BOOL testTTFOTFSubfamilyNames(fontStyleData *d, CFStringRef want)
+static BOOL testTTFOTFSubfamilyNames(uiprivFontStyleData *d, CFStringRef want)
 {
 	switch ([d fontFormat]) {
 	case kCTFontFormatOpenTypePostScript:
@@ -148,18 +148,18 @@ static BOOL testTTFOTFSubfamilyNames(fontStyleData *d, CFStringRef want)
 }
 
 // work around a bug in libFontRegistry.dylib
-static BOOL shouldReallyBeThin(fontStyleData *d)
+static BOOL shouldReallyBeThin(uiprivFontStyleData *d)
 {
 	return testTTFOTFSubfamilyNames(d, CFSTR("W1"));
 }
 
 // work around a bug in libFontRegistry.dylib
-static BOOL shouldReallyBeSemiCondensed(fontStyleData *d)
+static BOOL shouldReallyBeSemiCondensed(uiprivFontStyleData *d)
 {
 	return testTTFOTFSubfamilyNames(d, CFSTR("Semi Condensed"));
 }
 
-void processFontTraits(fontStyleData *d, uiDrawFontDescriptor *out)
+void uiprivProcessFontTraits(uiprivFontStyleData *d, uiDrawFontDescriptor *out)
 {
 	double weight, width;
 	BOOL hasWeight, hasWidth;

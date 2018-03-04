@@ -18,24 +18,24 @@ struct uiAttributedString {
 	size_t *u16tou8;
 
 	// this is lazily created to keep things from getting *too* slow
-	uiprivGraphemes *graphemes;
+	struct graphemes *graphemes;
 };
 
 static void resize(uiAttributedString *s, size_t u8, size_t u16)
 {
 	s->len = u8;
-	s->s = (char *) uiRealloc(s->s, (s->len + 1) * sizeof (char), "char[] (uiAttributedString)");
-	s->u8tou16 = (size_t *) uiRealloc(s->u8tou16, (s->len + 1) * sizeof (size_t), "size_t[] (uiAttributedString)");
+	s->s = (char *) uiprivRealloc(s->s, (s->len + 1) * sizeof (char), "char[] (uiAttributedString)");
+	s->u8tou16 = (size_t *) uiprivRealloc(s->u8tou16, (s->len + 1) * sizeof (size_t), "size_t[] (uiAttributedString)");
 	s->u16len = u16;
-	s->u16 = (uint16_t *) uiRealloc(s->u16, (s->u16len + 1) * sizeof (uint16_t), "uint16_t[] (uiAttributedString)");
-	s->u16tou8 = (size_t *) uiRealloc(s->u16tou8, (s->u16len + 1) * sizeof (size_t), "size_t[] (uiAttributedString)");
+	s->u16 = (uint16_t *) uiprivRealloc(s->u16, (s->u16len + 1) * sizeof (uint16_t), "uint16_t[] (uiAttributedString)");
+	s->u16tou8 = (size_t *) uiprivRealloc(s->u16tou8, (s->u16len + 1) * sizeof (size_t), "size_t[] (uiAttributedString)");
 }
 
 uiAttributedString *uiNewAttributedString(const char *initialString)
 {
 	uiAttributedString *s;
 
-	s = uiNew(uiAttributedString);
+	s = uiprivNew(uiAttributedString);
 	s->attrs = uiprivNewAttrList();
 	uiAttributedStringAppendUnattributed(s, initialString);
 	return s;
@@ -57,9 +57,9 @@ static void invalidateGraphemes(uiAttributedString *s)
 {
 	if (s->graphemes == NULL)
 		return;
-	uiFree(s->graphemes->pointsToGraphemes);
-	uiFree(s->graphemes->graphemesToPoints);
-	uiFree(s->graphemes);
+	uiprivFree(s->graphemes->pointsToGraphemes);
+	uiprivFree(s->graphemes->graphemesToPoints);
+	uiprivFree(s->graphemes);
 	s->graphemes = NULL;
 }
 
@@ -67,11 +67,11 @@ void uiFreeAttributedString(uiAttributedString *s)
 {
 	uiprivFreeAttrList(s->attrs);
 	invalidateGraphemes(s);
-	uiFree(s->u16tou8);
-	uiFree(s->u8tou16);
-	uiFree(s->u16);
-	uiFree(s->s);
-	uiFree(s);
+	uiprivFree(s->u16tou8);
+	uiprivFree(s->u8tou16);
+	uiprivFree(s->u16);
+	uiprivFree(s->s);
+	uiprivFree(s);
 }
 
 const char *uiAttributedStringString(const uiAttributedString *s)
@@ -106,7 +106,7 @@ void uiAttributedStringAppendUnattributed(uiAttributedString *s, const char *str
 	uiAttributedStringInsertAtUnattributed(s, str, s->len);
 }
 
-// this works (and returns true, which is what we want) at s->len too because s->s[s->len] is always going to be 0 due to us allocating s->len + 1 bytes and because uiRealloc() always zero-fills allocated memory
+// this works (and returns true, which is what we want) at s->len too because s->s[s->len] is always going to be 0 due to us allocating s->len + 1 bytes and because uiprivRealloc() always zero-fills allocated memory
 static int onCodepointBoundary(uiAttributedString *s, size_t at)
 {
 	uint8_t c;
@@ -339,7 +339,7 @@ size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(uiAttributedString *s, size_t
 
 	nbytes = (s->len + 1) * sizeof (size_t);
 	*n = s->len;
-	out = (size_t *) uiAlloc(nbytes, "size_t[] (uiAttributedString)");
+	out = (size_t *) uiprivAlloc(nbytes, "size_t[] (uiAttributedString)");
 	memmove(out, s->u8tou16, nbytes);
 	return out;
 }
@@ -351,7 +351,7 @@ size_t *uiprivAttributedStringCopyUTF16ToUTF8Table(uiAttributedString *s, size_t
 
 	nbytes = (s->u16len + 1) * sizeof (size_t);
 	*n = s->u16len;
-	out = (size_t *) uiAlloc(nbytes, "size_t[] (uiAttributedString)");
+	out = (size_t *) uiprivAlloc(nbytes, "size_t[] (uiAttributedString)");
 	memmove(out, s->u16tou8, nbytes);
 	return out;
 }

@@ -1,12 +1,4 @@
 
-// for attrstr.c
-struct graphemes {
-	size_t len;
-	size_t *pointsToGraphemes;
-	size_t *graphemesToPoints;
-};
-extern int graphemesTakesUTF16(void);
-extern struct graphemes *graphemes(void *s, size_t len);
 
 // TODO split these into a separate header file?
 

@@ -26,3 +26,12 @@ extern size_t uiprivAttributedStringUTF16Len(uiAttributedString *s);
 extern size_t uiprivAttributedStringUTF8ToUTF16(uiAttributedString *s, size_t n);
 extern size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(uiAttributedString *s, size_t *n);
 extern size_t *uiprivAttributedStringCopyUTF16ToUTF8Table(uiAttributedString *s, size_t *n);
+
+// per-OS graphemes.c/graphemes.cpp/graphemes.m/etc.
+struct graphemes {
+	size_t len;
+	size_t *pointsToGraphemes;
+	size_t *graphemesToPoints;
+};
+extern int uiprivGraphemesTakesUTF16(void);
+extern struct graphemes *uiprivNewGraphemes(void *s, size_t len);

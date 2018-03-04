@@ -38,6 +38,7 @@ static uiAttribute *newAttribute(uiAttributeType type)
 }
 
 // returns a to allow expressions like b = uiprivAttributeRetain(a)
+// TODO would this allow us to copy attributes between strings in a foreach func, and if so, should that be allowed?
 uiAttribute *uiprivAttributeRetain(uiAttribute *a)
 {
 	a->ownedByUser = 0;

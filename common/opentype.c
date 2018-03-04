@@ -1,6 +1,7 @@
 // 25 february 2018
-//TODO#include "uipriv.h"
-//TODO#include "attrstr.h"
+#include "../ui.h"
+#include "uipriv.h"
+#include "attrstr.h"
 
 struct feature {
 	char a;

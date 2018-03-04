@@ -17,19 +17,6 @@ extern size_t attrstrUTF8ToUTF16(uiAttributedString *s, size_t n);
 extern size_t *attrstrCopyUTF8ToUTF16(uiAttributedString *s, size_t *n);
 extern size_t *attrstrCopyUTF16ToUTF8(uiAttributedString *s, size_t *n);
 
-// attrlist.c
-struct attrlist;
-extern void attrlistInsertAttribute(struct attrlist *alist, uiAttributeSpec *spec, size_t start, size_t end);
-extern void attrlistInsertCharactersUnattributed(struct attrlist *alist, size_t start, size_t count);
-extern void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t count);
-extern void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end);
-extern void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end);
-extern void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end);
-extern void attrlistForEach(struct attrlist *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
-// TODO move these to the top like everythng else
-extern struct attrlist *attrlistNew(void);
-extern void attrlistFree(struct attrlist *alist);
-
 // drawtext.c
 struct caretDrawParams {
 	double r;

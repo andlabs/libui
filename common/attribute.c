@@ -1,8 +1,11 @@
 // 19 february 2018
+#include "../ui.h"
 #include "uipriv.h"
 #include "attrstr.h"
 
 struct uiAttribute {
+	int owned;
+	size_t refcount;
 	uiAttributeType type;
 	union {
 		const char *family;
@@ -28,11 +31,21 @@ static uiAttribute *newAttribute(uiAttributeType type)
 	uiAttribute *a;
 
 	a = uiprivNew(uiAttribute);
+	a->ownedByUser = 1;
+	a->refcount = 0;
 	a->type = type;
 	return a;
 }
 
-void uiFreeAttribute(uiAttribute *a)
+// returns a to allow expressions like b = uiprivAttributeRetain(a)
+uiAttribute *uiprivAttributeRetain(uiAttribute *a)
+{
+	a->ownedByUser = 0;
+	a->refcount++;
+	return a;
+}
+
+static void destroy(uiAttribute *a)
 {
 	switch (a->type) {
 	case uiAttributeTypeFamily:
@@ -43,6 +56,22 @@ void uiFreeAttribute(uiAttribute *a)
 		break;
 	}
 	uiprivFree(a);
+}
+
+void uiprivAttributeRelease(uiAttribute *a)
+{
+	if (a->ownedByUser)
+		/* TODO implementation bug: we can't release an attribute we don't own */;
+	a->refcount--;
+	if (a->refcount == 0)
+		destroy(a);
+}
+
+void uiFreeAttribute(uiAttribute *a)
+{
+	if (!a->ownedByUser)
+		/* TODO user bug: you can't free an attribute you don't own */;
+	destroy(a);
 }
 
 uiAttributeType uiAttributeGetType(const uiAttribute *a)

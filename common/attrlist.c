@@ -1,6 +1,7 @@
 // 16 december 2016
 #include "../ui.h"
 #include "uipriv.h"
+#include "attrstr.h"
 
 /*
 An attribute list is a doubly linked list of attributes.
@@ -12,62 +13,21 @@ The linked list is not a ring; alist->fist->prev == NULL and alist->last->next =
 TODO verify that this disallows attributes of length zero
 */
 
-struct attr {
-	uiAttributeSpec spec;
+struct uiprivAttrList {
+	uiAttribute *val;
 	size_t start;
 	size_t end;
 	struct attr *prev;
 	struct attr *next;
 };
 
-struct attrlist {
+uiprivAttrList {
 	struct attr *first;
 	struct attr *last;
 };
 
-// We need to make local copies of any pointers in uiAttributeSpec.
-// If we don't do this, we'll wind up leaking stuff, or worse, prematurely freeing stuff.
-// TODO ensure this is docmented
-static void attrSetSpec(struct attr *a, uiAttributeSpec *spec)
-{
-	const char *family;
-	char *familyCopy;
-
-	a->spec = *spec;
-	switch (a->spec.Type) {
-	case uiAttributeFamily:
-		// TODO UTF-8 validate this?
-		family = a->spec.Family;
-		familyCopy = (char *) uiAlloc((strlen(family) + 1) * sizeof (char), "char[] (uiAttributeSpec.Family copy)");
-		strcpy(familyCopy, family);
-		a->spec.Family = familyCopy;
-		break;
-	case uiAttributeFeatures:
-		a->spec.Features = uiOpenTypeFeaturesClone(a->spec.Features);
-		break;
-	}
-}
-
-static void attrCopySpec(struct attr *dest, struct attr *src)
-{
-	attrSetSpec(dest, &(src->spec));
-}
-
-// Likewise, this is needed to clean up a spec with a pointer when finished.
-static void attrClearSpec(struct attr *a)
-{
-	switch (a->spec.Type) {
-	case uiAttributeFamily:
-		uiFree((char *) (a->spec.Family));
-		break;
-	case uiAttributeFeatures:
-		uiFreeOpenTypeFeatures((uiOpenTypeFeatures *) (a->spec.Features));
-		break;
-	}
-}
-
 // if before is NULL, add to the end of the list
-static void attrInsertBefore(struct attrlist *alist, struct attr *a, struct attr *before)
+static void attrInsertBefore(uiprivAttrList *alist, struct attr *a, struct attr *before)
 {
 	// if the list is empty, this is the first item
 	if (alist->first == NULL) {
@@ -131,7 +91,7 @@ static int attrRangeIntersect(struct attr *a, size_t *start, size_t *end)
 }
 
 // returns the old a->next, for forward iteration
-static struct attr *attrUnlink(struct attrlist *alist, struct attr *a)
+static struct attr *attrUnlink(uiprivAttrList *alist, struct attr *a)
 {
 	struct attr *p, *n;
 
@@ -165,13 +125,13 @@ static struct attr *attrUnlink(struct attrlist *alist, struct attr *a)
 }
 
 // returns the old a->next, for forward iteration
-static struct attr *attrDelete(struct attrlist *alist, struct attr *a)
+static struct attr *attrDelete(uiprivAttrList *alist, struct attr *a)
 {
 	struct attr *next;
 
 	next = attrUnlink(alist, a);
-	attrClearSpec(a);
-	uiFree(a);
+	uiprivAttributeRelease(a->val);
+	uiprivFree(a);
 	return next;
 }
 
@@ -188,7 +148,7 @@ static struct attr *attrDelete(struct attrlist *alist, struct attr *a)
 // Otherwise, the attribute needs to be split. The existing attribute is adjusted to make the left half and a new attribute with the right half. This attribute is kept unlinked and returned in tail.
 // 
 // In all cases, the return value is the next attribute to look at in a forward sequential loop.
-static struct attr *attrDropRange(struct attrlist *alist, struct attr *a, size_t start, size_t end, struct attr **tail)
+static struct attr *attrDropRange(uiprivAttrList *alist, struct attr *a, size_t start, size_t end, struct attr **tail)
 {
 	struct attr *b;
 
@@ -219,8 +179,8 @@ static struct attr *attrDropRange(struct attrlist *alist, struct attr *a, size_t
 	}
 
 	// we'll need to split the attribute into two
-	b = uiNew(struct attr);
-	attrCopySpec(b, a);
+	b = uiprivNew(struct attr);
+	b->val = uiprivAttributeRetain(a->val);
 	b->start = end;
 	b->end = a->end;
 	*tail = b;
@@ -229,7 +189,7 @@ static struct attr *attrDropRange(struct attrlist *alist, struct attr *a, size_t
 	return a->next;
 }
 
-static void attrGrow(struct attrlist *alist, struct attr *a, size_t start, size_t end)
+static void attrGrow(uiprivAttrList *alist, struct attr *a, size_t start, size_t end)
 {
 	struct attr *before;
 
@@ -251,7 +211,7 @@ static void attrGrow(struct attrlist *alist, struct attr *a, size_t start, size_
 }
 
 // returns the right side of the split, which is unlinked, or NULL if no split was done
-static struct attr *attrSplitAt(struct attrlist *alist, struct attr *a, size_t at)
+static struct attr *attrSplitAt(uiprivAttrList *alist, struct attr *a, size_t at)
 {
 	struct attr *b;
 
@@ -263,8 +223,8 @@ static struct attr *attrSplitAt(struct attrlist *alist, struct attr *a, size_t a
 	if (at >= a->end)
 		return NULL;
 
-	b = uiNew(struct attr);
-	attrCopySpec(b, a);
+	b = uiprivNew(struct attr);
+	b->val = uiprivAttributeRetain(a->val);
 	b->start = at;
 	b->end = a->end;
 
@@ -282,7 +242,7 @@ static struct attr *attrSplitAt(struct attrlist *alist, struct attr *a, size_t a
 // 
 // In all cases, the return value is the next attribute to look at in a forward sequential loop.
 // TODO rewrite this comment
-static struct attr *attrDeleteRange(struct attrlist *alist, struct attr *a, size_t start, size_t end)
+static struct attr *attrDeleteRange(uiprivAttrList *alist, struct attr *a, size_t start, size_t end)
 {
 	size_t ostart, oend;
 	size_t count;
@@ -327,48 +287,37 @@ static struct attr *attrDeleteRange(struct attrlist *alist, struct attr *a, size
 	return a->next;
 }
 
-static int specsIdentical(struct attr *attr, uiAttributeSpec *spec)
+uiprivAttrList *uiprivNewAttrList(void)
 {
-	if (attr->spec.Type != spec->Type)
-		return 0;
-	switch (attr->spec.Type) {
-	case uiAttributeFamily:
-		// TODO should this be case-insensitive?
-		return strcmp(attr->spec.Family, spec->Family) == 0;
-	case uiAttributeSize:
-		// TODO use a closest match?
-		return attr->spec.Double == spec->Double;
-	case uiAttributeUnderlineColor:
-		if (attr->spec.Value != spec->Value)
-			return 0;
-		if (attr->spec.Value != uiDrawUnderlineColorCustom)
-			return 1;
-		// otherwise fall through
-	case uiAttributeColor:
-	case uiAttributeBackground:
-		// TODO use a closest match?
-		return attr->spec.R == spec->R &&
-			attr->spec.G == spec->G &&
-			attr->spec.B == spec->B &&
-			attr->spec.A == spec->A;
-	case uiAttributeFeatures:
-		// TODO rename it to uiAttributeOpenTypeFeatures?
-		return uiOpenTypeFeaturesEqual(attr->spec.Features, spec->Features);
-	}
-	// handles the rest
-	return attr->spec.Value == spec->Value;
+	return uiprivNew(uiprivAttrList);
 }
 
-void attrlistInsertAttribute(struct attrlist *alist, uiAttributeSpec *spec, size_t start, size_t end)
+void uiprivFreeAttrList(uiprivAttrList *alist)
+{
+	struct attr *a, *next;
+
+	a = alist->first;
+	while (a != NULL) {
+		next = a->next;
+		uiprivAttributeRelease(a->val);
+		uiprivFree(a);
+		a = next;
+	}
+	uiprivFree(alist);
+}
+
+void uiprivAttrListInsertAttribute(uiprivAttrList *alist, uiAttribute *val, size_t start, size_t end)
 {
 	struct attr *a;
 	struct attr *before;
 	struct attr *tail = NULL;
 	int split = 0;
+	uiAttributeType valtype;
 
 	// first, figure out where in the list this should go
 	// in addition, if this attribute overrides one that already exists, split that one apart so this one can take over
 	before = alist->first;
+	valtype = uiAttributeGetType(val);
 	while (before != NULL) {
 		size_t lstart, lend;
 
@@ -380,8 +329,8 @@ void attrlistInsertAttribute(struct attrlist *alist, uiAttributeSpec *spec, size
 		if (split)
 			goto next;
 
-		// should we split this?
-		if (before->spec.Type != spec->Type)
+		// should we split this attribute?
+		if (uiAttributeGetType(before->val) != valtype)
 			goto next;
 		lstart = start;
 		lend = end;
@@ -390,7 +339,7 @@ void attrlistInsertAttribute(struct attrlist *alist, uiAttributeSpec *spec, size
 
 		// okay so this might conflict; if the val is the same as the one we want, we need to expand the existing attribute, not fragment anything
 		// TODO will this reduce fragmentation if we first add from 0 to 2 and then from 2 to 4? or do we have to do that separately?
-		if (specsIdentical(before, spec)) {
+		if (uiprivAttributeEqual(before->val, val)) {
 			attrGrow(alist, before, start, end);
 			return;
 		}
@@ -404,8 +353,8 @@ void attrlistInsertAttribute(struct attrlist *alist, uiAttributeSpec *spec, size
 	}
 
 	// if we got here, we know we have to add the attribute before before
-	a = uiNew(struct attr);
-	attrSetSpec(a, spec);
+	a = uiprivNew(struct attr);
+	a->val = uiprivAttributeRetain(val);
 	a->start = start;
 	a->end = end;
 	attrInsertBefore(alist, a, before);
@@ -420,7 +369,7 @@ void attrlistInsertAttribute(struct attrlist *alist, uiAttributeSpec *spec, size
 	attrInsertBefore(alist, tail, before);
 }
 
-void attrlistInsertCharactersUnattributed(struct attrlist *alist, size_t start, size_t count)
+void uiprivAttrListInsertCharactersUnattributed(uiprivAttrList *alist, size_t start, size_t count)
 {
 	struct attr *a;
 	struct attr *tails = NULL;
@@ -533,7 +482,7 @@ which results in our algorithm:
 			move end up
 */
 // TODO does this ensure the list remains sorted?
-void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t count)
+void uiprivAttrListInsertCharactersExtendingAttributes(uiprivAttrList *alist, size_t start, size_t count)
 {
 	struct attr *a;
 
@@ -549,10 +498,10 @@ void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t 
 
 // TODO replace at point with — replaces with first character's attributes
 
-void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end)
+void uiprivAttrListRemoveAttribute(uiprivAttrList *alist, uiAttributeType type, size_t start, size_t end)
 {
 	struct attr *a;
-	struct attr *tails = NULL;		// see attrlistInsertCharactersUnattributed() above
+	struct attr *tails = NULL;		// see uiprivAttrListInsertCharactersUnattributed() above
 	struct attr *tailsAt = NULL;
 
 	a = alist->first;
@@ -567,7 +516,7 @@ void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t st
 			// and at this point we're done, so
 			break;
 		}
-		if (a->spec.Type != type)
+		if (uiAttributeGetType(a->val) != type)
 			goto next;
 		lstart = start;
 		lend = end;
@@ -596,10 +545,10 @@ void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t st
 }
 
 // TODO merge this with the above
-void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end)
+void uiprivAttrListRemoveAttributes(uiprivAttrList *alist, size_t start, size_t end)
 {
 	struct attr *a;
-	struct attr *tails = NULL;		// see attrlistInsertCharactersUnattributed() above
+	struct attr *tails = NULL;		// see uiprivAttrListInsertCharactersUnattributed() above
 	struct attr *tailsAt = NULL;
 
 	a = alist->first;
@@ -640,7 +589,7 @@ void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end)
 	}
 }
 
-void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end)
+void uiprivAttrListRemoveCharacters(uiprivAttrList *alist, size_t start, size_t end)
 {
 	struct attr *a;
 
@@ -649,34 +598,15 @@ void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end)
 		a = attrDeleteRange(alist, a, start, end);
 }
 
-void attrlistForEach(struct attrlist *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
+void uiprivAttrListForEach(uiprivAttrList *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
 {
 	struct attr *a;
 	uiForEach ret;
 
 	for (a = alist->first; a != NULL; a = a->next) {
-		ret = (*f)(s, &(a->spec), a->start, a->end, data);
+		ret = (*f)(s, a->val, a->start, a->end, data);
 		if (ret == uiForEachStop)
 			// TODO for all: break or return?
 			break;
 	}
-}
-
-struct attrlist *attrlistNew(void)
-{
-	return uiNew(struct attrlist);
-}
-
-void attrlistFree(struct attrlist *alist)
-{
-	struct attr *a, *next;
-
-	a = alist->first;
-	while (a != NULL) {
-		next = a->next;
-		attrClearSpec(a);
-		uiFree(a);
-		a = next;
-	}
-	uiFree(alist);
 }

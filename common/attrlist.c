@@ -598,7 +598,7 @@ void uiprivAttrListRemoveCharacters(uiprivAttrList *alist, size_t start, size_t 
 		a = attrDeleteRange(alist, a, start, end);
 }
 
-void uiprivAttrListForEach(uiprivAttrList *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
+void uiprivAttrListForEach(const uiprivAttrList *alist, const uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
 {
 	struct attr *a;
 	uiForEach ret;

@@ -43,6 +43,10 @@ extern "C" {
 	static inline void testingprivScaffold ## name(testingT *t) { name(t); }
 #endif
 
+// references:
+// - https://gitlab.gnome.org/GNOME/glib/blob/master/glib/gconstructor.h
+// - https://gitlab.gnome.org/GNOME/glib/blob/master/gio/glib-compile-resources.c
+// - https://msdn.microsoft.com/en-us/library/bb918180.aspx
 #if defined(__cplusplus)
 #define testingprivMkCtor(name, reg) \
 	static reg ## Class testingprivCtor ## name(#name, testingprivScaffold ## name);

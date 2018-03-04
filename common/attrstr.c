@@ -279,6 +279,17 @@ void uiAttributedStringDelete(uiAttributedString *s, size_t start, size_t end)
 	resize(s, start + count, start16 + count16);
 }
 
+void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end)
+{
+	uiprivAttrListInsertAttribute(s->attrs, spec, start, end);
+}
+
+// LONGTERM introduce an iterator object instead?
+void uiAttributedStringForEachAttribute(const uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
+{
+	uiprivAttrListForEach(s->attrs, s, f, data);
+}
+
 // TODO figure out if we should count the grapheme past the end
 size_t uiAttributedStringNumGraphemes(uiAttributedString *s)
 {
@@ -301,17 +312,6 @@ size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos)
 	if (uiprivGraphemesTakesUTF16())
 		pos = s->u16tou8[pos];
 	return pos;
-}
-
-void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end)
-{
-	uiprivAttrListInsertAttribute(s->attrs, spec, start, end);
-}
-
-// LONGTERM introduce an iterator object instead?
-void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
-{
-	uiprivAttrListForEach(s->attrs, s, f, data);
 }
 
 // helpers for platform-specific code

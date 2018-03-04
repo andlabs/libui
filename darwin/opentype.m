@@ -1,5 +1,6 @@
 // 11 may 2017
 #import "uipriv_darwin.h"
+#import "attrstr.h"
 
 struct addCTFeatureEntryParams {
 	CFMutableArrayRef array;

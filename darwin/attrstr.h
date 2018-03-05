@@ -70,3 +70,9 @@ extern void uiprivProcessFontTraits(uiprivFontStyleData *d, uiDrawFontDescriptor
 // fontvariation.m
 extern NSDictionary *uiprivMakeVariationAxisDict(CFArrayRef axes, CFDataRef avarTable);
 extern void uiprivProcessFontVariation(uiprivFontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out);
+
+// attrstr.m
+extern void uiprivInitUnderlineColors(void);
+extern void uiprivUninitUnderlineColors(void);
+typedef void (^backgroundBlock)(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y);
+extern CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks);

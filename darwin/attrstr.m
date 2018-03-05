@@ -85,16 +85,32 @@ enum {
 };
 
 static const int toc[] = {
-	[uiAttributeFamily] = cFamily,
-	[uiAttributeSize] = cSize,
-	[uiAttributeWeight] = cWeight,
-	[uiAttributeItalic] = cItalic,
-	[uiAttributeStretch] = cStretch,
-	[uiAttributeFeatures] = cFeatures,
+	[uiAttributeTypeFamily] = cFamily,
+	[uiAttributeTypeSize] = cSize,
+	[uiAttributeTypeWeight] = cWeight,
+	[uiAttributeTypeItalic] = cItalic,
+	[uiAttributeTypeStretch] = cStretch,
+	[uiAttributeTypeFeatures] = cFeatures,
 };
+
+static uiForEach featuresHash(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data)
+{
+	NSUInteger *hash = (NSUInteger *) data;
+	uint32_t tag;
+
+	tag = (((uint32_t) a) & 0xFF) << 24;
+	tag |= (((uint32_t) b) & 0xFF) << 16;
+	tag |= (((uint32_t) c) & 0xFF) << 8;
+	tag |= ((uint32_t) d) & 0xFF;
+	*hash ^= tag;
+	*hash ^= value;
+	return uiForEachContinue;
+}
 
 @interface uiprivCombinedFontAttr : NSObject<NSCopying> {
 	uiAttribute *attrs[nc];
+	BOOL hasHash;
+	NSUInteger hash;
 }
 - (void)setAttribute:(uiAttribute *)attr;
 - (CTFontRef)toCTFontWithDefaultFont:(uiDrawFontDescriptor *)defaultFont;
@@ -105,8 +121,10 @@ static const int toc[] = {
 - (id)init
 {
 	self = [super init];
-	if (self)
+	if (self) {
 		memset(self->attrs, 0, nc * sizeof (uiAttribute *));
+		self->hasHash = NO;
+	}
 	return self;
 }
 
@@ -131,6 +149,8 @@ static const int toc[] = {
 	for (i = 0; i < nc; i++)
 		if (self->attrs[i] != NULL)
 			ret->attrs[i] = uiprivAttributeRetain(self->attrs[i]);
+	ret->hasHash = self->hasHash;
+	ret->hash = self->hash;
 	return ret;
 }
 
@@ -142,6 +162,7 @@ static const int toc[] = {
 	if (self->attrs[index] != NULL)
 		uiprivAttributeRelease(self->attrs[index]);
 	self->attrs[index] = uiprivAttributeRetain(attr);
+	self->hasHash = NO;
 }
 
 - (BOOL)isEqual:(id)bb
@@ -164,8 +185,33 @@ static const int toc[] = {
 
 - (NSUInteger)hash
 {
-	// TODO implement this somehow; not quite sure how...
-	return [super hash];
+	if (self->hasHash)
+		return self->hash;
+	@autoreleasepool {
+		NSString *family;
+		NSNumber *size;
+
+		self->hash = 0;
+		if (self->attrs[cFamily] != NULL) {
+			family = [NSString stringWithUTF8String:uiAttributeFamily(self->attrs[cFamily])];
+			// TODO make sure this aligns with case-insensitive compares when those are done in common/attribute.c
+			self->hash ^= [[family uppercaseString] hash];
+		}
+		if (self->attrs[cSize] != NULL) {
+			size = [NSNumber numberWithDouble:uiAttributeSize(self->attrs[cSize])];
+			self->hash ^= [size hash];
+		}
+		if (self->attrs[cWeight] != NULL)
+			self->hash ^= (NSUInteger) uiAttributeWeight(self->attrs[cWeight]);
+		if (self->attrs[cItalic] != NULL)
+			self->hash ^= (NSUInteger) uiAttributeItalic(self->attrs[cItalic]);
+		if (self->attrs[cStretch] != NULL)
+			self->hash ^= (NSUInteger) uiAttributeStretch(self->attrs[cStretch]);
+		if (self->attrs[cFeatures] != NULL)
+			uiOpenTypeFeaturesForEach(uiAttributeFeatures(self->attrs[cFeatures]), featuresHash, &(self->hash));
+		self->hasHash = YES;
+	}
+	return self->hash;
 }
 
 - (CTFontRef)toCTFontWithDefaultFont:(uiDrawFontDescriptor *)defaultFont

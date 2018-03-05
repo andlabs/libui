@@ -26,7 +26,7 @@ static BOOL stepsIsRunning;
 {
 	if (colorButtonInhibitSendAction(sel, from, to))
 		return NO;
-	if (fontButtonInhibitSendAction(sel, from, to))
+	if (uiprivFontButtonInhibitSendAction(sel, from, to))
 		return NO;
 	return [super sendAction:sel to:to from:from];
 }
@@ -38,7 +38,7 @@ static BOOL stepsIsRunning;
 {
 	id override;
 
-	if (fontButtonOverrideTargetForAction(sel, from, to, &override))
+	if (uiprivFontButtonOverrideTargetForAction(sel, from, to, &override))
 		return override;
 	return [super targetForAction:sel to:to from:from];
 }
@@ -126,7 +126,7 @@ const char *uiInit(uiInitOptions *o)
 		appDelegate().menuManager = [[menuManager new] autorelease];
 		[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
-		setupFontPanel();
+		uiprivSetupFontPanel();
 
 		initUnderlineColors();
 	}

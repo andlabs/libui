@@ -111,9 +111,9 @@ extern uiDrawContext *newContext(CGContextRef, CGFloat);
 extern void freeContext(uiDrawContext *);
 
 // fontbutton.m
-extern BOOL fontButtonInhibitSendAction(SEL sel, id from, id to);
-extern BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
-extern void setupFontPanel(void);
+extern BOOL uiprivFontButtonInhibitSendAction(SEL sel, id from, id to);
+extern BOOL uiprivFontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
+extern void uiprivSetupFontPanel(void);
 
 // colorbutton.m
 extern BOOL colorButtonInhibitSendAction(SEL sel, id from, id to);

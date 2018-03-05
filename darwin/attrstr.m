@@ -59,7 +59,7 @@ void uiprivUninitUnderlineColors(void)
 }
 
 // unlike the other systems, Core Text rolls family, size, weight, italic, width, AND opentype features into the "font" attribute
-// TODO opentype features are lost, so a handful of fonts in the font panel ("Titling" variants of some fonts and possibly others but those are the examples I know about) cannot be represented by uiDrawFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
+// TODO opentype features are lost when using uiDrawFontDescriptor, so a handful of fonts in the font panel ("Titling" variants of some fonts and possibly others but those are the examples I know about) cannot be represented by uiDrawFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
 // TODO see if we could use NSAttributedString?
 // TODO consider renaming this struct and the fep variable(s)
 // TODO restructure all this so the important details at the top are below with the combined font attributes type?
@@ -100,7 +100,7 @@ struct foreachParams {
 	return self;
 }
 
-// TODO deduplicate this with common/attrlist.c
+// TODO deduplicate this with common/attribute.c
 - (BOOL)same:(uiprivCombinedFontAttr *)b
 {
 	// TODO should this be case-insensitive?
@@ -135,29 +135,13 @@ struct foreachParams {
 	uidesc.Stretch = self.stretch;
 	desc = fontdescToCTFontDescriptor(&uidesc);
 	if (self.features != NULL)
-		desc = fontdescAppendFeatures(desc, self.features);
+		desc = uiprivCTFontDescriptorAppendFeatures(desc, self.features);
 	font = CTFontCreateWithFontDescriptor(desc, self.size, NULL);
 	CFRelease(desc);			// TODO correct?
 	return font;
 }
 
 @end
-
-// TODO merge this with adjustFontInRange() (and TODO figure out why they were separate in the first place; probably Windows?)
-static void ensureFontInRange(struct foreachParams *p, size_t start, size_t end)
-{
-	size_t i;
-	NSNumber *n;
-	uiprivCombinedFontAttr *new;
-
-	for (i = start; i < end; i++) {
-		n = [NSNumber numberWithInteger:i];
-		if ([p->combinedFontAttrs objectForKey:n] != nil)
-			continue;
-		new = [[uiprivCombinedFontAttr alloc] initWithDefaultFont:p->defaultFont];
-		[p->combinedFontAttrs setObject:new forKey:n];
-	}
-}
 
 static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end, void (^adj)(uiprivCombinedFontAttr *cfa))
 {
@@ -168,6 +152,10 @@ static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end,
 	for (i = start; i < end; i++) {
 		n = [NSNumber numberWithInteger:i];
 		cfa = (uiprivCombinedFontAttr *) [p->combinedFontAttrs objectForKey:n];
+		if (cfa == nil) {
+			cfa = [[uiprivCombinedFontAttr alloc] initWithDefaultFont:p->defaultFont];
+			[p->combinedFontAttrs setObject:cfa forKey:n];
+		}
 		adj(cfa);
 	}
 }
@@ -192,6 +180,7 @@ static CGColorRef mkcolor(uiAttributeSpec *spec)
 	CGColorRef color;
 	CGFloat components[4];
 
+	// TODO we should probably just create this once and recycle it throughout program execution...
 	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	if (colorspace == NULL) {
 		// TODO
@@ -205,7 +194,7 @@ static CGColorRef mkcolor(uiAttributeSpec *spec)
 	return color;
 }
 
-static uiForEach processAttribute(const uiAttributedString *s, const uiAttributeSpec *spec, size_t start, size_t end, void *data)
+static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute *attr, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	CFRange range;
@@ -217,37 +206,33 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 
 	ostart = start;
 	oend = end;
-	start = attrstrUTF8ToUTF16(s, start);
-	end = attrstrUTF8ToUTF16(s, end);
+	start = uiprivAttributedStringUTF8ToUTF16(s, start);
+	end = uiprivAttributedStringUTF8ToUTF16(s, end);
 	range.location = start;
 	range.length = end - start;
-	switch (spec->Type) {
+	switch (uiAttributeGetType(attr)) {
+$$TODO_CONTINUE_HERE
 	case uiAttributeFamily:
-		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiprivCombinedFontAttr *cfa) {
 			cfa.family = spec->Family;
 		});
 		break;
 	case uiAttributeSize:
-		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiprivCombinedFontAttr *cfa) {
 			cfa.size = spec->Double;
 		});
 		break;
 	case uiAttributeWeight:
-		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiprivCombinedFontAttr *cfa) {
 			cfa.weight = (uiDrawTextWeight) (spec->Value);
 		});
 		break;
 	case uiAttributeItalic:
-		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiprivCombinedFontAttr *cfa) {
 			cfa.italic = (uiDrawTextItalic) (spec->Value);
 		});
 		break;
 	case uiAttributeStretch:
-		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiprivCombinedFontAttr *cfa) {
 			cfa.stretch = (uiDrawTextStretch) (spec->Value);
 		});
@@ -303,7 +288,6 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 			CFRelease(color);
 		break;
 	case uiAttributeFeatures:
-		ensureFontInRange(p, start, end);
 		adjustFontInRange(p, start, end, ^(uiprivCombinedFontAttr *cfa) {
 			cfa.features = spec->Features;
 		});

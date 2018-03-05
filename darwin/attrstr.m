@@ -71,72 +71,125 @@ struct foreachParams {
 	NSMutableArray *backgroundBlocks;
 };
 
-@interface uiprivCombinedFontAttr : NSObject
-@property const char *family;
-@property double size;
-@property uiDrawTextWeight weight;
-@property uiDrawTextItalic italic;
-@property uiDrawTextStretch stretch;
-@property const uiOpenTypeFeatures *features;
-- (id)initWithDefaultFont:(uiDrawFontDescriptor *)defaultFont;
-- (BOOL)same:(uiprivCombinedFontAttr *)b;
-- (CTFontRef)toCTFont;
+// TODO what if this is NULL?
+static const CFStringRef combinedFontAttrName = CFSTR("libuiCombinedFontAttribute");
+
+enum {
+	cFamily,
+	cSize,
+	cWeight,
+	cItalic,
+	cStretch,
+	cFeatures,
+	nc,
+};
+
+static const int toc[] = {
+	[uiAttributeFamily] = cFamily,
+	[uiAttributeSize] = cSize,
+	[uiAttributeWeight] = cWeight,
+	[uiAttributeItalic] = cItalic,
+	[uiAttributeStretch] = cStretch,
+	[uiAttributeFeatures] = cFeatures,
+};
+
+@interface uiprivCombinedFontAttr : NSObject<NSCopying> {
+	uiAttribute *attrs[nc];
+}
+- (void)setAttribute:(uiAttribute *)attr;
+- (CTFontRef)toCTFontWithDefaultFont:(uiDrawFontDescriptor *)defaultFont;
 @end
 
 @implementation uiprivCombinedFontAttr
 
-- (id)initWithDefaultFont:(uiDrawFontDescriptor *)defaultFont
+- (id)init
 {
 	self = [super init];
-	if (self) {
-		// TODO define behaviors if defaultFont->Family or any attribute Family is NULL, same with other invalid values
-		self.family = defaultFont->Family;
-		self.size = defaultFont->Size;
-		self.weight = defaultFont->Weight;
-		self.italic = defaultFont->Italic;
-		self.stretch = defaultFont->Stretch;
-		self.features = NULL;
-	}
+	if (self)
+		memset(self->attrs, 0, nc * sizeof (uiAttribute *));
 	return self;
 }
 
-// TODO deduplicate this with common/attribute.c
-- (BOOL)same:(uiprivCombinedFontAttr *)b
+- (void)dealloc
 {
-	// TODO should this be case-insensitive?
-	if (strcmp(self.family, b.family) != 0)
+	int i;
+
+	for (i = 0; i < nc; i++)
+		if (self->attrs[i] != NULL) {
+			uiprivAttributeRelease(self->attrs[i]);
+			self->attrs[i] = NULL;
+		}
+	[super dealloc];
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	uiprivCombinedFontAttr *ret;
+	int i;
+
+	ret = [[uiprivCombinedFontAttr allocWithZone:zone] init];
+	for (i = 0; i < nc; i++)
+		if (self->attrs[i] != NULL)
+			ret->attrs[i] = uiprivAttributeRetain(self->attrs[i]);
+	return ret;
+}
+
+- (void)setAttribute:(uiAttribute *)attr
+{
+	int index;
+
+	index = toc[uiAttributeGetType(attr)];
+	if (self->attrs[index] != NULL)
+		uiprivAttributeRelease(self->attrs[index]);
+	self->attrs[index] = uiprivAttributeRetain(attr);
+}
+
+- (BOOL)isEqual:(id)bb
+{
+	uiprivCombinedFontAttr *b = (uiprivCombinedFontAttr *) bb;
+	int i;
+
+	if (b == nil)
 		return NO;
-	// TODO use a closest match?
-	if (self.size != b.size)
-		return NO;
-	if (self.weight != b.weight)
-		return NO;
-	if (self.italic != b.italic)
-		return NO;
-	if (self.stretch != b.stretch)
-		return NO;
-	// this also handles NULL cases
-	if (!uiOpenTypeFeaturesEqual(self.features, b.features))
-		return NO;
+	for (i = 0; i < nc; i++) {
+		if (self->attrs[i] == NULL && b->attrs[i] == NULL)
+			continue;
+		if (self->attrs[i] == NULL || b->attrs[i] == NULL)
+			return NO;
+		if (!uiprivAttributeEqual(self->attrs[i], b->attrs[i]))
+			return NO;
+	}
 	return YES;
 }
 
-- (CTFontRef)toCTFont
+- (NSUInteger)hash
+{
+	// TODO implement this somehow; not quite sure how...
+	return [super hash];
+}
+
+- (CTFontRef)toCTFontWithDefaultFont:(uiDrawFontDescriptor *)defaultFont
 {
 	uiDrawFontDescriptor uidesc;
 	CTFontDescriptorRef desc;
 	CTFontRef font;
 
-	// TODO const-correct uiDrawFontDescriptor or change this function below
-	uidesc.Family = (char *) (self.family);
-	uidesc.Size = self.size;
-	uidesc.Weight = self.weight;
-	uidesc.Italic = self.italic;
-	uidesc.Stretch = self.stretch;
-	desc = fontdescToCTFontDescriptor(&uidesc);
-	if (self.features != NULL)
-		desc = uiprivCTFontDescriptorAppendFeatures(desc, self.features);
-	font = CTFontCreateWithFontDescriptor(desc, self.size, NULL);
+	uidesc = *defaultFont;
+	if (self->attrs[cFamily] != NULL)
+		// TODO const-correct uiDrawFontDescriptor or change this function below
+		uidesc.Family = (char *) uiAttributeFamily(self->attrs[cFamily]);
+	if (self->attrs[cSize] != NULL)
+		uidesc.Size = uiAttributeSize(self->attrs[cSize]);
+	if (self->attrs[cWeight] != NULL)
+		uidesc.Weight = uiAttributeWeight(self->attrs[cWeight]);
+	if (self->attrs[cItalic] != NULL)
+		uidesc.Italic = uiAttributeItalic(self->attrs[cItalic]);
+	if (self->attrs[cStretch] != NULL)
+		uidesc.Stretch = uiAttributeStretch(self->attrs[cStretch]);
+	desc = uiprivDrawFontDescriptorToCTFontDescriptor(&uidesc);
+	if (self->attrs[cFeatures] != NULL)
+		desc = uiprivCTFontDescriptorAppendFeatures(desc, uiAttributeFeatures(self->attrs[cFeatures]));
+	font = CTFontCreateWithFontDescriptor(desc, uidesc.Size, NULL);
 	CFRelease(desc);			// TODO correct?
 	return font;
 }

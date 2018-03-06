@@ -72,6 +72,7 @@ struct foreachParams {
 // instead of incrementally adjusting CTFontRefs (which, judging from NSFontManager, seems finicky and UI-centric), we use a custom class to incrementally store attributes that go into a CTFontRef, and then convert everything to CTFonts en masse later
 // https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/AttributedStrings/Tasks/ChangingAttrStrings.html#//apple_ref/doc/uid/20000162-BBCBGCDG says we must have -hash and -isEqual: workign properly for this to work, so we must do that too, using a basic xor-based hash and leveraging Cocoa -hash implementations where useful and feasible (if not necessary)
 // TODO structure and rewrite this part
+// TODO re-find sources proving support of custom attributes
 // TODO what if this is NULL?
 static const CFStringRef combinedFontAttrName = CFSTR("libuiCombinedFontAttribute");
 

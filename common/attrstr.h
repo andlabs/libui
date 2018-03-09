@@ -1,5 +1,11 @@
 // 19 february 2018
 
+// TODO remove when done migrating these functions
+#define uiprivNew(x) uiNew(x)
+#define uiprivAlloc(x, y) uiAlloc(x, y)
+#define uiprivRealloc(x, y) uiRealloc(x, y)
+#define uiprivFree(x) uiFree(x)
+
 // attribute.c
 extern uiAttribute *uiprivAttributeRetain(uiAttribute *a);
 extern void uiprivAttributeRelease(uiAttribute *a);

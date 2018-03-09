@@ -495,3 +495,11 @@ _UI_EXTERN void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, si
 // TODO metrics functions
 
 // TODO number of lines visible for clipping rect, range visible for clipping rect?
+
+typedef struct uiFontButton uiFontButton;
+#define uiFontButton(this) ((uiFontButton *) (this))
+// TODO have a function that sets an entire font descriptor to a range in a uiAttributedString at once, for SetFont?
+_UI_EXTERN void uiFontButtonFont(uiFontButton *b, uiFontDescriptor *desc);
+// TOOD SetFont, mechanics
+_UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);
+_UI_EXTERN uiFontButton *uiNewFontButton(void);

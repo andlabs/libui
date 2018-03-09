@@ -92,7 +92,7 @@ static uiForEach otfArrayForEachOT(const uiOpenTypeFeatures *otf, char a, char b
 	p.valueValue = (const SInt32 *) (&value);
 	addCTFeatureEntry(&p);
 
-	CFRelease(strTag);
+	CFRelease(tagstr);
 	return uiForEachContinue;
 }
 

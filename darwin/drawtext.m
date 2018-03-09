@@ -6,7 +6,7 @@
 // problem: for a CTFrame made from an empty string, the CTLine array will be empty, and we will crash when doing anything requiring a CTLine
 // solution: for those cases, maintain a separate framesetter just for computing those things
 // in the usual case, the separate copy will just be identical to the regular one, with extra references to everything within
-@interface uiprivTextFrame {
+@interface uiprivTextFrame : NSObject {
 	CFAttributedStringRef attrstr;
 	NSArray *backgroundBlocks;
 	CTFramesetterRef framesetter;
@@ -25,7 +25,7 @@
 - (id)initWithLayoutParams:(uiDrawTextLayoutParams *)p
 {
 	CFRange range;
-	CGFloat width;
+	CGFloat cgwidth;
 	CFRange unused;
 	CGRect rect;
 
@@ -54,7 +54,7 @@
 		rect.origin = CGPointZero;
 		rect.size = self->size;
 		self->path = CGPathCreateWithRect(rect, NULL);
-		self->frame = CTFramesetterCreateFrame(tl->framesetter,
+		self->frame = CTFramesetterCreateFrame(self->framesetter,
 			range,
 			self->path,
 			// TODO kCTFramePathWidthAttributeName?
@@ -144,7 +144,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 
 	tl = uiprivNew(uiDrawTextLayout);
 	tl->frame = [[uiprivTextFrame alloc] initWithLayoutParams:p];
-	if (uiAttributedStringLength(p->String) != 0)
+	if (uiAttributedStringLen(p->String) != 0)
 		tl->forLines = [tl->frame retain];
 	else {
 		uiAttributedString *space;

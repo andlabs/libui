@@ -275,9 +275,9 @@ FONTNAME(familyName,
 
 struct closeness {
 	CFIndex index;
-	uiDrawTextWeight weight;
+	uiTextWeight weight;
 	double italic;
-	uiDrawTextStretch stretch;
+	uiTextStretch stretch;
 	double distance;
 };
 
@@ -287,14 +287,14 @@ static const double italicClosenessNormal[] = { 0, 1, 1 };
 static const double italicClosenessOblique[] = { 1, 0, 0.5 };
 static const double italicClosenessItalic[] = { 1, 0.5, 0 };
 static const double *italicClosenesses[] = {
-	[uiDrawTextItalicNormal] = italicClosenessNormal,
-	[uiDrawTextItalicOblique] = italicClosenessOblique,
-	[uiDrawTextItalicItalic] = italicClosenessItalic,
+	[uiTextItalicNormal] = italicClosenessNormal,
+	[uiTextItalicOblique] = italicClosenessOblique,
+	[uiTextItalicItalic] = italicClosenessItalic,
 };
 
 // Core Text doesn't seem to differentiate between Italic and Oblique.
 // Pango's Core Text code just does a g_strrstr() (backwards case-sensitive search) for "Oblique" in the font's style name (see https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c); let's do that too I guess
-static uiDrawTextItalic guessItalicOblique(uiprivFontStyleData *d)
+static uiTextItalic guessItalicOblique(uiprivFontStyleData *d)
 {
 	CFStringRef styleName;
 	BOOL isOblique;
@@ -309,8 +309,8 @@ static uiDrawTextItalic guessItalicOblique(uiprivFontStyleData *d)
 			isOblique = YES;
 	}
 	if (isOblique)
-		return uiDrawTextItalicOblique;
-	return uiDrawTextItalicItalic;
+		return uiTextItalicOblique;
+	return uiTextItalicItalic;
 }
 
 // Italics are hard because Core Text does NOT distinguish between italic and oblique.
@@ -320,7 +320,7 @@ static uiDrawTextItalic guessItalicOblique(uiprivFontStyleData *d)
 // TODO there is still one catch that might matter from a user's POV: the reverse is not true — the italic bit can be set even if the style of the font face/subfamily/style isn't named as Italic (for example, script typefaces like Adobe's Palace Script MT Std); I don't know what to do about this... I know how to start: find a script font that has an italic form (Adobe's Palace Script MT Std does not; only Regular and Semibold)
 static void setItalic(uiprivFontStyleData *d, uiFontDescriptor *out)
 {
-	out->Italic = uiDrawTextItalicNormal;
+	out->Italic = uiTextItalicNormal;
 	if (([d symbolicTraits] & kCTFontItalicTrait) != 0)
 		out->Italic = guessItalicOblique(d);
 }

@@ -310,8 +310,8 @@ void uiprivProcessFontVariation(uiprivFontStyleData *d, NSDictionary *axisDict, 
 	CFDictionaryRef var;
 	double v;
 
-	out->Weight = uiDrawTextWeightNormal;
-	out->Stretch = uiDrawTextStretchNormal;
+	out->Weight = uiTextWeightNormal;
+	out->Stretch = uiTextStretchNormal;
 
 	var = [d variation];
 
@@ -320,14 +320,14 @@ void uiprivProcessFontVariation(uiprivFontStyleData *d, NSDictionary *axisDict, 
 		// we want a linear value between 0 and 1000 with 400 being normal
 		if (v < 0) {
 			v += 1;
-			out->Weight = (uiDrawTextWeight) (v * 400);
+			out->Weight = (uiTextWeight) (v * 400);
 		} else if (v > 0)
-			out->Weight += (uiDrawTextWeight) (v * 600);
+			out->Weight += (uiTextWeight) (v * 600);
 	}
 
 	if (tryAxis(axisDict, var, fvarAxisKey(fvarWidth), &v)) {
 		// likewise, but with stretches, we go from 0 to 8 with 4 being directly between the two, so this is sufficient
 		v += 1;
-		out->Stretch = (uiDrawTextStretch) (v * 4);
+		out->Stretch = (uiTextStretch) (v * 4);
 	}
 }

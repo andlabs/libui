@@ -31,18 +31,18 @@ static BOOL fontRegistered(uiprivFontStyleData *d)
 // Core Text does (usWidthClass / 10) - 0.5 here.
 // This roughly maps to our values with increments of 0.1, except for the fact 0 and 10 are allowed by Core Text, despite being banned by TrueType and OpenType themselves.
 // We'll just treat them as identical to 1 and 9, respectively.
-static const uiDrawTextStretch os2WidthsToStretches[] = {
-	uiDrawTextStretchUltraCondensed,
-	uiDrawTextStretchUltraCondensed,
-	uiDrawTextStretchExtraCondensed,
-	uiDrawTextStretchCondensed,
-	uiDrawTextStretchSemiCondensed,
-	uiDrawTextStretchNormal,
-	uiDrawTextStretchSemiExpanded,
-	uiDrawTextStretchExpanded,
-	uiDrawTextStretchExtraExpanded,
-	uiDrawTextStretchUltraExpanded,
-	uiDrawTextStretchUltraExpanded,
+static const uiTextStretch os2WidthsToStretches[] = {
+	uiTextStretchUltraCondensed,
+	uiTextStretchUltraCondensed,
+	uiTextStretchExtraCondensed,
+	uiTextStretchCondensed,
+	uiTextStretchSemiCondensed,
+	uiTextStretchNormal,
+	uiTextStretchSemiExpanded,
+	uiTextStretchExpanded,
+	uiTextStretchExtraExpanded,
+	uiTextStretchUltraExpanded,
+	uiTextStretchUltraExpanded,
 };
 
 static const CFStringRef exceptions[] = {
@@ -174,50 +174,50 @@ void uiprivProcessFontTraits(uiprivFontStyleData *d, uiFontDescriptor *out)
 	if (!hasWeight)
 		// TODO this scale is a bit lopsided
 		if (weight <= -0.7)
-			out->Weight = uiDrawTextWeightThin;
+			out->Weight = uiTextWeightThin;
 		else if (weight <= -0.5)
-			out->Weight = uiDrawTextWeightUltraLight;
+			out->Weight = uiTextWeightUltraLight;
 		else if (weight <= -0.3)
-			out->Weight = uiDrawTextWeightLight;
+			out->Weight = uiTextWeightLight;
 		else if (weight <= -0.23) {
-			out->Weight = uiDrawTextWeightBook;
+			out->Weight = uiTextWeightBook;
 			if (shouldReallyBeThin(d))
-				out->Weight = uiDrawTextWeightThin;
+				out->Weight = uiTextWeightThin;
 		} else if (weight <= 0.0)
-			out->Weight = uiDrawTextWeightNormal;
+			out->Weight = uiTextWeightNormal;
 		else if (weight <= 0.23)
-			out->Weight = uiDrawTextWeightMedium;
+			out->Weight = uiTextWeightMedium;
 		else if (weight <= 0.3)
-			out->Weight = uiDrawTextWeightSemiBold;
+			out->Weight = uiTextWeightSemiBold;
 		else if (weight <= 0.4)
-			out->Weight = uiDrawTextWeightBold;
+			out->Weight = uiTextWeightBold;
 		else if (weight <= 0.5)
-			out->Weight = uiDrawTextWeightUltraBold;
+			out->Weight = uiTextWeightUltraBold;
 		else if (weight <= 0.7)
-			out->Weight = uiDrawTextWeightHeavy;
+			out->Weight = uiTextWeightHeavy;
 		else
-			out->Weight = uiDrawTextWeightUltraHeavy;
+			out->Weight = uiTextWeightUltraHeavy;
 
 	if (!hasWidth)
 		// TODO this scale is a bit lopsided
 		if (width <= -0.7) {
-			out->Stretch = uiDrawTextStretchUltraCondensed;
+			out->Stretch = uiTextStretchUltraCondensed;
 			if (shouldReallyBeSemiCondensed(d))
-				out->Stretch = uiDrawTextStretchSemiCondensed;
+				out->Stretch = uiTextStretchSemiCondensed;
 		} else if (width <= -0.5)
-			out->Stretch = uiDrawTextStretchExtraCondensed;
+			out->Stretch = uiTextStretchExtraCondensed;
 		else if (width <= -0.2)
-			out->Stretch = uiDrawTextStretchCondensed;
+			out->Stretch = uiTextStretchCondensed;
 		else if (width <= -0.1)
-			out->Stretch = uiDrawTextStretchSemiCondensed;
+			out->Stretch = uiTextStretchSemiCondensed;
 		else if (width <= 0.0)
-			out->Stretch = uiDrawTextStretchNormal;
+			out->Stretch = uiTextStretchNormal;
 		else if (width <= 0.1)
-			out->Stretch = uiDrawTextStretchSemiExpanded;
+			out->Stretch = uiTextStretchSemiExpanded;
 		else if (width <= 0.2)
-			out->Stretch = uiDrawTextStretchExpanded;
+			out->Stretch = uiTextStretchExpanded;
 		else if (width <= 0.6)
-			out->Stretch = uiDrawTextStretchExtraExpanded;
+			out->Stretch = uiTextStretchExtraExpanded;
 		else
-			out->Stretch = uiDrawTextStretchUltraExpanded;
+			out->Stretch = uiTextStretchUltraExpanded;
 }

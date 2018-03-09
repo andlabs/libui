@@ -214,7 +214,7 @@ _UI_EXTERN uiAttribute *uiNewUnderlineColorAttribute(uiUnderlineColor u, double 
 // uiAttributeUnderlineColor() returns the underline color stored in
 // a. It is an error to call this on a uiAttribute that does not hold an
 // underline color.
-_UI_EXTERN void uiAttributeUnderline(const uiAttribute *a, uiUnderlineColor *u, double *r, double *g, double *b, double *alpha);
+_UI_EXTERN void uiAttributeUnderlineColor(const uiAttribute *a, uiUnderlineColor *u, double *r, double *g, double *b, double *alpha);
 
 // uiOpenTypeFeatures represents a set of OpenType feature
 // tag-value pairs, for applying OpenType features to text.
@@ -409,7 +409,7 @@ _UI_EXTERN size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, s
 // All the members operate like the respective uiAttributes.
 typedef struct uiFontDescriptor uiFontDescriptor;
 
-struct uiDrawFontDescriptor {
+struct uiFontDescriptor {
 	// TODO const-correct this or figure out how to deal with this when getting a value
 	char *Family;
 	double Size;
@@ -448,7 +448,7 @@ typedef struct uiDrawTextLayoutParams uiDrawTextLayoutParams;
 // TODO const-correct this somehow
 struct uiDrawTextLayoutParams {
 	uiAttributedString *String;
-	uiDrawFontDescriptor *DefaultFont;
+	uiFontDescriptor *DefaultFont;
 	double Width;
 	uiDrawTextAlign Align;
 };

@@ -206,7 +206,7 @@ uiAttribute *uiNewUnderlineColorAttribute(uiUnderlineColor u, double r, double g
 	return at;
 }
 
-void uiAttributeUnderline(const uiAttribute *a, uiUnderlineColor *u, double *r, double *g, double *b, double *alpha)
+void uiAttributeUnderlineColor(const uiAttribute *a, uiUnderlineColor *u, double *r, double *g, double *b, double *alpha)
 {
 	*u = a->u.color.underlineColor;
 	uiAttributeColor(a, r, g, b, alpha);

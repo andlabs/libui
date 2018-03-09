@@ -54,7 +54,7 @@ static const CFStringRef exceptions[] = {
 	NULL,
 };
 
-static void trySecondaryOS2Values(uiprivFontStyleData *d, uiDrawFontDescriptor *out, BOOL *hasWeight, BOOL *hasWidth)
+static void trySecondaryOS2Values(uiprivFontStyleData *d, uiFontDescriptor *out, BOOL *hasWeight, BOOL *hasWidth)
 {
 	CFDataRef os2;
 	uint16_t usWeightClass, usWidthClass;
@@ -159,7 +159,7 @@ static BOOL shouldReallyBeSemiCondensed(uiprivFontStyleData *d)
 	return testTTFOTFSubfamilyNames(d, CFSTR("Semi Condensed"));
 }
 
-void uiprivProcessFontTraits(uiprivFontStyleData *d, uiDrawFontDescriptor *out)
+void uiprivProcessFontTraits(uiprivFontStyleData *d, uiFontDescriptor *out)
 {
 	double weight, width;
 	BOOL hasWeight, hasWidth;

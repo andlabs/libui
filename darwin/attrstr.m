@@ -58,7 +58,7 @@ void uiprivUninitUnderlineColors(void)
 	spellingColor = nil;
 }
 
-// TODO opentype features are lost when using uiDrawFontDescriptor, so a handful of fonts in the font panel ("Titling" variants of some fonts and possibly others but those are the examples I know about) cannot be represented by uiDrawFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
+// TODO opentype features are lost when using uiFontDescriptor, so a handful of fonts in the font panel ("Titling" variants of some fonts and possibly others but those are the examples I know about) cannot be represented by uiFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
 // TODO see if we could use NSAttributedString?
 // TODO consider renaming this struct and the fep variable(s)
 // TODO restructure all this so the important details at the top are below with the combined font attributes type?
@@ -115,7 +115,7 @@ static uiForEach featuresHash(const uiOpenTypeFeatures *otf, char a, char b, cha
 	NSUInteger hash;
 }
 - (void)addAttribute:(uiAttribute *)attr;
-- (CTFontRef)toCTFontWithDefaultFont:(uiDrawFontDescriptor *)defaultFont;
+- (CTFontRef)toCTFontWithDefaultFont:(uiFontDescriptor *)defaultFont;
 @end
 
 @implementation uiprivCombinedFontAttr
@@ -216,15 +216,15 @@ static uiForEach featuresHash(const uiOpenTypeFeatures *otf, char a, char b, cha
 	return self->hash;
 }
 
-- (CTFontRef)toCTFontWithDefaultFont:(uiDrawFontDescriptor *)defaultFont
+- (CTFontRef)toCTFontWithDefaultFont:(uiFontDescriptor *)defaultFont
 {
-	uiDrawFontDescriptor uidesc;
+	uiFontDescriptor uidesc;
 	CTFontDescriptorRef desc;
 	CTFontRef font;
 
 	uidesc = *defaultFont;
 	if (self->attrs[cFamily] != NULL)
-		// TODO const-correct uiDrawFontDescriptor or change this function below
+		// TODO const-correct uiFontDescriptor or change this function below
 		uidesc.Family = (char *) uiAttributeFamily(self->attrs[cFamily]);
 	if (self->attrs[cSize] != NULL)
 		uidesc.Size = uiAttributeSize(self->attrs[cSize]);
@@ -234,7 +234,7 @@ static uiForEach featuresHash(const uiOpenTypeFeatures *otf, char a, char b, cha
 		uidesc.Italic = uiAttributeItalic(self->attrs[cItalic]);
 	if (self->attrs[cStretch] != NULL)
 		uidesc.Stretch = uiAttributeStretch(self->attrs[cStretch]);
-	desc = uiprivDrawFontDescriptorToCTFontDescriptor(&uidesc);
+	desc = uiprivFontDescriptorToCTFontDescriptor(&uidesc);
 	if (self->attrs[cFeatures] != NULL)
 		desc = uiprivCTFontDescriptorAppendFeatures(desc, uiAttributeFeatures(self->attrs[cFeatures]));
 	font = CTFontCreateWithFontDescriptor(desc, uidesc.Size, NULL);
@@ -386,7 +386,7 @@ $$TODO_CONTINUE_HERE
 	return uiForEachContinue;
 }
 
-static void applyFontAttributes(CFMutableAttributedStringRef mas, uiDrawFontDescriptor *defaultFont)
+static void applyFontAttributes(CFMutableAttributedStringRef mas, uiFontDescriptor *defaultFont)
 {
 	uiprivCombinedFontAttr *cfa;
 	CTFontRef font;

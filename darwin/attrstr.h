@@ -60,16 +60,16 @@ extern void uiprivOpenTypeToAAT(char a, char b, char c, char d, uint32_t value, 
 - (CFStringRef)familyName;
 - (CFArrayRef)variationAxes;
 @end
-extern CTFontDescriptorRef uiprivDrawFontDescriptorToCTFontDescriptor(uiDrawFontDescriptor *fd);
+extern CTFontDescriptorRef uiprivFontDescriptorToCTFontDescriptor(uiFontDescriptor *fd);
 extern CTFontDescriptorRef uiprivCTFontDescriptorAppendFeatures(CTFontDescriptorRef desc, const uiOpenTypeFeatures *otf);
-extern void uiprivDrawFontDescriptorFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescriptor *uidesc);
+extern void uiprivFontDescriptorFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiFontDescriptor *uidesc);
 
 // fonttraits.m
-extern void uiprivProcessFontTraits(uiprivFontStyleData *d, uiDrawFontDescriptor *out);
+extern void uiprivProcessFontTraits(uiprivFontStyleData *d, uiFontDescriptor *out);
 
 // fontvariation.m
 extern NSDictionary *uiprivMakeVariationAxisDict(CFArrayRef axes, CFDataRef avarTable);
-extern void uiprivProcessFontVariation(uiprivFontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out);
+extern void uiprivProcessFontVariation(uiprivFontStyleData *d, NSDictionary *axisDict, uiFontDescriptor *out);
 
 // attrstr.m
 extern void uiprivInitUnderlineColors(void);

@@ -305,7 +305,7 @@ static BOOL tryAxis(NSDictionary *axisDict, CFDictionaryRef var, NSNumber *key, 
 	return YES;
 }
 
-void uiprivProcessFontVariation(uiprivFontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
+void uiprivProcessFontVariation(uiprivFontStyleData *d, NSDictionary *axisDict, uiFontDescriptor *out)
 {
 	CFDictionaryRef var;
 	double v;

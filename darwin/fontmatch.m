@@ -18,7 +18,7 @@
 //
 // To make things easier for us, we'll match by converting Core
 // Text's values back into libui values. This allows us to also use the
-// normalization code for filling in uiDrawFontDescriptors from
+// normalization code for filling in uiFontDescriptors from
 // Core Text fonts and font descriptors.
 //
 // Style matching needs to be done early in the font loading process;
@@ -318,14 +318,14 @@ static uiDrawTextItalic guessItalicOblique(uiprivFontStyleData *d)
 // However, Core Text does seem to guarantee (from experimentation; see below) that the slant will be nonzero if and only if the italic bit is set, so we don't need to use the slant value.
 // Core Text also seems to guarantee that if a font lists itself as Italic or Oblique by name (font subfamily name, font style name, whatever), it will also have that bit set, so testing this bit does cover all fonts that name themselves as Italic and Oblique. (Again, this is from the below experimentation.)
 // TODO there is still one catch that might matter from a user's POV: the reverse is not true — the italic bit can be set even if the style of the font face/subfamily/style isn't named as Italic (for example, script typefaces like Adobe's Palace Script MT Std); I don't know what to do about this... I know how to start: find a script font that has an italic form (Adobe's Palace Script MT Std does not; only Regular and Semibold)
-static void setItalic(uiprivFontStyleData *d, uiDrawFontDescriptor *out)
+static void setItalic(uiprivFontStyleData *d, uiFontDescriptor *out)
 {
 	out->Italic = uiDrawTextItalicNormal;
 	if (([d symbolicTraits] & kCTFontItalicTrait) != 0)
 		out->Italic = guessItalicOblique(d);
 }
 
-static void fillDescStyleFields(uiprivFontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
+static void fillDescStyleFields(uiprivFontStyleData *d, NSDictionary *axisDict, uiFontDescriptor *out)
 {
 	setItalic(d, out);
 	if (axisDict != nil)
@@ -334,7 +334,7 @@ static void fillDescStyleFields(uiprivFontStyleData *d, NSDictionary *axisDict, 
 		uiprivProcessFontTraits(d, out);
 }
 
-static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDescriptor *styles)
+static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiFontDescriptor *styles)
 {
 	CFArrayRef matching;
 	CFIndex i, n;
@@ -363,7 +363,7 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDes
 
 	closeness = (struct closeness *) uiAlloc(n * sizeof (struct closeness), "struct closeness[]");
 	for (i = 0; i < n; i++) {
-		uiDrawFontDescriptor fields;
+		uiFontDescriptor fields;
 
 		closeness[i].index = i;
 		if (i != 0) {
@@ -413,7 +413,7 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiDrawFontDes
 	return out;
 }
 
-CTFontDescriptorRef uiprivDrawFontDescriptorToCTFontDescriptor(uiDrawFontDescriptor *fd)
+CTFontDescriptorRef uiprivFontDescriptorToCTFontDescriptor(uiFontDescriptor *fd)
 {
 	CFMutableDictionaryRef attrs;
 	CFStringRef cffamily;
@@ -465,7 +465,7 @@ CTFontDescriptorRef uiprivCTFontDescriptorAppendFeatures(CTFontDescriptorRef des
 	return new;
 }
 
-void uiprivDrawFontDescriptorFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescriptor *uidesc)
+void uiprivFontDescriptorFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiFontDescriptor *uidesc)
 {
 	CFStringRef cffamily;
 	uiprivFontStyleData *d;

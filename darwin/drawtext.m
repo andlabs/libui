@@ -3,125 +3,208 @@
 #import "draw.h"
 #import "attrstr.h"
 
-// problem: for a CTFrame made from an empty string, the CTLine array will be empty, and we will crash when gathering metrics or hit-testing
+// problem: for a CTFrame made from an empty string, the CTLine array will be empty, and we will crash when doing anything requiring a CTLine
 // solution: for those cases, maintain a separate framesetter just for computing those things
 // in the usual case, the separate copy will just be identical to the regular one, with extra references to everything within
-struct frame {
+@interface uiprivTextFrame {
 	CFAttributedStringRef attrstr;
 	NSArray *backgroundBlocks;
 	CTFramesetterRef framesetter;
 	CGSize size;
 	CGPathRef path;
 	CTFrameRef frame;
-};
+}
+- (id)initWithLayoutParams:(uiDrawTextLayoutParams *)p;
+- (void)draw:(uiDrawContext *)c textLayout:(uiDrawTextLayout *)tl at:(double)x y:(double)y;
+- (void)returnWidth:(double *)width height:(double *)height;
+- (CFArrayRef)lines;
+@end
 
-struct uiDrawTextLayout {
-	struct frame forDrawing;
-	struct frame forMetrics;
-};
+@implementation uiprivTextFrame
 
-static void paramsToFrame(uiDrawTextLayoutParams *params, struct frame *frame)
+- (id)initWithLayoutParams:(uiDrawTextLayoutParams *)p
 {
 	CFRange range;
 	CGFloat width;
 	CFRange unused;
 	CGRect rect;
 
-	frame->attrstr = uiprivAttributedStringToCFAttributedString(p, &(frame->backgroundBlocks));
-	// TODO kCTParagraphStyleSpecifierMaximumLineSpacing, kCTParagraphStyleSpecifierMinimumLineSpacing, kCTParagraphStyleSpecifierLineSpacingAdjustment for line spacing
-	frame->framesetter = CTFramesetterCreateWithAttributedString(tl->attrstr);
-	if (frame->framesetter == NULL) {
-		// TODO
+	self = [super init];
+	if (self) {
+		self->attrstr = uiprivAttributedStringToCFAttributedString(p, &(self->backgroundBlocks));
+		// TODO kCTParagraphStyleSpecifierMaximumLineSpacing, kCTParagraphStyleSpecifierMinimumLineSpacing, kCTParagraphStyleSpecifierLineSpacingAdjustment for line spacing
+		self->framesetter = CTFramesetterCreateWithAttributedString(self->attrstr);
+		if (self->framesetter == NULL) {
+			// TODO
+		}
+
+		range.location = 0;
+		range.length = CFAttributedStringGetLength(self->attrstr);
+
+		cgwidth = (CGFloat) (p->Width);
+		if (cgwidth < 0)
+			cgwidth = CGFLOAT_MAX;
+		self->size = CTFramesetterSuggestFrameSizeWithConstraints(self->framesetter,
+			range,
+			// TODO kCTFramePathWidthAttributeName?
+			NULL,
+			CGSizeMake(cgwidth, CGFLOAT_MAX),
+			&unused);			// not documented as accepting NULL (TODO really?)
+
+		rect.origin = CGPointZero;
+		rect.size = self->size;
+		self->path = CGPathCreateWithRect(rect, NULL);
+		self->frame = CTFramesetterCreateFrame(tl->framesetter,
+			range,
+			self->path,
+			// TODO kCTFramePathWidthAttributeName?
+			NULL);
+		if (self->frame == NULL) {
+			// TODO
+		}
 	}
-
-	range.location = 0;
-	range.length = CFAttributedStringGetLength(tl->attrstr);
-
-	cgwidth = (CGFloat) (frame->width);
-	if (cgwidth < 0)
-		cgwidth = CGFLOAT_MAX;
-	frame->size = CTFramesetterSuggestFrameSizeWithConstraints(frame->framesetter,
-		range,
-		// TODO kCTFramePathWidthAttributeName?
-		NULL,
-		CGSizeMake(cgwidth, CGFLOAT_MAX),
-		&unused);			// not documented as accepting NULL (TODO really?)
-
-	rect.origin = CGPointZero;
-	rect.size = frame->size;
-	frame->path = CGPathCreateWithRect(rect, NULL);
-	frame->frame = CTFramesetterCreateFrame(tl->framesetter,
-		range,
-		tl->path,
-		// TODO kCTFramePathWidthAttributeName?
-		NULL);
-	if (frame->frame == NULL) {
-		// TODO
-	}
+	return self;
 }
 
-static void freeFrame(struct frame *frame)
+- (void)dealloc
 {
-	CFRelease(frame->frame);
-	CFRelease(frame->path);
-	CFRelease(frame->framesetter);
-	[frame->backgroundBlocks release];
-	CFRelease(frame->attrstr);
+	CFRelease(self->frame);
+	CFRelease(self->path);
+	CFRelease(self->framesetter);
+	[self->backgroundBlocks release];
+	CFRelease(self->attrstr);
+	[super dealloc];
 }
 
-static void retainFrameCopy(struct frame *out, const struct frame *frame)
+- (void)draw:(uiDrawContext *)c textLayout:(uiDrawTextLayout *)tl at:(double)x y:(double)y
 {
-	memcpy(out, frame, sizeof (struct frame));
-	CFRetain(out->attrstr);
-	[out->backgroundBlocks retain];
-	CFRetain(out->framesetter);
-	CFRetain(out->path);
-	CFRetain(out->frame);
+	backgroundBlock b;
+	CGAffineTransform textMatrix;
+
+	CGContextSaveGState(c->c);
+	// save the text matrix because it's not part of the graphics state
+	textMatrix = CGContextGetTextMatrix(c->c);
+
+	for (b in self->backgroundBlocks)
+		b(c, tl, x, y);
+
+	// Core Text doesn't draw onto a flipped view correctly; we have to pretend it was unflipped
+	// see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)
+	// TODO how is this affected by a non-identity CTM?
+	CGContextTranslateCTM(c->c, 0, c->height);
+	CGContextScaleCTM(c->c, 1.0, -1.0);
+	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
+
+	// wait, that's not enough; we need to offset y values to account for our new flipping
+	// TODO explain this calculation
+	y = c->height - self->size.height - y;
+
+	// CTFrameDraw() draws in the path we specified when creating the frame
+	// this means that in our usage, CTFrameDraw() will draw at (0,0)
+	// so move the origin to be at (x,y) instead
+	// TODO are the signs correct?
+	CGContextTranslateCTM(c->c, x, y);
+
+	CTFrameDraw(self->frame, c->c);
+
+	CGContextSetTextMatrix(c->c, textMatrix);
+	CGContextRestoreGState(c->c);
 }
+
+- (void)returnWidth:(double *)width height:(double *)height
+{
+	if (width != NULL)
+		*width = self->size.width;
+	if (height != NULL)
+		*height = self->size.height;
+}
+
+- (CFArrayRef)lines
+{
+	return CTFrameGetLines(self->frame);
+}
+
+@end
+
+struct uiDrawTextLayout {
+	uiprivTextFrame *frame;
+	uiprivTextFrame *forLines;
+	BOOL empty;
+
+	// for converting CFAttributedString indices from/to byte offsets
+	size_t *u8tou16;
+	size_t nUTF8;
+	size_t *u16tou8;
+	size_t nUTF16;
+};
 
 uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 {
 	uiDrawTextLayout *tl;
 
 	tl = uiprivNew(uiDrawTextLayout);
-	paramsToFrame(p, &(tl->forDrawing));
+	tl->frame = [[uiprivTextFrame alloc] initWithLayoutParams:p];
 	if (uiAttributedStringLength(p->String) != 0)
-		retainFrameCopy(&(tl->forMetrics), &(tl->forDrawing));
+		tl->forLines = [tl->frame retain];
 	else {
 		uiAttributedString *space;
 		uiDrawTextLayoutParams p2;
 
+		tl->empty = YES;
 		space = uiNewAttributedString(" ");
 		p2 = *p;
 		p2.String = space;
-		paramsToFrame(&p2, &(tl->forMetrics));
+		tl->forLines = [[uiprivTextFrame alloc] initWithLayoutParams:&p2];
 		uiFreeAttributedString(space);
 	}
+
+	// and finally copy the UTF-8/UTF-16 conversion tables
+	tl->u8tou16 = uiprivAttributedStringCopyUTF8ToUTF16Table(p->String, &(tl->nUTF8));
+	tl->u16tou8 = uiprivAttributedStringCopyUTF16ToUTF8Table(p->String, &(tl->nUTF16));
 	return tl;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
-	freeFrame(&(tl->forMetrics));
-	freeFrame(&(tl->forDrawing));
+	uiprivFree(tl->u16tou8);
+	uiprivFree(tl->u8tou16);
+	[tl->forLines release];
+	[tl->frame release];
 	uiprivFree(tl);
 }
 
-// uiDrawText() draws tl in c with the top-left point of tl at (x, y).
-_UI_EXTERN void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y);
+// TODO document that (x,y) is the top-left corner of the *entire frame*
+void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
+{
+	[tl->frame draw:c textLayout:tl at:x y:y];
+}
 
-// uiDrawTextLayoutExtents() returns the width and height of tl
-// in width and height. The returned width may be smaller than
-// the width passed into uiDrawNewTextLayout() depending on
-// how the text in tl is wrapped. Therefore, you can use this
-// function to get the actual size of the text layout.
-_UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height);
+// TODO document that the width and height of a layout is not necessarily the sum of the widths and heights of its constituent lines
+// TODO width doesn't include trailing whitespace...
+// TODO figure out how paragraph spacing should play into this
+// TODO standardize and document the behavior of this on an empty layout
+void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
+{
+	// TODO explain this, given the above
+	[tl->frame returnWidth:width height:NULL];
+	[tl->forLines returnWidth:NULL height:height];
+}
 
-// uiDrawTextLayoutNumLines() returns the number of lines in tl.
-// This number will always be greater than or equal to 1; a text
-// layout with no text only has one line.
-_UI_EXTERN int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl);
+int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
+{
+	return CFArrayGetCount([tl->forLines lines]);
+}
 
-// uiDrawTextLayoutLineByteRange() returns the byte indices of the
-// text that falls into the given line of tl as [start, end).
-_UI_EXTERN void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end);
+void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
+{
+	CTLineRef lr;
+	CFRange range;
+
+	lr = (CTLineRef) CFArrayGetValueAtIndex([tl->forLines lines], line);
+	range = CTLineGetStringRange(lr);
+	*start = tl->u16tou8[range.location];
+	if (tl->empty)
+		*end = *start;
+	else
+		*end = tl->u16tou8[range.location + range.length];
+}

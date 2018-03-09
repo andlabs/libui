@@ -4,7 +4,7 @@
 #include "attrstr.h"
 
 struct uiAttribute {
-	int owned;
+	int ownedByUser;
 	size_t refcount;
 	uiAttributeType type;
 	union {
@@ -174,7 +174,7 @@ uiAttribute *uiNewBackgroundAttribute(double r, double g, double b, double a)
 {
 	uiAttribute *at;
 
-	at = newAttribute(uiAttributeTypeBackgroundColor);
+	at = newAttribute(uiAttributeTypeBackground);
 	at->u.color.r = r;
 	at->u.color.g = g;
 	at->u.color.b = b;

@@ -53,7 +53,7 @@ void uiprivUninitUnderlineColors(void)
 	[auxiliaryColor release];
 	auxiliaryColor = nil;
 	[grammarColor release];
-	grammarColors = nil;
+	grammarColor = nil;
 	[spellingColor release];
 	spellingColor = nil;
 }
@@ -267,7 +267,7 @@ static void addFontAttributeToRange(struct foreachParams *p, size_t start, size_
 			range.length = end - range.location;
 		CFAttributedStringSetAttribute(p->mas, range, combinedFontAttrName, cfa);
 		[cfa release];
-		start += effectiveRange.length;
+		start += range.length;
 	}
 }
 
@@ -285,7 +285,7 @@ static backgroundBlock mkBackgroundBlock(size_t start, size_t end, double r, dou
 	});
 }
 
-static CGColorRef mkcolor(uiAttributeSpec *spec)
+static CGColorRef mkcolor(double r, double g, double b, double a)
 {
 	CGColorSpaceRef colorspace;
 	CGColorRef color;
@@ -296,10 +296,10 @@ static CGColorRef mkcolor(uiAttributeSpec *spec)
 	if (colorspace == NULL) {
 		// TODO
 	}
-	components[0] = spec->R;
-	components[1] = spec->G;
-	components[2] = spec->B;
-	components[3] = spec->A;
+	components[0] = r;
+	components[1] = g;
+	components[2] = b;
+	components[3] = a;
 	color = CGColorCreate(colorspace, components);
 	CFRelease(colorspace);
 	return color;
@@ -314,6 +314,8 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 	backgroundBlock block;
 	int32_t us;
 	CFNumberRef num;
+	double r, g, b, a;
+	uiUnderlineColor colorType;
 
 	ostart = start;
 	oend = end;
@@ -330,31 +332,31 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 	case uiAttributeTypeFeatures:
 		addFontAttributeToRange(p, start, end, attr);
 		break;
-$$TODO_CONTINUE_HERE
-	case uiAttributeColor:
-		color = mkcolor(spec);
+	case uiAttributeTypeColor:
+		uiAttributeColor(attr, &r, &g, &b, &a);
+		color = mkcolor(r, g, b, a);
 		CFAttributedStringSetAttribute(p->mas, range, kCTForegroundColorAttributeName, color);
 		CFRelease(color);
 		break;
-	case uiAttributeBackground:
-		block = mkBackgroundBlock(ostart, oend,
-			spec->R, spec->G, spec->B, spec->A);
+	case uiAttributeTypeBackground:
+		uiAttributeColor(attr, &r, &g, &b, &a);
+		block = mkBackgroundBlock(ostart, oend, r, g, b, a);
 		[p->backgroundBlocks addObject:block];
 		Block_release(block);
 		break;
 	// TODO turn into a class, like we did with the font attributes, or even integrate *into* the font attributes
-	case uiAttributeUnderline:
-		switch (spec->Value) {
-		case uiDrawUnderlineStyleNone:
+	case uiAttributeTypeUnderline:
+		switch (uiAttributeUnderline(attr)) {
+		case uiUnderlineNone:
 			us = kCTUnderlineStyleNone;
 			break;
-		case uiDrawUnderlineStyleSingle:
+		case uiUnderlineSingle:
 			us = kCTUnderlineStyleSingle;
 			break;
-		case uiDrawUnderlineStyleDouble:
+		case uiUnderlineDouble:
 			us = kCTUnderlineStyleDouble;
 			break;
-		case uiDrawUnderlineStyleSuggestion:
+		case uiUnderlineSuggestion:
 			// TODO incorrect if a solid color
 			us = kCTUnderlineStyleThick;
 			break;
@@ -363,23 +365,24 @@ $$TODO_CONTINUE_HERE
 		CFAttributedStringSetAttribute(p->mas, range, kCTUnderlineStyleAttributeName, num);
 		CFRelease(num);
 		break;
-	case uiAttributeUnderlineColor:
-		switch (spec->Value) {
-		case uiDrawUnderlineColorCustom:
-			color = mkcolor(spec);
+	case uiAttributeTypeUnderlineColor:
+		uiAttributeUnderlineColor(attr, &colorType, &r, &g, &b, &a);
+		switch (colorType) {
+		case uiUnderlineColorCustom:
+			color = mkcolor(r, g, b, a);
 			break;
-		case uiDrawUnderlineColorSpelling:
+		case uiUnderlineColorSpelling:
 			color = [spellingColor CGColor];
 			break;
-		case uiDrawUnderlineColorGrammar:
+		case uiUnderlineColorGrammar:
 			color = [grammarColor CGColor];
 			break;
-		case uiDrawUnderlineColorAuxiliary:
+		case uiUnderlineColorAuxiliary:
 			color = [auxiliaryColor CGColor];
 			break;
 		}
 		CFAttributedStringSetAttribute(p->mas, range, kCTUnderlineColorAttributeName, color);
-		if (spec->Value == uiDrawUnderlineColorCustom)
+		if (colorType == uiUnderlineColorCustom)
 			CFRelease(color);
 		break;
 	}
@@ -410,7 +413,7 @@ static void applyFontAttributes(CFMutableAttributedStringRef mas, uiFontDescript
 	range.location = 0;
 	while (range.location < n) {
 		// TODO consider seeing if CFAttributedStringGetAttributeAndLongestEffectiveRange() can make things faster by reducing the number of potential iterations, either here or above
-		cfa = (uiprivCombinedFontAttr *) CFAttributedStringSetAttribute(mas, range.location, combinedFontAttrName, &range);
+		cfa = (uiprivCombinedFontAttr *) CFAttributedStringGetAttribute(mas, range.location, combinedFontAttrName, &range);
 		if (cfa != nil) {
 			font = [cfa toCTFontWithDefaultFont:defaultFont];
 			CFAttributedStringSetAttribute(mas, range, kCTFontAttributeName, font);

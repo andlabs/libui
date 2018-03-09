@@ -279,9 +279,9 @@ void uiAttributedStringDelete(uiAttributedString *s, size_t start, size_t end)
 	resize(s, start + count, start16 + count16);
 }
 
-void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end)
+void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttribute *a, size_t start, size_t end)
 {
-	uiprivAttrListInsertAttribute(s->attrs, spec, start, end);
+	uiprivAttrListInsertAttribute(s->attrs, a, start, end);
 }
 
 // LONGTERM introduce an iterator object instead?

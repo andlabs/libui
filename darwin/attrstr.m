@@ -454,7 +454,7 @@ static CTParagraphStyleRef mkParagraphStyle(uiDrawTextLayoutParams *p)
 	return ps;
 }
 
-// TODO either rename this to uiprivDrawTextLayoutParams... or rename this file or both or split the struct or something else...
+// TODO either rename this (on all platforms) to uiprivDrawTextLayoutParams... or rename this file or both or split the struct or something else...
 CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTextLayoutParams *p, NSArray **backgroundParams)
 {
 	CFStringRef cfstr;

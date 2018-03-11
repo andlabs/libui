@@ -8,7 +8,7 @@ struct uiAttribute {
 	size_t refcount;
 	uiAttributeType type;
 	union {
-		const char *family;
+		char *family;
 		double size;
 		uiTextWeight weight;
 		uiTextItalic italic;

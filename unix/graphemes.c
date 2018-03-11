@@ -1,12 +1,13 @@
 // 25 may 2016
 #include "uipriv_unix.h"
+#include "attrstr.h"
 
-int graphemesTakesUTF16(void)
+int uiprivGraphemesTakesUTF16(void)
 {
 	return 0;
 }
 
-struct graphemes *graphemes(void *s, size_t len)
+struct graphemes *uiprivNewGraphemes(void *s, size_t len)
 {
 	struct graphemes *g;
 	char *text = (char *) s;

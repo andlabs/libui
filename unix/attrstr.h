@@ -14,6 +14,7 @@ extern PangoWeight uiprivWeightToPangoWeight(uiTextWeight w);
 extern PangoStyle uiprivItalicToPangoStyle(uiTextItalic i);
 extern PangoStretch uiprivStretchToPangoStretch(uiTextStretch s);
 extern PangoFontDescription *uiprivFontDescriptorToPangoFontDescription(const uiFontDescriptor *uidesc);
+extern void uiprivFontDescriptorFromPangoFontDescription(PangoFontDescription *pdesc, uiDrawFontDescriptor *uidesc);
 
 // attrstr.c
 extern PangoAttrList *uiprivAttributedStringToPangoAttrList(uiDrawTextLayoutParams *p, GPtrArray **backgroundParams);

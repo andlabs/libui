@@ -225,25 +225,3 @@ void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p)
 	p->xoff = xoff;
 	p->width = width;
 }
-
-// TODO split this and the other font description stuff into their own file?
-void fontdescFromPangoFontDescription(PangoFontDescription *pdesc, uiDrawFontDescriptor *uidesc)
-{
-	PangoStyle pitalic;
-	PangoStretch pstretch;
-
-	uidesc->Family = uiUnixStrdupText(pango_font_description_get_family(pdesc));
-	pitalic = pango_font_description_get_style(pdesc);
-	// TODO reverse the above misalignment if it is corrected
-	uidesc->Weight = pango_font_description_get_weight(pdesc);
-	pstretch = pango_font_description_get_stretch(pdesc);
-	// absolute size does not matter because, as above, 1 device unit == 1 cairo point
-	uidesc->Size = pango_units_to_double(pango_font_description_get_size(pdesc));
-
-	for (uidesc->Italic = uiDrawTextItalicNormal; uidesc->Italic < uiDrawTextItalicItalic; uidesc->Italic++)
-		if (pangoItalics[uidesc->Italic] == pitalic)
-			break;
-	for (uidesc->Stretch = uiDrawTextStretchUltraCondensed; uidesc->Stretch < uiDrawTextStretchUltraExpanded; uidesc->Stretch++)
-		if (pangoStretches[uidesc->Stretch] == pstretch)
-			break;
-}

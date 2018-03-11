@@ -1,5 +1,6 @@
 // 14 april 2016
 #include "uipriv_unix.h"
+#include "attrstr.h"
 
 struct uiFontButton {
 	uiUnixControl c;
@@ -31,8 +32,8 @@ void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc)
 	PangoFontDescription *pdesc;
 
 	pdesc = gtk_font_chooser_get_font_desc(b->fc);
-	fontdescFromPangoFontDescription(pdesc, desc);
-	// desc is transfer-full and thus is a copy
+	uiprivFontDescriptorFromPangoFontDescription(pdesc, desc);
+	// pdesc is transfer-full and thus is a copy
 	pango_font_description_free(pdesc);
 }
 

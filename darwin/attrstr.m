@@ -250,7 +250,7 @@ static void addFontAttributeToRange(struct foreachParams *p, size_t start, size_
 	CFRange range;
 	size_t diff;
 
-	while (start <= end) {
+	while (start < end) {
 		cfa = (uiprivCombinedFontAttr *) CFAttributedStringGetAttribute(p->mas, start, combinedFontAttrName, &range);
 		if (cfa == nil)
 			cfa = [uiprivCombinedFontAttr new];

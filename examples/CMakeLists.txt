@@ -31,12 +31,10 @@ if(NOT WIN32)
 	target_link_libraries(cpp-multithread pthread)
 endif()
 
-_add_example(opentype
-	opentype/main.c
+_add_example(drawtext
+	drawtext/main.c
 	${_EXAMPLE_RESOURCES_RC}
 )
-target_include_directories(opentype
-	PRIVATE opentype)
 
 add_custom_target(examples
 	DEPENDS

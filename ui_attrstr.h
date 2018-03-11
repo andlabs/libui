@@ -433,6 +433,7 @@ typedef struct uiDrawTextLayout uiDrawTextLayout;
 
 // uiDrawTextAlign specifies the alignment of lines of text in a
 // uiDrawTextLayout.
+// TODO should this really have Draw in the name?
 _UI_ENUM(uiDrawTextAlign) {
 	uiDrawTextAlignLeft,
 	uiDrawTextAlignCenter,

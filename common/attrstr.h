@@ -29,11 +29,11 @@ extern void uiprivAttrListRemoveCharacters(uiprivAttrList *alist, size_t start, 
 extern void uiprivAttrListForEach(const uiprivAttrList *alist, const uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
 
 // attrstr.c
-extern const uint16_t *uiprivAttributedStringUTF16String(uiAttributedString *s);
-extern size_t uiprivAttributedStringUTF16Len(uiAttributedString *s);
-extern size_t uiprivAttributedStringUTF8ToUTF16(uiAttributedString *s, size_t n);
-extern size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(uiAttributedString *s, size_t *n);
-extern size_t *uiprivAttributedStringCopyUTF16ToUTF8Table(uiAttributedString *s, size_t *n);
+extern const uint16_t *uiprivAttributedStringUTF16String(const uiAttributedString *s);
+extern size_t uiprivAttributedStringUTF16Len(const uiAttributedString *s);
+extern size_t uiprivAttributedStringUTF8ToUTF16(const uiAttributedString *s, size_t n);
+extern size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(const uiAttributedString *s, size_t *n);
+extern size_t *uiprivAttributedStringCopyUTF16ToUTF8Table(const uiAttributedString *s, size_t *n);
 
 // per-OS graphemes.c/graphemes.cpp/graphemes.m/etc.
 struct graphemes {

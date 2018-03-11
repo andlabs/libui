@@ -316,23 +316,23 @@ size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos)
 
 // helpers for platform-specific code
 
-const uint16_t *uiprivAttributedStringUTF16String(uiAttributedString *s)
+const uint16_t *uiprivAttributedStringUTF16String(const uiAttributedString *s)
 {
 	return s->u16;
 }
 
-size_t uiprivAttributedStringUTF16Len(uiAttributedString *s)
+size_t uiprivAttributedStringUTF16Len(const uiAttributedString *s)
 {
 	return s->u16len;
 }
 
 // TODO is this still needed given the below?
-size_t uiprivAttributedStringUTF8ToUTF16(uiAttributedString *s, size_t n)
+size_t uiprivAttributedStringUTF8ToUTF16(const uiAttributedString *s, size_t n)
 {
 	return s->u8tou16[n];
 }
 
-size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(uiAttributedString *s, size_t *n)
+size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(const uiAttributedString *s, size_t *n)
 {
 	size_t *out;
 	size_t nbytes;
@@ -344,7 +344,7 @@ size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(uiAttributedString *s, size_t
 	return out;
 }
 
-size_t *uiprivAttributedStringCopyUTF16ToUTF8Table(uiAttributedString *s, size_t *n)
+size_t *uiprivAttributedStringCopyUTF16ToUTF8Table(const uiAttributedString *s, size_t *n)
 {
 	size_t *out;
 	size_t nbytes;

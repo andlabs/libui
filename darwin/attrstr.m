@@ -457,7 +457,6 @@ CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTextLayou
 {
 	CFStringRef cfstr;
 	CFMutableDictionaryRef defaultAttrs;
-	CTFontRef defaultCTFont;
 	CTParagraphStyleRef ps;
 	CFAttributedStringRef base;
 	CFMutableAttributedStringRef mas;

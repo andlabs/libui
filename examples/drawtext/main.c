@@ -62,11 +62,12 @@ static void makeAttributedString(void)
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 {
 	uiDrawTextLayout *textLayout;
-	uiFontDescriptor fontdesc;
+	uiFontDescriptor defaultFont;
 	uiDrawTextLayoutParams params;
 
 	params.String = attrstr;
-	uiFontButtonFont(fontButton, &fontdesc);
+	uiFontButtonFont(fontButton, &defaultFont);
+	params.DefaultFont = &defaultFont;
 	params.Width = p->AreaWidth - (2 * margins);
 	params.Align = uiDrawTextAlignLeft;
 	textLayout = uiDrawNewTextLayout(&params);
@@ -153,6 +154,7 @@ int main(void)
 
 	uiControlShow(uiControl(mainwin));
 	uiMain();
+	uiFreeAttributedString(attrstr);
 	uiUninit();
 	return 0;
 }

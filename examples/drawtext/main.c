@@ -12,7 +12,7 @@ uiAttributedString *attrstr;
 
 #define margins 20
 
-static void appendWithAttribute(const char *what, uiAttribute *attr)
+static void appendWithAttribute(const char *what, uiAttribute *attr, uiAttribute *attr2)
 {
 	size_t start, end;
 
@@ -20,43 +20,75 @@ static void appendWithAttribute(const char *what, uiAttribute *attr)
 	end = start + strlen(what);
 	uiAttributedStringAppendUnattributed(attrstr, what);
 	uiAttributedStringSetAttribute(attrstr, attr, start, end);
+	if (attr2 != NULL)
+		uiAttributedStringSetAttribute(attrstr, attr2, start, end);
 }
 
 static void makeAttributedString(void)
 {
-	uiAttribute *attr;
+	uiAttribute *attr, *attr2;
+	uiOpenTypeFeatures *otf;
 
 	attrstr = uiNewAttributedString(
 		"Drawing strings with libui is done with the uiAttributedString and uiDrawTextLayout obects.\n"
 		"uiAttributedString lets you have a variety of attributes: ");
 
 	attr = uiNewFamilyAttribute("Courier New");
-	appendWithAttribute("font family", attr);
+	appendWithAttribute("font family", attr, NULL);
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	attr = uiNewSizeAttribute(18);
-	appendWithAttribute("font size", attr);
+	appendWithAttribute("font size", attr, NULL);
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	attr = uiNewWeightAttribute(uiTextWeightBold);
-	appendWithAttribute("font weight", attr);
+	appendWithAttribute("font weight", attr, NULL);
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	attr = uiNewItalicAttribute(uiTextItalicItalic);
-	appendWithAttribute("font italicness", attr);
+	appendWithAttribute("font italicness", attr, NULL);
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	attr = uiNewStretchAttribute(uiTextStretchCondensed);
-	appendWithAttribute("font stretch", attr);
+	appendWithAttribute("font stretch", attr, NULL);
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	attr = uiNewColorAttribute(0.75, 0.25, 0.5, 0.75);
-	appendWithAttribute("text color", attr);
+	appendWithAttribute("text color", attr, NULL);
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
 
 	attr = uiNewBackgroundAttribute(0.5, 0.5, 0.25, 0.5);
-	appendWithAttribute("text background color", attr);
+	appendWithAttribute("text background color", attr, NULL);
 	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+
+	attr = uiNewUnderlineAttribute(uiUnderlineSingle);
+	appendWithAttribute("underline style", attr, NULL);
+	uiAttributedStringAppendUnattributed(attrstr, ", ");
+
+	uiAttributedStringAppendUnattributed(attrstr, "and ");
+	attr = uiNewUnderlineAttribute(uiUnderlineDouble);
+	attr2 = uiNewUnderlineColorAttribute(uiUnderlineColorCustom, 1.0, 0.0, 0.5, 1.0);
+	appendWithAttribute("underline color", attr, attr2);
+	uiAttributedStringAppendUnattributed(attrstr, ". ");
+
+	uiAttributedStringAppendUnattributed(attrstr, "Furthermore, there are attributes allowing for ");
+	attr = uiNewUnderlineAttribute(uiUnderlineSuggestion);
+	attr2 = uiNewUnderlineColorAttribute(uiUnderlineColorSpelling, 0, 0, 0, 0);
+	appendWithAttribute("special underlines for indicating spelling errors", attr, attr2);
+	uiAttributedStringAppendUnattributed(attrstr, " (and other types of errors) ");
+
+	uiAttributedStringAppendUnattributed(attrstr, "and control over OpenType features such as ligatures (for instance, ");
+	otf = uiNewOpenTypeFeatures();
+	uiOpenTypeFeaturesAdd(otf, 'l', 'i', 'g', 'a', 0);
+	attr = uiNewFeaturesAttribute(otf);
+	appendWithAttribute("afford", attr, NULL);
+	uiAttributedStringAppendUnattributed(attrstr, " vs. ");
+	uiOpenTypeFeaturesAdd(otf, 'l', 'i', 'g', 'a', 1);
+	attr = uiNewFeaturesAttribute(otf);
+	appendWithAttribute("afford", attr, NULL);
+	uiFreeOpenTypeFeatures(otf);
+	uiAttributedStringAppendUnattributed(attrstr, ").");
 }
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)

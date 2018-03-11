@@ -145,6 +145,7 @@ extern void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdg
 // future.m
 extern CFStringRef *FUTURE_kCTFontOpenTypeFeatureTag;
 extern CFStringRef *FUTURE_kCTFontOpenTypeFeatureValue;
+extern CFStringRef *FUTURE_kCTBackgroundColorAttributeName;
 extern void loadFutures(void);
 extern void FUTURE_NSLayoutConstraint_setIdentifier(NSLayoutConstraint *constraint, NSString *identifier);
 extern BOOL FUTURE_NSWindow_performWindowDragWithEvent(NSWindow *w, NSEvent *initialEvent);

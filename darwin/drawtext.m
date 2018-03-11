@@ -8,7 +8,7 @@
 // in the usual case, the separate copy will just be identical to the regular one, with extra references to everything within
 @interface uiprivTextFrame : NSObject {
 	CFAttributedStringRef attrstr;
-	NSArray *backgroundBlocks;
+	NSArray *backgroundParams;
 	CTFramesetterRef framesetter;
 	CGSize size;
 	CGPathRef path;
@@ -18,6 +18,29 @@
 - (void)draw:(uiDrawContext *)c textLayout:(uiDrawTextLayout *)tl at:(double)x y:(double)y;
 - (void)returnWidth:(double *)width height:(double *)height;
 - (CFArrayRef)lines;
+@end
+
+@implementation uiprivDrawTextBackgroundParams
+
+- (id)initWithStart:(size_t)s end:(size_t)e r:(double)red g:(double)green b:(double)blue a:(double)alpha
+{
+	self = [super init];
+	if (self) {
+		self->start = s;
+		self->end = e;
+		self->r = red;
+		self->g = green;
+		self->b = blue;
+		self->a = alpha;
+	}
+	return self;
+}
+
+- (void)draw:(CGContextRef)c layout:(uiDrawTextLayout *)layout at:(double)x y:(double)y utf8Mapping:(const size_t *)u16tou8
+{
+	// TODO
+}
+
 @end
 
 @implementation uiprivTextFrame
@@ -31,7 +54,7 @@
 
 	self = [super init];
 	if (self) {
-		self->attrstr = uiprivAttributedStringToCFAttributedString(p, &(self->backgroundBlocks));
+		self->attrstr = uiprivAttributedStringToCFAttributedString(p, &(self->backgroundParams));
 		// TODO kCTParagraphStyleSpecifierMaximumLineSpacing, kCTParagraphStyleSpecifierMinimumLineSpacing, kCTParagraphStyleSpecifierLineSpacingAdjustment for line spacing
 		self->framesetter = CTFramesetterCreateWithAttributedString(self->attrstr);
 		if (self->framesetter == NULL) {
@@ -71,22 +94,22 @@
 	CFRelease(self->frame);
 	CFRelease(self->path);
 	CFRelease(self->framesetter);
-	[self->backgroundBlocks release];
+	[self->backgroundParams release];
 	CFRelease(self->attrstr);
 	[super dealloc];
 }
 
 - (void)draw:(uiDrawContext *)c textLayout:(uiDrawTextLayout *)tl at:(double)x y:(double)y
 {
-	backgroundBlock b;
+	uiprivDrawTextBackgroundParams *dtb;
 	CGAffineTransform textMatrix;
 
 	CGContextSaveGState(c->c);
 	// save the text matrix because it's not part of the graphics state
 	textMatrix = CGContextGetTextMatrix(c->c);
 
-	for (b in self->backgroundBlocks)
-		b(c, tl, x, y);
+	for (dtb in self->backgroundParams)
+		/* TODO */;
 
 	// Core Text doesn't draw onto a flipped view correctly; we have to pretend it was unflipped
 	// see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)

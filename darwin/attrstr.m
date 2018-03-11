@@ -65,7 +65,7 @@ void uiprivUninitUnderlineColors(void)
 // TODO in fact I should just write something to explain everything in this file...
 struct foreachParams {
 	CFMutableAttributedStringRef mas;
-	NSMutableArray *backgroundBlocks;
+	NSMutableArray *backgroundParams;
 };
 
 // unlike the other systems, Core Text rolls family, size, weight, italic, width, AND opentype features into the "font" attribute
@@ -271,20 +271,6 @@ static void addFontAttributeToRange(struct foreachParams *p, size_t start, size_
 	}
 }
 
-static backgroundBlock mkBackgroundBlock(size_t start, size_t end, double r, double g, double b, double a)
-{
-	return Block_copy(^(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y) {
-		uiDrawBrush brush;
-
-		brush.Type = uiDrawBrushTypeSolid;
-		brush.R = r;
-		brush.G = g;
-		brush.B = b;
-		brush.A = a;
-//TODO		drawTextBackground(c, x, y, layout, start, end, &brush, 0);
-	});
-}
-
 static CGColorRef mkcolor(double r, double g, double b, double a)
 {
 	CGColorSpaceRef colorspace;
@@ -305,20 +291,38 @@ static CGColorRef mkcolor(double r, double g, double b, double a)
 	return color;
 }
 
+static void addBackgroundAttribute(struct foreachParams *p, size_t start, size_t end, double r, double g, double b, double a)
+{
+	uiprivDrawTextBackgroundParams *dtb;
+
+	// TODO make sure this works properly with line paragraph spacings (after figuring out what that means, of course)
+	if (FUTURE_kCTBackgroundColorAttributeName != NULL) {
+		CGColorRef color;
+		CFRange range;
+
+		color = mkcolor(r, g, b, a);
+		range.location = start;
+		range.length = end - start;
+		CFAttributedStringSetAttribute(p->mas, range, *FUTURE_kCTBackgroundColorAttributeName, color);
+		CFRelease(color);
+		return;
+	}
+
+	dtb = [[uiprivDrawTextBackgroundParams alloc] initWithStart:start end:end r:r g:g b:b a:a];
+	[p->backgroundParams addObject:dtb];
+	[dtb release];
+}
+
 static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute *attr, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	CFRange range;
 	CGColorRef color;
-	size_t ostart, oend;
-	backgroundBlock block;
 	int32_t us;
 	CFNumberRef num;
 	double r, g, b, a;
 	uiUnderlineColor colorType;
 
-	ostart = start;
-	oend = end;
 	start = uiprivAttributedStringUTF8ToUTF16(s, start);
 	end = uiprivAttributedStringUTF8ToUTF16(s, end);
 	range.location = start;
@@ -340,9 +344,7 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 		break;
 	case uiAttributeTypeBackground:
 		uiAttributeColor(attr, &r, &g, &b, &a);
-		block = mkBackgroundBlock(ostart, oend, r, g, b, a);
-		[p->backgroundBlocks addObject:block];
-		Block_release(block);
+		addBackgroundAttribute(p, start, end, r, g, b, a);
 		break;
 	// TODO turn into a class, like we did with the font attributes, or even integrate *into* the font attributes
 	case uiAttributeTypeUnderline:
@@ -453,7 +455,7 @@ static CTParagraphStyleRef mkParagraphStyle(uiDrawTextLayoutParams *p)
 }
 
 // TODO either rename this to uiprivDrawTextLayoutParams... or rename this file or both or split the struct or something else...
-CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks)
+CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTextLayoutParams *p, NSArray **backgroundParams)
 {
 	CFStringRef cfstr;
 	CFMutableDictionaryRef defaultAttrs;
@@ -493,11 +495,11 @@ CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTextLayou
 
 	CFAttributedStringBeginEditing(mas);
 	fep.mas = mas;
-	fep.backgroundBlocks = [NSMutableArray new];
+	fep.backgroundParams = [NSMutableArray new];
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
 	applyFontAttributes(mas, p->DefaultFont);
 	CFAttributedStringEndEditing(mas);
 
-	*backgroundBlocks = fep.backgroundBlocks;
+	*backgroundParams = fep.backgroundParams;
 	return mas;
 }

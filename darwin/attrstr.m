@@ -281,7 +281,7 @@ static backgroundBlock mkBackgroundBlock(size_t start, size_t end, double r, dou
 		brush.G = g;
 		brush.B = b;
 		brush.A = a;
-		drawTextBackground(c, x, y, layout, start, end, &brush, 0);
+//TODO		drawTextBackground(c, x, y, layout, start, end, &brush, 0);
 	});
 }
 
@@ -463,7 +463,7 @@ CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTextLayou
 	CFMutableAttributedStringRef mas;
 	struct foreachParams fep;
 
-	cfstr = CFStringCreateWithCharacters(NULL, attrstrUTF16(p->String), attrstrUTF16Len(p->String));
+	cfstr = CFStringCreateWithCharacters(NULL, uiprivAttributedStringUTF16String(p->String), uiprivAttributedStringUTF16Len(p->String));
 	if (cfstr == NULL) {
 		// TODO
 	}

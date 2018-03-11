@@ -1,5 +1,6 @@
 // 6 april 2015
 #import "uipriv_darwin.h"
+#import "attrstr.h"
 
 static BOOL canQuit = NO;
 static NSAutoreleasePool *globalPool;
@@ -128,7 +129,7 @@ const char *uiInit(uiInitOptions *o)
 
 		uiprivSetupFontPanel();
 
-		initUnderlineColors();
+		uiprivInitUnderlineColors();
 	}
 
 	globalPool = [[NSAutoreleasePool alloc] init];
@@ -144,7 +145,7 @@ void uiUninit(void)
 	[globalPool release];
 
 	@autoreleasepool {
-		uninitUnderlineColors();
+		uiprivUninitUnderlineColors();
 		[delegate release];
 		[realNSApp() setDelegate:nil];
 		[app release];

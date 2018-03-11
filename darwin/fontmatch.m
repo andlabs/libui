@@ -450,7 +450,7 @@ CTFontDescriptorRef uiprivCTFontDescriptorAppendFeatures(CTFontDescriptorRef des
 	CFDictionaryRef attrs;
 	const void *keys[1], *values[1];
 
-	featuresArray = otfToFeaturesArray(otf);
+	featuresArray = uiprivOpenTypeFeaturesToCTFeatures(otf);
 	keys[0] = kCTFontFeatureSettingsAttribute;
 	values[0] = featuresArray;
 	attrs = CFDictionaryCreate(NULL,

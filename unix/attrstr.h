@@ -9,6 +9,12 @@
 // opentype.c
 extern GString *uiprivOpenTypeFeaturesToPangoCSSFeaturesString(const uiOpenTypeFeatures *otf);
 
+// fontmatch.c
+extern PangoWeight uiprivWeightToPangoWeight(uiTextWeight w);
+extern PangoStyle uiprivItalicToPangoStyle(uiTextItalic i);
+extern PangoStretch uiprivStretchToPangoStretch(uiTextStretch s);
+extern PangoFontDescription *uiprivFontDescriptorToPangoFontDescription(const uiFontDescriptor *uidesc);
+
 // attrstr.c
 extern PangoAttrList *uiprivAttributedStringToPangoAttrList(uiDrawTextLayoutParams *p, GPtrArray **backgroundParams);
 
@@ -23,6 +29,3 @@ struct uiprivDrawTextBackgroundParams {
 	double b;
 	double a;
 };
-// TODO move this to a fontmatch.c
-extern const PangoStyle uiprivPangoItalics[];
-extern const PangoStretch uiprivPangoStretches[];

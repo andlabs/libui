@@ -68,15 +68,15 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 	case uiAttributeTypeWeight:
 		// TODO reverse the misalignment from drawtext.c if it is corrected 
 		addattr(p, start, end,
-			pango_attr_weight_new((PangoWeight) uiAttributeWeight(attr)));
+			pango_attr_weight_new(uiprivWeightToPangoWeight(uiAttributeWeight(attr))));
 		break;
 	case uiAttributeTypeItalic:
 		addattr(p, start, end,
-			pango_attr_style_new(pangoItalics[uiAttributeItalic(attr)]));
+			pango_attr_style_new(uiprivItalicToPangoStyle(uiAttributeItalic(attr))));
 		break;
 	case uiAttributeTypeStretch:
 		addattr(p, start, end,
-			pango_attr_stretch_new(pangoStretches[uiAttributeStretch(attr)]));
+			pango_attr_stretch_new(uiprivStretchToPangoStretch(uiAttributeStretch(attr))));
 		break;
 	case uiAttributeTypeColor:
 		uiAttributeColor(attr, &r, &g, &b, &a);

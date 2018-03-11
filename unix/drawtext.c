@@ -1,4 +1,4 @@
-xx 11 march 2018
+// 11 march 2018
 #import "uipriv_unix.h"
 #import "draw.h"
 #import "attrstr.h"
@@ -13,24 +13,6 @@ struct uiDrawTextLayout {
 // we could use pango_font_map_create_context(pango_cairo_font_map_get_default()) but that will ignore GDK-specific settings
 // so let's use gdk_pango_context_get() instead; even though it's for the default screen only, it's good enough for us
 #define mkGenericPangoCairoContext() (gdk_pango_context_get())
-
-const PangoStyle uiprivPangoItalics[] = {
-	[uiTextItalicNormal] = PANGO_STYLE_NORMAL,
-	[uiTextItalicOblique] = PANGO_STYLE_OBLIQUE,
-	[uiTextItalicItalic] = PANGO_STYLE_ITALIC,
-};
-
-const PangoStretch uiprivPangoStretches[] = {
-	[uiTextStretchUltraCondensed] = PANGO_STRETCH_ULTRA_CONDENSED,
-	[uiTextStretchExtraCondensed] = PANGO_STRETCH_EXTRA_CONDENSED,
-	[uiTextStretchCondensed] = PANGO_STRETCH_CONDENSED,
-	[uiTextStretchSemiCondensed] = PANGO_STRETCH_SEMI_CONDENSED,
-	[uiTextStretchNormal] = PANGO_STRETCH_NORMAL,
-	[uiTextStretchSemiExpanded] = PANGO_STRETCH_SEMI_EXPANDED,
-	[uiTextStretchExpanded] = PANGO_STRETCH_EXPANDED,
-	[uiTextStretchExtraExpanded] = PANGO_STRETCH_EXTRA_EXPANDED,
-	[uiTextStretchUltraExpanded] = PANGO_STRETCH_ULTRA_EXPANDED,
-};
 
 static const PangoAlignment pangoAligns[] = {
 	[uiDrawTextAlignLeft] = PANGO_ALIGN_LEFT,
@@ -57,18 +39,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	// this is safe; pango_layout_set_text() copies the string
 	pango_layout_set_text(tl->layout, uiAttributedStringString(p->String), -1);
 
-	desc = pango_font_description_new();
-	pango_font_description_set_family(desc, p->DefaultFont->Family);
-	pango_font_description_set_style(desc, uiprivPangoItalics[p->DefaultFont->Italic]);
-	// for the most part, pango weights correlate to ours
-	// the differences:
-	// - Book — libui: 350, Pango: 380
-	// - Ultra Heavy — libui: 950, Pango: 1000
-	// TODO figure out what to do about this misalignment
-	pango_font_description_set_weight(desc, p->DefaultFont->Weight);
-	pango_font_description_set_stretch(desc, uiprivPangoStretches[p->DefaultFont->Stretch]);
-	// see https://developer.gnome.org/pango/1.30/pango-Fonts.html#pango-font-description-set-size and https://developer.gnome.org/pango/1.30/pango-Glyph-Storage.html#pango-units-from-double
-	pango_font_description_set_size(desc, pango_units_from_double(p->DefaultFont->Size));
+	desc = uiprivFontDescriptorToPangoFontDescription(p->DefaultFont);
 	pango_layout_set_font_description(tl->layout, desc);
 	// this is safe; the description is copied
 	pango_font_description_free(desc);

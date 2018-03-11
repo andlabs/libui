@@ -15,35 +15,6 @@ struct uiDrawTextLayout {
 	int nLines;
 };
 
-// See https://developer.gnome.org/pango/1.30/pango-Cairo-Rendering.html#pango-Cairo-Rendering.description
-// For the conversion, see https://developer.gnome.org/pango/1.30/pango-Glyph-Storage.html#pango-units-to-double and https://developer.gnome.org/pango/1.30/pango-Glyph-Storage.html#pango-units-from-double
-#define pangoToCairo(pango) (pango_units_to_double(pango))
-// cairoToPango() is in uipriv_unix.h because attrstr.c needs it
-
-// we need a context for a few things
-// the documentation suggests creating cairo_t-specific, GdkScreen-specific, or even GtkWidget-specific contexts, but we can't really do that because we want our uiDrawTextFonts and uiDrawTextLayouts to be context-independent
-// we could use pango_font_map_create_context(pango_cairo_font_map_get_default()) but that will ignore GDK-specific settings
-// so let's use gdk_pango_context_get() instead; even though it's for the default screen only, it's good enough for us
-#define mkGenericPangoCairoContext() (gdk_pango_context_get())
-
-const PangoStyle pangoItalics[] = {
-	[uiDrawTextItalicNormal] = PANGO_STYLE_NORMAL,
-	[uiDrawTextItalicOblique] = PANGO_STYLE_OBLIQUE,
-	[uiDrawTextItalicItalic] = PANGO_STYLE_ITALIC,
-};
-
-const PangoStretch pangoStretches[] = {
-	[uiDrawTextStretchUltraCondensed] = PANGO_STRETCH_ULTRA_CONDENSED,
-	[uiDrawTextStretchExtraCondensed] = PANGO_STRETCH_EXTRA_CONDENSED,
-	[uiDrawTextStretchCondensed] = PANGO_STRETCH_CONDENSED,
-	[uiDrawTextStretchSemiCondensed] = PANGO_STRETCH_SEMI_CONDENSED,
-	[uiDrawTextStretchNormal] = PANGO_STRETCH_NORMAL,
-	[uiDrawTextStretchSemiExpanded] = PANGO_STRETCH_SEMI_EXPANDED,
-	[uiDrawTextStretchExpanded] = PANGO_STRETCH_EXPANDED,
-	[uiDrawTextStretchExtraExpanded] = PANGO_STRETCH_EXTRA_EXPANDED,
-	[uiDrawTextStretchUltraExpanded] = PANGO_STRETCH_ULTRA_EXPANDED,
-};
-
 // TODO neither these nor the overall extents seem to include trailing whitespace... we need to figure that out too
 static void computeLineMetrics(uiDrawTextLayout *tl)
 {
@@ -93,12 +64,6 @@ static void computeLineMetrics(uiDrawTextLayout *tl)
 
 	pango_layout_iter_free(iter);
 }
-
-static const PangoAlignment pangoAligns[] = {
-	[uiDrawTextAlignLeft] = PANGO_ALIGN_LEFT,
-	[uiDrawTextAlignCenter] = PANGO_ALIGN_CENTER,
-	[uiDrawTextAlignRight] = PANGO_ALIGN_RIGHT,
-};
 
 uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 {
@@ -150,53 +115,6 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	computeLineMetrics(tl);
 
 	return tl;
-}
-
-void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
-{
-	uiFree(tl->lineMetrics);
-	g_ptr_array_unref(tl->backgroundClosures);
-	g_object_unref(tl->layout);
-	uiFree(tl);
-}
-
-void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
-{
-	guint i;
-	GClosure *closure;
-
-	for (i = 0; i < tl->backgroundClosures->len; i++) {
-		closure = (GClosure *) g_ptr_array_index(tl->backgroundClosures, i);
-		invokeBackgroundClosure(closure, c, tl, x, y);
-	}
-	// TODO have an implicit save/restore on each drawing functions instead? and is this correct?
-	cairo_set_source_rgb(c->cr, 0.0, 0.0, 0.0);
-	cairo_move_to(c->cr, x, y);
-	pango_cairo_show_layout(c->cr, tl->layout);
-}
-
-void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
-{
-	PangoRectangle logical;
-
-	pango_layout_get_extents(tl->layout, NULL, &logical);
-	*width = pangoToCairo(logical.width);
-	*height = pangoToCairo(logical.height);
-}
-
-int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
-{
-	return pango_layout_get_line_count(tl->layout);
-}
-
-void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
-{
-	PangoLayoutLine *pll;
-
-	pll = pango_layout_get_line_readonly(tl->layout, line);
-	*start = pll->start_index;
-	*end = pll->start_index + pll->length;
-	// TODO unref pll?
 }
 
 void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)

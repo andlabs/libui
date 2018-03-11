@@ -29,6 +29,9 @@
 // - https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Types
 // - https://www.microsoft.com/typography/otspec/avar.htm
 
+// TODO Skia doesn't quite map correctly; notice what passes for condensed in the drawtext example
+// TODO also investigate Marker Felt not working right in Thin and Wide modes (but that's probably the other file, putting it here just so I don't forget)
+
 #define fvarWeight 0x77676874
 #define fvarWidth 0x77647468
 

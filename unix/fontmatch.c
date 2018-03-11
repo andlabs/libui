@@ -42,7 +42,7 @@ PangoStretch uiprivStretchToPangoStretch(uiTextStretch s)
 
 PangoFontDescription *uiprivFontDescriptorToPangoFontDescription(const uiFontDescriptor *uidesc)
 {
-	PangoFontDescriptor *desc;
+	PangoFontDescription *desc;
 
 	desc = pango_font_description_new();
 	pango_font_description_set_family(desc, uidesc->Family);
@@ -54,7 +54,7 @@ PangoFontDescription *uiprivFontDescriptorToPangoFontDescription(const uiFontDes
 	return desc;
 }
 
-void uiprivFontDescriptorFromPangoFontDescription(PangoFontDescription *pdesc, uiDrawFontDescriptor *uidesc)
+void uiprivFontDescriptorFromPangoFontDescription(PangoFontDescription *pdesc, uiFontDescriptor *uidesc)
 {
 	PangoStyle pitalic;
 	PangoStretch pstretch;
@@ -67,10 +67,10 @@ void uiprivFontDescriptorFromPangoFontDescription(PangoFontDescription *pdesc, u
 	// absolute size does not matter because, as above, 1 device unit == 1 cairo point
 	uidesc->Size = pango_units_to_double(pango_font_description_get_size(pdesc));
 
-	for (uidesc->Italic = uiDrawTextItalicNormal; uidesc->Italic < uiDrawTextItalicItalic; uidesc->Italic++)
+	for (uidesc->Italic = uiTextItalicNormal; uidesc->Italic < uiTextItalicItalic; uidesc->Italic++)
 		if (pangoItalics[uidesc->Italic] == pitalic)
 			break;
-	for (uidesc->Stretch = uiDrawTextStretchUltraCondensed; uidesc->Stretch < uiDrawTextStretchUltraExpanded; uidesc->Stretch++)
+	for (uidesc->Stretch = uiTextStretchUltraCondensed; uidesc->Stretch < uiTextStretchUltraExpanded; uidesc->Stretch++)
 		if (pangoStretches[uidesc->Stretch] == pstretch)
 			break;
 }

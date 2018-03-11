@@ -58,6 +58,3 @@ extern void loadFutures(void);
 extern PangoAttribute *FUTURE_pango_attr_font_features_new(const gchar *features);
 extern PangoAttribute *FUTURE_pango_attr_foreground_alpha_new(guint16 alpha);
 extern gboolean FUTURE_gtk_widget_path_iter_set_object_name(GtkWidgetPath *path, gint pos, const char *name);
-
-// drawtext.c
-extern void fontdescFromPangoFontDescription(PangoFontDescription *pdesc, uiDrawFontDescriptor *uidesc);

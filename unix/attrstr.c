@@ -11,19 +11,6 @@ struct foreachParams {
 	GPtrArray *backgroundParams;
 };
 
-static void backgroundClosure(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y, gpointer data)
-{
-	struct closureParams *p = (struct closureParams *) data;
-	uiDrawBrush brush;
-
-	brush.Type = uiDrawBrushTypeSolid;
-	brush.R = p->r;
-	brush.G = p->g;
-	brush.B = p->b;
-	brush.A = p->a;
-//TODO	drawTextBackground(c, x, y, layout, p->start, p->end, &brush, 0);
-}
-
 static void addBackgroundAttribute(struct foreachParams *p, size_t start, size_t end, double r, double g, double b, double a)
 {
 	uiprivDrawTextBackgroundParams *dtb;

@@ -27,7 +27,7 @@ static void defaultOnChanged(uiFontButton *b, void *data)
 	// do nothing
 }
 
-void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc)
+void uiFontButtonFont(uiFontButton *b, uiFontDescriptor *desc)
 {
 	PangoFontDescription *pdesc;
 

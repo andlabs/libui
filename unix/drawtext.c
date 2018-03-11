@@ -1,7 +1,7 @@
 // 11 march 2018
-#import "uipriv_unix.h"
-#import "draw.h"
-#import "attrstr.h"
+#include "uipriv_unix.h"
+#include "draw.h"
+#include "attrstr.h"
 
 struct uiDrawTextLayout {
 	PangoLayout *layout;
@@ -51,7 +51,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 
 	pango_layout_set_alignment(tl->layout, pangoAligns[p->Align]);
 
-	attrs = uiprivAttributedStringToPangoAttrList(p, &(tl->backgroundFeatures));
+	attrs = uiprivAttributedStringToPangoAttrList(p, &(tl->backgroundParams));
 	pango_layout_set_attributes(tl->layout, attrs);
 	pango_attr_list_unref(attrs);
 
@@ -60,7 +60,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
-	g_ptr_array_unref(tl->backgroundFeatures);
+	g_ptr_array_unref(tl->backgroundParams);
 	g_object_unref(tl->layout);
 	uiprivFree(tl);
 }
@@ -69,7 +69,7 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
 	guint i;
 
-	for (i = 0; i < tl->backgroundFeatures->len; i++) {
+	for (i = 0; i < tl->backgroundParams->len; i++) {
 		// TODO
 	}
 	// TODO have an implicit save/restore on each drawing functions instead? and is this correct?

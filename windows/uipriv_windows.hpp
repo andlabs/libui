@@ -152,17 +152,8 @@ extern void getSizing(HWND hwnd, uiWindowsSizing *sizing, HFONT font);
 // TODO move into a dedicated file abibugs.cpp when we rewrite the drawing code
 extern D2D1_SIZE_F realGetSize(ID2D1RenderTarget *rt);
 
-
-
-
 // TODO
 #include "_uipriv_migrate.hpp"
 
 // draw.cpp
 extern ID2D1DCRenderTarget *makeHDCRenderTarget(HDC dc, RECT *r);
-
-// drawtext.cpp
-extern void fontdescFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc);
-
-// opentype.cpp
-extern IDWriteTypography *otfToDirectWrite(const uiOpenTypeFeatures *otf);

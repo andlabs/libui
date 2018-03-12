@@ -30,26 +30,6 @@ struct uiDrawTextLayout {
 // fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
 #define pointSizeToDWriteSize(size) (size * (96.0 / 72.0))
 
-// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
-std::map<uiDrawTextItalic, DWRITE_FONT_STYLE> dwriteItalics = {
-	{ uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
-	{ uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
-	{ uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
-};
-
-// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
-std::map<uiDrawTextStretch, DWRITE_FONT_STRETCH> dwriteStretches = {
-	{ uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
-	{ uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
-	{ uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
-	{ uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
-	{ uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
-	{ uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
-	{ uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
-	{ uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
-	{ uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
-};
-
 struct lineInfo {
 	size_t startPos;			// in UTF-16 points
 	size_t endPos;
@@ -154,14 +134,9 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	wDefaultFamily = toUTF16(p->DefaultFont->Family);
 	hr = dwfactory->CreateTextFormat(
 		wDefaultFamily, NULL,
-		// for the most part, DirectWrite weights correlate to ours
-		// the differences:
-		// - Minimum — libui: 0, DirectWrite: 1
-		// - Maximum — libui: 1000, DirectWrite: 999
-		// TODO figure out what to do about this shorter range (the actual major values are the same (but with different names), so it's just a range issue)
-		(DWRITE_FONT_WEIGHT) (p->DefaultFont->Weight),
-		dwriteItalics[p->DefaultFont->Italic],
-		dwriteStretches[p->DefaultFont->Stretch],
+		uiprivWeightToDWriteWeight(p->DefaultFont->Weight),
+		uiprivItalicToDWriteStyle(p->DefaultFont->Italic),
+		uiprivStretchToDWriteStretch(p->DefaultFont->Stretch),
 		pointSizeToDWriteSize(p->DefaultFont->Size),
 		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
 		// TODO use the current locale?

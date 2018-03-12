@@ -5,3 +5,8 @@ extern "C" {
 
 // opentype.cpp
 extern IDWriteTypography *uiprivOpenTypeFeaturesToIDWriteTypography(const uiOpenTypeFeatures *otf);
+
+// fontmatch.cpp
+extern DWRITE_FONT_WEIGHT uiprivWeightToDWriteWeight(uiTextWeight w);
+extern DWRITE_FONT_STYLE uiprivItalicToDWriteStyle(uiTextItalic i);
+extern DWRITE_FONT_STRETCH uiprivStretchToDWriteStretch(uiTextStretch s);

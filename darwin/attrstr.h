@@ -77,6 +77,7 @@ extern void uiprivUninitUnderlineColors(void);
 extern CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTextLayoutParams *p, NSArray **backgroundParams);
 
 // drawtext.m
+// TODO figure out where this type should *really* go in all the headers...
 @interface uiprivDrawTextBackgroundParams : NSObject {
 	size_t start;
 	size_t end;

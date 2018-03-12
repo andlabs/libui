@@ -5,7 +5,6 @@
 
 struct uiDrawTextLayout {
 	PangoLayout *layout;
-	GPtrArray *backgroundParams;
 };
 
 // we need a context for a few things
@@ -51,7 +50,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 
 	pango_layout_set_alignment(tl->layout, pangoAligns[p->Align]);
 
-	attrs = uiprivAttributedStringToPangoAttrList(p, &(tl->backgroundParams));
+	attrs = uiprivAttributedStringToPangoAttrList(p);
 	pango_layout_set_attributes(tl->layout, attrs);
 	pango_attr_list_unref(attrs);
 
@@ -60,18 +59,12 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
-	g_ptr_array_unref(tl->backgroundParams);
 	g_object_unref(tl->layout);
 	uiprivFree(tl);
 }
 
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
-	guint i;
-
-	for (i = 0; i < tl->backgroundParams->len; i++) {
-		// TODO
-	}
 	// TODO have an implicit save/restore on each drawing functions instead? and is this correct?
 	cairo_set_source_rgb(c->cr, 0.0, 0.0, 0.0);
 	cairo_move_to(c->cr, x, y);

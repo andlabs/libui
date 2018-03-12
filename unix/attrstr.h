@@ -17,16 +17,4 @@ extern PangoFontDescription *uiprivFontDescriptorToPangoFontDescription(const ui
 extern void uiprivFontDescriptorFromPangoFontDescription(PangoFontDescription *pdesc, uiFontDescriptor *uidesc);
 
 // attrstr.c
-extern PangoAttrList *uiprivAttributedStringToPangoAttrList(uiDrawTextLayoutParams *p, GPtrArray **backgroundParams);
-
-// drawtext.c
-// TODO figure out where this type should *really* go in all the headers...
-typedef struct uiprivDrawTextBackgroundParams uiprivDrawTextBackgroundParams;
-struct uiprivDrawTextBackgroundParams {
-	size_t start;
-	size_t end;
-	double r;
-	double g;
-	double b;
-	double a;
-};
+extern PangoAttrList *uiprivAttributedStringToPangoAttrList(uiDrawTextLayoutParams *p);

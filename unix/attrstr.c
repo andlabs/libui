@@ -7,23 +7,7 @@
 // TODO make this name less generic?
 struct foreachParams {
 	PangoAttrList *attrs;
-	// TODO use pango's built-in background attribute
-	GPtrArray *backgroundParams;
 };
-
-static void addBackgroundAttribute(struct foreachParams *p, size_t start, size_t end, double r, double g, double b, double a)
-{
-	uiprivDrawTextBackgroundParams *dtb;
-
-	dtb = uiprivNew(uiprivDrawTextBackgroundParams);
-	dtb->start = start;
-	dtb->end = end;
-	dtb->r = r;
-	dtb->g = g;
-	dtb->b = b;
-	dtb->a = a;
-	g_ptr_array_add(p->backgroundParams, dtb);
-}
 
 static void addattr(struct foreachParams *p, size_t start, size_t end, PangoAttribute *attr)
 {
@@ -77,8 +61,16 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 				(guint16) (a * 65535.0)));
 		break;
 	case uiAttributeTypeBackground:
+		// TODO make sure this works properly with line paragraph spacings (after figuring out what that means, of course)
 		uiAttributeColor(attr, &r, &g, &b, &a);
-		addBackgroundAttribute(p, start, end, r, g, b, a);
+		addattr(p, start, end,
+			pango_attr_background_new(
+				(guint16) (r * 65535.0),
+				(guint16) (g * 65535.0),
+				(guint16) (b * 65535.0)));
+		addattr(p, start, end,
+			FUTURE_pango_attr_background_alpha_new(
+				(guint16) (a * 65535.0)));
 		break;
 	case uiAttributeTypeUnderline:
 		switch (uiAttributeUnderline(attr)) {
@@ -143,18 +135,11 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 	return uiForEachContinue;
 }
 
-static void freeBackgroundParams(gpointer data)
-{
-	uiprivFree((uiprivDrawTextBackgroundParams *) data);
-}
-
-PangoAttrList *uiprivAttributedStringToPangoAttrList(uiDrawTextLayoutParams *p, GPtrArray **backgroundParams)
+PangoAttrList *uiprivAttributedStringToPangoAttrList(uiDrawTextLayoutParams *p)
 {
 	struct foreachParams fep;
 
 	fep.attrs = pango_attr_list_new();
-	fep.backgroundParams = g_ptr_array_new_with_free_func(freeBackgroundParams);
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
-	*backgroundParams = fep.backgroundParams;
 	return fep.attrs;
 }

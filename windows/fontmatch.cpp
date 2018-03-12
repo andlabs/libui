@@ -42,7 +42,7 @@ DWRITE_FONT_STRETCH uiprivStretchToDWriteStretch(uiTextStretch s)
 	return dwriteStretches[s];
 }
 
-void uiprivFontDescriptorFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc)
+void uiprivFontDescriptorFromIDWriteFont(IDWriteFont *font, uiFontDescriptor *uidesc)
 {
 	DWRITE_FONT_STYLE dwitalic;
 	DWRITE_FONT_STRETCH dwstretch;

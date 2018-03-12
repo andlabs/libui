@@ -41,3 +41,21 @@ DWRITE_FONT_STRETCH uiprivStretchToDWriteStretch(uiTextStretch s)
 {
 	return dwriteStretches[s];
 }
+
+void uiprivFontDescriptorFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc)
+{
+	DWRITE_FONT_STYLE dwitalic;
+	DWRITE_FONT_STRETCH dwstretch;
+
+	dwitalic = font->GetStyle();
+	// TODO reverse the above misalignment if it is corrected
+	uidesc->Weight = (uiDrawTextWeight) (font->GetWeight());
+	dwstretch = font->GetStretch();
+
+	for (uidesc->Italic = uiDrawTextItalicNormal; uidesc->Italic < uiDrawTextItalicItalic; uidesc->Italic++)
+		if (dwriteItalics[uidesc->Italic] == dwitalic)
+			break;
+	for (uidesc->Stretch = uiDrawTextStretchUltraCondensed; uidesc->Stretch < uiDrawTextStretchUltraExpanded; uidesc->Stretch++)
+		if (dwriteStretches[uidesc->Stretch] == dwstretch)
+			break;
+}

@@ -131,12 +131,3 @@ public:
 		return true;
 	}
 };
-// TODO these should not be exported
-extern std::map<uiDrawTextItalic, DWRITE_FONT_STYLE> dwriteItalics;
-extern std::map<uiDrawTextStretch, DWRITE_FONT_STRETCH> dwriteStretches;
-
-// drawtext.cpp
-extern void fontdescFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc);
-
-// opentype.cpp
-extern IDWriteTypography *otfToDirectWrite(const uiOpenTypeFeatures *otf);

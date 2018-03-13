@@ -257,7 +257,7 @@ static void addFontAttributeToRange(struct foreachParams *p, size_t start, size_
 		else
 			cfa = [cfa copy];
 		[cfa addAttribute:attr];
-		// clamp effectiveRange within [start, end)
+		// clamp range within [start, end)
 		if (range.location < start) {
 			diff = start - range.location;
 			range.location = start;

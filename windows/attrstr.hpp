@@ -34,7 +34,7 @@ class drawingEffectsAttr : public IUnknown {
 	double ub;
 	double ua;
 public:
-	textDrawingEffect();
+	drawingEffectsAttr(void);
 
 	// IUnknown
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
@@ -44,5 +44,7 @@ public:
 	void setColor(double r, double g, double b, double a);
 	void setUnderline(uiUnderline u);
 	void setUnderlineColor(double r, double g, double b, double a);
-	HRESULT draw(TODO);
+	HRESULT mkColorBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b);
+	HRESULT underline(uiUnderline *u);
+	HRESULT mkUnderlineBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b);
 };

@@ -127,17 +127,17 @@ public:
 		size_t ret = 0;
 		double r, g, b, a;
 
-		if (self->colorAttr != NULL) {
-			uiAttributeColor(self->colorAttr, &r, &g, &b, &a);
+		if (this->colorAttr != NULL) {
+			uiAttributeColor(this->colorAttr, &r, &g, &b, &a);
 			ret ^= doubleHash(r);
 			ret ^= doubleHash(g);
 			ret ^= doubleHash(b);
 			ret ^= doubleHash(a);
 		}
-		if (self->underlineAttr != NULL)
-			ret ^= (size_t) uiAttributeUnderline(self->underlineAttr);
-		if (self->underlineColorAttr != NULL) {
-			uiAttributeUnderlineColor(self->underlineColorAttr, &colorType, &r, &g, &b, &a);
+		if (this->underlineAttr != NULL)
+			ret ^= (size_t) uiAttributeUnderline(this->underlineAttr);
+		if (this->underlineColorAttr != NULL) {
+			uiAttributeUnderlineColor(this->underlineColorAttr, &colorType, &r, &g, &b, &a);
 			ret ^= (size_t) colorType;
 			ret ^= doubleHash(r);
 			ret ^= doubleHash(g);
@@ -163,14 +163,14 @@ public:
 		uiUnderlineColor colorType;
 
 		dea = new drawingEffectsAttr;
-		if (self->colorAttr != NULL) {
-			uiAttributeColor(self->colorAttr, &r, &g, &b, &a);
+		if (this->colorAttr != NULL) {
+			uiAttributeColor(this->colorAttr, &r, &g, &b, &a);
 			dea->addColor(r, g, b, a);
 		}
-		if (self->underlineAttr != NULL)
-			dea->addUnderline(uiAttributeUnderline(self->underlineAttr));
-		if (self->underlineColorAttr != NULL) {
-			uiAttributeUnderlineColor(self->underlineColor, &colorType, &r, &g, &b, &a);
+		if (this->underlineAttr != NULL)
+			dea->addUnderline(uiAttributeUnderline(this->underlineAttr));
+		if (this->underlineColorAttr != NULL) {
+			uiAttributeUnderlineColor(this->underlineColor, &colorType, &r, &g, &b, &a);
 			// TODO see if Microsoft has any standard colors for these
 			switch (colorType) {
 			case uiUnderlineColorSpelling:

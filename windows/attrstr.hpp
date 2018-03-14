@@ -11,3 +11,38 @@ extern DWRITE_FONT_WEIGHT uiprivWeightToDWriteWeight(uiTextWeight w);
 extern DWRITE_FONT_STYLE uiprivItalicToDWriteStyle(uiTextItalic i);
 extern DWRITE_FONT_STRETCH uiprivStretchToDWriteStretch(uiTextStretch s);
 extern void uiprivFontDescriptorFromIDWriteFont(IDWriteFont *font, uiFontDescriptor *uidesc);
+
+// attrstr.cpp
+extern void uiprivAttributedStringApplyAttributesToDWriteTextLayout(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<backgroundFunc> **backgroundFuncs);
+
+// drawtext.cpp
+class drawingEffectsAttr : public IUnknown {
+	ULONG refcount;
+
+	bool hasColor;
+	double r;
+	double g;
+	double b;
+	double a;
+
+	bool hasUnderline;
+	uiUnderline u;
+
+	bool hasUnderlineColor;
+	double ur;
+	double ug;
+	double ub;
+	double ua;
+public:
+	textDrawingEffect();
+
+	// IUnknown
+	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
+	virtual ULONG STDMETHODCALLTYPE AddRef(void);
+	virtual ULONG STDMETHODCALLTYPE Release(void);
+
+	void setColor(double r, double g, double b, double a);
+	void setUnderline(uiUnderline u);
+	void setUnderlineColor(double r, double g, double b, double a);
+	HRESULT draw(TODO);
+};

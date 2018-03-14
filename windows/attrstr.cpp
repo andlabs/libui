@@ -14,6 +14,8 @@ struct foreachParams {
 	std::vector<backgroundFunc> *backgroundFuncs;
 };
 
+static std::hash<double> doubleHash;
+
 // we need to combine color and underline style into one unit for IDWriteLayout::SetDrawingEffect()
 // we also want to combine identical effects, which DirectWrite doesn't seem to provide a way to do
 // we can at least try to goad it into doing so if we can deduplicate effects once they're all computed
@@ -46,6 +48,17 @@ class combinedEffectsAttr : public IUnknown {
 			this->underlineColorAttr = uiprivAttributeRetain(a);
 			break;
 		}
+	}
+
+	// this is needed by applyEffectsAttributes() below
+	// TODO doesn't uiprivAttributeEqual() already do this; if it doesn't, make it so; if (or when) it does, fix all platforms to avoid this extra check
+	static bool attrEqual(uiAttribute *a, uiAttribute *b) const
+	{
+		if (a == NULL && b == NULL)
+			return true;
+		if (a == NULL || b == NULL)
+			return false;
+		return uiprivAttributeEqual(a, b);
 	}
 public:
 	combinedEffectsAttr(uiAttribute *a)
@@ -107,6 +120,102 @@ public:
 		b->setAttribute(a);
 		return b;
 	}
+
+	// and these are also needed by applyEffectsAttributes() below
+	size_t hash(void) const noexcept
+	{
+		size_t ret = 0;
+		double r, g, b, a;
+
+		if (self->colorAttr != NULL) {
+			uiAttributeColor(self->colorAttr, &r, &g, &b, &a);
+			ret ^= doubleHash(r);
+			ret ^= doubleHash(g);
+			ret ^= doubleHash(b);
+			ret ^= doubleHash(a);
+		}
+		if (self->underlineAttr != NULL)
+			ret ^= (size_t) uiAttributeUnderline(self->underlineAttr);
+		if (self->underlineColorAttr != NULL) {
+			uiAttributeUnderlineColor(self->underlineColorAttr, &colorType, &r, &g, &b, &a);
+			ret ^= (size_t) colorType;
+			ret ^= doubleHash(r);
+			ret ^= doubleHash(g);
+			ret ^= doubleHash(b);
+			ret ^= doubleHash(a);
+		}
+		return ret;
+	}
+
+	bool equals(const combinedEffectsAttr *b) const
+	{
+		if (b == NULL)
+			return false;
+		return combinedEffectsAttr::attrEqual(a->colorAttr, b->colorAttr) &&
+			combinedEffectsAttr::attrEqual(a->underilneAttr, b->underlineAttr) &&
+			combinedEffectsAttr::attrEqual(a->underlineColorAttr, b->underlineColorAttr);
+	}
+
+	drawingEffectsAttr *toDrawingEffectsAttr(void)
+	{
+		drawingEffectsAttr *dea;
+		double r, g, b, a;
+		uiUnderlineColor colorType;
+
+		dea = new drawingEffectsAttr;
+		if (self->colorAttr != NULL) {
+			uiAttributeColor(self->colorAttr, &r, &g, &b, &a);
+			dea->addColor(r, g, b, a);
+		}
+		if (self->underlineAttr != NULL)
+			dea->addUnderline(uiAttributeUnderline(self->underlineAttr));
+		if (self->underlineColorAttr != NULL) {
+			uiAttributeUnderlineColor(self->underlineColor, &colorType, &r, &g, &b, &a);
+			// TODO see if Microsoft has any standard colors for these
+			switch (colorType) {
+			case uiUnderlineColorSpelling:
+				// TODO consider using the GtkTextView style property error-underline-color here if Microsoft has no preference
+				r = 1.0;
+				g = 0.0;
+				b = 0.0;
+				a = 1.0;
+				break;
+			case uiUnderlineColorGrammar:
+				r = 0.0;
+				g = 1.0;
+				b = 0.0;
+				a = 1.0;
+				break;
+			case uiUnderlineColorAlternate:
+				r = 0.0;
+				g = 0.0;
+				b = 1.0;
+				a = 1.0;
+				break;
+			}
+			dea->addUnderlineColor(r, g, b, a);
+		}
+		return dea;
+	}
+};
+
+// also needed by applyEffectsAttributes() below
+class applyEffectsHash {
+public:
+	typedef combinedEffectsAttr *ceaptr;
+	size_t operator()(applyEffectsHash::ceaptr const &cea) const noexcept
+	{
+		return cea->hash();
+	}
+};
+
+class applyEffectsEqualTo {
+public:
+	typedef combinedEffectsAttr *ceaptr;
+	bool operator()(const applyEffectsEqualTo::ceaptr &a, const applyEffectsEqualTo::ceaptr &b) const
+	{
+		return a->equals(b);
+	}
 };
 
 static HRESULT addEffectAttributeToRange(struct foreachParams *p, size_t start, size_t end, uiAttribute *attr)
@@ -121,6 +230,7 @@ static HRESULT addEffectAttributeToRange(struct foreachParams *p, size_t start, 
 		hr = p->layout->GetDrawingEffect(start, &u, &range);
 		if (hr != S_OK)
 {logHRESULT(L"HELP", hr);
+			// TODO proper cleanup somehow
 			return hr;
 }		cea = (combinedEffectsAttr *) u;
 		if (cea == NULL)
@@ -137,6 +247,7 @@ static HRESULT addEffectAttributeToRange(struct foreachParams *p, size_t start, 
 			range.length = end - range.startPosition;
 		hr = p->layout->SetDrawingEffect(cea, range);
 		if (hr != S_OK)
+			// TODO proper cleanup somehow
 			return hr;
 		// TODO figure out what and when needs to be released
 		start += range.length;
@@ -233,50 +344,6 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 			mkBackgroundFunc(ostart, oend,
 				spec->R, spec->G, spec->B, spec->A));
 		break;
-#if 0
-TODO
-		switch (spec->Value) {
-		case uiDrawUnderlineColorCustom:
-			x(p, start, end, [=](textDrawingEffect *t) {
-				t->hasUnderlineColor = true;
-				t->ur = spec->R;
-				t->ug = spec->G;
-				t->ub = spec->B;
-				t->ua = spec->A;
-			});
-			break;
-		// TODO see if Microsoft has any standard colors for this
-		case uiDrawUnderlineColorSpelling:
-			// TODO GtkTextView style property error-underline-color
-			x(p, start, end, [=](textDrawingEffect *t) {
-				t->hasUnderlineColor = true;
-				t->ur = 1.0;
-				t->ug = 0.0;
-				t->ub = 0.0;
-				t->ua = 1.0;
-			});
-			break;
-		case uiDrawUnderlineColorGrammar:
-			x(p, start, end, [=](textDrawingEffect *t) {
-				t->hasUnderlineColor = true;
-				t->ur = 0.0;
-				t->ug = 1.0;
-				t->ub = 0.0;
-				t->ua = 1.0;
-			});
-			break;
-		case uiDrawUnderlineColorAuxiliary:
-			x(p, start, end, [=](textDrawingEffect *t) {
-				t->hasUnderlineColor = true;
-				t->ur = 0.0;
-				t->ug = 0.0;
-				t->ub = 1.0;
-				t->ua = 1.0;
-			});
-			break;
-		}
-		break;
-#endif
 	case uiAttributeTypeFeatures:
 		// only generate an attribute if not NULL
 		// TODO do we still need to do this or not...
@@ -292,66 +359,66 @@ TODO
 	return uiForEachContinue;
 }
 
-$$$$TODO CONTINUE HERE
-
-static void applyEffectsAttributes(struct foreachParams *p)
+static HRESULT applyEffectsAttributes(struct foreachParams *p)
 {
-	size_t i, n;
-	textDrawingEffect *effect, *effectb;
+	IUnknown *u;
+	combinedEffectsAttr *cea;
+	drawingEffectsAttr *dea;
 	DWRITE_TEXT_RANGE range;
-	static auto apply = [](IDWriteTextLayout *layout, textDrawingEffect *effect, DWRITE_TEXT_RANGE range) {
-		HRESULT hr;
+	// here's the magic: this std::unordered_map will deduplicate all of our combinedEffectsAttrs, mapping all identical ones to a single drawingEffectsAttr
+	// because drawingEffectsAttr is the *actual* drawing effect we want for rendering, we also replace the combinedEffectsAttrs with them in the IDWriteTextLayout at the same time
+	// note the use of our custom hash and equal_to implementations
+	std::unordered_map<combinedEffectsAttrs *, drawingEffectsAttr *,
+		applyEffectsHash, applyEffectsEqualTo> effects;
+	HRESULT hr;
 
-		if (effect == NULL)
-			return;
-		hr = layout->SetDrawingEffect(effect, range);
-		if (hr != S_OK)
-			logHRESULT(L"error applying drawing effects attributes", hr);
-		effect->Release();
-	};
-
-	// go through, fililng in the effect attribute for successive ranges of identical textDrawingEffects
-	// we are best off treating series of identical effects as single ranges ourselves for parity across platforms, even if Windows does something similar itself
-	// this also avoids breaking apart surrogate pairs (though IIRC Windows doing the something similar itself might make this a non-issue here)
-	effect = NULL;
-	n = p->len;
+	// go through, replacing every combinedEffectsAttr with the proper drawingEffectsAttr
 	range.startPosition = 0;
-	for (i = 0; i < n; i++) {
-		effectb = (*(p->effects))[i];
-		// run of no effect?
-		if (effect == NULL && effectb == NULL)
-			continue;
-		// run of the same effect?
-		if (effect != NULL && effectb != NULL)
-			if (effect->same(effectb)) {
-				effectb->Release();
-				continue;
+	while (range.startPosition < p->len) {
+		hr = p->layout->GetDrawingEffect(range.startPosition, &u, &range);
+		if (hr != S_OK)
+			// TODO proper cleanup somehow
+			return hr;
+		cea = (combinedEffectsAttr *) cea;
+		if (cea != NULL) {
+			auto diter = effects.find(cea);
+			if (diter != effects.end())
+				dea = diter->second;
+			else {
+				dea = cea->toDrawingEffectsAttr();
+				effects.insert(cea, dea);
 			}
-
-		// the effect has changed; commit the old effect
-		range.length = i - range.startPosition;
-		apply(p->layout, effect, range);
-
-		range.startPosition = i;
-		effect = effectb;
+			hr = p->layout->SetDrawingEffect(dea, range);
+			if (hr != S_OK)
+				// TODO proper cleanup somehow
+				return hr;
+		}
+		range.startPosition += range.length;
 	}
-	// and apply the last effect
-	range.length = i - range.startPosition;
-	apply(p->layout, effect, range);
 
-	delete p->effects;
+	// and clean up, finally destroying the combinedEffectAttrs too
+#if 0
+TODO
+	for (auto iter = effects.begin(); iter != effects.end(); iter++) {
+		iter->first->Release();
+		iter->second->Release();
+	}
+#endif
+	return S_OK;
 }
 
-void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<backgroundFunc> **backgroundFuncs)
+void uiprivAttributedStringApplyAttributesToDWriteTextLayout(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<backgroundFunc> **backgroundFuncs)
 {
 	struct foreachParams fep;
+	HRESULT hr;
 
 	fep.s = attrstrUTF16(p->String);
 	fep.len = attrstrUTF16Len(p->String);
 	fep.layout = layout;
-	fep.effects = new std::map<size_t, textDrawingEffect *>;
 	fep.backgroundFuncs = new std::vector<backgroundFunc>;
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
-	applyAndFreeEffectsAttributes(&fep);
+	hr = applyEffectsAttributes(&fep);
+	if (hr != S_OK)
+		logHRESULT(L"error applying effects attributes", hr);
 	*backgroundFuncs = fep.backgroundFuncs;
 }

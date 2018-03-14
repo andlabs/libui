@@ -410,7 +410,7 @@ static void applyFontAttributes(CFMutableAttributedStringRef mas, uiFontDescript
 	CFAttributedStringSetAttribute(mas, range, kCTFontAttributeName, font);
 	CFRelease(font);
 
-	// now go through, replacing every consecutive uiprivCombinedFontAttr with the proper CTFontRef
+	// now go through, replacing every uiprivCombinedFontAttr with the proper CTFontRef
 	// we are best off treating series of identical fonts as single ranges ourselves for parity across platforms, even if OS X does something similar itself
 	range.location = 0;
 	while (range.location < n) {

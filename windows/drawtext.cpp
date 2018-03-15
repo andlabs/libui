@@ -8,7 +8,7 @@
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
-	std::vector<backgroundFunc> *backgroundFuncs;
+	std::vector<struct drawTextBackgroundParams *> *backgroundParams;
 	// for converting DirectWrite indices from/to byte offsets
 	size_t *u8tou16;
 	size_t nUTF8;
@@ -84,7 +84,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	if (hr != S_OK)
 		logHRESULT(L"error setting IDWriteTextLayout max layout width", hr);
 
-	attrstrToIDWriteTextLayoutAttrs(p, tl->layout, &(tl->backgroundFuncs));
+	attrstrToIDWriteTextLayoutAttrs(p, tl->layout, &(tl->backgroundParams));
 
 	// and finally copy the UTF-8/UTF-16 index conversion tables
 	tl->u8tou16 = attrstrCopyUTF8ToUTF16(p->String, &(tl->nUTF8));
@@ -97,12 +97,15 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
 	uiFree(tl->u16tou8);
 	uiFree(tl->u8tou16);
-	delete tl->backgroundFuncs;
+	for (auto p in *(tl->backgroundParams))
+		uiprivFree(p);
+	delete tl->backgroundParams;
 	tl->layout->Release();
 	tl->format->Release();
 	uiFree(tl);
 }
 
+// TODO make this shared code somehow
 static HRESULT mkSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a, ID2D1SolidColorBrush **brush)
 {
 	D2D1_BRUSH_PROPERTIES props;
@@ -354,6 +357,7 @@ public:
 		return E_UNEXPECTED;
 	}
 
+	// TODO clean this function up
 	virtual HRESULT STDMETHODCALLTYPE DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
 	{
 		drawingEffectsAttr *dea = (drawingEffectsAttr *) clientDrawingEffect;
@@ -468,8 +472,6 @@ public:
 	}
 };
 
-$$$$ TODO continue here
-
 // TODO this ignores clipping?
 void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 {
@@ -478,8 +480,9 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	textRenderer *renderer;
 	HRESULT hr;
 
-	for (const auto &f : *(tl->backgroundFuncs))
-		f(c, tl, x, y);
+	for (auto p : *(tl->backgroundParams)) {
+		// TODO
+	}
 
 	// TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
 	// TODO figure out if this needs to be cleaned out
@@ -534,136 +537,22 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 
 int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
 {
+return 0;
+#if 0
+TODO
 	return tl->nLines;
+#endif
 }
 
 // DirectWrite doesn't provide a direct way to do this, so we have to do this manually
 // TODO does that comment still apply here or to the code at the top of this file?
 void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
 {
+#if 0
+TODO
 	*start = tl->lineInfo[line].startPos;
 	*start = tl->u16tou8[*start];
 	*end = tl->lineInfo[line].endPos - tl->lineInfo[line].newlineCount;
 	*end = tl->u16tou8[*end];
-}
-
-void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
-{
-	m->X = tl->lineInfo[line].x;
-	m->Y = tl->lineInfo[line].y;
-	m->Width = tl->lineInfo[line].width;
-	m->Height = tl->lineInfo[line].height;
-
-	// TODO rename tl->lineInfo[line].baseline to .baselineOffset or something of the sort to make its meaning more clear
-	m->BaselineY = tl->lineInfo[line].y + tl->lineInfo[line].baseline;
-	m->Ascent = tl->lineInfo[line].baseline;
-	m->Descent = tl->lineInfo[line].height - tl->lineInfo[line].baseline;
-	m->Leading = 0;		// TODO
-
-	m->ParagraphSpacingBefore = 0;		// TODO
-	m->LineHeightSpace = 0;				// TODO
-	m->LineSpacing = 0;				// TODO
-	m->ParagraphSpacing = 0;			// TODO
-}
-
-// this algorithm comes from Microsoft's PadWrite sample, following TextEditor::SetSelectionFromPoint()
-// TODO go back through all of these and make sure we convert coordinates properly
-// TODO same for OS X
-void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
-{
-	DWRITE_HIT_TEST_METRICS m;
-	BOOL trailing, inside;
-	size_t p;
-	UINT32 i;
-	HRESULT hr;
-
-	hr = tl->layout->HitTestPoint(x, y,
-		&trailing, &inside,
-		&m);
-	if (hr != S_OK)
-		logHRESULT(L"error hit-testing IDWriteTextLayout", hr);
-	p = m.textPosition;
-	// on a trailing hit, align to the nearest cluster
-	if (trailing) {
-		DWRITE_HIT_TEST_METRICS m2;
-		FLOAT x, y;				// crashes if I skip these :/
-
-		hr = tl->layout->HitTestTextPosition(m.textPosition, trailing,
-			&x, &y, &m2);
-		if (hr != S_OK)
-			logHRESULT(L"error aligning trailing hit to nearest cluster", hr);
-		p = m2.textPosition + m2.length;
-	}
-	*pos = tl->u16tou8[p];
-
-	for (i = 0; i < tl->nLines; i++) {
-		double ltop, lbottom;
-
-		ltop = tl->lineInfo[i].y;
-		lbottom = ltop + tl->lineInfo[i].height;
-		// y will already >= ltop at this point since the past lbottom should == ltop
-		if (y < lbottom)
-			break;
-	}
-	if (i == tl->nLines)
-		i--;
-	*line = i;
-}
-
-double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)
-{
-	BOOL trailing;
-	DWRITE_HIT_TEST_METRICS m;
-	FLOAT x, y;
-	HRESULT hr;
-
-	if (line < 0 || line >= tl->nLines)
-		return -1;
-	pos = tl->u8tou16[pos];
-	// note: >, not >=, because the position at endPos is valid!
-	if (pos < tl->lineInfo[line].startPos || pos > tl->lineInfo[line].endPos)
-		return -1;
-	// this behavior seems correct
-	// there's also PadWrite's TextEditor::GetCaretRect() but that requires state...
-	// TODO where does this fail?
-	trailing = FALSE;
-	if (pos != 0 && pos != tl->nUTF16 && pos == tl->lineInfo[line].endPos) {
-		pos--;
-		trailing = TRUE;
-	}
-	hr = tl->layout->HitTestTextPosition(pos, trailing,
-		&x, &y, &m);
-	if (hr != S_OK)
-		logHRESULT(L"error calling IDWriteTextLayout::HitTestTextPosition()", hr);
-	return x;
-}
-
-void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p)
-{
-	DWORD caretWidth;
-
-	// there seems to be no defined caret color
-	// the best I can come up with is "inverts colors underneath" (according to https://msdn.microsoft.com/en-us/library/windows/desktop/ms648397(v=vs.85).aspx) which I have no idea how to do (TODO)
-	// just return black for now
-	p->r = 0.0;
-	p->g = 0.0;
-	p->b = 0.0;
-	p->a = 1.0;
-
-	if (SystemParametersInfoW(SPI_GETCARETWIDTH, 0, &caretWidth, 0) == 0)
-		// don't log the failure, fall back gracefully
-		// the instruction to use this comes from https://msdn.microsoft.com/en-us/library/windows/desktop/ms648399(v=vs.85).aspx
-		// and we have to assume GetSystemMetrics() always succeeds, so
-		caretWidth = GetSystemMetrics(SM_CXBORDER);
-	// TODO make this a function and split it out of areautil.cpp
-	{
-		FLOAT dpix, dpiy;
-
-		// TODO can we pass NULL for dpiy?
-		c->rt->GetDpi(&dpix, &dpiy);
-		// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd756649%28v=vs.85%29.aspx (and others; search "direct2d mouse")
-		p->width = ((double) (caretWidth * 96)) / dpix;
-	}
-	// and there doesn't seem to be this either... (TODO check what PadWrite does?)
-	p->xoff = 0;
+#endif
 }

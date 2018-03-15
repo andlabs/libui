@@ -23,7 +23,3 @@ extern BOOL showFontDialog(HWND parent, struct fontDialogParams *params);
 extern void loadInitialFontDialogParams(struct fontDialogParams *params);
 extern void destroyFontDialogParams(struct fontDialogParams *params);
 extern WCHAR *fontDialogParamsToString(struct fontDialogParams *params);
-
-// attrstr.cpp
-typedef std::function<void(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y)> backgroundFunc;
-extern void attrstrToIDWriteTextLayoutAttrs(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<backgroundFunc> **backgroundFuncs);

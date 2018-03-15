@@ -13,7 +13,9 @@ extern DWRITE_FONT_STRETCH uiprivStretchToDWriteStretch(uiTextStretch s);
 extern void uiprivFontDescriptorFromIDWriteFont(IDWriteFont *font, uiFontDescriptor *uidesc);
 
 // attrstr.cpp
-extern void uiprivAttributedStringApplyAttributesToDWriteTextLayout(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<backgroundFunc> **backgroundFuncs);
+// TODO
+struct drawTextBackgroundParams;
+extern void uiprivAttributedStringApplyAttributesToDWriteTextLayout(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<struct drawTextBackgroundParams *> **backgroundFuncs);
 
 // drawtext.cpp
 class drawingEffectsAttr : public IUnknown {
@@ -47,4 +49,13 @@ public:
 	HRESULT mkColorBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b);
 	HRESULT underline(uiUnderline *u);
 	HRESULT mkUnderlineBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b);
+};
+// TODO figure out where this type should *really* go in all the headers...
+struct drawTextBackgroundParams {
+	size_t start;
+	size_t end;
+	double r;
+	double g;
+	double b;
+	double a;
 };

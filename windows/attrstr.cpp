@@ -4,14 +4,15 @@
 
 // TODO this whole file needs cleanup
 
-// we need to collect all the background blocks and add them all at once
+// we need to collect all the background parameters and add them all at once
+// TODO consider having background parameters in the drawing effects
 // TODO contextual alternates override ligatures?
 // TODO rename this struct to something that isn't exclusively foreach-ing?
 struct foreachParams {
 	const uint16_t *s;
 	size_t len;
 	IDWriteTextLayout *layout;
-	std::vector<backgroundFunc> *backgroundFuncs;
+	std::vector<struct drawTextBackgroundParams *> *backgroundParams;
 };
 
 static std::hash<double> doubleHash;
@@ -255,18 +256,15 @@ static HRESULT addEffectAttributeToRange(struct foreachParams *p, size_t start, 
 	return S_OK;
 }
 
-static backgroundFunc mkBackgroundFunc(size_t start, size_t end, double r, double g, double b, double a)
+static void addBackgroundParams(struct foreachParams *p, size_t start, size_t end, const uiAttribute *attr)
 {
-	return [=](uiDrawContext *c, uiDrawTextLayout *layout, double x, double y) {
-		uiDrawBrush brush;
+	struct drawTextBackgroundParams *params;
 
-		brush.Type = uiDrawBrushTypeSolid;
-		brush.R = r;
-		brush.G = g;
-		brush.B = b;
-		brush.A = a;
-		drawTextBackground(c, x, y, layout, start, end, &brush, 0);
-	};
+	params = uiprivNew(struct drawTextBackgroundParams);
+	params->start = start;
+	params->end = end;
+	uiAttributeColor(attr, &(params->r), &(params->g), &(params->b), &(params->a));
+	p->backgroundParams->push_back(params);
 }
 
 static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute *attr, size_t start, size_t end, void *data)
@@ -274,16 +272,12 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 	struct foreachParams *p = (struct foreachParams *) data;
 	DWRITE_TEXT_RANGE range;
 	WCHAR *wfamily;
-	size_t ostart, oend;
 	BOOL hasUnderline;
 	IDWriteTypography *dt;
 	HRESULT hr;
 
-	ostart = start;
-	oend = end;
-	// TODO fix const correctness
-	start = attrstrUTF8ToUTF16((uiAttributedString *) s, start);
-	end = attrstrUTF8ToUTF16((uiAttributedString *) s, end);
+	start = uiprivAttributedStringUTF8ToUTF16(s, start);
+	end = uiprivAttributedStringUTF8ToUTF16(s, end);
 	range.startPosition = start;
 	range.length = end - start;
 	switch (uiAttributeGetType(attr)) {
@@ -340,9 +334,7 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 			logHRESULT(L"error applying effect (color, underline, or underline color) attribute", hr);
 		break;
 	case uiAttributeBackground:
-		p->backgroundFuncs->push_back(
-			mkBackgroundFunc(ostart, oend,
-				spec->R, spec->G, spec->B, spec->A));
+		addBackgroundParams(p, start, end, attr);
 		break;
 	case uiAttributeTypeFeatures:
 		// only generate an attribute if not NULL
@@ -407,7 +399,7 @@ TODO
 	return S_OK;
 }
 
-void uiprivAttributedStringApplyAttributesToDWriteTextLayout(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<backgroundFunc> **backgroundFuncs)
+void uiprivAttributedStringApplyAttributesToDWriteTextLayout(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<struct drawTextBackgroundParams *> **backgroundParams)
 {
 	struct foreachParams fep;
 	HRESULT hr;
@@ -415,10 +407,10 @@ void uiprivAttributedStringApplyAttributesToDWriteTextLayout(uiDrawTextLayoutPar
 	fep.s = attrstrUTF16(p->String);
 	fep.len = attrstrUTF16Len(p->String);
 	fep.layout = layout;
-	fep.backgroundFuncs = new std::vector<backgroundFunc>;
+	fep.backgroundParams = new std::vector<struct drawTextBackgroundParams *>;
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
 	hr = applyEffectsAttributes(&fep);
 	if (hr != S_OK)
 		logHRESULT(L"error applying effects attributes", hr);
-	*backgroundFuncs = fep.backgroundFuncs;
+	*backgroundParams = fep.backgroundParams;
 }

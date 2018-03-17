@@ -1,10 +1,11 @@
 // 14 april 2016
 #include "uipriv_windows.hpp"
-// TODO really migrate? (TODO what did I mean by this?)
+#include "attrstr.hpp"
 
 IDWriteFactory *dwfactory = NULL;
 
-HRESULT initDrawText(void)
+// TOOD rename to something else, maybe
+HRESULT uiprivInitDrawText(void)
 {
 	// TOOD use DWRITE_FACTORY_TYPE_ISOLATED instead?
 	return DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
@@ -12,17 +13,17 @@ HRESULT initDrawText(void)
 		(IUnknown **) (&dwfactory));
 }
 
-void uninitDrawText(void)
+void uiprivUninitDrawText(void)
 {
 	dwfactory->Release();
 }
 
-fontCollection *loadFontCollection(void)
+fontCollection *uiprivLoadFontCollection(void)
 {
 	fontCollection *fc;
 	HRESULT hr;
 
-	fc = uiNew(fontCollection);
+	fc = uiprivNew(fontCollection);
 	// always get the latest available font information
 	hr = dwfactory->GetSystemFontCollection(&(fc->fonts), TRUE);
 	if (hr != S_OK)
@@ -31,7 +32,13 @@ fontCollection *loadFontCollection(void)
 	return fc;
 }
 
-WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family)
+void uiprivFontCollectionFree(fontCollection *fc)
+{
+	fc->fonts->Release();
+	uiprivFree(fc);
+}
+
+WCHAR *uiprivFontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family)
 {
 	IDWriteLocalizedStrings *names;
 	WCHAR *str;
@@ -45,7 +52,7 @@ WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family)
 	return str;
 }
 
-WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *names)
+WCHAR *uiprivFontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *names)
 {
 	UINT32 index;
 	BOOL exists;
@@ -80,10 +87,4 @@ WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *
 		logHRESULT(L"error getting font name", hr);
 
 	return wname;
-}
-
-void fontCollectionFree(fontCollection *fc)
-{
-	fc->fonts->Release();
-	uiFree(fc);
 }

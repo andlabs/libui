@@ -3,6 +3,20 @@ extern "C" {
 #include "../common/attrstr.h"
 }
 
+// dwrite.cpp
+extern IDWriteFactory *dwfactory;
+extern HRESULT uiprivInitDrawText(void);
+extern void uiprivUninitDrawText(void);
+struct fontCollection {
+	IDWriteFontCollection *fonts;
+	WCHAR userLocale[LOCALE_NAME_MAX_LENGTH];
+	int userLocaleSuccess;
+};
+extern fontCollection *uiprivLoadFontCollection(void);
+extern WCHAR *uiprivFontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family);
+extern void uiprivFontCollectionFree(fontCollection *fc);
+extern WCHAR *uiprivFontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *names);
+
 // opentype.cpp
 extern IDWriteTypography *uiprivOpenTypeFeaturesToIDWriteTypography(const uiOpenTypeFeatures *otf);
 

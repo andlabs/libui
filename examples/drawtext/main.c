@@ -30,7 +30,7 @@ static void makeAttributedString(void)
 	uiOpenTypeFeatures *otf;
 
 	attrstr = uiNewAttributedString(
-		"Drawing strings with libui is done with the uiAttributedString and uiDrawTextLayout obects.\n"
+		"Drawing strings with libui is done with the uiAttributedString and uiDrawTextLayout objects.\n"
 		"uiAttributedString lets you have a variety of attributes: ");
 
 	attr = uiNewFamilyAttribute("Courier New");
@@ -129,6 +129,11 @@ static int handlerKeyEvent(uiAreaHandler *ah, uiArea *a, uiAreaKeyEvent *e)
 	return 0;
 }
 
+static void onFontChanged(uiFontButton *b, void *data)
+{
+	uiAreaQueueRedrawAll(area);
+}
+
 static int onClosing(uiWindow *w, void *data)
 {
 	uiControlDestroy(uiControl(mainwin));
@@ -179,6 +184,7 @@ int main(void)
 	uiBoxAppend(hbox, uiControl(vbox), 0);
 
 	fontButton = uiNewFontButton();
+	uiFontButtonOnChanged(fontButton, onFontChanged, NULL);
 	uiBoxAppend(vbox, uiControl(fontButton), 0);
 
 	area = uiNewArea(&handler);

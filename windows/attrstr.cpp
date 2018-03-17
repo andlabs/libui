@@ -4,6 +4,14 @@
 
 // TODO this whole file needs cleanup
 
+// yep, even when it supports C++11, it doesn't support C++11
+// we require MSVC 2013; this was added in MSVC 2015 (https://msdn.microsoft.com/en-us/library/wfa0edys.aspx)
+#ifdef _MSC_VER
+#if _MSC_VER < 1900
+#define noexcept
+#endif
+#endif
+
 // we need to collect all the background parameters and add them all at once
 // TODO consider having background parameters in the drawing effects
 // TODO contextual alternates override ligatures?
@@ -53,7 +61,7 @@ class combinedEffectsAttr : public IUnknown {
 
 	// this is needed by applyEffectsAttributes() below
 	// TODO doesn't uiprivAttributeEqual() already do this; if it doesn't, make it so; if (or when) it does, fix all platforms to avoid this extra check
-	static bool attrEqual(uiAttribute *a, uiAttribute *b) const
+	static bool attrEqual(uiAttribute *a, uiAttribute *b)
 	{
 		if (a == NULL && b == NULL)
 			return true;
@@ -127,6 +135,7 @@ public:
 	{
 		size_t ret = 0;
 		double r, g, b, a;
+		uiUnderlineColor colorType;
 
 		if (this->colorAttr != NULL) {
 			uiAttributeColor(this->colorAttr, &r, &g, &b, &a);
@@ -152,9 +161,9 @@ public:
 	{
 		if (b == NULL)
 			return false;
-		return combinedEffectsAttr::attrEqual(a->colorAttr, b->colorAttr) &&
-			combinedEffectsAttr::attrEqual(a->underilneAttr, b->underlineAttr) &&
-			combinedEffectsAttr::attrEqual(a->underlineColorAttr, b->underlineColorAttr);
+		return combinedEffectsAttr::attrEqual(this->colorAttr, b->colorAttr) &&
+			combinedEffectsAttr::attrEqual(this->underlineAttr, b->underlineAttr) &&
+			combinedEffectsAttr::attrEqual(this->underlineColorAttr, b->underlineColorAttr);
 	}
 
 	drawingEffectsAttr *toDrawingEffectsAttr(void)
@@ -166,12 +175,12 @@ public:
 		dea = new drawingEffectsAttr;
 		if (this->colorAttr != NULL) {
 			uiAttributeColor(this->colorAttr, &r, &g, &b, &a);
-			dea->addColor(r, g, b, a);
+			dea->setColor(r, g, b, a);
 		}
 		if (this->underlineAttr != NULL)
-			dea->addUnderline(uiAttributeUnderline(this->underlineAttr));
+			dea->setUnderline(uiAttributeUnderline(this->underlineAttr));
 		if (this->underlineColorAttr != NULL) {
-			uiAttributeUnderlineColor(this->underlineColor, &colorType, &r, &g, &b, &a);
+			uiAttributeUnderlineColor(this->underlineColorAttr, &colorType, &r, &g, &b, &a);
 			// TODO see if Microsoft has any standard colors for these
 			switch (colorType) {
 			case uiUnderlineColorSpelling:
@@ -187,14 +196,14 @@ public:
 				b = 0.0;
 				a = 1.0;
 				break;
-			case uiUnderlineColorAlternate:
+			case uiUnderlineColorAuxiliary:
 				r = 0.0;
 				g = 0.0;
 				b = 1.0;
 				a = 1.0;
 				break;
 			}
-			dea->addUnderlineColor(r, g, b, a);
+			dea->setUnderlineColor(r, g, b, a);
 		}
 		return dea;
 	}
@@ -329,11 +338,12 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 		// and fall through to set the underline style through the drawing effect
 	case uiAttributeTypeColor:
 	case uiAttributeTypeUnderlineColor:
-		hr = addEffectAttributeToRange(p, start, end, attr);
+		// TODO const-correct this properly
+		hr = addEffectAttributeToRange(p, start, end, (uiAttribute *) attr);
 		if (hr != S_OK)
 			logHRESULT(L"error applying effect (color, underline, or underline color) attribute", hr);
 		break;
-	case uiAttributeBackground:
+	case uiAttributeTypeBackground:
 		addBackgroundParams(p, start, end, attr);
 		break;
 	case uiAttributeTypeFeatures:
@@ -360,7 +370,7 @@ static HRESULT applyEffectsAttributes(struct foreachParams *p)
 	// here's the magic: this std::unordered_map will deduplicate all of our combinedEffectsAttrs, mapping all identical ones to a single drawingEffectsAttr
 	// because drawingEffectsAttr is the *actual* drawing effect we want for rendering, we also replace the combinedEffectsAttrs with them in the IDWriteTextLayout at the same time
 	// note the use of our custom hash and equal_to implementations
-	std::unordered_map<combinedEffectsAttrs *, drawingEffectsAttr *,
+	std::unordered_map<combinedEffectsAttr *, drawingEffectsAttr *,
 		applyEffectsHash, applyEffectsEqualTo> effects;
 	HRESULT hr;
 
@@ -378,7 +388,7 @@ static HRESULT applyEffectsAttributes(struct foreachParams *p)
 				dea = diter->second;
 			else {
 				dea = cea->toDrawingEffectsAttr();
-				effects.insert(cea, dea);
+				effects.insert({cea, dea});
 			}
 			hr = p->layout->SetDrawingEffect(dea, range);
 			if (hr != S_OK)
@@ -404,8 +414,8 @@ void uiprivAttributedStringApplyAttributesToDWriteTextLayout(uiDrawTextLayoutPar
 	struct foreachParams fep;
 	HRESULT hr;
 
-	fep.s = attrstrUTF16(p->String);
-	fep.len = attrstrUTF16Len(p->String);
+	fep.s = uiprivAttributedStringUTF16String(p->String);
+	fep.len = uiprivAttributedStringUTF16Len(p->String);
 	fep.layout = layout;
 	fep.backgroundParams = new std::vector<struct drawTextBackgroundParams *>;
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);

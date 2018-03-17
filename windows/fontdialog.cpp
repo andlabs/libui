@@ -1,5 +1,6 @@
 // 14 april 2016
 #include "uipriv_windows.hpp"
+#include "attrstr.hpp"
 
 // TODOs
 // - quote the Choose Font sample here for reference
@@ -590,7 +591,7 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	return FALSE;
 }
 
-BOOL showFontDialog(HWND parent, struct fontDialogParams *params)
+BOOL uiprivShowFontDialog(HWND parent, struct fontDialogParams *params)
 {
 	switch (DialogBoxParamW(hInstance, MAKEINTRESOURCE(rcFontDialog), parent, fontDialogDlgProc, (LPARAM) params)) {
 	case 1:			// cancel
@@ -622,7 +623,7 @@ static IDWriteFontFamily *tryFindFamily(IDWriteFontCollection *fc, const WCHAR *
 	return family;
 }
 
-void loadInitialFontDialogParams(struct fontDialogParams *params)
+void uiprivLoadInitialFontDialogParams(struct fontDialogParams *params)
 {
 	struct fontCollection *fc;
 	IDWriteFontFamily *family;
@@ -668,14 +669,14 @@ void loadInitialFontDialogParams(struct fontDialogParams *params)
 	fontCollectionFree(fc);
 }
 
-void destroyFontDialogParams(struct fontDialogParams *params)
+void uiprivDestroyFontDialogParams(struct fontDialogParams *params)
 {
 	params->font->Release();
-	uiFree(params->familyName);
-	uiFree(params->styleName);
+	uiprivFree(params->familyName);
+	uiprivFree(params->styleName);
 }
 
-WCHAR *fontDialogParamsToString(struct fontDialogParams *params)
+WCHAR *uiprivFontDialogParamsToString(struct fontDialogParams *params)
 {
 	WCHAR *text;
 

@@ -12,14 +12,3 @@ extern WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *fa
 extern void fontCollectionFree(fontCollection *fc);
 extern WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *names);
 
-// fontdialog.cpp
-struct fontDialogParams {
-	IDWriteFont *font;
-	double size;
-	WCHAR *familyName;
-	WCHAR *styleName;
-};
-extern BOOL showFontDialog(HWND parent, struct fontDialogParams *params);
-extern void loadInitialFontDialogParams(struct fontDialogParams *params);
-extern void destroyFontDialogParams(struct fontDialogParams *params);
-extern WCHAR *fontDialogParamsToString(struct fontDialogParams *params);

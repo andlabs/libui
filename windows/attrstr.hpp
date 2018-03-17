@@ -59,3 +59,15 @@ struct drawTextBackgroundParams {
 	double b;
 	double a;
 };
+
+// fontdialog.cpp
+struct fontDialogParams {
+	IDWriteFont *font;
+	double size;
+	WCHAR *familyName;
+	WCHAR *styleName;
+};
+extern BOOL uiprivShowFontDialog(HWND parent, struct fontDialogParams *params);
+extern void uiprivLoadInitialFontDialogParams(struct fontDialogParams *params);
+extern void uiprivDestroyFontDialogParams(struct fontDialogParams *params);
+extern WCHAR *uiprivFontDialogParamsToString(struct fontDialogParams *params);

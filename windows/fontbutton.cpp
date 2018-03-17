@@ -87,7 +87,7 @@ static void defaultOnChanged(uiFontButton *b, void *data)
 	// do nothing
 }
 
-void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc)
+void uiFontButtonFont(uiFontButton *b, uiFontDescriptor *desc)
 {
 	uiprivFontDescriptorFromIDWriteFont(b->params.font, desc);
 	desc->Family = toUTF8(b->params.familyName);

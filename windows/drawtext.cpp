@@ -59,7 +59,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 		logHRESULT(L"error applying text layout alignment", hr);
 
 	hr = dwfactory->CreateTextLayout(
-		(const WCHAR *) attrstrUTF16(p->String), attrstrUTF16Len(p->String),
+		(const WCHAR *) uiprivAttributedStringUTF16String(p->String), uiprivAttributedStringUTF16Len(p->String),
 		tl->format,
 		// FLOAT is float, not double, so this should work... TODO
 		FLT_MAX, FLT_MAX,
@@ -84,11 +84,11 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	if (hr != S_OK)
 		logHRESULT(L"error setting IDWriteTextLayout max layout width", hr);
 
-	attrstrToIDWriteTextLayoutAttrs(p, tl->layout, &(tl->backgroundParams));
+	uiprivAttributedStringApplyAttributesToDWriteTextLayout(p, tl->layout, &(tl->backgroundParams));
 
 	// and finally copy the UTF-8/UTF-16 index conversion tables
-	tl->u8tou16 = attrstrCopyUTF8ToUTF16(p->String, &(tl->nUTF8));
-	tl->u16tou8 = attrstrCopyUTF16ToUTF8(p->String, &(tl->nUTF16));
+	tl->u8tou16 = uiprivAttributedStringCopyUTF8ToUTF16Table(p->String, &(tl->nUTF8));
+	tl->u16tou8 = uiprivAttributedStringCopyUTF16ToUTF8Table(p->String, &(tl->nUTF16));
 
 	return tl;
 }
@@ -97,7 +97,7 @@ void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
 	uiFree(tl->u16tou8);
 	uiFree(tl->u8tou16);
-	for (auto p in *(tl->backgroundParams))
+	for (auto p : *(tl->backgroundParams))
 		uiprivFree(p);
 	delete tl->backgroundParams;
 	tl->layout->Release();
@@ -147,7 +147,7 @@ drawingEffectsAttr::drawingEffectsAttr(void)
 	this->hasUnderlineColor = false;
 }
 
-virtual HRESULT STDMETHODCALLTYPE drawingEffectsAttr::QueryInterface(REFIID riid, void **ppvObject)
+HRESULT STDMETHODCALLTYPE drawingEffectsAttr::QueryInterface(REFIID riid, void **ppvObject)
 {
 	if (ppvObject == NULL)
 		return E_POINTER;
@@ -160,13 +160,13 @@ virtual HRESULT STDMETHODCALLTYPE drawingEffectsAttr::QueryInterface(REFIID riid
 	return E_NOINTERFACE;
 }
 
-virtual ULONG STDMETHODCALLTYPE drawingEffectsAttr::AddRef(void)
+ULONG STDMETHODCALLTYPE drawingEffectsAttr::AddRef(void)
 {
 	this->refcount++;
 	return this->refcount;
 }
 
-virtual ULONG STDMETHODCALLTYPE drawingEffectsAttr::Release(void)
+ULONG STDMETHODCALLTYPE drawingEffectsAttr::Release(void)
 {
 	this->refcount--;
 	if (this->refcount == 0) {
@@ -315,7 +315,7 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, DWRITE_MEASURING_MODE measuringMode, const DWRITE_GLYPH_RUN *glyphRun, const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription, IUnknown *clientDrawingEffect)
 	{
 		D2D1_POINT_2F baseline;
-		drawingEffecsAttr *dea = (drawingEffectAttrs *) clientDrawingEffect;
+		drawingEffectsAttr *dea = (drawingEffectsAttr *) clientDrawingEffect;
 		ID2D1SolidColorBrush *brush;
 
 		baseline.x = baselineOriginX;
@@ -330,7 +330,7 @@ public:
 		}
 		if (brush == NULL) {
 			brush = this->black;
-			brush->Retain();
+			brush->AddRef();
 		}
 		this->rt->DrawGlyphRun(
 			baseline,
@@ -387,17 +387,17 @@ public:
 		}
 		if (brush == NULL) {
 			brush = this->black;
-			brush->Retain();
+			brush->AddRef();
 		}
 		rect.left = baselineOriginX;
 		rect.top = baselineOriginY + underline->offset;
 		rect.right = rect.left + underline->width;
 		rect.bottom = rect.top + underline->thickness;
 		switch (utype) {
-		case uiDrawUnderlineStyleSingle:
+		case uiUnderlineSingle:
 			this->rt->FillRectangle(&rect, brush);
 			break;
-		case uiDrawUnderlineStyleDouble:
+		case uiUnderlineDouble:
 			// TODO do any of the matrix methods return errors?
 			// TODO standardize double-underline shape across platforms? wavy underline shape?
 			this->rt->GetTransform(&pixeltf);
@@ -420,7 +420,7 @@ public:
 			rect.bottom = rect.top + underline->thickness;
 			this->rt->FillRectangle(&rect, brush);
 			break;
-		case uiDrawUnderlineStyleSuggestion:
+		case uiUnderlineSuggestion:
 			{		// TODO get rid of the extra block
 					// TODO properly clean resources on failure
 					// TODO use fully qualified C overloads for all methods

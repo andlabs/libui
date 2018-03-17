@@ -11,7 +11,8 @@ static uiForEach addToTypography(const uiOpenTypeFeatures *otf, char a, char b, 
 	HRESULT hr;
 
 	ZeroMemory(&dff, sizeof (DWRITE_FONT_FEATURE));
-	dff.nameTag = /*(DWRITE_FONT_FEATURE_TAG)*/ DWRITE_MAKE_OPENTYPE_TAG(a, b, c, d);
+	// yes, the cast here is necessary (the compiler will complain otherwise)...
+	dff.nameTag = (DWRITE_FONT_FEATURE_TAG) DWRITE_MAKE_OPENTYPE_TAG(a, b, c, d);
 	dff.parameter = (UINT32) value;
 	hr = dt->AddFontFeature(dff);
 	if (hr != S_OK)

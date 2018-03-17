@@ -47,7 +47,7 @@ WCHAR *uiprivFontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *fam
 	hr = family->GetFamilyNames(&names);
 	if (hr != S_OK)
 		logHRESULT(L"error getting names of font out", hr);
-	str = fontCollectionCorrectString(fc, names);
+	str = uiprivFontCollectionCorrectString(fc, names);
 	names->Release();
 	return str;
 }

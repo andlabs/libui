@@ -210,6 +210,7 @@ public:
 };
 
 // also needed by applyEffectsAttributes() below
+// TODO provide all the fields of std::hash and std::equal_to?
 class applyEffectsHash {
 public:
 	typedef combinedEffectsAttr *ceaptr;

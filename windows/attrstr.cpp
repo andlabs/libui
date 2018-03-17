@@ -382,7 +382,7 @@ static HRESULT applyEffectsAttributes(struct foreachParams *p)
 		if (hr != S_OK)
 			// TODO proper cleanup somehow
 			return hr;
-		cea = (combinedEffectsAttr *) cea;
+		cea = (combinedEffectsAttr *) u;
 		if (cea != NULL) {
 			auto diter = effects.find(cea);
 			if (diter != effects.end())

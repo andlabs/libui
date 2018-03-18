@@ -88,7 +88,9 @@ static void makeAttributedString(void)
 	attr = uiNewFeaturesAttribute(otf);
 	appendWithAttribute("afford", attr, NULL);
 	uiFreeOpenTypeFeatures(otf);
-	uiAttributedStringAppendUnattributed(attrstr, ").");
+	uiAttributedStringAppendUnattributed(attrstr, ").\n");
+
+	uiAttributedStringAppendUnattributed(attrstr, "Use the controls opposite to the text to control properties of the text.");
 }
 
 static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
@@ -172,7 +174,7 @@ int main(void)
 
 	makeAttributedString();
 
-	mainwin = uiNewWindow("libui Histogram Example", 640, 480, 1);
+	mainwin = uiNewWindow("libui Text-Drawing Example", 640, 480, 1);
 	uiWindowSetMargined(mainwin, 1);
 	uiWindowOnClosing(mainwin, onClosing, NULL);
 

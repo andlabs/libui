@@ -2,6 +2,9 @@
 #import "uipriv_darwin.h"
 #import "attrstr.h"
 
+// TODOs:
+// - switching from Skia to a non-fvar-based font crashes because the CTFontDescriptorRef we get has an empty variation dictionary for some reason...
+
 // Core Text exposes font style info in two forms:
 // - Fonts with a QuickDraw GX font variation (fvar) table, a feature
 // 	adopted by OpenType, expose variations directly.

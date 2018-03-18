@@ -64,7 +64,7 @@ void *uiRealloc(void *p, size_t new, const char *type)
 	p = BASE(p);
 	out = g_realloc(p, EXTRA + new);
 	s = SIZE(out);
-	if (new <= *s)
+	if (new > *s)
 		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);
 	*s = new;
 	if (g_ptr_array_remove(allocations, p) == FALSE)

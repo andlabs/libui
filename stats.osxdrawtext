@@ -1,0 +1,43 @@
+diff --git a/darwin/drawtext.m b/darwin/drawtext.m
+index a84b68b..c95bbde 100644
+--- a/darwin/drawtext.m
++++ b/darwin/drawtext.m
+@@ -108,7 +108,7 @@ static CFAttributedStringRef attrstrToCoreFoundation(uiAttributedString *s, uiDr
+ 		boundsNoLeading = CTLineGetBoundsWithOptions(line, kCTLineBoundsExcludeTypographicLeading);
+ 
+ 		// this is equivalent to boundsNoLeading.size.height + boundsNoLeading.origin.y (manually verified)
+-		ascent = bounds.size.height + bounds.origin.y;
++if(i!=5)		ascent = bounds.size.height + bounds.origin.y;
+ 		descent = -boundsNoLeading.origin.y;
+ 		// TODO does this preserve leading sign?
+ 		leading = -bounds.origin.y - descent;
+@@ -119,11 +119,20 @@ static CFAttributedStringRef attrstrToCoreFoundation(uiAttributedString *s, uiDr
+ 		if (leading > 0)
+ 			leading = floor(leading + 0.5);
+ 
++NSLog(@"line %d", (int)i);
++NSLog(@"ypos %g", ypos);
++if (i>0) {
++NSLog(@"expected Y: %g", metrics[i - 1].Y - metrics[i - 1].Height);
++}
++
+ 		metrics[i].X = origins[i].x;
+ 		metrics[i].Y = origins[i].y - descent - leading;
+ 		metrics[i].Width = bounds.size.width;
+ 		metrics[i].Height = ascent + descent + leading;
+ 
++NSLog(@"o %g a %g d %g l %g", origins[i].y, ascent, descent, leading);
++NSLog(@"actual Y: %g height: %g", metrics[i].Y, metrics[i].Height);
++
+ 		metrics[i].BaselineY = origins[i].y;
+ 		metrics[i].Ascent = ascent;
+ 		metrics[i].Descent = descent;
+@@ -148,7 +157,7 @@ static CFAttributedStringRef attrstrToCoreFoundation(uiAttributedString *s, uiDr
+ 		metrics[i].BaselineY = size.height - metrics[i].BaselineY;
+ 		// TODO also adjust by metrics[i].Height?
+ 	}
+-
++NSLog(@"===");
+ 	uiFree(origins);
+ 	return metrics;
+ }

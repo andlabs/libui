@@ -66,6 +66,7 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 // That is to say, it's NOT THE SWEEP.
 // The sweep is defined by the start and end points and whether the arc is "large".
 // As a result, this design does not allow for full circles or ellipses with a single arc; they have to be simulated with two.
+// TODO https://github.com/Microsoft/WinObjC/blob/develop/Frameworks/CoreGraphics/CGPath.mm#L313
 
 struct arc {
 	double xCenter;

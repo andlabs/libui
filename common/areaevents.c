@@ -10,6 +10,8 @@ For GTK+, we pull the double-click time and double-click distance, which work th
 On GTK+ this will also allow us to discard the GDK_BUTTON_2PRESS and GDK_BUTTON_3PRESS events, so the button press stream will be just like on other platforms.
 
 Thanks to mclasen, garnacho_, halfline, and tristan in irc.gimp.net/#gtk+.
+
+TODO note the bits about asymmetry and g_rcClick initial value not mattering in the oldnewthing article
 */
 
 // x, y, xdist, ydist, and c.rect must have the same units

@@ -240,10 +240,8 @@ static HRESULT addEffectAttributeToRange(struct foreachParams *p, size_t start, 
 	while (start < end) {
 		hr = p->layout->GetDrawingEffect(start, &u, &range);
 		if (hr != S_OK)
-{logHRESULT(L"HELP", hr);
-			// TODO proper cleanup somehow
 			return hr;
-}		cea = (combinedEffectsAttr *) u;
+		cea = (combinedEffectsAttr *) u;
 		if (cea == NULL)
 			cea = new combinedEffectsAttr(attr);
 		else
@@ -257,10 +255,11 @@ static HRESULT addEffectAttributeToRange(struct foreachParams *p, size_t start, 
 		if ((range.startPosition + range.length) > end)
 			range.length = end - range.startPosition;
 		hr = p->layout->SetDrawingEffect(cea, range);
+		// SetDrawingEffect will AddRef(), so Release() our copy
+		// (and we're abandoning early if that failed, so this will make sure things are cleaned up in that case)
+		cea->Release();
 		if (hr != S_OK)
-			// TODO proper cleanup somehow
 			return hr;
-		// TODO figure out what and when needs to be released
 		start += range.length;
 	}
 	return S_OK;
@@ -377,11 +376,13 @@ static HRESULT applyEffectsAttributes(struct foreachParams *p)
 
 	// go through, replacing every combinedEffectsAttr with the proper drawingEffectsAttr
 	range.startPosition = 0;
+	// and in case this while loop never runs, make hr valid to start with
+	hr = S_OK;
 	while (range.startPosition < p->len) {
 		hr = p->layout->GetDrawingEffect(range.startPosition, &u, &range);
 		if (hr != S_OK)
-			// TODO proper cleanup somehow
-			return hr;
+			// note that we are breaking instead of returning; this allows us to clean up on failure
+			break;
 		cea = (combinedEffectsAttr *) u;
 		if (cea != NULL) {
 			auto diter = effects.find(cea);
@@ -392,22 +393,21 @@ static HRESULT applyEffectsAttributes(struct foreachParams *p)
 				effects.insert({cea, dea});
 			}
 			hr = p->layout->SetDrawingEffect(dea, range);
+			// don't release dea; we need the reference that's inside the map
+			// (we don't take extra references on lookup, so this will be fine)
 			if (hr != S_OK)
-				// TODO proper cleanup somehow
-				return hr;
+				break;
 		}
 		range.startPosition += range.length;
 	}
 
 	// and clean up, finally destroying the combinedEffectAttrs too
-#if 0
-TODO
+	// we do this in the case of failure as well, to make sure everything is properly cleaned up
 	for (auto iter = effects.begin(); iter != effects.end(); iter++) {
 		iter->first->Release();
 		iter->second->Release();
 	}
-#endif
-	return S_OK;
+	return hr;
 }
 
 void uiprivAttributedStringApplyAttributesToDWriteTextLayout(uiDrawTextLayoutParams *p, IDWriteTextLayout *layout, std::vector<struct drawTextBackgroundParams *> **backgroundParams)

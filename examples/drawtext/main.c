@@ -11,8 +11,6 @@ uiCombobox *alignment;
 
 uiAttributedString *attrstr;
 
-#define margins 20
-
 static void appendWithAttribute(const char *what, uiAttribute *attr, uiAttribute *attr2)
 {
 	size_t start, end;
@@ -103,11 +101,10 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	params.String = attrstr;
 	uiFontButtonFont(fontButton, &defaultFont);
 	params.DefaultFont = &defaultFont;
-	params.Width = p->AreaWidth - (2 * margins);
+	params.Width = p->AreaWidth;
 	params.Align = (uiDrawTextAlign) uiComboboxSelected(alignment);
 	textLayout = uiDrawNewTextLayout(&params);
-	// TODO clip to margins
-	uiDrawText(p->Context, textLayout, margins, margins);
+	uiDrawText(p->Context, textLayout, 0, 0);
 	uiDrawFreeTextLayout(textLayout);
 	uiFreeFontButtonFont(&defaultFont);
 }

@@ -22,3 +22,4 @@ should uiNewFamilyAttribute() accept NULL
 it is an error in ForEach too
 invalid values for uiDrawTextAlign
 empty text layouts have one line
+TODO figure out what to do if any field (particularly the font family name) in uiFontDescriptor is unset

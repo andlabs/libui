@@ -7,6 +7,7 @@ uiWindow *mainwin;
 uiArea *area;
 uiAreaHandler handler;
 uiFontButton *fontButton;
+uiCombobox *alignment;
 
 uiAttributedString *attrstr;
 
@@ -103,7 +104,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	uiFontButtonFont(fontButton, &defaultFont);
 	params.DefaultFont = &defaultFont;
 	params.Width = p->AreaWidth - (2 * margins);
-	params.Align = uiDrawTextAlignLeft;
+	params.Align = (uiDrawTextAlign) uiComboboxSelected(alignment);
 	textLayout = uiDrawNewTextLayout(&params);
 	// TODO clip to margins
 	uiDrawText(p->Context, textLayout, margins, margins);
@@ -137,6 +138,11 @@ static void onFontChanged(uiFontButton *b, void *data)
 	uiAreaQueueRedrawAll(area);
 }
 
+static void onComboboxSelected(uiCombobox *b, void *data)
+{
+	uiAreaQueueRedrawAll(area);
+}
+
 static int onClosing(uiWindow *w, void *data)
 {
 	uiControlDestroy(uiControl(mainwin));
@@ -155,6 +161,7 @@ int main(void)
 	uiInitOptions o;
 	const char *err;
 	uiBox *hbox, *vbox;
+	uiForm *form;
 
 	handler.Draw = handlerDraw;
 	handler.MouseEvent = handlerMouseEvent;
@@ -189,6 +196,20 @@ int main(void)
 	fontButton = uiNewFontButton();
 	uiFontButtonOnChanged(fontButton, onFontChanged, NULL);
 	uiBoxAppend(vbox, uiControl(fontButton), 0);
+
+	form = uiNewForm();
+	uiFormSetPadded(form, 1);
+	// TODO on OS X if this is set to 1 then the window can't resize; does the form not have the concept of stretchy trailing space?
+	uiBoxAppend(vbox, uiControl(form), 0);
+
+	alignment = uiNewCombobox();
+	// note that the items match with the values of the uiDrawTextAlign values
+	uiComboboxAppend(alignment, "Left");
+	uiComboboxAppend(alignment, "Center");
+	uiComboboxAppend(alignment, "Right");
+	uiComboboxSetSelected(alignment, 0);		// start with left alignment
+	uiComboboxOnSelected(alignment, onComboboxSelected, NULL);
+	uiFormAppend(form, "Alignment", uiControl(alignment), 0);
 
 	area = uiNewArea(&handler);
 	uiBoxAppend(hbox, uiControl(area), 1);

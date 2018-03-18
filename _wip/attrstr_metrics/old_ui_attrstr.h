@@ -31,6 +31,15 @@ struct uiDrawTextLayoutLineMetrics {
 	// TODO trailing whitespace?
 };
 
+// uiDrawTextLayoutNumLines() returns the number of lines in tl.
+// This number will always be greater than or equal to 1; a text
+// layout with no text only has one line.
+_UI_EXTERN int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl);
+
+// uiDrawTextLayoutLineByteRange() returns the byte indices of the
+// text that falls into the given line of tl as [start, end).
+_UI_EXTERN void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end);
+
 _UI_EXTERN void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m);
 
 // TODO rewrite this documentation

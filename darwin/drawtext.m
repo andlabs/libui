@@ -212,22 +212,3 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	[tl->frame returnWidth:width height:NULL];
 	[tl->forLines returnWidth:NULL height:height];
 }
-
-int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
-{
-	return CFArrayGetCount([tl->forLines lines]);
-}
-
-void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
-{
-	CTLineRef lr;
-	CFRange range;
-
-	lr = (CTLineRef) CFArrayGetValueAtIndex([tl->forLines lines], line);
-	range = CTLineGetStringRange(lr);
-	*start = tl->u16tou8[range.location];
-	if (tl->empty)
-		*end = *start;
-	else
-		*end = tl->u16tou8[range.location + range.length];
-}

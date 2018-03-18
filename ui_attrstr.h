@@ -484,15 +484,6 @@ _UI_EXTERN void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, dou
 // function to get the actual size of the text layout.
 _UI_EXTERN void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height);
 
-// uiDrawTextLayoutNumLines() returns the number of lines in tl.
-// This number will always be greater than or equal to 1; a text
-// layout with no text only has one line.
-_UI_EXTERN int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl);
-
-// uiDrawTextLayoutLineByteRange() returns the byte indices of the
-// text that falls into the given line of tl as [start, end).
-_UI_EXTERN void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end);
-
 // TODO metrics functions
 
 // TODO number of lines visible for clipping rect, range visible for clipping rect?

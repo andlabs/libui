@@ -534,25 +534,3 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	// TODO make sure the behavior of this on empty strings is the same on all platforms (ideally should be 0-width, line height-height; TODO note this in the docs too)
 	*height = metrics.height;
 }
-
-int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
-{
-return 0;
-#if 0
-TODO
-	return tl->nLines;
-#endif
-}
-
-// DirectWrite doesn't provide a direct way to do this, so we have to do this manually
-// TODO does that comment still apply here or to the code at the top of this file?
-void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
-{
-#if 0
-TODO
-	*start = tl->lineInfo[line].startPos;
-	*start = tl->u16tou8[*start];
-	*end = tl->lineInfo[line].endPos - tl->lineInfo[line].newlineCount;
-	*end = tl->u16tou8[*end];
-#endif
-}

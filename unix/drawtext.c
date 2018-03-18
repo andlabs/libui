@@ -79,18 +79,3 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	*width = pangoToCairo(logical.width);
 	*height = pangoToCairo(logical.height);
 }
-
-int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
-{
-	return pango_layout_get_line_count(tl->layout);
-}
-
-void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
-{
-	PangoLayoutLine *pll;
-
-	pll = pango_layout_get_line_readonly(tl->layout, line);
-	*start = pll->start_index;
-	*end = pll->start_index + pll->length;
-	// TODO unref pll?
-}

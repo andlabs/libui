@@ -5,11 +5,6 @@
 #define uiprivAlloc(x, y) uiAlloc(x, y)
 #define uiprivRealloc(x, y, z) uiRealloc(x, y, z)
 #define uiprivFree(x) uiFree(x)
-#ifndef _WIN32
-#define uiprivStricmp(x, y) strcasecmp(x, y)
-#else
-#define uiprivStricmp(x, y) stricmp(x, y)
-#endif
 
 // attribute.c
 extern uiAttribute *uiprivAttributeRetain(uiAttribute *a);

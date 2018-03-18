@@ -121,3 +121,8 @@ uiFontButton *uiNewFontButton(void)
 
 	return b;
 }
+
+void uiFreeFontButtonFont(uiFontDescriptor *desc)
+{
+	uiprivFree((char *) (desc->Family));
+}

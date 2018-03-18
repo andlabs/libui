@@ -106,6 +106,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	// TODO clip to margins
 	uiDrawText(p->Context, textLayout, margins, margins);
 	uiDrawFreeTextLayout(textLayout);
+	uiFreeFontButtonFont(&defaultFont);
 }
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)

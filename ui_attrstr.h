@@ -495,3 +495,4 @@ _UI_EXTERN void uiFontButtonFont(uiFontButton *b, uiFontDescriptor *desc);
 // TOOD SetFont, mechanics
 _UI_EXTERN void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data);
 _UI_EXTERN uiFontButton *uiNewFontButton(void);
+_UI_EXTERN void uiFreeFontButtonFont(uiFontDescriptor *desc);

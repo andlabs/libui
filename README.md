@@ -5,9 +5,9 @@ This README is being written.<br>
 
 ## Announcements
 
-* **TODO**
-	* Introduced an all-new formatted text API that allows you to process formatted text in ways that the old API wouldn't allow. You can read on the whole API [here](TODO). There are also two new examples for this new api: `drawtext` (which shows the whole API at a glance) and `opentype` (which focuses on OpenType features).
-	* Also introduced a formal set of contribution guidelines, see `CONTRIBUTING.md` for details.
+* **18 March 2018**
+	* Introduced an all-new formatted text API that allows you to process formatted text in ways that the old API wouldn't allow. You can read on the whole API [here](https://github.com/andlabs/libui/blob/8944a3fc5528445b9027b1294b6c86bae03eeb89/ui_attrstr.h). There is also a new examples for it: `drawtext`, which shows the whole API at a glance. It doesn't yet support measuring or manipulating text, nor does it currently support functions that would be necessary for things like text editors; all of this will be added back later.
+	* Also introduced a formal set of contribution guidelines, see `CONTRIBUTING.md` for details. They are still WIP.
 
 * **17 February 2018**
 	* The longstanding Enter+Escape crashes on Windows have finally been fixed (thanks to @lxn).

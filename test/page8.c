@@ -1,3 +1,5 @@
+/*
+
 // 22 december 2015
 #include "test.h"
 
@@ -44,3 +46,5 @@ uiBox *makePage8(void)
 
 	return page8;
 }
+
+*/

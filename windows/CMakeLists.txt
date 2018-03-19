@@ -39,6 +39,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/main.cpp
 	windows/menu.cpp
 	windows/multilineentry.cpp
+	windows/notelemetry.cpp
 	windows/opentype.cpp
 	windows/parent.cpp
 	windows/progressbar.cpp

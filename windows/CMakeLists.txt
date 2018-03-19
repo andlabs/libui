@@ -7,6 +7,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/areaevents.cpp
 	windows/areascroll.cpp
 	windows/areautil.cpp
+	windows/attrstr.cpp
 	windows/box.cpp
 	windows/button.cpp
 	windows/checkbox.cpp
@@ -28,6 +29,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/events.cpp
 	windows/fontbutton.cpp
 	windows/fontdialog.cpp
+	windows/fontmatch.cpp
 	windows/form.cpp
 	windows/graphemes.cpp
 	windows/grid.cpp
@@ -37,6 +39,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/main.cpp
 	windows/menu.cpp
 	windows/multilineentry.cpp
+	windows/opentype.cpp
 	windows/parent.cpp
 	windows/progressbar.cpp
 	windows/radiobuttons.cpp
@@ -76,10 +79,9 @@ macro(_handle_static)
 		COMMENT "Copying libui.res")
 endmacro()
 
-# notice that usp10 comes before gdi32
 # TODO prune this list
 set(_LIBUI_LIBS
-	user32 kernel32 usp10 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
+	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
 PARENT_SCOPE)
 
 if(NOT MSVC)

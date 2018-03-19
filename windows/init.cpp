@@ -1,5 +1,6 @@
 // 6 april 2015
 #include "uipriv_windows.hpp"
+#include "attrstr.hpp"
 
 HINSTANCE hInstance;
 int nCmdShow;
@@ -117,7 +118,7 @@ const char *uiInit(uiInitOptions *o)
 	if (hr != S_OK)
 		return ieHRESULT("initializing Direct2D", hr);
 
-	hr = initDrawText();
+	hr = uiprivInitDrawText();
 	if (hr != S_OK)
 		return ieHRESULT("initializing DirectWrite", hr);
 
@@ -139,7 +140,7 @@ void uiUninit(void)
 	unregisterD2DScratchClass();
 	unregisterMessageFilter();
 	unregisterArea();
-	uninitDrawText();
+	uiprivUninitDrawText();
 	uninitDraw();
 	CoUninitialize();
 	if (DeleteObject(hollowBrush) == 0)

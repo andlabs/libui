@@ -6,7 +6,9 @@
 // in others, because parts of GTK+ being unstable until recently also sucks :/
 
 // added in pango 1.38; we need 1.36
+static PangoAttribute *(*newFeaturesAttr)(const gchar *features) = NULL;
 static PangoAttribute *(*newFGAlphaAttr)(guint16 alpha) = NULL;
+static PangoAttribute *(*newBGAlphaAttr)(guint16 alpha) = NULL;
 
 // added in GTK+ 3.20; we need 3.10
 static void (*gwpIterSetObjectName)(GtkWidgetPath *path, gint pos, const char *name) = NULL;
@@ -21,9 +23,18 @@ void loadFutures(void)
 	if (handle == NULL)
 		return;
 #define GET(var, fn) *((void **) (&var)) = dlsym(handle, #fn)
+	GET(newFeaturesAttr, pango_attr_font_features_new);
 	GET(newFGAlphaAttr, pango_attr_foreground_alpha_new);
+	GET(newBGAlphaAttr, pango_attr_background_alpha_new);
 	GET(gwpIterSetObjectName, gtk_widget_path_iter_set_object_name);
 	dlclose(handle);
+}
+
+PangoAttribute *FUTURE_pango_attr_font_features_new(const gchar *features)
+{
+	if (newFeaturesAttr == NULL)
+		return NULL;
+	return (*newFeaturesAttr)(features);
 }
 
 PangoAttribute *FUTURE_pango_attr_foreground_alpha_new(guint16 alpha)
@@ -31,6 +42,13 @@ PangoAttribute *FUTURE_pango_attr_foreground_alpha_new(guint16 alpha)
 	if (newFGAlphaAttr == NULL)
 		return NULL;
 	return (*newFGAlphaAttr)(alpha);
+}
+
+PangoAttribute *FUTURE_pango_attr_background_alpha_new(guint16 alpha)
+{
+	if (newBGAlphaAttr == NULL)
+		return NULL;
+	return (*newBGAlphaAttr)(alpha);
 }
 
 gboolean FUTURE_gtk_widget_path_iter_set_object_name(GtkWidgetPath *path, gint pos, const char *name)

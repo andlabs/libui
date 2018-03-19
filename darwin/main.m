@@ -1,5 +1,6 @@
 // 6 april 2015
 #import "uipriv_darwin.h"
+#import "attrstr.h"
 
 static BOOL canQuit = NO;
 static NSAutoreleasePool *globalPool;
@@ -26,7 +27,7 @@ static BOOL stepsIsRunning;
 {
 	if (colorButtonInhibitSendAction(sel, from, to))
 		return NO;
-	if (fontButtonInhibitSendAction(sel, from, to))
+	if (uiprivFontButtonInhibitSendAction(sel, from, to))
 		return NO;
 	return [super sendAction:sel to:to from:from];
 }
@@ -38,7 +39,7 @@ static BOOL stepsIsRunning;
 {
 	id override;
 
-	if (fontButtonOverrideTargetForAction(sel, from, to, &override))
+	if (uiprivFontButtonOverrideTargetForAction(sel, from, to, &override))
 		return override;
 	return [super targetForAction:sel to:to from:from];
 }
@@ -119,12 +120,16 @@ const char *uiInit(uiInitOptions *o)
 		[realNSApp() setDelegate:delegate];
 
 		initAlloc();
+		loadFutures();
+		loadUndocumented();
 
 		// always do this so we always have an application menu
 		appDelegate().menuManager = [[menuManager new] autorelease];
 		[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
-		setupFontPanel();
+		uiprivSetupFontPanel();
+
+		uiprivInitUnderlineColors();
 	}
 
 	globalPool = [[NSAutoreleasePool alloc] init];
@@ -140,6 +145,7 @@ void uiUninit(void)
 	[globalPool release];
 
 	@autoreleasepool {
+		uiprivUninitUnderlineColors();
 		[delegate release];
 		[realNSApp() setDelegate:nil];
 		[app release];

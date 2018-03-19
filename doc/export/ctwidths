@@ -1,0 +1,160 @@
+xx pseudo-go
+
+func (f *CTFont) RegistryWidth32() float32 {
+	metadata visual descriptors
+	{ "med", float32as(0.000000, 0x0) },
+	{ "cond", float32as(-0.200000, 0xbe4ccccd) },
+	{ "ext", float32as(0.200000, 0x3e4ccccd) },
+
+	style dictionary
+	{ "Extra Compressed", float32as(-0.700000, 0xbf333333) },
+	{ "Ultra Compressed", float32as(-0.700000, 0xbf333333) },
+	{ "Ultra Condensed", float32as(-0.700000, 0xbf333333) },
+	{ "Extra Condensed", float32as(-0.500000, 0xbf000000) },
+	{ "Extra Extended", float32as(0.400000, 0x3ecccccd) },
+	{ "Ext Compressed", float32as(-0.700000, 0xbf333333) },
+	{ "Ultra Expanded", float32as(0.800000, 0x3f4ccccd) },
+	{ "Ultra Extended", float32as(0.800000, 0x3f4ccccd) },
+	{ "Extra Expanded", float32as(0.400000, 0x3ecccccd) },
+	xx TODO this is weird, but correct...
+	{ "Semi Condensed", float32as(-0.700000, 0xbf333333) },
+	{ "Semi Condensed", float32as(-0.100000, 0xbdcccccd) },
+	xx end TODO
+	{ "Ext Condensed", float32as(-0.500000, 0xbf000000) },
+	{ "SemiCondensed", float32as(-0.100000, 0xbdcccccd) },
+	{ "ExtraExpanded", float32as(0.400000, 0x3ecccccd) },
+	{ "Semi Expanded", float32as(0.100000, 0x3dcccccd) },
+	{ "Semi Extended", float32as(0.100000, 0x3dcccccd) },
+	{ "Ext Expanded", float32as(0.400000, 0x3ecccccd) },
+	{ "Ext Extended", float32as(0.400000, 0x3ecccccd) },
+	{ "SemiExpanded", float32as(0.100000, 0x3dcccccd) },
+	{ "Extra Narrow", float32as(-0.500000, 0xbf000000) },
+	{ "ExtraNarrow", float32as(-0.500000, 0xbf000000) },
+	{ "Extra Wide", float32as(0.800000, 0x3f4ccccd) },
+	{ "Ultra Cond", float32as(-0.700000, 0xbf333333) },
+	{ "Compressed", float32as(-0.500000, 0xbf000000) },
+	{ "Extra Cond", float32as(-0.500000, 0xbf000000) },
+	{ "Semi Cond", float32as(-0.100000, 0xbdcccccd) },
+	{ "Condensed", float32as(-0.200000, 0xbe4ccccd) },
+	{ "ExtraWide", float32as(0.800000, 0x3f4ccccd) },
+	{ "Extended", float32as(0.200000, 0x3e4ccccd) },
+	{ "Expanded", float32as(0.200000, 0x3e4ccccd) },
+	{ "Ext Cond", float32as(-0.500000, 0xbf000000) },
+	{ "Narrow", float32as(-0.400000 , 0xbecccccd) },
+	{ "Compact", float32as(-0.400000, 0xbecccccd) },
+	{ "Cond", float32as(-0.200000, 0xbe4ccccd) },
+	{ "Wide", float32as(0.600000, 0x3f19999a) },
+	{ "Thin", float32as(-0.700000, 0xbf333333) },
+
+	get os2 table
+	if os2table.Len() >= 78 {
+		usWidthClass := uint16be(b[6:8]) - 1
+		xx this handles the case where the original usWidthClass == 0
+		if usWidthClass > 8 {
+			panose := b[0x23] - 2
+			if panose > 6 {
+				xx TODO
+			} else {
+				switch panose {
+				case 0, 1, 2:
+					width = float32as(0.000000, 0x0)
+				case 3:
+					width = float32as(0.200000, 0x3e4ccccd)
+				case 4:
+					width = float32as(-0.200000, 0xbe4ccccd)
+				case 5:
+					width = float32as(0.400000, 0x3ecccccd)
+				case 6:
+					width = float32as(-0.400000, 0xbecccccd)
+				}
+			}
+		}
+		switch usWidthClass {
+		case 0:
+			width = float32as(-0.700000, 0xbf333333)
+		case 1:
+			width = float32as(-0.500000, 0xbf000000)
+		case 2:
+			width = float32as(-0.200000, 0xbe4ccccd)
+		case 3:
+			width = float32as(-0.100000, 0xbdcccccd)
+		case 4:
+			width = float32as(0.000000, 0x0)
+		case 5:
+			width = float32as(0.100000, 0x3dcccccd)
+		case 6:
+			width = float32as(0.400000, 0x3ecccccd)
+		case 7:
+			width = float32as(0.600000, 0x3f19999a)
+		case 8:
+			width = float32as(0.800000, 0x3f4ccccd)
+		}
+	}
+
+	headtable := f.CopyTable('head')
+	if headtable != nil {
+		if headtable.Len() >= 54 {
+			x := b[0x2d]
+			if (x & 0x20) != 0 {
+				width = float32as(-0.200000, 0xbe4ccccd)
+			} else if (x & 0x40) != 0 {
+				width = float32as(0.200000, 0x3e4ccccd)
+			}
+		}
+	}
+
+	xx and if all else fails
+	return float32as(0.000000, 0x0)
+}
+
+func (f *CTFont) Width() float64 {
+	if f.IsRegistered() {
+		return f.RegistryWidth()
+	}
+
+	width := 0.0
+	hasWidth := false
+
+	if there is an OS2 table {
+		var usWidthClass uint16
+
+		valid := false
+		if it's 78 bytes or more {
+			usWidthClass = uint16be(table[6:8])
+			if usWeightClass <= 10 {
+				valid = true
+			} else {
+				valid = false
+			}
+		} else {
+			usWidthClass = 0
+			valid = true
+		}
+		if valid {
+			ten := float64as(10.000000, 0x4024000000000000)
+			negPointFive := float64as(-0.500000, 0xbfe0000000000000)
+			width = (float64(usWidthClass) div ten) + negPointFive
+			hasWidth = true
+		}
+	}
+
+	then there's the style glossary strings comparison:
+	{ "semi condensed", float32as(-0.100000, 0xbdcccccd) },
+	{ "extra expanded", float32as(0.400000, 0x3ecccccd) },
+	{ "semicondensed", float32as(-0.100000, 0xbdcccccd) },
+	{ "extraexpanded", float32as(0.400000, 0x3ecccccd) },
+	{ "semi expanded", float32as(0.100000, 0x3dcccccd) },
+	{ "semiexpanded", float32as(0.100000, 0x3dcccccd) },
+	{ "extra narrow", float32as(-0.500000, 0xbf000000) },
+	{ "extranarrow", float32as(-0.500000, 0xbf000000) },
+	{ "extra wide", float32as(0.800000, 0x3f4ccccd) },
+	{ "condensed", float32as(-0.200000, 0xbe4ccccd) },
+	{ "extrawide", float32as(0.800000, 0x3f4ccccd) },
+	{ "extended", float32as(0.200000, 0x3e4ccccd) },
+	{ "expanded", float32as(0.200000, 0x3e4ccccd) },
+	{ "narrow", float32as(-0.400000, 0xbecccccd) },
+	{ "wide", float32as(0.600000, 0x3f19999a) },
+	{ "thin", float32as(-0.700000, 0xbf333333) },
+
+	otherwise just return float64as(0.000000, 0x0)
+}

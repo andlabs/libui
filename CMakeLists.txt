@@ -12,7 +12,11 @@ cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 # - switch to 3.1.0 features
 
 # the docs say we need to set this up prior to project()
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+# the docs don't say this, but the CACHE part is important; see https://stackoverflow.com/questions/34208360/cmake-seems-to-ignore-cmake-osx-deployment-target
+# TODO figure out what other variables must be set with CACHE
+# TODO figure out if FORCE is needed here
+# TODO figure out whether STRING "" is best or if something else is better; also what FORCE does because I forget and later I say it's needed
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8" CACHE STRING "" FORCE)
 
 # we want to disable incremental linking
 # see also:
@@ -125,6 +129,18 @@ else()
 			-static-libstdc++
 		)
 	endif()
+
+	# TODO document this
+	if(ADDRESS_SANITIZER)
+		set(_COMMON_CFLAGS ${_COMMON_CFLAGS}
+			-fsanitize=address
+			-fno-omit-frame-pointer
+		)
+		set(_COMMON_LDFLAGS ${_COMMON_LDFLAGS}
+			-fsanitize=address
+			-fno-omit-frame-pointer
+		)
+	endif()
 endif()
 
 # problem:
@@ -201,30 +217,31 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 macro(_add_exec _name)
-  add_executable(${_name}
-    WIN32 EXCLUDE_FROM_ALL
-    ${ARGN})
-  target_link_libraries(${_name} libui ${_LIBUI_STATIC_RES})
-  _target_link_options_private(${_name}
-    _COMMON_LDFLAGS)
-  # make shared-linked executables PIC too
-  if(BUILD_SHARED_LIBS)
-    set_property(TARGET ${_name} PROPERTY
-      POSITION_INDEPENDENT_CODE True)
-  endif()
-  # TODO see above about INTERFACE
-  if(NOT BUILD_SHARED_LIBS)
-    target_link_libraries(${_name}
-      ${_LIBUI_LIBS})
-  endif()
+	# TODOTODO re-add WIN32 when merging back
+	add_executable(${_name}
+		EXCLUDE_FROM_ALL
+		${ARGN})
+	target_link_libraries(${_name} libui ${_LIBUI_STATIC_RES})
+	_target_link_options_private(${_name}
+		_COMMON_LDFLAGS)
+	# make shared-linked executables PIC too
+	if(BUILD_SHARED_LIBS)
+		set_property(TARGET ${_name} PROPERTY
+			POSITION_INDEPENDENT_CODE True)
+	endif()
+	# TODO see above about INTERFACE
+	if(NOT BUILD_SHARED_LIBS)
+		target_link_libraries(${_name}
+			${_LIBUI_LIBS})
+	endif()
 
-  # TODOfor some reason these don't propagate
-  if(NOT WIN32)
-    target_include_directories(${_name}
-      PUBLIC .)
-    target_compile_options(${_name}
-      PUBLIC ${_COMMON_CFLAGS})
-  endif()
+	# TODOfor some reason these don't propagate
+	if(NOT WIN32)
+		target_include_directories(${_name}
+			PUBLIC .)
+		target_compile_options(${_name}
+			PUBLIC ${_COMMON_CFLAGS})
+	endif()
 endmacro()
 add_subdirectory("test")
 add_subdirectory("examples")

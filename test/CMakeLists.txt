@@ -4,6 +4,8 @@ if(WIN32)
 	set(_TEST_RESOURCES_RC resources.rc)
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --stdlib=libc++ --std=c++11")
+
 _add_exec(tester
 	drawtests.c
 	main.c

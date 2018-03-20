@@ -4,7 +4,11 @@ if(WIN32)
 	set(_EXAMPLE_RESOURCES_RC resources.rc)
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --stdlib=libc++ --std=c++11")
+if(APPLE)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --stdlib=libc++")
+endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
 macro(_add_example _name)
 	_add_exec(${_name} ${ARGN})

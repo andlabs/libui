@@ -41,5 +41,4 @@ add_custom_target(examples
 		controlgallery
 		histogram
 		cpp-multithread
-		drawtext
-		opentype)
+		drawtext)

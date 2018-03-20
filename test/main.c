@@ -129,8 +129,7 @@ int main(int argc, char *argv[])
 	page7 = makePage7();
 	uiTabAppend(innerTab, "Page 7", uiControl(page7));
 
-	/*
-	page8 = makePage8();
+/*	page8 = makePage8();
 	uiTabAppend(innerTab, "Page 8", uiControl(page8));
 
 	page9 = makePage9();

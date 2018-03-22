@@ -1,0 +1,1 @@
+/usr/bin/cc  --std=c99 -g  -rdynamic  -fvisibility=hidden CMakeFiles/layout-test.dir/layout-test/main.c.o  -o ../out/layout-test -Wl,-rpath,"\$ORIGIN" ../out/libui.so.0 

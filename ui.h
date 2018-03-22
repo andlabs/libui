@@ -684,6 +684,12 @@ _UI_EXTERN int uiGridPadded(uiGrid *g);
 _UI_EXTERN void uiGridSetPadded(uiGrid *g, int padded);
 _UI_EXTERN uiGrid *uiNewGrid(void);
 
+typedef struct uiFixed uiFixed;
+#define uiFixed(this) ((uiFixed *) (this))
+_UI_EXTERN void uiFixedAppend(uiFixed *g, uiControl *c, int x, int y);
+_UI_EXTERN void uiFixedMove(uiFixed *g, uiControl *c, int x, int y);
+_UI_EXTERN uiFixed *uiNewFixed(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/kusti8/Documents/Github/libui/examples/controlgallery/main.c
+stdio.h
+-
+string.h
+-
+../../ui.h
+/home/kusti8/Documents/Github/libui/ui.h
+
+/home/kusti8/Documents/Github/libui/ui.h
+stddef.h
+-
+stdint.h
+-
+

@@ -154,6 +154,7 @@ Other people have made bindings to other languages:
 
 Language | Bindings
 --- | ---
+C++ | [libui-cpp](https://github.com/billyquith/libui-cpp), [cpp-libui-qtlike](https://github.com/aoloe/cpp-libui-qtlike)
 C# / .NET Framework | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding)
 C# / .NET Core | [DevZH.UI](https://github.com/noliar/DevZH.UI), [SharpUI](https://github.com/benpye/sharpui/)
 CHICKEN Scheme | [wasamasa/libui](https://github.com/wasamasa/libui)
@@ -161,16 +162,17 @@ Crystal | [libui.cr](https://github.com/Fusion/libui.cr)
 D | [DerelictLibui (flat API)](https://github.com/Extrawurst/DerelictLibui), [libuid (object-oriented)](https://github.com/mogud/libuid)
 Euphoria | [libui-euphoria](https://github.com/ghaberek/libui-euphoria)
 Harbour | [HBUI](https://github.com/RJopek/HBUI)
-Haskell | [libui-haskell](https://github.com/ajnsit/libui-haskell), [beijaflor-io/haskell-libui (complete FFI bindings, extensions and higher-level API)](https://github.com/beijaflor-io/haskell-libui)
-JavaScript | [libui.js (merged into libui-node?)](https://github.com/mavenave/libui.js)
+Haskell | [haskell-libui](https://github.com/beijaflor-io/haskell-libui)
+JavaScript | [libui.js (merged into libui-node?)](https://github.com/mavenave/libui.js), [proton-native](https://github.com/kusti8/proton-native)
 Julia | [Libui.jl](https://github.com/joa-quim/Libui.jl)
 Lua | [libuilua](https://github.com/zevv/libuilua), [libui-lua](https://github.com/mdombroski/libui-lua), [lui](http://tset.de/lui/index.html)
 Nim | [ui](https://github.com/nim-lang/ui)
 Node.js | [libui-node](https://github.com/parro-it/libui-node)
 PHP | [ui](https://github.com/krakjoe/ui)
-Python | [pylibui](https://github.com/joaoventura/pylibui)
+Python | [pylibui](https://github.com/joaoventura/pylibui), [pylibui-cffi](https://github.com/Yardanico/pylibui-cffi)
 Ruby | [libui-ruby](https://github.com/jamescook/libui-ruby)
 Rust | [libui-rs](https://github.com/pcwalton/libui-rs)
+Scala | [scalaui](https://github.com/lolgab/scalaui)
 Swift | [libui-swift](https://github.com/sclukey/libui-swift)
 
 ## Frequently Asked Questions

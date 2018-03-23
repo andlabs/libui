@@ -1,1 +1,0 @@
-/usr/bin/c++   --std=c++11 -g  -rdynamic  -fvisibility=hidden CMakeFiles/cpp-multithread.dir/cpp-multithread/main.cpp.o  -o ../out/cpp-multithread -Wl,-rpath,"\$ORIGIN" ../out/libui.so.0 -lpthread 

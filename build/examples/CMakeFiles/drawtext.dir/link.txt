@@ -1,1 +1,0 @@
-/usr/bin/cc  --std=c99 -g  -rdynamic  -fvisibility=hidden CMakeFiles/drawtext.dir/drawtext/main.c.o  -o ../out/drawtext -Wl,-rpath,"\$ORIGIN" ../out/libui.so.0 

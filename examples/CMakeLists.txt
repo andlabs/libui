@@ -18,11 +18,6 @@ _add_example(controlgallery
 	${_EXAMPLE_RESOURCES_RC}
 )
 
-_add_example(layout-test
-	layout-test/main.c
-	${_EXAMPLE_RESOURCES_RC}
-)
-
 _add_example(histogram
 	histogram/main.c
 	${_EXAMPLE_RESOURCES_RC}

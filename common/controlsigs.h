@@ -9,7 +9,7 @@
 #define uiDateTimePickerSignature 0x44545069
 #define uiEditableComboboxSignature 0x45644362
 #define uiEntrySignature 0x456E7472
-#define uiFixedSignature 0x458B492C
+#define uiFixedSignature 0x46697864
 #define uiFontButtonSignature 0x466F6E42
 #define uiFormSignature 0x466F726D
 #define uiGridSignature 0x47726964

@@ -438,9 +438,9 @@ void uiWindowSetResizeable(uiWindow *w, int resizeable)
 {
 	w->resizeable = resizeable;
 	if (w->resizeable) {
-		setStyle(w->hwnd, getStyle(w->hwnd) | WS_THICKFRAME);
+		setStyle(w->hwnd, getStyle(w->hwnd) | WS_THICKFRAME | WS_MAXIMIZEBOX);
 	} else {
-		setStyle(w->hwnd, getStyle(w->hwnd) & ~WS_THICKFRAME);
+		setStyle(w->hwnd, getStyle(w->hwnd) & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX);
 	}
 }
 

@@ -17,6 +17,7 @@ uiMenuItem *enableThisItem;
 uiMenuItem *forceCheckedItem;
 uiMenuItem *forceUncheckedItem;
 uiMenuItem *whatWindowItem;
+uiMenuItem *resizeableItem;
 uiMenu *moreTestsMenu;
 uiMenuItem *quitEnabledItem;
 uiMenuItem *prefsEnabledItem;
@@ -50,6 +51,11 @@ static void whatWindow(uiMenuItem *item, uiWindow *w, void *data)
 	printf("menu item clicked on window %p\n", (void *) w);
 }
 
+static void toggleResize(uiMenuItem *item, uiWindow *w, void *data)
+{
+	uiWindowSetResizeable(w, uiMenuItemChecked(item));
+}
+
 void initMenus(void)
 {
 	fileMenu = uiNewMenu("File");
@@ -79,6 +85,9 @@ void initMenus(void)
 	uiMenuAppendSeparator(testMenu);
 	whatWindowItem = uiMenuAppendItem(testMenu, "What Window?");
 	uiMenuItemOnClicked(whatWindowItem, whatWindow, NULL);
+	resizeableItem = uiMenuAppendCheckItem(testMenu, "Enable Resize");
+	uiMenuItemSetChecked(resizeableItem, 1);
+	uiMenuItemOnClicked(resizeableItem, toggleResize, NULL);
 
 	moreTestsMenu = uiNewMenu("More Tests");
 	quitEnabledItem = uiMenuAppendCheckItem(moreTestsMenu, "Quit Item Enabled");

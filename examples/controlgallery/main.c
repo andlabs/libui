@@ -311,7 +311,6 @@ int main(void)
 	tab = uiNewTab();
 	uiWindowSetChild(mainwin, uiControl(tab));
 	uiWindowSetMargined(mainwin, 1);
-	uiWindowSetResizeable(mainwin, 0);
 
 	uiTabAppend(tab, "Basic Controls", makeBasicControlsPage());
 	uiTabSetMargined(tab, 0, 1);

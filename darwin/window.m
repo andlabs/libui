@@ -366,7 +366,7 @@ int uiWindowResizeable(uiWindow *w)
 void uiWindowSetResizeable(uiWindow *w, int resizeable)
 {
 	w->resizeable = resizeable;
-	if(resizeable){
+	if(resizeable) {
 		[w->window setStyleMask:[w->window styleMask] | NSResizableWindowMask];
 	} else {
 		[w->window setStyleMask:[w->window styleMask] & ~NSResizableWindowMask];

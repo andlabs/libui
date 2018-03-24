@@ -19,6 +19,7 @@ struct uiWindow {
 
 	uiControl *child;
 	int margined;
+	int resizeable;
 
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
@@ -227,6 +228,17 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
 	uiprivSetMargined(w->childHolderContainer, w->margined);
+}
+
+int uiWindowResizeable(uiWindow *w)
+{
+	return w->resizeable;
+}
+
+void uiWindowSetResizeable(uiWindow *w, int resizeable)
+{
+	w->resizeable = resizeable;
+	gtk_window_set_resizable(w->window, resizeable);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)

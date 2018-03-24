@@ -61,6 +61,8 @@ struct uiControl {
 	uint32_t Signature;
 	uint32_t OSSignature;
 	uint32_t TypeSignature;
+	int height;
+	int width;
 	void (*Destroy)(uiControl *);
 	uintptr_t (*Handle)(uiControl *);
 	uiControl *(*Parent)(uiControl *);
@@ -87,6 +89,7 @@ _UI_EXTERN int uiControlEnabled(uiControl *);
 _UI_EXTERN void uiControlEnable(uiControl *);
 _UI_EXTERN void uiControlDisable(uiControl *);
 _UI_EXTERN void uiNaturalSize(uiControl *control, int *width, int *height);
+_UI_EXTERN void uiSetSize(uiControl *control, int width, int height);
 
 _UI_EXTERN uiControl *uiAllocControl(size_t n, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
 _UI_EXTERN void uiFreeControl(uiControl *);

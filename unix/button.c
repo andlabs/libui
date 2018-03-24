@@ -51,5 +51,7 @@ uiButton *uiNewButton(const char *text)
 	g_signal_connect(b->widget, "clicked", G_CALLBACK(onClicked), b);
 	uiButtonOnClicked(b, defaultOnClicked, NULL);
 
+	g_signal_connect(b->widget, "size-allocate", G_CALLBACK(uiButtonSizeCallback), uiControl(b));
+
 	return b;
 }

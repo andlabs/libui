@@ -117,5 +117,7 @@ uiRadioButtons *uiNewRadioButtons(void)
 
 	uiRadioButtonsOnSelected(r, defaultOnSelected, NULL);
 
+	g_signal_connect(r->widget, "size-allocate", G_CALLBACK(uiRadioButtonsSizeCallback), uiControl(r));
+
 	return r;
 }

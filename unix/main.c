@@ -109,8 +109,11 @@ void uiQueueMain(void (*f)(void *data), void *data)
 
 void uiNaturalSize(uiControl *control, int *width, int *height)
 {
-	GtkRequisition natural_size;
-	gtk_widget_get_preferred_size(GTK_WIDGET(uiControlHandle(control)), NULL, &natural_size);
-	*width = natural_size.width;
-	*height = natural_size.height;
+	*width = control->width;
+	*height = control->height;
+}
+
+void uiSetSize(uiControl *control, int width, int height)
+{
+	gtk_widget_set_size_request(GTK_WIDGET(uiControlHandle(control)), width, height);
 }

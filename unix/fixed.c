@@ -81,5 +81,7 @@ uiFixed *uiNewFixed(void)
 
 	g->children = g_array_new(FALSE, TRUE, sizeof (struct fixedChild));
 
+	g_signal_connect(g->widget, "size-allocate", G_CALLBACK(uiFixedSizeCallback), uiControl(g));
+
 	return g;
 }

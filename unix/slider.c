@@ -67,5 +67,7 @@ uiSlider *uiNewSlider(int min, int max)
 	s->onChangedSignal = g_signal_connect(s->scale, "value-changed", G_CALLBACK(onChanged), s);
 	uiSliderOnChanged(s, defaultOnChanged, NULL);
 
+	g_signal_connect(s->widget, "size-allocate", G_CALLBACK(uiSliderSizeCallback), uiControl(s));
+
 	return s;
 }

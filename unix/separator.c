@@ -18,6 +18,8 @@ uiSeparator *uiNewHorizontalSeparator(void)
 	s->widget = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
 	s->separator = GTK_SEPARATOR(s->widget);
 
+	g_signal_connect(s->widget, "size-allocate", G_CALLBACK(uiSeparatorSizeCallback), uiControl(s));
+
 	return s;
 }
 
@@ -29,6 +31,8 @@ uiSeparator *uiNewVerticalSeparator(void)
 
 	s->widget = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
 	s->separator = GTK_SEPARATOR(s->widget);
+
+	g_signal_connect(s->widget, "size-allocate", G_CALLBACK(uiSeparatorSizeCallback), uiControl(s));
 
 	return s;
 }

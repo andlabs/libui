@@ -580,6 +580,8 @@ uiDateTimePicker *finishNewDateTimePicker(GtkWidget *(*fn)(void))
 	d->widget = (*fn)();
 	d->d = dateTimePickerWidget(d->widget);
 
+	g_signal_connect(d->widget, "size-allocate", G_CALLBACK(uiDateTimePickerSizeCallback), uiControl(d));
+
 	return d;
 }
 

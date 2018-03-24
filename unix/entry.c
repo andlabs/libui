@@ -73,6 +73,8 @@ static uiEntry *finishNewEntry(GtkWidget *w, const gchar *signal)
 	e->onChangedSignal = g_signal_connect(e->widget, signal, G_CALLBACK(onChanged), e);
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
+	g_signal_connect(e->widget, "size-allocate", G_CALLBACK(uiEntrySizeCallback), uiControl(e));
+
 	return e;
 }
 

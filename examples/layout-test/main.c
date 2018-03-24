@@ -34,11 +34,10 @@ int main(void)
 
     int width, height;
 
-    uiNaturalSize(uiControl(label), &width, &height);
+        uiNaturalSize(uiControl(fixed), &width, &height);
     printf("Width: %d, Height: %d\n", width, height);
 
-        uiNaturalSize(uiControl(button), &width, &height);
-    printf("Width: %d, Height: %d\n", width, height);
+	uiSetSize(uiControl(button), 100, 100);
 
 	uiMain();
 	return 0;

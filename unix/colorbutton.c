@@ -76,5 +76,7 @@ uiColorButton *uiNewColorButton(void)
 	g_signal_connect(b->widget, "color-set", G_CALLBACK(onColorSet), b);
 	uiColorButtonOnChanged(b, defaultOnChanged, NULL);
 
+	g_signal_connect(b->widget, "size-allocate", G_CALLBACK(uiColorButtonSizeCallback), uiControl(b));
+
 	return b;
 }

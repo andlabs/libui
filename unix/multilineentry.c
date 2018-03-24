@@ -110,6 +110,8 @@ static uiMultilineEntry *finishMultilineEntry(GtkPolicyType hpolicy, GtkWrapMode
 	e->onChangedSignal = g_signal_connect(e->textbuf, "changed", G_CALLBACK(onChanged), e);
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
 
+	g_signal_connect(e->widget, "size-allocate", G_CALLBACK(uiMultilineEntrySizeCallback), uiControl(e));
+
 	return e;
 }
 

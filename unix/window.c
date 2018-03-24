@@ -114,6 +114,7 @@ uiUnixControlDefaultEnable(uiWindow)
 uiUnixControlDefaultDisable(uiWindow)
 // TODO?
 uiUnixControlDefaultSetContainer(uiWindow)
+uiUnixSizeCallback(uiWindow)
 
 char *uiWindowTitle(uiWindow *w)
 {
@@ -274,6 +275,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	// normally it's SetParent() that does this, but we can't call SetParent() on a uiWindow
 	// TODO we really need to clean this up, especially since see uiWindowDestroy() above
 	g_object_ref(w->widget);
+
+	g_signal_connect(w->widget, "size-allocate", G_CALLBACK(uiWindowSizeCallback), uiControl(w));
 
 	return w;
 }

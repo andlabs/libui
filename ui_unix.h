@@ -22,6 +22,13 @@ struct uiUnixControl {
 // TODO document
 _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gboolean);
 
+#define uiUnixSizeCallback(type) \
+	static void type ## SizeCallback(GtkWidget *widget, GtkAllocation *allocation, uiControl *data) \
+	{ \
+		data->height = allocation->height; \
+		data->width = allocation->width; \
+	}
+
 #define uiUnixControlDefaultDestroy(type) \
 	static void type ## Destroy(uiControl *c) \
 	{ \
@@ -106,7 +113,8 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	uiUnixControlDefaultEnabled(type) \
 	uiUnixControlDefaultEnable(type) \
 	uiUnixControlDefaultDisable(type) \
-	uiUnixControlDefaultSetContainer(type)
+	uiUnixControlDefaultSetContainer(type) \
+	uiUnixSizeCallback(type)
 
 #define uiUnixControlAllDefaults(type) \
 	uiUnixControlDefaultDestroy(type) \

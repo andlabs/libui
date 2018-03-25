@@ -7,3 +7,5 @@ https://blogs.windows.com/buildingapps/2017/04/04/high-dpi-scaling-improvements-
 https://channel9.msdn.com/Events/Windows/Windows-Developer-Day-Creators-Update/High-DPI-Improvements-for-Desktop-Developers
 https://social.msdn.microsoft.com/Forums/vstudio/en-US/31d2a89f-3518-403e-b1e4-bbe37ac1b0f0/per-monitor-high-dpi-awareness-wmdpichanged?forum=vcgeneral
 https://stackoverflow.com/questions/36864894/scaling-the-non-client-area-title-bar-menu-bar-for-per-monitor-high-dpi-suppo/37624363
+https://stackoverflow.com/questions/41448320/dlgtemplateex-and-ds-shellfont-what-about-point-size
+http://stackoverflow.com/questions/41917279/do-child-windows-have-the-same-dpi-as-their-parents-in-a-per-monitor-aware-appli

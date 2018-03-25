@@ -1,2 +1,102 @@
 windows data types, "open specifications" on msdn https://msdn.microsoft.com/en-us/library/cc230321.aspx
 	(I usually use https://msdn.microsoft.com/en-us/library/windows/desktop/aa383751(v=vs.85).aspx for windows data types)
+
+windows platform update for windows 7
+https://msdn.microsoft.com/en-us/library/windows/desktop/jj863687(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/hh802478(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/hh802480(v=vs.85).aspx
+
+DWM, header bars, toolbars
+https://stackoverflow.com/questions/41106347/why-is-my-dwmextendframeintoclientaread-window-not-drawing-the-dwm-borders/41125616#41125616
+https://developer.gnome.org/hig/stable/header-bars.html.en
+https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/OSXHIGuidelines/WindowTitleBarToolbar.html#//apple_ref/doc/uid/20000957-CH39-SW1
+https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/OSXHIGuidelines/ControlsAll.html#//apple_ref/doc/uid/20000957-CH46-SW2
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb787329(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb787334(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb787337(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/cc835034(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb787345(v=vs.85).aspx
+
+rendering
+https://www.youtube.com/watch?v=UUfXWzp0-DU
+
+text input on windows
+https://blogs.msdn.microsoft.com/oldnewthing/20121025-00/?p=6253
+https://www.google.com/search?q=translatemessage+site%3Ahttp%3A%2F%2Farchives.miloush.net%2Fmichkap%2Farchive%2F&ie=utf-8&oe=utf-8
+http://archives.miloush.net/michkap/archive/2008/04/22/8415843.html
+http://archives.miloush.net/michkap/archive/2007/03/25/1948887.html
+http://archives.miloush.net/michkap/archive/2006/09/10/748775.html
+http://archives.miloush.net/michkap/archive/2004/11/27/270931.html
+https://stackoverflow.com/questions/41334851/since-translatemessage-returns-nonzero-unconditionally-how-can-i-tell-either
+http://stackoverflow.com/questions/41334851/since-translatemessage-returns-nonzero-unconditionally-how-can-i-tell-either?noredirect=1#comment70107257_41334851
+
+text layouts
+https://developer.apple.com/reference/coretext/2110184-ctframe?language=objc
+https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/dd368205(v=vs.85).aspx
+https://developer.gnome.org/pango/1.30/pango-Layout-Objects.html#pango-layout-set-font-description
+https://developer.gnome.org/pango/1.30/pango-Fonts.html#PangoWeight-enum
+https://git.gnome.org/browse/pango/tree/pango/pangocoretext-fontmap.c (code for small caps)
+https://bugzilla.gnome.org/show_bug.cgi?id=766148
+https://developer.apple.com/documentation/coretext/ctline?preferredLanguage=occ
+https://developer.apple.com/reference/coretext/1508876-ctlinegetstringindexforposition?language=objc
+https://developer.apple.com/library/content/documentation/StringsTextFonts/Conceptual/CoreText_Programming/Introduction/Introduction.html#//apple_ref/doc/uid/TP40005533-CH1-SW1
+https://developer.apple.com/reference/coretext/2110184-ctframe?language=objc
+https://developer.apple.com/reference/coretext/2168885-ctline?language=objc
+https://developer.apple.com/library/content/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html
+http://asciiwwdc.com/2013/sessions/205
+https://developer.apple.com/reference/coretext/1511332-ctlinegetboundswithoptions?language=objc
+https://stackoverflow.com/questions/19709751/ctlinegetboundswithoptions-what-does-the-returned-frame-origin-y-value-mean?rq=1
+https://imgur.com/a/lqhzC
+https://imgur.com/a/hYeOL
+https://www.google.com/search?q=ctline+%22paragraph+spacing%22&ie=utf-8&oe=utf-8
+http://stackoverflow.com/questions/8010615/how-do-i-determine-the-of-a-ctline-following-a-ctline
+https://imgur.com/a/dlpm2
+https://stackoverflow.com/questions/41601845/am-i-missing-something-in-core-text-that-will-let-me-see-which-line-a-certain-po
+https://www.google.com/search?q=%22core+text%22+%22combining+character%22&oq=%22core+text%22+%22combining+character%22&gs_l=serp.3...2526898.2528158.0.2528485.21.10.0.0.0.0.216.997.5j3j1.9.0....0...1c.1.64.serp..12.8.904...33i21k1j33i160k1.J69jsB9g0N0
+https://github.com/macvim-dev/macvim/issues/400#issuecomment-274292877
+https://bugs.webkit.org/show_bug.cgi?id=68287
+https://trac.webkit.org/changeset/95391
+https://trac.webkit.org/changeset/95391/trunk/Source/WebCore/platform/graphics/mac/ComplexTextControllerCoreText.cpp
+http://stackoverflow.com/questions/41857213/is-there-any-way-i-can-get-precise-metrics-line-ascent-line-descent-etc-of
+http://pawlan.com/monica/articles/texttutorial/int.html
+
+enter in entry fields, possibly other text layout issues, possibly keyboard shortcuts
+https://developer.gnome.org/gtk3/3.10/GtkEntry.html "activate" signal
+https://gitlab.gnome.org/GNOME/gtk/blob/gtk-3-10/gtk/gtkentry.c (not sure where)
+https://developer.gnome.org/gtk3/3.10/GtkTextView.html signals section of contents
+https://gitlab.gnome.org/GNOME/gtk/blob/gtk-3-10/gtk/gtktextview.c (not sure where; closed before I could find out again though gitlab might wreck it anyway)
+https://developer.gnome.org/gtk3/3.10/gtk3-Bindings.html
+https://gitlab.gnome.org/GNOME/gtk/blob/gtk-3-10/gtk/gtkwidget.c (not sure where)
+https://gitlab.gnome.org/GNOME/gtk/blob/gtk-3-10/gtk/gtkbindings.c (not sure where)
+https://gitlab.gnome.org/GNOME/gnome-builder/tree/master/libide/keybindings/ide-keybindings.c 404; TODO find the original cgit link in the chat logs to see what hergertme wanted me to see
+https://gitlab.gnome.org/GNOME/gnome-builder/tree/master/libide/sourceview/ide-source-view.c likewise
+https://gitlab.gnome.org/GNOME/gnome-builder/tree/master/libide/sourceview/ide-source-view-mode.c#n323 likewise
+
+rgb int->float conversion
+https://stackoverflow.com/questions/41348339/how-to-convert-rgb-to-hexadecimal-using-gtk?noredirect=1#comment69903262_41348339
+
+windows fonts, hi-dpi
+https://stackoverflow.com/questions/41448320/dlgtemplateex-and-ds-shellfont-what-about-point-size
+
+windows default fonts
+https://stackoverflow.com/questions/41505151/how-to-draw-text-with-the-default-ui-font-in-directwrite#41505750
+
+uwp stuff
+https://docs.microsoft.com/en-us/windows/uwp/design/controls-and-patterns/inking-controls
+https://msdn.microsoft.com/en-us/windows/uwp/controls-and-patterns/master-details
+
+cmake stuff
+https://public.kitware.com/pipermail/cmake/2010-January/034669.html
+https://cmake.org/cmake/help/v3.0/command/string.html
+https://cmake.org/pipermail/cmake/2003-April/003599.html
+
+opentype features and locales
+https://www.microsoft.com/typography/otspec/featurelist.htm
+https://en.wikipedia.org/wiki/List_of_typographic_features
+https://www.microsoft.com/typography/otspec160/scripttags.htm
+https://msdn.microsoft.com/en-us/library/windows/desktop/dd371503(v=vs.85).aspx
+
+gspell (TODO figure out what I wanted from this; possibly spelling checking)
+https://git.gnome.org/browse/gspell/tree/gspell/gspell-inline-checker-text-buffer.c
+https://git.gnome.org/browse/gtk+/tree/gtk/gtktextview.c?h=gtk-3-10

@@ -100,3 +100,10 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/dd371503(v=vs.85).aspx
 gspell (TODO figure out what I wanted from this; possibly spelling checking)
 https://git.gnome.org/browse/gspell/tree/gspell/gspell-inline-checker-text-buffer.c
 https://git.gnome.org/browse/gtk+/tree/gtk/gtktextview.c?h=gtk-3-10
+
+other assorted notes on text
+https://mail.gnome.org/archives/gtk-devel-list/2016-March/msg00037.html
+https://mail.gnome.org/archives/gtk-devel-list/2016-June/msg00007.html
+https://blogs.msdn.microsoft.com/tsfaware/
+https://stackoverflow.com/questions/40453186/what-is-the-correct-modern-way-to-handle-arbitrary-text-input-in-a-custom-contr
+https://www.microsoft.com/typography/fonts/family.aspx

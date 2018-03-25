@@ -34,7 +34,7 @@ int main(void)
 
     int width, height;
 
-        uiNaturalSize(uiControl(fixed), &width, &height);
+        uiSize(uiControl(mainwin), &width, &height);
     printf("Width: %d, Height: %d\n", width, height);
 
 	uiSetSize(uiControl(button), 100, 100);

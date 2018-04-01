@@ -116,12 +116,10 @@ void uiSize(uiControl *control, int *width, int *height)
 			return;
 		*width = natural_size.width;
 		*height = natural_size.height;
-		printf("Natural Width: %d, Height: %d\n", *width, *height);
 	} else {
 		*width = control->width;
 		*height = control->height;
 	}
-	printf("Width: %d, Height: %d\n", control->width, control->height);
 }
 
 void uiSetSize(uiControl *control, int width, int height)

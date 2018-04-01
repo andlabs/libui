@@ -25,6 +25,8 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 #define uiUnixSizeCallback(type) \
 	static void type ## SizeCallback(GtkWidget *widget, GtkAllocation *allocation, uiControl *data) \
 	{ \
+		if (allocation->height == 0 || allocation->width == 0) \
+			return; \
 		data->height = allocation->height; \
 		data->width = allocation->width; \
 	}

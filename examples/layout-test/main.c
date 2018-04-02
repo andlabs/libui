@@ -20,7 +20,7 @@ int main(void)
     uiFixed *fixed = uiNewFixed();
 
     uiWindowSetChild(mainwin, uiControl(fixed));
-
+	
     uiLabel *label = uiNewLabel("Hello");
 
     uiFixedAppend(fixed, uiControl(label), 150, 200);
@@ -34,10 +34,10 @@ int main(void)
 
     int width, height;
 
-        uiSize(uiControl(mainwin), &width, &height);
-    printf("Width: %d, Height: %d\n", width, height);
+	uiFixedMove(fixed, uiControl(button), 0, 100);
 
-	uiSetSize(uiControl(button), 100, 100);
+	        uiSize(uiControl(button), &width, &height);
+    printf("Width: %d, Height: %d\n", width, height);
 
 	uiMain();
 	return 0;

@@ -35,6 +35,16 @@ void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, int x, int y, int width, i
 		logLastError(L"error moving window");
 }
 
+void uiWindowsResizeWindow(HWND hwnd, int width, int height) {
+	if (SetWindowPos(hwnd, NULL, 0, 0, width, height, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOMOVE) == 0)
+		logLastError(L"error resizing window");
+}
+
+void uiWindowsMoveWindow(HWND hwnd, int x, int y) {
+	if (SetWindowPos(hwnd, NULL, x, y, 0, 0, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOSIZE) == 0)
+		logLastError(L"error moving window");
+}
+
 // do these function even error out in any case other than invalid parameters?! I thought all windows had rects
 void uiWindowsEnsureGetClientRect(HWND hwnd, RECT *r)
 {

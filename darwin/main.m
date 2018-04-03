@@ -36,6 +36,10 @@ static BOOL stepsIsRunning;
 	CGRect bounds = view.bounds;
 	bounds.size = s;
 	view.bounds = bounds;
+
+	CGRect frame = view.frame;
+	frame.size = s;
+	view.frame = frame;
 }
 
 @end

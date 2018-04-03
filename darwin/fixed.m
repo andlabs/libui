@@ -42,6 +42,7 @@ struct uiFixed {
 - (id)initFixed:(uiFixed *)bb
 {
 	self = [super initWithFrame:NSZeroRect];
+	self.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 	if (self != nil) {
 		// the weird names vert and bb are to shut the compiler up about shadowing because implicit this/self is stupid
 		self->b = bb;
@@ -114,13 +115,14 @@ struct uiFixed {
 {
 	fixedChild *fc;
 	CGPoint pos;
+	NSView *view;
 
 	for (fc in self->children) {
 		if (!uiControlVisible(fc.c))
 			continue;
-		NSLog(@"frame - %@", NSStringFromRect([self frame]));
 		pos = CGPointMake(fc.x, fc.y);
-		[[fc view] setFrame:(CGRect){.origin = pos, .size=[fc view].frame.size}];
+		view = [fc view];
+		[view setFrame:(CGRect){.origin = pos, .size=view.frame.size}];
 	}
 }
 

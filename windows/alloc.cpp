@@ -45,6 +45,7 @@ void *uiRealloc(void *_p, size_t size, const char *type)
 	if (p == NULL)
 		return uiAlloc(size, type);
 	arr = heap[p];
+	// TODO does this fill in?
 	arr->resize(size, 0);
 	heap.erase(p);
 	heap[rawBytes(arr)] = arr;

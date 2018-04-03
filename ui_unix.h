@@ -18,6 +18,7 @@ struct uiUnixControl {
 	int width;
 	int height;
 	gboolean addedBefore;
+	gboolean explicitlyHidden;
 	void (*SetContainer)(uiUnixControl *, GtkContainer *, gboolean);
 };
 #define uiUnixControl(this) ((uiUnixControl *) (this))
@@ -69,11 +70,13 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 #define uiUnixControlDefaultShow(type) \
 	static void type ## Show(uiControl *c) \
 	{ \
+		/*TODO part of massive hack about hidden before*/uiUnixControl(c)->explicitlyHidden=FALSE; \
 		gtk_widget_show(type(c)->widget); \
 	}
 #define uiUnixControlDefaultHide(type) \
 	static void type ## Hide(uiControl *c) \
 	{ \
+		/*TODO part of massive hack about hidden before*/uiUnixControl(c)->explicitlyHidden=TRUE; \
 		gtk_widget_hide(type(c)->widget); \
 	}
 #define uiUnixControlDefaultEnabled(type) \
@@ -97,7 +100,8 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	{ \
 		if (!uiUnixControl(c)->addedBefore) { \
 			g_object_ref_sink(type(c)->widget); /* our own reference, which we release in Destroy() */ \
-			gtk_widget_show(type(c)->widget); \
+			/* massive hack notes: without any of this, nothing gets shown when we show a window; without the if, all things get shown even if some were explicitly hidden (TODO why don't we just show everything except windows on create? */ \
+			/*TODO*/if(!uiUnixControl(c)->explicitlyHidden) gtk_widget_show(type(c)->widget); \
 			uiUnixControl(c)->addedBefore = TRUE; \
 		} \
 		if (remove) \

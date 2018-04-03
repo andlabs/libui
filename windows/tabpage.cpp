@@ -60,7 +60,7 @@ static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	if (uMsg == WM_WINDOWPOSCHANGED) {
 		tp = (struct tabPage *) GetWindowLongPtrW(hwnd, DWLP_USER);
 		tabPageRelayout(tp);
-		// pretend the dialog hasn't handled this just in case it needs to do something special
+		// pretend the dialog hasn't handled this just in case the system needs to do something special
 		return FALSE;
 	}
 

@@ -105,3 +105,16 @@ void uiWindowsSetWindowText(HWND hwnd, const char *text)
 	setWindowText(hwnd, wtext);
 	uiFree(wtext);
 }
+
+int uiprivStricmp(const char *a, const char *b)
+{
+	WCHAR *wa, *wb;
+	int ret;
+
+	wa = toUTF16(a);
+	wb = toUTF16(b);
+	ret = _wcsicmp(wa, wb);
+	uiFree(wb);
+	uiFree(wa);
+	return ret;
+}

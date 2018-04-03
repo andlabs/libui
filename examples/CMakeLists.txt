@@ -35,6 +35,17 @@ _add_example(cpp-multithread
 if(NOT WIN32)
 	target_link_libraries(cpp-multithread pthread)
 endif()
+if(APPLE)
+	# since we use a deployment target of 10.8, the non-C++11-compliant libstdc++ is chosen by default; we need C++11
+	# see issue #302 for more details
+	target_compile_options(cpp-multithread PRIVATE --stdlib=libc++)
+	target_link_libraries(cpp-multithread --stdlib=libc++)
+endif()
+
+_add_example(drawtext
+	drawtext/main.c
+	${_EXAMPLE_RESOURCES_RC}
+)
 
 set_target_properties(layout-test PROPERTIES
 	OUTPUT_NAME layout-test
@@ -46,4 +57,5 @@ add_custom_target(examples
 		controlgallery
 		histogram
 		cpp-multithread
-		layout-test)
+		layout-test
+		drawtext)

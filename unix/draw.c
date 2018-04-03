@@ -2,17 +2,19 @@
 #include "uipriv_unix.h"
 #include "draw.h"
 
-uiDrawContext *newContext(cairo_t *cr)
+uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style)
 {
 	uiDrawContext *c;
 
 	c = uiNew(uiDrawContext);
 	c->cr = cr;
+	c->style = style;
 	return c;
 }
 
 void freeContext(uiDrawContext *c)
 {
+	// free neither cr nor style; we own neither
 	uiFree(c);
 }
 

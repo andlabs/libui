@@ -109,7 +109,7 @@ void uiQueueMain(void (*f)(void *data), void *data)
 
 void uiSize(uiControl *control, int *width, int *height)
 {
-	if (control->width == 0 || control->height == 0) {
+	if (uiUnixControl(control)->width == 0 || uiUnixControl(control)->height == 0) {
 		GtkRequisition natural_size;
 		gtk_widget_get_preferred_size(GTK_WIDGET(uiControlHandle(control)), NULL, &natural_size);
 		if (natural_size.width == 0 || natural_size.height == 0)
@@ -117,8 +117,8 @@ void uiSize(uiControl *control, int *width, int *height)
 		*width = natural_size.width;
 		*height = natural_size.height;
 	} else {
-		*width = control->width;
-		*height = control->height;
+		*width = uiUnixControl(control)->width;
+		*height = uiUnixControl(control)->height;
 	}
 }
 

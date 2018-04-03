@@ -15,6 +15,8 @@ typedef struct uiUnixControl uiUnixControl;
 struct uiUnixControl {
 	uiControl c;
 	uiControl *parent;
+	int width;
+	int height;
 	gboolean addedBefore;
 	void (*SetContainer)(uiUnixControl *, GtkContainer *, gboolean);
 };
@@ -27,8 +29,8 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	{ \
 		if (allocation->height == 0 || allocation->width == 0) \
 			return; \
-		data->height = allocation->height; \
-		data->width = allocation->width; \
+		uiUnixControl(data)->height = allocation->height; \
+		uiUnixControl(data)->width = allocation->width; \
 	}
 
 #define uiUnixControlDefaultDestroy(type) \

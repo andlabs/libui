@@ -61,8 +61,6 @@ struct uiControl {
 	uint32_t Signature;
 	uint32_t OSSignature;
 	uint32_t TypeSignature;
-	int height;
-	int width;
 	void (*Destroy)(uiControl *);
 	uintptr_t (*Handle)(uiControl *);
 	uiControl *(*Parent)(uiControl *);

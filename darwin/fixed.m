@@ -39,9 +39,7 @@ struct uiFixed {
 - (id)initFixed:(uiFixed *)bb
 {
 	self = [super initWithFrame:NSZeroRect];
-	self.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 	if (self != nil) {
-		// the weird names vert and bb are to shut the compiler up about shadowing because implicit this/self is stupid
 		self->b = bb;
 		self->children = [NSMutableArray new];
 	}
@@ -162,7 +160,7 @@ uiDarwinControlDefaultHugsTrailingEdge(uiFixed, view)
 uiDarwinControlDefaultHugsBottom(uiFixed, view)
 uiDarwinControlDefaultChildEdgeHuggingChanged(uiFixed, view)
 
-static void uiuiprivFixedChildVisibilityChanged(uiDarwinControl *c)
+static void uiFixedChildVisibilityChanged(uiDarwinControl *c)
 {
 	uiFixed *b = uiFixed(c);
 

@@ -39,6 +39,8 @@ int main(void)
 	        uiSize(uiControl(button), &width, &height);
     printf("Width: %d, Height: %d\n", width, height);
 
+	uiSetSize(uiControl(button), 50, 50);
+
 	uiMain();
 	return 0;
 }

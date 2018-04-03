@@ -14,11 +14,12 @@
 	uiFixed *b;
 	NSMutableArray *children;
 }
-- (id)initFixed:(uiBox *)bb;
+- (id)initFixed:(uiFixed *)bb;
+- (bool)isFlipped;
 - (void)onDestroy;
 - (void)syncEnableStates:(int)enabled;
 - (void)append:(uiControl *)c x:(int)x y:(int)y;
-- (void)delete:(int)n;
+- (void)move:(uiControl *)c x:(int)x y:(int)y;
 - (void)reloadPositions;
 @end
 
@@ -38,7 +39,7 @@ struct uiFixed {
 
 @implementation fixedView
 
-- (id)initFixed:(uiBox *)bb
+- (id)initFixed:(uiFixed *)bb
 {
 	self = [super initWithFrame:NSZeroRect];
 	if (self != nil) {
@@ -46,7 +47,13 @@ struct uiFixed {
 		self->b = bb;
 		self->children = [NSMutableArray new];
 	}
+
 	return self;
+}
+
+- (bool)isFlipped
+{
+	return YES;
 }
 
 - (void)onDestroy
@@ -72,7 +79,6 @@ struct uiFixed {
 - (void)append:(uiControl *)c x:(int)x y:(int)y
 {
 	fixedChild *bc;
-	NSLayoutPriority priority;
 
 	bc = [fixedChild new];
 	bc.c = c;
@@ -90,6 +96,20 @@ struct uiFixed {
 	[bc release];		// we don't need the initial reference now
 }
 
+- (void)move:(uiControl *)c x:(int)x y:(int)y
+{
+	fixedChild *fc;
+
+	for (fc in self->children) {
+		if (fc.c == c) {
+			fc.x = x;
+			fc.y = y;
+			[self reloadPositions];
+			return;
+		}
+	}
+}
+
 - (void)reloadPositions
 {
 	fixedChild *fc;
@@ -98,52 +118,56 @@ struct uiFixed {
 	for (fc in self->children) {
 		if (!uiControlVisible(fc.c))
 			continue;
+		NSLog(@"frame - %@", NSStringFromRect([self frame]));
 		pos = CGPointMake(fc.x, fc.y);
-		[self setFrame:(CGRect){.origin = position, .size=self.frame.size}];
+		[[fc view] setFrame:(CGRect){.origin = pos, .size=[fc view].frame.size}];
 	}
 }
 
 @end
 
-static void uiBoxDestroy(uiControl *c)
+static void uiFixedDestroy(uiControl *c)
 {
-	uiBox *b = uiBox(c);
+	uiFixed *b = uiFixed(c);
 
 	[b->view onDestroy];
 	[b->view release];
 	uiFreeControl(uiControl(b));
 }
 
-uiDarwinControlDefaultHandle(uiBox, view)
-uiDarwinControlDefaultParent(uiBox, view)
-uiDarwinControlDefaultSetParent(uiBox, view)
-uiDarwinControlDefaultToplevel(uiBox, view)
-uiDarwinControlDefaultVisible(uiBox, view)
-uiDarwinControlDefaultShow(uiBox, view)
-uiDarwinControlDefaultHide(uiBox, view)
-uiDarwinControlDefaultEnabled(uiBox, view)
-uiDarwinControlDefaultEnable(uiBox, view)
-uiDarwinControlDefaultDisable(uiBox, view)
+uiDarwinControlDefaultHandle(uiFixed, view)
+uiDarwinControlDefaultParent(uiFixed, view)
+uiDarwinControlDefaultSetParent(uiFixed, view)
+uiDarwinControlDefaultToplevel(uiFixed, view)
+uiDarwinControlDefaultVisible(uiFixed, view)
+uiDarwinControlDefaultShow(uiFixed, view)
+uiDarwinControlDefaultHide(uiFixed, view)
+uiDarwinControlDefaultEnabled(uiFixed, view)
+uiDarwinControlDefaultEnable(uiFixed, view)
+uiDarwinControlDefaultDisable(uiFixed, view)
 
-static void uiBoxSyncEnableState(uiDarwinControl *c, int enabled)
+static void uiFixedSyncEnableState(uiDarwinControl *c, int enabled)
 {
-	uiBox *b = uiBox(c);
+	uiFixed *b = uiFixed(c);
 
 	if (uiDarwinShouldStopSyncEnableState(uiDarwinControl(b), enabled))
 		return;
 	[b->view syncEnableStates:enabled];
 }
 
-uiDarwinControlDefaultSetSuperview(uiBox, view)
+uiDarwinControlDefaultSetSuperview(uiFixed, view)
 
-uiDarwinControlDefaultHuggingPriority(uiBox, view)
-uiDarwinControlDefaultSetHuggingPriority(uiBox, view)
+uiDarwinControlDefaultHuggingPriority(uiFixed, view)
+uiDarwinControlDefaultSetHuggingPriority(uiFixed, view)
+uiDarwinControlDefaultHugsTrailingEdge(uiFixed, view)
+uiDarwinControlDefaultHugsBottom(uiFixed, view)
+uiDarwinControlDefaultChildEdgeHuggingChanged(uiFixed, view)
 
 static void uiFixedChildVisibilityChanged(uiDarwinControl *c)
 {
-	uiBox *b = uiBox(c);
+	uiFixed *b = uiFixed(c);
 
-	[b->view establishOurConstraints];
+	[b->view reloadPositions];
 }
 
 void uiFixedAppend(uiFixed *b, uiControl *c, int x, int y)
@@ -153,6 +177,15 @@ void uiFixedAppend(uiFixed *b, uiControl *c, int x, int y)
 	if (c == NULL)
 		userbug("You cannot add NULL to a uiFixed.");
 	[b->view append:c x:x y:y];
+}
+
+void uiFixedMove(uiFixed *b, uiControl *c, int x, int y)
+{
+	// LONGTERM on other platforms
+	// or at leat allow this and implicitly turn it into a spacer
+	if (c == NULL)
+		userbug("You cannot move NULL to a uiFixed.");
+	[b->view move:c x:x y:y];
 }
 
 uiFixed *uiNewFixed(void)

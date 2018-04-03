@@ -9,6 +9,37 @@ static appDelegate *delegate;
 static BOOL (^isRunning)(void);
 static BOOL stepsIsRunning;
 
+@interface sizeWrapper : NSView {
+	NSView *view;
+}
+- (id)addControl:(uiControl *)c;
+- (CGRect)getSize;
+- (void)setS:(CGSize)s;
+
+@end
+
+@implementation sizeWrapper
+
+- (id)addControl:(uiControl *)c
+{
+	view = (NSView *)uiControlHandle(c);
+	return self;
+}
+
+- (CGRect)getSize
+{
+	return view.frame;
+}
+
+- (void)setS:(CGSize)s
+{
+	CGRect bounds = view.bounds;
+	bounds.size = s;
+	view.bounds = bounds;
+}
+
+@end
+
 @implementation applicationClass
 
 - (void)sendEvent:(NSEvent *)e
@@ -236,4 +267,17 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	// dispatch_get_main_queue() is a serial queue so it will not execute multiple uiQueueMain() functions concurrently
 	// the signature of f matches dispatch_function_t
 	dispatch_async_f(dispatch_get_main_queue(), data, f);
+}
+
+void uiSize(uiControl *control, int *width, int *height)
+{
+	CGRect size = [[[sizeWrapper alloc] addControl:control] getSize];
+	*width = size.size.width;
+	*height = size.size.height;
+}
+
+void uiSetSize(uiControl *control, int width, int height)
+{
+	CGSize s = CGSizeMake(width, height);
+	[[[sizeWrapper alloc] addControl:control] setS:s];
 }

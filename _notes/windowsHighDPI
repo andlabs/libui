@@ -9,3 +9,10 @@ https://social.msdn.microsoft.com/Forums/vstudio/en-US/31d2a89f-3518-403e-b1e4-b
 https://stackoverflow.com/questions/36864894/scaling-the-non-client-area-title-bar-menu-bar-for-per-monitor-high-dpi-suppo/37624363
 https://stackoverflow.com/questions/41448320/dlgtemplateex-and-ds-shellfont-what-about-point-size
 http://stackoverflow.com/questions/41917279/do-child-windows-have-the-same-dpi-as-their-parents-in-a-per-monitor-aware-appli
+
+https://msdn.microsoft.com/en-us/library/windows/desktop/dn469266(v=vs.85).aspx
+	https://msdn.microsoft.com/library/windows/desktop/mt843498(v=vs.85).aspx(d=robot)
+https://msdn.microsoft.com/en-us/library/windows/desktop/dn469266(v=vs.85).aspx#appendix_c_common_high_dpi_issues
+	https://msdn.microsoft.com/library/windows/desktop/mt843498(v=vs.85).aspx(d=robot)#appendix_c_common_high_dpi_issues
+https://msdn.microsoft.com/en-us/library/windows/desktop/dn469266(v=vs.85).aspx#addressing_high_dpi_issues
+	https://msdn.microsoft.com/library/windows/desktop/mt843498(v=vs.85).aspx(d=robot)#addressing_high_dpi_issues

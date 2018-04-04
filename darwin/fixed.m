@@ -1,21 +1,18 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-// TODO hiding all stretchy controls still hugs trailing edge
-
-@interface fixedChild : NSObject
+@interface uiprivFixedChild : NSObject
 @property uiControl *c;
 @property int x;
 @property int y;
 - (NSView *)view;
 @end
 
-@interface fixedView : NSView {
+@interface uiprivFixedView : NSView {
 	uiFixed *b;
 	NSMutableArray *children;
 }
 - (id)initFixed:(uiFixed *)bb;
-- (bool)isFlipped;
 - (void)onDestroy;
 - (void)syncEnableStates:(int)enabled;
 - (void)append:(uiControl *)c x:(int)x y:(int)y;
@@ -25,10 +22,10 @@
 
 struct uiFixed {
 	uiDarwinControl c;
-	fixedView *view;
+	uiprivFixedView *view;
 };
 
-@implementation fixedChild
+@implementation uiprivFixedChild
 
 - (NSView *)view
 {
@@ -37,7 +34,7 @@ struct uiFixed {
 
 @end
 
-@implementation fixedView
+@implementation uiprivFixedView
 
 - (id)initFixed:(uiFixed *)bb
 {
@@ -52,14 +49,14 @@ struct uiFixed {
 	return self;
 }
 
-- (bool)isFlipped
+- (BOOL)isFlipped
 {
 	return YES;
 }
 
 - (void)onDestroy
 {
-	fixedChild *bc;
+	uiprivFixedChild *bc;
 
 	for (bc in self->children) {
 		uiControlSetParent(bc.c, NULL);
@@ -71,7 +68,7 @@ struct uiFixed {
 
 - (void)syncEnableStates:(int)enabled
 {
-	fixedChild *bc;
+	uiprivFixedChild *bc;
 
 	for (bc in self->children)
 		uiDarwinControlSyncEnableState(uiDarwinControl(bc.c), enabled);
@@ -79,9 +76,9 @@ struct uiFixed {
 
 - (void)append:(uiControl *)c x:(int)x y:(int)y
 {
-	fixedChild *bc;
+	uiprivFixedChild *bc;
 
-	bc = [fixedChild new];
+	bc = [uiprivFixedChild new];
 	bc.c = c;
 	bc.x = x;
 	bc.y = y;
@@ -99,7 +96,7 @@ struct uiFixed {
 
 - (void)move:(uiControl *)c x:(int)x y:(int)y
 {
-	fixedChild *fc;
+	uiprivFixedChild *fc;
 
 	for (fc in self->children) {
 		if (fc.c == c) {
@@ -113,7 +110,7 @@ struct uiFixed {
 
 - (void)reloadPositions
 {
-	fixedChild *fc;
+	uiprivFixedChild *fc;
 	CGPoint pos;
 	NSView *view;
 
@@ -165,7 +162,7 @@ uiDarwinControlDefaultHugsTrailingEdge(uiFixed, view)
 uiDarwinControlDefaultHugsBottom(uiFixed, view)
 uiDarwinControlDefaultChildEdgeHuggingChanged(uiFixed, view)
 
-static void uiFixedChildVisibilityChanged(uiDarwinControl *c)
+static void uiuiprivFixedChildVisibilityChanged(uiDarwinControl *c)
 {
 	uiFixed *b = uiFixed(c);
 
@@ -195,7 +192,7 @@ uiFixed *uiNewFixed(void)
 	uiFixed *f;
 	uiDarwinNewControl(uiFixed, f);
 
-	f->view = [[fixedView alloc] initFixed:f];
+	f->view = [[uiprivFixedView alloc] initFixed:f];
 
 	return f;
 }

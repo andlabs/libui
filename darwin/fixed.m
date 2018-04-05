@@ -18,6 +18,8 @@
 - (void)append:(uiControl *)c x:(int)x y:(int)y;
 - (void)move:(uiControl *)c x:(int)x y:(int)y;
 - (void)reloadPositions;
+- (void)size:(uiControl *)c width:(int *)width height:(int *)height;
+- (void)setSize:(uiControl *)c width:(int)width height:(int)height;
 @end
 
 struct uiFixed {
@@ -121,6 +123,46 @@ struct uiFixed {
 	}
 }
 
+- (void)size:(uiControl *)c width:(int *)width height:(int *)height
+{
+	uiprivFixedChild *fc;
+	NSView *view;
+
+	for (fc in self->children) {
+		if (!uiControlVisible(fc.c))
+			continue;
+		if (fc.c == c) {
+			view = [fc view];
+			*width = view.frame.size.width;
+			*height = view.frame.size.height;
+		}
+	}
+}
+
+- (void)setSize:(uiControl *)c width:(int)width height:(int)height
+{
+	uiprivFixedChild *fc;
+	NSView *view;
+
+	for (fc in self->children) {
+		if (!uiControlVisible(fc.c))
+			continue;
+		if (fc.c == c) {
+			view = [fc view];
+			
+			CGRect bounds = view.bounds;
+			bounds.size.width = width;
+			bounds.size.height = height;
+			view.bounds = bounds;
+
+			CGRect frame = view.frame;
+			frame.size.width = width;
+			frame.size.height = height;
+			view.frame = frame;
+		}
+	}
+}
+
 @end
 
 static void uiFixedDestroy(uiControl *c)
@@ -183,6 +225,16 @@ void uiFixedMove(uiFixed *b, uiControl *c, int x, int y)
 	if (c == NULL)
 		userbug("You cannot move NULL to a uiFixed.");
 	[b->view move:c x:x y:y];
+}
+
+void uiFixedSize(uiFixed *b, uiControl *c, int *width, int *height)
+{
+	[b->view size:c width:width height:height];
+}
+
+void uiFixedSetSize(uiFixed *b, uiControl *c, int width, int height)
+{
+	[b->view setSize:c width:width height:height];
 }
 
 uiFixed *uiNewFixed(void)

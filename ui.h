@@ -97,8 +97,6 @@ _UI_EXTERN void uiControlHide(uiControl *);
 _UI_EXTERN int uiControlEnabled(uiControl *);
 _UI_EXTERN void uiControlEnable(uiControl *);
 _UI_EXTERN void uiControlDisable(uiControl *);
-_UI_EXTERN void uiSize(uiControl *control, int *width, int *height);
-_UI_EXTERN void uiSetSize(uiControl *control, int width, int height);
 
 _UI_EXTERN uiControl *uiAllocControl(size_t n, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
 _UI_EXTERN void uiFreeControl(uiControl *);
@@ -1116,6 +1114,8 @@ typedef struct uiFixed uiFixed;
 #define uiFixed(this) ((uiFixed *) (this))
 _UI_EXTERN void uiFixedAppend(uiFixed *g, uiControl *c, int x, int y);
 _UI_EXTERN void uiFixedMove(uiFixed *g, uiControl *c, int x, int y);
+_UI_EXTERN void uiFixedSize(uiFixed *b, uiControl *control, int *width, int *height);
+_UI_EXTERN void uiFixedSetSize(uiFixed *b, uiControl *control, int width, int height);
 _UI_EXTERN uiFixed *uiNewFixed(void);
 
 #ifdef __cplusplus

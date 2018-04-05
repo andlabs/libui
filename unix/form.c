@@ -155,7 +155,5 @@ uiForm *uiNewForm(void)
 
 	f->children = g_array_new(FALSE, TRUE, sizeof (struct formChild));
 
-	g_signal_connect(f->widget, "size-allocate", G_CALLBACK(uiFormSizeCallback), uiControl(f));
-
 	return f;
 }

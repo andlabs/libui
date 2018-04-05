@@ -67,7 +67,5 @@ uiProgressBar *uiNewProgressBar(void)
 	p->widget = gtk_progress_bar_new();
 	p->pbar = GTK_PROGRESS_BAR(p->widget);
 
-	g_signal_connect(p->widget, "size-allocate", G_CALLBACK(uiProgressBarSizeCallback), uiControl(p));
-
 	return p;
 }

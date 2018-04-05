@@ -62,7 +62,5 @@ uiCombobox *uiNewCombobox(void)
 	c->onSelectedSignal = g_signal_connect(c->widget, "changed", G_CALLBACK(onChanged), c);
 	uiComboboxOnSelected(c, defaultOnSelected, NULL);
 
-	g_signal_connect(c->widget, "size-allocate", G_CALLBACK(uiComboboxSizeCallback), uiControl(c));
-
 	return c;
 }

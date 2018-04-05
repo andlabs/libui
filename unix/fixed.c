@@ -3,6 +3,8 @@
 
 struct fixedChild {
 	uiControl *c;
+	int width;
+	int height;
 };
 
 struct uiFixed {
@@ -43,6 +45,14 @@ static void uiFixedDestroy(uiControl *c)
 		uiUnixControl(c)->addedBefore = TRUE; \
 	}
 
+static void uiFixedSizeCallback(GtkWidget *widget, GtkAllocation *allocation, struct fixedChild *data)
+{
+	if (allocation->height == 0 || allocation->width == 0)
+			return;
+	data->height = allocation->height;
+	data->width = allocation->width;
+}
+
 static GtkWidget *prepare(struct fixedChild *gc, uiControl *c)
 {
 	GtkWidget *widget;
@@ -62,11 +72,41 @@ void uiFixedAppend(uiFixed *g, uiControl *c, int x, int y)
 	TODO_MASSIVE_HACK(uiUnixControl(gc.c));
 	gtk_fixed_put(g->fixed, widget, x, y);
 	g_array_append_val(g->children, gc);
+
+	g_signal_connect(widget, "size-allocate", G_CALLBACK(uiFixedSizeCallback), &gc);
 }
 
 void uiFixedMove(uiFixed *g, uiControl *c, int x, int y)
 {
 	gtk_fixed_move(g->fixed, GTK_WIDGET(uiControlHandle(c)), x, y);
+}
+
+void uiFixedSize(uiFixed *g, uiControl *c, int *width, int *height)
+{
+	struct fixedChild *gc;
+	guint i;
+
+	for (i = 0; i < g->children->len; i++) {
+		gc = ctrl(g, i);
+		if (gc->c == c) {
+			if (gc->width == 0 || gc->height == 0) {
+				GtkRequisition natural_size;
+				gtk_widget_get_preferred_size(GTK_WIDGET(uiControlHandle(c)), NULL, &natural_size);
+				if (natural_size.width == 0 || natural_size.height == 0)
+					return;
+				*width = natural_size.width;
+				*height = natural_size.height;
+			} else {
+				*width = gc->width;
+				*height = gc->height;
+			}
+		}
+	}
+}
+
+void uiFixedSetSize(uiFixed *g, uiControl *c, int width, int height)
+{
+	gtk_widget_set_size_request(GTK_WIDGET(uiControlHandle(c)), width, height);
 }
 
 uiFixed *uiNewFixed(void)
@@ -80,8 +120,6 @@ uiFixed *uiNewFixed(void)
 	g->fixed = GTK_FIXED(g->widget);
 
 	g->children = g_array_new(FALSE, TRUE, sizeof (struct fixedChild));
-
-	g_signal_connect(g->widget, "size-allocate", G_CALLBACK(uiFixedSizeCallback), uiControl(g));
 
 	return g;
 }

@@ -106,23 +106,3 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	q->data = data;
 	gdk_threads_add_idle(doqueued, q);
 }
-
-void uiSize(uiControl *control, int *width, int *height)
-{
-	if (uiUnixControl(control)->width == 0 || uiUnixControl(control)->height == 0) {
-		GtkRequisition natural_size;
-		gtk_widget_get_preferred_size(GTK_WIDGET(uiControlHandle(control)), NULL, &natural_size);
-		if (natural_size.width == 0 || natural_size.height == 0)
-			return;
-		*width = natural_size.width;
-		*height = natural_size.height;
-	} else {
-		*width = uiUnixControl(control)->width;
-		*height = uiUnixControl(control)->height;
-	}
-}
-
-void uiSetSize(uiControl *control, int width, int height)
-{
-	gtk_widget_set_size_request(GTK_WIDGET(uiControlHandle(control)), width, height);
-}

@@ -633,7 +633,5 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	// and make the area visible; only the scrolled window's visibility is controlled by libui
 	gtk_widget_show(a->areaWidget);
 
-	g_signal_connect(a->widget, "size-allocate", G_CALLBACK(uiAreaSizeCallback), uiControl(a));
-
 	return a;
 }

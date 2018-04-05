@@ -75,7 +75,5 @@ uiEditableCombobox *uiNewEditableCombobox(void)
 	c->onChangedSignal = g_signal_connect(c->widget, "changed", G_CALLBACK(onChanged), c);
 	uiEditableComboboxOnChanged(c, defaultOnChanged, NULL);
 
-	g_signal_connect(c->widget, "size-allocate", G_CALLBACK(uiEditableComboboxSizeCallback), uiControl(c));
-
 	return c;
 }

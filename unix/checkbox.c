@@ -74,7 +74,5 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	c->onToggledSignal = g_signal_connect(c->widget, "toggled", G_CALLBACK(onToggled), c);
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);
 
-	g_signal_connect(c->widget, "size-allocate", G_CALLBACK(uiCheckboxSizeCallback), uiControl(c));
-
 	return c;
 }

@@ -85,7 +85,5 @@ uiGroup *uiNewGroup(const char *text)
 	gtk_label_set_attributes(label, boldlist);
 	pango_attr_list_unref(boldlist);		// thanks baedert in irc.gimp.net/#gtk+
 
-	g_signal_connect(g->widget, "size-allocate", G_CALLBACK(uiGroupSizeCallback), uiControl(g));
-
 	return g;
 }

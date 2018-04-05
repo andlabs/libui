@@ -65,8 +65,6 @@ uiFontButton *uiNewFontButton(void)
 	g_signal_connect(b->widget, "font-set", G_CALLBACK(onFontSet), b);
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
 
-	g_signal_connect(b->widget, "size-allocate", G_CALLBACK(uiFontButtonSizeCallback), uiControl(b));
-
 	return b;
 }
 

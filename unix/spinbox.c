@@ -68,7 +68,5 @@ uiSpinbox *uiNewSpinbox(int min, int max)
 	s->onChangedSignal = g_signal_connect(s->spinButton, "value-changed", G_CALLBACK(onChanged), s);
 	uiSpinboxOnChanged(s, defaultOnChanged, NULL);
 
-	g_signal_connect(s->widget, "size-allocate", G_CALLBACK(uiSpinboxSizeCallback), uiControl(s));
-
 	return s;
 }

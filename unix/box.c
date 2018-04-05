@@ -145,8 +145,6 @@ static uiBox *finishNewBox(GtkOrientation orientation)
 
 	b->controls = g_array_new(FALSE, TRUE, sizeof (struct boxChild));
 
-	g_signal_connect(b->widget, "size-allocate", G_CALLBACK(uiBoxSizeCallback), uiControl(b));
-
 	return b;
 }
 

@@ -93,7 +93,5 @@ uiTab *uiNewTab(void)
 
 	t->pages = g_array_new(FALSE, TRUE, sizeof (struct child *));
 
-	g_signal_connect(t->widget, "size-allocate", G_CALLBACK(uiTabSizeCallback), uiControl(t));
-
 	return t;
 }

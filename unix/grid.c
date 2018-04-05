@@ -137,7 +137,5 @@ uiGrid *uiNewGrid(void)
 
 	g->children = g_array_new(FALSE, TRUE, sizeof (struct gridChild));
 
-	g_signal_connect(g->widget, "size-allocate", G_CALLBACK(uiGridSizeCallback), uiControl(g));
-
 	return g;
 }

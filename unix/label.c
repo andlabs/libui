@@ -32,7 +32,5 @@ uiLabel *uiNewLabel(const char *text)
 
 	gtk_misc_set_alignment(l->misc, 0, 0);
 
-	g_signal_connect(l->widget, "size-allocate", G_CALLBACK(uiLabelSizeCallback), uiControl(l));
-
 	return l;
 }

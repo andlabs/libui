@@ -25,6 +25,19 @@ static void fixedRelayout(uiFixed *g)
 	}
 }
 
+static void fixedInitialLayout(uiFixed *g)
+{
+	if (g->controls->size() == 0)
+		return;
+	int minimumWidth, minimumHeight;
+	for (struct fixedChild &fc : *(g->controls)) {
+		if (!uiControlVisible(fc.c))
+			continue;
+		uiWindowsControlMinimumSize(uiWindowsControl(fc.c), &minimumWidth, &minimumHeight);
+		uiWindowsEnsureMoveWindowDuringResize((HWND) uiControlHandle(fc.c), fc.x, fc.y, minimumWidth, minimumHeight);
+	}
+}
+
 static void uiFixedDestroy(uiControl *c)
 {
 	uiFixed *g = uiFixed(c);
@@ -110,17 +123,6 @@ static void fixedArrangeChildren(uiFixed *g)
 		uiWindowsControlAssignControlIDZOrder(uiWindowsControl(fc.c), &controlID, &insertAfter);
 }
 
-void uiFixedSize(uiFixed *g, uiControl *control, int *width, int *height) {
-	RECT r;
-	uiWindowsEnsureGetWindowRect((HWND) uiControlHandle(control), &r);
-	*width = r.right-r.left;
-	*height = r.bottom-r.top;
-}
-
-void uiFixedSetSize(uiFixed *g, uiControl *control, int width, int height) {
-	uiWindowsResizeWindow((HWND) uiControlHandle(control), width, height);
-}
-
 void uiFixedAppend(uiFixed *g, uiControl *child, int x, int y)
 {
 	struct fixedChild fc;
@@ -132,7 +134,7 @@ void uiFixedAppend(uiFixed *g, uiControl *child, int x, int y)
 	fc.y = y;
 	g->controls->push_back(fc);
 	fixedArrangeChildren(g);
-	uiWindowsControlMinimumSizeChanged(uiWindowsControl(g));
+	fixedInitialLayout(g);
 }
 
 void uiFixedMove(uiFixed *g, uiControl *child, int x, int y)

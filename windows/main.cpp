@@ -128,14 +128,3 @@ void uiQueueMain(void (*f)(void *data), void *data)
 		// LONGTERM this is likely not safe to call across threads (allocates memory)
 		logLastError(L"error queueing function to run on main thread");
 }
-
-void uiSize(uiControl *control, int *width, int *height) {
-	RECT r;
-	uiWindowsEnsureGetWindowRect((HWND) uiControlHandle(control), &r);
-	*width = r.right-r.left;
-	*height = r.bottom-r.top;
-}
-
-void uiSetSize(uiControl *control, int width, int height) {
-	uiWindowsResizeWindow((HWND) uiControlHandle(control), width, height);
-}

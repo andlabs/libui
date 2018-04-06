@@ -36,10 +36,10 @@ int main(void)
 
 	uiFixedMove(fixed, uiControl(button), 0, 100);
 
-	        uiFixedSize(fixed, uiControl(button), &width, &height);
+	uiFixedSize(fixed, uiControl(button), &width, &height);
     printf("Width: %d, Height: %d\n", width, height);
 
-	uiFixedSetSize(fixed, uiControl(button), 50, 50);
+	//uiFixedSetSize(fixed, uiControl(button), 50, 50);
 
 	uiMain();
 	return 0;

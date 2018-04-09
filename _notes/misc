@@ -114,3 +114,35 @@ https://twitter.com/_Ninji/status/814918189708668929 (C08rw9TWgAMpLkC.jpg:large)
 https://developer.apple.com/library/content/samplecode/CocoaTipsAndTricks/Introduction/Intro.html#//apple_ref/doc/uid/DTS40010039 BlurryView and StaticObjcMethods in particular
 printing https://developer.apple.com/library/content/samplecode/PMPrinterPrintWithFile/Introduction/Intro.html#//apple_ref/doc/uid/DTS10003958
 auto layout https://developer.apple.com/library/content/releasenotes/UserExperience/RNAutomaticLayout/index.html#//apple_ref/doc/uid/TP40010631
+
+other stuff, mostly custom draw on windows
+https://github.com/pauldotknopf/WindowsSDK7-Samples/blob/master/multimedia/DirectWrite/ChooseFont/ChooseFont.cpp at ChooseFontDialog::OnFontSizeNameEdit() definition
+https://developer.gnome.org/gtk3/3.10/GtkColorButton.html
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb775951(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb775951(v=vs.85).aspx between BS_LEFTTEXT and BS_RADIOBUTTON
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb775923(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb775923(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb775802(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb775802(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb761837(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb761837(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb761847(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb761847(v=vs.85).aspx description + parameters
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb775483(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb775483(v=vs.85).aspx dwItemSpec parameter
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb775951(v=vs.85).aspx#BS_NOTIFY
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb775951(v=vs.85).aspx#BS_NOTIFY BS_NOTIFY to BS_RIGHT
+http://stackoverflow.com/questions/17678261/how-to-change-color-of-a-button-while-keeping-buttons-functions-in-win32
+https://msdn.microsoft.com/en-us/library/windows/desktop/ff919569(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/ff919569(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/ff919573(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/ff919573(v=vs.85).aspx switch (pnm->hdr.code){
+http://stackoverflow.com/questions/36756094/will-the-device-context-of-a-child-window-have-the-same-text-metrics-and-text-ex
+actually I think most if not all of these were from when I was trying to implement uiColorButton on Windows, so I'm not sure if I still need these, but meh...
+
+more miscellaneous
+https://blogs.msdn.microsoft.com/oldnewthing/20160328-00/?p=93204 from "One is virtual memory" to "occured to them that their"
+https://blogs.msdn.microsoft.com/oldnewthing/20160331-00/?p=93231
+	https://msdn.microsoft.com/en-us/library/windows/desktop/aa373631(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/ms648395(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/ms648395(v=vs.85).aspx

@@ -146,3 +146,8 @@ https://blogs.msdn.microsoft.com/oldnewthing/20160331-00/?p=93231
 	https://msdn.microsoft.com/en-us/library/windows/desktop/aa373631(v=vs.85).aspx
 https://msdn.microsoft.com/en-us/library/windows/desktop/ms648395(v=vs.85).aspx
 	https://msdn.microsoft.com/en-us/library/windows/desktop/ms648395(v=vs.85).aspx
+https://blogs.msdn.microsoft.com/oldnewthing/20101118-00/?p=12253#comment-875273 "MTA implies poor service and fare hikes."
+
+from #gtk+
+[18:06:48]  <zorcon>	if i am doing an animation that needs to be updated at every duration(say every 50ms), should i use get_frame_time() from the frameclock to do that? (from add_tick_callback())
+[18:12:47]  <~Company>	zorcon: yes

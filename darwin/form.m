@@ -38,7 +38,7 @@
 - (void)syncEnableStates:(int)enabled;
 - (CGFloat)paddingAmount;
 - (void)establishOurConstraints;
-- (void)append:(NSString *)label c:(uiControl *)c stretchy:(int)stretchy;
+- (int)append:(NSString *)label c:(uiControl *)c stretchy:(int)stretchy;
 - (void)delete:(int)n;
 - (int)isPadded;
 - (void)setPadded:(int)p;
@@ -340,7 +340,7 @@ struct uiForm {
 	// we don't arrange the labels vertically; that's done when we add the control since those constraints don't need to change (they just need to be at their baseline)
 }
 
-- (void)append:(NSString *)label c:(uiControl *)c stretchy:(int)stretchy
+- (int)append:(NSString *)label c:(uiControl *)c stretchy:(int)stretchy
 {
 	formChild *fc;
 	NSLayoutPriority priority;
@@ -392,6 +392,8 @@ struct uiForm {
 			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->f));
 
 	[fc release];		// we don't need the initial reference now
+
+	return [self->children count] - 1;
 }
 
 - (void)delete:(int)n
@@ -525,13 +527,13 @@ static void uiFormChildVisibilityChanged(uiDarwinControl *c)
 	[f->view establishOurConstraints];
 }
 
-void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
+int uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 {
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
 		userbug("You cannot add NULL to a uiForm.");
-	[f->view append:toNSString(label) c:c stretchy:stretchy];
+	return [f->view append:toNSString(label) c:c stretchy:stretchy];
 }
 
 void uiFormDelete(uiForm *f, int n)

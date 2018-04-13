@@ -36,7 +36,7 @@
 - (void)syncEnableStates:(int)enabled;
 - (CGFloat)paddingAmount;
 - (void)establishOurConstraints;
-- (void)append:(uiControl *)c stretchy:(int)stretchy;
+- (int)append:(uiControl *)c stretchy:(int)stretchy;
 - (void)delete:(int)n;
 - (int)isPadded;
 - (void)setPadded:(int)p;
@@ -254,7 +254,7 @@ struct uiBox {
 	}
 }
 
-- (void)append:(uiControl *)c stretchy:(int)stretchy
+- (int)append:(uiControl *)c stretchy:(int)stretchy
 {
 	boxChild *bc;
 	NSLayoutPriority priority;
@@ -290,6 +290,8 @@ struct uiBox {
 			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->b));
 
 	[bc release];		// we don't need the initial reference now
+
+	return [self->children count] - 1;
 }
 
 - (void)delete:(int)n
@@ -423,13 +425,13 @@ static void uiBoxChildVisibilityChanged(uiDarwinControl *c)
 	[b->view establishOurConstraints];
 }
 
-void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
+int uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
 		userbug("You cannot add NULL to a uiBox.");
-	[b->view append:c stretchy:stretchy];
+	return [b->view append:c stretchy:stretchy];
 }
 
 void uiBoxDelete(uiBox *b, int n)

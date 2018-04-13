@@ -47,7 +47,7 @@ static void uiBoxDestroy(uiControl *c)
 	uiFreeControl(uiControl(b));
 }
 
-void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
+int uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
 	struct boxChild bc;
 	GtkWidget *widget;
@@ -86,6 +86,8 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	uiControlSetParent(bc.c, uiControl(b));
 	uiUnixControlSetContainer(uiUnixControl(bc.c), b->container, FALSE);
 	g_array_append_val(b->controls, bc);
+
+	return b->controls->len - 1;
 }
 
 void uiBoxDelete(uiBox *b, int index)

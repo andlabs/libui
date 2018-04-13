@@ -183,9 +183,13 @@ static void tabArrangePages(uiTab *t)
 		uiWindowsEnsureAssignControlIDZOrder(page->hwnd, &controlID, &insertAfter);
 }
 
-void uiTabAppend(uiTab *t, const char *name, uiControl *child)
+int uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
-	uiTabInsertAt(t, name, t->pages->size(), child);
+	int index = t->pages->size();
+
+	uiTabInsertAt(t, name, index, child);
+
+	return index;
 }
 
 void uiTabInsertAt(uiTab *t, const char *name, int n, uiControl *child)

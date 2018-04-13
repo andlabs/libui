@@ -187,9 +187,13 @@ static void uiTabChildVisibilityChanged(uiDarwinControl *c)
 	tabRelayout(t);
 }
 
-void uiTabAppend(uiTab *t, const char *name, uiControl *child)
+int uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
-	uiTabInsertAt(t, name, [t->pages count], child);
+	int index = [t->pages count];
+
+	uiTabInsertAt(t, name, index, child);
+
+	return index;
 }
 
 void uiTabInsertAt(uiTab *t, const char *name, int n, uiControl *child)

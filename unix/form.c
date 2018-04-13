@@ -48,7 +48,7 @@ static void uiFormDestroy(uiControl *c)
 	uiFreeControl(uiControl(f));
 }
 
-void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
+int uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 {
 	struct formChild fc;
 	GtkWidget *widget;
@@ -99,6 +99,8 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 		"left-attach", 1,
 		"top-attach", row,
 		NULL);
+	
+	return row;
 }
 
 void uiFormDelete(uiForm *f, int index)

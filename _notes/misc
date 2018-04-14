@@ -167,3 +167,20 @@ https://www.google.com/search?client=firefox-b-1&biw=1080&bih=600&ei=gUHRWsrdMYa
 	https://github.com/TortoiseGit/tortoisesvn/blob/master/src/Utils/MiscUI/AeroBaseDlg.h
 	https://github.com/TortoiseGit/tortoisesvn/blob/master/src/Utils/MiscUI/AeroControls.cpp
 	https://github.com/gavioto/stexbar/blob/master/Misc/FileTool/src/CleanVerifyDlg.h
+
+windows ribbon colors and dwm customization
+https://github.com/stefankueng/BowPad/blob/master/src/MainWindow.cpp
+https://msdn.microsoft.com/en-us/library/windows/desktop/dd940487(v=vs.85).aspx
+https://github.com/yohei-yoshihara/GameOfLife3D/blob/master/GameOfLife3DLib/gameoflife3d/Ribbon.cpp
+https://msdn.microsoft.com/en-us/library/windows/desktop/dd940404(v=vs.85).aspx
+https://github.com/stefankueng/sktoolslib/blob/master/AeroColors.cpp
+https://gist.github.com/emoacht/bfa852ccc16bdb5465bd
+https://stackoverflow.com/questions/4258295/aero-how-to-draw-solid-opaque-colors-on-glass
+https://github.com/ComponentFactory/Krypton
+https://www.codeproject.com/Articles/620045/Custom-Controls-in-Win-API-Visual-Styles
+https://blogs.msdn.microsoft.com/wpf/2010/11/30/systemcolors-reference/
+https://stackoverflow.com/questions/25639621/check-when-a-user-changes-windows-glass-brush-theme-color
+https://msdn.microsoft.com/en-us/library/windows/desktop/aa969513(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/aa969527(v=vs.85).aspx
+https://msdn.microsoft.com/en-us/library/windows/desktop/dd388198(v=vs.85).aspx
+I hope the MFC ribbon can have customizable colors too, otherwise I'll have to do some serious image processing...

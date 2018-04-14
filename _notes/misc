@@ -151,3 +151,19 @@ https://blogs.msdn.microsoft.com/oldnewthing/20101118-00/?p=12253#comment-875273
 from #gtk+
 [18:06:48]  <zorcon>	if i am doing an animation that needs to be updated at every duration(say every 50ms), should i use get_frame_time() from the frameclock to do that? (from add_tick_callback())
 [18:12:47]  <~Company>	zorcon: yes
+
+windows stuff: mostly aero tricks, sdk version macro notes, ribbon stuff, scrollbar stuff too
+https://tools.stefankueng.com/SendMessage.html
+https://sourceforge.net/p/sendmessage/code/HEAD/tree/trunk/src/SendMessage.vcxproj
+https://sourceforge.net/p/sendmessage/code/HEAD/tree/trunk/src/stdafx.h
+https://sourceforge.net/p/sendmessage/code/HEAD/tree/trunk/src/MainDlg.h
+https://sourceforge.net/u/steveking/profile/
+https://github.com/stefankueng/BowPad/tree/master/src + sourceforge original
+https://github.com/stefankueng/sktoolslib/blob/master/AeroControls.cpp + sourceforge original
+https://tools.stefankueng.com/BowPad.html
+https://www.codeproject.com/Articles/1084/Custom-Scrollbar-Library-version-1-1#_articleTop
+https://www.google.com/search?client=firefox-b-1&biw=1080&bih=600&ei=gUHRWsrdMYayggf30bfoAw&q=%22aerocontrols.h%22&oq=%22aerocontrols.h%22&gs_l=psy-ab.3..35i39k1l6.1816.3367.0.3413.4.2.0.0.0.0.0.0..1.0....0...1c.1.64.psy-ab..3.1.211.6...211.0Ppw_OREAk0
+	https://searchcode.com/codesearch/view/7295148/
+	https://github.com/TortoiseGit/tortoisesvn/blob/master/src/Utils/MiscUI/AeroBaseDlg.h
+	https://github.com/TortoiseGit/tortoisesvn/blob/master/src/Utils/MiscUI/AeroControls.cpp
+	https://github.com/gavioto/stexbar/blob/master/Misc/FileTool/src/CleanVerifyDlg.h

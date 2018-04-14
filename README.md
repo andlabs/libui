@@ -158,7 +158,7 @@ C++ | [libui-cpp](https://github.com/billyquith/libui-cpp), [cpp-libui-qtlike](h
 C# / .NET Framework | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding)
 C# / .NET Core | [DevZH.UI](https://github.com/noliar/DevZH.UI), [SharpUI](https://github.com/benpye/sharpui/), [LibUISharp](https://github.com/tom-corwin/LibUISharp)
 CHICKEN Scheme | [wasamasa/libui](https://github.com/wasamasa/libui)
-Crystal | [libui.cr](https://github.com/Fusion/libui.cr)
+Crystal | [libui.cr](https://github.com/Fusion/libui.cr), [hedron](https://github.com/Qwerp-Derp/hedron)
 D | [DerelictLibui (flat API)](https://github.com/Extrawurst/DerelictLibui), [libuid (object-oriented)](https://github.com/mogud/libuid)
 Euphoria | [libui-euphoria](https://github.com/ghaberek/libui-euphoria)
 Harbour | [HBUI](https://github.com/RJopek/HBUI)

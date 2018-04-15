@@ -137,7 +137,7 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 	if (menusFinalized)
 		userbug("You cannot create a new menu item after menus have been finalized.");
 
-	item = uiNew(uiMenuItem);
+	item = uiprivNew(uiMenuItem);
 
 	g_array_append_val(m->items, item);
 
@@ -234,7 +234,7 @@ uiMenu *uiNewMenu(const char *name)
 	if (menus == NULL)
 		menus = g_array_new(FALSE, TRUE, sizeof (uiMenu *));
 
-	m = uiNew(uiMenu);
+	m = uiprivNew(uiMenu);
 
 	g_array_append_val(menus, m);
 
@@ -260,7 +260,7 @@ static void appendMenuItem(GtkMenuShell *submenu, uiMenuItem *item, uiWindow *w)
 			singleSetChecked(GTK_CHECK_MENU_ITEM(menuitem), item->checked, signal);
 	}
 	gtk_menu_shell_append(submenu, menuitem);
-	ww = uiNew(struct menuItemWindow);
+	ww = uiprivNew(struct menuItemWindow);
 	ww->w = w;
 	ww->signal = signal;
 	g_hash_table_insert(item->windows, menuitem, ww);
@@ -309,7 +309,7 @@ static void freeMenuItem(GtkWidget *widget, gpointer data)
 	w = (struct menuItemWindow *) g_hash_table_lookup(item->windows, widget);
 	if (g_hash_table_remove(item->windows, widget) == FALSE)
 		implbug("GtkMenuItem %p not in menu item's item/window map", widget);
-	uiFree(w);
+	uiprivFree(w);
 	fmi->i++;
 }
 
@@ -357,10 +357,10 @@ void uninitMenus(void)
 				implbug("menu item %p (%s) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
 			g_free(item->name);
 			g_hash_table_destroy(item->windows);
-			uiFree(item);
+			uiprivFree(item);
 		}
 		g_array_free(m->items, TRUE);
-		uiFree(m);
+		uiprivFree(m);
 	}
 	g_array_free(menus, TRUE);
 }

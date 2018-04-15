@@ -28,7 +28,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 {
 	uiDrawPath *p;
 
-	p = uiNew(uiDrawPath);
+	p = uiprivNew(uiDrawPath);
 	p->pieces = g_array_new(FALSE, TRUE, sizeof (struct piece));
 	p->fillMode = mode;
 	return p;
@@ -37,7 +37,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 void uiDrawFreePath(uiDrawPath *p)
 {
 	g_array_free(p->pieces, TRUE);
-	uiFree(p);
+	uiprivFree(p);
 }
 
 static void add(uiDrawPath *p, struct piece *piece)

@@ -16,11 +16,11 @@ struct graphemes *uiprivNewGraphemes(void *s, size_t len)
 	size_t i;
 	size_t *op;
 
-	g = uiNew(struct graphemes);
+	g = uiprivNew(struct graphemes);
 
 	// TODO see if we can use the utf routines
 	lenchars = g_utf8_strlen(text, -1);
-	logattrs = (PangoLogAttr *) uiAlloc((lenchars + 1) * sizeof (PangoLogAttr), "PangoLogAttr[] (graphemes)");
+	logattrs = (PangoLogAttr *) uiprivAlloc((lenchars + 1) * sizeof (PangoLogAttr), "PangoLogAttr[] (graphemes)");
 	pango_get_log_attrs(text, len,
 		-1, NULL,
 		logattrs, lenchars + 1);
@@ -31,8 +31,8 @@ struct graphemes *uiprivNewGraphemes(void *s, size_t len)
 		if (logattrs[i].is_cursor_position != 0)
 			g->len++;
 
-	g->pointsToGraphemes = (size_t *) uiAlloc((len + 1) * sizeof (size_t), "size_t[] (graphemes)");
-	g->graphemesToPoints = (size_t *) uiAlloc((g->len + 1) * sizeof (size_t), "size_t[] (graphemes)");
+	g->pointsToGraphemes = (size_t *) uiprivAlloc((len + 1) * sizeof (size_t), "size_t[] (graphemes)");
+	g->graphemesToPoints = (size_t *) uiprivAlloc((g->len + 1) * sizeof (size_t), "size_t[] (graphemes)");
 
 	// compute the graphemesToPoints array
 	// TODO merge with the next for loop somehow?
@@ -58,6 +58,6 @@ struct graphemes *uiprivNewGraphemes(void *s, size_t len)
 	// and do the last one
 	*op++ = i;
 
-	uiFree(logattrs);
+	uiprivFree(logattrs);
 	return g;
 }

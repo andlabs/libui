@@ -99,7 +99,7 @@ void uiQueueMain(void (*f)(void *data), void *data)
 {
 	struct queued *q;
 
-	// we have to use g_new0()/g_free() because uiAlloc() is only safe to call on the main thread
+	// we have to use g_new0()/g_free() because uiprivAlloc() is only safe to call on the main thread
 	// for some reason it didn't affect me, but it did affect krakjoe
 	q = g_new0(struct queued, 1);
 	q->f = f;

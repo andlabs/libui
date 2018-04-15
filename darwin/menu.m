@@ -241,7 +241,7 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 	if (menusFinalized)
 		userbug("You can't create a new menu item after menus have been finalized.");
 
-	item = uiNew(uiMenuItem);
+	item = uiprivNew(uiMenuItem);
 
 	item->type = type;
 	switch (item->type) {
@@ -319,7 +319,7 @@ uiMenu *uiNewMenu(const char *name)
 	if (menus == nil)
 		menus = [NSMutableArray new];
 
-	m = uiNew(uiMenu);
+	m = uiprivNew(uiMenu);
 
 	m->menu = [[NSMenu alloc] initWithTitle:toNSString(name)];
 	// use automatic menu item enabling for all menus for consistency's sake
@@ -359,10 +359,10 @@ void uninitMenus(void)
 
 			v = (NSValue *) obj;
 			mi = (uiMenuItem *) [v pointerValue];
-			uiFree(mi);
+			uiprivFree(mi);
 		}];
 		[m->items release];
-		uiFree(m);
+		uiprivFree(m);
 	}];
 	[menus release];
 }

@@ -12,7 +12,7 @@ struct mapTable *newMap(void)
 {
 	struct mapTable *m;
 
-	m = uiNew(struct mapTable);
+	m = uiprivNew(struct mapTable);
 	m->m = [[NSMapTable alloc] initWithKeyOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)
 		valueOptions:(NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality)
 		capacity:0];
@@ -24,7 +24,7 @@ void mapDestroy(struct mapTable *m)
 	if ([m->m count] != 0)
 		implbug("attempt to destroy map with items inside");
 	[m->m release];
-	uiFree(m);
+	uiprivFree(m);
 }
 
 void *mapGet(struct mapTable *m, void *key)

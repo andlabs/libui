@@ -41,7 +41,7 @@ void uninitAlloc(void)
 	[str release];
 }
 
-void *uiAlloc(size_t size, const char *type)
+void *uiprivAlloc(size_t size, const char *type)
 {
 	void *out;
 
@@ -57,17 +57,17 @@ void *uiAlloc(size_t size, const char *type)
 	return DATA(out);
 }
 
-void *uiRealloc(void *p, size_t new, const char *type)
+void *uiprivRealloc(void *p, size_t new, const char *type)
 {
 	void *out;
 	size_t *s;
 
 	if (p == NULL)
-		return uiAlloc(new, type);
+		return uiprivAlloc(new, type);
 	p = BASE(p);
 	out = realloc(p, EXTRA + new);
 	if (out == NULL) {
-		fprintf(stderr, "memory exhausted in uiRealloc()\n");
+		fprintf(stderr, "memory exhausted in uiprivRealloc()\n");
 		abort();
 	}
 	s = SIZE(out);
@@ -79,10 +79,10 @@ void *uiRealloc(void *p, size_t new, const char *type)
 	return DATA(out);
 }
 
-void uiFree(void *p)
+void uiprivFree(void *p)
 {
 	if (p == NULL)
-		implbug("attempt to uiFree(NULL)");
+		implbug("attempt to uiprivFree(NULL)");
 	p = BASE(p);
 	free(p);
 	[allocations removeObject:[NSValue valueWithPointer:p]];

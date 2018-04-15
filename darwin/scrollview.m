@@ -39,7 +39,7 @@ NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrollViewDa
 	[sv setAllowsMagnification:NO];
 
 	[sv setDocumentView:p->DocumentView];
-	d = uiNew(struct scrollViewData);
+	d = uiprivNew(struct scrollViewData);
 	scrollViewSetScrolling(sv, d, p->HScroll, p->VScroll);
 
 	*dout = d;
@@ -57,5 +57,5 @@ void scrollViewSetScrolling(NSScrollView *sv, struct scrollViewData *d, BOOL hsc
 
 void scrollViewFreeData(NSScrollView *sv, struct scrollViewData *d)
 {
-	uiFree(d);
+	uiprivFree(d);
 }

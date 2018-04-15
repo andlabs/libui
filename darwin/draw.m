@@ -12,7 +12,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 {
 	uiDrawPath *p;
 
-	p = uiNew(uiDrawPath);
+	p = uiprivNew(uiDrawPath);
 	p->path = CGPathCreateMutable();
 	p->fillMode = mode;
 	return p;
@@ -21,7 +21,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 void uiDrawFreePath(uiDrawPath *p)
 {
 	CGPathRelease((CGPathRef) (p->path));
-	uiFree(p);
+	uiprivFree(p);
 }
 
 void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
@@ -108,7 +108,7 @@ uiDrawContext *newContext(CGContextRef ctxt, CGFloat height)
 {
 	uiDrawContext *c;
 
-	c = uiNew(uiDrawContext);
+	c = uiprivNew(uiDrawContext);
 	c->c = ctxt;
 	c->height = height;
 	return c;
@@ -116,7 +116,7 @@ uiDrawContext *newContext(CGContextRef ctxt, CGFloat height)
 
 void freeContext(uiDrawContext *c)
 {
-	uiFree(c);
+	uiprivFree(c);
 }
 
 // a stroke is identical to a fill of a stroked path
@@ -160,7 +160,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 	// create a temporary path identical to the previous one
 	dashPath = (CGPathRef) path->path;
 	if (p->NumDashes != 0) {
-		dashes = (CGFloat *) uiAlloc(p->NumDashes * sizeof (CGFloat), "CGFloat[]");
+		dashes = (CGFloat *) uiprivAlloc(p->NumDashes * sizeof (CGFloat), "CGFloat[]");
 		for (i = 0; i < p->NumDashes; i++)
 			dashes[i] = p->Dashes[i];
 		dashPath = CGPathCreateCopyByDashingPath(path->path,
@@ -168,7 +168,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 			p->DashPhase,
 			dashes,
 			p->NumDashes);
-		uiFree(dashes);
+		uiprivFree(dashes);
 	}
 	// the documentation is wrong: this produces a path suitable for calling CGPathCreateCopyByStrokingPath(), not for filling directly
 	// the cast is safe; we never modify the CGPathRef and always cast it back to a CGPathRef anyway
@@ -224,8 +224,8 @@ static void fillGradient(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 	// TODO add NULL check to other uses of CGColorSpace
 
 	// make the gradient
-	colors = uiAlloc(b->NumStops * 4 * sizeof (CGFloat), "CGFloat[]");
-	locations = uiAlloc(b->NumStops * sizeof (CGFloat), "CGFloat[]");
+	colors = uiprivAlloc(b->NumStops * 4 * sizeof (CGFloat), "CGFloat[]");
+	locations = uiprivAlloc(b->NumStops * sizeof (CGFloat), "CGFloat[]");
 	for (i = 0; i < b->NumStops; i++) {
 		colors[i * 4 + 0] = b->Stops[i].R;
 		colors[i * 4 + 1] = b->Stops[i].G;
@@ -234,8 +234,8 @@ static void fillGradient(CGContextRef ctxt, uiDrawPath *p, uiDrawBrush *b)
 		locations[i] = b->Stops[i].Pos;
 	}
 	gradient = CGGradientCreateWithColorComponents(colorspace, colors, locations, b->NumStops);
-	uiFree(locations);
-	uiFree(colors);
+	uiprivFree(locations);
+	uiprivFree(colors);
 
 	// because we're mucking with clipping, we need to save the graphics state and restore it later
 	CGContextSaveGState(ctxt);

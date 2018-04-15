@@ -365,7 +365,7 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiFontDescrip
 	if ([d variation] != NULL)
 		axisDict = uiprivMakeVariationAxisDict([d variationAxes], [d table:kCTFontTableAvar]);
 
-	closeness = (struct closeness *) uiAlloc(n * sizeof (struct closeness), "struct closeness[]");
+	closeness = (struct closeness *) uiprivAlloc(n * sizeof (struct closeness), "struct closeness[]");
 	for (i = 0; i < n; i++) {
 		uiFontDescriptor fields;
 
@@ -409,7 +409,7 @@ static CTFontDescriptorRef matchStyle(CTFontDescriptorRef against, uiFontDescrip
 	// release everything
 	if (axisDict != nil)
 		[axisDict release];
-	uiFree(closeness);
+	uiprivFree(closeness);
 	CFRelease(matching);
 	// and release the original descriptor since we no longer need it
 	CFRelease(against);

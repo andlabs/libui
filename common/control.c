@@ -63,7 +63,7 @@ uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const c
 {
 	uiControl *c;
 
-	c = (uiControl *) uiAlloc(size, typenamestr);
+	c = (uiControl *) uiprivAlloc(size, typenamestr);
 	c->Signature = uiControlSignature;
 	c->OSSignature = OSsig;
 	c->TypeSignature = typesig;
@@ -74,7 +74,7 @@ void uiFreeControl(uiControl *c)
 {
 	if (uiControlParent(c) != NULL)
 		userbug("You cannot destroy a uiControl while it still has a parent. (control: %p)", c);
-	uiFree(c);
+	uiprivFree(c);
 }
 
 void uiControlVerifySetParent(uiControl *c, uiControl *parent)

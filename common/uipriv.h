@@ -10,10 +10,10 @@ extern "C" {
 
 extern uiInitOptions uiprivOptions;
 
-extern void *uiAlloc(size_t, const char *);
-#define uiNew(T) ((T *) uiAlloc(sizeof (T), #T))
-extern void *uiRealloc(void *, size_t, const char *);
-extern void uiFree(void *);
+extern void *uiprivAlloc(size_t, const char *);
+#define uiprivNew(T) ((T *) uiprivAlloc(sizeof (T), #T))
+extern void *uiprivRealloc(void *, size_t, const char *);
+extern void uiprivFree(void *);
 
 // ugh, this was only introduced in MSVC 2015...
 #ifdef _MSC_VER

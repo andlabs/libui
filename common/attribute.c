@@ -85,7 +85,7 @@ uiAttribute *uiNewFamilyAttribute(const char *family)
 	uiAttribute *a;
 
 	a = newAttribute(uiAttributeTypeFamily);
-	a->u.family = (char *) uiAlloc((strlen(family) + 1) * sizeof (char), "char[] (uiAttribute)");
+	a->u.family = (char *) uiprivAlloc((strlen(family) + 1) * sizeof (char), "char[] (uiAttribute)");
 	strcpy(a->u.family, family);
 	return a;
 }

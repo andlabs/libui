@@ -39,8 +39,8 @@ static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 #define ieLastErr(msg) initerr("=" msg, L"GetLastError() ==", GetLastError())
 #define ieHRESULT(msg, hr) initerr("=" msg, L"HRESULT", (DWORD) hr)
 
-// LONGTERM make common
-uiInitOptions options;
+// LONGTERM put this declaration in a common file
+uiInitOptions uiprivOptions;
 
 #define wantedICCClasses ( \
 	ICC_STANDARD_CLASSES |	/* user32.dll controls */		\
@@ -62,7 +62,7 @@ const char *uiInit(uiInitOptions *o)
 	INITCOMMONCONTROLSEX icc;
 	HRESULT hr;
 
-	options = *o;
+	uiprivOptions = *o;
 
 	initAlloc();
 

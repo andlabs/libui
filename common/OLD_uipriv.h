@@ -1,17 +1,3 @@
-// 6 april 2015
-
-// this must go outside other extern "C" blocks, otherwise we'll get double-declaration errors
-#include "utf.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stdarg.h>
-#include <string.h>
-#include "controlsigs.h"
-
-extern uiInitOptions options;
 
 extern void *uiAlloc(size_t, const char *);
 #define uiNew(T) ((T *) uiAlloc(sizeof (T), #T))
@@ -60,7 +46,3 @@ extern void fallbackTransformSize(uiDrawMatrix *, double *, double *);
 
 // OS-specific text.* files
 extern int uiprivStricmp(const char *a, const char *b);
-
-#ifdef __cplusplus
-}
-#endif

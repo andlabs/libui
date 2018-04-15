@@ -106,12 +106,12 @@ static BOOL stepsIsRunning;
 
 @end
 
-uiInitOptions options;
+uiInitOptions uiprivOptions;
 
 const char *uiInit(uiInitOptions *o)
 {
 	@autoreleasepool {
-		options = *o;
+		uiprivOptions = *o;
 		app = [[applicationClass sharedApplication] retain];
 		// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 		// see https://github.com/andlabs/ui/issues/6

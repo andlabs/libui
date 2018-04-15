@@ -1,14 +1,14 @@
 // 6 april 2015
 #include "uipriv_unix.h"
 
-uiInitOptions options;
+uiInitOptions uiprivOptions;
 
 const char *uiInit(uiInitOptions *o)
 {
 	GError *err = NULL;
 	const char *msg;
 
-	options = *o;
+	uiprivOptions = *o;
 	if (gtk_init_with_args(NULL, NULL, NULL, NULL, NULL, &err) == FALSE) {
 		msg = g_strdup(err->message);
 		g_error_free(err);

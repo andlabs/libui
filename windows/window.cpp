@@ -480,7 +480,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		NULL, NULL, hInstance, w);
 	if (w->hwnd == NULL)
 		logLastError(L"error creating window");
-	uiFree(wtitle);
+	uiprivFree(wtitle);
 
 	if (hasMenubar) {
 		w->menubar = makeMenubar();

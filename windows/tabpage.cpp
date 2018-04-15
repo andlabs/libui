@@ -83,7 +83,7 @@ struct tabPage *newTabPage(uiControl *child)
 	struct tabPage *tp;
 	HRESULT hr;
 
-	tp = uiNew(struct tabPage);
+	tp = uiprivNew(struct tabPage);
 
 	// unfortunately this needs to be a proper dialog for EnableThemeDialogTexture() to work; CreateWindowExW() won't suffice
 	if (CreateDialogParamW(hInstance, MAKEINTRESOURCE(rcTabPageDialog),
@@ -114,7 +114,7 @@ void tabPageDestroy(struct tabPage *tp)
 		uiWindowsControlSetParentHWND(uiWindowsControl(tp->child), NULL);
 	// don't call EndDialog(); that's for the DialogBox() family of functions instead of CreateDialog()
 	uiWindowsEnsureDestroyWindow(tp->hwnd);
-	uiFree(tp);
+	uiprivFree(tp);
 }
 
 void tabPageMinimumSize(struct tabPage *tp, int *width, int *height)

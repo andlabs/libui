@@ -17,7 +17,7 @@ struct graphemes *uiprivNewGraphemes(void *s, size_t len)
 	WCHAR *str;
 	size_t *pPTG, *pGTP;
 
-	g = uiNew(struct graphemes);
+	g = uiprivNew(struct graphemes);
 
 	g->len = 0;
 	str = (WCHAR *) s;
@@ -27,8 +27,8 @@ struct graphemes *uiprivNewGraphemes(void *s, size_t len)
 		// no need to worry about surrogates if we're just counting
 	}
 
-	g->pointsToGraphemes = (size_t *) uiAlloc((len + 1) * sizeof (size_t), "size_t[] (graphemes)");
-	g->graphemesToPoints = (size_t *) uiAlloc((g->len + 1) * sizeof (size_t), "size_t[] (graphemes)");
+	g->pointsToGraphemes = (size_t *) uiprivAlloc((len + 1) * sizeof (size_t), "size_t[] (graphemes)");
+	g->graphemesToPoints = (size_t *) uiprivAlloc((g->len + 1) * sizeof (size_t), "size_t[] (graphemes)");
 
 	pPTG = g->pointsToGraphemes;
 	pGTP = g->graphemesToPoints;

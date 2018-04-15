@@ -19,7 +19,7 @@ static WCHAR *expandYear(WCHAR *dts, int n)
 	int ny = 0;
 
 	// allocate more than we need to be safe
-	out = (WCHAR *) uiAlloc((n * 3) * sizeof (WCHAR), "WCHAR[]");
+	out = (WCHAR *) uiprivAlloc((n * 3) * sizeof (WCHAR), "WCHAR[]");
 	q = out;
 	for (p = dts; *p != L'\0'; p++) {
 		// first, if the current character is a y, increment the number of consecutive ys
@@ -73,17 +73,17 @@ static void setDateTimeFormat(HWND hwnd)
 	ndate = GLI(LOCALE_SSHORTDATE, NULL, 0);
 	if (ndate == 0)
 		logLastError(L"error getting date string length");
-	date = (WCHAR *) uiAlloc(ndate * sizeof (WCHAR), "WCHAR[]");
+	date = (WCHAR *) uiprivAlloc(ndate * sizeof (WCHAR), "WCHAR[]");
 	if (GLI(LOCALE_SSHORTDATE, date, ndate) == 0)
 		logLastError(L"error geting date string");
 	unexpandedDate = date;		// so we can free it
 	date = expandYear(unexpandedDate, ndate);
-	uiFree(unexpandedDate);
+	uiprivFree(unexpandedDate);
 
 	ntime = GLI(LOCALE_STIMEFORMAT, NULL, 0);
 	if (ndate == 0)
 		logLastError(L"error getting time string length");
-	time = (WCHAR *) uiAlloc(ntime * sizeof (WCHAR), "WCHAR[]");
+	time = (WCHAR *) uiprivAlloc(ntime * sizeof (WCHAR), "WCHAR[]");
 	if (GLI(LOCALE_STIMEFORMAT, time, ntime) == 0)
 		logLastError(L"error geting time string");
 
@@ -91,9 +91,9 @@ static void setDateTimeFormat(HWND hwnd)
 	if (SendMessageW(hwnd, DTM_SETFORMAT, 0, (LPARAM) datetime) == 0)
 		logLastError(L"error applying format string to date/time picker");
 
-	uiFree(datetime);
-	uiFree(time);
-	uiFree(date);
+	uiprivFree(datetime);
+	uiprivFree(time);
+	uiprivFree(date);
 }
 
 // control implementation

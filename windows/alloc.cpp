@@ -27,7 +27,7 @@ void uninitAlloc(void)
 
 #define rawBytes(pa) (&((*pa)[0]))
 
-void *uiAlloc(size_t size, const char *type)
+void *uiprivAlloc(size_t size, const char *type)
 {
 	byteArray *out;
 
@@ -37,13 +37,13 @@ void *uiAlloc(size_t size, const char *type)
 	return rawBytes(out);
 }
 
-void *uiRealloc(void *_p, size_t size, const char *type)
+void *uiprivRealloc(void *_p, size_t size, const char *type)
 {
 	uint8_t *p = (uint8_t *) _p;
 	byteArray *arr;
 
 	if (p == NULL)
-		return uiAlloc(size, type);
+		return uiprivAlloc(size, type);
 	arr = heap[p];
 	// TODO does this fill in?
 	arr->resize(size, 0);
@@ -52,12 +52,12 @@ void *uiRealloc(void *_p, size_t size, const char *type)
 	return rawBytes(arr);
 }
 
-void uiFree(void *_p)
+void uiprivFree(void *_p)
 {
 	uint8_t *p = (uint8_t *) _p;
 
 	if (p == NULL)
-		implbug("attempt to uiFree(NULL)");
+		implbug("attempt to uiprivFree(NULL)");
 	types.erase(heap[p]);
 	delete heap[p];
 	heap.erase(p);

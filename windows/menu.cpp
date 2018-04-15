@@ -115,10 +115,10 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 
 	if (m->len >= m->cap) {
 		m->cap += grow;
-		m->items = (uiMenuItem **) uiRealloc(m->items, m->cap * sizeof (uiMenuItem *), "uiMenuitem *[]");
+		m->items = (uiMenuItem **) uiprivRealloc(m->items, m->cap * sizeof (uiMenuItem *), "uiMenuitem *[]");
 	}
 
-	item = uiNew(uiMenuItem);
+	item = uiprivNew(uiMenuItem);
 
 	m->items[m->len] = item;
 	m->len++;
@@ -207,10 +207,10 @@ uiMenu *uiNewMenu(const char *name)
 		userbug("You can not create a new menu after menus have been finalized.");
 	if (len >= cap) {
 		cap += grow;
-		menus = (uiMenu **) uiRealloc(menus, cap * sizeof (uiMenu *), "uiMenu *[]");
+		menus = (uiMenu **) uiprivRealloc(menus, cap * sizeof (uiMenu *), "uiMenu *[]");
 	}
 
-	m = uiNew(uiMenu);
+	m = uiprivNew(uiMenu);
 
 	menus[len] = m;
 	len++;
@@ -237,7 +237,7 @@ static void appendMenuItem(HMENU menu, uiMenuItem *item)
 
 	if (item->len >= item->cap) {
 		item->cap += grow;
-		item->hmenus = (HMENU *) uiRealloc(item->hmenus, item->cap * sizeof (HMENU), "HMENU[]");
+		item->hmenus = (HMENU *) uiprivRealloc(item->hmenus, item->cap * sizeof (HMENU), "HMENU[]");
 	}
 	item->hmenus[item->len] = menu;
 	item->len++;
@@ -348,22 +348,22 @@ void uninitMenus(void)
 
 	for (i = 0; i < len; i++) {
 		m = menus[i];
-		uiFree(m->name);
+		uiprivFree(m->name);
 		for (j = 0; j < m->len; j++) {
 			item = m->items[j];
 			if (item->len != 0)
 				// LONGTERM userbug()?
 				implbug("menu item %p (%ws) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
 			if (item->name != NULL)
-				uiFree(item->name);
+				uiprivFree(item->name);
 			if (item->hmenus != NULL)
-				uiFree(item->hmenus);
-			uiFree(item);
+				uiprivFree(item->hmenus);
+			uiprivFree(item);
 		}
 		if (m->items != NULL)
-			uiFree(m->items);
-		uiFree(m);
+			uiprivFree(m->items);
+		uiprivFree(m);
 	}
 	if (menus != NULL)
-		uiFree(menus);
+		uiprivFree(menus);
 }

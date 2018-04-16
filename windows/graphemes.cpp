@@ -11,13 +11,13 @@ int uiprivGraphemesTakesUTF16(void)
 	return 1;
 }
 
-struct graphemes *uiprivNewGraphemes(void *s, size_t len)
+uiprivGraphemes *uiprivNewGraphemes(void *s, size_t len)
 {
-	struct graphemes *g;
+	uiprivGraphemes *g;
 	WCHAR *str;
 	size_t *pPTG, *pGTP;
 
-	g = uiprivNew(struct graphemes);
+	g = uiprivNew(uiprivGraphemes);
 
 	g->len = 0;
 	str = (WCHAR *) s;

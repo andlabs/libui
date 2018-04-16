@@ -18,7 +18,7 @@ struct uiAttributedString {
 	size_t *u16tou8;
 
 	// this is lazily created to keep things from getting *too* slow
-	struct graphemes *graphemes;
+	uiprivGraphemes *graphemes;
 };
 
 static void resize(uiAttributedString *s, size_t u8, size_t u16)

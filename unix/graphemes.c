@@ -7,16 +7,16 @@ int uiprivGraphemesTakesUTF16(void)
 	return 0;
 }
 
-struct graphemes *uiprivNewGraphemes(void *s, size_t len)
+uiprivGraphemes *uiprivNewGraphemes(void *s, size_t len)
 {
-	struct graphemes *g;
+	uiprivGraphemes *g;
 	char *text = (char *) s;
 	size_t lenchars;
 	PangoLogAttr *logattrs;
 	size_t i;
 	size_t *op;
 
-	g = uiprivNew(struct graphemes);
+	g = uiprivNew(uiprivGraphemes);
 
 	// TODO see if we can use the utf routines
 	lenchars = g_utf8_strlen(text, -1);

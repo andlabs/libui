@@ -10,16 +10,16 @@ int uiprivGraphemesTakesUTF16(void)
 	return 1;
 }
 
-struct graphemes *uiprivNewGraphemes(void *s, size_t len)
+uiprivGraphemes *uiprivNewGraphemes(void *s, size_t len)
 {
-	struct graphemes *g;
+	uiprivGraphemes *g;
 	UniChar *str = (UniChar *) s;
 	CFStringRef cfstr;
 	size_t ppos, gpos;
 	CFRange range;
 	size_t i;
 
-	g = uiprivNew(struct graphemes);
+	g = uiprivNew(uiprivGraphemes);
 
 	cfstr = CFStringCreateWithCharactersNoCopy(NULL, str, len, kCFAllocatorNull);
 	if (cfstr == NULL) {

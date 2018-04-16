@@ -411,7 +411,7 @@ static int areaKeyEvent(uiArea *a, int up, GdkEventKey *e)
 			goto keyFound;
 		}
 
-	if (fromScancode(e->hardware_keycode - 8, &ke))
+	if (uiprivFromScancode(e->hardware_keycode - 8, &ke))
 		goto keyFound;
 
 	// no supported key found; treat as unhandled

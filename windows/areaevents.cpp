@@ -300,7 +300,7 @@ static int areaKeyEvent(uiArea *a, int up, WPARAM wParam, LPARAM lParam)
 		}
 
 	// and finally everything else
-	if (fromScancode((lParam >> 16) & 0xFF, &ke))
+	if (uiprivFromScancode((lParam >> 16) & 0xFF, &ke))
 		goto keyFound;
 
 	// not a supported key, assume unhandled

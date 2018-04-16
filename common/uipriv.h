@@ -51,7 +51,7 @@ struct uiprivClickCounter {
 };
 extern int uiprivClickCounterClick(uiprivClickCounter *c, int button, int x, int y, uintptr_t time, uintptr_t maxTime, int32_t xdist, int32_t ydist);
 extern void uiprivClickCounterReset(uiprivClickCounter *);
-extern int fromScancode(uintptr_t, uiAreaKeyEvent *);
+extern int uiprivFromScancode(uintptr_t, uiAreaKeyEvent *);
 
 // matrix.c
 extern void fallbackSkew(uiDrawMatrix *, double, double, double, double);

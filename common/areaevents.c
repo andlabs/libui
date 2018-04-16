@@ -151,7 +151,7 @@ static const struct {
 	{ 0xFFFF, 0 },
 };
 
-int fromScancode(uintptr_t scancode, uiAreaKeyEvent *ke)
+int uiprivFromScancode(uintptr_t scancode, uiAreaKeyEvent *ke)
 {
 	int i;
 

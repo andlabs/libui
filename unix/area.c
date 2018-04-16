@@ -19,7 +19,7 @@ struct areaWidget {
 	// construct-only parameters aare not set until after the init() function has returned
 	// we need this particular object available during init(), so put it here instead of in uiArea
 	// keep a pointer in uiArea for convenience, though
-	clickCounter cc;
+	uiprivClickCounter cc;
 };
 
 struct areaWidgetClass {
@@ -45,7 +45,7 @@ struct uiArea {
 	int scrollHeight;
 
 	// note that this is a pointer; see above
-	clickCounter *cc;
+	uiprivClickCounter *cc;
 
 	// for user window drags
 	GdkEventButton *dragevent;
@@ -68,7 +68,7 @@ static void areaWidget_init(areaWidget *aw)
 
 	gtk_widget_set_can_focus(GTK_WIDGET(aw), TRUE);
 
-	clickCounterReset(&(aw->cc));
+	uiprivClickCounterReset(&(aw->cc));
 }
 
 static void areaWidget_dispose(GObject *obj)
@@ -261,7 +261,7 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 	// e->time is guint32
 	// e->x and e->y are floating-point; just make them 32-bit integers
 	// maxTime and maxDistance... are gint, which *should* fit, hopefully...
-	me.Count = clickCounterClick(a->cc, me.Down,
+	me.Count = uiprivClickCounterClick(a->cc, me.Down,
 		e->x, e->y,
 		e->time, maxTime,
 		maxDistance, maxDistance);
@@ -309,7 +309,7 @@ static gboolean onCrossing(areaWidget *aw, int left)
 	uiArea *a = aw->a;
 
 	(*(a->ah->MouseCrossed))(a->ah, a, left);
-	clickCounterReset(a->cc);
+	uiprivClickCounterReset(a->cc);
 	return GDK_EVENT_PROPAGATE;
 }
 

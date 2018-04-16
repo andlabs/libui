@@ -57,14 +57,14 @@ void uiControlDisable(uiControl *c)
 	(*(c->Disable))(c);
 }
 
-#define uiControlSignature 0x7569436F
+#define uiprivControlSignature 0x7569436F
 
 uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr)
 {
 	uiControl *c;
 
 	c = (uiControl *) uiprivAlloc(size, typenamestr);
-	c->Signature = uiControlSignature;
+	c->Signature = uiprivControlSignature;
 	c->OSSignature = OSsig;
 	c->TypeSignature = typesig;
 	return c;

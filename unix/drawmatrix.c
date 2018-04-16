@@ -39,7 +39,7 @@ void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x
 	m2c(m, &c);
 	xt = x;
 	yt = y;
-	scaleCenter(xCenter, yCenter, &xt, &yt);
+	uiprivScaleCenter(xCenter, yCenter, &xt, &yt);
 	cairo_matrix_translate(&c, xt, yt);
 	cairo_matrix_scale(&c, x, y);
 	cairo_matrix_translate(&c, -xt, -yt);
@@ -59,7 +59,7 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 
 void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
 {
-	fallbackSkew(m, x, y, xamount, yamount);
+	uiprivFallbackSkew(m, x, y, xamount, yamount);
 }
 
 void uiDrawMatrixMultiply(uiDrawMatrix *dest, uiDrawMatrix *src)

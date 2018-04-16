@@ -54,9 +54,9 @@ extern void uiprivClickCounterReset(uiprivClickCounter *);
 extern int uiprivFromScancode(uintptr_t, uiAreaKeyEvent *);
 
 // matrix.c
-extern void fallbackSkew(uiDrawMatrix *, double, double, double, double);
-extern void scaleCenter(double, double, double *, double *);
-extern void fallbackTransformSize(uiDrawMatrix *, double *, double *);
+extern void uiprivFallbackSkew(uiDrawMatrix *, double, double, double, double);
+extern void uiprivScaleCenter(double, double, double *, double *);
+extern void uiprivFallbackTransformSize(uiDrawMatrix *, double *, double *);
 
 // OS-specific text.* files
 extern int uiprivStricmp(const char *a, const char *b);

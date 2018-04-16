@@ -334,7 +334,7 @@ void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x
 	m2c(m, &c);
 	xt = x;
 	yt = y;
-	scaleCenter(xCenter, yCenter, &xt, &yt);
+	uiprivScaleCenter(xCenter, yCenter, &xt, &yt);
 	c = CGAffineTransformTranslate(c, xt, yt);
 	c = CGAffineTransformScale(c, x, y);
 	c = CGAffineTransformTranslate(c, -xt, -yt);
@@ -354,7 +354,7 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 
 void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
 {
-	fallbackSkew(m, x, y, xamount, yamount);
+	uiprivFallbackSkew(m, x, y, xamount, yamount);
 }
 
 void uiDrawMatrixMultiply(uiDrawMatrix *dest, uiDrawMatrix *src)

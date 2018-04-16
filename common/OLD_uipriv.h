@@ -1,7 +1,4 @@
 
-// control.c
-extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
-
 // shouldquit.c
 extern int shouldQuit(void);
 

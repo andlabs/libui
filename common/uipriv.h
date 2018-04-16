@@ -33,9 +33,6 @@ extern void uiprivDoImplBug(const char *file, const char *line, const char *func
 extern void uiprivDoUserBug(const char *file, const char *line, const char *func, const char *format, ...);
 #define uiprivUserBug(...) uiprivDoUserBug(__FILE__, uiprivMacro_ns(__LINE__), uiprivMacro__func__, __VA_ARGS__)
 
-// control.c
-extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
-
 // shouldquit.c
 extern int shouldQuit(void);
 

@@ -12,12 +12,12 @@ WCHAR *toUTF16(const char *str)
 
 	if (*str == '\0')			// empty string
 		return emptyUTF16();
-	n = utf8UTF16Count(str, 0);
+	n = uiprivUTF8UTF16Count(str, 0);
 	wstr = (WCHAR *) uiprivAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
 	wp = wstr;
 	while (*str) {
-		str = utf8DecodeRune(str, 0, &rune);
-		n = utf16EncodeRune(rune, wp);
+		str = uiprivUTF8DecodeRune(str, 0, &rune);
+		n = uiprivUTF16EncodeRune(rune, wp);
 		wp += n;
 	}
 	return wstr;
@@ -32,12 +32,12 @@ char *toUTF8(const WCHAR *wstr)
 
 	if (*wstr == L'\0')		// empty string
 		return emptyUTF8();
-	n = utf16RuneCount(wstr, 0);
+	n = uiprivUTF16RuneCount(wstr, 0);
 	str = (char *) uiprivAlloc((n + 1) * sizeof (char), "char[]");
 	sp = str;
 	while (*wstr) {
-		wstr = utf16DecodeRune(wstr, 0, &rune);
-		n = utf8EncodeRune(rune, sp);
+		wstr = uiprivUTF16DecodeRune(wstr, 0, &rune);
+		n = uiprivUTF8EncodeRune(rune, sp);
 		sp += n;
 	}
 	return str;

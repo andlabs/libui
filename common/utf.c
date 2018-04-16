@@ -1,5 +1,6 @@
 // utf by pietro gagliardi (andlabs) — https://github.com/andlabs/utf/
 // 10 november 2016
+// function names have been altered to avoid namespace collisions in libui static builds (see utf.h)
 #include "utf.h"
 
 // this code imitates Go's unicode/utf8 and unicode/utf16
@@ -9,7 +10,7 @@
 
 // encoded must be at most 4 bytes
 // TODO clean this code up somehow
-size_t utf8EncodeRune(uint32_t rune, char *encoded)
+size_t uiprivUTF8EncodeRune(uint32_t rune, char *encoded)
 {
 	uint8_t b, c, d, e;
 	size_t n;
@@ -72,7 +73,7 @@ done:
 	return n;
 }
 
-const char *utf8DecodeRune(const char *s, size_t nElem, uint32_t *rune)
+const char *uiprivUTF8DecodeRune(const char *s, size_t nElem, uint32_t *rune)
 {
 	uint8_t b, c;
 	uint8_t lowestAllowed, highestAllowed;
@@ -172,7 +173,7 @@ const char *utf8DecodeRune(const char *s, size_t nElem, uint32_t *rune)
 }
 
 // encoded must have at most 2 elements
-size_t utf16EncodeRune(uint32_t rune, uint16_t *encoded)
+size_t uiprivUTF16EncodeRune(uint32_t rune, uint16_t *encoded)
 {
 	uint16_t low, high;
 
@@ -198,7 +199,7 @@ size_t utf16EncodeRune(uint32_t rune, uint16_t *encoded)
 }
 
 // TODO see if this can be cleaned up somehow
-const uint16_t *utf16DecodeRune(const uint16_t *s, size_t nElem, uint32_t *rune)
+const uint16_t *uiprivUTF16DecodeRune(const uint16_t *s, size_t nElem, uint32_t *rune)
 {
 	uint16_t high, low;
 
@@ -240,7 +241,7 @@ const uint16_t *utf16DecodeRune(const uint16_t *s, size_t nElem, uint32_t *rune)
 
 // TODO find a way to reduce the code in all of these somehow
 // TODO find a way to remove u as well
-size_t utf8RuneCount(const char *s, size_t nElem)
+size_t uiprivUTF8RuneCount(const char *s, size_t nElem)
 {
 	size_t len;
 	uint32_t rune;
@@ -251,7 +252,7 @@ size_t utf8RuneCount(const char *s, size_t nElem)
 		len = 0;
 		t = s;
 		while (nElem != 0) {
-			u = utf8DecodeRune(t, nElem, &rune);
+			u = uiprivUTF8DecodeRune(t, nElem, &rune);
 			len++;
 			nElem -= u - t;
 			t = u;
@@ -260,13 +261,13 @@ size_t utf8RuneCount(const char *s, size_t nElem)
 	}
 	len = 0;
 	while (*s) {
-		s = utf8DecodeRune(s, nElem, &rune);
+		s = uiprivUTF8DecodeRune(s, nElem, &rune);
 		len++;
 	}
 	return len;
 }
 
-size_t utf8UTF16Count(const char *s, size_t nElem)
+size_t uiprivUTF8UTF16Count(const char *s, size_t nElem)
 {
 	size_t len;
 	uint32_t rune;
@@ -278,8 +279,8 @@ size_t utf8UTF16Count(const char *s, size_t nElem)
 		len = 0;
 		t = s;
 		while (nElem != 0) {
-			u = utf8DecodeRune(t, nElem, &rune);
-			len += utf16EncodeRune(rune, encoded);
+			u = uiprivUTF8DecodeRune(t, nElem, &rune);
+			len += uiprivUTF16EncodeRune(rune, encoded);
 			nElem -= u - t;
 			t = u;
 		}
@@ -287,13 +288,13 @@ size_t utf8UTF16Count(const char *s, size_t nElem)
 	}
 	len = 0;
 	while (*s) {
-		s = utf8DecodeRune(s, nElem, &rune);
-		len += utf16EncodeRune(rune, encoded);
+		s = uiprivUTF8DecodeRune(s, nElem, &rune);
+		len += uiprivUTF16EncodeRune(rune, encoded);
 	}
 	return len;
 }
 
-size_t utf16RuneCount(const uint16_t *s, size_t nElem)
+size_t uiprivUTF16RuneCount(const uint16_t *s, size_t nElem)
 {
 	size_t len;
 	uint32_t rune;
@@ -304,7 +305,7 @@ size_t utf16RuneCount(const uint16_t *s, size_t nElem)
 		len = 0;
 		t = s;
 		while (nElem != 0) {
-			u = utf16DecodeRune(t, nElem, &rune);
+			u = uiprivUTF16DecodeRune(t, nElem, &rune);
 			len++;
 			nElem -= u - t;
 			t = u;
@@ -313,13 +314,13 @@ size_t utf16RuneCount(const uint16_t *s, size_t nElem)
 	}
 	len = 0;
 	while (*s) {
-		s = utf16DecodeRune(s, nElem, &rune);
+		s = uiprivUTF16DecodeRune(s, nElem, &rune);
 		len++;
 	}
 	return len;
 }
 
-size_t utf16UTF8Count(const uint16_t *s, size_t nElem)
+size_t uiprivUTF16UTF8Count(const uint16_t *s, size_t nElem)
 {
 	size_t len;
 	uint32_t rune;
@@ -331,8 +332,8 @@ size_t utf16UTF8Count(const uint16_t *s, size_t nElem)
 		len = 0;
 		t = s;
 		while (nElem != 0) {
-			u = utf16DecodeRune(t, nElem, &rune);
-			len += utf8EncodeRune(rune, encoded);
+			u = uiprivUTF16DecodeRune(t, nElem, &rune);
+			len += uiprivUTF8EncodeRune(rune, encoded);
 			nElem -= u - t;
 			t = u;
 		}
@@ -340,8 +341,8 @@ size_t utf16UTF8Count(const uint16_t *s, size_t nElem)
 	}
 	len = 0;
 	while (*s) {
-		s = utf16DecodeRune(s, nElem, &rune);
-		len += utf8EncodeRune(rune, encoded);
+		s = uiprivUTF16DecodeRune(s, nElem, &rune);
+		len += uiprivUTF8EncodeRune(rune, encoded);
 	}
 	return len;
 }

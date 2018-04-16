@@ -93,11 +93,11 @@ static void u8u16len(const char *str, size_t *n8, size_t *n16)
 	*n8 = 0;
 	*n16 = 0;
 	while (*str) {
-		str = utf8DecodeRune(str, 0, &rune);
+		str = uiprivUTF8DecodeRune(str, 0, &rune);
 		// TODO document the use of the function vs a pointer subtract here
 		// TODO also we need to consider namespace collision with utf.h...
-		*n8 += utf8EncodeRune(rune, buf);
-		*n16 += utf16EncodeRune(rune, buf16);
+		*n8 += uiprivUTF8EncodeRune(rune, buf);
+		*n16 += uiprivUTF16EncodeRune(rune, buf16);
 	}
 }
 
@@ -179,9 +179,9 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 	while (*str) {
 		size_t n;
 
-		str = utf8DecodeRune(str, 0, &rune);
-		n = utf8EncodeRune(rune, buf);
-		n16 = utf16EncodeRune(rune, buf16);
+		str = uiprivUTF8DecodeRune(str, 0, &rune);
+		n = uiprivUTF8EncodeRune(rune, buf);
+		n16 = uiprivUTF16EncodeRune(rune, buf16);
 		s->s[old] = buf[0];
 		s->u8tou16[old] = old16;
 		if (n > 1) {

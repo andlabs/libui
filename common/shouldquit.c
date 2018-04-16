@@ -16,7 +16,7 @@ void uiOnShouldQuit(int (*f)(void *), void *data)
 	onShouldQuitData = data;
 }
 
-int shouldQuit(void)
+int uiprivShouldQuit(void)
 {
 	return (*onShouldQuit)(onShouldQuitData);
 }

@@ -1,7 +1,4 @@
 
-// shouldquit.c
-extern int shouldQuit(void);
-
 // areaevents.c
 typedef struct clickCounter clickCounter;
 // you should call Reset() to zero-initialize a new instance

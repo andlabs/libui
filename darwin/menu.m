@@ -71,7 +71,7 @@ static void mapItemReleaser(void *key, void *value)
 
 - (IBAction)onQuitClicked:(id)sender
 {
-	if (shouldQuit())
+	if (uiprivShouldQuit())
 		uiQuit();
 }
 

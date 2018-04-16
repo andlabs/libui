@@ -81,7 +81,7 @@ static void defaultOnClicked(uiMenuItem *item, uiWindow *w, void *data)
 
 static void onQuitClicked(uiMenuItem *item, uiWindow *w, void *data)
 {
-	if (shouldQuit())
+	if (uiprivShouldQuit())
 		uiQuit();
 }
 

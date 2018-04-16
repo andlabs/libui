@@ -32,7 +32,7 @@ char *toUTF8(const WCHAR *wstr)
 
 	if (*wstr == L'\0')		// empty string
 		return emptyUTF8();
-	n = uiprivUTF16RuneCount(wstr, 0);
+	n = uiprivUTF16UTF8Count(wstr, 0);
 	str = (char *) uiprivAlloc((n + 1) * sizeof (char), "char[]");
 	sp = str;
 	while (*wstr) {

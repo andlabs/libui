@@ -59,7 +59,7 @@ HRESULT _logHRESULT(debugargs, const WCHAR *s, HRESULT hr)
 	return hr;
 }
 
-void realbug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap)
+void uiprivRealBug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap)
 {
 	va_list ap2;
 	char *msg;

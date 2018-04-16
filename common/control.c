@@ -73,7 +73,7 @@ uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const c
 void uiFreeControl(uiControl *c)
 {
 	if (uiControlParent(c) != NULL)
-		userbug("You cannot destroy a uiControl while it still has a parent. (control: %p)", c);
+		uiprivUserBug("You cannot destroy a uiControl while it still has a parent. (control: %p)", c);
 	uiprivFree(c);
 }
 
@@ -82,12 +82,12 @@ void uiControlVerifySetParent(uiControl *c, uiControl *parent)
 	uiControl *curParent;
 
 	if (uiControlToplevel(c))
-		userbug("You cannot give a toplevel uiControl a parent. (control: %p)", c);
+		uiprivUserBug("You cannot give a toplevel uiControl a parent. (control: %p)", c);
 	curParent = uiControlParent(c);
 	if (parent != NULL && curParent != NULL)
-		userbug("You cannot give a uiControl a parent while it already has one. (control: %p; current parent: %p; new parent: %p)", c, curParent, parent);
+		uiprivUserBug("You cannot give a uiControl a parent while it already has one. (control: %p; current parent: %p; new parent: %p)", c, curParent, parent);
 	if (parent == NULL && curParent == NULL)
-		implbug("attempt to double unparent uiControl %p", c);
+		uiprivImplBug("attempt to double unparent uiControl %p", c);
 }
 
 int uiControlEnabledToUser(uiControl *c)

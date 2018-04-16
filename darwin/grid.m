@@ -574,7 +574,7 @@ struct uiGrid {
 			break;
 		}
 	if (!found)
-		userbug("Existing control %p is not in grid %p; you cannot add other controls next to it", c, self->g);
+		uiprivUserBug("Existing control %p is not in grid %p; you cannot add other controls next to it", c, self->g);
 
 	switch (at) {
 	case uiAtLeading:
@@ -742,9 +742,9 @@ static gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand, uiAli
 	gridChild *gc;
 
 	if (xspan < 0)
-		userbug("You cannot have a negative xspan in a uiGrid cell.");
+		uiprivUserBug("You cannot have a negative xspan in a uiGrid cell.");
 	if (yspan < 0)
-		userbug("You cannot have a negative yspan in a uiGrid cell.");
+		uiprivUserBug("You cannot have a negative yspan in a uiGrid cell.");
 	gc = [gridChild new];
 	gc.xspan = xspan;
 	gc.yspan = yspan;
@@ -763,7 +763,7 @@ void uiGridAppend(uiGrid *g, uiControl *c, int left, int top, int xspan, int ysp
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		userbug("You cannot add NULL to a uiGrid.");
+		uiprivUserBug("You cannot add NULL to a uiGrid.");
 	gc = toChild(c, xspan, yspan, hexpand, halign, vexpand, valign, g);
 	gc.left = left;
 	gc.top = top;

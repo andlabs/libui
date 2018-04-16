@@ -37,7 +37,7 @@ void uninitAlloc(void)
 		ptr = [v pointerValue];
 		[str appendString:[NSString stringWithFormat:@"%p %s\n", ptr, *TYPE(ptr)]];
 	}
-	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", [str UTF8String]);
+	uiprivUserBug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", [str UTF8String]);
 	[str release];
 }
 
@@ -82,7 +82,7 @@ void *uiprivRealloc(void *p, size_t new, const char *type)
 void uiprivFree(void *p)
 {
 	if (p == NULL)
-		implbug("attempt to uiprivFree(NULL)");
+		uiprivImplBug("attempt to uiprivFree(NULL)");
 	p = BASE(p);
 	free(p);
 	[allocations removeObject:[NSValue valueWithPointer:p]];

@@ -22,7 +22,7 @@ void uninitAlloc(void)
 		// note the void * cast; otherwise it'll be treated as a string
 		oss << (void *) (alloc.first) << " " << types[alloc.second] << "\n";
 	ossstr = oss.str();
-	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", ossstr.c_str());
+	uiprivUserBug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", ossstr.c_str());
 }
 
 #define rawBytes(pa) (&((*pa)[0]))
@@ -57,7 +57,7 @@ void uiprivFree(void *_p)
 	uint8_t *p = (uint8_t *) _p;
 
 	if (p == NULL)
-		implbug("attempt to uiprivFree(NULL)");
+		uiprivImplBug("attempt to uiprivFree(NULL)");
 	types.erase(heap[p]);
 	delete heap[p];
 	heap.erase(p);

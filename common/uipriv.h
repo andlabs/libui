@@ -8,24 +8,30 @@
 extern "C" {
 #endif
 
+// OS-specific init.* or main.* files
 extern uiInitOptions uiprivOptions;
 
+// OS-specific alloc.* files
 extern void *uiprivAlloc(size_t, const char *);
 #define uiprivNew(T) ((T *) uiprivAlloc(sizeof (T), #T))
 extern void *uiprivRealloc(void *, size_t, const char *);
 extern void uiprivFree(void *);
 
-// ugh, this was only introduced in MSVC 2015...
+// debug.c and OS-specific debug.* files
+// TODO get rid of this mess...
+// ugh, __func__ was only introduced in MSVC 2015...
 #ifdef _MSC_VER
-#define __func__ __FUNCTION__
+#define uiprivMacro__func__ __FUNCTION__
+#else
+#define uiprivMacro__func__ __func__
 #endif
-extern void realbug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap);
-#define _ns2(s) #s
-#define _ns(s) _ns2(s)
-extern void _implbug(const char *file, const char *line, const char *func, const char *format, ...);
-#define implbug(...) _implbug(__FILE__, _ns(__LINE__), __func__, __VA_ARGS__)
-extern void _userbug(const char *file, const char *line, const char *func, const char *format, ...);
-#define userbug(...) _userbug(__FILE__, _ns(__LINE__), __func__, __VA_ARGS__)
+extern void uiprivRealBug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap);
+#define uiprivMacro_ns2(s) #s
+#define uiprivMacro_ns(s) uiprivMacro_ns2(s)
+extern void uiprivDoImplBug(const char *file, const char *line, const char *func, const char *format, ...);
+#define uiprivImplBug(...) uiprivDoImplBug(__FILE__, uiprivMacro_ns(__LINE__), uiprivMacro__func__, __VA_ARGS__)
+extern void uiprivDoUserBug(const char *file, const char *line, const char *func, const char *format, ...);
+#define uiprivUserBug(...) uiprivDoUserBug(__FILE__, uiprivMacro_ns(__LINE__), uiprivMacro__func__, __VA_ARGS__)
 
 // control.c
 extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr);

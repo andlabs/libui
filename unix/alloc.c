@@ -39,7 +39,7 @@ void uninitAlloc(void)
 		return;
 	}
 	g_ptr_array_foreach(allocations, uninitComplain, &str);
-	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", str);
+	uiprivUserBug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", str);
 	g_free(str);
 }
 
@@ -68,7 +68,7 @@ void *uiprivRealloc(void *p, size_t new, const char *type)
 		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);
 	*s = new;
 	if (g_ptr_array_remove(allocations, p) == FALSE)
-		implbug("%p not found in allocations array in uiprivRealloc()", p);
+		uiprivImplBug("%p not found in allocations array in uiprivRealloc()", p);
 	g_ptr_array_add(allocations, out);
 	return DATA(out);
 }
@@ -76,9 +76,9 @@ void *uiprivRealloc(void *p, size_t new, const char *type)
 void uiprivFree(void *p)
 {
 	if (p == NULL)
-		implbug("attempt to uiprivFree(NULL)");
+		uiprivImplBug("attempt to uiprivFree(NULL)");
 	p = BASE(p);
 	g_free(p);
 	if (g_ptr_array_remove(allocations, p) == FALSE)
-		implbug("%p not found in allocations array in uiprivFree()", p);
+		uiprivImplBug("%p not found in allocations array in uiprivFree()", p);
 }

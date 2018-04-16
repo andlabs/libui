@@ -562,9 +562,9 @@ static struct gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand
 	struct gridChild *gc;
 
 	if (xspan < 0)
-		userbug("You cannot have a negative xspan in a uiGrid cell.");
+		uiprivUserBug("You cannot have a negative xspan in a uiGrid cell.");
 	if (yspan < 0)
-		userbug("You cannot have a negative yspan in a uiGrid cell.");
+		uiprivUserBug("You cannot have a negative yspan in a uiGrid cell.");
 	gc = uiprivNew(struct gridChild);
 	gc->c = c;
 	gc->xspan = xspan;

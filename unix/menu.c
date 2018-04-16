@@ -109,7 +109,7 @@ void uiMenuItemDisable(uiMenuItem *item)
 void uiMenuItemOnClicked(uiMenuItem *item, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)
 {
 	if (item->type == typeQuit)
-		userbug("You cannot call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead.");
+		uiprivUserBug("You cannot call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead.");
 	item->onClicked = f;
 	item->onClickedData = data;
 }
@@ -135,7 +135,7 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 	uiMenuItem *item;
 
 	if (menusFinalized)
-		userbug("You cannot create a new menu item after menus have been finalized.");
+		uiprivUserBug("You cannot create a new menu item after menus have been finalized.");
 
 	item = uiprivNew(uiMenuItem);
 
@@ -196,7 +196,7 @@ uiMenuItem *uiMenuAppendCheckItem(uiMenu *m, const char *name)
 uiMenuItem *uiMenuAppendQuitItem(uiMenu *m)
 {
 	if (hasQuit)
-		userbug("You cannot have multiple Quit menu items in the same program.");
+		uiprivUserBug("You cannot have multiple Quit menu items in the same program.");
 	hasQuit = TRUE;
 	newItem(m, typeSeparator, NULL);
 	return newItem(m, typeQuit, NULL);
@@ -205,7 +205,7 @@ uiMenuItem *uiMenuAppendQuitItem(uiMenu *m)
 uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m)
 {
 	if (hasPreferences)
-		userbug("You cannot have multiple Preferences menu items in the same program.");
+		uiprivUserBug("You cannot have multiple Preferences menu items in the same program.");
 	hasPreferences = TRUE;
 	newItem(m, typeSeparator, NULL);
 	return newItem(m, typePreferences, NULL);
@@ -214,7 +214,7 @@ uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m)
 uiMenuItem *uiMenuAppendAboutItem(uiMenu *m)
 {
 	if (hasAbout)
-		userbug("You cannot have multiple About menu items in the same program.");
+		uiprivUserBug("You cannot have multiple About menu items in the same program.");
 	hasAbout = TRUE;
 	newItem(m, typeSeparator, NULL);
 	return newItem(m, typeAbout, NULL);
@@ -230,7 +230,7 @@ uiMenu *uiNewMenu(const char *name)
 	uiMenu *m;
 
 	if (menusFinalized)
-		userbug("You cannot create a new menu after menus have been finalized.");
+		uiprivUserBug("You cannot create a new menu after menus have been finalized.");
 	if (menus == NULL)
 		menus = g_array_new(FALSE, TRUE, sizeof (uiMenu *));
 
@@ -308,7 +308,7 @@ static void freeMenuItem(GtkWidget *widget, gpointer data)
 	item = g_array_index(fmi->items, uiMenuItem *, fmi->i);
 	w = (struct menuItemWindow *) g_hash_table_lookup(item->windows, widget);
 	if (g_hash_table_remove(item->windows, widget) == FALSE)
-		implbug("GtkMenuItem %p not in menu item's item/window map", widget);
+		uiprivImplBug("GtkMenuItem %p not in menu item's item/window map", widget);
 	uiprivFree(w);
 	fmi->i++;
 }
@@ -353,8 +353,8 @@ void uninitMenus(void)
 		for (j = 0; j < m->items->len; j++) {
 			item = g_array_index(m->items, uiMenuItem *, j);
 			if (g_hash_table_size(item->windows) != 0)
-				// TODO is this really a userbug()?
-				implbug("menu item %p (%s) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
+				// TODO is this really a uiprivUserBug()?
+				uiprivImplBug("menu item %p (%s) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
 			g_free(item->name);
 			g_hash_table_destroy(item->windows);
 			uiprivFree(item);

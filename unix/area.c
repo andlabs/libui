@@ -499,7 +499,7 @@ uiUnixControlAllDefaults(uiArea)
 void uiAreaSetSize(uiArea *a, int width, int height)
 {
 	if (!a->scrolling)
-		userbug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
+		uiprivUserBug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
 	a->scrollWidth = width;
 	a->scrollHeight = height;
 	gtk_widget_queue_resize(a->areaWidget);
@@ -521,7 +521,7 @@ void uiAreaBeginUserWindowMove(uiArea *a)
 	GtkWidget *toplevel;
 
 	if (a->dragevent == NULL)
-		userbug("cannot call uiAreaBeginUserWindowMove() outside of a Mouse() with Down != 0");
+		uiprivUserBug("cannot call uiAreaBeginUserWindowMove() outside of a Mouse() with Down != 0");
 	// TODO don't we have a libui function for this? did I scrap it?
 	// TODO widget or areaWidget?
 	toplevel = gtk_widget_get_toplevel(a->widget);
@@ -561,7 +561,7 @@ void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 	GtkWidget *toplevel;
 
 	if (a->dragevent == NULL)
-		userbug("cannot call uiAreaBeginUserWindowResize() outside of a Mouse() with Down != 0");
+		uiprivUserBug("cannot call uiAreaBeginUserWindowResize() outside of a Mouse() with Down != 0");
 	// TODO don't we have a libui function for this? did I scrap it?
 	// TODO widget or areaWidget?
 	toplevel = gtk_widget_get_toplevel(a->widget);

@@ -22,7 +22,7 @@ struct mapTable *newMap(void)
 void mapDestroy(struct mapTable *m)
 {
 	if ([m->m count] != 0)
-		implbug("attempt to destroy map with items inside");
+		uiprivImplBug("attempt to destroy map with items inside");
 	[m->m release];
 	uiprivFree(m);
 }

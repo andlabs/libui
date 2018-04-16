@@ -87,7 +87,7 @@ void uiMenuItemDisable(uiMenuItem *i)
 void uiMenuItemOnClicked(uiMenuItem *i, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)
 {
 	if (i->type == typeQuit)
-		userbug("You can not call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead.");
+		uiprivUserBug("You can not call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead.");
 	i->onClicked = f;
 	i->onClickedData = data;
 }
@@ -111,7 +111,7 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 	uiMenuItem *item;
 
 	if (menusFinalized)
-		userbug("You can not create a new menu item after menus have been finalized.");
+		uiprivUserBug("You can not create a new menu item after menus have been finalized.");
 
 	if (m->len >= m->cap) {
 		m->cap += grow;
@@ -169,7 +169,7 @@ uiMenuItem *uiMenuAppendCheckItem(uiMenu *m, const char *name)
 uiMenuItem *uiMenuAppendQuitItem(uiMenu *m)
 {
 	if (hasQuit)
-		userbug("You can not have multiple Quit menu items in a program.");
+		uiprivUserBug("You can not have multiple Quit menu items in a program.");
 	hasQuit = TRUE;
 	newItem(m, typeSeparator, NULL);
 	return newItem(m, typeQuit, NULL);
@@ -178,7 +178,7 @@ uiMenuItem *uiMenuAppendQuitItem(uiMenu *m)
 uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m)
 {
 	if (hasPreferences)
-		userbug("You can not have multiple Preferences menu items in a program.");
+		uiprivUserBug("You can not have multiple Preferences menu items in a program.");
 	hasPreferences = TRUE;
 	newItem(m, typeSeparator, NULL);
 	return newItem(m, typePreferences, NULL);
@@ -187,8 +187,8 @@ uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m)
 uiMenuItem *uiMenuAppendAboutItem(uiMenu *m)
 {
 	if (hasAbout)
-		// TODO place these userbug strings in a header
-		userbug("You can not have multiple About menu items in a program.");
+		// TODO place these uiprivImplBug() and uiprivUserBug() strings in a header
+		uiprivUserBug("You can not have multiple About menu items in a program.");
 	hasAbout = TRUE;
 	newItem(m, typeSeparator, NULL);
 	return newItem(m, typeAbout, NULL);
@@ -204,7 +204,7 @@ uiMenu *uiNewMenu(const char *name)
 	uiMenu *m;
 
 	if (menusFinalized)
-		userbug("You can not create a new menu after menus have been finalized.");
+		uiprivUserBug("You can not create a new menu after menus have been finalized.");
 	if (len >= cap) {
 		cap += grow;
 		menus = (uiMenu **) uiprivRealloc(menus, cap * sizeof (uiMenu *), "uiMenu *[]");
@@ -293,7 +293,7 @@ void runMenuEvent(WORD id, uiWindow *w)
 		}
 	}
 	// no match
-	implbug("unknown menu ID %hu in runMenuEvent()", id);
+	uiprivImplBug("unknown menu ID %hu in runMenuEvent()", id);
 
 found:
 	// first toggle checkboxes, if any
@@ -316,7 +316,7 @@ static void freeMenu(uiMenu *m, HMENU submenu)
 			if (item->hmenus[j] == submenu)
 				break;
 		if (j >= item->len)
-			implbug("submenu handle %p not found in freeMenu()", submenu);
+			uiprivImplBug("submenu handle %p not found in freeMenu()", submenu);
 		for (; j < item->len - 1; j++)
 			item->hmenus[j] = item->hmenus[j + 1];
 		item->hmenus[j] = NULL;
@@ -352,8 +352,8 @@ void uninitMenus(void)
 		for (j = 0; j < m->len; j++) {
 			item = m->items[j];
 			if (item->len != 0)
-				// LONGTERM userbug()?
-				implbug("menu item %p (%ws) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
+				// LONGTERM uiprivUserBug()?
+				uiprivImplBug("menu item %p (%ws) still has uiWindows attached; did you forget to destroy some windows?", item, item->name);
 			if (item->name != NULL)
 				uiprivFree(item->name);
 			if (item->hmenus != NULL)

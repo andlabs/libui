@@ -57,7 +57,7 @@ static BOOL stepsIsRunning;
 	NSEvent *e;
 
 	if (!canQuit)
-		implbug("call to [NSApp terminate:] when not ready to terminate; definitely contact andlabs");
+		uiprivImplBug("call to [NSApp terminate:] when not ready to terminate; definitely contact andlabs");
 
 	[realNSApp() stop:realNSApp()];
 	// stop: won't register until another event has passed; let's synthesize one
@@ -139,9 +139,8 @@ const char *uiInit(uiInitOptions *o)
 
 void uiUninit(void)
 {
-	if (!globalPool) {
-		userbug("You must call uiInit() first!");
-	}
+	if (!globalPool)
+		uiprivUserBug("You must call uiInit() first!");
 	[globalPool release];
 
 	@autoreleasepool {

@@ -120,7 +120,7 @@ void freeContext(uiDrawContext *c)
 		c->currentClip->Release();
 	if (c->states->size() != 0)
 		// TODO do this on other platforms
-		userbug("You did not balance uiDrawSave() and uiDrawRestore() calls.");
+		uiprivUserBug("You did not balance uiDrawSave() and uiDrawRestore() calls.");
 	delete c->states;
 	uiprivFree(c);
 }
@@ -253,7 +253,7 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 	}
 
 	// TODO do this on all platforms
-	userbug("Invalid brush type %d given to drawing operation.", b->Type);
+	uiprivUserBug("Invalid brush type %d given to drawing operation.", b->Type);
 	// TODO dummy brush?
 	return NULL;		// make compiler happy
 }

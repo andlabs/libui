@@ -258,15 +258,15 @@ void uiQueueMain(void (*f)(void *data), void *data)
 {
         self = [super init];
         if (self) {
-                f = callback;
-                data = callbackData;
+                self->f = callback;
+                self->data = callbackData;
         }
         return self;
 }
 
 - (void)doTimer:(NSTimer *)timer
 {
-        if (!f(data))
+        if (!self->f(self->data))
                 [timer invalidate];
 }
 

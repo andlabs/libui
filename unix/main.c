@@ -119,7 +119,7 @@ static gboolean dotimer(gpointer data)
         if((*(t->f))(t->data))
                 return TRUE;
         else {
-                g_free(t);
+                uiFree(t);
                 return FALSE;
         }
 }
@@ -128,7 +128,7 @@ void uiTimer(int milliseconds, int (*f)(void *data), void *data)
 {
         struct timer *t;
 
-        t = g_new0(struct timer, 1);
+        t = uiNew(struct timer);
         t->f = f;
         t->data = data;
         g_timeout_add(milliseconds, dotimer, t);

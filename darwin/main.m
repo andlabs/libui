@@ -244,7 +244,7 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	dispatch_async_f(dispatch_get_main_queue(), data, f);
 }
 
-@interface TimerDelegate : NSObject {
+@interface uiprivTimerDelegate : NSObject {
         int (*f)(void *data);
         void *data;
 }
@@ -252,7 +252,7 @@ void uiQueueMain(void (*f)(void *data), void *data)
 - (void)doTimer:(NSTimer *)timer;
 @end
 
-@implementation TimerDelegate
+@implementation uiprivTimerDelegate
 
 - (id)initWithCallback:(int (*)(void *))callback data:(void*)callbackData
 {
@@ -274,9 +274,9 @@ void uiQueueMain(void (*f)(void *data), void *data)
 
 void uiTimer(int milliseconds, int (*f)(void *data), void *data)
 {
-        TimerDelegate *delegate;
+        uiprivTimerDelegate *delegate;
 
-        delegate = [[TimerDelegate alloc] initWithCallback:f data:data];
+        delegate = [[uiprivTimerDelegate alloc] initWithCallback:f data:data];
         [NSTimer scheduledTimerWithTimeInterval:milliseconds / 1000.0
                 target:delegate
                 selector:@selector(doTimer:)

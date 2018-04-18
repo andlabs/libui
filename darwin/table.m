@@ -186,7 +186,7 @@ done:
 			break;
 	}
 	if (row == -1)
-		implbug("table model action triggered on view with no associated table");
+		uiprivImplBug("table model action triggered on view with no associated table");
 
 	if ([view isKindOfClass:[NSTextField class]])
 		data = [[((NSTextField *) view) stringValue] UTF8String];
@@ -200,7 +200,7 @@ done:
 if(1);		else
 			data = NULL;
 	} else
-		implbug("table model editing action triggered on non-editable view");
+		uiprivImplBug("table model editing action triggered on non-editable view");
 
 	// note the use of [view tag] — we need the model column, which we store in the view tag for relevant views below
 	(*(m->mh->SetCellValue))(m->mh, m,
@@ -240,7 +240,7 @@ if(1);		else
 	case partText:
 		data = (*(m->mh->CellValue))(m->mh, m, row, self.textColumn);
 		str = toNSString((char *) data);
-		uiFree(data);
+		uiprivFree(data);
 		tf = newLabel(str);
 		// TODO set wrap and ellipsize modes?
 		if (self.textColorColumn != -1) {
@@ -364,7 +364,7 @@ void *uiTableModelStrdup(const char *str)
 	// TODO don't we have this already?
 	char *dup;
 
-	dup = (char *) uiAlloc((strlen(str) + 1) * sizeof (char), "char[]");
+	dup = (char *) uiprivAlloc((strlen(str) + 1) * sizeof (char), "char[]");
 	strcpy(dup, str);
 	return dup;
 }
@@ -373,7 +373,7 @@ uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 {
 	uiTableModel *m;
 
-	m = uiNew(uiTableModel);
+	m = uiprivNew(uiTableModel);
 	m->mh = mh;
 	m->m = [[tableModel alloc] initWithModel:m];
 	m->tables = [NSMutableArray new];
@@ -388,10 +388,10 @@ void *uiTableModelGiveColor(double r, double g, double b, double a)
 void uiFreeTableModel(uiTableModel *m)
 {
 	if ([m->tables count] != 0)
-		userbug("You cannot free a uiTableModel while uiTables are using it.");
+		uiprivUserBug("You cannot free a uiTableModel while uiTables are using it.");
 	[m->tables release];
 	[m->m release];
-	uiFree(m);
+	uiprivFree(m);
 }
 
 void uiTableModelRowInserted(uiTableModel *m, int newIndex)
@@ -519,7 +519,7 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 {
 	uiTableColumn *c;
 
-	c = uiNew(uiTableColumn);
+	c = uiprivNew(uiTableColumn);
 	c->c = [[tableColumn alloc] initWithIdentifier:@""];
 	c->c.libui_col = c;
 	// via Interface Builder

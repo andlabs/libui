@@ -390,7 +390,7 @@ int sendAreaEvents(NSEvent *e)
 void uiAreaSetSize(uiArea *a, int width, int height)
 {
 	if (!a->scrolling)
-		userbug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
+		uiprivUserBug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
 	[a->area setScrollingSize:NSMakeSize(width, height)];
 }
 
@@ -402,7 +402,7 @@ void uiAreaQueueRedrawAll(uiArea *a)
 void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 {
 	if (!a->scrolling)
-		userbug("You cannot call uiAreaScrollTo() on a non-scrolling uiArea. (area: %p)", a);
+		uiprivUserBug("You cannot call uiAreaScrollTo() on a non-scrolling uiArea. (area: %p)", a);
 	[a->area scrollRectToVisible:NSMakeRect(x, y, width, height)];
 	// don't worry about the return value; it just says whether scrolling was needed
 }

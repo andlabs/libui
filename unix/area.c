@@ -19,7 +19,7 @@ struct areaWidget {
 	// construct-only parameters aare not set until after the init() function has returned
 	// we need this particular object available during init(), so put it here instead of in uiArea
 	// keep a pointer in uiArea for convenience, though
-	clickCounter cc;
+	uiprivClickCounter cc;
 };
 
 struct areaWidgetClass {
@@ -45,7 +45,7 @@ struct uiArea {
 	int scrollHeight;
 
 	// note that this is a pointer; see above
-	clickCounter *cc;
+	uiprivClickCounter *cc;
 
 	// for user window drags
 	GdkEventButton *dragevent;
@@ -68,7 +68,7 @@ static void areaWidget_init(areaWidget *aw)
 
 	gtk_widget_set_can_focus(GTK_WIDGET(aw), TRUE);
 
-	clickCounterReset(&(aw->cc));
+	uiprivClickCounterReset(&(aw->cc));
 }
 
 static void areaWidget_dispose(GObject *obj)
@@ -92,6 +92,9 @@ static void areaWidget_size_allocate(GtkWidget *w, GtkAllocation *allocation)
 
 	if (!a->scrolling)
 		// we must redraw everything on resize because Windows requires it
+		// TODO https://developer.gnome.org/gtk3/3.10/GtkWidget.html#gtk-widget-set-redraw-on-allocate ?
+		// TODO drop this rule; it was stupid and documenting this was stupid — let platforms where it matters do it on their own
+		// TODO or do we not, for parity of performance?
 		gtk_widget_queue_resize(w);
 }
 
@@ -119,7 +122,8 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	uiAreaDrawParams dp;
 	double clipX0, clipY0, clipX1, clipY1;
 
-	dp.Context = newContext(cr);
+	dp.Context = newContext(cr,
+		gtk_widget_get_style_context(a->widget));
 
 	loadAreaSize(a, &(dp.AreaWidth), &(dp.AreaHeight));
 
@@ -257,7 +261,7 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 	// e->time is guint32
 	// e->x and e->y are floating-point; just make them 32-bit integers
 	// maxTime and maxDistance... are gint, which *should* fit, hopefully...
-	me.Count = clickCounterClick(a->cc, me.Down,
+	me.Count = uiprivClickCounterClick(a->cc, me.Down,
 		e->x, e->y,
 		e->time, maxTime,
 		maxDistance, maxDistance);
@@ -305,7 +309,7 @@ static gboolean onCrossing(areaWidget *aw, int left)
 	uiArea *a = aw->a;
 
 	(*(a->ah->MouseCrossed))(a->ah, a, left);
-	clickCounterReset(a->cc);
+	uiprivClickCounterReset(a->cc);
 	return GDK_EVENT_PROPAGATE;
 }
 
@@ -407,7 +411,7 @@ static int areaKeyEvent(uiArea *a, int up, GdkEventKey *e)
 			goto keyFound;
 		}
 
-	if (fromScancode(e->hardware_keycode - 8, &ke))
+	if (uiprivFromScancode(e->hardware_keycode - 8, &ke))
 		goto keyFound;
 
 	// no supported key found; treat as unhandled
@@ -495,7 +499,7 @@ uiUnixControlAllDefaults(uiArea)
 void uiAreaSetSize(uiArea *a, int width, int height)
 {
 	if (!a->scrolling)
-		userbug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
+		uiprivUserBug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
 	a->scrollWidth = width;
 	a->scrollHeight = height;
 	gtk_widget_queue_resize(a->areaWidget);
@@ -517,7 +521,7 @@ void uiAreaBeginUserWindowMove(uiArea *a)
 	GtkWidget *toplevel;
 
 	if (a->dragevent == NULL)
-		userbug("cannot call uiAreaBeginUserWindowMove() outside of a Mouse() with Down != 0");
+		uiprivUserBug("cannot call uiAreaBeginUserWindowMove() outside of a Mouse() with Down != 0");
 	// TODO don't we have a libui function for this? did I scrap it?
 	// TODO widget or areaWidget?
 	toplevel = gtk_widget_get_toplevel(a->widget);
@@ -557,7 +561,7 @@ void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 	GtkWidget *toplevel;
 
 	if (a->dragevent == NULL)
-		userbug("cannot call uiAreaBeginUserWindowResize() outside of a Mouse() with Down != 0");
+		uiprivUserBug("cannot call uiAreaBeginUserWindowResize() outside of a Mouse() with Down != 0");
 	// TODO don't we have a libui function for this? did I scrap it?
 	// TODO widget or areaWidget?
 	toplevel = gtk_widget_get_toplevel(a->widget);

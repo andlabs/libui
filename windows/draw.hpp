@@ -1,5 +1,7 @@
 // 5 may 2016
 
+// TODO resolve overlap between this and the other hpp files (some functions leaked into uipriv_windows.hpp)
+
 // draw.cpp
 extern ID2D1Factory *d2dfactory;
 struct uiDrawContext {

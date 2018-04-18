@@ -1,6 +1,8 @@
 // 6 december 2015
 #include "uipriv_unix.h"
 
+// TODO GTK_WRAP_WORD_CHAR to avoid spurious resizes?
+
 struct uiMultilineEntry {
 	uiUnixControl c;
 	GtkWidget *widget;

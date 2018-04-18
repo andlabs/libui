@@ -428,7 +428,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		userbug("You cannot add NULL to a uiBox.");
+		uiprivUserBug("You cannot add NULL to a uiBox.");
 	[b->view append:c stretchy:stretchy];
 }
 

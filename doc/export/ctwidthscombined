@@ -1,0 +1,77 @@
+-0.100000
+	style string contains "Semi Cond"
+	style string contains "Semi Condensed"; unregistered fonts only (see below)
+	style string contains "SemiCondensed"
+	OS2 width 4
+
+-0.200000
+	('head' table byte 0x2d) & 0x20 != 0
+	ATSD style "cond"
+	panose 6
+	style string contains "Cond"
+	style string contains "Condensed"
+	OS2 width 3
+
+-0.400000
+	panose 8
+	style string contains "Compact"
+	style string contains "Narrow"
+
+-0.500000
+	style string contains "Compressed"
+	style string contains "Ext Cond"
+	style string contains "Ext Condensed"
+	style string contains "Extra Cond"
+	style string contains "Extra Condensed"
+	style string contains "Extra Narrow"
+	style string contains "ExtraNarrow"
+	OS2 width 2
+
+-0.700000
+	style string contains "Ext Compressed"
+	style string contains "Extra Compressed"
+	style string contains "Semi Condensed" (this is probably a typo, since another "Semi Condensed" with a value of -0.1 follows this in the table it comes from); registered fonts only
+	style string contains "Thin"
+	style string contains "Ultra Compressed"
+	style string contains "Ultra Cond"
+	style string contains "Ultra Condensed"
+	OS2 width 1
+
+0.000000
+	default
+	ATSD style "med"
+	panose 2, 3, 4
+	OS2 width 5
+
+0.100000
+	style string contains "Semi Expanded"
+	style string contains "Semi Extended"
+	style string contains "SemiExpanded"
+	OS2 width 6
+
+0.200000
+	('head' table byte 0x2d) & 0x40 != 0
+	ATSD style "ext"
+	panose 5
+	style string contains "Expanded"
+	style string contains "Extended"
+
+0.400000
+	panose 7
+	style string contains "Ext Expanded"
+	style string contains "Ext Extended"
+	style string contains "Extra Expanded"
+	style string contains "Extra Extended"
+	style string contains "ExtraExpanded"
+	OS2 width 7
+
+0.600000
+	style string contains "Wide"
+	OS2 width 8
+
+0.800000
+	style string contains "Extra Wide"
+	style string contains "ExtraWide"
+	style string contains "Ultra Expanded"
+	style string contains "Ultra Extended"
+	OS2 width 9

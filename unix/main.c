@@ -1,14 +1,14 @@
 // 6 april 2015
 #include "uipriv_unix.h"
 
-uiInitOptions options;
+uiInitOptions uiprivOptions;
 
 const char *uiInit(uiInitOptions *o)
 {
 	GError *err = NULL;
 	const char *msg;
 
-	options = *o;
+	uiprivOptions = *o;
 	if (gtk_init_with_args(NULL, NULL, NULL, NULL, NULL, &err) == FALSE) {
 		msg = g_strdup(err->message);
 		g_error_free(err);
@@ -99,7 +99,7 @@ void uiQueueMain(void (*f)(void *data), void *data)
 {
 	struct queued *q;
 
-	// we have to use g_new0()/g_free() because uiAlloc() is only safe to call on the main thread
+	// we have to use g_new0()/g_free() because uiprivAlloc() is only safe to call on the main thread
 	// for some reason it didn't affect me, but it did affect krakjoe
 	q = g_new0(struct queued, 1);
 	q->f = f;

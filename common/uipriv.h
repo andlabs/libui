@@ -1,4 +1,5 @@
 // 6 april 2015
+// note: this file should not include ui.h, as the OS-specific ui_*.h files are included between that one and this one in the OS-specific uipriv_*.h* files
 #include <stdarg.h>
 #include <string.h>
 #include "controlsigs.h"

@@ -23,8 +23,8 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		return lResult;
 	switch (uMsg) {
 	case WM_QUERYENDSESSION:
-		// TODO block handler
-		if (shouldQuit()) {
+		// TODO block handler (TODO figure out if this meant the Vista-style block handler or not)
+		if (uiprivShouldQuit()) {
 			uiQuit();
 			return TRUE;
 		}

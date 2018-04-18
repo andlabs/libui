@@ -54,7 +54,7 @@ void uiProgressBarSetValue(uiProgressBar *p, int value)
 	}
 
 	if (value < 0 || value > 100)
-		userbug("Value %d is out of range for uiProgressBars.", value);
+		uiprivUserBug("Value %d is out of range for uiProgressBars.", value);
 
 	if (value == 100) {			// because we can't 101
 		SendMessageW(p->hwnd, PBM_SETRANGE32, 0, 101);

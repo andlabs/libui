@@ -28,7 +28,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 {
 	uiDrawPath *p;
 
-	p = uiNew(uiDrawPath);
+	p = uiprivNew(uiDrawPath);
 	p->pieces = g_array_new(FALSE, TRUE, sizeof (struct piece));
 	p->fillMode = mode;
 	return p;
@@ -37,13 +37,13 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 void uiDrawFreePath(uiDrawPath *p)
 {
 	g_array_free(p->pieces, TRUE);
-	uiFree(p);
+	uiprivFree(p);
 }
 
 static void add(uiDrawPath *p, struct piece *piece)
 {
 	if (p->ended)
-		userbug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
+		uiprivUserBug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
 	g_array_append_vals(p->pieces, piece, 1);
 }
 
@@ -145,7 +145,7 @@ void runPath(uiDrawPath *p, cairo_t *cr)
 	void (*arc)(cairo_t *, double, double, double, double, double);
 
 	if (!p->ended)
-		userbug("You cannot draw with a uiDrawPath that has not been ended. (path: %p)", p);
+		uiprivUserBug("You cannot draw with a uiDrawPath that has not been ended. (path: %p)", p);
 	cairo_new_path(cr);
 	for (i = 0; i < p->pieces->len; i++) {
 		piece = &g_array_index(p->pieces, struct piece, i);

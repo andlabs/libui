@@ -1,10 +1,8 @@
 // 19 february 2018
 
-// TODO remove when done migrating these functions
-#define uiprivNew(x) uiNew(x)
-#define uiprivAlloc(x, y) uiAlloc(x, y)
-#define uiprivRealloc(x, y, z) uiRealloc(x, y, z)
-#define uiprivFree(x) uiFree(x)
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // attribute.c
 extern uiAttribute *uiprivAttributeRetain(uiAttribute *a);
@@ -34,10 +32,15 @@ extern size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(const uiAttributedStri
 extern size_t *uiprivAttributedStringCopyUTF16ToUTF8Table(const uiAttributedString *s, size_t *n);
 
 // per-OS graphemes.c/graphemes.cpp/graphemes.m/etc.
-struct graphemes {
+typedef struct uiprivGraphemes uiprivGraphemes;
+struct uiprivGraphemes {
 	size_t len;
 	size_t *pointsToGraphemes;
 	size_t *graphemesToPoints;
 };
 extern int uiprivGraphemesTakesUTF16(void);
-extern struct graphemes *uiprivNewGraphemes(void *s, size_t len);
+extern uiprivGraphemes *uiprivNewGraphemes(void *s, size_t len);
+
+#ifdef __cplusplus
+}
+#endif

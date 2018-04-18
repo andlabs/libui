@@ -48,7 +48,7 @@ void uiProgressBarSetValue(uiProgressBar *p, int value)
 	}
 
 	if (value < 0 || value > 100)
-		userbug("Value %d out of range for a uiProgressBar.", value);
+		uiprivUserBug("Value %d out of range for a uiProgressBar.", value);
 
 	// on 10.8 there's an animation when the progress bar increases, just like with Aero
 	if (value == 100) {

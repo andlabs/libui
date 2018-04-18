@@ -113,5 +113,5 @@ void uiDrawMatrixTransformPoint(uiDrawMatrix *m, double *x, double *y)
 
 void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
 {
-	fallbackTransformSize(m, x, y);
+	uiprivFallbackTransformSize(m, x, y);
 }

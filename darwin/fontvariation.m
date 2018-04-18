@@ -187,7 +187,7 @@ static fixed1616 *avarExtract(CFDataRef table, CFIndex index, size_t *n)
 	}
 	nEntries = nextuint16be();
 	*n = nEntries * 2;
-	entries = (fixed1616 *) uiAlloc(*n * sizeof (fixed1616), "fixed1616[]");
+	entries = (fixed1616 *) uiprivAlloc(*n * sizeof (fixed1616), "fixed1616[]");
 	p = entries;
 	for (i = 0; i < *n; i++) {
 		*p++ = fixed214ToFixed1616((fixed214) nextuint16be());
@@ -247,7 +247,7 @@ fail:
 - (void)dealloc
 {
 	if (self->avarMappings != NULL) {
-		uiFree(self->avarMappings);
+		uiprivFree(self->avarMappings);
 		self->avarMappings = NULL;
 	}
 	[super dealloc];

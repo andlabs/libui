@@ -17,7 +17,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode fillmode)
 	uiDrawPath *p;
 	HRESULT hr;
 
-	p = uiNew(uiDrawPath);
+	p = uiprivNew(uiDrawPath);
 	hr = d2dfactory->CreatePathGeometry(&(p->path));
 	if (hr != S_OK)
 		logHRESULT(L"error creating path", hr);
@@ -43,7 +43,7 @@ void uiDrawFreePath(uiDrawPath *p)
 		// TODO close sink first?
 		p->sink->Release();
 	p->path->Release();
-	uiFree(p);
+	uiprivFree(p);
 }
 
 void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
@@ -242,6 +242,6 @@ void uiDrawPathEnd(uiDrawPath *p)
 ID2D1PathGeometry *pathGeometry(uiDrawPath *p)
 {
 	if (p->sink != NULL)
-		userbug("You cannot draw with a uiDrawPath that was not ended. (path: %p)", p);
+		uiprivUserBug("You cannot draw with a uiDrawPath that was not ended. (path: %p)", p);
 	return p->path;
 }

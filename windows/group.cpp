@@ -208,7 +208,7 @@ uiGroup *uiNewGroup(const char *text)
 		BS_GROUPBOX,
 		hInstance, NULL,
 		TRUE);
-	uiFree(wtext);
+	uiprivFree(wtext);
 
 	if (SetWindowSubclass(g->hwnd, groupSubProc, 0, (DWORD_PTR) g) == FALSE)
 		logLastError(L"error subclassing groupbox to handle parent messages");

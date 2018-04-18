@@ -81,7 +81,7 @@ WCHAR *uiprivFontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStr
 	if (hr != S_OK)
 		logHRESULT(L"error getting length of font name", hr);
 	// GetStringLength() does not include the null terminator, but GetString() does
-	wname = (WCHAR *) uiAlloc((length + 1) * sizeof (WCHAR), "WCHAR[]");
+	wname = (WCHAR *) uiprivAlloc((length + 1) * sizeof (WCHAR), "WCHAR[]");
 	hr = names->GetString(index, wname, length + 1);
 	if (hr != S_OK)
 		logHRESULT(L"error getting font name", hr);

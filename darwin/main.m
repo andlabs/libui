@@ -57,7 +57,7 @@ static BOOL stepsIsRunning;
 	NSEvent *e;
 
 	if (!canQuit)
-		implbug("call to [NSApp terminate:] when not ready to terminate; definitely contact andlabs");
+		uiprivImplBug("call to [NSApp terminate:] when not ready to terminate; definitely contact andlabs");
 
 	[realNSApp() stop:realNSApp()];
 	// stop: won't register until another event has passed; let's synthesize one
@@ -91,7 +91,7 @@ static BOOL stepsIsRunning;
 {
 	// for debugging
 	NSLog(@"in applicationShouldTerminate:");
-	if (shouldQuit()) {
+	if (uiprivShouldQuit()) {
 		canQuit = YES;
 		// this will call terminate:, which is the same as uiQuit()
 		return NSTerminateNow;
@@ -106,12 +106,12 @@ static BOOL stepsIsRunning;
 
 @end
 
-uiInitOptions options;
+uiInitOptions uiprivOptions;
 
 const char *uiInit(uiInitOptions *o)
 {
 	@autoreleasepool {
-		options = *o;
+		uiprivOptions = *o;
 		app = [[applicationClass sharedApplication] retain];
 		// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 		// see https://github.com/andlabs/ui/issues/6
@@ -139,9 +139,8 @@ const char *uiInit(uiInitOptions *o)
 
 void uiUninit(void)
 {
-	if (!globalPool) {
-		userbug("You must call uiInit() first!");
-	}
+	if (!globalPool)
+		uiprivUserBug("You must call uiInit() first!");
 	[globalPool release];
 
 	@autoreleasepool {

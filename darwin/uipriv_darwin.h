@@ -19,8 +19,6 @@
 #define NSAppKitVersionNumber10_9 1265
 #endif
 
-/*TODO remove this*/typedef struct uiImage uiImage;
-
 // menu.m
 @interface menuManager : NSObject {
 	struct mapTable *items;

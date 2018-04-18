@@ -459,7 +459,7 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	struct tablePart *part;
 	GtkCellRenderer *r;
 
-	part = uiNew(struct tablePart);
+	part = uiprivNew(struct tablePart);
 	part->type = partText;
 	part->textColumn = modelColumn;
 	part->tv = c->tv;
@@ -476,7 +476,7 @@ void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 {
 	struct tablePart *part;
 
-	part = uiNew(struct tablePart);
+	part = uiprivNew(struct tablePart);
 	part->type = partImage;
 	part->imageColumn = modelColumn;
 	part->tv = c->tv;
@@ -498,7 +498,7 @@ void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand
 	struct tablePart *part;
 	GtkCellRenderer *r;
 
-	part = uiNew(struct tablePart);
+	part = uiprivNew(struct tablePart);
 	part->type = partButton;
 	part->textColumn = modelColumn;
 	part->tv = c->tv;
@@ -534,7 +534,7 @@ void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expa
 	struct tablePart *part;
 	GtkCellRenderer *r;
 
-	part = uiNew(struct tablePart);
+	part = uiprivNew(struct tablePart);
 	part->type = partCheckbox;
 	part->valueColumn = modelColumn;
 	part->tv = c->tv;
@@ -550,7 +550,7 @@ void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int e
 {
 	struct tablePart *part;
 
-	part = uiNew(struct tablePart);
+	part = uiprivNew(struct tablePart);
 	part->type = partProgressBar;
 	part->valueColumn = modelColumn;
 	part->tv = c->tv;
@@ -600,7 +600,7 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 {
 	uiTableColumn *c;
 
-	c = uiNew(uiTableColumn);
+	c = uiprivNew(uiTableColumn);
 	c->c = gtk_tree_view_column_new();
 	gtk_tree_view_column_set_resizable(c->c, TRUE);
 	gtk_tree_view_column_set_title(c->c, name);

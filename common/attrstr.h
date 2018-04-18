@@ -1,5 +1,9 @@
 // 19 february 2018
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // attribute.c
 extern uiAttribute *uiprivAttributeRetain(uiAttribute *a);
 extern void uiprivAttributeRelease(uiAttribute *a);
@@ -36,3 +40,7 @@ struct uiprivGraphemes {
 };
 extern int uiprivGraphemesTakesUTF16(void);
 extern uiprivGraphemes *uiprivNewGraphemes(void *s, size_t len);
+
+#ifdef __cplusplus
+}
+#endif

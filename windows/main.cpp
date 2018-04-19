@@ -128,3 +128,15 @@ void uiQueueMain(void (*f)(void *data), void *data)
 		// LONGTERM this is likely not safe to call across threads (allocates memory)
 		logLastError(L"error queueing function to run on main thread");
 }
+
+void uiTimer(int milliseconds, int (*f)(void *data), void *data)
+{
+	uiprivTimer *timer;
+
+	timer = uiprivNew(uiprivTimer);
+	timer->f = f;
+	timer->data = data;
+	// note that timer IDs are pointer sized precisely so we can use them as timer IDs; see https://blogs.msdn.microsoft.com/oldnewthing/20150924-00/?p=91521
+	if (SetTimer(utilWindow, (UINT_PTR) timer, milliseconds, NULL) == 0)
+		logLastError(L"error calling SetTimer() in uiTimer()");
+}

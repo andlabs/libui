@@ -3,7 +3,7 @@
 
 // LONGTERM don't halt on release builds
 
-void realbug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap)
+void uiprivRealBug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap)
 {
 	NSMutableString *str;
 	NSString *formatted;

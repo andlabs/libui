@@ -140,7 +140,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 		BS_RADIOBUTTON | groupTabStop,
 		hInstance, NULL,
 		TRUE);
-	uiFree(wtext);
+	uiprivFree(wtext);
 	uiWindowsEnsureSetParentHWND(hwnd, r->hwnd);
 	uiWindowsRegisterWM_COMMANDHandler(hwnd, onWM_COMMAND, uiControl(r));
 	r->hwnds->push_back(hwnd);

@@ -530,7 +530,7 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		userbug("You cannot add NULL to a uiForm.");
+		uiprivUserBug("You cannot add NULL to a uiForm.");
 	[f->view append:toNSString(label) c:c stretchy:stretchy];
 }
 

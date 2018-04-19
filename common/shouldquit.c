@@ -8,7 +8,7 @@ static int defaultOnShouldQuit(void *data)
 }
 
 static int (*onShouldQuit)(void *) = defaultOnShouldQuit;
-static void *onShouldQuitData;
+static void *onShouldQuitData = NULL;
 
 void uiOnShouldQuit(int (*f)(void *), void *data)
 {
@@ -16,7 +16,7 @@ void uiOnShouldQuit(int (*f)(void *), void *data)
 	onShouldQuitData = data;
 }
 
-int shouldQuit(void)
+int uiprivShouldQuit(void)
 {
 	return (*onShouldQuit)(onShouldQuitData);
 }

@@ -295,7 +295,7 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 		hr = p->layout->SetFontFamilyName(wfamily, range);
 		if (hr != S_OK)
 			logHRESULT(L"error applying family name attribute", hr);
-		uiFree(wfamily);
+		uiprivFree(wfamily);
 		break;
 	case uiAttributeTypeSize:
 		hr = p->layout->SetFontSize(

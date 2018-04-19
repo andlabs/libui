@@ -48,10 +48,10 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	// This won't handle leading spaces, but spaces aren't allowed *anyway*.
 	wtext = windowText(s->edit);
 	if (wcscmp(wtext, L"-") == 0) {
-		uiFree(wtext);
+		uiprivFree(wtext);
 		return TRUE;
 	}
-	uiFree(wtext);
+	uiprivFree(wtext);
 	// value() does the work for us
 	value(s);
 	(*(s->onChanged))(s, s->onChangedData);

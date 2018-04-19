@@ -28,19 +28,19 @@ static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 		wmessage,
 		value, value,
 		sysmsg);
-	uiFree(wmessage);
+	uiprivFree(wmessage);
 	if (hassysmsg)
 		LocalFree(sysmsg);		// ignore error
 	out = toUTF8(wout);
-	uiFree(wout);
+	uiprivFree(wout);
 	return out + 1;
 }
 
 #define ieLastErr(msg) initerr("=" msg, L"GetLastError() ==", GetLastError())
 #define ieHRESULT(msg, hr) initerr("=" msg, L"HRESULT", (DWORD) hr)
 
-// LONGTERM make common
-uiInitOptions options;
+// LONGTERM put this declaration in a common file
+uiInitOptions uiprivOptions;
 
 #define wantedICCClasses ( \
 	ICC_STANDARD_CLASSES |	/* user32.dll controls */		\
@@ -62,7 +62,7 @@ const char *uiInit(uiInitOptions *o)
 	INITCOMMONCONTROLSEX icc;
 	HRESULT hr;
 
-	options = *o;
+	uiprivOptions = *o;
 
 	initAlloc();
 
@@ -157,7 +157,7 @@ void uiUninit(void)
 void uiFreeInitError(const char *err)
 {
 	if (*(err - 1) == '-')
-		uiFree((void *) (err - 1));
+		uiprivFree((void *) (err - 1));
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

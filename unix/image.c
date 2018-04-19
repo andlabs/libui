@@ -14,14 +14,14 @@ static void freeImageRep(gpointer item)
 
 	buf = cairo_image_surface_get_data(cs);
 	cairo_surface_destroy(cs);
-	uiFree(buf);
+	uiprivFree(buf);
 }
 
 uiImage *uiNewImage(double width, double height)
 {
 	uiImage *i;
 
-	i = uiNew(uiImage);
+	i = uiprivNew(uiImage);
 	i->width = width;
 	i->height = height;
 	i->images = g_ptr_array_new_with_free_func(freeImageRep);
@@ -31,7 +31,7 @@ uiImage *uiNewImage(double width, double height)
 void uiFreeImage(uiImage *i)
 {
 	g_ptr_array_free(i->images, TRUE);
-	uiFree(i);
+	uiprivFree(i);
 }
 
 void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride)
@@ -43,7 +43,7 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 	int y;
 
 	cstride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, pixelWidth);
-	buf = (unsigned char *) uiAlloc((cstride * pixelHeight * 4) * sizeof (unsigned char), "unsigned char[]");
+	buf = (unsigned char *) uiprivAlloc((cstride * pixelHeight * 4) * sizeof (unsigned char), "unsigned char[]");
 	p = buf;
 	for (y = 0; y < pixelStride * pixelHeight; y += pixelStride) {
 		memmove(p, src + y, cstride);

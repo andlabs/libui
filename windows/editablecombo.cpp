@@ -76,7 +76,7 @@ void uiEditableComboboxAppend(uiEditableCombobox *c, const char *text)
 		logLastError(L"error appending item to uiEditableCombobox");
 	else if (res == (LRESULT) CB_ERRSPACE)
 		logLastError(L"memory exhausted appending item to uiEditableCombobox");
-	uiFree(wtext);
+	uiprivFree(wtext);
 }
 
 char *uiEditableComboboxText(uiEditableCombobox *c)

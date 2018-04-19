@@ -16,7 +16,7 @@ TODO note the bits about asymmetry and g_rcClick initial value not mattering in 
 
 // x, y, xdist, ydist, and c.rect must have the same units
 // so must time, maxTime, and c.prevTime
-int clickCounterClick(clickCounter *c, int button, int x, int y, uintptr_t time, uintptr_t maxTime, int32_t xdist, int32_t ydist)
+int uiprivClickCounterClick(uiprivClickCounter *c, int button, int x, int y, uintptr_t time, uintptr_t maxTime, int32_t xdist, int32_t ydist)
 {
 	// different button than before? if so, don't count
 	if (button != c->curButton)
@@ -50,7 +50,7 @@ int clickCounterClick(clickCounter *c, int button, int x, int y, uintptr_t time,
 	return c->count;
 }
 
-void clickCounterReset(clickCounter *c)
+void uiprivClickCounterReset(uiprivClickCounter *c)
 {
 	c->curButton = 0;
 	c->rectX0 = 0;
@@ -151,7 +151,7 @@ static const struct {
 	{ 0xFFFF, 0 },
 };
 
-int fromScancode(uintptr_t scancode, uiAreaKeyEvent *ke)
+int uiprivFromScancode(uintptr_t scancode, uiAreaKeyEvent *ke)
 {
 	int i;
 

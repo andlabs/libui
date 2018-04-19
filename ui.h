@@ -67,6 +67,7 @@ _UI_EXTERN void uiQueueMain(void (*f)(void *data), void *data);
 // TODO (also in the above link) document that this cannot be called from any thread, unlike uiQueueMain()
 // TODO document that the minimum exact timing, either accuracy (timer burst, etc.) or granularity (15ms on Windows, etc.), is OS-defined
 // TODO also figure out how long until the initial tick is registered on all platforms to document
+// TODO also add a comment about how useful this could be in bindings, depending on the language being bound to
 _UI_EXTERN void uiTimer(int milliseconds, int (*f)(void *data), void *data);
 
 _UI_EXTERN void uiOnShouldQuit(int (*f)(void *data), void *data);

@@ -95,20 +95,9 @@ extern const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor);
 extern void uninitUtilWindow(void);
 
 // main.cpp
-struct TimerHandler {
-public:
-	TimerHandler() : TimerHandler(NULL, NULL) {}
-	TimerHandler(int(*f)(void *data), void *data)
-	{
-		this->f = f;
-		this->data = data;
-	}
-	int operator()()
-	{
-		return this->f(this->data);
-	}
-private:
-	int(*f)(void *data);
+typedef struct uiprivTimer;
+struct uiprivTimer {
+	void (*f)(void *);
 	void *data;
 };
 extern int registerMessageFilter(void);

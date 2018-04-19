@@ -112,24 +112,23 @@ struct timer {
         void *data;
 };
 
-static gboolean dotimer(gpointer data)
+static gboolean doTimer(gpointer data)
 {
         struct timer *t = (struct timer *) data;
 
-        if((*(t->f))(t->data))
-                return TRUE;
-        else {
-                uiFree(t);
+        if (!(*(t->f))(t->data)) {
+                uiprivFree(t);
                 return FALSE;
         }
+	return TRUE;
 }
 
 void uiTimer(int milliseconds, int (*f)(void *data), void *data)
 {
         struct timer *t;
 
-        t = uiNew(struct timer);
+        t = uiprivNew(struct timer);
         t->f = f;
         t->data = data;
-        g_timeout_add(milliseconds, dotimer, t);
+        g_timeout_add(milliseconds, doTimer, t);
 }

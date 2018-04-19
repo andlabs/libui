@@ -247,13 +247,13 @@ void uiQueueMain(void (*f)(void *data), void *data)
         int (*f)(void *data);
         void *data;
 }
-- (id)initWithCallback:(int (*)(void *))callback data:(void*)callbackData;
+- (id)initWithCallback:(int (*)(void *))callback data:(void *)callbackData;
 - (void)doTimer:(NSTimer *)timer;
 @end
 
 @implementation uiprivTimerDelegate
 
-- (id)initWithCallback:(int (*)(void *))callback data:(void*)callbackData
+- (id)initWithCallback:(int (*)(void *))callback data:(void *)callbackData
 {
         self = [super init];
         if (self) {
@@ -265,7 +265,7 @@ void uiQueueMain(void (*f)(void *data), void *data)
 
 - (void)doTimer:(NSTimer *)timer
 {
-        if (!self->f(self->data))
+        if (!(*(self->f))(self->data))
                 [timer invalidate];
 }
 
@@ -276,7 +276,7 @@ void uiTimer(int milliseconds, int (*f)(void *data), void *data)
         uiprivTimerDelegate *delegate;
 
         delegate = [[uiprivTimerDelegate alloc] initWithCallback:f data:data];
-        [NSTimer scheduledTimerWithTimeInterval:milliseconds / 1000.0
+        [NSTimer scheduledTimerWithTimeInterval:(milliseconds / 1000.0)
                 target:delegate
                 selector:@selector(doTimer:)
                 userInfo:nil

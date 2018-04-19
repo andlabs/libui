@@ -131,9 +131,11 @@ void uiQueueMain(void (*f)(void *data), void *data)
 
 void uiTimer(int milliseconds, int (*f)(void *data), void *data)
 {
-	UINT_PTR timer;
-	
-	timer = (UINT_PTR) new TimerHandler(f, data);
-	if (SetTimer(utilWindow, timer, milliseconds, NULL) == 0)
-		logLastError(L"SetTimer()");
+	uiprivTimer *timer;
+
+	timer = uiprivNew(uiprivTimer);
+	timer->f = f;
+	timer->data = data;
+	if (SetTimer(utilWindow, (UINT_PTR) timer, milliseconds, NULL) == 0)
+		logLastError(L"error calling SetTimer() in uiTimer()");
 }

@@ -242,3 +242,44 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	// the signature of f matches dispatch_function_t
 	dispatch_async_f(dispatch_get_main_queue(), data, f);
 }
+
+@interface uiprivTimerDelegate : NSObject {
+        int (*f)(void *data);
+        void *data;
+}
+- (id)initWithCallback:(int (*)(void *))callback data:(void*)callbackData;
+- (void)doTimer:(NSTimer *)timer;
+@end
+
+@implementation uiprivTimerDelegate
+
+- (id)initWithCallback:(int (*)(void *))callback data:(void*)callbackData
+{
+        self = [super init];
+        if (self) {
+                self->f = callback;
+                self->data = callbackData;
+        }
+        return self;
+}
+
+- (void)doTimer:(NSTimer *)timer
+{
+        if (!self->f(self->data))
+                [timer invalidate];
+}
+
+@end
+
+void uiTimer(int milliseconds, int (*f)(void *data), void *data)
+{
+        uiprivTimerDelegate *delegate;
+
+        delegate = [[uiprivTimerDelegate alloc] initWithCallback:f data:data];
+        [NSTimer scheduledTimerWithTimeInterval:milliseconds / 1000.0
+                target:delegate
+                selector:@selector(doTimer:)
+                userInfo:nil
+                repeats:YES];
+        [delegate release];
+}

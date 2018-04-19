@@ -128,3 +128,12 @@ void uiQueueMain(void (*f)(void *data), void *data)
 		// LONGTERM this is likely not safe to call across threads (allocates memory)
 		logLastError(L"error queueing function to run on main thread");
 }
+
+void uiTimer(int milliseconds, int (*f)(void *data), void *data)
+{
+	UINT_PTR timer;
+	
+	timer = (UINT_PTR) new TimerHandler(f, data);
+	if (SetTimer(utilWindow, timer, milliseconds, NULL) == 0)
+		logLastError(L"SetTimer()");
+}

@@ -97,7 +97,7 @@ extern void uninitUtilWindow(void);
 // main.cpp
 typedef struct uiprivTimer;
 struct uiprivTimer {
-	void (*f)(void *);
+	int (*f)(void *);
 	void *data;
 };
 extern int registerMessageFilter(void);

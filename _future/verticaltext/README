@@ -1,0 +1,19 @@
+Proper vertical text support in uiDrawTextLayout was removed because DirectWrite doesn't add this until Windows 8.1 (unless I drop IDWriteTextLayout and do the script analysis myself; TODO consider this possibility).
+
+On OS X, setting the vertical forms attribute stacks non-vertical scripts in vertical text (rotates each individual glyph) with Core Text, whereas everything else — including Cocoa's text system — rotates entire non-vertical strings. Not sure what to do about this except manually detect which characters to apply the attribute to:
+http://www.unicode.org/notes/tn22/RobustVerticalLayout.pdf
+http://www.unicode.org/Public/vertical/revision-17/VerticalOrientation-17.txt
+
+In addition, with Core Text, the vertical forms attribute vertically centers the vertical glyphs on the bhorizontal baseline, rather than flush with the text. Using the baseline class attribute doesn't seem to work.
+TODO investigate kCJKVerticalRomanPlacementType
+
+If readded, this will need to be a layout-wide setting, not a per-character setting. Pango works right this way; the current Pango code doesn't seem to work.
+
+More links:
+https://www.w3.org/TR/2012/NOTE-jlreq-20120403/#line-composition
+https://www.w3.org/TR/REC-CSS2/notes.html
+
+TODO indicate where in the attributes.c file that block of code should go (or drop it entirely for the reasons listed above)
+TODO same for ui.h
+
+TODO vertical carets

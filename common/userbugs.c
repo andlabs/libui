@@ -4,5 +4,5 @@
 
 void uiUserBugCannotSetParentOnToplevel(const char *type)
 {
-	userbug("You cannot make a %s a child of another uiControl,", type);
+	uiprivUserBug("You cannot make a %s a child of another uiControl,", type);
 }

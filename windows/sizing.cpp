@@ -51,6 +51,7 @@ void uiWindowsSizingDlgUnitsToPixels(uiWindowsSizing *sizing, int *x, int *y)
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 // this X value is really only for buttons but I don't see a better one :/
 #define winXPadding 4
+// TODO is this too much?
 #define winYPadding 4
 
 void uiWindowsSizingStandardPadding(uiWindowsSizing *sizing, int *x, int *y)

@@ -1,0 +1,750 @@
+// pseudo-go
+
+func (f *CTFont) IsRegistered() bool {
+	n := f.Attribute(kCTFontRegistrationScopeAttribute)
+	if n == nil {
+		return false
+	}
+	return n.(*CFNumber).Uint32Value() == kCTFontManagerScopeNone
+}
+
+// this type is in libFontRegistry.dylib; functions like x_list.Prepend() are called things like x_list_prepend() there
+type x_list struct {
+	Data		interface{}
+	Next		*x_list
+}
+
+func (x *x_list) Prepend(data interface{}) *x_list {
+	y := malloc(sizeof (x_list))
+	if y != nil {
+		y.data = data
+		y.next = x
+		return y
+	}
+	return x
+}
+
+func (x *x_list) Reverse() *x_list {
+	if x == nil {
+		return nil
+	}
+
+	var old, next *x_list
+
+	next = nil
+	for {
+		old = x
+		x = old.next
+		old.next = next
+		next = old
+		if x == nil {
+			break
+		}
+	}
+	return old
+}
+
+func (x *x_list) Concat(y *x_list) *x_list {
+	if x == nil {
+		return y
+	}
+	start := x
+	z := x
+	for {
+		x = z
+		z = z.next
+		if z == nil {
+			break
+		}
+	}
+	x.next = y
+	return start
+}
+
+// based on CoreGraphics dylib's _CGFontCopyName
+// note that this is different from the public API function CGFontCopyPostScriptName() (which is font type-independent)
+// also note that in reality these keys are strings but the implementation of the function turns them into ints and only uses them as such
+const (
+	kCGFontNameKeyPostScriptName = 0x6
+	kCGFontNameKeyPreferredSubfamily = 0x11
+	kCGFontNameKeyFontSubfamily = 0x2
+	kCGFontNameKeyFullName = 0x4
+	kCGFontNameKeyPreferredFamily = 0x10
+	kCGFontNameKeyFontFamily = 0x1
+)
+func (f *CGFont) CopyName(key int) (string, bool) {
+	table := f.TableForTag('name')
+	b := table.Bytes()
+	n := table.Len()
+
+	// this code looks weird, but we're imitating the assembly, or the effective effects thereof
+	offCount := uint16(0)
+	offStringOffset := uint16(2)
+	if n > 1 {
+		offCount = 2
+		offStringOffset = 4
+	}
+
+	count := uint16(0)
+	if int(offCount) <= n {
+		count = uint16be(b[offCount:offCount + 2])
+	}
+
+	offNameRecord := offStringOffset + 2
+	stringOffset := uint16(0)
+	if int(offNameRecord) <= n {
+		stringOffset = uint16be(b[offStringOffset:offStringOffset + 2])
+	}
+
+	type NameRecord struct {
+		PlatformID		uint16
+		PlatformSpecificID	uint16
+		LanguageID		uint16
+		NameID			uint16
+		Length			uint16
+		Offset			uint16
+	}
+
+	var nameList *x_list
+
+	addrStrings := offNameRecords + (12 * count)
+	if addrStrings != stringOffset {
+		goto hasLanguageTags
+	}
+	pos := offNameRecords
+	if count == 0 {
+		// TODO note assembly logic here
+	} else {
+		for {
+			var nr NameRecord
+
+			nr.PlatformID = 0
+			next := pos + 2
+			if int(next) <= n {
+				nr.PlatformID = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.PlatformSpecificID = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.PlatformSpecificID = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.LanguageID = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.LanguageID = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.NameID = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.NameID = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.Length = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.Length = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			nr.Offset = 0
+			next = pos + 2
+			if int(next) <= n {
+				nr.Offset = uint16be(b[pos:pos + 2])
+				pos = next
+			}
+
+			strpos := stringOffset + nr.Offset
+			if strpos >= n {
+				// TODO put comment about imitating the assembly comparisons here
+			} else {
+				realLen := nr.Length
+				strend = strpos + nr.Length
+				if strend > n {
+					realLen = nr.Length - strpos
+					strend = strpos + realLen
+				}
+				b := malloc(12 + realLen + 1)
+				if b != nil {
+					name := (*sfnt_name_t)(b)
+					name.PlatformID = nr.PlatformID
+					name.PlatformSpecificID = nr.PlatformSpecificID
+					name.LanguageID = nr.LanguageID
+					name.NameID = nr.NameID
+					name.Length = realLen
+					memcpy(&(name.Name), b[strpos:strend], realLen)
+					name.Name[realLen] = 0
+					nameList = nameList.Prepend(name)
+				}
+			}
+			count--
+			if count == 0 {
+				break
+			}
+		}
+	}
+	nameList = nameList.Reverse()
+
+hasLanguageTags:
+	add_localized_names := func(platformID uint16, platformSpecificID uint16, to *x_list) *x_list {
+		out := (*x_list)(nil)
+		if nameList == nil {
+			xx TODO logic verbatim etc.
+		} else {
+			x := nameList
+			for {
+				name := (*sfnt_name_t)(x.data)
+				if name.PlatformID != platformID {
+					xx TODO
+				} else {
+					if platformSpecificID == 0xFFFF || name.PlatformSpecificID == platformSpecificID {
+						out = out.Prepend(name)
+					}
+				}
+				x = x.next
+				if x == nil {
+					break
+				}
+			}
+		}
+		out = out.Reverse()
+		return to.Concat(out)
+	}
+	localized := (*x_list)(nil)
+	localized = add_localized_names(0x1, 0xFFFF, localized)
+	localized = add_localized_names(0, 0xFFFF, localized)
+	localized = add_localized_names(0x3, 0xFFFF, localized)
+	localized = add_localized_names(0x1, 0, localized)
+	localized = add_localized_names(0x3, 0x9, localized)
+	localized = add_localized_names(0x3, 0x409, localized)
+
+	sysLocale := CFLocaleGetSystem()
+	
+}
+
+// based on libFontRegistry.dylib's __ZNK8OS2Table15DetermineWeightERf — OS2Table::DetermineWeight(float&) const
+func RegistryDetermineOS2Weight(table *CFData) (float32, bool) {
+	if table == nil {
+		return 0, false
+	}
+	if table.Len() < 78 {
+		return 0, false
+	}
+
+	b := table.Bytes()
+	usWeightClass := uint16be(b[4:6])
+	if usWeightClass >= 10 {
+		// do nothing; we are preserving the original asm comparisons
+	} else {
+		usWeightClass *= 100
+	}
+	/* TODO:
+000000000000b37e         mov        dx, word [rax+4]
+000000000000b382         mov        cx, dx
+000000000000b385         rol        cx, 0x8
+000000000000b389         movzx      esi, cx
+000000000000b38c         imul       ecx, ecx, 100
+000000000000b38f         cmp        esi, 10
+000000000000b392         cmovae     cx, si
+000000000000b396         test       dx, dx
+000000000000b399         cmove      cx, si
+	what's the function of the last two instructions? */
+
+	// note that this is an unsigned comparison, so underflow will result in a number > 998
+	// the effect is the same as (usWeightClass == 0) || (usWeightClass >= 1000)
+	if (usWeightClass - 1) > 998 {
+		// note the - 2 here; the switch cases below reflect that!
+		// also note that b[0x22] and panose will be unsigned, so underflow will result in a number > 9
+		panose := b[0x22] - 2
+		if panose > 9 {
+			return 0, false
+		}
+		switch panose {
+		case 0:
+			return float32as(-0.500000, 0xbf000000), true
+		case 1:
+			return float32as(-0.400000, 0xbecccccd), true
+		case 2:
+			// yes, this returns false; I don't know why
+			return float32as(-0.300000, 0xbe99999a), false
+		case 3:
+			return float32as(-0.230000, 0xbe6b851f), true
+		case 4:
+			return float32as(0.230000, 0x3e6b851f), true
+		case 5:
+			return float32as(0.250000, 0x3e800000), true
+		case 6:
+			return float32as(0.400000, 0x3ecccccd), true
+		case 7:
+			return float32as(0.560000, 0x3f0f5c29), true
+		case 8:
+			return float32as(0.620000, 0x3f1eb852), true
+		case 9:
+			return float32as(0.800000, 0x3f4ccccd), true
+		}
+		// should not reach here
+	}
+
+	// let's mimic the assembly here too
+	// the gotos avoid the massive if nesting
+	// also note I'm using Go idioms and not saying "else return", imagine those if you must
+	if usWeightClass > 100 {
+		if usWeightClass > 200 {
+			goto do201AndUp
+		}
+		return float32as(-0.500000, 0xbf000000), true
+	}
+	return float32as(-0.800000, 0xbf4ccccd), true
+
+do201AndUp:
+	if usWeightClass > 300 {
+		if usWeightClass > 400 {
+			goto do401AndUp
+		}
+		return float32as(0.000000, 0x0), true
+	}
+	return float32as(-0.400000, 0xbecccccd), true
+
+do401AndUp:
+	if usWeightClass > 500 {
+		if usWeightClass > 600 {
+			goto do601AndUp
+		}
+		return float32as(0.250000, 0x3e800000), true
+	}
+	return float32as(0.230000, 0x3e6b851f), true
+
+do601AndUp:
+	if usWeightClass > 700 {
+		if usWeightClass > 800 {
+			goto do801AndUp
+		}
+		return float32as(0.500000, 0x3f000000), true
+	}
+	return float32as(0.400000, 0x3ecccccd), true
+
+do801AndUp:
+	if usWeightClass > 900 {
+		if usWeightClass > 950 {
+			return float32(0.800000, 0x3f4ccccd), true
+		}
+		return float32(0.750000, 0x3f400000), true
+	}
+	return float32as(0.620000, 0x3f1eb852), true
+}
+
+// based on libFontRegistry.dylib's __ZN11TFontTraitsC2EP6CGFontRK13TFontMetadata — TFontTraits::TFontTraits(CGFont*, TFontMetadata const&)
+func (f *Font) WeightFromFontRegistry32() float32 {
+	var weight float32
+	var hasWeight bool = false
+
+	cgfont := f.CGFont()
+	if f.RegistryHasMetadata() {
+		wv := f.RegistryMetadataValueForKey("MTD_Typeface_Weight_VisualDescriptor")
+		if wv != nil {
+			if wn, ok := wv.(string); ok {
+				// note: uses CFStringCompare(0)
+				switch wn {
+				case "reg":
+					weight = float32as(0.000000, 0x0)
+					hasWeight = true
+				case "semi":
+					weight = float32as(0.300000, 0x3e99999a)
+					hasWeight = true
+				case "bold":
+					weight = float32as(0.400000, 0x3ecccccd)
+					hasWeight = true
+				case "light":
+					weight = float32as(-0.400000, 0xbecccccd)
+					hasWeight = true
+				case "med":
+					weight = float32as(0.230000, 0x3e6b851f)
+					hasWeight = true
+				case "heavy":
+					weight = float32as(0.560000, 0x3f0f5c29)
+					hasWeight = true
+				case "black":
+					weight = float32as(0.620000, 0x3f1eb852)
+					hasWeight = true
+				case "thin":
+					weight = float32as(-0.600000, 0xbf19999a)
+					hasWeight = true
+				case "ulight":
+					weight = float32as(-0.800000, 0xbf4ccccd)
+					hasWeight = true
+				}
+			}
+		}
+	}
+
+	cgpsname, ok := cgfont.CopyName(kCGFontNameKeyPostScriptName)
+	if ok {
+		// note: uses CFStringCompare(0)
+		switch cgpsname {
+		case "LucidaGrande",
+			".LucidaGrandeUI",
+			".Keyboard":
+			weight = float32as(0.000000, 0x0)
+			hasWeight = true
+		case "STHeiti":
+			weight = float32as(0.240000, 0x3e75c28f)
+			hasWeight = true
+		case "STXihei":
+			weight = float32as(-0.100000, 0xbdcccccd)
+			hasWeight = true
+		case "TimesNewRomanPSMT":
+			weight = float32as(0.000000, 0x0)
+			hasWeight = true
+		}
+	}
+
+	styleGlossaryStrings := []int{
+		kCGFontNameKeyPreferredSubfamily,
+		kCGFontNameKeyFontSubfamily,
+		kCGFontNameKeyFullName,
+		kCGFontNameKeyPreferredFamily,
+		kCGFontNameKeyFontFamily,
+	}
+	weightNameMap := []struct {
+		key		string
+		val		float32
+	}{
+		{ "Ultra Light", float32as(-0.800000f, 0xbf4ccccd) },
+		{ "Ultra Black", float32as(0.750000f, 0x3f400000) },
+		{ "Extra Light", float32as(-0.500000f, 0xbf000000) },
+		{ "UltraBlack", float32as(0.750000f, 0x3f400000) },
+		{ "ExtraBlack", float32as(0.800000f, 0x3f4ccccd) },
+		{ "UltraLight", float32as(-0.800000f, 0xbf4ccccd) },
+		{ "ExtraLight", float32as(-0.500000f, 0xbf000000) },
+		{ "Ultra Thin", float32as(-0.800000f, 0xbf4ccccd) },
+		{ "Extra Thin", float32as(-0.800000f, 0xbf4ccccd) },
+		{ "Heavy Face", float32as(0.560000f, 0x3f0f5c29) },
+		{ "Semi Light", float32as(-0.200000f, 0xbe4ccccd) },
+		{ "Extra Bold", float32as(0.500000f, 0x3f000000) },
+		{ "Ultra Bold", float32as(0.700000f, 0x3f333333) },
+		{ "HeavyFace", float32as(0.560000f, 0x3f0f5c29) },
+		{ "ExtraBold", float32as(0.500000f, 0x3f000000) },
+		{ "UltraBold", float32as(0.700000f, 0x3f333333) },
+		{ "Ext Black", float32as(0.800000f, 0x3f4ccccd) },
+		{ "SemiLight", float32as(-0.200000f, 0xbe4ccccd) },
+		{ "Demi Bold", float32as(0.250000f, 0x3e800000) },
+		{ "Semi Bold", float32as(0.300000f, 0x3e99999a) },
+		{ "Ext Light", float32as(-0.500000f, 0xbf000000) },
+		{ "Ext Bold", float32as(0.500000f, 0x3f000000) },
+		{ "DemiBold", float32as(0.250000f, 0x3e800000) },
+		{ "SemiBold", float32as(0.300000f, 0x3e99999a) },
+		{ "HairLine", float32as(-0.800000f, 0xbf4ccccd) },
+		{ "Ext Thin", float32as(-0.800000f, 0xbf4ccccd) },
+		{ "Medium", float32as(0.230000f, 0x3e6b851f) },
+		{ "Poster", float32as(0.800000f, 0x3f4ccccd) },
+		{ "Light", float32as(-0.400000f, 0xbecccccd) },
+		{ "Ultra", float32as(0.500000f, 0x3f000000) },
+		{ "Heavy", float32as(0.560000f, 0x3f0f5c29) },
+		{ "Extra", float32as(0.500000f, 0x3f000000) },
+		{ "Black", float32as(0.620000f, 0x3f1eb852) },
+		{ "Super", float32as(0.620000f, 0x3f1eb852) },
+		{ "Obese", float32as(0.850000f, 0x3f59999a) },
+		{ "Lite", float32as(-0.400000f, 0xbecccccd) },
+		{ "Book", float32as(-0.230000f, 0xbe6b851f) },
+		{ "Demi", float32as(0.250000f, 0x3e800000) },
+		{ "Semi", float32as(0.300000f, 0x3e99999a) },
+		{ "Thin", float32as(-0.500000f, 0xbf000000) },
+		{ "Bold", float32as(0.400000f, 0x3ecccccd) },
+		{ "Nord", float32as(0.800000f, 0x3f4ccccd) },
+		{ "Fat", float32as(0.750000f, 0x3f400000) },
+		{ "W1", float32as(-0.230000f, 0xbe6b851f) },
+		{ "W2", float32as(-0.500000f, 0xbf000000) },
+		{ "W3", float32as(-0.230000f, 0xbe6b851f) },
+		{ "W4", float32as(0.000000f, 0x0) },
+		{ "W5", float32as(0.230000f, 0x3e6b851f) },
+		{ "W6", float32as(0.300000f, 0x3e99999a) },
+		{ "W7", float32as(0.440000f, 0x3ee147ae) },
+		{ "W8", float32as(0.540000f, 0x3f0a3d71) },
+		{ "W9", float32as(0.620000f, 0x3f1eb852) },
+	}
+	for _, key := range styleGlossaryStrings {
+		if hasWeight {
+			break
+		}
+		str, ok := cgfont.CopyName(key)
+		if !ok {
+			continue
+		}
+		for _, m := range weightNameMap {
+			if str.FindWithOptions(m.key, CFRangeMake(0, str.CFStringLength()), kCFCompareCaseInsensitive | kCFCompareBackwards | kCFCompareNonliteral, nil) {
+				weight = m.val
+				hasWeight = true
+				break
+			}
+		}
+	}
+
+	if !hasWeight {
+		os2table := cgfont.TableForTag('OS/2')
+		weight, hasWeight = RegistryDetermineOS2Weight(os2table)
+	}
+
+	if !hasWeight {
+		headtable := cgfont.TableForTag('head')
+		if headtable != nil {
+			if headtable.Len() >= 54 {
+				b := headtable.Bytes()
+				if (b[0x2d] & 1) != 0 {
+					weight = float32as(0.400000, 0x3ecccccd)
+					hasWeight = true
+				}
+			}
+		}
+	}
+
+	styleGlossaryAbbreviationKeys := []int{
+		kCGFontNameKeyPreferredSubfamily,
+		kCGFontNameKeyFontSubfamily,
+	}
+	abbreviatedWeightNameMap := []struct {
+		key		string
+		val		float32
+	}{
+		{ "EL", float32as(-0.200000, 0xbe4ccccd) },
+		{ "EB", float32as(0.500000, 0x3f000000) },
+		{ "SB", float32as(0.300000, 0x3e99999a) },
+		{ "UH", float32as(0.800000, 0x3f4ccccd) },
+		{ "U", float32as(0.700000, 0x3f333333) },
+		{ "L", float32as(-0.400000, 0xbecccccd) },
+		{ "H", float32as(0.560000, 0x3f0f5c29) },
+		{ "B", float32as(0.400000, 0x3ecccccd) },
+		{ "M", float32as(0.230000, 0x3e6b851f) },
+		{ "R", float32as(0.000000, 0x0) },
+	}
+	if !hasWeight {
+		for _, key := range styleGlossaryAbbreviationStrings {
+			str, ok := cgfont.CopyName(key)
+			if !ok {
+				continue
+			}
+			for _, m := range abbreviatedWeightNameMap {
+				if str.Compare(m.key, kCFCompareCaseInsensitive) == kCFCompareEqualTo {
+					weight = m.val
+					hasWeight = true
+					break
+				}
+			}
+			if hasWeight {
+				break
+			}
+		}
+	}
+
+	if !hasWeight {
+		return float32as(0.000000, 0x0)
+	}
+	return weight
+}
+
+// because Core Text gets registry traits as a CFDictionary, convert the float to a double with CFNumber as that is what actually would be done
+func (f *Font) WeightFromFontRegistry() float64 {
+	return CFNumberWithFloat32(f.WeightFromFontRegistry32()).Float64Value()
+}
+
+// based on CoreText dylib's __Z13WeightOfClasst — WeightOfClass(unsigned short)
+func CoreText_WeightOfClass(usWeightClass uint16) float64 {
+	if usWeightClass >= 11 {
+		// do nothing; we are preserving the original asm comparisons
+		// and yes, this one is 11, but the one above is 10
+	} else {
+		usWeightClass *= 100
+	}
+
+	// figure out what two floats our weight will be between
+	i := usWeightClass / 100
+	j := i + 1
+	if j > 10 {
+		j = 10
+	}
+	b := float64(i * 100)
+	c := float64(j * 100)
+
+	a := float64(0)
+	if b != c {
+		a = float64(usWeightClass)
+		a -= b
+		c -= b
+		a /= c
+	}
+	scales := []float32{
+		float32as(-1.000000, 0xbf800000),
+		float32as(-0.700000, 0xbf333333),
+		float32as(-0.500000, 0xbf000000),
+		float32as(-0.230000, 0xbe6b851f),
+		float32as(0.000000, 0x0),
+		float32as(0.200000, 0x3e4ccccd),
+		float32as(0.300000, 0x3e99999a),
+		float32as(0.400000, 0x3ecccccd),
+		float32as(0.600000, 0x3f19999a),
+		float32as(0.800000, 0x3f4ccccd),
+		float32as(1.000000, 0x3f800000),
+	}
+	c = float64(scale[i])
+	b = float64[scale[j])
+	return fma(a, b, c)
+}
+
+// based on CoreText dylib's __ZL33CreateTraitsByStyleGlossaryStringPK10__CFString — CreateTraitsByStyleGlossaryString(__CFString const*)
+func CoreText_WeightByStyleGlossaryString(str string) (weight float64, ok bool) {
+	str.Fold(kCFCompareCaseInsensitive, nil)
+	weightNameMap := []struct {
+		key		string
+		val		float32
+	}{
+		{ "ultra light", float32as(-0.800000, 0xbf4ccccd) },
+		{ "ultra black", float32as(0.750000, 0x3f400000) },
+		{ "extra light", float32as(-0.500000, 0xbf000000) },
+		{ "ultralight", float32as(-0.800000, 0xbf4ccccd) },
+		{ "ultrablack", float32as(0.750000, 0x3f400000) },
+		{ "extrablack", float32as(0.800000, 0x3f4ccccd) },
+		{ "extralight", float32as(-0.500000, 0xbf000000) }
+		{ "heavy face", float32as(0.560000, 0x3f0f5c29) },
+		{ "semi light", float32as(-0.200000, 0xbe4ccccd) },
+		{ "extra bold", float32as(0.500000, 0x3f000000) },
+		{ "ultra bold", float32as(0.700000, 0x3f333333) },
+		{ "heavyface", float32as(0.560000, 0x3f0f5c29) },
+		{ "extrabold", float32as(0.500000, 0x3f000000) },
+		{ "ultrabold", float32as(0.700000, 0x3f333333) },
+		{ "semilight", float32as(-0.200000, 0xbe4ccccd) },
+		{ "demi bold", float32as(0.250000, 0x3e800000) },
+		{ "semi bold", float32as(0.300000, 0x3e99999a) },
+		{ "demibold", float32as(0.250000, 0x3e800000) },
+		{ "semibold", float32as(0.300000, 0x3e99999a) },
+		{ "hairline", float32as(-0.700000, 0xbf333333) },
+		{ "medium", float32as(0.230000, 0x3e6b851f) },
+		{ "poster", float32as(0.800000, 0x3f4ccccd) },
+		{ "light", float32as(-0.400000, 0xbecccccd) },
+		{ "heavy", float32as(0.560000, 0x3f0f5c29) },
+		{ "extra", float32as(0.500000, 0x3f000000) },
+		{ "black", float32as(0.620000, 0x3f1eb852) },
+		{ "super", float32as(0.620000, 0x3f1eb852) },
+		{ "obese", float32as(0.850000, 0x3f59999a) },
+		{ "lite", float32as(-0.400000, 0xbecccccd) },
+		{ "book", float32as(-0.230000, 0xbe6b851f) },
+		{ "demi", float32as(0.250000, 0x3e800000) },
+		{ "semi", float32as(0.300000, 0x3e99999a) },
+		{ "thin", float32as(-0.500000, 0xbf000000) },
+		{ "bold", float32as(0.400000, 0x3ecccccd) },
+		{ "nord", float32as(0.800000, 0x3f4ccccd) },
+		{ "fat", float32as(0.750000, 0x3f400000) },
+		{ "w1", float32as(-0.700000, 0xbf333333) },
+		{ "w2", float32as(-0.500000, 0xbf000000) },
+		{ "w3", float32as(-0.230000, 0xbe6b851f) },
+		{ "w4", float32as(0.000000, 0x0) },
+		{ "w5", float32as(0.230000, 0x3e6b851f) },
+		{ "w6", float32as(0.300000, 0x3e99999a) },
+		{ "w7", float32as(0.440000, 0x3ee147ae) },
+		{ "w8", float32as(0.540000, 0x3f0a3d71) },
+		{ "w9", float32as(0.620000, 0x3f1eb852) },
+	}
+	for _, m := range weightNameMap {
+		if strstr(str, m.key) != nil {
+			val := CFNumberWithFloat32(m.val)
+			return val.Float64Value(), true
+		}
+	}
+	return 0, false
+}
+
+// based on CoreText dylib's __ZNK9TBaseFont29CreateTraitsValuesPerFontInfoEP12MetadataFlag — TBaseFont::CreateTraitsValuesPerFontInfo(MetadataFlag*) const
+func (f *CTFont) Weight() float64 {
+	if f.IsRegistered() {
+		return f.WeightFromFontRegistry()
+	}
+
+	weight := float64as(2.0, 0x4000000000000000)
+	ebx := -1
+	hasWeight := false
+
+	name := f.Name(kCTFontPostScriptNameKey)
+	if name != nil {
+		switch *name {
+		case "LucidaGrande":
+			weight = float64as(0.000000, 0x0)
+			hasWeight = true
+		case ".LucidaGrandeUI":
+			weight = float64as(0.000000, 0x0)
+			hasWeight = true
+		case "STHeiti":
+			weight = float64as(0.240000, 0x3fceb851eb851eb8)
+			hasWeight = true
+		case "STXihei":
+			weight = float64as(-0.100000, 0xbfb999999999999a)
+			hasWeight = true
+		case "TimesNewRomanPSMT":
+			weight = float64as(0.000000, 0x0)
+			hasWeight = true
+		// there is one more hardcoded case, for "Times-Roman", but that will only set the class style, not the weight
+		}
+	}
+
+	os2table := f.Table('OS/2')
+	if os2table != nil {
+		if !hasWeight {
+			var usWeightClass uint16
+
+			valid := false
+			if os2table.Len() > 77 {
+				b := os2table.Bytes()
+				usWeightClass = uint16be(b[4:6])
+				if usWeightClass > 1000 {
+					weight = 0
+					hasWeight = false
+				} else {
+					valid = true
+				}
+			} else {
+				usWeightClass = 0
+				valid = true
+			}
+			if valid {
+				weight = CoreText_WeightOfClass(usWeightClass)
+				hasWeight = true
+			}
+		}
+	}
+
+	styleGlossaryNames := []string{
+		kCTFontSubFamilyNameKey,
+		kCTFontFullNameKey,
+		kCTFontFamilyNameKey,
+	}
+	for _, key := range styleGlossaryNames {
+		name := f.Name(key)
+		if name == nil {
+			continue
+		}
+		candidate, ok := CoreText_WeightByStyleGlossaryString(*name)
+		if !ok {
+			continue
+		}
+		if !hasWeight {
+			weight = candidate
+			hasWeight = true
+		}
+	}
+
+	if hasWeight {
+		return weight
+	}
+	return 0
+}
+
+func (f *Font) ShouldEnableBoldSymbolicTrait() bool {
+	if f.IsRegistered() {
+		return f.ShouldEnableBoldSymbolicTraitFromRegistry()
+	}
+	no := f.Weight() <= float64as(0.239000, 0x3fce978d4fdf3b64)
+	return !no
+}

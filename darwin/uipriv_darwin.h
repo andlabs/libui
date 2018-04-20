@@ -1,7 +1,9 @@
 // 6 january 2015
+// note: as of OS X Sierra, the -mmacosx-version-min compiler options governs deprecation warnings; keep these around anyway just in case
 #define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_8
 #define MAC_OS_X_VERSION_MAX_ALLOWED MAC_OS_X_VERSION_10_8
 #import <Cocoa/Cocoa.h>
+#include <dlfcn.h>		// see future.m
 #import "../ui.h"
 #import "../ui_darwin.h"
 #import "../common/uipriv.h"
@@ -106,15 +108,10 @@ extern BOOL keycodeModifier(unsigned short keycode, uiModifiers *mod);
 extern uiDrawContext *newContext(CGContextRef, CGFloat);
 extern void freeContext(uiDrawContext *);
 
-// drawtext.m
-extern uiDrawTextFont *mkTextFont(CTFontRef f, BOOL retain);
-extern uiDrawTextFont *mkTextFontFromNSFont(NSFont *f);
-extern void doDrawText(CGContextRef c, CGFloat cheight, double x, double y, uiDrawTextLayout *layout);
-
 // fontbutton.m
-extern BOOL fontButtonInhibitSendAction(SEL sel, id from, id to);
-extern BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
-extern void setupFontPanel(void);
+extern BOOL uiprivFontButtonInhibitSendAction(SEL sel, id from, id to);
+extern BOOL uiprivFontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
+extern void uiprivSetupFontPanel(void);
 
 // colorbutton.m
 extern BOOL colorButtonInhibitSendAction(SEL sel, id from, id to);
@@ -142,3 +139,16 @@ extern NSImage *imageImage(uiImage *);
 // winmoveresize.m
 extern void doManualMove(NSWindow *w, NSEvent *initialEvent);
 extern void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge);
+
+// future.m
+extern CFStringRef *FUTURE_kCTFontOpenTypeFeatureTag;
+extern CFStringRef *FUTURE_kCTFontOpenTypeFeatureValue;
+extern CFStringRef *FUTURE_kCTBackgroundColorAttributeName;
+extern void loadFutures(void);
+extern void FUTURE_NSLayoutConstraint_setIdentifier(NSLayoutConstraint *constraint, NSString *identifier);
+extern BOOL FUTURE_NSWindow_performWindowDragWithEvent(NSWindow *w, NSEvent *initialEvent);
+
+// undocumented.m
+extern CFStringRef UNDOC_kCTFontPreferredSubFamilyNameKey;
+extern CFStringRef UNDOC_kCTFontPreferredFamilyNameKey;
+extern void loadUndocumented(void);

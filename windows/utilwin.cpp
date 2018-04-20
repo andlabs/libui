@@ -5,9 +5,10 @@
 // It is not a message-only window, and it is always hidden and disabled.
 // Its roles:
 // - It is the initial parent of all controls. When a control loses its parent, it also becomes that control's parent.
-// - It handles WM_QUERYENDSESSION and console end session requests.
+// - It handles WM_QUERYENDSESSION requests.
 // - It handles WM_WININICHANGE and forwards the message to any child windows that request it.
 // - It handles executing functions queued to run by uiQueueMain().
+// TODO explain why it isn't message-only
 
 #define utilWindowClass L"libui_utilWindowClass"
 
@@ -22,8 +23,8 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		return lResult;
 	switch (uMsg) {
 	case WM_QUERYENDSESSION:
-		// TODO block handler
-		if (shouldQuit()) {
+		// TODO block handler (TODO figure out if this meant the Vista-style block handler or not)
+		if (uiprivShouldQuit()) {
 			uiQuit();
 			return TRUE;
 		}

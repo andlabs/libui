@@ -5,10 +5,11 @@
 #define GDK_VERSION_MAX_ALLOWED GDK_VERSION_3_10
 #include <gtk/gtk.h>
 #include <math.h>
-#include <dlfcn.h>		// see drawtext.c
+#include <dlfcn.h>		// see future.c
 #include <langinfo.h>
 #include <string.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "../ui.h"
 #include "../ui_unix.h"
 #include "../common/uipriv.h"
@@ -42,15 +43,8 @@ extern GtkWidget *childBox(struct child *c);
 extern void childSetMargined(struct child *c, int margined);
 
 // draw.c
-extern uiDrawContext *newContext(cairo_t *);
+extern uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style);
 extern void freeContext(uiDrawContext *);
-
-// drawtext.c
-extern uiDrawTextFont *mkTextFont(PangoFont *f, gboolean add);
-extern PangoFont *pangoDescToPangoFont(PangoFontDescription *pdesc);
-
-// graphemes.c
-extern ptrdiff_t *graphemes(const char *text, PangoContext *context);
 
 // image.c
 extern cairo_surface_t *imageAppropriateSurface(uiImage *i, GtkWidget *w);
@@ -60,5 +54,7 @@ extern GtkCellRenderer *newCellRendererButton(void);
 
 // future.c
 extern void loadFutures(void);
+extern PangoAttribute *FUTURE_pango_attr_font_features_new(const gchar *features);
 extern PangoAttribute *FUTURE_pango_attr_foreground_alpha_new(guint16 alpha);
+extern PangoAttribute *FUTURE_pango_attr_background_alpha_new(guint16 alpha);
 extern gboolean FUTURE_gtk_widget_path_iter_set_object_name(GtkWidgetPath *path, gint pos, const char *name);

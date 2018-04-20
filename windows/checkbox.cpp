@@ -108,7 +108,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 		BS_CHECKBOX | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
-	uiFree(wtext);
+	uiprivFree(wtext);
 
 	uiWindowsRegisterWM_COMMANDHandler(c->hwnd, onWM_COMMAND, uiControl(c));
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);

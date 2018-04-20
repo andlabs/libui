@@ -1,0 +1,1 @@
+UWP has this (TODO check its implementation to see if it matches ours) https://docs.microsoft.com/en-us/uwp/api/windows.ui.viewmanagement.uisettings#Windows_UI_ViewManagement_UISettings_CaretWidth

@@ -87,7 +87,10 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		// not a menu
 		if (lParam != 0)
 			break;
-		if (HIWORD(wParam) != 0)
+		// IsDialogMessage() will also generate IDOK and IDCANCEL when pressing Enter and Escape (respectively) on some controls, like EDIT controls
+		// swallow those too; they'll cause runMenuEvent() to panic
+		// TODO fix the root cause somehow
+		if (HIWORD(wParam) != 0 || LOWORD(wParam) <= IDCANCEL)
 			break;
 		runMenuEvent(LOWORD(wParam), uiWindow(w));
 		return 0;
@@ -477,7 +480,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		NULL, NULL, hInstance, w);
 	if (w->hwnd == NULL)
 		logLastError(L"error creating window");
-	uiFree(wtitle);
+	uiprivFree(wtitle);
 
 	if (hasMenubar) {
 		w->menubar = makeMenubar();

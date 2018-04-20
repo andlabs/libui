@@ -114,8 +114,8 @@ static void msgbox(HWND parent, const char *title, const char *description, TASK
 	if (hr != S_OK)
 		logHRESULT(L"error showing task dialog", hr);
 
-	uiFree(wdescription);
-	uiFree(wtitle);
+	uiprivFree(wdescription);
+	uiprivFree(wtitle);
 }
 
 void uiMsgBox(uiWindow *parent, const char *title, const char *description)

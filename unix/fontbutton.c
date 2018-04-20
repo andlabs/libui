@@ -1,5 +1,6 @@
 // 14 april 2016
 #include "uipriv_unix.h"
+#include "attrstr.h"
 
 struct uiFontButton {
 	uiUnixControl c;
@@ -26,16 +27,14 @@ static void defaultOnChanged(uiFontButton *b, void *data)
 	// do nothing
 }
 
-uiDrawTextFont *uiFontButtonFont(uiFontButton *b)
+void uiFontButtonFont(uiFontButton *b, uiFontDescriptor *desc)
 {
-	PangoFont *f;
-	PangoFontDescription *desc;
+	PangoFontDescription *pdesc;
 
-	desc = gtk_font_chooser_get_font_desc(b->fc);
-	f = pangoDescToPangoFont(desc);
-	// desc is transfer-full and thus is a copy
-	pango_font_description_free(desc);
-	return mkTextFont(f, FALSE);			// we hold the initial reference; no need to ref
+	pdesc = gtk_font_chooser_get_font_desc(b->fc);
+	uiprivFontDescriptorFromPangoFontDescription(pdesc, desc);
+	// pdesc is transfer-full and thus is a copy
+	pango_font_description_free(pdesc);
 }
 
 void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data)
@@ -67,4 +66,10 @@ uiFontButton *uiNewFontButton(void)
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
 
 	return b;
+}
+
+void uiFreeFontButtonFont(uiFontDescriptor *desc)
+{
+	// TODO ensure this is synchronized with fontmatch.c
+	uiFreeText((char *) (desc->Family));
 }

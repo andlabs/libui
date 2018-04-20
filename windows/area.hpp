@@ -18,7 +18,7 @@ struct uiArea {
 	int hwheelCarry;
 	int vwheelCarry;
 
-	clickCounter cc;
+	uiprivClickCounter cc;
 	BOOL capturing;
 
 	BOOL inside;

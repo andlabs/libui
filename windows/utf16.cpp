@@ -3,48 +3,42 @@
 
 // see http://stackoverflow.com/a/29556509/3408572
 
-#define MBTWC(str, wstr, bufsiz) MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, bufsiz)
-
 WCHAR *toUTF16(const char *str)
 {
 	WCHAR *wstr;
-	int n;
+	WCHAR *wp;
+	size_t n;
+	uint32_t rune;
 
 	if (*str == '\0')			// empty string
 		return emptyUTF16();
-	n = MBTWC(str, NULL, 0);
-	if (n == 0) {
-		logLastError(L"error figuring out number of characters to convert to");
-		return emptyUTF16();
-	}
-	wstr = (WCHAR *) uiAlloc(n * sizeof (WCHAR), "WCHAR[]");
-	if (MBTWC(str, wstr, n) != n) {
-		logLastError(L"error converting from UTF-8 to UTF-16");
-		// and return an empty string
-		*wstr = L'\0';
+	n = uiprivUTF8UTF16Count(str, 0);
+	wstr = (WCHAR *) uiprivAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
+	wp = wstr;
+	while (*str) {
+		str = uiprivUTF8DecodeRune(str, 0, &rune);
+		n = uiprivUTF16EncodeRune(rune, wp);
+		wp += n;
 	}
 	return wstr;
 }
 
-#define WCTMB(wstr, str, bufsiz) WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, bufsiz, NULL, NULL)
-
 char *toUTF8(const WCHAR *wstr)
 {
 	char *str;
-	int n;
+	char *sp;
+	size_t n;
+	uint32_t rune;
 
 	if (*wstr == L'\0')		// empty string
 		return emptyUTF8();
-	n = WCTMB(wstr, NULL, 0);
-	if (n == 0) {
-		logLastError(L"error figuring out number of characters to convert to");
-		return emptyUTF8();
-	}
-	str = (char *) uiAlloc(n * sizeof (char), "char[]");
-	if (WCTMB(wstr, str, n) != n) {
-		logLastError(L"error converting from UTF-16 to UTF-8");
-		// and return an empty string
-		*str = '\0';
+	n = uiprivUTF16UTF8Count(wstr, 0);
+	str = (char *) uiprivAlloc((n + 1) * sizeof (char), "char[]");
+	sp = str;
+	while (*wstr) {
+		wstr = uiprivUTF16DecodeRune(wstr, 0, &rune);
+		n = uiprivUTF8EncodeRune(rune, sp);
+		sp += n;
 	}
 	return str;
 }
@@ -55,7 +49,7 @@ WCHAR *utf16dup(const WCHAR *orig)
 	size_t len;
 
 	len = wcslen(orig);
-	out = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
+	out = (WCHAR *) uiprivAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
 	wcscpy_s(out, len + 1, orig);
 	return out;
 }
@@ -85,12 +79,14 @@ WCHAR *vstrf(const WCHAR *format, va_list ap)
 	va_end(ap2);
 	n++;		// terminating L'\0'
 
-	buf = (WCHAR *) uiAlloc(n * sizeof (WCHAR), "WCHAR[]");
+	buf = (WCHAR *) uiprivAlloc(n * sizeof (WCHAR), "WCHAR[]");
 	// includes terminating L'\0' according to example in https://msdn.microsoft.com/en-us/library/xa1a1a6z.aspx
 	vswprintf_s(buf, n, format, ap);
 
 	return buf;
 }
+
+// TODO merge the following two with the toUTF*()s?
 
 // Let's shove these utility routines here too.
 // Prerequisite: lfonly is UTF-8.
@@ -101,7 +97,7 @@ char *LFtoCRLF(const char *lfonly)
 	char *out;
 
 	len = strlen(lfonly);
-	crlf = (char *) uiAlloc((len * 2 + 1) * sizeof (char), "char[]");
+	crlf = (char *) uiprivAlloc((len * 2 + 1) * sizeof (char), "char[]");
 	out = crlf;
 	for (i = 0; i < len; i++) {
 		if (*lfonly == '\n')

@@ -1,0 +1,146 @@
+-0.100000
+	postscript name "STXihei" (which, according to http://www.typophile.com/node/93813, means "ST Hei Light", and so we can assume it's the Light version of STHeiti, which I think is Medium though is given Regular status below because meh)
+
+-0.200000
+	subfamily abbreviation "EL" (???????????)
+	style string contains "Semi Light"
+	style string contains "SemiLight"
+
+-0.230000
+	style string contains "Book"
+	style string contains "W1" (registered fonts only; probably a typo and -0.7 was expected instead)
+	style string contains "W3"
+	panose 5
+
+-0.400000
+	subfamily abbreviation "L"
+	style string contains "Light"
+	style string contains "Lite"
+	ATSD style "light"
+	OS2 weights 3, 201 - 300
+	panose 3
+
+-0.500000
+	style string contains "Ext Light"
+	style string contains "Extra Light"
+	style string contains "ExtraLight"
+	style string contains "Thin"
+	style string contains "W2"
+	OS2 weights 2, 101 - 200
+	panose 2
+
+-0.600000
+	ATSD style "thin"
+
+-0.700000
+	style string contains "hairline"
+	style string contains "w1"
+
+-0.800000
+	style string contains "Ext Thin"
+	style string contains "Extra Thin"
+	style string contains "HairLine"
+	style string contains "Ultra Light"
+	style string contains "Ultra Thin"
+	style string contains "UltraLight"
+	ATSD style "ulight"
+	OS2 weights 1, 10 - 100
+
+0.000000
+	ostscript name ".Keyboard"
+	postscript name ".LucidaGrandeUI"
+	postscript name "LucidaGrande"
+	subfamily abbreviation "R"
+	postscript name "TimesNewRomanPSMT"
+	style string contains "W4"
+	ATSD style "reg"
+	OS2 weights 4, 301 - 400
+	default
+
+0.230000
+	OS2 weights 5, 401 - 500
+	subfamily abbreviation "M"
+	style string contains "Medium"
+	style string contains "W5"
+	ATSD style "med"
+	panose 6
+
+0.240000
+	postscript name "STHeiti"
+
+0.250000
+	style string contains "Demi Bold"
+	style string contains "Demi"
+	style string contains "DemiBold"
+	OS2 weights 6, 501 - 600
+	panose 7
+
+0.300000
+	subfamily abbreviation "SB"
+	style string contains "Semi Bold"
+	style string contains "Semi"
+	style string contains "SemiBold"
+	style string contains "W6"
+	ATSD style "semi"
+
+0.400000
+	subfamily abbreviation "B"
+	style string contains "Bold"
+	ATSD style "bold"
+	('head' table byte 0x2D) & 1 != 0
+	OS2 weights 7, 601 - 700
+	panose 8
+
+0.440000
+	style string contains "W7"
+
+0.500000
+	subfamily abbreviation "EB"
+	style string contains "Ext Bold"
+	style string contains "Extra Bold"
+	style string contains "Extra"
+	style string contains "ExtraBold"
+	style string contains "Ultra"
+	OS2 weights 8, 701 - 800
+
+0.540000
+	style string contains "W8"
+
+0.560000
+	subfamily abbreviation "H"
+	style string contains "Heavy Face"
+	style string contains "Heavy"
+	style string contains "HeavyFace"
+	ATSD style "heavy"
+	panose 9
+
+0.620000
+	style string contains "Black"
+	style string contains "Super"
+	style string contains "W9"
+	ATSD style "black"
+	OS2 weights 9, 801 - 900
+	panose 10
+
+0.700000
+	subfamily abbreviation "U"
+	style string contains "Ultra Bold"
+	style string contains "UltraBold"
+
+0.750000
+	style string contains "Fat"
+	style string contains "Ultra Black"
+	style string contains "UltraBlack"
+	OS2 weights 901 - 950
+
+0.800000
+	style string contains "Ext Black"
+	style string contains "ExtraBlack"
+	style string contains "Nord"
+	style string contains "Poster"
+	subfamily abbreviation "UH"
+	OS2 weights 951 - 999
+	panose 11
+
+0.850000
+	style string contains "Obese"

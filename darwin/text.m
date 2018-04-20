@@ -17,3 +17,8 @@ void uiFreeText(char *s)
 {
 	free(s);
 }
+
+int uiprivStricmp(const char *a, const char *b)
+{
+	return strcasecmp(a, b);
+}

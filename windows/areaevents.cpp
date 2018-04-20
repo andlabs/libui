@@ -2,6 +2,8 @@
 #include "uipriv_windows.hpp"
 #include "area.hpp"
 
+// TODO https://github.com/Microsoft/Windows-classic-samples/blob/master/Samples/Win7Samples/multimedia/DirectWrite/PadWrite/TextEditor.cpp notes on explicit RTL handling under MirrorXCoordinate(); also in areadraw.cpp too?
+
 static uiModifiers getModifiers(void)
 {
 	uiModifiers m = 0;
@@ -90,11 +92,11 @@ static void areaMouseEvent(uiArea *a, int down, int  up, WPARAM wParam, LPARAM l
 		if (inClient && !a->inside) {
 			a->inside = TRUE;
 			(*(a->ah->MouseCrossed))(a->ah, a, 0);
-			clickCounterReset(&(a->cc));
+			uiprivClickCounterReset(&(a->cc));
 		} else if (!inClient && a->inside) {
 			a->inside = FALSE;
 			(*(a->ah->MouseCrossed))(a->ah, a, 1);
-			clickCounterReset(&(a->cc));
+			uiprivClickCounterReset(&(a->cc));
 		}
 	}
 
@@ -118,7 +120,7 @@ static void areaMouseEvent(uiArea *a, int down, int  up, WPARAM wParam, LPARAM l
 		// GetMessageTime() returns LONG and GetDoubleClckTime() returns UINT, which are int32 and uint32, respectively, but we don't need to worry about the signedness because for the same bit widths and two's complement arithmetic, s1-s2 == u1-u2 if bits(s1)==bits(s2) and bits(u1)==bits(u2) (and Windows requires two's complement: http://blogs.msdn.com/b/oldnewthing/archive/2005/05/27/422551.aspx)
 		// signedness isn't much of an issue for these calls anyway because http://stackoverflow.com/questions/24022225/what-are-the-sign-extension-rules-for-calling-windows-api-functions-stdcall-t and that we're only using unsigned values (think back to how you (didn't) handle signedness in assembly language) AND because of the above AND because the statistics below (time interval and width/height) really don't make sense if negative
 		// GetSystemMetrics() returns int, which is int32
-		me.Count = clickCounterClick(&(a->cc), me.Down,
+		me.Count = uiprivClickCounterClick(&(a->cc), me.Down,
 			me.X, me.Y,
 			GetMessageTime(), GetDoubleClickTime(),
 			GetSystemMetrics(SM_CXDOUBLECLK) / 2,
@@ -162,7 +164,7 @@ static void onMouseEntered(uiArea *a)
 	track(a, TRUE);
 	(*(a->ah->MouseCrossed))(a->ah, a, 0);
 	// TODO figure out why we did this to begin with; either we do it on both GTK+ and Windows or not at all
-	clickCounterReset(&(a->cc));
+	uiprivClickCounterReset(&(a->cc));
 }
 
 // TODO genericize it so that it can be called above
@@ -172,7 +174,7 @@ static void onMouseLeft(uiArea *a)
 	a->inside = FALSE;
 	(*(a->ah->MouseCrossed))(a->ah, a, 1);
 	// TODO figure out why we did this to begin with; either we do it on both GTK+ and Windows or not at all
-	clickCounterReset(&(a->cc));
+	uiprivClickCounterReset(&(a->cc));
 }
 
 // we use VK_SNAPSHOT as a sentinel because libui will never support the print screen key; that key belongs to the user
@@ -298,7 +300,7 @@ static int areaKeyEvent(uiArea *a, int up, WPARAM wParam, LPARAM lParam)
 		}
 
 	// and finally everything else
-	if (fromScancode((lParam >> 16) & 0xFF, &ke))
+	if (uiprivFromScancode((lParam >> 16) & 0xFF, &ke))
 		goto keyFound;
 
 	// not a supported key, assume unhandled
@@ -323,7 +325,7 @@ BOOL areaDoEvents(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *l
 	switch (uMsg) {
 	case WM_ACTIVATE:
 		// don't keep the double-click timer running if the user switched programs in between clicks
-		clickCounterReset(&(a->cc));
+		uiprivClickCounterReset(&(a->cc));
 		*lResult = 0;
 		return TRUE;
 	case WM_MOUSEMOVE:

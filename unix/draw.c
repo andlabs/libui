@@ -2,18 +2,20 @@
 #include "uipriv_unix.h"
 #include "draw.h"
 
-uiDrawContext *newContext(cairo_t *cr)
+uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style)
 {
 	uiDrawContext *c;
 
-	c = uiNew(uiDrawContext);
+	c = uiprivNew(uiDrawContext);
 	c->cr = cr;
+	c->style = style;
 	return c;
 }
 
 void freeContext(uiDrawContext *c)
 {
-	uiFree(c);
+	// free neither cr nor style; we own neither
+	uiprivFree(c);
 }
 
 static cairo_pattern_t *mkbrush(uiDrawBrush *b)
@@ -37,7 +39,7 @@ static cairo_pattern_t *mkbrush(uiDrawBrush *b)
 //	case uiDrawBrushTypeImage:
 	}
 	if (cairo_pattern_status(pat) != CAIRO_STATUS_SUCCESS)
-		implbug("error creating pattern in mkbrush(): %s",
+		uiprivImplBug("error creating pattern in mkbrush(): %s",
 			cairo_status_to_string(cairo_pattern_status(pat)));
 	switch (b->Type) {
 	case uiDrawBrushTypeLinearGradient:

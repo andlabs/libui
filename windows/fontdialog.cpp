@@ -1,11 +1,14 @@
 // 14 april 2016
 #include "uipriv_windows.hpp"
+#include "attrstr.hpp"
 
 // TODOs
 // - quote the Choose Font sample here for reference
 // - the Choose Font sample defaults to Regular/Italic/Bold/Bold Italic in some case (no styles?); do we? find out what the case is
 // - do we set initial family and style topmost as well?
 // - this should probably just handle IDWriteFonts
+// - localization?
+// - the Sample window overlaps the groupbox in a weird way (compare to the real ChooseFont() dialog)
 
 struct fontDialog {
 	HWND hwnd;
@@ -15,7 +18,7 @@ struct fontDialog {
 
 	struct fontDialogParams *params;
 
-	fontCollection *fc;
+	struct fontCollection *fc;
 
 	RECT sampleRect;
 	HWND sampleBox;
@@ -118,7 +121,7 @@ static WCHAR *cbGetItemText(HWND cb, WPARAM item)
 	len = SendMessageW(cb, CB_GETLBTEXTLEN, item, 0);
 	if (len == (LRESULT) CB_ERR)
 		logLastError(L"error getting item text length from combobox");
-	text = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
+	text = (WCHAR *) uiprivAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
 	if (SendMessageW(cb, CB_GETLBTEXT, item, (LPARAM) text) != len)
 		logLastError(L"error getting item text from combobox");
 	return text;
@@ -135,7 +138,7 @@ static BOOL cbTypeToSelect(HWND cb, LRESULT *posOut, BOOL restoreAfter)
 	text = windowText(cb);
 	pos = SendMessageW(cb, CB_FINDSTRINGEXACT, (WPARAM) (-1), (LPARAM) text);
 	if (pos == (LRESULT) CB_ERR) {
-		uiFree(text);
+		uiprivFree(text);
 		return FALSE;
 	}
 	cbSetCurSel(cb, (WPARAM) pos);
@@ -144,7 +147,7 @@ static BOOL cbTypeToSelect(HWND cb, LRESULT *posOut, BOOL restoreAfter)
 	if (restoreAfter)
 		if (SendMessageW(cb, WM_SETTEXT, 0, (LPARAM) text) != (LRESULT) TRUE)
 			logLastError(L"error restoring old combobox text");
-	uiFree(text);
+	uiprivFree(text);
 	// and restore the selection like above
 	// TODO isn't there a 32-bit version of this
 	if (SendMessageW(cb, CB_SETEDITSEL, 0, MAKELPARAM(selStart, selEnd)) != (LRESULT) TRUE)
@@ -166,7 +169,7 @@ static WCHAR *fontStyleName(struct fontCollection *fc, IDWriteFont *font)
 	hr = font->GetFaceNames(&str);
 	if (hr != S_OK)
 		logHRESULT(L"error getting font style name for font dialog", hr);
-	wstr = fontCollectionCorrectString(fc, str);
+	wstr = uiprivFontCollectionCorrectString(fc, str);
 	str->Release();
 	return wstr;
 }
@@ -251,7 +254,7 @@ static void familyChanged(struct fontDialog *f)
 			logHRESULT(L"error getting font for filling styles box", hr);
 		label = fontStyleName(f->fc, font);
 		pos = cbAddString(f->styleCombobox, label);
-		uiFree(label);
+		uiprivFree(label);
 		cbSetItemData(f->styleCombobox, (WPARAM) pos, (LPARAM) font);
 		if (font->GetWeight() == weight &&
 			font->GetStyle() == style &&
@@ -320,6 +323,7 @@ static void sizeEdited(struct fontDialog *f)
 	wsize = windowText(f->sizeCombobox);
 	// this is what the Choose Font dialog does; it swallows errors while the real ChooseFont() is not lenient (and only checks on OK)
 	size = wcstod(wsize, NULL);
+	// TODO free wsize? I forget already
 	if (size <= 0)		// don't change on invalid size
 		return;
 	f->curSize = size;
@@ -361,7 +365,7 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 	if (hr != S_OK)
 		exists = FALSE;
 	if (exists) {
-		sample = fontCollectionCorrectString(f->fc, sampleStrings);
+		sample = uiprivFontCollectionCorrectString(f->fc, sampleStrings);
 		sampleStrings->Release();
 	} else
 		sample = L"The quick brown fox jumps over the lazy dog.";
@@ -382,7 +386,7 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 		&format);
 	if (hr != S_OK)
 		logHRESULT(L"error creating IDWriteTextFormat", hr);
-	uiFree(family);
+	uiprivFree(family);
 
 	rect.left = 0;
 	rect.top = 0;
@@ -398,7 +402,7 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 
 	format->Release();
 	if (exists)
-		uiFree(sample);
+		uiprivFree(sample);
 	black->Release();
 }
 
@@ -462,7 +466,7 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	HWND samplePlacement;
 	HRESULT hr;
 
-	f = uiNew(struct fontDialog);
+	f = uiprivNew(struct fontDialog);
 	f->hwnd = hwnd;
 	f->params = (struct fontDialogParams *) lParam;
 
@@ -470,15 +474,15 @@ static struct fontDialog *beginFontDialog(HWND hwnd, LPARAM lParam)
 	f->styleCombobox = getDlgItem(f->hwnd, rcFontStyleCombobox);
 	f->sizeCombobox = getDlgItem(f->hwnd, rcFontSizeCombobox);
 
-	f->fc = loadFontCollection();
+	f->fc = uiprivLoadFontCollection();
 	nFamilies = f->fc->fonts->GetFontFamilyCount();
 	for (i = 0; i < nFamilies; i++) {
 		hr = f->fc->fonts->GetFontFamily(i, &family);
 		if (hr != S_OK)
 			logHRESULT(L"error getting font family", hr);
-		wname = fontCollectionFamilyName(f->fc, family);
+		wname = uiprivFontCollectionFamilyName(f->fc, family);
 		pos = cbAddString(f->familyCombobox, wname);
-		uiFree(wname);
+		uiprivFree(wname);
 		cbSetItemData(f->familyCombobox, (WPARAM) pos, (LPARAM) family);
 	}
 
@@ -499,10 +503,10 @@ static void endFontDialog(struct fontDialog *f, INT_PTR code)
 {
 	wipeStylesBox(f);
 	cbWipeAndReleaseData(f->familyCombobox);
-	fontCollectionFree(f->fc);
+	uiprivFontCollectionFree(f->fc);
 	if (EndDialog(f->hwnd, code) == 0)
 		logLastError(L"error ending font dialog");
-	uiFree(f);
+	uiprivFree(f);
 }
 
 static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
@@ -516,13 +520,13 @@ static INT_PTR tryFinishDialog(struct fontDialog *f, WPARAM wParam)
 	}
 
 	// OK
-	destroyFontDialogParams(f->params);
+	uiprivDestroyFontDialogParams(f->params);
 	f->params->font = (IDWriteFont *) cbGetItemData(f->styleCombobox, f->curStyle);
 	// we need to save font from being destroyed with the combobox
 	f->params->font->AddRef();
 	f->params->size = f->curSize;
 	family = (IDWriteFontFamily *) cbGetItemData(f->familyCombobox, f->curFamily);
-	f->params->familyName = fontCollectionFamilyName(f->fc, family);
+	f->params->familyName = uiprivFontCollectionFamilyName(f->fc, family);
 	f->params->styleName = fontStyleName(f->fc, f->params->font);
 	endFontDialog(f, 2);
 	return TRUE;
@@ -587,7 +591,7 @@ static INT_PTR CALLBACK fontDialogDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	return FALSE;
 }
 
-BOOL showFontDialog(HWND parent, struct fontDialogParams *params)
+BOOL uiprivShowFontDialog(HWND parent, struct fontDialogParams *params)
 {
 	switch (DialogBoxParamW(hInstance, MAKEINTRESOURCE(rcFontDialog), parent, fontDialogDlgProc, (LPARAM) params)) {
 	case 1:			// cancel
@@ -619,7 +623,7 @@ static IDWriteFontFamily *tryFindFamily(IDWriteFontCollection *fc, const WCHAR *
 	return family;
 }
 
-void loadInitialFontDialogParams(struct fontDialogParams *params)
+void uiprivLoadInitialFontDialogParams(struct fontDialogParams *params)
 {
 	struct fontCollection *fc;
 	IDWriteFontFamily *family;
@@ -632,7 +636,7 @@ void loadInitialFontDialogParams(struct fontDialogParams *params)
 	// If Arial isn't found, we'll use Helvetica and then MS Sans Serif as fallbacks, and if not, we'll just grab the first font family in the collection.
 
 	// We need the correct localized name for Regular (and possibly Arial too? let's say yes to be safe), so let's grab the strings from DirectWrite instead of hardcoding them.
-	fc = loadFontCollection();
+	fc = uiprivLoadFontCollection();
 	family = tryFindFamily(fc->fonts, L"Arial");
 	if (family == NULL) {
 		family = tryFindFamily(fc->fonts, L"Helvetica");
@@ -657,27 +661,27 @@ void loadInitialFontDialogParams(struct fontDialogParams *params)
 
 	params->font = font;
 	params->size = 10;
-	params->familyName = fontCollectionFamilyName(fc, family);
+	params->familyName = uiprivFontCollectionFamilyName(fc, family);
 	params->styleName = fontStyleName(fc, font);
 
 	// don't release font; we still need it
 	family->Release();
-	fontCollectionFree(fc);
+	uiprivFontCollectionFree(fc);
 }
 
-void destroyFontDialogParams(struct fontDialogParams *params)
+void uiprivDestroyFontDialogParams(struct fontDialogParams *params)
 {
 	params->font->Release();
-	uiFree(params->familyName);
-	uiFree(params->styleName);
+	uiprivFree(params->familyName);
+	uiprivFree(params->styleName);
 }
 
-WCHAR *fontDialogParamsToString(struct fontDialogParams *params)
+WCHAR *uiprivFontDialogParamsToString(struct fontDialogParams *params)
 {
 	WCHAR *text;
 
 	// TODO dynamically allocate
-	text = (WCHAR *) uiAlloc(512 * sizeof (WCHAR), "WCHAR[]");
+	text = (WCHAR *) uiprivAlloc(512 * sizeof (WCHAR), "WCHAR[]");
 	_snwprintf(text, 512, L"%s %s %g",
 		params->familyName,
 		params->styleName,

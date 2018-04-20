@@ -1,0 +1,112 @@
+metadata "med":	float32as(0.000000, 0x0)
+metadata "cond":	float32as(-0.200000, 0xbe4ccccd)
+metadata "ext":		float32as(0.200000, 0x3e4ccccd)
+
+registered "Extra Compressed":		float32as(-0.700000, 0xbf333333)
+registered "Ultra Compressed":		float32as(-0.700000, 0xbf333333)
+registered "Ultra Condensed":		float32as(-0.700000, 0xbf333333)
+registered "Extra Condensed":		float32as(-0.500000, 0xbf000000)
+registered "Extra Extended":		float32as(0.400000, 0x3ecccccd)
+registered "Ext Compressed":		float32as(-0.700000, 0xbf333333)
+registered "Ultra Expanded":		float32as(0.800000, 0x3f4ccccd)
+registered "Ultra Extended":		float32as(0.800000, 0x3f4ccccd)
+registered "Extra Expanded":		float32as(0.400000, 0x3ecccccd)
+registered "Semi Condensed":		float32as(-0.700000, 0xbf333333)
+registered "Semi Condensed":		float32as(-0.100000, 0xbdcccccd)
+registered "Ext Condensed":		float32as(-0.500000, 0xbf000000)
+registered "SemiCondensed":		float32as(-0.100000, 0xbdcccccd)
+registered "ExtraExpanded":		float32as(0.400000, 0x3ecccccd)
+registered "Semi Expanded":		float32as(0.100000, 0x3dcccccd)
+registered "Semi Extended":		float32as(0.100000, 0x3dcccccd)
+registered "Ext Expanded":		float32as(0.400000, 0x3ecccccd)
+registered "Ext Extended":		float32as(0.400000, 0x3ecccccd)
+registered "SemiExpanded":		float32as(0.100000, 0x3dcccccd)
+registered "Extra Narrow":		float32as(-0.500000, 0xbf000000)
+registered "ExtraNarrow":		float32as(-0.500000, 0xbf000000)
+registered "Extra Wide":		float32as(0.800000, 0x3f4ccccd)
+registered "Ultra Cond":		float32as(-0.700000, 0xbf333333)
+registered "Compressed":		float32as(-0.500000, 0xbf000000)
+registered "Extra Cond":		float32as(-0.500000, 0xbf000000)
+registered "Semi Cond":		float32as(-0.100000, 0xbdcccccd)
+registered "Condensed":		float32as(-0.200000, 0xbe4ccccd)
+registered "ExtraWide":		float32as(0.800000, 0x3f4ccccd)
+registered "Extended":		float32as(0.200000, 0x3e4ccccd)
+registered "Expanded":		float32as(0.200000, 0x3e4ccccd)
+registered "Ext Cond":		float32as(-0.500000, 0xbf000000)
+registered "Narrow":			float32as(-0.400000 , 0xbecccccd)
+registered "Compact":		float32as(-0.400000, 0xbecccccd)
+registered "Cond":			float32as(-0.200000, 0xbe4ccccd)
+registered "Wide":			float32as(0.600000, 0x3f19999a)
+registered "Thin":			float32as(-0.700000, 0xbf333333)
+
+panose 2, 3, 4:		float32as(0.000000, 0x0)
+panose 5:			float32as(0.200000, 0x3e4ccccd)
+panose 6:			float32as(-0.200000, 0xbe4ccccd)
+panose 7:			float32as(0.400000, 0x3ecccccd)
+panose 8:			float32as(-0.400000, 0xbecccccd)
+
+registered OS2 1:	float32as(-0.700000, 0xbf333333)
+registered OS2 2:	float32as(-0.500000, 0xbf000000)
+registered OS2 3:	float32as(-0.200000, 0xbe4ccccd)
+registered OS2 4:	float32as(-0.100000, 0xbdcccccd)
+registered OS2 5:	float32as(0.000000, 0x0)
+registered OS2 6:	float32as(0.100000, 0x3dcccccd)
+registered OS2 7:	float32as(0.400000, 0x3ecccccd)
+registered OS2 8:	float32as(0.600000, 0x3f19999a)
+registered OS2 9:	float32as(0.800000, 0x3f4ccccd)
+
+head[0x2d] & 0x20:		float32as(-0.200000, 0xbe4ccccd)
+head[0x2d] & 0x40:		float32as(0.200000, 0x3e4ccccd)
+
+registered default:		float32as(0.000000, 0x0)
+
+func (f *CTFont) Width() float64 {
+	if f.IsRegistered() {
+		return f.RegistryWidth()
+	}
+
+	width := 0.0
+	hasWidth := false
+
+	if there is an OS2 table {
+		var usWidthClass uint16
+
+		valid := false
+		if it's 78 bytes or more {
+			usWidthClass = uint16be(table[6:8])
+			if usWeightClass <= 10 {
+				valid = true
+			} else {
+				valid = false
+			}
+		} else {
+			usWidthClass = 0
+			valid = true
+		}
+		if valid {
+			ten := float64as(10.000000, 0x4024000000000000)
+			negPointFive := float64as(-0.500000, 0xbfe0000000000000)
+			width = (float64(usWidthClass) div ten) + negPointFive
+			hasWidth = true
+		}
+	}
+
+	then there's the style glossary strings comparison:
+unregistered "semi condensed":	float32as(-0.100000, 0xbdcccccd)
+unregistered "extra expanded":	float32as(0.400000, 0x3ecccccd)
+unregistered "semicondensed":	float32as(-0.100000, 0xbdcccccd)
+unregistered "extraexpanded":		float32as(0.400000, 0x3ecccccd)
+unregistered "semi expanded":		float32as(0.100000, 0x3dcccccd)
+unregistered "semiexpanded":		float32as(0.100000, 0x3dcccccd)
+unregistered "extra narrow":		float32as(-0.500000, 0xbf000000)
+unregistered "extranarrow":	float32as(-0.500000, 0xbf000000)
+unregistered "extra wide":	float32as(0.800000, 0x3f4ccccd)
+unregistered "condensed":	float32as(-0.200000, 0xbe4ccccd)
+unregistered "extrawide":		float32as(0.800000, 0x3f4ccccd)
+unregistered "extended":		float32as(0.200000, 0x3e4ccccd)
+unregistered "expanded":		float32as(0.200000, 0x3e4ccccd)
+unregistered "narrow":		float32as(-0.400000, 0xbecccccd)
+unregistered "wide":			float32as(0.600000, 0x3f19999a)
+unregistered "thin":			float32as(-0.700000, 0xbf333333)
+
+default:	float64as(0.000000, 0x0)

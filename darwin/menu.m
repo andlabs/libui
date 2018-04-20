@@ -71,7 +71,7 @@ static void mapItemReleaser(void *key, void *value)
 
 - (IBAction)onQuitClicked:(id)sender
 {
-	if (shouldQuit())
+	if (uiprivShouldQuit())
 		uiQuit();
 }
 
@@ -80,17 +80,17 @@ static void mapItemReleaser(void *key, void *value)
 	switch (smi->type) {
 	case typeQuit:
 		if (self->hasQuit)
-			userbug("You can't have multiple Quit menu items in one program.");
+			uiprivUserBug("You can't have multiple Quit menu items in one program.");
 		self->hasQuit = YES;
 		break;
 	case typePreferences:
 		if (self->hasPreferences)
-			userbug("You can't have multiple Preferences menu items in one program.");
+			uiprivUserBug("You can't have multiple Preferences menu items in one program.");
 		self->hasPreferences = YES;
 		break;
 	case typeAbout:
 		if (self->hasAbout)
-			userbug("You can't have multiple About menu items in one program.");
+			uiprivUserBug("You can't have multiple About menu items in one program.");
 		self->hasAbout = YES;
 		break;
 	}
@@ -212,7 +212,7 @@ void uiMenuItemDisable(uiMenuItem *item)
 void uiMenuItemOnClicked(uiMenuItem *item, void (*f)(uiMenuItem *, uiWindow *, void *), void *data)
 {
 	if (item->type == typeQuit)
-		userbug("You can't call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead.");
+		uiprivUserBug("You can't call uiMenuItemOnClicked() on a Quit item; use uiOnShouldQuit() instead.");
 	item->onClicked = f;
 	item->onClickedData = data;
 }
@@ -239,9 +239,9 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 	uiMenuItem *item;
 
 	if (menusFinalized)
-		userbug("You can't create a new menu item after menus have been finalized.");
+		uiprivUserBug("You can't create a new menu item after menus have been finalized.");
 
-	item = uiNew(uiMenuItem);
+	item = uiprivNew(uiMenuItem);
 
 	item->type = type;
 	switch (item->type) {
@@ -315,11 +315,11 @@ uiMenu *uiNewMenu(const char *name)
 	uiMenu *m;
 
 	if (menusFinalized)
-		userbug("You can't create a new menu after menus have been finalized.");
+		uiprivUserBug("You can't create a new menu after menus have been finalized.");
 	if (menus == nil)
 		menus = [NSMutableArray new];
 
-	m = uiNew(uiMenu);
+	m = uiprivNew(uiMenu);
 
 	m->menu = [[NSMenu alloc] initWithTitle:toNSString(name)];
 	// use automatic menu item enabling for all menus for consistency's sake
@@ -359,10 +359,10 @@ void uninitMenus(void)
 
 			v = (NSValue *) obj;
 			mi = (uiMenuItem *) [v pointerValue];
-			uiFree(mi);
+			uiprivFree(mi);
 		}];
 		[m->items release];
-		uiFree(m);
+		uiprivFree(m);
 	}];
 	[menus release];
 }

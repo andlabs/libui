@@ -605,7 +605,7 @@ struct uiTableIter {
 
 uiTableIter* uiTableGetSelection(uiTable *t)
 {
-	uiTableIter *it = uiAlloc(sizeof(uiTableIter), "uiTableIter");
+	uiTableIter *it = uiprivAlloc(sizeof(uiTableIter), "uiTableIter");
 	it->set = [t->tv selectedRowIndexes];
 	it->foo = 0;
 
@@ -630,7 +630,7 @@ int uiTableIterCurrent(uiTableIter *it)
 
 void uiTableIterComplete(uiTableIter *it)
 {
-	uiFree(it);
+	uiprivFree(it);
 }
 
 uiTable *uiNewTable(uiTableModel *model, int styleFlags)

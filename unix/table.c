@@ -671,7 +671,7 @@ static void collectSelection( GtkTreeModel *model,
 		} else {
 			it->cap *= 2;
 		}
-		it->data = uiRealloc(it->data, sizeof(int) * it->cap, "int[]");
+		it->data = uiprivRealloc(it->data, sizeof(int) * it->cap, "int[]");
 	}
 	it->data[it->len++] = (int)indices[0];
 }
@@ -679,7 +679,7 @@ static void collectSelection( GtkTreeModel *model,
 
 uiTableIter* uiTableGetSelection( uiTable* t)
 {
-	uiTableIter* it = uiAlloc(sizeof(uiTableIter), "uiTableIter");
+	uiTableIter* it = uiprivAlloc(sizeof(uiTableIter), "uiTableIter");
 	it->nextpos = 0;
 	it->len = 0;
 	it->cap = 0;
@@ -706,9 +706,9 @@ int uiTableIterCurrent(uiTableIter *it)
 void uiTableIterComplete(uiTableIter *it)
 {
 	if (it->data) {
-		uiFree(it->data);
+		uiprivFree(it->data);
 	}
-	uiFree(it);
+	uiprivFree(it);
 }
 
 

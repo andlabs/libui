@@ -168,7 +168,7 @@ struct uiTableIter {
 
 uiTableIter* uiTableGetSelection(uiTable *t)
 {
-	uiTableIter* it = (uiTableIter*)uiAlloc(sizeof(uiTableIter), "uiTableIter");
+	uiTableIter* it = (uiTableIter*)uiprivAlloc(sizeof(uiTableIter), "uiTableIter");
 	it->table = t;
 	it->more = 1;
 	it->current = -1;
@@ -189,7 +189,7 @@ int uiTableIterCurrent(uiTableIter *it)
 
 void uiTableIterComplete(uiTableIter *it)
 {
-	uiFree(it);
+	uiprivFree(it);
 }
 
 

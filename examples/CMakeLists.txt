@@ -41,6 +41,8 @@ if(APPLE)
 	# see issue #302 for more details
 	target_compile_options(cpp-multithread PRIVATE --stdlib=libc++)
 	target_link_libraries(cpp-multithread --stdlib=libc++)
+	target_compile_options(table PRIVATE --stdlib=libc++)
+	target_link_libraries(table --stdlib=libc++)
 endif()
 
 _add_example(drawtext

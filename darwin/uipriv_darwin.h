@@ -111,9 +111,9 @@ extern uiDrawContext *newContext(CGContextRef, CGFloat);
 extern void freeContext(uiDrawContext *);
 
 // fontbutton.m
-extern BOOL fontButtonInhibitSendAction(SEL sel, id from, id to);
-extern BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
-extern void setupFontPanel(void);
+extern BOOL uiprivFontButtonInhibitSendAction(SEL sel, id from, id to);
+extern BOOL uiprivFontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
+extern void uiprivSetupFontPanel(void);
 
 // colorbutton.m
 extern BOOL colorButtonInhibitSendAction(SEL sel, id from, id to);
@@ -142,35 +142,10 @@ extern NSImage *imageImage(uiImage *);
 extern void doManualMove(NSWindow *w, NSEvent *initialEvent);
 extern void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge);
 
-// fontmatch.m
-extern CTFontDescriptorRef fontdescToCTFontDescriptor(uiDrawFontDescriptor *fd);
-extern CTFontDescriptorRef fontdescAppendFeatures(CTFontDescriptorRef desc, const uiOpenTypeFeatures *otf);
-extern void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontDescriptor *uidesc);
-
-// attrstr.m
-extern void initUnderlineColors(void);
-extern void uninitUnderlineColors(void);
-typedef void (^backgroundBlock)(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y);
-extern CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks);
-
-// aat.m
-typedef void (^aatBlock)(uint16_t type, uint16_t selector);
-extern void openTypeToAAT(char a, char b, char c, char d, uint32_t value, aatBlock f);
-
-// opentype.m
-// TODO this is only used by opentype.m and aat.m; figure out some better way to handle this
-// TODO remove x8tox32()
-#define x8tox32(x) ((uint32_t) (((uint8_t) (x)) & 0xFF))
-#define mkTag(a, b, c, d)		\
-	((x8tox32(a) << 24) |	\
-	(x8tox32(b) << 16) |		\
-	(x8tox32(c) << 8) |		\
-	x8tox32(d))
-extern CFArrayRef otfToFeaturesArray(const uiOpenTypeFeatures *otf);
-
 // future.m
 extern CFStringRef *FUTURE_kCTFontOpenTypeFeatureTag;
 extern CFStringRef *FUTURE_kCTFontOpenTypeFeatureValue;
+extern CFStringRef *FUTURE_kCTBackgroundColorAttributeName;
 extern void loadFutures(void);
 extern void FUTURE_NSLayoutConstraint_setIdentifier(NSLayoutConstraint *constraint, NSString *identifier);
 extern BOOL FUTURE_NSWindow_performWindowDragWithEvent(NSWindow *w, NSEvent *initialEvent);

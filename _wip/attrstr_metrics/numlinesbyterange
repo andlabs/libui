@@ -1,0 +1,60 @@
+darwin
+int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
+{
+	return CFArrayGetCount([tl->forLines lines]);
+}
+
+void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
+{
+	CTLineRef lr;
+	CFRange range;
+
+	lr = (CTLineRef) CFArrayGetValueAtIndex([tl->forLines lines], line);
+	range = CTLineGetStringRange(lr);
+	*start = tl->u16tou8[range.location];
+	if (tl->empty)
+		*end = *start;
+	else
+		*end = tl->u16tou8[range.location + range.length];
+}
+
+
+unix
+int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
+{
+	return pango_layout_get_line_count(tl->layout);
+}
+
+void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
+{
+	PangoLayoutLine *pll;
+
+	pll = pango_layout_get_line_readonly(tl->layout, line);
+	*start = pll->start_index;
+	*end = pll->start_index + pll->length;
+	// TODO unref pll?
+}
+
+
+windows
+int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
+{
+return 0;
+#if 0
+TODO
+	return tl->nLines;
+#endif
+}
+
+// DirectWrite doesn't provide a direct way to do this, so we have to do this manually
+// TODO does that comment still apply here or to the code at the top of this file?
+void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
+{
+#if 0
+TODO
+	*start = tl->lineInfo[line].startPos;
+	*start = tl->u16tou8[*start];
+	*end = tl->lineInfo[line].endPos - tl->lineInfo[line].newlineCount;
+	*end = tl->u16tou8[*end];
+#endif
+}

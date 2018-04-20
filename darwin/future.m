@@ -8,6 +8,9 @@
 CFStringRef *FUTURE_kCTFontOpenTypeFeatureTag = NULL;
 CFStringRef *FUTURE_kCTFontOpenTypeFeatureValue = NULL;
 
+// added in OS X 10.12; we need 10.8
+CFStringRef *FUTURE_kCTBackgroundColorAttributeName = NULL;
+
 // note that we treat any error as "the symbols aren't there" (and don't care if dlclose() failed)
 void loadFutures(void)
 {
@@ -20,6 +23,7 @@ void loadFutures(void)
 #define GET(var, fn) *((void **) (&var)) = dlsym(handle, #fn)
 	GET(FUTURE_kCTFontOpenTypeFeatureTag, kCTFontOpenTypeFeatureTag);
 	GET(FUTURE_kCTFontOpenTypeFeatureValue, kCTFontOpenTypeFeatureValue);
+	GET(FUTURE_kCTBackgroundColorAttributeName, kCTBackgroundColorAttributeName);
 	dlclose(handle);
 }
 

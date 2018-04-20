@@ -29,8 +29,8 @@ extern BOOL runWM_HSCROLL(WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 extern void issueWM_WININICHANGE(WPARAM wParam, LPARAM lParam);
 
 // utf16.cpp
-#define emptyUTF16() ((WCHAR *) uiAlloc(1 * sizeof (WCHAR), "WCHAR[]"))
-#define emptyUTF8() ((char *) uiAlloc(1 * sizeof (char), "char[]"))
+#define emptyUTF16() ((WCHAR *) uiprivAlloc(1 * sizeof (WCHAR), "WCHAR[]"))
+#define emptyUTF8() ((char *) uiprivAlloc(1 * sizeof (char), "char[]"))
 extern WCHAR *toUTF16(const char *str);
 extern char *toUTF8(const WCHAR *wstr);
 extern WCHAR *utf16dup(const WCHAR *orig);
@@ -95,6 +95,12 @@ extern const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor);
 extern void uninitUtilWindow(void);
 
 // main.cpp
+// TODO how the hell did MSVC accept this without the second uiprivTimer???????
+typedef struct uiprivTimer uiprivTimer;
+struct uiprivTimer {
+	int (*f)(void *);
+	void *data;
+};
 extern int registerMessageFilter(void);
 extern void unregisterMessageFilter(void);
 
@@ -152,17 +158,8 @@ extern void getSizing(HWND hwnd, uiWindowsSizing *sizing, HFONT font);
 // TODO move into a dedicated file abibugs.cpp when we rewrite the drawing code
 extern D2D1_SIZE_F realGetSize(ID2D1RenderTarget *rt);
 
-
-
-
 // TODO
 #include "_uipriv_migrate.hpp"
 
 // draw.cpp
 extern ID2D1DCRenderTarget *makeHDCRenderTarget(HDC dc, RECT *r);
-
-// drawtext.cpp
-extern void fontdescFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc);
-
-// opentype.cpp
-extern IDWriteTypography *otfToDirectWrite(const uiOpenTypeFeatures *otf);

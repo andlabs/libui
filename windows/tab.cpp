@@ -212,7 +212,7 @@ void uiTabInsertAt(uiTab *t, const char *name, int n, uiControl *child)
 	item.pszText = wname;
 	if (SendMessageW(t->tabHWND, TCM_INSERTITEM, (WPARAM) n, (LPARAM) (&item)) == (LRESULT) -1)
 		logLastError(L"error adding tab to uiTab");
-	uiFree(wname);
+	uiprivFree(wname);
 
 	// we need to do this because adding the first tab doesn't send a TCN_SELCHANGE; it just shows the page
 	show = curpage(t);

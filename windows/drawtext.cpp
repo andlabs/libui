@@ -1,22 +1,14 @@
 // 17 january 2017
 #include "uipriv_windows.hpp"
 #include "draw.hpp"
-
-// TODO
-// - consider the warnings about antialiasing in the PadWrite sample
-// - if that's not a problem, do we have overlapping rects in the hittest sample? I can't tell...
-// - empty string: nLines == 1 and all checks out except extents has x == 0 when not left aligned
-// - paragraph alignment is subject to RTL mirroring; see if it is on other platforms
-// - add overhang info to metrics?
+#include "attrstr.hpp"
 
 // TODO verify our renderer is correct, especially with regards to snapping
 
 struct uiDrawTextLayout {
 	IDWriteTextFormat *format;
 	IDWriteTextLayout *layout;
-	std::vector<backgroundFunc> *backgroundFuncs;
-	UINT32 nLines;
-	struct lineInfo *lineInfo;
+	std::vector<struct drawTextBackgroundParams *> *backgroundParams;
 	// for converting DirectWrite indices from/to byte offsets
 	size_t *u8tou16;
 	size_t nUTF8;
@@ -30,110 +22,7 @@ struct uiDrawTextLayout {
 // fortunately Microsoft does this too, in https://msdn.microsoft.com/en-us/library/windows/desktop/dd371554%28v=vs.85%29.aspx
 #define pointSizeToDWriteSize(size) (size * (96.0 / 72.0))
 
-// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
-std::map<uiDrawTextItalic, DWRITE_FONT_STYLE> dwriteItalics = {
-	{ uiDrawTextItalicNormal, DWRITE_FONT_STYLE_NORMAL },
-	{ uiDrawTextItalicOblique, DWRITE_FONT_STYLE_OBLIQUE },
-	{ uiDrawTextItalicItalic, DWRITE_FONT_STYLE_ITALIC },
-};
-
-// TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
-std::map<uiDrawTextStretch, DWRITE_FONT_STRETCH> dwriteStretches = {
-	{ uiDrawTextStretchUltraCondensed, DWRITE_FONT_STRETCH_ULTRA_CONDENSED },
-	{ uiDrawTextStretchExtraCondensed, DWRITE_FONT_STRETCH_EXTRA_CONDENSED },
-	{ uiDrawTextStretchCondensed, DWRITE_FONT_STRETCH_CONDENSED },
-	{ uiDrawTextStretchSemiCondensed, DWRITE_FONT_STRETCH_SEMI_CONDENSED },
-	{ uiDrawTextStretchNormal, DWRITE_FONT_STRETCH_NORMAL },
-	{ uiDrawTextStretchSemiExpanded, DWRITE_FONT_STRETCH_SEMI_EXPANDED },
-	{ uiDrawTextStretchExpanded, DWRITE_FONT_STRETCH_EXPANDED },
-	{ uiDrawTextStretchExtraExpanded, DWRITE_FONT_STRETCH_EXTRA_EXPANDED },
-	{ uiDrawTextStretchUltraExpanded, DWRITE_FONT_STRETCH_ULTRA_EXPANDED },
-};
-
-struct lineInfo {
-	size_t startPos;			// in UTF-16 points
-	size_t endPos;
-	size_t newlineCount;
-	double x;
-	double y;
-	double width;
-	double height;
-	double baseline;
-};
-
-// this function is deeply indebted to the PadWrite sample: https://github.com/Microsoft/Windows-classic-samples/blob/master/Samples/Win7Samples/multimedia/DirectWrite/PadWrite/TextEditor.cpp
-static void computeLineInfo(uiDrawTextLayout *tl)
-{
-	DWRITE_LINE_METRICS *dlm;
-	size_t nextStart;
-	UINT32 i, j;
-	DWRITE_HIT_TEST_METRICS *htm;
-	UINT32 nFragments, unused;
-	HRESULT hr;
-
-	// TODO make sure this is legal; if not, switch to GetMetrics() and use its line count field instead
-	hr = tl->layout->GetLineMetrics(NULL, 0, &(tl->nLines));
-	// ugh, HRESULT_TO_WIN32() is an inline function and is not constexpr so we can't use switch here
-	if (hr == S_OK) {
-		// TODO what do we do here
-	} else if (hr != E_NOT_SUFFICIENT_BUFFER)
-		logHRESULT(L"error getting number of lines in IDWriteTextLayout", hr);
-	tl->lineInfo = (struct lineInfo *) uiAlloc(tl->nLines * sizeof (struct lineInfo), "struct lineInfo[] (text layout)");
-
-	dlm = new DWRITE_LINE_METRICS[tl->nLines];
-	// we can't pass NULL here; it outright crashes if we do
-	// TODO verify the numbers haven't changed
-	hr = tl->layout->GetLineMetrics(dlm, tl->nLines, &unused);
-	if (hr != S_OK)
-		logHRESULT(L"error getting IDWriteTextLayout line metrics", hr);
-
-	// assume the first line starts at position 0 and the string flow is incremental
-	nextStart = 0;
-	for (i = 0; i < tl->nLines; i++) {
-		tl->lineInfo[i].startPos = nextStart;
-		tl->lineInfo[i].endPos = nextStart + dlm[i].length;
-		tl->lineInfo[i].newlineCount = dlm[i].newlineLength;
-		nextStart = tl->lineInfo[i].endPos;
-
-		// a line can have multiple fragments; for example, if there's a bidirectional override in the middle of a line
-		hr = tl->layout->HitTestTextRange(tl->lineInfo[i].startPos, (tl->lineInfo[i].endPos - tl->lineInfo[i].newlineCount) - tl->lineInfo[i].startPos,
-			0, 0,
-			NULL, 0, &nFragments);
-		if (hr != S_OK && hr != E_NOT_SUFFICIENT_BUFFER)
-			logHRESULT(L"error getting IDWriteTextLayout line fragment count", hr);
-		htm = new DWRITE_HIT_TEST_METRICS[nFragments];
-		// TODO verify unused == nFragments?
-		hr = tl->layout->HitTestTextRange(tl->lineInfo[i].startPos, (tl->lineInfo[i].endPos - tl->lineInfo[i].newlineCount) - tl->lineInfo[i].startPos,
-			0, 0,
-			htm, nFragments, &unused);
-		// TODO can this return E_NOT_SUFFICIENT_BUFFER again?
-		if (hr != S_OK)
-			logHRESULT(L"error getting IDWriteTextLayout line fragment metrics", hr);
-		// TODO verify htm.textPosition and htm.length against dtm[i]/tl->lineInfo[i]?
-		tl->lineInfo[i].x = htm[0].left;
-		tl->lineInfo[i].y = htm[0].top;
-		// TODO does this not include trailing whitespace? I forget
-		tl->lineInfo[i].width = htm[0].width;
-		tl->lineInfo[i].height = htm[0].height;
-		for (j = 1; j < nFragments; j++) {
-			// this is correct even if the leftmost fragment on the line is RTL
-			if (tl->lineInfo[i].x > htm[j].left)
-				tl->lineInfo[i].x = htm[j].left;
-			tl->lineInfo[i].width += htm[j].width;
-			// TODO verify y and height haven't changed?
-		}
-		// TODO verify dlm[i].height == htm.height?
-		delete[] htm;
-
-		// TODO on Windows 8.1 and/or 10 we can use DWRITE_LINE_METRICS1 to get specific info about the ascent and descent; do we have an alternative?
-		// TODO and even on those platforms can we somehow split tyographic leading from spacing?
-		// TODO and on that note, can we have both line spacing proportionally above and uniformly below?
-		tl->lineInfo[i].baseline = dlm[i].baseline;
-	}
-
-	delete[] dlm;
-}
-
+// TODO move this and the layout creation stuff to attrstr.cpp like the other ports, or move the other ports into their drawtext.* files
 // TODO should be const but then I can't operator[] on it; the real solution is to find a way to do designated array initializers in C++11 but I do not know enough C++ voodoo to make it work (it is possible but no one else has actually done it before)
 static std::map<uiDrawTextAlign, DWRITE_TEXT_ALIGNMENT> dwriteAligns = {
 	{ uiDrawTextAlignLeft, DWRITE_TEXT_ALIGNMENT_LEADING },
@@ -149,24 +38,20 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	FLOAT maxWidth;
 	HRESULT hr;
 
-	tl = uiNew(uiDrawTextLayout);
+	tl = uiprivNew(uiDrawTextLayout);
 
 	wDefaultFamily = toUTF16(p->DefaultFont->Family);
 	hr = dwfactory->CreateTextFormat(
 		wDefaultFamily, NULL,
-		// for the most part, DirectWrite weights correlate to ours
-		// the differences:
-		// - Minimum — libui: 0, DirectWrite: 1
-		// - Maximum — libui: 1000, DirectWrite: 999
-		// TODO figure out what to do about this shorter range (the actual major values are the same (but with different names), so it's just a range issue)
-		(DWRITE_FONT_WEIGHT) (p->DefaultFont->Weight),
-		dwriteItalics[p->DefaultFont->Italic],
-		dwriteStretches[p->DefaultFont->Stretch],
+		uiprivWeightToDWriteWeight(p->DefaultFont->Weight),
+		uiprivItalicToDWriteStyle(p->DefaultFont->Italic),
+		uiprivStretchToDWriteStretch(p->DefaultFont->Stretch),
 		pointSizeToDWriteSize(p->DefaultFont->Size),
 		// see http://stackoverflow.com/questions/28397971/idwritefactorycreatetextformat-failing and https://msdn.microsoft.com/en-us/library/windows/desktop/dd368203.aspx
 		// TODO use the current locale?
 		L"",
 		&(tl->format));
+	uiprivFree(wDefaultFamily);
 	if (hr != S_OK)
 		logHRESULT(L"error creating IDWriteTextFormat", hr);
 	hr = tl->format->SetTextAlignment(dwriteAligns[p->Align]);
@@ -174,7 +59,7 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 		logHRESULT(L"error applying text layout alignment", hr);
 
 	hr = dwfactory->CreateTextLayout(
-		(const WCHAR *) attrstrUTF16(p->String), attrstrUTF16Len(p->String),
+		(const WCHAR *) uiprivAttributedStringUTF16String(p->String), uiprivAttributedStringUTF16Len(p->String),
 		tl->format,
 		// FLOAT is float, not double, so this should work... TODO
 		FLT_MAX, FLT_MAX,
@@ -199,30 +84,28 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	if (hr != S_OK)
 		logHRESULT(L"error setting IDWriteTextLayout max layout width", hr);
 
-	attrstrToIDWriteTextLayoutAttrs(p, tl->layout, &(tl->backgroundFuncs));
-
-	computeLineInfo(tl);
+	uiprivAttributedStringApplyAttributesToDWriteTextLayout(p, tl->layout, &(tl->backgroundParams));
 
 	// and finally copy the UTF-8/UTF-16 index conversion tables
-	tl->u8tou16 = attrstrCopyUTF8ToUTF16(p->String, &(tl->nUTF8));
-	tl->u16tou8 = attrstrCopyUTF16ToUTF8(p->String, &(tl->nUTF16));
+	tl->u8tou16 = uiprivAttributedStringCopyUTF8ToUTF16Table(p->String, &(tl->nUTF8));
+	tl->u16tou8 = uiprivAttributedStringCopyUTF16ToUTF8Table(p->String, &(tl->nUTF16));
 
-	// TODO can/should this be moved elsewhere?
-	uiFree(wDefaultFamily);
 	return tl;
 }
 
 void uiDrawFreeTextLayout(uiDrawTextLayout *tl)
 {
-	uiFree(tl->u16tou8);
-	uiFree(tl->u8tou16);
-	uiFree(tl->lineInfo);
-	delete tl->backgroundFuncs;
+	uiprivFree(tl->u16tou8);
+	uiprivFree(tl->u8tou16);
+	for (auto p : *(tl->backgroundParams))
+		uiprivFree(p);
+	delete tl->backgroundParams;
 	tl->layout->Release();
 	tl->format->Release();
-	uiFree(tl);
+	uiprivFree(tl);
 }
 
+// TODO make this shared code somehow
 static HRESULT mkSolidBrush(ID2D1RenderTarget *rt, double r, double g, double b, double a, ID2D1SolidColorBrush **brush)
 {
 	D2D1_BRUSH_PROPERTIES props;
@@ -255,6 +138,96 @@ static ID2D1SolidColorBrush *mustMakeSolidBrush(ID2D1RenderTarget *rt, double r,
 }
 
 // some of the stuff we want to do isn't possible with what DirectWrite provides itself; we need to do it ourselves
+
+drawingEffectsAttr::drawingEffectsAttr(void)
+{
+	this->refcount = 1;
+	this->hasColor = false;
+	this->hasUnderline = false;
+	this->hasUnderlineColor = false;
+}
+
+HRESULT STDMETHODCALLTYPE drawingEffectsAttr::QueryInterface(REFIID riid, void **ppvObject)
+{
+	if (ppvObject == NULL)
+		return E_POINTER;
+	if (riid == IID_IUnknown) {
+		this->AddRef();
+		*ppvObject = this;
+		return S_OK;
+	}
+	*ppvObject = NULL;
+	return E_NOINTERFACE;
+}
+
+ULONG STDMETHODCALLTYPE drawingEffectsAttr::AddRef(void)
+{
+	this->refcount++;
+	return this->refcount;
+}
+
+ULONG STDMETHODCALLTYPE drawingEffectsAttr::Release(void)
+{
+	this->refcount--;
+	if (this->refcount == 0) {
+		delete this;
+		return 0;
+	}
+	return this->refcount;
+}
+
+void drawingEffectsAttr::setColor(double r, double g, double b, double a)
+{
+	this->hasColor = true;
+	this->r = r;
+	this->g = g;
+	this->b = b;
+	this->a = a;
+}
+
+void drawingEffectsAttr::setUnderline(uiUnderline u)
+{
+	this->hasUnderline = true;
+	this->u = u;
+}
+
+void drawingEffectsAttr::setUnderlineColor(double r, double g, double b, double a)
+{
+	this->hasUnderlineColor = true;
+	this->ur = r;
+	this->ug = g;
+	this->ub = b;
+	this->ua = a;
+}
+
+HRESULT drawingEffectsAttr::mkColorBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b)
+{
+	if (!this->hasColor) {
+		*b = NULL;
+		return S_OK;
+	}
+	return mkSolidBrush(rt, this->r, this->g, this->b, this->a, b);
+}
+
+HRESULT drawingEffectsAttr::underline(uiUnderline *u)
+{
+	if (u == NULL)
+		return E_POINTER;
+	if (!this->hasUnderline)
+		return E_UNEXPECTED;
+	*u = this->u;
+	return S_OK;
+}
+
+HRESULT drawingEffectsAttr::mkUnderlineBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b)
+{
+	if (!this->hasUnderlineColor) {
+		*b = NULL;
+		return S_OK;
+	}
+	return mkSolidBrush(rt, this->ur, this->ug, this->ub, this->ua, b);
+}
+
 // this is based on http://www.charlespetzold.com/blog/2014/01/Character-Formatting-Extensions-with-DirectWrite.html
 class textRenderer : public IDWriteTextRenderer {
 	ULONG refcount;
@@ -342,26 +315,29 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, DWRITE_MEASURING_MODE measuringMode, const DWRITE_GLYPH_RUN *glyphRun, const DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription, IUnknown *clientDrawingEffect)
 	{
 		D2D1_POINT_2F baseline;
-		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
+		drawingEffectsAttr *dea = (drawingEffectsAttr *) clientDrawingEffect;
 		ID2D1SolidColorBrush *brush;
 
 		baseline.x = baselineOriginX;
 		baseline.y = baselineOriginY;
-		brush = this->black;
-		if (t != NULL && t->hasColor) {
+		brush = NULL;
+		if (dea != NULL) {
 			HRESULT hr;
 
-			hr = mkSolidBrush(this->rt, t->r, t->g, t->b, t->a, &brush);
+			hr = dea->mkColorBrush(this->rt, &brush);
 			if (hr != S_OK)
 				return hr;
+		}
+		if (brush == NULL) {
+			brush = this->black;
+			brush->AddRef();
 		}
 		this->rt->DrawGlyphRun(
 			baseline,
 			glyphRun,
 			brush,
 			measuringMode);
-		if (t != NULL && t->hasColor)
-			brush->Release();
+		brush->Release();
 		return S_OK;
 	}
 
@@ -381,43 +357,47 @@ public:
 		return E_UNEXPECTED;
 	}
 
-	virtual HRESULT DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
+	// TODO clean this function up
+	virtual HRESULT STDMETHODCALLTYPE DrawUnderline(void *clientDrawingContext, FLOAT baselineOriginX, FLOAT baselineOriginY, const DWRITE_UNDERLINE *underline, IUnknown *clientDrawingEffect)
 	{
-		textDrawingEffect *t = (textDrawingEffect *) clientDrawingEffect;
+		drawingEffectsAttr *dea = (drawingEffectsAttr *) clientDrawingEffect;
+		uiUnderline utype;
 		ID2D1SolidColorBrush *brush;
 		D2D1_RECT_F rect;
 		D2D1::Matrix3x2F pixeltf;
 		FLOAT dpix, dpiy;
 		D2D1_POINT_2F pt;
+		HRESULT hr;
 
 		if (underline == NULL)
 			return E_POINTER;
-		if (t == NULL)		// we can only get here through an underline
+		if (dea == NULL)		// we can only get here through an underline
 			return E_UNEXPECTED;
-		brush = this->black;
-		if (t->hasUnderlineColor) {
-			HRESULT hr;
-
-			hr = mkSolidBrush(this->rt, t->ur, t->ug, t->ub, t->ua, &brush);
+		hr = dea->underline(&utype);
+		if (hr != S_OK)			// we *should* only get here through an underline that's actually set...
+			return hr;
+		hr = dea->mkUnderlineBrush(this->rt, &brush);
+		if (hr != S_OK)
+			return hr;
+		if (brush == NULL) {
+			// TODO document this rule if not already done
+			hr = dea->mkColorBrush(this->rt, &brush);
 			if (hr != S_OK)
 				return hr;
-		} else if (t->hasColor) {
-			// TODO formalize this rule
-			HRESULT hr;
-
-			hr = mkSolidBrush(this->rt, t->r, t->g, t->b, t->a, &brush);
-			if (hr != S_OK)
-				return hr;
+		}
+		if (brush == NULL) {
+			brush = this->black;
+			brush->AddRef();
 		}
 		rect.left = baselineOriginX;
 		rect.top = baselineOriginY + underline->offset;
 		rect.right = rect.left + underline->width;
 		rect.bottom = rect.top + underline->thickness;
-		switch (t->u) {
-		case uiDrawUnderlineStyleSingle:
+		switch (utype) {
+		case uiUnderlineSingle:
 			this->rt->FillRectangle(&rect, brush);
 			break;
-		case uiDrawUnderlineStyleDouble:
+		case uiUnderlineDouble:
 			// TODO do any of the matrix methods return errors?
 			// TODO standardize double-underline shape across platforms? wavy underline shape?
 			this->rt->GetTransform(&pixeltf);
@@ -440,7 +420,7 @@ public:
 			rect.bottom = rect.top + underline->thickness;
 			this->rt->FillRectangle(&rect, brush);
 			break;
-		case uiDrawUnderlineStyleSuggestion:
+		case uiUnderlineSuggestion:
 			{		// TODO get rid of the extra block
 					// TODO properly clean resources on failure
 					// TODO use fully qualified C overloads for all methods
@@ -487,8 +467,7 @@ public:
 			}
 			break;
 		}
-		if (t->hasUnderlineColor || t->hasColor)
-			brush->Release();
+		brush->Release();
 		return S_OK;
 	}
 };
@@ -501,8 +480,9 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
 	textRenderer *renderer;
 	HRESULT hr;
 
-	for (const auto &f : *(tl->backgroundFuncs))
-		f(c, tl, x, y);
+	for (auto p : *(tl->backgroundParams)) {
+		// TODO
+	}
 
 	// TODO document that fully opaque black is the default text color; figure out whether this is upheld in various scenarios on other platforms
 	// TODO figure out if this needs to be cleaned out
@@ -553,159 +533,4 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	*width = metrics.width;
 	// TODO make sure the behavior of this on empty strings is the same on all platforms (ideally should be 0-width, line height-height; TODO note this in the docs too)
 	*height = metrics.height;
-}
-
-int uiDrawTextLayoutNumLines(uiDrawTextLayout *tl)
-{
-	return tl->nLines;
-}
-
-// DirectWrite doesn't provide a direct way to do this, so we have to do this manually
-// TODO does that comment still apply here or to the code at the top of this file?
-void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start, size_t *end)
-{
-	*start = tl->lineInfo[line].startPos;
-	*start = tl->u16tou8[*start];
-	*end = tl->lineInfo[line].endPos - tl->lineInfo[line].newlineCount;
-	*end = tl->u16tou8[*end];
-}
-
-void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
-{
-	m->X = tl->lineInfo[line].x;
-	m->Y = tl->lineInfo[line].y;
-	m->Width = tl->lineInfo[line].width;
-	m->Height = tl->lineInfo[line].height;
-
-	// TODO rename tl->lineInfo[line].baseline to .baselineOffset or something of the sort to make its meaning more clear
-	m->BaselineY = tl->lineInfo[line].y + tl->lineInfo[line].baseline;
-	m->Ascent = tl->lineInfo[line].baseline;
-	m->Descent = tl->lineInfo[line].height - tl->lineInfo[line].baseline;
-	m->Leading = 0;		// TODO
-
-	m->ParagraphSpacingBefore = 0;		// TODO
-	m->LineHeightSpace = 0;				// TODO
-	m->LineSpacing = 0;				// TODO
-	m->ParagraphSpacing = 0;			// TODO
-}
-
-// this algorithm comes from Microsoft's PadWrite sample, following TextEditor::SetSelectionFromPoint()
-// TODO go back through all of these and make sure we convert coordinates properly
-// TODO same for OS X
-void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *pos, int *line)
-{
-	DWRITE_HIT_TEST_METRICS m;
-	BOOL trailing, inside;
-	size_t p;
-	UINT32 i;
-	HRESULT hr;
-
-	hr = tl->layout->HitTestPoint(x, y,
-		&trailing, &inside,
-		&m);
-	if (hr != S_OK)
-		logHRESULT(L"error hit-testing IDWriteTextLayout", hr);
-	p = m.textPosition;
-	// on a trailing hit, align to the nearest cluster
-	if (trailing) {
-		DWRITE_HIT_TEST_METRICS m2;
-		FLOAT x, y;				// crashes if I skip these :/
-
-		hr = tl->layout->HitTestTextPosition(m.textPosition, trailing,
-			&x, &y, &m2);
-		if (hr != S_OK)
-			logHRESULT(L"error aligning trailing hit to nearest cluster", hr);
-		p = m2.textPosition + m2.length;
-	}
-	*pos = tl->u16tou8[p];
-
-	for (i = 0; i < tl->nLines; i++) {
-		double ltop, lbottom;
-
-		ltop = tl->lineInfo[i].y;
-		lbottom = ltop + tl->lineInfo[i].height;
-		// y will already >= ltop at this point since the past lbottom should == ltop
-		if (y < lbottom)
-			break;
-	}
-	if (i == tl->nLines)
-		i--;
-	*line = i;
-}
-
-double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)
-{
-	BOOL trailing;
-	DWRITE_HIT_TEST_METRICS m;
-	FLOAT x, y;
-	HRESULT hr;
-
-	if (line < 0 || line >= tl->nLines)
-		return -1;
-	pos = tl->u8tou16[pos];
-	// note: >, not >=, because the position at endPos is valid!
-	if (pos < tl->lineInfo[line].startPos || pos > tl->lineInfo[line].endPos)
-		return -1;
-	// this behavior seems correct
-	// there's also PadWrite's TextEditor::GetCaretRect() but that requires state...
-	// TODO where does this fail?
-	trailing = FALSE;
-	if (pos != 0 && pos != tl->nUTF16 && pos == tl->lineInfo[line].endPos) {
-		pos--;
-		trailing = TRUE;
-	}
-	hr = tl->layout->HitTestTextPosition(pos, trailing,
-		&x, &y, &m);
-	if (hr != S_OK)
-		logHRESULT(L"error calling IDWriteTextLayout::HitTestTextPosition()", hr);
-	return x;
-}
-
-void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p)
-{
-	DWORD caretWidth;
-
-	// there seems to be no defined caret color
-	// the best I can come up with is "inverts colors underneath" (according to https://msdn.microsoft.com/en-us/library/windows/desktop/ms648397(v=vs.85).aspx) which I have no idea how to do (TODO)
-	// just return black for now
-	p->r = 0.0;
-	p->g = 0.0;
-	p->b = 0.0;
-	p->a = 1.0;
-
-	if (SystemParametersInfoW(SPI_GETCARETWIDTH, 0, &caretWidth, 0) == 0)
-		// don't log the failure, fall back gracefully
-		// the instruction to use this comes from https://msdn.microsoft.com/en-us/library/windows/desktop/ms648399(v=vs.85).aspx
-		// and we have to assume GetSystemMetrics() always succeeds, so
-		caretWidth = GetSystemMetrics(SM_CXBORDER);
-	// TODO make this a function and split it out of areautil.cpp
-	{
-		FLOAT dpix, dpiy;
-
-		// TODO can we pass NULL for dpiy?
-		c->rt->GetDpi(&dpix, &dpiy);
-		// see https://msdn.microsoft.com/en-us/library/windows/desktop/dd756649%28v=vs.85%29.aspx (and others; search "direct2d mouse")
-		p->width = ((double) (caretWidth * 96)) / dpix;
-	}
-	// and there doesn't seem to be this either... (TODO check what PadWrite does?)
-	p->xoff = 0;
-}
-
-// TODO split this and the above related font matching code into a separate file?
-void fontdescFromIDWriteFont(IDWriteFont *font, uiDrawFontDescriptor *uidesc)
-{
-	DWRITE_FONT_STYLE dwitalic;
-	DWRITE_FONT_STRETCH dwstretch;
-
-	dwitalic = font->GetStyle();
-	// TODO reverse the above misalignment if it is corrected
-	uidesc->Weight = (uiDrawTextWeight) (font->GetWeight());
-	dwstretch = font->GetStretch();
-
-	for (uidesc->Italic = uiDrawTextItalicNormal; uidesc->Italic < uiDrawTextItalicItalic; uidesc->Italic++)
-		if (dwriteItalics[uidesc->Italic] == dwitalic)
-			break;
-	for (uidesc->Stretch = uiDrawTextStretchUltraCondensed; uidesc->Stretch < uiDrawTextStretchUltraExpanded; uidesc->Stretch++)
-		if (dwriteStretches[uidesc->Stretch] == dwstretch)
-			break;
 }

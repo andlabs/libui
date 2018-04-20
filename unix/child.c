@@ -33,7 +33,7 @@ struct child *newChild(uiControl *child, uiControl *parent, GtkContainer *parent
 	if (child == NULL)
 		return NULL;
 
-	c = uiNew(struct child);
+	c = uiprivNew(struct child);
 	c->c = child;
 	c->widget = GTK_WIDGET(uiControlHandle(c->c));
 
@@ -82,7 +82,7 @@ void childRemove(struct child *c)
 	if (c->box != NULL)
 		gtk_widget_destroy(c->box);
 
-	uiFree(c);
+	uiprivFree(c);
 }
 
 void childDestroy(struct child *c)

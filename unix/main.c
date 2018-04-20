@@ -1,14 +1,14 @@
 // 6 april 2015
 #include "uipriv_unix.h"
 
-uiInitOptions options;
+uiInitOptions uiprivOptions;
 
 const char *uiInit(uiInitOptions *o)
 {
 	GError *err = NULL;
 	const char *msg;
 
-	options = *o;
+	uiprivOptions = *o;
 	if (gtk_init_with_args(NULL, NULL, NULL, NULL, NULL, &err) == FALSE) {
 		msg = g_strdup(err->message);
 		g_error_free(err);
@@ -99,10 +99,36 @@ void uiQueueMain(void (*f)(void *data), void *data)
 {
 	struct queued *q;
 
-	// we have to use g_new0()/g_free() because uiAlloc() is only safe to call on the main thread
+	// we have to use g_new0()/g_free() because uiprivAlloc() is only safe to call on the main thread
 	// for some reason it didn't affect me, but it did affect krakjoe
 	q = g_new0(struct queued, 1);
 	q->f = f;
 	q->data = data;
 	gdk_threads_add_idle(doqueued, q);
+}
+
+struct timer {
+        int (*f)(void *);
+        void *data;
+};
+
+static gboolean doTimer(gpointer data)
+{
+        struct timer *t = (struct timer *) data;
+
+        if (!(*(t->f))(t->data)) {
+                uiprivFree(t);
+                return FALSE;
+        }
+	return TRUE;
+}
+
+void uiTimer(int milliseconds, int (*f)(void *data), void *data)
+{
+        struct timer *t;
+
+        t = uiprivNew(struct timer);
+        t->f = f;
+        t->data = data;
+        g_timeout_add(milliseconds, doTimer, t);
 }

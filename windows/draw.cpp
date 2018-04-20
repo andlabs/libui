@@ -107,7 +107,7 @@ uiDrawContext *newContext(ID2D1RenderTarget *rt)
 {
 	uiDrawContext *c;
 
-	c = uiNew(uiDrawContext);
+	c = uiprivNew(uiDrawContext);
 	c->rt = rt;
 	c->states = new std::vector<struct drawState>;
 	resetTarget(c->rt);
@@ -120,9 +120,9 @@ void freeContext(uiDrawContext *c)
 		c->currentClip->Release();
 	if (c->states->size() != 0)
 		// TODO do this on other platforms
-		userbug("You did not balance uiDrawSave() and uiDrawRestore() calls.");
+		uiprivUserBug("You did not balance uiDrawSave() and uiDrawRestore() calls.");
 	delete c->states;
-	uiFree(c);
+	uiprivFree(c);
 }
 
 static ID2D1Brush *makeSolidBrush(uiDrawBrush *b, ID2D1RenderTarget *rt, D2D1_BRUSH_PROPERTIES *props)
@@ -152,7 +152,7 @@ static ID2D1GradientStopCollection *mkstops(uiDrawBrush *b, ID2D1RenderTarget *r
 	size_t i;
 	HRESULT hr;
 
-	stops = (D2D1_GRADIENT_STOP *) uiAlloc(b->NumStops * sizeof (D2D1_GRADIENT_STOP), "D2D1_GRADIENT_STOP[]");
+	stops = (D2D1_GRADIENT_STOP *) uiprivAlloc(b->NumStops * sizeof (D2D1_GRADIENT_STOP), "D2D1_GRADIENT_STOP[]");
 	for (i = 0; i < b->NumStops; i++) {
 		stops[i].position = b->Stops[i].Pos;
 		stops[i].color.r = b->Stops[i].R;
@@ -170,7 +170,7 @@ static ID2D1GradientStopCollection *mkstops(uiDrawBrush *b, ID2D1RenderTarget *r
 	if (hr != S_OK)
 		logHRESULT(L"error creating stop collection", hr);
 
-	uiFree(stops);
+	uiprivFree(stops);
 	return s;
 }
 
@@ -253,7 +253,7 @@ static ID2D1Brush *makeBrush(uiDrawBrush *b, ID2D1RenderTarget *rt)
 	}
 
 	// TODO do this on all platforms
-	userbug("Invalid brush type %d given to drawing operation.", b->Type);
+	uiprivUserBug("Invalid brush type %d given to drawing operation.", b->Type);
 	// TODO dummy brush?
 	return NULL;		// make compiler happy
 }
@@ -365,7 +365,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeP
 	// TODO be sure to formally document this
 	if (sp->NumDashes != 0) {
 		dsp.dashStyle = D2D1_DASH_STYLE_CUSTOM;
-		dashes = (FLOAT *) uiAlloc(sp->NumDashes * sizeof (FLOAT), "FLOAT[]");
+		dashes = (FLOAT *) uiprivAlloc(sp->NumDashes * sizeof (FLOAT), "FLOAT[]");
 		for (i = 0; i < sp->NumDashes; i++)
 			dashes[i] = sp->Dashes[i] / sp->Thickness;
 	}
@@ -378,7 +378,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *p, uiDrawBrush *b, uiDrawStrokeP
 	if (hr != S_OK)
 		logHRESULT(L"error creating stroke style", hr);
 	if (sp->NumDashes != 0)
-		uiFree(dashes);
+		uiprivFree(dashes);
 
 	cliplayer = applyClip(c);
 	c->rt->DrawGeometry(

@@ -1,5 +1,6 @@
 // 14 april 2016
 #include "uipriv_windows.hpp"
+#include "attrstr.hpp"
 
 struct uiFontButton {
 	uiWindowsControl c;
@@ -15,7 +16,7 @@ static void uiFontButtonDestroy(uiControl *c)
 	uiFontButton *b = uiFontButton(c);
 
 	uiWindowsUnregisterWM_COMMANDHandler(b->hwnd);
-	destroyFontDialogParams(&(b->params));
+	uiprivDestroyFontDialogParams(&(b->params));
 	uiWindowsEnsureDestroyWindow(b->hwnd);
 	uiFreeControl(uiControl(b));
 }
@@ -24,9 +25,9 @@ static void updateFontButtonLabel(uiFontButton *b)
 {
 	WCHAR *text;
 
-	text = fontDialogParamsToString(&(b->params));
+	text = uiprivFontDialogParamsToString(&(b->params));
 	setWindowText(b->hwnd, text);
-	uiFree(text);
+	uiprivFree(text);
 
 	// changing the text might necessitate a change in the button's size
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
@@ -41,7 +42,7 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 		return FALSE;
 
 	parent = parentToplevel(b->hwnd);
-	if (showFontDialog(parent, &(b->params))) {
+	if (uiprivShowFontDialog(parent, &(b->params))) {
 		updateFontButtonLabel(b);
 		(*(b->onChanged))(b, b->onChangedData);
 	}
@@ -86,9 +87,9 @@ static void defaultOnChanged(uiFontButton *b, void *data)
 	// do nothing
 }
 
-void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc)
+void uiFontButtonFont(uiFontButton *b, uiFontDescriptor *desc)
 {
-	fontdescFromIDWriteFont(b->params.font, desc);
+	uiprivFontDescriptorFromIDWriteFont(b->params.font, desc);
 	desc->Family = toUTF8(b->params.familyName);
 	desc->Size = b->params.size;
 }
@@ -111,7 +112,7 @@ uiFontButton *uiNewFontButton(void)
 		hInstance, NULL,
 		TRUE);
 
-	loadInitialFontDialogParams(&(b->params));
+	uiprivLoadInitialFontDialogParams(&(b->params));
 
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
@@ -119,4 +120,9 @@ uiFontButton *uiNewFontButton(void)
 	updateFontButtonLabel(b);
 
 	return b;
+}
+
+void uiFreeFontButtonFont(uiFontDescriptor *desc)
+{
+	uiprivFree((char *) (desc->Family));
 }

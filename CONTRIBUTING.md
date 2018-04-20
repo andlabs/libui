@@ -30,9 +30,11 @@ In the event you are unsure of something, refer to existing libui code for examp
 
 libui uses camel-case for naming, with a handful of very specific exceptions (namely GObject method names, where GObject itself enforces the naming convention).
 
-All public API names should begin with `ui` and followed by a capital letter. All public struct names should begin with a capital letter. This is identical to the visibiilty rules of Go, assuming a package name of `ui`.
+All public API names should begin with `ui` and followed by a capital letter. All public struct field names should begin with a capital letter. This is identical to the visibiilty rules of Go, assuming a package name of `ui`.
 
-No private API name should begin with `ui` followed by a capital letter; in fact, I would ideally like to be able to get away with lax naming for private functions. I may have to change that if it becomes technically difficult to do in the case of static linking later on down the road. (`uiMalloc()`, `uiRealloc()`, and `uiFree()` are grandfathered-in exceptions.)
+Private API names — specifcally those used by more than one source file — should begin with `uipriv` and be followed by a capital letter. This avoids namespace collisions in static libraries.
+
+Static functions and static objects do not have naming restrictions.
 
 Acronyms should **NOT** be mixed-case. `http` for the first word in a camel-case name, `HTTP` for all else, but **NEVER** `Http`. This is possibly the only aspect of the controversial nature of code style that I consider indefensibly stupid.
 

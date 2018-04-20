@@ -1,134 +1,66 @@
 // 11 may 2017
 #import "uipriv_darwin.h"
+#import "attrstr.h"
 
-struct uiOpenTypeFeatures {
-	NSMutableDictionary *tags;
+struct addCTFeatureEntryParams {
+	CFMutableArrayRef array;
+	const void *tagKey;
+	BOOL tagIsNumber;
+	CFNumberType tagType;
+	const void *tagValue;
+	const void *valueKey;
+	CFNumberType valueType;
+	const void *valueValue;
 };
 
-uiOpenTypeFeatures *uiNewOpenTypeFeatures(void)
+static void addCTFeatureEntry(struct addCTFeatureEntryParams *p)
 {
-	uiOpenTypeFeatures *otf;
+	CFDictionaryRef featureDict;
+	CFNumberRef tagNum, valueNum;
+	const void *keys[2], *values[2];
 
-	otf = uiNew(uiOpenTypeFeatures);
-	otf->tags = [NSMutableDictionary new];
-	return otf;
+	keys[0] = p->tagKey;
+	tagNum = NULL;
+	values[0] = p->tagValue;
+	if (p->tagIsNumber) {
+		tagNum = CFNumberCreate(NULL, p->tagType, p->tagValue);
+		values[0] = tagNum;
+	}
+
+	keys[1] = p->valueKey;
+	valueNum = CFNumberCreate(NULL, p->valueType, p->valueValue);
+	values[1] = valueNum;
+
+	featureDict = CFDictionaryCreate(NULL,
+		keys, values, 2,
+		// TODO are these correct?
+		&kCFCopyStringDictionaryKeyCallBacks,
+		&kCFTypeDictionaryValueCallBacks);
+	if (featureDict == NULL) {
+		// TODO
+	}
+	CFArrayAppendValue(p->array, featureDict);
+
+	CFRelease(featureDict);
+	CFRelease(valueNum);
+	if (p->tagIsNumber)
+		CFRelease(tagNum);
 }
 
-void uiFreeOpenTypeFeatures(uiOpenTypeFeatures *otf)
-{
-	[otf->tags release];
-	uiFree(otf);
-}
-
-uiOpenTypeFeatures *uiOpenTypeFeaturesClone(const uiOpenTypeFeatures *otf)
-{
-	uiOpenTypeFeatures *out;
-
-	out = uiNew(uiOpenTypeFeatures);
-	out->tags = [otf->tags mutableCopy];
-	return out;
-}
-
-// why are there no NSNumber methods for stdint.h or the equivalent core foundation types?...
-#define mkMapObject(tag) [NSNumber numberWithUnsignedLongLong:((unsigned long long) tag)]
-#define mapObjectValue(num) ((uint32_t) [num unsignedLongLongValue])
-
-void uiOpenTypeFeaturesAdd(uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value)
-{
-	NSNumber *tn, *vn;
-
-	tn = mkMapObject(mkTag(a, b, c, d));
-	vn = mkMapObject(value);
-	[otf->tags setObject:vn forKey:tn];
-}
-
-void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b, char c, char d)
-{
-	NSNumber *tn;
-
-	tn = mkMapObject(mkTag(a, b, c, d));
-	// documented as doing nothing if tn is not in otf->tags
-	[otf->tags removeObjectForKey:tn];
-}
-
-// TODO will the const wreck stuff up?
-int uiOpenTypeFeaturesGet(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t *value)
-{
-	NSNumber *tn, *vn;
-
-	tn = mkMapObject(mkTag(a, b, c, d));
-	vn = (NSNumber *) [otf->tags objectForKey:tn];
-	if (vn == nil)
-		return 0;
-	*value = mapObjectValue(vn);
-	// TODO release vn?
-	return 1;
-}
-
-void uiOpenTypeFeaturesForEach(const uiOpenTypeFeatures *otf, uiOpenTypeFeaturesForEachFunc f, void *data)
-{
-	[otf->tags enumerateKeysAndObjectsUsingBlock:^(id key, id value, BOOL *stop) {
-		NSNumber *tn = (NSNumber *) key;
-		NSNumber *vn = (NSNumber *) value;
-		uint32_t tag;
-		uint8_t a, b, c, d;
-		uiForEach ret;
-
-		tag = mapObjectValue(tn);
-		a = (uint8_t) ((tag >> 24) & 0xFF);
-		b = (uint8_t) ((tag >> 16) & 0xFF);
-		c = (uint8_t) ((tag >> 8) & 0xFF);
-		d = (uint8_t) (tag & 0xFF);
-		ret = (*f)(otf, (char) a, (char) b, (char) c, (char) d,
-			mapObjectValue(vn), data);
-		// TODO for all: require exact match?
-		if (ret == uiForEachStop)
-			*stop = YES;
-	}];
-}
-
-int uiOpenTypeFeaturesEqual(const uiOpenTypeFeatures *a, const uiOpenTypeFeatures *b)
-{
-	if (a == NULL && b == NULL)
-		return 1;
-	if (a == NULL || b == NULL)
-		return 0;
-	return [a->tags isEqualToDictionary:b->tags];
-}
-
-// TODO explain all this
-// TODO rename outerArray and innerDict (the names made sense when this was part of fontdescAppendFeatures(), but not here)
-// TODO make all this use enumerateKeysAndObjects (which requires duplicating code)?
 static uiForEach otfArrayForEachAAT(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data)
 {
-	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
+	__block struct addCTFeatureEntryParams p;
 
-	openTypeToAAT(a, b, c, d, value, ^(uint16_t type, uint16_t selector) {
-		CFDictionaryRef innerDict;
-		CFNumberRef numType, numSelector;
-		// not well documented, but fixed-size arrays don't support __block either (VLAs are documented as being unsupported)
-		const void *keys[2], *values[2];
-
-		keys[0] = kCTFontFeatureTypeIdentifierKey;
-		keys[1] = kCTFontFeatureSelectorIdentifierKey;
-		numType = CFNumberCreate(NULL, kCFNumberSInt16Type,
-			(const SInt16 *) (&type));
-		numSelector = CFNumberCreate(NULL, kCFNumberSInt16Type,
-			(const SInt16 *) (&selector));
-		values[0] = numType;
-		values[1] = numSelector;
-		innerDict = CFDictionaryCreate(NULL,
-			keys, values, 2,
-			// TODO are these correct?
-			&kCFCopyStringDictionaryKeyCallBacks,
-			&kCFTypeDictionaryValueCallBacks);
-		if (innerDict == NULL) {
-			// TODO
-		}
-		CFArrayAppendValue(outerArray, innerDict);
-		CFRelease(innerDict);
-		CFRelease(numSelector);
-		CFRelease(numType);
+	p.array = (CFMutableArrayRef) data;
+	p.tagIsNumber = YES;
+	uiprivOpenTypeToAAT(a, b, c, d, value, ^(uint16_t type, uint16_t selector) {
+		p.tagKey = kCTFontFeatureTypeIdentifierKey;
+		p.tagType = kCFNumberSInt16Type;
+		p.tagValue = (const SInt16 *) (&type);
+		p.valueKey = kCTFontFeatureSelectorIdentifierKey;
+		p.valueType = kCFNumberSInt16Type;
+		p.valueValue = (const SInt16 *) (&selector);
+		addCTFeatureEntry(&p);
 	});
 	return uiForEachContinue;
 }
@@ -136,56 +68,46 @@ static uiForEach otfArrayForEachAAT(const uiOpenTypeFeatures *otf, char a, char 
 // TODO find out which fonts differ in AAT small caps and test them with this
 static uiForEach otfArrayForEachOT(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data)
 {
-	CFMutableArrayRef outerArray = (CFMutableArrayRef) data;
-	CFDictionaryRef innerDict;
-	// TODO rename this to tagstr (and all the other variables likewise...)
-	CFStringRef strTag;
-	CFNumberRef numValue;
+	struct addCTFeatureEntryParams p;
 	char tagcstr[5];
-	const void *keys[2], *values[2];
+	CFStringRef tagstr;
 
+	p.array = (CFMutableArrayRef) data;
+
+	p.tagKey = *FUTURE_kCTFontOpenTypeFeatureTag;
+	p.tagIsNumber = NO;
 	tagcstr[0] = a;
 	tagcstr[1] = b;
 	tagcstr[2] = c;
 	tagcstr[3] = d;
 	tagcstr[4] = '\0';
-	keys[0] = *FUTURE_kCTFontOpenTypeFeatureTag;
-	keys[1] = *FUTURE_kCTFontOpenTypeFeatureValue;
-	strTag = CFStringCreateWithCString(NULL, tagcstr, kCFStringEncodingUTF8);
-	if (strTag == NULL) {
+	tagstr = CFStringCreateWithCString(NULL, tagcstr, kCFStringEncodingUTF8);
+	if (tagstr == NULL) {
 		// TODO
 	}
-	numValue = CFNumberCreate(NULL, kCFNumberSInt32Type,
-		(const SInt32 *) (&value));
-	values[0] = strTag;
-	values[1] = numValue;
-	innerDict = CFDictionaryCreate(NULL,
-		keys, values, 2,
-		// TODO are these correct?
-		&kCFCopyStringDictionaryKeyCallBacks,
-		&kCFTypeDictionaryValueCallBacks);
-	if (innerDict == NULL) {
-		// TODO
-	}
-	CFArrayAppendValue(outerArray, innerDict);
-	CFRelease(innerDict);
-	CFRelease(numValue);
-	CFRelease(strTag);
+	p.tagValue = tagstr;
+
+	p.valueKey = *FUTURE_kCTFontOpenTypeFeatureValue;
+	p.valueType = kCFNumberSInt32Type;
+	p.valueValue = (const SInt32 *) (&value);
+	addCTFeatureEntry(&p);
+
+	CFRelease(tagstr);
 	return uiForEachContinue;
 }
 
-CFArrayRef otfToFeaturesArray(const uiOpenTypeFeatures *otf)
+CFArrayRef uiprivOpenTypeFeaturesToCTFeatures(const uiOpenTypeFeatures *otf)
 {
-	CFMutableArrayRef outerArray;
+	CFMutableArrayRef array;
 	uiOpenTypeFeaturesForEachFunc f;
 
-	outerArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
-	if (outerArray == NULL) {
+	array = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+	if (array == NULL) {
 		// TODO
 	}
 	f = otfArrayForEachAAT;
 	if (FUTURE_kCTFontOpenTypeFeatureTag != NULL && FUTURE_kCTFontOpenTypeFeatureValue != NULL)
 		f = otfArrayForEachOT;
-	uiOpenTypeFeaturesForEach(otf, f, outerArray);
-	return outerArray;
+	uiOpenTypeFeaturesForEach(otf, f, array);
+	return array;
 }

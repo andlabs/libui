@@ -1,22 +1,23 @@
 // 25 may 2016
 #include "uipriv_windows.hpp"
+#include "attrstr.hpp"
 
 // We could use CharNextW() to generate grapheme cluster boundaries, but it doesn't handle surrogate pairs properly (see http://archives.miloush.net/michkap/archive/2008/12/16/9223301.html).
 // We could also use Uniscribe (see http://archives.miloush.net/michkap/archive/2005/01/14/352802.html, http://www.catch22.net/tuts/uniscribe-mysteries, http://www.catch22.net/tuts/keyboard-navigation, and https://maxradi.us/documents/uniscribe/), but its rules for buffer sizes is convoluted.
 // Let's just deal with the CharNextW() bug.
 
-int graphemesTakesUTF16(void)
+int uiprivGraphemesTakesUTF16(void)
 {
 	return 1;
 }
 
-struct graphemes *graphemes(void *s, size_t len)
+uiprivGraphemes *uiprivNewGraphemes(void *s, size_t len)
 {
-	struct graphemes *g;
+	uiprivGraphemes *g;
 	WCHAR *str;
 	size_t *pPTG, *pGTP;
 
-	g = uiNew(struct graphemes);
+	g = uiprivNew(uiprivGraphemes);
 
 	g->len = 0;
 	str = (WCHAR *) s;
@@ -26,8 +27,8 @@ struct graphemes *graphemes(void *s, size_t len)
 		// no need to worry about surrogates if we're just counting
 	}
 
-	g->pointsToGraphemes = (size_t *) uiAlloc((len + 1) * sizeof (size_t), "size_t[] (graphemes)");
-	g->graphemesToPoints = (size_t *) uiAlloc((g->len + 1) * sizeof (size_t), "size_t[] (graphemes)");
+	g->pointsToGraphemes = (size_t *) uiprivAlloc((len + 1) * sizeof (size_t), "size_t[] (graphemes)");
+	g->graphemesToPoints = (size_t *) uiprivAlloc((g->len + 1) * sizeof (size_t), "size_t[] (graphemes)");
 
 	pPTG = g->pointsToGraphemes;
 	pGTP = g->graphemesToPoints;

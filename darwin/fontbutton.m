@@ -1,7 +1,8 @@
 // 14 april 2016
 #import "uipriv_darwin.h"
+#import "attrstr.h"
 
-@interface fontButton : NSButton {
+@interface uiprivFontButton : NSButton {
 	uiFontButton *libui_b;
 	NSFont *libui_font;
 }
@@ -11,20 +12,20 @@
 - (void)activateFontButton;
 - (void)deactivateFontButton:(BOOL)activatingAnother;
 - (void)deactivateOnClose:(NSNotification *)note;
-- (void)getfontdesc:(uiDrawFontDescriptor *)uidesc;
+- (void)getfontdesc:(uiFontDescriptor *)uidesc;
 @end
 
 // only one may be active at one time
-static fontButton *activeFontButton = nil;
+static uiprivFontButton *activeFontButton = nil;
 
 struct uiFontButton {
 	uiDarwinControl c;
-	fontButton *button;
+	uiprivFontButton *button;
 	void (*onChanged)(uiFontButton *, void *);
 	void *onChangedData;
 };
 
-@implementation fontButton
+@implementation uiprivFontButton
 
 - (id)initWithFrame:(NSRect)frame libuiFontButton:(uiFontButton *)b
 {
@@ -138,14 +139,14 @@ struct uiFontButton {
 		NSFontPanelCollectionModeMask;
 }
 
-- (void)getfontdesc:(uiDrawFontDescriptor *)uidesc
+- (void)getfontdesc:(uiFontDescriptor *)uidesc
 {
 	CTFontRef ctfont;
 	CTFontDescriptorRef ctdesc;
 
 	ctfont = (CTFontRef) (self->libui_font);
 	ctdesc = CTFontCopyFontDescriptor(ctfont);
-	fontdescFromCTFontDescriptor(ctdesc, uidesc);
+	uiprivFontDescriptorFromCTFontDescriptor(ctdesc, uidesc);
 	CFRelease(ctdesc);
 	uidesc->Size = CTFontGetSize(ctfont);
 }
@@ -156,16 +157,16 @@ uiDarwinControlAllDefaults(uiFontButton, button)
 
 // we do not want font change events to be sent to any controls other than the font buttons
 // see main.m for more details
-BOOL fontButtonInhibitSendAction(SEL sel, id from, id to)
+BOOL uiprivFontButtonInhibitSendAction(SEL sel, id from, id to)
 {
 	if (sel != @selector(changeFont:))
 		return NO;
-	return ![to isKindOfClass:[fontButton class]];
+	return ![to isKindOfClass:[uiprivFontButton class]];
 }
 
 // we do not want NSFontPanelValidation messages to be sent to any controls other than the font buttons when a font button is active
 // see main.m for more details
-BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override)
+BOOL uiprivFontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override)
 {
 	if (activeFontButton == nil)
 		return NO;
@@ -177,10 +178,10 @@ BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override)
 
 // we also don't want the panel to be usable when there's a dialog running; see stddialogs.m for more details on that
 // unfortunately the panel seems to ignore -setWorksWhenModal: so we'll have to do things ourselves
-@interface nonModalFontPanel : NSFontPanel
+@interface uiprivNonModalFontPanel : NSFontPanel
 @end
 
-@implementation nonModalFontPanel
+@implementation uiprivNonModalFontPanel
 
 - (BOOL)worksWhenModal
 {
@@ -189,9 +190,9 @@ BOOL fontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override)
 
 @end
 
-void setupFontPanel(void)
+void uiprivSetupFontPanel(void)
 {
-	[NSFontManager setFontPanelFactory:[nonModalFontPanel class]];
+	[NSFontManager setFontPanelFactory:[uiprivNonModalFontPanel class]];
 }
 
 static void defaultOnChanged(uiFontButton *b, void *data)
@@ -199,7 +200,7 @@ static void defaultOnChanged(uiFontButton *b, void *data)
 	// do nothing
 }
 
-void uiFontButtonFont(uiFontButton *b, uiDrawFontDescriptor *desc)
+void uiFontButtonFont(uiFontButton *b, uiFontDescriptor *desc)
 {
 	[b->button getfontdesc:desc];
 }
@@ -216,10 +217,16 @@ uiFontButton *uiNewFontButton(void)
 
 	uiDarwinNewControl(uiFontButton, b);
 
-	b->button = [[fontButton alloc] initWithFrame:NSZeroRect libuiFontButton:b];
+	b->button = [[uiprivFontButton alloc] initWithFrame:NSZeroRect libuiFontButton:b];
 	uiDarwinSetControlFont(b->button, NSRegularControlSize);
 
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
 
 	return b;
+}
+
+void uiFreeFontButtonFont(uiFontDescriptor *desc)
+{
+	// TODO ensure this is synchronized with fontmatch.m
+	uiFreeText((char *) (desc->Family));
 }

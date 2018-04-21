@@ -95,9 +95,10 @@ extern const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor);
 extern void uninitUtilWindow(void);
 
 // main.cpp
-typedef struct uiprivTimer;
+// TODO how the hell did MSVC accept this without the second uiprivTimer???????
+typedef struct uiprivTimer uiprivTimer;
 struct uiprivTimer {
-	void (*f)(void *);
+	int (*f)(void *);
 	void *data;
 };
 extern int registerMessageFilter(void);

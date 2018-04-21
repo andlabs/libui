@@ -1,0 +1,25 @@
+= attributed strings
+attribute lengths are rounded to complete unicode codepoints
+zero-length attributes are elided
+consecutive attributes of the same type and value are merged
+overlapping attributes of different types do not split each other
+overlapping attributes of the same type but different values do split
+empty string is allowed
+empty string cannot have attributes
+font family names are case-insensitive both in attributes and in descriptors
+attributes are unique throughout a Unicode codepoint, not just to UTF-8 bytes
+define what "it is an error" means in the case of uiFreeAttribute() and all uiAttributeValue() functions and constructors
+does uiAttributeFamily() return a normalized string
+should uiNewAttributeBackground() be renamed to uiNewAttributeBackgroundColor() and likewise for the type constant
+should underline colors just ignore non-custom component arguments
+should any color getter function accept a NULL pointer
+what should uiAttributeUnderlineColor() do if the color type isn't Custom but the other pointers are non-NULL
+should uiOpenTypeFeaturesGet() accept a NULL value pointer
+what happens if uiOpenTypeFeaturesForEach() is given a NULl function pointer
+should FeaturesAttribute be changed to OpenTypeFeaturesAttribute and likewise for the type enum
+should uiNewFeaturesAttribute() accept NULL
+should uiNewFamilyAttribute() accept NULL
+it is an error in ForEach too
+invalid values for uiDrawTextAlign
+empty text layouts have one line
+TODO figure out what to do if any field (particularly the font family name) in uiFontDescriptor is unset

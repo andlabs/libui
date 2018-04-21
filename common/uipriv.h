@@ -1,46 +1,47 @@
 // 6 april 2015
-
-// this must go outside other extern "C" blocks, otherwise we'll get double-declaration errors
+// note: this file should not include ui.h, as the OS-specific ui_*.h files are included between that one and this one in the OS-specific uipriv_*.h* files
+#include <stdarg.h>
+#include <string.h>
+#include "controlsigs.h"
 #include "utf.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdarg.h>
-#include <string.h>
-#include "controlsigs.h"
+// OS-specific init.* or main.* files
+extern uiInitOptions uiprivOptions;
 
-extern uiInitOptions options;
+// OS-specific alloc.* files
+extern void *uiprivAlloc(size_t, const char *);
+#define uiprivNew(T) ((T *) uiprivAlloc(sizeof (T), #T))
+extern void *uiprivRealloc(void *, size_t, const char *);
+extern void uiprivFree(void *);
 
-extern void *uiAlloc(size_t, const char *);
-#define uiNew(T) ((T *) uiAlloc(sizeof (T), #T))
-extern void *uiRealloc(void *, size_t, const char *);
-extern void uiFree(void *);
-
-// ugh, this was only introduced in MSVC 2015...
+// debug.c and OS-specific debug.* files
+// TODO get rid of this mess...
+// ugh, __func__ was only introduced in MSVC 2015...
 #ifdef _MSC_VER
-#define __func__ __FUNCTION__
+#define uiprivMacro__func__ __FUNCTION__
+#else
+#define uiprivMacro__func__ __func__
 #endif
-extern void realbug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap);
-#define _ns2(s) #s
-#define _ns(s) _ns2(s)
-extern void _implbug(const char *file, const char *line, const char *func, const char *format, ...);
-#define implbug(...) _implbug(__FILE__, _ns(__LINE__), __func__, __VA_ARGS__)
-extern void _userbug(const char *file, const char *line, const char *func, const char *format, ...);
-#define userbug(...) _userbug(__FILE__, _ns(__LINE__), __func__, __VA_ARGS__)
-
-// control.c
-extern uiControl *newControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr);
+extern void uiprivRealBug(const char *file, const char *line, const char *func, const char *prefix, const char *format, va_list ap);
+#define uiprivMacro_ns2(s) #s
+#define uiprivMacro_ns(s) uiprivMacro_ns2(s)
+extern void uiprivDoImplBug(const char *file, const char *line, const char *func, const char *format, ...);
+#define uiprivImplBug(...) uiprivDoImplBug(__FILE__, uiprivMacro_ns(__LINE__), uiprivMacro__func__, __VA_ARGS__)
+extern void uiprivDoUserBug(const char *file, const char *line, const char *func, const char *format, ...);
+#define uiprivUserBug(...) uiprivDoUserBug(__FILE__, uiprivMacro_ns(__LINE__), uiprivMacro__func__, __VA_ARGS__)
 
 // shouldquit.c
-extern int shouldQuit(void);
+extern int uiprivShouldQuit(void);
 
 // areaevents.c
-typedef struct clickCounter clickCounter;
+typedef struct uiprivClickCounter uiprivClickCounter;
 // you should call Reset() to zero-initialize a new instance
 // it doesn't matter that all the non-count fields are zero: the first click will fail the curButton test straightaway, so it'll return 1 and set the rest of the structure accordingly
-struct clickCounter {
+struct uiprivClickCounter {
 	int curButton;
 	int rectX0;
 	int rectY0;
@@ -49,57 +50,17 @@ struct clickCounter {
 	uintptr_t prevTime;
 	int count;
 };
-int clickCounterClick(clickCounter *c, int button, int x, int y, uintptr_t time, uintptr_t maxTime, int32_t xdist, int32_t ydist);
-extern void clickCounterReset(clickCounter *);
-extern int fromScancode(uintptr_t, uiAreaKeyEvent *);
+extern int uiprivClickCounterClick(uiprivClickCounter *c, int button, int x, int y, uintptr_t time, uintptr_t maxTime, int32_t xdist, int32_t ydist);
+extern void uiprivClickCounterReset(uiprivClickCounter *);
+extern int uiprivFromScancode(uintptr_t, uiAreaKeyEvent *);
 
 // matrix.c
-extern void fallbackSkew(uiDrawMatrix *, double, double, double, double);
-extern void scaleCenter(double, double, double *, double *);
-extern void fallbackTransformSize(uiDrawMatrix *, double *, double *);
+extern void uiprivFallbackSkew(uiDrawMatrix *, double, double, double, double);
+extern void uiprivScaleCenter(double, double, double *, double *);
+extern void uiprivFallbackTransformSize(uiDrawMatrix *, double *, double *);
 
-// for attrstr.c
-struct graphemes {
-	size_t len;
-	size_t *pointsToGraphemes;
-	size_t *graphemesToPoints;
-};
-extern int graphemesTakesUTF16(void);
-extern struct graphemes *graphemes(void *s, size_t len);
-
-// TODO split these into a separate header file?
-
-// attrstr.c
-extern const uint16_t *attrstrUTF16(uiAttributedString *s);
-extern size_t attrstrUTF16Len(uiAttributedString *s);
-extern size_t attrstrUTF8ToUTF16(const uiAttributedString *s, size_t n);
-extern size_t *attrstrCopyUTF8ToUTF16(uiAttributedString *s, size_t *n);
-extern size_t *attrstrCopyUTF16ToUTF8(uiAttributedString *s, size_t *n);
-
-// attrlist.c
-struct attrlist;
-extern void attrlistInsertAttribute(struct attrlist *alist, uiAttributeSpec *spec, size_t start, size_t end);
-extern void attrlistInsertCharactersUnattributed(struct attrlist *alist, size_t start, size_t count);
-extern void attrlistInsertCharactersExtendingAttributes(struct attrlist *alist, size_t start, size_t count);
-extern void attrlistRemoveAttribute(struct attrlist *alist, uiAttribute type, size_t start, size_t end);
-extern void attrlistRemoveAttributes(struct attrlist *alist, size_t start, size_t end);
-extern void attrlistRemoveCharacters(struct attrlist *alist, size_t start, size_t end);
-extern void attrlistForEach(struct attrlist *alist, uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data);
-// TODO move these to the top like everythng else
-extern struct attrlist *attrlistNew(void);
-extern void attrlistFree(struct attrlist *alist);
-
-// drawtext.c
-struct caretDrawParams {
-	double r;
-	double g;
-	double b;
-	double a;
-	double xoff;
-	double width;
-};
-extern void caretDrawParams(uiDrawContext *c, double height, struct caretDrawParams *p);
-extern void drawTextBackground(uiDrawContext *c, double x, double y, uiDrawTextLayout *layout, size_t start, size_t end, uiDrawBrush *brush, int isSelection);
+// OS-specific text.* files
+extern int uiprivStricmp(const char *a, const char *b);
 
 #ifdef __cplusplus
 }

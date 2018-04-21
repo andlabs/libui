@@ -6,7 +6,7 @@ uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style)
 {
 	uiDrawContext *c;
 
-	c = uiNew(uiDrawContext);
+	c = uiprivNew(uiDrawContext);
 	c->cr = cr;
 	c->style = style;
 	return c;
@@ -15,7 +15,7 @@ uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style)
 void freeContext(uiDrawContext *c)
 {
 	// free neither cr nor style; we own neither
-	uiFree(c);
+	uiprivFree(c);
 }
 
 static cairo_pattern_t *mkbrush(uiDrawBrush *b)
@@ -39,7 +39,7 @@ static cairo_pattern_t *mkbrush(uiDrawBrush *b)
 //	case uiDrawBrushTypeImage:
 	}
 	if (cairo_pattern_status(pat) != CAIRO_STATUS_SUCCESS)
-		implbug("error creating pattern in mkbrush(): %s",
+		uiprivImplBug("error creating pattern in mkbrush(): %s",
 			cairo_status_to_string(cairo_pattern_status(pat)));
 	switch (b->Type) {
 	case uiDrawBrushTypeLinearGradient:

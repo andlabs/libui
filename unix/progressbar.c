@@ -53,7 +53,7 @@ void uiProgressBarSetValue(uiProgressBar *p, int value)
 	}
 
 	if (value < 0 || value > 100)
-		userbug("Value %d is out of range for a uiProgressBar.", value);
+		uiprivUserBug("Value %d is out of range for a uiProgressBar.", value);
 
 	gtk_progress_bar_set_fraction(p->pbar, ((gdouble) value) / 100);
 }

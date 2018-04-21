@@ -66,7 +66,7 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 		logLastError(L"error appending item to uiCombobox");
 	else if (res == (LRESULT) CB_ERRSPACE)
 		logLastError(L"memory exhausted appending item to uiCombobox");
-	uiFree(wtext);
+	uiprivFree(wtext);
 }
 
 int uiComboboxSelected(uiCombobox *c)

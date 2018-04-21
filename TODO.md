@@ -257,3 +257,6 @@ mac os x accessibility
 
 uiEntry disabling bugs http://www.cocoabuilder.com/archive/cocoa/215525-nstextfield-bug-can-be.html
 uiMultilineEntry disabling https://developer.apple.com/library/content/qa/qa1461/_index.html
+
+more TODOs:
+- make no guarantee about buildability of feature branches

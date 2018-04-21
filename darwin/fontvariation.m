@@ -1,6 +1,6 @@
 // 2 november 2017
 #import "uipriv_darwin.h"
-#import "fontstyle.h"
+#import "attrstr.h"
 
 // This is the part of the font style matching and normalization code
 // that handles fonts that use the fvar table.
@@ -29,9 +29,13 @@
 // - https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Types
 // - https://www.microsoft.com/typography/otspec/avar.htm
 
+// TODO Skia doesn't quite map correctly; notice what passes for condensed in the drawtext example
+// TODO also investigate Marker Felt not working right in Thin and Wide modes (but that's probably the other file, putting it here just so I don't forget)
+
 #define fvarWeight 0x77676874
 #define fvarWidth 0x77647468
 
+// TODO explain why these are signed
 typedef int32_t fixed1616;
 typedef int16_t fixed214;
 
@@ -44,7 +48,7 @@ static fixed1616 doubleToFixed1616(double d)
 	uint32_t ret;
 
 	fpart = modf(d, &ipart);
-	// fpart must be unsigned; modf() gives us fpart with the same sign as f (so we have to adjust both ipart and fpart appropriately)
+	// fpart must be unsigned; modf() gives us fpart with the same sign as d (so we have to adjust both ipart and fpart appropriately)
 	if (fpart < 0) {
 		ipart -= 1;
 		fpart = 1 + fpart;
@@ -183,7 +187,7 @@ static fixed1616 *avarExtract(CFDataRef table, CFIndex index, size_t *n)
 	}
 	nEntries = nextuint16be();
 	*n = nEntries * 2;
-	entries = (fixed1616 *) uiAlloc(*n * sizeof (fixed1616), "fixed1616[]");
+	entries = (fixed1616 *) uiprivAlloc(*n * sizeof (fixed1616), "fixed1616[]");
 	p = entries;
 	for (i = 0; i < *n; i++) {
 		*p++ = fixed214ToFixed1616((fixed214) nextuint16be());
@@ -204,6 +208,7 @@ static BOOL extractAxisDictValue(CFDictionaryRef dict, CFStringRef key, fixed161
 	return YES;
 }
 
+// TODO here and elsewhere: make sure all Objective-C classes and possibly also custom method names have uipriv prefixes
 @interface fvarAxis : NSObject {
 	fixed1616 min;
 	fixed1616 max;
@@ -242,7 +247,7 @@ fail:
 - (void)dealloc
 {
 	if (self->avarMappings != NULL) {
-		uiFree(self->avarMappings);
+		uiprivFree(self->avarMappings);
 		self->avarMappings = NULL;
 	}
 	[super dealloc];
@@ -261,7 +266,7 @@ fail:
 
 @end
 
-NSDictionary *mkVariationAxisDict(CFArrayRef axes, CFDataRef avarTable)
+NSDictionary *uiprivMakeVariationAxisDict(CFArrayRef axes, CFDataRef avarTable)
 {
 	CFDictionaryRef axis;
 	CFIndex i, n;
@@ -303,13 +308,13 @@ static BOOL tryAxis(NSDictionary *axisDict, CFDictionaryRef var, NSNumber *key, 
 	return YES;
 }
 
-void processFontVariation(fontStyleData *d, NSDictionary *axisDict, uiDrawFontDescriptor *out)
+void uiprivProcessFontVariation(uiprivFontStyleData *d, NSDictionary *axisDict, uiFontDescriptor *out)
 {
 	CFDictionaryRef var;
 	double v;
 
-	out->Weight = uiDrawTextWeightNormal;
-	out->Stretch = uiDrawTextStretchNormal;
+	out->Weight = uiTextWeightNormal;
+	out->Stretch = uiTextStretchNormal;
 
 	var = [d variation];
 
@@ -318,14 +323,14 @@ void processFontVariation(fontStyleData *d, NSDictionary *axisDict, uiDrawFontDe
 		// we want a linear value between 0 and 1000 with 400 being normal
 		if (v < 0) {
 			v += 1;
-			out->Weight = (uiDrawTextWeight) (v * 400);
+			out->Weight = (uiTextWeight) (v * 400);
 		} else if (v > 0)
-			out->Weight += (uiDrawTextWeight) (v * 600);
+			out->Weight += (uiTextWeight) (v * 600);
 	}
 
 	if (tryAxis(axisDict, var, fvarAxisKey(fvarWidth), &v)) {
 		// likewise, but with stretches, we go from 0 to 8 with 4 being directly between the two, so this is sufficient
 		v += 1;
-		out->Stretch = (uiDrawTextStretch) (v * 4);
+		out->Stretch = (uiTextStretch) (v * 4);
 	}
 }

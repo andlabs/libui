@@ -1,12 +1,13 @@
 // 3 december 2016
 #include "../ui.h"
 #include "uipriv.h"
+#include "attrstr.h"
 
 struct uiAttributedString {
 	char *s;
 	size_t len;
 
-	struct attrlist *attrs;
+	uiprivAttrList *attrs;
 
 	// indiscriminately keep a UTF-16 copy of the string on all platforms so we can hand this off to the grapheme calculator
 	// this ensures no one platform has a speed advantage (sorry GTK+)
@@ -17,60 +18,60 @@ struct uiAttributedString {
 	size_t *u16tou8;
 
 	// this is lazily created to keep things from getting *too* slow
-	struct graphemes *graphemes;
+	uiprivGraphemes *graphemes;
 };
 
 static void resize(uiAttributedString *s, size_t u8, size_t u16)
 {
 	s->len = u8;
-	s->s = (char *) uiRealloc(s->s, (s->len + 1) * sizeof (char), "char[] (uiAttributedString)");
-	s->u8tou16 = (size_t *) uiRealloc(s->u8tou16, (s->len + 1) * sizeof (size_t), "size_t[] (uiAttributedString)");
+	s->s = (char *) uiprivRealloc(s->s, (s->len + 1) * sizeof (char), "char[] (uiAttributedString)");
+	s->u8tou16 = (size_t *) uiprivRealloc(s->u8tou16, (s->len + 1) * sizeof (size_t), "size_t[] (uiAttributedString)");
 	s->u16len = u16;
-	s->u16 = (uint16_t *) uiRealloc(s->u16, (s->u16len + 1) * sizeof (uint16_t), "uint16_t[] (uiAttributedString)");
-	s->u16tou8 = (size_t *) uiRealloc(s->u16tou8, (s->u16len + 1) * sizeof (size_t), "size_t[] (uiAttributedString)");
+	s->u16 = (uint16_t *) uiprivRealloc(s->u16, (s->u16len + 1) * sizeof (uint16_t), "uint16_t[] (uiAttributedString)");
+	s->u16tou8 = (size_t *) uiprivRealloc(s->u16tou8, (s->u16len + 1) * sizeof (size_t), "size_t[] (uiAttributedString)");
 }
 
 uiAttributedString *uiNewAttributedString(const char *initialString)
 {
 	uiAttributedString *s;
 
-	s = uiNew(uiAttributedString);
-	s->attrs = attrlistNew();
+	s = uiprivNew(uiAttributedString);
+	s->attrs = uiprivNewAttrList();
 	uiAttributedStringAppendUnattributed(s, initialString);
 	return s;
 }
 
-// TODO make sure that all implementations of graphemes() work fine with empty strings; in particular, the Windows one might not
+// TODO make sure that all implementations of uiprivNewGraphemes() work fine with empty strings; in particular, the Windows one might not
 static void recomputeGraphemes(uiAttributedString *s)
 {
 	if (s->graphemes != NULL)
 		return;
-	if (graphemesTakesUTF16()) {
-		s->graphemes = graphemes(s->u16, s->u16len);
+	if (uiprivGraphemesTakesUTF16()) {
+		s->graphemes = uiprivNewGraphemes(s->u16, s->u16len);
 		return;
 	}
-	s->graphemes = graphemes(s->s, s->len);
+	s->graphemes = uiprivNewGraphemes(s->s, s->len);
 }
 
 static void invalidateGraphemes(uiAttributedString *s)
 {
 	if (s->graphemes == NULL)
 		return;
-	uiFree(s->graphemes->pointsToGraphemes);
-	uiFree(s->graphemes->graphemesToPoints);
-	uiFree(s->graphemes);
+	uiprivFree(s->graphemes->pointsToGraphemes);
+	uiprivFree(s->graphemes->graphemesToPoints);
+	uiprivFree(s->graphemes);
 	s->graphemes = NULL;
 }
 
 void uiFreeAttributedString(uiAttributedString *s)
 {
-	attrlistFree(s->attrs);
+	uiprivFreeAttrList(s->attrs);
 	invalidateGraphemes(s);
-	uiFree(s->u16tou8);
-	uiFree(s->u8tou16);
-	uiFree(s->u16);
-	uiFree(s->s);
-	uiFree(s);
+	uiprivFree(s->u16tou8);
+	uiprivFree(s->u8tou16);
+	uiprivFree(s->u16);
+	uiprivFree(s->s);
+	uiprivFree(s);
 }
 
 const char *uiAttributedStringString(const uiAttributedString *s)
@@ -92,10 +93,11 @@ static void u8u16len(const char *str, size_t *n8, size_t *n16)
 	*n8 = 0;
 	*n16 = 0;
 	while (*str) {
-		str = utf8DecodeRune(str, 0, &rune);
+		str = uiprivUTF8DecodeRune(str, 0, &rune);
 		// TODO document the use of the function vs a pointer subtract here
-		*n8 += utf8EncodeRune(rune, buf);
-		*n16 += utf16EncodeRune(rune, buf16);
+		// TODO also we need to consider namespace collision with utf.h...
+		*n8 += uiprivUTF8EncodeRune(rune, buf);
+		*n16 += uiprivUTF16EncodeRune(rune, buf16);
 	}
 }
 
@@ -104,7 +106,7 @@ void uiAttributedStringAppendUnattributed(uiAttributedString *s, const char *str
 	uiAttributedStringInsertAtUnattributed(s, str, s->len);
 }
 
-// this works (and returns true, which is what we want) at s->len too because s->s[s->len] is always going to be 0 due to us allocating s->len + 1 bytes and because uiRealloc() always zero-fills allocated memory
+// this works (and returns true, which is what we want) at s->len too because s->s[s->len] is always going to be 0 due to us allocating s->len + 1 bytes and because uiprivRealloc() always zero-fills allocated memory
 static int onCodepointBoundary(uiAttributedString *s, size_t at)
 {
 	uint8_t c;
@@ -177,9 +179,9 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 	while (*str) {
 		size_t n;
 
-		str = utf8DecodeRune(str, 0, &rune);
-		n = utf8EncodeRune(rune, buf);
-		n16 = utf16EncodeRune(rune, buf16);
+		str = uiprivUTF8DecodeRune(str, 0, &rune);
+		n = uiprivUTF8EncodeRune(rune, buf);
+		n16 = uiprivUTF16EncodeRune(rune, buf16);
 		s->s[old] = buf[0];
 		s->u8tou16[old] = old16;
 		if (n > 1) {
@@ -216,7 +218,7 @@ void uiAttributedStringInsertAtUnattributed(uiAttributedString *s, const char *s
 		s->u16tou8[at16 + oldn16 + i] += s->len - oldlen;
 
 	// and finally do the attributes
-	attrlistInsertCharactersUnattributed(s->attrs, at, n8);
+	uiprivAttrListInsertCharactersUnattributed(s->attrs, at, n8);
 }
 
 // TODO document that end is the first index that will be maintained
@@ -271,10 +273,21 @@ void uiAttributedStringDelete(uiAttributedString *s, size_t start, size_t end)
 	s->u16[start16 + count16] = 0;
 
 	// fix up attributes
-	attrlistRemoveCharacters(s->attrs, start, end);
+	uiprivAttrListRemoveCharacters(s->attrs, start, end);
 
 	// and finally resize
 	resize(s, start + count, start16 + count16);
+}
+
+void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttribute *a, size_t start, size_t end)
+{
+	uiprivAttrListInsertAttribute(s->attrs, a, start, end);
+}
+
+// LONGTERM introduce an iterator object instead?
+void uiAttributedStringForEachAttribute(const uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
+{
+	uiprivAttrListForEach(s->attrs, s, f, data);
 }
 
 // TODO figure out if we should count the grapheme past the end
@@ -287,7 +300,7 @@ size_t uiAttributedStringNumGraphemes(uiAttributedString *s)
 size_t uiAttributedStringByteIndexToGrapheme(uiAttributedString *s, size_t pos)
 {
 	recomputeGraphemes(s);
-	if (graphemesTakesUTF16())
+	if (uiprivGraphemesTakesUTF16())
 		pos = s->u8tou16[pos];
 	return s->graphemes->pointsToGraphemes[pos];
 }
@@ -296,60 +309,49 @@ size_t uiAttributedStringGraphemeToByteIndex(uiAttributedString *s, size_t pos)
 {
 	recomputeGraphemes(s);
 	pos = s->graphemes->graphemesToPoints[pos];
-	if (graphemesTakesUTF16())
+	if (uiprivGraphemesTakesUTF16())
 		pos = s->u16tou8[pos];
 	return pos;
 }
 
-void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttributeSpec *spec, size_t start, size_t end)
-{
-	attrlistInsertAttribute(s->attrs, spec, start, end);
-}
-
-// LONGTERM introduce an iterator object instead?
-void uiAttributedStringForEachAttribute(uiAttributedString *s, uiAttributedStringForEachAttributeFunc f, void *data)
-{
-	attrlistForEach(s->attrs, s, f, data);
-}
-
 // helpers for platform-specific code
 
-const uint16_t *attrstrUTF16(uiAttributedString *s)
+const uint16_t *uiprivAttributedStringUTF16String(const uiAttributedString *s)
 {
 	return s->u16;
 }
 
-size_t attrstrUTF16Len(uiAttributedString *s)
+size_t uiprivAttributedStringUTF16Len(const uiAttributedString *s)
 {
 	return s->u16len;
 }
 
 // TODO is this still needed given the below?
-size_t attrstrUTF8ToUTF16(const uiAttributedString *s, size_t n)
+size_t uiprivAttributedStringUTF8ToUTF16(const uiAttributedString *s, size_t n)
 {
 	return s->u8tou16[n];
 }
 
-size_t *attrstrCopyUTF8ToUTF16(uiAttributedString *s, size_t *n)
+size_t *uiprivAttributedStringCopyUTF8ToUTF16Table(const uiAttributedString *s, size_t *n)
 {
 	size_t *out;
 	size_t nbytes;
 
 	nbytes = (s->len + 1) * sizeof (size_t);
 	*n = s->len;
-	out = (size_t *) uiAlloc(nbytes, "size_t[] (uiAttributedString)");
+	out = (size_t *) uiprivAlloc(nbytes, "size_t[] (uiAttributedString)");
 	memmove(out, s->u8tou16, nbytes);
 	return out;
 }
 
-size_t *attrstrCopyUTF16ToUTF8(uiAttributedString *s, size_t *n)
+size_t *uiprivAttributedStringCopyUTF16ToUTF8Table(const uiAttributedString *s, size_t *n)
 {
 	size_t *out;
 	size_t nbytes;
 
 	nbytes = (s->u16len + 1) * sizeof (size_t);
 	*n = s->u16len;
-	out = (size_t *) uiAlloc(nbytes, "size_t[] (uiAttributedString)");
+	out = (size_t *) uiprivAlloc(nbytes, "size_t[] (uiAttributedString)");
 	memmove(out, s->u16tou8, nbytes);
 	return out;
 }

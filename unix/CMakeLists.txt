@@ -24,6 +24,7 @@ list(APPEND _LIBUI_SOURCES
 	unix/editablecombo.c
 	unix/entry.c
 	unix/fontbutton.c
+	unix/fontmatch.c
 	unix/form.c
 	unix/future.c
 	unix/graphemes.c

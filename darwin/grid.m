@@ -288,11 +288,11 @@ struct uiGrid {
 	// now build a topological map of the grid gg[y][x]
 	// also figure out which cells contain spanned views so they can be ignored later
 	// treat hidden controls by keeping the indices -1
-	gg = (int **) uiAlloc(ycount * sizeof (int *), "int[][]");
-	gspan = (BOOL **) uiAlloc(ycount * sizeof (BOOL *), "BOOL[][]");
+	gg = (int **) uiprivAlloc(ycount * sizeof (int *), "int[][]");
+	gspan = (BOOL **) uiprivAlloc(ycount * sizeof (BOOL *), "BOOL[][]");
 	for (y = 0; y < ycount; y++) {
-		gg[y] = (int *) uiAlloc(xcount * sizeof (int), "int[]");
-		gspan[y] = (BOOL *) uiAlloc(xcount * sizeof (BOOL), "BOOL[]");
+		gg[y] = (int *) uiprivAlloc(xcount * sizeof (int), "int[]");
+		gspan[y] = (BOOL *) uiprivAlloc(xcount * sizeof (BOOL), "BOOL[]");
 		for (x = 0; x < xcount; x++)
 			gg[y][x] = -1;		// empty
 	}
@@ -344,9 +344,9 @@ struct uiGrid {
 
 	// now build a topological map of the grid's views gv[y][x]
 	// for any empty cell, create a dummy view
-	gv = (NSView ***) uiAlloc(ycount * sizeof (NSView **), "NSView *[][]");
+	gv = (NSView ***) uiprivAlloc(ycount * sizeof (NSView **), "NSView *[][]");
 	for (y = 0; y < ycount; y++) {
-		gv[y] = (NSView **) uiAlloc(xcount * sizeof (NSView *), "NSView *[]");
+		gv[y] = (NSView **) uiprivAlloc(xcount * sizeof (NSView *), "NSView *[]");
 		for (x = 0; x < xcount; x++)
 			if (gg[y][x] == -1) {
 				gv[y][x] = [[NSView alloc] initWithFrame:NSZeroRect];
@@ -360,8 +360,8 @@ struct uiGrid {
 	}
 
 	// now figure out which rows and columns really expand
-	hexpand = (BOOL *) uiAlloc(xcount * sizeof (BOOL), "BOOL[]");
-	vexpand = (BOOL *) uiAlloc(ycount * sizeof (BOOL), "BOOL[]");
+	hexpand = (BOOL *) uiprivAlloc(xcount * sizeof (BOOL), "BOOL[]");
+	vexpand = (BOOL *) uiprivAlloc(ycount * sizeof (BOOL), "BOOL[]");
 	// first, which don't span
 	for (gc in self->children) {
 		if (!uiControlVisible(gc.c))
@@ -522,16 +522,16 @@ struct uiGrid {
 	// TODO make all expanding rows/columns the same height/width
 
 	// and finally clean up
-	uiFree(hexpand);
-	uiFree(vexpand);
+	uiprivFree(hexpand);
+	uiprivFree(vexpand);
 	for (y = 0; y < ycount; y++) {
-		uiFree(gg[y]);
-		uiFree(gv[y]);
-		uiFree(gspan[y]);
+		uiprivFree(gg[y]);
+		uiprivFree(gv[y]);
+		uiprivFree(gspan[y]);
 	}
-	uiFree(gg);
-	uiFree(gv);
-	uiFree(gspan);
+	uiprivFree(gg);
+	uiprivFree(gv);
+	uiprivFree(gspan);
 }
 
 - (void)append:(gridChild *)gc
@@ -574,7 +574,7 @@ struct uiGrid {
 			break;
 		}
 	if (!found)
-		userbug("Existing control %p is not in grid %p; you cannot add other controls next to it", c, self->g);
+		uiprivUserBug("Existing control %p is not in grid %p; you cannot add other controls next to it", c, self->g);
 
 	switch (at) {
 	case uiAtLeading:
@@ -742,9 +742,9 @@ static gridChild *toChild(uiControl *c, int xspan, int yspan, int hexpand, uiAli
 	gridChild *gc;
 
 	if (xspan < 0)
-		userbug("You cannot have a negative xspan in a uiGrid cell.");
+		uiprivUserBug("You cannot have a negative xspan in a uiGrid cell.");
 	if (yspan < 0)
-		userbug("You cannot have a negative yspan in a uiGrid cell.");
+		uiprivUserBug("You cannot have a negative yspan in a uiGrid cell.");
 	gc = [gridChild new];
 	gc.xspan = xspan;
 	gc.yspan = yspan;
@@ -763,7 +763,7 @@ void uiGridAppend(uiGrid *g, uiControl *c, int left, int top, int xspan, int ysp
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		userbug("You cannot add NULL to a uiGrid.");
+		uiprivUserBug("You cannot add NULL to a uiGrid.");
 	gc = toChild(c, xspan, yspan, hexpand, halign, vexpand, valign, g);
 	gc.left = left;
 	gc.top = top;

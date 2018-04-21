@@ -19,12 +19,12 @@ WCHAR *toUTF16(const char *str)
 
 	if (*str == '\0')			// empty string
 		return emptyUTF16();
-	n = utf8UTF16Count(str, 0);
-	wstr = (WCHAR *) uiAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
+	n = uiprivUTF8UTF16Count(str, 0);
+	wstr = (WCHAR *) uiprivAlloc((n + 1) * sizeof (WCHAR), "WCHAR[]");
 	wp = wstr;
 	while (*str) {
-		str = utf8DecodeRune(str, 0, &rune);
-		n = utf16EncodeRune(rune, (uint16_t*)wp);
+		str = uiprivUTF8DecodeRune(str, 0, &rune);
+		n = uiprivUTF16EncodeRune(rune, (uint16_t*)wp);
 		wp += n;
 	}
 	return wstr;
@@ -39,12 +39,12 @@ char *toUTF8(const WCHAR *wstr)
 
 	if (*wstr == L'\0')		// empty string
 		return emptyUTF8();
-	n = utf16RuneCount((const uint16_t*)wstr, 0);
-	str = (char *) uiAlloc((n + 1) * sizeof (char), "char[]");
+	n = uiprivUTF16UTF8Count((const uint16_t*)wstr, 0);
+	str = (char *) uiprivAlloc((n + 1) * sizeof (char), "char[]");
 	sp = str;
 	while (*wstr) {
-		wstr = (const WCHAR*)utf16DecodeRune((const uint16_t*)wstr, 0, &rune);
-		n = utf8EncodeRune(rune, sp);
+		wstr = (const WCHAR *)uiprivUTF16DecodeRune((const uint16_t *)wstr, 0, &rune);
+		n = uiprivUTF8EncodeRune(rune, sp);
 		sp += n;
 	}
 	return str;
@@ -56,7 +56,7 @@ WCHAR *utf16dup(const WCHAR *orig)
 	size_t len;
 
 	len = wcslen(orig);
-	out = (WCHAR *) uiAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
+	out = (WCHAR *) uiprivAlloc((len + 1) * sizeof (WCHAR), "WCHAR[]");
 	wcscpy_s(out, len + 1, orig);
 	return out;
 }
@@ -86,7 +86,7 @@ WCHAR *vstrf(const WCHAR *format, va_list ap)
 	va_end(ap2);
 	n++;		// terminating L'\0'
 
-	buf = (WCHAR *) uiAlloc(n * sizeof (WCHAR), "WCHAR[]");
+	buf = (WCHAR *) uiprivAlloc(n * sizeof (WCHAR), "WCHAR[]");
 	// includes terminating L'\0' according to example in https://msdn.microsoft.com/en-us/library/xa1a1a6z.aspx
 	vswprintf_s(buf, n, format, ap);
 
@@ -104,7 +104,7 @@ char *LFtoCRLF(const char *lfonly)
 	char *out;
 
 	len = strlen(lfonly);
-	crlf = (char *) uiAlloc((len * 2 + 1) * sizeof (char), "char[]");
+	crlf = (char *) uiprivAlloc((len * 2 + 1) * sizeof (char), "char[]");
 	out = crlf;
 	for (i = 0; i < len; i++) {
 		if (*lfonly == '\n')

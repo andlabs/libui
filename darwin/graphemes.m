@@ -1,24 +1,25 @@
 // 3 december 2016
 #import "uipriv_darwin.h"
+#import "attrstr.h"
 
 // CFStringGetRangeOfComposedCharactersAtIndex() is the function for grapheme clusters
 // https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/Strings/Articles/stringsClusters.html says that this does work on all multi-codepoint graphemes (despite the name), and that this is the preferred function for this particular job anyway
 
-int graphemesTakesUTF16(void)
+int uiprivGraphemesTakesUTF16(void)
 {
 	return 1;
 }
 
-struct graphemes *graphemes(void *s, size_t len)
+uiprivGraphemes *uiprivNewGraphemes(void *s, size_t len)
 {
-	struct graphemes *g;
+	uiprivGraphemes *g;
 	UniChar *str = (UniChar *) s;
 	CFStringRef cfstr;
 	size_t ppos, gpos;
 	CFRange range;
 	size_t i;
 
-	g = uiNew(struct graphemes);
+	g = uiprivNew(uiprivGraphemes);
 
 	cfstr = CFStringCreateWithCharactersNoCopy(NULL, str, len, kCFAllocatorNull);
 	if (cfstr == NULL) {
@@ -34,8 +35,8 @@ struct graphemes *graphemes(void *s, size_t len)
 		ppos = range.location + range.length;
 	}
 
-	g->pointsToGraphemes = (size_t *) uiAlloc((len + 1) * sizeof (size_t), "size_t[] (graphemes)");
-	g->graphemesToPoints = (size_t *) uiAlloc((g->len + 1) * sizeof (size_t), "size_t[] (graphemes)");
+	g->pointsToGraphemes = (size_t *) uiprivAlloc((len + 1) * sizeof (size_t), "size_t[] (graphemes)");
+	g->graphemesToPoints = (size_t *) uiprivAlloc((g->len + 1) * sizeof (size_t), "size_t[] (graphemes)");
 
 	// now calculate everything
 	// fortunately due to the use of CFRange we can do this in one loop trivially!

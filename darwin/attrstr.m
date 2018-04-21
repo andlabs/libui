@@ -1,5 +1,6 @@
 // 12 february 2017
 #import "uipriv_darwin.h"
+#import "attrstr.h"
 
 // this is what AppKit does internally
 // WebKit does this too; see https://github.com/adobe/webkit/blob/master/Source/WebCore/platform/graphics/mac/GraphicsContextMac.mm
@@ -17,7 +18,7 @@ static NSColor *tryColorNamed(NSString *name)
 	return [NSColor colorWithPatternImage:img];
 }
 
-void initUnderlineColors(void)
+void uiprivInitUnderlineColors(void)
 {
 	spellingColor = tryColorNamed(@"NSSpellingDot");
 	if (spellingColor == nil) {
@@ -47,230 +48,317 @@ void initUnderlineColors(void)
 	[auxiliaryColor retain];		// override autoreleasing
 }
 
-void uninitUnderlineColors(void)
+void uiprivUninitUnderlineColors(void)
 {
 	[auxiliaryColor release];
+	auxiliaryColor = nil;
 	[grammarColor release];
+	grammarColor = nil;
 	[spellingColor release];
+	spellingColor = nil;
 }
 
-// unlike the other systems, Core Text rolls family, size, weight, italic, width, AND opentype features into the "font" attribute
-// TODO opentype features are lost, so a handful of fonts in the font panel ("Titling" variants of some fonts and possibly others but those are the examples I know about) cannot be represented by uiDrawFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
+// TODO opentype features are lost when using uiFontDescriptor, so a handful of fonts in the font panel ("Titling" variants of some fonts and possibly others but those are the examples I know about) cannot be represented by uiFontDescriptor; what *can* we do about this since this info is NOT part of the font on other platforms?
 // TODO see if we could use NSAttributedString?
 // TODO consider renaming this struct and the fep variable(s)
 // TODO restructure all this so the important details at the top are below with the combined font attributes type?
 // TODO in fact I should just write something to explain everything in this file...
 struct foreachParams {
 	CFMutableAttributedStringRef mas;
-	NSMutableDictionary *combinedFontAttrs;		// keys are CFIndex in mas, values are combinedFontAttr objects
-	uiDrawFontDescriptor *defaultFont;
-	NSMutableArray *backgroundBlocks;
+	NSMutableArray *backgroundParams;
 };
 
-@interface combinedFontAttr : NSObject
-@property const char *family;
-@property double size;
-@property uiDrawTextWeight weight;
-@property uiDrawTextItalic italic;
-@property uiDrawTextStretch stretch;
-@property const uiOpenTypeFeatures *features;
-- (id)initWithDefaultFont:(uiDrawFontDescriptor *)defaultFont;
-- (BOOL)same:(combinedFontAttr *)b;
-- (CTFontRef)toCTFont;
+// unlike the other systems, Core Text rolls family, size, weight, italic, width, AND opentype features into the "font" attribute
+// instead of incrementally adjusting CTFontRefs (which, judging from NSFontManager, seems finicky and UI-centric), we use a custom class to incrementally store attributes that go into a CTFontRef, and then convert everything to CTFonts en masse later
+// https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/AttributedStrings/Tasks/ChangingAttrStrings.html#//apple_ref/doc/uid/20000162-BBCBGCDG says we must have -hash and -isEqual: workign properly for this to work, so we must do that too, using a basic xor-based hash and leveraging Cocoa -hash implementations where useful and feasible (if not necessary)
+// TODO structure and rewrite this part
+// TODO re-find sources proving support of custom attributes
+// TODO what if this is NULL?
+static const CFStringRef combinedFontAttrName = CFSTR("libuiCombinedFontAttribute");
+
+enum {
+	cFamily,
+	cSize,
+	cWeight,
+	cItalic,
+	cStretch,
+	cFeatures,
+	nc,
+};
+
+static const int toc[] = {
+	[uiAttributeTypeFamily] = cFamily,
+	[uiAttributeTypeSize] = cSize,
+	[uiAttributeTypeWeight] = cWeight,
+	[uiAttributeTypeItalic] = cItalic,
+	[uiAttributeTypeStretch] = cStretch,
+	[uiAttributeTypeFeatures] = cFeatures,
+};
+
+static uiForEach featuresHash(const uiOpenTypeFeatures *otf, char a, char b, char c, char d, uint32_t value, void *data)
+{
+	NSUInteger *hash = (NSUInteger *) data;
+	uint32_t tag;
+
+	tag = (((uint32_t) a) & 0xFF) << 24;
+	tag |= (((uint32_t) b) & 0xFF) << 16;
+	tag |= (((uint32_t) c) & 0xFF) << 8;
+	tag |= ((uint32_t) d) & 0xFF;
+	*hash ^= tag;
+	*hash ^= value;
+	return uiForEachContinue;
+}
+
+@interface uiprivCombinedFontAttr : NSObject<NSCopying> {
+	uiAttribute *attrs[nc];
+	BOOL hasHash;
+	NSUInteger hash;
+}
+- (void)addAttribute:(uiAttribute *)attr;
+- (CTFontRef)toCTFontWithDefaultFont:(uiFontDescriptor *)defaultFont;
 @end
 
-@implementation combinedFontAttr
+@implementation uiprivCombinedFontAttr
 
-- (id)initWithDefaultFont:(uiDrawFontDescriptor *)defaultFont
+- (id)init
 {
 	self = [super init];
 	if (self) {
-		// TODO define behaviors if defaultFont->Family or any attribute Family is NULL, same with other invalid values
-		self.family = defaultFont->Family;
-		self.size = defaultFont->Size;
-		self.weight = defaultFont->Weight;
-		self.italic = defaultFont->Italic;
-		self.stretch = defaultFont->Stretch;
-		self.features = NULL;
+		memset(self->attrs, 0, nc * sizeof (uiAttribute *));
+		self->hasHash = NO;
 	}
 	return self;
 }
 
-// TODO deduplicate this with common/attrlist.c
-- (BOOL)same:(combinedFontAttr *)b
+- (void)dealloc
 {
-	// TODO should this be case-insensitive?
-	if (strcmp(self.family, b.family) != 0)
+	int i;
+
+	for (i = 0; i < nc; i++)
+		if (self->attrs[i] != NULL) {
+			uiprivAttributeRelease(self->attrs[i]);
+			self->attrs[i] = NULL;
+		}
+	[super dealloc];
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	uiprivCombinedFontAttr *ret;
+	int i;
+
+	ret = [[uiprivCombinedFontAttr allocWithZone:zone] init];
+	for (i = 0; i < nc; i++)
+		if (self->attrs[i] != NULL)
+			ret->attrs[i] = uiprivAttributeRetain(self->attrs[i]);
+	ret->hasHash = self->hasHash;
+	ret->hash = self->hash;
+	return ret;
+}
+
+- (void)addAttribute:(uiAttribute *)attr
+{
+	int index;
+
+	index = toc[uiAttributeGetType(attr)];
+	if (self->attrs[index] != NULL)
+		uiprivAttributeRelease(self->attrs[index]);
+	self->attrs[index] = uiprivAttributeRetain(attr);
+	self->hasHash = NO;
+}
+
+- (BOOL)isEqual:(id)bb
+{
+	uiprivCombinedFontAttr *b = (uiprivCombinedFontAttr *) bb;
+	int i;
+
+	if (b == nil)
 		return NO;
-	// TODO use a closest match?
-	if (self.size != b.size)
-		return NO;
-	if (self.weight != b.weight)
-		return NO;
-	if (self.italic != b.italic)
-		return NO;
-	if (self.stretch != b.stretch)
-		return NO;
-	// this also handles NULL cases
-	if (!uiOpenTypeFeaturesEqual(self.features, b.features))
-		return NO;
+	for (i = 0; i < nc; i++) {
+		if (self->attrs[i] == NULL && b->attrs[i] == NULL)
+			continue;
+		if (self->attrs[i] == NULL || b->attrs[i] == NULL)
+			return NO;
+		if (!uiprivAttributeEqual(self->attrs[i], b->attrs[i]))
+			return NO;
+	}
 	return YES;
 }
 
-- (CTFontRef)toCTFont
+- (NSUInteger)hash
 {
-	uiDrawFontDescriptor uidesc;
+	if (self->hasHash)
+		return self->hash;
+	@autoreleasepool {
+		NSString *family;
+		NSNumber *size;
+
+		self->hash = 0;
+		if (self->attrs[cFamily] != NULL) {
+			family = [NSString stringWithUTF8String:uiAttributeFamily(self->attrs[cFamily])];
+			// TODO make sure this aligns with case-insensitive compares when those are done in common/attribute.c
+			self->hash ^= [[family uppercaseString] hash];
+		}
+		if (self->attrs[cSize] != NULL) {
+			size = [NSNumber numberWithDouble:uiAttributeSize(self->attrs[cSize])];
+			self->hash ^= [size hash];
+		}
+		if (self->attrs[cWeight] != NULL)
+			self->hash ^= (NSUInteger) uiAttributeWeight(self->attrs[cWeight]);
+		if (self->attrs[cItalic] != NULL)
+			self->hash ^= (NSUInteger) uiAttributeItalic(self->attrs[cItalic]);
+		if (self->attrs[cStretch] != NULL)
+			self->hash ^= (NSUInteger) uiAttributeStretch(self->attrs[cStretch]);
+		if (self->attrs[cFeatures] != NULL)
+			uiOpenTypeFeaturesForEach(uiAttributeFeatures(self->attrs[cFeatures]), featuresHash, &(self->hash));
+		self->hasHash = YES;
+	}
+	return self->hash;
+}
+
+- (CTFontRef)toCTFontWithDefaultFont:(uiFontDescriptor *)defaultFont
+{
+	uiFontDescriptor uidesc;
 	CTFontDescriptorRef desc;
 	CTFontRef font;
 
-	// TODO const-correct uiDrawFontDescriptor or change this function below
-	uidesc.Family = (char *) (self.family);
-	uidesc.Size = self.size;
-	uidesc.Weight = self.weight;
-	uidesc.Italic = self.italic;
-	uidesc.Stretch = self.stretch;
-	desc = fontdescToCTFontDescriptor(&uidesc);
-	if (self.features != NULL)
-		desc = fontdescAppendFeatures(desc, self.features);
-	font = CTFontCreateWithFontDescriptor(desc, self.size, NULL);
+	uidesc = *defaultFont;
+	if (self->attrs[cFamily] != NULL)
+		// TODO const-correct uiFontDescriptor or change this function below
+		uidesc.Family = (char *) uiAttributeFamily(self->attrs[cFamily]);
+	if (self->attrs[cSize] != NULL)
+		uidesc.Size = uiAttributeSize(self->attrs[cSize]);
+	if (self->attrs[cWeight] != NULL)
+		uidesc.Weight = uiAttributeWeight(self->attrs[cWeight]);
+	if (self->attrs[cItalic] != NULL)
+		uidesc.Italic = uiAttributeItalic(self->attrs[cItalic]);
+	if (self->attrs[cStretch] != NULL)
+		uidesc.Stretch = uiAttributeStretch(self->attrs[cStretch]);
+	desc = uiprivFontDescriptorToCTFontDescriptor(&uidesc);
+	if (self->attrs[cFeatures] != NULL)
+		desc = uiprivCTFontDescriptorAppendFeatures(desc, uiAttributeFeatures(self->attrs[cFeatures]));
+	font = CTFontCreateWithFontDescriptor(desc, uidesc.Size, NULL);
 	CFRelease(desc);			// TODO correct?
 	return font;
 }
 
 @end
 
-// TODO merge this with adjustFontInRange() (and TODO figure out why they were separate in the first place; probably Windows?)
-static void ensureFontInRange(struct foreachParams *p, size_t start, size_t end)
+static void addFontAttributeToRange(struct foreachParams *p, size_t start, size_t end, uiAttribute *attr)
 {
-	size_t i;
-	NSNumber *n;
-	combinedFontAttr *new;
+	uiprivCombinedFontAttr *cfa;
+	CFRange range;
+	size_t diff;
 
-	for (i = start; i < end; i++) {
-		n = [NSNumber numberWithInteger:i];
-		if ([p->combinedFontAttrs objectForKey:n] != nil)
-			continue;
-		new = [[combinedFontAttr alloc] initWithDefaultFont:p->defaultFont];
-		[p->combinedFontAttrs setObject:new forKey:n];
+	while (start < end) {
+		cfa = (uiprivCombinedFontAttr *) CFAttributedStringGetAttribute(p->mas, start, combinedFontAttrName, &range);
+		if (cfa == nil)
+			cfa = [uiprivCombinedFontAttr new];
+		else
+			cfa = [cfa copy];
+		[cfa addAttribute:attr];
+		// clamp range within [start, end)
+		if (range.location < start) {
+			diff = start - range.location;
+			range.location = start;
+			range.length -= diff;
+		}
+		if ((range.location + range.length) > end)
+			range.length = end - range.location;
+		CFAttributedStringSetAttribute(p->mas, range, combinedFontAttrName, cfa);
+		[cfa release];
+		start += range.length;
 	}
 }
 
-static void adjustFontInRange(struct foreachParams *p, size_t start, size_t end, void (^adj)(combinedFontAttr *cfa))
-{
-	size_t i;
-	NSNumber *n;
-	combinedFontAttr *cfa;
-
-	for (i = start; i < end; i++) {
-		n = [NSNumber numberWithInteger:i];
-		cfa = (combinedFontAttr *) [p->combinedFontAttrs objectForKey:n];
-		adj(cfa);
-	}
-}
-
-static backgroundBlock mkBackgroundBlock(size_t start, size_t end, double r, double g, double b, double a)
-{
-	return Block_copy(^(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y) {
-		uiDrawBrush brush;
-
-		brush.Type = uiDrawBrushTypeSolid;
-		brush.R = r;
-		brush.G = g;
-		brush.B = b;
-		brush.A = a;
-		drawTextBackground(c, x, y, layout, start, end, &brush, 0);
-	});
-}
-
-static CGColorRef mkcolor(uiAttributeSpec *spec)
+static CGColorRef mkcolor(double r, double g, double b, double a)
 {
 	CGColorSpaceRef colorspace;
 	CGColorRef color;
 	CGFloat components[4];
 
+	// TODO we should probably just create this once and recycle it throughout program execution...
 	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	if (colorspace == NULL) {
 		// TODO
 	}
-	components[0] = spec->R;
-	components[1] = spec->G;
-	components[2] = spec->B;
-	components[3] = spec->A;
+	components[0] = r;
+	components[1] = g;
+	components[2] = b;
+	components[3] = a;
 	color = CGColorCreate(colorspace, components);
 	CFRelease(colorspace);
 	return color;
 }
 
-static uiForEach processAttribute(const uiAttributedString *s, const uiAttributeSpec *spec, size_t start, size_t end, void *data)
+static void addBackgroundAttribute(struct foreachParams *p, size_t start, size_t end, double r, double g, double b, double a)
+{
+	uiprivDrawTextBackgroundParams *dtb;
+
+	// TODO make sure this works properly with line paragraph spacings (after figuring out what that means, of course)
+	if (FUTURE_kCTBackgroundColorAttributeName != NULL) {
+		CGColorRef color;
+		CFRange range;
+
+		color = mkcolor(r, g, b, a);
+		range.location = start;
+		range.length = end - start;
+		CFAttributedStringSetAttribute(p->mas, range, *FUTURE_kCTBackgroundColorAttributeName, color);
+		CFRelease(color);
+		return;
+	}
+
+	dtb = [[uiprivDrawTextBackgroundParams alloc] initWithStart:start end:end r:r g:g b:b a:a];
+	[p->backgroundParams addObject:dtb];
+	[dtb release];
+}
+
+static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute *attr, size_t start, size_t end, void *data)
 {
 	struct foreachParams *p = (struct foreachParams *) data;
 	CFRange range;
 	CGColorRef color;
-	size_t ostart, oend;
-	backgroundBlock block;
 	int32_t us;
 	CFNumberRef num;
+	double r, g, b, a;
+	uiUnderlineColor colorType;
 
-	ostart = start;
-	oend = end;
-	start = attrstrUTF8ToUTF16(s, start);
-	end = attrstrUTF8ToUTF16(s, end);
+	start = uiprivAttributedStringUTF8ToUTF16(s, start);
+	end = uiprivAttributedStringUTF8ToUTF16(s, end);
 	range.location = start;
 	range.length = end - start;
-	switch (spec->Type) {
-	case uiAttributeFamily:
-		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
-			cfa.family = spec->Family;
-		});
+	switch (uiAttributeGetType(attr)) {
+	case uiAttributeTypeFamily:
+	case uiAttributeTypeSize:
+	case uiAttributeTypeWeight:
+	case uiAttributeTypeItalic:
+	case uiAttributeTypeStretch:
+	case uiAttributeTypeFeatures:
+		addFontAttributeToRange(p, start, end, attr);
 		break;
-	case uiAttributeSize:
-		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
-			cfa.size = spec->Double;
-		});
-		break;
-	case uiAttributeWeight:
-		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
-			cfa.weight = (uiDrawTextWeight) (spec->Value);
-		});
-		break;
-	case uiAttributeItalic:
-		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
-			cfa.italic = (uiDrawTextItalic) (spec->Value);
-		});
-		break;
-	case uiAttributeStretch:
-		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
-			cfa.stretch = (uiDrawTextStretch) (spec->Value);
-		});
-		break;
-	case uiAttributeColor:
-		color = mkcolor(spec);
+	case uiAttributeTypeColor:
+		uiAttributeColor(attr, &r, &g, &b, &a);
+		color = mkcolor(r, g, b, a);
 		CFAttributedStringSetAttribute(p->mas, range, kCTForegroundColorAttributeName, color);
 		CFRelease(color);
 		break;
-	case uiAttributeBackground:
-		block = mkBackgroundBlock(ostart, oend,
-			spec->R, spec->G, spec->B, spec->A);
-		[p->backgroundBlocks addObject:block];
-		Block_release(block);
+	case uiAttributeTypeBackground:
+		uiAttributeColor(attr, &r, &g, &b, &a);
+		addBackgroundAttribute(p, start, end, r, g, b, a);
 		break;
-	case uiAttributeUnderline:
-		switch (spec->Value) {
-		case uiDrawUnderlineStyleNone:
+	// TODO turn into a class, like we did with the font attributes, or even integrate *into* the font attributes
+	case uiAttributeTypeUnderline:
+		switch (uiAttributeUnderline(attr)) {
+		case uiUnderlineNone:
 			us = kCTUnderlineStyleNone;
 			break;
-		case uiDrawUnderlineStyleSingle:
+		case uiUnderlineSingle:
 			us = kCTUnderlineStyleSingle;
 			break;
-		case uiDrawUnderlineStyleDouble:
+		case uiUnderlineDouble:
 			us = kCTUnderlineStyleDouble;
 			break;
-		case uiDrawUnderlineStyleSuggestion:
+		case uiUnderlineSuggestion:
 			// TODO incorrect if a solid color
 			us = kCTUnderlineStyleThick;
 			break;
@@ -279,104 +367,67 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 		CFAttributedStringSetAttribute(p->mas, range, kCTUnderlineStyleAttributeName, num);
 		CFRelease(num);
 		break;
-	case uiAttributeUnderlineColor:
-		switch (spec->Value) {
-		case uiDrawUnderlineColorCustom:
-			color = mkcolor(spec);
+	case uiAttributeTypeUnderlineColor:
+		uiAttributeUnderlineColor(attr, &colorType, &r, &g, &b, &a);
+		switch (colorType) {
+		case uiUnderlineColorCustom:
+			color = mkcolor(r, g, b, a);
 			break;
-		case uiDrawUnderlineColorSpelling:
+		case uiUnderlineColorSpelling:
 			color = [spellingColor CGColor];
 			break;
-		case uiDrawUnderlineColorGrammar:
+		case uiUnderlineColorGrammar:
 			color = [grammarColor CGColor];
 			break;
-		case uiDrawUnderlineColorAuxiliary:
+		case uiUnderlineColorAuxiliary:
 			color = [auxiliaryColor CGColor];
 			break;
 		}
 		CFAttributedStringSetAttribute(p->mas, range, kCTUnderlineColorAttributeName, color);
-		if (spec->Value == uiDrawUnderlineColorCustom)
+		if (colorType == uiUnderlineColorCustom)
 			CFRelease(color);
 		break;
-	case uiAttributeFeatures:
-		ensureFontInRange(p, start, end);
-		adjustFontInRange(p, start, end, ^(combinedFontAttr *cfa) {
-			cfa.features = spec->Features;
-		});
-		break;
-	default:
-		// TODO complain
-		;
 	}
 	return uiForEachContinue;
 }
 
-static BOOL cfaIsEqual(combinedFontAttr *a, combinedFontAttr *b)
+static void applyFontAttributes(CFMutableAttributedStringRef mas, uiFontDescriptor *defaultFont)
 {
-	if (a == nil && b == nil)
-		return YES;
-	if (a == nil || b == nil)
-		return NO;
-	return [a same:b];
-}
-
-static void applyAndFreeFontAttributes(struct foreachParams *p)
-{
-	CFIndex i, n;
-	combinedFontAttr *cfa, *cfab;
-	CTFontRef defaultFont;
+	uiprivCombinedFontAttr *cfa;
 	CTFontRef font;
 	CFRange range;
+	CFIndex n;
 
-	// first get the default font as a CTFontRef
-	cfa = [[combinedFontAttr alloc] initWithDefaultFont:p->defaultFont];
-	defaultFont = [cfa toCTFont];
+	n = CFAttributedStringGetLength(mas);
+
+	// first apply the default font to the entire string
+	// TODO is this necessary given the #if 0'd code in uiprivAttributedStringToCFAttributedString()?
+	cfa = [uiprivCombinedFontAttr new];
+	font = [cfa toCTFontWithDefaultFont:defaultFont];
 	[cfa release];
-
-	// now go through, fililng in the font attribute for successive ranges of identical combinedFontAttrs
-	// we are best off treating series of identical fonts as single ranges ourselves for parity across platforms, even if OS X does something similar itself
-	// this also avoids breaking apart surrogate pairs (though IIRC OS X doing the something similar itself might make this a non-issue here)
-	cfa = nil;
-	n = CFAttributedStringGetLength(p->mas);
 	range.location = 0;
-	for (i = 0; i < n; i++) {
-		NSNumber *nn;
-
-		// TODO use NSValue or some other method of NSNumber
-		nn = [NSNumber numberWithInteger:i];
-		cfab = (combinedFontAttr *) [p->combinedFontAttrs objectForKey:nn];
-		if (cfaIsEqual(cfa, cfab))
-			continue;
-
-		// the font has changed; write out the old one
-		range.length = i - range.location;
-		if (cfa == nil) {
-			// TODO this isn't necessary because of default font shenanigans below
-			font = defaultFont;
-			CFRetain(font);
-		} else
-			font = [cfa toCTFont];
-		CFAttributedStringSetAttribute(p->mas, range, kCTFontAttributeName, font);
-		CFRelease(font);
-		// and start this run
-		cfa = cfab;
-		range.location = i;
-	}
-
-	// and finally, write out the last range
-	range.length = i - range.location;
-	if (cfa == nil) {
-		// TODO likewise
-		font = defaultFont;
-		CFRetain(font);
-	} else
-		// note that this handles the difference between NULL and empty uiOpenTypeFeatures properly as far as conversion to native data formats is concerned (NULL does not generate a features dictionary; empty just produces an empty one)
-		// TODO but what about from the OS's perspective on all OSs?
-		font = [cfa toCTFont];
-	CFAttributedStringSetAttribute(p->mas, range, kCTFontAttributeName, font);
+	range.length = n;
+	CFAttributedStringSetAttribute(mas, range, kCTFontAttributeName, font);
 	CFRelease(font);
 
-	CFRelease(defaultFont);
+	// now go through, replacing every uiprivCombinedFontAttr with the proper CTFontRef
+	// we are best off treating series of identical fonts as single ranges ourselves for parity across platforms, even if OS X does something similar itself
+	range.location = 0;
+	while (range.location < n) {
+		// TODO consider seeing if CFAttributedStringGetAttributeAndLongestEffectiveRange() can make things faster by reducing the number of potential iterations, either here or above
+		cfa = (uiprivCombinedFontAttr *) CFAttributedStringGetAttribute(mas, range.location, combinedFontAttrName, &range);
+		if (cfa != nil) {
+			font = [cfa toCTFontWithDefaultFont:defaultFont];
+			CFAttributedStringSetAttribute(mas, range, kCTFontAttributeName, font);
+			CFRelease(font);
+		}
+		range.location += range.length;
+	}
+
+	// and finally, get rid of all the uiprivCombinedFontAttrs as we won't need them anymore
+	range.location = 0;
+	range.length = 0;
+	CFAttributedStringRemoveAttribute(mas, range, combinedFontAttrName);
 }
 
 static const CTTextAlignment ctaligns[] = {
@@ -403,17 +454,17 @@ static CTParagraphStyleRef mkParagraphStyle(uiDrawTextLayoutParams *p)
 	return ps;
 }
 
-CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks)
+// TODO either rename this (on all platforms) to uiprivDrawTextLayoutParams... or rename this file or both or split the struct or something else...
+CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTextLayoutParams *p, NSArray **backgroundParams)
 {
 	CFStringRef cfstr;
 	CFMutableDictionaryRef defaultAttrs;
-	CTFontRef defaultCTFont;
 	CTParagraphStyleRef ps;
 	CFAttributedStringRef base;
 	CFMutableAttributedStringRef mas;
 	struct foreachParams fep;
 
-	cfstr = CFStringCreateWithCharacters(NULL, attrstrUTF16(p->String), attrstrUTF16Len(p->String));
+	cfstr = CFStringCreateWithCharacters(NULL, uiprivAttributedStringUTF16String(p->String), uiprivAttributedStringUTF16Len(p->String));
 	if (cfstr == NULL) {
 		// TODO
 	}
@@ -444,14 +495,11 @@ CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray
 
 	CFAttributedStringBeginEditing(mas);
 	fep.mas = mas;
-	fep.combinedFontAttrs = [NSMutableDictionary new];
-	fep.defaultFont = p->DefaultFont;
-	fep.backgroundBlocks = [NSMutableArray new];
+	fep.backgroundParams = [NSMutableArray new];
 	uiAttributedStringForEachAttribute(p->String, processAttribute, &fep);
-	applyAndFreeFontAttributes(&fep);
-	[fep.combinedFontAttrs release];
+	applyFontAttributes(mas, p->DefaultFont);
 	CFAttributedStringEndEditing(mas);
 
-	*backgroundBlocks = fep.backgroundBlocks;
+	*backgroundParams = fep.backgroundParams;
 	return mas;
 }

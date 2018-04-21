@@ -30,24 +30,22 @@ _add_example(cpp-multithread
 if(NOT WIN32)
 	target_link_libraries(cpp-multithread pthread)
 endif()
+if(APPLE)
+	# since we use a deployment target of 10.8, the non-C++11-compliant libstdc++ is chosen by default; we need C++11
+	# see issue #302 for more details
+	target_compile_options(cpp-multithread PRIVATE --stdlib=libc++)
+	target_link_libraries(cpp-multithread --stdlib=libc++)
+endif()
 
 _add_example(drawtext
-	drawtext/attributes.c
-	drawtext/basic.c
-	drawtext/emptystr_hittest.c
-	drawtext/hittest.c
 	drawtext/main.c
 	${_EXAMPLE_RESOURCES_RC}
 )
-target_include_directories(drawtext
-	PRIVATE drawtext)
 
-_add_example(opentype
-	opentype/main.c
-	${_EXAMPLE_RESOURCES_RC}
+_add_example(timer
+        timer/main.c
+        ${_EXAMPLE_RESOURCES_RC}
 )
-target_include_directories(opentype
-	PRIVATE opentype)
 
 add_custom_target(examples
 	DEPENDS
@@ -55,4 +53,4 @@ add_custom_target(examples
 		histogram
 		cpp-multithread
 		drawtext
-		opentype)
+		timer)

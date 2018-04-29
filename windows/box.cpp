@@ -267,6 +267,16 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
 
+void uiBoxChild(uiBox *b, uiControl *c)
+{
+	for (struct boxChild *bc : b->controls) {
+                if (bc->c == c){
+                        return 1;
+                }
+        }
+        return 0;
+}
+
 void uiBoxDelete(uiBox *b, int index)
 {
 	uiControl *c;

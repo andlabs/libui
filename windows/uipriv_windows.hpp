@@ -1,13 +1,6 @@
 // 21 april 2016
 
 
-// the msys2 header has an unverified IDWriteTypography definition.
-// Would be good to get it verified and fixed in msys2, but in the meantime,
-// this define lets us compile....
-#if !defined(_MSC_VER)
-#define __MINGW_USE_BROKEN_INTERFACE
-#endif
-
 #include "winapi.hpp"
 #include "../ui.h"
 #include "../ui_windows.h"

@@ -23,6 +23,13 @@
 #define _WIN32_IE			0x0700
 #define NTDDI_VERSION		0x06000000
 
+// the msys2 header has an unverified IDWriteTypography definition.
+// Would be good to get it verified and fixed in msys2, but in the meantime,
+// this define lets us compile....
+#if !defined(_MSC_VER)
+#define __MINGW_USE_BROKEN_INTERFACE
+#endif
+
 #include <windows.h>
 
 // Microsoft's resource compiler will segfault if we feed it headers it was not designed to handle

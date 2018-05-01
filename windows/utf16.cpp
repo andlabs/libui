@@ -1,13 +1,6 @@
 // 21 april 2016
 #include "uipriv_windows.hpp"
 
-// sanity check - make sure wchar_t is 16 bits (the assumption on windows)
-// (MinGW-w64 gcc does seem to define a 16bit wchar_t, but you never know. Other windows gcc ports might not)
-#if WCHAR_MAX > 0xFFFF
-  #error wchar_t larger than 16bit
-#endif
-
-
 // see http://stackoverflow.com/a/29556509/3408572
 
 WCHAR *toUTF16(const char *str)

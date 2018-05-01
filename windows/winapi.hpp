@@ -23,10 +23,11 @@
 #define _WIN32_IE			0x0700
 #define NTDDI_VERSION		0x06000000
 
-// the msys2 header has an unverified IDWriteTypography definition.
-// Would be good to get it verified and fixed in msys2, but in the meantime,
-// this define lets us compile....
-#if !defined(_MSC_VER)
+// The MinGW-w64 header has an unverified IDWriteTypography definition.
+// TODO I can confirm this myself, but I don't know how long it will take for them to note my adjustments... Either way, I have to confirm this myself.
+// TODO change the check from _MSC_VER to a MinGW-w64-specific check
+// TODO keep track of what else is guarded by this
+#ifndef _MSC_VER
 #define __MINGW_USE_BROKEN_INTERFACE
 #endif
 

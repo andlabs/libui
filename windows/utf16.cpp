@@ -24,7 +24,7 @@ WCHAR *toUTF16(const char *str)
 	wp = wstr;
 	while (*str) {
 		str = uiprivUTF8DecodeRune(str, 0, &rune);
-		n = uiprivUTF16EncodeRune(rune, (uint16_t*)wp);
+		n = uiprivUTF16EncodeRune(rune, wp);
 		wp += n;
 	}
 	return wstr;
@@ -39,11 +39,11 @@ char *toUTF8(const WCHAR *wstr)
 
 	if (*wstr == L'\0')		// empty string
 		return emptyUTF8();
-	n = uiprivUTF16UTF8Count((const uint16_t*)wstr, 0);
+	n = uiprivUTF16UTF8Count(wstr, 0);
 	str = (char *) uiprivAlloc((n + 1) * sizeof (char), "char[]");
 	sp = str;
 	while (*wstr) {
-		wstr = (const WCHAR *)uiprivUTF16DecodeRune((const uint16_t *)wstr, 0, &rune);
+		wstr = uiprivUTF16DecodeRune(wstr, 0, &rune);
 		n = uiprivUTF8EncodeRune(rune, sp);
 		sp += n;
 	}

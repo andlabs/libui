@@ -1,8 +1,8 @@
 // 2 may 2018
-#include "winapi.h"
+#include "winapi.hpp"
 #include <stdio.h>
 #include <stdlib.h>
-#include "resources.h"
+#include "resources.hpp"
 
 void die(const char *f, const char *constname)
 {

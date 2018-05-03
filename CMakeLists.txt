@@ -210,7 +210,7 @@ macro(_add_exec _name)
 	add_executable(${_name}
 		EXCLUDE_FROM_ALL
 		${ARGN})
-	target_link_libraries(${_name} libui ${_LIBUI_STATIC_RES})
+	target_link_libraries(${_name} libui)
 	_target_link_options_private(${_name}
 		_COMMON_LDFLAGS)
 	# make shared-linked executables PIC too

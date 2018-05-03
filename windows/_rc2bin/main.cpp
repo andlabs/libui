@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "resources.hpp"
 
+// TODO make sure there are no CRs in the output
+
 void die(const char *f, const char *constname)
 {
 	DWORD le;
@@ -42,7 +44,7 @@ void dumpResource(const char *constname, const WCHAR *name, const WCHAR *type)
 			printf("\t");
 		printf("0x%02I32X,", (uint32_t) (*bp));
 		bp++;
-		if (j == 15) {
+		if (j == 7) {
 			printf("\n");
 			j = 0;
 		} else {

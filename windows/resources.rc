@@ -12,14 +12,6 @@
 ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "libui.manifest"
 #endif
 
-// this is the dialog template used by tab pages; see windows/tabpage.c for details
-rcTabPageDialog DIALOGEX 0, 0, 100, 100
-STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
-EXSTYLE WS_EX_CONTROLPARENT
-BEGIN
-	// nothing
-END
-
 // this is for our custom DirectWrite-based font dialog (see fontdialog.cpp)
 // this is based on the "New Font Dialog with Syslink" in Microsoft's font.dlg
 // LONGTERM look at localization

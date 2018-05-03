@@ -56,8 +56,17 @@ list(APPEND _LIBUI_SOURCES
 	windows/window.cpp
 	windows/winpublic.cpp
 	windows/winutil.cpp
-	windows/resources.rc
 )
+# resources.rc only contains the libui manifest.
+# For a DLL, we have to include this directly, so we do so.
+# Windows won't link resources in static libraries, so including this would have no effect.
+# In those cases, we just need them to include the manifest with the executable (or link it directly into the output executable themselves); they can also customize the manifest as they see fit (assuming nothing breaks in the process).
+# TODO make sure this gets added to both binary-only archives and install rules in this case
+if(BUILD_SHARED_LIBS)
+	list(APPEND _LIBUI_SOURCES
+		windows/resources.rc
+	)
+endif()
 set(_LIBUI_SOURCES ${_LIBUI_SOURCES} PARENT_SCOPE)
 
 list(APPEND _LIBUI_INCLUDEDIRS
@@ -65,18 +74,9 @@ list(APPEND _LIBUI_INCLUDEDIRS
 )
 set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
-# Windows won't link resources in static libraries; we need to provide the libui.res file in this case.
 set(_LIBUINAME libui PARENT_SCOPE)
-if(NOT BUILD_SHARED_LIBS)
-	set(_LIBUI_STATIC_RES ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/libui.res PARENT_SCOPE)
-endif()
 macro(_handle_static)
-	# TODO this full path feels hacky
-	add_custom_command(
-		TARGET libui POST_BUILD
-		COMMAND
-			${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:libui,BINARY_DIR>/CMakeFiles/libui.dir/windows/resources.rc.* ${_LIBUI_STATIC_RES}
-		COMMENT "Copying libui.res")
+	# do nothing
 endmacro()
 
 # TODO prune this list

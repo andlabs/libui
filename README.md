@@ -5,6 +5,9 @@ This README is being written.<br>
 
 ## Announcements
 
+* **2 May 2018**
+	* On Windows, you no longer need to carry around a `libui.res` file with static builds. You do need to link in the appropriate manifest file, such as the one in the `windows/` folder (I still need to figure out exactly what is needed apart from the Common Controls v6 dependency, or at least to create a complete-ish template), or at least include it alongside your executables. This also means you should no longer see random cmake errors when building the static libraries.
+
 * **18 April 2018**
 	* Introduced a new `uiTimer()` function for running code on a timer on the main thread. (Thanks to @cody271.)
 

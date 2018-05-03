@@ -55,7 +55,7 @@ void dumpResource(const char *constname, const WCHAR *name, const WCHAR *type)
 	if (j != 0)
 		printf("\n");
 	printf("};\n");
-	printf("static_assert(ARRAYSIZE(%s) == %I32d, \"wrong size for resource %s\")\n", constname, n, constname);
+	printf("static_assert(ARRAYSIZE(%s) == %I32d, \"wrong size for resource %s\");\n", constname, n, constname);
 	printf("\n");
 }
 

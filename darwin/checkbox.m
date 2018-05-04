@@ -9,7 +9,7 @@ struct uiCheckbox {
 };
 
 @interface checkboxDelegateClass : NSObject {
-	struct mapTable *buttons;
+	uiprivMap *buttons;
 }
 - (IBAction)onToggled:(id)sender;
 - (void)registerCheckbox:(uiCheckbox *)c;
@@ -22,13 +22,13 @@ struct uiCheckbox {
 {
 	self = [super init];
 	if (self)
-		self->buttons = newMap();
+		self->buttons = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->buttons);
+	uiprivMapDestroy(self->buttons);
 	[super dealloc];
 }
 
@@ -36,13 +36,13 @@ struct uiCheckbox {
 {
 	uiCheckbox *c;
 
-	c = (uiCheckbox *) mapGet(self->buttons, sender);
+	c = (uiCheckbox *) uiprivMapGet(self->buttons, sender);
 	(*(c->onToggled))(c, c->onToggledData);
 }
 
 - (void)registerCheckbox:(uiCheckbox *)c
 {
-	mapSet(self->buttons, c->button, c);
+	uiprivMapSet(self->buttons, c->button, c);
 	[c->button setTarget:self];
 	[c->button setAction:@selector(onToggled:)];
 }
@@ -50,7 +50,7 @@ struct uiCheckbox {
 - (void)unregisterCheckbox:(uiCheckbox *)c
 {
 	[c->button setTarget:nil];
-	mapDelete(self->buttons, c->button);
+	uiprivMapDelete(self->buttons, c->button);
 }
 
 @end

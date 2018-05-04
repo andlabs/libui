@@ -34,7 +34,7 @@ struct uiEditableCombobox {
 };
 
 @interface editableComboboxDelegateClass : NSObject<NSComboBoxDelegate> {
-	struct mapTable *comboboxes;
+	uiprivMap *comboboxes;
 }
 - (void)controlTextDidChange:(NSNotification *)note;
 - (void)comboBoxSelectionDidChange:(NSNotification *)note;
@@ -48,13 +48,13 @@ struct uiEditableCombobox {
 {
 	self = [super init];
 	if (self)
-		self->comboboxes = newMap();
+		self->comboboxes = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->comboboxes);
+	uiprivMapDestroy(self->comboboxes);
 	[super dealloc];
 }
 
@@ -62,7 +62,8 @@ struct uiEditableCombobox {
 {
 	uiEditableCombobox *c;
 
-	c = uiEditableCombobox(mapGet(self->comboboxes, [note object]));
+	// TODO normalize the cast styles in these calls
+	c = uiEditableCombobox(uiprivMapGet(self->comboboxes, [note object]));
 	(*(c->onChanged))(c, c->onChangedData);
 }
 
@@ -79,14 +80,14 @@ struct uiEditableCombobox {
 
 - (void)registerCombobox:(uiEditableCombobox *)c
 {
-	mapSet(self->comboboxes, c->cb, c);
+	uiprivMapSet(self->comboboxes, c->cb, c);
 	[c->cb setDelegate:self];
 }
 
 - (void)unregisterCombobox:(uiEditableCombobox *)c
 {
 	[c->cb setDelegate:nil];
-	mapDelete(self->comboboxes, c->cb);
+	uiprivMapDelete(self->comboboxes, c->cb);
 }
 
 @end

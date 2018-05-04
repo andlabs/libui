@@ -33,7 +33,7 @@ struct uiWindow {
 @end
 
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
-	struct mapTable *windows;
+	uiprivMap *windows;
 }
 - (BOOL)windowShouldClose:(id)sender;
 - (void)windowDidResize:(NSNotification *)note;
@@ -50,13 +50,13 @@ struct uiWindow {
 {
 	self = [super init];
 	if (self)
-		self->windows = newMap();
+		self->windows = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->windows);
+	uiprivMapDestroy(self->windows);
 	[super dealloc];
 }
 
@@ -100,21 +100,21 @@ struct uiWindow {
 
 - (void)registerWindow:(uiWindow *)w
 {
-	mapSet(self->windows, w->window, w);
+	uiprivMapSet(self->windows, w->window, w);
 	[w->window setDelegate:self];
 }
 
 - (void)unregisterWindow:(uiWindow *)w
 {
 	[w->window setDelegate:nil];
-	mapDelete(self->windows, w->window);
+	uiprivMapDelete(self->windows, w->window);
 }
 
 - (uiWindow *)lookupWindow:(NSWindow *)w
 {
 	uiWindow *v;
 
-	v = uiWindow(mapGet(self->windows, w));
+	v = uiWindow(uiprivMapGet(self->windows, w));
 	// this CAN (and IS ALLOWED TO) return NULL, just in case we're called with some OS X-provided window as the key window
 	return v;
 }

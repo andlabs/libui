@@ -9,7 +9,7 @@ struct uiButton {
 };
 
 @interface buttonDelegateClass : NSObject {
-	struct mapTable *buttons;
+	uiprivMap *buttons;
 }
 - (IBAction)onClicked:(id)sender;
 - (void)registerButton:(uiButton *)b;
@@ -22,13 +22,13 @@ struct uiButton {
 {
 	self = [super init];
 	if (self)
-		self->buttons = newMap();
+		self->buttons = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->buttons);
+	uiprivMapDestroy(self->buttons);
 	[super dealloc];
 }
 
@@ -36,13 +36,13 @@ struct uiButton {
 {
 	uiButton *b;
 
-	b = (uiButton *) mapGet(self->buttons, sender);
+	b = (uiButton *) uiprivMapGet(self->buttons, sender);
 	(*(b->onClicked))(b, b->onClickedData);
 }
 
 - (void)registerButton:(uiButton *)b
 {
-	mapSet(self->buttons, b->button, b);
+	uiprivMapSet(self->buttons, b->button, b);
 	[b->button setTarget:self];
 	[b->button setAction:@selector(onClicked:)];
 }
@@ -50,7 +50,7 @@ struct uiButton {
 - (void)unregisterButton:(uiButton *)b
 {
 	[b->button setTarget:nil];
-	mapDelete(self->buttons, b->button);
+	uiprivMapDelete(self->buttons, b->button);
 }
 
 @end

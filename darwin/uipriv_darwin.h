@@ -22,4 +22,14 @@
 
 /*TODO remove this*/typedef struct uiImage uiImage;
 
+// map.m
+typedef struct uiprivMap uiprivMap;
+extern uiprivMap *uiprivNewMap(void);
+extern void uiprivMapDestroy(uiprivMap *m);
+extern void *uiprivMapGet(uiprivMap *m, void *key);
+extern void uiprivMapSet(uiprivMap *m, void *key, void *value);
+extern void uiprivMapDelete(uiprivMap *m, void *key);
+extern void uiprivMapWalk(uiprivMap *m, void (*f)(void *key, void *value));
+extern void uiprivMapReset(uiprivMap *m);
+
 #import "OLD_uipriv_darwin.h"

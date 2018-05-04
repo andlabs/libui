@@ -31,7 +31,7 @@ static void mapItemReleaser(void *key, void *value)
 {
 	uiMenuItem *item;
  
-	item = (uiMenuItem *)value;
+	item = (uiMenuItem *) value;
 	[item->item release];
 }
 
@@ -41,7 +41,7 @@ static void mapItemReleaser(void *key, void *value)
 {
 	self = [super init];
 	if (self) {
-		self->items = newMap();
+		self->items = uiprivNewMap();
 		self->hasQuit = NO;
 		self->hasPreferences = NO;
 		self->hasAbout = NO;
@@ -51,9 +51,9 @@ static void mapItemReleaser(void *key, void *value)
 
 - (void)dealloc
 {
-	mapWalk(self->items, mapItemReleaser);
-	mapReset(self->items);
-	mapDestroy(self->items);
+	uiprivMapWalk(self->items, mapItemReleaser);
+	uiprivMapReset(self->items);
+	uiprivMapDestroy(self->items);
 	uninitMenus();
 	[super dealloc];
 }
@@ -62,7 +62,7 @@ static void mapItemReleaser(void *key, void *value)
 {
 	uiMenuItem *item;
 
-	item = (uiMenuItem *) mapGet(self->items, sender);
+	item = (uiMenuItem *) uiprivMapGet(self->items, sender);
 	if (item->type == typeCheckbox)
 		uiMenuItemSetChecked(item, !uiMenuItemChecked(item));
 	// use the key window as the source of the menu event; it's the active window
@@ -94,7 +94,7 @@ static void mapItemReleaser(void *key, void *value)
 		self->hasAbout = YES;
 		break;
 	}
-	mapSet(self->items, item, smi);
+	uiprivMapSet(self->items, item, smi);
 }
 
 // on OS X there are two ways to handle menu items being enabled or disabled: automatically and manually
@@ -112,7 +112,7 @@ static void mapItemReleaser(void *key, void *value)
 	if (item == self.aboutItem && !self->hasAbout)
 		return NO;
 	// then poll the item's enabled/disabled state
-	smi = (uiMenuItem *) mapGet(self->items, item);
+	smi = (uiMenuItem *) uiprivMapGet(self->items, item);
 	return !smi->disabled;
 }
 

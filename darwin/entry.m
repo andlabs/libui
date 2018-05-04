@@ -67,7 +67,7 @@ static BOOL isSearchField(NSTextField *tf)
 }
 
 @interface entryDelegateClass : NSObject<NSTextFieldDelegate> {
-	struct mapTable *entries;
+	uiprivMap *entries;
 }
 - (void)controlTextDidChange:(NSNotification *)note;
 - (IBAction)onSearch:(id)sender;
@@ -81,13 +81,13 @@ static BOOL isSearchField(NSTextField *tf)
 {
 	self = [super init];
 	if (self)
-		self->entries = newMap();
+		self->entries = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->entries);
+	uiprivMapDestroy(self->entries);
 	[super dealloc];
 }
 
@@ -100,13 +100,13 @@ static BOOL isSearchField(NSTextField *tf)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) mapGet(self->entries, sender);
+	e = (uiEntry *) uiprivMapGet(self->entries, sender);
 	(*(e->onChanged))(e, e->onChangedData);
 }
 
 - (void)registerEntry:(uiEntry *)e
 {
-	mapSet(self->entries, e->textfield, e);
+	uiprivMapSet(self->entries, e->textfield, e);
 	if (isSearchField(e->textfield)) {
 		[e->textfield setTarget:self];
 		[e->textfield setAction:@selector(onSearch:)];
@@ -120,7 +120,7 @@ static BOOL isSearchField(NSTextField *tf)
 		[e->textfield setTarget:nil];
 	else
 		[e->textfield setDelegate:nil];
-	mapDelete(self->entries, e->textfield);
+	uiprivMapDelete(self->entries, e->textfield);
 }
 
 @end

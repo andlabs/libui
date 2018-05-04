@@ -371,7 +371,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindow *w;
 
-	finalizeMenus();
+	uiprivFinalizeMenus();
 
 	uiDarwinNewControl(uiWindow, w);
 

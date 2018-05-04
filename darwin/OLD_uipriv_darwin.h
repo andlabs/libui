@@ -1,20 +1,4 @@
 
-// menu.m
-@interface menuManager : NSObject {
-	uiprivMap *items;
-	BOOL hasQuit;
-	BOOL hasPreferences;
-	BOOL hasAbout;
-}
-@property (strong) NSMenuItem *quitItem;
-@property (strong) NSMenuItem *preferencesItem;
-@property (strong) NSMenuItem *aboutItem;
-// NSMenuValidation is only informal
-- (BOOL)validateMenuItem:(NSMenuItem *)item;
-- (NSMenu *)makeMenubar;
-@end
-extern void finalizeMenus(void);
-extern void uninitMenus(void);
 
 // main.m
 @interface applicationClass : NSApplication
@@ -22,7 +6,7 @@ extern void uninitMenus(void);
 // this is needed because NSApp is of type id, confusing clang
 #define realNSApp() ((applicationClass *) NSApp)
 @interface appDelegate : NSObject <NSApplicationDelegate>
-@property (strong) menuManager *menuManager;
+@property (strong) uiprivMenuManager *menuManager;
 @end
 #define appDelegate() ((appDelegate *) [realNSApp() delegate])
 struct nextEventArgs {

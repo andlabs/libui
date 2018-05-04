@@ -32,4 +32,21 @@ extern void uiprivMapDelete(uiprivMap *m, void *key);
 extern void uiprivMapWalk(uiprivMap *m, void (*f)(void *key, void *value));
 extern void uiprivMapReset(uiprivMap *m);
 
+// menu.m
+@interface uiprivMenuManager : NSObject {
+	uiprivMap *items;
+	BOOL hasQuit;
+	BOOL hasPreferences;
+	BOOL hasAbout;
+}
+@property (strong) NSMenuItem *quitItem;
+@property (strong) NSMenuItem *preferencesItem;
+@property (strong) NSMenuItem *aboutItem;
+// NSMenuValidation is only informal
+- (BOOL)validateMenuItem:(NSMenuItem *)item;
+- (NSMenu *)makeMenubar;
+@end
+extern void uiprivFinalizeMenus(void);
+extern void uiprivUninitMenus(void);
+
 #import "OLD_uipriv_darwin.h"

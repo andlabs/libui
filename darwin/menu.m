@@ -35,7 +35,7 @@ static void mapItemReleaser(void *key, void *value)
 	[item->item release];
 }
 
-@implementation menuManager
+@implementation uiprivMenuManager
 
 - (id)init
 {
@@ -54,7 +54,7 @@ static void mapItemReleaser(void *key, void *value)
 	uiprivMapWalk(self->items, mapItemReleaser);
 	uiprivMapReset(self->items);
 	uiprivMapDestroy(self->items);
-	uninitMenus();
+	uiprivUninitMenus();
 	[super dealloc];
 }
 
@@ -338,12 +338,12 @@ uiMenu *uiNewMenu(const char *name)
 	} // @autoreleasepool
 }
 
-void finalizeMenus(void)
+void uiprivFinalizeMenus(void)
 {
 	menusFinalized = YES;
 }
 
-void uninitMenus(void)
+void uiprivUninitMenus(void)
 {
 	if (menus == NULL)
 		return;

@@ -124,7 +124,7 @@ const char *uiInit(uiInitOptions *o)
 		loadUndocumented();
 
 		// always do this so we always have an application menu
-		appDelegate().menuManager = [[menuManager new] autorelease];
+		appDelegate().menuManager = [[uiprivMenuManager new] autorelease];
 		[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
 
 		uiprivSetupFontPanel();

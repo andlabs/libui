@@ -49,4 +49,23 @@ extern void uiprivMapReset(uiprivMap *m);
 extern void uiprivFinalizeMenus(void);
 extern void uiprivUninitMenus(void);
 
+// main.m
+@interface uiprivApplicationClass : NSApplication
+@end
+// this is needed because NSApp is of type id, confusing clang
+#define uiprivNSApp() ((uiprivApplicationClass *) NSApp)
+@interface uiprivAppDelegate : NSObject<NSApplicationDelegate>
+@property (strong) uiprivMenuManager *menuManager;
+@end
+#define uiprivAppDelegate() ((uiprivAppDelegate *) [uiprivNSApp() delegate])
+typedef struct uiprivNextEventArgs uiprivNextEventArgs;
+struct uiprivNextEventArgs {
+	NSEventMask mask;
+	NSDate *duration;
+	// LONGTERM no NSRunLoopMode?
+	NSString *mode;
+	BOOL dequeue;
+};
+extern int uiprivMainStep(uiprivNextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *));
+
 #import "OLD_uipriv_darwin.h"

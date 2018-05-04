@@ -1,23 +1,3 @@
-
-
-// main.m
-@interface applicationClass : NSApplication
-@end
-// this is needed because NSApp is of type id, confusing clang
-#define realNSApp() ((applicationClass *) NSApp)
-@interface appDelegate : NSObject <NSApplicationDelegate>
-@property (strong) uiprivMenuManager *menuManager;
-@end
-#define appDelegate() ((appDelegate *) [realNSApp() delegate])
-struct nextEventArgs {
-	NSEventMask mask;
-	NSDate *duration;
-	// LONGTERM no NSRunLoopMode?
-	NSString *mode;
-	BOOL dequeue;
-};
-extern int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *));
-
 // util.m
 extern void disableAutocorrect(NSTextView *);
 

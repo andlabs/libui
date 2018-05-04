@@ -4,13 +4,13 @@
 
 static BOOL canQuit = NO;
 static NSAutoreleasePool *globalPool;
-static applicationClass *app;
-static appDelegate *delegate;
+static uiprivApplicationClass *app;
+static uiprivAppDelegate *delegate;
 
 static BOOL (^isRunning)(void);
 static BOOL stepsIsRunning;
 
-@implementation applicationClass
+@implementation uiprivApplicationClass
 
 - (void)sendEvent:(NSEvent *)e
 {
@@ -59,7 +59,7 @@ static BOOL stepsIsRunning;
 	if (!canQuit)
 		uiprivImplBug("call to [NSApp terminate:] when not ready to terminate; definitely contact andlabs");
 
-	[realNSApp() stop:realNSApp()];
+	[uiprivNSApp() stop:uiprivNSApp()];
 	// stop: won't register until another event has passed; let's synthesize one
 	e = [NSEvent otherEventWithType:NSApplicationDefined
 		location:NSZeroPoint
@@ -70,7 +70,7 @@ static BOOL stepsIsRunning;
 		subtype:0
 		data1:0
 		data2:0];
-	[realNSApp() postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
+	[uiprivNSApp() postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
 
 	// and in case uiMainSteps() was called
 	stepsIsRunning = NO;
@@ -78,7 +78,7 @@ static BOOL stepsIsRunning;
 
 @end
 
-@implementation appDelegate
+@implementation uiprivAppDelegate
 
 - (void)dealloc
 {
@@ -112,20 +112,20 @@ const char *uiInit(uiInitOptions *o)
 {
 	@autoreleasepool {
 		uiprivOptions = *o;
-		app = [[applicationClass sharedApplication] retain];
+		app = [[uiprivApplicationClass sharedApplication] retain];
 		// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 		// see https://github.com/andlabs/ui/issues/6
-		[realNSApp() setActivationPolicy:NSApplicationActivationPolicyRegular];
-		delegate = [appDelegate new];
-		[realNSApp() setDelegate:delegate];
+		[uiprivNSApp() setActivationPolicy:NSApplicationActivationPolicyRegular];
+		delegate = [uiprivAppDelegate new];
+		[uiprivNSApp() setDelegate:delegate];
 
 		initAlloc();
 		loadFutures();
 		loadUndocumented();
 
 		// always do this so we always have an application menu
-		appDelegate().menuManager = [[uiprivMenuManager new] autorelease];
-		[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
+		uiprivAppDelegate().menuManager = [[uiprivMenuManager new] autorelease];
+		[uiprivNSApp() setMainMenu:[uiprivAppDelegate().menuManager makeMenubar]];
 
 		uiprivSetupFontPanel();
 
@@ -146,7 +146,7 @@ void uiUninit(void)
 	@autoreleasepool {
 		uiprivUninitUnderlineColors();
 		[delegate release];
-		[realNSApp() setDelegate:nil];
+		[uiprivNSApp() setDelegate:nil];
 		[app release];
 		uninitAlloc();
 	}
@@ -159,15 +159,15 @@ void uiFreeInitError(const char *err)
 void uiMain(void)
 {
 	isRunning = ^{
-		return [realNSApp() isRunning];
+		return [uiprivNSApp() isRunning];
 	};
-	[realNSApp() run];
+	[uiprivNSApp() run];
 }
 
 void uiMainSteps(void)
 {
 	// SDL does this and it seems to be necessary for the menubar to work (see #182)
-	[realNSApp() finishLaunching];
+	[uiprivNSApp() finishLaunching];
 	isRunning = ^{
 		return stepsIsRunning;
 	};
@@ -176,7 +176,7 @@ void uiMainSteps(void)
 
 int uiMainStep(int wait)
 {
-	struct nextEventArgs nea;
+	uiprivNextEventArgs nea;
 
 	nea.mask = NSAnyEventMask;
 
@@ -189,7 +189,7 @@ int uiMainStep(int wait)
 	nea.mode = NSDefaultRunLoopMode;
 	nea.dequeue = YES;
 
-	return mainStep(&nea, ^(NSEvent *e) {
+	return uiprivMainStep(&nea, ^(NSEvent *e) {
 		return NO;
 	});
 }
@@ -197,7 +197,7 @@ int uiMainStep(int wait)
 // see also:
 // - http://www.cocoawithlove.com/2009/01/demystifying-nsapplication-by.html
 // - https://github.com/gnustep/gui/blob/master/Source/NSApplication.m
-int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
+int uiprivMainStep(uiprivNextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 {
 	NSDate *expire;
 	NSEvent *e;
@@ -207,7 +207,7 @@ int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 		if (!isRunning())
 			return 0;
 
-		e = [realNSApp() nextEventMatchingMask:nea->mask
+		e = [uiprivNSApp() nextEventMatchingMask:nea->mask
 			untilDate:nea->duration
 			inMode:nea->mode
 			dequeue:nea->dequeue];
@@ -216,13 +216,13 @@ int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 
 		type = [e type];
 		if (!interceptEvent(e))
-			[realNSApp() sendEvent:e];
-		[realNSApp() updateWindows];
+			[uiprivNSApp() sendEvent:e];
+		[uiprivNSApp() updateWindows];
 
 		// GNUstep does this
 		// it also updates the Services menu but there doesn't seem to be a public API for that so
 		if (type != NSPeriodic && type != NSMouseMoved)
-			[[realNSApp() mainMenu] update];
+			[[uiprivNSApp() mainMenu] update];
 
 		return 1;
 	}
@@ -231,7 +231,7 @@ int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 void uiQuit(void)
 {
 	canQuit = YES;
-	[realNSApp() terminate:realNSApp()];
+	[uiprivNSApp() terminate:uiprivNSApp()];
 }
 
 // thanks to mikeash in irc.freenode.net/#macdev for suggesting the use of Grand Central Dispatch for this

@@ -46,7 +46,7 @@ void onMoveDrag(struct onMoveDragParams *p, NSEvent *e)
 void doManualMove(NSWindow *w, NSEvent *initialEvent)
 {
 	__block struct onMoveDragParams mdp;
-	struct nextEventArgs nea;
+	uiprivNextEventArgs nea;
 	BOOL (^handleEvent)(NSEvent *e);
 	__block BOOL done;
 
@@ -72,7 +72,7 @@ void doManualMove(NSWindow *w, NSEvent *initialEvent)
 		return YES;		// do not send
 	};
 	done = NO;
-	while (mainStep(&nea, handleEvent))
+	while (uiprivMainStep(&nea, handleEvent))
 		if (done)
 			break;
 }
@@ -223,7 +223,7 @@ static void onResizeDrag(struct onResizeDragParams *p, NSEvent *e)
 void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
 {
 	__block struct onResizeDragParams rdp;
-	struct nextEventArgs nea;
+	uiprivNextEventArgs nea;
 	BOOL (^handleEvent)(NSEvent *e);
 	__block BOOL done;
 
@@ -247,7 +247,7 @@ void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
 		return YES;		// do not send
 	};
 	done = NO;
-	while (mainStep(&nea, handleEvent))
+	while (uiprivMainStep(&nea, handleEvent))
 		if (done)
 			break;
 }

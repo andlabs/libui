@@ -24,9 +24,9 @@ static char *runSavePanel(NSWindow *parent, NSSavePanel *s)
 	char *filename;
 
 	[s beginSheetModalForWindow:parent completionHandler:^(NSInteger result) {
-		[realNSApp() stopModalWithCode:result];
+		[uiprivNSApp() stopModalWithCode:result];
 	}];
-	if ([realNSApp() runModalForWindow:s] != NSFileHandlingPanelOKButton)
+	if ([uiprivNSApp() runModalForWindow:s] != NSFileHandlingPanelOKButton)
 		return NULL;
 	filename = uiDarwinNSStringToText([[s URL] path]);
 	return filename;
@@ -84,12 +84,12 @@ char *uiSaveFile(uiWindow *parent)
 		modalDelegate:self
 		didEndSelector:@selector(panelEnded:result:data:)
 		contextInfo:NULL];
-	return [realNSApp() runModalForWindow:[self->panel window]];
+	return [uiprivNSApp() runModalForWindow:[self->panel window]];
 }
 
 - (void)panelEnded:(NSAlert *)panel result:(NSInteger)result data:(void *)data
 {
-	[realNSApp() stopModalWithCode:result];
+	[uiprivNSApp() stopModalWithCode:result];
 }
 
 @end

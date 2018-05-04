@@ -66,7 +66,7 @@ static void mapItemReleaser(void *key, void *value)
 	if (item->type == typeCheckbox)
 		uiMenuItemSetChecked(item, !uiMenuItemChecked(item));
 	// use the key window as the source of the menu event; it's the active window
-	(*(item->onClicked))(item, windowFromNSWindow([realNSApp() keyWindow]), item->onClickedData);
+	(*(item->onClicked))(item, windowFromNSWindow([uiprivNSApp() keyWindow]), item->onClickedData);
 }
 
 - (IBAction)onQuitClicked:(id)sender
@@ -154,7 +154,7 @@ static void mapItemReleaser(void *key, void *value)
 	item = [[[NSMenuItem alloc] initWithTitle:@"Services" action:NULL keyEquivalent:@""] autorelease];
 	servicesMenu = [[[NSMenu alloc] initWithTitle:@"Services"] autorelease];
 	[item setSubmenu:servicesMenu];
-	[realNSApp() setServicesMenu:servicesMenu];
+	[uiprivNSApp() setServicesMenu:servicesMenu];
 	[appMenu addItem:item];
 
 	[appMenu addItem:[NSMenuItem separatorItem]];
@@ -246,13 +246,13 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 	item->type = type;
 	switch (item->type) {
 	case typeQuit:
-		item->item = [appDelegate().menuManager.quitItem retain];
+		item->item = [uiprivAppDelegate().menuManager.quitItem retain];
 		break;
 	case typePreferences:
-		item->item = [appDelegate().menuManager.preferencesItem retain];
+		item->item = [uiprivAppDelegate().menuManager.preferencesItem retain];
 		break;
 	case typeAbout:
-		item->item = [appDelegate().menuManager.aboutItem retain];
+		item->item = [uiprivAppDelegate().menuManager.aboutItem retain];
 		break;
 	case typeSeparator:
 		item->item = [[NSMenuItem separatorItem] retain];
@@ -260,12 +260,12 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 		break;
 	default:
 		item->item = [[NSMenuItem alloc] initWithTitle:uiprivToNSString(name) action:@selector(onClicked:) keyEquivalent:@""];
-		[item->item setTarget:appDelegate().menuManager];
+		[item->item setTarget:uiprivAppDelegate().menuManager];
 		[m->menu addItem:item->item];
 		break;
 	}
 
-	[appDelegate().menuManager register:item->item to:item];
+	[uiprivAppDelegate().menuManager register:item->item to:item];
 	item->onClicked = defaultOnClicked;
 
 	[m->items addObject:[NSValue valueWithPointer:item]];
@@ -329,7 +329,7 @@ uiMenu *uiNewMenu(const char *name)
 
 	m->items = [NSMutableArray new];
 
-	[[realNSApp() mainMenu] addItem:m->item];
+	[[uiprivNSApp() mainMenu] addItem:m->item];
 
 	[menus addObject:[NSValue valueWithPointer:m]];
 

@@ -15,7 +15,7 @@ char *uiLabelText(uiLabel *l)
 
 void uiLabelSetText(uiLabel *l, const char *text)
 {
-	[l->textfield setStringValue:toNSString(text)];
+	[l->textfield setStringValue:uiprivToNSString(text)];
 }
 
 NSTextField *newLabel(NSString *str)
@@ -37,7 +37,7 @@ uiLabel *uiNewLabel(const char *text)
 
 	uiDarwinNewControl(uiLabel, l);
 
-	l->textfield = newLabel(toNSString(text));
+	l->textfield = newLabel(uiprivToNSString(text));
 
 	return l;
 }

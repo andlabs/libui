@@ -103,8 +103,8 @@ static void msgbox(NSWindow *parent, const char *title, const char *description,
 	[a setAlertStyle:style];
 	[a setShowsHelp:NO];
 	[a setShowsSuppressionButton:NO];
-	[a setMessageText:toNSString(title)];
-	[a setInformativeText:toNSString(description)];
+	[a setMessageText:uiprivToNSString(title)];
+	[a setInformativeText:uiprivToNSString(description)];
 	[a addButtonWithTitle:@"OK"];
 	cm = [[libuiCodeModalAlertPanel alloc] initWithPanel:a parent:parent];
 	[cm run];

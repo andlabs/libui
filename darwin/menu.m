@@ -259,7 +259,7 @@ static uiMenuItem *newItem(uiMenu *m, int type, const char *name)
 		[m->menu addItem:item->item];
 		break;
 	default:
-		item->item = [[NSMenuItem alloc] initWithTitle:toNSString(name) action:@selector(onClicked:) keyEquivalent:@""];
+		item->item = [[NSMenuItem alloc] initWithTitle:uiprivToNSString(name) action:@selector(onClicked:) keyEquivalent:@""];
 		[item->item setTarget:appDelegate().menuManager];
 		[m->menu addItem:item->item];
 		break;
@@ -321,10 +321,10 @@ uiMenu *uiNewMenu(const char *name)
 
 	m = uiprivNew(uiMenu);
 
-	m->menu = [[NSMenu alloc] initWithTitle:toNSString(name)];
+	m->menu = [[NSMenu alloc] initWithTitle:uiprivToNSString(name)];
 	// use automatic menu item enabling for all menus for consistency's sake
 
-	m->item = [[NSMenuItem alloc] initWithTitle:toNSString(name) action:NULL keyEquivalent:@""];
+	m->item = [[NSMenuItem alloc] initWithTitle:uiprivToNSString(name) action:NULL keyEquivalent:@""];
 	[m->item setSubmenu:m->menu];
 
 	m->items = [NSMutableArray new];

@@ -78,7 +78,7 @@ static void uiComboboxDestroy(uiControl *cc)
 
 void uiComboboxAppend(uiCombobox *c, const char *text)
 {
-	[c->pbac addObject:toNSString(text)];
+	[c->pbac addObject:uiprivToNSString(text)];
 }
 
 int uiComboboxSelected(uiCombobox *c)

@@ -1,13 +1,4 @@
 
-#define toNSString(str) [NSString stringWithUTF8String:(str)]
-#define fromNSString(str) [(str) UTF8String]
-
-#ifndef NSAppKitVersionNumber10_9
-#define NSAppKitVersionNumber10_9 1265
-#endif
-
-/*TODO remove this*/typedef struct uiImage uiImage;
-
 // menu.m
 @interface menuManager : NSObject {
 	struct mapTable *items;

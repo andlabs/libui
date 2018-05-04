@@ -131,7 +131,7 @@ char *uiGroupTitle(uiGroup *g)
 
 void uiGroupSetTitle(uiGroup *g, const char *title)
 {
-	[g->box setTitle:toNSString(title)];
+	[g->box setTitle:uiprivToNSString(title)];
 }
 
 void uiGroupSetChild(uiGroup *g, uiControl *child)
@@ -178,7 +178,7 @@ uiGroup *uiNewGroup(const char *title)
 	uiDarwinNewControl(uiGroup, g);
 
 	g->box = [[NSBox alloc] initWithFrame:NSZeroRect];
-	[g->box setTitle:toNSString(title)];
+	[g->box setTitle:uiprivToNSString(title)];
 	[g->box setBoxType:NSBoxPrimary];
 	[g->box setBorderType:NSLineBorder];
 	[g->box setTransparent:NO];

@@ -252,7 +252,7 @@ char *uiWindowTitle(uiWindow *w)
 
 void uiWindowSetTitle(uiWindow *w, const char *title)
 {
-	[w->window setTitle:toNSString(title)];
+	[w->window setTitle:uiprivToNSString(title)];
 }
 
 void uiWindowContentSize(uiWindow *w, int *width, int *height)
@@ -379,7 +379,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		styleMask:defaultStyleMask
 		backing:NSBackingStoreBuffered
 		defer:YES];
-	[w->window setTitle:toNSString(title)];
+	[w->window setTitle:uiprivToNSString(title)];
 
 	// do NOT release when closed
 	// we manually do this in uiWindowDestroy() above

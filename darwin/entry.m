@@ -145,7 +145,7 @@ char *uiEntryText(uiEntry *e)
 
 void uiEntrySetText(uiEntry *e, const char *text)
 {
-	[e->textfield setStringValue:toNSString(text)];
+	[e->textfield setStringValue:uiprivToNSString(text)];
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
 

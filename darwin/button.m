@@ -75,7 +75,7 @@ char *uiButtonText(uiButton *b)
 
 void uiButtonSetText(uiButton *b, const char *text)
 {
-	[b->button setTitle:toNSString(text)];
+	[b->button setTitle:uiprivToNSString(text)];
 }
 
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
@@ -96,7 +96,7 @@ uiButton *uiNewButton(const char *text)
 	uiDarwinNewControl(uiButton, b);
 
 	b->button = [[NSButton alloc] initWithFrame:NSZeroRect];
-	[b->button setTitle:toNSString(text)];
+	[b->button setTitle:uiprivToNSString(text)];
 	[b->button setButtonType:NSMomentaryPushInButton];
 	[b->button setBordered:YES];
 	[b->button setBezelStyle:NSRoundedBezelStyle];

@@ -75,7 +75,7 @@ char *uiCheckboxText(uiCheckbox *c)
 
 void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
-	[c->button setTitle:toNSString(text)];
+	[c->button setTitle:uiprivToNSString(text)];
 }
 
 void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)
@@ -111,7 +111,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiDarwinNewControl(uiCheckbox, c);
 
 	c->button = [[NSButton alloc] initWithFrame:NSZeroRect];
-	[c->button setTitle:toNSString(text)];
+	[c->button setTitle:uiprivToNSString(text)];
 	[c->button setButtonType:NSSwitchButton];
 	// doesn't seem to have an associated bezel style
 	[c->button setBordered:NO];

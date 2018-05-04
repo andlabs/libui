@@ -78,7 +78,7 @@ char *uiMultilineEntryText(uiMultilineEntry *e)
 void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 {
 	[[e->tv textStorage] replaceCharactersInRange:NSMakeRange(0, [[e->tv string] length])
-		withString:toNSString(text)];
+		withString:uiprivToNSString(text)];
 	// must be called explicitly according to the documentation of shouldChangeTextInRange:replacementString:
 	e->changing = YES;
 	[e->tv didChangeText];
@@ -89,7 +89,7 @@ void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 void uiMultilineEntryAppend(uiMultilineEntry *e, const char *text)
 {
 	[[e->tv textStorage] replaceCharactersInRange:NSMakeRange([[e->tv string] length], 0)
-		withString:toNSString(text)];
+		withString:uiprivToNSString(text)];
 	e->changing = YES;
 	[e->tv didChangeText];
 	e->changing = NO;

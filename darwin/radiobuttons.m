@@ -87,7 +87,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	NSLayoutConstraint *constraint;
 
 	b = [[NSButton alloc] initWithFrame:NSZeroRect];
-	[b setTitle:toNSString(text)];
+	[b setTitle:uiprivToNSString(text)];
 	[b setButtonType:NSRadioButton];
 	// doesn't seem to have an associated bezel style
 	[b setBordered:NO];

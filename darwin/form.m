@@ -531,7 +531,7 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
 		uiprivUserBug("You cannot add NULL to a uiForm.");
-	[f->view append:toNSString(label) c:c stretchy:stretchy];
+	[f->view append:uiprivToNSString(label) c:c stretchy:stretchy];
 }
 
 void uiFormDelete(uiForm *f, int n)

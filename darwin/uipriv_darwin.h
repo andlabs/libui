@@ -12,4 +12,14 @@
 #error Sorry, libui cannot be compiled with ARC.
 #endif
 
+#define uiprivToNSString(str) [NSString stringWithUTF8String:(str)]
+#define uiprivFromNSString(str) [(str) UTF8String]
+
+// TODO find a better place for this
+#ifndef NSAppKitVersionNumber10_9
+#define NSAppKitVersionNumber10_9 1265
+#endif
+
+/*TODO remove this*/typedef struct uiImage uiImage;
+
 #import "OLD_uipriv_darwin.h"

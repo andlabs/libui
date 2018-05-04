@@ -1,0 +1,78 @@
+version: 'build #{build}'
+
+environment:
+  matrix:
+    - BUILD_TYPE: shared-windows-msvc2013-386
+      CMAKE_FLAGS: -G "Visual Studio 12 2013"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+
+    - BUILD_TYPE: static-windows-msvc2013-386
+      CMAKE_FLAGS: -G "Visual Studio 12 2013" -DBUILD_SHARED_LIBS=OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+
+    - BUILD_TYPE: shared-windows-msvc2013-amd64
+      CMAKE_FLAGS: -G "Visual Studio 12 2013 Win64"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+
+    - BUILD_TYPE: static-windows-msvc2013-amd64
+      CMAKE_FLAGS: -G "Visual Studio 12 2013 Win64" -DBUILD_SHARED_LIBS=OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+
+    - BUILD_TYPE: shared-windows-msvc2015-386
+      CMAKE_FLAGS: -G "Visual Studio 14 2015"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+    - BUILD_TYPE: static-windows-msvc2015-386
+      CMAKE_FLAGS: -G "Visual Studio 14 2015" -DBUILD_SHARED_LIBS=OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+    - BUILD_TYPE: shared-windows-msvc2015-amd64
+      CMAKE_FLAGS: -G "Visual Studio 14 2015 Win64"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+    - BUILD_TYPE: static-windows-msvc2015-amd64
+      CMAKE_FLAGS: -G "Visual Studio 14 2015 Win64" -DBUILD_SHARED_LIBS=OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+    - BUILD_TYPE: shared-windows-msvc2017-386
+      CMAKE_FLAGS: -G "Visual Studio 15 2017"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+    - BUILD_TYPE: static-windows-msvc2017-386
+      CMAKE_FLAGS: -G "Visual Studio 15 2017" -DBUILD_SHARED_LIBS=OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+    - BUILD_TYPE: shared-windows-msvc2017-amd64
+      CMAKE_FLAGS: -G "Visual Studio 15 2017 Win64"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+    - BUILD_TYPE: static-windows-msvc2017-amd64
+      CMAKE_FLAGS: -G "Visual Studio 15 2017 Win64" -DBUILD_SHARED_LIBS=OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+    - BUILD_TYPE: static-windows-mingw-386
+      MINGW_PATH: C:\msys64\mingw32\bin
+      CMAKE_FLAGS: -G "MinGW Makefiles" -DBUILD_SHARED_LIBS=OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+    - BUILD_TYPE: static-windows-mingw-amd64
+      MINGW_PATH: C:\msys64\mingw64\bin
+      CMAKE_FLAGS: -G "MinGW Makefiles" -DBUILD_SHARED_LIBS=OFF
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+
+before_build:
+    - if defined MINGW_PATH (
+        set "PATH=%MINGW_PATH%;%PATH:C:\Program Files\Git\usr\bin;=%"
+      )
+
+build_script:
+    - mkdir build
+    - if defined MINGW_PATH (
+        pushd build && cmake %CMAKE_FLAGS% .. && mingw32-make tester examples && popd
+      ) else (
+        pushd build && cmake %CMAKE_FLAGS% .. && msbuild libui.sln /t:Build /p:Configuration=Release && popd
+      )
+
+after_build:
+    - dir /S build\out

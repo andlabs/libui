@@ -66,7 +66,7 @@ static void mapItemReleaser(void *key, void *value)
 	if (item->type == typeCheckbox)
 		uiMenuItemSetChecked(item, !uiMenuItemChecked(item));
 	// use the key window as the source of the menu event; it's the active window
-	(*(item->onClicked))(item, windowFromNSWindow([uiprivNSApp() keyWindow]), item->onClickedData);
+	(*(item->onClicked))(item, uiprivWindowFromNSWindow([uiprivNSApp() keyWindow]), item->onClickedData);
 }
 
 - (IBAction)onQuitClicked:(id)sender

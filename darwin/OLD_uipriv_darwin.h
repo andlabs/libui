@@ -1,10 +1,3 @@
-// window.m
-@interface libuiNSWindow : NSWindow
-- (void)libui_doMove:(NSEvent *)initialEvent;
-- (void)libui_doResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge;
-@end
-extern uiWindow *windowFromNSWindow(NSWindow *);
-
 // alloc.m
 extern NSMutableArray *delegates;
 extern void initAlloc(void);

@@ -75,4 +75,11 @@ extern void uiprivDisableAutocorrect(NSTextView *);
 extern void uiprivFinishNewTextField(NSTextField *, BOOL);
 extern NSTextField *uiprivNewEditableTextField(void);
 
+// window.m
+@interface uiprivNSWindow : NSWindow
+- (void)uiprivDoMove:(NSEvent *)initialEvent;
+- (void)uiprivDoResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge;
+@end
+extern uiWindow *uiprivWindowFromNSWindow(NSWindow *);
+
 #import "OLD_uipriv_darwin.h"

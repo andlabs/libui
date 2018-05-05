@@ -18,14 +18,14 @@ struct uiWindow {
 	int borderless;
 };
 
-@implementation libuiNSWindow
+@implementation uiprivNSWindow
 
-- (void)libui_doMove:(NSEvent *)initialEvent
+- (void)uiprivDoMove:(NSEvent *)initialEvent
 {
 	doManualMove(self, initialEvent);
 }
 
-- (void)libui_doResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge
+- (void)uiprivDoResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge
 {
 	doManualResize(self, initialEvent, edge);
 }
@@ -375,7 +375,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	uiDarwinNewControl(uiWindow, w);
 
-	w->window = [[libuiNSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
+	w->window = [[uiprivNSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:defaultStyleMask
 		backing:NSBackingStoreBuffered
 		defer:YES];
@@ -397,7 +397,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 }
 
 // utility function for menus
-uiWindow *windowFromNSWindow(NSWindow *w)
+uiWindow *uiprivWindowFromNSWindow(NSWindow *w)
 {
 	if (w == nil)
 		return NULL;

@@ -409,26 +409,26 @@ void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 
 void uiAreaBeginUserWindowMove(uiArea *a)
 {
-	libuiNSWindow *w;
+	uiprivNSWindow *w;
 
-	w = (libuiNSWindow *) [a->area window];
+	w = (uiprivNSWindow *) [a->area window];
 	if (w == nil)
 		return;		// TODO
 	if (a->dragevent == nil)
 		return;		// TODO
-	[w libui_doMove:a->dragevent];
+	[w uiprivDoMove:a->dragevent];
 }
 
 void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 {
-	libuiNSWindow *w;
+	uiprivNSWindow *w;
 
-	w = (libuiNSWindow *) [a->area window];
+	w = (uiprivNSWindow *) [a->area window];
 	if (w == nil)
 		return;		// TODO
 	if (a->dragevent == nil)
 		return;		// TODO
-	[w libui_doResize:a->dragevent on:edge];
+	[w uiprivDoResize:a->dragevent on:edge];
 }
 
 uiArea *uiNewArea(uiAreaHandler *ah)

@@ -46,7 +46,7 @@ static CGFloat stepperYDelta(void)
 {
 	self = [super initWithFrame:r];
 	if (self) {
-		self->tf = newEditableTextField();
+		self->tf = uiprivNewEditableTextField();
 		[self->tf setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		self->formatter = [NSNumberFormatter new];

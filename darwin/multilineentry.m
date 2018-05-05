@@ -182,7 +182,7 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	[[e->tv layoutManager] setAllowsNonContiguousLayout:YES];
 
 	// now just to be safe; this will do some of the above but whatever
-	disableAutocorrect(e->tv);
+	uiprivDisableAutocorrect(e->tv);
 
 	// see https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/TextUILayer/Tasks/TextInScrollView.html
 	// notice we don't use the Auto Layout code; see scrollview.m for more details

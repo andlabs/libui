@@ -1,10 +1,3 @@
-// util.m
-extern void disableAutocorrect(NSTextView *);
-
-// entry.m
-extern void finishNewTextField(NSTextField *, BOOL);
-extern NSTextField *newEditableTextField(void);
-
 // window.m
 @interface libuiNSWindow : NSWindow
 - (void)libui_doMove:(NSEvent *)initialEvent;

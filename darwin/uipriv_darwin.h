@@ -68,4 +68,11 @@ struct uiprivNextEventArgs {
 };
 extern int uiprivMainStep(uiprivNextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *));
 
+// util.m
+extern void uiprivDisableAutocorrect(NSTextView *);
+
+// entry.m
+extern void uiprivFinishNewTextField(NSTextField *, BOOL);
+extern NSTextField *uiprivNewEditableTextField(void);
+
 #import "OLD_uipriv_darwin.h"

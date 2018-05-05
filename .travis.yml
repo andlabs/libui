@@ -1,23 +1,81 @@
-os:
-  - linux
-  - osx
-
-# This makes us use Ubuntu 14 instead of 12
-dist: trusty
-
-# Notes:
-# - Travis uses cmake 3.0.2 on OS X; we need 3.1 or newer (thanks tbodt)
-
 language: c
+
+matrix:
+  include:
+    - env:
+      - BUILD_TYPE: shared-linux-amd64
+      os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages: &linux_x64_packages
+            - libgtk-3-dev
+
+    - env:
+      - BUILD_TYPE: static-linux-amd64
+      - CMAKE_FLAGS: -DBUILD_SHARED_LIBS=OFF
+      os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages: *linux_x64_packages
+
+    - env:
+      - BUILD_TYPE: shared-linux-386
+      - CFLAGS: -m32
+      - CXXFLAGS: -m32
+      - PKG_CONFIG_PATH: /usr/lib/i386-linux-gnu/pkgconfig
+      os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages: &linux_i386_packages
+            - gcc-multilib
+            - g++-multilib
+            - libgtk-3-dev:i386
+            # the rest fixes broken dependencies of libgtk:i386
+            - libgirepository-1.0-1:i386
+            - libglib2.0-dev:i386
+            - gir1.2-glib-2.0:i386
+            - gir1.2-atk-1.0:i386
+            - libatk1.0-dev:i386
+            - libfreetype6-dev:i386
+            - libfontconfig1-dev:i386
+            - libcairo2-dev:i386
+            - libgdk-pixbuf2.0-dev:i386
+            - libpango1.0-dev:i386
+            - libxft-dev:i386
+            - libpng12-dev:i386
+
+    - env:
+      - BUILD_TYPE: static-linux-386
+      - CMAKE_FLAGS: -DBUILD_SHARED_LIBS=OFF
+      - CFLAGS: -m32
+      - CXXFLAGS: -m32
+      - PKG_CONFIG_PATH: /usr/lib/i386-linux-gnu/pkgconfig
+      os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages: *linux_i386_packages
+
+    - env:
+      - BUILD_TYPE: shared-osx-amd64
+      os: osx
+      osx_image: xcode8
+
+    - env:
+      - BUILD_TYPE: static-osx-amd64
+      - CMAKE_FLAGS: -DBUILD_SHARED_LIBS=OFF
+      os: osx
+      osx_image: xcode8
+
+
 script:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install libgtk-3-dev -y || sudo apt-cache search libgtk3; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
-  - mkdir build
-  - cd build
   - cmake --version
-  - cmake .. -G "Unix Makefiles"
-  - make tester examples
-  - rm -rf *
-  - cmake .. -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF
-  - make tester examples
+  - mkdir build
+  - pushd build && cmake ${CMAKE_FLAGS} .. && make tester examples && popd
+
+after_success:
+  - ls -lR build/out
+  - file build/out/test

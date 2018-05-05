@@ -138,7 +138,7 @@ uiSlider *uiNewSlider(int min, int max)
 
 	if (sliderDelegate == nil) {
 		sliderDelegate = [[sliderDelegateClass new] autorelease];
-		[delegates addObject:sliderDelegate];
+		[uiprivDelegates addObject:sliderDelegate];
 	}
 	[sliderDelegate registerSlider:s];
 	uiSliderOnChanged(s, defaultOnChanged, NULL);

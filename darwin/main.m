@@ -119,7 +119,7 @@ const char *uiInit(uiInitOptions *o)
 		delegate = [uiprivAppDelegate new];
 		[uiprivNSApp() setDelegate:delegate];
 
-		initAlloc();
+		uiprivInitAlloc();
 		loadFutures();
 		loadUndocumented();
 
@@ -148,7 +148,7 @@ void uiUninit(void)
 		[delegate release];
 		[uiprivNSApp() setDelegate:nil];
 		[app release];
-		uninitAlloc();
+		uiprivUninitAlloc();
 	}
 }
 

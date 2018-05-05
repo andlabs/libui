@@ -82,4 +82,9 @@ extern NSTextField *uiprivNewEditableTextField(void);
 @end
 extern uiWindow *uiprivWindowFromNSWindow(NSWindow *);
 
+// alloc.m
+extern NSMutableArray *uiprivDelegates;
+extern void uiprivInitAlloc(void);
+extern void uiprivUninitAlloc(void);
+
 #import "OLD_uipriv_darwin.h"

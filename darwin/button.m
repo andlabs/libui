@@ -104,7 +104,7 @@ uiButton *uiNewButton(const char *text)
 
 	if (buttonDelegate == nil) {
 		buttonDelegate = [[buttonDelegateClass new] autorelease];
-		[delegates addObject:buttonDelegate];
+		[uiprivDelegates addObject:buttonDelegate];
 	}
 	[buttonDelegate registerButton:b];
 	uiButtonOnClicked(b, defaultOnClicked, NULL);

@@ -136,7 +136,7 @@ uiCombobox *uiNewCombobox(void)
 
 	if (comboboxDelegate == nil) {
 		comboboxDelegate = [[comboboxDelegateClass new] autorelease];
-		[delegates addObject:comboboxDelegate];
+		[uiprivDelegates addObject:comboboxDelegate];
 	}
 	[comboboxDelegate registerCombobox:c];
 	uiComboboxOnSelected(c, defaultOnSelected, NULL);

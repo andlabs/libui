@@ -120,7 +120,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	if (checkboxDelegate == nil) {
 		checkboxDelegate = [[checkboxDelegateClass new] autorelease];
-		[delegates addObject:checkboxDelegate];
+		[uiprivDelegates addObject:checkboxDelegate];
 	}
 	[checkboxDelegate registerCheckbox:c];
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);

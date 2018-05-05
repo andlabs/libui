@@ -387,7 +387,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	if (windowDelegate == nil) {
 		windowDelegate = [[windowDelegateClass new] autorelease];
-		[delegates addObject:windowDelegate];
+		[uiprivDelegates addObject:windowDelegate];
 	}
 	[windowDelegate registerWindow:w];
 	uiWindowOnClosing(w, defaultOnClosing, NULL);

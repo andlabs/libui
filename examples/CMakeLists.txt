@@ -42,9 +42,15 @@ _add_example(drawtext
 	${_EXAMPLE_RESOURCES_RC}
 )
 
+_add_example(timer
+        timer/main.c
+        ${_EXAMPLE_RESOURCES_RC}
+)
+
 add_custom_target(examples
 	DEPENDS
 		controlgallery
 		histogram
 		cpp-multithread
-		drawtext)
+		drawtext
+		timer)

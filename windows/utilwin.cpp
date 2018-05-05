@@ -18,6 +18,7 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 {
 	void (*qf)(void *);
 	LRESULT lResult;
+	uiprivTimer *timer;
 
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
@@ -35,6 +36,14 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	case msgQueued:
 		qf = (void (*)(void *)) wParam;
 		(*qf)((void *) lParam);
+		return 0;
+	case WM_TIMER:
+		timer = (uiprivTimer *) wParam;
+		if (!(*(timer->f))(timer->data)) {
+			if (KillTimer(utilWindow, (UINT_PTR) timer) == 0)
+				logLastError(L"error calling KillTimer() to end uiTimer() procedure");
+			uiprivFree(timer);
+		}
 		return 0;
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);

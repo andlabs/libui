@@ -62,6 +62,14 @@ _UI_EXTERN void uiQuit(void);
 
 _UI_EXTERN void uiQueueMain(void (*f)(void *data), void *data);
 
+// TODO standardize the looping behavior return type, either with some enum or something, and the test expressions throughout the code
+// TODO figure out what to do about looping and the exact point that the timer is rescheduled so we can document it; see https://github.com/andlabs/libui/pull/277
+// TODO (also in the above link) document that this cannot be called from any thread, unlike uiQueueMain()
+// TODO document that the minimum exact timing, either accuracy (timer burst, etc.) or granularity (15ms on Windows, etc.), is OS-defined
+// TODO also figure out how long until the initial tick is registered on all platforms to document
+// TODO also add a comment about how useful this could be in bindings, depending on the language being bound to
+_UI_EXTERN void uiTimer(int milliseconds, int (*f)(void *data), void *data);
+
 _UI_EXTERN void uiOnShouldQuit(int (*f)(void *data), void *data);
 
 _UI_EXTERN void uiFreeText(char *text);

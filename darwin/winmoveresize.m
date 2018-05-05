@@ -1,6 +1,8 @@
 // 1 november 2016
 #import "uipriv_darwin.h"
 
+// TODO option while resizing resizes both opposing sides at once (thanks swillits in irc.freenode.net/#macdev for showing this to me); figure out how far back that behavior goes when we do implement it
+
 // because we are changing the window frame each time the mouse moves, the successive -[NSEvent locationInWindow]s cannot be meaningfully used together
 // make sure they are all following some sort of standard to avoid this problem; the screen is the most obvious possibility since it requires only one conversion (the only one that a NSWindow provides)
 static NSPoint makeIndependent(NSPoint p, NSWindow *w)

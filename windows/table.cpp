@@ -1,7 +1,5 @@
 #include "uipriv_windows.hpp"
 
-#include <vector>
-
 static void uiTableDestroy(uiControl *c);
 static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height);
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nm, LRESULT *lResult);

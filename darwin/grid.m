@@ -72,7 +72,7 @@ struct uiGrid {
 	uiDarwinControlSyncEnableState(uiDarwinControl(self.c), uiControlEnabledToUser(uiControl(g)));
 
 	if (self.halign == uiAlignStart || self.halign == uiAlignFill) {
-		self.leadingc = mkConstraint(self, NSLayoutAttributeLeading,
+		self.leadingc = uiprivMkConstraint(self, NSLayoutAttributeLeading,
 			NSLayoutRelationEqual,
 			[self view], NSLayoutAttributeLeading,
 			1, 0,
@@ -80,7 +80,7 @@ struct uiGrid {
 		[self addConstraint:self.leadingc];
 	}
 	if (self.halign == uiAlignCenter) {
-		self.xcenterc = mkConstraint(self, NSLayoutAttributeCenterX,
+		self.xcenterc = uiprivMkConstraint(self, NSLayoutAttributeCenterX,
 			NSLayoutRelationEqual,
 			[self view], NSLayoutAttributeCenterX,
 			1, 0,
@@ -88,7 +88,7 @@ struct uiGrid {
 		[self addConstraint:self.xcenterc];
 	}
 	if (self.halign == uiAlignEnd || self.halign == uiAlignFill) {
-		self.trailingc = mkConstraint(self, NSLayoutAttributeTrailing,
+		self.trailingc = uiprivMkConstraint(self, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			[self view], NSLayoutAttributeTrailing,
 			1, 0,
@@ -97,7 +97,7 @@ struct uiGrid {
 	}
 
 	if (self.valign == uiAlignStart || self.valign == uiAlignFill) {
-		self.topc = mkConstraint(self, NSLayoutAttributeTop,
+		self.topc = uiprivMkConstraint(self, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			[self view], NSLayoutAttributeTop,
 			1, 0,
@@ -105,7 +105,7 @@ struct uiGrid {
 		[self addConstraint:self.topc];
 	}
 	if (self.valign == uiAlignCenter) {
-		self.ycenterc = mkConstraint(self, NSLayoutAttributeCenterY,
+		self.ycenterc = uiprivMkConstraint(self, NSLayoutAttributeCenterY,
 			NSLayoutRelationEqual,
 			[self view], NSLayoutAttributeCenterY,
 			1, 0,
@@ -113,7 +113,7 @@ struct uiGrid {
 		[self addConstraint:self.ycenterc];
 	}
 	if (self.valign == uiAlignEnd || self.valign == uiAlignFill) {
-		self.bottomc = mkConstraint(self, NSLayoutAttributeBottom,
+		self.bottomc = uiprivMkConstraint(self, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			[self view], NSLayoutAttributeBottom,
 			1, 0,
@@ -403,14 +403,14 @@ struct uiGrid {
 	// now establish all the edge constraints
 	// leading and trailing edges
 	for (y = 0; y < ycount; y++) {
-		c = mkConstraint(self, NSLayoutAttributeLeading,
+		c = uiprivMkConstraint(self, NSLayoutAttributeLeading,
 			NSLayoutRelationEqual,
 			gv[y][0], NSLayoutAttributeLeading,
 			1, 0,
 			@"uiGrid leading edge constraint");
 		[self addConstraint:c];
 		[self->edges addObject:c];
-		c = mkConstraint(self, NSLayoutAttributeTrailing,
+		c = uiprivMkConstraint(self, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			gv[y][xcount - 1], NSLayoutAttributeTrailing,
 			1, 0,
@@ -420,14 +420,14 @@ struct uiGrid {
 	}
 	// top and bottom edges
 	for (x = 0; x < xcount; x++) {
-		c = mkConstraint(self, NSLayoutAttributeTop,
+		c = uiprivMkConstraint(self, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			gv[0][x], NSLayoutAttributeTop,
 			1, 0,
 			@"uiGrid top edge constraint");
 		[self addConstraint:c];
 		[self->edges addObject:c];
-		c = mkConstraint(self, NSLayoutAttributeBottom,
+		c = uiprivMkConstraint(self, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			gv[ycount - 1][x], NSLayoutAttributeBottom,
 			1, 0,
@@ -446,7 +446,7 @@ struct uiGrid {
 		for (y++; y < ycount; y++) {
 			if (gspan[y][x])
 				continue;
-			c = mkConstraint(gv[firsty][x], NSLayoutAttributeLeading,
+			c = uiprivMkConstraint(gv[firsty][x], NSLayoutAttributeLeading,
 				NSLayoutRelationEqual,
 				gv[y][x], NSLayoutAttributeLeading,
 				1, 0,
@@ -463,7 +463,7 @@ struct uiGrid {
 		for (x++; x < xcount; x++) {
 			if (gspan[y][x])
 				continue;
-			c = mkConstraint(gv[y][firstx], NSLayoutAttributeTop,
+			c = uiprivMkConstraint(gv[y][firstx], NSLayoutAttributeTop,
 				NSLayoutRelationEqual,
 				gv[y][x], NSLayoutAttributeTop,
 				1, 0,
@@ -477,7 +477,7 @@ struct uiGrid {
 	for (y = 0; y < ycount; y++)
 		for (x = 1; x < xcount; x++)
 			if (gv[y][x - 1] != gv[y][x]) {
-				c = mkConstraint(gv[y][x - 1], NSLayoutAttributeTrailing,
+				c = uiprivMkConstraint(gv[y][x - 1], NSLayoutAttributeTrailing,
 					NSLayoutRelationEqual,
 					gv[y][x], NSLayoutAttributeLeading,
 					1, -padding,
@@ -488,7 +488,7 @@ struct uiGrid {
 	for (x = 0; x < xcount; x++)
 		for (y = 1; y < ycount; y++)
 			if (gv[y - 1][x] != gv[y][x]) {
-				c = mkConstraint(gv[y - 1][x], NSLayoutAttributeBottom,
+				c = uiprivMkConstraint(gv[y - 1][x], NSLayoutAttributeBottom,
 					NSLayoutRelationEqual,
 					gv[y][x], NSLayoutAttributeTop,
 					1, -padding,

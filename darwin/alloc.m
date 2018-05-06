@@ -3,12 +3,12 @@
 #import "uipriv_darwin.h"
 
 static NSMutableArray *allocations;
-NSMutableArray *delegates;
+NSMutableArray *uiprivDelegates;
 
-void initAlloc(void)
+void uiprivInitAlloc(void)
 {
 	allocations = [NSMutableArray new];
-	delegates = [NSMutableArray new];
+	uiprivDelegates = [NSMutableArray new];
 }
 
 #define UINT8(p) ((uint8_t *) (p))
@@ -20,12 +20,12 @@ void initAlloc(void)
 #define CCHAR(p) ((const char **) (p))
 #define TYPE(p) CCHAR(UINT8(p) + sizeof (size_t))
 
-void uninitAlloc(void)
+void uiprivUninitAlloc(void)
 {
 	NSMutableString *str;
 	NSValue *v;
 
-	[delegates release];
+	[uiprivDelegates release];
 	if ([allocations count] == 0) {
 		[allocations release];
 		return;

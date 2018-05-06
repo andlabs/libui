@@ -46,7 +46,7 @@ static CGFloat stepperYDelta(void)
 {
 	self = [super initWithFrame:r];
 	if (self) {
-		self->tf = newEditableTextField();
+		self->tf = uiprivNewEditableTextField();
 		[self->tf setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		self->formatter = [NSNumberFormatter new];
@@ -70,37 +70,37 @@ static CGFloat stepperYDelta(void)
 		[self addSubview:self->tf];
 		[self addSubview:self->stepper];
 
-		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeLeading,
+		[self addConstraint:uiprivMkConstraint(self->tf, NSLayoutAttributeLeading,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeLeading,
 			1, 0,
 			@"uiSpinbox left edge")];
-		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTrailing,
+		[self addConstraint:uiprivMkConstraint(self->stepper, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTrailing,
 			1, 0,
 			@"uiSpinbox right edge")];
-		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeTop,
+		[self addConstraint:uiprivMkConstraint(self->tf, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTop,
 			1, 0,
 			@"uiSpinbox top edge text field")];
-		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeBottom,
+		[self addConstraint:uiprivMkConstraint(self->tf, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeBottom,
 			1, 0,
 			@"uiSpinbox bottom edge text field")];
-		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTop,
+		[self addConstraint:uiprivMkConstraint(self->stepper, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTop,
 			1, stepperYDelta(),
 			@"uiSpinbox top edge stepper")];
-		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeBottom,
+		[self addConstraint:uiprivMkConstraint(self->stepper, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeBottom,
 			1, stepperYDelta(),
 			@"uiSpinbox bottom edge stepper")];
-		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeTrailing,
+		[self addConstraint:uiprivMkConstraint(self->tf, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			self->stepper, NSLayoutAttributeLeading,
 			1, -3,		// arbitrary amount; good enough visually (and it seems to match NSDatePicker too, at least on 10.11, which is even better)

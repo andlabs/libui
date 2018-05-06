@@ -12,7 +12,7 @@ NSLayoutConstraint *uiprivMkConstraint(id view1, NSLayoutAttribute attr1, NSLayo
 		attribute:attr2
 		multiplier:multiplier
 		constant:c];
-	FUTURE_NSLayoutConstraint_setIdentifier(constraint, desc);
+	uiprivFUTURE_NSLayoutConstraint_setIdentifier(constraint, desc);
 	return constraint;
 }
 

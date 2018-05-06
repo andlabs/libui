@@ -37,7 +37,7 @@ uiLabel *uiNewLabel(const char *text)
 
 	uiDarwinNewControl(uiLabel, l);
 
-	l->textfield = newLabel(uiprivToNSString(text));
+	l->textfield = uiprivNewLabel(uiprivToNSString(text));
 
 	return l;
 }

@@ -74,7 +74,7 @@ static uiForEach otfArrayForEachOT(const uiOpenTypeFeatures *otf, char a, char b
 
 	p.array = (CFMutableArrayRef) data;
 
-	p.tagKey = *FUTURE_kCTFontOpenTypeFeatureTag;
+	p.tagKey = *uiprivFUTURE_kCTFontOpenTypeFeatureTag;
 	p.tagIsNumber = NO;
 	tagcstr[0] = a;
 	tagcstr[1] = b;
@@ -87,7 +87,7 @@ static uiForEach otfArrayForEachOT(const uiOpenTypeFeatures *otf, char a, char b
 	}
 	p.tagValue = tagstr;
 
-	p.valueKey = *FUTURE_kCTFontOpenTypeFeatureValue;
+	p.valueKey = *uiprivFUTURE_kCTFontOpenTypeFeatureValue;
 	p.valueType = kCFNumberSInt32Type;
 	p.valueValue = (const SInt32 *) (&value);
 	addCTFeatureEntry(&p);
@@ -106,7 +106,7 @@ CFArrayRef uiprivOpenTypeFeaturesToCTFeatures(const uiOpenTypeFeatures *otf)
 		// TODO
 	}
 	f = otfArrayForEachAAT;
-	if (FUTURE_kCTFontOpenTypeFeatureTag != NULL && FUTURE_kCTFontOpenTypeFeatureValue != NULL)
+	if (uiprivFUTURE_kCTFontOpenTypeFeatureTag != NULL && uiprivFUTURE_kCTFontOpenTypeFeatureValue != NULL)
 		f = otfArrayForEachOT;
 	uiOpenTypeFeaturesForEach(otf, f, array);
 	return array;

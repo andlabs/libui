@@ -52,7 +52,7 @@ void uiprivDoManualMove(NSWindow *w, NSEvent *initialEvent)
 
 	// 10.11 gives us a method to handle this for us
 	// use it if available; this lets us use the real OS dragging code, which means we can take advantage of OS features like Spaces
-	if (FUTURE_NSWindow_performWindowDragWithEvent(w, initialEvent))
+	if (uiprivFUTURE_NSWindow_performWindowDragWithEvent(w, initialEvent))
 		return;
 
 	mdp.w = w;

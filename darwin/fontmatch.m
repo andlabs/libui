@@ -246,7 +246,7 @@
 FONTNAME(preferredSubFamilyName,
 	self->didPreferredSubFamilyName,
 	self->preferredSubFamilyName,
-	UNDOC_kCTFontPreferredSubFamilyNameKey)
+	uiprivUNDOC_kCTFontPreferredSubFamilyNameKey)
 FONTNAME(subFamilyName,
 	self->didSubFamilyName,
 	self->subFamilyName,
@@ -258,7 +258,7 @@ FONTNAME(fullName,
 FONTNAME(preferredFamilyName,
 	self->didPreferredFamilyName,
 	self->preferredFamilyName,
-	UNDOC_kCTFontPreferredFamilyNameKey)
+	uiprivUNDOC_kCTFontPreferredFamilyNameKey)
 FONTNAME(familyName,
 	self->didFamilyName,
 	self->familyName,

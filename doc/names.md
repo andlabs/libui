@@ -2,44 +2,38 @@ TODO find out specifics of -fvisibility=hidden in static libs, which is the poin
 
 In general, all names that begin with "ui" and are followed by a capital letter and all names htat begin with "uipriv" and are followed by a capita lletter are reserved by libui. This applies even in C++, where name mangling may affect the actual names in the object file.
 
-Within libui itself, the following rules apply:
+# Reserved names; for users
 
-C
+All reserved names in libui are defined by a prefix followed by any uppercase letter in ASCII. The bullet lists before list those prefixes.
 
-C++
+Global-scope identifiers of any form (variables, constant names, functions, structure names, union names, C++ class names, enum type names, enum value names, C++ namespace names, GObject class and interface struct names, and Objective-C class and protocol name identifiers) and macro names:
 
-# Objective-C
+- `ui`
+- `uipriv`
 
-Objective-C rules amend the C rules with the following.
+GObject and Objective-C class, interface, and protocol name strings, in the form they take in their respective runtime memory (e.g. when passed to `g_type_from_name()` and `NSClassFromString()`, respectively):
 
-libui should not expose any Objective-C classes or protocols of its own in the public API. This may be changed in the future; in the meantime, this section implies the `uipriv` prefix.
+- `uipriv`
 
-All class and protocol names must be prefixed, since there is only one namespace for these. This includes file-scope classes.
-
-The following set of name prefixes are also reserved in addition to the regular `uipriv` prefix, each for different reasons; the reasons (and by extension, the correct usage) are described below.
+Objective-C method names:
 
 - `initWithUipriv`
-- `initWithFrame:uipriv`
-- `isUipriv`
-- `setUipriv`
-- `_uipriv`
+- `initWithFrame:uipriv` (TODO probably worth removing)
+- `uipriv`
+- `isUipriv` (for compatibility with KVO and `@property` statements)
+- `setUipriv` (for compatibility with KVO and `@property` statements)
 
-Each of these prefixes is also followed by an uppercase letter.
+Objective-C ivar names:
 
-If an `init` method requires a custom method name (that is, it can't just use one of the superclass's), it should prefix its first name part with `initWithUipriv` instead of just `initWIth`. For instance, instead of
+- `uipriv`
+- `_uipriv` (for compatibility with KVO and `@property` statements)
 
-In the case of NSView subclasses, libui usually passes NSZeroRect as the initial frame, so if you need a custom init function, you could get away with embedding that directly in the `[super initWithFrame:]` call. (TODO should this rule be removed instead?) However, the `initWithFrame:uipriv` prefix is reserved it his is not sutable. (TODO maybe this isn't a good idea either...)
+Objective-C property names:
 
-Examples:
+- `uipriv`
 
-```objective-c
-// instead of...
-- (id)initWithThing:(Thing *)thing measure:(int)value;
-- (id)initWithFrame:(NSRect)r thing:(Thing *)thing;
+TODO GObject macros (in libui's source code), properties, and signals
 
-// ...use
-- (id)initWithUiprivThing:(Thing *)thing measure:(int)value;
-- (id)initWithFrame:(NSRect)r uiprivThing:(Thing *)thing;
-```
+# Developer notes
 
-GObject
+TODO

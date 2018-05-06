@@ -31,6 +31,7 @@ struct uiprivDateTimePickerWidget {
 	GtkWidget *seconds;
 	GtkWidget *ampm;
 
+	gulong calendarBlock;
 	gulong hoursBlock;
 	gulong minutesBlock;
 	gulong secondsBlock;
@@ -428,17 +429,15 @@ static void uiprivDateTimePickerWidget_setTime(uiprivDateTimePickerWidget *d, GD
 {
 	gint year, month, day;
 	gint hour;
-	gulong calendarBlock;
 
 	// notice how we block signals from firing
 	if (d->hasDate) {
-		calendarBlock = g_signal_connect(d->calendar, "day-selected", G_CALLBACK(dateChanged), d);
 		g_date_time_get_ymd(dt, &year, &month, &day);
 		month--;			// GDateTime/GtkCalendar differences
-		g_signal_handler_block(d->calendar, calendarBlock);
+		g_signal_handler_block(d->calendar, d->calendarBlock);
 		gtk_calendar_select_month(GTK_CALENDAR(d->calendar), month, year);
 		gtk_calendar_select_day(GTK_CALENDAR(d->calendar), day);
-		g_signal_handler_unblock(d->calendar, calendarBlock);
+		g_signal_handler_unblock(d->calendar, d->calendarBlock);
 	}
 	if (d->hasTime) {
 		hour = g_date_time_get_hour(dt);
@@ -472,6 +471,7 @@ static void uiprivDateTimePickerWidget_init(uiprivDateTimePickerWidget *d)
 	gtk_container_add(GTK_CONTAINER(d->window), d->box);
 
 	d->calendar = gtk_calendar_new();
+	d->calendarBlock = g_signal_connect(d->calendar, "day-selected", G_CALLBACK(dateChanged), d);
 	gtk_container_add(GTK_CONTAINER(d->box), d->calendar);
 
 	d->timebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);

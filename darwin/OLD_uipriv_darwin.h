@@ -1,11 +1,3 @@
-
-// area.m
-extern int sendAreaEvents(NSEvent *);
-
-// areaevents.m
-extern BOOL fromKeycode(unsigned short keycode, uiAreaKeyEvent *ke);
-extern BOOL keycodeModifier(unsigned short keycode, uiModifiers *mod);
-
 // draw.m
 extern uiDrawContext *newContext(CGContextRef, CGFloat);
 extern void freeContext(uiDrawContext *);

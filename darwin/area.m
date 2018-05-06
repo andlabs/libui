@@ -264,7 +264,7 @@ mouseEvent(otherMouseUp)
 
 	ke.Up = up;
 
-	if (!fromKeycode([e keyCode], &ke))
+	if (!uiprivFromKeycode([e keyCode], &ke))
 		return 0;
 	return [self sendKeyEvent:&ke];
 }
@@ -289,7 +289,7 @@ mouseEvent(otherMouseUp)
 
 	// Mac OS X sends this event on both key up and key down.
 	// Fortunately -[e keyCode] IS valid here, so we can simply map from key code to Modifiers, get the value of [e modifierFlags], and check if the respective bit is set or not — that will give us the up/down state
-	if (!keycodeModifier([e keyCode], &whichmod))
+	if (!uiprivKeycodeModifier([e keyCode], &whichmod))
 		return 0;
 	ke.Modifier = whichmod;
 	ke.Modifiers = [self parseModifiers:e];
@@ -361,7 +361,7 @@ static void uiAreaDestroy(uiControl *c)
 // by default, NSApplication eats some key events
 // this prevents that from happening with uiArea
 // see http://stackoverflow.com/questions/24099063/how-do-i-detect-keyup-in-my-nsview-with-the-command-key-held and http://lists.apple.com/archives/cocoa-dev/2003/Oct/msg00442.html
-int sendAreaEvents(NSEvent *e)
+int uiprivSendAreaEvents(NSEvent *e)
 {
 	NSEventType type;
 	id focused;

@@ -14,7 +14,7 @@ static BOOL stepsIsRunning;
 
 - (void)sendEvent:(NSEvent *)e
 {
-	if (sendAreaEvents(e) != 0)
+	if (uiprivSendAreaEvents(e) != 0)
 		return;
 	[super sendEvent:e];
 }

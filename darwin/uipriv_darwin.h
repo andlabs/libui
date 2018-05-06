@@ -103,4 +103,11 @@ extern void uiprivSingleChildConstraintsEstablish(uiprivSingleChildConstraints *
 extern void uiprivSingleChildConstraintsRemove(uiprivSingleChildConstraints *c, NSView *cv);
 extern void uiprivSingleChildConstraintsSetMargined(uiprivSingleChildConstraints *c, int margined);
 
+// area.m
+extern int uiprivSendAreaEvents(NSEvent *);
+
+// areaevents.m
+extern BOOL uiprivFromKeycode(unsigned short keycode, uiAreaKeyEvent *ke);
+extern BOOL uiprivKeycodeModifier(unsigned short keycode, uiModifiers *mod);
+
 #import "OLD_uipriv_darwin.h"

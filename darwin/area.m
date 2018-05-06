@@ -29,7 +29,7 @@ struct uiArea {
 	NSView *view;			// either sv or area depending on whether it is scrolling
 	NSScrollView *sv;
 	areaView *area;
-	struct scrollViewData *d;
+	uiprivScrollViewData *d;
 	uiAreaHandler *ah;
 	BOOL scrolling;
 	NSEvent *dragevent;
@@ -350,7 +350,7 @@ static void uiAreaDestroy(uiControl *c)
 	uiArea *a = uiArea(c);
 
 	if (a->scrolling)
-		scrollViewFreeData(a->sv, a->d);
+		uiprivScrollViewFreeData(a->sv, a->d);
 	[a->area release];
 	if (a->scrolling)
 		[a->sv release];
@@ -450,7 +450,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 {
 	uiArea *a;
-	struct scrollViewCreateParams p;
+	uiprivScrollViewCreateParams p;
 
 	uiDarwinNewControl(uiArea, a);
 
@@ -460,14 +460,14 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	a->area = [[areaView alloc] initWithFrame:NSMakeRect(0, 0, width, height)
 		area:a];
 
-	memset(&p, 0, sizeof (struct scrollViewCreateParams));
+	memset(&p, 0, sizeof (uiprivScrollViewCreateParams));
 	p.DocumentView = a->area;
 	p.BackgroundColor = [NSColor controlColor];
 	p.DrawsBackground = 1;
 	p.Bordered = NO;
 	p.HScroll = YES;
 	p.VScroll = YES;
-	a->sv = mkScrollView(&p, &(a->d));
+	a->sv = uiprivMkScrollView(&p, &(a->d));
 
 	a->view = a->sv;
 

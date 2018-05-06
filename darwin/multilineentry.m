@@ -14,7 +14,7 @@ struct uiMultilineEntry {
 	uiDarwinControl c;
 	NSScrollView *sv;
 	intrinsicSizeTextView *tv;
-	struct scrollViewData *d;
+	uiprivScrollViewData *d;
 	void (*onChanged)(uiMultilineEntry *, void *);
 	void *onChangedData;
 	BOOL changing;
@@ -59,7 +59,7 @@ static void uiMultilineEntryDestroy(uiControl *c)
 {
 	uiMultilineEntry *e = uiMultilineEntry(c);
 
-	scrollViewFreeData(e->sv, e->d);
+	uiprivScrollViewFreeData(e->sv, e->d);
 	[e->tv release];
 	[e->sv release];
 	uiFreeControl(uiControl(e));
@@ -120,7 +120,7 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 {
 	uiMultilineEntry *e;
 	NSFont *font;
-	struct scrollViewCreateParams p;
+	uiprivScrollViewCreateParams p;
 
 	uiDarwinNewControl(uiMultilineEntry, e);
 
@@ -207,7 +207,7 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	// let's just set it to the standard control font anyway, just to be safe
 	[e->tv setFont:font];
 
-	memset(&p, 0, sizeof (struct scrollViewCreateParams));
+	memset(&p, 0, sizeof (uiprivScrollViewCreateParams));
 	p.DocumentView = e->tv;
 	// this is what Interface Builder sets it to
 	p.BackgroundColor = [NSColor colorWithCalibratedWhite:1.0 alpha:1.0];
@@ -215,7 +215,7 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	p.Bordered = YES;
 	p.HScroll = hscroll;
 	p.VScroll = YES;
-	e->sv = mkScrollView(&p, &(e->d));
+	e->sv = uiprivMkScrollView(&p, &(e->d));
 
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
 

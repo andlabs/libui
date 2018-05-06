@@ -122,4 +122,20 @@ extern void uiprivSetupFontPanel(void);
 // colorbutton.m
 extern BOOL uiprivColorButtonInhibitSendAction(SEL sel, id from, id to);
 
+// scrollview.m
+typedef struct uiprivScrollViewCreateParams uiprivScrollViewCreateParams;
+struct uiprivScrollViewCreateParams {
+	// TODO MAYBE fix these identifiers
+	NSView *DocumentView;
+	NSColor *BackgroundColor;
+	BOOL DrawsBackground;
+	BOOL Bordered;
+	BOOL HScroll;
+	BOOL VScroll;
+};
+typedef struct uiprivScrollViewData uiprivScrollViewData;
+extern NSScrollView *uiprivMkScrollView(uiprivScrollViewCreateParams *p, uiprivScrollViewData **dout);
+extern void uiprivScrollViewSetScrolling(NSScrollView *sv, uiprivScrollViewData *d, BOOL hscroll, BOOL vscroll);
+extern void uiprivScrollViewFreeData(NSScrollView *sv, uiprivScrollViewData *d);
+
 #import "OLD_uipriv_darwin.h"

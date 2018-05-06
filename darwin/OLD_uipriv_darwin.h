@@ -1,16 +1,3 @@
-// scrollview.m
-struct scrollViewCreateParams {
-	NSView *DocumentView;
-	NSColor *BackgroundColor;
-	BOOL DrawsBackground;
-	BOOL Bordered;
-	BOOL HScroll;
-	BOOL VScroll;
-};
-struct scrollViewData;
-extern NSScrollView *mkScrollView(struct scrollViewCreateParams *p, struct scrollViewData **dout);
-extern void scrollViewSetScrolling(NSScrollView *sv, struct scrollViewData *d, BOOL hscroll, BOOL vscroll);
-extern void scrollViewFreeData(NSScrollView *sv, struct scrollViewData *d);
 
 // label.m
 extern NSTextField *newLabel(NSString *str);

@@ -8,7 +8,7 @@ struct uiDateTimePicker {
 	void *onChangedData;
 };
 
-@interface datePickerDelegateClass : NSObject <NSDatePickerCellDelegate> {
+@interface uiprivDatePickerDelegateClass : NSObject <NSDatePickerCellDelegate> {
 	struct mapTable *pickers;
 }
 - (void)datePickerCell:(NSDatePickerCell *)aDatePickerCell validateProposedDateValue:(NSDate **)proposedDateValue timeInterval:(NSTimeInterval *)proposedTimeInterval;
@@ -17,7 +17,7 @@ struct uiDateTimePicker {
 - (void)unregisterPicker:(uiDateTimePicker *)b;
 @end
 
-@implementation datePickerDelegateClass
+@implementation uiprivDatePickerDelegateClass
 
 - (id)init
 {
@@ -69,7 +69,7 @@ struct uiDateTimePicker {
 
 @end
 
-static datePickerDelegateClass *datePickerDelegate = nil;
+static uiprivDatePickerDelegateClass *datePickerDelegate = nil;
 
 uiDarwinControlAllDefaults(uiDateTimePicker, dp)
 
@@ -125,7 +125,7 @@ static uiDateTimePicker *finishNewDateTimePicker(NSDatePickerElementFlags elemen
 	uiDarwinSetControlFont(d->dp, NSRegularControlSize);
 
 	if (datePickerDelegate == nil) {
-		datePickerDelegate = [[datePickerDelegateClass new] autorelease];
+		datePickerDelegate = [[uiprivDatePickerDelegateClass new] autorelease];
 		[delegates addObject:datePickerDelegate];
 	}
 	[datePickerDelegate registerPicker:d];

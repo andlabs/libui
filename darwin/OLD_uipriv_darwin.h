@@ -1,15 +1,3 @@
-// draw.m
-extern uiDrawContext *newContext(CGContextRef, CGFloat);
-extern void freeContext(uiDrawContext *);
-
-// fontbutton.m
-extern BOOL uiprivFontButtonInhibitSendAction(SEL sel, id from, id to);
-extern BOOL uiprivFontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
-extern void uiprivSetupFontPanel(void);
-
-// colorbutton.m
-extern BOOL colorButtonInhibitSendAction(SEL sel, id from, id to);
-
 // scrollview.m
 struct scrollViewCreateParams {
 	NSView *DocumentView;

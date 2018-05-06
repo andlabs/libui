@@ -110,4 +110,16 @@ extern int uiprivSendAreaEvents(NSEvent *);
 extern BOOL uiprivFromKeycode(unsigned short keycode, uiAreaKeyEvent *ke);
 extern BOOL uiprivKeycodeModifier(unsigned short keycode, uiModifiers *mod);
 
+// draw.m
+extern uiDrawContext *uiprivDrawNewContext(CGContextRef, CGFloat);
+extern void uiprivDrawFreeContext(uiDrawContext *);
+
+// fontbutton.m
+extern BOOL uiprivFontButtonInhibitSendAction(SEL sel, id from, id to);
+extern BOOL uiprivFontButtonOverrideTargetForAction(SEL sel, id from, id to, id *override);
+extern void uiprivSetupFontPanel(void);
+
+// colorbutton.m
+extern BOOL uiprivColorButtonInhibitSendAction(SEL sel, id from, id to);
+
 #import "OLD_uipriv_darwin.h"

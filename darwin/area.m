@@ -57,7 +57,7 @@ struct uiArea {
 
 	c = (CGContextRef) [[NSGraphicsContext currentContext] graphicsPort];
 	// see draw.m under text for why we need the height
-	dp.Context = newContext(c, [self bounds].size.height);
+	dp.Context = uiprivDrawNewContext(c, [self bounds].size.height);
 
 	dp.AreaWidth = 0;
 	dp.AreaHeight = 0;
@@ -74,7 +74,7 @@ struct uiArea {
 	// no need to save or restore the graphics state to reset transformations; Cocoa creates a brand-new context each time
 	(*(a->ah->Draw))(a->ah, a, &dp);
 
-	freeContext(dp.Context);
+	uiprivDrawFreeContext(dp.Context);
 }
 
 - (BOOL)isFlipped

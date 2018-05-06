@@ -25,7 +25,7 @@ static BOOL stepsIsRunning;
 // it turns out NSFontManager also sends changeFont: through this; let's inhibit that here too (see fontbutton.m)
 - (BOOL)sendAction:(SEL)sel to:(id)to from:(id)from
 {
-	if (colorButtonInhibitSendAction(sel, from, to))
+	if (uiprivColorButtonInhibitSendAction(sel, from, to))
 		return NO;
 	if (uiprivFontButtonInhibitSendAction(sel, from, to))
 		return NO;

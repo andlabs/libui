@@ -18,7 +18,7 @@ void uiLabelSetText(uiLabel *l, const char *text)
 	[l->textfield setStringValue:uiprivToNSString(text)];
 }
 
-NSTextField *newLabel(NSString *str)
+NSTextField *uiprivNewLabel(NSString *str)
 {
 	NSTextField *tf;
 

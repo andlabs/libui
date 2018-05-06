@@ -43,7 +43,7 @@ void onMoveDrag(struct onMoveDragParams *p, NSEvent *e)
 	[p->w setFrameOrigin:frame.origin];
 }
 
-void doManualMove(NSWindow *w, NSEvent *initialEvent)
+void uiprivDoManualMove(NSWindow *w, NSEvent *initialEvent)
 {
 	__block struct onMoveDragParams mdp;
 	uiprivNextEventArgs nea;
@@ -220,7 +220,7 @@ static void onResizeDrag(struct onResizeDragParams *p, NSEvent *e)
 }
 
 // TODO do our events get fired with this? *should* they?
-void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
+void uiprivDoManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
 {
 	__block struct onResizeDragParams rdp;
 	uiprivNextEventArgs nea;

@@ -8,6 +8,9 @@
 #import "../ui_darwin.h"
 #import "../common/uipriv.h"
 
+// TODO should we rename the uiprivMk things or not
+// TODO what about renaming class wrapper functions that return the underlying class (like uiprivNewLabel())
+
 #if __has_feature(objc_arc)
 #error Sorry, libui cannot be compiled with ARC.
 #endif
@@ -137,5 +140,15 @@ typedef struct uiprivScrollViewData uiprivScrollViewData;
 extern NSScrollView *uiprivMkScrollView(uiprivScrollViewCreateParams *p, uiprivScrollViewData **dout);
 extern void uiprivScrollViewSetScrolling(NSScrollView *sv, uiprivScrollViewData *d, BOOL hscroll, BOOL vscroll);
 extern void uiprivScrollViewFreeData(NSScrollView *sv, uiprivScrollViewData *d);
+
+// label.m
+extern NSTextField *uiprivNewLabel(NSString *str);
+
+// image.m
+extern NSImage *uiprivImageNSImage(uiImage *);
+
+// winmoveresize.m
+extern void uiprivDoManualMove(NSWindow *w, NSEvent *initialEvent);
+extern void uiprivDoManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge);
 
 #import "OLD_uipriv_darwin.h"

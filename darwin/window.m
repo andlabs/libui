@@ -22,12 +22,12 @@ struct uiWindow {
 
 - (void)uiprivDoMove:(NSEvent *)initialEvent
 {
-	doManualMove(self, initialEvent);
+	uiprivDoManualMove(self, initialEvent);
 }
 
 - (void)uiprivDoResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge
 {
-	doManualResize(self, initialEvent, edge);
+	uiprivDoManualResize(self, initialEvent, edge);
 }
 
 @end

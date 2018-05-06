@@ -347,7 +347,7 @@ struct uiForm {
 	NSLayoutAttribute attribute;
 	int oldnStretchy;
 
-	fc = [[formChild alloc] initWithLabel:newLabel(label)];
+	fc = [[formChild alloc] initWithLabel:uiprivNewLabel(label)];
 	fc.c = c;
 	fc.stretchy = stretchy;
 	fc.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(fc.c), NSLayoutConstraintOrientationHorizontal);

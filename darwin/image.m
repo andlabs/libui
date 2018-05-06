@@ -76,7 +76,7 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 	[i->swizzled addObject:[NSValue valueWithPointer:swizzled]];
 }
 
-NSImage *imageImage(uiImage *i)
+NSImage *uiprivImageNSImage(uiImage *i)
 {
 	return i->i;
 }

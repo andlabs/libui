@@ -90,14 +90,14 @@ static void minMaxAutoLayoutSizes(NSWindow *w, NSSize *min, NSSize *max)
 
 	// minimum: encourage the window to be as small as possible
 	contentView = [w contentView];
-	cw = mkConstraint(contentView, NSLayoutAttributeWidth,
+	cw = uiprivMkConstraint(contentView, NSLayoutAttributeWidth,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
 		0, 0,
 		@"window minimum width finding constraint");
 	[cw setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:cw];
-	ch = mkConstraint(contentView, NSLayoutAttributeHeight,
+	ch = uiprivMkConstraint(contentView, NSLayoutAttributeHeight,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
 		0, 0,
@@ -110,14 +110,14 @@ static void minMaxAutoLayoutSizes(NSWindow *w, NSSize *min, NSSize *max)
 
 	// maximum: encourage the window to be as large as possible
 	contentView = [w contentView];
-	cw = mkConstraint(contentView, NSLayoutAttributeWidth,
+	cw = uiprivMkConstraint(contentView, NSLayoutAttributeWidth,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
 		0, CGFLOAT_MAX,
 		@"window maximum width finding constraint");
 	[cw setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:cw];
-	ch = mkConstraint(contentView, NSLayoutAttributeHeight,
+	ch = uiprivMkConstraint(contentView, NSLayoutAttributeHeight,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
 		0, CGFLOAT_MAX,

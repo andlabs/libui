@@ -8,7 +8,7 @@ struct uiGroup {
 	NSLayoutPriority oldHorzHuggingPri;
 	NSLayoutPriority oldVertHuggingPri;
 	int margined;
-	struct singleChildConstraints constraints;
+	uiprivSingleChildConstraints constraints;
 	NSLayoutPriority horzHuggingPri;
 	NSLayoutPriority vertHuggingPri;
 };
@@ -16,7 +16,7 @@ struct uiGroup {
 static void removeConstraints(uiGroup *g)
 {
 	// set to contentView instead of to the box itself, otherwise we get clipping underneath the label
-	singleChildConstraintsRemove(&(g->constraints), [g->box contentView]);
+	uiprivSingleChildConstraintsRemove(&(g->constraints), [g->box contentView]);
 }
 
 static void uiGroupDestroy(uiControl *c)
@@ -64,14 +64,14 @@ static void groupRelayout(uiGroup *g)
 	if (g->child == NULL)
 		return;
 	childView = (NSView *) uiControlHandle(g->child);
-	singleChildConstraintsEstablish(&(g->constraints),
+	uiprivSingleChildConstraintsEstablish(&(g->constraints),
 		[g->box contentView], childView,
 		uiDarwinControlHugsTrailingEdge(uiDarwinControl(g->child)),
 		uiDarwinControlHugsBottom(uiDarwinControl(g->child)),
 		g->margined,
 		@"uiGroup");
 	// needed for some very rare drawing errors...
-	jiggleViewLayout(g->box);
+	uiprivJiggleViewLayout(g->box);
 }
 
 // TODO rename these since I'm starting to get confused by what they mean by hugging
@@ -168,7 +168,7 @@ int uiGroupMargined(uiGroup *g)
 void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
-	singleChildConstraintsSetMargined(&(g->constraints), g->margined);
+	uiprivSingleChildConstraintsSetMargined(&(g->constraints), g->margined);
 }
 
 uiGroup *uiNewGroup(const char *title)

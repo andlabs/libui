@@ -10,7 +10,7 @@ struct uiWindow {
 	int margined;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
-	struct singleChildConstraints constraints;
+	uiprivSingleChildConstraints constraints;
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
 	BOOL suppressSizeChanged;
@@ -128,7 +128,7 @@ static void removeConstraints(uiWindow *w)
 	NSView *cv;
 
 	cv = [w->window contentView];
-	singleChildConstraintsRemove(&(w->constraints), cv);
+	uiprivSingleChildConstraintsRemove(&(w->constraints), cv);
 }
 
 static void uiWindowDestroy(uiControl *c)
@@ -215,7 +215,7 @@ static void windowRelayout(uiWindow *w)
 		return;
 	childView = (NSView *) uiControlHandle(w->child);
 	contentView = [w->window contentView];
-	singleChildConstraintsEstablish(&(w->constraints),
+	uiprivSingleChildConstraintsEstablish(&(w->constraints),
 		contentView, childView,
 		uiDarwinControlHugsTrailingEdge(uiDarwinControl(w->child)),
 		uiDarwinControlHugsBottom(uiDarwinControl(w->child)),
@@ -354,7 +354,7 @@ int uiWindowMargined(uiWindow *w)
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	singleChildConstraintsSetMargined(&(w->constraints), w->margined);
+	uiprivSingleChildConstraintsSetMargined(&(w->constraints), w->margined);
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)

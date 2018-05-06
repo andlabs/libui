@@ -1,19 +1,4 @@
 
-// autolayout.m
-extern NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc);
-extern void jiggleViewLayout(NSView *view);
-struct singleChildConstraints {
-	NSLayoutConstraint *leadingConstraint;
-	NSLayoutConstraint *topConstraint;
-	NSLayoutConstraint *trailingConstraintGreater;
-	NSLayoutConstraint *trailingConstraintEqual;
-	NSLayoutConstraint *bottomConstraintGreater;
-	NSLayoutConstraint *bottomConstraintEqual;
-};
-extern void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc);
-extern void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv);
-extern void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int margined);
-
 // area.m
 extern int sendAreaEvents(NSEvent *);
 

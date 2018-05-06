@@ -1,7 +1,7 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc)
+NSLayoutConstraint *uiprivMkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc)
 {
 	NSLayoutConstraint *constraint;
 
@@ -29,7 +29,7 @@ CGFloat uiDarwinPaddingAmount(void *reserved)
 // this is needed for NSSplitView to work properly; see http://stackoverflow.com/questions/34574478/how-can-i-set-the-position-of-a-nssplitview-nowadays-setpositionofdivideratind (stal in irc.freenode.net/#macdev came up with the exact combination)
 // turns out it also works on NSTabView and NSBox too, possibly others!
 // and for bonus points, it even seems to fix unsatisfiable-constraint-autoresizing-mask issues with NSTabView and NSBox too!!! this is nuts
-void jiggleViewLayout(NSView *view)
+void uiprivJiggleViewLayout(NSView *view)
 {
 	[view setNeedsLayout:YES];
 	[view layoutSubtreeIfNeeded];
@@ -42,13 +42,13 @@ static CGFloat margins(int margined)
 	return uiDarwinMarginAmount(NULL);
 }
 
-void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc)
+void uiprivSingleChildConstraintsEstablish(uiprivSingleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc)
 {
 	CGFloat margin;
 
 	margin = margins(margined);
 
-	c->leadingConstraint = mkConstraint(contentView, NSLayoutAttributeLeading,
+	c->leadingConstraint = uiprivMkConstraint(contentView, NSLayoutAttributeLeading,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeLeading,
 		1, -margin,
@@ -56,7 +56,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->leadingConstraint];
 	[c->leadingConstraint retain];
 
-	c->topConstraint = mkConstraint(contentView, NSLayoutAttributeTop,
+	c->topConstraint = uiprivMkConstraint(contentView, NSLayoutAttributeTop,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeTop,
 		1, -margin,
@@ -64,7 +64,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->topConstraint];
 	[c->topConstraint retain];
 
-	c->trailingConstraintGreater = mkConstraint(contentView, NSLayoutAttributeTrailing,
+	c->trailingConstraintGreater = uiprivMkConstraint(contentView, NSLayoutAttributeTrailing,
 		NSLayoutRelationGreaterThanOrEqual,
 		childView, NSLayoutAttributeTrailing,
 		1, margin,
@@ -74,7 +74,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->trailingConstraintGreater];
 	[c->trailingConstraintGreater retain];
 
-	c->trailingConstraintEqual = mkConstraint(contentView, NSLayoutAttributeTrailing,
+	c->trailingConstraintEqual = uiprivMkConstraint(contentView, NSLayoutAttributeTrailing,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeTrailing,
 		1, margin,
@@ -84,7 +84,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->trailingConstraintEqual];
 	[c->trailingConstraintEqual retain];
 
-	c->bottomConstraintGreater = mkConstraint(contentView, NSLayoutAttributeBottom,
+	c->bottomConstraintGreater = uiprivMkConstraint(contentView, NSLayoutAttributeBottom,
 		NSLayoutRelationGreaterThanOrEqual,
 		childView, NSLayoutAttributeBottom,
 		1, margin,
@@ -94,7 +94,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->bottomConstraintGreater];
 	[c->bottomConstraintGreater retain];
 
-	c->bottomConstraintEqual = mkConstraint(contentView, NSLayoutAttributeBottom,
+	c->bottomConstraintEqual = uiprivMkConstraint(contentView, NSLayoutAttributeBottom,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeBottom,
 		1, margin,
@@ -105,7 +105,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[c->bottomConstraintEqual retain];
 }
 
-void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv)
+void uiprivSingleChildConstraintsRemove(uiprivSingleChildConstraints *c, NSView *cv)
 {
 	if (c->leadingConstraint != nil) {
 		[cv removeConstraint:c->leadingConstraint];
@@ -139,7 +139,7 @@ void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv)
 	}
 }
 
-void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int margined)
+void uiprivSingleChildConstraintsSetMargined(uiprivSingleChildConstraints *c, int margined)
 {
 	CGFloat margin;
 

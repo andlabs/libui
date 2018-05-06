@@ -87,4 +87,20 @@ extern NSMutableArray *uiprivDelegates;
 extern void uiprivInitAlloc(void);
 extern void uiprivUninitAlloc(void);
 
+// autolayout.m
+extern NSLayoutConstraint *uiprivMkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc);
+extern void uiprivJiggleViewLayout(NSView *view);
+typedef struct uiprivSingleChildConstraints uiprivSingleChildConstraints;
+struct uiprivSingleChildConstraints {
+	NSLayoutConstraint *leadingConstraint;
+	NSLayoutConstraint *topConstraint;
+	NSLayoutConstraint *trailingConstraintGreater;
+	NSLayoutConstraint *trailingConstraintEqual;
+	NSLayoutConstraint *bottomConstraintGreater;
+	NSLayoutConstraint *bottomConstraintEqual;
+};
+extern void uiprivSingleChildConstraintsEstablish(uiprivSingleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc);
+extern void uiprivSingleChildConstraintsRemove(uiprivSingleChildConstraints *c, NSView *cv);
+extern void uiprivSingleChildConstraintsSetMargined(uiprivSingleChildConstraints *c, int margined);
+
 #import "OLD_uipriv_darwin.h"

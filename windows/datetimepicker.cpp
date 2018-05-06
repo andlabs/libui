@@ -145,9 +145,9 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 	return TRUE;
 }
 
-static void fromSystemTime(LPSYSTEMTIME systime, struct tm *time)
+static void fromSystemTime(SYSTEMTIME *systime, struct tm *time)
 {
-	ZeroMemory(time, sizeof(struct tm));
+	ZeroMemory(time, sizeof (struct tm));
 	time->tm_sec = systime->wSecond;
 	time->tm_min = systime->wMinute;
 	time->tm_hour = systime->wHour;
@@ -158,9 +158,9 @@ static void fromSystemTime(LPSYSTEMTIME systime, struct tm *time)
 	time->tm_isdst = -1;
 }
 
-static void toSystemTime(const struct tm *time, LPSYSTEMTIME systime)
+static void toSystemTime(const struct tm *time, SYSTEMTIME *systime)
 {
-	ZeroMemory(systime, sizeof(SYSTEMTIME));
+	ZeroMemory(systime, sizeof (SYSTEMTIME));
 	systime->wYear = time->tm_year + 1900;
 	systime->wMonth = time->tm_mon + 1;
 	systime->wDayOfWeek = time->tm_wday;
@@ -179,7 +179,7 @@ void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
 {
 	SYSTEMTIME systime;
 
-	if (SendMessageW(d->hwnd, DTM_GETSYSTEMTIME, 0, (LPARAM) &systime) != GDT_VALID)
+	if (SendMessageW(d->hwnd, DTM_GETSYSTEMTIME, 0, (LPARAM) (&systime)) != GDT_VALID)
 		logLastError(L"error getting date and time");
 	fromSystemTime(&systime, time);
 }
@@ -189,7 +189,7 @@ void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
 	SYSTEMTIME systime;
 
 	toSystemTime(time, &systime);
-	if (!SendMessageW(d->hwnd, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM) &systime))
+	if (SendMessageW(d->hwnd, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM) (&systime)) == 0)
 		logLastError(L"error setting date and time");
 	(*(d->onChanged))(d, d->onChangedData);
 }

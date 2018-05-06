@@ -547,7 +547,8 @@ static void dateTimePickerWidget_class_init(dateTimePickerWidgetClass *class)
 		G_SIGNAL_RUN_LAST,
 		0,
 		NULL, NULL, NULL,
-		G_TYPE_NONE, 0);
+		G_TYPE_NONE,
+		0);
 }
 
 struct uiDateTimePicker {

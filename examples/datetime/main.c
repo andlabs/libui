@@ -5,7 +5,7 @@
 
 uiDateTimePicker *dtboth, *dtdate, *dttime;
 
-const char * timeFormat(uiDateTimePicker *d)
+const char *timeFormat(uiDateTimePicker *d)
 {
 	const char *fmt;
 
@@ -27,7 +27,7 @@ void onChanged(uiDateTimePicker *d, void *data)
 	char buf[64];
 
 	uiDateTimePickerTime(d, &time);
-	strftime(buf, sizeof(buf), timeFormat(d), &time);
+	strftime(buf, sizeof (buf), timeFormat(d), &time);
 	uiLabelSetText(uiLabel(data), buf);
 }
 
@@ -46,8 +46,7 @@ void onClicked(uiButton *b, void *data)
 	if (now) {
 		uiDateTimePickerSetTime(dtdate, &tmbuf);
 		uiDateTimePickerSetTime(dttime, &tmbuf);
-	}
-	else
+	} else
 		uiDateTimePickerSetTime(dtboth, &tmbuf);
 }
 

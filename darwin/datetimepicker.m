@@ -11,9 +11,7 @@ struct uiDateTimePicker {
 @interface datePickerDelegateClass : NSObject <NSDatePickerCellDelegate> {
 	struct mapTable *pickers;
 }
-- (void)datePickerCell:(NSDatePickerCell *)aDatePickerCell
-	validateProposedDateValue:(NSDate **)proposedDateValue
-	timeInterval:(NSTimeInterval *)proposedTimeInterval;
+- (void)datePickerCell:(NSDatePickerCell *)aDatePickerCell validateProposedDateValue:(NSDate **)proposedDateValue timeInterval:(NSTimeInterval *)proposedTimeInterval;
 - (void)doTimer:(NSTimer *)timer;
 - (void)registerPicker:(uiDateTimePicker *)b;
 - (void)unregisterPicker:(uiDateTimePicker *)b;
@@ -53,7 +51,7 @@ struct uiDateTimePicker {
 {
 	uiDateTimePicker *d;
 
-	d = (uiDateTimePicker*) [[timer userInfo] pointerValue];
+	d = (uiDateTimePicker *) [((NSValue *)[timer userInfo]) pointerValue];
 	(*(d->onChanged))(d, d->onChangedData);
 }
 

@@ -1,4 +1,6 @@
-TODO find out specifics of -fvisibility=hidden in static libs, which is the point of this
+TODO clean this up
+
+TODO note that you -fvisibility=hidden means nothing in static libraries, hence this (confirmed on OS X)
 
 In general, all names that begin with "ui" and are followed by a capital letter and all names htat begin with "uipriv" and are followed by a capita lletter are reserved by libui. This applies even in C++, where name mangling may affect the actual names in the object file.
 

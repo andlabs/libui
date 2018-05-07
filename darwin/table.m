@@ -63,7 +63,7 @@ struct uiTable {
 	uiDarwinControl c;
 	NSScrollView *sv;
 	tableView *tv;
-	struct scrollViewData *d;
+	uiprivScrollViewData *d;
 	int backgroundColumn;
 };
 
@@ -111,7 +111,7 @@ struct uiTable {
 		[v addSubview:view];
 		// TODO set [v imageView] and [v textField] as appropriate?
 		if (prev == nil) {			// first view
-			[v addConstraint:mkConstraint(v, NSLayoutAttributeLeading,
+			[v addConstraint:uiprivMkConstraint(v, NSLayoutAttributeLeading,
 				NSLayoutRelationEqual,
 				view, NSLayoutAttributeLeading,
 				1, -xleft,
@@ -119,14 +119,14 @@ struct uiTable {
 			prev = view;
 			continue;
 		}
-		[v addConstraint:mkConstraint(prev, NSLayoutAttributeTrailing,
+		[v addConstraint:uiprivMkConstraint(prev, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			view, NSLayoutAttributeLeading,
 			1, -xmiddle,
 			@"uiTableColumn middle horizontal constraint")];
 		prev = view;
 	}
-	[v addConstraint:mkConstraint(prev, NSLayoutAttributeTrailing,
+	[v addConstraint:uiprivMkConstraint(prev, NSLayoutAttributeTrailing,
 		NSLayoutRelationEqual,
 		v, NSLayoutAttributeTrailing,
 		1, -xright,
@@ -134,14 +134,14 @@ struct uiTable {
 
 	// and vertically
 	for (view in views) {
-		[v addConstraint:mkConstraint(view, NSLayoutAttributeCenterY,
+		[v addConstraint:uiprivMkConstraint(view, NSLayoutAttributeCenterY,
 			NSLayoutRelationEqual,
 			v, NSLayoutAttributeCenterY,
 			1, 0,
 			@"uiTableColumn part vertical constraint")];
 		// TODO avoid the need for this hack
 		if ([view isKindOfClass:[NSImageView class]])
-			[v addConstraint:mkConstraint(view, NSLayoutAttributeTop,
+			[v addConstraint:uiprivMkConstraint(view, NSLayoutAttributeTop,
 				NSLayoutRelationEqual,
 				v, NSLayoutAttributeTop,
 				1, 0,
@@ -239,9 +239,9 @@ if(1);		else
 	switch (self.type) {
 	case partText:
 		data = (*(m->mh->CellValue))(m->mh, m, row, self.textColumn);
-		str = toNSString((char *) data);
+		str = uiprivToNSString((char *) data);
 		uiprivFree(data);
-		tf = newLabel(str);
+		tf = uiprivNewLabel(str);
 		// TODO set wrap and ellipsize modes?
 		if (self.textColorColumn != -1) {
 			NSColor *color;
@@ -262,13 +262,13 @@ if(1);		else
 	case partImage:
 		data = (*(m->mh->CellValue))(m->mh, m, row, self.imageColumn);
 		iv = [[NSImageView alloc] initWithFrame:NSZeroRect];
-		[iv setImage:imageImage((uiImage *) data)];
+		[iv setImage:uiprivImageNSImage((uiImage *) data)];
 		[iv setImageFrameStyle:NSImageFrameNone];
 		[iv setImageAlignment:NSImageAlignCenter];
 		[iv setImageScaling:NSImageScaleProportionallyDown];
 		[iv setAnimates:NO];
 		[iv setEditable:NO];
-		[iv addConstraint:mkConstraint(iv, NSLayoutAttributeWidth,
+		[iv addConstraint:uiprivMkConstraint(iv, NSLayoutAttributeWidth,
 			NSLayoutRelationEqual,
 			iv, NSLayoutAttributeHeight,
 			1, 0,
@@ -279,7 +279,7 @@ if(1);		else
 	case partButton:
 		// TODO buttons get clipped
 		data = (*(m->mh->CellValue))(m->mh, m, row, self.textColumn);
-		str = toNSString((char *) data);
+		str = uiprivToNSString((char *) data);
 		b = [[NSButton alloc] initWithFrame:NSZeroRect];
 		[b setTitle:str];
 		[b setButtonType:NSMomentaryPushInButton];
@@ -525,7 +525,7 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 	// via Interface Builder
 	[c->c setResizingMask:(NSTableColumnAutoresizingMask | NSTableColumnUserResizingMask)];
 	// 10.10 adds -[NSTableColumn setTitle:]; before then we have to do this
-	[[c->c headerCell] setStringValue:toNSString(name)];
+	[[c->c headerCell] setStringValue:uiprivToNSString(name)];
 	// TODO is this sufficient?
 	[[c->c headerCell] setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
 	c->parts = [NSMutableArray new];
@@ -541,7 +541,7 @@ void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;
-	struct scrollViewCreateParams p;
+	uiprivScrollViewCreateParams p;
 
 	uiDarwinNewControl(uiTable, t);
 
@@ -565,7 +565,7 @@ uiTable *uiNewTable(uiTableModel *model)
 	[t->tv setAllowsTypeSelect:YES];
 	// TODO floatsGroupRows — do we even allow group rows?
 
-	memset(&p, 0, sizeof (struct scrollViewCreateParams));
+	memset(&p, 0, sizeof (uiprivScrollViewCreateParams));
 	p.DocumentView = t->tv;
 	// this is what Interface Builder sets it to
 	// TODO verify
@@ -574,7 +574,7 @@ uiTable *uiNewTable(uiTableModel *model)
 	p.Bordered = YES;
 	p.HScroll = YES;
 	p.VScroll = YES;
-	t->sv = mkScrollView(&p, &(t->d));
+	t->sv = uiprivMkScrollView(&p, &(t->d));
 
 	t->backgroundColumn = -1;
 

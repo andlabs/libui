@@ -23,6 +23,12 @@ _add_example(histogram
 	${_EXAMPLE_RESOURCES_RC}
 )
 
+_add_example(table
+	table/main.cpp
+	table/planet.cpp
+	${_EXAMPLE_RESOURCES_RC}
+)
+
 _add_example(cpp-multithread
 	cpp-multithread/main.cpp
 	${_EXAMPLE_RESOURCES_RC}
@@ -35,6 +41,8 @@ if(APPLE)
 	# see issue #302 for more details
 	target_compile_options(cpp-multithread PRIVATE --stdlib=libc++)
 	target_link_libraries(cpp-multithread --stdlib=libc++)
+	target_compile_options(table PRIVATE --stdlib=libc++)
+	target_link_libraries(table --stdlib=libc++)
 endif()
 
 _add_example(drawtext
@@ -50,6 +58,7 @@ _add_example(timer
 add_custom_target(examples
 	DEPENDS
 		controlgallery
+        table
 		histogram
 		cpp-multithread
 		drawtext

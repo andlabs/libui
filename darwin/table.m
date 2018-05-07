@@ -65,7 +65,59 @@ struct uiTable {
 	tableView *tv;
 	struct scrollViewData *d;
 	int backgroundColumn;
+	void (*onSelectionChanged)(uiTable *, void *);
+	void *onSelectionChangedData;
 };
+
+@interface tableDelegateClass : NSObject {
+	struct mapTable *tables;
+}
+- (void)tableViewSelectionDidChange:(NSNotification *)notification;
+- (void)registerTable:(uiTable *)t;
+- (void)unregisterTable:(uiTable *)t;
+@end
+
+@implementation tableDelegateClass
+
+- (id)init
+{
+	self = [super init];
+	if (self)
+		self->tables = newMap();
+	return self;
+}
+
+- (void)dealloc
+{
+	mapDestroy(self->tables);
+	[super dealloc];
+}
+
+- (void)tableViewSelectionDidChange:(NSNotification *)notification
+{
+	uiTable *t;
+
+	t = (uiTable *) mapGet(self->tables, notification);
+	(*(t->onSelectionChanged))(t, t->onSelectionChangedData);
+}
+
+- (void)registerTable:(uiTable *)t
+{
+	mapSet(self->tables, t->tv, t);
+	[t->tv setTarget:self];
+	[t->tv setAction:@selector(tableViewSelectionDidChange:)];
+}
+
+- (void)unregisterTable:(uiTable *)t
+{
+	[t->tv setTarget:nil];
+	mapDelete(self->tables, t->tv);
+}
+
+@end
+
+static tableDelegateClass *tableDelegate = nil;
+
 
 @implementation tableModel
 
@@ -510,6 +562,7 @@ static void uiTableDestroy(uiControl *c)
 {
 	uiTable *t = uiTable(c);
 
+	[tableDelegate unregisterTable:t];
 	// TODO
 	[t->sv release];
 	uiFreeControl(uiControl(t));
@@ -538,7 +591,49 @@ void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 	t->backgroundColumn = modelColumn;
 }
 
-uiTable *uiNewTable(uiTableModel *model)
+void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data)
+{
+	t->onSelectionChanged = f;
+	t->onSelectionChangedData = data;
+}
+
+struct uiTableIter {
+	NSIndexSet *set;
+	int foo;
+	NSUInteger curr;
+};
+
+uiTableIter* uiTableGetSelection(uiTable *t)
+{
+	uiTableIter *it = uiprivAlloc(sizeof(uiTableIter), "uiTableIter");
+	it->set = [t->tv selectedRowIndexes];
+	it->foo = 0;
+
+	it->curr = [it->set firstIndex];
+	return it;
+}
+
+
+int uiTableIterAdvance(uiTableIter *it)
+{
+	if (it->foo>0) {
+		it->curr = [it->set indexGreaterThanIndex:it->curr];
+	}
+	it->foo++;
+	return (it->curr==NSNotFound) ? 0:1;
+}
+
+int uiTableIterCurrent(uiTableIter *it)
+{
+	return (int)it->curr;
+}
+
+void uiTableIterComplete(uiTableIter *it)
+{
+	uiprivFree(it);
+}
+
+uiTable *uiNewTable(uiTableModel *model, int styleFlags)
 {
 	uiTable *t;
 	struct scrollViewCreateParams p;
@@ -556,7 +651,11 @@ uiTable *uiNewTable(uiTableModel *model)
 	// TODO is this sufficient?
 	[t->tv setAllowsColumnReordering:NO];
 	[t->tv setAllowsColumnResizing:YES];
-	[t->tv setAllowsMultipleSelection:NO];
+	if (styleFlags & uiTableStyleMultiSelect) {
+		[t->tv setAllowsMultipleSelection:YES];
+	} else {
+		[t->tv setAllowsMultipleSelection:NO];
+	}
 	[t->tv setAllowsEmptySelection:YES];
 	[t->tv setAllowsColumnSelection:NO];
 	[t->tv setUsesAlternatingRowBackgroundColors:YES];
@@ -578,5 +677,10 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	t->backgroundColumn = -1;
 
+	if (tableDelegate == nil) {
+		tableDelegate = [[tableDelegateClass new] autorelease];
+		[delegates addObject:tableDelegate];
+	}
+	[tableDelegate registerTable:t];
 	return t;
 }

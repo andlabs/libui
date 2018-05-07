@@ -118,7 +118,7 @@ uiBox *makePage16(void)
 	mh.SetCellValue = modelSetCellValue;
 	m = uiNewTableModel(&mh);
 
-	t = uiNewTable(m);
+	t = uiNewTable(m,0);
 	uiBoxAppend(page16, uiControl(t), 1);
 
 	uiTableAppendTextColumn(t, "Column 1", 0);

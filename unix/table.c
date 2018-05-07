@@ -334,6 +334,8 @@ struct uiTable {
 	GPtrArray *columns;
 	uiTableModel *model;
 	int backgroundColumn;
+	void (*onSelectionChanged)(uiTable *, void *);
+	void *onSelectionChangedData;
 };
 
 // use the same size as GtkFileChooserWidget's treeview
@@ -596,6 +598,17 @@ static void uiTableDestroy(uiControl *c)
 	uiFreeControl(uiControl(t));
 }
 
+static void onChanged(GtkTreeSelection *sel, gpointer data)
+{
+	uiTable* t = uiTable(data);
+	(*(t->onSelectionChanged))(t, t->onSelectionChangedData);
+}
+
+static void defaultOnSelectionChanged(uiTable *t, void *data)
+{
+	// do nothing
+}
+
 uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 {
 	uiTableColumn *c;
@@ -616,9 +629,99 @@ void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 	// TODO refresh table
 }
 
-uiTable *uiNewTable(uiTableModel *model)
+
+void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data)
+{
+	t->onSelectionChanged = f;
+	t->onSelectionChangedData = data;
+}
+
+
+/* uiTableIter implmentation */
+
+struct uiTableIter
+{
+	int nextpos;
+	// growable to hold all the values we'll iterate over
+	// (Gtk doesn't have a convenient iteration mechanism)
+	int len;
+	int cap;
+	int* data;
+};
+
+
+// callback used when building a uiTableIter
+static void collectSelection( GtkTreeModel *model,
+	GtkTreePath *path,
+	GtkTreeIter *iter,
+	gpointer data)
+{
+	uiTableIter* it = (uiTableIter*)data;
+	int depth = gtk_tree_path_get_depth(path);
+	gint* indices = gtk_tree_path_get_indices(path);
+	if(depth<1) {
+		return;
+	}
+
+	// append to collection
+	if(it->len == it->cap) {
+		// initial alloc or grow
+		if(it->cap==0) {
+			it->cap = 16;
+		} else {
+			it->cap *= 2;
+		}
+		it->data = uiprivRealloc(it->data, sizeof(int) * it->cap, "int[]");
+	}
+	it->data[it->len++] = (int)indices[0];
+}
+
+
+uiTableIter* uiTableGetSelection( uiTable* t)
+{
+	uiTableIter* it = uiprivAlloc(sizeof(uiTableIter), "uiTableIter");
+	it->nextpos = 0;
+	it->len = 0;
+	it->cap = 0;
+	it->data = NULL;
+
+	gtk_tree_selection_selected_foreach( gtk_tree_view_get_selection(t->tv), collectSelection, (gpointer)it);
+	return it;
+}
+
+int uiTableIterAdvance(uiTableIter *it)
+{
+	if (it->nextpos < it->len) {
+		++it->nextpos;
+		return 1;
+	}
+	return 0;
+}
+
+int uiTableIterCurrent(uiTableIter *it)
+{
+	return it->data[it->nextpos-1];
+}
+
+void uiTableIterComplete(uiTableIter *it)
+{
+	if (it->data) {
+		uiprivFree(it->data);
+	}
+	uiprivFree(it);
+}
+
+
+/*****/
+
+
+
+
+uiTable *uiNewTable(uiTableModel *model, int styleFlags)
 {
 	uiTable *t;
+	GtkTreeSelection* sel;
+    GtkSelectionMode selMode = GTK_SELECTION_SINGLE;
 
 	uiUnixNewControl(uiTable, t);
 
@@ -634,9 +737,22 @@ uiTable *uiNewTable(uiTableModel *model)
 	t->tv = GTK_TREE_VIEW(t->treeWidget);
 	// TODO set up t->tv
 
+
 	gtk_container_add(t->scontainer, t->treeWidget);
 	// and make the tree view visible; only the scrolled window's visibility is controlled by libui
 	gtk_widget_show(t->treeWidget);
 
+	
+	sel = gtk_tree_view_get_selection(t->tv);
+
+    if (styleFlags & uiTableStyleMultiSelect) {
+        selMode = GTK_SELECTION_MULTIPLE;
+    }
+	gtk_tree_selection_set_mode(sel, selMode);
+
+	g_signal_connect(sel, "changed", G_CALLBACK(onChanged), t);
+	uiTableOnSelectionChanged(t, defaultOnSelectionChanged, NULL);
+
 	return t;
 }
+

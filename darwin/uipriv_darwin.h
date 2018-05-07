@@ -19,6 +19,15 @@
 #define NSAppKitVersionNumber10_9 1265
 #endif
 
+// map.m
+extern struct mapTable *newMap(void);
+extern void mapDestroy(struct mapTable *m);
+extern void *mapGet(struct mapTable *m, void *key);
+extern void mapSet(struct mapTable *m, void *key, void *value);
+extern void mapDelete(struct mapTable *m, void *key);
+extern void mapWalk(struct mapTable *m, void (*f)(void *key, void *value));
+extern void mapReset(struct mapTable *m);
+
 // menu.m
 @interface menuManager : NSObject {
 	struct mapTable *items;
@@ -87,15 +96,6 @@ struct singleChildConstraints {
 extern void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc);
 extern void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv);
 extern void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int margined);
-
-// map.m
-extern struct mapTable *newMap(void);
-extern void mapDestroy(struct mapTable *m);
-extern void *mapGet(struct mapTable *m, void *key);
-extern void mapSet(struct mapTable *m, void *key, void *value);
-extern void mapDelete(struct mapTable *m, void *key);
-extern void mapWalk(struct mapTable *m, void (*f)(void *key, void *value));
-extern void mapReset(struct mapTable *m);
 
 // area.m
 extern int sendAreaEvents(NSEvent *);

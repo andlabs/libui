@@ -67,7 +67,7 @@ static BOOL isSearchField(NSTextField *tf)
 }
 
 @interface entryDelegateClass : NSObject<NSTextFieldDelegate> {
-	struct mapTable *entries;
+	uiprivMap *entries;
 }
 - (void)controlTextDidChange:(NSNotification *)note;
 - (IBAction)onSearch:(id)sender;
@@ -81,13 +81,13 @@ static BOOL isSearchField(NSTextField *tf)
 {
 	self = [super init];
 	if (self)
-		self->entries = newMap();
+		self->entries = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->entries);
+	uiprivMapDestroy(self->entries);
 	[super dealloc];
 }
 
@@ -100,13 +100,13 @@ static BOOL isSearchField(NSTextField *tf)
 {
 	uiEntry *e;
 
-	e = (uiEntry *) mapGet(self->entries, sender);
+	e = (uiEntry *) uiprivMapGet(self->entries, sender);
 	(*(e->onChanged))(e, e->onChangedData);
 }
 
 - (void)registerEntry:(uiEntry *)e
 {
-	mapSet(self->entries, e->textfield, e);
+	uiprivMapSet(self->entries, e->textfield, e);
 	if (isSearchField(e->textfield)) {
 		[e->textfield setTarget:self];
 		[e->textfield setAction:@selector(onSearch:)];
@@ -120,7 +120,7 @@ static BOOL isSearchField(NSTextField *tf)
 		[e->textfield setTarget:nil];
 	else
 		[e->textfield setDelegate:nil];
-	mapDelete(self->entries, e->textfield);
+	uiprivMapDelete(self->entries, e->textfield);
 }
 
 @end
@@ -145,7 +145,7 @@ char *uiEntryText(uiEntry *e)
 
 void uiEntrySetText(uiEntry *e, const char *text)
 {
-	[e->textfield setStringValue:toNSString(text)];
+	[e->textfield setStringValue:uiprivToNSString(text)];
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
 
@@ -176,7 +176,7 @@ static void defaultOnChanged(uiEntry *e, void *data)
 }
 
 // these are based on interface builder defaults; my comments in the old code weren't very good so I don't really know what talked about what, sorry :/
-void finishNewTextField(NSTextField *t, BOOL isEntry)
+void uiprivFinishNewTextField(NSTextField *t, BOOL isEntry)
 {
 	uiDarwinSetControlFont(t, NSRegularControlSize);
 
@@ -197,11 +197,11 @@ static NSTextField *realNewEditableTextField(Class class)
 
 	tf = [[class alloc] initWithFrame:NSZeroRect];
 	[tf setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
-	finishNewTextField(tf, YES);
+	uiprivFinishNewTextField(tf, YES);
 	return tf;
 }
 
-NSTextField *newEditableTextField(void)
+NSTextField *uiprivNewEditableTextField(void)
 {
 	return realNewEditableTextField([libui_intrinsicWidthNSTextField class]);
 }
@@ -216,7 +216,7 @@ static uiEntry *finishNewEntry(Class class)
 
 	if (entryDelegate == nil) {
 		entryDelegate = [[entryDelegateClass new] autorelease];
-		[delegates addObject:entryDelegate];
+		[uiprivDelegates addObject:entryDelegate];
 	}
 	[entryDelegate registerEntry:e];
 	uiEntryOnChanged(e, defaultOnChanged, NULL);

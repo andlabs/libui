@@ -29,7 +29,7 @@ struct uiSlider {
 };
 
 @interface sliderDelegateClass : NSObject {
-	struct mapTable *sliders;
+	uiprivMap *sliders;
 }
 - (IBAction)onChanged:(id)sender;
 - (void)registerSlider:(uiSlider *)b;
@@ -42,13 +42,13 @@ struct uiSlider {
 {
 	self = [super init];
 	if (self)
-		self->sliders = newMap();
+		self->sliders = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->sliders);
+	uiprivMapDestroy(self->sliders);
 	[super dealloc];
 }
 
@@ -56,13 +56,13 @@ struct uiSlider {
 {
 	uiSlider *s;
 
-	s = (uiSlider *) mapGet(self->sliders, sender);
+	s = (uiSlider *) uiprivMapGet(self->sliders, sender);
 	(*(s->onChanged))(s, s->onChangedData);
 }
 
 - (void)registerSlider:(uiSlider *)s
 {
-	mapSet(self->sliders, s->slider, s);
+	uiprivMapSet(self->sliders, s->slider, s);
 	[s->slider setTarget:self];
 	[s->slider setAction:@selector(onChanged:)];
 }
@@ -70,7 +70,7 @@ struct uiSlider {
 - (void)unregisterSlider:(uiSlider *)s
 {
 	[s->slider setTarget:nil];
-	mapDelete(self->sliders, s->slider);
+	uiprivMapDelete(self->sliders, s->slider);
 }
 
 @end
@@ -138,7 +138,7 @@ uiSlider *uiNewSlider(int min, int max)
 
 	if (sliderDelegate == nil) {
 		sliderDelegate = [[sliderDelegateClass new] autorelease];
-		[delegates addObject:sliderDelegate];
+		[uiprivDelegates addObject:sliderDelegate];
 	}
 	[sliderDelegate registerSlider:s];
 	uiSliderOnChanged(s, defaultOnChanged, NULL);

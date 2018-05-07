@@ -24,9 +24,9 @@ static char *runSavePanel(NSWindow *parent, NSSavePanel *s)
 	char *filename;
 
 	[s beginSheetModalForWindow:parent completionHandler:^(NSInteger result) {
-		[realNSApp() stopModalWithCode:result];
+		[uiprivNSApp() stopModalWithCode:result];
 	}];
-	if ([realNSApp() runModalForWindow:s] != NSFileHandlingPanelOKButton)
+	if ([uiprivNSApp() runModalForWindow:s] != NSFileHandlingPanelOKButton)
 		return NULL;
 	filename = uiDarwinNSStringToText([[s URL] path]);
 	return filename;
@@ -84,12 +84,12 @@ char *uiSaveFile(uiWindow *parent)
 		modalDelegate:self
 		didEndSelector:@selector(panelEnded:result:data:)
 		contextInfo:NULL];
-	return [realNSApp() runModalForWindow:[self->panel window]];
+	return [uiprivNSApp() runModalForWindow:[self->panel window]];
 }
 
 - (void)panelEnded:(NSAlert *)panel result:(NSInteger)result data:(void *)data
 {
-	[realNSApp() stopModalWithCode:result];
+	[uiprivNSApp() stopModalWithCode:result];
 }
 
 @end
@@ -103,8 +103,8 @@ static void msgbox(NSWindow *parent, const char *title, const char *description,
 	[a setAlertStyle:style];
 	[a setShowsHelp:NO];
 	[a setShowsSuppressionButton:NO];
-	[a setMessageText:toNSString(title)];
-	[a setInformativeText:toNSString(description)];
+	[a setMessageText:uiprivToNSString(title)];
+	[a setInformativeText:uiprivToNSString(description)];
 	[a addButtonWithTitle:@"OK"];
 	cm = [[libuiCodeModalAlertPanel alloc] initWithPanel:a parent:parent];
 	[cm run];

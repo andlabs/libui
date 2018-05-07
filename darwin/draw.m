@@ -104,7 +104,7 @@ void uiDrawPathEnd(uiDrawPath *p)
 	p->ended = TRUE;
 }
 
-uiDrawContext *newContext(CGContextRef ctxt, CGFloat height)
+uiDrawContext *uiprivDrawNewContext(CGContextRef ctxt, CGFloat height)
 {
 	uiDrawContext *c;
 
@@ -114,7 +114,7 @@ uiDrawContext *newContext(CGContextRef ctxt, CGFloat height)
 	return c;
 }
 
-void freeContext(uiDrawContext *c)
+void uiprivDrawFreeContext(uiDrawContext *c)
 {
 	uiprivFree(c);
 }

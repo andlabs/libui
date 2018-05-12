@@ -55,28 +55,8 @@ list(APPEND _LIBUI_INCLUDEDIRS
 set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
 set(_LIBUINAME libui PARENT_SCOPE)
-if(NOT BUILD_SHARED_LIBS)
-	set(_LIBUINAME libui-temporary PARENT_SCOPE)
-endif()
-# TODO remove all these temporary files after linking the final archive file
 macro(_handle_static)
-	set_target_properties(${_LIBUINAME} PROPERTIES
-		ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
-	set(_aname $<TARGET_FILE:${_LIBUINAME}>)
-	set(_oname libui-combined.o)
-	add_custom_command(
-		OUTPUT ${_oname}
-		COMMAND
-			ld -r --whole-archive ${_aname} -o ${_oname}
-		COMMAND
-			objcopy --localize-hidden ${_oname}
-		COMMENT "Removing hidden symbols")
-	add_library(libui STATIC ${_oname})
-	# otherwise cmake won't know which linker to use
-	set_target_properties(libui PROPERTIES
-		LINKER_LANGUAGE C)
-	set(_aname)
-	set(_oname)
+	# do nothing
 endmacro()
 
 # TODO the other variables don't work?

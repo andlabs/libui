@@ -31,4 +31,16 @@ extern void uiprivUninitAlloc(void);
 // util.c
 extern void uiprivSetMargined(GtkContainer *, int);
 
+// child.c
+typedef struct uiprivChild uiprivChild;
+extern uiprivChild *uiprivNewChild(uiControl *child, uiControl *parent, GtkContainer *parentContainer);
+extern uiprivChild *uiprivNewChildWithBox(uiControl *child, uiControl *parent, GtkContainer *parentContainer, int margined);
+extern void uiprivChildRemove(uiprivChild *c);
+extern void uiprivChildDestroy(uiprivChild *c);
+extern GtkWidget *uiprivChildWidget(uiprivChild *c);
+extern int uiprivChildFlag(uiprivChild *c);
+extern void uiprivChildSetFlag(uiprivChild *c, int flag);
+extern GtkWidget *uiprivChildBox(uiprivChild *c);
+extern void uiprivChildSetMargined(uiprivChild *c, int margined);
+
 #include "OLD_uipriv_unix.h"

@@ -133,8 +133,8 @@ void uiFormSetPadded(uiForm *f, int padded)
 {
 	f->padded = padded;
 	if (f->padded) {
-		gtk_grid_set_row_spacing(f->grid, gtkYPadding);
-		gtk_grid_set_column_spacing(f->grid, gtkXPadding);
+		gtk_grid_set_row_spacing(f->grid, uiprivGTKYPadding);
+		gtk_grid_set_column_spacing(f->grid, uiprivGTKXPadding);
 	} else {
 		gtk_grid_set_row_spacing(f->grid, 0);
 		gtk_grid_set_column_spacing(f->grid, 0);

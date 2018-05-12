@@ -13,7 +13,7 @@ static GPtrArray *allocations;
 #define CCHAR(p) ((const char **) (p))
 #define TYPE(p) CCHAR(UINT8(p) + sizeof (size_t))
 
-void initAlloc(void)
+void uiprivInitAlloc(void)
 {
 	allocations = g_ptr_array_new();
 }
@@ -30,7 +30,7 @@ static void uninitComplain(gpointer ptr, gpointer data)
 	*str = str2;
 }
 
-void uninitAlloc(void)
+void uiprivUninitAlloc(void)
 {
 	char *str = NULL;
 

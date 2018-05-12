@@ -57,7 +57,7 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 				(guint16) (g * 65535.0),
 				(guint16) (b * 65535.0)));
 		addattr(p, start, end,
-			FUTURE_pango_attr_foreground_alpha_new(
+			uiprivFUTURE_pango_attr_foreground_alpha_new(
 				(guint16) (a * 65535.0)));
 		break;
 	case uiAttributeTypeBackground:
@@ -69,7 +69,7 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 				(guint16) (g * 65535.0),
 				(guint16) (b * 65535.0)));
 		addattr(p, start, end,
-			FUTURE_pango_attr_background_alpha_new(
+			uiprivFUTURE_pango_attr_background_alpha_new(
 				(guint16) (a * 65535.0)));
 		break;
 	case uiAttributeTypeUnderline:
@@ -125,7 +125,7 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 			break;
 		featurestr = uiprivOpenTypeFeaturesToPangoCSSFeaturesString(features);
 		addattr(p, start, end,
-			FUTURE_pango_attr_font_features_new(featurestr->str));
+			uiprivFUTURE_pango_attr_font_features_new(featurestr->str));
 		g_string_free(featurestr, TRUE);
 		break;
 	default:

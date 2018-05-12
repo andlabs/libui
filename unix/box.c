@@ -119,9 +119,9 @@ void uiBoxSetPadded(uiBox *b, int padded)
 	b->padded = padded;
 	if (b->padded)
 		if (b->vertical)
-			gtk_box_set_spacing(b->box, gtkYPadding);
+			gtk_box_set_spacing(b->box, uiprivGTKYPadding);
 		else
-			gtk_box_set_spacing(b->box, gtkXPadding);
+			gtk_box_set_spacing(b->box, uiprivGTKXPadding);
 	else
 		gtk_box_set_spacing(b->box, 0);
 }

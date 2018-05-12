@@ -266,7 +266,7 @@ static void appendMenuItem(GtkMenuShell *submenu, uiMenuItem *item, uiWindow *w)
 	g_hash_table_insert(item->windows, menuitem, ww);
 }
 
-GtkWidget *makeMenubar(uiWindow *w)
+GtkWidget *uiprivMakeMenubar(uiWindow *w)
 {
 	GtkWidget *menubar;
 	guint i, j;
@@ -330,7 +330,7 @@ static void freeMenu(GtkWidget *widget, gpointer data)
 	(*i)++;
 }
 
-void freeMenubar(GtkWidget *mb)
+void uiprivFreeMenubar(GtkWidget *mb)
 {
 	guint i;
 
@@ -339,7 +339,7 @@ void freeMenubar(GtkWidget *mb)
 	// no need to worry about destroying any widgets; destruction of the window they're in will do it for us
 }
 
-void uninitMenus(void)
+void uiprivUninitMenus(void)
 {
 	uiMenu *m;
 	uiMenuItem *item;

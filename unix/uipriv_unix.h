@@ -43,4 +43,15 @@ extern void uiprivChildSetFlag(uiprivChild *c, int flag);
 extern GtkWidget *uiprivChildBox(uiprivChild *c);
 extern void uiprivChildSetMargined(uiprivChild *c, int margined);
 
+// draw.c
+extern uiDrawContext *uiprivNewContext(cairo_t *cr, GtkStyleContext *style);
+extern void uiprivFreeContext(uiDrawContext *);
+
+// image.c
+/*TODO remove this*/typedef struct uiImage uiImage;
+extern cairo_surface_t *uiprivImageAppropriateSurface(uiImage *i, GtkWidget *w);
+
+// cellrendererbutton.c
+extern GtkCellRenderer *uiprivNewCellRendererButton(void);
+
 #include "OLD_uipriv_unix.h"

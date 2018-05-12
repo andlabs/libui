@@ -1,13 +1,3 @@
-// draw.c
-extern uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style);
-extern void freeContext(uiDrawContext *);
-
-// image.c
-/*TODO remove this*/typedef struct uiImage uiImage;
-extern cairo_surface_t *imageAppropriateSurface(uiImage *i, GtkWidget *w);
-
-// cellrendererbutton.c
-extern GtkCellRenderer *newCellRendererButton(void);
 
 // future.c
 extern void loadFutures(void);

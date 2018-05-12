@@ -293,7 +293,7 @@ static void cellRendererButton_class_init(cellRendererButtonClass *class)
 		1, G_TYPE_STRING);
 }
 
-GtkCellRenderer *newCellRendererButton(void)
+GtkCellRenderer *uiprivNewCellRendererButton(void)
 {
 	return GTK_CELL_RENDERER(g_object_new(cellRendererButtonType, NULL));
 }

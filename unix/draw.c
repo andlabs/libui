@@ -2,7 +2,7 @@
 #include "uipriv_unix.h"
 #include "draw.h"
 
-uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style)
+uiDrawContext *uiprivNewContext(cairo_t *cr, GtkStyleContext *style)
 {
 	uiDrawContext *c;
 
@@ -12,7 +12,7 @@ uiDrawContext *newContext(cairo_t *cr, GtkStyleContext *style)
 	return c;
 }
 
-void freeContext(uiDrawContext *c)
+void uiprivFreeContext(uiDrawContext *c)
 {
 	// free neither cr nor style; we own neither
 	uiprivFree(c);

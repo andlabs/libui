@@ -105,7 +105,7 @@ writeMatch:
 	m->distY = abs(m->targetY - y);
 }
 
-cairo_surface_t *imageAppropriateSurface(uiImage *i, GtkWidget *w)
+cairo_surface_t *uiprivImageAppropriateSurface(uiImage *i, GtkWidget *w)
 {
 	struct matcher m;
 

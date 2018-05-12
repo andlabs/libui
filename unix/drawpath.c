@@ -138,7 +138,7 @@ void uiDrawPathEnd(uiDrawPath *p)
 	p->ended = TRUE;
 }
 
-void runPath(uiDrawPath *p, cairo_t *cr)
+void uiprivRunPath(uiDrawPath *p, cairo_t *cr)
 {
 	guint i;
 	struct piece *piece;
@@ -193,7 +193,7 @@ void runPath(uiDrawPath *p, cairo_t *cr)
 	}
 }
 
-uiDrawFillMode pathFillMode(uiDrawPath *path)
+uiDrawFillMode uiprivPathFillMode(uiDrawPath *path)
 {
 	return path->fillMode;
 }

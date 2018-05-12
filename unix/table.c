@@ -392,7 +392,7 @@ static void dataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm,
 		gtk_tree_model_get_value(mm, iter, part->imageColumn, &value);
 		img = (uiImage *) g_value_get_pointer(&value);
 		g_object_set(r, "surface",
-			imageAppropriateSurface(img, part->tv->treeWidget),
+			uiprivImageAppropriateSurface(img, part->tv->treeWidget),
 			NULL);
 		break;
 	case partButton:
@@ -503,7 +503,7 @@ void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand
 	part->textColumn = modelColumn;
 	part->tv = c->tv;
 
-	r = newCellRendererButton();
+	r = uiprivNewCellRendererButton();
 	g_object_set(r, "sensitive", TRUE, NULL);		// editable by default
 	g_signal_connect(r, "clicked", G_CALLBACK(buttonClicked), part);
 

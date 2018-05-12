@@ -14,15 +14,15 @@ const char *uiInit(uiInitOptions *o)
 		g_error_free(err);
 		return msg;
 	}
-	initAlloc();
-	loadFutures();
+	uiprivInitAlloc();
+	uiprivLoadFutures();
 	return NULL;
 }
 
 void uiUninit(void)
 {
-	uninitMenus();
-	uninitAlloc();
+	uiprivUninitMenus();
+	uiprivUninitAlloc();
 }
 
 void uiFreeInitError(const char *err)

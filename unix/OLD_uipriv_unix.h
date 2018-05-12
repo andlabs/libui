@@ -1,19 +1,5 @@
-#define gtkXMargin 12
-#define gtkYMargin 12
-#define gtkXPadding 12
-#define gtkYPadding 6
 
-// menu.c
-extern GtkWidget *makeMenubar(uiWindow *);
-extern void freeMenubar(GtkWidget *);
-extern void uninitMenus(void);
 
-// alloc.c
-extern void initAlloc(void);
-extern void uninitAlloc(void);
-
-// util.c
-extern void setMargined(GtkContainer *, int);
 
 // child.c
 extern struct child *newChild(uiControl *child, uiControl *parent, GtkContainer *parentContainer);

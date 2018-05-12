@@ -116,5 +116,5 @@ GtkWidget *childBox(struct child *c)
 
 void childSetMargined(struct child *c, int margined)
 {
-	setMargined(GTK_CONTAINER(c->box), margined);
+	uiprivSetMargined(GTK_CONTAINER(c->box), margined);
 }

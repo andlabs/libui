@@ -15,7 +15,7 @@ const char *uiInit(uiInitOptions *o)
 		return msg;
 	}
 	uiprivInitAlloc();
-	loadFutures();
+	uiprivLoadFutures();
 	return NULL;
 }
 

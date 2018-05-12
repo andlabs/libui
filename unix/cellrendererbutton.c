@@ -68,7 +68,7 @@ static GtkStyleContext *setButtonStyle(GtkWidget *widget)
 
 	path = gtk_widget_path_copy(gtk_style_context_get_path(base));
 	gtk_widget_path_append_type(path, G_TYPE_NONE);
-	if (!FUTURE_gtk_widget_path_iter_set_object_name(path, -1, "button"))
+	if (!uiprivFUTURE_gtk_widget_path_iter_set_object_name(path, -1, "button"))
 		// not on 3.20; try the type
 		gtk_widget_path_iter_set_object_type(path, -1, GTK_TYPE_BUTTON);
 

@@ -14,7 +14,7 @@ static PangoAttribute *(*newBGAlphaAttr)(guint16 alpha) = NULL;
 static void (*gwpIterSetObjectName)(GtkWidgetPath *path, gint pos, const char *name) = NULL;
 
 // note that we treat any error as "the symbols aren't there" (and don't care if dlclose() failed)
-void loadFutures(void)
+void uiprivLoadFutures(void)
 {
 	void *handle;
 
@@ -30,28 +30,28 @@ void loadFutures(void)
 	dlclose(handle);
 }
 
-PangoAttribute *FUTURE_pango_attr_font_features_new(const gchar *features)
+PangoAttribute *uiprivFUTURE_pango_attr_font_features_new(const gchar *features)
 {
 	if (newFeaturesAttr == NULL)
 		return NULL;
 	return (*newFeaturesAttr)(features);
 }
 
-PangoAttribute *FUTURE_pango_attr_foreground_alpha_new(guint16 alpha)
+PangoAttribute *uiprivFUTURE_pango_attr_foreground_alpha_new(guint16 alpha)
 {
 	if (newFGAlphaAttr == NULL)
 		return NULL;
 	return (*newFGAlphaAttr)(alpha);
 }
 
-PangoAttribute *FUTURE_pango_attr_background_alpha_new(guint16 alpha)
+PangoAttribute *uiprivFUTURE_pango_attr_background_alpha_new(guint16 alpha)
 {
 	if (newBGAlphaAttr == NULL)
 		return NULL;
 	return (*newBGAlphaAttr)(alpha);
 }
 
-gboolean FUTURE_gtk_widget_path_iter_set_object_name(GtkWidgetPath *path, gint pos, const char *name)
+gboolean uiprivFUTURE_gtk_widget_path_iter_set_object_name(GtkWidgetPath *path, gint pos, const char *name)
 {
 	if (gwpIterSetObjectName == NULL)
 		return FALSE;

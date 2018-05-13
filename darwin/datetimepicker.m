@@ -9,7 +9,7 @@ struct uiDateTimePicker {
 };
 
 @interface uiprivDatePickerDelegateClass : NSObject <NSDatePickerCellDelegate> {
-	struct mapTable *pickers;
+	struct uiprivMap *pickers;
 }
 - (void)datePickerCell:(NSDatePickerCell *)aDatePickerCell validateProposedDateValue:(NSDate **)proposedDateValue timeInterval:(NSTimeInterval *)proposedTimeInterval;
 - (void)doTimer:(NSTimer *)timer;
@@ -23,13 +23,13 @@ struct uiDateTimePicker {
 {
 	self = [super init];
 	if (self)
-		self->pickers = newMap();
+		self->pickers = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->pickers);
+	uiprivMapDestroy(self->pickers);
 	[super dealloc];
 }
 
@@ -39,7 +39,7 @@ struct uiDateTimePicker {
 {
 	uiDateTimePicker *d;
 
-	d = (uiDateTimePicker *) mapGet(self->pickers, aDatePickerCell);
+	d = (uiDateTimePicker *) uiprivMapGet(self->pickers, aDatePickerCell);
 	[NSTimer scheduledTimerWithTimeInterval:0
 		target:self
 		selector:@selector(doTimer:)
@@ -57,14 +57,14 @@ struct uiDateTimePicker {
 
 - (void)registerPicker:(uiDateTimePicker *)d
 {
-	mapSet(self->pickers, d->dp.cell, d);
+	uiprivMapSet(self->pickers, d->dp.cell, d);
 	[d->dp setDelegate:self];
 }
 
 - (void)unregisterPicker:(uiDateTimePicker *)d
 {
 	[d->dp setDelegate:nil];
-	mapDelete(self->pickers, d->dp.cell);
+	uiprivMapDelete(self->pickers, d->dp.cell);
 }
 
 @end
@@ -129,7 +129,7 @@ static uiDateTimePicker *finishNewDateTimePicker(NSDatePickerElementFlags elemen
 
 	if (datePickerDelegate == nil) {
 		datePickerDelegate = [[uiprivDatePickerDelegateClass new] autorelease];
-		[delegates addObject:datePickerDelegate];
+		[uiprivDelegates addObject:datePickerDelegate];
 	}
 	[datePickerDelegate registerPicker:d];
 	uiDateTimePickerOnChanged(d, defaultOnChanged, NULL);

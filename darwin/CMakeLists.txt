@@ -57,11 +57,6 @@ list(APPEND _LIBUI_INCLUDEDIRS
 )
 set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
-set(_LIBUINAME libui PARENT_SCOPE)
-macro(_handle_static)
-	# do nothing
-endmacro()
-
 set(_LIBUI_LIBS
 	objc "-framework Foundation" "-framework AppKit"
 PARENT_SCOPE)

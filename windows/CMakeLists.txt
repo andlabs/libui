@@ -74,11 +74,6 @@ list(APPEND _LIBUI_INCLUDEDIRS
 )
 set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
-set(_LIBUINAME libui PARENT_SCOPE)
-macro(_handle_static)
-	# do nothing
-endmacro()
-
 # TODO prune this list
 set(_LIBUI_LIBS
 	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid

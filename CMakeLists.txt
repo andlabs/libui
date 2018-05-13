@@ -148,34 +148,33 @@ endmacro()
 
 add_subdirectory("common")
 add_subdirectory("${_OSNAME}")
-add_library(${_LIBUINAME} ${_LIBUI_SOURCES})
-target_include_directories(${_LIBUINAME}
+add_library(libui ${_LIBUI_SOURCES})
+target_include_directories(libui
 	PUBLIC .
 	PRIVATE ${_LIBUI_INCLUEDIRS})
-target_compile_definitions(${_LIBUINAME}
+target_compile_definitions(libui
 	PRIVATE ${_LIBUI_DEFS})
 # cmake produces this for us by default but only for shared libraries
-target_compile_definitions(${_LIBUINAME}
+target_compile_definitions(libui
 	PRIVATE libui_EXPORTS)
-target_compile_options(${_LIBUINAME}
+target_compile_options(libui
 	PUBLIC ${_COMMON_CFLAGS}
 	PRIVATE ${_LIBUI_CFLAGS})
 # TODO link directories?
 if(BUILD_SHARED_LIBS)
-	target_link_libraries(${_LIBUINAME}
+	target_link_libraries(libui
 		PRIVATE ${_LIBUI_LIBS})
 endif()
 # TODO INTERFACE libs don't inherit to grandhcildren?
 # on Windows the linker for static libraries is different; don't give it the flags
 if(BUILD_SHARED_LIBS)
-	_target_link_options_private(${_LIBUINAME}
+	_target_link_options_private(libui
 		_COMMON_LDFLAGS
 		_LIBUI_LDFLAGS)
 endif()
 if(NOT BUILD_SHARED_LIBS)
-	_handle_static()
 	# TODO figure out a way to tell libui that it's static
-	target_compile_definitions(${_LIBUINAME}
+	target_compile_definitions(libui
 		PUBLIC _UI_STATIC)
 endif()
 if(NOT MSVC)
@@ -200,7 +199,7 @@ if(NOT MSVC)
 endif()
 if(BUILD_SHARED_LIBS)
 	if(_HASVERSION)
-		set_target_properties(${_LIBUINAME} PROPERTIES
+		set_target_properties(libui PROPERTIES
 			SOVERSION "${_VERSION}")
 	endif()
 endif()

@@ -558,6 +558,7 @@ struct uiDateTimePicker {
 	uiprivDateTimePickerWidget *d;
 	void (*onChanged)(uiDateTimePicker *, void *);
 	void *onChangedData;
+	gulong setBlock;
 };
 
 uiUnixControlAllDefaults(uiDateTimePicker)
@@ -588,12 +589,17 @@ void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
 	time_t t;
 	struct tm tmbuf;
 
+	// TODO find a better way to avoid this; possibly by removing the signal entirely, or the call to dateTimeChanged() (most likely both)
+	g_signal_handler_block(d->d, d->setBlock);
+
 	// Copy time because mktime() modifies its argument
 	memcpy(&tmbuf, time, sizeof (struct tm));
 	t = mktime(&tmbuf);
 
 	uiprivDateTimePickerWidget_setTime(d->d, g_date_time_new_from_unix_local(t));
 	dateTimeChanged(d->d);
+
+	g_signal_handler_unblock(d->d, d->setBlock);
 }
 
 void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
@@ -647,7 +653,7 @@ uiDateTimePicker *finishNewDateTimePicker(GtkWidget *(*fn)(void))
 
 	d->widget = (*fn)();
 	d->d = uiprivDateTimePickerWidget(d->widget);
-	g_signal_connect(d->widget, "changed", G_CALLBACK(onChanged), d);
+	d->setBlock = g_signal_connect(d->widget, "changed", G_CALLBACK(onChanged), d);
 	uiDateTimePickerOnChanged(d, defaultOnChanged, NULL);
 
 	return d;

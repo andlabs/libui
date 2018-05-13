@@ -6,6 +6,7 @@ struct uiDateTimePicker {
 	NSDatePicker *dp;
 	void (*onChanged)(uiDateTimePicker *, void *);
 	void *onChangedData;
+	BOOL blockSendOnce;
 };
 
 // TODO see if target-action works here or not; I forgot what cody271@ originally said
@@ -54,6 +55,10 @@ struct uiDateTimePicker {
 
 	v = (NSValue *) [timer userInfo];
 	d = (uiDateTimePicker *) [v pointerValue];
+	if (d->blockSendOnce) {
+		d->blockSendOnce = NO;
+		return;
+	}
 	(*(d->onChanged))(d, d->onChangedData);
 }
 
@@ -105,6 +110,8 @@ void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
 	memcpy(&tmbuf, time, sizeof (struct tm));
 	t = mktime(&tmbuf);
 
+	// TODO get rid of the need for this
+	d->blockSendOnce = YES;
 	[d->dp setDateValue:[NSDate dateWithTimeIntervalSince1970:t]];
 }
 

@@ -17,7 +17,6 @@ const char *timeFormat(uiDateTimePicker *d)
 		fmt = "%X";
 	else
 		fmt = "";
-
 	return fmt;
 }
 
@@ -59,14 +58,19 @@ int onClosing(uiWindow *w, void *data)
 int main(void)
 {
 	uiInitOptions o;
+	const char *err;
 	uiWindow *w;
 	uiGrid *g;
 	uiLabel *l;
 	uiButton *b;
 
 	memset(&o, 0, sizeof (uiInitOptions));
-	if (uiInit(&o) != NULL)
-		abort();
+	err = uiInit(&o);
+	if (err != NULL) {
+		fprintf(stderr, "error initializing ui: %s\n", err);
+		uiFreeInitError(err);
+		return 1;
+	}
 
 	w = uiNewWindow("Date / Time", 320, 240, 0);
 	uiWindowSetMargined(w, 1);

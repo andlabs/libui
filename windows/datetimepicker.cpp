@@ -4,7 +4,7 @@
 struct uiDateTimePicker {
 	uiWindowsControl c;
 	HWND hwnd;
-	void(*onChanged)(uiDateTimePicker *, void *);
+	void (*onChanged)(uiDateTimePicker *, void *);
 	void *onChangedData;
 };
 
@@ -191,10 +191,9 @@ void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
 	toSystemTime(time, &systime);
 	if (SendMessageW(d->hwnd, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM) (&systime)) == 0)
 		logLastError(L"error setting date and time");
-	(*(d->onChanged))(d, d->onChangedData);
 }
 
-void uiDateTimePickerOnChanged(uiDateTimePicker *d, void(*f)(uiDateTimePicker *, void *), void *data)
+void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
 {
 	d->onChanged = f;
 	d->onChangedData = data;

@@ -116,6 +116,7 @@ static void dateTimeChanged(uiprivDateTimePickerWidget *d)
 {
 	g_signal_emit(d, changedSignal, 0);
 	setLabel(d);
+	// TODO fire event here instead?
 }
 
 // we don't want ::toggled to be sent again
@@ -579,7 +580,7 @@ void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
 	// Copy time to minimize a race condition
 	// time.h functions use global non-thread-safe data
 	tmbuf = *localtime(&t);
-	memcpy(time, &tmbuf, sizeof(struct tm));
+	memcpy(time, &tmbuf, sizeof (struct tm));
 }
 
 void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
@@ -588,7 +589,7 @@ void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
 	struct tm tmbuf;
 
 	// Copy time because mktime() modifies its argument
-	memcpy(&tmbuf, time, sizeof(struct tm));
+	memcpy(&tmbuf, time, sizeof (struct tm));
 	t = mktime(&tmbuf);
 
 	uiprivDateTimePickerWidget_setTime(d->d, g_date_time_new_from_unix_local(t));

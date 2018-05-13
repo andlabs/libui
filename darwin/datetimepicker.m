@@ -8,8 +8,10 @@ struct uiDateTimePicker {
 	void *onChangedData;
 };
 
-@interface uiprivDatePickerDelegateClass : NSObject <NSDatePickerCellDelegate> {
-	struct uiprivMap *pickers;
+// TODO see if target-action works here or not; I forgot what cody271@ originally said
+// the primary advantage of the delegate is the ability to reject changes, but libui doesn't support that yet — we should consider that API option as well
+@interface uiprivDatePickerDelegateClass : NSObject<NSDatePickerCellDelegate> {
+	uiprivMap *pickers;
 }
 - (void)datePickerCell:(NSDatePickerCell *)aDatePickerCell validateProposedDateValue:(NSDate **)proposedDateValue timeInterval:(NSTimeInterval *)proposedTimeInterval;
 - (void)doTimer:(NSTimer *)timer;
@@ -33,13 +35,11 @@ struct uiDateTimePicker {
 	[super dealloc];
 }
 
-- (void)datePickerCell:(NSDatePickerCell *)aDatePickerCell
-	validateProposedDateValue:(NSDate **)proposedDateValue
-	timeInterval:(NSTimeInterval *)proposedTimeInterval
+- (void)datePickerCell:(NSDatePickerCell *)cell validateProposedDateValue:(NSDate **)proposedDateValue timeInterval:(NSTimeInterval *)proposedTimeInterval
 {
 	uiDateTimePicker *d;
 
-	d = (uiDateTimePicker *) uiprivMapGet(self->pickers, aDatePickerCell);
+	d = (uiDateTimePicker *) uiprivMapGet(self->pickers, cell);
 	[NSTimer scheduledTimerWithTimeInterval:0
 		target:self
 		selector:@selector(doTimer:)
@@ -49,9 +49,11 @@ struct uiDateTimePicker {
 
 - (void)doTimer:(NSTimer *)timer
 {
+	NSValue *v;
 	uiDateTimePicker *d;
 
-	d = (uiDateTimePicker *) [((NSValue *)[timer userInfo]) pointerValue];
+	v = (NSValue *) [timer userInfo];
+	d = (uiDateTimePicker *) [v pointerValue];
 	(*(d->onChanged))(d, d->onChangedData);
 }
 
@@ -78,6 +80,7 @@ static void defaultOnChanged(uiDateTimePicker *d, void *data)
 	// do nothing
 }
 
+// TODO consider using NSDateComponents iff we ever need the extra accuracy of not using NSTimeInterval
 void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
 {
 	time_t t;
@@ -90,7 +93,7 @@ void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
 	// Copy time to minimize a race condition
 	// time.h functions use global non-thread-safe data
 	tmbuf = *localtime(&t);
-	memcpy(time, &tmbuf, sizeof(struct tm));
+	memcpy(time, &tmbuf, sizeof (struct tm));
 }
 
 void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
@@ -99,7 +102,7 @@ void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
 	struct tm tmbuf;
 
 	// Copy time because mktime() modifies its argument
-	memcpy(&tmbuf, time, sizeof(struct tm));
+	memcpy(&tmbuf, time, sizeof (struct tm));
 	t = mktime(&tmbuf);
 
 	[d->dp setDateValue:[NSDate dateWithTimeIntervalSince1970:t]];

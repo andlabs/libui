@@ -58,6 +58,9 @@ This README is being written.<br>
 
 *Note that today's entry (Eastern Time) may be updated later today.*
 
+* **13 May 2018**
+	* Release builds on Windows with MSVC should be fixed now; thanks @l0calh05t, @slahn, @mischnic, and @zentner-kyle.
+
 * **12 May 2018**
 	* GTK+ and OS X now have a cleaner build process for static libraries which no longer has intermediate files and differing configurations. As a result, certain issues should no longer be present. New naming rules for internal symbols of libui have also started being drafted; runtime symbols and edge cases still need to be handled (and the rules applied to Windows) before this can become a regular thing.
 

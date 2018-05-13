@@ -27,6 +27,7 @@ set(MSVC_INCREMENTAL_DEFAULT ON)
 
 # default to debug builds
 # do this before project() just to be safe
+# either DEBUG or Debug will work; we use DEBUG as that's what cmake does internally (https://cmake.org/pipermail/cmake/2013-June/055177.html)
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "" FORCE)
 endif()
@@ -75,6 +76,7 @@ if(MSVC)
 	# TODO /sdl turns C4996 into an ERROR
 	# don't use /analyze; that requires us to write annotations everywhere
 	# TODO undecided flags from qo?
+	# the RTC flags are only supplied in debug builds because they are only supposed to be used by debug builds (see "This is because run-time error checks are not valid in a release (optimized) build." in https://docs.microsoft.com/cpp/build/reference/rtc-run-time-error-checks)
 	# /RTCc is not supplied because it's discouraged as of VS2015; see https://www.reddit.com/r/cpp/comments/46mhne/rtcc_rejects_conformant_code_with_visual_c_2015/d06auq5
 	# /EHsc is to shut the compiler up in some cases
 	# TODO make /EHsc C++-only

@@ -2,77 +2,51 @@ version: 'build #{build}'
 
 environment:
   matrix:
-    - BUILD_TYPE: shared-windows-msvc2013-386
-      CMAKE_FLAGS: -G "Visual Studio 12 2013"
+    - linking: shared
+      compiler: msvc2013
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-
-    - BUILD_TYPE: static-windows-msvc2013-386
-      CMAKE_FLAGS: -G "Visual Studio 12 2013" -DBUILD_SHARED_LIBS=OFF
+    - linking: static
+      compiler: msvc2013
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-
-    - BUILD_TYPE: shared-windows-msvc2013-amd64
-      CMAKE_FLAGS: -G "Visual Studio 12 2013 Win64"
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-
-    - BUILD_TYPE: static-windows-msvc2013-amd64
-      CMAKE_FLAGS: -G "Visual Studio 12 2013 Win64" -DBUILD_SHARED_LIBS=OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-
-    - BUILD_TYPE: shared-windows-msvc2015-386
-      CMAKE_FLAGS: -G "Visual Studio 14 2015"
+    - linking: shared
+      compiler: msvc2015
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-
-    - BUILD_TYPE: static-windows-msvc2015-386
-      CMAKE_FLAGS: -G "Visual Studio 14 2015" -DBUILD_SHARED_LIBS=OFF
+    - linking: static
+      compiler: msvc2015
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-
-    - BUILD_TYPE: shared-windows-msvc2015-amd64
-      CMAKE_FLAGS: -G "Visual Studio 14 2015 Win64"
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-
-    - BUILD_TYPE: static-windows-msvc2015-amd64
-      CMAKE_FLAGS: -G "Visual Studio 14 2015 Win64" -DBUILD_SHARED_LIBS=OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-
-    - BUILD_TYPE: shared-windows-msvc2017-386
-      CMAKE_FLAGS: -G "Visual Studio 15 2017"
+    - linking: shared
+      compiler: msvc2017
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-
-    - BUILD_TYPE: static-windows-msvc2017-386
-      CMAKE_FLAGS: -G "Visual Studio 15 2017" -DBUILD_SHARED_LIBS=OFF
+    - linking: static
+      compiler: msvc2017
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-
-    - BUILD_TYPE: shared-windows-msvc2017-amd64
-      CMAKE_FLAGS: -G "Visual Studio 15 2017 Win64"
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-
-    - BUILD_TYPE: static-windows-msvc2017-amd64
-      CMAKE_FLAGS: -G "Visual Studio 15 2017 Win64" -DBUILD_SHARED_LIBS=OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-
-    - BUILD_TYPE: static-windows-mingw-386
-      MINGW_PATH: C:\msys64\mingw32\bin
-      CMAKE_FLAGS: -G "MinGW Makefiles" -DBUILD_SHARED_LIBS=OFF
+    - linking: static
+      compiler: mingw
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
-    - BUILD_TYPE: static-windows-mingw-amd64
-      MINGW_PATH: C:\msys64\mingw64\bin
-      CMAKE_FLAGS: -G "MinGW Makefiles" -DBUILD_SHARED_LIBS=OFF
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-
+platform:
+  - Win32
+  - x64
 
 before_build:
-    - if defined MINGW_PATH (
-        set "PATH=%MINGW_PATH%;%PATH:C:\Program Files\Git\usr\bin;=%"
-      )
+  - if %compiler%==msvc2013      ( set "CMAKE_GENERATOR=Visual Studio 12 2013" )
+    else if %compiler%==msvc2015 ( set "CMAKE_GENERATOR=Visual Studio 14 2015" )
+    else if %compiler%==msvc2017 ( set "CMAKE_GENERATOR=Visual Studio 15 2017" )
+    else if %compiler%==mingw    ( set "CMAKE_GENERATOR=MinGW Makefiles" )
+  - if %compiler%-%platform%==mingw-Win32    ( set "PATH=C:\msys64\mingw32\bin;%PATH%" )
+    else if %compiler%-%platform%==mingw-x64 ( set "PATH=C:\msys64\mingw64\bin;%PATH%" )
+    else if %platform%==x64 ( set "CMAKE_GENERATOR=%CMAKE_GENERATOR% Win64" )
+  - if %linking%==static ( set CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF )
+  - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
 
 build_script:
-    - mkdir build
-    - if defined MINGW_PATH (
-        pushd build && cmake %CMAKE_FLAGS% .. && mingw32-make tester examples && popd
-      ) else (
-        pushd build && cmake %CMAKE_FLAGS% .. && msbuild libui.sln /t:Build /p:Configuration=Release && popd
-      )
+  - md build && cd build
+  - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
+  - if %compiler%==mingw ( mingw32-make tester examples )
+    else ( msbuild libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
 
 after_build:
-    - dir /S build\out
+  - if %platform%==x64 ( set "platform=amd64" ) else ( set "platform=386" )
+  - echo set "target=%linking%-windows-%compiler%-%platform%"
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - dir /S build\out

@@ -37,6 +37,7 @@ before_build:
     else if %compiler%-%platform%==mingw-x64 ( set "PATH=C:\msys64\mingw64\bin;%PATH%" )
     else if %platform%==x64 ( set "CMAKE_GENERATOR=%CMAKE_GENERATOR% Win64" )
   - if %linking%==static ( set CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF )
+  - if %compiler%==mingw ( set "outdir=build\out" ) else ( set "outdir=build\out\Release" )
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
 
 build_script:
@@ -44,9 +45,28 @@ build_script:
   - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
   - if %compiler%==mingw ( mingw32-make tester examples )
     else ( msbuild libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
+  - cd %APPVEYOR_BUILD_FOLDER%
 
 after_build:
   - if %platform%==x64 ( set "platform=amd64" ) else ( set "platform=386" )
-  - echo set "target=%linking%-windows-%compiler%-%platform%"
-  - cd %APPVEYOR_BUILD_FOLDER%
-  - dir /S build\out
+  - if %APPVEYOR_REPO_TAG%==true ( set "version=%APPVEYOR_REPO_TAG_NAME%" )
+    else ( set "version=%APPVEYOR_REPO_BRANCH%" )
+  - set "artifact=%linking%-windows-%compiler%-%platform%-%version%"
+  - 7z a libui-%artifact%.zip .\%outdir%\libui.* ui.h ui_windows.h
+  - 7z l libui-%artifact%.zip
+  - 7z a examples-%artifact%.zip .\%outdir%\*.exe
+  - 7z l examples-%artifact%.zip
+
+artifacts:
+  - path: libui-*.zip
+    name: libui
+  - path: examples-*.zip
+    name: examples
+
+deploy:
+  provider: GitHub
+  artifact: libui, examples
+  auth_token:
+    secure: "2l/602m6FkqAB9TTIAkPX3Erfwg9jVTlf/Inmf2dWcbOrJJzK/WrCUIgY3B4ngly"
+  on:
+    appveyor_repo_tag: true # deploy on tag push only

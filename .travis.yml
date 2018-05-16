@@ -65,8 +65,29 @@ install:
 script:
   - cmake --version
   - mkdir build
-  - pushd build && cmake ${CMAKE_FLAGS} .. && make tester examples && popd
+  - pushd build
+  - cmake -G "Unix Makefiles" ${CMAKE_FLAGS} ..
+  - make tester examples
+  - popd
 
 after_success:
   - ls -lR build/out
   - file build/out/test
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then cp ui.h ui_darwin.h build/out/; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cp ui.h ui_unix.h   build/out/; fi
+  - if [[ "x${TRAVIS_TAG}" != "x" ]]; then export version=${TRAVIS_TAG}; else export version=${TRAVIS_BRANCH}; fi
+  - export artifact=${linking}-${TRAVIS_OS_NAME}-${platform}-${version}
+  - pushd build/out
+  - tar -czvf libui-${artifact}.tgz libui.* *.h
+  - tar -czvf examples-${artifact}.tgz `find . -type f ! -name "*.*"`
+  - popd
+
+deploy:
+  provider: releases
+  api_key:
+    secure: MFpee9M8kzihNg7KmQQjtznIHmfTF88EVhkY5FcM3CZUg6XfNE8YDPRLhWnH9/Oyrn1WjL37UabrJSrMYoz44s7yqyKeGK0rXIpV2i9gGMdGDxe94iCrPdvcwK2BysDd7pfwDPy1EtM8nxCQHv7d01PPT+w0hDCjBAMbILOh0IHB4yDvwyZOy6ReWas3/co3djjfjHk5XCUm54cT2mxu3U5CHQY9gsJWVaom9eINLjtDkTgbStxGSuXXmeRGzpFReR5dF4KK/IVs2GbayNfWOS8Xqhgk5uKFalWaH4P+F5ACf4zH78mhK+FiDWCkhzB6/N+mJOwl6BV9BjUv9/4+pNDQVYZvc0P19Kv8wzQsL3jMJ/SRFf4tdIeoDgRFOrq0QL7JajWq16zazbhP6PiIEfcNKdbqlvVoG7LheUsSkbVbmV439He3oykA7Tbc+dBPn+8hRdpsyoG8CyY/8nDS+E8mMxU5JvRfmlc93ZL6uxAOeIW/w8V70/upb/Tdk4d2pEeihisdL24Ys5CYzbVJAyP6Vx4y5yyKrA1RSq0pBkjzc9DJI811c4XLiLpv8jglYomN4PHk5e7GEW7n7HYSTf3gXB4HgVt5fnDudhTHErRKtzxxiBKXMYLmaCUv5mOEjSu4hRZq4v0e/VbzbfGlFoMsB9krzd9JIk7Fl1FbkNo=
+  file: build/out/*.tgz
+  file_glob: true
+  skip_cleanup: true
+  on:
+    tags: true

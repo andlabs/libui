@@ -10,7 +10,7 @@ struct uiWindow {
 	int margined;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
-	struct singleChildConstraints constraints;
+	uiprivSingleChildConstraints constraints;
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
 	BOOL suppressSizeChanged;
@@ -18,22 +18,22 @@ struct uiWindow {
 	int borderless;
 };
 
-@implementation libuiNSWindow
+@implementation uiprivNSWindow
 
-- (void)libui_doMove:(NSEvent *)initialEvent
+- (void)uiprivDoMove:(NSEvent *)initialEvent
 {
-	doManualMove(self, initialEvent);
+	uiprivDoManualMove(self, initialEvent);
 }
 
-- (void)libui_doResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge
+- (void)uiprivDoResize:(NSEvent *)initialEvent on:(uiWindowResizeEdge)edge
 {
-	doManualResize(self, initialEvent, edge);
+	uiprivDoManualResize(self, initialEvent, edge);
 }
 
 @end
 
 @interface windowDelegateClass : NSObject<NSWindowDelegate> {
-	struct mapTable *windows;
+	uiprivMap *windows;
 }
 - (BOOL)windowShouldClose:(id)sender;
 - (void)windowDidResize:(NSNotification *)note;
@@ -50,13 +50,13 @@ struct uiWindow {
 {
 	self = [super init];
 	if (self)
-		self->windows = newMap();
+		self->windows = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->windows);
+	uiprivMapDestroy(self->windows);
 	[super dealloc];
 }
 
@@ -100,21 +100,21 @@ struct uiWindow {
 
 - (void)registerWindow:(uiWindow *)w
 {
-	mapSet(self->windows, w->window, w);
+	uiprivMapSet(self->windows, w->window, w);
 	[w->window setDelegate:self];
 }
 
 - (void)unregisterWindow:(uiWindow *)w
 {
 	[w->window setDelegate:nil];
-	mapDelete(self->windows, w->window);
+	uiprivMapDelete(self->windows, w->window);
 }
 
 - (uiWindow *)lookupWindow:(NSWindow *)w
 {
 	uiWindow *v;
 
-	v = uiWindow(mapGet(self->windows, w));
+	v = uiWindow(uiprivMapGet(self->windows, w));
 	// this CAN (and IS ALLOWED TO) return NULL, just in case we're called with some OS X-provided window as the key window
 	return v;
 }
@@ -128,7 +128,7 @@ static void removeConstraints(uiWindow *w)
 	NSView *cv;
 
 	cv = [w->window contentView];
-	singleChildConstraintsRemove(&(w->constraints), cv);
+	uiprivSingleChildConstraintsRemove(&(w->constraints), cv);
 }
 
 static void uiWindowDestroy(uiControl *c)
@@ -215,7 +215,7 @@ static void windowRelayout(uiWindow *w)
 		return;
 	childView = (NSView *) uiControlHandle(w->child);
 	contentView = [w->window contentView];
-	singleChildConstraintsEstablish(&(w->constraints),
+	uiprivSingleChildConstraintsEstablish(&(w->constraints),
 		contentView, childView,
 		uiDarwinControlHugsTrailingEdge(uiDarwinControl(w->child)),
 		uiDarwinControlHugsBottom(uiDarwinControl(w->child)),
@@ -252,7 +252,7 @@ char *uiWindowTitle(uiWindow *w)
 
 void uiWindowSetTitle(uiWindow *w, const char *title)
 {
-	[w->window setTitle:toNSString(title)];
+	[w->window setTitle:uiprivToNSString(title)];
 }
 
 void uiWindowContentSize(uiWindow *w, int *width, int *height)
@@ -354,7 +354,7 @@ int uiWindowMargined(uiWindow *w)
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	singleChildConstraintsSetMargined(&(w->constraints), w->margined);
+	uiprivSingleChildConstraintsSetMargined(&(w->constraints), w->margined);
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -371,15 +371,15 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindow *w;
 
-	finalizeMenus();
+	uiprivFinalizeMenus();
 
 	uiDarwinNewControl(uiWindow, w);
 
-	w->window = [[libuiNSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
+	w->window = [[uiprivNSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
 		styleMask:defaultStyleMask
 		backing:NSBackingStoreBuffered
 		defer:YES];
-	[w->window setTitle:toNSString(title)];
+	[w->window setTitle:uiprivToNSString(title)];
 
 	// do NOT release when closed
 	// we manually do this in uiWindowDestroy() above
@@ -387,7 +387,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	if (windowDelegate == nil) {
 		windowDelegate = [[windowDelegateClass new] autorelease];
-		[delegates addObject:windowDelegate];
+		[uiprivDelegates addObject:windowDelegate];
 	}
 	[windowDelegate registerWindow:w];
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
@@ -397,7 +397,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 }
 
 // utility function for menus
-uiWindow *windowFromNSWindow(NSWindow *w)
+uiWindow *uiprivWindowFromNSWindow(NSWindow *w)
 {
 	if (w == nil)
 		return NULL;

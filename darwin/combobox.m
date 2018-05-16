@@ -14,7 +14,7 @@ struct uiCombobox {
 };
 
 @interface comboboxDelegateClass : NSObject {
-	struct mapTable *comboboxes;
+	uiprivMap *comboboxes;
 }
 - (IBAction)onSelected:(id)sender;
 - (void)registerCombobox:(uiCombobox *)c;
@@ -27,13 +27,13 @@ struct uiCombobox {
 {
 	self = [super init];
 	if (self)
-		self->comboboxes = newMap();
+		self->comboboxes = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->comboboxes);
+	uiprivMapDestroy(self->comboboxes);
 	[super dealloc];
 }
 
@@ -41,13 +41,13 @@ struct uiCombobox {
 {
 	uiCombobox *c;
 
-	c = uiCombobox(mapGet(self->comboboxes, sender));
+	c = uiCombobox(uiprivMapGet(self->comboboxes, sender));
 	(*(c->onSelected))(c, c->onSelectedData);
 }
 
 - (void)registerCombobox:(uiCombobox *)c
 {
-	mapSet(self->comboboxes, c->pb, c);
+	uiprivMapSet(self->comboboxes, c->pb, c);
 	[c->pb setTarget:self];
 	[c->pb setAction:@selector(onSelected:)];
 }
@@ -55,7 +55,7 @@ struct uiCombobox {
 - (void)unregisterCombobox:(uiCombobox *)c
 {
 	[c->pb setTarget:nil];
-	mapDelete(self->comboboxes, c->pb);
+	uiprivMapDelete(self->comboboxes, c->pb);
 }
 
 @end
@@ -78,7 +78,7 @@ static void uiComboboxDestroy(uiControl *cc)
 
 void uiComboboxAppend(uiCombobox *c, const char *text)
 {
-	[c->pbac addObject:toNSString(text)];
+	[c->pbac addObject:uiprivToNSString(text)];
 }
 
 int uiComboboxSelected(uiCombobox *c)
@@ -136,7 +136,7 @@ uiCombobox *uiNewCombobox(void)
 
 	if (comboboxDelegate == nil) {
 		comboboxDelegate = [[comboboxDelegateClass new] autorelease];
-		[delegates addObject:comboboxDelegate];
+		[uiprivDelegates addObject:comboboxDelegate];
 	}
 	[comboboxDelegate registerCombobox:c];
 	uiComboboxOnSelected(c, defaultOnSelected, NULL);

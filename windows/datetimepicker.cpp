@@ -4,6 +4,8 @@
 struct uiDateTimePicker {
 	uiWindowsControl c;
 	HWND hwnd;
+	void (*onChanged)(uiDateTimePicker *, void *);
+	void *onChangedData;
 };
 
 // utility functions
@@ -103,6 +105,7 @@ static void uiDateTimePickerDestroy(uiControl *c)
 	uiDateTimePicker *d = uiDateTimePicker(c);
 
 	uiWindowsUnregisterReceiveWM_WININICHANGE(d->hwnd);
+	uiWindowsUnregisterWM_NOTIFYHandler(d->hwnd);
 	uiWindowsEnsureDestroyWindow(d->hwnd);
 	uiFreeControl(uiControl(d));
 }
@@ -131,6 +134,71 @@ static void uiDateTimePickerMinimumSize(uiWindowsControl *c, int *width, int *he
 	*height = y;
 }
 
+static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
+{
+	uiDateTimePicker *d = uiDateTimePicker(c);
+
+	if (nmhdr->code != DTN_DATETIMECHANGE)
+		return FALSE;
+	(*(d->onChanged))(d, d->onChangedData);
+	*lResult = 0;
+	return TRUE;
+}
+
+static void fromSystemTime(SYSTEMTIME *systime, struct tm *time)
+{
+	ZeroMemory(time, sizeof (struct tm));
+	time->tm_sec = systime->wSecond;
+	time->tm_min = systime->wMinute;
+	time->tm_hour = systime->wHour;
+	time->tm_mday = systime->wDay;
+	time->tm_mon = systime->wMonth - 1;
+	time->tm_year = systime->wYear - 1900;
+	time->tm_wday = systime->wDayOfWeek;
+	time->tm_isdst = -1;
+}
+
+static void toSystemTime(const struct tm *time, SYSTEMTIME *systime)
+{
+	ZeroMemory(systime, sizeof (SYSTEMTIME));
+	systime->wYear = time->tm_year + 1900;
+	systime->wMonth = time->tm_mon + 1;
+	systime->wDayOfWeek = time->tm_wday;
+	systime->wDay = time->tm_mday;
+	systime->wHour = time->tm_hour;
+	systime->wMinute = time->tm_min;
+	systime->wSecond = time->tm_sec;
+}
+
+static void defaultOnChanged(uiDateTimePicker *d, void *data)
+{
+	// do nothing
+}
+
+void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time)
+{
+	SYSTEMTIME systime;
+
+	if (SendMessageW(d->hwnd, DTM_GETSYSTEMTIME, 0, (LPARAM) (&systime)) != GDT_VALID)
+		logLastError(L"error getting date and time");
+	fromSystemTime(&systime, time);
+}
+
+void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time)
+{
+	SYSTEMTIME systime;
+
+	toSystemTime(time, &systime);
+	if (SendMessageW(d->hwnd, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM) (&systime)) == 0)
+		logLastError(L"error setting date and time");
+}
+
+void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data)
+{
+	d->onChanged = f;
+	d->onChangedData = data;
+}
+
 static uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 {
 	uiDateTimePicker *d;
@@ -147,6 +215,8 @@ static uiDateTimePicker *finishNewDateTimePicker(DWORD style)
 	// for the standard styles, this is in the date-time picker itself
 	// for our date/time mode, we do it in a subclass assigned in uiNewDateTimePicker()
 	uiWindowsRegisterReceiveWM_WININICHANGE(d->hwnd);
+	uiWindowsRegisterWM_NOTIFYHandler(d->hwnd, onWM_NOTIFY, uiControl(d));
+	uiDateTimePickerOnChanged(d, defaultOnChanged, NULL);
 
 	return d;
 }

@@ -122,7 +122,7 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	uiAreaDrawParams dp;
 	double clipX0, clipY0, clipX1, clipY1;
 
-	dp.Context = newContext(cr,
+	dp.Context = uiprivNewContext(cr,
 		gtk_widget_get_style_context(a->widget));
 
 	loadAreaSize(a, &(dp.AreaWidth), &(dp.AreaHeight));
@@ -136,7 +136,7 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	// no need to save or restore the graphics state to reset transformations; GTK+ does that for us
 	(*(a->ah->Draw))(a->ah, a, &dp);
 
-	freeContext(dp.Context);
+	uiprivFreeContext(dp.Context);
 	return FALSE;
 }
 

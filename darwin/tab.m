@@ -4,7 +4,7 @@
 // TODO need to jiggle on tab change too (second page disabled tab label initially ambiguous)
 
 @interface tabPage : NSObject {
-	struct singleChildConstraints constraints;
+	uiprivSingleChildConstraints constraints;
 	int margined;
 	NSView *view;		// the NSTabViewItem view itself
 	NSObject *pageID;
@@ -58,7 +58,7 @@ struct uiTab {
 	[self removeChildConstraints];
 	if (self.c == NULL)
 		return;
-	singleChildConstraintsEstablish(&(self->constraints),
+	uiprivSingleChildConstraintsEstablish(&(self->constraints),
 		self->view, [self childView],
 		uiDarwinControlHugsTrailingEdge(uiDarwinControl(self.c)),
 		uiDarwinControlHugsBottom(uiDarwinControl(self.c)),
@@ -68,7 +68,7 @@ struct uiTab {
 
 - (void)removeChildConstraints
 {
-	singleChildConstraintsRemove(&(self->constraints), self->view);
+	uiprivSingleChildConstraintsRemove(&(self->constraints), self->view);
 }
 
 - (int)isMargined
@@ -79,7 +79,7 @@ struct uiTab {
 - (void)setMargined:(int)m
 {
 	self->margined = m;
-	singleChildConstraintsSetMargined(&(self->constraints), self->margined);
+	uiprivSingleChildConstraintsSetMargined(&(self->constraints), self->margined);
 }
 
 @end
@@ -136,7 +136,7 @@ static void tabRelayout(uiTab *t)
 	for (page in t->pages)
 		[page establishChildConstraints];
 	// and this gets rid of some weird issues with regards to box alignment
-	jiggleViewLayout(t->tabview);
+	uiprivJiggleViewLayout(t->tabview);
 }
 
 BOOL uiTabHugsTrailingEdge(uiDarwinControl *c)
@@ -220,7 +220,7 @@ void uiTabInsertAt(uiTab *t, const char *name, int n, uiControl *child)
 	[t->pages insertObject:page atIndex:n];
 
 	i = [[[NSTabViewItem alloc] initWithIdentifier:pageID] autorelease];
-	[i setLabel:toNSString(name)];
+	[i setLabel:uiprivToNSString(name)];
 	[i setView:view];
 	[t->tabview insertTabViewItem:i atIndex:n];
 

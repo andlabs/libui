@@ -117,7 +117,7 @@ uiDarwinControlAllDefaults(uiColorButton, button)
 
 // we do not want color change events to be sent to any controls other than the color buttons
 // see main.m for more details
-BOOL colorButtonInhibitSendAction(SEL sel, id from, id to)
+BOOL uiprivColorButtonInhibitSendAction(SEL sel, id from, id to)
 {
 	if (sel != @selector(changeColor:))
 		return NO;

@@ -9,7 +9,7 @@ struct uiCheckbox {
 };
 
 @interface checkboxDelegateClass : NSObject {
-	struct mapTable *buttons;
+	uiprivMap *buttons;
 }
 - (IBAction)onToggled:(id)sender;
 - (void)registerCheckbox:(uiCheckbox *)c;
@@ -22,13 +22,13 @@ struct uiCheckbox {
 {
 	self = [super init];
 	if (self)
-		self->buttons = newMap();
+		self->buttons = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->buttons);
+	uiprivMapDestroy(self->buttons);
 	[super dealloc];
 }
 
@@ -36,13 +36,13 @@ struct uiCheckbox {
 {
 	uiCheckbox *c;
 
-	c = (uiCheckbox *) mapGet(self->buttons, sender);
+	c = (uiCheckbox *) uiprivMapGet(self->buttons, sender);
 	(*(c->onToggled))(c, c->onToggledData);
 }
 
 - (void)registerCheckbox:(uiCheckbox *)c
 {
-	mapSet(self->buttons, c->button, c);
+	uiprivMapSet(self->buttons, c->button, c);
 	[c->button setTarget:self];
 	[c->button setAction:@selector(onToggled:)];
 }
@@ -50,7 +50,7 @@ struct uiCheckbox {
 - (void)unregisterCheckbox:(uiCheckbox *)c
 {
 	[c->button setTarget:nil];
-	mapDelete(self->buttons, c->button);
+	uiprivMapDelete(self->buttons, c->button);
 }
 
 @end
@@ -75,7 +75,7 @@ char *uiCheckboxText(uiCheckbox *c)
 
 void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
-	[c->button setTitle:toNSString(text)];
+	[c->button setTitle:uiprivToNSString(text)];
 }
 
 void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)
@@ -111,7 +111,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiDarwinNewControl(uiCheckbox, c);
 
 	c->button = [[NSButton alloc] initWithFrame:NSZeroRect];
-	[c->button setTitle:toNSString(text)];
+	[c->button setTitle:uiprivToNSString(text)];
 	[c->button setButtonType:NSSwitchButton];
 	// doesn't seem to have an associated bezel style
 	[c->button setBordered:NO];
@@ -120,7 +120,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 
 	if (checkboxDelegate == nil) {
 		checkboxDelegate = [[checkboxDelegateClass new] autorelease];
-		[delegates addObject:checkboxDelegate];
+		[uiprivDelegates addObject:checkboxDelegate];
 	}
 	[checkboxDelegate registerCheckbox:c];
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);

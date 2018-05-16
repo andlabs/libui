@@ -87,7 +87,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	NSLayoutConstraint *constraint;
 
 	b = [[NSButton alloc] initWithFrame:NSZeroRect];
-	[b setTitle:toNSString(text)];
+	[b setTitle:uiprivToNSString(text)];
 	[b setButtonType:NSRadioButton];
 	// doesn't seem to have an associated bezel style
 	[b setBordered:NO];
@@ -102,14 +102,14 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	[r->view addSubview:b];
 
 	// pin horizontally to the edges of the superview
-	constraint = mkConstraint(b, NSLayoutAttributeLeading,
+	constraint = uiprivMkConstraint(b, NSLayoutAttributeLeading,
 		NSLayoutRelationEqual,
 		r->view, NSLayoutAttributeLeading,
 		1, 0,
 		@"uiRadioButtons button leading constraint");
 	[r->view addConstraint:constraint];
 	[r->constraints addObject:constraint];
-	constraint = mkConstraint(b, NSLayoutAttributeTrailing,
+	constraint = uiprivMkConstraint(b, NSLayoutAttributeTrailing,
 		NSLayoutRelationEqual,
 		r->view, NSLayoutAttributeTrailing,
 		1, 0,
@@ -120,14 +120,14 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	// if this is the first view, pin it to the top
 	// otherwise pin to the bottom of the last
 	if ([r->buttons count] == 1)
-		constraint = mkConstraint(b, NSLayoutAttributeTop,
+		constraint = uiprivMkConstraint(b, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			r->view, NSLayoutAttributeTop,
 			1, 0,
 			@"uiRadioButtons first button top constraint");
 	else {
 		b2 = buttonAt(r, [r->buttons count] - 2);
-		constraint = mkConstraint(b, NSLayoutAttributeTop,
+		constraint = uiprivMkConstraint(b, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			b2, NSLayoutAttributeBottom,
 			1, 0,
@@ -144,7 +144,7 @@ void uiRadioButtonsAppend(uiRadioButtons *r, const char *text)
 	}
 
 	// and make the new bottom constraint
-	r->lastv = mkConstraint(b, NSLayoutAttributeBottom,
+	r->lastv = uiprivMkConstraint(b, NSLayoutAttributeBottom,
 		NSLayoutRelationEqual,
 		r->view, NSLayoutAttributeBottom,
 		1, 0,

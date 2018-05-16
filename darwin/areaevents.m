@@ -129,7 +129,7 @@ static const struct {
 	{ 0xFFFF, 0 },
 };
 
-BOOL fromKeycode(unsigned short keycode, uiAreaKeyEvent *ke)
+BOOL uiprivFromKeycode(unsigned short keycode, uiAreaKeyEvent *ke)
 {
 	int i;
 
@@ -146,7 +146,7 @@ BOOL fromKeycode(unsigned short keycode, uiAreaKeyEvent *ke)
 	return NO;
 }
 
-BOOL keycodeModifier(unsigned short keycode, uiModifiers *mod)
+BOOL uiprivKeycodeModifier(unsigned short keycode, uiModifiers *mod)
 {
 	int i;
 

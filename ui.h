@@ -248,8 +248,13 @@ _UI_EXTERN void uiRadioButtonsSetSelected(uiRadioButtons *r, int n);
 _UI_EXTERN void uiRadioButtonsOnSelected(uiRadioButtons *r, void (*f)(uiRadioButtons *, void *), void *data);
 _UI_EXTERN uiRadioButtons *uiNewRadioButtons(void);
 
+struct tm;
 typedef struct uiDateTimePicker uiDateTimePicker;
 #define uiDateTimePicker(this) ((uiDateTimePicker *) (this))
+// TODO document that tm_wday and tm_yday are undefined, and tm_isdst should be -1
+_UI_EXTERN void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time);
+_UI_EXTERN void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time);
+_UI_EXTERN void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data);
 _UI_EXTERN uiDateTimePicker *uiNewDateTimePicker(void);
 _UI_EXTERN uiDateTimePicker *uiNewDatePicker(void);
 _UI_EXTERN uiDateTimePicker *uiNewTimePicker(void);

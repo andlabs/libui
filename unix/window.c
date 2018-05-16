@@ -70,7 +70,7 @@ static void uiWindowDestroy(uiControl *c)
 	}
 	// now destroy the menus, if any
 	if (w->menubar != NULL)
-		freeMenubar(w->menubar);
+		uiprivFreeMenubar(w->menubar);
 	gtk_widget_destroy(w->childHolderWidget);
 	gtk_widget_destroy(w->vboxWidget);
 	// and finally free ourselves
@@ -226,7 +226,7 @@ int uiWindowMargined(uiWindow *w)
 void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
-	setMargined(w->childHolderContainer, w->margined);
+	uiprivSetMargined(w->childHolderContainer, w->margined);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
@@ -250,7 +250,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	gtk_container_add(w->container, w->vboxWidget);
 
 	if (hasMenubar) {
-		w->menubar = makeMenubar(uiWindow(w));
+		w->menubar = uiprivMakeMenubar(uiWindow(w));
 		gtk_container_add(w->vboxContainer, w->menubar);
 	}
 

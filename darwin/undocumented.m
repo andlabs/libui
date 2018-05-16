@@ -6,11 +6,11 @@
 // we also provide default values just in case
 
 // these values come from 10.12.6
-CFStringRef UNDOC_kCTFontPreferredSubFamilyNameKey = CFSTR("CTFontPreferredSubFamilyName");
-CFStringRef UNDOC_kCTFontPreferredFamilyNameKey = CFSTR("CTFontPreferredFamilyName");
+CFStringRef uiprivUNDOC_kCTFontPreferredSubFamilyNameKey = CFSTR("CTFontPreferredSubFamilyName");
+CFStringRef uiprivUNDOC_kCTFontPreferredFamilyNameKey = CFSTR("CTFontPreferredFamilyName");
 
 // note that we treat any error as "the symbols aren't there" (and don't care if dlclose() failed)
-void loadUndocumented(void)
+void uiprivLoadUndocumented(void)
 {
 	void *handle;
 	CFStringRef *str;
@@ -23,9 +23,9 @@ void loadUndocumented(void)
 	GET(str, kCTFontPreferredSubFamilyNameKey);
 NSLog(@"get %p", str);
 	if (str != NULL)
-		UNDOC_kCTFontPreferredSubFamilyNameKey = *str;
+		uiprivUNDOC_kCTFontPreferredSubFamilyNameKey = *str;
 	GET(str, kCTFontPreferredFamilyNameKey);
 	if (str != NULL)
-		UNDOC_kCTFontPreferredFamilyNameKey = *str;
+		uiprivUNDOC_kCTFontPreferredFamilyNameKey = *str;
 	dlclose(handle);
 }

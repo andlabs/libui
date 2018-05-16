@@ -1,75 +1,66 @@
 language: c
 
+include: &toolchain_linux_amd64
+  os: linux
+  dist: trusty
+  addons:
+    apt:
+      packages:
+        - libgtk-3-dev
+
+include: &toolchain_linux_386
+  os: linux
+  dist: trusty
+  addons:
+    apt:
+      packages:
+        - gcc-multilib
+        - g++-multilib
+        - libgtk-3-dev:i386
+        # the rest fixes broken dependencies of libgtk:i386
+        - libgirepository-1.0-1:i386
+        - libglib2.0-dev:i386
+        - gir1.2-glib-2.0:i386
+        - gir1.2-atk-1.0:i386
+        - libatk1.0-dev:i386
+        - libfreetype6-dev:i386
+        - libfontconfig1-dev:i386
+        - libcairo2-dev:i386
+        - libgdk-pixbuf2.0-dev:i386
+        - libpango1.0-dev:i386
+        - libxft-dev:i386
+        - libpng12-dev:i386
+
+include: &toolchain_osx_amd64
+  os: osx
+  osx_image: xcode8
+
+# Travis CI build matrix.
+# Each entry below will trigger an extra, parallel build on Travis.
 matrix:
   include:
-    - env:
-      - BUILD_TYPE: shared-linux-amd64
-      os: linux
-      dist: trusty
-      addons:
-        apt:
-          packages: &linux_x64_packages
-            - libgtk-3-dev
+    - env: linking=shared platform=amd64
+      <<: *toolchain_linux_amd64
+    - env: linking=static platform=amd64
+      <<: *toolchain_linux_amd64
+    - env: linking=shared platform=386
+      <<: *toolchain_linux_386
+    - env: linking=static platform=386
+      <<: *toolchain_linux_386
+    - env: linking=shared platform=amd64
+      <<: *toolchain_osx_amd64
+    - env: linking=static platform=amd64
+      <<: *toolchain_osx_amd64
 
-    - env:
-      - BUILD_TYPE: static-linux-amd64
-      - CMAKE_FLAGS: -DBUILD_SHARED_LIBS=OFF
-      os: linux
-      dist: trusty
-      addons:
-        apt:
-          packages: *linux_x64_packages
-
-    - env:
-      - BUILD_TYPE: shared-linux-386
-      - CFLAGS: -m32
-      - CXXFLAGS: -m32
-      - PKG_CONFIG_PATH: /usr/lib/i386-linux-gnu/pkgconfig
-      os: linux
-      dist: trusty
-      addons:
-        apt:
-          packages: &linux_i386_packages
-            - gcc-multilib
-            - g++-multilib
-            - libgtk-3-dev:i386
-            # the rest fixes broken dependencies of libgtk:i386
-            - libgirepository-1.0-1:i386
-            - libglib2.0-dev:i386
-            - gir1.2-glib-2.0:i386
-            - gir1.2-atk-1.0:i386
-            - libatk1.0-dev:i386
-            - libfreetype6-dev:i386
-            - libfontconfig1-dev:i386
-            - libcairo2-dev:i386
-            - libgdk-pixbuf2.0-dev:i386
-            - libpango1.0-dev:i386
-            - libxft-dev:i386
-            - libpng12-dev:i386
-
-    - env:
-      - BUILD_TYPE: static-linux-386
-      - CMAKE_FLAGS: -DBUILD_SHARED_LIBS=OFF
-      - CFLAGS: -m32
-      - CXXFLAGS: -m32
-      - PKG_CONFIG_PATH: /usr/lib/i386-linux-gnu/pkgconfig
-      os: linux
-      dist: trusty
-      addons:
-        apt:
-          packages: *linux_i386_packages
-
-    - env:
-      - BUILD_TYPE: shared-osx-amd64
-      os: osx
-      osx_image: xcode8
-
-    - env:
-      - BUILD_TYPE: static-osx-amd64
-      - CMAKE_FLAGS: -DBUILD_SHARED_LIBS=OFF
-      os: osx
-      osx_image: xcode8
-
+install:
+  - if [[ "${platform}" == "386" ]]; then
+      export CFLAGS=-m32;
+      export CXXFLAGS=-m32;
+      export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig;
+    fi
+  - if [[ "${linking}" == "static" ]]; then
+      export CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF;
+    fi
 
 script:
   - cmake --version

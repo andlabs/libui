@@ -53,6 +53,7 @@ after_build:
     else ( set "version=%APPVEYOR_REPO_BRANCH%" )
   - if %linking%==shared ( set "artifact=shared" ) else ( set "artifact=%compiler%-static" )
   - set "artifact=%version%-windows-%arch%-%artifact%"
+  - del .\%outdir%\libui.exp # remove unnecessary files
   - 7z a libui-%artifact%.zip .\%outdir%\libui.* ui.h ui_windows.h
   - 7z l libui-%artifact%.zip
   - 7z a examples-%artifact%.zip .\%outdir%\*.exe

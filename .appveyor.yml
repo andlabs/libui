@@ -41,6 +41,7 @@ before_build:
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
 
 build_script:
+  - cl cpucount.cpp && .\cpucount.exe
   - md build && cd build
   - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
   - if %compiler%==mingw ( mingw32-make tester examples )

@@ -6,6 +6,9 @@ This README is being written.<br>
 
 ## Announcements
 
+* **16 May 2018**
+	* Thanks to @parro-it and @msink, libui now has better CI, including AppVeyor for Windows CI, and automated creation of binary releases when I make a tagged release.
+
 * **13 May 2018**
 	* Added new functions to work with uiDateTimePickers: `uiDateTimePickerTime()`, `uiDateTimePickerSetTime()`, and `uiDateTimePickerOnChanged()`. These operate on standard `<time.h>` `struct tm`s. Thanks @cody271!
 

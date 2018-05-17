@@ -39,21 +39,21 @@ include: &toolchain_osx_amd64
 # Each entry below will trigger an extra, parallel build on Travis.
 matrix:
   include:
-    - env: linking=shared platform=amd64
+    - env: linking=shared arch=amd64
       <<: *toolchain_linux_amd64
-    - env: linking=static platform=amd64
+    - env: linking=static arch=amd64
       <<: *toolchain_linux_amd64
-    - env: linking=shared platform=386
+    - env: linking=shared arch=386
       <<: *toolchain_linux_386
-    - env: linking=static platform=386
+    - env: linking=static arch=386
       <<: *toolchain_linux_386
-    - env: linking=shared platform=amd64
+    - env: linking=shared arch=amd64
       <<: *toolchain_osx_amd64
-    - env: linking=static platform=amd64
+    - env: linking=static arch=amd64
       <<: *toolchain_osx_amd64
 
 install:
-  - if [[ "${platform}" == "386" ]]; then
+  - if [[ "${arch}" == "386" ]]; then
       export CFLAGS=-m32;
       export CXXFLAGS=-m32;
       export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig;
@@ -73,10 +73,11 @@ script:
 after_success:
   - ls -lR build/out
   - file build/out/test
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then cp ui.h ui_darwin.h build/out/; fi
+  - export platform="$TRAVIS_OS_NAME"
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then cp ui.h ui_darwin.h build/out/; export platform=darwin; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cp ui.h ui_unix.h   build/out/; fi
   - if [[ "x${TRAVIS_TAG}" != "x" ]]; then export version=${TRAVIS_TAG}; else export version=${TRAVIS_BRANCH}; fi
-  - export artifact=${linking}-${TRAVIS_OS_NAME}-${platform}-${version}
+  - export artifact=${version}-${platform}-${arch}-${linking}
   - pushd build/out
   - tar -czvf libui-${artifact}.tgz libui.* *.h
   - tar -czvf examples-${artifact}.tgz `find . -type f ! -name "*.*"`

@@ -48,10 +48,11 @@ build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
 
 after_build:
-  - if %platform%==x64 ( set "platform=amd64" ) else ( set "platform=386" )
+  - if %platform%==x64 ( set "arch=amd64" ) else ( set "arch=386" )
   - if %APPVEYOR_REPO_TAG%==true ( set "version=%APPVEYOR_REPO_TAG_NAME%" )
     else ( set "version=%APPVEYOR_REPO_BRANCH%" )
-  - set "artifact=%linking%-windows-%compiler%-%platform%-%version%"
+  - if %linking%==shared ( set "artifact=shared" ) else ( set "artifact=%compiler%-static" )
+  - set "artifact=%version%-windows-%arch%-%artifact%"
   - 7z a libui-%artifact%.zip .\%outdir%\libui.* ui.h ui_windows.h
   - 7z l libui-%artifact%.zip
   - 7z a examples-%artifact%.zip .\%outdir%\*.exe
@@ -66,7 +67,8 @@ artifacts:
 deploy:
   provider: GitHub
   artifact: libui, examples
-  auth_token:
-    secure: "2l/602m6FkqAB9TTIAkPX3Erfwg9jVTlf/Inmf2dWcbOrJJzK/WrCUIgY3B4ngly"
+  # TODO https://www.appveyor.com/docs/deployment/github/
+  #auth_token:
+    #secure: "2l/602m6FkqAB9TTIAkPX3Erfwg9jVTlf/Inmf2dWcbOrJJzK/WrCUIgY3B4ngly"
   on:
     appveyor_repo_tag: true # deploy on tag push only

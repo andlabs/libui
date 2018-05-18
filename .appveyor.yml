@@ -37,18 +37,18 @@ before_build:
     else if %compiler%-%platform%==mingw-x64 ( set "PATH=C:\msys64\mingw64\bin;%PATH%" )
     else if %platform%==x64 ( set "CMAKE_GENERATOR=%CMAKE_GENERATOR% Win64" )
   - if %linking%==static ( set CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF )
-  - if %compiler%==mingw ( set "outdir=build\out" ) else ( set "outdir=build\out\Release" )
+  - if %compiler%==mingw ( set "outdir=build\out" ) else ( set "outdir=build\out" )
+  - if not %compiler%==mingw ( set "CMAKE_GENERATOR=NMake Makefiles JOM" )
+  - if not %compiler%==mingw ( set "CMAKE_FLAGS=-DCMAKE_BUILD_TYPE=Release %CMAKE_FLAGS%" )
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
-  - set "simultaneous=3"
+  - set "simultaneous=1"
 
 build_script:
   - md build && cd build
-  - if not %compiler%==mingw ( set "CFLAGS=/MP%simultaneous% %CFLAGS%" )
-  - if not %compiler%==mingw ( set "CPPFLAGS=/MP%simultaneous% %CPPFLAGS%" )
-  - if not %compiler%==mingw ( set "CXXFLAGS=/MP%simultaneous% %CXXFLAGS%" )
+  - if not %compiler%==mingw ( md jom && cd jom && curl -o jom.zip http://download.qt.io/official_releases/jom/jom.zip && 7z x jom.zip && cd .. )
   - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
   - if %compiler%==mingw ( mingw32-make -j%simultaneous% tester examples )
-    else ( msbuild libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
+    else ( jom\jom -j%simultaneous% )
   - cd %APPVEYOR_BUILD_FOLDER%
 
 after_build:

@@ -29,27 +29,26 @@ platform:
   - x64
 
 before_build:
-  - |
-    if %compiler%==msvc2013      ( set "CMAKE_GENERATOR=Visual Studio 12 2013" && if %platform%==x64 ( call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64 && call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86_amd64 ) else ( call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86 ) )
-    else if %compiler%==msvc2015 ( set "CMAKE_GENERATOR=Visual Studio 14 2015" && if %platform%==x64 ( call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64 && call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64 ) else ( call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 ) )
-    else if %compiler%==msvc2017 ( set "CMAKE_GENERATOR=Visual Studio 15 2017" && if %platform%==x64 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat" ) else ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat" ) )
+  - if %compiler%==msvc2013      ( set "CMAKE_GENERATOR=Visual Studio 12 2013" )
+    else if %compiler%==msvc2015 ( set "CMAKE_GENERATOR=Visual Studio 14 2015" )
+    else if %compiler%==msvc2017 ( set "CMAKE_GENERATOR=Visual Studio 15 2017" )
     else if %compiler%==mingw    ( set "CMAKE_GENERATOR=MinGW Makefiles" )
   - if %compiler%-%platform%==mingw-Win32    ( set "PATH=C:\msys64\mingw32\bin;%PATH%" )
     else if %compiler%-%platform%==mingw-x64 ( set "PATH=C:\msys64\mingw64\bin;%PATH%" )
     else if %platform%==x64 ( set "CMAKE_GENERATOR=%CMAKE_GENERATOR% Win64" )
   - if %linking%==static ( set CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF )
-  - if %compiler%==mingw ( set "outdir=build\out" ) else ( set "outdir=build\out" )
-  - if not %compiler%==mingw ( set "CMAKE_GENERATOR=NMake Makefiles JOM" )
-  - if not %compiler%==mingw ( set "CMAKE_FLAGS=-DCMAKE_BUILD_TYPE=Release %CMAKE_FLAGS%" )
+  - if %compiler%==mingw ( set "outdir=build\out" ) else ( set "outdir=build\out\Release" )
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
-  - set "simultaneous=1"
+  - set "simultaneous=3"
 
 build_script:
   - md build && cd build
-  - if not %compiler%==mingw ( md jom && cd jom && curl -L -o jom.zip http://download.qt.io/official_releases/jom/jom.zip && 7z x jom.zip && cd .. )
+  - if not %compiler%==mingw ( set "CFLAGS=/MP%simultaneous% %CFLAGS%" )
+  - if not %compiler%==mingw ( set "CPPFLAGS=/MP%simultaneous% %CPPFLAGS%" )
+  - if not %compiler%==mingw ( set "CXXFLAGS=/MP%simultaneous% %CXXFLAGS%" )
   - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
   - if %compiler%==mingw ( mingw32-make -j%simultaneous% tester examples )
-    else ( jom\jom -j%simultaneous% )
+    else ( msbuild libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
   - cd %APPVEYOR_BUILD_FOLDER%
 
 after_build:

@@ -48,7 +48,7 @@ build_script:
   - if not %compiler%==mingw ( set "CXXFLAGS=/MP%simultaneous% %CXXFLAGS%" )
   - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
   - if %compiler%==mingw ( mingw32-make -j%simultaneous% tester examples )
-    else ( msbuild /verbosity:diagnostic libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
+    else ( msbuild libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
   - cd %APPVEYOR_BUILD_FOLDER%
 
 after_build:

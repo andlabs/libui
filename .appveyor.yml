@@ -39,12 +39,16 @@ before_build:
   - if %linking%==static ( set CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF )
   - if %compiler%==mingw ( set "outdir=build\out" ) else ( set "outdir=build\out\Release" )
   - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
+  - set "simultaneous=2"
 
 build_script:
   - md build && cd build
+  - if %compiler%!=mingw ( set "CFLAGS=/MP%simultaneous% %CFLAGS%" )
+  - if %compiler%!=mingw ( set "CPPFLAGS=/MP%simultaneous% %CPPFLAGS%" )
+  - if %compiler%!=mingw ( set "CXXFLAGS=/MP%simultaneous% %CXXFLAGS%" )
   - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
-  - if %compiler%==mingw ( mingw32-make tester examples )
-    else ( msbuild libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
+  - if %compiler%==mingw ( mingw32-make -j%simultaneous% tester examples )
+    else ( msbuild /verbosity:diagnostic libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
   - cd %APPVEYOR_BUILD_FOLDER%
 
 after_build:

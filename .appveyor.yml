@@ -45,7 +45,7 @@ before_build:
 
 build_script:
   - md build && cd build
-  - if not %compiler%==mingw ( md jom && cd jom && curl -o jom.zip http://download.qt.io/official_releases/jom/jom.zip && 7z x jom.zip && cd .. )
+  - if not %compiler%==mingw ( md jom && cd jom && curl -L -o jom.zip http://download.qt.io/official_releases/jom/jom.zip && 7z x jom.zip && cd .. )
   - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
   - if %compiler%==mingw ( mingw32-make -j%simultaneous% tester examples )
     else ( jom\jom -j%simultaneous% )

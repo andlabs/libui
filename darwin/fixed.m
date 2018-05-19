@@ -1,4 +1,4 @@
-// 15 august 2015
+// 19 may 2018
 #import "uipriv_darwin.h"
 
 @interface uiprivFixedChild : NSObject
@@ -214,7 +214,7 @@ void uiFixedAppend(uiFixed *b, uiControl *c, int x, int y)
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		uiprivUserbug("You cannot add NULL to a uiFixed.");
+		uiprivUserBug("You cannot add NULL to a uiFixed.");
 	[b->view append:c x:x y:y];
 }
 
@@ -223,7 +223,7 @@ void uiFixedMove(uiFixed *b, uiControl *c, int x, int y)
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		uiprivUserbug("You cannot move NULL to a uiFixed.");
+		uiprivUserBug("You cannot move NULL to a uiFixed.");
 	[b->view move:c x:x y:y];
 }
 

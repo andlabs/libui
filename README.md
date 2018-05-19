@@ -1,6 +1,9 @@
-# libui: a portable GUI library for C
+# libui
 
-This README is being written.<br>
+**libui** is a portable, cross-platform C library that that aims to provide simple GUI components using the native GUI technologies of each platform it supports. 
+
+This README is being written.
+
 [![Build Status, Linux and macOS](https://travis-ci.org/andlabs/libui.svg?branch=master)](https://travis-ci.org/andlabs/libui)<br>
 [![Build Status, Windows](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31?svg=true)](https://ci.appveyor.com/project/andlabs/libui)
 

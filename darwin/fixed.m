@@ -214,7 +214,7 @@ void uiFixedAppend(uiFixed *b, uiControl *c, int x, int y)
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		userbug("You cannot add NULL to a uiFixed.");
+		uiprivUserbug("You cannot add NULL to a uiFixed.");
 	[b->view append:c x:x y:y];
 }
 
@@ -223,7 +223,7 @@ void uiFixedMove(uiFixed *b, uiControl *c, int x, int y)
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		userbug("You cannot move NULL to a uiFixed.");
+		uiprivUserbug("You cannot move NULL to a uiFixed.");
 	[b->view move:c x:x y:y];
 }
 

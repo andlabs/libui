@@ -1,5 +1,6 @@
 // 9 june 2016
 #include "uipriv_unix.h"
+#include "fixedContainer.c"
 
 struct fixedChild {
 	uiControl *c;
@@ -11,7 +12,7 @@ struct uiFixed {
 	uiUnixControl c;
 	GtkWidget *widget;
 	GtkContainer *container;
-	GtkFixed *fixed;
+	fixedContainer *fixed;
 	GArray *children;
 };
 
@@ -70,7 +71,7 @@ void uiFixedAppend(uiFixed *g, uiControl *c, int x, int y)
 	widget = prepare(&gc, c);
 	uiControlSetParent(gc.c, uiControl(g));
 	TODO_MASSIVE_HACK(uiUnixControl(gc.c));
-	gtk_fixed_put(g->fixed, widget, x, y);
+	fixedContainer_put(g->fixed, widget, x, y);
 	g_array_append_val(g->children, gc);
 
 	g_signal_connect(widget, "size-allocate", G_CALLBACK(uiFixedSizeCallback), &gc);
@@ -78,7 +79,7 @@ void uiFixedAppend(uiFixed *g, uiControl *c, int x, int y)
 
 void uiFixedMove(uiFixed *g, uiControl *c, int x, int y)
 {
-	gtk_fixed_move(g->fixed, GTK_WIDGET(uiControlHandle(c)), x, y);
+	fixedContainer_move(g->fixed, GTK_WIDGET(uiControlHandle(c)), x, y);
 }
 
 void uiFixedSize(uiFixed *g, uiControl *c, int *width, int *height)
@@ -115,9 +116,9 @@ uiFixed *uiNewFixed(void)
 
 	uiUnixNewControl(uiFixed, g);
 
-	g->widget = gtk_fixed_new();
+	g->widget = fixedContainer_new();
 	g->container = GTK_CONTAINER(g->widget);
-	g->fixed = GTK_FIXED(g->widget);
+	g->fixed = FIXEDCONTAINER(g->widget);
 
 	g->children = g_array_new(FALSE, TRUE, sizeof (struct fixedChild));
 

@@ -168,7 +168,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 
 	a->ah = ah;
 	a->scrolling = FALSE;
-	clickCounterReset(&(a->cc));
+	uiprivClickCounterReset(&(a->cc));
 
 	// a->hwnd is assigned in areaWndProc()
 	uiWindowsEnsureCreateControlHWND(0,
@@ -190,7 +190,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 	a->scrolling = TRUE;
 	a->scrollWidth = width;
 	a->scrollHeight = height;
-	clickCounterReset(&(a->cc));
+	uiprivClickCounterReset(&(a->cc));
 
 	// a->hwnd is assigned in areaWndProc()
 	uiWindowsEnsureCreateControlHWND(0,

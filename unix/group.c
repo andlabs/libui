@@ -8,8 +8,8 @@ struct uiGroup {
 	GtkBin *bin;
 	GtkFrame *frame;
 
-	// unfortunately, even though a GtkFrame is a GtkBin, calling gtk_container_set_border_width() on it /includes/ the GtkFrame's label; we don't want tht
-	struct child *child;
+	// unfortunately, even though a GtkFrame is a GtkBin, calling gtk_container_set_border_width() on it /includes/ the GtkFrame's label; we don't want that
+	uiprivChild *child;
 
 	int margined;
 };
@@ -21,7 +21,7 @@ static void uiGroupDestroy(uiControl *c)
 	uiGroup *g = uiGroup(c);
 
 	if (g->child != NULL)
-		childDestroy(g->child);
+		uiprivChildDestroy(g->child);
 	g_object_unref(g->widget);
 	uiFreeControl(uiControl(g));
 }
@@ -39,8 +39,8 @@ void uiGroupSetTitle(uiGroup *g, const char *text)
 void uiGroupSetChild(uiGroup *g, uiControl *child)
 {
 	if (g->child != NULL)
-		childRemove(g->child);
-	g->child = newChildWithBox(child, uiControl(g), g->container, g->margined);
+		uiprivChildRemove(g->child);
+	g->child = uiprivNewChildWithBox(child, uiControl(g), g->container, g->margined);
 }
 
 int uiGroupMargined(uiGroup *g)
@@ -52,7 +52,7 @@ void uiGroupSetMargined(uiGroup *g, int margined)
 {
 	g->margined = margined;
 	if (g->child != NULL)
-		childSetMargined(g->child, g->margined);
+		uiprivChildSetMargined(g->child, g->margined);
 }
 
 uiGroup *uiNewGroup(const char *text)

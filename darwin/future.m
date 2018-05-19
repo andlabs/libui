@@ -5,14 +5,14 @@
 // note: for constants, dlsym() returns the address of the constant itself, as if we had done &constantName
 
 // added in OS X 10.10; we need 10.8
-CFStringRef *FUTURE_kCTFontOpenTypeFeatureTag = NULL;
-CFStringRef *FUTURE_kCTFontOpenTypeFeatureValue = NULL;
+CFStringRef *uiprivFUTURE_kCTFontOpenTypeFeatureTag = NULL;
+CFStringRef *uiprivFUTURE_kCTFontOpenTypeFeatureValue = NULL;
 
 // added in OS X 10.12; we need 10.8
-CFStringRef *FUTURE_kCTBackgroundColorAttributeName = NULL;
+CFStringRef *uiprivFUTURE_kCTBackgroundColorAttributeName = NULL;
 
 // note that we treat any error as "the symbols aren't there" (and don't care if dlclose() failed)
-void loadFutures(void)
+void uiprivLoadFutures(void)
 {
 	void *handle;
 
@@ -21,9 +21,9 @@ void loadFutures(void)
 	if (handle == NULL)
 		return;
 #define GET(var, fn) *((void **) (&var)) = dlsym(handle, #fn)
-	GET(FUTURE_kCTFontOpenTypeFeatureTag, kCTFontOpenTypeFeatureTag);
-	GET(FUTURE_kCTFontOpenTypeFeatureValue, kCTFontOpenTypeFeatureValue);
-	GET(FUTURE_kCTBackgroundColorAttributeName, kCTBackgroundColorAttributeName);
+	GET(uiprivFUTURE_kCTFontOpenTypeFeatureTag, kCTFontOpenTypeFeatureTag);
+	GET(uiprivFUTURE_kCTFontOpenTypeFeatureValue, kCTFontOpenTypeFeatureValue);
+	GET(uiprivFUTURE_kCTBackgroundColorAttributeName, kCTBackgroundColorAttributeName);
 	dlclose(handle);
 }
 
@@ -31,7 +31,7 @@ void loadFutures(void)
 // keep them in one place for convenience
 
 // apparently only added in 10.9; we need 10.8
-void FUTURE_NSLayoutConstraint_setIdentifier(NSLayoutConstraint *constraint, NSString *identifier)
+void uiprivFUTURE_NSLayoutConstraint_setIdentifier(NSLayoutConstraint *constraint, NSString *identifier)
 {
 	id cid = (id) constraint;
 
@@ -41,7 +41,7 @@ void FUTURE_NSLayoutConstraint_setIdentifier(NSLayoutConstraint *constraint, NSS
 
 // added in 10.11; we need 10.8
 // return whether this was done because we recreate its effects if not (see winmoveresize.m)
-BOOL FUTURE_NSWindow_performWindowDragWithEvent(NSWindow *w, NSEvent *initialEvent)
+BOOL uiprivFUTURE_NSWindow_performWindowDragWithEvent(NSWindow *w, NSEvent *initialEvent)
 {
 	id cw = (id) w;
 

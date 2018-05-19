@@ -47,9 +47,14 @@ _add_example(drawtext
 	${_EXAMPLE_RESOURCES_RC}
 )
 
-set_target_properties(layout-test PROPERTIES
-	OUTPUT_NAME layout-test
-	WIN32_EXECUTABLE FALSE
+_add_example(timer
+        timer/main.c
+        ${_EXAMPLE_RESOURCES_RC}
+)
+
+_add_example(datetime
+	datetime/main.c
+	${_EXAMPLE_RESOURCES_RC}
 )
 
 add_custom_target(examples
@@ -58,4 +63,6 @@ add_custom_target(examples
 		histogram
 		cpp-multithread
 		layout-test
-		drawtext)
+		drawtext
+		timer
+		datetime)

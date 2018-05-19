@@ -15,10 +15,10 @@ char *uiLabelText(uiLabel *l)
 
 void uiLabelSetText(uiLabel *l, const char *text)
 {
-	[l->textfield setStringValue:toNSString(text)];
+	[l->textfield setStringValue:uiprivToNSString(text)];
 }
 
-NSTextField *newLabel(NSString *str)
+NSTextField *uiprivNewLabel(NSString *str)
 {
 	NSTextField *tf;
 
@@ -27,7 +27,7 @@ NSTextField *newLabel(NSString *str)
 	[tf setEditable:NO];
 	[tf setSelectable:NO];
 	[tf setDrawsBackground:NO];
-	finishNewTextField(tf, NO);
+	uiprivFinishNewTextField(tf, NO);
 	return tf;
 }
 
@@ -37,7 +37,7 @@ uiLabel *uiNewLabel(const char *text)
 
 	uiDarwinNewControl(uiLabel, l);
 
-	l->textfield = newLabel(toNSString(text));
+	l->textfield = uiprivNewLabel(uiprivToNSString(text));
 
 	return l;
 }

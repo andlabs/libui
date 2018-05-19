@@ -167,7 +167,7 @@ struct uiBox {
 		if (!uiControlVisible(bc.c))
 			continue;
 		if (prev == nil) {			// first view
-			self->first = mkConstraint(self, self->primaryStart,
+			self->first = uiprivMkConstraint(self, self->primaryStart,
 				NSLayoutRelationEqual,
 				[bc view], self->primaryStart,
 				1, 0,
@@ -178,7 +178,7 @@ struct uiBox {
 			continue;
 		}
 		// not the first; link it
-		c = mkConstraint(prev, self->primaryEnd,
+		c = uiprivMkConstraint(prev, self->primaryEnd,
 			NSLayoutRelationEqual,
 			[bc view], self->primaryStart,
 			1, -padding,
@@ -189,7 +189,7 @@ struct uiBox {
 	}
 	if (prev == nil)		// no control visible; act as if no controls
 		return;
-	self->last = mkConstraint(prev, self->primaryEnd,
+	self->last = uiprivMkConstraint(prev, self->primaryEnd,
 		NSLayoutRelationEqual,
 		self, self->primaryEnd,
 		1, 0,
@@ -204,14 +204,14 @@ struct uiBox {
 	for (bc in self->children) {
 		if (!uiControlVisible(bc.c))
 			continue;
-		c = mkConstraint(self, self->secondaryStart,
+		c = uiprivMkConstraint(self, self->secondaryStart,
 			NSLayoutRelationEqual,
 			[bc view], self->secondaryStart,
 			1, 0,
 			@"uiBox secondary start constraint");
 		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
-		c = mkConstraint([bc view], self->secondaryEnd,
+		c = uiprivMkConstraint([bc view], self->secondaryEnd,
 			NSLayoutRelationLessThanOrEqual,
 			self, self->secondaryEnd,
 			1, 0,
@@ -220,7 +220,7 @@ struct uiBox {
 			[c setPriority:NSLayoutPriorityDefaultLow];
 		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
-		c = mkConstraint([bc view], self->secondaryEnd,
+		c = uiprivMkConstraint([bc view], self->secondaryEnd,
 			NSLayoutRelationEqual,
 			self, self->secondaryEnd,
 			1, 0,
@@ -244,7 +244,7 @@ struct uiBox {
 			prev = [bc view];
 			continue;
 		}
-		c = mkConstraint(prev, self->primarySize,
+		c = uiprivMkConstraint(prev, self->primarySize,
 			NSLayoutRelationEqual,
 			[bc view], self->primarySize,
 			1, 0,
@@ -428,7 +428,7 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		userbug("You cannot add NULL to a uiBox.");
+		uiprivUserBug("You cannot add NULL to a uiBox.");
 	[b->view append:c stretchy:stretchy];
 }
 

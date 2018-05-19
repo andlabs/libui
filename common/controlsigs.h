@@ -1,5 +1,7 @@
 // 24 april 2016
 
+// LONGTERM if I don't decide to remove these outright, should they be renamed uiprivTypeNameSignature? these aren't real symbols, so...
+
 #define uiAreaSignature 0x41726561
 #define uiBoxSignature 0x426F784C
 #define uiButtonSignature 0x42746F6E

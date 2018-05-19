@@ -4,17 +4,17 @@
 
 static BOOL canQuit = NO;
 static NSAutoreleasePool *globalPool;
-static applicationClass *app;
-static appDelegate *delegate;
+static uiprivApplicationClass *app;
+static uiprivAppDelegate *delegate;
 
 static BOOL (^isRunning)(void);
 static BOOL stepsIsRunning;
 
-@implementation applicationClass
+@implementation uiprivApplicationClass
 
 - (void)sendEvent:(NSEvent *)e
 {
-	if (sendAreaEvents(e) != 0)
+	if (uiprivSendAreaEvents(e) != 0)
 		return;
 	[super sendEvent:e];
 }
@@ -25,7 +25,7 @@ static BOOL stepsIsRunning;
 // it turns out NSFontManager also sends changeFont: through this; let's inhibit that here too (see fontbutton.m)
 - (BOOL)sendAction:(SEL)sel to:(id)to from:(id)from
 {
-	if (colorButtonInhibitSendAction(sel, from, to))
+	if (uiprivColorButtonInhibitSendAction(sel, from, to))
 		return NO;
 	if (uiprivFontButtonInhibitSendAction(sel, from, to))
 		return NO;
@@ -57,9 +57,9 @@ static BOOL stepsIsRunning;
 	NSEvent *e;
 
 	if (!canQuit)
-		implbug("call to [NSApp terminate:] when not ready to terminate; definitely contact andlabs");
+		uiprivImplBug("call to [NSApp terminate:] when not ready to terminate; definitely contact andlabs");
 
-	[realNSApp() stop:realNSApp()];
+	[uiprivNSApp() stop:uiprivNSApp()];
 	// stop: won't register until another event has passed; let's synthesize one
 	e = [NSEvent otherEventWithType:NSApplicationDefined
 		location:NSZeroPoint
@@ -70,7 +70,7 @@ static BOOL stepsIsRunning;
 		subtype:0
 		data1:0
 		data2:0];
-	[realNSApp() postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
+	[uiprivNSApp() postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
 
 	// and in case uiMainSteps() was called
 	stepsIsRunning = NO;
@@ -78,7 +78,7 @@ static BOOL stepsIsRunning;
 
 @end
 
-@implementation appDelegate
+@implementation uiprivAppDelegate
 
 - (void)dealloc
 {
@@ -91,7 +91,7 @@ static BOOL stepsIsRunning;
 {
 	// for debugging
 	NSLog(@"in applicationShouldTerminate:");
-	if (shouldQuit()) {
+	if (uiprivShouldQuit()) {
 		canQuit = YES;
 		// this will call terminate:, which is the same as uiQuit()
 		return NSTerminateNow;
@@ -106,26 +106,26 @@ static BOOL stepsIsRunning;
 
 @end
 
-uiInitOptions options;
+uiInitOptions uiprivOptions;
 
 const char *uiInit(uiInitOptions *o)
 {
 	@autoreleasepool {
-		options = *o;
-		app = [[applicationClass sharedApplication] retain];
+		uiprivOptions = *o;
+		app = [[uiprivApplicationClass sharedApplication] retain];
 		// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
 		// see https://github.com/andlabs/ui/issues/6
-		[realNSApp() setActivationPolicy:NSApplicationActivationPolicyRegular];
-		delegate = [appDelegate new];
-		[realNSApp() setDelegate:delegate];
+		[uiprivNSApp() setActivationPolicy:NSApplicationActivationPolicyRegular];
+		delegate = [uiprivAppDelegate new];
+		[uiprivNSApp() setDelegate:delegate];
 
-		initAlloc();
-		loadFutures();
-		loadUndocumented();
+		uiprivInitAlloc();
+		uiprivLoadFutures();
+		uiprivLoadUndocumented();
 
 		// always do this so we always have an application menu
-		appDelegate().menuManager = [[menuManager new] autorelease];
-		[realNSApp() setMainMenu:[appDelegate().menuManager makeMenubar]];
+		uiprivAppDelegate().menuManager = [[uiprivMenuManager new] autorelease];
+		[uiprivNSApp() setMainMenu:[uiprivAppDelegate().menuManager makeMenubar]];
 
 		uiprivSetupFontPanel();
 
@@ -139,17 +139,16 @@ const char *uiInit(uiInitOptions *o)
 
 void uiUninit(void)
 {
-	if (!globalPool) {
-		userbug("You must call uiInit() first!");
-	}
+	if (!globalPool)
+		uiprivUserBug("You must call uiInit() first!");
 	[globalPool release];
 
 	@autoreleasepool {
 		uiprivUninitUnderlineColors();
 		[delegate release];
-		[realNSApp() setDelegate:nil];
+		[uiprivNSApp() setDelegate:nil];
 		[app release];
-		uninitAlloc();
+		uiprivUninitAlloc();
 	}
 }
 
@@ -160,15 +159,15 @@ void uiFreeInitError(const char *err)
 void uiMain(void)
 {
 	isRunning = ^{
-		return [realNSApp() isRunning];
+		return [uiprivNSApp() isRunning];
 	};
-	[realNSApp() run];
+	[uiprivNSApp() run];
 }
 
 void uiMainSteps(void)
 {
 	// SDL does this and it seems to be necessary for the menubar to work (see #182)
-	[realNSApp() finishLaunching];
+	[uiprivNSApp() finishLaunching];
 	isRunning = ^{
 		return stepsIsRunning;
 	};
@@ -177,7 +176,7 @@ void uiMainSteps(void)
 
 int uiMainStep(int wait)
 {
-	struct nextEventArgs nea;
+	uiprivNextEventArgs nea;
 
 	nea.mask = NSAnyEventMask;
 
@@ -190,7 +189,7 @@ int uiMainStep(int wait)
 	nea.mode = NSDefaultRunLoopMode;
 	nea.dequeue = YES;
 
-	return mainStep(&nea, ^(NSEvent *e) {
+	return uiprivMainStep(&nea, ^(NSEvent *e) {
 		return NO;
 	});
 }
@@ -198,7 +197,7 @@ int uiMainStep(int wait)
 // see also:
 // - http://www.cocoawithlove.com/2009/01/demystifying-nsapplication-by.html
 // - https://github.com/gnustep/gui/blob/master/Source/NSApplication.m
-int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
+int uiprivMainStep(uiprivNextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 {
 	NSDate *expire;
 	NSEvent *e;
@@ -208,7 +207,7 @@ int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 		if (!isRunning())
 			return 0;
 
-		e = [realNSApp() nextEventMatchingMask:nea->mask
+		e = [uiprivNSApp() nextEventMatchingMask:nea->mask
 			untilDate:nea->duration
 			inMode:nea->mode
 			dequeue:nea->dequeue];
@@ -217,13 +216,13 @@ int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 
 		type = [e type];
 		if (!interceptEvent(e))
-			[realNSApp() sendEvent:e];
-		[realNSApp() updateWindows];
+			[uiprivNSApp() sendEvent:e];
+		[uiprivNSApp() updateWindows];
 
 		// GNUstep does this
 		// it also updates the Services menu but there doesn't seem to be a public API for that so
 		if (type != NSPeriodic && type != NSMouseMoved)
-			[[realNSApp() mainMenu] update];
+			[[uiprivNSApp() mainMenu] update];
 
 		return 1;
 	}
@@ -232,7 +231,7 @@ int mainStep(struct nextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 void uiQuit(void)
 {
 	canQuit = YES;
-	[realNSApp() terminate:realNSApp()];
+	[uiprivNSApp() terminate:uiprivNSApp()];
 }
 
 // thanks to mikeash in irc.freenode.net/#macdev for suggesting the use of Grand Central Dispatch for this
@@ -242,4 +241,45 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	// dispatch_get_main_queue() is a serial queue so it will not execute multiple uiQueueMain() functions concurrently
 	// the signature of f matches dispatch_function_t
 	dispatch_async_f(dispatch_get_main_queue(), data, f);
+}
+
+@interface uiprivTimerDelegate : NSObject {
+        int (*f)(void *data);
+        void *data;
+}
+- (id)initWithCallback:(int (*)(void *))callback data:(void *)callbackData;
+- (void)doTimer:(NSTimer *)timer;
+@end
+
+@implementation uiprivTimerDelegate
+
+- (id)initWithCallback:(int (*)(void *))callback data:(void *)callbackData
+{
+        self = [super init];
+        if (self) {
+                self->f = callback;
+                self->data = callbackData;
+        }
+        return self;
+}
+
+- (void)doTimer:(NSTimer *)timer
+{
+        if (!(*(self->f))(self->data))
+                [timer invalidate];
+}
+
+@end
+
+void uiTimer(int milliseconds, int (*f)(void *data), void *data)
+{
+        uiprivTimerDelegate *delegate;
+
+        delegate = [[uiprivTimerDelegate alloc] initWithCallback:f data:data];
+        [NSTimer scheduledTimerWithTimeInterval:(milliseconds / 1000.0)
+                target:delegate
+                selector:@selector(doTimer:)
+                userInfo:nil
+                repeats:YES];
+        [delegate release];
 }

@@ -66,25 +66,25 @@ struct uiForm {
 		[self.label setContentCompressionResistancePriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationVertical];
 		[self addSubview:self.label];
 
-		self.leading = mkConstraint(self.label, NSLayoutAttributeLeading,
+		self.leading = uiprivMkConstraint(self.label, NSLayoutAttributeLeading,
 			NSLayoutRelationGreaterThanOrEqual,
 			self, NSLayoutAttributeLeading,
 			1, 0,
 			@"uiForm label leading");
 		[self addConstraint:self.leading];
-		self.top = mkConstraint(self.label, NSLayoutAttributeTop,
+		self.top = uiprivMkConstraint(self.label, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTop,
 			1, 0,
 			@"uiForm label top");
 		[self addConstraint:self.top];
-		self.trailing = mkConstraint(self.label, NSLayoutAttributeTrailing,
+		self.trailing = uiprivMkConstraint(self.label, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTrailing,
 			1, 0,
 			@"uiForm label trailing");
 		[self addConstraint:self.trailing];
-		self.bottom = mkConstraint(self.label, NSLayoutAttributeBottom,
+		self.bottom = uiprivMkConstraint(self.label, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeBottom,
 			1, 0,
@@ -224,7 +224,7 @@ struct uiForm {
 		if (!uiControlVisible(fc.c))
 			continue;
 		if (prev == nil) {			// first view
-			self->first = mkConstraint(self, NSLayoutAttributeTop,
+			self->first = uiprivMkConstraint(self, NSLayoutAttributeTop,
 				NSLayoutRelationEqual,
 				[fc view], NSLayoutAttributeTop,
 				1, 0,
@@ -236,7 +236,7 @@ struct uiForm {
 			continue;
 		}
 		// not the first; link it
-		c = mkConstraint(prev, NSLayoutAttributeBottom,
+		c = uiprivMkConstraint(prev, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			[fc view], NSLayoutAttributeTop,
 			1, -padding,
@@ -244,14 +244,14 @@ struct uiForm {
 		[self addConstraint:c];
 		[self->inBetweens addObject:c];
 		// and make the same width
-		c = mkConstraint(prev, NSLayoutAttributeWidth,
+		c = uiprivMkConstraint(prev, NSLayoutAttributeWidth,
 			NSLayoutRelationEqual,
 			[fc view], NSLayoutAttributeWidth,
 			1, 0,
 			@"uiForm control width constraint");
 		[self addConstraint:c];
 		[self->widths addObject:c];
-		c = mkConstraint(prevlabel, NSLayoutAttributeWidth,
+		c = uiprivMkConstraint(prevlabel, NSLayoutAttributeWidth,
 			NSLayoutRelationEqual,
 			fc, NSLayoutAttributeWidth,
 			1, 0,
@@ -263,7 +263,7 @@ struct uiForm {
 	}
 	if (prev == nil)		// all hidden; act as if nothing there
 		return;
-	self->last = mkConstraint(prev, NSLayoutAttributeBottom,
+	self->last = uiprivMkConstraint(prev, NSLayoutAttributeBottom,
 		NSLayoutRelationEqual,
 		self, NSLayoutAttributeBottom,
 		1, 0,
@@ -275,7 +275,7 @@ struct uiForm {
 	for (fc in self->children) {
 		if (!uiControlVisible(fc.c))
 			continue;
-		c = mkConstraint(self, NSLayoutAttributeLeading,
+		c = uiprivMkConstraint(self, NSLayoutAttributeLeading,
 			NSLayoutRelationEqual,
 			fc, NSLayoutAttributeLeading,
 			1, 0,
@@ -284,7 +284,7 @@ struct uiForm {
 		[self->leadings addObject:c];
 		// coerce the control to be as wide as possible
 		// see http://stackoverflow.com/questions/37710892/in-auto-layout-i-set-up-labels-that-shouldnt-grow-horizontally-and-controls-th
-		c = mkConstraint(self, NSLayoutAttributeLeading,
+		c = uiprivMkConstraint(self, NSLayoutAttributeLeading,
 			NSLayoutRelationEqual,
 			[fc view], NSLayoutAttributeLeading,
 			1, 0,
@@ -292,14 +292,14 @@ struct uiForm {
 		[c setPriority:NSLayoutPriorityDefaultHigh];
 		[self addConstraint:c];
 		[self->leadings addObject:c];
-		c = mkConstraint(fc, NSLayoutAttributeTrailing,
+		c = uiprivMkConstraint(fc, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			[fc view], NSLayoutAttributeLeading,
 			1, -padding,
 			@"uiForm middle constraint");
 		[self addConstraint:c];
 		[self->middles addObject:c];
-		c = mkConstraint([fc view], NSLayoutAttributeTrailing,
+		c = uiprivMkConstraint([fc view], NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTrailing,
 			1, 0,
@@ -307,7 +307,7 @@ struct uiForm {
 		[self addConstraint:c];
 		[self->trailings addObject:c];
 		// TODO
-		c = mkConstraint(fc, NSLayoutAttributeBottom,
+		c = uiprivMkConstraint(fc, NSLayoutAttributeBottom,
 			NSLayoutRelationLessThanOrEqual,
 			self, NSLayoutAttributeBottom,
 			1, 0,
@@ -327,7 +327,7 @@ struct uiForm {
 			prev = [fc view];
 			continue;
 		}
-		c = mkConstraint([fc view], NSLayoutAttributeHeight,
+		c = uiprivMkConstraint([fc view], NSLayoutAttributeHeight,
 			NSLayoutRelationEqual,
 			prev, NSLayoutAttributeHeight,
 			1, 0,
@@ -347,7 +347,7 @@ struct uiForm {
 	NSLayoutAttribute attribute;
 	int oldnStretchy;
 
-	fc = [[formChild alloc] initWithLabel:newLabel(label)];
+	fc = [[formChild alloc] initWithLabel:uiprivNewLabel(label)];
 	fc.c = c;
 	fc.stretchy = stretchy;
 	fc.oldHorzHuggingPri = uiDarwinControlHuggingPriority(uiDarwinControl(fc.c), NSLayoutConstraintOrientationHorizontal);
@@ -376,7 +376,7 @@ struct uiForm {
 	attribute = NSLayoutAttributeBaseline;
 	if ([[fc view] isKindOfClass:[NSScrollView class]])
 		attribute = NSLayoutAttributeTop;
-	fc.baseline = mkConstraint(fc.label, attribute,
+	fc.baseline = uiprivMkConstraint(fc.label, attribute,
 		NSLayoutRelationEqual,
 		[fc view], attribute,
 		1, 0,
@@ -530,8 +530,8 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 	// LONGTERM on other platforms
 	// or at leat allow this and implicitly turn it into a spacer
 	if (c == NULL)
-		userbug("You cannot add NULL to a uiForm.");
-	[f->view append:toNSString(label) c:c stretchy:stretchy];
+		uiprivUserBug("You cannot add NULL to a uiForm.");
+	[f->view append:uiprivToNSString(label) c:c stretchy:stretchy];
 }
 
 void uiFormDelete(uiForm *f, int n)

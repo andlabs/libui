@@ -13,7 +13,7 @@ static GPtrArray *allocations;
 #define CCHAR(p) ((const char **) (p))
 #define TYPE(p) CCHAR(UINT8(p) + sizeof (size_t))
 
-void initAlloc(void)
+void uiprivInitAlloc(void)
 {
 	allocations = g_ptr_array_new();
 }
@@ -30,7 +30,7 @@ static void uninitComplain(gpointer ptr, gpointer data)
 	*str = str2;
 }
 
-void uninitAlloc(void)
+void uiprivUninitAlloc(void)
 {
 	char *str = NULL;
 
@@ -39,11 +39,11 @@ void uninitAlloc(void)
 		return;
 	}
 	g_ptr_array_foreach(allocations, uninitComplain, &str);
-	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", str);
+	uiprivUserBug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", str);
 	g_free(str);
 }
 
-void *uiAlloc(size_t size, const char *type)
+void *uiprivAlloc(size_t size, const char *type)
 {
 	void *out;
 
@@ -54,13 +54,13 @@ void *uiAlloc(size_t size, const char *type)
 	return DATA(out);
 }
 
-void *uiRealloc(void *p, size_t new, const char *type)
+void *uiprivRealloc(void *p, size_t new, const char *type)
 {
 	void *out;
 	size_t *s;
 
 	if (p == NULL)
-		return uiAlloc(new, type);
+		return uiprivAlloc(new, type);
 	p = BASE(p);
 	out = g_realloc(p, EXTRA + new);
 	s = SIZE(out);
@@ -68,17 +68,17 @@ void *uiRealloc(void *p, size_t new, const char *type)
 		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);
 	*s = new;
 	if (g_ptr_array_remove(allocations, p) == FALSE)
-		implbug("%p not found in allocations array in uiRealloc()", p);
+		uiprivImplBug("%p not found in allocations array in uiprivRealloc()", p);
 	g_ptr_array_add(allocations, out);
 	return DATA(out);
 }
 
-void uiFree(void *p)
+void uiprivFree(void *p)
 {
 	if (p == NULL)
-		implbug("attempt to uiFree(NULL)");
+		uiprivImplBug("attempt to uiprivFree(NULL)");
 	p = BASE(p);
 	g_free(p);
 	if (g_ptr_array_remove(allocations, p) == FALSE)
-		implbug("%p not found in allocations array in uiFree()", p);
+		uiprivImplBug("%p not found in allocations array in uiprivFree()", p);
 }

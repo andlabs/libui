@@ -11,23 +11,23 @@ uiImage *uiNewImage(double width, double height)
 {
 	uiImage *i;
 
-	i = uiNew(uiImage);
+	i = uiprivNew(uiImage);
 	i->size = NSMakeSize(width, height);
 	i->i = [[NSImage alloc] initWithSize:i->size];
 	i->swizzled = [NSMutableArray new];
 	return i;
 }
 
-void uiFreeImage(uiImage *i)
+void Image(uiImage *i)
 {
 	NSValue *v;
 
 	[i->i release];
 	// to be safe, do this after releasing the image
 	for (v in i->swizzled)
-		uiFree([v pointerValue]);
+		uiprivFree([v pointerValue]);
 	[i->swizzled release];
-	uiFree(i);
+	uiprivFree(i);
 }
 
 void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride)
@@ -40,7 +40,7 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 	// OS X demands that R and B are in the opposite order from what we expect
 	// we must swizzle :(
 	// LONGTERM test on a big-endian system
-	swizzled = (uint8_t *) uiAlloc((pixelStride * pixelHeight * 4) * sizeof (uint8_t), "uint8_t[]");
+	swizzled = (uint8_t *) uiprivAlloc((pixelStride * pixelHeight * 4) * sizeof (uint8_t), "uint8_t[]");
 	bp = (uint8_t *) pixels;
 	sp = swizzled;
 	for (y = 0; y < pixelHeight * pixelStride; y += pixelStride)
@@ -76,7 +76,7 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 	[i->swizzled addObject:[NSValue valueWithPointer:swizzled]];
 }
 
-NSImage *imageImage(uiImage *i)
+NSImage *uiprivImageNSImage(uiImage *i)
 {
 	return i->i;
 }

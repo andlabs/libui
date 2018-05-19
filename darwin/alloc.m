@@ -3,12 +3,12 @@
 #import "uipriv_darwin.h"
 
 static NSMutableArray *allocations;
-NSMutableArray *delegates;
+NSMutableArray *uiprivDelegates;
 
-void initAlloc(void)
+void uiprivInitAlloc(void)
 {
 	allocations = [NSMutableArray new];
-	delegates = [NSMutableArray new];
+	uiprivDelegates = [NSMutableArray new];
 }
 
 #define UINT8(p) ((uint8_t *) (p))
@@ -20,12 +20,12 @@ void initAlloc(void)
 #define CCHAR(p) ((const char **) (p))
 #define TYPE(p) CCHAR(UINT8(p) + sizeof (size_t))
 
-void uninitAlloc(void)
+void uiprivUninitAlloc(void)
 {
 	NSMutableString *str;
 	NSValue *v;
 
-	[delegates release];
+	[uiprivDelegates release];
 	if ([allocations count] == 0) {
 		[allocations release];
 		return;
@@ -37,11 +37,11 @@ void uninitAlloc(void)
 		ptr = [v pointerValue];
 		[str appendString:[NSString stringWithFormat:@"%p %s\n", ptr, *TYPE(ptr)]];
 	}
-	userbug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", [str UTF8String]);
+	uiprivUserBug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", [str UTF8String]);
 	[str release];
 }
 
-void *uiAlloc(size_t size, const char *type)
+void *uiprivAlloc(size_t size, const char *type)
 {
 	void *out;
 
@@ -57,17 +57,17 @@ void *uiAlloc(size_t size, const char *type)
 	return DATA(out);
 }
 
-void *uiRealloc(void *p, size_t new, const char *type)
+void *uiprivRealloc(void *p, size_t new, const char *type)
 {
 	void *out;
 	size_t *s;
 
 	if (p == NULL)
-		return uiAlloc(new, type);
+		return uiprivAlloc(new, type);
 	p = BASE(p);
 	out = realloc(p, EXTRA + new);
 	if (out == NULL) {
-		fprintf(stderr, "memory exhausted in uiRealloc()\n");
+		fprintf(stderr, "memory exhausted in uiprivRealloc()\n");
 		abort();
 	}
 	s = SIZE(out);
@@ -79,10 +79,10 @@ void *uiRealloc(void *p, size_t new, const char *type)
 	return DATA(out);
 }
 
-void uiFree(void *p)
+void uiprivFree(void *p)
 {
 	if (p == NULL)
-		implbug("attempt to uiFree(NULL)");
+		uiprivImplBug("attempt to uiprivFree(NULL)");
 	p = BASE(p);
 	free(p);
 	[allocations removeObject:[NSValue valueWithPointer:p]];

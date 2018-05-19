@@ -78,15 +78,33 @@ static INT_PTR CALLBACK dlgproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	return FALSE;
 }
 
+// because Windows doesn't really support resources in static libraries, we have to embed this directly; oh well
+/*
+// this is the dialog template used by tab pages; see windows/tabpage.c for details
+rcTabPageDialog DIALOGEX 0, 0, 100, 100
+STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
+EXSTYLE WS_EX_CONTROLPARENT
+BEGIN
+	// nothing
+END
+*/
+static const uint8_t data_rcTabPageDialog[] = {
+	0x01, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x01, 0x00, 0x00, 0x04, 0x00, 0x50,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x64, 0x00,
+	0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+static_assert(ARRAYSIZE(data_rcTabPageDialog) == 32, "wrong size for resource rcTabPageDialog");
+
 struct tabPage *newTabPage(uiControl *child)
 {
 	struct tabPage *tp;
 	HRESULT hr;
 
-	tp = uiNew(struct tabPage);
+	tp = uiprivNew(struct tabPage);
 
 	// unfortunately this needs to be a proper dialog for EnableThemeDialogTexture() to work; CreateWindowExW() won't suffice
-	if (CreateDialogParamW(hInstance, MAKEINTRESOURCE(rcTabPageDialog),
+	if (CreateDialogIndirectParamW(hInstance, (const DLGTEMPLATE *) data_rcTabPageDialog,
 		utilWindow, dlgproc, (LPARAM) tp) == NULL)
 		logLastError(L"error creating tab page");
 
@@ -114,7 +132,7 @@ void tabPageDestroy(struct tabPage *tp)
 		uiWindowsControlSetParentHWND(uiWindowsControl(tp->child), NULL);
 	// don't call EndDialog(); that's for the DialogBox() family of functions instead of CreateDialog()
 	uiWindowsEnsureDestroyWindow(tp->hwnd);
-	uiFree(tp);
+	uiprivFree(tp);
 }
 
 void tabPageMinimumSize(struct tabPage *tp, int *width, int *height)

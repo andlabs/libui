@@ -18,7 +18,7 @@ void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
 
 // see https://msdn.microsoft.com/en-us/library/windows/desktop/ff684171%28v=vs.85%29.aspx#skew_transform
 // TODO see if there's a way we can avoid the multiplication
-void fallbackSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
+void uiprivFallbackSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
 {
 	uiDrawMatrix n;
 
@@ -31,7 +31,7 @@ void fallbackSkew(uiDrawMatrix *m, double x, double y, double xamount, double ya
 	uiDrawMatrixMultiply(m, &n);
 }
 
-void scaleCenter(double xCenter, double yCenter, double *x, double *y)
+void uiprivScaleCenter(double xCenter, double yCenter, double *x, double *y)
 {
 	*x = xCenter - (*x * xCenter);
 	*y = yCenter - (*y * yCenter);
@@ -39,7 +39,7 @@ void scaleCenter(double xCenter, double yCenter, double *x, double *y)
 
 // the basic algorithm is from cairo
 // but it's the same algorithm as the transform point, just without M31 and M32 taken into account, so let's just do that instead
-void fallbackTransformSize(uiDrawMatrix *m, double *x, double *y)
+void uiprivFallbackTransformSize(uiDrawMatrix *m, double *x, double *y)
 {
 	uiDrawMatrix m2;
 

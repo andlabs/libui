@@ -117,8 +117,8 @@ void uiGridSetPadded(uiGrid *g, int padded)
 {
 	g->padded = padded;
 	if (g->padded) {
-		gtk_grid_set_row_spacing(g->grid, gtkYPadding);
-		gtk_grid_set_column_spacing(g->grid, gtkXPadding);
+		gtk_grid_set_row_spacing(g->grid, uiprivGTKYPadding);
+		gtk_grid_set_column_spacing(g->grid, uiprivGTKXPadding);
 	} else {
 		gtk_grid_set_row_spacing(g->grid, 0);
 		gtk_grid_set_column_spacing(g->grid, 0);

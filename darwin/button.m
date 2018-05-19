@@ -9,7 +9,7 @@ struct uiButton {
 };
 
 @interface buttonDelegateClass : NSObject {
-	struct mapTable *buttons;
+	uiprivMap *buttons;
 }
 - (IBAction)onClicked:(id)sender;
 - (void)registerButton:(uiButton *)b;
@@ -22,13 +22,13 @@ struct uiButton {
 {
 	self = [super init];
 	if (self)
-		self->buttons = newMap();
+		self->buttons = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->buttons);
+	uiprivMapDestroy(self->buttons);
 	[super dealloc];
 }
 
@@ -36,13 +36,13 @@ struct uiButton {
 {
 	uiButton *b;
 
-	b = (uiButton *) mapGet(self->buttons, sender);
+	b = (uiButton *) uiprivMapGet(self->buttons, sender);
 	(*(b->onClicked))(b, b->onClickedData);
 }
 
 - (void)registerButton:(uiButton *)b
 {
-	mapSet(self->buttons, b->button, b);
+	uiprivMapSet(self->buttons, b->button, b);
 	[b->button setTarget:self];
 	[b->button setAction:@selector(onClicked:)];
 }
@@ -50,7 +50,7 @@ struct uiButton {
 - (void)unregisterButton:(uiButton *)b
 {
 	[b->button setTarget:nil];
-	mapDelete(self->buttons, b->button);
+	uiprivMapDelete(self->buttons, b->button);
 }
 
 @end
@@ -75,7 +75,7 @@ char *uiButtonText(uiButton *b)
 
 void uiButtonSetText(uiButton *b, const char *text)
 {
-	[b->button setTitle:toNSString(text)];
+	[b->button setTitle:uiprivToNSString(text)];
 }
 
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
@@ -96,7 +96,7 @@ uiButton *uiNewButton(const char *text)
 	uiDarwinNewControl(uiButton, b);
 
 	b->button = [[NSButton alloc] initWithFrame:NSZeroRect];
-	[b->button setTitle:toNSString(text)];
+	[b->button setTitle:uiprivToNSString(text)];
 	[b->button setButtonType:NSMomentaryPushInButton];
 	[b->button setBordered:YES];
 	[b->button setBezelStyle:NSRoundedBezelStyle];
@@ -104,7 +104,7 @@ uiButton *uiNewButton(const char *text)
 
 	if (buttonDelegate == nil) {
 		buttonDelegate = [[buttonDelegateClass new] autorelease];
-		[delegates addObject:buttonDelegate];
+		[uiprivDelegates addObject:buttonDelegate];
 	}
 	[buttonDelegate registerButton:b];
 	uiButtonOnClicked(b, defaultOnClicked, NULL);

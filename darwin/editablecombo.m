@@ -34,7 +34,7 @@ struct uiEditableCombobox {
 };
 
 @interface editableComboboxDelegateClass : NSObject<NSComboBoxDelegate> {
-	struct mapTable *comboboxes;
+	uiprivMap *comboboxes;
 }
 - (void)controlTextDidChange:(NSNotification *)note;
 - (void)comboBoxSelectionDidChange:(NSNotification *)note;
@@ -48,13 +48,13 @@ struct uiEditableCombobox {
 {
 	self = [super init];
 	if (self)
-		self->comboboxes = newMap();
+		self->comboboxes = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->comboboxes);
+	uiprivMapDestroy(self->comboboxes);
 	[super dealloc];
 }
 
@@ -62,7 +62,8 @@ struct uiEditableCombobox {
 {
 	uiEditableCombobox *c;
 
-	c = uiEditableCombobox(mapGet(self->comboboxes, [note object]));
+	// TODO normalize the cast styles in these calls
+	c = uiEditableCombobox(uiprivMapGet(self->comboboxes, [note object]));
 	(*(c->onChanged))(c, c->onChangedData);
 }
 
@@ -79,14 +80,14 @@ struct uiEditableCombobox {
 
 - (void)registerCombobox:(uiEditableCombobox *)c
 {
-	mapSet(self->comboboxes, c->cb, c);
+	uiprivMapSet(self->comboboxes, c->cb, c);
 	[c->cb setDelegate:self];
 }
 
 - (void)unregisterCombobox:(uiEditableCombobox *)c
 {
 	[c->cb setDelegate:nil];
-	mapDelete(self->comboboxes, c->cb);
+	uiprivMapDelete(self->comboboxes, c->cb);
 }
 
 @end
@@ -106,7 +107,7 @@ static void uiEditableComboboxDestroy(uiControl *cc)
 
 void uiEditableComboboxAppend(uiEditableCombobox *c, const char *text)
 {
-	[c->cb addItemWithObjectValue:toNSString(text)];
+	[c->cb addItemWithObjectValue:uiprivToNSString(text)];
 }
 
 char *uiEditableComboboxText(uiEditableCombobox *c)
@@ -118,7 +119,7 @@ void uiEditableComboboxSetText(uiEditableCombobox *c, const char *text)
 {
 	NSString *t;
 
-	t = toNSString(text);
+	t = uiprivToNSString(text);
 	[c->cb setStringValue:t];
 	// yes, let's imitate the behavior that caused uiEditableCombobox to be separate in the first place!
 	// just to avoid confusion when users see an option in the list in the text field but not selected in the list
@@ -176,7 +177,7 @@ uiEditableCombobox *uiNewEditableCombobox(void)
 
 	if (comboboxDelegate == nil) {
 		comboboxDelegate = [[editableComboboxDelegateClass new] autorelease];
-		[delegates addObject:comboboxDelegate];
+		[uiprivDelegates addObject:comboboxDelegate];
 	}
 	[comboboxDelegate registerCombobox:c];
 	uiEditableComboboxOnChanged(c, defaultOnChanged, NULL);

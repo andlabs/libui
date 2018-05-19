@@ -1,6 +1,8 @@
 // 1 november 2016
 #import "uipriv_darwin.h"
 
+// TODO option while resizing resizes both opposing sides at once (thanks swillits in irc.freenode.net/#macdev for showing this to me); figure out how far back that behavior goes when we do implement it
+
 // because we are changing the window frame each time the mouse moves, the successive -[NSEvent locationInWindow]s cannot be meaningfully used together
 // make sure they are all following some sort of standard to avoid this problem; the screen is the most obvious possibility since it requires only one conversion (the only one that a NSWindow provides)
 static NSPoint makeIndependent(NSPoint p, NSWindow *w)
@@ -41,16 +43,16 @@ void onMoveDrag(struct onMoveDragParams *p, NSEvent *e)
 	[p->w setFrameOrigin:frame.origin];
 }
 
-void doManualMove(NSWindow *w, NSEvent *initialEvent)
+void uiprivDoManualMove(NSWindow *w, NSEvent *initialEvent)
 {
 	__block struct onMoveDragParams mdp;
-	struct nextEventArgs nea;
+	uiprivNextEventArgs nea;
 	BOOL (^handleEvent)(NSEvent *e);
 	__block BOOL done;
 
 	// 10.11 gives us a method to handle this for us
 	// use it if available; this lets us use the real OS dragging code, which means we can take advantage of OS features like Spaces
-	if (FUTURE_NSWindow_performWindowDragWithEvent(w, initialEvent))
+	if (uiprivFUTURE_NSWindow_performWindowDragWithEvent(w, initialEvent))
 		return;
 
 	mdp.w = w;
@@ -70,7 +72,7 @@ void doManualMove(NSWindow *w, NSEvent *initialEvent)
 		return YES;		// do not send
 	};
 	done = NO;
-	while (mainStep(&nea, handleEvent))
+	while (uiprivMainStep(&nea, handleEvent))
 		if (done)
 			break;
 }
@@ -88,14 +90,14 @@ static void minMaxAutoLayoutSizes(NSWindow *w, NSSize *min, NSSize *max)
 
 	// minimum: encourage the window to be as small as possible
 	contentView = [w contentView];
-	cw = mkConstraint(contentView, NSLayoutAttributeWidth,
+	cw = uiprivMkConstraint(contentView, NSLayoutAttributeWidth,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
 		0, 0,
 		@"window minimum width finding constraint");
 	[cw setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:cw];
-	ch = mkConstraint(contentView, NSLayoutAttributeHeight,
+	ch = uiprivMkConstraint(contentView, NSLayoutAttributeHeight,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
 		0, 0,
@@ -108,14 +110,14 @@ static void minMaxAutoLayoutSizes(NSWindow *w, NSSize *min, NSSize *max)
 
 	// maximum: encourage the window to be as large as possible
 	contentView = [w contentView];
-	cw = mkConstraint(contentView, NSLayoutAttributeWidth,
+	cw = uiprivMkConstraint(contentView, NSLayoutAttributeWidth,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
 		0, CGFLOAT_MAX,
 		@"window maximum width finding constraint");
 	[cw setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:cw];
-	ch = mkConstraint(contentView, NSLayoutAttributeHeight,
+	ch = uiprivMkConstraint(contentView, NSLayoutAttributeHeight,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
 		0, CGFLOAT_MAX,
@@ -218,10 +220,10 @@ static void onResizeDrag(struct onResizeDragParams *p, NSEvent *e)
 }
 
 // TODO do our events get fired with this? *should* they?
-void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
+void uiprivDoManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
 {
 	__block struct onResizeDragParams rdp;
-	struct nextEventArgs nea;
+	uiprivNextEventArgs nea;
 	BOOL (^handleEvent)(NSEvent *e);
 	__block BOOL done;
 
@@ -245,7 +247,7 @@ void doManualResize(NSWindow *w, NSEvent *initialEvent, uiWindowResizeEdge edge)
 		return YES;		// do not send
 	};
 	done = NO;
-	while (mainStep(&nea, handleEvent))
+	while (uiprivMainStep(&nea, handleEvent))
 		if (done)
 			break;
 }

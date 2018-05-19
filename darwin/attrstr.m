@@ -296,14 +296,14 @@ static void addBackgroundAttribute(struct foreachParams *p, size_t start, size_t
 	uiprivDrawTextBackgroundParams *dtb;
 
 	// TODO make sure this works properly with line paragraph spacings (after figuring out what that means, of course)
-	if (FUTURE_kCTBackgroundColorAttributeName != NULL) {
+	if (uiprivFUTURE_kCTBackgroundColorAttributeName != NULL) {
 		CGColorRef color;
 		CFRange range;
 
 		color = mkcolor(r, g, b, a);
 		range.location = start;
 		range.length = end - start;
-		CFAttributedStringSetAttribute(p->mas, range, *FUTURE_kCTBackgroundColorAttributeName, color);
+		CFAttributedStringSetAttribute(p->mas, range, *uiprivFUTURE_kCTBackgroundColorAttributeName, color);
 		CFRelease(color);
 		return;
 	}

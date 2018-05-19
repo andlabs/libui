@@ -1,7 +1,5 @@
 // 11 march 2018
-extern "C" {
 #include "../common/attrstr.h"
-}
 
 // dwrite.cpp
 extern IDWriteFactory *dwfactory;

@@ -2,7 +2,7 @@
 #include "uipriv_unix.h"
 #include "draw.h"
 
-void m2c(uiDrawMatrix *m, cairo_matrix_t *c)
+static void m2c(uiDrawMatrix *m, cairo_matrix_t *c)
 {
 	c->xx = m->M11;
 	c->yx = m->M12;
@@ -10,6 +10,12 @@ void m2c(uiDrawMatrix *m, cairo_matrix_t *c)
 	c->yy = m->M22;
 	c->x0 = m->M31;
 	c->y0 = m->M32;
+}
+
+// needed by uiDrawTransform()
+void uiprivM2C(uiDrawMatrix *m, cairo_matrix_t *c)
+{
+	m2c(m, c);
 }
 
 static void c2m(cairo_matrix_t *c, uiDrawMatrix *m)
@@ -39,7 +45,7 @@ void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x
 	m2c(m, &c);
 	xt = x;
 	yt = y;
-	scaleCenter(xCenter, yCenter, &xt, &yt);
+	uiprivScaleCenter(xCenter, yCenter, &xt, &yt);
 	cairo_matrix_translate(&c, xt, yt);
 	cairo_matrix_scale(&c, x, y);
 	cairo_matrix_translate(&c, -xt, -yt);
@@ -59,7 +65,7 @@ void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 
 void uiDrawMatrixSkew(uiDrawMatrix *m, double x, double y, double xamount, double yamount)
 {
-	fallbackSkew(m, x, y, xamount, yamount);
+	uiprivFallbackSkew(m, x, y, xamount, yamount);
 }
 
 void uiDrawMatrixMultiply(uiDrawMatrix *dest, uiDrawMatrix *src)

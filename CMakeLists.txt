@@ -27,6 +27,7 @@ set(MSVC_INCREMENTAL_DEFAULT ON)
 
 # default to debug builds
 # do this before project() just to be safe
+# either DEBUG or Debug will work; we use DEBUG as that's what cmake does internally (https://cmake.org/pipermail/cmake/2013-June/055177.html)
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "" FORCE)
 endif()
@@ -75,13 +76,14 @@ if(MSVC)
 	# TODO /sdl turns C4996 into an ERROR
 	# don't use /analyze; that requires us to write annotations everywhere
 	# TODO undecided flags from qo?
+	# the RTC flags are only supplied in debug builds because they are only supposed to be used by debug builds (see "This is because run-time error checks are not valid in a release (optimized) build." in https://docs.microsoft.com/cpp/build/reference/rtc-run-time-error-checks)
 	# /RTCc is not supplied because it's discouraged as of VS2015; see https://www.reddit.com/r/cpp/comments/46mhne/rtcc_rejects_conformant_code_with_visual_c_2015/d06auq5
 	# /EHsc is to shut the compiler up in some cases
 	# TODO make /EHsc C++-only
 	set(_COMMON_CFLAGS
 		/W4 /wd4100
 		/bigobj /nologo
-		/RTC1 /RTCs /RTCu
+		$<$<CONFIG:Debug>:/RTC1 /RTCs /RTCu>
 		/EHsc
 	)
 
@@ -148,34 +150,33 @@ endmacro()
 
 add_subdirectory("common")
 add_subdirectory("${_OSNAME}")
-add_library(${_LIBUINAME} ${_LIBUI_SOURCES})
-target_include_directories(${_LIBUINAME}
+add_library(libui ${_LIBUI_SOURCES})
+target_include_directories(libui
 	PUBLIC .
 	PRIVATE ${_LIBUI_INCLUEDIRS})
-target_compile_definitions(${_LIBUINAME}
+target_compile_definitions(libui
 	PRIVATE ${_LIBUI_DEFS})
 # cmake produces this for us by default but only for shared libraries
-target_compile_definitions(${_LIBUINAME}
+target_compile_definitions(libui
 	PRIVATE libui_EXPORTS)
-target_compile_options(${_LIBUINAME}
+target_compile_options(libui
 	PUBLIC ${_COMMON_CFLAGS}
 	PRIVATE ${_LIBUI_CFLAGS})
 # TODO link directories?
 if(BUILD_SHARED_LIBS)
-	target_link_libraries(${_LIBUINAME}
+	target_link_libraries(libui
 		PRIVATE ${_LIBUI_LIBS})
 endif()
 # TODO INTERFACE libs don't inherit to grandhcildren?
 # on Windows the linker for static libraries is different; don't give it the flags
 if(BUILD_SHARED_LIBS)
-	_target_link_options_private(${_LIBUINAME}
+	_target_link_options_private(libui
 		_COMMON_LDFLAGS
 		_LIBUI_LDFLAGS)
 endif()
 if(NOT BUILD_SHARED_LIBS)
-	_handle_static()
 	# TODO figure out a way to tell libui that it's static
-	target_compile_definitions(${_LIBUINAME}
+	target_compile_definitions(libui
 		PUBLIC _UI_STATIC)
 endif()
 if(NOT MSVC)
@@ -200,7 +201,7 @@ if(NOT MSVC)
 endif()
 if(BUILD_SHARED_LIBS)
 	if(_HASVERSION)
-		set_target_properties(${_LIBUINAME} PROPERTIES
+		set_target_properties(libui PROPERTIES
 			SOVERSION "${_VERSION}")
 	endif()
 endif()
@@ -210,7 +211,7 @@ macro(_add_exec _name)
 	add_executable(${_name}
 		EXCLUDE_FROM_ALL
 		${ARGN})
-	target_link_libraries(${_name} libui ${_LIBUI_STATIC_RES})
+	target_link_libraries(${_name} libui)
 	_target_link_options_private(${_name}
 		_COMMON_LDFLAGS)
 	# make shared-linked executables PIC too

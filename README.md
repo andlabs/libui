@@ -1,9 +1,22 @@
 # libui: a portable GUI library for C
 
 This README is being written.<br>
-[![Build Status](https://travis-ci.org/andlabs/libui.svg?branch=master)](https://travis-ci.org/andlabs/libui)
+[![Build Status, Linux and macOS](https://travis-ci.org/andlabs/libui.svg?branch=master)](https://travis-ci.org/andlabs/libui)<br>
+[![Build Status, Windows](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31?svg=true)](https://ci.appveyor.com/project/andlabs/libui)
 
 ## Announcements
+
+* **16 May 2018**
+	* Thanks to @parro-it and @msink, libui now has better CI, including AppVeyor for Windows CI, and automated creation of binary releases when I make a tagged release.
+
+* **13 May 2018**
+	* Added new functions to work with uiDateTimePickers: `uiDateTimePickerTime()`, `uiDateTimePickerSetTime()`, and `uiDateTimePickerOnChanged()`. These operate on standard `<time.h>` `struct tm`s. Thanks @cody271!
+
+* **2 May 2018**
+	* On Windows, you no longer need to carry around a `libui.res` file with static builds. You do need to link in the appropriate manifest file, such as the one in the `windows/` folder (I still need to figure out exactly what is needed apart from the Common Controls v6 dependency, or at least to create a complete-ish template), or at least include it alongside your executables. This also means you should no longer see random cmake errors when building the static libraries.
+
+* **18 April 2018**
+	* Introduced a new `uiTimer()` function for running code on a timer on the main thread. (Thanks to @cody271.)
 
 * **18 March 2018**
 	* Introduced an all-new formatted text API that allows you to process formatted text in ways that the old API wouldn't allow. You can read on the whole API [here](https://github.com/andlabs/libui/blob/8944a3fc5528445b9027b1294b6c86bae03eeb89/ui_attrstr.h). There is also a new examples for it: `drawtext`, which shows the whole API at a glance. It doesn't yet support measuring or manipulating text, nor does it currently support functions that would be necessary for things like text editors; all of this will be added back later.
@@ -51,6 +64,15 @@ This README is being written.<br>
 ## Updates
 
 *Note that today's entry (Eastern Time) may be updated later today.*
+
+* **13 May 2018**
+	* Release builds on Windows with MSVC should be fixed now; thanks @l0calh05t, @slahn, @mischnic, and @zentner-kyle.
+
+* **12 May 2018**
+	* GTK+ and OS X now have a cleaner build process for static libraries which no longer has intermediate files and differing configurations. As a result, certain issues should no longer be present. New naming rules for internal symbols of libui have also started being drafted; runtime symbols and edge cases still need to be handled (and the rules applied to Windows) before this can become a regular thing.
+
+* **18 April 2018**
+	* Migrated all code in the `common/` directory to use `uipriv` prefixes for everything that isn't `static`. This is the first step toward fixing static library oddities within libui, allowing libui to truly be safely used as either a static library or a shared library.
 
 * **17 June 2016**
 	* `uiMainSteps()` no longer takes any arguments and no longer needs to invoke a function to do the work. You still need to call it, but once you do, it will return immediately and you can then get right to your main loop.
@@ -156,9 +178,9 @@ Language | Bindings
 --- | ---
 C++ | [libui-cpp](https://github.com/billyquith/libui-cpp), [cpp-libui-qtlike](https://github.com/aoloe/cpp-libui-qtlike)
 C# / .NET Framework | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding)
-C# / .NET Core | [DevZH.UI](https://github.com/noliar/DevZH.UI), [SharpUI](https://github.com/benpye/sharpui/)
+C# / .NET Core | [DevZH.UI](https://github.com/noliar/DevZH.UI), [SharpUI](https://github.com/benpye/sharpui/), [LibUISharp](https://github.com/tom-corwin/LibUISharp)
 CHICKEN Scheme | [wasamasa/libui](https://github.com/wasamasa/libui)
-Crystal | [libui.cr](https://github.com/Fusion/libui.cr)
+Crystal | [libui.cr](https://github.com/Fusion/libui.cr), [hedron](https://github.com/Qwerp-Derp/hedron)
 D | [DerelictLibui (flat API)](https://github.com/Extrawurst/DerelictLibui), [libuid (object-oriented)](https://github.com/mogud/libuid)
 Euphoria | [libui-euphoria](https://github.com/ghaberek/libui-euphoria)
 Harbour | [HBUI](https://github.com/RJopek/HBUI)

@@ -23,6 +23,11 @@ _add_example(layout-test
 	${_EXAMPLE_RESOURCES_RC}
 )
 
+set_target_properties(layout-test PROPERTIES
+	OUTPUT_NAME layout-test
+	WIN32_EXECUTABLE FALSE
+)
+
 _add_example(histogram
 	histogram/main.c
 	${_EXAMPLE_RESOURCES_RC}

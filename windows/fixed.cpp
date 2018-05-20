@@ -123,6 +123,17 @@ static void fixedArrangeChildren(uiFixed *g)
 		uiWindowsControlAssignControlIDZOrder(uiWindowsControl(fc.c), &controlID, &insertAfter);
 }
 
+void uiFixedSize(uiFixed *g, uiControl *control, int *width, int *height) {
+	RECT r;
+	uiWindowsEnsureGetWindowRect((HWND) uiControlHandle(control), &r);
+	*width = r.right-r.left;
+	*height = r.bottom-r.top;
+}
+
+void uiFixedSetSize(uiFixed *g, uiControl *control, int width, int height) {
+	uiWindowsResizeWindow((HWND) uiControlHandle(control), width, height);
+}
+
 void uiFixedAppend(uiFixed *g, uiControl *child, int x, int y)
 {
 	struct fixedChild fc;

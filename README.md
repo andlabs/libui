@@ -193,7 +193,7 @@ Node.js | [libui-node](https://github.com/parro-it/libui-node)
 PHP | [ui](https://github.com/krakjoe/ui)
 Python | [pylibui](https://github.com/joaoventura/pylibui), [pylibui-cffi](https://github.com/Yardanico/pylibui-cffi)
 Ruby | [libui-ruby](https://github.com/jamescook/libui-ruby)
-Rust | [libui-rs](https://github.com/pcwalton/libui-rs)
+Rust | [libui-rs](https://github.com/pcwalton/libui-rs), [arcturu/libui-rs](https://github.com/arcturu/libui-rs), [LeoTindall/libui-rs](https://github.com/LeoTindall/libui-rs)
 Scala | [scalaui](https://github.com/lolgab/scalaui)
 Swift | [libui-swift](https://github.com/sclukey/libui-swift)
 

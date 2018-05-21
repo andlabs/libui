@@ -4,6 +4,28 @@ This README is being written.<br>
 [![Build Status, Linux and macOS](https://travis-ci.org/andlabs/libui.svg?branch=master)](https://travis-ci.org/andlabs/libui)<br>
 [![Build Status, Windows](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31?svg=true)](https://ci.appveyor.com/project/andlabs/libui)
 
+## Status
+
+It has come to my attention that I have not been particularly clear about how usable or feature-complete libui is, and that this has fooled many people into expecting more from libui right this moment than I have explicitly promised to make available. I apologize for not doing this sooner.
+
+libui is currently **mid-alpha** software. Much of what is currently present runs stabily enough for the examples and perhaps some small programs to work, but the stability is still a work-in-progress, much of what is already there is not feature-complete, some of it will be buggy on certain platforms, and there's a lot of stuff missing. In short, here's a list of features that I would like to add to libui, but that aren't in yet:
+
+- tables and trees (the former is currently WIP and may land in preliminary form soon)
+- clipboard support, including drag and drop
+- more and better dialogs
+- printing
+- accessibility for uiArea and custom controls
+- document-based programs
+- tighter OS integration (especially for document-based programs), to allow programs to fully feel native, rather than merely look and act native
+- better support for standard dialogs and features (search bars, etc.)
+- OpenGL support (this was already being worked on by someone else, but I don't know what happened to them...)
+
+In addition, [here](https://github.com/andlabs/libui/issues?utf8=%E2%9C%93&q=master+in%3Atitle+is%3Aissue+is%3Aopen) is a list of issues generalizing existing problems.
+
+Furthermore, libui is not properly fully documented yet. This is mainly due to the fact that the API was initially unstable enough so as to result in rewriting documentation multiple times, in addition to me not being happy with really any existing C code documentation tool. That being said, I have started to pin down my ideal code documentation style in parts of `ui.h`, most notably in the uiAttributedString APIs. Over time, I plan on extending this to the rest of the headers. You can also use [the documentation for libui's Go bindings](https://godoc.org/github.com/andlabs/ui) as a reference, though it is somewhat stale and not optimally written.
+
+But libui is not dead; I am working on it whenever I can, and I hope to get it to a point of real quality soon!
+
 ## Announcements
 
 * **16 May 2018**

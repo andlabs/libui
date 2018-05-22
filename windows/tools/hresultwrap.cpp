@@ -3,11 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#define nbuf 1024
-
 bool generate(std::vector<char> *genline, FILE *fout)
 {
-	std::vector<char> genout(nbuf);
+	std::vector<char> genout;
 	size_t nw;
 
 	genout.push_back('/');
@@ -18,7 +16,7 @@ bool generate(std::vector<char> *genline, FILE *fout)
 
 	genout.push_back('\n');
 	nw = fwrite(genout.data(), sizeof (char), genout.size(), fout);
-	return nw != genout.size();
+	return nw == genout.size();
 }
 
 struct process {
@@ -73,7 +71,7 @@ size_t stateGenerate(struct process *p, const char *buf, size_t n, FILE *fout)
 	size_t j;
 
 	if (p->genline == NULL)
-		p->genline = new std::vector<size_t>(n);
+		p->genline = new std::vector<char>;
 	for (j = 0; j < n; j++)
 		if (buf[j] == '\n')
 			// do NOT include the newline this time
@@ -82,9 +80,11 @@ size_t stateGenerate(struct process *p, const char *buf, size_t n, FILE *fout)
 	if (j == n)		// '\n' not found; not finished with the line yet
 		return j;
 	// finished with the line; process it and continue
-	p->state = stateNewLine;
-	if (!generate(p->genline, fout))
+	if (!generate(p->genline, fout)) {
 		p->state = stateError;
+		return 0;
+	}
+	p->state = stateNewLine;
 	delete p->genline;
 	p->genline = NULL;
 	// buf[j] == '\n' and generate() took care of printing a newline
@@ -106,8 +106,10 @@ bool process(struct process *p, const char *buf, size_t n, FILE *fout)
 		buf += np;
 		n -= np;
 	}
-	return p->error;
+	return !p->error;
 }
+
+#define nbuf 1024
 
 int main(int argc, char *argv[])
 {

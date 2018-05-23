@@ -3,22 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-bool generate(std::vector<char> *genline, FILE *fout)
-{
-	std::vector<char> genout;
-	size_t nw;
-
-	genout.push_back('/');
-	genout.push_back('/');
-	genout.push_back(' ');
-	genout.insert(genout.end(), genline->begin(), genline->end());
-	genout.push_back('\n');
-
-	genout.push_back('\n');
-	nw = fwrite(genout.data(), sizeof (char), genout.size(), fout);
-	return nw == genout.size();
-}
-
 class Scanner {
 	FILE *fin;
 	char *buf;
@@ -32,8 +16,8 @@ public:
 	~Scanner(void);
 
 	bool Scan(void);
-	std::vector<char>::const_iterator BytesBegin(void) const;
-	std::vector<char>::const_iterator BytesEnd(void) const;
+	const char *Bytes(void) const;
+	size_t Len(void) const;
 	bool Error(void) const;
 };
 
@@ -97,14 +81,14 @@ bool Scanner::Scan(void)
 	}
 }
 
-std::vector<char>::const_iterator Scanner::BytesBegin(void) const
+const char *Scanner::Bytes(void) const
 {
-	return this->line->cbegin();
+	return this->line->data();
 }
 
-std::vector<char>::const_iterator Scanner::BytesEnd(void) const
+size_t Scanner::Len(void) const
 {
-	return this->line->cend();
+	return this->line->size();
 }
 
 bool Scanner::Error(void) const
@@ -112,12 +96,38 @@ bool Scanner::Error(void) const
 	return this->error;
 }
 
+bool generate(const char *line, size_t n, FILE *fout)
+{
+	std::vector<char> genout;
+	size_t nw;
+
+	genout.push_back('/');
+	genout.push_back('/');
+	genout.push_back(' ');
+	genout.insert(genout.end(), line, line + n);
+	genout.push_back('\n');
+
+	genout.push_back('\n');
+	nw = fwrite(genout.data(), sizeof (char), genout.size(), fout);
+	return nw == genout.size();
+}
+
+bool process(const char *line, size_t n, FILE *fout)
+{
+	size_t nw;
+
+	if (n > 0 && line[0] == '@')
+		return generate(line + 1, n - 1, fout);
+	nw = fwrite(line, sizeof (char), n, fout);
+	if (nw != n)
+		return false;
+	return fwrite("\n", sizeof (char), 1, fout) == 1;
+}
+
 int main(int argc, char *argv[])
 {
 	FILE *fin = NULL, *fout = NULL;
-	char buf[nbuf];
-	size_t n;
-	struct process p;
+	Scanner *s = NULL;
 	int ret = 1;
 
 	if (argc != 3) {
@@ -136,26 +146,30 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
-	processInit(&p);
-	for (;;) {
-		n = fread(buf, sizeof (char), nbuf, fin);
-		if (n == 0)
-			break;
-		if (!process(&p, buf, n, fout)) {
+	s = new Scanner(fin);
+	while (s->Scan()) {
+		const char *line;
+		size_t n;
+
+		line = s->Bytes();
+		n = s->Len();
+		if (!process(line, n, fout)) {
 			fprintf(stderr, "error writing to %s\n", argv[2]);
 			goto done;
 		}
 	}
-	if (!feof(fin)) {
+	if (s->Error()) {
 		fprintf(stderr, "error reading from %s\n", argv[1]);
 		goto done;
 	}
 
 	ret = 0;
 done:
-	if (fin != NULL)
-		fclose(fin);
+	if (s != NULL)
+		delete s;
 	if (fout != NULL)
 		fclose(fout);
+	if (fin != NULL)
+		fclose(fin);
 	return ret;
 }

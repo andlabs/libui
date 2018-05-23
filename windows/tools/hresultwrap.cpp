@@ -10,6 +10,7 @@ class Scanner {
 	size_t n;
 	std::vector<char> *line;
 	bool eof;
+	bool eofNextTime;
 	bool error;
 public:
 	Scanner(FILE *fin);
@@ -68,11 +69,19 @@ bool Scanner::Scan(void)
 			// otherwise, the buffer was exhausted in the middle of a line, so fall through
 		}
 		// need to refill the buffer
+		if (this->eofNextTime) {
+			this->eof = true;
+			return false;
+		}
 		this->n = fread(this->buf, sizeof (char), nbuf, this->fin);
 		if (this->n < nbuf) {
-			// TODO what if this->eof && this->error? the C standard does not expressly disallow this
-			this->eof = feof(this->fin) != 0;
+			// TODO what if this->eofNextTime && this->error? the C standard does not expressly disallow this
+			this->eofNextTime = feof(this->fin) != 0;
 			this->error = ferror(this->fin) != 0;
+			// according to various people in irc.freenode.net/##c, feof() followed by fread() can result in ferror(), so we must be sure not to read twice on a feof()
+			// however, because a partial (nonzero) fread() may or may not set feof(), we have to do this whole delayed check acrobatics
+			if (this->eofNextTime && this->n == 0)
+				this->eof = true;
 			if (this->eof || this->error)
 				return false;
 			// otherwise process this last chunk of the file

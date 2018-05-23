@@ -19,97 +19,98 @@ bool generate(std::vector<char> *genline, FILE *fout)
 	return nw == genout.size();
 }
 
-struct process {
-	// each of these returns the number of bytes in buf that were processed
-	size_t (*state)(struct process *p, const char *buf, size_t n, FILE *fout);
+class Scanner {
+	FILE *fin;
+	char *buf;
+	const char *p;
+	size_t n;
+	std::vector<char> *line;
+	bool eof;
 	bool error;
-	std::vector<char> *genline;
+public:
+	Scanner(FILE *fin);
+	~Scanner(void);
+
+	bool Scan(void);
+	std::vector<char>::const_iterator BytesBegin(void) const;
+	std::vector<char>::const_iterator BytesEnd(void) const;
+	bool Error(void) const;
 };
 
-static size_t stateError(struct process *p, const char *buf, size_t n, FILE *fout)
-{
-	p->error = true;
-	return n;
-}
-
-size_t stateCopyLine(struct process *p, const char *buf, size_t n, FILE *fout);
-size_t stateGenerate(struct process *p, const char *buf, size_t n, FILE *fout);
-
-size_t stateNewLine(struct process *p, const char *buf, size_t n, FILE *fout)
-{
-	if (n > 0 && buf[0] == '@') {
-		p->state = stateGenerate;
-		return 1;		// skip the @
-	}
-	p->state = stateCopyLine;
-	return 0;			// don't skip anything
-}
-
-size_t stateCopyLine(struct process *p, const char *buf, size_t n, FILE *fout)
-{
-	size_t nw;
-	size_t j;
-
-	for (j = 0; j < n; j++)
-		if (buf[j] == '\n') {
-			// include the newline; that's being copied too
-			j++;
-			break;
-		}
-	nw = fwrite(buf, sizeof (char), j, fout);
-	if (nw != j) {
-		p->state = stateError;
-		return 0;
-	}
-	// and on to the next line
-	p->state = stateNewLine;
-	return j;
-}
-
-size_t stateGenerate(struct process *p, const char *buf, size_t n, FILE *fout)
-{
-	size_t j;
-
-	if (p->genline == NULL)
-		p->genline = new std::vector<char>;
-	for (j = 0; j < n; j++)
-		if (buf[j] == '\n')
-			// do NOT include the newline this time
-			break;
-	p->genline->insert(p->genline->end(), buf, buf + j);
-	if (j == n)		// '\n' not found; not finished with the line yet
-		return j;
-	// finished with the line; process it and continue
-	if (!generate(p->genline, fout)) {
-		p->state = stateError;
-		return 0;
-	}
-	p->state = stateNewLine;
-	delete p->genline;
-	p->genline = NULL;
-	// buf[j] == '\n' and generate() took care of printing a newline
-	return j + 1;
-}
-
-void processInit(struct process *p)
-{
-	memset(p, 0, sizeof (struct process));
-	p->state = stateNewLine;
-}
-
-bool process(struct process *p, const char *buf, size_t n, FILE *fout)
-{
-	size_t np;
-
-	while (n != 0) {
-		np = (*(p->state))(p, buf, n, fout);
-		buf += np;
-		n -= np;
-	}
-	return !p->error;
-}
-
 #define nbuf 1024
+
+Scanner::Scanner(FILE *fin)
+{
+	this->fin = fin;
+	this->buf = new char[nbuf];
+	this->p = this->buf;
+	this->n = 0;
+	this->line = new std::vector<char>;
+	this->eof = false;
+	this->error = false;
+}
+
+Scanner::~Scanner(void)
+{
+	delete this->line;
+	delete[] this->buf;
+}
+
+bool Scanner::Scan(void)
+{
+	if (this->eof || this->error)
+		return false;
+	this->line->clear();
+	for (;;) {
+		if (this->n > 0) {
+			size_t j;
+			bool haveline;
+
+			haveline = false;
+			for (j = 0; j < this->n; j++)
+				if (this->p[j] == '\n') {
+					haveline = true;
+					break;
+				}
+			this->line->insert(this->line->end(), this->p, this->p + j);
+			this->p += j;
+			this->n -= j;
+			if (haveline) {
+				// swallow the \n for the next time through
+				this->p++;
+				this->n--;
+				return true;
+			}
+			// otherwise, the buffer was exhausted in the middle of a line, so fall through
+		}
+		// need to refill the buffer
+		this->n = fread(this->buf, sizeof (char), nbuf, this->fin);
+		if (this->n < nbuf) {
+			// TODO what if this->eof && this->error? the C standard does not expressly disallow this
+			this->eof = feof(this->fin) != 0;
+			this->error = ferror(this->fin) != 0;
+			if (this->eof || this->error)
+				return false;
+			// otherwise process this last chunk of the file
+		}
+		this->p = this->buf;
+	}
+}
+
+std::vector<char>::const_iterator Scanner::BytesBegin(void) const
+{
+	return this->line->cbegin();
+}
+
+std::vector<char>::const_iterator Scanner::BytesEnd(void) const
+{
+	return this->line->cend();
+}
+
+bool Scanner::Error(void) const
+{
+	return this->error;
+}
 
 int main(int argc, char *argv[])
 {

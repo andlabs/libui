@@ -1,38 +1,59 @@
 // 21 may 2018
+#ifdef _WIN32
+#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
+#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT 1
+#include <io.h>
+#include <sys/stat.h>
+#define openfunc _open
+#define openflags (_O_RDONLY | _O_BINARY)
+#define openmode (_S_IREAD)
+#define readfunc _read
+#define readtype int
+#define closefunc _close
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#define openfunc open
+#define openflags (O_RDONLY)
+#define openmode 0644
+#define readfunc read
+#define readtype ssize_t
+#define closefunc close
+#endif
 #include <vector>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 class Scanner {
-	FILE *fin;
+	int fd;
 	char *buf;
 	const char *p;
 	size_t n;
 	std::vector<char> *line;
 	bool eof;
-	bool eofNextTime;
-	bool error;
+	int error;
 public:
-	Scanner(FILE *fin);
+	Scanner(int fd);
 	~Scanner(void);
 
 	bool Scan(void);
 	const char *Bytes(void) const;
 	size_t Len(void) const;
-	bool Error(void) const;
+	int Error(void) const;
 };
 
 #define nbuf 1024
 
-Scanner::Scanner(FILE *fin)
+Scanner::Scanner(int fd)
 {
-	this->fin = fin;
+	this->fd = fd;
 	this->buf = new char[nbuf];
 	this->p = this->buf;
 	this->n = 0;
 	this->line = new std::vector<char>;
 	this->eof = false;
-	this->error = false;
+	this->error = 0;
 }
 
 Scanner::~Scanner(void)
@@ -43,7 +64,9 @@ Scanner::~Scanner(void)
 
 bool Scanner::Scan(void)
 {
-	if (this->eof || this->error)
+	readtype n;
+
+	if (this->eof || this->error != 0)
 		return false;
 	this->line->clear();
 	for (;;) {
@@ -69,24 +92,17 @@ bool Scanner::Scan(void)
 			// otherwise, the buffer was exhausted in the middle of a line, so fall through
 		}
 		// need to refill the buffer
-		if (this->eofNextTime) {
+		n = readfunc(this->fd, this->buf, nbuf * sizeof (char));
+		if (n < 0) {
+			this->error = errno;
+			return false;
+		}
+		if (n == 0) {
 			this->eof = true;
 			return false;
 		}
-		this->n = fread(this->buf, sizeof (char), nbuf, this->fin);
-		if (this->n < nbuf) {
-			// TODO what if this->eofNextTime && this->error? the C standard does not expressly disallow this
-			this->eofNextTime = feof(this->fin) != 0;
-			this->error = ferror(this->fin) != 0;
-			// according to various people in irc.freenode.net/##c, feof() followed by fread() can result in ferror(), so we must be sure not to read twice on a feof()
-			// however, because a partial (nonzero) fread() may or may not set feof(), we have to do this whole delayed check acrobatics
-			if (this->eofNextTime && this->n == 0)
-				this->eof = true;
-			if (this->eof || this->error)
-				return false;
-			// otherwise process this last chunk of the file
-		}
 		this->p = this->buf;
+		this->n = n;
 	}
 }
 
@@ -100,7 +116,7 @@ size_t Scanner::Len(void) const
 	return this->line->size();
 }
 
-bool Scanner::Error(void) const
+int Scanner::Error(void) const
 {
 	return this->error;
 }
@@ -135,7 +151,8 @@ bool process(const char *line, size_t n, FILE *fout)
 
 int main(int argc, char *argv[])
 {
-	FILE *fin = NULL, *fout = NULL;
+	int fin = -1;
+	FILE *fout = NULL;
 	Scanner *s = NULL;
 	int ret = 1;
 
@@ -144,9 +161,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	fin = fopen(argv[1], "rb");
-	if (fin == NULL) {
-		fprintf(stderr, "error opening %s\n", argv[1]);
+	fin = openfunc(argv[1], openflags, openmode);
+	if (fin < 0) {
+		fprintf(stderr, "error opening %s: %s\n", argv[1], strerror(errno));
 		goto done;
 	}
 	fout = fopen(argv[2], "wb");
@@ -167,8 +184,8 @@ int main(int argc, char *argv[])
 			goto done;
 		}
 	}
-	if (s->Error()) {
-		fprintf(stderr, "error reading from %s\n", argv[1]);
+	if (s->Error() != 0) {
+		fprintf(stderr, "error reading from %s: %s\n", argv[1], strerror(s->Error()));
 		goto done;
 	}
 
@@ -178,7 +195,7 @@ done:
 		delete s;
 	if (fout != NULL)
 		fclose(fout);
-	if (fin != NULL)
-		fclose(fin);
+	if (fin >= 0)
+		closefunc(fin);
 	return ret;
 }

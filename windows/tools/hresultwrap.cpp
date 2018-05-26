@@ -1,8 +1,7 @@
 // 21 may 2018
 #include <vector>
 #include <stdio.h>
-#include <string.h>
-#include "scanner.hpp"
+#include "lib.hpp"
 
 bool generate(const char *line, size_t n, FILE *fout)
 {
@@ -34,20 +33,20 @@ bool process(const char *line, size_t n, FILE *fout)
 
 int main(int argc, char *argv[])
 {
-	int fin = -1;
+	ReadCloser *fin = NULL;
 	FILE *fout = NULL;
 	Scanner *s = NULL;
 	int ret = 1;
-	int err;
+	Error *err = NULL;
 
 	if (argc != 3) {
 		fprintf(stderr, "usage: %s infile outfile\n", argv[0]);
 		return 1;
 	}
 
-	err = OpenForScanner(argv[1], &fin);
-	if (err != 0) {
-		fprintf(stderr, "error opening %s: %s\n", argv[1], strerror(err));
+	err = OpenRead(argv[1], &fin);
+	if (err != NULL) {
+		fprintf(stderr, "error opening %s: %s\n", argv[1], err->String());
 		goto done;
 	}
 	fout = fopen(argv[2], "wb");
@@ -68,8 +67,8 @@ int main(int argc, char *argv[])
 			goto done;
 		}
 	}
-	if (s->Error() != 0) {
-		fprintf(stderr, "error reading from %s: %s\n", argv[1], strerror(s->Error()));
+	if (s->Err() != 0) {
+		fprintf(stderr, "error reading from %s: %s\n", argv[1], s->Err()->String());
 		goto done;
 	}
 
@@ -79,7 +78,9 @@ done:
 		delete s;
 	if (fout != NULL)
 		fclose(fout);
-	if (fin >= 0)
-		CloseForScanner(fin);
+	if (fin != NULL)
+		delete fin;
+	if (err != NULL)
+		delete err;
 	return ret;
 }

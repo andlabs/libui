@@ -19,12 +19,12 @@ posixError::posixError(int error)
 	this->error = error;
 }
 
-virtual posixError::~posixError(void)
+posixError::~posixError(void)
 {
 	// do nothing
 }
 
-virtual const char *posixError::String(void) const
+const char *posixError::String(void) const
 {
 	return strerror(this->error);
 }
@@ -43,12 +43,12 @@ posixReadCloser::posixReadCloser(int fd)
 	this->fd = fd;
 }
 
-virtual posixReadCloser::~posixReadCloser(void)
+posixReadCloser::~posixReadCloser(void)
 {
 	close(this->fd);
 }
 
-virtual Error *posixReadCloser::Read(void *buf, size_t n, size_t *actual)
+Error *posixReadCloser::Read(void *buf, size_t n, size_t *actual)
 {
 	ssize_t ret;
 
@@ -57,7 +57,7 @@ virtual Error *posixReadCloser::Read(void *buf, size_t n, size_t *actual)
 	if (ret < 0)
 		return new posixError(errno);
 	if (ret == 0)
-		return NewEOF(void);
+		return NewEOF();
 	*actual = ret;
 	return NULL;
 }
@@ -68,7 +68,7 @@ public:
 	posixWriteCloser(int fd);
 	virtual ~posixWriteCloser(void);
 
-	virtual Error *Write(void *buf, size_t n, size_t *actual);
+	virtual Error *Write(void *buf, size_t n);
 };
 
 posixWriteCloser::posixWriteCloser(int fd)
@@ -76,20 +76,20 @@ posixWriteCloser::posixWriteCloser(int fd)
 	this->fd = fd;
 }
 
-virtual posixWriteCloser::~posixWriteCloser(void)
+posixWriteCloser::~posixWriteCloser(void)
 {
 	close(this->fd);
 }
 
-virtual Error *posixWriteCloser::Write(void *buf, size_t n)
+Error *posixWriteCloser::Write(void *buf, size_t n)
 {
 	ssize_t ret;
 
 	ret = write(this->fd, buf, n);
 	if (ret < 0)
 		return new posixError(errno);
-	if (ret != n)
-		return NewErrShortWrite(void);
+	if (((size_t) ret) != n)
+		return NewErrShortWrite();
 	return NULL;
 }
 

@@ -22,12 +22,12 @@ public:
 	virtual const char *String(void) const;
 };
 
-virtual ~eofError::eofError(void)
+eofError::~eofError(void)
 {
 	// do nothing
 }
 
-virtual const char *eofError::String(void) const
+const char *eofError::String(void) const
 {
 	return "EOF";
 }
@@ -39,12 +39,12 @@ public:
 	virtual const char *String(void) const;
 };
 
-virtual ~shortWriteError::shortWriteError(void)
+shortWriteError::~shortWriteError(void)
 {
 	// do nothing
 }
 
-virtual const char *shortWriteError::String(void) const
+const char *shortWriteError::String(void) const
 {
 	return "short write";
 }
@@ -61,7 +61,8 @@ Error *NewErrShortWrite(void)
 
 bool IsEOF(Error *e)
 {
-	return typeid (e) == typeid (eofError *);
+	// typeid does not work directly with pointers, alas (see https://stackoverflow.com/questions/4202877/typeid-for-polymorphic-types)
+	return typeid (*e) == typeid (eofError);
 }
 
 #define nbuf 1024
@@ -73,7 +74,7 @@ Scanner::Scanner(ReadCloser *r)
 	this->p = this->buf;
 	this->n = 0;
 	this->line = new std::vector<char>;
-	this->error = NULL;
+	this->err = NULL;
 }
 
 Scanner::~Scanner(void)
@@ -86,7 +87,7 @@ Scanner::~Scanner(void)
 
 bool Scanner::Scan(void)
 {
-	readtype n;
+	size_t n;
 
 	if (this->err != NULL)
 		return false;
@@ -132,7 +133,7 @@ size_t Scanner::Len(void) const
 	return this->line->size();
 }
 
-int Scanner::Err(void) const
+Error *Scanner::Err(void) const
 {
 	if (!IsEOF(this->err))
 		return this->err;

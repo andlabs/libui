@@ -11,33 +11,75 @@
 #define readtype int
 #define closefunc _close
 #else
-#include <fcntl.h>
-#include <unistd.h>
-#define openfunc open
-#define openflags (O_RDONLY)
-#define openmode 0644
-#define readfunc read
-#define readtype ssize_t
-#define closefunc close
 #endif
-#include <errno.h>
-#include "scanner.hpp"
+#include <typeinfo>
+#include "lib.hpp"
+
+class eofError : public Error {
+public:
+	virtual ~eofError(void);
+
+	virtual const char *String(void) const;
+};
+
+virtual ~eofError::eofError(void)
+{
+	// do nothing
+}
+
+virtual const char *eofError::String(void) const
+{
+	return "EOF";
+}
+
+class shortWriteError : public Error {
+public:
+	virtual ~shortWriteError(void);
+
+	virtual const char *String(void) const;
+};
+
+virtual ~shortWriteError::shortWriteError(void)
+{
+	// do nothing
+}
+
+virtual const char *shortWriteError::String(void) const
+{
+	return "short write";
+}
+
+Error *NewEOF(void)
+{
+	return new eofError;
+}
+
+Error *NewErrShortWrite(void)
+{
+	return new shortWriteError;
+}
+
+bool IsEOF(Error *e)
+{
+	return typeid (e) == typeid (eofError *);
+}
 
 #define nbuf 1024
 
-Scanner::Scanner(int fd)
+Scanner::Scanner(ReadCloser *r)
 {
-	this->fd = fd;
+	this->r = r;
 	this->buf = new char[nbuf];
 	this->p = this->buf;
 	this->n = 0;
 	this->line = new std::vector<char>;
-	this->eof = false;
-	this->error = 0;
+	this->error = NULL;
 }
 
 Scanner::~Scanner(void)
 {
+	if (this->err != NULL)
+		delete this->err;
 	delete this->line;
 	delete[] this->buf;
 }
@@ -46,7 +88,7 @@ bool Scanner::Scan(void)
 {
 	readtype n;
 
-	if (this->eof || this->error != 0)
+	if (this->err != NULL)
 		return false;
 	this->line->clear();
 	for (;;) {
@@ -72,15 +114,9 @@ bool Scanner::Scan(void)
 			// otherwise, the buffer was exhausted in the middle of a line, so fall through
 		}
 		// need to refill the buffer
-		n = readfunc(this->fd, this->buf, nbuf * sizeof (char));
-		if (n < 0) {
-			this->error = errno;
+		this->err = this->r->Read(this->buf, nbuf * sizeof (char), &n);
+		if (this->err != NULL)
 			return false;
-		}
-		if (n == 0) {
-			this->eof = true;
-			return false;
-		}
 		this->p = this->buf;
 		this->n = n;
 	}
@@ -96,22 +132,9 @@ size_t Scanner::Len(void) const
 	return this->line->size();
 }
 
-int Scanner::Error(void) const
+int Scanner::Err(void) const
 {
-	return this->error;
-}
-
-int OpenForScanner(const char *filename, int *fd)
-{
-	*fd = openfunc(filename, openflags, openmode);
-	if (*fd < 0)
-		return errno;
-	return 0;
-}
-
-int CloseForScanner(int fd)
-{
-	if (closefunc(fd) < 0)
-		return errno;
-	return 0;
+	if (!IsEOF(this->err))
+		return this->err;
+	return NULL;
 }

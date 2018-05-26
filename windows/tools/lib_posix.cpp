@@ -104,3 +104,15 @@ Error *OpenRead(const char *filename, ReadCloser **r)
 	*r = new posixReadCloser(fd);
 	return NULL;
 }
+
+Error *CreateWrite(const char *filename, WriteCloser **w)
+{
+	int fd;
+
+	*w = NULL;
+	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd < 0)
+		return new posixError(errno);
+	*w = new posixWriteCloser(fd);
+	return NULL;
+}

@@ -6,13 +6,19 @@
 bool generate(const char *line, size_t n, FILE *fout)
 {
 	std::vector<char> genout;
+	std::vector<Slice *> *tokens;
+	std::vector<Slice *>::const_iterator i;
 	size_t nw;
 
-	genout.push_back('/');
-	genout.push_back('/');
-	genout.push_back(' ');
-	genout.insert(genout.end(), line, line + n);
-	genout.push_back('\n');
+	tokens = TokenizeWhitespace(line, n);
+	for (i = tokens->begin(); i < tokens->end(); i++) {
+		genout.push_back('/');
+		genout.push_back('/');
+		genout.push_back(' ');
+		AppendSlice(&genout, *i);
+		genout.push_back('\n');
+	}
+	FreeTokenized(tokens);
 
 	genout.push_back('\n');
 	nw = fwrite(genout.data(), sizeof (char), genout.size(), fout);

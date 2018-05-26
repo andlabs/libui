@@ -27,6 +27,8 @@ public:
 };
 
 extern Error *OpenRead(const char *filename, ReadCloser **r);
+extern Error *CreateWrite(const char *filename, WriteCloser **w);
+extern Error *WriteVector(WriteCloser *w, std::vector<char> *v);
 
 class Scanner {
 	ReadCloser *r;
@@ -44,3 +46,17 @@ public:
 	size_t Len(void) const;
 	Error *Err(void) const;
 };
+
+class Slice {
+	const char *p;
+	size_t n;
+public:
+	Slice(const char *p, size_t n);
+
+	const char *Data(void) const;
+	size_t Len(void) const;
+};
+
+extern std::vector<Slice *> *TokenizeWhitespace(const char *buf, size_t n);
+extern void FreeTokenized(std::vector<Slice *> *v);
+extern void AppendSlice(std::vector<char> *v, Slice *s);

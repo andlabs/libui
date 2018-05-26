@@ -13,6 +13,7 @@
 #else
 #endif
 #include <typeinfo>
+#include <algorithm>
 #include "lib.hpp"
 
 class eofError : public Error {
@@ -63,6 +64,11 @@ bool IsEOF(Error *e)
 {
 	// typeid does not work directly with pointers, alas (see https://stackoverflow.com/questions/4202877/typeid-for-polymorphic-types)
 	return typeid (*e) == typeid (eofError);
+}
+
+Error *WriteVector(WriteCloser *w, std::vector<char> *v)
+{
+	return w->Write(v->data(), v->size());
 }
 
 #define nbuf 1024
@@ -138,4 +144,56 @@ Error *Scanner::Err(void) const
 	if (!IsEOF(this->err))
 		return this->err;
 	return NULL;
+}
+
+Slice::Slice(const char *p, size_t n)
+{
+	this->p = p;
+	this->n = n;
+}
+
+const char *Slice::Data(void) const
+{
+	return this->p;
+}
+
+size_t Slice::Len(void) const
+{
+	return this->n;
+}
+
+std::vector<Slice *> *TokenizeWhitespace(const char *buf, size_t n)
+{
+	std::vector<Slice *> *ret;
+	const char *p, *q;
+	const char *end;
+
+	ret = new std::vector<Slice *>;
+	p = buf;
+	end = buf + n;
+	while (p < end) {
+		if (*p == ' ' || *p == '\t') {
+			p++;
+			continue;
+		}
+		for (q = p; q < end; q++)
+			if (*q == ' ' || *q == '\t')
+				break;
+		ret->push_back(new Slice(p, q - p));
+		p = q;
+	}
+	return ret;
+}
+
+void FreeTokenized(std::vector<Slice *> *v)
+{
+	std::for_each(v->begin(), v->end(), [](Slice *s) {
+		delete s;
+	});
+	delete v;
+}
+
+void AppendSlice(std::vector<char> *v, Slice *s)
+{
+	v->insert(v->end(), s->Data(), s->Data() + s->Len());
 }

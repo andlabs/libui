@@ -47,6 +47,8 @@ public:
 	Error *Err(void) const;
 };
 
+extern void AppendString(std::vector<char> *v, const char *str);
+
 class Slice {
 	const char *p;
 	size_t n;

@@ -1,23 +1,81 @@
 // 21 may 2018
 #include <vector>
 #include <stdio.h>
+#include <string.h>
 #include "lib.hpp"
+
+struct item {
+	Slice *name;
+	Slice *callingConvention;
+	Slice **params;
+	size_t nParams;
+	Slice *returns;
+	bool keepReturn;
+	Slice *cond[2];
+};
 
 bool generate(const char *line, size_t n, FILE *fout)
 {
 	std::vector<char> genout;
 	std::vector<Slice *> *tokens;
-	std::vector<Slice *>::const_iterator i;
+	size_t i, j;
+	struct item item;
 	size_t nw;
 
 	tokens = TokenizeWhitespace(line, n);
-	for (i = tokens->begin(); i < tokens->end(); i++) {
-		genout.push_back('/');
-		genout.push_back('/');
-		genout.push_back(' ');
-		AppendSlice(&genout, *i);
-		genout.push_back('\n');
+
+	memset(&item, 0, sizeof (struct item));
+	i = 0;
+	item.returns = tokens->at(i);
+	if (item.returns->Data()[0] == '*') {
+		item.returns = new Slice(item.returns->Data() + 1, item.returns->Len() - 1);
+		item.keepReturn = true;
 	}
+	i++;
+	if (tokens->size() % 2 == 1) {
+		item.callingConvention = tokens->at(i);
+		i++;
+	}
+	item.name = tokens->at(i);
+	i++;
+	item.cond[0] = tokens->at(tokens->size() - 2);
+	item.cond[1] = tokens->at(tokens->size() - 1);
+	item.nParams = (tokens->size() - 2) - i;
+	item.params = new Slice *[item.nParams];
+	for (j = 0; j < item.nParams; j++) {
+		item.params[j] = tokens->at(i);
+		i++;
+	}
+
+	AppendString(&genout, "HRESULT ");
+	if (item.callingConvention != NULL) {
+		AppendSlice(&genout, item.callingConvention);
+		genout.push_back(' ');
+	}
+	AppendSlice(&genout, item.name);
+	genout.push_back('(');
+	for (i = 0; i < item.nParams; i += 2) {
+		AppendSlice(&genout, item.params[i]);
+		genout.push_back(' ');
+		AppendSlice(&genout, item.params[i + 1]);
+		genout.push_back(',');
+		genout.push_back(' ');
+	}
+	if (item.keepReturn) {
+		AppendSlice(&genout, item.returns);
+		AppendString(&genout, " *ret");
+	} else if (item.nParams != 0) {
+		// remove the trailing comma and space
+		genout.pop_back();
+		genout.pop_back();
+	} else
+		AppendString(&genout, "void");
+	genout.push_back(')');
+	genout.push_back('\n');
+
+	delete[] item.params;
+	if (item.keepReturn)
+		delete item.returns;
 	FreeTokenized(tokens);
 
 	genout.push_back('\n');

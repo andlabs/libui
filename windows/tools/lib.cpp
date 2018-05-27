@@ -14,6 +14,7 @@
 #endif
 #include <typeinfo>
 #include <algorithm>
+#include <string.h>
 #include "lib.hpp"
 
 class eofError : public Error {
@@ -144,6 +145,11 @@ Error *Scanner::Err(void) const
 	if (!IsEOF(this->err))
 		return this->err;
 	return NULL;
+}
+
+void AppendString(std::vector<char> *v, const char *str)
+{
+	v->insert(v->end(), str, str + strlen(str));
 }
 
 Slice::Slice(const char *p, size_t n)

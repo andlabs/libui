@@ -159,6 +159,12 @@ ByteSlice::ByteSlice(size_t len, size_t cap)
 	this->cap = cap;
 }
 
+ByteSlice::ByteSlice(int len, size_t cap) :
+	ByteSlice::ByteSlice((size_t) len, cap)
+{
+	// do nothing else
+}
+
 ByteSlice::~ByteSlice(void)
 {
 	sliceRelease(this->data);
@@ -305,7 +311,7 @@ bool Scanner::Scan(void)
 			// otherwise, the buffer was exhausted in the middle of a line, so fall through
 		}
 		// need to refill the buffer
-		this->err = this->r->Read(this->buf, nbuf * sizeof (char), &n);
+		this->err = this->r->Read(this->buf, &n);
 		if (this->err != NULL)
 			return false;
 		this->p = this->buf;

@@ -12,6 +12,8 @@ extern Error *NewEOF(void);
 extern Error *NewErrShortWrite(void);
 extern bool IsEOF(Error *e);
 
+// super lightweight (can be passed by value without any data being copied) wrapper around an array of bytes that can be sliced further without copying (std::vector can't do that easily)
+// this is modelled after Go's slices
 class ByteSlice {
 	char *data;
 	size_t len;
@@ -37,6 +39,7 @@ public:
 	ByteSlice Slice(size_t start, size_t end);
 	ByteSlice Append(const char *b, size_t n);
 	ByteSlice Append(const ByteSlice &b);
+	ByteSlice AppendString(const char *str);
 	void CopyFrom(const char *b, size_t n);
 	void CopyFrom(const ByteSlice &b);
 };
@@ -45,49 +48,33 @@ class ReadCloser {
 public:
 	virtual ~ReadCloser(void) = default;
 
-	virtual Error *Read(void *buf, size_t n, size_t *actual) = 0;
+	virtual Error *Read(ByteSlice b, size_t *n) = 0;
 };
 
 class WriteCloser {
 public:
 	virtual ~WriteCloser(void) = default;
 
-	virtual Error *Write(void *buf, size_t n) = 0;
+	virtual Error *Write(const ByteSlice b) = 0;
 };
 
 extern Error *OpenRead(const char *filename, ReadCloser **r);
 extern Error *CreateWrite(const char *filename, WriteCloser **w);
-extern Error *WriteVector(WriteCloser *w, std::vector<char> *v);
 
 class Scanner {
 	ReadCloser *r;
 	char *buf;
 	const char *p;
 	size_t n;
-	std::vector<char> *line;
+	ByteSlice line;
 	Error *err;
 public:
 	Scanner(ReadCloser *r);
 	~Scanner(void);
 
 	bool Scan(void);
-	const char *Bytes(void) const;
-	size_t Len(void) const;
+	ByteSlice Bytes(void) const;
 	Error *Err(void) const;
 };
 
-extern void AppendString(std::vector<char> *v, const char *str);
-
-class Slice {
-	const char *p;
-	size_t n;
-public:
-	Slice(const char *p, size_t n);
-
-	const char *Data(void) const;
-	size_t Len(void) const;
-};
-
-extern std::vector<Slice *> *TokenizeWhitespace(const char *buf, size_t n);
-extern void FreeTokenized(std::vector<Slice *> *v);
-extern void AppendSlice(std::vector<char> *v, Slice *s);
+extern std::vector<ByteSlice> ByteSliceFields(ByteSlice s);

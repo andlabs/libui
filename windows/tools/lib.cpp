@@ -92,7 +92,7 @@ char *sliceAlloc(size_t n)
 
 uintptr_t sliceLookup(char *b)
 {
-	return *(sliceAllocs.lower_bound((uintptr_t) b));
+	return sliceAllocs.lower_bound((uintptr_t) b)->first;
 }
 
 void sliceRetain(char *b)
@@ -184,17 +184,6 @@ ByteSlice &ByteSlice::operator=(ByteSlice &&b)
 	return *this;
 }
 
-ByteSlice ByteSlice::Slice(size_t start, size_t end)
-{
-	ByteSlice b;
-
-	b.data = this->data + start;
-	sliceRetain(b.data);
-	b.len = end - start;
-	b.cap = this->cap - start;
-	return b;
-}
-
 char *ByteSlice::Data(void)
 {
 	return this->data;
@@ -251,6 +240,11 @@ ByteSlice ByteSlice::Append(const ByteSlice &b)
 	return this->Append(b.data, b.len);
 }
 
+ByteSlice ByteSlice::AppendString(const char *str)
+{
+	return this->Append(str, strlen(str));
+}
+
 void ByteSlice::CopyFrom(const char *b, size_t n)
 {
 	n = std::min(this->len, n);
@@ -262,11 +256,6 @@ void ByteSlice::CopyFrom(const ByteSlice &b)
 	this->CopyFrom(b.data, b.len);
 }
 
-Error *WriteVector(WriteCloser *w, std::vector<char> *v)
-{
-	return w->Write(v->data(), v->size());
-}
-
 #define nbuf 1024
 
 Scanner::Scanner(ReadCloser *r)
@@ -275,7 +264,7 @@ Scanner::Scanner(ReadCloser *r)
 	this->buf = new char[nbuf];
 	this->p = this->buf;
 	this->n = 0;
-	this->line = new std::vector<char>;
+	this->line = ByteSlice(0, nbuf);
 	this->err = NULL;
 }
 
@@ -283,7 +272,6 @@ Scanner::~Scanner(void)
 {
 	if (this->err != NULL)
 		delete this->err;
-	delete this->line;
 	delete[] this->buf;
 }
 
@@ -293,7 +281,7 @@ bool Scanner::Scan(void)
 
 	if (this->err != NULL)
 		return false;
-	this->line->clear();
+	this->line = this->line.Slice(0, 0);
 	for (;;) {
 		if (this->n > 0) {
 			size_t j;
@@ -305,7 +293,7 @@ bool Scanner::Scan(void)
 					haveline = true;
 					break;
 				}
-			this->line->insert(this->line->end(), this->p, this->p + j);
+			this->line = this->line.Append(this->p, j);
 			this->p += j;
 			this->n -= j;
 			if (haveline) {
@@ -325,14 +313,9 @@ bool Scanner::Scan(void)
 	}
 }
 
-const char *Scanner::Bytes(void) const
+ByteSlice Scanner::Bytes(void) const
 {
-	return this->line->data();
-}
-
-size_t Scanner::Len(void) const
-{
-	return this->line->size();
+	return this->line;
 }
 
 Error *Scanner::Err(void) const
@@ -342,59 +325,24 @@ Error *Scanner::Err(void) const
 	return NULL;
 }
 
-void AppendString(std::vector<char> *v, const char *str)
+std::vector<ByteSlice> ByteSliceFields(ByteSlice s)
 {
-	v->insert(v->end(), str, str + strlen(str));
-}
+	std::vector<ByteSlice> ret;
+	const char *data;
+	size_t i, j;
 
-Slice::Slice(const char *p, size_t n)
-{
-	this->p = p;
-	this->n = n;
-}
-
-const char *Slice::Data(void) const
-{
-	return this->p;
-}
-
-size_t Slice::Len(void) const
-{
-	return this->n;
-}
-
-std::vector<Slice *> *TokenizeWhitespace(const char *buf, size_t n)
-{
-	std::vector<Slice *> *ret;
-	const char *p, *q;
-	const char *end;
-
-	ret = new std::vector<Slice *>;
-	p = buf;
-	end = buf + n;
-	while (p < end) {
-		if (*p == ' ' || *p == '\t') {
-			p++;
+	data = s.Data();
+	i = 0;
+	while (i < s.Len()) {
+		if (data[i] == ' ' || data[i] == '\t') {
+			i++;
 			continue;
 		}
-		for (q = p; q < end; q++)
-			if (*q == ' ' || *q == '\t')
+		for (j = i + 1; j < s.Len(); j++)
+			if (data[j] == ' ' || data[j] == '\t')
 				break;
-		ret->push_back(new Slice(p, q - p));
-		p = q;
+		ret.push_back(s.Slice(i, j));
+		i = j;
 	}
 	return ret;
-}
-
-void FreeTokenized(std::vector<Slice *> *v)
-{
-	std::for_each(v->begin(), v->end(), [](Slice *s) {
-		delete s;
-	});
-	delete v;
-}
-
-void AppendSlice(std::vector<char> *v, Slice *s)
-{
-	v->insert(v->end(), s->Data(), s->Data() + s->Len());
 }

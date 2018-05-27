@@ -35,7 +35,7 @@ public:
 	posixReadCloser(int fd);
 	virtual ~posixReadCloser(void);
 
-	virtual Error *Read(void *buf, size_t n, size_t *actual);
+	virtual Error *Read(ByteSlice b, size_t *n);
 };
 
 posixReadCloser::posixReadCloser(int fd)
@@ -48,17 +48,17 @@ posixReadCloser::~posixReadCloser(void)
 	close(this->fd);
 }
 
-Error *posixReadCloser::Read(void *buf, size_t n, size_t *actual)
+Error *posixReadCloser::Read(ByteSlice b, size_t *n)
 {
 	ssize_t ret;
 
-	*actual = 0;
-	ret = read(this->fd, buf, n);
+	*n = 0;
+	ret = read(this->fd, b.Data(), b.Len());
 	if (ret < 0)
 		return new posixError(errno);
 	if (ret == 0)
 		return NewEOF();
-	*actual = ret;
+	*n = ret;
 	return NULL;
 }
 
@@ -68,7 +68,7 @@ public:
 	posixWriteCloser(int fd);
 	virtual ~posixWriteCloser(void);
 
-	virtual Error *Write(void *buf, size_t n);
+	virtual Error *Write(const ByteSlice b);
 };
 
 posixWriteCloser::posixWriteCloser(int fd)
@@ -81,14 +81,14 @@ posixWriteCloser::~posixWriteCloser(void)
 	close(this->fd);
 }
 
-Error *posixWriteCloser::Write(void *buf, size_t n)
+Error *posixWriteCloser::Write(const ByteSlice &b)
 {
 	ssize_t ret;
 
-	ret = write(this->fd, buf, n);
+	ret = write(this->fd, b.Data(), b.Len());
 	if (ret < 0)
 		return new posixError(errno);
-	if (((size_t) ret) != n)
+	if (((size_t) ret) != b.Len())
 		return NewErrShortWrite();
 	return NULL;
 }

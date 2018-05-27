@@ -81,7 +81,7 @@ posixWriteCloser::~posixWriteCloser(void)
 	close(this->fd);
 }
 
-Error *posixWriteCloser::Write(const ByteSlice &b)
+Error *posixWriteCloser::Write(const ByteSlice b)
 {
 	ssize_t ret;
 

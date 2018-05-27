@@ -24,7 +24,7 @@ public:
 	ByteSlice(ByteSlice &&b);			// move constructor; sets b to ByteSlice()
 	ByteSlice(const char *b, size_t n);
 	ByteSlice(size_t len, size_t cap);
-	ByteSlice(int len, size_t cap);		// deal with stupid rule about 0
+	ByteSlice(int len, size_t cap);		// deal with stupid rule about 0 (see https://stackoverflow.com/a/4610586/3408572)
 	~ByteSlice(void);
 
 	// note: copy assignment does not use copy-and-swap because I get neither copy-and-swap nor ADL public friend swap functions (https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom, https://stackoverflow.com/questions/5695548/public-friend-swap-member-function)
@@ -64,9 +64,8 @@ extern Error *CreateWrite(const char *filename, WriteCloser **w);
 
 class Scanner {
 	ReadCloser *r;
-	char *buf;
-	const char *p;
-	size_t n;
+	ByteSlice buf;
+	ByteSlice p;
 	ByteSlice line;
 	Error *err;
 public:

@@ -28,7 +28,6 @@ bool generate(ByteSlice line, FILE *fout)
 
 	tokens = ByteSliceFields(line);
 
-	new (&item) items;
 	i = 0;
 	item.returns = tokens.at(i);
 	item.keepReturn = false;
@@ -74,8 +73,6 @@ bool generate(ByteSlice line, FILE *fout)
 	else
 		genout = genout.AppendString("void");
 	genout = genout.AppendString(")\n");
-
-	item.~items();
 
 	genout = genout.AppendString("\n");
 	nw = fwrite(genout.Data(), sizeof (char), genout.Len(), fout);

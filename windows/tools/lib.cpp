@@ -267,9 +267,8 @@ void ByteSlice::CopyFrom(const ByteSlice &b)
 Scanner::Scanner(ReadCloser *r)
 {
 	this->r = r;
-	this->buf = new char[nbuf];
-	this->p = this->buf;
-	this->n = 0;
+	this->buf = ByteSlice(nbuf, nbuf);
+	this->p = ByteSlice();
 	this->line = ByteSlice(0, nbuf);
 	this->err = NULL;
 }
@@ -278,7 +277,6 @@ Scanner::~Scanner(void)
 {
 	if (this->err != NULL)
 		delete this->err;
-	delete[] this->buf;
 }
 
 bool Scanner::Scan(void)
@@ -289,23 +287,21 @@ bool Scanner::Scan(void)
 		return false;
 	this->line = this->line.Slice(0, 0);
 	for (;;) {
-		if (this->n > 0) {
+		if (this->p.Len() > 0) {
 			size_t j;
 			bool haveline;
 
 			haveline = false;
-			for (j = 0; j < this->n; j++)
-				if (this->p[j] == '\n') {
+			for (j = 0; j < this->p.Len(); j++)
+				if (this->p.Data()[j] == '\n') {
 					haveline = true;
 					break;
 				}
-			this->line = this->line.Append(this->p, j);
-			this->p += j;
-			this->n -= j;
+			this->line = this->line.Append(this->p.Slice(0, j));
+			this->p = this->p.Slice(j, this->p.Len());
 			if (haveline) {
 				// swallow the \n for the next time through
-				this->p++;
-				this->n--;
+				this->p = this->p.Slice(1, this->p.Len());
 				return true;
 			}
 			// otherwise, the buffer was exhausted in the middle of a line, so fall through
@@ -314,8 +310,7 @@ bool Scanner::Scan(void)
 		this->err = this->r->Read(this->buf, &n);
 		if (this->err != NULL)
 			return false;
-		this->p = this->buf;
-		this->n = n;
+		this->p = this->buf.Slice(0, n);
 	}
 }
 

@@ -21,7 +21,7 @@ This README is being written.<br>
 * **18 March 2018**
 	* Introduced an all-new formatted text API that allows you to process formatted text in ways that the old API wouldn't allow. You can read on the whole API [here](https://github.com/andlabs/libui/blob/8944a3fc5528445b9027b1294b6c86bae03eeb89/ui_attrstr.h). There is also a new examples for it: `drawtext`, which shows the whole API at a glance. It doesn't yet support measuring or manipulating text, nor does it currently support functions that would be necessary for things like text editors; all of this will be added back later.
 	* libui also now uses my [utf library](https://github.com/andlabs/utf) for UTF-8 and UTF-16 processing, to allow consistent behavior across platforms. This usage is not completely propagated throughout libui, but the Windows port uses it in most places now, and eventually this will become what libui will use throughout.
-	* Also introduced a formal set of contribution guidelines, see `CONTRIBUTING.md` for details. They are still WIP.
+	* Also introduced a formal set of contribution guidelines, see [CONTRIBUTING.md][1] for details. They are still WIP.
 
 * **17 February 2018**
 	* The longstanding Enter+Escape crashes on Windows have finally been fixed (thanks to @lxn).
@@ -59,7 +59,7 @@ This README is being written.<br>
 		* Static linking is now fully possible.
 		* MinGW linking is back, but static only.
 
-*Old announcements can be found in the ANNOUNCE.md file.*
+*Old announcements can be found in the [ANNOUNCE.md][2] file.*
 
 ## Updates
 
@@ -208,7 +208,7 @@ See also [this](https://github.com/andlabs/libui/pull/20#issuecomment-211381971)
 
 ## Contributing
 
-See `CONTRIBUTING.md`.
+See [CONTRIBUTING.md][1].
 
 ## Screenshots
 
@@ -219,3 +219,7 @@ From examples/controlgallery:
 ![Unix](examples/controlgallery/unix.png)
 
 ![OS X](examples/controlgallery/darwin.png)
+
+[1]: https://github.com/andlabs/libui/blob/master/CONTRIBUTING.md
+
+[2]: https://github.com/andlabs/libui/blob/master/ANNOUNCE.md

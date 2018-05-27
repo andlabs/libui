@@ -12,6 +12,35 @@ extern Error *NewEOF(void);
 extern Error *NewErrShortWrite(void);
 extern bool IsEOF(Error *e);
 
+class ByteSlice {
+	char *data;
+	size_t len;
+	size_t cap;
+public:
+	ByteSlice(void);					// default constructor; equivalent to Go's nil slice
+	ByteSlice(const ByteSlice &b);		// copy constructor
+	ByteSlice(ByteSlice &&b);			// move constructor; sets b to ByteSlice()
+	ByteSlice(const char *b, size_t n);
+	ByteSlice(size_t len, size_t cap);
+	~ByteSlice(void);
+
+	// note: copy assignment does not use copy-and-swap because I get neither copy-and-swap nor ADL public friend swap functions (https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom, https://stackoverflow.com/questions/5695548/public-friend-swap-member-function)
+	// (and also [14:55:04]  <discord>	<devin> i don't see why you'd need swap-on-copy semantics for anything if you're really just trying to make copy assignments create two references to the same memory)
+	ByteSlice &operator=(const ByteSlice &b);		// copy assignment
+	ByteSlice &operator=(ByteSlice &&b);		// move assignment; sets b to ByteSlice()
+
+	char *Data(void);
+	const char *Data(void) const;
+	size_t Len(void) const;
+	size_t Cap(void) const;
+
+	ByteSlice Slice(size_t start, size_t end);
+	ByteSlice Append(const char *b, size_t n);
+	ByteSlice Append(const ByteSlice &b);
+	void CopyFrom(const char *b, size_t n);
+	void CopyFrom(const ByteSlice &b);
+};
+
 class ReadCloser {
 public:
 	virtual ~ReadCloser(void) = default;

@@ -17,6 +17,8 @@ public:
 	Function(ByteSlice line);
 
 	ByteSlice Signature(void) const;
+	ByteSlice Call(void) const;
+	ByteSlice Body(void) const;
 };
 
 Function::Function(ByteSlice line)
@@ -80,8 +82,75 @@ ByteSlice Function::Signature(void) const
 		out = out.Slice(0, out.Len() - 2);
 	else
 		out = out.AppendString(u8"void");
+	out = out.AppendString(u8")");
 
+	return out;
+}
+
+ByteSlice Function::Call(void) const
+{
+	ByteSlice out;
+	size_t i;
+
+	out = ByteSlice(0, nfuncoutbuf);
+	out = out.Append(this->name);
+	out = out.AppendString(u8"(");
+	for (i = 0; i < this->params.size(); i += 2) {
+		out = out.Append(this->params[i + 1]);
+		out = out.AppendString(u8", ");
+	}
+	if (this->params.size() != 0)
+		// remove the trailing comma and space
+		out = out.Slice(0, out.Len() - 2);
+	out = out.AppendString(u8")");
+	return out;
+}
+
+#define nbodybuf 1024
+
+ByteSlice Function::Body(void) const
+{
+	ByteSlice out;
+
+	out = ByteSlice(0, nbodybuf);
+	out = out.AppendString(u8"{\n");
+
+	if (!this->keepReturn) {
+		out = out.AppendString(u8"\t");
+		out = out.Append(this->returns);
+		out = out.AppendString(u8" ret;\n");
+	}
+	out = out.AppendString(u8"\tDWORD lasterr;\n");
+	out = out.AppendString(u8"\n");
+
+	if (this->keepReturn) {
+		out = out.AppendString(u8"\tif (ret == NULL)\n");
+		out = out.AppendString(u8"\t\treturn E_POINTER;\n");
+	}
+
+	out = out.AppendString(u8"\tSetLastError(0);\n");
+	out = out.AppendString(u8"\t");
+	if (this->keepReturn)
+		out = out.AppendString(u8"*");
+	out = out.AppendString(u8"ret = ");
+	out = out.Append(this->Call());
+	out = out.AppendString(u8";\n");
+	out = out.AppendString(u8"\tlasterr = GetLastError();\n");
+
+	out = out.AppendString(u8"\tif (");
+	if (this->keepReturn)
+		out = out.AppendString(u8"*");
+	out = out.AppendString(u8"ret ");
+	out = out.Append(this->cond[0]);
+	out = out.AppendString(u8" ");
+	out = out.Append(this->cond[1]);
 	out = out.AppendString(u8")\n");
+	out = out.AppendString(u8"\t\treturn lastErrorToHRESULT(lasterr, \"");
+	out = out.Append(this->name);
+	out = out.AppendString(u8"()\");\n");
+	out = out.AppendString(u8"\treturn S_OK;\n");
+
+	out = out.AppendString(u8"}");
 	return out;
 }
 
@@ -97,9 +166,12 @@ bool generate(ByteSlice line, FILE *fout)
 
 	f = new Function(line);
 	genout = genout.Append(f->Signature());
+	genout = genout.AppendString(u8"\n");
+	genout = genout.Append(f->Body());
 	delete f;
 
-	genout = genout.AppendString("\n");
+	genout = genout.AppendString(u8"\n");
+	genout = genout.AppendString(u8"\n");
 	nw = fwrite(genout.Data(), sizeof (char), genout.Len(), fout);
 	return nw == genout.Len();
 }

@@ -6,73 +6,98 @@
 
 namespace {
 
-class items {
-public:
+class Function {
 	ByteSlice name;
 	ByteSlice callingConvention;
 	std::vector<ByteSlice> params;
 	ByteSlice returns;
 	bool keepReturn;
 	ByteSlice cond[2];
+public:
+	Function(ByteSlice line);
+
+	ByteSlice Signature(void) const;
 };
+
+Function::Function(ByteSlice line)
+{
+	std::vector<ByteSlice> fields;
+	size_t start;
+
+	fields = ByteSliceFields(line);
+
+	this->returns = fields[0];
+	this->keepReturn = false;
+	if (this->returns.Data()[0] == '*') {
+		this->returns = this->returns.Slice(1, this->returns.Len());
+		this->keepReturn = true;
+	}
+
+	start = 2;
+	this->name = fields[1];
+	if (fields.size() % 2 == 1) {
+		start = 3;
+		this->callingConvention = fields[1];
+		this->name = fields[2];
+	}
+
+	this->cond[1] = fields.back();
+	fields.pop_back();
+	this->cond[0] = fields.back();
+	fields.pop_back();
+
+	this->params = std::vector<ByteSlice>(fields.begin() + start, fields.end());
+}
+
+#define nfuncoutbuf 256
+
+ByteSlice Function::Signature(void) const
+{
+	ByteSlice out;
+	size_t i;
+
+	out = ByteSlice(0, nfuncoutbuf);
+
+	out = out.AppendString(u8"HRESULT ");
+	if (this->callingConvention.Len() != 0) {
+		out = out.Append(this->callingConvention);
+		out = out.AppendString(u8" ");
+	}
+	out = out.Append(this->name);
+
+	out = out.AppendString(u8"(");
+	for (i = 0; i < this->params.size(); i += 2) {
+		out = out.Append(this->params[i]);
+		out = out.AppendString(u8" ");
+		out = out.Append(this->params[i + 1]);
+		out = out.AppendString(u8", ");
+	}
+	if (this->keepReturn) {
+		out = out.Append(this->returns);
+		out = out.AppendString(u8" *ret");
+	} else if (this->params.size() != 0)
+		// remove the trailing comma and space
+		out = out.Slice(0, out.Len() - 2);
+	else
+		out = out.AppendString(u8"void");
+
+	out = out.AppendString(u8")\n");
+	return out;
+}
 
 #define noutbuf 2048
 
 bool generate(ByteSlice line, FILE *fout)
 {
 	ByteSlice genout;
-	std::vector<ByteSlice> tokens;
-	size_t i, j;
-	items item;
+	Function *f;
 	size_t nw;
 
-	tokens = ByteSliceFields(line);
-
-	i = 0;
-	item.returns = tokens.at(i);
-	item.keepReturn = false;
-	if (item.returns.Data()[0] == '*') {
-		item.returns = item.returns.Slice(1, item.returns.Len());
-		item.keepReturn = true;
-	}
-	i++;
-	if (tokens.size() % 2 == 1) {
-		item.callingConvention = tokens.at(i);
-		i++;
-	}
-	item.name = tokens.at(i);
-	i++;
-	item.cond[0] = tokens.at(tokens.size() - 2);
-	item.cond[1] = tokens.at(tokens.size() - 1);
-	item.params.reserve((tokens.size() - 2) - i);
-	for (j = 0; j < item.params.capacity(); j++) {
-		item.params.push_back(tokens.at(i));
-		i++;
-	}
-
 	genout = ByteSlice(0, noutbuf);
-	genout = genout.AppendString("HRESULT ");
-	if (item.callingConvention.Len() != 0) {
-		genout = genout.Append(item.callingConvention);
-		genout = genout.AppendString(" ");
-	}
-	genout = genout.Append(item.name);
-	genout = genout.AppendString("(");
-	for (i = 0; i < item.params.size(); i += 2) {
-		genout = genout.Append(item.params[i]);
-		genout = genout.AppendString(" ");
-		genout = genout.Append(item.params[i + 1]);
-		genout = genout.AppendString(", ");
-	}
-	if (item.keepReturn) {
-		genout = genout.Append(item.returns);
-		genout = genout.AppendString(" *ret");
-	} else if (item.params.size() != 0)
-		// remove the trailing comma and space
-		genout = genout.Slice(0, genout.Len() - 2);
-	else
-		genout = genout.AppendString("void");
-	genout = genout.AppendString(")\n");
+
+	f = new Function(line);
+	genout = genout.Append(f->Signature());
+	delete f;
 
 	genout = genout.AppendString("\n");
 	nw = fwrite(genout.Data(), sizeof (char), genout.Len(), fout);

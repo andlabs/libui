@@ -36,6 +36,7 @@ Function::Function(ByteSlice line)
 	}
 
 	start = 2;
+	this->callingConvention = ByteSlice().AppendString(u8"WINAPI");
 	this->name = fields[1];
 	if (fields.size() % 2 == 1) {
 		start = 3;
@@ -61,10 +62,8 @@ ByteSlice Function::Signature(void) const
 	out = ByteSlice(0, nfuncoutbuf);
 
 	out = out.AppendString(u8"HRESULT ");
-	if (this->callingConvention.Len() != 0) {
-		out = out.Append(this->callingConvention);
-		out = out.AppendString(u8" ");
-	}
+	out = out.Append(this->callingConvention);
+	out = out.AppendString(u8" ");
 	out = out.Append(this->name);
 
 	out = out.AppendString(u8"(");

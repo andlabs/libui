@@ -1,9 +1,35 @@
 # libui: a portable GUI library for C
 
 This README is being written.<br>
-[![Build Status](https://travis-ci.org/andlabs/libui.svg?branch=master)](https://travis-ci.org/andlabs/libui)
+[![Build Status, Linux and macOS](https://travis-ci.org/andlabs/libui.svg?branch=master)](https://travis-ci.org/andlabs/libui)<br>
+[![Build Status, Windows](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31?svg=true)](https://ci.appveyor.com/project/andlabs/libui)
+
+## Status
+
+It has come to my attention that I have not been particularly clear about how usable or feature-complete libui is, and that this has fooled many people into expecting more from libui right this moment than I have explicitly promised to make available. I apologize for not doing this sooner.
+
+libui is currently **mid-alpha** software. Much of what is currently present runs stabily enough for the examples and perhaps some small programs to work, but the stability is still a work-in-progress, much of what is already there is not feature-complete, some of it will be buggy on certain platforms, and there's a lot of stuff missing. In short, here's a list of features that I would like to add to libui, but that aren't in yet:
+
+- tables and trees (the former is currently WIP and may land in preliminary form soon)
+- clipboard support, including drag and drop
+- more and better dialogs
+- printing
+- accessibility for uiArea and custom controls
+- document-based programs
+- tighter OS integration (especially for document-based programs), to allow programs to fully feel native, rather than merely look and act native
+- better support for standard dialogs and features (search bars, etc.)
+- OpenGL support (this was already being worked on by someone else, but I don't know what happened to them...)
+
+In addition, [here](https://github.com/andlabs/libui/issues?utf8=%E2%9C%93&q=master+in%3Atitle+is%3Aissue+is%3Aopen) is a list of issues generalizing existing problems.
+
+Furthermore, libui is not properly fully documented yet. This is mainly due to the fact that the API was initially unstable enough so as to result in rewriting documentation multiple times, in addition to me not being happy with really any existing C code documentation tool. That being said, I have started to pin down my ideal code documentation style in parts of `ui.h`, most notably in the uiAttributedString APIs. Over time, I plan on extending this to the rest of the headers. You can also use [the documentation for libui's Go bindings](https://godoc.org/github.com/andlabs/ui) as a reference, though it is somewhat stale and not optimally written.
+
+But libui is not dead; I am working on it whenever I can, and I hope to get it to a point of real quality soon!
 
 ## Announcements
+
+* **16 May 2018**
+	* Thanks to @parro-it and @msink, libui now has better CI, including AppVeyor for Windows CI, and automated creation of binary releases when I make a tagged release.
 
 * **13 May 2018**
 	* Added new functions to work with uiDateTimePickers: `uiDateTimePickerTime()`, `uiDateTimePickerSetTime()`, and `uiDateTimePickerOnChanged()`. These operate on standard `<time.h>` `struct tm`s. Thanks @cody271!
@@ -176,6 +202,7 @@ C++ | [libui-cpp](https://github.com/billyquith/libui-cpp), [cpp-libui-qtlike](h
 C# / .NET Framework | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding)
 C# / .NET Core | [DevZH.UI](https://github.com/noliar/DevZH.UI), [SharpUI](https://github.com/benpye/sharpui/), [LibUISharp](https://github.com/tom-corwin/LibUISharp)
 CHICKEN Scheme | [wasamasa/libui](https://github.com/wasamasa/libui)
+Common Lisp | [jinwoo/cl-ui](https://github.com/jinwoo/cl-ui)
 Crystal | [libui.cr](https://github.com/Fusion/libui.cr), [hedron](https://github.com/Qwerp-Derp/hedron)
 D | [DerelictLibui (flat API)](https://github.com/Extrawurst/DerelictLibui), [libuid (object-oriented)](https://github.com/mogud/libuid)
 Euphoria | [libui-euphoria](https://github.com/ghaberek/libui-euphoria)
@@ -183,13 +210,14 @@ Harbour | [HBUI](https://github.com/RJopek/HBUI)
 Haskell | [haskell-libui](https://github.com/beijaflor-io/haskell-libui)
 JavaScript | [libui.js (merged into libui-node?)](https://github.com/mavenave/libui.js), [proton-native](https://github.com/kusti8/proton-native)
 Julia | [Libui.jl](https://github.com/joa-quim/Libui.jl)
+Kotlin | [kotlin-libui](https://github.com/msink/kotlin-libui)
 Lua | [libuilua](https://github.com/zevv/libuilua), [libui-lua](https://github.com/mdombroski/libui-lua), [lui](http://tset.de/lui/index.html)
 Nim | [ui](https://github.com/nim-lang/ui)
 Node.js | [libui-node](https://github.com/parro-it/libui-node)
 PHP | [ui](https://github.com/krakjoe/ui)
 Python | [pylibui](https://github.com/joaoventura/pylibui), [pylibui-cffi](https://github.com/Yardanico/pylibui-cffi)
 Ruby | [libui-ruby](https://github.com/jamescook/libui-ruby)
-Rust | [libui-rs](https://github.com/pcwalton/libui-rs)
+Rust | [libui-rs](https://github.com/pcwalton/libui-rs), [arcturu/libui-rs](https://github.com/arcturu/libui-rs), [LeoTindall/libui-rs](https://github.com/LeoTindall/libui-rs)
 Scala | [scalaui](https://github.com/lolgab/scalaui)
 Swift | [libui-swift](https://github.com/sclukey/libui-swift)
 

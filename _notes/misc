@@ -202,3 +202,5 @@ http://www.edm2.com/index.php/IBM_OS/2_Developer%27s_Packages
 old stuff
 font1.gif (GIF Image, 424 × 475 pixels) http://www.functionx.com/win32/controls/dlgboxes/font1.gif
 Inskcape’s Hidden Little Feature: Mesh Gradients | OCS-Mag http://www.ocsmag.com/2016/02/27/inskcapes-hidden-little-feature-mesh-gradients/ (near "When you’re done colouring in all the nodes, you may want to drag")
+
+https://msdn.microsoft.com/en-us/library/windows/desktop/ms632615(v=vs.85).aspx we need to handle this alongisde WM_CAPTURECHANGED

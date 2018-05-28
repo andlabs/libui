@@ -75,7 +75,7 @@ void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 	// doing this raises an EN_CHANGED
 	e->inhibitChanged = TRUE;
 	crlf = LFtoCRLF(text);
-	uiWindowsSetWindowText(e->hwnd, text);
+	uiWindowsSetWindowText(e->hwnd, crlf);
 	uiprivFree(crlf);
 	e->inhibitChanged = FALSE;
 	// don't queue the control for resize; entry sizes are independent of their contents

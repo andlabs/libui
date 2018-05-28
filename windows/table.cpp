@@ -1,9 +1,5 @@
 #include "uipriv_windows.hpp"
 
-//static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height);
-
-struct uiTable;
-
 struct uiTableModel {
 	uiTableModelHandler *mh;
 	std::vector<uiTable *> tables;
@@ -42,7 +38,6 @@ uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 	return m;
 }
 
-
 void uiFreeTableModel(uiTableModel *m)
 {
 	delete m;
@@ -55,27 +50,24 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 	ZeroMemory(&item, sizeof (LVITEMW));
 	item.mask = 0;
 	item.iItem = newIndex;
-	item.iSubItem = 0; //?
-	for (auto t : m->tables) {
+	item.iSubItem = 0;
+	for (auto t : m->tables)
 		if (SendMessageW(t->hwnd, LVM_INSERTITEM, 0, (LPARAM) (&item)) == (LRESULT) (-1))
 			logLastError(L"error calling LVM_INSERTITEM in uiTableModelRowInserted()");
-	}
 }
 
 void uiTableModelRowChanged(uiTableModel *m, int index)
 {
-	for (auto t : m->tables) {
+	for (auto t : m->tables)
 		if (SendMessageW(t->hwnd, LVM_UPDATE, (WPARAM) index, 0) == (LRESULT) (-1))
 			logLastError(L"error calling LVM_UPDATE in uiTableModelRowChanged()");
-	}
 }
 
 void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 {
-	for (auto t : m->tables) {
+	for (auto t : m->tables)
 		if (SendMessageW(t->hwnd, LVM_DELETEITEM, (WPARAM) oldIndex, 0) == (LRESULT) (-1))
 			logLastError(L"error calling LVM_DELETEITEM in uiTableModelRowDeleted()");
-	}
 }
 
 void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
@@ -84,19 +76,16 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	int lvIndex = 0;
 	LVCOLUMNW lvc;
 
-	if (c->modelColumn >=0) {
+	if (c->modelColumn >= 0)
 		return; // multiple parts not implemented
-	}
 	c->modelColumn = modelColumn;
 
 	// work out appropriate listview index for the column
 	for (auto candidate : t->columns) {
-		if (candidate == c) {
+		if (candidate == c)
 			break;
-		}
-		if (candidate->modelColumn >= 0) {
+		if (candidate->modelColumn >= 0)
 			lvIndex++;
-		}
 	}
 
 	ZeroMemory(&lvc, sizeof (LVCOLUMNW));
@@ -130,7 +119,7 @@ void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int e
 
 void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable)
 {
-	// TODO
+	// not implemented
 }
 
 void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
@@ -187,7 +176,8 @@ static void uiTableDestroy(uiControl *c)
 // suggested listview sizing from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing:
 // "columns widths that avoid truncated data x an integral number of items"
 // Don't think that'll cut it when some cells have overlong data (eg
-// stupidly long URLs). So for now, just hardcode a minimum:
+// stupidly long URLs). So for now, just hardcode a minimum.
+// TODO: Investigate using LVM_GETHEADER/HDM_LAYOUT here...
 #define tableMinWidth 107		/* in line with other controls */
 #define tableMinHeight (14*3)	/* header + 2 lines (roughly) */
 
@@ -204,7 +194,6 @@ static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height)
 	*width = x;
 	*height = y;
 }
-
 
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 {
@@ -228,7 +217,7 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 			break;
 		row = item->iItem;
 		col = item->iSubItem;
-		if (col<0 || col>=(int)t->columns.size())
+		if (col < 0 || col >= (int)t->columns.size())
 			break;
 		tc = (uiTableColumn *)t->columns[col];
 		mcol = tc->modelColumn;
@@ -241,7 +230,7 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 			data = (*(mh->CellValue))(mh, t->model, row, mcol);
 			n = MultiByteToWideChar(CP_UTF8, 0, (const char *)data, -1, item->pszText, item->cchTextMax);
 			// make sure clipped strings are nul-terminated
-			if (n>=item->cchTextMax)
+			if (n >= item->cchTextMax)
 				item->pszText[item->cchTextMax-1] = L'\0';
 		} else if (typ == uiTableModelColumnInt) {
 			char buf[32];
@@ -252,12 +241,10 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 			sprintf(buf, "%d", (int)data);
 			n = MultiByteToWideChar(CP_UTF8, 0, buf, -1, item->pszText, item->cchTextMax);
 			// make sure clipped strings are nul-terminated
-			if (n>=item->cchTextMax) {
+			if (n >= item->cchTextMax)
 				item->pszText[item->cchTextMax-1] = L'\0';
-			}
-		} else {
+		} else
 			item->pszText[0] = L'\0';
-		}
 		break;
 	}
 	default:
@@ -283,10 +270,10 @@ uiTable *uiNewTable(uiTableModel *model)
 	model->tables.push_back(t);
 	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
 
+	// TODO: try LVS_EX_AUTOSIZECOLUMNS
 	SendMessageW(t->hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE,
 		(WPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP),
 		(LPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP));
-	// TODO: try LVS_EX_AUTOSIZECOLUMNS
 	n = (*(model->mh->NumRows))(model->mh, model);
 	if (SendMessageW(t->hwnd, LVM_SETITEMCOUNT, (WPARAM) n, 0) == 0)
 		logLastError(L"error calling LVM_SETITEMCOUNT in uiNewTable()");

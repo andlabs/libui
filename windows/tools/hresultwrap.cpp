@@ -155,7 +155,7 @@ ByteSlice Function::Body(void) const
 
 #define noutbuf 2048
 
-Error *generate(ByteSlice line, WriteCloser *fout)
+ByteSlice generate(ByteSlice line)
 {
 	ByteSlice genout;
 	Function *f;
@@ -170,19 +170,14 @@ Error *generate(ByteSlice line, WriteCloser *fout)
 
 	genout = genout.AppendString(u8"\n");
 	genout = genout.AppendString(u8"\n");
-	return fout->Write(genout);
+	return genout;
 }
 
-Error *process(ByteSlice line, WriteCloser *fout)
+ByteSlice process(ByteSlice line)
 {
-	Error *err;
-
 	if (line.Len() > 0 && line.Data()[0] == '@')
-		return generate(line.Slice(1, line.Len()), fout);
-	err = fout->Write(line);
-	if (err != NULL)
-		return err;
-	return fout->Write(ByteSlice().AppendString("\n"));
+		return generate(line.Slice(1, line.Len()));
+	return line.AppendString("\n");
 }
 
 }
@@ -192,6 +187,7 @@ int main(int argc, char *argv[])
 	ReadCloser *fin = NULL;
 	WriteCloser *fout = NULL;
 	Scanner *s = NULL;
+	ByteSlice b;
 	int ret = 1;
 	Error *err = NULL;
 
@@ -213,14 +209,17 @@ int main(int argc, char *argv[])
 
 	s = new Scanner(fin);
 	while (s->Scan()) {
-		err = process(s->Bytes(), fout);
+		b = process(s->Bytes());
+		err = fout->Write(b);
 		if (err != NULL) {
-			fprintf(stderr, "error processing line: %s\n", argv[2], err->String());
+			fprintf(stderr, "error writing to %s: %s\n", argv[2], err->String());
 			goto done;
 		}
 	}
-	if (s->Err() != 0) {
-		fprintf(stderr, "error reading from %s: %s\n", argv[1], s->Err()->String());
+	err = s->Err();
+	if (err != NULL) {
+		fprintf(stderr, "error reading from %s: %s\n", argv[1], err->String());
+		err = NULL;		// we don't own err here
 		goto done;
 	}
 

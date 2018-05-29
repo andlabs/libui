@@ -119,7 +119,7 @@ void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int e
 
 void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable)
 {
-	// not implemented
+	// TODO
 }
 
 void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
@@ -247,8 +247,6 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 			item->pszText[0] = L'\0';
 		break;
 	}
-	default:
-		break;
 	}
 	*lResult = 0;
 	return ret;

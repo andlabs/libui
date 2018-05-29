@@ -153,14 +153,31 @@ ByteSlice Function::Body(void) const
 	return out;
 }
 
+class Processor {
+	bool previousLineBlank;
+
+	ByteSlice generate(ByteSlice line);
+public:
+	Processor(void);
+
+	ByteSlice Process(ByteSlice line);
+};
+
+Processor::Processor(void)
+{
+	this->previousLineBlank = false;
+}
+
 #define noutbuf 2048
 
-ByteSlice generate(ByteSlice line)
+ByteSlice Processor::generate(ByteSlice line)
 {
 	ByteSlice genout;
 	Function *f;
 
 	genout = ByteSlice(0, noutbuf);
+	if (!this->previousLineBlank)
+		genout = genout.AppendString("\n");
 
 	f = new Function(line);
 	genout = genout.Append(f->Signature());
@@ -169,14 +186,20 @@ ByteSlice generate(ByteSlice line)
 	delete f;
 
 	genout = genout.AppendString(u8"\n");
-	genout = genout.AppendString(u8"\n");
+	this->previousLineBlank = false;
 	return genout;
 }
 
-ByteSlice process(ByteSlice line)
+ByteSlice Processor::Process(ByteSlice line)
 {
 	if (line.Len() > 0 && line.Data()[0] == '@')
-		return generate(line.Slice(1, line.Len()));
+		return this->generate(line.Slice(1, line.Len()));
+	if (line.Len() == 0) {
+		if (this->previousLineBlank)
+			return ByteSlice();
+		this->previousLineBlank = true;
+	} else
+		this->previousLineBlank = false;
 	return line.AppendString("\n");
 }
 
@@ -187,6 +210,7 @@ int main(int argc, char *argv[])
 	ReadCloser *fin = NULL;
 	WriteCloser *fout = NULL;
 	Scanner *s = NULL;
+	Processor p;
 	ByteSlice b;
 	int ret = 1;
 	Error *err = NULL;
@@ -209,7 +233,7 @@ int main(int argc, char *argv[])
 
 	s = new Scanner(fin);
 	while (s->Scan()) {
-		b = process(s->Bytes());
+		b = p.Process(s->Bytes());
 		err = fout->Write(b);
 		if (err != NULL) {
 			fprintf(stderr, "error writing to %s: %s\n", argv[2], err->String());

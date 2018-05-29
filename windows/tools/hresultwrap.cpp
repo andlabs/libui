@@ -155,11 +155,10 @@ ByteSlice Function::Body(void) const
 
 #define noutbuf 2048
 
-bool generate(ByteSlice line, FILE *fout)
+Error *generate(ByteSlice line, WriteCloser *fout)
 {
 	ByteSlice genout;
 	Function *f;
-	size_t nw;
 
 	genout = ByteSlice(0, noutbuf);
 
@@ -171,20 +170,19 @@ bool generate(ByteSlice line, FILE *fout)
 
 	genout = genout.AppendString(u8"\n");
 	genout = genout.AppendString(u8"\n");
-	nw = fwrite(genout.Data(), sizeof (char), genout.Len(), fout);
-	return nw == genout.Len();
+	return fout->Write(genout);
 }
 
-bool process(ByteSlice line, FILE *fout)
+Error *process(ByteSlice line, WriteCloser *fout)
 {
-	size_t nw;
+	Error *err;
 
 	if (line.Len() > 0 && line.Data()[0] == '@')
 		return generate(line.Slice(1, line.Len()), fout);
-	nw = fwrite(line.Data(), sizeof (char), line.Len(), fout);
-	if (nw != line.Len())
-		return false;
-	return fwrite("\n", sizeof (char), 1, fout) == 1;
+	err = fout->Write(line);
+	if (err != NULL)
+		return err;
+	return fout->Write(ByteSlice().AppendString("\n"));
 }
 
 }
@@ -192,7 +190,7 @@ bool process(ByteSlice line, FILE *fout)
 int main(int argc, char *argv[])
 {
 	ReadCloser *fin = NULL;
-	FILE *fout = NULL;
+	WriteCloser *fout = NULL;
 	Scanner *s = NULL;
 	int ret = 1;
 	Error *err = NULL;
@@ -207,18 +205,20 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "error opening %s: %s\n", argv[1], err->String());
 		goto done;
 	}
-	fout = fopen(argv[2], "wb");
-	if (fout == NULL) {
-		fprintf(stderr, "error creating %s\n", argv[2]);
+	err = CreateWrite(argv[2], &fout);
+	if (err != NULL) {
+		fprintf(stderr, "error creating %s: %s\n", argv[2], err->String());
 		goto done;
 	}
 
 	s = new Scanner(fin);
-	while (s->Scan())
-		if (!process(s->Bytes(), fout)) {
-			fprintf(stderr, "error writing to %s\n", argv[2]);
+	while (s->Scan()) {
+		err = process(s->Bytes(), fout);
+		if (err != NULL) {
+			fprintf(stderr, "error processing line: %s\n", argv[2], err->String());
 			goto done;
 		}
+	}
 	if (s->Err() != 0) {
 		fprintf(stderr, "error reading from %s: %s\n", argv[1], s->Err()->String());
 		goto done;
@@ -229,7 +229,7 @@ done:
 	if (s != NULL)
 		delete s;
 	if (fout != NULL)
-		fclose(fout);
+		delete fout;
 	if (fin != NULL)
 		delete fin;
 	if (err != NULL)

@@ -1,3 +1,14 @@
+static HRESULT lastErrorToHRESULT(DWORD lasterr, const char *funcname)
+{
+	HRESULT hr;
+
+	hr = E_FAIL;
+	if (lasterr != 0)
+		hr = HRESULT_FROM_WIN32(lasterr);
+	uiprivImplBug("error calling %s: last error %I32d\n", funcname, lasterr);
+	return hr;
+}
+
 @BOOL UnregisterClassW LPCWSTR className HINSTANCE hInstance == 0
 @*HWND CreateWindowExW DWORD exstyle LPCWSTR className LPCWSTR title DWORD style int x int y int width int height HWND parent HMENU menu HINSTANCE hInstance LPVOID lpParam == NULL
 @BOOL DestroyWindow HWND hwnd == 0

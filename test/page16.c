@@ -132,6 +132,8 @@ uiBox *makePage16(void)
 
 	uiTableSetRowBackgroundColorModelColumn(t, 3);
 
+	uiTableAppendTextColumn(t, "Numbers", 8);
+
 	tc = uiTableAppendColumn(t, "Buttons");
 	uiTableColumnAppendCheckboxPart(tc, 7, 0);
 	uiTableColumnAppendButtonPart(tc, 6, 1);

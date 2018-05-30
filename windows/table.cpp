@@ -232,17 +232,6 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 			// make sure clipped strings are nul-terminated
 			if (n >= item->cchTextMax)
 				item->pszText[item->cchTextMax-1] = L'\0';
-		} else if (typ == uiTableModelColumnInt) {
-			char buf[32];
-			intptr_t data;
-			int n;
-
-			data = (intptr_t)(*(mh->CellValue))(mh, t->model, row, mcol);
-			sprintf(buf, "%d", (int)data);
-			n = MultiByteToWideChar(CP_UTF8, 0, buf, -1, item->pszText, item->cchTextMax);
-			// make sure clipped strings are nul-terminated
-			if (n >= item->cchTextMax)
-				item->pszText[item->cchTextMax-1] = L'\0';
 		} else
 			item->pszText[0] = L'\0';
 		break;

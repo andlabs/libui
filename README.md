@@ -30,6 +30,9 @@ But libui is not dead; I am working on it whenever I can, and I hope to get it t
 
 *Note that today's entry (Eastern Time) may be updated later today.*
 
+* **30 May 2018**
+	* Merged the previous Announcements and Updates section of this README into a single News section, and merged the respective archive files into a single NEWS.md file.
+
 * **16 May 2018**
 	* Thanks to @parro-it and @msink, libui now has better CI, including AppVeyor for Windows CI, and automated creation of binary releases when I make a tagged release.
 

@@ -10,16 +10,23 @@ struct uiWindow {
 	uiControl *child;
 	BOOL shownOnce;
 	int visible;
-	int (*onClosing)(uiWindow *, void *);
-	void *onClosingData;
 	int margined;
 	BOOL hasMenubar;
-	void (*onContentSizeChanged)(uiWindow *, void *);
-	void *onContentSizeChangedData;
 	BOOL changingSize;
 	int fullscreen;
 	WINDOWPLACEMENT fsPrevPlacement;
 	int borderless;
+
+	int (*onClosing)(uiWindow *, void *);
+	void *onClosingData;
+	void (*onContentSizeChanged)(uiWindow *, void *);
+	void *onContentSizeChangedData;
+	void (*onDropFile)(uiWindow *, char *, void *);
+	void *onDropFileData;
+	void (*onGetFocus)(uiWindow *, void *);
+	void *onGetFocusData;
+	void (*onLoseFocus)(uiWindow *, void *);
+	void *onLoseFocusData;
 };
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -111,6 +118,34 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		mmi->ptMinTrackSize.x = width;
 		mmi->ptMinTrackSize.y = height;
 		return lResult;
+
+	case WM_DROPFILES:
+		if (w->onDropFile) {
+			HDROP eggdrop = (HDROP)wParam;
+			WCHAR filename[1024];
+			char* filename8;
+
+			DragQueryFile(eggdrop, 0, filename, 1024);
+			filename8 = toUTF8(filename);
+			w->onDropFile(w, filename8, w->onDropFileData);
+			uiFreeText(filename8);
+			DragFinish(eggdrop);
+		}
+		break;
+
+	case WM_SETFOCUS:
+		if (w->onGetFocus) {
+			w->onGetFocus(w, w->onGetFocusData);
+			return 0;
+		}
+		break;
+	case WM_KILLFOCUS:
+		if (w->onLoseFocus) {
+			w->onLoseFocus(w, w->onLoseFocusData);
+			return 0;
+		}
+		break;
+
 	case WM_PRINTCLIENT:
 		// we do no special painting; just erase the background
 		// don't worry about the return value; we let DefWindowProcW() handle this message
@@ -385,6 +420,24 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 	w->onClosingData = data;
 }
 
+void uiWindowOnDropFile(uiWindow *w, void (*f)(uiWindow *, char *, void *), void *data)
+{
+	w->onDropFile = f;
+	w->onDropFileData = data;
+}
+
+void uiWindowOnGetFocus(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onGetFocus = f;
+	w->onGetFocusData = data;
+}
+
+void uiWindowOnLoseFocus(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onLoseFocus = f;
+	w->onLoseFocusData = data;
+}
+
 int uiWindowBorderless(uiWindow *w)
 {
 	return w->borderless;
@@ -426,6 +479,11 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
 	windowRelayout(w);
+}
+
+void uiWindowSetDropTarget(uiWindow* w, int drop)
+{
+	DragAcceptFiles(w->hwnd, drop?TRUE:FALSE);
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
@@ -493,6 +551,10 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
+
+	uiWindowOnDropFile(w, NULL, NULL);
+	uiWindowOnGetFocus(w, NULL, NULL);
+	uiWindowOnLoseFocus(w, NULL, NULL);
 
 	windows[w] = true;
 	return w;

@@ -76,7 +76,7 @@ set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
 # TODO prune this list
 set(_LIBUI_LIBS
-	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
+	user32 kernel32 gdi32 shell32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid
 PARENT_SCOPE)
 
 if(NOT MSVC)

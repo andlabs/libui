@@ -24,6 +24,13 @@ struct uiWindow {
 	void *onClosingData;
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
+	void (*onDropFile)(uiWindow *, char *, void *);
+	void *onDropFileData;
+	void (*onGetFocus)(uiWindow *, void *);
+	void *onGetFocusData;
+	void (*onLoseFocus)(uiWindow *, void *);
+	void *onLoseFocusData;
+
 	gboolean fullscreen;
 };
 
@@ -44,6 +51,20 @@ static void onSizeAllocate(GtkWidget *widget, GdkRectangle *allocation, gpointer
 
 	// TODO deal with spurious size-allocates
 	(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
+}
+
+static gboolean onGetFocus(GtkWidget *win, GdkEvent *e, gpointer data)
+{
+	uiWindow *w = uiWindow(data);
+	if (w->onGetFocus)
+		w->onGetFocus(w, w->onGetFocusData);
+}
+
+static gboolean onLoseFocus(GtkWidget *win, GdkEvent *e, gpointer data)
+{
+	uiWindow *w = uiWindow(data);
+	if (w->onLoseFocus)
+		w->onLoseFocus(w, w->onLoseFocusData);
 }
 
 static int defaultOnClosing(uiWindow *w, void *data)
@@ -194,6 +215,24 @@ void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 	w->onClosingData = data;
 }
 
+void uiWindowOnDropFile(uiWindow *w, void (*f)(uiWindow *, char *, void *), void *data)
+{
+	w->onDropFile = f;
+	w->onDropFileData = data;
+}
+
+void uiWindowOnGetFocus(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onGetFocus = f;
+	w->onGetFocusData = data;
+}
+
+void uiWindowOnLoseFocus(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onLoseFocus = f;
+	w->onLoseFocusData = data;
+}
+
 int uiWindowBorderless(uiWindow *w)
 {
 	return gtk_window_get_decorated(w->window) == FALSE;
@@ -227,6 +266,51 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
 	uiprivSetMargined(w->childHolderContainer, w->margined);
+}
+
+static void onDragDataReceived(GtkWidget* widget, GdkDragContext* ctx, gint x, gint y, GtkSelectionData* data, guint info, guint time, gpointer userdata)
+{
+	uiWindow* w = (uiWindow*)userdata;
+
+	if (gtk_selection_data_get_length(data) > 0 && gtk_selection_data_get_format(data) == 8) {
+		gchar** files = gtk_selection_data_get_uris(data);
+		if (files != NULL && files[0] != NULL) {
+			// TODO: multi file support?
+
+			gboolean success = FALSE;
+			gchar* file = g_filename_from_uri(files[0], NULL, NULL);
+			if (file) {
+				if (w->onDropFile)
+					w->onDropFile(w, file, w->onDropFileData);
+				success = TRUE;
+				g_free(file);
+			}
+			g_strfreev(files);
+			gtk_drag_finish(ctx, success, FALSE, time);
+			return;
+		}
+
+		if (files != NULL) g_strfreev(files);
+		gtk_drag_finish(ctx, FALSE, FALSE, time);
+	}
+}
+
+void uiWindowSetDropTarget(uiWindow* w, int drop)
+{
+	if (!drop) {
+		gtk_drag_dest_unset(w->widget);
+		return;
+	}
+
+	GtkTargetEntry entry;
+	entry.target = "text/uri-list";
+	entry.flags = GTK_TARGET_OTHER_APP;
+	entry.info = 1;
+
+	// CHECKME: action copy?
+	gtk_drag_dest_set(w->widget, GTK_DEST_DEFAULT_ALL, &entry, 1, GDK_ACTION_COPY|GDK_ACTION_MOVE);
+
+	g_signal_connect(w->widget, "drag-data-received", G_CALLBACK(onDragDataReceived), w);
 }
 
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
@@ -268,8 +352,15 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	// and connect our events
 	g_signal_connect(w->widget, "delete-event", G_CALLBACK(onClosing), w);
 	g_signal_connect(w->childHolderWidget, "size-allocate", G_CALLBACK(onSizeAllocate), w);
+	g_signal_connect(w->widget, "focus-in-event", G_CALLBACK(onGetFocus), w);
+	g_signal_connect(w->widget, "focus-out-event", G_CALLBACK(onLoseFocus), w);
+
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
+
+	uiWindowOnDropFile(w, NULL, NULL);
+	uiWindowOnGetFocus(w, NULL, NULL);
+	uiWindowOnLoseFocus(w, NULL, NULL);
 
 	// normally it's SetParent() that does this, but we can't call SetParent() on a uiWindow
 	// TODO we really need to clean this up, especially since see uiWindowDestroy() above

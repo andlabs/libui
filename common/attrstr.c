@@ -263,20 +263,20 @@ void uiAttributedStringDelete(uiAttributedString *s, size_t start, size_t end)
 
 	// update the conversion tables
 	// note the use of <= to include the null terminator
-	for (i = 0; i <= count; i++)
+	for (i = 0; i <= (s->len - end); i++)
 		s->u8tou16[start + i] -= count16;
-	for (i = 0; i <= count16; i++)
+	for (i = 0; i <= (s->u16len - end16); i++)
 		s->u16tou8[start16 + i] -= count;
 
 	// null-terminate the string
-	s->s[start + count] = 0;
-	s->u16[start16 + count16] = 0;
+	s->s[start + (s->len - end)] = 0;
+	s->u16[start16 + (s->u16len - end16)] = 0;
 
 	// fix up attributes
 	uiprivAttrListRemoveCharacters(s->attrs, start, end);
 
 	// and finally resize
-	resize(s, start + count, start16 + count16);
+	resize(s, s->len - count, s->u16len - count16);
 }
 
 void uiAttributedStringSetAttribute(uiAttributedString *s, uiAttribute *a, size_t start, size_t end)

@@ -44,6 +44,20 @@ void uiSliderOnChanged(uiSlider *s, void (*f)(uiSlider *, void *), void *data)
 	s->onChangedData = data;
 }
 
+void uiSliderSetRange(uiSlider *s, int min, int max)
+{
+	if (min >= max) {
+		int temp = min;
+		min = max;
+		max = temp;
+	}
+
+	// we need to inhibit sending of ::value-changed because this WILL send a ::value-changed otherwise
+	g_signal_handler_block(s->range, s->onChangedSignal);
+	gtk_range_set_range(s->range, min, max);
+	g_signal_handler_unblock(s->range, s->onChangedSignal);
+}
+
 uiSlider *uiNewSlider(int min, int max)
 {
 	uiSlider *s;

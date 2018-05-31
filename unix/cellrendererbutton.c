@@ -3,10 +3,9 @@
 
 // TODOs
 // - it's a rather tight fit
-// - selected row text color is white
-// - resizing a column with a button in it crashes the program
+// - selected row text color is white (TODO not on 3.22)
 // - accessibility
-// - right side too big?
+// - right side too big? (TODO reverify)
 
 #define cellRendererButtonType (cellRendererButton_get_type())
 #define cellRendererButton(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), cellRendererButtonType, cellRendererButton))
@@ -58,6 +57,7 @@ static GtkSizeRequestMode cellRendererButton_get_request_mode(GtkCellRenderer *r
 }
 
 // this is basically what GtkCellRendererToggle did in 3.10 and does in 3.20, as well as what the Foreign Drawing gtk3-demo demo does
+// TODO how does this seem to work with highlight on 3.22, and does that work with 3.10 too
 static GtkStyleContext *setButtonStyle(GtkWidget *widget)
 {
 	GtkStyleContext *base, *context;
@@ -90,7 +90,56 @@ void unsetButtonStyle(GtkStyleContext *context)
 	g_object_unref(context);
 }
 
-// this is based on what GtkCellRendererText does
+// this is based on what GtkCellRendererText in GTK+ 3.22.30 does
+// TODO compare to 3.10.9 (https://gitlab.gnome.org/GNOME/gtk/blob/3.10.9/gtk/gtkcellrenderertext.c)
+static PangoLayout *cellRendererButtonPangoLayout(cellRendererButton *c, GtkWidget *widget)
+{
+	PangoLayout *layout;
+
+	layout = gtk_widget_create_pango_layout(widget, c->text);
+	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_NONE);
+	pango_layout_set_width(layout, -1);
+	pango_layout_set_wrap(layout, PANGO_WRAP_CHAR);
+	pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
+	return layout;
+}
+
+// this is based on what GtkCellRendererText in GTK+ 3.22.30 does
+// TODO compare to 3.10.9 (https://gitlab.gnome.org/GNOME/gtk/blob/3.10.9/gtk/gtkcellrenderertext.c)
+static void cellRendererButtonSize(cellRendererButton *c, GtkWidget *widget, PangoLayout *layout, const GdkRectangle *cell_area, gint *xoff, gint *yoff, gint *width, gint *height)
+{
+	PangoRectangle rect;
+	gint xpad, ypad;
+	gfloat xalign, yalign;
+
+	gtk_cell_renderer_get_padding(GTK_CELL_RENDERER(c), &xpad, &ypad);
+	pango_layout_get_pixel_extents(layout, NULL, &rect);
+	if (rect.width > cell_area->width - (2 * xpad))
+		rect.width = cell_area->width - (2 * xpad);
+	if (rect.height > cell_area->height - (2 * ypad))
+		rect.height = cell_area->height - (2 * ypad);
+
+	gtk_cell_renderer_get_alignment(GTK_CELL_RENDERER(c), &xalign, &yalign);
+	if (gtk_widget_get_direction(widget) == GTK_TEXT_DIR_RTL)
+		xalign = 1.0 - xalign;
+	if (xoff != NULL) {
+		*xoff = cell_area->width - (rect.width + (2 * xpad));
+		*xoff = (gint) ((gfloat) (*xoff) * xalign);
+	}
+	if (yoff != NULL) {
+		*yoff = cell_area->height - (rect.height + (2 * ypad));
+		*yoff = (gint) ((gfloat) (*yoff) * yalign);
+		if (*yoff < 0)
+			*yoff = 0;
+	}
+	if (width != NULL)
+		*width = rect.width - (2 * xpad);
+	if (height != NULL)
+		*height = rect.height - (2 * ypad);
+}
+
+// this is based on what GtkCellRendererText in GTK+ 3.22.30 does
+// TODO compare to 3.10.9 (https://gitlab.gnome.org/GNOME/gtk/blob/3.10.9/gtk/gtkcellrenderertext.c)
 static void cellRendererButton_get_preferred_width(GtkCellRenderer *r, GtkWidget *widget, gint *minimum, gint *natural)
 {
 	cellRendererButton *c = cellRendererButton(r);
@@ -101,19 +150,21 @@ static void cellRendererButton_get_preferred_width(GtkCellRenderer *r, GtkWidget
 
 	gtk_cell_renderer_get_padding(GTK_CELL_RENDERER(c), &xpad, NULL);
 
-	layout = gtk_widget_create_pango_layout(widget, c->text);
-	pango_layout_set_width(layout, -1);
+	layout = cellRendererButtonPangoLayout(c, widget);
 	pango_layout_get_extents(layout, NULL, &rect);
 	g_object_unref(layout);
 
-	out = 2 * xpad + PANGO_PIXELS_CEIL(rect.width);
+	out = PANGO_PIXELS_CEIL(rect.width) + (2 * xpad);
+	if (rect.x > 0)
+		out += rect.x;
 	if (minimum != NULL)
 		*minimum = out;
 	if (natural != NULL)
 		*natural = out;
 }
 
-// this is based on what GtkCellRendererText does
+// this is based on what GtkCellRendererText in GTK+ 3.22.30 does
+// TODO compare to 3.10.9 (https://gitlab.gnome.org/GNOME/gtk/blob/3.10.9/gtk/gtkcellrenderertext.c)
 static void cellRendererButton_get_preferred_height_for_width(GtkCellRenderer *r, GtkWidget *widget, gint width, gint *minimum, gint *natural)
 {
 	cellRendererButton *c = cellRendererButton(r);
@@ -124,19 +175,20 @@ static void cellRendererButton_get_preferred_height_for_width(GtkCellRenderer *r
 
 	gtk_cell_renderer_get_padding(GTK_CELL_RENDERER(c), &xpad, &ypad);
 
-	layout = gtk_widget_create_pango_layout(widget, c->text);
-	pango_layout_set_width(layout, ((2 * xpad + width) * PANGO_SCALE));
+	layout = cellRendererButtonPangoLayout(c, widget);
+	pango_layout_set_width(layout, (width + (xpad * 2)) * PANGO_SCALE);
 	pango_layout_get_pixel_size(layout, NULL, &height);
 	g_object_unref(layout);
 
-	out = 2 * ypad + height;
+	out = height + (ypad * 2);
 	if (minimum != NULL)
 		*minimum = out;
 	if (natural != NULL)
 		*natural = out;
 }
 
-// this is basically what GtkCellRendererText does
+// this is based on what GtkCellRendererText in GTK+ 3.22.30 does
+// TODO compare to 3.10.9 (https://gitlab.gnome.org/GNOME/gtk/blob/3.10.9/gtk/gtkcellrenderertext.c)
 static void cellRendererButton_get_preferred_height(GtkCellRenderer *r, GtkWidget *widget, gint *minimum, gint *natural)
 {
 	gint width;
@@ -145,84 +197,65 @@ static void cellRendererButton_get_preferred_height(GtkCellRenderer *r, GtkWidge
 	gtk_cell_renderer_get_preferred_height_for_width(r, widget, width, minimum, natural);
 }
 
-// this is based on what GtkCellRendererText does
+// this is based on what GtkCellRendererText in GTK+ 3.22.30 does
+// TODO compare to 3.10.9 (https://gitlab.gnome.org/GNOME/gtk/blob/3.10.9/gtk/gtkcellrenderertext.c)
 static void cellRendererButton_get_aligned_area(GtkCellRenderer *r, GtkWidget *widget, GtkCellRendererState flags, const GdkRectangle *cell_area, GdkRectangle *aligned_area)
 {
 	cellRendererButton *c = cellRendererButton(r);
-	gint xpad, ypad;
 	PangoLayout *layout;
-	PangoRectangle rect;
-	gfloat xalign, yalign;
-	gint xoffset, yoffset;
+	gint xoff, yoff;
+	gint width, height;
 
-	gtk_cell_renderer_get_padding(GTK_CELL_RENDERER(c), &xpad, &ypad);
+	layout = cellRendererButtonPangoLayout(c, widget);
+	cellRendererButtonSize(c, widget, layout, cell_area,
+		&xoff, &yoff, &width, &height);
 
-	layout = gtk_widget_create_pango_layout(widget, c->text);
-	pango_layout_set_width(layout, -1);
-	pango_layout_get_pixel_extents(layout, NULL, &rect);
-
-	xoffset = 0;
-	yoffset = 0;
-	if (cell_area != NULL) {
-		gtk_cell_renderer_get_alignment(GTK_CELL_RENDERER(c), &xalign, &yalign);
-		xoffset = cell_area->width - (2 * xpad + rect.width);
-		// use explicit casts just to be safe
-		if (gtk_widget_get_direction(widget) == GTK_TEXT_DIR_RTL)
-			xoffset = ((gdouble) xoffset) * (1.0 - xalign);
-		else
-			xoffset *= ((gdouble) xoffset) * xalign;
-		yoffset = yalign * (cell_area->height - (2 * ypad + rect.height));
-		yoffset = MAX(yoffset, 0);
-	}
-
-	aligned_area->x = cell_area->x + xoffset;
-	aligned_area->y = cell_area->y + yoffset;
-	aligned_area->width = 2 * xpad + rect.width;
-	aligned_area->height = 2 * ypad + rect.height;
+	aligned_area->x = cell_area->x + xoff;
+	aligned_area->y = cell_area->y + yoff;
+	aligned_area->width = width;
+	aligned_area->height = height;
 
 	g_object_unref(layout);
 }
 
-// this is based on both what GtkCellRendererText does and what GtkCellRendererToggle does
+// this is based on both what GtkCellRendererText on 3.22.30 does and what GtkCellRendererToggle does (TODO verify the latter; both on 3.10.9)
 static void cellRendererButton_render(GtkCellRenderer *r, cairo_t *cr, GtkWidget *widget, const GdkRectangle *background_area, const GdkRectangle *cell_area, GtkCellRendererState flags)
 {
 	cellRendererButton *c = cellRendererButton(r);
 	gint xpad, ypad;
 	GdkRectangle alignedArea;
-	gint xoffset, yoffset;
+	gint xoff, yoff;
 	GtkStyleContext *context;
 	PangoLayout *layout;
 	PangoRectangle rect;
 
 	gtk_cell_renderer_get_padding(GTK_CELL_RENDERER(c), &xpad, &ypad);
-	gtk_cell_renderer_get_aligned_area(GTK_CELL_RENDERER(c), widget, flags, cell_area, &alignedArea);
-	xoffset = alignedArea.x - cell_area->x;
-	yoffset = alignedArea.y - cell_area->y;
+	layout = cellRendererButtonPangoLayout(c, widget);
+	cellRendererButtonSize(c, widget, layout, cell_area,
+		&xoff, &yoff, NULL, NULL);
 
 	context = setButtonStyle(widget);
-	layout = gtk_widget_create_pango_layout(widget, c->text);
 
 	gtk_render_background(context, cr,
-		background_area->x + xoffset + xpad,
-		background_area->y + yoffset + ypad,
-		background_area->width - 2 * xpad,
-		background_area->height - 2 * ypad);
+		background_area->x + xpad,
+		background_area->y + ypad,
+		background_area->width - (xpad * 2),
+		background_area->height - (ypad * 2));
 	gtk_render_frame(context, cr,
-		background_area->x + xoffset + xpad,
-		background_area->y + yoffset + ypad,
-		background_area->width - 2 * xpad,
-		background_area->height - 2 * ypad);
+		background_area->x + xpad,
+		background_area->y + ypad,
+		background_area->width - (xpad * 2),
+		background_area->height - (ypad * 2));
 
-	pango_layout_set_width(layout, -1);
 	pango_layout_get_pixel_extents(layout, NULL, &rect);
-	xoffset -= rect.x;
+	xoff -= rect.x;
 	gtk_render_layout(context, cr,
-		cell_area->x + xoffset + xpad,
-		cell_area->y + yoffset + ypad,
+		cell_area->x + xoff + xpad,
+		cell_area->y + yoff + ypad,
 		layout);
 
-	g_object_unref(layout);
 	unsetButtonStyle(context);
+	g_object_unref(layout);
 }
 
 static guint clickedSignal;

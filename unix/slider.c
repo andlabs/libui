@@ -61,6 +61,9 @@ uiSlider *uiNewSlider(int min, int max)
 	s->range = GTK_RANGE(s->widget);
 	s->scale = GTK_SCALE(s->widget);
 
+	// do not display current value
+	gtk_scale_set_draw_value(s->scale, 0);
+
 	// ensure integers, just to be safe
 	gtk_scale_set_digits(s->scale, 0);
 

@@ -1,6 +1,8 @@
 // 4 september 2015
 #include "uipriv_unix.h"
 
+extern GThread* gtkthread;
+
 // notes:
 // - G_DECLARE_DERIVABLE/FINAL_INTERFACE() requires glib 2.44 and that's starting with debian stretch (testing) (GTK+ 3.18) and ubuntu 15.04 (GTK+ 3.14) - debian jessie has 2.42 (GTK+ 3.14)
 #define areaWidgetType (areaWidget_get_type())
@@ -382,6 +384,63 @@ static const struct {
 	{ GDK_KEY_Print, 0 },
 };
 
+// http://www.comptechdoc.org/os/linux/howlinuxworks/linux_hlkeycodes.html
+int scancode_unix2normal(int scan)
+{
+	scan -= 8;
+
+	// extended keys get weird scancodes. fix 'em up
+	switch (scan) {
+	case 0x60: return 0x11C;
+	case 0x61: return 0x11D;
+	case 0x62: return 0x135;
+	case 0x63: return 0x137;
+	case 0x64: return 0x138;
+	case 0x66: return 0x147;
+	case 0x67: return 0x148;
+	case 0x68: return 0x149;
+	case 0x69: return 0x14B;
+	case 0x6A: return 0x14D;
+	case 0x6B: return 0x14F;
+	case 0x6C: return 0x150;
+	case 0x6D: return 0x151;
+	case 0x6E: return 0x152;
+	case 0x6F: return 0x153;
+	case 0x77: return 0x45; // PAUSE, this one is weird. check it.
+	case 0x7D: return 0x15B; // Windows key
+	case 0x7F: return 0x15D; // context menu key
+	// TODO: there may be more fancy keys
+	default: return scan;
+	}
+}
+
+int scancode_normal2unix(int scan)
+{
+	// extended keys get weird scancodes. fix 'em up
+	switch (scan) {
+	case 0x11C: return 8+0x60;
+	case 0x11D: return 8+0x61;
+	case 0x135: return 8+0x62;
+	case 0x137: return 8+0x63;
+	case 0x138: return 8+0x64;
+	case 0x147: return 8+0x66;
+	case 0x148: return 8+0x67;
+	case 0x149: return 8+0x68;
+	case 0x14B: return 8+0x69;
+	case 0x14D: return 8+0x6A;
+	case 0x14F: return 8+0x6B;
+	case 0x150: return 8+0x6C;
+	case 0x151: return 8+0x6D;
+	case 0x152: return 8+0x6E;
+	case 0x153: return 8+0x6F;
+	case 0x45: return 8+0x77; // PAUSE, this one is weird. check it.
+	case 0x15B: return 8+0x7D; // Windows key
+	case 0x15D: return 8+0x7F; // context menu key
+	// TODO: there may be more fancy keys
+	default: return scan + 8;
+	}
+}
+
 static int areaKeyEvent(uiArea *a, int up, GdkEventKey *e)
 {
 	uiAreaKeyEvent ke;
@@ -396,7 +455,11 @@ static int areaKeyEvent(uiArea *a, int up, GdkEventKey *e)
 	ke.Modifiers = toModifiers(state);
 
 	ke.Up = up;
+	ke.Repeat = 0; // TODO!!!!!
 
+	ke.Scancode = scancode_unix2normal(e->hardware_keycode);
+
+#if 0
 	for (i = 0; extKeys[i].keyval != GDK_KEY_Print; i++)
 		if (extKeys[i].keyval == e->keyval) {
 			ke.ExtKey = extKeys[i].extkey;
@@ -418,6 +481,7 @@ static int areaKeyEvent(uiArea *a, int up, GdkEventKey *e)
 	return 0;
 
 keyFound:
+#endif
 	return (*(a->ah->KeyEvent))(a->ah, a, &ke);
 }
 
@@ -439,6 +503,26 @@ static gboolean areaWidget_key_release_event(GtkWidget *w, GdkEventKey *e)
 	if (areaKeyEvent(a, 1, e))
 		return GDK_EVENT_STOP;
 	return GDK_EVENT_PROPAGATE;
+}
+
+char* uiKeyName(int scancode)
+{
+	GdkKeymap* keymap;
+	guint* keyvals;
+	int num;
+	int keyval;
+
+	scancode = scancode_normal2unix(scancode);
+
+	keymap = gdk_keymap_get_default();
+	gdk_keymap_get_entries_for_keycode(keymap, scancode, NULL, &keyvals, &num);
+
+	// TODO: pick smarter??
+	keyval = keyvals[0];
+
+	g_free(keyvals);
+
+	return uiUnixStrdupText(gdk_keyval_name(keyval));
 }
 
 enum {
@@ -505,9 +589,20 @@ void uiAreaSetSize(uiArea *a, int width, int height)
 	gtk_widget_queue_resize(a->areaWidget);
 }
 
+gboolean _threadsaferefresh(gpointer data)
+{
+	uiArea* a = (uiArea*)data;
+	gtk_widget_queue_draw(a->areaWidget);
+	return FALSE;
+}
+
 void uiAreaQueueRedrawAll(uiArea *a)
 {
-	gtk_widget_queue_draw(a->areaWidget);
+	// TODO: figure out how we could generalize the "thread-safe function call" mechanism
+	if (g_thread_self() != gtkthread)
+		g_idle_add(_threadsaferefresh, a);
+	else
+		gtk_widget_queue_draw(a->areaWidget);
 }
 
 void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)

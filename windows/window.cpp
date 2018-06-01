@@ -132,7 +132,7 @@ ATOM registerWindowClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	wc.lpszClassName = windowClass;
 	wc.lpfnWndProc = windowWndProc;
 	wc.hInstance = hInstance;
-	wc.hIcon = hDefaultIcon;
+	wc.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(100));
 	wc.hCursor = hDefaultCursor;
 	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
 	return RegisterClassW(&wc);

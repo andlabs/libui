@@ -16,8 +16,8 @@ struct uiDateTimePicker {
 }
 - (void)datePickerCell:(NSDatePickerCell *)aDatePickerCell validateProposedDateValue:(NSDate **)proposedDateValue timeInterval:(NSTimeInterval *)proposedTimeInterval;
 - (void)doTimer:(NSTimer *)timer;
-- (void)registerPicker:(uiDateTimePicker *)b;
-- (void)unregisterPicker:(uiDateTimePicker *)b;
+- (void)registerPicker:(uiDateTimePicker *)d;
+- (void)unregisterPicker:(uiDateTimePicker *)d;
 @end
 
 @implementation uiprivDatePickerDelegateClass
@@ -78,7 +78,16 @@ struct uiDateTimePicker {
 
 static uiprivDatePickerDelegateClass *datePickerDelegate = nil;
 
-uiDarwinControlAllDefaults(uiDateTimePicker, dp)
+uiDarwinControlAllDefaultsExceptDestroy(uiDateTimePicker, dp)
+
+static void uiDateTimePickerDestroy(uiControl *c)
+{
+	uiDateTimePicker *d = uiDateTimePicker(c);
+
+	[datePickerDelegate unregisterPicker:d];
+	[d->dp release];
+	uiFreeControl(uiControl(d));
+}
 
 static void defaultOnChanged(uiDateTimePicker *d, void *data)
 {

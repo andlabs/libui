@@ -1,0 +1,79 @@
+version: 'build #{build}'
+
+environment:
+  matrix:
+    - linking: shared
+      compiler: msvc2013
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - linking: static
+      compiler: msvc2013
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - linking: shared
+      compiler: msvc2015
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    - linking: static
+      compiler: msvc2015
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    - linking: shared
+      compiler: msvc2017
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - linking: static
+      compiler: msvc2017
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - linking: static
+      compiler: mingw
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+platform:
+  - Win32
+  - x64
+
+before_build:
+  - if %compiler%==msvc2013      ( set "CMAKE_GENERATOR=Visual Studio 12 2013" )
+    else if %compiler%==msvc2015 ( set "CMAKE_GENERATOR=Visual Studio 14 2015" )
+    else if %compiler%==msvc2017 ( set "CMAKE_GENERATOR=Visual Studio 15 2017" )
+    else if %compiler%==mingw    ( set "CMAKE_GENERATOR=MinGW Makefiles" )
+  - if %compiler%-%platform%==mingw-Win32    ( set "PATH=C:\msys64\mingw32\bin;%PATH%" )
+    else if %compiler%-%platform%==mingw-x64 ( set "PATH=C:\msys64\mingw64\bin;%PATH%" )
+    else if %platform%==x64 ( set "CMAKE_GENERATOR=%CMAKE_GENERATOR% Win64" )
+  - if %linking%==static ( set CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF )
+  - if %compiler%==mingw ( set "outdir=build\out" ) else ( set "outdir=build\out\Release" )
+  - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
+  - set "simultaneous=3"
+
+build_script:
+  - md build && cd build
+  - if not %compiler%==mingw ( set "CFLAGS=/MP%simultaneous% %CFLAGS%" )
+  - if not %compiler%==mingw ( set "CPPFLAGS=/MP%simultaneous% %CPPFLAGS%" )
+  - if not %compiler%==mingw ( set "CXXFLAGS=/MP%simultaneous% %CXXFLAGS%" )
+  - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
+  - if %compiler%==mingw ( mingw32-make -j%simultaneous% tester examples )
+    else ( msbuild libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
+  - cd %APPVEYOR_BUILD_FOLDER%
+
+after_build:
+  - if %platform%==x64 ( set "arch=amd64" ) else ( set "arch=386" )
+  - if %APPVEYOR_REPO_TAG%==true ( set "version=%APPVEYOR_REPO_TAG_NAME%" )
+    else ( set "version=%APPVEYOR_REPO_BRANCH%" )
+  - if %linking%==shared ( set "artifact=shared" ) else ( set "artifact=%compiler%-static" )
+  - set "artifact=%version%-windows-%arch%-%artifact%"
+  - del .\%outdir%\libui.exp # remove unnecessary files
+  - 7z a libui-%artifact%.zip .\%outdir%\libui.* ui.h ui_windows.h
+  - 7z l libui-%artifact%.zip
+  - 7z a examples-%artifact%.zip .\%outdir%\*.exe
+  - 7z l examples-%artifact%.zip
+
+artifacts:
+  - path: libui-*.zip
+    name: libui
+  - path: examples-*.zip
+    name: examples
+
+deploy:
+  provider: GitHub
+  artifact: libui, examples
+  # TODO https://www.appveyor.com/docs/deployment/github/
+  #auth_token:
+    #secure: "2l/602m6FkqAB9TTIAkPX3Erfwg9jVTlf/Inmf2dWcbOrJJzK/WrCUIgY3B4ngly"
+  on:
+    appveyor_repo_tag: true # deploy on tag push only

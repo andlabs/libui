@@ -1,31 +1,97 @@
-os:
-  - linux
-  - osx
-dist: trusty
 language: c
-sudo: required
+
+include: &toolchain_linux_amd64
+  os: linux
+  dist: trusty
+  addons:
+    apt:
+      update: true
+      packages:
+        - libgtk-3-dev
+
+include: &toolchain_linux_386
+  os: linux
+  dist: trusty
+  addons:
+    apt:
+      packages:
+        - gcc-multilib
+        - g++-multilib
+        - libgtk-3-dev:i386
+        # the rest fixes broken dependencies of libgtk:i386
+        - libgirepository-1.0-1:i386
+        - libglib2.0-dev:i386
+        - gir1.2-glib-2.0:i386
+        - gir1.2-atk-1.0:i386
+        - libatk1.0-dev:i386
+        - libfreetype6-dev:i386
+        - libfontconfig1-dev:i386
+        - libcairo2-dev:i386
+        - libgdk-pixbuf2.0-dev:i386
+        - libpango1.0-dev:i386
+        - libxft-dev:i386
+        - libpng12-dev:i386
+
+include: &toolchain_osx_amd64
+  os: osx
+  osx_image: xcode8
+
+# Travis CI build matrix.
+# Each entry below will trigger an extra, parallel build on Travis.
+matrix:
+  include:
+    - env: linking=shared arch=amd64
+      <<: *toolchain_linux_amd64
+    - env: linking=static arch=amd64
+      <<: *toolchain_linux_amd64
+    - env: linking=shared arch=386
+      <<: *toolchain_linux_386
+    - env: linking=static arch=386
+      <<: *toolchain_linux_386
+    - env: linking=shared arch=amd64
+      <<: *toolchain_osx_amd64
+    - env: linking=static arch=amd64
+      <<: *toolchain_osx_amd64
+
+install:
+  - if [[ "${arch}" == "386" ]]; then
+      export CFLAGS=-m32;
+      export CXXFLAGS=-m32;
+      export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig;
+    fi
+  - if [[ "${linking}" == "static" ]]; then
+      export CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF;
+    fi
 
 script:
-  - ./scripts/setup-environment.sh
-  - ./scripts/build-64.sh
-  - ./scripts/start-linux-32.sh
+  - cmake --version
+  - mkdir build
+  - pushd build
+  - cmake -G "Unix Makefiles" ${CMAKE_FLAGS} ..
+  - make tester examples
+  - popd
+
+after_success:
+  - ls -lR build/out
+  - file build/out/test
+  - export platform="$TRAVIS_OS_NAME"
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then cp ui.h ui_darwin.h build/out/; export platform=darwin; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cp ui.h ui_unix.h   build/out/; fi
+  - if [[ "x${TRAVIS_TAG}" != "x" ]]; then export version=${TRAVIS_TAG}; else export version=${TRAVIS_BRANCH}; fi
+  - export artifact=${version}-${platform}-${arch}-${linking}
+  - echo ${artifact}
+  - pushd build/out
+  - # TODO do not include symlinks in the archive
+  - tar -czvf libui-${artifact}.tgz libui.* *.h
+  - tar -czvf examples-${artifact}.tgz `find . -type f ! -name "*.*"`
+  - popd
 
 deploy:
   provider: releases
-  api_key:
-    secure: rnXzvDKyhvcCz4UkvVvj5M5GvR9geqI7+8WNDmZAeM8ufXUiu+VzxozKqEuTHmryMRVZ/mRCxuWsMaj22EbONWzCcXDqntCPLdiq+RLxI+3I9nIk9QPYDiLmXRAg6EVyhu6Lihskh/3sN70v+jZMmdJcuI21AuTrMBhTLiQpnVJn2l4YXiGPJOMGoad3JjqIaS3ObHhuyDzo99rfWLCEXF38VV748t+epr7UlqBHVL+tJRHWaTk7+OWKHmZrJ5N/Caf5inT6PqO2YdpBP82dvxL4JdBsJ/9mdqYnFn4J/vmZ2IoHGtWQuMyP7uGFMtbeDO1gif48YY87A60F+FqfzLUdTEZOR6J8fubHKgHJEaH77tElHsbJnuCnYyGWHTjpyAqfrbKGWhXRpLt1sg04ekz9tbnVJQVinOYwFW7KQHz6coZKHJJnRj0zVzAc83K8s5toCUXwwMn8Vhras9AyAXuiyi3ja1/Kln8lSt5rh+r8IksJLowwbt7Ldt3NHu4c96xI782+1zkJYeUO9ZnKaKEpny69fOVi6CoTduZGJkGJHEpgG7VS/gmiS+NHEQOf1AG4RIwfnMefrY/yvEGsWvvIkfhupqbWwEOel5IrDLxqhJC5tRxUMEBxR9WahsZq7EhYu7geg8Y/+b3vc10etptI+7bQnbAuxZUO9vPsEZE=
+  #api_key:
+    #secure: TODO
+  file: build/out/*.tgz
+  file_glob: true
   skip_cleanup: true
-  file:
-    - ./artifacts/examples-static-$TRAVIS_OS_NAME-x64-$TRAVIS_TAG.tar.gz
-    - ./artifacts/libui-static-$TRAVIS_OS_NAME-x64-$TRAVIS_TAG.tar.gz
-    - ./artifacts/examples-shared-$TRAVIS_OS_NAME-x64-$TRAVIS_TAG.tar.gz
-    - ./artifacts/libui-shared-$TRAVIS_OS_NAME-x64-$TRAVIS_TAG.tar.gz
-    - ./artifacts/examples-static-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
-    - ./artifacts/libui-static-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
-    - ./artifacts/examples-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
-    - ./artifacts/libui-shared-$TRAVIS_OS_NAME-ia32-$TRAVIS_TAG.tar.gz
-
   on:
-    repo: parro-it/libui
     tags: true
-

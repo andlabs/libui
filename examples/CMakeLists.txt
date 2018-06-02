@@ -18,6 +18,16 @@ _add_example(controlgallery
 	${_EXAMPLE_RESOURCES_RC}
 )
 
+_add_example(layout-test
+	layout-test/main.c
+	${_EXAMPLE_RESOURCES_RC}
+)
+
+set_target_properties(layout-test PROPERTIES
+	OUTPUT_NAME layout-test
+	WIN32_EXECUTABLE FALSE
+)
+
 _add_example(histogram
 	histogram/main.c
 	${_EXAMPLE_RESOURCES_RC}
@@ -57,6 +67,7 @@ add_custom_target(examples
 		controlgallery
 		histogram
 		cpp-multithread
+		layout-test
 		drawtext
 		timer
 		datetime)

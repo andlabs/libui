@@ -15,6 +15,8 @@ typedef struct uiUnixControl uiUnixControl;
 struct uiUnixControl {
 	uiControl c;
 	uiControl *parent;
+	int width;
+	int height;
 	gboolean addedBefore;
 	gboolean explicitlyHidden;
 	void (*SetContainer)(uiUnixControl *, GtkContainer *, gboolean);

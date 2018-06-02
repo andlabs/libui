@@ -217,6 +217,9 @@ _UI_EXTERN int uiWindowsWindowTextWidth(HWND hwnd);
 // TODO point out this should only be used in a resize cycle
 _UI_EXTERN void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, int x, int y, int width, int height);
 
+_UI_EXTERN void uiWindowsResizeWindow(HWND hwnd, int width, int height);
+_UI_EXTERN void uiWindowsMoveWindow(HWND hwnd, int x, int y);
+
 // TODO document
 _UI_EXTERN void uiWindowsRegisterWM_COMMANDHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);
 _UI_EXTERN void uiWindowsUnregisterWM_COMMANDHandler(HWND hwnd);

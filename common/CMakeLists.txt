@@ -12,6 +12,7 @@ list(APPEND _LIBUI_SOURCES
 	common/opentype.c
 	common/shouldquit.c
 	common/table.c
+	common/tabledata.c
 	common/userbugs.c
 	common/utf.c
 )

@@ -4,6 +4,8 @@
 // values from interface builder
 #define textColumnLeading 2
 #define textColumnTrailing 2
+#define imageColumnLeading 3
+#define imageTextColumnLeading 7
 
 static void layoutCellSubview(NSView *superview, NSView *subview, NSView *leading, CGFloat leadingConstant, NSView *trailing, CGFloat trailingConstant, BOOL stretchy)
 {
@@ -119,7 +121,7 @@ static void updateCellTextField(NSTextField *tf, NSInteger row, uiTableModel *m,
 		[self->tf setTarget:self];
 		[self->tf setAction:@selector(uiprivOnAction:)];
 		[self addSubview:self->tf];
-		layoutCellSubview(self, self->tv,
+		layoutCellSubview(self, self->tf,
 			self, textColumnLeading,
 			self, textColumnTrailing,
 			YES);
@@ -152,6 +154,122 @@ static void updateCellTextField(NSTextField *tf, NSInteger row, uiTableModel *m,
 	data = [[self->tf stringValue] UTF8String];
 	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
 		row, self->modelColumn, data);
+	// always refresh the value in case the model rejected it
+	[self uiprivUpdate:row];
+}
+
+@end
+
+xx TODO somehow merge this with the above
+@interface uiprivImageTextColumnCellView : uiprivColumnCellView {
+	uiTable *t;
+	uiTableModel *m;
+	NSImageView *iv;
+	int modelColumn;
+	NSTextField *tf;
+	int textModelColumn;
+	int textEditableColumn;
+	uiTableTextColumnOptionalParams params;
+}
+- (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc textModelColumn:(int)tmc editableColumn:(int)ec params:(uiTableTextColumnOptionalParams *)p;
+- (IBAction)uiprivOnAction:(id)sender;
+@end
+
+@implementation uiprivImageTextColumnCellView
+
+- (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc textModelColumn:(int)tmc editableColumn:(int)ec params:(uiTableTextColumnOptionalParams *)p
+{
+	self = [super initWithFrame:frame];
+	if (self) {
+		self->t = table;
+		self->m = model;
+		self->modelColumn = mc;
+		self->textModelColumn = tmc;
+		self->editableColumn = ec;
+		if (p != NULL)
+			params = *p;
+		else
+			params = defaultTextColumnOptionalParams;
+
+		self->iv = [[NSImageView alloc] initWithFrame:NSZeroRect];
+		[self->iv setImageFrameStyle:NSImageFrameNone];
+		[self->iv setImageAlignment:NSImageAlignCenter];
+		[self->iv setImageScaling:NSImageScaleProportionallyDown];
+		[self->iv setAnimates:NO];
+		[self->iv setEditable:NO];
+		[self->iv addConstraint:uiprivMkConstraint(self->iv, NSLayoutAttributeWidth,
+			NSLayoutRelationEqual,
+			self->iv, NSLayoutAttributeHeight,
+			1, 0,
+			@"uiTable image squareness constraint")];
+		[self addSubview:self->iv];
+
+		self->tf = nil;
+		if (self->textModelColumn != -1) {
+			self->tf = uiprivNewLabel(@"");
+			// TODO set wrap and ellipsize modes?
+			[self->tf setTarget:self];
+			[self->tf setAction:@selector(uiprivOnAction:)];
+			[self addSubview:self->tf];
+			layoutCellSubview(self, self->iv,
+				self, imageColumnLeading,
+				nil, 0,
+				NO);
+			layoutCellSubview(self, self->tf,
+				self, imageTextColumnLeading,
+				self, textColumnTrailing,
+				YES);
+		} else {
+			layoutCellSubview(self, self->iv,
+				nil, 0,
+				nil, 0,
+				NO);
+			[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeCenterX,
+				NSLayoutRelationEqual,
+				self->iv, NSLayoutAttributeCenterX,
+				1, 0,
+				@"uiTable image centering constraint")];
+		}
+
+		// take advantage of NSTableCellView-provided accessibility features
+		[self setImageView:self->iv];
+		if (self->tf != nil)
+			[self setTextField:self->tf];
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+	if (self->tf != nil) {
+		[self->tf release];
+		self->tf = nil;
+	}
+	[self->iv release];
+	self->iv = nil;
+	[super dealloc];
+}
+
+- (void)uiprivUpdate:(NSInteger)row
+{
+	void *data;
+
+	data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->modelColumn);
+	[self->iv setImage:uiprivImageNSImage((uiImage *) data)];
+	if (self->tf != nil)
+		updateCellTextField(self->tf, row, self->m,
+			self->textModelColumn, self->editableColumn, &(self->params));
+}
+
+- (IBAction)onAction:(id)sender
+{
+	NSInteger row;
+	const void *data;
+
+	row = [self->t->tv rowForView:self->tf];
+	data = [[self->tf stringValue] UTF8String];
+	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
+		row, self->textModelColumn, data);
 	// always refresh the value in case the model rejected it
 	[self uiprivUpdate:row];
 }

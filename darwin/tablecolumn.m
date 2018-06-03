@@ -253,7 +253,7 @@ struct textColumnCreateParams {
 			data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textParams.ColorModelColumn);
 			uiTableDataColor(data, &r, &g, &b, &a);
 			uiFreeTableData(data);
-			xx TODO
+			// TODO
 		}
 		if (color == nil)
 			color = [NSColor controlTextColor];
@@ -370,6 +370,71 @@ struct textColumnCreateParams {
 		[self->p setDoubleValue:(value + 1)];
 		[self->p setDoubleValue:value];
 	}
+}
+
+@end
+
+@interface uiprivButtonColumnCellView : uiprivColumnCellView {
+	uiTable *t;
+	uiTableModel *m;
+	NSButton *b;
+	int modelColumn;
+	int editableColumn;
+}
+- (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc editableColumn:(int)ec;
+- (IBAction)uiprivOnClicked:(id)sender;
+@end
+
+@implementation uiprivProgressBarColumnCellView
+
+- (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc editableColumn:(int)ec
+{
+	self = [super initWithFrame:r];
+	if (self) {
+		self->t = table;
+		self->m = model;
+		self->modelColumn = mc;
+		self->editableColumn = ec;
+
+		self->b = [[NSButton alloc] initWithFrame:NSZeroRect];
+		[self->b setButtonType:NSMomentaryPushInButton];
+		[self->b setBordered:YES];
+		[self->b setBezelStyle:NSRoundRectBezelStyle];
+		uiDarwinSetControlFont(self->b, NSRegularControlSize);
+		[self->b setTarget:self];
+		[self->b setAction:@selector(uiprivOnClicked:)];
+		layoutCellSubview(self, self->b,
+			self, progressBarColumnLeading,
+			self, progressBarColumnTrailing,
+			YES);
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+	[self->p release];
+	self->p = nil;
+	[super dealloc];
+}
+
+- (void)uiprivUpdate:(NSInteger)row
+{
+	uiTableData *data;
+	NSString *str;
+	BOOL editable;
+
+	data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->modelColumn);
+	str = uiprivToNSString(uiTableDataString(data));
+	uiFreeTableData(data);
+	[self->b setTitle:str];
+
+	[self->b setEditable:isCellEditable(self->m, row, self->editableColumn)];
+}
+
+- (id)uiprivOnClicked:(id)sender
+{
+	// TODO
 }
 
 @end

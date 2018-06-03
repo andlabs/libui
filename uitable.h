@@ -8,24 +8,43 @@ _UI_EXTERN uiImage *uiNewImage(double width, double height);
 _UI_EXTERN void uiFreeImage(uiImage *i);
 _UI_EXTERN void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride);
 
-typedef struct uiTableModel uiTableModel;
-typedef struct uiTableModelHandler uiTableModelHandler;
+typedef struct uiTableData uiTableData;
+
+_UI_EXTERN void uiFreeTableData(uiTableData *d);
 
 // TODO actually validate these
-_UI_ENUM(uiTableModelColumnType) {
-	uiTableModelColumnString,
-	uiTableModelColumnImage,
-	uiTableModelColumnInt,
-	uiTableModelColumnColor,
+_UI_ENUM(uiTableDataType) {
+	uiTableDataTypeString,
+	uiTableDataTypeImage,
+	uiTableDataTypeInt,
+	uiTableDataTypeColor,
 };
+
+// TODO I don't like this name
+_UI_EXTERN uiTableDataType uiTableDataGetType(const uiTableData *d);
+
+_UI_EXTERN uiTableData *uiNewTableDataString(const char *str);
+_UI_EXTERN const char *uiTableDataString(const uiTableData *d);
+
+_UI_EXTERN uiTableData *uiNewTableDataImage(uiImage *img);
+_UI_EXTERN uiImage *uiTableDataImage(const uiTableData *d);
+
+_UI_EXTERN uiTableData *uiNewTableDataInt(int i);
+_UI_EXTERN int uiTableDataInt(const uiTableData *d);
+
+_UI_EXTERN uiTableData *uiNewTableDataColor(double r, double g, double b, double a);
+_UI_EXTERN void uiTableDataColor(const uiTableData *d, double *r, double *g, double *b, double *a);
+
+typedef struct uiTableModel uiTableModel;
+typedef struct uiTableModelHandler uiTableModelHandler;
 
 // TODO validate ranges; validate types on each getter/setter call (? table columns only?)
 struct uiTableModelHandler {
 	int (*NumColumns)(uiTableModelHandler *, uiTableModel *);
-	uiTableModelColumnType (*ColumnType)(uiTableModelHandler *, uiTableModel *, int);
+	uiTableDataType (*ColumnType)(uiTableModelHandler *, uiTableModel *, int);
 	int (*NumRows)(uiTableModelHandler *, uiTableModel *);
-	void *(*CellValue)(uiTableModelHandler *, uiTableModel *, int, int);
-	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, const void *);
+	uiTableData *(*CellValue)(uiTableModelHandler *, uiTableModel *, int, int);
+	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, const uiTableData *);
 };
 
 _UI_EXTERN void *uiTableModelStrdup(const char *str);

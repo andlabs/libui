@@ -9,6 +9,8 @@
 #define checkboxTextColumnLeading 0
 // these aren't provided by IB; let's just choose one
 #define checkboxColumnLeading imageColumnLeading
+#define progressBarColumnLeading imageColumnLeading
+#define progressBarColumnTrailing progressBarColumnLeading
 
 static void layoutCellSubview(NSView *superview, NSView *subview, NSView *leading, CGFloat leadingConstant, NSView *trailing, CGFloat trailingConstant, BOOL stretchy)
 {
@@ -304,6 +306,70 @@ struct textColumnCreateParams {
 	uiFreeTableData(data);
 	// always refresh the value in case the model rejected it
 	[self uiprivUpdate:row];
+}
+
+@end
+
+@interface uiprivProgressBarColumnCellView : uiprivColumnCellView {
+	uiTable *t;
+	uiTableModel *m;
+	NSProgressIndicator *p;
+	int modelColumn;
+}
+- (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc;
+@end
+
+@implementation uiprivProgressBarColumnCellView
+
+- (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc
+{
+	self = [super initWithFrame:r];
+	if (self) {
+		self->t = table;
+		self->m = model;
+		self->modelColumn = mc;
+
+		self->p = [[NSProgressIndicator alloc] initWithFrame:NSZeroRect];
+		[self->p setControlSize:NSRegularControlSize];
+		[self->p setBezeled:YES];
+		[self->p setStyle:NSProgressIndicatorBarStyle];
+		layoutCellSubview(self, self->p,
+			self, progressBarColumnLeading,
+			self, progressBarColumnTrailing,
+			YES);
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+	[self->p release];
+	self->p = nil;
+	[super dealloc];
+}
+
+- (void)uiprivUpdate:(NSInteger)row
+{
+	uiTableData *data;
+	int value;
+
+	data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->modelColumn);
+	value = uiTableDataInt(data);
+	uiFreeTableData(data);
+	if (value == -1) {
+		[self->p setIndeterminate:YES];
+		[self->p startAnimation:self->p];
+	} else if (value == 100) {
+		[self->p setIndeterminate:NO];
+		[self->p setMaxValue:101];
+		[self->p setDoubleValue:101];
+		[self->p setDoubleValue:100];
+		[self->p setMaxValue:100];
+	} else {
+		[self->p setIndeterminate:NO];
+		[self->p setDoubleValue:(value + 1)];
+		[self->p setDoubleValue:value];
+	}
 }
 
 @end

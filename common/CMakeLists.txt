@@ -11,7 +11,7 @@ list(APPEND _LIBUI_SOURCES
 	common/matrix.c
 	common/opentype.c
 	common/shouldquit.c
-	common/table.c
+#	common/table.c
 	common/tabledata.c
 	common/userbugs.c
 	common/utf.c

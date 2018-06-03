@@ -43,49 +43,23 @@ _UI_EXTERN void uiTableModelRowChanged(uiTableModel *m, int index);
 _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
 // TODO reordering/moving
 
-#define uiTableModelColumnNeverEditable (-1)
-#define uiTableModelColumnAlwaysEditable (-2)
+typedef struct uiTableColumn uiTableColumn;
 
-typedef struct uiTableTextColumnOptionalParams uiTableTextColumnOptionalParams;
-
-struct uiTableTextColumnOptionalParams {
-	int ColorModelColumn;
-};
+_UI_EXTERN void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand);
+// TODO images shouldn't expand...
+_UI_EXTERN void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand);
+_UI_EXTERN void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand);
+// TODO should these have labels?
+_UI_EXTERN void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand);
+_UI_EXTERN void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int expand);
+// TODO Editable?
+_UI_EXTERN void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable);
+_UI_EXTERN void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn);
 
 typedef struct uiTable uiTable;
 #define uiTable(this) ((uiTable *) (this))
-_UI_EXTERN void uiTableAppendTextColumn(uiTable *t,
-	const char *name,
-	int textModelColumn,
-	int textEditableModelColumn,
-	uiTableTextColumnOptionalParams *params);
-_UI_EXTERN void uiTableAppendImageColumn(uiTable *t,
-	const char *name,
-	int imageModelColumn);
-_UI_EXTERN void uiTableAppendImageTextColumn(uiTable *t,
-	const char *name,
-	int imageModelColumn,
-	int textModelColumn,
-	int textEditableModelColumn,
-	uiTableTextColumnOptionalParams *textParams);
-_UI_EXTERN void uiTableAppendCheckboxColumn(uiTable *t,
-	const char *name,
-	int checkboxModelColumn,
-	int checkboxEditableModelColumn);
-_UI_EXTERN void uiTableAppendCheckboxTextColumn(uiTable *t,
-	const char *name,
-	int checkboxModelColumn,
-	int checkboxEditableModelColumn,
-	int textModelColumn,
-	int textEditableModelColumn,
-	uiTableTextColumnOptionalParams *textParams);
-_UI_EXTERN void uiTableAppendProgressBarColumn(uiTable *t,
-	const char *name,
-	int progressModelColumn);
-_UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
-	const char *name,
-	int buttonTextModelColumn,
-	int buttonClickableModelColumn);
+_UI_EXTERN uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name);
+_UI_EXTERN uiTableColumn *uiTableAppendTextColumn(uiTable *t, const char *name, int modelColumn);
 // TODO getter?
 _UI_EXTERN void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn);
 _UI_EXTERN uiTable *uiNewTable(uiTableModel *model);

@@ -56,7 +56,8 @@ static void layoutCellSubview(NSView *superview, NSView *subview, NSView *leadin
 
 static BOOL isCellEditable(uiTableModel *m, NSInteger row, int modelColumn)
 {
-	void *data;
+	uiTableData *data;
+	int value;
 
 	switch (modelColumn) {
 	case uiTableModelColumnNeverEditable:
@@ -65,7 +66,9 @@ static BOOL isCellEditable(uiTableModel *m, NSInteger row, int modelColumn)
 		return YES;
 	}
 	data = (*(m->mh->CellValue))(m->mh, m, row, modelColumn);
-	return uiTableModelTakeInt(data) != 0;
+	value = uiTableDataInt(data);
+	uiFreeTableData(data);
+	return value != 0;
 	// TODO free data
 }
 
@@ -227,7 +230,7 @@ struct textColumnCreateParams {
 
 - (void)uiprivUpdate:(NSInteger)row
 {
-	void *data;
+	uiTableData *data;
 	BOOL editable;
 
 	if (self->tv != nil) {
@@ -235,30 +238,41 @@ struct textColumnCreateParams {
 		BOOL editable;
 
 		data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textModelColumn);
-		str = uiprivToNSString((char *) data);
-		uiprivFree(data);
+		str = uiprivToNSString(uiTableDataString(data));
+		uiFreeTableData(data);
 		[self->tf setStringValue:str];
 
 		[self->tf setEditable:isCellEditable(self->m, row, self->textEditableColumn)];
 
 		color = nil;
-		if (self->textParams.ColorModelColumn != -1)
-			color = (NSColor *) ((*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textParams.ColorModelColumn));
+		if (self->textParams.ColorModelColumn != -1) {
+			double r, g, b, a;
+
+			data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textParams.ColorModelColumn);
+			uiTableDataColor(data, &r, &g, &b, &a);
+			uiFreeTableData(data);
+			xx TODO
+		}
 		if (color == nil)
 			color = [NSColor controlTextColor];
 		[self->tf setColor:color];
 		// TODO release color
 	}
 	if (self->iv != nil) {
+		uiImage *img;
+
 		data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->imageModelColumn);
-		[self->iv setImage:uiprivImageNSImage((uiImage *) data)];
+		img = uiTableDataImage(data);
+		uiFreeTableData(data);
+		[self->iv setImage:uiprivImageNSImage(img)];
 	}
 	if (self->cb != nil) {
 		data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->imageModelColumn);
-		if (TODO(data))
+		if (uiTableDataInt(data) != 0)
 			[self->cb setState:NSOnState];
 		else
 			[self->cb setState:NSOffState];
+		uiFreeTableData(data);
 
 		[self->cb setEditable:isCellEditable(self->m, row, self->checkboxEditableColumn)];
 	}
@@ -267,12 +281,13 @@ struct textColumnCreateParams {
 - (IBAction)uiprivOnTextFieldAction:(id)sender
 {
 	NSInteger row;
-	const void *data;
+	uiTableData *data;
 
 	row = [self->t->tv rowForView:self->tf];
-	data = [[self->tf stringValue] UTF8String];
+	data = uiNewTableDataString([[self->tf stringValue] UTF8String]);
 	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
 		row, self->textModelColumn, data);
+	uiFreeTableData(data);
 	// always refresh the value in case the model rejected it
 	[self uiprivUpdate:row];
 }
@@ -280,14 +295,13 @@ struct textColumnCreateParams {
 - (IBAction)uiprivOnCheckboxAction:(id)sender
 {
 	NSInteger row;
-	int val;
 	void *data;
 
 	row = [self->t->tv rowForView:self->cb];
-	val = [self->cb state] != NSOffState;
-	data = TODO(val);
+	data = uiNewTableDataInt([self->cb state] != NSOffState);
 	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
 		row, self->checkboxModelColumn, data);
+	uiFreeTableData(data);
 	// always refresh the value in case the model rejected it
 	[self uiprivUpdate:row];
 }

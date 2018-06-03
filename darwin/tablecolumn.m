@@ -6,6 +6,9 @@
 #define textColumnTrailing 2
 #define imageColumnLeading 3
 #define imageTextColumnLeading 7
+#define checkboxTextColumnLeading 0
+// these aren't provided by IB; let's just choose one
+#define checkboxColumnLeading imageColumnLeading
 
 static void layoutCellSubview(NSView *superview, NSView *subview, NSView *leading, CGFloat leadingConstant, NSView *trailing, CGFloat trailingConstant, BOOL stretchy)
 {
@@ -51,217 +54,217 @@ static void layoutCellSubview(NSView *superview, NSView *subview, NSView *leadin
 
 @end
 
+static BOOL isCellEditable(uiTableModel *m, NSInteger row, int modelColumn)
+{
+	void *data;
+
+	switch (modelColumn) {
+	case uiTableModelColumnNeverEditable:
+		return NO;
+	case uiTableModelColumnAlwaysEditable:
+		return YES;
+	}
+	data = (*(m->mh->CellValue))(m->mh, m, row, modelColumn);
+	return uiTableModelTakeInt(data) != 0;
+	// TODO free data
+}
+
 static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
 	.ColorModelColumn = -1,
 };
 
-static void updateCellTextField(NSTextField *tf, NSInteger row, uiTableModel *m, int modelColumn, int editableColumn, uiTableTextColumnOptionalParams *params)
-{
-	void *data;
-	NSString *str;
-	BOOL editable;
-
-	data = (*(m->mh->CellValue))(m->mh, m, row, modelColumn);
-	str = uiprivToNSString((char *) data);
-	uiprivFree(data);
-	[tf setStringValue:str];
-
-	switch (editableColumn) {
-	case uiTableModelColumnNeverEditable:
-		editable = NO;
-		break;
-	case uiTableModelColumnAlwaysEditable:
-		editable = YES;
-		break;
-	default:
-		data = (*(m->mh->CellValue))(m->mh, m, row, editableColumn);
-		editable = uiTableModelTakeInt(data) != 0;
-		// TODO free data
-	}
-	[tf setEditable:editable];
-
-	color = nil;
-	if (params->ColorModelColumn != -1)
-		color = (NSColor *) ((*(m->mh->CellValue))(m->mh, m, row, params->ColorModelColumn));
-	if (color == nil)
-		color = [NSColor controlTextColor];
-	[tf setColor:color];
-	// TODO release color
-}
-
-@interface uiprivTextColumnCellView : uiprivColumnCellView {
+struct textColumnCreateParams {
 	uiTable *t;
 	uiTableModel *m;
+
+	BOOL makeTextField;
+	int textModelColumn;
+	int textEditableColumn;
+	uiTableTextColumnOptionalParams textParams;
+
+	BOOL makeImage;
+	int imageModelColumn;
+
+	BOOL makeCheckbox;
+	int checkboxModelColumn;
+	int checkboxEditableColumn;
+};
+
+@interface uiprivTextImageCheckboxColumnCellView : uiprivColumnCellView {
+	uiTable *t;
+	uiTableModel *m;
+
 	NSTextField *tf;
-	int modelColumn;
-	int editableColumn;
-	uiTableTextColumnOptionalParams params;
+	int textModelColumn;
+	int textEditableColumn;
+	uiTableTextColumnOptionalParams textParams;
+
+	NSImageView *iv;
+	int imageModelColumn;
+
+	NSButton *cb;
+	int checkboxModelColumn;
+	int checkboxEditableColumn;
 }
-- (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc editableColumn:(int)ec params:(uiTableTextColumnOptionalParams *)p;
-- (IBAction)uiprivOnAction:(id)sender;
+- (id)initWithFrame:(NSRect)r params:(struct textColumnCreateParams *)p;
+- (IBAction)uiprivOnTextFieldAction:(id)sender;
+- (IBAction)uiprivOnCheckboxAction:(id)sender;
 @end
 
 @implementation uiprivTextColumnCellView
 
-- (id)initWithFrame:(NSRect)r ModelColumn:(int)mc editableColumn:(int)ec params:(uiTableTextColumnOptionalParams *)p
+- (id)initWithFrame:(NSRect)r params:(struct textColumnCreateParams *)p
 {
 	self = [super initWithFrame:frame];
 	if (self) {
-		self->t = table;
-		self->m = model;
-		self->modelColumn = mc;
-		self->editableColumn = ec;
-		if (p != NULL)
-			params = *p;
-		else
-			params = defaultTextColumnOptionalParams;
+		NSView *left;
+		CGFloat leftConstant;
+		CGFloat leftTextConstant;
 
-		self->tf = uiprivNewLabel(@"");
-		// TODO set wrap and ellipsize modes?
-		[self->tf setTarget:self];
-		[self->tf setAction:@selector(uiprivOnAction:)];
-		[self addSubview:self->tf];
-		layoutCellSubview(self, self->tf,
-			self, textColumnLeading,
-			self, textColumnTrailing,
-			YES);
-
-		// take advantage of NSTableCellView-provided accessibility features
-		[self setTextField:self->tf];
-	}
-	return self;
-}
-
-- (void)dealloc
-{
-	[self->tf release];
-	self->tf = nil;
-	[super dealloc];
-}
-
-- (void)uiprivUpdate:(NSInteger)row
-{
-	updateCellTextField(self->tf, row, self->m,
-		self->modelColumn, self->editableColumn, &(self->params));
-}
-
-- (IBAction)onAction:(id)sender
-{
-	NSInteger row;
-	const void *data;
-
-	row = [self->t->tv rowForView:self->tf];
-	data = [[self->tf stringValue] UTF8String];
-	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
-		row, self->modelColumn, data);
-	// always refresh the value in case the model rejected it
-	[self uiprivUpdate:row];
-}
-
-@end
-
-xx TODO somehow merge this with the above
-@interface uiprivImageTextColumnCellView : uiprivColumnCellView {
-	uiTable *t;
-	uiTableModel *m;
-	NSImageView *iv;
-	int modelColumn;
-	NSTextField *tf;
-	int textModelColumn;
-	int textEditableColumn;
-	uiTableTextColumnOptionalParams params;
-}
-- (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc textModelColumn:(int)tmc editableColumn:(int)ec params:(uiTableTextColumnOptionalParams *)p;
-- (IBAction)uiprivOnAction:(id)sender;
-@end
-
-@implementation uiprivImageTextColumnCellView
-
-- (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc textModelColumn:(int)tmc editableColumn:(int)ec params:(uiTableTextColumnOptionalParams *)p
-{
-	self = [super initWithFrame:frame];
-	if (self) {
-		self->t = table;
-		self->m = model;
-		self->modelColumn = mc;
-		self->textModelColumn = tmc;
-		self->editableColumn = ec;
-		if (p != NULL)
-			params = *p;
-		else
-			params = defaultTextColumnOptionalParams;
-
-		self->iv = [[NSImageView alloc] initWithFrame:NSZeroRect];
-		[self->iv setImageFrameStyle:NSImageFrameNone];
-		[self->iv setImageAlignment:NSImageAlignCenter];
-		[self->iv setImageScaling:NSImageScaleProportionallyDown];
-		[self->iv setAnimates:NO];
-		[self->iv setEditable:NO];
-		[self->iv addConstraint:uiprivMkConstraint(self->iv, NSLayoutAttributeWidth,
-			NSLayoutRelationEqual,
-			self->iv, NSLayoutAttributeHeight,
-			1, 0,
-			@"uiTable image squareness constraint")];
-		[self addSubview:self->iv];
+		self->t = p->t;
+		self->m = p->m;
 
 		self->tf = nil;
-		if (self->textModelColumn != -1) {
+		if (p->makeTextField) {
+			self->textModelColumn = p->textModelColumn;
+			self->textEditableColumn = p->textEditableColumn;
+			self->textParams = p->textParams;
+
 			self->tf = uiprivNewLabel(@"");
 			// TODO set wrap and ellipsize modes?
 			[self->tf setTarget:self];
-			[self->tf setAction:@selector(uiprivOnAction:)];
+			[self->tf setAction:@selector(uiprivOnTextFieldAction:)];
 			[self addSubview:self->tf];
-			layoutCellSubview(self, self->iv,
-				self, imageColumnLeading,
+		}
+
+		left = nil;
+
+		self->iv = nil;
+		if (p->makeImageView) {
+			self->iv = [[NSImageView alloc] initWithFrame:NSZeroRect];
+			[self->iv setImageFrameStyle:NSImageFrameNone];
+			[self->iv setImageAlignment:NSImageAlignCenter];
+			[self->iv setImageScaling:NSImageScaleProportionallyDown];
+			[self->iv setAnimates:NO];
+			[self->iv setEditable:NO];
+			[self->iv addConstraint:uiprivMkConstraint(self->iv, NSLayoutAttributeWidth,
+				NSLayoutRelationEqual,
+				self->iv, NSLayoutAttributeHeight,
+				1, 0,
+				@"uiTable image squareness constraint")];
+			[self addSubview:self->iv];
+			left = self->iv;
+			leftConstant = imageColumnLeading;
+			leftTextConstant = imageTextColumnLeading;
+		}
+
+		self->cb = nil;
+		if (p->makeCheckbox) {
+			self->cb = [[NSButton alloc] initWithFrame:NSZeroRect];
+			[self->cb setTitle:@""];
+			[self->cb setButtonType:NSSwitchButton];
+			// doesn't seem to have an associated bezel style
+			[self->cb setBordered:NO];
+			[self->cb setTransparent:NO];
+			uiDarwinSetControlFont(self->cb, NSRegularControlSize);
+			[self addSubview:self->cb];
+			left = self->cb;
+			leftConstant = checkboxColumnLeading;
+			leftTextConstant = checkboxTextColumnLeading;
+		}
+
+		if (self->tf != nil && left == nil)
+			layoutCellSubview(self, self->tf,
+				self, textColumnLeading,
+				self, textColumnTrailing,
+				YES);
+		else if (self->tf != nil) {
+			layoutCellSubview(self, left,
+				self, leftConstant,
 				nil, 0,
 				NO);
 			layoutCellSubview(self, self->tf,
-				self, imageTextColumnLeading,
+				left, leftTextConstant,
 				self, textColumnTrailing,
 				YES);
 		} else {
-			layoutCellSubview(self, self->iv,
+			layoutCellSubview(self, left,
 				nil, 0,
 				nil, 0,
 				NO);
 			[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeCenterX,
 				NSLayoutRelationEqual,
-				self->iv, NSLayoutAttributeCenterX,
+				left, NSLayoutAttributeCenterX,
 				1, 0,
-				@"uiTable image centering constraint")];
+				@"uiTable image/checkbox centering constraint")];
 		}
 
 		// take advantage of NSTableCellView-provided accessibility features
-		[self setImageView:self->iv];
 		if (self->tf != nil)
 			[self setTextField:self->tf];
+		if (self->iv != nil)
+			[self setImageView:self->iv];
 	}
 	return self;
 }
 
 - (void)dealloc
 {
+	if (self->cb != nil) {
+		[self->cb release];
+		self->cb = nil;
+	}
+	if (self->iv != nil) {
+		[self->iv release];
+		self->iv = nil;
+	}
 	if (self->tf != nil) {
 		[self->tf release];
 		self->tf = nil;
 	}
-	[self->iv release];
-	self->iv = nil;
 	[super dealloc];
 }
 
 - (void)uiprivUpdate:(NSInteger)row
 {
 	void *data;
+	BOOL editable;
 
-	data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->modelColumn);
-	[self->iv setImage:uiprivImageNSImage((uiImage *) data)];
-	if (self->tf != nil)
-		updateCellTextField(self->tf, row, self->m,
-			self->textModelColumn, self->editableColumn, &(self->params));
+	if (self->tv != nil) {
+		NSString *str;
+		BOOL editable;
+
+		data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textModelColumn);
+		str = uiprivToNSString((char *) data);
+		uiprivFree(data);
+		[self->tf setStringValue:str];
+
+		[self->tf setEditable:isCellEditable(self->m, row, self->textEditableColumn)];
+
+		color = nil;
+		if (self->textParams.ColorModelColumn != -1)
+			color = (NSColor *) ((*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textParams.ColorModelColumn));
+		if (color == nil)
+			color = [NSColor controlTextColor];
+		[self->tf setColor:color];
+		// TODO release color
+	}
+	if (self->iv != nil) {
+		data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->imageModelColumn);
+		[self->iv setImage:uiprivImageNSImage((uiImage *) data)];
+	}
+	if (self->cb != nil) {
+		data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->imageModelColumn);
+		if (TODO(data))
+			[self->cb setState:NSOnState];
+		else
+			[self->cb setState:NSOffState];
+
+		[self->cb setEditable:isCellEditable(self->m, row, self->checkboxEditableColumn)];
+	}
 }
 
-- (IBAction)onAction:(id)sender
+- (IBAction)uiprivOnTextFieldAction:(id)sender
 {
 	NSInteger row;
 	const void *data;
@@ -270,6 +273,21 @@ xx TODO somehow merge this with the above
 	data = [[self->tf stringValue] UTF8String];
 	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
 		row, self->textModelColumn, data);
+	// always refresh the value in case the model rejected it
+	[self uiprivUpdate:row];
+}
+
+- (IBAction)uiprivOnCheckboxAction:(id)sender
+{
+	NSInteger row;
+	int val;
+	void *data;
+
+	row = [self->t->tv rowForView:self->cb];
+	val = [self->cb state] != NSOffState;
+	data = TODO(val);
+	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
+		row, self->checkboxModelColumn, data);
 	// always refresh the value in case the model rejected it
 	[self uiprivUpdate:row];
 }

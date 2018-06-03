@@ -47,11 +47,35 @@ static void layoutCellSubview(NSView *superview, NSView *subview, NSView *leadin
 - (void)uiprivUpdate:(NSInteger)row;
 @end
 
+@interface uiprivTableColumn : NSTableColumn {
+	uiprivColumnCellView *(^mkCell)(void);
+}
+- (id)initWithIdentifier:(NSUserInterfaceItemIdentifier)ident mkCellView:(uiprivColumnCellView *(^)(void))f;
+- (uiprivColumnCellView *)uiprivMakeCellView;
+@end
+
 @implementation uiprivColumnCellView
 
 - (void)uiprivUpdate:(NSInteger)row
 {
 	[self doesNotRecognizeSelector:_cmd];
+}
+
+@end
+
+@implementation uiprivTableColumn
+
+- (id)initWithIdentifier:(NSUserInterfaceItemIdentifier)ident mkCellView:(uiprivColumnCellView *(^)(void))f
+{
+	self = [super initWithIdentifier:ident];
+	if (self)
+		self->mkCell = f;
+	return self;
+}
+
+- (uiprivColumnCellView *)uiprivMakeCellView
+{
+	return (self->mkCell)();
 }
 
 @end

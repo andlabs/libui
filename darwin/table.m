@@ -10,11 +10,11 @@
 
 @implementation uiprivTableModel
 
-- (id)initWithModel:(uiTableModel *)m
+- (id)initWithModel:(uiTableModel *)model
 {
 	self = [super init];
 	if (self)
-		self->libui_m = m;
+		self->m = model;
 	return self;
 }
 
@@ -27,9 +27,9 @@
 {
 	uiprivTableColumn *c = (uiprivTableColumn *) cc;
 	// TODO consider renaming this type to uiprivTableCellView
-	uiprivColumnCellView *cv;
+	uiprivTableCellView *cv;
 
-	cv = (uiprivColumnCellView *) [tv makeViewWithIdentifier:[c identifier] owner:self];
+	cv = (uiprivTableCellView *) [tv makeViewWithIdentifier:[c identifier] owner:self];
 	if (cv == nil)
 		cv = [c uiprivMakeCellView];
 	[cv uiprivUpdate:row];
@@ -38,7 +38,7 @@
 
 - (void)tableView:(NSTableView *)nstv didAddRowView:(NSTableRowView *)rv forRow:(NSInteger)row
 {
-	xx TODO set background color
+	// TODO set background color
 }
 
 @end
@@ -79,16 +79,16 @@ void uiTableModelRowChanged(uiTableModel *m, int index)
 	NSTableView *tv;
 	NSTableRowView *rv;
 	NSUInteger i, n;
-	uiprivTableColumnView *cv;
+	uiprivTableCellView *cv;
 
 	for (tv in m->tables) {
-		rv = [tv rowViewForRow:index makeIfNecessary:NO];
+		rv = [tv rowViewAtRow:index makeIfNecessary:NO];
 		if (rv != nil) {
-			xx TODO update colors
+			// TODO update colors
 		}
 		n = [[tv tableColumns] count];
 		for (i = 0; i < n; i++) {
-			cv = (uiprivTableCellView *) [tv viewForColumn:i row:index makeIfNecessary:NO];
+			cv = (uiprivTableCellView *) [tv viewAtColumn:i row:index makeIfNecessary:NO];
 			if (cv != nil)
 				[cv uiprivUpdate:index];
 		}

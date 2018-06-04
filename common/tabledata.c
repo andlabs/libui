@@ -17,7 +17,7 @@ struct uiTableData {
 	} u;
 };
 
-static uiTableData *newTableData(uiTableData type)
+static uiTableData *newTableData(uiTableDataType type)
 {
 	uiTableData *d;
 
@@ -26,7 +26,7 @@ static uiTableData *newTableData(uiTableData type)
 	return d;
 }
 
-void uiFreeAttribute(uiTableData *a)
+void uiFreeTableData(uiTableData *d)
 {
 	switch (d->type) {
 	case uiTableDataTypeString:

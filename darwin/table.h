@@ -22,5 +22,5 @@ struct uiTable {
 - (void)uiprivUpdate:(NSInteger)row;
 @end
 @interface uiprivTableColumn : NSTableColumn
-- (uiprivColumnCellView *)uiprivMakeCellView;
+- (uiprivTableCellView *)uiprivMakeCellView;
 @end

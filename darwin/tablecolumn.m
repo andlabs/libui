@@ -1,5 +1,6 @@
 // 3 june 2018
 #import "uipriv_darwin.h"
+#import "table.h"
 
 // values from interface builder
 #define textColumnLeading 2
@@ -43,18 +44,7 @@ static void layoutCellSubview(NSView *superview, NSView *subview, NSView *leadin
 		@"uiTable cell subview bottom constraint")];
 }
 
-@interface uiprivColumnCellView : NSTableCellView
-- (void)uiprivUpdate:(NSInteger)row;
-@end
-
-@interface uiprivTableColumn : NSTableColumn {
-	uiprivColumnCellView *(^mkCell)(void);
-}
-- (id)initWithIdentifier:(NSUserInterfaceItemIdentifier)ident mkCellView:(uiprivColumnCellView *(^)(void))f;
-- (uiprivColumnCellView *)uiprivMakeCellView;
-@end
-
-@implementation uiprivColumnCellView
+@implementation uiprivTableCellView
 
 - (void)uiprivUpdate:(NSInteger)row
 {
@@ -65,17 +55,9 @@ static void layoutCellSubview(NSView *superview, NSView *subview, NSView *leadin
 
 @implementation uiprivTableColumn
 
-- (id)initWithIdentifier:(NSUserInterfaceItemIdentifier)ident mkCellView:(uiprivColumnCellView *(^)(void))f
+- (uiprivTableCellView *)uiprivMakeCellView
 {
-	self = [super initWithIdentifier:ident];
-	if (self)
-		self->mkCell = f;
-	return self;
-}
-
-- (uiprivColumnCellView *)uiprivMakeCellView
-{
-	return (self->mkCell)();
+	[self doesNotRecognizeSelector:_cmd];
 }
 
 @end
@@ -119,7 +101,7 @@ struct textColumnCreateParams {
 	int checkboxEditableColumn;
 };
 
-@interface uiprivTextImageCheckboxColumnCellView : uiprivColumnCellView {
+@interface uiprivTextImageCheckboxTableCellView : uiprivTableCellView {
 	uiTable *t;
 	uiTableModel *m;
 
@@ -140,7 +122,7 @@ struct textColumnCreateParams {
 - (IBAction)uiprivOnCheckboxAction:(id)sender;
 @end
 
-@implementation uiprivTextColumnCellView
+@implementation uiprivTextTableCellView
 
 - (id)initWithFrame:(NSRect)r params:(struct textColumnCreateParams *)p
 {
@@ -334,7 +316,7 @@ struct textColumnCreateParams {
 
 @end
 
-@interface uiprivProgressBarColumnCellView : uiprivColumnCellView {
+@interface uiprivProgressBarTableCellView : uiprivTableCellView {
 	uiTable *t;
 	uiTableModel *m;
 	NSProgressIndicator *p;
@@ -343,7 +325,7 @@ struct textColumnCreateParams {
 - (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc;
 @end
 
-@implementation uiprivProgressBarColumnCellView
+@implementation uiprivProgressBarTableCellView
 
 - (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc
 {
@@ -398,7 +380,7 @@ struct textColumnCreateParams {
 
 @end
 
-@interface uiprivButtonColumnCellView : uiprivColumnCellView {
+@interface uiprivButtonTableCellView : uiprivTableCellView {
 	uiTable *t;
 	uiTableModel *m;
 	NSButton *b;
@@ -409,7 +391,7 @@ struct textColumnCreateParams {
 - (IBAction)uiprivOnClicked:(id)sender;
 @end
 
-@implementation uiprivProgressBarColumnCellView
+@implementation uiprivProgressBarTableCellView
 
 - (id)initWithFrame:(NSRect)r table:(uiTable *)table model:(uiTableModel *)model modelColumn:(int)mc editableColumn:(int)ec
 {

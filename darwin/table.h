@@ -1,0 +1,25 @@
+// 3 june 2018
+
+// table.m
+// TODO get rid of forward declaration
+@class uiprivTableModel;
+struct uiTableModel {
+	uiTableModelHandler *mh;
+	uiprivTableModel *m;
+	NSMutableArray *tables;
+};
+struct uiTable {
+	uiDarwinControl c;
+	NSScrollView *sv;
+	NSTableView *tv;
+	uiprivScrollViewData *d;
+	int backgroundColumn;
+};
+
+// tablecolumn.m
+@interface uiprivTableCellView : NSTableCellView
+- (void)uiprivUpdate:(NSInteger)row;
+@end
+@interface uiprivTableColumn : NSTableColumn
+- (uiprivColumnCellView *)uiprivMakeCellView;
+@end

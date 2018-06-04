@@ -1,5 +1,6 @@
-xx 3 june 2018
+// 3 june 2018
 #import "uipriv_darwin.h"
+#import "table.h"
 
 @interface uiprivTableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *m;
@@ -7,21 +8,7 @@ xx 3 june 2018
 - (id)initWithModel:(uiTableModel *)model;
 @end
 
-struct uiTableModel {
-	uiTableModelHandler *mh;
-	uiprivTableModel *m;
-	NSMutableArray *tables;
-};
-
-struct uiTable {
-	uiDarwinControl c;
-	NSScrollView *sv;
-	NSTableView *tv;
-	uiprivScrollViewData *d;
-	int backgroundColumn;
-};
-
-@implementation tableModel
+@implementation uiprivTableModel
 
 - (id)initWithModel:(uiTableModel *)m
 {

@@ -80,18 +80,18 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	*height = pangoToCairo(logical.height);
 }
 
-uiDrawTextFont *uiDrawLoadDefaultFont()
+void uiDrawLoadDefaultFont(uiFontDescriptor *f)
 {
 	GtkWidget *widget;
 	GtkStyleContext *style;
 	PangoFontDescription *fontdesc;
-	PangoFont *font;
 
 	widget = g_object_ref_sink(gtk_drawing_area_new());
 	style = gtk_widget_get_style_context(widget);
 	gtk_style_context_get(style, GTK_STATE_FLAG_NORMAL,
 		"font", &fontdesc, NULL);
-	font = pangoDescToPangoFont(fontdesc);
+	uiprivFontDescriptorFromPangoFontDescription(fontdesc, f);
+	// pdesc is transfer-full and thus is a copy
+	pango_font_description_free(fontdesc);
 	g_object_unref(widget);
-	return mkTextFont(font, FALSE);
 }

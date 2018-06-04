@@ -154,7 +154,6 @@ public:
 			ret ^= doubleHash(b);
 			ret ^= doubleHash(a);
 		}
-
 		if (this->backgroundAttr != NULL) {
 			uiAttributeBackground(this->backgroundAttr, &r, &g, &b, &a);
 			ret ^= doubleHash(r);

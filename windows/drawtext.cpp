@@ -360,9 +360,7 @@ public:
 		if (backgroundBrush != nullptr) {
 			// Get width of text
 			float totalWidth = 0;
-
-			for (UINT32 index = 0; index < glyphRun->glyphCount; index++)
-			{
+			for (UINT32 index = 0; index < glyphRun->glyphCount; index++) {
 				totalWidth += glyphRun->glyphAdvances[index];
 			}
 
@@ -377,7 +375,6 @@ public:
 									 baselineOriginX + totalWidth,
 									 baselineOriginY + descent);
 
-			// Fill Rectangle
 			this->rt->FillRectangle(rect, backgroundBrush);
 		}
 		this->rt->DrawGlyphRun(

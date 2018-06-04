@@ -14,6 +14,7 @@ struct uiTable {
 	NSTableView *tv;
 	uiprivScrollViewData *d;
 	int backgroundColumn;
+	uiTableModel *m;
 };
 
 // tablecolumn.m

@@ -316,6 +316,33 @@ struct textColumnCreateParams {
 
 @end
 
+@interface uiprivTextImageCheckboxTableColumn : uiprivTableColumn {
+	struct textColumnCreateParams params;
+}
+- (id)initWithIdentifier:(NSString *)ident params:(struct textColumnCreateParams *)p;
+@end
+
+@implementation uiprivTextImageCheckboxTableColumn
+
+- (id)initWithIdentifier:(NSString *)ident params:(struct textColumnCreateParams *)p
+{
+	self = [super initWithIdentifier:ident];
+	if (self)
+		self->params = *p;
+	return self;
+}
+
+- (uiprivColumnCellView *)uiprivMakeCellView
+{
+	uiprivColumnCellView *cv;
+
+	cv = [[uiprivTextImageCheckboxTableCellView alloc] initWithFrame:NSZeroRect params:&(self->params)];
+	[cv setIdentifier:[self identifier]];
+	return cv;
+}
+
+@end
+
 @interface uiprivProgressBarTableCellView : uiprivTableCellView {
 	uiTable *t;
 	uiTableModel *m;
@@ -376,6 +403,33 @@ struct textColumnCreateParams {
 		[self->p setDoubleValue:(value + 1)];
 		[self->p setDoubleValue:value];
 	}
+}
+
+@end
+
+@interface uiprivProgressBarTableColumn : uiprivTableColumn {
+	int modelColumn;
+}
+- (id)initWithIdentifier:(NSString *)ident modelColumn:(int)mc;
+@end
+
+@implementation uiprivProgressBarTableColumn
+
+- (id)initWithIdentifier:(NSString *)ident modelColumn:(int)mc
+{
+	self = [super initWithIdentifier:ident];
+	if (self)
+		self->modelColumn = mc;
+	return self;
+}
+
+- (uiprivColumnCellView *)uiprivMakeCellView
+{
+	uiprivColumnCellView *cv;
+
+	cv = [[uiprivProgressBarTableCellView alloc] initWithFrame:NSZeroRect modelColumn:self->modelColumn];
+	[cv setIdentifier:[self identifier]];
+	return cv;
 }
 
 @end
@@ -445,41 +499,169 @@ struct textColumnCreateParams {
 
 @end
 
-void uiTableAppendTextColumn(uiTable *t,
-	const char *name,
-	int textModelColumn,
-	int textEditableModelColumn,
-	uiTableTextColumnOptionalParams *params);
+@interface uiprivButtonTableColumn : uiprivTableColumn {
+	int modelColumn;
+	int editableColumn;
+}
+- (id)initWithIdentifier:(NSString *)ident modelColumn:(int)mc editableColumn:(int)ec;
+@end
 
-void uiTableAppendImageColumn(uiTable *t,
-	const char *name,
-	int imageModelColumn);
+@implementation uiprivButtonTableColumn
 
-void uiTableAppendImageTextColumn(uiTable *t,
-	const char *name,
-	int imageModelColumn,
-	int textModelColumn,
-	int textEditableModelColumn,
-	uiTableTextColumnOptionalParams *textParams);
+- (id)initWithIdentifier:(NSString *)ident modelColumn:(int)mc editableColumn:(int)ec
+{
+	self = [super initWithIdentifier:ident];
+	if (self) {
+		self->modelColumn = mc;
+		self->editableColumn = ec;
+	}
+	return self;
+}
 
-void uiTableAppendCheckboxColumn(uiTable *t,
-	const char *name,
-	int checkboxModelColumn,
-	int checkboxEditableModelColumn);
+- (uiprivColumnCellView *)uiprivMakeCellView
+{
+	uiprivColumnCellView *cv;
 
-void uiTableAppendCheckboxTextColumn(uiTable *t,
-	const char *name,
-	int checkboxModelColumn,
-	int checkboxEditableModelColumn,
-	int textModelColumn,
-	int textEditableModelColumn,
-	uiTableTextColumnOptionalParams *textParams);
+	cv = [[uiprivButtonTableCellView alloc] initWithFrame:NSZeroRect modelColumn:self->modelColumn editableColumn:self->editableColumn];
+	[cv setIdentifier:[self identifier]];
+	return cv;
+}
 
-void uiTableAppendProgressBarColumn(uiTable *t,
-	const char *name,
-	int progressModelColumn);
+@end
 
-void uiTableAppendButtonColumn(uiTable *t,
-	const char *name,
-	int buttonTextModelColumn,
-	int buttonClickableModelColumn);
+void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
+{
+	struct textColumnCreateParams p;
+	uiprivTableColumn *col;
+	NSString *str;
+
+	memset(&p, 0, sizeof (struct textColumnCreateParams));
+	p.t = t;
+	p.m = t->m;
+
+	p.makeTextField = YES;
+	p.textModelColumn = textModelColumn;
+	p.textEditableModelColumn = textEditableModelColumn;
+	if (params == NULL)
+		params = &defaultTextColumnOptionalParams;
+	p.textParams = *params;
+
+	str = [NSString stringWithUTF8String:name];
+	col = [[uiprivTextImageCheckboxTableColum alloc] initWithIdentifier:str params:&p];
+	[col setTitle:str];
+	return col;
+}
+
+void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn)
+{
+	struct textColumnCreateParams p;
+	uiprivTableColumn *col;
+	NSString *str;
+
+	memset(&p, 0, sizeof (struct textColumnCreateParams));
+	p.t = t;
+	p.m = t->m;
+
+	p.makeImage = YES;
+	p.imageModelColumn = imageModelColumn;
+
+	str = [NSString stringWithUTF8String:name];
+	col = [[uiprivTextImageCheckboxTableColum alloc] initWithIdentifier:str params:&p];
+	[col setTitle:str];
+	return col;
+}
+
+void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
+{
+	struct textColumnCreateParams p;
+	uiprivTableColumn *col;
+	NSString *str;
+
+	memset(&p, 0, sizeof (struct textColumnCreateParams));
+	p.t = t;
+	p.m = t->m;
+
+	p.makeTextField = YES;
+	p.textModelColumn = textModelColumn;
+	p.textEditableModelColumn = textEditableModelColumn;
+	if (params == NULL)
+		params = &defaultTextColumnOptionalParams;
+	p.textParams = *params;
+
+	p.makeImage = YES;
+	p.imageModelColumn = imageModelColumn;
+
+	str = [NSString stringWithUTF8String:name];
+	col = [[uiprivTextImageCheckboxTableColum alloc] initWithIdentifier:str params:&p];
+	[col setTitle:str];
+	return col;
+}
+
+void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn)
+{
+	struct textColumnCreateParams p;
+	uiprivTableColumn *col;
+	NSString *str;
+
+	memset(&p, 0, sizeof (struct textColumnCreateParams));
+	p.t = t;
+	p.m = t->m;
+
+	p.makeCheckbox = YES;
+	p.checkboxModelColumn = checkboxModelColumn;
+	p.checkboxEditableColumn = checkboxEditableColumn;
+
+	str = [NSString stringWithUTF8String:name];
+	col = [[uiprivTextImageCheckboxTableColum alloc] initWithIdentifier:str params:&p];
+	[col setTitle:str];
+	return col;
+}
+
+void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
+{
+	struct textColumnCreateParams p;
+	uiprivTableColumn *col;
+	NSString *str;
+
+	memset(&p, 0, sizeof (struct textColumnCreateParams));
+	p.t = t;
+	p.m = t->m;
+
+	p.makeTextField = YES;
+	p.textModelColumn = textModelColumn;
+	p.textEditableModelColumn = textEditableModelColumn;
+	if (params == NULL)
+		params = &defaultTextColumnOptionalParams;
+	p.textParams = *params;
+
+	p.makeCheckbox = YES;
+	p.checkboxModelColumn = checkboxModelColumn;
+	p.checkboxEditableColumn = checkboxEditableColumn;
+
+	str = [NSString stringWithUTF8String:name];
+	col = [[uiprivTextImageCheckboxTableColum alloc] initWithIdentifier:str params:&p];
+	[col setTitle:str];
+	return col;
+}
+
+void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressModelColumn)
+{
+	uiprivTableColumn *col;
+	NSString *str;
+
+	str = [NSString stringWithUTF8String:name];
+	col = [[uiprivProgressBarTableColum alloc] initWithIdentifier:str modelColumn:progressModelColumn];
+	[col setTitle:str];
+	return col;
+}
+
+void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonTextModelColumn, int buttonClickableModelColumn)
+{
+	uiprivTableColumn *col;
+	NSString *str;
+
+	str = [NSString stringWithUTF8String:name];
+	col = [[uiprivButtonTableColum alloc] initWithIdentifier:str modelColumn:buttonTextModelColumn editableColumn:buttonClickableModelColumn];
+	[col setTitle:str];
+	return col;
+}

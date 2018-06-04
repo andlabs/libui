@@ -106,81 +106,6 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	// set is autoreleased
 }
 
-=================== TODOTODO
-
-void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
-{
-	tablePart *part;
-
-	part = [tablePart new];
-	part.type = partText;
-	part.textColumn = modelColumn;
-	part.expand = expand;
-	[c->parts addObject:part];
-}
-
-void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
-{
-	tablePart *part;
-
-	part = [tablePart new];
-	part.type = partImage;
-	part.imageColumn = modelColumn;
-	part.expand = expand;
-	[c->parts addObject:part];
-}
-
-void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand)
-{
-	tablePart *part;
-
-	part = [tablePart new];
-	part.type = partButton;
-	part.textColumn = modelColumn;
-	part.expand = expand;
-	part.editable = 1;		// editable by default
-	[c->parts addObject:part];
-}
-
-void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand)
-{
-	tablePart *part;
-
-	part = [tablePart new];
-	part.type = partCheckbox;
-	part.valueColumn = modelColumn;
-	part.expand = expand;
-	part.editable = 1;		// editable by default
-	[c->parts addObject:part];
-}
-
-void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int expand)
-{
-	tablePart *part;
-
-	part = [tablePart new];
-	part.type = partProgressBar;
-	part.valueColumn = modelColumn;
-	part.expand = expand;
-	[c->parts addObject:part];
-}
-
-void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable)
-{
-	tablePart *p;
-
-	p = (tablePart *) [c->parts objectAtIndex:part];
-	p.editable = editable;
-}
-
-void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
-{
-	tablePart *p;
-
-	p = (tablePart *) [c->parts objectAtIndex:part];
-	p.textColorColumn = modelColumn;
-}
-
 uiDarwinControlAllDefaultsExceptDestroy(uiTable, sv)
 
 static void uiTableDestroy(uiControl *c)
@@ -192,27 +117,10 @@ static void uiTableDestroy(uiControl *c)
 	uiFreeControl(uiControl(t));
 }
 
-uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
-{
-	uiTableColumn *c;
-
-	c = uiprivNew(uiTableColumn);
-	c->c = [[tableColumn alloc] initWithIdentifier:@""];
-	c->c.libui_col = c;
-	// via Interface Builder
-	[c->c setResizingMask:(NSTableColumnAutoresizingMask | NSTableColumnUserResizingMask)];
-	// 10.10 adds -[NSTableColumn setTitle:]; before then we have to do this
-	[[c->c headerCell] setStringValue:uiprivToNSString(name)];
-	// TODO is this sufficient?
-	[[c->c headerCell] setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
-	c->parts = [NSMutableArray new];
-	[t->tv addTableColumn:c->c];
-	return c;
-}
-
 void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 {
 	t->backgroundColumn = modelColumn;
+	// TODO update all rows
 }
 
 uiTable *uiNewTable(uiTableModel *model)
@@ -221,9 +129,9 @@ uiTable *uiNewTable(uiTableModel *model)
 	uiprivScrollViewCreateParams p;
 
 	uiDarwinNewControl(uiTable, t);
+	t->m = model;
 
-	t->tv = [[tableView alloc] initWithFrame:NSZeroRect];
-	t->tv.libui_t = t;
+	t->tv = [[NSTableView alloc] initWithFrame:NSZeroRect];
 
 	[t->tv setDataSource:model->m];
 	[t->tv setDelegate:model->m];

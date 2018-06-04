@@ -218,7 +218,7 @@ void uiDrawLoadDefaultFont(uiFontDescriptor *f)
 	CTFontRef ctfont;
 	CTFontDescriptorRef ctdesc;
 
-	ctfont = (CTFontRef) [NSFont systemFontOfSize:0];
+	ctfont = (CTFontRef) [NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSControlSizeRegular]];
 	ctdesc = CTFontCopyFontDescriptor(ctfont);
 	uiprivFontDescriptorFromCTFontDescriptor(ctdesc, f);
 	CFRelease(ctdesc);

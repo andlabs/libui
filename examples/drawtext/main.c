@@ -101,11 +101,10 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	int useSystemFont = uiCheckboxChecked(systemFont);
 
 	params.String = attrstr;
-	if(useSystemFont) {
+	if (useSystemFont)
 		uiDrawLoadDefaultFont(&defaultFont);
-	} else {
+	else
 		uiFontButtonFont(fontButton, &defaultFont);
-	}
 	params.DefaultFont = &defaultFont;
 	params.Width = p->AreaWidth;
 	params.Align = (uiDrawTextAlign) uiComboboxSelected(alignment);

@@ -86,7 +86,7 @@ void uiDrawLoadDefaultFont(uiFontDescriptor *f)
 	GtkStyleContext *style;
 	PangoFontDescription *fontdesc;
 
-	widget = g_object_ref_sink(gtk_drawing_area_new());
+	widget = g_object_ref_sink(gtk_label_new(""));
 	style = gtk_widget_get_style_context(widget);
 	gtk_style_context_get(style, GTK_STATE_FLAG_NORMAL,
 		"font", &fontdesc, NULL);

@@ -541,14 +541,15 @@ void uiDrawLoadDefaultFont(uiFontDescriptor *f)
 	IDWriteGdiInterop *gdi;
 	IDWriteFont *dwfont;
 	IDWriteFontFamily *dwfamily;
-	NONCLIENTMETRICS metrics;
+	NONCLIENTMETRICSW metrics;
+	HDC dc;
 	WCHAR *family;
 	double size;
 	int pixels;
 	HRESULT hr;
 
 	metrics.cbSize = sizeof(metrics);
-	if (!SystemParametersInfo(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0))
+	if (!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0))
 			logLastError(L"error getting non-client metrics");
 	hr = dwfactory->GetGdiInterop(&gdi);
 	if (hr != S_OK)
@@ -564,7 +565,10 @@ void uiDrawLoadDefaultFont(uiFontDescriptor *f)
 	collection = uiprivLoadFontCollection();
 	family = uiprivFontCollectionFamilyName(collection, dwfamily);
 
-	pixels = GetDeviceCaps(GetDC(NULL), LOGPIXELSY);
+	dc = GetDC(NULL);
+	if (dc == NULL)
+		logLastError(L"error getting DC");
+	pixels = GetDeviceCaps(dc, LOGPIXELSY);
 	if (pixels == 0)
 			logLastError(L"error getting device caps");
 	size = abs(metrics.lfMessageFont.lfHeight) * 72 / pixels;
@@ -577,4 +581,6 @@ void uiDrawLoadDefaultFont(uiFontDescriptor *f)
 	uiprivFontCollectionFree(collection);
 	dwfamily->Release();
 	gdi->Release();
+	if (ReleaseDC(NULL, dc) == 0)
+		logLastError(L"error releasing DC");
 }

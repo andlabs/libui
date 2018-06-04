@@ -8,15 +8,15 @@ static int modelNumColumns(uiTableModelHandler *mh, uiTableModel *m)
 	return 9;
 }
 
-static uiTableDataType modelColumnType(uiTableModelHandler *mh, uiTableModel *m, int column)
+static uiTableModelColumnType modelColumnType(uiTableModelHandler *mh, uiTableModel *m, int column)
 {
 	if (column == 3 || column == 4)
-		return uiTableDataTypeColor;
+		return uiTableModelColumnColor;
 	if (column == 5)
-		return uiTableDataTypeImage;
+		return uiTableModelColumnImage;
 	if (column == 7 || column == 8)
-		return uiTableDataTypeInt;
-	return uiTableDataTypeString;
+		return uiTableModelColumnInt;
+	return uiTableModelColumnString;
 }
 
 static int modelNumRows(uiTableModelHandler *mh, uiTableModel *m)
@@ -29,39 +29,39 @@ static char row9text[1024];
 static int yellowRow = -1;
 static int checkStates[15];
 
-static uiTableData *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col)
+static void *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col)
 {
 	char buf[256];
 
 	if (col == 3) {
 		if (row == yellowRow)
-			return uiNewTableDataColor(1, 1, 0, 1);
+			return uiTableModelGiveColor(1, 1, 0, 1);
 		if (row == 3)
-			return uiNewTableDataColor(1, 0, 0, 1);
+			return uiTableModelGiveColor(1, 0, 0, 1);
 		if (row == 11)
-			return uiNewTableDataColor(0, 0.5, 1, 0.5);
+			return uiTableModelGiveColor(0, 0.5, 1, 0.5);
 		return NULL;
 	}
 	if (col == 4) {
 		if ((row % 2) == 1)
-			return uiNewTableDataColor(0.5, 0, 0.75, 1);
+			return uiTableModelGiveColor(0.5, 0, 0.75, 1);
 		return NULL;
 	}
 	if (col == 5) {
 		if (row < 8)
-			return uiNewTableDataImage(img[0]);
-		return uiNewTableDataImage(img[1]);
+			return img[0];
+		return img[1];
 	}
 	if (col == 7)
-		return uiNewTableDataInt(checkStates[row]);
+		return uiTableModelGiveInt(checkStates[row]);
 	if (col == 8) {
 		if (row == 0)
-			return uiNewTableDataInt(0);
+			return uiTableModelGiveInt(0);
 		if (row == 13)
-			return uiNewTableDataInt(100);
+			return uiTableModelGiveInt(100);
 		if (row == 14)
-			return uiNewTableDataInt(-1);
-		return uiNewTableDataInt(50);
+			return uiTableModelGiveInt(-1);
+		return uiTableModelGiveInt(50);
 	}
 	switch (col) {
 	case 0:
@@ -69,7 +69,7 @@ static uiTableData *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int
 		break;
 	case 2:
 		if (row == 9)
-			return uiNewTableDataString(row9text);
+			return uiTableModelStrdup(row9text);
 		// fall through
 	case 1:
 		strcpy(buf, "Part");
@@ -78,17 +78,17 @@ static uiTableData *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int
 		strcpy(buf, "Make Yellow");
 		break;
 	}
-	return uiNewTableDataString(buf);
+	return uiTableModelStrdup(buf);
 }
 
-static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col, const uiTableData *val)
+static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col, const void *val)
 {
 	if (row == 9 && col == 2)
-		strcpy(row9text, uiTableDataString(val));
+		strcpy(row9text, (const char *) val);
 	if (col == 6)
 		yellowRow = row;
 	if (col == 7)
-		checkStates[row] = uiTableDataInt(val);
+		checkStates[row] = uiTableModelTakeInt(val);
 }
 
 uiBox *makePage16(void)
@@ -96,7 +96,7 @@ uiBox *makePage16(void)
 	uiBox *page16;
 	uiTableModel *m;
 	uiTable *t;
-	uiTableTextColumnOptionalParams p;
+	uiTableColumn *tc;
 
 	img[0] = uiNewImage(16, 16);
 	appendImageNamed(img[0], "andlabs_16x16test_24june2016.png");
@@ -121,18 +121,15 @@ uiBox *makePage16(void)
 	t = uiNewTable(m);
 	uiBoxAppend(page16, uiControl(t), 1);
 
-	uiTableAppendTextColumn(t, "Column 1",
-		0, uiTableModelColumnNeverEditable, NULL);
+	uiTableAppendTextColumn(t, "Column 1", 0);
 
-	memset(&p, 0, sizeof (uiTableTextColumnOptionalParams));
-	p.ColorModelColumn = 4;
-	uiTableAppendImageTextColumn(t, "Column 2",
-		5,
-		1, uiTableModelColumnNeverEditable, &p);
-	uiTableAppendTextColumn(t, "Editable",
-		2, uiTableModelColumnAlwaysEditable, NULL);
+	tc = uiTableAppendColumn(t, "Column 2");
+	uiTableColumnAppendImagePart(tc, 5, 0);
+	uiTableColumnAppendTextPart(tc, 1, 0);
+	uiTableColumnAppendTextPart(tc, 2, 1);
+	uiTableColumnPartSetTextColor(tc, 1, 4);
+	uiTableColumnPartSetEditable(tc, 2, 1);
 
-#if 0
 	uiTableSetRowBackgroundColorModelColumn(t, 3);
 
 	tc = uiTableAppendColumn(t, "Buttons");
@@ -141,7 +138,6 @@ uiBox *makePage16(void)
 
 	tc = uiTableAppendColumn(t, "Progress Bar");
 	uiTableColumnAppendProgressBarPart(tc, 8, 0);
-#endif
 
 	return page16;
 }

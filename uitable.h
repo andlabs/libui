@@ -47,14 +47,6 @@ struct uiTableModelHandler {
 	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, const uiTableData *);
 };
 
-_UI_EXTERN void *uiTableModelStrdup(const char *str);
-// TODO rename the strdup one to this too
-_UI_EXTERN void *uiTableModelGiveColor(double r, double g, double b, double a);
-_UI_EXTERN void *uiTableModelGiveInt(int i);
-// TODO TakeString
-// TODO add const
-_UI_EXTERN int uiTableModelTakeInt(void *v);
-
 _UI_EXTERN uiTableModel *uiNewTableModel(uiTableModelHandler *mh);
 _UI_EXTERN void uiFreeTableModel(uiTableModel *m);
 _UI_EXTERN void uiTableModelRowInserted(uiTableModel *m, int newIndex);

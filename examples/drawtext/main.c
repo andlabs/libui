@@ -106,16 +106,15 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	} else {
 		uiFontButtonFont(fontButton, &defaultFont);
 	}
-	printf("%s\n", defaultFont.Family);
 	params.DefaultFont = &defaultFont;
 	params.Width = p->AreaWidth;
 	params.Align = (uiDrawTextAlign) uiComboboxSelected(alignment);
 	textLayout = uiDrawNewTextLayout(&params);
 	uiDrawText(p->Context, textLayout, 0, 0);
 	uiDrawFreeTextLayout(textLayout);
-	if(!useSystemFont) {
-		uiFreeFontButtonFont(&defaultFont);
-	}
+
+	//TODO RENAME?
+	uiFreeFontButtonFont(&defaultFont);
 }
 
 static void handlerMouseEvent(uiAreaHandler *a, uiArea *area, uiAreaMouseEvent *e)

@@ -213,7 +213,14 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	[tl->forLines returnWidth:NULL height:height];
 }
 
-uiDrawTextFont *uiDrawLoadDefaultFont()
+void uiDrawLoadDefaultFont(uiFontDescriptor *f)
 {
-	return mkTextFontFromNSFont([NSFont systemFontOfSize:0]);
+	CTFontRef ctfont;
+	CTFontDescriptorRef ctdesc;
+
+	ctfont = (CTFontRef) [NSFont systemFontOfSize:0];
+	ctdesc = CTFontCopyFontDescriptor(ctfont);
+	uiprivFontDescriptorFromCTFontDescriptor(ctdesc, f);
+	CFRelease(ctdesc);
+	f->Size = CTFontGetSize(ctfont);
 }

@@ -26,7 +26,7 @@
  - (NSView *)tableView:(NSTableView *)tv viewForTableColumn:(NSTableColumn *)cc row:(NSInteger)row
 {
 	uiprivTableColumn *c = (uiprivTableColumn *) cc;
-	xx TODO consider renaming this type to uiprivTableCellView
+	// TODO consider renaming this type to uiprivTableCellView
 	uiprivColumnCellView *cv;
 
 	cv = (uiprivColumnCellView *) [tv makeViewWithIdentifier:[c identifier] owner:self];
@@ -43,22 +43,15 @@
 
 @end
 
-=================== TODOTODO
-
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 {
 	uiTableModel *m;
 
 	m = uiprivNew(uiTableModel);
 	m->mh = mh;
-	m->m = [[tableModel alloc] initWithModel:m];
+	m->m = [[uiprivTableModel alloc] initWithModel:m];
 	m->tables = [NSMutableArray new];
 	return m;
-}
-
-void *uiTableModelGiveColor(double r, double g, double b, double a)
-{
-	return [[NSColor colorWithSRGBRed:r green:g blue:b alpha:a] retain];
 }
 
 void uiFreeTableModel(uiTableModel *m)
@@ -84,16 +77,22 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 void uiTableModelRowChanged(uiTableModel *m, int index)
 {
 	NSTableView *tv;
-	NSIndexSet *set, *cols;
+	NSTableRowView *rv;
+	NSUInteger i, n;
+	uiprivTableColumnView *cv;
 
-	set = [NSIndexSet indexSetWithIndex:index];
 	for (tv in m->tables) {
-		cols = [[NSIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, [[tv tableColumns] count])];
-		[tv reloadDataForRowIndexes:set columnIndexes:cols];
-		// TODO this isn't enough
-		[cols release];
+		rv = [tv rowViewForRow:index makeIfNecessary:NO];
+		if (rv != nil) {
+			xx TODO update colors
+		}
+		n = [[tv tableColumns] count];
+		for (i = 0; i < n; i++) {
+			cv = (uiprivTableCellView *) [tv viewForColumn:i row:index makeIfNecessary:NO];
+			if (cv != nil)
+				[cv uiprivUpdate:index];
+		}
 	}
-	// set is autoreleased
 }
 
 void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
@@ -106,6 +105,8 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 		[tv removeRowsAtIndexes:set withAnimation:NSTableViewAnimationEffectNone];
 	// set is autoreleased
 }
+
+=================== TODOTODO
 
 void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 {

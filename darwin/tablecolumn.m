@@ -259,12 +259,12 @@ struct textColumnCreateParams {
 			data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textParams.ColorModelColumn);
 			uiTableDataColor(data, &r, &g, &b, &a);
 			uiFreeTableData(data);
-			// TODO
+			color = [NSColor colorWithSRGBRed:r green:g blue:b alpha:a];
 		}
 		if (color == nil)
 			color = [NSColor controlTextColor];
 		[self->tf setColor:color];
-		// TODO release color
+		// we don't own color in ether case; don't release
 	}
 	if (self->iv != nil) {
 		uiImage *img;

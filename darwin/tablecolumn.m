@@ -154,6 +154,8 @@ struct textColumnCreateParams {
 		self->iv = nil;
 		// TODO rename to makeImageView
 		if (p->makeImage) {
+			self->imageModelColumn = p->imageModelColumn;
+
 			self->iv = [[NSImageView alloc] initWithFrame:NSZeroRect];
 			[self->iv setImageFrameStyle:NSImageFrameNone];
 			[self->iv setImageAlignment:NSImageAlignCenter];
@@ -173,6 +175,9 @@ struct textColumnCreateParams {
 
 		self->cb = nil;
 		if (p->makeCheckbox) {
+			self->checkboxModelColumn = p->checkboxModelColumn;
+			self->checkboxEditableColumn = p->checkboxEditableColumn;
+
 			self->cb = [[NSButton alloc] initWithFrame:NSZeroRect];
 			[self->cb setTitle:@""];
 			[self->cb setButtonType:NSSwitchButton];
@@ -258,9 +263,12 @@ struct textColumnCreateParams {
 			double r, g, b, a;
 
 			data = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textParams.ColorModelColumn);
-			uiTableDataColor(data, &r, &g, &b, &a);
-			uiFreeTableData(data);
-			color = [NSColor colorWithSRGBRed:r green:g blue:b alpha:a];
+			// TODO document this is allowed
+			if (data != NULL) {
+				uiTableDataColor(data, &r, &g, &b, &a);
+				uiFreeTableData(data);
+				color = [NSColor colorWithSRGBRed:r green:g blue:b alpha:a];
+			}
 		}
 		if (color == nil)
 			color = [NSColor controlTextColor];

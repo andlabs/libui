@@ -8,6 +8,56 @@
 - (id)initWithModel:(uiTableModel *)model;
 @end
 
+// TODO we really need to clean up the sharing of the table and model variables...
+@interface uiprivTableView : NSTableView {
+	uiTable *uiprivT;
+	uiTableModel *uiprivM;
+}
+- (id)initWithFrame:(NSRect)r uiprivT:(uiTable *)t uiprivM:(uiTableModel *)m;
+@end
+
+@implementation uiprivTableView
+
+- (id)initWithFrame:(NSRect)r uiprivT:(uiTable *)t uiprivM:(uiTableModel *)m
+{
+	self = [super initWithFrame:r];
+	if (self) {
+		self->uiprivT = t;
+		self->uiprivM = m;
+	}
+	return self;
+}
+
+// TODO is this correct for overflow scrolling?
+static void setBackgroundColor(uiprivTableView *t, NSTableRowView *rv, NSInteger row)
+{
+	uiTableData *data;
+	NSColor *color;
+	double r, g, b, a;
+
+	if (t->uiprivT->backgroundColumn == -1)
+		return;
+	data = (*(t->uiprivM->mh->CellValue))(t->uiprivM->mh, t->uiprivM, row, t->uiprivT->backgroundColumn);
+	if (data != NULL) {
+		uiTableDataColor(data, &r, &g, &b, &a);
+		uiFreeTableData(data);
+		color = [NSColor colorWithSRGBRed:r green:g blue:b alpha:a];
+	} else {
+		NSArray *colors;
+		NSInteger index;
+
+		// this usage is primarily a guess; hopefully it is correct for the non-two color case... (TODO)
+		// it does seem to be correct for the two-color case, judging from comparing against the value of backgroundColor before changing it (and no, nil does not work; it just sets to white)
+		colors = [NSColor controlAlternatingRowBackgroundColors];
+		index = row % [colors count];
+		color = (NSColor *) [colors objectAtIndex:index];
+	}
+	[rv setBackgroundColor:color];
+	// color is autoreleased in all cases
+}
+
+@end
+
 @implementation uiprivTableModel
 
 - (id)initWithModel:(uiTableModel *)model
@@ -36,9 +86,9 @@
 	return cv;
 }
 
-- (void)tableView:(NSTableView *)nstv didAddRowView:(NSTableRowView *)rv forRow:(NSInteger)row
+- (void)tableView:(NSTableView *)tv didAddRowView:(NSTableRowView *)rv forRow:(NSInteger)row
 {
-	// TODO set background color
+	setBackgroundColor((uiprivTableView *) tv, rv, row);
 }
 
 @end
@@ -76,16 +126,15 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 
 void uiTableModelRowChanged(uiTableModel *m, int index)
 {
-	NSTableView *tv;
+	uiprivTableView *tv;
 	NSTableRowView *rv;
 	NSUInteger i, n;
 	uiprivTableCellView *cv;
 
 	for (tv in m->tables) {
 		rv = [tv rowViewAtRow:index makeIfNecessary:NO];
-		if (rv != nil) {
-			// TODO update colors
-		}
+		if (rv != nil)
+			setBackgroundColor(tv, rv, index);
 		n = [[tv tableColumns] count];
 		for (i = 0; i < n; i++) {
 			cv = (uiprivTableCellView *) [tv viewAtColumn:i row:index makeIfNecessary:NO];
@@ -131,7 +180,7 @@ uiTable *uiNewTable(uiTableModel *model)
 	uiDarwinNewControl(uiTable, t);
 	t->m = model;
 
-	t->tv = [[NSTableView alloc] initWithFrame:NSZeroRect];
+	t->tv = [[uiprivTableView alloc] initWithFrame:NSZeroRect uiprivT:t uiprivM:t->m];
 
 	[t->tv setDataSource:model->m];
 	[t->tv setDelegate:model->m];

@@ -85,8 +85,15 @@ static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row,
 {
 	if (row == 9 && col == 2)
 		strcpy(row9text, uiTableDataString(val));
-	if (col == 6)
+	if (col == 6) {
+		int prevYellowRow;
+
+		prevYellowRow = yellowRow;
 		yellowRow = row;
+		if (prevYellowRow != -1)
+			uiTableModelRowChanged(m, prevYellowRow);
+		uiTableModelRowChanged(m, yellowRow);
+	}
 	if (col == 7)
 		checkStates[row] = uiTableDataInt(val);
 }
@@ -132,9 +139,7 @@ uiBox *makePage16(void)
 	uiTableAppendTextColumn(t, "Editable",
 		2, uiTableModelColumnAlwaysEditable, NULL);
 
-#if 0
 	uiTableSetRowBackgroundColorModelColumn(t, 3);
-#endif
 
 	uiTableAppendCheckboxColumn(t, "Checkboxes",
 		7, uiTableModelColumnAlwaysEditable);

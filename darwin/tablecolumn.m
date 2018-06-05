@@ -569,7 +569,12 @@ struct textColumnCreateParams {
 
 - (IBAction)uiprivOnClicked:(id)sender
 {
-	// TODO
+	NSInteger row;
+
+	row = [self->t->tv rowForView:self->b];
+	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
+		row, self->modelColumn, NULL);
+	// TODO document we DON'T update the cell after doing this
 }
 
 @end

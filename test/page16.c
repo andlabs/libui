@@ -134,14 +134,15 @@ uiBox *makePage16(void)
 
 #if 0
 	uiTableSetRowBackgroundColorModelColumn(t, 3);
-
-	tc = uiTableAppendColumn(t, "Buttons");
-	uiTableColumnAppendCheckboxPart(tc, 7, 0);
-	uiTableColumnAppendButtonPart(tc, 6, 1);
-
-	tc = uiTableAppendColumn(t, "Progress Bar");
-	uiTableColumnAppendProgressBarPart(tc, 8, 0);
 #endif
+
+	uiTableAppendCheckboxColumn(t, "Checkboxes",
+		7, uiTableModelColumnAlwaysEditable);
+	uiTableAppendButtonColumn(t, "Buttons",
+		6, uiTableModelColumnAlwaysEditable);
+
+	uiTableAppendProgressBarColumn(t, "Progress Bar",
+		8);
 
 	return page16;
 }

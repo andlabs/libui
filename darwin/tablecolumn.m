@@ -129,12 +129,11 @@ struct textColumnCreateParams {
 {
 	self = [super initWithFrame:r];
 	if (self) {
-		NSView *left;
-		CGFloat leftConstant;
-		CGFloat leftTextConstant;
+		NSMutableArray *constraints;
 
 		self->t = p->t;
 		self->m = p->m;
+		constraints = [NSMutableArray new];
 
 		self->tf = nil;
 		if (p->makeTextField) {
@@ -146,10 +145,30 @@ struct textColumnCreateParams {
 			// TODO set wrap and ellipsize modes?
 			[self->tf setTarget:self];
 			[self->tf setAction:@selector(uiprivOnTextFieldAction:)];
+			[self->tf setTranslatesAutoresizingMaskIntoConstraints:NO];
 			[self addSubview:self->tf];
-		}
 
-		left = nil;
+			[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeLeading,
+				NSLayoutRelationEqual,
+				self->tf, NSLayoutAttributeLeading,
+				1, -textColumnLeading,
+				@"uiTable cell text leading constraint")];
+			[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeTop,
+				NSLayoutRelationEqual,
+				self->tf, NSLayoutAttributeTop,
+				1, 0,
+				@"uiTable cell text top constraint")];
+			[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeTrailing,
+				NSLayoutRelationEqual,
+				self->tf, NSLayoutAttributeTrailing,
+				1, textColumnTrailing,
+				@"uiTable cell text trailing constraint")];
+			[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeBottom,
+				NSLayoutRelationEqual,
+				self->tf, NSLayoutAttributeBottom,
+				1, 0,
+				@"uiTable cell text bottom constraint")];
+		}
 
 		self->iv = nil;
 		// TODO rename to makeImageView
@@ -162,15 +181,42 @@ struct textColumnCreateParams {
 			[self->iv setImageScaling:NSImageScaleProportionallyDown];
 			[self->iv setAnimates:NO];
 			[self->iv setEditable:NO];
-			[self->iv addConstraint:uiprivMkConstraint(self->iv, NSLayoutAttributeWidth,
+			[self->iv setTranslatesAutoresizingMaskIntoConstraints:NO];
+			[self addSubview:self->iv];
+
+			[constraints addObject:uiprivMkConstraint(self->iv, NSLayoutAttributeWidth,
 				NSLayoutRelationEqual,
 				self->iv, NSLayoutAttributeHeight,
 				1, 0,
 				@"uiTable image squareness constraint")];
-			[self addSubview:self->iv];
-			left = self->iv;
-			leftConstant = imageColumnLeading;
-			leftTextConstant = imageTextColumnLeading;
+			if (self->tf != nil) {
+				[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeLeading,
+					NSLayoutRelationEqual,
+					self->iv, NSLayoutAttributeLeading,
+					1, -imageColumnLeading,
+					@"uiTable cell image leading constraint")];
+				[constraints replaceObjectAtIndex:0
+					withObject:uiprivMkConstraint(self->iv, NSLayoutAttributeTrailing,
+						NSLayoutRelationEqual,
+						self->tf, NSLayoutAttributeLeading,
+						1, -imageTextColumnLeading,
+						@"uiTable cell image-text spacing constraint")];
+			} else
+				[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeCenterX,
+					NSLayoutRelationEqual,
+					self->iv, NSLayoutAttributeCenterX,
+					1, 0,
+					@"uiTable cell image centering constraint")];
+			[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeTop,
+				NSLayoutRelationEqual,
+				self->iv, NSLayoutAttributeTop,
+				1, 0,
+				@"uiTable cell image top constraint")];
+			[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeBottom,
+				NSLayoutRelationEqual,
+				self->iv, NSLayoutAttributeBottom,
+				1, 0,
+				@"uiTable cell image bottom constraint")];
 		}
 
 		self->cb = nil;
@@ -185,37 +231,40 @@ struct textColumnCreateParams {
 			[self->cb setBordered:NO];
 			[self->cb setTransparent:NO];
 			uiDarwinSetControlFont(self->cb, NSRegularControlSize);
+			[self->cb setTranslatesAutoresizingMaskIntoConstraints:NO];
 			[self addSubview:self->cb];
-			left = self->cb;
-			leftConstant = checkboxColumnLeading;
-			leftTextConstant = checkboxTextColumnLeading;
+
+			if (self->tf != nil) {
+				[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeLeading,
+					NSLayoutRelationEqual,
+					self->cb, NSLayoutAttributeLeading,
+					1, -imageColumnLeading,
+					@"uiTable cell checkbox leading constraint")];
+				[constraints replaceObjectAtIndex:0
+					withObject:uiprivMkConstraint(self->cb, NSLayoutAttributeTrailing,
+						NSLayoutRelationEqual,
+						self->tf, NSLayoutAttributeLeading,
+						1, -imageTextColumnLeading,
+						@"uiTable cell checkbox-text spacing constraint")];
+			} else
+				[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeCenterX,
+					NSLayoutRelationEqual,
+					self->cb, NSLayoutAttributeCenterX,
+					1, 0,
+					@"uiTable cell checkbox centering constraint")];
+			[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeTop,
+				NSLayoutRelationEqual,
+				self->cb, NSLayoutAttributeTop,
+				1, 0,
+				@"uiTable cell checkbox top constraint")];
+			[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeBottom,
+				NSLayoutRelationEqual,
+				self->cb, NSLayoutAttributeBottom,
+				1, 0,
+				@"uiTable cell checkbox bottom constraint")];
 		}
 
-		if (self->tf != nil && left == nil)
-			layoutCellSubview(self, self->tf,
-				self, textColumnLeading,
-				self, textColumnTrailing,
-				YES);
-		else if (self->tf != nil) {
-			layoutCellSubview(self, left,
-				self, leftConstant,
-				nil, 0,
-				NO);
-			layoutCellSubview(self, self->tf,
-				left, leftTextConstant,
-				self, textColumnTrailing,
-				YES);
-		} else {
-			layoutCellSubview(self, left,
-				nil, 0,
-				nil, 0,
-				NO);
-			[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeCenterX,
-				NSLayoutRelationEqual,
-				left, NSLayoutAttributeCenterX,
-				1, 0,
-				@"uiTable image/checkbox centering constraint")];
-		}
+		[self addConstraints:constraints];
 
 		// take advantage of NSTableCellView-provided accessibility features
 		if (self->tf != nil)

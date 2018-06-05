@@ -161,6 +161,11 @@ uiTable *uiNewTable(uiTableModel *model)
 	p.VScroll = YES;
 	t->sv = uiprivMkScrollView(&p, &(t->d));
 
+	// TODO WHY DOES THIS REMOVE ALL GRAPHICAL GLITCHES?
+	// I got the idea from http://jwilling.com/blog/optimized-nstableview-scrolling/ but that was on an unrelated problem I didn't seem to have (although I have small-ish tables to start with)
+	// I don't get layer-backing... am I supposed to layer-back EVERYTHING manually? I need to check Interface Builder again...
+	[t->sv setWantsLayer:YES];
+
 	t->backgroundColumn = -1;
 
 	return t;

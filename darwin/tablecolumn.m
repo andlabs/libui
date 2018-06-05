@@ -327,6 +327,7 @@ struct textColumnCreateParams {
 		row, self->textModelColumn, data);
 	uiFreeTableData(data);
 	// always refresh the value in case the model rejected it
+	// TODO document that we do this, but not for the whole row (or decide to do both, or do neither...)
 	[self uiprivUpdate:row];
 }
 

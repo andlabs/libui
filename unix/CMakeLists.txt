@@ -44,6 +44,7 @@ list(APPEND _LIBUI_SOURCES
 	unix/stddialogs.c
 	unix/tab.c
 	unix/table.c
+	unix/tablemodel.c
 	unix/text.c
 	unix/util.c
 	unix/window.c

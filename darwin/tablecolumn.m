@@ -12,37 +12,8 @@
 #define checkboxColumnLeading imageColumnLeading
 #define progressBarColumnLeading imageColumnLeading
 #define progressBarColumnTrailing progressBarColumnLeading
-
-static void layoutCellSubview(NSView *superview, NSView *subview, NSView *leading, CGFloat leadingConstant, NSView *trailing, CGFloat trailingConstant, BOOL stretchy)
-{
-	[subview setTranslatesAutoresizingMaskIntoConstraints:NO];
-	if (stretchy)
-		[subview setContentHuggingPriority:NSLayoutPriorityDefaultLow forOrientation:NSLayoutConstraintOrientationHorizontal];
-	else
-		[subview setContentHuggingPriority:NSLayoutPriorityRequired forOrientation:NSLayoutConstraintOrientationHorizontal];
-	if (leading != nil)
-		[superview addConstraint:uiprivMkConstraint(leading, NSLayoutAttributeLeading,
-			NSLayoutRelationEqual,
-			subview, NSLayoutAttributeLeading,
-			1, -leadingConstant,
-			@"uiTable cell subview leading constraint")];
-	[superview addConstraint:uiprivMkConstraint(superview, NSLayoutAttributeTop,
-		NSLayoutRelationEqual,
-		subview, NSLayoutAttributeTop,
-		1, 0,
-		@"uiTable cell subview top constraint")];
-	if (trailing != nil)
-		[superview addConstraint:uiprivMkConstraint(trailing, NSLayoutAttributeTrailing,
-			NSLayoutRelationEqual,
-			subview, NSLayoutAttributeLeading,
-			1, trailingConstant,
-			@"uiTable cell subview trailing constraint")];
-	[superview addConstraint:uiprivMkConstraint(superview, NSLayoutAttributeBottom,
-		NSLayoutRelationEqual,
-		subview, NSLayoutAttributeBottom,
-		1, 0,
-		@"uiTable cell subview bottom constraint")];
-}
+#define buttonColumnLeading imageColumnLeading
+#define buttonColumnTrailing buttonColumnLeading
 
 @implementation uiprivTableCellView
 
@@ -148,6 +119,7 @@ struct textColumnCreateParams {
 			[self->tf setTranslatesAutoresizingMaskIntoConstraints:NO];
 			[self addSubview:self->tf];
 
+			// TODO for all three controls: set hugging and compression resistance properly
 			[constraints addObject:uiprivMkConstraint(self, NSLayoutAttributeLeading,
 				NSLayoutRelationEqual,
 				self->tf, NSLayoutAttributeLeading,
@@ -424,10 +396,30 @@ struct textColumnCreateParams {
 		[self->p setControlSize:NSRegularControlSize];
 		[self->p setBezeled:YES];
 		[self->p setStyle:NSProgressIndicatorBarStyle];
-		layoutCellSubview(self, self->p,
-			self, progressBarColumnLeading,
-			self, progressBarColumnTrailing,
-			YES);
+		[self->p setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self addSubview:self->p];
+
+		// TODO set hugging and compression resistance properly
+		[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeLeading,
+			NSLayoutRelationEqual,
+			self->p, NSLayoutAttributeLeading,
+			1, -progressBarColumnLeading,
+			@"uiTable cell progressbar leading constraint")];
+		[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeTop,
+			NSLayoutRelationEqual,
+			self->p, NSLayoutAttributeTop,
+			1, 0,
+			@"uiTable cell progressbar top constraint")];
+		[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			self->p, NSLayoutAttributeTrailing,
+			1, progressBarColumnTrailing,
+			@"uiTable cell progressbar trailing constraint")];
+		[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeBottom,
+			NSLayoutRelationEqual,
+			self->p, NSLayoutAttributeBottom,
+			1, 0,
+			@"uiTable cell progressbar bottom constraint")];
 	}
 	return self;
 }
@@ -527,10 +519,30 @@ struct textColumnCreateParams {
 		uiDarwinSetControlFont(self->b, NSRegularControlSize);
 		[self->b setTarget:self];
 		[self->b setAction:@selector(uiprivOnClicked:)];
-		layoutCellSubview(self, self->b,
-			self, progressBarColumnLeading,
-			self, progressBarColumnTrailing,
-			YES);
+		[self->b setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[self addSubview:self->b];
+
+		// TODO set hugging and compression resistance properly
+		[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeLeading,
+			NSLayoutRelationEqual,
+			self->b, NSLayoutAttributeLeading,
+			1, -buttonColumnLeading,
+			@"uiTable cell button leading constraint")];
+		[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeTop,
+			NSLayoutRelationEqual,
+			self->b, NSLayoutAttributeTop,
+			1, 0,
+			@"uiTable cell button top constraint")];
+		[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeTrailing,
+			NSLayoutRelationEqual,
+			self->b, NSLayoutAttributeTrailing,
+			1, buttonColumnTrailing,
+			@"uiTable cell button trailing constraint")];
+		[self addConstraint:uiprivMkConstraint(self, NSLayoutAttributeBottom,
+			NSLayoutRelationEqual,
+			self->b, NSLayoutAttributeBottom,
+			1, 0,
+			@"uiTable cell button bottom constraint")];
 	}
 	return self;
 }

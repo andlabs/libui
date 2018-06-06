@@ -10,6 +10,7 @@ struct uiTable {
 	GtkWidget *treeWidget;
 	GtkTreeView *tv;
 	uiTableModel *model;
+	GPtrArray *columnParams;
 	int backgroundColumn;
 };
 
@@ -255,33 +256,67 @@ static void buttonColumnClicked(uiprivCellRendererButton *r, gchar *pathstr, gpo
 	onEdited(p->m, p->modelColumn, path, NULL, NULL);
 }
 
-=================== TODOTODO
-
-static void appendPart(uiTableColumn *c, struct tablePart *part, GtkCellRenderer *r, int expand)
+static void addTextColumn(uiTable *t, GtkTreeViewColumn *c, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
 {
-	part->r = r;
-	gtk_tree_view_column_pack_start(c->c, part->r, expand != 0);
-	gtk_tree_view_column_set_cell_data_func(c->c, part->r, dataFunc, part, NULL);
-	g_ptr_array_add(c->parts, part);
-}
-
-void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
-{
-	struct tablePart *part;
+	struct textColumnParams *p;
 	GtkCellRenderer *r;
 
-	part = uiprivNew(struct tablePart);
-	part->type = partText;
-	part->textColumn = modelColumn;
-	part->tv = c->tv;
-	part->colorColumn = -1;
+	p = uiprivNew(struct textColumnParams);
+	p->t = t;
+	xx TODO get rid of these fields in favor of t->m
+	p->m = t->m;
+	p->modelColumn = textModelColumn;
+	p->editableColumn = textEditableModelColumn;
+	if (params != NULL)
+		p->params = *params;
+	else
+		p->params = defaultTextColumnOptionalParams;
 
 	r = gtk_cell_renderer_text_new();
-	g_object_set(r, "editable", FALSE, NULL);
-	g_signal_connect(r, "edited", G_CALLBACK(textEdited), part);
-
-	appendPart(c, part, r, expand);
+	gtk_tree_view_column_pack_start(c, r, TRUE);
+	gtk_tree_view_column_set_cell_data_func(c, r, textColumnDataFunc, p, NULL);
+	g_signal_connect(r, "edited", G_CALLBACK(textColumnEdited), p);
+	g_ptr_array_add(c->columnParams, p);
 }
+
+void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
+{
+	GtkTreeViewColumn *c;
+
+	c = gtk_tree_view_column_new();
+	gtk_tree_view_column_set_resizable(c, TRUE);
+	gtk_tree_view_column_set_title(c, name);
+	gtk_tree_view_append_column(t->tv, c);
+	addTextColumn(t, c, textModelColumn, textEditableModelColumn, params);
+}
+
+_UI_EXTERN void uiTableAppendImageColumn(uiTable *t,
+	const char *name,
+	int imageModelColumn);
+_UI_EXTERN void uiTableAppendImageTextColumn(uiTable *t,
+	const char *name,
+	int imageModelColumn,
+	int textModelColumn,
+	int textEditableModelColumn,
+	uiTableTextColumnOptionalParams *textParams);
+_UI_EXTERN void uiTableAppendCheckboxColumn(uiTable *t,
+	const char *name,
+	int checkboxModelColumn,
+	int checkboxEditableModelColumn);
+_UI_EXTERN void uiTableAppendCheckboxTextColumn(uiTable *t,
+	const char *name,
+	int checkboxModelColumn,
+	int checkboxEditableModelColumn,
+	int textModelColumn,
+	int textEditableModelColumn,
+	uiTableTextColumnOptionalParams *textParams);
+_UI_EXTERN void uiTableAppendProgressBarColumn(uiTable *t,
+	const char *name,
+	int progressModelColumn);
+_UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
+	const char *name,
+	int buttonTextModelColumn,
+	int buttonClickableModelColumn);
 
 void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
 {

@@ -2,30 +2,6 @@
 #include "uipriv_unix.h"
 #include "table.h"
 
-enum {
-	partText,
-	partImage,
-	partButton,
-	partCheckbox,
-	partProgressBar,
-};
-
-struct tablePart {
-	int type;
-	int textColumn;
-	int imageColumn;
-	int valueColumn;
-	int colorColumn;
-	GtkCellRenderer *r;
-	uiTable *tv;			// for pixbufs and background color
-};
-
-struct uiTableColumn {
-	GtkTreeViewColumn *c;
-	uiTable *tv;			// for pixbufs and background color
-	GPtrArray *parts;
-};
-
 struct uiTable {
 	uiUnixControl c;
 	GtkWidget *widget;
@@ -33,14 +9,13 @@ struct uiTable {
 	GtkScrolledWindow *sw;
 	GtkWidget *treeWidget;
 	GtkTreeView *tv;
-	GPtrArray *columns;
 	uiTableModel *model;
 	int backgroundColumn;
 };
 
 // use the same size as GtkFileChooserWidget's treeview
 // TODO refresh when icon theme changes
-// TODO doesn't work when scaled
+// TODO doesn't work when scaled?
 // TODO is this even necessary?
 static void setImageSize(GtkCellRenderer *r)
 {
@@ -57,12 +32,12 @@ static void setImageSize(GtkCellRenderer *r)
 		2 * ypad + size);
 }
 
-static void applyColor(GtkTreeModel *mm, GtkTreeIter *iter, int modelColumn, GtkCellRenderer *r, const char *prop, const char *propSet)
+static void applyColor(GtkTreeModel *m, GtkTreeIter *iter, int modelColumn, GtkCellRenderer *r, const char *prop, const char *propSet)
 {
 	GValue value = G_VALUE_INIT;
 	GdkRGBA *rgba;
 
-	gtk_tree_model_get_value(mm, iter, modelColumn, &value);
+	gtk_tree_model_get_value(m, iter, modelColumn, &value);
 	rgba = (GdkRGBA *) g_value_get_boxed(&value);
 	if (rgba != NULL)
 		g_object_set(r, prop, rgba, NULL);
@@ -71,75 +46,216 @@ static void applyColor(GtkTreeModel *mm, GtkTreeIter *iter, int modelColumn, Gtk
 	g_value_unset(&value);
 }
 
-static void dataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *mm, GtkTreeIter *iter, gpointer data)
+static void setEditable(uiTableModel *m, GtkTreeIter *iter, int modelColumn, GtkCellRenderer *r, const char *prop)
 {
-	struct tablePart *part = (struct tablePart *) data;
+	uiTableData *data;
 	GValue value = G_VALUE_INIT;
-	const gchar *str;
-	uiImage *img;
-	int pval;
+	int value;
+	gboolean editable;
 
-	switch (part->type) {
-	case partText:
-		gtk_tree_model_get_value(mm, iter, part->textColumn, &value);
-		str = g_value_get_string(&value);
-		g_object_set(r, "text", str, NULL);
-		if (part->colorColumn != -1)
-			applyColor(mm, iter,
-				part->colorColumn,
-				r, "foreground-rgba", "foreground-set");
+	switch (modelColumn) {
+	case uiTableModelColumnNeverEditable:
+		editable = FALSE;
 		break;
-	case partImage:
-//TODO		setImageSize(r);
-		gtk_tree_model_get_value(mm, iter, part->imageColumn, &value);
-		img = (uiImage *) g_value_get_pointer(&value);
-		g_object_set(r, "surface",
-			uiprivImageAppropriateSurface(img, part->tv->treeWidget),
-			NULL);
+	case uiTableModelColumnAlwaysEditable:
+		editable = TRUE;
 		break;
-	case partButton:
-		gtk_tree_model_get_value(mm, iter, part->textColumn, &value);
-		str = g_value_get_string(&value);
-		g_object_set(r, "text", str, NULL);
-		break;
-	case partCheckbox:
-		gtk_tree_model_get_value(mm, iter, part->valueColumn, &value);
-		g_object_set(r, "active", g_value_get_int(&value) != 0, NULL);
-		break;
-	case partProgressBar:
-		gtk_tree_model_get_value(mm, iter, part->valueColumn, &value);
-		pval = g_value_get_int(&value);
-		if (pval == -1) {
-			// TODO
-		} else
-			g_object_set(r,
-				"pulse", -1,
-				"value", pval,
-				NULL);
-		break;
+	default:
+		gtk_tree_model_get_value(m, iter, p->editableColumn, &value);
+		editable = gtk_value_get_int(&value) != 0;
+		g_value_unset(&value);
 	}
-	g_value_unset(&value);
+	g_object_set(r, "editable", editable, NULL);
+}
 
-	if (part->tv->backgroundColumn != -1)
-		applyColor(mm, iter,
-			part->tv->backgroundColumn,
+static void applyBackgroundColor(uiTable *t, GtkTreeModel *m, GtkTreeIter *iter, GtkCellRenderer *r)
+{
+	if (t->backgroundColumn != -1)
+		applyColor(m, iter, t->backgroundColumn,
 			r, "cell-background-rgba", "cell-background-set");
 }
 
-static void onEdited(struct tablePart *part, int column, const char *pathstr, const void *data)
+static void onEdited(uiTableModel *m, int column, const char *pathstr, const uiTableData *data, GtkTreeIter *iter)
 {
 	GtkTreePath *path;
 	int row;
-	uiTableModel *m;
 
 	path = gtk_tree_path_new_from_string(pathstr);
 	row = gtk_tree_path_get_indices(path)[0];
+	if (iter != NULL)
+		gtk_tree_model_convert_path_to_iter(m, path, iter);
 	gtk_tree_path_free(path);
-	m = part->tv->model;
 	(*(m->mh->SetCellValue))(m->mh, m, row, column, data);
-	// and update
-	uiTableModelRowChanged(m, row);
 }
+
+// TODO deduplicate this between platforms
+static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
+	.ColorModelColumn = -1,
+};
+
+struct textColumnParams {
+	uiTable *t;
+	uiTableModel *m;
+	int modelColumn;
+	int editableColumn;
+	uiTableTextColumnOptionalParams params;
+};
+
+static void textColumnDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
+{
+	struct textColumnParams *p = (struct textColumnParams *) data;
+	GValue value = G_VALUE_INIT;
+	const gchar *str;
+	gboolean editable;
+
+	gtk_tree_model_get_value(m, iter, p->modelColumn, &value);
+	str = g_value_get_string(&value);
+	g_object_set(r, "text", str, NULL);
+	g_value_unset(&value);
+
+	setEditable(m, iter, p->editableColumn, r, "editable");
+
+	if (p->params.ColorModelColumn != -1)
+		applyColor(m, iter, p->params.ColorModelColumn,
+			r, "foreground-rgba", "foreground-set");
+
+	applyBackgroundColor(p->t, m, iter, r);
+}
+
+static void textColumnEdited(GtkCellRendererText *renderer, gchar *path, gchar *newText, gpointer data)
+{
+	struct textColumnParams *p = (struct textColumnParams *) data;
+	uiTableData *data;
+	GtkTreeIter iter;
+
+	data = uiNewTableDataString(newText);
+	onEdited(p->m, p->textColumn, path, data, &iter);
+	uiFreeData(data);
+	// and update the column TODO copy comment here
+	textColumnDataFunc(NULL, r, GTK_TREE_MODEL(p->m), &iter, data);
+}
+
+struct imageColumnParams {
+	uiTable *t;
+	int modelColumn;
+};
+
+static void imageColumnDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
+{
+	struct imageColumnParams *p = (struct imageColumnParams *) data;
+	GValue value = G_VALUE_INIT;
+	uiImage *img;
+
+//TODO	setImageSize(r);
+	gtk_tree_model_get_value(m, iter, p->modelColumn, &value);
+	img = (uiImage *) g_value_get_pointer(&value);
+	g_object_set(r, "surface",
+		uiprivImageAppropriateSurface(img, p->t->treeWidget),
+		NULL);
+	g_value_unset(&value);
+
+	applyBackgroundColor(p->t, m, iter, r);
+}
+
+struct checkboxColumnParams {
+	uiTable *t;
+	uiTableModel *m;
+	int modelColumn;
+	int editableColumn;
+};
+
+static void checkboxColumnDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
+{
+	struct checkboxColumnParams *p = (struct checkboxColumnParams *) data;
+	GValue value = G_VALUE_INIT;
+	gboolean active;
+
+	gtk_tree_model_get_value(m, iter, p->modelColumn, &value);
+	active = g_value_get_int(&value) != 0;
+	g_object_set(r, "active", active, NULL);
+	g_value_unset(&value);
+
+	setEditable(m, iter, p->editableColumn, r, "activatable");
+
+	applyBackgroundColor(p->t, m, iter, r);
+}
+
+static void checkboxColumnToggled(GtkCellRendererToggle *r, gchar *pathstr, gpointer data)
+{
+	struct checkboxColumnParams *p = (struct checkboxColumnParams *) data;
+	GValue value = G_VALUE_INIT;
+	int v;
+	uiTableData *data;
+	GtkTreeIter iter;
+
+	gtk_tree_model_get_value(p->m, iter, p->modelColumn, &value);
+	v = g_value_get_int(&value);
+	g_value_unset(&value);
+	data = uiNewTableDataInt(!v);
+	onEdited(p->m, p->modelColumn, path, data, &iter);
+	uiFreeData(data);
+	// and update the column TODO copy comment here
+	// TODO avoid fetching the model data twice
+	checkboxColumnDataFunc(NULL, r, GTK_TREE_MODEL(p->m), &iter, data);
+}
+
+struct progressBarColumnParams {
+	uiTable *t;
+	int modelColumn;
+};
+
+static void progressBarDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
+{
+	struct progressBarColumnParams *p = (struct progressBarColumnParams *) data;
+	GValue value = G_VALUE_INIT;
+	int pval;
+
+	gtk_tree_model_get_value(m, iter, p->modelColumn, &value);
+	pval = g_value_get_int(&value);
+	if (pval == -1) {
+		// TODO
+	} else
+		g_object_set(r,
+			"pulse", -1,
+			"value", pval,
+			NULL);
+	g_value_unset(&value);
+
+	applyBackgroundColor(p->t, m, iter, r);
+}
+
+struct buttonColumnParams {
+	uiTable *t;
+	uiTableModel *m;
+	int modelColumn;
+	int clickableColumn;
+};
+
+static void buttonDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
+{
+	struct buttonColumnParams *p = (struct buttonColumnParams *) data;
+	GValue value = G_VALUE_INIT;
+	const gchar *str;
+	gboolean clickable;
+
+	gtk_tree_model_get_value(m, iter, p->modelColumn, &value);
+	str = g_value_get_string(&value);
+	g_object_set(r, "text", str, NULL);
+	g_value_unset(&value);
+
+	setEditable(m, iter, p->clickableColumn, r, "clickable");
+
+	applyBackgroundColor(p->t, m, iter, r);
+}
+
+static void buttonColumnClicked(uiprivCellRendererButton *r, gchar *pathstr, gpointer data)
+{
+	struct buttonColumnParams *p = (struct buttonColumnParams *) data;
+
+	onEdited(p->m, p->modelColumn, path, NULL, NULL);
+}
+
+=================== TODOTODO
 
 static void appendPart(uiTableColumn *c, struct tablePart *part, GtkCellRenderer *r, int expand)
 {
@@ -147,13 +263,6 @@ static void appendPart(uiTableColumn *c, struct tablePart *part, GtkCellRenderer
 	gtk_tree_view_column_pack_start(c->c, part->r, expand != 0);
 	gtk_tree_view_column_set_cell_data_func(c->c, part->r, dataFunc, part, NULL);
 	g_ptr_array_add(c->parts, part);
-}
-
-static void textEdited(GtkCellRendererText *renderer, gchar *path, gchar *newText, gpointer data)
-{
-	struct tablePart *part = (struct tablePart *) data;
-
-	onEdited(part, part->textColumn, path, newText);
 }
 
 void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
@@ -210,25 +319,6 @@ void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand
 	g_signal_connect(r, "clicked", G_CALLBACK(buttonClicked), part);
 
 	appendPart(c, part, r, expand);
-}
-
-// yes, we need to do all this twice :|
-static void checkboxToggled(GtkCellRendererToggle *r, gchar *pathstr, gpointer data)
-{
-	struct tablePart *part = (struct tablePart *) data;
-	GtkTreePath *path;
-	int row;
-	uiTableModel *m;
-	void *value;
-	int intval;
-
-	path = gtk_tree_path_new_from_string(pathstr);
-	row = gtk_tree_path_get_indices(path)[0];
-	gtk_tree_path_free(path);
-	m = part->tv->model;
-	value = (*(m->mh->CellValue))(m->mh, m, row, part->valueColumn);
-	intval = !uiTableModelTakeInt(value);
-	onEdited(part, part->valueColumn, pathstr, uiTableModelGiveInt(intval));
 }
 
 void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand)

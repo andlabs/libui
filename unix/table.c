@@ -205,7 +205,7 @@ struct progressBarColumnParams {
 	int modelColumn;
 };
 
-static void progressBarDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
+static void progressBarColumnDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
 {
 	struct progressBarColumnParams *p = (struct progressBarColumnParams *) data;
 	GValue value = G_VALUE_INIT;
@@ -232,7 +232,7 @@ struct buttonColumnParams {
 	int clickableColumn;
 };
 
-static void buttonDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
+static void buttonColumnDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
 {
 	struct buttonColumnParams *p = (struct buttonColumnParams *) data;
 	GValue value = G_VALUE_INIT;
@@ -244,16 +244,28 @@ static void buttonDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeMode
 	g_object_set(r, "text", str, NULL);
 	g_value_unset(&value);
 
-	setEditable(m, iter, p->clickableColumn, r, "clickable");
+	setEditable(m, iter, p->clickableColumn, r, "sensitive");
 
 	applyBackgroundColor(p->t, m, iter, r);
 }
 
+// TODO wrong type here
 static void buttonColumnClicked(uiprivCellRendererButton *r, gchar *pathstr, gpointer data)
 {
 	struct buttonColumnParams *p = (struct buttonColumnParams *) data;
 
 	onEdited(p->m, p->modelColumn, path, NULL, NULL);
+}
+
+static GtkTreeViewColumn *addColumn(uiTable *t, const char *name)
+{
+	GtkTreeViewColumn *c;
+
+	c = gtk_tree_view_column_new();
+	gtk_tree_view_column_set_resizable(c, TRUE);
+	gtk_tree_view_column_set_title(c, name);
+	gtk_tree_view_append_column(t->tv, c);
+	return c;
 }
 
 static void addTextColumn(uiTable *t, GtkTreeViewColumn *c, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
@@ -263,7 +275,7 @@ static void addTextColumn(uiTable *t, GtkTreeViewColumn *c, int textModelColumn,
 
 	p = uiprivNew(struct textColumnParams);
 	p->t = t;
-	xx TODO get rid of these fields in favor of t->m
+	// TODO get rid of these fields in favor of t->m
 	p->m = t->m;
 	p->modelColumn = textModelColumn;
 	p->editableColumn = textEditableModelColumn;
@@ -279,137 +291,120 @@ static void addTextColumn(uiTable *t, GtkTreeViewColumn *c, int textModelColumn,
 	g_ptr_array_add(c->columnParams, p);
 }
 
+// TODO rename modelCOlumn and params everywhere
 void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
 {
 	GtkTreeViewColumn *c;
 
-	c = gtk_tree_view_column_new();
-	gtk_tree_view_column_set_resizable(c, TRUE);
-	gtk_tree_view_column_set_title(c, name);
-	gtk_tree_view_append_column(t->tv, c);
+	c = addColumn(t, name);
 	addTextColumn(t, c, textModelColumn, textEditableModelColumn, params);
 }
 
-_UI_EXTERN void uiTableAppendImageColumn(uiTable *t,
-	const char *name,
-	int imageModelColumn);
-_UI_EXTERN void uiTableAppendImageTextColumn(uiTable *t,
-	const char *name,
-	int imageModelColumn,
-	int textModelColumn,
-	int textEditableModelColumn,
-	uiTableTextColumnOptionalParams *textParams);
-_UI_EXTERN void uiTableAppendCheckboxColumn(uiTable *t,
-	const char *name,
-	int checkboxModelColumn,
-	int checkboxEditableModelColumn);
-_UI_EXTERN void uiTableAppendCheckboxTextColumn(uiTable *t,
-	const char *name,
-	int checkboxModelColumn,
-	int checkboxEditableModelColumn,
-	int textModelColumn,
-	int textEditableModelColumn,
-	uiTableTextColumnOptionalParams *textParams);
-_UI_EXTERN void uiTableAppendProgressBarColumn(uiTable *t,
-	const char *name,
-	int progressModelColumn);
-_UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
-	const char *name,
-	int buttonTextModelColumn,
-	int buttonClickableModelColumn);
-
-void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
+static void addImageColumn(uiTable *t, GtkTreeViewColumn *c, int imageModelColumn)
 {
-	struct tablePart *part;
-
-	part = uiprivNew(struct tablePart);
-	part->type = partImage;
-	part->imageColumn = modelColumn;
-	part->tv = c->tv;
-	appendPart(c, part,
-		gtk_cell_renderer_pixbuf_new(),
-		expand);
-}
-
-// TODO wrong type here
-static void buttonClicked(GtkCellRenderer *r, gchar *pathstr, gpointer data)
-{
-	struct tablePart *part = (struct tablePart *) data;
-
-	onEdited(part, part->textColumn, pathstr, NULL);
-}
-
-void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand)
-{
-	struct tablePart *part;
+	struct imageColumnParams *p;
 	GtkCellRenderer *r;
 
-	part = uiprivNew(struct tablePart);
-	part->type = partButton;
-	part->textColumn = modelColumn;
-	part->tv = c->tv;
+	p = uiprivNew(struct imageColumnParams);
+	p->t = t;
+	p->modelColumn = imageModelColumn;
 
-	r = uiprivNewCellRendererButton();
-	g_object_set(r, "sensitive", TRUE, NULL);		// editable by default
-	g_signal_connect(r, "clicked", G_CALLBACK(buttonClicked), part);
-
-	appendPart(c, part, r, expand);
+	r = gtk_cell_renderer_pixbuf_new();
+	gtk_tree_view_column_pack_start(c, r, FALSE);
+	gtk_tree_view_column_set_cell_data_func(c, r, imageColumnDataFunc, p, NULL);
+	g_ptr_array_add(c->columnParams, p);
 }
 
-void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand)
+void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn)
 {
-	struct tablePart *part;
+	GtkTreeViewColumn *c;
+
+	c = addColumn(t, name);
+	addImageColumn(t, c, imageModelColumn);
+}
+
+void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
+{
+	GtkTreeViewColumn *c;
+
+	c = addColumn(t, name);
+	addImageColumn(t, c, imageModelColumn);
+	addTextColumn(t, c, textModelColumn, textEditableModelColumn, textParams);
+}
+
+static void uiTableAppendCheckboxColumn(uiTable *t, GtkTableViewColumn *c, int checkboxModelColumn, int checkboxEditableModelColumn)
+{
+	struct checkboxColumnParams *p;
 	GtkCellRenderer *r;
 
-	part = uiprivNew(struct tablePart);
-	part->type = partCheckbox;
-	part->valueColumn = modelColumn;
-	part->tv = c->tv;
+	p = uiprivNew(struct checkboxColumnParams);
+	p->t = t;
+	p->m = t->m;
+	p->modelColumn = checkboxModelColumn;
+	p->editableColumn = checkboxEditableModelColumn;
 
 	r = gtk_cell_renderer_toggle_new();
-	g_object_set(r, "sensitive", TRUE, NULL);		// editable by default
-	g_signal_connect(r, "toggled", G_CALLBACK(checkboxToggled), part);
-
-	appendPart(c, part, r, expand);
+	gtk_tree_view_column_pack_start(c, r, FALSE);
+	gtk_tree_view_column_set_cell_data_func(c, r, checkboxColumnDataFunc, p, NULL);
+	g_signal_connect(r, "toggled", G_CALLBACK(checkboxColumnToggled), part);
+	g_ptr_array_add(c->columnParams, p);
 }
 
-void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int expand)
+void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn)
 {
-	struct tablePart *part;
+	GtkTreeViewColumn *c;
 
-	part = uiprivNew(struct tablePart);
-	part->type = partProgressBar;
-	part->valueColumn = modelColumn;
-	part->tv = c->tv;
-	appendPart(c, part,
-		gtk_cell_renderer_progress_new(),
-		expand);
+	c = addColumn(t, name);
+	addCheckboxColumn(t, c, checkboxModelColumn, checkboxEditableModelColumn);
 }
 
-void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable)
+void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
 {
-	struct tablePart *p;
+	GtkTreeViewColumn *c;
 
-	p = (struct tablePart *) g_ptr_array_index(c->parts, part);
-	switch (p->type) {
-	case partImage:
-	case partProgressBar:
-		return;
-	case partButton:
-	case partCheckbox:
-		g_object_set(p->r, "sensitive", editable != 0, NULL);
-		return;
-	}
-	g_object_set(p->r, "editable", editable != 0, NULL);
+	c = addColumn(t, name);
+	addCheckboxColumn(t, c, checkboxModelColumn, checkboxEditableModelColumn);
+	addTextColumn(t, c, textModelColumn, textEditableModelColumn, textParams);
 }
 
-void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
+void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressModelColumn)
 {
-	struct tablePart *p;
+	GtkTreeViewColumn *c;
+	struct progressBarColumnParams *p;
+	GtkCellRenderer *r;
 
-	p = (struct tablePart *) g_ptr_array_index(c->parts, part);
-	p->colorColumn = modelColumn;
-	// TODO refresh table
+	c = addColumn(t, name);
+
+	p = uiprivNew(struct progressBarColumnParams);
+	p->t = t;
+	// TODO make progress and progressBar consistent everywhere
+	p->modelColumn = progressModelColumn;
+
+	r = gtk_cell_renderer_progress_new();
+	gtk_tree_view_column_pack_start(c, r, TRUE);
+	gtk_tree_view_column_set_cell_data_func(c, r, progressBarColumnDataFunc, p, NULL);
+	g_ptr_array_add(c->columnParams, p);
+}
+
+void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonTextModelColumn, int buttonClickableModelColumn)
+{
+	GtkTreeViewColumn *c;
+	struct buttonColumnParams *p;
+	GtkCellRenderer *r;
+
+	c = addColumn(t, name);
+
+	p = uiprivNew(struct buttonColumnParams);
+	p->t = t;
+	p->m = t->m;
+	p->modelColumn = buttonModelColumn;
+	p->clickableColumn = buttonClickableModelColumn;
+
+	r = uiprivNewCellRendererButton();
+	gtk_tree_view_column_pack_start(c, r, TRUE);
+	gtk_tree_view_column_set_cell_data_func(c, r, buttonColumnDataFunc, p, NULL);
+	g_signal_connect(r, "clicked", G_CALLBACK(buttonColumnClicked), p);
+	g_ptr_array_add(c->columnParams, p);
 }
 
 uiUnixControlAllDefaultsExceptDestroy(uiTable)
@@ -421,20 +416,6 @@ static void uiTableDestroy(uiControl *c)
 	// TODO
 	g_object_unref(t->widget);
 	uiFreeControl(uiControl(t));
-}
-
-uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
-{
-	uiTableColumn *c;
-
-	c = uiprivNew(uiTableColumn);
-	c->c = gtk_tree_view_column_new();
-	gtk_tree_view_column_set_resizable(c->c, TRUE);
-	gtk_tree_view_column_set_title(c->c, name);
-	gtk_tree_view_append_column(t->tv, c->c);
-	c->tv = t;		// TODO rename field to t, cascade
-	c->parts = g_ptr_array_new();
-	return c;
 }
 
 void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)

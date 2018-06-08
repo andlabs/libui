@@ -35,19 +35,32 @@ void uiFreeTableModel(uiTableModel *m)
 	uiprivFree(m);
 }
 
+// TODO document that when this is called, the model must return the new row count when asked
 void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 {
 	LVITEMW item;
+	int newCount;
 
+	newCount = (*(m->mh->NumRows))(m->mh, m);
 	ZeroMemory(&item, sizeof (LVITEMW));
 	item.mask = 0;
 	item.iItem = newIndex;
 	item.iSubItem = 0;
-	for (auto t : *(m->tables))
+	for (auto t : *(m->tables)) {
+		// actually insert the rows
+		if (SendMessageW(t->hwnd, LVM_SETITEMCOUNT, (WPARAM) newCount, LVSICF_NOINVALIDATEALL) == 0)
+			logLastError(L"error calling LVM_SETITEMCOUNT in uiTableModelRowInserted()");
+		// and redraw every row from the new row down to simulate adding it
+		if (SendMessageW(t->hwnd, LVM_REDRAWITEMS, (WPARAM) newIndex, (LPARAM) (newCount - 1)) == FALSE)
+			logLastError(L"error calling LVM_REDRAWITEMS in uiTableModelRowInserted()");
+
+		// update selection state
 		if (SendMessageW(t->hwnd, LVM_INSERTITEM, 0, (LPARAM) (&item)) == (LRESULT) (-1))
-			logLastError(L"error calling LVM_INSERTITEM in uiTableModelRowInserted()");
+			logLastError(L"error calling LVM_INSERTITEM in uiTableModelRowInserted() to update selection state");
+	}
 }
 
+// TODO compare LVM_UPDATE and LVM_REDRAWITEMS
 void uiTableModelRowChanged(uiTableModel *m, int index)
 {
 	for (auto t : *(m->tables))
@@ -55,11 +68,26 @@ void uiTableModelRowChanged(uiTableModel *m, int index)
 			logLastError(L"error calling LVM_UPDATE in uiTableModelRowChanged()");
 }
 
+// TODO document that when this is called, the model must return the OLD row count when asked
+// TODO for this and the above, see what GTK+ requires and adjust accordingly
 void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 {
-	for (auto t : *(m->tables))
+	int newCount;
+
+	newCount = (*(m->mh->NumRows))(m->mh, m);
+	newCount--;
+	for (auto t : *(m->tables)) {
+		// update selection state
 		if (SendMessageW(t->hwnd, LVM_DELETEITEM, (WPARAM) oldIndex, 0) == (LRESULT) (-1))
-			logLastError(L"error calling LVM_DELETEITEM in uiTableModelRowDeleted()");
+			logLastError(L"error calling LVM_DELETEITEM in uiTableModelRowDeleted() to update selection state");
+
+		// actually delete the rows
+		if (SendMessageW(t->hwnd, LVM_SETITEMCOUNT, (WPARAM) newCount, LVSICF_NOINVALIDATEALL) == 0)
+			logLastError(L"error calling LVM_SETITEMCOUNT in uiTableModelRowDeleted()");
+		// and redraw every row from the new nth row down to simulate removing the old nth row
+		if (SendMessageW(t->hwnd, LVM_REDRAWITEMS, (WPARAM) oldIndex, (LPARAM) (newCount - 1)) == FALSE)
+			logLastError(L"error calling LVM_REDRAWITEMS in uiTableModelRowDeleted()");
+	}
 }
 
 void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)

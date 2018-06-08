@@ -64,7 +64,7 @@ static void setEditable(uiTableModel *m, GtkTreeIter *iter, int modelColumn, Gtk
 		editable = g_value_get_int(&value) != 0;
 		g_value_unset(&value);
 	}
-	g_object_set(r, "editable", editable, NULL);
+	g_object_set(r, prop, editable, NULL);
 }
 
 static void applyBackgroundColor(uiTable *t, GtkTreeModel *m, GtkTreeIter *iter, GtkCellRenderer *r)

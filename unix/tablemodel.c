@@ -100,22 +100,22 @@ static void uiTableModel_get_value(GtkTreeModel *mm, GtkTreeIter *iter, gint col
 	row = GPOINTER_TO_INT(iter->user_data);
 	data = (*(m->mh->CellValue))(m->mh, m, row, column);
 	switch ((*(m->mh->ColumnType))(m->mh, m, column)) {
-	case uiTableModelColumnString:
+	case uiTableDataTypeString:
 		g_value_init(value, G_TYPE_STRING);
 		g_value_set_string(value, uiTableDataString(data));
 		uiFreeTableData(data);
 		return;
-	case uiTableModelColumnImage:
+	case uiTableDataTypeImage:
 		g_value_init(value, G_TYPE_POINTER);
 		g_value_set_pointer(value, uiTableDataImage(data));
 		uiFreeTableData(data);
 		return;
-	case uiTableModelColumnInt:
+	case uiTableDataTypeInt:
 		g_value_init(value, G_TYPE_INT);
 		g_value_set_int(value, uiTableDataInt(data));
 		uiFreeTableData(data);
 		return;
-	case uiTableModelColumnColor:
+	case uiTableDataTypeColor:
 		g_value_init(value, GDK_TYPE_RGBA);
 		if (data == NULL) {
 			g_value_set_boxed(value, NULL);

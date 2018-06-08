@@ -2,7 +2,7 @@
 
 struct uiTableModel {
 	uiTableModelHandler *mh;
-	std::vector<uiTable *> tables;
+	std::vector<uiTable *> *tables;
 };
 
 struct uiTableColumn {
@@ -16,31 +16,23 @@ struct uiTable {
 	uiWindowsControl c;
 	uiTableModel *model;
 	HWND hwnd;
-	std::vector<uiTableColumn *> columns;
+	std::vector<uiTableColumn *> *columns;
 };
-
-void *uiTableModelStrdup(const char *str)
-{
-	return strdup(str);
-}
-
-void *uiTableModelGiveColor(double r, double g, double b, double a)
-{
-	return 0;	// not implemented
-}
 
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 {
 	uiTableModel *m;
 
-	m = new uiTableModel();
+	m = uiprivNew(uiTableModel);
 	m->mh = mh;
+	m->tables = new std::vector<uiTable *>;
 	return m;
 }
 
 void uiFreeTableModel(uiTableModel *m)
 {
-	delete m;
+	delete m->tables;
+	uiprivFree(m);
 }
 
 void uiTableModelRowInserted(uiTableModel *m, int newIndex)
@@ -51,21 +43,21 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 	item.mask = 0;
 	item.iItem = newIndex;
 	item.iSubItem = 0;
-	for (auto t : m->tables)
+	for (auto t : *(m->tables))
 		if (SendMessageW(t->hwnd, LVM_INSERTITEM, 0, (LPARAM) (&item)) == (LRESULT) (-1))
 			logLastError(L"error calling LVM_INSERTITEM in uiTableModelRowInserted()");
 }
 
 void uiTableModelRowChanged(uiTableModel *m, int index)
 {
-	for (auto t : m->tables)
+	for (auto t : *(m->tables))
 		if (SendMessageW(t->hwnd, LVM_UPDATE, (WPARAM) index, 0) == (LRESULT) (-1))
 			logLastError(L"error calling LVM_UPDATE in uiTableModelRowChanged()");
 }
 
 void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 {
-	for (auto t : m->tables)
+	for (auto t : *(m->tables))
 		if (SendMessageW(t->hwnd, LVM_DELETEITEM, (WPARAM) oldIndex, 0) == (LRESULT) (-1))
 			logLastError(L"error calling LVM_DELETEITEM in uiTableModelRowDeleted()");
 }
@@ -81,7 +73,7 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 	c->modelColumn = modelColumn;
 
 	// work out appropriate listview index for the column
-	for (auto candidate : t->columns) {
+	for (auto candidate : *(t->columns)) {
 		if (candidate == c)
 			break;
 		if (candidate->modelColumn >= 0)
@@ -140,7 +132,7 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 	c->t = t;
 	c->modelColumn = -1;	// -1 = unassigned
 	// we defer the actual ListView_InsertColumn call until a part is added...
-	t->columns.push_back(c);
+	t->columns->push_back(c);
 	return c;
 }
 
@@ -165,11 +157,11 @@ static void uiTableDestroy(uiControl *c)
 		}
 	}
 	// free the columns
-	for (auto col : t->columns) {
+	for (auto col : *(t->columns)) {
 		uiprivFree(col->name);
 		uiprivFree(col);
 	}
-	t->columns.~vector<uiTableColumn *>();	// (created with placement new, so just call dtor directly)
+	delete t->columns;
 	uiFreeControl(uiControl(t));
 }
 
@@ -217,9 +209,9 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 			break;
 		row = item->iItem;
 		col = item->iSubItem;
-		if (col < 0 || col >= (int)t->columns.size())
+		if (col < 0 || col >= (int)t->columns->size())
 			break;
-		tc = (uiTableColumn *)t->columns[col];
+		tc = (uiTableColumn *)t->columns->at(col);
 		mcol = tc->modelColumn;
 		typ = (*mh->ColumnType)(mh, t->model, mcol);
 
@@ -247,7 +239,8 @@ uiTable *uiNewTable(uiTableModel *model)
 	int n;
 
 	uiWindowsNewControl(uiTable, t);
-	new(&t->columns) std::vector<uiTableColumn *>();		// (initialising in place)
+
+	t->columns = new std::vector<uiTableColumn *>;
 	t->model = model;
 	t->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		WC_LISTVIEW, L"",

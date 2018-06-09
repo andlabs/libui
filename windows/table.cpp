@@ -5,18 +5,19 @@ struct uiTableModel {
 	std::vector<uiTable *> *tables;
 };
 
-struct uiTableColumn {
-	uiTable *t;
-	WCHAR *name;
-	// don't really support parts (but this would part=>column mappings if we did)
-	int modelColumn;	// -1 = none
+struct columnParams {
+	int textModelColumn;
+	int textEditableColumn;
 };
 
 struct uiTable {
 	uiWindowsControl c;
 	uiTableModel *model;
 	HWND hwnd;
-	std::vector<uiTableColumn *> *columns;
+	std::vector<struct columnParam *> *columns;
+	// MSDN says we have to keep LVN_GETDISPINFO strings we allocate around at least until "two additional LVN_GETDISPINFO messages have been sent".
+	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
+	std::queue<WCHAR *> *dispinfoStrings;
 };
 
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
@@ -90,6 +91,93 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	}
 }
 
+static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
+{
+	struct columnParams *p;
+	uiTableData *data;
+	WCHAR *wstr;
+
+	wstr = t->dipsinfoString->front();
+	t->dispinfoString->pop();
+	uiprivFree(wstr);
+
+	p = (*(t->columns))[nm->item.iSubItem];
+	// TODO is this condition ever not going to be true for libui?
+	if ((nm->item.mask & LVIF_TEXT) != 0)
+		if (p->textModelColumn != -1) {
+			data = (*(t->model->mh->Value))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
+			wstr = toUTF16(uiTableDataString(data));
+			uiFreeTableData(data);
+			nm->item.pszText = wstr;
+			t->dispinfoString->push(wstr);
+		}
+
+	return 0;
+}
+
+static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
+{
+	uiTable *t = uiTable(c);
+	uiTableModelHandler *mh = t->model->mh;
+
+	switch (nmhdr->code) {
+	case LVN_GETDISPINFO:
+		*lResult = onLVN_GETDISPINFO(t, (NMLVDISPINFOW *) nmhdr);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+$ TODO ===================
+
+static void uiTableDestroy(uiControl *c)
+{
+	uiTable *t = uiTable(c);
+	uiTableModel *model = t->model;
+	std::vector<uiTable *>::iterator it;
+
+	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
+	uiWindowsEnsureDestroyWindow(t->hwnd);
+	// detach table from model
+	for (it = model->tables.begin(); it != model->tables.end(); it++) {
+		if (*it == t) {
+			model->tables.erase(it);
+			break;
+		}
+	}
+	// free the columns
+	for (auto col : *(t->columns)) {
+		uiprivFree(col->name);
+		uiprivFree(col);
+	}
+	delete t->columns;
+	uiFreeControl(uiControl(t));
+}
+
+uiWindowsControlAllDefaultsExceptDestroy(uiTable)
+
+// suggested listview sizing from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing:
+// "columns widths that avoid truncated data x an integral number of items"
+// Don't think that'll cut it when some cells have overlong data (eg
+// stupidly long URLs). So for now, just hardcode a minimum.
+// TODO: Investigate using LVM_GETHEADER/HDM_LAYOUT here...
+#define tableMinWidth 107		/* in line with other controls */
+#define tableMinHeight (14*3)	/* header + 2 lines (roughly) */
+
+static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height)
+{
+	uiTable *t = uiTable(c);
+	uiWindowsSizing sizing;
+	int x, y;
+
+	x = tableMinWidth;
+	y = tableMinHeight;
+	uiWindowsGetSizing(t->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	*width = x;
+	*height = y;
+}
+
 void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 {
 	uiTable *t = c->t;
@@ -117,39 +205,10 @@ void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
 		logLastError(L"error calling LVM_INSERTCOLUMN in uiTableColumnPartSetTextPart()");
 }
 
-void uiTableColumnAppendImagePart(uiTableColumn *c, int modelColumn, int expand)
-{
-	// not implemented
-}
-
-void uiTableColumnAppendButtonPart(uiTableColumn *c, int modelColumn, int expand)
-{
-	// not implemented
-}
-
-void uiTableColumnAppendCheckboxPart(uiTableColumn *c, int modelColumn, int expand)
-{
-	// not implemented
-}
-
-void uiTableColumnAppendProgressBarPart(uiTableColumn *c, int modelColumn, int expand)
-{
-	// not implemented
-}
-
 void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable)
 {
 	// TODO
 }
-
-void uiTableColumnPartSetTextColor(uiTableColumn *c, int part, int modelColumn)
-{
-	// not implemented
-}
-
-// uiTable implementation
-
-uiWindowsControlAllDefaultsExceptDestroy(uiTable)
 
 uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 {
@@ -167,98 +226,6 @@ uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
 void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 {
 	// not implemented
-}
-
-static void uiTableDestroy(uiControl *c)
-{
-	uiTable *t = uiTable(c);
-	uiTableModel *model = t->model;
-	std::vector<uiTable *>::iterator it;
-
-	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
-	uiWindowsEnsureDestroyWindow(t->hwnd);
-	// detach table from model
-	for (it = model->tables.begin(); it != model->tables.end(); it++) {
-		if (*it == t) {
-			model->tables.erase(it);
-			break;
-		}
-	}
-	// free the columns
-	for (auto col : *(t->columns)) {
-		uiprivFree(col->name);
-		uiprivFree(col);
-	}
-	delete t->columns;
-	uiFreeControl(uiControl(t));
-}
-
-// suggested listview sizing from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing:
-// "columns widths that avoid truncated data x an integral number of items"
-// Don't think that'll cut it when some cells have overlong data (eg
-// stupidly long URLs). So for now, just hardcode a minimum.
-// TODO: Investigate using LVM_GETHEADER/HDM_LAYOUT here...
-#define tableMinWidth 107		/* in line with other controls */
-#define tableMinHeight (14*3)	/* header + 2 lines (roughly) */
-
-static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height)
-{
-	uiTable *t = uiTable(c);
-	uiWindowsSizing sizing;
-	int x, y;
-
-	x = tableMinWidth;
-	y = tableMinHeight;
-	uiWindowsGetSizing(t->hwnd, &sizing);
-	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
-	*width = x;
-	*height = y;
-}
-
-static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
-{
-	uiTable *t = uiTable(c);
-	uiTableModelHandler *mh = t->model->mh;
-	BOOL ret = FALSE;
-
-	switch (nmhdr->code) {
-	case LVN_GETDISPINFO:
-	{
-		NMLVDISPINFOW *di;
-		LVITEMW *item;
-		int row, col;
-		uiTableColumn *tc;
-		int mcol;
-		uiTableModelColumnType typ;
-
-		di = (NMLVDISPINFOW *)nmhdr;
-		item = &(di->item);
-		if (!(item->mask & LVIF_TEXT))
-			break;
-		row = item->iItem;
-		col = item->iSubItem;
-		if (col < 0 || col >= (int)t->columns->size())
-			break;
-		tc = (uiTableColumn *)t->columns->at(col);
-		mcol = tc->modelColumn;
-		typ = (*mh->ColumnType)(mh, t->model, mcol);
-
-		if (typ == uiTableModelColumnString) {
-			void* data;
-			int n;
-
-			data = (*(mh->CellValue))(mh, t->model, row, mcol);
-			n = MultiByteToWideChar(CP_UTF8, 0, (const char *)data, -1, item->pszText, item->cchTextMax);
-			// make sure clipped strings are nul-terminated
-			if (n >= item->cchTextMax)
-				item->pszText[item->cchTextMax-1] = L'\0';
-		} else
-			item->pszText[0] = L'\0';
-		break;
-	}
-	}
-	*lResult = 0;
-	return ret;
 }
 
 uiTable *uiNewTable(uiTableModel *model)

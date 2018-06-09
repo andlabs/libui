@@ -416,6 +416,8 @@ uiTable *uiNewTable(uiTableModel *model)
 	t->backgroundColumn = -1;
 
 	// TODO update these when the DPI changes
+	// TODO handle errors
+	// TODO try adding a real transparent image
 	t->dummyLarge = ImageList_Create(
 		GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON),
 		ILC_COLOR32,

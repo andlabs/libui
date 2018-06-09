@@ -34,6 +34,7 @@ struct uiTable {
 	// MSDN says we have to keep LVN_GETDISPINFO strings we allocate around at least until "two additional LVN_GETDISPINFO messages have been sent".
 	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
 	std::queue<WCHAR *> *dispinfoStrings;
+	int backgroundColumn;
 };
 
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
@@ -109,7 +110,7 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 
 static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 {
-	struct columnParams *p;
+	static struct columnParams *p;
 	uiTableData *data;
 	WCHAR *wstr;
 	bool queueUpdated = false;
@@ -137,6 +138,67 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	return 0;
 }
 
+static COLORREF blend(COLORREF base, double r, double g, double b, double a)
+{
+	double br, bg, bb;
+
+	// TODO find a better fix than this; is listview already alphablending?
+	if (base != 0xFF000000) {
+		br = ((double) GetRValue(base)) / 255.0;
+		bg = ((double) GetGValue(base)) / 255.0;
+		bb = ((double) GetBValue(base)) / 255.0;
+	} else {
+		// TODO find the right color here
+		br = 1.0;
+		bg = 1.0;
+		bb = 1.0;
+	}
+
+	br = (r * a) + (br * (1.0 - a));
+	bg = (g * a) + (bg * (1.0 - a));
+	bb = (b * a) + (bb * (1.0 - a));
+	return RGB((BYTE) (br * 255),
+		(BYTE) (bg * 255),
+		(BYTE) (bb * 255));
+}
+
+static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
+{
+	struct columnParams *p;
+	uiTableData *data;
+	double r, g, b, a;
+	LRESULT ret;
+
+	switch (nm->nmcd.dwDrawStage) {
+	case CDDS_PREPAINT:
+		return CDRF_NOTIFYITEMDRAW;
+	case CDDS_ITEMPREPAINT:
+		if (t->backgroundColumn != -1) {
+			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, t->backgroundColumn);
+			if (data != NULL) {
+				uiTableDataColor(data, &r, &g, &b, &a);
+				uiFreeTableData(data);
+				nm->clrTextBk = blend(nm->clrTextBk, r, g, b, a);
+			}
+		}
+		return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
+	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
+		p = (*(t->columns))[nm->iSubItem];
+		if (p->textParams.ColorModelColumn != -1) {
+			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, p->textParams.ColorModelColumn);
+			if (data != NULL) {
+				uiTableDataColor(data, &r, &g, &b, &a);
+				uiFreeTableData(data);
+				// TODO the fallback here isn't correct
+				nm->clrText = blend(nm->clrText, r, g, b, a);
+			}
+		}
+		// TODO this keeps the color for the rest of the row
+		return CDRF_NEWFONT;
+	}
+	return CDRF_DODEFAULT;
+}
+
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 {
 	uiTable *t = uiTable(c);
@@ -144,6 +206,9 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 	switch (nmhdr->code) {
 	case LVN_GETDISPINFO:
 		*lResult = onLVN_GETDISPINFO(t, (NMLVDISPINFOW *) nmhdr);
+		return TRUE;
+	case NM_CUSTOMDRAW:
+		*lResult = onNM_CUSTOMDRAW(t, (NMLVCUSTOMDRAW *) nmhdr);
 		return TRUE;
 	}
 	return FALSE;
@@ -295,7 +360,9 @@ void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonTextModel
 
 void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 {
-	// not implemented
+	// TODO make the names consistent
+	t->backgroundColumn = modelColumn;
+	// TODO redraw?
 }
 
 uiTable *uiNewTable(uiTableModel *model)
@@ -328,6 +395,8 @@ uiTable *uiNewTable(uiTableModel *model)
 	t->dispinfoStrings->push(NULL);
 	t->dispinfoStrings->push(NULL);
 	t->dispinfoStrings->push(NULL);
+
+	t->backgroundColumn = -1;
 
 	return t;
 }

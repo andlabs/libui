@@ -141,6 +141,14 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 		if (p->imageModelColumn != -1)
 			nm->item.iImage = 0;
 
+	// having an image list always leaves space for an image on the main item :|
+	// other places on the internet imply that you should be able to do this but that it shouldn't work
+	// but it works perfectly (and pixel-perfectly too) for me, so...
+	if (nm->item.iSubItem == 0 && p->imageModelColumn == -1) {
+		nm->item.mask |= LVIF_INDENT;
+		nm->item.iIndent = -1;
+	}
+
 	// we don't want to pop from an empty queue, so if nothing updated the queue (no info was filled in above), just push NULL
 	if (!queueUpdated)
 		t->dispinfoStrings->push(NULL);

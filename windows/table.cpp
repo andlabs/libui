@@ -37,6 +37,8 @@ struct uiTable {
 	int backgroundColumn;
 
 	// custom draw state
+	HIMAGELIST dummyLarge;
+	HIMAGELIST dummySmall;
 	COLORREF clrItemText;
 };
 
@@ -137,7 +139,7 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 
 	if ((nm->item.mask & LVIF_IMAGE) != 0)
 		if (p->imageModelColumn != -1)
-			nm->item.iImage = 1;
+			nm->item.iImage = 0;
 
 	// we don't want to pop from an empty queue, so if nothing updated the queue (no info was filled in above), just push NULL
 	if (!queueUpdated)
@@ -152,7 +154,7 @@ static COLORREF blend(COLORREF base, double r, double g, double b, double a)
 	// TODO find a better fix than this
 	// TODO s listview already alphablending?
 	// TODO find the right color here
-	if (base == 0xFF000000)
+	if (base == CLR_DEFAULT)
 		base = GetSysColor(COLOR_WINDOW);
 	br = ((double) GetRValue(base)) / 255.0;
 	bg = ((double) GetGValue(base)) / 255.0;
@@ -199,6 +201,7 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 				nm->clrText = blend(nm->clrTextBk, r, g, b, a);
 			}
 		}
+		// TODO draw background on image columns if needed
 		return CDRF_NEWFONT;
 	}
 	return CDRF_DODEFAULT;
@@ -247,6 +250,7 @@ static void uiTableDestroy(uiControl *c)
 	for (auto col : *(t->columns))
 		uiprivFree(col);
 	delete t->columns;
+	// t->dummyLarge and t->dummySmall will be automatically destroyed
 	uiFreeControl(uiControl(t));
 }
 
@@ -402,6 +406,24 @@ uiTable *uiNewTable(uiTableModel *model)
 	t->dispinfoStrings->push(NULL);
 
 	t->backgroundColumn = -1;
+
+	// TODO update these when the DPI changes
+	t->dummyLarge = ImageList_Create(
+		GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON),
+		ILC_COLOR32,
+		1, 0);
+	if (t->dummyLarge == NULL)
+		logLastError(L"error calling ImageList_Create() for dummy large image list in uiNewTable()");
+	// TODO will this return NULL here because it's an initial state?
+	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_NORMAL, (LPARAM) (t->dummyLarge));
+	t->dummySmall = ImageList_Create(
+		GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
+		ILC_COLOR32,
+		1, 0);
+	if (t->dummySmall == NULL)
+		logLastError(L"error calling ImageList_Create() for dummy small image list in uiNewTable()");
+	// TODO will this return NULL here because it's an initial state?
+	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->dummySmall));
 
 	return t;
 }

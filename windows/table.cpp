@@ -35,6 +35,9 @@ struct uiTable {
 	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
 	std::queue<WCHAR *> *dispinfoStrings;
 	int backgroundColumn;
+
+	// custom draw state
+	COLORREF clrItemText;
 };
 
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
@@ -132,6 +135,10 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 			queueUpdated = true;
 		}
 
+	if ((nm->item.mask & LVIF_IMAGE) != 0)
+		if (p->imageModelColumn != -1)
+			nm->item.iImage = 1;
+
 	// we don't want to pop from an empty queue, so if nothing updated the queue (no info was filled in above), just push NULL
 	if (!queueUpdated)
 		t->dispinfoStrings->push(NULL);
@@ -142,17 +149,14 @@ static COLORREF blend(COLORREF base, double r, double g, double b, double a)
 {
 	double br, bg, bb;
 
-	// TODO find a better fix than this; is listview already alphablending?
-	if (base != 0xFF000000) {
-		br = ((double) GetRValue(base)) / 255.0;
-		bg = ((double) GetGValue(base)) / 255.0;
-		bb = ((double) GetBValue(base)) / 255.0;
-	} else {
-		// TODO find the right color here
-		br = 1.0;
-		bg = 1.0;
-		bb = 1.0;
-	}
+	// TODO find a better fix than this
+	// TODO s listview already alphablending?
+	// TODO find the right color here
+	if (base == 0xFF000000)
+		base = GetSysColor(COLOR_WINDOW);
+	br = ((double) GetRValue(base)) / 255.0;
+	bg = ((double) GetGValue(base)) / 255.0;
+	bb = ((double) GetBValue(base)) / 255.0;
 
 	br = (r * a) + (br * (1.0 - a));
 	bg = (g * a) + (bg * (1.0 - a));
@@ -181,19 +185,20 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 				nm->clrTextBk = blend(nm->clrTextBk, r, g, b, a);
 			}
 		}
+		t->clrItemText = nm->clrText;
 		return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		p = (*(t->columns))[nm->iSubItem];
+		// we need this as previous subitems will persist their colors
+		nm->clrText = t->clrItemText;
 		if (p->textParams.ColorModelColumn != -1) {
 			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, p->textParams.ColorModelColumn);
 			if (data != NULL) {
 				uiTableDataColor(data, &r, &g, &b, &a);
 				uiFreeTableData(data);
-				// TODO the fallback here isn't correct
-				nm->clrText = blend(nm->clrText, r, g, b, a);
+				nm->clrText = blend(nm->clrTextBk, r, g, b, a);
 			}
 		}
-		// TODO this keeps the color for the rest of the row
 		return CDRF_NEWFONT;
 	}
 	return CDRF_DODEFAULT;
@@ -318,7 +323,7 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 {
 	struct columnParams *p;
 
-	p = appendColumn(t, name, LVCFMT_LEFT | LVCFMT_IMAGE);
+	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->textModelColumn = textModelColumn;
 	p->textEditableColumn = textEditableModelColumn;
 	if (textParams != NULL)
@@ -384,8 +389,8 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	// TODO: try LVS_EX_AUTOSIZECOLUMNS
 	SendMessageW(t->hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE,
-		(WPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP),
-		(LPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP));
+		(WPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_SUBITEMIMAGES),
+		(LPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_SUBITEMIMAGES));
 	n = (*(model->mh->NumRows))(model->mh, model);
 	if (SendMessageW(t->hwnd, LVM_SETITEMCOUNT, (WPARAM) n, 0) == 0)
 		logLastError(L"error calling LVM_SETITEMCOUNT in uiNewTable()");

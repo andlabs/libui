@@ -5,9 +5,24 @@ struct uiTableModel {
 	std::vector<uiTable *> *tables;
 };
 
+static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
+	.ColorModelColumn = -1,
+};
+
 struct columnParams {
 	int textModelColumn;
 	int textEditableColumn;
+	uiTableTextColumnOptionalParams textParams;
+
+	int imageModelColumn;
+
+	int checkboxModelColumn;
+	int checkboxEditableModelColumn;
+
+	int progressBarModelColumn;
+
+	int buttonModelColumn;
+	int buttonClickableModelColumn;
 };
 
 struct uiTable {
@@ -15,6 +30,7 @@ struct uiTable {
 	uiTableModel *model;
 	HWND hwnd;
 	std::vector<struct columnParam *> *columns;
+	WPARAM nColumns;
 	// MSDN says we have to keep LVN_GETDISPINFO strings we allocate around at least until "two additional LVN_GETDISPINFO messages have been sent".
 	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
 	std::queue<WCHAR *> *dispinfoStrings;
@@ -98,8 +114,9 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	WCHAR *wstr;
 
 	wstr = t->dipsinfoString->front();
+	if (wstr != NULL)
+		uiprivFree(wstr);
 	t->dispinfoString->pop();
-	uiprivFree(wstr);
 
 	p = (*(t->columns))[nm->item.iSubItem];
 	// TODO is this condition ever not going to be true for libui?
@@ -128,28 +145,33 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 	return FALSE;
 }
 
-$ TODO ===================
-
 static void uiTableDestroy(uiControl *c)
 {
 	uiTable *t = uiTable(c);
 	uiTableModel *model = t->model;
 	std::vector<uiTable *>::iterator it;
+	WCHAR *wstr;
 
 	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
 	uiWindowsEnsureDestroyWindow(t->hwnd);
 	// detach table from model
 	for (it = model->tables.begin(); it != model->tables.end(); it++) {
 		if (*it == t) {
-			model->tables.erase(it);
+			model->tables->erase(it);
 			break;
 		}
 	}
-	// free the columns
-	for (auto col : *(t->columns)) {
-		uiprivFree(col->name);
-		uiprivFree(col);
+	// empty the string queue
+	while (t->dispinfoStrings->size() != 0) {
+		wstr = t->dispinfoStrings->front();
+		if (wstr != NULL)
+			uiprivFree(wstr);
+		t->dispinfoStrings->pop();
 	}
+	delete t->dispinfoStrings;
+	// free the columns
+	for (auto col : *(t->columns))
+		uiprivFree(col);
 	delete t->columns;
 	uiFreeControl(uiControl(t));
 }
@@ -162,7 +184,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiTable)
 // stupidly long URLs). So for now, just hardcode a minimum.
 // TODO: Investigate using LVM_GETHEADER/HDM_LAYOUT here...
 #define tableMinWidth 107		/* in line with other controls */
-#define tableMinHeight (14*3)	/* header + 2 lines (roughly) */
+#define tableMinHeight (14 * 3)	/* header + 2 lines (roughly) */
 
 static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
@@ -176,51 +198,97 @@ static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height)
 	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
 	*width = x;
 	*height = y;
-}
+}'
 
-void uiTableColumnAppendTextPart(uiTableColumn *c, int modelColumn, int expand)
+$ TODO ===================
+
+static struct columnParams *appendColumn(uiTable *t, const char *name, int colfmt)
 {
-	uiTable *t = c->t;
-	int lvIndex = 0;
+	WCHAR *wstr;
 	LVCOLUMNW lvc;
-
-	if (c->modelColumn >= 0)
-		return; // multiple parts not implemented
-	c->modelColumn = modelColumn;
-
-	// work out appropriate listview index for the column
-	for (auto candidate : *(t->columns)) {
-		if (candidate == c)
-			break;
-		if (candidate->modelColumn >= 0)
-			lvIndex++;
-	}
+	struct columnParams *p;
 
 	ZeroMemory(&lvc, sizeof (LVCOLUMNW));
-	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT;	/* | LVCF_SUBITEM; */
-	lvc.fmt = LVCFMT_LEFT;
-	lvc.cx = 120;	// TODO
-	lvc.pszText = c->name;
-	if (SendMessageW(c->t->hwnd, LVM_INSERTCOLUMN, (WPARAM) lvIndex, (LPARAM) (&lvc)) == (LRESULT) (-1))
-		logLastError(L"error calling LVM_INSERTCOLUMN in uiTableColumnPartSetTextPart()");
+	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT;
+	lvc.fmt = colfmt;
+	lvc.cx = 120;			// TODO
+	wstr = toUTF16(name);
+	lvc.pszText = wstr;
+	if (SendMessageW(t->hwnd, LVM_INSERTCOLUMNW, t->nColumns, (LPARAM) (&lvc)) == (LRESULT) (-1))
+		logLastError(L"error calling LVM_INSERTCOLUMNW in appendColumn()");
+	uiprivFree(wstr);
+	t->nColumns++;
+
+	p = uiprivNew(struct columnParams);
+	p->textModelColumn = -1;
+	p->imageModelColumn = -1;
+	p->checkboxModelColumn = -1;
+	p->progressBarModelColumn = -1;
+	p->buttonModelColumn = -1;
+	t->columns->push_back(p);
+	return p;
 }
 
-void uiTableColumnPartSetEditable(uiTableColumn *c, int part, int editable)
+void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
+{
+	struct columnParams *p;
+
+	p = appendColumn(t, name, LVCFMT_LEFT);
+	p->textModelColumn = textModelColumn;
+	p->textEditableColumn = textEditableModelColumn;
+	if (params != NULL)
+		p->textParams = *params;
+	else
+		p->textParams = defaultTextColumnOptionalParams;
+}
+
+void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn)
 {
 	// TODO
 }
 
-uiTableColumn *uiTableAppendColumn(uiTable *t, const char *name)
+void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
 {
-	uiTableColumn *c;
-   
-	c = uiprivNew(uiTableColumn);
-	c->name = toUTF16(name);
-	c->t = t;
-	c->modelColumn = -1;	// -1 = unassigned
-	// we defer the actual ListView_InsertColumn call until a part is added...
-	t->columns->push_back(c);
-	return c;
+	struct columnParams *p;
+
+	p = appendColumn(t, name, LVCFMT_LEFT | LVCFMT_IMAGE);
+	p->textModelColumn = textModelColumn;
+	p->textEditableColumn = textEditableModelColumn;
+	if (params != NULL)
+		p->textParams = *params;
+	else
+		p->textParams = defaultTextColumnOptionalParams;
+	p->imageModelColumn = imageModelColumn;
+}
+
+void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn)
+{
+	// TODO
+}
+
+void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
+{
+	struct columnParams *p;
+
+	p = appendColumn(t, name, LVCFMT_LEFT);
+	p->textModelColumn = textModelColumn;
+	p->textEditableColumn = textEditableModelColumn;
+	if (params != NULL)
+		p->textParams = *params;
+	else
+		p->textParams = defaultTextColumnOptionalParams;
+	p->checkboxModelColumn = checkboxModelColumn;
+	p->checkboxEditableColumn = checkboxEditableModelColumn;
+}
+
+void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressModelColumn)
+{
+	// TODO
+}
+
+void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonTextModelColumn, int buttonClickableModelColumn)
+{
+	// TODO
 }
 
 void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
@@ -254,4 +322,3 @@ uiTable *uiNewTable(uiTableModel *model)
 		logLastError(L"error calling LVM_SETITEMCOUNT in uiNewTable()");
 	return t;
 }
-

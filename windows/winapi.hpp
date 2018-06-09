@@ -57,4 +57,5 @@
 #include <unordered_map>
 #include <sstream>
 #include <functional>
+#include <queue>
 #endif

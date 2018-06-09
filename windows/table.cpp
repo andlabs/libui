@@ -6,7 +6,7 @@ struct uiTableModel {
 };
 
 static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
-	.ColorModelColumn = -1,
+	/*TODO.ColorModelColumn = */-1,
 };
 
 struct columnParams {
@@ -17,7 +17,7 @@ struct columnParams {
 	int imageModelColumn;
 
 	int checkboxModelColumn;
-	int checkboxEditableModelColumn;
+	int checkboxEditableColumn;
 
 	int progressBarModelColumn;
 
@@ -29,7 +29,7 @@ struct uiTable {
 	uiWindowsControl c;
 	uiTableModel *model;
 	HWND hwnd;
-	std::vector<struct columnParam *> *columns;
+	std::vector<struct columnParams *> *columns;
 	WPARAM nColumns;
 	// MSDN says we have to keep LVN_GETDISPINFO strings we allocate around at least until "two additional LVN_GETDISPINFO messages have been sent".
 	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
@@ -113,20 +113,20 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	uiTableData *data;
 	WCHAR *wstr;
 
-	wstr = t->dipsinfoString->front();
+	wstr = t->dispinfoStrings->front();
 	if (wstr != NULL)
 		uiprivFree(wstr);
-	t->dispinfoString->pop();
+	t->dispinfoStrings->pop();
 
 	p = (*(t->columns))[nm->item.iSubItem];
 	// TODO is this condition ever not going to be true for libui?
 	if ((nm->item.mask & LVIF_TEXT) != 0)
 		if (p->textModelColumn != -1) {
-			data = (*(t->model->mh->Value))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
+			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
 			wstr = toUTF16(uiTableDataString(data));
 			uiFreeTableData(data);
 			nm->item.pszText = wstr;
-			t->dispinfoString->push(wstr);
+			t->dispinfoStrings->push(wstr);
 		}
 
 	return 0;
@@ -135,7 +135,6 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 {
 	uiTable *t = uiTable(c);
-	uiTableModelHandler *mh = t->model->mh;
 
 	switch (nmhdr->code) {
 	case LVN_GETDISPINFO:
@@ -155,7 +154,7 @@ static void uiTableDestroy(uiControl *c)
 	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
 	uiWindowsEnsureDestroyWindow(t->hwnd);
 	// detach table from model
-	for (it = model->tables.begin(); it != model->tables.end(); it++) {
+	for (it = model->tables->begin(); it != model->tables->end(); it++) {
 		if (*it == t) {
 			model->tables->erase(it);
 			break;
@@ -252,8 +251,8 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 	p = appendColumn(t, name, LVCFMT_LEFT | LVCFMT_IMAGE);
 	p->textModelColumn = textModelColumn;
 	p->textEditableColumn = textEditableModelColumn;
-	if (params != NULL)
-		p->textParams = *params;
+	if (textParams != NULL)
+		p->textParams = *textParams;
 	else
 		p->textParams = defaultTextColumnOptionalParams;
 	p->imageModelColumn = imageModelColumn;
@@ -271,8 +270,8 @@ void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxM
 	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->textModelColumn = textModelColumn;
 	p->textEditableColumn = textEditableModelColumn;
-	if (params != NULL)
-		p->textParams = *params;
+	if (textParams != NULL)
+		p->textParams = *textParams;
 	else
 		p->textParams = defaultTextColumnOptionalParams;
 	p->checkboxModelColumn = checkboxModelColumn;
@@ -301,14 +300,14 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	uiWindowsNewControl(uiTable, t);
 
-	t->columns = new std::vector<uiTableColumn *>;
+	t->columns = new std::vector<struct columnParams *>;
 	t->model = model;
 	t->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		WC_LISTVIEW, L"",
 		LVS_REPORT | LVS_OWNERDATA | LVS_SINGLESEL | WS_TABSTOP | WS_HSCROLL | WS_VSCROLL,
 		hInstance, NULL,
 		TRUE);
-	model->tables.push_back(t);
+	model->tables->push_back(t);
 	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
 
 	// TODO: try LVS_EX_AUTOSIZECOLUMNS
@@ -318,5 +317,12 @@ uiTable *uiNewTable(uiTableModel *model)
 	n = (*(model->mh->NumRows))(model->mh, model);
 	if (SendMessageW(t->hwnd, LVM_SETITEMCOUNT, (WPARAM) n, 0) == 0)
 		logLastError(L"error calling LVM_SETITEMCOUNT in uiNewTable()");
+
+	t->dispinfoStrings = new std::queue<WCHAR *>;
+	// this encodes the idea that two LVN_GETDISPINFOs must complete before we can free a string: the first real one is for the fourth call to free
+	t->dispinfoStrings->push(NULL);
+	t->dispinfoStrings->push(NULL);
+	t->dispinfoStrings->push(NULL);
+
 	return t;
 }

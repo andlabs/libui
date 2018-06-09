@@ -198,9 +198,7 @@ static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height)
 	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
 	*width = x;
 	*height = y;
-}'
-
-$ TODO ===================
+}
 
 static struct columnParams *appendColumn(uiTable *t, const char *name, int colfmt)
 {

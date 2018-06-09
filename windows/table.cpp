@@ -112,6 +112,7 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	struct columnParams *p;
 	uiTableData *data;
 	WCHAR *wstr;
+	bool queueUpdated = false;
 
 	wstr = t->dispinfoStrings->front();
 	if (wstr != NULL)
@@ -127,8 +128,12 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 			uiFreeTableData(data);
 			nm->item.pszText = wstr;
 			t->dispinfoStrings->push(wstr);
+			queueUpdated = true;
 		}
 
+	// we don't want to pop from an empty queue, so if nothing updated the queue (no info was filled in above), just push NULL
+	if (!queueUpdated)
+		t->dispinfoStrings->push(NULL);
 	return 0;
 }
 

@@ -37,6 +37,8 @@
 #ifndef RC_INVOKED
 #include <commctrl.h>
 #include <uxtheme.h>
+#include <vsstyle.h>
+#include <vssym32.h>
 #include <windowsx.h>
 #include <shobjidl.h>
 #include <d2d1.h>

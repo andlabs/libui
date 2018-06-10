@@ -104,7 +104,10 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 	return S_OK;
 }
 
-// see https://blogs.msdn.microsoft.com/oldnewthing/20171129-00/?p=97485
+// references for checkbox drawing:
+// - https://blogs.msdn.microsoft.com/oldnewthing/20171129-00/?p=97485
+// - https://blogs.msdn.microsoft.com/oldnewthing/20171201-00/?p=97505
+
 static UINT unthemedStates[] = {
 	0,
 	DFCS_CHECKED,
@@ -112,11 +115,16 @@ static UINT unthemedStates[] = {
 	DFCS_CHECKED | DFCS_INACTIVE,
 };
 
-// TODO call this whenever either theme, system colors (maybe? TODO), or DPI change
+static int themedStates[] = {
+	CBS_UNCHECKEDNORMAL,
+	CBS_CHECKEDNORMAL,
+	CBS_UNCHECKEDDISABLED,
+	CBS_CHECKEDDISABLED,
+};
+
 // TODO properly clean up on failure
-static HRESULT mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
+static HRESULT mkCheckboxes(uiTable *t, HTHEME theme, HDC dc, int cxList, int cyList, int cxCheck, int cyCheck)
 {
-	HDC dc;
 	BITMAPINFO bmi;
 	HBITMAP b;
 	VOID *bits;
@@ -124,16 +132,12 @@ static HRESULT mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
 	HBITMAP prevBitmap;
 	RECT r;
 	int i;
+	HRESULT hr;
 
-	dc = GetDC(t->hwnd);
-	if (dc == NULL) {
-		logLastError(L"GetDC()");
-		return E_FAIL;
-	}
 	ZeroMemory(&bmi, sizeof (BITMAPINFO));
 	bmi.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
-	bmi.bmiHeader.biWidth = cx * nCheckboxImages;
-	bmi.bmiHeader.biHeight = cy;
+	bmi.bmiHeader.biWidth = cxList * nCheckboxImages;
+	bmi.bmiHeader.biHeight = cyList;
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
@@ -157,29 +161,54 @@ static HRESULT mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
 
 	// the actual list view LVS_EX_CHECKBOXES code does this to ensure the entire image is valid, not just the parts that are drawn after resizing
 	// TODO find a better, alpha-friendly way to do this
-	r.left = 0;
-	r.top = 0;
-	r.right = cx * nCheckboxImages;
-	r.bottom = cy;
-	FillRect(cdc, &r, GetSysColorBrush(COLOR_WINDOW));
+	// note that the actual list view does this only if unthemed, but it can get away with that since its image lists only contain checkmarks
+	// ours don't, so we have to compromise until the above TODO is resolved so we don't draw alpha stuff on top of garbage
+	if (theme == NULL || cxList != cxCheck || cyList != cyCheck) {
+		r.left = 0;
+		r.top = 0;
+		r.right = cxList * nCheckboxImages;
+		r.bottom = cyList;
+		FillRect(cdc, &r, GetSysColorBrush(COLOR_WINDOW));
+	}
 
 	r.left = 0;
 	r.top = 0;
-	r.right = cx;
-	r.bottom = cy;
-	// this is what the actual list view LVS_EX_CHECKBOXES code does to more correctly size the checkboxes
-	// TODO check errors
-	InflateRect(&r, -GetSystemMetrics(SM_CXEDGE), -GetSystemMetrics(SM_CYEDGE));
-	r.right++;
-	r.bottom++;
-	for (i = 0; i < nCheckboxImages; i++) {
-		if (DrawFrameControl(cdc, &r,
-			DFC_BUTTON, DFCS_BUTTONCHECK | DFCS_FLAT | unthemedStates[i]) == 0) {
-			logLastError(L"DrawFrameControl()");
-			return E_FAIL;
+	r.right = cxCheck;
+	r.bottom = cyCheck;
+	if (theme != NULL) {
+		// because we're not making an image list exactly the correct size, we'll need to manually position the checkbox correctly
+		// let's just center it for now
+		// TODO make sure this is correct...
+		r.left = (cxList - cxCheck) / 2;
+		r.top = (cyList - cyCheck) / 2;
+		r.right += r.left;
+		r.bottom += r.top;
+		for (i = 0; i < nCheckboxImages; i++) {
+			hr = DrawThemeBackground(theme, cdc,
+				BP_CHECKBOX, themedStates[i],
+				&r, NULL);
+			if (hr != S_OK) {
+				logHRESULT(L"DrawThemeBackground()", hr);
+				return hr;
+			}
+			r.left += cxList;
+			r.right += cxList;
 		}
-		r.left += cx;
-		r.right += cx;
+	} else {
+		// this is what the actual list view LVS_EX_CHECKBOXES code does to more correctly size the checkboxes
+		// TODO check errors
+		InflateRect(&r, -GetSystemMetrics(SM_CXEDGE), -GetSystemMetrics(SM_CYEDGE));
+		r.right++;
+		r.bottom++;
+		for (i = 0; i < nCheckboxImages; i++) {
+			if (DrawFrameControl(cdc, &r,
+				DFC_BUTTON, DFCS_BUTTONCHECK | DFCS_FLAT | unthemedStates[i]) == 0) {
+				logLastError(L"DrawFrameControl()");
+				return E_FAIL;
+			}
+			r.left += cxList;
+			r.right += cxList;
+		}
 	}
 
 	if (SelectObject(cdc, prevBitmap) != ((HGDIOBJ) b)) {
@@ -188,10 +217,6 @@ static HRESULT mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
 	}
 	if (DeleteDC(cdc) == 0) {
 		logLastError(L"DeleteDC()");
-		return E_FAIL;
-	}
-	if (ReleaseDC(t->hwnd, dc) == 0) {
-		logLastError(L"ReleaseDC()");
 		return E_FAIL;
 	}
 
@@ -208,12 +233,41 @@ static HRESULT mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
 // TODO run again when the DPI changes
 HRESULT uiprivTableSetupImagesCheckboxes(uiTable *t)
 {
-	int cx, cy;
+	HDC dc;
+	int cxList, cyList;
+	HTHEME theme;
+	SIZE sizeCheck;
+	HRESULT hr;
 
-	cx = GetSystemMetrics(SM_CXSMICON);
-	cy = GetSystemMetrics(SM_CYSMICON);
+	dc = GetDC(t->hwnd);
+	if (dc == NULL) {
+		logLastError(L"GetDC()");
+		return E_FAIL;
+	}
+
+	cxList = GetSystemMetrics(SM_CXSMICON);
+	cyList = GetSystemMetrics(SM_CYSMICON);
+	sizeCheck.cx = cxList;
+	sizeCheck.cy = cyList;
+	theme = OpenThemeData(t->hwnd, L"button");
+	if (theme != NULL) {
+		hr = GetThemePartSize(theme, dc,
+			BP_CHECKBOX, CBS_UNCHECKEDNORMAL,
+			NULL, TS_DRAW, &sizeCheck);
+		if (hr != S_OK) {
+			logHRESULT(L"GetThemePartSize()", hr);
+			return hr;			// TODO fall back?
+		}
+		// make sure these checkmarks fit
+		// unthemed checkmarks will by the code above be smaller than cxList/cyList here
+		if (cxList < sizeCheck.cx)
+			cxList = sizeCheck.cx;
+		if (cyList < sizeCheck.cy)
+			cyList = sizeCheck.cy;
+	}
+
 	// TODO handle errors
-	t->smallImages = ImageList_Create(cx, cy,
+	t->smallImages = ImageList_Create(cxList, cyList,
 		ILC_COLOR32,
 		nCheckboxImages + uiprivNumLVN_GETDISPINFOSkip, nCheckboxImages + uiprivNumLVN_GETDISPINFOSkip);
 	if (t->smallImages == NULL) {
@@ -222,5 +276,18 @@ HRESULT uiprivTableSetupImagesCheckboxes(uiTable *t)
 	}
 	// TODO will this return NULL here because it's an initial state?
 	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->smallImages));
-	return mkCheckboxesUnthemed(t, cx, cy);
+	hr = mkCheckboxes(t, theme, dc, cxList, cyList, sizeCheck.cx, sizeCheck.cy);
+	if (hr != S_OK)
+		return hr;
+
+	hr = CloseThemeData(theme);
+	if (hr != S_OK) {
+		logHRESULT(L"CloseThemeData()", hr);
+		return hr;
+	}
+	if (ReleaseDC(t->hwnd, dc) == 0) {
+		logLastError(L"ReleaseDC()");
+		return E_FAIL;
+	}
+	return S_OK;
 }

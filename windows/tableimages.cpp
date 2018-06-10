@@ -87,7 +87,7 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 		nm->item.mask |= LVIF_IMAGE;
 #endif
 		nm->item.mask |= LVIF_IMAGE;
-		nm->item.iImage = 1;
+		nm->item.iImage = nm->item.iItem % 4;
 		return S_OK;
 	}
 

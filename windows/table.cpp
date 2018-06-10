@@ -38,11 +38,15 @@ struct uiTable {
 	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
 	std::queue<WCHAR *> *dispinfoStrings;
 	// likewise here, though the docs aren't as clear
+	// TODO make sure what we're doing is even allowed
 	HIMAGELIST smallImages;
 	int smallIndex;
 
 	// custom draw state
 	COLORREF clrItemText;
+
+	// checkbox
+	HIMAGELIST checkboxImages;
 };
 
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
@@ -124,6 +128,7 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	HDC dc;
 	IWICBitmap *wb;
 	HBITMAP b;
+	int checked;
 	bool queueUpdated = false;
 
 	wstr = t->dispinfoStrings->front();
@@ -132,7 +137,7 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	t->dispinfoStrings->pop();
 
 	p = (*(t->columns))[nm->item.iSubItem];
-	// TODO is this condition ever not going to be true for libui?
+nm->item.pszText=L"abcdefg";
 	if ((nm->item.mask & LVIF_TEXT) != 0)
 		if (p->textModelColumn != -1) {
 			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
@@ -174,6 +179,21 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 		nm->item.mask |= LVIF_INDENT;
 		nm->item.iIndent = -1;
 	}
+
+	if ((nm->item.mask & LVIF_STATE) != 0)
+		if (p->checkboxModelColumn != -1) {
+			// TODO handle enabled
+			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
+			checked = uiTableDataInt(data) != 0;
+			uiFreeTableData(data);
+			nm->item.state = INDEXTOSTATEIMAGEMASK(1);
+			if (checked)
+				nm->item.state = INDEXTOSTATEIMAGEMASK(2);
+			nm->item.stateMask = LVIS_STATEIMAGEMASK;
+		} else {
+			nm->item.state = INDEXTOSTATEIMAGEMASK(0);
+			nm->item.stateMask = LVIS_STATEIMAGEMASK;
+		}
 
 	// we don't want to pop from an empty queue, so if nothing updated the queue (no info was filled in above), just push NULL
 	if (!queueUpdated)
@@ -285,6 +305,7 @@ static void uiTableDestroy(uiControl *c)
 		uiprivFree(col);
 	delete t->columns;
 	// t->smallImages will be automatically destroyed
+	// TODO will t->checkboxImages?
 	uiFreeControl(uiControl(t));
 }
 
@@ -331,8 +352,11 @@ static struct columnParams *appendColumn(uiTable *t, const char *name, int colfm
 
 	p = uiprivNew(struct columnParams);
 	p->textModelColumn = -1;
+	p->textEditableColumn = -1;
+	p->textParams = defaultTextColumnOptionalParams;
 	p->imageModelColumn = -1;
 	p->checkboxModelColumn = -1;
+	p->checkboxEditableColumn = -1;
 	p->progressBarModelColumn = -1;
 	p->buttonModelColumn = -1;
 	t->columns->push_back(p);
@@ -348,8 +372,6 @@ void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, 
 	p->textEditableColumn = textEditableModelColumn;
 	if (params != NULL)
 		p->textParams = *params;
-	else
-		p->textParams = defaultTextColumnOptionalParams;
 }
 
 void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn)
@@ -366,14 +388,16 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 	p->textEditableColumn = textEditableModelColumn;
 	if (textParams != NULL)
 		p->textParams = *textParams;
-	else
-		p->textParams = defaultTextColumnOptionalParams;
 	p->imageModelColumn = imageModelColumn;
 }
 
 void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn)
 {
-	// TODO
+	struct columnParams *p;
+
+	p = appendColumn(t, name, LVCFMT_LEFT);
+	p->checkboxModelColumn = checkboxModelColumn;
+	p->checkboxEditableColumn = checkboxEditableModelColumn;
 }
 
 void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
@@ -385,8 +409,6 @@ void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxM
 	p->textEditableColumn = textEditableModelColumn;
 	if (textParams != NULL)
 		p->textParams = *textParams;
-	else
-		p->textParams = defaultTextColumnOptionalParams;
 	p->checkboxModelColumn = checkboxModelColumn;
 	p->checkboxEditableColumn = checkboxEditableModelColumn;
 }
@@ -406,6 +428,83 @@ void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 	// TODO make the names consistent
 	t->backgroundColumn = modelColumn;
 	// TODO redraw?
+}
+
+// see https://blogs.msdn.microsoft.com/oldnewthing/20171129-00/?p=97485
+static UINT unthemedStates[] = {
+	0,
+	DFCS_CHECKED,
+	DFCS_INACTIVE,
+	DFCS_CHECKED | DFCS_INACTIVE,
+};
+
+// TODO call this whenever either theme, system colors (maybe? TODO), or DPI change
+static void mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
+{
+	HDC dc;
+	BITMAPINFO bmi;
+	HBITMAP b;
+	VOID *bits;
+	HDC cdc;
+	HBITMAP prevBitmap;
+	RECT r;
+	int i, n;
+
+	// + 1 because we can't actually use image index 0 — that index is used to mean "no state image" in LVITEMW
+	n = ARRAYSIZE(unthemedStates) + 1;
+
+	dc = GetDC(t->hwnd);
+	if (dc == NULL)
+		logLastError(L"error calling GetDC() in mkCheckboxesUnthemed()");
+	ZeroMemory(&bmi, sizeof (BITMAPINFO));
+	bmi.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
+	bmi.bmiHeader.biWidth = cx * n;
+	bmi.bmiHeader.biHeight = cy;
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biBitCount = 32;
+	bmi.bmiHeader.biCompression = BI_RGB;
+	b = CreateDIBSection(dc, &bmi, DIB_RGB_COLORS,
+		&bits, NULL, 0);
+	if (b == NULL)
+		logLastError(L"error calling CreateDIBSection() in mkCheckboxesUnthemed()");
+
+	cdc = CreateCompatibleDC(dc);
+	if (cdc == NULL)
+		logLastError(L"error calling CreateCompatibleDC() in mkCheckboxesUnthemed()");
+	// TODO error check
+	prevBitmap = (HBITMAP) SelectObject(cdc, b);
+
+	// note we start at cx to start at index 1
+	r.left = cx;
+	r.top = 0;
+	r.right = cx * 2;
+	r.bottom = cy;
+	for (i = 0; i < ARRAYSIZE(unthemedStates); i++) {
+		if (DrawFrameControl(cdc, &r,
+			DFC_BUTTON, DFCS_BUTTONCHECK | DFCS_FLAT | unthemedStates[i]) == 0)
+			logLastError(L"error calling DrawFrameControl() in mkCheckboxesUnthemed()");
+		r.left += cx;
+		r.right += cx;
+	}
+
+	// TODO error check
+	SelectObject(cdc, prevBitmap);
+	if (DeleteDC(cdc) == 0)
+		logLastError(L"error calling DeleteDC() in mkCheckboxesUnthemed()");
+	if (ReleaseDC(t->hwnd, dc) == 0)
+		logLastError(L"error calling ReleaseDC() in mkCheckboxesUnthemed()");
+
+	t->checkboxImages = ImageList_Create(cx, cy, ILC_COLOR32,
+		n, n);
+	if (t->checkboxImages == NULL)
+		logLastError(L"error calling ImageList_Create() in mkCheckboxesUnthemed()");
+	if (ImageList_Add(t->checkboxImages, b, NULL) == -1)
+		logLastError(L"error calling ImageList_Add() in mkCheckboxesUnthemed()");
+	// TODO will this return NULL here because it's an initial state?
+	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_STATE, (LPARAM) (t->checkboxImages));
+
+	// TODO error check
+	DeleteObject(b);
 }
 
 uiTable *uiNewTable(uiTableModel *model)
@@ -452,6 +551,11 @@ uiTable *uiNewTable(uiTableModel *model)
 		logLastError(L"error calling ImageList_Create() in uiNewTable()");
 	// TODO will this return NULL here because it's an initial state?
 	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->smallImages));
+
+	mkCheckboxesUnthemed(t, 16, 16);
+	// and we need to enable LVN_GETDISPINFO for states
+	if (SendMessageW(t->hwnd, LVM_SETCALLBACKMASK, LVIS_STATEIMAGEMASK, 0) == FALSE)
+		logLastError(L"error calling LVM_SETCALLBACKMASK in uiTableAdd()");
 
 	return t;
 }

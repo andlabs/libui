@@ -9,6 +9,9 @@ static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
 	/*TODO.ColorModelColumn = */-1,
 };
 
+#define nCheckboxImages 4
+#define nLVN_GETDISPINFOSkip 3
+
 struct columnParams {
 	int textModelColumn;
 	int textEditableColumn;
@@ -159,17 +162,13 @@ nm->item.pszText=L"abcdefg";
 			b = uiprivWICToGDI(wb, dc);
 			if (ReleaseDC(t->hwnd, dc) == 0)
 				logLastError(L"error calling ReleaseDC() in onLVN_GETDISPINFO()");
-			if (ImageList_GetImageCount(t->smallImages) <= t->smallIndex) {
-				if (ImageList_Add(t->smallImages, b, NULL) == -1)
-					logLastError(L"error calling ImageList_Add() in onLVN_GETDISPINFO()");
-			} else
-				if (ImageList_Replace(t->smallImages, t->smallIndex, b, NULL) == 0)
-					logLastError(L"error calling ImageList_Replace() in onLVN_GETDISPINFO()");
+			if (ImageList_Replace(t->smallImages, t->smallIndex + nCheckboxImages, b, NULL) == 0)
+				logLastError(L"error calling ImageList_Replace() in onLVN_GETDISPINFO()");
 			// TODO error check
 			DeleteObject(b);
-			nm->item.iImage = t->smallIndex;
+			nm->item.iImage = t->smallIndex + nCheckboxImages;
 			t->smallIndex++;
-			t->smallIndex %= 3;		// TODO don't hardcode this
+			t->smallIndex %= nLVN_GETDISPINFOSkip;
 		}
 
 	// having an image list always leaves space for an image on the main item :|
@@ -180,20 +179,16 @@ nm->item.pszText=L"abcdefg";
 		nm->item.iIndent = -1;
 	}
 
-	if ((nm->item.mask & LVIF_STATE) != 0)
-		if (p->checkboxModelColumn != -1) {
-			// TODO handle enabled
-			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
-			checked = uiTableDataInt(data) != 0;
-			uiFreeTableData(data);
-			nm->item.state = INDEXTOSTATEIMAGEMASK(1);
-			if (checked)
-				nm->item.state = INDEXTOSTATEIMAGEMASK(2);
-			nm->item.stateMask = LVIS_STATEIMAGEMASK;
-		} else {
-			nm->item.state = INDEXTOSTATEIMAGEMASK(0);
-			nm->item.stateMask = LVIS_STATEIMAGEMASK;
-		}
+	if (p->checkboxModelColumn != -1) {
+		// TODO handle enabled
+		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
+		checked = uiTableDataInt(data) != 0;
+		uiFreeTableData(data);
+		nm->item.iImage = 0;
+		if (checked)
+			nm->item.iImage = 1;
+		nm->item.mask |= LVIF_IMAGE;
+	}
 
 	// we don't want to pop from an empty queue, so if nothing updated the queue (no info was filled in above), just push NULL
 	if (!queueUpdated)
@@ -448,17 +443,14 @@ static void mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
 	HDC cdc;
 	HBITMAP prevBitmap;
 	RECT r;
-	int i, n;
-
-	// + 1 because we can't actually use image index 0 — that index is used to mean "no state image" in LVITEMW
-	n = ARRAYSIZE(unthemedStates) + 1;
+	int i;
 
 	dc = GetDC(t->hwnd);
 	if (dc == NULL)
 		logLastError(L"error calling GetDC() in mkCheckboxesUnthemed()");
 	ZeroMemory(&bmi, sizeof (BITMAPINFO));
 	bmi.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
-	bmi.bmiHeader.biWidth = cx * n;
+	bmi.bmiHeader.biWidth = cx * nCheckboxImages;
 	bmi.bmiHeader.biHeight = cy;
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
@@ -474,12 +466,11 @@ static void mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
 	// TODO error check
 	prevBitmap = (HBITMAP) SelectObject(cdc, b);
 
-	// note we start at cx to start at index 1
-	r.left = cx;
+	r.left = 0;
 	r.top = 0;
-	r.right = cx * 2;
+	r.right = cx;
 	r.bottom = cy;
-	for (i = 0; i < ARRAYSIZE(unthemedStates); i++) {
+	for (i = 0; i < nCheckboxImages; i++) {
 		if (DrawFrameControl(cdc, &r,
 			DFC_BUTTON, DFCS_BUTTONCHECK | DFCS_FLAT | unthemedStates[i]) == 0)
 			logLastError(L"error calling DrawFrameControl() in mkCheckboxesUnthemed()");
@@ -494,14 +485,8 @@ static void mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
 	if (ReleaseDC(t->hwnd, dc) == 0)
 		logLastError(L"error calling ReleaseDC() in mkCheckboxesUnthemed()");
 
-	t->checkboxImages = ImageList_Create(cx, cy, ILC_COLOR32,
-		n, n);
-	if (t->checkboxImages == NULL)
-		logLastError(L"error calling ImageList_Create() in mkCheckboxesUnthemed()");
-	if (ImageList_Add(t->checkboxImages, b, NULL) == -1)
-		logLastError(L"error calling ImageList_Add() in mkCheckboxesUnthemed()");
-	// TODO will this return NULL here because it's an initial state?
-	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_STATE, (LPARAM) (t->checkboxImages));
+	if (ImageList_Replace(t->smallImages, 0, b, NULL) == 0)
+		logLastError(L"error calling ImageList_Replace() in mkCheckboxesUnthemed()");
 
 	// TODO error check
 	DeleteObject(b);
@@ -511,6 +496,7 @@ uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;
 	int n;
+	int i;
 
 	uiWindowsNewControl(uiTable, t);
 
@@ -536,26 +522,21 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	t->dispinfoStrings = new std::queue<WCHAR *>;
 	// this encodes the idea that two LVN_GETDISPINFOs must complete before we can free a string: the first real one is for the fourth call to free
-	t->dispinfoStrings->push(NULL);
-	t->dispinfoStrings->push(NULL);
-	t->dispinfoStrings->push(NULL);
+	for (i = 0; i < nLVN_GETDISPINFOSkip; i++)
+		t->dispinfoStrings->push(NULL);
 
 	// TODO update these when the DPI changes
 	// TODO handle errors
-	// TODO try adding a real transparent image
 	t->smallImages = ImageList_Create(
 		GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
 		ILC_COLOR32,
-		0, 3);
+		nCheckboxImages + nLVN_GETDISPINFOSkip, nCheckboxImages + nLVN_GETDISPINFOSkip);
 	if (t->smallImages == NULL)
 		logLastError(L"error calling ImageList_Create() in uiNewTable()");
 	// TODO will this return NULL here because it's an initial state?
 	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->smallImages));
 
 	mkCheckboxesUnthemed(t, 16, 16);
-	// and we need to enable LVN_GETDISPINFO for states
-	if (SendMessageW(t->hwnd, LVM_SETCALLBACKMASK, LVIS_STATEIMAGEMASK, 0) == FALSE)
-		logLastError(L"error calling LVM_SETCALLBACKMASK in uiTableAdd()");
 
 	return t;
 }

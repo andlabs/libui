@@ -144,6 +144,8 @@ HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, LRES
 	uiprivTableColumnParams *p;
 	int index;
 	RECT r;
+	RECT cellRect;
+	LONG yoff;
 
 	if (nm->nmcd.dwDrawStage == (CDDS_SUBITEM | CDDS_ITEMPREPAINT)) {
 		*lResult |= CDRF_NOTIFYPOSTPAINT;
@@ -166,14 +168,23 @@ HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, LRES
 		logLastError(L"LVM_GETSUBITEMRECT");
 		return E_FAIL;
 	}
-#if 0
-	// TODO this is offset by one pixel on my system and everything I've found indicates this should not be happening???
+	// the real listview also does this :|
+	ZeroMemory(&cellRect, sizeof (RECT));
+	r.left = LVIR_BOUNDS;
+	r.top = nm->iSubItem;
+	if (SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&cellRect)) == 0) {
+		logLastError(L"LVM_GETSUBITEMRECT cell");
+		return E_FAIL;
+	}
+	yoff = ((cellRect.bottom - cellRect.top) - (r.bottom - r.top)) / 2;
+	r.top += yoff;
+	r.bottom += yoff;
+if ((nm->nmcd.dwItemSpec%2)==0)
 	if (ImageList_Draw(t->smallImages, index, nm->nmcd.hdc,
 		r.left, r.top, ILD_NORMAL) == 0) {
 		logLastError(L"ImageList_Draw()");
 		return E_FAIL;
 	}
-#endif
 	return S_OK;
 }
 

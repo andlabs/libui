@@ -47,9 +47,6 @@ struct uiTable {
 
 	// custom draw state
 	COLORREF clrItemText;
-
-	// checkbox
-	HIMAGELIST checkboxImages;
 };
 
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
@@ -300,7 +297,6 @@ static void uiTableDestroy(uiControl *c)
 		uiprivFree(col);
 	delete t->columns;
 	// t->smallImages will be automatically destroyed
-	// TODO will t->checkboxImages?
 	uiFreeControl(uiControl(t));
 }
 

@@ -121,6 +121,7 @@ IWICBitmap *uiprivImageAppropriateForDC(uiImage *i, HDC dc)
 }
 
 // TODO see if we can really pass NULL to CreateDIBSection()'s HDC parameter, and if so, use HBITMAPs before WIC maybe?
+// TODO this needs to actually scale down to fit if the image size isn't perfectly equal to a requested size I need to pass as a parameter here...
 HBITMAP uiprivWICToGDI(IWICBitmap *b, HDC dc)
 {
 	BITMAPINFO bmi;

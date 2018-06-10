@@ -31,14 +31,17 @@ struct uiTable {
 	HWND hwnd;
 	std::vector<struct columnParams *> *columns;
 	WPARAM nColumns;
+	int backgroundColumn;
+
+	// owner data state
 	// MSDN says we have to keep LVN_GETDISPINFO strings we allocate around at least until "two additional LVN_GETDISPINFO messages have been sent".
 	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
 	std::queue<WCHAR *> *dispinfoStrings;
-	int backgroundColumn;
+	// likewise here, though the docs aren't as clear
+	HIMAGELIST smallImages;
+	int smallIndex;
 
 	// custom draw state
-	HIMAGELIST dummyLarge;
-	HIMAGELIST dummySmall;
 	COLORREF clrItemText;
 };
 
@@ -118,6 +121,9 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	static struct columnParams *p;
 	uiTableData *data;
 	WCHAR *wstr;
+	HDC dc;
+	IWICBitmap *wb;
+	HBITMAP b;
 	bool queueUpdated = false;
 
 	wstr = t->dispinfoStrings->front();
@@ -138,8 +144,28 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 		}
 
 	if ((nm->item.mask & LVIF_IMAGE) != 0)
-		if (p->imageModelColumn != -1)
-			nm->item.iImage = 0;
+		if (p->imageModelColumn != -1) {
+			dc = GetDC(t->hwnd);
+			if (dc == NULL)
+				logLastError(L"error getting DC for uiTable in onLVN_GETDISPINFO()");
+			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->imageModelColumn);
+			wb = uiprivImageAppropriateForDC(uiTableDataImage(data), dc);
+			uiFreeTableData(data);
+			b = uiprivWICToGDI(wb, dc);
+			if (ReleaseDC(t->hwnd, dc) == 0)
+				logLastError(L"error calling ReleaseDC() in onLVN_GETDISPINFO()");
+			if (ImageList_GetImageCount(t->smallImages) <= t->smallIndex) {
+				if (ImageList_Add(t->smallImages, b, NULL) == -1)
+					logLastError(L"error calling ImageList_Add() in onLVN_GETDISPINFO()");
+			} else
+				if (ImageList_Replace(t->smallImages, t->smallIndex, b, NULL) == 0)
+					logLastError(L"error calling ImageList_Replace() in onLVN_GETDISPINFO()");
+			// TODO error check
+			DeleteObject(b);
+			nm->item.iImage = t->smallIndex;
+			t->smallIndex++;
+			t->smallIndex %= 3;		// TODO don't hardcode this
+		}
 
 	// having an image list always leaves space for an image on the main item :|
 	// other places on the internet imply that you should be able to do this but that it shouldn't work
@@ -258,7 +284,7 @@ static void uiTableDestroy(uiControl *c)
 	for (auto col : *(t->columns))
 		uiprivFree(col);
 	delete t->columns;
-	// t->dummyLarge and t->dummySmall will be automatically destroyed
+	// t->smallImages will be automatically destroyed
 	uiFreeControl(uiControl(t));
 }
 
@@ -407,33 +433,25 @@ uiTable *uiNewTable(uiTableModel *model)
 	if (SendMessageW(t->hwnd, LVM_SETITEMCOUNT, (WPARAM) n, 0) == 0)
 		logLastError(L"error calling LVM_SETITEMCOUNT in uiNewTable()");
 
+	t->backgroundColumn = -1;
+
 	t->dispinfoStrings = new std::queue<WCHAR *>;
 	// this encodes the idea that two LVN_GETDISPINFOs must complete before we can free a string: the first real one is for the fourth call to free
 	t->dispinfoStrings->push(NULL);
 	t->dispinfoStrings->push(NULL);
 	t->dispinfoStrings->push(NULL);
 
-	t->backgroundColumn = -1;
-
 	// TODO update these when the DPI changes
 	// TODO handle errors
 	// TODO try adding a real transparent image
-	t->dummyLarge = ImageList_Create(
-		GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON),
-		ILC_COLOR32,
-		1, 0);
-	if (t->dummyLarge == NULL)
-		logLastError(L"error calling ImageList_Create() for dummy large image list in uiNewTable()");
-	// TODO will this return NULL here because it's an initial state?
-	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_NORMAL, (LPARAM) (t->dummyLarge));
-	t->dummySmall = ImageList_Create(
+	t->smallImages = ImageList_Create(
 		GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
 		ILC_COLOR32,
-		1, 0);
-	if (t->dummySmall == NULL)
-		logLastError(L"error calling ImageList_Create() for dummy small image list in uiNewTable()");
+		0, 3);
+	if (t->smallImages == NULL)
+		logLastError(L"error calling ImageList_Create() in uiNewTable()");
 	// TODO will this return NULL here because it's an initial state?
-	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->dummySmall));
+	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->smallImages));
 
 	return t;
 }

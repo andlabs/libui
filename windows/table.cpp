@@ -143,10 +143,12 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 	uiTableData *data;
 	double r, g, b, a;
 	LRESULT ret;
+	HRESULT hr;
 
 	switch (nm->nmcd.dwDrawStage) {
 	case CDDS_PREPAINT:
-		return CDRF_NOTIFYITEMDRAW;
+		ret = CDRF_NOTIFYITEMDRAW;
+		break;
 	case CDDS_ITEMPREPAINT:
 		if (t->backgroundColumn != -1) {
 			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, t->backgroundColumn);
@@ -157,7 +159,8 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 			}
 		}
 		t->clrItemText = nm->clrText;
-		return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
+		ret = CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
+		break;
 	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		p = (*(t->columns))[nm->iSubItem];
 		// we need this as previous subitems will persist their colors
@@ -171,9 +174,17 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 			}
 		}
 		// TODO draw background on image columns if needed
-		return CDRF_NEWFONT;
+		ret = CDRF_NEWFONT;
+		break;
+	default:
+		ret = CDRF_DODEFAULT;
 	}
-	return CDRF_DODEFAULT;
+
+	hr = uiprivNM_CUSTOMDRAWImagesCheckboxes(t, nm, &ret);
+	if (hr != S_OK) {
+		// TODO
+	}
+	return ret;
 }
 
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
@@ -364,6 +375,7 @@ uiTable *uiNewTable(uiTableModel *model)
 	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
 
 	// TODO: try LVS_EX_AUTOSIZECOLUMNS
+	// TODO check error
 	SendMessageW(t->hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE,
 		(WPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_SUBITEMIMAGES),
 		(LPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_SUBITEMIMAGES));

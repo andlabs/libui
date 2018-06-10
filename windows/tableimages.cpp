@@ -15,7 +15,6 @@ We'll use the small image list. For this, the first few items will be reserved f
 
 // checkboxes TODOs:
 // - see if we need to get rid of the extra margin in subitems
-// - see if we need to get rid of the glow effect
 
 #define nCheckboxImages 4
 
@@ -57,6 +56,36 @@ static HRESULT setCellImage(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnPara
 	}
 
 	return S_OK;
+}
+
+#define stateUnchecked 0
+#define stateChecked 1
+#define stateDisabled 2
+
+static int checkboxIndex(uiTableModel *m, int row, int checkboxModelColumn, int checkboxEditableColumn)
+{
+	uiTableData *data;
+	int ret;
+
+	ret = stateUnchecked;
+	data = (*(m->mh->CellValue))(m->mh, m, row, checkboxModelColumn);
+	if (uiTableDataInt(data) != 0)
+		ret = stateChecked;
+	uiFreeTableData(data);
+
+	switch (checkboxEditableColumn) {
+	case uiTableModelColumnNeverEditable:
+		ret += stateDisabled;
+		break;
+	case uiTableModelColumnAlwaysEditable:
+		break;
+	default:
+		data = (*(m->mh->CellValue))(m->mh, m, row, checkboxEditableColumn);
+		if (uiTableDataInt(data) != 0)
+			ret += stateDisabled;
+	}
+
+	return ret;
 }
 
 HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p)
@@ -101,6 +130,48 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 		nm->item.mask |= LVIF_INDENT;
 		nm->item.iIndent = -1;
 	}
+	return S_OK;
+}
+
+// in order to properly look like checkboxes, we need to exclude them from being colored in by the selection rect
+// however, there seems to be no way to do this natively, so we have to draw over ourselves (TODO?)
+// hopefully the performance won't be too bad
+// see also https://www.codeproject.com/Articles/79/Neat-Stuff-to-Do-in-List-Controls-Using-Custom-Dra
+HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult)
+{
+	uiprivTableColumnParams *p;
+	int index;
+	RECT r;
+
+	if (nm->nmcd.dwDrawStage == (CDDS_SUBITEM | CDDS_ITEMPREPAINT)) {
+		*lResult |= CDRF_NOTIFYPOSTPAINT;
+		return S_OK;
+	}
+	if (nm->nmcd.dwDrawStage != (CDDS_SUBITEM | CDDS_ITEMPOSTPAINT))
+		return S_OK;
+
+	// only draw over checkboxes
+	p = (*(t->columns))[nm->iSubItem];
+	if (p->checkboxModelColumn == -1)
+		return S_OK;
+
+	index = checkboxIndex(t->model, nm->nmcd.dwItemSpec,
+		p->checkboxModelColumn, p->checkboxEditableColumn);
+	ZeroMemory(&r, sizeof (RECT));
+	r.left = LVIR_ICON;
+	r.top = nm->iSubItem;
+	if (SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == 0) {
+		logLastError(L"LVM_GETSUBITEMRECT");
+		return E_FAIL;
+	}
+#if 0
+	// TODO this is offset by one pixel on my system and everything I've found indicates this should not be happening???
+	if (ImageList_Draw(t->smallImages, index, nm->nmcd.hdc,
+		r.left, r.top, ILD_NORMAL) == 0) {
+		logLastError(L"ImageList_Draw()");
+		return E_FAIL;
+	}
+#endif
 	return S_OK;
 }
 

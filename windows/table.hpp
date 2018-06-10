@@ -46,4 +46,5 @@ struct uiTable {
 
 // tableimages.cpp
 extern HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p);
+extern HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult);
 extern HRESULT uiprivTableSetupImagesCheckboxes(uiTable *t);

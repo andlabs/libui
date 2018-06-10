@@ -1,52 +1,8 @@
 #include "uipriv_windows.hpp"
-
-struct uiTableModel {
-	uiTableModelHandler *mh;
-	std::vector<uiTable *> *tables;
-};
+#include "table.hpp"
 
 static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
 	/*TODO.ColorModelColumn = */-1,
-};
-
-#define nCheckboxImages 4
-#define nLVN_GETDISPINFOSkip 3
-
-struct columnParams {
-	int textModelColumn;
-	int textEditableColumn;
-	uiTableTextColumnOptionalParams textParams;
-
-	int imageModelColumn;
-
-	int checkboxModelColumn;
-	int checkboxEditableColumn;
-
-	int progressBarModelColumn;
-
-	int buttonModelColumn;
-	int buttonClickableModelColumn;
-};
-
-struct uiTable {
-	uiWindowsControl c;
-	uiTableModel *model;
-	HWND hwnd;
-	std::vector<struct columnParams *> *columns;
-	WPARAM nColumns;
-	int backgroundColumn;
-
-	// owner data state
-	// MSDN says we have to keep LVN_GETDISPINFO strings we allocate around at least until "two additional LVN_GETDISPINFO messages have been sent".
-	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
-	std::queue<WCHAR *> *dispinfoStrings;
-	// likewise here, though the docs aren't as clear
-	// TODO make sure what we're doing is even allowed
-	HIMAGELIST smallImages;
-	int smallIndex;
-
-	// custom draw state
-	COLORREF clrItemText;
 };
 
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
@@ -122,7 +78,7 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 
 static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 {
-	static struct columnParams *p;
+	static uiprivTableColumnParams *p;
 	uiTableData *data;
 	WCHAR *wstr;
 	HDC dc;
@@ -148,43 +104,9 @@ nm->item.pszText=L"abcdefg";
 			queueUpdated = true;
 		}
 
-	if ((nm->item.mask & LVIF_IMAGE) != 0)
-		if (p->imageModelColumn != -1) {
-			dc = GetDC(t->hwnd);
-			if (dc == NULL)
-				logLastError(L"error getting DC for uiTable in onLVN_GETDISPINFO()");
-			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->imageModelColumn);
-			wb = uiprivImageAppropriateForDC(uiTableDataImage(data), dc);
-			uiFreeTableData(data);
-			b = uiprivWICToGDI(wb, dc);
-			if (ReleaseDC(t->hwnd, dc) == 0)
-				logLastError(L"error calling ReleaseDC() in onLVN_GETDISPINFO()");
-			if (ImageList_Replace(t->smallImages, t->smallIndex + nCheckboxImages, b, NULL) == 0)
-				logLastError(L"error calling ImageList_Replace() in onLVN_GETDISPINFO()");
-			// TODO error check
-			DeleteObject(b);
-			nm->item.iImage = t->smallIndex + nCheckboxImages;
-			t->smallIndex++;
-			t->smallIndex %= nLVN_GETDISPINFOSkip;
-		}
-
-	// having an image list always leaves space for an image on the main item :|
-	// other places on the internet imply that you should be able to do this but that it shouldn't work
-	// but it works perfectly (and pixel-perfectly too) for me, so...
-	if (nm->item.iSubItem == 0 && p->imageModelColumn == -1) {
-		nm->item.mask |= LVIF_INDENT;
-		nm->item.iIndent = -1;
-	}
-
-	if (p->checkboxModelColumn != -1) {
-		// TODO handle enabled
-		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
-		checked = uiTableDataInt(data) != 0;
-		uiFreeTableData(data);
-		nm->item.iImage = 0;
-		if (checked)
-			nm->item.iImage = 1;
-		nm->item.mask |= LVIF_IMAGE;
+	hr = uiprivLVN_GETDISPINFOImagesCheckboxes(t, nm, p);
+	if (hr != S_OK) {
+		// TODO
 	}
 
 	// we don't want to pop from an empty queue, so if nothing updated the queue (no info was filled in above), just push NULL
@@ -216,7 +138,7 @@ static COLORREF blend(COLORREF base, double r, double g, double b, double a)
 
 static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 {
-	struct columnParams *p;
+	uiprivTableColumnParams *p;
 	uiTableData *data;
 	double r, g, b, a;
 	LRESULT ret;
@@ -324,11 +246,11 @@ static void uiTableMinimumSize(uiWindowsControl *c, int *width, int *height)
 	*height = y;
 }
 
-static struct columnParams *appendColumn(uiTable *t, const char *name, int colfmt)
+static uiprivTableColumnParams *appendColumn(uiTable *t, const char *name, int colfmt)
 {
 	WCHAR *wstr;
 	LVCOLUMNW lvc;
-	struct columnParams *p;
+	uiprivTableColumnParams *p;
 
 	ZeroMemory(&lvc, sizeof (LVCOLUMNW));
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT;
@@ -341,7 +263,7 @@ static struct columnParams *appendColumn(uiTable *t, const char *name, int colfm
 	uiprivFree(wstr);
 	t->nColumns++;
 
-	p = uiprivNew(struct columnParams);
+	p = uiprivNew(uiprivTableColumnParams);
 	p->textModelColumn = -1;
 	p->textEditableColumn = -1;
 	p->textParams = defaultTextColumnOptionalParams;
@@ -356,7 +278,7 @@ static struct columnParams *appendColumn(uiTable *t, const char *name, int colfm
 
 void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
 {
-	struct columnParams *p;
+	uiprivTableColumnParams *p;
 
 	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->textModelColumn = textModelColumn;
@@ -372,7 +294,7 @@ void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn
 
 void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
 {
-	struct columnParams *p;
+	uiprivTableColumnParams *p;
 
 	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->textModelColumn = textModelColumn;
@@ -384,7 +306,7 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 
 void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn)
 {
-	struct columnParams *p;
+	uiprivTableColumnParams *p;
 
 	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->checkboxModelColumn = checkboxModelColumn;
@@ -496,7 +418,7 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	uiWindowsNewControl(uiTable, t);
 
-	t->columns = new std::vector<struct columnParams *>;
+	t->columns = new std::vector<uiprivTableColumnParams *>;
 	t->model = model;
 	t->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		WC_LISTVIEW, L"",
@@ -518,7 +440,7 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	t->dispinfoStrings = new std::queue<WCHAR *>;
 	// this encodes the idea that two LVN_GETDISPINFOs must complete before we can free a string: the first real one is for the fourth call to free
-	for (i = 0; i < nLVN_GETDISPINFOSkip; i++)
+	for (i = 0; i < uiprivNumLVN_GETDISPINFOSkip; i++)
 		t->dispinfoStrings->push(NULL);
 
 	// TODO update these when the DPI changes
@@ -526,7 +448,7 @@ uiTable *uiNewTable(uiTableModel *model)
 	t->smallImages = ImageList_Create(
 		GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
 		ILC_COLOR32,
-		nCheckboxImages + nLVN_GETDISPINFOSkip, nCheckboxImages + nLVN_GETDISPINFOSkip);
+		nCheckboxImages + uiprivNumLVN_GETDISPINFOSkip, nCheckboxImages + uiprivNumLVN_GETDISPINFOSkip);
 	if (t->smallImages == NULL)
 		logLastError(L"error calling ImageList_Create() in uiNewTable()");
 	// TODO will this return NULL here because it's an initial state?

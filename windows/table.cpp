@@ -163,6 +163,7 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 		break;
 	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		p = (*(t->columns))[nm->iSubItem];
+		// TODO none of this runs on the first item
 		// we need this as previous subitems will persist their colors
 		nm->clrText = t->clrItemText;
 		if (p->textParams.ColorModelColumn != -1) {
@@ -173,6 +174,20 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 				nm->clrText = blend(nm->clrTextBk, r, g, b, a);
 			}
 		}
+if (nm->iSubItem != 0) {
+HWND header;
+LRESULT margin;
+header = (HWND) SendMessageW(t->hwnd, LVM_GETHEADER, NULL, NULL);
+margin = SendMessageW(header, HDM_GETBITMAPMARGIN, 0, 0);
+//nm->rcText.left -= margin;
+printf("%d %d %d %d\n",
+(int)(nm->nmcd.rc.left),
+(int)(nm->nmcd.rc.top),
+(int)(nm->nmcd.rc.right),
+(int)(nm->nmcd.rc.bottom));
+FillRect(nm->nmcd.hdc, &(nm->nmcd.rc), GetSysColorBrush(COLOR_ACTIVECAPTION));
+return CDRF_SKIPDEFAULT;
+}
 		// TODO draw background on image columns if needed
 		ret = CDRF_NEWFONT;
 		break;

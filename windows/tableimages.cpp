@@ -15,6 +15,8 @@ We'll use the small image list. For this, the first few items will be reserved f
 
 // checkboxes TODOs:
 // - see if we need to get rid of the extra margin in subitems
+// - get rid of the extra bitmap margin space before text
+// - get rid of extra whitespace before text on subitems
 
 #define nCheckboxImages 4
 

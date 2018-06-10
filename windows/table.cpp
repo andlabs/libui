@@ -86,6 +86,7 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	HBITMAP b;
 	int checked;
 	bool queueUpdated = false;
+	HRESULT hr;
 
 	wstr = t->dispinfoStrings->front();
 	if (wstr != NULL)
@@ -315,7 +316,7 @@ void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModel
 
 void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
 {
-	struct columnParams *p;
+	uiprivTableColumnParams *p;
 
 	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->textModelColumn = textModelColumn;
@@ -343,78 +344,12 @@ void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
 	// TODO redraw?
 }
 
-// see https://blogs.msdn.microsoft.com/oldnewthing/20171129-00/?p=97485
-static UINT unthemedStates[] = {
-	0,
-	DFCS_CHECKED,
-	DFCS_INACTIVE,
-	DFCS_CHECKED | DFCS_INACTIVE,
-};
-
-// TODO call this whenever either theme, system colors (maybe? TODO), or DPI change
-static void mkCheckboxesUnthemed(uiTable *t, int cx, int cy)
-{
-	HDC dc;
-	BITMAPINFO bmi;
-	HBITMAP b;
-	VOID *bits;
-	HDC cdc;
-	HBITMAP prevBitmap;
-	RECT r;
-	int i;
-
-	dc = GetDC(t->hwnd);
-	if (dc == NULL)
-		logLastError(L"error calling GetDC() in mkCheckboxesUnthemed()");
-	ZeroMemory(&bmi, sizeof (BITMAPINFO));
-	bmi.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
-	bmi.bmiHeader.biWidth = cx * nCheckboxImages;
-	bmi.bmiHeader.biHeight = cy;
-	bmi.bmiHeader.biPlanes = 1;
-	bmi.bmiHeader.biBitCount = 32;
-	bmi.bmiHeader.biCompression = BI_RGB;
-	b = CreateDIBSection(dc, &bmi, DIB_RGB_COLORS,
-		&bits, NULL, 0);
-	if (b == NULL)
-		logLastError(L"error calling CreateDIBSection() in mkCheckboxesUnthemed()");
-
-	cdc = CreateCompatibleDC(dc);
-	if (cdc == NULL)
-		logLastError(L"error calling CreateCompatibleDC() in mkCheckboxesUnthemed()");
-	// TODO error check
-	prevBitmap = (HBITMAP) SelectObject(cdc, b);
-
-	r.left = 0;
-	r.top = 0;
-	r.right = cx;
-	r.bottom = cy;
-	for (i = 0; i < nCheckboxImages; i++) {
-		if (DrawFrameControl(cdc, &r,
-			DFC_BUTTON, DFCS_BUTTONCHECK | DFCS_FLAT | unthemedStates[i]) == 0)
-			logLastError(L"error calling DrawFrameControl() in mkCheckboxesUnthemed()");
-		r.left += cx;
-		r.right += cx;
-	}
-
-	// TODO error check
-	SelectObject(cdc, prevBitmap);
-	if (DeleteDC(cdc) == 0)
-		logLastError(L"error calling DeleteDC() in mkCheckboxesUnthemed()");
-	if (ReleaseDC(t->hwnd, dc) == 0)
-		logLastError(L"error calling ReleaseDC() in mkCheckboxesUnthemed()");
-
-	if (ImageList_Replace(t->smallImages, 0, b, NULL) == 0)
-		logLastError(L"error calling ImageList_Replace() in mkCheckboxesUnthemed()");
-
-	// TODO error check
-	DeleteObject(b);
-}
-
 uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;
 	int n;
 	int i;
+	HRESULT hr;
 
 	uiWindowsNewControl(uiTable, t);
 
@@ -443,18 +378,10 @@ uiTable *uiNewTable(uiTableModel *model)
 	for (i = 0; i < uiprivNumLVN_GETDISPINFOSkip; i++)
 		t->dispinfoStrings->push(NULL);
 
-	// TODO update these when the DPI changes
-	// TODO handle errors
-	t->smallImages = ImageList_Create(
-		GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
-		ILC_COLOR32,
-		nCheckboxImages + uiprivNumLVN_GETDISPINFOSkip, nCheckboxImages + uiprivNumLVN_GETDISPINFOSkip);
-	if (t->smallImages == NULL)
-		logLastError(L"error calling ImageList_Create() in uiNewTable()");
-	// TODO will this return NULL here because it's an initial state?
-	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->smallImages));
-
-	mkCheckboxesUnthemed(t, 16, 16);
+	hr = uiprivTableSetupImagesCheckboxes(t);
+	if (hr != S_OK) {
+		// TODO
+	}
 
 	return t;
 }

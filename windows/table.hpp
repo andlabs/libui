@@ -34,7 +34,8 @@ struct uiTable {
 	// MSDN says we have to keep LVN_GETDISPINFO strings we allocate around at least until "two additional LVN_GETDISPINFO messages have been sent".
 	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
 	std::queue<WCHAR *> *dispinfoStrings;
-	// likewise here, though the docs aren't as clear
+
+	// tableimages.cpp
 	// TODO make sure what we're doing is even allowed
 	HIMAGELIST smallImages;
 	int smallIndex;
@@ -43,5 +44,6 @@ struct uiTable {
 	COLORREF clrItemText;
 };
 
-// tableimage.cpp
+// tableimages.cpp
 extern HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p);
+extern HRESULT uiprivTableSetupImagesCheckboxes(uiTable *t);

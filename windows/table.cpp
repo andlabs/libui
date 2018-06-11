@@ -253,7 +253,8 @@ uiWindowsControlAllDefaultsExceptDestroy(uiTable)
 // "columns widths that avoid truncated data x an integral number of items"
 // Don't think that'll cut it when some cells have overlong data (eg
 // stupidly long URLs). So for now, just hardcode a minimum.
-// TODO: Investigate using LVM_GETHEADER/HDM_LAYOUT here...
+// TODO Investigate using LVM_GETHEADER/HDM_LAYOUT here
+// TODO investigate using LVM_APPROXIMATEVIEWRECT here
 #define tableMinWidth 107		/* in line with other controls */
 #define tableMinHeight (14 * 3)	/* header + 2 lines (roughly) */
 

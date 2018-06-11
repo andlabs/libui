@@ -16,7 +16,7 @@ We'll use the small image list. For this, the first few items will be reserved f
 // checkboxes TODOs:
 // - see if we need to get rid of the extra margin in subitems
 // - get rid of the extra bitmap margin space before text
-// - get rid of extra whitespace before text on subitems
+// - get rid of extra whitespace before text on subitems (this might not be necessary if we can fill the background of images AND this amount is the same as on the first column; it is a hardcoded 2 logical units in the real list view code)
 
 #define nCheckboxImages 4
 

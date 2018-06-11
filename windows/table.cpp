@@ -177,6 +177,18 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 		// TODO draw background on image columns if needed
 		ret = CDRF_NEWFONT;
 		break;
+case CDDS_SUBITEM | CDDS_ITEMPOSTPAINT:
+if(nm->iSubItem == 1) {
+RECT r, r2;
+r.left = LVIR_LABEL;
+r.top = 1;
+SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM)(&r));
+r2.left = LVIR_ICON;
+r2.top = 1;
+SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM)(&r2));
+r.left = r2.right + 2;
+DrawTextW(nm->nmcd.hdc, L"Part", -1,
+&r, DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_SINGLELINE | DT_NOPREFIX | DT_EDITCONTROL);}
 	default:
 		ret = CDRF_DODEFAULT;
 	}

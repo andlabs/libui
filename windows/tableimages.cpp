@@ -170,8 +170,8 @@ HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, LRES
 	}
 	// the real listview also does this :|
 	ZeroMemory(&cellRect, sizeof (RECT));
-	r.left = LVIR_BOUNDS;
-	r.top = nm->iSubItem;
+	cellRect.left = LVIR_BOUNDS;
+	cellRect.top = nm->iSubItem;
 	if (SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&cellRect)) == 0) {
 		logLastError(L"LVM_GETSUBITEMRECT cell");
 		return E_FAIL;

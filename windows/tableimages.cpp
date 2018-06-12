@@ -144,7 +144,7 @@ HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, LRES
 	uiprivTableColumnParams *p;
 	int index;
 	RECT r;
-	RECT cellRect;
+	int cxIcon, cyIcon;
 	LONG yoff;
 
 	if (nm->nmcd.dwDrawStage == (CDDS_SUBITEM | CDDS_ITEMPREPAINT)) {
@@ -169,14 +169,11 @@ HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, LRES
 		return E_FAIL;
 	}
 	// the real listview also does this :|
-	ZeroMemory(&cellRect, sizeof (RECT));
-	cellRect.left = LVIR_BOUNDS;
-	cellRect.top = nm->iSubItem;
-	if (SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&cellRect)) == 0) {
+	if (ImageList_GetIconSize(t->smallImages, &cxIcon, &cyIcon) == 0) {
 		logLastError(L"LVM_GETSUBITEMRECT cell");
 		return E_FAIL;
 	}
-	yoff = ((cellRect.bottom - cellRect.top) - (r.bottom - r.top)) / 2;
+	yoff = ((r.bottom - r.top) - cyIcon) / 2;
 	r.top += yoff;
 	r.bottom += yoff;
 if ((nm->nmcd.dwItemSpec%2)==0)

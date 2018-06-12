@@ -208,8 +208,7 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 
 	switch (nm->nmcd.dwDrawStage) {
 	case CDDS_PREPAINT:
-		ret = CDRF_NOTIFYITEMDRAW;
-		break;
+		return CDRF_NOTIFYITEMDRAW;
 	case CDDS_ITEMPREPAINT:
 		if (t->backgroundColumn != -1) {
 			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, t->backgroundColumn);
@@ -251,7 +250,7 @@ r.left = r2.right + 2;
 DrawTextW(nm->nmcd.hdc, L"Part", -1,
 &r, DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_SINGLELINE | DT_NOPREFIX | DT_EDITCONTROL);}
 	default:
-		ret = CDRF_DODEFAULT;
+		return CDRF_DODEFAULT;
 	}
 
 if ((nm->nmcd.dwDrawStage & CDDS_SUBITEM) == 0)return ret;

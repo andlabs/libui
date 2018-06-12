@@ -139,7 +139,7 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 // however, there seems to be no way to do this natively, so we have to draw over ourselves (TODO?)
 // hopefully the performance won't be too bad
 // see also https://www.codeproject.com/Articles/79/Neat-Stuff-to-Do-in-List-Controls-Using-Custom-Dra
-HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult)
+HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp, LRESULT *lResult)
 {
 	uiprivTableColumnParams *p;
 	int index;
@@ -161,13 +161,7 @@ HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, LRES
 
 	index = checkboxIndex(t->model, nm->nmcd.dwItemSpec,
 		p->checkboxModelColumn, p->checkboxEditableColumn);
-	ZeroMemory(&r, sizeof (RECT));
-	r.left = LVIR_ICON;
-	r.top = nm->iSubItem;
-	if (SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == 0) {
-		logLastError(L"LVM_GETSUBITEMRECT");
-		return E_FAIL;
-	}
+	r = dp->icon;
 	// the real listview also does this :|
 	if (ImageList_GetIconSize(t->smallImages, &cxIcon, &cyIcon) == 0) {
 		logLastError(L"LVM_GETSUBITEMRECT cell");

@@ -137,11 +137,72 @@ static COLORREF blend(COLORREF base, double r, double g, double b, double a)
 		(BYTE) (bb * 255));
 }
 
+static HRESULT fillSubitemDrawParams(HWND hwnd, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp)
+{
+	RECT r;
+	HRESULT hr;
+
+	// note that we can't just copy nm->nmcd.rc into p->bounds because that is only defined during prepaint stages
+
+	// TODO this corrupts memory
+	if (nm->iSubItem == 0) {return S_OK;
+		ZeroMemory(&r, sizeof (RECT));
+		r.left = LVIR_BOUNDS;
+		if (SendMessageW(hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
+			logLastError(L"LVM_GETITEMRECT LVIR_BOUNDS");
+			return E_FAIL;
+		}
+		dp->bounds = r;
+		ZeroMemory(&r, sizeof (RECT));
+		r.left = LVIR_ICON;
+		if (SendMessageW(hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
+			logLastError(L"LVM_GETITEMRECT LVIR_ICON");
+			return E_FAIL;
+		}
+		dp->icon = r;
+		ZeroMemory(&r, sizeof (RECT));
+		r.left = LVIR_LABEL;
+		if (SendMessageW(hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
+			logLastError(L"LVM_GETITEMRECT LVIR_LABEL");
+			return E_FAIL;
+		}
+		dp->label = r;
+		return S_OK;
+	}
+
+	ZeroMemory(&r, sizeof (RECT));
+	r.left = LVIR_BOUNDS;
+	r.top = nm->iSubItem;
+	if (SendMessageW(hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == 0) {
+		logLastError(L"LVM_GETSUBITEMRECT LVIR_BOUNDS");
+		return E_FAIL;
+	}
+	dp->bounds = r;
+	ZeroMemory(&r, sizeof (RECT));
+	r.left = LVIR_ICON;
+	r.top = nm->iSubItem;
+	if (SendMessageW(hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == 0) {
+		logLastError(L"LVM_GETSUBITEMRECT LVIR_ICON");
+		return E_FAIL;
+	}
+	dp->icon = r;
+	// LVIR_LABEL is treated as LVIR_BOUNDS for LVM_GETSUBITEMRECT, but it doesn't matter because the label rect is uses isn't what we want anyway
+	// there's a hardocded 2-logical unit gap between the icon and text for subitems, AND the text starts being drawn (in the background) one bitmap margin to the right of that
+	// with normal items, there's no gap, and only the 2-logical unit gap after the background starts (TODO confirm this part)
+	// let's copy that to look nicer, even if it's not "accurate"
+	// TODO check against accessibility
+	dp->label = dp->bounds;
+	// because we want the 2 extra logical units to be included with the background, we don't include them here
+	dp->label.left = dp->icon.right;
+	return S_OK;
+}
+
 static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 {
 	uiprivTableColumnParams *p;
 	uiTableData *data;
 	double r, g, b, a;
+	uiprivSubitemDrawParams dp;
 	LRESULT ret;
 	HRESULT hr;
 
@@ -193,7 +254,13 @@ DrawTextW(nm->nmcd.hdc, L"Part", -1,
 		ret = CDRF_DODEFAULT;
 	}
 
-	hr = uiprivNM_CUSTOMDRAWImagesCheckboxes(t, nm, &ret);
+if ((nm->nmcd.dwDrawStage & CDDS_SUBITEM) == 0)return ret;
+	ZeroMemory(&dp, sizeof (uiprivSubitemDrawParams));
+	hr = fillSubitemDrawParams(t->hwnd, nm, &dp);
+	if (hr != S_OK) {
+		// TODO
+	}
+	hr = uiprivNM_CUSTOMDRAWImagesCheckboxes(t, nm, &dp, &ret);
 	if (hr != S_OK) {
 		// TODO
 	}

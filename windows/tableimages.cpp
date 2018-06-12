@@ -136,10 +136,9 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 }
 
 // in order to properly look like checkboxes, we need to exclude them from being colored in by the selection rect
-// however, there seems to be no way to do this natively, so we have to draw over ourselves (TODO?)
-// hopefully the performance won't be too bad
-// see also https://www.codeproject.com/Articles/79/Neat-Stuff-to-Do-in-List-Controls-Using-Custom-Dra
-HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp, LRESULT *lResult)
+// however, there seems to be no way to do this natively, so we have to draw the icons ourselves
+// see also https://www.codeproject.com/Articles/79/Neat-Stuff-to-Do-in-List-Controls-Using-Custom-Dra (and while this uses postpaint to draw over the existing icon, we are drawing everything ourselves, so we only draw once)
+HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp)
 {
 	uiprivTableColumnParams *p;
 	int index;
@@ -147,11 +146,7 @@ HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, uipr
 	int cxIcon, cyIcon;
 	LONG yoff;
 
-	if (nm->nmcd.dwDrawStage == (CDDS_SUBITEM | CDDS_ITEMPREPAINT)) {
-		*lResult |= CDRF_NOTIFYPOSTPAINT;
-		return S_OK;
-	}
-	if (nm->nmcd.dwDrawStage != (CDDS_SUBITEM | CDDS_ITEMPOSTPAINT))
+	if (nm->nmcd.dwDrawStage != (CDDS_SUBITEM | CDDS_ITEMPREPAINT))
 		return S_OK;
 
 	// only draw over checkboxes

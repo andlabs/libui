@@ -52,5 +52,5 @@ struct uiprivSubitemDrawParams {
  
 // tableimages.cpp
 extern HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p);
-extern HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp, LRESULT *lResult);
+extern HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp);
 extern HRESULT uiprivTableSetupImagesCheckboxes(uiTable *t);

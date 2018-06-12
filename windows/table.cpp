@@ -236,7 +236,7 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 			}
 		}
 		// TODO draw background on image columns if needed
-		ret = CDRF_NEWFONT;
+		ret = CDRF_SKIPDEFAULT | CDRF_NEWFONT;
 		break;
 case CDDS_SUBITEM | CDDS_ITEMPOSTPAINT:
 if(nm->iSubItem == 1) {
@@ -260,7 +260,7 @@ if ((nm->nmcd.dwDrawStage & CDDS_SUBITEM) == 0)return ret;
 	if (hr != S_OK) {
 		// TODO
 	}
-	hr = uiprivNM_CUSTOMDRAWImagesCheckboxes(t, nm, &dp, &ret);
+	hr = uiprivNM_CUSTOMDRAWImagesCheckboxes(t, nm, &dp);
 	if (hr != S_OK) {
 		// TODO
 	}

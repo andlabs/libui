@@ -145,7 +145,7 @@ static HRESULT fillSubitemDrawParams(HWND hwnd, NMLVCUSTOMDRAW *nm, uiprivSubite
 	// note that we can't just copy nm->nmcd.rc into p->bounds because that is only defined during prepaint stages
 
 	// TODO this corrupts memory
-	if (nm->iSubItem == 0) {return S_OK;
+	if (nm->iSubItem == 0) {
 		ZeroMemory(&r, sizeof (RECT));
 		r.left = LVIR_BOUNDS;
 		if (SendMessageW(hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
@@ -219,7 +219,7 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 			}
 		}
 		t->clrItemText = nm->clrText;
-		ret = CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
+		ret = CDRF_NOTIFYSUBITEMDRAW;
 		break;
 	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		p = (*(t->columns))[nm->iSubItem];
@@ -235,10 +235,10 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 			}
 		}
 		// TODO draw background on image columns if needed
-		ret = CDRF_SKIPDEFAULT | CDRF_NEWFONT;
+		ret = /*CDRF_SKIPDEFAULT | */CDRF_NEWFONT;
 		break;
-case CDDS_SUBITEM | CDDS_ITEMPOSTPAINT:
-if(nm->iSubItem == 1) {
+//case CDDS_SUBITEM | CDDS_ITEMPOSTPAINT:
+if(0){//nm->iSubItem == 1) {
 RECT r, r2;
 r.left = LVIR_LABEL;
 r.top = 1;
@@ -253,7 +253,6 @@ DrawTextW(nm->nmcd.hdc, L"Part", -1,
 		return CDRF_DODEFAULT;
 	}
 
-if ((nm->nmcd.dwDrawStage & CDDS_SUBITEM) == 0)return ret;
 	ZeroMemory(&dp, sizeof (uiprivSubitemDrawParams));
 	hr = fillSubitemDrawParams(t->hwnd, nm, &dp);
 	if (hr != S_OK) {

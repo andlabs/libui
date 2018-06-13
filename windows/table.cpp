@@ -133,7 +133,6 @@ static HRESULT fillSubitemDrawParams(HWND hwnd, NMLVCUSTOMDRAW *nm, uiprivSubite
 
 	// note that we can't just copy nm->nmcd.rc into p->bounds because that is only defined during prepaint stages
 
-	// TODO this corrupts memory
 	if (nm->iSubItem == 0) {
 		ZeroMemory(&r, sizeof (RECT));
 		r.left = LVIR_BOUNDS;
@@ -207,8 +206,30 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 				nm->clrTextBk = blend(nm->clrTextBk, r, g, b, a);
 			}
 		}
+		{
+			LRESULT state;
+			HBRUSH b;
+			bool freeBrush = false;
+
+			// note: nm->nmcd.uItemState CDIS_SELECTED is unreliable for the listview configuration we have
+			state = SendMessageW(t->hwnd, LVM_GETITEMSTATE, nm->nmcd.dwItemSpec, LVIS_SELECTED);
+			if ((state & LVIS_SELECTED) != 0)
+				b = GetSysColorBrush(COLOR_HIGHLIGHT);
+			else if (nm->clrTextBk != CLR_DEFAULT) {
+				b = CreateSolidBrush(nm->clrTextBk);
+				if (b == NULL)
+					logLastError(L"CreateSolidBrush()");
+				freeBrush = true;
+			} else
+				b = GetSysColorBrush(COLOR_WINDOW);
+			// TODO check error
+			FillRect(nm->nmcd.hdc, &(nm->nmcd.rc), b);
+			if (freeBrush)
+				if (DeleteObject(b) == 0)
+					logLastError(L"DeleteObject()");
+		}
 		t->clrItemText = nm->clrText;
-		ret = CDRF_NOTIFYSUBITEMDRAW;
+		ret = CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 		break;
 	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		p = (*(t->columns))[nm->iSubItem];

@@ -30,11 +30,6 @@ struct uiTable {
 	WPARAM nColumns;
 	int backgroundColumn;
 
-	// owner data state
-	// MSDN says we have to keep LVN_GETDISPINFO strings we allocate around at least until "two additional LVN_GETDISPINFO messages have been sent".
-	// we'll use this queue to do so; the "two additional" part is encoded in the initial state of the queue
-	std::queue<WCHAR *> *dispinfoStrings;
-
 	// tableimages.cpp
 	// TODO make sure what we're doing is even allowed
 	HIMAGELIST smallImages;

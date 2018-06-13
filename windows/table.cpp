@@ -81,28 +81,20 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	static uiprivTableColumnParams *p;
 	uiTableData *data;
 	WCHAR *wstr;
-	HDC dc;
-	IWICBitmap *wb;
-	HBITMAP b;
-	int checked;
-	bool queueUpdated = false;
 	HRESULT hr;
 
-	wstr = t->dispinfoStrings->front();
-	if (wstr != NULL)
-		uiprivFree(wstr);
-	t->dispinfoStrings->pop();
-
 	p = (*(t->columns))[nm->item.iSubItem];
-nm->item.pszText=L"abcdefg";
 	if ((nm->item.mask & LVIF_TEXT) != 0)
 		if (p->textModelColumn != -1) {
 			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
 			wstr = toUTF16(uiTableDataString(data));
 			uiFreeTableData(data);
-			nm->item.pszText = wstr;
-			t->dispinfoStrings->push(wstr);
-			queueUpdated = true;
+			// we could just make pszText into a freshly allocated conversion and avoid the limitation of cchTextMax
+			// but then we would have to keep things around for some amount of time (some pages on MSDN say 2 additional LVN_GETDISPINFO messages)
+			// and in practice, anything that results in extra LVN_GETDISPINFO messages (such as fillSubitemDrawParams() below) will break this counting
+			// TODO make it so we don't have to make a copy; instead we can convert directly into pszText (this will also avoid the risk of having a dangling surrogate pair at the end)
+			wcscpy_s(nm->item.pszText, nm->item.cchTextMax, wstr);
+			uiprivFree(wstr);
 		}
 
 	hr = uiprivLVN_GETDISPINFOImagesCheckboxes(t, nm, p);
@@ -110,9 +102,6 @@ nm->item.pszText=L"abcdefg";
 		// TODO
 	}
 
-	// we don't want to pop from an empty queue, so if nothing updated the queue (no info was filled in above), just push NULL
-	if (!queueUpdated)
-		t->dispinfoStrings->push(NULL);
 	return 0;
 }
 
@@ -285,7 +274,6 @@ static void uiTableDestroy(uiControl *c)
 	uiTable *t = uiTable(c);
 	uiTableModel *model = t->model;
 	std::vector<uiTable *>::iterator it;
-	WCHAR *wstr;
 
 	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
 	uiWindowsEnsureDestroyWindow(t->hwnd);
@@ -296,14 +284,6 @@ static void uiTableDestroy(uiControl *c)
 			break;
 		}
 	}
-	// empty the string queue
-	while (t->dispinfoStrings->size() != 0) {
-		wstr = t->dispinfoStrings->front();
-		if (wstr != NULL)
-			uiprivFree(wstr);
-		t->dispinfoStrings->pop();
-	}
-	delete t->dispinfoStrings;
 	// free the columns
 	for (auto col : *(t->columns))
 		uiprivFree(col);
@@ -463,11 +443,6 @@ uiTable *uiNewTable(uiTableModel *model)
 		logLastError(L"error calling LVM_SETITEMCOUNT in uiNewTable()");
 
 	t->backgroundColumn = -1;
-
-	t->dispinfoStrings = new std::queue<WCHAR *>;
-	// this encodes the idea that two LVN_GETDISPINFOs must complete before we can free a string: the first real one is for the fourth call to free
-	for (i = 0; i < uiprivNumLVN_GETDISPINFOSkip; i++)
-		t->dispinfoStrings->push(NULL);
 
 	hr = uiprivTableSetupImagesCheckboxes(t);
 	if (hr != S_OK) {

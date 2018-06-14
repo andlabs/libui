@@ -41,6 +41,7 @@ struct uiTable {
 typedef struct uiprivSubitemDrawParams uiprivSubitemDrawParams;
 struct uiprivSubitemDrawParams {
 	bool selected;
+	LRESULT bitmapMargin;
 	RECT bounds;
 	RECT icon;
 	RECT label;

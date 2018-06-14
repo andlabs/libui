@@ -131,12 +131,16 @@ COLORREF uiprivTableBlendedColorFromModel(uiTable *t, NMLVCUSTOMDRAW *nm, int mo
 static HRESULT fillSubitemDrawParams(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp)
 {
 	LRESULT state;
+	HWND header;
 	RECT r;
 	HRESULT hr;
 
 	// note: nm->nmcd.uItemState CDIS_SELECTED is unreliable for the listview configuration we have
 	state = SendMessageW(t->hwnd, LVM_GETITEMSTATE, nm->nmcd.dwItemSpec, LVIS_SELECTED);
 	dp->selected = (state & LVIS_SELECTED) != 0;
+
+	header = (HWND) SendMessageW(t->hwnd, LVM_GETHEADER, 0, 0);
+	dp->bitmapMargin = SendMessageW(header, HDM_GETBITMAPMARGIN, 0, 0);
 
 	if (nm->iSubItem == 0) {
 		ZeroMemory(&r, sizeof (RECT));

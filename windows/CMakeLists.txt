@@ -52,6 +52,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/tab.cpp
 	windows/table.cpp
 	windows/tableimages.cpp
+	windows/tabletext.cpp
 	windows/tabpage.cpp
 	windows/text.cpp
 	windows/utf16.cpp

@@ -79,24 +79,13 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 {
 	static uiprivTableColumnParams *p;
-	uiTableData *data;
-	WCHAR *wstr;
 	HRESULT hr;
 
 	p = (*(t->columns))[nm->item.iSubItem];
-	if ((nm->item.mask & LVIF_TEXT) != 0)
-		if (p->textModelColumn != -1) {
-			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
-			wstr = toUTF16(uiTableDataString(data));
-			uiFreeTableData(data);
-			// we could just make pszText into a freshly allocated conversion and avoid the limitation of cchTextMax
-			// but then we would have to keep things around for some amount of time (some pages on MSDN say 2 additional LVN_GETDISPINFO messages)
-			// and in practice, anything that results in extra LVN_GETDISPINFO messages (such as fillSubitemDrawParams() below) will break this counting
-			// TODO make it so we don't have to make a copy; instead we can convert directly into pszText (this will also avoid the risk of having a dangling surrogate pair at the end)
-			wcscpy_s(nm->item.pszText, nm->item.cchTextMax, wstr);
-			uiprivFree(wstr);
-		}
-
+	hr = uiprivLVN_GETDISPINFOText(t, nm, p);
+	if (hr != S_OK) {
+		// TODO
+	}
 	hr = uiprivLVN_GETDISPINFOImagesCheckboxes(t, nm, p);
 	if (hr != S_OK) {
 		// TODO
@@ -126,31 +115,47 @@ static COLORREF blend(COLORREF base, double r, double g, double b, double a)
 		(BYTE) (bb * 255));
 }
 
-static HRESULT fillSubitemDrawParams(HWND hwnd, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp)
+COLORREF uiprivTableBlendedColorFromModel(uiTable *t, NMLVCUSTOMDRAW *nm, int modelColumn, int fallbackSysColorID)
 {
+	uiTableData *data;
+	double r, g, b, a;
+
+	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, modelColumn);
+	if (data == NULL)
+		return GetSysColor(fallbackSysColorID);
+	uiTableDataColor(data, &r, &g, &b, &a);
+	uiFreeTableData(data);
+	return blend(nm->clrTextBk, r, g, b, a);
+}
+
+static HRESULT fillSubitemDrawParams(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp)
+{
+	LRESULT state;
 	RECT r;
 	HRESULT hr;
 
-	// note that we can't just copy nm->nmcd.rc into p->bounds because that is only defined during prepaint stages
+	// note: nm->nmcd.uItemState CDIS_SELECTED is unreliable for the listview configuration we have
+	state = SendMessageW(t->hwnd, LVM_GETITEMSTATE, nm->nmcd.dwItemSpec, LVIS_SELECTED);
+	dp->selected = (state & LVIS_SELECTED) != 0;
 
 	if (nm->iSubItem == 0) {
 		ZeroMemory(&r, sizeof (RECT));
 		r.left = LVIR_BOUNDS;
-		if (SendMessageW(hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
+		if (SendMessageW(t->hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
 			logLastError(L"LVM_GETITEMRECT LVIR_BOUNDS");
 			return E_FAIL;
 		}
 		dp->bounds = r;
 		ZeroMemory(&r, sizeof (RECT));
 		r.left = LVIR_ICON;
-		if (SendMessageW(hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
+		if (SendMessageW(t->hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
 			logLastError(L"LVM_GETITEMRECT LVIR_ICON");
 			return E_FAIL;
 		}
 		dp->icon = r;
 		ZeroMemory(&r, sizeof (RECT));
 		r.left = LVIR_LABEL;
-		if (SendMessageW(hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
+		if (SendMessageW(t->hwnd, LVM_GETITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == FALSE) {
 			logLastError(L"LVM_GETITEMRECT LVIR_LABEL");
 			return E_FAIL;
 		}
@@ -161,7 +166,7 @@ static HRESULT fillSubitemDrawParams(HWND hwnd, NMLVCUSTOMDRAW *nm, uiprivSubite
 	ZeroMemory(&r, sizeof (RECT));
 	r.left = LVIR_BOUNDS;
 	r.top = nm->iSubItem;
-	if (SendMessageW(hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == 0) {
+	if (SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == 0) {
 		logLastError(L"LVM_GETSUBITEMRECT LVIR_BOUNDS");
 		return E_FAIL;
 	}
@@ -169,7 +174,7 @@ static HRESULT fillSubitemDrawParams(HWND hwnd, NMLVCUSTOMDRAW *nm, uiprivSubite
 	ZeroMemory(&r, sizeof (RECT));
 	r.left = LVIR_ICON;
 	r.top = nm->iSubItem;
-	if (SendMessageW(hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == 0) {
+	if (SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM) (&r)) == 0) {
 		logLastError(L"LVM_GETSUBITEMRECT LVIR_ICON");
 		return E_FAIL;
 	}
@@ -229,8 +234,7 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 					logLastError(L"DeleteObject()");
 		}
 		t->clrItemText = nm->clrText;
-		ret = CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
-		break;
+		return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		p = (*(t->columns))[nm->iSubItem];
 		// TODO none of this runs on the first item
@@ -245,30 +249,22 @@ static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
 			}
 		}
 		// TODO draw background on image columns if needed
-		ret = /*CDRF_SKIPDEFAULT | */CDRF_NEWFONT;
+		ret = CDRF_SKIPDEFAULT | CDRF_NEWFONT;
 		break;
-//case CDDS_SUBITEM | CDDS_ITEMPOSTPAINT:
-if(0){//nm->iSubItem == 1) {
-RECT r, r2;
-r.left = LVIR_LABEL;
-r.top = 1;
-SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM)(&r));
-r2.left = LVIR_ICON;
-r2.top = 1;
-SendMessageW(t->hwnd, LVM_GETSUBITEMRECT, nm->nmcd.dwItemSpec, (LPARAM)(&r2));
-r.left = r2.right + 2;
-DrawTextW(nm->nmcd.hdc, L"Part", -1,
-&r, DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_SINGLELINE | DT_NOPREFIX | DT_EDITCONTROL);}
 	default:
 		return CDRF_DODEFAULT;
 	}
 
 	ZeroMemory(&dp, sizeof (uiprivSubitemDrawParams));
-	hr = fillSubitemDrawParams(t->hwnd, nm, &dp);
+	hr = fillSubitemDrawParams(t, nm, &dp);
 	if (hr != S_OK) {
 		// TODO
 	}
 	hr = uiprivNM_CUSTOMDRAWImagesCheckboxes(t, nm, &dp);
+	if (hr != S_OK) {
+		// TODO
+	}
+	hr = uiprivNM_CUSTOMDRAWText(t, nm, p, &dp);
 	if (hr != S_OK) {
 		// TODO
 	}

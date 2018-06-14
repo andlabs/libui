@@ -95,8 +95,14 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 	uiTableData *data;
 	HRESULT hr;
 
+	if (nm->item.iSubItem == 0 && p->imageModelColumn == -1 && p->checkboxModelColumn == -1) {
+		// having an image list always leaves space for an image on the main item :|
+		// other places on the internet imply that you should be able to do this but that it shouldn't work
+		// but it works perfectly (and pixel-perfectly too) for me, so...
+		nm->item.mask |= LVIF_INDENT;
+		nm->item.iIndent = -1;
+	}
 	if ((nm->item.mask & LVIF_IMAGE) == 0)
-		// TODO we actually need to do the first column fix here too...
 		return S_OK;		// nothing to do here
 
 	if (p->imageModelColumn != -1) {
@@ -122,16 +128,8 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 		return S_OK;
 	}
 
-	// if we got here, there's no image in this cell
-	nm->item.mask &= ~LVIF_IMAGE;
-	// having an image list always leaves space for an image on the main item :|
-	// other places on the internet imply that you should be able to do this but that it shouldn't work
-	// but it works perfectly (and pixel-perfectly too) for me, so...
-	// TODO it doesn't work anymore...
-	if (nm->item.iSubItem == 0) {
-		nm->item.mask |= LVIF_INDENT;
-		nm->item.iIndent = -1;
-	}
+	// TODO see if this is correct
+	nm->item.iImage = -1;
 	return S_OK;
 }
 

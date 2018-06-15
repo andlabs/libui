@@ -44,6 +44,11 @@ static HRESULT computeAndDrawTextRect(struct drawState *s)
 	r = s->subitemLabel;
 	if (!s->hasText && !s->hasImage)
 		r = s->subitemBounds;
+	else if (!s->hasImage && s->iSubItem != 0)
+		// By default, this will include images; we're not drawing
+		// images, so we will manually draw over the image area.
+		// There's a second part to this; see below.
+		r.left = s->subitemBounds.left;
 
 	if (FillRect(s->dc, &r, s->bgBrush) == 0) {
 		logLastError(L"FillRect()");

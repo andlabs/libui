@@ -57,11 +57,14 @@ HRESULT uiprivNM_CUSTOMDRAWText(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivTableColum
 		return E_FAIL;
 	}
 
-	// text is actually drawn two logical units to the right of the beginning of the text rect
-	// TODO confirm this for the first column on both image and imageless cases
-	// TODO actually this whole thing is wrong for imageless columns
 	r = dp->label;
-	r.left += 2;
+	if (p->imageModelColumn != -1 || p->checkboxModelColumn != -1)
+		// text is actually drawn two logical units to the right of the beginning of the text rect
+		// TODO confirm this for the first column on both image and imageless cases
+		// TODO actually this whole thing is wrong for imageless columns
+		r.left += 2;
+	else
+		r.left = dp->bounds.left + dp->bitmapMargin;
 
 	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, p->textModelColumn);
 	wstr = toUTF16(uiTableDataString(data));

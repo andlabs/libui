@@ -17,10 +17,10 @@ struct drawState {
 
 	RECT itemBounds;
 	RECT itemIcon;
-	RECT itemText;
+	RECT itemLabel;
 	RECT subitemBounds;
 	RECT subitemIcon;
-	RECT subitemText;
+	RECT subitemLabel;
 
 	COLORREF bgColor;
 	HBRUSH bgBrush;
@@ -29,7 +29,7 @@ struct drawState {
 	HBRUSH textBrush;
 	BOOL freeTextBrush;
 
-	LRESULT bitmapMargins;
+	LRESULT bitmapMargin;
 	int cxIcon;
 	int cyIcon;
 
@@ -41,7 +41,7 @@ static HRESULT computeAndDrawTextRect(struct drawState *s)
 {
 	RECT r;
 
-	r = s->subitemText;
+	r = s->subitemLabel;
 	if (!s->hasText && !s->hasImage)
 		r = s->subitemBounds;
 
@@ -104,11 +104,11 @@ static HRESULT drawTextPart(struct drawState *s)
 	uiprivFree(wstr);
 
 	// TODO decide once and for all what to compare to here and with SelectObject()
-	if (SetBkMode(nm->nmcd.hdc, prevMode) != TRANSPARENT) {
+	if (SetBkMode(s->dc, prevMode) != TRANSPARENT) {
 		logLastError(L"SetBkMode() prev");
 		return E_FAIL;
 	}
-	if (SetTextColor(nm->nmcd.hdc, prevText) != color) {
+	if (SetTextColor(s->dc, prevText) != s->textColor) {
 		logLastError(L"SetTextColor() prev");
 		return E_FAIL;
 	}
@@ -120,21 +120,21 @@ static HRESULT freeDrawState(struct drawState *s)
 	HRESULT hr, hrret;
 
 	hrret = S_OK;
-	if (p->freeTextBrush) {
-		if (DeleteObject(p->textBrush) == 0) {
+	if (s->freeTextBrush) {
+		if (DeleteObject(s->textBrush) == 0) {
 			logLastError(L"DeleteObject()");
 			hrret = E_FAIL;
 			// continue cleaning up anyway
 		}
-		p->freeTextBrush = NO;
+		s->freeTextBrush = FALSE;
 	}
-	if (p->freeBgBrush) {
-		if (DeleteObject(p->bgBrush) == 0) {
+	if (s->freeBgBrush) {
+		if (DeleteObject(s->bgBrush) == 0) {
 			logLastError(L"DeleteObject()");
 			hrret = E_FAIL;
 			// continue cleaning up anyway
 		}
-		p->freeBgBrush = NO;
+		s->freeBgBrush = FALSE;
 	}
 	return hrret;
 }
@@ -151,6 +151,22 @@ static HRESULT itemRect(HRESULT hr, uiTable *t, UINT uMsg, WPARAM wParam, LONG l
 		return E_FAIL;
 	}
 	return S_OK;
+}
+
+static COLORREF blend(COLORREF base, double r, double g, double b, double a)
+{
+	double br, bg, bb;
+
+	br = ((double) GetRValue(base)) / 255.0;
+	bg = ((double) GetGValue(base)) / 255.0;
+	bb = ((double) GetBValue(base)) / 255.0;
+
+	br = (r * a) + (br * (1.0 - a));
+	bg = (g * a) + (bg * (1.0 - a));
+	bb = (b * a) + (bb * (1.0 - a));
+	return RGB((BYTE) (br * 255),
+		(BYTE) (bg * 255),
+		(BYTE) (bb * 255));
 }
 
 static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm, uiprivTableColumnParams *p)
@@ -172,19 +188,20 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 	// nm->nmcd.uItemState CDIS_SELECTED is unreliable for the
 	// listview configuration we have, so we must do this.
 	state = SendMessageW(t->hwnd, LVM_GETITEMSTATE, nm->nmcd.dwItemSpec, LVIS_SELECTED);
-	dp->selected = (state & LVIS_SELECTED) != 0;
-	dp->focused = (nm->nmcd.uiTemState & CDIS_FOCUSED) != 0;
+	s->selected = (state & LVIS_SELECTED) != 0;
+	s->focused = (nm->nmcd.uItemState & CDIS_FOCUS) != 0;
 
-	hr = itemRect(S_OK, t, LVM_GETITEMRECT, LVIR_BOUNDS,
-		0, &(s->itemBounds));
-	hr = itemRect(hr, t, LVM_GETITEMRECT, LVIR_ICON,
-		0, &(s->itemIcon));
-	hr = itemRect(hr, t, LVM_GETITEMRECT, LVIR_LABEL,
-		0, &(s->itemLabel));
-	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, LVIR_BOUNDS,
-		s->iSubItem, &(s->subitemBounds));
-	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, LVIR_ICON,
-		s->iSubItem, &(s->subitemIcon));
+	// TODO check LRESULT bad parameters here
+	hr = itemRect(S_OK, t, LVM_GETITEMRECT, s->iItem,
+		LVIR_BOUNDS, 0, FALSE, &(s->itemBounds));
+	hr = itemRect(hr, t, LVM_GETITEMRECT, s->iItem,
+		LVIR_ICON, 0, FALSE, &(s->itemIcon));
+	hr = itemRect(hr, t, LVM_GETITEMRECT, s->iItem,
+		LVIR_LABEL, 0, FALSE, &(s->itemLabel));
+	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, s->iItem,
+		LVIR_BOUNDS, s->iSubItem, 0, &(s->subitemBounds));
+	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, s->iItem,
+		LVIR_ICON, s->iSubItem, 0, &(s->subitemIcon));
 	if (hr != S_OK)
 		goto fail;
 	// LVM_GETSUBITEMRECT treats LVIR_LABEL as the same as
@@ -194,6 +211,12 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 	// above.
 	s->subitemLabel = s->subitemBounds;
 	s->subitemLabel.left = s->subitemIcon.right;
+	// And on iSubItem == 0, LVIF_GETSUBITEMRECT still includes
+	// all the subitems, which we don't want.
+	if (s->iSubItem == 0) {
+		s->subitemBounds.right = s->itemLabel.right;
+		s->subitemLabel.right = s->itemLabel.right;
+	}
 
 	if (s->selected) {
 		s->bgColor = GetSysColor(COLOR_HIGHLIGHT);
@@ -202,6 +225,7 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 		s->textBrush = GetSysColorBrush(COLOR_HIGHLIGHTTEXT);
 	} else {
 		uiTableData *data;
+		double r, g, b, a;
 
 		s->bgColor = GetSysColor(COLOR_WINDOW);
 		s->bgBrush = GetSysColorBrush(COLOR_WINDOW);
@@ -211,7 +235,7 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 				uiTableDataColor(data, &r, &g, &b, &a);
 				uiFreeTableData(data);
 				s->bgColor = blend(s->bgColor, r, g, b, a);
-				s->bgBrush = CreateSolidBrush(s->bgBrush);
+				s->bgBrush = CreateSolidBrush(s->bgColor);
 				if (s->bgBrush == NULL) {
 					logLastError(L"CreateSolidBrush()");
 					hr = E_FAIL;
@@ -247,5 +271,46 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 fail:
 	// ignore the error; we need to return the one we got above
 	freeDrawState(s);
+	return hr;
+}
+
+HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult)
+{
+	struct drawState s;
+	uiprivTableColumnParams *p;
+	HRESULT hr;
+
+	switch (nm->nmcd.dwDrawStage) {
+	case CDDS_PREPAINT:
+		*lResult = CDRF_NOTIFYITEMDRAW;
+		return S_OK;
+	case CDDS_ITEMPREPAINT:
+		*lResult = CDRF_NOTIFYSUBITEMDRAW;
+		return S_OK;
+	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
+		break;
+	default:
+		*lResult = CDRF_DODEFAULT;
+		return S_OK;
+	}
+
+	p = (*(t->columns))[nm->iSubItem];
+	hr = fillDrawState(&s, t, nm, p);
+	if (hr != S_OK)
+		return hr;
+	hr = computeAndDrawTextRect(&s);
+	if (hr != S_OK)
+		goto fail;
+	hr = drawTextPart(&s);
+	if (hr != S_OK)
+		goto fail;
+	hr = freeDrawState(&s);
+	if (hr != S_OK)		// TODO really error out here?
+		return hr;
+	*lResult = CDRF_SKIPDEFAULT;
+	return S_OK;
+fail:
+	// ignore error here
+	freeDrawState(&s);
 	return hr;
 }

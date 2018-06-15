@@ -46,13 +46,14 @@ struct uiprivSubitemDrawParams {
 	RECT icon;
 	RECT label;
 };
-extern COLORREF uiprivTableBlendedColorFromModel(uiTable *t, NMLVCUSTOMDRAW *nm, int modelColumn, int fallbackSysColorID);
 
 // tabletext.cpp
 extern HRESULT uiprivLVN_GETDISPINFOText(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p);
-extern HRESULT uiprivNM_CUSTOMDRAWText(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivTableColumnParams *p, uiprivSubitemDrawParams *dp);
 
 // tableimages.cpp
 extern HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p);
 extern HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp);
 extern HRESULT uiprivTableSetupImagesCheckboxes(uiTable *t);
+
+// tabledraw.cpp
+extern HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult);

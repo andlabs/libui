@@ -78,6 +78,7 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 
 static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 {
+	// TODO remove static
 	static uiprivTableColumnParams *p;
 	HRESULT hr;
 
@@ -94,131 +95,21 @@ static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
 	return 0;
 }
 
-static COLORREF blend(COLORREF base, double r, double g, double b, double a)
-{
-	double br, bg, bb;
-
-	// TODO find a better fix than this
-	// TODO s listview already alphablending?
-	// TODO find the right color here
-	if (base == CLR_DEFAULT)
-		base = GetSysColor(COLOR_WINDOW);
-	br = ((double) GetRValue(base)) / 255.0;
-	bg = ((double) GetGValue(base)) / 255.0;
-	bb = ((double) GetBValue(base)) / 255.0;
-
-	br = (r * a) + (br * (1.0 - a));
-	bg = (g * a) + (bg * (1.0 - a));
-	bb = (b * a) + (bb * (1.0 - a));
-	return RGB((BYTE) (br * 255),
-		(BYTE) (bg * 255),
-		(BYTE) (bb * 255));
-}
-
-COLORREF uiprivTableBlendedColorFromModel(uiTable *t, NMLVCUSTOMDRAW *nm, int modelColumn, int fallbackSysColorID)
-{
-	uiTableData *data;
-	double r, g, b, a;
-
-	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, modelColumn);
-	if (data == NULL)
-		return GetSysColor(fallbackSysColorID);
-	uiTableDataColor(data, &r, &g, &b, &a);
-	uiFreeTableData(data);
-	return blend(nm->clrTextBk, r, g, b, a);
-}
-
-static LRESULT onNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm)
-{
-	uiprivTableColumnParams *p;
-	uiTableData *data;
-	double r, g, b, a;
-	uiprivSubitemDrawParams dp;
-	LRESULT ret;
-	HRESULT hr;
-
-	switch (nm->nmcd.dwDrawStage) {
-	case CDDS_PREPAINT:
-		return CDRF_NOTIFYITEMDRAW;
-	case CDDS_ITEMPREPAINT:
-		if (t->backgroundColumn != -1) {
-			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, t->backgroundColumn);
-			if (data != NULL) {
-				uiTableDataColor(data, &r, &g, &b, &a);
-				uiFreeTableData(data);
-				nm->clrTextBk = blend(nm->clrTextBk, r, g, b, a);
-			}
-		}
-		{
-			LRESULT state;
-			HBRUSH b;
-			bool freeBrush = false;
-
-			// note: nm->nmcd.uItemState CDIS_SELECTED is unreliable for the listview configuration we have
-			state = SendMessageW(t->hwnd, LVM_GETITEMSTATE, nm->nmcd.dwItemSpec, LVIS_SELECTED);
-			if ((state & LVIS_SELECTED) != 0)
-				b = GetSysColorBrush(COLOR_HIGHLIGHT);
-			else if (nm->clrTextBk != CLR_DEFAULT) {
-				b = CreateSolidBrush(nm->clrTextBk);
-				if (b == NULL)
-					logLastError(L"CreateSolidBrush()");
-				freeBrush = true;
-			} else
-				b = GetSysColorBrush(COLOR_WINDOW);
-			// TODO check error
-			FillRect(nm->nmcd.hdc, &(nm->nmcd.rc), b);
-			if (freeBrush)
-				if (DeleteObject(b) == 0)
-					logLastError(L"DeleteObject()");
-		}
-		t->clrItemText = nm->clrText;
-		return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
-	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
-		p = (*(t->columns))[nm->iSubItem];
-		// TODO none of this runs on the first item
-		// we need this as previous subitems will persist their colors
-		nm->clrText = t->clrItemText;
-		if (p->textParams.ColorModelColumn != -1) {
-			data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->nmcd.dwItemSpec, p->textParams.ColorModelColumn);
-			if (data != NULL) {
-				uiTableDataColor(data, &r, &g, &b, &a);
-				uiFreeTableData(data);
-				nm->clrText = blend(nm->clrTextBk, r, g, b, a);
-			}
-		}
-		// TODO draw background on image columns if needed
-		ret = CDRF_SKIPDEFAULT | CDRF_NEWFONT;
-		break;
-	default:
-		return CDRF_DODEFAULT;
-	}
-
-	ZeroMemory(&dp, sizeof (uiprivSubitemDrawParams));
-	hr = fillSubitemDrawParams(t, nm, &dp);
-	if (hr != S_OK) {
-		// TODO
-	}
-	hr = uiprivNM_CUSTOMDRAWImagesCheckboxes(t, nm, &dp);
-	if (hr != S_OK) {
-		// TODO
-	}
-	hr = uiprivNM_CUSTOMDRAWText(t, nm, p, &dp);
-	if (hr != S_OK) {
-		// TODO
-	}
-	return ret;
-}
-
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 {
 	uiTable *t = uiTable(c);
+	HRESULT hr;
 
 	switch (nmhdr->code) {
 	case LVN_GETDISPINFO:
 		*lResult = onLVN_GETDISPINFO(t, (NMLVDISPINFOW *) nmhdr);
 		return TRUE;
 	case NM_CUSTOMDRAW:
-		*lResult = onNM_CUSTOMDRAW(t, (NMLVCUSTOMDRAW *) nmhdr);
+		hr = uiprivTableHandleNM_CUSTOMDRAW(t, (NMLVCUSTOMDRAW *) nmhdr, lResult);
+		if (hr != S_OK) {
+			// TODO
+			return FALSE;
+		}
 		return TRUE;
 	}
 	return FALSE;

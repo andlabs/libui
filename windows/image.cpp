@@ -112,8 +112,9 @@ IWICBitmap *uiprivImageAppropriateForDC(uiImage *i, HDC dc)
 	m.best = NULL;
 	m.distX = INT_MAX;
 	m.distY = INT_MAX;
-	m.targetX = i->width * GetDeviceCaps(dc, LOGPIXELSX);
-	m.targetY = i->height * GetDeviceCaps(dc, LOGPIXELSY);
+	// TODO explain this
+	m.targetX = MulDiv(i->width, GetDeviceCaps(dc, LOGPIXELSX), 96);
+	m.targetY = MulDiv(i->height, GetDeviceCaps(dc, LOGPIXELSY), 96);
 	m.foundLarger = false;
 	for (IWICBitmap *b : *(i->bitmaps))
 		match(b, &m);

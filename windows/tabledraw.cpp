@@ -327,7 +327,7 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 
 	if (s->p->progressBarModelColumn == -1)
 		return S_OK;
-	progress = uiprivTableProgress(s->t, s->iItem, s->p->progressBarModelColumn, &indeterminatePos);
+	progress = uiprivTableProgress(s->t, s->iItem, s->iSubItem, s->p->progressBarModelColumn, &indeterminatePos);
 
 	theme = OpenThemeData(s->t->hwnd, L"TODO");
 
@@ -376,6 +376,7 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 		LONG pieceWidth;
 
 		// TODO explain all this
+		// TODO this should really start the progressbar scrolling into view instead of already on screen when first set
 		rFill[1] = rFill[0];		// save in case we need it
 		barWidth = rFill[0].right - rFill[0].left;
 		pieceWidth = barWidth / indeterminateSegments;

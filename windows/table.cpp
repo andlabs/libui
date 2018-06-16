@@ -76,6 +76,7 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	}
 }
 
+// TODO explain all this
 static LRESULT CALLBACK tableSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIDSubclass, DWORD_PTR dwRefData)
 {
 	uiTable *t = (uiTable *) dwRefData;
@@ -84,10 +85,11 @@ static LRESULT CALLBACK tableSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 	case WM_TIMER:
 		if (wParam != (WPARAM) t)
 			break;
-		for (auto &i : t->indeterminatePositions) {
-			i->second++;
+		// TODO only increment and update if visible?
+		for (auto &i : *(t->indeterminatePositions)) {
+			i.second++;
 			// TODO check errors
-			SendMessageW(hwnd, LVM_UPDATE, (WPARAM) (i->first.first), 0);
+			SendMessageW(hwnd, LVM_UPDATE, (WPARAM) (i.first.first), 0);
 		}
 		return 0;
 	case WM_NCDESTROY:
@@ -108,7 +110,7 @@ int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG
 	bool stopTimer = false;
 
 	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, item, modelColumn);
-	progress = uiTableModelInt(data);
+	progress = uiTableDataInt(data);
 	uiFreeTableData(data);
 
 	p.first = item;
@@ -131,11 +133,13 @@ int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG
 	if (startTimer)
 		// the interval shown here is PBM_SETMARQUEE's default
 		// TODO should we pass a function here instead? it seems to be called by DispatchMessage(), not DefWindowProc(), but I'm still unsure
-		if (SetTimer(t->hwnd, (UINT_PTR) (&t), 30, NULL) == 0)
+		if (SetTimer(t->hwnd, (UINT_PTR) t, 30, NULL) == 0)
 			logLastError(L"SetTimer()");
 	if (stopTimer)
 		if (KillTimer(t->hwnd, (UINT_PTR) (&t)) == 0)
 			logLastError(L"KillTimer()");
+
+	return progress;
 }
 
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
@@ -315,7 +319,6 @@ uiTable *uiNewTable(uiTableModel *model)
 {
 	uiTable *t;
 	int n;
-	int i;
 	HRESULT hr;
 
 	uiWindowsNewControl(uiTable, t);

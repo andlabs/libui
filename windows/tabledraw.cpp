@@ -310,6 +310,80 @@ static HRESULT drawTextPart(struct drawState *s)
 	return S_OK;
 }
 
+// much of this is to imitate what shell32.dll's CDrawProgressBar does
+static HRESULT drawProgressBarPart(struct drawState *s)
+{
+	uiTableData *data;
+	int progress;
+	HTHEME theme;
+	RECT r;
+	RECT rBorder, rFill;
+	TEXTMETRICW tm;
+	int sysColor;
+	HRESULT hr;
+
+	if (s->p->progressBarModelColumn == -1)
+		return S_OK;
+	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->progressBarModelColumn);
+	progress = uiTableDataInt(data);
+	uiFreeTableData(data);
+	if (progress == -1)
+		return S_OK;		// TODO
+
+	theme = OpenThemeData(s->t->hwnd, L"TODO");
+
+	if (GetTextMetricsW(s->dc, &tm) == 0) {
+		logLastError(L"GetTextMetricsW()");
+		hr = E_FAIL;
+		goto fail;
+	}
+	r = s->subitemBounds;
+	// this sets the height of the progressbar and vertically centers it in one fell swoop
+	r.top += (r.bottom - tm.tmHeight - r.top) / 2;
+	r.bottom = r.top + tm.tmHeight;
+
+	// TODO check errors
+	rBorder = r;
+	InflateRect(&rBorder, -1, -1);
+	if (theme != NULL) {
+		// TODO
+	}/* else */{
+		HPEN pen, prevPen;
+		HBRUSH brush, prevBrush;
+
+		sysColor = COLOR_HIGHLIGHT;
+		if (s->selected)
+			sysColor = COLOR_HIGHLIGHTTEXT;
+
+		// TODO check errors everywhere
+		pen = CreatePen(PS_SOLID, 1, GetSysColor(sysColor));
+		prevPen = (HPEN) SelectObject(s->dc, pen);
+		brush = (HBRUSH) GetStockObject(NULL_BRUSH);
+		prevBrush = (HBRUSH) SelectObject(s->dc, brush);
+		Rectangle(s->dc, rBorder.left, rBorder.top, rBorder.right, rBorder.bottom);
+		SelectObject(s->dc, prevBrush);
+		SelectObject(s->dc, prevPen);
+		DeleteObject(pen);
+	}
+
+	rFill = r;
+	// TODO check error
+	InflateRect(&rFill, -1, -1);
+	rFill.right -= (rFill.right - rFill.left) * (100 - progress) / 100;
+	if (theme != NULL) {
+		// TODO
+	}/* else*/
+		// TODO check errors
+		FillRect(s->dc, &rFill, GetSysColorBrush(sysColor));
+
+	hr = S_OK;
+fail:
+	// TODO check errors
+	if (theme != NULL)
+		CloseThemeData(theme);
+	return hr;
+}
+
 static HRESULT freeDrawState(struct drawState *s)
 {
 	HRESULT hr, hrret;
@@ -507,6 +581,9 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 	if (hr != S_OK)
 		goto fail;
 	hr = drawTextPart(&s);
+	if (hr != S_OK)
+		goto fail;
+	hr = drawProgressBarPart(&s);
 	if (hr != S_OK)
 		goto fail;
 	hr = freeDrawState(&s);

@@ -31,8 +31,10 @@ struct uiTable {
 	int backgroundColumn;
 	// TODO make sure replacing images while selected in the listview is even allowed
 	HIMAGELIST imagelist;
-	LONG indeterminatePosition;
+	// TODO document all this
+	std::map<std::pair<int, int>, LONG> *indeterminatePositions;
 };
+extern int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG *pos);
 
 // tabledispinfo.cpp
 extern HRESULT uiprivTableHandleLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm, LRESULT *lResult);

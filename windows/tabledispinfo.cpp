@@ -32,9 +32,7 @@ static HRESULT handleLVIF_TEXT(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnP
 	}
 
 	if (p->progressBarModelColumn != -1) {
-		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->progressBarModelColumn);
-		progress = uiTableDataInt(data);
-		uiFreeTableData(data);
+		progress = uiprivTableProgress(t, nm->item.iItem, p->progressBarModelColumn, NULL);
 
 		if (progress == -1) {
 			// TODO either localize this or replace it with something that's language-neutral

@@ -315,8 +315,8 @@ static HRESULT drawTextPart(struct drawState *s)
 
 static HRESULT drawProgressBarPart(struct drawState *s)
 {
-	uiTableData *data;
 	int progress;
+	LONG indeterminatePos;
 	HTHEME theme;
 	RECT r;
 	RECT rBorder, rFill[2];
@@ -327,9 +327,7 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 
 	if (s->p->progressBarModelColumn == -1)
 		return S_OK;
-	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->progressBarModelColumn);
-	progress = uiTableDataInt(data);
-	uiFreeTableData(data);
+	progress = uiprivTableProgress(s->t, s->iItem, s->p->progressBarModelColumn, &indeterminatePos);
 
 	theme = OpenThemeData(s->t->hwnd, L"TODO");
 
@@ -381,7 +379,7 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 		rFill[1] = rFill[0];		// save in case we need it
 		barWidth = rFill[0].right - rFill[0].left;
 		pieceWidth = barWidth / indeterminateSegments;
-		rFill[0].left += s->t->indeterminatePosition % barWidth;
+		rFill[0].left += indeterminatePos % barWidth;
 		if ((rFill[0].left + pieceWidth) >= rFill[0].right) {
 			// make this piece wrap back around
 			nFill++;

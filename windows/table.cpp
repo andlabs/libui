@@ -76,6 +76,68 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	}
 }
 
+static LRESULT CALLBACK tableSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIDSubclass, DWORD_PTR dwRefData)
+{
+	uiTable *t = (uiTable *) dwRefData;
+
+	switch (uMsg) {
+	case WM_TIMER:
+		if (wParam != (WPARAM) t)
+			break;
+		for (auto &i : t->indeterminatePositions) {
+			i->second++;
+			// TODO check errors
+			SendMessageW(hwnd, LVM_UPDATE, (WPARAM) (i->first.first), 0);
+		}
+		return 0;
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, tableSubProc, uIDSubclass) == FALSE)
+			logLastError(L"RemoveWindowSubclass()");
+		// fall through
+	}
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+}
+
+int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG *pos)
+{
+	uiTableData *data;
+	int progress;
+	std::pair<int, int> p;
+	std::map<std::pair<int, int>, LONG>::iterator iter;
+	bool startTimer = false;
+	bool stopTimer = false;
+
+	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, item, modelColumn);
+	progress = uiTableModelInt(data);
+	uiFreeTableData(data);
+
+	p.first = item;
+	p.second = subitem;
+	iter = t->indeterminatePositions->find(p);
+	if (iter == t->indeterminatePositions->end()) {
+		if (progress == -1) {
+			startTimer = t->indeterminatePositions->size() == 0;
+			(*(t->indeterminatePositions))[p] = 0;
+			if (pos != NULL)
+				*pos = 0;
+		}
+	} else
+		if (progress != -1) {
+			t->indeterminatePositions->erase(p);
+			stopTimer = t->indeterminatePositions->size() == 0;
+		} else if (pos != NULL)
+			*pos = iter->second;
+
+	if (startTimer)
+		// the interval shown here is PBM_SETMARQUEE's default
+		// TODO should we pass a function here instead? it seems to be called by DispatchMessage(), not DefWindowProc(), but I'm still unsure
+		if (SetTimer(t->hwnd, (UINT_PTR) (&t), 30, NULL) == 0)
+			logLastError(L"SetTimer()");
+	if (stopTimer)
+		if (KillTimer(t->hwnd, (UINT_PTR) (&t)) == 0)
+			logLastError(L"KillTimer()");
+}
+
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 {
 	uiTable *t = uiTable(c);
@@ -119,7 +181,8 @@ static void uiTableDestroy(uiControl *c)
 	for (auto col : *(t->columns))
 		uiprivFree(col);
 	delete t->columns;
-	// t->smallImages will be automatically destroyed
+	// t->imagelist will be automatically destroyed
+	delete t->indeterminatePositions;
 	uiFreeControl(uiControl(t));
 }
 
@@ -282,6 +345,10 @@ uiTable *uiNewTable(uiTableModel *model)
 	if (hr != S_OK) {
 		// TODO
 	}
+
+	t->indeterminatePositions = new std::map<std::pair<int, int>, LONG>;
+	if (SetWindowSubclass(t->hwnd, tableSubProc, 0, (DWORD_PTR) t) == FALSE)
+		logLastError(L"SetWindowSubclass()");
 
 	return t;
 }

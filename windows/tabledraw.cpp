@@ -311,13 +311,16 @@ static HRESULT drawTextPart(struct drawState *s)
 }
 
 // much of this is to imitate what shell32.dll's CDrawProgressBar does
+#define indeterminateSegments 8
+
 static HRESULT drawProgressBarPart(struct drawState *s)
 {
 	uiTableData *data;
 	int progress;
 	HTHEME theme;
 	RECT r;
-	RECT rBorder, rFill;
+	RECT rBorder, rFill[2];
+	int i, nFill;
 	TEXTMETRICW tm;
 	int sysColor;
 	HRESULT hr;
@@ -327,8 +330,6 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->progressBarModelColumn);
 	progress = uiTableDataInt(data);
 	uiFreeTableData(data);
-	if (progress == -1)
-		return S_OK;		// TODO
 
 	theme = OpenThemeData(s->t->hwnd, L"TODO");
 
@@ -366,16 +367,35 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 		DeleteObject(pen);
 	}
 
-	rFill = r;
+	nFill = 1;
+	rFill[0] = r;
 	// TODO check error
-	InflateRect(&rFill, -1, -1);
-	rFill.right -= (rFill.right - rFill.left) * (100 - progress) / 100;
-	if (theme != NULL) {
-		// TODO
-	}/* else*/
-		// TODO check errors
-		FillRect(s->dc, &rFill, GetSysColorBrush(sysColor));
+	InflateRect(&rFill[0], -1, -1);
+	if (progress != -1)
+		rFill[0].right -= (rFill[0].right - rFill[0].left) * (100 - progress) / 100;
+	else {
+		LONG barWidth;
+		LONG pieceWidth;
 
+		// TODO explain all this
+		rFill[1] = rFill[0];		// save in case we need it
+		barWidth = rFill[0].right - rFill[0].left;
+		pieceWidth = barWidth / indeterminateSegments;
+		rFill[0].left += s->t->indeterminatePosition % barWidth;
+		if ((rFill[0].left + pieceWidth) >= rFill[0].right) {
+			// make this piece wrap back around
+			nFill++;
+			rFill[1].right = rFill[1].left + (pieceWidth - (rFill[0].right - rFill[0].left));
+		} else
+			rFill[0].right = rFill[0].left + pieceWidth;
+	}
+	for (i = 0; i < nFill; i++)
+{		if (theme != NULL) {
+			// TODO
+		}/* else*/
+			// TODO check errors
+			FillRect(s->dc, &rFill[i], GetSysColorBrush(sysColor));
+}
 	hr = S_OK;
 fail:
 	// TODO check errors

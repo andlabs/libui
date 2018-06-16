@@ -31,6 +31,7 @@ struct uiTable {
 	int backgroundColumn;
 	// TODO make sure replacing images while selected in the listview is even allowed
 	HIMAGELIST imagelist;
+	LONG indeterminatePosition;
 };
 
 // tabledispinfo.cpp

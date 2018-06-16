@@ -79,10 +79,22 @@ static HRESULT computeOtherRectsAndDrawBackgrounds(struct drawState *s)
 
 static void centerImageRect(RECT *image, RECT *space)
 {
-	LONG yoff;
+	LONG xoff, yoff;
 
+	// first make sure both have the same upper-left
+	xoff = image->left - space->left;
+	yoff = image->top - space->top;
+	image->left -= xoff;
+	image->top -= yoff;
+	image->right -= xoff;
+	image->bottom -= yoff;
+
+	// now center
+	xoff = ((space->right - space->left) - (image->right - image->left)) / 2;
 	yoff = ((space->bottom - space->top) - (image->bottom - image->top)) / 2;
+	image->left += xoff;
 	image->top += yoff;
+	image->right += xoff;
 	image->bottom += yoff;
 }
 
@@ -131,6 +143,121 @@ static HRESULT drawImagePart(struct drawState *s)
 		s->dc, r.left, r.top, fStyle) == 0) {
 		logLastError(L"ImageList_Draw()");
 		return E_FAIL;
+	}
+	return S_OK;
+}
+
+// references for checkbox drawing:
+// - https://blogs.msdn.microsoft.com/oldnewthing/20171129-00/?p=97485
+// - https://blogs.msdn.microsoft.com/oldnewthing/20171201-00/?p=97505
+
+static HRESULT drawUnthemedCheckbox(struct drawState *s, int checked, int enabled)
+{
+	RECT r;
+	UINT state;
+
+	r = s->subitemIcon;
+	// this is what the actual list view LVS_EX_CHECKBOXES code does to size the checkboxes
+	// TODO reverify the initial size
+	r.right = r.left + GetSystemMetrics(SM_CXSMICON);
+	r.bottom = r.top + GetSystemMetrics(SM_CYSMICON);
+	if (InflateRect(&r, -GetSystemMetrics(SM_CXEDGE), -GetSystemMetrics(SM_CYEDGE)) == 0) {
+		logLastError(L"InflateRect()");
+		return E_FAIL;
+	}
+	r.right++;
+	r.bottom++;
+
+	centerImageRect(&r, &(s->subitemIcon));
+	state = DFCS_BUTTONCHECK | DFCS_FLAT;
+	if (checked)
+		state |= DFCS_CHECKED;
+	if (!enabled)
+		state |= DFCS_INACTIVE;
+	if (DrawFrameControl(s->dc, &r, DFC_BUTTON, state) == 0) {
+		logLastError(L"DrawFrameControl()");
+		return E_FAIL;
+	}
+	return S_OK;
+}
+
+static HRESULT drawThemedCheckbox(struct drawState *s, HTHEME theme, int checked, int enabled)
+{
+	RECT r;
+	SIZE size;
+	int state;
+	HRESULT hr;
+
+	hr = GetThemePartSize(theme, s->dc,
+		BP_CHECKBOX, CBS_UNCHECKEDNORMAL,
+		NULL, TS_DRAW, &size);
+	if (hr != S_OK) {
+		logHRESULT(L"GetThemePartSize()", hr);
+		return hr;			// TODO fall back?
+	}
+	r = s->subitemIcon;
+	r.right = r.left + size.cx;
+	r.bottom = r.top + size.cy;
+
+	centerImageRect(&r, &(s->subitemIcon));
+	if (!checked && enabled)
+		state = CBS_UNCHECKEDNORMAL;
+	else if (checked && enabled)
+		state = CBS_CHECKEDNORMAL;
+	else if (!checked && !enabled)
+		state = CBS_UNCHECKEDDISABLED;
+	else
+		state = CBS_CHECKEDDISABLED;
+	hr = DrawThemeBackground(theme, s->dc,
+		BP_CHECKBOX, state,
+		&r, NULL);
+	if (hr != S_OK) {
+		logHRESULT(L"DrawThemeBackground()", hr);
+		return hr;
+	}
+	return S_OK;
+}
+
+static HRESULT drawCheckboxPart(struct drawState *s)
+{
+	uiTableData *data;
+	int checked, enabled;
+	HTHEME theme;
+	HRESULT hr;
+
+	if (s->p->checkboxModelColumn == -1)
+		return S_OK;
+
+	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->checkboxModelColumn);
+	checked = uiTableDataInt(data);
+	uiFreeTableData(data);
+	switch (s->p->checkboxEditableColumn) {
+	case uiTableModelColumnNeverEditable:
+		enabled = 0;
+		break;
+	case uiTableModelColumnAlwaysEditable:
+		enabled = 1;
+		break;
+	default:
+		data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->checkboxEditableColumn);
+		enabled = uiTableDataInt(data);
+		uiFreeTableData(data);
+	}
+
+	theme = OpenThemeData(s->t->hwnd, L"button");
+	if (theme != NULL) {
+		hr = drawThemedCheckbox(s, theme, checked, enabled);
+		if (hr != S_OK)
+			return hr;
+		hr = CloseThemeData(theme);
+		if (hr != S_OK) {
+			logHRESULT(L"CloseThemeData()", hr);
+			return hr;
+		}
+	} else {
+		hr = drawUnthemedCheckbox(s, checked, enabled);
+		if (hr != S_OK)
+			return hr;
 	}
 	return S_OK;
 }
@@ -376,6 +503,9 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 	hr = drawImagePart(&s);
 	if (hr != S_OK)
 		goto fail;
+	hr = drawCheckboxPart(&s);
+	if (hr != S_OK)
+		goto fail;
 	hr = drawTextPart(&s);
 	if (hr != S_OK)
 		goto fail;
@@ -426,6 +556,11 @@ HRESULT uiprivUpdateImageListSize(uiTable *t)
 			cxList = sizeCheck.cx;
 		if (cyList < sizeCheck.cy)
 			cyList = sizeCheck.cy;
+		hr = CloseThemeData(theme);
+		if (hr != S_OK) {
+			logHRESULT(L"CloseThemeData()", hr);
+			return hr;
+		}
 	}
 
 	// TODO handle errors
@@ -439,11 +574,6 @@ HRESULT uiprivUpdateImageListSize(uiTable *t)
 	// TODO will this return NULL here because it's an initial state?
 	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->imagelist));
 
-	hr = CloseThemeData(theme);
-	if (hr != S_OK) {
-		logHRESULT(L"CloseThemeData()", hr);
-		return hr;
-	}
 	if (ReleaseDC(t->hwnd, dc) == 0) {
 		logLastError(L"ReleaseDC()");
 		return E_FAIL;

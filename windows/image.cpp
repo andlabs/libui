@@ -147,6 +147,8 @@ HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBITMAP *hb
 		src = b;
 	} else {
 		IWICBitmapScaler *scaler;
+		WICPixelFormatGUID guid;
+		IWICFormatConverter *conv;
 
 		hr = uiprivWICFactory->CreateBitmapScaler(&scaler);
 		if (hr != S_OK)
@@ -158,7 +160,35 @@ HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBITMAP *hb
 			scaler->Release();
 			return hr;
 		}
-		src = scaler;
+
+		// But we are not done yet! IWICBitmapScaler can use an
+		// entirely different pixel format than what we gave it,
+		// and by extension, what GDI wants. See also:
+		// - https://stackoverflow.com/questions/28323228/iwicbitmapscaler-doesnt-work-for-96bpprgbfloat-format
+		// - https://github.com/Microsoft/DirectXTex/blob/0d94e9469bc3e6080a71145f35efa559f8f2e522/DirectXTex/DirectXTexResize.cpp#L83
+		hr = scaler->GetPixelFormat(&guid);
+		if (hr != S_OK) {
+			scaler->Release();
+			return hr;
+		}
+		if (IsEqualGUID(guid, GUID_WICPixelFormat32bppRGBA))
+			src = scaler;
+		else {
+			hr = uiprivWICFactory->CreateFormatConverter(&conv);
+			if (hr != S_OK) {
+				scaler->Release();
+				return hr;
+			}
+			hr = conv->Initialize(scaler, GUID_WICPixelFormat32bppRGBA,
+				// TODO is the dither type correct in all cases?
+				WICBitmapDitherTypeNone, NULL, 0, WICBitmapPaletteTypeMedianCut);
+			scaler->Release();
+			if (hr != S_OK) {
+				conv->Release();
+				return hr;
+			}
+			src = conv;
+		}
 	}
 
 	ZeroMemory(&bmi, sizeof (BITMAPINFO));
@@ -181,10 +211,9 @@ HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBITMAP *hb
 	// TODO fill in the error returns here too
 	if (GetObject(*hb, sizeof (BITMAP), &bmp) == 0)
 		logLastError(L"error calling GetObject() in uiprivWICToGDI()");
-	hr = b->CopyPixels(NULL, bmp.bmWidthBytes,
+	hr = src->CopyPixels(NULL, bmp.bmWidthBytes,
 		bmp.bmWidthBytes * bmp.bmHeight, (BYTE *) bits);
 
-	hr = S_OK;
 fail:
 	if (*hb != NULL && hr != S_OK) {
 		// don't bother with the error returned here

@@ -32,21 +32,9 @@ struct uiTable {
 	// TODO make sure replacing images while selected in the listview is even allowed
 	HIMAGELIST imagelist;
 };
-typedef struct uiprivSubitemDrawParams uiprivSubitemDrawParams;
-struct uiprivSubitemDrawParams {
-	bool selected;
-	LRESULT bitmapMargin;
-	RECT bounds;
-	RECT icon;
-	RECT label;
-};
 
-// tabletext.cpp
-extern HRESULT uiprivLVN_GETDISPINFOText(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p);
-
-// tableimages.cpp
-extern HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p);
-extern HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp);
+// tabledispinfo.cpp
+extern HRESULT uiprivTableHandleLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm, LRESULT *lResult);
 
 // tabledraw.cpp
 extern HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult);

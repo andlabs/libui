@@ -76,25 +76,6 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	}
 }
 
-static LRESULT onLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm)
-{
-	// TODO remove static
-	static uiprivTableColumnParams *p;
-	HRESULT hr;
-
-	p = (*(t->columns))[nm->item.iSubItem];
-	hr = uiprivLVN_GETDISPINFOText(t, nm, p);
-	if (hr != S_OK) {
-		// TODO
-	}
-	hr = uiprivLVN_GETDISPINFOImagesCheckboxes(t, nm, p);
-	if (hr != S_OK) {
-		// TODO
-	}
-
-	return 0;
-}
-
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 {
 	uiTable *t = uiTable(c);
@@ -102,7 +83,11 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 
 	switch (nmhdr->code) {
 	case LVN_GETDISPINFO:
-		*lResult = onLVN_GETDISPINFO(t, (NMLVDISPINFOW *) nmhdr);
+		hr = uiprivTableHandleLVN_GETDISPINFO(t, (NMLVDISPINFOW *) nmhdr, lResult);
+		if (hr != S_OK) {
+			// TODO
+			return FALSE;
+		}
 		return TRUE;
 	case NM_CUSTOMDRAW:
 		hr = uiprivTableHandleNM_CUSTOMDRAW(t, (NMLVCUSTOMDRAW *) nmhdr, lResult);

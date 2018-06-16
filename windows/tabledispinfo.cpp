@@ -10,7 +10,7 @@ static HRESULT handleLVIF_TEXT(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnP
 
 	if ((nm->item.mask & LVIF_TEXT) == 0)
 		return S_OK;
-	if (p->textModelColumn != -1)
+	if (p->textModelColumn == -1)
 		return S_OK;
 
 	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);

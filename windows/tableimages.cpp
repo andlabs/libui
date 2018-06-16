@@ -69,7 +69,9 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 		return S_OK;		// nothing to do here
 
 	// TODO
-	nm->item.iImage = 0;
+	nm->item.iImage = -1;
+	if (p->imageModelColumn != -1 || p->checkboxModelColumn != -1)
+		nm->item.iImage = 0;
 	return S_OK;
 
 	if (p->imageModelColumn != -1) {
@@ -99,6 +101,8 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 	nm->item.iImage = -1;
 	return S_OK;
 }
+
+#if 0
 
 // in order to properly look like checkboxes, we need to exclude them from being colored in by the selection rect
 // however, there seems to be no way to do this natively, so we have to draw the icons ourselves
@@ -264,3 +268,5 @@ static HRESULT mkCheckboxes(uiTable *t, HTHEME theme, HDC dc, int cxList, int cy
 	DeleteObject(b);
 	return S_OK;
 }
+
+#endif

@@ -29,14 +29,8 @@ struct uiTable {
 	std::vector<uiprivTableColumnParams *> *columns;
 	WPARAM nColumns;
 	int backgroundColumn;
-
-	// tableimages.cpp
-	// TODO make sure what we're doing is even allowed
-	HIMAGELIST smallImages;
-	int smallIndex;
-
-	// custom draw state
-	COLORREF clrItemText;
+	// TODO make sure replacing images while selected in the listview is even allowed
+	HIMAGELIST imagelist;
 };
 typedef struct uiprivSubitemDrawParams uiprivSubitemDrawParams;
 struct uiprivSubitemDrawParams {

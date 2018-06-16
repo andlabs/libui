@@ -88,22 +88,22 @@ static HRESULT drawImagePart(struct drawState *s)
 	if (s->p->imageModelColumn == -1)
 		return S_OK;
 
-	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->imageModelColumn);
+	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->imageModelColumn);
 	wb = uiprivImageAppropriateForDC(uiTableDataImage(data), s->dc);
 	uiFreeTableData(data);
 
-	hr = uiprivWICToGDI(wb, s->cxIcon, s->cyIcon, &b);
+	hr = uiprivWICToGDI(wb, s->dc, s->cxIcon, s->cyIcon, &b);
 	if (hr != S_OK)
 		return hr;
 	// TODO rewrite this condition to make more sense; possibly swap the if and else blocks too
 	// TODO proper cleanup
-	if (ImageList_GetImageCount(t->imagelist) > 1) {
-		if (ImageList_Replace(t->imagelist, 0, b, NULL) == 0) {
+	if (ImageList_GetImageCount(s->t->imagelist) > 1) {
+		if (ImageList_Replace(s->t->imagelist, 0, b, NULL) == 0) {
 			logLastError(L"ImageList_Replace()");
 			return E_FAIL;
 		}
 	} else
-		if (ImageList_Add(t->imagelist, b, NULL) == -1) {
+		if (ImageList_Add(s->t->imagelist, b, NULL) == -1) {
 			logLastError(L"ImageList_Add()");
 			return E_FAIL;
 		}
@@ -114,7 +114,7 @@ static HRESULT drawImagePart(struct drawState *s)
 	if (s->selected)
 		fStyle = ILD_SELECTED;
 	// TODO copy the centering code from tableimage.cpp
-	if (ImageList_Draw(t->imagelist, 0,
+	if (ImageList_Draw(s->t->imagelist, 0,
 		s->dc, s->subitemIcon.left, s->subitemIcon.top,
 		fStyle) == 0) {
 		logLastError(L"ImageList_Draw()");
@@ -420,12 +420,12 @@ HRESULT uiprivUpdateImageListSize(uiTable *t)
 	t->imagelist = ImageList_Create(cxList, cyList,
 		ILC_COLOR32,
 		1, 1);
-	if (t->smallImages == NULL) {
+	if (t->imagelist == NULL) {
 		logLastError(L"ImageList_Create()");
 		return E_FAIL;
 	}
 	// TODO will this return NULL here because it's an initial state?
-	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->smallImages));
+	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->imagelist));
 
 	hr = CloseThemeData(theme);
 	if (hr != S_OK) {

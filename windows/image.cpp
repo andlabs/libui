@@ -125,10 +125,8 @@ HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBITMAP *hb
 {
 	UINT ux, uy;
 	int x, y;
-	IWICImageSource *src;
+	IWICBitmapSource *src;
 	BITMAPINFO bmi;
-	UINT width, height;
-	HBITMAP hb;
 	VOID *bits;
 	BITMAP bmp;
 	HRESULT hr;

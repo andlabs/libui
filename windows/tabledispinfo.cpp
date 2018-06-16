@@ -6,28 +6,47 @@ static HRESULT handleLVIF_TEXT(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnP
 {
 	uiTableData *data;
 	WCHAR *wstr;
+	int progress;
 	HRESULT hr;
 
 	if ((nm->item.mask & LVIF_TEXT) == 0)
 		return S_OK;
-	if (p->textModelColumn == -1)
-		return S_OK;
 
-	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
-	wstr = toUTF16(uiTableDataString(data));
-	uiFreeTableData(data);
-	// We *could* just make pszText into a freshly allocated
-	// conversion and avoid the limitation of cchTextMax.
-	// But then, we would have to keep things around for some
-	// amount of time (some pages on MSDN say 2 additional
-	// LVN_GETDISPINFO messages). And in practice, anything
-	// that results in extra LVN_GETDISPINFO messages (such as
-	// LVN_GETITEMRECT with LVIR_LABEL) will break this
-	// counting.
-	// TODO make it so we don't have to make a copy; instead we can convert directly into pszText (this will also avoid the risk of having a dangling surrogate pair at the end)
-	wcsncpy(nm->item.pszText, wstr, nm->item.cchTextMax);
-	nm->item.pszText[nm->item.cchTextMax - 1] = L'\0';
-	uiprivFree(wstr);
+	if (p->textModelColumn != -1) {
+		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
+		wstr = toUTF16(uiTableDataString(data));
+		uiFreeTableData(data);
+		// We *could* just make pszText into a freshly allocated
+		// conversion and avoid the limitation of cchTextMax.
+		// But then, we would have to keep things around for some
+		// amount of time (some pages on MSDN say 2 additional
+		// LVN_GETDISPINFO messages). And in practice, anything
+		// that results in extra LVN_GETDISPINFO messages (such
+		// as LVN_GETITEMRECT with LVIR_LABEL) will break this
+		// counting.
+		// TODO make it so we don't have to make a copy; instead we can convert directly into pszText (this will also avoid the risk of having a dangling surrogate pair at the end)
+		wcsncpy(nm->item.pszText, wstr, nm->item.cchTextMax);
+		nm->item.pszText[nm->item.cchTextMax - 1] = L'\0';
+		uiprivFree(wstr);
+		return S_OK;
+	}
+
+	if (p->progressBarModelColumn != -1) {
+		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->progressBarModelColumn);
+		progress = uiTableDataInt(data);
+		uiFreeTableData(data);
+
+		if (progress == -1) {
+			// TODO either localize this or replace it with something that's language-neutral
+			// TODO ensure null terminator
+			wcsncpy(nm->item.pszText, L"Indeterminate", nm->item.cchTextMax);
+			return S_OK;
+		}
+		// TODO ensure null terminator
+		_snwprintf(nm->item.pszText, nm->item.cchTextMax, L"%d%%", progress);
+		return S_OK;
+	}
+
 	return S_OK;
 }
 

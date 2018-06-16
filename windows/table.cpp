@@ -230,7 +230,10 @@ void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxM
 
 void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressModelColumn)
 {
-	// TODO
+	uiprivTableColumnParams *p;
+
+	p = appendColumn(t, name, LVCFMT_LEFT);
+	p->progressBarModelColumn = progressModelColumn;
 }
 
 void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonTextModelColumn, int buttonClickableModelColumn)

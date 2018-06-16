@@ -120,10 +120,12 @@ IWICBitmap *uiprivImageAppropriateForDC(uiImage *i, HDC dc)
 	return m.best;
 }
 
-// TODO see if we can really pass NULL to CreateDIBSection()'s HDC parameter, and if so, use HBITMAPs before WIC maybe?
-// TODO this needs to actually scale down to fit if the image size isn't perfectly equal to a requested size I need to pass as a parameter here...
-HBITMAP uiprivWICToGDI(IWICBitmap *b, HDC dc)
+// TODO this needs to center images if the given size is not the same aspect ratio
+HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBITMAP *hb)
 {
+	UINT ux, uy;
+	int x, y;
+	IWICImageSource *src;
 	BITMAPINFO bmi;
 	UINT width, height;
 	HBITMAP hb;
@@ -131,29 +133,66 @@ HBITMAP uiprivWICToGDI(IWICBitmap *b, HDC dc)
 	BITMAP bmp;
 	HRESULT hr;
 
+	hr = b->GetSize(&ux, &uy);
+	if (hr != S_OK)
+		return hr;
+	x = ux;
+	y = uy;
+	if (width == 0)
+		width = x;
+	if (height == 0)
+		height = y;
+
+	// special case: don't invoke a scaler if the size is the same
+	if (width == x && height == y) {
+		b->AddRef();		// for the Release() later
+		src = b;
+	} else {
+		IWICBitmapScaler *scaler;
+
+		hr = uiprivWICFactory->CreateBitmapScaler(&scaler);
+		if (hr != S_OK)
+			return hr;
+		hr = scaler->Initialize(b, width, height,
+			// according to https://stackoverflow.com/questions/4250738/is-stretchblt-halftone-bilinear-for-all-scaling, this is what StretchBlt(COLORONCOLOR) does (with COLORONCOLOR being what's supported by AlphaBlend())
+			WICBitmapInterpolationModeNearestNeighbor);
+		if (hr != S_OK) {
+			scaler->Release();
+			return hr;
+		}
+		src = scaler;
+	}
+
 	ZeroMemory(&bmi, sizeof (BITMAPINFO));
 	bmi.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
-	hr = b->GetSize(&width, &height);
-	if (hr != S_OK)
-		logHRESULT(L"error calling GetSize() in uiprivWICToGDI()", hr);
 	bmi.bmiHeader.biWidth = width;
 	bmi.bmiHeader.biHeight = -((int) height);
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
-	hb = CreateDIBSection(dc, &bmi, DIB_RGB_COLORS,
+	*hb = CreateDIBSection(dc, &bmi, DIB_RGB_COLORS,
 		&bits, NULL, 0);
-	if (hb == NULL)
-		logLastError(L"error calling CreateDIBSection() in uiprivWICToGDI()");
+	if (*hb == NULL) {
+		logLastError(L"CreateDIBSection()");
+		hr = E_FAIL;
+		goto fail;
+	}
 
 	// now we need to figure out the stride of the image data GDI gave us
-	// TODO find out if CreateDIBSection fills that in bmi for us
-	if (GetObject(hb, sizeof (BITMAP), &bmp) == 0)
+	// TODO find out if CreateDIBSection() fills that in bmi for us
+	// TODO fill in the error returns here too
+	if (GetObject(*hb, sizeof (BITMAP), &bmp) == 0)
 		logLastError(L"error calling GetObject() in uiprivWICToGDI()");
 	hr = b->CopyPixels(NULL, bmp.bmWidthBytes,
 		bmp.bmWidthBytes * bmp.bmHeight, (BYTE *) bits);
-	if (hr != S_OK)
-		logHRESULT(L"error calling CopyPixels() in uiprivWICToGDI()", hr);
 
-	return hb;
+	hr = S_OK;
+fail:
+	if (*hb != NULL && hr != S_OK) {
+		// don't bother with the error returned here
+		DeleteObject(*hb);
+		*hb = NULL;
+	}
+	src->Release();
+	return hr;
 }

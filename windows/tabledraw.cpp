@@ -77,11 +77,21 @@ static HRESULT computeOtherRectsAndDrawBackgrounds(struct drawState *s)
 	return S_OK;
 }
 
+static void centerImageRect(RECT *image, RECT *space)
+{
+	LONG yoff;
+
+	yoff = ((space->bottom - space->top) - (image->bottom - image->top)) / 2;
+	image->top += yoff;
+	image->bottom += yoff;
+}
+
 static HRESULT drawImagePart(struct drawState *s)
 {
 	uiTableData *data;
 	IWICBitmap *wb;
 	HBITMAP b;
+	RECT r;
 	UINT fStyle;
 	HRESULT hr;
 
@@ -110,13 +120,15 @@ static HRESULT drawImagePart(struct drawState *s)
 	// TODO error check
 	DeleteObject(b);
 
+	r = s->subitemIcon;
+	r.right = r.left + s->cxIcon;
+	r.bottom = r.top + s->cyIcon;
+	centerImageRect(&r, &(s->subitemIcon));
 	fStyle = ILD_NORMAL;
 	if (s->selected)
 		fStyle = ILD_SELECTED;
-	// TODO copy the centering code from tableimage.cpp
 	if (ImageList_Draw(s->t->imagelist, 0,
-		s->dc, s->subitemIcon.left, s->subitemIcon.top,
-		fStyle) == 0) {
+		s->dc, r.left, r.top, fStyle) == 0) {
 		logLastError(L"ImageList_Draw()");
 		return E_FAIL;
 	}

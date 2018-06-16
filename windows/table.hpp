@@ -53,7 +53,7 @@ extern HRESULT uiprivLVN_GETDISPINFOText(uiTable *t, NMLVDISPINFOW *nm, uiprivTa
 // tableimages.cpp
 extern HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p);
 extern HRESULT uiprivNM_CUSTOMDRAWImagesCheckboxes(uiTable *t, NMLVCUSTOMDRAW *nm, uiprivSubitemDrawParams *dp);
-extern HRESULT uiprivTableSetupImagesCheckboxes(uiTable *t);
 
 // tabledraw.cpp
 extern HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult);
+extern HRESULT uiprivUpdateImageListSize(uiTable *t);

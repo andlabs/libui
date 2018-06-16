@@ -37,7 +37,7 @@ struct drawState {
 	RECT focusRect;
 };
 
-static HRESULT computeAndDrawTextRect(struct drawState *s)
+static HRESULT computeOtherRectsAndDrawBackgrounds(struct drawState *s)
 {
 	RECT r;
 
@@ -50,6 +50,11 @@ static HRESULT computeAndDrawTextRect(struct drawState *s)
 		// There's a second part to this; see below.
 		r.left = s->subitemBounds.left;
 
+	if (s->hasImage)
+		if (FillRect(s->dc, &(s->subitemIcon), GetSysColorBrush(COLOR_WINDOW)) == 0) {
+			logLastError(L"FillRect() icon");
+			return E_FAIL;
+		}
 	if (FillRect(s->dc, &r, s->bgBrush) == 0) {
 		logLastError(L"FillRect()");
 		return E_FAIL;
@@ -69,6 +74,52 @@ static HRESULT computeAndDrawTextRect(struct drawState *s)
 		// In the case of subitem text without an image, we draw
 		// text one bitmap margin away from the left edge.
 		s->realTextRect.left += s->bitmapMargin;
+	return S_OK;
+}
+
+static HRESULT drawImagePart(struct drawState *s)
+{
+	uiTableData *data;
+	IWICBitmap *wb;
+	HBITMAP b;
+	UINT fStyle;
+	HRESULT hr;
+
+	if (s->p->imageModelColumn == -1)
+		return S_OK;
+
+	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->imageModelColumn);
+	wb = uiprivImageAppropriateForDC(uiTableDataImage(data), s->dc);
+	uiFreeTableData(data);
+
+	hr = uiprivWICToGDI(wb, s->cxIcon, s->cyIcon, &b);
+	if (hr != S_OK)
+		return hr;
+	// TODO rewrite this condition to make more sense; possibly swap the if and else blocks too
+	// TODO proper cleanup
+	if (ImageList_GetImageCount(t->imagelist) > 1) {
+		if (ImageList_Replace(t->imagelist, 0, b, NULL) == 0) {
+			logLastError(L"ImageList_Replace()");
+			return E_FAIL;
+		}
+	} else
+		if (ImageList_Add(t->imagelist, b, NULL) == -1) {
+			logLastError(L"ImageList_Add()");
+			return E_FAIL;
+		}
+	// TODO error check
+	DeleteObject(b);
+
+	fStyle = ILD_NORMAL;
+	if (s->selected)
+		fStyle = ILD_SELECTED;
+	// TODO copy the centering code from tableimage.cpp
+	if (ImageList_Draw(t->imagelist, 0,
+		s->dc, s->subitemIcon.left, s->subitemIcon.top,
+		fStyle) == 0) {
+		logLastError(L"ImageList_Draw()");
+		return E_FAIL;
+	}
 	return S_OK;
 }
 
@@ -212,8 +263,8 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 	// LVM_GETSUBITEMRECT treats LVIR_LABEL as the same as
 	// LVIR_BOUNDS, so we can't use that directly. Instead, let's
 	// assume the text is immediately after the icon. The correct
-	// rect will be determined by computeAndDrawTextRect()
-	// above.
+	// rect will be determined by
+	// computeOtherRectsAndDrawBackgrounds() above.
 	s->subitemLabel = s->subitemBounds;
 	s->subitemLabel.left = s->subitemIcon.right;
 	// And on iSubItem == 0, LVIF_GETSUBITEMRECT still includes
@@ -270,7 +321,11 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 
 	header = (HWND) SendMessageW(t->hwnd, LVM_GETHEADER, 0, 0);
 	s->bitmapMargin = SendMessageW(header, HDM_GETBITMAPMARGIN, 0, 0);
-	// TODO
+	if (ImageList_GetIconSize(t->imagelist, &(s->cxIcon), &(s->cyIcon)) == 0) {
+		logLastError(L"ImageList_GetIconSize()");
+		hr = E_FAIL;
+		goto fail;
+	}
 
 	return S_OK;
 fail:
@@ -303,7 +358,10 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 	hr = fillDrawState(&s, t, nm, p);
 	if (hr != S_OK)
 		return hr;
-	hr = computeAndDrawTextRect(&s);
+	hr = computeOtherRectsAndDrawBackgrounds(&s);
+	if (hr != S_OK)
+		goto fail;
+	hr = drawImagePart(&s);
 	if (hr != S_OK)
 		goto fail;
 	hr = drawTextPart(&s);
@@ -318,4 +376,65 @@ fail:
 	// ignore error here
 	freeDrawState(&s);
 	return hr;
+}
+
+// TODO run again when the DPI or the theme changes
+// TODO properly clean things up here
+// TODO properly destroy the old lists here too
+HRESULT uiprivUpdateImageListSize(uiTable *t)
+{
+	HDC dc;
+	int cxList, cyList;
+	HTHEME theme;
+	SIZE sizeCheck;
+	HRESULT hr;
+
+	dc = GetDC(t->hwnd);
+	if (dc == NULL) {
+		logLastError(L"GetDC()");
+		return E_FAIL;
+	}
+
+	cxList = GetSystemMetrics(SM_CXSMICON);
+	cyList = GetSystemMetrics(SM_CYSMICON);
+	sizeCheck.cx = cxList;
+	sizeCheck.cy = cyList;
+	theme = OpenThemeData(t->hwnd, L"button");
+	if (theme != NULL) {
+		hr = GetThemePartSize(theme, dc,
+			BP_CHECKBOX, CBS_UNCHECKEDNORMAL,
+			NULL, TS_DRAW, &sizeCheck);
+		if (hr != S_OK) {
+			logHRESULT(L"GetThemePartSize()", hr);
+			return hr;			// TODO fall back?
+		}
+		// make sure these checkmarks fit
+		// unthemed checkmarks will by the code above be smaller than cxList/cyList here
+		if (cxList < sizeCheck.cx)
+			cxList = sizeCheck.cx;
+		if (cyList < sizeCheck.cy)
+			cyList = sizeCheck.cy;
+	}
+
+	// TODO handle errors
+	t->imagelist = ImageList_Create(cxList, cyList,
+		ILC_COLOR32,
+		1, 1);
+	if (t->smallImages == NULL) {
+		logLastError(L"ImageList_Create()");
+		return E_FAIL;
+	}
+	// TODO will this return NULL here because it's an initial state?
+	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->smallImages));
+
+	hr = CloseThemeData(theme);
+	if (hr != S_OK) {
+		logHRESULT(L"CloseThemeData()", hr);
+		return hr;
+	}
+	if (ReleaseDC(t->hwnd, dc) == 0) {
+		logLastError(L"ReleaseDC()");
+		return E_FAIL;
+	}
+	return S_OK;
 }

@@ -21,44 +21,7 @@ We'll use the small image list. For this, the first few items will be reserved f
 #define nCheckboxImages 4
 
 static HRESULT setCellImage(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p, uiTableData *data)
-{
-	int index;
-	HDC dc;
-	IWICBitmap *wb;
-	HBITMAP b;
-
-	index = t->smallIndex + nCheckboxImages;
-	t->smallIndex++;
-	t->smallIndex %= uiprivNumLVN_GETDISPINFOSkip;
-	nm->item.iImage = index;
-
-	dc = GetDC(t->hwnd);
-	if (dc == NULL) {
-		logLastError(L"GetDC()");
-		return E_FAIL;
-	}
-
-	wb = uiprivImageAppropriateForDC(uiTableDataImage(data), dc);
-	b = uiprivWICToGDI(wb, dc);
-	// TODO rewrite this condition to make more sense; possibly swap the if and else blocks too
-	if (ImageList_GetImageCount(t->smallImages) > index) {
-		if (ImageList_Replace(t->smallImages, index, b, NULL) == 0) {
-			logLastError(L"ImageList_Replace()");
-			return E_FAIL;
-		}
-	} else
-		if (ImageList_Add(t->smallImages, b, NULL) == -1) {
-			logLastError(L"ImageList_Add()");
-			return E_FAIL;
-		}
-
-	if (ReleaseDC(t->hwnd, dc) == 0) {
-		logLastError(L"ReleaseDC()");
-		return E_FAIL;
-	}
-
-	return S_OK;
-}
+{return E_NOTIMPL;/*TODO*/}
 
 #define stateUnchecked 0
 #define stateChecked 1
@@ -104,6 +67,10 @@ HRESULT uiprivLVN_GETDISPINFOImagesCheckboxes(uiTable *t, NMLVDISPINFOW *nm, uip
 	}
 	if ((nm->item.mask & LVIF_IMAGE) == 0)
 		return S_OK;		// nothing to do here
+
+	// TODO
+	nm->item.iImage = 0;
+	return S_OK;
 
 	if (p->imageModelColumn != -1) {
 		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->imageModelColumn);
@@ -295,67 +262,5 @@ static HRESULT mkCheckboxes(uiTable *t, HTHEME theme, HDC dc, int cxList, int cy
 
 	// TODO error check
 	DeleteObject(b);
-	return S_OK;
-}
-
-// TODO run again when the DPI changes
-HRESULT uiprivTableSetupImagesCheckboxes(uiTable *t)
-{
-	HDC dc;
-	int cxList, cyList;
-	HTHEME theme;
-	SIZE sizeCheck;
-	HRESULT hr;
-
-	dc = GetDC(t->hwnd);
-	if (dc == NULL) {
-		logLastError(L"GetDC()");
-		return E_FAIL;
-	}
-
-	cxList = GetSystemMetrics(SM_CXSMICON);
-	cyList = GetSystemMetrics(SM_CYSMICON);
-	sizeCheck.cx = cxList;
-	sizeCheck.cy = cyList;
-	theme = OpenThemeData(t->hwnd, L"button");
-	if (theme != NULL) {
-		hr = GetThemePartSize(theme, dc,
-			BP_CHECKBOX, CBS_UNCHECKEDNORMAL,
-			NULL, TS_DRAW, &sizeCheck);
-		if (hr != S_OK) {
-			logHRESULT(L"GetThemePartSize()", hr);
-			return hr;			// TODO fall back?
-		}
-		// make sure these checkmarks fit
-		// unthemed checkmarks will by the code above be smaller than cxList/cyList here
-		if (cxList < sizeCheck.cx)
-			cxList = sizeCheck.cx;
-		if (cyList < sizeCheck.cy)
-			cyList = sizeCheck.cy;
-	}
-
-	// TODO handle errors
-	t->smallImages = ImageList_Create(cxList, cyList,
-		ILC_COLOR32,
-		nCheckboxImages + uiprivNumLVN_GETDISPINFOSkip, nCheckboxImages + uiprivNumLVN_GETDISPINFOSkip);
-	if (t->smallImages == NULL) {
-		logLastError(L"ImageList_Create()");
-		return E_FAIL;
-	}
-	// TODO will this return NULL here because it's an initial state?
-	SendMessageW(t->hwnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM) (t->smallImages));
-	hr = mkCheckboxes(t, theme, dc, cxList, cyList, sizeCheck.cx, sizeCheck.cy);
-	if (hr != S_OK)
-		return hr;
-
-	hr = CloseThemeData(theme);
-	if (hr != S_OK) {
-		logHRESULT(L"CloseThemeData()", hr);
-		return hr;
-	}
-	if (ReleaseDC(t->hwnd, dc) == 0) {
-		logLastError(L"ReleaseDC()");
-		return E_FAIL;
-	}
 	return S_OK;
 }

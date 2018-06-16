@@ -290,7 +290,7 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	t->backgroundColumn = -1;
 
-	hr = uiprivTableSetupImagesCheckboxes(t);
+	hr = uiprivUpdateImageListSize(t);
 	if (hr != S_OK) {
 		// TODO
 	}

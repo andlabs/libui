@@ -2,8 +2,12 @@
 #include "uipriv_windows.hpp"
 #include "table.hpp"
 
+// further reading:
+// - https://msdn.microsoft.com/en-us/library/ye4z8x58.aspx
+
 static HRESULT handleLVIF_TEXT(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p)
 {
+	int strcol;
 	uiTableData *data;
 	WCHAR *wstr;
 	int progress;
@@ -12,8 +16,13 @@ static HRESULT handleLVIF_TEXT(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnP
 	if ((nm->item.mask & LVIF_TEXT) == 0)
 		return S_OK;
 
-	if (p->textModelColumn != -1) {
-		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, p->textModelColumn);
+	strcol = -1;
+	if (p->textModelColumn != -1)
+		strcol = p->textModelColumn;
+	else if (p->buttonModelColumn != -1)
+		strcol = p->buttonModelColumn;
+	if (strcol != -1) {
+		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, strcol);
 		wstr = toUTF16(uiTableDataString(data));
 		uiFreeTableData(data);
 		// We *could* just make pszText into a freshly allocated

@@ -258,7 +258,10 @@ void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, 
 
 void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn)
 {
-	// TODO
+	uiprivTableColumnParams *p;
+
+	p = appendColumn(t, name, LVCFMT_LEFT);
+	p->imageModelColumn = imageModelColumn;
 }
 
 void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
@@ -305,7 +308,12 @@ void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressMo
 
 void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonTextModelColumn, int buttonClickableModelColumn)
 {
-	// TODO
+	uiprivTableColumnParams *p;
+
+	// TODO see if we can get rid of this parameter
+	p = appendColumn(t, name, LVCFMT_LEFT);
+	p->buttonModelColumn = buttonTextModelColumn;
+	p->buttonClickableModelColumn = buttonClickableModelColumn;
 }
 
 void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)

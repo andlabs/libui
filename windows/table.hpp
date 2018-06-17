@@ -42,3 +42,6 @@ extern HRESULT uiprivTableHandleLVN_GETDISPINFO(uiTable *t, NMLVDISPINFOW *nm, L
 // tabledraw.cpp
 extern HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult);
 extern HRESULT uiprivUpdateImageListSize(uiTable *t);
+
+// tableevents.cpp
+extern HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResult);

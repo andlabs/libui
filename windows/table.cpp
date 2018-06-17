@@ -166,7 +166,7 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 		}
 		return TRUE;
 	case NM_CLICK:
-#if 1
+#if 0
 		{
 			NMITEMACTIVATE *nm = (NMITEMACTIVATE *) nmhdr;
 			LVHITTESTINFO ht;
@@ -182,10 +182,16 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 				MessageBoxW(GetAncestor(t->hwnd, GA_ROOT), buf, buf, MB_OK);
 			}
 		}
-#else
-#endif
 		*lResult = 0;
 		return TRUE;
+#else
+		hr = uiprivTableHandleNM_CLICK(t, (NMITEMACTIVATE *) nmhdr, lResult);
+		if (hr != S_OK) {
+			// TODO
+			return FALSE;
+		}
+		return TRUE;
+#endif
 	}
 	return FALSE;
 }

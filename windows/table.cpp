@@ -83,9 +83,16 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 static LRESULT CALLBACK tableSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIDSubclass, DWORD_PTR dwRefData)
 {
 	uiTable *t = (uiTable *) dwRefData;
+	LRESULT lResult;
 
 	switch (uMsg) {
 	case WM_TIMER:
+		if (wParam == (WPARAM) (&(t->inDoubleClickTimer))) {
+			t->inDoubleClickTimer = FALSE;
+			// TODO check errors
+			KillTimer(hwnd, wParam);
+			return 0;
+		}
 		if (wParam != (WPARAM) t)
 			break;
 		// TODO only increment and update if visible?
@@ -95,6 +102,11 @@ static LRESULT CALLBACK tableSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 			SendMessageW(hwnd, LVM_UPDATE, (WPARAM) (i.first.first), 0);
 		}
 		return 0;
+	case WM_LBUTTONDOWN:
+		t->inLButtonDown = TRUE;
+		lResult = DefSubclassProc(hwnd, uMsg, wParam, lParam);
+		t->inLButtonDown = FALSE;
+		return lResult;
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, tableSubProc, uIDSubclass) == FALSE)
 			logLastError(L"RemoveWindowSubclass()");
@@ -192,6 +204,25 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 		}
 		return TRUE;
 #endif
+	case LVN_ITEMCHANGED:
+		{
+			NMLISTVIEW *nm = (NMLISTVIEW *) nmhdr;
+			UINT oldSelected, newSelected;
+
+			if (!t->inLButtonDown)
+				return FALSE;
+			oldSelected = nm->uOldState & LVIS_SELECTED;
+			newSelected = nm->uNewState & LVIS_SELECTED;
+			if (oldSelected == 0 && newSelected != 0) {
+				t->inDoubleClickTimer = TRUE;
+				// TODO check error
+				SetTimer(t->hwnd, (UINT_PTR) (&(t->inDoubleClickTimer)),
+					GetDoubleClickTime(), NULL);
+				*lResult = 0;
+				return TRUE;
+			}
+			return FALSE;
+		}
 	}
 	return FALSE;
 }

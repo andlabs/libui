@@ -33,6 +33,8 @@ struct uiTable {
 	HIMAGELIST imagelist;
 	// TODO document all this
 	std::map<std::pair<int, int>, LONG> *indeterminatePositions;
+	BOOL inLButtonDown;
+	BOOL inDoubleClickTimer;
 };
 extern int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG *pos);
 

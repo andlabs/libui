@@ -7,7 +7,7 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 	LVHITTESTINFO ht;
 	uiprivTableColumnParams *p;
 	int modelColumn, editableColumn;
-	bool checkbox;
+	bool text, checkbox;
 	uiTableData *data;
 	int checked, editable;
 
@@ -18,9 +18,14 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 
 	modelColumn = -1;
 	editableColumn = -1;
+	text = false;
 	checkbox = false;
 	p = (*(t->columns))[ht.iSubItem];
-	if (p->checkboxModelColumn != -1) {
+	if (p->textModelColumn != -1) {
+		modelColumn = p->textModelColumn;
+		editableColumn = p->textEditableColumn;
+		text = true;
+	} else if (p->checkboxModelColumn != -1) {
 		modelColumn = p->checkboxModelColumn;
 		editableColumn = p->checkboxEditableColumn;
 		checkbox = true;
@@ -29,6 +34,10 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 		editableColumn = p->buttonClickableModelColumn;
 	}
 	if (modelColumn == -1)
+		goto done;
+
+	if (text && t->inDoubleClickTimer)
+		// don't even ask for info if it's too soon to edit text
 		goto done;
 
 	switch (editableColumn) {
@@ -44,7 +53,9 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 			goto done;
 	}
 
-	if (checkbox) {
+	if (text) {
+		MessageBoxW(NULL, L"editing text", L"ok", MB_OK);
+	} else if (checkbox) {
 		if ((ht.flags & LVHT_ONITEMICON) == 0)
 			goto done;
 		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, ht.iItem, modelColumn);

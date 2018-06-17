@@ -329,7 +329,7 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 		return S_OK;
 	progress = uiprivTableProgress(s->t, s->iItem, s->iSubItem, s->p->progressBarModelColumn, &indeterminatePos);
 
-	theme = OpenThemeData(s->t->hwnd, L"TODO");
+	theme = OpenThemeData(s->t->hwnd, L"PROGRESS");
 
 	if (GetTextMetricsW(s->dc, &tm) == 0) {
 		logLastError(L"GetTextMetricsW()");
@@ -345,8 +345,23 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 	rBorder = r;
 	InflateRect(&rBorder, -1, -1);
 	if (theme != NULL) {
-		// TODO
-	}/* else */{
+		RECT crect;
+
+		hr = GetThemeBackgroundContentRect(theme, s->dc,
+			PP_TRANSPARENTBAR, PBBS_NORMAL,
+			&rBorder, &crect);
+		if (hr != S_OK) {
+			logHRESULT(L"GetThemeBackgroundContentRect()", hr);
+			goto fail;
+		}
+		hr = DrawThemeBackground(theme, s->dc,
+			PP_TRANSPARENTBAR, PBBS_NORMAL,
+			&crect, NULL);
+		if (hr != S_OK) {
+			logHRESULT(L"DrawThemeBackground() border", hr);
+			goto fail;
+		}
+	} else {
 		HPEN pen, prevPen;
 		HBRUSH brush, prevBrush;
 
@@ -389,12 +404,18 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 			rFill[0].right = rFill[0].left + pieceWidth;
 	}
 	for (i = 0; i < nFill; i++)
-{		if (theme != NULL) {
-			// TODO
-		}/* else*/
+		if (theme != NULL) {
+			hr = DrawThemeBackground(theme, s->dc,
+				PP_FILL, PBFS_NORMAL,
+				&rFill[i], NULL);
+			if (hr != S_OK) {
+				logHRESULT(L"DrawThemeBackground() fill", hr);
+				goto fail;
+			}
+		} else
 			// TODO check errors
 			FillRect(s->dc, &rFill[i], GetSysColorBrush(sysColor));
-}
+
 	hr = S_OK;
 fail:
 	// TODO check errors

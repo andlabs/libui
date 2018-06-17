@@ -327,6 +327,7 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 
 	if (s->p->progressBarModelColumn == -1)
 		return S_OK;
+
 	progress = uiprivTableProgress(s->t, s->iItem, s->iSubItem, s->p->progressBarModelColumn, &indeterminatePos);
 
 	theme = OpenThemeData(s->t->hwnd, L"PROGRESS");
@@ -421,6 +422,110 @@ fail:
 	// TODO check errors
 	if (theme != NULL)
 		CloseThemeData(theme);
+	return hr;
+}
+
+static HRESULT drawButtonPart(struct drawState *s)
+{
+	uiTableData *data;
+	WCHAR *wstr;
+	bool enabled;
+	HTHEME theme;
+	RECT r;
+	TEXTMETRICW tm;
+	HRESULT hr;
+
+	if (s->p->buttonModelColumn == -1)
+		return S_OK;
+
+	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->buttonModelColumn);
+	wstr = toUTF16(uiTableDataString(data));
+	uiFreeTableData(data);
+	switch (s->p->buttonClickableModelColumn) {
+	case uiTableModelColumnNeverEditable:
+		enabled = 0;
+		break;
+	case uiTableModelColumnAlwaysEditable:
+		enabled = 1;
+		break;
+	default:
+		data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->checkboxEditableColumn);
+		enabled = uiTableDataInt(data);
+		uiFreeTableData(data);
+	}
+
+	theme = OpenThemeData(s->t->hwnd, L"button");
+
+	if (GetTextMetricsW(s->dc, &tm) == 0) {
+		logLastError(L"GetTextMetricsW()");
+		hr = E_FAIL;
+		goto fail;
+	}
+	r = s->subitemBounds;
+
+	if (theme != NULL) {
+		int state;
+
+		state = PBS_NORMAL;
+		if (!enabled)
+			state = PBS_DISABLED;
+		hr = DrawThemeBackground(theme, s->dc,
+			BP_PUSHBUTTON, state,
+			&r, NULL);
+		if (hr != S_OK) {
+			logHRESULT(L"DrawThemeBackground()", hr);
+			goto fail;
+		}
+		// TODO DT_EDITCONTROL?
+		// TODO DT_PATH_ELLIPSIS DT_WORD_ELLIPSIS instead of DT_END_ELLIPSIS? a middle-ellipsis option would be ideal here
+		// TODO is there a theme property we can get instead of hardcoding these flags? if not, make these flags a macro
+		hr = DrawThemeText(theme, s->dc,
+			BP_PUSHBUTTON, state,
+			wstr, -1,
+			DT_CENTER | DT_VCENTER | DT_END_ELLIPSIS | DT_SINGLELINE | DT_NOPREFIX, 0,
+			&r);
+		if (hr != S_OK) {
+			logHRESULT(L"DrawThemeText()", hr);
+			goto fail;
+		}
+	} else {
+		UINT state;
+		HBRUSH color, prevColor;
+		int prevBkMode;
+
+		// TODO check errors
+		// TODO explain why we're not doing this in the themed case (it has to do with extra transparent pixels)
+		InflateRect(&r, -1, -1);
+		state = DFCS_BUTTONPUSH;
+		if (!enabled)
+			state |= DFCS_INACTIVE;
+		if (DrawFrameControl(s->dc, &r, DFC_BUTTON, state) == 0) {
+			logLastError(L"DrawFrameControl()");
+			hr = E_FAIL;
+			goto fail;
+		}
+		color = GetSysColorBrush(COLOR_BTNTEXT);
+		// TODO check errors for these two
+		prevColor = (HBRUSH) SelectObject(s->dc, color);
+		prevBkMode = SetBkMode(s->dc, TRANSPARENT);
+		// TODO DT_EDITCONTROL?
+		// TODO DT_PATH_ELLIPSIS DT_WORD_ELLIPSIS instead of DT_END_ELLIPSIS? a middle-ellipsis option would be ideal here
+		if (DrawTextW(s->dc, wstr, -1, &r, DT_CENTER | DT_VCENTER | DT_END_ELLIPSIS | DT_SINGLELINE | DT_NOPREFIX) == 0) {
+			logLastError(L"DrawTextW()");
+			hr = E_FAIL;
+			goto fail;
+		}
+		// TODO check errors for these two
+		SetBkMode(s->dc, prevBkMode);
+		SelectObject(s->dc, prevColor);
+	}
+
+	hr = S_OK;
+fail:
+	// TODO check errors
+	if (theme != NULL)
+		CloseThemeData(theme);
+	uiprivFree(wstr);
 	return hr;
 }
 
@@ -624,6 +729,9 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 	if (hr != S_OK)
 		goto fail;
 	hr = drawProgressBarPart(&s);
+	if (hr != S_OK)
+		goto fail;
+	hr = drawButtonPart(&s);
 	if (hr != S_OK)
 		goto fail;
 	hr = freeDrawState(&s);

@@ -162,6 +162,27 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 			return FALSE;
 		}
 		return TRUE;
+	case NM_CLICK:
+#if 1
+		{
+			NMITEMACTIVATE *nm = (NMITEMACTIVATE *) nmhdr;
+			LVHITTESTINFO ht;
+			WCHAR buf[256];
+
+			ZeroMemory(&ht, sizeof (LVHITTESTINFO));
+			ht.pt = nm->ptAction;
+			if (SendMessageW(t->hwnd, LVM_SUBITEMHITTEST, 0, (LPARAM) (&ht)) == (LRESULT) (-1))
+				MessageBoxW(GetAncestor(t->hwnd, GA_ROOT), L"No hit", L"No hit", MB_OK);
+			else {
+				wsprintf(buf, L"item %d subitem %d htflags 0x%I32X",
+					ht.iItem, ht.iSubItem, ht.flags);
+				MessageBoxW(GetAncestor(t->hwnd, GA_ROOT), buf, buf, MB_OK);
+			}
+		}
+#else
+#endif
+		*lResult = 0;
+		return TRUE;
 	}
 	return FALSE;
 }

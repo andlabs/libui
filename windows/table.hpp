@@ -35,6 +35,7 @@ struct uiTable {
 	std::map<std::pair<int, int>, LONG> *indeterminatePositions;
 	BOOL inLButtonDown;
 	BOOL inDoubleClickTimer;
+	HWND edit;
 };
 extern int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG *pos);
 

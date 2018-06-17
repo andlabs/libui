@@ -2,6 +2,100 @@
 #include "uipriv_windows.hpp"
 #include "table.hpp"
 
+// TODO deduplicate this with tabledraw.cpp
+static HRESULT itemRect(HRESULT hr, uiTable *t, UINT uMsg, WPARAM wParam, LONG left, LONG top, LRESULT bad, RECT *r)
+{
+	if (hr != S_OK)
+		return hr;
+	ZeroMemory(r, sizeof (RECT));
+	r->left = left;
+	r->top = top;
+	if (SendMessageW(t->hwnd, uMsg, wParam, (LPARAM) r) == bad) {
+		logLastError(L"itemRect() message");
+		return E_FAIL;
+	}
+	return S_OK;
+}
+
+static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableColumnParams *p)
+{
+	RECT itemLabel;
+	RECT subitemBounds, subitemIcon, subitemLabel;
+	uiTableData *data;
+	WCHAR *wstr;
+	RECT r;
+	LONG xInflate, yInflate;
+	HRESULT hr;
+
+	// compute this in advance so we don't have to needlessly call DestroyWindow() later
+	// TODO deduplicate this code with tabledraw.cpp
+	// TODO check LRESULT bad parameters here
+	hr = itemRect(S_OK, t, LVM_GETITEMRECT, iItem,
+		LVIR_LABEL, 0, FALSE, &itemLabel);
+	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, iItem,
+		LVIR_BOUNDS, iSubItem, 0, &subitemBounds);
+	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, iItem,
+		LVIR_ICON, iSubItem, 0, &subitemIcon);
+	if (hr != S_OK)
+		return hr;
+	// LVM_GETSUBITEMRECT treats LVIR_LABEL as the same as
+	// LVIR_BOUNDS, so we can't use that directly. Instead, let's
+	// assume the text is immediately after the icon. The correct
+	// rect will be determined by
+	// computeOtherRectsAndDrawBackgrounds() above.
+	subitemLabel = subitemBounds;
+	subitemLabel.left = subitemIcon.right;
+	// And on iSubItem == 0, LVIF_GETSUBITEMRECT still includes
+	// all the subitems, which we don't want.
+	if (iSubItem == 0) {
+		subitemBounds.right = itemLabel.right;
+		subitemLabel.right = itemLabel.right;
+	}
+	if ((p->imageModelColumn == -1 && p->checkboxModelColumn == -1) && iSubItem != 0)
+		// By default, this will include images; we're not drawing
+		// images, so we will manually draw over the image area.
+		// There's a second part to this; see below.
+		subitemLabel.left = subitemBounds.left;
+
+	// the real list view creates the edit control with the string
+	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, iItem, p->textModelColumn);
+	wstr = toUTF16(uiTableDataString(data));
+	uiFreeTableData(data);
+	// TODO copy WS_EX_RTLREADING
+	t->edit = CreateWindowExW(0,
+		L"EDIT", wstr,
+		// these styles are what the normal listview edit uses
+		WS_CHILD | WS_CLIPSIBLINGS | WS_BORDER | ES_AUTOHSCROLL,
+		// as is this size
+		0, 0, 16384, 16384,
+		// and this control ID
+		t->hwnd, (HMENU) 1, hInstance, NULL);
+	if (t->edit == NULL) {
+		logLastError(L"CreateWindowExW()");
+		uiprivFree(wstr);
+		return E_FAIL;
+	}
+	uiprivFree(wstr);
+	// TODO set font here
+
+	// and this is what the real list view does to size the edit control
+	SendMessageW(t->edit, EM_GETRECT, 0, (LPARAM) (&r));
+	xInflate = -(GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CXBORDER));
+	yInflate = -r.top;
+	// TODO check error
+	InflateRect(&subitemLabel, xInflate, yInflate);
+
+	// TODO check error or use the right function
+	SetWindowPos(t->edit, NULL,
+		subitemLabel.left, subitemLabel.top,
+		subitemLabel.right - subitemLabel.left, subitemLabel.bottom - subitemLabel.top,
+		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+	// TODO get the correct constant from the real list view
+	ShowWindow(t->edit, SW_SHOWDEFAULT);
+
+	return S_OK;
+}
+
 HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResult)
 {
 	LVHITTESTINFO ht;
@@ -10,6 +104,7 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 	bool text, checkbox;
 	uiTableData *data;
 	int checked, editable;
+	HRESULT hr;
 
 	ZeroMemory(&ht, sizeof (LVHITTESTINFO));
 	ht.pt = nm->ptAction;
@@ -54,7 +149,9 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 	}
 
 	if (text) {
-		MessageBoxW(NULL, L"editing text", L"ok", MB_OK);
+		hr = openEditControl(t, ht.iItem, ht.iSubItem, p);
+		if (hr != S_OK)
+			return hr;
 	} else if (checkbox) {
 		if ((ht.flags & LVHT_ONITEMICON) == 0)
 			goto done;

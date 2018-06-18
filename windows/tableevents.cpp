@@ -56,7 +56,23 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 		// images, so we will manually draw over the image area.
 		// There's a second part to this; see below.
 		subitemLabel.left = subitemBounds.left;
+/*
+	if ((p->imageModelColumn != -1 || p->checkboxModelColumn != -1) && iSubItem != 0)
+		// Normally there's this many hard-coded logical units
+		// of blank space, followed by the background, followed
+		// by a bitmap margin's worth of space. This looks bad,
+		// so we overrule that to start the background immediately
+		// and the text after the hard-coded amount.
+		subitemLabel.left += 2;
+	else if (iSubItem != 0) {
+		HWND header;
 
+		// In the case of subitem text without an image, we draw
+		// text one bitmap margin away from the left edge.
+		header = (HWND) SendMessageW(t->hwnd, LVM_GETHEADER, 0, 0);
+		subitemLabel.left += SendMessageW(header, HDM_GETBITMAPMARGIN, 0, 0);
+	}
+*/
 	// the real list view creates the edit control with the string
 	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, iItem, p->textModelColumn);
 	wstr = toUTF16(uiTableDataString(data));
@@ -78,44 +94,8 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 	uiprivFree(wstr);
 	SendMessageW(t->edit, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
-	// and this is what the real list view does to size the edit control
-	SendMessageW(t->edit, EM_GETRECT, 0, (LPARAM) (&r));
-	xInflate = -(GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CXBORDER));
-	yInflate = -r.top;
-	// TODO check error
-	InflateRect(&subitemLabel, xInflate, yInflate);
-
-	// TODO rewrite and integrate the variables of this; I'm not fully comfortable keeping it as it is
-	// TODO check errors everywhere
-	{
-		HDC dc;
-		HFONT prevFont;
-		RECT textRect, editRect;
-		int cxIconSpacing;
-		LONG offsetY;
-
-		// yes, the list view control uses the list view DC for this
-		dc = GetDC(t->hwnd);
-		prevFont = (HFONT) SelectObject(dc, hMessageFont);
-		ZeroMemory(&textRect, sizeof (RECT));
-		cxIconSpacing = GetSystemMetrics(SM_CXICONSPACING);
-		textRect.right = cxIconSpacing - 2 * GetSystemMetrics(SM_CXEDGE);
-		// yes, the real edit control uses DT_CENTER for some reason
-		// TODO the real edit control filters out certain types of characters but I'm not sure what
-		DrawTextW(dc, wstr, -1, &textRect, DT_CENTER | DT_NOPREFIX | DT_SINGLELINE | DT_EDITCONTROL | DT_CALCRECT);
-		ReleaseDC(t->hwnd, dc);
-		if (textRect.right < cxIconSpacing / 4)
-			textRect.right = cxIconSpacing / 4;
-		offsetY = subitemLabel.top + ((textRect.bottom - textRect.top) - (subitemLabel.bottom - subitemLabel.top)) / 2;
-		OffsetRect(&textRect, subitemLabel.left, offsetY);
-		textRect.right += 4 * GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CYEDGE);
-		SendMessageW(t->edit, EM_GETRECT, 0, (LPARAM) (&editRect));
-		editRect.left = -editRect.left;
-		editRect.top = -editRect.top;
-		AdjustWindowRectEx(&editRect, getStyle(t->edit), FALSE, getExStyle(t->edit));
-		r = textRect;
-		InflateRect(&r, -editRect.left, -editRect.top);
-	}
+	// TODO
+	r = subitemLabel;
 
 	// TODO check error or use the right function
 	SetWindowPos(t->edit, NULL,

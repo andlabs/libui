@@ -76,7 +76,7 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 		return E_FAIL;
 	}
 	uiprivFree(wstr);
-	// TODO set font here
+	SendMessageW(t->edit, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
 	// and this is what the real list view does to size the edit control
 	SendMessageW(t->edit, EM_GETRECT, 0, (LPARAM) (&r));
@@ -85,10 +85,42 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 	// TODO check error
 	InflateRect(&subitemLabel, xInflate, yInflate);
 
+	// TODO rewrite and integrate the variables of this; I'm not fully comfortable keeping it as it is
+	// TODO check errors everywhere
+	{
+		HDC dc;
+		HFONT prevFont;
+		RECT textRect, editRect;
+		int cxIconSpacing;
+		LONG offsetY;
+
+		// yes, the list view control uses the list view DC for this
+		dc = GetDC(t->hwnd);
+		prevFont = (HFONT) SelectObject(dc, hMessageFont);
+		ZeroMemory(&textRect, sizeof (RECT));
+		cxIconSpacing = GetSystemMetrics(SM_CXICONSPACING);
+		textRect.right = cxIconSpacing - 2 * GetSystemMetrics(SM_CXEDGE);
+		// yes, the real edit control uses DT_CENTER for some reason
+		// TODO the real edit control filters out certain types of characters but I'm not sure what
+		DrawTextW(dc, wstr, -1, &textRect, DT_CENTER | DT_NOPREFIX | DT_SINGLELINE | DT_EDITCONTROL | DT_CALCRECT);
+		ReleaseDC(t->hwnd, dc);
+		if (textRect.right < cxIconSpacing / 4)
+			textRect.right = cxIconSpacing / 4;
+		offsetY = subitemLabel.top + ((textRect.bottom - textRect.top) - (subitemLabel.bottom - subitemLabel.top)) / 2;
+		OffsetRect(&textRect, subitemLabel.left, offsetY);
+		textRect.right += 4 * GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CYEDGE);
+		SendMessageW(t->edit, EM_GETRECT, 0, (LPARAM) (&editRect));
+		editRect.left = -editRect.left;
+		editRect.top = -editRect.top;
+		AdjustWindowRectEx(&editRect, getStyle(t->edit), FALSE, getExStyle(t->edit));
+		r = textRect;
+		InflateRect(&r, -editRect.left, -editRect.top);
+	}
+
 	// TODO check error or use the right function
 	SetWindowPos(t->edit, NULL,
-		subitemLabel.left, subitemLabel.top,
-		subitemLabel.right - subitemLabel.left, subitemLabel.bottom - subitemLabel.top,
+		r.left, r.top,
+		r.right - r.left, r.bottom - r.top,
 		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
 	// TODO get the correct constant from the real list view
 	ShowWindow(t->edit, SW_SHOWDEFAULT);

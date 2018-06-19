@@ -56,7 +56,6 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 		// images, so we will manually draw over the image area.
 		// There's a second part to this; see below.
 		subitemLabel.left = subitemBounds.left;
-/*
 	if ((p->imageModelColumn != -1 || p->checkboxModelColumn != -1) && iSubItem != 0)
 		// Normally there's this many hard-coded logical units
 		// of blank space, followed by the background, followed
@@ -72,7 +71,7 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 		header = (HWND) SendMessageW(t->hwnd, LVM_GETHEADER, 0, 0);
 		subitemLabel.left += SendMessageW(header, HDM_GETBITMAPMARGIN, 0, 0);
 	}
-*/
+
 	// the real list view creates the edit control with the string
 	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, iItem, p->textModelColumn);
 	wstr = toUTF16(uiTableDataString(data));
@@ -91,11 +90,38 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 		uiprivFree(wstr);
 		return E_FAIL;
 	}
-	uiprivFree(wstr);
 	SendMessageW(t->edit, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
 
-	// TODO
-	r = subitemLabel;
+	// this is not how the real list view positions and sizes the edit control, but this is a) close enough b) a lot easier to follow c) something I can actually get working d) something I'm slightly more comfortable including in libui
+	{
+		HDC dc;
+		HFONT prevFont;
+		TEXTMETRICW tm;
+		SIZE textSize;
+		RECT editRect;
+
+		// TODO deduplicate this with tabledraw.cpp
+		// TODO check errors for all these
+		dc = GetDC(t->hwnd);		// yes, real list view uses itself here
+		prevFont = (HFONT) SelectObject(dc, hMessageFont);
+		GetTextMetricsW(dc, &tm);
+		GetTextExtentPoint32W(dc, wstr, wcslen(wstr), &textSize);
+		SelectObject(dc, prevFont);
+		ReleaseDC(t->hwnd, dc);
+
+		SendMessageW(t->edit, EM_GETRECT, 0, (LPARAM) (&editRect));
+		r.left = subitemLabel.left - editRect.left;
+		// find the top of the text
+		r.top = subitemLabel.top + ((subitemLabel.bottom - subitemLabel.top) - tm.tmHeight) / 2;
+		// and move THAT by the right offset
+		r.top = r.top - editRect.top;
+		r.right = subitemLabel.left + textSize.cx;
+		// the real listview does this to add some extra space at the end
+		// TODO this still isn't enough space
+		r.right += 4 * GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CYEDGE);
+		// and make the bottom equally positioned to the top
+		r.bottom = r.top + editRect.top + tm.tmHeight + editRect.top;
+	}
 
 	// TODO check error or use the right function
 	SetWindowPos(t->edit, NULL,
@@ -105,6 +131,7 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 	// TODO get the correct constant from the real list view
 	ShowWindow(t->edit, SW_SHOWDEFAULT);
 
+	uiprivFree(wstr);
 	return S_OK;
 }
 

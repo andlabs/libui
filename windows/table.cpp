@@ -394,9 +394,10 @@ uiTable *uiNewTable(uiTableModel *model)
 
 	t->columns = new std::vector<uiprivTableColumnParams *>;
 	t->model = model;
+	// WS_CLIPCHILDREN is here to prevent drawing over the edit box used for editing text
 	t->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		WC_LISTVIEW, L"",
-		LVS_REPORT | LVS_OWNERDATA | LVS_SINGLESEL | WS_TABSTOP | WS_HSCROLL | WS_VSCROLL,
+		LVS_REPORT | LVS_OWNERDATA | LVS_SINGLESEL | WS_CLIPCHILDREN | WS_TABSTOP | WS_HSCROLL | WS_VSCROLL,
 		hInstance, NULL,
 		TRUE);
 	model->tables->push_back(t);

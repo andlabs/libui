@@ -17,6 +17,47 @@ static HRESULT itemRect(HRESULT hr, uiTable *t, UINT uMsg, WPARAM wParam, LONG l
 	return S_OK;
 }
 
+// this is not how the real list view positions and sizes the edit control, but this is a) close enough b) a lot easier to follow c) something I can actually get working d) something I'm slightly more comfortable including in libui
+// r should be the subitem label rect
+static HRESULT resizeEdit(uiTable *t, WCHAR *wstr, RECT *r)
+{
+	HDC dc;
+	HFONT prevFont;
+	TEXTMETRICW tm;
+	SIZE textSize;
+	RECT editRect;
+
+	// TODO check errors for all these
+	dc = GetDC(t->hwnd);		// use the list view DC since we're using its coordinate space
+	prevFont = (HFONT) SelectObject(dc, hMessageFont);
+	GetTextMetricsW(dc, &tm);
+	GetTextExtentPoint32W(dc, wstr, wcslen(wstr), &textSize);
+	SelectObject(dc, prevFont);
+	ReleaseDC(t->hwnd, dc);
+
+	SendMessageW(t->edit, EM_GETRECT, 0, (LPARAM) (&editRect));
+	r->left -= editRect.left;
+	// find the top of the text
+	r->top += ((r->bottom - r->top) - tm.tmHeight) / 2;
+	// and move THAT by the right offset
+	r->top -= editRect.top;
+	r->right = r->left + textSize.cx;
+	// the real listview does this to add some extra space at the end
+	// TODO this still isn't enough space
+	r->right += 4 * GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CYEDGE);
+	// and make the bottom equally positioned to the top
+	r->bottom = r->top + editRect.top + tm.tmHeight + editRect.top;
+
+	// TODO intersect r with the list view's client rect to prevent clipping
+
+	// TODO check error or use the right function
+	SetWindowPos(t->edit, NULL,
+		r->left, r->top,
+		r->right - r->left, r->bottom - r->top,
+		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+	return S_OK;
+}
+
 // the real list view intercepts these keys to control editing
 static LRESULT CALLBACK editSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIDSubclass, DWORD_PTR dwRefData)
 {
@@ -131,45 +172,17 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 		return E_FAIL;
 	}
 	SendMessageW(t->edit, WM_SETFONT, (WPARAM) hMessageFont, (LPARAM) TRUE);
+	// TODO check errors
+	SetWindowSubclass(t->edit, editSubProc, 0, (DWORD_PTR) t);
 
-	// this is not how the real list view positions and sizes the edit control, but this is a) close enough b) a lot easier to follow c) something I can actually get working d) something I'm slightly more comfortable including in libui
-	{
-		HDC dc;
-		HFONT prevFont;
-		TEXTMETRICW tm;
-		SIZE textSize;
-		RECT editRect;
-
-		// TODO deduplicate this with tabledraw.cpp
-		// TODO check errors for all these
-		dc = GetDC(t->hwnd);		// yes, real list view uses itself here
-		prevFont = (HFONT) SelectObject(dc, hMessageFont);
-		GetTextMetricsW(dc, &tm);
-		GetTextExtentPoint32W(dc, wstr, wcslen(wstr), &textSize);
-		SelectObject(dc, prevFont);
-		ReleaseDC(t->hwnd, dc);
-
-		SendMessageW(t->edit, EM_GETRECT, 0, (LPARAM) (&editRect));
-		r.left = subitemLabel.left - editRect.left;
-		// find the top of the text
-		r.top = subitemLabel.top + ((subitemLabel.bottom - subitemLabel.top) - tm.tmHeight) / 2;
-		// and move THAT by the right offset
-		r.top = r.top - editRect.top;
-		r.right = subitemLabel.left + textSize.cx;
-		// the real listview does this to add some extra space at the end
-		// TODO this still isn't enough space
-		r.right += 4 * GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CYEDGE);
-		// and make the bottom equally positioned to the top
-		r.bottom = r.top + editRect.top + tm.tmHeight + editRect.top;
-	}
-
-	// TODO check error or use the right function
-	SetWindowPos(t->edit, NULL,
-		r.left, r.top,
-		r.right - r.left, r.bottom - r.top,
-		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
-	// TODO get the correct constant from the real list view
-	ShowWindow(t->edit, SW_SHOWDEFAULT);
+	hr = resizeEdit(t, wstr, &subitemLabel);
+	if (hr != S_OK)
+		// TODO proper cleanup
+		return hr;
+	// TODO check errors on these two, if any
+	SetFocus(t->edit);
+	ShowWindow(t->edit, SW_SHOW);
+	SendMessageW(t->edit, EM_SETSEL, 0, (LPARAM) (-1));
 
 	uiprivFree(wstr);
 	t->editedItem = iItem;

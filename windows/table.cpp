@@ -3,6 +3,7 @@
 
 // general TODOs:
 // - tooltips don't work properly on columns with icons (the listview always thinks there's enough room for a short label because it's not taking the icon into account); is this a bug in our LVN_GETDISPINFO handler or something else?
+// - should clicking on some other column of the same row, even one that doesn't edit, cancel editing?
 
 static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
 	/*TODO.ColorModelColumn = */-1,
@@ -83,8 +84,14 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 static LRESULT CALLBACK tableSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIDSubclass, DWORD_PTR dwRefData)
 {
 	uiTable *t = (uiTable *) dwRefData;
+	NMHDR *nmhdr = (NMHDR *) lParam;
+	bool finishEdit, abortEdit;
+	HWND header;
 	LRESULT lResult;
+	HRESULT hr;
 
+	finishEdit = false;
+	abortEdit = false;
 	switch (uMsg) {
 	case WM_TIMER:
 		if (wParam == (WPARAM) (&(t->inDoubleClickTimer))) {
@@ -107,10 +114,68 @@ static LRESULT CALLBACK tableSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 		lResult = DefSubclassProc(hwnd, uMsg, wParam, lParam);
 		t->inLButtonDown = FALSE;
 		return lResult;
+	case WM_COMMAND:
+		if (HIWORD(wParam) == EN_UPDATE) {
+			// the real list view resizes the edit control on this notification specifically
+			// TODO
+		}
+		// the real list view accepts changes in this case
+		if (HIWORD(wParam) == EN_KILLFOCUS)
+			finishEdit = true;
+		break;		// don't override default handling
+	case WM_NOTIFY:
+		// list view accepts changes on column resize, but does not provide such notifications :/
+		header = (HWND) SendMessageW(t->hwnd, LVM_GETHEADER, 0, 0);
+		if (nmhdr->hwndFrom == header) {
+			NMHEADERW *nm = (NMHEADERW *) nmhdr;
+
+			switch (nmhdr->code) {
+			case HDN_ITEMCHANGED:
+				if ((nm->pitem->mask & HDI_WIDTH) == 0)
+					break;
+				// fall through
+			case HDN_DIVIDERDBLCLICK:
+			case HDN_TRACK:
+			case HDN_ENDTRACK:
+				finishEdit = true;
+			}
+		}
+		// I think this mirrors the WM_COMMAND one above... TODO
+		if (nmhdr->code == NM_KILLFOCUS)
+			finishEdit = true;
+		break;		// don't override default handling
+	case LVM_CANCELEDITLABEL:
+		finishEdit = true;
+		// TODO properly imitate notifiactions
+		break;		// don't override default handling
+	// TODO finish edit on WM_WINDOWPOSCHANGING and WM_SIZE?
+	// for the next three: this item is about to go away; don't bother keeping changes
+	case LVM_SETITEMCOUNT:
+		if (wParam <= t->editedItem)
+			abortEdit = true;
+		break;		// don't override default handling
+	case LVM_DELETEITEM:
+		if (wParam == t->editedItem)
+			abortEdit = true;
+		break;		// don't override default handling
+	case LVM_DELETEALLITEMS:
+		abortEdit = true;
+		break;		// don't override default handling
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, tableSubProc, uIDSubclass) == FALSE)
 			logLastError(L"RemoveWindowSubclass()");
 		// fall through
+	}
+	if (finishEdit) {
+		hr = uiprivTableFinishEditingText(t);
+		if (hr != S_OK) {
+			// TODO
+		}
+	} else if (abortEdit) {
+		hr = uiprivTableAbortEditingText(t);
+		if (hr != S_OK) {
+			// TODO
+		}
 	}
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
@@ -157,6 +222,7 @@ int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG
 	return progress;
 }
 
+// TODO properly integrate compound statements
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 {
 	uiTable *t = uiTable(c);
@@ -208,12 +274,14 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 		{
 			NMLISTVIEW *nm = (NMLISTVIEW *) nmhdr;
 			UINT oldSelected, newSelected;
+			HRESULT hr;
 
-			if (!t->inLButtonDown)
+			// TODO clean up these if cases
+			if (!t->inLButtonDown && t->edit == NULL)
 				return FALSE;
 			oldSelected = nm->uOldState & LVIS_SELECTED;
 			newSelected = nm->uNewState & LVIS_SELECTED;
-			if (oldSelected == 0 && newSelected != 0) {
+			if (t->inLButtonDown && oldSelected == 0 && newSelected != 0) {
 				t->inDoubleClickTimer = TRUE;
 				// TODO check error
 				SetTimer(t->hwnd, (UINT_PTR) (&(t->inDoubleClickTimer)),
@@ -221,8 +289,29 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 				*lResult = 0;
 				return TRUE;
 			}
+			// the nm->iItem == -1 case is because that is used if "the change has been applied to all items in the list view"
+			if (t->edit != NULL && oldSelected != 0 && newSelected == 0 && (t->editedItem == nm->iItem || nm->iItem == -1)) {
+				// TODO see if the real list view accepts or rejects changes here; Windows Explorer accepts
+				hr = uiprivTableFinishEditingText(t);
+				if (hr != S_OK) {
+					// TODO
+					return FALSE;
+				}
+				*lResult = 0;
+				return TRUE;
+			}
 			return FALSE;
 		}
+	// the real list view accepts changes when scrolling or clicking column headers
+	case LVN_BEGINSCROLL:
+	case LVN_COLUMNCLICK:
+		hr = uiprivTableFinishEditingText(t);
+		if (hr != S_OK) {
+			// TODO
+			return FALSE;
+		}
+		*lResult = 0;
+		return TRUE;
 	}
 	return FALSE;
 }
@@ -232,7 +321,12 @@ static void uiTableDestroy(uiControl *c)
 	uiTable *t = uiTable(c);
 	uiTableModel *model = t->model;
 	std::vector<uiTable *>::iterator it;
+	HRESULT hr;
 
+	hr = uiprivTableAbortEditingText(t);
+	if (hr != S_OK) {
+		// TODO
+	}
 	uiWindowsUnregisterWM_NOTIFYHandler(t->hwnd);
 	uiWindowsEnsureDestroyWindow(t->hwnd);
 	// detach table from model

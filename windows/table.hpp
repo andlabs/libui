@@ -36,6 +36,8 @@ struct uiTable {
 	BOOL inLButtonDown;
 	BOOL inDoubleClickTimer;
 	HWND edit;
+	int editedItem;
+	int editedSubitem;
 };
 extern int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG *pos);
 
@@ -48,3 +50,5 @@ extern HRESULT uiprivUpdateImageListSize(uiTable *t);
 
 // tableevents.cpp
 extern HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResult);
+extern HRESULT uiprivTableFinishEditingText(uiTable *t);
+extern HRESULT uiprivTableAbortEditingText(uiTable *t);

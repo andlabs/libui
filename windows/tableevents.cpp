@@ -17,6 +17,41 @@ static HRESULT itemRect(HRESULT hr, uiTable *t, UINT uMsg, WPARAM wParam, LONG l
 	return S_OK;
 }
 
+// the real list view intercepts these keys to control editing
+static LRESULT CALLBACK editSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIDSubclass, DWORD_PTR dwRefData)
+{
+	uiTable *t = (uiTable *) dwRefData;
+	HRESULT hr;
+
+	switch (uMsg) {
+	case WM_KEYDOWN:
+		switch (wParam) {
+		// TODO handle VK_TAB and VK_SHIFT+VK_TAB
+		case VK_RETURN:
+			hr = uiprivTableFinishEditingText(t);
+			if (hr != S_OK) {
+				// TODO
+			}
+			return 0;		// yes, the real list view just returns here
+		case VK_ESCAPE:
+			hr = uiprivTableAbortEditingText(t);
+			if (hr != S_OK) {
+				// TODO
+			}
+			return 0;
+		}
+		break;
+	// the real list view also forces these flags
+	case WM_GETDLGCODE:
+		return DLGC_HASSETSEL | DLGC_WANTALLKEYS;
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, editSubProc, uIDSubclass) == FALSE)
+			logLastError(L"RemoveWindowSubclass()");
+		// fall through
+	}
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+}
+
 static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableColumnParams *p)
 {
 	RECT itemLabel;
@@ -26,6 +61,11 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 	RECT r;
 	LONG xInflate, yInflate;
 	HRESULT hr;
+
+	// the real list view accepts changes to the existing item when editing a new item
+	hr = uiprivTableFinishEditingText(t);
+	if (hr != S_OK)
+		return hr;
 
 	// compute this in advance so we don't have to needlessly call DestroyWindow() later
 	// TODO deduplicate this code with tabledraw.cpp
@@ -132,6 +172,27 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 	ShowWindow(t->edit, SW_SHOWDEFAULT);
 
 	uiprivFree(wstr);
+	t->editedItem = iItem;
+	t->editedSubitem = iSubItem;
+	return S_OK;
+}
+
+HRESULT uiprivTableFinishEditingText(uiTable *t)
+{
+	if (t->edit == NULL)
+		return S_OK;
+	return uiprivTableAbortEditingText(t);
+}
+
+HRESULT uiprivTableAbortEditingText(uiTable *t)
+{
+	if (t->edit == NULL)
+		return S_OK;
+	if (DestroyWindow(t->edit) == 0) {
+		logLastError(L"DestroyWindow()");
+		return E_FAIL;
+	}
+	t->edit = NULL;
 	return S_OK;
 }
 

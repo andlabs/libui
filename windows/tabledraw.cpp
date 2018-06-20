@@ -233,6 +233,9 @@ static HRESULT drawTextPart(struct drawState *s)
 
 	if (!s->m->hasText)
 		return S_OK;
+	// don't draw the text underneath an edit control
+	if (s->t->edit != NULL && s->t->editedItem == s->iItem && s->t->editedSubitem == s->iSubItem)
+		return S_OK;
 
 	prevText = SetTextColor(s->dc, s->textColor);
 	if (prevText == CLR_INVALID) {

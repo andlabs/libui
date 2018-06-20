@@ -153,20 +153,40 @@ HRESULT uiprivTableResizeWhileEditing(uiTable *t)
 
 HRESULT uiprivTableFinishEditingText(uiTable *t)
 {
+	uiprivTableColumnParams *p;
+	uiTableData *data;
+	char *text;
+
 	if (t->edit == NULL)
 		return S_OK;
+	text = uiWindowsWindowText(t->edit);
+	data = uiNewTableDataString(text);
+	uiFreeText(text);
+	p = (*(t->columns))[t->editedSubitem];
+	(*(t->model->mh->SetCellValue))(t->model->mh, t->model, t->editedItem, p->textModelColumn, data);
+	uiFreeTableData(data);
+	// always refresh the value in case the model rejected it
+	if (SendMessageW(t->hwnd, LVM_UPDATE, (WPARAM) (t->editedItem), 0) == (LRESULT) (-1)) {
+		logLastError(L"LVM_UPDATE");
+		return E_FAIL;
+	}
 	return uiprivTableAbortEditingText(t);
 }
 
 HRESULT uiprivTableAbortEditingText(uiTable *t)
 {
+	HWND edit;
+
 	if (t->edit == NULL)
 		return S_OK;
-	if (DestroyWindow(t->edit) == 0) {
+	// set t->edit to NULL now so we don't trigger commits on focus killed
+	edit = t->edit;
+	t->edit = NULL;
+
+	if (DestroyWindow(edit) == 0) {
 		logLastError(L"DestroyWindow()");
 		return E_FAIL;
 	}
-	t->edit = NULL;
 	return S_OK;
 }
 

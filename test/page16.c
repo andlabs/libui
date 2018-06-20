@@ -98,6 +98,11 @@ static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row,
 		checkStates[row] = uiTableValueInt(val);
 }
 
+static void onRowDoubleClicked(uiTable *table, int row, void *data)
+{
+	printf("Double clicked row %d\n", row);
+}
+
 static uiTableModel *m;
 
 uiBox *makePage16(void)
@@ -151,6 +156,8 @@ uiBox *makePage16(void)
 
 	uiTableAppendProgressBarColumn(t, "Progress Bar",
 		8);
+
+	uiTableOnRowDoubleClicked(t, onRowDoubleClicked, NULL);
 
 	return page16;
 }

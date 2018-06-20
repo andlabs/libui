@@ -117,7 +117,11 @@ static LRESULT CALLBACK tableSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 	case WM_COMMAND:
 		if (HIWORD(wParam) == EN_UPDATE) {
 			// the real list view resizes the edit control on this notification specifically
-			// TODO
+			hr = uiprivTableResizeWhileEditing(t);
+			if (hr != S_OK) {
+				// TODO
+			}
+			break;
 		}
 		// the real list view accepts changes in this case
 		if (HIWORD(wParam) == EN_KILLFOCUS)

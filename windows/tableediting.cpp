@@ -2,30 +2,23 @@
 #include "uipriv_windows.hpp"
 #include "table.hpp"
 
-// TODO deduplicate this with tabledraw.cpp
-static HRESULT itemRect(HRESULT hr, uiTable *t, UINT uMsg, WPARAM wParam, LONG left, LONG top, LRESULT bad, RECT *r)
-{
-	if (hr != S_OK)
-		return hr;
-	ZeroMemory(r, sizeof (RECT));
-	r->left = left;
-	r->top = top;
-	if (SendMessageW(t->hwnd, uMsg, wParam, (LPARAM) r) == bad) {
-		logLastError(L"itemRect() message");
-		return E_FAIL;
-	}
-	return S_OK;
-}
-
 // this is not how the real list view positions and sizes the edit control, but this is a) close enough b) a lot easier to follow c) something I can actually get working d) something I'm slightly more comfortable including in libui
-// r should be the subitem label rect
-static HRESULT resizeEdit(uiTable *t, WCHAR *wstr, RECT *r)
+static HRESULT resizeEdit(uiTable *t, WCHAR *wstr, int iItem, int iSubItem)
 {
+	uiprivTableMetrics *m;
+	RECT r;
 	HDC dc;
 	HFONT prevFont;
 	TEXTMETRICW tm;
 	SIZE textSize;
 	RECT editRect;
+	HRESULT hr;
+
+	hr = uiprivTableGetMetrics(t, iItem, iSubItem, &m);
+	if (hr != S_OK)
+		return hr;
+	r = m->realTextRect;
+	uiprivFree(m);
 
 	// TODO check errors for all these
 	dc = GetDC(t->hwnd);		// use the list view DC since we're using its coordinate space
@@ -36,24 +29,24 @@ static HRESULT resizeEdit(uiTable *t, WCHAR *wstr, RECT *r)
 	ReleaseDC(t->hwnd, dc);
 
 	SendMessageW(t->edit, EM_GETRECT, 0, (LPARAM) (&editRect));
-	r->left -= editRect.left;
+	r.left -= editRect.left;
 	// find the top of the text
-	r->top += ((r->bottom - r->top) - tm.tmHeight) / 2;
+	r.top += ((r.bottom - r.top) - tm.tmHeight) / 2;
 	// and move THAT by the right offset
-	r->top -= editRect.top;
-	r->right = r->left + textSize.cx;
+	r.top -= editRect.top;
+	r.right = r.left + textSize.cx;
 	// the real listview does this to add some extra space at the end
 	// TODO this still isn't enough space
-	r->right += 4 * GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CYEDGE);
+	r.right += 4 * GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CYEDGE);
 	// and make the bottom equally positioned to the top
-	r->bottom = r->top + editRect.top + tm.tmHeight + editRect.top;
+	r.bottom = r.top + editRect.top + tm.tmHeight + editRect.top;
 
 	// TODO intersect r with the list view's client rect to prevent clipping
 
 	// TODO check error or use the right function
 	SetWindowPos(t->edit, NULL,
-		r->left, r->top,
-		r->right - r->left, r->bottom - r->top,
+		r.left, r.top,
+		r.right - r.left, r.bottom - r.top,
 		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
 	return S_OK;
 }
@@ -95,63 +88,14 @@ static LRESULT CALLBACK editSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableColumnParams *p)
 {
-	RECT itemLabel;
-	RECT subitemBounds, subitemIcon, subitemLabel;
 	uiTableData *data;
 	WCHAR *wstr;
-	RECT r;
-	LONG xInflate, yInflate;
 	HRESULT hr;
 
 	// the real list view accepts changes to the existing item when editing a new item
 	hr = uiprivTableFinishEditingText(t);
 	if (hr != S_OK)
 		return hr;
-
-	// compute this in advance so we don't have to needlessly call DestroyWindow() later
-	// TODO deduplicate this code with tabledraw.cpp
-	// TODO check LRESULT bad parameters here
-	hr = itemRect(S_OK, t, LVM_GETITEMRECT, iItem,
-		LVIR_LABEL, 0, FALSE, &itemLabel);
-	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, iItem,
-		LVIR_BOUNDS, iSubItem, 0, &subitemBounds);
-	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, iItem,
-		LVIR_ICON, iSubItem, 0, &subitemIcon);
-	if (hr != S_OK)
-		return hr;
-	// LVM_GETSUBITEMRECT treats LVIR_LABEL as the same as
-	// LVIR_BOUNDS, so we can't use that directly. Instead, let's
-	// assume the text is immediately after the icon. The correct
-	// rect will be determined by
-	// computeOtherRectsAndDrawBackgrounds() above.
-	subitemLabel = subitemBounds;
-	subitemLabel.left = subitemIcon.right;
-	// And on iSubItem == 0, LVIF_GETSUBITEMRECT still includes
-	// all the subitems, which we don't want.
-	if (iSubItem == 0) {
-		subitemBounds.right = itemLabel.right;
-		subitemLabel.right = itemLabel.right;
-	}
-	if ((p->imageModelColumn == -1 && p->checkboxModelColumn == -1) && iSubItem != 0)
-		// By default, this will include images; we're not drawing
-		// images, so we will manually draw over the image area.
-		// There's a second part to this; see below.
-		subitemLabel.left = subitemBounds.left;
-	if ((p->imageModelColumn != -1 || p->checkboxModelColumn != -1) && iSubItem != 0)
-		// Normally there's this many hard-coded logical units
-		// of blank space, followed by the background, followed
-		// by a bitmap margin's worth of space. This looks bad,
-		// so we overrule that to start the background immediately
-		// and the text after the hard-coded amount.
-		subitemLabel.left += 2;
-	else if (iSubItem != 0) {
-		HWND header;
-
-		// In the case of subitem text without an image, we draw
-		// text one bitmap margin away from the left edge.
-		header = (HWND) SendMessageW(t->hwnd, LVM_GETHEADER, 0, 0);
-		subitemLabel.left += SendMessageW(header, HDM_GETBITMAPMARGIN, 0, 0);
-	}
 
 	// the real list view creates the edit control with the string
 	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, iItem, p->textModelColumn);
@@ -175,7 +119,7 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 	// TODO check errors
 	SetWindowSubclass(t->edit, editSubProc, 0, (DWORD_PTR) t);
 
-	hr = resizeEdit(t, wstr, &subitemLabel);
+	hr = resizeEdit(t, wstr, iItem, iSubItem);
 	if (hr != S_OK)
 		// TODO proper cleanup
 		return hr;
@@ -188,6 +132,19 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 	t->editedItem = iItem;
 	t->editedSubitem = iSubItem;
 	return S_OK;
+}
+
+HRESULT uiprivTableResizeWhileEditing(uiTable *t)
+{
+	WCHAR *text;
+	HRESULT hr;
+
+	if (t->edit == NULL)
+		return S_OK;
+	text = windowText(t->edit);
+	hr = resizeEdit(t, text, t->editedItem, t->editedSubitem);
+	uiprivFree(text);
+	return hr;
 }
 
 HRESULT uiprivTableFinishEditingText(uiTable *t)

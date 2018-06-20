@@ -50,6 +50,7 @@ extern HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LR
 extern HRESULT uiprivUpdateImageListSize(uiTable *t);
 
 // tableediting.cpp
+extern HRESULT uiprivTableResizeWhileEditing(uiTable *t);
 extern HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResult);
 extern HRESULT uiprivTableFinishEditingText(uiTable *t);
 extern HRESULT uiprivTableAbortEditingText(uiTable *t);

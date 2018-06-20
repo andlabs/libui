@@ -11,7 +11,7 @@ static HRESULT resizeEdit(uiTable *t, WCHAR *wstr, int iItem, int iSubItem)
 	HFONT prevFont;
 	TEXTMETRICW tm;
 	SIZE textSize;
-	RECT editRect;
+	RECT editRect, clientRect;
 	HRESULT hr;
 
 	hr = uiprivTableGetMetrics(t, iItem, iSubItem, &m);
@@ -41,7 +41,11 @@ static HRESULT resizeEdit(uiTable *t, WCHAR *wstr, int iItem, int iSubItem)
 	// and make the bottom equally positioned to the top
 	r.bottom = r.top + editRect.top + tm.tmHeight + editRect.top;
 
-	// TODO intersect r with the list view's client rect to prevent clipping
+	// make sure the edit box doesn't stretch outside the listview
+	// the list view just does this, which is dumb for when the list view wouldn't be visible at all, but given that it doesn't scroll the edit into view either...
+	// TODO check errors
+	GetClientRect(t->hwnd, &clientRect);
+	IntersectRect(&r, &r, &clientRect);
 
 	// TODO check error or use the right function
 	SetWindowPos(t->edit, NULL,

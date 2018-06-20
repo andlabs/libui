@@ -53,7 +53,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/table.cpp
 	windows/tabledispinfo.cpp
 	windows/tabledraw.cpp
-	windows/tableevents.cpp
+	windows/tableediting.cpp
 	windows/tabpage.cpp
 	windows/text.cpp
 	windows/utf16.cpp

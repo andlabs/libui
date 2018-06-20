@@ -2,33 +2,6 @@
 #include "uipriv_windows.hpp"
 #include "table.hpp"
 
-struct uiprivTableMetrics {
-	uiTable *t;
-	uiTableModel *m;
-	uiprivTableColumnParams *p;
-
-	int iItem;
-	int iSubItem;
-	BOOL hasText;
-	BOOL hasImage;
-	BOOL focused;
-	BOOL selected;
-
-	RECT itemBounds;
-	RECT itemIcon;
-	RECT itemLabel;
-	RECT subitemBounds;
-	RECT subitemIcon;
-	RECT subitemLabel;
-
-	LRESULT bitmapMargin;
-	int cxIcon;
-	int cyIcon;
-
-	RECT realTextBackground;
-	RECT realTextRect;
-};
-
 static HRESULT itemRect(HRESULT hr, uiTable *t, UINT uMsg, WPARAM wParam, LONG left, LONG top, LRESULT bad, RECT *r)
 {
 	if (hr != S_OK)
@@ -46,6 +19,7 @@ static HRESULT itemRect(HRESULT hr, uiTable *t, UINT uMsg, WPARAM wParam, LONG l
 HRESULT uiprivTableGetMetrics(uiTable *t, int iItem, int iSubItem, uiprivTableMetrics **mout)
 {
 	uiprivTableMetrics *m;
+	uiprivTableColumnParams *p;
 	LRESULT state;
 	HWND header;
 	RECT r;
@@ -55,29 +29,25 @@ HRESULT uiprivTableGetMetrics(uiTable *t, int iItem, int iSubItem, uiprivTableMe
 		return E_POINTER;
 
 	m = uiprivNew(uiprivTableMetrics);
-	m->t = t;
-	m->m = t->model;
-	m->p = (*(t->columns))[iSubItem];
 
-	m->iItem = iItem;
-	m->iSubItem = iSubItem;
-	m->hasText = m->p->textModelColumn != -1;
-	m->hasImage = (m->p->imageModelColumn != -1) || (m->p->checkboxModelColumn != -1);
+	p = (*(t->columns))[iSubItem];
+	m->hasText = p->textModelColumn != -1;
+	m->hasImage = (p->imageModelColumn != -1) || (p->checkboxModelColumn != -1);
 	state = SendMessageW(t->hwnd, LVM_GETITEMSTATE, iItem, LVIS_FOCUSED | LVIS_SELECTED);
 	m->focused = (state & LVIS_FOCUSED) != 0;
 	m->selected = (state & LVIS_SELECTED) != 0;
 
 	// TODO check LRESULT bad parameters here
-	hr = itemRect(S_OK, t, LVM_GETITEMRECT, s->iItem,
+	hr = itemRect(S_OK, t, LVM_GETITEMRECT, iItem,
 		LVIR_BOUNDS, 0, FALSE, &(m->itemBounds));
-	hr = itemRect(hr, t, LVM_GETITEMRECT, s->iItem,
+	hr = itemRect(hr, t, LVM_GETITEMRECT, iItem,
 		LVIR_ICON, 0, FALSE, &(m->itemIcon));
-	hr = itemRect(hr, t, LVM_GETITEMRECT, s->iItem,
+	hr = itemRect(hr, t, LVM_GETITEMRECT, iItem,
 		LVIR_LABEL, 0, FALSE, &(m->itemLabel));
-	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, s->iItem,
-		LVIR_BOUNDS, s->iSubItem, 0, &(m->subitemBounds));
-	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, s->iItem,
-		LVIR_ICON, s->iSubItem, 0, &(m->subitemIcon));
+	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, iItem,
+		LVIR_BOUNDS, iSubItem, 0, &(m->subitemBounds));
+	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, iItem,
+		LVIR_ICON, iSubItem, 0, &(m->subitemIcon));
 	if (hr != S_OK)
 		goto fail;
 	// LVM_GETSUBITEMRECT treats LVIR_LABEL as the same as
@@ -104,7 +74,7 @@ HRESULT uiprivTableGetMetrics(uiTable *t, int iItem, int iSubItem, uiprivTableMe
 
 	r = m->subitemLabel;
 	if (!m->hasText && !m->hasImage)
-		r = s->subitemBounds;
+		r = m->subitemBounds;
 	else if (!m->hasImage && iSubItem != 0)
 		// By default, this will include images; we're not drawing
 		// images, so we will manually draw over the image area.

@@ -34,6 +34,7 @@ struct uiTable {
 	// TODO document all this
 	std::map<std::pair<int, int>, LONG> *indeterminatePositions;
 	BOOL inLButtonDown;
+	// TODO is this even necessary? it seems NM_CLICK is not sent if NM_DBLCLICK or LVN_ITEMACTIVATE (one of the two) happens...
 	BOOL inDoubleClickTimer;
 	HWND edit;
 	int editedItem;
@@ -52,3 +53,27 @@ extern HRESULT uiprivUpdateImageListSize(uiTable *t);
 extern HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResult);
 extern HRESULT uiprivTableFinishEditingText(uiTable *t);
 extern HRESULT uiprivTableAbortEditingText(uiTable *t);
+
+// tablemetrics.cpp
+typedef struct uiprivTableMetrics uiprivTableMetrics;
+struct uiprivTableMetrics {
+	BOOL hasText;
+	BOOL hasImage;
+	BOOL focused;
+	BOOL selected;
+
+	RECT itemBounds;
+	RECT itemIcon;
+	RECT itemLabel;
+	RECT subitemBounds;
+	RECT subitemIcon;
+	RECT subitemLabel;
+
+	LRESULT bitmapMargin;
+	int cxIcon;
+	int cyIcon;
+
+	RECT realTextBackground;
+	RECT realTextRect;
+};
+extern HRESULT uiprivTableGetMetrics(uiTable *t, int iItem, int iSubItem, uiprivTableMetrics **mout);

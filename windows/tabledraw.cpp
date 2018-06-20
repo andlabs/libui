@@ -2,25 +2,19 @@
 #include "uipriv_windows.hpp"
 #include "table.hpp"
 
+// TODO
+#define cellValue(model, row, column) ((*((model)->mh->CellValue))((model)->mh, (model), (row), (column)))
+
 struct drawState {
 	uiTable *t;
-	uiTableModel *m;
+	uiTableModel *model;
 	uiprivTableColumnParams *p;
 
 	HDC dc;
 	int iItem;
 	int iSubItem;
-	BOOL hasText;
-	BOOL hasImage;
-	BOOL selected;
-	BOOL focused;
 
-	RECT itemBounds;
-	RECT itemIcon;
-	RECT itemLabel;
-	RECT subitemBounds;
-	RECT subitemIcon;
-	RECT subitemLabel;
+	uiprivTableMetrics *m;
 
 	COLORREF bgColor;
 	HBRUSH bgBrush;
@@ -28,52 +22,19 @@ struct drawState {
 	COLORREF textColor;
 	HBRUSH textBrush;
 	BOOL freeTextBrush;
-
-	LRESULT bitmapMargin;
-	int cxIcon;
-	int cyIcon;
-
-	RECT realTextRect;
-	RECT focusRect;
 };
 
-static HRESULT computeOtherRectsAndDrawBackgrounds(struct drawState *s)
+static HRESULT drawBackgrounds(struct drawState *s)
 {
-	RECT r;
-
-	r = s->subitemLabel;
-	if (!s->hasText && !s->hasImage)
-		r = s->subitemBounds;
-	else if (!s->hasImage && s->iSubItem != 0)
-		// By default, this will include images; we're not drawing
-		// images, so we will manually draw over the image area.
-		// There's a second part to this; see below.
-		r.left = s->subitemBounds.left;
-
-	if (s->hasImage)
-		if (FillRect(s->dc, &(s->subitemIcon), GetSysColorBrush(COLOR_WINDOW)) == 0) {
+	if (s->m->hasImage)
+		if (FillRect(s->dc, &(s->m->subitemIcon), GetSysColorBrush(COLOR_WINDOW)) == 0) {
 			logLastError(L"FillRect() icon");
 			return E_FAIL;
 		}
-	if (FillRect(s->dc, &r, s->bgBrush) == 0) {
+	if (FillRect(s->dc, &(s->m->realTextBackground), s->bgBrush) == 0) {
 		logLastError(L"FillRect()");
 		return E_FAIL;
 	}
-	UnionRect(&(s->focusRect), &(s->focusRect), &r);
-
-	s->realTextRect = r;
-	// TODO confirm whether this really happens on column 0 as well
-	if (s->hasImage && s->iSubItem != 0)
-		// Normally there's this many hard-coded logical units
-		// of blank space, followed by the background, followed
-		// by a bitmap margin's worth of space. This looks bad,
-		// so we overrule that to start the background immediately
-		// and the text after the hard-coded amount.
-		s->realTextRect.left += 2;
-	else if (s->iSubItem != 0)
-		// In the case of subitem text without an image, we draw
-		// text one bitmap margin away from the left edge.
-		s->realTextRect.left += s->bitmapMargin;
 	return S_OK;
 }
 
@@ -110,11 +71,11 @@ static HRESULT drawImagePart(struct drawState *s)
 	if (s->p->imageModelColumn == -1)
 		return S_OK;
 
-	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->imageModelColumn);
+	data = cellValue(s->model, s->iItem, s->p->imageModelColumn);
 	wb = uiprivImageAppropriateForDC(uiTableDataImage(data), s->dc);
 	uiFreeTableData(data);
 
-	hr = uiprivWICToGDI(wb, s->dc, s->cxIcon, s->cyIcon, &b);
+	hr = uiprivWICToGDI(wb, s->dc, s->m->cxIcon, s->m->cyIcon, &b);
 	if (hr != S_OK)
 		return hr;
 	// TODO rewrite this condition to make more sense; possibly swap the if and else blocks too
@@ -132,12 +93,12 @@ static HRESULT drawImagePart(struct drawState *s)
 	// TODO error check
 	DeleteObject(b);
 
-	r = s->subitemIcon;
-	r.right = r.left + s->cxIcon;
-	r.bottom = r.top + s->cyIcon;
-	centerImageRect(&r, &(s->subitemIcon));
+	r = s->m->subitemIcon;
+	r.right = r.left + s->m->cxIcon;
+	r.bottom = r.top + s->m->cyIcon;
+	centerImageRect(&r, &(s->m->subitemIcon));
 	fStyle = ILD_NORMAL;
-	if (s->selected)
+	if (s->m->selected)
 		fStyle = ILD_SELECTED;
 	if (ImageList_Draw(s->t->imagelist, 0,
 		s->dc, r.left, r.top, fStyle) == 0) {
@@ -156,7 +117,7 @@ static HRESULT drawUnthemedCheckbox(struct drawState *s, int checked, int enable
 	RECT r;
 	UINT state;
 
-	r = s->subitemIcon;
+	r = s->m->subitemIcon;
 	// this is what the actual list view LVS_EX_CHECKBOXES code does to size the checkboxes
 	// TODO reverify the initial size
 	r.right = r.left + GetSystemMetrics(SM_CXSMICON);
@@ -168,7 +129,7 @@ static HRESULT drawUnthemedCheckbox(struct drawState *s, int checked, int enable
 	r.right++;
 	r.bottom++;
 
-	centerImageRect(&r, &(s->subitemIcon));
+	centerImageRect(&r, &(s->m->subitemIcon));
 	state = DFCS_BUTTONCHECK | DFCS_FLAT;
 	if (checked)
 		state |= DFCS_CHECKED;
@@ -195,11 +156,11 @@ static HRESULT drawThemedCheckbox(struct drawState *s, HTHEME theme, int checked
 		logHRESULT(L"GetThemePartSize()", hr);
 		return hr;			// TODO fall back?
 	}
-	r = s->subitemIcon;
+	r = s->m->subitemIcon;
 	r.right = r.left + size.cx;
 	r.bottom = r.top + size.cy;
 
-	centerImageRect(&r, &(s->subitemIcon));
+	centerImageRect(&r, &(s->m->subitemIcon));
 	if (!checked && enabled)
 		state = CBS_UNCHECKEDNORMAL;
 	else if (checked && enabled)
@@ -228,7 +189,7 @@ static HRESULT drawCheckboxPart(struct drawState *s)
 	if (s->p->checkboxModelColumn == -1)
 		return S_OK;
 
-	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->checkboxModelColumn);
+	data = cellValue(s->model, s->iItem, s->p->checkboxModelColumn);
 	checked = uiTableDataInt(data);
 	uiFreeTableData(data);
 	switch (s->p->checkboxEditableColumn) {
@@ -239,7 +200,7 @@ static HRESULT drawCheckboxPart(struct drawState *s)
 		enabled = 1;
 		break;
 	default:
-		data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->checkboxEditableColumn);
+		data = cellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
 		enabled = uiTableDataInt(data);
 		uiFreeTableData(data);
 	}
@@ -270,7 +231,7 @@ static HRESULT drawTextPart(struct drawState *s)
 	uiTableData *data;
 	WCHAR *wstr;
 
-	if (!s->hasText)
+	if (!s->m->hasText)
 		return S_OK;
 
 	prevText = SetTextColor(s->dc, s->textColor);
@@ -284,14 +245,14 @@ static HRESULT drawTextPart(struct drawState *s)
 		return E_FAIL;
 	}
 
-	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->textModelColumn);
+	data = cellValue(s->model, s->iItem, s->p->textModelColumn);
 	wstr = toUTF16(uiTableDataString(data));
 	uiFreeTableData(data);
 	// These flags are a menagerie of flags from various sources:
 	// guessing, the Windows 2000 source leak, various custom
 	// draw examples on the web, etc.
 	// TODO find the real correct flags
-	if (DrawTextW(s->dc, wstr, -1, &(s->realTextRect), DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_SINGLELINE | DT_NOPREFIX | DT_EDITCONTROL) == 0) {
+	if (DrawTextW(s->dc, wstr, -1, &(s->m->realTextRect), DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_SINGLELINE | DT_NOPREFIX | DT_EDITCONTROL) == 0) {
 		uiprivFree(wstr);
 		logLastError(L"DrawTextW()");
 		return E_FAIL;
@@ -337,7 +298,7 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 		hr = E_FAIL;
 		goto fail;
 	}
-	r = s->subitemBounds;
+	r = s->m->subitemBounds;
 	// this sets the height of the progressbar and vertically centers it in one fell swoop
 	r.top += (r.bottom - tm.tmHeight - r.top) / 2;
 	r.bottom = r.top + tm.tmHeight;
@@ -367,7 +328,7 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 		HBRUSH brush, prevBrush;
 
 		sysColor = COLOR_HIGHLIGHT;
-		if (s->selected)
+		if (s->m->selected)
 			sysColor = COLOR_HIGHLIGHTTEXT;
 
 		// TODO check errors everywhere
@@ -438,7 +399,7 @@ static HRESULT drawButtonPart(struct drawState *s)
 	if (s->p->buttonModelColumn == -1)
 		return S_OK;
 
-	data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->buttonModelColumn);
+	data = cellValue(s->model, s->iItem, s->p->buttonModelColumn);
 	wstr = toUTF16(uiTableDataString(data));
 	uiFreeTableData(data);
 	switch (s->p->buttonClickableModelColumn) {
@@ -449,7 +410,7 @@ static HRESULT drawButtonPart(struct drawState *s)
 		enabled = 1;
 		break;
 	default:
-		data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, s->p->checkboxEditableColumn);
+		data = cellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
 		enabled = uiTableDataInt(data);
 		uiFreeTableData(data);
 	}
@@ -461,7 +422,7 @@ static HRESULT drawButtonPart(struct drawState *s)
 		hr = E_FAIL;
 		goto fail;
 	}
-	r = s->subitemBounds;
+	r = s->m->subitemBounds;
 
 	if (theme != NULL) {
 		int state;
@@ -534,6 +495,10 @@ static HRESULT freeDrawState(struct drawState *s)
 	HRESULT hr, hrret;
 
 	hrret = S_OK;
+	if (s->m != NULL) {
+		uiprivFree(s->m);
+		s->m = NULL;
+	}
 	if (s->freeTextBrush) {
 		if (DeleteObject(s->textBrush) == 0) {
 			logLastError(L"DeleteObject()");
@@ -551,20 +516,6 @@ static HRESULT freeDrawState(struct drawState *s)
 		s->freeBgBrush = FALSE;
 	}
 	return hrret;
-}
-
-static HRESULT itemRect(HRESULT hr, uiTable *t, UINT uMsg, WPARAM wParam, LONG left, LONG top, LRESULT bad, RECT *r)
-{
-	if (hr != S_OK)
-		return hr;
-	ZeroMemory(r, sizeof (RECT));
-	r->left = left;
-	r->top = top;
-	if (SendMessageW(t->hwnd, uMsg, wParam, (LPARAM) r) == bad) {
-		logLastError(L"itemRect() message");
-		return E_FAIL;
-	}
-	return S_OK;
 }
 
 static COLORREF blend(COLORREF base, double r, double g, double b, double a)
@@ -591,48 +542,18 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 
 	ZeroMemory(s, sizeof (struct drawState));
 	s->t = t;
-	s->m = t->model;
+	s->model = t->model;
 	s->p = p;
 
 	s->dc = nm->nmcd.hdc;
 	s->iItem = nm->nmcd.dwItemSpec;
 	s->iSubItem = nm->iSubItem;
-	s->hasText = p->textModelColumn != -1;
-	s->hasImage = (p->imageModelColumn != -1) || (p->checkboxModelColumn != -1);
-	// nm->nmcd.uItemState CDIS_SELECTED is unreliable for the
-	// listview configuration we have, so we must do this.
-	state = SendMessageW(t->hwnd, LVM_GETITEMSTATE, nm->nmcd.dwItemSpec, LVIS_SELECTED);
-	s->selected = (state & LVIS_SELECTED) != 0;
-	s->focused = (nm->nmcd.uItemState & CDIS_FOCUS) != 0;
 
-	// TODO check LRESULT bad parameters here
-	hr = itemRect(S_OK, t, LVM_GETITEMRECT, s->iItem,
-		LVIR_BOUNDS, 0, FALSE, &(s->itemBounds));
-	hr = itemRect(hr, t, LVM_GETITEMRECT, s->iItem,
-		LVIR_ICON, 0, FALSE, &(s->itemIcon));
-	hr = itemRect(hr, t, LVM_GETITEMRECT, s->iItem,
-		LVIR_LABEL, 0, FALSE, &(s->itemLabel));
-	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, s->iItem,
-		LVIR_BOUNDS, s->iSubItem, 0, &(s->subitemBounds));
-	hr = itemRect(hr, t, LVM_GETSUBITEMRECT, s->iItem,
-		LVIR_ICON, s->iSubItem, 0, &(s->subitemIcon));
+	hr = uiprivTableGetMetrics(t, s->iItem, s->iSubItem, &(s->m));
 	if (hr != S_OK)
 		goto fail;
-	// LVM_GETSUBITEMRECT treats LVIR_LABEL as the same as
-	// LVIR_BOUNDS, so we can't use that directly. Instead, let's
-	// assume the text is immediately after the icon. The correct
-	// rect will be determined by
-	// computeOtherRectsAndDrawBackgrounds() above.
-	s->subitemLabel = s->subitemBounds;
-	s->subitemLabel.left = s->subitemIcon.right;
-	// And on iSubItem == 0, LVIF_GETSUBITEMRECT still includes
-	// all the subitems, which we don't want.
-	if (s->iSubItem == 0) {
-		s->subitemBounds.right = s->itemLabel.right;
-		s->subitemLabel.right = s->itemLabel.right;
-	}
 
-	if (s->selected) {
+	if (s->m->selected) {
 		s->bgColor = GetSysColor(COLOR_HIGHLIGHT);
 		s->bgBrush = GetSysColorBrush(COLOR_HIGHLIGHT);
 		s->textColor = GetSysColor(COLOR_HIGHLIGHTTEXT);
@@ -644,7 +565,7 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 		s->bgColor = GetSysColor(COLOR_WINDOW);
 		s->bgBrush = GetSysColorBrush(COLOR_WINDOW);
 		if (t->backgroundColumn != -1) {
-			data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, t->backgroundColumn);
+			data = cellValue(s->model, s->iItem, t->backgroundColumn);
 			if (data != NULL) {
 				uiTableDataColor(data, &r, &g, &b, &a);
 				uiFreeTableData(data);
@@ -661,7 +582,7 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 		s->textColor = GetSysColor(COLOR_WINDOWTEXT);
 		s->textBrush = GetSysColorBrush(COLOR_WINDOWTEXT);
 		if (p->textParams.ColorModelColumn != -1) {
-			data = (*(s->m->mh->CellValue))(s->m->mh, s->m, s->iItem, p->textParams.ColorModelColumn);
+			data = cellValue(s->model, s->iItem, p->textParams.ColorModelColumn);
 			if (data != NULL) {
 				uiTableDataColor(data, &r, &g, &b, &a);
 				uiFreeTableData(data);
@@ -675,14 +596,6 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 				s->freeTextBrush = TRUE;
 			}
 		}
-	}
-
-	header = (HWND) SendMessageW(t->hwnd, LVM_GETHEADER, 0, 0);
-	s->bitmapMargin = SendMessageW(header, HDM_GETBITMAPMARGIN, 0, 0);
-	if (ImageList_GetIconSize(t->imagelist, &(s->cxIcon), &(s->cyIcon)) == 0) {
-		logLastError(L"ImageList_GetIconSize()");
-		hr = E_FAIL;
-		goto fail;
 	}
 
 	return S_OK;
@@ -716,7 +629,7 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 	hr = fillDrawState(&s, t, nm, p);
 	if (hr != S_OK)
 		return hr;
-	hr = computeOtherRectsAndDrawBackgrounds(&s);
+	hr = drawBackgrounds(&s);
 	if (hr != S_OK)
 		goto fail;
 	hr = drawImagePart(&s);

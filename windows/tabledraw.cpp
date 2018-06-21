@@ -608,6 +608,52 @@ fail:
 	return hr;
 }
 
+// TODO this has overdraw issues on non-selected rows; do they happen on selected rows too?
+static HRESULT drawFocusRects(uiTable *t, NMLVCUSTOMDRAW *nm)
+{
+	RECT r;
+	bool first;
+	size_t i, n;
+	uiprivTableMetrics *m;
+	HRESULT hr;
+
+	// TODO check error here?
+	if (GetFocus() != t->hwnd)
+		return S_OK;
+	// TODO only if the current item is focused
+
+	ZeroMemory(&r, sizeof (RECT));
+	first = true;
+	n = t->columns->size();
+	for (i = 0; i < n; i++) {
+		RECT b;
+
+		hr = uiprivTableGetMetrics(t, nm->nmcd.dwItemSpec, i, &m);
+		if (hr != S_OK)
+			return hr;
+		b = m->realTextBackground;
+		uiprivFree(m);
+		if (first) {
+			r = b;
+			first = false;
+		} else if (r.right == b.left)
+			r.right = b.right;
+		else {
+			if (DrawFocusRect(nm->nmcd.hdc, &r) == 0) {
+				logLastError(L"DrawFocusRect()");
+				return E_FAIL;
+			}
+			r = b;
+		}
+	}
+	// and draw the last rect
+	if (DrawFocusRect(nm->nmcd.hdc, &r) == 0) {
+		logLastError(L"DrawFocusRect() last");
+		return E_FAIL;
+	}
+	return S_OK;
+}
+
 HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult)
 {
 	struct drawState s;
@@ -619,10 +665,17 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 		*lResult = CDRF_NOTIFYITEMDRAW;
 		return S_OK;
 	case CDDS_ITEMPREPAINT:
-		*lResult = CDRF_NOTIFYSUBITEMDRAW;
+		*lResult = CDRF_NOTIFYSUBITEMDRAW | CDRF_NOTIFYPOSTPAINT;
 		return S_OK;
 	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		break;
+	case CDDS_ITEMPOSTPAINT:
+		// draw the focus rects only at the end, so they are drawn over subitems
+		hr = drawFocusRects(t, nm);
+		if (hr != S_OK)
+			return hr;
+		*lResult = CDRF_SKIPDEFAULT;
+		return S_OK;
 	default:
 		*lResult = CDRF_DODEFAULT;
 		return S_OK;

@@ -2,6 +2,9 @@
 #include "uipriv_windows.hpp"
 #include "table.hpp"
 
+// TODOs:
+// - properly hide selection when not focused (or switch on LVS_SHOWSELALWAYS and draw that state)
+
 // TODO
 #define cellValue(model, row, column) ((*((model)->mh->CellValue))((model)->mh, (model), (row), (column)))
 
@@ -608,49 +611,33 @@ fail:
 	return hr;
 }
 
-// TODO this has overdraw issues on non-selected rows; do they happen on selected rows too?
-static HRESULT drawFocusRects(uiTable *t, NMLVCUSTOMDRAW *nm)
+static HRESULT updateAndDrawFocusRects(uiTable *t, HDC dc, int iItem, RECT *realTextBackground, RECT *focus, bool *first)
 {
-	RECT r;
-	bool first;
-	size_t i, n;
-	uiprivTableMetrics *m;
-	HRESULT hr;
+	LRESULT state;
 
-	// TODO check error here?
 	if (GetFocus() != t->hwnd)
 		return S_OK;
-	// TODO only if the current item is focused
+	// uItemState CDIS_FOCUS doesn't quite work right because of bugs in the Windows list view that causes spurious redraws without the flag while we hover over the focused item
+	// TODO only call this once
+	state = SendMessageW(t->hwnd, LVM_GETITEMSTATE, (WPARAM) iItem, (LRESULT) (LVIS_FOCUSED));
+	if ((state & LVIS_FOCUSED) == 0)
+		return S_OK;
 
-	ZeroMemory(&r, sizeof (RECT));
-	first = true;
-	n = t->columns->size();
-	for (i = 0; i < n; i++) {
-		RECT b;
-
-		hr = uiprivTableGetMetrics(t, nm->nmcd.dwItemSpec, i, &m);
-		if (hr != S_OK)
-			return hr;
-		b = m->realTextBackground;
-		uiprivFree(m);
-		if (first) {
-			r = b;
+	if (realTextBackground != NULL)
+		if (*first) {
+			*focus = *realTextBackground;
 			first = false;
-		} else if (r.right == b.left)
-			r.right = b.right;
-		else {
-			if (DrawFocusRect(nm->nmcd.hdc, &r) == 0) {
-				logLastError(L"DrawFocusRect()");
-				return E_FAIL;
-			}
-			r = b;
+			return S_OK;
+		} else if (focus->right == realTextBackground->left) {
+			focus->right = realTextBackground->right;
+			return S_OK;
 		}
-	}
-	// and draw the last rect
-	if (DrawFocusRect(nm->nmcd.hdc, &r) == 0) {
-		logLastError(L"DrawFocusRect() last");
+	if (DrawFocusRect(dc, focus) == 0) {
+		logLastError(L"DrawFocusRect()");
 		return E_FAIL;
 	}
+	if (realTextBackground != NULL)
+		*focus = *realTextBackground;
 	return S_OK;
 }
 
@@ -667,6 +654,8 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 	uiprivTableColumnParams *p;
 	NMLVCUSTOMDRAW b;
 	size_t i, n;
+	RECT focus;
+	bool focusFirst;
 	HRESULT hr;
 
 	switch (nm->nmcd.dwDrawStage) {
@@ -682,6 +671,7 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 
 	n = t->columns->size();
 	b = *nm;
+	focusFirst = false;
 	for (i = 0; i < n; i++) {
 		b.iSubItem = i;
 		p = (*(t->columns))[i];
@@ -706,10 +696,17 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 		hr = drawButtonPart(&s);
 		if (hr != S_OK)
 			goto fail;
+		hr = updateAndDrawFocusRects(s.t, s.dc, nm->nmcd.dwItemSpec, &(s.m->realTextBackground), &focus, &focusFirst);
+		if (hr != S_OK)
+			goto fail;
 		hr = freeDrawState(&s);
 		if (hr != S_OK)		// TODO really error out here?
 			return hr;
 	}
+	// and draw the last focus rect
+	hr = updateAndDrawFocusRects(t, nm->nmcd.hdc, nm->nmcd.dwItemSpec, NULL, &focus, &focusFirst);
+	if (hr != S_OK)
+		return hr;
 	*lResult = CDRF_SKIPDEFAULT;
 	return S_OK;
 fail:

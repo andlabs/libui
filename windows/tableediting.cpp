@@ -2,6 +2,9 @@
 #include "uipriv_windows.hpp"
 #include "table.hpp"
 
+// TODOs
+// - clicking on the same item restarts editing instead of cancels it
+
 // this is not how the real list view positions and sizes the edit control, but this is a) close enough b) a lot easier to follow c) something I can actually get working d) something I'm slightly more comfortable including in libui
 static HRESULT resizeEdit(uiTable *t, WCHAR *wstr, int iItem, int iSubItem)
 {

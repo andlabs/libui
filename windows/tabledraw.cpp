@@ -654,10 +654,19 @@ static HRESULT drawFocusRects(uiTable *t, NMLVCUSTOMDRAW *nm)
 	return S_OK;
 }
 
+// normally we would only draw stuff in subitem stages
+// this broke when we tried drawing focus rects in postpaint; the drawing either kept getting wiped or overdrawn, mouse hovering had something to do with it, and none of the "solutions" to this or similar problems on the internet worked
+// so now we do everything in the item prepaint stage
+// TODO consider switching to full-on owner draw
+// TODO only compute the background brushes once?
+// TODO integrate the focus rect stuff above
+// TODO do hr chaining like in tablemetrics.cpp
 HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult)
 {
 	struct drawState s;
 	uiprivTableColumnParams *p;
+	NMLVCUSTOMDRAW b;
+	size_t i, n;
 	HRESULT hr;
 
 	switch (nm->nmcd.dwDrawStage) {
@@ -665,51 +674,47 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 		*lResult = CDRF_NOTIFYITEMDRAW;
 		return S_OK;
 	case CDDS_ITEMPREPAINT:
-		*lResult = CDRF_NOTIFYSUBITEMDRAW | CDRF_NOTIFYPOSTPAINT;
-		return S_OK;
-	case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		break;
-	case CDDS_ITEMPOSTPAINT:
-		// draw the focus rects only at the end, so they are drawn over subitems
-		hr = drawFocusRects(t, nm);
-		if (hr != S_OK)
-			return hr;
-		*lResult = CDRF_SKIPDEFAULT;
-		return S_OK;
 	default:
 		*lResult = CDRF_DODEFAULT;
 		return S_OK;
 	}
 
-	p = (*(t->columns))[nm->iSubItem];
-	hr = fillDrawState(&s, t, nm, p);
-	if (hr != S_OK)
-		return hr;
-	hr = drawBackgrounds(&s);
-	if (hr != S_OK)
-		goto fail;
-	hr = drawImagePart(&s);
-	if (hr != S_OK)
-		goto fail;
-	hr = drawCheckboxPart(&s);
-	if (hr != S_OK)
-		goto fail;
-	hr = drawTextPart(&s);
-	if (hr != S_OK)
-		goto fail;
-	hr = drawProgressBarPart(&s);
-	if (hr != S_OK)
-		goto fail;
-	hr = drawButtonPart(&s);
-	if (hr != S_OK)
-		goto fail;
-	hr = freeDrawState(&s);
-	if (hr != S_OK)		// TODO really error out here?
-		return hr;
+	n = t->columns->size();
+	b = *nm;
+	for (i = 0; i < n; i++) {
+		b.iSubItem = i;
+		p = (*(t->columns))[i];
+		hr = fillDrawState(&s, t, &b, p);
+		if (hr != S_OK)
+			return hr;
+		hr = drawBackgrounds(&s);
+		if (hr != S_OK)
+			goto fail;
+		hr = drawImagePart(&s);
+		if (hr != S_OK)
+			goto fail;
+		hr = drawCheckboxPart(&s);
+		if (hr != S_OK)
+			goto fail;
+		hr = drawTextPart(&s);
+		if (hr != S_OK)
+			goto fail;
+		hr = drawProgressBarPart(&s);
+		if (hr != S_OK)
+			goto fail;
+		hr = drawButtonPart(&s);
+		if (hr != S_OK)
+			goto fail;
+		hr = freeDrawState(&s);
+		if (hr != S_OK)		// TODO really error out here?
+			return hr;
+	}
 	*lResult = CDRF_SKIPDEFAULT;
 	return S_OK;
 fail:
 	// ignore error here
+	// TODO this is awkward cleanup placement for something that only really exists in a for loop
 	freeDrawState(&s);
 	return hr;
 }

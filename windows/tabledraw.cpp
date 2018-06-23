@@ -27,8 +27,10 @@ struct drawState {
 	BOOL freeTextBrush;
 };
 
-static HRESULT drawBackgrounds(struct drawState *s)
+static HRESULT drawBackgrounds(HRESULT hr, struct drawState *s)
 {
+	if (hr != S_OK)
+		return hr;
 	if (s->m->hasImage)
 		if (FillRect(s->dc, &(s->m->subitemIcon), GetSysColorBrush(COLOR_WINDOW)) == 0) {
 			logLastError(L"FillRect() icon");
@@ -62,15 +64,16 @@ static void centerImageRect(RECT *image, RECT *space)
 	image->bottom += yoff;
 }
 
-static HRESULT drawImagePart(struct drawState *s)
+static HRESULT drawImagePart(HRESULT hr, struct drawState *s)
 {
 	uiTableData *data;
 	IWICBitmap *wb;
 	HBITMAP b;
 	RECT r;
 	UINT fStyle;
-	HRESULT hr;
 
+	if (hr != S_OK)
+		return hr;
 	if (s->p->imageModelColumn == -1)
 		return S_OK;
 
@@ -182,13 +185,14 @@ static HRESULT drawThemedCheckbox(struct drawState *s, HTHEME theme, int checked
 	return S_OK;
 }
 
-static HRESULT drawCheckboxPart(struct drawState *s)
+static HRESULT drawCheckboxPart(HRESULT hr, struct drawState *s)
 {
 	uiTableData *data;
 	int checked, enabled;
 	HTHEME theme;
-	HRESULT hr;
 
+	if (hr != S_OK)
+		return hr;
 	if (s->p->checkboxModelColumn == -1)
 		return S_OK;
 
@@ -226,7 +230,7 @@ static HRESULT drawCheckboxPart(struct drawState *s)
 	return S_OK;
 }
 
-static HRESULT drawTextPart(struct drawState *s)
+static HRESULT drawTextPart(HRESULT hr, struct drawState *s)
 {
 	COLORREF prevText;
 	int prevMode;
@@ -234,6 +238,8 @@ static HRESULT drawTextPart(struct drawState *s)
 	uiTableData *data;
 	WCHAR *wstr;
 
+	if (hr != S_OK)
+		return hr;
 	if (!s->m->hasText)
 		return S_OK;
 	// don't draw the text underneath an edit control
@@ -280,7 +286,7 @@ static HRESULT drawTextPart(struct drawState *s)
 // much of this is to imitate what shell32.dll's CDrawProgressBar does
 #define indeterminateSegments 8
 
-static HRESULT drawProgressBarPart(struct drawState *s)
+static HRESULT drawProgressBarPart(HRESULT hr, struct drawState *s)
 {
 	int progress;
 	LONG indeterminatePos;
@@ -290,8 +296,9 @@ static HRESULT drawProgressBarPart(struct drawState *s)
 	int i, nFill;
 	TEXTMETRICW tm;
 	int sysColor;
-	HRESULT hr;
 
+	if (hr != S_OK)
+		return hr;
 	if (s->p->progressBarModelColumn == -1)
 		return S_OK;
 
@@ -392,7 +399,7 @@ fail:
 	return hr;
 }
 
-static HRESULT drawButtonPart(struct drawState *s)
+static HRESULT drawButtonPart(HRESULT hr, struct drawState *s)
 {
 	uiTableData *data;
 	WCHAR *wstr;
@@ -400,8 +407,9 @@ static HRESULT drawButtonPart(struct drawState *s)
 	HTHEME theme;
 	RECT r;
 	TEXTMETRICW tm;
-	HRESULT hr;
 
+	if (hr != S_OK)
+		return hr;
 	if (s->p->buttonModelColumn == -1)
 		return S_OK;
 
@@ -611,10 +619,12 @@ fail:
 	return hr;
 }
 
-static HRESULT updateAndDrawFocusRects(uiTable *t, HDC dc, int iItem, RECT *realTextBackground, RECT *focus, bool *first)
+static HRESULT updateAndDrawFocusRects(HRESULT hr, uiTable *t, HDC dc, int iItem, RECT *realTextBackground, RECT *focus, bool *first)
 {
 	LRESULT state;
 
+	if (hr != S_OK)
+		return hr;
 	if (GetFocus() != t->hwnd)
 		return S_OK;
 	// uItemState CDIS_FOCUS doesn't quite work right because of bugs in the Windows list view that causes spurious redraws without the flag while we hover over the focused item
@@ -626,7 +636,7 @@ static HRESULT updateAndDrawFocusRects(uiTable *t, HDC dc, int iItem, RECT *real
 	if (realTextBackground != NULL)
 		if (*first) {
 			*focus = *realTextBackground;
-			first = false;
+			*first = false;
 			return S_OK;
 		} else if (focus->right == realTextBackground->left) {
 			focus->right = realTextBackground->right;
@@ -646,8 +656,6 @@ static HRESULT updateAndDrawFocusRects(uiTable *t, HDC dc, int iItem, RECT *real
 // so now we do everything in the item prepaint stage
 // TODO consider switching to full-on owner draw
 // TODO only compute the background brushes once?
-// TODO integrate the focus rect stuff above
-// TODO do hr chaining like in tablemetrics.cpp
 HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *lResult)
 {
 	struct drawState s;
@@ -671,32 +679,20 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 
 	n = t->columns->size();
 	b = *nm;
-	focusFirst = false;
+	focusFirst = true;
 	for (i = 0; i < n; i++) {
 		b.iSubItem = i;
 		p = (*(t->columns))[i];
 		hr = fillDrawState(&s, t, &b, p);
 		if (hr != S_OK)
 			return hr;
-		hr = drawBackgrounds(&s);
-		if (hr != S_OK)
-			goto fail;
-		hr = drawImagePart(&s);
-		if (hr != S_OK)
-			goto fail;
-		hr = drawCheckboxPart(&s);
-		if (hr != S_OK)
-			goto fail;
-		hr = drawTextPart(&s);
-		if (hr != S_OK)
-			goto fail;
-		hr = drawProgressBarPart(&s);
-		if (hr != S_OK)
-			goto fail;
-		hr = drawButtonPart(&s);
-		if (hr != S_OK)
-			goto fail;
-		hr = updateAndDrawFocusRects(s.t, s.dc, nm->nmcd.dwItemSpec, &(s.m->realTextBackground), &focus, &focusFirst);
+		hr = drawBackgrounds(S_OK, &s);
+		hr = drawImagePart(hr, &s);
+		hr = drawCheckboxPart(hr, &s);
+		hr = drawTextPart(hr, &s);
+		hr = drawProgressBarPart(hr, &s);
+		hr = drawButtonPart(hr, &s);
+		hr = updateAndDrawFocusRects(hr, s.t, s.dc, nm->nmcd.dwItemSpec, &(s.m->realTextBackground), &focus, &focusFirst);
 		if (hr != S_OK)
 			goto fail;
 		hr = freeDrawState(&s);
@@ -704,7 +700,7 @@ HRESULT uiprivTableHandleNM_CUSTOMDRAW(uiTable *t, NMLVCUSTOMDRAW *nm, LRESULT *
 			return hr;
 	}
 	// and draw the last focus rect
-	hr = updateAndDrawFocusRects(t, nm->nmcd.hdc, nm->nmcd.dwItemSpec, NULL, &focus, &focusFirst);
+	hr = updateAndDrawFocusRects(hr, t, nm->nmcd.hdc, nm->nmcd.dwItemSpec, NULL, &focus, &focusFirst);
 	if (hr != S_OK)
 		return hr;
 	*lResult = CDRF_SKIPDEFAULT;

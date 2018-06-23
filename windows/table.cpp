@@ -4,6 +4,8 @@
 // general TODOs:
 // - tooltips don't work properly on columns with icons (the listview always thinks there's enough room for a short label because it's not taking the icon into account); is this a bug in our LVN_GETDISPINFO handler or something else?
 // - should clicking on some other column of the same row, even one that doesn't edit, cancel editing?
+// - implement keyboard accessibility
+// - implement accessibility in general (Dynamic Annotations maybe?)
 
 static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
 	/*TODO.ColorModelColumn = */-1,

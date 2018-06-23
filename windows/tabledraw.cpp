@@ -8,6 +8,7 @@
 // TODO
 #define cellValue(model, row, column) ((*((model)->mh->CellValue))((model)->mh, (model), (row), (column)))
 
+// TODO maybe split this into item and subitem structs?
 struct drawState {
 	uiTable *t;
 	uiTableModel *model;

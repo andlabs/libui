@@ -8,15 +8,15 @@ static int modelNumColumns(uiTableModelHandler *mh, uiTableModel *m)
 	return 9;
 }
 
-static uiTableDataType modelColumnType(uiTableModelHandler *mh, uiTableModel *m, int column)
+static uiTableValueType modelColumnType(uiTableModelHandler *mh, uiTableModel *m, int column)
 {
 	if (column == 3 || column == 4)
-		return uiTableDataTypeColor;
+		return uiTableValueTypeColor;
 	if (column == 5)
-		return uiTableDataTypeImage;
+		return uiTableValueTypeImage;
 	if (column == 7 || column == 8)
-		return uiTableDataTypeInt;
-	return uiTableDataTypeString;
+		return uiTableValueTypeInt;
+	return uiTableValueTypeString;
 }
 
 static int modelNumRows(uiTableModelHandler *mh, uiTableModel *m)
@@ -29,39 +29,39 @@ static char row9text[1024];
 static int yellowRow = -1;
 static int checkStates[15];
 
-static uiTableData *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col)
+static uiTableValue *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col)
 {
 	char buf[256];
 
 	if (col == 3) {
 		if (row == yellowRow)
-			return uiNewTableDataColor(1, 1, 0, 1);
+			return uiNewTableValueColor(1, 1, 0, 1);
 		if (row == 3)
-			return uiNewTableDataColor(1, 0, 0, 1);
+			return uiNewTableValueColor(1, 0, 0, 1);
 		if (row == 11)
-			return uiNewTableDataColor(0, 0.5, 1, 0.5);
+			return uiNewTableValueColor(0, 0.5, 1, 0.5);
 		return NULL;
 	}
 	if (col == 4) {
 		if ((row % 2) == 1)
-			return uiNewTableDataColor(0.5, 0, 0.75, 1);
+			return uiNewTableValueColor(0.5, 0, 0.75, 1);
 		return NULL;
 	}
 	if (col == 5) {
 		if (row < 8)
-			return uiNewTableDataImage(img[0]);
-		return uiNewTableDataImage(img[1]);
+			return uiNewTableValueImage(img[0]);
+		return uiNewTableValueImage(img[1]);
 	}
 	if (col == 7)
-		return uiNewTableDataInt(checkStates[row]);
+		return uiNewTableValueInt(checkStates[row]);
 	if (col == 8) {
 		if (row == 0)
-			return uiNewTableDataInt(0);
+			return uiNewTableValueInt(0);
 		if (row == 13)
-			return uiNewTableDataInt(100);
+			return uiNewTableValueInt(100);
 		if (row == 14)
-			return uiNewTableDataInt(-1);
-		return uiNewTableDataInt(50);
+			return uiNewTableValueInt(-1);
+		return uiNewTableValueInt(50);
 	}
 	switch (col) {
 	case 0:
@@ -69,7 +69,7 @@ static uiTableData *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int
 		break;
 	case 2:
 		if (row == 9)
-			return uiNewTableDataString(row9text);
+			return uiNewTableValueString(row9text);
 		// fall through
 	case 1:
 		strcpy(buf, "Part");
@@ -78,13 +78,13 @@ static uiTableData *modelCellValue(uiTableModelHandler *mh, uiTableModel *m, int
 		strcpy(buf, "Make Yellow");
 		break;
 	}
-	return uiNewTableDataString(buf);
+	return uiNewTableValueString(buf);
 }
 
-static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col, const uiTableData *val)
+static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row, int col, const uiTableValue *val)
 {
 	if (row == 9 && col == 2)
-		strcpy(row9text, uiTableDataString(val));
+		strcpy(row9text, uiTableValueString(val));
 	if (col == 6) {
 		int prevYellowRow;
 
@@ -95,7 +95,7 @@ static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row,
 		uiTableModelRowChanged(m, yellowRow);
 	}
 	if (col == 7)
-		checkStates[row] = uiTableDataInt(val);
+		checkStates[row] = uiTableValueInt(val);
 }
 
 uiBox *makePage16(void)

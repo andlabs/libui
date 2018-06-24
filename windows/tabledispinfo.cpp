@@ -8,7 +8,7 @@
 static HRESULT handleLVIF_TEXT(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p)
 {
 	int strcol;
-	uiTableData *data;
+	uiTableValue *value;
 	WCHAR *wstr;
 	int progress;
 	HRESULT hr;
@@ -22,9 +22,9 @@ static HRESULT handleLVIF_TEXT(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnP
 	else if (p->buttonModelColumn != -1)
 		strcol = p->buttonModelColumn;
 	if (strcol != -1) {
-		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, strcol);
-		wstr = toUTF16(uiTableDataString(data));
-		uiFreeTableData(data);
+		value = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, strcol);
+		wstr = toUTF16(uiTableValueString(value));
+		uiFreeTableValue(value);
 		// We *could* just make pszText into a freshly allocated
 		// conversion and avoid the limitation of cchTextMax.
 		// But then, we would have to keep things around for some
@@ -59,7 +59,7 @@ static HRESULT handleLVIF_TEXT(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnP
 
 static HRESULT handleLVIF_IMAGE(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnParams *p)
 {
-	uiTableData *data;
+	uiTableValue *value;
 	HRESULT hr;
 
 	if (nm->item.iSubItem == 0 && p->imageModelColumn == -1 && p->checkboxModelColumn == -1) {
@@ -75,7 +75,7 @@ static HRESULT handleLVIF_IMAGE(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumn
 		return S_OK;		// nothing to do here
 
 	// TODO see if the -1 part is correct
-	// TODO see if we should use state instead of images for checkbox data
+	// TODO see if we should use state instead of images for checkbox value
 	nm->item.iImage = -1;
 	if (p->imageModelColumn != -1 || p->checkboxModelColumn != -1)
 		nm->item.iImage = 0;

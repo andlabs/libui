@@ -67,7 +67,7 @@ static void centerImageRect(RECT *image, RECT *space)
 
 static HRESULT drawImagePart(HRESULT hr, struct drawState *s)
 {
-	uiTableData *data;
+	uiTableValue *value;
 	IWICBitmap *wb;
 	HBITMAP b;
 	RECT r;
@@ -78,9 +78,9 @@ static HRESULT drawImagePart(HRESULT hr, struct drawState *s)
 	if (s->p->imageModelColumn == -1)
 		return S_OK;
 
-	data = cellValue(s->model, s->iItem, s->p->imageModelColumn);
-	wb = uiprivImageAppropriateForDC(uiTableDataImage(data), s->dc);
-	uiFreeTableData(data);
+	value = cellValue(s->model, s->iItem, s->p->imageModelColumn);
+	wb = uiprivImageAppropriateForDC(uiTableValueImage(value), s->dc);
+	uiFreeTableValue(value);
 
 	hr = uiprivWICToGDI(wb, s->dc, s->m->cxIcon, s->m->cyIcon, &b);
 	if (hr != S_OK)
@@ -188,7 +188,7 @@ static HRESULT drawThemedCheckbox(struct drawState *s, HTHEME theme, int checked
 
 static HRESULT drawCheckboxPart(HRESULT hr, struct drawState *s)
 {
-	uiTableData *data;
+	uiTableValue *value;
 	int checked, enabled;
 	HTHEME theme;
 
@@ -197,9 +197,9 @@ static HRESULT drawCheckboxPart(HRESULT hr, struct drawState *s)
 	if (s->p->checkboxModelColumn == -1)
 		return S_OK;
 
-	data = cellValue(s->model, s->iItem, s->p->checkboxModelColumn);
-	checked = uiTableDataInt(data);
-	uiFreeTableData(data);
+	value = cellValue(s->model, s->iItem, s->p->checkboxModelColumn);
+	checked = uiTableValueInt(value);
+	uiFreeTableValue(value);
 	switch (s->p->checkboxEditableColumn) {
 	case uiTableModelColumnNeverEditable:
 		enabled = 0;
@@ -208,9 +208,9 @@ static HRESULT drawCheckboxPart(HRESULT hr, struct drawState *s)
 		enabled = 1;
 		break;
 	default:
-		data = cellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
-		enabled = uiTableDataInt(data);
-		uiFreeTableData(data);
+		value = cellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
+		enabled = uiTableValueInt(value);
+		uiFreeTableValue(value);
 	}
 
 	theme = OpenThemeData(s->t->hwnd, L"button");
@@ -236,7 +236,7 @@ static HRESULT drawTextPart(HRESULT hr, struct drawState *s)
 	COLORREF prevText;
 	int prevMode;
 	RECT r;
-	uiTableData *data;
+	uiTableValue *value;
 	WCHAR *wstr;
 
 	if (hr != S_OK)
@@ -258,9 +258,9 @@ static HRESULT drawTextPart(HRESULT hr, struct drawState *s)
 		return E_FAIL;
 	}
 
-	data = cellValue(s->model, s->iItem, s->p->textModelColumn);
-	wstr = toUTF16(uiTableDataString(data));
-	uiFreeTableData(data);
+	value = cellValue(s->model, s->iItem, s->p->textModelColumn);
+	wstr = toUTF16(uiTableValueString(value));
+	uiFreeTableValue(value);
 	// These flags are a menagerie of flags from various sources:
 	// guessing, the Windows 2000 source leak, various custom
 	// draw examples on the web, etc.
@@ -402,7 +402,7 @@ fail:
 
 static HRESULT drawButtonPart(HRESULT hr, struct drawState *s)
 {
-	uiTableData *data;
+	uiTableValue *value;
 	WCHAR *wstr;
 	bool enabled;
 	HTHEME theme;
@@ -414,9 +414,9 @@ static HRESULT drawButtonPart(HRESULT hr, struct drawState *s)
 	if (s->p->buttonModelColumn == -1)
 		return S_OK;
 
-	data = cellValue(s->model, s->iItem, s->p->buttonModelColumn);
-	wstr = toUTF16(uiTableDataString(data));
-	uiFreeTableData(data);
+	value = cellValue(s->model, s->iItem, s->p->buttonModelColumn);
+	wstr = toUTF16(uiTableValueString(value));
+	uiFreeTableValue(value);
 	switch (s->p->buttonClickableModelColumn) {
 	case uiTableModelColumnNeverEditable:
 		enabled = 0;
@@ -425,9 +425,9 @@ static HRESULT drawButtonPart(HRESULT hr, struct drawState *s)
 		enabled = 1;
 		break;
 	default:
-		data = cellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
-		enabled = uiTableDataInt(data);
-		uiFreeTableData(data);
+		value = cellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
+		enabled = uiTableValueInt(value);
+		uiFreeTableValue(value);
 	}
 
 	theme = OpenThemeData(s->t->hwnd, L"button");
@@ -574,16 +574,16 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 		s->textColor = GetSysColor(COLOR_HIGHLIGHTTEXT);
 		s->textBrush = GetSysColorBrush(COLOR_HIGHLIGHTTEXT);
 	} else {
-		uiTableData *data;
+		uiTableValue *value;
 		double r, g, b, a;
 
 		s->bgColor = GetSysColor(COLOR_WINDOW);
 		s->bgBrush = GetSysColorBrush(COLOR_WINDOW);
 		if (t->backgroundColumn != -1) {
-			data = cellValue(s->model, s->iItem, t->backgroundColumn);
-			if (data != NULL) {
-				uiTableDataColor(data, &r, &g, &b, &a);
-				uiFreeTableData(data);
+			value = cellValue(s->model, s->iItem, t->backgroundColumn);
+			if (value != NULL) {
+				uiTableValueColor(value, &r, &g, &b, &a);
+				uiFreeTableValue(value);
 				s->bgColor = blend(s->bgColor, r, g, b, a);
 				s->bgBrush = CreateSolidBrush(s->bgColor);
 				if (s->bgBrush == NULL) {
@@ -597,10 +597,10 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 		s->textColor = GetSysColor(COLOR_WINDOWTEXT);
 		s->textBrush = GetSysColorBrush(COLOR_WINDOWTEXT);
 		if (p->textParams.ColorModelColumn != -1) {
-			data = cellValue(s->model, s->iItem, p->textParams.ColorModelColumn);
-			if (data != NULL) {
-				uiTableDataColor(data, &r, &g, &b, &a);
-				uiFreeTableData(data);
+			value = cellValue(s->model, s->iItem, p->textParams.ColorModelColumn);
+			if (value != NULL) {
+				uiTableValueColor(value, &r, &g, &b, &a);
+				uiFreeTableValue(value);
 				s->textColor = blend(s->bgColor, r, g, b, a);
 				s->textBrush = CreateSolidBrush(s->textColor);
 				if (s->textBrush == NULL) {

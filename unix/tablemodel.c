@@ -39,13 +39,13 @@ static GType uiTableModel_get_column_type(GtkTreeModel *mm, gint index)
 	uiTableModel *m = uiTableModel(mm);
 
 	switch ((*(m->mh->ColumnType))(m->mh, m, index)) {
-	case uiTableDataTypeString:
+	case uiTableValueTypeString:
 		return G_TYPE_STRING;
-	case uiTableDataTypeImage:
+	case uiTableValueTypeImage:
 		return G_TYPE_POINTER;
-	case uiTableDataTypeInt:
+	case uiTableValueTypeInt:
 		return G_TYPE_INT;
-	case uiTableDataTypeColor:
+	case uiTableValueTypeColor:
 		return GDK_TYPE_RGBA;
 	}
 	// TODO
@@ -91,38 +91,38 @@ static void uiTableModel_get_value(GtkTreeModel *mm, GtkTreeIter *iter, gint col
 {
 	uiTableModel *m = uiTableModel(mm);
 	gint row;
-	uiTableData *data;
+	uiTableValue *tvalue;
 	double r, g, b, a;
 	GdkRGBA rgba;
 
 	if (iter->stamp != STAMP_GOOD)
 		return;
 	row = GPOINTER_TO_INT(iter->user_data);
-	data = (*(m->mh->CellValue))(m->mh, m, row, column);
+	tvalue = (*(m->mh->CellValue))(m->mh, m, row, column);
 	switch ((*(m->mh->ColumnType))(m->mh, m, column)) {
-	case uiTableDataTypeString:
+	case uiTableValueTypeString:
 		g_value_init(value, G_TYPE_STRING);
-		g_value_set_string(value, uiTableDataString(data));
-		uiFreeTableData(data);
+		g_value_set_string(value, uiTableValueString(tvalue));
+		uiFreeTableValue(tvalue);
 		return;
-	case uiTableDataTypeImage:
+	case uiTableValueTypeImage:
 		g_value_init(value, G_TYPE_POINTER);
-		g_value_set_pointer(value, uiTableDataImage(data));
-		uiFreeTableData(data);
+		g_value_set_pointer(value, uiTableValueImage(tvalue));
+		uiFreeTableValue(tvalue);
 		return;
-	case uiTableDataTypeInt:
+	case uiTableValueTypeInt:
 		g_value_init(value, G_TYPE_INT);
-		g_value_set_int(value, uiTableDataInt(data));
-		uiFreeTableData(data);
+		g_value_set_int(value, uiTableValueInt(tvalue));
+		uiFreeTableValue(tvalue);
 		return;
-	case uiTableDataTypeColor:
+	case uiTableValueTypeColor:
 		g_value_init(value, GDK_TYPE_RGBA);
-		if (data == NULL) {
+		if (tvalue == NULL) {
 			g_value_set_boxed(value, NULL);
 			return;
 		}
-		uiTableDataColor(data, &r, &g, &b, &a);
-		uiFreeTableData(data);
+		uiTableValueColor(tvalue, &r, &g, &b, &a);
+		uiFreeTableValue(tvalue);
 		rgba.red = r;
 		rgba.green = g;
 		rgba.blue = b;

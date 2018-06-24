@@ -188,16 +188,16 @@ static LRESULT CALLBACK tableSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 
 int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG *pos)
 {
-	uiTableData *data;
+	uiTableValue *value;
 	int progress;
 	std::pair<int, int> p;
 	std::map<std::pair<int, int>, LONG>::iterator iter;
 	bool startTimer = false;
 	bool stopTimer = false;
 
-	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, item, modelColumn);
-	progress = uiTableDataInt(data);
-	uiFreeTableData(data);
+	value = (*(t->model->mh->CellValue))(t->model->mh, t->model, item, modelColumn);
+	progress = uiTableValueInt(value);
+	uiFreeTableValue(value);
 
 	p.first = item;
 	p.second = subitem;

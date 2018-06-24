@@ -74,7 +74,7 @@ static void applyBackgroundColor(uiTable *t, GtkTreeModel *m, GtkTreeIter *iter,
 			r, "cell-background-rgba", "cell-background-set");
 }
 
-static void onEdited(uiTableModel *m, int column, const char *pathstr, const uiTableData *data, GtkTreeIter *iter)
+static void onEdited(uiTableModel *m, int column, const char *pathstr, const uiTableValue *tvalue, GtkTreeIter *iter)
 {
 	GtkTreePath *path;
 	int row;
@@ -84,7 +84,7 @@ static void onEdited(uiTableModel *m, int column, const char *pathstr, const uiT
 	if (iter != NULL)
 		gtk_tree_model_get_iter(GTK_TREE_MODEL(m), iter, path);
 	gtk_tree_path_free(path);
-	(*(m->mh->SetCellValue))(m->mh, m, row, column, data);
+	(*(m->mh->SetCellValue))(m->mh, m, row, column, tvalue);
 }
 
 // TODO deduplicate this between platforms
@@ -123,12 +123,12 @@ static void textColumnDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTree
 static void textColumnEdited(GtkCellRendererText *r, gchar *path, gchar *newText, gpointer data)
 {
 	struct textColumnParams *p = (struct textColumnParams *) data;
-	uiTableData *tdata;
+	uiTableValue *tvalue;
 	GtkTreeIter iter;
 
-	tdata = uiNewTableDataString(newText);
-	onEdited(p->m, p->modelColumn, path, tdata, &iter);
-	uiFreeTableData(tdata);
+	tvalue = uiNewTableValueString(newText);
+	onEdited(p->m, p->modelColumn, path, tvalue, &iter);
+	uiFreeTableValue(tvalue);
 	// and update the column TODO copy comment here
 	textColumnDataFunc(NULL, GTK_CELL_RENDERER(r), GTK_TREE_MODEL(p->m), &iter, data);
 }
@@ -183,7 +183,7 @@ static void checkboxColumnToggled(GtkCellRendererToggle *r, gchar *pathstr, gpoi
 	struct checkboxColumnParams *p = (struct checkboxColumnParams *) data;
 	GValue value = G_VALUE_INIT;
 	int v;
-	uiTableData *tdata;
+	uiTableValue *tvalue;
 	GtkTreePath *path;
 	GtkTreeIter iter;
 
@@ -193,9 +193,9 @@ static void checkboxColumnToggled(GtkCellRendererToggle *r, gchar *pathstr, gpoi
 	gtk_tree_model_get_value(GTK_TREE_MODEL(p->m), &iter, p->modelColumn, &value);
 	v = g_value_get_int(&value);
 	g_value_unset(&value);
-	tdata = uiNewTableDataInt(!v);
-	onEdited(p->m, p->modelColumn, pathstr, tdata, NULL);
-	uiFreeTableData(tdata);
+	tvalue = uiNewTableValueInt(!v);
+	onEdited(p->m, p->modelColumn, pathstr, tvalue, NULL);
+	uiFreeTableValue(tvalue);
 	// and update the column TODO copy comment here
 	// TODO avoid fetching the model data twice
 	checkboxColumnDataFunc(NULL, GTK_CELL_RENDERER(r), GTK_TREE_MODEL(p->m), &iter, data);

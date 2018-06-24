@@ -7,12 +7,10 @@ list(APPEND _LIBUI_SOURCES
 	common/areaevents.c
 	common/control.c
 	common/debug.c
-#	common/drawtext.c
 	common/matrix.c
 	common/opentype.c
 	common/shouldquit.c
-#	common/table.c
-	common/tabledata.c
+	common/tablevalue.c
 	common/userbugs.c
 	common/utf.c
 )

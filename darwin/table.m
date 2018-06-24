@@ -31,16 +31,16 @@
 // TODO is this correct for overflow scrolling?
 static void setBackgroundColor(uiprivTableView *t, NSTableRowView *rv, NSInteger row)
 {
-	uiTableData *data;
+	uiTableValue *value;
 	NSColor *color;
 	double r, g, b, a;
 
 	if (t->uiprivT->backgroundColumn == -1)
 		return;
-	data = (*(t->uiprivM->mh->CellValue))(t->uiprivM->mh, t->uiprivM, row, t->uiprivT->backgroundColumn);
-	if (data != NULL) {
-		uiTableDataColor(data, &r, &g, &b, &a);
-		uiFreeTableData(data);
+	value = (*(t->uiprivM->mh->CellValue))(t->uiprivM->mh, t->uiprivM, row, t->uiprivT->backgroundColumn);
+	if (value != NULL) {
+		uiTableValueColor(value, &r, &g, &b, &a);
+		uiFreeTableValue(value);
 		color = [NSColor colorWithSRGBRed:r green:g blue:b alpha:a];
 	} else {
 		NSArray *colors;

@@ -95,7 +95,7 @@ static LRESULT CALLBACK editSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableColumnParams *p)
 {
-	uiTableData *data;
+	uiTableValue *value;
 	WCHAR *wstr;
 	HRESULT hr;
 
@@ -105,9 +105,9 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 		return hr;
 
 	// the real list view creates the edit control with the string
-	data = (*(t->model->mh->CellValue))(t->model->mh, t->model, iItem, p->textModelColumn);
-	wstr = toUTF16(uiTableDataString(data));
-	uiFreeTableData(data);
+	value = (*(t->model->mh->CellValue))(t->model->mh, t->model, iItem, p->textModelColumn);
+	wstr = toUTF16(uiTableValueString(value));
+	uiFreeTableValue(value);
 	// TODO copy WS_EX_RTLREADING
 	t->edit = CreateWindowExW(0,
 		L"EDIT", wstr,
@@ -157,17 +157,17 @@ HRESULT uiprivTableResizeWhileEditing(uiTable *t)
 HRESULT uiprivTableFinishEditingText(uiTable *t)
 {
 	uiprivTableColumnParams *p;
-	uiTableData *data;
+	uiTableValue *value;
 	char *text;
 
 	if (t->edit == NULL)
 		return S_OK;
 	text = uiWindowsWindowText(t->edit);
-	data = uiNewTableDataString(text);
+	value = uiNewTableValueString(text);
 	uiFreeText(text);
 	p = (*(t->columns))[t->editedSubitem];
-	(*(t->model->mh->SetCellValue))(t->model->mh, t->model, t->editedItem, p->textModelColumn, data);
-	uiFreeTableData(data);
+	(*(t->model->mh->SetCellValue))(t->model->mh, t->model, t->editedItem, p->textModelColumn, value);
+	uiFreeTableValue(value);
 	// always refresh the value in case the model rejected it
 	if (SendMessageW(t->hwnd, LVM_UPDATE, (WPARAM) (t->editedItem), 0) == (LRESULT) (-1)) {
 		logLastError(L"LVM_UPDATE");
@@ -199,7 +199,7 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 	uiprivTableColumnParams *p;
 	int modelColumn, editableColumn;
 	bool text, checkbox;
-	uiTableData *data;
+	uiTableValue *value;
 	int checked, editable;
 	HRESULT hr;
 
@@ -238,9 +238,9 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 	case uiTableModelColumnAlwaysEditable:
 		break;
 	default:
-		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, ht.iItem, editableColumn);
-		editable = uiTableDataInt(data);
-		uiFreeTableData(data);
+		value = (*(t->model->mh->CellValue))(t->model->mh, t->model, ht.iItem, editableColumn);
+		editable = uiTableValueInt(value);
+		uiFreeTableValue(value);
 		if (!editable)
 			goto done;
 	}
@@ -252,12 +252,12 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 	} else if (checkbox) {
 		if ((ht.flags & LVHT_ONITEMICON) == 0)
 			goto done;
-		data = (*(t->model->mh->CellValue))(t->model->mh, t->model, ht.iItem, modelColumn);
-		checked = uiTableDataInt(data);
-		uiFreeTableData(data);
-		data = uiNewTableDataInt(!checked);
-		(*(t->model->mh->SetCellValue))(t->model->mh, t->model, ht.iItem, modelColumn, data);
-		uiFreeTableData(data);
+		value = (*(t->model->mh->CellValue))(t->model->mh, t->model, ht.iItem, modelColumn);
+		checked = uiTableValueInt(value);
+		uiFreeTableValue(value);
+		value = uiNewTableValueInt(!checked);
+		(*(t->model->mh->SetCellValue))(t->model->mh, t->model, ht.iItem, modelColumn, value);
+		uiFreeTableValue(value);
 	} else
 		(*(t->model->mh->SetCellValue))(t->model->mh, t->model, ht.iItem, modelColumn, NULL);
 	// always refresh the value in case the model rejected it

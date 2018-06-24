@@ -8,32 +8,32 @@ _UI_EXTERN uiImage *uiNewImage(double width, double height);
 _UI_EXTERN void uiFreeImage(uiImage *i);
 _UI_EXTERN void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride);
 
-typedef struct uiTableData uiTableData;
+typedef struct uiTableValue uiTableValue;
 
-_UI_EXTERN void uiFreeTableData(uiTableData *d);
+_UI_EXTERN void uiFreeTableValue(uiTableValue *v);
 
 // TODO actually validate these
-_UI_ENUM(uiTableDataType) {
-	uiTableDataTypeString,
-	uiTableDataTypeImage,
-	uiTableDataTypeInt,
-	uiTableDataTypeColor,
+_UI_ENUM(uiTableValueType) {
+	uiTableValueTypeString,
+	uiTableValueTypeImage,
+	uiTableValueTypeInt,
+	uiTableValueTypeColor,
 };
 
 // TODO I don't like this name
-_UI_EXTERN uiTableDataType uiTableDataGetType(const uiTableData *d);
+_UI_EXTERN uiTableValueType uiTableValueGetType(const uiTableValue *v);
 
-_UI_EXTERN uiTableData *uiNewTableDataString(const char *str);
-_UI_EXTERN const char *uiTableDataString(const uiTableData *d);
+_UI_EXTERN uiTableValue *uiNewTableValueString(const char *str);
+_UI_EXTERN const char *uiTableValueString(const uiTableValue *v);
 
-_UI_EXTERN uiTableData *uiNewTableDataImage(uiImage *img);
-_UI_EXTERN uiImage *uiTableDataImage(const uiTableData *d);
+_UI_EXTERN uiTableValue *uiNewTableValueImage(uiImage *img);
+_UI_EXTERN uiImage *uiTableValueImage(const uiTableValue *v);
 
-_UI_EXTERN uiTableData *uiNewTableDataInt(int i);
-_UI_EXTERN int uiTableDataInt(const uiTableData *d);
+_UI_EXTERN uiTableValue *uiNewTableValueInt(int i);
+_UI_EXTERN int uiTableValueInt(const uiTableValue *v);
 
-_UI_EXTERN uiTableData *uiNewTableDataColor(double r, double g, double b, double a);
-_UI_EXTERN void uiTableDataColor(const uiTableData *d, double *r, double *g, double *b, double *a);
+_UI_EXTERN uiTableValue *uiNewTableValueColor(double r, double g, double b, double a);
+_UI_EXTERN void uiTableValueColor(const uiTableValue *v, double *r, double *g, double *b, double *a);
 
 typedef struct uiTableModel uiTableModel;
 typedef struct uiTableModelHandler uiTableModelHandler;
@@ -41,10 +41,10 @@ typedef struct uiTableModelHandler uiTableModelHandler;
 // TODO validate ranges; validate types on each getter/setter call (? table columns only?)
 struct uiTableModelHandler {
 	int (*NumColumns)(uiTableModelHandler *, uiTableModel *);
-	uiTableDataType (*ColumnType)(uiTableModelHandler *, uiTableModel *, int);
+	uiTableValueType (*ColumnType)(uiTableModelHandler *, uiTableModel *, int);
 	int (*NumRows)(uiTableModelHandler *, uiTableModel *);
-	uiTableData *(*CellValue)(uiTableModelHandler *, uiTableModel *, int, int);
-	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, const uiTableData *);
+	uiTableValue *(*CellValue)(uiTableModelHandler *, uiTableModel *, int, int);
+	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, const uiTableValue *);
 };
 
 _UI_EXTERN uiTableModel *uiNewTableModel(uiTableModelHandler *mh);

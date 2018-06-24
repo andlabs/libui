@@ -2,6 +2,8 @@
 #import "uipriv_darwin.h"
 #import "table.h"
 
+// TODO the initial scroll position is still wrong
+
 @interface uiprivTableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *m;
 }
@@ -72,7 +74,6 @@ static void setBackgroundColor(uiprivTableView *t, NSTableRowView *rv, NSInteger
  - (NSView *)tableView:(NSTableView *)tv viewForTableColumn:(NSTableColumn *)cc row:(NSInteger)row
 {
 	uiprivTableColumn *c = (uiprivTableColumn *) cc;
-	// TODO consider renaming this type to uiprivTableCellView
 	uiprivTableCellView *cv;
 
 	cv = (uiprivTableCellView *) [tv makeViewWithIdentifier:[c identifier] owner:self];

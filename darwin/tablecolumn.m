@@ -43,7 +43,7 @@ struct textColumnCreateParams {
 	int textEditableModelColumn;
 	uiTableTextColumnOptionalParams textParams;
 
-	BOOL makeImage;
+	BOOL makeImageView;
 	int imageModelColumn;
 
 	BOOL makeCheckbox;
@@ -121,8 +121,7 @@ struct textColumnCreateParams {
 		}
 
 		self->iv = nil;
-		// TODO rename to makeImageView
-		if (p->makeImage) {
+		if (p->makeImageView) {
 			self->imageModelColumn = p->imageModelColumn;
 
 			self->iv = [[NSImageView alloc] initWithFrame:NSZeroRect];
@@ -541,6 +540,7 @@ struct textColumnCreateParams {
 	row = [self->t->tv rowForView:self->b];
 	uiprivTableModelSetCellValue(self->m, row, self->modelColumn, NULL);
 	// TODO document we DON'T update the cell after doing this
+	// TODO or decide what to do instead
 }
 
 @end
@@ -613,7 +613,7 @@ void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn
 	p.t = t;
 	p.m = t->m;
 
-	p.makeImage = YES;
+	p.makeImageView = YES;
 	p.imageModelColumn = imageModelColumn;
 
 	str = [NSString stringWithUTF8String:name];
@@ -640,7 +640,7 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 	else
 		p.textParams = uiprivDefaultTextColumnOptionalParams;
 
-	p.makeImage = YES;
+	p.makeImageView = YES;
 	p.imageModelColumn = imageModelColumn;
 
 	str = [NSString stringWithUTF8String:name];

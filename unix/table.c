@@ -12,6 +12,10 @@ struct uiTable {
 	uiTableModel *model;
 	GPtrArray *columnParams;
 	int backgroundColumn;
+	// keys are struct rowcol, values are gint
+	// TODO document this properly
+	GHashTable *indeterminatePositions;
+	guint indeterminateTimer;
 };
 
 // use the same size as GtkFileChooserWidget's treeview
@@ -194,21 +198,95 @@ struct progressBarColumnParams {
 	int modelColumn;
 };
 
+struct rowcol {
+	int row;
+	int col;
+};
+
+static guint rowcolHash(gconstpointer key)
+{
+	const struct rowcol *rc = (const struct rowcol *) key;
+	guint row, col;
+
+	row = (guint) (rc->row);
+	col = (guint) (rc->col);
+	return row ^ col;
+}
+
+static gboolean rowcolEqual(gconstpointer a, gconstpointer b)
+{
+	const struct rowcol *ra = (const struct rowcol *) a;
+	const struct rowcol *rb = (const struct rowcol *) b;
+
+	return (ra->row == rb->row) && (ra->col == rb->col);
+}
+
+static void pulseOne(gpointer key, gpointer value, gpointer data)
+{
+	uiTable *t = uiTable(data);
+	struct rowcol *rc = (struct rowcol *) key;
+
+	// TODO this is bad: it produces changed handlers for every table because that's how GtkTreeModel works, yet this is per-table because that's how it works
+	// however, a proper fix would require decoupling progress from normal integers, which we could do...
+	uiTableModelRowChanged(t->model, rc->row);
+}
+
+static gboolean indeterminatePulse(gpointer data)
+{
+	uiTable *t = uiTable(data);
+
+	g_hash_table_foreach(t->indeterminatePositions, pulseOne, t);
+	return TRUE;
+}
+
 static void progressBarColumnDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, GtkTreeModel *m, GtkTreeIter *iter, gpointer data)
 {
 	struct progressBarColumnParams *p = (struct progressBarColumnParams *) data;
 	GValue value = G_VALUE_INIT;
 	int pval;
+	struct rowcol *rc;
+	gint *val;
+	GtkTreePath *path;
 
 	gtk_tree_model_get_value(m, iter, p->modelColumn, &value);
 	pval = g_value_get_int(&value);
+	rc = uiprivNew(struct rowcol);
+	// TODO avoid the need for this
+	path = gtk_tree_model_get_path(GTK_TREE_MODEL(m), iter);
+	rc->row = gtk_tree_path_get_indices(path)[0];
+	rc->col = p->modelColumn;
+	val = (gint *) g_hash_table_lookup(p->t->indeterminatePositions, rc);
 	if (pval == -1) {
-		// TODO
-	} else
+		if (val == NULL) {
+			val = uiprivNew(gint);
+			*val = 1;
+			g_hash_table_insert(p->t->indeterminatePositions, rc, val);
+		} else {
+			uiprivFree(rc);
+			(*val)++;
+			if (*val == G_MAXINT)
+				*val = 1;
+		}
+		g_object_set(r,
+			"pulse", *val,
+			NULL);
+		if (p->t->indeterminateTimer == 0)
+			// TODO verify the timeout
+			p->t->indeterminateTimer = g_timeout_add(100, indeterminatePulse, p->t);
+	} else {
+		if (val != NULL) {
+			g_hash_table_remove(p->t->indeterminatePositions, rc);
+			uiprivFree(rc);
+			if (g_hash_table_size(p->t->indeterminatePositions) == 0) {
+				g_source_remove(p->t->indeterminateTimer);
+				p->t->indeterminateTimer = 0;
+			}
+		}
 		g_object_set(r,
 			"pulse", -1,
 			"value", pval,
 			NULL);
+	}
 	g_value_unset(&value);
 
 	applyBackgroundColor(p->t, m, iter, r);
@@ -428,6 +506,9 @@ uiTable *uiNewTable(uiTableParams *p)
 	gtk_container_add(t->scontainer, t->treeWidget);
 	// and make the tree view visible; only the scrolled window's visibility is controlled by libui
 	gtk_widget_show(t->treeWidget);
+
+	t->indeterminatePositions = g_hash_table_new_full(rowcolHash, rowcolEqual,
+		uiprivFree, uiprivFree);
 
 	return t;
 }

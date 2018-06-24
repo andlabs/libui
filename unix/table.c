@@ -263,7 +263,7 @@ static GtkTreeViewColumn *addColumn(uiTable *t, const char *name)
 	return c;
 }
 
-static void addTextColumn(uiTable *t, GtkTreeViewColumn *c, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
+static void addTextColumn(uiTable *t, GtkTreeViewColumn *c, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
 {
 	struct textColumnParams *p;
 	GtkCellRenderer *r;
@@ -274,8 +274,8 @@ static void addTextColumn(uiTable *t, GtkTreeViewColumn *c, int textModelColumn,
 	p->m = t->model;
 	p->modelColumn = textModelColumn;
 	p->editableColumn = textEditableModelColumn;
-	if (params != NULL)
-		p->params = *params;
+	if (textParams != NULL)
+		p->params = *textParams;
 	else
 		p->params = uiprivDefaultTextColumnOptionalParams;
 
@@ -287,12 +287,12 @@ static void addTextColumn(uiTable *t, GtkTreeViewColumn *c, int textModelColumn,
 }
 
 // TODO rename modelCOlumn and params everywhere
-void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
+void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
 {
 	GtkTreeViewColumn *c;
 
 	c = addColumn(t, name);
-	addTextColumn(t, c, textModelColumn, textEditableModelColumn, params);
+	addTextColumn(t, c, textModelColumn, textEditableModelColumn, textParams);
 }
 
 static void addImageColumn(uiTable *t, GtkTreeViewColumn *c, int imageModelColumn)
@@ -381,7 +381,7 @@ void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressMo
 	g_ptr_array_add(t->columnParams, p);
 }
 
-void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonTextModelColumn, int buttonClickableModelColumn)
+void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonModelColumn, int buttonClickableModelColumn)
 {
 	GtkTreeViewColumn *c;
 	struct buttonColumnParams *p;
@@ -392,7 +392,7 @@ void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonTextModel
 	p = uiprivNew(struct buttonColumnParams);
 	p->t = t;
 	p->m = t->model;
-	p->modelColumn = buttonTextModelColumn;
+	p->modelColumn = buttonModelColumn;
 	p->clickableColumn = buttonClickableModelColumn;
 
 	r = uiprivNewCellRendererButton();

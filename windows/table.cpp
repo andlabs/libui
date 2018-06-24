@@ -396,26 +396,26 @@ static uiprivTableColumnParams *appendColumn(uiTable *t, const char *name, int c
 
 	p = uiprivNew(uiprivTableColumnParams);
 	p->textModelColumn = -1;
-	p->textEditableColumn = -1;
+	p->textEditableModelColumn = -1;
 	p->textParams = uiprivDefaultTextColumnOptionalParams;
 	p->imageModelColumn = -1;
 	p->checkboxModelColumn = -1;
-	p->checkboxEditableColumn = -1;
+	p->checkboxEditableModelColumn = -1;
 	p->progressBarModelColumn = -1;
 	p->buttonModelColumn = -1;
 	t->columns->push_back(p);
 	return p;
 }
 
-void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *params)
+void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
 {
 	uiprivTableColumnParams *p;
 
 	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->textModelColumn = textModelColumn;
-	p->textEditableColumn = textEditableModelColumn;
-	if (params != NULL)
-		p->textParams = *params;
+	p->textEditableModelColumn = textEditableModelColumn;
+	if (textParams != NULL)
+		p->textParams = *textParams;
 }
 
 void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn)
@@ -432,7 +432,7 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 
 	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->textModelColumn = textModelColumn;
-	p->textEditableColumn = textEditableModelColumn;
+	p->textEditableModelColumn = textEditableModelColumn;
 	if (textParams != NULL)
 		p->textParams = *textParams;
 	p->imageModelColumn = imageModelColumn;
@@ -444,7 +444,7 @@ void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModel
 
 	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->checkboxModelColumn = checkboxModelColumn;
-	p->checkboxEditableColumn = checkboxEditableModelColumn;
+	p->checkboxEditableModelColumn = checkboxEditableModelColumn;
 }
 
 void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxModelColumn, int checkboxEditableModelColumn, int textModelColumn, int textEditableModelColumn, uiTableTextColumnOptionalParams *textParams)
@@ -453,11 +453,11 @@ void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxM
 
 	p = appendColumn(t, name, LVCFMT_LEFT);
 	p->textModelColumn = textModelColumn;
-	p->textEditableColumn = textEditableModelColumn;
+	p->textEditableModelColumn = textEditableModelColumn;
 	if (textParams != NULL)
 		p->textParams = *textParams;
 	p->checkboxModelColumn = checkboxModelColumn;
-	p->checkboxEditableColumn = checkboxEditableModelColumn;
+	p->checkboxEditableModelColumn = checkboxEditableModelColumn;
 }
 
 void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressModelColumn)
@@ -468,13 +468,13 @@ void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressMo
 	p->progressBarModelColumn = progressModelColumn;
 }
 
-void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonTextModelColumn, int buttonClickableModelColumn)
+void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonModelColumn, int buttonClickableModelColumn)
 {
 	uiprivTableColumnParams *p;
 
 	// TODO see if we can get rid of this parameter
 	p = appendColumn(t, name, LVCFMT_LEFT);
-	p->buttonModelColumn = buttonTextModelColumn;
+	p->buttonModelColumn = buttonModelColumn;
 	p->buttonClickableModelColumn = buttonClickableModelColumn;
 }
 

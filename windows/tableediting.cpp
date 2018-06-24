@@ -215,11 +215,11 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 	p = (*(t->columns))[ht.iSubItem];
 	if (p->textModelColumn != -1) {
 		modelColumn = p->textModelColumn;
-		editableColumn = p->textEditableColumn;
+		editableColumn = p->textEditableModelColumn;
 		text = true;
 	} else if (p->checkboxModelColumn != -1) {
 		modelColumn = p->checkboxModelColumn;
-		editableColumn = p->checkboxEditableColumn;
+		editableColumn = p->checkboxEditableModelColumn;
 		checkbox = true;
 	} else if (p->buttonModelColumn != -1) {
 		modelColumn = p->buttonModelColumn;

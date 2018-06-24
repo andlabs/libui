@@ -197,7 +197,7 @@ static HRESULT drawCheckboxPart(HRESULT hr, struct drawState *s)
 	value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxModelColumn);
 	checked = uiTableValueInt(value);
 	uiFreeTableValue(value);
-	switch (s->p->checkboxEditableColumn) {
+	switch (s->p->checkboxEditableModelColumn) {
 	case uiTableModelColumnNeverEditable:
 		enabled = 0;
 		break;
@@ -205,7 +205,7 @@ static HRESULT drawCheckboxPart(HRESULT hr, struct drawState *s)
 		enabled = 1;
 		break;
 	default:
-		value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
+		value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxEditableModelColumn);
 		enabled = uiTableValueInt(value);
 		uiFreeTableValue(value);
 	}
@@ -422,7 +422,7 @@ static HRESULT drawButtonPart(HRESULT hr, struct drawState *s)
 		enabled = 1;
 		break;
 	default:
-		value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
+		value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxEditableModelColumn);
 		enabled = uiTableValueInt(value);
 		uiFreeTableValue(value);
 	}

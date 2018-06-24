@@ -69,7 +69,7 @@ _UI_EXTERN void uiTableAppendTextColumn(uiTable *t,
 	const char *name,
 	int textModelColumn,
 	int textEditableModelColumn,
-	uiTableTextColumnOptionalParams *params);
+	uiTableTextColumnOptionalParams *textParams);
 _UI_EXTERN void uiTableAppendImageColumn(uiTable *t,
 	const char *name,
 	int imageModelColumn);
@@ -95,7 +95,7 @@ _UI_EXTERN void uiTableAppendProgressBarColumn(uiTable *t,
 	int progressModelColumn);
 _UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
 	const char *name,
-	int buttonTextModelColumn,
+	int buttonModelColumn,
 	int buttonClickableModelColumn);
 // TODO getter?
 _UI_EXTERN void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn);

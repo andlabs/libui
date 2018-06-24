@@ -10,13 +10,13 @@ struct uiTableModel {
 typedef struct uiprivTableColumnParams uiprivTableColumnParams;
 struct uiprivTableColumnParams {
 	int textModelColumn;
-	int textEditableColumn;
+	int textEditableModelColumn;
 	uiTableTextColumnOptionalParams textParams;
 
 	int imageModelColumn;
 
 	int checkboxModelColumn;
-	int checkboxEditableColumn;
+	int checkboxEditableModelColumn;
 
 	int progressBarModelColumn;
 

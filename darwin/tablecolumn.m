@@ -45,7 +45,7 @@ static BOOL isCellEditable(uiTableModel *m, NSInteger row, int modelColumn)
 	case uiTableModelColumnAlwaysEditable:
 		return YES;
 	}
-	value = (*(m->mh->CellValue))(m->mh, m, row, modelColumn);
+	value = uiprivTableModelCellValue(m, row, modelColumn);
 	editable = uiTableValueInt(value);
 	uiFreeTableValue(value);
 	return editable != 0;
@@ -271,7 +271,7 @@ struct textColumnCreateParams {
 		NSString *str;
 		NSColor *color;
 
-		value = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textModelColumn);
+		value = uiprivTableModelCellValue(self->m, row, self->textModelColumn);
 		str = uiprivToNSString(uiTableValueString(value));
 		uiFreeTableValue(value);
 		[self->tf setStringValue:str];
@@ -282,7 +282,7 @@ struct textColumnCreateParams {
 		if (self->textParams.ColorModelColumn != -1) {
 			double r, g, b, a;
 
-			value = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->textParams.ColorModelColumn);
+			value = uiprivTableModelCellValue(self->m, row, self->textParams.ColorModelColumn);
 			// TODO document this is allowed
 			if (value != NULL) {
 				uiTableValueColor(value, &r, &g, &b, &a);
@@ -298,13 +298,13 @@ struct textColumnCreateParams {
 	if (self->iv != nil) {
 		uiImage *img;
 
-		value = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->imageModelColumn);
+		value = uiprivTableModelCellValue(self->m, row, self->imageModelColumn);
 		img = uiTableValueImage(value);
 		uiFreeTableValue(value);
 		[self->iv setImage:uiprivImageNSImage(img)];
 	}
 	if (self->cb != nil) {
-		value = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->imageModelColumn);
+		value = uiprivTableModelCellValue(self->m, row, self->imageModelColumn);
 		if (uiTableValueInt(value) != 0)
 			[self->cb setState:NSOnState];
 		else
@@ -322,8 +322,7 @@ struct textColumnCreateParams {
 
 	row = [self->t->tv rowForView:self->tf];
 	value = uiNewTableValueString([[self->tf stringValue] UTF8String]);
-	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
-		row, self->textModelColumn, value);
+	uiprivTableModelSetCellValue(self->m, row, self->textModelColumn, value);
 	uiFreeTableValue(value);
 	// always refresh the value in case the model rejected it
 	// TODO document that we do this, but not for the whole row (or decide to do both, or do neither...)
@@ -337,8 +336,7 @@ struct textColumnCreateParams {
 
 	row = [self->t->tv rowForView:self->cb];
 	value = uiNewTableValueInt([self->cb state] != NSOffState);
-	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
-		row, self->checkboxModelColumn, value);
+	uiprivTableModelSetCellValue(self->m, row, self->checkboxModelColumn, value);
 	uiFreeTableValue(value);
 	// always refresh the value in case the model rejected it
 	[self uiprivUpdate:row];
@@ -436,7 +434,7 @@ struct textColumnCreateParams {
 	uiTableValue *value;
 	int progress;
 
-	value = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->modelColumn);
+	value = uiprivTableModelCellValue(self->m, row, self->modelColumn);
 	progress = uiTableValueInt(value);
 	uiFreeTableValue(value);
 	if (progress == -1) {
@@ -559,7 +557,7 @@ struct textColumnCreateParams {
 	uiTableValue *value;
 	NSString *str;
 
-	value = (*(self->m->mh->CellValue))(self->m->mh, self->m, row, self->modelColumn);
+	value = uiprivTableModelCellValue(self->m, row, self->modelColumn);
 	str = uiprivToNSString(uiTableValueString(value));
 	uiFreeTableValue(value);
 	[self->b setTitle:str];
@@ -572,8 +570,7 @@ struct textColumnCreateParams {
 	NSInteger row;
 
 	row = [self->t->tv rowForView:self->b];
-	(*(self->m->mh->SetCellValue))(self->m->mh, self->m,
-		row, self->modelColumn, NULL);
+	uiprivTableModelSetCellValue(self->m, row, self->modelColumn, NULL);
 	// TODO document we DON'T update the cell after doing this
 }
 

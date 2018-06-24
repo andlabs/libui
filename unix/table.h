@@ -1,4 +1,5 @@
 // 4 june 2018
+#include "../common/table.h"
 
 // tablemodel.c
 #define uiTableModelType (uiTableModel_get_type())

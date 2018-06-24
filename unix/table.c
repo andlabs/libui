@@ -84,7 +84,7 @@ static void onEdited(uiTableModel *m, int column, const char *pathstr, const uiT
 	if (iter != NULL)
 		gtk_tree_model_get_iter(GTK_TREE_MODEL(m), iter, path);
 	gtk_tree_path_free(path);
-	(*(m->mh->SetCellValue))(m->mh, m, row, column, tvalue);
+	uiprivTableModelSetCellValue(m, row, column, tvalue);
 }
 
 // TODO deduplicate this between platforms

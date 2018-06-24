@@ -31,14 +31,14 @@ static gint uiTableModel_get_n_columns(GtkTreeModel *mm)
 {
 	uiTableModel *m = uiTableModel(mm);
 
-	return (*(m->mh->NumColumns))(m->mh, m);
+	return uiprivTableModelNumColumns(m);
 }
 
 static GType uiTableModel_get_column_type(GtkTreeModel *mm, gint index)
 {
 	uiTableModel *m = uiTableModel(mm);
 
-	switch ((*(m->mh->ColumnType))(m->mh, m, index)) {
+	switch (uiprivTableModelColumnType(m, index)) {
 	case uiTableValueTypeString:
 		return G_TYPE_STRING;
 	case uiTableValueTypeImage:
@@ -65,7 +65,7 @@ static gboolean uiTableModel_get_iter(GtkTreeModel *mm, GtkTreeIter *iter, GtkTr
 	row = gtk_tree_path_get_indices(path)[0];
 	if (row < 0)
 		goto bad;
-	if (row >= (*(m->mh->NumRows))(m->mh, m))
+	if (row >= uiprivTableModelNumRows(m))
 		goto bad;
 	iter->stamp = STAMP_GOOD;
 	iter->user_data = GINT_TO_POINTER(row);
@@ -98,8 +98,8 @@ static void uiTableModel_get_value(GtkTreeModel *mm, GtkTreeIter *iter, gint col
 	if (iter->stamp != STAMP_GOOD)
 		return;
 	row = GPOINTER_TO_INT(iter->user_data);
-	tvalue = (*(m->mh->CellValue))(m->mh, m, row, column);
-	switch ((*(m->mh->ColumnType))(m->mh, m, column)) {
+	tvalue = uiprivTableModelCellValue(m, row, column);
+	switch (uiprivTableModelColumnType(m, column)) {
 	case uiTableValueTypeString:
 		g_value_init(value, G_TYPE_STRING);
 		g_value_set_string(value, uiTableValueString(tvalue));
@@ -142,7 +142,7 @@ static gboolean uiTableModel_iter_next(GtkTreeModel *mm, GtkTreeIter *iter)
 		return FALSE;
 	row = GPOINTER_TO_INT(iter->user_data);
 	row++;
-	if (row >= (*(m->mh->NumRows))(m->mh, m)) {
+	if (row >= uiprivTableModelNumRows(m)) {
 		iter->stamp = STAMP_BAD;
 		return FALSE;
 	}
@@ -182,7 +182,7 @@ static gint uiTableModel_iter_n_children(GtkTreeModel *mm, GtkTreeIter *iter)
 
 	if (iter != NULL)
 		return 0;
-	return (*(m->mh->NumRows))(m->mh, m);
+	return uiprivTableModelNumRows(m);
 }
 
 static gboolean uiTableModel_iter_nth_child(GtkTreeModel *mm, GtkTreeIter *iter, GtkTreeIter *parent, gint n)
@@ -195,7 +195,7 @@ static gboolean uiTableModel_iter_nth_child(GtkTreeModel *mm, GtkTreeIter *iter,
 		goto bad;
 	if (n < 0)
 		goto bad;
-	if (n >= (*(m->mh->NumRows))(m->mh, m))
+	if (n >= uiprivTableModelNumRows(m))
 		goto bad;
 	iter->stamp = STAMP_GOOD;
 	iter->user_data = GINT_TO_POINTER(n);
@@ -280,4 +280,9 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	path = gtk_tree_path_new_from_indices(oldIndex, -1);
 	gtk_tree_model_row_deleted(GTK_TREE_MODEL(m), path);
 	gtk_tree_path_free(path);
+}
+
+uiTableModelHandler *uiprivTableModelHandler(uiTableModel *m)
+{
+	return m->mh;
 }

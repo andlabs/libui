@@ -22,7 +22,7 @@ static HRESULT handleLVIF_TEXT(uiTable *t, NMLVDISPINFOW *nm, uiprivTableColumnP
 	else if (p->buttonModelColumn != -1)
 		strcol = p->buttonModelColumn;
 	if (strcol != -1) {
-		value = (*(t->model->mh->CellValue))(t->model->mh, t->model, nm->item.iItem, strcol);
+		value = uiprivTableModelCellValue(t->model, nm->item.iItem, strcol);
 		wstr = toUTF16(uiTableValueString(value));
 		uiFreeTableValue(value);
 		// We *could* just make pszText into a freshly allocated

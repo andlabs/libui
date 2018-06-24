@@ -5,9 +5,6 @@
 // TODOs:
 // - properly hide selection when not focused (or switch on LVS_SHOWSELALWAYS and draw that state)
 
-// TODO
-#define cellValue(model, row, column) ((*((model)->mh->CellValue))((model)->mh, (model), (row), (column)))
-
 // TODO maybe split this into item and subitem structs?
 struct drawState {
 	uiTable *t;
@@ -78,7 +75,7 @@ static HRESULT drawImagePart(HRESULT hr, struct drawState *s)
 	if (s->p->imageModelColumn == -1)
 		return S_OK;
 
-	value = cellValue(s->model, s->iItem, s->p->imageModelColumn);
+	value = uiprivTableModelCellValue(s->model, s->iItem, s->p->imageModelColumn);
 	wb = uiprivImageAppropriateForDC(uiTableValueImage(value), s->dc);
 	uiFreeTableValue(value);
 
@@ -197,7 +194,7 @@ static HRESULT drawCheckboxPart(HRESULT hr, struct drawState *s)
 	if (s->p->checkboxModelColumn == -1)
 		return S_OK;
 
-	value = cellValue(s->model, s->iItem, s->p->checkboxModelColumn);
+	value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxModelColumn);
 	checked = uiTableValueInt(value);
 	uiFreeTableValue(value);
 	switch (s->p->checkboxEditableColumn) {
@@ -208,7 +205,7 @@ static HRESULT drawCheckboxPart(HRESULT hr, struct drawState *s)
 		enabled = 1;
 		break;
 	default:
-		value = cellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
+		value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
 		enabled = uiTableValueInt(value);
 		uiFreeTableValue(value);
 	}
@@ -258,7 +255,7 @@ static HRESULT drawTextPart(HRESULT hr, struct drawState *s)
 		return E_FAIL;
 	}
 
-	value = cellValue(s->model, s->iItem, s->p->textModelColumn);
+	value = uiprivTableModelCellValue(s->model, s->iItem, s->p->textModelColumn);
 	wstr = toUTF16(uiTableValueString(value));
 	uiFreeTableValue(value);
 	// These flags are a menagerie of flags from various sources:
@@ -414,7 +411,7 @@ static HRESULT drawButtonPart(HRESULT hr, struct drawState *s)
 	if (s->p->buttonModelColumn == -1)
 		return S_OK;
 
-	value = cellValue(s->model, s->iItem, s->p->buttonModelColumn);
+	value = uiprivTableModelCellValue(s->model, s->iItem, s->p->buttonModelColumn);
 	wstr = toUTF16(uiTableValueString(value));
 	uiFreeTableValue(value);
 	switch (s->p->buttonClickableModelColumn) {
@@ -425,7 +422,7 @@ static HRESULT drawButtonPart(HRESULT hr, struct drawState *s)
 		enabled = 1;
 		break;
 	default:
-		value = cellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
+		value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxEditableColumn);
 		enabled = uiTableValueInt(value);
 		uiFreeTableValue(value);
 	}
@@ -580,7 +577,7 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 		s->bgColor = GetSysColor(COLOR_WINDOW);
 		s->bgBrush = GetSysColorBrush(COLOR_WINDOW);
 		if (t->backgroundColumn != -1) {
-			value = cellValue(s->model, s->iItem, t->backgroundColumn);
+			value = uiprivTableModelCellValue(s->model, s->iItem, t->backgroundColumn);
 			if (value != NULL) {
 				uiTableValueColor(value, &r, &g, &b, &a);
 				uiFreeTableValue(value);
@@ -597,7 +594,7 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 		s->textColor = GetSysColor(COLOR_WINDOWTEXT);
 		s->textBrush = GetSysColorBrush(COLOR_WINDOWTEXT);
 		if (p->textParams.ColorModelColumn != -1) {
-			value = cellValue(s->model, s->iItem, p->textParams.ColorModelColumn);
+			value = uiprivTableModelCellValue(s->model, s->iItem, p->textParams.ColorModelColumn);
 			if (value != NULL) {
 				uiTableValueColor(value, &r, &g, &b, &a);
 				uiFreeTableValue(value);

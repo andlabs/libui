@@ -1,4 +1,5 @@
 // 3 june 2018
+#import "../common/table.h"
 
 // table.m
 // TODO get rid of forward declaration

@@ -105,7 +105,7 @@ static HRESULT openEditControl(uiTable *t, int iItem, int iSubItem, uiprivTableC
 		return hr;
 
 	// the real list view creates the edit control with the string
-	value = (*(t->model->mh->CellValue))(t->model->mh, t->model, iItem, p->textModelColumn);
+	value = uiprivTableModelCellValue(t->model, iItem, p->textModelColumn);
 	wstr = toUTF16(uiTableValueString(value));
 	uiFreeTableValue(value);
 	// TODO copy WS_EX_RTLREADING
@@ -166,7 +166,7 @@ HRESULT uiprivTableFinishEditingText(uiTable *t)
 	value = uiNewTableValueString(text);
 	uiFreeText(text);
 	p = (*(t->columns))[t->editedSubitem];
-	(*(t->model->mh->SetCellValue))(t->model->mh, t->model, t->editedItem, p->textModelColumn, value);
+	uiprivTableModelSetCellValue(t->model, t->editedItem, p->textModelColumn, value);
 	uiFreeTableValue(value);
 	// always refresh the value in case the model rejected it
 	if (SendMessageW(t->hwnd, LVM_UPDATE, (WPARAM) (t->editedItem), 0) == (LRESULT) (-1)) {
@@ -238,7 +238,7 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 	case uiTableModelColumnAlwaysEditable:
 		break;
 	default:
-		value = (*(t->model->mh->CellValue))(t->model->mh, t->model, ht.iItem, editableColumn);
+		value = uiprivTableModelCellValue(t->model, ht.iItem, editableColumn);
 		editable = uiTableValueInt(value);
 		uiFreeTableValue(value);
 		if (!editable)
@@ -252,14 +252,14 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 	} else if (checkbox) {
 		if ((ht.flags & LVHT_ONITEMICON) == 0)
 			goto done;
-		value = (*(t->model->mh->CellValue))(t->model->mh, t->model, ht.iItem, modelColumn);
+		value = uiprivTableModelCellValue(t->model, ht.iItem, modelColumn);
 		checked = uiTableValueInt(value);
 		uiFreeTableValue(value);
 		value = uiNewTableValueInt(!checked);
-		(*(t->model->mh->SetCellValue))(t->model->mh, t->model, ht.iItem, modelColumn, value);
+		uiprivTableModelSetCellValue(t->model, ht.iItem, modelColumn, value);
 		uiFreeTableValue(value);
 	} else
-		(*(t->model->mh->SetCellValue))(t->model->mh, t->model, ht.iItem, modelColumn, NULL);
+		uiprivTableModelSetCellValue(t->model, ht.iItem, modelColumn, NULL);
 	// always refresh the value in case the model rejected it
 	if (SendMessageW(t->hwnd, LVM_UPDATE, (WPARAM) (ht.iItem), 0) == (LRESULT) (-1)) {
 		logLastError(L"LVM_UPDATE");

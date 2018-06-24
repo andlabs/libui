@@ -33,7 +33,7 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 	LVITEMW item;
 	int newCount;
 
-	newCount = (*(m->mh->NumRows))(m->mh, m);
+	newCount = uiprivTableModelNumRows(m);
 	ZeroMemory(&item, sizeof (LVITEMW));
 	item.mask = 0;
 	item.iItem = newIndex;
@@ -66,7 +66,7 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 {
 	int newCount;
 
-	newCount = (*(m->mh->NumRows))(m->mh, m);
+	newCount = uiprivTableModelNumRows(m);
 	newCount--;
 	for (auto t : *(m->tables)) {
 		// update selection state
@@ -80,6 +80,11 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 		if (SendMessageW(t->hwnd, LVM_REDRAWITEMS, (WPARAM) oldIndex, (LPARAM) (newCount - 1)) == FALSE)
 			logLastError(L"error calling LVM_REDRAWITEMS in uiTableModelRowDeleted()");
 	}
+}
+
+uiTableModelHandler *uiprivTableModelHandler(uiTableModel *m)
+{
+	return m->mh;
 }
 
 // TODO explain all this
@@ -195,7 +200,7 @@ int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG
 	bool startTimer = false;
 	bool stopTimer = false;
 
-	value = (*(t->model->mh->CellValue))(t->model->mh, t->model, item, modelColumn);
+	value = uiprivTableModelCellValue(t->model, item, modelColumn);
 	progress = uiTableValueInt(value);
 	uiFreeTableValue(value);
 
@@ -508,7 +513,7 @@ uiTable *uiNewTable(uiTableModel *model)
 	SendMessageW(t->hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE,
 		(WPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_SUBITEMIMAGES),
 		(LPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_SUBITEMIMAGES));
-	n = (*(model->mh->NumRows))(model->mh, model);
+	n = uiprivTableModelNumRows(model);
 	if (SendMessageW(t->hwnd, LVM_SETITEMCOUNT, (WPARAM) n, 0) == 0)
 		logLastError(L"error calling LVM_SETITEMCOUNT in uiNewTable()");
 

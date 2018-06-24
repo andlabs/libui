@@ -37,7 +37,7 @@ static void setBackgroundColor(uiprivTableView *t, NSTableRowView *rv, NSInteger
 
 	if (t->uiprivT->backgroundColumn == -1)
 		return;
-	value = (*(t->uiprivM->mh->CellValue))(t->uiprivM->mh, t->uiprivM, row, t->uiprivT->backgroundColumn);
+	value = uiprivTableModelCellValue(t->uiprivM, row, t->uiprivT->backgroundColumn);
 	if (value != NULL) {
 		uiTableValueColor(value, &r, &g, &b, &a);
 		uiFreeTableValue(value);
@@ -70,7 +70,7 @@ static void setBackgroundColor(uiprivTableView *t, NSTableRowView *rv, NSInteger
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tv
 {
-	return (*(self->m->mh->NumRows))(self->m->mh, self->m);
+	return uiprivTableModelNumRows(self->m);
 }
 
  - (NSView *)tableView:(NSTableView *)tv viewForTableColumn:(NSTableColumn *)cc row:(NSInteger)row
@@ -153,6 +153,11 @@ void uiTableModelRowDeleted(uiTableModel *m, int oldIndex)
 	for (tv in m->tables)
 		[tv removeRowsAtIndexes:set withAnimation:NSTableViewAnimationEffectNone];
 	// set is autoreleased
+}
+
+uiTableModelHandler *uiprivTableModelHandler(uiTableModel *m)
+{
+	return m->mh;
 }
 
 uiDarwinControlAllDefaultsExceptDestroy(uiTable, sv)

@@ -1,4 +1,5 @@
 // 10 june 2018
+#include "../common/table.h"
 
 // table.cpp
 #define uiprivNumLVN_GETDISPINFOSkip 3

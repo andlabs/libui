@@ -549,42 +549,31 @@ static HRESULT fillDrawState(struct drawState *s, uiTable *t, NMLVCUSTOMDRAW *nm
 		s->textColor = GetSysColor(COLOR_HIGHLIGHTTEXT);
 		s->textBrush = GetSysColorBrush(COLOR_HIGHLIGHTTEXT);
 	} else {
-		uiTableValue *value;
 		double r, g, b, a;
 
 		s->bgColor = GetSysColor(COLOR_WINDOW);
 		s->bgBrush = GetSysColorBrush(COLOR_WINDOW);
-		if (t->backgroundColumn != -1) {
-			value = uiprivTableModelCellValue(s->model, s->iItem, t->backgroundColumn);
-			if (value != NULL) {
-				uiTableValueColor(value, &r, &g, &b, &a);
-				uiFreeTableValue(value);
-				s->bgColor = blend(s->bgColor, r, g, b, a);
-				s->bgBrush = CreateSolidBrush(s->bgColor);
-				if (s->bgBrush == NULL) {
-					logLastError(L"CreateSolidBrush()");
-					hr = E_FAIL;
-					goto fail;
-				}
-				s->freeBgBrush = TRUE;
+		if (uiprivTableModelColorIfProvided(s->model, s->iItem, t->backgroundColumn, &r, &g, &b, &a)) {
+			s->bgColor = blend(s->bgColor, r, g, b, a);
+			s->bgBrush = CreateSolidBrush(s->bgColor);
+			if (s->bgBrush == NULL) {
+				logLastError(L"CreateSolidBrush()");
+				hr = E_FAIL;
+				goto fail;
 			}
+			s->freeBgBrush = TRUE;
 		}
 		s->textColor = GetSysColor(COLOR_WINDOWTEXT);
 		s->textBrush = GetSysColorBrush(COLOR_WINDOWTEXT);
-		if (p->textParams.ColorModelColumn != -1) {
-			value = uiprivTableModelCellValue(s->model, s->iItem, p->textParams.ColorModelColumn);
-			if (value != NULL) {
-				uiTableValueColor(value, &r, &g, &b, &a);
-				uiFreeTableValue(value);
-				s->textColor = blend(s->bgColor, r, g, b, a);
-				s->textBrush = CreateSolidBrush(s->textColor);
-				if (s->textBrush == NULL) {
-					logLastError(L"CreateSolidBrush()");
-					hr = E_FAIL;
-					goto fail;
-				}
-				s->freeTextBrush = TRUE;
+		if (uiprivTableModelColorIfProvided(s->model, s->iItem, p->textParams.ColorModelColumn, &r, &g, &b, &a)) {
+			s->textColor = blend(s->bgColor, r, g, b, a);
+			s->textBrush = CreateSolidBrush(s->textColor);
+			if (s->textBrush == NULL) {
+				logLastError(L"CreateSolidBrush()");
+				hr = E_FAIL;
+				goto fail;
 			}
+			s->freeTextBrush = TRUE;
 		}
 	}
 

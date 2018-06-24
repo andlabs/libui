@@ -249,6 +249,7 @@ struct textColumnCreateParams {
 	if (self->tf != nil) {
 		NSString *str;
 		NSColor *color;
+		double r, g, b, a;
 
 		value = uiprivTableModelCellValue(self->m, row, self->textModelColumn);
 		str = uiprivToNSString(uiTableValueString(value));
@@ -257,20 +258,9 @@ struct textColumnCreateParams {
 
 		[self->tf setEditable:uiprivTableModelCellEditable(self->m, row, self->textEditableModelColumn)];
 
-		color = nil;
-		if (self->textParams.ColorModelColumn != -1) {
-			double r, g, b, a;
-
-			value = uiprivTableModelCellValue(self->m, row, self->textParams.ColorModelColumn);
-			// TODO document this is allowed
-			if (value != NULL) {
-				uiTableValueColor(value, &r, &g, &b, &a);
-				uiFreeTableValue(value);
-				color = [NSColor colorWithSRGBRed:r green:g blue:b alpha:a];
-			}
-		}
-		if (color == nil)
-			color = [NSColor controlTextColor];
+		color = [NSColor controlTextColor];
+		if (uiprivTableModelColorIfProvided(self->m, row, self->textParams.ColorModelColumn, &r, &g, &b, &a))
+			color = [NSColor colorWithSRGBRed:r green:g blue:b alpha:a];
 		[self->tf setTextColor:color];
 		// we don't own color in ether case; don't release
 	}

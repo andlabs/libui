@@ -13,6 +13,7 @@ extern uiTableValue *uiprivTableModelCellValue(uiTableModel *m, int row, int col
 extern void uiprivTableModelSetCellValue(uiTableModel *m, int row, int column, const uiTableValue *value);
 extern const uiTableTextColumnOptionalParams uiprivDefaultTextColumnOptionalParams;
 extern int uiprivTableModelCellEditable(uiTableModel *m, int row, int column);
+extern int uiprivTableModelColorIfProvided(uiTableModel *m, int row, int column, double *r, double *g, double *b, double *a);
 
 #ifdef __cplusplus
 }

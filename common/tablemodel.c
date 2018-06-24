@@ -63,3 +63,17 @@ int uiprivTableModelCellEditable(uiTableModel *m, int row, int column)
 	uiFreeTableValue(value);
 	return editable;
 }
+
+int uiprivTableModelColorIfProvided(uiTableModel *m, int row, int column, double *r, double *g, double *b, double *a)
+{
+	uiTableValue *value;
+
+	if (column == -1)
+		return 0;
+	value = uiprivTableModelCellValue(m, row, column);
+	if (value == NULL)
+		return 0;
+	uiTableValueColor(value, r, g, b, a);
+	uiFreeTableValue(value);
+	return 1;
+}

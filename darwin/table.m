@@ -31,18 +31,14 @@
 // TODO is this correct for overflow scrolling?
 static void setBackgroundColor(uiprivTableView *t, NSTableRowView *rv, NSInteger row)
 {
-	uiTableValue *value;
 	NSColor *color;
 	double r, g, b, a;
 
 	if (t->uiprivT->backgroundColumn == -1)
-		return;
-	value = uiprivTableModelCellValue(t->uiprivM, row, t->uiprivT->backgroundColumn);
-	if (value != NULL) {
-		uiTableValueColor(value, &r, &g, &b, &a);
-		uiFreeTableValue(value);
+		return;		// let Cocoa do its default thing
+	if (uiprivTableModelColorIfProvided(t->uiprivM, row, t->uiprivT->backgroundColumn, &r, &g, &b, &a))
 		color = [NSColor colorWithSRGBRed:r green:g blue:b alpha:a];
-	} else {
+	else {
 		NSArray *colors;
 		NSInteger index;
 

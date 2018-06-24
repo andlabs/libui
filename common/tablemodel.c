@@ -42,3 +42,7 @@ void uiprivTableModelSetCellValue(uiTableModel *m, int row, int column, const ui
 	mh = uiprivTableModelHandler(m);
 	(*(mh->SetCellValue))(mh, m, row, column, value);
 }
+
+const uiTableTextColumnOptionalParams uiprivDefaultTextColumnOptionalParams = {
+	.ColorModelColumn = -1,
+};

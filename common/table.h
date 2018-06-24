@@ -11,6 +11,7 @@ extern uiTableValueType uiprivTableModelColumnType(uiTableModel *m, int column);
 extern int uiprivTableModelNumRows(uiTableModel *m);
 extern uiTableValue *uiprivTableModelCellValue(uiTableModel *m, int row, int column);
 extern void uiprivTableModelSetCellValue(uiTableModel *m, int row, int column, const uiTableValue *value);
+extern const uiTableTextColumnOptionalParams uiprivDefaultTextColumnOptionalParams;
 
 #ifdef __cplusplus
 }

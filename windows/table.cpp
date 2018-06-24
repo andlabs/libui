@@ -7,10 +7,6 @@
 // - implement keyboard accessibility
 // - implement accessibility in general (Dynamic Annotations maybe?)
 
-static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
-	/*TODO.ColorModelColumn = */-1,
-};
-
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 {
 	uiTableModel *m;
@@ -401,7 +397,7 @@ static uiprivTableColumnParams *appendColumn(uiTable *t, const char *name, int c
 	p = uiprivNew(uiprivTableColumnParams);
 	p->textModelColumn = -1;
 	p->textEditableColumn = -1;
-	p->textParams = defaultTextColumnOptionalParams;
+	p->textParams = uiprivDefaultTextColumnOptionalParams;
 	p->imageModelColumn = -1;
 	p->checkboxModelColumn = -1;
 	p->checkboxEditableColumn = -1;

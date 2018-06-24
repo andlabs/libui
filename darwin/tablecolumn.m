@@ -51,10 +51,6 @@ static BOOL isCellEditable(uiTableModel *m, NSInteger row, int modelColumn)
 	return editable != 0;
 }
 
-static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
-	.ColorModelColumn = -1,
-};
-
 struct textColumnCreateParams {
 	uiTable *t;
 	uiTableModel *m;
@@ -623,9 +619,10 @@ void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, 
 	p.makeTextField = YES;
 	p.textModelColumn = textModelColumn;
 	p.textEditableColumn = textEditableModelColumn;
-	if (params == NULL)
-		params = &defaultTextColumnOptionalParams;
-	p.textParams = *params;
+	if (params != NULL)
+		p.textParams = *params;
+	else
+		p.textParams = uiprivDefaultTextColumnOptionalParams;
 
 	str = [NSString stringWithUTF8String:name];
 	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
@@ -665,9 +662,10 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 	p.makeTextField = YES;
 	p.textModelColumn = textModelColumn;
 	p.textEditableColumn = textEditableModelColumn;
-	if (textParams == NULL)
-		textParams = &defaultTextColumnOptionalParams;
-	p.textParams = *textParams;
+	if (textParams != NULL)
+		p.textParams = *textParams;
+	else
+		p.textParams = uiprivDefaultTextColumnOptionalParams;
 
 	p.makeImage = YES;
 	p.imageModelColumn = imageModelColumn;
@@ -711,9 +709,10 @@ void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxM
 	p.makeTextField = YES;
 	p.textModelColumn = textModelColumn;
 	p.textEditableColumn = textEditableModelColumn;
-	if (textParams == NULL)
-		textParams = &defaultTextColumnOptionalParams;
-	p.textParams = *textParams;
+	if (textParams != NULL)
+		p.textParams = *textParams;
+	else
+		p.textParams = uiprivDefaultTextColumnOptionalParams;
 
 	p.makeCheckbox = YES;
 	p.checkboxModelColumn = checkboxModelColumn;

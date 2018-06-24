@@ -87,11 +87,6 @@ static void onEdited(uiTableModel *m, int column, const char *pathstr, const uiT
 	uiprivTableModelSetCellValue(m, row, column, tvalue);
 }
 
-// TODO deduplicate this between platforms
-static uiTableTextColumnOptionalParams defaultTextColumnOptionalParams = {
-	.ColorModelColumn = -1,
-};
-
 struct textColumnParams {
 	uiTable *t;
 	uiTableModel *m;
@@ -282,7 +277,7 @@ static void addTextColumn(uiTable *t, GtkTreeViewColumn *c, int textModelColumn,
 	if (params != NULL)
 		p->params = *params;
 	else
-		p->params = defaultTextColumnOptionalParams;
+		p->params = uiprivDefaultTextColumnOptionalParams;
 
 	r = gtk_cell_renderer_text_new();
 	gtk_tree_view_column_pack_start(c, r, TRUE);

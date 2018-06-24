@@ -103,7 +103,8 @@ uiBox *makePage16(void)
 	uiBox *page16;
 	uiTableModel *m;
 	uiTable *t;
-	uiTableTextColumnOptionalParams p;
+	uiTableParams p;
+	uiTableTextColumnOptionalParams tp;
 
 	img[0] = uiNewImage(16, 16);
 	appendImageNamed(img[0], "andlabs_16x16test_24june2016.png");
@@ -125,21 +126,22 @@ uiBox *makePage16(void)
 	mh.SetCellValue = modelSetCellValue;
 	m = uiNewTableModel(&mh);
 
-	t = uiNewTable(m);
+	memset(&p, 0, sizeof (uiTableParams));
+	p.Model = m;
+	p.RowBackgroundColorModelColumn = 3;
+	t = uiNewTable(&p);
 	uiBoxAppend(page16, uiControl(t), 1);
 
 	uiTableAppendTextColumn(t, "Column 1",
 		0, uiTableModelColumnNeverEditable, NULL);
 
-	memset(&p, 0, sizeof (uiTableTextColumnOptionalParams));
-	p.ColorModelColumn = 4;
+	memset(&tp, 0, sizeof (uiTableTextColumnOptionalParams));
+	tp.ColorModelColumn = 4;
 	uiTableAppendImageTextColumn(t, "Column 2",
 		5,
-		1, uiTableModelColumnNeverEditable, &p);
+		1, uiTableModelColumnNeverEditable, &tp);
 	uiTableAppendTextColumn(t, "Editable",
 		2, uiTableModelColumnAlwaysEditable, NULL);
-
-	uiTableSetRowBackgroundColorModelColumn(t, 3);
 
 	uiTableAppendCheckboxColumn(t, "Checkboxes",
 		7, uiTableModelColumnAlwaysEditable);

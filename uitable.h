@@ -58,9 +58,15 @@ _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
 #define uiTableModelColumnAlwaysEditable (-2)
 
 typedef struct uiTableTextColumnOptionalParams uiTableTextColumnOptionalParams;
+typedef struct uiTableParams uiTableParams;
 
 struct uiTableTextColumnOptionalParams {
 	int ColorModelColumn;
+};
+
+struct uiTableParams {
+	uiTableModel *Model;
+	int RowBackgroundColorModelColumn;
 };
 
 typedef struct uiTable uiTable;
@@ -97,6 +103,4 @@ _UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
 	const char *name,
 	int buttonModelColumn,
 	int buttonClickableModelColumn);
-// TODO getter?
-_UI_EXTERN void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn);
-_UI_EXTERN uiTable *uiNewTable(uiTableModel *model);
+_UI_EXTERN uiTable *uiNewTable(uiTableParams *params);

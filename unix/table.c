@@ -413,21 +413,15 @@ static void uiTableDestroy(uiControl *c)
 	uiFreeControl(uiControl(t));
 }
 
-void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
-{
-	t->backgroundColumn = modelColumn;
-	// TODO refresh table
-}
-
-uiTable *uiNewTable(uiTableModel *model)
+uiTable *uiNewTable(uiTableParams *p)
 {
 	uiTable *t;
 
 	uiUnixNewControl(uiTable, t);
 
-	t->model = model;
+	t->model = p->Model;
 	t->columnParams = g_ptr_array_new();
-	t->backgroundColumn = -1;
+	t->backgroundColumn = p->RowBackgroundColorModelColumn;
 
 	t->widget = gtk_scrolled_window_new(NULL, NULL);
 	t->scontainer = GTK_CONTAINER(t->widget);

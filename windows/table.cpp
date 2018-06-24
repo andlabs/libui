@@ -478,14 +478,7 @@ void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonModelColu
 	p->buttonClickableModelColumn = buttonClickableModelColumn;
 }
 
-void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
-{
-	// TODO make the names consistent
-	t->backgroundColumn = modelColumn;
-	// TODO redraw?
-}
-
-uiTable *uiNewTable(uiTableModel *model)
+uiTable *uiNewTable(uiTableParams *p)
 {
 	uiTable *t;
 	int n;
@@ -494,14 +487,16 @@ uiTable *uiNewTable(uiTableModel *model)
 	uiWindowsNewControl(uiTable, t);
 
 	t->columns = new std::vector<uiprivTableColumnParams *>;
-	t->model = model;
+	t->model = p->Model;
+	t->backgroundColumn = p->RowBackgroundColorModelColumn;
+
 	// WS_CLIPCHILDREN is here to prevent drawing over the edit box used for editing text
 	t->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		WC_LISTVIEW, L"",
 		LVS_REPORT | LVS_OWNERDATA | LVS_SINGLESEL | WS_CLIPCHILDREN | WS_TABSTOP | WS_HSCROLL | WS_VSCROLL,
 		hInstance, NULL,
 		TRUE);
-	model->tables->push_back(t);
+	t->model->tables->push_back(t);
 	uiWindowsRegisterWM_NOTIFYHandler(t->hwnd, onWM_NOTIFY, uiControl(t));
 
 	// TODO: try LVS_EX_AUTOSIZECOLUMNS
@@ -509,11 +504,9 @@ uiTable *uiNewTable(uiTableModel *model)
 	SendMessageW(t->hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE,
 		(WPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_SUBITEMIMAGES),
 		(LPARAM) (LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_SUBITEMIMAGES));
-	n = uiprivTableModelNumRows(model);
+	n = uiprivTableModelNumRows(t->model);
 	if (SendMessageW(t->hwnd, LVM_SETITEMCOUNT, (WPARAM) n, 0) == 0)
 		logLastError(L"error calling LVM_SETITEMCOUNT in uiNewTable()");
-
-	t->backgroundColumn = -1;
 
 	hr = uiprivUpdateImageListSize(t);
 	if (hr != S_OK) {

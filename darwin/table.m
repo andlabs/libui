@@ -171,26 +171,21 @@ static void uiTableDestroy(uiControl *c)
 	uiFreeControl(uiControl(t));
 }
 
-void uiTableSetRowBackgroundColorModelColumn(uiTable *t, int modelColumn)
-{
-	t->backgroundColumn = modelColumn;
-	// TODO update all rows
-}
-
-uiTable *uiNewTable(uiTableModel *model)
+uiTable *uiNewTable(uiTableParams *p)
 {
 	uiTable *t;
-	uiprivScrollViewCreateParams p;
+	uiprivScrollViewCreateParams sp;
 
 	uiDarwinNewControl(uiTable, t);
-	t->m = model;
+	t->m = p->Model;
+	t->backgroundColumn = p->RowBackgroundColorModelColumn;
 
 	t->tv = [[uiprivTableView alloc] initWithFrame:NSZeroRect uiprivT:t uiprivM:t->m];
 
-	[t->tv setDataSource:model->m];
-	[t->tv setDelegate:model->m];
+	[t->tv setDataSource:t->m->m];
+	[t->tv setDelegate:t->m->m];
 	[t->tv reloadData];
-	[model->tables addObject:t->tv];
+	[t->m->tables addObject:t->tv];
 
 	// TODO is this sufficient?
 	[t->tv setAllowsColumnReordering:NO];
@@ -204,23 +199,21 @@ uiTable *uiNewTable(uiTableModel *model)
 	[t->tv setAllowsTypeSelect:YES];
 	// TODO floatsGroupRows — do we even allow group rows?
 
-	memset(&p, 0, sizeof (uiprivScrollViewCreateParams));
-	p.DocumentView = t->tv;
+	memset(&sp, 0, sizeof (uiprivScrollViewCreateParams));
+	sp.DocumentView = t->tv;
 	// this is what Interface Builder sets it to
 	// TODO verify
-	p.BackgroundColor = [NSColor colorWithCalibratedWhite:1.0 alpha:1.0];
-	p.DrawsBackground = YES;
-	p.Bordered = YES;
-	p.HScroll = YES;
-	p.VScroll = YES;
-	t->sv = uiprivMkScrollView(&p, &(t->d));
+	sp.BackgroundColor = [NSColor colorWithCalibratedWhite:1.0 alpha:1.0];
+	sp.DrawsBackground = YES;
+	sp.Bordered = YES;
+	sp.HScroll = YES;
+	sp.VScroll = YES;
+	t->sv = uiprivMkScrollView(&sp, &(t->d));
 
 	// TODO WHY DOES THIS REMOVE ALL GRAPHICAL GLITCHES?
 	// I got the idea from http://jwilling.com/blog/optimized-nstableview-scrolling/ but that was on an unrelated problem I didn't seem to have (although I have small-ish tables to start with)
 	// I don't get layer-backing... am I supposed to layer-back EVERYTHING manually? I need to check Interface Builder again...
 	[t->sv setWantsLayer:YES];
-
-	t->backgroundColumn = -1;
 
 	return t;
 }

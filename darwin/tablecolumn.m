@@ -304,7 +304,7 @@ struct textColumnCreateParams {
 		[self->iv setImage:uiprivImageNSImage(img)];
 	}
 	if (self->cb != nil) {
-		value = uiprivTableModelCellValue(self->m, row, self->imageModelColumn);
+		value = uiprivTableModelCellValue(self->m, row, self->checkboxModelColumn);
 		if (uiTableValueInt(value) != 0)
 			[self->cb setState:NSOnState];
 		else

@@ -49,21 +49,14 @@ static void applyColor(GtkTreeModel *m, GtkTreeIter *iter, int modelColumn, GtkC
 
 static void setEditable(uiTableModel *m, GtkTreeIter *iter, int modelColumn, GtkCellRenderer *r, const char *prop)
 {
-	GValue value = G_VALUE_INIT;
+	GtkTreePath *path;
+	int row;
 	gboolean editable;
 
-	switch (modelColumn) {
-	case uiTableModelColumnNeverEditable:
-		editable = FALSE;
-		break;
-	case uiTableModelColumnAlwaysEditable:
-		editable = TRUE;
-		break;
-	default:
-		gtk_tree_model_get_value(GTK_TREE_MODEL(m), iter, modelColumn, &value);
-		editable = g_value_get_int(&value) != 0;
-		g_value_unset(&value);
-	}
+	// TODO avoid the need for this
+	path = gtk_tree_model_get_path(GTK_TREE_MODEL(m), iter);
+	row = gtk_tree_path_get_indices(path)[0];
+	editable = uiprivTableModelCellEditable(m, row, modelColumn) != 0;
 	g_object_set(r, prop, editable, NULL);
 }
 

@@ -232,18 +232,8 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 		// don't even ask for info if it's too soon to edit text
 		goto done;
 
-	switch (editableColumn) {
-	case uiTableModelColumnNeverEditable:
+	if (!uiprivTableModelCellEditable(t->model, ht.iItem, editableColumn))
 		goto done;
-	case uiTableModelColumnAlwaysEditable:
-		break;
-	default:
-		value = uiprivTableModelCellValue(t->model, ht.iItem, editableColumn);
-		editable = uiTableValueInt(value);
-		uiFreeTableValue(value);
-		if (!editable)
-			goto done;
-	}
 
 	if (text) {
 		hr = openEditControl(t, ht.iItem, ht.iSubItem, p);

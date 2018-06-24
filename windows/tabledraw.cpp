@@ -197,18 +197,7 @@ static HRESULT drawCheckboxPart(HRESULT hr, struct drawState *s)
 	value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxModelColumn);
 	checked = uiTableValueInt(value);
 	uiFreeTableValue(value);
-	switch (s->p->checkboxEditableModelColumn) {
-	case uiTableModelColumnNeverEditable:
-		enabled = 0;
-		break;
-	case uiTableModelColumnAlwaysEditable:
-		enabled = 1;
-		break;
-	default:
-		value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxEditableModelColumn);
-		enabled = uiTableValueInt(value);
-		uiFreeTableValue(value);
-	}
+	enabled = uiprivTableModelCellEditable(s->model, s->iItem, s->p->checkboxEditableModelColumn);
 
 	theme = OpenThemeData(s->t->hwnd, L"button");
 	if (theme != NULL) {
@@ -414,18 +403,7 @@ static HRESULT drawButtonPart(HRESULT hr, struct drawState *s)
 	value = uiprivTableModelCellValue(s->model, s->iItem, s->p->buttonModelColumn);
 	wstr = toUTF16(uiTableValueString(value));
 	uiFreeTableValue(value);
-	switch (s->p->buttonClickableModelColumn) {
-	case uiTableModelColumnNeverEditable:
-		enabled = 0;
-		break;
-	case uiTableModelColumnAlwaysEditable:
-		enabled = 1;
-		break;
-	default:
-		value = uiprivTableModelCellValue(s->model, s->iItem, s->p->checkboxEditableModelColumn);
-		enabled = uiTableValueInt(value);
-		uiFreeTableValue(value);
-	}
+	enabled = uiprivTableModelCellEditable(s->model, s->iItem, s->p->buttonClickableModelColumn);
 
 	theme = OpenThemeData(s->t->hwnd, L"button");
 

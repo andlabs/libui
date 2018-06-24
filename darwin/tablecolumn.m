@@ -34,23 +34,6 @@
 
 @end
 
-static BOOL isCellEditable(uiTableModel *m, NSInteger row, int modelColumn)
-{
-	uiTableValue *value;
-	int editable;
-
-	switch (modelColumn) {
-	case uiTableModelColumnNeverEditable:
-		return NO;
-	case uiTableModelColumnAlwaysEditable:
-		return YES;
-	}
-	value = uiprivTableModelCellValue(m, row, modelColumn);
-	editable = uiTableValueInt(value);
-	uiFreeTableValue(value);
-	return editable != 0;
-}
-
 struct textColumnCreateParams {
 	uiTable *t;
 	uiTableModel *m;
@@ -272,7 +255,7 @@ struct textColumnCreateParams {
 		uiFreeTableValue(value);
 		[self->tf setStringValue:str];
 
-		[self->tf setEditable:isCellEditable(self->m, row, self->textEditableModelColumn)];
+		[self->tf setEditable:uiprivTableModelCellEditable(self->m, row, self->textEditableModelColumn)];
 
 		color = nil;
 		if (self->textParams.ColorModelColumn != -1) {
@@ -307,7 +290,7 @@ struct textColumnCreateParams {
 			[self->cb setState:NSOffState];
 		uiFreeTableValue(value);
 
-		[self->cb setEnabled:isCellEditable(self->m, row, self->checkboxEditableModelColumn)];
+		[self->cb setEnabled:uiprivTableModelCellEditable(self->m, row, self->checkboxEditableModelColumn)];
 	}
 }
 
@@ -558,7 +541,7 @@ struct textColumnCreateParams {
 	uiFreeTableValue(value);
 	[self->b setTitle:str];
 
-	[self->b setEnabled:isCellEditable(self->m, row, self->editableColumn)];
+	[self->b setEnabled:uiprivTableModelCellEditable(self->m, row, self->editableColumn)];
 }
 
 - (IBAction)uiprivOnClicked:(id)sender

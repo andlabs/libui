@@ -46,3 +46,20 @@ void uiprivTableModelSetCellValue(uiTableModel *m, int row, int column, const ui
 const uiTableTextColumnOptionalParams uiprivDefaultTextColumnOptionalParams = {
 	.ColorModelColumn = -1,
 };
+
+int uiprivTableModelCellEditable(uiTableModel *m, int row, int column)
+{
+	uiTableValue *value;
+	int editable;
+
+	switch (column) {
+	case uiTableModelColumnNeverEditable:
+		return 0;
+	case uiTableModelColumnAlwaysEditable:
+		return 1;
+	}
+	value = uiprivTableModelCellValue(m, row, column);
+	editable = uiTableValueInt(value);
+	uiFreeTableValue(value);
+	return editable;
+}

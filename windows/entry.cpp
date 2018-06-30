@@ -44,14 +44,12 @@ static void uiEntryMinimumSize(uiWindowsControl *c, int *width, int *height)
 	uiWindowsSizing sizing;
 	int x, y;
 
-	if (e->width_chars <= 0) {
-		x = entryWidth;
-		y = entryHeight;
-		uiWindowsGetSizing(e->hwnd, &sizing);
-		uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
-	} else {
-		uiWindowsGetSizing(e->hwnd, &sizing);
-		uiWindowsSizingCharsToPixels(&sizing, &x, &y, e->width_chars);
+	x = entryWidth;
+	y = entryHeight;
+	uiWindowsGetSizing(e->hwnd, &sizing);
+	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	if (e->width_chars > 0) {
+		uiWindowsSizingCharsToPixels(&sizing, &x, e->width_chars);
 	}
 	*width = x;
 	*height = y;

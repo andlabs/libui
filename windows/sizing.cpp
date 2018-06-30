@@ -48,10 +48,10 @@ void uiWindowsSizingDlgUnitsToPixels(uiWindowsSizing *sizing, int *x, int *y)
 		*y = dlgUnitsToY(*y, sizing->BaseY);
 }
 
-void uiWindowsSizingCharsToPixels(uiWindowsSizing *sizing, int *x, int *y, int width_chars)
+void uiWindowsSizingCharsToPixels(uiWindowsSizing *sizing, int *x, int width_chars)
 {
-	*x = sizing->BaseX * width_chars;
-	*y = sizing->BaseY;
+	if (x != NULL)
+		*x = sizing->BaseX * width_chars;
 }
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx

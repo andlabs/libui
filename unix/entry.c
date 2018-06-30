@@ -95,3 +95,8 @@ uiEntry *uiNewSearchEntry(void)
 {
 	return finishNewEntry(gtk_search_entry_new(), "search-changed");
 }
+
+void uiEntrySetWidthChars(uiEntry *e, int nchars)
+{
+	gtk_entry_set_width_chars(e->entry, nchars);
+}

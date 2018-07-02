@@ -86,6 +86,8 @@ extern void setWindowText(HWND hwnd, WCHAR *wtext);
 extern HINSTANCE hInstance;
 extern int nCmdShow;
 extern HFONT hMessageFont;
+// keep memory of text metric values given in getSizing in sizing.cpp
+extern uiWindowsSizing messageFontSizing;
 extern HBRUSH hollowBrush;
 extern uiInitOptions options;
 

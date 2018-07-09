@@ -276,12 +276,12 @@ static void progressBarColumnDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, 
 	} else {
 		if (val != NULL) {
 			g_hash_table_remove(p->t->indeterminatePositions, rc);
-			uiprivFree(rc);
 			if (g_hash_table_size(p->t->indeterminatePositions) == 0) {
 				g_source_remove(p->t->indeterminateTimer);
 				p->t->indeterminateTimer = 0;
 			}
 		}
+		uiprivFree(rc);
 		g_object_set(r,
 			"pulse", -1,
 			"value", pval,
@@ -478,8 +478,14 @@ uiUnixControlAllDefaultsExceptDestroy(uiTable)
 static void uiTableDestroy(uiControl *c)
 {
 	uiTable *t = uiTable(c);
+	guint i;
 
-	// TODO
+	for (i = 0; i < t->columnParams->len; i++)
+		uiprivFree(g_ptr_array_index(t->columnParams, i));
+	g_ptr_array_free(t->columnParams, TRUE);
+	if (g_hash_table_size(t->indeterminatePositions) != 0)
+		g_source_remove(t->indeterminateTimer);
+	g_hash_table_destroy(t->indeterminatePositions);
 	g_object_unref(t->widget);
 	uiFreeControl(uiControl(t));
 }

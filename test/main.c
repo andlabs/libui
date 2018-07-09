@@ -174,6 +174,7 @@ int main(int argc, char *argv[])
 			;
 	}
 	printf("after uiMain()\n");
+	freePage16();
 	uiUninit();
 	printf("after uiUninit()\n");
 	return 0;

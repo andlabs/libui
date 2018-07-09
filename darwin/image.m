@@ -18,7 +18,7 @@ uiImage *uiNewImage(double width, double height)
 	return i;
 }
 
-void Image(uiImage *i)
+void uiFreeImage(uiImage *i)
 {
 	NSValue *v;
 

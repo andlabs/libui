@@ -98,10 +98,11 @@ static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row,
 		checkStates[row] = uiTableValueInt(val);
 }
 
+static uiTableModel *m;
+
 uiBox *makePage16(void)
 {
 	uiBox *page16;
-	uiTableModel *m;
 	uiTable *t;
 	uiTableParams p;
 	uiTableTextColumnOptionalParams tp;
@@ -152,4 +153,11 @@ uiBox *makePage16(void)
 		8);
 
 	return page16;
+}
+
+void freePage16(void)
+{
+	uiFreeTableModel(m);
+	uiFreeImage(img[1]);
+	uiFreeImage(img[0]);
 }

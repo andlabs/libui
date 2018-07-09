@@ -163,7 +163,9 @@ static void uiTableDestroy(uiControl *c)
 {
 	uiTable *t = uiTable(c);
 
-	// TODO
+	[t->m->tables removeObject:t->tv];
+	uiprivScrollViewFreeData(t->sv, t->d);
+	[t->tv release];
 	[t->sv release];
 	uiFreeControl(uiControl(t));
 }

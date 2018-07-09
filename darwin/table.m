@@ -2,7 +2,7 @@
 #import "uipriv_darwin.h"
 #import "table.h"
 
-// TODO the initial scroll position is still wrong
+// TODO is the initial scroll position still wrong?
 
 @interface uiprivTableModel : NSObject<NSTableViewDataSource, NSTableViewDelegate> {
 	uiTableModel *m;

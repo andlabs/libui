@@ -6,6 +6,7 @@
 // - should clicking on some other column of the same row, even one that doesn't edit, cancel editing?
 // - implement keyboard accessibility
 // - implement accessibility in general (Dynamic Annotations maybe?)
+// - if I didn't handle these already: "drawing focus rects here, subitem navigation and activation with the keyboard"
 
 uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 {

@@ -66,11 +66,12 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 		bytesPerRow:pixelStride
 		bitsPerPixel:32];
 	repsRGB = [repCalibrated bitmapImageRepByRetaggingWithColorSpace:[NSColorSpace sRGBColorSpace]];
-	[repCalibrated release];
 
 	[i->i addRepresentation:repsRGB];
 	[repsRGB setSize:i->size];
-	[repsRGB release];
+	// don't release repsRGB; it may be equivalent to repCalibrated
+	// do release repCalibrated though; NSImage has a ref to either it or to repsRGB
+	[repCalibrated release];
 
 	// we need to keep swizzled alive for NSBitmapImageRep
 	[i->swizzled addObject:[NSValue valueWithPointer:swizzled]];

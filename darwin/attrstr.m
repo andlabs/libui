@@ -288,7 +288,7 @@ static void addBackgroundAttribute(struct foreachParams *p, size_t start, size_t
 		return;
 	}
 
-	CFAttributedStringSetAttribute(p->mas, CFRangeMake(start, end - start), (CFStringRef)@"FORCE", @"YES");
+	CFAttributedStringSetAttribute(p->mas, CFRangeMake(start, end - start), (CFStringRef)@"FORCE_RUN", [NSString stringWithFormat:@"%lu %lu", start, end]);
 	dtb = [[uiprivDrawTextBackgroundParams alloc] initWithStart:start end:end r:r g:g b:b a:a];
 	[p->backgroundParams addObject:dtb];
 	[dtb release];

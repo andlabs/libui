@@ -11,6 +11,8 @@ CFStringRef *uiprivFUTURE_kCTFontOpenTypeFeatureValue = NULL;
 // added in OS X 10.12; we need 10.8
 CFStringRef *uiprivFUTURE_kCTBackgroundColorAttributeName = NULL;
 
+NSOperatingSystemVersion HIGH_SIERRA_VERSION = { .majorVersion = 10, .minorVersion = 13, .patchVersion = 0 };
+
 // note that we treat any error as "the symbols aren't there" (and don't care if dlclose() failed)
 void uiprivLoadFutures(void)
 {
@@ -23,7 +25,9 @@ void uiprivLoadFutures(void)
 #define GET(var, fn) *((void **) (&var)) = dlsym(handle, #fn)
 	GET(uiprivFUTURE_kCTFontOpenTypeFeatureTag, kCTFontOpenTypeFeatureTag);
 	GET(uiprivFUTURE_kCTFontOpenTypeFeatureValue, kCTFontOpenTypeFeatureValue);
-	GET(uiprivFUTURE_kCTBackgroundColorAttributeName, kCTBackgroundColorAttributeName);
+	if (![NSProcessInfo.processInfo isOperatingSystemAtLeastVersion:HIGH_SIERRA_VERSION])
+		GET(uiprivFUTURE_kCTBackgroundColorAttributeName, kCTBackgroundColorAttributeName);
+
 	dlclose(handle);
 }
 

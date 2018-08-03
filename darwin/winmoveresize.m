@@ -110,17 +110,21 @@ static void minMaxAutoLayoutSizes(NSWindow *w, NSSize *min, NSSize *max)
 
 	// maximum: encourage the window to be as large as possible
 	contentView = [w contentView];
+	// regarding UINT_MAX:
+	// largest possible value (empirically on High Sierra): 
+	//            4294967384.0 ~
+	// UINT_MAX = 4294967295 
 	cw = uiprivMkConstraint(contentView, NSLayoutAttributeWidth,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
-		0, 100000,
+		0, UINT_MAX,
 		@"window maximum width finding constraint");
 	[cw setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:cw];
 	ch = uiprivMkConstraint(contentView, NSLayoutAttributeHeight,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
-		0, 100000,
+		0, UINT_MAX,
 		@"window maximum height finding constraint");
 	[ch setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:ch];

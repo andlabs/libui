@@ -2,6 +2,8 @@
 #include "uipriv_unix.h"
 #include "table.h"
 
+// TODO with GDK_SCALE set to 2 the 32x32 images are scaled up to 64x64?
+
 struct uiTable {
 	uiUnixControl c;
 	GtkWidget *widget;

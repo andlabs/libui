@@ -30,28 +30,27 @@ void uiFreeImage(uiImage *i)
 	uiprivFree(i);
 }
 
-void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride)
+void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int byteStride)
 {
 	NSBitmapImageRep *repCalibrated, *repsRGB;
 	uint8_t *swizzled, *bp, *sp;
-	int x, y;
+	int n;
 	unsigned char *pix[1];
 
 	// OS X demands that R and B are in the opposite order from what we expect
 	// we must swizzle :(
 	// LONGTERM test on a big-endian system
-	swizzled = (uint8_t *) uiprivAlloc((pixelStride * pixelHeight * 4) * sizeof (uint8_t), "uint8_t[]");
+	swizzled = (uint8_t *) uiprivAlloc((byteStride * pixelHeight) * sizeof (uint8_t), "uint8_t[]");
 	bp = (uint8_t *) pixels;
 	sp = swizzled;
-	for (y = 0; y < pixelHeight * pixelStride; y += pixelStride)
-		for (x = 0; x < pixelStride; x++) {
-			sp[0] = bp[2];
-			sp[1] = bp[1];
-			sp[2] = bp[0];
-			sp[3] = bp[3];
-			sp += 4;
-			bp += 4;
-		}
+	for (n = 0; n < byteStride * pixelHeight; n += 4) {
+		sp[0] = bp[2];
+		sp[1] = bp[1];
+		sp[2] = bp[0];
+		sp[3] = bp[3];
+		sp += 4;
+		bp += 4;
+	}
 
 	pix[0] = (unsigned char *) swizzled;
 	repCalibrated = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:pix
@@ -63,7 +62,7 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 		isPlanar:NO
 		colorSpaceName:NSCalibratedRGBColorSpace
 		bitmapFormat:0
-		bytesPerRow:pixelStride
+		bytesPerRow:byteStride
 		bitsPerPixel:32];
 	repsRGB = [repCalibrated bitmapImageRepByRetaggingWithColorSpace:[NSColorSpace sRGBColorSpace]];
 

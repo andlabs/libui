@@ -36,13 +36,12 @@ _UI_EXTERN void uiFreeImage(uiImage *i);
 
 // uiImageAppend adds a representation to the uiImage.
 // pixels should point to a byte array of non-premultiplied pixels
-// stored in [A R G B] order (so ((uint8_t *) pixels)[0] is the A of the
+// stored in [R G B A] order (so ((uint8_t *) pixels)[0] is the A of the
 // first pixel and [3] is the B of the first pixel). pixelWidth and
 // pixelHeight is the size *in pixels* of the image, and pixelStride is
-// the number *of pixels* per row of the pixels array. Therefore,
-// pixels itself must be at least 4 * pixelStride * pixelHeight bytes
-// long.
-_UI_EXTERN void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride);
+// the number *of bytes* per row of the pixels array. Therefore,
+// pixels itself must be at least byteStride * pixelHeight bytes long.
+_UI_EXTERN void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int byteStride);
 
 typedef struct uiTableValue uiTableValue;
 

@@ -39,14 +39,14 @@ void uiFreeImage(uiImage *i)
 	uiprivFree(i);
 }
 
-void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride)
+void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int byteStride)
 {
 	IWICBitmap *b;
 	HRESULT hr;
 
 	hr = uiprivWICFactory->CreateBitmapFromMemory(pixelWidth, pixelHeight,
-		GUID_WICPixelFormat32bppRGBA, pixelStride,
-		pixelStride * pixelHeight, (BYTE *) pixels,
+		GUID_WICPixelFormat32bppRGBA, byteStride,
+		byteStride * pixelHeight, (BYTE *) pixels,
 		&b);
 	if (hr != S_OK)
 		logHRESULT(L"error calling CreateBitmapFromMemory() in uiImageAppend()", hr);

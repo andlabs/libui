@@ -34,24 +34,26 @@ void uiFreeImage(uiImage *i)
 	uiprivFree(i);
 }
 
-void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride)
+void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int byteStride)
 {
 	cairo_surface_t *cs;
 	unsigned char *buf, *p;
 	uint8_t *src = (uint8_t *) pixels;
-	int cstride;
-	int y;
+	int cByteStride;
+	int n;
 
-	cstride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, pixelWidth);
-	buf = (unsigned char *) uiprivAlloc((cstride * pixelHeight * 4) * sizeof (unsigned char), "unsigned char[]");
+	// unfortunately for optimal performance cairo expects its own stride values and we will have to reconcile them if they differ
+	cByteStride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, pixelWidth);
+	buf = (unsigned char *) uiprivAlloc((cByteStride * pixelHeight) * sizeof (unsigned char), "unsigned char[]");
 	p = buf;
-	for (y = 0; y < pixelStride * pixelHeight; y += pixelStride) {
-		memmove(p, src + y, cstride);
-		p += cstride;
+	for (n = 0; n < byteStride * pixelHeight; n += byteStride) {
+		memmove(p, src + n, cByteStride);
+		p += cByteStride;
 	}
+	// also note that stride here is also in bytes
 	cs = cairo_image_surface_create_for_data(buf, CAIRO_FORMAT_ARGB32,
 		pixelWidth, pixelHeight,
-		cstride);
+		cByteStride);
 	if (cairo_surface_status(cs) != CAIRO_STATUS_SUCCESS)
 		/* TODO */;
 	cairo_surface_flush(cs);

@@ -1,11 +1,47 @@
 // 20 june 2016
 // kept in a separate file for now
 
+// uiImage stores an image for display on screen.
+// 
+// Images are built from one or more representations, each with the
+// same aspect ratio but a different pixel size. libui automatically
+// selects the most appropriate representation for drawing the image
+// when it comes time to draw the image; what this means depends
+// on the pixel density of the target context. Therefore, one can use
+// uiImage to draw higher-detailed images on higher-density
+// displays. The typical use cases are either:
+// 
+// 	- have just a single representation, at which point all screens
+// 	  use the same image, and thus uiImage acts like a simple
+// 	  bitmap image, or
+// 	- have two images, one at normal resolution and one at 2x
+// 	  resolution; this matches the current expectations of some
+// 	  desktop systems at the time of writing (mid-2018)
+// 
+// uiImage is very simple: it only supports non-premultiplied 32-bit
+// ARGB images, and libui does not provide any image file loading
+// or image format conversion utilities on top of that.
 typedef struct uiImage uiImage;
 
-// TODO use const void * for const correctness
+// @role uiImage constructor
+// uiNewImage creates a new uiImage with the given width and
+// height. This width and height should be the size in points of the
+// image in the device-independent case; typically this is the 1x size.
+// TODO for all uiImage functions: use const void * for const correctness
 _UI_EXTERN uiImage *uiNewImage(double width, double height);
+
+// @role uiImage destructor
+// uiFreeImage frees the given image and all associated resources.
 _UI_EXTERN void uiFreeImage(uiImage *i);
+
+// uiImageAppend adds a representation to the uiImage.
+// pixels should point to a byte array of non-premultiplied pixels
+// stored in [A R G B] order (so ((uint8_t *) pixels)[0] is the A of the
+// first pixel and [3] is the B of the first pixel). pixelWidth and
+// pixelHeight is the size *in pixels* of the image, and pixelStride is
+// the number *of pixels* per row of the pixels array. Therefore,
+// pixels itself must be at least 4 * pixelStride * pixelHeight bytes
+// long.
 _UI_EXTERN void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int pixelStride);
 
 typedef struct uiTableValue uiTableValue;

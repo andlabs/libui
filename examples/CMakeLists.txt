@@ -69,4 +69,5 @@ add_custom_target(examples
 		cpp-multithread
 		drawtext
 		timer
-		datetime)
+		datetime
+		opengl)

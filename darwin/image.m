@@ -34,7 +34,7 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 {
 	NSBitmapImageRep *repCalibrated, *repsRGB;
 	uint8_t *swizzled, *bp, *sp;
-	int n;
+	int x, y;
 	unsigned char *pix[1];
 
 	// OS X demands that R and B are in the opposite order from what we expect
@@ -43,13 +43,17 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 	swizzled = (uint8_t *) uiprivAlloc((byteStride * pixelHeight) * sizeof (uint8_t), "uint8_t[]");
 	bp = (uint8_t *) pixels;
 	sp = swizzled;
-	for (n = 0; n < byteStride * pixelHeight; n += 4) {
-		sp[0] = bp[2];
-		sp[1] = bp[1];
-		sp[2] = bp[0];
-		sp[3] = bp[3];
-		sp += 4;
-		bp += 4;
+	for (y = 0; y < pixelHeight; y++){
+		for (x = 0; x < pixelWidth; x++) {
+			sp[0] = bp[2];
+			sp[1] = bp[1];
+			sp[2] = bp[0];
+			sp[3] = bp[3];
+			sp += 4;
+			bp += 4;
+		}
+		// jump over unused bytes at end of line
+		bp += byteStride - pixelWidth * 4;
 	}
 
 	pix[0] = (unsigned char *) swizzled;

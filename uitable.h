@@ -19,7 +19,7 @@
 // 	  desktop systems at the time of writing (mid-2018)
 // 
 // uiImage is very simple: it only supports non-premultiplied 32-bit
-// ARGB images, and libui does not provide any image file loading
+// RGBA images, and libui does not provide any image file loading
 // or image format conversion utilities on top of that.
 typedef struct uiImage uiImage;
 
@@ -36,8 +36,8 @@ _UI_EXTERN void uiFreeImage(uiImage *i);
 
 // uiImageAppend adds a representation to the uiImage.
 // pixels should point to a byte array of non-premultiplied pixels
-// stored in [R G B A] order (so ((uint8_t *) pixels)[0] is the A of the
-// first pixel and [3] is the B of the first pixel). pixelWidth and
+// stored in [R G B A] order (so ((uint8_t *) pixels)[0] is the R of the
+// first pixel and [3] is the A of the first pixel). pixelWidth and
 // pixelHeight is the size *in pixels* of the image, and pixelStride is
 // the number *of bytes* per row of the pixels array. Therefore,
 // pixels itself must be at least byteStride * pixelHeight bytes long.

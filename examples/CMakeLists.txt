@@ -52,14 +52,6 @@ _add_example(datetime
 	${_EXAMPLE_RESOURCES_RC}
 )
 
-_add_example(opengl
-	opengl/main.c
-	${_EXAMPLE_RESOURCES_RC}
-)
-if(APPLE)
-	target_link_libraries(opengl "-framework OpenGL")
-endif()
-
 add_custom_target(examples
 	DEPENDS
 		controlgallery

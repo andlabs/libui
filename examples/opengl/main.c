@@ -140,6 +140,8 @@ static void onInitGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 	glAttachShader(openGLState.Program, openGLState.FragmentShader);
 	glLinkProgram(openGLState.Program);
 
+	glEnable(GL_DEPTH_TEST);
+
 	openGLState.ProjectionUniform = glGetUniformLocation(openGLState.Program, "aProjection");
 	openGLState.ModelViewUniform = glGetUniformLocation(openGLState.Program, "aModelView");
 
@@ -154,7 +156,7 @@ static void onDrawGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 	glViewport(0, 0, width, height);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(openGLState.Program);
 
 	glEnableVertexAttribArray(openGLState.PositionAttrib);

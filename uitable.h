@@ -41,6 +41,7 @@ _UI_EXTERN void uiFreeImage(uiImage *i);
 // pixelHeight is the size *in pixels* of the image, and pixelStride is
 // the number *of bytes* per row of the pixels array. Therefore,
 // pixels itself must be at least byteStride * pixelHeight bytes long.
+// TODO see if we either need the stride or can provide a way to get the OS-preferred stride (in cairo we do)
 _UI_EXTERN void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int byteStride);
 
 typedef struct uiTableValue uiTableValue;

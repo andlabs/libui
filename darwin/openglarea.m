@@ -105,11 +105,14 @@ static void assignNextPixelFormatAttribute(CGLPixelFormatAttribute *as, unsigned
 	uiOpenGLArea *a = self->libui_a;
 	uiOpenGLAreaMakeCurrent(a);
 
+	double width = [self frame].size.width;
+	double height = [self frame].size.height;
+
 	if (!a->initialized) {
 		(*(a->ah->InitGL))(a->ah, a);
 		a->initialized = YES;
 	}
-	(*(a->ah->DrawGL))(a->ah, a);
+	(*(a->ah->DrawGL))(a->ah, a, width, height);
 }
 
 - (BOOL)isFlipped
@@ -176,8 +179,8 @@ static void assignNextPixelFormatAttribute(CGLPixelFormatAttribute *as, unsigned
 	me.X = point.x;
 	me.Y = point.y;
 
-	me.AreaWidth = 0;
-	me.AreaHeight = 0;
+	me.AreaWidth = [self frame].size.width;
+	me.AreaHeight = [self frame].size.height;
 
 	buttonNumber = [e buttonNumber] + 1;
 	// swap button numbers 2 and 3 (right and middle)
@@ -386,11 +389,13 @@ static void uiOpenGLAreaDestroy(uiControl *c)
 	uiFreeControl(uiControl(a));
 }
 
-void uiOpenGLAreaGetSize(uiOpenGLArea *a, int *width, int *height)
+void uiOpenGLAreaGetSize(uiOpenGLArea *a, double *width, double *height)
 {
 	NSRect rect = [a->view frame];
-	*width = rect.size.width;
-	*height = rect.size.height;
+	if(width != NULL)
+		*width = rect.size.width;
+	if(height != NULL)
+		*height = rect.size.height;
 }
 
 void uiOpenGLAreaSetSwapInterval(uiOpenGLArea *a, int si)

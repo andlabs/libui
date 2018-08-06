@@ -1133,12 +1133,12 @@ struct uiOpenGLAreaHandler {
 	void (*DragBroken)(uiOpenGLAreaHandler *, uiOpenGLArea *);
 	int (*KeyEvent)(uiOpenGLAreaHandler *, uiOpenGLArea *, uiAreaKeyEvent *);
     void (*InitGL)(uiOpenGLAreaHandler *, uiOpenGLArea *);
-    void (*DrawGL)(uiOpenGLAreaHandler *, uiOpenGLArea *);
+    void (*DrawGL)(uiOpenGLAreaHandler *, uiOpenGLArea *, double width, double height);
 };
 
 #define uiOpenGLArea(this) ((uiOpenGLArea *) (this))
 
-_UI_EXTERN void uiOpenGLAreaGetSize(uiOpenGLArea *a, int *width, int *height);
+_UI_EXTERN void uiOpenGLAreaGetSize(uiOpenGLArea *a, double *width, double *height);
 _UI_EXTERN void uiOpenGLAreaSetSwapInterval(uiOpenGLArea *a, int si);
 _UI_EXTERN void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a);
 _UI_EXTERN void uiOpenGLAreaMakeCurrent(uiOpenGLArea *a);

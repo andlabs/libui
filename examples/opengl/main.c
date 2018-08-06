@@ -100,8 +100,12 @@ static float rotationAngle = 0.0f;
 
 static void onMouseEvent(uiOpenGLAreaHandler *h, uiOpenGLArea *a, uiAreaMouseEvent *e)
 {
-    printf("onMouseEvent\n");
-	rotationAngle += 2.0f / 180.0f * M_PI;
+    printf("onMouseEvent %f\n", e->AreaWidth);
+    double width;
+    uiOpenGLAreaGetSize(a, &width, NULL);
+
+    rotationAngle = (uiPi * 2.0f) * (e->X / width);
+	// rotationAngle += 2.0f / 180.0f * uiPi;
 	uiOpenGLAreaQueueRedrawAll(a);
 }
 
@@ -149,10 +153,8 @@ static void onInitGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
     openGLState.ColorAttrib = glGetAttribLocation(openGLState.Program, "aColor");
 }
 
-static void onDrawGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
+static void onDrawGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a, double width, double height)
 {
-	int width, height;
-	uiOpenGLAreaGetSize(a, &width, &height);
 	glViewport(0, 0, width, height);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -165,7 +167,7 @@ static void onDrawGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 	glVertexAttribPointer(openGLState.PositionAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid *)0);
 	glVertexAttribPointer(openGLState.ColorAttrib, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), (const GLvoid *)offsetof(Vertex, r));
 
-	Matrix4 projection = perspective(45.0f / 180.0f * M_PI,
+	Matrix4 projection = perspective(45.0f / 180.0f * uiPi,
 									 (float)width / (float)height,
 									 0.1f,
 									 100.0f);
@@ -224,6 +226,9 @@ int main(void)
 
 	uiControlShow(uiControl(mainwin));
 	uiMain();
+
+	uiFreeOpenGLAttributes(attribs);
+
 	uiUninit();
 	return 0;
 }

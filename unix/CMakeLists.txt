@@ -3,6 +3,11 @@
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED gtk+-3.0)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
+find_package(X11 REQUIRED)
+
 list(APPEND _LIBUI_SOURCES
 	unix/alloc.c
 	unix/area.c
@@ -57,10 +62,10 @@ set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
 # TODO the other variables don't work?
 set(_LIBUI_CFLAGS
-	${GTK_CFLAGS}
-	-I/opt/X11/include
+	${GTK_CFLAGS} -I ${X11_INCLUDE_DIR}
 PARENT_SCOPE)
 
 set(_LIBUI_LIBS
+	${CMAKE_THREAD_LIBS_INIT} ${X11_LIBRARIES} -lGL
 	${GTK_LDFLAGS} m ${CMAKE_DL_LIBS}
 PARENT_SCOPE)

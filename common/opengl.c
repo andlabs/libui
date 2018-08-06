@@ -5,7 +5,7 @@
 #include "uipriv.h"
 
 uiOpenGLAttributes *uiNewOpenGLAttributes() {
-    uiOpenGLAttributes *a = malloc(sizeof(uiOpenGLAttributes));
+    uiOpenGLAttributes *a = uiprivAlloc(sizeof(uiOpenGLAttributes), "uiOpenGLAttributes");
     if (a == NULL)
         return NULL;
 
@@ -27,7 +27,7 @@ uiOpenGLAttributes *uiNewOpenGLAttributes() {
 }
 
 void uiFreeOpenGLAttributes(uiOpenGLAttributes *attribs) {
-    free(attribs);
+    uiprivFree(attribs);
 }
 
 void uiOpenGLAttributesSetAttribute(uiOpenGLAttributes *attribs, uiOpenGLAttribute attribute, int value) {

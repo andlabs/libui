@@ -7,7 +7,7 @@ list(APPEND _LIBUI_SOURCES
 	common/areaevents.c
 	common/control.c
 	common/debug.c
-#	common/drawtext.c
+	common/opengl.c
 	common/matrix.c
 	common/opentype.c
 	common/shouldquit.c

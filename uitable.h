@@ -138,11 +138,13 @@ _UI_EXTERN void uiTableValueColor(const uiTableValue *v, double *r, double *g, d
 // columns which provide instructions for how to render a given
 // uiTable's column — for instance, one model column can be used
 // to give certain rows of a uiTable a different background color.
+// Row numbers DO match with uiTable row numbers.
 //
 // Once created, the number and data types of columns of a
 // uiTableModel cannot change.
 //
-// Row and column numbers start at 0.
+// Row and column numbers start at 0. A uiTableModel can be
+// associated with more than one uiTable at a time.
 typedef struct uiTableModel uiTableModel;
 
 // uiTableModelHandler defines the methods that uiTableModel
@@ -186,10 +188,12 @@ struct uiTableModelHandler {
 	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, const uiTableValue *);
 };
 
+// @role uiTableModel constructor
 // uiNewTableModel() creates a new uiTableModel with the given
 // handler methods.
 _UI_EXTERN uiTableModel *uiNewTableModel(uiTableModelHandler *mh);
 
+// @role uiTableModel destructor
 // uiFreeTableModel() frees the given table model. It is an error to
 // free table models currently associated with a uiTable.
 _UI_EXTERN void uiFreeTableModel(uiTableModel *m);

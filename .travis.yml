@@ -8,6 +8,7 @@ include: &toolchain_linux_amd64
       update: true
       packages:
         - libgtk-3-dev
+        - mesa-common-dev
 
 include: &toolchain_linux_386
   os: linux
@@ -17,6 +18,7 @@ include: &toolchain_linux_386
       packages:
         - gcc-multilib
         - g++-multilib
+        - mesa-common-dev
         - libgtk-3-dev:i386
         # the rest fixes broken dependencies of libgtk:i386
         - libgirepository-1.0-1:i386

@@ -42,7 +42,7 @@ struct uiOpenGLArea {
 	XVisualInfo *visual;
 	Colormap colormap;
 	GLXContext ctx;
-
+	int initialized;
 	uiprivClickCounter *cc;
 	GdkEventButton *dragevent;
 };
@@ -110,6 +110,12 @@ static gboolean openGLAreaWidget_draw(GtkWidget *w, cairo_t *cr)
 	double width, height;
 	loadAreaSize(a, &width, &height);
 	uiOpenGLAreaMakeCurrent(a);
+
+	if(!a->initialized){
+		(*(a->ah->InitGL))(a->ah, a);
+		a->initialized = 1;
+	}
+
 	(*(a->ah->DrawGL))(a->ah, a, width, height);
 	return FALSE;
 }
@@ -494,6 +500,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	uiUnixNewControl(uiOpenGLArea, a);
 
 	a->ah = ah;
+	a->initialized = 0;
 
 	a->attribs = uiprivAlloc(sizeof(*a->attribs), "uiOpenGLAttributes[]");
 	memcpy(a->attribs, attribs, sizeof(*a->attribs));

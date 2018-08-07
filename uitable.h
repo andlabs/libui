@@ -129,22 +129,90 @@ _UI_EXTERN uiTableValue *uiNewTableValueColor(double r, double g, double b, doub
 // TODO define whether all this, for both uiTableValue and uiAttribute, is undefined behavior or a caught error
 _UI_EXTERN void uiTableValueColor(const uiTableValue *v, double *r, double *g, double *b, double *a);
 
+// uiTableModel is an object that provides the data for a uiTable.
+// This data is returned via methods you provide in the
+// uiTableModelHandler struct.
+//
+// uiTableModel represents data using a table, but this table does
+// not map directly to uiTable itself. Instead, you can have data
+// columns which provide instructions for how to render a given
+// uiTable's column — for instance, one model column can be used
+// to give certain rows of a uiTable a different background color.
+//
+// Once created, the number and data types of columns of a
+// uiTableModel cannot change.
+//
+// Row and column numbers start at 0.
 typedef struct uiTableModel uiTableModel;
+
+// uiTableModelHandler defines the methods that uiTableModel
+// calls when it needs data. Once a uiTableModel is created, these
+// methods cannot change.
 typedef struct uiTableModelHandler uiTableModelHandler;
 
 // TODO validate ranges; validate types on each getter/setter call (? table columns only?)
 struct uiTableModelHandler {
+	// NumColumns returns the number of model columns in the
+	// uiTableModel. This value must remain constant through the
+	// lifetime of the uiTableModel. This method is not guaranteed
+	// to be called depending on the system.
+	// TODO strongly check column numbers and types on all platforms so these clauses can go away
 	int (*NumColumns)(uiTableModelHandler *, uiTableModel *);
+	// ColumnType returns the value type of the data stored in
+	// the given model column of the uiTableModel. The returned
+	// values must remain constant through the lifetime of the
+	// uiTableModel. This method is not guaranteed to be called
+	// depending on the system.
 	uiTableValueType (*ColumnType)(uiTableModelHandler *, uiTableModel *, int);
+	// NumRows returns the number or rows in the uiTableModel.
+	// This value must be non-negative.
 	int (*NumRows)(uiTableModelHandler *, uiTableModel *);
-	uiTableValue *(*CellValue)(uiTableModelHandler *, uiTableModel *, int, int);
+	// CellValue returns a uiTableValue corresponding to the model
+	// cell at (row, column). The type of the returned uiTableValue
+	// must match column's value type. Under some circumstances,
+	// NULL may be returned; refer to the various methods that add
+	// columns to uiTable for details. Once returned, the uiTable
+	// that calls CellValue will free the uiTableValue returned.
+	uiTableValue *(*CellValue)(uiTableModelHandler *mh, uiTableModel *m, int row, int column);
+	// SetCellValue changes the model cell value at (row, column)
+	// in the uiTableModel. Within this function, either do nothing
+	// to keep the current cell value or save the new cell value as
+	// appropriate. After SetCellValue is called, the uiTable will
+	// itself reload the table cell. Under certain conditions, the
+	// uiTableValue passed in can be NULL; refer to the various
+	// methods that add columns to uiTable for details. Once
+	// returned, the uiTable that called SetCellValue will free the
+	// uiTableValue passed in.
 	void (*SetCellValue)(uiTableModelHandler *, uiTableModel *, int, int, const uiTableValue *);
 };
 
+// uiNewTableModel() creates a new uiTableModel with the given
+// handler methods.
 _UI_EXTERN uiTableModel *uiNewTableModel(uiTableModelHandler *mh);
+
+// uiFreeTableModel() frees the given table model. It is an error to
+// free table models currently associated with a uiTable.
 _UI_EXTERN void uiFreeTableModel(uiTableModel *m);
+
+// uiTableModelRowInserted() tells any uiTable associated with m
+// that a new row has been added to m at index index. You call
+// this function when the number of rows in your model has
+// changed; after calling it, NumRows() should returm the new row
+// count.
 _UI_EXTERN void uiTableModelRowInserted(uiTableModel *m, int newIndex);
+
+// uiTableModelRowChanged() tells any uiTable associated with m
+// that the data in the row at index has changed. You do not need to
+// call this in your SetCellValue() handlers, but you do need to call
+// this if your data changes at some other point.
 _UI_EXTERN void uiTableModelRowChanged(uiTableModel *m, int index);
+
+// uiTableModelRowDeleted() tells any uiTable associated with m
+// that the row at index index has been deleted. You call this
+// function when the number of rows in your model has changed;
+// after calling it, NumRows() should returm the new row
+// count.
+// TODO for this and Inserted: make sure the "after" part is right; clarify if it's after returning or after calling
 _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
 // TODO reordering/moving
 

@@ -167,8 +167,6 @@ static void onInitGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 	openGLState.ModelViewUniform = glGetUniformLocation(openGLState.Program, "aModelView");
 	GLLogCall("glGetUniformLocation(openGLState.Program, 'aModelView')", __FILE__, __LINE__);
 
-	printf("Uniform locations: %u %u\n", openGLState.ProjectionUniform, openGLState.ModelViewUniform);
-
 	GLClearError();
 	openGLState.PositionAttrib = glGetAttribLocation(openGLState.Program, "aPosition");
 	GLLogCall("glGetAttribLocation(openGLState.Program, 'aPosition');", __FILE__, __LINE__);
@@ -206,12 +204,12 @@ static void onDrawGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a, double width, doub
 }
 
 static uiOpenGLAreaHandler AREA_HANDLER = {
+	onDrawGL,
 	onMouseEvent,
 	onMouseCrossed,
 	onDragBroken,
 	onKeyEvent,
-	onInitGL,
-	onDrawGL
+	onInitGL
 };
 
 static int onClosing(uiWindow *w, void *data)

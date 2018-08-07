@@ -1128,12 +1128,12 @@ typedef struct uiOpenGLAreaHandler uiOpenGLAreaHandler;
 typedef struct uiOpenGLAttributes uiOpenGLAttributes;
 
 struct uiOpenGLAreaHandler {
+    void (*DrawGL)(uiOpenGLAreaHandler *, uiOpenGLArea *, double width, double height);
 	void (*MouseEvent)(uiOpenGLAreaHandler *, uiOpenGLArea *, uiAreaMouseEvent *);
 	void (*MouseCrossed)(uiOpenGLAreaHandler *, uiOpenGLArea *, int left);
 	void (*DragBroken)(uiOpenGLAreaHandler *, uiOpenGLArea *);
 	int (*KeyEvent)(uiOpenGLAreaHandler *, uiOpenGLArea *, uiAreaKeyEvent *);
     void (*InitGL)(uiOpenGLAreaHandler *, uiOpenGLArea *);
-    void (*DrawGL)(uiOpenGLAreaHandler *, uiOpenGLArea *, double width, double height);
 };
 
 #define uiOpenGLArea(this) ((uiOpenGLArea *) (this))

@@ -221,8 +221,11 @@ int main(void)
 	uiOpenGLAttributesSetAttribute(attribs, uiOpenGLAttributeMajorVersion, 2);
 	uiOpenGLAttributesSetAttribute(attribs, uiOpenGLAttributeMinorVersion, 0);
 
+	uiBox *b = uiNewHorizontalBox();
+	uiWindowSetChild(mainwin, uiControl(b));
+
 	uiOpenGLArea *glarea = uiNewOpenGLArea(&AREA_HANDLER, attribs);
-	uiWindowSetChild(mainwin, uiControl(glarea));
+	uiBoxAppend(b, glarea, 1);
 
 	uiControlShow(uiControl(mainwin));
 	uiMain();

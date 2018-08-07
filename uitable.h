@@ -44,10 +44,31 @@ _UI_EXTERN void uiFreeImage(uiImage *i);
 // TODO see if we either need the stride or can provide a way to get the OS-preferred stride (in cairo we do)
 _UI_EXTERN void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int byteStride);
 
+// uiTableValue stores a value to be passed along uiTable and
+// uiTableModel.
+//
+// You do not create uiTableValues directly; instead, you create a
+// uiTableValue of a given type using the specialized constructor
+// functions.
+//
+// uiTableValues are immutable and the uiTableModel and uiTable
+// take ownership of the uiTableValue object once returned, copying
+// its contents as necessary.
 typedef struct uiTableValue uiTableValue;
 
+// @role uiTableValue destructor
+// uiFreeTableValue() frees a uiTableValue. You generally do not
+// need to call this yourself, as uiTable and uiTableModel do this
+// for you. In fact, it is an error to call this function on a uiTableValue
+// that has been given to a uiTable or uiTableModel. You can call this,
+// however, if you created a uiTableValue that you aren't going to
+// use later, or if you called a uiTableModelHandler method directly
+// and thus never transferred ownership of the uiTableValue.
 _UI_EXTERN void uiFreeTableValue(uiTableValue *v);
 
+// uiTableValueType holds the possible uiTableValue types that may
+// be returned by uiTableValueGetType(). Refer to the documentation
+// for each type's constructor function for details on each type.
 // TODO actually validate these
 _UI_ENUM(uiTableValueType) {
 	uiTableValueTypeString,
@@ -56,19 +77,56 @@ _UI_ENUM(uiTableValueType) {
 	uiTableValueTypeColor,
 };
 
+// uiTableValueGetType() returns the type of v.
 // TODO I don't like this name
 _UI_EXTERN uiTableValueType uiTableValueGetType(const uiTableValue *v);
 
+// uiNewTableValueString() returns a new uiTableValue that contains
+// str. str is copied; you do not need to keep it alive after
+// uiNewTableValueString() returns.
 _UI_EXTERN uiTableValue *uiNewTableValueString(const char *str);
+
+// uiTableValueString() returns the string stored in v. The returned
+// string is owned by v. It is an error to call this on a uiTableValue
+// that does not hold a string.
 _UI_EXTERN const char *uiTableValueString(const uiTableValue *v);
 
+// uiNewTableValueImage() returns a new uiTableValue that contains
+// the given uiImage.
+// 
+// Unlike other similar constructors, uiNewTableValueImage() does
+// NOT copy the image. This is because images are comparatively
+// larger than the other objects in question. Therefore, you MUST
+// keep the image alive as long as the returned uiTableValue is alive.
+// As a general rule, if libui calls a uiTableModelHandler method, the
+// uiImage is safe to free once any of your code is once again
+// executed.
 _UI_EXTERN uiTableValue *uiNewTableValueImage(uiImage *img);
+
+// uiTableValueImage() returns the uiImage stored in v. As these
+// images are not owned by v, you should not assume anything
+// about the lifetime of the image (unless you created the image,
+// and thus control its lifetime). It is an error to call this on a
+// uiTableValue that does not hold an image.
 _UI_EXTERN uiImage *uiTableValueImage(const uiTableValue *v);
 
+// uiNewTableValueInt() returns a uiTableValue that stores the given
+// int. This can be used both for boolean values (nonzero is true, as
+// in C) or progresses (in which case the valid range is -1..100
+// inclusive).
 _UI_EXTERN uiTableValue *uiNewTableValueInt(int i);
+
+// uiTableValueInt() returns the int stored in v. It is an error to call
+// this on a uiTableValue that does not store an int.
 _UI_EXTERN int uiTableValueInt(const uiTableValue *v);
 
+// uiNewTableValueColor() returns a uiTableValue that stores the
+// given color.
 _UI_EXTERN uiTableValue *uiNewTableValueColor(double r, double g, double b, double a);
+
+// uiTableValueColor() returns the color stored in v. It is an error to
+// call this on a uiTableValue that does not store a color.
+// TODO define whether all this, for both uiTableValue and uiAttribute, is undefined behavior or a caught error
 _UI_EXTERN void uiTableValueColor(const uiTableValue *v, double *r, double *g, double *b, double *a);
 
 typedef struct uiTableModel uiTableModel;

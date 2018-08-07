@@ -512,6 +512,7 @@ _UI_EXTERN void uiDrawRestore(uiDrawContext *c);
 // contents as necessary.
 typedef struct uiAttribute uiAttribute;
 
+// @role uiAttribute destructor
 // uiFreeAttribute() frees a uiAttribute. You generally do not need to
 // call this yourself, as uiAttributedString does this for you. In fact,
 // it is an error to call this function on a uiAttribute that has been

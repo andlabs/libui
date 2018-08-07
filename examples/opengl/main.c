@@ -113,7 +113,7 @@ static float rotationAngle = 0.0f;
 
 static void onMouseEvent(uiOpenGLAreaHandler *h, uiOpenGLArea *a, uiAreaMouseEvent *e)
 {
-	printf("onMouseEvent %f\n", e->AreaWidth);
+	printf("onMouseEvent\n");
 	double width;
 	uiOpenGLAreaGetSize(a, &width, NULL);
 

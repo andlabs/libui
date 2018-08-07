@@ -189,7 +189,6 @@ static void finishMouseEvent(uiOpenGLArea *a, uiAreaMouseEvent *me, guint mb, gd
 
 static gboolean openGLAreaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 {
-	printf("Press\n");
 	openGLAreaWidget *aw = openGLAreaWidget(w);
 	uiOpenGLArea *a = aw->a;
 	gint maxTime, maxDistance;
@@ -242,7 +241,6 @@ static gboolean openGLAreaWidget_button_release_event(GtkWidget *w, GdkEventButt
 
 static gboolean openGLAreaWidget_motion_notify_event(GtkWidget *w, GdkEventMotion *e)
 {
-	printf("Motion\n");
 	openGLAreaWidget *aw = openGLAreaWidget(w);
 	uiOpenGLArea *a = aw->a;
 	uiAreaMouseEvent me;

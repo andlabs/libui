@@ -220,41 +220,88 @@ _UI_EXTERN void uiTableModelRowChanged(uiTableModel *m, int index);
 _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
 // TODO reordering/moving
 
+// uiTableModelColumnNeverEditable and
+// uiTableModelColumnAlwaysEditable are the value of an editable
+// model column parameter to one of the uiTable create column
+// functions; if used, that jparticular uiTable colum is not editable
+// by the user and always editable by the user, respectively.
 #define uiTableModelColumnNeverEditable (-1)
 #define uiTableModelColumnAlwaysEditable (-2)
 
+// uiTableTextColumnOptionalParams are the optional parameters
+// that control the appearance of the text column of a uiTable.
 typedef struct uiTableTextColumnOptionalParams uiTableTextColumnOptionalParams;
+
+// uiTableParams defines the parameters passed to uiNewTable().
 typedef struct uiTableParams uiTableParams;
 
 struct uiTableTextColumnOptionalParams {
+	// ColorModelColumn is the model column containing the
+	// text color of this uiTable column's text, or -1 to use the
+	// default color.
+	//
+	// If CellValue() for this column for any cell returns NULL, that
+	// cell will also use the default text color.
 	int ColorModelColumn;
 };
 
 struct uiTableParams {
+	// Model is the uiTableModel to use for this uiTable.
+	// This parameter cannot be NULL.
 	uiTableModel *Model;
+	// RowBackgroundColorModelColumn is a model column
+	// number that defines the background color used for the
+	// entire row in the uiTable, or -1 to use the default color for
+	// all rows.
+	//
+	// If CellValue() for this column for any row returns NULL, that
+	// row will also use the default background color.
 	int RowBackgroundColorModelColumn;
 };
 
+// uiTable is a uiControl that shows tabular data, allowing users to
+// manipulate rows of such data at a time.
 typedef struct uiTable uiTable;
 #define uiTable(this) ((uiTable *) (this))
+
+// uiTableAppendTextColumn() appends a text column to t.
+// name is displayed in the table header.
+// textModelColumn is where the text comes from.
+// If a row is editable according to textEditableModelColumn,
+// SetCellValue() is called with textModelColumn as the column.
 _UI_EXTERN void uiTableAppendTextColumn(uiTable *t,
 	const char *name,
 	int textModelColumn,
 	int textEditableModelColumn,
 	uiTableTextColumnOptionalParams *textParams);
+
+// uiTableAppendImageColumn() appends an image column to t.
+// Images are drawn at icon size, appropriate to the pixel density
+// of the screen showing the uiTable.
 _UI_EXTERN void uiTableAppendImageColumn(uiTable *t,
 	const char *name,
 	int imageModelColumn);
+
+// uiTableAppendImageTextColumn() appends a column to t that
+// shows both an image and text.
 _UI_EXTERN void uiTableAppendImageTextColumn(uiTable *t,
 	const char *name,
 	int imageModelColumn,
 	int textModelColumn,
 	int textEditableModelColumn,
 	uiTableTextColumnOptionalParams *textParams);
+
+// uiTableAppendCheckboxColumn appends a column to t that
+// contains a checkbox that the user can interact with (assuming the
+// checkbox is editable). SetCellValue() will be called with
+// checkboxModelColumn as the column in this case.
 _UI_EXTERN void uiTableAppendCheckboxColumn(uiTable *t,
 	const char *name,
 	int checkboxModelColumn,
 	int checkboxEditableModelColumn);
+
+// uiTableAppendCheckboxTextColumn() appends a column to t
+// that contains both a checkbox and text.
 _UI_EXTERN void uiTableAppendCheckboxTextColumn(uiTable *t,
 	const char *name,
 	int checkboxModelColumn,
@@ -262,11 +309,25 @@ _UI_EXTERN void uiTableAppendCheckboxTextColumn(uiTable *t,
 	int textModelColumn,
 	int textEditableModelColumn,
 	uiTableTextColumnOptionalParams *textParams);
+
+// uiTableAppendProgressBarColumn() appends a column to t
+// that displays a progress bar. These columns work like
+// uiProgressBar: a cell value of 0..100 displays that percentage, and
+// a cell value of -1 displays an indeterminate progress bar.
 _UI_EXTERN void uiTableAppendProgressBarColumn(uiTable *t,
 	const char *name,
 	int progressModelColumn);
+
+// uiTableAppendButtonColumn() appends a column to t
+// that shows a button that the user can click on. When the user
+// does click on the button, SetCellValue() is called with a NULL
+// value and buttonModelColumn as the column.
+// CellValue() on buttonModelColumn should return the text to show
+// in the button.
 _UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
 	const char *name,
 	int buttonModelColumn,
 	int buttonClickableModelColumn);
+
+// uiNewTable() creates a new uiTable with the specified parameters.
 _UI_EXTERN uiTable *uiNewTable(uiTableParams *params);

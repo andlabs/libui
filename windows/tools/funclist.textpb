@@ -1,0 +1,18 @@
+# 8 august 2018
+
+func: {
+name: "RegisterClassW"
+arg: "_In_ CONST WNDCLASSW *lpWndClass"
+ret: "ATOM"
+failval: "0"
+save: true
+}
+
+func: {
+name: "UnregisterClassW"
+arg: "_In_ LPCWSTR lpClassName"
+arg: "_In_opt_ HINSTANCE hInstance"
+ret: "BOOL"
+failval: "0"
+cleanup: true
+}

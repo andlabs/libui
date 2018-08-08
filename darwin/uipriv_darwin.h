@@ -23,8 +23,6 @@
 #define NSAppKitVersionNumber10_9 1265
 #endif
 
-/*TODO remove this*/typedef struct uiImage uiImage;
-
 // map.m
 typedef struct uiprivMap uiprivMap;
 extern uiprivMap *uiprivNewMap(void);

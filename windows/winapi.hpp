@@ -37,11 +37,14 @@
 #ifndef RC_INVOKED
 #include <commctrl.h>
 #include <uxtheme.h>
+#include <vsstyle.h>
+#include <vssym32.h>
 #include <windowsx.h>
 #include <shobjidl.h>
 #include <d2d1.h>
 #include <d2d1helper.h>
 #include <dwrite.h>
+#include <wincodec.h>
 
 #include <stdint.h>
 #include <string.h>
@@ -57,4 +60,5 @@
 #include <unordered_map>
 #include <sstream>
 #include <functional>
+#include <utility>
 #endif

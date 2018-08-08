@@ -159,8 +159,8 @@ int main(int argc, char *argv[])
 	innerTab = newTab();
 	uiTabAppend(outerTab, "Pages 16-?", uiControl(innerTab));
 
-//	page16 = makePage16();
-//	uiTabAppend(innerTab, "Page 16", uiControl(page16));
+	page16 = makePage16();
+	uiTabAppend(innerTab, "Page 16", uiControl(page16));
 
 	if (startspaced)
 		setSpaced(1);
@@ -174,6 +174,7 @@ int main(int argc, char *argv[])
 			;
 	}
 	printf("after uiMain()\n");
+	freePage16();
 	uiUninit();
 	printf("after uiUninit()\n");
 	return 0;

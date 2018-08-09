@@ -312,7 +312,6 @@ mouseEvent(otherMouseUp)
 - (void)setScrollingSize:(NSSize)s
 {
 	self->libui_ss = s;
-	[self invalidateIntrinsicContentSize];
 	[self setFrameSize:s];
 }
 

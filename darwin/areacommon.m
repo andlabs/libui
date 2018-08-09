@@ -29,7 +29,7 @@ struct uiArea {
 	uiArea *a = self->area;
 	uiAreaMouseEvent me;
 	NSPoint point;
-	int buttonNumber;
+	unsigned int buttonNumber;
 	NSUInteger pmb;
 	unsigned int i, max;
 

@@ -128,7 +128,7 @@ void uiOpenGLAreaGetSize(uiOpenGLArea *a, double *width, double *height)
 		*height = rect.size.height;
 }
 
-void uiOpenGLAreaSetSwapInterval(uiOpenGLArea *a, int si)
+void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si)
 {
 	if ((!CGLSetParameter([a->ctx CGLContextObj], kCGLCPSwapInterval, &si)) != kCGLNoError)
 		uiprivUserBug("Couldn't set the swap interval!");

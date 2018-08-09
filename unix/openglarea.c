@@ -473,7 +473,7 @@ void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)
 	gtk_widget_queue_draw(a->widget);
 }
 
-void uiOpenGLAreaSetSwapInterval(uiOpenGLArea *a, int si)
+void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si)
 {
 	pthread_once(&loaded_extensions, load_extensions);
 

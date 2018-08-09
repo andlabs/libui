@@ -108,7 +108,7 @@ extern void uiprivSingleChildConstraintsSetMargined(uiprivSingleChildConstraints
 extern int uiprivSendAreaEvents(NSEvent *);
 
 // areacommon.m
-@interface areaCommonView : NSView {
+@interface uiprivAreaCommonView : NSView {
 	BOOL libui_enabled;
 }
 - (void)setArea:(uiArea *)a;

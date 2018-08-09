@@ -2,7 +2,7 @@
 
 #define NSEventModifierFlags NSUInteger
 
-@interface openGLAreaView : areaCommonView {
+@interface openGLAreaView : uiprivAreaCommonView {
 	uiOpenGLArea *libui_a;
 }
 

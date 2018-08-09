@@ -13,7 +13,7 @@ struct uiArea {
 	// ...
 };
 
-@implementation areaCommonView {
+@implementation uiprivAreaCommonView {
 	uiArea *area;
 	NSTrackingArea *libui_ta;
 }

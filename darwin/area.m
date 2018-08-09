@@ -4,7 +4,7 @@
 // 10.8 fixups
 #define NSEventModifierFlags NSUInteger
 
-@interface areaView : areaCommonView {
+@interface areaView : uiprivAreaCommonView {
 	uiArea *libui_a;
 	NSSize libui_ss;
 }

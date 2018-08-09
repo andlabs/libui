@@ -26,4 +26,4 @@ static inline HRESULT lastErrorToHRESULT(DWORD lasterr, const char *funcname)
 {{end}}	if (xyzret != {{.Failval}})
 		return S_OK;
 	return lastErrToHRESULT(xyzlasterr, "{{.Name}}()");
-}{{end}}
+}{{/*TODO cleanup*/}}{{end}}

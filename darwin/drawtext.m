@@ -20,6 +20,22 @@
 - (CFArrayRef)lines;
 @end
 
+struct uiDrawTextLayout {
+	uiprivTextFrame *frame;
+	uiprivTextFrame *forLines;
+	BOOL empty;
+
+	// for converting CFAttributedString indices from/to byte offsets
+	size_t *u8tou16;
+	size_t nUTF8;
+	size_t *u16tou8;
+	size_t nUTF16;
+
+	// for correct alignment drawing
+	double width;
+	uiDrawTextAlign align;
+};
+
 @implementation uiprivDrawTextBackgroundParams
 
 - (id)initWithStart:(size_t)s end:(size_t)e r:(double)red g:(double)green b:(double)blue a:(double)alpha
@@ -118,6 +134,15 @@
 	CGContextScaleCTM(c->c, 1.0, -1.0);
 	CGContextSetTextMatrix(c->c, CGAffineTransformIdentity);
 
+
+	// If left or center aligned: offset frame because frame->width might not be tl->width
+	if(tl->align == uiDrawTextAlignCenter){
+		x += (tl->width - self->size.width)/2;
+	} else if(tl->align == uiDrawTextAlignRight){
+		x += tl->width - self->size.width;
+	}
+
+
 	// wait, that's not enough; we need to offset y values to account for our new flipping
 	// TODO explain this calculation
 	y = c->height - self->size.height - y;
@@ -149,18 +174,6 @@
 
 @end
 
-struct uiDrawTextLayout {
-	uiprivTextFrame *frame;
-	uiprivTextFrame *forLines;
-	BOOL empty;
-
-	// for converting CFAttributedString indices from/to byte offsets
-	size_t *u8tou16;
-	size_t nUTF8;
-	size_t *u16tou8;
-	size_t nUTF16;
-};
-
 uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 {
 	uiDrawTextLayout *tl;
@@ -184,6 +197,9 @@ uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 	// and finally copy the UTF-8/UTF-16 conversion tables
 	tl->u8tou16 = uiprivAttributedStringCopyUTF8ToUTF16Table(p->String, &(tl->nUTF8));
 	tl->u16tou8 = uiprivAttributedStringCopyUTF16ToUTF8Table(p->String, &(tl->nUTF16));
+
+	tl->width = p->Width;
+	tl->align = p->Align;
 	return tl;
 }
 

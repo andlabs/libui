@@ -140,6 +140,7 @@ const char *uiInit(uiInitOptions *o)
 
 void uiUninit(void)
 {
+	uiprivUninitTimers();
 	uiprivUninitImage();
 	uninitMenus();
 	unregisterD2DScratchClass();

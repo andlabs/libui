@@ -150,6 +150,7 @@ void uiprivFreeTimer(uiprivTimer *t)
 	uiprivFree(t);
 }
 
+// since timers use uiprivAlloc(), we have to clean them up in uiUninit(), or else we'll get dangling allocation errors
 void uiprivUninitTimers(void)
 {
 	// TODO why doesn't auto t : timers work?

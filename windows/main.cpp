@@ -129,6 +129,8 @@ void uiQueueMain(void (*f)(void *data), void *data)
 		logLastError(L"error queueing function to run on main thread");
 }
 
+static std::map<uiprivTimer *, bool> timers;
+
 void uiTimer(int milliseconds, int (*f)(void *data), void *data)
 {
 	uiprivTimer *timer;
@@ -139,4 +141,20 @@ void uiTimer(int milliseconds, int (*f)(void *data), void *data)
 	// note that timer IDs are pointer sized precisely so we can use them as timer IDs; see https://blogs.msdn.microsoft.com/oldnewthing/20150924-00/?p=91521
 	if (SetTimer(utilWindow, (UINT_PTR) timer, milliseconds, NULL) == 0)
 		logLastError(L"error calling SetTimer() in uiTimer()");
+	timers[timer] = true;
+}
+
+void uiprivFreeTimer(uiprivTimer *t)
+{
+	timers.erase(t);
+	uiprivFree(t);
+}
+
+// since timers use uiprivAlloc(), we have to clean them up in uiUninit(), or else we'll get dangling allocation errors
+void uiprivUninitTimers(void)
+{
+	// TODO why doesn't auto t : timers work?
+	for (auto t = timers.begin(); t != timers.end(); t++)
+		uiprivFree(t->first);
+	timers.clear();
 }

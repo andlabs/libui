@@ -45,6 +45,8 @@ list(APPEND _LIBUI_SOURCES
 	darwin/spinbox.m
 	darwin/stddialogs.m
 	darwin/tab.m
+	darwin/table.m
+	darwin/tablecolumn.m
 	darwin/text.m
 	darwin/undocumented.m
 	darwin/util.m

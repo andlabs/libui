@@ -66,11 +66,10 @@ struct uiArea {
 	uiprivDrawFreeContext(dp.Context);
 }
 
-// TODO does this update the frame?
 - (void)setScrollingSize:(NSSize)s
 {
 	self->libui_ss = s;
-	[self invalidateIntrinsicContentSize];
+	[self setFrameSize:s];
 }
 
 - (NSSize)intrinsicContentSize

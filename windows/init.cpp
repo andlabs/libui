@@ -131,11 +131,17 @@ const char *uiInit(uiInitOptions *o)
 	if (registerD2DScratchClass(hDefaultIcon, hDefaultCursor) == 0)
 		return ieLastErr("initializing D2D scratch window class");
 
+	hr = uiprivInitImage();
+	if (hr != S_OK)
+		return ieHRESULT("initializing WIC", hr);
+
 	return NULL;
 }
 
 void uiUninit(void)
 {
+	uiprivUninitTimers();
+	uiprivUninitImage();
 	uninitMenus();
 	unregisterD2DScratchClass();
 	unregisterMessageFilter();

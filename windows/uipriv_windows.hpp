@@ -103,6 +103,8 @@ struct uiprivTimer {
 };
 extern int registerMessageFilter(void);
 extern void unregisterMessageFilter(void);
+extern void uiprivFreeTimer(uiprivTimer *t);
+extern void uiprivUninitTimers(void);
 
 // parent.cpp
 extern void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect);
@@ -163,3 +165,10 @@ extern D2D1_SIZE_F realGetSize(ID2D1RenderTarget *rt);
 
 // draw.cpp
 extern ID2D1DCRenderTarget *makeHDCRenderTarget(HDC dc, RECT *r);
+
+// image.cpp
+extern IWICImagingFactory *uiprivWICFactory;
+extern HRESULT uiprivInitImage(void);
+extern void uiprivUninitImage(void);
+extern IWICBitmap *uiprivImageAppropriateForDC(uiImage *i, HDC dc);
+extern HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBITMAP *hb);

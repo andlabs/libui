@@ -3,14 +3,16 @@
 list(APPEND _LIBUI_SOURCES
 	common/attribute.c
 	common/attrlist.c
-	common/attrstr.c
 	common/areaevents.c
+	common/attrstr.c
 	common/control.c
 	common/debug.c
-	common/opengl.c
 	common/matrix.c
+	common/opengl.c
 	common/opentype.c
 	common/shouldquit.c
+	common/tablemodel.c
+	common/tablevalue.c
 	common/userbugs.c
 	common/utf.c
 )

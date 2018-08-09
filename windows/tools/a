@@ -1,14 +1,3 @@
-static HRESULT lastErrorToHRESULT(DWORD lasterr, const char *funcname)
-{
-	HRESULT hr;
-
-	hr = E_FAIL;
-	if (lasterr != 0)
-		hr = HRESULT_FROM_WIN32(lasterr);
-	uiprivImplBug("error calling %s: last error %I32d\n", funcname, lasterr);
-	return hr;
-}
-
 @BOOL GetWindowPlacement HWND hwnd uiprivLPWWINDOWPLACEMENT wp == 0
 $typedef const WINDOWPLACEMENT *uiprivLPCWINDOWPLACEMENT;
 @BOOL SetWindowPlacement HWND hwnd uiprivLPCWINDOWPLACEMENT wp == 0

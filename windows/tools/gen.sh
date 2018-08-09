@@ -1,1 +1,1 @@
-./hresultwrap funclist.textpb
+./hresultwrap funclist.textpb cpp.template

@@ -213,7 +213,7 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	[tl->forLines returnWidth:NULL height:height];
 }
 
-void uiDrawLoadDefaultFont(uiFontDescriptor *f)
+void uiLoadControlFont(uiFontDescriptor *f)
 {
 	CTFontRef ctfont;
 	CTFontDescriptorRef ctdesc;

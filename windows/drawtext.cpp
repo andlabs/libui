@@ -535,7 +535,7 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	*height = metrics.height;
 }
 
-void uiDrawLoadDefaultFont(uiFontDescriptor *f)
+void uiLoadControlFont(uiFontDescriptor *f)
 {
 	fontCollection *collection;
 	IDWriteGdiInterop *gdi;

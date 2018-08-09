@@ -80,7 +80,7 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	*height = pangoToCairo(logical.height);
 }
 
-void uiDrawLoadDefaultFont(uiFontDescriptor *f)
+void uiLoadControlFont(uiFontDescriptor *f)
 {
 	GtkWidget *widget;
 	GtkStyleContext *style;

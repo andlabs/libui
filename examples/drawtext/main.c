@@ -102,7 +102,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 
 	params.String = attrstr;
 	if (useSystemFont)
-		uiDrawLoadDefaultFont(&defaultFont);
+		uiLoadControlFont(&defaultFont);
 	else
 		uiFontButtonFont(fontButton, &defaultFont);
 	params.DefaultFont = &defaultFont;

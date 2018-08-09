@@ -21,7 +21,6 @@ void uiprivLoadUndocumented(void)
 		return;
 #define GET(var, fn) *((void **) (&var)) = dlsym(handle, #fn)
 	GET(str, kCTFontPreferredSubFamilyNameKey);
-NSLog(@"get %p", str);
 	if (str != NULL)
 		uiprivUNDOC_kCTFontPreferredSubFamilyNameKey = *str;
 	GET(str, kCTFontPreferredFamilyNameKey);

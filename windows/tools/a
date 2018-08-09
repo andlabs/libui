@@ -9,21 +9,6 @@ static HRESULT lastErrorToHRESULT(DWORD lasterr, const char *funcname)
 	return hr;
 }
 
-@BOOL UnregisterClassW LPCWSTR className HINSTANCE hInstance == 0
-@*HWND CreateWindowExW DWORD exstyle LPCWSTR className LPCWSTR title DWORD style int x int y int width int height HWND parent HMENU menu HINSTANCE hInstance LPVOID lpParam == NULL
-@BOOL DestroyWindow HWND hwnd == 0
-@BOOL UpdateWindow HWND hwnd == 0
-@BOOL AdustWindowRectEx LPRECT r DWORD style BOOL hasMenu DWORD exStyle == 0
-
-@*BOOL GetMessageW LPMSG msg HWND hwnd UINT minMsg UINT maxMsg < 0
-@BOOL PostMessageW HWND hwnd UINT uMsg WPARAM wParam LPARAM lParam == 0
-@UINT_PTR SetTimer HWND hwnd UINT_PTR id UINT time TIMERPROC proc == 0
-@BOOL KillTimer HWND hwnd UINT_PTR id == 0
-
-@int GetWindowTextW HWND hwnd LPWSTR str int n == 0
-@BOOL SetWindowTextW HWND hwnd LPCWSTR str == 0
-@BOOL SetWindowPos HWND hwnd HWND insertAfter int x int y int cx int cy UINT flags == 0
-$typedef WINDOWPLACEMENT *uiprivLPWINDOWPLACEMENT;
 @BOOL GetWindowPlacement HWND hwnd uiprivLPWWINDOWPLACEMENT wp == 0
 $typedef const WINDOWPLACEMENT *uiprivLPCWINDOWPLACEMENT;
 @BOOL SetWindowPlacement HWND hwnd uiprivLPCWINDOWPLACEMENT wp == 0

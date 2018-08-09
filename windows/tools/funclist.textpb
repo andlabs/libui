@@ -1,5 +1,83 @@
 # 8 august 2018
 
+# TODO preserve lpRect on failure
+func: {
+name: "AdjustWindowRectEx"
+arg: "_Inout_ LPRECT lpRect"
+arg: "_In_ DWORD dwStyle"
+arg: "_In_ BOOL bMenu"
+arg: "_In_ DWORD dwExStyle"
+ret: "BOOL"
+failval: "0"
+}
+
+func: {
+name: "CreateWindowExW"
+arg: "_In_ DWORD dwExStyle"
+arg: "_In_opt_ LPCWSTR lpClassName"
+arg: "_In_opt_ LPCWSTR lpWindowName"
+arg: "_In_ DWORD dwStyle"
+arg: "_In_ int X"
+arg: "_In_ int Y"
+arg: "_In_ int nWidth"
+arg: "_In_ int nHeight"
+arg: "_In_opt_ HWND hWndParent"
+arg: "_In_opt_ HMENU hMenu"
+arg: "_In_opt_ HINSTANCE hInstance"
+arg: "_In_opt_ LPVOID lpParam"
+ret: "HWND"
+failval: "NULL"
+save: true
+}
+
+func: {
+name: "DestroyWindow"
+arg: "_In_ HWND hWnd"
+ret: "BOOL"
+failval: "0"
+cleanup: true
+}
+
+# TODO failexpr is < 0
+func: {
+name: "GetMessageW"
+arg: "_Out_ LPMSG lpMsg"
+arg: "_In_opt_ HWND hWnd"
+arg: "_In_ UINT wMsgFilterMin"
+arg: "_In_ UINT wMsgFilterMax"
+ret: "BOOL"
+failval: "-1"
+}
+
+# TODO write a L'\0' to lpString[0] on failure
+# TODO also add extra checks to make sure lpString is not NULL
+func: {
+name: "GetWindowTextW"
+arg: "_In_ HWND hWnd"
+arg: "_Out_writes_(nMaxCount) LPWSTR lpString"
+arg: "_In_ int nMaxCount"
+ret: "int"
+failval: "0"
+}
+
+func: {
+name: "KillTimer"
+arg: "_In_opt_ HWND hWnd"
+arg: "_In_ UINT_PTR uIDEvent"
+ret: "BOOL"
+failval: "0"
+}
+
+func: {
+name: "PostMessageW"
+arg: "_In_opt_ HWND hWnd"
+arg: "_In_ UINT Msg"
+arg: "_In_ WPARAM wParam"
+arg: "_In_ LPARAM lParam"
+ret: "BOOL"
+failval: "0"
+}
+
 func: {
 name: "RegisterClassW"
 arg: "_In_ CONST WNDCLASSW *lpWndClass"
@@ -9,10 +87,48 @@ save: true
 }
 
 func: {
+name: "SetTimer"
+arg: "_In_opt_ HWND hWnd"
+arg: "_In_ UINT_PTR nIDEvent"
+arg: "_In_ UINT uElapse"
+arg: "_In_opt_ TIMERPROC lpTimerFunc"
+ret: "UINT_PTR"
+failval: "0"
+}
+
+func: {
+name: "SetWindowPos"
+arg: "_In_ HWND hWnd"
+arg: "_In_opt_ HWND hWndInsertAfter"
+arg: "_In_ int X"
+arg: "_In_ int Y"
+arg: "_In_ int cx"
+arg: "_In_ int cy"
+arg: "_In_ UINT uFlags"
+ret: "BOOL"
+failval: "0"
+}
+
+func: {
+name: "SetWindowTextW"
+arg: "_In_ HWND hWnd"
+arg: "_In_opt_ LPCWSTR lpString"
+ret: "BOOL"
+failval: "0"
+}
+
+func: {
 name: "UnregisterClassW"
 arg: "_In_ LPCWSTR lpClassName"
 arg: "_In_opt_ HINSTANCE hInstance"
 ret: "BOOL"
 failval: "0"
 cleanup: true
+}
+
+func: {
+name: "UpdateWindow"
+arg: "_In_ HWND hWnd"
+ret: "BOOL"
+failval: "0"
 }

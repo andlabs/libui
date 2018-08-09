@@ -3,6 +3,9 @@
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
+#elif defined WIN32
+#include <windows.h>
+#include <GL/gl.h>
 #else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>

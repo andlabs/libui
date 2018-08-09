@@ -2,7 +2,38 @@
 #include "uipriv_windows.hpp"
 #include "area.hpp"
 
-static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
+static void beginOpenGLDraw(uiOpenGLArea *a/*, uiAreaDrawParams *dp*/, ID2D1RenderTarget *rt) {
+	RECT rect;
+	GetClientRect(a->hwnd,&rect);
+	// TODO What to keep?
+	// glViewport(0, 0, rect.right, rect.bottom);
+    
+	// COLORREF bgcolorref = GetSysColor(COLOR_BTNFACE);
+ //    float r = ((float) GetRValue(bgcolorref)) / 255.0;
+	// // due to utter apathy on Microsoft's part, GetGValue() does not work with MSVC's Run-Time Error Checks
+	// // it has not worked since 2008 and they have *never* fixed it
+	// // TODO now that -RTCc has just been deprecated entirely, should we switch back?
+ //    float g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
+	// float b = ((float) GetBValue(bgcolorref)) / 255.0;
+ //     glClearColor(r, g, b, 1.0);
+ //    glClear(GL_COLOR_BUFFER_BIT);
+ //    glEnable(GL_BLEND);
+ //    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+ //     if (a->scrolling) {
+ //        dp->AreaWidth = a->scrollWidth;
+ //        dp->AreaHeight = a->scrollHeight;
+ //    } else {
+ //        dp->AreaWidth = rect.right - rect.left;
+ //        dp->AreaHeight = rect.bottom - rect.top;
+ //    }
+
+	double width, height;
+	loadAreaSize((uiArea *) a, rt, &width, &height);
+
+	(*(a->ah->DrawGL))(a->ah, a, width, height);
+}
+
+static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip, BOOL isOpenGLArea)
 {
 	uiAreaHandler *ah = a->ah;
 	uiAreaDrawParams dp;
@@ -24,7 +55,10 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 		dp.ClipY += a->vscrollpos;
 	}
 
-	rt->BeginDraw();
+	if(isOpenGLArea)
+		beginOpenGLDraw((uiOpenGLArea *) a, rt);
+	else
+		rt->BeginDraw();
 
 	if (a->scrolling) {
 		ZeroMemory(&scrollTransform, sizeof (D2D1_MATRIX_3X2_F));
@@ -55,11 +89,13 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 	freeContext(dp.Context);
 
 	// TODO pop axis aligned clip
-
-	return rt->EndDraw(NULL, NULL);
+	if(isOpenGLArea)
+		return S_OK;
+	else
+		return rt->EndDraw(NULL, NULL);
 }
 
-static void onWM_PAINT(uiArea *a)
+static void onWM_PAINT(uiArea *a, BOOL isOpenGLArea)
 {
 	RECT clip;
 	HRESULT hr;
@@ -72,7 +108,7 @@ static void onWM_PAINT(uiArea *a)
 		clip.right = 0;
 		clip.bottom = 0;
 	}
-	hr = doPaint(a, a->rt, &clip);
+	hr = doPaint(a, a->rt, &clip, isOpenGLArea);
 	switch (hr) {
 	case S_OK:
 		if (ValidateRect(a->hwnd, NULL) == 0)
@@ -91,7 +127,7 @@ static void onWM_PAINT(uiArea *a)
 	}
 }
 
-static void onWM_PRINTCLIENT(uiArea *a, HDC dc)
+static void onWM_PRINTCLIENT(uiArea *a, HDC dc, BOOL isOpenGLArea)
 {
 	ID2D1DCRenderTarget *rt;
 	RECT client;
@@ -99,21 +135,21 @@ static void onWM_PRINTCLIENT(uiArea *a, HDC dc)
 
 	uiWindowsEnsureGetClientRect(a->hwnd, &client);
 	rt = makeHDCRenderTarget(dc, &client);
-	hr = doPaint(a, rt, &client);
+	hr = doPaint(a, rt, &client, isOpenGLArea);
 	if (hr != S_OK)
 		logHRESULT(L"error printing uiArea client area", hr);
 	rt->Release();
 }
 
-BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
+BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult, BOOL isOpenGLArea)
 {
 	switch (uMsg) {
 	case WM_PAINT:
-		onWM_PAINT(a);
+		onWM_PAINT(a, isOpenGLArea);
 		*lResult = 0;
 		return TRUE;
 	case WM_PRINTCLIENT:
-		onWM_PRINTCLIENT(a, (HDC) wParam);
+		onWM_PRINTCLIENT(a, (HDC) wParam, isOpenGLArea);
 		*lResult = 0;
 		return TRUE;
 	}

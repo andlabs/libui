@@ -27,8 +27,34 @@ struct uiArea {
 	ID2D1HwndRenderTarget *rt;
 };
 
+struct uiOpenGLArea {
+	uiWindowsControl c;
+	HWND hwnd;
+	uiOpenGLAreaHandler *ah;
+
+	BOOL scrolling;
+	int scrollWidth;
+	int scrollHeight;
+	int hscrollpos;
+	int vscrollpos;
+	int hwheelCarry;
+	int vwheelCarry;
+
+	uiprivClickCounter cc;
+	BOOL capturing;
+
+	BOOL inside;
+	BOOL tracking;
+
+	ID2D1HwndRenderTarget *rt;
+
+	HDC hDC;
+	HGLRC hglrc;
+};
+
+
 // areadraw.cpp
-extern BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult);
+extern BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult, BOOL isOpenGLArea);
 extern void areaDrawOnResize(uiArea *, RECT *);
 
 // areascroll.cpp

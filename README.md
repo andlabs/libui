@@ -10,7 +10,7 @@ It has come to my attention that I have not been particularly clear about how us
 
 libui is currently **mid-alpha** software. Much of what is currently present runs stabily enough for the examples and perhaps some small programs to work, but the stability is still a work-in-progress, much of what is already there is not feature-complete, some of it will be buggy on certain platforms, and there's a lot of stuff missing. In short, here's a list of features that I would like to add to libui, but that aren't in yet:
 
-- tables and trees (the former is currently WIP and may land in preliminary form soon)
+- trees
 - clipboard support, including drag and drop
 - more and better dialogs
 - printing
@@ -18,7 +18,7 @@ libui is currently **mid-alpha** software. Much of what is currently present run
 - document-based programs
 - tighter OS integration (especially for document-based programs), to allow programs to fully feel native, rather than merely look and act native
 - better support for standard dialogs and features (search bars, etc.)
-- OpenGL support (this was already being worked on by someone else, but I don't know what happened to them...)
+- OpenGL support
 
 In addition, [here](https://github.com/andlabs/libui/issues?utf8=%E2%9C%93&q=master+in%3Atitle+is%3Aissue+is%3Aopen) is a list of issues generalizing existing problems.
 
@@ -29,6 +29,9 @@ But libui is not dead; I am working on it whenever I can, and I hope to get it t
 ## News
 
 *Note that today's entry (Eastern Time) may be updated later today.*
+
+* **10 August 2018**
+	* **Alpha 4 is finally here.** Everything from Alpha 3.5 and what's listed below is in this release; the two biggest changes are still the new text drawing API and new uiTable control. In between all that is a whole bunch of bugfixes, and hopefully more stability too. Thanks to everybody who helped contribute!
 
 * **8 August 2018**
 	* Finally introduced an API for loading images, `uiImage`, and a new control, `uiTable`, for displaying tabular data. These provide enough basic functionality for now, but will be improved over time. You can read the documentation for the new features as they are [here](https://github.com/andlabs/libui/blob/f47e1423cf95ad7b1001663f3381b5a819fc67b9/uitable.h). Thanks to everyone who helped get to this point, in particular @bcampbell for the initial Windows code, and to everyone else for their patience!

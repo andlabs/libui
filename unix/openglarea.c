@@ -455,6 +455,7 @@ static pthread_once_t loaded_extensions = PTHREAD_ONCE_INIT;
 
 void load_extensions()
 {
+	// TODO test for availability?
 	uiGLXSwapIntervalEXT = (glXSwapIntervalEXTFn)glXGetProcAddress((const GLubyte *)"glXSwapIntervalEXT");
 }
 

@@ -3,6 +3,24 @@
 #include "area.hpp"
 #include "GL/gl.h"
 
+static BOOL WGLExtensionSupported(const char *extension_name)
+{
+    // this is pointer to function which returns pointer to string with list of all wgl extensions
+    PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = NULL;
+
+    // determine pointer to wglGetExtensionsStringEXT function
+    _wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC) wglGetProcAddress("wglGetExtensionsStringEXT");
+
+    if (strstr(_wglGetExtensionsStringEXT(), extension_name) == NULL)
+    {
+        // string was not found
+        return false;
+    }
+
+    // extension is supported
+    return true;
+}
+
 // TODO handle WM_DESTROY/WM_NCDESTROY
 // TODO same for other Direct2D stuff
 static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -52,6 +70,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			SetPixelFormat(a->hDC, iPixelFormat, &pfd);
 
 			a->hglrc = wglCreateContext(a->hDC);
+			uiOpenGLAreaMakeCurrent(a);
 			(*(a->ah->InitGL))(a->ah, a);
 		}
 
@@ -134,10 +153,44 @@ void uiOpenGLAreaSetSize(uiOpenGLArea *a, int width, int height)
 	areaUpdateScroll((uiArea *) a);
 }
 
+void uiOpenGLAreaGetSize(uiOpenGLArea *a, double *width, double *height)
+{
+
+}
+
+void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si)
+{
+	if (WGLExtensionSupported("WGL_EXT_swap_control")) {
+	    PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) wglGetProcAddress("wglSwapIntervalEXT");
+
+		uiOpenGLAreaMakeCurrent(a);
+	    wglSwapIntervalEXT(si);
+	}
+	// TODO
+	// Use the WGL_EXT_swap_control extension to control swap interval.
+	// Check both the standard extensions string via glGetString(GL_EXTENSIONS)
+	// and the WGL-specific extensions string via wglGetExtensionsStringARB() to
+	// verify that WGL_EXT_swap_control is actually present.
+
+	// The extension provides the wglSwapIntervalEXT() function, which directly
+	// specifies the swap interval. wglSwapIntervalEXT(1) is used to enable vsync;
+	// wglSwapIntervalEXT(0) to disable vsync.
+}
+
 void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)
 {
 	// don't erase the background; we do that ourselves in doPaint()
 	invalidateRect(a->hwnd, NULL, FALSE);
+}
+
+void uiOpenGLAreaMakeCurrent(uiOpenGLArea *a)
+{
+	wglMakeCurrent(a->hDC, a->hglrc);
+}
+
+void uiOpenGLAreaSwapBuffers(uiOpenGLArea *a)
+{
+	SwapBuffers(a->hDC);
 }
 
 // void uiOpenGLAreaBeginUserWindowMove(uiOpenGLArea *a)

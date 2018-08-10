@@ -65,12 +65,17 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 			int iPixelFormat;
 			a->hDC = GetDC(a->hwnd);
+			if (dc == NULL)
+				logLastError(L"error getting DC for OpenGL context");
 
 			// get the best available match of pixel format for the device context
 			iPixelFormat = ChoosePixelFormat(a->hDC, &pfd);
+			if (iPixelFormat == 0)
+				logLastError(L"error getting pixel format for OpenGL context");
 
 			// make that the pixel format of the device context
-			SetPixelFormat(a->hDC, iPixelFormat, &pfd);
+			if (SetPixelFormat(a->hDC, iPixelFormat, &pfd) == FALSE)
+				logLastError(L"error setting OpenGL pixel format for device");
 
 			//TODO
 			// WGL_CONTEXT_MAJOR_VERSION_ARB
@@ -80,6 +85,9 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			// WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
 			// WGL_CONTEXT_DEBUG_BIT_ARB
 			a->hglrc = wglCreateContext(a->hDC);
+			if (a->hglrc == NULL)
+				logLastError(L"error creating OpenGL context");
+
 			uiOpenGLAreaMakeCurrent(a);
 			(*(a->ah->InitGL))(a->ah, a);
 		}
@@ -90,10 +98,13 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 	 if (uMsg == WM_DESTROY || uMsg == WM_NCDESTROY) {
 		if (a->hglrc) {
-			wglMakeCurrent(NULL, NULL);
-			ReleaseDC(a->hwnd, a->hDC);
-			wglDeleteContext(a->hglrc);
+			if(wglMakeCurrent(NULL, NULL) == FALSE)
+				logLastError(L"error unsetting OpenGL context");
+			if (ReleaseDC(a->hwnd, a->hDC) == 0)
+				logLastError(L"error releasing DC for OpenGL context");
 			a->hDC = NULL;
+			if (wglDeleteContext(a->hglrc) == FALSE)
+				logLastError(L"error releasing OpenGL context");
 			a->hglrc = NULL;
 		}
 	}
@@ -195,12 +206,14 @@ void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)
 
 void uiOpenGLAreaMakeCurrent(uiOpenGLArea *a)
 {
-	wglMakeCurrent(a->hDC, a->hglrc);
+	if(wglMakeCurrent(a->hDC, a->hglrc) == FALSE)
+		logLastError(L"error setting current OpenGL context");
 }
 
 void uiOpenGLAreaSwapBuffers(uiOpenGLArea *a)
 {
-	SwapBuffers(a->hDC);
+	if(SwapBuffers(a->hDC) == FALSE)
+		logLastError(L"error swapping OpenGL buffers");
 }
 
 // void uiOpenGLAreaBeginUserWindowMove(uiOpenGLArea *a)

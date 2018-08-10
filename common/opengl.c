@@ -31,6 +31,7 @@ void uiFreeOpenGLAttributes(uiOpenGLAttributes *attribs) {
 }
 
 void uiOpenGLAttributesSetAttribute(uiOpenGLAttributes *attribs, uiOpenGLAttribute attribute, int value) {
+    //TODO validate bool params
     switch (attribute) {
     case uiOpenGLAttributeRedBits:
         attribs->RedBits = value;

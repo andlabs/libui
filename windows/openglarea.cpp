@@ -1,17 +1,16 @@
-// 8 september 2015
 #include "uipriv_windows.hpp"
 #include "area.hpp"
-#include "GL/gl.h"
+#include <GL/gl.h>
 
-static BOOL WGLExtensionSupported(const char *extension_name)
+typedef bool (APIENTRY *PFNWGLSWAPINTERVALEXTPROC)(int interval);
+
+typedef char* (APIENTRY *PFNWGETEXTENSIONSSTRINGARBPROC)(HDC hdc);
+
+static BOOL WGLExtensionSupported(HDC hdc, const char *extension_name)
 {
-    // this is pointer to function which returns pointer to string with list of all wgl extensions
-    PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = NULL;
+	PFNWGETEXTENSIONSSTRINGARBPROC _wglGetExtensionsStringARB = (PFNWGETEXTENSIONSSTRINGARBPROC) wglGetProcAddress("wglGetExtensionsStringARB");
 
-    // determine pointer to wglGetExtensionsStringEXT function
-    _wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC) wglGetProcAddress("wglGetExtensionsStringEXT");
-
-    if (strstr(_wglGetExtensionsStringEXT(), extension_name) == NULL)
+    if (strstr(_wglGetExtensionsStringARB(hdc), extension_name) == NULL)
     {
         // string was not found
         return false;
@@ -39,26 +38,30 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			a->hwnd = hwnd;
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) a);
 
+			uiOpenGLAttributes *attribs = a->attribs;
 			PIXELFORMATDESCRIPTOR pfd = {
 				sizeof(PIXELFORMATDESCRIPTOR),   // size of this pfd
 				1,		     // version number
 				PFD_DRAW_TO_WINDOW |   // support window
 					PFD_SUPPORT_OPENGL |   // support OpenGL
-					PFD_DOUBLEBUFFER,      // double buffered 	uiOpenGLAttributeDoubleBuffer uiOpenGLAttributeStereo
+					(attribs->DoubleBuffer ? PFD_DOUBLEBUFFER : 0) |
+					(attribs->Stereo ? PFD_STEREO : 0),
 				PFD_TYPE_RGBA,	 // RGBA type
-				24,		    // 24-bit color depth   			uiOpenGLAttributeRedBits uiOpenGLAttributeGreenBits uiOpenGLAttributeBlueBits uiOpenGLAttributeAlphaBits,
+				attribs->RedBits + attribs->GreenBits + attribs->BlueBits, //color depth
 				0, 0, 0, 0, 0, 0,      // color bits ignored
 				0,		     // no alpha buffer
 				0,		     // shift bit ignored
 				0,		     // no accumulation buffer
 				0, 0, 0, 0,	    // accum bits ignored
-				32,		    // 32-bit z-buffer					uiOpenGLAttributeDepthBits
-				0,		     // no stencil buffer 				uiOpenGLAttributeStencilBits
+				attribs->DepthBits,	 // depth buffer
+				attribs->StencilBits,  // stencil buffer
 				0,		     // no auxiliary buffer
 				PFD_MAIN_PLANE,	// main layer
 				0,		     // reserved
 				0, 0, 0		// layer masks ignored
 			};
+
+			//TODO AlphaBits
 
 			int iPixelFormat;
 			a->hDC = GetDC(a->hwnd);
@@ -167,10 +170,10 @@ void uiOpenGLAreaGetSize(uiOpenGLArea *a, double *width, double *height)
 
 void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si)
 {
-	if (WGLExtensionSupported("WGL_EXT_swap_control")) {
+	uiOpenGLAreaMakeCurrent(a);
+	if (WGLExtensionSupported(a->hDC, "WGL_EXT_swap_control")) {
 	    PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) wglGetProcAddress("wglSwapIntervalEXT");
 
-		uiOpenGLAreaMakeCurrent(a);
 	    wglSwapIntervalEXT(si);
 	}
 	// TODO

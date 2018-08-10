@@ -48,6 +48,7 @@ struct uiOpenGLArea {
 
 	ID2D1HwndRenderTarget *rt;
 
+	uiOpenGLAttributes *attribs;
 	HDC hDC;
 	HGLRC hglrc;
 };

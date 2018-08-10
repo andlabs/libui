@@ -44,16 +44,16 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 				1,		     // version number
 				PFD_DRAW_TO_WINDOW |   // support window
 					PFD_SUPPORT_OPENGL |   // support OpenGL
-					PFD_DOUBLEBUFFER,      // double buffered
+					PFD_DOUBLEBUFFER,      // double buffered 	uiOpenGLAttributeDoubleBuffer uiOpenGLAttributeStereo
 				PFD_TYPE_RGBA,	 // RGBA type
-				24,		    // 24-bit color depth
+				24,		    // 24-bit color depth   			uiOpenGLAttributeRedBits uiOpenGLAttributeGreenBits uiOpenGLAttributeBlueBits uiOpenGLAttributeAlphaBits,
 				0, 0, 0, 0, 0, 0,      // color bits ignored
 				0,		     // no alpha buffer
 				0,		     // shift bit ignored
 				0,		     // no accumulation buffer
 				0, 0, 0, 0,	    // accum bits ignored
-				32,		    // 32-bit z-buffer
-				0,		     // no stencil buffer
+				32,		    // 32-bit z-buffer					uiOpenGLAttributeDepthBits
+				0,		     // no stencil buffer 				uiOpenGLAttributeStencilBits
 				0,		     // no auxiliary buffer
 				PFD_MAIN_PLANE,	// main layer
 				0,		     // reserved
@@ -69,6 +69,13 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			// make that the pixel format of the device context
 			SetPixelFormat(a->hDC, iPixelFormat, &pfd);
 
+			//TODO
+			// WGL_CONTEXT_MAJOR_VERSION_ARB
+			// WGL_CONTEXT_MINOR_VERSION_ARB
+			// WGL_CONTEXT_CORE_PROFILE_BIT_ARB
+			// WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
+			// WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+			// WGL_CONTEXT_DEBUG_BIT_ARB
 			a->hglrc = wglCreateContext(a->hDC);
 			uiOpenGLAreaMakeCurrent(a);
 			(*(a->ah->InitGL))(a->ah, a);
@@ -261,6 +268,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 
 	a->ah = ah;
 	a->scrolling = FALSE;
+	a->attribs = attribs;
 	uiprivClickCounterReset(&(a->cc));
 
 	// a->hwnd is assigned in areaWndProc()

@@ -252,6 +252,9 @@ struct tm;
 typedef struct uiDateTimePicker uiDateTimePicker;
 #define uiDateTimePicker(this) ((uiDateTimePicker *) (this))
 // TODO document that tm_wday and tm_yday are undefined, and tm_isdst should be -1
+// TODO document that for both sides
+// TODO document time zone conversions or lack thereof
+// TODO for Time: define what values are returned when a part is missing
 _UI_EXTERN void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time);
 _UI_EXTERN void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time);
 _UI_EXTERN void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data);

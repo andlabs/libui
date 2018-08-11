@@ -88,8 +88,8 @@ after_success:
 
 deploy:
   provider: releases
-  #api_key:
-    #secure: TODO
+  api_key:
+    secure: "fmgC97mlXQY/ASWAL/GyTJfiJIo/hsVFf6bP3Zz8odv259PJUFGgnZ9kNIgJcFQ5961lXDFi7pBMMSetm1GZ2EBZxIXnUfe1kfIhw62ybJHIwB2+g2tc8A4zzfkWJVY4xVYpitOU3iMuu5Z8U2n+68RYWKpcxhbkVw5v8Zu2Rms="
   file: build/out/*.tgz
   file_glob: true
   skip_cleanup: true

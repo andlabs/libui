@@ -563,7 +563,7 @@ _UI_EXTERN uiAttribute *uiNewSizeAttribute(double size);
 _UI_EXTERN double uiAttributeSize(const uiAttribute *a);
 
 // uiTextWeight represents possible text weights. These roughly
-// map to the OSx2 text weight field of TrueType and OpenType
+// map to the OS/2 text weight field of TrueType and OpenType
 // fonts, or to CSS weight numbers. The named constants are
 // nominal values; the actual values may vary by font and by OS,
 // though this isn't particularly likely. Any value between

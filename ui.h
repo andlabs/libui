@@ -567,8 +567,8 @@ _UI_EXTERN double uiAttributeSize(const uiAttribute *a);
 // fonts, or to CSS weight numbers. The named constants are
 // nominal values; the actual values may vary by font and by OS,
 // though this isn't particularly likely. Any value between
-// uiTextWeightMinimum and uiDrawTextWeightMaximum,
-// inclusive, is allowed.
+// uiTextWeightMinimum and uiTextWeightMaximum, inclusive,
+// is allowed.
 //
 // Note that due to restrictions in early versions of Windows, some
 // fonts have "special" weights be exposed in many programs as

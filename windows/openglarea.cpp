@@ -174,11 +174,6 @@ void uiOpenGLAreaSetSize(uiOpenGLArea *a, int width, int height)
 	areaUpdateScroll((uiArea *) a);
 }
 
-void uiOpenGLAreaGetSize(uiOpenGLArea *a, double *width, double *height)
-{
-
-}
-
 void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si)
 {
 	uiOpenGLAreaMakeCurrent(a);

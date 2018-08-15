@@ -1470,7 +1470,6 @@ struct uiOpenGLAreaHandler {
 
 #define uiOpenGLArea(this) ((uiOpenGLArea *) (this))
 
-_UI_EXTERN void uiOpenGLAreaGetSize(uiOpenGLArea *a, double *width, double *height);
 _UI_EXTERN void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si);
 _UI_EXTERN void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a);
 _UI_EXTERN void uiOpenGLAreaMakeCurrent(uiOpenGLArea *a);

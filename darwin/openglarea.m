@@ -118,15 +118,6 @@ static void uiOpenGLAreaDestroy(uiControl *c)
 	uiFreeControl(uiControl(a));
 }
 
-void uiOpenGLAreaGetSize(uiOpenGLArea *a, double *width, double *height)
-{
-	NSRect rect = [a->view frame];
-	if(width != NULL)
-		*width = rect.size.width;
-	if(height != NULL)
-		*height = rect.size.height;
-}
-
 void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si)
 {
 	[a->ctx setValues:&si forParameter: NSOpenGLCPSwapInterval];

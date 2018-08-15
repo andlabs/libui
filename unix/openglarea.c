@@ -459,16 +459,6 @@ void load_extensions()
 	uiGLXSwapIntervalEXT = (glXSwapIntervalEXTFn)glXGetProcAddress((const GLubyte *)"glXSwapIntervalEXT");
 }
 
-void uiOpenGLAreaGetSize(uiOpenGLArea *a, double *width, double *height)
-{
-	GtkAllocation alloc;
-	gtk_widget_get_allocation(a->widget, &alloc);
-	if(width != NULL)
-		*width = alloc.width;
-	if(height != NULL)
-		*height = alloc.height;
-}
-
 void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)
 {
 	gtk_widget_queue_draw(a->widget);

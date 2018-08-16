@@ -18,6 +18,8 @@ struct uiTable {
 	// TODO document this properly
 	GHashTable *indeterminatePositions;
 	guint indeterminateTimer;
+	void (*onSelectionChanged)(uiTable *, void *);
+	void *onSelectionChangedData;
 };
 
 // use the same size as GtkFileChooserWidget's treeview
@@ -492,9 +494,28 @@ static void uiTableDestroy(uiControl *c)
 	uiFreeControl(uiControl(t));
 }
 
+static void onChanged(GtkTreeSelection *sel, gpointer data)
+{
+	uiTable* t = uiTable(data);
+	(*(t->onSelectionChanged))(t, t->onSelectionChangedData);
+}
+
+static void defaultOnSelectionChanged(uiTable *t, void *data)
+{
+	// do nothing
+}
+
+void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data)
+{
+	t->onSelectionChanged = f;
+	t->onSelectionChangedData = data;
+}
+
 uiTable *uiNewTable(uiTableParams *p)
 {
 	uiTable *t;
+	GtkTreeSelection* sel;
+	GtkSelectionMode selMode;
 
 	uiUnixNewControl(uiTable, t);
 
@@ -517,6 +538,15 @@ uiTable *uiNewTable(uiTableParams *p)
 
 	t->indeterminatePositions = g_hash_table_new_full(rowcolHash, rowcolEqual,
 		uiprivFree, uiprivFree);
+
+	sel = gtk_tree_view_get_selection(t->tv);
+	selMode = GTK_SELECTION_SINGLE;
+	if (p->MultiSelect == 1) {
+		selMode = GTK_SELECTION_MULTIPLE;
+	}
+	gtk_tree_selection_set_mode(sel, selMode);
+	g_signal_connect(sel, "changed", G_CALLBACK(onChanged), t);
+	uiTableOnSelectionChanged(t, defaultOnSelectionChanged, NULL);
 
 	return t;
 }

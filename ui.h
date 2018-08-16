@@ -1383,6 +1383,9 @@ struct uiTableParams {
 	// If CellValue() for this column for any row returns NULL, that
 	// row will also use the default background color.
 	int RowBackgroundColorModelColumn;
+	// MultiSelect sets selection mode for the table.
+	// 0=single selection, 1=allow multiple rows to be selected
+	int MultiSelect;
 };
 
 // uiTable is a uiControl that shows tabular data, allowing users to

@@ -1463,6 +1463,9 @@ _UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
 _UI_EXTERN void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *t, void *data), void *data);
 
 // uiTableSelection holds an array of row indexes for a table.
+// it's safe to fiddle with the Items data in place (eg a caller
+// might want to sort them - that's ok). But probably best not to
+// change NumItems or try to reallocate Items.
 typedef struct uiTableSelection uiTableSelection;
 struct uiTableSelection
 {

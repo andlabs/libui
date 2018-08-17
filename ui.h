@@ -1458,6 +1458,29 @@ _UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
 	int buttonModelColumn,
 	int buttonClickableModelColumn);
 
+// uiTableOnSelectionChanged sets a callback to invoke upon changes
+// in the set of selected items in the table.
+_UI_EXTERN void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *t, void *data), void *data);
+
+// uiTableSelection holds an array of row indexes for a table.
+typedef struct uiTableSelection uiTableSelection;
+struct uiTableSelection
+{
+	int NumItems;
+	int* Items;
+};
+
+// uiTableCurrentSelection returns a uiTableSelection containing
+// an array of all the selected rows in the table.
+// If no rows are selected, a uiTableSelection will still be
+// returned, with NumItems set to 0.
+// The caller is responsible for calling uiFreeTableSelection()
+// when finished with the uiTableSelection.
+_UI_EXTERN uiTableSelection* uiTableCurrentSelection(uiTable* t);
+
+// uiFreeTableSelection frees any memory allocated to a uiTableSelection
+_UI_EXTERN void uiFreeTableSelection(uiTableSelection* sel);
+
 // uiNewTable() creates a new uiTable with the specified parameters.
 _UI_EXTERN uiTable *uiNewTable(uiTableParams *params);
 

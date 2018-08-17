@@ -531,9 +531,8 @@ static void collectSelection( GtkTreeModel *model,
 	struct growableTableSelection* it = (struct growableTableSelection*)data;
 	int depth = gtk_tree_path_get_depth(path);
 	gint* indices = gtk_tree_path_get_indices(path);
-	if (depth < 1) {
+	if (depth < 1)
 		return;
-	}
 
 	// append to collection
 	if (it->sel.NumItems == it->cap) {
@@ -561,9 +560,8 @@ uiTableSelection* uiTableCurrentSelection(uiTable* t)
 void uiFreeTableSelection(uiTableSelection* sel)
 {
 	struct growableTableSelection* g = (struct growableTableSelection*)sel;
-	if (g->sel.Items) {
+	if (g->sel.Items)
 		uiprivFree(g->sel.Items);
-	}
 	uiprivFree(g);
 }
 
@@ -597,9 +595,8 @@ uiTable *uiNewTable(uiTableParams *p)
 
 	sel = gtk_tree_view_get_selection(t->tv);
 	selMode = GTK_SELECTION_SINGLE;
-	if (p->MultiSelect == 1) {
+	if (p->MultiSelect == 1)
 		selMode = GTK_SELECTION_MULTIPLE;
-	}
 	gtk_tree_selection_set_mode(sel, selMode);
 	g_signal_connect(sel, "changed", G_CALLBACK(onChanged), t);
 	uiTableOnSelectionChanged(t, defaultOnSelectionChanged, NULL);

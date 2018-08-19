@@ -1,7 +1,6 @@
 // 28 may 2016
 
 #ifdef __APPLE__
-#include <OpenGL/OpenGL.h>
 #include <OpenGL/gl3.h>
 #elif defined WIN32
 #include <windows.h>

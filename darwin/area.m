@@ -111,7 +111,7 @@ int uiprivSendAreaEvents(NSEvent *e)
 	focused = [[e window] firstResponder];
 	if (focused == nil)
 		return 0;
-	if (![focused isKindOfClass:[areaView class]])
+	if (![focused isKindOfClass:[uiprivAreaCommonView class]])
 		return 0;
 	view = (areaView *) focused;
 	switch (type) {

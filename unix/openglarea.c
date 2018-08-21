@@ -464,12 +464,12 @@ void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)
 	gtk_widget_queue_draw(a->widget);
 }
 
-void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si)
+void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int v)
 {
 	pthread_once(&loaded_extensions, load_extensions);
 
 	uiOpenGLAreaMakeCurrent(a);
-	uiGLXSwapIntervalEXT(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)), si);
+	uiGLXSwapIntervalEXT(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)), v);
 }
 
 void uiOpenGLAreaMakeCurrent(uiOpenGLArea *a)

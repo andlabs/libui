@@ -118,9 +118,33 @@ static void uiOpenGLAreaDestroy(uiControl *c)
 	uiFreeControl(uiControl(a));
 }
 
-void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si)
+void uiOpenGLAreaBeginUserWindowMove(uiOpenGLArea *a)
 {
-	[a->ctx setValues:&si forParameter: NSOpenGLCPSwapInterval];
+	uiprivNSWindow *w;
+
+	w = (uiprivNSWindow *) [a->view window];
+	if (w == nil)
+		return;		// TODO
+	if (a->dragevent == nil)
+		return;		// TODO
+	[w uiprivDoMove:a->dragevent];
+}
+
+void uiOpenGLAreaBeginUserWindowResize(uiOpenGLArea *a, uiWindowResizeEdge edge)
+{
+	uiprivNSWindow *w;
+
+	w = (uiprivNSWindow *) [a->view window];
+	if (w == nil)
+		return;		// TODO
+	if (a->dragevent == nil)
+		return;		// TODO
+	[w uiprivDoResize:a->dragevent on:edge];
+}
+
+void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int v)
+{
+	[a->ctx setValues:&v forParameter:NSOpenGLContextParameterSwapInterval];
 }
 
 void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)

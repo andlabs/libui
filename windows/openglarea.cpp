@@ -174,13 +174,13 @@ void uiOpenGLAreaSetSize(uiOpenGLArea *a, int width, int height)
 	areaUpdateScroll((uiArea *) a);
 }
 
-void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int si)
+void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int v)
 {
 	uiOpenGLAreaMakeCurrent(a);
 	if (WGLExtensionSupported(a->hDC, "WGL_EXT_swap_control")) {
 	    PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) wglGetProcAddress("wglSwapIntervalEXT");
 
-	    wglSwapIntervalEXT(si);
+	    wglSwapIntervalEXT(v);
 	}
 	// TODO
 	// Use the WGL_EXT_swap_control extension to control swap interval.

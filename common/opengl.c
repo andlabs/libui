@@ -9,6 +9,9 @@ uiOpenGLAttributes *uiNewOpenGLAttributes() {
     if (a == NULL)
         return NULL;
 
+    //TODO document availability on different platforms
+    // compare with wxWidgets/glcanvas
+
     a->RedBits = a->GreenBits = a->BlueBits = a->AlphaBits = 8;
     a->DepthBits = 24;
     a->StencilBits = 8;

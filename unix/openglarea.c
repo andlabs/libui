@@ -20,6 +20,7 @@ typedef struct openGLAreaWidget openGLAreaWidget;
 typedef struct openGLAreaWidgetClass openGLAreaWidgetClass;
 
 typedef void (*glXSwapIntervalEXTFn)(Display *, GLXDrawable, int);
+typedef void (*glXCreateContextAttribsARBFn)(Display *, GLXFBConfig, GLXContext, Bool, const int *);
 
 struct openGLAreaWidget {
 	GtkDrawingArea parent_instance;
@@ -48,6 +49,7 @@ struct uiOpenGLArea {
 };
 
 static glXSwapIntervalEXTFn uiGLXSwapIntervalEXT = NULL;
+static glXCreateContextAttribsARBFn uiGLXCreateContextAttribsARB = NULL;
 
 G_DEFINE_TYPE(openGLAreaWidget, openGLAreaWidget, GTK_TYPE_DRAWING_AREA)
 
@@ -455,7 +457,8 @@ static pthread_once_t loaded_extensions = PTHREAD_ONCE_INIT;
 
 void load_extensions()
 {
-	// TODO test for availability?
+	// TODO do only once?
+	// TODO test for availability? EXT_swap_control?
 	uiGLXSwapIntervalEXT = (glXSwapIntervalEXTFn)glXGetProcAddress((const GLubyte *)"glXSwapIntervalEXT");
 }
 
@@ -535,7 +538,17 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	a->colormap = XCreateColormap(a->display, rootWindow, a->visual->visual, AllocNone);
 	if (a->colormap == 0)
 		uiprivUserBug("Couldn't create an X colormap for this OpenGL view!");
-	a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
+	
+
+	// /Users/niklas/development/cmake/hugin/mac/ExternalPrograms/repository/wxWidgets-3.0.3/src/unix/glx11.cpp
+	// GLXContext glXCreateContextAttribsARB(Display *dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list);
+	// GLX_ARB_create_context &
+	// GLX_ARB_create_context_profile ?
+
+	// GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB (in GLX_ARB_create_context_robustness)
+
+	a->ctx = uiGLXCreateContextAttribsARB(a->display, )
+	// a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
 	if (a->ctx == NULL)
 		uiprivUserBug("Couldn't create a GLX context!");
 

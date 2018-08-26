@@ -61,12 +61,15 @@ static void assignNextPixelFormatAttribute(NSOpenGLPixelFormatAttribute *as, uns
 		}
 		if (attribs->DoubleBuffer)
 			assignNextPixelFormatAttribute(attrs, &attrIndex, NSOpenGLPFADoubleBuffer);
+
+		assignNextPixelFormatAttribute(attrs, &attrIndex, NSOpenGLPFAOpenGLProfile);
 		if (attribs->MajorVersion < 3) {
-			assignNextPixelFormatAttribute(attrs, &attrIndex, NSOpenGLPFAOpenGLProfile);
 			assignNextPixelFormatAttribute(attrs, &attrIndex, NSOpenGLProfileVersionLegacy);
-		} else {
-			assignNextPixelFormatAttribute(attrs, &attrIndex, NSOpenGLPFAOpenGLProfile);
+		} else if (attribs->MajorVersion < 4){
 			assignNextPixelFormatAttribute(attrs, &attrIndex, NSOpenGLProfileVersion3_2Core);
+		} else {
+			// TODO only 10.10+
+			assignNextPixelFormatAttribute(attrs, &attrIndex, NSOpenGLProfileVersion4_1Core);
 		}
 		assignNextPixelFormatAttribute(attrs, &attrIndex, 0); // "a 0-terminated array"
 

@@ -2,26 +2,75 @@
 #include "area.hpp"
 #include <GL/gl.h>
 
-typedef bool (APIENTRY *PFNWGLSWAPINTERVALEXTPROC)(int interval);
-
 typedef char* (APIENTRY *PFNWGETEXTENSIONSSTRINGARBPROC)(HDC hdc);
+
+typedef bool (APIENTRY *PFNWGLSWAPINTERVALEXTPROC)(int interval);
+typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC)
+	(HDC hDC, HGLRC hShareContext, const int *attribList);
+
+#ifndef WGL_ARB_create_context_profile
+#define WGL_ARB_create_context_profile
+#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#endif
+
+#ifndef WGL_ARB_create_context
+#define WGL_ARB_create_context
+#define WGL_CONTEXT_MAJOR_VERSION_ARB   0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB   0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB     0x2093
+#define WGL_CONTEXT_FLAGS_ARB           0x2094
+#define WGL_CONTEXT_DEBUG_BIT_ARB       0x0001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
+#endif
+
+#ifndef WGL_ARB_create_context_robustness
+#define WGL_ARB_create_context_robustness
+#define WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB         0x00000004
+#define WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB     0x8256
+#define WGL_NO_RESET_NOTIFICATION_ARB                   0x8261
+#define WGL_LOSE_CONTEXT_ON_RESET_ARB                   0x8252
+#endif
+
+#ifndef WGL_EXT_create_context_es2_profile
+#define WGL_EXT_create_context_es2_profile
+#define WGL_CONTEXT_ES2_PROFILE_BIT_EXT           0x00000004
+#endif
+
+#ifndef WGL_EXT_create_context_es_profile
+#define WGL_EXT_create_context_es_profile
+#define WGL_CONTEXT_ES_PROFILE_BIT_EXT            0x00000004
+#endif
+
 
 static BOOL WGLExtensionSupported(HDC hdc, const char *extension_name)
 {
+	//TODO use OpenGL 3 method, fallback otherwise:
+
+	// Use wglGetProcAddress() to access implementation-specific OpenGL extension
+	// procedure calls. To determine which extensions are supported by your
+	// implementation, first call glGetIntegerv() passing GL_NUM_EXTENSIONS
+	// to determine the number of extensions available, and then call
+	// glGetStringi() to retrieve each extension name. wglGetProcAddress()
+	// when passed the exact name of the extension returned from glGetStringi(),
+	// returns a function pointer for the extension procedure call, or returns NULL
+	// if the extension is not supported.
+
+	// GLsizei n;
+	// glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+	// for(size_t i = 0; i < n; i++){
+	// 	// glGetStringi(GL_EXTENSIONS, i) == extension_name
+	// }
+
 	PFNWGETEXTENSIONSSTRINGARBPROC _wglGetExtensionsStringARB = (PFNWGETEXTENSIONSSTRINGARBPROC) wglGetProcAddress("wglGetExtensionsStringARB");
 
-    if (strstr(_wglGetExtensionsStringARB(hdc), extension_name) == NULL)
-    {
-        // string was not found
-        return false;
-    }
+	if (strstr(_wglGetExtensionsStringARB(hdc), extension_name) == NULL)
+		return false;
 
-    // extension is supported
-    return true;
+	return true;
 }
 
-// TODO handle WM_DESTROY/WM_NCDESTROY
-// TODO same for other Direct2D stuff
 static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uiOpenGLArea *a;
@@ -68,6 +117,8 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			if (dc == NULL)
 				logLastError(L"error getting DC for OpenGL context");
 
+			//TODO ? use newer wglChoosePixelFormatARB
+
 			// get the best available match of pixel format for the device context
 			iPixelFormat = ChoosePixelFormat(a->hDC, &pfd);
 			if (iPixelFormat == 0)
@@ -77,14 +128,56 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			if (SetPixelFormat(a->hDC, iPixelFormat, &pfd) == FALSE)
 				logLastError(L"error setting OpenGL pixel format for device");
 
-			//TODO
-			// WGL_CONTEXT_MAJOR_VERSION_ARB
-			// WGL_CONTEXT_MINOR_VERSION_ARB
-			// WGL_CONTEXT_CORE_PROFILE_BIT_ARB
-			// WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
-			// WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
-			// WGL_CONTEXT_DEBUG_BIT_ARB
-			a->hglrc = wglCreateContext(a->hDC);
+			//TODO ? WGL_ACCELERATION_ARB & WGL_FULL_ACCELERATION_ARB
+
+			HGLRC tempContext = wglCreateContext(a->hDC);
+			if (tempContext == NULL)
+				logLastError(L"error creating temporary OpenGL context");
+
+			wglMakeCurrent(a->hDC, tempContext);
+
+			//TODO check for availablity
+			// WGLExtensionSupported(a->hDC, "WGL_ARB_create_context") &&
+			// WGLExtensionSupported(a->hDC, "WGL_ARB_create_context_profile")
+			//handle error - fallback to wglCreateContext & ignore attribs?
+			//					  should be consistent with other platforms
+
+			//TODO WGL_ARB_create_context_robustness ? 
+
+			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB
+				= (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress("wglCreateContextAttribsARB");
+
+			wglMakeCurrent(a->hDC, NULL);
+			if (wglDeleteContext(tempContext) == FALSE)
+				logLastError(L"error releasing temporary OpenGL context");
+
+			const int contextAttribs[11] = {
+				WGL_CONTEXT_MAJOR_VERSION_ARB,
+					attribs->MajorVersion,
+				WGL_CONTEXT_MINOR_VERSION_ARB,
+					attribs->MinorVersion,
+				WGL_CONTEXT_FLAGS_ARB,
+					attribs->DebugContext ? WGL_CONTEXT_DEBUG_BIT_ARB,
+					attribs->ForwardCompat ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+				WGL_CONTEXT_PROFILE_MASK_ARB,
+					attribs->CompatProfile ? 
+						WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
+						WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+				0,
+				0
+			};
+
+			//TODO does wglGetExtensionsStringARB need a context?
+			if(attribs->UseOpenGLES) {
+				if(attrons->MajorVersion >= 2 && WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile")){
+					contextAttribs[9] = WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
+				} else if(WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile")){
+					contextAttribs[9] = WGL_CONTEXT_ES_PROFILE_BIT_EXT;
+				}
+				//TODO handle error
+			}
+
+			a->hglrc = wglCreateContextAttribsARB(a->hDC, 0, contextAttribs)
 			if (a->hglrc == NULL)
 				logLastError(L"error creating OpenGL context");
 
@@ -178,9 +271,9 @@ void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int v)
 {
 	uiOpenGLAreaMakeCurrent(a);
 	if (WGLExtensionSupported(a->hDC, "WGL_EXT_swap_control")) {
-	    PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) wglGetProcAddress("wglSwapIntervalEXT");
+		PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) wglGetProcAddress("wglSwapIntervalEXT");
 
-	    wglSwapIntervalEXT(v);
+		wglSwapIntervalEXT(v);
 	}
 	// TODO
 	// Use the WGL_EXT_swap_control extension to control swap interval.

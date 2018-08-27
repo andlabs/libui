@@ -38,12 +38,16 @@ static BOOL GLXExtensionSupported(const char *extension_name)
 
 void load_extensions()
 {
-	// TODO do only once?
-	// TODO test for availability? EXT_swap_control?
 	if(GLXExtensionSupported("EXT_swap_control"))
 		uiGLXSwapIntervalEXT = (glXSwapIntervalEXTFn)glXGetProcAddress((const GLubyte *)"glXSwapIntervalEXT");
 	else{
 		// TODO warn here or if called
+	}
+
+	if(GLXExtensionSupported("GLX_ARB_create_context") && GLXExtensionSupported("GLX_ARB_create_context_profile"))
+		uiGLXCreateContextAttribsARB = (glXCreateContextAttribsARBFn)glXGetProcAddress((const GLubyte *)"glXCreateContextAttribsARB");
+	else {
+			// TODO warn here or if called
 	}
 }
 
@@ -640,6 +644,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	if (a->visual == NULL)
 		uiprivUserBug("Couldn't choose a GLX visual!");
 
+	// TODO needed?
 	a->colormap = XCreateColormap(a->display, rootWindow, a->visual->visual, AllocNone);
 	if (a->colormap == 0)
 		uiprivUserBug("Couldn't create an X colormap for this OpenGL view!");
@@ -652,8 +657,22 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 
 	// GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB (in GLX_ARB_create_context_robustness)
 
+	//TODO temporary context needed?
+
+
+	// GLX Version 1.3 introduces several sweeping changes, starting with the new
+	// GLXFBConfig data structure, which describes the GLX framebuffer configuration
+	// (including the depth of the color buffer components, and the types, quantities,
+	// and sizes of the depth, stencil, accumulation, and auxiliary buffers). The
+	// GLXFBConfig structure describes these framebuffer attributes for a GLXDrawable
+	// rendering surface. (In X, a rendering surface is called a Drawable.)
+
+
 	a->ctx = uiGLXCreateContextAttribsARB(a->display, )
+
+	// fallback glXCreateNewContext
 	// a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
+
 	if (a->ctx == NULL)
 		uiprivUserBug("Couldn't create a GLX context!");
 

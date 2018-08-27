@@ -1458,6 +1458,7 @@ _UI_EXTERN uiTable *uiNewTable(uiTableParams *params);
 typedef struct uiOpenGLArea uiOpenGLArea;
 typedef struct uiOpenGLAreaHandler uiOpenGLAreaHandler;
 typedef struct uiOpenGLAttributes uiOpenGLAttributes;
+#define uiOpenGLArea(this) ((uiOpenGLArea *) (this))
 
 struct uiOpenGLAreaHandler {
     void (*DrawGL)(uiOpenGLAreaHandler *, uiOpenGLArea *, double width, double height);
@@ -1467,8 +1468,6 @@ struct uiOpenGLAreaHandler {
 	int (*KeyEvent)(uiOpenGLAreaHandler *, uiOpenGLArea *, uiAreaKeyEvent *);
     void (*InitGL)(uiOpenGLAreaHandler *, uiOpenGLArea *);
 };
-
-#define uiOpenGLArea(this) ((uiOpenGLArea *) (this))
 
 _UI_EXTERN void uiOpenGLAreaBeginUserWindowMove(uiOpenGLArea *a);
 _UI_EXTERN void uiOpenGLAreaBeginUserWindowResize(uiOpenGLArea *a, uiWindowResizeEdge edge);

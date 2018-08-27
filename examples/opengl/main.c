@@ -102,6 +102,17 @@ static Matrix4 rotate(GLfloat theta, GLfloat x, GLfloat y, GLfloat z)
 	return result;
 }
 
+static Matrix4 scale(GLfloat x, GLfloat y, GLfloat z)
+{
+	Matrix4 result = {
+		  x, 0.0, 0.0, 0.0,
+		0.0,   y, 0.0, 0.0,
+		0.0, 0.0,   z, 0.0,
+		0.0, 0.0, 0.0, 1.0
+	};
+	return result;
+}
+
 static Matrix4 multiply(Matrix4 a, Matrix4 b) {
 	Matrix4 result = {
 		a.m11 * b.m11 + a.m12 * b.m21 + a.m13 * b.m31 + a.m14 * b.m41,
@@ -131,6 +142,7 @@ static ExampleOpenGLState openGLState = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 static float rotationAngleA = 0.0f;
 static float rotationAngleB = 0.0f;
+static int curScale = 10;
 static int mouseInWindow = 0;
 
 static void onMouseEvent(uiOpenGLAreaHandler *h, uiOpenGLArea *a, uiAreaMouseEvent *e)
@@ -154,6 +166,16 @@ static void onDragBroken(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 
 static int onKeyEvent(uiOpenGLAreaHandler *h, uiOpenGLArea *a, uiAreaKeyEvent *e)
 {
+	char key = e->Key;
+	if(48 <= key && key <= 57){
+		if(key == 48)
+			curScale = 10;
+		else
+			curScale = key - 48;
+
+		uiOpenGLAreaQueueRedrawAll(a);
+		return 1;
+	}
 	return 0;
 }
 
@@ -253,7 +275,13 @@ static void onDrawGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a, double width, doub
 									 0.1f,
 									 100.0f);
 	GLCall(glUniformMatrix4fv(openGLState.ProjectionUniform, 1, GL_FALSE, &projection.m11));
-	Matrix4 modelview = multiply(rotate(rotationAngleA, 0.0f, 1.0f, 0.0f), rotate(rotationAngleB, 1.0f, 0.0f, 0.0f));
+	Matrix4 modelview = multiply(
+		rotate(rotationAngleA, 0.0f, 1.0f, 0.0f),
+		multiply(
+			rotate(rotationAngleB, 1.0f, 0.0f, 0.0f),
+			scale(curScale/10.0f, curScale/10.0f, curScale/10.0f)
+		)
+	);
 	modelview.m43 -= 5.0f;
 	GLCall(glUniformMatrix4fv(openGLState.ModelViewUniform, 1, GL_FALSE, &modelview.m11));
 
@@ -302,6 +330,7 @@ int main(void)
 	}
 
 	uiWindow *mainwin = uiNewWindow("libui OpenGL Example", 640, 480, 1);
+	uiWindowSetMargined(mainwin, 1);
 	uiWindowOnClosing(mainwin, onClosing, NULL);
 	uiOnShouldQuit(shouldQuit, mainwin);
 
@@ -310,9 +339,11 @@ int main(void)
 	uiOpenGLAttributesSetAttribute(attribs, uiOpenGLAttributeMinorVersion, 0);
 	uiOpenGLAttributesSetAttribute(attribs, uiOpenGLAttributeCompatProfile, 0);
 
-	uiBox *b = uiNewHorizontalBox();
+	uiBox *b = uiNewVerticalBox();
+	uiBoxSetPadded(b, 1);
 	uiWindowSetChild(mainwin, uiControl(b));
 
+	uiBoxAppend(b, uiControl(uiNewLabel("Press keys 0-9 to set scale")), 0);
 	uiOpenGLArea *glarea = uiNewOpenGLArea(&AREA_HANDLER, attribs);
 	uiBoxAppend(b, uiControl(glarea), 1);
 	uiOpenGLAreaSetVSync(glarea, 1);

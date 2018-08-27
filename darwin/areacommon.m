@@ -3,7 +3,7 @@
 // 10.8 fixups
 #define NSEventModifierFlags NSUInteger
 
-// incomplete type only with needed member, same layout for uiArea and uiOpenGLArea
+// incomplete type only with needed members, same layout for uiArea and uiOpenGLArea
 struct uiArea {
 	uiDarwinControl c;
 	NSView *view;

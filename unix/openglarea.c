@@ -30,7 +30,7 @@ static pthread_once_t loaded_extensions = PTHREAD_ONCE_INIT;
 static BOOL GLXExtensionSupported(const char *extension_name)
 {
 	if (strstr(glXQueryExtensionsString(display, screen_number), extension_name) == NULL)
-		//TODO cache?
+		// TODO cache?
 		return false;
 
 	return true;
@@ -42,8 +42,9 @@ void load_extensions()
 	// TODO test for availability? EXT_swap_control?
 	if(GLXExtensionSupported("EXT_swap_control"))
 		uiGLXSwapIntervalEXT = (glXSwapIntervalEXTFn)glXGetProcAddress((const GLubyte *)"glXSwapIntervalEXT");
-	else
-		/*HANDLE ERROR?*/;
+	else{
+		// TODO warn here or if called
+	}
 }
 
 struct openGLAreaWidget {
@@ -74,7 +75,7 @@ struct uiOpenGLArea {
 
 G_DEFINE_TYPE(openGLAreaWidget, openGLAreaWidget, GTK_TYPE_DRAWING_AREA)
 
-// This function guards against potential buffer overflows in the GLX attribute stack.j
+// This function guards against potential buffer overflows in the GLX attribute stack.
 static void assign_next_glx_attribute(int *glx_attribs, unsigned *glx_attrib_index, int value)
 {
 	if (*glx_attrib_index >= GLX_ATTRIBUTE_LIST_SIZE) {
@@ -484,18 +485,90 @@ void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int v)
 	uiOpenGLAreaMakeCurrent(a);
 	if(uiGLXSwapIntervalEXT != NULL)
 		uiGLXSwapIntervalEXT(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)), v);
-	else
-		/*HANDLE ERROR?*/;
+	else {
+		// TODO handle missing extension
+	}
 }
 
 void uiOpenGLAreaMakeCurrent(uiOpenGLArea *a)
 {
+	// TODO glXMakeContextCurrent?
 	glXMakeCurrent(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)), a->ctx);
 }
 
 void uiOpenGLAreaSwapBuffers(uiOpenGLArea *a)
 {
 	glXSwapBuffers(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)));
+}
+
+void uiAreaBeginUserWindowMove(uiArea *a)
+{
+	GtkWidget *toplevel;
+
+	if (a->dragevent == NULL)
+		uiprivUserBug("cannot call uiAreaBeginUserWindowMove() outside of a Mouse() with Down != 0");
+	// TODO don't we have a libui function for this? did I scrap it?
+	// TODO widget or areaWidget?
+	toplevel = gtk_widget_get_toplevel(a->widget);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// the docs say to do this
+	if (!gtk_widget_is_toplevel(toplevel)) {
+		// TODO
+		return;
+	}
+	if (!GTK_IS_WINDOW(toplevel)) {
+		// TODO
+		return;
+	}
+	gtk_window_begin_move_drag(GTK_WINDOW(toplevel),
+		a->dragevent->button,
+		a->dragevent->x_root,		// TODO are these correct?
+		a->dragevent->y_root,
+		a->dragevent->time);
+}
+
+static const GdkWindowEdge edges[] = {
+	[uiWindowResizeEdgeLeft] = GDK_WINDOW_EDGE_WEST,
+	[uiWindowResizeEdgeTop] = GDK_WINDOW_EDGE_NORTH,
+	[uiWindowResizeEdgeRight] = GDK_WINDOW_EDGE_EAST,
+	[uiWindowResizeEdgeBottom] = GDK_WINDOW_EDGE_SOUTH,
+	[uiWindowResizeEdgeTopLeft] = GDK_WINDOW_EDGE_NORTH_WEST,
+	[uiWindowResizeEdgeTopRight] = GDK_WINDOW_EDGE_NORTH_EAST,
+	[uiWindowResizeEdgeBottomLeft] = GDK_WINDOW_EDGE_SOUTH_WEST,
+	[uiWindowResizeEdgeBottomRight] = GDK_WINDOW_EDGE_SOUTH_EAST,
+};
+
+void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
+{
+	GtkWidget *toplevel;
+
+	if (a->dragevent == NULL)
+		uiprivUserBug("cannot call uiAreaBeginUserWindowResize() outside of a Mouse() with Down != 0");
+	// TODO don't we have a libui function for this? did I scrap it?
+	// TODO widget or areaWidget?
+	toplevel = gtk_widget_get_toplevel(a->widget);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// the docs say to do this
+	if (!gtk_widget_is_toplevel(toplevel)) {
+		// TODO
+		return;
+	}
+	if (!GTK_IS_WINDOW(toplevel)) {
+		// TODO
+		return;
+	}
+	gtk_window_begin_resize_drag(GTK_WINDOW(toplevel),
+		edges[edge],
+		a->dragevent->button,
+		a->dragevent->x_root,		// TODO are these correct?
+		a->dragevent->y_root,
+		a->dragevent->time);
 }
 
 uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attribs)
@@ -561,6 +634,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	//     AddAttribute(True);
 	//     return *this;
 	// }
+	// /Users/niklas/development/cmake/hugin/mac/ExternalPrograms/repository/wxWidgets-3.0.3/src/unix/glx11.cpp
 
 	a->visual = glXChooseVisual(a->display, 0, glx_attribs);
 	if (a->visual == NULL)

@@ -293,65 +293,65 @@ void uiOpenGLAreaSwapBuffers(uiOpenGLArea *a)
 		logLastError(L"error swapping OpenGL buffers");
 }
 
-// void uiOpenGLAreaBeginUserWindowMove(uiOpenGLArea *a)
-// {
-// 	HWND toplevel;
+void uiOpenGLAreaBeginUserWindowMove(uiOpenGLArea *a)
+{
+	HWND toplevel;
 
-// 	// TODO restrict execution
-// 	ReleaseCapture();		// TODO use properly and reset internal data structures
-// 	toplevel = parentToplevel(a->hwnd);
-// 	if (toplevel == NULL) {
-// 		// TODO
-// 		return;
-// 	}
-// 	// see http://stackoverflow.com/questions/40249940/how-do-i-initiate-a-user-mouse-driven-move-or-resize-for-custom-window-borders-o#40250654
-// 	SendMessageW(toplevel, WM_SYSCOMMAND,
-// 		SC_MOVE | 2, 0);
-// }
+	// TODO restrict execution
+	ReleaseCapture();		// TODO use properly and reset internal data structures
+	toplevel = parentToplevel(a->hwnd);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// see http://stackoverflow.com/questions/40249940/how-do-i-initiate-a-user-mouse-driven-move-or-resize-for-custom-window-borders-o#40250654
+	SendMessageW(toplevel, WM_SYSCOMMAND,
+		SC_MOVE | 2, 0);
+}
 
-// void uiOpenGLAreaBeginUserWindowResize(uiOpenGLArea *a, uiWindowResizeEdge edge)
-// {
-// 	HWND toplevel;
-// 	WPARAM wParam;
+void uiOpenGLAreaBeginUserWindowResize(uiOpenGLArea *a, uiWindowResizeEdge edge)
+{
+	HWND toplevel;
+	WPARAM wParam;
 
-// 	// TODO restrict execution
-// 	ReleaseCapture();		// TODO use properly and reset internal data structures
-// 	toplevel = parentToplevel(a->hwnd);
-// 	if (toplevel == NULL) {
-// 		// TODO
-// 		return;
-// 	}
-// 	// see http://stackoverflow.com/questions/40249940/how-do-i-initiate-a-user-mouse-driven-move-or-resize-for-custom-window-borders-o#40250654
-// 	wParam = SC_SIZE;
-// 	switch (edge) {
-// 	case uiWindowResizeEdgeLeft:
-// 		wParam |= 1;
-// 		break;
-// 	case uiWindowResizeEdgeTop:
-// 		wParam |= 3;
-// 		break;
-// 	case uiWindowResizeEdgeRight:
-// 		wParam |= 2;
-// 		break;
-// 	case uiWindowResizeEdgeBottom:
-// 		wParam |= 6;
-// 		break;
-// 	case uiWindowResizeEdgeTopLeft:
-// 		wParam |= 4;
-// 		break;
-// 	case uiWindowResizeEdgeTopRight:
-// 		wParam |= 5;
-// 		break;
-// 	case uiWindowResizeEdgeBottomLeft:
-// 		wParam |= 7;
-// 		break;
-// 	case uiWindowResizeEdgeBottomRight:
-// 		wParam |= 8;
-// 		break;
-// 	}
-// 	SendMessageW(toplevel, WM_SYSCOMMAND,
-// 		wParam, 0);
-// }
+	// TODO restrict execution
+	ReleaseCapture();		// TODO use properly and reset internal data structures
+	toplevel = parentToplevel(a->hwnd);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// see http://stackoverflow.com/questions/40249940/how-do-i-initiate-a-user-mouse-driven-move-or-resize-for-custom-window-borders-o#40250654
+	wParam = SC_SIZE;
+	switch (edge) {
+	case uiWindowResizeEdgeLeft:
+		wParam |= 1;
+		break;
+	case uiWindowResizeEdgeTop:
+		wParam |= 3;
+		break;
+	case uiWindowResizeEdgeRight:
+		wParam |= 2;
+		break;
+	case uiWindowResizeEdgeBottom:
+		wParam |= 6;
+		break;
+	case uiWindowResizeEdgeTopLeft:
+		wParam |= 4;
+		break;
+	case uiWindowResizeEdgeTopRight:
+		wParam |= 5;
+		break;
+	case uiWindowResizeEdgeBottomLeft:
+		wParam |= 7;
+		break;
+	case uiWindowResizeEdgeBottomRight:
+		wParam |= 8;
+		break;
+	}
+	SendMessageW(toplevel, WM_SYSCOMMAND,
+		wParam, 0);
+}
 
 uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attribs)
 {

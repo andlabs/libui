@@ -2,11 +2,11 @@
 #include "area.hpp"
 #include <GL/gl.h>
 
-typedef char* (APIENTRY *PFNWGETEXTENSIONSSTRINGARBPROC)(HDC hdc);
+//TODO APIENTRY vs WINAPI
+typedef const char* (WINAPI * PFNWGLGETEXTENSIONSSTRINGARBPROC) (HDC hdc);
 
-typedef bool (APIENTRY *PFNWGLSWAPINTERVALEXTPROC)(int interval);
-typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC)
-	(HDC hDC, HGLRC hShareContext, const int *attribList);
+typedef BOOL (WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
+typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList);
 
 #ifndef WGL_ARB_create_context_profile
 #define WGL_ARB_create_context_profile
@@ -25,6 +25,7 @@ typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC)
 #define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
 #endif
 
+//TODO needed?
 #ifndef WGL_ARB_create_context_robustness
 #define WGL_ARB_create_context_robustness
 #define WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB         0x00000004
@@ -44,28 +45,24 @@ typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC)
 #endif
 
 
+// Use the WGL_EXT_swap_control extension to control swap interval.
+// Check both the standard extensions string via glGetString(GL_EXTENSIONS)
+// and the WGL-specific extensions string via wglGetExtensionsStringARB() to
+// verify that WGL_EXT_swap_control is actually present.
+
+// The extension provides the wglSwapIntervalEXT() function, which directly
+// specifies the swap interval. wglSwapIntervalEXT(1) is used to enable vsync;
+// wglSwapIntervalEXT(0) to disable vsync.
+
+
+//Needs a context!
 static BOOL WGLExtensionSupported(HDC hdc, const char *extension_name)
 {
-	//TODO use OpenGL 3 method, fallback otherwise:
-
-	// Use wglGetProcAddress() to access implementation-specific OpenGL extension
-	// procedure calls. To determine which extensions are supported by your
-	// implementation, first call glGetIntegerv() passing GL_NUM_EXTENSIONS
-	// to determine the number of extensions available, and then call
-	// glGetStringi() to retrieve each extension name. wglGetProcAddress()
-	// when passed the exact name of the extension returned from glGetStringi(),
-	// returns a function pointer for the extension procedure call, or returns NULL
-	// if the extension is not supported.
-
-	// GLsizei n;
-	// glGetIntegerv(GL_NUM_EXTENSIONS, &n);
-	// for(size_t i = 0; i < n; i++){
-	// 	// glGetStringi(GL_EXTENSIONS, i) == extension_name
-	// }
-
-	PFNWGETEXTENSIONSSTRINGARBPROC _wglGetExtensionsStringARB = (PFNWGETEXTENSIONSSTRINGARBPROC) wglGetProcAddress("wglGetExtensionsStringARB");
+	//TODO check for WGL_ARB_extensions_string? how even?
+	PFNWGLGETEXTENSIONSSTRINGARBPROC _wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC) wglGetProcAddress("wglGetExtensionsStringARB");
 
 	if (strstr(_wglGetExtensionsStringARB(hdc), extension_name) == NULL)
+		//TODO cache?
 		return false;
 
 	return true;
@@ -142,14 +139,10 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			//handle error - fallback to wglCreateContext & ignore attribs?
 			//					  should be consistent with other platforms
 
-			//TODO WGL_ARB_create_context_robustness ? 
+			//TODO WGL_ARB_create_context_robustness ?
 
 			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB
 				= (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress("wglCreateContextAttribsARB");
-
-			wglMakeCurrent(a->hDC, NULL);
-			if (wglDeleteContext(tempContext) == FALSE)
-				logLastError(L"error releasing temporary OpenGL context");
 
 			const int contextAttribs[11] = {
 				WGL_CONTEXT_MAJOR_VERSION_ARB,
@@ -160,7 +153,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 					attribs->DebugContext ? WGL_CONTEXT_DEBUG_BIT_ARB,
 					attribs->ForwardCompat ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
 				WGL_CONTEXT_PROFILE_MASK_ARB,
-					attribs->CompatProfile ? 
+					attribs->CompatProfile ?
 						WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
 						WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 				0,
@@ -176,6 +169,10 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 				}
 				//TODO handle error
 			}
+
+			wglMakeCurrent(a->hDC, NULL);
+			if (wglDeleteContext(tempContext) == FALSE)
+				logLastError(L"error releasing temporary OpenGL context");
 
 			a->hglrc = wglCreateContextAttribsARB(a->hDC, 0, contextAttribs)
 			if (a->hglrc == NULL)
@@ -270,20 +267,12 @@ void uiOpenGLAreaSetSize(uiOpenGLArea *a, int width, int height)
 void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int v)
 {
 	uiOpenGLAreaMakeCurrent(a);
+	//TODO cache query, load only once
 	if (WGLExtensionSupported(a->hDC, "WGL_EXT_swap_control")) {
 		PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) wglGetProcAddress("wglSwapIntervalEXT");
 
 		wglSwapIntervalEXT(v);
 	}
-	// TODO
-	// Use the WGL_EXT_swap_control extension to control swap interval.
-	// Check both the standard extensions string via glGetString(GL_EXTENSIONS)
-	// and the WGL-specific extensions string via wglGetExtensionsStringARB() to
-	// verify that WGL_EXT_swap_control is actually present.
-
-	// The extension provides the wglSwapIntervalEXT() function, which directly
-	// specifies the swap interval. wglSwapIntervalEXT(1) is used to enable vsync;
-	// wglSwapIntervalEXT(0) to disable vsync.
 }
 
 void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)

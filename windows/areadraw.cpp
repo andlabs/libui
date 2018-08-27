@@ -5,20 +5,7 @@
 static void beginOpenGLDraw(uiOpenGLArea *a/*, uiAreaDrawParams *dp*/, ID2D1RenderTarget *rt) {
 	RECT rect;
 	GetClientRect(a->hwnd,&rect);
-	// TODO What to keep?
-	// glViewport(0, 0, rect.right, rect.bottom);
 
-	// COLORREF bgcolorref = GetSysColor(COLOR_BTNFACE);
-	// float r = ((float) GetRValue(bgcolorref)) / 255.0;
-	// // due to utter apathy on Microsoft's part, GetGValue() does not work with MSVC's Run-Time Error Checks
-	// // it has not worked since 2008 and they have *never* fixed it
-	// // TODO now that -RTCc has just been deprecated entirely, should we switch back?
-	// float g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
-	// float b = ((float) GetBValue(bgcolorref)) / 255.0;
-	//  glClearColor(r, g, b, 1.0);
-	// glClear(GL_COLOR_BUFFER_BIT);
-	// glEnable(GL_BLEND);
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//  if (a->scrolling) {
 	// 	dp->AreaWidth = a->scrollWidth;
 	// 	dp->AreaHeight = a->scrollHeight;
@@ -30,6 +17,7 @@ static void beginOpenGLDraw(uiOpenGLArea *a/*, uiAreaDrawParams *dp*/, ID2D1Rend
 	double width, height;
 	loadAreaSize((uiArea *) a, rt, &width, &height);
 
+	uiOpenGLAreaMakeCurrent(a);
 	(*(a->ah->DrawGL))(a->ah, a, width, height);
 }
 

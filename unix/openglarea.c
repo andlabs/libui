@@ -22,6 +22,30 @@ typedef struct openGLAreaWidgetClass openGLAreaWidgetClass;
 typedef void (*glXSwapIntervalEXTFn)(Display *, GLXDrawable, int);
 typedef void (*glXCreateContextAttribsARBFn)(Display *, GLXFBConfig, GLXContext, Bool, const int *);
 
+static glXSwapIntervalEXTFn uiGLXSwapIntervalEXT = NULL;
+static glXCreateContextAttribsARBFn uiGLXCreateContextAttribsARB = NULL;
+
+static pthread_once_t loaded_extensions = PTHREAD_ONCE_INIT;
+
+static BOOL GLXExtensionSupported(const char *extension_name)
+{
+	if (strstr(glXQueryExtensionsString(display, screen_number), extension_name) == NULL)
+		//TODO cache?
+		return false;
+
+	return true;
+}
+
+void load_extensions()
+{
+	// TODO do only once?
+	// TODO test for availability? EXT_swap_control?
+	if(GLXExtensionSupported("EXT_swap_control"))
+		uiGLXSwapIntervalEXT = (glXSwapIntervalEXTFn)glXGetProcAddress((const GLubyte *)"glXSwapIntervalEXT");
+	else
+		/*HANDLE ERROR?*/;
+}
+
 struct openGLAreaWidget {
 	GtkDrawingArea parent_instance;
 	uiOpenGLArea *a;
@@ -47,9 +71,6 @@ struct uiOpenGLArea {
 	uiprivClickCounter *cc;
 	GdkEventButton *dragevent;
 };
-
-static glXSwapIntervalEXTFn uiGLXSwapIntervalEXT = NULL;
-static glXCreateContextAttribsARBFn uiGLXCreateContextAttribsARB = NULL;
 
 G_DEFINE_TYPE(openGLAreaWidget, openGLAreaWidget, GTK_TYPE_DRAWING_AREA)
 
@@ -453,15 +474,6 @@ static void uiOpenGLAreaDestroy(uiControl *c) {
 	uiFreeControl(uiControl(a));
 }
 
-static pthread_once_t loaded_extensions = PTHREAD_ONCE_INIT;
-
-void load_extensions()
-{
-	// TODO do only once?
-	// TODO test for availability? EXT_swap_control?
-	uiGLXSwapIntervalEXT = (glXSwapIntervalEXTFn)glXGetProcAddress((const GLubyte *)"glXSwapIntervalEXT");
-}
-
 void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)
 {
 	gtk_widget_queue_draw(a->widget);
@@ -469,10 +481,11 @@ void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)
 
 void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int v)
 {
-	pthread_once(&loaded_extensions, load_extensions);
-
 	uiOpenGLAreaMakeCurrent(a);
-	uiGLXSwapIntervalEXT(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)), v);
+	if(uiGLXSwapIntervalEXT != NULL)
+		uiGLXSwapIntervalEXT(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)), v);
+	else
+		/*HANDLE ERROR?*/;
 }
 
 void uiOpenGLAreaMakeCurrent(uiOpenGLArea *a)
@@ -531,6 +544,24 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->StencilBits);
 	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, None);
 
+	//   Different versions of GLX API use rather different attributes lists, see
+	//   the following URLs:
+	//
+	//   - <= 1.2: http://www.opengl.org/sdk/docs/man/xhtml/glXChooseVisual.xml
+	//   - >= 1.3: http://www.opengl.org/sdk/docs/man/xhtml/glXChooseFBConfig.xml
+	//
+	//   Notice in particular that
+	//   - GLX_RGBA is boolean attribute in the old version of the API but a
+	//     value of GLX_RENDER_TYPE in the new one
+	//   - Boolean attributes such as GLX_DOUBLEBUFFER don't take values in the
+	//     old version but must be followed by True or False in the new one.
+	// wxGLAttributes& wxGLAttributes::FrameBuffersRGB()
+	// {
+	//     AddAttribute(GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB);
+	//     AddAttribute(True);
+	//     return *this;
+	// }
+
 	a->visual = glXChooseVisual(a->display, 0, glx_attribs);
 	if (a->visual == NULL)
 		uiprivUserBug("Couldn't choose a GLX visual!");
@@ -538,12 +569,12 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	a->colormap = XCreateColormap(a->display, rootWindow, a->visual->visual, AllocNone);
 	if (a->colormap == 0)
 		uiprivUserBug("Couldn't create an X colormap for this OpenGL view!");
-	
+
 
 	// /Users/niklas/development/cmake/hugin/mac/ExternalPrograms/repository/wxWidgets-3.0.3/src/unix/glx11.cpp
 	// GLXContext glXCreateContextAttribsARB(Display *dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list);
 	// GLX_ARB_create_context &
-	// GLX_ARB_create_context_profile ?
+	// GLX_ARB_create_context_profile
 
 	// GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB (in GLX_ARB_create_context_robustness)
 
@@ -551,6 +582,8 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	// a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
 	if (a->ctx == NULL)
 		uiprivUserBug("Couldn't create a GLX context!");
+
+	pthread_once(&loaded_extensions, load_extensions);
 
 	return a;
 }

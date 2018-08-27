@@ -1499,7 +1499,7 @@ _UI_ENUM(uiOpenGLAttribute) {
     // Whether the framebuffer should be double-buffered (boolean, 0 or 1).
     uiOpenGLAttributeDoubleBuffer,
 
-    // Whether to use OpenGL ES; if false, OpenGL is used (0 or 1) - not supported on macOS.
+    // Whether to use OpenGL ES; if false, OpenGL is used (0 or 1) - ignored on macOS.
     uiOpenGLAttributeUseOpenGLES,
 
     // Major and minor versions of OpenGL/OpenGL ES (integer version number).
@@ -1507,17 +1507,17 @@ _UI_ENUM(uiOpenGLAttribute) {
     uiOpenGLAttributeMinorVersion,
 
     // Whether the OpenGL context should be forward-compatible, with no deprecated functionality;
-    // OpenGL 3.0+ only (boolean, 0 or 1) - not supported on macOS
+    // OpenGL 3.0+ only (boolean, 0 or 1) - ignored on macOS.
     uiOpenGLAttributeForwardCompat,
 
-    // Whether to create a debug context (boolean, 0 or 1) - not supported on macOS.
+    // Whether to create a debug context (boolean, 0 or 1) - ignored on macOS.
     uiOpenGLAttributeDebugContext,
 
     // Whether to use the Compatibility Profile; if false, the Core Profile is used (boolean, 0 or
     // 1)
     uiOpenGLAttributeCompatProfile,
 
-    // Whether to use Robustness (boolean, 0 or 1) - not supported on macOS.
+    // Whether to use Robustness (boolean, 0 or 1) - ignored on macOS.
     uiOpenGLAttributeRobustness,
 };
 

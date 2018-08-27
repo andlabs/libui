@@ -69,6 +69,8 @@ static void assignNextPixelFormatAttribute(NSOpenGLPixelFormatAttribute *as, uns
 			assignNextPixelFormatAttribute(attrs, &attrIndex, NSOpenGLProfileVersion3_2Core);
 		} else {
 			// TODO only 10.10+
+			// runtime?
+			// how to handle non availability?
 			assignNextPixelFormatAttribute(attrs, &attrIndex, NSOpenGLProfileVersion4_1Core);
 		}
 		assignNextPixelFormatAttribute(attrs, &attrIndex, 0); // "a 0-terminated array"

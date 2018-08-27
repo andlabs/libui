@@ -1,18 +1,10 @@
 // 28 may 2016
 
-#ifdef __APPLE__
-#include <OpenGL/gl3.h>
-#elif defined WIN32
-#include <windows.h>
-#include <GL/gl.h>
-#else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
-#endif
+#include "glew/glew.h"
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "../../ui.h"
 
 #define GLCall(x) GLClearError(); x; GLLogCall(#x, __FILE__, __LINE__);
@@ -143,8 +135,7 @@ static int mouseInWindow = 0;
 
 static void onMouseEvent(uiOpenGLAreaHandler *h, uiOpenGLArea *a, uiAreaMouseEvent *e)
 {
-	double width;
-	uiOpenGLAreaGetSize(a, &width, NULL);
+	double width = e->AreaWidth, height = e->AreaHeight;
 
 	rotationAngleA = (uiPi * 2.0f) * (e->X / width);
 	rotationAngleB = (uiPi * 2.0f) * (0.5 + e->Y / height);
@@ -180,6 +171,24 @@ static void compileShader(GLuint shader)
 	}
 }
 
+static void linkProgram(GLuint program)
+{
+	glLinkProgram(program);
+	GLint status;
+	glGetProgramiv(program, GL_LINK_STATUS, &status);
+	if(status == GL_FALSE){
+		GLint maxLength = 0;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+		if(maxLength > 0){
+			char log[maxLength];
+			glGetProgramInfoLog(program, maxLength, &maxLength, log);
+			printf("%s\n", log);
+			glDeleteProgram(program);
+			exit(EXIT_FAILURE);
+		}
+	}
+}
+
 static void onInitGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 {
 	printf("Init\n");
@@ -202,8 +211,10 @@ static void onInitGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 	openGLState.Program = glCreateProgram();
 	GLCall(glAttachShader(openGLState.Program, openGLState.VertexShader));
 	GLCall(glAttachShader(openGLState.Program, openGLState.FragmentShader));
-	GLCall(glLinkProgram(openGLState.Program));
+	linkProgram(openGLState.Program);
 	GLCall(glUseProgram(openGLState.Program));
+	GLCall(glDetachShader(openGLState.Program, openGLState.VertexShader));
+	GLCall(glDetachShader(openGLState.Program, openGLState.FragmentShader));
 
 	GLClearError();
 	openGLState.ProjectionUniform = glGetUniformLocation(openGLState.Program, "aProjection");
@@ -305,6 +316,13 @@ int main(void)
 	uiOpenGLArea *glarea = uiNewOpenGLArea(&AREA_HANDLER, attribs);
 	uiBoxAppend(b, uiControl(glarea), 1);
 	uiOpenGLAreaSetVSync(glarea, 1);
+	uiOpenGLAreaMakeCurrent(glarea);
+
+	GLenum glewStatus = glewInit();
+	if (glewStatus != GLEW_OK) {
+		fprintf(stderr, "GLEW init error: %s\n", glewGetErrorString(glewStatus));
+		exit(EXIT_FAILURE);
+	}
 
 	uiTimer(1000/60, render, glarea);
 

@@ -575,6 +575,13 @@ void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
 		a->dragevent->time);
 }
 
+
+static int ctxErrorOccurred = 0;
+static int ctxErrorHandler(Display *dpy, XErrorEvent *ev) {
+	ctxErrorOccurred = 1;
+	return 0;
+}
+
 uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attribs)
 {
 	uiOpenGLArea *a;
@@ -595,6 +602,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	gtk_widget_set_double_buffered(a->widget, FALSE);
 
 	a->gdkDisplay = gtk_widget_get_display(a->widget);
+	// TODO? OR? a->display = GDK_DISPLAY_XDISPLAY(a->gdkDisplay);
 	a->display = gdk_x11_display_get_xdisplay(a->gdkDisplay);
 	Window rootWindow = gdk_x11_get_default_root_xwindow();
 
@@ -657,7 +665,8 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 
 	// GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB (in GLX_ARB_create_context_robustness)
 
-	//TODO temporary context needed?
+
+	// www.khronos.org/opengl/wiki/Tutorial:_OpenGL_3.0_Context_Creation_(GLX)
 
 
 	// GLX Version 1.3 introduces several sweeping changes, starting with the new
@@ -667,16 +676,24 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	// GLXFBConfig structure describes these framebuffer attributes for a GLXDrawable
 	// rendering surface. (In X, a rendering surface is called a Drawable.)
 
+    // Install a X error handler, so as to the app doesn't exit (without
+    // even a warning) if GL >= 3.0 context creation fails
+    ctxErrorOccurred = false;
+    int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctxErrorHandler);
+
 
 	a->ctx = uiGLXCreateContextAttribsARB(a->display, )
 
-	// fallback glXCreateNewContext
+	// fallback to glXCreateNewContext
 	// a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
 
 	if (a->ctx == NULL)
 		uiprivUserBug("Couldn't create a GLX context!");
 
+	XSetErrorHandler(oldHandler);
+
 	pthread_once(&loaded_extensions, load_extensions);
+
 
 	return a;
 }

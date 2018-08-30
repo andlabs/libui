@@ -44,7 +44,7 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 	// Apple doesn't explicitly document this, but we apparently need to use native system endian for the data :|
 	// TODO split this into a utility routine?
 	// TODO find proper documentation
-	// TODO test this on a big-endian system somehow
+	// TODO test this on a big-endian system somehow; I have a feeling the above comment is wrong about the diagnosis since the order we are specifying is now 0xAABBGGRR
 	pix = (uint8_t *) pixels;
 	data = (uint8_t *) [repCalibrated bitmapData];
 	realStride = [repCalibrated bytesPerRow];

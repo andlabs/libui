@@ -1,7 +1,5 @@
 // 28 may 2016
 
-#define GLEW_STATIC
-#define GLEW_NO_GLU
 #include "glew/glew.h"
 
 #include <math.h>
@@ -36,7 +34,7 @@ static const Vertex VERTICES[] = {
 };
 
 static const char *VERTEX_SHADER =
-	"#version 300 core\n"
+	"#version 330 core\n"
 	"layout(location=0) in vec3 aPosition;\n"
 	"layout(location=1) in vec4 aColor;\n"
 	"uniform mat4 aProjection;\n"
@@ -48,7 +46,7 @@ static const char *VERTEX_SHADER =
 	"}\n";
 
 static const char *FRAGMENT_SHADER =
-	"#version 300 core\n"
+	"#version 330 core\n"
 	"in vec4 vColor;\n"
 	"out vec4 fColor;\n"
 	"void main() {\n"

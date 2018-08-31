@@ -56,6 +56,7 @@ _add_example(opengl
 	opengl/main.c opengl/glew/glew.c
 	${_EXAMPLE_RESOURCES_RC}
 )
+target_compile_definitions(opengl PRIVATE GLEW_STATIC GLEW_NO_GLU)
 if(APPLE)
 	target_link_libraries(opengl "-framework OpenGL")
 elseif(WIN32)

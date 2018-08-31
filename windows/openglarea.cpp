@@ -256,7 +256,7 @@ ATOM registerOpenGLAreaClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	WNDCLASSW wc;
 
 	ZeroMemory(&wc, sizeof (WNDCLASSW));
-	wc.lpszClassName = areaClass;
+	wc.lpszClassName = openGLAreaClass;
 	wc.lpfnWndProc = areaWndProc;
 	wc.hInstance = hInstance;
 	wc.hIcon = hDefaultIcon;
@@ -269,7 +269,7 @@ ATOM registerOpenGLAreaClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 
 void unregisterOpenGLArea(void)
 {
-	if (UnregisterClassW(areaClass, hInstance) == 0)
+	if (UnregisterClassW(openGLAreaClass, hInstance) == 0)
 		logLastError(L"error unregistering uiOpenGLArea window class");
 }
 
@@ -382,7 +382,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 
 	// a->hwnd is assigned in areaWndProc()
 	uiWindowsEnsureCreateControlHWND(0,
-		areaClass, L"",
+		openGLAreaClass, L"",
 		0,
 		hInstance, a,
 		FALSE);

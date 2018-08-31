@@ -687,7 +687,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 
 	printf("%s\n", glXQueryExtensionsString(a->display, screen_number));
 
-	// a->supportsSwapInterval = GLXExtensionSupported(a->display, screen_number, "GLX_EXT_swap_control");
+	a->supportsSwapInterval = GLXExtensionSupported(a->display, screen_number, "GLX_EXT_swap_control");
 
 	pthread_once(&loaded_extensions, load_extensions);
 

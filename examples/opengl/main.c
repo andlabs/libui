@@ -36,7 +36,7 @@ static const Vertex VERTICES[] = {
 };
 
 static const char *VERTEX_SHADER =
-	"#version 330 core\n"
+	"#version 300 core\n"
 	"layout(location=0) in vec3 aPosition;\n"
 	"layout(location=1) in vec4 aColor;\n"
 	"uniform mat4 aProjection;\n"
@@ -48,7 +48,7 @@ static const char *VERTEX_SHADER =
 	"}\n";
 
 static const char *FRAGMENT_SHADER =
-	"#version 330 core\n"
+	"#version 300 core\n"
 	"in vec4 vColor;\n"
 	"out vec4 fColor;\n"
 	"void main() {\n"
@@ -207,7 +207,7 @@ static void linkProgram(GLuint program)
 			char *log = malloc(maxLength);
 			glGetProgramInfoLog(program, maxLength, &maxLength, log);
 			printf("%s\n", log);
-			free(maxLength);
+			free(log);
 			glDeleteProgram(program);
 			exit(EXIT_FAILURE);
 		}
@@ -216,6 +216,17 @@ static void linkProgram(GLuint program)
 
 static void onInitGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 {
+	uiOpenGLAreaSetVSync(a, 1);
+	uiOpenGLAreaMakeCurrent(a);
+
+	GLenum glewStatus = glewInit();
+	if (glewStatus != GLEW_OK) {
+		fprintf(stderr, "GLEW init error: %s\n", glewGetErrorString(glewStatus));
+		exit(EXIT_FAILURE);
+	}
+
+
+
 	printf("Init\n");
 
 	GLCall(glGenVertexArrays(1, &openGLState.VAO));
@@ -349,14 +360,6 @@ int main(void)
 	uiBoxAppend(b, uiControl(uiNewLabel("Press keys 0-9 to set scale")), 0);
 	uiOpenGLArea *glarea = uiNewOpenGLArea(&AREA_HANDLER, attribs);
 	uiBoxAppend(b, uiControl(glarea), 1);
-	uiOpenGLAreaSetVSync(glarea, 1);
-	uiOpenGLAreaMakeCurrent(glarea);
-
-	GLenum glewStatus = glewInit();
-	if (glewStatus != GLEW_OK) {
-		fprintf(stderr, "GLEW init error: %s\n", glewGetErrorString(glewStatus));
-		exit(EXIT_FAILURE);
-	}
 
 	uiTimer(1000/60, render, glarea);
 

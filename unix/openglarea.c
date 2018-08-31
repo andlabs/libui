@@ -20,7 +20,7 @@ typedef struct openGLAreaWidget openGLAreaWidget;
 typedef struct openGLAreaWidgetClass openGLAreaWidgetClass;
 
 typedef void (*glXSwapIntervalEXTFn)(Display *, GLXDrawable, int);
-typedef void (*glXCreateContextAttribsARBFn)(Display *, GLXFBConfig, GLXContext, Bool, const int *);
+typedef GLXContext (*glXCreateContextAttribsARBFn)(Display *, GLXFBConfig, GLXContext, Bool, const int *);
 
 static glXSwapIntervalEXTFn uiGLXSwapIntervalEXT = NULL;
 static glXCreateContextAttribsARBFn uiGLXCreateContextAttribsARB = NULL;
@@ -567,11 +567,11 @@ void uiOpenGLAreaSwapBuffers(uiOpenGLArea *a)
 // }
 
 
-// static int ctxErrorOccurred = 0;
-// static int ctxErrorHandler(Display *dpy, XErrorEvent *ev) {
-// 	ctxErrorOccurred = 1;
-// 	return 0;
-// }
+static int ctxErrorOccurred = 0;
+static int ctxErrorHandler(Display *dpy, XErrorEvent *ev) {
+	ctxErrorOccurred = 1;
+	return 0;
+}
 
 uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attribs)
 {
@@ -596,6 +596,8 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	a->display = gdk_x11_display_get_xdisplay(a->gdkDisplay);
 	int screen_number = gdk_x11_screen_get_screen_number(gdk_display_get_default_screen(a->gdkDisplay));
 	Window rootWindow = gdk_x11_get_default_root_xwindow();
+
+	pthread_once(&loaded_extensions, load_extensions);
 
 	//   Different versions of GLX API use rather different attributes lists, see
 	//   the following URLs:
@@ -634,25 +636,23 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	ctxErrorOccurred = 0;
 	int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctxErrorHandler);
 
-
-
-
 	int glx_major, glx_minor;
 
-	if (!glXQueryVersion(display, &glx_major, &glx_minor)) {
+	if (!glXQueryVersion(a->display, &glx_major, &glx_minor)) {
 		//TODO continue?
 		uiprivUserBug("Couldn't query GLX version");
 	}
 
 	int isGLX13OrNewer = glx_major >= 1 && glx_minor >= 3;
 
+	GLXFBConfig *fbconfig;
 	if (isGLX13OrNewer) {
 		int glx_attribs[GLX_ATTRIBUTE_LIST_SIZE];
 		unsigned glx_attrib_index = 0;
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_LEVEL);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, 0);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RENDER_TYPE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RGBA);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RGBA_BIT);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DOUBLEBUFFER);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->DoubleBuffer ? True : False);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STEREO);
@@ -672,7 +672,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, None);
 
 		int num;
-		GLXFBConfig *fbconfig = glXChooseFBConfig(a->display, screen_number, glx_attribs, &num);
+		fbconfig = glXChooseFBConfig(a->display, screen_number, glx_attribs, &num);
 
 		if (fbconfig == NULL)
 			uiprivUserBug("Couldn't choose a GLX frame buffer configuration!");
@@ -717,17 +717,17 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	}
 
 	if(isGLX13OrNewer){
-		if(GLXExtensionSupported(display, screen_number, "GLX_ARB_create_context") &&
-		   GLXExtensionSupported(display, screen_number, "GLX_ARB_create_context_profile")) {
+		if(GLXExtensionSupported(a->display, screen_number, "GLX_ARB_create_context") &&
+		   GLXExtensionSupported(a->display, screen_number, "GLX_ARB_create_context_profile")) {
 
 			int context_attribs[] = {
-				GLX_CONTEXT_MAJOR_VERSION_ARB, a->MajorVersion,
-				GLX_CONTEXT_MINOR_VERSION_ARB, a->MinorVersion,
+				GLX_CONTEXT_MAJOR_VERSION_ARB, a->attribs->MajorVersion,
+				GLX_CONTEXT_MINOR_VERSION_ARB, a->attribs->MinorVersion,
 				GLX_CONTEXT_FLAGS_ARB,
 					a->attribs->DebugContext ?  GLX_CONTEXT_DEBUG_BIT_ARB : 0 |
 					a->attribs->ForwardCompat ?  GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0,
 				GLX_CONTEXT_PROFILE_MASK_ARB,
-					a->attribs->CompatProfile == -1 ? 0 :
+					a->attribs->CompatProfile == uiOpenGLDontCare ? 0 :
 					(
 						a->attribs->CompatProfile ? 
 							GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB :
@@ -736,20 +736,22 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 				None
 			};
 
-			a->ctx = uiGLXCreateContextAttribsARB(a->display, fbconfig, 0, True, context_attribs);
+			a->ctx = uiGLXCreateContextAttribsARB(a->display, *fbconfig, 0, True, context_attribs);
 
-			XSync(display, False);
+			XSync(a->display, False);
 
-			if (ctxErrorOccurred || !ctx) {
+			if (ctxErrorOccurred || !a->ctx) {
 				//TODO how to handle error, retry with lower version (1.0)
 				uiprivUserBug("Couldn't create a GLX (maybe your specified version isn't supported)!");
 			}
 		} else {
-			a->ctx = glXCreateNewContext(a->display, fbconfig, GLX_RGBA_TYPE, 0, True);
+			a->ctx = glXCreateNewContext(a->display, *fbconfig, GLX_RGBA_TYPE, 0, True);
 		}
 	} else {
 		a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
 	}
+
+	//TODO free fbconfig?
 
 	if (a->ctx == NULL)
 		uiprivUserBug("Couldn't create a GLX context!");
@@ -757,8 +759,6 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	XSetErrorHandler(oldHandler);
 
 	a->supportsSwapInterval = GLXExtensionSupported(a->display, screen_number, "GLX_EXT_swap_control");
-
-	pthread_once(&loaded_extensions, load_extensions);
 
 	return a;
 }

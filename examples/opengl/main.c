@@ -224,8 +224,11 @@ static void onInitGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 	}
 
 
+	int major = 0, minor = 0;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
 
-	printf("Init\n");
+	printf("Init: %d.%d\n", major, minor);
 
 	GLCall(glGenVertexArrays(1, &openGLState.VAO));
 	GLCall(glBindVertexArray(openGLState.VAO));
@@ -348,7 +351,7 @@ int main(void)
 
 	uiOpenGLAttributes *attribs = uiNewOpenGLAttributes();
 	uiOpenGLAttributesSetAttribute(attribs, uiOpenGLAttributeMajorVersion, 3);
-	uiOpenGLAttributesSetAttribute(attribs, uiOpenGLAttributeMinorVersion, 0);
+	uiOpenGLAttributesSetAttribute(attribs, uiOpenGLAttributeMinorVersion, 3);
 	uiOpenGLAttributesSetAttribute(attribs, uiOpenGLAttributeCompatProfile, 0);
 
 	uiBox *b = uiNewVerticalBox();

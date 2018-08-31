@@ -79,7 +79,7 @@ struct uiOpenGLAttributes {
 	unsigned char MinorVersion;
 	unsigned char ForwardCompat;
 	unsigned char DebugContext;
-	unsigned char CompatProfile;
+	char CompatProfile;
 	unsigned char Robustness;
 };
 

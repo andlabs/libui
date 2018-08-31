@@ -111,7 +111,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 			int iPixelFormat;
 			a->hDC = GetDC(a->hwnd);
-			if (dc == NULL)
+			if (a->hDC == NULL)
 				logLastError(L"error getting DC for OpenGL context");
 
 			//TODO ? use newer wglChoosePixelFormatARB
@@ -144,28 +144,44 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB
 				= (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress("wglCreateContextAttribsARB");
 
-			const int contextAttribs[11] = {
+			int contextAttribsPos = 4;
+			int contextAttribs[11] = {
 				WGL_CONTEXT_MAJOR_VERSION_ARB,
 					attribs->MajorVersion,
 				WGL_CONTEXT_MINOR_VERSION_ARB,
 					attribs->MinorVersion,
-				WGL_CONTEXT_FLAGS_ARB,
-					attribs->DebugContext ? WGL_CONTEXT_DEBUG_BIT_ARB,
-					attribs->ForwardCompat ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-				WGL_CONTEXT_PROFILE_MASK_ARB,
-					attribs->CompatProfile ?
-						WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
-						WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-				0,
+				0, // WGL_CONTEXT_FLAGS_ARB,
+				0, // 	attribs->DebugContext ? WGL_CONTEXT_DEBUG_BIT_ARB,
+				0, // 	attribs->ForwardCompat ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+				0, // WGL_CONTEXT_PROFILE_MASK_ARB,
+				0, // 	attribs->CompatProfile ?
+				0, // 		WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
+				   // 		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 				0
 			};
 
+			if(attribs->DebugContext || attribs->ForwardCompat) {
+				contextAttribs[contextAttribsPos++] = WGL_CONTEXT_FLAGS_ARB;
+				if(attribs->DebugContext)
+					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_DEBUG_BIT_ARB;
+				if(attribs->ForwardCompat)
+					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+			}
+
+			if(attribs->CompatProfile != uiOpenGLDontCare) {
+				contextAttribs[contextAttribsPos++] = WGL_CONTEXT_PROFILE_MASK_ARB;
+				contextAttribs[contextAttribsPos++] = attribs->CompatProfile ?
+						WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
+						WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+
+			}
+
 			//TODO does wglGetExtensionsStringARB need a context?
 			if(attribs->UseOpenGLES) {
-				if(attrons->MajorVersion >= 2 && WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile")){
-					contextAttribs[9] = WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
+				if(attribs->MajorVersion >= 2 && WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile")){
+					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
 				} else if(WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile")){
-					contextAttribs[9] = WGL_CONTEXT_ES_PROFILE_BIT_EXT;
+					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_ES_PROFILE_BIT_EXT;
 				}
 				//TODO handle error
 			}
@@ -174,7 +190,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			if (wglDeleteContext(tempContext) == FALSE)
 				logLastError(L"error releasing temporary OpenGL context");
 
-			a->hglrc = wglCreateContextAttribsARB(a->hDC, 0, contextAttribs)
+			a->hglrc = wglCreateContextAttribsARB(a->hDC, 0, contextAttribs);
 			if (a->hglrc == NULL)
 				logLastError(L"error creating OpenGL context");
 

@@ -1,5 +1,6 @@
 // 28 may 2016
 
+#define GLEW_STATIC
 #include "glew/glew.h"
 
 #include <math.h>
@@ -202,9 +203,10 @@ static void linkProgram(GLuint program)
 		GLint maxLength = 0;
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
 		if(maxLength > 0){
-			char log[maxLength];
+			char *log = malloc(maxLength);
 			glGetProgramInfoLog(program, maxLength, &maxLength, log);
 			printf("%s\n", log);
+			free(maxLength);
 			glDeleteProgram(program);
 			exit(EXIT_FAILURE);
 		}

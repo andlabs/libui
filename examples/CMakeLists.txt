@@ -57,18 +57,9 @@ _add_example(opengl
 	${_EXAMPLE_RESOURCES_RC}
 )
 if(APPLE)
-	# TODO needed with glew?
-	# Undefined symbols for architecture x86_64:
-	#  "_glClear", referenced from:
-	#      _onDrawGL in main.c.o
-	#  "_glDrawArrays", referenced from:
-	#      _onDrawGL in main.c.o
-	#  "_glGetError", referenced from:
-	#      _GLLogCall in main.c.o
-	#      _GLClearError in main.c.o
-	#  "_glViewport", referenced from:
-	#      _onDrawGL in main.c.o
 	target_link_libraries(opengl "-framework OpenGL")
+elseif(WIN32)
+	target_link_libraries(opengl "opengl32")
 elseif("${_OSNAME}" STREQUAL "unix")
 	target_link_libraries(opengl "-lGL -lm")
 endif()

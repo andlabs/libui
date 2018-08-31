@@ -597,29 +597,6 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	int screen_number = gdk_x11_screen_get_screen_number(gdk_display_get_default_screen(a->gdkDisplay));
 	Window rootWindow = gdk_x11_get_default_root_xwindow();
 
-	int glx_attribs[GLX_ATTRIBUTE_LIST_SIZE];
-	unsigned glx_attrib_index = 0;
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_LEVEL);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, 0);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RGBA);
-	if (a->attribs->DoubleBuffer)
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DOUBLEBUFFER);
-	if (a->attribs->Stereo)
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STEREO);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RED_SIZE);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->RedBits);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_GREEN_SIZE);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->GreenBits);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_BLUE_SIZE);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->BlueBits);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_ALPHA_SIZE);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->AlphaBits);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DEPTH_SIZE);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->DepthBits);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STENCIL_SIZE);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->StencilBits);
-	assign_next_glx_attribute(glx_attribs, &glx_attrib_index, None);
-
 	//   Different versions of GLX API use rather different attributes lists, see
 	//   the following URLs:
 	//
@@ -631,23 +608,8 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	//     value of GLX_RENDER_TYPE in the new one
 	//   - Boolean attributes such as GLX_DOUBLEBUFFER don't take values in the
 	//     old version but must be followed by True or False in the new one.
-	// wxGLAttributes& wxGLAttributes::FrameBuffersRGB()
-	// {
-	//     AddAttribute(GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB);
-	//     AddAttribute(True);
-	//     return *this;
-	// }
+
 	// /Users/niklas/development/cmake/hugin/mac/ExternalPrograms/repository/wxWidgets-3.0.3/src/unix/glx11.cpp
-
-	a->visual = glXChooseVisual(a->display, 0, glx_attribs);
-	if (a->visual == NULL)
-		uiprivUserBug("Couldn't choose a GLX visual!");
-
-	// TODO needed?
-	a->colormap = XCreateColormap(a->display, rootWindow, a->visual->visual, AllocNone);
-	if (a->colormap == 0)
-		uiprivUserBug("Couldn't create an X colormap for this OpenGL view!");
-
 
 	// /Users/niklas/development/cmake/hugin/mac/ExternalPrograms/repository/wxWidgets-3.0.3/src/unix/glx11.cpp
 	// GLXContext glXCreateContextAttribsARB(Display *dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list);
@@ -667,30 +629,136 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	// GLXFBConfig structure describes these framebuffer attributes for a GLXDrawable
 	// rendering surface. (In X, a rendering surface is called a Drawable.)
 
-    // Install a X error handler, so as to the app doesn't exit (without
-    // even a warning) if GL >= 3.0 context creation fails
-    // ctxErrorOccurred = 0;
-    // int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctxErrorHandler);
+	// Install a X error handler, so as to the app doesn't exit (without
+	// even a warning) if GL >= 3.0 context creation fails
+	ctxErrorOccurred = 0;
+	int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctxErrorHandler);
 
 
-	// GLXExtensionSupported(display, screen_number, "GLX_ARB_create_context") && GLXExtensionSupported("GLX_ARB_create_context_profile", display, screen_number);
 
-	// a->ctx = uiGLXCreateContextAttribsARB(a->display, )
 
-	// fallback to glXCreateNewContext
-	a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
+	int glx_major, glx_minor;
+
+	if (!glXQueryVersion(display, &glx_major, &glx_minor)) {
+		//TODO continue?
+		uiprivUserBug("Couldn't query GLX version");
+	}
+
+	int isGLX13OrNewer = glx_major >= 1 && glx_minor >= 3;
+
+	if (isGLX13OrNewer) {
+		int glx_attribs[GLX_ATTRIBUTE_LIST_SIZE];
+		unsigned glx_attrib_index = 0;
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_LEVEL);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, 0);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RENDER_TYPE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RGBA);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DOUBLEBUFFER);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->DoubleBuffer ? True : False);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STEREO);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->Stereo ? True : False);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RED_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->RedBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_GREEN_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->GreenBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_BLUE_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->BlueBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_ALPHA_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->AlphaBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DEPTH_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->DepthBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STENCIL_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->StencilBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, None);
+
+		int num;
+		GLXFBConfig *fbconfig = glXChooseFBConfig(a->display, screen_number, glx_attribs, &num);
+
+		if (fbconfig == NULL)
+			uiprivUserBug("Couldn't choose a GLX frame buffer configuration!");
+
+		// Use the first good match
+		a->visual = glXGetVisualFromFBConfig(a->display, *fbconfig);
+		if (a->visual == NULL)
+			uiprivUserBug("Couldn't choose a GLX visual!");
+
+	} else {
+		int glx_attribs[GLX_ATTRIBUTE_LIST_SIZE];
+		unsigned glx_attrib_index = 0;
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_LEVEL);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, 0);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RGBA);
+		if (a->attribs->DoubleBuffer)
+			assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DOUBLEBUFFER);
+		if (a->attribs->Stereo)
+			assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STEREO);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RED_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->RedBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_GREEN_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->GreenBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_BLUE_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->BlueBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_ALPHA_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->AlphaBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DEPTH_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->DepthBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STENCIL_SIZE);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->StencilBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, None);
+
+		a->visual = glXChooseVisual(a->display, 0, glx_attribs);
+		if (a->visual == NULL)
+			uiprivUserBug("Couldn't choose a GLX visual!");
+
+		// TODO needed?
+		a->colormap = XCreateColormap(a->display, rootWindow, a->visual->visual, AllocNone);
+		if (a->colormap == 0)
+			uiprivUserBug("Couldn't create an X colormap for this OpenGL view!");
+	}
+
+	if(isGLX13OrNewer){
+		if(GLXExtensionSupported(display, screen_number, "GLX_ARB_create_context") &&
+		   GLXExtensionSupported(display, screen_number, "GLX_ARB_create_context_profile")) {
+
+			int context_attribs[] = {
+				GLX_CONTEXT_MAJOR_VERSION_ARB, a->MajorVersion,
+				GLX_CONTEXT_MINOR_VERSION_ARB, a->MinorVersion,
+				GLX_CONTEXT_FLAGS_ARB,
+					a->attribs->DebugContext ?  GLX_CONTEXT_DEBUG_BIT_ARB : 0 |
+					a->attribs->ForwardCompat ?  GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0,
+				GLX_CONTEXT_PROFILE_MASK_ARB,
+					a->attribs->CompatProfile == -1 ? 0 :
+					(
+						a->attribs->CompatProfile ? 
+							GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB :
+							GLX_CONTEXT_CORE_PROFILE_BIT_ARB
+					),
+				None
+			};
+
+			a->ctx = uiGLXCreateContextAttribsARB(a->display, fbconfig, 0, True, context_attribs);
+
+			XSync(display, False);
+
+			if (ctxErrorOccurred || !ctx) {
+				//TODO how to handle error, retry with lower version (1.0)
+				uiprivUserBug("Couldn't create a GLX (maybe your specified version isn't supported)!");
+			}
+		} else {
+			a->ctx = glXCreateNewContext(a->display, fbconfig, GLX_RGBA_TYPE, 0, True);
+		}
+	} else {
+		a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
+	}
 
 	if (a->ctx == NULL)
 		uiprivUserBug("Couldn't create a GLX context!");
 
-	// XSetErrorHandler(oldHandler);
-
-	printf("%s\n", glXQueryExtensionsString(a->display, screen_number));
+	XSetErrorHandler(oldHandler);
 
 	a->supportsSwapInterval = GLXExtensionSupported(a->display, screen_number, "GLX_EXT_swap_control");
 
 	pthread_once(&loaded_extensions, load_extensions);
-
 
 	return a;
 }

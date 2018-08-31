@@ -30,6 +30,17 @@
 ** THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#define GLEW_NO_GLU
+
+
+
+
+
+
+
+
+
+
 #include "glew.h"
 
 #if defined(GLEW_EGL)

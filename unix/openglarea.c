@@ -25,30 +25,20 @@ typedef void (*glXCreateContextAttribsARBFn)(Display *, GLXFBConfig, GLXContext,
 static glXSwapIntervalEXTFn uiGLXSwapIntervalEXT = NULL;
 static glXCreateContextAttribsARBFn uiGLXCreateContextAttribsARB = NULL;
 
-static pthread_once_t loaded_extensions = PTHREAD_ONCE_INIT;
-
-static BOOL GLXExtensionSupported(const char *extension_name)
+static int GLXExtensionSupported(Display *display, int screen_number, const char *extension_name)
 {
 	if (strstr(glXQueryExtensionsString(display, screen_number), extension_name) == NULL)
 		// TODO cache?
-		return false;
+		return 0;
 
-	return true;
+	return 1;
 }
 
+static pthread_once_t loaded_extensions = PTHREAD_ONCE_INIT;
 void load_extensions()
 {
-	if(GLXExtensionSupported("EXT_swap_control"))
-		uiGLXSwapIntervalEXT = (glXSwapIntervalEXTFn)glXGetProcAddress((const GLubyte *)"glXSwapIntervalEXT");
-	else{
-		// TODO warn here or if called
-	}
-
-	if(GLXExtensionSupported("GLX_ARB_create_context") && GLXExtensionSupported("GLX_ARB_create_context_profile"))
-		uiGLXCreateContextAttribsARB = (glXCreateContextAttribsARBFn)glXGetProcAddress((const GLubyte *)"glXCreateContextAttribsARB");
-	else {
-			// TODO warn here or if called
-	}
+	uiGLXSwapIntervalEXT = (glXSwapIntervalEXTFn)glXGetProcAddress((const GLubyte *)"glXSwapIntervalEXT");
+	uiGLXCreateContextAttribsARB = (glXCreateContextAttribsARBFn)glXGetProcAddress((const GLubyte *)"glXCreateContextAttribsARB");
 }
 
 struct openGLAreaWidget {
@@ -75,6 +65,7 @@ struct uiOpenGLArea {
 	int initialized;
 	uiprivClickCounter *cc;
 	GdkEventButton *dragevent;
+	int supportsSwapInterval;
 };
 
 G_DEFINE_TYPE(openGLAreaWidget, openGLAreaWidget, GTK_TYPE_DRAWING_AREA)
@@ -487,7 +478,7 @@ void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)
 void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int v)
 {
 	uiOpenGLAreaMakeCurrent(a);
-	if(uiGLXSwapIntervalEXT != NULL)
+	if(uiGLXSwapIntervalEXT != NULL && a->supportsSwapInterval)
 		uiGLXSwapIntervalEXT(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)), v);
 	else {
 		// TODO handle missing extension
@@ -505,7 +496,7 @@ void uiOpenGLAreaSwapBuffers(uiOpenGLArea *a)
 	glXSwapBuffers(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)));
 }
 
-void uiAreaBeginUserWindowMove(uiArea *a)
+void uiOpwnGLAreaBeginUserWindowMove(uiOpenGLArea *a)
 {
 	GtkWidget *toplevel;
 
@@ -545,7 +536,7 @@ static const GdkWindowEdge edges[] = {
 	[uiWindowResizeEdgeBottomRight] = GDK_WINDOW_EDGE_SOUTH_EAST,
 };
 
-void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
+void uiOpenGLAreaBeginUserWindowResize(uiOpenGLArea *a, uiWindowResizeEdge edge)
 {
 	GtkWidget *toplevel;
 
@@ -602,8 +593,8 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	gtk_widget_set_double_buffered(a->widget, FALSE);
 
 	a->gdkDisplay = gtk_widget_get_display(a->widget);
-	// TODO? OR? a->display = GDK_DISPLAY_XDISPLAY(a->gdkDisplay);
 	a->display = gdk_x11_display_get_xdisplay(a->gdkDisplay);
+	int screen_number = gdk_x11_screen_get_screen_number(gdk_display_get_default_screen(a->gdkDisplay));
 	Window rootWindow = gdk_x11_get_default_root_xwindow();
 
 	int glx_attribs[GLX_ATTRIBUTE_LIST_SIZE];
@@ -678,19 +669,25 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 
     // Install a X error handler, so as to the app doesn't exit (without
     // even a warning) if GL >= 3.0 context creation fails
-    ctxErrorOccurred = false;
+    ctxErrorOccurred = 0;
     int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctxErrorHandler);
 
 
-	a->ctx = uiGLXCreateContextAttribsARB(a->display, )
+	// GLXExtensionSupported(display, screen_number, "GLX_ARB_create_context") && GLXExtensionSupported("GLX_ARB_create_context_profile", display, screen_number);
+
+	// a->ctx = uiGLXCreateContextAttribsARB(a->display, )
 
 	// fallback to glXCreateNewContext
-	// a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
+	a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
 
 	if (a->ctx == NULL)
 		uiprivUserBug("Couldn't create a GLX context!");
 
 	XSetErrorHandler(oldHandler);
+
+	printf("%s\n", glXQueryExtensionsString(a->display, screen_number));
+
+	a->supportsSwapInterval = GLXExtensionSupported(a->display, screen_number, "GLX_EXT_swap_control");
 
 	pthread_once(&loaded_extensions, load_extensions);
 

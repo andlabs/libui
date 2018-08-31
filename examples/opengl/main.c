@@ -1,6 +1,7 @@
 // 28 may 2016
 
 #define GLEW_STATIC
+#define GLEW_NO_GLU
 #include "glew/glew.h"
 
 #include <math.h>

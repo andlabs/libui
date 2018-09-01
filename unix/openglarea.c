@@ -60,7 +60,6 @@ struct uiOpenGLArea {
 	GdkDisplay *gdkDisplay;
 	Display *display;
 	XVisualInfo *visual;
-	Colormap colormap;
 	GLXContext ctx;
 	int initialized;
 	uiprivClickCounter *cc;
@@ -462,10 +461,10 @@ uiUnixControlAllDefaultsExceptDestroy(uiOpenGLArea)
 
 static void uiOpenGLAreaDestroy(uiControl *c) {
 	uiOpenGLArea *a = uiOpenGLArea(c);
+	glXMakeCurrent(a->display, gdk_x11_window_get_xid(gtk_widget_get_window(a->widget)), NULL);
 
 	uiprivFree(a->attribs);
 	XFree(a->visual);
-	XFreeColormap(a->display, a->colormap);
 	g_object_unref(a->widget);
 	uiFreeControl(uiControl(a));
 }
@@ -595,7 +594,6 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	a->gdkDisplay = gtk_widget_get_display(a->widget);
 	a->display = gdk_x11_display_get_xdisplay(a->gdkDisplay);
 	int screen_number = gdk_x11_screen_get_screen_number(gdk_display_get_default_screen(a->gdkDisplay));
-	Window rootWindow = gdk_x11_get_default_root_xwindow();
 
 	pthread_once(&loaded_extensions, load_extensions);
 
@@ -645,7 +643,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 
 	int isGLX13OrNewer = glx_major >= 1 && glx_minor >= 3;
 
-	GLXFBConfig *fbconfig;
+	GLXFBConfig *fbconfig = NULL;
 	if (isGLX13OrNewer) {
 		int glx_attribs[GLX_ATTRIBUTE_LIST_SIZE];
 		unsigned glx_attrib_index = 0;
@@ -677,7 +675,6 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 		if (fbconfig == NULL)
 			uiprivUserBug("Couldn't choose a GLX frame buffer configuration!");
 
-		// Use the first good match
 		a->visual = glXGetVisualFromFBConfig(a->display, *fbconfig);
 		if (a->visual == NULL)
 			uiprivUserBug("Couldn't choose a GLX visual!");
@@ -709,17 +706,11 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 		a->visual = glXChooseVisual(a->display, 0, glx_attribs);
 		if (a->visual == NULL)
 			uiprivUserBug("Couldn't choose a GLX visual!");
-
-		// TODO needed?
-		a->colormap = XCreateColormap(a->display, rootWindow, a->visual->visual, AllocNone);
-		if (a->colormap == 0)
-			uiprivUserBug("Couldn't create an X colormap for this OpenGL view!");
 	}
 
-	if(isGLX13OrNewer){
+	if(isGLX13OrNewer && fbconfig != NULL){
 		if(GLXExtensionSupported(a->display, screen_number, "GLX_ARB_create_context") &&
 		   GLXExtensionSupported(a->display, screen_number, "GLX_ARB_create_context_profile")) {
-
 			int context_attribs[] = {
 				GLX_CONTEXT_MAJOR_VERSION_ARB, a->attribs->MajorVersion,
 				GLX_CONTEXT_MINOR_VERSION_ARB, a->attribs->MinorVersion,
@@ -736,12 +727,14 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 				None
 			};
 
+			// OpenGL 3 is only availble using this function
 			a->ctx = uiGLXCreateContextAttribsARB(a->display, *fbconfig, 0, True, context_attribs);
+			XFree(fbconfig);
 
 			XSync(a->display, False);
 
 			if (ctxErrorOccurred || !a->ctx) {
-				//TODO how to handle error, retry with lower version (1.0)
+				//TODO how to handle error ? retry with lower version (1.0)
 				uiprivUserBug("Couldn't create a GLX (maybe your specified version isn't supported)!");
 			}
 		} else {
@@ -750,8 +743,6 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 	} else {
 		a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
 	}
-
-	//TODO free fbconfig?
 
 	if (a->ctx == NULL)
 		uiprivUserBug("Couldn't create a GLX context!");

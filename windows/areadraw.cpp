@@ -43,10 +43,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip, BOOL isOpen
 		dp.ClipY += a->vscrollpos;
 	}
 
-	if(isOpenGLArea)
-		beginOpenGLDraw((uiOpenGLArea *) a, rt);
-	else
-		rt->BeginDraw();
+	rt->BeginDraw();
 
 	if (a->scrolling) {
 		ZeroMemory(&scrollTransform, sizeof (D2D1_MATRIX_3X2_F));
@@ -60,19 +57,23 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip, BOOL isOpen
 
 	// TODO push axis aligned clip
 
-	// TODO only clear the clip area
-	// TODO clear with actual background brush
-	bgcolorref = GetSysColor(COLOR_BTNFACE);
-	bgcolor.r = ((float) GetRValue(bgcolorref)) / 255.0;
-	// due to utter apathy on Microsoft's part, GetGValue() does not work with MSVC's Run-Time Error Checks
-	// it has not worked since 2008 and they have *never* fixed it
-	// TODO now that -RTCc has just been deprecated entirely, should we switch back?
-	bgcolor.g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
-	bgcolor.b = ((float) GetBValue(bgcolorref)) / 255.0;
-	bgcolor.a = 1.0;
-	rt->Clear(&bgcolor);
 
-	(*(ah->Draw))(ah, a, &dp);
+	if(isOpenGLArea)
+		beginOpenGLDraw((uiOpenGLArea *) a, rt);
+	else {
+		// TODO only clear the clip area
+		// TODO clear with actual background brush
+		bgcolorref = GetSysColor(COLOR_BTNFACE);
+		bgcolor.r = ((float) GetRValue(bgcolorref)) / 255.0;
+		// due to utter apathy on Microsoft's part, GetGValue() does not work with MSVC's Run-Time Error Checks
+		// it has not worked since 2008 and they have *never* fixed it
+		// TODO now that -RTCc has just been deprecated entirely, should we switch back?
+		bgcolor.g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
+		bgcolor.b = ((float) GetBValue(bgcolorref)) / 255.0;
+		bgcolor.a = 1.0;
+		rt->Clear(&bgcolor);
+		(*(ah->Draw))(ah, a, &dp);
+	}
 
 	freeContext(dp.Context);
 

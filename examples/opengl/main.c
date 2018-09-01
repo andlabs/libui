@@ -276,9 +276,6 @@ static void onInitGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a)
 
 static void onDrawGL(uiOpenGLAreaHandler *h, uiOpenGLArea *a, double width, double height)
 {
-	if(!mouseInWindow)
-		rotationAngleA += 0.05f;
-
 	GLCall(glViewport(0, 0, width, height));
 
 	GLCall(glClear(GL_COLOR_BUFFER_BIT));
@@ -329,8 +326,11 @@ static int shouldQuit(void *data)
 static int render(void *d)
 {
 	uiOpenGLArea *area = d;
-	if(!mouseInWindow)
+	
+	if(!mouseInWindow) {
+		rotationAngleA += 0.05f;
 		uiOpenGLAreaQueueRedrawAll(area);
+	}
 	return 1;
 }
 

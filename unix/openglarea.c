@@ -675,7 +675,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 
 		a->visual = glXGetVisualFromFBConfig(a->display, *fbconfig);
 		if (a->visual == NULL)
-			uiprivUserBug("Couldn't choose a GLX visual!");
+			uiprivUserBug("Couldn't choose a GLX visual (glXGetVisualFromFBConfig)!");
 
 	} else {
 		int glx_attribs[GLX_ATTRIBUTE_LIST_SIZE];
@@ -703,7 +703,7 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 
 		a->visual = glXChooseVisual(a->display, 0, glx_attribs);
 		if (a->visual == NULL)
-			uiprivUserBug("Couldn't choose a GLX visual!");
+			uiprivUserBug("Couldn't choose a GLX visual (glXChooseVisual)!");
 	}
 
 	if(isGLX13OrNewer && fbconfig != NULL){
@@ -737,13 +737,15 @@ uiOpenGLArea *uiNewOpenGLArea(uiOpenGLAreaHandler *ah, uiOpenGLAttributes *attri
 			}
 		} else {
 			a->ctx = glXCreateNewContext(a->display, *fbconfig, GLX_RGBA_TYPE, 0, True);
+			if (a->ctx == NULL)
+				uiprivUserBug("Couldn't create a GLX context (glXCreateNewContext)!");
 		}
 	} else {
 		a->ctx = glXCreateContext(a->display, a->visual, NULL, GL_TRUE);
+		if (a->ctx == NULL)
+			uiprivUserBug("Couldn't create a GLX context (glXCreateContext)!");
 	}
 
-	if (a->ctx == NULL)
-		uiprivUserBug("Couldn't create a GLX context!");
 
 	XSetErrorHandler(oldHandler);
 

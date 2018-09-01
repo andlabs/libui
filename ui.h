@@ -1144,7 +1144,7 @@ _UI_EXTERN uiGrid *uiNewGrid(void);
 // 	  resolution; this matches the current expectations of some
 // 	  desktop systems at the time of writing (mid-2018)
 // 
-// uiImage is very simple: it only supports non-premultiplied 32-bit
+// uiImage is very simple: it only supports premultiplied 32-bit
 // RGBA images, and libui does not provide any image file loading
 // or image format conversion utilities on top of that.
 typedef struct uiImage uiImage;
@@ -1161,7 +1161,7 @@ _UI_EXTERN uiImage *uiNewImage(double width, double height);
 _UI_EXTERN void uiFreeImage(uiImage *i);
 
 // uiImageAppend adds a representation to the uiImage.
-// pixels should point to a byte array of non-premultiplied pixels
+// pixels should point to a byte array of premultiplied pixels
 // stored in [R G B A] order (so ((uint8_t *) pixels)[0] is the R of the
 // first pixel and [3] is the A of the first pixel). pixelWidth and
 // pixelHeight is the size *in pixels* of the image, and pixelStride is

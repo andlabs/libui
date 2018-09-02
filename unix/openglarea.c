@@ -1,6 +1,16 @@
 #include "uipriv_unix.h"
 #include "areacommon.h"
 
+// GLX_ARB_framebuffer_sRGB
+#define GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20B2
+
+// GLX_ARB_multisample
+#define GLX_SAMPLE_BUFFERS_ARB 100000
+#define GLX_SAMPLES_ARB 100001
+
+// GLX_ARB_create_context_robustness
+#define GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB 0x00000004
+
 #include <GL/glx.h>
 #include <GL/glxext.h>
 #include <gdk/gdkx.h>
@@ -235,8 +245,6 @@ static void initContext(uiOpenGLArea *a) {
 	// GLX_ARB_create_context &
 	// GLX_ARB_create_context_profile
 
-	// GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB (in GLX_ARB_create_context_robustness)
-
 
 	// GLX Version 1.3 introduces several sweeping changes, starting with the new
 	// GLXFBConfig data structure, which describes the GLX framebuffer configuration
@@ -283,6 +291,24 @@ static void initContext(uiOpenGLArea *a) {
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->DepthBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STENCIL_SIZE);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->StencilBits);
+		if(attribs->Samples > 0) {
+			if(GLXExtensionSupported(a->display, screen_number, "GLX_ARB_framebuffer_sRGB")) {
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_SAMPLE_BUFFERS_ARB);
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, True);
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_SAMPLES_ARB);
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->Samples);
+			} else {
+				// TODO handle error, multisampling requested but not availble
+			}
+		}
+		if(attribs->SRGBCapable) {
+			if(GLXExtensionSupported(a->display, screen_number, "GLX_ARB_framebuffer_sRGB")) {
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB);
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, True);
+			} else {
+				// TODO handle error, SRGB framebuffer requested but not availble
+			}
+		}
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, None);
 
 		int num;
@@ -317,6 +343,24 @@ static void initContext(uiOpenGLArea *a) {
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->DepthBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STENCIL_SIZE);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->StencilBits);
+		if(attribs->Samples > 0) {
+			if(GLXExtensionSupported(a->display, screen_number, "GLX_ARB_framebuffer_sRGB")) {
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_SAMPLE_BUFFERS_ARB);
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, True);
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_SAMPLES_ARB);
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->Samples);
+			} else {
+				// TODO handle error, multisampling requested but not availble
+			}
+		}
+		if(attribs->SRGBCapable) {
+			if(GLXExtensionSupported(a->display, screen_number, "GLX_ARB_framebuffer_sRGB")) {
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB);
+				assign_next_glx_attribute(glx_attribs, &glx_attrib_index, True);
+			} else {
+				// TODO handle error, SRGB framebuffer requested but not availble
+			}
+		}
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, None);
 
 		a->visual = glXChooseVisual(a->display, 0, glx_attribs);
@@ -330,8 +374,13 @@ static void initContext(uiOpenGLArea *a) {
 
 			int isESSupported = GLXExtensionSupported(a->display, screen_number, "GLX_EXT_create_context_es_profile") &&
 								GLXExtensionSupported(a->display, screen_number, "GLX_EXT_create_context_es2_profile");
+
 			if(attribs->UseOpenGLES && !isESSupported){
 				// TODO error handling (OpenGL ES requested but not available)
+			}
+
+			if(attribs->Robustness && !GLXExtensionSupported(a->display, screen_number, "GLX_ARB_create_context_robustness")) {
+				// TODO error handling (robustness requested but not available)
 			}
 
 			int context_attribs[] = {
@@ -341,7 +390,8 @@ static void initContext(uiOpenGLArea *a) {
 					attribs->MinorVersion,
 				GLX_CONTEXT_FLAGS_ARB,
 					(attribs->DebugContext ? GLX_CONTEXT_DEBUG_BIT_ARB : 0) |
-					(attribs->ForwardCompat ? GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0),
+					(attribs->ForwardCompat ? GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0) |
+					(attribs->Robustness ? GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB : 0),
 				GLX_CONTEXT_PROFILE_MASK_ARB,
 					(attribs->CompatProfile ? 
 						GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB :
@@ -349,6 +399,7 @@ static void initContext(uiOpenGLArea *a) {
 					(attribs->UseOpenGLES ? GLX_EXT_create_context_es_profile : 0),
 				None
 			};
+
 
 			// OpenGL 3 is only availble using this function
 			a->ctx = uiGLXCreateContextAttribsARB(a->display, *fbconfig, 0, True, context_attribs);

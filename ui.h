@@ -1494,8 +1494,7 @@ _UI_ENUM(uiOpenGLAttribute) {
 	// Number of samples to use for multisampling (integer number of samples).
 	uiOpenGLAttributeSamples,
 
-	// TODO remove
-	// Whether the framebuffer should be sRGB capable (boolean, 0 or 1).
+	// Whether the framebuffer should be sRGB capable (boolean, 0 or 1) - ignored on macOS.
 	uiOpenGLAttributeSRGBCapable,
 
 	// Whether the framebuffer should be double-buffered (boolean, 1 or 0).
@@ -1509,7 +1508,7 @@ _UI_ENUM(uiOpenGLAttribute) {
 	uiOpenGLAttributeMinorVersion, // = 0
 
 	// Whether the OpenGL context should be forward-compatible, with no deprecated functionality;
-	// OpenGL 3.0+ only (boolean, 0 or 1) - ignored on macOS.
+	// OpenGL 3.0+ only (boolean, 0 or 1) - ignored on macOS and generally dicouraged.
 	uiOpenGLAttributeForwardCompat,
 
 	// Whether to create a debug context (boolean, 0 or 1) - ignored on macOS.

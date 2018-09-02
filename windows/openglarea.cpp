@@ -129,40 +129,18 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 						attribs->MajorVersion,
 					WGL_CONTEXT_MINOR_VERSION_ARB,
 						attribs->MinorVersion,
-					0, // WGL_CONTEXT_FLAGS_ARB,
-					0, // 	attribs->DebugContext ? WGL_CONTEXT_DEBUG_BIT_ARB,
-					0, // 	attribs->ForwardCompat ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-					0, // WGL_CONTEXT_PROFILE_MASK_ARB,
-					0, // 	attribs->CompatProfile ?
-					0, // 		WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
-					   // 		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-					0, //   ES
+					WGL_CONTEXT_FLAGS_ARB,
+						(attribs->DebugContext ? WGL_CONTEXT_DEBUG_BIT_ARB : 0) |
+						(attribs->ForwardCompat ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0),
+					WGL_CONTEXT_PROFILE_MASK_ARB,
+						(attribs->CompatProfile ?
+							WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
+							WGL_CONTEXT_CORE_PROFILE_BIT_ARB) |
+						(attribs->UseOpenGLES ? WGL_CONTEXT_ES_PROFILE_BIT_EXT : 0),
 					0
 				};
 
-				if(attribs->DebugContext || attribs->ForwardCompat) {
-					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_FLAGS_ARB;
-					if(attribs->DebugContext)
-						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_DEBUG_BIT_ARB;
-					if(attribs->ForwardCompat)
-						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-				}
-
-				if(attribs->CompatProfile != uiOpenGLDontCare) {
-					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_PROFILE_MASK_ARB;
-					contextAttribs[contextAttribsPos++] = attribs->CompatProfile ?
-							WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
-							WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-				}
-
-				if(attribs->UseOpenGLES) {
-					if(contextAttribs[contextAttribsPos - 2] != WGL_CONTEXT_PROFILE_MASK_ARB)
-						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_PROFILE_MASK_ARB;
-					if(attribs->MajorVersion >= 2 && WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile")){
-						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
-					} else if(WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es_profile")){
-						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_ES_PROFILE_BIT_EXT;
-					}
+				if(attribs->UseOpenGLES && !(WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es_profile") && WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile"))) {
 					// TODO handle error (OpenGL ES requested but not available)
 				}
 

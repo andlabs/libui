@@ -1494,6 +1494,7 @@ _UI_ENUM(uiOpenGLAttribute) {
 	// Number of samples to use for multisampling (integer number of samples).
 	uiOpenGLAttributeSamples,
 
+	// TODO remove
 	// Whether the framebuffer should be sRGB capable (boolean, 0 or 1).
 	uiOpenGLAttributeSRGBCapable,
 
@@ -1515,14 +1516,12 @@ _UI_ENUM(uiOpenGLAttribute) {
 	uiOpenGLAttributeDebugContext,
 
 	// Whether to use the Compatibility Profile; if false, the Core Profile is used (boolean, 0 or
-	// 1)
-	uiOpenGLAttributeCompatProfile, // = uiOpenGLDontCare
+	// 1) - on macOS the Core Profile is always used
+	uiOpenGLAttributeCompatProfile,
 
 	// Whether to use Robustness (boolean, 0 or 1) - ignored on macOS.
 	uiOpenGLAttributeRobustness,
 };
-
-#define uiOpenGLDontCare (-1)
 
 _UI_EXTERN uiOpenGLAttributes *uiNewOpenGLAttributes();
 _UI_EXTERN void uiFreeOpenGLAttributes(uiOpenGLAttributes *attribs);

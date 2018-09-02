@@ -16,6 +16,7 @@ uiOpenGLAttributes *uiNewOpenGLAttributes() {
     a->DepthBits = 24;
     a->StencilBits = 8;
     a->Stereo = 0;
+    a->Samples = 0;
     a->SRGBCapable = 0;
     a->DoubleBuffer = 1;
     a->UseOpenGLES = 0;
@@ -23,7 +24,7 @@ uiOpenGLAttributes *uiNewOpenGLAttributes() {
     a->MinorVersion = 0;
     a->ForwardCompat = 0;
     a->DebugContext = 0;
-    a->CompatProfile = uiOpenGLDontCare;
+    a->CompatProfile = 0;
     a->Robustness = 0;
 
     return a;

@@ -208,6 +208,8 @@ void uiOpenGLAreaBeginUserWindowResize(uiOpenGLArea *a, uiWindowResizeEdge edge)
 }
 
 static void initContext(uiOpenGLArea *a) {
+	uiOpenGLAttributes *attribs = a->attribs;
+
 	a->gdkDisplay = gtk_widget_get_display(a->widget);
 	a->display = gdk_x11_display_get_xdisplay(a->gdkDisplay);
 	int screen_number = gdk_x11_screen_get_screen_number(gdk_display_get_default_screen(a->gdkDisplay));
@@ -234,9 +236,6 @@ static void initContext(uiOpenGLArea *a) {
 	// GLX_ARB_create_context_profile
 
 	// GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB (in GLX_ARB_create_context_robustness)
-
-
-	// www.khronos.org/opengl/wiki/Tutorial:_OpenGL_3.0_Context_Creation_(GLX)
 
 
 	// GLX Version 1.3 introduces several sweeping changes, starting with the new
@@ -269,21 +268,21 @@ static void initContext(uiOpenGLArea *a) {
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RENDER_TYPE);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RGBA_BIT);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DOUBLEBUFFER);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->DoubleBuffer ? True : False);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->DoubleBuffer ? True : False);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STEREO);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->Stereo ? True : False);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->Stereo ? True : False);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RED_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->RedBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->RedBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_GREEN_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->GreenBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->GreenBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_BLUE_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->BlueBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->BlueBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_ALPHA_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->AlphaBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->AlphaBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DEPTH_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->DepthBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->DepthBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STENCIL_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->StencilBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->StencilBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, None);
 
 		int num;
@@ -302,22 +301,22 @@ static void initContext(uiOpenGLArea *a) {
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_LEVEL);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, 0);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RGBA);
-		if (a->attribs->DoubleBuffer)
+		if (attribs->DoubleBuffer)
 			assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DOUBLEBUFFER);
-		if (a->attribs->Stereo)
+		if (attribs->Stereo)
 			assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STEREO);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_RED_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->RedBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->RedBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_GREEN_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->GreenBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->GreenBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_BLUE_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->BlueBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->BlueBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_ALPHA_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->AlphaBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->AlphaBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_DEPTH_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->DepthBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->DepthBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, GLX_STENCIL_SIZE);
-		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, a->attribs->StencilBits);
+		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, attribs->StencilBits);
 		assign_next_glx_attribute(glx_attribs, &glx_attrib_index, None);
 
 		a->visual = glXChooseVisual(a->display, 0, glx_attribs);
@@ -328,19 +327,26 @@ static void initContext(uiOpenGLArea *a) {
 	if(isGLX13OrNewer && fbconfig != NULL){
 		if(GLXExtensionSupported(a->display, screen_number, "GLX_ARB_create_context") &&
 		   GLXExtensionSupported(a->display, screen_number, "GLX_ARB_create_context_profile")) {
+
+			int isESSupported = GLXExtensionSupported(a->display, screen_number, "GLX_EXT_create_context_es_profile") &&
+								GLXExtensionSupported(a->display, screen_number, "GLX_EXT_create_context_es2_profile");
+			if(attribs->UseOpenGLES && !isESSupported){
+				// TODO error handling (OpenGL ES requested but not available)
+			}
+
 			int context_attribs[] = {
-				GLX_CONTEXT_MAJOR_VERSION_ARB, a->attribs->MajorVersion,
-				GLX_CONTEXT_MINOR_VERSION_ARB, a->attribs->MinorVersion,
+				GLX_CONTEXT_MAJOR_VERSION_ARB,
+					attribs->MajorVersion,
+				GLX_CONTEXT_MINOR_VERSION_ARB,
+					attribs->MinorVersion,
 				GLX_CONTEXT_FLAGS_ARB,
-					a->attribs->DebugContext ?  GLX_CONTEXT_DEBUG_BIT_ARB : 0 |
-					a->attribs->ForwardCompat ?  GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0,
+					(attribs->DebugContext ? GLX_CONTEXT_DEBUG_BIT_ARB : 0) |
+					(attribs->ForwardCompat ? GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0),
 				GLX_CONTEXT_PROFILE_MASK_ARB,
-					a->attribs->CompatProfile == uiOpenGLDontCare ? 0 :
-					(
-						a->attribs->CompatProfile ? 
-							GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB :
-							GLX_CONTEXT_CORE_PROFILE_BIT_ARB
-					),
+					(attribs->CompatProfile ? 
+						GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB :
+						GLX_CONTEXT_CORE_PROFILE_BIT_ARB) |
+					(attribs->UseOpenGLES ? GLX_EXT_create_context_es_profile : 0),
 				None
 			};
 

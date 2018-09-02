@@ -2,18 +2,9 @@
 #include "area.hpp"
 #include <GL/gl.h>
 
-//TODO APIENTRY vs WINAPI
 typedef const char* (WINAPI * PFNWGLGETEXTENSIONSSTRINGARBPROC) (HDC hdc);
 
-typedef BOOL (WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
 typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList);
-
-#ifndef WGL_ARB_create_context_profile
-#define WGL_ARB_create_context_profile
-#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
-#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
-#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-#endif
 
 #ifndef WGL_ARB_create_context
 #define WGL_ARB_create_context
@@ -23,6 +14,13 @@ typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShar
 #define WGL_CONTEXT_FLAGS_ARB           0x2094
 #define WGL_CONTEXT_DEBUG_BIT_ARB       0x0001
 #define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
+#endif
+
+#ifndef WGL_ARB_create_context_profile
+#define WGL_ARB_create_context_profile
+#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #endif
 
 //TODO needed?
@@ -44,17 +42,6 @@ typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShar
 #define WGL_CONTEXT_ES_PROFILE_BIT_EXT            0x00000004
 #endif
 
-
-// Use the WGL_EXT_swap_control extension to control swap interval.
-// Check both the standard extensions string via glGetString(GL_EXTENSIONS)
-// and the WGL-specific extensions string via wglGetExtensionsStringARB() to
-// verify that WGL_EXT_swap_control is actually present.
-
-// The extension provides the wglSwapIntervalEXT() function, which directly
-// specifies the swap interval. wglSwapIntervalEXT(1) is used to enable vsync;
-// wglSwapIntervalEXT(0) to disable vsync.
-
-
 //Needs a context!
 static BOOL WGLExtensionSupported(HDC hdc, const char *extension_name)
 {
@@ -62,7 +49,6 @@ static BOOL WGLExtensionSupported(HDC hdc, const char *extension_name)
 	PFNWGLGETEXTENSIONSSTRINGARBPROC _wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC) wglGetProcAddress("wglGetExtensionsStringARB");
 
 	if (strstr(_wglGetExtensionsStringARB(hdc), extension_name) == NULL)
-		//TODO cache?
 		return false;
 
 	return true;
@@ -88,12 +74,12 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 			PIXELFORMATDESCRIPTOR pfd = {
 				sizeof(PIXELFORMATDESCRIPTOR),   // size of this pfd
 				1,		     // version number
-				PFD_DRAW_TO_WINDOW |   // support window
+				(DWORD) PFD_DRAW_TO_WINDOW |   // support window
 					PFD_SUPPORT_OPENGL |   // support OpenGL
 					(attribs->DoubleBuffer ? PFD_DOUBLEBUFFER : 0) |
 					(attribs->Stereo ? PFD_STEREO : 0),
 				PFD_TYPE_RGBA,	 // RGBA type
-				attribs->RedBits + attribs->GreenBits + attribs->BlueBits, //color depth
+				(BYTE) (attribs->RedBits + attribs->GreenBits + attribs->BlueBits), //color depth
 				0, 0, 0, 0, 0, 0,      // color bits ignored
 				0,		     // no alpha buffer
 				0,		     // shift bit ignored
@@ -106,8 +92,6 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 				0,		     // reserved
 				0, 0, 0		// layer masks ignored
 			};
-
-			//TODO AlphaBits
 
 			int iPixelFormat;
 			a->hDC = GetDC(a->hwnd);
@@ -133,68 +117,75 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 			wglMakeCurrent(a->hDC, tempContext);
 
-			//TODO check for availablity
-			// WGLExtensionSupported(a->hDC, "WGL_ARB_create_context") &&
-			// WGLExtensionSupported(a->hDC, "WGL_ARB_create_context_profile")
-			//handle error - fallback to wglCreateContext & ignore attribs?
-			//					  should be consistent with other platforms
+			if(WGLExtensionSupported(a->hDC, "WGL_ARB_create_context") &&
+			   WGLExtensionSupported(a->hDC, "WGL_ARB_create_context_profile")) {
 
-			//TODO WGL_ARB_create_context_robustness ?
+				PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB
+					= (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress("wglCreateContextAttribsARB");
 
-			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB
-				= (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress("wglCreateContextAttribsARB");
+				int contextAttribsPos = 4;
+				int contextAttribs[12] = {
+					WGL_CONTEXT_MAJOR_VERSION_ARB,
+						attribs->MajorVersion,
+					WGL_CONTEXT_MINOR_VERSION_ARB,
+						attribs->MinorVersion,
+					0, // WGL_CONTEXT_FLAGS_ARB,
+					0, // 	attribs->DebugContext ? WGL_CONTEXT_DEBUG_BIT_ARB,
+					0, // 	attribs->ForwardCompat ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+					0, // WGL_CONTEXT_PROFILE_MASK_ARB,
+					0, // 	attribs->CompatProfile ?
+					0, // 		WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
+					   // 		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+					0, //   ES
+					0
+				};
 
-			int contextAttribsPos = 4;
-			int contextAttribs[11] = {
-				WGL_CONTEXT_MAJOR_VERSION_ARB,
-					attribs->MajorVersion,
-				WGL_CONTEXT_MINOR_VERSION_ARB,
-					attribs->MinorVersion,
-				0, // WGL_CONTEXT_FLAGS_ARB,
-				0, // 	attribs->DebugContext ? WGL_CONTEXT_DEBUG_BIT_ARB,
-				0, // 	attribs->ForwardCompat ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-				0, // WGL_CONTEXT_PROFILE_MASK_ARB,
-				0, // 	attribs->CompatProfile ?
-				0, // 		WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
-				   // 		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-				0
-			};
-
-			if(attribs->DebugContext || attribs->ForwardCompat) {
-				contextAttribs[contextAttribsPos++] = WGL_CONTEXT_FLAGS_ARB;
-				if(attribs->DebugContext)
-					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_DEBUG_BIT_ARB;
-				if(attribs->ForwardCompat)
-					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-			}
-
-			if(attribs->CompatProfile != uiOpenGLDontCare) {
-				contextAttribs[contextAttribsPos++] = WGL_CONTEXT_PROFILE_MASK_ARB;
-				contextAttribs[contextAttribsPos++] = attribs->CompatProfile ?
-						WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
-						WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-
-			}
-
-			//TODO does wglGetExtensionsStringARB need a context?
-			if(attribs->UseOpenGLES) {
-				if(attribs->MajorVersion >= 2 && WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile")){
-					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
-				} else if(WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile")){
-					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_ES_PROFILE_BIT_EXT;
+				if(attribs->DebugContext || attribs->ForwardCompat) {
+					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_FLAGS_ARB;
+					if(attribs->DebugContext)
+						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_DEBUG_BIT_ARB;
+					if(attribs->ForwardCompat)
+						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
 				}
-				//TODO handle error
+
+				if(attribs->CompatProfile != uiOpenGLDontCare) {
+					contextAttribs[contextAttribsPos++] = WGL_CONTEXT_PROFILE_MASK_ARB;
+					contextAttribs[contextAttribsPos++] = attribs->CompatProfile ?
+							WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
+							WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+				}
+
+				if(attribs->UseOpenGLES) {
+					if(contextAttribs[contextAttribsPos - 2] != WGL_CONTEXT_PROFILE_MASK_ARB)
+						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_PROFILE_MASK_ARB;
+					if(attribs->MajorVersion >= 2 && WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es2_profile")){
+						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
+					} else if(WGLExtensionSupported(a->hDC, "WGL_EXT_create_context_es_profile")){
+						contextAttribs[contextAttribsPos++] = WGL_CONTEXT_ES_PROFILE_BIT_EXT;
+					}
+					// TODO handle error (OpenGL ES requested but not available)
+				}
+
+				a->hglrc = wglCreateContextAttribsARB(a->hDC, 0, contextAttribs);
+				if (a->hglrc == NULL)
+					logLastError(L"error creating OpenGL context");
+			} else {
+				// TODO handle error - fallback to wglCreateContext & ignore attribs?
+				//   should be consistent with other platforms
 			}
 
 			wglMakeCurrent(a->hDC, NULL);
 			if (wglDeleteContext(tempContext) == FALSE)
 				logLastError(L"error releasing temporary OpenGL context");
 
-			a->hglrc = wglCreateContextAttribsARB(a->hDC, 0, contextAttribs);
-			if (a->hglrc == NULL)
-				logLastError(L"error creating OpenGL context");
-
 			uiOpenGLAreaMakeCurrent(a);
+
+			if (WGLExtensionSupported(a->hDC, "WGL_EXT_swap_control")) {
+				a->wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) wglGetProcAddress("wglSwapIntervalEXT");
+			} else {
+				// TODO warn about no vsync
+			}
+
 			(*(a->ah->InitGL))(a->ah, a);
 		}
 
@@ -283,12 +274,8 @@ void uiOpenGLAreaSetSize(uiOpenGLArea *a, int width, int height)
 void uiOpenGLAreaSetVSync(uiOpenGLArea *a, int v)
 {
 	uiOpenGLAreaMakeCurrent(a);
-	//TODO cache query, load only once
-	if (WGLExtensionSupported(a->hDC, "WGL_EXT_swap_control")) {
-		PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) wglGetProcAddress("wglSwapIntervalEXT");
-
-		wglSwapIntervalEXT(v);
-	}
+	if(a->wglSwapIntervalEXT != NULL)
+		a->wglSwapIntervalEXT(v);
 }
 
 void uiOpenGLAreaQueueRedrawAll(uiOpenGLArea *a)

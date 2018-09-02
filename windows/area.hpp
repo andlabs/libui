@@ -27,6 +27,8 @@ struct uiArea {
 	ID2D1HwndRenderTarget *rt;
 };
 
+typedef BOOL (WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
+
 struct uiOpenGLArea {
 	uiWindowsControl c;
 	HWND hwnd;
@@ -48,9 +50,13 @@ struct uiOpenGLArea {
 
 	ID2D1HwndRenderTarget *rt;
 
+	// ABOVE IS EQUIVALENT TO uiArea
+
 	uiOpenGLAttributes *attribs;
 	HDC hDC;
 	HGLRC hglrc;
+	// Not guarenteed to work across multiple contexts, therfore area specific.
+	PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
 };
 
 

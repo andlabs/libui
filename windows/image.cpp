@@ -55,7 +55,8 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 	WICRect r;
 	IWICBitmapLock *l;
 	uint8_t *pix, *data;
-	WICInProcPointer dipp;
+	// TODO WICInProcPointer is not available in MinGW-w64
+	BYTE *dipp;
 	UINT size;
 	UINT realStride;
 	int x, y;

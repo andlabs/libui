@@ -205,6 +205,9 @@ if(BUILD_SHARED_LIBS)
 			SOVERSION "${_VERSION}")
 	endif()
 endif()
+# TODO why is this not a default?!
+set_property(TARGET libui PROPERTY
+	POSITION_INDEPENDENT_CODE True)
 
 macro(_add_exec _name)
 	# TODOTODO re-add WIN32 when merging back
@@ -214,11 +217,9 @@ macro(_add_exec _name)
 	target_link_libraries(${_name} libui)
 	_target_link_options_private(${_name}
 		_COMMON_LDFLAGS)
-	# make shared-linked executables PIC too
-	if(BUILD_SHARED_LIBS)
-		set_property(TARGET ${_name} PROPERTY
-			POSITION_INDEPENDENT_CODE True)
-	endif()
+	# TODO does this propagate?
+	set_property(TARGET ${_name} PROPERTY
+		POSITION_INDEPENDENT_CODE True)
 	# TODO see above about INTERFACE
 	if(NOT BUILD_SHARED_LIBS)
 		target_link_libraries(${_name}

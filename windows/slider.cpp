@@ -6,6 +6,7 @@ struct uiSlider {
 	HWND hwnd;
 	void (*onChanged)(uiSlider *, void *);
 	void *onChangedData;
+	HWND hwndTooltip;
 };
 
 static BOOL onWM_HSCROLL(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
@@ -20,6 +21,9 @@ static BOOL onWM_HSCROLL(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 static void uiSliderDestroy(uiControl *c)
 {
 	uiSlider *s = uiSlider(c);
+
+	// ensure TRACKBAR_CLASSW takes care of destroying the tooltip
+	uiSliderSetHasTooltip(s, 1);
 
 	uiWindowsUnregisterWM_HSCROLLHandler(s->hwnd);
 	uiWindowsEnsureDestroyWindow(s->hwnd);
@@ -44,6 +48,19 @@ static void uiSliderMinimumSize(uiWindowsControl *c, int *width, int *height)
 	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
 	*width = x;
 	*height = y;
+}
+
+int uiSliderHasTooltip(uiSlider *s)
+{
+	return ((HWND) SendMessage(s->hwnd, TBM_GETTOOLTIPS, 0, 0) == s->hwndTooltip);
+}
+
+void uiSliderSetHasTooltip(uiSlider *s, int hasTooltip)
+{
+	if (hasTooltip)
+		SendMessage(s->hwnd, TBM_SETTOOLTIPS, (WPARAM) s->hwndTooltip, 0);
+	else
+		SendMessage(s->hwnd, TBM_SETTOOLTIPS, 0, 0);
 }
 
 static void defaultOnChanged(uiSlider *s, void *data)
@@ -93,6 +110,8 @@ uiSlider *uiNewSlider(int min, int max)
 	SendMessageW(s->hwnd, TBM_SETRANGEMIN, (WPARAM) TRUE, (LPARAM) min);
 	SendMessageW(s->hwnd, TBM_SETRANGEMAX, (WPARAM) TRUE, (LPARAM) max);
 	SendMessageW(s->hwnd, TBM_SETPOS, (WPARAM) TRUE, (LPARAM) min);
+
+	s->hwndTooltip = (HWND) SendMessage(s->hwnd, TBM_GETTOOLTIPS, 0, 0);
 
 	return s;
 }

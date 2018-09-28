@@ -58,7 +58,7 @@ _add_example(opengl
 )
 target_compile_definitions(opengl PRIVATE GLEW_STATIC GLEW_NO_GLU)
 find_package(OpenGL REQUIRED)
-target_link_libraries(opengl OpenGL::GL)
+target_link_libraries(opengl OpenGL::GL m)
 
 add_custom_target(examples
 	DEPENDS

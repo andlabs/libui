@@ -59,7 +59,11 @@ _add_example(opengl
 target_compile_definitions(opengl PRIVATE GLEW_STATIC GLEW_NO_GLU)
 find_package(OpenGL REQUIRED)
 target_include_directories(opengl PRIVATE ${OPENGL_INCLUDE_DIR})
-target_link_libraries(opengl ${OPENGL_LIBRARIES} m)
+if(WIN32)
+	target_link_libraries(opengl ${OPENGL_LIBRARIES})
+else()
+	target_link_libraries(opengl ${OPENGL_LIBRARIES} m)
+endif()
 
 add_custom_target(examples
 	DEPENDS

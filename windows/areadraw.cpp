@@ -2,25 +2,6 @@
 #include "uipriv_windows.hpp"
 #include "area.hpp"
 
-static void beginOpenGLDraw(uiOpenGLArea *a/*, uiAreaDrawParams *dp*/, ID2D1RenderTarget *rt) {
-	RECT rect;
-	GetClientRect(a->hwnd,&rect);
-
-	//  if (a->scrolling) {
-	// 	dp->AreaWidth = a->scrollWidth;
-	// 	dp->AreaHeight = a->scrollHeight;
-	// } else {
-	// 	dp->AreaWidth = rect.right - rect.left;
-	// 	dp->AreaHeight = rect.bottom - rect.top;
-	// }
-
-	double width, height;
-	loadAreaSize((uiArea *) a, rt, &width, &height);
-
-	uiOpenGLAreaMakeCurrent(a);
-	(*(a->ah->DrawGL))(a->ah, a, width, height);
-}
-
 static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip, BOOL isOpenGLArea)
 {
 	uiAreaHandler *ah = a->ah;
@@ -43,7 +24,8 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip, BOOL isOpen
 		dp.ClipY += a->vscrollpos;
 	}
 
-	rt->BeginDraw();
+	if(!isOpenGLArea)
+		rt->BeginDraw();
 
 	if (a->scrolling) {
 		ZeroMemory(&scrollTransform, sizeof (D2D1_MATRIX_3X2_F));
@@ -57,10 +39,21 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip, BOOL isOpen
 
 	// TODO push axis aligned clip
 
+	if (isOpenGLArea) {
+		//  if (a->scrolling) {
+		// 	dp->AreaWidth = a->scrollWidth;
+		// 	dp->AreaHeight = a->scrollHeight;
+		// } else {
+		// 	RECT rect;
+		// 	GetClientRect(a->hwnd,&rect);
+		// 	dp->AreaWidth = rect.right - rect.left;
+		// 	dp->AreaHeight = rect.bottom - rect.top;
+		// }
 
-	if(isOpenGLArea)
-		beginOpenGLDraw((uiOpenGLArea *) a, rt);
-	else {
+		uiOpenGLArea *glArea = (uiOpenGLArea*) a;
+		uiOpenGLAreaMakeCurrent(glArea);
+		(*(glArea->ah->DrawGL))(glArea->ah, glArea, dp.AreaWidth, dp.AreaHeight);
+	} else {
 		// TODO only clear the clip area
 		// TODO clear with actual background brush
 		bgcolorref = GetSysColor(COLOR_BTNFACE);
@@ -78,6 +71,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip, BOOL isOpen
 	freeContext(dp.Context);
 
 	// TODO pop axis aligned clip
+
 	if(isOpenGLArea)
 		return S_OK;
 	else

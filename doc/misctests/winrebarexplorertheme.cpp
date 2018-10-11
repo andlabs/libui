@@ -50,10 +50,12 @@ static struct {
 void onWM_CREATE(HWND hwnd)
 {
 	TBBUTTON tbb[5];
+	RECT btnrect;
+	DWORD tbbtnsize;
+	LONG tbsizex, tbsizey;
 	REBARBANDINFOW rbi;
 	int i;
 
-#if 0
 	rebar = CreateWindowExW(0,
 		REBARCLASSNAMEW, NULL,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CCS_NODIVIDER | CCS_TOP,
@@ -61,17 +63,20 @@ void onWM_CREATE(HWND hwnd)
 		hwnd, (HMENU) 100, hInstance, NULL);
 	if (rebar == NULL)
 		diele("CreateWindowExW(REBARCLASSNAMEW)");
-#endif
 
 	leftbar = CreateWindowExW(0,
 		TOOLBARCLASSNAMEW, NULL,
-		WS_CHILD | /*CCS_NOPARENTALIGN | CCS_NORESIZE | */TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TRANSPARENT,
+		WS_CHILD | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TRANSPARENT,
 		0, 0, 0, 0,
 		hwnd, (HMENU) 101, hInstance, NULL);
 	SendMessageW(leftbar, TB_BUTTONSTRUCTSIZE, sizeof (TBBUTTON), 0);
+	// I_IMAGENONE causes the button text to be left-aligned; don't use it
+	if (SendMessageW(leftbar, TB_SETBITMAPSIZE, 0, 0) == FALSE)
+		diele("TB_SETBITMAPSIZE");
+	SendMessageW(leftbar, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS | TBSTYLE_EX_HIDECLIPPEDBUTTONS | TBSTYLE_EX_MIXEDBUTTONS);
 	ZeroMemory(tbb, 5 * sizeof (TBBUTTON));
 	for (i = 0; i < 5; i++) {
-		tbb[i].iBitmap = I_IMAGENONE;
+		tbb[i].iBitmap = 0;
 		tbb[i].idCommand = i;
 		tbb[i].fsState = TBSTATE_ENABLED;
 		tbb[i].fsStyle = BTNS_AUTOSIZE | BTNS_BUTTON | BTNS_NOPREFIX | BTNS_SHOWTEXT;
@@ -79,20 +84,29 @@ void onWM_CREATE(HWND hwnd)
 			tbb[i].fsStyle |= BTNS_DROPDOWN | BTNS_WHOLEDROPDOWN;
 		tbb[i].iString = (INT_PTR) (leftbarButtons[i].text);
 	}
-	if (SendMessageW(leftbar, TB_ADDBUTTONS, 5, (LPARAM) tbb) == FALSE)
-		diele("TB_ADDBUTTONS");
+	if (SendMessageW(leftbar, TB_ADDBUTTONSW, 5, (LPARAM) tbb) == FALSE)
+		diele("TB_ADDBUTTONSW");
 
-#if 0
+	tbsizex = 0;
+	for (i = 0; i < 5; i++) {
+		if (SendMessageW(leftbar, TB_GETITEMRECT, (WPARAM) i, (LPARAM) (&btnrect)) == FALSE)
+			diele("TB_GETITEMRECT");
+		tbsizex += btnrect.right - btnrect.left;
+	}
+	tbbtnsize = (DWORD) SendMessageW(leftbar, TB_GETBUTTONSIZE, 0, 0);
+	tbsizey = HIWORD(tbbtnsize);
+
 	ZeroMemory(&rbi, sizeof (REBARBANDINFOW));
 	rbi.cbSize = sizeof (REBARBANDINFOW);
-	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE;
+	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE | RBBIM_SIZE | RBBIM_CHILDSIZE;
 	rbi.fStyle = RBBS_NOGRIPPER | RBBS_USECHEVRON | RBBS_HIDETITLE;
 	rbi.hwndChild = leftbar;
+	rbi.cx = tbsizex;
+	rbi.cyChild = tbsizey;
+	rbi.cxMinChild = 0;
+	rbi.cyMinChild = tbsizey;
 	if (SendMessageW(rebar, RB_INSERTBANDW, (WPARAM) (-1), (LPARAM) (&rbi)) == 0)
 		diele("RB_INSERTBANDW leftbar");
-#endif
-	SendMessageW(leftbar, TB_AUTOSIZE, 0, 0);
-	ShowWindow(leftbar, SW_SHOW);
 }
 
 LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

@@ -74,6 +74,9 @@ void onWM_CREATE(HWND hwnd)
 	if (SendMessageW(leftbar, TB_SETBITMAPSIZE, 0, 0) == FALSE)
 		diele("TB_SETBITMAPSIZE");
 	SendMessageW(leftbar, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS | TBSTYLE_EX_HIDECLIPPEDBUTTONS | TBSTYLE_EX_MIXEDBUTTONS);
+	// TODO this *should* be DIPs...
+	// TODO figure out where the *2 is documented
+	SendMessageW(leftbar, TB_SETPADDING, 0, MAKELONG(6 * 2, 5 * 2));
 	ZeroMemory(tbb, 5 * sizeof (TBBUTTON));
 	for (i = 0; i < 5; i++) {
 		tbb[i].iBitmap = 0;
@@ -98,15 +101,32 @@ void onWM_CREATE(HWND hwnd)
 
 	ZeroMemory(&rbi, sizeof (REBARBANDINFOW));
 	rbi.cbSize = sizeof (REBARBANDINFOW);
-	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE | RBBIM_SIZE | RBBIM_CHILDSIZE;
+	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE | RBBIM_SIZE | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE;
 	rbi.fStyle = RBBS_NOGRIPPER | RBBS_USECHEVRON | RBBS_HIDETITLE;
 	rbi.hwndChild = leftbar;
 	rbi.cx = tbsizex;
 	rbi.cyChild = tbsizey;
 	rbi.cxMinChild = 0;
 	rbi.cyMinChild = tbsizey;
+	rbi.cxIdeal = tbsizex;
 	if (SendMessageW(rebar, RB_INSERTBANDW, (WPARAM) (-1), (LPARAM) (&rbi)) == 0)
 		diele("RB_INSERTBANDW leftbar");
+}
+
+// TODO it seems like I shouldn't have to do this?
+void repositionRebar(HWND hwnd)
+{
+	RECT win, rb;
+
+	if (GetClientRect(hwnd, &win) == 0)
+		diele("GetClientRect()");
+	if (GetWindowRect(rebar, &rb) == 0)
+		diele("GetWindowRect()");
+	if (SetWindowPos(rebar, NULL,
+		0, 0, win.right - win.left, rb.bottom - rb.top,
+		SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
+		diele("SetWindowPos()");
+	SendMessageW(rebar, RB_SETBANDWIDTH, 0, win.right - win.left);
 }
 
 LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -117,6 +137,9 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CLOSE:
 		PostQuitMessage(0);
+		break;
+	case WM_SIZE:
+		repositionRebar(hwnd);
 		break;
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);

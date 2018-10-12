@@ -36,6 +36,10 @@ HWND rebar;
 HWND leftbar;
 HWND rightbar;
 HWND rebarCombo;
+HWND toolbarCombo;
+HWND toolbarTransparentCheckbox;
+
+#define toolbarStyles (WS_CHILD | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_LIST)
 
 static struct {
 	const WCHAR *text;
@@ -48,12 +52,27 @@ static struct {
 	{ L"New folder", FALSE },
 };
 
-static const WCHAR *buttons[] = {
-	L"SetWindowTheme()",
-	L"Custom Draw Vista",
-	L"Custom Draw 7",
-	NULL,
+LRESULT customDrawVista(NMCUSTOMDRAW *nm)
+{
+	return CDRF_DODEFAULT;
+}
+
+LRESULT customDraw7(NMCUSTOMDRAW *nm)
+{
+	return CDRF_DODEFAULT;
+}
+
+static struct {
+	const WCHAR *text;
+	LRESULT (*handle)(NMCUSTOMDRAW *nm);
+} drawmodes[] = {
+	{ L"SetWindowTheme()", NULL },
+	{ L"Custom Draw Vista", customDrawVista },
+	{ L"Custom Draw 7", customDraw7 },
+	{ NULL, NULL },
 };
+
+int drawmode = 0;
 
 static const WCHAR *rebarThemes[] = {
 	L"NULL",
@@ -83,6 +102,47 @@ static const WCHAR *rebarThemes[] = {
 	NULL,
 };
 
+static WCHAR *toolbarThemes[] = {
+	L"NULL",
+	L"",
+	L"Alternate",
+	L"BB",
+	L"BBComposited",
+	L"Communications",
+	L"ExplorerMenu",
+	L"Go",
+	L"GoComposited",
+	L"InactiveBB",
+	L"InactiveBBComposited",
+	L"InactiveGo",
+	L"InactiveGoComposited",
+	L"InfoPaneToolbar",
+	L"LVPopup",
+	L"LVPopupBottom",
+	L"MaxBB",
+	L"MaxBBComposited",
+	L"MaxGo",
+	L"MaxGoComposited",
+	L"MaxInactiveBB",
+	L"MaxInactiveBBComposited",
+	L"MaxInactiveGo",
+	L"MaxInactiveGoComposited",
+	L"Media",
+	L"Placesbar",
+	L"SearchButton",
+	L"SearchButtonComposited",
+	L"StartMenu",
+	L"TaskBar",
+	L"TaskBarComposited",
+	L"TaskBarVert",
+	L"TaskBarVertComposited",
+	L"Toolbar",
+	L"ToolbarStyle",
+	L"TrayNotify",
+	L"TrayNotifyComposited",
+	NULL,
+};
+
 // TODO toolbarThemes
 
 void onWM_CREATE(HWND hwnd)
@@ -107,7 +167,7 @@ void onWM_CREATE(HWND hwnd)
 
 	leftbar = CreateWindowExW(0,
 		TOOLBARCLASSNAMEW, NULL,
-		WS_CHILD | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TRANSPARENT,
+		toolbarStyles | TBSTYLE_TRANSPARENT,
 		0, 0, 0, 0,
 		hwnd, (HMENU) 101, hInstance, NULL);
 	SendMessageW(leftbar, TB_BUTTONSTRUCTSIZE, sizeof (TBBUTTON), 0);
@@ -157,9 +217,9 @@ void onWM_CREATE(HWND hwnd)
 	buttony = 40;
 #define buttonwid 200
 #define buttonht 25
-	for (i = 0; buttons[i] != NULL; i++) {
+	for (i = 0; drawmodes[i].text != NULL; i++) {
 		button = CreateWindowExW(0,
-			L"BUTTON", buttons[i],
+			L"BUTTON", drawmodes[i].text,
 			WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
 			buttonx, buttony,
 			buttonwid, buttonht,
@@ -183,6 +243,28 @@ void onWM_CREATE(HWND hwnd)
 	for (i = 0; rebarThemes[i] != NULL; i++)
 		// TODO check error
 		SendMessageW(rebarCombo, CB_ADDSTRING, 0, (LPARAM) (rebarThemes[i]));
+	comboy += buttonht + 5;
+	toolbarCombo = CreateWindowExW(WS_EX_CLIENTEDGE,
+		L"COMBOBOX", L"",
+		WS_CHILD | WS_VISIBLE | CBS_DROPDOWN,
+		combox, comboy,
+		buttonwid, buttonht,
+		hwnd, (HMENU) 301, hInstance, NULL);
+	if (toolbarCombo == NULL)
+		diele("CreateWindowExW(L\"COMBOBOX\")");
+	for (i = 0; toolbarThemes[i] != NULL; i++)
+		// TODO check error
+		SendMessageW(toolbarCombo, CB_ADDSTRING, 0, (LPARAM) (toolbarThemes[i]));
+	comboy += buttonht + 5;
+	toolbarTransparentCheckbox = CreateWindowExW(0,
+		L"BUTTON", L"Transparent toolbar",
+		WS_CHILD | WS_VISIBLE | BS_CHECKBOX,
+		combox, comboy,
+		buttonwid, buttonht,
+		hwnd, (HMENU) 302, hInstance, NULL);
+	if (toolbarTransparentCheckbox == NULL)
+		diele("CreateWindowExW(L\"BUTTON\")");
+	SendMessage(toolbarTransparentCheckbox, BM_SETCHECK, BST_CHECKED, 0);
 }
 
 // TODO it seems like I shouldn't have to do this?
@@ -208,6 +290,8 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 	const WCHAR *selRebar = NULL, *selToolbar = NULL;
 	WCHAR *bufRebar = NULL, *bufToolbar = NULL;
 	BOOL changeRebar = FALSE, changeToolbar = FALSE;
+	BOOL invalidate = FALSE;
+	WPARAM check;
 
 	switch (wParam) {
 	case MAKEWPARAM(300, CBN_SELCHANGE):
@@ -215,14 +299,43 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 		selRebar = rebarThemes[n];
 		changeRebar = TRUE;
 		break;
+	case MAKEWPARAM(301, CBN_SELCHANGE):
+		n = SendMessageW(toolbarCombo, CB_GETCURSEL, 0, 0);
+		selToolbar = toolbarThemes[n];
+		changeToolbar = TRUE;
+		break;
 	case MAKEWPARAM(200, BN_CLICKED):
+		drawmode = 0;
 		n = SendMessageW(rebarCombo, WM_GETTEXTLENGTH, 0, 0);
 		bufRebar = new WCHAR[n + 1];
 		GetWindowTextW(rebarCombo, bufRebar, n + 1);
+		n = SendMessageW(toolbarCombo, WM_GETTEXTLENGTH, 0, 0);
+		bufToolbar = new WCHAR[n + 1];
+		GetWindowTextW(toolbarCombo, bufToolbar, n + 1);
 		selRebar = bufRebar;
-		selToolbar = bufRebar;
+		selToolbar = bufToolbar;
 		changeRebar = TRUE;
 		changeToolbar = TRUE;
+		break;
+	case MAKEWPARAM(201, BN_CLICKED):
+		drawmode = 1;
+		invalidate = TRUE;
+		break;
+	case MAKEWPARAM(202, BN_CLICKED):
+		drawmode = 2;
+		invalidate = TRUE;
+		break;
+	case MAKEWPARAM(302, BN_CLICKED):
+		ShowWindow(leftbar, SW_HIDE);
+		check = BST_CHECKED;
+		if (SendMessage(toolbarTransparentCheckbox, BM_GETCHECK, 0, 0) == BST_CHECKED)
+			check = BST_UNCHECKED;
+		SendMessage(toolbarTransparentCheckbox, BM_SETCHECK, check, 0);
+		if (check == BST_CHECKED)
+			SendMessageW(leftbar, TB_SETSTYLE, 0, toolbarStyles | TBSTYLE_TRANSPARENT);
+		else
+			SendMessageW(leftbar, TB_SETSTYLE, 0, toolbarStyles);
+		ShowWindow(leftbar, SW_SHOW);
 		break;
 	}
 	if (changeRebar) {
@@ -232,7 +345,7 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 			SendMessageW(rebar, RB_SETWINDOWTHEME, 0, (LPARAM) selRebar);
 		else
 			SetWindowTheme(rebar, selRebar, selRebar);
-		InvalidateRect(hwnd, NULL, TRUE);
+		invalidate = TRUE;
 	}
 	if (changeToolbar) {
 		if (selToolbar != NULL && wcscmp(selToolbar, L"NULL") == 0)
@@ -241,8 +354,10 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 			SendMessageW(leftbar, TB_SETWINDOWTHEME, 0, (LPARAM) selToolbar);
 		else
 			SetWindowTheme(leftbar, selToolbar, selToolbar);
-		InvalidateRect(hwnd, NULL, TRUE);
+		invalidate = TRUE;
 	}
+	if (invalidate)
+		InvalidateRect(hwnd, NULL, TRUE);
 	if (bufRebar != NULL)
 		delete[] bufRebar;
 	if (bufToolbar != NULL)
@@ -251,6 +366,8 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 
 LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	NMHDR *nm = (NMHDR *) lParam;
+
 	switch (uMsg) {
 	case WM_CREATE:
 		onWM_CREATE(hwnd);
@@ -263,6 +380,16 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_COMMAND:
 		handleEvents(hwnd, wParam);
+		break;
+	case WM_NOTIFY:
+		switch (nm->code) {
+		case NM_CUSTOMDRAW:
+			if (nm->hwndFrom != rebar)
+				break;
+			if (drawmode == 0)
+				break;
+			return (*(drawmodes[drawmode].handle))((NMCUSTOMDRAW *) nm);
+		}
 		break;
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);

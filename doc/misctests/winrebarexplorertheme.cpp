@@ -52,9 +52,37 @@ static struct {
 	{ L"New folder", FALSE },
 };
 
+// TODO check errors
 LRESULT customDrawVista(NMCUSTOMDRAW *nm)
 {
-	return CDRF_DODEFAULT;
+	static TRIVERTEX vertices[] = {
+		{ 0, 0, 4 << 8, 80 << 8, 130 << 8, 255 << 8 },
+		{ 0, 0, 17 << 8, 101 << 8, 132 << 8, 255 << 8 },
+		{ 0, 0, 17 << 8, 101 << 8, 132 << 8, 255 << 8 },
+		{ 0, 0, 29 << 8, 121 << 8, 134 << 8, 255 << 8 },
+	};
+	static GRADIENT_RECT gr[2] = {
+		{ 0, 1 },
+		{ 2, 3 },
+	};
+	RECT r;
+	HTHEME theme;
+
+	if (nm->dwDrawStage != CDDS_PREPAINT)
+		return CDRF_DODEFAULT;
+	GetClientRect(nm->hdr.hwndFrom, &r);
+	vertices[1].x = r.right - r.left;
+	vertices[1].y = (r.bottom - r.top) / 2;
+	vertices[2].y = (r.bottom - r.top) / 2;
+	vertices[3].x = r.right - r.left;
+	vertices[3].y = r.bottom - r.top;
+	GradientFill(nm->hdc, vertices, 4, (PVOID) gr, 2, GRADIENT_FILL_RECT_V);
+	theme = OpenThemeData(nm->hdr.hwndFrom, L"CommandModule");
+	DrawThemeBackground(theme, nm->hdc,
+		1, 0,
+		&r, NULL);
+	CloseThemeData(theme);
+	return CDRF_NOTIFYITEMDRAW;
 }
 
 LRESULT customDraw7(NMCUSTOMDRAW *nm)
@@ -384,7 +412,7 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_NOTIFY:
 		switch (nm->code) {
 		case NM_CUSTOMDRAW:
-			if (nm->hwndFrom != rebar)
+			if (nm->hwndFrom != leftbar)
 				break;
 			if (drawmode == 0)
 				break;

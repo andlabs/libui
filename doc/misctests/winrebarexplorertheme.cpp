@@ -35,6 +35,7 @@ HINSTANCE hInstance;
 HWND rebar;
 HWND leftbar;
 HWND rightbar;
+HWND rebarCombo;
 
 static struct {
 	const WCHAR *text;
@@ -47,6 +48,43 @@ static struct {
 	{ L"New folder", FALSE },
 };
 
+static const WCHAR *buttons[] = {
+	L"SetWindowTheme()",
+	L"Custom Draw Vista",
+	L"Custom Draw 7",
+	NULL,
+};
+
+static const WCHAR *rebarThemes[] = {
+	L"NULL",
+	L"",
+	L"AlternateRebar",
+	L"BrowserTabBar",
+	L"Communications",
+	L"Default",
+	L"ExplorerBar",
+	L"Help",
+	L"InactiveNavbar",
+	L"InactiveNavbarComposited",
+	L"ITBarBase",
+	L"MaxInactiveNavbar",
+	L"MaxInactiveNavbarComposited",
+	L"MaxNavbar",
+	L"MaxNavbarComposited",
+	L"Media",
+	L"Navbar",
+	L"NavbarBase",
+	L"NavbarComposited",
+	L"NavbarNonTopmost",
+	L"Rebar",
+	L"RebarStyle",
+	L"TaskBar",
+	L"TaskBarComposited",
+	NULL,
+};
+
+// TODO toolbarThemes
+
 void onWM_CREATE(HWND hwnd)
 {
 	TBBUTTON tbb[5];
@@ -54,6 +92,9 @@ void onWM_CREATE(HWND hwnd)
 	DWORD tbbtnsize;
 	LONG tbsizex, tbsizey;
 	REBARBANDINFOW rbi;
+	HWND button;
+	LONG buttonx, buttony;
+	LONG combox, comboy;
 	int i;
 
 	rebar = CreateWindowExW(0,
@@ -111,6 +152,37 @@ void onWM_CREATE(HWND hwnd)
 	rbi.cxIdeal = tbsizex;
 	if (SendMessageW(rebar, RB_INSERTBANDW, (WPARAM) (-1), (LPARAM) (&rbi)) == 0)
 		diele("RB_INSERTBANDW leftbar");
+
+	buttonx = 10;
+	buttony = 40;
+#define buttonwid 200
+#define buttonht 25
+	for (i = 0; buttons[i] != NULL; i++) {
+		button = CreateWindowExW(0,
+			L"BUTTON", buttons[i],
+			WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+			buttonx, buttony,
+			buttonwid, buttonht,
+			hwnd, (HMENU) (200 + i), hInstance, NULL);
+		if (button == NULL)
+			diele("CreateWIndowExW(L\"BUTTON\")");
+		if (i == 0) {
+			combox = buttonx + buttonwid + 5;
+			comboy = buttony;
+		}
+		buttony += buttonht + 5;
+	}
+	rebarCombo = CreateWindowExW(WS_EX_CLIENTEDGE,
+		L"COMBOBOX", L"",
+		WS_CHILD | WS_VISIBLE | CBS_DROPDOWN,
+		combox, comboy,
+		buttonwid, buttonht,
+		hwnd, (HMENU) 300, hInstance, NULL);
+	if (rebarCombo == NULL)
+		diele("CreateWindowExW(L\"COMBOBOX\")");
+	for (i = 0; rebarThemes[i] != NULL; i++)
+		// TODO check error
+		SendMessageW(rebarCombo, CB_ADDSTRING, 0, (LPARAM) (rebarThemes[i]));
 }
 
 // TODO it seems like I shouldn't have to do this?
@@ -129,6 +201,54 @@ void repositionRebar(HWND hwnd)
 	SendMessageW(rebar, RB_SETBANDWIDTH, 0, win.right - win.left);
 }
 
+// TODO check errors
+void handleEvents(HWND hwnd, WPARAM wParam)
+{
+	LRESULT n;
+	const WCHAR *selRebar = NULL, *selToolbar = NULL;
+	WCHAR *bufRebar = NULL, *bufToolbar = NULL;
+	BOOL changeRebar = FALSE, changeToolbar = FALSE;
+
+	switch (wParam) {
+	case MAKEWPARAM(300, CBN_SELCHANGE):
+		n = SendMessageW(rebarCombo, CB_GETCURSEL, 0, 0);
+		selRebar = rebarThemes[n];
+		changeRebar = TRUE;
+		break;
+	case MAKEWPARAM(200, BN_CLICKED):
+		n = SendMessageW(rebarCombo, WM_GETTEXTLENGTH, 0, 0);
+		bufRebar = new WCHAR[n + 1];
+		GetWindowTextW(rebarCombo, bufRebar, n + 1);
+		selRebar = bufRebar;
+		selToolbar = bufRebar;
+		changeRebar = TRUE;
+		changeToolbar = TRUE;
+		break;
+	}
+	if (changeRebar) {
+		if (selRebar != NULL && wcscmp(selRebar, L"NULL") == 0)
+			selRebar = NULL;
+		if (selRebar != NULL && *selRebar != L'\0')
+			SendMessageW(rebar, RB_SETWINDOWTHEME, 0, (LPARAM) selRebar);
+		else
+			SetWindowTheme(rebar, selRebar, selRebar);
+		InvalidateRect(hwnd, NULL, TRUE);
+	}
+	if (changeToolbar) {
+		if (selToolbar != NULL && wcscmp(selToolbar, L"NULL") == 0)
+			selToolbar = NULL;
+		if (selToolbar != NULL && *selToolbar != L'\0')
+			SendMessageW(leftbar, TB_SETWINDOWTHEME, 0, (LPARAM) selToolbar);
+		else
+			SetWindowTheme(leftbar, selToolbar, selToolbar);
+		InvalidateRect(hwnd, NULL, TRUE);
+	}
+	if (bufRebar != NULL)
+		delete[] bufRebar;
+	if (bufToolbar != NULL)
+		delete[] bufToolbar;
+}
+
 LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg) {
@@ -140,6 +260,9 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_SIZE:
 		repositionRebar(hwnd);
+		break;
+	case WM_COMMAND:
+		handleEvents(hwnd, wParam);
 		break;
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);

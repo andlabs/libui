@@ -13,10 +13,11 @@
 #include <uxtheme.h>
 #include <vsstyle.h>
 #include <vssym32.h>
+#include <shellapi.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-// cl winrebarexplorertheme.cpp -MD -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib windows.res
+// cl winrebarexplorertheme.cpp -MD -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib shell32.lib windows.res
 
 void diele(const char *func)
 {
@@ -44,7 +45,7 @@ HWND toolbarTransparentCheckbox;
 HICON helpIcon;
 HIMAGELIST helpList;
 
-#define toolbarStyles (WS_CHILD | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_LIST)
+#define toolbarStyles (WS_CHILD | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT)
 
 static struct {
 	const WCHAR *text;
@@ -197,7 +198,7 @@ void onWM_CREATE(HWND hwnd)
 
 	rebar = CreateWindowExW(0,
 		REBARCLASSNAMEW, NULL,
-		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CCS_NODIVIDER | CCS_TOP,
+		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CCS_NODIVIDER | CCS_TOP | RBS_FIXEDORDER,
 		0, 0, 0, 0,
 		hwnd, (HMENU) 100, hInstance, NULL);
 	if (rebar == NULL)
@@ -205,7 +206,7 @@ void onWM_CREATE(HWND hwnd)
 
 	leftbar = CreateWindowExW(0,
 		TOOLBARCLASSNAMEW, NULL,
-		toolbarStyles | TBSTYLE_TRANSPARENT,
+		toolbarStyles | TBSTYLE_LIST | TBSTYLE_TRANSPARENT,
 		0, 0, 0, 0,
 		hwnd, (HMENU) 101, hInstance, NULL);
 	if (leftbar == NULL)
@@ -217,7 +218,7 @@ void onWM_CREATE(HWND hwnd)
 	SendMessageW(leftbar, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS | TBSTYLE_EX_HIDECLIPPEDBUTTONS | TBSTYLE_EX_MIXEDBUTTONS);
 	// TODO this *should* be DIPs...
 	// TODO figure out where the *2 is documented
-	SendMessageW(leftbar, TB_SETPADDING, 0, MAKELONG(6 * 2, 5 * 2));
+	SendMessageW(leftbar, TB_SETPADDING, 0, MAKELPARAM(6 * 2, 5 * 2));
 	ZeroMemory(tbb, 5 * sizeof (TBBUTTON));
 	for (i = 0; i < 5; i++) {
 		tbb[i].iBitmap = 0;
@@ -243,34 +244,38 @@ void onWM_CREATE(HWND hwnd)
 	ZeroMemory(&rbi, sizeof (REBARBANDINFOW));
 	rbi.cbSize = sizeof (REBARBANDINFOW);
 	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE | RBBIM_SIZE | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE;
-	rbi.fStyle = RBBS_NOGRIPPER | RBBS_USECHEVRON | RBBS_HIDETITLE;
+	rbi.fStyle = RBBS_NOGRIPPER | RBBS_CHILDEDGE | RBBS_USECHEVRON | RBBS_HIDETITLE;
 	rbi.hwndChild = leftbar;
 	rbi.cx = tbsizex;
 	rbi.cyChild = tbsizey;
 	rbi.cxMinChild = 0;
 	rbi.cyMinChild = tbsizey;
 	rbi.cxIdeal = tbsizex;
-//	if (SendMessageW(rebar, RB_INSERTBANDW, (WPARAM) (-1), (LPARAM) (&rbi)) == 0)
-//		diele("RB_INSERTBANDW leftbar");
+	if (SendMessageW(rebar, RB_INSERTBANDW, (WPARAM) (-1), (LPARAM) (&rbi)) == 0)
+		diele("RB_INSERTBANDW leftbar");
 
 	rightbar = CreateWindowExW(0,
 		TOOLBARCLASSNAMEW, NULL,
-		(toolbarStyles & ~TBSTYLE_LIST) | TBSTYLE_TRANSPARENT,
+		toolbarStyles | TBSTYLE_TRANSPARENT,
 		0, 0, 0, 0,
 		hwnd, (HMENU) 102, hInstance, NULL);
 	if (rightbar == NULL)
 		diele("CreateWindowExW(TOOLBARCLASSNAMEW) rightbar");
 	SendMessageW(rightbar, TB_BUTTONSTRUCTSIZE, sizeof (TBBUTTON), 0);
-	// TODO check error
-	SendMessageW(rightbar, TB_SETBITMAPSIZE, 0, MAKELPARAM(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON)));
 	SendMessageW(rightbar, TB_SETIMAGELIST, 0, (LPARAM) helpList);
+	// TODO this *should* be DIPs...
+	// TODO figure out where the *2 is documented
+	SendMessageW(rightbar, TB_SETPADDING, 0, MAKELPARAM(6 * 2, 5 * 2));
 	ZeroMemory(tbb, 5 * sizeof (TBBUTTON));
 	tbb[0].iBitmap = 0;
 	tbb[0].idCommand = 0;
 	tbb[0].fsState = TBSTATE_ENABLED;
-	tbb[0].fsStyle = BTNS_BUTTON;
+	tbb[0].fsStyle = BTNS_AUTOSIZE | BTNS_BUTTON;
 	if (SendMessageW(rightbar, TB_ADDBUTTONSW, 1, (LPARAM) tbb) == FALSE)
 		diele("TB_ADDBUTTONSW");
+	// TODO check error
+	// TODO figure out why this works here but not elsewhere
+	SendMessageW(rightbar, TB_SETBUTTONSIZE, 0, 0);
 
 	tbbtnsize = (DWORD) SendMessageW(rightbar, TB_GETBUTTONSIZE, 0, 0);
 	tbsizex = LOWORD(tbbtnsize);
@@ -355,7 +360,6 @@ void repositionRebar(HWND hwnd)
 		0, 0, win.right - win.left, rb.bottom - rb.top,
 		SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
 		diele("SetWindowPos()");
-	SendMessageW(rebar, RB_SETBANDWIDTH, 0, win.right - win.left);
 }
 
 // TODO check errors
@@ -403,9 +407,9 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 			check = BST_UNCHECKED;
 		SendMessage(toolbarTransparentCheckbox, BM_SETCHECK, check, 0);
 		if (check == BST_CHECKED)
-			SendMessageW(leftbar, TB_SETSTYLE, 0, toolbarStyles | TBSTYLE_TRANSPARENT);
+			SendMessageW(leftbar, TB_SETSTYLE, 0, toolbarStyles | TBSTYLE_LIST | TBSTYLE_TRANSPARENT);
 		else
-			SendMessageW(leftbar, TB_SETSTYLE, 0, toolbarStyles);
+			SendMessageW(leftbar, TB_SETSTYLE, 0, toolbarStyles | TBSTYLE_LIST);
 		ShowWindow(leftbar, SW_SHOW);
 		break;
 	}
@@ -475,9 +479,11 @@ int main(void)
 	INITCOMMONCONTROLSEX icc;
 	HICON hDefaultIcon;
 	HCURSOR hDefaultCursor;
+	SHSTOCKICONINFO sii;
 	WNDCLASSW wc;
 	HWND mainwin;
 	MSG msg;
+	HRESULT hr;
 
 	hInstance = (HINSTANCE) (&__ImageBase);
 	nCmdShow = SW_SHOWDEFAULT;
@@ -498,10 +504,19 @@ int main(void)
 	if (hDefaultCursor == NULL)
 		diele("LoadCursorW(IDC_ARROW)");
 
-	helpIcon = (HICON) LoadImageW(NULL, IDI_QUESTION, IMAGE_ICON,
-		GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR | LR_SHARED);
-	if (helpIcon == NULL)
-		diele("LoadImageW(IDI_QUESTION)");
+	// notes:
+	// - https://www.google.com/search?client=firefox-b-1&ei=gGzBW63XLYeG5wL3l5WQBg&q=winapi+%22system+icon%22+image+list&oq=winapi+%22system+icon%22+image+list&gs_l=psy-ab.3...31221.33763..33899...0.0..0.130.1967.22j2......0....1..gws-wiz.......0j0i71j35i39j0i20i264j0i67j0i20i263j0i22i30j0i22i10i30j33i160j33i299j33i22i29i30.wAw65ObMuTg
+	// - https://stackoverflow.com/questions/36763562/how-to-load-imagelist-with-system-dialog-icons
+	// - https://blogs.msdn.microsoft.com/oldnewthing/20121005-00/?p=6393
+	// - https://stackoverflow.com/questions/4285890/how-to-load-a-small-system-icon/4286601
+	// - https://stackoverflow.com/questions/6613513/compliant-loading-of-small-oem-icon-with-loadimage
+	// - https://web.archive.org/web/20170514073649/http://www.catch22.net/tuts/system-image-list
+	ZeroMemory(&sii, sizeof (SHSTOCKICONINFO));
+	sii.cbSize = sizeof (SHSTOCKICONINFO);
+	hr = SHGetStockIconInfo(SIID_HELP, SHGSI_ICON | SHGSI_SMALLICON, &sii);
+	if (hr != S_OK)
+		diehr("SHGetStockIconInfo(SIID_HELP)", hr);
+	helpIcon = sii.hIcon;
 	helpList = ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
 		ILC_COLOR32, 0, 1);
 	if (helpList == NULL)

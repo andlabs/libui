@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// cl winrebarexplorertheme.cpp -MD -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib shell32.lib windows.res
+// cl winrebarexplorertheme.cpp -MT -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib shell32.lib windows.res
 
 void diele(const char *func)
 {

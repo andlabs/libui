@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// cl winrebarexplorertheme.cpp -MD -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib windows.res
+
 void diele(const char *func)
 {
 	DWORD le;
@@ -53,7 +55,8 @@ static struct {
 };
 
 // TODO check errors
-LRESULT customDrawVista(NMCUSTOMDRAW *nm)
+// TODO extract colors from the theme
+LRESULT customDrawExplorer(NMCUSTOMDRAW *nm)
 {
 	static TRIVERTEX vertices[] = {
 		{ 0, 0, 4 << 8, 80 << 8, 130 << 8, 255 << 8 },
@@ -69,19 +72,24 @@ LRESULT customDrawVista(NMCUSTOMDRAW *nm)
 	HTHEME theme;
 
 	if (nm->dwDrawStage != CDDS_PREPAINT)
-		return CDRF_DODEFAULT;
+		return CDRF_DODEFAULT | TBCDRF_NOOFFSET;
+	if (nm->hdr.hwndFrom == rebar) {
 	GetClientRect(nm->hdr.hwndFrom, &r);
-	vertices[1].x = r.right - r.left;
+	vertices[0].x = nm->rc.left;
+	vertices[0].y = 0;
+	vertices[1].x = nm->rc.right;
 	vertices[1].y = (r.bottom - r.top) / 2;
+	vertices[2].x = nm->rc.left;
 	vertices[2].y = (r.bottom - r.top) / 2;
-	vertices[3].x = r.right - r.left;
+	vertices[3].x = nm->rc.right;
 	vertices[3].y = r.bottom - r.top;
 	GradientFill(nm->hdc, vertices, 4, (PVOID) gr, 2, GRADIENT_FILL_RECT_V);
 	theme = OpenThemeData(nm->hdr.hwndFrom, L"CommandModule");
 	DrawThemeBackground(theme, nm->hdc,
 		1, 0,
-		&r, NULL);
+		&r, &(nm->rc));
 	CloseThemeData(theme);
+	}
 	return CDRF_NOTIFYITEMDRAW;
 }
 
@@ -95,8 +103,7 @@ static struct {
 	LRESULT (*handle)(NMCUSTOMDRAW *nm);
 } drawmodes[] = {
 	{ L"SetWindowTheme()", NULL },
-	{ L"Custom Draw Vista", customDrawVista },
-	{ L"Custom Draw 7", customDraw7 },
+	{ L"Custom Draw Explorer", customDrawExplorer },
 	{ NULL, NULL },
 };
 
@@ -349,10 +356,6 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 		drawmode = 1;
 		invalidate = TRUE;
 		break;
-	case MAKEWPARAM(202, BN_CLICKED):
-		drawmode = 2;
-		invalidate = TRUE;
-		break;
 	case MAKEWPARAM(302, BN_CLICKED):
 		ShowWindow(leftbar, SW_HIDE);
 		check = BST_CHECKED;
@@ -412,7 +415,7 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_NOTIFY:
 		switch (nm->code) {
 		case NM_CUSTOMDRAW:
-			if (nm->hwndFrom != leftbar)
+			if (nm->hwndFrom != rebar)
 				break;
 			if (drawmode == 0)
 				break;

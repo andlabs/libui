@@ -41,6 +41,9 @@ HWND rebarCombo;
 HWND toolbarCombo;
 HWND toolbarTransparentCheckbox;
 
+HICON helpIcon;
+HIMAGELIST helpList;
+
 #define toolbarStyles (WS_CHILD | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_LIST)
 
 static struct {
@@ -205,6 +208,8 @@ void onWM_CREATE(HWND hwnd)
 		toolbarStyles | TBSTYLE_TRANSPARENT,
 		0, 0, 0, 0,
 		hwnd, (HMENU) 101, hInstance, NULL);
+	if (leftbar == NULL)
+		diele("CreateWindowExW(TOOLBARCLASSNAMEW) leftbar");
 	SendMessageW(leftbar, TB_BUTTONSTRUCTSIZE, sizeof (TBBUTTON), 0);
 	// I_IMAGENONE causes the button text to be left-aligned; don't use it
 	if (SendMessageW(leftbar, TB_SETBITMAPSIZE, 0, 0) == FALSE)
@@ -245,8 +250,43 @@ void onWM_CREATE(HWND hwnd)
 	rbi.cxMinChild = 0;
 	rbi.cyMinChild = tbsizey;
 	rbi.cxIdeal = tbsizex;
+//	if (SendMessageW(rebar, RB_INSERTBANDW, (WPARAM) (-1), (LPARAM) (&rbi)) == 0)
+//		diele("RB_INSERTBANDW leftbar");
+
+	rightbar = CreateWindowExW(0,
+		TOOLBARCLASSNAMEW, NULL,
+		(toolbarStyles & ~TBSTYLE_LIST) | TBSTYLE_TRANSPARENT,
+		0, 0, 0, 0,
+		hwnd, (HMENU) 102, hInstance, NULL);
+	if (rightbar == NULL)
+		diele("CreateWindowExW(TOOLBARCLASSNAMEW) rightbar");
+	SendMessageW(rightbar, TB_BUTTONSTRUCTSIZE, sizeof (TBBUTTON), 0);
+	// TODO check error
+	SendMessageW(rightbar, TB_SETBITMAPSIZE, 0, MAKELPARAM(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON)));
+	SendMessageW(rightbar, TB_SETIMAGELIST, 0, (LPARAM) helpList);
+	ZeroMemory(tbb, 5 * sizeof (TBBUTTON));
+	tbb[0].iBitmap = 0;
+	tbb[0].idCommand = 0;
+	tbb[0].fsState = TBSTATE_ENABLED;
+	tbb[0].fsStyle = BTNS_BUTTON;
+	if (SendMessageW(rightbar, TB_ADDBUTTONSW, 1, (LPARAM) tbb) == FALSE)
+		diele("TB_ADDBUTTONSW");
+
+	tbbtnsize = (DWORD) SendMessageW(rightbar, TB_GETBUTTONSIZE, 0, 0);
+	tbsizex = LOWORD(tbbtnsize);
+	tbsizey = HIWORD(tbbtnsize);
+
+	ZeroMemory(&rbi, sizeof (REBARBANDINFOW));
+	rbi.cbSize = sizeof (REBARBANDINFOW);
+	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE | RBBIM_SIZE | RBBIM_CHILDSIZE;
+	rbi.fStyle = RBBS_NOGRIPPER | RBBS_HIDETITLE;
+	rbi.hwndChild = rightbar;
+	rbi.cx = tbsizex;
+	rbi.cyChild = tbsizey;
+	rbi.cxMinChild = tbsizex;
+	rbi.cyMinChild = tbsizey;
 	if (SendMessageW(rebar, RB_INSERTBANDW, (WPARAM) (-1), (LPARAM) (&rbi)) == 0)
-		diele("RB_INSERTBANDW leftbar");
+		diele("RB_INSERTBANDW rightbar");
 
 	buttonx = 10;
 	buttony = 40;
@@ -457,6 +497,17 @@ int main(void)
 	hDefaultCursor = LoadCursorW(NULL, IDC_ARROW);
 	if (hDefaultCursor == NULL)
 		diele("LoadCursorW(IDC_ARROW)");
+
+	helpIcon = (HICON) LoadImageW(NULL, IDI_QUESTION, IMAGE_ICON,
+		GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR | LR_SHARED);
+	if (helpIcon == NULL)
+		diele("LoadImageW(IDI_QUESTION)");
+	helpList = ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
+		ILC_COLOR32, 0, 1);
+	if (helpList == NULL)
+		diele("ImageList_Create()");
+	if (ImageList_ReplaceIcon(helpList, -1, helpIcon) == -1)
+		diele("ImageList_ReplaceIcon()");
 
 	ZeroMemory(&wc, sizeof (WNDCLASSW));
 	wc.lpszClassName = L"mainwin";

@@ -14,6 +14,7 @@
 #include <vsstyle.h>
 #include <vssym32.h>
 #include <shellapi.h>
+#include <windowsx.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -60,7 +61,7 @@ static struct {
 
 // TODO check errors
 // TODO extract colors from the theme
-LRESULT customDrawExplorer(NMCUSTOMDRAW *nm)
+void drawExplorerBackground(HTHEME theme, HDC dc, RECT *rcWindow, RECT *rcPaint)
 {
 	static TRIVERTEX vertices[] = {
 		{ 0, 0, 4 << 8, 80 << 8, 130 << 8, 255 << 8 },
@@ -72,42 +73,115 @@ LRESULT customDrawExplorer(NMCUSTOMDRAW *nm)
 		{ 0, 1 },
 		{ 2, 3 },
 	};
-	RECT r;
-	HTHEME theme;
 
-	if (nm->dwDrawStage != CDDS_PREPAINT)
-		return CDRF_DODEFAULT | TBCDRF_NOOFFSET;
-	if (nm->hdr.hwndFrom == rebar) {
-	GetClientRect(nm->hdr.hwndFrom, &r);
-	vertices[0].x = nm->rc.left;
+	vertices[0].x = rcPaint->left;
 	vertices[0].y = 0;
-	vertices[1].x = nm->rc.right;
-	vertices[1].y = (r.bottom - r.top) / 2;
-	vertices[2].x = nm->rc.left;
-	vertices[2].y = (r.bottom - r.top) / 2;
-	vertices[3].x = nm->rc.right;
-	vertices[3].y = r.bottom - r.top;
-	GradientFill(nm->hdc, vertices, 4, (PVOID) gr, 2, GRADIENT_FILL_RECT_V);
-	theme = OpenThemeData(nm->hdr.hwndFrom, L"CommandModule");
-	DrawThemeBackground(theme, nm->hdc,
+	vertices[1].x = rcPaint->right;
+	vertices[1].y = (rcWindow->bottom - rcWindow->top) / 2;
+	vertices[2].x = rcPaint->left;
+	vertices[2].y = (rcWindow->bottom - rcWindow->top) / 2;
+	vertices[3].x = rcPaint->right;
+	vertices[3].y = rcWindow->bottom - rcWindow->top;
+	GradientFill(dc, vertices, 4, (PVOID) gr, 2, GRADIENT_FILL_RECT_V);
+	DrawThemeBackground(theme, dc,
 		1, 0,
-		&r, &(nm->rc));
-	CloseThemeData(theme);
-	}
-	return CDRF_NOTIFYITEMDRAW;
+		rcWindow, rcPaint);
 }
 
-LRESULT customDraw7(NMCUSTOMDRAW *nm)
+// TODO check errors
+void drawExplorerChevron(HTHEME theme, HDC dc, HWND rebar, WPARAM band, RECT *rcPaint)
 {
+	REBARBANDINFOW rbi;
+	RECT r;
+	int state;
+
+	ZeroMemory(&rbi, sizeof (REBARBANDINFOW));
+	rbi.cbSize = sizeof (REBARBANDINFOW);
+	rbi.fMask = RBBIM_CHILD | RBBIM_CHEVRONLOCATION | RBBIM_CHEVRONSTATE;
+	SendMessageW(rebar, RB_GETBANDINFOW, band, (LPARAM) (&rbi));
+	if ((rbi.uChevronState & STATE_SYSTEM_INVISIBLE) != 0)
+		return;
+	state = 1;
+	// TODO check if this is correct
+	if ((rbi.uChevronState & STATE_SYSTEM_FOCUSED) != 0)
+		state = 4;
+	if ((rbi.uChevronState & STATE_SYSTEM_HOTTRACKED) != 0)
+		state = 2;
+	if ((rbi.uChevronState & STATE_SYSTEM_PRESSED) != 0)
+		state = 3;
+	r = rbi.rcChevronLocation;
+	// TODO commctrl.h says this should be correct for the chevron rect, but it's not?
+//	MapWindowRect(rbi.hwndChild, rebar, &r);
+	DrawThemeBackground(theme, dc,
+		3, state,
+		&r, rcPaint);
+	DrawThemeBackground(theme, dc,
+		7, 1,
+		&r, rcPaint);
+}
+
+// TODO check errors
+LRESULT customDrawExplorerRebar(NMCUSTOMDRAW *nm)
+{
+	HTHEME theme;
+	RECT r;
+
+	if (nm->dwDrawStage != CDDS_PREPAINT)
+		return CDRF_DODEFAULT;
+	theme = OpenThemeData(nm->hdr.hwndFrom, L"CommandModule");
+	GetClientRect(nm->hdr.hwndFrom, &r);
+	drawExplorerBackground(theme, nm->hdc, &r, &(nm->rc));
+	// TODO dwItemSpec is often invalid?!
+	drawExplorerChevron(theme, nm->hdc, nm->hdr.hwndFrom, 0, &(nm->rc));
+	CloseThemeData(theme);
+	return CDRF_SKIPDEFAULT;
+}
+
+// TODO check errors
+LRESULT customDrawExplorerToolbar(NMTBCUSTOMDRAW *nm)
+{
+	HWND toolbar, rebar;
+	HTHEME theme;
+	RECT r;
+	int state;
+
+	toolbar = nm->nmcd.hdr.hwndFrom;
+	switch (nm->nmcd.dwDrawStage) {
+	case CDDS_PREPAINT:
+		theme = OpenThemeData(toolbar, L"CommandModule");
+		rebar = GetParent(toolbar);
+		GetWindowRect(rebar, &r);
+		MapWindowRect(NULL, toolbar, &r);
+		drawExplorerBackground(theme, nm->nmcd.hdc, &r, &(nm->nmcd.rc));
+		CloseThemeData(theme);
+		return CDRF_NOTIFYITEMDRAW;
+	case CDDS_ITEMPREPAINT:
+		theme = OpenThemeData(toolbar, L"CommandModule");
+		state = 1;
+		// TODO this doesn't work; both keyboard and mouse are listed as HOT
+		if ((nm->nmcd.uItemState & CDIS_FOCUS) != 0)
+			state = 4;
+		if ((nm->nmcd.uItemState & CDIS_HOT) != 0)
+			state = 2;
+		if ((nm->nmcd.uItemState & CDIS_SELECTED) != 0)
+			state = 3;
+		SendMessageW(toolbar, TB_GETITEMRECT, SendMessageW(toolbar, TB_COMMANDTOINDEX, nm->nmcd.dwItemSpec, 0), (LPARAM) (&r));
+		DrawThemeBackground(theme, nm->nmcd.hdc,
+			3, state,
+			&r, &(nm->nmcd.rc));
+		CloseThemeData(theme);
+		return TBCDRF_NOBACKGROUND;
+	}
 	return CDRF_DODEFAULT;
 }
 
 static struct {
 	const WCHAR *text;
-	LRESULT (*handle)(NMCUSTOMDRAW *nm);
+	LRESULT (*handleRebar)(NMCUSTOMDRAW *nm);
+	LRESULT (*handleToolbar)(NMTBCUSTOMDRAW *nm);
 } drawmodes[] = {
-	{ L"SetWindowTheme()", NULL },
-	{ L"Custom Draw Explorer", customDrawExplorer },
+	{ L"SetWindowTheme()", NULL, NULL },
+	{ L"Custom Draw Explorer", customDrawExplorerRebar, customDrawExplorerToolbar },
 	{ NULL, NULL },
 };
 
@@ -243,7 +317,7 @@ void onWM_CREATE(HWND hwnd)
 
 	ZeroMemory(&rbi, sizeof (REBARBANDINFOW));
 	rbi.cbSize = sizeof (REBARBANDINFOW);
-	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE | RBBIM_SIZE | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE;
+	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE | RBBIM_SIZE | RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_ID;
 	rbi.fStyle = RBBS_NOGRIPPER | RBBS_CHILDEDGE | RBBS_USECHEVRON | RBBS_HIDETITLE;
 	rbi.hwndChild = leftbar;
 	rbi.cx = tbsizex;
@@ -251,6 +325,7 @@ void onWM_CREATE(HWND hwnd)
 	rbi.cxMinChild = 0;
 	rbi.cyMinChild = tbsizey;
 	rbi.cxIdeal = tbsizex;
+	rbi.wID = 0;
 	if (SendMessageW(rebar, RB_INSERTBANDW, (WPARAM) (-1), (LPARAM) (&rbi)) == 0)
 		diele("RB_INSERTBANDW leftbar");
 
@@ -283,13 +358,14 @@ void onWM_CREATE(HWND hwnd)
 
 	ZeroMemory(&rbi, sizeof (REBARBANDINFOW));
 	rbi.cbSize = sizeof (REBARBANDINFOW);
-	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE | RBBIM_SIZE | RBBIM_CHILDSIZE;
+	rbi.fMask = RBBIM_CHILD | RBBIM_STYLE | RBBIM_SIZE | RBBIM_CHILDSIZE | RBBIM_ID;
 	rbi.fStyle = RBBS_NOGRIPPER | RBBS_HIDETITLE;
 	rbi.hwndChild = rightbar;
 	rbi.cx = tbsizex;
 	rbi.cyChild = tbsizey;
 	rbi.cxMinChild = tbsizex;
 	rbi.cyMinChild = tbsizey;
+	rbi.wID = 1;
 	if (SendMessageW(rebar, RB_INSERTBANDW, (WPARAM) (-1), (LPARAM) (&rbi)) == 0)
 		diele("RB_INSERTBANDW rightbar");
 
@@ -312,6 +388,14 @@ void onWM_CREATE(HWND hwnd)
 		}
 		buttony += buttonht + 5;
 	}
+	button = CreateWindowExW(0,
+		L"BUTTON", L"Give Toolbar Focus",
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+		buttonx, buttony,
+		buttonwid, buttonht,
+		hwnd, (HMENU) (200 + i), hInstance, NULL);
+	if (button == NULL)
+		diele("CreateWIndowExW(L\"BUTTON\")");
 	rebarCombo = CreateWindowExW(WS_EX_CLIENTEDGE,
 		L"COMBOBOX", L"",
 		WS_CHILD | WS_VISIBLE | CBS_DROPDOWN,
@@ -412,6 +496,9 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 			SendMessageW(leftbar, TB_SETSTYLE, 0, toolbarStyles | TBSTYLE_LIST);
 		ShowWindow(leftbar, SW_SHOW);
 		break;
+	case MAKEWPARAM(202, BN_CLICKED):
+		SetFocus(leftbar);
+		break;
 	}
 	if (changeRebar) {
 		if (selRebar != NULL && wcscmp(selRebar, L"NULL") == 0)
@@ -425,10 +512,13 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 	if (changeToolbar) {
 		if (selToolbar != NULL && wcscmp(selToolbar, L"NULL") == 0)
 			selToolbar = NULL;
-		if (selToolbar != NULL && *selToolbar != L'\0')
+		if (selToolbar != NULL && *selToolbar != L'\0') {
 			SendMessageW(leftbar, TB_SETWINDOWTHEME, 0, (LPARAM) selToolbar);
-		else
+			SendMessageW(rightbar, TB_SETWINDOWTHEME, 0, (LPARAM) selToolbar);
+		} else {
 			SetWindowTheme(leftbar, selToolbar, selToolbar);
+			SetWindowTheme(rightbar, selToolbar, selToolbar);
+		}
 		invalidate = TRUE;
 	}
 	if (invalidate)
@@ -459,11 +549,13 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_NOTIFY:
 		switch (nm->code) {
 		case NM_CUSTOMDRAW:
-			if (nm->hwndFrom != rebar)
-				break;
 			if (drawmode == 0)
 				break;
-			return (*(drawmodes[drawmode].handle))((NMCUSTOMDRAW *) nm);
+			if (nm->hwndFrom == rebar)
+				return (*(drawmodes[drawmode].handleRebar))((NMCUSTOMDRAW *) nm);
+			else if (nm->hwndFrom == leftbar || nm->hwndFrom == rightbar)
+				return (*(drawmodes[drawmode].handleToolbar))((NMTBCUSTOMDRAW *) nm);
+			break;
 		}
 		break;
 	}

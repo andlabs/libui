@@ -288,12 +288,12 @@ void onWM_CREATE(HWND hwnd)
 		diele("CreateWindowExW(TOOLBARCLASSNAMEW) leftbar");
 	SendMessageW(leftbar, TB_BUTTONSTRUCTSIZE, sizeof (TBBUTTON), 0);
 	// I_IMAGENONE causes the button text to be left-aligned; don't use it
-	if (SendMessageW(leftbar, TB_SETBITMAPSIZE, 0, 0) == FALSE)
-		diele("TB_SETBITMAPSIZE");
+//	if (SendMessageW(leftbar, TB_SETBITMAPSIZE, 0, 0) == FALSE)
+//		diele("TB_SETBITMAPSIZE");
 	SendMessageW(leftbar, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS | TBSTYLE_EX_HIDECLIPPEDBUTTONS | TBSTYLE_EX_MIXEDBUTTONS);
 	// TODO this *should* be DIPs...
 	// TODO figure out where the *2 is documented
-	SendMessageW(leftbar, TB_SETPADDING, 0, MAKELPARAM(6 * 2, 5 * 2));
+//	SendMessageW(leftbar, TB_SETPADDING, 0, MAKELPARAM(6 * 2, 5 * 2));
 	ZeroMemory(tbb, 5 * sizeof (TBBUTTON));
 	for (i = 0; i < 5; i++) {
 		tbb[i].iBitmap = 0;
@@ -342,7 +342,7 @@ void onWM_CREATE(HWND hwnd)
 	SendMessageW(rightbar, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 	// TODO this *should* be DIPs...
 	// TODO figure out where the *2 is documented
-	SendMessageW(rightbar, TB_SETPADDING, 0, MAKELPARAM(6 * 2, 5 * 2));
+//	SendMessageW(rightbar, TB_SETPADDING, 0, MAKELPARAM(6 * 2, 5 * 2));
 	ZeroMemory(tbb, 5 * sizeof (TBBUTTON));
 	tbb[0].iBitmap = 0;
 	tbb[0].idCommand = 0;

@@ -142,9 +142,11 @@ LRESULT customDrawExplorerRebar(NMCUSTOMDRAW *nm)
 LRESULT customDrawExplorerToolbar(NMTBCUSTOMDRAW *nm)
 {
 	HWND toolbar, rebar;
+	WPARAM itemIndex;
+	TBBUTTON tbb;
 	HTHEME theme;
 	RECT r;
-	int state;
+	int part, state;
 
 	toolbar = nm->nmcd.hdr.hwndFrom;
 	switch (nm->nmcd.dwDrawStage) {
@@ -157,7 +159,13 @@ LRESULT customDrawExplorerToolbar(NMTBCUSTOMDRAW *nm)
 		CloseThemeData(theme);
 		return CDRF_NOTIFYITEMDRAW;
 	case CDDS_ITEMPREPAINT:
+		itemIndex = (WPARAM) SendMessageW(toolbar, TB_COMMANDTOINDEX, nm->nmcd.dwItemSpec, 0);
+		ZeroMemory(&tbb, sizeof (TBBUTTON));
+		SendMessageW(toolbar, TB_GETBUTTON, itemIndex, (LPARAM) (&tbb));
 		theme = OpenThemeData(toolbar, L"CommandModule");
+		part = 3;
+		if ((tbb.fsStyle & BTNS_DROPDOWN) != 0)
+			part = 4;
 		state = 1;
 		// TODO this doesn't work; both keyboard and mouse are listed as HOT
 		if ((nm->nmcd.uItemState & CDIS_FOCUS) != 0)
@@ -166,7 +174,7 @@ LRESULT customDrawExplorerToolbar(NMTBCUSTOMDRAW *nm)
 			state = 2;
 		if ((nm->nmcd.uItemState & CDIS_SELECTED) != 0)
 			state = 3;
-		SendMessageW(toolbar, TB_GETITEMRECT, SendMessageW(toolbar, TB_COMMANDTOINDEX, nm->nmcd.dwItemSpec, 0), (LPARAM) (&r));
+		SendMessageW(toolbar, TB_GETITEMRECT, itemIndex, (LPARAM) (&r));
 		DrawThemeBackground(theme, nm->nmcd.hdc,
 			3, state,
 			&r, &(nm->nmcd.rc));

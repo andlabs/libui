@@ -13,12 +13,11 @@
 #include <uxtheme.h>
 #include <vsstyle.h>
 #include <vssym32.h>
-#include <shellapi.h>
 #include <windowsx.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-// cl winrebarexplorertheme.cpp -MT -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib shell32.lib windows.res
+// cl winrebarexplorertheme.cpp -MT -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib windows.res
 
 void diele(const char *func)
 {
@@ -43,8 +42,10 @@ HWND rebarCombo;
 HWND toolbarCombo;
 HWND toolbarTransparentCheckbox;
 
+HICON shieldIcon;
+HICON applicationIcon;
 HICON helpIcon;
-HIMAGELIST helpList;
+HIMAGELIST rightList;
 
 #define toolbarStyles (WS_CHILD | CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT)
 
@@ -337,7 +338,8 @@ void onWM_CREATE(HWND hwnd)
 	if (rightbar == NULL)
 		diele("CreateWindowExW(TOOLBARCLASSNAMEW) rightbar");
 	SendMessageW(rightbar, TB_BUTTONSTRUCTSIZE, sizeof (TBBUTTON), 0);
-	SendMessageW(rightbar, TB_SETIMAGELIST, 0, (LPARAM) helpList);
+	SendMessageW(rightbar, TB_SETIMAGELIST, 0, (LPARAM) rightList);
+	SendMessageW(rightbar, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 	// TODO this *should* be DIPs...
 	// TODO figure out where the *2 is documented
 	SendMessageW(rightbar, TB_SETPADDING, 0, MAKELPARAM(6 * 2, 5 * 2));
@@ -345,15 +347,28 @@ void onWM_CREATE(HWND hwnd)
 	tbb[0].iBitmap = 0;
 	tbb[0].idCommand = 0;
 	tbb[0].fsState = TBSTATE_ENABLED;
-	tbb[0].fsStyle = BTNS_AUTOSIZE | BTNS_BUTTON;
-	if (SendMessageW(rightbar, TB_ADDBUTTONSW, 1, (LPARAM) tbb) == FALSE)
+	tbb[0].fsStyle = BTNS_AUTOSIZE | BTNS_BUTTON | BTNS_DROPDOWN;
+	tbb[1].iBitmap = 1;
+	tbb[1].idCommand = 1;
+	tbb[1].fsState = TBSTATE_ENABLED;
+	tbb[1].fsStyle = BTNS_AUTOSIZE | BTNS_BUTTON;
+	tbb[2].iBitmap = 2;
+	tbb[2].idCommand = 2;
+	tbb[2].fsState = TBSTATE_ENABLED;
+	tbb[2].fsStyle = BTNS_AUTOSIZE | BTNS_BUTTON;
+	if (SendMessageW(rightbar, TB_ADDBUTTONSW, 3, (LPARAM) tbb) == FALSE)
 		diele("TB_ADDBUTTONSW");
 	// TODO check error
 	// TODO figure out why this works here but not elsewhere
-	SendMessageW(rightbar, TB_SETBUTTONSIZE, 0, 0);
+//	SendMessageW(rightbar, TB_SETBUTTONSIZE, 0, 0);
 
+	tbsizex = 0;
+	for (i = 0; i < 3; i++) {
+		if (SendMessageW(rightbar, TB_GETITEMRECT, (WPARAM) i, (LPARAM) (&btnrect)) == FALSE)
+			diele("TB_GETITEMRECT");
+		tbsizex += btnrect.right - btnrect.left;
+	}
 	tbbtnsize = (DWORD) SendMessageW(rightbar, TB_GETBUTTONSIZE, 0, 0);
-	tbsizex = LOWORD(tbbtnsize);
 	tbsizey = HIWORD(tbbtnsize);
 
 	ZeroMemory(&rbi, sizeof (REBARBANDINFOW));
@@ -571,7 +586,6 @@ int main(void)
 	INITCOMMONCONTROLSEX icc;
 	HICON hDefaultIcon;
 	HCURSOR hDefaultCursor;
-	SHSTOCKICONINFO sii;
 	WNDCLASSW wc;
 	HWND mainwin;
 	MSG msg;
@@ -596,25 +610,25 @@ int main(void)
 	if (hDefaultCursor == NULL)
 		diele("LoadCursorW(IDC_ARROW)");
 
-	// notes:
-	// - https://www.google.com/search?client=firefox-b-1&ei=gGzBW63XLYeG5wL3l5WQBg&q=winapi+%22system+icon%22+image+list&oq=winapi+%22system+icon%22+image+list&gs_l=psy-ab.3...31221.33763..33899...0.0..0.130.1967.22j2......0....1..gws-wiz.......0j0i71j35i39j0i20i264j0i67j0i20i263j0i22i30j0i22i10i30j33i160j33i299j33i22i29i30.wAw65ObMuTg
-	// - https://stackoverflow.com/questions/36763562/how-to-load-imagelist-with-system-dialog-icons
-	// - https://blogs.msdn.microsoft.com/oldnewthing/20121005-00/?p=6393
-	// - https://stackoverflow.com/questions/4285890/how-to-load-a-small-system-icon/4286601
-	// - https://stackoverflow.com/questions/6613513/compliant-loading-of-small-oem-icon-with-loadimage
-	// - https://web.archive.org/web/20170514073649/http://www.catch22.net/tuts/system-image-list
-	ZeroMemory(&sii, sizeof (SHSTOCKICONINFO));
-	sii.cbSize = sizeof (SHSTOCKICONINFO);
-	hr = SHGetStockIconInfo(SIID_HELP, SHGSI_ICON | SHGSI_SMALLICON, &sii);
+	hr = LoadIconMetric(NULL, IDI_SHIELD, LIM_SMALL, &shieldIcon);
 	if (hr != S_OK)
-		diehr("SHGetStockIconInfo(SIID_HELP)", hr);
-	helpIcon = sii.hIcon;
-	helpList = ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
-		ILC_COLOR32, 0, 1);
-	if (helpList == NULL)
+		diehr("LoadIconMetric(IDI_SHIELD)", hr);
+	hr = LoadIconMetric(NULL, IDI_APPLICATION, LIM_SMALL, &applicationIcon);
+	if (hr != S_OK)
+		diehr("LoadIconMetric(IDI_APPLICATION)", hr);
+	hr = LoadIconMetric(NULL, IDI_QUESTION, LIM_SMALL, &helpIcon);
+	if (hr != S_OK)
+		diehr("LoadIconMetric(IDI_QUESTION)", hr);
+	rightList = ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
+		ILC_COLOR32, 0, 3);
+	if (rightList == NULL)
 		diele("ImageList_Create()");
-	if (ImageList_ReplaceIcon(helpList, -1, helpIcon) == -1)
-		diele("ImageList_ReplaceIcon()");
+	if (ImageList_ReplaceIcon(rightList, -1, shieldIcon) == -1)
+		diele("ImageList_ReplaceIcon(IDI_SHIELD)");
+	if (ImageList_ReplaceIcon(rightList, -1, applicationIcon) == -1)
+		diele("ImageList_ReplaceIcon(IDI_APPLICATION)");
+	if (ImageList_ReplaceIcon(rightList, -1, helpIcon) == -1)
+		diele("ImageList_ReplaceIcon(IDI_QUESTION)");
 
 	ZeroMemory(&wc, sizeof (WNDCLASSW));
 	wc.lpszClassName = L"mainwin";

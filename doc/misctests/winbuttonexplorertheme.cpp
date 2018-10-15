@@ -120,64 +120,32 @@ void drawExplorerChevron(HTHEME theme, HDC dc, HWND rebar, WPARAM band, RECT *rc
 }
 
 // TODO check errors
-LRESULT customDrawExplorerRebar(NMCUSTOMDRAW *nm)
+LRESULT drawExplorerButton(NMCUSTOMDRAW *nm)
 {
-	HTHEME theme;
-	RECT r;
-
-	if (nm->dwDrawStage != CDDS_PREPAINT)
-		return CDRF_DODEFAULT;
-	theme = OpenThemeData(nm->hdr.hwndFrom, L"CommandModule");
-	GetClientRect(nm->hdr.hwndFrom, &r);
-	drawExplorerBackground(theme, nm->hdc, &r, &(nm->rc));
-	// TODO dwItemSpec is often invalid?!
-	drawExplorerChevron(theme, nm->hdc, nm->hdr.hwndFrom, 0, &(nm->rc));
-	CloseThemeData(theme);
-	return CDRF_SKIPDEFAULT;
-}
-
-// TODO check errors
-LRESULT customDrawExplorerToolbar(NMTBCUSTOMDRAW *nm)
-{
-	HWND toolbar, rebar;
-	WPARAM itemIndex;
-	TBBUTTON tbb;
-	HTHEME theme;
+	HWND button;
 	RECT r;
 	int part, state;
 
-	toolbar = nm->nmcd.hdr.hwndFrom;
-	switch (nm->nmcd.dwDrawStage) {
+	button = nm->hdr.hwndFrom;
+	switch (nm->dwDrawStage) {
 	case CDDS_PREPAINT:
-		theme = OpenThemeData(toolbar, L"CommandModule");
-		rebar = GetParent(toolbar);
-		GetWindowRect(rebar, &r);
-		MapWindowRect(NULL, toolbar, &r);
-		drawExplorerBackground(theme, nm->nmcd.hdc, &r, &(nm->nmcd.rc));
-		CloseThemeData(theme);
-		return CDRF_NOTIFYITEMDRAW;
-	case CDDS_ITEMPREPAINT:
-		itemIndex = (WPARAM) SendMessageW(toolbar, TB_COMMANDTOINDEX, nm->nmcd.dwItemSpec, 0);
-		ZeroMemory(&tbb, sizeof (TBBUTTON));
-		SendMessageW(toolbar, TB_GETBUTTON, itemIndex, (LPARAM) (&tbb));
-		theme = OpenThemeData(toolbar, L"CommandModule");
+		GetClientRect(button, &r);
 		part = 3;
-		if ((tbb.fsStyle & BTNS_DROPDOWN) != 0)
-			part = 4;
+//TODO		if ((tbb.fsStyle & BTNS_DROPDOWN) != 0)
+//TODO			part = 4;
 		state = 1;
 		// TODO this doesn't work; both keyboard and mouse are listed as HOT
-		if ((nm->nmcd.uItemState & CDIS_FOCUS) != 0)
+		if ((nm->uItemState & CDIS_FOCUS) != 0)
 			state = 4;
-		if ((nm->nmcd.uItemState & CDIS_HOT) != 0)
+		if ((nm->uItemState & CDIS_HOT) != 0)
 			state = 2;
-		if ((nm->nmcd.uItemState & CDIS_SELECTED) != 0)
+		if ((nm->uItemState & CDIS_SELECTED) != 0)
 			state = 3;
-		SendMessageW(toolbar, TB_GETITEMRECT, itemIndex, (LPARAM) (&r));
-		DrawThemeBackground(theme, nm->nmcd.hdc,
-			3, state,
-			&r, &(nm->nmcd.rc));
-		CloseThemeData(theme);
-		return TBCDRF_NOBACKGROUND;
+		DrawThemeParentBackground(button, nm->hdc, &(nm->rc));
+		DrawThemeBackground(theme, nm->hdc,
+			part, state,
+			&r, &(nm->rc));
+		return CDRF_NEWFONT;
 	}
 	return CDRF_DODEFAULT;
 }
@@ -399,6 +367,7 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *nm = (NMHDR *) lParam;
+	int i;
 
 	switch (uMsg) {
 	case WM_CREATE:
@@ -424,12 +393,9 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_NOTIFY:
 		switch (nm->code) {
 		case NM_CUSTOMDRAW:
-#if 0
-			if (nm->hwndFrom == rebar)
-				return (*(drawmodes[drawmode].handleRebar))((NMCUSTOMDRAW *) nm);
-			else if (nm->hwndFrom == leftbar || nm->hwndFrom == rightbar)
-				return (*(drawmodes[drawmode].handleToolbar))((NMTBCUSTOMDRAW *) nm);
-#endif
+			for (i = 0; i < 5; i++)
+				if (nm->hwndFrom == leftButtons[i])
+					return drawExplorerButton((NMCUSTOMDRAW *) nm);
 			break;
 		}
 		break;

@@ -209,8 +209,10 @@ void updateTheme(HWND hwnd)
 	HDC dc;
 	SIZE size;
 	HBITMAP hb;
-	HTHEME fontTheme;
+	HTHEME fontTheme, buttonTheme;
 	LOGFONTW lf;
+	MARGINS marginOffsets;
+	RECT margins;
 	int i;
 
 	if (buttonFont != NULL) {
@@ -253,7 +255,32 @@ void updateTheme(HWND hwnd)
 	bim.margin.left = 1;
 	bim.uAlign = BUTTON_IMAGELIST_ALIGN_RIGHT;
 	for (i = 0; i < 3; i++)
-		SendMessage(leftButtons[i], BCM_SETIMAGELIST, 0, (LPARAM) (&bim));
+		SendMessageW(leftButtons[i], BCM_SETIMAGELIST, 0, (LPARAM) (&bim));
+
+	fontTheme = OpenThemeData(hwnd, L"TEXTSTYLE");
+	// TODO find the right TMT constant
+	GetThemeFont(fontTheme, NULL,
+		4, 0,
+		TMT_FONT, &lf);
+	buttonFont = CreateFontIndirectW(&lf);
+	CloseThemeData(fontTheme);
+	for (i = 0; i < 5; i++)
+		SendMessageW(leftButtons[i], WM_SETFONT, (WPARAM) buttonFont, TRUE);
+
+	buttonTheme = OpenThemeData(hwnd, L"Button");
+	ZeroMemory(&marginOffsets, sizeof (MARGINS));
+	GetThemeMargins(buttonTheme, NULL,
+		BP_PUSHBUTTON, PBS_NORMAL,
+		TMT_CONTENTMARGINS, NULL, &marginOffsets);
+	CloseThemeData(buttonTheme);
+	// TODO the constants should be DIPs
+	margins.left = 13 - marginOffsets.cxLeftWidth;
+	margins.top = 5 - marginOffsets.cyTopHeight;
+	margins.right = 13 - marginOffsets.cxRightWidth;
+	margins.bottom = 5 - marginOffsets.cyBottomHeight;
+	for (i = 0; i < 5; i++)
+		if (SendMessageW(leftButtons[i], BCM_SETTEXTMARGIN, 0, (LPARAM) (&margins)) == FALSE)
+			diele("BCM_SETTEXTMARGIN");
 }
 
 void repositionButtons(HWND hwnd)

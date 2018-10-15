@@ -190,6 +190,7 @@ void onWM_CREATE(HWND hwnd)
 	buttonx = 5;
 	buttony = 5;
 	for (i = 0; i < 5; i++) {
+		// TODO split buttons don't support arrow navigation?
 		leftButtons[i] = CreateWindowExW(0,
 			L"BUTTON", leftbarButtons[i].text,
 			WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON,

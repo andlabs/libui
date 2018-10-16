@@ -44,6 +44,7 @@ HICON helpIcon;
 HIMAGELIST rightList;
 
 HTHEME theme = NULL;
+HTHEME textstyleTheme = NULL;
 HIMAGELIST dropdownArrowList = NULL;
 HFONT buttonFont = NULL;
 
@@ -178,7 +179,7 @@ void updateTheme(HWND hwnd)
 	HDC dc;
 	SIZE size;
 	HBITMAP hb;
-	HTHEME fontTheme, buttonTheme;
+	HTHEME buttonTheme;
 	LOGFONTW lf;
 	MARGINS marginOffsets;
 	RECT margins;
@@ -198,12 +199,17 @@ void updateTheme(HWND hwnd)
 		ImageList_Destroy(dropdownArrowList);
 		dropdownArrowList = NULL;
 	}
+	if (textstyleTheme != NULL) {
+		CloseThemeData(textstyleTheme);
+		textstyleTheme = NULL;
+	}
 	if (theme != NULL) {
 		CloseThemeData(theme);
 		theme = NULL;
 	}
 
 	theme = OpenThemeData(hwnd, L"CommandModule");
+	textstyleTheme = OpenThemeData(hwnd, L"TEXTSTYLE");
 	dc = GetDC(hwnd);
 	// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
 	GetThemePartSize(theme, dc,
@@ -226,13 +232,11 @@ void updateTheme(HWND hwnd)
 	for (i = 0; i < 3; i++)
 		SendMessageW(leftButtons[i], BCM_SETIMAGELIST, 0, (LPARAM) (&bim));
 
-	fontTheme = OpenThemeData(hwnd, L"TEXTSTYLE");
 	// TODO find the right TMT constant
-	GetThemeFont(fontTheme, NULL,
+	GetThemeFont(textstyleTheme, NULL,
 		4, 0,
 		TMT_FONT, &lf);
 	buttonFont = CreateFontIndirectW(&lf);
-	CloseThemeData(fontTheme);
 	for (i = 0; i < 5; i++)
 		SendMessageW(leftButtons[i], WM_SETFONT, (WPARAM) buttonFont, TRUE);
 
@@ -252,6 +256,58 @@ void updateTheme(HWND hwnd)
 			diele("BCM_SETTEXTMARGIN");
 }
 
+// TODO check errors
+SIZE buttonSize(HWND button)
+{
+	HDC dc;
+	LRESULT n;
+	WCHAR *buf;
+	RECT textRect;
+	RECT contentRect;
+	RECT extentRect;
+	SIZE ret;
+
+	dc = GetDC(button);
+
+	n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
+	buf = new WCHAR[n + 1];
+	GetWindowTextW(button, buf, n + 1);
+	GetThemeTextExtent(textstyleTheme, dc,
+		4, 0,
+		buf, n, DT_CENTER,
+		NULL, &textRect);
+	contentRect.left = 0;
+	contentRect.top = 0;
+	contentRect.right = textRect.right - textRect.left;
+	contentRect.bottom = textRect.bottom - textRect.top;
+
+	if (button == leftButtons[0] || button == leftButtons[1] || button == leftButtons[2]) {
+		SIZE arrowSize;
+
+		// TODO this should be in DIPs
+		contentRect.right += 1;
+		// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
+		GetThemePartSize(theme, dc,
+			6, 0,
+			NULL, TS_TRUE, &arrowSize);
+		contentRect.right += arrowSize.cx;
+		if (contentRect.bottom < arrowSize.cy)
+			contentRect.bottom = arrowSize.cy;
+	}
+
+	// TODO these should be DIPs
+	contentRect.right += 13 * 2;
+	contentRect.bottom += 5 * 2;
+	GetThemeBackgroundExtent(theme, dc,
+		3, 1,
+		&contentRect, &extentRect);
+
+	ReleaseDC(button, dc);
+	ret.cx = extentRect.right - extentRect.left;
+	ret.cy = extentRect.bottom - extentRect.top;
+	return ret;
+}
+
 void repositionButtons(HWND hwnd)
 {
 	HDWP dwp;
@@ -265,9 +321,7 @@ void repositionButtons(HWND hwnd)
 	buttonx = 5;
 	buttony = 5;
 	for (i = 0; i < 5; i++) {
-		ZeroMemory(&size, sizeof (SIZE));
-		if (SendMessageW(leftButtons[i], BCM_GETIDEALSIZE, 0, (LPARAM) (&size)) == 0)
-			diele("BCM_GETIDEALSIZE");
+		size = buttonSize(leftButtons[i]);
 		dwp = DeferWindowPos(dwp, leftButtons[i], NULL,
 			buttonx, buttony, size.cx, size.cy,
 			SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);

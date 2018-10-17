@@ -126,29 +126,38 @@ LRESULT drawExplorerButton(NMCUSTOMDRAW *nm)
 	HWND button;
 	RECT r;
 	int part, state;
+	LRESULT n;
+	WCHAR *buf;
 
+	if (nm->dwDrawStage != CDDS_PREPAINT)
+		return CDRF_DODEFAULT;
 	button = nm->hdr.hwndFrom;
-	switch (nm->dwDrawStage) {
-	case CDDS_PREPAINT:
-		GetClientRect(button, &r);
-		part = 3;
-//TODO		if ((tbb.fsStyle & BTNS_DROPDOWN) != 0)
-//TODO			part = 4;
-		state = 1;
-		// TODO this doesn't work; both keyboard and mouse are listed as HOT
-		if ((nm->uItemState & CDIS_FOCUS) != 0)
-			state = 4;
-		if ((nm->uItemState & CDIS_HOT) != 0)
-			state = 2;
-		if ((nm->uItemState & CDIS_SELECTED) != 0)
-			state = 3;
-		DrawThemeParentBackground(button, nm->hdc, &(nm->rc));
-		DrawThemeBackground(theme, nm->hdc,
-			part, state,
-			&r, &(nm->rc));
-		return CDRF_NEWFONT;
-	}
-	return CDRF_DODEFAULT;
+	GetClientRect(button, &r);
+	part = 3;
+//TODO	if ((tbb.fsStyle & BTNS_DROPDOWN) != 0)
+//TODO		part = 4;
+	state = 1;
+	// TODO this doesn't work; both keyboard and mouse are listed as HOT
+	if ((nm->uItemState & CDIS_FOCUS) != 0)
+		state = 4;
+	if ((nm->uItemState & CDIS_HOT) != 0)
+		state = 2;
+	if ((nm->uItemState & CDIS_SELECTED) != 0)
+		state = 3;
+	DrawThemeParentBackground(button, nm->hdc, &(nm->rc));
+	DrawThemeBackground(theme, nm->hdc,
+		part, state,
+		&r, &(nm->rc));
+	n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
+	buf = new WCHAR[n + 1];
+	GetWindowTextW(button, buf, n + 1);
+	SetBkMode(nm->hdc, TRANSPARENT);
+	DrawThemeText(textstyleTheme, nm->hdc,
+		4, 0,
+		buf, n, DT_CENTER | DT_VCENTER | DT_SINGLELINE,
+		0, &r);
+	delete[] buf;
+	return CDRF_SKIPDEFAULT;
 }
 
 void onWM_CREATE(HWND hwnd)
@@ -264,10 +273,13 @@ SIZE buttonSize(HWND button)
 	WCHAR *buf;
 	RECT textRect;
 	RECT contentRect;
-	RECT extentRect;
+	MARGINS margins;
 	SIZE ret;
 
 	dc = GetDC(button);
+
+printf("%08I32X ", GetThemePartSize(theme, dc, 3, 1, NULL, TS_TRUE, &ret));
+printf("%d %d\n", ret.cx, ret.cy);
 
 	n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
 	buf = new WCHAR[n + 1];
@@ -280,6 +292,8 @@ SIZE buttonSize(HWND button)
 	contentRect.top = 0;
 	contentRect.right = textRect.right - textRect.left;
 	contentRect.bottom = textRect.bottom - textRect.top;
+	delete[] buf;
+printf("%d %d\n", contentRect.right, contentRect.bottom);
 
 	if (button == leftButtons[0] || button == leftButtons[1] || button == leftButtons[2]) {
 		SIZE arrowSize;
@@ -298,13 +312,10 @@ SIZE buttonSize(HWND button)
 	// TODO these should be DIPs
 	contentRect.right += 13 * 2;
 	contentRect.bottom += 5 * 2;
-	GetThemeBackgroundExtent(theme, dc,
-		3, 1,
-		&contentRect, &extentRect);
 
 	ReleaseDC(button, dc);
-	ret.cx = extentRect.right - extentRect.left;
-	ret.cy = extentRect.bottom - extentRect.top;
+	ret.cx = contentRect.right - contentRect.left;
+	ret.cy = contentRect.bottom - contentRect.top;
 	return ret;
 }
 

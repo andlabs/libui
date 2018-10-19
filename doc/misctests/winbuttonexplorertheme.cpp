@@ -260,9 +260,9 @@ void updateTheme(HWND hwnd)
 	margins.top = 5 - marginOffsets.cyTopHeight;
 	margins.right = 13 - marginOffsets.cxRightWidth;
 	margins.bottom = 5 - marginOffsets.cyBottomHeight;
-	for (i = 0; i < 5; i++)
-		if (SendMessageW(leftButtons[i], BCM_SETTEXTMARGIN, 0, (LPARAM) (&margins)) == FALSE)
-			diele("BCM_SETTEXTMARGIN");
+//	for (i = 0; i < 5; i++)
+//		if (SendMessageW(leftButtons[i], BCM_SETTEXTMARGIN, 0, (LPARAM) (&margins)) == FALSE)
+//			diele("BCM_SETTEXTMARGIN");
 }
 
 // TODO check errors
@@ -273,7 +273,7 @@ SIZE buttonSize(HWND button)
 	WCHAR *buf;
 	RECT textRect;
 	RECT contentRect;
-	MARGINS margins;
+	SIZE minSize;
 	SIZE ret;
 
 	dc = GetDC(button);
@@ -312,6 +312,15 @@ printf("%d %d\n", contentRect.right, contentRect.bottom);
 	// TODO these should be DIPs
 	contentRect.right += 13 * 2;
 	contentRect.bottom += 5 * 2;
+
+	// dui70.dll seems to do this, including the TS_TRUE part...
+	GetThemePartSize(theme, dc,
+		3, 1,
+		NULL, TS_TRUE, &minSize);
+	if (contentRect.right < minSize.cx)
+		contentRect.right = minSize.cx;
+	if (contentRect.bottom < minSize.cy)
+		contentRect.bottom = minSize.cy;
 
 	ReleaseDC(button, dc);
 	ret.cx = contentRect.right - contentRect.left;

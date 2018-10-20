@@ -266,6 +266,8 @@ void updateTheme(HWND hwnd)
 }
 
 // TODO check errors
+// TODO the width is always off by 4 pixels somehow (according to UI Automation)
+// TODO the height is correct (according to UI Automation) but they don't visually match?
 SIZE buttonSize(HWND button)
 {
 	HDC dc;
@@ -325,6 +327,7 @@ printf("%d %d\n", contentRect.right, contentRect.bottom);
 	ReleaseDC(button, dc);
 	ret.cx = contentRect.right - contentRect.left;
 	ret.cy = contentRect.bottom - contentRect.top;
+printf("FINAL %d %d\n", ret.cx, ret.cy);
 	return ret;
 }
 

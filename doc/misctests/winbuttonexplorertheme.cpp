@@ -266,8 +266,7 @@ void updateTheme(HWND hwnd)
 }
 
 // TODO check errors
-// TODO the width is always off by 4 pixels somehow (according to UI Automation)
-// TODO the height is correct (according to UI Automation) but they don't visually match?
+// TODO the sizes are correct (according to UI Automation) but they don't visually match?
 SIZE buttonSize(HWND button)
 {
 	HDC dc;
@@ -275,13 +274,12 @@ SIZE buttonSize(HWND button)
 	WCHAR *buf;
 	RECT textRect;
 	RECT contentRect;
-	SIZE minSize;
+	LOGFONTW lf;
+	TEXTMETRICW tm;
+	int minStdButtonHeight;
 	SIZE ret;
 
 	dc = GetDC(button);
-
-printf("%08I32X ", GetThemePartSize(theme, dc, 3, 1, NULL, TS_TRUE, &ret));
-printf("%d %d\n", ret.cx, ret.cy);
 
 	n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
 	buf = new WCHAR[n + 1];
@@ -294,8 +292,15 @@ printf("%d %d\n", ret.cx, ret.cy);
 	contentRect.top = 0;
 	contentRect.right = textRect.right - textRect.left;
 	contentRect.bottom = textRect.bottom - textRect.top;
+//wprintf(L"%s ", buf);
 	delete[] buf;
-printf("%d %d\n", contentRect.right, contentRect.bottom);
+	// dui70.dll adds this to the width when "overhang" is enabled, and it seems to be enabled for our cases, but I can't tell what conditions it's enabled for...
+	// and yes, it seems to be using the raw lfHeight value here :/
+	// TODO find the right TMT constant
+	GetThemeFont(textstyleTheme, dc,
+		4, 0,
+		TMT_FONT, &lf);
+	contentRect.right += 2 * (abs(lf.lfHeight) / 6);
 
 	if (button == leftButtons[0] || button == leftButtons[1] || button == leftButtons[2]) {
 		SIZE arrowSize;
@@ -307,6 +312,7 @@ printf("%d %d\n", contentRect.right, contentRect.bottom);
 			6, 0,
 			NULL, TS_TRUE, &arrowSize);
 		contentRect.right += arrowSize.cx;
+		// TODO I don't think dui70.dll takes this into consideration...
 		if (contentRect.bottom < arrowSize.cy)
 			contentRect.bottom = arrowSize.cy;
 	}
@@ -315,19 +321,18 @@ printf("%d %d\n", contentRect.right, contentRect.bottom);
 	contentRect.right += 13 * 2;
 	contentRect.bottom += 5 * 2;
 
-	// dui70.dll seems to do this, including the TS_TRUE part...
-	GetThemePartSize(theme, dc,
-		3, 1,
-		NULL, TS_TRUE, &minSize);
-	if (contentRect.right < minSize.cx)
-		contentRect.right = minSize.cx;
-	if (contentRect.bottom < minSize.cy)
-		contentRect.bottom = minSize.cy;
+	// and dui70.dll seems to do a variant of this but for text buttons only...
+	GetThemeTextMetrics(textstyleTheme, dc,
+		4, 0,
+		&tm);
+	minStdButtonHeight = MulDiv(14, tm.tmHeight, 8);
+	if (contentRect.bottom < minStdButtonHeight)
+		contentRect.bottom = minStdButtonHeight;
 
 	ReleaseDC(button, dc);
 	ret.cx = contentRect.right - contentRect.left;
 	ret.cy = contentRect.bottom - contentRect.top;
-printf("FINAL %d %d\n", ret.cx, ret.cy);
+//printf("%d %d\n", ret.cx, ret.cy);
 	return ret;
 }
 

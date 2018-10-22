@@ -120,6 +120,8 @@ void drawExplorerChevron(HTHEME theme, HDC dc, HWND rebar, WPARAM band, RECT *rc
 		&r, rcPaint);
 }
 
+#define hasNonsplitArrow(button) ((button) == leftButtons[0] || (button) == leftButtons[1] || (button) == leftButtons[2])
+
 // TODO check errors
 LRESULT drawExplorerButton(NMCUSTOMDRAW *nm)
 {
@@ -128,6 +130,11 @@ LRESULT drawExplorerButton(NMCUSTOMDRAW *nm)
 	int part, state;
 	LRESULT n;
 	WCHAR *buf;
+	int textState;
+	COLORREF textColor;
+	RECT textRect;
+	RECT arrowRect;
+	DTTOPTS dttopts;
 
 	if (nm->dwDrawStage != CDDS_PREPAINT)
 		return CDRF_DODEFAULT;
@@ -148,15 +155,49 @@ LRESULT drawExplorerButton(NMCUSTOMDRAW *nm)
 	DrawThemeBackground(theme, nm->hdc,
 		part, state,
 		&r, &(nm->rc));
+
+	// TODO these values are only for part==3
+	textState = 1;
+	if ((nm->uItemState & CDIS_DISABLED) != 0)
+		textState = 6;
+	// TODO name the constant for the property ID
+	GetThemeColor(theme,
+		3, textState,
+		3803, &textColor);
 	n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
 	buf = new WCHAR[n + 1];
 	GetWindowTextW(button, buf, n + 1);
-	SetBkMode(nm->hdc, TRANSPARENT);
-	DrawThemeText(textstyleTheme, nm->hdc,
+	textRect = r;
+	if (hasNonsplitArrow(button)) {
+		SIZE arrowSize;
+
+		// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
+		GetThemePartSize(theme, nm->hdc,
+			6, 0,
+			NULL, TS_TRUE, &arrowSize);
+		textRect.right -= arrowSize.cx;
+		arrowRect.left = textRect.right;
+		arrowRect.top = textRect.top + (textRect.bottom - textRect.top - arrowSize.cy) / 2;
+		arrowRect.right = arrowRect.left + arrowSize.cx;
+		arrowRect.bottom = arrowRect.top + arrowSize.cy;
+		// TODO this should be in DIPs
+		textRect.right -= 1;
+	}
+	ZeroMemory(&dttopts, sizeof (DTTOPTS));
+	dttopts.dwSize = sizeof (DTTOPTS);
+	dttopts.dwFlags = DTT_TEXTCOLOR;
+	dttopts.crText = textColor;
+	DrawThemeTextEx(textstyleTheme, nm->hdc,
 		4, 0,
 		buf, n, DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-		0, &r);
+		&textRect, &dttopts);
 	delete[] buf;
+
+	if (hasNonsplitArrow(button))
+		DrawThemeBackground(theme, nm->hdc,
+			6, 0,
+			&arrowRect, &(nm->rc));
+
 	return CDRF_SKIPDEFAULT;
 }
 
@@ -302,11 +343,9 @@ SIZE buttonSize(HWND button)
 		TMT_FONT, &lf);
 	contentRect.right += 2 * (abs(lf.lfHeight) / 6);
 
-	if (button == leftButtons[0] || button == leftButtons[1] || button == leftButtons[2]) {
+	if (hasNonsplitArrow(button)) {
 		SIZE arrowSize;
 
-		// TODO this should be in DIPs
-		contentRect.right += 1;
 		// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
 		GetThemePartSize(theme, dc,
 			6, 0,
@@ -315,6 +354,8 @@ SIZE buttonSize(HWND button)
 		// TODO I don't think dui70.dll takes this into consideration...
 		if (contentRect.bottom < arrowSize.cy)
 			contentRect.bottom = arrowSize.cy;
+		// TODO this should be in DIPs
+		contentRect.right += 1;
 	}
 
 	// TODO these should be DIPs

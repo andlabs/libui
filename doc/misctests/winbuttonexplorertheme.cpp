@@ -88,6 +88,141 @@ void drawExplorerBackground(HTHEME theme, HDC dc, RECT *rcWindow, RECT *rcPaint)
 		rcWindow, rcPaint);
 }
 
+#define hasNonsplitArrow(button) ((button) == leftButtons[0] || (button) == leftButtons[1] || (button) == leftButtons[2])
+
+// all coordinates are in client space
+struct buttonMetrics {
+	SIZE fittingSize;
+	int baseX;
+	int baseY;
+	int dpiX;
+	int dpiY;
+	BOOL hasText;
+	SIZE textSize;
+	BOOL hasArrow;
+	SIZE arrowSize;
+};
+
+#define dlgUnitsToX(dlg, baseX) MulDiv((dlg), (baseX), 4)
+#define dlgUnitsToY(dlg, baseY) MulDiv((dlg), (baseY), 8)
+// TODO verify the parameter order
+#define dipsToX(dip, dpiX) MulDiv((dip), (dpiX), 96)
+#define dipsToY(dip, dpiY) MulDiv((dip), (dpiY), 96)
+
+// TODO check errors
+// TODO the sizes are correct (according to UI Automation) but they don't visually match?
+void buttonMetrics(HWND button, HDC dc, struct buttonMetrics *m)
+{
+	BOOL releaseDC;
+	TEXTMETRICW tm;
+	RECT r;
+	int minStdButtonHeight;
+
+	releaseDC = FALSE;
+	if (dc == NULL) {
+		dc = GetDC(button);
+		releaseDC = TRUE;
+	}
+
+	ZeroMemory(&tm, sizeof (TEXTMETRICW));
+	GetThemeTextMetrics(textstyleTheme, dc,
+		4, 0,
+		&tm);
+	GetThemeTextExtent(textstyleTheme, dc,
+		4, 0,
+		L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, 0,
+		NULL, &r);
+	m->baseX = (int) (((r.right - r.left) / 26 + 1) / 2);
+	m->baseY = (int) tm.tmHeight;
+	m->dpiX = GetDeviceCaps(dc, LOGPIXELSX);
+	m->dpiY = GetDeviceCaps(dc, LOGPIXELSY);
+
+	m->fittingSize.cx = 0;
+	m->fittingSize.cy = 0;
+
+	m->hasText = TRUE;
+	if (m->hasText) {
+		LRESULT n;
+		WCHAR *buf;
+		LOGFONTW lf;
+
+		n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
+		buf = new WCHAR[n + 1];
+		GetWindowTextW(button, buf, n + 1);
+		GetThemeTextExtent(textstyleTheme, dc,
+			4, 0,
+			buf, n, DT_CENTER,
+			NULL, &r);
+		m->textSize.cx = r.right - r.left;
+		m->textSize.cy = r.bottom - r.top;
+		delete[] buf;
+		m->fittingSize.cx += m->textSize.cx;
+		m->fittingSize.cy += m->textSize.cy;
+
+		// dui70.dll adds this to the width when "overhang" is enabled, and it seems to be enabled for our cases, but I can't tell what conditions it's enabled for...
+		// and yes, it seems to be using the raw lfHeight value here :/
+		// TODO find the right TMT constant
+		GetThemeFont(textstyleTheme, dc,
+			4, 0,
+			TMT_FONT, &lf);
+		m->fittingSize.cx += 2 * (abs(lf.lfHeight) / 6);
+	}
+
+	m->hasArrow = hasNonsplitArrow(button);
+	if (m->hasArrow) {
+		// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
+		GetThemePartSize(theme, dc,
+			6, 0,
+			NULL, TS_TRUE, &(m->arrowSize));
+		m->fittingSize.cx += m->arrowSize.cx;
+		// TODO I don't think dui70.dll takes this into consideration...
+		if (m->fittingSize.cy < m->arrowSize.cy)
+			m->fittingSize.cy = m->arrowSize.cy;
+		m->fittingSize.cx += dipsToX(1, m->dpiX);
+	}
+
+	m->fittingSize.cx += dipsToX(13, m->dpiX) * 2;
+	m->fittingSize.cy += dipsToY(5, m->dpiY) * 2;
+
+	// and dui70.dll seems to do a variant of this but for text buttons only...
+	minStdButtonHeight = dlgUnitsToY(14, m->baseY);
+	if (m->fittingSize.cy < minStdButtonHeight)
+		m->fittingSize.cy = minStdButtonHeight;
+
+	if (releaseDC)
+		ReleaseDC(button, dc);
+}
+
+struct buttonRects {
+	RECT clientRect;
+	RECT textRect;
+	RECT arrowRect;
+};
+
+// TODO check errors
+void buttonRects(HWND button, struct buttonMetrics *m, struct buttonRects *r)
+{
+	GetClientRect(button, &(r->clientRect));
+
+	if (m->hasText)
+		r->textRect = r->clientRect;
+
+	if (m->hasArrow) {
+		r->arrowRect = r->clientRect;
+		r->arrowRect.left = r->arrowRect.right;
+		r->arrowRect.left -= dipsToX(13, m->dpiX);
+		r->arrowRect.right = r->arrowRect.left;
+		r->arrowRect.left -= m->arrowSize.cx;
+		r->arrowRect.top += ((r->arrowRect.bottom - r->arrowRect.top) - m->arrowSize.cy) / 2;
+		r->arrowRect.bottom = r->arrowRect.top + m->arrowSize.cy;
+
+		if (m->hasText) {
+			r->textRect.right = r->arrowRect.left - dipsToX(1, m->dpiX);
+			r->textRect.right += dipsToX(13, m->dpiX);
+		}
+	}
+}
+
 // TODO check errors
 void drawExplorerChevron(HTHEME theme, HDC dc, HWND rebar, WPARAM band, RECT *rcPaint)
 {
@@ -120,26 +255,20 @@ void drawExplorerChevron(HTHEME theme, HDC dc, HWND rebar, WPARAM band, RECT *rc
 		&r, rcPaint);
 }
 
-#define hasNonsplitArrow(button) ((button) == leftButtons[0] || (button) == leftButtons[1] || (button) == leftButtons[2])
-
 // TODO check errors
 LRESULT drawExplorerButton(NMCUSTOMDRAW *nm)
 {
 	HWND button;
-	RECT r;
+	struct buttonMetrics m;
+	struct buttonRects r;
 	int part, state;
-	LRESULT n;
-	WCHAR *buf;
-	int textState;
-	COLORREF textColor;
-	RECT textRect;
-	RECT arrowRect;
-	DTTOPTS dttopts;
 
 	if (nm->dwDrawStage != CDDS_PREPAINT)
 		return CDRF_DODEFAULT;
 	button = nm->hdr.hwndFrom;
-	GetClientRect(button, &r);
+	buttonMetrics(button, nm->hdc, &m);
+	buttonRects(button, &m, &r);
+
 	part = 3;
 //TODO	if ((tbb.fsStyle & BTNS_DROPDOWN) != 0)
 //TODO		part = 4;
@@ -154,49 +283,41 @@ LRESULT drawExplorerButton(NMCUSTOMDRAW *nm)
 	DrawThemeParentBackground(button, nm->hdc, &(nm->rc));
 	DrawThemeBackground(theme, nm->hdc,
 		part, state,
-		&r, &(nm->rc));
+		&(r.clientRect), &(nm->rc));
 
-	// TODO these values are only for part==3
-	textState = 1;
-	if ((nm->uItemState & CDIS_DISABLED) != 0)
-		textState = 6;
-	// TODO name the constant for the property ID
-	GetThemeColor(theme,
-		3, textState,
-		3803, &textColor);
-	n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
-	buf = new WCHAR[n + 1];
-	GetWindowTextW(button, buf, n + 1);
-	textRect = r;
-	if (hasNonsplitArrow(button)) {
-		SIZE arrowSize;
+	if (m.hasText) {
+		int textState;
+		COLORREF textColor;
+		LRESULT n;
+		WCHAR *buf;
+		DTTOPTS dttopts;
 
-		// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
-		GetThemePartSize(theme, nm->hdc,
-			6, 0,
-			NULL, TS_TRUE, &arrowSize);
-		textRect.right -= arrowSize.cx;
-		arrowRect.left = textRect.right;
-		arrowRect.top = textRect.top + (textRect.bottom - textRect.top - arrowSize.cy) / 2;
-		arrowRect.right = arrowRect.left + arrowSize.cx;
-		arrowRect.bottom = arrowRect.top + arrowSize.cy;
-		// TODO this should be in DIPs
-		textRect.right -= 1;
+		// TODO these values are only for part==3
+		textState = 1;
+		if ((nm->uItemState & CDIS_DISABLED) != 0)
+			textState = 6;
+		// TODO name the constant for the property ID
+		GetThemeColor(theme,
+			3, textState,
+			3803, &textColor);
+		n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
+		buf = new WCHAR[n + 1];
+		GetWindowTextW(button, buf, n + 1);
+		ZeroMemory(&dttopts, sizeof (DTTOPTS));
+		dttopts.dwSize = sizeof (DTTOPTS);
+		dttopts.dwFlags = DTT_TEXTCOLOR;
+		dttopts.crText = textColor;
+		DrawThemeTextEx(textstyleTheme, nm->hdc,
+			4, 0,
+			buf, n, DT_CENTER | DT_VCENTER | DT_SINGLELINE,
+			&(r.textRect), &dttopts);
+		delete[] buf;
 	}
-	ZeroMemory(&dttopts, sizeof (DTTOPTS));
-	dttopts.dwSize = sizeof (DTTOPTS);
-	dttopts.dwFlags = DTT_TEXTCOLOR;
-	dttopts.crText = textColor;
-	DrawThemeTextEx(textstyleTheme, nm->hdc,
-		4, 0,
-		buf, n, DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-		&textRect, &dttopts);
-	delete[] buf;
 
-	if (hasNonsplitArrow(button))
+	if (m.hasArrow)
 		DrawThemeBackground(theme, nm->hdc,
 			6, 0,
-			&arrowRect, &(nm->rc));
+			&(r.arrowRect), &(nm->rc));
 
 	return CDRF_SKIPDEFAULT;
 }
@@ -306,82 +427,11 @@ void updateTheme(HWND hwnd)
 //			diele("BCM_SETTEXTMARGIN");
 }
 
-// TODO check errors
-// TODO the sizes are correct (according to UI Automation) but they don't visually match?
-SIZE buttonSize(HWND button)
-{
-	HDC dc;
-	LRESULT n;
-	WCHAR *buf;
-	RECT textRect;
-	RECT contentRect;
-	LOGFONTW lf;
-	TEXTMETRICW tm;
-	int minStdButtonHeight;
-	SIZE ret;
-
-	dc = GetDC(button);
-
-	n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
-	buf = new WCHAR[n + 1];
-	GetWindowTextW(button, buf, n + 1);
-	GetThemeTextExtent(textstyleTheme, dc,
-		4, 0,
-		buf, n, DT_CENTER,
-		NULL, &textRect);
-	contentRect.left = 0;
-	contentRect.top = 0;
-	contentRect.right = textRect.right - textRect.left;
-	contentRect.bottom = textRect.bottom - textRect.top;
-//wprintf(L"%s ", buf);
-	delete[] buf;
-	// dui70.dll adds this to the width when "overhang" is enabled, and it seems to be enabled for our cases, but I can't tell what conditions it's enabled for...
-	// and yes, it seems to be using the raw lfHeight value here :/
-	// TODO find the right TMT constant
-	GetThemeFont(textstyleTheme, dc,
-		4, 0,
-		TMT_FONT, &lf);
-	contentRect.right += 2 * (abs(lf.lfHeight) / 6);
-
-	if (hasNonsplitArrow(button)) {
-		SIZE arrowSize;
-
-		// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
-		GetThemePartSize(theme, dc,
-			6, 0,
-			NULL, TS_TRUE, &arrowSize);
-		contentRect.right += arrowSize.cx;
-		// TODO I don't think dui70.dll takes this into consideration...
-		if (contentRect.bottom < arrowSize.cy)
-			contentRect.bottom = arrowSize.cy;
-		// TODO this should be in DIPs
-		contentRect.right += 1;
-	}
-
-	// TODO these should be DIPs
-	contentRect.right += 13 * 2;
-	contentRect.bottom += 5 * 2;
-
-	// and dui70.dll seems to do a variant of this but for text buttons only...
-	GetThemeTextMetrics(textstyleTheme, dc,
-		4, 0,
-		&tm);
-	minStdButtonHeight = MulDiv(14, tm.tmHeight, 8);
-	if (contentRect.bottom < minStdButtonHeight)
-		contentRect.bottom = minStdButtonHeight;
-
-	ReleaseDC(button, dc);
-	ret.cx = contentRect.right - contentRect.left;
-	ret.cy = contentRect.bottom - contentRect.top;
-//printf("%d %d\n", ret.cx, ret.cy);
-	return ret;
-}
-
 void repositionButtons(HWND hwnd)
 {
 	HDWP dwp;
 	int buttonx, buttony;
-	SIZE size;
+	struct buttonMetrics m;
 	int i;
 
 	dwp = BeginDeferWindowPos(5);
@@ -390,13 +440,13 @@ void repositionButtons(HWND hwnd)
 	buttonx = 5;
 	buttony = 5;
 	for (i = 0; i < 5; i++) {
-		size = buttonSize(leftButtons[i]);
+		buttonMetrics(leftButtons[i], NULL, &m);
 		dwp = DeferWindowPos(dwp, leftButtons[i], NULL,
-			buttonx, buttony, size.cx, size.cy,
+			buttonx, buttony, m.fittingSize.cx, m.fittingSize.cy,
 			SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
 		if (dwp == NULL)
 			diele("DeferWindowPos()");
-		buttonx += size.cx;
+		buttonx += m.fittingSize.cx;
 	}
 	if (EndDeferWindowPos(dwp) == 0)
 		diele("EndDeferWindowPos()");

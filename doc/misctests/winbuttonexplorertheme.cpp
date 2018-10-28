@@ -60,29 +60,50 @@ static struct {
 };
 
 // TODO check errors
-// TODO extract colors from the theme
 void drawExplorerBackground(HTHEME theme, HDC dc, RECT *rcWindow, RECT *rcPaint)
 {
-	static TRIVERTEX vertices[] = {
-		{ 0, 0, 4 << 8, 80 << 8, 130 << 8, 255 << 8 },
-		{ 0, 0, 17 << 8, 101 << 8, 132 << 8, 255 << 8 },
-		{ 0, 0, 17 << 8, 101 << 8, 132 << 8, 255 << 8 },
-		{ 0, 0, 29 << 8, 121 << 8, 134 << 8, 255 << 8 },
-	};
+	COLORREF color;
+	TRIVERTEX vertices[4];
 	static GRADIENT_RECT gr[2] = {
 		{ 0, 1 },
 		{ 2, 3 },
 	};
 
-	vertices[0].x = rcPaint->left;
-	vertices[0].y = 0;
-	vertices[1].x = rcPaint->right;
-	vertices[1].y = (rcWindow->bottom - rcWindow->top) / 2;
-	vertices[2].x = rcPaint->left;
-	vertices[2].y = (rcWindow->bottom - rcWindow->top) / 2;
-	vertices[3].x = rcPaint->right;
-	vertices[3].y = rcWindow->bottom - rcWindow->top;
-	GradientFill(dc, vertices, 4, (PVOID) gr, 2, GRADIENT_FILL_RECT_V);
+	// TODO get constant names
+	GetThemeColor(theme,
+		2, 0,
+		3810, &color);
+	vertices[0].x = rcWindow->left;
+	vertices[0].y = rcWindow->top;
+	vertices[0].Red = ((COLOR16) GetRValue(color)) << 8;
+	vertices[0].Green = ((COLOR16) GetGValue(color)) << 8;
+	vertices[0].Blue = ((COLOR16) GetBValue(color)) << 8;
+	vertices[0].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+
+	GetThemeColor(theme,
+		2, 0,
+		3811, &color);
+	vertices[1].x = (rcWindow->right - rcWindow->left) / 2;
+	vertices[1].y = rcWindow->bottom;
+	vertices[1].Red = ((COLOR16) GetRValue(color)) << 8;
+	vertices[1].Green = ((COLOR16) GetGValue(color)) << 8;
+	vertices[1].Blue = ((COLOR16) GetBValue(color)) << 8;
+	vertices[1].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+
+	vertices[2] = vertices[1];
+	vertices[2].y = rcWindow->top;
+
+	GetThemeColor(theme,
+		2, 0,
+		3812, &color);
+	vertices[3].x = rcWindow->right;
+	vertices[3].y = rcWindow->bottom;
+	vertices[3].Red = ((COLOR16) GetRValue(color)) << 8;
+	vertices[3].Green = ((COLOR16) GetGValue(color)) << 8;
+	vertices[3].Blue = ((COLOR16) GetBValue(color)) << 8;
+	vertices[3].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+
+	GradientFill(dc, vertices, 4, (PVOID) gr, 2, GRADIENT_FILL_RECT_H);
 	DrawThemeBackground(theme, dc,
 		1, 0,
 		rcWindow, rcPaint);
@@ -539,6 +560,8 @@ void handleEvents(HWND hwnd, WPARAM wParam)
 
 LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	HDC dc;
+	PAINTSTRUCT ps;
 	NMHDR *nm = (NMHDR *) lParam;
 	int i;
 
@@ -553,11 +576,26 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_SIZE:
 		repositionButtons(hwnd);
+		// TODO check errors
+		InvalidateRect(hwnd, NULL, TRUE);
 		break;
 	case WM_THEMECHANGED:
 		updateTheme(hwnd);
 		repositionButtons(hwnd);
 		break;
+	case WM_PAINT:
+		// TODO check errors
+		dc = BeginPaint(hwnd, &ps);
+		{RECT w;
+		GetClientRect(hwnd,&w);
+		drawExplorerBackground(theme, dc, &w, &(ps.rcPaint));}
+		EndPaint(hwnd, &ps);
+		return 0;
+	case WM_PRINTCLIENT:
+		{RECT w;
+		GetClientRect(hwnd,&w);
+		drawExplorerBackground(theme, (HDC) wParam, &w, &w);}
+		return 0;
 #if 0
 	case WM_COMMAND:
 		handleEvents(hwnd, wParam);

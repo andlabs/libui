@@ -68,40 +68,60 @@ void drawExplorerBackground(HTHEME theme, HDC dc, RECT *rcWindow, RECT *rcPaint)
 		{ 0, 1 },
 		{ 2, 3 },
 	};
+	HRESULT hr;
 
-	// TODO get constant names
-	GetThemeColor(theme,
-		2, 0,
-		3810, &color);
+	// yes, Vista doesn't seem to have the colors in the theme, so get them from the UIFILE instead
 	vertices[0].x = rcWindow->left;
 	vertices[0].y = rcWindow->top;
-	vertices[0].Red = ((COLOR16) GetRValue(color)) << 8;
-	vertices[0].Green = ((COLOR16) GetGValue(color)) << 8;
-	vertices[0].Blue = ((COLOR16) GetBValue(color)) << 8;
-	vertices[0].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
-
-	GetThemeColor(theme,
+	vertices[0].Red = 4 << 8;
+	vertices[0].Green = 80 << 8;
+	vertices[0].Blue = 130 << 8;
+	vertices[0].Alpha = 255 << 8;
+	// TODO get constant names
+	hr = GetThemeColor(theme,
 		2, 0,
-		3811, &color);
+		3810, &color);
+	if (hr == S_OK) {
+		vertices[0].Red = ((COLOR16) GetRValue(color)) << 8;
+		vertices[0].Green = ((COLOR16) GetGValue(color)) << 8;
+		vertices[0].Blue = ((COLOR16) GetBValue(color)) << 8;
+		vertices[0].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+	}
+
 	vertices[1].x = (rcWindow->right - rcWindow->left) / 2;
 	vertices[1].y = rcWindow->bottom;
-	vertices[1].Red = ((COLOR16) GetRValue(color)) << 8;
-	vertices[1].Green = ((COLOR16) GetGValue(color)) << 8;
-	vertices[1].Blue = ((COLOR16) GetBValue(color)) << 8;
-	vertices[1].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+	vertices[1].Red = 17 << 8;
+	vertices[1].Green = 101 << 8;
+	vertices[1].Blue = 132 << 8;
+	vertices[1].Alpha = 255 << 8;
+	hr = GetThemeColor(theme,
+		2, 0,
+		3811, &color);
+	if (hr == S_OK) {
+		vertices[1].Red = ((COLOR16) GetRValue(color)) << 8;
+		vertices[1].Green = ((COLOR16) GetGValue(color)) << 8;
+		vertices[1].Blue = ((COLOR16) GetBValue(color)) << 8;
+		vertices[1].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+	}
 
 	vertices[2] = vertices[1];
 	vertices[2].y = rcWindow->top;
 
-	GetThemeColor(theme,
-		2, 0,
-		3812, &color);
 	vertices[3].x = rcWindow->right;
 	vertices[3].y = rcWindow->bottom;
-	vertices[3].Red = ((COLOR16) GetRValue(color)) << 8;
-	vertices[3].Green = ((COLOR16) GetGValue(color)) << 8;
-	vertices[3].Blue = ((COLOR16) GetBValue(color)) << 8;
-	vertices[3].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+	vertices[3].Red = 29 << 8;
+	vertices[3].Green = 121 << 8;
+	vertices[3].Blue = 134 << 8;
+	vertices[3].Alpha = 255 << 8;
+	hr = GetThemeColor(theme,
+		2, 0,
+		3812, &color);
+	if (hr == S_OK) {
+		vertices[3].Red = ((COLOR16) GetRValue(color)) << 8;
+		vertices[3].Green = ((COLOR16) GetGValue(color)) << 8;
+		vertices[3].Blue = ((COLOR16) GetBValue(color)) << 8;
+		vertices[3].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+	}
 
 	GradientFill(dc, vertices, 4, (PVOID) gr, 2, GRADIENT_FILL_RECT_H);
 	DrawThemeBackground(theme, dc,

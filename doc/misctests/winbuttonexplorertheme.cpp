@@ -34,6 +34,14 @@ void diehr(const char *func, HRESULT hr)
 	exit(EXIT_FAILURE);
 }
 
+// TODO if we merge this into libui proper, this will need to be deduplicated
+static inline HRESULT lastErrorToHRESULT(DWORD lastError)
+{
+	if (lastError == 0)
+		return E_FAIL;
+	return HRESULT_FROM_WIN32(lastError);
+}
+
 HINSTANCE hInstance;
 HWND leftButtons[5];
 HWND rightButtons[3];
@@ -59,77 +67,87 @@ static struct {
 	{ L"New folder", FALSE },
 };
 
-// TODO check errors
-void drawExplorerBackground(HTHEME theme, HDC dc, RECT *rcWindow, RECT *rcPaint)
-{
-	COLORREF color;
-	TRIVERTEX vertices[4];
-	static GRADIENT_RECT gr[2] = {
-		{ 0, 1 },
-		{ 2, 3 },
-	};
-	HRESULT hr;
+class commandModuleStyleParams {
+public:
+	virtual int partID_CMOD_MODULEBACKGROUND(void) const = 0;
+	virtual int partID_CMOD_TASKBUTTON(void) const = 0;
+	virtual int partID_CMOD_SPLITBUTTONLEFT(void) const = 0;
+	virtual int partID_CMOD_SPLITBUTTONRIGHT(void) const = 0;
+	virtual int partID_CMOD_MENUGLYPH(void) const = 0;
+	virtual int partID_CMOD_OVERFLOWGLYPH(void) const = 0;
 
-	// yes, Vista doesn't seem to have the colors in the theme, so get them from the UIFILE instead
-	vertices[0].x = rcWindow->left;
-	vertices[0].y = rcWindow->top;
-	vertices[0].Red = 4 << 8;
-	vertices[0].Green = 80 << 8;
-	vertices[0].Blue = 130 << 8;
-	vertices[0].Alpha = 255 << 8;
-	// TODO get constant names
-	hr = GetThemeColor(theme,
-		2, 0,
-		3810, &color);
-	if (hr == S_OK) {
-		vertices[0].Red = ((COLOR16) GetRValue(color)) << 8;
-		vertices[0].Green = ((COLOR16) GetGValue(color)) << 8;
-		vertices[0].Blue = ((COLOR16) GetBValue(color)) << 8;
-		vertices[0].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+	virtual int stateID_CMODS_NORMAL(void) const = 0;
+	virtual int stateID_CMODS_HOT(void) const = 0;
+	virtual int stateID_CMODS_PRESSED(void) const = 0;
+	virtual int stateID_CMODS_KEYFOCUSED(void) const = 0;
+	virtual int stateID_CMODS_NEARHOT(void) const = 0;
+
+	virtual HRESULT backgroundGradientColors(HTHEME theme, COLORREF *colors) const = 0;
+};
+
+class commandModuleStyleParamsVista : public commandModuleStyleParams {
+public:
+	virtual int partID_CMOD_MODULEBACKGROUND(void) const { return 1; }
+	virtual int partID_CMOD_TASKBUTTON(void) const { return 2; }
+	virtual int partID_CMOD_SPLITBUTTONLEFT(void) const { return 3; }
+	virtual int partID_CMOD_SPLITBUTTONRIGHT(void) const { return 4; }
+	virtual int partID_CMOD_MENUGLYPH(void) const { return 5; }
+	virtual int partID_CMOD_OVERFLOWGLYPH(void) const { return 6; }
+
+	virtual int stateID_CMODS_NORMAL(void) const { return 1; }
+	virtual int stateID_CMODS_HOT(void) const { return 2; }
+	virtual int stateID_CMODS_PRESSED(void) const { return 3; }
+	virtual int stateID_CMODS_KEYFOCUSED(void) const { return 4; }
+	virtual int stateID_CMODS_NEARHOT(void) const { return 5; }
+
+	virtual HRESULT backgroundGradientColors(HTHEME theme, COLORREF *colors) const
+	{
+		if (colors == NULL)
+			return E_POINTER;
+#define argb(a, r, g, b) ((((COLORREF) ((BYTE) (a))) << 24) | RGB(r, g, b))
+		colors[0] = argb(255, 4, 80, 130);
+		colors[1] = argb(255, 17, 101, 132);
+		colors[2] = argb(255, 29, 121, 134);
+#undef argb
+		return S_OK;
 	}
+};
 
-	vertices[1].x = (rcWindow->right - rcWindow->left) / 2;
-	vertices[1].y = rcWindow->bottom;
-	vertices[1].Red = 17 << 8;
-	vertices[1].Green = 101 << 8;
-	vertices[1].Blue = 132 << 8;
-	vertices[1].Alpha = 255 << 8;
-	hr = GetThemeColor(theme,
-		2, 0,
-		3811, &color);
-	if (hr == S_OK) {
-		vertices[1].Red = ((COLOR16) GetRValue(color)) << 8;
-		vertices[1].Green = ((COLOR16) GetGValue(color)) << 8;
-		vertices[1].Blue = ((COLOR16) GetBValue(color)) << 8;
-		vertices[1].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
+class commandModuleStyleParams7 : public commandModuleStyleParams {
+	virtual int partID_CMOD_MODULEBACKGROUND(void) const { return 1; }
+	virtual int partID_CMOD_TASKBUTTON(void) const { return 3; }
+	virtual int partID_CMOD_SPLITBUTTONLEFT(void) const { return 4; }
+	virtual int partID_CMOD_SPLITBUTTONRIGHT(void) const { return 5; }
+	virtual int partID_CMOD_MENUGLYPH(void) const { return 6; }
+	virtual int partID_CMOD_OVERFLOWGLYPH(void) const { return 7; }
+
+	virtual int stateID_CMODS_NORMAL(void) const { return 1; }
+	virtual int stateID_CMODS_HOT(void) const { return 2; }
+	virtual int stateID_CMODS_PRESSED(void) const { return 3; }
+	virtual int stateID_CMODS_KEYFOCUSED(void) const { return 4; }
+	/*TODO verify this*/virtual int stateID_CMODS_NEARHOT(void) const { return 5; }
+
+	virtual HRESULT backgroundGradientColors(HTHEME theme, COLORREF *colors) const
+	{
+		HRESULT hr;
+
+		if (colors == NULL)
+			return E_POINTER;
+		hr = GetThemeColor(theme,
+			2, 0,
+			TMT_GRADIENTCOLOR1. color + 0);
+		if (hr != S_OK)
+			return hr;
+		hr = GetThemeColor(theme,
+			2, 0,
+			TMT_GRADIENTCOLOR2, color + 1);
+		if (hr != S_OK)
+			return hr;
+		return GetThemeColor(theme,
+			2, 0,
+			TMT_GRADIENTCOLOR3, color + 2);
 	}
-
-	vertices[2] = vertices[1];
-	vertices[2].y = rcWindow->top;
-
-	vertices[3].x = rcWindow->right;
-	vertices[3].y = rcWindow->bottom;
-	vertices[3].Red = 29 << 8;
-	vertices[3].Green = 121 << 8;
-	vertices[3].Blue = 134 << 8;
-	vertices[3].Alpha = 255 << 8;
-	hr = GetThemeColor(theme,
-		2, 0,
-		3812, &color);
-	if (hr == S_OK) {
-		vertices[3].Red = ((COLOR16) GetRValue(color)) << 8;
-		vertices[3].Green = ((COLOR16) GetGValue(color)) << 8;
-		vertices[3].Blue = ((COLOR16) GetBValue(color)) << 8;
-		vertices[3].Alpha = ((COLOR16) LOBYTE(color >> 24)) << 8;
-	}
-
-	GradientFill(dc, vertices, 4, (PVOID) gr, 2, GRADIENT_FILL_RECT_H);
-	DrawThemeBackground(theme, dc,
-		1, 0,
-		rcWindow, rcPaint);
-}
-
-#define hasNonsplitArrow(button) ((button) == leftButtons[0] || (button) == leftButtons[1] || (button) == leftButtons[2])
+};
 
 // all coordinates are in client space
 struct buttonMetrics {
@@ -144,95 +162,169 @@ struct buttonMetrics {
 	SIZE arrowSize;
 };
 
+class commandModuleStyle {
+public:
+	virtual HRESULT drawFolderBar(commandModuleStyleParams *p, HDC dc, RECT *rcWindow, RECT *rcPaint) const = 0;
+	virtual HRESULT buttonMetrics(commandModuleStyleParams *p, HWND button, HDC dc, struct buttonMetrics *m) const = 0;
+};
+
+class commandModuleStyleThemed : public commandModuleStyle {
+	HTHEME theme;
+public:
+	commandModuleStyleThemed(theme) { this->theme = theme; }
+
+	virtual HRESULT drawFolderBar(commandModuleStyleParams *p, HDC dc, RECT *rcWindow, RECT *rcPaint) const
+	{
+		COLORREF colors[3];
+		TRIVERTEX vertices[4];
+		static GRADIENT_RECT gr[2] = {
+			{ 0, 1 },
+			{ 2, 3 },
+		};
+		HRESULT hr;
+
+		hr = p->backgroundGradientColors(this->theme, colors);
+		if (hr != S_OK)
+			return hr;
+
+		vertices[0].x = rcWindow->left;
+		vertices[0].y = rcWindow->top;
+		vertices[0].Red = ((COLOR16) GetRValue(colors[0])) << 8;
+		vertices[0].Green = ((COLOR16) GetGValue(colors[0])) << 8;
+		vertices[0].Blue = ((COLOR16) GetBValue(colors[0])) << 8;
+		vertices[0].Alpha = ((COLOR16) LOBYTE(colors[0] >> 24)) << 8;
+
+		vertices[1].x = (rcWindow->right - rcWindow->left) / 2;
+		vertices[1].y = rcWindow->bottom;
+		vertices[1].Red = ((COLOR16) GetRValue(colors[1])) << 8;
+		vertices[1].Green = ((COLOR16) GetGValue(colors[1])) << 8;
+		vertices[1].Blue = ((COLOR16) GetBValue(colors[1])) << 8;
+		vertices[1].Alpha = ((COLOR16) LOBYTE(colors[1] >> 24)) << 8;
+
+		vertices[2] = vertices[1];
+		vertices[2].y = rcWindow->top;
+
+		vertices[3].x = rcWindow->right;
+		vertices[3].y = rcWindow->bottom;
+		vertices[3].Red = ((COLOR16) GetRValue(colors[2])) << 8;
+		vertices[3].Green = ((COLOR16) GetGValue(colors[2])) << 8;
+		vertices[3].Blue = ((COLOR16) GetBValue(colors[2])) << 8;
+		vertices[3].Alpha = ((COLOR16) LOBYTE(colors[2] >> 24)) << 8;
+
+		if (GradientFill(dc, vertices, 4, (PVOID) gr, 2, GRADIENT_FILL_RECT_H) == FALSE)
+			return lastErrorToHRESULT(GetLastError());
+		return DrawThemeBackground(this->theme, dc,
+			p->partID_CMOD_MODULEBACKGROUND(), 0,
+			rcWindow, rcPaint);
+	}
+
+#define hasNonsplitArrow(button) ((button) == leftButtons[0] || (button) == leftButtons[1] || (button) == leftButtons[2])
+
 #define dlgUnitsToX(dlg, baseX) MulDiv((dlg), (baseX), 4)
 #define dlgUnitsToY(dlg, baseY) MulDiv((dlg), (baseY), 8)
 // TODO verify the parameter order
 #define dipsToX(dip, dpiX) MulDiv((dip), (dpiX), 96)
 #define dipsToY(dip, dpiY) MulDiv((dip), (dpiY), 96)
 
-// TODO check errors
-// TODO the sizes are correct (according to UI Automation) but they don't visually match?
-void buttonMetrics(HWND button, HDC dc, struct buttonMetrics *m)
-{
-	BOOL releaseDC;
-	TEXTMETRICW tm;
-	RECT r;
-	int minStdButtonHeight;
+	// TODO check errors
+	// TODO for win7: the sizes are correct (according to UI Automation) but they don't visually match?
+	virtual HRESULT buttonMetrics(commandModuleStyleParams *p, HWND button, HDC dc, struct buttonMetrics *m) const
+	{
+		BOOL releaseDC;
+		TEXTMETRICW tm;
+		RECT r;
+		int minStdButtonHeight;
+		HRESULT hr;
 
-	releaseDC = FALSE;
-	if (dc == NULL) {
-		dc = GetDC(button);
-		releaseDC = TRUE;
-	}
+		releaseDC = FALSE;
+		if (dc == NULL) {
+			dc = GetDC(button);
+			if (dc == NULL)
+				return lastErrorToHRESULT(GetLastError());
+			releaseDC = TRUE;
+		}
 
-	ZeroMemory(&tm, sizeof (TEXTMETRICW));
-	GetThemeTextMetrics(textstyleTheme, dc,
-		4, 0,
-		&tm);
-	GetThemeTextExtent(textstyleTheme, dc,
-		4, 0,
-		L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, 0,
-		NULL, &r);
-	m->baseX = (int) (((r.right - r.left) / 26 + 1) / 2);
-	m->baseY = (int) tm.tmHeight;
-	m->dpiX = GetDeviceCaps(dc, LOGPIXELSX);
-	m->dpiY = GetDeviceCaps(dc, LOGPIXELSY);
-
-	m->fittingSize.cx = 0;
-	m->fittingSize.cy = 0;
-
-	m->hasText = TRUE;
-	if (m->hasText) {
-		LRESULT n;
-		WCHAR *buf;
-		LOGFONTW lf;
-
-		n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
-		buf = new WCHAR[n + 1];
-		GetWindowTextW(button, buf, n + 1);
+		ZeroMemory(&tm, sizeof (TEXTMETRICW));
+		// TODO get constant names
+		// TODO make textstyleTheme a member
+		GetThemeTextMetrics(textstyleTheme, dc,
+			4, 0,
+			&tm);
 		GetThemeTextExtent(textstyleTheme, dc,
 			4, 0,
-			buf, n, DT_CENTER,
+			L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, 0,
 			NULL, &r);
-		m->textSize.cx = r.right - r.left;
-		m->textSize.cy = r.bottom - r.top;
-		delete[] buf;
-		m->fittingSize.cx += m->textSize.cx;
-		m->fittingSize.cy += m->textSize.cy;
+		m->baseX = (int) (((r.right - r.left) / 26 + 1) / 2);
+		m->baseY = (int) tm.tmHeight;
+		m->dpiX = GetDeviceCaps(dc, LOGPIXELSX);
+		m->dpiY = GetDeviceCaps(dc, LOGPIXELSY);
 
-		// dui70.dll adds this to the width when "overhang" is enabled, and it seems to be enabled for our cases, but I can't tell what conditions it's enabled for...
-		// and yes, it seems to be using the raw lfHeight value here :/
-		// TODO find the right TMT constant
-		GetThemeFont(textstyleTheme, dc,
-			4, 0,
-			TMT_FONT, &lf);
-		m->fittingSize.cx += 2 * (abs(lf.lfHeight) / 6);
-	}
+		m->fittingSize.cx = 0;
+		m->fittingSize.cy = 0;
 
-	m->hasArrow = hasNonsplitArrow(button);
-	if (m->hasArrow) {
-		// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
-		GetThemePartSize(theme, dc,
-			6, 0,
-			NULL, TS_TRUE, &(m->arrowSize));
-		m->fittingSize.cx += m->arrowSize.cx;
-		// TODO I don't think dui70.dll takes this into consideration...
-		if (m->fittingSize.cy < m->arrowSize.cy)
-			m->fittingSize.cy = m->arrowSize.cy;
-		m->fittingSize.cx += dipsToX(1, m->dpiX);
-	}
+		m->hasText = TRUE;
+		if (m->hasText) {
+			LRESULT n;
+			WCHAR *buf;
+			LOGFONTW lf;
 
-	m->fittingSize.cx += dipsToX(13, m->dpiX) * 2;
-	m->fittingSize.cy += dipsToY(5, m->dpiY) * 2;
+			n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
+			buf = new WCHAR[n + 1];
+			GetWindowTextW(button, buf, n + 1);
+			hr = GetThemeTextExtent(textstyleTheme, dc,
+				4, 0,
+				buf, n, DT_CENTER,
+				NULL, &r);
+			delete[] buf;
+			if (hr != S_OK)
+				goto fail;
+			m->textSize.cx = r.right - r.left;
+			m->textSize.cy = r.bottom - r.top;
+			m->fittingSize.cx += m->textSize.cx;
+			m->fittingSize.cy += m->textSize.cy;
 
-	// and dui70.dll seems to do a variant of this but for text buttons only...
-	minStdButtonHeight = dlgUnitsToY(14, m->baseY);
-	if (m->fittingSize.cy < minStdButtonHeight)
-		m->fittingSize.cy = minStdButtonHeight;
+			// dui70.dll adds this to the width when "overhang" is enabled, and it seems to be enabled for our cases, but I can't tell what conditions it's enabled for...
+			// and yes, it seems to be using the raw lfHeight value here :/
+			// TODO find the right TMT constant
+			hr = GetThemeFont(textstyleTheme, dc,
+				4, 0,
+				TMT_FONT, &lf);
+			if (hr != S_OK)
+				goto fail;
+			m->fittingSize.cx += 2 * (abs(lf.lfHeight) / 6);
+		}
 
-	if (releaseDC)
-		ReleaseDC(button, dc);
-}
+		m->hasArrow = hasNonsplitArrow(button);
+		if (m->hasArrow) {
+			// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
+			hr = GetThemePartSize(theme, dc,
+				6, 0,
+				NULL, TS_TRUE, &(m->arrowSize));
+			if (hr != S_OK)
+				goto fail;
+			m->fittingSize.cx += m->arrowSize.cx;
+			// TODO I don't think dui70.dll takes this into consideration...
+			if (m->fittingSize.cy < m->arrowSize.cy)
+				m->fittingSize.cy = m->arrowSize.cy;
+			m->fittingSize.cx += dipsToX(1, m->dpiX);
+		}
+
+		m->fittingSize.cx += dipsToX(13, m->dpiX) * 2;
+		m->fittingSize.cy += dipsToY(5, m->dpiY) * 2;
+
+		// and dui70.dll seems to do a variant of this but for text buttons only...
+		minStdButtonHeight = dlgUnitsToY(14, m->baseY);
+		if (m->fittingSize.cy < minStdButtonHeight)
+			m->fittingSize.cy = minStdButtonHeight;
+
+		hr = S_OK;
+	fail:
+		if (releaseDC)
+			// TODO when migrating this to libui, this will need to be renamed to indicate we are intentionally ignoring errors
+			ReleaseDC(button, dc);
+		return hr;
+	};
+};
 
 struct buttonRects {
 	RECT clientRect;

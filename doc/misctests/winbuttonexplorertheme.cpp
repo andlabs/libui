@@ -83,6 +83,10 @@ public:
 	virtual int stateID_CMODS_NEARHOT(void) const = 0;
 
 	virtual HRESULT backgroundGradientColors(HTHEME theme, COLORREF *colors) const = 0;
+
+	virtual int buttonMarginsXDIP(void) const = 0;
+	virtual int buttonMarginsYDIP(void) const = 0;
+	virtual int buttonTextArrowSeparationXDIP(void) const = 0;
 };
 
 class commandModuleStyleParamsVista : public commandModuleStyleParams {
@@ -111,6 +115,10 @@ public:
 #undef argb
 		return S_OK;
 	}
+
+	virtual int buttonMarginsXDIP(void) const { return 6; }
+	virtual int buttonMarginsYDIP(void) const { return 5; }
+	virtual int buttonTextArrowSeparationXDIP(void) const { return 3; }
 };
 
 class commandModuleStyleParams7 : public commandModuleStyleParams {
@@ -147,6 +155,10 @@ class commandModuleStyleParams7 : public commandModuleStyleParams {
 			2, 0,
 			TMT_GRADIENTCOLOR3, color + 2);
 	}
+
+	virtual int buttonMarginsXDIP(void) const { return 13; }
+	virtual int buttonMarginsYDIP(void) const { return 5; }
+	virtual int buttonTextArrowSeparationXDIP(void) const { return 1; }
 };
 
 // all coordinates are in client space
@@ -170,8 +182,13 @@ public:
 
 class commandModuleStyleThemed : public commandModuleStyle {
 	HTHEME theme;
+	HTHEME textstyleTheme;
 public:
-	commandModuleStyleThemed(theme) { this->theme = theme; }
+	commandModuleStyleThemed(HTHEME theme, HTHEME textstyleTheme)
+	{
+		this->theme = theme;
+		this->textstyleTheme = textstyleTheme;
+	}
 
 	virtual HRESULT drawFolderBar(commandModuleStyleParams *p, HDC dc, RECT *rcWindow, RECT *rcPaint) const
 	{
@@ -226,7 +243,6 @@ public:
 #define dipsToX(dip, dpiX) MulDiv((dip), (dpiX), 96)
 #define dipsToY(dip, dpiY) MulDiv((dip), (dpiY), 96)
 
-	// TODO check errors
 	// TODO for win7: the sizes are correct (according to UI Automation) but they don't visually match?
 	virtual HRESULT buttonMetrics(commandModuleStyleParams *p, HWND button, HDC dc, struct buttonMetrics *m) const
 	{
@@ -245,15 +261,17 @@ public:
 		}
 
 		ZeroMemory(&tm, sizeof (TEXTMETRICW));
-		// TODO get constant names
-		// TODO make textstyleTheme a member
-		GetThemeTextMetrics(textstyleTheme, dc,
-			4, 0,
+		hr = GetThemeTextMetrics(this->textstyleTheme, dc,
+			TEXT_BODYTEXT, 0,
 			&tm);
-		GetThemeTextExtent(textstyleTheme, dc,
-			4, 0,
+		if (hr != S_OK)
+			goto fail;
+		hr = GetThemeTextExtent(this->textstyleTheme, dc,
+			TEXT_BODYTEXT, 0,
 			L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, 0,
 			NULL, &r);
+		if (hr != S_OK)
+			goto fail;
 		m->baseX = (int) (((r.right - r.left) / 26 + 1) / 2);
 		m->baseY = (int) tm.tmHeight;
 		m->dpiX = GetDeviceCaps(dc, LOGPIXELSX);
@@ -271,8 +289,8 @@ public:
 			n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
 			buf = new WCHAR[n + 1];
 			GetWindowTextW(button, buf, n + 1);
-			hr = GetThemeTextExtent(textstyleTheme, dc,
-				4, 0,
+			hr = GetThemeTextExtent(this->textstyleTheme, dc,
+				TEXT_BODYTEXT, 0,
 				buf, n, DT_CENTER,
 				NULL, &r);
 			delete[] buf;
@@ -286,7 +304,7 @@ public:
 			// dui70.dll adds this to the width when "overhang" is enabled, and it seems to be enabled for our cases, but I can't tell what conditions it's enabled for...
 			// and yes, it seems to be using the raw lfHeight value here :/
 			// TODO find the right TMT constant
-			hr = GetThemeFont(textstyleTheme, dc,
+			hr = GetThemeFont(this->textstyleTheme, dc,
 				4, 0,
 				TMT_FONT, &lf);
 			if (hr != S_OK)
@@ -298,7 +316,7 @@ public:
 		if (m->hasArrow) {
 			// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
 			hr = GetThemePartSize(theme, dc,
-				6, 0,
+				p->partID_CMOD_MENUGLYPH(), 0,
 				NULL, TS_TRUE, &(m->arrowSize));
 			if (hr != S_OK)
 				goto fail;
@@ -306,11 +324,11 @@ public:
 			// TODO I don't think dui70.dll takes this into consideration...
 			if (m->fittingSize.cy < m->arrowSize.cy)
 				m->fittingSize.cy = m->arrowSize.cy;
-			m->fittingSize.cx += dipsToX(1, m->dpiX);
+			m->fittingSize.cx += dipsToX(p->buttonTextArrowSeparationXDIP(), m->dpiX);
 		}
 
-		m->fittingSize.cx += dipsToX(13, m->dpiX) * 2;
-		m->fittingSize.cy += dipsToY(5, m->dpiY) * 2;
+		m->fittingSize.cx += dipsToX(p->buttonMarginsXDIP(), m->dpiX) * 2;
+		m->fittingSize.cy += dipsToY(p->buttonMarginsYDIP(), m->dpiY) * 2;
 
 		// and dui70.dll seems to do a variant of this but for text buttons only...
 		minStdButtonHeight = dlgUnitsToY(14, m->baseY);

@@ -83,6 +83,8 @@ public:
 	virtual int stateID_CMODS_NEARHOT(void) const = 0;
 
 	virtual HRESULT backgroundGradientColors(HTHEME theme, COLORREF *colors) const = 0;
+	virtual HRESULT buttonTextColor(HTHEME theme, UINT uItemState, COLORREF *color) const = 0;
+	virtual BOOL buttonTextShadowed(UINT uItemState) const = 0;
 
 	virtual int buttonMarginsXDIP(void) const = 0;
 	virtual int buttonMarginsYDIP(void) const = 0;
@@ -112,8 +114,23 @@ public:
 		colors[0] = argb(255, 4, 80, 130);
 		colors[1] = argb(255, 17, 101, 132);
 		colors[2] = argb(255, 29, 121, 134);
+		return S_OK;
+	}
+
+	virtual HRESULT buttonTextColor(HTHEME theme, UINT uItemState, COLORREF *color) const
+	{
+		if (color == NULL)
+			return E_POINTER;
+		*color = GetSysColor(COLOR_WINDOW);
+		if ((uItemState & CDIS_DISABLED) != 0)
+			*color = argb(255, 161, 204, 210);
 #undef argb
 		return S_OK;
+	}
+
+	virtual BOOL buttonTextShadowed(UINT uItemState) const
+	{
+		return (uItemState & CDIS_DISABLED) == 0;
 	}
 
 	virtual int buttonMarginsXDIP(void) const { return 6; }
@@ -156,6 +173,26 @@ class commandModuleStyleParams7 : public commandModuleStyleParams {
 			TMT_GRADIENTCOLOR3, color + 2);
 	}
 
+	virtual HRESULT buttonTextColor(HTHEME theme, UINT uItemState, COLORREF *color) const
+	{
+		int state;
+
+		if (color == NULL)
+			return E_POINTER;
+		state = 1;
+		if ((uItemState & CDIS_DISABLED) != 0)
+			state = 6;
+		// TODO check if 3 is the correct part ID for all button types
+		return GetThemeColor(theme,
+			3, state,
+			TMT_TEXTCOLOR, color);
+	}
+
+	virtual BOOL buttonTextShadowed(UINT uItemState) const
+	{
+		return FALSE;
+	}
+
 	virtual int buttonMarginsXDIP(void) const { return 13; }
 	virtual int buttonMarginsYDIP(void) const { return 5; }
 	virtual int buttonTextArrowSeparationXDIP(void) const { return 1; }
@@ -174,10 +211,17 @@ struct buttonMetrics {
 	SIZE arrowSize;
 };
 
+struct buttonRects {
+	RECT clientRect;
+	RECT textRect;
+	RECT arrowRect;
+};
+
 class commandModuleStyle {
 public:
 	virtual HRESULT drawFolderBar(commandModuleStyleParams *p, HDC dc, RECT *rcWindow, RECT *rcPaint) const = 0;
 	virtual HRESULT buttonMetrics(commandModuleStyleParams *p, HWND button, HDC dc, struct buttonMetrics *m) const = 0;
+	virtual HRESULT buttonRects(commandModuleStyleParams *p, HWND button, struct buttonMetrics *m, struct buttonRects *r) const = 0;
 };
 
 class commandModuleStyleThemed : public commandModuleStyle {
@@ -251,6 +295,9 @@ public:
 		RECT r;
 		int minStdButtonHeight;
 		HRESULT hr;
+
+		if (m == NULL)
+			return E_POINTER;
 
 		releaseDC = FALSE;
 		if (dc == NULL) {
@@ -342,38 +389,38 @@ public:
 			ReleaseDC(button, dc);
 		return hr;
 	};
-};
 
-struct buttonRects {
-	RECT clientRect;
-	RECT textRect;
-	RECT arrowRect;
-};
+	// TODO check errors
+	virtual HRESULT buttonRects(commandModuleStyleParams *p, HWND button, struct buttonMetrics *m, struct buttonRects *r) const
+	{
+		if (r == NULL)
+			return E_POINTER;
 
-// TODO check errors
-void buttonRects(HWND button, struct buttonMetrics *m, struct buttonRects *r)
-{
-	GetClientRect(button, &(r->clientRect));
+		GetClientRect(button, &(r->clientRect));
 
-	if (m->hasText)
-		r->textRect = r->clientRect;
+		if (m->hasText)
+			r->textRect = r->clientRect;
 
-	if (m->hasArrow) {
-		r->arrowRect = r->clientRect;
-		r->arrowRect.left = r->arrowRect.right;
-		r->arrowRect.left -= dipsToX(13, m->dpiX);
-		r->arrowRect.right = r->arrowRect.left;
-		r->arrowRect.left -= m->arrowSize.cx;
-		r->arrowRect.top += ((r->arrowRect.bottom - r->arrowRect.top) - m->arrowSize.cy) / 2;
-		r->arrowRect.bottom = r->arrowRect.top + m->arrowSize.cy;
+		if (m->hasArrow) {
+			r->arrowRect = r->clientRect;
+			r->arrowRect.left = r->arrowRect.right;
+			r->arrowRect.left -= dipsToX(p->buttonMarginsXDIP(), m->dpiX);
+			r->arrowRect.right = r->arrowRect.left;
+			r->arrowRect.left -= m->arrowSize.cx;
+			r->arrowRect.top += ((r->arrowRect.bottom - r->arrowRect.top) - m->arrowSize.cy) / 2;
+			r->arrowRect.bottom = r->arrowRect.top + m->arrowSize.cy;
 
-		if (m->hasText) {
-			r->textRect.right = r->arrowRect.left - dipsToX(1, m->dpiX);
-			r->textRect.right += dipsToX(13, m->dpiX);
+			if (m->hasText) {
+				r->textRect.right = r->arrowRect.left - dipsToX(p->buttonTextArrowSeparationXDIP(), m->dpiX);
+				r->textRect.right += dipsToX(p->buttonMarginsXDIP(), m->dpiX);
+			}
 		}
-	}
-}
 
+		return S_OK;
+	}
+};
+
+#if 0
 // TODO check errors
 void drawExplorerChevron(HTHEME theme, HDC dc, HWND rebar, WPARAM band, RECT *rcPaint)
 {
@@ -405,6 +452,7 @@ void drawExplorerChevron(HTHEME theme, HDC dc, HWND rebar, WPARAM band, RECT *rc
 		7, 1,
 		&r, rcPaint);
 }
+#endif
 
 // TODO check errors
 LRESULT drawExplorerButton(NMCUSTOMDRAW *nm)

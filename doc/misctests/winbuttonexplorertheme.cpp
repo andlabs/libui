@@ -46,27 +46,6 @@ HINSTANCE hInstance;
 HWND leftButtons[5];
 HWND rightButtons[3];
 
-HICON shieldIcon;
-HICON applicationIcon;
-HICON helpIcon;
-HIMAGELIST rightList;
-
-HTHEME theme = NULL;
-HTHEME textstyleTheme = NULL;
-HIMAGELIST dropdownArrowList = NULL;
-HFONT buttonFont = NULL;
-
-static struct {
-	const WCHAR *text;
-	BOOL dropdown;
-} leftbarButtons[] = {
-	{ L"Organize", TRUE },
-	{ L"Include in library", TRUE },
-	{ L"Share with", TRUE },
-	{ L"Burn", FALSE },
-	{ L"New folder", FALSE },
-};
-
 class commandModuleStyleParams {
 public:
 	virtual int partID_CMOD_MODULEBACKGROUND(void) const = 0;
@@ -160,17 +139,17 @@ class commandModuleStyleParams7 : public commandModuleStyleParams {
 			return E_POINTER;
 		hr = GetThemeColor(theme,
 			2, 0,
-			TMT_GRADIENTCOLOR1. color + 0);
+			TMT_GRADIENTCOLOR1, colors + 0);
 		if (hr != S_OK)
 			return hr;
 		hr = GetThemeColor(theme,
 			2, 0,
-			TMT_GRADIENTCOLOR2, color + 1);
+			TMT_GRADIENTCOLOR2, colors + 1);
 		if (hr != S_OK)
 			return hr;
 		return GetThemeColor(theme,
 			2, 0,
-			TMT_GRADIENTCOLOR3, color + 2);
+			TMT_GRADIENTCOLOR3, colors + 2);
 	}
 
 	virtual HRESULT buttonTextColor(HTHEME theme, UINT uItemState, COLORREF *color) const
@@ -222,6 +201,7 @@ public:
 	virtual HRESULT drawFolderBar(commandModuleStyleParams *p, HDC dc, RECT *rcWindow, RECT *rcPaint) const = 0;
 	virtual HRESULT buttonMetrics(commandModuleStyleParams *p, HWND button, HDC dc, struct buttonMetrics *m) const = 0;
 	virtual HRESULT buttonRects(commandModuleStyleParams *p, HWND button, struct buttonMetrics *m, struct buttonRects *r) const = 0;
+	virtual HRESULT drawButton(commandModuleStyleParams *p, HWND button, HDC dc, UINT uItemState, RECT *rcPaint) const = 0;
 };
 
 class commandModuleStyleThemed : public commandModuleStyle {
@@ -418,6 +398,76 @@ public:
 
 		return S_OK;
 	}
+
+	// TODO check errors fully
+	virtual HRESULT drawButton(commandModuleStyleParams *p, HWND button, HDC dc, UINT uItemState, RECT *rcPaint) const
+	{
+		struct buttonMetrics m;
+		struct buttonRects r;
+		int part, state;
+		HRESULT hr;
+
+		hr = this->buttonMetrics(p, button, dc, &m);
+		if (hr != S_OK)
+			return hr;
+		hr = this->buttonRects(p, button, &m, &r);
+		if (hr != S_OK)
+			return hr;
+
+		part = p->partID_CMOD_TASKBUTTON();
+		state = p->stateID_CMODS_NORMAL();
+		if ((uItemState & CDIS_FOCUS) != 0)
+			state = p->stateID_CMODS_KEYFOCUSED();
+		if ((uItemState & CDIS_HOT) != 0)
+			state = p->stateID_CMODS_HOT();
+		if ((uItemState & CDIS_SELECTED) != 0)
+			state = p->stateID_CMODS_PRESSED();
+		hr = DrawThemeParentBackground(button, dc, rcPaint);
+		if (hr != S_OK)
+			return hr;
+		hr = DrawThemeBackground(this->theme, dc,
+			part, state,
+			&(r.clientRect), rcPaint);
+		if (hr != S_OK)
+			return hr;
+
+		if (m.hasText) {
+			int textState;
+			COLORREF textColor;
+			LRESULT n;
+			WCHAR *buf;
+			DTTOPTS dttopts;
+
+			hr = p->buttonTextColor(this->theme, uItemState, &textColor);
+			if (hr != S_OK)
+				return hr;
+			n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
+			buf = new WCHAR[n + 1];
+			GetWindowTextW(button, buf, n + 1);
+			ZeroMemory(&dttopts, sizeof (DTTOPTS));
+			dttopts.dwSize = sizeof (DTTOPTS);
+			dttopts.dwFlags = DTT_TEXTCOLOR;
+			dttopts.crText = textColor;
+			hr = DrawThemeTextEx(this->textstyleTheme, dc,
+				TEXT_BODYTEXT, 0,
+				buf, n, DT_CENTER | DT_VCENTER | DT_SINGLELINE,
+				&(r.textRect), &dttopts);
+			delete[] buf;
+			if (hr != S_OK)
+				return hr;
+		}
+
+		if (m.hasArrow) {
+			// TODO verify the state ID on all platforms
+			hr = DrawThemeBackground(this->theme, dc,
+				p->partID_CMOD_MENUGLYPH(), 0,
+				&(r.arrowRect), rcPaint);
+			if (hr != S_OK)
+				return hr;
+		}
+
+		return S_OK;
+	}
 };
 
 #if 0
@@ -454,70 +504,40 @@ void drawExplorerChevron(HTHEME theme, HDC dc, HWND rebar, WPARAM band, RECT *rc
 }
 #endif
 
+HICON shieldIcon;
+HICON applicationIcon;
+HICON helpIcon;
+HIMAGELIST rightList;
+
+HTHEME theme = NULL;
+HTHEME textstyleTheme = NULL;
+const char *which = "7";
+commandModuleStyle *cms = NULL;
+commandModuleStyleParams *cmsp = NULL;
+HIMAGELIST dropdownArrowList = NULL;
+
+static struct {
+	const WCHAR *text;
+	BOOL dropdown;
+} leftbarButtons[] = {
+	{ L"Organize", TRUE },
+	{ L"Include in library", TRUE },
+	{ L"Share with", TRUE },
+	{ L"Burn", FALSE },
+	{ L"New folder", FALSE },
+};
+
 // TODO check errors
 LRESULT drawExplorerButton(NMCUSTOMDRAW *nm)
 {
-	HWND button;
-	struct buttonMetrics m;
-	struct buttonRects r;
-	int part, state;
+	HRESULT hr;
 
 	if (nm->dwDrawStage != CDDS_PREPAINT)
 		return CDRF_DODEFAULT;
-	button = nm->hdr.hwndFrom;
-	buttonMetrics(button, nm->hdc, &m);
-	buttonRects(button, &m, &r);
-
-	part = 3;
-//TODO	if ((tbb.fsStyle & BTNS_DROPDOWN) != 0)
-//TODO		part = 4;
-	state = 1;
-	// TODO this doesn't work; both keyboard and mouse are listed as HOT
-	if ((nm->uItemState & CDIS_FOCUS) != 0)
-		state = 4;
-	if ((nm->uItemState & CDIS_HOT) != 0)
-		state = 2;
-	if ((nm->uItemState & CDIS_SELECTED) != 0)
-		state = 3;
-	DrawThemeParentBackground(button, nm->hdc, &(nm->rc));
-	DrawThemeBackground(theme, nm->hdc,
-		part, state,
-		&(r.clientRect), &(nm->rc));
-
-	if (m.hasText) {
-		int textState;
-		COLORREF textColor;
-		LRESULT n;
-		WCHAR *buf;
-		DTTOPTS dttopts;
-
-		// TODO these values are only for part==3
-		textState = 1;
-		if ((nm->uItemState & CDIS_DISABLED) != 0)
-			textState = 6;
-		// TODO name the constant for the property ID
-		GetThemeColor(theme,
-			3, textState,
-			3803, &textColor);
-		n = SendMessageW(button, WM_GETTEXTLENGTH, 0, 0);
-		buf = new WCHAR[n + 1];
-		GetWindowTextW(button, buf, n + 1);
-		ZeroMemory(&dttopts, sizeof (DTTOPTS));
-		dttopts.dwSize = sizeof (DTTOPTS);
-		dttopts.dwFlags = DTT_TEXTCOLOR;
-		dttopts.crText = textColor;
-		DrawThemeTextEx(textstyleTheme, nm->hdc,
-			4, 0,
-			buf, n, DT_CENTER | DT_VCENTER | DT_SINGLELINE,
-			&(r.textRect), &dttopts);
-		delete[] buf;
-	}
-
-	if (m.hasArrow)
-		DrawThemeBackground(theme, nm->hdc,
-			6, 0,
-			&(r.arrowRect), &(nm->rc));
-
+	hr = cms->drawButton(cmsp, nm->hdr.hwndFrom,
+		nm->hdc, nm->uItemState, &(nm->rc));
+	if (hr != S_OK)
+		return CDRF_DODEFAULT;
 	return CDRF_SKIPDEFAULT;
 }
 
@@ -545,29 +565,13 @@ void onWM_CREATE(HWND hwnd)
 // TODO check errors
 void updateTheme(HWND hwnd)
 {
-	BUTTON_IMAGELIST bim;
-	HDC dc;
-	SIZE size;
-	HBITMAP hb;
-	HTHEME buttonTheme;
-	LOGFONTW lf;
-	MARGINS marginOffsets;
-	RECT margins;
-	int i;
-
-	if (buttonFont != NULL) {
-		for (i = 0; i < 5; i++)
-			SendMessageW(leftButtons[i], WM_SETFONT, (WPARAM) NULL, TRUE);
-		DeleteObject(buttonFont);
-		buttonFont = NULL;
+	if (cmsp != NULL) {
+		delete cmsp;
+		cmsp = NULL;
 	}
-	if (dropdownArrowList != NULL) {
-		ZeroMemory(&bim, sizeof (BUTTON_IMAGELIST));
-		bim.himl = BCCL_NOGLYPH;
-		for (i = 0; i < 3; i++)
-			SendMessageW(leftButtons[i], BCM_SETIMAGELIST, 0, (LPARAM) (&bim));
-		ImageList_Destroy(dropdownArrowList);
-		dropdownArrowList = NULL;
+	if (cms != NULL) {
+		delete cms;
+		cms = NULL;
 	}
 	if (textstyleTheme != NULL) {
 		CloseThemeData(textstyleTheme);
@@ -580,50 +584,11 @@ void updateTheme(HWND hwnd)
 
 	theme = OpenThemeData(hwnd, L"CommandModule");
 	textstyleTheme = OpenThemeData(hwnd, L"TEXTSTYLE");
-	dc = GetDC(hwnd);
-	// TS_MIN returns 1x1 and TS_DRAW returns 0x0, so...
-	GetThemePartSize(theme, dc,
-		6, 0,
-		NULL, TS_TRUE, &size);
-	ReleaseDC(hwnd, dc);
-	// TODO draw a bitmap properly
-	GetThemeBitmap(theme,
-		6, 0,
-		0, GBF_COPY, &hb);
-	dropdownArrowList = ImageList_Create(size.cx, size.cy,
-		ILC_COLOR32, 0, 1);
-	ImageList_Add(dropdownArrowList, hb, NULL);
-	DeleteObject(hb);
-	ZeroMemory(&bim, sizeof (BUTTON_IMAGELIST));
-	bim.himl = dropdownArrowList;
-	// TODO should be DIPs
-	bim.margin.left = 1;
-	bim.uAlign = BUTTON_IMAGELIST_ALIGN_RIGHT;
-	for (i = 0; i < 3; i++)
-		SendMessageW(leftButtons[i], BCM_SETIMAGELIST, 0, (LPARAM) (&bim));
-
-	// TODO find the right TMT constant
-	GetThemeFont(textstyleTheme, NULL,
-		4, 0,
-		TMT_FONT, &lf);
-	buttonFont = CreateFontIndirectW(&lf);
-	for (i = 0; i < 5; i++)
-		SendMessageW(leftButtons[i], WM_SETFONT, (WPARAM) buttonFont, TRUE);
-
-	buttonTheme = OpenThemeData(hwnd, L"Button");
-	ZeroMemory(&marginOffsets, sizeof (MARGINS));
-	GetThemeMargins(buttonTheme, NULL,
-		BP_PUSHBUTTON, PBS_NORMAL,
-		TMT_CONTENTMARGINS, NULL, &marginOffsets);
-	CloseThemeData(buttonTheme);
-	// TODO the constants should be DIPs
-	margins.left = 13 - marginOffsets.cxLeftWidth;
-	margins.top = 5 - marginOffsets.cyTopHeight;
-	margins.right = 13 - marginOffsets.cxRightWidth;
-	margins.bottom = 5 - marginOffsets.cyBottomHeight;
-//	for (i = 0; i < 5; i++)
-//		if (SendMessageW(leftButtons[i], BCM_SETTEXTMARGIN, 0, (LPARAM) (&margins)) == FALSE)
-//			diele("BCM_SETTEXTMARGIN");
+	cms = new commandModuleStyleThemed(theme, textstyleTheme);
+	if (strcmp(which, "vista") == 0)
+		cmsp = new commandModuleStyleParamsVista;
+	else
+		cmsp = new commandModuleStyleParams7;
 }
 
 void repositionButtons(HWND hwnd)
@@ -639,7 +604,7 @@ void repositionButtons(HWND hwnd)
 	buttonx = 5;
 	buttony = 5;
 	for (i = 0; i < 5; i++) {
-		buttonMetrics(leftButtons[i], NULL, &m);
+		cms->buttonMetrics(cmsp, leftButtons[i], NULL, &m);
 		dwp = DeferWindowPos(dwp, leftButtons[i], NULL,
 			buttonx, buttony, m.fittingSize.cx, m.fittingSize.cy,
 			SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
@@ -766,13 +731,13 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		dc = BeginPaint(hwnd, &ps);
 		{RECT w;
 		GetClientRect(hwnd,&w);
-		drawExplorerBackground(theme, dc, &w, &(ps.rcPaint));}
+		cms->drawFolderBar(cmsp, dc, &w, &(ps.rcPaint));}
 		EndPaint(hwnd, &ps);
 		return 0;
 	case WM_PRINTCLIENT:
 		{RECT w;
 		GetClientRect(hwnd,&w);
-		drawExplorerBackground(theme, (HDC) wParam, &w, &w);}
+		cms->drawFolderBar(cmsp, (HDC) wParam, &w, &w);}
 		return 0;
 #if 0
 	case WM_COMMAND:
@@ -794,7 +759,7 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	STARTUPINFOW si;
 	int nCmdShow;
@@ -805,6 +770,9 @@ int main(void)
 	HWND mainwin;
 	MSG msg;
 	HRESULT hr;
+
+	if (argc > 1)
+		which = argv[1];
 
 	hInstance = (HINSTANCE) (&__ImageBase);
 	nCmdShow = SW_SHOWDEFAULT;

@@ -65,6 +65,11 @@ public:
 	virtual HRESULT buttonTextColor(HTHEME theme, UINT uItemState, COLORREF *color) const = 0;
 	virtual BOOL buttonTextShadowed(UINT uItemState) const = 0;
 
+	virtual int folderBarMarginsLeftDIP(void) const = 0;
+	virtual int folderBarMarginsTopDIP(void) const = 0;
+	virtual int folderBarMarginsRightDIP(void) const = 0;
+	virtual int folderBarMarginsBottomDIP(void) const = 0;
+
 	virtual int buttonMarginsXDIP(void) const = 0;
 	virtual int buttonMarginsYDIP(void) const = 0;
 	virtual int buttonTextArrowSeparationXDIP(void) const = 0;
@@ -111,6 +116,11 @@ public:
 	{
 		return (uItemState & CDIS_DISABLED) == 0;
 	}
+
+	virtual int folderBarMarginsLeftDIP(void) const { return 3; }
+	virtual int folderBarMarginsTopDIP(void) const { return 2; }
+	virtual int folderBarMarginsRightDIP(void) const { return 3; }
+	virtual int folderBarMarginsBottomDIP(void) const { return 3; }
 
 	virtual int buttonMarginsXDIP(void) const { return 6; }
 	virtual int buttonMarginsYDIP(void) const { return 5; }
@@ -171,6 +181,11 @@ class commandModuleStyleParams7 : public commandModuleStyleParams {
 	{
 		return FALSE;
 	}
+
+	virtual int folderBarMarginsLeftDIP(void) const { return 3; }
+	virtual int folderBarMarginsTopDIP(void) const { return 2; }
+	virtual int folderBarMarginsRightDIP(void) const { return 9; }
+	virtual int folderBarMarginsBottomDIP(void) const { return 3; }
 
 	virtual int buttonMarginsXDIP(void) const { return 13; }
 	virtual int buttonMarginsYDIP(void) const { return 5; }

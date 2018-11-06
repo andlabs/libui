@@ -610,14 +610,25 @@ void repositionButtons(HWND hwnd)
 {
 	HDWP dwp;
 	int buttonx, buttony;
+	HDC dc;
+	int dpiX;
+	int dpiY;
 	struct buttonMetrics m;
 	int i;
+
+	dc = GetDC(hwnd);
+	if (dc == NULL)
+		diele("GetDC()");
+	dpiX = GetDeviceCaps(dc, LOGPIXELSX);
+	dpiY = GetDeviceCaps(dc, LOGPIXELSY);
+	// TODO check error
+	ReleaseDC(hwnd, dc);
 
 	dwp = BeginDeferWindowPos(5);
 	if (dwp == NULL)
 		diele("BeginDeferWindowPos()");
-	buttonx = 5;
-	buttony = 5;
+	buttonx = dipsToX(cmsp->folderBarMarginsLeftDIP(), dpiX);
+	buttony = dipsToY(cmsp->folderBarMarginsTopDIP(), dpiY);
 	for (i = 0; i < 5; i++) {
 		cms->buttonMetrics(cmsp, leftButtons[i], NULL, &m);
 		dwp = DeferWindowPos(dwp, leftButtons[i], NULL,
@@ -629,6 +640,33 @@ void repositionButtons(HWND hwnd)
 	}
 	if (EndDeferWindowPos(dwp) == 0)
 		diele("EndDeferWindowPos()");
+}
+
+// TODO check errors
+void folderBarRect(HWND hwnd, HDC dc, RECT *r)
+{
+	int dpiX;
+	int dpiY;
+	RECT child;
+	int i;
+
+	dpiX = GetDeviceCaps(dc, LOGPIXELSX);
+	dpiY = GetDeviceCaps(dc, LOGPIXELSY);
+
+	GetClientRect(hwnd, r);
+	r->right -= r->left;
+	r->left = 0;
+	r->top = 0;
+	r->bottom = 0;
+
+	for (i = 0; i < 5; i++) {
+		GetWindowRect(leftButtons[i], &child);
+		if (r->bottom < (child.bottom - child.top))
+			r->bottom = (child.bottom - child.top);
+	}
+
+	r->bottom += dipsToY(cmsp->folderBarMarginsTopDIP(), dpiY);
+	r->bottom += dipsToY(cmsp->folderBarMarginsBottomDIP(), dpiY);
 }
 
 #if 0
@@ -745,13 +783,14 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// TODO check errors
 		dc = BeginPaint(hwnd, &ps);
 		{RECT w;
-		GetClientRect(hwnd,&w);
+		folderBarRect(hwnd, dc, &w);
 		cms->drawFolderBar(cmsp, dc, &w, &(ps.rcPaint));}
 		EndPaint(hwnd, &ps);
 		return 0;
 	case WM_PRINTCLIENT:
-		{RECT w;
-		GetClientRect(hwnd,&w);
+		{RECT w, paint;
+		folderBarRect(hwnd, (HDC) wParam, &w);
+		GetClientRect(hwnd,&paint);
 		cms->drawFolderBar(cmsp, (HDC) wParam, &w, &w);}
 		return 0;
 #if 0

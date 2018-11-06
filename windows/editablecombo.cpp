@@ -1,6 +1,8 @@
 // 20 may 2015
 #include "uipriv_windows.hpp"
 
+// TODO no scrollbars? also not sure if true for combobox as well
+
 // we as Common Controls 6 users don't need to worry about the height of comboboxes; see http://blogs.msdn.com/b/oldnewthing/archive/2006/03/10/548537.aspx
 
 struct uiEditableCombobox {

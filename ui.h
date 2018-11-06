@@ -252,6 +252,9 @@ struct tm;
 typedef struct uiDateTimePicker uiDateTimePicker;
 #define uiDateTimePicker(this) ((uiDateTimePicker *) (this))
 // TODO document that tm_wday and tm_yday are undefined, and tm_isdst should be -1
+// TODO document that for both sides
+// TODO document time zone conversions or lack thereof
+// TODO for Time: define what values are returned when a part is missing
 _UI_EXTERN void uiDateTimePickerTime(uiDateTimePicker *d, struct tm *time);
 _UI_EXTERN void uiDateTimePickerSetTime(uiDateTimePicker *d, const struct tm *time);
 _UI_EXTERN void uiDateTimePickerOnChanged(uiDateTimePicker *d, void (*f)(uiDateTimePicker *, void *), void *data);
@@ -560,12 +563,12 @@ _UI_EXTERN uiAttribute *uiNewSizeAttribute(double size);
 _UI_EXTERN double uiAttributeSize(const uiAttribute *a);
 
 // uiTextWeight represents possible text weights. These roughly
-// map to the OSx2 text weight field of TrueType and OpenType
+// map to the OS/2 text weight field of TrueType and OpenType
 // fonts, or to CSS weight numbers. The named constants are
 // nominal values; the actual values may vary by font and by OS,
 // though this isn't particularly likely. Any value between
-// uiTextWeightMinimum and uiDrawTextWeightMaximum,
-// inclusive, is allowed.
+// uiTextWeightMinimum and uiTextWeightMaximum, inclusive,
+// is allowed.
 //
 // Note that due to restrictions in early versions of Windows, some
 // fonts have "special" weights be exposed in many programs as
@@ -1141,7 +1144,7 @@ _UI_EXTERN uiGrid *uiNewGrid(void);
 // 	  resolution; this matches the current expectations of some
 // 	  desktop systems at the time of writing (mid-2018)
 // 
-// uiImage is very simple: it only supports non-premultiplied 32-bit
+// uiImage is very simple: it only supports premultiplied 32-bit
 // RGBA images, and libui does not provide any image file loading
 // or image format conversion utilities on top of that.
 typedef struct uiImage uiImage;
@@ -1158,7 +1161,7 @@ _UI_EXTERN uiImage *uiNewImage(double width, double height);
 _UI_EXTERN void uiFreeImage(uiImage *i);
 
 // uiImageAppend adds a representation to the uiImage.
-// pixels should point to a byte array of non-premultiplied pixels
+// pixels should point to a byte array of premultiplied pixels
 // stored in [R G B A] order (so ((uint8_t *) pixels)[0] is the R of the
 // first pixel and [3] is the A of the first pixel). pixelWidth and
 // pixelHeight is the size *in pixels* of the image, and pixelStride is

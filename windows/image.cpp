@@ -1,5 +1,8 @@
 #include "uipriv_windows.hpp"
 
+// TODO:
+// - is the alpha channel ignored when drawing images in tables?
+
 IWICImagingFactory *uiprivWICFactory = NULL;
 
 HRESULT uiprivInitImage(void)
@@ -39,17 +42,69 @@ void uiFreeImage(uiImage *i)
 	uiprivFree(i);
 }
 
+// to make things easier, we store images in WIC in the same way we store them in GDI (as system-endian ARGB) and premultiplied (as that's what AlphaBlend() expects (TODO confirm this))
+// but what WIC format is system-endian ARGB? for a little-endian system, that's BGRA
+// it turns out that the Windows 8 BMP encoder uses BGRA if told to (https://docs.microsoft.com/en-us/windows/desktop/wic/bmp-format-overview)
+// it also turns out Direct2D requires PBGRA for drawing (https://docs.microsoft.com/en-us/windows/desktop/wic/-wic-bitmapsources-howto-drawusingd2d)
+// so I guess we can assume PBGRA is correct...? (TODO)
+#define formatForGDI GUID_WICPixelFormat32bppPBGRA
+
 void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int byteStride)
 {
 	IWICBitmap *b;
+	WICRect r;
+	IWICBitmapLock *l;
+	uint8_t *pix, *data;
+	// TODO WICInProcPointer is not available in MinGW-w64
+	BYTE *dipp;
+	UINT size;
+	UINT realStride;
+	int x, y;
 	HRESULT hr;
 
-	hr = uiprivWICFactory->CreateBitmapFromMemory(pixelWidth, pixelHeight,
-		GUID_WICPixelFormat32bppRGBA, byteStride,
-		byteStride * pixelHeight, (BYTE *) pixels,
+	hr = uiprivWICFactory->CreateBitmap(pixelWidth, pixelHeight,
+		formatForGDI, WICBitmapCacheOnDemand,
 		&b);
 	if (hr != S_OK)
-		logHRESULT(L"error calling CreateBitmapFromMemory() in uiImageAppend()", hr);
+		logHRESULT(L"error calling CreateBitmap() in uiImageAppend()", hr);
+	r.X = 0;
+	r.Y = 0;
+	r.Width = pixelWidth;
+	r.Height = pixelHeight;
+	hr = b->Lock(&r, WICBitmapLockWrite, &l);
+	if (hr != S_OK)
+		logHRESULT(L"error calling Lock() in uiImageAppend()", hr);
+
+	pix = (uint8_t *) pixels;
+	// TODO can size be NULL?
+	hr = l->GetDataPointer(&size, &dipp);
+	if (hr != S_OK)
+		logHRESULT(L"error calling GetDataPointer() in uiImageAppend()", hr);
+	data = (uint8_t *) dipp;
+	hr = l->GetStride(&realStride);
+	if (hr != S_OK)
+		logHRESULT(L"error calling GetStride() in uiImageAppend()", hr);
+	for (y = 0; y < pixelHeight; y++) {
+		for (x = 0; x < pixelWidth * 4; x += 4) {
+			union {
+				uint32_t v32;
+				uint8_t v8[4];
+			} v;
+
+			v.v32 = ((uint32_t) (pix[x + 3])) << 24;
+			v.v32 |= ((uint32_t) (pix[x])) << 16;
+			v.v32 |= ((uint32_t) (pix[x + 1])) << 8;
+			v.v32 |= ((uint32_t) (pix[x + 2]));
+			data[x] = v.v8[0];
+			data[x + 1] = v.v8[1];
+			data[x + 2] = v.v8[2];
+			data[x + 3] = v.v8[3];
+		}
+		pix += byteStride;
+		data += realStride;
+	}
+
+	l->Release();
 	i->bitmaps->push_back(b);
 }
 
@@ -172,7 +227,7 @@ HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBITMAP *hb
 			scaler->Release();
 			return hr;
 		}
-		if (IsEqualGUID(guid, GUID_WICPixelFormat32bppRGBA))
+		if (IsEqualGUID(guid, formatForGDI))
 			src = scaler;
 		else {
 			hr = uiprivWICFactory->CreateFormatConverter(&conv);
@@ -180,7 +235,7 @@ HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBITMAP *hb
 				scaler->Release();
 				return hr;
 			}
-			hr = conv->Initialize(scaler, GUID_WICPixelFormat32bppRGBA,
+			hr = conv->Initialize(scaler, formatForGDI,
 				// TODO is the dither type correct in all cases?
 				WICBitmapDitherTypeNone, NULL, 0, WICBitmapPaletteTypeMedianCut);
 			scaler->Release();

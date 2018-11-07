@@ -1,5 +1,8 @@
 // 27 february 2018
 
+// TODO
+// - https://blogs.msdn.microsoft.com/oldnewthing/20181107-00/?p=100155
+
 #ifndef testingprivIncludeGuard_testing_h
 #define testingprivIncludeGuard_testing_h
 

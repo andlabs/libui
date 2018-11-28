@@ -6,6 +6,8 @@
 // see also http://stackoverflow.com/questions/24210153/nstextview-not-properly-resizing-with-auto-layout and http://stackoverflow.com/questions/11237622/using-autolayout-with-expanding-nstextviews
 @interface intrinsicSizeTextView : NSTextView {
 	uiMultilineEntry *libui_e;
+	NSDictionary *strAttrs;
+	NSFont *font;
 }
 - (id)initWithFrame:(NSRect)r e:(uiMultilineEntry *)e;
 @end
@@ -25,8 +27,13 @@ struct uiMultilineEntry {
 - (id)initWithFrame:(NSRect)r e:(uiMultilineEntry *)e
 {
 	self = [super initWithFrame:r];
-	if (self)
+	if (self) {
 		self->libui_e = e;
+		self->font = [NSFont controlContentFontOfSize:0];
+		self->strAttrs = [NSDictionary
+			dictionaryWithObjects:@[font, [NSColor controlTextColor]]
+			forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+	}
 	return self;
 }
 
@@ -49,6 +56,16 @@ struct uiMultilineEntry {
 	[self invalidateIntrinsicContentSize];
 	if (!self->libui_e->changing)
 		(*(self->libui_e->onChanged))(self->libui_e, self->libui_e->onChangedData);
+}
+
+-(NSDictionary *)stringAttributes
+{
+	return self->strAttrs;
+}
+
+-(NSFont *)font
+{
+	return self->font;
 }
 
 @end
@@ -79,6 +96,9 @@ void uiMultilineEntrySetText(uiMultilineEntry *e, const char *text)
 {
 	[[e->tv textStorage] replaceCharactersInRange:NSMakeRange(0, [[e->tv string] length])
 		withString:uiprivToNSString(text)];
+
+	[[e->tv textStorage] setAttributes:[e->tv stringAttributes] range:NSMakeRange(0, [[e->tv string] length])];
+
 	// must be called explicitly according to the documentation of shouldChangeTextInRange:replacementString:
 	e->changing = YES;
 	[e->tv didChangeText];
@@ -90,6 +110,9 @@ void uiMultilineEntryAppend(uiMultilineEntry *e, const char *text)
 {
 	[[e->tv textStorage] replaceCharactersInRange:NSMakeRange([[e->tv string] length], 0)
 		withString:uiprivToNSString(text)];
+
+	[[e->tv textStorage] setAttributes:[e->tv stringAttributes] range:NSMakeRange(0, [[e->tv string] length])];
+
 	e->changing = YES;
 	[e->tv didChangeText];
 	e->changing = NO;
@@ -119,7 +142,6 @@ void uiMultilineEntrySetReadOnly(uiMultilineEntry *e, int readonly)
 static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 {
 	uiMultilineEntry *e;
-	NSFont *font;
 	uiprivScrollViewCreateParams p;
 
 	uiDarwinNewControl(uiMultilineEntry, e);
@@ -129,8 +151,6 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	// verified against Interface Builder for a sufficiently customized text view
 
 	// NSText properties:
-	// this is what Interface Builder sets the background color to
-	[e->tv setBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]];
 	[e->tv setDrawsBackground:YES];
 	[e->tv setEditable:YES];
 	[e->tv setSelectable:YES];
@@ -159,8 +179,6 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	[e->tv setUsesRuler:NO];
 	[e->tv setUsesInspectorBar:NO];
 	[e->tv setSelectionGranularity:NSSelectByCharacter];
-	// there is a dedicated named insertion point color but oh well
-	[e->tv setInsertionPointColor:[NSColor controlTextColor]];
 	// typing attributes is nil; keep default (we change it below for fonts though)
 	[e->tv setSmartInsertDeleteEnabled:NO];
 	[e->tv setContinuousSpellCheckingEnabled:NO];
@@ -199,18 +217,11 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	[[e->tv textContainer] setContainerSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
 
 	// don't use uiDarwinSetControlFont() directly; we have to do a little extra work to set the font
-	font = [NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSRegularControlSize]];
-	[e->tv setTypingAttributes:[NSDictionary
-		dictionaryWithObject:font
-		forKey:NSFontAttributeName]];
-	// e->tv font from Interface Builder is nil, but setFont:nil throws an exception
-	// let's just set it to the standard control font anyway, just to be safe
-	[e->tv setFont:font];
+	[e->tv setTypingAttributes:[e->tv stringAttributes]];
+	[e->tv setFont:[e->tv font]];
 
 	memset(&p, 0, sizeof (uiprivScrollViewCreateParams));
 	p.DocumentView = e->tv;
-	// this is what Interface Builder sets it to
-	p.BackgroundColor = [NSColor colorWithCalibratedWhite:1.0 alpha:1.0];
 	p.DrawsBackground = YES;
 	p.Bordered = YES;
 	p.HScroll = hscroll;

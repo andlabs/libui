@@ -34,6 +34,8 @@ endif()
 
 project(libui)
 option(BUILD_SHARED_LIBS "Whether to build libui as a shared library or a static library" ON)
+option(LIBUI_BUILD_TESTS "Whether to build and run unit tests" ON)
+option(LIBUI_BUILD_EXAMPLES "Whether to build and run examples" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out")
@@ -234,5 +236,11 @@ macro(_add_exec _name)
 			PUBLIC ${_COMMON_CFLAGS})
 	endif()
 endmacro()
-add_subdirectory("test")
-add_subdirectory("examples")
+
+if(LIBUI_BUILD_TESTS)
+	add_subdirectory("test")
+endif()
+
+if(LIBUI_BUILD_EXAMPLES)
+	add_subdirectory("examples")
+endif()

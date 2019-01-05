@@ -204,3 +204,6 @@ font1.gif (GIF Image, 424 × 475 pixels) http://www.functionx.com/win32/controls
 Inskcape’s Hidden Little Feature: Mesh Gradients | OCS-Mag http://www.ocsmag.com/2016/02/27/inskcapes-hidden-little-feature-mesh-gradients/ (near "When you’re done colouring in all the nodes, you may want to drag")
 
 https://msdn.microsoft.com/en-us/library/windows/desktop/ms632615(v=vs.85).aspx we need to handle this alongisde WM_CAPTURECHANGED
+
+https://msdn.microsoft.com/en-us/library/windows/desktop/dn424996%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
+whatever this is seems to have no documentation... it appears to be related to  UWP, if not only Store apps...

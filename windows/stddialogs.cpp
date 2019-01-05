@@ -1,6 +1,9 @@
 // 22 may 2015
 #include "uipriv_windows.hpp"
 
+// TODO document all this is what we want
+// TODO do the same for font and color buttons
+
 // notes:
 // - FOS_SUPPORTSTREAMABLEITEMS doesn't seem to be supported on windows vista, or at least not with the flags we use
 // - even with FOS_NOVALIDATE the dialogs will reject invalid filenames (at least on Vista, anyway)
@@ -75,16 +78,26 @@ out:
 
 char *uiOpenFile(uiWindow *parent)
 {
-	return commonItemDialog(windowHWND(parent),
+	char *res;
+
+	disableAllWindowsExcept(parent);
+	res = commonItemDialog(windowHWND(parent),
 		CLSID_FileOpenDialog, IID_IFileOpenDialog,
 		FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
+	enableAllWindowsExcept(parent);
+	return res;
 }
 
 char *uiSaveFile(uiWindow *parent)
 {
-	return commonItemDialog(windowHWND(parent),
+	char *res;
+
+	disableAllWindowsExcept(parent);
+	res = commonItemDialog(windowHWND(parent),
 		CLSID_FileSaveDialog, IID_IFileSaveDialog,
 		FOS_OVERWRITEPROMPT | FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
+	enableAllWindowsExcept(parent);
+	return res;
 }
 
 // TODO switch to TaskDialogIndirect()?
@@ -101,16 +114,20 @@ static void msgbox(HWND parent, const char *title, const char *description, TASK
 	if (hr != S_OK)
 		logHRESULT(L"error showing task dialog", hr);
 
-	uiFree(wdescription);
-	uiFree(wtitle);
+	uiprivFree(wdescription);
+	uiprivFree(wtitle);
 }
 
 void uiMsgBox(uiWindow *parent, const char *title, const char *description)
 {
+	disableAllWindowsExcept(parent);
 	msgbox(windowHWND(parent), title, description, TDCBF_OK_BUTTON, NULL);
+	enableAllWindowsExcept(parent);
 }
 
 void uiMsgBoxError(uiWindow *parent, const char *title, const char *description)
 {
+	disableAllWindowsExcept(parent);
 	msgbox(windowHWND(parent), title, description, TDCBF_OK_BUTTON, TD_ERROR_ICON);
+	enableAllWindowsExcept(parent);
 }

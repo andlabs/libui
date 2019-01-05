@@ -43,7 +43,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiCheckbox)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 #define checkboxXFromLeftOfBoxToLeftOfLabel 12
 
-static void uiCheckboxMinimumSize(uiWindowsControl *cc, intmax_t *width, intmax_t *height)
+static void uiCheckboxMinimumSize(uiWindowsControl *cc, int *width, int *height)
 {
 	uiCheckbox *c = uiCheckbox(cc);
 	uiWindowsSizing sizing;
@@ -108,7 +108,7 @@ uiCheckbox *uiNewCheckbox(const char *text)
 		BS_CHECKBOX | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
-	uiFree(wtext);
+	uiprivFree(wtext);
 
 	uiWindowsRegisterWM_COMMANDHandler(c->hwnd, onWM_COMMAND, uiControl(c));
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);

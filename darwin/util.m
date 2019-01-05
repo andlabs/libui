@@ -1,8 +1,9 @@
 // 7 april 2015
 #import "uipriv_darwin.h"
 
-// TODO do we really want to do this? make it an option?
-void disableAutocorrect(NSTextView *tv)
+// LONGTERM do we really want to do this? make it an option?
+// TODO figure out why we removed this from window.m
+void uiprivDisableAutocorrect(NSTextView *tv)
 {
 	[tv setEnabledTextCheckingTypes:0];
 	[tv setAutomaticDashSubstitutionEnabled:NO];
@@ -12,16 +13,4 @@ void disableAutocorrect(NSTextView *tv)
 	[tv setAutomaticQuoteSubstitutionEnabled:NO];
 	[tv setAutomaticLinkDetectionEnabled:NO];
 	[tv setSmartInsertDeleteEnabled:NO];
-}
-
-void complain(const char *fmt, ...)
-{
-	va_list ap;
-
-	va_start(ap, fmt);
-	fprintf(stderr, "[libui] ");
-	vfprintf(stderr, fmt, ap);
-	fprintf(stderr, "\n");
-	va_end(ap);
-	abort();
 }

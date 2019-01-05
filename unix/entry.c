@@ -60,18 +60,38 @@ void uiEntrySetReadOnly(uiEntry *e, int readonly)
 	gtk_editable_set_editable(e->editable, editable);
 }
 
-uiEntry *uiNewEntry(void)
+static uiEntry *finishNewEntry(GtkWidget *w, const gchar *signal)
 {
 	uiEntry *e;
 
 	uiUnixNewControl(uiEntry, e);
 
-	e->widget = gtk_entry_new();
+	e->widget = w;
 	e->entry = GTK_ENTRY(e->widget);
 	e->editable = GTK_EDITABLE(e->widget);
 
-	e->onChangedSignal = g_signal_connect(e->widget, "changed", G_CALLBACK(onChanged), e);
+	e->onChangedSignal = g_signal_connect(e->widget, signal, G_CALLBACK(onChanged), e);
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
 	return e;
+}
+
+uiEntry *uiNewEntry(void)
+{
+	return finishNewEntry(gtk_entry_new(), "changed");
+}
+
+uiEntry *uiNewPasswordEntry(void)
+{
+	GtkWidget *e;
+
+	e = gtk_entry_new();
+	gtk_entry_set_visibility(GTK_ENTRY(e), FALSE);
+	return finishNewEntry(e, "changed");
+}
+
+// TODO make it use a separate function to be type-safe
+uiEntry *uiNewSearchEntry(void)
+{
+	return finishNewEntry(gtk_search_entry_new(), "search-changed");
 }

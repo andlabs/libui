@@ -3,11 +3,12 @@
 // draw.c
 struct uiDrawContext {
 	cairo_t *cr;
+	GtkStyleContext *style;
 };
 
 // drawpath.c
-extern void runPath(uiDrawPath *p, cairo_t *cr);
-extern uiDrawFillMode pathFillMode(uiDrawPath *path);
+extern void uiprivRunPath(uiDrawPath *p, cairo_t *cr);
+extern uiDrawFillMode uiprivPathFillMode(uiDrawPath *path);
 
 // drawmatrix.c
-extern void m2c(uiDrawMatrix *m, cairo_matrix_t *c);
+extern void uiprivM2C(uiDrawMatrix *m, cairo_matrix_t *c);

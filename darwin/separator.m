@@ -1,10 +1,9 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
-// A separator NSBox is horizontal if width >= height.
-// Use Interface Builder's initial size as our initial size, to be safe.
-#define separatorFrameWidth 96		/* alignment rect 96 */
-#define separatorFrameHeight 5		/* alignment rect 1 */
+// TODO make this intrinsic
+#define separatorWidth 96
+#define separatorHeight 96
 
 struct uiSeparator {
 	uiDarwinControl c;
@@ -19,7 +18,24 @@ uiSeparator *uiNewHorizontalSeparator(void)
 
 	uiDarwinNewControl(uiSeparator, s);
 
-	s->box = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, separatorFrameWidth, separatorFrameHeight)];
+	// make the initial width >= initial height to force horizontal
+	s->box = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, 100, 1)];
+	[s->box setBoxType:NSBoxSeparator];
+	[s->box setBorderType:NSGrooveBorder];
+	[s->box setTransparent:NO];
+	[s->box setTitlePosition:NSNoTitle];
+
+	return s;
+}
+
+uiSeparator *uiNewVerticalSeparator(void)
+{
+	uiSeparator *s;
+
+	uiDarwinNewControl(uiSeparator, s);
+
+	// make the initial height >= initial width to force vertical
+	s->box = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, 1, 100)];
 	[s->box setBoxType:NSBoxSeparator];
 	[s->box setBorderType:NSGrooveBorder];
 	[s->box setTransparent:NO];

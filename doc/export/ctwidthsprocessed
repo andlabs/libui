@@ -1,0 +1,73 @@
+-0.100000  0xbdcccccd  registered "Semi Cond"
+-0.100000  0xbdcccccd  registered "Semi Condensed"
+-0.100000  0xbdcccccd  registered "SemiCondensed"
+-0.100000  0xbdcccccd  registered OS2 4
+-0.100000  0xbdcccccd  unregistered "semi condensed"
+-0.100000  0xbdcccccd  unregistered "semicondensed"
+-0.200000  0xbe4ccccd  head[0x2d] & 0x20
+-0.200000  0xbe4ccccd  metadata "cond"
+-0.200000  0xbe4ccccd  panose 6
+-0.200000  0xbe4ccccd  registered "Cond"
+-0.200000  0xbe4ccccd  registered "Condensed"
+-0.200000  0xbe4ccccd  registered OS2 3
+-0.200000  0xbe4ccccd  unregistered "condensed"
+-0.400000  0xbecccccd  panose 8
+-0.400000  0xbecccccd  registered "Compact"
+-0.400000  0xbecccccd  registered "Narrow"
+-0.400000  0xbecccccd  unregistered "narrow"
+-0.500000  0xbf000000  registered "Compressed"
+-0.500000  0xbf000000  registered "Ext Cond"
+-0.500000  0xbf000000  registered "Ext Condensed"
+-0.500000  0xbf000000  registered "Extra Cond"
+-0.500000  0xbf000000  registered "Extra Condensed"
+-0.500000  0xbf000000  registered "Extra Narrow"
+-0.500000  0xbf000000  registered "ExtraNarrow"
+-0.500000  0xbf000000  registered OS2 2
+-0.500000  0xbf000000  unregistered "extra narrow"
+-0.500000  0xbf000000  unregistered "extranarrow"
+-0.700000  0xbf333333  registered "Ext Compressed"
+-0.700000  0xbf333333  registered "Extra Compressed"
+-0.700000  0xbf333333  registered "Semi Condensed"
+-0.700000  0xbf333333  registered "Thin"
+-0.700000  0xbf333333  registered "Ultra Compressed"
+-0.700000  0xbf333333  registered "Ultra Cond"
+-0.700000  0xbf333333  registered "Ultra Condensed"
+-0.700000  0xbf333333  registered OS2 1
+-0.700000  0xbf333333  unregistered "thin"
+0.000000   0x0         default
+0.000000   0x0         metadata "med"
+0.000000   0x0         panose 2, 3, 4
+0.000000   0x0         registered OS2 5
+0.000000   0x0         registered default
+0.100000   0x3dcccccd  registered "Semi Expanded"
+0.100000   0x3dcccccd  registered "Semi Extended"
+0.100000   0x3dcccccd  registered "SemiExpanded"
+0.100000   0x3dcccccd  registered OS2 6
+0.100000   0x3dcccccd  unregistered "semi expanded"
+0.100000   0x3dcccccd  unregistered "semiexpanded"
+0.200000   0x3e4ccccd  head[0x2d] & 0x40
+0.200000   0x3e4ccccd  metadata "ext"
+0.200000   0x3e4ccccd  panose 5
+0.200000   0x3e4ccccd  registered "Expanded"
+0.200000   0x3e4ccccd  registered "Extended"
+0.200000   0x3e4ccccd  unregistered "expanded"
+0.200000   0x3e4ccccd  unregistered "extended"
+0.400000   0x3ecccccd  panose 7
+0.400000   0x3ecccccd  registered "Ext Expanded"
+0.400000   0x3ecccccd  registered "Ext Extended"
+0.400000   0x3ecccccd  registered "Extra Expanded"
+0.400000   0x3ecccccd  registered "Extra Extended"
+0.400000   0x3ecccccd  registered "ExtraExpanded"
+0.400000   0x3ecccccd  registered OS2 7
+0.400000   0x3ecccccd  unregistered "extra expanded"
+0.400000   0x3ecccccd  unregistered "extraexpanded"
+0.600000   0x3f19999a  registered "Wide"
+0.600000   0x3f19999a  registered OS2 8
+0.600000   0x3f19999a  unregistered "wide"
+0.800000   0x3f4ccccd  registered "Extra Wide"
+0.800000   0x3f4ccccd  registered "ExtraWide"
+0.800000   0x3f4ccccd  registered "Ultra Expanded"
+0.800000   0x3f4ccccd  registered "Ultra Extended"
+0.800000   0x3f4ccccd  registered OS2 9
+0.800000   0x3f4ccccd  unregistered "extra wide"
+0.800000   0x3f4ccccd  unregistered "extrawide"

@@ -12,14 +12,14 @@
 // - error if these are called without scrollbars?
 
 struct scrollParams {
-	intmax_t *pos;
-	intmax_t pagesize;
-	intmax_t length;
+	int *pos;
+	int pagesize;
+	int length;
 	int *wheelCarry;
 	UINT wheelSPIAction;
 };
 
-static void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
+static void scrollto(uiArea *a, int which, struct scrollParams *p, int pos)
 {
 	SCROLLINFO si;
 
@@ -33,8 +33,7 @@ static void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
 
 	// Direct2D doesn't have a method for scrolling the existing contents of a render target.
 	// We'll have to just invalidate everything and hope for the best.
-	if (InvalidateRect(a->hwnd, NULL, FALSE) == 0)
-		logLastError(L"error invalidating uiArea after scrolling");
+	invalidateRect(a->hwnd, NULL, FALSE);
 
 	*(p->pos) = pos;
 
@@ -49,14 +48,14 @@ static void scrollto(uiArea *a, int which, struct scrollParams *p, intmax_t pos)
 	SetScrollInfo(a->hwnd, which, &si, TRUE);
 }
 
-static void scrollby(uiArea *a, int which, struct scrollParams *p, intmax_t delta)
+static void scrollby(uiArea *a, int which, struct scrollParams *p, int delta)
 {
 	scrollto(a, which, p, *(p->pos) + delta);
 }
 
 static void scroll(uiArea *a, int which, struct scrollParams *p, WPARAM wParam, LPARAM lParam)
 {
-	intmax_t pos;
+	int pos;
 	SCROLLINFO si;
 
 	pos = *(p->pos);
@@ -135,7 +134,7 @@ static void hscrollParams(uiArea *a, struct scrollParams *p)
 	p->wheelSPIAction = SPI_GETWHEELSCROLLCHARS;
 }
 
-static void hscrollto(uiArea *a, intmax_t pos)
+static void hscrollto(uiArea *a, int pos)
 {
 	struct scrollParams p;
 
@@ -143,7 +142,7 @@ static void hscrollto(uiArea *a, intmax_t pos)
 	scrollto(a, SB_HORZ, &p, pos);
 }
 
-static void hscrollby(uiArea *a, intmax_t delta)
+static void hscrollby(uiArea *a, int delta)
 {
 	struct scrollParams p;
 
@@ -180,7 +179,7 @@ static void vscrollParams(uiArea *a, struct scrollParams *p)
 	p->wheelSPIAction = SPI_GETWHEELSCROLLLINES;
 }
 
-static void vscrollto(uiArea *a, intmax_t pos)
+static void vscrollto(uiArea *a, int pos)
 {
 	struct scrollParams p;
 
@@ -188,7 +187,7 @@ static void vscrollto(uiArea *a, intmax_t pos)
 	scrollto(a, SB_VERT, &p, pos);
 }
 
-static void vscrollby(uiArea *a, intmax_t delta)
+static void vscrollby(uiArea *a, int delta)
 {
 	struct scrollParams p;
 

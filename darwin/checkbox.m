@@ -1,8 +1,6 @@
 // 14 august 2015
 #import "uipriv_darwin.h"
 
-// TODO the intrinsic height of this seems to be wacky
-
 struct uiCheckbox {
 	uiDarwinControl c;
 	NSButton *button;
@@ -11,7 +9,7 @@ struct uiCheckbox {
 };
 
 @interface checkboxDelegateClass : NSObject {
-	struct mapTable *buttons;
+	uiprivMap *buttons;
 }
 - (IBAction)onToggled:(id)sender;
 - (void)registerCheckbox:(uiCheckbox *)c;
@@ -24,13 +22,13 @@ struct uiCheckbox {
 {
 	self = [super init];
 	if (self)
-		self->buttons = newMap();
+		self->buttons = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->buttons);
+	uiprivMapDestroy(self->buttons);
 	[super dealloc];
 }
 
@@ -38,13 +36,13 @@ struct uiCheckbox {
 {
 	uiCheckbox *c;
 
-	c = (uiCheckbox *) mapGet(self->buttons, sender);
+	c = (uiCheckbox *) uiprivMapGet(self->buttons, sender);
 	(*(c->onToggled))(c, c->onToggledData);
 }
 
 - (void)registerCheckbox:(uiCheckbox *)c
 {
-	mapSet(self->buttons, c->button, c);
+	uiprivMapSet(self->buttons, c->button, c);
 	[c->button setTarget:self];
 	[c->button setAction:@selector(onToggled:)];
 }
@@ -52,7 +50,7 @@ struct uiCheckbox {
 - (void)unregisterCheckbox:(uiCheckbox *)c
 {
 	[c->button setTarget:nil];
-	mapDelete(self->buttons, c->button);
+	uiprivMapDelete(self->buttons, c->button);
 }
 
 @end
@@ -77,11 +75,7 @@ char *uiCheckboxText(uiCheckbox *c)
 
 void uiCheckboxSetText(uiCheckbox *c, const char *text)
 {
-	[c->button setTitle:toNSString(text)];
-	// this may result in the size of the checkbox changing
-	// TODO something somewhere is causing this to corrupt some memory so that, for instance, page7b's mouseExited: never triggers on 10.11; figure out what
-	// TODO is this related to map-related crashes?
-	uiDarwinControlTriggerRelayout(uiDarwinControl(c));
+	[c->button setTitle:uiprivToNSString(text)];
 }
 
 void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *, void *), void *data)
@@ -117,14 +111,16 @@ uiCheckbox *uiNewCheckbox(const char *text)
 	uiDarwinNewControl(uiCheckbox, c);
 
 	c->button = [[NSButton alloc] initWithFrame:NSZeroRect];
-	[c->button setTitle:toNSString(text)];
+	[c->button setTitle:uiprivToNSString(text)];
 	[c->button setButtonType:NSSwitchButton];
+	// doesn't seem to have an associated bezel style
 	[c->button setBordered:NO];
+	[c->button setTransparent:NO];
 	uiDarwinSetControlFont(c->button, NSRegularControlSize);
 
 	if (checkboxDelegate == nil) {
-		checkboxDelegate = [checkboxDelegateClass new];
-		[delegates addObject:checkboxDelegate];
+		checkboxDelegate = [[checkboxDelegateClass new] autorelease];
+		[uiprivDelegates addObject:checkboxDelegate];
 	}
 	[checkboxDelegate registerCheckbox:c];
 	uiCheckboxOnToggled(c, defaultOnToggled, NULL);

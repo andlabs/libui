@@ -1,7 +1,7 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc)
+NSLayoutConstraint *uiprivMkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRelation relation, id view2, NSLayoutAttribute attr2, CGFloat multiplier, CGFloat c, NSString *desc)
 {
 	NSLayoutConstraint *constraint;
 
@@ -12,16 +12,24 @@ NSLayoutConstraint *mkConstraint(id view1, NSLayoutAttribute attr1, NSLayoutRela
 		attribute:attr2
 		multiplier:multiplier
 		constant:c];
-	// apparently only added in 10.9
-	if ([constraint respondsToSelector:@selector(setIdentifier:)])
-		[((id) constraint) setIdentifier:desc];
+	uiprivFUTURE_NSLayoutConstraint_setIdentifier(constraint, desc);
 	return constraint;
+}
+
+CGFloat uiDarwinMarginAmount(void *reserved)
+{
+	return 20.0;
+}
+
+CGFloat uiDarwinPaddingAmount(void *reserved)
+{
+	return 8.0;
 }
 
 // this is needed for NSSplitView to work properly; see http://stackoverflow.com/questions/34574478/how-can-i-set-the-position-of-a-nssplitview-nowadays-setpositionofdivideratind (stal in irc.freenode.net/#macdev came up with the exact combination)
 // turns out it also works on NSTabView and NSBox too, possibly others!
 // and for bonus points, it even seems to fix unsatisfiable-constraint-autoresizing-mask issues with NSTabView and NSBox too!!! this is nuts
-void jiggleViewLayout(NSView *view)
+void uiprivJiggleViewLayout(NSView *view)
 {
 	[view setNeedsLayout:YES];
 	[view layoutSubtreeIfNeeded];
@@ -31,17 +39,16 @@ static CGFloat margins(int margined)
 {
 	if (!margined)
 		return 0.0;
-	return 20.0;		// TODO named constant
+	return uiDarwinMarginAmount(NULL);
 }
 
-void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc)
+void uiprivSingleChildConstraintsEstablish(uiprivSingleChildConstraints *c, NSView *contentView, NSView *childView, BOOL hugsTrailing, BOOL hugsBottom, int margined, NSString *desc)
 {
 	CGFloat margin;
-	NSLayoutRelation relation;
 
 	margin = margins(margined);
 
-	c->leadingConstraint = mkConstraint(contentView, NSLayoutAttributeLeading,
+	c->leadingConstraint = uiprivMkConstraint(contentView, NSLayoutAttributeLeading,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeLeading,
 		1, -margin,
@@ -49,7 +56,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->leadingConstraint];
 	[c->leadingConstraint retain];
 
-	c->topConstraint = mkConstraint(contentView, NSLayoutAttributeTop,
+	c->topConstraint = uiprivMkConstraint(contentView, NSLayoutAttributeTop,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeTop,
 		1, -margin,
@@ -57,7 +64,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->topConstraint];
 	[c->topConstraint retain];
 
-	c->trailingConstraintGreater = mkConstraint(contentView, NSLayoutAttributeTrailing,
+	c->trailingConstraintGreater = uiprivMkConstraint(contentView, NSLayoutAttributeTrailing,
 		NSLayoutRelationGreaterThanOrEqual,
 		childView, NSLayoutAttributeTrailing,
 		1, margin,
@@ -67,7 +74,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->trailingConstraintGreater];
 	[c->trailingConstraintGreater retain];
 
-	c->trailingConstraintEqual = mkConstraint(contentView, NSLayoutAttributeTrailing,
+	c->trailingConstraintEqual = uiprivMkConstraint(contentView, NSLayoutAttributeTrailing,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeTrailing,
 		1, margin,
@@ -77,7 +84,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->trailingConstraintEqual];
 	[c->trailingConstraintEqual retain];
 
-	c->bottomConstraintGreater = mkConstraint(contentView, NSLayoutAttributeBottom,
+	c->bottomConstraintGreater = uiprivMkConstraint(contentView, NSLayoutAttributeBottom,
 		NSLayoutRelationGreaterThanOrEqual,
 		childView, NSLayoutAttributeBottom,
 		1, margin,
@@ -87,7 +94,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[contentView addConstraint:c->bottomConstraintGreater];
 	[c->bottomConstraintGreater retain];
 
-	c->bottomConstraintEqual = mkConstraint(contentView, NSLayoutAttributeBottom,
+	c->bottomConstraintEqual = uiprivMkConstraint(contentView, NSLayoutAttributeBottom,
 		NSLayoutRelationEqual,
 		childView, NSLayoutAttributeBottom,
 		1, margin,
@@ -98,7 +105,7 @@ void singleChildConstraintsEstablish(struct singleChildConstraints *c, NSView *c
 	[c->bottomConstraintEqual retain];
 }
 
-void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv)
+void uiprivSingleChildConstraintsRemove(uiprivSingleChildConstraints *c, NSView *cv)
 {
 	if (c->leadingConstraint != nil) {
 		[cv removeConstraint:c->leadingConstraint];
@@ -132,7 +139,7 @@ void singleChildConstraintsRemove(struct singleChildConstraints *c, NSView *cv)
 	}
 }
 
-void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int margined)
+void uiprivSingleChildConstraintsSetMargined(uiprivSingleChildConstraints *c, int margined)
 {
 	CGFloat margin;
 
@@ -149,83 +156,4 @@ void singleChildConstraintsSetMargined(struct singleChildConstraints *c, int mar
 		[c->bottomConstraintGreater setConstant:margin];
 	if (c->bottomConstraintEqual != nil)
 		[c->bottomConstraintEqual setConstant:margin];
-}
-
-// from http://blog.bjhomer.com/2014/08/nsscrollview-and-autolayout.html because (as pointed out there) Apple's official guide is really only for iOS
-// TODO this doesn't quite work with NSTextView; it *mostly* works
-void scrollViewConstraintsEstablish(struct scrollViewConstraints *c, NSScrollView *sv, NSString *desc)
-{
-	NSView *cv, *dv;
-
-	scrollViewConstraintsRemove(c, sv);
-	cv = [sv contentView];
-	dv = [sv documentView];
-
-	c->documentLeading = mkConstraint(dv, NSLayoutAttributeLeading,
-		NSLayoutRelationEqual,
-		cv, NSLayoutAttributeLeading,
-		1, 0,
-		[desc stringByAppendingString:@"document leading constraint"]);
-	[sv addConstraint:c->documentLeading];
-	[c->documentLeading retain];
-
-	c->documentTop = mkConstraint(dv, NSLayoutAttributeTop,
-		NSLayoutRelationEqual,
-		cv, NSLayoutAttributeTop,
-		1, 0,
-		[desc stringByAppendingString:@"document top constraint"]);
-	[sv addConstraint:c->documentTop];
-	[c->documentTop retain];
-
-	c->documentTrailing = mkConstraint(dv, NSLayoutAttributeTrailing,
-		NSLayoutRelationEqual,
-		cv, NSLayoutAttributeTrailing,
-		1, 0,
-		[desc stringByAppendingString:@"document trailing constraint"]);
-	[sv addConstraint:c->documentTrailing];
-	[c->documentTrailing retain];
-
-#if 0
-	c->documentBottom = mkConstraint(dv, NSLayoutAttributeBottom,
-		NSLayoutRelationEqual,
-		sv, NSLayoutAttributeBottom,
-		1, 0,
-		[desc stringByAppendingString:@"document bottom constraint"]);
-	[sv addConstraint:c->documentBottom];
-	[c->documentBottom retain];
-#endif
-}
-
-void scrollViewConstraintsRemove(struct scrollViewConstraints *c, NSScrollView *sv)
-{
-	if (c->documentLeading != nil) {
-		[sv removeConstraint:c->documentLeading];
-		[c->documentLeading release];
-		c->documentLeading = nil;
-	}
-	if (c->documentTop != nil) {
-		[sv removeConstraint:c->documentTop];
-		[c->documentTop release];
-		c->documentTop = nil;
-	}
-	if (c->documentTrailing != nil) {
-		[sv removeConstraint:c->documentTrailing];
-		[c->documentTrailing release];
-		c->documentTrailing = nil;
-	}
-	if (c->documentBottom != nil) {
-		[sv removeConstraint:c->documentBottom];
-		[c->documentBottom release];
-		c->documentBottom = nil;
-	}
-	if (c->documentWidth != nil) {
-		[sv removeConstraint:c->documentWidth];
-		[c->documentWidth release];
-		c->documentWidth = nil;
-	}
-	if (c->documentHeight != nil) {
-		[sv removeConstraint:c->documentHeight];
-		[c->documentHeight release];
-		c->documentHeight = nil;
-	}
 }

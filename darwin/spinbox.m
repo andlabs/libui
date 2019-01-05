@@ -29,13 +29,24 @@ struct uiSpinbox {
 	void *onChangedData;
 };
 
+// yes folks, this varies by operating system! woo!
+// 10.10 started drawing the NSStepper one point too low, so we have to fix it up conditionally
+// TODO test this; we'll probably have to substitute 10_9
+static CGFloat stepperYDelta(void)
+{
+	// via https://developer.apple.com/library/mac/releasenotes/AppKit/RN-AppKit/
+	if (floor(NSAppKitVersionNumber) <= NSAppKitVersionNumber10_9)
+		return 0;
+	return -1;
+}
+
 @implementation libui_spinbox
 
 - (id)initWithFrame:(NSRect)r spinbox:(uiSpinbox *)sb
 {
 	self = [super initWithFrame:r];
 	if (self) {
-		self->tf = newEditableTextField();
+		self->tf = uiprivNewEditableTextField();
 		[self->tf setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		self->formatter = [NSNumberFormatter new];
@@ -59,40 +70,40 @@ struct uiSpinbox {
 		[self addSubview:self->tf];
 		[self addSubview:self->stepper];
 
-		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeLeading,
+		[self addConstraint:uiprivMkConstraint(self->tf, NSLayoutAttributeLeading,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeLeading,
 			1, 0,
 			@"uiSpinbox left edge")];
-		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTrailing,
+		[self addConstraint:uiprivMkConstraint(self->stepper, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTrailing,
 			1, 0,
 			@"uiSpinbox right edge")];
-		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeTop,
+		[self addConstraint:uiprivMkConstraint(self->tf, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTop,
 			1, 0,
 			@"uiSpinbox top edge text field")];
-		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeBottom,
+		[self addConstraint:uiprivMkConstraint(self->tf, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeBottom,
 			1, 0,
 			@"uiSpinbox bottom edge text field")];
-		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeTop,
+		[self addConstraint:uiprivMkConstraint(self->stepper, NSLayoutAttributeTop,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeTop,
-			1, -1,			// TODO make sure this is right
+			1, stepperYDelta(),
 			@"uiSpinbox top edge stepper")];
-		[self addConstraint:mkConstraint(self->stepper, NSLayoutAttributeBottom,
+		[self addConstraint:uiprivMkConstraint(self->stepper, NSLayoutAttributeBottom,
 			NSLayoutRelationEqual,
 			self, NSLayoutAttributeBottom,
-			1, -1,		// TODO make sure this is right
+			1, stepperYDelta(),
 			@"uiSpinbox bottom edge stepper")];
-		[self addConstraint:mkConstraint(self->tf, NSLayoutAttributeTrailing,
+		[self addConstraint:uiprivMkConstraint(self->tf, NSLayoutAttributeTrailing,
 			NSLayoutRelationEqual,
 			self->stepper, NSLayoutAttributeLeading,
-			1, -3,		// TODO
+			1, -3,		// arbitrary amount; good enough visually (and it seems to match NSDatePicker too, at least on 10.11, which is even better)
 			@"uiSpinbox space between text field and stepper")];
 
 		self->spinbox = sb;
@@ -158,12 +169,12 @@ struct uiSpinbox {
 
 uiDarwinControlAllDefaults(uiSpinbox, spinbox)
 
-intmax_t uiSpinboxValue(uiSpinbox *s)
+int uiSpinboxValue(uiSpinbox *s)
 {
 	return [s->spinbox libui_value];
 }
 
-void uiSpinboxSetValue(uiSpinbox *s, intmax_t value)
+void uiSpinboxSetValue(uiSpinbox *s, int value)
 {
 	[s->spinbox libui_setValue:value];
 }
@@ -179,12 +190,16 @@ static void defaultOnChanged(uiSpinbox *s, void *data)
 	// do nothing
 }
 
-uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
+uiSpinbox *uiNewSpinbox(int min, int max)
 {
 	uiSpinbox *s;
+	int temp;
 
-	if (min >= max)
-		complain("error: min >= max in uiNewSpinbox()");
+	if (min >= max) {
+		temp = min;
+		min = max;
+		max = temp;
+	}
 
 	uiDarwinNewControl(uiSpinbox, s);
 

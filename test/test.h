@@ -1,13 +1,11 @@
 // 22 april 2015
-// TODO
-#define _GNU_SOURCE
-#define _USE_MATH_DEFINES
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 #include "../ui.h"
 
 // main.c
@@ -25,6 +23,8 @@ extern uiBox *newHorizontalBox(void);
 extern uiBox *newVerticalBox(void);
 extern uiTab *newTab(void);
 extern uiGroup *newGroup(const char *);
+extern uiForm *newForm(void);
+extern uiGrid *newGrid(void);
 
 // menus.c
 extern uiMenuItem *shouldQuitItem;
@@ -51,7 +51,7 @@ extern uiBox *makePage5(uiWindow *);
 extern uiBox *makePage6(void);
 
 // drawtests.c
-extern void runDrawTest(intmax_t, uiAreaDrawParams *);
+extern void runDrawTest(int, uiAreaDrawParams *);
 extern void populateComboboxWithTests(uiCombobox *);
 
 // page7.c
@@ -74,3 +74,25 @@ extern uiBox *makePage9(void);
 
 // page10.c
 extern uiBox *makePage10(void);
+
+// page11.c
+extern uiBox *makePage11(void);
+
+// page12.c
+extern uiBox *makePage12(void);
+
+// page13.c
+extern uiBox *makePage13(void);
+
+// page14.c
+extern uiTab *makePage14(void);
+
+// page15.c
+extern uiBox *makePage15(uiWindow *);
+
+// page16.c
+extern uiBox *makePage16(void);
+extern void freePage16(void);
+
+// images.c
+extern void appendImageNamed(uiImage *img, const char *name);

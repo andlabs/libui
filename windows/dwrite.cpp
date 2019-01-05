@@ -1,10 +1,11 @@
 // 14 april 2016
 #include "uipriv_windows.hpp"
-// TODO really migrate?
+#include "attrstr.hpp"
 
 IDWriteFactory *dwfactory = NULL;
 
-HRESULT initDrawText(void)
+// TOOD rename to something else, maybe
+HRESULT uiprivInitDrawText(void)
 {
 	// TOOD use DWRITE_FACTORY_TYPE_ISOLATED instead?
 	return DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
@@ -12,17 +13,17 @@ HRESULT initDrawText(void)
 		(IUnknown **) (&dwfactory));
 }
 
-void uninitDrawText(void)
+void uiprivUninitDrawText(void)
 {
 	dwfactory->Release();
 }
 
-fontCollection *loadFontCollection(void)
+fontCollection *uiprivLoadFontCollection(void)
 {
 	fontCollection *fc;
 	HRESULT hr;
 
-	fc = uiNew(fontCollection);
+	fc = uiprivNew(fontCollection);
 	// always get the latest available font information
 	hr = dwfactory->GetSystemFontCollection(&(fc->fonts), TRUE);
 	if (hr != S_OK)
@@ -31,7 +32,13 @@ fontCollection *loadFontCollection(void)
 	return fc;
 }
 
-WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family)
+void uiprivFontCollectionFree(fontCollection *fc)
+{
+	fc->fonts->Release();
+	uiprivFree(fc);
+}
+
+WCHAR *uiprivFontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family)
 {
 	IDWriteLocalizedStrings *names;
 	WCHAR *str;
@@ -40,12 +47,12 @@ WCHAR *fontCollectionFamilyName(fontCollection *fc, IDWriteFontFamily *family)
 	hr = family->GetFamilyNames(&names);
 	if (hr != S_OK)
 		logHRESULT(L"error getting names of font out", hr);
-	str = fontCollectionCorrectString(fc, names);
+	str = uiprivFontCollectionCorrectString(fc, names);
 	names->Release();
 	return str;
 }
 
-WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *names)
+WCHAR *uiprivFontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *names)
 {
 	UINT32 index;
 	BOOL exists;
@@ -66,6 +73,7 @@ WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *
 		hr = names->FindLocaleName(fc->userLocale, &index, &exists);
 	if (hr != S_OK || (hr == S_OK && !exists))
 		hr = names->FindLocaleName(L"en-us", &index, &exists);
+	// TODO check hr again here? or did I decide that would be redundant because COM requires output arguments to be filled regardless of return value?
 	if (!exists)
 		index = 0;
 
@@ -73,16 +81,10 @@ WCHAR *fontCollectionCorrectString(fontCollection *fc, IDWriteLocalizedStrings *
 	if (hr != S_OK)
 		logHRESULT(L"error getting length of font name", hr);
 	// GetStringLength() does not include the null terminator, but GetString() does
-	wname = (WCHAR *) uiAlloc((length + 1) * sizeof (WCHAR), "WCHAR[]");
+	wname = (WCHAR *) uiprivAlloc((length + 1) * sizeof (WCHAR), "WCHAR[]");
 	hr = names->GetString(index, wname, length + 1);
 	if (hr != S_OK)
 		logHRESULT(L"error getting font name", hr);
 
 	return wname;
-}
-
-void fontCollectionFree(fontCollection *fc)
-{
-	fc->fonts->Release();
-	uiFree(fc);
 }

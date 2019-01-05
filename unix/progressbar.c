@@ -1,18 +1,63 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
+// LONGTERM:
+// - in GTK+ 3.22 at least, running both a GtkProgressBar and a GtkCellRendererProgress in pulse mode with our code will cause the former to slow down and eventually stop, and I can't tell why at all
+
 struct uiProgressBar {
 	uiUnixControl c;
 	GtkWidget *widget;
 	GtkProgressBar *pbar;
+	gboolean indeterminate;
+	guint pulser;
 };
 
-uiUnixControlAllDefaults(uiProgressBar)
+uiUnixControlAllDefaultsExceptDestroy(uiProgressBar)
+
+static void uiProgressBarDestroy(uiControl *c)
+{
+	uiProgressBar *p = uiProgressBar(c);
+
+	// be sure to stop the timeout now
+	if (p->indeterminate)
+		g_source_remove(p->pulser);
+	g_object_unref(p->widget);
+	uiFreeControl(uiControl(p));
+}
+
+int uiProgressBarValue(uiProgressBar *p)
+{
+	if (p->indeterminate)
+		return -1;
+	return (int) (gtk_progress_bar_get_fraction(p->pbar) * 100);
+}
+
+static gboolean pulse(void* data)
+{
+	uiProgressBar *p = uiProgressBar(data);
+
+	gtk_progress_bar_pulse(p->pbar);
+	return TRUE;
+}
 
 void uiProgressBarSetValue(uiProgressBar *p, int value)
 {
+	if (value == -1) {
+		if (!p->indeterminate) {
+			p->indeterminate = TRUE;
+			// TODO verify the timeout
+			p->pulser = g_timeout_add(100, pulse, p);
+		}
+		return;
+	}
+	if (p->indeterminate) {
+		p->indeterminate = FALSE;
+		g_source_remove(p->pulser);
+	}
+
 	if (value < 0 || value > 100)
-		complain("value %d out of range in progressbarSetValue()", value);
+		uiprivUserBug("Value %d is out of range for a uiProgressBar.", value);
+
 	gtk_progress_bar_set_fraction(p->pbar, ((gdouble) value) / 100);
 }
 

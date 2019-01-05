@@ -77,7 +77,7 @@ void setExStyle(HWND hwnd, DWORD exstyle)
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx
-void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL hasMenubar)
+void clientSizeToWindowSize(HWND hwnd, int *width, int *height, BOOL hasMenubar)
 {
 	RECT window;
 
@@ -119,4 +119,36 @@ void setWindowInsertAfter(HWND hwnd, HWND insertAfter)
 {
 	if (SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE) == 0)
 		logLastError(L"error reordering window");
+}
+
+HWND getDlgItem(HWND hwnd, int id)
+{
+	HWND out;
+
+	out = GetDlgItem(hwnd, id);
+	if (out == NULL)
+		logLastError(L"error getting dialog item handle");
+	return out;
+}
+
+void invalidateRect(HWND hwnd, RECT *r, BOOL erase)
+{
+	if (InvalidateRect(hwnd, r, erase) == 0)
+		logLastError(L"error invalidating window rect");
+}
+
+// that damn ABI bug is never going to escape me is it
+D2D1_SIZE_F realGetSize(ID2D1RenderTarget *rt)
+{
+#ifdef _MSC_VER
+	return rt->GetSize();
+#else
+	D2D1_SIZE_F size;
+	typedef D2D1_SIZE_F *(__stdcall ID2D1RenderTarget::* GetSizeF)(D2D1_SIZE_F *);
+	GetSizeF gs;
+
+	gs = (GetSizeF) (&(rt->GetSize));
+	(rt->*gs)(&size);
+	return size;
+#endif
 }

@@ -44,6 +44,7 @@ static HRESULT doPaint(uiArea *a, ID2D1RenderTarget *rt, RECT *clip)
 	bgcolor.r = ((float) GetRValue(bgcolorref)) / 255.0;
 	// due to utter apathy on Microsoft's part, GetGValue() does not work with MSVC's Run-Time Error Checks
 	// it has not worked since 2008 and they have *never* fixed it
+	// TODO now that -RTCc has just been deprecated entirely, should we switch back?
 	bgcolor.g = ((float) ((BYTE) ((bgcolorref & 0xFF00) >> 8))) / 255.0;
 	bgcolor.b = ((float) GetBValue(bgcolorref)) / 255.0;
 	bgcolor.a = 1.0;
@@ -71,7 +72,7 @@ static void onWM_PAINT(uiArea *a)
 		clip.right = 0;
 		clip.bottom = 0;
 	}
-	hr = doPaint(a, (ID2D1RenderTarget *) (a->rt), &clip);
+	hr = doPaint(a, a->rt, &clip);
 	switch (hr) {
 	case S_OK:
 		if (ValidateRect(a->hwnd, NULL) == 0)
@@ -90,12 +91,18 @@ static void onWM_PAINT(uiArea *a)
 	}
 }
 
-static void onWM_PRINTCLIENT(uiArea *a)
+static void onWM_PRINTCLIENT(uiArea *a, HDC dc)
 {
+	ID2D1DCRenderTarget *rt;
 	RECT client;
+	HRESULT hr;
 
 	uiWindowsEnsureGetClientRect(a->hwnd, &client);
-//TODO	doPaint(a, (HDC) wParam, &client);
+	rt = makeHDCRenderTarget(dc, &client);
+	hr = doPaint(a, rt, &client);
+	if (hr != S_OK)
+		logHRESULT(L"error printing uiArea client area", hr);
+	rt->Release();
 }
 
 BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lResult)
@@ -106,7 +113,7 @@ BOOL areaDoDraw(uiArea *a, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *lRe
 		*lResult = 0;
 		return TRUE;
 	case WM_PRINTCLIENT:
-		onWM_PRINTCLIENT(a);
+		onWM_PRINTCLIENT(a, (HDC) wParam);
 		*lResult = 0;
 		return TRUE;
 	}
@@ -126,6 +133,5 @@ void areaDrawOnResize(uiArea *a, RECT *newClient)
 
 	// according to Rick Brewster, we must always redraw the entire client area after calling ID2D1RenderTarget::Resize() (see http://stackoverflow.com/a/33222983/3408572)
 	// we used to have a uiAreaHandler.RedrawOnResize() method to decide this; now you know why we don't anymore
-	if (InvalidateRect(a->hwnd, NULL, TRUE) == 0)
-		logLastError(L"error redrawing area on resize");
+	invalidateRect(a->hwnd, NULL, TRUE);
 }

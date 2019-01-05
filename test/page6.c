@@ -72,10 +72,19 @@ static void redraw(uiCombobox *c, void *data)
 	uiAreaQueueRedrawAll(area);
 }
 
+static void enableArea(uiButton *b, void *data)
+{
+	if (data != NULL)
+		uiControlEnable(uiControl(area));
+	else
+		uiControlDisable(uiControl(area));
+}
+
 uiBox *makePage6(void)
 {
 	uiBox *page6;
 	uiBox *hbox;
+	uiButton *button;
 
 	handler.ah.Draw = handlerDraw;
 	handler.ah.MouseEvent = handlerMouseEvent;
@@ -99,8 +108,19 @@ uiBox *makePage6(void)
 	area = uiNewArea((uiAreaHandler *) (&handler));
 	uiBoxAppend(page6, uiControl(area), 1);
 
+	hbox = newHorizontalBox();
+	uiBoxAppend(page6, uiControl(hbox), 0);
+
 	swallowKeys = uiNewCheckbox("Consider key events handled");
-	uiBoxAppend(page6, uiControl(swallowKeys), 0);
+	uiBoxAppend(hbox, uiControl(swallowKeys), 1);
+
+	button = uiNewButton("Enable");
+	uiButtonOnClicked(button, enableArea, button);
+	uiBoxAppend(hbox, uiControl(button), 0);
+
+	button = uiNewButton("Disable");
+	uiButtonOnClicked(button, enableArea, NULL);
+	uiBoxAppend(hbox, uiControl(button), 0);
 
 	return page6;
 }

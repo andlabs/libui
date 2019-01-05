@@ -19,7 +19,7 @@ struct areaWidget {
 	// construct-only parameters aare not set until after the init() function has returned
 	// we need this particular object available during init(), so put it here instead of in uiArea
 	// keep a pointer in uiArea for convenience, though
-	clickCounter cc;
+	uiprivClickCounter cc;
 };
 
 struct areaWidgetClass {
@@ -41,11 +41,14 @@ struct uiArea {
 	uiAreaHandler *ah;
 
 	gboolean scrolling;
-	intmax_t scrollWidth;
-	intmax_t scrollHeight;
+	int scrollWidth;
+	int scrollHeight;
 
 	// note that this is a pointer; see above
-	clickCounter *cc;
+	uiprivClickCounter *cc;
+
+	// for user window drags
+	GdkEventButton *dragevent;
 };
 
 G_DEFINE_TYPE(areaWidget, areaWidget, GTK_TYPE_DRAWING_AREA)
@@ -65,7 +68,7 @@ static void areaWidget_init(areaWidget *aw)
 
 	gtk_widget_set_can_focus(GTK_WIDGET(aw), TRUE);
 
-	clickCounterReset(&(aw->cc));
+	uiprivClickCounterReset(&(aw->cc));
 }
 
 static void areaWidget_dispose(GObject *obj)
@@ -89,6 +92,9 @@ static void areaWidget_size_allocate(GtkWidget *w, GtkAllocation *allocation)
 
 	if (!a->scrolling)
 		// we must redraw everything on resize because Windows requires it
+		// TODO https://developer.gnome.org/gtk3/3.10/GtkWidget.html#gtk-widget-set-redraw-on-allocate ?
+		// TODO drop this rule; it was stupid and documenting this was stupid — let platforms where it matters do it on their own
+		// TODO or do we not, for parity of performance?
 		gtk_widget_queue_resize(w);
 }
 
@@ -116,7 +122,8 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	uiAreaDrawParams dp;
 	double clipX0, clipY0, clipX1, clipY1;
 
-	dp.Context = newContext(cr);
+	dp.Context = uiprivNewContext(cr,
+		gtk_widget_get_style_context(a->widget));
 
 	loadAreaSize(a, &(dp.AreaWidth), &(dp.AreaHeight));
 
@@ -129,7 +136,7 @@ static gboolean areaWidget_draw(GtkWidget *w, cairo_t *cr)
 	// no need to save or restore the graphics state to reset transformations; GTK+ does that for us
 	(*(a->ah->Draw))(a->ah, a, &dp);
 
-	freeContext(dp.Context);
+	uiprivFreeContext(dp.Context);
 	return FALSE;
 }
 
@@ -251,14 +258,21 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 		"gtk-double-click-distance", &maxDistance,
 		NULL);
 	// don't unref settings; it's transfer-none (thanks gregier in irc.gimp.net/#gtk+)
-	me.Count = clickCounterClick(a->cc, me.Down,
+	// e->time is guint32
+	// e->x and e->y are floating-point; just make them 32-bit integers
+	// maxTime and maxDistance... are gint, which *should* fit, hopefully...
+	me.Count = uiprivClickCounterClick(a->cc, me.Down,
 		e->x, e->y,
 		e->time, maxTime,
 		maxDistance, maxDistance);
 
 	me.Down = e->button;
 	me.Up = 0;
+
+	// and set things up for window drags
+	a->dragevent = e;
 	finishMouseEvent(a, &me, e->button, e->x, e->y, e->state, e->window);
+	a->dragevent = NULL;
 	return GDK_EVENT_PROPAGATE;
 }
 
@@ -295,7 +309,7 @@ static gboolean onCrossing(areaWidget *aw, int left)
 	uiArea *a = aw->a;
 
 	(*(a->ah->MouseCrossed))(a->ah, a, left);
-	clickCounterReset(a->cc);
+	uiprivClickCounterReset(a->cc);
 	return GDK_EVENT_PROPAGATE;
 }
 
@@ -397,7 +411,7 @@ static int areaKeyEvent(uiArea *a, int up, GdkEventKey *e)
 			goto keyFound;
 		}
 
-	if (fromScancode(e->hardware_keycode - 8, &ke))
+	if (uiprivFromScancode(e->hardware_keycode - 8, &ke))
 		goto keyFound;
 
 	// no supported key found; treat as unhandled
@@ -482,10 +496,10 @@ static void areaWidget_class_init(areaWidgetClass *class)
 
 uiUnixControlAllDefaults(uiArea)
 
-void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
+void uiAreaSetSize(uiArea *a, int width, int height)
 {
 	if (!a->scrolling)
-		complain("attempt to call uiAreaSetSize() on a non-scrolling uiArea");
+		uiprivUserBug("You cannot call uiAreaSetSize() on a non-scrolling uiArea. (area: %p)", a);
 	a->scrollWidth = width;
 	a->scrollHeight = height;
 	gtk_widget_queue_resize(a->areaWidget);
@@ -500,6 +514,76 @@ void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 {
 	// TODO
 	// TODO adjust adjustments and find source for that
+}
+
+void uiAreaBeginUserWindowMove(uiArea *a)
+{
+	GtkWidget *toplevel;
+
+	if (a->dragevent == NULL)
+		uiprivUserBug("cannot call uiAreaBeginUserWindowMove() outside of a Mouse() with Down != 0");
+	// TODO don't we have a libui function for this? did I scrap it?
+	// TODO widget or areaWidget?
+	toplevel = gtk_widget_get_toplevel(a->widget);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// the docs say to do this
+	if (!gtk_widget_is_toplevel(toplevel)) {
+		// TODO
+		return;
+	}
+	if (!GTK_IS_WINDOW(toplevel)) {
+		// TODO
+		return;
+	}
+	gtk_window_begin_move_drag(GTK_WINDOW(toplevel),
+		a->dragevent->button,
+		a->dragevent->x_root,		// TODO are these correct?
+		a->dragevent->y_root,
+		a->dragevent->time);
+}
+
+static const GdkWindowEdge edges[] = {
+	[uiWindowResizeEdgeLeft] = GDK_WINDOW_EDGE_WEST,
+	[uiWindowResizeEdgeTop] = GDK_WINDOW_EDGE_NORTH,
+	[uiWindowResizeEdgeRight] = GDK_WINDOW_EDGE_EAST,
+	[uiWindowResizeEdgeBottom] = GDK_WINDOW_EDGE_SOUTH,
+	[uiWindowResizeEdgeTopLeft] = GDK_WINDOW_EDGE_NORTH_WEST,
+	[uiWindowResizeEdgeTopRight] = GDK_WINDOW_EDGE_NORTH_EAST,
+	[uiWindowResizeEdgeBottomLeft] = GDK_WINDOW_EDGE_SOUTH_WEST,
+	[uiWindowResizeEdgeBottomRight] = GDK_WINDOW_EDGE_SOUTH_EAST,
+};
+
+void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
+{
+	GtkWidget *toplevel;
+
+	if (a->dragevent == NULL)
+		uiprivUserBug("cannot call uiAreaBeginUserWindowResize() outside of a Mouse() with Down != 0");
+	// TODO don't we have a libui function for this? did I scrap it?
+	// TODO widget or areaWidget?
+	toplevel = gtk_widget_get_toplevel(a->widget);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// the docs say to do this
+	if (!gtk_widget_is_toplevel(toplevel)) {
+		// TODO
+		return;
+	}
+	if (!GTK_IS_WINDOW(toplevel)) {
+		// TODO
+		return;
+	}
+	gtk_window_begin_resize_drag(GTK_WINDOW(toplevel),
+		edges[edge],
+		a->dragevent->button,
+		a->dragevent->x_root,		// TODO are these correct?
+		a->dragevent->y_root,
+		a->dragevent->time);
 }
 
 uiArea *uiNewArea(uiAreaHandler *ah)
@@ -522,7 +606,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	return a;
 }
 
-uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
+uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 {
 	uiArea *a;
 

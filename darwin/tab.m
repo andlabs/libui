@@ -1,11 +1,10 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-// TODOs
-// - page 2 tab doesn't lay out properly at first; need to jiggle on page change too :S
+// TODO need to jiggle on tab change too (second page disabled tab label initially ambiguous)
 
 @interface tabPage : NSObject {
-	struct singleChildConstraints constraints;
+	uiprivSingleChildConstraints constraints;
 	int margined;
 	NSView *view;		// the NSTabViewItem view itself
 	NSObject *pageID;
@@ -35,8 +34,8 @@ struct uiTab {
 {
 	self = [super init];
 	if (self != nil) {
-		self->view = v;
-		self->pageID = o;
+		self->view = [v retain];
+		self->pageID = [o retain];
 	}
 	return self;
 }
@@ -59,7 +58,7 @@ struct uiTab {
 	[self removeChildConstraints];
 	if (self.c == NULL)
 		return;
-	singleChildConstraintsEstablish(&(self->constraints),
+	uiprivSingleChildConstraintsEstablish(&(self->constraints),
 		self->view, [self childView],
 		uiDarwinControlHugsTrailingEdge(uiDarwinControl(self.c)),
 		uiDarwinControlHugsBottom(uiDarwinControl(self.c)),
@@ -69,7 +68,7 @@ struct uiTab {
 
 - (void)removeChildConstraints
 {
-	singleChildConstraintsRemove(&(self->constraints), self->view);
+	uiprivSingleChildConstraintsRemove(&(self->constraints), self->view);
 }
 
 - (int)isMargined
@@ -80,8 +79,7 @@ struct uiTab {
 - (void)setMargined:(int)m
 {
 	self->margined = m;
-	singleChildConstraintsSetMargined(&(self->constraints), self->margined);
-	// TODO issue a relayout command?
+	uiprivSingleChildConstraintsSetMargined(&(self->constraints), self->margined);
 }
 
 @end
@@ -118,8 +116,16 @@ uiDarwinControlDefaultEnabled(uiTab, tabview)
 uiDarwinControlDefaultEnable(uiTab, tabview)
 uiDarwinControlDefaultDisable(uiTab, tabview)
 
-// TODO container update
-uiDarwinControlDefaultSyncEnableState(uiTab, tabview)
+static void uiTabSyncEnableState(uiDarwinControl *c, int enabled)
+{
+	uiTab *t = uiTab(c);
+	tabPage *page;
+
+	if (uiDarwinShouldStopSyncEnableState(uiDarwinControl(t), enabled))
+		return;
+	for (page in t->pages)
+		uiDarwinControlSyncEnableState(uiDarwinControl(page.c), enabled);
+}
 
 uiDarwinControlDefaultSetSuperview(uiTab, tabview)
 
@@ -130,14 +136,13 @@ static void tabRelayout(uiTab *t)
 	for (page in t->pages)
 		[page establishChildConstraints];
 	// and this gets rid of some weird issues with regards to box alignment
-	jiggleViewLayout(t->tabview);
+	uiprivJiggleViewLayout(t->tabview);
 }
 
 BOOL uiTabHugsTrailingEdge(uiDarwinControl *c)
 {
 	uiTab *t = uiTab(c);
 
-	// TODO make a function?
 	return t->horzHuggingPri < NSLayoutPriorityWindowSizeStayPut;
 }
 
@@ -175,12 +180,19 @@ static void uiTabSetHuggingPriority(uiDarwinControl *c, NSLayoutPriority priorit
 	uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(t));
 }
 
+static void uiTabChildVisibilityChanged(uiDarwinControl *c)
+{
+	uiTab *t = uiTab(c);
+
+	tabRelayout(t);
+}
+
 void uiTabAppend(uiTab *t, const char *name, uiControl *child)
 {
 	uiTabInsertAt(t, name, [t->pages count], child);
 }
 
-void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
+void uiTabInsertAt(uiTab *t, const char *name, int n, uiControl *child)
 {
 	tabPage *page;
 	NSView *view;
@@ -189,14 +201,14 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 
 	uiControlSetParent(child, uiControl(t));
 
-	view = [[NSView alloc] initWithFrame:NSZeroRect];
-	// TODO if we turn off the autoresizing mask, nothing shows up; didn't this get documented somewhere?
+	view = [[[NSView alloc] initWithFrame:NSZeroRect] autorelease];
+	// note: if we turn off the autoresizing mask, nothing shows up
 	uiDarwinControlSetSuperview(uiDarwinControl(child), view);
 	uiDarwinControlSyncEnableState(uiDarwinControl(child), uiControlEnabledToUser(uiControl(t)));
 
 	// the documentation says these can be nil but the headers say these must not be; let's be safe and make them non-nil anyway
 	pageID = [NSObject new];
-	page = [[tabPage alloc] initWithView:view pageID:pageID];
+	page = [[[tabPage alloc] initWithView:view pageID:pageID] autorelease];
 	page.c = child;
 
 	// don't hug, just in case we're a stretchy tab
@@ -206,21 +218,16 @@ void uiTabInsertAt(uiTab *t, const char *name, uintmax_t n, uiControl *child)
 	uiDarwinControlSetHuggingPriority(uiDarwinControl(page.c), NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical);
 
 	[t->pages insertObject:page atIndex:n];
-	[page release];			// no need for initial reference
 
-	i = [[NSTabViewItem alloc] initWithIdentifier:pageID];
-	[i setLabel:toNSString(name)];
+	i = [[[NSTabViewItem alloc] initWithIdentifier:pageID] autorelease];
+	[i setLabel:uiprivToNSString(name)];
 	[i setView:view];
 	[t->tabview insertTabViewItem:i atIndex:n];
-	// TODO release i?
-
-	[pageID release];		// no need for initial reference
-	[view release];
 
 	tabRelayout(t);
 }
 
-void uiTabDelete(uiTab *t, uintmax_t n)
+void uiTabDelete(uiTab *t, int n)
 {
 	tabPage *page;
 	uiControl *child;
@@ -244,12 +251,12 @@ void uiTabDelete(uiTab *t, uintmax_t n)
 	tabRelayout(t);
 }
 
-uintmax_t uiTabNumPages(uiTab *t)
+int uiTabNumPages(uiTab *t)
 {
 	return [t->pages count];
 }
 
-int uiTabMargined(uiTab *t, uintmax_t n)
+int uiTabMargined(uiTab *t, int n)
 {
 	tabPage *page;
 
@@ -257,7 +264,7 @@ int uiTabMargined(uiTab *t, uintmax_t n)
 	return [page isMargined];
 }
 
-void uiTabSetMargined(uiTab *t, uintmax_t n, int margined)
+void uiTabSetMargined(uiTab *t, int n, int margined)
 {
 	tabPage *page;
 

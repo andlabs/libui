@@ -1,0 +1,4 @@
+https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Protocols/NSOutlineViewDataSource_Protocol/index.html#//apple_ref/occ/intfm/NSOutlineViewDataSource/outlineView:child:ofItem:
+https://developer.apple.com/library/mac/documentation/Cocoa/Reference/NSOutlineViewDelegate_Protocol/index.html#//apple_ref/occ/intfm/NSOutlineViewDelegate/outlineView:didAddRowView:forRow:
+	https://developer.apple.com/documentation/appkit/nsoutlineviewdelegate/1528320-outlineview?language=objc
+https://github.com/mity/mctrl/blob/master/mctrl/treelist.c around treelist_set_subitem()

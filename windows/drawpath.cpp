@@ -17,7 +17,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode fillmode)
 	uiDrawPath *p;
 	HRESULT hr;
 
-	p = uiNew(uiDrawPath);
+	p = uiprivNew(uiDrawPath);
 	hr = d2dfactory->CreatePathGeometry(&(p->path));
 	if (hr != S_OK)
 		logHRESULT(L"error creating path", hr);
@@ -43,7 +43,7 @@ void uiDrawFreePath(uiDrawPath *p)
 		// TODO close sink first?
 		p->sink->Release();
 	p->path->Release();
-	uiFree(p);
+	uiprivFree(p);
 }
 
 void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
@@ -66,6 +66,7 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 // That is to say, it's NOT THE SWEEP.
 // The sweep is defined by the start and end points and whether the arc is "large".
 // As a result, this design does not allow for full circles or ellipses with a single arc; they have to be simulated with two.
+// TODO https://github.com/Microsoft/WinObjC/blob/develop/Frameworks/CoreGraphics/CGPath.mm#L313
 
 struct arc {
 	double xCenter;
@@ -96,20 +97,20 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 	fullCircle = FALSE;
 	// use the absolute value to tackle both ≥2π and ≤-2π at the same time
 	absSweep = fabs(a->sweep);
-	if (absSweep > (2 * M_PI))		// this part is easy
+	if (absSweep > (2 * uiPi))		// this part is easy
 		fullCircle = TRUE;
 	else {
 		double aerDiff;
 
-		aerDiff = fabs(absSweep - (2 * M_PI));
+		aerDiff = fabs(absSweep - (2 * uiPi));
 		// if we got here then we know a->sweep is larger (or the same!)
 		fullCircle = aerDiff <= absSweep * aerMax;
 	}
 	// TODO make sure this works right for the negative direction
 	if (fullCircle) {
-		a->sweep = M_PI;
+		a->sweep = uiPi;
 		drawArc(p, a, startFunction);
-		a->startAngle += M_PI;
+		a->startAngle += uiPi;
 		drawArc(p, a, NULL);
 		return;
 	}
@@ -144,13 +145,13 @@ static void drawArc(uiDrawPath *p, struct arc *a, void (*startFunction)(uiDrawPa
 		as.sweepDirection = D2D1_SWEEP_DIRECTION_CLOCKWISE;
 	// TODO explain the outer if
 	if (!a->negative)
-		if (a->sweep > M_PI)
+		if (a->sweep > uiPi)
 			as.arcSize = D2D1_ARC_SIZE_LARGE;
 		else
 			as.arcSize = D2D1_ARC_SIZE_SMALL;
 	else
 		// TODO especially this part
-		if (a->sweep > M_PI)
+		if (a->sweep > uiPi)
 			as.arcSize = D2D1_ARC_SIZE_SMALL;
 		else
 			as.arcSize = D2D1_ARC_SIZE_LARGE;
@@ -241,7 +242,6 @@ void uiDrawPathEnd(uiDrawPath *p)
 ID2D1PathGeometry *pathGeometry(uiDrawPath *p)
 {
 	if (p->sink != NULL)
-		// TODO userbug()
-		complain("path not ended");
+		uiprivUserBug("You cannot draw with a uiDrawPath that was not ended. (path: %p)", p);
 	return p->path;
 }

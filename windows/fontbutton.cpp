@@ -1,5 +1,6 @@
 // 14 april 2016
 #include "uipriv_windows.hpp"
+#include "attrstr.hpp"
 
 struct uiFontButton {
 	uiWindowsControl c;
@@ -15,7 +16,7 @@ static void uiFontButtonDestroy(uiControl *c)
 	uiFontButton *b = uiFontButton(c);
 
 	uiWindowsUnregisterWM_COMMANDHandler(b->hwnd);
-	destroyFontDialogParams(&(b->params));
+	uiprivDestroyFontDialogParams(&(b->params));
 	uiWindowsEnsureDestroyWindow(b->hwnd);
 	uiFreeControl(uiControl(b));
 }
@@ -24,10 +25,9 @@ static void updateFontButtonLabel(uiFontButton *b)
 {
 	WCHAR *text;
 
-	text = fontDialogParamsToString(&(b->params));
-	// TODO error check
-	SendMessageW(b->hwnd, WM_SETTEXT, 0, (LPARAM) text);
-	uiFree(text);
+	text = uiprivFontDialogParamsToString(&(b->params));
+	setWindowText(b->hwnd, text);
+	uiprivFree(text);
 
 	// changing the text might necessitate a change in the button's size
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
@@ -41,8 +41,8 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	if (code != BN_CLICKED)
 		return FALSE;
 
-	parent = GetAncestor(b->hwnd, GA_ROOT);		// TODO didn't we have a function for this
-	if (showFontDialog(parent, &(b->params))) {
+	parent = parentToplevel(b->hwnd);
+	if (uiprivShowFontDialog(parent, &(b->params))) {
 		updateFontButtonLabel(b);
 		(*(b->onChanged))(b, b->onChangedData);
 	}
@@ -56,7 +56,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiFontButton)
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14
 
-static void uiFontButtonMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiFontButtonMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiFontButton *b = uiFontButton(c);
 	SIZE size;
@@ -87,14 +87,12 @@ static void defaultOnChanged(uiFontButton *b, void *data)
 	// do nothing
 }
 
-uiDrawTextFont *uiFontButtonFont(uiFontButton *b)
+void uiFontButtonFont(uiFontButton *b, uiFontDescriptor *desc)
 {
-	// we don't own b->params.font; we have to add a reference
-	// we don't own b->params.familyName either; we have to copy it
-	return mkTextFont(b->params.font, TRUE, b->params.familyName, TRUE, b->params.size);
+	uiprivFontDescriptorFromIDWriteFont(b->params.font, desc);
+	desc->Family = toUTF8(b->params.familyName);
+	desc->Size = b->params.size;
 }
-
-// TODO document that the Handle of a Font may not be unique
 
 void uiFontButtonOnChanged(uiFontButton *b, void (*f)(uiFontButton *, void *), void *data)
 {
@@ -114,7 +112,7 @@ uiFontButton *uiNewFontButton(void)
 		hInstance, NULL,
 		TRUE);
 
-	loadInitialFontDialogParams(&(b->params));
+	uiprivLoadInitialFontDialogParams(&(b->params));
 
 	uiWindowsRegisterWM_COMMANDHandler(b->hwnd, onWM_COMMAND, uiControl(b));
 	uiFontButtonOnChanged(b, defaultOnChanged, NULL);
@@ -122,4 +120,9 @@ uiFontButton *uiNewFontButton(void)
 	updateFontButtonLabel(b);
 
 	return b;
+}
+
+void uiFreeFontButtonFont(uiFontDescriptor *desc)
+{
+	uiprivFree((char *) (desc->Family));
 }

@@ -1,12 +1,13 @@
 // 6 april 2015
 #include "uipriv_windows.hpp"
+#include "attrstr.hpp"
 
 HINSTANCE hInstance;
 int nCmdShow;
 
 HFONT hMessageFont;
 
-// TODO needed?
+// LONGTERM needed?
 HBRUSH hollowBrush;
 
 // the returned pointer is actually to the second character
@@ -23,25 +24,23 @@ static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 	if (!hassysmsg)
 		sysmsg = L"";
 	wmessage = toUTF16(message + 1);
-	wout = debugstrf(L"-error initializing libui: %s; code %I32d (0x%08I32X) %s",
+	wout = strf(L"-error initializing libui: %s; code %I32d (0x%08I32X) %s",
 		wmessage,
 		value, value,
 		sysmsg);
-	uiFree(wmessage);
+	uiprivFree(wmessage);
 	if (hassysmsg)
 		LocalFree(sysmsg);		// ignore error
-	if (wout == NULL)			// debugstrf() failed; return message raw
-		return message + 1;
 	out = toUTF8(wout);
-	uiFree(wout);
+	uiprivFree(wout);
 	return out + 1;
 }
 
 #define ieLastErr(msg) initerr("=" msg, L"GetLastError() ==", GetLastError())
 #define ieHRESULT(msg, hr) initerr("=" msg, L"HRESULT", (DWORD) hr)
 
-// TODO make common
-uiInitOptions options;
+// LONGTERM put this declaration in a common file
+uiInitOptions uiprivOptions;
 
 #define wantedICCClasses ( \
 	ICC_STANDARD_CLASSES |	/* user32.dll controls */		\
@@ -63,7 +62,7 @@ const char *uiInit(uiInitOptions *o)
 	INITCOMMONCONTROLSEX icc;
 	HRESULT hr;
 
-	options = *o;
+	uiprivOptions = *o;
 
 	initAlloc();
 
@@ -71,6 +70,8 @@ const char *uiInit(uiInitOptions *o)
 	GetStartupInfoW(&si);
 	if ((si.dwFlags & STARTF_USESHOWWINDOW) != 0)
 		nCmdShow = si.wShowWindow;
+
+	// LONGTERM set DPI awareness
 
 	hDefaultIcon = LoadIconW(NULL, IDI_APPLICATION);
 	if (hDefaultIcon == NULL)
@@ -81,7 +82,7 @@ const char *uiInit(uiInitOptions *o)
 
 	ce = initUtilWindow(hDefaultIcon, hDefaultCursor);
 	if (ce != NULL)
-		return ieLastErr("TODO use ce here");
+		return initerr(ce, L"GetLastError() ==", GetLastError());
 
 	if (registerWindowClass(hDefaultIcon, hDefaultCursor) == 0)
 		return ieLastErr("registering uiWindow window class");
@@ -94,9 +95,8 @@ const char *uiInit(uiInitOptions *o)
 	if (hMessageFont == NULL)
 		return ieLastErr("loading default messagebox font; this is the default UI font");
 
-	// TODO rewrite this error message
 	if (initContainer(hDefaultIcon, hDefaultCursor) == 0)
-		return ieLastErr("initializing uiMakeContainer() window class");
+		return ieLastErr("initializing uiWindowsMakeContainer() window class");
 
 	hollowBrush = (HBRUSH) GetStockObject(HOLLOW_BRUSH);
 	if (hollowBrush == NULL)
@@ -111,14 +111,14 @@ const char *uiInit(uiInitOptions *o)
 	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)
 		return ieHRESULT("initializing COM", hr);
-	// TODO initialize COM security
-	// TODO (windows vista) turn off COM exception handling
+	// LONGTERM initialize COM security
+	// LONGTERM (windows vista) turn off COM exception handling
 
 	hr = initDraw();
 	if (hr != S_OK)
 		return ieHRESULT("initializing Direct2D", hr);
 
-	hr = initDrawText();
+	hr = uiprivInitDrawText();
 	if (hr != S_OK)
 		return ieHRESULT("initializing DirectWrite", hr);
 
@@ -131,16 +131,22 @@ const char *uiInit(uiInitOptions *o)
 	if (registerD2DScratchClass(hDefaultIcon, hDefaultCursor) == 0)
 		return ieLastErr("initializing D2D scratch window class");
 
+	hr = uiprivInitImage();
+	if (hr != S_OK)
+		return ieHRESULT("initializing WIC", hr);
+
 	return NULL;
 }
 
 void uiUninit(void)
 {
+	uiprivUninitTimers();
+	uiprivUninitImage();
 	uninitMenus();
 	unregisterD2DScratchClass();
 	unregisterMessageFilter();
 	unregisterArea();
-	uninitDrawText();
+	uiprivUninitDrawText();
 	uninitDraw();
 	CoUninitialize();
 	if (DeleteObject(hollowBrush) == 0)
@@ -157,7 +163,7 @@ void uiUninit(void)
 void uiFreeInitError(const char *err)
 {
 	if (*(err - 1) == '-')
-		uiFree((void *) err);
+		uiprivFree((void *) (err - 1));
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

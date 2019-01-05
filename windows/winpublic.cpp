@@ -23,7 +23,7 @@ void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR *controlID, HWND *
 	*insertAfter = hwnd;
 }
 
-void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, intmax_t x, intmax_t y, intmax_t width, intmax_t height)
+void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, int x, int y, int width, int height)
 {
 	RECT r;
 

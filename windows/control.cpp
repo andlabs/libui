@@ -11,7 +11,7 @@ void uiWindowsControlSetParentHWND(uiWindowsControl *c, HWND parent)
 	(*(c->SetParentHWND))(c, parent);
 }
 
-void uiWindowsControlMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+void uiWindowsControlMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	(*(c->MinimumSize))(c, width, height);
 }
@@ -21,6 +21,7 @@ void uiWindowsControlMinimumSizeChanged(uiWindowsControl *c)
 	(*(c->MinimumSizeChanged))(c);
 }
 
+// TODO get rid of this
 void uiWindowsControlLayoutRect(uiWindowsControl *c, RECT *r)
 {
 	(*(c->LayoutRect))(c, r);
@@ -29,6 +30,11 @@ void uiWindowsControlLayoutRect(uiWindowsControl *c, RECT *r)
 void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *c, LONG_PTR *controlID, HWND *insertAfter)
 {
 	(*(c->AssignControlIDZOrder))(c, controlID, insertAfter);
+}
+
+void uiWindowsControlChildVisibilityChanged(uiWindowsControl *c)
+{
+	(*(c->ChildVisibilityChanged))(c);
 }
 
 HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont)
@@ -87,7 +93,7 @@ void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *c)
 BOOL uiWindowsControlTooSmall(uiWindowsControl *c)
 {
 	RECT r;
-	intmax_t width, height;
+	int width, height;
 
 	uiWindowsControlLayoutRect(c, &r);
 	uiWindowsControlMinimumSize(c, &width, &height);
@@ -105,4 +111,11 @@ void uiWindowsControlContinueMinimumSizeChanged(uiWindowsControl *c)
 	parent = uiControlParent(uiControl(c));
 	if (parent != NULL)
 		uiWindowsControlMinimumSizeChanged(uiWindowsControl(parent));
+}
+
+// TODO rename this nad the OS X this and hugging ones to NotifyChild
+void uiWindowsControlNotifyVisibilityChanged(uiWindowsControl *c)
+{
+	// TODO we really need to figure this out; the duplication is a mess
+	uiWindowsControlContinueMinimumSizeChanged(c);
 }

@@ -37,7 +37,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiEntry)
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void uiEntryMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiEntryMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiEntry *e = uiEntry(c);
 	uiWindowsSizing sizing;
@@ -92,7 +92,7 @@ void uiEntrySetReadOnly(uiEntry *e, int readonly)
 		logLastError(L"error making uiEntry read-only");
 }
 
-uiEntry *uiNewEntry(void)
+static uiEntry *finishNewEntry(DWORD style)
 {
 	uiEntry *e;
 
@@ -100,12 +100,35 @@ uiEntry *uiNewEntry(void)
 
 	e->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,
 		L"edit", L"",
-		ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
+		style | ES_AUTOHSCROLL | ES_LEFT | ES_NOHIDESEL | WS_TABSTOP,
 		hInstance, NULL,
 		TRUE);
 
 	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
+	return e;
+}
+
+uiEntry *uiNewEntry(void)
+{
+	return finishNewEntry(0);
+}
+
+uiEntry *uiNewPasswordEntry(void)
+{
+	return finishNewEntry(ES_PASSWORD);
+}
+
+uiEntry *uiNewSearchEntry(void)
+{
+	uiEntry *e;
+	HRESULT hr;
+
+	e = finishNewEntry(0);
+	// TODO this is from ThemeExplorer; is it documented anywhere?
+	// TODO SearchBoxEditComposited has no border
+	hr = SetWindowTheme(e->hwnd, L"SearchBoxEdit", NULL);
+	// TODO will hr be S_OK if themes are disabled?
 	return e;
 }

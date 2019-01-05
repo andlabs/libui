@@ -1,8 +1,7 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
 
-// TODOs to confirm
-// - 10.8: if we switch to page 4, then switch back to page 1, check Spaced, and go back to page 4, some controls (progress bar, popup button) are clipped on the sides
+// TODO hiding all stretchy controls still hugs trailing edge
 
 @interface boxChild : NSObject
 @property uiControl *c;
@@ -17,7 +16,6 @@
 	NSMutableArray *children;
 	BOOL vertical;
 	int padded;
-	uintmax_t nStretchy;
 
 	NSLayoutConstraint *first;
 	NSMutableArray *inBetweens;
@@ -39,11 +37,12 @@
 - (CGFloat)paddingAmount;
 - (void)establishOurConstraints;
 - (void)append:(uiControl *)c stretchy:(int)stretchy;
-- (void)delete:(uintmax_t)n;
+- (void)delete:(int)n;
 - (int)isPadded;
 - (void)setPadded:(int)p;
 - (BOOL)hugsTrailing;
 - (BOOL)hugsBottom;
+- (int)nStretchy;
 @end
 
 struct uiBox {
@@ -71,7 +70,6 @@ struct uiBox {
 		self->vertical = vert;
 		self->padded = 0;
 		self->children = [NSMutableArray new];
-		self->nStretchy = 0;
 
 		self->inBetweens = [NSMutableArray new];
 		self->otherConstraints = [NSMutableArray new];
@@ -147,10 +145,9 @@ struct uiBox {
 {
 	if (!self->padded)
 		return 0.0;
-	return 8.0;		// TODO named constant
+	return uiDarwinPaddingAmount(NULL);
 }
 
-// TODO something about spinbox hugging
 - (void)establishOurConstraints
 {
 	boxChild *bc;
@@ -167,8 +164,10 @@ struct uiBox {
 	// first arrange in the primary direction
 	prev = nil;
 	for (bc in self->children) {
+		if (!uiControlVisible(bc.c))
+			continue;
 		if (prev == nil) {			// first view
-			self->first = mkConstraint(self, self->primaryStart,
+			self->first = uiprivMkConstraint(self, self->primaryStart,
 				NSLayoutRelationEqual,
 				[bc view], self->primaryStart,
 				1, 0,
@@ -179,7 +178,7 @@ struct uiBox {
 			continue;
 		}
 		// not the first; link it
-		c = mkConstraint(prev, self->primaryEnd,
+		c = uiprivMkConstraint(prev, self->primaryEnd,
 			NSLayoutRelationEqual,
 			[bc view], self->primaryStart,
 			1, -padding,
@@ -188,7 +187,9 @@ struct uiBox {
 		[self->inBetweens addObject:c];
 		prev = [bc view];
 	}
-	self->last = mkConstraint(prev, self->primaryEnd,
+	if (prev == nil)		// no control visible; act as if no controls
+		return;
+	self->last = uiprivMkConstraint(prev, self->primaryEnd,
 		NSLayoutRelationEqual,
 		self, self->primaryEnd,
 		1, 0,
@@ -201,14 +202,16 @@ struct uiBox {
 	if (!self->vertical)
 		hugsSecondary = uiDarwinControlHugsBottom;
 	for (bc in self->children) {
-		c = mkConstraint(self, self->secondaryStart,
+		if (!uiControlVisible(bc.c))
+			continue;
+		c = uiprivMkConstraint(self, self->secondaryStart,
 			NSLayoutRelationEqual,
 			[bc view], self->secondaryStart,
 			1, 0,
 			@"uiBox secondary start constraint");
 		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
-		c = mkConstraint([bc view], self->secondaryEnd,
+		c = uiprivMkConstraint([bc view], self->secondaryEnd,
 			NSLayoutRelationLessThanOrEqual,
 			self, self->secondaryEnd,
 			1, 0,
@@ -217,7 +220,7 @@ struct uiBox {
 			[c setPriority:NSLayoutPriorityDefaultLow];
 		[self addConstraint:c];
 		[self->otherConstraints addObject:c];
-		c = mkConstraint([bc view], self->secondaryEnd,
+		c = uiprivMkConstraint([bc view], self->secondaryEnd,
 			NSLayoutRelationEqual,
 			self, self->secondaryEnd,
 			1, 0,
@@ -229,17 +232,19 @@ struct uiBox {
 	}
 
 	// and make all stretchy controls the same size
-	if (self->nStretchy == 0)
+	if ([self nStretchy] == 0)
 		return;
 	prev = nil;		// first stretchy view
 	for (bc in self->children) {
+		if (!uiControlVisible(bc.c))
+			continue;
 		if (!bc.stretchy)
 			continue;
 		if (prev == nil) {
 			prev = [bc view];
 			continue;
 		}
-		c = mkConstraint(prev, self->primarySize,
+		c = uiprivMkConstraint(prev, self->primarySize,
 			NSLayoutRelationEqual,
 			[bc view], self->primarySize,
 			1, 0,
@@ -253,7 +258,7 @@ struct uiBox {
 {
 	boxChild *bc;
 	NSLayoutPriority priority;
-	uintmax_t oldnStretchy;
+	int oldnStretchy;
 
 	bc = [boxChild new];
 	bc.c = c;
@@ -270,31 +275,28 @@ struct uiBox {
 	if (bc.stretchy)
 		priority = NSLayoutPriorityDefaultLow;
 	else
-		// TODO will default high work?
+		// LONGTERM will default high work?
 		priority = NSLayoutPriorityRequired;
 	uiDarwinControlSetHuggingPriority(uiDarwinControl(bc.c), priority, self->primaryOrientation);
 	// make sure controls don't hug their secondary direction so they fill the width of the view
 	uiDarwinControlSetHuggingPriority(uiDarwinControl(bc.c), NSLayoutPriorityDefaultLow, self->secondaryOrientation);
 
+	oldnStretchy = [self nStretchy];
 	[self->children addObject:bc];
 
 	[self establishOurConstraints];
-	if (bc.stretchy) {
-		oldnStretchy = self->nStretchy;
-		self->nStretchy++;
+	if (bc.stretchy)
 		if (oldnStretchy == 0)
 			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->b));
-	}
 
 	[bc release];		// we don't need the initial reference now
 }
 
-- (void)delete:(uintmax_t)n
+- (void)delete:(int)n
 {
 	boxChild *bc;
 	int stretchy;
 
-	// TODO separate into a method?
 	bc = (boxChild *) [self->children objectAtIndex:n];
 	stretchy = bc.stretchy;
 
@@ -307,11 +309,9 @@ struct uiBox {
 	[self->children removeObjectAtIndex:n];
 
 	[self establishOurConstraints];
-	if (stretchy) {
-		self->nStretchy--;
-		if (self->nStretchy == 0)
+	if (stretchy)
+		if ([self nStretchy] == 0)
 			uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->b));
-	}
 }
 
 - (int)isPadded
@@ -328,21 +328,35 @@ struct uiBox {
 	padding = [self paddingAmount];
 	for (c in self->inBetweens)
 		[c setConstant:-padding];
-	// TODO call anything?
 }
 
 - (BOOL)hugsTrailing
 {
 	if (self->vertical)		// always hug if vertical
 		return YES;
-	return self->nStretchy != 0;
+	return [self nStretchy] != 0;
 }
 
 - (BOOL)hugsBottom
 {
 	if (!self->vertical)		// always hug if horizontal
 		return YES;
-	return self->nStretchy != 0;
+	return [self nStretchy] != 0;
+}
+
+- (int)nStretchy
+{
+	boxChild *bc;
+	int n;
+
+	n = 0;
+	for (bc in self->children) {
+		if (!uiControlVisible(bc.c))
+			continue;
+		if (bc.stretchy)
+			n++;
+	}
+	return n;
 }
 
 @end
@@ -402,12 +416,23 @@ static void uiBoxChildEdgeHuggingChanged(uiDarwinControl *c)
 uiDarwinControlDefaultHuggingPriority(uiBox, view)
 uiDarwinControlDefaultSetHuggingPriority(uiBox, view)
 
+static void uiBoxChildVisibilityChanged(uiDarwinControl *c)
+{
+	uiBox *b = uiBox(c);
+
+	[b->view establishOurConstraints];
+}
+
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
+	// LONGTERM on other platforms
+	// or at leat allow this and implicitly turn it into a spacer
+	if (c == NULL)
+		uiprivUserBug("You cannot add NULL to a uiBox.");
 	[b->view append:c stretchy:stretchy];
 }
 
-void uiBoxDelete(uiBox *b, uintmax_t n)
+void uiBoxDelete(uiBox *b, int n)
 {
 	[b->view delete:n];
 }

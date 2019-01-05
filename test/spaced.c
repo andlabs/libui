@@ -7,8 +7,8 @@ struct thing {
 };
 
 static struct thing *things = NULL;
-static uintmax_t len = 0;
-static uintmax_t cap = 0;
+static size_t len = 0;
+static size_t cap = 0;
 
 #define grow 32
 
@@ -31,13 +31,15 @@ enum types {
 	box,
 	tab,
 	group,
+	form,
+	grid,
 };
 
 void setSpaced(int spaced)
 {
-	uintmax_t i;
+	size_t i;
 	void *p;
-	uintmax_t j, n;
+	size_t j, n;
 
 	for (i = 0; i < len; i++) {
 		p = things[i].ptr;
@@ -56,6 +58,12 @@ void setSpaced(int spaced)
 		case group:
 			uiGroupSetMargined(uiGroup(p), spaced);
 			break;
+		case form:
+			uiFormSetPadded(uiForm(p), spaced);
+			break;
+		case grid:
+			uiGridSetPadded(uiGrid(p), spaced);
+			break;
 		}
 	}
 }
@@ -64,9 +72,9 @@ void querySpaced(char out[12])		// more than enough
 {
 	int m = 0;
 	int p = 0;
-	uintmax_t i;
+	size_t i;
 	void *pp;
-	uintmax_t j, n;
+	size_t j, n;
 
 	for (i = 0; i < len; i++) {
 		pp = things[i].ptr;
@@ -88,6 +96,8 @@ void querySpaced(char out[12])		// more than enough
 			if (uiGroupMargined(uiGroup(pp)))
 				m++;
 			break;
+		// TODO form
+		// TODO grid
 		}
 	}
 
@@ -145,5 +155,23 @@ uiGroup *newGroup(const char *text)
 
 	g = uiNewGroup(text);
 	append(g, group);
+	return g;
+}
+
+uiForm *newForm(void)
+{
+	uiForm *f;
+
+	f = uiNewForm();
+	append(f, form);
+	return f;
+}
+
+uiGrid *newGrid(void)
+{
+	uiGrid *g;
+
+	g = uiNewGrid();
+	append(g, grid);
 	return g;
 }

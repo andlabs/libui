@@ -1,0 +1,25 @@
+2016-05-26 22:41:26.514 svtest[82032:546554]       backgroundColor       NSNamedColorSpace System controlBackgroundColor
+2016-05-26 22:41:26.514 svtest[82032:546554]       drawsBackground       1
+2016-05-26 22:41:26.514 svtest[82032:546554]       borderType            2
+2016-05-26 22:41:26.514 svtest[82032:546554]       documentCursor        (null)
+2016-05-26 22:41:26.515 svtest[82032:546554]       hasHorizontalScroller 1
+2016-05-26 22:41:26.515 svtest[82032:546554]       hasVerticalScroller   1
+2016-05-26 22:41:26.515 svtest[82032:546554]       autohidesScrollers    1
+2016-05-26 22:41:26.515 svtest[82032:546554]       hasHorizontalRuler    0
+2016-05-26 22:41:26.516 svtest[82032:546554]       hasVerticalRuler      0
+2016-05-26 22:41:26.516 svtest[82032:546554]       rulersVisible         0
+2016-05-26 22:41:26.516 svtest[82032:546554] 10.10 autoAdjContentInsets  1
+2016-05-26 22:41:26.516 svtest[82032:546554]       scrollerKnobStyle     0
+2016-05-26 22:41:26.516 svtest[82032:546554]       scrollerStyle         1
+2016-05-26 22:41:26.516 svtest[82032:546554]       horizontalLineScroll  19
+2016-05-26 22:41:26.516 svtest[82032:546554]       verticalLineScroll    19
+2016-05-26 22:41:26.528 svtest[82032:546554]       horizontalPageScroll  10
+2016-05-26 22:41:26.528 svtest[82032:546554]       verticalPageScroll    10
+2016-05-26 22:41:26.528 svtest[82032:546554]       scrollsDynamically    1
+2016-05-26 22:41:26.528 svtest[82032:546554]       findBarPosition       1
+2016-05-26 22:41:26.528 svtest[82032:546554]       usesPredomAxisScroll  0
+2016-05-26 22:41:26.528 svtest[82032:546554]       horizontalElasticity  0
+2016-05-26 22:41:26.528 svtest[82032:546554]       verticalElasticity    0
+2016-05-26 22:41:26.528 svtest[82032:546554] 10.8  allowsMagnification   0
+2016-05-26 22:41:26.528 svtest[82032:546554] 10.8  maxMagnification      4
+2016-05-26 22:41:26.528 svtest[82032:546554] 10.8  minMagnification      0.25

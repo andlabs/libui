@@ -89,19 +89,22 @@ static void uiGroupSyncEnableState(uiWindowsControl *c, int enabled)
 
 uiWindowsControlDefaultSetParentHWND(uiGroup)
 
-static void uiGroupMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiGroupMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiGroup *g = uiGroup(c);
 	int mx, mtop, mbottom;
+	int labelWidth;
 
 	*width = 0;
 	*height = 0;
 	if (g->child != NULL)
 		uiWindowsControlMinimumSize(uiWindowsControl(g->child), width, height);
+	labelWidth = uiWindowsWindowTextWidth(g->hwnd);
+	if (*width < labelWidth)		// don't clip the label; it doesn't ellipsize
+		*width = labelWidth;
 	groupMargins(g, &mx, &mtop, &mbottom);
 	*width += 2 * mx;
 	*height += mtop + mbottom;
-	// TODO label width? and when?
 }
 
 static void uiGroupMinimumSizeChanged(uiWindowsControl *c)
@@ -117,6 +120,12 @@ static void uiGroupMinimumSizeChanged(uiWindowsControl *c)
 
 uiWindowsControlDefaultLayoutRect(uiGroup)
 uiWindowsControlDefaultAssignControlIDZOrder(uiGroup)
+
+static void uiGroupChildVisibilityChanged(uiWindowsControl *c)
+{
+	// TODO eliminate the redundancy
+	uiWindowsControlMinimumSizeChanged(c);
+}
 
 char *uiGroupTitle(uiGroup *g)
 {
@@ -159,18 +168,25 @@ void uiGroupSetMargined(uiGroup *g, int margined)
 static LRESULT CALLBACK groupSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
 	uiGroup *g = uiGroup(dwRefData);
+	WINDOWPOS *wp = (WINDOWPOS *) lParam;
+	MINMAXINFO *mmi = (MINMAXINFO *) lParam;
+	int minwid, minht;
 	LRESULT lResult;
 
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
 	switch (uMsg) {
 	case WM_WINDOWPOSCHANGED:
-		// TODO check
-		// TODO add check in container.c
+		if ((wp->flags & SWP_NOSIZE) != 0)
+			break;
 		groupRelayout(g);
-		// TODO is this right?
-		break;
-	// TODO WM_GETMINMAXINFO
+		return 0;
+	case WM_GETMINMAXINFO:
+		lResult = DefWindowProcW(hwnd, uMsg, wParam, lParam);
+		uiWindowsControlMinimumSize(uiWindowsControl(g), &minwid, &minht);
+		mmi->ptMinTrackSize.x = minwid;
+		mmi->ptMinTrackSize.y = minht;
+		return lResult;
 	case WM_NCDESTROY:
 		if (RemoveWindowSubclass(hwnd, groupSubProc, uIdSubclass) == FALSE)
 			logLastError(L"error removing groupbox subclass");
@@ -192,7 +208,7 @@ uiGroup *uiNewGroup(const char *text)
 		BS_GROUPBOX,
 		hInstance, NULL,
 		TRUE);
-	uiFree(wtext);
+	uiprivFree(wtext);
 
 	if (SetWindowSubclass(g->hwnd, groupSubProc, 0, (DWORD_PTR) g) == FALSE)
 		logLastError(L"error subclassing groupbox to handle parent messages");

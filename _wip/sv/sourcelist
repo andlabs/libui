@@ -1,0 +1,25 @@
+2016-05-26 22:43:58.600 svtest[82237:548359]       backgroundColor       (null)
+2016-05-26 22:43:58.600 svtest[82237:548359]       drawsBackground       0
+2016-05-26 22:43:58.600 svtest[82237:548359]       borderType            2
+2016-05-26 22:43:58.600 svtest[82237:548359]       documentCursor        (null)
+2016-05-26 22:43:58.600 svtest[82237:548359]       hasHorizontalScroller 1
+2016-05-26 22:43:58.600 svtest[82237:548359]       hasVerticalScroller   1
+2016-05-26 22:43:58.600 svtest[82237:548359]       autohidesScrollers    1
+2016-05-26 22:43:58.600 svtest[82237:548359]       hasHorizontalRuler    0
+2016-05-26 22:43:58.600 svtest[82237:548359]       hasVerticalRuler      0
+2016-05-26 22:43:58.600 svtest[82237:548359]       rulersVisible         0
+2016-05-26 22:43:58.601 svtest[82237:548359] 10.10 autoAdjContentInsets  1
+2016-05-26 22:43:58.601 svtest[82237:548359]       scrollerKnobStyle     0
+2016-05-26 22:43:58.601 svtest[82237:548359]       scrollerStyle         1
+2016-05-26 22:43:58.601 svtest[82237:548359]       horizontalLineScroll  19
+2016-05-26 22:43:58.601 svtest[82237:548359]       verticalLineScroll    19
+2016-05-26 22:43:58.645 svtest[82237:548359]       horizontalPageScroll  10
+2016-05-26 22:43:58.645 svtest[82237:548359]       verticalPageScroll    10
+2016-05-26 22:43:58.645 svtest[82237:548359]       scrollsDynamically    1
+2016-05-26 22:43:58.645 svtest[82237:548359]       findBarPosition       1
+2016-05-26 22:43:58.645 svtest[82237:548359]       usesPredomAxisScroll  0
+2016-05-26 22:43:58.645 svtest[82237:548359]       horizontalElasticity  0
+2016-05-26 22:43:58.646 svtest[82237:548359]       verticalElasticity    0
+2016-05-26 22:43:58.646 svtest[82237:548359] 10.8  allowsMagnification   0
+2016-05-26 22:43:58.646 svtest[82237:548359] 10.8  maxMagnification      4
+2016-05-26 22:43:58.646 svtest[82237:548359] 10.8  minMagnification      0.25

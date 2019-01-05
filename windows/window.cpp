@@ -14,6 +14,12 @@ struct uiWindow {
 	void *onClosingData;
 	int margined;
 	BOOL hasMenubar;
+	void (*onContentSizeChanged)(uiWindow *, void *);
+	void *onContentSizeChangedData;
+	BOOL changingSize;
+	int fullscreen;
+	WINDOWPLACEMENT fsPrevPlacement;
+	int borderless;
 };
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
@@ -35,7 +41,6 @@ static void windowMargins(uiWindow *w, int *mx, int *my)
 
 static void windowRelayout(uiWindow *w)
 {
-	uiWindowsSizing sizing;
 	int x, y, width, height;
 	RECT r;
 	int mx, my;
@@ -64,7 +69,7 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	MINMAXINFO *mmi = (MINMAXINFO *) lParam;
-	intmax_t width, height;
+	int width, height;
 	LRESULT lResult;
 
 	ww = GetWindowLongPtrW(hwnd, GWLP_USERDATA);
@@ -82,13 +87,19 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		// not a menu
 		if (lParam != 0)
 			break;
-		if (HIWORD(wParam) != 0)
+		// IsDialogMessage() will also generate IDOK and IDCANCEL when pressing Enter and Escape (respectively) on some controls, like EDIT controls
+		// swallow those too; they'll cause runMenuEvent() to panic
+		// TODO fix the root cause somehow
+		if (HIWORD(wParam) != 0 || LOWORD(wParam) <= IDCANCEL)
 			break;
 		runMenuEvent(LOWORD(wParam), uiWindow(w));
 		return 0;
 	case WM_WINDOWPOSCHANGED:
 		if ((wp->flags & SWP_NOSIZE) != 0)
 			break;
+		if (w->onContentSizeChanged != NULL)		// TODO figure out why this is happening too early
+			if (!w->changingSize)
+				(*(w->onContentSizeChanged))(w, w->onContentSizeChangedData);
 		windowRelayout(w);
 		return 0;
 	case WM_GETMINMAXINFO:
@@ -138,11 +149,17 @@ static int defaultOnClosing(uiWindow *w, void *data)
 	return 0;
 }
 
+static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
+{
+	// do nothing
+}
+
+static std::map<uiWindow *, bool> windows;
+
 static void uiWindowDestroy(uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
 
-	// TODO make sure all ports have the necessary verifications
 	// first hide ourselves
 	ShowWindow(w->hwnd, SW_HIDE);
 	// now destroy the child
@@ -154,15 +171,22 @@ static void uiWindowDestroy(uiControl *c)
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
 	// and finally free ourselves
+	windows.erase(w);
 	uiWindowsEnsureDestroyWindow(w->hwnd);
 	uiFreeControl(uiControl(w));
 }
 
 uiWindowsControlDefaultHandle(uiWindow)
-// TODO?
-uiWindowsControlDefaultParent(uiWindow)
-uiWindowsControlDefaultSetParent(uiWindow)
-// end TODO
+
+uiControl *uiWindowParent(uiControl *c)
+{
+	return NULL;
+}
+
+void uiWindowSetParent(uiControl *c, uiControl *parent)
+{
+	uiUserBugCannotSetParentOnToplevel("uiWindow");
+}
 
 static int uiWindowToplevel(uiControl *c)
 {
@@ -183,7 +207,6 @@ static void uiWindowShow(uiControl *c)
 
 	w->visible = 1;
 	// just in case the window's minimum size wasn't recalculated already
-	// TODO is it needed?
 	ensureMinimumWindowSize(w);
 	if (w->shownOnce) {
 		ShowWindow(w->hwnd, SW_SHOW);
@@ -214,10 +237,9 @@ uiWindowsControlDefaultSyncEnableState(uiWindow)
 // TODO
 uiWindowsControlDefaultSetParentHWND(uiWindow)
 
-static void uiWindowMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiWindowMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiWindow *w = uiWindow(c);
-	uiWindowsSizing sizing;
 	int mx, my;
 
 	*width = 0;
@@ -253,6 +275,12 @@ static void uiWindowLayoutRect(uiWindowsControl *c, RECT *r)
 
 uiWindowsControlDefaultAssignControlIDZOrder(uiWindow)
 
+static void uiWindowChildVisibilityChanged(uiWindowsControl *c)
+{
+	// TODO eliminate the redundancy
+	uiWindowsControlMinimumSizeChanged(c);
+}
+
 char *uiWindowTitle(uiWindow *w)
 {
 	return uiWindowsWindowText(w->hwnd);
@@ -264,10 +292,114 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
 }
 
+// this is used for both fullscreening and centering
+// see also https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353 and https://blogs.msdn.microsoft.com/oldnewthing/20050505-04/?p=35703
+static void windowMonitorRect(HWND hwnd, RECT *r)
+{
+	HMONITOR monitor;
+	MONITORINFO mi;
+
+	monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+	ZeroMemory(&mi, sizeof (MONITORINFO));
+	mi.cbSize = sizeof (MONITORINFO);
+	if (GetMonitorInfoW(monitor, &mi) == 0) {
+		logLastError(L"error getting window monitor rect");
+		// default to SM_CXSCREEN x SM_CYSCREEN to be safe
+		r->left = 0;
+		r->top = 0;
+		r->right = GetSystemMetrics(SM_CXSCREEN);
+		r->bottom = GetSystemMetrics(SM_CYSCREEN);
+		return;
+	}
+	*r = mi.rcMonitor;
+}
+
+void uiWindowContentSize(uiWindow *w, int *width, int *height)
+{
+	RECT r;
+
+	uiWindowsEnsureGetClientRect(w->hwnd, &r);
+	*width = r.right - r.left;
+	*height = r.bottom - r.top;
+}
+
+// TODO should this disallow too small?
+void uiWindowSetContentSize(uiWindow *w, int width, int height)
+{
+	w->changingSize = TRUE;
+	clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
+	if (SetWindowPos(w->hwnd, NULL, 0, 0, width, height, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
+		logLastError(L"error resizing window");
+	w->changingSize = FALSE;
+}
+
+int uiWindowFullscreen(uiWindow *w)
+{
+	return w->fullscreen;
+}
+
+void uiWindowSetFullscreen(uiWindow *w, int fullscreen)
+{
+	RECT r;
+
+	if (w->fullscreen && fullscreen)
+		return;
+	if (!w->fullscreen && !fullscreen)
+		return;
+	w->fullscreen = fullscreen;
+	w->changingSize = TRUE;
+	if (w->fullscreen) {
+		ZeroMemory(&(w->fsPrevPlacement), sizeof (WINDOWPLACEMENT));
+		w->fsPrevPlacement.length = sizeof (WINDOWPLACEMENT);
+		if (GetWindowPlacement(w->hwnd, &(w->fsPrevPlacement)) == 0)
+			logLastError(L"error getting old window placement");
+		windowMonitorRect(w->hwnd, &r);
+		setStyle(w->hwnd, getStyle(w->hwnd) & ~WS_OVERLAPPEDWINDOW);
+		if (SetWindowPos(w->hwnd, HWND_TOP,
+			r.left, r.top,
+			r.right - r.left, r.bottom - r.top,
+			SWP_FRAMECHANGED | SWP_NOOWNERZORDER) == 0)
+			logLastError(L"error making window fullscreen");
+	} else {
+		if (!w->borderless)		// keep borderless until that is turned off
+			setStyle(w->hwnd, getStyle(w->hwnd) | WS_OVERLAPPEDWINDOW);
+		if (SetWindowPlacement(w->hwnd, &(w->fsPrevPlacement)) == 0)
+			logLastError(L"error leaving fullscreen");
+		if (SetWindowPos(w->hwnd, NULL,
+			0, 0, 0, 0,
+			SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER) == 0)
+			logLastError(L"error restoring window border after fullscreen");
+	}
+	w->changingSize = FALSE;
+}
+
+void uiWindowOnContentSizeChanged(uiWindow *w, void (*f)(uiWindow *, void *), void *data)
+{
+	w->onContentSizeChanged = f;
+	w->onContentSizeChangedData = data;
+}
+
 void uiWindowOnClosing(uiWindow *w, int (*f)(uiWindow *, void *), void *data)
 {
 	w->onClosing = f;
 	w->onClosingData = data;
+}
+
+int uiWindowBorderless(uiWindow *w)
+{
+	return w->borderless;
+}
+
+// TODO window should move to the old client position and should not have the extra space the borders left behind
+// TODO extract the relevant styles from WS_OVERLAPPEDWINDOW?
+void uiWindowSetBorderless(uiWindow *w, int borderless)
+{
+	w->borderless = borderless;
+	if (w->borderless)
+		setStyle(w->hwnd, getStyle(w->hwnd) & ~WS_OVERLAPPEDWINDOW);
+	else
+		if (!w->fullscreen)		// keep borderless until leaving fullscreen
+			setStyle(w->hwnd, getStyle(w->hwnd) | WS_OVERLAPPEDWINDOW);
 }
 
 void uiWindowSetChild(uiWindow *w, uiControl *child)
@@ -348,7 +480,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		NULL, NULL, hInstance, w);
 	if (w->hwnd == NULL)
 		logLastError(L"error creating window");
-	uiFree(wtitle);
+	uiprivFree(wtitle);
 
 	if (hasMenubar) {
 		w->menubar = makeMenubar();
@@ -360,14 +492,16 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	setClientSize(w, width, height, hasMenubarBOOL, style, exstyle);
 
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
+	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
 
+	windows[w] = true;
 	return w;
 }
 
 // this cannot queue a resize because it's called by the resize handler
 void ensureMinimumWindowSize(uiWindow *w)
 {
-	intmax_t width, height;
+	int width, height;
 	RECT r;
 
 	uiWindowsControlMinimumSize(uiWindowsControl(w), &width, &height);
@@ -379,4 +513,24 @@ void ensureMinimumWindowSize(uiWindow *w)
 	clientSizeToWindowSize(w->hwnd, &width, &height, w->hasMenubar);
 	if (SetWindowPos(w->hwnd, NULL, 0, 0, width, height, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER) == 0)
 		logLastError(L"error resizing window");
+}
+
+void disableAllWindowsExcept(uiWindow *which)
+{
+	for (auto &w : windows) {
+		if (w.first == which)
+			continue;
+		EnableWindow(w.first->hwnd, FALSE);
+	}
+}
+
+void enableAllWindowsExcept(uiWindow *which)
+{
+	for (auto &w : windows) {
+		if (w.first == which)
+			continue;
+		if (!uiControlEnabled(uiControl(w.first)))
+			continue;
+		EnableWindow(w.first->hwnd, TRUE);
+	}
 }

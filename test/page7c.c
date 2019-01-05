@@ -65,7 +65,7 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *dp)
 	uiDrawPathNewFigureWithArc(path,
 		areaSize / 2, areaSize / 2,
 		circleRadius,
-		0, 2 * M_PI,
+		0, 2 * uiPi,
 		0);
 	uiDrawPathEnd(path);
 	stops[0].Pos =0.0;

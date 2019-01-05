@@ -7,14 +7,15 @@
 #include "compilerver.hpp"
 
 // ui internal window messages
+// TODO make these either not messages or WM_USER-based, so we can be sane about reserving WM_APP
 enum {
 	// redirected WM_COMMAND and WM_NOTIFY
 	msgCOMMAND = WM_APP + 0x40,		// start offset just to be safe
 	msgNOTIFY,
 	msgHSCROLL,
 	msgQueued,
-	// TODO convert to a function like with container?
 	msgD2DScratchPaint,
+	msgD2DScratchLButtonDown,
 };
 
 // alloc.cpp
@@ -28,17 +29,17 @@ extern BOOL runWM_HSCROLL(WPARAM wParam, LPARAM lParam, LRESULT *lResult);
 extern void issueWM_WININICHANGE(WPARAM wParam, LPARAM lParam);
 
 // utf16.cpp
-#define emptyUTF16() ((WCHAR *) uiAlloc(1 * sizeof (WCHAR), "WCHAR[]"))
-#define emptyUTF8() ((char *) uiAlloc(1 * sizeof (char), "char[]"))
+#define emptyUTF16() ((WCHAR *) uiprivAlloc(1 * sizeof (WCHAR), "WCHAR[]"))
+#define emptyUTF8() ((char *) uiprivAlloc(1 * sizeof (char), "char[]"))
 extern WCHAR *toUTF16(const char *str);
 extern char *toUTF8(const WCHAR *wstr);
 extern WCHAR *utf16dup(const WCHAR *orig);
 extern WCHAR *strf(const WCHAR *format, ...);
 extern WCHAR *vstrf(const WCHAR *format, va_list ap);
-extern WCHAR *debugstrf(const WCHAR *format, ...);
-extern WCHAR *debugvstrf(const WCHAR *format, va_list ap);
 extern char *LFtoCRLF(const char *lfonly);
-extern void CRLFtoLF(const char *s);
+extern void CRLFtoLF(char *s);
+extern WCHAR *ftoutf16(double d);
+extern WCHAR *itoutf16(int i);
 
 // debug.cpp
 // see http://stackoverflow.com/questions/14421656/is-there-widely-available-wide-character-variant-of-file
@@ -50,11 +51,17 @@ extern void CRLFtoLF(const char *s);
 #define _wsn(m) _ws2n(m)
 #define debugargs const WCHAR *file, const WCHAR *line, const WCHAR *func
 extern HRESULT _logLastError(debugargs, const WCHAR *s);
+#ifdef _MSC_VER
 #define logLastError(s) _logLastError(_ws(__FILE__), _wsn(__LINE__), _ws(__FUNCTION__), s)
+#else
+#define logLastError(s) _logLastError(_ws(__FILE__), _wsn(__LINE__), L"TODO none of the function name macros are macros in MinGW", s)
+#endif
 extern HRESULT _logHRESULT(debugargs, const WCHAR *s, HRESULT hr);
+#ifdef _MSC_VER
 #define logHRESULT(s, hr) _logHRESULT(_ws(__FILE__), _wsn(__LINE__), _ws(__FUNCTION__), s, hr)
-extern void _implbug(debugargs, const WCHAR *format, ...);
-#define implbug(...) _implbug(_ws(__FILE__), _wsn(__LINE__), _ws(__FUNCTION__), __VA_ARGS__)
+#else
+#define logHRESULT(s, hr) _logHRESULT(_ws(__FILE__), _wsn(__LINE__), L"TODO none of the function name macros are macros in MinGW", s, hr)
+#endif
 
 // winutil.cpp
 extern int windowClassOf(HWND hwnd, ...);
@@ -63,10 +70,12 @@ extern DWORD getStyle(HWND hwnd);
 extern void setStyle(HWND hwnd, DWORD style);
 extern DWORD getExStyle(HWND hwnd);
 extern void setExStyle(HWND hwnd, DWORD exstyle);
-extern void clientSizeToWindowSize(HWND hwnd, intmax_t *width, intmax_t *height, BOOL hasMenubar);
+extern void clientSizeToWindowSize(HWND hwnd, int *width, int *height, BOOL hasMenubar);
 extern HWND parentOf(HWND child);
 extern HWND parentToplevel(HWND child);
 extern void setWindowInsertAfter(HWND hwnd, HWND insertAfter);
+extern HWND getDlgItem(HWND hwnd, int id);
+extern void invalidateRect(HWND hwnd, RECT *r, BOOL erase);
 
 // text.cpp
 extern WCHAR *windowTextAndLen(HWND hwnd, LRESULT *len);
@@ -86,8 +95,16 @@ extern const char *initUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor);
 extern void uninitUtilWindow(void);
 
 // main.cpp
+// TODO how the hell did MSVC accept this without the second uiprivTimer???????
+typedef struct uiprivTimer uiprivTimer;
+struct uiprivTimer {
+	int (*f)(void *);
+	void *data;
+};
 extern int registerMessageFilter(void);
 extern void unregisterMessageFilter(void);
+extern void uiprivFreeTimer(uiprivTimer *t);
+extern void uiprivUninitTimers(void);
 
 // parent.cpp
 extern void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect);
@@ -110,6 +127,8 @@ extern BOOL areaFilter(MSG *);
 extern ATOM registerWindowClass(HICON, HCURSOR);
 extern void unregisterWindowClass(void);
 extern void ensureMinimumWindowSize(uiWindow *);
+extern void disableAllWindowsExcept(uiWindow *which);
+extern void enableAllWindowsExcept(uiWindow *which);
 
 // container.cpp
 #define containerClass L"libui_uiContainerClass"
@@ -124,10 +143,32 @@ struct tabPage {
 };
 extern struct tabPage *newTabPage(uiControl *child);
 extern void tabPageDestroy(struct tabPage *tp);
-extern void tabPageMinimumSize(struct tabPage *tp, intmax_t *width, intmax_t *height);
+extern void tabPageMinimumSize(struct tabPage *tp, int *width, int *height);
 
+// colordialog.cpp
+struct colorDialogRGBA {
+	double r;
+	double g;
+	double b;
+	double a;
+};
+extern BOOL showColorDialog(HWND parent, struct colorDialogRGBA *c);
 
+// sizing.cpp
+extern void getSizing(HWND hwnd, uiWindowsSizing *sizing, HFONT font);
 
+// TODO move into a dedicated file abibugs.cpp when we rewrite the drawing code
+extern D2D1_SIZE_F realGetSize(ID2D1RenderTarget *rt);
 
 // TODO
 #include "_uipriv_migrate.hpp"
+
+// draw.cpp
+extern ID2D1DCRenderTarget *makeHDCRenderTarget(HDC dc, RECT *r);
+
+// image.cpp
+extern IWICImagingFactory *uiprivWICFactory;
+extern HRESULT uiprivInitImage(void);
+extern void uiprivUninitImage(void);
+extern IWICBitmap *uiprivImageAppropriateForDC(uiImage *i, HDC dc);
+extern HRESULT uiprivWICToGDI(IWICBitmap *b, HDC dc, int width, int height, HBITMAP *hb);

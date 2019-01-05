@@ -36,6 +36,11 @@ void uiDarwinControlSetHuggingPriority(uiDarwinControl *c, NSLayoutPriority prio
 	(*(c->SetHuggingPriority))(c, priority, orientation);
 }
 
+void uiDarwinControlChildVisibilityChanged(uiDarwinControl *c)
+{
+	(*(c->ChildVisibilityChanged))(c);
+}
+
 void uiDarwinSetControlFont(NSControl *c, NSControlSize size)
 {
 	[c setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:size]]];
@@ -67,4 +72,13 @@ void uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl *c)
 	parent = uiControlParent(uiControl(c));
 	if (parent != NULL)
 		uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl(parent));
+}
+
+void uiDarwinNotifyVisibilityChanged(uiDarwinControl *c)
+{
+	uiControl *parent;
+
+	parent = uiControlParent(uiControl(c));
+	if (parent != NULL)
+		uiDarwinControlChildVisibilityChanged(uiDarwinControl(parent));
 }

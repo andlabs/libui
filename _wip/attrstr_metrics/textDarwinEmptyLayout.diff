@@ -1,0 +1,171 @@
+diff --git a/darwin/attrstr.m b/darwin/attrstr.m
+index fd45ec25..86039fad 100644
+--- a/darwin/attrstr.m
++++ b/darwin/attrstr.m
+@@ -403,8 +403,13 @@ static CTParagraphStyleRef mkParagraphStyle(uiDrawTextLayoutParams *p)
+ 	return ps;
+ }
+ 
+-CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks)
++static const UniChar emptyChars[] = { 0x20, 0x0 };
++static const CFIndex emptyCharCount = 1;
++
++CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, BOOL *isEmpty, NSArray **backgroundBlocks)
+ {
++	const UniChar *chars;
++	CFIndex charCount;
+ 	CFStringRef cfstr;
+ 	CFMutableDictionaryRef defaultAttrs;
+ 	CTFontRef defaultCTFont;
+@@ -413,7 +418,15 @@ CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray
+ 	CFMutableAttributedStringRef mas;
+ 	struct foreachParams fep;
+ 
+-	cfstr = CFStringCreateWithCharacters(NULL, attrstrUTF16(p->String), attrstrUTF16Len(p->String));
++	*isEmpty = NO;
++	chars = attrstrUTF16(p->String);
++	charCount = attrstrUTF16Len(p->String);
++	if (charCount == 0) {
++		*isEmpty = YES;
++		chars = emptyChars;
++		charCount = emptyCharCount;
++	}
++	cfstr = CFStringCreateWithCharacters(NULL, chars, charCount);
+ 	if (cfstr == NULL) {
+ 		// TODO
+ 	}
+diff --git a/darwin/drawtext.m b/darwin/drawtext.m
+index 1fa5920e..65912383 100644
+--- a/darwin/drawtext.m
++++ b/darwin/drawtext.m
+@@ -2,13 +2,16 @@
+ #import "uipriv_darwin.h"
+ #import "draw.h"
+ 
+-// TODO on an empty string nLines == 0
+-// we must prevent this somehow
+-// TODO in general, every function could be more robust, but we cannot have a situation where there are zero lines
++// TODO in general, every function could be more robust
+ // TODO what happens to extents if only whitespace?
++// TODO for empty layouts:
++// - check if alignment correct compared to other OSs, or expected behavior at all
++// - double-check if uiAttributedString allows zero-length attributes; I forget if I did
+ 
+ struct uiDrawTextLayout {
+ 	CFAttributedStringRef attrstr;
++	// this is needed because Core Text will give us an empty line array on a frame made with an empty string
++	BOOL isEmpty;
+ 
+ 	// the width as passed into uiDrawTextLayout constructors
+ 	double width;
+@@ -41,7 +44,7 @@
+ };
+ 
+ // TODO document that lines may or may not overlap because ours do in the case of multiple combining characters
+-static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize size)
++static uiDrawTextLayoutLineMetrics *computeLineMetrics(CTFrameRef frame, CGSize size, BOOL isEmpty)
+ {
+ 	uiDrawTextLayoutLineMetrics *metrics;
+ 	CFArrayRef lines;
+@@ -79,6 +82,8 @@
+ 		metrics[i].X = origins[i].x;
+ 		metrics[i].Y = origins[i].y - descent - leading;
+ 		metrics[i].Width = bounds.size.width;
++		if (isEmpty)
++			metrics[i].Width = 0;
+ 		metrics[i].Height = ascent + descent + leading;
+ 
+ 		metrics[i].BaselineY = origins[i].y;
+@@ -117,7 +122,7 @@
+ 	CGRect rect;
+ 
+ 	tl = uiNew(uiDrawTextLayout);
+-	tl->attrstr = attrstrToCoreFoundation(p, &(tl->backgroundBlocks));
++	tl->attrstr = attrstrToCoreFoundation(p, &(tl->isEmpty), &(tl->backgroundBlocks));
+ 	range.location = 0;
+ 	range.length = CFAttributedStringGetLength(tl->attrstr);
+ 	tl->width = p->Width;
+@@ -152,7 +157,7 @@
+ 
+ 	tl->lines = CTFrameGetLines(tl->frame);
+ 	tl->nLines = CFArrayGetCount(tl->lines);
+-	tl->lineMetrics = computeLineMetrics(tl->frame, tl->size);
++	tl->lineMetrics = computeLineMetrics(tl->frame, tl->size, tl->isEmpty);
+ 
+ 	// and finally copy the UTF-8/UTF-16 conversion tables
+ 	tl->u8tou16 = attrstrCopyUTF8ToUTF16(p->String, &(tl->nUTF8));
+@@ -180,6 +185,9 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
+ 	backgroundBlock b;
+ 	CGAffineTransform textMatrix;
+ 
++	if (tl->isEmpty)
++		return;
++
+ 	CGContextSaveGState(c->c);
+ 	// save the text matrix because it's not part of the graphics state
+ 	textMatrix = CGContextGetTextMatrix(c->c);
+@@ -216,6 +224,8 @@ void uiDrawText(uiDrawContext *c, uiDrawTextLayout *tl, double x, double y)
+ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height)
+ {
+ 	*width = tl->size.width;
++	if (tl->isEmpty)
++		*width = 0;
+ 	*height = tl->size.height;
+ }
+ 
+@@ -233,6 +243,8 @@ void uiDrawTextLayoutLineByteRange(uiDrawTextLayout *tl, int line, size_t *start
+ 	range = CTLineGetStringRange(lr);
+ 	*start = tl->u16tou8[range.location];
+ 	*end = tl->u16tou8[range.location + range.length];
++	if (tl->isEmpty)
++		*start = *end;
+ }
+ 
+ void uiDrawTextLayoutLineGetMetrics(uiDrawTextLayout *tl, int line, uiDrawTextLayoutLineMetrics *m)
+@@ -262,14 +274,17 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *p
+ 	*line = i;
+ 
+ 	ln = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, i);
+-	// note: according to the docs, we pass a y of 0 for this since the is the baseline of that line (the point is relative to the line)
+-	// note: x is relative to the line origin
+ 	x -= tl->lineMetrics[*line].X;
+-	p = CTLineGetStringIndexForPosition(ln, CGPointMake(x, 0));
+-	if (p == kCFNotFound) {
+-		// TODO
++	*pos = 0;
++	if (!tl->isEmpty) {
++		// note: according to the docs, we pass a y of 0 for this since the is the baseline of that line (the point is relative to the line)
++		// note: x is relative to the line origin
++		p = CTLineGetStringIndexForPosition(ln, CGPointMake(x, 0));
++		if (p == kCFNotFound) {
++			// TODO
++		}
++		*pos = tl->u16tou8[p];
+ 	}
+-	*pos = tl->u16tou8[p];
+ }
+ 
+ double uiDrawTextLayoutByteLocationInLine(uiDrawTextLayout *tl, size_t pos, int line)
+@@ -282,6 +297,9 @@ void uiDrawTextLayoutHitTest(uiDrawTextLayout *tl, double x, double y, size_t *p
+ 		return -1;
+ 	lr = (CTLineRef) CFArrayGetValueAtIndex(tl->lines, line);
+ 	range = CTLineGetStringRange(lr);
++	// TODO is the behavior of this part correct?
++	if (tl->isEmpty)
++		range.length = 0;
+ 	// note: >, not >=, because the position at end is valid!
+ 	if (pos < range.location || pos > (range.location + range.length))
+ 		return -1;
+diff --git a/darwin/uipriv_darwin.h b/darwin/uipriv_darwin.h
+index 0303c32c..d44ee410 100644
+--- a/darwin/uipriv_darwin.h
++++ b/darwin/uipriv_darwin.h
+@@ -151,7 +151,7 @@ extern void fontdescFromCTFontDescriptor(CTFontDescriptorRef ctdesc, uiDrawFontD
+ extern void initUnderlineColors(void);
+ extern void uninitUnderlineColors(void);
+ typedef void (^backgroundBlock)(uiDrawContext *c, uiDrawTextLayout *layout, double x, double y);
+-extern CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, NSArray **backgroundBlocks);
++extern CFAttributedStringRef attrstrToCoreFoundation(uiDrawTextLayoutParams *p, BOOL *isEmpty, NSArray **backgroundBlocks);
+ 
+ // aat.m
+ typedef void (^aatBlock)(uint16_t type, uint16_t selector);

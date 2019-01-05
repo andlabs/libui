@@ -47,7 +47,7 @@ static void forceOff(uiMenuItem *item, uiWindow *w, void *data)
 
 static void whatWindow(uiMenuItem *item, uiWindow *w, void *data)
 {
-	printf("menu item clicked on window %p\n", w);
+	printf("menu item clicked on window %p\n", (void *) w);
 }
 
 void initMenus(void)
@@ -94,10 +94,10 @@ void initMenus(void)
 	multiMenu = uiNewMenu("Multi");
 	uiMenuAppendSeparator(multiMenu);
 	uiMenuAppendSeparator(multiMenu);
-	uiMenuAppendItem(multiMenu, "Item");
+	uiMenuAppendItem(multiMenu, "Item && Item && Item");
 	uiMenuAppendSeparator(multiMenu);
 	uiMenuAppendSeparator(multiMenu);
-	uiMenuAppendItem(multiMenu, "Item");
+	uiMenuAppendItem(multiMenu, "Item __ Item __ Item");
 	uiMenuAppendSeparator(multiMenu);
 	uiMenuAppendSeparator(multiMenu);
 

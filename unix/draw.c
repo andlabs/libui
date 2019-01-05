@@ -2,18 +2,20 @@
 #include "uipriv_unix.h"
 #include "draw.h"
 
-uiDrawContext *newContext(cairo_t *cr)
+uiDrawContext *uiprivNewContext(cairo_t *cr, GtkStyleContext *style)
 {
 	uiDrawContext *c;
 
-	c = uiNew(uiDrawContext);
+	c = uiprivNew(uiDrawContext);
 	c->cr = cr;
+	c->style = style;
 	return c;
 }
 
-void freeContext(uiDrawContext *c)
+void uiprivFreeContext(uiDrawContext *c)
 {
-	uiFree(c);
+	// free neither cr nor style; we own neither
+	uiprivFree(c);
 }
 
 static cairo_pattern_t *mkbrush(uiDrawBrush *b)
@@ -37,7 +39,7 @@ static cairo_pattern_t *mkbrush(uiDrawBrush *b)
 //	case uiDrawBrushTypeImage:
 	}
 	if (cairo_pattern_status(pat) != CAIRO_STATUS_SUCCESS)
-		complain("error creating pattern in mkbrush(): %s",
+		uiprivImplBug("error creating pattern in mkbrush(): %s",
 			cairo_status_to_string(cairo_pattern_status(pat)));
 	switch (b->Type) {
 	case uiDrawBrushTypeLinearGradient:
@@ -57,7 +59,7 @@ void uiDrawStroke(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b, uiDrawStro
 {
 	cairo_pattern_t *pat;
 
-	runPath(path, c->cr);
+	uiprivRunPath(path, c->cr);
 	pat = mkbrush(b);
 	cairo_set_source(c->cr, pat);
 	switch (p->Cap) {
@@ -93,10 +95,10 @@ void uiDrawFill(uiDrawContext *c, uiDrawPath *path, uiDrawBrush *b)
 {
 	cairo_pattern_t *pat;
 
-	runPath(path, c->cr);
+	uiprivRunPath(path, c->cr);
 	pat = mkbrush(b);
 	cairo_set_source(c->cr, pat);
-	switch (pathFillMode(path)) {
+	switch (uiprivPathFillMode(path)) {
 	case uiDrawFillModeWinding:
 		cairo_set_fill_rule(c->cr, CAIRO_FILL_RULE_WINDING);
 		break;
@@ -112,14 +114,14 @@ void uiDrawTransform(uiDrawContext *c, uiDrawMatrix *m)
 {
 	cairo_matrix_t cm;
 
-	m2c(m, &cm);
+	uiprivM2C(m, &cm);
 	cairo_transform(c->cr, &cm);
 }
 
 void uiDrawClip(uiDrawContext *c, uiDrawPath *path)
 {
-	runPath(path, c->cr);
-	switch (pathFillMode(path)) {
+	uiprivRunPath(path, c->cr);
+	switch (uiprivPathFillMode(path)) {
 	case uiDrawFillModeWinding:
 		cairo_set_fill_rule(c->cr, CAIRO_FILL_RULE_WINDING);
 		break;

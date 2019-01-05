@@ -10,3 +10,8 @@ void uiFreeText(char *t)
 {
 	g_free(t);
 }
+
+int uiprivStricmp(const char *a, const char *b)
+{
+	return strcasecmp(a, b);
+}

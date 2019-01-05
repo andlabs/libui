@@ -13,7 +13,7 @@ struct uiSpinbox {
 
 // utility functions
 
-static intmax_t value(uiSpinbox *s)
+static int value(uiSpinbox *s)
 {
 	BOOL neededCap = FALSE;
 	LRESULT val;
@@ -27,11 +27,12 @@ static intmax_t value(uiSpinbox *s)
 		SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) val);
 		s->inhibitChanged = FALSE;
 	}
-	return (intmax_t) val;
+	return val;
 }
 
 // control implementation
 
+// TODO assign lResult
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiSpinbox *s = (uiSpinbox *) c;
@@ -47,10 +48,10 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 	// This won't handle leading spaces, but spaces aren't allowed *anyway*.
 	wtext = windowText(s->edit);
 	if (wcscmp(wtext, L"-") == 0) {
-		uiFree(wtext);
+		uiprivFree(wtext);
 		return TRUE;
 	}
-	uiFree(wtext);
+	uiprivFree(wtext);
 	// value() does the work for us
 	value(s);
 	(*(s->onChanged))(s, s->onChangedData);
@@ -61,7 +62,7 @@ static void uiSpinboxDestroy(uiControl *c)
 {
 	uiSpinbox *s = uiSpinbox(c);
 
-	uiWindowsUnregisterWM_COMMANDHandler(s->hwnd);
+	uiWindowsUnregisterWM_COMMANDHandler(s->edit);
 	uiWindowsEnsureDestroyWindow(s->updown);
 	uiWindowsEnsureDestroyWindow(s->edit);
 	uiWindowsEnsureDestroyWindow(s->hwnd);
@@ -76,7 +77,7 @@ uiWindowsControlAllDefaultsExceptDestroy(uiSpinbox)
 #define entryWidth 107 /* this is actually the shorter progress bar width, but Microsoft only indicates as wide as necessary */
 #define entryHeight 14
 
-static void uiSpinboxMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiSpinboxMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	uiSpinbox *s = uiSpinbox(c);
 	uiWindowsSizing sizing;
@@ -108,7 +109,7 @@ static void spinboxArrangeChildren(uiSpinbox *s)
 static void recreateUpDown(uiSpinbox *s)
 {
 	BOOL preserve = FALSE;
-	intmax_t current;
+	int current;
 	// Microsoft's commctrl.h says to use this type
 	INT min, max;
 
@@ -156,12 +157,12 @@ static void defaultOnChanged(uiSpinbox *s, void *data)
 	// do nothing
 }
 
-intmax_t uiSpinboxValue(uiSpinbox *s)
+int uiSpinboxValue(uiSpinbox *s)
 {
 	return value(s);
 }
 
-void uiSpinboxSetValue(uiSpinbox *s, intmax_t value)
+void uiSpinboxSetValue(uiSpinbox *s, int value)
 {
 	s->inhibitChanged = TRUE;
 	SendMessageW(s->updown, UDM_SETPOS32, 0, (LPARAM) value);
@@ -179,12 +180,16 @@ static void onResize(uiWindowsControl *c)
 	spinboxRelayout(uiSpinbox(c));
 }
 
-uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
+uiSpinbox *uiNewSpinbox(int min, int max)
 {
 	uiSpinbox *s;
+	int temp;
 
-	if (min >= max)
-		complain("error: min >= max in uiNewSpinbox()");
+	if (min >= max) {
+		temp = min;
+		min = max;
+		max = temp;
+	}
 
 	uiWindowsNewControl(uiSpinbox, s);
 
@@ -198,7 +203,7 @@ uiSpinbox *uiNewSpinbox(intmax_t min, intmax_t max)
 		TRUE);
 	uiWindowsEnsureSetParentHWND(s->edit, s->hwnd);
 
-	uiWindowsRegisterWM_COMMANDHandler(s->hwnd, onWM_COMMAND, uiControl(s));
+	uiWindowsRegisterWM_COMMANDHandler(s->edit, onWM_COMMAND, uiControl(s));
 	uiSpinboxOnChanged(s, defaultOnChanged, NULL);
 
 	recreateUpDown(s);

@@ -28,7 +28,7 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 {
 	uiDrawPath *p;
 
-	p = uiNew(uiDrawPath);
+	p = uiprivNew(uiDrawPath);
 	p->pieces = g_array_new(FALSE, TRUE, sizeof (struct piece));
 	p->fillMode = mode;
 	return p;
@@ -37,13 +37,13 @@ uiDrawPath *uiDrawNewPath(uiDrawFillMode mode)
 void uiDrawFreePath(uiDrawPath *p)
 {
 	g_array_free(p->pieces, TRUE);
-	uiFree(p);
+	uiprivFree(p);
 }
 
 static void add(uiDrawPath *p, struct piece *piece)
 {
 	if (p->ended)
-		complain("path ended in add()");
+		uiprivUserBug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
 	g_array_append_vals(p->pieces, piece, 1);
 }
 
@@ -61,8 +61,8 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 {
 	struct piece piece;
 
-	if (sweep > 2 * M_PI)
-		sweep = 2 * M_PI;
+	if (sweep > 2 * uiPi)
+		sweep = 2 * uiPi;
 	piece.type = newFigureArc;
 	piece.d[0] = xCenter;
 	piece.d[1] = yCenter;
@@ -87,8 +87,8 @@ void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radiu
 {
 	struct piece piece;
 
-	if (sweep > 2 * M_PI)
-		sweep = 2 * M_PI;
+	if (sweep > 2 * uiPi)
+		sweep = 2 * uiPi;
 	piece.type = arcTo;
 	piece.d[0] = xCenter;
 	piece.d[1] = yCenter;
@@ -138,14 +138,14 @@ void uiDrawPathEnd(uiDrawPath *p)
 	p->ended = TRUE;
 }
 
-void runPath(uiDrawPath *p, cairo_t *cr)
+void uiprivRunPath(uiDrawPath *p, cairo_t *cr)
 {
 	guint i;
 	struct piece *piece;
 	void (*arc)(cairo_t *, double, double, double, double, double);
 
 	if (!p->ended)
-		complain("path not ended in runPath()");
+		uiprivUserBug("You cannot draw with a uiDrawPath that has not been ended. (path: %p)", p);
 	cairo_new_path(cr);
 	for (i = 0; i < p->pieces->len; i++) {
 		piece = &g_array_index(p->pieces, struct piece, i);
@@ -193,7 +193,7 @@ void runPath(uiDrawPath *p, cairo_t *cr)
 	}
 }
 
-uiDrawFillMode pathFillMode(uiDrawPath *path)
+uiDrawFillMode uiprivPathFillMode(uiDrawPath *path)
 {
 	return path->fillMode;
 }

@@ -2,6 +2,8 @@
 #include "uipriv_windows.hpp"
 #include "area.hpp"
 
+// TODO handle WM_DESTROY/WM_NCDESTROY
+// TODO same for other Direct2D stuff
 static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	uiArea *a;
@@ -51,7 +53,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 uiWindowsControlAllDefaults(uiArea)
 
-static void uiAreaMinimumSize(uiWindowsControl *c, intmax_t *width, intmax_t *height)
+static void uiAreaMinimumSize(uiWindowsControl *c, int *width, int *height)
 {
 	// TODO
 	*width = 0;
@@ -69,7 +71,8 @@ ATOM registerAreaClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	wc.hIcon = hDefaultIcon;
 	wc.hCursor = hDefaultCursor;
 	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
-	// TODO specify CS_HREDRAW/CS_VREDRAW in addition to or instead of calling InvalidateRect(NULL) in WM_WINDOWPOSCHANGED above, or not at all?
+	// this is just to be safe; see the InvalidateRect() call in the WM_WINDOWPOSCHANGED handler for more details
+	wc.style = CS_HREDRAW | CS_VREDRAW;
 	return RegisterClassW(&wc);
 }
 
@@ -79,7 +82,7 @@ void unregisterArea(void)
 		logLastError(L"error unregistering uiArea window class");
 }
 
-void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
+void uiAreaSetSize(uiArea *a, int width, int height)
 {
 	a->scrollWidth = width;
 	a->scrollHeight = height;
@@ -89,13 +92,72 @@ void uiAreaSetSize(uiArea *a, intmax_t width, intmax_t height)
 void uiAreaQueueRedrawAll(uiArea *a)
 {
 	// don't erase the background; we do that ourselves in doPaint()
-	if (InvalidateRect(a->hwnd, NULL, FALSE) == 0)
-		logLastError(L"error queueing uiArea redraw");
+	invalidateRect(a->hwnd, NULL, FALSE);
 }
 
 void uiAreaScrollTo(uiArea *a, double x, double y, double width, double height)
 {
 	// TODO
+}
+
+void uiAreaBeginUserWindowMove(uiArea *a)
+{
+	HWND toplevel;
+
+	// TODO restrict execution
+	ReleaseCapture();		// TODO use properly and reset internal data structures
+	toplevel = parentToplevel(a->hwnd);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// see http://stackoverflow.com/questions/40249940/how-do-i-initiate-a-user-mouse-driven-move-or-resize-for-custom-window-borders-o#40250654
+	SendMessageW(toplevel, WM_SYSCOMMAND,
+		SC_MOVE | 2, 0);
+}
+
+void uiAreaBeginUserWindowResize(uiArea *a, uiWindowResizeEdge edge)
+{
+	HWND toplevel;
+	WPARAM wParam;
+
+	// TODO restrict execution
+	ReleaseCapture();		// TODO use properly and reset internal data structures
+	toplevel = parentToplevel(a->hwnd);
+	if (toplevel == NULL) {
+		// TODO
+		return;
+	}
+	// see http://stackoverflow.com/questions/40249940/how-do-i-initiate-a-user-mouse-driven-move-or-resize-for-custom-window-borders-o#40250654
+	wParam = SC_SIZE;
+	switch (edge) {
+	case uiWindowResizeEdgeLeft:
+		wParam |= 1;
+		break;
+	case uiWindowResizeEdgeTop:
+		wParam |= 3;
+		break;
+	case uiWindowResizeEdgeRight:
+		wParam |= 2;
+		break;
+	case uiWindowResizeEdgeBottom:
+		wParam |= 6;
+		break;
+	case uiWindowResizeEdgeTopLeft:
+		wParam |= 4;
+		break;
+	case uiWindowResizeEdgeTopRight:
+		wParam |= 5;
+		break;
+	case uiWindowResizeEdgeBottomLeft:
+		wParam |= 7;
+		break;
+	case uiWindowResizeEdgeBottomRight:
+		wParam |= 8;
+		break;
+	}
+	SendMessageW(toplevel, WM_SYSCOMMAND,
+		wParam, 0);
 }
 
 uiArea *uiNewArea(uiAreaHandler *ah)
@@ -106,7 +168,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 
 	a->ah = ah;
 	a->scrolling = FALSE;
-	clickCounterReset(&(a->cc));
+	uiprivClickCounterReset(&(a->cc));
 
 	// a->hwnd is assigned in areaWndProc()
 	uiWindowsEnsureCreateControlHWND(0,
@@ -118,7 +180,7 @@ uiArea *uiNewArea(uiAreaHandler *ah)
 	return a;
 }
 
-uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
+uiArea *uiNewScrollingArea(uiAreaHandler *ah, int width, int height)
 {
 	uiArea *a;
 
@@ -128,7 +190,7 @@ uiArea *uiNewScrollingArea(uiAreaHandler *ah, intmax_t width, intmax_t height)
 	a->scrolling = TRUE;
 	a->scrollWidth = width;
 	a->scrollHeight = height;
-	clickCounterReset(&(a->cc));
+	uiprivClickCounterReset(&(a->cc));
 
 	// a->hwnd is assigned in areaWndProc()
 	uiWindowsEnsureCreateControlHWND(0,

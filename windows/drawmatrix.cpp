@@ -22,11 +22,6 @@ static void d2m(D2D1_MATRIX_3X2_F *d, uiDrawMatrix *m)
 	m->M32 = d->_32;
 }
 
-void uiDrawMatrixSetIdentity(uiDrawMatrix *m)
-{
-	setIdentity(m);
-}
-
 void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 {
 	D2D1_MATRIX_3X2_F dm;
@@ -48,7 +43,7 @@ void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x
 	d2m(&dm, m);
 }
 
-#define r2d(x) (x * (180.0 / M_PI))
+#define r2d(x) (x * (180.0 / uiPi))
 
 void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 {
@@ -118,5 +113,5 @@ void uiDrawMatrixTransformPoint(uiDrawMatrix *m, double *x, double *y)
 
 void uiDrawMatrixTransformSize(uiDrawMatrix *m, double *x, double *y)
 {
-	fallbackTransformSize(m, x, y);
+	uiprivFallbackTransformSize(m, x, y);
 }

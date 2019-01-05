@@ -11,7 +11,7 @@ void loadAreaSize(uiArea *a, ID2D1RenderTarget *rt, double *width, double *heigh
 	if (!a->scrolling) {
 		if (rt == NULL)
 			rt = a->rt;
-		size = rt->GetSize();
+		size = realGetSize(rt);
 		*width = size.width;
 		*height = size.height;
 	}

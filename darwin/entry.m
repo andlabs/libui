@@ -20,6 +20,40 @@
 
 @end
 
+// TODO does this have one on its own?
+@interface libui_intrinsicWidthNSSecureTextField : NSSecureTextField
+@end
+
+@implementation libui_intrinsicWidthNSSecureTextField
+
+- (NSSize)intrinsicContentSize
+{
+	NSSize s;
+
+	s = [super intrinsicContentSize];
+	s.width = textfieldWidth;
+	return s;
+}
+
+@end
+
+// TODO does this have one on its own?
+@interface libui_intrinsicWidthNSSearchField : NSSearchField
+@end
+
+@implementation libui_intrinsicWidthNSSearchField
+
+- (NSSize)intrinsicContentSize
+{
+	NSSize s;
+
+	s = [super intrinsicContentSize];
+	s.width = textfieldWidth;
+	return s;
+}
+
+@end
+
 struct uiEntry {
 	uiDarwinControl c;
 	NSTextField *textfield;
@@ -27,10 +61,16 @@ struct uiEntry {
 	void *onChangedData;
 };
 
+static BOOL isSearchField(NSTextField *tf)
+{
+	return [tf isKindOfClass:[NSSearchField class]];
+}
+
 @interface entryDelegateClass : NSObject<NSTextFieldDelegate> {
-	struct mapTable *entries;
+	uiprivMap *entries;
 }
 - (void)controlTextDidChange:(NSNotification *)note;
+- (IBAction)onSearch:(id)sender;
 - (void)registerEntry:(uiEntry *)e;
 - (void)unregisterEntry:(uiEntry *)e;
 @end
@@ -41,34 +81,46 @@ struct uiEntry {
 {
 	self = [super init];
 	if (self)
-		self->entries = newMap();
+		self->entries = uiprivNewMap();
 	return self;
 }
 
 - (void)dealloc
 {
-	mapDestroy(self->entries);
+	uiprivMapDestroy(self->entries);
 	[super dealloc];
 }
 
 - (void)controlTextDidChange:(NSNotification *)note
 {
+	[self onSearch:[note object]];
+}
+
+- (IBAction)onSearch:(id)sender
+{
 	uiEntry *e;
 
-	e = (uiEntry *) mapGet(self->entries, [note object]);
+	e = (uiEntry *) uiprivMapGet(self->entries, sender);
 	(*(e->onChanged))(e, e->onChangedData);
 }
 
 - (void)registerEntry:(uiEntry *)e
 {
-	mapSet(self->entries, e->textfield, e);
-	[e->textfield setDelegate:self];
+	uiprivMapSet(self->entries, e->textfield, e);
+	if (isSearchField(e->textfield)) {
+		[e->textfield setTarget:self];
+		[e->textfield setAction:@selector(onSearch:)];
+	} else
+		[e->textfield setDelegate:self];
 }
 
 - (void)unregisterEntry:(uiEntry *)e
 {
-	[e->textfield setDelegate:nil];
-	mapDelete(self->entries, e->textfield);
+	if (isSearchField(e->textfield))
+		[e->textfield setTarget:nil];
+	else
+		[e->textfield setDelegate:nil];
+	uiprivMapDelete(self->entries, e->textfield);
 }
 
 @end
@@ -93,7 +145,7 @@ char *uiEntryText(uiEntry *e)
 
 void uiEntrySetText(uiEntry *e, const char *text)
 {
-	[e->textfield setStringValue:toNSString(text)];
+	[e->textfield setStringValue:uiprivToNSString(text)];
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
 
@@ -124,7 +176,7 @@ static void defaultOnChanged(uiEntry *e, void *data)
 }
 
 // these are based on interface builder defaults; my comments in the old code weren't very good so I don't really know what talked about what, sorry :/
-void finishNewTextField(NSTextField *t, BOOL isEntry)
+void uiprivFinishNewTextField(NSTextField *t, BOOL isEntry)
 {
 	uiDarwinSetControlFont(t, NSRegularControlSize);
 
@@ -139,30 +191,61 @@ void finishNewTextField(NSTextField *t, BOOL isEntry)
 	[[t cell] setScrollable:YES];
 }
 
-NSTextField *newEditableTextField(void)
+static NSTextField *realNewEditableTextField(Class class)
 {
 	NSTextField *tf;
 
-	tf = [[libui_intrinsicWidthNSTextField alloc] initWithFrame:NSZeroRect];
+	tf = [[class alloc] initWithFrame:NSZeroRect];
 	[tf setSelectable:YES];		// otherwise the setting is masked by the editable default of YES
-	finishNewTextField(tf, YES);
+	uiprivFinishNewTextField(tf, YES);
 	return tf;
 }
 
-uiEntry *uiNewEntry(void)
+NSTextField *uiprivNewEditableTextField(void)
+{
+	return realNewEditableTextField([libui_intrinsicWidthNSTextField class]);
+}
+
+static uiEntry *finishNewEntry(Class class)
 {
 	uiEntry *e;
 
 	uiDarwinNewControl(uiEntry, e);
 
-	e->textfield = newEditableTextField();
+	e->textfield = realNewEditableTextField(class);
 
 	if (entryDelegate == nil) {
-		entryDelegate = [entryDelegateClass new];
-		[delegates addObject:entryDelegate];
+		entryDelegate = [[entryDelegateClass new] autorelease];
+		[uiprivDelegates addObject:entryDelegate];
 	}
 	[entryDelegate registerEntry:e];
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
+	return e;
+}
+
+uiEntry *uiNewEntry(void)
+{
+	return finishNewEntry([libui_intrinsicWidthNSTextField class]);
+}
+
+uiEntry *uiNewPasswordEntry(void)
+{
+	return finishNewEntry([libui_intrinsicWidthNSSecureTextField class]);
+}
+
+uiEntry *uiNewSearchEntry(void)
+{
+	uiEntry *e;
+	NSSearchField *s;
+
+	e = finishNewEntry([libui_intrinsicWidthNSSearchField class]);
+	s = (NSSearchField *) (e->textfield);
+	// TODO these are only on 10.10
+//	[s setSendsSearchStringImmediately:NO];
+//	[s setSendsWholeSearchString:NO];
+	[s setBordered:NO];
+	[s setBezelStyle:NSTextFieldRoundedBezel];
+	[s setBezeled:YES];
 	return e;
 }

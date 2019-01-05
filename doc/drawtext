@@ -1,0 +1,13 @@
+on some unix systems, alpha blending fonts may not be available; this depends on your installed version of pango and is determined at runtime by libui
+
+uiDrawTextLayoutExtents: document that the extent width can be greater than the requested width if the requested width is small enough that only one character can fit
+
+
+font matching is closest match but the search method is OS defined
+
+
+weight names in libui do not necessarily line up with their OS names
+
+
+uiDrawFontHandle() may not return a unique handle per instance
+

@@ -1,0 +1,247 @@
+registered font, preexisting metadata weight
+"reg":	float32as(0.000000, 0x0)
+"semi":	float32as(0.300000, 0x3e99999a)
+"bold":	float32as(0.400000, 0x3ecccccd)
+"light":	float32as(-0.400000, 0xbecccccd)
+"med":	float32as(0.230000, 0x3e6b851f)
+"heavy":	float32as(0.560000, 0x3f0f5c29)
+"black":	float32as(0.620000, 0x3f1eb852)
+"thin":	float32as(-0.600000, 0xbf19999a)
+"ulight":	float32as(-0.800000, 0xbf4ccccd)
+
+registered font, postscript name (probably only for TrueType and OpenType) special cases, overrides the above
+"LucidaGrande":			float32as(0.000000, 0x0)
+".LucidaGrandeUI":			float32as(0.000000, 0x0)
+".Keyboard":				float32as(0.000000, 0x0)
+"STHeiti":					float32as(0.240000, 0x3e75c28f)
+"STXihei":					float32as(-0.100000, 0xbdcccccd)
+"TimesNewRomanPSMT":		float32as(0.000000, 0x0)
+
+registered font, style glossary strings, tried in this order (possibly TrueType and OpenType only): preferred subfamily, subfamily, full name, preferred family, family; case-insensitive search, reverse search, "nonliteral" (kCFCompareNonliteral)
+"Ultra Light":	float32as(-0.800000, 0xbf4ccccd)
+"Ultra Black":	float32as(0.750000, 0x3f400000)
+"Extra Light":	float32as(-0.500000, 0xbf000000)
+"UltraBlack":	float32as(0.750000, 0x3f400000)
+"ExtraBlack":	float32as(0.800000, 0x3f4ccccd)
+"UltraLight":	float32as(-0.800000, 0xbf4ccccd)
+"ExtraLight":	float32as(-0.500000, 0xbf000000)
+"Ultra Thin":	float32as(-0.800000, 0xbf4ccccd)
+"Extra Thin":	float32as(-0.800000, 0xbf4ccccd)
+"Heavy Face":	float32as(0.560000, 0x3f0f5c29)
+"Semi Light":	float32as(-0.200000, 0xbe4ccccd)
+"Extra Bold":	float32as(0.500000, 0x3f000000)
+"Ultra Bold":	float32as(0.700000, 0x3f333333)
+"HeavyFace":	float32as(0.560000, 0x3f0f5c29)
+"ExtraBold":	float32as(0.500000, 0x3f000000)
+"UltraBold":	float32as(0.700000, 0x3f333333)
+"Ext Black":	float32as(0.800000, 0x3f4ccccd)
+"SemiLight":	float32as(-0.200000, 0xbe4ccccd)
+"Demi Bold":	float32as(0.250000, 0x3e800000)
+"Semi Bold":	float32as(0.300000, 0x3e99999a)
+"Ext Light":	float32as(-0.500000, 0xbf000000)
+"Ext Bold":	float32as(0.500000, 0x3f000000)
+"DemiBold":	float32as(0.250000, 0x3e800000)
+"SemiBold":	float32as(0.300000, 0x3e99999a)
+"HairLine":	float32as(-0.800000, 0xbf4ccccd)
+"Ext Thin":	float32as(-0.800000, 0xbf4ccccd)
+"Medium":	float32as(0.230000, 0x3e6b851f)
+"Poster":		float32as(0.800000, 0x3f4ccccd)
+"Light":		float32as(-0.400000, 0xbecccccd)
+"Ultra":		float32as(0.500000, 0x3f000000)
+"Heavy":		float32as(0.560000, 0x3f0f5c29)
+"Extra":		float32as(0.500000, 0x3f000000)
+"Black":		float32as(0.620000, 0x3f1eb852)
+"Super":		float32as(0.620000, 0x3f1eb852)
+"Obese":		float32as(0.850000, 0x3f59999a)
+"Lite":		float32as(-0.400000, 0xbecccccd)
+"Book":		float32as(-0.230000, 0xbe6b851f)
+"Demi":		float32as(0.250000, 0x3e800000)
+"Semi":		float32as(0.300000, 0x3e99999a)
+"Thin":		float32as(-0.500000, 0xbf000000)
+"Bold":		float32as(0.400000, 0x3ecccccd)
+"Nord":		float32as(0.800000, 0x3f4ccccd)
+"Fat":		float32as(0.750000, 0x3f400000)
+"W1":		float32as(-0.230000, 0xbe6b851f)
+"W2":		float32as(-0.500000, 0xbf000000)
+"W3":		float32as(-0.230000, 0xbe6b851f)
+"W4":		float32as(0.000000, 0x0)
+"W5":		float32as(0.230000, 0x3e6b851f)
+"W6":		float32as(0.300000, 0x3e99999a)
+"W7":		float32as(0.440000, 0x3ee147ae)
+"W8":		float32as(0.540000, 0x3f0a3d71)
+"W9":		float32as(0.620000, 0x3f1eb852)
+
+registered font, OS2 weights; table length >= 78
+1, 10 - 100:	float32as(-0.800000, 0xbf4ccccd)
+2, 101 - 200:	float32as(-0.500000, 0xbf000000)
+3, 201 - 300:	float32as(-0.400000, 0xbecccccd)
+4, 301 - 400:	float32as(0.000000, 0x0)
+5, 401 - 500:	float32as(0.230000, 0x3e6b851f)
+6, 501 - 600:	float32as(0.250000, 0x3e800000)
+7, 601 - 700:	float32as(0.400000, 0x3ecccccd)
+8, 701 - 800:	float32as(0.500000, 0x3f000000)
+9, 801 - 900:	float32as(0.620000, 0x3f1eb852)
+901 - 950:	float32as(0.750000, 0x3f400000)
+951 - 999:	float32as(0.800000, 0x3f4ccccd)
+0, 1000:		panose
+panose 2:		float32as(-0.500000, 0xbf000000)
+panose 3:		float32as(-0.400000, 0xbecccccd)
+panose 4:		!!!! see note	should be float32as(-0.300000, 0xbe99999a) but is treated as invalid instead due to returning false instead of true
+panose 5:		float32as(-0.230000, 0xbe6b851f)
+panose 6:		float32as(0.230000, 0x3e6b851f)
+panose 7:		float32as(0.250000, 0x3e800000)
+panose 8:		float32as(0.400000, 0x3ecccccd)
+panose 9:		float32as(0.560000, 0x3f0f5c29)
+panose 10:	float32as(0.620000, 0x3f1eb852)
+panose 11:	float32as(0.800000, 0x3f4ccccd)
+
+registered font, head table, low bit of byte 0x2D
+'head'[0x2D] & 1:		float32as(0.400000, 0x3ecccccd)
+
+registered font, abbreviated weight glossary, checks for (possibly in TrueType and OpenType only) in order: preferred subfamily, family; case-insensitive strict comparison
+"EL":		float32as(-0.200000, 0xbe4ccccd)
+"EB":		float32as(0.500000, 0x3f000000)
+"SB":		float32as(0.300000, 0x3e99999a)
+"UH":	float32as(0.800000, 0x3f4ccccd)
+"U":		float32as(0.700000, 0x3f333333)
+"L":		float32as(-0.400000, 0xbecccccd)
+"H":		float32as(0.560000, 0x3f0f5c29)
+"B":		float32as(0.400000, 0x3ecccccd)
+"M":		float32as(0.230000, 0x3e6b851f)
+"R":		float32as(0.000000, 0x0)
+
+registered font
+default:	float32as(0.000000, 0x0)
+
+// based on CoreText dylib's __Z13WeightOfClasst — WeightOfClass(unsigned short)
+func CoreText_WeightOfClass(usWeightClass uint16) float64 {
+	if usWeightClass >= 11 {
+		// do nothing; we are preserving the original asm comparisons
+		// and yes, this one is 11, but the one above is 10
+	} else {
+		usWeightClass *= 100
+	}
+
+	// figure out what two floats our weight will be between
+	i := usWeightClass / 100
+	j := i + 1
+	if j > 10 {
+		j = 10
+	}
+	b := float64(i * 100)
+	c := float64(j * 100)
+
+	a := float64(0)
+	if b != c {
+		a = float64(usWeightClass)
+		a -= b
+		c -= b
+		a /= c
+	}
+	scales := []float32{
+		float32as(-1.000000, 0xbf800000),
+		float32as(-0.700000, 0xbf333333),
+		float32as(-0.500000, 0xbf000000),
+		float32as(-0.230000, 0xbe6b851f),
+		float32as(0.000000, 0x0),
+		float32as(0.200000, 0x3e4ccccd),
+		float32as(0.300000, 0x3e99999a),
+		float32as(0.400000, 0x3ecccccd),
+		float32as(0.600000, 0x3f19999a),
+		float32as(0.800000, 0x3f4ccccd),
+		float32as(1.000000, 0x3f800000),
+	}
+	c = float64(scale[i])
+	b = float64[scale[j])
+	return fma(a, b, c)
+}
+
+unregistered font: kCTFontPostScriptNameKey defaults
+"LucidaGrande":			float64as(0.000000, 0x0)
+".LucidaGrandeUI":			float64as(0.000000, 0x0)
+"STHeiti":					float64as(0.240000, 0x3fceb851eb851eb8)
+"STXihei":					float64as(-0.100000, 0xbfb999999999999a)
+"TimesNewRomanPSMT":		float64as(0.000000, 0x0)
+
+
+	os2table := f.Table('OS/2')
+	if os2table != nil {
+		if !hasWeight {
+			var usWeightClass uint16
+
+			valid := false
+			if os2table.Len() > 77 {
+				b := os2table.Bytes()
+				usWeightClass = uint16be(b[4:6])
+				if usWeightClass > 1000 {
+					weight = 0
+					hasWeight = false
+				} else {
+					valid = true
+				}
+			} else {
+				usWeightClass = 0
+				valid = true
+			}
+			if valid {
+				weight = CoreText_WeightOfClass(usWeightClass)
+				hasWeight = true
+			}
+		}
+	}
+
+
+unregistered font, style glossary, checks against kCTFontSubFamilyNameKey, kCTFontFullNameKey, kCTFontFamilyNameKey; case-insensitive (folded by Unicode rules) strstr()
+"ultra light":	float32as(-0.800000, 0xbf4ccccd)
+"ultra black":	float32as(0.750000, 0x3f400000)
+"extra light":	float32as(-0.500000, 0xbf000000)
+"ultralight":	float32as(-0.800000, 0xbf4ccccd)
+"ultrablack":	float32as(0.750000, 0x3f400000)
+"extrablack":	float32as(0.800000, 0x3f4ccccd)
+"extralight":	float32as(-0.500000, 0xbf000000)
+"heavy face":	float32as(0.560000, 0x3f0f5c29)
+"semi light":	float32as(-0.200000, 0xbe4ccccd)
+"extra bold":	float32as(0.500000, 0x3f000000)
+"ultra bold":	float32as(0.700000, 0x3f333333)
+"heavyface":	float32as(0.560000, 0x3f0f5c29)
+"extrabold":	float32as(0.500000, 0x3f000000)
+"ultrabold":	float32as(0.700000, 0x3f333333)
+"semilight":	float32as(-0.200000, 0xbe4ccccd)
+"demi bold":	float32as(0.250000, 0x3e800000)
+"semi bold":	float32as(0.300000, 0x3e99999a)
+"demibold":	float32as(0.250000, 0x3e800000)
+"semibold":	float32as(0.300000, 0x3e99999a)
+"hairline":		float32as(-0.700000, 0xbf333333)
+"medium":	float32as(0.230000, 0x3e6b851f)
+"poster":		float32as(0.800000, 0x3f4ccccd)
+"light":		float32as(-0.400000, 0xbecccccd)
+"heavy":		float32as(0.560000, 0x3f0f5c29)
+"extra":		float32as(0.500000, 0x3f000000)
+"black":		float32as(0.620000, 0x3f1eb852)
+"super":		float32as(0.620000, 0x3f1eb852)
+"obese":		float32as(0.850000, 0x3f59999a)
+"lite":		float32as(-0.400000, 0xbecccccd)
+"book":		float32as(-0.230000, 0xbe6b851f)
+"demi":		float32as(0.250000, 0x3e800000)
+"semi":		float32as(0.300000, 0x3e99999a)
+"thin":		float32as(-0.500000, 0xbf000000)
+"bold":		float32as(0.400000, 0x3ecccccd)
+"nord":		float32as(0.800000, 0x3f4ccccd)
+"fat":			float32as(0.750000, 0x3f400000)
+"w1":		float32as(-0.700000, 0xbf333333)
+"w2":		float32as(-0.500000, 0xbf000000)
+"w3":		float32as(-0.230000, 0xbe6b851f)
+"w4":		float32as(0.000000, 0x0)
+"w5":		float32as(0.230000, 0x3e6b851f)
+"w6":		float32as(0.300000, 0x3e99999a)
+"w7":		float32as(0.440000, 0x3ee147ae)
+"w8":		float32as(0.540000, 0x3f0a3d71)
+"w9":		float32as(0.620000, 0x3f1eb852)
+
+func (f *Font) ShouldEnableBoldSymbolicTrait() bool {
+	if f.IsRegistered() {
+		return f.ShouldEnableBoldSymbolicTraitFromRegistry()
+	}
+	no := f.Weight() <= float64as(0.239000, 0x3fce978d4fdf3b64)
+	return !no
+}

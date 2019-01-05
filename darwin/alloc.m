@@ -3,12 +3,12 @@
 #import "uipriv_darwin.h"
 
 static NSMutableArray *allocations;
-NSMutableArray *delegates;
+NSMutableArray *uiprivDelegates;
 
-void initAlloc(void)
+void uiprivInitAlloc(void)
 {
 	allocations = [NSMutableArray new];
-	delegates = [NSMutableArray new];
+	uiprivDelegates = [NSMutableArray new];
 }
 
 #define UINT8(p) ((uint8_t *) (p))
@@ -20,32 +20,28 @@ void initAlloc(void)
 #define CCHAR(p) ((const char **) (p))
 #define TYPE(p) CCHAR(UINT8(p) + sizeof (size_t))
 
-void uninitAlloc(void)
+void uiprivUninitAlloc(void)
 {
-	NSUInteger i;
+	NSMutableString *str;
+	NSValue *v;
 
-	// delegates might have mapTables allocated
-	// TODO verify they are empty
-	for (i = 0; i < [delegates count]; i++)
-		[[delegates objectAtIndex:i] release];
-	[delegates release];
+	[uiprivDelegates release];
 	if ([allocations count] == 0) {
 		[allocations release];
 		return;
 	}
-	fprintf(stderr, "[libui] leaked allocations:\n");
-	[allocations enumerateObjectsUsingBlock:^(id obj, NSUInteger index, BOOL *stop) {
-		NSValue *v;
+	str = [NSMutableString new];
+	for (v in allocations) {
 		void *ptr;
 
-		v = (NSValue *) obj;
 		ptr = [v pointerValue];
-		fprintf(stderr, "[libui] %p %s\n", ptr, *TYPE(ptr));
-	}];
-	complain("either you left something around or there's a bug in libui");
+		[str appendString:[NSString stringWithFormat:@"%p %s\n", ptr, *TYPE(ptr)]];
+	}
+	uiprivUserBug("Some data was leaked; either you left a uiControl lying around or there's a bug in libui itself. Leaked data:\n%s", [str UTF8String]);
+	[str release];
 }
 
-void *uiAlloc(size_t size, const char *type)
+void *uiprivAlloc(size_t size, const char *type)
 {
 	void *out;
 
@@ -61,21 +57,21 @@ void *uiAlloc(size_t size, const char *type)
 	return DATA(out);
 }
 
-void *uiRealloc(void *p, size_t new, const char *type)
+void *uiprivRealloc(void *p, size_t new, const char *type)
 {
 	void *out;
 	size_t *s;
 
 	if (p == NULL)
-		return uiAlloc(new, type);
+		return uiprivAlloc(new, type);
 	p = BASE(p);
 	out = realloc(p, EXTRA + new);
 	if (out == NULL) {
-		fprintf(stderr, "memory exhausted in uiRealloc()\n");
+		fprintf(stderr, "memory exhausted in uiprivRealloc()\n");
 		abort();
 	}
 	s = SIZE(out);
-	if (new <= *s)
+	if (new > *s)
 		memset(((uint8_t *) DATA(out)) + *s, 0, new - *s);
 	*s = new;
 	[allocations removeObject:[NSValue valueWithPointer:p]];
@@ -83,10 +79,10 @@ void *uiRealloc(void *p, size_t new, const char *type)
 	return DATA(out);
 }
 
-void uiFree(void *p)
+void uiprivFree(void *p)
 {
 	if (p == NULL)
-		complain("attempt to uiFree(NULL); there's a bug somewhere");
+		uiprivImplBug("attempt to uiprivFree(NULL)");
 	p = BASE(p);
 	free(p);
 	[allocations removeObject:[NSValue valueWithPointer:p]];

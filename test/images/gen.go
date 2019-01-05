@@ -51,18 +51,14 @@ func main() {
 	fmt.Println("#include \"test.h\"")
 	fmt.Println()
 	for i, im := range images {
-		fmt.Printf("static const uint32_t dat%d[] = {", i)
-		for j := 0; j < len(im.data); j += 4 {
-			if (j % (16 * 4)) == 0 {
+		fmt.Printf("static const uint8_t dat%d[] = {", i)
+		for j := 0; j < len(im.data); j++ {
+			if (j % 16) == 0 {
 				fmt.Printf("\n\t")
 			} else {
 				fmt.Printf(" ")
 			}
-			d := uint32(im.data[j + 0]) << 16
-			d |= uint32(im.data[j + 1]) << 8
-			d |= uint32(im.data[j + 2])
-			d |= uint32(im.data[j + 3]) << 24
-			fmt.Printf("0x%08X,", d)
+			fmt.Printf("0x%02X,", im.data[j])
 
 		}
 		fmt.Println("\n};")

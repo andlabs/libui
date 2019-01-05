@@ -283,3 +283,6 @@ void uiTimer(int milliseconds, int (*f)(void *data), void *data)
                 repeats:YES];
         [delegate release];
 }
+
+// TODO figure out the best way to clean the above up in uiUninit(), if it's even necessary
+// TODO that means figure out if timers can still fire without the main loop

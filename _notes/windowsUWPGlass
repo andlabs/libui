@@ -23,3 +23,24 @@ http://www.brandonfa.lk/win8/
 https://github.com/gamozolabs/pdblister
 https://github.com/wbenny/pdbex
 https://github.com/wbenny/pdbex/releases
+
+https://stackoverflow.com/questions/44000217/mimicking-acrylic-in-a-win32-app
+https://github.com/riverar/sample-win32-acrylicblur
+https://github.com/riverar/sample-win10-aeroglass
+https://guerra24blog.wordpress.com/2017/12/20/windows-10-use-acrylic-in-win32-apps/
+https://news.ycombinator.com/item?id=14432951
+https://gist.github.com/ethanhs/0e157e4003812e99bf5bc7cb6f73459f ACCENTPOLICY
+https://github.com/TranslucentTB/Tools
+https://withinrafael.com/2015/07/08/adding-the-aero-glass-blur-to-your-windows-10-apps/
+https://withinrafael.com/2018/02/01/adding-acrylic-blur-to-your-windows-10-apps-redstone-4-desktop-apps/
+
+diversion: DwmEnableBlurBehindWindow {
+https://docs.microsoft.com/en-us/windows/desktop/api/dwmapi/nf-dwmapi-dwmenableblurbehindwindow
+https://docs.microsoft.com/en-us/windows/desktop/api/dwmapi/ns-dwmapi-_dwm_blurbehind
+https://docs.microsoft.com/en-us/windows/desktop/api/dwmapi/nf-dwmapi-dwmenableblurbehindwindow
+http://www.danielmoth.com/Blog/Vista-Glass-Answers-And-DwmEnableBlurBehindWindow.aspx
+http://www.danielmoth.com/Blog/Glass-In-C-An-Alternative-Approach.aspx
+http://www.danielmoth.com/Blog/Vista-Glass-In-C.aspx
+http://www.danielmoth.com/Blog/Glass-In-C-An-Alternative-Approach.aspx
+https://weblogs.asp.net/kennykerr/Windows-Vista-for-Developers-_1320_-Part-3-_1320_-The-Desktop-Window-Manager
+}

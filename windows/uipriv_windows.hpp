@@ -103,6 +103,8 @@ struct uiprivTimer {
 };
 extern int registerMessageFilter(void);
 extern void unregisterMessageFilter(void);
+extern void uiprivFreeTimer(uiprivTimer *t);
+extern void uiprivUninitTimers(void);
 
 // parent.cpp
 extern void paintContainerBackground(HWND hwnd, HDC dc, RECT *paintRect);

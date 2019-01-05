@@ -4,7 +4,6 @@
 struct uiImage {
 	NSImage *i;
 	NSSize size;
-	NSMutableArray *swizzled;
 };
 
 uiImage *uiNewImage(double width, double height)
@@ -14,50 +13,23 @@ uiImage *uiNewImage(double width, double height)
 	i = uiprivNew(uiImage);
 	i->size = NSMakeSize(width, height);
 	i->i = [[NSImage alloc] initWithSize:i->size];
-	i->swizzled = [NSMutableArray new];
 	return i;
 }
 
 void uiFreeImage(uiImage *i)
 {
-	NSValue *v;
-
 	[i->i release];
-	// to be safe, do this after releasing the image
-	for (v in i->swizzled)
-		uiprivFree([v pointerValue]);
-	[i->swizzled release];
 	uiprivFree(i);
 }
 
 void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, int byteStride)
 {
 	NSBitmapImageRep *repCalibrated, *repsRGB;
-	uint8_t *swizzled, *bp, *sp;
 	int x, y;
-	unsigned char *pix[1];
+	uint8_t *pix, *data;
+	NSInteger realStride;
 
-	// OS X demands that R and B are in the opposite order from what we expect
-	// we must swizzle :(
-	// LONGTERM test on a big-endian system
-	swizzled = (uint8_t *) uiprivAlloc((byteStride * pixelHeight) * sizeof (uint8_t), "uint8_t[]");
-	bp = (uint8_t *) pixels;
-	sp = swizzled;
-	for (y = 0; y < pixelHeight; y++){
-		for (x = 0; x < pixelWidth; x++) {
-			sp[0] = bp[2];
-			sp[1] = bp[1];
-			sp[2] = bp[0];
-			sp[3] = bp[3];
-			sp += 4;
-			bp += 4;
-		}
-		// jump over unused bytes at end of line
-		bp += byteStride - pixelWidth * 4;
-	}
-
-	pix[0] = (unsigned char *) swizzled;
-	repCalibrated = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:pix
+	repCalibrated = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
 		pixelsWide:pixelWidth
 		pixelsHigh:pixelHeight
 		bitsPerSample:8
@@ -66,8 +38,37 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 		isPlanar:NO
 		colorSpaceName:NSCalibratedRGBColorSpace
 		bitmapFormat:0
-		bytesPerRow:byteStride
+		bytesPerRow:0
 		bitsPerPixel:32];
+
+	// Apple doesn't explicitly document this, but we apparently need to use native system endian for the data :|
+	// TODO split this into a utility routine?
+	// TODO find proper documentation
+	// TODO test this on a big-endian system somehow; I have a feeling the above comment is wrong about the diagnosis since the order we are specifying is now 0xAABBGGRR
+	pix = (uint8_t *) pixels;
+	data = (uint8_t *) [repCalibrated bitmapData];
+	realStride = [repCalibrated bytesPerRow];
+	for (y = 0; y < pixelHeight; y++) {
+		for (x = 0; x < pixelWidth * 4; x += 4) {
+			union {
+				uint32_t v32;
+				uint8_t v8[4];
+			} v;
+
+			v.v32 = ((uint32_t) (pix[x + 3])) << 24;
+			v.v32 |= ((uint32_t) (pix[x + 2])) << 16;
+			v.v32 |= ((uint32_t) (pix[x + 1])) << 8;
+			v.v32 |= ((uint32_t) (pix[x]));
+			data[x] = v.v8[0];
+			data[x + 1] = v.v8[1];
+			data[x + 2] = v.v8[2];
+			data[x + 3] = v.v8[3];
+		}
+		pix += byteStride;
+		data += realStride;
+	}
+
+	// we can't call the constructor with this, but we can retag (NOT convert)
 	repsRGB = [repCalibrated bitmapImageRepByRetaggingWithColorSpace:[NSColorSpace sRGBColorSpace]];
 
 	[i->i addRepresentation:repsRGB];
@@ -75,9 +76,6 @@ void uiImageAppend(uiImage *i, void *pixels, int pixelWidth, int pixelHeight, in
 	// don't release repsRGB; it may be equivalent to repCalibrated
 	// do release repCalibrated though; NSImage has a ref to either it or to repsRGB
 	[repCalibrated release];
-
-	// we need to keep swizzled alive for NSBitmapImageRep
-	[i->swizzled addObject:[NSValue valueWithPointer:swizzled]];
 }
 
 NSImage *uiprivImageNSImage(uiImage *i)

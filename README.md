@@ -10,7 +10,7 @@ It has come to my attention that I have not been particularly clear about how us
 
 libui is currently **mid-alpha** software. Much of what is currently present runs stabily enough for the examples and perhaps some small programs to work, but the stability is still a work-in-progress, much of what is already there is not feature-complete, some of it will be buggy on certain platforms, and there's a lot of stuff missing. In short, here's a list of features that I would like to add to libui, but that aren't in yet:
 
-- tables and trees (the former is currently WIP and may land in preliminary form soon)
+- trees
 - clipboard support, including drag and drop
 - more and better dialogs
 - printing
@@ -18,7 +18,7 @@ libui is currently **mid-alpha** software. Much of what is currently present run
 - document-based programs
 - tighter OS integration (especially for document-based programs), to allow programs to fully feel native, rather than merely look and act native
 - better support for standard dialogs and features (search bars, etc.)
-- OpenGL support (this was already being worked on by someone else, but I don't know what happened to them...)
+- OpenGL support
 
 In addition, [here](https://github.com/andlabs/libui/issues?utf8=%E2%9C%93&q=master+in%3Atitle+is%3Aissue+is%3Aopen) is a list of issues generalizing existing problems.
 
@@ -29,6 +29,14 @@ But libui is not dead; I am working on it whenever I can, and I hope to get it t
 ## News
 
 *Note that today's entry (Eastern Time) may be updated later today.*
+
+* **1 September 2018**
+	* **Alpha 4.1 is here.** This is an emergency fix to Alpha 4 to fix `uiImageAppend()` not working as documented. It now works properly, with one important difference you'll need to care about: **it now requires image data to be alpha-premultiplied**. In addition, `uiImage` also is implemented slightly more nicely now, and `ui.h` has minor documentation typo fixes.
+	* Alpha 4.1 also tries to make everything properly PIC-enabled.
+
+* **10 August 2018**
+	* **Alpha 4 is finally here.** Everything from Alpha 3.5 and what's listed below is in this release; the two biggest changes are still the new text drawing API and new uiTable control. In between all that is a whole bunch of bugfixes, and hopefully more stability too. Thanks to everybody who helped contribute!
+	* Alpha 4 should hopefully also include automated binary releases via CI. Thanks to those who helped set that up!
 
 * **8 August 2018**
 	* Finally introduced an API for loading images, `uiImage`, and a new control, `uiTable`, for displaying tabular data. These provide enough basic functionality for now, but will be improved over time. You can read the documentation for the new features as they are [here](https://github.com/andlabs/libui/blob/f47e1423cf95ad7b1001663f3381b5a819fc67b9/uitable.h). Thanks to everyone who helped get to this point, in particular @bcampbell for the initial Windows code, and to everyone else for their patience!
@@ -129,7 +137,7 @@ Language | Bindings
 --- | ---
 C++ | [libui-cpp](https://github.com/billyquith/libui-cpp), [cpp-libui-qtlike](https://github.com/aoloe/cpp-libui-qtlike)
 C# / .NET Framework | [LibUI.Binding](https://github.com/NattyNarwhal/LibUI.Binding)
-C# / .NET Core | [DevZH.UI](https://github.com/noliar/DevZH.UI), [SharpUI](https://github.com/benpye/sharpui/), [LibUISharp](https://github.com/tom-corwin/LibUISharp)
+C# / .NET Core | [DevZH.UI](https://github.com/noliar/DevZH.UI), [SharpUI](https://github.com/benpye/sharpui/), [TCD.UI](https://github.com/tacdevel/tcdfx)
 CHICKEN Scheme | [wasamasa/libui](https://github.com/wasamasa/libui)
 Common Lisp | [jinwoo/cl-ui](https://github.com/jinwoo/cl-ui)
 Crystal | [libui.cr](https://github.com/Fusion/libui.cr), [hedron](https://github.com/Qwerp-Derp/hedron)
@@ -142,6 +150,7 @@ Julia | [Libui.jl](https://github.com/joa-quim/Libui.jl)
 Kotlin | [kotlin-libui](https://github.com/msink/kotlin-libui)
 Lua | [libuilua](https://github.com/zevv/libuilua), [libui-lua](https://github.com/mdombroski/libui-lua), [lui](http://tset.de/lui/index.html), [lui](https://github.com/zhaozg/lui)
 Nim | [ui](https://github.com/nim-lang/ui)
+Perl6 | [perl6-libui](https://github.com/Garland-g/perl6-libui)
 PHP | [ui](https://github.com/krakjoe/ui)
 Python | [pylibui](https://github.com/joaoventura/pylibui), [pylibui-cffi](https://github.com/Yardanico/pylibui-cffi)
 Ruby | [libui-ruby](https://github.com/jamescook/libui-ruby)

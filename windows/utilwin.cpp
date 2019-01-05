@@ -42,7 +42,7 @@ static LRESULT CALLBACK utilWindowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		if (!(*(timer->f))(timer->data)) {
 			if (KillTimer(utilWindow, (UINT_PTR) timer) == 0)
 				logLastError(L"error calling KillTimer() to end uiTimer() procedure");
-			uiprivFree(timer);
+			uiprivFreeTimer(timer);
 		}
 		return 0;
 	}

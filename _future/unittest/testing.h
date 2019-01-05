@@ -1,5 +1,9 @@
 // 27 february 2018
 
+// TODO
+// - https://blogs.msdn.microsoft.com/oldnewthing/20181107-00/?p=100155 https://blogs.msdn.microsoft.com/oldnewthing/20181108-00/?p=100165 https://blogs.msdn.microsoft.com/oldnewthing/20181109-00/?p=100175
+// - also in the above: note the unspecified order of data in the sub-segments...
+
 #ifndef testingprivIncludeGuard_testing_h
 #define testingprivIncludeGuard_testing_h
 

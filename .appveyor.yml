@@ -72,8 +72,7 @@ artifacts:
 deploy:
   provider: GitHub
   artifact: libui, examples
-  # TODO https://www.appveyor.com/docs/deployment/github/
-  #auth_token:
-    #secure: "2l/602m6FkqAB9TTIAkPX3Erfwg9jVTlf/Inmf2dWcbOrJJzK/WrCUIgY3B4ngly"
+  auth_token:
+    secure: li92W7mFAC8HbAVeZN6Ugmo5H1GzKSjr6DXlMniLcCRspKmi2Nz1nlslSa+9sLfo
   on:
     appveyor_repo_tag: true # deploy on tag push only

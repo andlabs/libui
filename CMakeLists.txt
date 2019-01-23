@@ -236,3 +236,21 @@ macro(_add_exec _name)
 endmacro()
 add_subdirectory("test")
 add_subdirectory("examples")
+
+set(API_HEADERS ui.h)
+find_program(CLDOC cldoc)
+if(NOT ${CLDOC} STREQUAL "CLDOC-NOTFOUND")
+  add_custom_target(docs COMMAND
+    ${CLDOC} generate
+    ${CMAKE_C_FLAGS}
+    -I${PROJECT_SOURCE_DIR}
+    --
+    --output "${PROJECT_BINARY_DIR}/docs"
+    ${API_HEADERS}
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+  set_target_properties(docs PROPERTIES
+    EXCLUDE_FROM_ALL 1
+    EXCLUDE_FROM_DEFAULT_BUILD 1)
+else()
+  message(STATUS "Documentation will not be generated")
+endif()

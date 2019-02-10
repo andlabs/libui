@@ -207,3 +207,7 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/ms632615(v=vs.85).aspx 
 
 https://msdn.microsoft.com/en-us/library/windows/desktop/dn424996%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
 whatever this is seems to have no documentation... it appears to be related to  UWP, if not only Store apps...
+
+unreachable code optimizations
+https://docs.microsoft.com/en-us/cpp/intrinsics/assume?view=vs-2017
+https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html

@@ -136,7 +136,8 @@ else
 endif
 
 libui_sources = []
-libui_include_directories = [include_directories('.')]
+libui_base_include_directories = [include_directories('.')]
+libui_include_directories = libui_base_include_directories
 libui_extra_libs = []
 subdir('common')
 if libui_OS == 'windows'
@@ -156,8 +157,16 @@ libui_libui = library('ui', libui_sources,
 	install_rpath: libui_rpath,
 	install: true,
 	gnu_symbol_visibility: 'hidden',
-	soversion: libui_soversion)
+	c_args: ['-Dlibui_EXPORTS'],
+	cpp_args: ['-Dlibui_EXPORTS'],
+	objc_args: ['-Dlibui_EXPORTS'],
+	soversion: libui_soversion,
+	darwin_versions: [])		# TODO
 install_headers('ui.h')
 
-# TODO test
+libui_binary_deps = []
+if libui_mode == 'static'
+	libui_binary_deps = libui_deps
+endif
+subdir('test')
 # TODO examples

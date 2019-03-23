@@ -42,7 +42,7 @@ foreach name, value : libui_forced_options
 	endif
 endforeach
 
-libui_OS = target_machine.system()
+libui_OS = host_machine.system()
 libui_MSVC = meson.get_compiler('c').get_id() == 'msvc'
 
 libui_mode = get_option('default_library')

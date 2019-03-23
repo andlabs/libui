@@ -1,8 +1,5 @@
 # 23 march 2019
 
-add_languages('objc',
-	required: true)
-
 libui_sources += [
 	'darwin/aat.m',
 	'darwin/alloc.m',
@@ -55,4 +52,4 @@ libui_sources += [
 	'darwin/winmoveresize.m',
 ]
 
-libui_include_directories += [include_directory('.')]
+libui_include_directories += [include_directories('.')]

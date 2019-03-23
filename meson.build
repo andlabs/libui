@@ -11,10 +11,27 @@
 # I'd also like to be able to omit the library's dependency libraries in the executables if building a shared library, as those are not required in that case; I'd need to require them in a static library.
 # And for Windows, the shared library (but not shared executables) needs an additional resource file, and the static executables (but not the static library) need a *different* resource file. (Windows static libraries can't contain resources anyway; the linkers will just ignore the resource objects.)
 
-libui_default_options = [
-	'buildtype=debug',				# build debug by default
-	'default_library=shared',			# build shared libraries by default
-]
+# we have to specify C++ here even if we're not using C++ immediately because otherwise none of the C++ built-in options are available (sigh; TODO)
+# and same for Objective-C because of add_project_arguments() (double sigh; TODO)
+project('libui', ['c', 'cpp', 'objc'],
+	default_options: [
+		'buildtype=debug',				# build debug by default
+		'default_library=shared',			# build shared libraries by default
+
+		# these are forced options, but meson doesn't let me set these up separately before I call project() (TODO)
+		'warning_level=3',				# always max warnings
+		'b_pch=false',					# we don't want precompiled headers
+		'b_staticpic=true',				# use PIC even for static libraries
+		'c_std=c99',					# strict C99
+		'cpp_std=c++11',				# strict C++11
+		'cpp_eh=sc',					# shut the compiler up in some cases
+	],
+	license: 'MIT')
+
+# TODO move these below the next part (I need them here for other reasons)
+libui_OS = host_machine.system()
+libui_MSVC = meson.get_compiler('c').get_id() == 'msvc'
+
 # TODO switch to tabs; the spaces are just so I can share this file while I'm writing it
 libui_forced_options = {
 	'warning_level': '3',     # always max warnings
@@ -25,24 +42,14 @@ libui_forced_options = {
 	'cpp_eh':        'sc',    # shut the compiler up in some cases
 }
 foreach name, value : libui_forced_options
-	libui_default_options += [name + '=' + value]
-endforeach
-
-project('libui', 'c',
-	default_options: libui_default_options,
-	license: 'MIT')
-# TODO:
-# - add add_languages('c++') in windows/meson.build and examples/meson.build:cpp-multithread
-
-foreach name, value : libui_forced_options
-	actual = '@0@'.format(get_option(name))
-	if actual != value
-		error('sorry, but libui requires that option ' + name + ' has the default value ' + value)
+	# TODO why does meson need this guard?
+	if name != 'cpp_eh' or libui_MSVC
+		actual = '@0@'.format(get_option(name))
+		if actual != value
+			error('sorry, but libui requires that option ' + name + ' has the default value ' + value)
+		endif
 	endif
 endforeach
-
-libui_OS = host_machine.system()
-libui_MSVC = meson.get_compiler('c').get_id() == 'msvc'
 
 libui_mode = get_option('default_library')
 if libui_mode == 'both'
@@ -72,8 +79,11 @@ elif libui_OS == 'darwin'
 
 	# TODO see if there's a more direct way to set this
 	libui_macosx_version_min = '-mmacosx-version-min=10.8'
-	add_project_arguments(libui_macosx_version_min)
-	add_project_link_arguments(libui_macosx_version_min)
+	add_project_arguments(libui_macosx_version_min,
+		# TODO WHY IS THIS NEEDED MESON
+		language: ['c', 'cpp', 'objc'])
+	add_project_link_arguments(libui_macosx_version_min,
+		language: ['c', 'cpp', 'objc'])
 else
 	libui_deps += [dependency('gtk+-3.0',
 		version: '>=3.10.0',
@@ -96,32 +106,37 @@ if libui_MSVC
 	# TODO add these compiler flags (assuming meson doesn't provide an alternate method for these, which I know it does for EHsc):
 	add_project_arguments(
 		'/wd4100',
-		'/bigobj', '/nologo')
+		'/bigobj', '/nologo',
+		language: ['c', 'cpp', 'objc'])
 	if libui_is_debug
-		add_project_arguments('/RTC1', '/RTCs', '/RTCu')
+		add_project_arguments('/RTC1', '/RTCs', '/RTCu',
+			language: ['c', 'cpp', 'objc'])
 	endif
 
 	add_project_link_arguments(
 		'/LARGEADDRESSAWARE',
 		'/NOLOGO',
 		'/INCREMENTAL:NO',
-		'/MANIFEST:NO')
+		'/MANIFEST:NO',
+		language: ['c', 'cpp', 'objc'])
 else
 	add_project_arguments(
 		'-Wno-unused-parameter',
-		'-Wno-switch')
+		'-Wno-switch',
+		language: ['c', 'cpp', 'objc'])
 
 	if libui_OS == 'windows'
 		# don't require shipping the MinGW-w64 DLLs
 		add_project_link_arguments(
 			'-static',
 			'-static-libgcc',
-			'-static-libstdc++')
+			'-static-libstdc++',
+			language: ['c', 'cpp', 'objc'])
 	endif
 endif
 
 libui_sources = []
-libui_include_directories = [include_directory('.')]
+libui_include_directories = [include_directories('.')]
 libui_extra_libs = []
 subdir('common')
 if libui_OS == 'windows'

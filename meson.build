@@ -60,18 +60,18 @@ if libui_OS == 'windows'
 	# TODO c_winlibs and cpp_winlibs are the windows libraries
 	#	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs
 elif libui_OS == 'darwin'
-	# TODO libraries
-	# "-framework Foundation" "-framework AppKit"
+	libui_deps += [dependency('appleframeworks',
+		modules: ['Foundation', 'AppKit'],
+		required: true)]
 	libui_soversion = 'A'
 	# the / is required by some older versions of OS X
 	libui_rpath = '@executable_path/'
 	# TODO min version 10.8
 else
-	gtk = dependency('gtk+-3.0',
+	libui_deps += [dependency('gtk+-3.0',
 		version: '>=3.10.0',
 		method: 'pkg-config',
-		required: true)
-	libui_deps += [gtk]
+		required: true)]
 	libui_soversion = '0'
 	libui_rpath = '$ORIGIN'
 endif

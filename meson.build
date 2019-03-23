@@ -32,8 +32,7 @@ project('libui', 'c',
 	default_options: libui_default_options,
 	license: 'MIT')
 # TODO:
-# - add add_language('c++') in windows/meson.build and examples/meson.build:cpp-multithread
-# - add add_language('objc') in darwin/meson.build
+# - add add_languages('c++') in windows/meson.build and examples/meson.build:cpp-multithread
 
 foreach name, value : libui_forced_options
 	actual = '@0@'.format(get_option(name))
@@ -53,6 +52,10 @@ if libui_OS == 'windows' and libui_mode == 'shared' and not libui_MSVC
 	error('sorry, but libui currently does not support building a shared library with MinGW; use --default_library=static instead')
 endif
 
+# TODO there has to be a better way to specify this
+libui_buildtype = get_option('buildtype')
+libui_is_debug = libui_buildtype == 'debug' or libui_buildtype == 'debugoptimized'
+
 libui_deps = []
 libui_soversion = ''
 libui_rpath = ''
@@ -66,7 +69,11 @@ elif libui_OS == 'darwin'
 	libui_soversion = 'A'
 	# the / is required by some older versions of OS X
 	libui_rpath = '@executable_path/'
-	# TODO min version 10.8
+
+	# TODO see if there's a more direct way to set this
+	libui_macosx_version_min = '-mmacosx-version-min=10.8'
+	add_project_arguments(libui_macosx_version_min)
+	add_project_link_arguments(libui_macosx_version_min)
 else
 	libui_deps += [dependency('gtk+-3.0',
 		version: '>=3.10.0',
@@ -76,6 +83,7 @@ else
 	libui_rpath = '$ORIGIN'
 endif
 
+# TODO see if there's a more direct way to set any of these
 if libui_MSVC
 	# TODO subsystem version
 
@@ -86,30 +94,34 @@ if libui_MSVC
 	# the RTC flags are only supplied in debug builds because they are only supposed to be used by debug builds (see "This is because run-time error checks are not valid in a release (optimized) build." in https://docs.microsoft.com/cpp/build/reference/rtc-run-time-error-checks)
 	# /RTCc is not supplied because it's discouraged as of VS2015; see https://www.reddit.com/r/cpp/comments/46mhne/rtcc_rejects_conformant_code_with_visual_c_2015/d06auq5
 	# TODO add these compiler flags (assuming meson doesn't provide an alternate method for these, which I know it does for EHsc):
-	#	/wd4100 (equivalent of -Wno-unused-parameter)
-	#	/bigobj /nologo
-	#	$<$<CONFIG:Debug>:/RTC1 /RTCs /RTCu>
+	add_project_arguments(
+		'/wd4100',
+		'/bigobj', '/nologo')
+	if libui_is_debug
+		add_project_arguments('/RTC1', '/RTCs', '/RTCu')
+	endif
 
-	# TODO add these linker flags (for each: maybe? depends on whether meson does this itself)
-	#	/LARGEADDRESSAWARE
-	#	/NOLOGO
-	#	/INCREMENTAL:NO
-	#	/MANIFEST:NO
+	add_project_link_arguments(
+		'/LARGEADDRESSAWARE',
+		'/NOLOGO',
+		'/INCREMENTAL:NO',
+		'/MANIFEST:NO')
 else
-	# TODO add these C/C++ compiler options
-	#	-Wno-unused-parameter
-	#	-Wno-switch
+	add_project_arguments(
+		'-Wno-unused-parameter',
+		'-Wno-switch')
 
 	if libui_OS == 'windows'
 		# don't require shipping the MinGW-w64 DLLs
-		# TODO add these to the linker options
-		#	-static
-		#	-static-libgcc
-		#	-static-libstdc++
+		add_project_link_arguments(
+			'-static',
+			'-static-libgcc',
+			'-static-libstdc++')
 	endif
 endif
 
 libui_sources = []
+libui_include_directories = [include_directory('.')]
 libui_extra_libs = []
 subdir('common')
 if libui_OS == 'windows'
@@ -123,6 +135,7 @@ else
 	install_headers('ui_unix.h')
 endif
 libui_libui = library('ui', libui_sources,
+	include_directories: libui_include_directories,
 	dependencies: libui_deps,
 	build_rpath: libui_rpath,
 	install_rpath: libui_rpath,

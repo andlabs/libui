@@ -11,11 +11,8 @@
 # I'd also like to be able to omit the library's dependency libraries in the executables if building a shared library, as those are not required in that case; I'd need to require them in a static library.
 # And for Windows, the shared library (but not shared executables) needs an additional resource file, and the static executables (but not the static library) need a *different* resource file. (Windows static libraries can't contain resources anyway; the linkers will just ignore the resource objects.)
 
-libui_OS = target_machine.system()
-libui_MSVC = meson.get_compiler('c').get_id() == 'msvc'
-
 libui_default_options = [
-	'buildtype=debug',				# build debug by default (TODO: disallow plain?)
+	'buildtype=debug',				# build debug by default
 	'default_library=shared',			# build shared libraries by default
 ]
 # TODO switch to tabs; the spaces are just so I can share this file while I'm writing it
@@ -44,6 +41,9 @@ foreach name, value : libui_forced_options
 		error('sorry, but libui requires that option ' + name + ' has the default value ' + value)
 	endif
 endforeach
+
+libui_OS = target_machine.system()
+libui_MSVC = meson.get_compiler('c').get_id() == 'msvc'
 
 libui_mode = get_option('default_library')
 if libui_mode == 'both'

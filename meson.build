@@ -166,4 +166,4 @@ if libui_mode == 'static'
 	libui_binary_deps = libui_deps
 endif
 subdir('test')
-# TODO examples
+subdir('examples')

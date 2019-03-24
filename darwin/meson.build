@@ -53,3 +53,10 @@ libui_sources += [
 ]
 
 libui_include_directories += [include_directories('.')]
+
+libui_deps += [dependency('appleframeworks',
+	modules: ['Foundation', 'AppKit'],
+	required: true)]
+libui_soversion = 'A'
+# the / is required by some older versions of OS X
+libui_rpath = '@executable_path/'

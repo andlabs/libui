@@ -14,6 +14,7 @@
 # we have to specify C++ here even if we're not using C++ immediately because otherwise none of the C++ built-in options are available (sigh; TODO)
 # and same for Objective-C because of add_project_arguments() (double sigh; TODO)
 project('libui', ['c', 'cpp'],
+	meson_version: '>=0.48.0',
 	default_options: [
 		'buildtype=debug',				# build debug by default
 		'default_library=shared',			# build shared libraries by default
@@ -33,7 +34,7 @@ libui_OS = host_machine.system()
 libui_MSVC = meson.get_compiler('c').get_id() == 'msvc'
 
 if libui_OS == 'darwin'
-	add_language('objc',
+	add_languages('objc',
 		required: true)
 endif
 
@@ -75,13 +76,6 @@ if libui_OS == 'windows'
 	# TODO c_winlibs and cpp_winlibs are the windows libraries
 	#	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs
 elif libui_OS == 'darwin'
-	libui_deps += [dependency('appleframeworks',
-		modules: ['Foundation', 'AppKit'],
-		required: true)]
-	libui_soversion = 'A'
-	# the / is required by some older versions of OS X
-	libui_rpath = '@executable_path/'
-
 	# TODO see if there's a more direct way to set this
 	libui_macosx_version_min = '-mmacosx-version-min=10.8'
 	add_project_arguments(libui_macosx_version_min,

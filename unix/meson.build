@@ -1,0 +1,64 @@
+# 23 march 2019
+
+libui_sources += [
+	'unix/alloc.c',
+	'unix/area.c',
+	'unix/attrstr.c',
+	'unix/box.c',
+	'unix/button.c',
+	'unix/cellrendererbutton.c',
+	'unix/checkbox.c',
+	'unix/child.c',
+	'unix/colorbutton.c',
+	'unix/combobox.c',
+	'unix/control.c',
+	'unix/datetimepicker.c',
+	'unix/debug.c',
+	'unix/draw.c',
+	'unix/drawmatrix.c',
+	'unix/drawpath.c',
+	'unix/drawtext.c',
+	'unix/editablecombo.c',
+	'unix/entry.c',
+	'unix/fontbutton.c',
+	'unix/fontmatch.c',
+	'unix/form.c',
+	'unix/future.c',
+	'unix/graphemes.c',
+	'unix/grid.c',
+	'unix/group.c',
+	'unix/image.c',
+	'unix/label.c',
+	'unix/main.c',
+	'unix/menu.c',
+	'unix/multilineentry.c',
+	'unix/opentype.c',
+	'unix/progressbar.c',
+	'unix/radiobuttons.c',
+	'unix/separator.c',
+	'unix/slider.c',
+	'unix/spinbox.c',
+	'unix/stddialogs.c',
+	'unix/tab.c',
+	'unix/table.c',
+	'unix/tablemodel.c',
+	'unix/text.c',
+	'unix/util.c',
+	'unix/window.c',
+]
+
+libui_include_directories += [include_directories('.')]
+
+libui_deps += [
+	dependency('gtk+-3.0',
+		version: '>=3.10.0',
+		method: 'pkg-config',
+		required: true),
+	# TODO are there better ways for these two?
+	meson.get_compiler('c').find_library('m',
+		required: true),
+	meson.get_compiler('c').find_library('dl',
+		required: true),
+]
+libui_soversion = '0'
+libui_rpath = '$ORIGIN'

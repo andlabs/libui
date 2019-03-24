@@ -13,7 +13,7 @@
 
 # we have to specify C++ here even if we're not using C++ immediately because otherwise none of the C++ built-in options are available (sigh; TODO)
 # and same for Objective-C because of add_project_arguments() (double sigh; TODO)
-project('libui', ['c', 'cpp', 'objc'],
+project('libui', ['c', 'cpp'],
 	default_options: [
 		'buildtype=debug',				# build debug by default
 		'default_library=shared',			# build shared libraries by default
@@ -31,6 +31,11 @@ project('libui', ['c', 'cpp', 'objc'],
 # TODO move these below the next part (I need them here for other reasons)
 libui_OS = host_machine.system()
 libui_MSVC = meson.get_compiler('c').get_id() == 'msvc'
+
+if libui_OS == 'darwin'
+	add_language('objc',
+		required: true)
+endif
 
 # TODO switch to tabs; the spaces are just so I can share this file while I'm writing it
 libui_forced_options = {
@@ -85,12 +90,6 @@ elif libui_OS == 'darwin'
 	add_project_link_arguments(libui_macosx_version_min,
 		language: ['c', 'cpp', 'objc'])
 else
-	libui_deps += [dependency('gtk+-3.0',
-		version: '>=3.10.0',
-		method: 'pkg-config',
-		required: true)]
-	libui_soversion = '0'
-	libui_rpath = '$ORIGIN'
 endif
 
 # TODO see if there's a more direct way to set any of these
@@ -138,6 +137,8 @@ endif
 libui_sources = []
 libui_base_include_directories = [include_directories('.')]
 libui_include_directories = libui_base_include_directories
+# TODO make this not +=
+libui_deps += []
 libui_extra_libs = []
 subdir('common')
 if libui_OS == 'windows'

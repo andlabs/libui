@@ -24,8 +24,10 @@ project('libui', ['c', 'cpp'],
 		'b_pch=false',					# we don't want precompiled headers
 		'b_staticpic=true',				# use PIC even for static libraries
 		'c_std=c99',					# strict C99
+		'c_winlibs=',					# we define our own Windows libraries
 		'cpp_std=c++11',				# strict C++11
 		'cpp_eh=sc',					# shut the compiler up in some cases
+		'cpp_winlibs=',					# likewise as with c_winlibs
 	],
 	license: 'MIT')
 
@@ -44,12 +46,14 @@ libui_forced_options = {
 	'b_pch':         'false', # we don't want precompiled headers
 	'b_staticpic':   'true',  # use PIC even for static libraries
 	'c_std':         'c99',   # strict C99
+	'c_winlibs':     '[]',    # we define our own Windows libraries
 	'cpp_std':       'c++11', # strict C++11
 	'cpp_eh':        'sc',    # shut the compiler up in some cases
+	'cpp_winlibs':   '[]',    # likewise as with c_winlibs
 }
 foreach name, value : libui_forced_options
-	# TODO why does meson need this guard?
-	if name != 'cpp_eh' or libui_MSVC
+	# TODO why does meson need this guard? why aren't all options defined regardless of target?!
+	if not (name == 'cpp_eh' and not libui_MSVC) and not (name == 'c_std' and libui_MSVC)
 		actual = '@0@'.format(get_option(name))
 		if actual != value
 			error('sorry, but libui requires that option ' + name + ' has the default value ' + value)

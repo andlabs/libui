@@ -1,5 +1,7 @@
 # 23 march 2019
 
+windows = import('windows')
+
 libui_sources += [
 	'windows/alloc.cpp',
 	'windows/area.cpp',
@@ -63,24 +65,30 @@ libui_sources += [
 	'windows/winpublic.cpp',
 	'windows/winutil.cpp',
 ]
+
+libui_include_directories += [include_directories('.')]
+
 # resources.rc only contains the libui manifest.
 # For a DLL, we have to include this directly, so we do so.
 # Windows won't link resources in static libraries, so including this would have no effect.
 # In those cases, we just need them to include the manifest with the executable (or link it directly into the output executable themselves); they can also customize the manifest as they see fit (assuming nothing breaks in the process).
 # TODO make sure this gets added to both binary-only archives and install rules in this case
 if libui_mode == 'shared'
-	libui_sources += ['windows/resources.rc']
+	libui_sources += [
+		# TODO settle the path thing once and for all
+		windows.compile_resources('resources.rc',
+			depend_files: ['libui.manifest'],
+			include_directories: libui_include_directories),
+	]
 endif
 
-libui_include_directories += [include_directories('.')]
-
 libui_winlibs = 'user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs'.split(' ')
-for lib in libui_winlibs
-	libui_dep += [
+foreach lib : libui_winlibs
+	libui_deps += [
 		meson.get_compiler('cpp').find_library(lib,
 			required: true),
 	]
-endfor
+endforeach
 
 if libui_OS == 'windows' and libui_mode == 'shared' and not libui_MSVC
 	error('Sorry, but libui for Windows can currently only be built as a static library with MinGW. You will need to either build as a static library or switch to MSVC.')

@@ -61,21 +61,12 @@ libui_mode = get_option('default_library')
 if libui_mode == 'both'
 	error('sorry, but libui does not support building both shared and static libraries at the same time, because Windows resource file rules differ between the two')
 endif
-if libui_OS == 'windows' and libui_mode == 'shared' and not libui_MSVC
-	error('sorry, but libui currently does not support building a shared library with MinGW; use --default_library=static instead')
-endif
 
 # TODO there has to be a better way to specify this
 libui_buildtype = get_option('buildtype')
 libui_is_debug = libui_buildtype == 'debug' or libui_buildtype == 'debugoptimized'
 
-libui_deps = []
-libui_soversion = ''
-libui_rpath = ''
-if libui_OS == 'windows'
-	# TODO c_winlibs and cpp_winlibs are the windows libraries
-	#	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs
-elif libui_OS == 'darwin'
+if libui_OS == 'darwin'
 	# TODO see if there's a more direct way to set this
 	libui_macosx_version_min = '-mmacosx-version-min=10.8'
 	add_project_arguments(libui_macosx_version_min,
@@ -83,7 +74,6 @@ elif libui_OS == 'darwin'
 		language: ['c', 'cpp', 'objc'])
 	add_project_link_arguments(libui_macosx_version_min,
 		language: ['c', 'cpp', 'objc'])
-else
 endif
 
 # TODO see if there's a more direct way to set any of these
@@ -131,9 +121,9 @@ endif
 libui_sources = []
 libui_base_include_directories = [include_directories('.')]
 libui_include_directories = libui_base_include_directories
-# TODO make this not +=
-libui_deps += []
-libui_extra_libs = []
+libui_deps = []
+libui_soversion = ''
+libui_rpath = ''
 subdir('common')
 if libui_OS == 'windows'
 	subdir('windows')

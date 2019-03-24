@@ -1,10 +1,5 @@
 # 23 march 2019
 
-# TODO
-#if(WIN32)
-#	set(_TEST_RESOURCES_RC resources.rc)
-#endif()
-
 libui_test_sources = [
 	'drawtests.c',
 	'images.c',
@@ -31,6 +26,9 @@ libui_test_sources = [
 	'page16.c',
 	'spaced.c',
 ]
+if libui_OS == 'windows' and libui_mode == 'static'
+	libui_test_sources += ['resources.rc']
+endif
 
 # TODO meson doesn't let us name this target test, but also doesn't seem to provide a way to override the executable name????
 executable('tester', libui_test_sources,

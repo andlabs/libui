@@ -77,6 +77,7 @@ if libui_mode == 'shared'
 	libui_sources += [
 		# TODO settle the path thing once and for all
 		windows.compile_resources('resources.rc',
+			args: libui_manifest_args,
 			depend_files: ['libui.manifest'],
 			include_directories: libui_include_directories),
 	]

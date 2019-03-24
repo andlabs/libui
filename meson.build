@@ -53,7 +53,7 @@ libui_forced_options = {
 }
 foreach name, value : libui_forced_options
 	# TODO why does meson need this guard? why aren't all options defined regardless of target?!
-	if not (name == 'cpp_eh' and not libui_MSVC) and not (name == 'c_std' and libui_MSVC)
+	if not ((name == 'c_winlibs' or name == 'cpp_eh' or name == 'cpp_winlibs') and not libui_MSVC) and not (name == 'c_std' and libui_MSVC)
 		actual = '@0@'.format(get_option(name))
 		if actual != value
 			error('sorry, but libui requires that option ' + name + ' has the default value ' + value)
@@ -122,6 +122,13 @@ else
 	endif
 endif
 
+libui_manifest_args = []
+if libui_mode == 'static'
+	add_project_arguments('-D_UI_STATIC',
+		language: ['c', 'cpp', 'objc'])
+	libui_manifest_args = ['-D_UI_STATIC']
+endif
+
 libui_sources = []
 libui_base_include_directories = [include_directories('.')]
 libui_include_directories = libui_base_include_directories
@@ -139,6 +146,7 @@ else
 	subdir('unix')
 	install_headers('ui_unix.h')
 endif
+# TODO make sure the name is always libui.(something) regardless of the OS or build type
 libui_libui = library('ui', libui_sources,
 	include_directories: libui_include_directories,
 	dependencies: libui_deps,

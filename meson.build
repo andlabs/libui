@@ -67,8 +67,7 @@ if libui_mode == 'both'
 endif
 
 # TODO there has to be a better way to specify this
-libui_buildtype = get_option('buildtype')
-libui_is_debug = libui_buildtype == 'debug' or libui_buildtype == 'debugoptimized'
+libui_is_debug = get_option('buildtype').startswith('debug')
 
 if libui_OS == 'darwin'
 	# TODO see if there's a more direct way to set this

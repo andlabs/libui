@@ -92,7 +92,7 @@ if libui_MSVC
 	# TODO add these compiler flags (assuming meson doesn't provide an alternate method for these, which I know it does for EHsc):
 	add_project_arguments(
 		'/wd4100',
-		'/bigobj', '/nologo',
+		'/bigobj',
 		language: ['c', 'cpp', 'objc'])
 	if libui_is_debug
 		add_project_arguments('/RTC1', '/RTCs', '/RTCu',
@@ -101,7 +101,6 @@ if libui_MSVC
 
 	add_project_link_arguments(
 		'/LARGEADDRESSAWARE',
-		'/NOLOGO',
 		'/INCREMENTAL:NO',
 		'/MANIFEST:NO',
 		language: ['c', 'cpp', 'objc'])

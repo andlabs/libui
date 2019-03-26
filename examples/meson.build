@@ -1,7 +1,5 @@
 # 24 march 2019
 
-libui_example_include_directories = libui_base_include_directories + [include_directories('.')]
-
 libui_example_sources = []
 libui_example_link_args = []
 libui_example_cpp_extra_args = []
@@ -13,8 +11,7 @@ if libui_OS == 'windows'
 	libui_example_sources += [
 		windows.compile_resources('resources.rc',
 			args: libui_manifest_args,
-			depend_files: [libui_example_manifest],
-			include_directories: libui_example_include_directories),
+			depend_files: [libui_example_manifest]),
 	]
 	# because Microsoft's toolchain is dumb
 	if libui_MSVC
@@ -54,7 +51,6 @@ libui_examples = {
 }
 foreach name, args : libui_examples
 	executable(name, args['sources'] + libui_example_sources,
-		include_directories: libui_example_include_directories,
 		dependencies: args.get('deps', []) + libui_binary_deps,
 		link_with: libui_libui,
 		cpp_args: args.get('cpp_args', []),

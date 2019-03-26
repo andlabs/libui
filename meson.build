@@ -129,8 +129,6 @@ if libui_mode == 'static'
 endif
 
 libui_sources = []
-libui_base_include_directories = [include_directories('.')]
-libui_include_directories = libui_base_include_directories
 libui_deps = []
 libui_soversion = ''
 libui_rpath = ''
@@ -147,7 +145,6 @@ else
 endif
 # TODO make sure the name is always libui.(something) regardless of the OS or build type
 libui_libui = library('ui', libui_sources,
-	include_directories: libui_include_directories,
 	dependencies: libui_deps,
 	build_rpath: libui_rpath,
 	install_rpath: libui_rpath,

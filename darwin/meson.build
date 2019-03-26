@@ -52,8 +52,6 @@ libui_sources += [
 	'darwin/winmoveresize.m',
 ]
 
-libui_include_directories += [include_directories('.')]
-
 libui_deps += [dependency('appleframeworks',
 	modules: ['Foundation', 'AppKit'],
 	required: true)]

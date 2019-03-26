@@ -47,8 +47,6 @@ libui_sources += [
 	'unix/window.c',
 ]
 
-libui_include_directories += [include_directories('.')]
-
 libui_deps += [
 	dependency('gtk+-3.0',
 		version: '>=3.10.0',

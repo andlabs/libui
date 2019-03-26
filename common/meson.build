@@ -15,5 +15,3 @@ libui_sources += [
 	'common/userbugs.c',
 	'common/utf.c',
 ]
-
-libui_include_directories += [include_directories('.')]

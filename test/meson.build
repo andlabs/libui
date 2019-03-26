@@ -27,8 +27,6 @@ libui_test_sources = [
 	'spaced.c',
 ]
 
-libui_test_include_directories = libui_base_include_directories + [include_directories('.')]
-
 if libui_OS == 'windows'
 	libui_test_manifest = 'test.manifest'
 	if libui_mode == 'static'
@@ -37,14 +35,12 @@ if libui_OS == 'windows'
 	libui_test_sources += [
 		windows.compile_resources('resources.rc',
 			args: libui_manifest_args,
-			depend_files: [libui_test_manifest],
-			include_directories: libui_test_include_directories),
+			depend_files: [libui_test_manifest]),
 	]
 endif
 
 # TODO meson doesn't let us name this target test, but also doesn't seem to provide a way to override the executable name????
 executable('tester', libui_test_sources,
-	include_directories: libui_test_include_directories,
 	dependencies: libui_binary_deps,
 	link_with: libui_libui,
 	build_by_default: false,

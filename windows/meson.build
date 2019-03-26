@@ -66,8 +66,6 @@ libui_sources += [
 	'windows/winutil.cpp',
 ]
 
-libui_include_directories += [include_directories('.')]
-
 # resources.rc only contains the libui manifest.
 # For a DLL, we have to include this directly, so we do so.
 # Windows won't link resources in static libraries, so including this would have no effect.
@@ -79,7 +77,6 @@ if libui_mode == 'shared'
 		windows.compile_resources('resources.rc',
 			args: libui_manifest_args,
 			depend_files: ['libui.manifest'],
-			include_directories: libui_include_directories),
 	]
 endif
 

@@ -157,6 +157,8 @@ libui_libui = library('ui', libui_sources,
 	darwin_versions: [])		# TODO
 install_headers('ui.h')
 
+# TODO when the API is stable enough to be versioned, create a pkg-config file (https://mesonbuild.com/Pkgconfig-module.html) and a declare_dependency() section too
+
 libui_binary_deps = []
 if libui_mode == 'static'
 	libui_binary_deps = libui_deps

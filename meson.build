@@ -12,7 +12,6 @@
 # And for Windows, the shared library (but not shared executables) needs an additional resource file, and the static executables (but not the static library) need a *different* resource file. (Windows static libraries can't contain resources anyway; the linkers will just ignore the resource objects.)
 
 # we have to specify C++ here even if we're not using C++ immediately because otherwise none of the C++ built-in options are available (sigh; TODO)
-# and same for Objective-C because of add_project_arguments() (double sigh; TODO)
 project('libui', ['c', 'cpp'],
 	meson_version: '>=0.48.0',
 	default_options: [
@@ -66,7 +65,6 @@ if libui_mode == 'both'
 	error('sorry, but libui does not support building both shared and static libraries at the same time, because Windows resource file rules differ between the two')
 endif
 
-# TODO there has to be a better way to specify this
 libui_is_debug = get_option('buildtype').startswith('debug')
 
 if libui_OS == 'darwin'
@@ -142,7 +140,6 @@ else
 	subdir('unix')
 	install_headers('ui_unix.h')
 endif
-# TODO make sure the name is always libui.(something) regardless of the OS or build type
 libui_libui = library('ui', libui_sources,
 	dependencies: libui_deps,
 	build_rpath: libui_rpath,

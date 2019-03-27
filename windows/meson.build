@@ -80,6 +80,8 @@ if libui_mode == 'shared'
 	]
 endif
 
+# TODO prune this list
+# TODO find out if we can just pass libui_winlibs to find_library()
 libui_winlibs = 'user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs'.split(' ')
 foreach lib : libui_winlibs
 	libui_deps += [

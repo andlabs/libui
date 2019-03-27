@@ -4,12 +4,13 @@
 # $ meson setup build \
 #     [--buildtype=debug|release] \        (core option, default debug)
 #     [--default_library=static|shared] \  (core option, default shared)
+#     [--layout=flat] \                    (useful for distribution and Windows DLL tests)
 #     [--b_sanitize=whatever]
 # It turns out that I wouldn't really need any custom options; go figure.
-# I'm not sure how to allow building 32-bit instead of 64-bit with meson.
-# I'd also like all the outputs to appear in a folder out/ in the build folder.
-# I'd also like to be able to omit the library's dependency libraries in the executables if building a shared library, as those are not required in that case; I'd need to require them in a static library.
-# And for Windows, the shared library (but not shared executables) needs an additional resource file, and the static executables (but not the static library) need a *different* resource file. (Windows static libraries can't contain resources anyway; the linkers will just ignore the resource objects.)
+# TODO I'm not sure how to allow building 32-bit instead of 64-bit with meson.
+# TODO figure out what (meson/ninja) dist do
+# TODO figure out why test and examples aren't included in ninja all
+# TODO figure out how to make an overarching "examples" target
 
 # we have to specify C++ here even if we're not using C++ immediately because otherwise none of the C++ built-in options are available (sigh; TODO)
 project('libui', ['c', 'cpp'],

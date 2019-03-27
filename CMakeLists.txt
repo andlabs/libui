@@ -1,7 +1,5 @@
 # 3 june 2016
 
-	set(CMAKE_INSTALL_RPATH "\$ORIGIN")
-
 	# flags for warning on undefined symbols
 	# TODO figure out why FreeBSD follows linked libraries here
 	# TODO figure out MSVC equivalents

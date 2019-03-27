@@ -59,3 +59,5 @@ foreach name, args : libui_examples
 		gui_app: false,
 		install: false)
 endforeach
+
+# TODO define the top-level examples target here

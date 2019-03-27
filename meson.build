@@ -11,6 +11,11 @@
 # TODO figure out what (meson/ninja) dist do
 # TODO figure out why test and examples aren't included in ninja all
 # TODO figure out how to make an overarching "examples" target
+# TODOs from cmake; not sure if they're relevant here:
+# - uname -s for more refined OS control
+# 	- Haiku for haiku
+# - debian DESTDIR? https://github.com/andlabs/libui/pull/10
+# - disable incremental linking? I forget if meson already doesn't do this or not; we did it manually in cmake
 
 # we have to specify C++ here even if we're not using C++ immediately because otherwise none of the C++ built-in options are available (sigh; TODO)
 project('libui', ['c', 'cpp'],
@@ -93,6 +98,8 @@ if libui_MSVC
 		'/INCREMENTAL:NO',
 		'/MANIFEST:NO',
 	]
+
+	# TODO autogenerate a .def file?
 else
 	libui_project_compile_args += [
 		'-Wno-unused-parameter',

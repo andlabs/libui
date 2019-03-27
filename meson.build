@@ -67,14 +67,14 @@ endif
 
 libui_is_debug = get_option('buildtype').startswith('debug')
 
+libui_project_compile_args = []
+libui_project_link_args = []
+
 if libui_OS == 'darwin'
 	# TODO see if there's a more direct way to set this
 	libui_macosx_version_min = '-mmacosx-version-min=10.8'
-	add_project_arguments(libui_macosx_version_min,
-		# TODO WHY IS THIS NEEDED MESON
-		language: ['c', 'cpp', 'objc'])
-	add_project_link_arguments(libui_macosx_version_min,
-		language: ['c', 'cpp', 'objc'])
+	libui_project_compile_args += [libui_macosx_version_min]
+	libui_project_link_args += [libui_macosx_version_min]
 endif
 
 # TODO see if there's a more direct way to set any of these
@@ -88,42 +88,45 @@ if libui_MSVC
 	# the RTC flags are only supplied in debug builds because they are only supposed to be used by debug builds (see "This is because run-time error checks are not valid in a release (optimized) build." in https://docs.microsoft.com/cpp/build/reference/rtc-run-time-error-checks)
 	# /RTCc is not supplied because it's discouraged as of VS2015; see https://www.reddit.com/r/cpp/comments/46mhne/rtcc_rejects_conformant_code_with_visual_c_2015/d06auq5
 	# TODO add these compiler flags (assuming meson doesn't provide an alternate method for these, which I know it does for EHsc):
-	add_project_arguments(
+	libui_project_compile_args += [
 		'/wd4100',
 		'/bigobj',
-		language: ['c', 'cpp', 'objc'])
+	]
 	if libui_is_debug
-		add_project_arguments('/RTC1', '/RTCs', '/RTCu',
-			language: ['c', 'cpp', 'objc'])
+		libui_project_compile_args += ['/RTC1', '/RTCs', '/RTCu']
 	endif
 
-	add_project_link_arguments(
+	libui_project_link_args += [
 		'/LARGEADDRESSAWARE',
 		'/INCREMENTAL:NO',
 		'/MANIFEST:NO',
-		language: ['c', 'cpp', 'objc'])
+	]
 else
-	add_project_arguments(
+	libui_project_compile_args += [
 		'-Wno-unused-parameter',
 		'-Wno-switch',
-		language: ['c', 'cpp', 'objc'])
+	]
 
 	if libui_OS == 'windows'
 		# don't require shipping the MinGW-w64 DLLs
-		add_project_link_arguments(
+		libui_project_link_args += [
 			'-static',
 			'-static-libgcc',
 			'-static-libstdc++',
-			language: ['c', 'cpp', 'objc'])
+		]
 	endif
 endif
 
 libui_manifest_args = []
 if libui_mode == 'static'
-	add_project_arguments('-D_UI_STATIC',
-		language: ['c', 'cpp', 'objc'])
+	libui_project_compile_args += ['-D_UI_STATIC']
 	libui_manifest_args = ['-D_UI_STATIC']
 endif
+
+add_project_arguments(libui_project_compile_args,
+	language: ['c', 'cpp', 'objc'])
+add_project_link_arguments(libui_project_link_args,
+	language: ['c', 'cpp', 'objc'])
 
 libui_sources = []
 libui_deps = []

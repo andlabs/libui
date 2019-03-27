@@ -116,6 +116,7 @@ else
 	endif
 endif
 
+# TODO come up with a better way to do this, both for libui (the compiler define, used by winapi.hpp, and the manifest args) and for the binaries (the manifest args)
 libui_manifest_args = []
 if libui_mode == 'static'
 	libui_project_compile_args += ['-D_UI_STATIC']

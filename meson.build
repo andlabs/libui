@@ -79,13 +79,6 @@ endif
 if libui_MSVC
 	# TODO subsystem version
 
-	# TODO is there a -Wno-switch equivalent?
-	# TODO /sdl turns C4996 into an ERROR
-	# don't use /analyze; that requires us to write annotations everywhere
-	# TODO undecided flags from qo?
-	# the RTC flags are only supplied in debug builds because they are only supposed to be used by debug builds (see "This is because run-time error checks are not valid in a release (optimized) build." in https://docs.microsoft.com/cpp/build/reference/rtc-run-time-error-checks)
-	# /RTCc is not supplied because it's discouraged as of VS2015; see https://www.reddit.com/r/cpp/comments/46mhne/rtcc_rejects_conformant_code_with_visual_c_2015/d06auq5
-	# TODO add these compiler flags (assuming meson doesn't provide an alternate method for these, which I know it does for EHsc):
 	libui_project_compile_args += [
 		'/wd4100',
 		'/bigobj',

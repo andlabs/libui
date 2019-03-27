@@ -71,13 +71,11 @@ libui_project_compile_args = []
 libui_project_link_args = []
 
 if libui_OS == 'darwin'
-	# TODO see if there's a more direct way to set this
 	libui_macosx_version_min = '-mmacosx-version-min=10.8'
 	libui_project_compile_args += [libui_macosx_version_min]
 	libui_project_link_args += [libui_macosx_version_min]
 endif
 
-# TODO see if there's a more direct way to set any of these
 if libui_MSVC
 	# TODO subsystem version
 

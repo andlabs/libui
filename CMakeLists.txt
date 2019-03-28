@@ -14,8 +14,3 @@
 		endif()
 	endif()
 endif()
-
-macro(_add_exec _name)
-	set_property(TARGET ${_name} PROPERTY
-		POSITION_INDEPENDENT_CODE True)
-endmacro()

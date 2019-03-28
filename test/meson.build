@@ -39,7 +39,8 @@ if libui_OS == 'windows'
 	]
 endif
 
-# TODO meson doesn't let us name this target test, but also doesn't seem to provide a way to override the executable name????
+# MESONTODO meson doesn't let us name this target test, but also doesn't seem to provide a way to override the executable name????
+# TODO once we upgrade to 0.49.0, add pie: true
 executable('tester', libui_test_sources,
 	dependencies: libui_binary_deps,
 	link_with: libui_libui,

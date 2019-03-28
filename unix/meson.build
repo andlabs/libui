@@ -52,7 +52,7 @@ libui_deps += [
 		version: '>=3.10.0',
 		method: 'pkg-config',
 		required: true),
-	# TODO are there better ways for these two?
+	# MESONTODO are there better ways for these two? I forget if I asked this already...
 	meson.get_compiler('c').find_library('m',
 		required: true),
 	meson.get_compiler('c').find_library('dl',

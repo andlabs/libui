@@ -50,6 +50,7 @@ libui_examples = {
 	},
 }
 foreach name, args : libui_examples
+	# TODO once we upgrade to 0.49.0, add pie: true
 	executable(name, args['sources'] + libui_example_sources,
 		dependencies: args.get('deps', []) + libui_binary_deps,
 		link_with: libui_libui,
@@ -60,4 +61,4 @@ foreach name, args : libui_examples
 		install: false)
 endforeach
 
-# TODO define the top-level examples target here
+# MESONTODO define the top-level examples target here

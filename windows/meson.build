@@ -70,10 +70,8 @@ libui_sources += [
 # For a DLL, we have to include this directly, so we do so.
 # Windows won't link resources in static libraries, so including this would have no effect.
 # In those cases, we just need them to include the manifest with the executable (or link it directly into the output executable themselves); they can also customize the manifest as they see fit (assuming nothing breaks in the process).
-# TODO make sure this gets added to both binary-only archives and install rules in this case
 if libui_mode == 'shared'
 	libui_sources += [
-		# TODO settle the path thing once and for all
 		windows.compile_resources('resources.rc',
 			args: libui_manifest_args,
 			depend_files: ['libui.manifest'],
@@ -81,7 +79,7 @@ if libui_mode == 'shared'
 endif
 
 # TODO prune this list
-# TODO find out if we can just pass libui_winlibs to find_library()
+# MESONTODO find out if we can just pass libui_winlibs to find_library()
 libui_winlibs = 'user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs'.split(' ')
 foreach lib : libui_winlibs
 	libui_deps += [

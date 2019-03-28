@@ -15,10 +15,6 @@
 	endif()
 endif()
 
-# TODO why is this not a default?!
-set_property(TARGET libui PROPERTY
-	POSITION_INDEPENDENT_CODE True)
-
 macro(_add_exec _name)
 	set_property(TARGET ${_name} PROPERTY
 		POSITION_INDEPENDENT_CODE True)

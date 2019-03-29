@@ -116,7 +116,7 @@ else
 	endif
 endif
 
-# TODO come up with a better way to do this, both for libui (the compiler define, used by winapi.hpp, and the manifest args) and for the binaries (the manifest args)
+# TODO come up with a better way to do this, both for libui (the compiler define, used by winapi.hpp, and the manifest args) and for the binaries (the manifest args); then move that below the part below that actually adds these arguments
 libui_manifest_args = []
 if libui_mode == 'static'
 	libui_project_compile_args += ['-D_UI_STATIC']
@@ -127,6 +127,24 @@ add_project_arguments(libui_project_compile_args,
 	language: ['c', 'cpp', 'objc'])
 add_project_link_arguments(libui_project_link_args,
 	language: ['c', 'cpp', 'objc'])
+
+# TODO:
+# meson determins whether -Wl,--no-undefined is provided via
+# built-in option b_lundef, and it's true by default, which is what
+# we want (so I don't make mistakes like asking for unknown
+# functions in my dependencies). However, meson also is smart
+# about specifying this properly on systems that don't support it, like
+# FreeBSD (where I had the comment "figure out why FreeBSD
+# follows linked libraries here" when I was on cmake) and OpenBSD
+# (according to someone on freenode #mesonbuild), but it isn't clear
+# whether it's just ignored or if the value is forced to false.
+# Therefore, once this is determined, we can uncomment the
+# following.
+libui_libui_link_args = []
+#if not libui_MSVC and get_option("b_lundef")
+	# TODO what should this be on MSVC?
+#	libui_libui_link_args += ['-Wl,--no-allow-shlib-undefined']
+#endif
 
 libui_sources = []
 libui_deps = []
@@ -153,6 +171,7 @@ libui_libui = library('ui', libui_sources,
 	c_args: ['-Dlibui_EXPORTS'],
 	cpp_args: ['-Dlibui_EXPORTS'],
 	objc_args: ['-Dlibui_EXPORTS'],
+	link_args: libui_libui_link_args,
 	soversion: libui_soversion,
 	darwin_versions: [])		# TODO
 install_headers('ui.h')

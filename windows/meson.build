@@ -74,13 +74,12 @@ if libui_mode == 'shared'
 	libui_sources += [
 		windows.compile_resources('resources.rc',
 			args: libui_manifest_args,
-			depend_files: ['libui.manifest'],
+			depend_files: ['libui.manifest']),
 	]
 endif
 
 # TODO prune this list
-libui_winlibs = 'user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs'.split(' ')
-foreach lib : libui_winlibs
+foreach lib : ['user32', 'kernel32', 'gdi32', 'comctl32', 'uxtheme', 'msimg32', 'comdlg32', 'd2d1', 'dwrite', 'ole32', 'oleaut32', 'oleacc', 'uuid', 'windowscodecs']
 	libui_deps += [
 		meson.get_compiler('cpp').find_library(lib,
 			required: true),

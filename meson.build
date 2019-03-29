@@ -8,9 +8,7 @@
 #     [--b_sanitize=whatever]
 # It turns out that I wouldn't really need any custom options; go figure.
 # MESONTODO I'm not sure how to allow building 32-bit instead of 64-bit with meson.
-# MESONTODO figure out what (meson/ninja) dist do
 # MESONTODO figure out why test and examples aren't included in ninja all
-# MESONTODO figure out how to make an overarching "examples" target
 # MESONTODO "cl : Command line warning D9038 : /ZI is not supported on this platform; enabling /Zi instead"
 # MESONTODOs from cmake; not sure if they're relevant here:
 # - uname -s for more refined OS control

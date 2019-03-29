@@ -52,11 +52,11 @@ libui_deps += [
 		version: '>=3.10.0',
 		method: 'pkg-config',
 		required: true),
-	# MESONTODO are there better ways for these two? I forget if I asked this already...
+	# We specify these as not required because some Unix systems include them with libc instead of providing them as separate files (thanks textshell and jpakkane in freenode #mesonbuild)
 	meson.get_compiler('c').find_library('m',
-		required: true),
+		required: false),
 	meson.get_compiler('c').find_library('dl',
-		required: true),
+		required: false),
 ]
 libui_soversion = '0'
 libui_rpath = '$ORIGIN'

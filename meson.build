@@ -10,9 +10,6 @@
 # MESONTODO figure out why test and examples aren't included in ninja all
 # MESONTODO "cl : Command line warning D9038 : /ZI is not supported on this platform; enabling /Zi instead"
 # MESONTODOs from cmake; not sure if they're relevant here:
-# - uname -s for more refined OS control
-# 	- Haiku for haiku
-# - debian DESTDIR? https://github.com/andlabs/libui/pull/10
 # - disable incremental linking? I forget if meson already doesn't do this or not; we did it manually in cmake
 
 # TODO I'm not sure how to allow building 32-bit instead of 64-bit with meson

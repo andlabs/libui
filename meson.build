@@ -9,19 +9,18 @@
 # It turns out that I wouldn't really need any custom options; go figure.
 # MESONTODO figure out why test and examples aren't included in ninja all
 # MESONTODO "cl : Command line warning D9038 : /ZI is not supported on this platform; enabling /Zi instead"
-# MESONTODOs from cmake; not sure if they're relevant here:
-# - disable incremental linking? I forget if meson already doesn't do this or not; we did it manually in cmake
+# MESONTODOs disable incremental linking? I forget if meson already doesn't do this or not; we did it manually in cmake
 
 # TODO I'm not sure how to allow building 32-bit instead of 64-bit with meson
 
-# we have to specify C++ here even if we're not using C++ immediately because otherwise none of the C++ built-in options are available (sigh; MESONTODO)
+# TODO remove cpp from this list once https://github.com/mesonbuild/meson/issues/5181 is settled; move it to the OS checks and under cpp-multithread
 project('libui', ['c', 'cpp'],
 	meson_version: '>=0.48.0',
 	default_options: [
 		'buildtype=debug',				# build debug by default
 		'default_library=shared',			# build shared libraries by default
 
-		# these are forced options, but meson doesn't let me set these up separately before I call project() (MESONTODO)
+		# these are forced options, but meson doesn't let me set these up separately before I call project() (TODO https://github.com/mesonbuild/meson/issues/5179)
 		'warning_level=3',				# always max warnings
 		'b_pch=false',					# we don't want precompiled headers
 		'b_staticpic=true',				# use PIC even for static libraries
@@ -33,16 +32,11 @@ project('libui', ['c', 'cpp'],
 	],
 	license: 'MIT')
 
-# MESONTODO move these below the next part (I need them here for other reasons)
+# TODO after https://github.com/mesonbuild/meson/issues/5179 is settled, remove these
 libui_OS = host_machine.system()
 libui_MSVC = meson.get_compiler('c').get_id() == 'msvc'
 
-if libui_OS == 'darwin'
-	add_languages('objc',
-		required: true)
-endif
-
-# MESONTODO switch to tabs; the spaces are just so I can share this file while I'm writing it
+# TODO switch to tabs; the spaces are just so I can share this file while I'm writing it
 libui_forced_options = {
 	'warning_level': '3',     # always max warnings
 	'b_pch':         'false', # we don't want precompiled headers
@@ -54,7 +48,7 @@ libui_forced_options = {
 	'cpp_winlibs':   '[]',    # likewise as with c_winlibs
 }
 foreach name, value : libui_forced_options
-	# MESONTODO why does meson need this guard? why aren't all options defined regardless of target?!
+	# TODO rewrite this when https://github.com/mesonbuild/meson/issues/5181 is settled
 	if not ((name == 'c_winlibs' or name == 'cpp_eh' or name == 'cpp_winlibs') and not libui_MSVC) and not (name == 'c_std' and libui_MSVC)
 		actual = '@0@'.format(get_option(name))
 		if actual != value
@@ -62,6 +56,14 @@ foreach name, value : libui_forced_options
 		endif
 	endif
 endforeach
+
+libui_OS = host_machine.system()
+libui_MSVC = meson.get_compiler('c').get_id() == 'msvc'
+
+if libui_OS == 'darwin'
+	add_languages('objc',
+		required: true)
+endif
 
 libui_mode = get_option('default_library')
 if libui_mode == 'both'

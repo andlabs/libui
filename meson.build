@@ -9,7 +9,6 @@
 # It turns out that I wouldn't really need any custom options; go figure.
 # MESONTODO figure out why test and examples aren't included in ninja all
 # MESONTODO "cl : Command line warning D9038 : /ZI is not supported on this platform; enabling /Zi instead"
-# MESONTODOs disable incremental linking? I forget if meson already doesn't do this or not; we did it manually in cmake
 
 # TODO I'm not sure how to allow building 32-bit instead of 64-bit with meson
 

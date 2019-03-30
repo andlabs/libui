@@ -18,6 +18,15 @@ cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 # TODO figure out whether STRING "" is best or if something else is better; also what FORCE does because I forget and later I say it's needed
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8" CACHE STRING "" FORCE)
 
+if (APPLE)
+	if(POLICY CMP0056)
+		cmake_policy(SET CMP0056 NEW)
+	else()
+		message(FATAL_ERROR "Building on macOS requires CMake 3.2.0 or newer")
+	endif()
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+endif()
+
 # we want to disable incremental linking
 # see also:
 # - https://github.com/bulletphysics/bullet3/blob/master/CMakeLists.txt#L43

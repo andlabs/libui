@@ -44,6 +44,5 @@ endif
 executable('tester', libui_test_sources,
 	dependencies: libui_binary_deps,
 	link_with: libui_libui,
-	build_by_default: false,
 	gui_app: false,
 	install: false)

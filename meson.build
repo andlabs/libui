@@ -7,7 +7,6 @@
 #     [--layout=flat] \                    (useful for distribution and Windows DLL tests)
 #     [--b_sanitize=whatever]
 # It turns out that I wouldn't really need any custom options; go figure.
-# MESONTODO figure out why test and examples aren't included in ninja all
 
 # TODO I'm not sure how to allow building 32-bit instead of 64-bit with meson
 
@@ -17,6 +16,7 @@ project('libui', ['c', 'cpp'],
 	default_options: [
 		'buildtype=debug',				# build debug by default
 		'default_library=shared',			# build shared libraries by default
+		'layout=flat',					# keep all outputs together by default
 
 		# these are forced options, but meson doesn't let me set these up separately before I call project() (TODO https://github.com/mesonbuild/meson/issues/5179)
 		'warning_level=3',				# always max warnings

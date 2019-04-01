@@ -1,16 +1,29 @@
 # 31 march 2019
 
-trigger:
-- *
+jobs:
+- job: linux64
+  displayName: 'Linux 64-bit'
+  pool:
+    vmImage: 'ubuntu-16.04'
+  workspace:
+    clean: all
+  steps:
+  - script: |
+      sudo apt-get install libgtk-3-dev ninja-build
+      sudo pip3 install meson
+    displayName: 'Setup'
+  - script: |
+      meson setup build-shared --buildtype=release
+      ninja -C build-shared
+    displayName: 'Build shared'
+  - script: |
+      meson setup build-static --buildtype=release --default-library=static
+      ninja -C build-static
+    displayName: "Build static"
 
-pool:
-  vmImage: 'Ubuntu-16.04'
-
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+#    mac:
+#      imageName: 'macos-10.13'
+#    windowsVS2017:
+#      imageName: 'vs2017-win2016'
+#    windowsVS2015:
+#      imageName: 'vs2015-win2012r2'

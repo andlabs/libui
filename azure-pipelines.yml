@@ -1,7 +1,7 @@
 # 31 march 2019
 
 trigger:
-- master
+- *
 
 pool:
   vmImage: 'Ubuntu-16.04'

@@ -1,13 +1,5 @@
 # 17 march 2019
 
-# Here's the overall idea: the build syntax would be something like
-# $ meson setup build \
-#     [--buildtype=debug|release] \        (core option, default debug)
-#     [--default_library=static|shared] \  (core option, default shared)
-#     [--layout=flat] \                    (useful for distribution and Windows DLL tests)
-#     [--b_sanitize=whatever]
-# It turns out that I wouldn't really need any custom options; go figure.
-
 # TODO I'm not sure how to allow building 32-bit instead of 64-bit with meson
 
 # TODO remove cpp from this list once https://github.com/mesonbuild/meson/issues/5181 is settled; move it to the OS checks and under cpp-multithread

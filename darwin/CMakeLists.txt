@@ -4,6 +4,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/aat.m
 	darwin/alloc.m
 	darwin/area.m
+	darwin/areacommon.m
 	darwin/areaevents.m
 	darwin/attrstr.m
 	darwin/autolayout.m
@@ -34,6 +35,7 @@ list(APPEND _LIBUI_SOURCES
 	darwin/map.m
 	darwin/menu.m
 	darwin/multilineentry.m
+	darwin/openglarea.m
 	darwin/opentype.m
 	darwin/progressbar.m
 	darwin/radiobuttons.m
@@ -60,5 +62,5 @@ list(APPEND _LIBUI_INCLUDEDIRS
 set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
 set(_LIBUI_LIBS
-	objc "-framework Foundation" "-framework AppKit"
+	objc "-framework Foundation" "-framework AppKit" "-framework OpenGL"
 PARENT_SCOPE)

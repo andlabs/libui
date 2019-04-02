@@ -28,7 +28,7 @@ static LRESULT CALLBACK areaWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 	if (a->rt == NULL)
 		a->rt = makeHWNDRenderTarget(a->hwnd);
 
-	if (areaDoDraw(a, uMsg, wParam, lParam, &lResult) != FALSE)
+	if (areaDoDraw(a, uMsg, wParam, lParam, &lResult, FALSE) != FALSE)
 		return lResult;
 
 	if (uMsg == WM_WINDOWPOSCHANGED) {

@@ -52,6 +52,19 @@ _add_example(datetime
 	${_EXAMPLE_RESOURCES_RC}
 )
 
+_add_example(opengl
+	opengl/main.c opengl/glew/glew.c
+	${_EXAMPLE_RESOURCES_RC}
+)
+target_compile_definitions(opengl PRIVATE GLEW_STATIC GLEW_NO_GLU)
+find_package(OpenGL REQUIRED)
+target_include_directories(opengl PRIVATE ${OPENGL_INCLUDE_DIR})
+if(WIN32)
+	target_link_libraries(opengl ${OPENGL_LIBRARIES})
+else()
+	target_link_libraries(opengl ${OPENGL_LIBRARIES} m)
+endif()
+
 add_custom_target(examples
 	DEPENDS
 		controlgallery
@@ -59,4 +72,5 @@ add_custom_target(examples
 		cpp-multithread
 		drawtext
 		timer
-		datetime)
+		datetime
+		opengl)

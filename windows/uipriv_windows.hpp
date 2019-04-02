@@ -120,6 +120,11 @@ extern HWND newD2DScratch(HWND parent, RECT *rect, HMENU controlID, SUBCLASSPROC
 extern ATOM registerAreaClass(HICON, HCURSOR);
 extern void unregisterArea(void);
 
+// openglarea.cpp
+#define openGLAreaClass L"libui_uiOpenGLAreaClass"
+extern ATOM registerOpenGLAreaClass(HICON, HCURSOR);
+extern void unregisterOpenGLArea(void);
+
 // areaevents.cpp
 extern BOOL areaFilter(MSG *);
 

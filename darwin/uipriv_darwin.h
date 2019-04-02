@@ -107,9 +107,27 @@ extern void uiprivSingleChildConstraintsSetMargined(uiprivSingleChildConstraints
 // area.m
 extern int uiprivSendAreaEvents(NSEvent *);
 
+// areacommon.m
+@interface uiprivAreaCommonView : NSView {
+	BOOL libui_enabled;
+}
+- (void)setArea:(uiArea *)a;
+- (uiModifiers)parseModifiers:(NSEvent *)e;
+- (void)doMouseEvent:(NSEvent *)e;
+- (int)sendKeyEvent:(uiAreaKeyEvent *)ke;
+- (int)doFlagsChanged:(NSEvent *)e;
+- (int)doKeyDownUp:(NSEvent *)e up:(int)up;
+- (int)doKeyDown:(NSEvent *)e;
+- (int)doKeyUp:(NSEvent *)e;
+- (void)setupNewTrackingArea;
+- (BOOL)isEnabled;
+- (void)setEnabled:(BOOL)e;
+@end
+
 // areaevents.m
 extern BOOL uiprivFromKeycode(unsigned short keycode, uiAreaKeyEvent *ke);
 extern BOOL uiprivKeycodeModifier(unsigned short keycode, uiModifiers *mod);
+
 
 // draw.m
 extern uiDrawContext *uiprivDrawNewContext(CGContextRef, CGFloat);
@@ -134,6 +152,7 @@ struct uiprivScrollViewCreateParams {
 	BOOL HScroll;
 	BOOL VScroll;
 };
+
 typedef struct uiprivScrollViewData uiprivScrollViewData;
 extern NSScrollView *uiprivMkScrollView(uiprivScrollViewCreateParams *p, uiprivScrollViewData **dout);
 extern void uiprivScrollViewSetScrolling(NSScrollView *sv, uiprivScrollViewData *d, BOOL hscroll, BOOL vscroll);

@@ -40,6 +40,7 @@ list(APPEND _LIBUI_SOURCES
 	windows/main.cpp
 	windows/menu.cpp
 	windows/multilineentry.cpp
+	windows/openglarea.cpp
 	windows/opentype.cpp
 	windows/parent.cpp
 	windows/progressbar.cpp
@@ -82,7 +83,7 @@ set(_LIBUI_INCLUDEDIRS _LIBUI_INCLUDEDIRS PARENT_SCOPE)
 
 # TODO prune this list
 set(_LIBUI_LIBS
-	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs
+	user32 kernel32 gdi32 comctl32 uxtheme msimg32 comdlg32 d2d1 dwrite ole32 oleaut32 oleacc uuid windowscodecs opengl32
 PARENT_SCOPE)
 
 if(NOT MSVC)

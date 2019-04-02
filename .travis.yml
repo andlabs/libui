@@ -64,7 +64,8 @@ install:
     fi
 
 script:
-  - cmake --version
+  - meson --version
+  - ninja --version
   - mkdir build
   - pushd build
   - cmake -G "Unix Makefiles" ${CMAKE_FLAGS} ..

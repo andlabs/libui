@@ -8,6 +8,7 @@ include: &toolchain_linux_amd64
       update: true
       packages:
         - libgtk-3-dev
+        - ninja-build
 
 include: &toolchain_linux_386
   os: linux
@@ -15,6 +16,7 @@ include: &toolchain_linux_386
   addons:
     apt:
       packages:
+        - ninja-build
         - gcc-multilib
         - g++-multilib
         - libgtk-3-dev:i386
@@ -64,6 +66,7 @@ install:
     fi
 
 script:
+  - sudo pip3 install meson
   - meson --version
   - ninja --version
   - mkdir build

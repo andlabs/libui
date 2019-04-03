@@ -43,7 +43,7 @@ jobs:
       pip install meson
     displayName: 'Setup'
   - script: |
-      "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
       meson setup build-shared --buildtype=release
     displayName: 'Prepare shared build'
   - task: MSBuild@1

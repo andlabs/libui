@@ -25,7 +25,39 @@ jobs:
   - script: |
       meson setup build-static --buildtype=release --default-library=static
       ninja -C build-static
-    displayName: "Build static"
+    displayName: 'Build static'
+
+- job: windowsVS2017Msbuild
+  displayName: 'Windows 64-bit Visual Studio 2017'
+  pool:
+    vmImage: 'vs2017-win2016'
+  workspace:
+    clean: all
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.6'
+      architecture: 'x64'
+  - script: |
+      python -m pip install --upgrade pip setuptools wheel
+      pip install meson
+    displayName: 'Setup'
+  - script: |
+      meson setup build-shared --buildtype=release
+    displayName: 'Prepare shared build'
+  - task: MSBuild@1
+    inputs:
+      solution: 'build-shared/*.sln'
+      maximumCpuCount: true
+    displayName: 'Build shared'
+  - script: |
+      meson setup build-static --buildtype=release --default-library=static
+    displayName: 'Prepare static build'
+  - task: MSBuild@1
+    inputs:
+      solution: 'build-static/*.sln'
+      maximumCpuCount: true
+    displayName: 'Build static'
 
 #    mac:
 #      imageName: 'macos-10.13'

@@ -52,12 +52,10 @@ jobs:
       maximumCpuCount: true
     displayName: 'Build shared'
   - script: |
-      meson setup build-static --buildtype=release --default-library=static --backend=vs2017
+      meson setup build-static --buildtype=release --default-library=static
     displayName: 'Prepare static build'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build-static/*.sln'
-      maximumCpuCount: true
+  - script: |
+      ninja -C build-static
     displayName: 'Build static'
 
 #    mac:

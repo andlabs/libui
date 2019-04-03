@@ -19,7 +19,7 @@ HRESULT _logLastError(debugargs, const WCHAR *s)
 
 	useFormatted = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, le, 0, (LPWSTR) (&formatted), 0, NULL) != 0;
 	if (!useFormatted)
-		formatted = L"\n";
+		formatted = (WCHAR *) L"\n";		// TODO
 	msg = strf(L"[libui] %s:%s:%s() %s: GetLastError() == %I32u %s",
 		file, line, func,
 		s, le, formatted);
@@ -46,7 +46,7 @@ HRESULT _logHRESULT(debugargs, const WCHAR *s, HRESULT hr)
 
 	useFormatted = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, hr, 0, (LPWSTR) (&formatted), 0, NULL) != 0;
 	if (!useFormatted)
-		formatted = L"\n";
+		formatted = (WCHAR *) L"\n";			// TODO
 	msg = strf(L"[libui] %s:%s:%s() %s: HRESULT == 0x%08I32X %s",
 		file, line, func,
 		s, hr, formatted);

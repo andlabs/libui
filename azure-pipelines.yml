@@ -43,7 +43,7 @@ jobs:
       pip install meson
     displayName: 'Setup'
   - script: |
-      meson setup build-shared --buildtype=release
+      meson setup build-shared --buildtype=release --backend=vs2017
     displayName: 'Prepare shared build'
   - task: MSBuild@1
     inputs:
@@ -51,7 +51,7 @@ jobs:
       maximumCpuCount: true
     displayName: 'Build shared'
   - script: |
-      meson setup build-static --buildtype=release --default-library=static
+      meson setup build-static --buildtype=release --default-library=static --backend=vs2017
     displayName: 'Prepare static build'
   - task: MSBuild@1
     inputs:

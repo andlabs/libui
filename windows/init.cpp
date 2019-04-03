@@ -22,7 +22,7 @@ static const char *initerr(const char *message, const WCHAR *label, DWORD value)
 
 	hassysmsg = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, value, 0, (LPWSTR) (&sysmsg), 0, NULL) != 0;
 	if (!hassysmsg)
-		sysmsg = L"";
+		sysmsg = (WCHAR *) L"";			// TODO
 	wmessage = toUTF16(message + 1);
 	wout = strf(L"-error initializing libui: %s; code %I32d (0x%08I32X) %s",
 		wmessage,

@@ -9,16 +9,11 @@ jobs:
   workspace:
     clean: all
   steps:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.6'
-      architecture: 'x64'
+  # Ubuntu typically comes with an outdated meson
+  - template: azure-pipelines/install-latest-meson.yml
   - script: |
       sudo apt-get install libgtk-3-dev ninja-build
-      # Ubuntu typically comes with an outdated meson
-      python -m pip install --upgrade pip setuptools wheel
-      pip install meson
-    displayName: 'Setup'
+    displayName: 'Install Dependencies'
   - script: |
       meson setup build --buildtype=release --default-library=shared --backend=ninja
     displayName: 'Configure'
@@ -33,16 +28,10 @@ jobs:
   workspace:
     clean: all
   steps:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.6'
-      architecture: 'x64'
+  - template: azure-pipelines/install-latest-meson.yml
   - script: |
       sudo apt-get install libgtk-3-dev ninja-build
-      # Ubuntu typically comes with an outdated meson
-      python -m pip install --upgrade pip setuptools wheel
-      pip install meson
-    displayName: 'Setup'
+    displayName: 'Install Dependencies'
   - script: |
       meson setup build --buildtype=release --default-library=static --backend=ninja
     displayName: 'Configure'
@@ -57,14 +46,7 @@ jobs:
   workspace:
     clean: all
   steps:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.6'
-      architecture: 'x64'
-  - script: |
-      python -m pip install --upgrade pip setuptools wheel
-      pip install meson
-    displayName: 'Setup'
+  - template: azure-pipelines/install-latest-meson.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
       meson setup build --buildtype=release --default-library=shared --backend=vs2017
@@ -82,20 +64,16 @@ jobs:
   workspace:
     clean: all
   steps:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.6'
-      architecture: 'x64'
+  - template: azure-pipelines/install-latest-meson.yml
   - script: |
       choco install ninja
-      python -m pip install --upgrade pip setuptools wheel
-      pip install meson
-    displayName: 'Setup'
+    displayName: 'Install Dependencies'
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
       meson setup build --buildtype=release --default-library=static --backend=ninja
     displayName: 'Configure'
   - script: |
+      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
       ninja -C build
     displayName: 'Build'
 

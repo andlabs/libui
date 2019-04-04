@@ -1,7 +1,6 @@
 # 31 march 2019
 
 jobs:
-
 - job: linux_amd64_shared_ninja
   displayName: 'Linux 64-bit shared'
   pool:

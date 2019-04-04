@@ -1,5 +1,7 @@
 # 4 april 2019
 
+# TODO figure out how to make the script step runnable in parallel with the other dependency installation steps
+
 steps:
 - task: UsePythonVersion@0
   inputs:

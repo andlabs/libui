@@ -39,6 +39,7 @@ jobs:
       versionSpec: '3.6'
       architecture: 'x64'
   - script: |
+      choco install ninja
       python -m pip install --upgrade pip setuptools wheel
       pip install meson
     displayName: 'Setup'

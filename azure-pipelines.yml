@@ -2,7 +2,7 @@
 
 jobs:
 
-- job: linux-amd64-shared
+- job: linux_amd64_shared_ninja
   displayName: 'Linux 64-bit shared'
   pool:
     vmImage: 'ubuntu-16.04'
@@ -26,7 +26,7 @@ jobs:
       ninja -C build
     displayName: 'Build'
 
-- job: linux-amd64-static
+- job: linux_amd64_static_ninja
   displayName: 'Linux 64-bit static'
   pool:
     vmImage: 'ubuntu-16.04'
@@ -50,7 +50,7 @@ jobs:
       ninja -C build
     displayName: 'Build'
 
-- job: windows-amd64-msvc2017-shared-msbuild
+- job: windows_amd64_msvc2017_shared_msbuild
   displayName: 'Windows 64-bit MSVC2017 Shared with MSBuild'
   pool:
     vmImage: 'vs2017-win2016'
@@ -75,7 +75,7 @@ jobs:
       maximumCpuCount: true
     displayName: 'Build'
 
-- job: windows-amd64-msvc2017-static-ninja
+- job: windows_amd64_msvc2017_static_ninja
   displayName: 'Windows 64-bit MSVC2017 Static Ninja'
   pool:
     vmImage: 'vs2017-win2016'

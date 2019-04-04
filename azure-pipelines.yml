@@ -1,8 +1,9 @@
 # 31 march 2019
 
 jobs:
-- job: linux64
-  displayName: 'Linux 64-bit'
+
+- job: linux-amd64-shared
+  displayName: 'Linux 64-bit shared'
   pool:
     vmImage: 'ubuntu-16.04'
   workspace:
@@ -19,16 +20,63 @@ jobs:
       pip install meson
     displayName: 'Setup'
   - script: |
-      meson setup build-shared --buildtype=release
-      ninja -C build-shared
-    displayName: 'Build shared'
+      meson setup build --buildtype=release --default-library=shared --backend=ninja
+    displayName: 'Configure'
   - script: |
-      meson setup build-static --buildtype=release --default-library=static
-      ninja -C build-static
-    displayName: 'Build static'
+      ninja -C build
+    displayName: 'Build'
 
-- job: windowsVS2017Msbuild
-  displayName: 'Windows 64-bit Visual Studio 2017'
+- job: linux-amd64-static
+  displayName: 'Linux 64-bit static'
+  pool:
+    vmImage: 'ubuntu-16.04'
+  workspace:
+    clean: all
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.6'
+      architecture: 'x64'
+  - script: |
+      sudo apt-get install libgtk-3-dev ninja-build
+      # Ubuntu typically comes with an outdated meson
+      python -m pip install --upgrade pip setuptools wheel
+      pip install meson
+    displayName: 'Setup'
+  - script: |
+      meson setup build --buildtype=release --default-library=static --backend=ninja
+    displayName: 'Configure'
+  - script: |
+      ninja -C build
+    displayName: 'Build'
+
+- job: windows-amd64-msvc2017-shared-msbuild
+  displayName: 'Windows 64-bit MSVC2017 Shared with MSBuild'
+  pool:
+    vmImage: 'vs2017-win2016'
+  workspace:
+    clean: all
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.6'
+      architecture: 'x64'
+  - script: |
+      python -m pip install --upgrade pip setuptools wheel
+      pip install meson
+    displayName: 'Setup'
+  - script: |
+      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+      meson setup build --buildtype=release --default-library=shared --backend=vs2017
+    displayName: 'Configure'
+  - task: MSBuild@1
+    inputs:
+      solution: 'build/*.sln'
+      maximumCpuCount: true
+    displayName: 'Build'
+
+- job: windows-amd64-msvc2017-static-ninja
+  displayName: 'Windows 64-bit MSVC2017 Static Ninja'
   pool:
     vmImage: 'vs2017-win2016'
   workspace:
@@ -45,19 +93,11 @@ jobs:
     displayName: 'Setup'
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-      meson setup build-shared --buildtype=release --backend=vs2017
-    displayName: 'Prepare shared build'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build-shared/*.sln'
-      maximumCpuCount: true
-    displayName: 'Build shared'
+      meson setup build --buildtype=release --default-library=static --backend=ninja
+    displayName: 'Configure'
   - script: |
-      meson setup build-static --buildtype=release --default-library=static
-    displayName: 'Prepare static build'
-  - script: |
-      ninja -C build-static
-    displayName: 'Build static'
+      ninja -C build
+    displayName: 'Build'
 
 #    mac:
 #      imageName: 'macos-10.13'

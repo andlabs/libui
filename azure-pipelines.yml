@@ -325,5 +325,27 @@ jobs:
 
 # }
 
-#    mac:
-#      imageName: 'macos-10.13'
+# mac {
+
+- job: darwin_amd64_1012sdk_shared_ninja
+  displayName: 'Darwin amd64 10.12 SDK Shared with Ninja'
+  pool:
+    vmImage: 'macos-10.13'
+  workspace:
+    clean all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - script: |
+      brew install ninja
+    displayName: 'Install Dependencies'
+  - template: azure-pipelines/configure.yml
+    parameters:
+      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.12 Path)
+      defaultLibrary: shared
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.12 Path)
+
+# }

@@ -2,7 +2,7 @@
 
 jobs:
 - job: linux_amd64_shared_ninja
-  displayName: 'Linux 64-bit shared'
+  displayName: 'Linux amd64 Shared with Ninja'
   pool:
     vmImage: 'ubuntu-16.04'
   workspace:
@@ -21,7 +21,7 @@ jobs:
     displayName: 'Build'
 
 - job: linux_amd64_static_ninja
-  displayName: 'Linux 64-bit static'
+  displayName: 'Linux amd64 Static with Ninja'
   pool:
     vmImage: 'ubuntu-16.04'
   workspace:
@@ -38,8 +38,8 @@ jobs:
       ninja -C build
     displayName: 'Build'
 
-- job: windows_amd64_msvc2017_shared_msbuild
-  displayName: 'Windows 64-bit MSVC2017 Shared with MSBuild'
+- job: windows_amd64_msvc2017_shared_ninja
+  displayName: 'Windows amd64 MSVC2017 Shared Ninja'
   pool:
     vmImage: 'vs2017-win2016'
   workspace:
@@ -47,17 +47,19 @@ jobs:
   steps:
   - template: azure-pipelines/install-latest-meson.yml
   - script: |
+      choco install ninja
+    displayName: 'Install Dependencies'
+  - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-      meson setup build --buildtype=release --default-library=shared --backend=vs2017
+      meson setup build --buildtype=release --default-library=shared --backend=ninja
     displayName: 'Configure'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build/*.sln'
-      maximumCpuCount: true
+  - script: |
+      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+      ninja -C build
     displayName: 'Build'
 
 - job: windows_amd64_msvc2017_static_ninja
-  displayName: 'Windows 64-bit MSVC2017 Static Ninja'
+  displayName: 'Windows amd64 MSVC2017 Static Ninja'
   pool:
     vmImage: 'vs2017-win2016'
   workspace:
@@ -74,6 +76,42 @@ jobs:
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
       ninja -C build
+    displayName: 'Build'
+
+- job: windows_amd64_msvc2017_shared_msbuild
+  displayName: 'Windows amd64 MSVC2017 Shared with MSBuild'
+  pool:
+    vmImage: 'vs2017-win2016'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/install-latest-meson.yml
+  - script: |
+      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+      meson setup build --buildtype=release --default-library=shared --backend=vs2017
+    displayName: 'Configure'
+  - task: MSBuild@1
+    inputs:
+      solution: 'build/*.sln'
+      maximumCpuCount: true
+    displayName: 'Build'
+
+- job: windows_amd64_msvc2017_static_msbuild
+  displayName: 'Windows amd64 MSVC2017 Static with MSBuild'
+  pool:
+    vmImage: 'vs2017-win2016'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/install-latest-meson.yml
+  - script: |
+      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+      meson setup build --buildtype=release --default-library=static --backend=vs2017
+    displayName: 'Configure'
+  - task: MSBuild@1
+    inputs:
+      solution: 'build/*.sln'
+      maximumCpuCount: true
     displayName: 'Build'
 
 #    mac:

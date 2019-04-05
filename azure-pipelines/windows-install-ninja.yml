@@ -3,7 +3,7 @@
 steps:
 - powershell: 'Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip -OutFile C:\ninja-win.zip'
   displayName: 'Download Ninja'
-- shell: |
+- script: |
     mkdir C:\ninja
     powershell -Command "Expand-Archive -LiteralPath C:\ninja-win.zip -DestinationPath C:\ninja"
     @echo ##vso[task.prependpath]C:\ninja

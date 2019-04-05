@@ -54,11 +54,11 @@ jobs:
       choco install ninja
     displayName: 'Install Dependencies'
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat x86"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat x86"
       meson setup build --buildtype=release --default-library=shared --backend=ninja
     displayName: 'Configure'
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat x86"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat x86"
       ninja -C build
     displayName: 'Build'
 
@@ -74,11 +74,11 @@ jobs:
       choco install ninja
     displayName: 'Install Dependencies'
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat x86"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat x86"
       meson setup build --buildtype=release --default-library=static --backend=ninja
     displayName: 'Configure'
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat x86"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat x86"
       ninja -C build
     displayName: 'Build'
 
@@ -91,7 +91,7 @@ jobs:
   steps:
   - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat x86"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat x86"
       meson setup build --buildtype=release --default-library=shared --backend=vs2015
     displayName: 'Configure'
   - task: MSBuild@1
@@ -109,7 +109,7 @@ jobs:
   steps:
   - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat x86"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat x86"
       meson setup build --buildtype=release --default-library=static --backend=vs2015
     displayName: 'Configure'
   - task: MSBuild@1
@@ -130,11 +130,11 @@ jobs:
       choco install ninja
     displayName: 'Install Dependencies'
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat amd64"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat amd64"
       meson setup build --buildtype=release --default-library=shared --backend=ninja
     displayName: 'Configure'
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat amd64"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat amd64"
       ninja -C build
     displayName: 'Build'
 
@@ -150,11 +150,11 @@ jobs:
       choco install ninja
     displayName: 'Install Dependencies'
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat amd64"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat amd64"
       meson setup build --buildtype=release --default-library=static --backend=ninja
     displayName: 'Configure'
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat amd64"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat amd64"
       ninja -C build
     displayName: 'Build'
 
@@ -167,7 +167,7 @@ jobs:
   steps:
   - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat amd64"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat amd64"
       meson setup build --buildtype=release --default-library=shared --backend=vs2015
     displayName: 'Configure'
   - task: MSBuild@1
@@ -185,7 +185,7 @@ jobs:
   steps:
   - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
   - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat amd64"
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvarsall.bat amd64"
       meson setup build --buildtype=release --default-library=static --backend=vs2015
     displayName: 'Configure'
   - task: MSBuild@1

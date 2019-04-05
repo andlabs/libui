@@ -8,5 +8,5 @@ parameters:
 steps:
 - script: |
     ${{ parameters.beforeConfigure }}
-    meson setup build --buildtype=release --default-library=${{ parameters.defaultLibrary --backend=${{ parameters.backend }}
+    meson setup build --buildtype=release --default-library=${{ parameters.defaultLibrary }} --backend=${{ parameters.backend }}
   displayName: 'Configure'

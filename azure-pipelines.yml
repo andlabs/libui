@@ -48,9 +48,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
-  - script: |
-      choco install ninja
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=shared --backend=ninja
@@ -68,9 +66,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
-  - script: |
-      choco install ninja
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=static --backend=ninja
@@ -124,9 +120,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
-  - script: |
-      choco install ninja
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=shared --backend=ninja
@@ -144,9 +138,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
-  - script: |
-      choco install ninja
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=static --backend=ninja
@@ -202,9 +194,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/install-latest-meson.yml
-  - script: |
-      choco install ninja
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=shared --backend=ninja
@@ -222,9 +212,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/install-latest-meson.yml
-  - script: |
-      choco install ninja
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=static --backend=ninja
@@ -278,9 +266,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/install-latest-meson.yml
-  - script: |
-      choco install ninja
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=shared --backend=ninja
@@ -298,9 +284,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/install-latest-meson.yml
-  - script: |
-      choco install ninja
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=static --backend=ninja

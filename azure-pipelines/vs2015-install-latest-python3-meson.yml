@@ -12,3 +12,10 @@ steps:
     python -m pip install --upgrade pip setuptools wheel
     pip install meson
   displayName: 'Install Latest Meson'
+- script: |
+    dir "C:\Program Files\"
+    dir "C:\Program Files (x86)\"
+    dir "C:\Program Files (x86)\Microsoft Visual Studio 14.0\"
+    dir "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\"
+    dir "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\"
+    exit 1

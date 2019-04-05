@@ -336,9 +336,7 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - script: |
-      brew install ninja
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/darwin-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.12 Path)

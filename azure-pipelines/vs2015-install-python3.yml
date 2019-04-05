@@ -1,5 +1,6 @@
 # 4 april 2019
 # see https://github.com/Microsoft/azure-pipelines-image-generation/issues/374 for context and source
+
 steps:
 - script: |
     powershell -Command "Invoke-WebRequest https://www.python.org/ftp/python/3.7.1/python-3.7.1-amd64-webinstall.exe -OutFile C:\py3-setup.exe"
@@ -7,7 +8,3 @@ steps:
     @echo ##vso[task.prependpath]C:\Python37
     @echo ##vso[task.prependpath]C:\Python37\Scripts
   displayName: 'Install Python 3'
-- script: |
-    python -m pip install --upgrade pip setuptools wheel
-    pip install meson
-  displayName: 'Install Latest Meson'

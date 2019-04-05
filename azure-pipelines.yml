@@ -8,7 +8,7 @@ jobs:
   workspace:
     clean: all
   steps:
-  # Ubuntu typically comes with an outdated meson
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - script: |
       sudo apt-get install libgtk-3-dev ninja-build
@@ -16,9 +16,7 @@ jobs:
   - script: |
       meson setup build --buildtype=release --default-library=shared --backend=ninja
     displayName: 'Configure'
-  - script: |
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
 
 - job: linux_amd64_static_ninja
   displayName: 'Linux amd64 Static with Ninja'
@@ -27,6 +25,7 @@ jobs:
   workspace:
     clean: all
   steps:
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - script: |
       sudo apt-get install libgtk-3-dev ninja-build
@@ -34,9 +33,7 @@ jobs:
   - script: |
       meson setup build --buildtype=release --default-library=static --backend=ninja
     displayName: 'Configure'
-  - script: |
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
 
 # vs2015 {
 
@@ -47,16 +44,16 @@ jobs:
   workspace:
     clean: all
   steps:
-  - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
+  - template: azure-pipelines/vs2015-install-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=shared --backend=ninja
     displayName: 'Configure'
-  - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
 
 - job: windows_386_msvc2015_static_ninja
   displayName: 'Windows 386 MSVC2015 Static Ninja'
@@ -65,16 +62,16 @@ jobs:
   workspace:
     clean: all
   steps:
-  - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
+  - template: azure-pipelines/vs2015-install-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=static --backend=ninja
     displayName: 'Configure'
-  - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
 
 - job: windows_386_msvc2015_shared_msbuild
   displayName: 'Windows 386 MSVC2015 Shared with MSBuild'
@@ -83,16 +80,13 @@ jobs:
   workspace:
     clean: all
   steps:
-  - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
+  - template: azure-pipelines/vs2015-install-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=shared --backend=vs2015
     displayName: 'Configure'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build/*.sln'
-      maximumCpuCount: true
-    displayName: 'Build'
+  - template: azure-pipelines/build-msbuild.yml
 
 - job: windows_386_msvc2015_static_msbuild
   displayName: 'Windows 386 MSVC2015 Static with MSBuild'
@@ -101,16 +95,13 @@ jobs:
   workspace:
     clean: all
   steps:
-  - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
+  - template: azure-pipelines/vs2015-install-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=static --backend=vs2015
     displayName: 'Configure'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build/*.sln'
-      maximumCpuCount: true
-    displayName: 'Build'
+  - template: azure-pipelines/build-msbuild.yml
 
 - job: windows_amd64_msvc2015_shared_ninja
   displayName: 'Windows amd64 MSVC2015 Shared Ninja'
@@ -119,16 +110,16 @@ jobs:
   workspace:
     clean: all
   steps:
-  - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
+  - template: azure-pipelines/vs2015-install-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=shared --backend=ninja
     displayName: 'Configure'
-  - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
 
 - job: windows_amd64_msvc2015_static_ninja
   displayName: 'Windows amd64 MSVC2015 Static Ninja'
@@ -137,16 +128,16 @@ jobs:
   workspace:
     clean: all
   steps:
-  - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
+  - template: azure-pipelines/vs2015-install-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=static --backend=ninja
     displayName: 'Configure'
-  - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
 
 - job: windows_amd64_msvc2015_shared_msbuild
   displayName: 'Windows amd64 MSVC2015 Shared with MSBuild'
@@ -155,16 +146,13 @@ jobs:
   workspace:
     clean: all
   steps:
-  - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
+  - template: azure-pipelines/vs2015-install-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=shared --backend=vs2015
     displayName: 'Configure'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build/*.sln'
-      maximumCpuCount: true
-    displayName: 'Build'
+  - template: azure-pipelines/build-msbuild.yml
 
 - job: windows_amd64_msvc2015_static_msbuild
   displayName: 'Windows amd64 MSVC2015 Static with MSBuild'
@@ -173,18 +161,17 @@ jobs:
   workspace:
     clean: all
   steps:
-  - template: azure-pipelines/vs2015-install-latest-python3-meson.yml
+  - template: azure-pipelines/vs2015-install-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=static --backend=vs2015
     displayName: 'Configure'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build/*.sln'
-      maximumCpuCount: true
-    displayName: 'Build'
+  - template: azure-pipelines/build-msbuild.yml
 
 # }
+
+# vs2017 {
 
 - job: windows_386_msvc2017_shared_ninja
   displayName: 'Windows 386 MSVC2017 Shared Ninja'
@@ -193,16 +180,16 @@ jobs:
   workspace:
     clean: all
   steps:
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=shared --backend=ninja
     displayName: 'Configure'
-  - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
 
 - job: windows_386_msvc2017_static_ninja
   displayName: 'Windows 386 MSVC2017 Static Ninja'
@@ -211,16 +198,16 @@ jobs:
   workspace:
     clean: all
   steps:
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=static --backend=ninja
     displayName: 'Configure'
-  - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
 
 - job: windows_386_msvc2017_shared_msbuild
   displayName: 'Windows 386 MSVC2017 Shared with MSBuild'
@@ -229,16 +216,13 @@ jobs:
   workspace:
     clean: all
   steps:
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=shared --backend=vs2017
     displayName: 'Configure'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build/*.sln'
-      maximumCpuCount: true
-    displayName: 'Build'
+  - template: azure-pipelines/build-msbuild.yml
 
 - job: windows_386_msvc2017_static_msbuild
   displayName: 'Windows 386 MSVC2017 Static with MSBuild'
@@ -247,16 +231,13 @@ jobs:
   workspace:
     clean: all
   steps:
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       meson setup build --buildtype=release --default-library=static --backend=vs2017
     displayName: 'Configure'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build/*.sln'
-      maximumCpuCount: true
-    displayName: 'Build'
+  - template: azure-pipelines/build-msbuild.yml
 
 - job: windows_amd64_msvc2017_shared_ninja
   displayName: 'Windows amd64 MSVC2017 Shared Ninja'
@@ -265,16 +246,16 @@ jobs:
   workspace:
     clean: all
   steps:
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=shared --backend=ninja
     displayName: 'Configure'
-  - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
 
 - job: windows_amd64_msvc2017_static_ninja
   displayName: 'Windows amd64 MSVC2017 Static Ninja'
@@ -283,16 +264,16 @@ jobs:
   workspace:
     clean: all
   steps:
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=static --backend=ninja
     displayName: 'Configure'
-  - script: |
-      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
-      ninja -C build
-    displayName: 'Build'
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
 
 - job: windows_amd64_msvc2017_shared_msbuild
   displayName: 'Windows amd64 MSVC2017 Shared with MSBuild'
@@ -301,16 +282,13 @@ jobs:
   workspace:
     clean: all
   steps:
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=shared --backend=vs2017
     displayName: 'Configure'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build/*.sln'
-      maximumCpuCount: true
-    displayName: 'Build'
+  - template: azure-pipelines/build-msbuild.yml
 
 - job: windows_amd64_msvc2017_static_msbuild
   displayName: 'Windows amd64 MSVC2017 Static with MSBuild'
@@ -319,20 +297,15 @@ jobs:
   workspace:
     clean: all
   steps:
+  - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - script: |
       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
       meson setup build --buildtype=release --default-library=static --backend=vs2017
     displayName: 'Configure'
-  - task: MSBuild@1
-    inputs:
-      solution: 'build/*.sln'
-      maximumCpuCount: true
-    displayName: 'Build'
+  - template: azure-pipelines/build-msbuild.yml
+
+# }
 
 #    mac:
 #      imageName: 'macos-10.13'
-#    windowsVS2017:
-#      imageName: 'vs2017-win2016'
-#    windowsVS2015:
-#      imageName: 'vs2015-win2012r2'

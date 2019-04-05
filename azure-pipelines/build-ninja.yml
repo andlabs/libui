@@ -1,0 +1,10 @@
+# 5 april 2019
+
+parameters:
+  beforeBuild: ''
+
+steps:
+- script: |
+    ${{ parameters.beforeBuild }}
+    ninja -C build
+  displayName: 'Build'

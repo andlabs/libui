@@ -1,12 +1,6 @@
 # 4 april 2019
 
-# TODO figure out how to make the script step runnable in parallel with the other dependency installation steps
-
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.6'
-    architecture: 'x64'
 - script: |
     python -m pip install --upgrade pip setuptools wheel
     pip install meson

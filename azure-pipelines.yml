@@ -332,7 +332,7 @@ jobs:
   pool:
     vmImage: 'macos-10.13'
   workspace:
-    clean all
+    clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml

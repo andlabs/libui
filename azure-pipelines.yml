@@ -3,6 +3,7 @@
 variables:
   examples: ['controlgallery', 'cpp-multithread', 'datetime', 'drawtext', 'histogram', 'tester', 'timer']
 
+
 jobs:
 - job: linux_amd64_shared_ninja
   displayName: 'Linux amd64 Shared with Ninja'

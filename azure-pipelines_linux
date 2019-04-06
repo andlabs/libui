@@ -59,6 +59,8 @@ jobs:
 # notes:
 # [18:36:55]  <@jpakkane>	Don't use the xcode backend for anything serious, it's a bit crap.
 
+# TODO macosx10.14 doesn't work; it just uses the default SDK
+
 - job: darwin_amd64_1014sdk_shared_ninja
   displayName: 'Darwin amd64 10.14 SDK Shared with Ninja'
   pool:

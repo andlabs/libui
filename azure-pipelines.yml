@@ -327,6 +327,9 @@ jobs:
 
 # mac {
 
+# notes:
+# [18:36:55]  <@jpakkane>	Don't use the xcode backend for anything serious, it's a bit crap.
+
 - job: darwin_amd64_1012sdk_shared_ninja
   displayName: 'Darwin amd64 10.12 SDK Shared with Ninja'
   pool:
@@ -345,5 +348,100 @@ jobs:
   - template: azure-pipelines/build-ninja.yml
     parameters:
       beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.12 Path)
+
+- job: darwin_amd64_1012sdk_static_ninja
+  displayName: 'Darwin amd64 10.12 SDK Static with Ninja'
+  pool:
+    vmImage: 'macos-10.13'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/darwin-install-ninja.yml
+  - template: azure-pipelines/configure.yml
+    parameters:
+      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.12 Path)
+      defaultLibrary: static
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.12 Path)
+
+- job: darwin_amd64_1013sdk_shared_ninja
+  displayName: 'Darwin amd64 10.13 SDK Shared with Ninja'
+  pool:
+    vmImage: 'macos-10.13'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/darwin-install-ninja.yml
+  - template: azure-pipelines/configure.yml
+    parameters:
+      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.13 Path)
+      defaultLibrary: shared
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.13 Path)
+
+- job: darwin_amd64_1013sdk_static_ninja
+  displayName: 'Darwin amd64 10.13 SDK Static with Ninja'
+  pool:
+    vmImage: 'macos-10.13'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/darwin-install-ninja.yml
+  - template: azure-pipelines/configure.yml
+    parameters:
+      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.13 Path)
+      defaultLibrary: static
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.13 Path)
+
+- job: darwin_amd64_1014sdk_shared_ninja
+  displayName: 'Darwin amd64 10.14 SDK Shared with Ninja'
+  pool:
+    vmImage: 'macos-10.13'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/darwin-install-ninja.yml
+  - template: azure-pipelines/configure.yml
+    parameters:
+      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
+      defaultLibrary: shared
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
+
+- job: darwin_amd64_1014sdk_static_ninja
+  displayName: 'Darwin amd64 10.14 SDK Static with Ninja'
+  pool:
+    vmImage: 'macos-10.13'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/darwin-install-ninja.yml
+  - template: azure-pipelines/configure.yml
+    parameters:
+      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
+      defaultLibrary: static
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
 
 # }

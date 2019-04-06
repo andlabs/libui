@@ -1,7 +1,8 @@
 # 31 march 2019
 
 variables:
-  examples: ['controlgallery', 'cpp-multithread', 'datetime', 'drawtext', 'histogram', 'tester', 'timer']
+- name: releaseExamples
+  value: ['controlgallery', 'cpp-multithread', 'datetime', 'drawtext', 'histogram', 'tester', 'timer']
 
 jobs:
 - job: linux_amd64_shared_ninja
@@ -25,7 +26,7 @@ jobs:
       pushd build/meson-out
       cp ../../ui.h ../../ui_unix.h .
       echo tar czf $(Build.ArtifactStagingDirectory)/libui-$(Build.SourceBranchName)-linux-amd64-shared.tgz libui.so.0 ui.h ui_unix.h
-      echo tar czf $(Build.ArtifactStagingDirectory)/examples-$(Build.SourceBranchName)-linux-amd64-shared.tgz $[join(' ', variables.examples)]
+      echo tar czf $(Build.ArtifactStagingDirectory)/examples-$(Build.SourceBranchName)-linux-amd64-shared.tgz $[join(' ', variables.releaseExamples)]
       rm ui.h ui_unix.h
       popd
     displayName: 'Create Artifacts'

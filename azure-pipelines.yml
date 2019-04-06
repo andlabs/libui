@@ -1,14 +1,7 @@
 # 31 march 2019
 
 variables:
-  examples:
-    - controlgallery
-    - cpp-multithread
-    - datetime
-    - drawtext
-    - histogram
-    - tester
-    - timer
+  examples: ['controlgallery', 'cpp-multithread', 'datetime', 'drawtext', 'histogram', 'tester', 'timer']
 
 jobs:
 - job: linux_amd64_shared_ninja

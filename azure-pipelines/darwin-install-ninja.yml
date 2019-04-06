@@ -3,7 +3,7 @@
 
 steps:
 - script: |
-    sudo mkdir /opt/ninja
+    sudo mkdir -p /opt/ninja
     pushd /opt/ninja
     sudo wget https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-mac.zip
     sudo unzip ninja-mac.zip

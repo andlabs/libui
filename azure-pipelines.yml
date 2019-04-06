@@ -24,8 +24,12 @@ jobs:
   - script: |
       pushd build/meson-out
       cp ../../ui.h ../../ui_unix.h .
-      echo tar czf $(Build.ArtifactStagingDirectory)/libui-$(Build.SourceBranchName)-linux-amd64-shared.tgz libui.so.0 ui.h ui_unix.h
-      echo tar czf $(Build.ArtifactStagingDirectory)/examples-$(Build.SourceBranchName)-linux-amd64-shared.tgz $(releaseExamplesUnix)
+      tar czf $(Build.ArtifactStagingDirectory)/libui-$(Build.SourceBranchName)-linux-amd64-shared.tgz libui.so.0 ui.h ui_unix.h
+      tar czf $(Build.ArtifactStagingDirectory)/examples-$(Build.SourceBranchName)-linux-amd64-shared.tgz $(releaseExamplesUnix)
       rm ui.h ui_unix.h
       popd
     displayName: 'Create Artifacts'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: artifactTest

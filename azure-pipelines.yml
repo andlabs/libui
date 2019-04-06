@@ -2,13 +2,13 @@
 
 variables:
   examples:
-  - controlgallery
-  - cpp-multithread
-  - datetime
-  - drawtext
-  - histogram
-  - tester
-  - timer
+    - controlgallery
+    - cpp-multithread
+    - datetime
+    - drawtext
+    - histogram
+    - tester
+    - timer
 
 jobs:
 - job: linux_amd64_shared_ninja

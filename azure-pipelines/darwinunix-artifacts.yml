@@ -1,0 +1,23 @@
+# 6 april 2019
+
+parameters:
+  os: ''
+  arch: ''
+  libtype: ''
+  libfiles: ''
+  osHeader: ''
+
+steps:
+  - script: |
+      set -x
+      pushd build/meson-out
+      cp ../../ui.h ../../${{ parameters.osHeader }} .
+      tar czf $(Build.ArtifactStagingDirectory)/libui-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}.tgz ${{ parameters.libfiles }} ui.h ${{ parameters.osHeader}}
+      tar czf $(Build.ArtifactStagingDirectory)/examples-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}.tgz $(releaseExamples)
+      rm ui.h ${{ parameters.osHeader }}
+      popd
+    displayName: 'Create Artifacts'
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: $(Build.ArtifactStagingDirectory)
+    artifactName: ${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}

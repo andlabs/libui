@@ -1,5 +1,13 @@
 # 31 march 2019
 
+trigger:
+  branches:
+    include:
+    - '*'
+  tags:
+    include:
+    - '*'
+
 variables:
   releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
 

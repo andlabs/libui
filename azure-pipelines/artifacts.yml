@@ -17,7 +17,11 @@ steps:
     rm ui.h ${{ parameters.osHeader }}
     popd
   displayName: 'Create Artifacts'
-- task: PublishBuildArtifacts@1
+- task: GitHubRelease@0
   inputs:
-    pathToPublish: $(Build.ArtifactStagingDirectory)
-    artifactName: ${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}
+    gitHubConnection: andlabs
+    repositoryName: andlabs/libui
+    action: 'edit'
+    addChangelog: false
+    assets: '$(Build.ArtifactStagingDirectory)/*'
+    assetUploadMode: 'replace'

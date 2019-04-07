@@ -4,61 +4,8 @@ variables:
   releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
 
 jobs:
-- job: windows_386_msvc2015_shared
-  displayName: 'Windows 386 MSVC2015 Shared'
-  pool:
-    vmImage: 'vs2015-win2012r2'
-  workspace:
-    clean: all
-  steps:
-  - template: azure-pipelines/vs2015-install-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install.yml
-  - template: azure-pipelines/configure.yml
-    parameters:
-      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-      defaultLibrary: shared
-  - template: azure-pipelines/build.yml
-    parameters:
-      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-  - template: azure-pipelines/windows-artifacts.yml
-    parameters:
-      os: windows
-      arch: 386
-      toolchain: msvc2015
-      libtype: shared
-      libfiles: libui.dll libui.exp libui.lib
-      osHeader: ui_windows.h
-
-- job: windows_386_msvc2015_static
-  displayName: 'Windows 386 MSVC2015 Static'
-  pool:
-    vmImage: 'vs2015-win2012r2'
-  workspace:
-    clean: all
-  steps:
-  - template: azure-pipelines/vs2015-install-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install.yml
-  - template: azure-pipelines/configure.yml
-    parameters:
-      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-      defaultLibrary: static
-  - template: azure-pipelines/build.yml
-    parameters:
-      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-      afterBuild: ren build\meson-out\libui.a libui.lib
-  - template: azure-pipelines/windows-artifacts.yml
-    parameters:
-      os: windows
-      arch: 386
-      toolchain: msvc2015
-      libtype: static
-      libfiles: libui.lib
-      osHeader: ui_windows.h
-
-- job: windows_386_msvc2017_shared
-  displayName: 'Windows 386 MSVC2017 Shared'
+- job: windows_386_mingw_shared
+  displayName: 'Windows 386 MinGW-w64 Shared'
   pool:
     vmImage: 'vs2017-win2016'
   workspace:
@@ -66,25 +13,27 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install.yml
+  - template: azure-pipelines/windows-install-ninja.yml
+  - template: azure-pipelines/windows-setup-mingw.yml
+    parameters:
+      which: mingw32
   - template: azure-pipelines/configure.yml
     parameters:
-      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       defaultLibrary: shared
   - template: azure-pipelines/build.yml
     parameters:
-      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
-  - template: azure-pipelines/windows-artifacts.yml
-    parameters:
-      os: windows
-      arch: 386
-      toolchain: msvc2017
-      libtype: shared
-      libfiles: libui.dll libui.exp libui.lib
-      osHeader: ui_windows.h
+      afterBuild: dir build\meson-out
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: 386
+#      toolchain: mingw
+#      libtype: shared
+#      libfiles: libui.dll
+#      osHeader: ui_windows.h
 
-- job: windows_386_msvc2017_static
-  displayName: 'Windows 386 MSVC2017 Static'
+- job: windows_386_mingw_static
+  displayName: 'Windows 386 MinGW-w64 Static'
   pool:
     vmImage: 'vs2017-win2016'
   workspace:
@@ -92,20 +41,22 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install.yml
+  - template: azure-pipelines/windows-install-ninja.yml
+  - template: azure-pipelines/windows-setup-mingw.yml
+    parameters:
+      which: mingw32
   - template: azure-pipelines/configure.yml
     parameters:
-      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       defaultLibrary: static
   - template: azure-pipelines/build.yml
     parameters:
-      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
-      afterBuild: ren build\meson-out\libui.a libui.lib
-  - template: azure-pipelines/windows-artifacts.yml
-    parameters:
-      os: windows
-      arch: 386
-      toolchain: msvc2017
-      libtype: static
-      libfiles: libui.lib
-      osHeader: ui_windows.h
+      afterBuild: dir build\meson-out
+#      afterBuild: ren build\meson-out\libui.a libui.lib
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: 386
+#      toolchain: mingw
+#      libtype: static
+#      libfiles: libui.lib
+#      osHeader: ui_windows.h

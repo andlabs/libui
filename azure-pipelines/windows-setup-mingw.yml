@@ -1,0 +1,11 @@
+# 7 april 2019
+
+parameters:
+  which: 'must-be-specified'
+
+steps:
+- powershell: |
+    $chocopath = where.exe choco.exe | Get-Item
+    $chocopath = Join-Path $chocopath.Directory "install" ${{ parameters.which }} "bin"
+    echo "##vso[task.prependpath]$chocopath"
+  displayName: 'Set up MinGW-w64'

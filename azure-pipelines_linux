@@ -68,7 +68,7 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/darwin-install.yml
+  - template: azure-pipelines/darwin-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
@@ -93,7 +93,7 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/darwin-install.yml
+  - template: azure-pipelines/darwin-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)

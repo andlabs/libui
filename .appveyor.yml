@@ -80,8 +80,7 @@ after_build:
       ) else (
         set "version=%APPVEYOR_REPO_BRANCH%"
       )
-      set "artifact=%version%-windows-%arch%-%compiler%-
-%libtype%"
+      set "artifact=%version%-windows-%arch%-%compiler%-%libtype%"
       pushd build\meson-out
       if %buildtype%==static (
         rem TODO msvc only?

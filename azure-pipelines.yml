@@ -346,7 +346,7 @@ jobs:
       osHeader: ui_darwin.h
 
 - job: darwin_amd64_static
-  displayName: 'Darwin amd64 10.14 SDK Static'
+  displayName: 'Darwin amd64 Static'
   pool:
     vmImage: 'macos-10.13'
   workspace:

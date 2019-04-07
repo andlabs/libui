@@ -1,7 +1,7 @@
 [binaries]
-c = '/usr/bin/i686-w64-mingw32-gcc'
-cpp = '/usr/bin/i686-w64-mingw32-g++'
-ar = '/usr/bin/i686-w64-mingw32-gcc-ar'
+c = '/usr/bin/i686-w64-mingw32-gcc-posix'
+cpp = '/usr/bin/i686-w64-mingw32-g++-posix'
+ar = '/usr/bin/i686-w64-mingw32-gcc-ar-posix'
 strip = '/usr/bin/i686-w64-mingw32-strip'
 pkgconfig = '/usr/bin/i686-w64-mingw32-pkg-config'
 windres = '/usr/bin/i686-w64-mingw32-windres'

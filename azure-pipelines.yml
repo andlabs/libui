@@ -16,7 +16,7 @@ jobs:
   - script: |
       sudo dpkg --add-architecture i386
       sudo apt-get update
-      sudo apt-get install gcc-multilib g++-multilib libc6:i386 libc6-dev:i386 lib32bsd0 lib32bsd0-dev lib32edit2 lib32edit2-dev lib32ffi6 lib32ffi6-dev lib32stdc++6 lib32stdc++6-dev lib32tinfo5 lib32tinfo5-dev lib32z1 lib32z1-dev 
+      sudo apt-get install gcc-multilib g++-multilib libc6-i386 libc6-dev-i386 lib32edit2 lib32edit2-dev lib32stdc++6 lib32tinfo5 lib32tinfo5-dev lib32z1 lib32z1-dev 
       #sudo apt-cache policy libllvm6.0:i386
       sudo apt-get install libllvm6.0:i386
       exit 1

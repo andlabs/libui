@@ -13,16 +13,16 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/linux-386-install-gtk-dev-ninja.yml
+  - script: sudo apt-get install ninja-build
   - template: azure-pipelines/configure.yml
     parameters:
-      beforeConfigure: export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
       defaultLibrary: static
+      extraOptions: --cross-file=azure-pipelines/cross-386-mingw.txt
   - template: azure-pipelines/build.yml
-  - template: azure-pipelines/artifacts.yml
-    parameters:
-      os: linux
-      arch: 386
-      libtype: static
-      libfiles: libui.a
-      osHeader: ui_unix.h
+#  - template: azure-pipelines/artifacts.yml
+#    parameters:
+#      os: linux
+#      arch: 386
+#      libtype: static
+#      libfiles: libui.a
+#      osHeader: ui_unix.h

@@ -1,0 +1,16 @@
+[binaries]
+c = '/usr/bin/i686-w64-mingw32-gcc-win32'
+cpp = '/usr/bin/i686-w64-mingw32-g++-win32'
+ar = '/usr/bin/i686-w64-mingw32-gcc-ar-win32'
+strip = '/usr/bin/i686-w64-mingw32-strip'
+pkgconfig = '/usr/bin/i686-w64-mingw32-pkg-config'
+windres = '/usr/bin/i686-w64-mingw32-windres'
+
+[properties]
+root = '/usr/i686-w64-mingw32'
+
+[host_machine]
+system = 'windows'
+cpu_family = 'x86'
+cpu = 'i686'
+endian = 'little'

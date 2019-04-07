@@ -10,7 +10,6 @@ parameters:
 
 steps:
 - powershell: |
-    echo $PSVersionTable
     pushd build\meson-out
     Copy-Item @("..\..\ui.h","..\..\${{ parameters.osHeader }}") -Destination .
     Compress-Archive -Destination $(Build.ArtifactStagingDirectory)\libui-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.toolchain }}-${{ parameters.libtype }}.zip -Path @("${{ parameters.libfiles }}".Split(" ") + @("ui.h","${{ parameters.osHeader}}"))
@@ -21,4 +20,4 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs:
     pathToPublish: $(Build.ArtifactStagingDirectory)
-    artifactName: ${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}
+    artifactName: ${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.toolchain }}-${{ parameters.libtype }}

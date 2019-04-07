@@ -54,13 +54,8 @@ jobs:
 
 # mac {
 
-# notes:
-# [18:36:55]  <@jpakkane>	Don't use the xcode backend for anything serious, it's a bit crap.
-
-# TODO macosx10.14 doesn't work; it just uses the default SDK
-
-- job: darwin_amd64_1014sdk_shared
-  displayName: 'Darwin amd64 10.14 SDK Shared'
+- job: darwin_amd64_shared
+  displayName: 'Darwin amd64 Shared'
   pool:
     vmImage: 'macos-10.13'
   workspace:
@@ -71,11 +66,8 @@ jobs:
   - template: azure-pipelines/darwin-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
-      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
       defaultLibrary: shared
   - template: azure-pipelines/build.yml
-    parameters:
-      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
   - template: azure-pipelines/darwinunix-artifacts.yml
     parameters:
       os: darwin
@@ -84,7 +76,7 @@ jobs:
       libfiles: libui.A.dylib
       osHeader: ui_darwin.h
 
-- job: darwin_amd64_1014sdk_static
+- job: darwin_amd64_static
   displayName: 'Darwin amd64 10.14 SDK Static'
   pool:
     vmImage: 'macos-10.13'
@@ -96,11 +88,8 @@ jobs:
   - template: azure-pipelines/darwin-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
-      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
       defaultLibrary: static
   - template: azure-pipelines/build.yml
-    parameters:
-      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
   - template: azure-pipelines/darwinunix-artifacts.yml
     parameters:
       os: darwin

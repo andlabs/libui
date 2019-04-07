@@ -19,7 +19,6 @@ jobs:
   - template: azure-pipelines/configure.yml
     parameters:
       defaultLibrary: shared
-      backend: ninja
   - template: azure-pipelines/build.yml
   - template: azure-pipelines/darwinunix-artifacts.yml
     parameters:
@@ -44,7 +43,6 @@ jobs:
   - template: azure-pipelines/configure.yml
     parameters:
       defaultLibrary: static
-      backend: ninja
   - template: azure-pipelines/build.yml
   - template: azure-pipelines/darwinunix-artifacts.yml
     parameters:
@@ -75,7 +73,6 @@ jobs:
     parameters:
       beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
       defaultLibrary: shared
-      backend: ninja
   - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
@@ -101,7 +98,6 @@ jobs:
     parameters:
       beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
       defaultLibrary: static
-      backend: ninja
   - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)

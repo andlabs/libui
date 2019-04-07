@@ -18,7 +18,6 @@ jobs:
     parameters:
       beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       defaultLibrary: shared
-      backend: ninja
   - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
@@ -45,7 +44,6 @@ jobs:
     parameters:
       beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       defaultLibrary: static
-      backend: ninja
   - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
@@ -73,7 +71,6 @@ jobs:
     parameters:
       beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       defaultLibrary: shared
-      backend: ninja
   - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
@@ -100,7 +97,6 @@ jobs:
     parameters:
       beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       defaultLibrary: static
-      backend: ninja
   - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86

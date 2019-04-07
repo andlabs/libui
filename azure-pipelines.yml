@@ -43,6 +43,7 @@ jobs:
   - template: azure-pipelines/install-latest-meson.yml
   - template: azure-pipelines/$(depsAndNinjaTemplate)
   - template: azure-pipelines/configure.yml
+    parameters:
       beforeConfigure: $(beforeConfigure)
       defaultLibrary: $(libtype)
   - template: azure-pipelines/build.yml

@@ -13,7 +13,7 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - script: sudo apt-get install ninja-build
+  - script: sudo apt-get install mingw-w64 ninja-build
   - template: azure-pipelines/configure.yml
     parameters:
       defaultLibrary: static

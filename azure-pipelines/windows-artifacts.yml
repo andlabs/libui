@@ -14,7 +14,7 @@ steps:
     Set-PSDebug
     pushd build\meson-out
     Copy-Item @("..\..\ui.h","..\..\${{ parameters.osHeader }}") -Destination .
-    Compress-Archive $(Build.ArtifactStagingDirectory)\libui-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.toolchain }}-${{ parameters.libtype }}.zip -Path $("${{ parameters.libfiles }}",ui.h,${{ parameters.osHeader}})
+    Compress-Archive $(Build.ArtifactStagingDirectory)\libui-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.toolchain }}-${{ parameters.libtype }}.zip -Path @("${{ parameters.libfiles }}".Split(" ") + @("ui.h","${{ parameters.osHeader}}"))
     Compress-Archive -Destination $(Build.ArtifactStagingDirectory)\examples-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}.zip -Path @("$(releaseExamples)".Split(" ") | % {$_ + ".exe"})
     del ui.h ${{ parameters.osHeader }}
     popd

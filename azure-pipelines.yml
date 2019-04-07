@@ -22,7 +22,7 @@ jobs:
   - template: azure-pipelines/build-ninja.yml
     parameters:
       beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-  - template: azure-pipelines/darwinunix-artifacts.yml
+  - template: azure-pipelines/windows-artifacts.yml
     parameters:
       os: windows
       arch: 386

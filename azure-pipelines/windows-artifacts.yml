@@ -11,12 +11,11 @@ parameters:
 steps:
 - powershell: |
     echo $PSVersionTable
-    Set-PSDebug -Trace 2
     pushd build\meson-out
     Copy-Item @("..\..\ui.h","..\..\${{ parameters.osHeader }}") -Destination .
-    echo Compress-Archive `-Destination $(Build.ArtifactStagingDirectory)\libui-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.toolchain }}-${{ parameters.libtype }}.zip `-Path @("${{ parameters.libfiles }}".Split(" ") + @("ui.h","${{ parameters.osHeader}}"))
-    echo Compress-Archive `-Destination $(Build.ArtifactStagingDirectory)\examples-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}.zip `-Path @("$(releaseExamples)".Split(" ") | % {$_ + ".exe"})
-    del ui.h ${{ parameters.osHeader }}
+    Compress-Archive -Destination $(Build.ArtifactStagingDirectory)\libui-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.toolchain }}-${{ parameters.libtype }}.zip -Path @("${{ parameters.libfiles }}".Split(" ") + @("ui.h","${{ parameters.osHeader}}"))
+    Compress-Archive -Destination $(Build.ArtifactStagingDirectory)\examples-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}.zip -Path @("$(releaseExamples)".Split(" ") | % {$_ + ".exe"})
+    Remove-Item @("ui.h","${{ parameters.osHeader }}")
     popd
   displayName: 'Create Artifacts'
 - task: PublishBuildArtifacts@1

@@ -4,58 +4,59 @@ variables:
   releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
 
 strategy:
-#  targetname:
-#    os: 'fill this in'
-#    arch: 'fill this in'
-#    toolchain: 'fill this in'
-#    libtype: 'fill this in'
-#    vmImage: 'fill this in'
-#    python3Template: 'fill filename'
-#    depsAndNinjaTemplate: 'fill filename'
-#    beforeConfigure: 'fill this in'
-#    beforeBuild: 'fill this in'
-#    afterBuild: 'fill this in'
-#    artifactTemplate: 'fill filename'
-#    libfiles: 'fill this in'
-#    osHeader: 'fill this in'
-  linux_386_shared:
-    os: 'linux'
-    arch: '386'
-    libtype: 'shared'
-    vmImage: 'ubuntu-16.04'
-    python3Template: 'setup-python3.yml'
-    depsAndNinjaTemplate: 'linux-386-install-gtk-dev-ninja.yml'
-    beforeConfigure: 'export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig'
-    artifactTemplate: 'artifacts.yml'
-    libfiles: 'libui.so.0'
-    osHeader: 'ui_unix.h'
+  matrix:
+#    targetname:
+#      os: 'fill this in'
+#      arch: 'fill this in'
+#      toolchain: 'fill this in'
+#      libtype: 'fill this in'
+#      vmImage: 'fill this in'
+#      python3Template: 'fill filename'
+#      depsAndNinjaTemplate: 'fill filename'
+#      beforeConfigure: 'fill this in'
+#      beforeBuild: 'fill this in'
+#      afterBuild: 'fill this in'
+#      artifactTemplate: 'fill filename'
+#      libfiles: 'fill this in'
+#      osHeader: 'fill this in'
+    linux_386_shared:
+      os: 'linux'
+      arch: '386'
+      libtype: 'shared'
+      vmImage: 'ubuntu-16.04'
+      python3Template: 'azure-pipelines/setup-python3.yml'
+      depsAndNinjaTemplate: 'azure-pipelines/linux-386-install-gtk-dev-ninja.yml'
+      beforeConfigure: 'export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig'
+      artifactTemplate: 'azure-pipelines/artifacts.yml'
+      libfiles: 'libui.so.0'
+      osHeader: 'ui_unix.h'
 
-jobs:
-- job: $(join('_', [os, arch] + coalesce(toolchain, []) + [libtype]))
-  displayName: $(join(' ', [os, arch] + coalesce(toolchain, []) + [libtype]))
-  pool:
-    vmImage: $(vmImage)
-  workspace:
-    clean: all
-  steps:
-  - template: azure-pipelines/$(python3Template)
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/$(depsAndNinjaTemplate)
-  - template: azure-pipelines/configure.yml
-      beforeConfigure: $(beforeConfigure)
-      defaultLibrary: $(libtype)
-  - template: azure-pipelines/build.yml
-    parameters:
-      beforeBuild: $(beforeBuild)
-      afterBuild: $(afterBuild)
-  - template: azure-pipelines/$(artifactTemplate)
-    parameters:
-      os: $(os)
-      arch: $(arch)
-      toolchain: $(toolchain)
-      libtype: $(libtype)
-      libfiles: $(libfiles)
-      osHeader: $(osHeader)
+pool:
+  vmImage: $(vmImage)
+
+workspace:
+  clean: all
+
+steps:
+- template: $(variables.python3Template)
+- template: azure-pipelines/install-latest-meson.yml
+- template: $(variables.depsAndNinjaTemplate)
+- template: azure-pipelines/configure.yml
+  parameters:
+    beforeConfigure: $(beforeConfigure)
+    defaultLibrary: $(libtype)
+- template: azure-pipelines/build.yml
+  parameters:
+    beforeBuild: $(beforeBuild)
+    afterBuild: $(afterBuild)
+- template: $(variables.artifactTemplate)
+  parameters:
+    os: $(os)
+    arch: $(arch)
+    toolchain: $(toolchain)
+    libtype: $(libtype)
+    libfiles: $(libfiles)
+    osHeader: $(osHeader)
 
 ## linux {
 #- job: linux_386_static

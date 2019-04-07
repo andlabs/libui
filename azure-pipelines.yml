@@ -4,8 +4,8 @@ variables:
   releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
 
 jobs:
-- job: windows_386_msvc2015_shared_ninja
-  displayName: 'Windows 386 MSVC2015 Shared Ninja'
+- job: windows_386_msvc2015_shared
+  displayName: 'Windows 386 MSVC2015 Shared'
   pool:
     vmImage: 'vs2015-win2012r2'
   workspace:
@@ -13,13 +13,13 @@ jobs:
   steps:
   - template: azure-pipelines/vs2015-install-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install-ninja.yml
+  - template: azure-pipelines/windows-install.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       defaultLibrary: shared
       backend: ninja
-  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
   - template: azure-pipelines/windows-artifacts.yml
@@ -31,8 +31,8 @@ jobs:
       libfiles: libui.dll libui.exp libui.lib
       osHeader: ui_windows.h
 
-- job: windows_386_msvc2015_static_ninja
-  displayName: 'Windows 386 MSVC2015 Static Ninja'
+- job: windows_386_msvc2015_static
+  displayName: 'Windows 386 MSVC2015 Static'
   pool:
     vmImage: 'vs2015-win2012r2'
   workspace:
@@ -40,13 +40,13 @@ jobs:
   steps:
   - template: azure-pipelines/vs2015-install-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install-ninja.yml
+  - template: azure-pipelines/windows-install.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       defaultLibrary: static
       backend: ninja
-  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
       afterBuild: ren build\meson-out\libui.a libui.lib
@@ -59,8 +59,8 @@ jobs:
       libfiles: libui.lib
       osHeader: ui_windows.h
 
-- job: windows_386_msvc2017_shared_ninja
-  displayName: 'Windows 386 MSVC2017 Shared Ninja'
+- job: windows_386_msvc2017_shared
+  displayName: 'Windows 386 MSVC2017 Shared'
   pool:
     vmImage: 'vs2017-win2016'
   workspace:
@@ -68,13 +68,13 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install-ninja.yml
+  - template: azure-pipelines/windows-install.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       defaultLibrary: shared
       backend: ninja
-  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
   - template: azure-pipelines/windows-artifacts.yml
@@ -86,8 +86,8 @@ jobs:
       libfiles: libui.dll libui.exp libui.lib
       osHeader: ui_windows.h
 
-- job: windows_386_msvc2017_static_ninja
-  displayName: 'Windows 386 MSVC2017 Static Ninja'
+- job: windows_386_msvc2017_static
+  displayName: 'Windows 386 MSVC2017 Static'
   pool:
     vmImage: 'vs2017-win2016'
   workspace:
@@ -95,13 +95,13 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install-ninja.yml
+  - template: azure-pipelines/windows-install.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       defaultLibrary: static
       backend: ninja
-  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
       afterBuild: ren build\meson-out\libui.a libui.lib

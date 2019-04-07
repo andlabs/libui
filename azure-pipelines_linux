@@ -4,8 +4,8 @@ variables:
   releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
 
 jobs:
-- job: linux_amd64_shared_ninja
-  displayName: 'Linux amd64 Shared with Ninja'
+- job: linux_amd64_shared
+  displayName: 'Linux amd64 Shared'
   pool:
     vmImage: 'ubuntu-16.04'
   workspace:
@@ -20,7 +20,7 @@ jobs:
     parameters:
       defaultLibrary: shared
       backend: ninja
-  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/build.yml
   - template: azure-pipelines/darwinunix-artifacts.yml
     parameters:
       os: linux
@@ -29,8 +29,8 @@ jobs:
       libfiles: libui.so.0
       osHeader: ui_unix.h
 
-- job: linux_amd64_static_ninja
-  displayName: 'Linux amd64 Static with Ninja'
+- job: linux_amd64_static
+  displayName: 'Linux amd64 Static'
   pool:
     vmImage: 'ubuntu-16.04'
   workspace:
@@ -45,7 +45,7 @@ jobs:
     parameters:
       defaultLibrary: static
       backend: ninja
-  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/build.yml
   - template: azure-pipelines/darwinunix-artifacts.yml
     parameters:
       os: linux
@@ -61,8 +61,8 @@ jobs:
 
 # TODO macosx10.14 doesn't work; it just uses the default SDK
 
-- job: darwin_amd64_1014sdk_shared_ninja
-  displayName: 'Darwin amd64 10.14 SDK Shared with Ninja'
+- job: darwin_amd64_1014sdk_shared
+  displayName: 'Darwin amd64 10.14 SDK Shared'
   pool:
     vmImage: 'macos-10.13'
   workspace:
@@ -70,13 +70,13 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/darwin-install-ninja.yml
+  - template: azure-pipelines/darwin-install.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
       defaultLibrary: shared
       backend: ninja
-  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
   - template: azure-pipelines/darwinunix-artifacts.yml
@@ -87,8 +87,8 @@ jobs:
       libfiles: libui.A.dylib
       osHeader: ui_darwin.h
 
-- job: darwin_amd64_1014sdk_static_ninja
-  displayName: 'Darwin amd64 10.14 SDK Static with Ninja'
+- job: darwin_amd64_1014sdk_static
+  displayName: 'Darwin amd64 10.14 SDK Static'
   pool:
     vmImage: 'macos-10.13'
   workspace:
@@ -96,13 +96,13 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/darwin-install-ninja.yml
+  - template: azure-pipelines/darwin-install.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
       defaultLibrary: static
       backend: ninja
-  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/build.yml
     parameters:
       beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
   - template: azure-pipelines/darwinunix-artifacts.yml

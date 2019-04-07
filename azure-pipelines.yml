@@ -31,33 +31,32 @@ strategy:
       libfiles: 'libui.so.0'
       osHeader: 'ui_unix.h'
 
-jobs:
-- job: $(join('_', [os, arch] + coalesce(toolchain, []) + [libtype]))
-  displayName: $(join(' ', [os, arch] + coalesce(toolchain, []) + [libtype]))
-  pool:
-    vmImage: $(vmImage)
-  workspace:
-    clean: all
-  steps:
-  - template: azure-pipelines/$(python3Template)
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/$(depsAndNinjaTemplate)
-  - template: azure-pipelines/configure.yml
-    parameters:
-      beforeConfigure: $(beforeConfigure)
-      defaultLibrary: $(libtype)
-  - template: azure-pipelines/build.yml
-    parameters:
-      beforeBuild: $(beforeBuild)
-      afterBuild: $(afterBuild)
-  - template: azure-pipelines/$(artifactTemplate)
-    parameters:
-      os: $(os)
-      arch: $(arch)
-      toolchain: $(toolchain)
-      libtype: $(libtype)
-      libfiles: $(libfiles)
-      osHeader: $(osHeader)
+pool:
+  vmImage: $(vmImage)
+
+workspace:
+  clean: all
+
+steps:
+- template: azure-pipelines/$(python3Template)
+- template: azure-pipelines/install-latest-meson.yml
+- template: azure-pipelines/$(depsAndNinjaTemplate)
+- template: azure-pipelines/configure.yml
+  parameters:
+    beforeConfigure: $(beforeConfigure)
+    defaultLibrary: $(libtype)
+- template: azure-pipelines/build.yml
+  parameters:
+    beforeBuild: $(beforeBuild)
+    afterBuild: $(afterBuild)
+- template: azure-pipelines/$(artifactTemplate)
+  parameters:
+    os: $(os)
+    arch: $(arch)
+    toolchain: $(toolchain)
+    libtype: $(libtype)
+    libfiles: $(libfiles)
+    osHeader: $(osHeader)
 
 ## linux {
 #- job: linux_386_static

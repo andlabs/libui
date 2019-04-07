@@ -4,60 +4,31 @@ variables:
   releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
 
 jobs:
-- job: windows_386_mingw_static
-  displayName: 'Windows 386 MinGW-w64 Static'
+- job: darwin_amd64_1014sdk_shared
+  displayName: 'Darwin amd64 10.14 SDK Shared'
   pool:
-    vmImage: 'vs2017-win2016'
+    vmImage: 'macos-10.13'
   workspace:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install-ninja.yml
-  - template: azure-pipelines/windows-setup-mingw.yml
-    parameters:
-      which: mingw32
+  - template: azure-pipelines/darwin-install-ninja.yml
+  - script: |
+      xcodebuild -showsdks
+      exit 1
+    displayName: "Help"
   - template: azure-pipelines/configure.yml
     parameters:
-      defaultLibrary: static
+      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
+      defaultLibrary: shared
   - template: azure-pipelines/build.yml
     parameters:
-      afterBuild: dir build\meson-out
-#      afterBuild: ren build\meson-out\libui.a libui.lib
-#  - template: azure-pipelines/windows-artifacts.yml
-#    parameters:
-#      os: windows
-#      arch: 386
-#      toolchain: mingw
-#      libtype: static
-#      libfiles: libui.lib
-#      osHeader: ui_windows.h
-
-- job: windows_amd64_mingw_static
-  displayName: 'Windows amd64 MinGW-w64 Static'
-  pool:
-    vmImage: 'vs2017-win2016'
-  workspace:
-    clean: all
-  steps:
-  - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install-ninja.yml
-  - template: azure-pipelines/windows-setup-mingw.yml
+      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
+  - template: azure-pipelines/darwinunix-artifacts.yml
     parameters:
-      which: mingw64
-  - template: azure-pipelines/configure.yml
-    parameters:
-      defaultLibrary: static
-  - template: azure-pipelines/build.yml
-    parameters:
-      afterBuild: dir build\meson-out
-#      afterBuild: ren build\meson-out\libui.a libui.lib
-#  - template: azure-pipelines/windows-artifacts.yml
-#    parameters:
-#      os: windows
-#      arch: amd64
-#      toolchain: mingw
-#      libtype: static
-#      libfiles: libui.lib
-#      osHeader: ui_windows.h
+      os: darwin
+      arch: amd64
+      libtype: shared
+      libfiles: libui.A.dylib
+      osHeader: ui_darwin.h

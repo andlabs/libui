@@ -54,6 +54,9 @@ jobs:
 
 # mac {
 
+# TODO beforeConfigure/beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.13 Path)?
+
+
 - job: darwin_amd64_shared
   displayName: 'Darwin amd64 Shared'
   pool:

@@ -5,7 +5,8 @@ parameters:
 
 steps:
 - powershell: |
-    WriteError "$env:ChocolateyInstall"
+    Set-PSDebug -Trace 2
+    Write-Error "$env:ChocolateyInstall"
     dir "$env:ChocolateyInstall" | Write-Error
     dir "$env:ChocolateyInstall\lib" | Write-Error
     $chocopath = where.exe choco.exe | Get-Item

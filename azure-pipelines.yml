@@ -24,10 +24,10 @@ strategy:
       arch: '386'
       libtype: 'shared'
       vmImage: 'ubuntu-16.04'
-      python3Template: 'setup-python3.yml'
-      depsAndNinjaTemplate: 'linux-386-install-gtk-dev-ninja.yml'
+      python3Template: 'azure-pipelines/setup-python3.yml'
+      depsAndNinjaTemplate: 'azure-pipelines/linux-386-install-gtk-dev-ninja.yml'
       beforeConfigure: 'export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig'
-      artifactTemplate: 'artifacts.yml'
+      artifactTemplate: 'azure-pipelines/artifacts.yml'
       libfiles: 'libui.so.0'
       osHeader: 'ui_unix.h'
 
@@ -38,9 +38,9 @@ workspace:
   clean: all
 
 steps:
-- template: azure-pipelines/$(python3Template)
+- template: $(python3Template)
 - template: azure-pipelines/install-latest-meson.yml
-- template: azure-pipelines/$(depsAndNinjaTemplate)
+- template: $(depsAndNinjaTemplate)
 - template: azure-pipelines/configure.yml
   parameters:
     beforeConfigure: $(beforeConfigure)
@@ -49,7 +49,7 @@ steps:
   parameters:
     beforeBuild: $(beforeBuild)
     afterBuild: $(afterBuild)
-- template: azure-pipelines/$(artifactTemplate)
+- template: $(artifactTemplate)
   parameters:
     os: $(os)
     arch: $(arch)

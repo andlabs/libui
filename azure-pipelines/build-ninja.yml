@@ -2,9 +2,11 @@
 
 parameters:
   beforeBuild: ''
+  afterBuild: ''
 
 steps:
 - script: |
     ${{ parameters.beforeBuild }}
     ninja -C build
+    ${{ parameters.afterBuild }}
   displayName: 'Build'

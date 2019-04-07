@@ -1,0 +1,116 @@
+# 31 march 2019
+
+variables:
+  releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
+
+jobs:
+- job: linux_amd64_shared_ninja
+  displayName: 'Linux amd64 Shared with Ninja'
+  pool:
+    vmImage: 'ubuntu-16.04'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - script: |
+      sudo apt-get install libgtk-3-dev ninja-build
+    displayName: 'Install Dependencies'
+  - template: azure-pipelines/configure.yml
+    parameters:
+      defaultLibrary: shared
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/darwinunix-artifacts.yml
+    parameters:
+      os: linux
+      arch: amd64
+      libtype: shared
+      libfiles: libui.so.0
+      osHeader: ui_unix.h
+
+- job: linux_amd64_static_ninja
+  displayName: 'Linux amd64 Static with Ninja'
+  pool:
+    vmImage: 'ubuntu-16.04'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - script: |
+      sudo apt-get install libgtk-3-dev ninja-build
+    displayName: 'Install Dependencies'
+  - template: azure-pipelines/configure.yml
+    parameters:
+      defaultLibrary: static
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+  - template: azure-pipelines/darwinunix-artifacts.yml
+    parameters:
+      os: linux
+      arch: amd64
+      libtype: static
+      libfiles: libui.a
+      osHeader: ui_unix.h
+
+# mac {
+
+# notes:
+# [18:36:55]  <@jpakkane>	Don't use the xcode backend for anything serious, it's a bit crap.
+
+# TODO macosx10.14 doesn't work; it just uses the default SDK
+
+- job: darwin_amd64_1014sdk_shared_ninja
+  displayName: 'Darwin amd64 10.14 SDK Shared with Ninja'
+  pool:
+    vmImage: 'macos-10.13'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/darwin-install-ninja.yml
+  - template: azure-pipelines/configure.yml
+    parameters:
+      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
+      defaultLibrary: shared
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
+  - template: azure-pipelines/darwinunix-artifacts.yml
+    parameters:
+      os: darwin
+      arch: amd64
+      libtype: shared
+      libfiles: libui.A.dylib
+      osHeader: ui_darwin.h
+
+- job: darwin_amd64_1014sdk_static_ninja
+  displayName: 'Darwin amd64 10.14 SDK Static with Ninja'
+  pool:
+    vmImage: 'macos-10.13'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/darwin-install-ninja.yml
+  - template: azure-pipelines/configure.yml
+    parameters:
+      beforeConfigure: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
+      defaultLibrary: static
+      backend: ninja
+  - template: azure-pipelines/build-ninja.yml
+    parameters:
+      beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.14 Path)
+  - template: azure-pipelines/darwinunix-artifacts.yml
+    parameters:
+      os: darwin
+      arch: amd64
+      libtype: static
+      libfiles: libui.a
+      osHeader: ui_darwin.h
+
+# }

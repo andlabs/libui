@@ -3,6 +3,5 @@
 steps:
 - script: |
     python -m pip install --upgrade pip setuptools wheel
-    # 0.50.0 has a bug that prevents cross-builds (like our MinGW-w64 build) to not work properly
-    pip install 'meson!=0.50.0'
+    pip install meson
   displayName: 'Install Latest Meson'

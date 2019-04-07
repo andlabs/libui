@@ -3,10 +3,9 @@
 parameters:
   beforeConfigure: ''
   defaultLibrary: 'must-be-set'
-  extraOptions: ''
 
 steps:
 - script: |
     ${{ parameters.beforeConfigure }}
-    meson setup build --buildtype=release --default-library=${{ parameters.defaultLibrary }} ${{ parameters.extraOptions }}
+    meson setup build --buildtype=release --default-library=${{ parameters.defaultLibrary }}
   displayName: 'Configure'

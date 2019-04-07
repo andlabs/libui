@@ -4,25 +4,3 @@ variables:
   releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
 
 jobs:
-- job: linux_386_static
-  displayName: 'Linux 386 Static'
-  pool:
-    vmImage: 'ubuntu-16.04'
-  workspace:
-    clean: all
-  steps:
-  - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - script: sudo apt-get install mingw-w64 ninja-build
-  - template: azure-pipelines/configure.yml
-    parameters:
-      defaultLibrary: static
-      extraOptions: --cross-file=azure-pipelines/cross-386-mingw.txt
-  - template: azure-pipelines/build.yml
-#  - template: azure-pipelines/artifacts.yml
-#    parameters:
-#      os: linux
-#      arch: 386
-#      libtype: static
-#      libfiles: libui.a
-#      osHeader: ui_unix.h

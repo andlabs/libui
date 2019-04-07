@@ -44,7 +44,7 @@ jobs:
   workspace:
     clean: all
   steps:
-  - script 1
+  - script: exit 1
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - script: |

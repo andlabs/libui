@@ -4,34 +4,6 @@ variables:
   releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
 
 jobs:
-- job: windows_386_mingw_shared
-  displayName: 'Windows 386 MinGW-w64 Shared'
-  pool:
-    vmImage: 'vs2017-win2016'
-  workspace:
-    clean: all
-  steps:
-  - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/windows-install-ninja.yml
-  - template: azure-pipelines/windows-setup-mingw.yml
-    parameters:
-      which: mingw32
-  - template: azure-pipelines/configure.yml
-    parameters:
-      defaultLibrary: shared
-  - template: azure-pipelines/build.yml
-    parameters:
-      afterBuild: dir build\meson-out
-#  - template: azure-pipelines/windows-artifacts.yml
-#    parameters:
-#      os: windows
-#      arch: 386
-#      toolchain: mingw
-#      libtype: shared
-#      libfiles: libui.dll
-#      osHeader: ui_windows.h
-
 - job: windows_386_mingw_static
   displayName: 'Windows 386 MinGW-w64 Static'
   pool:
@@ -56,6 +28,35 @@ jobs:
 #    parameters:
 #      os: windows
 #      arch: 386
+#      toolchain: mingw
+#      libtype: static
+#      libfiles: libui.lib
+#      osHeader: ui_windows.h
+
+- job: windows_amd64_mingw_static
+  displayName: 'Windows amd64 MinGW-w64 Static'
+  pool:
+    vmImage: 'vs2017-win2016'
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/setup-python3.yml
+  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/windows-install-ninja.yml
+  - template: azure-pipelines/windows-setup-mingw.yml
+    parameters:
+      which: mingw64
+  - template: azure-pipelines/configure.yml
+    parameters:
+      defaultLibrary: static
+  - template: azure-pipelines/build.yml
+    parameters:
+      afterBuild: dir build\meson-out
+#      afterBuild: ren build\meson-out\libui.a libui.lib
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: amd64
 #      toolchain: mingw
 #      libtype: static
 #      libfiles: libui.lib

@@ -7,6 +7,6 @@ parameters:
 steps:
 - script: |
     ${{ parameters.beforeBuild }}
-    ninja -C build
+    ninja -C build -v
     ${{ parameters.afterBuild }}
   displayName: 'Build'

@@ -14,6 +14,7 @@ jobs:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
   - script: |
+      gcc --version; exit 1
       sudo dpkg --add-architecture i386
       sudo apt-get update
       sudo apt-get install gcc-6-multilib g++-6-multilib libc-dev:i386

@@ -8,6 +8,8 @@ windres = '/usr/bin/i686-w64-mingw32-windres'
 
 [properties]
 root = '/usr/i686-w64-mingw32'
+c_args =  ['--std=c99']
+cpp_args = ['--std=c++11']
 
 [host_machine]
 system = 'windows'

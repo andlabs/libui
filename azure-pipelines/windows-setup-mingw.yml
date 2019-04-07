@@ -6,9 +6,9 @@ parameters:
 steps:
 - powershell: |
     Set-PSDebug -Trace 2
-    $MyInvocation | Get-Members | Write-Host
-    $MyInformation.MyCommand | Get-Members | Write-Host
-    $MyInformation.MyCommand.Definition | Get-Members | Write-Host
+    $MyInvocation | Write-Host
+    $MyInformation.MyCommand | Write-Host
+    $MyInformation.MyCommand.Definition | Write-Host
     Write-Host "$MyInvocation.MyCommand.Definition"
     Write-Host "$(Split-Path -Parent $MyInvocation.MyCommand.Definition)"
     ls "$env:ChocolateyInstall" | Write-Host

@@ -19,7 +19,7 @@ jobs:
       beforeConfigure: export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
       defaultLibrary: shared
   - template: azure-pipelines/build.yml
-  - template: azure-pipelines/darwinunix-artifacts.yml
+  - template: azure-pipelines/artifacts.yml
     parameters:
       os: linux
       arch: 386
@@ -42,7 +42,7 @@ jobs:
       beforeConfigure: export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
       defaultLibrary: static
   - template: azure-pipelines/build.yml
-  - template: azure-pipelines/darwinunix-artifacts.yml
+  - template: azure-pipelines/artifacts.yml
     parameters:
       os: linux
       arch: 386

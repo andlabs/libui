@@ -13,14 +13,12 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - script: |
-      sudo apt-get install libgtk-3-dev ninja-build
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/linux-install-gtk-dev-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
       defaultLibrary: shared
   - template: azure-pipelines/build.yml
-  - template: azure-pipelines/darwinunix-artifacts.yml
+  - template: azure-pipelines/artifacts.yml
     parameters:
       os: linux
       arch: amd64
@@ -37,14 +35,12 @@ jobs:
   steps:
   - template: azure-pipelines/setup-python3.yml
   - template: azure-pipelines/install-latest-meson.yml
-  - script: |
-      sudo apt-get install libgtk-3-dev ninja-build
-    displayName: 'Install Dependencies'
+  - template: azure-pipelines/linux-install-gtk-dev-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
       defaultLibrary: static
   - template: azure-pipelines/build.yml
-  - template: azure-pipelines/darwinunix-artifacts.yml
+  - template: azure-pipelines/artifacts.yml
     parameters:
       os: linux
       arch: amd64
@@ -71,7 +67,7 @@ jobs:
     parameters:
       defaultLibrary: shared
   - template: azure-pipelines/build.yml
-  - template: azure-pipelines/darwinunix-artifacts.yml
+  - template: azure-pipelines/artifacts.yml
     parameters:
       os: darwin
       arch: amd64
@@ -93,7 +89,7 @@ jobs:
     parameters:
       defaultLibrary: static
   - template: azure-pipelines/build.yml
-  - template: azure-pipelines/darwinunix-artifacts.yml
+  - template: azure-pipelines/artifacts.yml
     parameters:
       os: darwin
       arch: amd64

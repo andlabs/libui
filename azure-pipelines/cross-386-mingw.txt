@@ -1,15 +1,13 @@
 [binaries]
-c = '/usr/bin/i686-w64-mingw32-gcc-win32'
-cpp = '/usr/bin/i686-w64-mingw32-g++-win32'
-ar = '/usr/bin/i686-w64-mingw32-gcc-ar-win32'
+c = '/usr/bin/i686-w64-mingw32-gcc'
+cpp = '/usr/bin/i686-w64-mingw32-g++'
+ar = '/usr/bin/i686-w64-mingw32-gcc-ar'
 strip = '/usr/bin/i686-w64-mingw32-strip'
 pkgconfig = '/usr/bin/i686-w64-mingw32-pkg-config'
 windres = '/usr/bin/i686-w64-mingw32-windres'
 
 [properties]
 root = '/usr/i686-w64-mingw32'
-c_args =  ['--std=c99']
-cpp_args = ['--std=c++11']
 
 [host_machine]
 system = 'windows'

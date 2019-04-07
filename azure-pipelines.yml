@@ -17,11 +17,10 @@ jobs:
       sudo dpkg --add-architecture i386
       sudo apt-get update
       sudo apt-get install gcc-multilib g++-multilib || echo 1 # libc6-i386 libc6-dev-i386 lib32stdc++6 lib32tinfo5 lib32tinfo-dev lib32z1 lib32z1-dev || exit 1
-      sudo apt-cache search '.*-lts-xenial$' ; exit 1
-      for i in libllvm6.0:i386 libegl1-mesa:i386 libwayland-egl1-mesa:i386 libgtk-3-0:i386 libwayland-egl1:i386; do sudo apt-cache show $i ; echo ; echo '----------------' ; echo ; done
+      sudo apt-get install libwayland-egl1-mesa-lts-xenial:i386 || exit 1
+      #for i in libllvm6.0:i386 libegl1-mesa:i386 libwayland-egl1-mesa:i386 libgtk-3-0:i386 libwayland-egl1:i386; do sudo apt-cache show $i ; echo ; echo '----------------' ; echo ; done
       #sudo apt-cache policy libllvm6.0:i386
       #sudo apt-get install libllvm6.0:i386
-      exit 1
       # the ones after ninja-build fix broken dependencies of libgtk-3-0:i386
       sudo apt-get install libgtk-3-0:i386 libgtk-3-dev:i386 ninja-build # libgirepository-1.0-1:i386 libglib2.0-dev:i386 gir1.2-glib-2.0:i386 gir1.2-atk-1.0:i386 libatk1.0-dev:i386 libfreetype6-dev:i386 libfontconfig1-dev:i386 libcairo2-dev:i386 libgdk-pixbuf2.0-dev:i386 libpango1.0-dev:i386 libxft-dev:i386 libpng12-dev:i386
     displayName: 'Install Dependencies'

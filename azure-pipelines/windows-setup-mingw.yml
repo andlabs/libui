@@ -6,13 +6,13 @@ parameters:
 steps:
 - powershell: |
     Set-PSDebug -Trace 2
-    Write-Error "$env:ChocolateyInstall"
-    dir "$env:ChocolateyInstall" | Write-Error
-    dir "$env:ChocolateyInstall\lib" | Write-Error
+    echo "$env:ChocolateyInstall" 1>&2
+    dir "$env:ChocolateyInstall" 1>&2
+    dir "$env:ChocolateyInstall\lib" 1>&2
     $chocopath = where.exe choco.exe | Get-Item
     # apparently they didn't think to add this functionality from the start (multiple joins was only added in PowerShell 6 and Azure Pipelines is using 5.x), and the direct-CLR approach actually behaves differently (and I would need to check which version of .net Azure Pipelines is using anyway, since our use case isn't one of those cases where it behaves differently)
     $chocopath = Join-Path -Path $chocopath.Directory -ChildPath "install" | Join-Path -ChildPath "${{ parameters.which }}" | Join-Path -ChildPath "bin"
-    dir $chocopath | Write-Error
+    dir $chocopath 1>&2
     Write-Error "##vso[task.prependpath]$chocopath"
     exit 1
   displayName: 'Set Up MinGW-w64'

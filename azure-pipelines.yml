@@ -4,29 +4,6 @@ variables:
   releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
 
 jobs:
-- job: linux_386_shared
-  displayName: 'Linux 386 Shared'
-  pool:
-    vmImage: 'ubuntu-16.04'
-  workspace:
-    clean: all
-  steps:
-  - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/linux-386-install-gtk-dev-ninja.yml
-  - template: azure-pipelines/configure.yml
-    parameters:
-      beforeConfigure: export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
-      defaultLibrary: shared
-  - template: azure-pipelines/build.yml
-  - template: azure-pipelines/artifacts.yml
-    parameters:
-      os: linux
-      arch: 386
-      libtype: shared
-      libfiles: libui.so.0
-      osHeader: ui_unix.h
-
 - job: linux_386_static
   displayName: 'Linux 386 Static'
   pool:

@@ -17,8 +17,8 @@ jobs:
       sudo dpkg --add-architecture i386
       sudo apt-get update
       sudo apt-get install gcc-multilib g++-multilib || echo 1 # libc6-i386 libc6-dev-i386 lib32stdc++6 lib32tinfo5 lib32tinfo-dev lib32z1 lib32z1-dev || exit 1
-      sudo apt-cache policy libllvm6.0
-      sudo apt-cache show libllvm6.0 ; exit 1
+      sudo apt-get install libllvm6.0:i386=1:6.0.1~svn334776-1~exp1~20190124082834.118 ; echo 1
+      sudo apt-get upgrade libgtk-3-0
       #for i in libllvm6.0:i386 libgl1-mea-dri:i386 libegl1-mesa:i386 libwayland-egl1-mesa:i386 libgtk-3-0:i386 libwayland-egl1:i386; do sudo apt-cache show $i ; echo ; echo '----------------' ; echo ; done
       #sudo apt-cache policy libllvm6-0:i386
       #sudo apt-get install libllvm6-0:i386

@@ -38,9 +38,9 @@ workspace:
   clean: all
 
 steps:
-- template: $(python3Template)
+- template: $(variables.python3Template)
 - template: azure-pipelines/install-latest-meson.yml
-- template: $(depsAndNinjaTemplate)
+- template: $(variables.depsAndNinjaTemplate)
 - template: azure-pipelines/configure.yml
   parameters:
     beforeConfigure: $(beforeConfigure)
@@ -49,7 +49,7 @@ steps:
   parameters:
     beforeBuild: $(beforeBuild)
     afterBuild: $(afterBuild)
-- template: $(artifactTemplate)
+- template: $(variables.artifactTemplate)
   parameters:
     os: $(os)
     arch: $(arch)

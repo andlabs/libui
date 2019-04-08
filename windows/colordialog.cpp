@@ -314,7 +314,7 @@ static void drawGrid(ID2D1RenderTarget *rt, D2D1_RECT_F *fillRect)
 	pformat = rt->GetPixelFormat();
 #else
 	{
-		typedef D2D1_PIXEL_FORMAT *(__stdcall ID2D1RenderTarget::* GetPixelFormatF)(D2D1_PIXEL_FORMAT *);
+		typedef D2D1_PIXEL_FORMAT *(__stdcall ID2D1RenderTarget::* GetPixelFormatF)(D2D1_PIXEL_FORMAT *) const;
 		GetPixelFormatF gpf;
 
 		gpf = (GetPixelFormatF) (&(rt->GetPixelFormat));

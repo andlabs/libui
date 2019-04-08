@@ -144,7 +144,7 @@ D2D1_SIZE_F realGetSize(ID2D1RenderTarget *rt)
 	return rt->GetSize();
 #else
 	D2D1_SIZE_F size;
-	typedef D2D1_SIZE_F *(__stdcall ID2D1RenderTarget::* GetSizeF)(D2D1_SIZE_F *);
+	typedef D2D1_SIZE_F *(__stdcall ID2D1RenderTarget::* GetSizeF)(D2D1_SIZE_F *) const;
 	GetSizeF gs;
 
 	gs = (GetSizeF) (&(rt->GetSize));

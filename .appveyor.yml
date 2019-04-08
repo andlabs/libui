@@ -45,9 +45,6 @@ install:
       set "PATH=%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%"
       
       rem Install Latest Meson
-      echo %PATH%
-      echo %PYTHON_ROOT%
-      where.exe pip.exe
       pip install meson
       
       rem Install Ninja
@@ -65,7 +62,7 @@ install:
 build_script:
   - cmd: |
       if %compiler%==mingw ( set "PATH=%mingwPath%;%PATH%" )
-      if %compiler%<>mingw ( call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %vcvarsallArch% )
+      if not %compiler%==mingw ( call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %vcvarsallArch% )
       meson setup build --buildtype=release --default-library=%libtype%
       ninja -C build
 

@@ -38,52 +38,45 @@ platform:
 
 # Note: AppVeyor tries to be "helpful" and splits cmd.exe scripts into their constitutent lines to check their error codes. There is no way to switch this off; for true multi-line scripts we have to use PowerShell. But we need to use vcvarsall.bat, so that's out of the question.
 install:
-  - cmd: |
-      rem Set Python Version
-      set "PYTHON_ROOT=C:\python37-x64"
-      if %arch%==386 ( set "PYTHON_ROOT=C:\python37" )
-      set "PATH=%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%"
-      
-      rem Install Latest Meson
-      pip install meson
-      
-      rem Install Ninja
-      powershell -Command "Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip -OutFile C:\ninja-win.zip"
-      mkdir C:\ninja
-      powershell -Command "Expand-Archive -LiteralPath C:\ninja-win.zip -DestinationPath C:\ninja"
-      set "PATH=C:\ninja;%PATH%"
-      
-      rem Parameters for the build_script phase, to reduce their noise.
-      set "mingwPath=C:\msys64\mingw64\bin"
-      set vcvarsallArch=x86
-      if %arch%==386 ( set "mingwPath=C:\msys64\mingw32\bin" )
-      if %arch%==386 ( set vcvarsallArch=amd64 )
+  # Set Python Version
+  - set "PYTHON_ROOT=C:\python37-x64"
+  - if %arch%==386 ( set "PYTHON_ROOT=C:\python37" )
+  - set "PATH=%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%"
+  # Install Latest Meson
+  - pip install meson
+  # Install Ninja
+  - powershell -Command "Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip -OutFile C:\ninja-win.zip"
+  - mkdir C:\ninja
+  - powershell -Command "Expand-Archive -LiteralPath C:\ninja-win.zip -DestinationPath C:\ninja"
+  - set "PATH=C:\ninja;%PATH%"
+  # Parameters for the build_script phase, to reduce their noise.
+  - set "mingwPath=C:\msys64\mingw64\bin"
+  - set vcvarsallArch=x86
+  - if %arch%==386 ( set "mingwPath=C:\msys64\mingw32\bin" )
+  - if %arch%==386 ( set vcvarsallArch=amd64 )
 
 build_script:
-  - cmd: |
-      if %compiler%==mingw ( set "PATH=%mingwPath%;%PATH%" )
-      if not %compiler%==mingw ( call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %vcvarsallArch% )
-      meson setup build --buildtype=release --default-library=%libtype%
-      ninja -C build
+  - if %compiler%==mingw ( set "PATH=%mingwPath%;%PATH%" )
+  - if not %compiler%==mingw ( call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %vcvarsallArch% )
+  - meson setup build --buildtype=release --default-library=%libtype%
+  - ninja -C build
 
 after_build:
-  - cmd: |
-      set "version=%APPVEYOR_REPO_BRANCH%"
-      if %APPVEYOR_REPO_TAG%==true ( set "version=%APPVEYOR_REPO_TAG_NAME%" )
-      set "artifact=%version%-windows-%arch%-%compiler%-%libtype%"
-      pushd build\meson-out
-      rem TODO msvc only?
-      if %libtype%==static ( ren libui.a libui.lib )
-      copy ..\..\ui.h .
-      copy ..\..\ui_windows.h .
-      rem remove unnecessary files
-      rem TODO should we do this on Azure too?
-      del libui.exp
-      7z a "%APPVEYOR_BUILD_FOLDER%\libui-%artifact%.zip" %libfiles% ui.h ui_windows.h
-      7z a "%APPVEYOR_BUILD_FOLDER%\examples-%artifact%.zip" controlgallery.exe cpp-multithread.exe datetime.exe drawtext.exe histogram.exe tester.exe timer.exe
-      del ui.h ui_windows.h
-      popd /?
-      popd
+  - set "version=%APPVEYOR_REPO_BRANCH%"
+  - if %APPVEYOR_REPO_TAG%==true ( set "version=%APPVEYOR_REPO_TAG_NAME%" )
+  - set "artifact=%version%-windows-%arch%-%compiler%-%libtype%"
+  - pushd build\meson-out
+  # TODO msvc only?
+  - if %libtype%==static ( ren libui.a libui.lib )
+  - copy ..\..\ui.h .
+  - copy ..\..\ui_windows.h .
+  # remove unnecessary files
+  # TODO should we do this on Azure too?
+  - del libui.exp
+  - 7z a "%APPVEYOR_BUILD_FOLDER%\libui-%artifact%.zip" %libfiles% ui.h ui_windows.h
+  - 7z a "%APPVEYOR_BUILD_FOLDER%\examples-%artifact%.zip" controlgallery.exe cpp-multithread.exe datetime.exe drawtext.exe histogram.exe tester.exe timer.exe
+  - del ui.h ui_windows.h
+  - popd
 
 artifacts:
   - path: libui-*.zip

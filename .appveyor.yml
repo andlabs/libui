@@ -40,11 +40,14 @@ platform:
 install:
   - cmd: |
       rem Set Python Version
-      set PYTHON_ROOT=C:\python37-x64
-      if %arch%==386 ( set PYTHON_ROOT=C:\python37 )
+      set "PYTHON_ROOT=C:\python37-x64"
+      if %arch%==386 ( set "PYTHON_ROOT=C:\python37" )
       set "PATH=%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%"
       
       rem Install Latest Meson
+      echo %PATH%
+      echo %PYTHON_ROOT%
+      where.exe pip.exe
       pip install meson
       
       rem Install Ninja

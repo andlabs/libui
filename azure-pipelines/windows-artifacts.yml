@@ -17,12 +17,13 @@ steps:
     Remove-Item @("ui.h","${{ parameters.osHeader }}")
     popd
   displayName: 'Create Artifacts'
-- task: GitHubRelease@0
-  condition: eq(Build.SourceBranchName, "master")
-  inputs:
-    gitHubConnection: andlabs
-    repositoryName: andlabs/libui
-    action: 'edit'
-    addChangelog: false
-    assets: '$(Build.ArtifactStagingDirectory)/*'
-    assetUploadMode: 'replace'
+- {{ if eq(Build.SourceBranchName, "master") }}
+  - task: GitHubRelease@0
+    condition: eq(Build.SourceBranchName, "master")
+    inputs:
+      gitHubConnection: andlabs
+      repositoryName: andlabs/libui
+      action: 'edit'
+      addChangelog: false
+      assets: '$(Build.ArtifactStagingDirectory)/*'
+      assetUploadMode: 'replace'

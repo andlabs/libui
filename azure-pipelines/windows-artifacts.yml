@@ -18,6 +18,7 @@ steps:
     popd
   displayName: 'Create Artifacts'
 - task: GitHubRelease@0
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
   inputs:
     gitHubConnection: andlabs
     repositoryName: andlabs/libui

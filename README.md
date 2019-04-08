@@ -1,8 +1,8 @@
 # libui: a portable GUI library for C
 
 This README is being written.<br>
-[![Build Status, Linux and macOS](https://travis-ci.org/andlabs/libui.svg?branch=master)](https://travis-ci.org/andlabs/libui)<br>
-[![Build Status, Windows](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31?svg=true)](https://ci.appveyor.com/project/andlabs/libui)
+[![Build Status, Azure Pipelines](https://dev.azure.com/andlabs/libui/_apis/build/status/andlabs.libui?branchName=master)](https://dev.azure.com/andlabs/libui/_build/latest?definitionId=1&branchName=master)<br>
+[![Build Status, AppVeyor](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31?svg=true)](https://ci.appveyor.com/project/andlabs/libui)
 
 ## Status
 
@@ -30,8 +30,9 @@ But libui is not dead; I am working on it whenever I can, and I hope to get it t
 
 *Note that today's entry (Eastern Time) may be updated later today.*
 
-* **<codedate**
+* **7 April 2019**
 	* **The build system has been switched to Meson.** See below for instructions. This change was made because the previous build system, CMake, caused countless headaches over trivial issues. Meson was chosen due to how unproblematic setting up libui's build just right was, as well as having design goals that are by coincidence closely aligned with what libui wants.
+	* Travis CI has been replaced with Azure Pipelines and much of the AppVeyor CI configuration was integrated into the Azure Pipelines configuration. This shouldn't affect most developers.
 
 * **1 September 2018**
 	* **Alpha 4.1 is here.** This is an emergency fix to Alpha 4 to fix `uiImageAppend()` not working as documented. It now works properly, with one important difference you'll need to care about: **it now requires image data to be alpha-premultiplied**. In addition, `uiImage` also is implemented slightly more nicely now, and `ui.h` has minor documentation typo fixes.

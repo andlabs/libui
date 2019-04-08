@@ -17,7 +17,7 @@ steps:
     Remove-Item @("ui.h","${{ parameters.osHeader }}")
     popd
   displayName: 'Create Artifacts'
-- {{ if eq(Build.SourceBranchName, "master") }}
+- {{ if eq(Build.SourceBranchName, "master") }}:
   - task: GitHubRelease@0
     condition: eq(Build.SourceBranchName, "master")
     inputs:

@@ -73,7 +73,7 @@ after_build:
       set "artifact=%version%-windows-%arch%-%compiler%-%libtype%"
       pushd build\meson-out
       rem TODO msvc only?
-      if %buildtype%==static ( ren libui.a libui.lib )
+      if %libtype%==static ( ren libui.a libui.lib )
       copy ..\..\ui.h .
       copy ..\..\ui_windows.h .
       rem remove unnecessary files

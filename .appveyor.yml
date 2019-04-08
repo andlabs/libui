@@ -81,7 +81,9 @@ after_build:
       del libui.exp
       7z a "%APPVEYOR_BUILD_FOLDER%\libui-%artifact%.zip" %libfiles% ui.h ui_windows.h
       7z a "%APPVEYOR_BUILD_FOLDER%\examples-%artifact%.zip" controlgallery.exe cpp-multithread.exe datetime.exe drawtext.exe histogram.exe tester.exe timer.exe
+      del ui.h ui_windows.h
       popd
+      popd /?
 
 artifacts:
   - path: libui-*.zip

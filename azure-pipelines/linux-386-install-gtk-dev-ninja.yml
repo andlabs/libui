@@ -1,0 +1,17 @@
+# 7 april 2019
+
+# TODO figure out how to get meson to recognize the compiler is producing 32-bit output
+
+steps:
+- script: |
+    # Azure Pipelines ships with a patched version of this and that patch is only available on 64-bit systems, so trying to install the 32-bit versions will remove the 64-bit versions outright
+    # This is a dependency of Mesa, so we'll have to downgrade to the stock distro ones :/
+    llvmPackages=
+    for i in libllvm6.0 clang-6.0 libclang-common-6.0-dev liblldb-6.0 liblldb-6.0-dev lld-6.0 lldb-6.0 llvm-6.0-dev python-lldb-6.0 libclang1-6.0 llvm-6.0 llvm-6.0-runtime; do llvmPackages="$llvmPackages $i=1:6.0-1ubuntu2~16.04.1"; done
+    sudo dpkg --add-architecture i386
+    sudo apt-get update
+    sudo apt-get install --allow-downgrades \
+      gcc-multilib g++-multilib \
+      $llvmPackages \
+      libgtk-3-dev:i386 ninja-build
+  displayName: 'Install GTK+ Dev Files and Ninja'

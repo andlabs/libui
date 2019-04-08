@@ -368,7 +368,7 @@ static void fontDialogDrawSampleText(struct fontDialog *f, ID2D1RenderTarget *rt
 		sample = uiprivFontCollectionCorrectString(f->fc, sampleStrings);
 		sampleStrings->Release();
 	} else
-		sample = L"The quick brown fox jumps over the lazy dog.";
+		sample = (WCHAR *) L"The quick brown fox jumps over the lazy dog.";			// TODO
 
 	// DirectWrite doesn't allow creating a text format from a font; we need to get this ourselves
 	family = cbGetItemText(f->familyCombobox, f->curFamily);

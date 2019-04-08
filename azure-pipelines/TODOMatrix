@@ -1,0 +1,399 @@
+# 31 march 2019
+
+variables:
+  releaseExamples: 'controlgallery cpp-multithread datetime drawtext histogram tester timer'
+
+strategy:
+  matrix:
+#    targetname:
+#      os: 'fill this in'
+#      arch: 'fill this in'
+#      toolchain: 'fill this in'
+#      libtype: 'fill this in'
+#      vmImage: 'fill this in'
+#      python3Template: 'fill filename'
+#      depsAndNinjaTemplate: 'fill filename'
+#      beforeConfigure: 'fill this in'
+#      beforeBuild: 'fill this in'
+#      afterBuild: 'fill this in'
+#      artifactTemplate: 'fill filename'
+#      libfiles: 'fill this in'
+#      osHeader: 'fill this in'
+    linux_386_shared:
+      os: 'linux'
+      arch: '386'
+      libtype: 'shared'
+      vmImage: 'ubuntu-16.04'
+      python3Template: 'azure-pipelines/setup-python3.yml'
+      depsAndNinjaTemplate: 'azure-pipelines/linux-386-install-gtk-dev-ninja.yml'
+      beforeConfigure: 'export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig'
+      artifactTemplate: 'azure-pipelines/artifacts.yml'
+      libfiles: 'libui.so.0'
+      osHeader: 'ui_unix.h'
+
+pool:
+  vmImage: $(vmImage)
+
+workspace:
+  clean: all
+
+steps:
+- template: $(variables.python3Template)
+- template: azure-pipelines/install-latest-meson.yml
+- template: $(variables.depsAndNinjaTemplate)
+- template: azure-pipelines/configure.yml
+  parameters:
+    beforeConfigure: $(beforeConfigure)
+    defaultLibrary: $(libtype)
+- template: azure-pipelines/build.yml
+  parameters:
+    beforeBuild: $(beforeBuild)
+    afterBuild: $(afterBuild)
+- template: $(variables.artifactTemplate)
+  parameters:
+    os: $(os)
+    arch: $(arch)
+    toolchain: $(toolchain)
+    libtype: $(libtype)
+    libfiles: $(libfiles)
+    osHeader: $(osHeader)
+
+## linux {
+#- job: linux_386_static
+#  displayName: 'Linux 386 Static'
+#  pool:
+#    vmImage: 'ubuntu-16.04'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/setup-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/linux-386-install-gtk-dev-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      beforeConfigure: export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
+#      defaultLibrary: static
+#  - template: azure-pipelines/build.yml
+#  - template: azure-pipelines/artifacts.yml
+#    parameters:
+#      os: linux
+#      arch: 386
+#      libtype: static
+#      libfiles: libui.a
+#      osHeader: ui_unix.h
+#
+#- job: linux_amd64_shared
+#  displayName: 'Linux amd64 Shared'
+#  pool:
+#    vmImage: 'ubuntu-16.04'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/setup-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/linux-install-gtk-dev-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      defaultLibrary: shared
+#  - template: azure-pipelines/build.yml
+#  - template: azure-pipelines/artifacts.yml
+#    parameters:
+#      os: linux
+#      arch: amd64
+#      libtype: shared
+#      libfiles: libui.so.0
+#      osHeader: ui_unix.h
+#
+#- job: linux_amd64_static
+#  displayName: 'Linux amd64 Static'
+#  pool:
+#    vmImage: 'ubuntu-16.04'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/setup-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/linux-install-gtk-dev-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      defaultLibrary: static
+#  - template: azure-pipelines/build.yml
+#  - template: azure-pipelines/artifacts.yml
+#    parameters:
+#      os: linux
+#      arch: amd64
+#      libtype: static
+#      libfiles: libui.a
+#      osHeader: ui_unix.h
+#
+## }
+#
+## windows vs2015 {
+#
+#- job: windows_386_msvc2015_shared
+#  displayName: 'Windows 386 MSVC2015 Shared'
+#  pool:
+#    vmImage: 'vs2015-win2012r2'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/vs2015-install-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/windows-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+#      defaultLibrary: shared
+#  - template: azure-pipelines/build.yml
+#    parameters:
+#      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: 386
+#      toolchain: msvc2015
+#      libtype: shared
+#      libfiles: libui.dll libui.exp libui.lib
+#      osHeader: ui_windows.h
+#
+#- job: windows_386_msvc2015_static
+#  displayName: 'Windows 386 MSVC2015 Static'
+#  pool:
+#    vmImage: 'vs2015-win2012r2'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/vs2015-install-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/windows-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+#      defaultLibrary: static
+#  - template: azure-pipelines/build.yml
+#    parameters:
+#      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+#      afterBuild: ren build\meson-out\libui.a libui.lib
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: 386
+#      toolchain: msvc2015
+#      libtype: static
+#      libfiles: libui.lib
+#      osHeader: ui_windows.h
+#
+#- job: windows_amd64_msvc2015_shared
+#  displayName: 'Windows amd64 MSVC2015 Shared'
+#  pool:
+#    vmImage: 'vs2015-win2012r2'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/vs2015-install-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/windows-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+#      defaultLibrary: shared
+#  - template: azure-pipelines/build.yml
+#    parameters:
+#      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: amd64
+#      toolchain: msvc2015
+#      libtype: shared
+#      libfiles: libui.dll libui.exp libui.lib
+#      osHeader: ui_windows.h
+#
+#- job: windows_amd64_msvc2015_static
+#  displayName: 'Windows amd64 MSVC2015 Static'
+#  pool:
+#    vmImage: 'vs2015-win2012r2'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/vs2015-install-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/windows-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+#      defaultLibrary: static
+#  - template: azure-pipelines/build.yml
+#    parameters:
+#      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+#      afterBuild: ren build\meson-out\libui.a libui.lib
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: amd64
+#      toolchain: msvc2015
+#      libtype: static
+#      libfiles: libui.lib
+#      osHeader: ui_windows.h
+#
+## }
+#
+## windows vs2017 {
+#
+#- job: windows_386_msvc2017_shared
+#  displayName: 'Windows 386 MSVC2017 Shared'
+#  pool:
+#    vmImage: 'vs2017-win2016'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/setup-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/windows-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
+#      defaultLibrary: shared
+#  - template: azure-pipelines/build.yml
+#    parameters:
+#      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: 386
+#      toolchain: msvc2017
+#      libtype: shared
+#      libfiles: libui.dll libui.exp libui.lib
+#      osHeader: ui_windows.h
+#
+#- job: windows_386_msvc2017_static
+#  displayName: 'Windows 386 MSVC2017 Static'
+#  pool:
+#    vmImage: 'vs2017-win2016'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/setup-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/windows-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
+#      defaultLibrary: static
+#  - template: azure-pipelines/build.yml
+#    parameters:
+#      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
+#      afterBuild: ren build\meson-out\libui.a libui.lib
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: 386
+#      toolchain: msvc2017
+#      libtype: static
+#      libfiles: libui.lib
+#      osHeader: ui_windows.h
+#
+#- job: windows_amd64_msvc2017_shared
+#  displayName: 'Windows amd64 MSVC2017 Shared'
+#  pool:
+#    vmImage: 'vs2017-win2016'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/setup-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/windows-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
+#      defaultLibrary: shared
+#  - template: azure-pipelines/build.yml
+#    parameters:
+#      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: amd64
+#      toolchain: msvc2017
+#      libtype: shared
+#      libfiles: libui.dll libui.exp libui.lib
+#      osHeader: ui_windows.h
+#
+#- job: windows_amd64_msvc2017_static
+#  displayName: 'Windows amd64 MSVC2017 Static'
+#  pool:
+#    vmImage: 'vs2017-win2016'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/setup-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/windows-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      beforeConfigure: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
+#      defaultLibrary: static
+#  - template: azure-pipelines/build.yml
+#    parameters:
+#      beforeBuild: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
+#      afterBuild: ren build\meson-out\libui.a libui.lib
+#  - template: azure-pipelines/windows-artifacts.yml
+#    parameters:
+#      os: windows
+#      arch: amd64
+#      toolchain: msvc2017
+#      libtype: static
+#      libfiles: libui.lib
+#      osHeader: ui_windows.h
+#
+## }
+#
+## mac {
+#
+## TODO beforeConfigure/beforeBuild: export SDKROOT=$(xcodebuild -version -sdk macosx10.13 Path)?
+#
+#- job: darwin_amd64_shared
+#  displayName: 'Darwin amd64 Shared'
+#  pool:
+#    vmImage: 'macos-10.13'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/setup-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/darwin-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      defaultLibrary: shared
+#  - template: azure-pipelines/build.yml
+#  - template: azure-pipelines/artifacts.yml
+#    parameters:
+#      os: darwin
+#      arch: amd64
+#      libtype: shared
+#      libfiles: libui.A.dylib
+#      osHeader: ui_darwin.h
+#
+#- job: darwin_amd64_static
+#  displayName: 'Darwin amd64 Static'
+#  pool:
+#    vmImage: 'macos-10.13'
+#  workspace:
+#    clean: all
+#  steps:
+#  - template: azure-pipelines/setup-python3.yml
+#  - template: azure-pipelines/install-latest-meson.yml
+#  - template: azure-pipelines/darwin-install-ninja.yml
+#  - template: azure-pipelines/configure.yml
+#    parameters:
+#      defaultLibrary: static
+#  - template: azure-pipelines/build.yml
+#  - template: azure-pipelines/artifacts.yml
+#    parameters:
+#      os: darwin
+#      arch: amd64
+#      libtype: static
+#      libfiles: libui.a
+#      osHeader: ui_darwin.h
+#
+## }

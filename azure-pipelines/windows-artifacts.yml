@@ -1,0 +1,28 @@
+# 6 april 2019
+
+parameters:
+  os: ''
+  arch: ''
+  toolchain: ''
+  libtype: ''
+  libfiles: ''
+  osHeader: ''
+
+steps:
+- powershell: |
+    pushd build\meson-out
+    Copy-Item @("..\..\ui.h","..\..\${{ parameters.osHeader }}") -Destination .
+    Compress-Archive -Destination $(Build.ArtifactStagingDirectory)\libui-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.toolchain }}-${{ parameters.libtype }}.zip -Path @("${{ parameters.libfiles }}".Split(" ") + @("ui.h","${{ parameters.osHeader}}"))
+    Compress-Archive -Destination $(Build.ArtifactStagingDirectory)\examples-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}.zip -Path @("$(releaseExamples)".Split(" ") | % {$_ + ".exe"})
+    Remove-Item @("ui.h","${{ parameters.osHeader }}")
+    popd
+  displayName: 'Create Artifacts'
+- ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+  - task: GitHubRelease@0
+    inputs:
+      gitHubConnection: andlabs
+      repositoryName: andlabs/libui
+      action: 'edit'
+      addChangelog: false
+      assets: '$(Build.ArtifactStagingDirectory)/*'
+      assetUploadMode: 'replace'

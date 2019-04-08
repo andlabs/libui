@@ -1,8 +1,8 @@
 # libui: a portable GUI library for C
 
 This README is being written.<br>
-[![Build Status, Linux and macOS](https://travis-ci.org/andlabs/libui.svg?branch=master)](https://travis-ci.org/andlabs/libui)<br>
-[![Build Status, Windows](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31?svg=true)](https://ci.appveyor.com/project/andlabs/libui)
+[![Build Status, Azure Pipelines](https://dev.azure.com/andlabs/libui/_apis/build/status/andlabs.libui?branchName=master)](https://dev.azure.com/andlabs/libui/_build/latest?definitionId=1&branchName=master)<br>
+[![Build Status, AppVeyor](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31?svg=true)](https://ci.appveyor.com/project/andlabs/libui)
 
 ## Status
 
@@ -29,6 +29,10 @@ But libui is not dead; I am working on it whenever I can, and I hope to get it t
 ## News
 
 *Note that today's entry (Eastern Time) may be updated later today.*
+
+* **7 April 2019**
+	* **The build system has been switched to Meson.** See below for instructions. This change was made because the previous build system, CMake, caused countless headaches over trivial issues. Meson was chosen due to how unproblematic setting up libui's build just right was, as well as having design goals that are by coincidence closely aligned with what libui wants.
+	* Travis CI has been replaced with Azure Pipelines and much of the AppVeyor CI configuration was integrated into the Azure Pipelines configuration. This shouldn't affect most developers.
 
 * **1 September 2018**
 	* **Alpha 4.1 is here.** This is an emergency fix to Alpha 4 to fix `uiImageAppend()` not working as documented. It now works properly, with one important difference you'll need to care about: **it now requires image data to be alpha-premultiplied**. In addition, `uiImage` also is implemented slightly more nicely now, and `ui.h` has minor documentation typo fixes.
@@ -82,7 +86,8 @@ But libui is not dead; I am working on it whenever I can, and I hope to get it t
 ## Build Requirements
 
 * All platforms:
-	* CMake 3.1.0 or newer
+	* [Meson](https://mesonbuild.com/) 0.48.0 or newer
+	* Any of Meson's backends; this section assumes you are using [Ninja](https://ninja-build.org/), but there is no reason the other backends shouldn't work.
 * Windows: either
 	* Microsoft Visual Studio 2013 or newer (2013 is needed for `va_copy()`) — you can build either a static or a shared library
 	* MinGW-w64 (other flavors of MinGW may not work) — **you can only build a static library**; shared library support will be re-added once the following features come in:
@@ -92,32 +97,40 @@ But libui is not dead; I am working on it whenever I can, and I hope to get it t
 
 ## Building
 
-Out-of-tree builds typical of cmake are preferred:
+libui uses only [the standard Meson build options](https://mesonbuild.com/Builtin-options.html), so a libui build can be set up just like any other:
 
 ```
 $ # you must be in the top-level libui directory, otherwise this won't work
-$ mkdir build
-$ cd build
-$ cmake ..
+$ meson setup build [options]
+$ ninja -C build
 ```
 
-Pass `-DBUILD_SHARED_LIBS=OFF` to `cmake` to build a static library. The standard cmake build configurations are provided; if none is specified, `Debug` is used.
+Once this completes, everything will be under `build/meson-out/`. (Note that unlike the previous build processes, everything is built by default, including tests and examples.)
 
-If you use a makefile generator with cmake, then
+The most important options are:
 
-```
-$ make
-$ make tester         # for the test program
-$ make examples       # for examples
-```
+* `--buildtype=(debug|release|...)` controls the type of build made; the default is `debug`. For a full list of valid values, consult [the Meson documentation](https://mesonbuild.com/Running-Meson.html).
+* `--default-library=(shared|static)` controls whether libui is built as a shared library or a static library; the default is `shared`. You currently cannot specify `both`, as the build process changes depending on the target type (though I am willing to look into changing things if at all possible).
+* `-Db_sanitize=which` allows enabling the chosen [sanitizer](https://github.com/google/sanitizers) on a system that supports sanitizers. The list of supported values is in [the Meson documentation](https://mesonbuild.com/Builtin-options.html#base-options).
+* `--backend=backend` allows using the specified `backend` for builds instead of `ninja` (the default). A list of supported values is in [the Meson documentation](https://mesonbuild.com/Builtin-options.html#universal-options).
 
-and pass `VERBOSE=1` to see build commands. Build targets will be in the `build/out` folder.
+Most other built-in options will work, though keep in mind there are a handful of options that cannot be overridden because libui depends on them holding a specific value; if you do override these, though, libui will warn you when you run `meson`.
 
-Project file generators should work, but are untested by me.
+The Meson website and documentation has more in-depth usage instructions.
 
-On Windows, I use the `Unix Makefiles` generator and GNU make (built using the `build_w32.bat` script included in the source and run in the Visual Studio command line). In this state, if MinGW-w64 (either 32-bit or 64-bit) is not in your `%PATH%`, cmake will use MSVC by default; otherwise, cmake will use with whatever MinGW-w64 is in your path. `set PATH=%PATH%;c:\msys2\mingw(32/64)\bin` should be enough to temporarily change to a MinGW-w64 build for the current command line session only if you installed MinGW-w64 through [MSYS2](https://msys2.github.io/); no need to change global environment variables constantly.
+For the sake of completeness, I should note that the default value of `--layout` is `flat`, not the usual `mirror`. This is done both to make creating the release archives easier as well as to reduce the chance that shared library builds will fail to start on Windows because the DLL is in another directory. You can always specify this manually if you want.
+
+Backends other than `ninja` should work, but are untested by me.
 
 ## Installation
+
+Meson also supports installing from source; if you use Ninja, just do
+
+```
+$ ninja -C build install
+```
+
+When running `meson`, the `--prefix` option will set the installation prefix. [The Meson documentation](https://mesonbuild.com/Builtin-options.html#universal-options) has more information, and even lists more fine-grained options that you can use to control the installation.
 
 #### Arch Linux
 

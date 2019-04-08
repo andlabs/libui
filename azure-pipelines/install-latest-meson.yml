@@ -1,0 +1,7 @@
+# 4 april 2019
+
+steps:
+- script: |
+    python -m pip install --upgrade pip setuptools wheel
+    pip install meson
+  displayName: 'Install Latest Meson'

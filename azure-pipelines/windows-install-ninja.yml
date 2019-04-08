@@ -1,0 +1,10 @@
+# 4 april 2019
+# why this? because choco isn't available on the VS2015 image and is extremely slow on the VS2017 one (it should not take 2.5 minutes to install just ninja!)
+
+steps:
+- script: |
+    powershell -Command "Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip -OutFile C:\ninja-win.zip"
+    mkdir C:\ninja
+    powershell -Command "Expand-Archive -LiteralPath C:\ninja-win.zip -DestinationPath C:\ninja"
+    @echo ##vso[task.prependpath]C:\ninja
+  displayName: 'Install Ninja'

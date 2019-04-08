@@ -1,0 +1,10 @@
+# 4 april 2019
+# see https://github.com/Microsoft/azure-pipelines-image-generation/issues/374 for context and source
+
+steps:
+- script: |
+    powershell -Command "Invoke-WebRequest https://www.python.org/ftp/python/3.7.1/python-3.7.1-amd64-webinstall.exe -OutFile C:\py3-setup.exe"
+    C:\py3-setup.exe /quiet PrependPath=0 InstallAllUsers=0 Include_launcher=0 InstallLauncherAllUsers=0 Include_test=0 Include_doc=0 Include_dev=0 Include_debug=0 Include_tcltk=0 TargetDir=C:\Python37
+    @echo ##vso[task.prependpath]C:\Python37
+    @echo ##vso[task.prependpath]C:\Python37\Scripts
+  displayName: 'Install Python 3'

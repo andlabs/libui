@@ -1,0 +1,76 @@
+multi-platform {
+https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-multiplatform?view=azure-devops
+}
+
+microsoft-hosted agents {
+https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops&tabs=yaml#use-a-microsoft-hosted-agent
+https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/v2-windows?view=azure-devops
+https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md
+https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2015-Server2012R2-Readme.md
+}
+
+maximum number of processors (for ninja -j) {
+msbuild supports this with the -m option natively; meanwhile:
+https://www.gnu.org/software/coreutils/manual/html_node/nproc-invocation.html
+}
+
+potentially useful tasks {
+https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/publish-pipeline-artifact?view=azure-devops
+https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/visual-studio-build?view=azure-devops
+https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/xcode?view=azure-devops
+https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/github-release?view=azure-devops
+https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view=azure-devops
+}
+
+meson CI reference {
+https://github.com/mesonbuild/meson/blob/master/docs/markdown/Continuous-Integration.md
+}
+
+job templates, which will clean up our pipelines {
+https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=azure-devops
+}
+
+migrating from travis {
+https://docs.microsoft.com/en-us/azure/devops/pipelines/migrate/from-travis?view=azure-devops
+}
+
+32-bit {
+https://github.com/numpy/numpy/issues/12856
+https://github.com/numpy/numpy/pull/12863/files
+https://github.com/numpy/numpy/blob/master/azure-pipelines.yml (also explains what the @s mean; thanks guys)
+}
+
+using visual studio tools {
+https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs
+https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=vs-2019#developer_command_file_locations
+}
+
+OLD using visual studio tools; also some docker {
+https://github.com/mesonbuild/meson/blob/master/ci/azure-steps.yml
+https://github.com/reactiveui/Akavache/blob/master/azure-pipelines.yml
+https://github.com/vector-of-bool/CMakeCM/blob/master/azure-pipelines.yml
+https://docs.microsoft.com/en-us/visualstudio/install/advanced-build-tools-container?view=vs-2019
+https://docs.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2019
+https://devblogs.microsoft.com/cppblog/using-msvc-in-a-docker-container-for-your-c-projects/
+https://devblogs.microsoft.com/cppblog/finding-the-visual-c-compiler-tools-in-visual-studio-2017/
+}
+
+reference {
+https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#task
+https://docs.microsoft.com/en-us/azure/devops/pipelines/apps/windows/cpp?view=azure-devops
+https://docs.microsoft.com/en-us/azure/devops/pipelines/languages/python?view=azure-devops
+https://docs.microsoft.com/en-us/azure/devops/pipelines/process/conditions?view=azure-devops&tabs=yaml
+}
+
+C++ binary compatibility and shared libraries (TODO split into its own notes file) {
+https://docs.microsoft.com/en-us/cpp/porting/binary-compat-2015-2017?view=vs-2017
+}
+
+others I forgot why I had them open {
+https://github.com/Microsoft/cpprestsdk/blob/master/azure-pipelines.yml (32-bit?)
+https://docs.microsoft.com/en-us/azure/devops/release-notes/2018/sprint-142-update (I forget, maybe also 32-bit?)
+}
+
+others that might not be relevant {
+https://github.com/Microsoft/azure-pipelines-agent/blob/master/docs/start/envubuntu.md has instructions on how to build the agent tool itself
+}

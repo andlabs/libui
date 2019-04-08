@@ -1,0 +1,30 @@
+# 6 april 2019
+
+# TODO the github task requires authorization for the connection on non-master branches but I can't seem to figure out how to do that with a YAML pipeline
+
+parameters:
+  os: ''
+  arch: ''
+  libtype: ''
+  libfiles: ''
+  osHeader: ''
+
+steps:
+- script: |
+    set -x
+    pushd build/meson-out
+    cp ../../ui.h ../../${{ parameters.osHeader }} .
+    tar czf $(Build.ArtifactStagingDirectory)/libui-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}.tgz ${{ parameters.libfiles }} ui.h ${{ parameters.osHeader}}
+    tar czf $(Build.ArtifactStagingDirectory)/examples-$(Build.SourceBranchName)-${{ parameters.os }}-${{ parameters.arch }}-${{ parameters.libtype }}.tgz $(releaseExamples)
+    rm ui.h ${{ parameters.osHeader }}
+    popd
+  displayName: 'Create Artifacts'
+- ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+  - task: GitHubRelease@0
+    inputs:
+      gitHubConnection: andlabs
+      repositoryName: andlabs/libui
+      action: 'edit'
+      addChangelog: false
+      assets: '$(Build.ArtifactStagingDirectory)/*'
+      assetUploadMode: 'replace'

@@ -1,0 +1,13 @@
+# 5 april 2019
+# because brew install is also slow (it runs an update task first)
+
+steps:
+- script: |
+    sudo mkdir -p /opt/ninja
+    pushd /opt/ninja
+    sudo wget https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-mac.zip
+    sudo unzip ninja-mac.zip
+    sudo chmod a+rx ninja
+    popd
+    echo '##vso[task.prependpath]/opt/ninja'
+  displayName: 'Install Ninja'

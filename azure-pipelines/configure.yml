@@ -1,0 +1,11 @@
+# 5 april 2019
+
+parameters:
+  beforeConfigure: ''
+  defaultLibrary: 'must-be-set'
+
+steps:
+- script: |
+    ${{ parameters.beforeConfigure }}
+    meson setup build --buildtype=release --default-library=${{ parameters.defaultLibrary }}
+  displayName: 'Configure'

@@ -2,66 +2,80 @@ version: 'build #{build}'
 
 environment:
   matrix:
-    - linking: shared
+    - arch: 386
+      libtype: shared
+      libfiles: libui.dll libui.lib
       compiler: msvc2013
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-    - linking: static
+    - arch: 386
+      libtype: static
+      libfiles: libui.lib
       compiler: msvc2013
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-    - linking: shared
-      compiler: msvc2015
+    - arch: amd64
+      libtype: shared
+      libfiles: libui.dll libui.lib
+      compiler: msvc2013
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - arch: amd64
+      libtype: static
+      libfiles: libui.lib
+      compiler: msvc2013
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - arch: 386
+      libtype: static
+      libfiles: libui.lib
+      compiler: mingw
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-    - linking: static
-      compiler: msvc2015
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-    - linking: shared
-      compiler: msvc2017
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    - linking: static
-      compiler: msvc2017
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    - linking: static
+    - arch: amd64
+      libtype: static
+      libfiles: libui.lib
       compiler: mingw
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
 platform:
-  - Win32
   - x64
 
-before_build:
-  - if %compiler%==msvc2013      ( set "CMAKE_GENERATOR=Visual Studio 12 2013" )
-    else if %compiler%==msvc2015 ( set "CMAKE_GENERATOR=Visual Studio 14 2015" )
-    else if %compiler%==msvc2017 ( set "CMAKE_GENERATOR=Visual Studio 15 2017" )
-    else if %compiler%==mingw    ( set "CMAKE_GENERATOR=MinGW Makefiles" )
-  - if %compiler%-%platform%==mingw-Win32    ( set "PATH=C:\msys64\mingw32\bin;%PATH%" )
-    else if %compiler%-%platform%==mingw-x64 ( set "PATH=C:\msys64\mingw64\bin;%PATH%" )
-    else if %platform%==x64 ( set "CMAKE_GENERATOR=%CMAKE_GENERATOR% Win64" )
-  - if %linking%==static ( set CMAKE_FLAGS=-DBUILD_SHARED_LIBS=OFF )
-  - if %compiler%==mingw ( set "outdir=build\out" ) else ( set "outdir=build\out\Release" )
-  - ren "C:\Program Files\Git\usr\bin\sh.exe" _sh.exe
-  - set "simultaneous=3"
+# Note: AppVeyor tries to be "helpful" and splits cmd.exe scripts into their constitutent lines to check their error codes. There is no way to switch this off; for true multi-line scripts we have to use PowerShell. But we need to use vcvarsall.bat, so that's out of the question.
+install:
+  # Set Python Version
+  - set "PYTHON_ROOT=C:\python37-x64"
+  - if %arch%==386 ( set "PYTHON_ROOT=C:\python37" )
+  - set "PATH=%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%"
+  # Install Latest Meson
+  - pip install meson
+  # Install Ninja
+  - powershell -Command "Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip -OutFile C:\ninja-win.zip"
+  - mkdir C:\ninja
+  - powershell -Command "Expand-Archive -LiteralPath C:\ninja-win.zip -DestinationPath C:\ninja"
+  - set "PATH=C:\ninja;%PATH%"
+  # Parameters for the build_script phase, to reduce their noise.
+  - set "mingwPath=C:\msys64\mingw64\bin"
+  - set vcvarsallArch=x86
+  - if %arch%==386 ( set "mingwPath=C:\msys64\mingw32\bin" )
+  - if %arch%==386 ( set vcvarsallArch=amd64 )
 
 build_script:
-  - md build && cd build
-  - if not %compiler%==mingw ( set "CFLAGS=/MP%simultaneous% %CFLAGS%" )
-  - if not %compiler%==mingw ( set "CPPFLAGS=/MP%simultaneous% %CPPFLAGS%" )
-  - if not %compiler%==mingw ( set "CXXFLAGS=/MP%simultaneous% %CXXFLAGS%" )
-  - cmake -G "%CMAKE_GENERATOR%" %CMAKE_FLAGS% ..
-  - if %compiler%==mingw ( mingw32-make -j%simultaneous% tester examples )
-    else ( msbuild libui.sln /t:Build /p:Configuration=Release /p:Platform=%platform% )
-  - cd %APPVEYOR_BUILD_FOLDER%
+  - if %compiler%==mingw ( set "PATH=%mingwPath%;%PATH%" )
+  - if not %compiler%==mingw ( call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %vcvarsallArch% )
+  - meson setup build --buildtype=release --default-library=%libtype%
+  - ninja -C build
 
 after_build:
-  - if %platform%==x64 ( set "arch=amd64" ) else ( set "arch=386" )
+  - set "version=%APPVEYOR_REPO_BRANCH%"
   - if %APPVEYOR_REPO_TAG%==true ( set "version=%APPVEYOR_REPO_TAG_NAME%" )
-    else ( set "version=%APPVEYOR_REPO_BRANCH%" )
-  - if %linking%==shared ( set "artifact=shared" ) else ( set "artifact=%compiler%-static" )
-  - set "artifact=%version%-windows-%arch%-%artifact%"
-  - del .\%outdir%\libui.exp # remove unnecessary files
-  - 7z a libui-%artifact%.zip .\%outdir%\libui.* ui.h ui_windows.h
-  - 7z l libui-%artifact%.zip
-  - 7z a examples-%artifact%.zip .\%outdir%\*.exe
-  - 7z l examples-%artifact%.zip
+  - set "artifact=%version%-windows-%arch%-%compiler%-%libtype%"
+  - cd build\meson-out
+  # TODO msvc only?
+  - if %libtype%==static ( ren libui.a libui.lib )
+  - copy ..\..\ui.h .
+  - copy ..\..\ui_windows.h .
+  # remove unnecessary files
+  # TODO should we do this on Azure too?
+  - del libui.exp
+  - 7z a "%APPVEYOR_BUILD_FOLDER%\libui-%artifact%.zip" %libfiles% ui.h ui_windows.h
+  - 7z a "%APPVEYOR_BUILD_FOLDER%\examples-%artifact%.zip" controlgallery.exe cpp-multithread.exe datetime.exe drawtext.exe histogram.exe tester.exe timer.exe
+  - del ui.h ui_windows.h
 
 artifacts:
   - path: libui-*.zip

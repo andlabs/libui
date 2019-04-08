@@ -18,6 +18,7 @@ steps:
     popd
   displayName: 'Create Artifacts'
 - task: GitHubRelease@0
+  condition: eq(Build.SourceBranchName, "master")
   inputs:
     gitHubConnection: andlabs
     repositoryName: andlabs/libui

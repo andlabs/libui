@@ -2,6 +2,8 @@
 
 # Using libui
 
+>**Note**: This page discusses instructions for compiling and linking libui, and does so in the most general way possible. Your build system may provide better options for doing any of the following than what is described on this page; consult its manual.
+
 ## Shared vs. Static
 
 In order to properly use libui, you first need to know whether you are using it as a shared library (also called a dynamically-linked library) or as a static library.
@@ -38,32 +40,95 @@ For most purposes, the above will be sufficient. However, if you need to do any 
 
 Each OS has a special OS-specific header that provides the necessary additional functions and constants. These must be included *after* `ui.h`. These must also be included *after* any OS headers:
 
-- **Windows**: The OS-specific header is `ui_windows.h`. The only OS header that is necessary is `<windows.h>`:
-  
-  ```c
-  #include <windows.h>
-  #include "ui.h"
-  #include "ui_windows.h"
-  ```
-  
-  TODO(andlabs): version constants
-- **Unix**: The OS-specific header is `ui_unix.h`. Only `<gtk/gtk.h>` needs to be included beforehand:
-  
-  ```c
-  #include <gtk/gtk.h>
-  #include "ui.h"
-  #include "ui_unix.h"
-  ```
-  
-  TODO(andlabs): version constants
-- **macOS**: The OS-specific header is `ui_darwin.h`. Only `<Cocoa/Cocoa.h>` needs to be included beforehand:
-  
-  ```objective-c
-  #import <Cocoa/Cocoa.h>
-  #import "ui.h"
-  #import "ui_darwin.h"
-  ```
+#### Windows
+
+The OS-specific header is `ui_windows.h`. The only OS header that is necessary is `<windows.h>`:
+
+```c
+#include <windows.h>
+#include "ui.h"
+#include "ui_windows.h"
+```
+
+TODO(andlabs): version constants
+
+#### Unix
+
+The OS-specific header is `ui_unix.h`. Only `<gtk/gtk.h>` needs to be included beforehand:
+
+```c
+#include <gtk/gtk.h>
+#include "ui.h"
+#include "ui_unix.h"
+```
+
+TODO(andlabs): version constants
+
+When actually running your compiler, you'll need to tell it where to look for GTK+. The preferred way to do so is via `pkg-config`. For instance:
+
+```shell
+$ gcc -c -o program.o program.c `pkg-config --cflags gtk+-3.0`
+```
+
+#### macOS
+
+The OS-specific header is `ui_darwin.h`. Only `<Cocoa/Cocoa.h>` needs to be included beforehand:
+
+```objective-c
+#import <Cocoa/Cocoa.h>
+#import "ui.h"
+#import "ui_darwin.h"
+```
+
+TODO(andlabs): is this really sufficient, or is only AppKit/Foundation necessary? Or just Foundation?
 
 ## Linking Against libui
 
-TODO(andlabs): write this
+How to link against libui depends on how you are using libui.
+
+### Linking Against libui as a Shared Library
+
+When linking a shared library, all you need is the shared library itself, and the compiler-specific mechanism for linking shared libraries applies. Note that for MSVC, this means you link against `libui.lib`, not `libui.dll`!
+
+### Linking Against libui as a Static Library
+
+Because static libraries are merely collections of object files, in order to link against libui as a static library, you will also need to link against libui's dependencies.
+
+#### Windows
+
+libui needs to be linked against a set of standard Windows DLLs, preferably in the order listed here. The syntax to use depends on the compiler; examples are listed for the first one, and all follow the same pattern.
+
+- user32.dll (MSVC: `user32.lib`, MinGW: `-luser32`)
+- kernel32.dll
+- gdi32.dll
+- TODO
+
+**Furthermore**, because libui requires Common Controls v6, you will also need to provide a manifest file that specifies Common Controls v6, and ideally also speciifes the versions of Windows your executable runs on. For instance, the one used by libui.dll is a good place to start:
+
+```xml
+TODO
+```
+
+Ideally, you should provide this as a resource that's linked into your program:
+
+```rc
+#include <windows.rc>
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "manifest.xml"
+```
+
+Pass this file into `rc` (MSVC)/`windres` (MinGW) and then pass the output into your linker.
+
+#### Unix
+
+At a minimum, you'll need to link against GTK+ itself. As with compiling, the preferred way to get the correct linker flags is with `pkg-config`. For instance:
+
+```shell
+$ gcc -o program program.o `pkg-config --libs gtk+-3.0`
+```
+
+Depending on your system, you'll also need to link against libm and libdl; your linker will complain in some way. For instance, if you see something like `DSO missing from command line`, add `-ldl` to make libdl explicit.
+
+#### macOS
+
+You'll need to link against the `Foundation` and `AppKit` frameworks. To do so, simply pass `-framework Foundation` and `-framework AppKit` to your linker command.

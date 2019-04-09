@@ -109,8 +109,8 @@ endif
 # TODO (after the above TODO is resolved) move that below the part below that actually adds these arguments
 libui_manifest_args = []
 if libui_mode == 'static'
-	libui_project_compile_args += ['-D_UI_STATIC']
-	libui_manifest_args = ['-D_UI_STATIC']
+	libui_project_compile_args += ['-DuiStatic']
+	libui_manifest_args = ['-DuiStatic']
 endif
 
 add_project_arguments(libui_project_compile_args,

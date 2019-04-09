@@ -9,7 +9,7 @@
 #define INITGUID
 
 // for the manifest
-#ifndef _UI_STATIC
+#ifndef uiStatic
 #define ISOLATION_AWARE_ENABLED 1
 #endif
 

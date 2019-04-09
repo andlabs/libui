@@ -8,7 +8,7 @@
 // this is the Common Controls 6 manifest
 // we only define it in a shared build; static builds have to include the appropriate parts of the manifest in the output executable
 // LONGTERM set up the string values here
-#ifndef _UI_STATIC
+#ifndef uiStatic
 ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "libui.manifest"
 #endif
 

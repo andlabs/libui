@@ -32,7 +32,37 @@ If you are using libui as a static library, you'll need to add the line
 
 *before* including `ui.h`, as that informs `ui.h` to tell the compiler that the functions in `ui.h` are not dynamically loaded.
 
-TODO(andlabs): talk about OS-specific headers
+### OS-Specific Headers
+
+For most purposes, the above will be sufficient. However, if you need to do any OS-specific work with libui, there are a few more steps to take. Typically, this would be done if you either wanted to create a new control or access the underlying OS handles behind a control.
+
+Each OS has a special OS-specific header that provides the necessary additional functions and constants. These must be included *after* `ui.h`. These must also be included *after* any OS headers:
+
+- **Windows**: The OS-specific header is `ui_windows.h`. The only OS header that is necessary is `<windows.h>`:
+  
+  ```c
+  #include <windows.h>
+  #include "ui.h"
+  #include "ui_windows.h"
+  ```
+  
+  TODO(andlabs): version constants
+- **Unix**: The OS-specific header is `ui_unix.h`. Only `<gtk/gtk.h>` needs to be included beforehand:
+  
+  ```c
+  #include <gtk/gtk.h>
+  #include "ui.h"
+  #include "ui_unix.h"
+  ```
+  
+  TODO(andlabs): version constants
+- **macOS**: The OS-specific header is `ui_darwin.h`. Only `<Cocoa/Cocoa.h>` needs to be included beforehand:
+  
+  ```objective-c
+  #import <Cocoa/Cocoa.h>
+  #import "ui.h"
+  #import "ui_darwin.h"
+  ```
 
 ## Linking Against libui
 

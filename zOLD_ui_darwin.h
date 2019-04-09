@@ -1,16 +1,3 @@
-// 7 april 2015
-
-/*
-This file assumes that you have imported <Cocoa/Cocoa.h> and "ui.h" beforehand. It provides API-specific functions for interfacing with foreign controls on Mac OS X.
-*/
-
-#ifndef __LIBUI_UI_DARWIN_H__
-#define __LIBUI_UI_DARWIN_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct uiDarwinControl uiDarwinControl;
 struct uiDarwinControl {
 	uiControl c;
@@ -28,14 +15,14 @@ struct uiDarwinControl {
 };
 #define uiDarwinControl(this) ((uiDarwinControl *) (this))
 // TODO document
-_UI_EXTERN void uiDarwinControlSyncEnableState(uiDarwinControl *, int);
-_UI_EXTERN void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
-_UI_EXTERN BOOL uiDarwinControlHugsTrailingEdge(uiDarwinControl *);
-_UI_EXTERN BOOL uiDarwinControlHugsBottom(uiDarwinControl *);
-_UI_EXTERN void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *);
-_UI_EXTERN NSLayoutPriority uiDarwinControlHuggingPriority(uiDarwinControl *, NSLayoutConstraintOrientation);
-_UI_EXTERN void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPriority, NSLayoutConstraintOrientation);
-_UI_EXTERN void uiDarwinControlChildVisibilityChanged(uiDarwinControl *);
+uiprivExtern void uiDarwinControlSyncEnableState(uiDarwinControl *, int);
+uiprivExtern void uiDarwinControlSetSuperview(uiDarwinControl *, NSView *);
+uiprivExtern BOOL uiDarwinControlHugsTrailingEdge(uiDarwinControl *);
+uiprivExtern BOOL uiDarwinControlHugsBottom(uiDarwinControl *);
+uiprivExtern void uiDarwinControlChildEdgeHuggingChanged(uiDarwinControl *);
+uiprivExtern NSLayoutPriority uiDarwinControlHuggingPriority(uiDarwinControl *, NSLayoutConstraintOrientation);
+uiprivExtern void uiDarwinControlSetHuggingPriority(uiDarwinControl *, NSLayoutPriority, NSLayoutConstraintOrientation);
+uiprivExtern void uiDarwinControlChildVisibilityChanged(uiDarwinControl *);
 
 #define uiDarwinControlDefaultDestroy(type, handlefield) \
 	static void type ## Destroy(uiControl *c) \
@@ -197,28 +184,22 @@ _UI_EXTERN void uiDarwinControlChildVisibilityChanged(uiDarwinControl *);
 	uiDarwinControl(var)->visible = YES; \
 	uiDarwinControl(var)->enabled = YES;
 // TODO document
-_UI_EXTERN uiDarwinControl *uiDarwinAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
+uiprivExtern uiDarwinControl *uiDarwinAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
 
 // Use this function as a shorthand for setting control fonts.
-_UI_EXTERN void uiDarwinSetControlFont(NSControl *c, NSControlSize size);
+uiprivExtern void uiDarwinSetControlFont(NSControl *c, NSControlSize size);
 
 // You can use this function from within your control implementations to return text strings that can be freed with uiFreeText().
-_UI_EXTERN char *uiDarwinNSStringToText(NSString *);
+uiprivExtern char *uiDarwinNSStringToText(NSString *);
 
 // TODO document
-_UI_EXTERN BOOL uiDarwinShouldStopSyncEnableState(uiDarwinControl *, BOOL);
+uiprivExtern BOOL uiDarwinShouldStopSyncEnableState(uiDarwinControl *, BOOL);
 
 // TODO document
-_UI_EXTERN void uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl *);
-_UI_EXTERN void uiDarwinNotifyVisibilityChanged(uiDarwinControl *c);
+uiprivExtern void uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl *);
+uiprivExtern void uiDarwinNotifyVisibilityChanged(uiDarwinControl *c);
 
 // TODO document
 // TODO document that values should not be cached
-_UI_EXTERN CGFloat uiDarwinMarginAmount(void *reserved);
-_UI_EXTERN CGFloat uiDarwinPaddingAmount(void *reserved);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+uiprivExtern CGFloat uiDarwinMarginAmount(void *reserved);
+uiprivExtern CGFloat uiDarwinPaddingAmount(void *reserved);

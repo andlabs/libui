@@ -1,16 +1,3 @@
-// 7 april 2015
-
-/*
-This file assumes that you have included <gtk/gtk.h> and "ui.h" beforehand. It provides API-specific functions for interfacing with foreign controls on Unix systems that use GTK+ to provide their UI (currently all except Mac OS X).
-*/
-
-#ifndef __LIBUI_UI_UNIX_H__
-#define __LIBUI_UI_UNIX_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct uiUnixControl uiUnixControl;
 struct uiUnixControl {
 	uiControl c;
@@ -21,7 +8,7 @@ struct uiUnixControl {
 };
 #define uiUnixControl(this) ((uiUnixControl *) (this))
 // TODO document
-_UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gboolean);
+uiprivExtern void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gboolean);
 
 #define uiUnixControlDefaultDestroy(type) \
 	static void type ## Destroy(uiControl *c) \
@@ -132,13 +119,7 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	uiControl(var)->Disable = type ## Disable; \
 	uiUnixControl(var)->SetContainer = type ## SetContainer;
 // TODO document
-_UI_EXTERN uiUnixControl *uiUnixAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
+uiprivExtern uiUnixControl *uiUnixAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
 
 // uiUnixStrdupText() takes the given string and produces a copy of it suitable for being freed by uiFreeText().
-_UI_EXTERN char *uiUnixStrdupText(const char *);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+uiprivExtern char *uiUnixStrdupText(const char *);

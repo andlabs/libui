@@ -158,9 +158,9 @@ libui_libui = library('ui', libui_sources,
 	name_prefix: 'lib',		# always call it libui, even in Windows DLLs
 	install: true,
 	gnu_symbol_visibility: 'hidden',
-	c_args: ['-Dlibui_EXPORTS'],
-	cpp_args: ['-Dlibui_EXPORTS'],
-	objc_args: ['-Dlibui_EXPORTS'],
+	c_args: ['-DuiprivBuildingLibui'],
+	cpp_args: ['-DuiprivBuildingLibui'],
+	objc_args: ['-DuiprivBuildingLibui'],
 	link_args: libui_libui_link_args,
 	soversion: libui_soversion,
 	darwin_versions: [])		# TODO

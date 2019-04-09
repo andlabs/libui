@@ -1,16 +1,3 @@
-// 21 april 2016
-
-/*
-This file assumes that you have included <windows.h> and "ui.h" beforehand. It provides API-specific functions for interfacing with foreign controls in Windows.
-*/
-
-#ifndef __LIBUI_UI_WINDOWS_H__
-#define __LIBUI_UI_WINDOWS_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct uiWindowsSizing uiWindowsSizing;
 
 typedef struct uiWindowsControl uiWindowsControl;
@@ -30,13 +17,13 @@ struct uiWindowsControl {
 };
 #define uiWindowsControl(this) ((uiWindowsControl *) (this))
 // TODO document
-_UI_EXTERN void uiWindowsControlSyncEnableState(uiWindowsControl *, int);
-_UI_EXTERN void uiWindowsControlSetParentHWND(uiWindowsControl *, HWND);
-_UI_EXTERN void uiWindowsControlMinimumSize(uiWindowsControl *, int *, int *);
-_UI_EXTERN void uiWindowsControlMinimumSizeChanged(uiWindowsControl *);
-_UI_EXTERN void uiWindowsControlLayoutRect(uiWindowsControl *, RECT *);
-_UI_EXTERN void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_PTR *, HWND *);
-_UI_EXTERN void uiWindowsControlChildVisibilityChanged(uiWindowsControl *);
+uiprivExtern void uiWindowsControlSyncEnableState(uiWindowsControl *, int);
+uiprivExtern void uiWindowsControlSetParentHWND(uiWindowsControl *, HWND);
+uiprivExtern void uiWindowsControlMinimumSize(uiWindowsControl *, int *, int *);
+uiprivExtern void uiWindowsControlMinimumSizeChanged(uiWindowsControl *);
+uiprivExtern void uiWindowsControlLayoutRect(uiWindowsControl *, RECT *);
+uiprivExtern void uiWindowsControlAssignControlIDZOrder(uiWindowsControl *, LONG_PTR *, HWND *);
+uiprivExtern void uiWindowsControlChildVisibilityChanged(uiWindowsControl *);
 
 // TODO document
 #define uiWindowsControlDefaultDestroy(type) \
@@ -187,51 +174,51 @@ _UI_EXTERN void uiWindowsControlChildVisibilityChanged(uiWindowsControl *);
 	uiWindowsControl(var)->visible = 1; \
 	uiWindowsControl(var)->enabled = 1;
 // TODO document
-_UI_EXTERN uiWindowsControl *uiWindowsAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
+uiprivExtern uiWindowsControl *uiWindowsAllocControl(size_t n, uint32_t typesig, const char *typenamestr);
 
 // TODO document
-_UI_EXTERN HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont);
+uiprivExtern HWND uiWindowsEnsureCreateControlHWND(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, HINSTANCE hInstance, LPVOID lpParam, BOOL useStandardControlFont);
 
 // TODO document
-_UI_EXTERN void uiWindowsEnsureDestroyWindow(HWND hwnd);
+uiprivExtern void uiWindowsEnsureDestroyWindow(HWND hwnd);
 
 // TODO document
 // TODO document that this should only be used in SetParentHWND() implementations
-_UI_EXTERN void uiWindowsEnsureSetParentHWND(HWND hwnd, HWND parent);
+uiprivExtern void uiWindowsEnsureSetParentHWND(HWND hwnd, HWND parent);
 
 // TODO document
-_UI_EXTERN void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR *controlID, HWND *insertAfter);
+uiprivExtern void uiWindowsEnsureAssignControlIDZOrder(HWND hwnd, LONG_PTR *controlID, HWND *insertAfter);
 
 // TODO document
-_UI_EXTERN void uiWindowsEnsureGetClientRect(HWND hwnd, RECT *r);
-_UI_EXTERN void uiWindowsEnsureGetWindowRect(HWND hwnd, RECT *r);
+uiprivExtern void uiWindowsEnsureGetClientRect(HWND hwnd, RECT *r);
+uiprivExtern void uiWindowsEnsureGetWindowRect(HWND hwnd, RECT *r);
 
 // TODO document
-_UI_EXTERN char *uiWindowsWindowText(HWND hwnd);
-_UI_EXTERN void uiWindowsSetWindowText(HWND hwnd, const char *text);
+uiprivExtern char *uiWindowsWindowText(HWND hwnd);
+uiprivExtern void uiWindowsSetWindowText(HWND hwnd, const char *text);
 
 // TODO document
-_UI_EXTERN int uiWindowsWindowTextWidth(HWND hwnd);
+uiprivExtern int uiWindowsWindowTextWidth(HWND hwnd);
 
 // TODO document
 // TODO point out this should only be used in a resize cycle
-_UI_EXTERN void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, int x, int y, int width, int height);
+uiprivExtern void uiWindowsEnsureMoveWindowDuringResize(HWND hwnd, int x, int y, int width, int height);
 
 // TODO document
-_UI_EXTERN void uiWindowsRegisterWM_COMMANDHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);
-_UI_EXTERN void uiWindowsUnregisterWM_COMMANDHandler(HWND hwnd);
+uiprivExtern void uiWindowsRegisterWM_COMMANDHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);
+uiprivExtern void uiWindowsUnregisterWM_COMMANDHandler(HWND hwnd);
 
 // TODO document
-_UI_EXTERN void uiWindowsRegisterWM_NOTIFYHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, NMHDR *, LRESULT *), uiControl *c);
-_UI_EXTERN void uiWindowsUnregisterWM_NOTIFYHandler(HWND hwnd);
+uiprivExtern void uiWindowsRegisterWM_NOTIFYHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, NMHDR *, LRESULT *), uiControl *c);
+uiprivExtern void uiWindowsUnregisterWM_NOTIFYHandler(HWND hwnd);
 
 // TODO document
-_UI_EXTERN void uiWindowsRegisterWM_HSCROLLHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);
-_UI_EXTERN void uiWindowsUnregisterWM_HSCROLLHandler(HWND hwnd);
+uiprivExtern void uiWindowsRegisterWM_HSCROLLHandler(HWND hwnd, BOOL (*handler)(uiControl *, HWND, WORD, LRESULT *), uiControl *c);
+uiprivExtern void uiWindowsUnregisterWM_HSCROLLHandler(HWND hwnd);
 
 // TODO document
-_UI_EXTERN void uiWindowsRegisterReceiveWM_WININICHANGE(HWND hwnd);
-_UI_EXTERN void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND hwnd);
+uiprivExtern void uiWindowsRegisterReceiveWM_WININICHANGE(HWND hwnd);
+uiprivExtern void uiWindowsUnregisterReceiveWM_WININICHANGE(HWND hwnd);
 
 // TODO document
 typedef struct uiWindowsSizing uiWindowsSizing;
@@ -240,28 +227,22 @@ struct uiWindowsSizing {
 	int BaseY;
 	LONG InternalLeading;
 };
-_UI_EXTERN void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing);
-_UI_EXTERN void uiWindowsSizingDlgUnitsToPixels(uiWindowsSizing *sizing, int *x, int *y);
-_UI_EXTERN void uiWindowsSizingStandardPadding(uiWindowsSizing *sizing, int *x, int *y);
+uiprivExtern void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing);
+uiprivExtern void uiWindowsSizingDlgUnitsToPixels(uiWindowsSizing *sizing, int *x, int *y);
+uiprivExtern void uiWindowsSizingStandardPadding(uiWindowsSizing *sizing, int *x, int *y);
 
 // TODO document
-_UI_EXTERN HWND uiWindowsMakeContainer(uiWindowsControl *c, void (*onResize)(uiWindowsControl *));
+uiprivExtern HWND uiWindowsMakeContainer(uiWindowsControl *c, void (*onResize)(uiWindowsControl *));
 
 // TODO document
-_UI_EXTERN BOOL uiWindowsControlTooSmall(uiWindowsControl *c);
-_UI_EXTERN void uiWindowsControlContinueMinimumSizeChanged(uiWindowsControl *c);
+uiprivExtern BOOL uiWindowsControlTooSmall(uiWindowsControl *c);
+uiprivExtern void uiWindowsControlContinueMinimumSizeChanged(uiWindowsControl *c);
 
 // TODO document
-_UI_EXTERN void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *);
+uiprivExtern void uiWindowsControlAssignSoleControlIDZOrder(uiWindowsControl *);
 
 // TODO document
-_UI_EXTERN BOOL uiWindowsShouldStopSyncEnableState(uiWindowsControl *c, int enabled);
+uiprivExtern BOOL uiWindowsShouldStopSyncEnableState(uiWindowsControl *c, int enabled);
 
 // TODO document
-_UI_EXTERN void uiWindowsControlNotifyVisibilityChanged(uiWindowsControl *c);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+uiprivExtern void uiWindowsControlNotifyVisibilityChanged(uiWindowsControl *c);

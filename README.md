@@ -30,6 +30,10 @@ But libui is not dead; I am working on it whenever I can, and I hope to get it t
 
 *Note that today's entry (Eastern Time) may be updated later today.*
 
+* **<codedate**
+	* **BIG CHANGES TODO INCLUDING DOCUMENTATION** TODO TODO TODO TODO You can read the documentation for more details, but the most important notes to know:
+		* Static builds now require users of libui to define `uiStatic` before including `ui.h`.
+
 * **7 April 2019**
 	* **The build system has been switched to Meson.** See below for instructions. This change was made because the previous build system, CMake, caused countless headaches over trivial issues. Meson was chosen due to how unproblematic setting up libui's build just right was, as well as having design goals that are by coincidence closely aligned with what libui wants.
 	* Travis CI has been replaced with Azure Pipelines and much of the AppVeyor CI configuration was integrated into the Azure Pipelines configuration. This shouldn't affect most developers.

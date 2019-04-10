@@ -7,7 +7,7 @@
 #define testingprivNew(T) ((T *) malloc(sizeof (T)))
 
 struct defer {
-	void (*f)(void *);
+	void (*f)(testingT *, void *);
 	void *data;
 	struct defer *next;
 };
@@ -17,6 +17,7 @@ struct testingT {
 	void (*f)(testingT *);
 	int failed;
 	int skipped;
+	int returned;
 	jmp_buf returnNowBuf;
 	struct defer *defers;
 	int defersRun;
@@ -35,6 +36,7 @@ static void testingprivNewTest(const char *name, void (*f)(testingT *), testingT
 	t->f = f;
 	t->failed = 0;
 	t->skipped = 0;
+	t->returned = 0;
 	t->defers = NULL;
 	t->defersRun = 0;
 	t->next = testsTail;
@@ -59,7 +61,7 @@ static void runDefers(testingT *t)
 		return;
 	t->defersRun = 1;
 	for (d = t->defers; d != NULL; d = d->next)
-		(*(d->f))(d->data);
+		(*(d->f))(t, d->data);
 }
 
 static void runTestSet(testingT *t, int *anyFailed)
@@ -70,6 +72,7 @@ static void runTestSet(testingT *t, int *anyFailed)
 		printf("=== RUN   %s\n", t->name);
 		if (setjmp(t->returnNowBuf) == 0)
 			(*(t->f))(t);
+		t->returned = 1;
 		runDefers(t);
 		status = "PASS";
 		if (t->failed) {
@@ -129,9 +132,13 @@ void testingTFail(testingT *t)
 
 static void returnNow(testingT *t)
 {
-	// run defers before calling longjmp() just to be safe
-	runDefers(t);
-	longjmp(t->returnNowBuf, 1);
+	if (!t->returned) {
+		// set this now so a FailNow inside a Defer doesn't longjmp twice
+		t->returned = 1;
+		// run defers before calling longjmp() just to be safe
+		runDefers(t);
+		longjmp(t->returnNowBuf, 1);
+	}
 }
 
 void testingprivTFailNow(testingT *t)

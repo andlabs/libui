@@ -61,8 +61,7 @@ typedef struct testingT testingT;
 extern void testingTFail(testingT *t);
 extern void testingTFailNow(testingT *t);
 extern void testingTSkipNow(testingT *t);
-// TODO should the defered function also have t passed to it?
-extern void testingTDefer(testingT *t, void (*f)(void *data), void *data);
+extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
 
 extern void testingprivRegisterTest(const char *, void (*)(testingT *));
 extern void testingprivRegisterManualTest(const char *, void (*)(testingT *));

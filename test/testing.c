@@ -24,8 +24,9 @@ struct testingT {
 };
 
 static testingT *tests = NULL;
+static testingT *testsTail = NULL;
 
-void testingprivRegisterTest(const char *name, void (*f)(testingT *))
+static void testingprivNewTest(const char *name, void (*f)(testingT *), testingT *prev)
 {
 	testingT *t;
 
@@ -36,9 +37,18 @@ void testingprivRegisterTest(const char *name, void (*f)(testingT *))
 	t->skipped = 0;
 	t->defers = NULL;
 	t->defersRun = 0;
-	// TODO add in the order called
-	t->next = tests;
-	tests = t;
+	t->next = testsTail;
+	return t;
+}
+
+void testingprivRegisterTest(const char *name, void (*f)(testingT *))
+{
+	testingT *t;
+
+	t = testingprivNewTest(name, f, testsTail);
+	testsTail = t;
+	if (tests == NULL)
+		tests = t;
 }
 
 static void runDefers(testingT *t)
@@ -52,11 +62,30 @@ static void runDefers(testingT *t)
 		(*(d->f))(d->data);
 }
 
+static void runTestSet(testingT *t, int *anyFailed)
+{
+	const char *status;
+
+	for (; t != NULL; t = t->next) {
+		printf("=== RUN   %s\n", t->name);
+		if (setjmp(t->returnNowBuf) == 0)
+			(*(t->f))(t);
+		runDefers(t);
+		status = "PASS";
+		if (t->failed) {
+			status = "FAIL";
+			*anyFailed = 1;
+		} else if (t->skipped)
+			// note that failed overrides skipped
+			status = "SKIP";
+		printf("--- %s: %s (%s)\n", status, t->name, "TODO");
+	}
+}
+
 int testingMain(void)
 {
 	testingT *t;
 	int anyFailed;
-	const char *status;
 
 	// TODO see if this should run if all tests are skipped
 	if (tests == NULL) {
@@ -66,21 +95,7 @@ int testingMain(void)
 	}
 
 	anyFailed = 0;
-	for (t = tests; t != NULL; t = t->next) {
-		printf("=== RUN   %s\n", t->name);
-		if (setjmp(t->returnNowBuf) == 0)
-			(*(t->f))(t);
-		runDefers(t);
-		status = "PASS";
-		if (t->failed) {
-			status = "FAIL";
-			anyFailed = 1;
-		} else if (t->skipped)
-			// note that failed overrides skipped
-			status = "SKIP";
-		printf("--- %s: %s (%s)\n", status, t->name, "TODO");
-	}
-
+	runTestSet(tests, &anyFailed);
 	if (anyFailed) {
 		printf("FAIL\n");
 		return 1;
@@ -89,7 +104,7 @@ int testingMain(void)
 	return 0;
 }
 
-void testingprivTLogfFull(testingT *t, const char *file, int line, const char *format, ...)
+void testingprivTLogfFull(testingT *t, const char *file, long line, const char *format, ...)
 {
 	va_list ap;
 
@@ -98,7 +113,7 @@ void testingprivTLogfFull(testingT *t, const char *file, int line, const char *f
 	va_end(ap);
 }
 
-void testingprivTLogvfFull(testingT *t, const char *file, int line, const char *format, va_list ap)
+void testingprivTLogvfFull(testingT *t, const char *file, long line, const char *format, va_list ap)
 {
 	// TODO extract filename from file
 	printf("\t%s:%d: ", file, line);
@@ -119,13 +134,13 @@ static void returnNow(testingT *t)
 	longjmp(t->returnNowBuf, 1);
 }
 
-void testingprivTDoFailNow(testingT *t)
+void testingprivTFailNow(testingT *t)
 {
 	testingTFail(t);
 	returnNow(t);
 }
 
-void testingprivTDoSkipNow(testingT *t)
+void testingprivTSkipNow(testingT *t)
 {
 	t->skipped = 1;
 	returnNow(t);

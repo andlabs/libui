@@ -26,6 +26,10 @@ struct testingT {
 
 static testingT *tests = NULL;
 static testingT *testsTail = NULL;
+static testingT *testsBefore = NULL;
+static testingT *testsBeforeTail = NULL;
+static testingT *testsAfter = NULL;
+static testingT *testsAfterTail = NULL;
 
 static testingT *newTest(const char *name, void (*f)(testingT *), testingT *prev)
 {
@@ -53,6 +57,26 @@ void testingprivRegisterTest(const char *name, void (*f)(testingT *))
 	testsTail = t;
 	if (tests == NULL)
 		tests = t;
+}
+
+void testingprivRegisterTestBefore(const char *name, void (*f)(testingT *))
+{
+	testingT *t;
+
+	t = newTest(name, f, testsBeforeTail);
+	testsBeforeTail = t;
+	if (testsBefore == NULL)
+		testsBefore = t;
+}
+
+void testingprivRegisterTestAfter(const char *name, void (*f)(testingT *))
+{
+	testingT *t;
+
+	t = newTest(name, f, testsAfterTail);
+	testsAfterTail = t;
+	if (testsAfter == NULL)
+		testsAfter = t;
 }
 
 static void runDefers(testingT *t)
@@ -99,7 +123,9 @@ int testingMain(void)
 	}
 
 	anyFailed = 0;
+	runTestSet(testsBefore, &anyFailed);
 	runTestSet(tests, &anyFailed);
+	runTestSet(testsAfter, &anyFailed);
 	if (anyFailed) {
 		printf("FAIL\n");
 		return 1;

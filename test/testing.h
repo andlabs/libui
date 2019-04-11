@@ -38,6 +38,10 @@
 
 #define testingTest(Name) \
 	testingprivMk(Test ## Name, testingT, t, testingprivRegisterTest)
+#define testingTestBefore(Name) \
+	testingprivMk(Test ## Name, testingT, t, testingprivRegisterTestBefore)
+#define testingTestAfter(Name) \
+	testingprivMk(Test ## Name, testingT, t, testingprivRegisterTestAfter)
 
 extern int testingMain(void);
 
@@ -64,7 +68,8 @@ extern void testingTSkipNow(testingT *t);
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
 
 extern void testingprivRegisterTest(const char *, void (*)(testingT *));
-extern void testingprivRegisterManualTest(const char *, void (*)(testingT *));
+extern void testingprivRegisterTestBefore(const char *, void (*)(testingT *));
+extern void testingprivRegisterTestAfter(const char *, void (*)(testingT *));
 // see https://stackoverflow.com/questions/32399191/va-args-expansion-using-msvc
 #define testingprivExpand(x) x
 #define testingprivTLogfThen(then, t, ...) ((testingprivTLogfFull(t, __FILE__, __LINE__, __VA_ARGS__)), (then(t)))

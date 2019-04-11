@@ -2,11 +2,11 @@
 #include "../ui.h"
 #include "testing.h"
 
-testingTest(Init)
+testingTestBefore(Init)
 {
 }
 
-testingTest(Uninit)
+testingTestAfter(Uninit)
 {
 }
 

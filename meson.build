@@ -140,15 +140,16 @@ libui_sources = []
 libui_deps = []
 libui_soversion = ''
 libui_rpath = ''
-subdir('common')
+#subdir('common')
+libui_sources+=['dummy.c']
 if libui_OS == 'windows'
-	subdir('windows')
+#	subdir('windows')
 	install_headers('ui_windows.h')
 elif libui_OS == 'darwin'
-	subdir('darwin')
+#	subdir('darwin')
 	install_headers('ui_darwin.h')
 else
-	subdir('unix')
+#	subdir('unix')
 	install_headers('ui_unix.h')
 endif
 libui_libui = library('ui', libui_sources,
@@ -173,4 +174,4 @@ if libui_mode == 'static'
 	libui_binary_deps = libui_deps
 endif
 subdir('test')
-subdir('examples')
+#subdir('examples')

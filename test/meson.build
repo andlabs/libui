@@ -2,6 +2,7 @@
 
 libui_test_sources = [
 	'initmain.c',
+	'main.c',
 	'testing.c',
 ]
 

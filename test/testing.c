@@ -27,7 +27,7 @@ struct testingT {
 static testingT *tests = NULL;
 static testingT *testsTail = NULL;
 
-static void testingprivNewTest(const char *name, void (*f)(testingT *), testingT *prev)
+static testingT *newTest(const char *name, void (*f)(testingT *), testingT *prev)
 {
 	testingT *t;
 
@@ -39,7 +39,9 @@ static void testingprivNewTest(const char *name, void (*f)(testingT *), testingT
 	t->returned = 0;
 	t->defers = NULL;
 	t->defersRun = 0;
-	t->next = testsTail;
+	t->next = NULL;
+	if (prev != NULL)
+		prev->next = t;
 	return t;
 }
 
@@ -47,7 +49,7 @@ void testingprivRegisterTest(const char *name, void (*f)(testingT *))
 {
 	testingT *t;
 
-	t = testingprivNewTest(name, f, testsTail);
+	t = newTest(name, f, testsTail);
 	testsTail = t;
 	if (tests == NULL)
 		tests = t;
@@ -87,7 +89,6 @@ static void runTestSet(testingT *t, int *anyFailed)
 
 int testingMain(void)
 {
-	testingT *t;
 	int anyFailed;
 
 	// TODO see if this should run if all tests are skipped
@@ -119,7 +120,7 @@ void testingprivTLogfFull(testingT *t, const char *file, long line, const char *
 void testingprivTLogvfFull(testingT *t, const char *file, long line, const char *format, va_list ap)
 {
 	// TODO extract filename from file
-	printf("\t%s:%d: ", file, line);
+	printf("\t%s:%ld: ", file, line);
 	// TODO split into lines separated by \n\t\t and trimming trailing empty lines
 	vprintf(format, ap);
 	printf("\n");
@@ -153,7 +154,7 @@ void testingprivTSkipNow(testingT *t)
 	returnNow(t);
 }
 
-void testingTDefer(testingT *t, void (*f)(void *data), void *data)
+void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data)
 {
 	struct defer *d;
 

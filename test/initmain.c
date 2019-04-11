@@ -2,11 +2,11 @@
 #include "../ui.h"
 #include "testing.h"
 
-Test(Init)
+testingTest(Init)
 {
 }
 
-Test(Uninit)
+testingTest(Uninit)
 {
 }
 
@@ -17,7 +17,7 @@ static void queued(void *data)
 	*flag = 1;
 }
 
-static void timer(void *n)
+static void timer(void *data)
 {
 	int *n = (int *) data;
 
@@ -25,12 +25,12 @@ static void timer(void *n)
 	*n++;
 }
 
-Test(QueueMain)
+testingTest(QueueMain)
 {
 }
 
-// TODO Test(QueueMain_DifferentThread)
+// TODO testingTest(QueueMain_DifferentThread)
 
-Test(Timer)
+testingTest(Timer)
 {
 }

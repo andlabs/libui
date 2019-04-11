@@ -6,11 +6,11 @@
 
 #include <stdarg.h>
 
-#define testingprivFullName(basename) testingprivImpl ## basename
+#define testingprivImplName(basename) testingprivImpl ## basename
 
 #define testingprivScaffoldName(basename) testingprivScaffold ## basename
 #define testingprivMkScaffold(basename, argtype, argname) \
-	static inline void testingprivScaffoldName(basename)(argtype *argname) { testingprivFullName(basename)(argname); }
+	static inline void testingprivScaffoldName(basename)(argtype *argname) { testingprivImplName(basename)(argname); }
 
 // references:
 // - https://gitlab.gnome.org/GNOME/glib/blob/master/glib/gconstructor.h

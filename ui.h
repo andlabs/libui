@@ -11,13 +11,19 @@ extern "C" {
 #endif
 
 #ifdef uiprivBuildingLibui
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(uiStatic)
 #define uiprivExtern __declspec(dllexport) extern
+#elif deffined(_WIN32)
+#define uiprivExtern extern
 #else
 #define uiprivExtern __attribute__((visibility("default"))) extern
 #endif
 #else
-// TODO add __declspec(dllimport) on windows, but only if not static#define uiprivExtern extern
+#if defined(_WIN32) && !defined(uiStatic)
+#define uiprivExtern __declspec(dllimport) extern
+#else
+#define uiprivExtern extern
+#endif
 #endif
 
 // C++ is really really really really really really dumb about enums, so screw that and just make them anonymous

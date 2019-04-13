@@ -12,7 +12,7 @@ Furthermore, on some systems, this thread must also be the thread that `main()` 
 
 `uiInit()` *can* fail, in which case libui is not safe to use. `uiInit()` will return a human-readable error message to the caller if it does fail. You are also responsible for both allocating and initializing the memory for this error message, since part of libui's initialization includes initialization of its memory allocators. The reference entry below has more information.
 
-Here is an example of a correct use of `uiInit()`:
+Here is an example of correct use of `uiInit()`:
 
 ```c
 uiInitError err;
@@ -24,6 +24,8 @@ if (!uiInit(NULL, &err)) {
 	return 1;
 }
 ```
+
+Note that if `libui` fails, you **cannot** use libui's message box functions to report the error.
 
 ## Reference
 

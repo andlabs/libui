@@ -23,8 +23,6 @@ struct uiInitOptions {
 	size_t Size;
 };
 
-uiprivExtern const char *uiInit(uiInitOptions *options);
-uiprivExtern void uiUninit(void);
 uiprivExtern void uiFreeInitError(const char *err);
 
 uiprivExtern void uiMain(void);

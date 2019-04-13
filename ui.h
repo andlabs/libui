@@ -30,6 +30,16 @@ extern "C" {
 // This has the advantage of being ABI-able should we ever need an ABI...
 #define uiprivEnum(s) typedef unsigned int s; enum
 
+typedef struct uiInitError uiInitError;
+
+struct uiInitError {
+	size_t Size;
+	char Message[256];
+};
+
+uiprivExtern int uiInit(void *options, uiInitError *err);
+uiprivExtern void uiUninit(void);
+
 #ifdef __cplusplus
 }
 #endif

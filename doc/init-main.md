@@ -25,7 +25,7 @@ if (!uiInit(NULL, &err)) {
 }
 ```
 
-Note that if `libui` fails, you **cannot** use libui's message box functions to report the error.
+Note that if `uiInit()` fails, you **cannot** use libui's message box functions to report the error.
 
 ## Reference
 

@@ -20,10 +20,10 @@
 #define testingprivCtorPtrName(basename) testingprivCtorPtr ## basename
 #if defined(__GNUC__)
 #define testingprivMkCtor(basename, regfunc) \
-	__attribute__((constructor)) static void testingprivCtorName(basename)(void) { regfunc(#basename, testingprivScaffoldName(basename)); }
+	__attribute__((constructor)) static void testingprivCtorName(basename)(void) { regfunc(#basename, testingprivScaffoldName(basename), __FILE__, __LINE__); }
 #elif defined(_MSC_VER)
 #define testingprivMkCtor(basename, reg) \
-	static int testingprivCtorName(basename)(void) { regfunc(#basename, testingprivScaffoldName(basename)); return 0; } \
+	static int testingprivCtorName(basename)(void) { regfunc(#basename, testingprivScaffoldName(basename), __FILE__, __LINE__); return 0; } \
 	__pragma(section(".CRT$XCU",read)) \
 	__declspec(allocate(".CRT$XCU")) static int (*testingprivCtorPtrName(basename))(void) = testingprivCtorName(basename);
 #else
@@ -67,9 +67,9 @@ extern void testingTFailNow(testingT *t);
 extern void testingTSkipNow(testingT *t);
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
 
-extern void testingprivRegisterTest(const char *, void (*)(testingT *));
-extern void testingprivRegisterTestBefore(const char *, void (*)(testingT *));
-extern void testingprivRegisterTestAfter(const char *, void (*)(testingT *));
+extern void testingprivRegisterTest(const char *, void (*)(testingT *), const char *, long);
+extern void testingprivRegisterTestBefore(const char *, void (*)(testingT *), const char *, long);
+extern void testingprivRegisterTestAfter(const char *, void (*)(testingT *), const char *, long);
 // see https://stackoverflow.com/questions/32399191/va-args-expansion-using-msvc
 #define testingprivExpand(x) x
 #define testingprivTLogfThen(then, t, ...) ((testingprivTLogfFull(t, __FILE__, __LINE__, __VA_ARGS__)), (then(t)))

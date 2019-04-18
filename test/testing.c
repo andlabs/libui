@@ -31,10 +31,11 @@ static testingT *testsBeforeTail = NULL;
 static testingT *testsAfter = NULL;
 static testingT *testsAfterTail = NULL;
 
-static testingT *newTest(const char *name, void (*f)(testingT *), testingT *prev)
+static testingT *newTest(const char *name, void (*f)(testingT *), const char *file, long line, testingT *prev)
 {
 	testingT *t;
 
+printf("%s %s %ld\n", name, file, line);
 	t = testingprivNew(testingT);
 	t->name = name;
 	t->f = f;
@@ -49,31 +50,31 @@ static testingT *newTest(const char *name, void (*f)(testingT *), testingT *prev
 	return t;
 }
 
-void testingprivRegisterTest(const char *name, void (*f)(testingT *))
+void testingprivRegisterTest(const char *name, void (*f)(testingT *), const char *file, long line)
 {
 	testingT *t;
 
-	t = newTest(name, f, testsTail);
+	t = newTest(name, f, file, line, testsTail);
 	testsTail = t;
 	if (tests == NULL)
 		tests = t;
 }
 
-void testingprivRegisterTestBefore(const char *name, void (*f)(testingT *))
+void testingprivRegisterTestBefore(const char *name, void (*f)(testingT *), const char *file, long line)
 {
 	testingT *t;
 
-	t = newTest(name, f, testsBeforeTail);
+	t = newTest(name, f, file, line, testsBeforeTail);
 	testsBeforeTail = t;
 	if (testsBefore == NULL)
 		testsBefore = t;
 }
 
-void testingprivRegisterTestAfter(const char *name, void (*f)(testingT *))
+void testingprivRegisterTestAfter(const char *name, void (*f)(testingT *), const char *file, long line)
 {
 	testingT *t;
 
-	t = newTest(name, f, testsAfterTail);
+	t = newTest(name, f, file, line, testsAfterTail);
 	testsAfterTail = t;
 	if (testsAfter == NULL)
 		testsAfter = t;

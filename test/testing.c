@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include <string.h>
 #include "testing.h"
 
 #define testingprivNew(T) ((T *) malloc(sizeof (T)))
@@ -79,6 +80,27 @@ void testingprivRegisterTestAfter(const char *name, void (*f)(testingT *), const
 	testsetAdd(&testsAfter, name, f, file, line);
 }
 
+static int testcmp(const void *a, const void *b)
+{
+	const testingT *ta = (const testingT *) a;
+	const testingT *tb = (const testingT *) b;
+	int ret;
+
+	ret = strcmp(ta->file, tb->file);
+	if (ret != 0)
+		return ret;
+	if (ta->line < tb->line)
+		return -1;
+	if (ta->line > tb->line)
+		return 1;
+	return 0;
+}
+
+static void testsetSort(struct testset *set)
+{
+	qsort(set->tests, set->len, sizeof (testingT), testcmp);
+}
+
 static void runDefers(testingT *t)
 {
 	struct defer *d;
@@ -125,6 +147,10 @@ int testingMain(void)
 		// imitate Go here (TODO confirm this)
 		return 0;
 	}
+
+	testsetSort(&testsBefore);
+	testsetSort(&tests);
+	testsetSort(&testsAfter);
 
 	anyFailed = 0;
 	testsetRun(&testsBefore, &anyFailed);

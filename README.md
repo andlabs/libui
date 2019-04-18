@@ -2,7 +2,7 @@
 
 This README is being written.<br>
 [![Build Status, Azure Pipelines](https://dev.azure.com/andlabs/libui/_apis/build/status/andlabs.libui?branchName=master)](https://dev.azure.com/andlabs/libui/_build/latest?definitionId=1&branchName=master)<br>
-[![Build Status, AppVeyor](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31?svg=true)](https://ci.appveyor.com/project/andlabs/libui)
+[![Build Status, AppVeyor](https://ci.appveyor.com/api/projects/status/ouyk78c52mmisa31/branch/master?svg=true)](https://ci.appveyor.com/project/andlabs/libui/branch/master)
 
 ## Status
 

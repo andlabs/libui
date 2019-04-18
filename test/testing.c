@@ -15,69 +15,68 @@ struct defer {
 struct testingT {
 	const char *name;
 	void (*f)(testingT *);
+	const char *file;
+	long line;
 	int failed;
 	int skipped;
 	int returned;
 	jmp_buf returnNowBuf;
 	struct defer *defers;
 	int defersRun;
-	testingT *next;
 };
 
-static testingT *tests = NULL;
-static testingT *testsTail = NULL;
-static testingT *testsBefore = NULL;
-static testingT *testsBeforeTail = NULL;
-static testingT *testsAfter = NULL;
-static testingT *testsAfterTail = NULL;
-
-static testingT *newTest(const char *name, void (*f)(testingT *), const char *file, long line, testingT *prev)
+static void initTest(testingT *t, const char *name, void (*f)(testingT *), const char *file, long line)
 {
-	testingT *t;
-
-printf("%s %s %ld\n", name, file, line);
-	t = testingprivNew(testingT);
 	t->name = name;
 	t->f = f;
+	t->file = file;
+	t->line = line;
 	t->failed = 0;
 	t->skipped = 0;
 	t->returned = 0;
 	t->defers = NULL;
 	t->defersRun = 0;
-	t->next = NULL;
-	if (prev != NULL)
-		prev->next = t;
-	return t;
+}
+
+#define nGrow 32
+
+struct testset {
+	testingT *tests;
+	size_t len;
+	size_t cap;
+};
+
+static struct testset tests = { NULL, 0, 0 };
+static struct testset testsBefore = { NULL, 0, 0 };
+static struct testset testsAfter = { NULL, 0, 0 };
+
+static void testsetAdd(struct testset *set, const char *name, void (*f)(testingT *), const char *file, long line)
+{
+	if (set->len == set->cap) {
+		testingT *newbuf;
+
+		set->cap += nGrow;
+		newbuf = (testingT *) realloc(set->tests, set->cap * sizeof (testingT));
+		// TODO abort if newbuf is NULL
+		set->tests = newbuf;
+	}
+	initTest(set->tests + set->len, name, f, file, line);
+	set->len++;
 }
 
 void testingprivRegisterTest(const char *name, void (*f)(testingT *), const char *file, long line)
 {
-	testingT *t;
-
-	t = newTest(name, f, file, line, testsTail);
-	testsTail = t;
-	if (tests == NULL)
-		tests = t;
+	testsetAdd(&tests, name, f, file, line);
 }
 
 void testingprivRegisterTestBefore(const char *name, void (*f)(testingT *), const char *file, long line)
 {
-	testingT *t;
-
-	t = newTest(name, f, file, line, testsBeforeTail);
-	testsBeforeTail = t;
-	if (testsBefore == NULL)
-		testsBefore = t;
+	testsetAdd(&testsBefore, name, f, file, line);
 }
 
 void testingprivRegisterTestAfter(const char *name, void (*f)(testingT *), const char *file, long line)
 {
-	testingT *t;
-
-	t = newTest(name, f, file, line, testsAfterTail);
-	testsAfterTail = t;
-	if (testsAfter == NULL)
-		testsAfter = t;
+	testsetAdd(&testsAfter, name, f, file, line);
 }
 
 static void runDefers(testingT *t)
@@ -91,11 +90,14 @@ static void runDefers(testingT *t)
 		(*(d->f))(t, d->data);
 }
 
-static void runTestSet(testingT *t, int *anyFailed)
+static void testsetRun(struct testset *set, int *anyFailed)
 {
+	size_t i;
+	testingT *t;
 	const char *status;
 
-	for (; t != NULL; t = t->next) {
+	t = set->tests;
+	for (i = 0; i < set->len; i++) {
 		printf("=== RUN   %s\n", t->name);
 		if (setjmp(t->returnNowBuf) == 0)
 			(*(t->f))(t);
@@ -109,6 +111,7 @@ static void runTestSet(testingT *t, int *anyFailed)
 			// note that failed overrides skipped
 			status = "SKIP";
 		printf("--- %s: %s (%s)\n", status, t->name, "TODO");
+		t++;
 	}
 }
 
@@ -117,16 +120,16 @@ int testingMain(void)
 	int anyFailed;
 
 	// TODO see if this should run if all tests are skipped
-	if (tests == NULL) {
+	if ((testsBefore.len + tests.len + testsAfter.len) == 0) {
 		fprintf(stderr, "warning: no tests to run\n");
 		// imitate Go here (TODO confirm this)
 		return 0;
 	}
 
 	anyFailed = 0;
-	runTestSet(testsBefore, &anyFailed);
-	runTestSet(tests, &anyFailed);
-	runTestSet(testsAfter, &anyFailed);
+	testsetRun(&testsBefore, &anyFailed);
+	testsetRun(&tests, &anyFailed);
+	testsetRun(&testsAfter, &anyFailed);
 	if (anyFailed) {
 		printf("FAIL\n");
 		return 1;

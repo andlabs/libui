@@ -1,9 +1,47 @@
 // 10 april 2019
+#include <string.h>
 #include "../ui.h"
 #include "testing.h"
 
+#define invalidOptionsError "TODOTODOTODO"
+#define alreadyInitializedError "TODOTODOTODO"
+
 testingTestBefore(Init)
 {
+	int ret;
+
+	ret = uiInit(NULL, NULL);
+	if (ret != 0)
+		testingTErrorf(t, "uiInit() with NULL error succeeded with return value %d; expected failure", ret);
+
+	memset(&err, 0, sizeof (uiInitError));
+
+	err.Size = 2;
+	ret = uiInit(NULL, &err);
+	if (ret != 0)
+		testingTErrorf(t, "uiInit() with error with invalid size succeeded with return value %d; expected failure", ret);
+
+	err.Size = sizeof (uiInitError);
+
+	ret = uiInit(&err, &err);
+	if (ret != 0)
+		testingTErrorf(t, "uiInit() with non-NULL options succeeded with return value %d; expected failure", err);
+	if (strcmp(err.Message, invalidOptionsError) != 0)
+		testingTErrorf(t, "uiInit() with non-NULL options returned bad error message: got %s, want %s", err.Message, invalidOptionsError);
+
+	memset(&err, 0, sizeof (uiInitError));
+	err.Size = sizeof (uiInitError);
+	ret = uiInit(NULL, &err);
+	if (ret == 0)
+		testingTErrorf(t, "uiInit() failed: %s", err.Message);
+
+	memset(&err, 0, sizeof (uiInitError));
+	err.Size = sizeof (uiInitError);
+	ret = uiInit(NULL, &err);
+	if (ret != 0)
+		testingTErrorf(t, "uiInit() after a previous successful call succeeded with return value %d; expected failure", ret);
+	if (strcmp(err.Message, alreadyInitializedError) != 0)
+		testingTErrorf(t, "uiInit() after a previous successful call returned bad error message: got %s, want %s", err.Message, alreadyInitializedError);
 }
 
 testingTestAfter(Uninit)

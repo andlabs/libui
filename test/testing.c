@@ -154,8 +154,11 @@ int testingMain(void)
 
 	anyFailed = 0;
 	testsetRun(&testsBefore, &anyFailed);
-	testsetRun(&tests, &anyFailed);
-	testsetRun(&testsAfter, &anyFailed);
+	// TODO print a warning that we skip the next stages if a prior stage failed?
+	if (!anyFailed)
+		testsetRun(&tests, &anyFailed);
+	if (!anyFailed)
+		testsetRun(&testsAfter, &anyFailed);
 	if (anyFailed) {
 		printf("FAIL\n");
 		return 1;

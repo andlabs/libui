@@ -157,6 +157,7 @@ int testingMain(void)
 	// TODO print a warning that we skip the next stages if a prior stage failed?
 	if (!anyFailed)
 		testsetRun(&tests, &anyFailed);
+	// TODO should we unconditionally run these tests if before succeeded but the main tests failed?
 	if (!anyFailed)
 		testsetRun(&testsAfter, &anyFailed);
 	if (anyFailed) {

@@ -140,8 +140,7 @@ libui_sources = []
 libui_deps = []
 libui_soversion = ''
 libui_rpath = ''
-#subdir('common')
-libui_sources+=['dummy.c']
+subdir('common')
 if libui_OS == 'windows'
 #	subdir('windows')
 	install_headers('ui_windows.h')

@@ -32,7 +32,7 @@ If you are using libui as a static library, you'll need to add the line
 #define uiStatic
 ```
 
-*before* including `ui.h`, as that informs `ui.h` to tell the compiler that the functions in `ui.h` are not dynamically loaded.
+*before* including `ui.h`, as that informs `ui.h` to tell the compiler that the functions in `ui.h` are not dynamically loaded. (You may, of course, also do this on your compiler's command line.)
 
 ### OS-Specific Headers
 
@@ -42,15 +42,24 @@ Each OS has a special OS-specific header that provides the necessary additional 
 
 #### Windows
 
-The OS-specific header is `ui_windows.h`. The only OS header that is necessary is `<windows.h>`:
+The OS-specific header is `ui_windows.h`. The only OS header that is necessary is `<windows.h>`. You should also specify the Unicode, type-strictness, and minimum-version macros before including `<windows.h>`:
 
 ```c
+#define UNICODE
+#define _UNICODE
+#define STRICT
+#define STRICT_TYPED_ITEMIDS
+// This sets the minimum Windows API version to the minimum for libui: Windows Vista.
+// Feel free to make this higher if your code will not run on all versions libui supports.
+#define WINVER         0x0600
+#define _WIN32_WINNT   0x0600
+#define _WIN32_WINDOWS 0x0600
+#define _WIN32_IE      0x0700
+#define NTDDI_VERSION  0x06000000
 #include <windows.h>
 #include "ui.h"
 #include "ui_windows.h"
 ```
-
-TODO(andlabs): version constants
 
 #### Unix
 
@@ -101,6 +110,7 @@ libui needs to be linked against a set of standard Windows DLLs, preferably in t
 - user32.dll (MSVC: `user32.lib`, MinGW: `-luser32`)
 - kernel32.dll
 - gdi32.dll
+- comctl32.dll
 - TODO
 
 **Furthermore**, because libui requires Common Controls v6, you will also need to provide a manifest file that specifies Common Controls v6, and ideally also speciifes the versions of Windows your executable runs on. For instance, the one used by libui.dll is a good place to start:
@@ -112,7 +122,8 @@ TODO
 Ideally, you should provide this as a resource that's linked into your program:
 
 ```rc
-#include <windows.rc>
+// Extra #defines above elided for brevity; these should be included too.
+#include <windows.h>
 
 CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "manifest.xml"
 ```

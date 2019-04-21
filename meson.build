@@ -145,7 +145,7 @@ if libui_OS == 'windows'
 #	subdir('windows')
 	install_headers('ui_windows.h')
 elif libui_OS == 'darwin'
-#	subdir('darwin')
+	subdir('darwin')
 	install_headers('ui_darwin.h')
 else
 #	subdir('unix')

@@ -13,7 +13,7 @@ extern "C" {
 #ifdef uiprivBuildingLibui
 #if defined(_WIN32) && !defined(uiStatic)
 #define uiprivExtern __declspec(dllexport) extern
-#elif deffined(_WIN32)
+#elif defined(_WIN32)
 #define uiprivExtern extern
 #else
 #define uiprivExtern __attribute__((visibility("default"))) extern

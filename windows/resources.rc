@@ -1,6 +1,6 @@
 // 30 may 2015
 #include "winapi.hpp"
-#include "resources.hpp"
+//TODO#include "resources.hpp"
 
 // this is a UTF-8 file
 #pragma code_page(65001)

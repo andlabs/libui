@@ -18,6 +18,8 @@ static int checkInitErrorLengths(uiInitError *err, const char *initErrors[])
 {
 	const char **p;
 
+	if (initErrors == NULL)
+		return 1;
 	for (p = initErrors; *p != NULL; p++)
 		if (strlen(*p) > 255) {
 			strcpy(err->Message, "[INTERNAL] uiInit() error too long: ");

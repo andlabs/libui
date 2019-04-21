@@ -148,7 +148,7 @@ elif libui_OS == 'darwin'
 	subdir('darwin')
 	install_headers('ui_darwin.h')
 else
-#	subdir('unix')
+	subdir('unix')
 	install_headers('ui_unix.h')
 endif
 libui_libui = library('ui', libui_sources,

@@ -15,13 +15,17 @@ Furthermore, on some systems, this thread must also be the thread that `main()` 
 Here is an example of correct use of `uiInit()` in C:
 
 ```c
-uiInitError err;
+int main(void)
+{
+	uiInitError err;
 
-memset(&err, 0, sizeof (uiInitError));
-err.Size = sizeof (uiInitError);
-if (!uiInit(NULL, &err)) {
-	fprintf(stderr, "error initializing libui: %s\n", err.Message);
-	return 1;
+	memset(&err, 0, sizeof (uiInitError));
+	err.Size = sizeof (uiInitError);
+	if (!uiInit(NULL, &err)) {
+		fprintf(stderr, "error initializing libui: %s\n", err.Message);
+		return 1;
+	}
+	// ...
 }
 ```
 

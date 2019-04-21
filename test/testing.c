@@ -13,6 +13,13 @@ struct defer {
 	struct defer *next;
 };
 
+#ifdef _MSC_VER
+// Microsoft defines jmp_buf with a __declspec(align()), and for whatever reason, they have a warning that triggers when you use that for any reason, and that warning is enabled with /W4
+// Silence the warning; it's harmless.
+#pragma warning(push)
+#pragma warning(disable: 4324)
+#endif
+
 struct testingT {
 	const char *name;
 	void (*f)(testingT *);
@@ -25,6 +32,10 @@ struct testingT {
 	struct defer *defers;
 	int defersRun;
 };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 static void initTest(testingT *t, const char *name, void (*f)(testingT *), const char *file, long line)
 {

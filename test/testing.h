@@ -18,7 +18,7 @@
 #define testingprivMkCtor(basename, regfunc) \
 	__attribute__((constructor)) static void testingprivCtorName(basename)(void) { regfunc(#basename, testingprivScaffoldName(basename), __FILE__, __LINE__); }
 #elif defined(_MSC_VER)
-#define testingprivMkCtor(basename, reg) \
+#define testingprivMkCtor(basename, regfunc) \
 	static int testingprivCtorName(basename)(void) { regfunc(#basename, testingprivScaffoldName(basename), __FILE__, __LINE__); return 0; } \
 	__pragma(section(".CRT$XCU",read)) \
 	__declspec(allocate(".CRT$XCU")) static int (*testingprivCtorPtrName(basename))(void) = testingprivCtorName(basename);

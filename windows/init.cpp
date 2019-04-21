@@ -1,6 +1,5 @@
 // 6 april 2015
 #include "uipriv_windows.hpp"
-#include "attrstr.hpp"
 
 HINSTANCE uipriv_hInstance = NULL;
 int uipriv_nCmdShow;
@@ -61,27 +60,27 @@ int uiInit(void *options, uiInitError *err)
 		return uiprivInitReturnHRESULT(err, errICCFailed, HRESULT_FROM_WIN32(lasterr));
 	}
 
-	hr = CoInitialize(NULL);
+/*	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)
 		return ieHRESULT("initializing COM", hr);
 	// LONGTERM initialize COM security
 	// LONGTERM turn off COM exception handling
-
+*/
 	uiprivMarkInitialized();
 	return 1;
 }
 
 void uiUninit(void)
 {
-	CoUninitialize();
+//	CoUninitialize();
 }
 
 #ifndef uiStatic
 
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID lpvReserved)
 {
 	if (fdwReason == DLL_PROCESS_ATTACH)
-		hInstance = hinstDLL;
+		uipriv_hInstance = hInstance;
 	return TRUE;
 }
 

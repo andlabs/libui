@@ -142,7 +142,7 @@ libui_soversion = ''
 libui_rpath = ''
 subdir('common')
 if libui_OS == 'windows'
-#	subdir('windows')
+	subdir('windows')
 	install_headers('ui_windows.h')
 elif libui_OS == 'darwin'
 	subdir('darwin')

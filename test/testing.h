@@ -6,7 +6,7 @@
 
 #define testingprivScaffoldName(basename) testingprivScaffold ## basename
 #define testingprivMkScaffold(basename, argtype, argname) \
-	static inline void testingprivScaffoldName(basename)(argtype *argname) { testingprivImplName(basename)(argname); }
+	static void testingprivScaffoldName(basename)(argtype *argname) { testingprivImplName(basename)(argname); }
 
 // references:
 // - https://gitlab.gnome.org/GNOME/glib/blob/master/glib/gconstructor.h

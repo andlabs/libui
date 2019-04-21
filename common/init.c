@@ -1,4 +1,5 @@
 // 19 april 2019
+#include <stdio.h>
 #include <string.h>
 #include "ui.h"
 #include "uipriv.h"
@@ -55,6 +56,17 @@ int uiprivInitReturnError(uiInitError *err, const char *msg)
 {
 	// checkInitErrorLengths() above ensures that err->Message[255] will always be '\0'
 	strncpy(err->Message, msg, 256);
+	return 0;
+}
+
+int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...)
+{
+	va_list ap;
+
+	// checkInitErrorLengths() above ensures that err->Message[255] will always be '\0' assuming the formatted string in msg passed to checkInitErrorLengths() is valid
+	va_start(ap, msg);
+	vsnprintf(err->Message, 256, msg, ap);
+	va_end(ap);
 	return 0;
 }
 

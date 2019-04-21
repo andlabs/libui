@@ -20,17 +20,26 @@ int uipriv_nCmdShow;
 // see https://devblogs.microsoft.com/oldnewthing/20041025-00/?p=37483
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
+#define errICCFailed "InitCommonControlsEx() failed"
+#define errICCFailedNoLastError "InitCommonControlsEx() failed, but didn't specify why. This usually means you forgot the Common Controls v6 manifest; refer to the libui documentation for instructions."
+#define errCoInitializeFailed "CoInitialize() failed"
+
+#define errHRESULTInitErrorsSuffix ": 0x00000000"
+static const char *initErrors[] = {
+	errICCFailed errHRESULTInitErrorsSuffix,
+	errICCFailedNoLastError,
+	errCoInitializeFailed errHRESULTInitErrorsSuffix,
+	NULL,
+};
+#define uiprivInitReturnHRESULT(err, msg, hr) uiprivInitReturnErrorf(err, "%s: 0x%08I32X", msg, hr)
+
 int uiInit(void *options, uiInitError *err)
 {
 	STARTUPINFOW si;
-	const char *ce;
-	HICON hDefaultIcon;
-	HCURSOR hDefaultCursor;
-	NONCLIENTMETRICSW ncm;
 	INITCOMMONCONTROLSEX icc;
 	HRESULT hr;
 
-	if (!uiprivInitCheckParams(options, err, NULL))
+	if (!uiprivInitCheckParams(options, err, initErrors))
 		return 0;
 
 	if (uipriv_hInstance == NULL)
@@ -40,75 +49,31 @@ int uiInit(void *options, uiInitError *err)
 	if ((si.dwFlags & STARTF_USESHOWWINDOW) != 0)
 		uipriv_nCmdShow = si.wShowWindow;
 
-	// LONGTERM set DPI awareness
-
-	hDefaultIcon = LoadIconW(NULL, IDI_APPLICATION);
-	if (hDefaultIcon == NULL)
-		return ieLastErr("loading default icon for window classes");
-	hDefaultCursor = LoadCursorW(NULL, IDC_ARROW);
-	if (hDefaultCursor == NULL)
-		return ieLastErr("loading default cursor for window classes");
-
-	ce = initUtilWindow(hDefaultIcon, hDefaultCursor);
-	if (ce != NULL)
-		return initerr(ce, L"GetLastError() ==", GetLastError());
-
-	if (registerWindowClass(hDefaultIcon, hDefaultCursor) == 0)
-		return ieLastErr("registering uiWindow window class");
-
-	ZeroMemory(&ncm, sizeof (NONCLIENTMETRICSW));
-	ncm.cbSize = sizeof (NONCLIENTMETRICSW);
-	if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof (NONCLIENTMETRICSW), &ncm, sizeof (NONCLIENTMETRICSW)) == 0)
-		return ieLastErr("getting default fonts");
-	hMessageFont = CreateFontIndirectW(&(ncm.lfMessageFont));
-	if (hMessageFont == NULL)
-		return ieLastErr("loading default messagebox font; this is the default UI font");
-
-	if (initContainer(hDefaultIcon, hDefaultCursor) == 0)
-		return ieLastErr("initializing uiWindowsMakeContainer() window class");
-
-	hollowBrush = (HBRUSH) GetStockObject(HOLLOW_BRUSH);
-	if (hollowBrush == NULL)
-		return ieLastErr("getting hollow brush");
-
 	ZeroMemory(&icc, sizeof (INITCOMMONCONTROLSEX));
 	icc.dwSize = sizeof (INITCOMMONCONTROLSEX);
 	icc.dwICC = wantedICCClasses;
-	if (InitCommonControlsEx(&icc) == 0)
-		return ieLastErr("initializing Common Controls");
+	if (InitCommonControlsEx(&icc) == 0) {
+		DWORD lasterr;
+
+		lasterr = GetLastError();
+		if (lasterr == 0)
+			return uiprivInitReturnError(err, errICCFailedNoLastError);
+		return uiprivInitReturnHRESULT(err, errICCFailed, HRESULT_FROM_WIN32(lasterr));
+	}
 
 	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)
 		return ieHRESULT("initializing COM", hr);
 	// LONGTERM initialize COM security
-	// LONGTERM (windows vista) turn off COM exception handling
+	// LONGTERM turn off COM exception handling
 
-	hr = initDraw();
-	if (hr != S_OK)
-		return ieHRESULT("initializing Direct2D", hr);
-
-	hr = uiprivInitDrawText();
-	if (hr != S_OK)
-		return ieHRESULT("initializing DirectWrite", hr);
-
-	if (registerAreaClass(hDefaultIcon, hDefaultCursor) == 0)
-		return ieLastErr("registering uiArea window class");
-
-	if (registerMessageFilter() == 0)
-		return ieLastErr("registering libui message filter");
-
-	if (registerD2DScratchClass(hDefaultIcon, hDefaultCursor) == 0)
-		return ieLastErr("initializing D2D scratch window class");
-
-	hr = uiprivInitImage();
-	if (hr != S_OK)
-		return ieHRESULT("initializing WIC", hr);
-
-	return NULL;
+	uiprivMarkInitialized();
+	return 1;
 }
 
 void uiUninit(void)
 {
+	CoUninitialize();
 }
 
 #ifndef uiStatic

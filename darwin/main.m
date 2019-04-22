@@ -28,7 +28,3 @@ int uiInit(void *options, uiInitError *err)
 	uiprivMarkInitialized();
 	return 1;
 }
-
-void uiUninit(void)
-{
-}

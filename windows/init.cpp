@@ -70,11 +70,6 @@ int uiInit(void *options, uiInitError *err)
 	return 1;
 }
 
-void uiUninit(void)
-{
-//	CoUninitialize();
-}
-
 #ifndef uiStatic
 
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID lpvReserved)

@@ -51,12 +51,6 @@ If `uiInit()` fails, no other libui function is safe to call. This means that yo
 
 **Notes for language binding authors**: Your language will likely provide its own preferred mechanism for reporting errors. You should wrap `uiInit()` to return errors this way, creating and managing the memory for `uiInitError` yourself and transforming the returned error according to both the format of `uiInitError` described below and the rules for encoding errors in your language of choice.
 
-### `uiUninit()`
-
-```c
-void uiUninit(void);
-```
-
 ### `uiInitError`
 
 ```c

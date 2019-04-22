@@ -38,7 +38,6 @@ struct uiInitError {
 };
 
 uiprivExtern int uiInit(void *options, uiInitError *err);
-uiprivExtern void uiUninit(void);
 
 #ifdef __cplusplus
 }

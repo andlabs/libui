@@ -47,10 +47,6 @@ testingTestBefore(Init)
 		testingTErrorf(t, "uiInit() after a previous successful call returned bad error message: got %s, want %s", err.Message, errAlreadyInitialized);
 }
 
-testingTestAfter(Uninit)
-{
-}
-
 static void queued(void *data)
 {
 	int *flag = (int *) data;

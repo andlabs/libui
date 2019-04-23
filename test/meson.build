@@ -8,6 +8,8 @@ libui_test_sources = [
 
 if libui_OS == 'darwin'
 	libui_test_sources += ['testing_darwin.c']
+else
+	libui_test_sources += ['testing_unix.c']
 endif
 
 if libui_OS == 'windows'

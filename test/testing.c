@@ -279,7 +279,7 @@ static void fillFracPart(char *s, int precision, int *start, uint64_t *unsec)
 	print = 0;
 	for (i = 0; i < precision; i++) {
 		digit = *unsec % 10;
-		print = print || (digit == 0);
+		print = print || (digit != 0);
 		if (print) {
 			s[*start - 1] = "0123456789"[digit];
 			(*start)--;

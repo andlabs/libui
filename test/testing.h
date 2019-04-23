@@ -1,6 +1,7 @@
 // 27 february 2018
 
 #include <stdarg.h>
+#include <stdint.h>
 
 #define testingprivImplName(basename) testingprivImpl ## basename
 
@@ -62,6 +63,18 @@ extern void testingTFail(testingT *t);
 extern void testingTFailNow(testingT *t);
 extern void testingTSkipNow(testingT *t);
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
+
+typedef struct testingTimer testingTimer;
+
+#define testingTimerNsecPerSec ((int64_t) 1000000000)
+
+extern testingTimer *testingNewTimer(void);
+extern void testingFreeTimer(testingTimer *t);
+extern void testingTimerStart(testingTimer *t);
+extern void testingTimerEnd(testingTimer *t);
+extern int64_t testingTimerNsec(testingTimer *t);
+extern char *testingTimerString(testingTimer *t);
+extern void testingFreeTimerString(char *s);
 
 extern void testingprivRegisterTest(const char *, void (*)(testingT *), const char *, long);
 extern void testingprivRegisterTestBefore(const char *, void (*)(testingT *), const char *, long);

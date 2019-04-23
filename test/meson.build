@@ -6,6 +6,10 @@ libui_test_sources = [
 	'testing.c',
 ]
 
+if libui_OS == 'darwin'
+	libui_test_sources += ['testing_darwin.c']
+endif
+
 if libui_OS == 'windows'
 	libui_test_manifest = 'test.manifest'
 	if libui_mode == 'static'

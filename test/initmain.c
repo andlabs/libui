@@ -1,7 +1,6 @@
 // 10 april 2019
 #include <string.h>
-#include "../ui.h"
-#include "testing.h"
+#include "test.h"
 
 // TODO fix up the formatting of testing.c so we can use newlines on the got/want stuff
 
@@ -60,7 +59,7 @@ testingTest(QueueMain)
 	int flag = 0;
 
 	uiQueueMain(queued, &flag);
-	uiMain();
+	timeout_uiMain(t, 5 * testingTimerNsecPerSec, 0);
 	if (flag != 1)
 		testingTErrorf(t, "uiQueueMain didn't set flag properly: got %d, want 1", flag);
 }

@@ -9,9 +9,15 @@ libui_test_sources = [
 if libui_OS == 'windows'
 	libui_test_sources += ['testing_windows.c']
 elif libui_OS == 'darwin'
-	libui_test_sources += ['testing_darwin.c']
+	libui_test_sources += [
+		'testing_darwin.c',
+		'testing_darwinunix.c',
+	]
 else
-	libui_test_sources += ['testing_unix.c']
+	libui_test_sources += [
+		'testing_darwinunix.c',
+		'testing_unix.c',
+	]
 endif
 
 libui_test_deps = []

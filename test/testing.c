@@ -148,9 +148,9 @@ static void testsetRun(struct testset *set, int *anyFailed)
 		} else if (t->skipped)
 			// note that failed overrides skipped
 			status = "SKIP";
-		timerstr = testingTimerString(timer);
+		timerstr = testingTimerNsecString(testingTimerNsec(timer));
 		printf("--- %s: %s (%s)\n", status, t->name, timerstr);
-		testingFreeTimerString(timerstr);
+		testingFreeTimerNsecString(timerstr);
 		t++;
 	}
 	testingFreeTimer(timer);
@@ -221,13 +221,13 @@ static void returnNow(testingT *t)
 	}
 }
 
-void testingprivTFailNow(testingT *t)
+void testingTFailNow(testingT *t)
 {
 	testingTFail(t);
 	returnNow(t);
 }
 
-void testingprivTSkipNow(testingT *t)
+void testingTSkipNow(testingT *t)
 {
 	t->skipped = 1;
 	returnNow(t);
@@ -306,9 +306,8 @@ static void fillIntPart(char *s, int *start, uint64_t unsec)
 	}
 }
 
-char *testingTimerString(testingTimer *t)
+char *testingTimerNsecString(int64_t nsec)
 {
-	int64_t nsec;
 	uint64_t unsec;
 	int neg;
 	char *s;
@@ -321,7 +320,6 @@ char *testingTimerString(testingTimer *t)
 	memset(s, 0, 33 * sizeof (char));
 	start = 32;
 
-	nsec = testingTimerNsec(t);
 	if (nsec == 0) {
 		s[0] = '0';
 		s[1] = 's';
@@ -368,7 +366,7 @@ char *testingTimerString(testingTimer *t)
 	return s;
 }
 
-void testingFreeTimerString(char *s)
+void testingFreeTimerNsecString(char *s)
 {
 	free(s);
 }

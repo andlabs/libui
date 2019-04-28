@@ -66,8 +66,8 @@ extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void 
 
 typedef struct testingTimer testingTimer;
 
-#define testingTimerNsecPerUsec ((int64_t) 1000)
-#define testingTimerNsecPerSec ((int64_t) 1000000000)
+#define testingNsecPerUsec ((int64_t) 1000)
+#define testingNsecPerSec ((int64_t) 1000000000)
 
 extern testingTimer *testingNewTimer(void);
 extern void testingFreeTimer(testingTimer *t);
@@ -75,8 +75,8 @@ extern void testingTimerStart(testingTimer *t);
 extern void testingTimerEnd(testingTimer *t);
 extern int64_t testingTimerNsec(testingTimer *t);
 
-extern char *testingTimerNsecString(int64_t nsec);
-extern void testingFreeTimerNsecString(char *s);
+extern char *testingNsecString(int64_t nsec);
+extern void testingFreeNsecString(char *s);
 
 extern void testingRunWithTimeout(testingT *t, int64_t timeout, void (*f)(testingT *t, void *data), void *data, const char *comment, int failNowOnError);
 

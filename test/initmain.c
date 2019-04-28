@@ -59,7 +59,7 @@ testingTest(QueueMain)
 	int flag = 0;
 
 	uiQueueMain(queued, &flag);
-	timeout_uiMain(t, 5 * testingTimerNsecPerSec, 0);
+	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
 	if (flag != 1)
 		testingTErrorf(t, "uiQueueMain didn't set flag properly: got %d, want 1", flag);
 }

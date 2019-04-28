@@ -47,12 +47,12 @@ int64_t testingTimerNsec(testingTimer *t)
 
 	sec = c / CLOCKS_PER_SEC;
 	sec64 = (int64_t) sec;
-	sec64 *= testingTimerNsecPerSec;
+	sec64 *= testingNsecPerSec;
 
 	subsec = c % CLOCKS_PER_SEC;
 	subsecf = (double) subsec;
 	subsecf /= CLOCKS_PER_SEC;
-	subsecf *= testingTimerNsecPerSec;
+	subsecf *= testingNsecPerSec;
 	subsec64 = (int64_t) subsecf;
 
 	return sec64 + subsec64;

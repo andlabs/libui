@@ -21,13 +21,13 @@ void testingRunWithTimeout(testingT *t, int64_t timeout, void (*f)(testingT *t, 
 	struct itimerval timer, prevtimer;
 	int setitimerError = 0;
 
-	timeoutstr = testingTimerNsecString(timeout);
+	timeoutstr = testingNsecString(timeout);
 	prevsig = signal(SIGALRM, onTimeout);
 
 	timer.it_interval.tv_sec = 0;
 	timer.it_interval.tv_usec = 0;
-	timer.it_value.tv_sec = timeout / testingTimerNsecPerSec;
-	timer.it_value.tv_usec = (timeout % testingTimerNsecPerSec) / testingTimerNsecPerUsec;
+	timer.it_value.tv_sec = timeout / testingNsecPerSec;
+	timer.it_value.tv_usec = (timeout % testingNsecPerSec) / testingNsecPerUsec;
 	if (setitimer(ITIMER_REAL, &timer, &prevtimer) != 0) {
 		setitimerError = errno;
 		testingTErrorf(t, "error applying %s timeout: %s", comment, strerror(setitimerError));
@@ -44,7 +44,7 @@ out:
 	if (setitimerError == 0)
 		setitimer(ITIMER_REAL, &prevtimer, NULL);
 	signal(SIGALRM, prevsig);
-	testingFreeTimerNsecString(timeoutstr);
+	testingFreeNsecString(timeoutstr);
 	if (failNowOnError)
 		testingTFailNow(t);
 }

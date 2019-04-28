@@ -148,9 +148,9 @@ static void testsetRun(struct testset *set, int *anyFailed)
 		} else if (t->skipped)
 			// note that failed overrides skipped
 			status = "SKIP";
-		timerstr = testingTimerNsecString(testingTimerNsec(timer));
+		timerstr = testingNsecString(testingTimerNsec(timer));
 		printf("--- %s: %s (%s)\n", status, t->name, timerstr);
-		testingFreeTimerNsecString(timerstr);
+		testingFreeNsecString(timerstr);
 		t++;
 	}
 	testingFreeTimer(timer);
@@ -306,7 +306,7 @@ static void fillIntPart(char *s, int *start, uint64_t unsec)
 	}
 }
 
-char *testingTimerNsecString(int64_t nsec)
+char *testingNsecString(int64_t nsec)
 {
 	uint64_t unsec;
 	int neg;
@@ -366,7 +366,7 @@ char *testingTimerNsecString(int64_t nsec)
 	return s;
 }
 
-void testingFreeTimerNsecString(char *s)
+void testingFreeNsecString(char *s)
 {
 	free(s);
 }

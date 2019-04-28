@@ -55,12 +55,12 @@ int64_t testingTimerNsec(testingTimer *t)
 	c = t->end.QuadPart - t->start.QuadPart;
 
 	sec = c / qpf.QuadPart;
-	sec *= testingTimerNsecPerSec;
+	sec *= testingNsecPerSec;
 
 	subsec = c % qpf.QuadPart;
 	subsecf = (double) subsec;
 	subsecf /= qpf.QuadPart;
-	subsecf *= testingTimerNsecPerSec;
+	subsecf *= testingNsecPerSec;
 	subsec = (int64_t) subsecf;
 
 	return sec + subsec;

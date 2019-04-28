@@ -8,6 +8,7 @@
 #include "testing.h"
 
 // TODO testingTimers after this fails are wrong on GTK+
+// TODO don't start the timer on any platform until after we call setjmp(); also decide whether to start the timer before or after resuming the thread on Windows
 
 static jmp_buf timeout_ret;
 

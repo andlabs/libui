@@ -59,24 +59,6 @@ static void processMessage(MSG *msg)
 	DispatchMessageW(msg);
 }
 
-static int waitMessage(MSG *msg)
-{
-	int res;
-
-	res = GetMessageW(msg, NULL, 0, 0);
-	if (res < 0) {
-		logLastError(L"error calling GetMessage()");
-		return 0;		// bail out on error
-	}
-	return res != 0;		// returns false on WM_QUIT
-}
-
-void uiMain(void)
-{
-	while (uiMainStep(1))
-		;
-}
-
 void uiMainSteps(void)
 {
 	// don't need to do anything here
@@ -98,12 +80,7 @@ int uiMainStep(int wait)
 {
 	MSG msg;
 
-	if (wait) {
-		if (!waitMessage(&msg))
-			return 0;
-		processMessage(&msg);
-		return 1;
-	}
+	if (wait) { /* deleted */ }
 
 	// don't wait for a message
 	switch (peekMessage(&msg)) {
@@ -115,18 +92,6 @@ int uiMainStep(int wait)
 		// fall out to the case for no message
 	}
 	return 1;		// no message
-}
-
-void uiQuit(void)
-{
-	PostQuitMessage(0);
-}
-
-void uiQueueMain(void (*f)(void *data), void *data)
-{
-	if (PostMessageW(utilWindow, msgQueued, (WPARAM) f, (LPARAM) data) == 0)
-		// LONGTERM this is likely not safe to call across threads (allocates memory)
-		logLastError(L"error queueing function to run on main thread");
 }
 
 static std::map<uiprivTimer *, bool> timers;

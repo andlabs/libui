@@ -3,7 +3,9 @@
 windows = import('windows')
 
 libui_sources += [
-	'windows/init.cpp',
+	'windows/main.cpp',
+	'windows/utilwin.cpp',
+	'windows/winhresult.cpp',
 ]
 
 # resources.rc only contains the libui manifest.

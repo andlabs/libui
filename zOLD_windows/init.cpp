@@ -73,17 +73,6 @@ const char *uiInit(uiInitOptions *o)
 
 	// LONGTERM set DPI awareness
 
-	hDefaultIcon = LoadIconW(NULL, IDI_APPLICATION);
-	if (hDefaultIcon == NULL)
-		return ieLastErr("loading default icon for window classes");
-	hDefaultCursor = LoadCursorW(NULL, IDC_ARROW);
-	if (hDefaultCursor == NULL)
-		return ieLastErr("loading default cursor for window classes");
-
-	ce = initUtilWindow(hDefaultIcon, hDefaultCursor);
-	if (ce != NULL)
-		return initerr(ce, L"GetLastError() ==", GetLastError());
-
 	if (registerWindowClass(hDefaultIcon, hDefaultCursor) == 0)
 		return ieLastErr("registering uiWindow window class");
 

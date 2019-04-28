@@ -70,6 +70,8 @@ int64_t testingTimerNsec(testingTimer *t)
 	return sec + subsec;
 }
 
+// note: the idea for the SetThreadContext() nuttery is from https://www.codeproject.com/Articles/71529/Exception-Injection-Throwing-an-Exception-in-Other
+
 static jmp_buf timeout_ret;
 
 static void onTimeout(void)

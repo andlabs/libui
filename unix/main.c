@@ -17,3 +17,37 @@ int uiInit(void *options, uiInitError *err)
 	uiprivMarkInitialized();
 	return 1;
 }
+
+void uiMain(void)
+{
+	gtk_main();
+}
+
+void uiQuit(void)
+{
+	gtk_main_quit();
+}
+
+struct queued {
+	void (*f)(void *);
+	void *data;
+};
+
+static gboolean doqueued(gpointer data)
+{
+	struct queued *q = (struct queued *) data;
+
+	(*(q->f))(q->data);
+	g_free(q);
+	return FALSE;
+}
+
+void uiQueueMain(void (*f)(void *data), void *data)
+{
+	struct queued *q;
+
+	q = g_new0(struct queued, 1);
+	q->f = f;
+	q->data = data;
+	gdk_threads_add_idle(doqueued, q);
+}

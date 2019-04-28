@@ -7,6 +7,8 @@
 #include <sys/time.h>
 #include "testing.h"
 
+// TODO testingTimers after this fails are wrong on GTK+
+
 static jmp_buf timeout_ret;
 
 static void onTimeout(int sig)
@@ -17,7 +19,7 @@ static void onTimeout(int sig)
 void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t timeout, void (*f)(testingT *t, void *data), void *data, const char *comment, int failNowOnError)
 {
 	char *timeoutstr;
-	sig_t prevsig;
+	void (*prevsig)(int);
 	struct itimerval timer, prevtimer;
 	int setitimerError = 0;
 

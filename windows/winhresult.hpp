@@ -1,81 +1,8 @@
 // 28 april 2019
-#include "winapi.h"
-#include "winhresult.h"
 
-// This file wraps standard Windows API functions that don't use HRESULTs to return HRESULTs.
-// It also calls SetLastError(0) before each such call.
-
-static inline HRESULT lastErrorCodeToHRESULT(DWORD lastError)
-{
-	if (lastError == 0)
-		return E_FAIL;
-	return HRESULT_FROM_WIN32(lastError);
-}
-
-static inline HRESULT lastErrorToHRESULT(void)
-{
-	return lastErrorCodeToHRESULT(GetLastError());
-}
-
-HRESULT WINAPI uiprivHrRegisterClassW(const WNDCLASSW *wc)
-{
-	ATOM a;
-
-	SetLastError(0);
-	a = RegisterClassW(wc);
-	if (a == 0)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-HRESULT WINAPI uiprivHrCreateWindowExW(DWORD exStyle, LPCWSTR className, LPCWSTR windowName, DWORD style, int x, int y, int width, int height, HWND parent, HMENU menu, HINSTANCE hInstance, LPVOID lpParam, HWND *hwnd)
-{
-	SetLastError(0);
-	*hwnd = CreateWindowExW(exStyle,
-		className, windowName,
-		style,
-		x, y, width, height,
-		parent, menu, hInstance, lpParam);
-	if (*hwnd == NULL)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-// TODO turn ret into S_OK/S_FALSE?
-HRESULT WINAPI uiprivHrGetMessageW(LPMSG msg, HWND hwnd, UINT filterMin, UINT filterMax, BOOL *ret)
-{
-	SetLastError(0);
-	*ret = GetMessageW(msg, hwnd, filterMin, filterMax);
-	if (*ret < 0)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-HRESULT WINAPI uiprivHrPostMessageW(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	BOOL ret;
-
-	SetLastError(0);
-	ret = PostMessageW(hwnd, uMsg, wParam, lParam);
-	if (ret == 0)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-HRESULT WINAPI uiprivHrLoadIconW(HINSTANCE hInstance, LPCWSTR name, HICON *hIcon)
-{
-	SetLastError(0);
-	*hIcon = LoadIconW(hInstance, name);
-	if (*hIcon == NULL)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-HRESULT WINAPI uiprivHrLoadCursorW(HINSTANCE hInstance, LPCWSTR name, HCURSOR *hCursor)
-{
-	SetLastError(0);
-	*hCursor = LoadCursorW(hInstance, name);
-	if (*hCursor == NULL)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
+extern HRESULT WINAPI uiprivHrRegisterClassW(const WNDCLASSW *wc);
+extern HRESULT WINAPI uiprivHrCreateWindowExW(DWORD exStyle, LPCWSTR className, LPCWSTR windowName, DWORD style, int x, int y, int width, int height, HWND parent, HMENU menu, HINSTANCE hInstance, LPVOID lpParam, HWND *hwnd);
+extern HRESULT WINAPI uiprivHrGetMessageW(LPMSG msg, HWND hwnd, UINT filterMin, UINT filterMax, BOOL *ret);
+extern HRESULT WINAPI uiprivHrPostMessageW(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+extern HRESULT WINAPI uiprivHrLoadIconW(HINSTANCE hInstance, LPCWSTR name, HICON *hIcon);
+extern HRESULT WINAPI uiprivHrLoadCursorW(HINSTANCE hInstance, LPCWSTR name, HCURSOR *hCursor);

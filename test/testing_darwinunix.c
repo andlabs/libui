@@ -14,7 +14,7 @@ static void onTimeout(int sig)
 	longjmp(timeout_ret, 1);
 }
 
-void testingRunWithTimeout(testingT *t, int64_t timeout, void (*f)(testingT *t, void *data), void *data, const char *comment, int failNowOnError)
+void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t timeout, void (*f)(testingT *t, void *data), void *data, const char *comment, int failNowOnError)
 {
 	char *timeoutstr;
 	sig_t prevsig;
@@ -30,15 +30,18 @@ void testingRunWithTimeout(testingT *t, int64_t timeout, void (*f)(testingT *t, 
 	timer.it_value.tv_usec = (timeout % testingNsecPerSec) / testingNsecPerUsec;
 	if (setitimer(ITIMER_REAL, &timer, &prevtimer) != 0) {
 		setitimerError = errno;
-		testingTErrorf(t, "error applying %s timeout: %s", comment, strerror(setitimerError));
+		testingprivTLogfFull(t, file, line, "error applying %s timeout: %s", comment, strerror(setitimerError));
+		testingTFail(t);
 		goto out;
 	}
 
 	if (setjmp(timeout_ret) == 0) {
 		(*f)(t, data);
 		failNowOnError = 0;		// we succeeded
-	} else
-		testingTErrorf(t, "%s timeout passed (%s)", comment, timeoutstr);
+	} else {
+		testingprivTLogfFull(t, file, line, "%s timeout passed (%s)", comment, timeoutstr);
+		testingTFail(t);
+	}
 
 out:
 	if (setitimerError == 0)

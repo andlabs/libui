@@ -78,7 +78,8 @@ extern int64_t testingTimerNsec(testingTimer *t);
 extern char *testingNsecString(int64_t nsec);
 extern void testingFreeNsecString(char *s);
 
-extern void testingRunWithTimeout(testingT *t, int64_t timeout, void (*f)(testingT *t, void *data), void *data, const char *comment, int failNowOnError);
+#define testingRunWithTimeout(t, timeout, f, data, comment, failNowOnError) \
+	testingprivRunWithTimeout(t, __FILE__, __LINE__, timeout, f, data, comment, failNowOnError)
 
 extern void testingprivRegisterTest(const char *, void (*)(testingT *), const char *, long);
 extern void testingprivRegisterTestBefore(const char *, void (*)(testingT *), const char *, long);
@@ -89,3 +90,4 @@ extern void testingprivRegisterTestAfter(const char *, void (*)(testingT *), con
 #define testingprivTLogvfThen(then, t, format, ap) ((testingprivTLogvfFull(t, __FILE__, __LINE__, format, ap)), (then(t)))
 extern void testingprivTLogfFull(testingT *, const char *, long, const char *, ...);
 extern void testingprivTLogvfFull(testingT *, const char *, long, const char *, va_list);
+extern void testingprivRunWithTimeout(testingT *, const char *, long, int64_t, void (*)(testingT *, void *), void *, const char *, int);

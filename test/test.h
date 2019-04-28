@@ -3,4 +3,8 @@
 #include "testing.h"
 
 // main.c
-extern void timeout_uiMain(testingT *t, int64_t timeout, int failNowOnError);
+extern void timeoutMain(testingT *t, void *data);
+#define timeout_uiMain(t, timeout, failNowOnError) \
+	testingRunWithTimeout(t, timeout, \
+		timeoutMain, NULL, \
+		"uiMain()", failNowOnError);

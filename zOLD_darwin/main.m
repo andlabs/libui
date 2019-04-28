@@ -87,23 +87,6 @@ static BOOL stepsIsRunning;
 	[super dealloc];
 }
 
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)app
-{
-	// for debugging
-	NSLog(@"in applicationShouldTerminate:");
-	if (uiprivShouldQuit()) {
-		canQuit = YES;
-		// this will call terminate:, which is the same as uiQuit()
-		return NSTerminateNow;
-	}
-	return NSTerminateCancel;
-}
-
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app
-{
-	return NO;
-}
-
 @end
 
 uiInitOptions uiprivOptions;
@@ -112,12 +95,6 @@ const char *uiInit(uiInitOptions *o)
 {
 	@autoreleasepool {
 		uiprivOptions = *o;
-		app = [[uiprivApplicationClass sharedApplication] retain];
-		// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
-		// see https://github.com/andlabs/ui/issues/6
-		[uiprivNSApp() setActivationPolicy:NSApplicationActivationPolicyRegular];
-		delegate = [uiprivAppDelegate new];
-		[uiprivNSApp() setDelegate:delegate];
 
 		uiprivInitAlloc();
 		uiprivLoadFutures();
@@ -226,21 +203,6 @@ int uiprivMainStep(uiprivNextEventArgs *nea, BOOL (^interceptEvent)(NSEvent *e))
 
 		return 1;
 	}
-}
-
-void uiQuit(void)
-{
-	canQuit = YES;
-	[uiprivNSApp() terminate:uiprivNSApp()];
-}
-
-// thanks to mikeash in irc.freenode.net/#macdev for suggesting the use of Grand Central Dispatch for this
-// LONGTERM will dispatch_get_main_queue() break after _CFRunLoopSetCurrent()?
-void uiQueueMain(void (*f)(void *data), void *data)
-{
-	// dispatch_get_main_queue() is a serial queue so it will not execute multiple uiQueueMain() functions concurrently
-	// the signature of f matches dispatch_function_t
-	dispatch_async_f(dispatch_get_main_queue(), data, f);
 }
 
 @interface uiprivTimerDelegate : NSObject {

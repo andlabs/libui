@@ -52,8 +52,28 @@ static void queued(void *data)
 	int *flag = (int *) data;
 
 	*flag = 1;
+	uiQuit();
 }
 
+testingTest(QueueMain)
+{
+	int flag = 0;
+
+	uiQueueMain(queued, &flag);
+	uiMain();
+	if (flag != 1)
+		testingTErrorf(t, "uiQueueMain didn't set flag properly: got %d, want 1", flag);
+}
+
+testingTest(QueueMain_Sequence)
+{
+	// TODO
+}
+
+// TODO testingTest(QueueMain_DifferentThread)
+// TODO testingTest(QueueMain_DifferentThreadSequence)
+
+#if 0
 static void timer(void *data)
 {
 	int *n = (int *) data;
@@ -62,12 +82,7 @@ static void timer(void *data)
 	*n++;
 }
 
-testingTest(QueueMain)
-{
-}
-
-// TODO testingTest(QueueMain_DifferentThread)
-
 testingTest(Timer)
 {
 }
+#endif

@@ -1,4 +1,5 @@
 // 10 april 2019
+#include <inttypes.h>
 #include <string.h>
 #include "test.h"
 
@@ -64,9 +65,53 @@ testingTest(QueueMain)
 		testingTErrorf(t, "uiQueueMain didn't set flag properly: got %d, want 1", flag);
 }
 
+#define queueOp(name, expr) \
+	static void name(void *data) \
+	{ \
+		uint32_t *flag = (uint32_t *) data; \
+		*flag = *flag expr; \
+	}
+queueOp(sub2, - 2)
+queueOp(div3, / 3)
+queueOp(mul8, * 8)
+
+static void done(void *data)
+{
+	uiQuit();
+}
+
+static const struct {
+	uint32_t result;
+	const char *order;
+} orders[] = {
+	{ 8, "sub2 -> div3 -> mul8" },			// the one we want
+	{ 13, "sub2 -> mul8 -> div3" },
+	{ 0, "div3 -> sub2 -> mul8" },
+	{ 14, "div3 -> mul8 -> sub2" },
+	{ 18, "mul8 -> sub2 -> div3" },
+	{ 16, "mul8 -> div3 -> sub2" },
+};
+
 testingTest(QueueMain_Sequence)
 {
-	// TODO
+	uint32_t flag;
+	int i;
+
+	flag = 7;
+	uiQueueMain(sub2, &flag);
+	uiQueueMain(div3, &flag);
+	uiQueueMain(mul8, &flag);
+	uiQueueMain(done, NULL);
+	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
+	if (flag != orders[0].result) {
+		for (i = 1; i < 6; i++)
+			if (flag == orders[i].result) {
+				testingTErrorf(t, "got %" PRIu32 " (%s), want %" PRIu32 " (%s)", flag, orders[i].order, orders[0].result, orders[0].order);
+				break;
+			}
+		if (i >= 6)
+			testingTErrorf(t, "got %" PRIu32 " (unknown order), want %" PRIu32 " (%s)", flag, orders[0].result, orders[0].order);
+	}
 }
 
 // TODO testingTest(QueueMain_DifferentThread)

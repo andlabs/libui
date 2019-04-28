@@ -70,7 +70,23 @@ void uiMain(void)
 
 void uiQuit(void)
 {
-	[uiprivApp stop:uiprivApp];
+	@autoreleasepool {
+		NSEvent *e;
+
+		[uiprivApp stop:uiprivApp];
+		// stop: won't register until another event has passed; let's synthesize one
+		// TODO instead of using NSApplicationDefined, create a private event type for libui internal use only
+		e = [NSEvent otherEventWithType:NSApplicationDefined
+			location:NSZeroPoint
+			modifierFlags:0
+			timestamp:[[NSProcessInfo processInfo] systemUptime]
+			windowNumber:0
+			context:[NSGraphicsContext currentContext]
+			subtype:0
+			data1:0
+			data2:0];
+		[uiprivApp postEvent:e atStart:NO];		// let pending events take priority (this is what PostQuitMessage() on Windows does so we have to do it here too for parity; thanks to mikeash in irc.freenode.net/#macdev for confirming that this parameter should indeed be NO)
+	}
 }
 
 // thanks to mikeash in irc.freenode.net/#macdev for suggesting the use of Grand Central Dispatch for this

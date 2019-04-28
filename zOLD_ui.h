@@ -23,14 +23,8 @@ struct uiInitOptions {
 	size_t Size;
 };
 
-uiprivExtern void uiFreeInitError(const char *err);
-
-uiprivExtern void uiMain(void);
 uiprivExtern void uiMainSteps(void);
 uiprivExtern int uiMainStep(int wait);
-uiprivExtern void uiQuit(void);
-
-uiprivExtern void uiQueueMain(void (*f)(void *data), void *data);
 
 // TODO standardize the looping behavior return type, either with some enum or something, and the test expressions throughout the code
 // TODO figure out what to do about looping and the exact point that the timer is rescheduled so we can document it; see https://github.com/andlabs/libui/pull/277

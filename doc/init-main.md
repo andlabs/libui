@@ -31,6 +31,48 @@ int main(void)
 
 Note that if `uiInit()` fails, you **cannot** use libui's message box functions to report the error.
 
+Once you have called `uiInit()`, you should set up the initial UI for your program. Once that is done, you start the program event loop by calling `uiMain()`. `uiMain()` runs the *main event loop*, which processes all events for the GUI and dispatches them to the event handlers you write. As this function does everything for you, all you need to do is call it:
+
+```c
+int main(void)
+{
+	// ...
+	uiMain();
+	return 0;
+}
+```
+
+`uiMain()` will not return until one of your event handlers calls `uiQuit()`. `uiQuit()` informs `uiMain()` that it should return, but it won't actually return until the current event handler has finished being processed. Once it does return, you will be dropped back into `main()`.
+
+Event handlers can be more than just actions in response to user action to a control, such as clicking a button. The OS can use events to tell your program things that happen outside your program, such as "the user wants to close your application from within a program list/taskbar/dock". libui provides methods of catching and handling these. You can also schedule code to run when there is no event pending, or on a timed loop. While these scheduled code paths are not technically events per se, they operate exactly like event handlers.
+
+TODO should quit
+
+The simplest way to schedule code to run the next time no event is pending is to use `uiQueueMain()`. `uiQueueMain()` takes a function and some data to pass to that function, and returns immediately, so you can continue working. When `uiMain()` goes to get the next event, it will notice that your function is ready to run, and if there are no events that need to be handled, will do so.
+
+`uiQueueMain()` is special in that it is the only function in libui that you can call from any thread, not just the UI thread. This is intentional: `uiQueueMain()` allows you to communicate between the UI thread and another thread, as all code that is scheduled by `uiQueueMain()` is run on the UI thread. For example, if you are downloading assets in a background thread and want to update a progressbar, you can do so:
+
+```c
+void updateProgressBar(void *data)
+{
+	uiProgressBar *p = uiProgressBar(data);
+
+	uiProgressBarSetValue(p, uiProgressBarValue(p) + 1);
+}
+
+extern uiProgressBar *progressbar;
+
+void backgroundThread(void)
+{
+	while (fileIsDownloading())
+		uiQueueMain(updateProgressBar, progressbar);
+}
+```
+
+If you want to wait for the function in `uiQueueMain()` to be called, you will need to provide some synchronization method yourself. Be careful not to do this if you call `uiQueueMain()` on the UI thread, to avoid deadlocking your program!
+
+TODO timers
+
 ## Reference
 
 ### `uiInit()`
@@ -66,3 +108,33 @@ struct uiInitError {
 You are responsible for allocating and initializing this struct. To do so, you simply zero the memory for this struct and set its `Size` field to `sizeof (uiInitError)`. The example in the main section of this page demonstrates how to do this.
 
 In the event of an error, `Message` will contain a NUL-terminated C string in the encoding expected by `fprintf()`. This is in contrast to the rest of libui, which uses UTF-8 strings.
+
+### `uiMain()`
+
+```c
+void uiMain(void);
+```
+
+`uiMain()` runs the main event loop. It does not return until `uiQuit()` is called.
+
+### `uiQuit()`
+
+```c
+void uiQuit(void);
+```
+
+`uiQuit()` causes `uiMain()` to return once the current event has finished processing.
+
+TODO safety of calling `uiMain()` again after `uiQuit()`?
+
+### `uiQueueMain()`
+
+```c
+void uiQueueMain(void (*f)(void *data), void *data);
+```
+
+`uiQueueMain()` schedules `f` to be called with `data` as a parameter on the next iteration of the main loop when no event is pending. It returns immediately.
+
+`uiQueueMain()` can safely be called from any thread, not just the UI thread.
+
+If you call `uiQueueMain()` in sequence, the functions will execute in that order; if other threads are calling `uiQueueMain()` at the same time, there is no guarantee as to whether the calls are interleaved, but the order per-thread will be maintained.

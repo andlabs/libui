@@ -38,6 +38,9 @@ struct uiInitError {
 };
 
 uiprivExtern int uiInit(void *options, uiInitError *err);
+uiprivExtern void uiMain(void);
+uiprivExtern void uiQuit(void);
+uiprivExtern void uiQueueMain(void (*f)(void *data), void *data);
 
 #ifdef __cplusplus
 }

@@ -33,8 +33,9 @@ if libui_OS == 'windows'
 	]
 	if libui_mode != 'static'
 		libui_test_deps += [
-			# for QueryPerformanceCounter()/QueryPerformanceFrequency()
 			meson.get_compiler('c').find_library('kernel32',
+				required: true),
+			meson.get_compiler('c').find_library('user32',
 				required: true),
 		]
 	endif

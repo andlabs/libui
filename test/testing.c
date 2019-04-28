@@ -328,7 +328,15 @@ char *testingNsecString(int64_t nsec)
 	unsec = (uint64_t) nsec;
 	neg = 0;
 	if (nsec < 0) {
+#ifdef _MSC_VER
+// TODO figure out a more explicit way to do this; until then, just go with what the standard says should happen, because it's what we want (TODO verify this)
+#pragma warning(push)
+#pragma warning(disable: 4146)
+#endif
 		unsec = -unsec;
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 		neg = 1;
 	}
 

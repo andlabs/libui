@@ -42,8 +42,8 @@ static inline void setHInstance(void)
 	ICC_DATE_CLASSES |		/* date/time picker */		\
 	0)
 
-#define errGetDefaultIconFailed "failed to load default icon"
-#define errGetDefaultCursorFailed "failed to load default cursor"
+#define errLoadDefaultIconFailed "failed to load default icon"
+#define errLoadDefaultCursorFailed "failed to load default cursor"
 #define errInitUtilWindowFailed "failed to initialize the utility window"
 #define errICCFailed "InitCommonControlsEx() failed"
 #define errICCFailedNoLastError "InitCommonControlsEx() failed, but didn't specify why. This usually means you forgot the Common Controls v6 manifest; refer to the libui documentation for instructions."
@@ -51,8 +51,8 @@ static inline void setHInstance(void)
 
 #define errHRESULTInitErrorsSuffix ": 0x00000000"
 static const char *initErrors[] = {
-	errGetDefaultIconFailed errHRESULTInitErrorsSuffix
-	errGetDefaultCursorFailed errHRESULTInitErrorsSuffix
+	errLoadDefaultIconFailed errHRESULTInitErrorsSuffix
+	errLoadDefaultCursorFailed errHRESULTInitErrorsSuffix
 	errInitUtilWindowFailed errHRESULTInitErrorsSuffix
 	errICCFailed errHRESULTInitErrorsSuffix,
 	errICCFailedNoLastError,

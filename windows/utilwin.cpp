@@ -29,7 +29,7 @@ HRESULT uiprivInitUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	ZeroMemory(&wc, sizeof (WNDCLASSW));
 	wc.lpszClassName = utilWindowClass;
 	wc.lpfnWndProc = utilWindowWndProc;
-	wc.hInstance = hInstance;
+	wc.hInstance = uipriv_hInstance;
 	wc.hIcon = hDefaultIcon;
 	wc.hCursor = hDefaultCursor;
 	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
@@ -40,6 +40,6 @@ HRESULT uiprivInitUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 		utilWindowClass, L"libui utility window",
 		WS_OVERLAPPEDWINDOW,
 		0, 0, 100, 100,
-		NULL, NULL, hInstance, NULL,
+		NULL, NULL, uipriv_hInstance, NULL,
 		&uiprivUtilWindow);
 }

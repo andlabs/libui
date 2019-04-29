@@ -20,7 +20,10 @@ else
 	]
 endif
 
-libui_test_deps = []
+libui_test_deps = [
+	dependency('threads',
+		required: true),
+]
 if libui_OS == 'windows'
 	libui_test_manifest = 'test.manifest'
 	if libui_mode == 'static'

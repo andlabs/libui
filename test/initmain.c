@@ -157,7 +157,7 @@ static void queueOrderThread(void *data)
 testingTest(QueueMain_DifferentThreadSequence)
 {
 	testingThread *thread;
-	uint32_t flag;
+	uint32_t flag = 1;		// make sure it's initialized just in case
 
 	thread = testingNewThread(queueOrderThread, &flag);
 	timeout_uiMain(t, 5 * testingNsecPerSec, 0);

@@ -3,8 +3,11 @@
 #include <inttypes.h>
 #include <setjmp.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/time.h>
+#include <pthread.h>
 #include "testing.h"
 
 // TODO testingTimers after this fails are wrong on GTK+
@@ -53,4 +56,52 @@ out:
 	testingFreeNsecString(timeoutstr);
 	if (failNowOnError)
 		testingTFailNow(t);
+}
+
+void testingSleep(int64_t nsec)
+{
+	struct timespec rqtp;
+
+	// TODO check errors, possibly falling back to usleep, setitimer/pause, or even sleep
+	rqtp.tv_sec = nsec / testingNsecPerSec;
+	rqtp.tv_nsec = nsec % testingNsecPerSec;
+	nanosleep(&rqtp, NULL);
+}
+
+struct testingThread {
+	pthread_t thread;
+	void (*f)(void *data);
+	void *data;
+};
+
+static void *threadThreadProc(void *data)
+{
+	testingThread *t = (testingThread *) data;
+
+	(*(t->f))(t->data);
+	return NULL;
+}
+
+testingThread *testingNewThread(void (*f)(void *data), void *data)
+{
+	testingThread *t;
+
+	t = malloc(sizeof (testingThread));
+	// TODO check error
+	memset(t, 0, sizeof (testingThread));
+	t->f = f;
+	t->data = data;
+
+	// TODO check error
+	pthread_create(&(t->thread), NULL, threadThreadProc, t);
+	return t;
+}
+
+void testingThreadWaitAndFree(testingThread *t)
+{
+	// TODO check errors
+	pthread_join(t->thread, NULL);
+	// TODO end check errors
+	// TODO do we need to free t->thread somehow?
+	free(t);
 }

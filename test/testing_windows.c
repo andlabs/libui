@@ -50,24 +50,19 @@ void testingTimerEnd(testingTimer *t)
 int64_t testingTimerNsec(testingTimer *t)
 {
 	LARGE_INTEGER qpf;
+	int64_t qpnsQuot, qpnsRem;
 	int64_t c;
-	int64_t sec;
-	int64_t subsec;
-	double subsecf;
+	int64_t ret;
 
 	QueryPerformanceFrequency(&qpf);
+	qpnsQuot = testingNsecPerSec / qpf.QuadPart;
+	qpnsRem = testingNsecPerSec % qpf.QuadPart;
 	c = t->end.QuadPart - t->start.QuadPart;
 
-	sec = c / qpf.QuadPart;
-	sec *= testingNsecPerSec;
-
-	subsec = c % qpf.QuadPart;
-	subsecf = (double) subsec;
-	subsecf /= qpf.QuadPart;
-	subsecf *= testingNsecPerSec;
-	subsec = (int64_t) subsecf;
-
-	return sec + subsec;
+	ret = c * qpnsQuot;
+	// TODO figure out if the following multiplication can overflow
+	ret += (c * qpnsRem) / qpf.QuadPart;
+	return ret;
 }
 
 // note: the idea for the SetThreadContext() nuttery is from https://www.codeproject.com/Articles/71529/Exception-Injection-Throwing-an-Exception-in-Other

@@ -60,7 +60,6 @@ int64_t testingTimerNsec(testingTimer *t)
 	c = t->end.QuadPart - t->start.QuadPart;
 
 	ret = c * qpnsQuot;
-	// TODO figure out if the following multiplication can overflow
 	ret += (c * qpnsRem) / qpf.QuadPart;
 	return ret;
 }

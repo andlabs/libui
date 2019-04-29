@@ -5,8 +5,8 @@
 #include "testing.h"
 
 struct testingTimer {
-	clock_t start;
-	clock_t end;
+	struct timespec start;
+	struct timespec end;
 };
 
 testingTimer *testingNewTimer(void)
@@ -26,34 +26,24 @@ void testingFreeTimer(testingTimer *t)
 
 void testingTimerStart(testingTimer *t)
 {
-	t->start = clock();
+	// TODO check errors
+	clock_gettime(CLOCK_MONOTONIC, &(t->start));
 }
 
 void testingTimerEnd(testingTimer *t)
 {
-	t->end = clock();
+	// TODO check errors
+	clock_gettime(CLOCK_MONOTONIC, &(t->end));
 }
 
+// TODO replace with proper subtraction code
 int64_t testingTimerNsec(testingTimer *t)
 {
-	clock_t c;
-	clock_t sec;
-	int64_t sec64;
-	clock_t subsec;
-	double subsecf;
-	int64_t subsec64;
+	int64_t nstart, nend;
 
-	c = t->end - t->start;
-
-	sec = c / CLOCKS_PER_SEC;
-	sec64 = (int64_t) sec;
-	sec64 *= testingNsecPerSec;
-
-	subsec = c % CLOCKS_PER_SEC;
-	subsecf = (double) subsec;
-	subsecf /= CLOCKS_PER_SEC;
-	subsecf *= testingNsecPerSec;
-	subsec64 = (int64_t) subsecf;
-
-	return sec64 + subsec64;
+	nstart = ((int64_t) (t->start.tv_sec)) * testingNsecPerSec;
+	nstart += t->start.tv_nsec;
+	nend = ((int64_t) (t->end.tv_sec)) * testingNsecPerSec;
+	nend += t->end.tv_nsec;
+	return nend - nstart;
 }

@@ -42,6 +42,15 @@ if libui_OS == 'windows'
 				required: true),
 		]
 	endif
+elif libui_OS == 'darwin'
+	# do nothing
+else
+	libui_test_deps += [
+		# satisfy old versions of glibc
+		# TODO is this really needed?
+		meson.get_compiler('c').find_library('rt',
+			required: false),
+	]
 endif
 
 # TODO once we upgrade to 0.49.0, add pie: true

@@ -63,7 +63,7 @@ testingTest(QueueMain)
 	uiQueueMain(queued, &flag);
 	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
 	if (flag != 1)
-		testingTErrorf(t, "uiQueueMain didn't set flag properly: got %d, want 1", flag);
+		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", flag);
 }
 
 #define queueOp(name, expr) \
@@ -93,30 +93,77 @@ static const struct {
 	{ 16, "mul8 -> div3 -> sub2" },
 };
 
+static void queueOrder(uint32_t *flag)
+{
+	*flag = 7;
+	uiQueueMain(sub2, flag);
+	uiQueueMain(div3, flag);
+	uiQueueMain(mul8, flag);
+	uiQueueMain(done, NULL);
+}
+
+// TODO somehow funnel the caller's file/line through
+static void checkOrder(testingT *t, uint32_t flag)
+{
+	int i;
+
+	if (flag == orders[0].result)
+		return;
+	for (i = 1; i < 6; i++)
+		if (flag == orders[i].result) {
+			testingTErrorf(t, "got %" PRIu32 " (%s), want %" PRIu32 " (%s)", flag, orders[i].order, orders[0].result, orders[0].order);
+			return;
+		}
+	testingTErrorf(t, "got %" PRIu32 " (unknown order), want %" PRIu32 " (%s)", flag, orders[0].result, orders[0].order);
+}
+	
 testingTest(QueueMain_Sequence)
 {
 	uint32_t flag;
-	int i;
 
-	flag = 7;
-	uiQueueMain(sub2, &flag);
-	uiQueueMain(div3, &flag);
-	uiQueueMain(mul8, &flag);
-	uiQueueMain(done, NULL);
+	queueOrder(&flag);
 	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
-	if (flag != orders[0].result) {
-		for (i = 1; i < 6; i++)
-			if (flag == orders[i].result) {
-				testingTErrorf(t, "got %" PRIu32 " (%s), want %" PRIu32 " (%s)", flag, orders[i].order, orders[0].result, orders[0].order);
-				break;
-			}
-		if (i >= 6)
-			testingTErrorf(t, "got %" PRIu32 " (unknown order), want %" PRIu32 " (%s)", flag, orders[0].result, orders[0].order);
-	}
+	checkOrder(t, flag);
 }
 
-// TODO testingTest(QueueMain_DifferentThread)
-// TODO testingTest(QueueMain_DifferentThreadSequence)
+static void queueThread(void *data)
+{
+	int *flag = (int *) data;
+
+	testingSleep(1250 * testingNsecPerMsec);
+	uiQueueMain(queued, flag);
+}
+
+testingTest(QueueMain_DifferentThread)
+{
+	testingThread *thread;
+	int flag = 0;
+
+	thread = testingNewThread(queueThread, &flag);
+	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
+	testingThreadWaitAndFree(thread);
+	if (flag != 1)
+		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", flag);
+}
+
+static void queueOrderThread(void *data)
+{
+	uint32_t *flag = (uint32_t *) data;
+
+	testingSleep(1250 * testingNsecPerMsec);
+	queueOrder(flag);
+}
+
+testingTest(QueueMain_DifferentThreadSequence)
+{
+	testingThread *thread;
+	uint32_t flag;
+
+	thread = testingNewThread(queueOrderThread, &flag);
+	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
+	testingThreadWaitAndFree(thread);
+	checkOrder(t, flag);
+}
 
 #if 0
 static void timer(void *data)

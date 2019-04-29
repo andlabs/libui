@@ -259,3 +259,56 @@ out:
 	if (failNowOnError)
 		testingTFailNow(t);
 }
+
+void testingSleep(int64_t nsec)
+{
+	HANDLE timer;
+	LARGE_INTEGER duration;
+
+	// TODO check errors, possibly falling back to Sleep() (although it has lower resolution)
+	// TODO rename all the other durations that are timeout or timer to duration or nsec, both here and in the Unix/Darwin code
+	duration.QuadPart = nsec / 100;
+	duration.QuadPart = -duration.QuadPart;
+	timer = CreateWaitableTimerW(NULL, TRUE, NULL);
+	SetWaitableTimer(timer, &duration, 0, NULL, NULL, FALSE);
+	WaitForSingleObject(timer, INFINITE);
+	CloseHandle(timer);
+}
+
+struct testingThread {
+	uintptr_t handle;
+	void (*f)(void *data);
+	void *data;
+};
+
+static unsigned __stdcall threadThreadProc(void *data)
+{
+	testingThread *t = (testingThread *) data;
+
+	(*(t->f))(t->data);
+	return 0;
+}
+
+testingThread *testingNewThread(void (*f)(void *data), void *data)
+{
+	testingThread *t;
+
+	t = malloc(sizeof (testingThread));
+	// TODO check error
+	ZeroMemory(t, sizeof (testingThread));
+	t->f = f;
+	t->data = data;
+
+	t->handle = _beginthreadex(NULL, 0, threadThreadProc, t, 0, NULL);
+	// TODO check error
+	return t;
+}
+
+void testingThreadWaitAndFree(testingThread *t)
+{
+	// TODO check errors
+	WaitForSingleObject((HANDLE) (t->handle), INFINITE);
+	// TODO end check errors
+	CloseHandle((HANDLE) (t->handle));
+	free(t);
+}

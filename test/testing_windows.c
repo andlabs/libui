@@ -90,12 +90,13 @@ static void setContextForSet(CONTEXT *ctx)
 	ctx->Rip = (DWORD64) onTimeout;
 #elif defined(_ARM_)
 	ctx->Pc = (DWORD) onTimeout;
+#elif defined(_ARM64_)
+	ctx->Pc = (DWORD64) onTimeout;
 #elif defined(_X86_)
 	ctx->Eip = (DWORD) onTimeout;
 #elif defined(_IA64_)
 	// TODO verify that this is correct
 	ctx->StIIP = (ULONGLONG) onTimeout;
-// TODO arm64 (I need to get the headers for this)
 #else
 #error unknown CPU architecture; cannot create CONTEXT objects for CPU-specific Windows test code
 #endif

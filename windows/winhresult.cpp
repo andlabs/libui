@@ -41,13 +41,16 @@ HRESULT WINAPI uiprivHrCreateWindowExW(DWORD exStyle, LPCWSTR className, LPCWSTR
 	return S_OK;
 }
 
-// TODO turn ret into S_OK/S_FALSE?
-HRESULT WINAPI uiprivHrGetMessageW(LPMSG msg, HWND hwnd, UINT filterMin, UINT filterMax, BOOL *ret)
+HRESULT WINAPI uiprivHrGetMessageW(LPMSG msg, HWND hwnd, UINT filterMin, UINT filterMax)
 {
+	BOOL ret;
+
 	SetLastError(0);
-	*ret = GetMessageW(msg, hwnd, filterMin, filterMax);
-	if (*ret < 0)
+	ret = GetMessageW(msg, hwnd, filterMin, filterMax);
+	if (ret < 0)
 		return lastErrorToHRESULT();
+	if (ret == 0)
+		return S_FALSE;
 	return S_OK;
 }
 

@@ -115,17 +115,16 @@ int uiInit(void *options, uiInitError *err)
 void uiMain(void)
 {
 	MSG msg;
-	BOOL ret;
 	HRESULT hr;
 
 	for (;;) {
-		hr = uiprivHrGetMessageW(&msg, NULL, 0, 0, &ret);
+		hr = uiprivHrGetMessageW(&msg, NULL, 0, 0);
+		if (hr == S_FALSE)		// WM_QUIT
+			return;
 		if (hr != S_OK) {
 			// TODO log error
 			return;
 		}
-		if (ret == 0)		// WM_QUIT
-			return;
 		// TODO IsDialogMessage()
 		TranslateMessage(&msg);
 		DispatchMessageW(&msg);

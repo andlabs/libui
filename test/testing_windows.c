@@ -438,7 +438,6 @@ static unsigned __stdcall threadThreadProc(void *data)
 	return 0;
 }
 
-// TODO instead of panicking, should these functions report errors to a testingT?
 testingThread *testingNewThread(void (*f)(void *data), void *data)
 {
 	testingThread *t;

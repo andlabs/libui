@@ -72,6 +72,17 @@ static HRESULT WINAPI hrSetThreadContext(HANDLE thread, CONST CONTEXT *ctx)
 	return S_OK;
 }
 
+static HRESULT WINAPI hrPostThreadMessageW(DWORD threadID, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = PostThreadMessageW(threadID, uMsg, wParam, lParam);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
 static HRESULT WINAPI hrResumeThread(HANDLE thread)
 {
 	DWORD ret;
@@ -215,6 +226,7 @@ static void onTimeout(void)
 static HANDLE timeout_timer;
 static HANDLE timeout_finished;
 static HANDLE timeout_targetThread;
+static DWORD timeout_targetThreadID;
 static HRESULT timeout_hr;
 
 static void setContextForGet(CONTEXT *ctx)
@@ -272,9 +284,10 @@ static unsigned __stdcall timerThreadProc(void *data)
 	if (hr != S_OK)
 		testingprivInternalError("error calling SetThreadContext() after timeout: 0x%08I32X", hr);
 	// and force the thread to return from GetMessage(), if we are indeed in that
-	// TODO decide whether to check errors
-	// TODO either way, check errors in GetThreadId()
-	PostThreadMessage(GetThreadId(timeout_targetThread), WM_NULL, 0, 0);
+	// and yes, this is the way to do it (https://devblogs.microsoft.com/oldnewthing/?p=16553, https://devblogs.microsoft.com/oldnewthing/20050405-46/?p=35973, https://devblogs.microsoft.com/oldnewthing/20080528-00/?p=22163)
+	hr = hrPostThreadMessageW(timeout_targetThreadID, WM_NULL, 0, 0);
+	if (hr != S_OK)
+		testingprivInternalError("error calling PostThreadMessage() after timeout: 0x%08I32X", hr);
 	hr = hrResumeThread(timeout_targetThread);
 	if (hr != S_OK)
 		testingprivInternalError("error calling ResumeThread() after timeout: 0x%08I32X", hr);
@@ -284,6 +297,7 @@ static unsigned __stdcall timerThreadProc(void *data)
 void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t timeout, void (*f)(testingT *t, void *data), void *data, const char *comment, int failNowOnError)
 {
 	char *timeoutstr;
+	MSG msg;
 	int closeTargetThread = 0;
 	uintptr_t timerThread = 0;
 	LARGE_INTEGER timer;
@@ -291,6 +305,9 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 	HRESULT hr;
 
 	timeoutstr = testingNsecString(timeout);
+
+	// to ensure that the PostThreadMessage() above will not fail because the thread doesn't have a message queue
+	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 
 	hr = hrDuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
 		GetCurrentProcess(), &timeout_targetThread,
@@ -301,6 +318,7 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 		goto out;
 	}
 	closeTargetThread = 1;
+	timeout_targetThreadID = GetCurrentThreadId();
 
 	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &timeout_timer);
 	if (hr != S_OK) {

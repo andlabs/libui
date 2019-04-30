@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include "testing.h"
+#include "testingpriv.h"
 
 // TODO don't start the timer on any platform until after we call setjmp(); also decide whether to start the timer before or after resuming the thread on Windows
 
@@ -85,9 +86,7 @@ testingThread *testingNewThread(void (*f)(void *data), void *data)
 {
 	testingThread *t;
 
-	t = malloc(sizeof (testingThread));
-	// TODO check error
-	memset(t, 0, sizeof (testingThread));
+	t = testingprivNew(testingThread);
 	t->f = f;
 	t->data = data;
 
@@ -102,5 +101,5 @@ void testingThreadWaitAndFree(testingThread *t)
 	pthread_join(t->thread, NULL);
 	// TODO end check errors
 	// TODO do we need to free t->thread somehow?
-	free(t);
+	testingprivFree(t);
 }

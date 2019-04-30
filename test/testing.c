@@ -4,8 +4,45 @@
 #include <setjmp.h>
 #include <string.h>
 #include "testing.h"
+#include "testingpriv.h"
 
-#define testingprivNew(T) ((T *) malloc(sizeof (T)))
+void testingprivInternalError(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	fprintf(stderr, "** testing internal error: ");
+	vfprintf(stderr, fmt, ap);
+	fprintf(stderr, "; aborting\n");
+	va_end(ap);
+	abort();
+}
+
+void *testingprivMalloc(size_t n, const char *what)
+{
+	void *x;
+
+	x = malloc(n);
+	if (x == NULL)
+		testingprivInternalError("memory exhausted allocating %s", what);
+	memset(x, 0, n);
+	return x;
+}
+
+void *testingprivRealloc(void *x, size_t n, const char *what)
+{
+	void *y;
+
+	y = realloc(x, n);
+	if (y == NULL)
+		testingprivInternalError("memory exhausted reallocating %s", what);
+	return y;
+}
+
+void testingprivFree(void *x)
+{
+	free(x);
+}
 
 struct defer {
 	void (*f)(testingT *, void *);
@@ -65,12 +102,8 @@ static struct testset testsAfter = { NULL, 0, 0 };
 static void testsetAdd(struct testset *set, const char *name, void (*f)(testingT *), const char *file, long line)
 {
 	if (set->len == set->cap) {
-		testingT *newbuf;
-
 		set->cap += nGrow;
-		newbuf = (testingT *) realloc(set->tests, set->cap * sizeof (testingT));
-		// TODO abort if newbuf is NULL
-		set->tests = newbuf;
+		set->tests = testingprivResizeArray(set->tests, testingT, set->cap);
 	}
 	initTest(set->tests + set->len, name, f, file, line);
 	set->len++;
@@ -315,9 +348,7 @@ char *testingNsecString(int64_t nsec)
 	const struct timerStringPart *p;
 
 	// The Go algorithm says 32 should be enough.
-	s = (char *) malloc(33 * sizeof (char));
-	// TODO handle failure
-	memset(s, 0, 33 * sizeof (char));
+	s = testingprivNewArray(char, 33);
 	start = 32;
 
 	if (nsec == 0) {
@@ -376,5 +407,5 @@ char *testingNsecString(int64_t nsec)
 
 void testingFreeNsecString(char *s)
 {
-	free(s);
+	testingprivFree(s);
 }

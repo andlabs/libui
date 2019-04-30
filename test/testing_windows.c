@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "testing.h"
+#include "testingpriv.h"
 
 struct testingTimer {
 	LARGE_INTEGER start;
@@ -24,17 +25,12 @@ struct testingTimer {
 
 testingTimer *testingNewTimer(void)
 {
-	testingTimer *t;
-
-	t = (testingTimer *) malloc(sizeof (testingTimer));
-	// TODO handle failure
-	memset(t, 0, sizeof (testingTimer));
-	return t;
+	return testingprivNew(testingTimer);
 }
 
 void testingFreeTimer(testingTimer *t)
 {
-	free(t);
+	testingprivFree(t);
 }
 
 void testingTimerStart(testingTimer *t)
@@ -288,9 +284,7 @@ testingThread *testingNewThread(void (*f)(void *data), void *data)
 {
 	testingThread *t;
 
-	t = malloc(sizeof (testingThread));
-	// TODO check error
-	ZeroMemory(t, sizeof (testingThread));
+	t = testingprivNew(testingThread);
 	t->f = f;
 	t->data = data;
 
@@ -305,5 +299,5 @@ void testingThreadWaitAndFree(testingThread *t)
 	WaitForSingleObject((HANDLE) (t->handle), INFINITE);
 	// TODO end check errors
 	CloseHandle((HANDLE) (t->handle));
-	free(t);
+	testingprivFree(t);
 }

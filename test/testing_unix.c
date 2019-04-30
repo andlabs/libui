@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "testing.h"
+#include "testingpriv.h"
 
 struct testingTimer {
 	struct timespec start;
@@ -11,17 +12,12 @@ struct testingTimer {
 
 testingTimer *testingNewTimer(void)
 {
-	testingTimer *t;
-
-	t = (testingTimer *) malloc(sizeof (testingTimer));
-	// TODO handle failure
-	memset(t, 0, sizeof (testingTimer));
-	return t;
+	return testingprivNew(testingTimer);
 }
 
 void testingFreeTimer(testingTimer *t)
 {
-	free(t);
+	testingprivFree(t);
 }
 
 void testingTimerStart(testingTimer *t)

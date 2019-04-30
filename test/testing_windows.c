@@ -18,6 +18,149 @@
 #include "testing.h"
 #include "testingpriv.h"
 
+static HRESULT lastErrorCodeToHRESULT(DWORD lastError)
+{
+	if (lastError == 0)
+		return E_FAIL;
+	return HRESULT_FROM_WIN32(lastError);
+}
+
+static HRESULT lastErrorToHRESULT(void)
+{
+	return lastErrorCodeToHRESULT(GetLastError());
+}
+
+static HRESULT WINAPI hrWaitForMultipleObjectsEx(DWORD n, const HANDLE *objects, BOOL waitAll, DWORD timeout, BOOL alertable, DWORD *result)
+{
+	SetLastError(0);
+	*result = WaitForMultipleObjectsEx(n, objects, waitAll, timeout, alertable);
+	if (*result == WAIT_FAILED)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrSuspendThread(HANDLE thread)
+{
+	DWORD ret;
+
+	SetLastError(0);
+	ret = SuspendThread(thread);
+	if (ret == (DWORD) (-1))
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrGetThreadContext(HANDLE thread, LPCONTEXT ctx)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = GetThreadContext(thread, ctx);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrSetThreadContext(HANDLE thread, CONST CONTEXT *ctx)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = SetThreadContext(thread, ctx);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrResumeThread(HANDLE thread)
+{
+	DWORD ret;
+
+	SetLastError(0);
+	ret = ResumeThread(thread);
+	if (ret == (DWORD) (-1))
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrDuplicateHandle(HANDLE sourceProcess, HANDLE sourceHandle, HANDLE targetProcess, LPHANDLE targetHandle, DWORD access, BOOL inherit, DWORD options)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = DuplicateHandle(sourceProcess, sourceHandle,
+		targetProcess, targetHandle,
+		access, inherit, options);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrCreateWaitableTimerW(LPSECURITY_ATTRIBUTES attributes, BOOL manualReset, LPCWSTR name, HANDLE *handle)
+{
+	SetLastError(0);
+	*handle = CreateWaitableTimerW(attributes, manualReset, name);
+	if (*handle == NULL)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrCreateEventW(LPSECURITY_ATTRIBUTES attributes, BOOL manualReset, BOOL initialState, LPCWSTR name, HANDLE *handle)
+{
+	SetLastError(0);
+	*handle = CreateEventW(attributes, manualReset, initialState, name);
+	if (*handle == NULL)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrSetWaitableTimer(HANDLE timer, const LARGE_INTEGER *duration, LONG period, PTIMERAPCROUTINE completionRoutine, LPVOID completionData, BOOL resume)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = SetWaitableTimer(timer, duration, period, completionRoutine, completionData, resume);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT __cdecl hr_beginthreadex(void *security, unsigned stackSize, unsigned (__stdcall *threadProc)(void *arg), void *threadProcArg, unsigned flags, unsigned *thirdArg, uintptr_t *handle)
+{
+	DWORD lastError;
+
+	// _doserrno is the equivalent of GetLastError(), or at least that's how _beginthreadex() uses it.
+	_doserrno = 0;
+	*handle = _beginthreadex(security, stackSize, threadProc, threadProcArg, flags, thirdArg);
+	if (*handle == 0) {
+		lastError = (DWORD) _doserrno;
+		return lastErrorCodeToHRESULT(lastError);
+	}
+	return S_OK;
+}
+
+static HRESULT WINAPI hrSetEvent(HANDLE event)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = SetEvent(event);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrWaitForSingleObject(HANDLE handle, DWORD timeout)
+{
+	DWORD ret;
+
+	SetLastError(0);
+	ret = WaitForSingleObject(handle, timeout);
+	if (ret == WAIT_FAILED)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
 struct testingTimer {
 	LARGE_INTEGER start;
 	LARGE_INTEGER end;
@@ -102,36 +245,39 @@ static unsigned __stdcall timerThreadProc(void *data)
 {
 	HANDLE objects[2];
 	CONTEXT ctx;
-	DWORD ret;
-	DWORD lastError;
+	DWORD which;
+	HRESULT hr;
 
 	objects[0] = timeout_timer;
 	objects[1] = timeout_finished;
-	timeout_hr = S_OK;
-	SetLastError(0);
-	ret = WaitForMultipleObjectsEx(2, objects,
-		FALSE, INFINITE, FALSE);
-	if (ret == WAIT_FAILED) {
-		lastError = GetLastError();
-		timeout_hr = E_FAIL;
-		if (lastError != 0)
-			timeout_hr = HRESULT_FROM_WIN32(lastError);
-		ret = WAIT_OBJECT_0;
-	}
-	if (ret == WAIT_OBJECT_0 + 1)
+	timeout_hr = hrWaitForMultipleObjectsEx(2, objects,
+		FALSE, INFINITE, FALSE, &which);
+	if (timeout_hr != S_OK)
+		// act as if we timed out; the other thread will see the error
+		which = WAIT_OBJECT_0;
+	if (which == WAIT_OBJECT_0 + 1)
 		// we succeeded; do nothing
 		return 0;
 
 	// we timed out (or there was an error); signal it
-	// TODO check errors
-	SuspendThread(timeout_targetThread);
+	hr = hrSuspendThread(timeout_targetThread);
+	if (hr != S_OK)
+		testingprivInternalError("error calling SuspendThread() after timeout: 0x%08I32X", hr);
 	setContextForGet(&ctx);
-	GetThreadContext(timeout_targetThread, &ctx);
+	hr = hrGetThreadContext(timeout_targetThread, &ctx);
+	if (hr != S_OK)
+		testingprivInternalError("error calling GetThreadContext() after timeout: 0x%08I32X", hr);
 	setContextForSet(&ctx);
-	SetThreadContext(timeout_targetThread, &ctx);
+	hr = hrSetThreadContext(timeout_targetThread, &ctx);
+	if (hr != S_OK)
+		testingprivInternalError("error calling SetThreadContext() after timeout: 0x%08I32X", hr);
 	// and force the thread to return from GetMessage(), if we are indeed in that
+	// TODO decide whether to check errors
+	// TODO either way, check errors in GetThreadId()
 	PostThreadMessage(GetThreadId(timeout_targetThread), WM_NULL, 0, 0);
-	ResumeThread(timeout_targetThread);
+	hr = hrResumeThread(timeout_targetThread);
+	if (hr != S_OK)
+		testingprivInternalError("error calling ResumeThread() after timeout: 0x%08I32X", hr);
 	return 0;
 }
 
@@ -141,82 +287,61 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 	int closeTargetThread = 0;
 	uintptr_t timerThread = 0;
 	LARGE_INTEGER timer;
-	BOOL ret;
-	DWORD lastError;
+	int waitForTimerThread = 0;
 	HRESULT hr;
 
 	timeoutstr = testingNsecString(timeout);
 
-	SetLastError(0);
-	ret = DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
+	hr = hrDuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
 		GetCurrentProcess(), &timeout_targetThread,
 		0, FALSE, DUPLICATE_SAME_ACCESS);
-	if (ret == 0) {
-		lastError = GetLastError();
-		hr = E_FAIL;
-		if (lastError != 0)
-			hr = HRESULT_FROM_WIN32(lastError);
+	if (hr != S_OK) {
 		testingprivTLogfFull(t, file, line, "error getting current thread for %s timeout: 0x%08I32X", comment, hr);
 		testingTFail(t);
 		goto out;
 	}
 	closeTargetThread = 1;
 
-	SetLastError(0);
-	timeout_timer = CreateWaitableTimerW(NULL, TRUE, NULL);
-	if (timeout_timer == NULL) {
-		lastError = GetLastError();
-		hr = E_FAIL;
-		if (lastError != 0)
-			hr = HRESULT_FROM_WIN32(lastError);
+	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &timeout_timer);
+	if (hr != S_OK) {
 		testingprivTLogfFull(t, file, line, "error creating timer for %s timeout: 0x%08I32X", comment, hr);
 		testingTFail(t);
 		goto out;
 	}
 
-	SetLastError(0);
-	timeout_finished = CreateEventW(NULL, TRUE, FALSE, NULL);
-	if (timeout_finished == NULL) {
-		lastError = GetLastError();
-		hr = E_FAIL;
-		if (lastError != 0)
-			hr = HRESULT_FROM_WIN32(lastError);
+	hr = hrCreateEventW(NULL, TRUE, FALSE, NULL, &timeout_finished);
+	if (hr != S_OK) {
 		testingprivTLogfFull(t, file, line, "error creating finished event for %s timeout: 0x%08I32X", comment, hr);
 		testingTFail(t);
 		goto out;
 	}
 
-	SetLastError(0);
 	timer.QuadPart = timeout / 100;
 	timer.QuadPart = -timer.QuadPart;
-	ret = SetWaitableTimer(timeout_timer, &timer, 0, NULL, NULL, FALSE);
-	if (ret == 0) {
-		lastError = (DWORD) _doserrno;
-		hr = E_FAIL;
-		if (lastError != 0)
-			hr = HRESULT_FROM_WIN32(lastError);
+	hr = hrSetWaitableTimer(timeout_timer, &timer, 0, NULL, NULL, FALSE);
+	if (hr != S_OK) {
 		testingprivTLogfFull(t, file, line, "error applying %s timeout: 0x%08I32X", comment, hr);
 		testingTFail(t);
 		goto out;
 	}
 
-	// _doserrno is the equivalent of GetLastError(), or at least that's how _beginthreadex() uses it.
-	_doserrno = 0;
 	// don't start the thread until after we call setjmp()
-	timerThread = _beginthreadex(NULL, 0, timerThreadProc, NULL, CREATE_SUSPENDED, NULL);
-	if (timerThread == 0) {
-		lastError = (DWORD) _doserrno;
-		hr = E_FAIL;
-		if (lastError != 0)
-			hr = HRESULT_FROM_WIN32(lastError);
+	hr = hr_beginthreadex(NULL, 0, timerThreadProc, NULL, CREATE_SUSPENDED, NULL, &timerThread);
+	if (hr != S_OK) {
 		testingprivTLogfFull(t, file, line, "error creating timer thread for %s timeout: 0x%08I32X", comment, hr);
 		testingTFail(t);
 		goto out;
 	}
+	waitForTimerThread = 1;
 
 	if (setjmp(timeout_ret) == 0) {
-		// TODO check error
-		ResumeThread((HANDLE) timerThread);
+		hr = hrResumeThread((HANDLE) timerThread);
+		if (hr != S_OK) {
+			testingprivTLogfFull(t, file, line, "error calling ResumeThread() to start timeout thread: 0x%08I32X", hr);
+			testingTFail(t);
+			waitForTimerThread = 0;
+			goto out;
+		}
 		(*f)(t, data);
 		failNowOnError = 0;		// we succeeded
 	} else if (timeout_hr == S_OK) {
@@ -229,10 +354,14 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 
 out:
 	if (timerThread != 0) {
-		// TODO check errors
-		SetEvent(timeout_finished);
-		WaitForSingleObject((HANDLE) timerThread, INFINITE);
-		// TODO end check errors
+		if (waitForTimerThread) {
+			hr = hrSetEvent(timeout_finished);
+			if (hr != S_OK)
+				testingprivInternalError("error signaling timer thread to finish for %s timeout: 0x%08I32X (this is fatal because that thread may interrupt us)", comment, hr);
+			hr = hrWaitForSingleObject((HANDLE) timerThread, INFINITE);
+			if (hr != S_OK)
+				testingprivInternalError("error waiting for timer thread to quit for %s timeout: 0x%08I32X (this is fatal because that thread may interrupt us)", comment, hr);
+		}
 		CloseHandle((HANDLE) timerThread);
 	}
 	if (timeout_finished != NULL) {
@@ -255,15 +384,27 @@ void testingSleep(int64_t nsec)
 {
 	HANDLE timer;
 	LARGE_INTEGER duration;
+	HRESULT hr;
 
-	// TODO check errors, possibly falling back to Sleep() (although it has lower resolution)
 	// TODO rename all the other durations that are timeout or timer to duration or nsec, both here and in the Unix/Darwin code
 	duration.QuadPart = nsec / 100;
 	duration.QuadPart = -duration.QuadPart;
-	timer = CreateWaitableTimerW(NULL, TRUE, NULL);
-	SetWaitableTimer(timer, &duration, 0, NULL, NULL, FALSE);
-	WaitForSingleObject(timer, INFINITE);
+	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &timer);
+	if (hr != S_OK)
+		goto fallback;
+	hr = hrSetWaitableTimer(timer, &duration, 0, NULL, NULL, FALSE);
+	if (hr != S_OK) {
+		CloseHandle(timer);
+		goto fallback;
+	}
+	hr = hrWaitForSingleObject(timer, INFINITE);
 	CloseHandle(timer);
+	if (hr == S_OK)
+		return;
+
+fallback:
+	// this has lower resolution, but we can't detect a failure, so use it as a fallback
+	Sleep((DWORD) (nsec / testingNsecPerMsec));
 }
 
 struct testingThread {
@@ -280,24 +421,29 @@ static unsigned __stdcall threadThreadProc(void *data)
 	return 0;
 }
 
+// TODO instead of panicking, should these functions report errors to a testingT?
 testingThread *testingNewThread(void (*f)(void *data), void *data)
 {
 	testingThread *t;
+	HRESULT hr;
 
 	t = testingprivNew(testingThread);
 	t->f = f;
 	t->data = data;
 
-	t->handle = _beginthreadex(NULL, 0, threadThreadProc, t, 0, NULL);
-	// TODO check error
+	hr = hr_beginthreadex(NULL, 0, threadThreadProc, t, 0, NULL, &(t->handle));
+	if (hr != S_OK)
+		testingprivInternalError("error creating thread: 0x%08I32X", hr);
 	return t;
 }
 
 void testingThreadWaitAndFree(testingThread *t)
 {
-	// TODO check errors
-	WaitForSingleObject((HANDLE) (t->handle), INFINITE);
-	// TODO end check errors
+	HRESULT hr;
+
+	hr = hrWaitForSingleObject((HANDLE) (t->handle), INFINITE);
+	if (hr != S_OK)
+		testingprivInternalError("error waiting for thread to finish: 0x%08I32X", hr);
 	CloseHandle((HANDLE) (t->handle));
 	testingprivFree(t);
 }

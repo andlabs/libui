@@ -127,6 +127,8 @@ void uiQuit(void);
 
 TODO safety of calling `uiMain()` again after `uiQuit()`?
 
+TODO behavior of calling `uiQuit()` outside of a `uiMain()` (before, after, etc.)
+
 ### `uiQueueMain()`
 
 ```c

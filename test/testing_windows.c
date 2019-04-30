@@ -300,7 +300,7 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 	MSG msg;
 	int closeTargetThread = 0;
 	uintptr_t timerThread = 0;
-	LARGE_INTEGER timer;
+	LARGE_INTEGER duration;
 	int waitForTimerThread = 0;
 	HRESULT hr;
 
@@ -334,9 +334,9 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 		goto out;
 	}
 
-	timer.QuadPart = timeout / 100;
-	timer.QuadPart = -timer.QuadPart;
-	hr = hrSetWaitableTimer(timeout_timer, &timer, 0, NULL, NULL, FALSE);
+	duration.QuadPart = timeout / 100;
+	duration.QuadPart = -duration.QuadPart;
+	hr = hrSetWaitableTimer(timeout_timer, &duration, 0, NULL, NULL, FALSE);
 	if (hr != S_OK) {
 		testingprivTLogfFull(t, file, line, "error applying %s timeout: 0x%08I32X", comment, hr);
 		testingTFail(t);
@@ -404,7 +404,6 @@ void testingSleep(int64_t nsec)
 	LARGE_INTEGER duration;
 	HRESULT hr;
 
-	// TODO rename all the other durations that are timeout or timer to duration or nsec, both here and in the Unix/Darwin code
 	duration.QuadPart = nsec / 100;
 	duration.QuadPart = -duration.QuadPart;
 	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &timer);

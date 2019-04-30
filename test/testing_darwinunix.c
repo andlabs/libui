@@ -24,17 +24,17 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 {
 	char *timeoutstr;
 	void (*prevsig)(int);
-	struct itimerval timer, prevtimer;
+	struct itimerval duration, prevDuration;
 	int setitimerError = 0;
 
 	timeoutstr = testingNsecString(timeout);
 	prevsig = signal(SIGALRM, onTimeout);
 
-	timer.it_interval.tv_sec = 0;
-	timer.it_interval.tv_usec = 0;
-	timer.it_value.tv_sec = timeout / testingNsecPerSec;
-	timer.it_value.tv_usec = (timeout % testingNsecPerSec) / testingNsecPerUsec;
-	if (setitimer(ITIMER_REAL, &timer, &prevtimer) != 0) {
+	duration.it_interval.tv_sec = 0;
+	duration.it_interval.tv_usec = 0;
+	duration.it_value.tv_sec = timeout / testingNsecPerSec;
+	duration.it_value.tv_usec = (timeout % testingNsecPerSec) / testingNsecPerUsec;
+	if (setitimer(ITIMER_REAL, &duration, &prevDuration) != 0) {
 		setitimerError = errno;
 		testingprivTLogfFull(t, file, line, "error applying %s timeout: %s", comment, strerror(setitimerError));
 		testingTFail(t);
@@ -51,7 +51,7 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 
 out:
 	if (setitimerError == 0)
-		setitimer(ITIMER_REAL, &prevtimer, NULL);
+		setitimer(ITIMER_REAL, &prevDuration, NULL);
 	signal(SIGALRM, prevsig);
 	testingFreeNsecString(timeoutstr);
 	if (failNowOnError)
@@ -60,12 +60,12 @@ out:
 
 void testingSleep(int64_t nsec)
 {
-	struct timespec rqtp;
+	struct timespec duration;
 
 	// TODO check errors, possibly falling back to usleep, setitimer/pause, or even sleep
-	rqtp.tv_sec = nsec / testingNsecPerSec;
-	rqtp.tv_nsec = nsec % testingNsecPerSec;
-	nanosleep(&rqtp, NULL);
+	duration.tv_sec = nsec / testingNsecPerSec;
+	duration.tv_nsec = nsec % testingNsecPerSec;
+	nanosleep(&duration, NULL);
 }
 
 struct testingThread {

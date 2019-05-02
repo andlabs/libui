@@ -172,48 +172,6 @@ static HRESULT WINAPI hrWaitForSingleObject(HANDLE handle, DWORD timeout)
 	return S_OK;
 }
 
-struct testingTimer {
-	LARGE_INTEGER start;
-	LARGE_INTEGER end;
-};
-
-testingTimer *testingNewTimer(void)
-{
-	return testingprivNew(testingTimer);
-}
-
-void testingFreeTimer(testingTimer *t)
-{
-	testingprivFree(t);
-}
-
-void testingTimerStart(testingTimer *t)
-{
-	QueryPerformanceCounter(&(t->start));
-}
-
-void testingTimerEnd(testingTimer *t)
-{
-	QueryPerformanceCounter(&(t->end));
-}
-
-int64_t testingTimerNsec(testingTimer *t)
-{
-	LARGE_INTEGER qpf;
-	int64_t qpnsQuot, qpnsRem;
-	int64_t c;
-	int64_t ret;
-
-	QueryPerformanceFrequency(&qpf);
-	qpnsQuot = testingNsecPerSec / qpf.QuadPart;
-	qpnsRem = testingNsecPerSec % qpf.QuadPart;
-	c = t->end.QuadPart - t->start.QuadPart;
-
-	ret = c * qpnsQuot;
-	ret += (c * qpnsRem) / qpf.QuadPart;
-	return ret;
-}
-
 // note: the idea for the SetThreadContext() nuttery is from https://www.codeproject.com/Articles/71529/Exception-Injection-Throwing-an-Exception-in-Other
 
 static jmp_buf timeout_ret;
@@ -396,32 +354,6 @@ out:
 	testingFreeNsecString(timeoutstr);
 	if (failNowOnError)
 		testingTFailNow(t);
-}
-
-void testingSleep(int64_t nsec)
-{
-	HANDLE timer;
-	LARGE_INTEGER duration;
-	HRESULT hr;
-
-	duration.QuadPart = nsec / 100;
-	duration.QuadPart = -duration.QuadPart;
-	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &timer);
-	if (hr != S_OK)
-		goto fallback;
-	hr = hrSetWaitableTimer(timer, &duration, 0, NULL, NULL, FALSE);
-	if (hr != S_OK) {
-		CloseHandle(timer);
-		goto fallback;
-	}
-	hr = hrWaitForSingleObject(timer, INFINITE);
-	CloseHandle(timer);
-	if (hr == S_OK)
-		return;
-
-fallback:
-	// this has lower resolution, but we can't detect a failure, so use it as a fallback
-	Sleep((DWORD) (nsec / testingNsecPerMsec));
 }
 
 struct testingThread {

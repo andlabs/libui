@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <setjmp.h>
 #include <string.h>
+#include "timer.h"
 #include "testing.h"
 #include "testingpriv.h"
 
@@ -161,17 +162,17 @@ static void testsetRun(struct testset *set, int *anyFailed)
 	size_t i;
 	testingT *t;
 	const char *status;
-	testingTimer *timer;
-	char *timerstr;
+	timerTime start, end;
+	char timerstr[timeDurationStringLen];
 
 	t = set->tests;
 	timer = testingNewTimer();
 	for (i = 0; i < set->len; i++) {
 		printf("=== RUN   %s\n", t->name);
-		testingTimerStart(timer);
+		start = timerMonotonicNow();
 		if (setjmp(t->returnNowBuf) == 0)
 			(*(t->f))(t);
-		testingTimerEnd(timer);
+		end = timerMonotonicNow();
 		t->returned = 1;
 		runDefers(t);
 		status = "PASS";
@@ -181,9 +182,8 @@ static void testsetRun(struct testset *set, int *anyFailed)
 		} else if (t->skipped)
 			// note that failed overrides skipped
 			status = "SKIP";
-		timerstr = testingNsecString(testingTimerNsec(timer));
+		timerDurationString(timerTimeSub(end, start), timerstr);
 		printf("--- %s: %s (%s)\n", status, t->name, timerstr);
-		testingFreeNsecString(timerstr);
 		t++;
 	}
 	testingFreeTimer(timer);
@@ -276,136 +276,4 @@ void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data)
 	// add to the head of the list so defers are run in reverse order of how they were added
 	d->next = t->defers;
 	t->defers = d;
-}
-
-// This is based on the algorithm that Go uses for time.Duration.
-// Of course, we're not expressing it the same way...
-struct timerStringPart {
-	char suffix;
-	char suffix2;
-	int mode;
-	uint32_t maxOrMod;
-	int precision;
-};
-
-enum {
-	modeMaxAndStop,
-	modeFracModContinue,
-};
-
-static const struct timerStringPart parts[] = {
-	{ 'n', 's', modeMaxAndStop, 1000, 0 },
-	{ 'u', 's', modeMaxAndStop, 1000000, 3 },
-	{ 'm', 's', modeMaxAndStop, 1000000000, 6 },
-	{ 's', 0, modeFracModContinue, 60, 9 },
-	{ 'm', 0, modeFracModContinue, 60, 0 },
-	{ 'h', 0, modeFracModContinue, 60, 0 },
-	{ 0, 0, 0, 0, 0 },
-};
-
-static void fillFracPart(char *s, int precision, int *start, uint64_t *unsec)
-{
-	int i;
-	int print;
-	uint64_t digit;
-
-	print = 0;
-	for (i = 0; i < precision; i++) {
-		digit = *unsec % 10;
-		print = print || (digit != 0);
-		if (print) {
-			s[*start - 1] = "0123456789"[digit];
-			(*start)--;
-		}
-		*unsec /= 10;
-	}
-	if (print) {
-		s[*start - 1] = '.';
-		(*start)--;
-	}
-}
-
-static void fillIntPart(char *s, int *start, uint64_t unsec)
-{
-	if (unsec == 0) {
-		s[*start - 1] = '0';
-		(*start)--;
-		return;
-	}
-	while (unsec != 0) {
-		s[*start - 1] = "0123456789"[unsec % 10];
-		(*start)--;
-		unsec /= 10;
-	}
-}
-
-char *testingNsecString(int64_t nsec)
-{
-	uint64_t unsec;
-	int neg;
-	char *s;
-	int start;
-	const struct timerStringPart *p;
-
-	// The Go algorithm says 32 should be enough.
-	s = testingprivNewArray(char, 33);
-	start = 32;
-
-	if (nsec == 0) {
-		s[0] = '0';
-		s[1] = 's';
-		return s;
-	}
-	unsec = (uint64_t) nsec;
-	neg = 0;
-	if (nsec < 0) {
-#ifdef _MSC_VER
-// TODO figure out a more explicit way to do this; until then, just go with what the standard says should happen, because it's what we want (TODO verify this)
-#pragma warning(push)
-#pragma warning(disable: 4146)
-#endif
-		unsec = -unsec;
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-		neg = 1;
-	}
-
-	for (p = parts; p->suffix != 0; p++) {
-		if (p->mode == modeMaxAndStop && unsec < p->maxOrMod) {
-			if (p->suffix2 != 0) {
-				s[start - 1] = p->suffix2;
-				start--;
-			}
-			s[start - 1] = p->suffix;
-			start--;
-			fillFracPart(s, p->precision, &start, &unsec);
-			fillIntPart(s, &start, unsec);
-			break;
-		}
-		if (p->mode == modeFracModContinue && unsec != 0) {
-			if (p->suffix2 != 0) {
-				s[start - 1] = p->suffix2;
-				start--;
-			}
-			s[start - 1] = p->suffix;
-			start--;
-			fillFracPart(s, p->precision, &start, &unsec);
-			fillIntPart(s, &start, unsec % p->maxOrMod);
-			unsec /= p->maxOrMod;
-			// and move on to the next one
-		}
-	}
-
-	if (neg) {
-		s[start - 1] = '-';
-		start--;
-	}
-	memmove(s, s + start, 33 - start);
-	return s;
-}
-
-void testingFreeNsecString(char *s)
-{
-	testingprivFree(s);
 }

@@ -11,13 +11,12 @@ typedef int64_t timerTime;
 #define timerSecond ((Duration) 1000000000)
 
 extern timerTime timerMonotonicNow(void);
-extern timerDuration timerTimeSub(timerTime start, timerTime end);
+extern timerDuration timerTimeSub(timerTime end, timerTime start);
 
 // The Go algorithm says 32 should be enough.
 // We use 33 to count the terminating NUL.
-#define timerTimeStringLen 33
-
-extern void timerDurationString(timerDuration d, char buf[timerTimeStringLen]);
+#define timerDurationStringLen 33
+extern void timerDurationString(timerDuration d, char buf[timerDurationStringLen]);
 
 typedef uint64_t timerSysError;
 #ifdef _WIN32

@@ -64,25 +64,8 @@ extern void testingTFailNow(testingT *t);
 extern void testingTSkipNow(testingT *t);
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
 
-typedef struct testingTimer testingTimer;
-
-#define testingNsecPerUsec ((int64_t) 1000)
-#define testingNsecPerMsec ((int64_t) 1000000)
-#define testingNsecPerSec ((int64_t) 1000000000)
-
-extern testingTimer *testingNewTimer(void);
-extern void testingFreeTimer(testingTimer *t);
-extern void testingTimerStart(testingTimer *t);
-extern void testingTimerEnd(testingTimer *t);
-extern int64_t testingTimerNsec(testingTimer *t);
-
-extern char *testingNsecString(int64_t nsec);
-extern void testingFreeNsecString(char *s);
-
 #define testingRunWithTimeout(t, timeout, f, data, comment, failNowOnError) \
 	testingprivRunWithTimeout(t, __FILE__, __LINE__, timeout, f, data, comment, failNowOnError)
-
-extern void testingSleep(int64_t nsec);
 
 // TODO I don't like this threading model, but let's use it for now so I can continue working
 typedef struct testingThread testingThread;

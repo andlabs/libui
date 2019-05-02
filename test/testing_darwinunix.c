@@ -1,4 +1,8 @@
 // 28 april 2019
+// TODO pin down minimum POSIX versions (depends on what macOS 10.8 conforms to and what GLib/GTK+ require)
+// TODO feature test macros for things like monotonic clocks?
+// TODO is this needed in this file specifically, or just in testing_unix.c?
+#define _POSIX_C_SOURCE 200112L
 #include <errno.h>
 #include <inttypes.h>
 #include <setjmp.h>

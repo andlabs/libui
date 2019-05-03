@@ -31,112 +31,6 @@ static HRESULT lastErrorToHRESULT(void)
 	return lastErrorCodeToHRESULT(GetLastError());
 }
 
-static HRESULT WINAPI hrWaitForMultipleObjectsEx(DWORD n, const HANDLE *objects, BOOL waitAll, DWORD timeout, BOOL alertable, DWORD *result)
-{
-	SetLastError(0);
-	*result = WaitForMultipleObjectsEx(n, objects, waitAll, timeout, alertable);
-	if (*result == WAIT_FAILED)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-static HRESULT WINAPI hrSuspendThread(HANDLE thread)
-{
-	DWORD ret;
-
-	SetLastError(0);
-	ret = SuspendThread(thread);
-	if (ret == (DWORD) (-1))
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-static HRESULT WINAPI hrGetThreadContext(HANDLE thread, LPCONTEXT ctx)
-{
-	BOOL ret;
-
-	SetLastError(0);
-	ret = GetThreadContext(thread, ctx);
-	if (ret == 0)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-static HRESULT WINAPI hrSetThreadContext(HANDLE thread, CONST CONTEXT *ctx)
-{
-	BOOL ret;
-
-	SetLastError(0);
-	ret = SetThreadContext(thread, ctx);
-	if (ret == 0)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-static HRESULT WINAPI hrPostThreadMessageW(DWORD threadID, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	BOOL ret;
-
-	SetLastError(0);
-	ret = PostThreadMessageW(threadID, uMsg, wParam, lParam);
-	if (ret == 0)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-static HRESULT WINAPI hrResumeThread(HANDLE thread)
-{
-	DWORD ret;
-
-	SetLastError(0);
-	ret = ResumeThread(thread);
-	if (ret == (DWORD) (-1))
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-static HRESULT WINAPI hrDuplicateHandle(HANDLE sourceProcess, HANDLE sourceHandle, HANDLE targetProcess, LPHANDLE targetHandle, DWORD access, BOOL inherit, DWORD options)
-{
-	BOOL ret;
-
-	SetLastError(0);
-	ret = DuplicateHandle(sourceProcess, sourceHandle,
-		targetProcess, targetHandle,
-		access, inherit, options);
-	if (ret == 0)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-static HRESULT WINAPI hrCreateWaitableTimerW(LPSECURITY_ATTRIBUTES attributes, BOOL manualReset, LPCWSTR name, HANDLE *handle)
-{
-	SetLastError(0);
-	*handle = CreateWaitableTimerW(attributes, manualReset, name);
-	if (*handle == NULL)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-static HRESULT WINAPI hrCreateEventW(LPSECURITY_ATTRIBUTES attributes, BOOL manualReset, BOOL initialState, LPCWSTR name, HANDLE *handle)
-{
-	SetLastError(0);
-	*handle = CreateEventW(attributes, manualReset, initialState, name);
-	if (*handle == NULL)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
-static HRESULT WINAPI hrSetWaitableTimer(HANDLE timer, const LARGE_INTEGER *duration, LONG period, PTIMERAPCROUTINE completionRoutine, LPVOID completionData, BOOL resume)
-{
-	BOOL ret;
-
-	SetLastError(0);
-	ret = SetWaitableTimer(timer, duration, period, completionRoutine, completionData, resume);
-	if (ret == 0)
-		return lastErrorToHRESULT();
-	return S_OK;
-}
-
 static HRESULT __cdecl hr_beginthreadex(void *security, unsigned stackSize, unsigned (__stdcall *threadProc)(void *arg), void *threadProcArg, unsigned flags, unsigned *thirdArg, uintptr_t *handle)
 {
 	DWORD lastError;
@@ -148,17 +42,6 @@ static HRESULT __cdecl hr_beginthreadex(void *security, unsigned stackSize, unsi
 		lastError = (DWORD) _doserrno;
 		return lastErrorCodeToHRESULT(lastError);
 	}
-	return S_OK;
-}
-
-static HRESULT WINAPI hrSetEvent(HANDLE event)
-{
-	BOOL ret;
-
-	SetLastError(0);
-	ret = SetEvent(event);
-	if (ret == 0)
-		return lastErrorToHRESULT();
 	return S_OK;
 }
 
@@ -253,7 +136,7 @@ static unsigned __stdcall timerThreadProc(void *data)
 	return 0;
 }
 
-void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t timeout, void (*f)(testingT *t, void *data), void *data, const char *comment, int failNowOnError)
+timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut)
 {
 	char timeoutstr[timerDurationStringLen];
 	MSG msg;
@@ -263,7 +146,8 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 	int waitForTimerThread = 0;
 	HRESULT hr;
 
-	timerDurationString(timeout, timeoutstr);
+	*timedOut = 0;
+	timerDurationString(d, timeoutstr);
 
 	// to ensure that the PostThreadMessage() above will not fail because the thread doesn't have a message queue
 	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
@@ -271,63 +155,44 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 	hr = hrDuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
 		GetCurrentProcess(), &timeout_targetThread,
 		0, FALSE, DUPLICATE_SAME_ACCESS);
-	if (hr != S_OK) {
-		testingprivTLogfFull(t, file, line, "error getting current thread for %s timeout: 0x%08I32X", comment, hr);
-		testingTFail(t);
+	if (hr != S_OK)
 		goto out;
-	}
 	closeTargetThread = 1;
 	timeout_targetThreadID = GetCurrentThreadId();
 
 	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &timeout_timer);
-	if (hr != S_OK) {
-		testingprivTLogfFull(t, file, line, "error creating timer for %s timeout: 0x%08I32X", comment, hr);
-		testingTFail(t);
-		goto out;
-	}
+	if (hr != S_OK)
+		goto out
 
 	hr = hrCreateEventW(NULL, TRUE, FALSE, NULL, &timeout_finished);
-	if (hr != S_OK) {
-		testingprivTLogfFull(t, file, line, "error creating finished event for %s timeout: 0x%08I32X", comment, hr);
-		testingTFail(t);
+	if (hr != S_OK)
 		goto out;
-	}
 
-	duration.QuadPart = timeout / 100;
+	duration.QuadPart = d / 100;
 	duration.QuadPart = -duration.QuadPart;
 	hr = hrSetWaitableTimer(timeout_timer, &duration, 0, NULL, NULL, FALSE);
-	if (hr != S_OK) {
-		testingprivTLogfFull(t, file, line, "error applying %s timeout: 0x%08I32X", comment, hr);
-		testingTFail(t);
+	if (hr != S_OK)
 		goto out;
-	}
 
 	// don't start the thread until after we call setjmp()
 	hr = hr_beginthreadex(NULL, 0, timerThreadProc, NULL, CREATE_SUSPENDED, NULL, &timerThread);
-	if (hr != S_OK) {
-		testingprivTLogfFull(t, file, line, "error creating timer thread for %s timeout: 0x%08I32X", comment, hr);
-		testingTFail(t);
+	if (hr != S_OK)
 		goto out;
-	}
 	waitForTimerThread = 1;
 
 	if (setjmp(timeout_ret) == 0) {
 		hr = hrResumeThread((HANDLE) timerThread);
 		if (hr != S_OK) {
-			testingprivTLogfFull(t, file, line, "error calling ResumeThread() to start timeout thread: 0x%08I32X", hr);
-			testingTFail(t);
 			waitForTimerThread = 0;
 			goto out;
 		}
 		(*f)(t, data);
-		failNowOnError = 0;		// we succeeded
-	} else if (timeout_hr == S_OK) {
-		testingprivTLogfFull(t, file, line, "%s timeout passed (%s)", comment, timeoutstr);
-		testingTFail(t);
-	} else {
-		testingprivTLogfFull(t, file, line, "error running timer thread for %s timeout: 0x%08I32X", comment, timeout_hr);
-		testingTFail(t);
-	}
+		*timedOut = 0;
+	} else if (timeout_hr == S_OK)
+		goto out;
+	else
+		*timedOut = 1;
+	hr = S_OK;
 
 out:
 	if (timerThread != 0) {
@@ -352,8 +217,7 @@ out:
 	if (closeTargetThread)
 		CloseHandle(timeout_targetThread);
 	timeout_targetThread = NULL;
-	if (failNowOnError)
-		testingTFailNow(t);
+	return (timerSysError) hr;
 }
 
 struct testingThread {

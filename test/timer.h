@@ -28,4 +28,6 @@ typedef uint64_t timerSysError;
 #define timerSysErrorArg(x) strerror((int) x), ((int) x)
 #endif
 
-extern timerSysError timerSleep(timerDuration nsec);
+extern timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut);
+
+extern timerSysError timerSleep(timerDuration d);

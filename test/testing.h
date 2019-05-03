@@ -64,9 +64,6 @@ extern void testingTFailNow(testingT *t);
 extern void testingTSkipNow(testingT *t);
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
 
-#define testingRunWithTimeout(t, timeout, f, data, comment, failNowOnError) \
-	testingprivRunWithTimeout(t, __FILE__, __LINE__, timeout, f, data, comment, failNowOnError)
-
 // TODO I don't like this threading model, but let's use it for now so I can continue working
 typedef struct testingThread testingThread;
 extern testingThread *testingNewThread(void (*f)(void *data), void *data);
@@ -81,5 +78,3 @@ extern void testingprivRegisterTestAfter(const char *, void (*)(testingT *), con
 #define testingprivTLogvfThen(then, t, format, ap) ((testingprivTLogvfFull(t, __FILE__, __LINE__, format, ap)), (then(t)))
 extern void testingprivTLogfFull(testingT *, const char *, long, const char *, ...);
 extern void testingprivTLogvfFull(testingT *, const char *, long, const char *, va_list);
-// TODO change int64_t to timerDuration
-extern void testingprivRunWithTimeout(testingT *, const char *, long, int64_t, void (*)(testingT *, void *), void *, const char *, int);

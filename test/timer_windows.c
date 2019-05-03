@@ -32,10 +32,87 @@ static HRESULT WINAPI hrWaitForMultipleObjectsEx(DWORD n, const HANDLE *objects,
 	return S_OK;
 }
 
+static HRESULT WINAPI hrSuspendThread(HANDLE thread)
+{
+	DWORD ret;
+
+	SetLastError(0);
+	ret = SuspendThread(thread);
+	if (ret == (DWORD) (-1))
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrGetThreadContext(HANDLE thread, LPCONTEXT ctx)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = GetThreadContext(thread, ctx);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrSetThreadContext(HANDLE thread, CONST CONTEXT *ctx)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = SetThreadContext(thread, ctx);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrPostThreadMessageW(DWORD threadID, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = PostThreadMessageW(threadID, uMsg, wParam, lParam);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrResumeThread(HANDLE thread)
+{
+	DWORD ret;
+
+	SetLastError(0);
+	ret = ResumeThread(thread);
+	if (ret == (DWORD) (-1))
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrDuplicateHandle(HANDLE sourceProcess, HANDLE sourceHandle, HANDLE targetProcess, LPHANDLE targetHandle, DWORD access, BOOL inherit, DWORD options)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = DuplicateHandle(sourceProcess, sourceHandle,
+		targetProcess, targetHandle,
+		access, inherit, options);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
 static HRESULT WINAPI hrCreateWaitableTimerW(LPSECURITY_ATTRIBUTES attributes, BOOL manualReset, LPCWSTR name, HANDLE *handle)
 {
 	SetLastError(0);
 	*handle = CreateWaitableTimerW(attributes, manualReset, name);
+	if (*handle == NULL)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrCreateEventW(LPSECURITY_ATTRIBUTES attributes, BOOL manualReset, BOOL initialState, LPCWSTR name, HANDLE *handle)
+{
+	SetLastError(0);
+	*handle = CreateEventW(attributes, manualReset, initialState, name);
 	if (*handle == NULL)
 		return lastErrorToHRESULT();
 	return S_OK;
@@ -47,6 +124,31 @@ static HRESULT WINAPI hrSetWaitableTimer(HANDLE timer, const LARGE_INTEGER *dura
 
 	SetLastError(0);
 	ret = SetWaitableTimer(timer, duration, period, completionRoutine, completionData, resume);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT __cdecl hr_beginthreadex(void *security, unsigned stackSize, unsigned (__stdcall *threadProc)(void *arg), void *threadProcArg, unsigned flags, unsigned *thirdArg, uintptr_t *handle)
+{
+	DWORD lastError;
+
+	// _doserrno is the equivalent of GetLastError(), or at least that's how _beginthreadex() uses it.
+	_doserrno = 0;
+	*handle = _beginthreadex(security, stackSize, threadProc, threadProcArg, flags, thirdArg);
+	if (*handle == 0) {
+		lastError = (DWORD) _doserrno;
+		return lastErrorCodeToHRESULT(lastError);
+	}
+	return S_OK;
+}
+
+static HRESULT WINAPI hrSetEvent(HANDLE event)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = SetEvent(event);
 	if (ret == 0)
 		return lastErrorToHRESULT();
 	return S_OK;
@@ -88,13 +190,13 @@ timerDuration timerTimeSub(timerTime end, timerTime start)
 	return ret;
 }
 
-timerSysError timerSleep(timerDuration nsec)
+timerSysError timerSleep(timerDuration d)
 {
 	HANDLE timer;
 	LARGE_INTEGER duration;
 	HRESULT hr;
 
-	duration.QuadPart = nsec / 100;
+	duration.QuadPart = d / 100;
 	duration.QuadPart = -duration.QuadPart;
 	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &timer);
 	if (hr != S_OK)

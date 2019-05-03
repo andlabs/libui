@@ -4,7 +4,7 @@
 #include "timer.h"
 
 // main.c
-extern void timeoutMain(testingT *t, void *data);
+extern void timeoutMain(void *data);
 #define timeout_uiMain(t, d) { \
 	timerSysError err; \
 	int timedOut; \

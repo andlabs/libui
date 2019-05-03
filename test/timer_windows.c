@@ -9,6 +9,11 @@
 #define _WIN32_IE			0x0700
 #define NTDDI_VERSION		0x06000000
 #include <windows.h>
+#include <errno.h>
+#include <process.h>
+#include <setjmp.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "timer.h"
 
 static HRESULT lastErrorCodeToHRESULT(DWORD lastError)
@@ -228,7 +233,6 @@ struct timeoutParams {
 static void timerprivCall onTimeout(struct timeoutParams *p)
 {
 	longjmp(p->retpos, 1);
-	// TODO flag this code should not be reached
 }
 
 static HRESULT setupNonReentrance(struct timeoutParams *p)
@@ -253,7 +257,6 @@ static void timerprivCall onTimeout(void)
 
 	p = (struct timeoutParams *) TlsGetValue(timeoutParamsSlot);
 	longjmp(p->retpos, 1);
-	// TODO flag this code should not be reached
 }
 
 static BOOL CALLBACK timeoutParamsSlotInit(PINIT_ONCE once, PVOID param, PVOID *ctx)
@@ -356,17 +359,20 @@ static unsigned __stdcall timerThreadProc(void *data)
 
 timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut)
 {
-	volatile struct timeoutParams p;
+	struct timeoutParams *p;
 	MSG msg;
-	volatile uintptr_t timerThreadValue = 0;
 	volatile HANDLE timerThread = NULL;
 	LARGE_INTEGER duration;
 	HRESULT hr;
 
 	*timedOut = 0;
-	ZeroMemory(&p, sizeof (struct timeoutParams));
+	// we use a pointer to heap memory here to avoid volatile kludges
+	p = (struct timeoutParams *) malloc(sizeof (struct timeoutParams));
+	if (p == NULL)
+		return (timerSysError) E_OUTOFMEMORY;
+	ZeroMemory(p, sizeof (struct timeoutParams));
 
-	hr = setupNonReentrance(&p);
+	hr = setupNonReentrance(p);
 	if (hr != S_OK)
 		goto out;
 
@@ -374,27 +380,29 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 
 	hr = hrDuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
-		GetCurrentProcess(), &(p.targetThread),
+		GetCurrentProcess(), &(p->targetThread),
 		0, FALSE, DUPLICATE_SAME_ACCESS);
 	if (hr != S_OK) {
-		p.targetThread = NULL;
+		p->targetThread = NULL;
 		goto out;
 	}
-	p.targetThreadID = GetCurrentThreadId();
+	p->targetThreadID = GetCurrentThreadId();
 
-	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &(p.timer));
+	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &(p->timer));
 	if (hr != S_OK) {
-		p.timer = NULL;
+		p->timer = NULL;
 		goto out;
 	}
 
-	hr = hrCreateEventW(NULL, TRUE, FALSE, NULL, &(p.finished));
+	hr = hrCreateEventW(NULL, TRUE, FALSE, NULL, &(p->finished));
 	if (hr != S_OK) {
-		p.finished = NULL;
+		p->finished = NULL;
 		goto out;
 	}
 
-	if (setjmp(p.retpos) == 0) {
+	if (setjmp(p->retpos) == 0) {
+		uintptr_t timerThreadValue = 0;
+
 		hr = hr_beginthreadex(NULL, 0, timerThreadProc, p, 0, NULL, &timerThreadValue);
 		if (hr != S_OK) {
 			timerThread = NULL;
@@ -404,14 +412,14 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 
 		duration.QuadPart = d / 100;
 		duration.QuadPart = -duration.QuadPart;
-		hr = hrSetWaitableTimer(p.timer, &duration, 0, NULL, NULL, FALSE);
+		hr = hrSetWaitableTimer(p->timer, &duration, 0, NULL, NULL, FALSE);
 		if (hr != S_OK)
 			goto out;
 
-		(*f)(t, data);
+		(*f)(data);
 		*timedOut = 0;
-	} else if (p.hr != S_OK) {
-		hr = p.hr;
+	} else if (p->hr != S_OK) {
+		hr = p->hr;
 		goto out;
 	} else
 		*timedOut = 1;
@@ -419,22 +427,25 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 
 out:
 	if (timerThread != NULL) {
+		HRESULT xhr;		// don't overwrite hr below
+
 		// if either of these two fail, we cannot continue because the timer thread might interrupt us later, screwing everything up
-		hr = hrSetEvent(p.finished);
-		if (hr != S_OK)
-			criticalCallFailed("SetEvent()", hr);
-		hr = hrWaitForSingleObject(timerThread, INFINITE);
-		if (hr != S_OK)
-			criticalCallFailed("WaitForSingleObject()", hr);
+		xhr = hrSetEvent(p->finished);
+		if (xhr != S_OK)
+			criticalCallFailed("SetEvent()", xhr);
+		xhr = hrWaitForSingleObject(timerThread, INFINITE);
+		if (xhr != S_OK)
+			criticalCallFailed("WaitForSingleObject()", xhr);
 		CloseHandle(timerThread);
 	}
-	if (p.finished != NULL)
-		CloseHandle(p.finished);
-	if (p.timer != NULL)
-		CloseHandle(p.timer);
-	if (p.targetThread != NULL)
-		CloseHandle(p.targetThread);
+	if (p->finished != NULL)
+		CloseHandle(p->finished);
+	if (p->timer != NULL)
+		CloseHandle(p->timer);
+	if (p->targetThread != NULL)
+		CloseHandle(p->targetThread);
 	teardownNonReentrance();
+	free(p);
 	return (timerSysError) hr;
 }
 

@@ -52,7 +52,7 @@ static void queued(void *data)
 	int *flag = (int *) data;
 
 	*flag = 1;
-	uiQuit();
+//	uiQuit();
 }
 
 // TODO the timing for this is strange because it is the first to call uiMain()

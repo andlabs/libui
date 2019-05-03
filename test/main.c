@@ -1,7 +1,7 @@
 // 10 april 2019
 #include "test.h"
 
-void timeoutMain(testingT *t, void *data)
+void timeoutMain(void *data)
 {
 	uiMain();
 }

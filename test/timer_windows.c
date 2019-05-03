@@ -190,6 +190,256 @@ timerDuration timerTimeSub(timerTime end, timerTime start)
 	return ret;
 }
 
+// note: the idea for the SetThreadContext() nuttery is from https://www.codeproject.com/Articles/71529/Exception-Injection-Throwing-an-Exception-in-Other
+
+#if defined(_AMD64_)
+#define timerprivReentrant 1
+#define timerprivCall
+#elif defined(_ARM_)
+// TODO figure out how to set arguments properly to avoid this
+#define timerprivReentrant 0
+#define timerprivCall
+#elif defined(_ARM64_)
+// TODO figure out how to set arguments properly to avoid this
+#define timerprivReentrant 0
+#define timerprivCall
+#elif defined(_X86_)
+#define timerprivReentrant 1
+#define timerprivCall __fastcall
+#elif defined(_IA64_)
+// TODO figure out how to set arguments properly to avoid this
+#define timerprivReentrant 0
+#define timerprivCall
+#else
+#error unknown CPU architecture; cannot create CONTEXT objects for CPU-specific Windows test code
+#endif
+
+struct timeoutParams {
+	jmp_buf retpos;
+	HANDLE timer;
+	HANDLE finished;
+	HANDLE targetThread;
+	DWORD targetThreadID;
+	HRESULT hr;
+};
+
+#if timerprivReentrant
+
+static void timerprivCall onTimeout(struct timeoutParams *p)
+{
+	longjmp(p->retpos, 1);
+	// TODO flag this code should not be reached
+}
+
+static HRESULT setupNonReentrance(struct timeoutParams *p)
+{
+	return S_OK;
+}
+
+static void teardownNonReentrance(void)
+{
+	// do nothing
+}
+
+#else
+
+static DWORD timeoutParamsSlot;
+static HRESULT timeoutParamsHRESULT = S_OK;
+static INIT_ONCE timeoutParamsOnce = INIT_ONCE_STATIC_INIT;
+
+static void timerprivCall onTimeout(void)
+{
+	struct timeoutParams *p;
+
+	p = (struct timeoutParams *) TlsGetValue(timeoutParamsSlot);
+	longjmp(p->retpos, 1);
+	// TODO flag this code should not be reached
+}
+
+static BOOL CALLBACK timeoutParamsSlotInit(PINIT_ONCE once, PVOID param, PVOID *ctx)
+{
+	SetLastError(0);
+	timeoutParamsSlot = TlsAlloc();
+	if (timeoutParamsSlot == TLS_OUT_OF_INDEXES)
+		timeoutParamsHRESULT = lastErrorToHRESULT();
+	return TRUE;
+}
+
+static HRESULT setupNonReentrance(struct timeoutParams *p)
+{
+	SetLastError(0);
+	if (InitOnceExecuteOnce(&timeoutParamsOnce, timeoutParamsSlotInit, NULL, NULL) == 0)
+		return lastErrorToHRESULT();
+	if (timeoutParamsHRESULT != S_OK)
+		return timeoutParamsHRESULT;
+	if (TlsGetValue(timeoutParamsSlot) != NULL)
+		return UI_E_ILLEGAL_REENTRANCY;
+	SetLastError(0);
+	if (TlsSetValue(timeoutParamsSlot, p) == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static void teardownNonReentrance(void)
+{
+	TlsSetValue(timeoutParamsSlot, NULL);
+}
+
+#endif
+
+static void redirectToOnTimeout(CONTEXT *ctx, struct timeoutParams *p)
+{
+#if defined(_AMD64_)
+	ctx->Rip = (DWORD64) onTimeout;
+	ctx->Rcx = (DWORD64) p;
+#elif defined(_ARM_)
+	ctx->Pc = (DWORD) onTimeout;
+#elif defined(_ARM64_)
+	ctx->Pc = (DWORD64) onTimeout;
+#elif defined(_X86_)
+	ctx->Eip = (DWORD) onTimeout;
+	ctx->Ecx = (DWORD) p;
+#elif defined(_IA64_)
+	// TODO verify that this is correct
+	ctx->StIIP = (ULONGLONG) onTimeout;
+#endif
+}
+
+static void criticalCallFailed(const char *func, HRESULT hr)
+{
+	fprintf(stderr, "*** internal error in timerRunWithTimeout(): %s failed: 0x%08X\n", func, hr);
+	abort();
+}
+
+static unsigned __stdcall timerThreadProc(void *data)
+{
+	struct timeoutParams *p = (struct timeoutParams *) data;
+	HANDLE objects[2];
+	CONTEXT ctx;
+	DWORD which;
+	HRESULT hr;
+
+	objects[0] = p->timer;
+	objects[1] = p->finished;
+	p->hr = hrWaitForMultipleObjectsEx(2, objects,
+		FALSE, INFINITE, FALSE, &which);
+	if (p->hr != S_OK)
+		// act as if we timed out; the other thread will see the error
+		which = WAIT_OBJECT_0;
+	if (which == WAIT_OBJECT_0 + 1)
+		// we succeeded; do nothing
+		return 0;
+
+	// we timed out (or there was an error); signal it
+	hr = hrSuspendThread(p->targetThread);
+	if (hr != S_OK)
+		criticalCallFailed("SuspendThread()", hr);
+	ZeroMemory(&ctx, sizeof (CONTEXT));
+	ctx.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+	hr = hrGetThreadContext(p->targetThread, &ctx);
+	if (hr != S_OK)
+		criticalCallFailed("GetThreadContext()", hr);
+	redirectToOnTimeout(&ctx, p);
+	hr = hrSetThreadContext(p->targetThread, &ctx);
+	if (hr != S_OK)
+		criticalCallFailed("SetThreadContext()", hr);
+	// and force the thread to return from GetMessage(), if we are indeed in that
+	// and yes, this is the way to do it (https://devblogs.microsoft.com/oldnewthing/?p=16553, https://devblogs.microsoft.com/oldnewthing/20050405-46/?p=35973, https://devblogs.microsoft.com/oldnewthing/20080528-00/?p=22163)
+	hr = hrPostThreadMessageW(p->targetThreadID, WM_NULL, 0, 0);
+	if (hr != S_OK)
+		criticalCallFailed("PostThreadMessageW()", hr);
+	hr = hrResumeThread(p->targetThread);
+	if (hr != S_OK)
+		criticalCallFailed("ResumeThread()", hr);
+	return 0;
+}
+
+timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut)
+{
+	volatile struct timeoutParams p;
+	char timeoutstr[timerDurationStringLen];
+	MSG msg;
+	volatile uintptr_t timerThreadValue = 0;
+	volatile HANDLE timerThread = NULL;
+	LARGE_INTEGER duration;
+	HRESULT hr;
+
+	*timedOut = 0;
+	ZeroMemory(&p, sizeof (struct timeoutParams));
+	timerDurationString(d, timeoutstr);
+
+	hr = setupNonReentrance(&p);
+	if (hr != S_OK)
+		goto out;
+
+	// to ensure that the PostThreadMessage() above will not fail because the thread doesn't have a message queue
+	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+
+	hr = hrDuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
+		GetCurrentProcess(), &(p.targetThread),
+		0, FALSE, DUPLICATE_SAME_ACCESS);
+	if (hr != S_OK) {
+		p.targetThread = NULL;
+		goto out;
+	}
+	p.targetThreadID = GetCurrentThreadId();
+
+	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &(p.timer));
+	if (hr != S_OK) {
+		p.timer = NULL;
+		goto out;
+	}
+
+	hr = hrCreateEventW(NULL, TRUE, FALSE, NULL, &(p.finished));
+	if (hr != S_OK) {
+		p.finished = NULL;
+		goto out;
+	}
+
+	if (setjmp(p.retpos) == 0) {
+		hr = hr_beginthreadex(NULL, 0, timerThreadProc, p, 0, NULL, &timerThreadValue);
+		if (hr != S_OK) {
+			timerThread = NULL;
+			goto out;
+		}
+		timerThread = (HANDLE) timerThreadValue;
+
+		duration.QuadPart = d / 100;
+		duration.QuadPart = -duration.QuadPart;
+		hr = hrSetWaitableTimer(p.timer, &duration, 0, NULL, NULL, FALSE);
+		if (hr != S_OK)
+			goto out;
+
+		(*f)(t, data);
+		*timedOut = 0;
+	} else if (p.hr != S_OK) {
+		hr = p.hr;
+		goto out;
+	} else
+		*timedOut = 1;
+	hr = S_OK;
+
+out:
+	if (timerThread != NULL) {
+		// if either of these two fail, we cannot continue because the timer thread might interrupt us later, screwing everything up
+		hr = hrSetEvent(p.finished);
+		if (hr != S_OK)
+			criticalCallFailed("SetEvent()", hr);
+		hr = hrWaitForSingleObject(timerThread, INFINITE);
+		if (hr != S_OK)
+			criticalCallFailed("WaitForSingleObject()", hr);
+		CloseHandle(timerThread);
+	}
+	if (p.finished != NULL)
+		CloseHandle(p.finished);
+	if (p.timer != NULL)
+		CloseHandle(p.timer);
+	if (p.targetThread != NULL)
+		CloseHandle(p.targetThread);
+	teardownNonReentrance();
+	return (timerSysError) hr;
+}
+
 timerSysError timerSleep(timerDuration d)
 {
 	HANDLE timer;

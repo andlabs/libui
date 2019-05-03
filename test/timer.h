@@ -21,11 +21,11 @@ extern void timerDurationString(timerDuration d, char buf[timerDurationStringLen
 typedef uint64_t timerSysError;
 #ifdef _WIN32
 #define timerSysErrorFmt "0x%08I32X"
-#define timerSysErrorArg(x) ((uint32_t) x)
+#define timerSysErrorFmtArg(x) ((uint32_t) x)
 #else
 #include <string.h>
 #define timerSysErrorFmt "%s (%d)"
-#define timerSysErrorArg(x) strerror((int) x), ((int) x)
+#define timerSysErrorFmtArg(x) strerror((int) x), ((int) x)
 #endif
 
 extern timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut);

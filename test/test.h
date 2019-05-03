@@ -5,7 +5,15 @@
 
 // main.c
 extern void timeoutMain(testingT *t, void *data);
-#define timeout_uiMain(t, timeout, failNowOnError) \
-	testingRunWithTimeout(t, timeout, \
-		timeoutMain, NULL, \
-		"uiMain()", failNowOnError);
+#define timeout_uiMain(t, d) { \
+	timerSysError err; \
+	int timedOut; \
+	err = timerRunWithTimeout(d, timeoutMain, NULL, &timedOut); \
+	if (err != 0) \
+		testingTErrorf(t, "error running uiMain() in timeout: " timerSysErrorFmt, timerSysErrorFmtArg(err)); \
+	if (timedOut) { \
+		char timeoutstr[timerDurationStringLen]; \
+		timerDurationString(d, timeoutstr); \
+		testingTErrorf(t, "uiMain() timed out (%s)", timeoutstr); \
+	} \
+}

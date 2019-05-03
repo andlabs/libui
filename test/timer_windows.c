@@ -357,7 +357,6 @@ static unsigned __stdcall timerThreadProc(void *data)
 timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut)
 {
 	volatile struct timeoutParams p;
-	char timeoutstr[timerDurationStringLen];
 	MSG msg;
 	volatile uintptr_t timerThreadValue = 0;
 	volatile HANDLE timerThread = NULL;
@@ -366,7 +365,6 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 
 	*timedOut = 0;
 	ZeroMemory(&p, sizeof (struct timeoutParams));
-	timerDurationString(d, timeoutstr);
 
 	hr = setupNonReentrance(&p);
 	if (hr != S_OK)

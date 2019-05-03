@@ -61,7 +61,7 @@ testingTest(QueueMain)
 	int flag = 0;
 
 	uiQueueMain(queued, &flag);
-	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
+	timeout_uiMain(t, 5 * timerSecond, 0);
 	if (flag != 1)
 		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", flag);
 }
@@ -122,7 +122,7 @@ testingTest(QueueMain_Sequence)
 	uint32_t flag;
 
 	queueOrder(&flag);
-	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
+	timeout_uiMain(t, 5 * timerSecond, 0);
 	checkOrder(t, flag);
 }
 
@@ -130,7 +130,8 @@ static void queueThread(void *data)
 {
 	int *flag = (int *) data;
 
-	testingSleep(1250 * testingNsecPerMsec);
+	// TODO error check
+	timerSleep(1250 * timerMillisecond);
 	uiQueueMain(queued, flag);
 }
 
@@ -140,7 +141,7 @@ testingTest(QueueMain_DifferentThread)
 	int flag = 0;
 
 	thread = testingNewThread(queueThread, &flag);
-	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
+	timeout_uiMain(t, 5 * timerSecond, 0);
 	testingThreadWaitAndFree(thread);
 	if (flag != 1)
 		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", flag);
@@ -150,7 +151,8 @@ static void queueOrderThread(void *data)
 {
 	uint32_t *flag = (uint32_t *) data;
 
-	testingSleep(1250 * testingNsecPerMsec);
+	// TODO error check
+	timerSleep(1250 * timerMillisecond);
 	queueOrder(flag);
 }
 
@@ -160,7 +162,7 @@ testingTest(QueueMain_DifferentThreadSequence)
 	uint32_t flag = 1;		// make sure it's initialized just in case
 
 	thread = testingNewThread(queueOrderThread, &flag);
-	timeout_uiMain(t, 5 * testingNsecPerSec, 0);
+	timeout_uiMain(t, 5 * timerSecond, 0);
 	testingThreadWaitAndFree(thread);
 	checkOrder(t, flag);
 }

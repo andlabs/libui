@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "timer.h"
 #include "testing.h"
 #include "testingpriv.h"
 
@@ -254,7 +255,7 @@ static unsigned __stdcall timerThreadProc(void *data)
 
 void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t timeout, void (*f)(testingT *t, void *data), void *data, const char *comment, int failNowOnError)
 {
-	char *timeoutstr;
+	char timeoutstr[timerDurationStringLen];
 	MSG msg;
 	int closeTargetThread = 0;
 	uintptr_t timerThread = 0;
@@ -262,7 +263,7 @@ void testingprivRunWithTimeout(testingT *t, const char *file, long line, int64_t
 	int waitForTimerThread = 0;
 	HRESULT hr;
 
-	timeoutstr = testingNsecString(timeout);
+	timerDurationString(timeout, timeoutstr);
 
 	// to ensure that the PostThreadMessage() above will not fail because the thread doesn't have a message queue
 	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
@@ -351,7 +352,6 @@ out:
 	if (closeTargetThread)
 		CloseHandle(timeout_targetThread);
 	timeout_targetThread = NULL;
-	testingFreeNsecString(timeoutstr);
 	if (failNowOnError)
 		testingTFailNow(t);
 }

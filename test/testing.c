@@ -163,10 +163,9 @@ static void testsetRun(struct testset *set, int *anyFailed)
 	testingT *t;
 	const char *status;
 	timerTime start, end;
-	char timerstr[timeDurationStringLen];
+	char timerstr[timerDurationStringLen];
 
 	t = set->tests;
-	timer = testingNewTimer();
 	for (i = 0; i < set->len; i++) {
 		printf("=== RUN   %s\n", t->name);
 		start = timerMonotonicNow();
@@ -186,7 +185,6 @@ static void testsetRun(struct testset *set, int *anyFailed)
 		printf("--- %s: %s (%s)\n", status, t->name, timerstr);
 		t++;
 	}
-	testingFreeTimer(timer);
 }
 
 int testingMain(void)

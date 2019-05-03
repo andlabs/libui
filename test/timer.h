@@ -5,10 +5,10 @@
 typedef int64_t timerDuration;
 typedef int64_t timerTime;
 
-#define timerNanosecond ((Duration) 1)
-#define timerMicrosecond ((Duration) 1000)
-#define timerMillisecond ((Duration) 1000000)
-#define timerSecond ((Duration) 1000000000)
+#define timerNanosecond ((timerDuration) 1)
+#define timerMicrosecond ((timerDuration) 1000)
+#define timerMillisecond ((timerDuration) 1000000)
+#define timerSecond ((timerDuration) 1000000000)
 
 extern timerTime timerMonotonicNow(void);
 extern timerDuration timerTimeSub(timerTime end, timerTime start);

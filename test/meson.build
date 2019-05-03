@@ -4,10 +4,14 @@ libui_test_sources = [
 	'initmain.c',
 	'main.c',
 	'testing.c',
+	'timer.c',
 ]
 
 if libui_OS == 'windows'
-	libui_test_sources += ['testing_windows.c']
+	libui_test_sources += [
+		'testing_windows.c',
+		'timer_windows.c',
+	]
 elif libui_OS == 'darwin'
 	libui_test_sources += [
 		'testing_darwin.c',

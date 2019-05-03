@@ -81,4 +81,5 @@ extern void testingprivRegisterTestAfter(const char *, void (*)(testingT *), con
 #define testingprivTLogvfThen(then, t, format, ap) ((testingprivTLogvfFull(t, __FILE__, __LINE__, format, ap)), (then(t)))
 extern void testingprivTLogfFull(testingT *, const char *, long, const char *, ...);
 extern void testingprivTLogvfFull(testingT *, const char *, long, const char *, va_list);
+// TODO change int64_t to timerDuration
 extern void testingprivRunWithTimeout(testingT *, const char *, long, int64_t, void (*)(testingT *, void *), void *, const char *, int);

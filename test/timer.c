@@ -72,7 +72,7 @@ void timerDurationString(timerDuration d, char buf[timerDurationStringLen])
 	int start;
 	const struct timerStringPart *p;
 
-	memset(buf, 0, timerTimeStringLen * sizeof (char));
+	memset(buf, 0, timerDurationStringLen * sizeof (char));
 	start = 32;
 
 	if (d == 0) {

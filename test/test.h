@@ -1,6 +1,7 @@
 // 28 april 2019
 #include "../ui.h"
 #include "testing.h"
+#include "timer.h"
 
 // main.c
 extern void timeoutMain(testingT *t, void *data);

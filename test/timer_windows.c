@@ -197,28 +197,6 @@ timerDuration timerTimeSub(timerTime end, timerTime start)
 
 // note: the idea for the SetThreadContext() nuttery is from https://www.codeproject.com/Articles/71529/Exception-Injection-Throwing-an-Exception-in-Other
 
-#if defined(_AMD64_)
-#define timerprivReentrant 1
-#define timerprivCall
-#elif defined(_ARM_)
-// TODO figure out how to set arguments properly to avoid this
-#define timerprivReentrant 0
-#define timerprivCall
-#elif defined(_ARM64_)
-// TODO figure out how to set arguments properly to avoid this
-#define timerprivReentrant 0
-#define timerprivCall
-#elif defined(_X86_)
-#define timerprivReentrant 1
-#define timerprivCall __fastcall
-#elif defined(_IA64_)
-// TODO figure out how to set arguments properly to avoid this
-#define timerprivReentrant 0
-#define timerprivCall
-#else
-#error unknown CPU architecture; cannot create CONTEXT objects for CPU-specific Windows test code
-#endif
-
 struct timeoutParams {
 	jmp_buf retpos;
 	HANDLE timer;
@@ -228,30 +206,11 @@ struct timeoutParams {
 	HRESULT hr;
 };
 
-#if timerprivReentrant
-
-static void timerprivCall onTimeout(struct timeoutParams *p)
-{
-	longjmp(p->retpos, 1);
-}
-
-static HRESULT setupNonReentrance(struct timeoutParams *p)
-{
-	return S_OK;
-}
-
-static void teardownNonReentrance(void)
-{
-	// do nothing
-}
-
-#else
-
 static DWORD timeoutParamsSlot;
 static HRESULT timeoutParamsHRESULT = S_OK;
 static INIT_ONCE timeoutParamsOnce = INIT_ONCE_STATIC_INIT;
 
-static void timerprivCall onTimeout(void)
+static void onTimeout(void)
 {
 	struct timeoutParams *p;
 
@@ -288,23 +247,21 @@ static void teardownNonReentrance(void)
 	TlsSetValue(timeoutParamsSlot, NULL);
 }
 
-#endif
-
 static void redirectToOnTimeout(CONTEXT *ctx, struct timeoutParams *p)
 {
 #if defined(_AMD64_)
 	ctx->Rip = (DWORD64) onTimeout;
-	ctx->Rcx = (DWORD64) p;
 #elif defined(_ARM_)
 	ctx->Pc = (DWORD) onTimeout;
 #elif defined(_ARM64_)
 	ctx->Pc = (DWORD64) onTimeout;
 #elif defined(_X86_)
 	ctx->Eip = (DWORD) onTimeout;
-	ctx->Ecx = (DWORD) p;
 #elif defined(_IA64_)
 	// TODO verify that this is correct
 	ctx->StIIP = (ULONGLONG) onTimeout;
+#else
+#error unknown CPU architecture; cannot create CONTEXT objects for CPU-specific Windows test code
 #endif
 }
 
@@ -338,7 +295,7 @@ static unsigned __stdcall timerThreadProc(void *data)
 	if (hr != S_OK)
 		criticalCallFailed("SuspendThread()", hr);
 	ZeroMemory(&ctx, sizeof (CONTEXT));
-	ctx.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+	ctx.ContextFlags = CONTEXT_CONTROL;
 	hr = hrGetThreadContext(p->targetThread, &ctx);
 	if (hr != S_OK)
 		criticalCallFailed("GetThreadContext()", hr);

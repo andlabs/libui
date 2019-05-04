@@ -206,10 +206,6 @@ struct timeoutParams {
 	HRESULT hr;
 };
 
-static DWORD timeoutParamsSlot;
-static HRESULT timeoutParamsHRESULT = S_OK;
-static INIT_ONCE timeoutParamsOnce = INIT_ONCE_STATIC_INIT;
-
 static void onTimeout(void)
 {
 	struct timeoutParams *p;
@@ -217,6 +213,10 @@ static void onTimeout(void)
 	p = (struct timeoutParams *) TlsGetValue(timeoutParamsSlot);
 	longjmp(p->retpos, 1);
 }
+
+static DWORD timeoutParamsSlot;
+static HRESULT timeoutParamsHRESULT = S_OK;
+static INIT_ONCE timeoutParamsOnce = INIT_ONCE_STATIC_INIT;
 
 static BOOL CALLBACK timeoutParamsSlotInit(PINIT_ONCE once, PVOID param, PVOID *ctx)
 {
@@ -317,6 +317,7 @@ static unsigned __stdcall timerThreadProc(void *data)
 timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut)
 {
 	struct timeoutParams *p;
+	int doTeardownNonReentrance = 0;
 	MSG msg;
 	volatile HANDLE timerThread = NULL;
 	LARGE_INTEGER duration;
@@ -332,6 +333,7 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 	hr = setupNonReentrance(p);
 	if (hr != S_OK)
 		goto out;
+	doTeardownNonReentrance = 1;
 
 	// to ensure that the PostThreadMessage() above will not fail because the thread doesn't have a message queue
 	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
@@ -401,7 +403,8 @@ out:
 		CloseHandle(p->timer);
 	if (p->targetThread != NULL)
 		CloseHandle(p->targetThread);
-	teardownNonReentrance();
+	if (doTeardownNonReentrance)
+		teardownNonReentrance();
 	free(p);
 	return (timerSysError) hr;
 }

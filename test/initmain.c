@@ -1,8 +1,8 @@
 // 10 april 2019
 #include <inttypes.h>
 #include <string.h>
+#include "lib/thread.h"
 #include "test.h"
-#include "thread.h"
 
 // TODO fix up the formatting of testing.c so we can use newlines on the got/want stuff
 

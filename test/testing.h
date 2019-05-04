@@ -64,11 +64,6 @@ extern void testingTFailNow(testingT *t);
 extern void testingTSkipNow(testingT *t);
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
 
-// TODO I don't like this threading model, but let's use it for now so I can continue working
-typedef struct testingThread testingThread;
-extern testingThread *testingNewThread(void (*f)(void *data), void *data);
-extern void testingThreadWaitAndFree(testingThread *t);
-
 extern void testingprivRegisterTest(const char *, void (*)(testingT *), const char *, long);
 extern void testingprivRegisterTestBefore(const char *, void (*)(testingT *), const char *, long);
 extern void testingprivRegisterTestAfter(const char *, void (*)(testingT *), const char *, long);

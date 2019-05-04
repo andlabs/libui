@@ -2,6 +2,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include "test.h"
+#include "thread.h"
 
 // TODO fix up the formatting of testing.c so we can use newlines on the got/want stuff
 
@@ -137,12 +138,13 @@ static void queueThread(void *data)
 
 testingTest(QueueMain_DifferentThread)
 {
-	testingThread *thread;
+	threadThread *thread;
 	int flag = 0;
 
-	thread = testingNewThread(queueThread, &flag);
+	// TODO check errors
+	threadNewThread(queueThread, &flag, &thread);
 	timeout_uiMain(t, 5 * timerSecond);
-	testingThreadWaitAndFree(thread);
+	threadThreadWaitAndFree(thread);
 	if (flag != 1)
 		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", flag);
 }
@@ -158,12 +160,13 @@ static void queueOrderThread(void *data)
 
 testingTest(QueueMain_DifferentThreadSequence)
 {
-	testingThread *thread;
+	threadThread *thread;
 	uint32_t flag = 1;		// make sure it's initialized just in case
 
-	thread = testingNewThread(queueOrderThread, &flag);
+	// TODO check errors
+	threadNewThread(queueOrderThread, &flag, &thread);
 	timeout_uiMain(t, 5 * timerSecond);
-	testingThreadWaitAndFree(thread);
+	threadThreadWaitAndFree(thread);
 	checkOrder(t, flag);
 }
 

@@ -5,7 +5,6 @@
 #include <string.h>
 #include "timer.h"
 #include "testing.h"
-#include "testingpriv.h"
 
 void testingprivInternalError(const char *fmt, ...)
 {
@@ -30,6 +29,9 @@ void *testingprivMalloc(size_t n, const char *what)
 	return x;
 }
 
+#define testingprivNew(T) ((T *) testingprivMalloc(sizeof (T), #T))
+#define testingprivNewArray(T, n) ((T *) testingprivMalloc(n * sizeof (T), #T "[" #n "]"))
+
 void *testingprivRealloc(void *x, size_t n, const char *what)
 {
 	void *y;
@@ -39,6 +41,8 @@ void *testingprivRealloc(void *x, size_t n, const char *what)
 		testingprivInternalError("memory exhausted reallocating %s", what);
 	return y;
 }
+
+#define testingprivResizeArray(x, T, n) ((T *) testingprivRealloc(x, n * sizeof (T), #T "[" #n "]"))
 
 void testingprivFree(void *x)
 {

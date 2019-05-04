@@ -9,12 +9,12 @@ libui_test_sources = [
 
 if libui_OS == 'windows'
 	libui_test_sources += [
-		'testing_windows.c',
+		'thread_windows.c',
 		'timer_windows.c',
 	]
 else
 	libui_test_sources += [
-		'testing_darwinunix.c',
+		'thread_darwinunix.c',
 		'timer_darwinunix.c'
 	]
 endif

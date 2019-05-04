@@ -10,13 +10,8 @@
 #define NTDDI_VERSION		0x06000000
 #include <windows.h>
 #include <process.h>
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include "timer.h"
-#include "testing.h"
-#include "testingpriv.h"
+#include "thread.h"
 
 static HRESULT lastErrorCodeToHRESULT(DWORD lastError)
 {
@@ -55,7 +50,7 @@ static HRESULT WINAPI hrWaitForSingleObject(HANDLE handle, DWORD timeout)
 	return S_OK;
 }
 
-struct testingThread {
+struct threadThread {
 	uintptr_t handle;
 	void (*f)(void *data);
 	void *data;
@@ -63,34 +58,43 @@ struct testingThread {
 
 static unsigned __stdcall threadThreadProc(void *data)
 {
-	testingThread *t = (testingThread *) data;
+	threadThread *t = (threadThread *) data;
 
 	(*(t->f))(t->data);
 	return 0;
 }
 
-testingThread *testingNewThread(void (*f)(void *data), void *data)
+threadSysError threadNewThread(void (*f)(void *data), void *data, threadThread **t)
 {
-	testingThread *t;
+	threadThread *tout;
 	HRESULT hr;
 
-	t = testingprivNew(testingThread);
-	t->f = f;
-	t->data = data;
+	*t = NULL;
 
-	hr = hr_beginthreadex(NULL, 0, threadThreadProc, t, 0, NULL, &(t->handle));
-	if (hr != S_OK)
-		testingprivInternalError("error creating thread: 0x%08I32X", hr);
-	return t;
+	tout = (threadThread *) malloc(sizeof (threadThread));
+	if (tout == NULL)
+		return (threadSysError) E_OUTOFMEMORY;
+	tout->f = f;
+	tout->data = data;
+
+	hr = hr_beginthreadex(NULL, 0, threadThreadProc, tout, 0, NULL, &(tout->handle));
+	if (hr != S_OK) {
+		free(tout);
+		return (threadSysError) hr;
+	}
+
+	*t = tout;
+	return 0;
 }
 
-void testingThreadWaitAndFree(testingThread *t)
+threadSysError threadThreadWaitAndFree(threadThread *t)
 {
 	HRESULT hr;
 
 	hr = hrWaitForSingleObject((HANDLE) (t->handle), INFINITE);
 	if (hr != S_OK)
-		testingprivInternalError("error waiting for thread to finish: 0x%08I32X", hr);
+		return (threadSysError) hr;
 	CloseHandle((HANDLE) (t->handle));
-	testingprivFree(t);
+	free(t);
+	return 0;
 }

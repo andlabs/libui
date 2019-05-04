@@ -206,6 +206,10 @@ struct timeoutParams {
 	HRESULT hr;
 };
 
+static DWORD timeoutParamsSlot;
+static HRESULT timeoutParamsHRESULT = S_OK;
+static INIT_ONCE timeoutParamsOnce = INIT_ONCE_STATIC_INIT;
+
 static void onTimeout(void)
 {
 	struct timeoutParams *p;
@@ -213,10 +217,6 @@ static void onTimeout(void)
 	p = (struct timeoutParams *) TlsGetValue(timeoutParamsSlot);
 	longjmp(p->retpos, 1);
 }
-
-static DWORD timeoutParamsSlot;
-static HRESULT timeoutParamsHRESULT = S_OK;
-static INIT_ONCE timeoutParamsOnce = INIT_ONCE_STATIC_INIT;
 
 static BOOL CALLBACK timeoutParamsSlotInit(PINIT_ONCE once, PVOID param, PVOID *ctx)
 {

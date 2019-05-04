@@ -12,15 +12,10 @@ if libui_OS == 'windows'
 		'testing_windows.c',
 		'timer_windows.c',
 	]
-elif libui_OS == 'darwin'
-	libui_test_sources += [
-		'testing_darwin.c',
-		'testing_darwinunix.c',
-	]
 else
 	libui_test_sources += [
 		'testing_darwinunix.c',
-		'testing_unix.c',
+		'timer_darwinunix.c'
 	]
 endif
 

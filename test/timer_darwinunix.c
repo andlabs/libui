@@ -73,7 +73,7 @@ timerTime timerMonotonicNow(void)
 	ts.tv_nsec -= base.tv_nsec;
 	if (ts.tv_nsec < 0) {		// this is safe because POSIX requires this to be of type long
 		ts.tv_sec--;
-		ts.tv_nsec += (long) timerSecond;
+		ts.tv_nsec += timerSecond;
 	}
 	ret = ((timerTime) (ts.tv_sec)) * timerSecond;
 	ret += (timerTime) (ts.tv_nsec);
@@ -89,8 +89,8 @@ timerDuration timerTimeSub(timerTime end, timerTime start)
 
 struct timeoutParams {
 	jmp_buf retpos;
-	timer_t timer;
-	struct sigaction oldsig;
+	struct itimerval prevDuration;
+	struct sigaction prevSig;
 };
 
 static struct timeoutParams p;
@@ -100,20 +100,20 @@ static void onTimeout(int sig, siginfo_t *info, void *ctx)
 	if (info->si_value.sival_ptr == &p)
 		longjmp(p.retpos, 1);
 	// otherwise, call the overloaded SIGALRM handler
-	if ((p.oldsig.sa_flags & SA_SIGINFO) != 0) {
-		(*(p.oldsig.sa_sigaction))(sig, info, ctx);
+	if ((p.prevSig.sa_flags & SA_SIGINFO) != 0) {
+		(*(p.prevSig.sa_sigaction))(sig, info, ctx);
 		return;
 	}
-	if (p.oldsig.sa_handler == SIG_IGN)
+	if (p.prevSig.sa_handler == SIG_IGN)
 		return;
-	if (p.oldsig.sa_handler == SIG_DFL) {
+	if (p.prevSig.sa_handler == SIG_DFL) {
 		// SIG_DFL for SIGALRM is to terminate the program
 		// because POSIX doesn't specify how to convert from signal number to exit code, we will have to do this instead
 		// (POSIX does say these should be safe to call unless the signal was explicitly raised, which we aren't doing, and timer_create() isn't documented as doing that either...)
 		signal(sig, SIG_DFL);
 		raise(sig);
 	}
-	(*(p.oldsig.sa_handler))(sig);
+	(*(p.prevSig.sa_handler))(sig);
 }
 
 // POSIX doesn't have atomic operations :|
@@ -172,11 +172,10 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 	sigset_t sigalrm, allsigs;
 	sigset_t prevMask;
 	volatile int restorePrevMask = 0;
-	struct sigevent event;
-	volatile int destroyTimer = 0;
 	struct sigaction sig;
 	volatile int restoreSignal = 0;
-	struct itimerspec duration;
+	struct itimerval duration;
+	volatile int destroyTimer = 0;
 	int err = 0;
 
 	*timedOut = 0;
@@ -201,37 +200,28 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 		return (timerSysError) err;
 	restorePrevMask = 1;
 
-	memset(&event, 0, sizeof (struct sigevent));
-	event.sigev_notify = SIGEV_SIGNAL;
-	event.sigev_signo = SIGALRM;
-	event.sigev_value.sival_ptr = &p;
-	errno = 0;
-	if (timer_create(CLOCK_REALTIME, &event, &(p.timer)) != 0) {
-		err = errno;
-		goto out;
-	}
-	destroyTimer = 1;
-
 	if (setjmp(p.retpos) == 0) {
-		sig.sa_mask = &allsigs;
+		sig.sa_mask = allsigs;
 		sig.sa_flags = SA_SIGINFO;
 		sig.sa_sigaction = onTimeout;
 		errno = 0;
-		if (sigaction(SIGALRM, &sig, &(p.oldsig)) != 0) {
+		if (sigaction(SIGALRM, &sig, &(p.prevSig)) != 0) {
 			err = errno;
 			goto out;
 		}
 		restoreSignal = 1;
 
 		duration.it_interval.tv_sec = 0;
-		duration.it_interval.tv_nsec = 0;
-		duration.it_value.tv_sec = d / testingNsecPerSec;
-		duration.it_value.tv_nsec = d % testingNsecPerSec;
+		duration.it_interval.tv_usec = 0;
+		duration.it_value.tv_sec = d / timerSecond;
+		duration.it_value.tv_usec = (d % timerSecond) / timerMicrosecond;
 		errno = 0;
-		if (timer_settimer(p.timer, 0, &duration, NULL) != 0) {
+		if (setitimer(ITIMER_REAL, &duration, &(p.prevDuration)) != 0) {
 			err = errno;
 			goto out;
 		}
+		destroyTimer = 1;
+
 		// and fire away
 		err = pthread_sigmask(SIG_UNBLOCK, &sigalrm, NULL);
 		if (err != 0)
@@ -243,10 +233,10 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 	err = 0;
 
 out:
-	if (restoreSignal)
-		sigaction(SIGALRM, &(p.oldsig), NULL);
 	if (destroyTimer)
-		timer_delete(p.timer);
+		setitimer(ITIMER_REAL, &(p.prevDuration), NULL);
+	if (restoreSignal)
+		sigaction(SIGALRM, &(p.prevSig), NULL);
 	if (restorePrevMask)
 		pthread_sigmask(SIG_SETMASK, &prevMask, NULL);
 	teardownNonReentrance();
@@ -258,8 +248,8 @@ timerSysError timerSleep(timerDuration d)
 	struct timespec duration, remaining;
 	int err;
 
-	duration.tv_sec = d / testingNsecPerSec;
-	duration.tv_nsec = d % testingNsecPerSec;
+	duration.tv_sec = d / timerSecond;
+	duration.tv_nsec = d % timerSecond;
 	for (;;) {
 		errno = 0;
 		if (nanosleep(&duration, &remaining) == 0)

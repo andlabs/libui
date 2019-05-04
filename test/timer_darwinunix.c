@@ -60,7 +60,7 @@ static void baseInit(void)
 timerTime timerMonotonicNow(void)
 {
 	struct timespec ts;
-	timerTIme ret;
+	timerTime ret;
 	int err;
 
 	err = pthread_once(&baseOnce, baseInit);

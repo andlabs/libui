@@ -97,23 +97,7 @@ static struct timeoutParams p;
 
 static void onTimeout(int sig, siginfo_t *info, void *ctx)
 {
-	if (info->si_value.sival_ptr == &p)
-		longjmp(p.retpos, 1);
-	// otherwise, call the overloaded SIGALRM handler
-	if ((p.prevSig.sa_flags & SA_SIGINFO) != 0) {
-		(*(p.prevSig.sa_sigaction))(sig, info, ctx);
-		return;
-	}
-	if (p.prevSig.sa_handler == SIG_IGN)
-		return;
-	if (p.prevSig.sa_handler == SIG_DFL) {
-		// SIG_DFL for SIGALRM is to terminate the program
-		// because POSIX doesn't specify how to convert from signal number to exit code, we will have to do this instead
-		// (POSIX does say these should be safe to call unless the signal was explicitly raised, which we aren't doing, and timer_create() isn't documented as doing that either...)
-		signal(sig, SIG_DFL);
-		raise(sig);
-	}
-	(*(p.prevSig.sa_handler))(sig);
+	longjmp(p.retpos, 1);
 }
 
 // POSIX doesn't have atomic operations :|

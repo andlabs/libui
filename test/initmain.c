@@ -48,29 +48,36 @@ testingTestBefore(Init)
 		testingTErrorf(t, "uiInit() after a previous successful call returned bad error message: got %s, want %s", err.Message, errAlreadyInitialized);
 }
 
+struct testParams {
+	uint32_t flag;
+	timerSysError err;
+};
+
 static void queued(void *data)
 {
-	int *flag = (int *) data;
+	struct testParams *p = (struct testParams *) data;
 
-	*flag = 1;
+	p->flag = 1;
 	uiQuit();
 }
 
 testingTest(QueueMain)
 {
-	int flag = 0;
+	struct testParams p;
 
-	uiQueueMain(queued, &flag);
+	memset(&p, 0, sizeof (struct testParams));
+	p.flag = 0;
+	uiQueueMain(queued, &p);
 	timeout_uiMain(t, 5 * timerSecond);
-	if (flag != 1)
-		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", flag);
+	if (p.flag != 1)
+		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", p.flag);
 }
 
 #define queueOp(name, expr) \
 	static void name(void *data) \
 	{ \
-		uint32_t *flag = (uint32_t *) data; \
-		*flag = *flag expr; \
+		struct testParams *p = (struct testParams *) data; \
+		p->flag = p->flag expr; \
 	}
 queueOp(sub2, - 2)
 queueOp(div3, / 3)
@@ -93,12 +100,12 @@ static const struct {
 	{ 16, "mul8 -> div3 -> sub2" },
 };
 
-static void queueOrder(uint32_t *flag)
+static void queueOrder(struct testParams *p)
 {
-	*flag = 7;
-	uiQueueMain(sub2, flag);
-	uiQueueMain(div3, flag);
-	uiQueueMain(mul8, flag);
+	p->flag = 7;
+	uiQueueMain(sub2, p);
+	uiQueueMain(div3, p);
+	uiQueueMain(mul8, p);
 	uiQueueMain(done, NULL);
 }
 
@@ -119,54 +126,69 @@ static void checkOrder(testingT *t, uint32_t flag)
 	
 testingTest(QueueMain_Sequence)
 {
-	uint32_t flag;
+	struct testParams p;
 
-	queueOrder(&flag);
+	memset(&p, 0, sizeof (struct testParams));
+	queueOrder(&p);
 	timeout_uiMain(t, 5 * timerSecond);
-	checkOrder(t, flag);
+	checkOrder(t, p.flag);
 }
 
 static void queueThread(void *data)
 {
-	int *flag = (int *) data;
+	struct testParams *p = (struct testParams *) data;
 
-	// TODO error check
-	timerSleep(1250 * timerMillisecond);
-	uiQueueMain(queued, flag);
+	p->err = timerSleep(1250 * timerMillisecond);
+	uiQueueMain(queued, p);
 }
 
 testingTest(QueueMain_DifferentThread)
 {
 	threadThread *thread;
-	int flag = 0;
+	threadSysError err;
+	struct testParams p;
 
-	// TODO check errors
-	threadNewThread(queueThread, &flag, &thread);
+	memset(&p, 0, sizeof (struct testParams));
+	p.flag = 0;
+	err = threadNewThread(queueThread, &p, &thread);
+	if (err != 0)
+		testingTFatalf(t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
 	timeout_uiMain(t, 5 * timerSecond);
-	threadThreadWaitAndFree(thread);
-	if (flag != 1)
-		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", flag);
+	err = threadThreadWaitAndFree(thread);
+	if (err != 0)
+		testingTFatalf(t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	if (p.err != 0)
+		testingTErrorf(t, "error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
+	if (p.flag != 1)
+		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", p.flag);
 }
 
 static void queueOrderThread(void *data)
 {
-	uint32_t *flag = (uint32_t *) data;
+	struct testParams *p = (struct testParams *) data;
 
-	// TODO error check
-	timerSleep(1250 * timerMillisecond);
-	queueOrder(flag);
+	p->err = timerSleep(1250 * timerMillisecond);
+	queueOrder(p);
 }
 
 testingTest(QueueMain_DifferentThreadSequence)
 {
 	threadThread *thread;
-	uint32_t flag = 1;		// make sure it's initialized just in case
+	threadSysError err;
+	struct testParams p;
 
-	// TODO check errors
-	threadNewThread(queueOrderThread, &flag, &thread);
+	memset(&p, 0, sizeof (struct testParams));
+	p.flag = 1;		// make sure it's initialized just in case
+	err = threadNewThread(queueOrderThread, &p, &thread);
+	if (err != 0)
+		testingTFatalf(t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
 	timeout_uiMain(t, 5 * timerSecond);
-	threadThreadWaitAndFree(thread);
-	checkOrder(t, flag);
+	err = threadThreadWaitAndFree(thread);
+	if (err != 0)
+		testingTFatalf(t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	if (p.err != 0)
+		testingTErrorf(t, "error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
+	checkOrder(t, p.flag);
 }
 
 #if 0

@@ -56,7 +56,6 @@ static void queued(void *data)
 	uiQuit();
 }
 
-// TODO the timing for this is strange because it is the first to call uiMain()
 testingTest(QueueMain)
 {
 	int flag = 0;

@@ -10,15 +10,7 @@
 #include "timer.h"
 #include "testing.h"
 
-// goddamnit VS2013
-#ifdef _MSC_VER
-#define testingprivSnprintf _snprintf
-#else
-#define testingprivSnprintf snprintf
-#endif
-// and yes, vsnprintf() IS properly provided, so wtf
-
-void testingprivInternalError(const char *fmt, ...)
+static void internalError(const char *fmt, ...)
 {
 	va_list ap;
 
@@ -30,35 +22,51 @@ void testingprivInternalError(const char *fmt, ...)
 	abort();
 }
 
-void *testingprivMalloc(size_t n, const char *what)
+static void *mustmalloc(size_t n, const char *what)
 {
 	void *x;
 
 	x = malloc(n);
 	if (x == NULL)
-		testingprivInternalError("memory exhausted allocating %s", what);
+		internalError("memory exhausted allocating %s", what);
 	memset(x, 0, n);
 	return x;
 }
 
-#define testingprivNew(T) ((T *) testingprivMalloc(sizeof (T), #T))
-#define testingprivNewArray(T, n) ((T *) testingprivMalloc(n * sizeof (T), #T "[" #n "]"))
+#define new(T) ((T *) mustmalloc(sizeof (T), #T))
+#define newArray(T, n) ((T *) mustmalloc(n * sizeof (T), #T "[" #n "]"))
 
-void *testingprivRealloc(void *x, size_t n, const char *what)
+static void *mustrealloc(void *x, size_t n, const char *what)
 {
 	void *y;
 
 	y = realloc(x, n);
 	if (y == NULL)
-		testingprivInternalError("memory exhausted reallocating %s", what);
+		internalError("memory exhausted reallocating %s", what);
 	return y;
 }
 
-#define testingprivResizeArray(x, T, n) ((T *) testingprivRealloc(x, n * sizeof (T), #T "[" #n "]"))
+#define resizeArray(x, T, n) ((T *) mustrealloc(x, n * sizeof (T), #T "[" #n "]"))
 
-void testingprivFree(void *x)
+static int mustvsnprintf(char *s, size_t n, const char *fmt, va_list ap)
 {
-	free(x);
+	int ret;
+
+	ret = vsnprintf(s, n, fmt, ap);
+	if (ret < 0)
+		internalError("encoding error in vsnprintf(); this likely means your call to testingTLogf() and the like is invalid");
+	return ret;
+}
+
+static int mustsnprintf(char *s, size_t n, const char *fmt, ...)
+{
+	va_list ap;
+	int ret;
+
+	va_start(ap, fmt);
+	ret = mustvsnprintf(s, n, fmt, ap);
+	va_end(ap);
+	return ret;
 }
 
 struct defer {
@@ -75,17 +83,28 @@ struct defer {
 #endif
 
 struct testingT {
+	// set at test creation time
 	const char *name;
 	void (*f)(testingT *);
 	const char *file;
 	long line;
+
+	// test status
 	int failed;
 	int skipped;
 	int returned;
 	jmp_buf returnNowBuf;
+
+	// deferred functions
 	struct defer *defers;
 	int defersRun;
+
+	// output
 	int indent;
+	int verbose;
+	char *output;
+	size_t outputLen;
+	size_t outputCap;
 };
 
 #ifdef _MSC_VER
@@ -94,15 +113,11 @@ struct testingT {
 
 static void initTest(testingT *t, const char *name, void (*f)(testingT *), const char *file, long line)
 {
+	memset(t, 0, sizeof (testingT));
 	t->name = name;
 	t->f = f;
 	t->file = file;
 	t->line = line;
-	t->failed = 0;
-	t->skipped = 0;
-	t->returned = 0;
-	t->defers = NULL;
-	t->defersRun = 0;
 }
 
 #define nGrow 32
@@ -121,7 +136,7 @@ static void testsetAdd(struct testset *set, const char *name, void (*f)(testingT
 {
 	if (set->len == set->cap) {
 		set->cap += nGrow;
-		set->tests = testingprivResizeArray(set->tests, testingT, set->cap);
+		set->tests = resizeArray(set->tests, testingT, set->cap);
 	}
 	initTest(set->tests + set->len, name, f, file, line);
 	set->len++;
@@ -178,11 +193,11 @@ static void vprintfIndented(int indent, const char *format, va_list ap)
 	int firstLine = 1;
 
 	va_copy(ap2, ap);
-	n = vsnprintf(NULL, 0, format, ap2);
+	n = mustvsnprintf(NULL, 0, format, ap2);
 	// TODO handle n < 0 case
 	va_end(ap2);
-	buf = testingprivNewArray(char, n + 1);
-	vsnprintf(buf, n + 1, format, ap);
+	buf = newArray(char, n + 1);
+	mustvsnprintf(buf, n + 1, format, ap);
 
 	// strip trailing blank lines
 	while (buf[n - 1] == '\n')
@@ -208,7 +223,7 @@ static void vprintfIndented(int indent, const char *format, va_list ap)
 	printIndent(indent);
 	printf("%s\n", lineStart);
 
-	testingprivFree(buf);
+	free(buf);
 }
 
 static void printfIndented(int indent, const char *format, ...)
@@ -309,17 +324,17 @@ void testingprivTLogvfFull(testingT *t, const char *file, long line, const char 
 	int n, n2;
 
 	// TODO extract filename from file
-	n = testingprivSnprintf(NULL, 0, "%s:%ld: ", file, line);
+	n = mustsnprintf(NULL, 0, "%s:%ld: ", file, line);
 	// TODO handle n < 0 case
 	va_copy(ap2, ap);
-	n2 = vsnprintf(NULL, 0, format, ap2);
+	n2 = mustvsnprintf(NULL, 0, format, ap2);
 	// TODO handle n2 < 0 case
 	va_end(ap2);
-	buf = testingprivNewArray(char, n + n2 + 1);
-	testingprivSnprintf(buf, n + 1, "%s:%ld: ", file, line);
-	vsnprintf(buf + n, n2 + 1, format, ap);
+	buf = newArray(char, n + n2 + 1);
+	mustsnprintf(buf, n + 1, "%s:%ld: ", file, line);
+	mustvsnprintf(buf + n, n2 + 1, format, ap);
 	printfIndented(t->indent, "%s", buf);
-	testingprivFree(buf);
+	free(buf);
 }
 
 void testingTFail(testingT *t)
@@ -354,7 +369,7 @@ void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data)
 {
 	struct defer *d;
 
-	d = testingprivNew(struct defer);
+	d = new(struct defer);
 	d->f = f;
 	d->data = data;
 	// add to the head of the list so defers are run in reverse order of how they were added

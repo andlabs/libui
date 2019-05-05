@@ -130,6 +130,8 @@ CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "manifest.xml"
 
 Pass this file into `rc` (MSVC)/`windres` (MinGW) and then pass the output into your linker.
 
+With MinGW-w64, you must link as C++ (for instance, with `g++`), as libui is written in C++ on Windows.
+
 #### Unix
 
 At a minimum, you'll need to link against GTK+ itself. As with compiling, the preferred way to get the correct linker flags is with `pkg-config`. For instance:

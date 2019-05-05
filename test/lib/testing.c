@@ -36,37 +36,140 @@ static void *mustmalloc(size_t n, const char *what)
 #define new(T) ((T *) mustmalloc(sizeof (T), #T))
 #define newArray(T, n) ((T *) mustmalloc(n * sizeof (T), #T "[" #n "]"))
 
-static void *mustrealloc(void *x, size_t n, const char *what)
+static void *mustrealloc(void *x, size_t prevN, size_t n, const char *what)
 {
 	void *y;
 
-	y = realloc(x, n);
+	// don't use realloc() because we want to clear the new memory
+	y = malloc(n);
 	if (y == NULL)
 		internalError("memory exhausted reallocating %s", what);
+	memset(y, 0, n);
+	memmove(y, x, prevN);
+	free(x);
 	return y;
 }
 
-#define resizeArray(x, T, n) ((T *) mustrealloc(x, n * sizeof (T), #T "[" #n "]"))
+#define resizeArray(x, T, prevN, n) ((T *) mustrealloc(x, prevN * sizeof (T), n * sizeof (T), #T "[" #n "]"))
 
-static int mustvsnprintf(char *s, size_t n, const char *fmt, va_list ap)
+static int mustvsnprintf(char *s, size_t n, const char *format, va_list ap)
 {
 	int ret;
 
-	ret = vsnprintf(s, n, fmt, ap);
+	ret = vsnprintf(s, n, format, ap);
 	if (ret < 0)
 		internalError("encoding error in vsnprintf(); this likely means your call to testingTLogf() and the like is invalid");
 	return ret;
 }
 
-static int mustsnprintf(char *s, size_t n, const char *fmt, ...)
+static int mustsnprintf(char *s, size_t n, const char *format, ...)
 {
 	va_list ap;
 	int ret;
 
-	va_start(ap, fmt);
-	ret = mustvsnprintf(s, n, fmt, ap);
+	va_start(ap, format);
+	ret = mustvsnprintf(s, n, format, ap);
 	va_end(ap);
 	return ret;
+}
+
+// a struct outbuf of NULL writes directly to stdout
+struct outbuf {
+	char *buf;
+	size_t len;
+	size_t cap;
+};
+
+#define nOutbufGrow 32
+
+static void outbufCopyStr(struct outbuf *o, const char *str, size_t len)
+{
+	size_t grow;
+
+	if (len == 0)
+		return;
+	if (o == NULL) {
+		printf("%s", str);
+		return;
+	}
+	grow = len + 1;
+	if (grow < nOutbufGrow)
+		grow = nOutbufGrow;
+	if ((o->len + grow) >= o->cap) {
+		size_t prevcap;
+
+		prevcap = o->cap;
+		o->cap += grow;
+		o->buf = resizeArray(o->buf, char, prevcap, o->cap);
+	}
+	memmove(o->buf + o->len, str, len * sizeof (char));
+	o->len += len;
+}
+
+#define outbufAddNewline(o) outbufCopyStr(o, "\n", 1)
+
+static void outbufAddIndent(struct outbuf *o, int n)
+{
+	for (; n != 0; n--)
+		outbufCopyStr(o, "    ", 4);
+}
+
+static void outbufVprintf(struct outbuf *o, int indent, const char *format, va_list ap)
+{
+	va_list ap2;
+	char *buf;
+	int n;
+	char *lineStart, *lineEnd;
+	int firstLine = 1;
+
+	va_copy(ap2, ap);
+	n = mustvsnprintf(NULL, 0, format, ap2);
+	// TODO handle n < 0 case
+	va_end(ap2);
+	buf = newArray(char, n + 1);
+	mustvsnprintf(buf, n + 1, format, ap);
+
+	// strip trailing blank lines
+	while (buf[n - 1] == '\n')
+		n--;
+	buf[n] = '\0';
+
+	lineStart = buf;
+	for (;;) {
+		lineEnd = strchr(lineStart, '\n');
+		if (lineEnd == NULL)			// last line
+			break;
+		*lineEnd = '\0';
+		outbufAddIndent(o, indent);
+		outbufCopyStr(o, lineStart, lineEnd - lineStart);
+		outbufAddNewline(o);
+		lineStart = lineEnd + 1;
+		if (firstLine) {
+			// subsequent lines are indented twice
+			indent++;
+			firstLine = 0;
+		}
+	}
+	// print the last line
+	outbufAddIndent(o, indent);
+	outbufCopyStr(o, lineStart, strlen(lineStart));
+	outbufAddNewline(o);
+
+	free(buf);
+}
+
+static void outbufPrintf(struct outbuf *o, int indent, const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	outbufVprintf(o, indent, format, ap);
+	va_end(ap);
+}
+
+static void outbufCopy(struct outbuf *o, const struct outbuf *from)
+{
+	outbufCopyStr(o, from->buf, from->len);
 }
 
 struct defer {
@@ -102,9 +205,7 @@ struct testingT {
 	// output
 	int indent;
 	int verbose;
-	char *output;
-	size_t outputLen;
-	size_t outputCap;
+	struct outbuf output;
 };
 
 #ifdef _MSC_VER
@@ -135,8 +236,11 @@ static struct testset testsAfter = { NULL, 0, 0 };
 static void testsetAdd(struct testset *set, const char *name, void (*f)(testingT *), const char *file, long line)
 {
 	if (set->len == set->cap) {
+		size_t prevcap;
+
+		prevcap = set->cap;
 		set->cap += nGrow;
-		set->tests = resizeArray(set->tests, testingT, set->cap);
+		set->tests = resizeArray(set->tests, testingT, prevcap, set->cap);
 	}
 	initTest(set->tests + set->len, name, f, file, line);
 	set->len++;
@@ -178,63 +282,6 @@ static void testsetSort(struct testset *set)
 	qsort(set->tests, set->len, sizeof (testingT), testcmp);
 }
 
-static void printIndent(int n)
-{
-	for (; n != 0; n--)
-		printf("    ");
-}
-
-static void vprintfIndented(int indent, const char *format, va_list ap)
-{
-	va_list ap2;
-	char *buf;
-	int n;
-	char *lineStart, *lineEnd;
-	int firstLine = 1;
-
-	va_copy(ap2, ap);
-	n = mustvsnprintf(NULL, 0, format, ap2);
-	// TODO handle n < 0 case
-	va_end(ap2);
-	buf = newArray(char, n + 1);
-	mustvsnprintf(buf, n + 1, format, ap);
-
-	// strip trailing blank lines
-	while (buf[n - 1] == '\n')
-		n--;
-	buf[n] = '\0';
-
-	lineStart = buf;
-	for (;;) {
-		lineEnd = strchr(lineStart, '\n');
-		if (lineEnd == NULL)			// last line
-			break;
-		*lineEnd = '\0';
-		printIndent(indent);
-		printf("%s\n", lineStart);
-		lineStart = lineEnd + 1;
-		if (firstLine) {
-			// subsequent lines are indented twice
-			indent++;
-			firstLine = 0;
-		}
-	}
-	// print the last line
-	printIndent(indent);
-	printf("%s\n", lineStart);
-
-	free(buf);
-}
-
-static void printfIndented(int indent, const char *format, ...)
-{
-	va_list ap;
-
-	va_start(ap, format);
-	vprintfIndented(indent, format, ap);
-	va_end(ap);
-}
-
 static void runDefers(testingT *t)
 {
 	struct defer *d;
@@ -256,7 +303,7 @@ static void testsetRun(struct testset *set, int indent, int *anyFailed)
 
 	t = set->tests;
 	for (i = 0; i < set->len; i++) {
-		printfIndented(indent, "=== RUN   %s\n", t->name);
+		outbufPrintf(NULL, indent, "=== RUN   %s", t->name);
 		t->indent = indent + 1;
 		start = timerMonotonicNow();
 		if (setjmp(t->returnNowBuf) == 0)
@@ -272,7 +319,8 @@ static void testsetRun(struct testset *set, int indent, int *anyFailed)
 			// note that failed overrides skipped
 			status = "SKIP";
 		timerDurationString(timerTimeSub(end, start), timerstr);
-		printfIndented(indent, "--- %s: %s (%s)\n", status, t->name, timerstr);
+		outbufPrintf(NULL, indent, "--- %s: %s (%s)", status, t->name, timerstr);
+		outbufCopy(NULL, &(t->output));
 		t++;
 	}
 }
@@ -333,7 +381,7 @@ void testingprivTLogvfFull(testingT *t, const char *file, long line, const char 
 	buf = newArray(char, n + n2 + 1);
 	mustsnprintf(buf, n + 1, "%s:%ld: ", file, line);
 	mustvsnprintf(buf + n, n2 + 1, format, ap);
-	printfIndented(t->indent, "%s", buf);
+	outbufPrintf(&(t->output), t->indent, "%s", buf);
 	free(buf);
 }
 

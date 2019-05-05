@@ -147,6 +147,12 @@ static void queueThread(void *data)
 	uiQueueMain(queued, p);
 }
 
+/*
+TODO if I remove the uiQuit() from this test on Windows, I will occasionally get
+=== RUN   TestQueueMain_DifferentThread
+    ../test/initmain.c:161: uiMain() timed out (5s)
+--- FAIL: TestQueueMain_DifferentThread (4.9989539s)
+*/
 testingTest(QueueMain_DifferentThread)
 {
 	threadThread *thread;

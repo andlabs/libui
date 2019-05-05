@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "timer.h"
+#include "timerpriv.h"
 
 static HRESULT lastErrorCodeToHRESULT(DWORD lastError)
 {
@@ -181,18 +182,13 @@ timerTime timerMonotonicNow(void)
 timerDuration timerTimeSub(timerTime end, timerTime start)
 {
 	LARGE_INTEGER qpf;
-	timerDuration qpnsQuot, qpnsRem;
-	timerTime c;
-	timerDuration ret;
+	timerprivInt128 quot;
 
 	QueryPerformanceFrequency(&qpf);
-	qpnsQuot = timerSecond / qpf.QuadPart;
-	qpnsRem = timerSecond % qpf.QuadPart;
-	c = end - start;
-
-	ret = ((timerDuration) c) * qpnsQuot;
-	ret += (c * qpnsRem) / qpf.QuadPart;
-	return ret;
+	timerprivMulDivInt64(end - start, timerSecond, qpf.QuadPart, &quot);
+	return timerprivInt128ToInt64(&quot,
+		INT64_MIN, INT64_MAX,
+		timerTimeMin, timerTimeMax);
 }
 
 // note: the idea for the SetThreadContext() nuttery is from https://www.codeproject.com/Articles/71529/Exception-Injection-Throwing-an-Exception-in-Other

@@ -305,3 +305,48 @@ void timerprivMulDivUint64(uint64_t x, uint64_t y, uint64_t z, timerprivInt128 *
 	int128FromUint64(z, &c);
 	int128MulDiv64(&a, &b, &c, quot);
 }
+
+int64_t timerprivInt128ToInt64(const timerprivInt128 *n, int64_t min, int64_t max, int64_t minCap, int64_t maxCap)
+{
+	if (n->neg) {
+		int64_t ret;
+
+		if (n->high > 0)
+			return minCap;
+		if (n->low > (uint64_t) INT64_MAX) {
+			// we can't safely convert n->low to int64_t
+#if INT64_MIN == -INT64_MAX
+			// in this case, we can't store -n->low in an int64_t at all!
+			// therefore, it must be out of range
+			return minCap;
+#else
+			// in this case, INT64_MIN == -INT64_MAX - 1
+			if (n->low > ((uint64_t) INT64_MAX) + 1)
+				// we still can't store -n->low in an int64_t
+				return minCap;
+			// only one option left
+			ret = INT64_MIN;
+#endif
+		} else {
+			// -n->low can safely be stored in an int64_t, so do so
+			ret = (int64_t) (n->low);
+			ret = -ret;
+		}
+		if (ret < min)
+			return minCap;
+		return ret;
+	}
+	if (n->high > 0)
+		return maxCap;
+	if (n->low > (uint64_t) max)
+		return maxCap;
+	return (int64_t) (n->low);
+}
+
+uint64_t timerprivInt128ToUint64(const timerprivInt128 *n, uint64_t max, uint64_t maxCap)
+{
+	if (n->neg)
+		return 0;
+	// TODO
+	return 0;
+}

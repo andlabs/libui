@@ -31,7 +31,8 @@ testingTestBefore(Init)
 	if (ret != 0)
 		testingTErrorf(t, "uiInit() with non-NULL options succeeded with return value %d; expected failure", err);
 	if (strcmp(err.Message, errInvalidOptions) != 0)
-		testingTErrorf(t, "uiInit() with non-NULL options returned bad error message: got %s, want %s", err.Message, errInvalidOptions);
+		diff(t, "uiInit() with non-NULL options returned bad error message", "%s",
+			err.Message, errInvalidOptions);
 
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
@@ -45,7 +46,8 @@ testingTestBefore(Init)
 	if (ret != 0)
 		testingTErrorf(t, "uiInit() after a previous successful call succeeded with return value %d; expected failure", ret);
 	if (strcmp(err.Message, errAlreadyInitialized) != 0)
-		testingTErrorf(t, "uiInit() after a previous successful call returned bad error message: got %s, want %s", err.Message, errAlreadyInitialized);
+		diff(t, "uiInit() after a previous successful call returned bad error message", "%s",
+			err.Message, errAlreadyInitialized);
 }
 
 struct testParams {
@@ -70,7 +72,8 @@ testingTest(QueueMain)
 	uiQueueMain(queued, &p);
 	timeout_uiMain(t, 5 * timerSecond);
 	if (p.flag != 1)
-		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", p.flag);
+		diff(t, "uiQueueMain() didn't set flag properly", "%d",
+			p.flag, 1);
 }
 
 #define queueOp(name, expr) \
@@ -118,10 +121,14 @@ static void checkOrder(testingT *t, uint32_t flag)
 		return;
 	for (i = 1; i < 6; i++)
 		if (flag == orders[i].result) {
-			testingTErrorf(t, "got %" PRIu32 " (%s), want %" PRIu32 " (%s)", flag, orders[i].order, orders[0].result, orders[0].order);
+			diff2(t, "wrong order", "%" PRIu32 " (%s)",
+				flag, orders[i].order,
+				orders[0].result, orders[0].order);
 			return;
 		}
-	testingTErrorf(t, "got %" PRIu32 " (unknown order), want %" PRIu32 " (%s)", flag, orders[0].result, orders[0].order);
+	diff2(t, "wrong result", "%" PRIu32 " (%s)",
+		flag, "unknown order",
+		orders[0].result, orders[0].order);
 }
 	
 testingTest(QueueMain_Sequence)
@@ -160,7 +167,8 @@ testingTest(QueueMain_DifferentThread)
 	if (p.err != 0)
 		testingTErrorf(t, "error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
 	if (p.flag != 1)
-		testingTErrorf(t, "uiQueueMain() didn't set flag properly: got %d, want 1", p.flag);
+		diff(t, "uiQueueMain() didn't set flag properly", "%d",
+			p.flag, 1);
 }
 
 static void queueOrderThread(void *data)

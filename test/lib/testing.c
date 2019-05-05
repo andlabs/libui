@@ -73,6 +73,7 @@ struct testingT {
 	jmp_buf returnNowBuf;
 	struct defer *defers;
 	int defersRun;
+	int indent;
 };
 
 #ifdef _MSC_VER
@@ -150,6 +151,63 @@ static void testsetSort(struct testset *set)
 	qsort(set->tests, set->len, sizeof (testingT), testcmp);
 }
 
+static void printIndent(int n)
+{
+	for (; n != 0; n--)
+		printf("    ");
+}
+
+static void vprintfIndented(int indent, const char *format, va_list ap)
+{
+	va_list ap2;
+	char *buf;
+	int n;
+	char *lineStart, *lineEnd;
+	int firstLine = 1;
+
+	va_copy(ap2, ap);
+	n = vsnprintf(NULL, 0, format, ap2);
+	// TODO handle n < 0 case
+	va_end(ap2);
+	buf = testingprivNewArray(char, n + 1);
+	vsnprintf(buf, n + 1, format, ap);
+
+	// strip trailing blank lines
+	while (buf[n - 1] == '\n')
+		n--;
+	buf[n] = '\0';
+
+	lineStart = buf;
+	for (;;) {
+		lineEnd = strchr(lineStart, '\n');
+		if (lineEnd == NULL)			// last line
+			break;
+		*lineEnd = '\0';
+		printIndent(indent);
+		printf("%s\n", lineStart);
+		lineStart = lineEnd + 1;
+		if (firstLine) {
+			// subsequent lines are indented twice
+			indent++;
+			firstLine = 0;
+		}
+	}
+	// print the last line
+	printIndent(indent);
+	printf("%s\n", lineStart);
+
+	testingprivFree(buf);
+}
+
+static void printfIndented(int indent, const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	vprintfIndented(indent, format, ap);
+	va_end(ap);
+}
+
 static void runDefers(testingT *t)
 {
 	struct defer *d;
@@ -161,7 +219,7 @@ static void runDefers(testingT *t)
 		(*(d->f))(t, d->data);
 }
 
-static void testsetRun(struct testset *set, int *anyFailed)
+static void testsetRun(struct testset *set, int indent, int *anyFailed)
 {
 	size_t i;
 	testingT *t;
@@ -171,7 +229,8 @@ static void testsetRun(struct testset *set, int *anyFailed)
 
 	t = set->tests;
 	for (i = 0; i < set->len; i++) {
-		printf("=== RUN   %s\n", t->name);
+		printfIndented(indent, "=== RUN   %s\n", t->name);
+		t->indent = indent + 1;
 		start = timerMonotonicNow();
 		if (setjmp(t->returnNowBuf) == 0)
 			(*(t->f))(t);
@@ -186,7 +245,7 @@ static void testsetRun(struct testset *set, int *anyFailed)
 			// note that failed overrides skipped
 			status = "SKIP";
 		timerDurationString(timerTimeSub(end, start), timerstr);
-		printf("--- %s: %s (%s)\n", status, t->name, timerstr);
+		printfIndented(indent, "--- %s: %s (%s)\n", status, t->name, timerstr);
 		t++;
 	}
 }
@@ -207,13 +266,13 @@ int testingMain(void)
 	testsetSort(&testsAfter);
 
 	anyFailed = 0;
-	testsetRun(&testsBefore, &anyFailed);
+	testsetRun(&testsBefore, 0, &anyFailed);
 	// TODO print a warning that we skip the next stages if a prior stage failed?
 	if (!anyFailed)
-		testsetRun(&tests, &anyFailed);
+		testsetRun(&tests, 0, &anyFailed);
 	// TODO should we unconditionally run these tests if before succeeded but the main tests failed?
 	if (!anyFailed)
-		testsetRun(&testsAfter, &anyFailed);
+		testsetRun(&testsAfter, 0, &anyFailed);
 	if (anyFailed) {
 		printf("FAIL\n");
 		return 1;
@@ -233,11 +292,22 @@ void testingprivTLogfFull(testingT *t, const char *file, long line, const char *
 
 void testingprivTLogvfFull(testingT *t, const char *file, long line, const char *format, va_list ap)
 {
+	va_list ap2;
+	char *buf;
+	int n, n2;
+
 	// TODO extract filename from file
-	printf("\t%s:%ld: ", file, line);
-	// TODO split into lines separated by \n\t\t and trimming trailing empty lines
-	vprintf(format, ap);
-	printf("\n");
+	n = snprintf(NULL, 0, "%s:%ld: ", file, line);
+	// TODO handle n < 0 case
+	va_copy(ap2, ap);
+	n2 = vsnprintf(NULL, 0, format, ap2);
+	// TODO handle n2 < 0 case
+	va_end(ap2);
+	buf = testingprivNewArray(char, n + n2 + 1);
+	snprintf(buf, n + 1, "%s:%ld: ", file, line);
+	vsnprintf(buf + n, n2 + 1, format, ap);
+	printfIndented(t->indent, "%s", buf);
+	testingprivFree(buf);
 }
 
 void testingTFail(testingT *t)

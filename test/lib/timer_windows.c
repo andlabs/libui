@@ -186,9 +186,10 @@ timerDuration timerTimeSub(timerTime end, timerTime start)
 
 	QueryPerformanceFrequency(&qpf);
 	timerprivMulDivInt64(end - start, timerSecond, qpf.QuadPart, &quot);
+	// on underflow/overflow, return the minimum/maximum possible timerDuration (respectively); this is based on what Go does
 	return timerprivInt128ToInt64(&quot,
-		INT64_MIN, INT64_MAX,
-		timerTimeMin, timerTimeMax);
+		INT64_MIN, timerDurationMin,
+		INT64_MAX, timerDurationMax);
 }
 
 // note: the idea for the SetThreadContext() nuttery is from https://www.codeproject.com/Articles/71529/Exception-Injection-Throwing-an-Exception-in-Other

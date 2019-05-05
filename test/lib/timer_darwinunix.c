@@ -55,10 +55,9 @@ timerTime timerMonotonicNow(void)
 	t = mach_absolute_time() - base;
 	timerprivMulDivUint64(t, mt.numer, mt.denom, &quot);
 	// on overflow, return the maximum possible timerTime; this is inspired by what Go does
-	if (quot.high == 0)
-		if (quot.low <= ((uint64_t) timerTimeMax))
-			return (timerTime) (quot.low);
-	return timerTimeMax;
+	// the limit check will ensure we can safely cast the return value to a timerTime
+	return (timerTime) timerprivInt128ToUint64(&quot,
+		(uint64_t) timerTimeMax, (uint64_t) timerTimeMax);
 }
 
 #else

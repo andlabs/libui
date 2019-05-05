@@ -306,7 +306,7 @@ void timerprivMulDivUint64(uint64_t x, uint64_t y, uint64_t z, timerprivInt128 *
 	int128MulDiv64(&a, &b, &c, quot);
 }
 
-int64_t timerprivInt128ToInt64(const timerprivInt128 *n, int64_t min, int64_t max, int64_t minCap, int64_t maxCap)
+int64_t timerprivInt128ToInt64(const timerprivInt128 *n, int64_t min, int64_t minCap, int64_t max, int64_t maxCap)
 {
 	if (n->neg) {
 		int64_t ret;
@@ -347,6 +347,9 @@ uint64_t timerprivInt128ToUint64(const timerprivInt128 *n, uint64_t max, uint64_
 {
 	if (n->neg)
 		return 0;
-	// TODO
-	return 0;
+	if (n->high != 0)
+		return maxCap;
+	if (n->low > maxCap)
+		return maxCap;
+	return n->low;
 }

@@ -5,6 +5,8 @@
 typedef int64_t timerDuration;
 typedef int64_t timerTime;
 
+#define timerTimeMax ((timerTime) INT64_MAX)
+
 #define timerNanosecond ((timerDuration) 1)
 #define timerMicrosecond ((timerDuration) 1000)
 #define timerMillisecond ((timerDuration) 1000000)

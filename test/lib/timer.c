@@ -259,14 +259,14 @@ static void int128MulDiv64(timerprivInt128 *x, timerprivInt128 *y, timerprivInt1
 	numer.low = x64low * y64low;			// b * d +
 	add.neg = 0;
 	add.high = x64high * y64low;			// a * d * 2^32 +
-	add.low = add.high & 0xFFFFFFFF00000000;
+	add.low = (add.high & 0xFFFFFFFF) << 32;
 	add.high >>= 32;
 	int128UAdd(&numer, &add);
 	add.high = x64low * y64high;			// b * c * 2^32
-	add.low = add.high & 0xFFFFFFFF00000000;
+	add.low = (add.high & 0xFFFFFFFF) << 32;
 	add.high >>= 32;
 	int128UAdd(&numer, &add);
-	// I did type this all by hand, btw; the idea does come from Apple's implementation, though they explain it a bit more obtusely, and the odd behavior with anding high and shifting it right is to avoid looking like I directly copied their code which does the opposite
+	// I did type this all by hand, btw; the idea does come from Apple's implementation, though they explain it a bit more obtusely, and the odd behavior with anding high into low is to avoid looking like I directly copied their code which does the opposite
 
 	// and now long-divide
 	// Apple's implementation uses Newton–Raphson division using doubles to store 1/z but I'd rather go with "slow but guaranteed to be accurate"
@@ -286,7 +286,7 @@ static void int128MulDiv64(timerprivInt128 *x, timerprivInt128 *y, timerprivInt1
 	}
 }
 
-void timerprivMulDiv64(int64_t x, int64_t y, int64_t z, timerprivInt128 *quot)
+void timerprivMulDivInt64(int64_t x, int64_t y, int64_t z, timerprivInt128 *quot)
 {
 	timerprivInt128 a, b, c;
 
@@ -296,7 +296,7 @@ void timerprivMulDiv64(int64_t x, int64_t y, int64_t z, timerprivInt128 *quot)
 	int128MulDiv64(&a, &b, &c, quot);
 }
 
-void timerprivMulDivU64(uint64_t x, uint64_t y, uint64_t z, timerprivInt128 *quot)
+void timerprivMulDivUint64(uint64_t x, uint64_t y, uint64_t z, timerprivInt128 *quot)
 {
 	timerprivInt128 a, b, c;
 

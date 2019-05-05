@@ -8,5 +8,5 @@ struct timerprivInt128 {
 	uint64_t low;
 };
 
-extern void timerprivMulDiv64(int64_t x, int64_t y, int64_t z, timerprivInt128 *quot);
-extern void timerprivMulDivU64(uint64_t x, uint64_t y, uint64_t z, timerprivInt128 *quot);
+extern void timerprivMulDivInt64(int64_t x, int64_t y, int64_t z, timerprivInt128 *quot);
+extern void timerprivMulDivUint64(uint64_t x, uint64_t y, uint64_t z, timerprivInt128 *quot);

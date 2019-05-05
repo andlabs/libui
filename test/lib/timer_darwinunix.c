@@ -15,24 +15,50 @@
 #include <mach/mach_time.h>
 #endif
 #include "timer.h"
+#include "timerpriv.h"
+
+static void mustpthread_once(pthread_once_t *once, void (*init)(void))
+{
+	int err;
+
+	err = pthread_once(once, init);
+	if (err != 0) {
+		fprintf(stderr, "*** internal error in timerMonotonicNow(): pthread_once() failed: %s (%d)\n", strerror(err), err);
+		abort();
+	}
+}
 
 #ifdef __APPLE__
 
-timerTime timerMonotonicNow(void)
+static uint64_t base;
+static mach_timebase_info_data_t mt;
+static pthread_once_t baseOnce = PTHREAD_ONCE_INIT;
+
+static void baseInit(void)
 {
-	return (timerTime) mach_absolute_time();
+	kern_return_t err;
+
+	base = mach_absolute_time();
+	err = mach_timebase_info(&mt);
+	if (err != KERN_SUCCESS) {
+		fprintf(stderr, "*** internal error in timerMonotonicNow(): mach_timebase_info() failed: kern_return_t %d\n", err);
+		abort();
+	}
 }
 
-timerDuration timerTimeSub(timerTime end, timerTime start)
+timerTime timerMonotonicNow(void)
 {
-	mach_timebase_info_data_t mt;
-	timerTime c;
-	timerDuration ret;
+	uint64_t t;
+	timerprivInt128 quot;
 
-	mach_timebase_info(&mt);
-	c = end - start;
-	ret = ((timerDuration) c) * mt.numer / mt.denom;
-	return ret;
+	mustpthread_once(&baseOnce, baseInit);
+	t = mach_absolute_time() - base;
+	timerprivMulDivUint64(t, mt.numer, mt.denom, &quot);
+	// on overflow, return the maximum possible timerTime; this is inspired by what Go does
+	if (quot.high == 0)
+		if (quot.low <= ((uint64_t) timerTimeMax))
+			return (timerTime) (quot.low);
+	return timerTimeMax;
 }
 
 #else
@@ -61,13 +87,8 @@ timerTime timerMonotonicNow(void)
 {
 	struct timespec ts;
 	timerTime ret;
-	int err;
 
-	err = pthread_once(&baseOnce, baseInit);
-	if (err != 0) {
-		fprintf(stderr, "*** internal error in timerMonotonicNow(): pthread_once() failed: %s (%d)\n", strerror(err), err);
-		abort();
-	}
+	mustpthread_once(&baseOnce, baseInit);
 	mustclock_gettime(CLOCK_MONOTONIC, &ts);
 	ts.tv_sec -= base.tv_sec;
 	ts.tv_nsec -= base.tv_nsec;
@@ -80,12 +101,12 @@ timerTime timerMonotonicNow(void)
 	return ret;
 }
 
+#endif
+
 timerDuration timerTimeSub(timerTime end, timerTime start)
 {
 	return end - start;
 }
-
-#endif
 
 struct timeoutParams {
 	jmp_buf retpos;

@@ -4,8 +4,6 @@
 #include "lib/thread.h"
 #include "test.h"
 
-// TODO fix up the formatting of testing.c so we can use newlines on the got/want stuff
-
 #define errInvalidOptions "options parameter to uiInit() must be NULL"
 #define errAlreadyInitialized "libui already initialized"
 

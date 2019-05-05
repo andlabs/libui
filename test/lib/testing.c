@@ -1,10 +1,22 @@
 // 27 february 2018
+// TODO get rid of the need for this (it temporarily silences noise so I can find actual build issues)
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <setjmp.h>
 #include <string.h>
 #include "timer.h"
 #include "testing.h"
+
+// goddamnit VS2013
+#ifdef _MSC_VER
+#define testingprivSnprintf _snprintf
+#else
+#define testingprivSnprint snprintf
+#endif
+// and yes, vsnprintf() IS properly provided, so wtf
 
 void testingprivInternalError(const char *fmt, ...)
 {
@@ -297,14 +309,14 @@ void testingprivTLogvfFull(testingT *t, const char *file, long line, const char 
 	int n, n2;
 
 	// TODO extract filename from file
-	n = snprintf(NULL, 0, "%s:%ld: ", file, line);
+	n = testingprivSnprintf(NULL, 0, "%s:%ld: ", file, line);
 	// TODO handle n < 0 case
 	va_copy(ap2, ap);
 	n2 = vsnprintf(NULL, 0, format, ap2);
 	// TODO handle n2 < 0 case
 	va_end(ap2);
 	buf = testingprivNewArray(char, n + n2 + 1);
-	snprintf(buf, n + 1, "%s:%ld: ", file, line);
+	testingprivSnprintf(buf, n + 1, "%s:%ld: ", file, line);
 	vsnprintf(buf + n, n2 + 1, format, ap);
 	printfIndented(t->indent, "%s", buf);
 	testingprivFree(buf);

@@ -5,6 +5,18 @@ libui_test_sources = [
 	'main.c',
 ]
 
+if libui_OS == 'windows'
+	libui_test_manifest = 'test.manifest'
+	if libui_mode == 'static'
+		libui_test_manifest = 'test.static.manifest'
+	endif
+	libui_test_sources += [
+		windows.compile_resources('resources.rc',
+			args: libui_manifest_args,
+			depend_files: [libui_test_manifest]),
+	]
+endif
+
 libui_test_deps = []
 
 subdir('lib')

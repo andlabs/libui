@@ -17,6 +17,11 @@
 #include "timer.h"
 #include "timerpriv.h"
 
+// blah MinGW-w64
+#ifndef UI_E_ILLEGAL_REENTRANCY
+#define UI_E_ILLEGAL_REENTRANCY 0x802A0003
+#endif
+
 static HRESULT lastErrorCodeToHRESULT(DWORD lastError)
 {
 	if (lastError == 0)
@@ -264,7 +269,15 @@ static void redirectToOnTimeout(CONTEXT *ctx, struct timeoutParams *p)
 
 static void criticalCallFailed(const char *func, HRESULT hr)
 {
-	fprintf(stderr, "*** internal error in timerRunWithTimeout(): %s failed: 0x%08X\n", func, hr);
+// sigh, -pedantic... (TODO)
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#endif
+	fprintf(stderr, "*** internal error in timerRunWithTimeout(): %s failed: 0x%08I32X\n", func, hr);
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
 	abort();
 }
 

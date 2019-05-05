@@ -14,7 +14,7 @@
 #ifdef _MSC_VER
 #define testingprivSnprintf _snprintf
 #else
-#define testingprivSnprint snprintf
+#define testingprivSnprintf snprintf
 #endif
 // and yes, vsnprintf() IS properly provided, so wtf
 

@@ -293,6 +293,10 @@ static void runDefers(testingT *t)
 		(*(d->f))(t, d->data);
 }
 
+static testingOptions opts = {
+	.Verbose = 0,
+};
+
 static void testsetRun(struct testset *set, int indent, int *anyFailed)
 {
 	size_t i;
@@ -300,34 +304,44 @@ static void testsetRun(struct testset *set, int indent, int *anyFailed)
 	const char *status;
 	timerTime start, end;
 	char timerstr[timerDurationStringLen];
+	int printStatus;
 
 	t = set->tests;
 	for (i = 0; i < set->len; i++) {
-		outbufPrintf(NULL, indent, "=== RUN   %s", t->name);
+		if (opts.Verbose)
+			outbufPrintf(NULL, indent, "=== RUN   %s", t->name);
 		t->indent = indent + 1;
+		t->verbose = opts.Verbose;
 		start = timerMonotonicNow();
 		if (setjmp(t->returnNowBuf) == 0)
 			(*(t->f))(t);
 		end = timerMonotonicNow();
 		t->returned = 1;
 		runDefers(t);
+		printStatus = t->verbose;
 		status = "PASS";
 		if (t->failed) {
 			status = "FAIL";
+			printStatus = 1;			// always print status on failure
 			*anyFailed = 1;
 		} else if (t->skipped)
 			// note that failed overrides skipped
 			status = "SKIP";
 		timerDurationString(timerTimeSub(end, start), timerstr);
-		outbufPrintf(NULL, indent, "--- %s: %s (%s)", status, t->name, timerstr);
-		outbufCopy(NULL, &(t->output));
+		if (printStatus) {
+			outbufPrintf(NULL, indent, "--- %s: %s (%s)", status, t->name, timerstr);
+			outbufCopy(NULL, &(t->output));
+		}
 		t++;
 	}
 }
 
-int testingMain(void)
+int testingMain(const struct testingOptions *options)
 {
 	int anyFailed;
+
+	if (options != NULL)
+		opts = *options;
 
 	// TODO see if this should run if all tests are skipped
 	if ((testsBefore.len + tests.len + testsAfter.len) == 0) {

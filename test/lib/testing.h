@@ -40,7 +40,13 @@
 #define testingTestAfter(Name) \
 	testingprivMk(Test ## Name, testingT, t, testingprivRegisterTestAfter)
 
-extern int testingMain(void);
+typedef struct testingOptions testingOptions;
+
+struct testingOptions {
+	int Verbose;
+};
+
+extern int testingMain(const struct testingOptions *options);
 
 typedef struct testingT testingT;
 #define testingTLogf(t, ...) \

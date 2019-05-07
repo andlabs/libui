@@ -1,0 +1,37 @@
+https://marketplace.visualstudio.com/items?itemName=ms-autotest.screen-resolution-utility-task
+https://devblogs.microsoft.com/oldnewthing/20180510-00/?p=98725
+https://blogs.windows.com/buildingapps/2017/05/19/improving-high-dpi-experience-gdi-based-desktop-apps/
+https://technet.microsoft.com/en-us/evalcenter/dn469266(v=vs.90)
+https://www.windowscentral.com/how-change-high-dpi-settings-classic-apps-windows-10-april-2018-update
+https://stackoverflow.com/questions/44398075/can-dpi-scaling-be-enabled-disabled-programmatically-on-a-per-session-basis
+https://stackoverflow.com/questions/13858665/disable-dpi-awareness-for-wpf-application
+https://stackoverflow.com/questions/16571568/scaling-ui-with-dpi-change-of-non-mfc-application
+https://stackoverflow.com/questions/4075802/creating-a-dpi-aware-application
+https://kynosarges.org/WindowsDpi.html ***
+http://www.drdobbs.com/windows/coding-for-high-dpi-displays-in-windows/240168736
+https://www.tenforums.com/tutorials/5990-change-dpi-scaling-level-displays-windows-10-a.html
+https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/dpi-related-apis-and-registry-settings ????
+https://stackoverflow.com/questions/35233182/how-can-i-change-windows-10-display-scaling-programmatically-using-c-sharp ****
+https://stackoverflow.com/questions/5977445/how-to-get-windows-display-settings
+https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/high-dpi-support-for-it-professionals ????
+	actually ****
+https://docs.microsoft.com/en-us/windows-hardware/drivers/display/index
+https://docs.microsoft.com/en-us/windows-hardware/drivers/display/display-samples
+https://www.google.com/search?client=firefox-b-1-d&ei=M0DQXP_vNYKm_Qb_z5P4Cw&q=winapi+fake+monitor+driver&oq=winapi+fake+monitor+driver&gs_l=psy-ab.3..33i299l2j33i160.446439.447219..447312...0.0..0.173.795.0j6......0....1..gws-wiz.......0i71j33i22i29i30.LY8Gclmd9X4
+https://docs.microsoft.com/en-us/windows/desktop/gdi/the-virtual-screen
+https://www.autoitscript.com/forum/topic/134534-_desktopdimensions-details-about-the-primary-and-secondary-monitors/
+https://github.com/tpn/winsdk-10/blob/master/Include/10.0.16299.0/um/MultiMon.h
+https://stackoverflow.com/questions/20367371/how-do-i-utilize-the-functionality-of-a-multi-monitor-setup-without-physical-har
+	????
+https://stackoverflow.com/questions/16510930/creating-a-virtual-monitor-virtual-display-device ????
+https://superuser.com/questions/91786/where-can-i-find-vista-win7-virtual-display-drivers ????
+http://virtualmonitor.github.io/
+https://docs.microsoft.com/en-us/windows-hardware/drivers/display/overriding-monitor-edids ????
+https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/index
+https://docs.microsoft.com/en-us/windows-hardware/drivers/display/windows-vista-display-driver-model-design-guide
+https://docs.microsoft.com/en-us/windows-hardware/drivers/display/monitor-class-function-driver
+https://docs.microsoft.com/en-us/windows-hardware/drivers/display/monitor-hot-plug-detection
+https://docs.microsoft.com/en-us/windows-hardware/drivers/display/indirect-display-driver-model-overview ****
+https://docs.microsoft.com/en-us/windows-hardware/drivers/display/iddcx-objects ****
+https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/iddcx/ns-iddcx-idarg_in_adapter_init ****
+https://github.com/kfroe/IndirectDisplay/blob/master/IddSampleDriver/Driver.cpp#L380-L389 ****

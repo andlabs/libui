@@ -20,7 +20,7 @@ static const char *commonInitErrors[] = {
 	NULL,
 };
 
-static int checkInitErrorLengths(uiInitError *err, const char *initErrors[])
+static int checkInitErrorLengths(uiInitError *err, const char **initErrors)
 {
 	const char **p;
 
@@ -36,7 +36,7 @@ static int checkInitErrorLengths(uiInitError *err, const char *initErrors[])
 	return 1;
 }
 
-int uiprivInitCheckParams(void *options, uiInitError *err, const char *initErrors[])
+int uiInit(void *options, uiInitError *err)
 {
 	if (err == NULL)
 		return 0;
@@ -45,7 +45,7 @@ int uiprivInitCheckParams(void *options, uiInitError *err, const char *initError
 
 	if (!checkInitErrorLengths(err, commonInitErrors))
 		return 0;
-	if (!checkInitErrorLengths(err, initErrors))
+	if (!checkInitErrorLengths(err, uiprivSysInitErrors()))
 		return 0;
 
 	if (initialized)
@@ -54,6 +54,9 @@ int uiprivInitCheckParams(void *options, uiInitError *err, const char *initError
 	if (options != NULL)
 		return uiprivInitReturnError(err, errOptionsMustBeNULL);
 
+	if (!uiprivSysInit(options, err))
+		return 0;
+	initialized = 1;
 	return 1;
 }
 
@@ -73,9 +76,4 @@ int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...)
 	vsnprintf(err->Message, 256, msg, ap);
 	va_end(ap);
 	return 0;
-}
-
-void uiprivMarkInitialized(void)
-{
-	initialized = 1;
 }

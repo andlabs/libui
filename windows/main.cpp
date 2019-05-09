@@ -61,16 +61,18 @@ static const char *initErrors[] = {
 };
 #define uiprivInitReturnHRESULT(err, msg, hr) uiprivInitReturnErrorf(err, "%s: 0x%08I32X", msg, hr)
 
-int uiInit(void *options, uiInitError *err)
+const char **uiprivSysInitErrors(void)
+{
+	return initErrors;
+}
+
+int uiprivSysInit(void *options, uiInitError *err)
 {
 	STARTUPINFOW si;
 	HICON hDefaultIcon;
 	HCURSOR hDefaultCursor;
 	INITCOMMONCONTROLSEX icc;
 	HRESULT hr;
-
-	if (!uiprivInitCheckParams(options, err, initErrors))
-		return 0;
 
 	setHInstance();
 	uipriv_nCmdShow = SW_SHOWDEFAULT;
@@ -108,7 +110,6 @@ int uiInit(void *options, uiInitError *err)
 	// LONGTERM initialize COM security
 	// LONGTERM turn off COM exception handling
 */
-	uiprivMarkInitialized();
 	return 1;
 }
 

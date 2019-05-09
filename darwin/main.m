@@ -43,11 +43,13 @@ static const char *initErrors[] = {
 	NULL,
 };
 
-int uiInit(void *options, uiInitError *err)
+const char **uiprivSysInitErrors(void)
 {
-	if (!uiprivInitCheckParams(options, err, initErrors))
-		return 0;
+	return initErrors;
+}
 
+int uiprivSysInit(void *options, uiInitError *err)
+{
 	uiprivApp = [uiprivApplication sharedApplication];
 	if (![NSApp isKindOfClass:[uiprivApplication class]])
 		return uiprivInitReturnError(err, errNSAppAlreadyInitialized);
@@ -59,7 +61,6 @@ int uiInit(void *options, uiInitError *err)
 	uiprivAppDelegate = [uiprivApplicationDelegate new];
 	[uiprivApp setDelegate:uiprivAppDelegate];
 
-	uiprivMarkInitialized();
 	return 1;
 }
 

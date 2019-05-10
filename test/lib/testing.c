@@ -223,18 +223,21 @@ static void initTest(testingT *t, const char *name, void (*f)(testingT *), const
 
 #define nGrow 32
 
-struct testset {
+struct testingSet {
 	testingT *tests;
 	size_t len;
 	size_t cap;
 };
 
-static struct testset tests = { NULL, 0, 0 };
-static struct testset testsBefore = { NULL, 0, 0 };
-static struct testset testsAfter = { NULL, 0, 0 };
+static testingSet mainTests = { NULL, 0, 0 };
 
-static void testsetAdd(struct testset *set, const char *name, void (*f)(testingT *), const char *file, long line)
+void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(testingT *), const char *file, long line)
 {
+	testingSet *set;
+
+	set = &mainTests;
+	if (pset != NULL)
+		set = *pset;
 	if (set->len == set->cap) {
 		size_t prevcap;
 
@@ -244,21 +247,6 @@ static void testsetAdd(struct testset *set, const char *name, void (*f)(testingT
 	}
 	initTest(set->tests + set->len, name, f, file, line);
 	set->len++;
-}
-
-void testingprivRegisterTest(const char *name, void (*f)(testingT *), const char *file, long line)
-{
-	testsetAdd(&tests, name, f, file, line);
-}
-
-void testingprivRegisterTestBefore(const char *name, void (*f)(testingT *), const char *file, long line)
-{
-	testsetAdd(&testsBefore, name, f, file, line);
-}
-
-void testingprivRegisterTestAfter(const char *name, void (*f)(testingT *), const char *file, long line)
-{
-	testsetAdd(&testsAfter, name, f, file, line);
 }
 
 static int testcmp(const void *a, const void *b)
@@ -277,11 +265,6 @@ static int testcmp(const void *a, const void *b)
 	return 0;
 }
 
-static void testsetSort(struct testset *set)
-{
-	qsort(set->tests, set->len, sizeof (testingT), testcmp);
-}
-
 static void runDefers(testingT *t)
 {
 	struct defer *d;
@@ -297,7 +280,7 @@ static testingOptions opts = {
 	.Verbose = 0,
 };
 
-static void testsetRun(struct testset *set, int indent, int *anyFailed)
+static int testsetprivRun(testingSet *set, int indent)
 {
 	size_t i;
 	testingT *t;
@@ -305,7 +288,9 @@ static void testsetRun(struct testset *set, int indent, int *anyFailed)
 	timerTime start, end;
 	char timerstr[timerDurationStringLen];
 	int printStatus;
+	int anyFailed = 0;
 
+	qsort(set->tests, set->len, sizeof (testingT), testcmp);
 	t = set->tests;
 	for (i = 0; i < set->len; i++) {
 		if (opts.Verbose)
@@ -323,7 +308,7 @@ static void testsetRun(struct testset *set, int indent, int *anyFailed)
 		if (t->failed) {
 			status = "FAIL";
 			printStatus = 1;			// always print status on failure
-			*anyFailed = 1;
+			anyFailed = 1;
 		} else if (t->skipped)
 			// note that failed overrides skipped
 			status = "SKIP";
@@ -334,28 +319,25 @@ static void testsetRun(struct testset *set, int indent, int *anyFailed)
 		}
 		t++;
 	}
+	return anyFailed;
 }
 
-int testingMain(const struct testingOptions *options)
+int testingMain(testingSet *set, const struct testingOptions *options)
 {
 	int anyFailed;
 
-	if (options != NULL)
-		opts = *options;
+	if (set == NULL)
+		set = &mainTests;
 
 	// TODO see if this should run if all tests are skipped
-	if ((testsBefore.len + tests.len + testsAfter.len) == 0) {
-		fprintf(stderr, "warning: no tests to run\n");
+	if (set->len == 0) {
+$$TODOTODO		fprintf(stderr, "warning: no tests to run\n");
 		// imitate Go here (TODO confirm this)
 		return 0;
 	}
 
-	testsetSort(&testsBefore);
-	testsetSort(&tests);
-	testsetSort(&testsAfter);
-
-	anyFailed = 0;
-	testsetRun(&testsBefore, 0, &anyFailed);
+	return testingprivRun(set, 0);
+}$$TODOTODO{
 	// TODO print a warning that we skip the next stages if a prior stage failed?
 	if (!anyFailed)
 		testsetRun(&tests, 0, &anyFailed);

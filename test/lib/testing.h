@@ -16,37 +16,36 @@
 #define testingprivCtorName(basename) testingprivCtor ## basename
 #define testingprivCtorPtrName(basename) testingprivCtorPtr ## basename
 #if defined(__GNUC__)
-#define testingprivMkCtor(basename, regfunc) \
-	__attribute__((constructor)) static void testingprivCtorName(basename)(void) { regfunc(#basename, testingprivScaffoldName(basename), __FILE__, __LINE__); }
+#define testingprivMkCtor(basename, pset) \
+	__attribute__((constructor)) static void testingprivCtorName(basename)(void) { testingprivSetRegisterTest(pset, #basename, testingprivScaffoldName(basename), __FILE__, __LINE__); }
 #elif defined(_MSC_VER)
-#define testingprivMkCtor(basename, regfunc) \
-	static int testingprivCtorName(basename)(void) { regfunc(#basename, testingprivScaffoldName(basename), __FILE__, __LINE__); return 0; } \
+#define testingprivMkCtor(basename, pset) \
+	static int testingprivCtorName(basename)(void) { testingprivSetRegisterTest(pset, #basename, testingprivScaffoldName(basename), __FILE__, __LINE__); return 0; } \
 	__pragma(section(".CRT$XCU",read)) \
 	__declspec(allocate(".CRT$XCU")) static int (*testingprivCtorPtrName(basename))(void) = testingprivCtorName(basename);
 #else
 #error unknown compiler for making constructors in C; cannot continue
 #endif
 
-#define testingprivMk(basename, argtype, argname, regfunc) \
+#define testingprivMk(basename, argtype, argname, pset) \
 	void testingprivImplName(basename)(argtype *argname); \
 	testingprivMkScaffold(basename, argtype, argname) \
-	testingprivMkCtor(basename, regfunc) \
+	testingprivMkCtor(basename, pset) \
 	void testingprivImplName(basename)(argtype *argname)
 
 #define testingTest(Name) \
-	testingprivMk(Test ## Name, testingT, t, testingprivRegisterTest)
-#define testingTestBefore(Name) \
-	testingprivMk(Test ## Name, testingT, t, testingprivRegisterTestBefore)
-#define testingTestAfter(Name) \
-	testingprivMk(Test ## Name, testingT, t, testingprivRegisterTestAfter)
+	testingprivMk(Test ## Name, testingT, t, NULL)
+#define testingTestInSet(Set, Name) \
+	testingprivMk(Test ## Name, testingT, t, &Set)
 
+typedef struct testingSet testingSet;
 typedef struct testingOptions testingOptions;
 
 struct testingOptions {
 	int Verbose;
 };
 
-extern int testingMain(const struct testingOptions *options);
+extern int testingSetRun(testingSet *set, const struct testingOptions *options);
 
 typedef struct testingT testingT;
 #define testingTLogf(t, ...) \
@@ -70,9 +69,7 @@ extern void testingTFailNow(testingT *t);
 extern void testingTSkipNow(testingT *t);
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
 
-extern void testingprivRegisterTest(const char *, void (*)(testingT *), const char *, long);
-extern void testingprivRegisterTestBefore(const char *, void (*)(testingT *), const char *, long);
-extern void testingprivRegisterTestAfter(const char *, void (*)(testingT *), const char *, long);
+extern void testingprivSetRegisterTest(testingSet **pset, const char *, void (*)(testingT *), const char *, long);
 // see https://stackoverflow.com/questions/32399191/va-args-expansion-using-msvc
 #define testingprivExpand(x) x
 #define testingprivTLogfThen(then, t, ...) ((testingprivTLogfFull(t, __FILE__, __LINE__, __VA_ARGS__)), (then(t)))

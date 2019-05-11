@@ -236,8 +236,13 @@ void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(t
 	testingSet *set;
 
 	set = &mainTests;
-	if (pset != NULL)
+	if (pset != NULL) {
 		set = *pset;
+		if (set == NULL) {
+			set = new(testingSet);
+			*pset = set;
+		}
+	}
 	if (set->len == set->cap) {
 		size_t prevcap;
 
@@ -276,11 +281,11 @@ static void runDefers(testingT *t)
 		(*(d->f))(t, d->data);
 }
 
-static testingOptions opts = {
+static const testingOptions defaultOptions = {
 	.Verbose = 0,
 };
 
-static int testsetprivRun(testingSet *set, int indent)
+static void testingprivSetRun(testingSet *set, const testingOptions *options, int indent, int *anyFailed)
 {
 	size_t i;
 	testingT *t;
@@ -288,15 +293,14 @@ static int testsetprivRun(testingSet *set, int indent)
 	timerTime start, end;
 	char timerstr[timerDurationStringLen];
 	int printStatus;
-	int anyFailed = 0;
 
 	qsort(set->tests, set->len, sizeof (testingT), testcmp);
 	t = set->tests;
 	for (i = 0; i < set->len; i++) {
-		if (opts.Verbose)
+		if (options->Verbose)
 			outbufPrintf(NULL, indent, "=== RUN   %s", t->name);
 		t->indent = indent + 1;
-		t->verbose = opts.Verbose;
+		t->verbose = options->Verbose;
 		start = timerMonotonicNow();
 		if (setjmp(t->returnNowBuf) == 0)
 			(*(t->f))(t);
@@ -308,7 +312,7 @@ static int testsetprivRun(testingSet *set, int indent)
 		if (t->failed) {
 			status = "FAIL";
 			printStatus = 1;			// always print status on failure
-			anyFailed = 1;
+			*anyFailed = 1;
 		} else if (t->skipped)
 			// note that failed overrides skipped
 			status = "SKIP";
@@ -319,37 +323,20 @@ static int testsetprivRun(testingSet *set, int indent)
 		}
 		t++;
 	}
-	return anyFailed;
 }
 
-int testingMain(testingSet *set, const struct testingOptions *options)
+void testingSetRun(testingSet *set, const struct testingOptions *options, int *anyRun, int *anyFailed)
 {
-	int anyFailed;
-
+	*anyRun = 0;
+	*anyFailed = 0;
 	if (set == NULL)
 		set = &mainTests;
-
-	// TODO see if this should run if all tests are skipped
-	if (set->len == 0) {
-$$TODOTODO		fprintf(stderr, "warning: no tests to run\n");
-		// imitate Go here (TODO confirm this)
-		return 0;
-	}
-
-	return testingprivRun(set, 0);
-}$$TODOTODO{
-	// TODO print a warning that we skip the next stages if a prior stage failed?
-	if (!anyFailed)
-		testsetRun(&tests, 0, &anyFailed);
-	// TODO should we unconditionally run these tests if before succeeded but the main tests failed?
-	if (!anyFailed)
-		testsetRun(&testsAfter, 0, &anyFailed);
-	if (anyFailed) {
-		printf("FAIL\n");
-		return 1;
-	}
-	printf("PASS\n");
-	return 0;
+	if (options == NULL)
+		options = &defaultOptions;
+	if (set->len == 0)
+		return;
+	testingprivSetRun(set, options, 0, anyFailed);
+	*anyRun = 1;
 }
 
 void testingprivTLogfFull(testingT *t, const char *file, long line, const char *format, ...)

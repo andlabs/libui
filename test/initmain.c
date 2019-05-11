@@ -4,10 +4,12 @@
 #include "lib/thread.h"
 #include "test.h"
 
+testingSet *beforeTests = NULL;
+
 #define errInvalidOptions "options parameter to uiInit() must be NULL"
 #define errAlreadyInitialized "libui already initialized"
 
-testingTestBefore(Init)
+testingTestInSet(beforeTests, Init)
 {
 	uiInitError err;
 	int ret;
@@ -31,12 +33,12 @@ testingTestBefore(Init)
 	if (strcmp(err.Message, errInvalidOptions) != 0)
 		diff(t, "uiInit() with non-NULL options returned bad error message", "%s",
 			err.Message, errInvalidOptions);
+}
 
-	memset(&err, 0, sizeof (uiInitError));
-	err.Size = sizeof (uiInitError);
-	ret = uiInit(NULL, &err);
-	if (ret == 0)
-		testingTErrorf(t, "uiInit() failed: %s", err.Message);
+testingTest(InitAfterInitialized)
+{
+	uiInitError err;
+	int ret;
 
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);

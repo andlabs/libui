@@ -45,7 +45,7 @@ struct testingOptions {
 	int Verbose;
 };
 
-extern int testingSetRun(testingSet *set, const struct testingOptions *options);
+extern void testingSetRun(testingSet *set, const struct testingOptions *options, int *anyRun, int *anyFailed);
 
 typedef struct testingT testingT;
 #define testingTLogf(t, ...) \

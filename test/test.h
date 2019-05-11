@@ -22,3 +22,6 @@ extern void timeoutMain(void *data);
 		testingTErrorf(t, "uiMain() timed out (%s)", timeoutstr); \
 	} \
 }
+
+// init.c
+extern testingSet *beforeTests;

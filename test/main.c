@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 	err.Size = sizeof (uiInitError);
 	ret = uiInit(NULL, &err);
 	if (ret == 0) {
-		fprintf(stderr, "uiInit() failed: %s; can't continue", err.Message);
+		fprintf(stderr, "uiInit() failed: %s; can't continue\n", err.Message);
 		printf("FAIL\n");
 		return 1;
 	}

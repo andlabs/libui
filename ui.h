@@ -3,6 +3,7 @@
 #ifndef uiprivIncludeGuard_ui_h
 #define uiprivIncludeGuard_ui_h
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 

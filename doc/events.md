@@ -28,13 +28,13 @@ typedef void (*uiEventHandler)(void *sender, void *args, void *data);
 typedef struct uiEventOptions uiEventOptions;
 struct uiEventOptions {
 	// TODO size
-	TODO_int_or_uiBool Global;
+	bool Global;
 };
 ```
 
 `uiEventOptions` describes the properties of a `uiEvent`; you pass these to `uiNewEvent()`.
 
-If `Global` is TODO_nonzero_or_uiTrue, the event is "global" — there are no specific senders, and all registered handler functions are called when the event is fired. Otherwise, the event has specific senders, and only handlers registered with the sender that is currently firing the event will be called.
+If `Global` is true, the event is "global" — there are no specific senders, and all registered handler functions are called when the event is fired. Otherwise, the event has specific senders, and only handlers registered with the sender that is currently firing the event will be called.
 
 ### `uiNewEvent()`
 
@@ -81,7 +81,7 @@ Note that the order that handler functions are called in is unspecified.
 ### `uiEventHandlerBlocked()`
 
 ```c
-TODO_int_or_uiBool uiEventHandlerBlocked(uiEvent *e, int which);
+bool uiEventHandlerBlocked(uiEvent *e, int which);
 ```
 
 `uiEventHandlerBlocked()` returns whether or not the given registered event handler is *blocked*. A blocked event handler will not be called by `uiEventFire()`, even if that handler matches the parameters passed to `uiEventFire()`. `which` should be the identifier of a previously registered event handler as returned by `uiEventAddHandler()`.
@@ -89,7 +89,7 @@ TODO_int_or_uiBool uiEventHandlerBlocked(uiEvent *e, int which);
 ### `uiEventSetHandlerBlocked()`
 
 ```c
-void uiEventSetHandlerBlocked(uiEvent *e, int which, TODO_int_or_uiBool blocked);
+void uiEventSetHandlerBlocked(uiEvent *e, int which, bool blocked);
 ```
 
 `uiEventSetHandlerBlocked()` changes whether or not the given registered event handler is bocked. `which` should be the identifier of a previously registered event handler as returned by `uiEventAddHandler()`.

@@ -22,17 +22,21 @@ typedef void (*uiEventHandler)(void *sender, void *args, void *data);
 
 `uiEventHandler` is the type of a pointer to an event handler function registered with `uiEventAddHandler()`.
 
+`args` will be the respective argument passed to `uiEventFire()`, and `sender` and `data` will be the respective arguments passed to `uiEventAddHandler()`.
+
 ### `uiEventOptions`
 
 ```c
 typedef struct uiEventOptions uiEventOptions;
 struct uiEventOptions {
-	// TODO size
+	size_t Size;
 	bool Global;
 };
 ```
 
 `uiEventOptions` describes the properties of a `uiEvent`; you pass these to `uiNewEvent()`.
+
+You are responsible for allocating and initializing this struct. To do so, you simply zero the memory for this struct and set its `Size` field to `sizeof (uiEventOptions)`. (TODO put this in a common place)
 
 If `Global` is true, the event is "global" — there are no specific senders, and all registered handler functions are called when the event is fired. Otherwise, the event has specific senders, and only handlers registered with the sender that is currently firing the event will be called.
 

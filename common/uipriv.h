@@ -10,7 +10,7 @@ extern int uiprivSysInit(void *options, uiInitError *err);
 extern int uiprivInitReturnError(uiInitError *err, const char *msg);
 extern int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
 
-// programmererror.c
+// errors.c
 enum {
 	uiprivProgrammerErrorWrongStructSize,		// arguments: size_t badSize, const char *structName
 	uiprivProgrammerErrorIndexOutOfRange,	// arguments: int badIndex, __func__

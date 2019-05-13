@@ -14,6 +14,10 @@ extern int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
 enum {
 	uiprivProgrammerErrorWrongStructSize,		// arguments: size_t badSize, const char *structName
 	uiprivProgrammerErrorIndexOutOfRange,	// arguments: int badIndex, __func__
+	uiprivProgrammerErrorNullPointer,			// arguments: const char *paramDesc, __func__
+	uiprivProgrammerErrorIntIDNotFound,		// arguments: const char *idDesc, int badID, __func__
+	// TODO type mismatch
+	// TODO attempt to change event during uiEventFire()
 	uiprivNumProgrammerErrors,
 };
 extern void uiprivProgrammerError(unsigned int which, ...);

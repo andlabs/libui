@@ -7,6 +7,8 @@
 static const char *messages[] = {
 	[uiprivProgrammerErrorWrongStructSize] = "wrong size %zu for %s",
 	[uiprivProgrammerErrorIndexOutOfRange] = "index %d out of range in %s()",
+	[uiprivProgrammerErrorNullPointer] = "invalid null pointer for %s passed into %s()",
+	[uiprivProgrammerErrorIntIDNotFound] = "%s identifier %d not found in %s()",
 };
 
 static void prepareProgrammerError(char *buf, int size, unsigned int which, va_list ap)

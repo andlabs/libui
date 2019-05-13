@@ -2,4 +2,5 @@
 
 libui_sources += [
 	'common/init.c',
+	'common/programmererror.c',
 ]

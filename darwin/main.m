@@ -1,4 +1,5 @@
 // 20 april 2019
+#import <stdlib.h>
 #import "uipriv_darwin.h"
 
 @interface uiprivApplication : NSApplication
@@ -96,4 +97,14 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	// dispatch_get_main_queue() is a serial queue so it will not execute multiple uiQueueMain() functions concurrently
 	// the signature of f matches dispatch_function_t
 	dispatch_async_f(dispatch_get_main_queue(), data, f);
+}
+
+void uiprivSysProgrammerError(const char *msg)
+{
+	NSLog(@"*** %s: %s. %s", uiprivProgrammerErrorPrefix, msg, uiprivProgrammerErrorAdvice);
+	// TODO either find an appropriate exception for each message or use a custom exception name
+	[NSException raise:NSInvalidArgumentException
+		format:@"%s: %s", uiprivProgrammerErrorPrefix, msg];
+	// TODO break into the debugger?
+	abort();		// we shouldn't reach here
 }

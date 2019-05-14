@@ -24,11 +24,13 @@ void uiprivInternalError(const char *fmt, ...)
 	uiprivReportError(internalErrorPrefix, buf, internalErrorSuffix, true);
 }
 
-static const char *messages[] = {
+static const char *messages[uiprivNumProgrammerErrors] = {
 	[uiprivProgrammerErrorWrongStructSize] = "wrong size %zu for %s",
 	[uiprivProgrammerErrorIndexOutOfRange] = "index %d out of range in %s()",
 	[uiprivProgrammerErrorNullPointer] = "invalid null pointer for %s passed into %s()",
 	[uiprivProgrammerErrorIntIDNotFound] = "%s identifier %d not found in %s()",
+	[uiprivProgrammerErrorChangingEventDuringFire] = "attempt to change a uiEvent with %s() while it is firing",
+	[uiprivProgrammerErrorRecursiveEventFire] = "attempt to fire a uiEvent while it is already being fired",
 };
 
 static void prepareProgrammerError(char *buf, int size, unsigned int which, va_list ap)
@@ -37,6 +39,8 @@ static void prepareProgrammerError(char *buf, int size, unsigned int which, va_l
 
 	if (which >= uiprivNumProgrammerErrors)
 		uiprivInternalError("bad programmer error value %u", which);
+	if (messages[which] == NULL)
+		uiprivInternalError("programmer error %u has no message", which);
 	n = vsnprintf(buf, size, messages[which], ap);
 	if (n < 0)
 		uiprivInternalError("programmer error string for %u has encoding error", which);

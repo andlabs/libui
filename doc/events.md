@@ -64,7 +64,7 @@ The return value is an identifier that may be used to delete or block the event.
 
 Note that event handlers are NOT deduplicated; if you call `uiEventAddHandler()` twice with the same `handler`, then `handler` will be registered twice and will thus be called twice, even if `sender` and/or `data` are the same, and `uiEventAddHandler()` will return two distinct identifiers.
 
-It is a programmer error to specify `NULL` for `e` or `handler`.
+It is a programmer error to specify `NULL` for `e` or `handler`. It is also a programmer error to call `uiEventAddHandler()` on an event while that event is being fired.
 
 ### `uiEventDeleteHandler()`
 
@@ -72,7 +72,7 @@ It is a programmer error to specify `NULL` for `e` or `handler`.
 void uiEventDeleteHandler(uiEvent *e, int id);
 ```
 
-It is a programmer error to specify `NULL` for `e` or a currently unregistered value for `id`.
+It is a programmer error to specify `NULL` for `e` or a currently unregistered value for `id`. It is also a programmer error to call `uiEventDeleteHandler()` on an event while that event is being fired.
 
 ### `uiEventFire()`
 
@@ -88,12 +88,12 @@ Each handler that is to be called will receive whatever you pass in as `args` to
 
 Note that the order that handler functions are called in is unspecified.
 
-It is a programmer error to specify `NULL` for `e`.
+It is a programmer error to specify `NULL` for `e`. It is also a programmer error to fire an event again while it is already being fired.
 
 ### `uiEventHandlerBlocked()`
 
 ```c
-bool uiEventHandlerBlocked(uiEvent *e, int id);
+bool uiEventHandlerBlocked(const uiEvent *e, int id);
 ```
 
 `uiEventHandlerBlocked()` returns whether or not the given registered event handler is *blocked*. A blocked event handler will not be called by `uiEventFire()`, even if that handler matches the parameters passed to `uiEventFire()`. `id` should be the identifier of a previously registered event handler as returned by `uiEventAddHandler()`.
@@ -108,6 +108,4 @@ void uiEventSetHandlerBlocked(uiEvent *e, int id, bool blocked);
 
 `uiEventSetHandlerBlocked()` changes whether or not the given registered event handler is bocked. `id` should be the identifier of a previously registered event handler as returned by `uiEventAddHandler()`.
 
-The effect of calling this function on a handler that matches a currently active `uiEventFire()` is unspecified.
-
-It is a programmer error to specify `NULL` for `e` or a currently unregistered event identifier for `id`.
+It is a programmer error to specify `NULL` for `e` or a currently unregistered event identifier for `id`. It is also a programmer error to call `uiEventSetHandlerBlocked()` on an event while that event is being fired.

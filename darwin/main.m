@@ -115,12 +115,17 @@ void uiQueueMain(void (*f)(void *data), void *data)
 // - possibly others, all on stackoverflow.com (and maybe once on Apple's own forums?); I forget now
 static void debugBreak(void);
 
-void uiprivSysProgrammerError(const char *msg)
+void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal)
 {
-	NSLog(@"*** %s: %s. %s", uiprivProgrammerErrorPrefix, msg, uiprivProgrammerErrorAdvice);
-	// TODO either find an appropriate exception for each message or use a custom exception name
-	[NSException raise:NSInvalidArgumentException
-		format:@"%s: %s", uiprivProgrammerErrorPrefix, msg];
+	NSExceptionName exceptionName;
+
+	NSLog(@"*** %s: %s. %s", prefix, msg, suffix);
+	exceptionName = NSInternalInconsistencyException;
+	if (!internal)
+		// TODO either find an appropriate exception for each possible message or use a custom exception name
+		exceptionName = NSInvalidArgumentException;
+	[NSException raise:exceptionName
+		format:@"%s: %s", prefix, msg];
 	debugBreak();
 	abort();		// we shouldn't reach here
 }

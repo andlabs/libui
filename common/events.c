@@ -24,15 +24,6 @@ static int handlerCmp(const void *a, const void *b)
 	return 0;
 }
 
-static struct handler *handlerFind(struct handler *handlers, size_t len, int id)
-{
-	struct handler key;
-
-	memset(&key, 0, sizeof (struct handler));
-	key.id = id;
-	return (struct handler *) bsearch(&key, handlers, len, sizeof (struct handler), handlerCmp);
-}
-
 static void handlerSort(struct handler *handlers, size_t len)
 {
 	qsort(handlers, len, sizeof (struct handler), handlerCmp);
@@ -46,8 +37,12 @@ struct uiEvent {
 	bool firing;
 };
 
-uiEvent *uiNewEvent(uiEventOptions *options)
+uiEvent *uiNewEvent(const uiEventOptions *options)
 {
+	if (options == NULL) {
+		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventOptions", __func__);
+		return NULL;
+	}
 }
 
 #define checkEventNonnull(e, ...) if ((e) == NULL) { \
@@ -59,10 +54,47 @@ uiEvent *uiNewEvent(uiEventOptions *options)
 	return __VA_ARGS__; \
 }
 
+static bool checkEventSender(const uiEvent *e, void *sender, const char *func)
+{
+	if (e->opts.Global && sender != NULL) {
+		uiprivProgrammerError(uiprivProgrammerErrorBadSenderForEvent, "non-NULL", "global", func);
+		return false;
+	}
+	if (!e->opts.Global && sender == NULL) {
+		uiprivProgrammerError(uiprivProgrammerErrorBadSenderForEvent, "NULL", "non-global", func);
+		return false;
+	}
+	return true;
+}
+
 int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *data)
 {
 	checkEventNonnull(e, 0);
 	checkEventNotFiring(e, 0);
+	if (handler == NULL) {
+		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventHandler", __func__);
+		return 0;
+	}
+	if (!checkEventSender(e, sender, __func__))
+		return 0;
+}
+
+static struct handler *findHandler(const uiEvent *e, int id, const char *func)
+{
+	struct handler key;
+	struct handler *ret;
+
+	if (e->len == 0)
+		goto notFound;
+	memset(&key, 0, sizeof (struct handler));
+	key.id = id;
+	ret = (struct handler *) bsearch(&key, e->handlers, e->len, sizeof (struct handler), handlerCmp);
+	if (ret != NULL)
+		return ret;
+	// otherwise fall through
+notFound:
+	uiprivProgrammerError(uiprivProgrammerErrorIntIDNotFound, "uiEvent handler", id, func);
+	return NULL;
 }
 
 void uiEventDeleteHandler(uiEvent *e, int id)
@@ -71,11 +103,9 @@ void uiEventDeleteHandler(uiEvent *e, int id)
 
 	checkEventNonnull(e);
 	checkEventNotFiring(e);
-	if (e->len == 0)
-		TODO
-	h = handlerFind(e->handlers, e->len, id);
+	h = findHandler(e, id, __func__);
 	if (h == NULL)
-		TODO
+		return;
 	e->len--;
 	memmove(h + 1, h, (e->len - (h - e->handlers)) * sizeof (struct handler));
 }
@@ -90,8 +120,9 @@ void uiEventFire(uiEvent *e, void *sender, void *args)
 		uiprivProgrammerError(uiprivProgrammerErrorRecursiveEventFire);
 		return;
 	}
-	if (e->opts.Global && sender != NULL)
-		TODO
+	if (!checkEventSender(e, sender, __func__))
+		return;
+
 	e->firing = true;
 	h = e->handlers;
 	for (i = 0; i < e->len; i++) {
@@ -104,11 +135,23 @@ void uiEventFire(uiEvent *e, void *sender, void *args)
 
 bool uiEventHandlerBlocked(const uiEvent *e, int id)
 {
+	struct handler *h;
+
 	checkEventNonnull(e, false);
+	h = findHandler(e, id, __func__);
+	if (h == NULL)
+		return false;
+	return h->blocked;
 }
 
 void uiEventSetHandlerBlocked(uiEvent *e, int id, bool blocked)
 {
+	struct handler *h;
+
 	checkEventNonnull(e);
 	checkEventNotFiring(e);
+	h = findHandler(e, id, __func__);
+	if (h == NULL)
+		return;
+	h->blocked = blocked;
 }

@@ -53,7 +53,7 @@ struct uiEventOptions {
 	bool Global;
 };
 
-uiprivExtern uiEvent *uiNewEvent(uiEventOptions *options);
+uiprivExtern uiEvent *uiNewEvent(const uiEventOptions *options);
 // TODO uiFreeEvent()
 uiprivExtern int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *data);
 uiprivExtern void uiEventDeleteHandler(uiEvent *e, int id);

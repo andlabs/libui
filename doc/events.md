@@ -43,7 +43,7 @@ If `Global` is true, the event is "global" — there are no specific senders, an
 ### `uiNewEvent()`
 
 ```c
-uiEvent *uiNewEvent(uiEventOptions *options);
+uiEvent *uiNewEvent(const uiEventOptions *options);
 ```
 
 `uiNewEvent()` creates a new `uiEvent` with the given options.

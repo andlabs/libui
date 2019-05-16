@@ -29,6 +29,7 @@ static const char *messages[uiprivNumProgrammerErrors] = {
 	[uiprivProgrammerErrorIndexOutOfRange] = "index %d out of range in %s()",
 	[uiprivProgrammerErrorNullPointer] = "invalid null pointer for %s passed into %s()",
 	[uiprivProgrammerErrorIntIDNotFound] = "%s identifier %d not found in %s()",
+	[uiprivProgrammerErrorBadSenderForEvent] = "attempt to use a %s sender with a %s event in %s()",
 	[uiprivProgrammerErrorChangingEventDuringFire] = "attempt to change a uiEvent with %s() while it is firing",
 	[uiprivProgrammerErrorRecursiveEventFire] = "attempt to fire a uiEvent while it is already being fired",
 };

@@ -18,6 +18,7 @@ enum {
 	uiprivProgrammerErrorNullPointer,			// arguments: const char *paramDesc, __func__
 	uiprivProgrammerErrorIntIDNotFound,		// arguments: const char *idDesc, int badID, __func__
 	// TODO type mismatch
+	uiprivProgrammerErrorBadSenderForEvent,	// arguments: const char *senderDesc, const char *eventDesc, __func__
 	uiprivProgrammerErrorChangingEventDuringFire,		// arguments: __func__
 	uiprivProgrammerErrorRecursiveEventFire,	// no arguments
 	uiprivNumProgrammerErrors,

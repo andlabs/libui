@@ -72,6 +72,8 @@ It is a programmer error to specify `NULL` for `e` or `handler`. It is also a pr
 void uiEventDeleteHandler(uiEvent *e, int id);
 ```
 
+`uiEventDeleteHandler()` removes an event handler registration; you specify which handler to unregister by passing in the ID returned from `uiEventAddHandler()`.
+
 It is a programmer error to specify `NULL` for `e` or a currently unregistered value for `id`. It is also a programmer error to call `uiEventDeleteHandler()` on an event while that event is being fired.
 
 ### `uiEventFire()`

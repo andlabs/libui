@@ -10,6 +10,11 @@ extern int uiprivSysInit(void *options, uiInitError *err);
 extern int uiprivInitReturnError(uiInitError *err, const char *msg);
 extern int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
 
+// alloc.c
+extern void *uiprivAlloc(size_t n, const char *what);
+extern void *uiprivRealloc(void *p, size_t old, size_t new, const char *what);
+extern void uiprivFree(void *p);
+
 // errors.c
 extern void uiprivInternalError(const char *fmt, ...);
 enum {

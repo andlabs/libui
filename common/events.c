@@ -1,11 +1,12 @@
 // 15 may 2019
 #include <stdlib.h>
+#include <string.h>
 #include "ui.h"
 #include "uipriv.h"
 
 struct handler {
 	int id;
-	uiHandlerFunc f;
+	uiEventHandler f;
 	void *sender;
 	void *data;
 	bool blocked;
@@ -39,10 +40,19 @@ struct uiEvent {
 
 uiEvent *uiNewEvent(const uiEventOptions *options)
 {
+	uiEvent *e;
+
 	if (options == NULL) {
 		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventOptions", __func__);
 		return NULL;
 	}
+	if (options->Size != sizeof (uiEventOptions)) {
+		uiprivProgrammerError(uiprivProgrammerErrorWrongStructSize, options->Size, "uiEventOptions");
+		return NULL;
+	}
+	e = (uiEvent *) uiprivAlloc(sizeof (uiEvent), "uiEvent");
+	e->opts = *options;
+	return e;
 }
 
 #define checkEventNonnull(e, ...) if ((e) == NULL) { \

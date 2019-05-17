@@ -55,13 +55,13 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 	return e;
 }
 
-#define checkEventNonnull(e, ...) if ((e) == NULL) { \
+#define checkEventNonnull(e, ret) if ((e) == NULL) { \
 	uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEvent", __func__); \
-	return __VA_ARGS__; \
+	return ret; \
 }
-#define checkEventNotFiring(e, ...) if ((e)->firing) { \
+#define checkEventNotFiring(e, ret) if ((e)->firing) { \
 	uiprivProgrammerError(uiprivProgrammerErrorChangingEventDuringFire, __func__); \
-	return __VA_ARGS__; \
+	return ret; \
 }
 
 static bool checkEventSender(const uiEvent *e, void *sender, const char *func)
@@ -111,8 +111,8 @@ void uiEventDeleteHandler(uiEvent *e, int id)
 {
 	struct handler *h;
 
-	checkEventNonnull(e);
-	checkEventNotFiring(e);
+	checkEventNonnull(e, /* nothing */);
+	checkEventNotFiring(e, /* nothing */);
 	h = findHandler(e, id, __func__);
 	if (h == NULL)
 		return;
@@ -125,7 +125,7 @@ void uiEventFire(uiEvent *e, void *sender, void *args)
 	struct handler *h;
 	size_t i;
 
-	checkEventNonnull(e);
+	checkEventNonnull(e, /* nothing */);
 	if (e->firing) {
 		uiprivProgrammerError(uiprivProgrammerErrorRecursiveEventFire);
 		return;
@@ -158,8 +158,8 @@ void uiEventSetHandlerBlocked(uiEvent *e, int id, bool blocked)
 {
 	struct handler *h;
 
-	checkEventNonnull(e);
-	checkEventNotFiring(e);
+	checkEventNonnull(e, /* nothing */);
+	checkEventNotFiring(e, /* nothing */);
 	h = findHandler(e, id, __func__);
 	if (h == NULL)
 		return;

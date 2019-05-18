@@ -25,16 +25,14 @@ static int handlerCmp(const void *a, const void *b)
 	return 0;
 }
 
-static void handlerSort(struct handler *handlers, size_t len)
-{
-	qsort(handlers, len, sizeof (struct handler), handlerCmp);
-}
-
 struct uiEvent {
 	uiEventOptions opts;
 	struct handler *handlers;
 	size_t len;
 	size_t cap;
+	int *unusedIDs;
+	size_t unusedIDsLen;
+	size_t unusedIDsCap;
 	bool firing;
 };
 
@@ -79,6 +77,9 @@ static bool checkEventSender(const uiEvent *e, void *sender, const char *func)
 
 int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *data)
 {
+	struct handler *h;
+	int retID;
+
 	checkEventNonnull(e, 0);
 	checkEventNotFiring(e, 0);
 	if (handler == NULL) {
@@ -87,6 +88,31 @@ int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *da
 	}
 	if (!checkEventSender(e, sender, __func__))
 		return 0;
+
+	if (e->len >= e->cap) {
+		e->handlers = uiprivRealloc(e->handlers,
+			e->cap * sizeof (struct handler),
+			(e->cap + nGrow) * sizeof (struct handler),
+			"uiEvent handlers");
+		e->cap += nGrow;
+	}
+
+	h = e->handlers + e->len;
+	h->id = 0;
+	if (e->unusedIDsLen > 0) {
+		h->id = e->unusedIDs[e->unusedIDsLen - 1];
+		e->unusedIDsLen--;
+	} else if (e->len == 0)
+		h->id = e->handlers[e->len - 1].id + 1;
+	h->f = handler;
+	h->sender = sender;
+	h->data = data;
+
+	// after the qsort(), h may no longer be correct, so save the return ID now
+	retID = h->id;
+	e->len++;
+	qsort(e->handlers, e->len, sizeof (struct handler), handlerCmp);
+	return retID;
 }
 
 static struct handler *findHandler(const uiEvent *e, int id, const char *func)
@@ -110,14 +136,28 @@ notFound:
 void uiEventDeleteHandler(uiEvent *e, int id)
 {
 	struct handler *h;
+	int id;
 
 	checkEventNonnull(e, /* nothing */);
 	checkEventNotFiring(e, /* nothing */);
 	h = findHandler(e, id, __func__);
 	if (h == NULL)
 		return;
+
+	id = h->id;
 	e->len--;
-	memmove(h + 1, h, (e->len - (h - e->handlers)) * sizeof (struct handler));
+	// TODO write this in a way that doesn't mix ptrdiff_t and size_t
+	memmove(h, h + 1, (e->len - (h - e->handlers)) * sizeof (struct handler));
+
+	if (e->unusedIDsLen >= e->unusedIDsCap) {
+		e->unusedIDs = (int *) uiprivRealloc(e->unusedIDs,
+			e->unusedIDsCap * sizeof (int),
+			(e->unusedIDsCap + nGrow) * sizeof (int),
+			"uiEvent handler unused IDs");
+		e->unusedIDsCap += nGrow;
+	}
+	e->unusedIDs[e->unusedIDsLen] = id;
+	e->unusedIDsLen++;
 }
 
 void uiEventFire(uiEvent *e, void *sender, void *args)

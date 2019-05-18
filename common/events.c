@@ -4,6 +4,8 @@
 #include "ui.h"
 #include "uipriv.h"
 
+#define nGrow 32
+
 struct handler {
 	int id;
 	uiEventHandler f;
@@ -136,7 +138,6 @@ notFound:
 void uiEventDeleteHandler(uiEvent *e, int id)
 {
 	struct handler *h;
-	int id;
 
 	checkEventNonnull(e, /* nothing */);
 	checkEventNotFiring(e, /* nothing */);
@@ -144,7 +145,6 @@ void uiEventDeleteHandler(uiEvent *e, int id)
 	if (h == NULL)
 		return;
 
-	id = h->id;
 	e->len--;
 	// TODO write this in a way that doesn't mix ptrdiff_t and size_t
 	memmove(h, h + 1, (e->len - (h - e->handlers)) * sizeof (struct handler));

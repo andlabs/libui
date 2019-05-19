@@ -22,35 +22,36 @@ static void internalError(const char *fmt, ...)
 	abort();
 }
 
-static void *mustmalloc(size_t n, const char *what)
+static void *mustMalloc(size_t n, const char *what)
 {
-	void *x;
+	void *p;
 
-	x = malloc(n);
-	if (x == NULL)
+	p = malloc(n);
+	if (p == NULL)
 		internalError("memory exhausted allocating %s", what);
-	memset(x, 0, n);
-	return x;
+	memset(p, 0, n);
+	return p;
 }
 
-#define new(T) ((T *) mustmalloc(sizeof (T), #T))
-#define newArray(T, n) ((T *) mustmalloc(n * sizeof (T), #T "[" #n "]"))
+#define mustNew(T) ((T *) mustMalloc(sizeof (T), #T))
+#define mustNewArray(T, n) ((T *) mustMalloc(n * sizeof (T), #T "[]"))
 
-static void *mustrealloc(void *x, size_t prevN, size_t n, const char *what)
+static void *mustRealloc(void *p, size_t old, size_t new, const char *what)
 {
-	void *y;
-
-	// don't use realloc() because we want to clear the new memory
-	y = malloc(n);
-	if (y == NULL)
+	p = realloc(p, new);
+	if (p == NULL)
 		internalError("memory exhausted reallocating %s", what);
-	memset(y, 0, n);
-	memmove(y, x, prevN);
-	free(x);
-	return y;
+	if (new > old)
+		memset(((uint8_t *) p) + old, 0, new - old);
+	return p;
 }
 
-#define resizeArray(x, T, prevN, n) ((T *) mustrealloc(x, prevN * sizeof (T), n * sizeof (T), #T "[" #n "]"))
+#define mustResizeArray(x, T, old, new) ((T *) mustRealloc(x, old * sizeof (T), new * sizeof (T), #T "[]"))
+
+static void mustFree(void *p)
+{
+	free(p);
+}
 
 static int mustvsnprintf(char *s, size_t n, const char *format, va_list ap)
 {
@@ -71,6 +72,15 @@ static int mustsnprintf(char *s, size_t n, const char *format, ...)
 	ret = mustvsnprintf(s, n, format, ap);
 	va_end(ap);
 	return ret;
+}
+
+static char *muststrdup(const char *s)
+{
+	char *t;
+
+	t = (char *) mustMalloc((strlen(s) + 1) * sizeof (char), "char[]");
+	strcpy(t, s);
+	return t;
 }
 
 // a struct outbuf of NULL writes directly to stdout
@@ -100,7 +110,7 @@ static void outbufCopyStr(struct outbuf *o, const char *str, size_t len)
 
 		prevcap = o->cap;
 		o->cap += grow;
-		o->buf = resizeArray(o->buf, char, prevcap, o->cap);
+		o->buf = mustResizeArray(o->buf, char, prevcap, o->cap);
 	}
 	memmove(o->buf + o->len, str, len * sizeof (char));
 	o->len += len;
@@ -126,7 +136,7 @@ static void outbufVprintf(struct outbuf *o, int indent, const char *format, va_l
 	n = mustvsnprintf(NULL, 0, format, ap2);
 	// TODO handle n < 0 case
 	va_end(ap2);
-	buf = newArray(char, n + 1);
+	buf = mustNewArray(char, n + 1);
 	mustvsnprintf(buf, n + 1, format, ap);
 
 	// strip trailing blank lines
@@ -155,7 +165,7 @@ static void outbufVprintf(struct outbuf *o, int indent, const char *format, va_l
 	outbufCopyStr(o, lineStart, strlen(lineStart));
 	outbufAddNewline(o);
 
-	free(buf);
+	mustFree(buf);
 }
 
 static void outbufPrintf(struct outbuf *o, int indent, const char *format, ...)
@@ -188,6 +198,7 @@ struct defer {
 struct testingT {
 	// set at test creation time
 	const char *name;
+	char *computedName;
 	void (*f)(testingT *);
 	const char *file;
 	long line;
@@ -216,6 +227,7 @@ static void initTest(testingT *t, const char *name, void (*f)(testingT *), const
 {
 	memset(t, 0, sizeof (testingT));
 	t->name = name;
+	t->computedName = muststrdup(name);
 	t->f = f;
 	t->file = file;
 	t->line = line;
@@ -239,7 +251,7 @@ void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(t
 	if (pset != NULL) {
 		set = *pset;
 		if (set == NULL) {
-			set = new(testingSet);
+			set = mustNew(testingSet);
 			*pset = set;
 		}
 	}
@@ -248,7 +260,7 @@ void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(t
 
 		prevcap = set->cap;
 		set->cap += nGrow;
-		set->tests = resizeArray(set->tests, testingT, prevcap, set->cap);
+		set->tests = mustResizeArray(set->tests, testingT, prevcap, set->cap);
 	}
 	initTest(set->tests + set->len, name, f, file, line);
 	set->len++;
@@ -361,11 +373,11 @@ void testingprivTLogvfFull(testingT *t, const char *file, long line, const char 
 	n2 = mustvsnprintf(NULL, 0, format, ap2);
 	// TODO handle n2 < 0 case
 	va_end(ap2);
-	buf = newArray(char, n + n2 + 1);
+	buf = mustNewArray(char, n + n2 + 1);
 	mustsnprintf(buf, n + 1, "%s:%ld: ", file, line);
 	mustvsnprintf(buf + n, n2 + 1, format, ap);
 	outbufPrintf(&(t->output), t->indent, "%s", buf);
-	free(buf);
+	mustFree(buf);
 }
 
 void testingTFail(testingT *t)
@@ -400,7 +412,7 @@ void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data)
 {
 	struct defer *d;
 
-	d = new(struct defer);
+	d = mustNew(struct defer);
 	d->f = f;
 	d->data = data;
 	// add to the head of the list so defers are run in reverse order of how they were added

@@ -104,7 +104,7 @@ int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *da
 	if (e->unusedIDsLen > 0) {
 		h->id = e->unusedIDs[e->unusedIDsLen - 1];
 		e->unusedIDsLen--;
-	} else if (e->len == 0)
+	} else if (e->len != 0)
 		h->id = e->handlers[e->len - 1].id + 1;
 	h->f = handler;
 	h->sender = sender;

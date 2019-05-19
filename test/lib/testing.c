@@ -9,79 +9,7 @@
 #include <string.h>
 #include "timer.h"
 #include "testing.h"
-
-static void internalError(const char *fmt, ...)
-{
-	va_list ap;
-
-	va_start(ap, fmt);
-	fprintf(stderr, "** testing internal error: ");
-	vfprintf(stderr, fmt, ap);
-	fprintf(stderr, "; aborting\n");
-	va_end(ap);
-	abort();
-}
-
-static void *mustMalloc(size_t n, const char *what)
-{
-	void *p;
-
-	p = malloc(n);
-	if (p == NULL)
-		internalError("memory exhausted allocating %s", what);
-	memset(p, 0, n);
-	return p;
-}
-
-#define mustNew(T) ((T *) mustMalloc(sizeof (T), #T))
-#define mustNewArray(T, n) ((T *) mustMalloc(n * sizeof (T), #T "[]"))
-
-static void *mustRealloc(void *p, size_t old, size_t new, const char *what)
-{
-	p = realloc(p, new);
-	if (p == NULL)
-		internalError("memory exhausted reallocating %s", what);
-	if (new > old)
-		memset(((uint8_t *) p) + old, 0, new - old);
-	return p;
-}
-
-#define mustResizeArray(x, T, old, new) ((T *) mustRealloc(x, old * sizeof (T), new * sizeof (T), #T "[]"))
-
-static void mustFree(void *p)
-{
-	free(p);
-}
-
-static int mustvsnprintf(char *s, size_t n, const char *format, va_list ap)
-{
-	int ret;
-
-	ret = vsnprintf(s, n, format, ap);
-	if (ret < 0)
-		internalError("encoding error in vsnprintf(); this likely means your call to testingTLogf() and the like is invalid");
-	return ret;
-}
-
-static int mustsnprintf(char *s, size_t n, const char *format, ...)
-{
-	va_list ap;
-	int ret;
-
-	va_start(ap, format);
-	ret = mustvsnprintf(s, n, format, ap);
-	va_end(ap);
-	return ret;
-}
-
-static char *muststrdup(const char *s)
-{
-	char *t;
-
-	t = (char *) mustMalloc((strlen(s) + 1) * sizeof (char), "char[]");
-	strcpy(t, s);
-	return t;
-}
+#include "testingpriv.h"
 
 // a struct outbuf of NULL writes directly to stdout
 struct outbuf {
@@ -110,7 +38,7 @@ static void outbufCopyStr(struct outbuf *o, const char *str, size_t len)
 
 		prevcap = o->cap;
 		o->cap += grow;
-		o->buf = mustResizeArray(o->buf, char, prevcap, o->cap);
+		o->buf = testingprivResizeArray(o->buf, char, prevcap, o->cap);
 	}
 	memmove(o->buf + o->len, str, len * sizeof (char));
 	o->len += len;
@@ -133,11 +61,11 @@ static void outbufVprintf(struct outbuf *o, int indent, const char *format, va_l
 	int firstLine = 1;
 
 	va_copy(ap2, ap);
-	n = mustvsnprintf(NULL, 0, format, ap2);
+	n = testingprivVsnprintf(NULL, 0, format, ap2);
 	// TODO handle n < 0 case
 	va_end(ap2);
-	buf = mustNewArray(char, n + 1);
-	mustvsnprintf(buf, n + 1, format, ap);
+	buf = testingprivNewArray(char, n + 1);
+	testingprivVsnprintf(buf, n + 1, format, ap);
 
 	// strip trailing blank lines
 	while (buf[n - 1] == '\n')
@@ -165,7 +93,7 @@ static void outbufVprintf(struct outbuf *o, int indent, const char *format, va_l
 	outbufCopyStr(o, lineStart, strlen(lineStart));
 	outbufAddNewline(o);
 
-	mustFree(buf);
+	testingprivFree(buf);
 }
 
 static void outbufPrintf(struct outbuf *o, int indent, const char *format, ...)
@@ -227,7 +155,7 @@ static void initTest(testingT *t, const char *name, void (*f)(testingT *), const
 {
 	memset(t, 0, sizeof (testingT));
 	t->name = name;
-	t->computedName = muststrdup(name);
+	t->computedName = testingprivStrdup(name);
 	t->f = f;
 	t->file = file;
 	t->line = line;
@@ -251,7 +179,7 @@ void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(t
 	if (pset != NULL) {
 		set = *pset;
 		if (set == NULL) {
-			set = mustNew(testingSet);
+			set = testingprivNew(testingSet);
 			*pset = set;
 		}
 	}
@@ -260,7 +188,7 @@ void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(t
 
 		prevcap = set->cap;
 		set->cap += nGrow;
-		set->tests = mustResizeArray(set->tests, testingT, prevcap, set->cap);
+		set->tests = testingprivResizeArray(set->tests, testingT, prevcap, set->cap);
 	}
 	initTest(set->tests + set->len, name, f, file, line);
 	set->len++;
@@ -367,17 +295,17 @@ void testingprivTLogvfFull(testingT *t, const char *file, long line, const char 
 	int n, n2;
 
 	// TODO extract filename from file
-	n = mustsnprintf(NULL, 0, "%s:%ld: ", file, line);
+	n = testingprivSnprintf(NULL, 0, "%s:%ld: ", file, line);
 	// TODO handle n < 0 case
 	va_copy(ap2, ap);
-	n2 = mustvsnprintf(NULL, 0, format, ap2);
+	n2 = testingprivVsnprintf(NULL, 0, format, ap2);
 	// TODO handle n2 < 0 case
 	va_end(ap2);
-	buf = mustNewArray(char, n + n2 + 1);
-	mustsnprintf(buf, n + 1, "%s:%ld: ", file, line);
-	mustvsnprintf(buf + n, n2 + 1, format, ap);
+	buf = testingprivNewArray(char, n + n2 + 1);
+	testingprivSnprintf(buf, n + 1, "%s:%ld: ", file, line);
+	testingprivVsnprintf(buf + n, n2 + 1, format, ap);
 	outbufPrintf(&(t->output), t->indent, "%s", buf);
-	mustFree(buf);
+	testingprivFree(buf);
 }
 
 void testingTFail(testingT *t)
@@ -412,7 +340,7 @@ void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data)
 {
 	struct defer *d;
 
-	d = mustNew(struct defer);
+	d = testingprivNew(struct defer);
 	d->f = f;
 	d->data = data;
 	// add to the head of the list so defers are run in reverse order of how they were added

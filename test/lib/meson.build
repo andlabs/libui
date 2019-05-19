@@ -2,6 +2,7 @@
 
 libui_test_sources += [
 	'lib/testing.c',
+	'lib/testingpriv.c',
 	'lib/timer.c',
 ]
 

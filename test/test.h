@@ -4,6 +4,7 @@
 #include "lib/timer.h"
 
 #define diff(t, clause, fmt, got, want) testingTErrorf(t, "%s:\ngot  " fmt "\nwant " fmt, clause, got, want)
+#define diff_2str(t, clause, clause2, fmt, got, want) testingTErrorf(t, "%s %s:\ngot  " fmt "\nwant " fmt, clause, clause2, got, want)
 #define diff2(t, clause, fmts, got1, got2, want1, want2) testingTErrorf(t, "%s:\ngot  " fmts "\nwant " fmts, clause, got1, got2, want1, want2)
 #define diffFatal(t, clause, fmt, got, want) testingTFatalf(t, "%s:\ngot  " fmt "\nwant " fmt, clause, got, want)
 #define diff2Fatal(t, clause, fmts, got1, got2, want1, want2) testingTFatalf(t, "%s:\ngot  " fmts "\nwant " fmts, clause, got1, got2, want1, want2)

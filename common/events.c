@@ -4,8 +4,6 @@
 #include "ui.h"
 #include "uipriv.h"
 
-#define nGrow 32
-
 struct handler {
 	int id;
 	uiEventHandler f;
@@ -29,9 +27,7 @@ static int handlerCmp(const void *a, const void *b)
 
 struct uiEvent {
 	uiEventOptions opts;
-	struct handler *handlers;
-	size_t len;
-	size_t cap;
+	uiprivArray handlers;
 	int *unusedIDs;
 	size_t unusedIDsLen;
 	size_t unusedIDsCap;
@@ -52,6 +48,7 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 	}
 	e = (uiEvent *) uiprivAlloc(sizeof (uiEvent), "uiEvent");
 	e->opts = *options;
+	uiprivArrayInit(e->handlers, struct handler, 32, "uiEvent handlers");
 	return e;
 }
 
@@ -80,7 +77,7 @@ static bool checkEventSender(const uiEvent *e, void *sender, const char *func)
 int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *data)
 {
 	struct handler *h;
-	int retID;
+	int id;
 
 	checkEventNonnull(e, 0);
 	checkEventNotFiring(e, 0);
@@ -91,30 +88,20 @@ int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *da
 	if (!checkEventSender(e, sender, __func__))
 		return 0;
 
-	if (e->len >= e->cap) {
-		e->handlers = uiprivRealloc(e->handlers,
-			e->cap * sizeof (struct handler),
-			(e->cap + nGrow) * sizeof (struct handler),
-			"uiEvent handlers");
-		e->cap += nGrow;
-	}
-
-	h = e->handlers + e->len;
-	h->id = 0;
+	id = 0;
 	if (e->unusedIDsLen > 0) {
-		h->id = e->unusedIDs[e->unusedIDsLen - 1];
+		id = e->unusedIDs[e->unusedIDsLen - 1];
 		e->unusedIDsLen--;
-	} else if (e->len != 0)
-		h->id = e->handlers[e->len - 1].id + 1;
+	} else if (e->handlers.len != 0)
+		id = uiprivArrayAt(e->handlers, struct handler, e->handlers.len - 1)->id + 1;
+
+	h = (struct handler *) uiprivArrayAppend(&(e->handlers), 1);
+	h->id = id;
 	h->f = handler;
 	h->sender = sender;
 	h->data = data;
-
-	// after the qsort(), h may no longer be correct, so save the return ID now
-	retID = h->id;
-	e->len++;
-	qsort(e->handlers, e->len, sizeof (struct handler), handlerCmp);
-	return retID;
+	uiprivArrayQsort(&(e->handlers), handlerCmp);
+	return id;
 }
 
 static struct handler *findHandler(const uiEvent *e, int id, const char *func)
@@ -122,17 +109,12 @@ static struct handler *findHandler(const uiEvent *e, int id, const char *func)
 	struct handler key;
 	struct handler *ret;
 
-	if (e->len == 0)
-		goto notFound;
 	memset(&key, 0, sizeof (struct handler));
 	key.id = id;
-	ret = (struct handler *) bsearch(&key, e->handlers, e->len, sizeof (struct handler), handlerCmp);
-	if (ret != NULL)
-		return ret;
-	// otherwise fall through
-notFound:
-	uiprivProgrammerError(uiprivProgrammerErrorIntIDNotFound, "uiEvent handler", id, func);
-	return NULL;
+	ret = (struct handler *) uiprivArrayBsearch(&(e->handlers), &key, handlerCmp);
+	if (ret == NULL)
+		uiprivProgrammerError(uiprivProgrammerErrorIntIDNotFound, "uiEvent handler", id, func);
+	return ret;
 }
 
 void uiEventDeleteHandler(uiEvent *e, int id)
@@ -145,16 +127,14 @@ void uiEventDeleteHandler(uiEvent *e, int id)
 	if (h == NULL)
 		return;
 
-	e->len--;
-	// TODO write this in a way that doesn't mix ptrdiff_t and size_t
-	memmove(h, h + 1, (e->len - (h - e->handlers)) * sizeof (struct handler));
+	uiprivArrayDeleteItem(&(e->handlers), h, 1);
 
 	if (e->unusedIDsLen >= e->unusedIDsCap) {
 		e->unusedIDs = (int *) uiprivRealloc(e->unusedIDs,
 			e->unusedIDsCap * sizeof (int),
-			(e->unusedIDsCap + nGrow) * sizeof (int),
+			(e->unusedIDsCap + 32) * sizeof (int),
 			"uiEvent handler unused IDs");
-		e->unusedIDsCap += nGrow;
+		e->unusedIDsCap += 32;
 	}
 	e->unusedIDs[e->unusedIDsLen] = id;
 	e->unusedIDsLen++;
@@ -174,8 +154,8 @@ void uiEventFire(uiEvent *e, void *sender, void *args)
 		return;
 
 	e->firing = true;
-	h = e->handlers;
-	for (i = 0; i < e->len; i++) {
+	h = (struct handler *) (e->handlers.buf);
+	for (i = 0; i < e->handlers.len; i++) {
 		if (h->sender == sender && !h->blocked)
 			(*(h->f))(sender, args, h->data);
 		h++;

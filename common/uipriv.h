@@ -23,12 +23,12 @@ struct uiprivArray {
 	size_t nGrow;
 	const char *what;
 };
-#define uiprivInitArray(arr, T, grow) \
-	memset(&arr, 0, sizeof (uiprivArray)); \
+#define uiprivArrayInit(arr, T, grow, whatstr) \
+	memset(&(arr), 0, sizeof (uiprivArray)); \
 	arr.elemsize = sizeof (T); \
 	arr.nGrow = grow; \
-	arr.what = #T "[]";
-#define uiprivFreeArray(arr) \
+	arr.what = whatstr;
+#define uiprivArrayFree(arr) \
 	uiprivFree(arr.buf); \
 	memset(&arr, 0, sizeof (uiprivArray);
 #define uiprivArrayAt(arr, T, n) (((T *) (arr.buf)) + (n))
@@ -36,7 +36,7 @@ extern void *uiprivArrayAppend(uiprivArray *arr, size_t n);
 extern void *uiprivArrayInsertAt(uiprivArray *arr, size_t pos, size_t n);
 extern void uiprivArrayDelete(uiprivArray *arr, size_t pos, size_t n);
 extern void uiprivArrayDeleteItem(uiprivArray *arr, void *p, size_t n);
-extern void *uiprivArrayBsearch(uiprivArray *arr, const void *key, int (*compare)(const void *, const void *));
+extern void *uiprivArrayBsearch(const uiprivArray *arr, const void *key, int (*compare)(const void *, const void *));
 extern void uiprivArrayQsort(uiprivArray *arr, int (*compare)(const void *, const void *));
 
 // errors.c

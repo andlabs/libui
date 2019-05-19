@@ -38,7 +38,7 @@ void *uiprivArrayAppend(uiprivArray *arr, size_t n)
 void *uiprivArrayInsertAt(uiprivArray *arr, size_t pos, size_t n)
 {
 	uint8_t *old, *new;
-	size_t nBytes;
+	size_t nBytesAdded, nBytesRemaining;
 
 	if ((arr->len + n) >= arr->cap) {
 		size_t nGrow;
@@ -53,11 +53,12 @@ void *uiprivArrayInsertAt(uiprivArray *arr, size_t pos, size_t n)
 	}
 	arr->len += n;
 
-	nBytes = n * arr->elemsize;
+	nBytesRemaining = (arr->len - pos) * arr->elemsize;
+	nBytesAdded = n * arr->elemsize;
 	new = ((uint8_t *) (arr->buf)) + (pos * arr->elemsize);
-	old = new + nBytes;
-	memmove(old, new, nBytes);
-	memset(new, 0, nBytes);
+	old = new + nBytesAdded;
+	memmove(old, new, nBytesRemaining);
+	memset(new, 0, nBytesAdded);
 	return new;
 }
 
@@ -70,8 +71,9 @@ void uiprivArrayDelete(uiprivArray *arr, size_t pos, size_t n)
 	nBytesRemaining = (arr->len - pos - n) * arr->elemsize;
 	dest = ((uint8_t *) (arr->buf)) + (pos * arr->elemsize);
 	src = dest + nBytesDeleted;
-	memmove(dest, src, nBytesDeleted);
-	memset(src, 0, nBytesRemaining);
+	memmove(dest, src, nBytesRemaining);
+	src = dest + nBytesRemaining;
+	memset(src, 0, nBytesDeleted);
 	arr->len -= n;
 }
 
@@ -85,7 +87,7 @@ void uiprivArrayDeleteItem(uiprivArray *arr, void *p, size_t n)
 	uiprivArrayDelete(arr, (p8 - buf8) / arr->elemsize, n);
 }
 
-void *uiprivArrayBsearch(uiprivArray *arr, const void *key, int (*compare)(const void *, const void *))
+void *uiprivArrayBsearch(const uiprivArray *arr, const void *key, int (*compare)(const void *, const void *))
 {
 	return bsearch(key, arr->buf, arr->len, arr->elemsize, compare);
 }

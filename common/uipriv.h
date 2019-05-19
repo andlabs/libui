@@ -14,6 +14,30 @@ extern int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
 extern void *uiprivAlloc(size_t n, const char *what);
 extern void *uiprivRealloc(void *p, size_t old, size_t new, const char *what);
 extern void uiprivFree(void *p);
+typedef struct uiprivArray uiprivArray;
+struct uiprivArray {
+	void *buf;
+	size_t len;
+	size_t cap;
+	size_t elemsize;
+	size_t nGrow;
+	const char *what;
+};
+#define uiprivInitArray(arr, T, grow) \
+	memset(&arr, 0, sizeof (uiprivArray)); \
+	arr.elemsize = sizeof (T); \
+	arr.nGrow = grow; \
+	arr.what = #T "[]";
+#define uiprivFreeArray(arr) \
+	uiprivFree(arr.buf); \
+	memset(&arr, 0, sizeof (uiprivArray);
+#define uiprivArrayAt(arr, T, n) (((T *) (arr.buf)) + (n))
+extern void *uiprivArrayAppend(uiprivArray *arr, size_t n);
+extern void *uiprivArrayInsertAt(uiprivArray *arr, size_t pos, size_t n);
+extern void uiprivArrayDelete(uiprivArray *arr, size_t pos, size_t n);
+extern void uiprivArrayDeleteItem(uiprivArray *arr, void *p, size_t n);
+extern void *uiprivArrayBsearch(uiprivArray *arr, const void *key, int (*compare)(const void *, const void *));
+extern void uiprivArrayQsort(uiprivArray *arr, int (*compare)(const void *, const void *));
 
 // errors.c
 extern void uiprivInternalError(const char *fmt, ...);

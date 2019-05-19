@@ -20,12 +20,14 @@ static void handler(void *sender, void *args, void *data)
 #define checkHandlerRun(h, whichSender, whichArgs) \
 	if (!h.run) \
 		testingTErrorf(t, "%s not run", h.name); \
-	if (h.sender != whichSender) \
-		diff_2str(t, "incorrect sender seen by", h.name, \
-			"%p", h.sender, whichSender); \
-	if (h.args != whichArgs) \
-		diff_2str(t, "incorrect args seen by", h.name, \
-			"%p", h.args, whichArgs);
+	else { \
+		if (h.sender != whichSender) \
+			diff_2str(t, "incorrect sender seen by", h.name, \
+				"%p", h.sender, whichSender); \
+		if (h.args != whichArgs) \
+			diff_2str(t, "incorrect args seen by", h.name, \
+				"%p", h.args, whichArgs); \
+	}
 
 #define checkHandlerNotRun(h) \
 	if (h.run) \

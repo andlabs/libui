@@ -1,0 +1,25 @@
+[16:28:35]  <+andlabs>  https://github.com/microsoft/microsoft-ui-xaml/blob/d883cf3593912ded1a1fcc73f38768fda8ee3a45/dev/Materials/Acrylic/AcrylicBrush.cpp
+[16:28:47]  <+andlabs>  oh, so the acrylic effect in windows 10 uwp IS open source now after all
+[16:29:05]  <+andlabs>  and I bet most of it is possible in non-UWP apps with DirectComposition and Direct2D
+[16:29:46]  <+andlabs>  the only problem left is Get(Host)BackgroundBrush(), which are not in the open-source components and are still uWP only, and are how the actual content to blend with is grabbed
+Pietro Gagliardi, [19.05.19 00:12]
+[In reply to Pietro Gagliardi]
+https://support.microsoft.com/en-us/help/2670838/platform-update-for-windows-7-sp1-and-windows-server-2008-r2-sp1 oh, directcomposition isn't part of the windows 7 platform update, so it's a hard win8 only :|
+Pietro Gagliardi, [19.05.19 00:54]
+https://docs.microsoft.com/en-us/windows/desktop/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforcomposition yeah, windows 7 doesn't have a flexible composition API; boo 😐
+
+Pietro Gagliardi, [19.05.19 00:54]
+I guess I can use DwmEnableBlurBehindWindow on the older platforms...
+
+Pietro Gagliardi, [19.05.19 00:54]
+won't work for blur-behind window-content, only blur-behind everything-underneath-the-window
+
+
+
+https://github.com/microsoft/microsoft-ui-xaml/blob/d883cf3593912ded1a1fcc73f38768fda8ee3a45/dev/Materials/Acrylic/AcrylicBrush.cpp
+https://github.com/microsoft/WindowsCompositionSamples/issues/219
+https://docs.microsoft.com/en-us/windows/desktop/directcomp/directcomposition-portal
+https://msdn.microsoft.com/en-us/magazine/mt590968.aspx
+https://kennykerr.ca/2014/09/02/directcomposition/
+https://stackoverflow.com/questions/44000217/mimicking-acrylic-in-a-win32-app
+https://docs.microsoft.com/en-us/windows/desktop/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforcomposition

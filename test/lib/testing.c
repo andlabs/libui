@@ -161,37 +161,28 @@ static void initTest(testingT *t, const char *name, void (*f)(testingT *), const
 	t->line = line;
 }
 
-#define nGrow 32
-
 struct testingSet {
-	testingT *tests;
-	size_t len;
-	size_t cap;
+	testingprivArray tests;
 };
 
-static testingSet mainTests = { NULL, 0, 0 };
+static testingSet mainTests = { testingprivArrayStaticInit(testingT, 32, "testingT[]") };
 
 void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(testingT *), const char *file, long line)
 {
 	testingSet *set;
+	testingT *t;
 
 	set = &mainTests;
 	if (pset != NULL) {
 		set = *pset;
 		if (set == NULL) {
 			set = testingprivNew(testingSet);
+			testingprivArrayInit(set->tests, testingT, 32, "testingT[]");
 			*pset = set;
 		}
 	}
-	if (set->len == set->cap) {
-		size_t prevcap;
-
-		prevcap = set->cap;
-		set->cap += nGrow;
-		set->tests = testingprivResizeArray(set->tests, testingT, prevcap, set->cap);
-	}
-	initTest(set->tests + set->len, name, f, file, line);
-	set->len++;
+	t = (testingT *) testingprivArrayAppend(&(set->tests), 1);
+	initTest(t, name, f, file, line);
 }
 
 static int testcmp(const void *a, const void *b)
@@ -234,9 +225,9 @@ static void testingprivSetRun(testingSet *set, const testingOptions *options, in
 	char timerstr[timerDurationStringLen];
 	int printStatus;
 
-	qsort(set->tests, set->len, sizeof (testingT), testcmp);
-	t = set->tests;
-	for (i = 0; i < set->len; i++) {
+	testingprivArrayQsort(&(set->tests), testcmp);
+	t = (testingT *) (set->tests.buf);
+	for (i = 0; i < set->tests.len; i++) {
 		if (options->Verbose)
 			outbufPrintf(NULL, indent, "=== RUN   %s", t->name);
 		t->indent = indent + 1;
@@ -273,7 +264,7 @@ void testingSetRun(testingSet *set, const struct testingOptions *options, int *a
 		set = &mainTests;
 	if (options == NULL)
 		options = &defaultOptions;
-	if (set->len == 0)
+	if (set->tests.len == 0)
 		return;
 	testingprivSetRun(set, options, 0, anyFailed);
 	*anyRun = 1;

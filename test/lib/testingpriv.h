@@ -18,6 +18,7 @@ struct testingprivArray {
 	size_t nGrow;
 	const char *what;
 };
+#define testingprivArrayStaticInit(T, grow, whatstr) { NULL, 0, 0, sizeof (T), grow, whatstr }
 #define testingprivArrayInit(arr, T, grow, whatstr) \
 	memset(&(arr), 0, sizeof (testingprivArray)); \
 	arr.elemsize = sizeof (T); \

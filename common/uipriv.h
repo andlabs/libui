@@ -23,6 +23,7 @@ struct uiprivArray {
 	size_t nGrow;
 	const char *what;
 };
+#define uiprivArrayStaticInit(T, grow, whatstr) { NULL, 0, 0, sizeof (T), grow, whatstr }
 #define uiprivArrayInit(arr, T, grow, whatstr) \
 	memset(&(arr), 0, sizeof (uiprivArray)); \
 	arr.elemsize = sizeof (T); \

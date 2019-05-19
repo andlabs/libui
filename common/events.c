@@ -28,9 +28,7 @@ static int handlerCmp(const void *a, const void *b)
 struct uiEvent {
 	uiEventOptions opts;
 	uiprivArray handlers;
-	int *unusedIDs;
-	size_t unusedIDsLen;
-	size_t unusedIDsCap;
+	uiprivArray unusedIDs;
 	bool firing;
 };
 
@@ -49,6 +47,7 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 	e = (uiEvent *) uiprivAlloc(sizeof (uiEvent), "uiEvent");
 	e->opts = *options;
 	uiprivArrayInit(e->handlers, struct handler, 32, "uiEvent handlers");
+	uiprivArrayInit(e->unusedIDs, int, 32, "uiEvent handler unused IDs");
 	return e;
 }
 
@@ -89,9 +88,12 @@ int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *da
 		return 0;
 
 	id = 0;
-	if (e->unusedIDsLen > 0) {
-		id = e->unusedIDs[e->unusedIDsLen - 1];
-		e->unusedIDsLen--;
+	if (e->unusedIDs.len > 0) {
+		int *p;
+
+		p = uiprivArrayAt(e->unusedIDs, int, e->unusedIDs.len - 1);
+		id = *p;
+		uiprivArrayDeleteItem(&(e->unusedIDs), p, 1);
 	} else if (e->handlers.len != 0)
 		id = uiprivArrayAt(e->handlers, struct handler, e->handlers.len - 1)->id + 1;
 
@@ -128,16 +130,7 @@ void uiEventDeleteHandler(uiEvent *e, int id)
 		return;
 
 	uiprivArrayDeleteItem(&(e->handlers), h, 1);
-
-	if (e->unusedIDsLen >= e->unusedIDsCap) {
-		e->unusedIDs = (int *) uiprivRealloc(e->unusedIDs,
-			e->unusedIDsCap * sizeof (int),
-			(e->unusedIDsCap + 32) * sizeof (int),
-			"uiEvent handler unused IDs");
-		e->unusedIDsCap += 32;
-	}
-	e->unusedIDs[e->unusedIDsLen] = id;
-	e->unusedIDsLen++;
+	*((int *) uiprivArrayAppend(&(e->unusedIDs), 1)) = id;
 }
 
 void uiEventFire(uiEvent *e, void *sender, void *args)

@@ -63,7 +63,8 @@ testingTest(BasicEventsAddDeleteEventHandlers)
 	uiEventOptions opts;
 	struct handler hbase[6];
 	struct handler h[6];
-	int firstHandler, middleHandler, lastHandler;
+	int handler1, handler2, handler3;
+	int newHandler1, newHandler2, newHandler3;
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
@@ -71,17 +72,17 @@ testingTest(BasicEventsAddDeleteEventHandlers)
 	e = uiNewEvent(&opts);
 
 	memset(hbase, 0, 6 * sizeof (struct handler));
-	hbase[0].name = "first handler";
-	hbase[1].name = "middle handler";
-	hbase[2].name = "last handler";
+	hbase[0].name = "handler 1";
+	hbase[1].name = "handler 2";
+	hbase[2].name = "handler 3";
 	hbase[3].name = "new handler 1";
 	hbase[4].name = "new handler 2";
 	hbase[5].name = "new handler 3";
 
 	testingTLogf(t, "*** initial handlers");
-	firstHandler = uiEventAddHandler(e, handler, whichSender, h + 0);
-	middleHandler = uiEventAddHandler(e, handler, whichSender, h + 1);
-	uiEventAddHandler(e, handler, whichSender, h + 2);
+	handler1 = uiEventAddHandler(e, handler, whichSender, h + 0);
+	handler2 = uiEventAddHandler(e, handler, whichSender, h + 1);
+	handler3 = uiEventAddHandler(e, handler, whichSender, h + 2);
 
 	memmove(h, hbase, 6 * sizeof (struct handler));
 	uiEventFire(e, whichSender, whichArgs);
@@ -92,8 +93,8 @@ testingTest(BasicEventsAddDeleteEventHandlers)
 	checkHandlerNotRun(h[4]);
 	checkHandlerNotRun(h[5]);
 
-	testingTLogf(t, "*** deleting middle handler");
-	uiEventDeleteHandler(e, middleHandler);
+	testingTLogf(t, "*** deleting a handler from the middle");
+	uiEventDeleteHandler(e, handler2);
 
 	memmove(h, hbase, 6 * sizeof (struct handler));
 	uiEventFire(e, whichSender, whichArgs);
@@ -104,8 +105,8 @@ testingTest(BasicEventsAddDeleteEventHandlers)
 	checkHandlerNotRun(h[4]);
 	checkHandlerNotRun(h[5]);
 
-	testingTLogf(t, "*** adding handler after deleting middle handler");
-	uiEventAddHandler(e, handler, whichSender, h + 3);
+	testingTLogf(t, "*** adding handler after deleting a handler from the middle");
+	newHandler1 = uiEventAddHandler(e, handler, whichSender, h + 3);
 
 	memmove(h, hbase, 6 * sizeof (struct handler));
 	uiEventFire(e, whichSender, whichArgs);
@@ -116,9 +117,9 @@ testingTest(BasicEventsAddDeleteEventHandlers)
 	checkHandlerNotRun(h[4]);
 	checkHandlerNotRun(h[5]);
 
-	testingTLogf(t, "*** deleting first handler and adding another");
-	uiEventDeleteHandler(e, firstHandler);
-	lastHandler = uiEventAddHandler(e, handler, whichSender, h + 4);
+	testingTLogf(t, "*** deleting first handler added and adding another");
+	uiEventDeleteHandler(e, handler1);
+	newHandler2 = uiEventAddHandler(e, handler, whichSender, h + 4);
 
 	memmove(h, hbase, 6 * sizeof (struct handler));
 	uiEventFire(e, whichSender, whichArgs);
@@ -129,9 +130,9 @@ testingTest(BasicEventsAddDeleteEventHandlers)
 	checkHandlerRun(h[4], whichSender, whichArgs);
 	checkHandlerNotRun(h[5]);
 
-	testingTLogf(t, "*** deleting last handler and adding another");
-	uiEventDeleteHandler(e, lastHandler);
-	uiEventAddHandler(e, handler, whichSender, h + 5);
+	testingTLogf(t, "*** deleting most recently added handler and adding another");
+	uiEventDeleteHandler(e, newHandler2);
+	newHandler3 = uiEventAddHandler(e, handler, whichSender, h + 5);
 
 	memmove(h, hbase, 6 * sizeof (struct handler));
 	uiEventFire(e, whichSender, whichArgs);
@@ -141,6 +142,32 @@ testingTest(BasicEventsAddDeleteEventHandlers)
 	checkHandlerRun(h[3], whichSender, whichArgs);
 	checkHandlerNotRun(h[4]);
 	checkHandlerRun(h[5], whichSender, whichArgs);
+
+	testingTLogf(t, "*** deleting all handlers");
+	uiEventDeleteHandler(e, handler3);
+	uiEventDeleteHandler(e, newHandler1);
+	uiEventDeleteHandler(e, newHandler3);
+
+	memmove(h, hbase, 6 * sizeof (struct handler));
+	uiEventFire(e, whichSender, whichArgs);
+	checkHandlerNotRun(h[0]);
+	checkHandlerNotRun(h[1]);
+	checkHandlerNotRun(h[2]);
+	checkHandlerNotRun(h[3]);
+	checkHandlerNotRun(h[4]);
+	checkHandlerNotRun(h[5]);
+
+	testingTLogf(t, "*** adding handler after deleting all handlers");
+	uiEventAddHandler(e, handler, whichSender, h + 0);
+
+	memmove(h, hbase, 6 * sizeof (struct handler));
+	uiEventFire(e, whichSender, whichArgs);
+	checkHandlerRun(h[0], whichSender, whichArgs);
+	checkHandlerNotRun(h[1]);
+	checkHandlerNotRun(h[2]);
+	checkHandlerNotRun(h[3]);
+	checkHandlerNotRun(h[4]);
+	checkHandlerNotRun(h[5]);
 }
 
 testingTest(EventErrors)

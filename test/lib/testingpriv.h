@@ -26,7 +26,7 @@ struct testingprivArray {
 	arr.what = whatstr;
 #define testingprivArrayFree(arr) \
 	testingprivFree(arr.buf); \
-	memset(&arr, 0, sizeof (testingprivArray);
+	memset(&arr, 0, sizeof (testingprivArray));
 #define testingprivArrayAt(arr, T, n) (((T *) (arr.buf)) + (n))
 extern void *testingprivArrayAppend(testingprivArray *arr, size_t n);
 extern void *testingprivArrayInsertAt(testingprivArray *arr, size_t pos, size_t n);
@@ -38,3 +38,13 @@ extern void testingprivArrayQsort(testingprivArray *arr, int (*compare)(const vo
 extern int testingprivVsnprintf(char *s, size_t n, const char *format, va_list ap);
 extern int testingprivSnprintf(char *s, size_t n, const char *format, ...);
 extern char *testingprivStrdup(const char *s);
+extern char *testingprivVsmprintf(const char *fmt, va_list ap);
+extern char *testingprivSmprintf(const char *fmt, ...);
+
+// a testingprivOutbuf of NULL writes directly to stdout
+typedef struct testingprivOutbuf testingprivOutbuf;
+extern testingprivOutbuf *testingprivNewOutbuf(void);
+extern void testingprivOutbufFree(testingprivOutbuf *o);
+extern void testingprivOutbufVprintf(testingprivOutbuf *o, const char *fmt, va_list ap);
+extern void testingprivOutbufPrintf(testingprivOutbuf *o, const char *fmt, ...);
+extern void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src, int indent);

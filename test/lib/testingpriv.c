@@ -139,3 +139,147 @@ char *testingprivStrdup(const char *s)
 	strcpy(t, s);
 	return t;
 }
+
+char *testingprivVsmprintf(const char *fmt, va_list ap)
+{
+	char *s;
+	va_list ap2;
+	int n;
+
+	va_copy(ap2, ap);
+	n = testingprivVsnprintf(NULL, 0, fmt, ap2);
+	va_end(ap2);
+	s = (char *) testingprivAlloc((n + 1) * sizeof (char), "char[]");
+	testingprivVsnprintf(s, n + 1, fmt, ap);
+	return s;
+}
+
+char *testingprivSmprintf(const char *fmt, ...)
+{
+	char *s;
+	va_list ap;
+
+	va_start(ap, fmt);
+	s = testingprivVsmprintf(fmt, ap);
+	va_end(ap);
+	return s;
+}
+
+struct testingprivOutbuf {
+	testingprivArray buf;
+};
+
+testingprivOutbuf *testingprivNewOutbuf(void)
+{
+	testingprivOutbuf *o;
+
+	o = testingprivNew(testingprivOutbuf);
+	testingprivArrayInit(o->buf, char, 32, "testing output buffer");
+	return o;
+}
+
+void testingprivOutbufFree(testingprivOutbuf *o)
+{
+	testingprivArrayFree(o->buf);
+	testingprivFree(o);
+}
+
+void testingprivOutbufVprintf(testingprivOutbuf *o, const char *fmt, va_list ap)
+{
+	char *dest;
+	va_list ap2;
+	int n;
+
+	if (o == NULL) {
+		vprintf(fmt, ap);
+		return;
+	}
+	va_copy(ap2, ap);
+	n = testingprivVsnprintf(NULL, 0, fmt, ap);
+	va_end(ap2);
+	// To conserve memory, we only allocate the terminating NUL once.
+	if (o->buf.len == 0)
+		dest = (char *) testingprivArrayAppend(&(o->buf), n + 1);
+	else {
+		dest = (char *) testingprivArrayAppend(&(o->buf), n);
+		dest--;
+	}
+	testingprivVsnprintf(dest, n + 1, fmt, ap);
+}
+
+void testingprivOutbufPrintf(testingprivOutbuf *o, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	testingprivOutbufVprintf(o, fmt, ap);
+	va_end(ap);
+}
+
+// TODO right now this assumes the last character in o before calling this is a newline
+void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src, int indent)
+{
+	char *buf;
+	size_t n;
+	int hasTrailingBlankLine;
+	size_t trailingBlankLinePos;
+	char *lineStart, *lineEnd;
+	int firstLine;
+	char *indentstr;
+	int indentoff;
+
+	buf = src->buf.buf;
+	n = src->buf.len;
+	if (n == 0)
+		// nothing to write
+		return;
+
+	// strip trailing blank lines, if any
+	hasTrailingBlankLine = 0;
+	if (buf[n - 1] == '\n') {
+		hasTrailingBlankLine = 1;
+		while (n > 0 && buf[n - 1] == '\n')
+			n--;
+		if (n == 0) {
+			// the buffer only has blank lines, so just add a single newline and be done with it
+			// TODO verify that this is the correct behavior
+			testingprivOutbufPrintf(o, "\n");
+			return;
+		}
+		trailingBlankLinePos = n;
+		buf[trailingBlankLinePos] = '\0';
+	}
+
+	// precompute the indent string so we don't have to repeatedly print four spaces each time
+	// the + 4 is because lines after the first have one extra level of indent; indentoff is used to control that
+	indentstr = (char *) testingprivAlloc((indent * 4 + 4 + 1) * sizeof (char), "indent string");
+	// the NUL was added by testingprivAlloc()
+	memset(indentstr, ' ', (indent * 4 + 4) * sizeof (char));
+	firstLine = 1;
+	indentoff = 4;
+
+	lineStart = buf;
+	for (;;) {
+		lineEnd = strchr(lineStart, '\n');
+		if (lineEnd == NULL)			// last line
+			break;
+		*lineEnd = '\0';
+		testingprivOutbufPrintf(o, "%s%s\n", indentstr + indentoff, lineStart);
+		// be sure to restore src to its original state
+		*lineEnd = '\n';
+		lineStart = lineEnd + 1;
+		if (firstLine) {
+			// subsequent lines are indented twice
+			firstLine = 0;
+			indentoff = 0;
+		}
+	}
+	// print the last line
+	testingprivOutbufPrintf(o, "%s%s\n", indentstr + indentoff, lineStart);
+
+	testingprivFree(indentstr);
+
+	// restore src to its original state
+	if (hasTrailingBlankLine)
+		buf[trailingBlankLinePos] = '\n';
+}

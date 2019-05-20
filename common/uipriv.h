@@ -31,7 +31,7 @@ struct uiprivArray {
 	arr.what = whatstr;
 #define uiprivArrayFree(arr) \
 	uiprivFree(arr.buf); \
-	memset(&arr, 0, sizeof (uiprivArray);
+	memset(&arr, 0, sizeof (uiprivArray));
 #define uiprivArrayAt(arr, T, n) (((T *) (arr.buf)) + (n))
 extern void *uiprivArrayAppend(uiprivArray *arr, size_t n);
 extern void *uiprivArrayInsertAt(uiprivArray *arr, size_t pos, size_t n);

@@ -62,7 +62,6 @@ static void outbufVprintf(struct outbuf *o, int indent, const char *format, va_l
 
 	va_copy(ap2, ap);
 	n = testingprivVsnprintf(NULL, 0, format, ap2);
-	// TODO handle n < 0 case
 	va_end(ap2);
 	buf = testingprivNewArray(char, n + 1);
 	testingprivVsnprintf(buf, n + 1, format, ap);

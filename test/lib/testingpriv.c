@@ -217,16 +217,13 @@ void testingprivOutbufPrintf(testingprivOutbuf *o, const char *fmt, ...)
 }
 
 // TODO right now this assumes the last character in o before calling this is a newline
-void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src, int indent)
+void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src)
 {
 	char *buf;
 	size_t n;
 	int hasTrailingBlankLine;
 	size_t trailingBlankLinePos;
 	char *lineStart, *lineEnd;
-	int firstLine;
-	char *indentstr;
-	int indentoff;
 
 	buf = src->buf.buf;
 	n = src->buf.len;
@@ -250,34 +247,19 @@ void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src,
 		buf[trailingBlankLinePos] = '\0';
 	}
 
-	// precompute the indent string so we don't have to repeatedly print four spaces each time
-	// the + 4 is because lines after the first have one extra level of indent; indentoff is used to control that
-	indentstr = (char *) testingprivAlloc((indent * 4 + 4 + 1) * sizeof (char), "indent string");
-	// the NUL was added by testingprivAlloc()
-	memset(indentstr, ' ', (indent * 4 + 4) * sizeof (char));
-	firstLine = 1;
-	indentoff = 4;
-
 	lineStart = buf;
 	for (;;) {
 		lineEnd = strchr(lineStart, '\n');
 		if (lineEnd == NULL)			// last line
 			break;
 		*lineEnd = '\0';
-		testingprivOutbufPrintf(o, "%s%s\n", indentstr + indentoff, lineStart);
+		testingprivOutbufPrintf(o, "    %s\n", lineStart);
 		// be sure to restore src to its original state
 		*lineEnd = '\n';
 		lineStart = lineEnd + 1;
-		if (firstLine) {
-			// subsequent lines are indented twice
-			firstLine = 0;
-			indentoff = 0;
-		}
 	}
 	// print the last line
-	testingprivOutbufPrintf(o, "%s%s\n", indentstr + indentoff, lineStart);
-
-	testingprivFree(indentstr);
+	testingprivOutbufPrintf(o, "    %s\n", lineStart);
 
 	// restore src to its original state
 	if (hasTrailingBlankLine)

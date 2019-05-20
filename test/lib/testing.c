@@ -11,104 +11,6 @@
 #include "testing.h"
 #include "testingpriv.h"
 
-// a struct outbuf of NULL writes directly to stdout
-struct outbuf {
-	char *buf;
-	size_t len;
-	size_t cap;
-};
-
-#define nOutbufGrow 32
-
-static void outbufCopyStr(struct outbuf *o, const char *str, size_t len)
-{
-	size_t grow;
-
-	if (len == 0)
-		return;
-	if (o == NULL) {
-		printf("%s", str);
-		return;
-	}
-	grow = len + 1;
-	if (grow < nOutbufGrow)
-		grow = nOutbufGrow;
-	if ((o->len + grow) >= o->cap) {
-		size_t prevcap;
-
-		prevcap = o->cap;
-		o->cap += grow;
-		o->buf = testingprivResizeArray(o->buf, char, prevcap, o->cap);
-	}
-	memmove(o->buf + o->len, str, len * sizeof (char));
-	o->len += len;
-}
-
-#define outbufAddNewline(o) outbufCopyStr(o, "\n", 1)
-
-static void outbufAddIndent(struct outbuf *o, int n)
-{
-	for (; n != 0; n--)
-		outbufCopyStr(o, "    ", 4);
-}
-
-static void outbufVprintf(struct outbuf *o, int indent, const char *format, va_list ap)
-{
-	va_list ap2;
-	char *buf;
-	int n;
-	char *lineStart, *lineEnd;
-	int firstLine = 1;
-
-	va_copy(ap2, ap);
-	n = testingprivVsnprintf(NULL, 0, format, ap2);
-	va_end(ap2);
-	buf = testingprivNewArray(char, n + 1);
-	testingprivVsnprintf(buf, n + 1, format, ap);
-
-	// strip trailing blank lines
-	while (buf[n - 1] == '\n')
-		n--;
-	buf[n] = '\0';
-
-	lineStart = buf;
-	for (;;) {
-		lineEnd = strchr(lineStart, '\n');
-		if (lineEnd == NULL)			// last line
-			break;
-		*lineEnd = '\0';
-		outbufAddIndent(o, indent);
-		outbufCopyStr(o, lineStart, lineEnd - lineStart);
-		outbufAddNewline(o);
-		lineStart = lineEnd + 1;
-		if (firstLine) {
-			// subsequent lines are indented twice
-			indent++;
-			firstLine = 0;
-		}
-	}
-	// print the last line
-	outbufAddIndent(o, indent);
-	outbufCopyStr(o, lineStart, strlen(lineStart));
-	outbufAddNewline(o);
-
-	testingprivFree(buf);
-}
-
-static void outbufPrintf(struct outbuf *o, int indent, const char *format, ...)
-{
-	va_list ap;
-
-	va_start(ap, format);
-	outbufVprintf(o, indent, format, ap);
-	va_end(ap);
-}
-
-static void outbufCopy(struct outbuf *o, const struct outbuf *from)
-{
-	outbufCopyStr(o, from->buf, from->len);
-}
-
 struct defer {
 	void (*f)(testingT *, void *);
 	void *data;
@@ -141,9 +43,8 @@ struct testingT {
 	int defersRun;
 
 	// output
-	int indent;
 	int verbose;
-	struct outbuf output;
+	testingprivOutbuf *outbuf;
 };
 
 #ifdef _MSC_VER
@@ -215,42 +116,54 @@ static const testingOptions defaultOptions = {
 	.Verbose = 0,
 };
 
-static void testingprivSetRun(testingSet *set, const testingOptions *options, int indent, int *anyFailed)
+static int testingprivTRun(testingT *t, const testingOptions *options, testingprivOutbuf *parentbuf)
 {
-	size_t i;
-	testingT *t;
 	const char *status;
 	timerTime start, end;
 	char timerstr[timerDurationStringLen];
 	int printStatus;
 
+	if (options->Verbose)
+		testingprivOutbufPrintf(parentbuf, "=== RUN   %s\n", t->name);
+	t->verbose = options->Verbose;
+	t->outbuf = testingprivNewOutbuf();
+
+	start = timerMonotonicNow();
+	if (setjmp(t->returnNowBuf) == 0)
+		(*(t->f))(t);
+	end = timerMonotonicNow();
+	t->returned = 1;
+	runDefers(t);
+
+	printStatus = t->verbose;
+	status = "PASS";
+	if (t->failed) {
+		status = "FAIL";
+		printStatus = 1;			// always print status on failure
+	} else if (t->skipped)
+		// note that failed overrides skipped
+		status = "SKIP";
+	timerDurationString(timerTimeSub(end, start), timerstr);
+	if (printStatus) {
+		testingprivOutbufPrintf(parentbuf, "--- %s: %s (%s)\n", status, t->name, timerstr);
+		testingprivOutbufAppendOutbuf(parentbuf, t->outbuf);
+	}
+
+	testingprivOutbufFree(t->outbuf);
+	t->outbuf = NULL;
+	return t->failed;
+}
+
+static void testingprivSetRun(testingSet *set, const testingOptions *options, testingprivOutbuf *outbuf, int *anyFailed)
+{
+	size_t i;
+	testingT *t;
+
 	testingprivArrayQsort(&(set->tests), testcmp);
 	t = (testingT *) (set->tests.buf);
 	for (i = 0; i < set->tests.len; i++) {
-		if (options->Verbose)
-			outbufPrintf(NULL, indent, "=== RUN   %s", t->name);
-		t->indent = indent + 1;
-		t->verbose = options->Verbose;
-		start = timerMonotonicNow();
-		if (setjmp(t->returnNowBuf) == 0)
-			(*(t->f))(t);
-		end = timerMonotonicNow();
-		t->returned = 1;
-		runDefers(t);
-		printStatus = t->verbose;
-		status = "PASS";
-		if (t->failed) {
-			status = "FAIL";
-			printStatus = 1;			// always print status on failure
+		if (!testingprivTRun(t, options, outbuf))
 			*anyFailed = 1;
-		} else if (t->skipped)
-			// note that failed overrides skipped
-			status = "SKIP";
-		timerDurationString(timerTimeSub(end, start), timerstr);
-		if (printStatus) {
-			outbufPrintf(NULL, indent, "--- %s: %s (%s)", status, t->name, timerstr);
-			outbufCopy(NULL, &(t->output));
-		}
 		t++;
 	}
 }
@@ -265,7 +178,7 @@ void testingSetRun(testingSet *set, const struct testingOptions *options, int *a
 		options = &defaultOptions;
 	if (set->tests.len == 0)
 		return;
-	testingprivSetRun(set, options, 0, anyFailed);
+	testingprivSetRun(set, options, NULL, anyFailed);
 	*anyRun = 1;
 }
 
@@ -280,22 +193,9 @@ void testingprivTLogfFull(testingT *t, const char *file, long line, const char *
 
 void testingprivTLogvfFull(testingT *t, const char *file, long line, const char *format, va_list ap)
 {
-	va_list ap2;
-	char *buf;
-	int n, n2;
-
 	// TODO extract filename from file
-	n = testingprivSnprintf(NULL, 0, "%s:%ld: ", file, line);
-	// TODO handle n < 0 case
-	va_copy(ap2, ap);
-	n2 = testingprivVsnprintf(NULL, 0, format, ap2);
-	// TODO handle n2 < 0 case
-	va_end(ap2);
-	buf = testingprivNewArray(char, n + n2 + 1);
-	testingprivSnprintf(buf, n + 1, "%s:%ld: ", file, line);
-	testingprivVsnprintf(buf + n, n2 + 1, format, ap);
-	outbufPrintf(&(t->output), t->indent, "%s", buf);
-	testingprivFree(buf);
+	testingprivOutbufPrintf(t->outbuf, "%s:%ld: ", file, line);
+	testingprivOutbufPrintf(t->outbuf, format, ap);
 }
 
 void testingTFail(testingT *t)

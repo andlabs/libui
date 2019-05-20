@@ -51,7 +51,6 @@ void *uiprivArrayInsertAt(uiprivArray *arr, size_t pos, size_t n)
 			arr->what);
 		arr->cap += nGrow;
 	}
-	arr->len += n;
 
 	nBytesRemaining = (arr->len - pos) * arr->elemsize;
 	nBytesAdded = n * arr->elemsize;
@@ -59,6 +58,8 @@ void *uiprivArrayInsertAt(uiprivArray *arr, size_t pos, size_t n)
 	old = new + nBytesAdded;
 	memmove(old, new, nBytesRemaining);
 	memset(new, 0, nBytesAdded);
+
+	arr->len += n;
 	return new;
 }
 

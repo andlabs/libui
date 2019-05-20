@@ -64,7 +64,6 @@ void *testingprivArrayInsertAt(testingprivArray *arr, size_t pos, size_t n)
 			arr->what);
 		arr->cap += nGrow;
 	}
-	arr->len += n;
 
 	nBytesRemaining = (arr->len - pos) * arr->elemsize;
 	nBytesAdded = n * arr->elemsize;
@@ -72,6 +71,8 @@ void *testingprivArrayInsertAt(testingprivArray *arr, size_t pos, size_t n)
 	old = new + nBytesAdded;
 	memmove(old, new, nBytesRemaining);
 	memset(new, 0, nBytesAdded);
+
+	arr->len += n;
 	return new;
 }
 
@@ -195,7 +196,7 @@ void testingprivOutbufVprintf(testingprivOutbuf *o, const char *fmt, va_list ap)
 		return;
 	}
 	va_copy(ap2, ap);
-	n = testingprivVsnprintf(NULL, 0, fmt, ap);
+	n = testingprivVsnprintf(NULL, 0, fmt, ap2);
 	va_end(ap2);
 	// To conserve memory, we only allocate the terminating NUL once.
 	if (o->buf.len == 0)

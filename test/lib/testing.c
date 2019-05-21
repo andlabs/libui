@@ -28,7 +28,6 @@ struct defer {
 struct testingT {
 	// set at test creation time
 	const char *name;
-	char *computedName;
 	void (*f)(testingT *, void *);
 	void *data;
 
@@ -89,7 +88,6 @@ void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(t
 	}
 	t = (testingT *) testingprivArrayAppend(&(set->tests), 1);
 	initTest(t, name, f, data, file, line);
-	t->computedName = testingprivStrdup(name);
 }
 
 static int testcmp(const void *a, const void *b)
@@ -253,6 +251,7 @@ void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, 
 {
 	testingT *subt;
 	testingprivOutbuf *rewrittenName;
+	char *fullName;
 
 	rewrittenName = testingprivNewOutbuf();
 	while (*subname != "") {
@@ -283,17 +282,16 @@ void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, 
 			testingprivOutbufPrintf(rewrittenName, "\\x%x", (unsigned int) (*subname));
 		subname++;
 	}
-
-	subt = testingprivNew(testingT);
-	initTest(subt, subfunc, data, NULL, 0);
-	subt->computedName = testingSmprintf("%s/%s", t->name, testingprivOutbufString(rewrittenName));
+	fullName = testingSmprintf("%s/%s", t->name, testingprivOutbufString(rewrittenName));
 	testingprivOutbufFree(rewrittenName);
 
+	subt = testingprivNew(testingT);
+	initTest(subt, fullName, subfunc, data, NULL, 0);
 	subt->opts = t->opts;
 	if (testingprivTRun(subt, t->outbuf) != 0)
 		t->failed = 1;
-
-	uiprivFree(subt->computedName);
 	uiprivFree(subt);
+
+	uiprivFree(fullName);
 }
 #endif

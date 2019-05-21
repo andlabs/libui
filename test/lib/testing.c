@@ -162,7 +162,7 @@ static void testingprivSetRun(testingSet *set, const testingOptions *options, te
 	testingprivArrayQsort(&(set->tests), testcmp);
 	t = (testingT *) (set->tests.buf);
 	for (i = 0; i < set->tests.len; i++) {
-		if (!testingprivTRun(t, options, outbuf))
+		if (testingprivTRun(t, options, outbuf) != 0)
 			*anyFailed = 1;
 		t++;
 	}
@@ -196,6 +196,7 @@ void testingprivTLogvfFull(testingT *t, const char *file, long line, const char 
 	// TODO extract filename from file
 	testingprivOutbufPrintf(t->outbuf, "%s:%ld: ", file, line);
 	testingprivOutbufPrintf(t->outbuf, format, ap);
+	testingprivOutbufPrintf(t->outbuf, "\n");
 }
 
 void testingTFail(testingT *t)

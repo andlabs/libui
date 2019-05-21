@@ -259,8 +259,9 @@ void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src)
 		*lineEnd = '\n';
 		lineStart = lineEnd + 1;
 	}
-	// print the last line
-	testingprivOutbufPrintf(o, "    %s\n", lineStart);
+	// print the last line, if any
+	if (*lineStart != '\0')
+		testingprivOutbufPrintf(o, "    %s\n", lineStart);
 
 	// restore src to its original state
 	if (hasTrailingBlankLine)

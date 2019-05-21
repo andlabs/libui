@@ -31,6 +31,8 @@ struct testingT {
 	char *computedName;
 	void (*f)(testingT *, void *);
 	void *data;
+
+	// for sorting tests in a set; not used by subtests
 	const char *file;
 	long line;
 
@@ -44,8 +46,10 @@ struct testingT {
 	struct defer *defers;
 	int defersRun;
 
+	// execution options
+	testingOptions opts;
+
 	// output
-	int verbose;
 	testingprivOutbuf *outbuf;
 };
 
@@ -119,16 +123,15 @@ static const testingOptions defaultOptions = {
 	.Verbose = 0,
 };
 
-static int testingprivTRun(testingT *t, const testingOptions *options, testingprivOutbuf *parentbuf)
+static int testingprivTRun(testingT *t, testingprivOutbuf *parentbuf)
 {
 	const char *status;
 	timerTime start, end;
 	char timerstr[timerDurationStringLen];
 	int printStatus;
 
-	if (options->Verbose)
+	if (t->opts.Verbose)
 		testingprivOutbufPrintf(parentbuf, "=== RUN   %s\n", t->name);
-	t->verbose = options->Verbose;
 	t->outbuf = testingprivNewOutbuf();
 
 	start = timerMonotonicNow();
@@ -138,7 +141,7 @@ static int testingprivTRun(testingT *t, const testingOptions *options, testingpr
 	t->returned = 1;
 	runDefers(t);
 
-	printStatus = t->verbose;
+	printStatus = t->opts.Verbose;
 	status = "PASS";
 	if (t->failed) {
 		status = "FAIL";
@@ -157,7 +160,8 @@ static int testingprivTRun(testingT *t, const testingOptions *options, testingpr
 	return t->failed;
 }
 
-static void testingprivSetRun(testingSet *set, const testingOptions *options, testingprivOutbuf *outbuf, int *anyFailed)
+// TODO rename all options to opts and all format to fmt
+static void testingprivSetRun(testingSet *set, const testingOptions *opts, testingprivOutbuf *outbuf, int *anyFailed)
 {
 	size_t i;
 	testingT *t;
@@ -165,7 +169,8 @@ static void testingprivSetRun(testingSet *set, const testingOptions *options, te
 	testingprivArrayQsort(&(set->tests), testcmp);
 	t = (testingT *) (set->tests.buf);
 	for (i = 0; i < set->tests.len; i++) {
-		if (testingprivTRun(t, options, outbuf) != 0)
+		t->opts = *opts;
+		if (testingprivTRun(t, outbuf) != 0)
 			*anyFailed = 1;
 		t++;
 	}
@@ -280,11 +285,12 @@ void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, 
 	}
 
 	subt = testingprivNew(testingT);
-	initTest(subt, subfunc, data, xxxxxx);
+	initTest(subt, subfunc, data, NULL, 0);
 	subt->computedName = testingSmprintf("%s/%s", t->name, testingprivOutbufString(rewrittenName));
 	testingprivOutbufFree(rewrittenName);
 
-	if (testingprivTRun(subt, xxxxxx, t->outbuf) != 0)
+	subt->opts = t->opts;
+	if (testingprivTRun(subt, t->outbuf) != 0)
 		t->failed = 1;
 
 	uiprivFree(subt->computedName);

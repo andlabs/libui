@@ -7,7 +7,7 @@
 
 #define testingprivScaffoldName(basename) testingprivScaffold ## basename
 #define testingprivMkScaffold(basename, argtype, argname) \
-	static void testingprivScaffoldName(basename)(argtype *argname) { testingprivImplName(basename)(argname); }
+	static void testingprivScaffoldName(basename)(argtype *argname, void *data) { testingprivImplName(basename)(argname); }
 
 // references:
 // - https://gitlab.gnome.org/GNOME/glib/blob/master/glib/gconstructor.h
@@ -17,10 +17,10 @@
 #define testingprivCtorPtrName(basename) testingprivCtorPtr ## basename
 #if defined(__GNUC__)
 #define testingprivMkCtor(basename, pset) \
-	__attribute__((constructor)) static void testingprivCtorName(basename)(void) { testingprivSetRegisterTest(pset, #basename, testingprivScaffoldName(basename), __FILE__, __LINE__); }
+	__attribute__((constructor)) static void testingprivCtorName(basename)(void) { testingprivSetRegisterTest(pset, #basename, testingprivScaffoldName(basename), NULL, __FILE__, __LINE__); }
 #elif defined(_MSC_VER)
 #define testingprivMkCtor(basename, pset) \
-	static int testingprivCtorName(basename)(void) { testingprivSetRegisterTest(pset, #basename, testingprivScaffoldName(basename), __FILE__, __LINE__); return 0; } \
+	static int testingprivCtorName(basename)(void) { testingprivSetRegisterTest(pset, #basename, testingprivScaffoldName(basename), NULL, __FILE__, __LINE__); return 0; } \
 	__pragma(section(".CRT$XCU",read)) \
 	__declspec(allocate(".CRT$XCU")) static int (*testingprivCtorPtrName(basename))(void) = testingprivCtorName(basename);
 #else
@@ -70,7 +70,7 @@ extern void testingTSkipNow(testingT *t);
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
 extern void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, void *data), void *data);
 
-extern void testingprivSetRegisterTest(testingSet **pset, const char *, void (*)(testingT *), const char *, long);
+extern void testingprivSetRegisterTest(testingSet **pset, const char *, void (*)(testingT *, void *), void *, const char *, long);
 // see https://stackoverflow.com/questions/32399191/va-args-expansion-using-msvc
 #define testingprivExpand(x) x
 #define testingprivTLogfThen(then, t, ...) ((testingprivTLogfFull(t, __FILE__, __LINE__, __VA_ARGS__)), (then(t)))

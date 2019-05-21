@@ -29,7 +29,8 @@ struct testingT {
 	// set at test creation time
 	const char *name;
 	char *computedName;
-	void (*f)(testingT *);
+	void (*f)(testingT *, void *);
+	void *data;
 	const char *file;
 	long line;
 
@@ -52,11 +53,12 @@ struct testingT {
 #pragma warning(pop)
 #endif
 
-static void initTest(testingT *t, const char *name, void (*f)(testingT *), const char *file, long line)
+static void initTest(testingT *t, const char *name, void (*f)(testingT *, void *), void *data, const char *file, long line)
 {
 	memset(t, 0, sizeof (testingT));
 	t->name = name;
 	t->f = f;
+	t->data = data;
 	t->file = file;
 	t->line = line;
 }
@@ -67,7 +69,7 @@ struct testingSet {
 
 static testingSet mainTests = { testingprivArrayStaticInit(testingT, 32, "testingT[]") };
 
-void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(testingT *), const char *file, long line)
+void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(testingT *, void *), void *data, const char *file, long line)
 {
 	testingSet *set;
 	testingT *t;
@@ -82,7 +84,7 @@ void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(t
 		}
 	}
 	t = (testingT *) testingprivArrayAppend(&(set->tests), 1);
-	initTest(t, name, f, file, line);
+	initTest(t, name, f, data, file, line);
 	t->computedName = testingprivStrdup(name);
 }
 
@@ -131,7 +133,7 @@ static int testingprivTRun(testingT *t, const testingOptions *options, testingpr
 
 	start = timerMonotonicNow();
 	if (setjmp(t->returnNowBuf) == 0)
-		(*(t->f))(t);
+		(*(t->f))(t, t->data);
 	end = timerMonotonicNow();
 	t->returned = 1;
 	runDefers(t);
@@ -241,6 +243,8 @@ void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data)
 }
 
 void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, void *data), void *data)
+{}
+#if 0
 {
 	testingT *subt;
 	testingprivOutbuf *rewrittenName;
@@ -276,7 +280,7 @@ void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, 
 	}
 
 	subt = testingprivNew(testingT);
-	initTest(subt, xxxxx);
+	initTest(subt, subfunc, data, xxxxxx);
 	subt->computedName = testingSmprintf("%s/%s", t->name, testingprivOutbufString(rewrittenName));
 	testingprivOutbufFree(rewrittenName);
 
@@ -286,3 +290,4 @@ void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, 
 	uiprivFree(subt->computedName);
 	uiprivFree(subt);
 }
+#endif

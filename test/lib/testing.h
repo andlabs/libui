@@ -68,6 +68,7 @@ extern void testingTFail(testingT *t);
 extern void testingTFailNow(testingT *t);
 extern void testingTSkipNow(testingT *t);
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
+extern void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, void *data), void *data);
 
 extern void testingprivSetRegisterTest(testingSet **pset, const char *, void (*)(testingT *), const char *, long);
 // see https://stackoverflow.com/questions/32399191/va-args-expansion-using-msvc

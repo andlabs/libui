@@ -3,6 +3,7 @@
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <setjmp.h>
@@ -55,7 +56,6 @@ static void initTest(testingT *t, const char *name, void (*f)(testingT *), const
 {
 	memset(t, 0, sizeof (testingT));
 	t->name = name;
-	t->computedName = testingprivStrdup(name);
 	t->f = f;
 	t->file = file;
 	t->line = line;
@@ -83,6 +83,7 @@ void testingprivSetRegisterTest(testingSet **pset, const char *name, void (*f)(t
 	}
 	t = (testingT *) testingprivArrayAppend(&(set->tests), 1);
 	initTest(t, name, f, file, line);
+	t->computedName = testingprivStrdup(name);
 }
 
 static int testcmp(const void *a, const void *b)
@@ -237,4 +238,51 @@ void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data)
 	// add to the head of the list so defers are run in reverse order of how they were added
 	d->next = t->defers;
 	t->defers = d;
+}
+
+void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, void *data), void *data)
+{
+	testingT *subt;
+	testingprivOutbuf *rewrittenName;
+
+	rewrittenName = testingprivNewOutbuf();
+	while (*subname != "") {
+		const char *replaced;
+
+		replaced = NULL;
+		switch (*subname) {
+		case ' ':
+		case '\f':
+		case '\n':
+		case '\r':
+		case '\t':
+		case '\v':
+			replaced = "_";
+			break;
+		case '\a':
+			replaced = "\\a";
+			break;
+		case '\b':
+			replaced = "\\b";
+			break;
+		}
+		if (replaced != NULL)
+			testingprivOutbufPrintf(rewrittenName, "%s", replaced);
+		else if (isprint(*subname))
+			testingprivOutbufPrintf(rewrittenName, "%c", *subname);
+		else
+			testingprivOutbufPrintf(rewrittenName, "\\x%x", (unsigned int) (*subname));
+		subname++;
+	}
+
+	subt = testingprivNew(testingT);
+	initTest(subt, xxxxx);
+	subt->computedName = testingSmprintf("%s/%s", t->name, testingprivOutbufString(rewrittenName));
+	testingprivOutbufFree(rewrittenName);
+
+	if (testingprivTRun(subt, xxxxxx, t->outbuf) != 0)
+		t->failed = 1;
+
+	uiprivFree(subt->computedName);
+	uiprivFree(subt);
 }

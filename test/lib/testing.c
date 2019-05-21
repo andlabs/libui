@@ -201,7 +201,7 @@ void testingprivTLogvfFull(testingT *t, const char *file, long line, const char 
 {
 	// TODO extract filename from file
 	testingprivOutbufPrintf(t->outbuf, "%s:%ld: ", file, line);
-	testingprivOutbufPrintf(t->outbuf, format, ap);
+	testingprivOutbufVprintf(t->outbuf, format, ap);
 	testingprivOutbufPrintf(t->outbuf, "\n");
 }
 

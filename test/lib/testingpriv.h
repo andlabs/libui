@@ -48,3 +48,4 @@ extern void testingprivOutbufFree(testingprivOutbuf *o);
 extern void testingprivOutbufVprintf(testingprivOutbuf *o, const char *fmt, va_list ap);
 extern void testingprivOutbufPrintf(testingprivOutbuf *o, const char *fmt, ...);
 extern void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src);
+extern const char *testingprivOutbufString(testingprivOutbuf *o);

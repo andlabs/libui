@@ -246,15 +246,13 @@ void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data)
 }
 
 void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, void *data), void *data)
-{}
-#if 0
 {
 	testingT *subt;
 	testingprivOutbuf *rewrittenName;
 	char *fullName;
 
 	rewrittenName = testingprivNewOutbuf();
-	while (*subname != "") {
+	while (*subname != '\0') {
 		const char *replaced;
 
 		replaced = NULL;
@@ -282,7 +280,7 @@ void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, 
 			testingprivOutbufPrintf(rewrittenName, "\\x%x", (unsigned int) (*subname));
 		subname++;
 	}
-	fullName = testingSmprintf("%s/%s", t->name, testingprivOutbufString(rewrittenName));
+	fullName = testingprivSmprintf("%s/%s", t->name, testingprivOutbufString(rewrittenName));
 	testingprivOutbufFree(rewrittenName);
 
 	subt = testingprivNew(testingT);
@@ -290,8 +288,7 @@ void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, 
 	subt->opts = t->opts;
 	if (testingprivTRun(subt, t->outbuf) != 0)
 		t->failed = 1;
-	uiprivFree(subt);
+	testingprivFree(subt);
 
-	uiprivFree(fullName);
+	testingprivFree(fullName);
 }
-#endif

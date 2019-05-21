@@ -267,3 +267,10 @@ void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src)
 	if (hasTrailingBlankLine)
 		buf[trailingBlankLinePos] = '\n';
 }
+
+const char *testingprivOutbufString(testingprivOutbuf *o)
+{
+	if (o->buf.buf == NULL)
+		return "";
+	return o->buf.buf;
+}

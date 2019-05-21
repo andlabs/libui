@@ -33,26 +33,52 @@ static void handler(void *sender, void *args, void *data)
 	if (h.run) \
 		testingTErrorf(t, "%s run; should not have been", h.name);
 
-#define TestBasicEventsSingleHandler(subname, whichGlobal, whichSender, whichArgs) \
-	testingTest(BasicEventsSingleHandler ## subname) \
-	{ \
-		uiEvent *e; \
-		uiEventOptions opts; \
-		struct handler h; \
-		memset(&opts, 0, sizeof (uiEventOptions)); \
-		opts.Size = sizeof (uiEventOptions); \
-		opts.Global = whichGlobal; \
-		e = uiNewEvent(&opts); \
-		memset(&h, 0, sizeof (struct handler)); \
-		h.name = "handler"; \
-		uiEventAddHandler(e, handler, whichSender, &h); \
-		uiEventFire(e, whichSender, whichArgs); \
-		checkHandlerRun(h, whichSender, whichArgs); \
-	}
-TestBasicEventsSingleHandler(Global_Args, true, NULL, &h)
-TestBasicEventsSingleHandler(Global_NoArgs, true, NULL, NULL)
-TestBasicEventsSingleHandler(Nonglobal_Args, false, &opts, &h)
-TestBasicEventsSingleHandler(Nonglobal_NoArgs, false, &opts, NULL)
+struct basicEventsSingleHandlerParams {
+	bool global;
+	void *sender;
+	void *args;
+};
+
+static void basicEventsSingleHandlerImpl(testingT *t, void *data)
+{
+	struct basicEventsSingleHandlerParams *p = (struct basicEventsSingleHandlerParams *) data;
+	uiEvent *e;
+	uiEventOptions opts;
+	struct handler h;
+
+	memset(&opts, 0, sizeof (uiEventOptions));
+	opts.Size = sizeof (uiEventOptions);
+	opts.Global = p->global;
+	e = uiNewEvent(&opts);
+	memset(&h, 0, sizeof (struct handler));
+	h.name = "handler";
+	uiEventAddHandler(e, handler, p->sender, &h);
+	uiEventFire(e, p->sender, p->args);
+	checkHandlerRun(h, p->sender, p->args);
+}
+
+static void basicEventsSingleHandlerSubtestArgs(testingT *t, void *data)
+{
+	struct basicEventsSingleHandlerParams *p = (struct basicEventsSingleHandlerParams *) data;
+
+	p->args = &p;
+	testingTRun(t, "Args", basicEventsSingleHandlerImpl, p);
+	p->args = NULL;
+	testingTRun(t, "NoArgs", basicEventsSingleHandlerImpl, p);
+}
+
+testingTest(BasicEventsSingleHandler)
+{
+	struct basicEventsSingleHandlerParams p;
+
+	memset(&p, 0, sizeof (struct basicEventsSingleHandlerParams));
+	p.global = true;
+	p.sender = NULL;
+	testingTRun(t, "Global", basicEventsSingleHandlerSubtestArgs, &p);
+	p.global = false;
+	p.sender = t;
+	testingTRun(t, "Nonglobal", basicEventsSingleHandlerSubtestArgs, &p);
+}
 
 #define whichGlobal true
 #define whichSender NULL

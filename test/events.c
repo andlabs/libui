@@ -1,4 +1,6 @@
 // 18 may 2019
+#include <stdlib.h>
+#include <string.h>
 #include "test.h"
 
 struct handler {
@@ -222,9 +224,98 @@ testingTest(AddDeleteEventHandlers)
 	runGlobalSubtests(t, &p);
 }
 
+struct eventSendersHonoredParams {
+	struct baseParams bp;
+	uiEvent *e;
+	struct handler h[4];
+	struct handler hbase[4];
+	void *sender1, *sender2, *sender3;
+};
+
+static void eventSendersHonoredImpl(testingT *t, void *data)
+{
+	struct eventSendersHonoredParams *p = (struct eventSendersHonoredParams *) data;
+
+	testingTLogf(t, "*** sender 1");
+	memmove(p->h, p->hbase, 4 * sizeof (struct handler));
+	p->bp.sender = p->sender1;
+	uiEventFire(p->e, p->bp.sender, p->bp.args);
+	checkHandlerRun(p->h[0], p->bp);
+	checkHandlerNotRun(p->h[1]);
+	checkHandlerNotRun(p->h[2]);
+	checkHandlerRun(p->h[3], p->bp);
+
+	testingTLogf(t, "*** sender 2");
+	memmove(p->h, p->hbase, 4 * sizeof (struct handler));
+	p->bp.sender = p->sender2;
+	uiEventFire(p->e, p->bp.sender, p->bp.args);
+	checkHandlerNotRun(p->h[0]);
+	checkHandlerRun(p->h[1], p->bp);
+	checkHandlerNotRun(p->h[2]);
+	checkHandlerNotRun(p->h[3]);
+
+	testingTLogf(t, "*** sender 3");
+	memmove(p->h, p->hbase, 4 * sizeof (struct handler));
+	p->bp.sender = p->sender3;
+	uiEventFire(p->e, p->bp.sender, p->bp.args);
+	checkHandlerNotRun(p->h[0]);
+	checkHandlerNotRun(p->h[1]);
+	checkHandlerRun(p->h[2], p->bp);
+	checkHandlerNotRun(p->h[3]);
+
+	testingTLogf(t, "*** an entirely different sender");
+	memmove(p->h, p->hbase, 4 * sizeof (struct handler));
+	p->bp.sender = p;
+	uiEventFire(p->e, p->bp.sender, p->bp.args);
+	checkHandlerNotRun(p->h[0]);
+	checkHandlerNotRun(p->h[1]);
+	checkHandlerNotRun(p->h[2]);
+	checkHandlerNotRun(p->h[3]);
+}
+
 testingTest(EventSendersHonored)
 {
-	// TODO
+	struct eventSendersHonoredParams p;
+	uiEventOptions opts;
+
+	memset(&p, 0, sizeof (struct eventSendersHonoredParams));
+	p.bp.impl = eventSendersHonoredImpl;
+
+	memset(&opts, 0, sizeof (uiEventOptions));
+	opts.Size = sizeof (uiEventOptions);
+	opts.Global = false;
+	p.e = uiNewEvent(&opts);
+
+	memset(p.hbase, 0, 4 * sizeof (struct handler));
+	p.hbase[0].name = "sender 1 handler 1";
+	p.hbase[1].name = "sender 2 handler";
+	p.hbase[2].name = "sender 3 handler";
+	p.hbase[3].name = "sender 1 handler 2";
+
+	// dynamically allocate these so we don't run the risk of upsetting an optimizer somewhere, since we don't touch this memory
+	p.sender1 = malloc(16);
+	if (p.sender1 == NULL)
+		testingTFatalf(t, "memory exhausted allocating sender 1");
+	memset(p.sender1, 5, 16);
+	p.sender2 = malloc(32);
+	if (p.sender2 == NULL)
+		testingTFatalf(t, "memory exhausted allocating sender 2");
+	memset(p.sender2, 10, 32);
+	p.sender3 = malloc(64);
+	if (p.sender3 == NULL)
+		testingTFatalf(t, "memory exhausted allocating sender 3");
+	memset(p.sender3, 15, 64);
+
+	uiEventAddHandler(p.e, handler, p.sender1, p.h + 0);
+	uiEventAddHandler(p.e, handler, p.sender2, p.h + 1);
+	uiEventAddHandler(p.e, handler, p.sender3, p.h + 2);
+	uiEventAddHandler(p.e, handler, p.sender1, p.h + 3);
+
+	runArgsSubtests(t, &p);
+
+	free(p.sender3);
+	free(p.sender2);
+	free(p.sender1);
 }
 
 // TODO events being added and deleted with different senders

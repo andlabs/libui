@@ -222,6 +222,22 @@ testingTest(BasicEventsAddDeleteEventHandlers)
 	runGlobalSubtests(t, &p);
 }
 
+testingTest(EventSendersHonored)
+{
+	// TODO
+}
+
+// TODO events being added and deleted with different senders
+
+testingTest(EventBlocksHonored)
+{
+	// TODO
+}
+
+// TODO event blocks being honored with different senders
+
+// TODO other combinations of the same
+
 testingTest(EventErrors)
 {
 	// TODO

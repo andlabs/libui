@@ -62,13 +62,13 @@ static void runGlobalSubtests(testingT *t, void *data)
 	testingTRun(t, "Nonglobal", runArgsSubtests, data);
 }
 
-struct basicEventsSingleHandlerParams {
+struct basicEventFunctionalityParams {
 	struct baseParams bp;
 };
 
-static void basicEventsSingleHandlerImpl(testingT *t, void *data)
+static void basicEventFunctionalityImpl(testingT *t, void *data)
 {
-	struct basicEventsSingleHandlerParams *p = (struct basicEventsSingleHandlerParams *) data;
+	struct basicEventFunctionalityParams *p = (struct basicEventFunctionalityParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
 	struct handler h;
@@ -86,16 +86,16 @@ static void basicEventsSingleHandlerImpl(testingT *t, void *data)
 	checkHandlerRun(h, p->bp);
 }
 
-testingTest(BasicEventsSingleHandler)
+testingTest(BasicEventFunctionality)
 {
-	struct basicEventsSingleHandlerParams p;
+	struct basicEventFunctionalityParams p;
 
-	memset(&p, 0, sizeof (struct basicEventsSingleHandlerParams));
-	p.bp.impl = basicEventsSingleHandlerImpl;
+	memset(&p, 0, sizeof (struct basicEventFunctionalityParams));
+	p.bp.impl = basicEventFunctionalityImpl;
 	runGlobalSubtests(t, &p);
 }
 
-struct basicEventsAddDeleteParams {
+struct addDeleteEventHandlers {
 	struct baseParams bp;
 	uiEvent *e;
 	struct handler h[6];
@@ -104,9 +104,9 @@ struct basicEventsAddDeleteParams {
 	int newHandler1, newHandler2, newHandler3;
 };
 
-static void basicEventsAddDeleteEventHandlersImpl(testingT *t, void *data)
+static void addDeleteEventHandlersImpl(testingT *t, void *data)
 {
-	struct basicEventsAddDeleteParams *p = (struct basicEventsAddDeleteParams *) data;
+	struct addDeleteEventHandlers *p = (struct addDeleteEventHandlers *) data;
 	uiEventOptions opts;
 
 	memset(&opts, 0, sizeof (uiEventOptions));
@@ -213,12 +213,12 @@ static void basicEventsAddDeleteEventHandlersImpl(testingT *t, void *data)
 	checkHandlerNotRun(p->h[5]);
 }
 
-testingTest(BasicEventsAddDeleteEventHandlers)
+testingTest(AddDeleteEventHandlers)
 {
-	struct basicEventsAddDeleteParams p;
+	struct addDeleteEventHandlers p;
 
-	memset(&p, 0, sizeof (struct basicEventsAddDeleteParams));
-	p.bp.impl = basicEventsAddDeleteEventHandlersImpl;
+	memset(&p, 0, sizeof (struct addDeleteEventHandlers));
+	p.bp.impl = addDeleteEventHandlersImpl;
 	runGlobalSubtests(t, &p);
 }
 

@@ -320,9 +320,104 @@ testingTest(EventSendersHonored)
 
 // TODO events being added and deleted with different senders
 
+struct eventBlocksHonoredParams {
+	struct baseParams bp;
+	struct handler h[3];
+	struct handler hbase[3];
+};
+
+static void eventBlocksHonoredImpl(testingT *t, void *data)
+{
+	struct eventBlocksHonoredParams *p = (struct eventBlocksHonoredParams *) data;
+	uiEvent *e;
+	uiEventOptions opts;
+	int ids[3];
+
+	memset(&opts, 0, sizeof (uiEventOptions));
+	opts.Size = sizeof (uiEventOptions);
+	opts.Global = p->bp.global;
+	e = uiNewEvent(&opts);
+
+	memset(p->hbase, 0, 3 * sizeof (struct handler));
+	p->hbase[0].name = "handler 1";
+	p->hbase[1].name = "handler 2";
+	p->hbase[2].name = "handler 3";
+
+	testingTLogf(t, "*** initial handlers are unblocked");
+	ids[0] = uiEventAddHandler(e, handler, p->bp.sender, p->h + 0);
+	ids[1] = uiEventAddHandler(e, handler, p->bp.sender, p->h + 1);
+	ids[2] = uiEventAddHandler(e, handler, p->bp.sender, p->h + 2);
+
+	memmove(p->h, p->hbase, 3 * sizeof (struct handler));
+	uiEventFire(e, p->bp.sender, p->bp.args);
+	if (uiEventHandlerBlocked(e, ids[0]))
+		testingTErrorf(t, "handler 1 blocked; want unblocked");
+	checkHandlerRun(p->h[0], p->bp);
+	if (uiEventHandlerBlocked(e, ids[1]))
+		testingTErrorf(t, "handler 2 blocked; want unblocked");
+	checkHandlerRun(p->h[1], p->bp);
+	if (uiEventHandlerBlocked(e, ids[2]))
+		testingTErrorf(t, "handler 3 blocked; want unblocked");
+	checkHandlerRun(p->h[2], p->bp);
+
+	testingTLogf(t, "*** blocking handler 2 omits it");
+	uiEventSetHandlerBlocked(e, ids[1], true);
+
+	memmove(p->h, p->hbase, 3 * sizeof (struct handler));
+	uiEventFire(e, p->bp.sender, p->bp.args);
+	if (uiEventHandlerBlocked(e, ids[0]))
+		testingTErrorf(t, "handler 1 blocked; want unblocked");
+	checkHandlerRun(p->h[0], p->bp);
+	if (!uiEventHandlerBlocked(e, ids[1]))
+		testingTErrorf(t, "handler 2 unblocked; want blocked");
+	checkHandlerNotRun(p->h[1]);
+	if (uiEventHandlerBlocked(e, ids[2]))
+		testingTErrorf(t, "handler 3 blocked; want unblocked");
+	checkHandlerRun(p->h[2], p->bp);
+
+	testingTLogf(t, "*** blocking handler 3 omits both 2 and 3");
+	uiEventSetHandlerBlocked(e, ids[2], true);
+
+	memmove(p->h, p->hbase, 3 * sizeof (struct handler));
+	uiEventFire(e, p->bp.sender, p->bp.args);
+	if (uiEventHandlerBlocked(e, ids[0]))
+		testingTErrorf(t, "handler 1 blocked; want unblocked");
+	checkHandlerRun(p->h[0], p->bp);
+	if (!uiEventHandlerBlocked(e, ids[1]))
+		testingTErrorf(t, "handler 2 unblocked; want blocked");
+	checkHandlerNotRun(p->h[1]);
+	if (!uiEventHandlerBlocked(e, ids[2]))
+		testingTErrorf(t, "handler 3 unblocked; want blocked");
+	checkHandlerNotRun(p->h[2]);
+
+	testingTLogf(t, "*** unblocking handler 2 omits only 3");
+	uiEventSetHandlerBlocked(e, ids[1], false);
+
+	memmove(p->h, p->hbase, 3 * sizeof (struct handler));
+	uiEventFire(e, p->bp.sender, p->bp.args);
+	if (uiEventHandlerBlocked(e, ids[0]))
+		testingTErrorf(t, "handler 1 blocked; want unblocked");
+	checkHandlerRun(p->h[0], p->bp);
+	if (uiEventHandlerBlocked(e, ids[1]))
+		testingTErrorf(t, "handler 2 blocked; want unblocked");
+	checkHandlerRun(p->h[1], p->bp);
+	if (!uiEventHandlerBlocked(e, ids[2]))
+		testingTErrorf(t, "handler 3 unblocked; want blocked");
+	checkHandlerNotRun(p->h[2]);
+
+	// TODO block all three and make sure nothing runs
+	// TODO also add a general "handler() not called" check to all these "no handler run" checks (or better: a total run counter)
+
+	// TODO unblock everything and make sure they all run
+}
+
 testingTest(EventBlocksHonored)
 {
-	// TODO
+	struct eventBlocksHonoredParams p;
+
+	memset(&p, 0, sizeof (struct eventBlocksHonoredParams));
+	p.bp.impl = eventBlocksHonoredImpl;
+	runGlobalSubtests(t, &p);
 }
 
 // TODO event blocks being honored with different senders

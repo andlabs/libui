@@ -286,112 +286,91 @@ testingTest(AddDeleteEventHandlers)
 	runGlobalSubtests(t, &p);
 }
 
-#if 0
-
-struct eventSendersHonoredParams {
-	struct baseParams bp;
-	const char *names[4];
-	uiEvent *e;
-	struct handler got[4];
-	void *sender1, *sender2, *sender3;
-};
-
 static void eventSendersHonoredImpl(testingT *t, void *data)
 {
-	struct eventSendersHonoredParams *p = (struct eventSendersHonoredParams *) data;
-	struct runParams rp;
-	struct handler want[4];
-
-	memset(&rp, 0, sizeof (struct runParams));
-	rp.args = p->bp.args;
-	rp.nHandlers = 4;
-	rp.names = p->names;
-	rp.got = p->got;
-	rp.want = want;
-	memset(rp.want, 0, rp.nHandlers * sizeof (struct handler));
-
-	rp.e = p->e;
-
-	testingTLogf(t, "*** sender 1");
-	rp.sender = p->sender1;
-	wantRun(rp.want[0], p->sender1, p->bp.args);
-	wantNotRun(rp.want[1]);
-	wantNotRun(rp.want[2]);
-	wantRun(rp.want[3], p->sender1, p->bp.args);
-	rp.wantRunCount = 2;
-	run(t, &rp);
-
-	testingTLogf(t, "*** sender 2");
-	rp.sender = p->sender2;
-	wantNotRun(rp.want[0]);
-	wantRun(rp.want[1], p->sender2, p->bp.args);
-	wantNotRun(rp.want[2]);
-	wantNotRun(rp.want[3]);
-	rp.wantRunCount = 1;
-	run(t, &rp);
-
-	testingTLogf(t, "*** sender 3");
-	rp.sender = p->sender3;
-	wantNotRun(rp.want[0]);
-	wantNotRun(rp.want[1]);
-	wantRun(rp.want[2], p->sender3, p->bp.args);
-	wantNotRun(rp.want[3]);
-	rp.wantRunCount = 1;
-	run(t, &rp);
-
-	testingTLogf(t, "*** an entirely different sender");
-	rp.sender = p;
-	wantNotRun(rp.want[0]);
-	wantNotRun(rp.want[1]);
-	wantNotRun(rp.want[2]);
-	wantNotRun(rp.want[3]);
-	rp.wantRunCount = 0;
-	run(t, &rp);
-}
-
-testingTest(EventSendersHonored)
-{
-	struct eventSendersHonoredParams p;
+	struct baseParams *p = (struct baseParams *) data;
+	uiEvent *e;
 	uiEventOptions opts;
+	struct handler h[4];
+	void *sender1, *sender2, *sender3;
 
-	memset(&p, 0, sizeof (struct eventSendersHonoredParams));
-	p.bp.impl = eventSendersHonoredImpl;
+	memset(h, 0, 4 * sizeof (struct handler));
+	h[0].name = "sender 1 handler 1";
+	h[1].name = "sender 2 handler";
+	h[2].name = "sender 3 handler";
+	h[3].name = "sender 1 handler 2";
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = false;
-	p.e = uiNewEvent(&opts);
-
-	p.names[0] = "sender 1 handler 1";
-	p.names[1] = "sender 2 handler";
-	p.names[2] = "sender 3 handler";
-	p.names[3] = "sender 1 handler 2";
+	e = uiNewEvent(&opts);
 
 	// dynamically allocate these so we don't run the risk of upsetting an optimizer somewhere, since we don't touch this memory
-	p.sender1 = malloc(16);
-	if (p.sender1 == NULL)
+	sender1 = malloc(16);
+	if (sender1 == NULL)
 		testingTFatalf(t, "memory exhausted allocating sender 1");
-	memset(p.sender1, 5, 16);
-	p.sender2 = malloc(32);
-	if (p.sender2 == NULL)
+	memset(sender1, 5, 16);
+	sender2 = malloc(32);
+	if (sender2 == NULL)
 		testingTFatalf(t, "memory exhausted allocating sender 2");
-	memset(p.sender2, 10, 32);
-	p.sender3 = malloc(64);
-	if (p.sender3 == NULL)
+	memset(sender2, 10, 32);
+	sender3 = malloc(64);
+	if (sender3 == NULL)
 		testingTFatalf(t, "memory exhausted allocating sender 3");
-	memset(p.sender3, 15, 64);
+	memset(sender3, 15, 64);
 
-	uiEventAddHandler(p.e, handler, p.sender1, p.got + 0);
-	uiEventAddHandler(p.e, handler, p.sender2, p.got + 1);
-	uiEventAddHandler(p.e, handler, p.sender3, p.got + 2);
-	uiEventAddHandler(p.e, handler, p.sender1, p.got + 3);
+	registerHandler(h + 0, e, sender1, p->args);
+	registerHandler(h + 1, e, sender2, p->args);
+	registerHandler(h + 2, e, sender3, p->args);
+	registerHandler(h + 3, e, sender1, p->args);
 
-	runArgsSubtests(t, &p);
+	testingTLogf(t, "*** sender 1");
+	wantRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantRun(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 2);
 
-	free(p.sender3);
-	free(p.sender2);
-	free(p.sender1);
+	testingTLogf(t, "*** sender 2");
+	wantNotRun(h + 0);
+	wantRun(h + 1);
+	wantNotRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, sender2, p->args,
+		h, 4, 1);
+
+	testingTLogf(t, "*** sender 3");
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, sender3, p->args,
+		h, 4, 1);
+
+	testingTLogf(t, "*** an entirely different sender");
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, p, p->args,
+		h, 4, 0);
+
+	free(sender3);
+	free(sender2);
+	free(sender1);
 }
+
+testingTest(EventSendersHonored)
+{
+	struct baseParams p;
+
+	memset(&p, 0, sizeof (struct baseParams));
+	p.impl = eventSendersHonoredImpl;
+	runArgsSubtests(t, &p);
+}
+
+#if 0
 
 // TODO events being added and deleted with different senders
 

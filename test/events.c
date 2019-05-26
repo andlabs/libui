@@ -423,9 +423,49 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(t, e, p->sender, p->args,
 		h, 3, 2);
 
-	// TODO block all three and make sure nothing runs
+	testingTLogf(t, "*** blocking an already blocked handler is a no-op");
+	uiEventSetHandlerBlocked(e, h[2].id, true);
+	wantRun(h + 0);
+	wantRun(h + 1);
+	wantBlocked(h + 2);
+	run(t, e, p->sender, p->args,
+		h, 3, 2);
 
-	// TODO unblock everything and make sure they all run
+	testingTLogf(t, "*** unblocking an already unblocked handler is a no-op");
+	uiEventSetHandlerBlocked(e, h[1].id, false);
+	wantRun(h + 0);
+	wantRun(h + 1);
+	wantBlocked(h + 2);
+	run(t, e, p->sender, p->args,
+		h, 3, 2);
+
+	testingTLogf(t, "*** blocking everything omits everything");
+	uiEventSetHandlerBlocked(e, h[0].id, true);
+	uiEventSetHandlerBlocked(e, h[1].id, true);
+	uiEventSetHandlerBlocked(e, h[2].id, true);
+	wantBlocked(h + 0);
+	wantBlocked(h + 1);
+	wantBlocked(h + 2);
+	run(t, e, p->sender, p->args,
+		h, 3, 0);
+
+	testingTLogf(t, "*** unblocking everything omits nothing");
+	uiEventSetHandlerBlocked(e, h[0].id, false);
+	uiEventSetHandlerBlocked(e, h[1].id, false);
+	uiEventSetHandlerBlocked(e, h[2].id, false);
+	wantRun(h + 0);
+	wantRun(h + 1);
+	wantRun(h + 2);
+	run(t, e, p->sender, p->args,
+		h, 3, 3);
+
+	testingTLogf(t, "*** blocking something again works");
+	uiEventSetHandlerBlocked(e, h[2].id, true);
+	wantRun(h + 0);
+	wantRun(h + 1);
+	wantBlocked(h + 2);
+	run(t, e, p->sender, p->args,
+		h, 3, 2);
 }
 
 testingTest(EventBlocksHonored)

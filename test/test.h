@@ -1,5 +1,6 @@
 // 28 april 2019
 #include "../ui.h"
+#include "../common/testhooks.h"
 #include "lib/testing.h"
 #include "lib/timer.h"
 

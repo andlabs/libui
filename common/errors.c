@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "ui.h"
 #include "uipriv.h"
+#include "testhooks.h"
 
 #define internalErrorPrefix "libui internal error"
 // TODO add debugging advice?
@@ -53,6 +54,15 @@ static void prepareProgrammerError(char *buf, int size, unsigned int which, va_l
 // TODO add debugging advice?
 #define programmerErrorSuffix "This likely means you are using libui incorrectly. Check your source code and try again. If you have received this warning in error, contact the libui authors."
 
+static uiprivTestHookReportProgrammerErrorFunc reportProgrammerErrorTestHook = uiprivReportError;
+
+void uiprivTestHookReportProgrammerError(uiprivTestHookReportProgrammerErrorFunc f)
+{
+	if (f == NULL)
+		f = uiprivReportError;
+	reportProgrammerErrorTestHook = f;
+}
+
 void uiprivProgrammerError(unsigned int which, ...)
 {
 	va_list ap;
@@ -61,5 +71,5 @@ void uiprivProgrammerError(unsigned int which, ...)
 	va_start(ap, which);
 	prepareProgrammerError(buf, 256, which, ap);
 	va_end(ap);
-	uiprivReportError(programmerErrorPrefix, buf, programmerErrorSuffix, false);
+	(*reportProgrammerErrorTestHook)(programmerErrorPrefix, buf, programmerErrorSuffix, false);
 }

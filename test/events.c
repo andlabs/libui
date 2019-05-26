@@ -370,94 +370,58 @@ testingTest(EventSendersHonored)
 	runArgsSubtests(t, &p);
 }
 
-#if 0
-
 // TODO events being added and deleted with different senders
 
 static void eventBlocksHonoredImpl(testingT *t, void *data)
 {
 	struct baseParams *p = (struct baseParams *) data;
-	struct runParams rp;
-	const char *names[3];
-	struct handler got[3];
-	struct handler want[3];
+	uiEvent *e;
 	uiEventOptions opts;
-	int ids[3];
+	struct handler h[3];
 
-	memset(&rp, 0, sizeof (struct runParams));
-	rp.sender = p->sender;
-	rp.args = p->args;
-	rp.nHandlers = 3;
-	rp.names = names;
-	rp.names[0] = "handler 1";
-	rp.names[1] = "handler 2";
-	rp.names[2] = "handler 3";
-	rp.got = got;
-	rp.want = want;
-	memset(rp.want, 0, rp.nHandlers * sizeof (struct handler));
+	memset(h, 0, 3 * sizeof (struct handler));
+	h[0].name = "handler 1";
+	h[1].name = "handler 2";
+	h[2].name = "handler 3";
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = p->global;
-	rp.e = uiNewEvent(&opts);
+	e = uiNewEvent(&opts);
 
 	testingTLogf(t, "*** initial handlers are unblocked");
-	ids[0] = uiEventAddHandler(rp.e, handler, p->sender, rp.got + 0);
-	ids[1] = uiEventAddHandler(rp.e, handler, p->sender, rp.got + 1);
-	ids[2] = uiEventAddHandler(rp.e, handler, p->sender, rp.got + 2);
-	wantRun(rp.want[0], p->sender, p->args);
-	wantRun(rp.want[1], p->sender, p->args);
-	wantRun(rp.want[2], p->sender, p->args);
-	rp.wantRunCount = 3;
-	run(t, &rp);
-	if (uiEventHandlerBlocked(rp.e, ids[0]))
-		testingTErrorf(t, "handler 1 blocked; want unblocked");
-	if (uiEventHandlerBlocked(rp.e, ids[1]))
-		testingTErrorf(t, "handler 2 blocked; want unblocked");
-	if (uiEventHandlerBlocked(rp.e, ids[2]))
-		testingTErrorf(t, "handler 3 blocked; want unblocked");
+	registerHandler(h + 0, e, p->sender, p->args);
+	registerHandler(h + 1, e, p->sender, p->args);
+	registerHandler(h + 2, e, p->sender, p->args);
+	wantRun(h + 0);
+	wantRun(h + 1);
+	wantRun(h + 2);
+	run(t, e, p->sender, p->args,
+		h, 3, 3);
 
 	testingTLogf(t, "*** blocking handler 2 omits it");
-	uiEventSetHandlerBlocked(rp.e, ids[1], true);
-	wantRun(rp.want[0], p->sender, p->args);
-	wantNotRun(rp.want[1]);
-	wantRun(rp.want[2], p->sender, p->args);
-	rp.wantRunCount = 2;
-	run(t, &rp);
-	if (uiEventHandlerBlocked(rp.e, ids[0]))
-		testingTErrorf(t, "handler 1 blocked; want unblocked");
-	if (!uiEventHandlerBlocked(rp.e, ids[1]))
-		testingTErrorf(t, "handler 2 unblocked; want blocked");
-	if (uiEventHandlerBlocked(rp.e, ids[2]))
-		testingTErrorf(t, "handler 3 blocked; want unblocked");
+	uiEventSetHandlerBlocked(e, h[1].id, true);
+	wantRun(h + 0);
+	wantBlocked(h + 1);
+	wantRun(h + 2);
+	run(t, e, p->sender, p->args,
+		h, 3, 2);
 
 	testingTLogf(t, "*** blocking handler 3 omits both 2 and 3");
-	uiEventSetHandlerBlocked(rp.e, ids[2], true);
-	wantRun(rp.want[0], p->sender, p->args);
-	wantNotRun(rp.want[1]);
-	wantNotRun(rp.want[2]);
-	rp.wantRunCount = 1;
-	run(t, &rp);
-	if (uiEventHandlerBlocked(rp.e, ids[0]))
-		testingTErrorf(t, "handler 1 blocked; want unblocked");
-	if (!uiEventHandlerBlocked(rp.e, ids[1]))
-		testingTErrorf(t, "handler 2 unblocked; want blocked");
-	if (!uiEventHandlerBlocked(rp.e, ids[2]))
-		testingTErrorf(t, "handler 3 unblocked; want blocked");
+	uiEventSetHandlerBlocked(e, h[2].id, true);
+	wantRun(h + 0);
+	wantBlocked(h + 1);
+	wantBlocked(h + 2);
+	run(t, e, p->sender, p->args,
+		h, 3, 1);
 
 	testingTLogf(t, "*** unblocking handler 2 omits only 3");
-	uiEventSetHandlerBlocked(rp.e, ids[1], false);
-	wantRun(rp.want[0], p->sender, p->args);
-	wantRun(rp.want[1], p->sender, p->args);
-	wantNotRun(rp.want[2]);
-	rp.wantRunCount = 2;
-	run(t, &rp);
-	if (uiEventHandlerBlocked(rp.e, ids[0]))
-		testingTErrorf(t, "handler 1 blocked; want unblocked");
-	if (uiEventHandlerBlocked(rp.e, ids[1]))
-		testingTErrorf(t, "handler 2 blocked; want unblocked");
-	if (!uiEventHandlerBlocked(rp.e, ids[2]))
-		testingTErrorf(t, "handler 3 unblocked; want blocked");
+	uiEventSetHandlerBlocked(e, h[1].id, false);
+	wantRun(h + 0);
+	wantRun(h + 1);
+	wantBlocked(h + 2);
+	run(t, e, p->sender, p->args,
+		h, 3, 2);
 
 	// TODO block all three and make sure nothing runs
 
@@ -481,5 +445,3 @@ testingTest(EventErrors)
 {
 	// TODO
 }
-
-#endif

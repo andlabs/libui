@@ -4,10 +4,10 @@
 #include "test.h"
 
 struct handler {
-	const char *name;
 	bool run;
 	void *sender;
 	void *args;
+	int *runCount;
 };
 
 static void handler(void *sender, void *args, void *data)
@@ -17,6 +17,61 @@ static void handler(void *sender, void *args, void *data)
 	h->run = true;
 	h->sender = sender;
 	h->args = args;
+	(*(h->runCount))++;
+}
+
+struct runParams {
+	uiEvent *e;
+	void *sender;
+	void *args;
+	int nHandlers;
+	const char **names;
+	struct handler *got;
+	struct handler *want;
+	int wantRunCount;
+};
+
+#define wantRun(want, s, a) \
+	want.run = true; \
+	want.sender = s; \
+	want.args = a;
+#define wantNotRun(want) \
+	want.run = false;
+
+// TODO carry over the file nad line numbers somehow
+static void run(testingT *t, struct runParams *p)
+{
+	int i;
+	int gotRunCount;
+
+	memset(p->got, 0, p->nHandlers * sizeof (struct handler));
+	for (i = 0; i < p->nHandlers; i++)
+		p->got[i].runCount = &gotRunCount;
+
+	gotRunCount = 0;
+	uiEventFire(p->e, p->sender, p->args);
+
+	for (i = 0; i < p->nHandlers; i++) {
+		if (!p->want[i].run) {
+			if (p->got[i].run)
+				testingTErrorf(t, "%s run; should not have been", p->names[i]);
+			continue;
+		}
+		// otherwise we want it to be run
+		if (!p->got[i].run) {
+			testingTErrorf(t, "%s not run; should have been", p->names[i]);
+			continue;
+		}
+		if (p->got[i].sender != p->want[i].sender)
+			diff_2str(t, "incorrect sender seen by", p->names[i],
+				"%p", p->got[i].sender, p->want[i].sender);
+		if (p->got[i].args != p->want[i].args)
+			diff_2str(t, "incorrect args seen by", p->names[i],
+				"%p", p->got[i].args, p->want[i].args);
+	}
+	if (gotRunCount != p->wantRunCount)
+		diff(t, "incorrect number of handler runs",
+			"%d", gotRunCount, p->wantRunCount);
 }
 
 struct baseParams {
@@ -25,22 +80,6 @@ struct baseParams {
 	void *sender;
 	void *args;
 };
-
-#define checkHandlerRun(h, bp) \
-	if (!h.run) \
-		testingTErrorf(t, "%s not run", h.name); \
-	else { \
-		if (h.sender != bp.sender) \
-			diff_2str(t, "incorrect sender seen by", h.name, \
-				"%p", h.sender, bp.sender); \
-		if (h.args != bp.args) \
-			diff_2str(t, "incorrect args seen by", h.name, \
-				"%p", h.args, bp.args); \
-	}
-
-#define checkHandlerNotRun(h) \
-	if (h.run) \
-		testingTErrorf(t, "%s run; should not have been", h.name);
 
 static void runArgsSubtests(testingT *t, void *data)
 {
@@ -71,21 +110,31 @@ struct basicEventFunctionalityParams {
 static void basicEventFunctionalityImpl(testingT *t, void *data)
 {
 	struct basicEventFunctionalityParams *p = (struct basicEventFunctionalityParams *) data;
-	uiEvent *e;
+	struct runParams rp;
 	uiEventOptions opts;
-	struct handler h;
+	const char *names[1];
+	struct handler got[1];
+	struct handler want[1];
+
+	memset(&rp, 0, sizeof (struct runParams));
+	rp.sender = p->bp.sender;
+	rp.args = p->bp.args;
+	rp.nHandlers = 1;
+	rp.names = names;
+	rp.names[0] = "handler";
+	rp.got = got;
+	rp.want = want;
+	memset(rp.want, 0, rp.nHandlers * sizeof (struct handler));
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = p->bp.global;
-	e = uiNewEvent(&opts);
+	rp.e = uiNewEvent(&opts);
 
-	memset(&h, 0, sizeof (struct handler));
-	h.name = "handler";
-	uiEventAddHandler(e, handler, p->bp.sender, &h);
-
-	uiEventFire(e, p->bp.sender, p->bp.args);
-	checkHandlerRun(h, p->bp);
+	uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 0);
+	wantRun(rp.want[0], p->bp.sender, p->bp.args);
+	rp.wantRunCount = 1;
+	run(t, &rp);
 }
 
 testingTest(BasicEventFunctionality)
@@ -99,120 +148,121 @@ testingTest(BasicEventFunctionality)
 
 struct addDeleteEventHandlers {
 	struct baseParams bp;
-	uiEvent *e;
-	struct handler h[6];
-	struct handler hbase[6];
-	int handler1, handler2, handler3;
-	int newHandler1, newHandler2, newHandler3;
 };
 
 static void addDeleteEventHandlersImpl(testingT *t, void *data)
 {
 	struct addDeleteEventHandlers *p = (struct addDeleteEventHandlers *) data;
+	struct runParams rp;
+	const char *names[6];
+	struct handler got[6];
+	struct handler want[6];
+	int handler1, handler2, handler3;
+	int newHandler1, newHandler2, newHandler3;
 	uiEventOptions opts;
+
+	memset(&rp, 0, sizeof (struct runParams));
+	rp.sender = p->bp.sender;
+	rp.args = p->bp.args;
+	rp.nHandlers = 6;
+	rp.names = names;
+	rp.names[0] = "handler 1";
+	rp.names[1] = "handler 2";
+	rp.names[2] = "handler 3";
+	rp.names[3] = "new handler 1";
+	rp.names[4] = "new handler 2";
+	rp.names[5] = "new handler 3";
+	rp.got = got;
+	rp.want = want;
+	memset(rp.want, 0, rp.nHandlers * sizeof (struct handler));
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = p->bp.global;
-	p->e = uiNewEvent(&opts);
-
-	memset(p->hbase, 0, 6 * sizeof (struct handler));
-	p->hbase[0].name = "handler 1";
-	p->hbase[1].name = "handler 2";
-	p->hbase[2].name = "handler 3";
-	p->hbase[3].name = "new handler 1";
-	p->hbase[4].name = "new handler 2";
-	p->hbase[5].name = "new handler 3";
+	rp.e = uiNewEvent(&opts);
 
 	testingTLogf(t, "*** initial handlers");
-	p->handler1 = uiEventAddHandler(p->e, handler, p->bp.sender, p->h + 0);
-	p->handler2 = uiEventAddHandler(p->e, handler, p->bp.sender, p->h + 1);
-	p->handler3 = uiEventAddHandler(p->e, handler, p->bp.sender, p->h + 2);
-
-	memmove(p->h, p->hbase, 6 * sizeof (struct handler));
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerRun(p->h[0], p->bp);
-	checkHandlerRun(p->h[1], p->bp);
-	checkHandlerRun(p->h[2], p->bp);
-	checkHandlerNotRun(p->h[3]);
-	checkHandlerNotRun(p->h[4]);
-	checkHandlerNotRun(p->h[5]);
+	handler1 = uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 0);
+	handler2 = uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 1);
+	handler3 = uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 2);
+	wantRun(rp.want[0], p->bp.sender, p->bp.args);
+	wantRun(rp.want[1], p->bp.sender, p->bp.args);
+	wantRun(rp.want[2], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[3]);
+	wantNotRun(rp.want[4]);
+	wantNotRun(rp.want[5]);
+	rp.wantRunCount = 3;
+	run(t, &rp);
 
 	testingTLogf(t, "*** deleting a handler from the middle");
-	uiEventDeleteHandler(p->e, p->handler2);
-
-	memmove(p->h, p->hbase, 6 * sizeof (struct handler));
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerRun(p->h[0], p->bp);
-	checkHandlerNotRun(p->h[1]);
-	checkHandlerRun(p->h[2], p->bp);
-	checkHandlerNotRun(p->h[3]);
-	checkHandlerNotRun(p->h[4]);
-	checkHandlerNotRun(p->h[5]);
+	uiEventDeleteHandler(rp.e, handler2);
+	wantRun(rp.want[0], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[1]);
+	wantRun(rp.want[2], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[3]);
+	wantNotRun(rp.want[4]);
+	wantNotRun(rp.want[5]);
+	rp.wantRunCount = 2;
+	run(t, &rp);
 
 	testingTLogf(t, "*** adding handler after deleting a handler from the middle");
-	p->newHandler1 = uiEventAddHandler(p->e, handler, p->bp.sender, p->h + 3);
-
-	memmove(p->h, p->hbase, 6 * sizeof (struct handler));
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerRun(p->h[0], p->bp);
-	checkHandlerNotRun(p->h[1]);
-	checkHandlerRun(p->h[2], p->bp);
-	checkHandlerRun(p->h[3], p->bp);
-	checkHandlerNotRun(p->h[4]);
-	checkHandlerNotRun(p->h[5]);
+	newHandler1 = uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 3);
+	wantRun(rp.want[0], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[1]);
+	wantRun(rp.want[2], p->bp.sender, p->bp.args);
+	wantRun(rp.want[3], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[4]);
+	wantNotRun(rp.want[5]);
+	rp.wantRunCount = 3;
+	run(t, &rp);
 
 	testingTLogf(t, "*** deleting first handler added and adding another");
-	uiEventDeleteHandler(p->e, p->handler1);
-	p->newHandler2 = uiEventAddHandler(p->e, handler, p->bp.sender, p->h + 4);
-
-	memmove(p->h, p->hbase, 6 * sizeof (struct handler));
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerNotRun(p->h[0]);
-	checkHandlerNotRun(p->h[1]);
-	checkHandlerRun(p->h[2], p->bp);
-	checkHandlerRun(p->h[3], p->bp);
-	checkHandlerRun(p->h[4], p->bp);
-	checkHandlerNotRun(p->h[5]);
+	uiEventDeleteHandler(rp.e, handler1);
+	newHandler2 = uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 4);
+	wantNotRun(rp.want[0]);
+	wantNotRun(rp.want[1]);
+	wantRun(rp.want[2], p->bp.sender, p->bp.args);
+	wantRun(rp.want[3], p->bp.sender, p->bp.args);
+	wantRun(rp.want[4], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[5]);
+	rp.wantRunCount = 3;
+	run(t, &rp);
 
 	testingTLogf(t, "*** deleting most recently added handler and adding another");
-	uiEventDeleteHandler(p->e, p->newHandler2);
-	p->newHandler3 = uiEventAddHandler(p->e, handler, p->bp.sender, p->h + 5);
-
-	memmove(p->h, p->hbase, 6 * sizeof (struct handler));
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerNotRun(p->h[0]);
-	checkHandlerNotRun(p->h[1]);
-	checkHandlerRun(p->h[2], p->bp);
-	checkHandlerRun(p->h[3], p->bp);
-	checkHandlerNotRun(p->h[4]);
-	checkHandlerRun(p->h[5], p->bp);
+	uiEventDeleteHandler(rp.e, newHandler2);
+	newHandler3 = uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 5);
+	wantNotRun(rp.want[0]);
+	wantNotRun(rp.want[1]);
+	wantRun(rp.want[2], p->bp.sender, p->bp.args);
+	wantRun(rp.want[3], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[4]);
+	wantRun(rp.want[5], p->bp.sender, p->bp.args);
+	rp.wantRunCount = 3;
+	run(t, &rp);
 
 	testingTLogf(t, "*** deleting all handlers");
-	uiEventDeleteHandler(p->e, p->handler3);
-	uiEventDeleteHandler(p->e, p->newHandler1);
-	uiEventDeleteHandler(p->e, p->newHandler3);
-
-	memmove(p->h, p->hbase, 6 * sizeof (struct handler));
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerNotRun(p->h[0]);
-	checkHandlerNotRun(p->h[1]);
-	checkHandlerNotRun(p->h[2]);
-	checkHandlerNotRun(p->h[3]);
-	checkHandlerNotRun(p->h[4]);
-	checkHandlerNotRun(p->h[5]);
+	uiEventDeleteHandler(rp.e, handler3);
+	uiEventDeleteHandler(rp.e, newHandler1);
+	uiEventDeleteHandler(rp.e, newHandler3);
+	wantNotRun(rp.want[0]);
+	wantNotRun(rp.want[1]);
+	wantNotRun(rp.want[2]);
+	wantNotRun(rp.want[3]);
+	wantNotRun(rp.want[4]);
+	wantNotRun(rp.want[5]);
+	rp.wantRunCount = 0;
+	run(t, &rp);
 
 	testingTLogf(t, "*** adding handler after deleting all handlers");
-	uiEventAddHandler(p->e, handler, p->bp.sender, p->h + 0);
-
-	memmove(p->h, p->hbase, 6 * sizeof (struct handler));
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerRun(p->h[0], p->bp);
-	checkHandlerNotRun(p->h[1]);
-	checkHandlerNotRun(p->h[2]);
-	checkHandlerNotRun(p->h[3]);
-	checkHandlerNotRun(p->h[4]);
-	checkHandlerNotRun(p->h[5]);
+	uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 0);
+	wantRun(rp.want[0], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[1]);
+	wantNotRun(rp.want[2]);
+	wantNotRun(rp.want[3]);
+	wantNotRun(rp.want[4]);
+	wantNotRun(rp.want[5]);
+	rp.wantRunCount = 1;
+	run(t, &rp);
 }
 
 testingTest(AddDeleteEventHandlers)
@@ -226,51 +276,63 @@ testingTest(AddDeleteEventHandlers)
 
 struct eventSendersHonoredParams {
 	struct baseParams bp;
+	const char *names[4];
 	uiEvent *e;
-	struct handler h[4];
-	struct handler hbase[4];
+	struct handler got[4];
 	void *sender1, *sender2, *sender3;
 };
 
 static void eventSendersHonoredImpl(testingT *t, void *data)
 {
 	struct eventSendersHonoredParams *p = (struct eventSendersHonoredParams *) data;
+	struct runParams rp;
+	struct handler want[4];
+
+	memset(&rp, 0, sizeof (struct runParams));
+	rp.args = p->bp.args;
+	rp.nHandlers = 4;
+	rp.names = p->names;
+	rp.got = p->got;
+	rp.want = want;
+	memset(rp.want, 0, rp.nHandlers * sizeof (struct handler));
+
+	rp.e = p->e;
 
 	testingTLogf(t, "*** sender 1");
-	memmove(p->h, p->hbase, 4 * sizeof (struct handler));
-	p->bp.sender = p->sender1;
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerRun(p->h[0], p->bp);
-	checkHandlerNotRun(p->h[1]);
-	checkHandlerNotRun(p->h[2]);
-	checkHandlerRun(p->h[3], p->bp);
+	rp.sender = p->sender1;
+	wantRun(rp.want[0], p->sender1, p->bp.args);
+	wantNotRun(rp.want[1]);
+	wantNotRun(rp.want[2]);
+	wantRun(rp.want[3], p->sender1, p->bp.args);
+	rp.wantRunCount = 2;
+	run(t, &rp);
 
 	testingTLogf(t, "*** sender 2");
-	memmove(p->h, p->hbase, 4 * sizeof (struct handler));
-	p->bp.sender = p->sender2;
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerNotRun(p->h[0]);
-	checkHandlerRun(p->h[1], p->bp);
-	checkHandlerNotRun(p->h[2]);
-	checkHandlerNotRun(p->h[3]);
+	rp.sender = p->sender2;
+	wantNotRun(rp.want[0]);
+	wantRun(rp.want[1], p->sender2, p->bp.args);
+	wantNotRun(rp.want[2]);
+	wantNotRun(rp.want[3]);
+	rp.wantRunCount = 1;
+	run(t, &rp);
 
 	testingTLogf(t, "*** sender 3");
-	memmove(p->h, p->hbase, 4 * sizeof (struct handler));
-	p->bp.sender = p->sender3;
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerNotRun(p->h[0]);
-	checkHandlerNotRun(p->h[1]);
-	checkHandlerRun(p->h[2], p->bp);
-	checkHandlerNotRun(p->h[3]);
+	rp.sender = p->sender3;
+	wantNotRun(rp.want[0]);
+	wantNotRun(rp.want[1]);
+	wantRun(rp.want[2], p->sender3, p->bp.args);
+	wantNotRun(rp.want[3]);
+	rp.wantRunCount = 1;
+	run(t, &rp);
 
 	testingTLogf(t, "*** an entirely different sender");
-	memmove(p->h, p->hbase, 4 * sizeof (struct handler));
-	p->bp.sender = p;
-	uiEventFire(p->e, p->bp.sender, p->bp.args);
-	checkHandlerNotRun(p->h[0]);
-	checkHandlerNotRun(p->h[1]);
-	checkHandlerNotRun(p->h[2]);
-	checkHandlerNotRun(p->h[3]);
+	rp.sender = p;
+	wantNotRun(rp.want[0]);
+	wantNotRun(rp.want[1]);
+	wantNotRun(rp.want[2]);
+	wantNotRun(rp.want[3]);
+	rp.wantRunCount = 0;
+	run(t, &rp);
 }
 
 testingTest(EventSendersHonored)
@@ -286,11 +348,10 @@ testingTest(EventSendersHonored)
 	opts.Global = false;
 	p.e = uiNewEvent(&opts);
 
-	memset(p.hbase, 0, 4 * sizeof (struct handler));
-	p.hbase[0].name = "sender 1 handler 1";
-	p.hbase[1].name = "sender 2 handler";
-	p.hbase[2].name = "sender 3 handler";
-	p.hbase[3].name = "sender 1 handler 2";
+	p.names[0] = "sender 1 handler 1";
+	p.names[1] = "sender 2 handler";
+	p.names[2] = "sender 3 handler";
+	p.names[3] = "sender 1 handler 2";
 
 	// dynamically allocate these so we don't run the risk of upsetting an optimizer somewhere, since we don't touch this memory
 	p.sender1 = malloc(16);
@@ -306,10 +367,10 @@ testingTest(EventSendersHonored)
 		testingTFatalf(t, "memory exhausted allocating sender 3");
 	memset(p.sender3, 15, 64);
 
-	uiEventAddHandler(p.e, handler, p.sender1, p.h + 0);
-	uiEventAddHandler(p.e, handler, p.sender2, p.h + 1);
-	uiEventAddHandler(p.e, handler, p.sender3, p.h + 2);
-	uiEventAddHandler(p.e, handler, p.sender1, p.h + 3);
+	uiEventAddHandler(p.e, handler, p.sender1, p.got + 0);
+	uiEventAddHandler(p.e, handler, p.sender2, p.got + 1);
+	uiEventAddHandler(p.e, handler, p.sender3, p.got + 2);
+	uiEventAddHandler(p.e, handler, p.sender1, p.got + 3);
 
 	runArgsSubtests(t, &p);
 
@@ -322,88 +383,92 @@ testingTest(EventSendersHonored)
 
 struct eventBlocksHonoredParams {
 	struct baseParams bp;
-	struct handler h[3];
-	struct handler hbase[3];
 };
 
 static void eventBlocksHonoredImpl(testingT *t, void *data)
 {
 	struct eventBlocksHonoredParams *p = (struct eventBlocksHonoredParams *) data;
-	uiEvent *e;
+	struct runParams rp;
+	const char *names[3];
+	struct handler got[3];
+	struct handler want[3];
 	uiEventOptions opts;
 	int ids[3];
+
+	memset(&rp, 0, sizeof (struct runParams));
+	rp.sender = p->bp.sender;
+	rp.args = p->bp.args;
+	rp.nHandlers = 3;
+	rp.names = names;
+	rp.names[0] = "handler 1";
+	rp.names[1] = "handler 2";
+	rp.names[2] = "handler 3";
+	rp.got = got;
+	rp.want = want;
+	memset(rp.want, 0, rp.nHandlers * sizeof (struct handler));
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = p->bp.global;
-	e = uiNewEvent(&opts);
-
-	memset(p->hbase, 0, 3 * sizeof (struct handler));
-	p->hbase[0].name = "handler 1";
-	p->hbase[1].name = "handler 2";
-	p->hbase[2].name = "handler 3";
+	rp.e = uiNewEvent(&opts);
 
 	testingTLogf(t, "*** initial handlers are unblocked");
-	ids[0] = uiEventAddHandler(e, handler, p->bp.sender, p->h + 0);
-	ids[1] = uiEventAddHandler(e, handler, p->bp.sender, p->h + 1);
-	ids[2] = uiEventAddHandler(e, handler, p->bp.sender, p->h + 2);
-
-	memmove(p->h, p->hbase, 3 * sizeof (struct handler));
-	uiEventFire(e, p->bp.sender, p->bp.args);
-	if (uiEventHandlerBlocked(e, ids[0]))
+	ids[0] = uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 0);
+	ids[1] = uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 1);
+	ids[2] = uiEventAddHandler(rp.e, handler, p->bp.sender, rp.got + 2);
+	wantRun(rp.want[0], p->bp.sender, p->bp.args);
+	wantRun(rp.want[1], p->bp.sender, p->bp.args);
+	wantRun(rp.want[2], p->bp.sender, p->bp.args);
+	rp.wantRunCount = 3;
+	run(t, &rp);
+	if (uiEventHandlerBlocked(rp.e, ids[0]))
 		testingTErrorf(t, "handler 1 blocked; want unblocked");
-	checkHandlerRun(p->h[0], p->bp);
-	if (uiEventHandlerBlocked(e, ids[1]))
+	if (uiEventHandlerBlocked(rp.e, ids[1]))
 		testingTErrorf(t, "handler 2 blocked; want unblocked");
-	checkHandlerRun(p->h[1], p->bp);
-	if (uiEventHandlerBlocked(e, ids[2]))
+	if (uiEventHandlerBlocked(rp.e, ids[2]))
 		testingTErrorf(t, "handler 3 blocked; want unblocked");
-	checkHandlerRun(p->h[2], p->bp);
 
 	testingTLogf(t, "*** blocking handler 2 omits it");
-	uiEventSetHandlerBlocked(e, ids[1], true);
-
-	memmove(p->h, p->hbase, 3 * sizeof (struct handler));
-	uiEventFire(e, p->bp.sender, p->bp.args);
-	if (uiEventHandlerBlocked(e, ids[0]))
+	uiEventSetHandlerBlocked(rp.e, ids[1], true);
+	wantRun(rp.want[0], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[1]);
+	wantRun(rp.want[2], p->bp.sender, p->bp.args);
+	rp.wantRunCount = 2;
+	run(t, &rp);
+	if (uiEventHandlerBlocked(rp.e, ids[0]))
 		testingTErrorf(t, "handler 1 blocked; want unblocked");
-	checkHandlerRun(p->h[0], p->bp);
-	if (!uiEventHandlerBlocked(e, ids[1]))
+	if (!uiEventHandlerBlocked(rp.e, ids[1]))
 		testingTErrorf(t, "handler 2 unblocked; want blocked");
-	checkHandlerNotRun(p->h[1]);
-	if (uiEventHandlerBlocked(e, ids[2]))
+	if (uiEventHandlerBlocked(rp.e, ids[2]))
 		testingTErrorf(t, "handler 3 blocked; want unblocked");
-	checkHandlerRun(p->h[2], p->bp);
 
 	testingTLogf(t, "*** blocking handler 3 omits both 2 and 3");
-	uiEventSetHandlerBlocked(e, ids[2], true);
-
-	memmove(p->h, p->hbase, 3 * sizeof (struct handler));
-	uiEventFire(e, p->bp.sender, p->bp.args);
-	if (uiEventHandlerBlocked(e, ids[0]))
+	uiEventSetHandlerBlocked(rp.e, ids[2], true);
+	wantRun(rp.want[0], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[1]);
+	wantNotRun(rp.want[2]);
+	rp.wantRunCount = 1;
+	run(t, &rp);
+	if (uiEventHandlerBlocked(rp.e, ids[0]))
 		testingTErrorf(t, "handler 1 blocked; want unblocked");
-	checkHandlerRun(p->h[0], p->bp);
-	if (!uiEventHandlerBlocked(e, ids[1]))
+	if (!uiEventHandlerBlocked(rp.e, ids[1]))
 		testingTErrorf(t, "handler 2 unblocked; want blocked");
-	checkHandlerNotRun(p->h[1]);
-	if (!uiEventHandlerBlocked(e, ids[2]))
+	if (!uiEventHandlerBlocked(rp.e, ids[2]))
 		testingTErrorf(t, "handler 3 unblocked; want blocked");
-	checkHandlerNotRun(p->h[2]);
 
 	testingTLogf(t, "*** unblocking handler 2 omits only 3");
-	uiEventSetHandlerBlocked(e, ids[1], false);
-
-	memmove(p->h, p->hbase, 3 * sizeof (struct handler));
-	uiEventFire(e, p->bp.sender, p->bp.args);
-	if (uiEventHandlerBlocked(e, ids[0]))
+	uiEventSetHandlerBlocked(rp.e, ids[1], false);
+	wantRun(rp.want[0], p->bp.sender, p->bp.args);
+	wantRun(rp.want[1], p->bp.sender, p->bp.args);
+	wantNotRun(rp.want[2]);
+	rp.wantRunCount = 2;
+	run(t, &rp);
+	if (uiEventHandlerBlocked(rp.e, ids[0]))
 		testingTErrorf(t, "handler 1 blocked; want unblocked");
-	checkHandlerRun(p->h[0], p->bp);
-	if (uiEventHandlerBlocked(e, ids[1]))
+	if (uiEventHandlerBlocked(rp.e, ids[1]))
 		testingTErrorf(t, "handler 2 blocked; want unblocked");
-	checkHandlerRun(p->h[1], p->bp);
-	if (!uiEventHandlerBlocked(e, ids[2]))
+	if (!uiEventHandlerBlocked(rp.e, ids[2]))
 		testingTErrorf(t, "handler 3 unblocked; want blocked");
-	checkHandlerNotRun(p->h[2]);
 
 	// TODO block all three and make sure nothing runs
 	// TODO also add a general "handler() not called" check to all these "no handler run" checks (or better: a total run counter)

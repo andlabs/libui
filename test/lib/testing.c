@@ -197,10 +197,22 @@ void testingprivTLogfFull(testingT *t, const char *file, long line, const char *
 	va_end(ap);
 }
 
+static const char *basename(const char *file)
+{
+	const char *p;
+
+	for (;;) {
+		p = strpbrk(file, "/\\");
+		if (p == NULL)
+			break;
+		file = p + 1;
+	}
+	return file;
+}
+
 void testingprivTLogvfFull(testingT *t, const char *file, long line, const char *format, va_list ap)
 {
-	// TODO extract filename from file
-	testingprivOutbufPrintf(t->outbuf, "%s:%ld: ", file, line);
+	testingprivOutbufPrintf(t->outbuf, "%s:%ld: ", basename(file), line);
 	testingprivOutbufVprintf(t->outbuf, format, ap);
 	testingprivOutbufPrintf(t->outbuf, "\n");
 }

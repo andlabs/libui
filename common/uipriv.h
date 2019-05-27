@@ -11,6 +11,13 @@ extern "C" {
 #define uiprivFunc __func__
 #endif
 
+// TODO WHY IS THIS NEEDED?!?!?!?!!?!??!Q https://stackoverflow.com/questions/15610053/correct-printf-format-specifier-for-size-t-zu-or-iu SAYS THAT VS2013 DOES SUPPORT %zu
+#ifdef _MSC_VER
+#define uiprivSizetPrintf "Iu"
+#else
+#define uiprivSizetPrintf "zu"
+#endif
+
 // init.c
 extern const char **uiprivSysInitErrors(void);
 extern int uiprivSysInit(void *options, uiInitError *err);

@@ -52,3 +52,10 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	q->data = data;
 	gdk_threads_add_idle(doqueued, q);
 }
+
+void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal)
+{
+	g_critical("%s: %s. %s", prefix, msg, suffix);
+	G_BREAKPOINT();
+	abort();		// we shouldn't reach here
+}

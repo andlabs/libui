@@ -146,3 +146,19 @@ void uiQueueMain(void (*f)(void *data), void *data)
 		// TODO handle error
 	}
 }
+
+void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal)
+{
+	// Print to both stderr and the debugger; the former handles the case of a console and the latter handles the case of not.
+	// TODO find a reliable way to check if stderr is connected (the mere presence of a console window is not one)
+	fprintf(stderr, "*** %s: %s. %s\n", prefix, msg, suffix);
+	// Use OutputDebugStringA() directly because these *are* runtime MBCS strings.
+	OutputDebugStringA(prefix);
+	OutputDebugStringA(": ");
+	OutputDebugStringA(msg);
+	OutputDebugStringA(". ");
+	OutputDebugStringA(suffix);
+	OutputDebugStringA("\n");
+	DebugBreak();
+	abort();		// we shouldn't reach here
+}

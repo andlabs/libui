@@ -5,7 +5,7 @@ extern void testingprivInternalError(const char *fmt, ...);
 extern void *testingprivAlloc(size_t n, const char *what);
 #define testingprivNew(T) ((T *) testingprivAlloc(sizeof (T), #T))
 #define testingprivNewArray(T, n) ((T *) testingprivAlloc(n * sizeof (T), #T "[]"))
-extern void *testingprivRealloc(void *p, size_t old, size_t new, const char *what);
+extern void *testingprivRealloc(void *p, size_t nOld, size_t nNew, const char *what);
 #define testingprivResizeArray(x, T, old, new) ((T *) testingprivRealloc(x, old * sizeof (T), new * sizeof (T), #T "[]"))
 extern void testingprivFree(void *p);
 

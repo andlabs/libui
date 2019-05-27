@@ -4,6 +4,13 @@
 extern "C" {
 #endif
 
+// TODO figure out why this is needed despite what https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2013/b0084kay(v=vs.120) says
+#ifdef _MSC_VER
+#define uiprivFunc __FUNCTION__
+#else
+#define uiprivFunc __func__
+#endif
+
 // init.c
 extern const char **uiprivSysInitErrors(void);
 extern int uiprivSysInit(void *options, uiInitError *err);
@@ -12,7 +19,7 @@ extern int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
 
 // alloc.c
 extern void *uiprivAlloc(size_t n, const char *what);
-extern void *uiprivRealloc(void *p, size_t old, size_t new, const char *what);
+extern void *uiprivRealloc(void *p, size_t nOld, size_t nNew, const char *what);
 extern void uiprivFree(void *p);
 typedef struct uiprivArray uiprivArray;
 struct uiprivArray {
@@ -44,12 +51,12 @@ extern void uiprivArrayQsort(uiprivArray *arr, int (*compare)(const void *, cons
 extern void uiprivInternalError(const char *fmt, ...);
 enum {
 	uiprivProgrammerErrorWrongStructSize,		// arguments: size_t badSize, const char *structName
-	uiprivProgrammerErrorIndexOutOfRange,	// arguments: int badIndex, __func__
-	uiprivProgrammerErrorNullPointer,			// arguments: const char *paramDesc, __func__
-	uiprivProgrammerErrorIntIDNotFound,		// arguments: const char *idDesc, int badID, __func__
+	uiprivProgrammerErrorIndexOutOfRange,	// arguments: int badIndex, uiprivFunc
+	uiprivProgrammerErrorNullPointer,			// arguments: const char *paramDesc, uiprivFunc
+	uiprivProgrammerErrorIntIDNotFound,		// arguments: const char *idDesc, int badID, uiprivFunc
 	// TODO type mismatch
-	uiprivProgrammerErrorBadSenderForEvent,	// arguments: const char *senderDesc, const char *eventDesc, __func__
-	uiprivProgrammerErrorChangingEventDuringFire,		// arguments: __func__
+	uiprivProgrammerErrorBadSenderForEvent,	// arguments: const char *senderDesc, const char *eventDesc, uiprivFunc
+	uiprivProgrammerErrorChangingEventDuringFire,		// arguments: uiprivFunc
 	uiprivProgrammerErrorRecursiveEventFire,	// no arguments
 	uiprivNumProgrammerErrors,
 };

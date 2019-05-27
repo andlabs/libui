@@ -1,4 +1,8 @@
 // 19 may 2019
+// TODO get rid of the need for this (it temporarily silences noise so I can find actual build issues)
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,13 +32,13 @@ void *testingprivAlloc(size_t n, const char *what)
 	return p;
 }
 
-void *testingprivRealloc(void *p, size_t old, size_t new, const char *what)
+void *testingprivRealloc(void *p, size_t nOld, size_t nNew, const char *what)
 {
-	p = realloc(p, new);
+	p = realloc(p, nNew);
 	if (p == NULL)
 		testingprivInternalError("memory exhausted reallocating %s", what);
-	if (new > old)
-		memset(((uint8_t *) p) + old, 0, new - old);
+	if (nNew > nOld)
+		memset(((uint8_t *) p) + nOld, 0, nNew - nOld);
 	return p;
 }
 
@@ -223,7 +227,7 @@ void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src)
 	char *buf;
 	size_t n;
 	int hasTrailingBlankLine;
-	size_t trailingBlankLinePos;
+	size_t trailingBlankLinePos = 0;		// silence incorrect MSVC warning
 	char *lineStart, *lineEnd;
 
 	buf = src->buf.buf;

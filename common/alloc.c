@@ -15,13 +15,13 @@ void *uiprivAlloc(size_t n, const char *what)
 	return p;
 }
 
-void *uiprivRealloc(void *p, size_t old, size_t new, const char *what)
+void *uiprivRealloc(void *p, size_t nOld, size_t nNew, const char *what)
 {
-	p = realloc(p, new);
+	p = realloc(p, nNew);
 	if (p == NULL)
 		uiprivInternalError("memory exhausted reallocating %s", what);
-	if (new > old)
-		memset(((uint8_t *) p) + old, 0, new - old);
+	if (nNew > nOld)
+		memset(((uint8_t *) p) + nOld, 0, nNew - nOld);
 	return p;
 }
 

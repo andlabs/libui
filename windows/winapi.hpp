@@ -31,4 +31,6 @@
 // Microsoft's resource compiler will segfault if we feed it headers it was not designed to handle
 #ifndef RC_INVOKED
 #include <commctrl.h>
+
+#include <stdio.h>
 #endif

@@ -37,7 +37,7 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 	uiEvent *e;
 
 	if (options == NULL) {
-		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventOptions", __func__);
+		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventOptions", uiprivFunc);
 		return NULL;
 	}
 	if (options->Size != sizeof (uiEventOptions)) {
@@ -52,11 +52,11 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 }
 
 #define checkEventNonnull(e, ret) if ((e) == NULL) { \
-	uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEvent", __func__); \
+	uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEvent", uiprivFunc); \
 	return ret; \
 }
 #define checkEventNotFiring(e, ret) if ((e)->firing) { \
-	uiprivProgrammerError(uiprivProgrammerErrorChangingEventDuringFire, __func__); \
+	uiprivProgrammerError(uiprivProgrammerErrorChangingEventDuringFire, uiprivFunc); \
 	return ret; \
 }
 
@@ -81,10 +81,10 @@ int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *da
 	checkEventNonnull(e, 0);
 	checkEventNotFiring(e, 0);
 	if (handler == NULL) {
-		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventHandler", __func__);
+		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventHandler", uiprivFunc);
 		return 0;
 	}
-	if (!checkEventSender(e, sender, __func__))
+	if (!checkEventSender(e, sender, uiprivFunc))
 		return 0;
 
 	id = 0;
@@ -125,7 +125,7 @@ void uiEventDeleteHandler(uiEvent *e, int id)
 
 	checkEventNonnull(e, /* nothing */);
 	checkEventNotFiring(e, /* nothing */);
-	h = findHandler(e, id, __func__);
+	h = findHandler(e, id, uiprivFunc);
 	if (h == NULL)
 		return;
 
@@ -143,7 +143,7 @@ void uiEventFire(uiEvent *e, void *sender, void *args)
 		uiprivProgrammerError(uiprivProgrammerErrorRecursiveEventFire);
 		return;
 	}
-	if (!checkEventSender(e, sender, __func__))
+	if (!checkEventSender(e, sender, uiprivFunc))
 		return;
 
 	e->firing = true;
@@ -161,7 +161,7 @@ bool uiEventHandlerBlocked(const uiEvent *e, int id)
 	struct handler *h;
 
 	checkEventNonnull(e, false);
-	h = findHandler(e, id, __func__);
+	h = findHandler(e, id, uiprivFunc);
 	if (h == NULL)
 		return false;
 	return h->blocked;
@@ -173,7 +173,7 @@ void uiEventSetHandlerBlocked(uiEvent *e, int id, bool blocked)
 
 	checkEventNonnull(e, /* nothing */);
 	checkEventNotFiring(e, /* nothing */);
-	h = findHandler(e, id, __func__);
+	h = findHandler(e, id, uiprivFunc);
 	if (h == NULL)
 		return;
 	h->blocked = blocked;

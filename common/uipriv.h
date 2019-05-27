@@ -12,7 +12,8 @@ extern "C" {
 #endif
 
 // TODO WHY IS THIS NEEDED?!?!?!?!!?!??!Q https://stackoverflow.com/questions/15610053/correct-printf-format-specifier-for-size-t-zu-or-iu SAYS THAT VS2013 DOES SUPPORT %zu
-#ifdef _MSC_VER
+// TODO AND WHY IS MINGW AFFECTED?!?!?!?!
+#ifdef _WIN32
 #define uiprivSizetPrintf "Iu"
 #else
 #define uiprivSizetPrintf "zu"

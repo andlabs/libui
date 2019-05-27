@@ -70,7 +70,7 @@ static void wantBlocked(struct handler *h)
 	h->wantBlocked = true;
 }
 
-// TODO carry over the file nad line numbers somehow
+// TODO carry over the file and line numbers somehow
 static void run(testingT *t, uiEvent *e, void *sender, void *args, struct handler *handlers, int n, int wantRunCount)
 {
 	int i;
@@ -684,36 +684,8 @@ testingTest(EventBlocksHonoredWithDifferentSenders)
 	runGlobalSubtests(t, &p);
 }
 
-static struct {
-	testingT *t;
-	const char *msgWant;
-	bool caught;
-} errorParams;
-
-static void catchProgrammerError(const char *prefix, const char *msg, const char *suffix, bool internal)
-{
-	errorParams.caught = true;
-	if (strstr(prefix, "programmer error") == NULL)
-		testingTErrorf(errorParams.t, "prefix string doesn't contain \"programmer error\": %s", prefix);
-	if (internal)
-		testingTErrorf(errorParams.t, "error is marked internal; should not have been");
-	if (strstr(msg, errorParams.msgWant) == NULL)
-		diff(errorParams.t, "message doesn't contain expected substring",
-			"%s", msg, errorParams.msgWant);
-}
-
 testingTest(EventErrors)
 {
-	uiprivTestHookReportProgrammerError(catchProgrammerError);
-
-	testingTLogf(t, "*** uiNewEvent(NULL)");
-	errorParams.t = t;
-	errorParams.msgWant = "invalid null pointer for uiEventOptions passed into uiNewEvent()";
-	errorParams.caught = false;
-	if (uiNewEvent(NULL) != NULL)
-		testingTErrorf(t, "uiNewEvent(NULL) returned non-NULL; wanted NULL");
-	if (!errorParams.caught)
-		testingTErrorf(t, "uiNewEvent(NULL) did not throw a programmer error; should have");
-
-	uiprivTestHookReportProgrammerError(NULL);
+	testProgrammerError(t, uiNewEvent(NULL),
+		"invalid null pointer for uiEventOptions passed into uiNewEvent()");
 }

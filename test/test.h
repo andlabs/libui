@@ -25,6 +25,27 @@ extern void timeoutMain(void *data);
 		testingTErrorf(t, "uiMain() timed out (%s)", timeoutstr); \
 	} \
 }
+struct errorParams {
+	testingT *t;
+	// TODO this shouldn't have a colon in it but the diff() macros above necessitate it
+	const char *exprstr;
+	const char *msgWant;
+	bool caught;
+};
+extern struct errorParams errorParams;
+extern void catchProgrammerError(const char *prefix, const char *msg, const char *suffix, bool internal);
+#define testProgrammerError(tt, expr, mw) { \
+	testingTLogf(t, "*** %s", #expr); \
+	uiprivTestHookReportProgrammerError(catchProgrammerError); \
+	errorParams.t = tt; \
+	errorParams.exprstr = #expr ":"; \
+	errorParams.msgWant = mw; \
+	errorParams.caught = false; \
+	expr; \
+	if (!errorParams.caught) \
+		testingTErrorf(t, "%s did not throw a programmer error; should have", #expr); \
+	uiprivTestHookReportProgrammerError(NULL); \
+}
 
 // init.c
 extern testingSet *beforeTests;

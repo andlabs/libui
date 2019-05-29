@@ -6,6 +6,9 @@ const char **uiprivSysInitErrors(void)
 	return NULL;
 }
 
+static pthread_t mainThread;
+static gboolean initialized = FALSE;		// TODO deduplicate this from common/init.c
+
 int uiprivSysInit(void *options, uiInitError *err)
 {
 	GError *gerr = NULL;
@@ -16,16 +19,22 @@ int uiprivSysInit(void *options, uiInitError *err)
 		g_error_free(gerr);
 		return 0;
 	}
+	mainThread = pthread_self();
+	initialized = TRUE;
 	return 1;
 }
 
 void uiMain(void)
 {
+	if (!uiprivCheckInitializedAndThread())
+		return;
 	gtk_main();
 }
 
 void uiQuit(void)
 {
+	if (!uiprivCheckInitializedAndThread())
+		return;
 	gtk_main_quit();
 }
 
@@ -47,10 +56,19 @@ void uiQueueMain(void (*f)(void *data), void *data)
 {
 	struct queued *q;
 
+	if (!initialized) {
+		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, uiprivFunc);
+		return;
+	}
 	q = g_new0(struct queued, 1);
 	q->f = f;
 	q->data = data;
 	gdk_threads_add_idle(doqueued, q);
+}
+
+bool uiprivSysCheckThread(void)
+{
+	return pthread_equal(pthread_self(), mainThread);
 }
 
 void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal)

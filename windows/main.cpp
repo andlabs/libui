@@ -66,6 +66,9 @@ const char **uiprivSysInitErrors(void)
 	return initErrors;
 }
 
+static DWORD mainThread;
+static BOOL initialized = FALSE;		// TODO deduplicate this from common/init.c
+
 int uiprivSysInit(void *options, uiInitError *err)
 {
 	STARTUPINFOW si;
@@ -110,6 +113,8 @@ int uiprivSysInit(void *options, uiInitError *err)
 	// LONGTERM initialize COM security
 	// LONGTERM turn off COM exception handling
 */
+	mainThread = GetCurrentThreadId();
+	initialized = TRUE;
 	return 1;
 }
 
@@ -118,6 +123,8 @@ void uiMain(void)
 	MSG msg;
 	HRESULT hr;
 
+	if (!uiprivCheckInitializedAndThread())
+		return;
 	for (;;) {
 		hr = uiprivHrGetMessageW(&msg, NULL, 0, 0);
 		if (hr == S_FALSE)		// WM_QUIT
@@ -134,6 +141,8 @@ void uiMain(void)
 
 void uiQuit(void)
 {
+	if (!uiprivCheckInitializedAndThread())
+		return;
 	PostQuitMessage(0);
 }
 
@@ -141,10 +150,19 @@ void uiQueueMain(void (*f)(void *data), void *data)
 {
 	HRESULT hr;
 
+	if (!initialized) {
+		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, uiprivFunc);
+		return;
+	}
 	hr = uiprivHrPostMessageW(uiprivUtilWindow, uiprivUtilWindowMsgQueueMain, (WPARAM) f, (LPARAM) data);
 	if (hr != S_OK) {
 		// TODO handle error
 	}
+}
+
+bool uiprivSysCheckThread(void)
+{
+	return GetCurrentThreadId() == mainThread;
 }
 
 void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal)

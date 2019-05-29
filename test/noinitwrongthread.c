@@ -1,5 +1,10 @@
 // 28 may 2019
+// TODO get rid of the need for this (it temporarily silences noise so I can find actual build issues)
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <stdlib.h>
+#include <string.h>
 #include "lib/thread.h"
 #include "test.h"
 

@@ -1,5 +1,4 @@
 // 20 april 2019
-#import <stdlib.h>
 #import "uipriv_darwin.h"
 
 @interface uiprivApplication : NSApplication
@@ -50,11 +49,10 @@ const char **uiprivSysInitErrors(void)
 }
 
 static pthread_t mainThread;
+static BOOL initialized = NO;		// TODO deduplicate this from common/init.c
 
 int uiprivSysInit(void *options, uiInitError *err)
 {
-	int lockerr;
-
 	uiprivApp = [uiprivApplication sharedApplication];
 	if (![NSApp isKindOfClass:[uiprivApplication class]])
 		return uiprivInitReturnError(err, errNSAppAlreadyInitialized);
@@ -67,16 +65,21 @@ int uiprivSysInit(void *options, uiInitError *err)
 	[uiprivApp setDelegate:uiprivAppDelegate];
 
 	mainThread = pthread_self();
+	initialized = YES;
 	return 1;
 }
 
 void uiMain(void)
 {
+	if (!uiprivCheckInitializedAndThread())
+		return;
 	[uiprivApp run];
 }
 
 void uiQuit(void)
 {
+	if (!uiprivCheckInitializedAndThread())
+		return;
 	@autoreleasepool {
 		NSEvent *e;
 
@@ -99,6 +102,10 @@ void uiQuit(void)
 // thanks to mikeash in irc.freenode.net/#macdev for suggesting the use of Grand Central Dispatch for this
 void uiQueueMain(void (*f)(void *data), void *data)
 {
+	if (!initialized) {
+		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, uiprivFunc);
+		return;
+	}
 	// dispatch_get_main_queue() is a serial queue so it will not execute multiple uiQueueMain() functions concurrently
 	// the signature of f matches dispatch_function_t
 	dispatch_async_f(dispatch_get_main_queue(), data, f);

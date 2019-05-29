@@ -1,4 +1,6 @@
 // 28 may 2019
+#include <stdlib.h>
+#include "lib/thread.h"
 #include "test.h"
 
 struct errorCase {
@@ -68,7 +70,7 @@ static void freeCases(struct errorCase *first)
 static void reportCases(testingT *t, struct errorCase *p)
 {
 	while (p != NULL) {
-		testingTLogf(t, "*** %s", t->name);
+		testingTLogf(t, "*** %s", p->name);
 		if (!p->caught) {
 			testingTErrorf(t, "%s did not throw a programmer error; should have", p->name);
 			p = p->next;
@@ -91,7 +93,7 @@ static void reportCases(testingT *t, struct errorCase *p)
 		return first; \
 	current->name = #f "()"; \
 	current->msgWant = "attempt to call " #f "() " allcallsMsgSuffix; \
-	f(__VA_LIST__); \
+	f(__VA_ARGS__); \
 	if (first == NULL) \
 		first = current; \
 	if (last != NULL) \

@@ -4,6 +4,8 @@
 #define MAC_OS_X_VERSION_MAX_ALLOWED MAC_OS_X_VERSION_10_8
 #import <Cocoa/Cocoa.h>
 #import <dlfcn.h>		// see future.m
+#import <pthread.h>
+#import <stdlib.h>
 #import "../ui.h"
 #import "../ui_darwin.h"
 #import "../common/uipriv.h"

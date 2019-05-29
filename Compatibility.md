@@ -19,24 +19,18 @@ TODO look up PDC 2008 talk "new shell user interface"
 ## GTK+
 TODO what ships with Ubuntu Quantal (12.10)?
 
-### GTK+ 3.6
-ships with: Ubuntu Raring (13.04)
-
-- GtkEntry and GtkTextView have input purposes and input hints for external input methods but do not change input themselves
-	- according to Company, we connect to insert-text for that
-- GtkLevelBar
-- GtkMenuButton
-- **GtkSearchEntry**
-
-### GTK+ 3.8
-ships with: Ubuntu Saucy (13.10)
-
-Not many interesting new things to us here, unless you count widget-internal tickers and single-click instead of double-click to select list items (a la KDE)... and oh yeah, also widget opacity.
-
 ### GTK+ 3.10
 ships with: **Ubuntu Trusty (14.04 LTS)**
 <br>GLib version: 2.40
 
+minimum versions (see `configure.ac` for the relevant tagged 3.x.0 versions):
+- GLib: 2.37.5
+- ATK: 2.7.5
+- cairo: 1.12.0
+- pango: 1.32.4
+- gdk-pixbuf: 2.27.1
+
+features:
 - tab character stops in GtkEntry
 - GtkHeaderBar
 	- intended for titlebar overrides; GtkInfoBar is what I keep thinking GtkHeaderBar is
@@ -50,6 +44,14 @@ ships with: **Ubuntu Trusty (14.04 LTS)**
 ships with: Ubuntu Utopic (14.10)
 <br>GLib version: 2.42
 
+minimum versions:
+- GLib: 2.39.5
+- ATK: 2.7.5
+- cairo: 1.12.0
+- pango: 1.32.4
+- gdk-pixbuf: 2.27.1
+
+features:
 - GtkActionBar (basically like the bottom-of-the-window toolbars in Mac programs)
 - gtk_get_locale_direction(), for internationalization
 - more control over GtkHeaderBar
@@ -62,6 +64,14 @@ ships with: Ubuntu Utopic (14.10)
 ships with: **Debian Jessie**, Ubuntu Vivid (15.04)
 <br>GLib version: Debian: 2.42, Ubuntu: 2.44
 
+minimum versions:
+- GLib: 2.41.2
+- ATK: 2.12.0
+- cairo: 1.12.0
+- pango: 1.36.7
+- gdk-pixbuf: 2.30.0
+
+features:
 - gestures
 - better GtkListbox selection handling
 - more style classes (TODO also prior?)
@@ -71,6 +81,14 @@ ships with: **Debian Jessie**, Ubuntu Vivid (15.04)
 ships with: Ubuntu Wily (15.10)
 <br>GLib version: 2.46
 
+minimum versions:
+- GLib: 2.43.4
+- ATK: 2.15.1
+- cairo: 1.14.0
+- pango: 1.36.7
+- gdk-pixbuf: 2.30.0
+
+features:
 - gtk_clipboard_get_default() (???)
 - **GtkGLArea**
 - proper xalign and yalign for GtkLabel; should get rid of runtime deprecation warnings
@@ -86,8 +104,69 @@ ships with: Ubuntu Wily (15.10)
 - GtkTextView: font fallbacks
 
 ### GTK+ 3.18
+ships with: TODO
+
+minimum versions:
+- GLib: 2.45.8 (min_required 2.44 max_allowed 2.46 ?)
+- ATK: 2.15.1
+- cairo: 1.14.0
+- pango: 1.37.3
+- gdk-pixbuf: 2.30.0
+
+features:
+- TODO
 
 ### GTK+ 3.20
+ships with: TODO
+
+minimum versions (TODO double-check these):
+- GLib: 2.45.8 (min_required 2.44 max_allowed 2.46 ?)
+- ATK: 2.15.1
+- cairo: 1.14.0
+- pango: 1.37.3
+- gdk-pixbuf: 2.30.0
+
+features:
+- TODO
+
+### GTK+ 3.22
+ships with: TODO
+
+minimum versions:
+- GLib: 2.49.4 (min_required 2.48 max_allowed 2.50 ?)
+- ATK: 2.15.1
+- cairo: 1.14.0
+- pango: 1.37.3
+- gdk-pixbuf: 2.30.0
+
+features:
+- TODO
+
+### GTK+ 3.24
+ships with: TODO
+
+minimum versions:
+- GLib: 2.49.4 (min_required 2.48 max_allowed 2.50 ?)
+- ATK: 2.15.1
+- cairo: 1.14.0
+- pango: 1.41.0
+- gdk-pixbuf: 2.30.0
+
+features:
+- TODO
+
+### TODO greater versions
+ships with: TODO
+
+minimum versions:
+- GLib: TODO (min_required TODO max_allowed TODO ?)
+- ATK: TODO
+- cairo: TODO
+- pango: TODO
+- gdk-pixbuf: TODO
+
+features:
+- TODO
 
 ## Cocoa
 ### Mac OS X 10.8

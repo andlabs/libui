@@ -212,6 +212,31 @@ void testingprivOutbufVprintf(testingprivOutbuf *o, const char *fmt, va_list ap)
 	testingprivVsnprintf(dest, n + 1, fmt, ap);
 }
 
+void testingprivOutbufVprintfIndented(testingprivOutbuf *o, const char *fmt, va_list ap)
+{
+	char *buf;
+	char *lineStart, *lineEnd;
+	const char *indent;
+
+	buf = testingprivVsmprintf(fmt, ap);
+
+	lineStart = buf;
+	indent = "";
+	for (;;) {
+		lineEnd = strchr(lineStart, '\n');
+		if (lineEnd == NULL)
+			break;
+		*lineEnd = '\0';
+		testingprivOutbufPrintf(o, "%s%s\n", indent, lineStart);
+		lineStart = lineEnd + 1;
+		indent = "    ";
+	}
+	// and print the last line fragment, if any
+	if (*lineStart != '\0')
+		testingprivOutbufPrintf(o, "%s%s", indent, lineStart);
+	testingprivFree(buf);
+}
+
 void testingprivOutbufPrintf(testingprivOutbuf *o, const char *fmt, ...)
 {
 	va_list ap;

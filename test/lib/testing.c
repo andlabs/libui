@@ -213,7 +213,7 @@ static const char *basename(const char *file)
 void testingprivTLogvfFull(testingT *t, const char *file, long line, const char *format, va_list ap)
 {
 	testingprivOutbufPrintf(t->outbuf, "%s:%ld: ", basename(file), line);
-	testingprivOutbufVprintf(t->outbuf, format, ap);
+	testingprivOutbufVprintfIndented(t->outbuf, format, ap);
 	testingprivOutbufPrintf(t->outbuf, "\n");
 }
 

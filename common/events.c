@@ -36,6 +36,8 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 {
 	uiEvent *e;
 
+	if (!uiprivCheckInitializedAndThread())
+		return NULL;
 	if (options == NULL) {
 		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventOptions", uiprivFunc);
 		return NULL;
@@ -78,6 +80,8 @@ int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *da
 	struct handler *h;
 	int id;
 
+	if (!uiprivCheckInitializedAndThread())
+		return 0;
 	checkEventNonnull(e, 0);
 	checkEventNotFiring(e, 0);
 	if (handler == NULL) {
@@ -123,6 +127,8 @@ void uiEventDeleteHandler(uiEvent *e, int id)
 {
 	struct handler *h;
 
+	if (!uiprivCheckInitializedAndThread())
+		return;
 	checkEventNonnull(e, /* nothing */);
 	checkEventNotFiring(e, /* nothing */);
 	h = findHandler(e, id, uiprivFunc);
@@ -138,6 +144,8 @@ void uiEventFire(uiEvent *e, void *sender, void *args)
 	struct handler *h;
 	size_t i;
 
+	if (!uiprivCheckInitializedAndThread())
+		return;
 	checkEventNonnull(e, /* nothing */);
 	if (e->firing) {
 		uiprivProgrammerError(uiprivProgrammerErrorRecursiveEventFire);
@@ -160,6 +168,8 @@ bool uiEventHandlerBlocked(const uiEvent *e, int id)
 {
 	struct handler *h;
 
+	if (!uiprivCheckInitializedAndThread())
+		return false;
 	checkEventNonnull(e, false);
 	h = findHandler(e, id, uiprivFunc);
 	if (h == NULL)
@@ -171,6 +181,8 @@ void uiEventSetHandlerBlocked(uiEvent *e, int id, bool blocked)
 {
 	struct handler *h;
 
+	if (!uiprivCheckInitializedAndThread())
+		return;
 	checkEventNonnull(e, /* nothing */);
 	checkEventNotFiring(e, /* nothing */);
 	h = findHandler(e, id, uiprivFunc);

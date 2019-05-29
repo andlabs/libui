@@ -77,3 +77,17 @@ int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...)
 	va_end(ap);
 	return 0;
 }
+
+bool uiprivCheckInitializedAndThreadImpl(const char *func)
+{
+	// While it does seem risky to not lock this, if this changes during the execution of this function it means only that it was changed from a different thread, and since it can only change from false to true, an error will be reported anyway.
+	if (!initialized) {
+		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, func);
+		return false;
+	}
+	if (!uiprivSysCheckThread()) {
+		uiprivProgrammerError(uiprivProgrammerErrorWrongThread, func);
+		return false;
+	}
+	return true;
+}

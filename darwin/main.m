@@ -49,8 +49,12 @@ const char **uiprivSysInitErrors(void)
 	return initErrors;
 }
 
+static pthread_t mainThread;
+
 int uiprivSysInit(void *options, uiInitError *err)
 {
+	int lockerr;
+
 	uiprivApp = [uiprivApplication sharedApplication];
 	if (![NSApp isKindOfClass:[uiprivApplication class]])
 		return uiprivInitReturnError(err, errNSAppAlreadyInitialized);
@@ -62,6 +66,7 @@ int uiprivSysInit(void *options, uiInitError *err)
 	uiprivAppDelegate = [uiprivApplicationDelegate new];
 	[uiprivApp setDelegate:uiprivAppDelegate];
 
+	mainThread = pthread_self();
 	return 1;
 }
 
@@ -97,6 +102,11 @@ void uiQueueMain(void (*f)(void *data), void *data)
 	// dispatch_get_main_queue() is a serial queue so it will not execute multiple uiQueueMain() functions concurrently
 	// the signature of f matches dispatch_function_t
 	dispatch_async_f(dispatch_get_main_queue(), data, f);
+}
+
+bool uiprivSysCheckThread(void)
+{
+	return pthread_equal(pthread_self(), mainThread);
 }
 
 // Debugger() was deprecated in macOS 10.8 (as part of the larger CarbonCore deprecation), but they did not provide a replacement.

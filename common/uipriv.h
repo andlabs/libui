@@ -24,6 +24,9 @@ extern const char **uiprivSysInitErrors(void);
 extern int uiprivSysInit(void *options, uiInitError *err);
 extern int uiprivInitReturnError(uiInitError *err, const char *msg);
 extern int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
+extern bool uiprivCheckInitializedAndThreadImpl(const char *func);
+#define uiprivCheckInitializedAndThread() uiprivCheckInitializedAndThreadImpl(uiprivFunc)
+extern bool uiprivSysCheckThread(void);
 
 // alloc.c
 extern void *uiprivAlloc(size_t n, const char *what);
@@ -58,6 +61,8 @@ extern void uiprivArrayQsort(uiprivArray *arr, int (*compare)(const void *, cons
 // errors.c
 extern void uiprivInternalError(const char *fmt, ...);
 enum {
+	uiprivProgrammerErrorNotInitialized,		// arguments: uiprivFunc
+	uiprivProgrammerErrorWrongThread,		// arguments: uiprivFunc
 	uiprivProgrammerErrorWrongStructSize,		// arguments: size_t badSize, const char *structName
 	uiprivProgrammerErrorIndexOutOfRange,	// arguments: int badIndex, uiprivFunc
 	uiprivProgrammerErrorNullPointer,			// arguments: const char *paramDesc, uiprivFunc

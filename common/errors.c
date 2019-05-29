@@ -30,6 +30,8 @@ void uiprivInternalError(const char *fmt, ...)
 }
 
 static const char *messages[uiprivNumProgrammerErrors] = {
+	[uiprivProgrammerErrorNotInitialized] = "attempt to call %s() before uiInit()",
+	[uiprivProgrammerErrorWrongThread] = "attempt to call %s() on a thread other than the GUI thread",
 	[uiprivProgrammerErrorWrongStructSize] = "wrong size %" uiprivSizetPrintf " for %s",
 	[uiprivProgrammerErrorIndexOutOfRange] = "index %d out of range in %s()",
 	[uiprivProgrammerErrorNullPointer] = "invalid null pointer for %s passed into %s()",

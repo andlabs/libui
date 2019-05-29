@@ -4,6 +4,7 @@ libui_test_sources = [
 	'events.c',
 	'initmain.c',
 	'main.c',
+	'noinitwrongthread.c',
 ]
 
 if libui_OS == 'windows'

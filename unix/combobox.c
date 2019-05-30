@@ -30,6 +30,11 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 	gtk_combo_box_text_append(c->comboboxText, NULL, text);
 }
 
+void uiComboboxDelete(uiCombobox *c, int n)
+{
+	gtk_combo_box_text_remove(c->comboboxText, n);
+}
+
 int uiComboboxSelected(uiCombobox *c)
 {
 	return gtk_combo_box_get_active(c->combobox);

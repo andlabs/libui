@@ -69,6 +69,15 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 	uiprivFree(wtext);
 }
 
+void uiComboboxDelete(uiCombobox *c, int n)
+{
+	LRESULT res;
+
+	res = SendMessage(c->hwnd, CB_DELETESTRING, (WPARAM)n, 0);
+	if (res == (LRESULT) CB_ERR)
+		logLastError(L"error removing item from uiCombobox");
+}
+
 int uiComboboxSelected(uiCombobox *c)
 {
 	LRESULT n;

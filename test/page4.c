@@ -39,6 +39,11 @@ static void appendCBRB(uiButton *b, void *data)
 	uiRadioButtonsAppend(rb, "New Item");
 }
 
+static void deleteCB(uiButton *b, void *data)
+{
+	uiComboboxDelete(cbox, 0);
+}
+
 static void onCBChanged(uiCombobox *c, void *data)
 {
 	printf("%s combobox changed to %d\n",
@@ -146,6 +151,9 @@ uiBox *makePage4(void)
 	hbox = newHorizontalBox();
 	b = uiNewButton("Append");
 	uiButtonOnClicked(b, appendCBRB, NULL);
+	uiBoxAppend(hbox, uiControl(b), 0);
+	b = uiNewButton("Delete");
+	uiButtonOnClicked(b, deleteCB, NULL);
 	uiBoxAppend(hbox, uiControl(b), 0);
 	b = uiNewButton("Second");
 	uiButtonOnClicked(b, selectSecond, NULL);

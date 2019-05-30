@@ -9,7 +9,7 @@ bool uiprivSysInit(void *options, uiInitError *err)
 	GError *gerr = NULL;
 
 	if (gtk_init_with_args(NULL, NULL, NULL, NULL, NULL, &gerr) == FALSE) {
-		uiprivReturnErrorf(err, "%s", gerr->message);
+		uiprivInitReturnErrorf(err, "%s", gerr->message);
 		g_error_free(gerr);
 		return false;
 	}

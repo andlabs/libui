@@ -37,12 +37,12 @@ static uiprivApplicationDelegate *uiprivAppDelegate;
 @end
 
 static pthread_t mainThread;
-static BOOL initialized = NO;		// TODO deduplicate this from common/init.c
 
 bool uiprivSysInit(void *options, uiInitError *err)
 {
 	uiprivApp = [uiprivApplication sharedApplication];
 	if (![NSApp isKindOfClass:[uiprivApplication class]])
+		// TODO verify if Info.plist (both in a proper .app bundle and embedded into a standalone binary) can override this and, if so, add that tidbit to this message
 		return uiprivInitReturnErrorf(err, "NSApp is not of type uiprivApplication; was likely already initialized beforehand");
 
 	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
@@ -53,7 +53,6 @@ bool uiprivSysInit(void *options, uiInitError *err)
 	[uiprivApp setDelegate:uiprivAppDelegate];
 
 	mainThread = pthread_self();
-	initialized = YES;
 	return true;
 }
 
@@ -88,12 +87,8 @@ void uiQuit(void)
 }
 
 // thanks to mikeash in irc.freenode.net/#macdev for suggesting the use of Grand Central Dispatch for this
-void uiQueueMain(void (*f)(void *data), void *data)
+void uiprivSysQueueMain(void (*f)(void *data), void *data)
 {
-	if (!initialized) {
-		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, uiprivFunc);
-		return;
-	}
 	// dispatch_get_main_queue() is a serial queue so it will not execute multiple uiQueueMain() functions concurrently
 	// the signature of f matches dispatch_function_t
 	dispatch_async_f(dispatch_get_main_queue(), data, f);

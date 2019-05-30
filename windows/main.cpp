@@ -45,7 +45,6 @@ static inline void setHInstance(void)
 #define uiprivInitReturnHRESULT(err, msg, hr) uiprivInitReturnErrorf(err, "%s: 0x%08I32X", msg, hr)
 
 static DWORD mainThread;
-static BOOL initialized = FALSE;		// TODO deduplicate this from common/init.c
 
 bool uiprivSysInit(void *options, uiInitError *err)
 {
@@ -92,7 +91,6 @@ bool uiprivSysInit(void *options, uiInitError *err)
 	// LONGTERM turn off COM exception handling
 */
 	mainThread = GetCurrentThreadId();
-	initialized = TRUE;
 	return true;
 }
 
@@ -124,14 +122,10 @@ void uiQuit(void)
 	PostQuitMessage(0);
 }
 
-void uiQueueMain(void (*f)(void *data), void *data)
+void uiprivSysQueueMain(void (*f)(void *data), void *data)
 {
 	HRESULT hr;
 
-	if (!initialized) {
-		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, uiprivFunc);
-		return;
-	}
 	hr = uiprivHrPostMessageW(uiprivUtilWindow, uiprivUtilWindowMsgQueueMain, (WPARAM) f, (LPARAM) data);
 	if (hr != S_OK) {
 		// TODO handle error

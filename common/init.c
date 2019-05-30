@@ -5,6 +5,8 @@
 #include "ui.h"
 #include "uipriv.h"
 
+// TODO rename this file to main.c
+
 static bool initialized = false;
 
 bool uiInit(void *options, uiInitError *err)
@@ -45,6 +47,15 @@ bool uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...)
 		err->Message[255] = '\0';
 	}
 	return false;
+}
+
+void uiQueueMain(void (*f)(void *data), void *data)
+{
+	if (!initialized) {
+		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, uiprivFunc);
+		return;
+	}
+	uiprivSysQueueMain(f, data);
 }
 
 bool uiprivCheckInitializedAndThreadImpl(const char *func)

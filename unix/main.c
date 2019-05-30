@@ -2,7 +2,6 @@
 #include "uipriv_unix.h"
 
 static pthread_t mainThread;
-static gboolean initialized = FALSE;		// TODO deduplicate this from common/init.c
 
 bool uiprivSysInit(void *options, uiInitError *err)
 {
@@ -14,7 +13,6 @@ bool uiprivSysInit(void *options, uiInitError *err)
 		return false;
 	}
 	mainThread = pthread_self();
-	initialized = TRUE;
 	return true;
 }
 
@@ -46,14 +44,10 @@ static gboolean doqueued(gpointer data)
 	return FALSE;
 }
 
-void uiQueueMain(void (*f)(void *data), void *data)
+void uiprivSysQueueMain(void (*f)(void *data), void *data)
 {
 	struct queued *q;
 
-	if (!initialized) {
-		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, uiprivFunc);
-		return;
-	}
 	q = g_new0(struct queued, 1);
 	q->f = f;
 	q->data = data;

@@ -44,6 +44,11 @@ static void deleteCB(uiButton *b, void *data)
 	uiComboboxDelete(cbox, 0);
 }
 
+static void clearCB(uiButton *b, void *data)
+{
+	uiComboboxClear(cbox);
+}
+
 static void onCBChanged(uiCombobox *c, void *data)
 {
 	printf("%s combobox changed to %d\n",
@@ -154,6 +159,9 @@ uiBox *makePage4(void)
 	uiBoxAppend(hbox, uiControl(b), 0);
 	b = uiNewButton("Delete");
 	uiButtonOnClicked(b, deleteCB, NULL);
+	uiBoxAppend(hbox, uiControl(b), 0);
+	b = uiNewButton("Clear");
+	uiButtonOnClicked(b, clearCB, NULL);
 	uiBoxAppend(hbox, uiControl(b), 0);
 	b = uiNewButton("Second");
 	uiButtonOnClicked(b, selectSecond, NULL);

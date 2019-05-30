@@ -78,6 +78,15 @@ void uiComboboxDelete(uiCombobox *c, int n)
 		logLastError(L"error removing item from uiCombobox");
 }
 
+void uiComboboxClear(uiCombobox *c)
+{
+	LRESULT res;
+
+	res = SendMessage(c->hwnd, CB_RESETCONTENT, 0, 0);
+	if (res == (LRESULT) CB_ERR)
+		logLastError(L"error clearing items from uiCombobox");
+}
+
 int uiComboboxSelected(uiCombobox *c)
 {
 	LRESULT n;

@@ -86,6 +86,11 @@ void uiComboboxDelete(uiCombobox *c, int n)
 	[c->pb removeItemAtIndex:n];
 }
 
+void uiComboboxClear(uiCombobox *c)
+{
+	[c->pb removeAllItems];
+}
+
 int uiComboboxSelected(uiCombobox *c)
 {
 	return [c->pb indexOfSelectedItem];

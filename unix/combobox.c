@@ -35,6 +35,11 @@ void uiComboboxDelete(uiCombobox *c, int n)
 	gtk_combo_box_text_remove(c->comboboxText, n);
 }
 
+void uiComboboxClear(uiCombobox *c)
+{
+	gtk_combo_box_text_remove_all(c->comboboxText);
+}
+
 int uiComboboxSelected(uiCombobox *c)
 {
 	return gtk_combo_box_get_active(c->combobox);

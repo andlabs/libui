@@ -69,6 +69,20 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 	uiprivFree(wtext);
 }
 
+void uiComboboxInsertAt(uiCombobox *c, int n, const char *text)
+{
+	WCHAR *wtext;
+	LRESULT res;
+
+	wtext = toUTF16(text);
+	res = SendMessageW(c->hwnd, CB_INSERTSTRING, (WPARAM)n, (LPARAM) wtext);
+	if (res == (LRESULT) CB_ERR)
+		logLastError(L"error inserting item to uiCombobox");
+	else if (res == (LRESULT) CB_ERRSPACE)
+		logLastError(L"memory exhausted inserting item to uiCombobox");
+	uiprivFree(wtext);
+}
+
 void uiComboboxDelete(uiCombobox *c, int n)
 {
 	LRESULT res;

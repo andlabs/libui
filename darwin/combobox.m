@@ -81,6 +81,11 @@ void uiComboboxAppend(uiCombobox *c, const char *text)
 	[c->pbac addObject:uiprivToNSString(text)];
 }
 
+void uiComboboxInsertAt(uiCombobox *c, int n, const char *text)
+{
+	[c->pbac insert:uiprivToNSString(text) atArrangedObjectIndex:n]
+}
+
 void uiComboboxDelete(uiCombobox *c, int n)
 {
 	[c->pb removeItemAtIndex:n];

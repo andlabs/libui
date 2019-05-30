@@ -36,14 +36,14 @@ struct testingT {
 	long line;
 
 	// test status
-	int failed;
-	int skipped;
-	int returned;
+	bool failed;
+	bool skipped;
+	bool returned;
 	jmp_buf returnNowBuf;
 
 	// deferred functions
 	struct defer *defers;
-	int defersRun;
+	bool defersRun;
 
 	// execution options
 	testingOptions opts;
@@ -112,7 +112,7 @@ static void runDefers(testingT *t)
 
 	if (t->defersRun)
 		return;
-	t->defersRun = 1;
+	t->defersRun = true;
 	for (d = t->defers; d != NULL; d = d->next)
 		(*(d->f))(t, d->data);
 }
@@ -121,7 +121,7 @@ static const testingOptions defaultOptions = {
 	.Verbose = 0,
 };
 
-static int testingprivTRun(testingT *t, testingprivOutbuf *parentbuf)
+static bool testingprivTRun(testingT *t, testingprivOutbuf *parentbuf)
 {
 	const char *status;
 	timerTime start, end;
@@ -136,7 +136,7 @@ static int testingprivTRun(testingT *t, testingprivOutbuf *parentbuf)
 	if (setjmp(t->returnNowBuf) == 0)
 		(*(t->f))(t, t->data);
 	end = timerMonotonicNow();
-	t->returned = 1;
+	t->returned = true;
 	runDefers(t);
 
 	printStatus = t->opts.Verbose;
@@ -155,11 +155,11 @@ static int testingprivTRun(testingT *t, testingprivOutbuf *parentbuf)
 
 	testingprivOutbufFree(t->outbuf);
 	t->outbuf = NULL;
-	return t->failed;
+	return !t->failed;
 }
 
 // TODO rename all options to opts and all format to fmt
-static void testingprivSetRun(testingSet *set, const testingOptions *opts, testingprivOutbuf *outbuf, int *anyFailed)
+static void testingprivSetRun(testingSet *set, const testingOptions *opts, testingprivOutbuf *outbuf, bool *anyFailed)
 {
 	size_t i;
 	testingT *t;
@@ -168,16 +168,16 @@ static void testingprivSetRun(testingSet *set, const testingOptions *opts, testi
 	t = (testingT *) (set->tests.buf);
 	for (i = 0; i < set->tests.len; i++) {
 		t->opts = *opts;
-		if (testingprivTRun(t, outbuf) != 0)
-			*anyFailed = 1;
+		if (!testingprivTRun(t, outbuf))
+			*anyFailed = true;
 		t++;
 	}
 }
 
-void testingSetRun(testingSet *set, const struct testingOptions *options, int *anyRun, int *anyFailed)
+void testingSetRun(testingSet *set, const struct testingOptions *options, bool *anyRun, bool *anyFailed)
 {
-	*anyRun = 0;
-	*anyFailed = 0;
+	*anyRun = false;
+	*anyFailed = false;
 	if (set == NULL)
 		set = &mainTests;
 	if (options == NULL)
@@ -185,7 +185,7 @@ void testingSetRun(testingSet *set, const struct testingOptions *options, int *a
 	if (set->tests.len == 0)
 		return;
 	testingprivSetRun(set, options, NULL, anyFailed);
-	*anyRun = 1;
+	*anyRun = true;
 }
 
 void testingprivTLogfFull(testingT *t, const char *file, long line, const char *format, ...)
@@ -219,14 +219,14 @@ void testingprivTLogvfFull(testingT *t, const char *file, long line, const char 
 
 void testingTFail(testingT *t)
 {
-	t->failed = 1;
+	t->failed = true;
 }
 
 static void returnNow(testingT *t)
 {
 	if (!t->returned) {
 		// set this now so a FailNow inside a Defer doesn't longjmp twice
-		t->returned = 1;
+		t->returned = true;
 		// run defers before calling longjmp() just to be safe
 		runDefers(t);
 		longjmp(t->returnNowBuf, 1);
@@ -241,7 +241,7 @@ void testingTFailNow(testingT *t)
 
 void testingTSkipNow(testingT *t)
 {
-	t->skipped = 1;
+	t->skipped = true;
 	returnNow(t);
 }
 
@@ -298,8 +298,8 @@ void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, 
 	subt = testingprivNew(testingT);
 	initTest(subt, fullName, subfunc, data, NULL, 0);
 	subt->opts = t->opts;
-	if (testingprivTRun(subt, t->outbuf) != 0)
-		t->failed = 1;
+	if (!testingprivTRun(subt, t->outbuf))
+		t->failed = true;
 	testingprivFree(subt);
 
 	testingprivFree(fullName);

@@ -22,21 +22,21 @@ void catchProgrammerError(const char *prefix, const char *msg, const char *suffi
 			"%s", msg, errorParams.msgWant);
 }
 
-static void runSetORingResults(testingSet *set, const struct testingOptions *options, int *anyRun, int *anyFailed)
+static void runSetORingResults(testingSet *set, const struct testingOptions *options, bool *anyRun, bool *anyFailed)
 {
-	int ar, af;
+	bool ar, af;
 
 	testingSetRun(set, options, &ar, &af);
 	if (ar)
-		*anyRun = 1;
+		*anyRun = true;
 	if (af)
-		*anyFailed = 1;
+		*anyFailed = true;
 }
 
 int main(int argc, char *argv[])
 {
 	testingOptions opts;
-	int anyRun = 0, anyFailed = 0;
+	bool anyRun = false, anyFailed = false;
 	uiInitError err;
 	int ret;
 

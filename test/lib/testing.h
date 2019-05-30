@@ -1,6 +1,7 @@
 // 27 february 2018
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #define testingprivImplName(basename) testingprivImpl ## basename
@@ -45,7 +46,7 @@ struct testingOptions {
 	int Verbose;
 };
 
-extern void testingSetRun(testingSet *set, const struct testingOptions *options, int *anyRun, int *anyFailed);
+extern void testingSetRun(testingSet *set, const struct testingOptions *options, bool *anyRun, bool *anyFailed);
 
 typedef struct testingT testingT;
 #define testingTLogf(t, ...) \

@@ -69,7 +69,7 @@ const char **uiprivSysInitErrors(void)
 static DWORD mainThread;
 static BOOL initialized = FALSE;		// TODO deduplicate this from common/init.c
 
-int uiprivSysInit(void *options, uiInitError *err)
+bool uiprivSysInit(void *options, uiInitError *err)
 {
 	STARTUPINFOW si;
 	HICON hDefaultIcon;
@@ -115,7 +115,7 @@ int uiprivSysInit(void *options, uiInitError *err)
 */
 	mainThread = GetCurrentThreadId();
 	initialized = TRUE;
-	return 1;
+	return true;
 }
 
 void uiMain(void)

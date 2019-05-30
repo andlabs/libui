@@ -78,10 +78,10 @@ TODO timers
 ### `uiInit()`
 
 ```c
-int uiInit(void *options, uiInitError *err);
+bool uiInit(void *options, uiInitError *err);
 ```
 
-`uiInit()` initializes libui. It returns nonzero on success and zero on failure; in the event of a failure, `err` is filled with relevant information explaining the failure.
+`uiInit()` initializes libui. It returns `true` on success and `false` on failure; in the event of a failure, `err` is filled with relevant information explaining the failure.
 
 `err` is required and must be properly initialized. If `err` is `NULL` or `err->Size` does not match `sizeof (uiError)`, `uiInit()` immediately returns zero without doing anything. If any of the other fields of `err` are not zero-initialized as with `memset(0)`, the behavior is undefined.
 

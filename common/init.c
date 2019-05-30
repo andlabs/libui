@@ -9,7 +9,7 @@
 #include "ui.h"
 #include "uipriv.h"
 
-static int initialized = 0;
+static bool initialized = false;
 
 #define errAlreadyInitialized "libui already initialized"
 #define errOptionsMustBeNULL "options parameter to uiInit() must be NULL"
@@ -20,33 +20,33 @@ static const char *commonInitErrors[] = {
 	NULL,
 };
 
-static int checkInitErrorLengths(uiInitError *err, const char **initErrors)
+static bool checkInitErrorLengths(uiInitError *err, const char **initErrors)
 {
 	const char **p;
 
 	if (initErrors == NULL)
-		return 1;
+		return true;
 	for (p = initErrors; *p != NULL; p++)
 		if (strlen(*p) > 255) {
 			strcpy(err->Message, "[INTERNAL] uiInit() error too long: ");
 			strncat(err->Message, *p, 32);
 			strcat(err->Message, "...");
-			return 0;
+			return false;
 		}
-	return 1;
+	return true;
 }
 
-int uiInit(void *options, uiInitError *err)
+bool uiInit(void *options, uiInitError *err)
 {
 	if (err == NULL)
-		return 0;
+		return false;
 	if (err->Size != sizeof (uiInitError))
-		return 0;
+		return false;
 
 	if (!checkInitErrorLengths(err, commonInitErrors))
-		return 0;
+		return false;
 	if (!checkInitErrorLengths(err, uiprivSysInitErrors()))
-		return 0;
+		return false;
 
 	if (initialized)
 		return uiprivInitReturnError(err, errAlreadyInitialized);
@@ -55,19 +55,19 @@ int uiInit(void *options, uiInitError *err)
 		return uiprivInitReturnError(err, errOptionsMustBeNULL);
 
 	if (!uiprivSysInit(options, err))
-		return 0;
-	initialized = 1;
-	return 1;
+		return false;
+	initialized = true;
+	return true;
 }
 
-int uiprivInitReturnError(uiInitError *err, const char *msg)
+bool uiprivInitReturnError(uiInitError *err, const char *msg)
 {
 	// checkInitErrorLengths() above ensures that err->Message[255] will always be '\0'
 	strncpy(err->Message, msg, 256);
-	return 0;
+	return false;
 }
 
-int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...)
+bool uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...)
 {
 	va_list ap;
 
@@ -75,7 +75,7 @@ int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...)
 	va_start(ap, msg);
 	vsnprintf(err->Message, 256, msg, ap);
 	va_end(ap);
-	return 0;
+	return false;
 }
 
 bool uiprivCheckInitializedAndThreadImpl(const char *func)

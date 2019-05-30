@@ -51,7 +51,7 @@ const char **uiprivSysInitErrors(void)
 static pthread_t mainThread;
 static BOOL initialized = NO;		// TODO deduplicate this from common/init.c
 
-int uiprivSysInit(void *options, uiInitError *err)
+bool uiprivSysInit(void *options, uiInitError *err)
 {
 	uiprivApp = [uiprivApplication sharedApplication];
 	if (![NSApp isKindOfClass:[uiprivApplication class]])
@@ -66,7 +66,7 @@ int uiprivSysInit(void *options, uiInitError *err)
 
 	mainThread = pthread_self();
 	initialized = YES;
-	return 1;
+	return true;
 }
 
 void uiMain(void)

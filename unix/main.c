@@ -9,7 +9,7 @@ const char **uiprivSysInitErrors(void)
 static pthread_t mainThread;
 static gboolean initialized = FALSE;		// TODO deduplicate this from common/init.c
 
-int uiprivSysInit(void *options, uiInitError *err)
+bool uiprivSysInit(void *options, uiInitError *err)
 {
 	GError *gerr = NULL;
 
@@ -17,11 +17,11 @@ int uiprivSysInit(void *options, uiInitError *err)
 		// TODO make sure this is safe
 		strncpy(err->Message, gerr->message, 255);
 		g_error_free(gerr);
-		return 0;
+		return false;
 	}
 	mainThread = pthread_self();
 	initialized = TRUE;
-	return 1;
+	return true;
 }
 
 void uiMain(void)

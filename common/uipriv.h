@@ -21,9 +21,9 @@ extern "C" {
 
 // init.c
 extern const char **uiprivSysInitErrors(void);
-extern int uiprivSysInit(void *options, uiInitError *err);
-extern int uiprivInitReturnError(uiInitError *err, const char *msg);
-extern int uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
+extern bool uiprivSysInit(void *options, uiInitError *err);
+extern bool uiprivInitReturnError(uiInitError *err, const char *msg);
+extern bool uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
 extern bool uiprivCheckInitializedAndThreadImpl(const char *func);
 #define uiprivCheckInitializedAndThread() uiprivCheckInitializedAndThreadImpl(uiprivFunc)
 extern bool uiprivSysCheckThread(void);

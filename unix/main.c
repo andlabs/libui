@@ -1,11 +1,6 @@
 // 6 april 2015
 #include "uipriv_unix.h"
 
-const char **uiprivSysInitErrors(void)
-{
-	return NULL;
-}
-
 static pthread_t mainThread;
 static gboolean initialized = FALSE;		// TODO deduplicate this from common/init.c
 
@@ -14,8 +9,7 @@ bool uiprivSysInit(void *options, uiInitError *err)
 	GError *gerr = NULL;
 
 	if (gtk_init_with_args(NULL, NULL, NULL, NULL, NULL, &gerr) == FALSE) {
-		// TODO make sure this is safe
-		strncpy(err->Message, gerr->message, 255);
+		uiprivReturnErrorf(err, "%s", gerr->message);
 		g_error_free(gerr);
 		return false;
 	}

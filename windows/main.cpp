@@ -42,29 +42,7 @@ static inline void setHInstance(void)
 	ICC_DATE_CLASSES |		/* date/time picker */		\
 	0)
 
-#define errLoadDefaultIconFailed "failed to load default icon"
-#define errLoadDefaultCursorFailed "failed to load default cursor"
-#define errInitUtilWindowFailed "failed to initialize the utility window"
-#define errICCFailed "InitCommonControlsEx() failed"
-#define errICCFailedNoLastError "InitCommonControlsEx() failed, but didn't specify why. This usually means you forgot the Common Controls v6 manifest; refer to the libui documentation for instructions."
-#define errCoInitializeFailed "CoInitialize() failed"
-
-#define errHRESULTInitErrorsSuffix ": 0x00000000"
-static const char *initErrors[] = {
-	errLoadDefaultIconFailed errHRESULTInitErrorsSuffix
-	errLoadDefaultCursorFailed errHRESULTInitErrorsSuffix
-	errInitUtilWindowFailed errHRESULTInitErrorsSuffix
-	errICCFailed errHRESULTInitErrorsSuffix,
-	errICCFailedNoLastError,
-	errCoInitializeFailed errHRESULTInitErrorsSuffix,
-	NULL,
-};
 #define uiprivInitReturnHRESULT(err, msg, hr) uiprivInitReturnErrorf(err, "%s: 0x%08I32X", msg, hr)
-
-const char **uiprivSysInitErrors(void)
-{
-	return initErrors;
-}
 
 static DWORD mainThread;
 static BOOL initialized = FALSE;		// TODO deduplicate this from common/init.c
@@ -85,14 +63,14 @@ bool uiprivSysInit(void *options, uiInitError *err)
 
 	hr = uiprivHrLoadIconW(NULL, IDI_APPLICATION, &hDefaultIcon);
 	if (hr != S_OK)
-		return uiprivInitReturnHRESULT(err, errLoadDefaultIconFailed, hr);
+		return uiprivInitReturnHRESULT(err, "failed to load default icon", hr);
 	hr = uiprivHrLoadCursorW(NULL, IDC_ARROW, &hDefaultCursor);
 	if (hr != S_OK)
-		return uiprivInitReturnHRESULT(err, errLoadDefaultCursorFailed, hr);
+		return uiprivInitReturnHRESULT(err, "failed to load default cursor", hr);
 
 	hr = uiprivInitUtilWindow(hDefaultIcon, hDefaultCursor);
 	if (hr != S_OK)
-		return uiprivInitReturnHRESULT(err, errInitUtilWindowFailed, hr);
+		return uiprivInitReturnHRESULT(err, "failed to initialize the utility window", hr);
 
 	ZeroMemory(&icc, sizeof (INITCOMMONCONTROLSEX));
 	icc.dwSize = sizeof (INITCOMMONCONTROLSEX);
@@ -102,14 +80,14 @@ bool uiprivSysInit(void *options, uiInitError *err)
 
 		lasterr = GetLastError();
 		if (lasterr == 0)
-			return uiprivInitReturnError(err, errICCFailedNoLastError);
+			return uiprivInitReturnErrorf(err, "InitCommonControlsEx() failed, but didn't specify why. This usually means you forgot the Common Controls v6 manifest; refer to the libui documentation for instructions.");
 		hr = HRESULT_FROM_WIN32(lasterr);
-		return uiprivInitReturnHRESULT(err, errICCFailed, hr);
+		return uiprivInitReturnHRESULT(err, "InitCommonControlsEx() failed", hr);
 	}
 
 /*	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)
-		return ieHRESULT("initializing COM", hr);
+		return uiprivInitReturnHRESULT(err, "CoInitialize() failed", hr);
 	// LONGTERM initialize COM security
 	// LONGTERM turn off COM exception handling
 */

@@ -20,9 +20,7 @@ extern "C" {
 #endif
 
 // init.c
-extern const char **uiprivSysInitErrors(void);
 extern bool uiprivSysInit(void *options, uiInitError *err);
-extern bool uiprivInitReturnError(uiInitError *err, const char *msg);
 extern bool uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
 extern bool uiprivCheckInitializedAndThreadImpl(const char *func);
 #define uiprivCheckInitializedAndThread() uiprivCheckInitializedAndThreadImpl(uiprivFunc)

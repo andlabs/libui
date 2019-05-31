@@ -5,7 +5,9 @@
 #error you must define sharedbitsPrefix before including this
 #endif
 #define sharedbitsPrefixMakeName(x, y) x ## y
-#define sharedbitsPrefixName(Name) sharedbitsPrefixMakeName(sharedbitsPrefix, Name)
+#define sharedbitsPrefixExpand(x) x
+#define sharedbitsPrefixName(Name) sharedbitsPrefixMakeName(sharedbitsPrefixExpand(sharedbitsPrefix), Name)
 
 #undef sharedbitsPrefixName
+#undef sharedbitsPrefixExpand
 #undef sharedbitsPrefixMakeName

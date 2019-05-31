@@ -4,7 +4,8 @@
 #error you must define sharedbitsPrefix before including this
 #endif
 #define sharedbitsPrefixMakeName(x, y) x ## y
-#define sharedbitsPrefixName(Name) sharedbitsPrefixMakeName(sharedbitsPrefix, Name)
+#define sharedbitsPrefixExpand(x) x
+#define sharedbitsPrefixName(Name) sharedbitsPrefixMakeName(sharedbitsPrefixExpand(sharedbitsPrefix), Name)
 
 extern void *sharedbitsPrefixName(Alloc)(size_t n, const char *what);
 extern void *sharedbitsPrefixName(Realloc)(void *p, size_t nOld, size_t nNew, const char *what);
@@ -19,4 +20,5 @@ you may also want to define the following:
 */
 
 #undef sharedbitsPrefixName
+#undef sharedbitsPrefixExpand
 #undef sharedbitsPrefixMakeName

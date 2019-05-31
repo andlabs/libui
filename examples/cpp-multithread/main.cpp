@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <atomic>
 #include "../../ui.h"
 using namespace std;
 
@@ -13,7 +14,7 @@ uiMultilineEntry *e;
 condition_variable cv;
 mutex m;
 thread *timeThread;
-volatile bool running = true;
+atomic<bool> running(true);
 
 void sayTime(void *data)
 {
@@ -26,7 +27,7 @@ void sayTime(void *data)
 void threadproc(void)
 {
 	unique_lock<mutex> ourlock(m);
-	while (running) {
+	while (running.load()) {
 		cv.wait_for(ourlock, chrono::seconds(1));
 		time_t t;
 		char *base;

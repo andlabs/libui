@@ -38,11 +38,10 @@ int main(int argc, char *argv[])
 	testingOptions opts;
 	bool anyRun = false, anyFailed = false;
 	uiInitError err;
-	int ret;
 
 	memset(&opts, 0, sizeof (testingOptions));
 	if (argc == 2 && strcmp(argv[1], "-v") == 0)
-		opts.Verbose = 1;
+		opts.Verbose = true;
 	else if (argc != 1) {
 		fprintf(stderr, "usage: %s [-v]\n", argv[0]);
 		return 1;
@@ -51,8 +50,7 @@ int main(int argc, char *argv[])
 	runSetORingResults(beforeTests, &opts, &anyRun, &anyFailed);
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
-	ret = uiInit(NULL, &err);
-	if (ret == 0) {
+	if (!uiInit(NULL, &err)) {
 		fprintf(stderr, "uiInit() failed: %s; can't continue\n", err.Message);
 		printf("FAIL\n");
 		return 1;

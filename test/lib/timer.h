@@ -1,5 +1,6 @@
 // 2 may 2019
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef int64_t timerDuration;
@@ -32,6 +33,6 @@ typedef uint64_t timerSysError;
 #define timerSysErrorFmtArg(x) strerror((int) x), ((int) x)
 #endif
 
-extern timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut);
+extern timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, bool *timedOut);
 
 extern timerSysError timerSleep(timerDuration d);

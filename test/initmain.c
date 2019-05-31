@@ -12,24 +12,20 @@ testingSet *beforeTests = NULL;
 testingTestInSet(beforeTests, Init)
 {
 	uiInitError err;
-	int ret;
 
-	ret = uiInit(NULL, NULL);
-	if (ret != 0)
-		testingTErrorf(t, "uiInit() with NULL error succeeded with return value %d; expected failure", ret);
+	if (uiInit(NULL, NULL))
+		testingTErrorf(t, "uiInit() with NULL error succeeded; expected failure");
 
 	memset(&err, 0, sizeof (uiInitError));
 
 	err.Size = 2;
-	ret = uiInit(NULL, &err);
-	if (ret != 0)
-		testingTErrorf(t, "uiInit() with error with invalid size succeeded with return value %d; expected failure", ret);
+	if (uiInit(NULL, &err))
+		testingTErrorf(t, "uiInit() with error with invalid size succeeded; expected failure");
 
 	err.Size = sizeof (uiInitError);
 
-	ret = uiInit(&err, &err);
-	if (ret != 0)
-		testingTErrorf(t, "uiInit() with non-NULL options succeeded with return value %d; expected failure", err);
+	if (uiInit(&err, &err))
+		testingTErrorf(t, "uiInit() with non-NULL options succeeded; expected failure");
 	if (strcmp(err.Message, errInvalidOptions) != 0)
 		diff(t, "uiInit() with non-NULL options returned bad error message", "%s",
 			err.Message, errInvalidOptions);
@@ -38,13 +34,11 @@ testingTestInSet(beforeTests, Init)
 testingTest(InitAfterInitialized)
 {
 	uiInitError err;
-	int ret;
 
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
-	ret = uiInit(NULL, &err);
-	if (ret != 0)
-		testingTErrorf(t, "uiInit() after a previous successful call succeeded with return value %d; expected failure", ret);
+	if (uiInit(NULL, &err))
+		testingTErrorf(t, "uiInit() after a previous successful call succeeded; expected failure");
 	if (strcmp(err.Message, errAlreadyInitialized) != 0)
 		diff(t, "uiInit() after a previous successful call returned bad error message", "%s",
 			err.Message, errAlreadyInitialized);

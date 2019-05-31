@@ -171,18 +171,18 @@ static void teardownNonReentrance(void)
 	mustpthread_mutex_unlock(&nonReentranceMutex);
 }
 
-timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut)
+timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, bool *timedOut)
 {
 	sigset_t sigalrm, allsigs;
 	sigset_t prevMask;
-	volatile int restorePrevMask = 0;
+	volatile bool restorePrevMask = false;
 	struct sigaction sig;
-	volatile int restoreSignal = 0;
+	volatile bool restoreSignal = false;
 	struct itimerval duration;
-	volatile int destroyTimer = 0;
+	volatile bool destroyTimer = false;
 	int err = 0;
 
-	*timedOut = 0;
+	*timedOut = false;
 	err = setupNonReentrance();
 	if (err != 0)
 		return (timerSysError) err;
@@ -202,7 +202,7 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 	err = pthread_sigmask(SIG_BLOCK, &sigalrm, &prevMask);
 	if (err != 0)
 		return (timerSysError) err;
-	restorePrevMask = 1;
+	restorePrevMask = true;
 
 	if (setjmp(p.retpos) == 0) {
 		sig.sa_mask = allsigs;
@@ -213,7 +213,7 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 			err = errno;
 			goto out;
 		}
-		restoreSignal = 1;
+		restoreSignal = true;
 
 		duration.it_interval.tv_sec = 0;
 		duration.it_interval.tv_usec = 0;
@@ -224,7 +224,7 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 			err = errno;
 			goto out;
 		}
-		destroyTimer = 1;
+		destroyTimer = true;
 
 		// and fire away
 		err = pthread_sigmask(SIG_UNBLOCK, &sigalrm, NULL);
@@ -233,7 +233,7 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 
 		(*f)(data);
 	} else
-		*timedOut = 1;
+		*timedOut = true;
 	err = 0;
 
 out:

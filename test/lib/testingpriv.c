@@ -251,7 +251,7 @@ void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src)
 {
 	char *buf;
 	size_t n;
-	int hasTrailingBlankLine;
+	bool hasTrailingBlankLine;
 	size_t trailingBlankLinePos = 0;		// silence incorrect MSVC warning
 	char *lineStart, *lineEnd;
 
@@ -262,9 +262,9 @@ void testingprivOutbufAppendOutbuf(testingprivOutbuf *o, testingprivOutbuf *src)
 		return;
 
 	// strip trailing blank lines, if any
-	hasTrailingBlankLine = 0;
+	hasTrailingBlankLine = false;
 	if (buf[n - 1] == '\n') {
-		hasTrailingBlankLine = 1;
+		hasTrailingBlankLine = true;
 		while (n > 0 && buf[n - 1] == '\n')
 			n--;
 		if (n == 0) {

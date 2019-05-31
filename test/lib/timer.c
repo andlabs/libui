@@ -31,10 +31,10 @@ static const struct timerStringPart parts[] = {
 static int fillFracPart(char *buf, int precision, int start, uint64_t *unsec)
 {
 	int i;
-	int print;
+	bool print;
 	uint64_t digit;
 
-	print = 0;
+	print = false;
 	for (i = 0; i < precision; i++) {
 		digit = *unsec % 10;
 		print = print || (digit != 0);
@@ -69,7 +69,7 @@ static int fillIntPart(char *buf, int start, uint64_t unsec)
 void timerDurationString(timerDuration d, char buf[timerDurationStringLen])
 {
 	uint64_t unsec;
-	int neg;
+	bool neg;
 	int start;
 	const struct timerStringPart *p;
 
@@ -82,7 +82,7 @@ void timerDurationString(timerDuration d, char buf[timerDurationStringLen])
 		return;
 	}
 	unsec = (uint64_t) d;
-	neg = 0;
+	neg = false;
 	if (d < 0) {
 #ifdef _MSC_VER
 // TODO figure out a more explicit way to do this; until then, just go with what the standard says should happen, because it's what we want (TODO verify this)
@@ -93,7 +93,7 @@ void timerDurationString(timerDuration d, char buf[timerDurationStringLen])
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-		neg = 1;
+		neg = true;
 	}
 
 	for (p = parts; p->suffix != 0; p++) {
@@ -136,7 +136,7 @@ void timerDurationString(timerDuration d, char buf[timerDurationStringLen])
 
 static void int128FromUint64(uint64_t n, timerprivInt128 *out)
 {
-	out->neg = 0;
+	out->neg = false;
 	out->high = 0;
 	out->low = n;
 }
@@ -147,7 +147,7 @@ static void int128FromInt64(int64_t n, timerprivInt128 *out)
 		int128FromUint64((uint64_t) n, out);
 		return;
 	}
-	out->neg = 1;
+	out->neg = true;
 	out->high = 0;
 	// C99 §6.2.6.2 resticts the possible signed integer representations in C to either sign-magnitude, 1's complement, or 2's complement.
 	// Therefore, INT64_MIN will always be either -INT64_MAX or -INT64_MAX - 1, so we can safely do this to see if we need to special-case INT64_MIN as -INT64_MIN cannot be safely represented, or if we can just say -n as that can be safely represented.
@@ -230,13 +230,13 @@ static void int128BitSet(timerprivInt128 *x, int i)
 
 static void int128MulDiv64(timerprivInt128 *x, timerprivInt128 *y, timerprivInt128 *z, timerprivInt128 *quot)
 {
-	int finalNeg;
+	bool finalNeg;
 	uint64_t x64high, x64low;
 	uint64_t y64high, y64low;
 	timerprivInt128 add, numer, rem;
 	int i;
 
-	finalNeg = 0;
+	finalNeg = false;
 	if (x->neg)
 		finalNeg = !finalNeg;
 	if (y->neg)
@@ -248,7 +248,7 @@ static void int128MulDiv64(timerprivInt128 *x, timerprivInt128 *y, timerprivInt1
 
 	// first, multiply x and y into numer
 	// this assumes x->high == y->high == 0
-	numer.neg = 0;
+	numer.neg = false;
 	// the idea is if x = (a * 2^32) + b and y = (c * 2^32) + d, we can express x * y as ((a * 2^32) + b) * ((c * 2^32) + d)...
 	x64high = (x->low >> 32) & 0xFFFFFFFF;
 	x64low = x->low & 0xFFFFFFFF;
@@ -257,7 +257,7 @@ static void int128MulDiv64(timerprivInt128 *x, timerprivInt128 *y, timerprivInt1
 	// and we can expand that out to get...
 	numer.high = x64high * y64high;		// a * c * 2^64 +
 	numer.low = x64low * y64low;			// b * d +
-	add.neg = 0;
+	add.neg = false;
 	add.high = x64high * y64low;			// a * d * 2^32 +
 	add.low = (add.high & 0xFFFFFFFF) << 32;
 	add.high >>= 32;
@@ -273,7 +273,7 @@ static void int128MulDiv64(timerprivInt128 *x, timerprivInt128 *y, timerprivInt1
 	// (Apple also rejects quotients > UINT64_MAX; we won't)
 	quot->high = 0;
 	quot->low = 0;
-	rem.neg = 0;
+	rem.neg = false;
 	rem.high = 0;
 	rem.low = 0;
 	for (i = 127; i >= 0; i--) {

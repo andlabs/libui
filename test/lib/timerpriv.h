@@ -3,7 +3,7 @@
 typedef struct timerprivInt128 timerprivInt128;
 
 struct timerprivInt128 {
-	int neg;
+	bool neg;
 	uint64_t high;
 	uint64_t low;
 };

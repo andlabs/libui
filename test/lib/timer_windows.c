@@ -324,16 +324,16 @@ static unsigned __stdcall timerThreadProc(void *data)
 	return 0;
 }
 
-timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, int *timedOut)
+timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, bool *timedOut)
 {
 	struct timeoutParams *p;
-	int doTeardownNonReentrance = 0;
+	bool doTeardownNonReentrance = false;
 	MSG msg;
 	volatile HANDLE timerThread = NULL;
 	LARGE_INTEGER duration;
 	HRESULT hr;
 
-	*timedOut = 0;
+	*timedOut = false;
 	// we use a pointer to heap memory here to avoid volatile kludges
 	p = (struct timeoutParams *) malloc(sizeof (struct timeoutParams));
 	if (p == NULL)
@@ -343,7 +343,7 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 	hr = setupNonReentrance(p);
 	if (hr != S_OK)
 		goto out;
-	doTeardownNonReentrance = 1;
+	doTeardownNonReentrance = true;
 
 	// to ensure that the PostThreadMessage() above will not fail because the thread doesn't have a message queue
 	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
@@ -386,12 +386,11 @@ timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *
 			goto out;
 
 		(*f)(data);
-		*timedOut = 0;
 	} else if (p->hr != S_OK) {
 		hr = p->hr;
 		goto out;
 	} else
-		*timedOut = 1;
+		*timedOut = true;
 	hr = S_OK;
 
 out:

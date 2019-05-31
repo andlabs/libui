@@ -14,7 +14,7 @@
 extern void timeoutMain(void *data);
 #define timeout_uiMain(t, d) { \
 	timerSysError err; \
-	int timedOut; \
+	bool timedOut; \
 	err = timerRunWithTimeout(d, timeoutMain, NULL, &timedOut); \
 	if (err != 0) \
 		testingTErrorf(t, "error running uiMain() in timeout: " timerSysErrorFmt, timerSysErrorFmtArg(err)); \

@@ -126,7 +126,7 @@ static bool testingprivTRun(testingT *t, testingprivOutbuf *parentbuf)
 	const char *status;
 	timerTime start, end;
 	char timerstr[timerDurationStringLen];
-	int printStatus;
+	bool printStatus;
 
 	if (t->opts.Verbose)
 		testingprivOutbufPrintf(parentbuf, "=== RUN   %s\n", t->name);
@@ -143,7 +143,7 @@ static bool testingprivTRun(testingT *t, testingprivOutbuf *parentbuf)
 	status = "PASS";
 	if (t->failed) {
 		status = "FAIL";
-		printStatus = 1;			// always print status on failure
+		printStatus = true;			// always print status on failure
 	} else if (t->skipped)
 		// note that failed overrides skipped
 		status = "SKIP";

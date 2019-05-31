@@ -43,7 +43,7 @@ typedef struct testingSet testingSet;
 typedef struct testingOptions testingOptions;
 
 struct testingOptions {
-	int Verbose;
+	bool Verbose;
 };
 
 extern void testingSetRun(testingSet *set, const struct testingOptions *options, bool *anyRun, bool *anyFailed);

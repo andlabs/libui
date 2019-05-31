@@ -5,8 +5,8 @@
 #error you must define sharedbitsPrefix before including this
 #endif
 #define sharedbitsPrefixMakeName(x, y) x ## y
-#define sharedbitsPrefixExpand(x) x
-#define sharedbitsPrefixName(Name) sharedbitsPrefixMakeName(sharedbitsPrefixExpand(sharedbitsPrefix), Name)
+#define sharedbitsPrefixExpandMakeName(x, y) sharedbitsPrefixMakeName(x, y)
+#define sharedbitsPrefixName(Name) sharedbitsPrefixExpandMakeName(sharedbitsPrefix, Name)
 
 extern void sharedbitsPrefixName(InternalError)(const char *fmt, ...);
 

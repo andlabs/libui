@@ -15,7 +15,38 @@ struct errorCase {
 };
 
 static struct errorCase *current = NULL;
-static bool memoryExhausted = false;
+static char *caseError = NULL;
+static char caseErrorMemoryExhausted[] = "memory exhausted";
+static char caseErrorEncodingError[] = "encoding error while handling other case error";
+
+#define sharedbitsPrefix priv
+#define sharedbitsStatic static
+#include "../../sharedbits/strsafe_impl.h"
+#undef sharedbitsStatic
+#undef sharedbitsPrefix
+
+static void privInternalError(const char *fmt, ...)
+{
+	va_list ap, ap2;
+
+	va_start(ap, fmt);
+	va_copy(ap2, ap);
+	n = privVsnprintf(NULL, 0, fmt, ap2);
+	va_end(ap2);
+	if (n < 0) {
+		caseError = caseErrorEncodingError;
+		va_end(ap);
+		return;
+	}
+	caseError = (char *) malloc((n + 1) * sizeof (char));
+	if (caseError == NULL) {
+		caseError = caseErrorMemoryExhausted;
+		va_end(ap);
+		return;
+	}
+	privVsnprintf(otherError, n + 1, fmt, ap);
+	va_end(ap);
+}
 
 static void catalogProgrammerError(const char *prefix, const char *msg, const char *suffix, bool internal)
 {
@@ -26,20 +57,24 @@ static void catalogProgrammerError(const char *prefix, const char *msg, const ch
 		n = strlen(prefix);
 		current->prefixGot = (char *) malloc((n + 1) * sizeof (char));
 		if (current->prefixGot == NULL) {
-			memoryExhausted = true;
+			caseError = caseErrorMemoryExhausted;
 			return;
 		}
-		strncpy(current->prefixGot, prefix, n + 1);
+		privStrncpy(current->prefixGot, prefix, n + 1);
+		if (caseError != NULL)
+			return;
 	}
 	current->internalGot = internal;
 	if (strstr(msg, current->msgWant) == NULL) {
 		n = strlen(msg);
 		current->msgGot = (char *) malloc((n + 1) * sizeof (char));
 		if (current->msgGot == NULL) {
-			memoryExhausted = true;
+			caseError = caseErrorMemoryExhausted;
 			return;
 		}
-		strncpy(current->msgGot, msg, n + 1);
+		privStrncpy(current->msgGot, msg, n + 1);
+		if (caseError != NULL)
+			return;
 	}
 }
 
@@ -49,7 +84,7 @@ static struct errorCase *newCase(void)
 
 	p = (struct errorCase *) malloc(sizeof (struct errorCase));
 	if (p == NULL) {
-		memoryExhausted = true;
+		caseError = caseErrorMemoryExhausted;
 		return NULL;
 	}
 	memset(p, 0, sizeof (struct errorCase));
@@ -94,7 +129,7 @@ static void reportCases(testingT *t, struct errorCase *p)
 
 #define allcallsCase(f, ...) { \
 	current = newCase(); \
-	if (memoryExhausted) \
+	if (caseError != NULL) \
 		return first; \
 	current->name = #f "()"; \
 	current->msgWant = "attempt to call " #f "() " allcallsMsgSuffix; \
@@ -104,7 +139,7 @@ static void reportCases(testingT *t, struct errorCase *p)
 	if (last != NULL) \
 		last->next = current; \
 	last = current; \
-	if (memoryExhausted) \
+	if (caseError != NULL) \
 		return first; \
 }
 
@@ -124,13 +159,17 @@ testingTestInSet(beforeTests, FunctionsFailBeforeInit)
 {
 	struct errorCase *cases;
 
-	memoryExhausted = false;
+	caseError = NULL;
 	uiprivTestHookReportProgrammerError(catalogProgrammerError);
 	cases = runCasesBeforeInit();
 	uiprivTestHookReportProgrammerError(NULL);
-	if (memoryExhausted) {
+	if (caseError != NULL) {
 		freeCases(cases);
-		testingTFatalf(t, "memory exhausted running tests");
+		testingTErrorf(t, "%s running tests", caseError);
+		if (caseError != caseErrorMemoryExhausted && caseError != caseErrorEncodingError)
+			free(caseError);
+		caseError = NULL;
+		testingTFailNow();
 	}
 	reportCases(t, cases);
 	freeCases(cases);
@@ -154,8 +193,8 @@ static void wrongThreadThreadProc(void *data)
 	uiprivTestHookReportProgrammerError(catalogProgrammerError);
 	*pCases = runCasesWrongThread();
 	uiprivTestHookReportProgrammerError(NULL);
-	// do this now in case something gets allocated before we return to the main thread
-	if (memoryExhausted) {
+	// do this now in case memory was exhausted and something gets allocated before we return to the main thread
+	if (caseError != NULL) {
 		freeCases(*pCases);
 		*pCases = NULL;
 	}
@@ -167,15 +206,21 @@ testingTest(FunctionsFailOnWrongThread)
 	threadThread *thread;
 	threadSysError err;
 
-	memoryExhausted = false;
+	caseError = NULL;
 	err = threadNewThread(wrongThreadThreadProc, &cases, &thread);
 	if (err != 0)
 		testingTFatalf(t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
 	err = threadThreadWaitAndFree(thread);
 	if (err != 0)
 		testingTFatalf(t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	if (memoryExhausted)
-		testingTFatalf(t, "memory exhausted running tests");
+	if (caseError != NULL) {
+		freeCases(cases);
+		testingTErrorf(t, "%s running tests", caseError);
+		if (caseError != caseErrorMemoryExhausted && caseError != caseErrorEncodingError)
+			free(caseError);
+		caseError = NULL;
+		testingTFailNow();
+	}
 	reportCases(t, cases);
 	freeCases(cases);
 }

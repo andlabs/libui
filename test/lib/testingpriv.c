@@ -56,7 +56,7 @@ char *testingprivStrdup(const char *s)
 
 	n = strlen(s);
 	t = (char *) testingprivAlloc((n + 1) * sizeof (char), "char[]");
-	strncpy(t, s, n + 1);
+	testingprivImplStrncpy(t, s, n + 1);
 	return t;
 }
 

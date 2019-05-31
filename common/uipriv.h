@@ -30,31 +30,11 @@ extern bool uiprivSysCheckThread(void);
 // alloc.c
 #define sharedbitsPrefix uipriv
 #include "../sharedbits/alloc_header.h"
-typedef struct uiprivArray uiprivArray;
-struct uiprivArray {
-	void *buf;
-	size_t len;
-	size_t cap;
-	size_t elemsize;
-	size_t nGrow;
-	const char *what;
-};
+#include "../sharedbits/array_header.h"
 #define uiprivArrayStaticInit(T, grow, whatstr) { NULL, 0, 0, sizeof (T), grow, whatstr }
-#define uiprivArrayInit(arr, T, grow, whatstr) \
-	memset(&(arr), 0, sizeof (uiprivArray)); \
-	arr.elemsize = sizeof (T); \
-	arr.nGrow = grow; \
-	arr.what = whatstr;
-#define uiprivArrayFree(arr) \
-	uiprivFree(arr.buf); \
-	memset(&arr, 0, sizeof (uiprivArray));
+#define uiprivArrayInit(arr, T, nGrow, what) uiprivArrayInitFull(&(arr), sizeof (T), nGrow, what)
+#define uiprivArrayFree(arr) uiprivArrayFreeFull(&(arr))
 #define uiprivArrayAt(arr, T, n) (((T *) (arr.buf)) + (n))
-extern void *uiprivArrayAppend(uiprivArray *arr, size_t n);
-extern void *uiprivArrayInsertAt(uiprivArray *arr, size_t pos, size_t n);
-extern void uiprivArrayDelete(uiprivArray *arr, size_t pos, size_t n);
-extern void uiprivArrayDeleteItem(uiprivArray *arr, void *p, size_t n);
-extern void *uiprivArrayBsearch(const uiprivArray *arr, const void *key, int (*compare)(const void *, const void *));
-extern void uiprivArrayQsort(uiprivArray *arr, int (*compare)(const void *, const void *));
 #undef sharedbitsPrefix
 
 // errors.c

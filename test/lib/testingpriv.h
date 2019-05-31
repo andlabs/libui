@@ -9,31 +9,11 @@ extern void testingprivInternalError(const char *fmt, ...);
 #define testingprivNewArray(T, n) ((T *) testingprivAlloc(n * sizeof (T), #T "[]"))
 #define testingprivResizeArray(x, T, old, new) ((T *) testingprivRealloc(x, old * sizeof (T), new * sizeof (T), #T "[]"))
 
-typedef struct testingprivArray testingprivArray;
-struct testingprivArray {
-	void *buf;
-	size_t len;
-	size_t cap;
-	size_t elemsize;
-	size_t nGrow;
-	const char *what;
-};
-#define testingprivArrayStaticInit(T, grow, whatstr) { NULL, 0, 0, sizeof (T), grow, whatstr }
-#define testingprivArrayInit(arr, T, grow, whatstr) \
-	memset(&(arr), 0, sizeof (testingprivArray)); \
-	arr.elemsize = sizeof (T); \
-	arr.nGrow = grow; \
-	arr.what = whatstr;
-#define testingprivArrayFree(arr) \
-	testingprivFree(arr.buf); \
-	memset(&arr, 0, sizeof (testingprivArray));
+#include "../../sharedbits/array_header.h"
+#define testingprivArrayStaticInit(T, nGrow, what) { NULL, 0, 0, sizeof (T), nGrow, what }
+#define testingprivArrayInit(arr, T, nGrow, what) testingprivArrayInitFull(&(arr), sizeof (T), nGrow, what)
+#define testingprivArrayFree(arr) testingprivArrayFreeFull(&(arr))
 #define testingprivArrayAt(arr, T, n) (((T *) (arr.buf)) + (n))
-extern void *testingprivArrayAppend(testingprivArray *arr, size_t n);
-extern void *testingprivArrayInsertAt(testingprivArray *arr, size_t pos, size_t n);
-extern void testingprivArrayDelete(testingprivArray *arr, size_t pos, size_t n);
-extern void testingprivArrayDeleteItem(testingprivArray *arr, void *p, size_t n);
-extern void *testingprivArrayBsearch(const testingprivArray *arr, const void *key, int (*compare)(const void *, const void *));
-extern void testingprivArrayQsort(testingprivArray *arr, int (*compare)(const void *, const void *));
 
 #undef sharedbitsPrefix
 

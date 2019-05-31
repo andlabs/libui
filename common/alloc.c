@@ -4,31 +4,9 @@
 #include "ui.h"
 #include "uipriv.h"
 
-void *uiprivAlloc(size_t n, const char *what)
-{
-	void *p;
-
-	p = malloc(n);
-	if (p == NULL)
-		uiprivInternalError("memory exhausted allocating %s", what);
-	memset(p, 0, n);
-	return p;
-}
-
-void *uiprivRealloc(void *p, size_t nOld, size_t nNew, const char *what)
-{
-	p = realloc(p, nNew);
-	if (p == NULL)
-		uiprivInternalError("memory exhausted reallocating %s", what);
-	if (nNew > nOld)
-		memset(((uint8_t *) p) + nOld, 0, nNew - nOld);
-	return p;
-}
-
-void uiprivFree(void *p)
-{
-	free(p);
-}
+#define sharedbitsPrefix uipriv
+#include "../sharedbits/alloc_impl.h"
+#undef sharedbitsPrefix
 
 void *uiprivArrayAppend(uiprivArray *arr, size_t n)
 {

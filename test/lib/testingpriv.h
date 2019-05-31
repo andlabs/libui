@@ -2,12 +2,12 @@
 
 extern void testingprivInternalError(const char *fmt, ...);
 
-extern void *testingprivAlloc(size_t n, const char *what);
+#define sharedbitsPrefix testingpriv
+
+#include "../../sharedbits/alloc_header.h"
 #define testingprivNew(T) ((T *) testingprivAlloc(sizeof (T), #T))
 #define testingprivNewArray(T, n) ((T *) testingprivAlloc(n * sizeof (T), #T "[]"))
-extern void *testingprivRealloc(void *p, size_t nOld, size_t nNew, const char *what);
 #define testingprivResizeArray(x, T, old, new) ((T *) testingprivRealloc(x, old * sizeof (T), new * sizeof (T), #T "[]"))
-extern void testingprivFree(void *p);
 
 typedef struct testingprivArray testingprivArray;
 struct testingprivArray {
@@ -34,6 +34,8 @@ extern void testingprivArrayDelete(testingprivArray *arr, size_t pos, size_t n);
 extern void testingprivArrayDeleteItem(testingprivArray *arr, void *p, size_t n);
 extern void *testingprivArrayBsearch(const testingprivArray *arr, const void *key, int (*compare)(const void *, const void *));
 extern void testingprivArrayQsort(testingprivArray *arr, int (*compare)(const void *, const void *));
+
+#undef sharedbitsPrefix
 
 extern int testingprivVsnprintf(char *s, size_t n, const char *format, va_list ap);
 extern int testingprivSnprintf(char *s, size_t n, const char *format, ...);

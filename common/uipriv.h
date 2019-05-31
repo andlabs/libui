@@ -28,9 +28,8 @@ extern bool uiprivCheckInitializedAndThreadImpl(const char *func);
 extern bool uiprivSysCheckThread(void);
 
 // alloc.c
-extern void *uiprivAlloc(size_t n, const char *what);
-extern void *uiprivRealloc(void *p, size_t nOld, size_t nNew, const char *what);
-extern void uiprivFree(void *p);
+#define sharedbitsPrefix uipriv
+#include "../sharedbits/alloc_header.h"
 typedef struct uiprivArray uiprivArray;
 struct uiprivArray {
 	void *buf;
@@ -56,6 +55,7 @@ extern void uiprivArrayDelete(uiprivArray *arr, size_t pos, size_t n);
 extern void uiprivArrayDeleteItem(uiprivArray *arr, void *p, size_t n);
 extern void *uiprivArrayBsearch(const uiprivArray *arr, const void *key, int (*compare)(const void *, const void *));
 extern void uiprivArrayQsort(uiprivArray *arr, int (*compare)(const void *, const void *));
+#undef sharedbitsPrefix
 
 // errors.c
 extern void uiprivInternalError(const char *fmt, ...);

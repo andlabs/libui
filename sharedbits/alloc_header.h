@@ -1,11 +1,6 @@
 // 30 may 2019
 
-#ifndef sharedbitsPrefix
-#error you must define sharedbitsPrefix before including this
-#endif
-#define sharedbitsPrefixMakeName(x, y) x ## y
-#define sharedbitsPrefixExpandMakeName(x, y) sharedbitsPrefixMakeName(x, y)
-#define sharedbitsPrefixName(Name) sharedbitsPrefixExpandMakeName(sharedbitsPrefix, Name)
+#include "start.h"
 
 extern void *sharedbitsPrefixName(Alloc)(size_t n, const char *what);
 extern void *sharedbitsPrefixName(Realloc)(void *p, size_t nOld, size_t nNew, const char *what);
@@ -19,6 +14,4 @@ you may also want to define the following:
 #define sharedbitsPrefixName(ResizeArray)(x, T, old, new) ((T *) sharedbitsPrefix ## Realloc(x, old * sizeof (T), new * sizeof (T), #T "[]"))
 */
 
-#undef sharedbitsPrefixName
-#undef sharedbitsPrefixExpand
-#undef sharedbitsPrefixMakeName
+#include "end.h"

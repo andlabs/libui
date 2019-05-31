@@ -1,12 +1,7 @@
 // 30 may 2019
 // requires: alloc_header.h
 
-#ifndef sharedbitsPrefix
-#error you must define sharedbitsPrefix before including this
-#endif
-#define sharedbitsPrefixMakeName(x, y) x ## y
-#define sharedbitsPrefixExpandMakeName(x, y) sharedbitsPrefixMakeName(x, y)
-#define sharedbitsPrefixName(Name) sharedbitsPrefixExpandMakeName(sharedbitsPrefix, Name)
+#include "start.h"
 
 extern void sharedbitsPrefixName(InternalError)(const char *fmt, ...);
 
@@ -36,6 +31,4 @@ void sharedbitsPrefixName(Free)(void *p)
 	free(p);
 }
 
-#undef sharedbitsPrefixName
-#undef sharedbitsPrefixExpand
-#undef sharedbitsPrefixMakeName
+#include "end.h"

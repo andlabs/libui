@@ -1,0 +1,4 @@
+- figure out how to tell meson to look here for changes, if I need to
+- document this properly (I should also write development documentation for all of libui in general...)
+	- note that none of these files should have include guards
+- figure out if we can macro-ize macro names (likely not)

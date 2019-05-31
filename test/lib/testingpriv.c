@@ -1,4 +1,5 @@
 // 19 may 2019
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +25,9 @@ void testingprivInternalError(const char *fmt, ...)
 
 #define sharedbitsPrefix testingprivImpl
 #define sharedbitsStatic static
+#define sharedbitsInternalError testingprivInternalError
 #include "../../sharedbits/strsafe_impl.h"
+#undef sharedbitsInternalError
 #undef sharedbitsStatic
 #undef sharedbitsPrefix
 

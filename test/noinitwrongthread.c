@@ -1,4 +1,6 @@
 // 28 may 2019
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "lib/thread.h"
@@ -28,6 +30,7 @@ static char caseErrorEncodingError[] = "encoding error while handling other case
 static void privInternalError(const char *fmt, ...)
 {
 	va_list ap, ap2;
+	int n;
 
 	va_start(ap, fmt);
 	va_copy(ap2, ap);
@@ -44,7 +47,7 @@ static void privInternalError(const char *fmt, ...)
 		va_end(ap);
 		return;
 	}
-	privVsnprintf(otherError, n + 1, fmt, ap);
+	privVsnprintf(caseError, n + 1, fmt, ap);
 	va_end(ap);
 }
 
@@ -169,7 +172,7 @@ testingTestInSet(beforeTests, FunctionsFailBeforeInit)
 		if (caseError != caseErrorMemoryExhausted && caseError != caseErrorEncodingError)
 			free(caseError);
 		caseError = NULL;
-		testingTFailNow();
+		testingTFailNow(t);
 	}
 	reportCases(t, cases);
 	freeCases(cases);
@@ -219,7 +222,7 @@ testingTest(FunctionsFailOnWrongThread)
 		if (caseError != caseErrorMemoryExhausted && caseError != caseErrorEncodingError)
 			free(caseError);
 		caseError = NULL;
-		testingTFailNow();
+		testingTFailNow(t);
 	}
 	reportCases(t, cases);
 	freeCases(cases);

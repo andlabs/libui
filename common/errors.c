@@ -1,8 +1,4 @@
 // 12 may 2019
-// TODO get rid of the need for this (it temporarily silences noise so I can find actual build issues)
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include "ui.h"
@@ -20,7 +16,7 @@ void uiprivInternalError(const char *fmt, ...)
 	int n;
 
 	va_start(ap, fmt);
-	n = vsnprintf(buf, 256, fmt, ap);
+	n = uiprivVsnprintf(buf, 256, fmt, ap);
 	va_end(ap);
 	if (n < 0)
 		uiprivReportError(internalErrorPrefix, "internal error string has encoding error", internalErrorSuffix, true);
@@ -49,7 +45,7 @@ static void prepareProgrammerError(char *buf, int size, unsigned int which, va_l
 		uiprivInternalError("bad programmer error value %u", which);
 	if (messages[which] == NULL)
 		uiprivInternalError("programmer error %u has no message", which);
-	n = vsnprintf(buf, size, messages[which], ap);
+	n = uiprivVsnprintf(buf, size, messages[which], ap);
 	if (n < 0)
 		uiprivInternalError("programmer error string for %u has encoding error", which);
 	if (n >= size)

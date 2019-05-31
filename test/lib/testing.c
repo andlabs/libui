@@ -1,8 +1,4 @@
 // 27 february 2018
-// TODO get rid of the need for this (it temporarily silences noise so I can find actual build issues)
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

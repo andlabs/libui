@@ -35,6 +35,7 @@ extern bool uiprivSysCheckThread(void);
 #define uiprivArrayInit(arr, T, nGrow, what) uiprivArrayInitFull(&(arr), sizeof (T), nGrow, what)
 #define uiprivArrayFree(arr) uiprivArrayFreeFull(&(arr))
 #define uiprivArrayAt(arr, T, n) (((T *) (arr.buf)) + (n))
+#include "../sharedbits/strsafe_header.h"
 #undef sharedbitsPrefix
 
 // errors.c

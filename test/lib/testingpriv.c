@@ -1,8 +1,4 @@
 // 19 may 2019
-// TODO get rid of the need for this (it temporarily silences noise so I can find actual build issues)
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,11 +22,17 @@ void testingprivInternalError(const char *fmt, ...)
 #include "../../sharedbits/array_impl.h"
 #undef sharedbitsPrefix
 
+#define sharedbitsPrefix testingprivImpl
+#define sharedbitsStatic static
+#include "../../sharedbits/strsafe_impl.h"
+#undef sharedbitsStatic
+#undef sharedbitsPrefix
+
 int testingprivVsnprintf(char *s, size_t n, const char *format, va_list ap)
 {
 	int ret;
 
-	ret = vsnprintf(s, n, format, ap);
+	ret = testingprivImplVsnprintf(s, n, format, ap);
 	if (ret < 0)
 		testingprivInternalError("encoding error in vsnprintf(); this likely means your call to testingTLogf() and the like is invalid");
 	return ret;

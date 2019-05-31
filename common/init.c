@@ -1,8 +1,4 @@
 // 19 april 2019
-// TODO get rid of the need for this (it temporarily silences noise so I can find actual build issues)
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -39,7 +35,7 @@ bool uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...)
 	va_list ap;
 
 	va_start(ap, msg);
-	n = vsnprintf(err->Message, 256, msg, ap);
+	n = uiprivVsnprintf(err->Message, 256, msg, ap);
 	va_end(ap);
 	if (n < 0)
 		uiprivInternalError("encoding error returning initialization error; this means something is very very wrong with libui itself");

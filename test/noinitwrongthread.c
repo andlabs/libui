@@ -19,23 +19,27 @@ static bool memoryExhausted = false;
 
 static void catalogProgrammerError(const char *prefix, const char *msg, const char *suffix, bool internal)
 {
+	size_t n;
+
 	current->caught = true;
 	if (strstr(prefix, "programmer error") == NULL) {
-		current->prefixGot = (char *) malloc((strlen(prefix) + 1) * sizeof (char));
+		n = strlen(prefix);
+		current->prefixGot = (char *) malloc((n + 1) * sizeof (char));
 		if (current->prefixGot == NULL) {
 			memoryExhausted = true;
 			return;
 		}
-		strcpy(current->prefixGot, prefix);
+		strncpy(current->prefixGot, prefix, n + 1);
 	}
 	current->internalGot = internal;
 	if (strstr(msg, current->msgWant) == NULL) {
-		current->msgGot = (char *) malloc((strlen(msg) + 1) * sizeof (char));
+		n = strlen(msg);
+		current->msgGot = (char *) malloc((n + 1) * sizeof (char));
 		if (current->msgGot == NULL) {
 			memoryExhausted = true;
 			return;
 		}
-		strcpy(current->msgGot, msg);
+		strncpy(current->msgGot, msg, n + 1);
 	}
 }
 

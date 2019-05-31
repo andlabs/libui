@@ -52,9 +52,11 @@ int testingprivSnprintf(char *s, size_t n, const char *format, ...)
 char *testingprivStrdup(const char *s)
 {
 	char *t;
+	size_t n;
 
-	t = (char *) testingprivAlloc((strlen(s) + 1) * sizeof (char), "char[]");
-	strcpy(t, s);
+	n = strlen(s);
+	t = (char *) testingprivAlloc((n + 1) * sizeof (char), "char[]");
+	strncpy(t, s, n + 1);
 	return t;
 }
 

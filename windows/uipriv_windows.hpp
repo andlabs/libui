@@ -1,8 +1,7 @@
 // 21 april 2016
 #include "winapi.hpp"
 #include "winhresult.hpp"
-#include "../ui.h"
-#include "../ui_windows.h"
+#define uiprivOSHeader "../ui_windows.h"
 #include "../common/uipriv.h"
 //TODO#include "compilerver.hpp"
 

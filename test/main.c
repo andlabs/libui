@@ -1,6 +1,4 @@
 // 10 april 2019
-#include <stdio.h>
-#include <string.h>
 #include "test.h"
 
 void timeoutMain(void *data)

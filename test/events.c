@@ -1,6 +1,4 @@
 // 18 may 2019
-#include <stdlib.h>
-#include <string.h>
 #include "test.h"
 
 // TODO:

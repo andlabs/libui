@@ -1,7 +1,13 @@
 // 28 april 2019
+#include <errno.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../ui.h"
 #include "../common/testhooks.h"
 #include "lib/testing.h"
+#include "lib/thread.h"
 #include "lib/timer.h"
 
 #define diff(t, clause, fmt, got, want) testingTErrorf(t, "%s:\ngot  " fmt "\nwant " fmt, clause, got, want)

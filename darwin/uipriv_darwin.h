@@ -6,8 +6,7 @@
 #import <dlfcn.h>		// see future.m
 #import <pthread.h>
 #import <stdlib.h>
-#import "../ui.h"
-#import "../ui_darwin.h"
+#define uiprivOSHeader "../ui_darwin.h"
 #import "../common/uipriv.h"
 
 #if __has_feature(objc_arc)

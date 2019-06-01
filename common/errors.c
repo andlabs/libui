@@ -1,7 +1,4 @@
 // 12 may 2019
-#include <stdarg.h>
-#include <stdio.h>
-#include "ui.h"
 #include "uipriv.h"
 #include "testhooks.h"
 

@@ -1,6 +1,13 @@
 // 19 april 2019
-
+#include <errno.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "ui.h"
+#ifdef uiprivOSHeader
+#include uiprivOSHeader
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +38,7 @@ extern bool uiprivSysCheckThread(void);
 
 // alloc.c
 #define sharedbitsPrefix uipriv
+// TODO determine if we need the ../ or not, and if not, figure out if we should use it everywhere (including ui.h) or not
 #include "../sharedbits/alloc_header.h"
 #include "../sharedbits/array_header.h"
 #define uiprivArrayStaticInit(T, grow, whatstr) { NULL, 0, 0, sizeof (T), grow, whatstr }

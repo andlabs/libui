@@ -1,7 +1,4 @@
 // 15 may 2019
-#include <stdlib.h>
-#include <string.h>
-#include "ui.h"
 #include "uipriv.h"
 
 struct handler {

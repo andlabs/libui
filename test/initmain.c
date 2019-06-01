@@ -1,7 +1,4 @@
 // 10 april 2019
-#include <inttypes.h>
-#include <string.h>
-#include "lib/thread.h"
 #include "test.h"
 
 testingSet *beforeTests = NULL;

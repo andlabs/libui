@@ -154,7 +154,7 @@ static bool testingprivTRun(testingT *t, testingprivOutbuf *parentbuf)
 	return !t->failed;
 }
 
-// TODO rename all options to opts and all format to fmt
+// TODO rename all options to opts
 static void testingprivSetRun(testingSet *set, const testingOptions *opts, testingprivOutbuf *outbuf, bool *anyFailed)
 {
 	size_t i;
@@ -188,7 +188,7 @@ void testingprivTLogfFull(testingT *t, const char *file, long line, const char *
 {
 	va_list ap;
 
-	va_start(ap, fmt);
+	va_start(ap, format);
 	testingprivTLogvfFull(t, file, line, format, ap);
 	va_end(ap);
 }

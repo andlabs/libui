@@ -81,20 +81,20 @@ void timerDurationString(timerDuration d, char buf[timerDurationStringLen])
 		buf[1] = 's';
 		return;
 	}
-	unsec = (uint64_t) d;
-	neg = false;
-	if (d < 0) {
-#ifdef _MSC_VER
-// TODO figure out a more explicit way to do this; until then, just go with what the standard says should happen, because it's what we want (TODO verify this)
-#pragma warning(push)
-#pragma warning(disable: 4146)
-#endif
-		unsec = -unsec;
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-		neg = true;
-	}
+	neg = d < 0;
+	if (neg) {
+		// C99 §6.2.6.2 resticts the possible signed integer representations in C to either sign-magnitude, 1's complement, or 2's complement.
+		// Therefore, INT64_MIN will always be either -INT64_MAX or -INT64_MAX - 1, so we can safely do this to see if we need to special-case INT64_MIN as -INT64_MIN cannot be safely represented, or if we can just say -d as that can be safely represented.
+		// See also https://stackoverflow.com/questions/29808397/how-to-portably-find-out-minint-max-absint-min
+		if (d < -INT64_MAX) {
+			// INT64_MIN is -INT64_MAX - 1.
+			// This value comes directly from forcing such a value into Go's code; let's just use it.
+			memmove(buf, "-2562047h47m16.854775808s", (25 + 1) * sizeof (char));
+			return;
+		}
+		unsec = (uint64_t) (-d);
+	} else
+		unsec = (uint64_t) d;
 
 	for (p = parts; p->suffix != 0; p++) {
 		if (p->mode == modeMaxAndStop && unsec < p->maxOrMod) {
@@ -149,11 +149,8 @@ static void int128FromInt64(int64_t n, timerprivInt128 *out)
 	}
 	out->neg = true;
 	out->high = 0;
-	// C99 §6.2.6.2 resticts the possible signed integer representations in C to either sign-magnitude, 1's complement, or 2's complement.
-	// Therefore, INT64_MIN will always be either -INT64_MAX or -INT64_MAX - 1, so we can safely do this to see if we need to special-case INT64_MIN as -INT64_MIN cannot be safely represented, or if we can just say -n as that can be safely represented.
-	// See also https://stackoverflow.com/questions/29808397/how-to-portably-find-out-minint-max-absint-min
+	// And now we do the same INT64_MIN/INT64_MAX juggling as above.
 	if (n < -INT64_MAX) {
-		// INT64_MIN is -INT64_MAX - 1
 		out->low = ((uint64_t) INT64_MAX) + 1;
 		return;
 	}

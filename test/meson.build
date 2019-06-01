@@ -8,14 +8,10 @@ libui_test_sources = [
 ]
 
 if libui_OS == 'windows'
-	libui_test_manifest = 'test.manifest'
-	if libui_mode == 'static'
-		libui_test_manifest = 'test.static.manifest'
-	endif
 	libui_test_sources += [
-		windows.compile_resources('resources.rc',
+		windows.compile_resources('resources_' + libui_mode + '.rc',
 			args: libui_manifest_args,
-			depend_files: [libui_test_manifest]),
+			depend_files: ['test_' + libui_mode + '.manifest']),
 	]
 endif
 

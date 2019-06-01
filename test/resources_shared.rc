@@ -1,0 +1,9 @@
+// 30 may 2015
+
+// This is a UTF-8 file.
+#pragma code_page(65001)
+
+// This is the Common Controls 6 manifest.
+// 1 is the value of CREATEPROCESS_MANIFEST_RESOURCE_ID and 24 is the value of RT_MANIFEST; we use it directly to avoid needing to share winapi.h with the tests and examples.
+// We also don't define Common Controls v6 in the test program's shared manifest to ensure that the isolation awareness actually does work.
+1 24 "test_shared.manifest"

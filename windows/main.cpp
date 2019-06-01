@@ -87,8 +87,8 @@ bool uiprivSysInit(void *options, uiInitError *err)
 /*	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)
 		return uiprivInitReturnHRESULT(err, "CoInitialize() failed", hr);
-	// LONGTERM initialize COM security
-	// LONGTERM turn off COM exception handling
+	// TODO initialize COM security
+	// TODO turn off COM exception handling
 */
 	mainThread = GetCurrentThreadId();
 	return true;

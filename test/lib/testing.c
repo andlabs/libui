@@ -154,7 +154,7 @@ static bool testingprivTRun(testingT *t, testingprivOutbuf *parentbuf)
 	return !t->failed;
 }
 
-// TODO rename all options to opts
+// TODO make options and opts consistent throughout? what about format vs fmt in public-facing functions?
 static void testingprivSetRun(testingSet *set, const testingOptions *opts, testingprivOutbuf *outbuf, bool *anyFailed)
 {
 	size_t i;

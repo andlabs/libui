@@ -23,8 +23,9 @@ static char caseErrorEncodingError[] = "encoding error while handling other case
 
 #define sharedbitsPrefix priv
 #define sharedbitsStatic static
-// do this conditionally to avoid warnings on non-Windows
 #ifdef _WIN32
+// While we do only need strncpy(), our privInternalError() calls vsnprintf(), so include that too.
+#include "../../sharedbits/strsafe_impl.h"
 static void privInternalError(const char *fmt, ...)
 {
 	va_list ap, ap2;
@@ -49,13 +50,7 @@ static void privInternalError(const char *fmt, ...)
 	va_end(ap);
 }
 #else
-#define sharedbitsInternalError
-#define sharedbitsNoVsnprintf
-#endif
-#include "../../sharedbits/strsafe_impl.h"
-#ifndef _WIN32
-#undef sharedbitsNoVsnprintf
-#undef sharedbitsInternalError
+#include "../../sharedbits/strsafe_strncpy_impl.h"
 #endif
 #undef sharedbitsStatic
 #undef sharedbitsPrefix

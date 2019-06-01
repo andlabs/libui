@@ -42,7 +42,7 @@ bool uiprivSysInit(void *options, uiInitError *err)
 {
 	uiprivApp = [uiprivApplication sharedApplication];
 	if (![NSApp isKindOfClass:[uiprivApplication class]])
-		// TODO verify if Info.plist (both in a proper .app bundle and embedded into a standalone binary) can override this and, if so, add that tidbit to this message
+		// TODO verify if Info.plist (both in a proper .app bundle and embedded into a standalone binary) can override this (or if that only happens if you use NSApplicationMain() instead), and, if so, add that tidbit to this message
 		return uiprivInitReturnErrorf(err, "NSApp is not of type uiprivApplication; was likely already initialized beforehand");
 
 	// don't check for a NO return; something (launch services?) causes running from application bundles to always return NO when asking to change activation policy, even if the change is to the same activation policy!
@@ -72,7 +72,7 @@ void uiQuit(void)
 
 		[uiprivApp stop:uiprivApp];
 		// stop: won't register until another event has passed; let's synthesize one
-		// TODO instead of using NSApplicationDefined, create a private event type for libui internal use only
+		// TODO instead of using NSApplicationDefined, create a private event type for libui internal use only; if we can't, set up data1 and data2 so that we can intercept and discard this event if it was accidentally triggered
 		e = [NSEvent otherEventWithType:NSApplicationDefined
 			location:NSZeroPoint
 			modifierFlags:0

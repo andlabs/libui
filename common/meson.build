@@ -4,5 +4,5 @@ libui_sources += [
 	'common/alloc.c',
 	'common/errors.c',
 	'common/events.c',
-	'common/init.c',
+	'common/main.c',
 ]

@@ -28,7 +28,7 @@ extern "C" {
 #define uiprivSizetPrintf "zu"
 #endif
 
-// init.c
+// main.c
 extern bool uiprivSysInit(void *options, uiInitError *err);
 extern bool uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
 extern void uiprivSysQueueMain(void (*f)(void *data), void *data);

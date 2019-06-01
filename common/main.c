@@ -1,8 +1,6 @@
 // 19 april 2019
 #include "uipriv.h"
 
-// TODO rename this file to main.c
-
 static bool initialized = false;
 
 bool uiInit(void *options, uiInitError *err)

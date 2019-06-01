@@ -14,9 +14,9 @@ libui_sources += [
 # In those cases, we just need them to include the manifest with the executable (or link it directly into the output executable themselves); they can also customize the manifest as they see fit (assuming nothing breaks in the process).
 if libui_mode == 'shared'
 	libui_sources += [
-		windows.compile_resources('resources.rc',
+		windows.compile_resources('resources_shared.rc',
 			args: libui_manifest_args,
-			depend_files: ['libui.manifest']),
+			depend_files: ['libui_shared.manifest']),
 	]
 endif
 

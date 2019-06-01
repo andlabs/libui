@@ -1,0 +1,9 @@
+// 30 may 2015
+#include "winapi.hpp"
+
+// This is a UTF-8 file.
+#pragma code_page(65001)
+
+// The only actual resource in our DLLs is the Common Controls 6 manifest.
+// Any other resources need to be converted to source code in order to be usable from the static library version of libui; that process will come later.
+ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "libui_shared.manifest"

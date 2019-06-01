@@ -31,23 +31,23 @@ void testingprivInternalError(const char *fmt, ...)
 #undef sharedbitsStatic
 #undef sharedbitsPrefix
 
-int testingprivVsnprintf(char *s, size_t n, const char *format, va_list ap)
+int testingprivVsnprintf(char *s, size_t n, const char *fmt, va_list ap)
 {
 	int ret;
 
-	ret = testingprivImplVsnprintf(s, n, format, ap);
+	ret = testingprivImplVsnprintf(s, n, fmt, ap);
 	if (ret < 0)
 		testingprivInternalError("encoding error in vsnprintf(); this likely means your call to testingTLogf() and the like is invalid");
 	return ret;
 }
 
-int testingprivSnprintf(char *s, size_t n, const char *format, ...)
+int testingprivSnprintf(char *s, size_t n, const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
 
-	va_start(ap, format);
-	ret = testingprivVsnprintf(s, n, format, ap);
+	va_start(ap, fmt);
+	ret = testingprivVsnprintf(s, n, fmt, ap);
 	va_end(ap);
 	return ret;
 }

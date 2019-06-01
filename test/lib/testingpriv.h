@@ -17,8 +17,8 @@ extern void testingprivInternalError(const char *fmt, ...);
 
 #undef sharedbitsPrefix
 
-extern int testingprivVsnprintf(char *s, size_t n, const char *format, va_list ap);
-extern int testingprivSnprintf(char *s, size_t n, const char *format, ...);
+extern int testingprivVsnprintf(char *s, size_t n, const char *fmt, va_list ap);
+extern int testingprivSnprintf(char *s, size_t n, const char *fmt, ...);
 extern char *testingprivStrdup(const char *s);
 extern char *testingprivVsmprintf(const char *fmt, va_list ap);
 extern char *testingprivSmprintf(const char *fmt, ...);

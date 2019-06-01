@@ -188,7 +188,7 @@ void testingprivTLogfFull(testingT *t, const char *file, long line, const char *
 {
 	va_list ap;
 
-	va_start(ap, format);
+	va_start(ap, fmt);
 	testingprivTLogvfFull(t, file, line, format, ap);
 	va_end(ap);
 }

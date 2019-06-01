@@ -30,7 +30,7 @@ extern "C" {
 
 // main.c
 extern bool uiprivSysInit(void *options, uiInitError *err);
-extern bool uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...);
+extern bool uiprivInitReturnErrorf(uiInitError *err, const char *fmt, ...);
 extern void uiprivSysQueueMain(void (*f)(void *data), void *data);
 extern bool uiprivCheckInitializedAndThreadImpl(const char *func);
 #define uiprivCheckInitializedAndThread() uiprivCheckInitializedAndThreadImpl(uiprivFunc)

@@ -22,14 +22,13 @@ bool uiInit(void *options, uiInitError *err)
 	return true;
 }
 
-// TODO rename all msgs to fmt
-bool uiprivInitReturnErrorf(uiInitError *err, const char *msg, ...)
+bool uiprivInitReturnErrorf(uiInitError *err, const char *fmt, ...)
 {
 	int n;
 	va_list ap;
 
-	va_start(ap, msg);
-	n = uiprivVsnprintf(err->Message, 256, msg, ap);
+	va_start(ap, fmt);
+	n = uiprivVsnprintf(err->Message, 256, fmt, ap);
 	va_end(ap);
 	if (n < 0)
 		uiprivInternalError("encoding error returning initialization error; this means something is very very wrong with libui itself");

@@ -23,10 +23,8 @@ static char caseErrorEncodingError[] = "encoding error while handling other case
 
 #define sharedbitsPrefix priv
 #define sharedbitsStatic static
-#include "../../sharedbits/strsafe_impl.h"
-#undef sharedbitsStatic
-#undef sharedbitsPrefix
-
+// do this conditionally to avoid warnings on non-Windows
+#ifdef _WIN32
 static void privInternalError(const char *fmt, ...)
 {
 	va_list ap, ap2;
@@ -50,6 +48,17 @@ static void privInternalError(const char *fmt, ...)
 	privVsnprintf(caseError, n + 1, fmt, ap);
 	va_end(ap);
 }
+#else
+#define sharedbitsInternalError
+#define sharedbitsNoVsnprintf
+#endif
+#include "../../sharedbits/strsafe_impl.h"
+#ifndef _WIN32
+#undef sharedbitsNoVsnprintf
+#undef sharedbitsInternalError
+#endif
+#undef sharedbitsStatic
+#undef sharedbitsPrefix
 
 static void catalogProgrammerError(const char *prefix, const char *msg, const char *suffix, bool internal)
 {

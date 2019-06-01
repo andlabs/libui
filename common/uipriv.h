@@ -1,5 +1,7 @@
 // 19 april 2019
 
+#include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

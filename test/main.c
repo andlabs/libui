@@ -64,5 +64,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	printf("PASS\n");
+	fflush(stdout);		// AddressSanitizer can chop the tail end of the output for whatever reason
 	return 0;
 }

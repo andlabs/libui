@@ -15,6 +15,7 @@ extern
 void sharedbitsprivInternalError(const char *fmt, ...);
 #endif
 
+#ifndef sharedbitsNoVsnprintf
 #ifdef sharedbitsStatic
 sharedbitsStatic
 #endif
@@ -35,6 +36,7 @@ int sharedbitsPrefixName(Vsnprintf)(char *s, size_t n, const char *fmt, va_list 
 	return vsnprintf(s, n, fmt, ap);
 #endif
 }
+#endif
 
 #ifdef sharedbitsStatic
 sharedbitsStatic

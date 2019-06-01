@@ -1,13 +1,11 @@
 // 30 may 2015
 #include "winapi.hpp"
-//TODO#include "resources.hpp"
 
 // this is a UTF-8 file
 #pragma code_page(65001)
 
 // this is the Common Controls 6 manifest
 // we only define it in a shared build; static builds have to include the appropriate parts of the manifest in the output executable
-// LONGTERM set up the string values here
 #ifndef uiStatic
 ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "libui.manifest"
 #endif

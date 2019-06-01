@@ -105,10 +105,8 @@ void uiMain(void)
 		hr = uiprivHrGetMessageW(&msg, NULL, 0, 0);
 		if (hr == S_FALSE)		// WM_QUIT
 			return;
-		if (hr != S_OK) {
-			// TODO log error
-			return;
-		}
+		if (hr != S_OK)
+			uiprivInternalError("GetMessageW() failed in uiMain(): 0x%08I32X", hr);
 		// TODO IsDialogMessage()
 		TranslateMessage(&msg);
 		DispatchMessageW(&msg);
@@ -127,9 +125,8 @@ void uiprivSysQueueMain(void (*f)(void *data), void *data)
 	HRESULT hr;
 
 	hr = uiprivHrPostMessageW(uiprivUtilWindow, uiprivUtilWindowMsgQueueMain, (WPARAM) f, (LPARAM) data);
-	if (hr != S_OK) {
-		// TODO handle error
-	}
+	if (hr != S_OK)
+		uiprivInternalError("PostMessageW() failed in uiQueueMain(): 0x%08I32X", hr);
 }
 
 bool uiprivSysCheckThread(void)

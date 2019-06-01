@@ -42,6 +42,7 @@ static inline void setHInstance(void)
 	ICC_DATE_CLASSES |		/* date/time picker */		\
 	0)
 
+// TODO add format string warning detection to all these functions, where available
 #define uiprivInitReturnHRESULT(err, msg, hr) uiprivInitReturnErrorf(err, "%s: 0x%08I32X", msg, hr)
 
 static DWORD mainThread;

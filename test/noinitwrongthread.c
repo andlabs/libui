@@ -125,7 +125,7 @@ static void reportCases(testingT *t, struct errorCase *p)
 		if (p->internalGot)
 			testingTErrorfFull(t, p->file, p->line, "%s error is marked internal; should not have been", p->name);
 		if (p->msgGot != NULL)
-			testingTErrorfFull(t, p->file, p->line, "%s message doesn't contain expected substring:" diffx("%s"),
+			testingTErrorfFull(t, p->file, p->line, "%s message doesn't contain expected substring:" diff("%s"),
 				p->name, p->msgGot, p->msgWant);
 		p = p->next;
 	}

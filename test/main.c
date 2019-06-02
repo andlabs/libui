@@ -16,7 +16,7 @@ void catchProgrammerError(const char *prefix, const char *msg, const char *suffi
 	if (internal)
 		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s error is marked internal; should not have been", errorParams.exprstr);
 	if (strstr(msg, errorParams.msgWant) == NULL)
-		testingTErrorf(errorParams.t, errorParams.file, errorParams.line, "%s: message doesn't contain expected substring:" diffx("%s"),
+		testingTErrorf(errorParams.t, errorParams.file, errorParams.line, "%s: message doesn't contain expected substring:" diff("%s"),
 			errorParams.exprstr, msg, errorParams.msgWant);
 }
 

@@ -10,7 +10,7 @@
 #include "lib/thread.h"
 #include "lib/timer.h"
 
-#define diffx(fmt) "\ngot  " fmt "\nwant " fmt
+#define diff(fmt) "\ngot  " fmt "\nwant " fmt
 
 // main.c
 extern void timeoutMain(void *data);

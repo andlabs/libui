@@ -24,7 +24,7 @@ testingTestInSet(beforeTests, Init)
 	if (uiInit(&err, &err))
 		testingTErrorf(t, "uiInit() with non-NULL options succeeded; expected failure");
 	if (strcmp(err.Message, errInvalidOptions) != 0)
-		testingTErrorf(t, "uiInit() with non-NULL options returned bad error message:" diffx("%s"),
+		testingTErrorf(t, "uiInit() with non-NULL options returned bad error message:" diff("%s"),
 			err.Message, errInvalidOptions);
 }
 
@@ -37,7 +37,7 @@ testingTest(InitAfterInitialized)
 	if (uiInit(NULL, &err))
 		testingTErrorf(t, "uiInit() after a previous successful call succeeded; expected failure");
 	if (strcmp(err.Message, errAlreadyInitialized) != 0)
-		testingTErrorf(t, "uiInit() after a previous successful call returned bad error message:" diffx("%s"),
+		testingTErrorf(t, "uiInit() after a previous successful call returned bad error message:" diff("%s"),
 			err.Message, errAlreadyInitialized);
 }
 
@@ -69,7 +69,7 @@ testingTest(QueueMain)
 	uiQueueMain(queued, &p);
 	timeout_uiMain(t, 5 * timerSecond);
 	if (p.flag != 1)
-		testingTErrorf(t, "uiQueueMain() didn't set flag properly:" diffx("%d"),
+		testingTErrorf(t, "uiQueueMain() didn't set flag properly:" diff("%d"),
 			p.flag, 1);
 }
 
@@ -117,12 +117,12 @@ static void checkOrderFull(testingT *t, const char *file, long line, uint32_t fl
 		return;
 	for (i = 1; i < 6; i++)
 		if (flag == orders[i].result) {
-			testingTErrorfFull(t, file, line, "wrong order:" diffx("%" PRIu32 " (%s)"),
+			testingTErrorfFull(t, file, line, "wrong order:" diff("%" PRIu32 " (%s)"),
 				flag, orders[i].order,
 				orders[0].result, orders[0].order);
 			return;
 		}
-	testingTErrorfFull(t, file, line, "wrong result:" diffx("%" PRIu32 " (%s)"),
+	testingTErrorfFull(t, file, line, "wrong result:" diff("%" PRIu32 " (%s)"),
 		flag, "unknown order",
 		orders[0].result, orders[0].order);
 }
@@ -165,7 +165,7 @@ testingTest(QueueMain_DifferentThread)
 	if (p.err != 0)
 		testingTErrorf(t, "error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
 	if (p.flag != 1)
-		testingTErrorf(t, "uiQueueMain() didn't set flag properly:" diffx("%d"),
+		testingTErrorf(t, "uiQueueMain() didn't set flag properly:" diff("%d"),
 			p.flag, 1);
 }
 

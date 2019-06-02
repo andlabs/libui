@@ -756,6 +756,8 @@ static void testWhileFiring(void *sender, void *args, void *data)
 	idPlaceholder = 0;
 	blockedPlaceholder = false;
 
+	testProgrammerError(t, uiFreeEvent(firingEvent),
+		"attempt to change a uiEvent with uiFreeEvent() while it is firing");
 	testProgrammerError(t, uiEventAddHandler(firingEvent, handler, senderPlaceholder, dataPlaceholder),
 		"attempt to change a uiEvent with uiEventAddHandler() while it is firing");
 	testProgrammerError(t, uiEventDeleteHandler(firingEvent, idPlaceholder),
@@ -806,6 +808,10 @@ testingTest(EventErrors)
 	opts.Global = false;
 	nonglobalEvent = uiNewEvent(&opts);
 	testingTDefer(t, deferFreeEvent, nonglobalEvent);
+
+	testProgrammerError(t, uiFreeEvent(NULL),
+		"invalid null pointer for uiEvent passed into uiFreeEvent()");
+	// We test trying to free a uiEvent with handlers later, when we actually need to make one for testing firing.
 
 	eventPlaceholder = globalEvent;
 	senderPlaceholder = NULL;
@@ -858,5 +864,7 @@ testingTest(EventErrors)
 	fp->e = firingEvent;
 	fp->id = uiEventAddHandler(fp->e, testWhileFiring, NULL, t);
 	testingTDefer(t, deferDeleteFiringHandler, fp);
+	testProgrammerError(t, uiFreeEvent(firingEvent),
+		"attempt to free a uiEvent that still has handlers registered");
 	uiEventFire(firingEvent, NULL, firingEvent);
 }

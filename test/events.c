@@ -1,11 +1,8 @@
 // 18 may 2019
 #include "test.h"
 
-// TODO:
-// - free uiEvents
-// - use testingTDefer() to free events and senders
-
 struct handler {
+	uiEvent *e;
 	int id;
 	bool validID;
 	const char *name;
@@ -32,6 +29,19 @@ static void handler(void *sender, void *args, void *data)
 	(*(h->runCount))++;
 }
 
+static void *allocHandlersFull(testingT *t, const char *file, long line, size_t n)
+{
+	struct handler *h;
+
+	h = (struct handler *) malloc(n * sizeof (struct handler));
+	if (h == NULL)
+		testingTFatalfFull(t, file, line, "memory exhausted allocating handlers");
+	memset(h, 0, n * sizeof (struct handler));
+	return h;
+}
+
+#define allocHandlers(t, n) allocHandlersFull(t, __FILE__, __LINE__, n)
+
 static void resetGot(struct handler *h, int *runCount)
 {
 	h->gotRun = false;
@@ -44,13 +54,17 @@ static void registerHandler(struct handler *h, uiEvent *e, void *sender, void *a
 {
 	h->wantSender = sender;
 	h->wantArgs = args;
-	h->id = uiEventAddHandler(e, handler, h->wantSender, h);
+	h->e = e;
+	h->id = uiEventAddHandler(h->e, handler, h->wantSender, h);
 	h->validID = true;
 }
 
-static void unregisterHandler(struct handler *h, uiEvent *e)
+static void unregisterHandler(struct handler *h)
 {
-	uiEventDeleteHandler(e, h->id);
+	if (!h->validID)		// not registered; do nothing (likely a deferred call)
+		return;
+	uiEventDeleteHandler(h->e, h->id);
+	h->e = NULL;
 	h->validID = false;
 }
 
@@ -146,20 +160,38 @@ static void runGlobalSubtests(testingT *t, void *data)
 	testingTRun(t, "Nonglobal", runArgsSubtests, data);
 }
 
+static void deferFree(testingT *t, void *data)
+{
+	free(data);
+}
+
+static void deferFreeEvent(testingT *t, void *data)
+{
+	uiFreeEvent((uiEvent *) data);
+}
+
+static void deferUnregisterHandler(testingT *t, void *data)
+{
+	unregisterHandler((struct handler *) data);
+}
+
 static void basicEventFunctionalityImpl(testingT *t, void *data)
 {
 	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
-	struct handler h[1];
-
-	memset(h, 0, 1 * sizeof (struct handler));
-	h[0].name = "handler";
+	struct handler *h;
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = p->global;
 	e = uiNewEvent(&opts);
+	testingTDefer(t, deferFreeEvent, e);
+
+	h = allocHandlers(t, 1);
+	testingTDefer(t, deferFree, h);
+	h[0].name = "handler";
+	testingTDefer(t, deferUnregisterHandler, h + 0);
 
 	registerHandler(h + 0, e, p->sender, p->args);
 	wantRun(h + 0);
@@ -181,20 +213,28 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
-	struct handler h[6];
+	struct handler *h;
 
-	memset(h, 0, 6 * sizeof (struct handler));
+	memset(&opts, 0, sizeof (uiEventOptions));
+	opts.Size = sizeof (uiEventOptions);
+	opts.Global = p->global;
+	e = uiNewEvent(&opts);
+	testingTDefer(t, deferFreeEvent, e);
+
+	h = allocHandlers(t, 6);
+	testingTDefer(t, deferFree, h);
 	h[0].name = "handler 1";
 	h[1].name = "handler 2";
 	h[2].name = "handler 3";
 	h[3].name = "new handler 1";
 	h[4].name = "new handler 2";
 	h[5].name = "new handler 3";
-
-	memset(&opts, 0, sizeof (uiEventOptions));
-	opts.Size = sizeof (uiEventOptions);
-	opts.Global = p->global;
-	e = uiNewEvent(&opts);
+	testingTDefer(t, deferUnregisterHandler, h + 5);
+	testingTDefer(t, deferUnregisterHandler, h + 4);
+	testingTDefer(t, deferUnregisterHandler, h + 3);
+	testingTDefer(t, deferUnregisterHandler, h + 2);
+	testingTDefer(t, deferUnregisterHandler, h + 1);
+	testingTDefer(t, deferUnregisterHandler, h + 0);
 
 	testingTLogf(t, "*** initial handlers");
 	registerHandler(h + 0, e, p->sender, p->args);
@@ -210,7 +250,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 		h, 6, 3);
 
 	testingTLogf(t, "*** deleting a handler from the middle");
-	unregisterHandler(h + 1, e);
+	unregisterHandler(h + 1);
 	wantRun(h + 0);
 	wantNotRun(h + 1);
 	wantRun(h + 2);
@@ -232,7 +272,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 		h, 6, 3);
 
 	testingTLogf(t, "*** deleting first handler added and adding another");
-	unregisterHandler(h + 0, e);
+	unregisterHandler(h + 0);
 	registerHandler(h + 4, e, p->sender, p->args);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
@@ -244,7 +284,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 		h, 6, 3);
 
 	testingTLogf(t, "*** deleting most recently added handler and adding another");
-	unregisterHandler(h + 4, e);
+	unregisterHandler(h + 4);
 	registerHandler(h + 5, e, p->sender, p->args);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
@@ -256,9 +296,9 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 		h, 6, 3);
 
 	testingTLogf(t, "*** deleting all handlers");
-	unregisterHandler(h + 2, e);
-	unregisterHandler(h + 3, e);
-	unregisterHandler(h + 5, e);
+	unregisterHandler(h + 2);
+	unregisterHandler(h + 3);
+	unregisterHandler(h + 5);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -294,33 +334,42 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
-	struct handler h[4];
+	struct handler *h;
 	void *sender1, *sender2, *sender3;
-
-	memset(h, 0, 4 * sizeof (struct handler));
-	h[0].name = "sender 1 handler 1";
-	h[1].name = "sender 2 handler";
-	h[2].name = "sender 3 handler";
-	h[3].name = "sender 1 handler 2";
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = false;
 	e = uiNewEvent(&opts);
+	testingTDefer(t, deferFreeEvent, e);
+
+	h = allocHandlers(t, 4);
+	testingTDefer(t, deferFree, h);
+	h[0].name = "sender 1 handler 1";
+	h[1].name = "sender 2 handler";
+	h[2].name = "sender 3 handler";
+	h[3].name = "sender 1 handler 2";
+	testingTDefer(t, deferUnregisterHandler, h + 3);
+	testingTDefer(t, deferUnregisterHandler, h + 2);
+	testingTDefer(t, deferUnregisterHandler, h + 1);
+	testingTDefer(t, deferUnregisterHandler, h + 0);
 
 	// dynamically allocate these so we don't run the risk of upsetting an optimizer somewhere, since we don't touch this memory
 	sender1 = malloc(16);
 	if (sender1 == NULL)
 		testingTFatalf(t, "memory exhausted allocating sender 1");
 	memset(sender1, 5, 16);
+	testingTDefer(t, deferFree, sender1);
 	sender2 = malloc(32);
 	if (sender2 == NULL)
 		testingTFatalf(t, "memory exhausted allocating sender 2");
 	memset(sender2, 10, 32);
+	testingTDefer(t, deferFree, sender2);
 	sender3 = malloc(64);
 	if (sender3 == NULL)
 		testingTFatalf(t, "memory exhausted allocating sender 3");
 	memset(sender3, 15, 64);
+	testingTDefer(t, deferFree, sender3);
 
 	registerHandler(h + 0, e, sender1, p->args);
 	registerHandler(h + 1, e, sender2, p->args);
@@ -360,7 +409,7 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 		h, 4, 0);
 
 	testingTLogf(t, "*** deleting one of sender 1's handlers doesn't affect the other");
-	unregisterHandler(h + 3, e);
+	unregisterHandler(h + 3);
 	wantRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -376,10 +425,6 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	wantRun(h + 3);
 	run(t, e, p, p->args,
 		h, 4, 1);
-
-	free(sender3);
-	free(sender2);
-	free(sender1);
 }
 
 testingTest(EventSendersHonored)
@@ -396,17 +441,22 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
-	struct handler h[3];
-
-	memset(h, 0, 3 * sizeof (struct handler));
-	h[0].name = "handler 1";
-	h[1].name = "handler 2";
-	h[2].name = "handler 3";
+	struct handler *h;
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = p->global;
 	e = uiNewEvent(&opts);
+	testingTDefer(t, deferFreeEvent, e);
+
+	h = allocHandlers(t, 3);
+	testingTDefer(t, deferFree, h);
+	h[0].name = "handler 1";
+	h[1].name = "handler 2";
+	h[2].name = "handler 3";
+	testingTDefer(t, deferUnregisterHandler, h + 2);
+	testingTDefer(t, deferUnregisterHandler, h + 1);
+	testingTDefer(t, deferUnregisterHandler, h + 0);
 
 	testingTLogf(t, "*** initial handlers are unblocked");
 	registerHandler(h + 0, e, p->sender, p->args);
@@ -487,7 +537,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 		h, 3, 2);
 
 	testingTLogf(t, "*** deleting a blocked handler and adding a new one doesn't keep the new one blocked");
-	unregisterHandler(h + 2, e);
+	unregisterHandler(h + 2);
 	registerHandler(h + 2, e, p->sender, p->args);
 	wantRun(h + 0);
 	wantRun(h + 1);
@@ -496,7 +546,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 		h, 3, 3);
 
 	testingTLogf(t, "*** adding a new handler while one is blocked doesn't affect the blocked one");
-	unregisterHandler(h + 2, e);
+	unregisterHandler(h + 2);
 	uiEventSetHandlerBlocked(e, h[1].id, true);
 	registerHandler(h + 2, e, p->sender, p->args);
 	wantRun(h + 0);
@@ -520,29 +570,37 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
-	struct handler h[4];
+	struct handler *h;
 	void *sender1, *sender2;
-
-	memset(h, 0, 4 * sizeof (struct handler));
-	h[0].name = "sender 1 handler 1";
-	h[1].name = "sender 2 handler 1";
-	h[2].name = "sender 2 handler 2";
-	h[3].name = "sender 1 handler 2";
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = false;
 	e = uiNewEvent(&opts);
+	testingTDefer(t, deferFreeEvent, e);
+
+	h = allocHandlers(t, 4);
+	testingTDefer(t, deferFree, h);
+	h[0].name = "sender 1 handler 1";
+	h[1].name = "sender 2 handler 1";
+	h[2].name = "sender 2 handler 2";
+	h[3].name = "sender 1 handler 2";
+	testingTDefer(t, deferUnregisterHandler, h + 3);
+	testingTDefer(t, deferUnregisterHandler, h + 2);
+	testingTDefer(t, deferUnregisterHandler, h + 1);
+	testingTDefer(t, deferUnregisterHandler, h + 0);
 
 	// dynamically allocate these so we don't run the risk of upsetting an optimizer somewhere, since we don't touch this memory
 	sender1 = malloc(16);
 	if (sender1 == NULL)
 		testingTFatalf(t, "memory exhausted allocating sender 1");
 	memset(sender1, 5, 16);
+	testingTDefer(t, deferFree, sender1);
 	sender2 = malloc(32);
 	if (sender2 == NULL)
 		testingTFatalf(t, "memory exhausted allocating sender 2");
 	memset(sender2, 10, 32);
+	testingTDefer(t, deferFree, sender2);
 
 	registerHandler(h + 0, e, sender1, p->args);
 	registerHandler(h + 1, e, sender2, p->args);
@@ -624,7 +682,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 		h, 4, 0);
 
 	testingTLogf(t, "*** deleting the blocked sender 2 handler only runs the other");
-	unregisterHandler(h + 2, e);
+	unregisterHandler(h + 2);
 	wantNotRun(h + 0);
 	wantRun(h + 1);
 	wantNotRun(h + 2);
@@ -673,9 +731,6 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	wantBlocked(h + 3);
 	run(t, e, p, p->args,
 		h, 4, 0);
-
-	free(sender2);
-	free(sender1);
 }
 
 testingTest(EventBlocksHonoredWithDifferentSenders)
@@ -711,9 +766,21 @@ static void testWhileFiring(void *sender, void *args, void *data)
 		"attempt to change a uiEvent with uiEventSetHandlerBlocked() while it is firing");
 }
 
+struct deferDeleteFiringHandlerParams {
+	uiEvent *e;
+	int id;
+};
+
+static void deferDeleteFiringHandler(testingT *t, void *data)
+{
+	struct deferDeleteFiringHandlerParams *p = (struct deferDeleteFiringHandlerParams *) data;
+
+	uiEventDeleteHandler(p->e, p->id);
+}
+
 testingTest(EventErrors)
 {
-	uiEvent *globalEvent, *nonglobalEvent, *firingEvent;
+	uiEvent *globalEvent, *nonglobalEvent;
 	uiEventOptions opts;
 	uiEventOptions eventOptionsBadSize;
 	uiEvent *eventPlaceholder;
@@ -721,6 +788,8 @@ testingTest(EventErrors)
 	void *nonNullSender;
 	int idPlaceholder;
 	bool blockedPlaceholder;
+	uiEvent *firingEvent;
+	struct deferDeleteFiringHandlerParams *fp;
 
 	testProgrammerError(t, uiNewEvent(NULL),
 		"invalid null pointer for uiEventOptions passed into uiNewEvent()");
@@ -733,8 +802,10 @@ testingTest(EventErrors)
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = true;
 	globalEvent = uiNewEvent(&opts);
+	testingTDefer(t, deferFreeEvent, globalEvent);
 	opts.Global = false;
 	nonglobalEvent = uiNewEvent(&opts);
+	testingTDefer(t, deferFreeEvent, nonglobalEvent);
 
 	eventPlaceholder = globalEvent;
 	senderPlaceholder = NULL;
@@ -779,6 +850,13 @@ testingTest(EventErrors)
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = true;
 	firingEvent = uiNewEvent(&opts);
-	uiEventAddHandler(firingEvent, testWhileFiring, NULL, t);
+	testingTDefer(t, deferFreeEvent, firingEvent);
+	fp = (struct deferDeleteFiringHandlerParams *) malloc(sizeof (struct deferDeleteFiringHandlerParams));
+	if (fp == NULL)
+		testingTFatalf(t, "memory exhausted allocating storage for deleting firing event handler");
+	testingTDefer(t, deferFree, fp);
+	fp->e = firingEvent;
+	fp->id = uiEventAddHandler(fp->e, testWhileFiring, NULL, t);
+	testingTDefer(t, deferDeleteFiringHandler, fp);
 	uiEventFire(firingEvent, NULL, firingEvent);
 }

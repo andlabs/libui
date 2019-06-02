@@ -36,11 +36,11 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 	if (!uiprivCheckInitializedAndThread())
 		return NULL;
 	if (options == NULL) {
-		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventOptions", uiprivFunc);
+		uiprivProgrammerErrorNullPointer("uiEventOptions", uiprivFunc);
 		return NULL;
 	}
 	if (options->Size != sizeof (uiEventOptions)) {
-		uiprivProgrammerError(uiprivProgrammerErrorWrongStructSize, options->Size, "uiEventOptions");
+		uiprivProgrammerErrorWrongStructSize(options->Size, "uiEventOptions");
 		return NULL;
 	}
 	e = (uiEvent *) uiprivAlloc(sizeof (uiEvent), "uiEvent");
@@ -51,22 +51,22 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 }
 
 #define checkEventNonnull(e, ret) if ((e) == NULL) { \
-	uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEvent", uiprivFunc); \
+	uiprivProgrammerErrorNullPointer("uiEvent", uiprivFunc); \
 	return ret; \
 }
 #define checkEventNotFiring(e, ret) if ((e)->firing) { \
-	uiprivProgrammerError(uiprivProgrammerErrorChangingEventDuringFire, uiprivFunc); \
+	uiprivProgrammerErrorChangingEventDuringFire(uiprivFunc); \
 	return ret; \
 }
 
 static bool checkEventSender(const uiEvent *e, void *sender, const char *func)
 {
 	if (e->opts.Global && sender != NULL) {
-		uiprivProgrammerError(uiprivProgrammerErrorBadSenderForEvent, "non-NULL", "global", func);
+		uiprivProgrammerErrorBadSenderForEvent("non-NULL", "global", func);
 		return false;
 	}
 	if (!e->opts.Global && sender == NULL) {
-		uiprivProgrammerError(uiprivProgrammerErrorBadSenderForEvent, "NULL", "non-global", func);
+		uiprivProgrammerErrorBadSenderForEvent("NULL", "non-global", func);
 		return false;
 	}
 	return true;
@@ -82,7 +82,7 @@ int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *da
 	checkEventNonnull(e, 0);
 	checkEventNotFiring(e, 0);
 	if (handler == NULL) {
-		uiprivProgrammerError(uiprivProgrammerErrorNullPointer, "uiEventHandler", uiprivFunc);
+		uiprivProgrammerErrorNullPointer("uiEventHandler", uiprivFunc);
 		return 0;
 	}
 	if (!checkEventSender(e, sender, uiprivFunc))
@@ -116,7 +116,7 @@ static struct handler *findHandler(const uiEvent *e, int id, const char *func)
 	key.id = id;
 	ret = (struct handler *) uiprivArrayBsearch(&(e->handlers), &key, handlerCmp);
 	if (ret == NULL)
-		uiprivProgrammerError(uiprivProgrammerErrorIntIDNotFound, "uiEvent handler", id, func);
+		uiprivProgrammerErrorIntIDNotFound("uiEvent handler", id, func);
 	return ret;
 }
 
@@ -145,7 +145,7 @@ void uiEventFire(uiEvent *e, void *sender, void *args)
 		return;
 	checkEventNonnull(e, /* nothing */);
 	if (e->firing) {
-		uiprivProgrammerError(uiprivProgrammerErrorRecursiveEventFire);
+		uiprivProgrammerErrorRecursiveEventFire();
 		return;
 	}
 	if (!checkEventSender(e, sender, uiprivFunc))

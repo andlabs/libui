@@ -45,7 +45,7 @@ bool uiprivInitReturnErrorf(uiInitError *err, const char *fmt, ...)
 void uiQueueMain(void (*f)(void *data), void *data)
 {
 	if (!initialized) {
-		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, uiprivFunc);
+		uiprivProgrammerErrorNotInitialized(uiprivFunc);
 		return;
 	}
 	uiprivSysQueueMain(f, data);
@@ -55,11 +55,11 @@ bool uiprivCheckInitializedAndThreadImpl(const char *func)
 {
 	// While it does seem risky to not lock this, if this changes during the execution of this function it means only that it was changed from a different thread, and since it can only change from false to true, an error will be reported anyway.
 	if (!initialized) {
-		uiprivProgrammerError(uiprivProgrammerErrorNotInitialized, func);
+		uiprivProgrammerErrorNotInitialized(func);
 		return false;
 	}
 	if (!uiprivSysCheckThread()) {
-		uiprivProgrammerError(uiprivProgrammerErrorWrongThread, func);
+		uiprivProgrammerErrorWrongThread(func);
 		return false;
 	}
 	return true;

@@ -60,20 +60,10 @@ extern bool uiprivSysCheckThread(void);
 uiprivPrintfFunc(
 	extern void uiprivInternalError(const char *fmt, ...),
 	1, 2);
-// TODO turn each of these into function-like macros
-#define uiprivProgrammerErrorNotInitialized "attempt to call %s() before uiInit()"		// arguments: uiprivFunc
-#define uiprivProgrammerErrorWrongThread "attempt to call %s() on a thread other than the GUI thread"		// arguments: uiprivFunc
-#define uiprivProgrammerErrorWrongStructSize "wrong size %" uiprivSizetPrintf " for %s"		// arguments: size_t badSize, const char *structName
-#define uiprivProgrammerErrorIndexOutOfRange "index %d out of range in %s()"		// arguments: int badIndex, uiprivFunc
-#define uiprivProgrammerErrorNullPointer "invalid null pointer for %s passed into %s()"			// arguments: const char *paramDesc, uiprivFunc
-#define uiprivProgrammerErrorIntIDNotFound "%s identifier %d not found in %s()"		// arguments: const char *idDesc, int badID, uiprivFunc
-// TODO type mismatch
-#define uiprivProgrammerErrorBadSenderForEvent "attempt to use a %s sender with a %s event in %s()"			// arguments: const char *senderDesc, const char *eventDesc, uiprivFunc
-#define uiprivProgrammerErrorChangingEventDuringFire "attempt to change a uiEvent with %s() while it is firing"				// arguments: uiprivFunc
-#define uiprivProgrammerErrorRecursiveEventFire "attempt to fire a uiEvent while it is already being fired"		// no arguments
 uiprivPrintfFunc(
 	extern void uiprivProgrammerError(const char *fmt, ...),
 	1, 2);
+#include "programmererrors.h"
 extern void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal);
 
 #ifdef __cplusplus

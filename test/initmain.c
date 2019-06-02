@@ -109,8 +109,7 @@ static void queueOrder(struct testParams *p)
 	uiQueueMain(done, NULL);
 }
 
-// TODO somehow funnel the caller's file/line through
-static void checkOrder(testingT *t, uint32_t flag)
+static void checkOrderFull(testingT *t, const char *file, long line, uint32_t flag)
 {
 	int i;
 
@@ -127,7 +126,9 @@ static void checkOrder(testingT *t, uint32_t flag)
 		flag, "unknown order",
 		orders[0].result, orders[0].order);
 }
-	
+
+#define checkOrder(t, flag) checkOrderFull(t, __FILE__, __LINE__, flag)
+
 testingTest(QueueMain_Sequence)
 {
 	struct testParams p;

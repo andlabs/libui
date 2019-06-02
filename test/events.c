@@ -72,8 +72,7 @@ static void wantBlocked(struct handler *h)
 	h->wantBlocked = true;
 }
 
-// TODO carry over the file and line numbers somehow
-static void run(testingT *t, uiEvent *e, void *sender, void *args, struct handler *handlers, int n, int wantRunCount)
+static void runFull(testingT *t, const char *file, long line, uiEvent *e, void *sender, void *args, struct handler *handlers, int n, int wantRunCount)
 {
 	int i;
 	int gotRunCount;
@@ -89,9 +88,9 @@ static void run(testingT *t, uiEvent *e, void *sender, void *args, struct handle
 	h = handlers;
 	for (i = 0; i < n; i++) {
 		if (!h->gotRun && h->wantRun)
-			testingTErrorf(t, "%s not run; should have been", h->name);
+			testingTErrorfFull(t, file, line, "%s not run; should have been", h->name);
 		else if (h->gotRun && !h->wantRun)
-			testingTErrorf(t, "%s run; should not have been", h->name);
+			testingTErrorfFull(t, file, line, "%s run; should not have been", h->name);
 		if (h->gotRun && h->wantRun) {
 			// only check these if it was correctly run, to reduce noise if the above failed
 			if (h->gotSender != h->wantSender)
@@ -105,9 +104,9 @@ static void run(testingT *t, uiEvent *e, void *sender, void *args, struct handle
 			// the following call will fail if the ID isn't valid
 			gotBlocked = uiEventHandlerBlocked(e, h->id);
 			if (!gotBlocked && h->wantBlocked)
-				testingTErrorf(t, "%s not blocked; should have been", h->name);
+				testingTErrorfFull(t, file, line, "%s not blocked; should have been", h->name);
 			else if (gotBlocked && !h->wantBlocked)
-				testingTErrorf(t, "%s blocked; should not have been", h->name);
+				testingTErrorfFull(t, file, line, "%s blocked; should not have been", h->name);
 		}
 		h++;
 	}
@@ -115,6 +114,8 @@ static void run(testingT *t, uiEvent *e, void *sender, void *args, struct handle
 		diff(t, "incorrect number of handler runs",
 			"%d", gotRunCount, wantRunCount);
 }
+
+#define run(t, e, sender, args, handlers, n, wantRunCount) runFull(t, __FILE__, __LINE__, e, sender, args, handlers, n, wantRunCount)
 
 struct baseParams {
 	void (*impl)(testingT *t, void *data);

@@ -24,6 +24,7 @@ static int handlerCmp(const void *a, const void *b)
 
 struct uiEvent {
 	uiEventOptions opts;
+	bool internal;
 	uiprivArray handlers;
 	uiprivArray unusedIDs;
 	bool firing;
@@ -57,6 +58,26 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 #define checkEventNotFiring(e, ret) if ((e)->firing) { \
 	uiprivProgrammerErrorChangingEventDuringFire(uiprivFunc); \
 	return ret; \
+}
+
+void uiFreeEvent(uiEvent *e)
+{
+	if (!uiprivCheckInitializedAndThread())
+		return;
+	checkEventNonnull(e, /* nothing */);
+	if (e->internal) {
+		uiprivProgrammerErrorFreeingInternalEvent();
+		return;
+	}
+	checkEventNotFiring(e, /* nothing */);
+	if (e->handlers.len != 0) {
+		uiprivProgrammerErrorFreeingEventInUse();
+		return;
+	}
+
+	uiprivArrayFree(e->unusedIDs);
+	uiprivArrayFree(e->handlers);
+	uiprivFree(e);
 }
 
 static bool checkEventSender(const uiEvent *e, void *sender, const char *func)

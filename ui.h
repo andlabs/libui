@@ -54,7 +54,7 @@ struct uiEventOptions {
 };
 
 uiprivExtern uiEvent *uiNewEvent(const uiEventOptions *options);
-// TODO uiFreeEvent()
+uiprivExtern void uiFreeEvent(uiEvent *e);
 uiprivExtern int uiEventAddHandler(uiEvent *e, uiEventHandler handler, void *sender, void *data);
 uiprivExtern void uiEventDeleteHandler(uiEvent *e, int id);
 uiprivExtern void uiEventFire(uiEvent *e, void *sender, void *args);

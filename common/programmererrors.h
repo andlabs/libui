@@ -36,3 +36,9 @@
 
 #define uiprivProgrammerErrorRecursiveEventFire() \
 	uiprivProgrammerError("attempt to fire a uiEvent while it is already being fired")
+
+#define uiprivProgrammerErrorFreeingInternalEvent() \
+	uiprivProgrammerError("attempt to free a libui-provided uiEvent")
+
+#define uiprivProgrammerErrorFreeingEventInUse() \
+	uiprivProgrammerError("attempt to free a uiEvent that still has handlers registered")

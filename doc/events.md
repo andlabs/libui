@@ -50,6 +50,16 @@ uiEvent *uiNewEvent(const uiEventOptions *options);
 
 It is a programmer error to specify `NULL` for `options`.
 
+### `uiFreeEvent()`
+
+```c
+uiprivExtern void uiFreeEvent(uiEvent *e);
+```
+
+Frees the given event. The event must not be a libui-provided event, and must not have any handlers registered to it.
+
+It is a programmer error to pass `NULL` for the given event, or to pass in an event that is currently firing.
+
 ### `uiEventAddHandler()`
 
 ```c

@@ -28,9 +28,14 @@ extern "C" {
 #define uiprivSizetPrintf "zu"
 #endif
 
+#include "../sharedbits/printfwarn_header.h"
+#define uiprivPrintfFunc(decl, fmtpos, appos) sharedbitsPrintfFunc(decl, fmtpos, appos)
+
 // main.c
 extern bool uiprivSysInit(void *options, uiInitError *err);
-extern bool uiprivInitReturnErrorf(uiInitError *err, const char *fmt, ...);
+uiprivPrintfFunc(
+	extern bool uiprivInitReturnErrorf(uiInitError *err, const char *fmt, ...),
+	2, 3);
 extern void uiprivSysQueueMain(void (*f)(void *data), void *data);
 extern bool uiprivCheckInitializedAndThreadImpl(const char *func);
 #define uiprivCheckInitializedAndThread() uiprivCheckInitializedAndThreadImpl(uiprivFunc)
@@ -49,7 +54,9 @@ extern bool uiprivSysCheckThread(void);
 #undef sharedbitsPrefix
 
 // errors.c
-extern void uiprivInternalError(const char *fmt, ...);
+uiprivPrintfFunc(
+	extern void uiprivInternalError(const char *fmt, ...),
+	1, 2);
 enum {
 	uiprivProgrammerErrorNotInitialized,		// arguments: uiprivFunc
 	uiprivProgrammerErrorWrongThread,		// arguments: uiprivFunc
@@ -63,6 +70,7 @@ enum {
 	uiprivProgrammerErrorRecursiveEventFire,	// no arguments
 	uiprivNumProgrammerErrors,
 };
+// TODO drop the enum and make the above all format strings
 extern void uiprivProgrammerError(unsigned int which, ...);
 extern void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal);
 

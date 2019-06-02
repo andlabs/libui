@@ -76,5 +76,9 @@ extern void testingprivSetRegisterTest(testingSet **pset, const char *, void (*)
 #define testingprivExpand(x) x
 #define testingprivTLogfThen(then, t, ...) ((testingprivTLogfFull(t, __FILE__, __LINE__, __VA_ARGS__)), (then(t)))
 #define testingprivTLogvfThen(then, t, format, ap) ((testingprivTLogvfFull(t, __FILE__, __LINE__, format, ap)), (then(t)))
-extern void testingprivTLogfFull(testingT *, const char *, long, const char *, ...);
+#include "../../sharedbits/printfwarn_header.h"
+sharedbitsPrintfFunc(
+	extern void testingprivTLogfFull(testingT *, const char *, long, const char *, ...),
+	4, 5);
+#undef sharedbitsPrintfFunc
 extern void testingprivTLogvfFull(testingT *, const char *, long, const char *, va_list);

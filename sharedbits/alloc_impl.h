@@ -3,7 +3,10 @@
 
 #include "start.h"
 
-extern void sharedbitsPrefixName(InternalError)(const char *fmt, ...);
+#include "printfwarn_header.h"
+sharedbitsPrintfFunc(
+	extern void sharedbitsPrefixName(InternalError)(const char *fmt, ...),
+	1, 2);
 
 void *sharedbitsPrefixName(Alloc)(size_t n, const char *what)
 {

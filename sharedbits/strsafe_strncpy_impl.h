@@ -8,12 +8,15 @@
 #define sharedbitsprivInternalError sharedbitsInternalError
 #else
 #define sharedbitsprivInternalError sharedbitsPrefixName(InternalError)
+#include "printfwarn_header.h"
 #ifdef sharedbitsStatic
 sharedbitsStatic
 #else
 extern
 #endif
-void sharedbitsprivInternalError(const char *fmt, ...);
+sharedbitsPrintfFunc(
+	void sharedbitsprivInternalError(const char *fmt, ...),
+	1, 2);
 #endif
 #endif
 

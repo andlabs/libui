@@ -11,8 +11,6 @@
 #include "lib/timer.h"
 
 #define diffx(fmt) "\ngot  " fmt "\nwant " fmt
-#define diff(t, clause, fmt, got, want) testingTErrorf(t, "%s:\ngot  " fmt "\nwant " fmt, clause, got, want)
-#define diff_2str(t, clause, clause2, fmt, got, want) testingTErrorf(t, "%s %s:\ngot  " fmt "\nwant " fmt, clause, clause2, got, want)
 
 // main.c
 extern void timeoutMain(void *data);
@@ -32,7 +30,6 @@ struct errorParams {
 	testingT *t;
 	const char *file;
 	long line;
-	// TODO this shouldn't have a colon in it but the diff() macros above necessitate it
 	const char *exprstr;
 	const char *msgWant;
 	bool caught;
@@ -45,7 +42,7 @@ extern void catchProgrammerError(const char *prefix, const char *msg, const char
 	errorParams.t = tt; \
 	errorParams.file = __FILE__; \
 	errorParams.line = __LINE__; \
-	errorParams.exprstr = #expr ":"; \
+	errorParams.exprstr = #expr; \
 	errorParams.msgWant = mw; \
 	errorParams.caught = false; \
 	expr; \

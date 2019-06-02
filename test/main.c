@@ -16,8 +16,8 @@ void catchProgrammerError(const char *prefix, const char *msg, const char *suffi
 	if (internal)
 		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s error is marked internal; should not have been", errorParams.exprstr);
 	if (strstr(msg, errorParams.msgWant) == NULL)
-		diff_2str(errorParams.t, errorParams.exprstr, "message doesn't contain expected substring",
-			"%s", msg, errorParams.msgWant);
+		testingTErrorf(errorParams.t, errorParams.file, errorParams.line, "%s: message doesn't contain expected substring:" diffx("%s"),
+			errorParams.exprstr, msg, errorParams.msgWant);
 }
 
 static void runSetORingResults(testingSet *set, const struct testingOptions *options, bool *anyRun, bool *anyFailed)

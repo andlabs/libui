@@ -94,11 +94,11 @@ static void runFull(testingT *t, const char *file, long line, uiEvent *e, void *
 		if (h->gotRun && h->wantRun) {
 			// only check these if it was correctly run, to reduce noise if the above failed
 			if (h->gotSender != h->wantSender)
-				diff_2str(t, "incorrect sender seen by", h->name,
-					"%p", h->gotSender, h->wantSender);
+				testingTErrorfFull(t, file, line, "incorrect sender seen by %s:" diffx("%p"),
+					h->name, h->gotSender, h->wantSender);
 			if (h->gotArgs != h->wantArgs)
-				diff_2str(t, "incorrect args seen by", h->name,
-					"%p", h->gotArgs, h->wantArgs);
+				testingTErrorfFull(t, file, line, "incorrect args seen by %s:" diffx("%p"),
+					h->name, h->gotArgs, h->wantArgs);
 		}
 		if (h->validID) {
 			// the following call will fail if the ID isn't valid
@@ -111,8 +111,8 @@ static void runFull(testingT *t, const char *file, long line, uiEvent *e, void *
 		h++;
 	}
 	if (gotRunCount != wantRunCount)
-		diff(t, "incorrect number of handler runs",
-			"%d", gotRunCount, wantRunCount);
+		testingTErrorfFull(t, file, line, "incorrect number of handler runs:" diffx("%d"),
+			gotRunCount, wantRunCount);
 }
 
 #define run(t, e, sender, args, handlers, n, wantRunCount) runFull(t, __FILE__, __LINE__, e, sender, args, handlers, n, wantRunCount)

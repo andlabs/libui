@@ -24,7 +24,7 @@ testingTestInSet(beforeTests, Init)
 	if (uiInit(&err, &err))
 		testingTErrorf(t, "uiInit() with non-NULL options succeeded; expected failure");
 	if (strcmp(err.Message, errInvalidOptions) != 0)
-		diff(t, "uiInit() with non-NULL options returned bad error message", "%s",
+		testingTErrorf(t, "uiInit() with non-NULL options returned bad error message:" diffx("%s"),
 			err.Message, errInvalidOptions);
 }
 
@@ -37,7 +37,7 @@ testingTest(InitAfterInitialized)
 	if (uiInit(NULL, &err))
 		testingTErrorf(t, "uiInit() after a previous successful call succeeded; expected failure");
 	if (strcmp(err.Message, errAlreadyInitialized) != 0)
-		diff(t, "uiInit() after a previous successful call returned bad error message", "%s",
+		testingTErrorf(t, "uiInit() after a previous successful call returned bad error message:" diffx("%s"),
 			err.Message, errAlreadyInitialized);
 }
 
@@ -69,7 +69,7 @@ testingTest(QueueMain)
 	uiQueueMain(queued, &p);
 	timeout_uiMain(t, 5 * timerSecond);
 	if (p.flag != 1)
-		diff(t, "uiQueueMain() didn't set flag properly", "%d",
+		testingTErrorf(t, "uiQueueMain() didn't set flag properly:" diffx("%d"),
 			p.flag, 1);
 }
 
@@ -165,7 +165,7 @@ testingTest(QueueMain_DifferentThread)
 	if (p.err != 0)
 		testingTErrorf(t, "error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
 	if (p.flag != 1)
-		diff(t, "uiQueueMain() didn't set flag properly", "%d",
+		testingTErrorf(t, "uiQueueMain() didn't set flag properly:" diffx("%d"),
 			p.flag, 1);
 }
 

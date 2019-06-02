@@ -77,12 +77,15 @@ void sharedbitsPrefixName(ArrayDeleteItem)(sharedbitsPrefixName(Array) *arr, voi
 
 void *sharedbitsPrefixName(ArrayBsearch)(const sharedbitsPrefixName(Array) *arr, const void *key, int (*compare)(const void *, const void *))
 {
+	if (arr->len == 0)
+		return NULL;
 	return bsearch(key, arr->buf, arr->len, arr->elemsize, compare);
 }
 
 void sharedbitsPrefixName(ArrayQsort)(sharedbitsPrefixName(Array) *arr, int (*compare)(const void *, const void *))
 {
-	qsort(arr->buf, arr->len, arr->elemsize, compare);
+	if (arr->len != 0)
+		qsort(arr->buf, arr->len, arr->elemsize, compare);
 }
 
 #include "end.h"

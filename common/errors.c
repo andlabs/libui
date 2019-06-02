@@ -22,33 +22,6 @@ void uiprivInternalError(const char *fmt, ...)
 	uiprivReportError(internalErrorPrefix, buf, internalErrorSuffix, true);
 }
 
-static const char *messages[uiprivNumProgrammerErrors] = {
-	[uiprivProgrammerErrorNotInitialized] = "attempt to call %s() before uiInit()",
-	[uiprivProgrammerErrorWrongThread] = "attempt to call %s() on a thread other than the GUI thread",
-	[uiprivProgrammerErrorWrongStructSize] = "wrong size %" uiprivSizetPrintf " for %s",
-	[uiprivProgrammerErrorIndexOutOfRange] = "index %d out of range in %s()",
-	[uiprivProgrammerErrorNullPointer] = "invalid null pointer for %s passed into %s()",
-	[uiprivProgrammerErrorIntIDNotFound] = "%s identifier %d not found in %s()",
-	[uiprivProgrammerErrorBadSenderForEvent] = "attempt to use a %s sender with a %s event in %s()",
-	[uiprivProgrammerErrorChangingEventDuringFire] = "attempt to change a uiEvent with %s() while it is firing",
-	[uiprivProgrammerErrorRecursiveEventFire] = "attempt to fire a uiEvent while it is already being fired",
-};
-
-static void prepareProgrammerError(char *buf, int size, unsigned int which, va_list ap)
-{
-	int n;
-
-	if (which >= uiprivNumProgrammerErrors)
-		uiprivInternalError("bad programmer error value %u", which);
-	if (messages[which] == NULL)
-		uiprivInternalError("programmer error %u has no message", which);
-	n = uiprivVsnprintf(buf, size, messages[which], ap);
-	if (n < 0)
-		uiprivInternalError("programmer error string for %u has encoding error", which);
-	if (n >= size)
-		uiprivInternalError("programmer error string for %u too long (%d)", which, n);
-}
-
 #define programmerErrorPrefix "libui programmer error"
 // TODO add debugging advice?
 #define programmerErrorSuffix "This likely means you are using libui incorrectly. Check your source code and try again. If you have received this warning in error, contact the libui authors."
@@ -62,13 +35,18 @@ void uiprivTestHookReportProgrammerError(uiprivTestHookReportProgrammerErrorFunc
 	reportProgrammerErrorTestHook = f;
 }
 
-void uiprivProgrammerError(unsigned int which, ...)
+void uiprivProgrammerError(const char *fmt, ...)
 {
 	va_list ap;
+	int n;
 	char buf[256];
 
-	va_start(ap, which);
-	prepareProgrammerError(buf, 256, which, ap);
+	va_start(ap, fmt);
+	n = uiprivVsnprintf(buf, 256, fmt, ap);
+	if (n < 0)
+		uiprivInternalError("programmer error has encoding error");
+	if (n >= 256)
+		uiprivInternalError("programmer error string too long (%d)", n);
 	va_end(ap);
 	(*reportProgrammerErrorTestHook)(programmerErrorPrefix, buf, programmerErrorSuffix, false);
 }

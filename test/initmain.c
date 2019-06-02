@@ -117,12 +117,12 @@ static void checkOrderFull(testingT *t, const char *file, long line, uint32_t fl
 		return;
 	for (i = 1; i < 6; i++)
 		if (flag == orders[i].result) {
-			diff2(t, "wrong order", "%" PRIu32 " (%s)",
+			testingTErrorfFull(t, file, line, "wrong order:" diffx("%" PRIu32 " (%s)"),
 				flag, orders[i].order,
 				orders[0].result, orders[0].order);
 			return;
 		}
-	diff2(t, "wrong result", "%" PRIu32 " (%s)",
+	testingTErrorfFull(t, file, line, "wrong result:" diffx("%" PRIu32 " (%s)"),
 		flag, "unknown order",
 		orders[0].result, orders[0].order);
 }

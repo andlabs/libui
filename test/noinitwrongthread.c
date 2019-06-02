@@ -3,6 +3,8 @@
 
 struct errorCase {
 	const char *name;
+	const char *file;
+	long line;
 	bool caught;
 	char *prefixGot;
 	bool internalGot;
@@ -112,16 +114,16 @@ static void freeCases(struct errorCase *first)
 static void reportCases(testingT *t, struct errorCase *p)
 {
 	while (p != NULL) {
-		testingTLogf(t, "*** %s", p->name);
+		testingTLogfFull(t, p->file, p->line, "*** %s", p->name);
 		if (!p->caught) {
-			testingTErrorf(t, "%s did not throw a programmer error; should have", p->name);
+			testingTErrorfFull(t, p->file, p->line, "%s did not throw a programmer error; should have", p->name);
 			p = p->next;
 			continue;
 		}
 		if (p->prefixGot != NULL)
-			testingTErrorf(t, "%s prefix string doesn't contain \"programmer error\": %s", p->name, p->prefixGot);
+			testingTErrorfFull(t, p->file, p->line, "%s prefix string doesn't contain \"programmer error\": %s", p->name, p->prefixGot);
 		if (p->internalGot)
-			testingTErrorf(t, "%s error is marked internal; should not have been", p->name);
+			testingTErrorfFull(t, p->file, p->line, "%s error is marked internal; should not have been", p->name);
 		if (p->msgGot != NULL)
 			diff_2str(t, p->name, "message doesn't contain expected substring",
 				"%s", p->msgGot, p->msgWant);
@@ -134,6 +136,8 @@ static void reportCases(testingT *t, struct errorCase *p)
 	if (caseError != NULL) \
 		return first; \
 	current->name = #f "()"; \
+	current->file = __FILE__; \
+	current->line = __LINE__; \
 	current->msgWant = "attempt to call " #f "() " allcallsMsgSuffix; \
 	f(__VA_ARGS__); \
 	if (first == NULL) \

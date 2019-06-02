@@ -12,9 +12,9 @@ void catchProgrammerError(const char *prefix, const char *msg, const char *suffi
 {
 	errorParams.caught = true;
 	if (strstr(prefix, "programmer error") == NULL)
-		testingTErrorf(errorParams.t, "%s prefix string doesn't contain \"programmer error\": %s", errorParams.exprstr, prefix);
+		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s prefix string doesn't contain \"programmer error\": %s", errorParams.exprstr, prefix);
 	if (internal)
-		testingTErrorf(errorParams.t, "%s error is marked internal; should not have been", errorParams.exprstr);
+		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s error is marked internal; should not have been", errorParams.exprstr);
 	if (strstr(msg, errorParams.msgWant) == NULL)
 		diff_2str(errorParams.t, errorParams.exprstr, "message doesn't contain expected substring",
 			"%s", msg, errorParams.msgWant);

@@ -111,6 +111,13 @@ static void runDefers(testingT *t)
 	t->defersRun = true;
 	for (d = t->defers; d != NULL; d = d->next)
 		(*(d->f))(t, d->data);
+	// and now free the defers
+	// we could use t->defers == NULL instead of t->defersRun but then recursive calls to runDefers() (for instance, if a deferred function calls testingTFatalf()) would explode
+	while (t->defers != NULL) {
+		d = t->defers;
+		t->defers = t->defers->next;
+		testingprivFree(d);
+	}
 }
 
 static const testingOptions defaultOptions = {

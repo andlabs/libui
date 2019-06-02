@@ -49,36 +49,54 @@ struct testingOptions {
 extern void testingSetRun(testingSet *set, const struct testingOptions *options, bool *anyRun, bool *anyFailed);
 
 typedef struct testingT testingT;
+
 #define testingTLogf(t, ...) \
-	testingprivExpand(testingprivTLogfThen((void), t, __VA_ARGS__))
+	testingprivTLogfFullThen(t, NULL, __FILE__, __LINE__, __VA_ARGS__)
 #define testingTLogvf(t, format, ap) \
-	testingprivTLogvfThen((void), t, format, ap)
+	testingprivTLogvfFullThen(t, NULL, __FILE__, __LINE__, format, ap)
+#define testingTLogfFull(t, file, line, ...) \
+	testingprivTLogfFullThen(t, NULL, file, line, __VA_ARGS__)
+#define testingTLogvfFull(t, file, line, format, ap) \
+	testingprivTLogvfFullThen(t, NULL, file, line, format, ap)
+
 #define testingTErrorf(t, ...) \
-	testingprivExpand(testingprivTLogfThen(testingTFail, t, __VA_ARGS__))
+	testingprivTLogfFullThen(t, testingTFail, __FILE__, __LINE__, __VA_ARGS__)
 #define testingTErrorvf(t, format, ap) \
-	testingprivTLogvfThen(testingTFail, t, format, ap)
+	testingprivTLogvfFullThen(t, testingTFail, __FILE__, __LINE__, format, ap)
+#define testingTErrorfFull(t, file, line, ...) \
+	testingprivTLogfFullThen(t, testingTFail, file, line, __VA_ARGS__)
+#define testingTErrorvfFull(t, file, line, format, ap) \
+	testingprivTLogvfFullThen(t, testingTFail, file, line, format, ap)
+
 #define testingTFatalf(t, ...) \
-	testingprivExpand(testingprivTLogfThen(testingTFailNow, t, __VA_ARGS__))
+	testingprivTLogfFullThen(t, testingTFailNow, __FILE__, __LINE__, __VA_ARGS__)
 #define testingTFatalvf(t, format, ap) \
-	testingprivTLogvfThen(testingTFailNow, t, format, ap)
+	testingprivTLogvfFullThen(t, testingTFailNow, __FILE__, __LINE__, format, ap)
+#define testingTFatalfFull(t, file, line, ...) \
+	testingprivTLogfFullThen(t, testingTFailNow, file, line, __VA_ARGS__)
+#define testingTFatalvfFull(t, file, line, format, ap) \
+	testingprivTLogvfFullThen(t, testingTFailNow, file, line, format, ap)
+
 #define testingTSkipf(t, ...) \
-	testingprivExpand(testingprivTLogfThen(testingTSkipNow, t, __VA_ARGS__))
+	testingprivTLogfFullThen(t, testingTSkipNow, __FILE__, __LINE__, __VA_ARGS__)
 #define testingTSkipvf(t, format, ap) \
-	testingprivTLogvfThen(testingTSkipNow, t, format, ap)
+	testingprivTLogvfFullThen(t, testingTSkipNow, __FILE__, __LINE__, format, ap)
+#define testingTSkipfFull(t, file, line, ...) \
+	testingprivTLogfFullThen(t, testingTSkipNow, file, line, __VA_ARGS__)
+#define testingTSkipvfFull(t, file, line, format, ap) \
+	testingprivTLogvfFullThen(t, testingTSkipNow, file, line, format, ap)
+
 extern void testingTFail(testingT *t);
 extern void testingTFailNow(testingT *t);
 extern void testingTSkipNow(testingT *t);
+
 extern void testingTDefer(testingT *t, void (*f)(testingT *t, void *data), void *data);
 extern void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, void *data), void *data);
 
 extern void testingprivSetRegisterTest(testingSet **pset, const char *, void (*)(testingT *, void *), void *, const char *, long);
-// see https://stackoverflow.com/questions/32399191/va-args-expansion-using-msvc
-#define testingprivExpand(x) x
-#define testingprivTLogfThen(then, t, ...) ((testingprivTLogfFull(t, __FILE__, __LINE__, __VA_ARGS__)), (then(t)))
-#define testingprivTLogvfThen(then, t, format, ap) ((testingprivTLogvfFull(t, __FILE__, __LINE__, format, ap)), (then(t)))
 #include "../../sharedbits/printfwarn_header.h"
 sharedbitsPrintfFunc(
-	extern void testingprivTLogfFull(testingT *, const char *, long, const char *, ...),
-	4, 5);
+	extern void testingprivTLogfFullThen(testingT *, void (*)(testingT *), const char *, long, const char *, ...),
+	5, 6);
 #undef sharedbitsPrintfFunc
-extern void testingprivTLogvfFull(testingT *, const char *, long, const char *, va_list);
+extern void testingprivTLogvfFullThen(testingT *, void (*)(testingT *), const char *, long, const char *, va_list);

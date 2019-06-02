@@ -184,13 +184,16 @@ void testingSetRun(testingSet *set, const struct testingOptions *options, bool *
 	*anyRun = true;
 }
 
-void testingprivTLogfFull(testingT *t, const char *file, long line, const char *format, ...)
+void testingprivTLogfFullThen(testingT *t, void (*then)(testingT *t), const char *file, long line, const char *format, ...)
 {
 	va_list ap;
 
 	va_start(ap, format);
-	testingprivTLogvfFull(t, file, line, format, ap);
+	// run va_end() *before* then, just to be safe
+	testingprivTLogvfFullThen(t, NULL, file, line, format, ap);
 	va_end(ap);
+	if (then != NULL)
+		(*then)(t);
 }
 
 static const char *basename(const char *file)
@@ -206,11 +209,13 @@ static const char *basename(const char *file)
 	return file;
 }
 
-void testingprivTLogvfFull(testingT *t, const char *file, long line, const char *format, va_list ap)
+void testingprivTLogvfFullThen(testingT *t, void (*then)(testingT *t), const char *file, long line, const char *format, va_list ap)
 {
 	testingprivOutbufPrintf(t->outbuf, "%s:%ld: ", basename(file), line);
 	testingprivOutbufVprintfIndented(t->outbuf, format, ap);
 	testingprivOutbufPrintf(t->outbuf, "\n");
+	if (then != NULL)
+		(*then)(t);
 }
 
 void testingTFail(testingT *t)

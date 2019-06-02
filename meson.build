@@ -96,6 +96,11 @@ else
 	]
 
 	if libui_OS == 'windows'
+		# -pedantic causes warnings without this, even if a function is explicitly marked __attribute__((format(ms_printf)))
+		# references: https://curl.haxx.se/mail/lib-2012-06/0433.html
+		libui_project_compile_args += [
+			'-Wno-pedantic-ms-format',
+		]
 		# don't require shipping the MinGW-w64 DLLs
 		libui_project_link_args += [
 			'-static',

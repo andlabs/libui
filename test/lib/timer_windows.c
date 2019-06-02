@@ -269,15 +269,7 @@ static void redirectToOnTimeout(CONTEXT *ctx, struct timeoutParams *p)
 
 static void criticalCallFailed(const char *func, HRESULT hr)
 {
-// sigh, -pedantic... (TODO)
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat"
-#endif
 	fprintf(stderr, "*** internal error in timerRunWithTimeout(): %s failed: 0x%08I32X\n", func, hr);
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
 	abort();
 }
 

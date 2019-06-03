@@ -60,7 +60,7 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 	return ret; \
 }
 
-void uiFreeEvent(uiEvent *e)
+void uiEventFree(uiEvent *e)
 {
 	if (!uiprivCheckInitializedAndThread())
 		return;

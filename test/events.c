@@ -165,9 +165,9 @@ static void deferFree(testingT *t, void *data)
 	free(data);
 }
 
-static void deferFreeEvent(testingT *t, void *data)
+static void deferEventFree(testingT *t, void *data)
 {
-	uiFreeEvent((uiEvent *) data);
+	uiEventFree((uiEvent *) data);
 }
 
 static void deferUnregisterHandler(testingT *t, void *data)
@@ -186,7 +186,7 @@ static void basicEventFunctionalityImpl(testingT *t, void *data)
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = p->global;
 	e = uiNewEvent(&opts);
-	testingTDefer(t, deferFreeEvent, e);
+	testingTDefer(t, deferEventFree, e);
 
 	h = allocHandlers(t, 1);
 	testingTDefer(t, deferFree, h);
@@ -219,7 +219,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = p->global;
 	e = uiNewEvent(&opts);
-	testingTDefer(t, deferFreeEvent, e);
+	testingTDefer(t, deferEventFree, e);
 
 	h = allocHandlers(t, 6);
 	testingTDefer(t, deferFree, h);
@@ -341,7 +341,7 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = false;
 	e = uiNewEvent(&opts);
-	testingTDefer(t, deferFreeEvent, e);
+	testingTDefer(t, deferEventFree, e);
 
 	h = allocHandlers(t, 4);
 	testingTDefer(t, deferFree, h);
@@ -447,7 +447,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = p->global;
 	e = uiNewEvent(&opts);
-	testingTDefer(t, deferFreeEvent, e);
+	testingTDefer(t, deferEventFree, e);
 
 	h = allocHandlers(t, 3);
 	testingTDefer(t, deferFree, h);
@@ -577,7 +577,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = false;
 	e = uiNewEvent(&opts);
-	testingTDefer(t, deferFreeEvent, e);
+	testingTDefer(t, deferEventFree, e);
 
 	h = allocHandlers(t, 4);
 	testingTDefer(t, deferFree, h);
@@ -756,8 +756,8 @@ static void testWhileFiring(void *sender, void *args, void *data)
 	idPlaceholder = 0;
 	blockedPlaceholder = false;
 
-	testProgrammerError(t, uiFreeEvent(firingEvent),
-		"attempt to change a uiEvent with uiFreeEvent() while it is firing");
+	testProgrammerError(t, uiEventFree(firingEvent),
+		"attempt to change a uiEvent with uiEventFree() while it is firing");
 	testProgrammerError(t, uiEventAddHandler(firingEvent, handler, senderPlaceholder, dataPlaceholder),
 		"attempt to change a uiEvent with uiEventAddHandler() while it is firing");
 	testProgrammerError(t, uiEventDeleteHandler(firingEvent, idPlaceholder),
@@ -804,13 +804,13 @@ testingTest(EventErrors)
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = true;
 	globalEvent = uiNewEvent(&opts);
-	testingTDefer(t, deferFreeEvent, globalEvent);
+	testingTDefer(t, deferEventFree, globalEvent);
 	opts.Global = false;
 	nonglobalEvent = uiNewEvent(&opts);
-	testingTDefer(t, deferFreeEvent, nonglobalEvent);
+	testingTDefer(t, deferEventFree, nonglobalEvent);
 
-	testProgrammerError(t, uiFreeEvent(NULL),
-		"invalid null pointer for uiEvent passed into uiFreeEvent()");
+	testProgrammerError(t, uiEventFree(NULL),
+		"invalid null pointer for uiEvent passed into uiEventFree()");
 	// We test trying to free a uiEvent with handlers later, when we actually need to make one for testing firing.
 
 	eventPlaceholder = globalEvent;
@@ -856,7 +856,7 @@ testingTest(EventErrors)
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = true;
 	firingEvent = uiNewEvent(&opts);
-	testingTDefer(t, deferFreeEvent, firingEvent);
+	testingTDefer(t, deferEventFree, firingEvent);
 	fp = (struct deferDeleteFiringHandlerParams *) malloc(sizeof (struct deferDeleteFiringHandlerParams));
 	if (fp == NULL)
 		testingTFatalf(t, "memory exhausted allocating storage for deleting firing event handler");
@@ -864,7 +864,7 @@ testingTest(EventErrors)
 	fp->e = firingEvent;
 	fp->id = uiEventAddHandler(fp->e, testWhileFiring, NULL, t);
 	testingTDefer(t, deferDeleteFiringHandler, fp);
-	testProgrammerError(t, uiFreeEvent(firingEvent),
+	testProgrammerError(t, uiEventFree(firingEvent),
 		"attempt to free a uiEvent that still has handlers registered");
 	uiEventFire(firingEvent, NULL, firingEvent);
 }

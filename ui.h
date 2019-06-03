@@ -62,9 +62,16 @@ uiprivExtern bool uiEventHandlerBlocked(const uiEvent *e, int id);
 uiprivExtern void uiEventSetHandlerBlocked(uiEvent *e, int id, bool blocked);
 
 typedef struct uiControl uiControl;
+typedef struct uiControlVtable uiControlVtable;
 
 uiprivExtern uint32_t uiControlType(void);
 #define uiControl(obj) ((uiControl *) uiCheckControlType((obj), uiControlType()))
+
+struct uiControlVtable {
+	void (*Free)(uiControl *c, void *implData);
+};
+
+uiprivExtern void uiControlFree(uiControl *c);
 
 #ifdef __cplusplus
 }

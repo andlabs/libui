@@ -58,7 +58,7 @@ uiprivExtern void uiFreeEvent(uiEvent *e);
 
 Frees the given event. The event must not be a libui-provided event, and must not have any handlers registered to it.
 
-It is a programmer error to pass `NULL` for the given event, or to pass in an event that is currently firing.
+It is a programmer error to pass `NULL` for `e`. It is also a programmer error to call `uiFreeEvent()` on an event while that event is being fired.
 
 ### `uiEventAddHandler()`
 

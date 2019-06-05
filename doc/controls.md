@@ -25,15 +25,30 @@ uint32_t uiControlType(void);
 ```c
 typedef struct uiControlVtable uiControlVtable;
 struct uiControlVtable {
+	bool (*Init)(uiControl *c, void *implData, void *initData);
 	void (*Free)(uiControl *c, void *implData);
 };
 ```
 
-`uiControlVtable` describes the set of functions that control implementations need to implement. When registering your control type, you pass this in as part of the OS-specific counterpart vtable. Each method here is required.
+`uiControlVtable` describes the set of functions that control implementations need to implement. When registering your control type, you pass this in as a parameter to `uiRegisterControlType()`. Each method here is required.
 
 Each method takes at least two parameters. The first, `c`, is the `uiControl` itself. The second, `implData`, is the implementation data pointer; it is the same as the pointer returned by `uiControlImplData(c)`, and is provided here as a convenience.
 
-Each method is named for the `uiControl` function that it implements. As such, details on how to implement these methods are documented alongside those functions. For instance, instructions on implementing `Free()` are given under the documentation for `uiControlFree()`.
+Each method is named for the `uiControl` function that it implements. As such, details on how to implement these methods are documented alongside those functions. For instance, instructions on implementing `Free()` are given under the documentation for `uiControlFree()`. The only exception is `Init()`, which is discussed under `uiNewControl()` below.
+
+### `uiNewControl()`
+
+```c
+uiControl *uiNewControl(uint32_t type, void *initData);
+```
+
+`uiNewControl()` creates a new `uiControl` of the given type with the given data.
+
+This function is meant for control implementations to use in the implementation of dedicated creation functions; for instance, `uiNewButton()` calls `uiNewControl()`, passing in the appropriate values for `initData`. Normal users should not call this function.
+
+It is a programmer error to pass an invalid value for either `type` or `initData`.
+
+**For control implementations**: This function allocates both the `uiControl` and the memory for the implementation data, and then passes both of these allocations as well as the value of `initData` into your `Init()` method. Return `false` from the `Init()` method if `initData` is invalid; if it is valid, initialize the control and return `true`. To discourage direct use of `uiNewControl()`, you should generally not allow `initData` to be `NULL`, even if there are no parameters. Do **not** return `false` for any other reason, including other forms of initialization failures; see [Error handling](error-handling.md) for details on what to do instead.
 
 ### `uiControlFree()`
 

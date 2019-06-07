@@ -68,9 +68,9 @@ This function is intended to be used to implement a macro that converts an arbit
 uiControl *uiNewControl(uint32_t type, void *initData);
 ```
 
-`uiNewControl()` creates a new `uiControl` of the given type with the given data.
+`uiNewControl()` creates a new `uiControl` of the given type.
 
-This function is meant for control implementations to use in the implementation of dedicated creation functions; for instance, `uiNewButton()` calls `uiNewControl()`, passing in the appropriate values for `initData`. Normal users should not call this function.
+This function is meant for control implementations to use in the implementation of dedicated creation functions; for instance, `uiNewButton()` calls `uiNewControl()`, passing in the appropriate values for `initData`. `initData` is, in turn, passed to the control's `Init()` method, and its format is generally internal to the control. Normal users should not call this function.
 
 It is a programmer error to pass an invalid value for either `type` or `initData`.
 
@@ -90,4 +90,24 @@ If `c` has any registered events, those event handlers will be set to be no long
 
 It is a programmer error to specify `NULL` for `c`.
 
-**For control implementations**: This function calls your vtable's `Free()` method. Parameter validity checks are already performed, `uiControlEventOnFree()` handlers have been called, and `uiControl`-specific events have been invalidated. Your `Free()` should invalidate any events that are specific to your controls, call `uiControlFree()` on all the children of this control, and free dynamically allocated memory that is part of your implementation data. Once your `Free()` method returns, libui will take care of freeing the implementation data memory block itself.
+**For control implementations**: This function calls your vtable's `Free()` method. Parameter validity checks are already performed, `uiControlOnFree()` handlers have been called, and `uiControl`-specific events have been invalidated. Your `Free()` should invalidate any events that are specific to your controls, call `uiControlFree()` on all the children of this control, and free dynamically allocated memory that is part of your implementation data. Once your `Free()` method returns, libui will take care of freeing the implementation data memory block itself.
+
+## `uiControlImplData()`
+
+```c
+void *uiControlImplData(uiControl *c);
+```
+
+`uiControlImplData()` returns the pointer to the implementation data for `c`. The returned pointer is valid for the lifetime of `c`.
+
+This function is meant to be used by control implementations only. There is in general no guarantee as to the size or format of this pointer. Normal users should not call `uiControlImplData()`.
+
+It is a programmer error to pass `NULL` or a non-`uiControl` for `c`.
+
+## `uiControlOnFree()`
+
+```c
+uiEvent *uiControlOnFree(void);
+```
+
+`uiControlOnFree()` returns a `uiEvent` that is fired by `uiControlFree()` to indicate that a control is about to be freed. In your handler, `sender` is the control in question and `args` is `NULL`.

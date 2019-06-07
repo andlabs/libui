@@ -60,6 +60,7 @@ uiprivExtern void uiEventDeleteHandler(uiEvent *e, int id);
 uiprivExtern void uiEventFire(uiEvent *e, void *sender, void *args);
 uiprivExtern bool uiEventHandlerBlocked(const uiEvent *e, int id);
 uiprivExtern void uiEventSetHandlerBlocked(uiEvent *e, int id, bool blocked);
+uiprivExtern void uiEventInvalidateSender(uiEvent *e, void *sender);
 
 typedef struct uiControl uiControl;
 typedef struct uiControlVtable uiControlVtable;
@@ -78,6 +79,8 @@ uiprivExtern void *uiCheckControlType(void *c, uint32_t type);
 
 uiprivExtern uiControl *uiNewControl(uint32_t type, void *initData);
 uiprivExtern void uiControlFree(uiControl *c);
+uiprivExtern void *uiControlImplData(uiControl *c);
+uiprivExtern uiEvent *uiControlOnFree(void);
 
 #ifdef __cplusplus
 }

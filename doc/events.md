@@ -121,3 +121,15 @@ void uiEventSetHandlerBlocked(uiEvent *e, int id, bool blocked);
 `uiEventSetHandlerBlocked()` changes whether or not the given registered event handler is bocked. `id` should be the identifier of a previously registered event handler as returned by `uiEventAddHandler()`.
 
 It is a programmer error to specify `NULL` for `e` or a currently unregistered event identifier for `id`. It is also a programmer error to call `uiEventSetHandlerBlocked()` on an event while that event is being fired.
+
+## `xxxxx()`
+
+```c
+void uiEventInvalidateSender(uiEvent *e, void *sender);
+```
+
+`uiEventInvalidateSender()` instructs any registered handlers of `e` with sender `sender` that they should no longer fire. The handlers are not deleted (since the handler IDs may be reused, which may lead to bugs in client code), nor are they blocked with `uiEventHandlerSetBlocked()` (so the value of the blocked flag will be unaffected), but they will no longer actually run when the event is fired with the given sender pointer. Any future handlers registered with the same sender pointer will NOT be deactivated thus; only the existing ones are. The affected handlers can safely be deleted or blocked (the blocked flag merely no longer has any effect).
+
+The idea behind this function is that it is to be called when `sender` is destroyed, so `sender` does not need to worry about whether it has an event handler registered against it or not. Since it is possible for two objects whose lifetimes never overlap to have the same pointer value, simply blacklisting the sender pointer is insufficient.
+
+It is a programmer error to specify `NULL` or a global event for `e`, or to specify `NULL` for `sender`.

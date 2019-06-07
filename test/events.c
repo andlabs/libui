@@ -844,6 +844,9 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(t, e, p, p->args,
 		h, 4, 0);
 
+	// TODO delete and then add a handler with sender1 and make sure this new one is fired
+	// TODO during sender2, do the same, but in the place of a handler with blocked set
+
 #if 0
 // TODOTODO
 	testingTLogf(t, "*** blocking one of sender 2's handlers only runs the other (initial state check)");

@@ -42,3 +42,6 @@
 
 #define uiprivProgrammerErrorFreeingEventInUse() \
 	uiprivProgrammerError("attempt to free a uiEvent that still has handlers registered")
+
+#define uiprivProgrammerErrorInvalidatingGlobalEvent() \
+	uiprivProgrammerError("attempt to call uiEventInvalidateSender() on a global uiEvent")

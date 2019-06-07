@@ -7,6 +7,7 @@ struct handler {
 	void *sender;
 	void *data;
 	bool blocked;
+	bool invalidated;
 };
 
 static int handlerCmp(const void *a, const void *b)
@@ -175,7 +176,7 @@ void uiEventFire(uiEvent *e, void *sender, void *args)
 	e->firing = true;
 	h = (struct handler *) (e->handlers.buf);
 	for (i = 0; i < e->handlers.len; i++) {
-		if (h->sender == sender && !h->blocked)
+		if (!h->blocked && !h->invalidated && h->sender == sender)
 			(*(h->f))(sender, args, h->data);
 		h++;
 	}
@@ -207,4 +208,30 @@ void uiEventSetHandlerBlocked(uiEvent *e, int id, bool blocked)
 	if (h == NULL)
 		return;
 	h->blocked = blocked;
+}
+
+void uiEventInvalidateSender(uiEvent *e, void *sender)
+{
+	struct handler *h;
+	size_t i;
+
+	if (!uiprivCheckInitializedAndThread())
+		return;
+	checkEventNonnull(e, /* nothing */);
+	checkEventNotFiring(e, /* nothing */);
+	if (e->opts.Global) {
+		uiprivProgrammerErrorInvalidatingGlobalEvent();
+		return;
+	}
+	if (sender == NULL) {
+		uiprivProgrammerErrorBadSenderForEvent("NULL", "non-global", uiprivFunc);
+		return;
+	}
+
+	h = (struct handler *) (e->handlers.buf);
+	for (i = 0; i < e->handlers.len; i++) {
+		if (h->sender == sender)
+			h->invalidated = true;
+		h++;
+	}
 }

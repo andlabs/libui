@@ -742,6 +742,197 @@ testingTest(EventBlocksHonoredWithDifferentSenders)
 	runGlobalSubtests(t, &p);
 }
 
+static void eventInvalidateSenderImpl(testingT *t, void *data)
+{
+	struct baseParams *p = (struct baseParams *) data;
+	uiEvent *e;
+	uiEventOptions opts;
+	struct handler *h;
+	void *sender1, *sender2;
+
+	memset(&opts, 0, sizeof (uiEventOptions));
+	opts.Size = sizeof (uiEventOptions);
+	opts.Global = false;
+	e = uiNewEvent(&opts);
+	testingTDefer(t, deferEventFree, e);
+
+	h = allocHandlers(t, 4);
+	testingTDefer(t, deferFree, h);
+	h[0].name = "sender 1 handler 1";
+	h[1].name = "sender 2 handler 1";
+	h[2].name = "sender 2 handler 2";
+	h[3].name = "sender 1 handler 2";
+	testingTDefer(t, deferUnregisterHandler, h + 3);
+	testingTDefer(t, deferUnregisterHandler, h + 2);
+	testingTDefer(t, deferUnregisterHandler, h + 1);
+	testingTDefer(t, deferUnregisterHandler, h + 0);
+
+	// dynamically allocate these so we don't run the risk of upsetting an optimizer somewhere, since we don't touch this memory
+	sender1 = malloc(16);
+	if (sender1 == NULL)
+		testingTFatalf(t, "memory exhausted allocating sender 1");
+	memset(sender1, 5, 16);
+	testingTDefer(t, deferFree, sender1);
+	sender2 = malloc(32);
+	if (sender2 == NULL)
+		testingTFatalf(t, "memory exhausted allocating sender 2");
+	memset(sender2, 10, 32);
+	testingTDefer(t, deferFree, sender2);
+
+	registerHandler(h + 0, e, sender1, p->args);
+	registerHandler(h + 1, e, sender2, p->args);
+	registerHandler(h + 2, e, sender2, p->args);
+	registerHandler(h + 3, e, sender1, p->args);
+
+	testingTLogf(t, "*** sender 1 initial state");
+	wantRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantRun(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 2);
+
+	testingTLogf(t, "*** invalidating sender 1 disables it");
+	uiEventInvalidateSender(e, sender1);
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 0);
+
+	testingTLogf(t, "*** unblocking one of sender 1's handlers does nothing");
+	uiEventSetHandlerBlocked(e, h[3].id, false);
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 0);
+
+	testingTLogf(t, "*** blocking one of sender 1's handlers saves the flag setting, but does not otherwise have any effect");
+	uiEventSetHandlerBlocked(e, h[3].id, true);
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantBlocked(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 0);
+
+	testingTLogf(t, "*** and unblocking it again only affects the flag, nothing else");
+	uiEventSetHandlerBlocked(e, h[3].id, false);
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 0);
+
+	testingTLogf(t, "*** sender 1 being invalidated has no effect on sender 2");
+	wantNotRun(h + 0);
+	wantRun(h + 1);
+	wantRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, sender2, p->args,
+		h, 4, 2);
+
+	testingTLogf(t, "*** sender 1 being invalidated has no effect on an entirely different sender");
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, p, p->args,
+		h, 4, 0);
+
+#if 0
+// TODOTODO
+	testingTLogf(t, "*** blocking one of sender 2's handlers only runs the other (initial state check)");
+	uiEventSetHandlerBlocked(e, h[2].id, true);
+	wantNotRun(h + 0);
+	wantRun(h + 1);
+	wantBlocked(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, sender2, p->args,
+		h, 4, 1);
+
+	testingTLogf(t, "*** blocking one of sender 2's handlers doesn't affect sender 1");
+	wantRun(h + 0);
+	wantNotRun(h + 1);
+	wantBlocked(h + 2);
+	wantBlocked(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 1);
+
+	testingTLogf(t, "*** blocking one of sender 2's handlers doesn't affect the above entirely different sender");
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantBlocked(h + 2);
+	wantBlocked(h + 3);
+	run(t, e, p, p->args,
+		h, 4, 0);
+
+	testingTLogf(t, "*** deleting the blocked sender 2 handler only runs the other");
+	unregisterHandler(h + 2);
+	wantNotRun(h + 0);
+	wantRun(h + 1);
+	wantNotRun(h + 2);
+	wantBlocked(h + 3);
+	run(t, e, sender2, p->args,
+		h, 4, 1);
+
+	testingTLogf(t, "*** deleting the blocked sender 2 handler doesn't affect sender 1");
+	wantRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantBlocked(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 1);
+
+	testingTLogf(t, "*** deleting the blocked sender 2 handler doesn't affect the above entirely different sender");
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantBlocked(h + 3);
+	run(t, e, p, p->args,
+		h, 4, 0);
+
+	testingTLogf(t, "*** adding a new sender 1 handler doesn't affect the existing blocked one");
+	h[2].name = "sender 1 handler 3";
+	registerHandler(h + 2, e, sender1, p->args);
+	wantRun(h + 0);
+	wantNotRun(h + 1);
+	wantRun(h + 2);
+	wantBlocked(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 2);
+
+	testingTLogf(t, "*** adding a new sender 1 handler doesn't affect sender 2");
+	wantNotRun(h + 0);
+	wantRun(h + 1);
+	wantNotRun(h + 2);
+	wantBlocked(h + 3);
+	run(t, e, sender2, p->args,
+		h, 4, 1);
+
+	testingTLogf(t, "*** adding a new sender 1 handler doesn't affect the above entirely different handler");
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantBlocked(h + 3);
+	run(t, e, p, p->args,
+		h, 4, 0);
+#endif
+}
+
+testingTest(EventInvalidateSender)
+{
+	struct baseParams p;
+
+	memset(&p, 0, sizeof (struct baseParams));
+	p.impl = eventInvalidateSenderImpl;
+	runArgsSubtests(t, &p);
+}
+
 static void testWhileFiring(void *sender, void *args, void *data)
 {
 	testingT *t = (testingT *) data;
@@ -766,6 +957,8 @@ static void testWhileFiring(void *sender, void *args, void *data)
 		"attempt to fire a uiEvent while it is already being fired");
 	testProgrammerError(t, uiEventSetHandlerBlocked(firingEvent, idPlaceholder, blockedPlaceholder),
 		"attempt to change a uiEvent with uiEventSetHandlerBlocked() while it is firing");
+	testProgrammerError(t, uiEventInvalidateSender(firingEvent, senderPlaceholder),
+		"attempt to change a uiEvent with uiEventInvalidateSender() while it is firing");
 }
 
 struct deferDeleteFiringHandlerParams {
@@ -846,6 +1039,13 @@ testingTest(EventErrors)
 		"invalid null pointer for uiEvent passed into uiEventHandlerBlocked()");
 	testProgrammerError(t, uiEventHandlerBlocked(eventPlaceholder, 5),
 		"uiEvent handler identifier 5 not found in uiEventHandlerBlocked()");
+
+	testProgrammerError(t, uiEventInvalidateSender(NULL, senderPlaceholder),
+		"invalid null pointer for uiEvent passed into uiEventInvalidateSender()");
+	testProgrammerError(t, uiEventInvalidateSender(globalEvent, NULL),
+		"attempt to call uiEventInvalidateSender() on a global uiEvent");
+	testProgrammerError(t, uiEventInvalidateSender(nonglobalEvent, NULL),
+		"attempt to use a NULL sender with a non-global event in uiEventInvalidateSender()");
 
 	testProgrammerError(t, uiEventSetHandlerBlocked(NULL, idPlaceholder, blockedPlaceholder),
 		"invalid null pointer for uiEvent passed into uiEventSetHandlerBlocked()");

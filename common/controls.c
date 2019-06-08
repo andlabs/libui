@@ -26,6 +26,7 @@ struct uiControl {
 	uint32_t typeID;
 	struct controlType *type;
 	void *implData;
+	uiControl *parent;
 };
 
 static uiprivArray controlTypes = uiprivArrayStaticInit(struct controlType, 32, "uiControl type information");
@@ -71,19 +72,19 @@ uint32_t uiRegisterControlType(const char *name, uiControlVtable *vtable, uiCont
 	if (!uiprivOSVtableValid(osVtable, uiprivFunc))
 		return 0;
 
-	ct = (struct controlType *) uiprivArr
-ayAppend(&controlTypes, 1);
+	ct = (struct controlType *) uiprivArrayAppend(&controlTypes, 1);
 	ct->id = nextControlID;
 	nextControlID++;
 	ct->name = uiprivStrdup(name);
 	ct->vtable = *vtable;
 	ct->osVtable = uiprivCloneOSVtable(osVtable);
 	ct->implDataSize = implDataSize;
-	return ct;
+	return ct->id;
 }
 
 void *uiCheckControlType(void *c, uint32_t type)
 {
+	uiControl *cc = (uiControl *) c;
 	struct controlType *got, *want;
 	struct controlType key;
 
@@ -93,7 +94,7 @@ void *uiCheckControlType(void *c, uint32_t type)
 		uiprivProgrammerErrorNullPointer("uiControl", uiprivFunc);
 		return NULL;
 	}
-	if (c->controlID != controlTypeID) {
+	if (cc->controlID != controlTypeID) {
 		uiprivProgrammerErrorNotAControl(uiprivFunc);
 		return NULL;
 	}
@@ -101,10 +102,10 @@ void *uiCheckControlType(void *c, uint32_t type)
 	// now grab the type information for c itself
 	// do this even if we were asked if this is a uiControl; we want to make absolutely sure this is a *real* uiControl
 	memset(&key, 0, sizeof (struct controlType));
-	key.id = c->typeID;
-	got = (struct controlType *) uiprivArrayBsearch(&controlTypes &key, controlTypeCmp);
+	key.id = cc->typeID;
+	got = (struct controlType *) uiprivArrayBsearch(&controlTypes, &key, controlTypeCmp);
 	if (got == NULL) {
-		uiprivProgrammerErrorUnknownTypeUsed(c->typeID, uiprivFunc);
+		uiprivProgrammerErrorUnknownTypeUsed(cc->typeID, uiprivFunc);
 		return NULL;
 	}
 
@@ -115,13 +116,13 @@ void *uiCheckControlType(void *c, uint32_t type)
 	// type isn't uiControlType(); make sure it is valid too
 	memset(&key, 0, sizeof (struct controlType));
 	key.id = type;
-	want = (struct controlType *) uiprivArrayBsearch(&controlTypes &key, controlTypeCmp);
+	want = (struct controlType *) uiprivArrayBsearch(&controlTypes, &key, controlTypeCmp);
 	if (want == NULL) {
 		uiprivProgrammerErrorUnknownTypeRequested(type, uiprivFunc);
 		return NULL;
 	}
 
-	if (c->typeID != type) {
+	if (cc->typeID != type) {
 		uiprivProgrammerErrorWrongType(got->name, want->name, uiprivFunc);
 		return NULL;
 	}
@@ -193,7 +194,9 @@ void *uiControlImplData(uiControl *c)
 		return NULL;
 	if (c == NULL) {
 		uiprivProgrammerErrorNullPointer("uiControl", uiprivFunc);
-		return;
+		return NULL;
 	}
 	return c->implData;
 }
+
+$$

@@ -1,5 +1,6 @@
 // 19 april 2019
 #include <errno.h>
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +49,7 @@ extern bool uiprivSysCheckThread(void);
 #define sharedbitsPrefix uipriv
 // TODO determine if we need the ../ or not, and if not, figure out if we should use it everywhere (including ui.h) or not
 #include "../sharedbits/alloc_header.h"
-#define uiprivNew(T) ((T *) sharedbitsPrefix ## Alloc(sizeof (T), #T))
+#define uiprivNew(T) ((T *) uiprivAlloc(sizeof (T), #T))
 #include "../sharedbits/array_header.h"
 #define uiprivArrayStaticInit(T, grow, whatstr) { NULL, 0, 0, sizeof (T), grow, whatstr }
 #define uiprivArrayInit(arr, T, nGrow, what) uiprivArrayInitFull(&(arr), sizeof (T), nGrow, what)
@@ -66,6 +67,10 @@ uiprivPrintfFunc(
 	1, 2);
 #include "programmererrors.h"
 extern void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal);
+
+// controls.c
+extern bool uiprivOSVtableValid(uiControlOSVtable *osVtable, const char *func);
+extern uiControlOSVtable *uiprivCloneOSVtable(uiControlOSVtable *osVtable);
 
 #ifdef __cplusplus
 }

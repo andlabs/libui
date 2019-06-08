@@ -68,3 +68,11 @@
 
 #define uiprivProgrammerErrorCannotCreateBaseControl() \
 	uiprivProgrammerError("cannot create a uiControl of type uiControl; you must use a specific control type")
+
+#define uiprivProgrammerErrorInvalidControlInitData(type, func) \
+	uiprivProgrammerError("invalid init data for %s in %s()", \
+		type, func)
+
+#define uiprivProgrammerErrorControlHasParent(func) \
+	uiprivProgrammerError("control passed to %s() (which requires a control without a parent) has a parent", \
+		func)

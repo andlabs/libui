@@ -128,6 +128,8 @@ void *uiCheckControlType(void *c, uint32_t type)
 	return c;
 }
 
+#define callVtable(method, ...) ((*(method))(__VA_ARGS__))
+
 uiControl *uiNewControl(uint32_t type, void *initData)
 {
 	uiControl *c;
@@ -147,16 +149,51 @@ uiControl *uiNewControl(uint32_t type, void *initData)
 		uiprivProgrammerErrorUnknownTypeRequested(type, uiprivFunc);
 		return NULL;
 	}
+
+	c = uiprivNew(uiControl);
+	c->controlID = controlTypeID;
+	c->typeID = type;
+	c->type = ct;
+	if (ct->implDataSize != 0)
+		c->implData = uiprivAlloc(ct->implDataSize, "uiControl implementation data");
+	if (!callVtable(c->type->vtable.Init, c, c->implData, initData)) {
+		uiprivProgrammerErrorInvalidControlInitData(ct->name, uiprivFunc);
+		uiprivFree(c->implData);
+		uiprivFree(c);
+		return NULL;
+	}
+	return c;
 }
 
 void uiControlFree(uiControl *c)
 {
 	if (!uiprivCheckInitializedAndThread())
 		return;
+	if (c == NULL) {
+		uiprivProgrammerErrorNullPointer("uiControl", uiprivFunc);
+		return;
+	}
+	if (c->parent != NULL) {
+		uiprivProgrammerErrorControlHasParent(uiprivFunc);
+		return;
+	}
+
+	uiEventFire(uiControlOnFree(), c, NULL);
+	uiEventInvalidateSender(uiControlOnFree(), c);
+
+	callVtable(c->type->vtable.Free, c, c->implData);
+
+	uiprivFree(c->implData);
+	uiprivFree(c);
 }
 
 void *uiControlImplData(uiControl *c)
 {
 	if (!uiprivCheckInitializedAndThread())
 		return NULL;
+	if (c == NULL) {
+		uiprivProgrammerErrorNullPointer("uiControl", uiprivFunc);
+		return;
+	}
+	return c->implData;
 }

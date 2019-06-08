@@ -48,6 +48,7 @@ extern bool uiprivSysCheckThread(void);
 #define sharedbitsPrefix uipriv
 // TODO determine if we need the ../ or not, and if not, figure out if we should use it everywhere (including ui.h) or not
 #include "../sharedbits/alloc_header.h"
+#define uiprivNew(T) ((T *) sharedbitsPrefix ## Alloc(sizeof (T), #T))
 #include "../sharedbits/array_header.h"
 #define uiprivArrayStaticInit(T, grow, whatstr) { NULL, 0, 0, sizeof (T), grow, whatstr }
 #define uiprivArrayInit(arr, T, nGrow, what) uiprivArrayInitFull(&(arr), sizeof (T), nGrow, what)

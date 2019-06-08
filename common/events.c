@@ -30,6 +30,13 @@ struct uiEvent {
 	uiprivArray unusedIDs;
 	bool firing;
 };
+#define eventStaticInit(global) { \
+	{ sizeof (uiEventOptions), global }, \
+	true, \
+	uiprivArrayStaticInit(struct handler, 32, "uiEvent handlers"), \
+	uirpivArrayStaticInit(int, 32, "uiEvent handler unused IDs"), \
+	false, \
+}
 
 uiEvent *uiNewEvent(const uiEventOptions *options)
 {
@@ -235,3 +242,15 @@ void uiEventInvalidateSender(uiEvent *e, void *sender)
 		h++;
 	}
 }
+
+// All built-in events go here.
+
+#define builtInEvent(name, global) \
+	static uiEvent event_ ## name = eventStaticInit(global); \
+	uiEvent *name(void) \
+	{ \
+		if (!uiprivCheckInitializedAndThread()) \
+			return NULL; \
+		return &event_ ## name; \
+	}
+builtInEvent(uiControlOnFree, false)

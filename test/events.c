@@ -844,87 +844,67 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(t, e, p, p->args,
 		h, 4, 0);
 
-	// TODO delete and then add a handler with sender1 and make sure this new one is fired
-	// TODO during sender2, do the same, but in the place of a handler with blocked set
+	testingTLogf(t, "*** deleting an unblocked sender 1 handler and then adding another one does not block the new one");
+	unregisterHandler(h + 3);
+	registerHandler(h + 3, e, sender1, p->args);
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantRun(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 1);
 
-#if 0
-// TODOTODO
-	testingTLogf(t, "*** blocking one of sender 2's handlers only runs the other (initial state check)");
-	uiEventSetHandlerBlocked(e, h[2].id, true);
+	testingTLogf(t, "*** sender 2 initial state");
 	wantNotRun(h + 0);
 	wantRun(h + 1);
+	wantRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, sender2, p->args,
+		h, 4, 2);
+
+	testingTLogf(t, "*** invalidating sender 2 disables it");
+	uiEventInvalidateSender(e, sender2);
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantNotRun(h + 2);
+	wantNotRun(h + 3);
+	run(t, e, sender2, p->args,
+		h, 4, 0);
+
+	testingTLogf(t, "*** blocking one of sender 2's handlers saves the flag setting, but does not otherwise have any effect");
+	uiEventSetHandlerBlocked(e, h[2].id, true);
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
 	wantBlocked(h + 2);
 	wantNotRun(h + 3);
 	run(t, e, sender2, p->args,
-		h, 4, 1);
+		h, 4, 0);
 
-	testingTLogf(t, "*** blocking one of sender 2's handlers doesn't affect sender 1");
-	wantRun(h + 0);
-	wantNotRun(h + 1);
-	wantBlocked(h + 2);
-	wantBlocked(h + 3);
-	run(t, e, sender1, p->args,
-		h, 4, 1);
-
-	testingTLogf(t, "*** blocking one of sender 2's handlers doesn't affect the above entirely different sender");
+	testingTLogf(t, "*** sender 2 being invalidated has no effect on sender 1");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantBlocked(h + 2);
-	wantBlocked(h + 3);
+	wantRun(h + 3);
+	run(t, e, sender1, p->args,
+		h, 4, 1);
+
+	testingTLogf(t, "*** sender 2 being invalidated has no effect on the above entirely different sender");
+	wantNotRun(h + 0);
+	wantNotRun(h + 1);
+	wantBlocked(h + 2);
+	wantNotRun(h + 3);
 	run(t, e, p, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** deleting the blocked sender 2 handler only runs the other");
+	testingTLogf(t, "*** deleting a blocked sender 2 handler and then adding another one does not block the new one");
 	unregisterHandler(h + 2);
+	registerHandler(h + 2, e, sender2, p->args);
 	wantNotRun(h + 0);
-	wantRun(h + 1);
-	wantNotRun(h + 2);
-	wantBlocked(h + 3);
-	run(t, e, sender2, p->args,
-		h, 4, 1);
-
-	testingTLogf(t, "*** deleting the blocked sender 2 handler doesn't affect sender 1");
-	wantRun(h + 0);
-	wantNotRun(h + 1);
-	wantNotRun(h + 2);
-	wantBlocked(h + 3);
-	run(t, e, sender1, p->args,
-		h, 4, 1);
-
-	testingTLogf(t, "*** deleting the blocked sender 2 handler doesn't affect the above entirely different sender");
-	wantNotRun(h + 0);
-	wantNotRun(h + 1);
-	wantNotRun(h + 2);
-	wantBlocked(h + 3);
-	run(t, e, p, p->args,
-		h, 4, 0);
-
-	testingTLogf(t, "*** adding a new sender 1 handler doesn't affect the existing blocked one");
-	h[2].name = "sender 1 handler 3";
-	registerHandler(h + 2, e, sender1, p->args);
-	wantRun(h + 0);
 	wantNotRun(h + 1);
 	wantRun(h + 2);
-	wantBlocked(h + 3);
-	run(t, e, sender1, p->args,
-		h, 4, 2);
-
-	testingTLogf(t, "*** adding a new sender 1 handler doesn't affect sender 2");
-	wantNotRun(h + 0);
-	wantRun(h + 1);
-	wantNotRun(h + 2);
-	wantBlocked(h + 3);
+	wantNotRun(h + 3);
 	run(t, e, sender2, p->args,
 		h, 4, 1);
-
-	testingTLogf(t, "*** adding a new sender 1 handler doesn't affect the above entirely different handler");
-	wantNotRun(h + 0);
-	wantNotRun(h + 1);
-	wantNotRun(h + 2);
-	wantBlocked(h + 3);
-	run(t, e, p, p->args,
-		h, 4, 0);
-#endif
 }
 
 testingTest(EventInvalidateSender)

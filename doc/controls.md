@@ -42,14 +42,18 @@ Each method is named for the `uiControl` function that it implements. As such, d
 ### `uiRegisterControlType()`
 
 ```c
-uint32_t uiRegisterControlType(uiControlVtable *vtable, uiControlOSVtable *osVtable, size_t implDataSize);
+uint32_t uiRegisterControlType(const char *name, uiControlVtable *vtable, uiControlOSVtable *osVtable, size_t implDataSize);
 ```
 
 `uiRegisterControlType()` registers a new `uiControl` type with the given vtables and returns its ID as passed to `uiNewControl()`. `implDataSize` is the size of the implementation data struct that is created by `uiNewControl()`.
 
-`uiControlVtable` describes the functions of a `uiControl` common between platforms, and is discussed on this page. `uiControlOSVtable` describes functionst hat vary from OS to OS, and are described in the respective OS-specific uiControl implementation pages.
+Each type has a name, passed in the `name` parameter. The type name is only used for debugging and error reporting purposes. The type name is copied into libui-internal memory; the `name` pointer passed to `uiRegisterControlType()` is not used after it returns.
 
-It is a programmer error to specify `NULL` for either vtable. An `implDataSize` of 0 is legal; the implementation data pointer will be `NULL`. This is not particularly useful, however. It is also a programmer error to specify `NULL` for any of the methods in either vtable — that is, all methods are required. It is also a programmer error to pass the wrong value to the `Size` field of either vtable.
+`uiControlVtable` describes the functions of a `uiControl` common between platforms, and is discussed on this page. `uiControlOSVtable` describes functionst hat vary from OS to OS, and are described in the respective OS-specific uiControl implementation pages. The two vtables are copied into libui-internal memory; the vtable pointers passed to `uiRegisterControlType()` are not used after it returns.
+
+It is a programmer error to specify `NULL` for either vtable. It is also a programmer error to specify `NULL` for any of the methods in either vtable — that is, all methods are required. It is also a programmer error to pass the wrong value to the `Size` field of either vtable.
+
+An `implDataSize` of 0 is legal; the implementation data pointer will be `NULL`. This is not particularly useful, however.
 
 ### `uiCheckControlType()`
 

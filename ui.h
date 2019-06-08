@@ -70,6 +70,7 @@ uiprivExtern uint32_t uiControlType(void);
 #define uiControl(obj) ((uiControl *) uiCheckControlType((obj), uiControlType()))
 
 struct uiControlVtable {
+	size_t Size;
 	bool (*Init)(uiControl *c, void *implData, void *initData);
 	void (*Free)(uiControl *c, void *implData);
 };

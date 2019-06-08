@@ -25,12 +25,15 @@ uint32_t uiControlType(void);
 ```c
 typedef struct uiControlVtable uiControlVtable;
 struct uiControlVtable {
+	size_t Size;
 	bool (*Init)(uiControl *c, void *implData, void *initData);
 	void (*Free)(uiControl *c, void *implData);
 };
 ```
 
 `uiControlVtable` describes the set of functions that control implementations need to implement. When registering your control type, you pass this in as a parameter to `uiRegisterControlType()`. Each method here is required.
+
+You are responsible for allocating and initializing this struct. To do so, you simply zero the memory for this struct and set its `Size` field to `sizeof (uiControlVtable)`. (TODO put this in a common place)
 
 Each method takes at least two parameters. The first, `c`, is the `uiControl` itself. The second, `implData`, is the implementation data pointer; it is the same as the pointer returned by `uiControlImplData(c)`, and is provided here as a convenience.
 
@@ -46,7 +49,7 @@ uint32_t uiRegisterControlType(uiControlVtable *vtable, uiControlOSVtable *osVta
 
 `uiControlVtable` describes the functions of a `uiControl` common between platforms, and is discussed on this page. `uiControlOSVtable` describes functionst hat vary from OS to OS, and are described in the respective OS-specific uiControl implementation pages.
 
-It is a programmer error to specify `NULL` for either vtable. An `implDataSize` of 0 is legal; the implementation data pointer will be `NULL`. This is not particularly useful, however. It is also a programmer error to specify `NULL` for any of the methods in either vtable — that is, all methods are required.
+It is a programmer error to specify `NULL` for either vtable. An `implDataSize` of 0 is legal; the implementation data pointer will be `NULL`. This is not particularly useful, however. It is also a programmer error to specify `NULL` for any of the methods in either vtable — that is, all methods are required. It is also a programmer error to pass the wrong value to the `Size` field of either vtable.
 
 ### `uiCheckControlType()`
 

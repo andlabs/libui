@@ -5,4 +5,5 @@
 #include "../sharedbits/alloc_impl.h"
 #include "../sharedbits/array_impl.h"
 #include "../sharedbits/strsafe_impl.h"
+#include "../sharedbits/strdup_impl.h"
 #undef sharedbitsPrefix

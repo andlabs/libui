@@ -19,13 +19,14 @@ sharedbitsPrintfFunc(
 #define testingprivArrayFree(arr) testingprivArrayFreeFull(&(arr))
 #define testingprivArrayAt(arr, T, n) (((T *) (arr.buf)) + (n))
 
+#include "../../sharedbits/strdup_header.h"
+
 #undef sharedbitsPrefix
 
 extern int testingprivVsnprintf(char *s, size_t n, const char *fmt, va_list ap);
 sharedbitsPrintfFunc(
 	extern int testingprivSnprintf(char *s, size_t n, const char *fmt, ...),
 	3, 4);
-extern char *testingprivStrdup(const char *s);
 extern char *testingprivVsmprintf(const char *fmt, va_list ap);
 sharedbitsPrintfFunc(
 	extern char *testingprivSmprintf(const char *fmt, ...),

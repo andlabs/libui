@@ -31,6 +31,12 @@ void testingprivInternalError(const char *fmt, ...)
 #undef sharedbitsStatic
 #undef sharedbitsPrefix
 
+#define sharedbitsPrefix testingpriv
+#define testingprivStrncpy testingprivImplStrncpy
+#include "../../sharedbits/strdup_impl.h"
+#undef testingprivStrncpy
+#undef sharedbitsPrefix
+
 int testingprivVsnprintf(char *s, size_t n, const char *fmt, va_list ap)
 {
 	int ret;
@@ -50,17 +56,6 @@ int testingprivSnprintf(char *s, size_t n, const char *fmt, ...)
 	ret = testingprivVsnprintf(s, n, fmt, ap);
 	va_end(ap);
 	return ret;
-}
-
-char *testingprivStrdup(const char *s)
-{
-	char *t;
-	size_t n;
-
-	n = strlen(s);
-	t = (char *) testingprivAlloc((n + 1) * sizeof (char), "char[]");
-	testingprivImplStrncpy(t, s, n + 1);
-	return t;
 }
 
 char *testingprivVsmprintf(const char *fmt, va_list ap)

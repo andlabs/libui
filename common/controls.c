@@ -198,5 +198,3 @@ void *uiControlImplData(uiControl *c)
 	}
 	return c->implData;
 }
-
-$$

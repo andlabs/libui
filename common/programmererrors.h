@@ -41,7 +41,7 @@
 		type, func)
 
 #define uiprivProgrammerErrorWrongType(got, want, func) \
-	uiprivProgrammerError("wrong type passed to %s(): got %s, want %s",
+	uiprivProgrammerError("wrong type passed to %s(): got %s, want %s", \
 		func, got, want)
 
 #define uiprivProgrammerErrorBadSenderForEvent(senderDesc, eventDesc, func) \

@@ -34,7 +34,7 @@ struct uiEvent {
 	{ sizeof (uiEventOptions), global }, \
 	true, \
 	uiprivArrayStaticInit(struct handler, 32, "uiEvent handlers"), \
-	uirpivArrayStaticInit(int, 32, "uiEvent handler unused IDs"), \
+	uiprivArrayStaticInit(int, 32, "uiEvent handler unused IDs"), \
 	false, \
 }
 

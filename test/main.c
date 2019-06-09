@@ -6,20 +6,14 @@ void timeoutMain(void *data)
 	uiMain();
 }
 
-struct errorParams errorParams;
-
-void catchProgrammerError(const char *prefix, const char *msg, const char *suffix, bool internal)
+void catchProgrammerError(const char *msg, void *data)
 {
-	errorParams.caught = true;
-	if (strcmp(prefix, "libui programmer error") != 0)
-		// TODO use diff
-		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s prefix string doesn't contain \"programmer error\": %s", errorParams.exprstr, prefix);
-	if (internal)
-		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s error is marked internal; should not have been", errorParams.exprstr);
-	if (strcmp(msg, errorParams.msgWant) != 0)
-		// TODO use diff
-		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s: message doesn't contain expected substring:" diff("%s"),
-			errorParams.exprstr, msg, errorParams.msgWant);
+	struct errorParams *errorParams = (struct errorParams *) data;
+
+	errorParams->caught = true;
+	if (strcmp(msg, errorParams->msgWant) != 0)
+		testingTErrorfFull(errorParams->t, errorParams->file, errorParams->line, "%s: message doesn't match expected string:" diff("%s"),
+			errorParams->exprstr, msg, errorParams->msgWant);
 }
 
 static void runSetORingResults(testingSet *set, const struct testingOptions *options, bool *anyRun, bool *anyFailed)

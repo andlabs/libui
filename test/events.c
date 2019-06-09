@@ -916,8 +916,8 @@ testingTest(EventInvalidateSender)
 	runArgsSubtests(t, &p);
 }
 
-#if 0
-TODOTODO
+// TODO table-ize these
+// TODO deduplicate this from the one in noinitwrongthread.c?
 
 static void testWhileFiring(void *sender, void *args, void *data)
 {
@@ -1054,5 +1054,3 @@ testingTest(EventErrors)
 		"attempt to free a uiEvent that still has handlers registered");
 	uiEventFire(firingEvent, NULL, firingEvent);
 }
-
-#endif

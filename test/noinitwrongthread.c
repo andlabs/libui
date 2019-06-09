@@ -36,7 +36,7 @@ static void deferResetProgrammerError(testingT *t, void *data)
 		if (!c->caught) \
 			testingTErrorf(t, "did not throw a programmer error; should have"); \
 		if (c->msgGot != NULL) { \
-			testingTErrorf(t, "message doesn't contain expected string:" diff("%s"), \
+			testingTErrorf(t, "message doesn't match expected string:" diff("%s"), \
 				c->msgGot, c->msgWant); \
 			testingUtilFreeStrdup(c->msgGot); \
 		} \

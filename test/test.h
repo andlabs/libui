@@ -34,11 +34,11 @@ struct errorParams {
 	const char *msgWant;
 	bool caught;
 };
-extern struct errorParams errorParams;
-extern void catchProgrammerError(const char *prefix, const char *msg, const char *suffix, bool internal);
+extern void catchProgrammerError(const char *msg, void *data);
 #define testProgrammerError(tt, expr, mw) { \
+	struct errorParams errorParams; \
 	testingTLogf(t, "*** %s", #expr); \
-	uiprivTestHookReportProgrammerError(catchProgrammerError); \
+	uiprivTestHookReportProgrammerError(catchProgrammerError, &errorParams); \
 	errorParams.t = tt; \
 	errorParams.file = __FILE__; \
 	errorParams.line = __LINE__; \
@@ -48,7 +48,7 @@ extern void catchProgrammerError(const char *prefix, const char *msg, const char
 	expr; \
 	if (!errorParams.caught) \
 		testingTErrorfFull(t, errorParams.file, errorParams.line, "%s did not throw a programmer error; should have", #expr); \
-	uiprivTestHookReportProgrammerError(NULL); \
+	uiprivTestHookReportProgrammerError(NULL, NULL); \
 }
 
 // init.c

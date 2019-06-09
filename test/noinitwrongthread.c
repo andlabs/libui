@@ -2,18 +2,14 @@
 #include "test.h"
 
 struct errorCase {
-	const char *name;
-	const char *file;
-	long line;
 	bool caught;
 	char *msgGot;
 	const char *msgWant;
-	struct errorCase *next;
 };
 
-static void catalogProgrammerError(const char *msg, void *data)
+static void handleProgrammerError(const char *msg, void *data)
 {
-	static struct errorCase *c;
+	struct errorCase *c = (struct errorCase *) data;
 	size_t n;
 
 	c->caught = true;
@@ -23,99 +19,49 @@ static void catalogProgrammerError(const char *msg, void *data)
 	}
 }
 
-static struct errorCase *newCase(void)
-{
-	struct errorCase *p;
-
-	p = (struct errorCase *) malloc(sizeof (struct errorCase));
-	if (p == NULL) {
-		caseError = caseErrorMemoryExhausted;
-		return NULL;
+#define allcallsCase(f, ...) \
+	static void beforeInitCase ## f ## Impl(testingT *t, void *data) \
+	{ \
+		struct errorCase *c = (struct errorCase *) data; \
+		memset(c, 0, sizeof (struct errorCase)); \
+		c->msgWant = "attempt to call " #f "() before uiInit()"; \
+		uiprivTestHookReportProgrammerError(handleProgrammerError, c); \
+		f(__VA_ARGS__); \
+		if (!c->caught) \
+			testingTErrorf(t, "did not throw a programmer error; should have"); \
+		if (c->msgGot != NULL) { \
+			testingTErrorf(t, "message doesn't contain expected string:" diff("%s"), \
+				c->msgGot, c->msgWant); \
+			testingUtilFreeStrdup(c->msgGot); \
+		} \
+		uiprivTestHookReportProgrammerError(NULL, NULL); \
 	}
-	memset(p, 0, sizeof (struct errorCase));
-	return p;
-}
-
-static void freeCases(struct errorCase *first)
-{
-	struct errorCase *p, *next;
-
-	p = first;
-	while (p != NULL) {
-		if (p->msgGot != NULL)
-			testingUtilFreeStrdup(p->msgGot);
-		next = p->next;
-		free(p);
-		p = next;
-	}
-}
-
-static void reportCases(testingT *t, struct errorCase *p)
-{
-	while (p != NULL) {
-		testingTLogfFull(t, p->file, p->line, "*** %s", p->name);
-		if (!p->caught) {
-			testingTErrorfFull(t, p->file, p->line, "%s did not throw a programmer error; should have", p->name);
-			p = p->next;
-			continue;
-		}
-		if (p->msgGot != NULL)
-			// TODO use diff
-			testingTErrorfFull(t, p->file, p->line, "%s message doesn't contain expected substring:" diff("%s"),
-				p->name, p->msgGot, p->msgWant);
-		p = p->next;
-	}
-}
-
-#define allcallsCase(f, ...) { \
-	current = newCase(); \
-	if (caseError != NULL) \
-		return first; \
-	current->name = #f "()"; \
-	current->file = __FILE__; \
-	current->line = __LINE__; \
-	current->msgWant = "attempt to call " #f "() " allcallsMsgSuffix; \
-	f(__VA_ARGS__); \
-	if (first == NULL) \
-		first = current; \
-	if (last != NULL) \
-		last->next = current; \
-	last = current; \
-	if (caseError != NULL) \
-		return first; \
-}
-
-static struct errorCase *runCasesBeforeInit(void)
-{
-	struct errorCase *first = NULL;
-	struct errorCase *last = NULL;
-
-#define allcallsMsgSuffix "before uiInit()"
-	allcallsCase(uiQueueMain, NULL, NULL);
+allcallsCase(uiQueueMain, NULL, NULL)
 #include "allcalls.h"
-#undef allcallsMsgSuffix
-	return first;
-}
+#undef allcallsCase
+
+static const struct {
+	const char *name;
+	void (*f)(testingT *, void *);
+} beforeInitCases[] = {
+#define allcallsCase(f, ...) { #f, beforeInitCase ## f ## Impl },
+allcallsCase(uiQueueMain, NULL, NULL)
+#include "allcalls.h"
+#undef allcallsCase
+	{ NULL, NULL },
+};
 
 testingTestInSet(beforeTests, FunctionsFailBeforeInit)
 {
-	struct errorCase *cases;
+	struct errorCase c;
+	size_t i;
 
-	caseError = NULL;
-	uiprivTestHookReportProgrammerError(catalogProgrammerError);
-	cases = runCasesBeforeInit();
-	uiprivTestHookReportProgrammerError(NULL);
-	if (caseError != NULL) {
-		freeCases(cases);
-		testingTErrorf(t, "%s running tests", caseError);
-		if (caseError != caseErrorMemoryExhausted && caseError != caseErrorEncodingError)
-			free(caseError);
-		caseError = NULL;
-		testingTFailNow(t);
-	}
-	reportCases(t, cases);
-	freeCases(cases);
+	for (i = 0; beforeInitCases[i].name != NULL; i++)
+		testingTRun(t, beforeInitCases[i].name, beforeInitCases[i].f, &c);
 }
+
+#if 0
+TODOTODO
 
 static struct errorCase *runCasesWrongThread(void)
 {
@@ -166,3 +112,5 @@ testingTest(FunctionsFailOnWrongThread)
 	reportCases(t, cases);
 	freeCases(cases);
 }
+
+#endif

@@ -49,7 +49,7 @@ uiEvent *uiNewEvent(const uiEventOptions *options)
 		return NULL;
 	}
 	if (options->Size != sizeof (uiEventOptions)) {
-		uiprivProgrammerErrorWrongStructSize(options->Size, "uiEventOptions");
+		uiprivProgrammerErrorWrongStructSize(options->Size, "uiEventOptions", uiprivFunc);
 		return NULL;
 	}
 	e = (uiEvent *) uiprivAlloc(sizeof (uiEvent), "uiEvent");

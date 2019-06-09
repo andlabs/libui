@@ -1,6 +1,8 @@
 // 8 june 2019
 #include "test.h"
 
+#if 0
+
 struct testOSVtable {
 	void (*TestMethod)(uiControl *c, void *implData);
 };
@@ -52,7 +54,7 @@ testingTest(ControlErrors)
 	memset(&vtableBadSize, 0, sizeof (uiEventOptions));
 	vtableBadSize.Size = 1;
 	testProgrammerError(t, uiRegisterControlType("name", &badVtableSize, &osVtablePlaceholder, sizeof (struct testImplData)),
-		"wrong size 1 for uiControlVtable");
+		"wrong size 1 for uiControlVtable in uiRegisterControlType()");
 #define testBadMethod(method) { \
 	uiControlVtable bad ## method ## MethodVtable; \
 	bad ## method ## MethodVtable = vtablePlaceholder; \
@@ -64,3 +66,5 @@ testingTest(ControlErrors)
 		"invalid null pointer for uiControlOSVtable passed into uiRegisterControlType()");
 	// OS vtable sizes are tested per-OS
 }
+
+#endif

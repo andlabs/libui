@@ -8,9 +8,9 @@
 	uiprivProgrammerError("attempt to call %s() on a thread other than the GUI thread", \
 		func)
 
-#define uiprivProgrammerErrorWrongStructSize(badSize, structName) \
-	uiprivProgrammerError("wrong size %" uiprivSizetPrintf " for %s", \
-		badSize, structName)
+#define uiprivProgrammerErrorWrongStructSize(badSize, structName, func) \
+	uiprivProgrammerError("wrong size %" uiprivSizetPrintf " for %s in %s()", \
+		badSize, structName, func)
 
 #define uiprivProgrammerErrorIndexOutOfRange(badIndex, func) \
 	uiprivProgrammerError("index %d out of range in %s()", \

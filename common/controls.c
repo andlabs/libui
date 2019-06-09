@@ -53,7 +53,7 @@ uint32_t uiRegisterControlType(const char *name, uiControlVtable *vtable, uiCont
 		return 0;
 	}
 	if (vtable->Size != sizeof (uiControlVtable)) {
-		uiprivProgrammerErrorWrongStructSize(vtable->Size, "uiControlVtable");
+		uiprivProgrammerErrorWrongStructSize(vtable->Size, "uiControlVtable", uiprivFunc);
 		return 0;
 	}
 #define checkMethod(method) \

@@ -974,7 +974,7 @@ testingTest(EventErrors)
 	memset(&eventOptionsBadSize, 0, sizeof (uiEventOptions));
 	eventOptionsBadSize.Size = 1;
 	testProgrammerError(t, uiNewEvent(&eventOptionsBadSize),
-		"wrong size 1 for uiEventOptions");
+		"wrong size 1 for uiEventOptions in uiNewEvent()");
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);

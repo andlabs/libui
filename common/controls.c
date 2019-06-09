@@ -58,7 +58,7 @@ uint32_t uiRegisterControlType(const char *name, uiControlVtable *vtable, uiCont
 	}
 #define checkMethod(method) \
 	if (vtable->method == NULL) { \
-		uiprivProgrammerErrorRequiredMethodMissing(name, "uiControlVtable", #method, uiprivFunc); \
+		uiprivProgrammerErrorRequiredControlMethodMissing(name, "uiControlVtable", #method, uiprivFunc); \
 		return 0; \
 	}
 	checkMethod(Init)
@@ -105,7 +105,7 @@ void *uiCheckControlType(void *c, uint32_t type)
 	key.id = cc->typeID;
 	got = (struct controlType *) uiprivArrayBsearch(&controlTypes, &key, controlTypeCmp);
 	if (got == NULL) {
-		uiprivProgrammerErrorUnknownTypeUsed(cc->typeID, uiprivFunc);
+		uiprivProgrammerErrorUnknownControlTypeUsed(cc->typeID, uiprivFunc);
 		return NULL;
 	}
 
@@ -118,12 +118,12 @@ void *uiCheckControlType(void *c, uint32_t type)
 	key.id = type;
 	want = (struct controlType *) uiprivArrayBsearch(&controlTypes, &key, controlTypeCmp);
 	if (want == NULL) {
-		uiprivProgrammerErrorUnknownTypeRequested(type, uiprivFunc);
+		uiprivProgrammerErrorUnknownControlTypeRequested(type, uiprivFunc);
 		return NULL;
 	}
 
 	if (cc->typeID != type) {
-		uiprivProgrammerErrorWrongType(got->name, want->name, uiprivFunc);
+		uiprivProgrammerErrorWrongControlType(got->name, want->name, uiprivFunc);
 		return NULL;
 	}
 	return c;
@@ -147,7 +147,7 @@ uiControl *uiNewControl(uint32_t type, void *initData)
 	key.id = type;
 	ct = (struct controlType *) uiprivArrayBsearch(&controlTypes, &key, controlTypeCmp);
 	if (ct == NULL) {
-		uiprivProgrammerErrorUnknownTypeRequested(type, uiprivFunc);
+		uiprivProgrammerErrorUnknownControlTypeRequested(type, uiprivFunc);
 		return NULL;
 	}
 

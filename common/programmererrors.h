@@ -39,55 +39,55 @@
 		func)
 
 #define uiprivProgrammerErrorRecursiveEventFire(func) \
-	uiprivProgrammerError("atteTODOmpt to fire a uiEvent while it is already being fired in %s()", \
+	uiprivProgrammerError("attempt to fire a uiEvent while it is already being fired in %s()", \
 		func)
 
 #define uiprivProgrammerErrorFreeingInternalEvent(func) \
-	uiprivProgrammerError("atteTODOmpt to free a libui-provided uiEvent", \
+	uiprivProgrammerError("attempt to free a libui-provided uiEvent", \
 		func)
 
 #define uiprivProgrammerErrorFreeingEventInUse(func) \
-	uiprivProgrammerError("atteTODOmpt to free a uiEvent that still has handlers registered", \
+	uiprivProgrammerError("attempt to free a uiEvent that still has handlers registered", \
 		func)
 
 #define uiprivProgrammerErrorInvalidatingGlobalEvent(func) \
-	uiprivProgrammerError("atteTODOmpt to call uiEventInvalidateSender() on a global uiEvent", \
+	uiprivProgrammerError("attempt to call uiEventInvalidateSender() on a global uiEvent", \
 		func)
 
 // }
 
 // controls {
 
-#define uiprivProgrammerErrorRequiredMethodMissing(typeName, tableType, methodName, func) \
-	uiprivProgrammerError("%s: required %s method %s() missing in %s()", \
-		typeName, tableType, methodName, func)
+#define uiprivProgrammerErrorRequiredControlMethodMissing(typeName, tableType, methodName, func) \
+	uiprivProgrammerError("%s(): required %s method %s() missing for uiControl type %s", \
+		func, tableType, methodName, typeName)
 
 #define uiprivProgrammerErrorNotAControl(func) \
-	uiprivProgrammerError("object passed in to %s() not a uiControl", \
+	uiprivProgrammerError("%s(): object passed in not a uiControl", \
 		func)
 
-#define uiprivProgrammerErrorUnknownTypeUsed(type, func) \
-	uiprivProgrammerError("unknown type %" PRIu32 " found in uiControl passed to %s(); this is likely not a real uiControl or some data is corrupt", \
-		type, func)
+#define uiprivProgrammerErrorUnknownControlTypeUsed(type, func) \
+	uiprivProgrammerError("%s(): unknown uiControl type %" PRIu32 " found in uiControl (this is likely not a real uiControl or some data is corrupt)", \
+		func, type)
 
-#define uiprivProgrammerErrorUnknownTypeRequested(type, func) \
-	uiprivProgrammerError("unknown type %" PRIu32 " passed to %s()", \
-		type, func)
+#define uiprivProgrammerErrorUnknownControlTypeRequested(type, func) \
+	uiprivProgrammerError("%s(): unknown uiControl type %" PRIu32 " requested", \
+		func, type)
 
-#define uiprivProgrammerErrorWrongType(got, want, func) \
-	uiprivProgrammerError("wrong type passed to %s(): got %s, want %s", \
+#define uiprivProgrammerErrorWrongControlType(got, want, func) \
+	uiprivProgrammerError("%s(): wrong uiControl type passed: got %s, want %s", \
 		func, got, want)
 
 #define uiprivProgrammerErrorCannotCreateBaseControl(func) \
-	uiprivProgrammerError("canTODOnot create a uiControl of type uiControl in %s(); you must use a specific control type", \
+	uiprivProgrammerError("%s(): uiControlType() passed in when specific control type needed", \
 		func)
 
 #define uiprivProgrammerErrorInvalidControlInitData(type, func) \
-	uiprivProgrammerError("invalid init data for %s in %s()", \
-		type, func)
+	uiprivProgrammerError("%s(): invalid init data for %s", \
+		func, type)
 
 #define uiprivProgrammerErrorControlHasParent(func) \
-	uiprivProgrammerError("control passed to %s() (which requires a control without a parent) has a parent", \
+	uiprivProgrammerError("%s(): cannot be called on a control with has a parent", \
 		func)
 
 // }

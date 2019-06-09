@@ -38,17 +38,21 @@
 	uiprivProgrammerError("attempt to change a uiEvent with %s() while it is firing", \
 		func)
 
-#define uiprivProgrammerErrorRecursiveEventFire() \
-	uiprivProgrammerError("attempt to fire a uiEvent while it is already being fired")
+#define uiprivProgrammerErrorRecursiveEventFire(func) \
+	uiprivProgrammerError("atteTODOmpt to fire a uiEvent while it is already being fired in %s()", \
+		func)
 
-#define uiprivProgrammerErrorFreeingInternalEvent() \
-	uiprivProgrammerError("attempt to free a libui-provided uiEvent")
+#define uiprivProgrammerErrorFreeingInternalEvent(func) \
+	uiprivProgrammerError("atteTODOmpt to free a libui-provided uiEvent", \
+		func)
 
-#define uiprivProgrammerErrorFreeingEventInUse() \
-	uiprivProgrammerError("attempt to free a uiEvent that still has handlers registered")
+#define uiprivProgrammerErrorFreeingEventInUse(func) \
+	uiprivProgrammerError("atteTODOmpt to free a uiEvent that still has handlers registered", \
+		func)
 
-#define uiprivProgrammerErrorInvalidatingGlobalEvent() \
-	uiprivProgrammerError("attempt to call uiEventInvalidateSender() on a global uiEvent")
+#define uiprivProgrammerErrorInvalidatingGlobalEvent(func) \
+	uiprivProgrammerError("atteTODOmpt to call uiEventInvalidateSender() on a global uiEvent", \
+		func)
 
 // }
 
@@ -74,8 +78,9 @@
 	uiprivProgrammerError("wrong type passed to %s(): got %s, want %s", \
 		func, got, want)
 
-#define uiprivProgrammerErrorCannotCreateBaseControl() \
-	uiprivProgrammerError("cannot create a uiControl of type uiControl; you must use a specific control type")
+#define uiprivProgrammerErrorCannotCreateBaseControl(func) \
+	uiprivProgrammerError("canTODOnot create a uiControl of type uiControl in %s(); you must use a specific control type", \
+		func)
 
 #define uiprivProgrammerErrorInvalidControlInitData(type, func) \
 	uiprivProgrammerError("invalid init data for %s in %s()", \

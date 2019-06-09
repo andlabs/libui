@@ -74,12 +74,12 @@ void uiEventFree(uiEvent *e)
 		return;
 	checkEventNonnull(e, /* nothing */);
 	if (e->internal) {
-		uiprivProgrammerErrorFreeingInternalEvent();
+		uiprivProgrammerErrorFreeingInternalEvent(uiprivFunc);
 		return;
 	}
 	checkEventNotFiring(e, /* nothing */);
 	if (e->handlers.len != 0) {
-		uiprivProgrammerErrorFreeingEventInUse();
+		uiprivProgrammerErrorFreeingEventInUse(uiprivFunc);
 		return;
 	}
 
@@ -174,7 +174,7 @@ void uiEventFire(uiEvent *e, void *sender, void *args)
 		return;
 	checkEventNonnull(e, /* nothing */);
 	if (e->firing) {
-		uiprivProgrammerErrorRecursiveEventFire();
+		uiprivProgrammerErrorRecursiveEventFire(uiprivFunc);
 		return;
 	}
 	if (!checkEventSender(e, sender, uiprivFunc))
@@ -227,7 +227,7 @@ void uiEventInvalidateSender(uiEvent *e, void *sender)
 	checkEventNonnull(e, /* nothing */);
 	checkEventNotFiring(e, /* nothing */);
 	if (e->opts.Global) {
-		uiprivProgrammerErrorInvalidatingGlobalEvent();
+		uiprivProgrammerErrorInvalidatingGlobalEvent(uiprivFunc);
 		return;
 	}
 	if (sender == NULL) {

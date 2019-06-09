@@ -140,7 +140,7 @@ uiControl *uiNewControl(uint32_t type, void *initData)
 	if (!uiprivCheckInitializedAndThread())
 		return NULL;
 	if (type == controlTypeID) {
-		uiprivProgrammerErrorCannotCreateBaseControl();
+		uiprivProgrammerErrorCannotCreateBaseControl(uiprivFunc);
 		return NULL;
 	}
 	memset(&key, 0, sizeof (struct controlType));

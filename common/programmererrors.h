@@ -26,9 +26,9 @@
 
 // events {
 
-#define uiprivProgrammerErrorIntIDNotFound(idDesc, badID, func) \
-	uiprivProgrammerError("%s identifier %d not found in %s()", \
-		idDesc, badID, func)
+#define uiprivProgrammerErrorEventHandlerNotFound(badID, func) \
+	uiprivProgrammerError("event handler %d not found in %s()", \
+		badID, func)
 
 #define uiprivProgrammerErrorBadSenderForEvent(senderDesc, eventDesc, func) \
 	uiprivProgrammerError("attempt to use a %s sender with a %s event in %s()", \

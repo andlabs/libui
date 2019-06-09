@@ -145,7 +145,7 @@ static struct handler *findHandler(const uiEvent *e, int id, const char *func)
 	key.id = id;
 	ret = (struct handler *) uiprivArrayBsearch(&(e->handlers), &key, handlerCmp);
 	if (ret == NULL)
-		uiprivProgrammerErrorIntIDNotFound("uiEvent handler", id, func);
+		uiprivProgrammerErrorEventHandlerNotFound(id, func);
 	return ret;
 }
 

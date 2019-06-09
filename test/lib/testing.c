@@ -312,3 +312,15 @@ void testingTRun(testingT *t, const char *subname, void (*subfunc)(testingT *t, 
 
 	testingprivFree(fullName);
 }
+
+// Utility functions, provided here to avoid mucking up the sharedbits functions.
+
+char *testingUtilStrdup(const char *s)
+{
+	return testingprivStrdup(s);
+}
+
+void testingUtilFreeStrdup(char *s)
+{
+	testingprivFree(s);
+}

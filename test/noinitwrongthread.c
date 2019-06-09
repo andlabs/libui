@@ -11,45 +11,6 @@ struct errorCase {
 	struct errorCase *next;
 };
 
-static struct errorCase *current = NULL;
-static char *caseError = NULL;
-static char caseErrorMemoryExhausted[] = "memory exhausted";
-static char caseErrorEncodingError[] = "encoding error while handling other case error";
-
-#define sharedbitsPrefix priv
-#define sharedbitsStatic static
-#ifdef _WIN32
-// While we do only need strncpy(), our privInternalError() calls vsnprintf(), so include that too.
-#include "../../sharedbits/strsafe_impl.h"
-static void privInternalError(const char *fmt, ...)
-{
-	va_list ap, ap2;
-	int n;
-
-	va_start(ap, fmt);
-	va_copy(ap2, ap);
-	n = privVsnprintf(NULL, 0, fmt, ap2);
-	va_end(ap2);
-	if (n < 0) {
-		caseError = caseErrorEncodingError;
-		va_end(ap);
-		return;
-	}
-	caseError = (char *) malloc((n + 1) * sizeof (char));
-	if (caseError == NULL) {
-		caseError = caseErrorMemoryExhausted;
-		va_end(ap);
-		return;
-	}
-	privVsnprintf(caseError, n + 1, fmt, ap);
-	va_end(ap);
-}
-#else
-#include "../../sharedbits/strsafe_strncpy_impl.h"
-#endif
-#undef sharedbitsStatic
-#undef sharedbitsPrefix
-
 static void catalogProgrammerError(const char *msg, void *data)
 {
 	static struct errorCase *c;
@@ -58,14 +19,7 @@ static void catalogProgrammerError(const char *msg, void *data)
 	c->caught = true;
 	if (strcmp(msg, c->msgWant) != 0) {
 		n = strlen(msg);
-		c->msgGot = (char *) malloc((n + 1) * sizeof (char));
-		if (c->msgGot == NULL) {
-			caseError = caseErrorMemoryExhausted;
-			return;
-		}
-		privStrncpy(c->msgGot, msg, n + 1);
-		if (caseError != NULL)
-			return;
+		c->msgGot = testingUtilStrdup(msg);
 	}
 }
 
@@ -89,7 +43,7 @@ static void freeCases(struct errorCase *first)
 	p = first;
 	while (p != NULL) {
 		if (p->msgGot != NULL)
-			free(p->msgGot);
+			testingUtilFreeStrdup(p->msgGot);
 		next = p->next;
 		free(p);
 		p = next;

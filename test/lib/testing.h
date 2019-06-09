@@ -100,3 +100,7 @@ sharedbitsPrintfFunc(
 	5, 6);
 #undef sharedbitsPrintfFunc
 extern void testingprivTLogvfFullThen(testingT *, void (*)(testingT *), const char *, long, const char *, va_list);
+
+// Utility functions, provided here to avoid mucking up the sharedbits functions.
+extern char *testingUtilStrdup(const char *s);
+extern void testingUtilFreeStrdup(char *s);

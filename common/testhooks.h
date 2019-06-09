@@ -5,8 +5,8 @@ extern "C" {
 #endif
 
 // errors.c
-typedef void (*uiprivTestHookReportProgrammerErrorFunc)(const char *prefix, const char *msg, const char *suffix, bool internal);
-uiprivExtern void uiprivTestHookReportProgrammerError(uiprivTestHookReportProgrammerErrorFunc f);
+typedef void (*uiprivTestHookReportProgrammerErrorFunc)(const char *msg, void *data);
+uiprivExtern void uiprivTestHookReportProgrammerError(uiprivTestHookReportProgrammerErrorFunc f, void *data);
 
 #ifdef __cplusplus
 }

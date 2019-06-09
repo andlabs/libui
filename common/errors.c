@@ -26,13 +26,13 @@ void uiprivInternalError(const char *fmt, ...)
 // TODO add debugging advice?
 #define programmerErrorSuffix "This likely means you are using libui incorrectly. Check your source code and try again. If you have received this warning in error, contact the libui authors."
 
-static uiprivTestHookReportProgrammerErrorFunc reportProgrammerErrorTestHook = uiprivReportError;
+static uiprivTestHookReportProgrammerErrorFunc reportProgrammerErrorTestHook = NULL;
+static void *reportProgrammerErrorTestHookData = NULL;
 
-void uiprivTestHookReportProgrammerError(uiprivTestHookReportProgrammerErrorFunc f)
+void uiprivTestHookReportProgrammerError(uiprivTestHookReportProgrammerErrorFunc f, void *data)
 {
-	if (f == NULL)
-		f = uiprivReportError;
 	reportProgrammerErrorTestHook = f;
+	reportProgrammerErrorTestHookData = data;
 }
 
 void uiprivProgrammerError(const char *fmt, ...)
@@ -48,5 +48,9 @@ void uiprivProgrammerError(const char *fmt, ...)
 	if (n >= 256)
 		uiprivInternalError("programmer error string too long (%d)", n);
 	va_end(ap);
-	(*reportProgrammerErrorTestHook)(programmerErrorPrefix, buf, programmerErrorSuffix, false);
+	if (reportProgrammerErrorTestHook != NULL) {
+		(*reportProgrammerErrorTestHook)(buf, reportProgrammerErrorTestHookData);
+		return;
+	}
+	uiprivReportError(programmerErrorPrefix, buf, programmerErrorSuffix, false);
 }

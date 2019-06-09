@@ -934,17 +934,17 @@ static void testWhileFiring(void *sender, void *args, void *data)
 	blockedPlaceholder = false;
 
 	testProgrammerError(t, uiEventFree(firingEvent),
-		"attempt to change a uiEvent with uiEventFree() while it is firing");
+		"uiEventFree(): can't change a uiEvent while it is firing");
 	testProgrammerError(t, uiEventAddHandler(firingEvent, handler, senderPlaceholder, dataPlaceholder),
-		"attempt to change a uiEvent with uiEventAddHandler() while it is firing");
+		"uiEventAddHandler(): can't change a uiEvent while it is firing");
 	testProgrammerError(t, uiEventDeleteHandler(firingEvent, idPlaceholder),
-		"attempt to change a uiEvent with uiEventDeleteHandler() while it is firing");
+		"uiEventDeleteHandler(): can't change a uiEvent while it is firing");
 	testProgrammerError(t, uiEventFire(firingEvent, senderPlaceholder, argsPlaceholder),
-		"attempt to fire a uiEvent while it is already being fired");
+		"uiEventFire(): can't recursively fire a uiEvent");
 	testProgrammerError(t, uiEventSetHandlerBlocked(firingEvent, idPlaceholder, blockedPlaceholder),
-		"attempt to change a uiEvent with uiEventSetHandlerBlocked() while it is firing");
+		"uiEventSetHandlerBlocked(): can't change a uiEvent while it is firing");
 	testProgrammerError(t, uiEventInvalidateSender(firingEvent, senderPlaceholder),
-		"attempt to change a uiEvent with uiEventInvalidateSender() while it is firing");
+		"uiEventInvalidateSender(): can't change a uiEvent while it is firing");
 }
 
 struct deferDeleteFiringHandlerParams {
@@ -973,11 +973,11 @@ testingTest(EventErrors)
 	struct deferDeleteFiringHandlerParams *fp;
 
 	testProgrammerError(t, uiNewEvent(NULL),
-		"invalid null pointer for uiEventOptions passed into uiNewEvent()");
+		"uiNewEvent(): invalid null pointer for uiEventOptions");
 	memset(&eventOptionsBadSize, 0, sizeof (uiEventOptions));
 	eventOptionsBadSize.Size = 1;
 	testProgrammerError(t, uiNewEvent(&eventOptionsBadSize),
-		"wrong size 1 for uiEventOptions in uiNewEvent()");
+		"uiNewEvent(): wrong size 1 for uiEventOptions");
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
@@ -989,7 +989,7 @@ testingTest(EventErrors)
 	testingTDefer(t, deferEventFree, nonglobalEvent);
 
 	testProgrammerError(t, uiEventFree(NULL),
-		"invalid null pointer for uiEvent passed into uiEventFree()");
+		"uiEventFree(): invalid null pointer for uiEvent");
 	// We test trying to free a uiEvent with handlers later, when we actually need to make one for testing firing.
 
 	eventPlaceholder = globalEvent;
@@ -1001,42 +1001,42 @@ testingTest(EventErrors)
 	blockedPlaceholder = false;
 
 	testProgrammerError(t, uiEventAddHandler(NULL, handler, senderPlaceholder, dataPlaceholder),
-		"invalid null pointer for uiEvent passed into uiEventAddHandler()");
+		"uiEventAddHandler(): invalid null pointer for uiEvent");
 	testProgrammerError(t, uiEventAddHandler(eventPlaceholder, NULL, senderPlaceholder, dataPlaceholder),
-		"invalid null pointer for uiEventHandler passed into uiEventAddHandler()");
+		"uiEventAddHandler(): invalid null pointer for uiEventHandler");
 	testProgrammerError(t, uiEventAddHandler(globalEvent, handler, nonNullSender, dataPlaceholder),
-		"attempt to use a non-NULL sender with a global event in uiEventAddHandler()");
+		"uiEventAddHandler(): can't use a non-NULL sender with a global event");
 	testProgrammerError(t, uiEventAddHandler(nonglobalEvent, handler, NULL, dataPlaceholder),
-		"attempt to use a NULL sender with a non-global event in uiEventAddHandler()");
+		"uiEventAddHandler(): can't use a NULL sender with a non-global event");
 
 	testProgrammerError(t, uiEventDeleteHandler(NULL, idPlaceholder),
-		"invalid null pointer for uiEvent passed into uiEventDeleteHandler()");
+		"uiEventDeleteHandler(): invalid null pointer for uiEvent");
 	testProgrammerError(t, uiEventDeleteHandler(eventPlaceholder, 5),
-		"uiEvent handler identifier 5 not found in uiEventDeleteHandler()");
+		"uiEventDeleteHandler(): event handler 5 not found");
 
 	testProgrammerError(t, uiEventFire(NULL, senderPlaceholder, argsPlaceholder),
-		"invalid null pointer for uiEvent passed into uiEventFire()");
+		"uiEventFire(): invalid null pointer for uiEvent");
 	testProgrammerError(t, uiEventFire(globalEvent, nonNullSender, argsPlaceholder),
-		"attempt to use a non-NULL sender with a global event in uiEventFire()");
+		"uiEventFire(): can't use a non-NULL sender with a global event");
 	testProgrammerError(t, uiEventFire(nonglobalEvent, NULL, argsPlaceholder),
-		"attempt to use a NULL sender with a non-global event in uiEventFire()");
+		"uiEventFire(): can't use a NULL sender with a non-global event");
 
 	testProgrammerError(t, uiEventHandlerBlocked(NULL, idPlaceholder),
-		"invalid null pointer for uiEvent passed into uiEventHandlerBlocked()");
+		"uiEventHandlerBlocked(): invalid null pointer for uiEvent");
 	testProgrammerError(t, uiEventHandlerBlocked(eventPlaceholder, 5),
-		"uiEvent handler identifier 5 not found in uiEventHandlerBlocked()");
-
-	testProgrammerError(t, uiEventInvalidateSender(NULL, senderPlaceholder),
-		"invalid null pointer for uiEvent passed into uiEventInvalidateSender()");
-	testProgrammerError(t, uiEventInvalidateSender(globalEvent, NULL),
-		"attempt to call uiEventInvalidateSender() on a global uiEvent");
-	testProgrammerError(t, uiEventInvalidateSender(nonglobalEvent, NULL),
-		"attempt to use a NULL sender with a non-global event in uiEventInvalidateSender()");
+		"uiEventHandlerBlocked(): event handler 5 not found");
 
 	testProgrammerError(t, uiEventSetHandlerBlocked(NULL, idPlaceholder, blockedPlaceholder),
-		"invalid null pointer for uiEvent passed into uiEventSetHandlerBlocked()");
+		"uiEventSetHandlerBlocked(): invalid null pointer for uiEvent");
 	testProgrammerError(t, uiEventSetHandlerBlocked(eventPlaceholder, 5, blockedPlaceholder),
-		"uiEvent handler identifier 5 not found in uiEventSetHandlerBlocked()");
+		"uiEventSetHandlerBlocked(): event handler 5 not found");
+
+	testProgrammerError(t, uiEventInvalidateSender(NULL, senderPlaceholder),
+		"uiEventInvalidateSender(): invalid null pointer for uiEvent");
+	testProgrammerError(t, uiEventInvalidateSender(globalEvent, NULL),
+		"uiEventInvalidateSender(): can't invalidate a global event");
+	testProgrammerError(t, uiEventInvalidateSender(nonglobalEvent, NULL),
+		"uiEventInvalidateSender(): can't use a NULL sender with a non-global event");
 
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
@@ -1051,6 +1051,6 @@ testingTest(EventErrors)
 	fp->id = uiEventAddHandler(fp->e, testWhileFiring, NULL, t);
 	testingTDefer(t, deferDeleteFiringHandler, fp);
 	testProgrammerError(t, uiEventFree(firingEvent),
-		"attempt to free a uiEvent that still has handlers registered");
+		"uiEventFree(): can't free event that still has handlers registered");
 	uiEventFire(firingEvent, NULL, firingEvent);
 }

@@ -12,3 +12,13 @@ allcallsCase(uiEventFire, NULL, NULL, NULL)
 allcallsCase(uiEventHandlerBlocked, NULL, 0)
 allcallsCase(uiEventSetHandlerBlocked, NULL, 0, false)
 allcallsCase(uiEventInvalidateSender, NULL, NULL)
+
+allcallsCase(uiControlType, /* no arguments */)
+
+allcallsCase(uiRegisterControlType, NULL, NULL, NULL, 0)
+allcallsCase(uiCheckControlType, NULL, 0)
+
+allcallsCase(uiNewControl, 0, NULL)
+allcallsCase(uiControlFree, NULL)
+allcallsCase(uiControlImplData, NULL)
+allcallsCase(uiControlOnFree, /* no arguments */)

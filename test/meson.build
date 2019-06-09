@@ -1,6 +1,7 @@
 # 23 march 2019
 
 libui_test_sources = [
+	'controls.c',
 	'events.c',
 	'initmain.c',
 	'main.c',

@@ -2,11 +2,6 @@
 #include "../ui.h"
 #include "uipriv.h"
 
-void uiControlDestroy(uiControl *c)
-{
-	(*(c->Destroy))(c);
-}
-
 uintptr_t uiControlHandle(uiControl *c)
 {
 	return (*(c->Handle))(c);
@@ -55,26 +50,6 @@ void uiControlEnable(uiControl *c)
 void uiControlDisable(uiControl *c)
 {
 	(*(c->Disable))(c);
-}
-
-#define uiprivControlSignature 0x7569436F
-
-uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr)
-{
-	uiControl *c;
-
-	c = (uiControl *) uiprivAlloc(size, typenamestr);
-	c->Signature = uiprivControlSignature;
-	c->OSSignature = OSsig;
-	c->TypeSignature = typesig;
-	return c;
-}
-
-void uiFreeControl(uiControl *c)
-{
-	if (uiControlParent(c) != NULL)
-		uiprivUserBug("You cannot destroy a uiControl while it still has a parent. (control: %p)", c);
-	uiprivFree(c);
 }
 
 void uiControlVerifySetParent(uiControl *c, uiControl *parent)

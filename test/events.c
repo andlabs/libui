@@ -916,6 +916,9 @@ testingTest(EventInvalidateSender)
 	runArgsSubtests(t, &p);
 }
 
+#if 0
+TODOTODO
+
 static void testWhileFiring(void *sender, void *args, void *data)
 {
 	testingT *t = (testingT *) data;
@@ -1051,3 +1054,5 @@ testingTest(EventErrors)
 		"attempt to free a uiEvent that still has handlers registered");
 	uiEventFire(firingEvent, NULL, firingEvent);
 }
+
+#endif

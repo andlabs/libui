@@ -6,8 +6,6 @@ struct errorCase {
 	const char *file;
 	long line;
 	bool caught;
-	char *prefixGot;
-	bool internalGot;
 	char *msgGot;
 	const char *msgWant;
 	struct errorCase *next;
@@ -52,31 +50,20 @@ static void privInternalError(const char *fmt, ...)
 #undef sharedbitsStatic
 #undef sharedbitsPrefix
 
-static void catalogProgrammerError(const char *prefix, const char *msg, const char *suffix, bool internal)
+static void catalogProgrammerError(const char *msg, void *data)
 {
+	static struct errorCase *c;
 	size_t n;
 
-	current->caught = true;
-	if (strcmp(prefix, "libui programmer error") != 0) {
-		n = strlen(prefix);
-		current->prefixGot = (char *) malloc((n + 1) * sizeof (char));
-		if (current->prefixGot == NULL) {
-			caseError = caseErrorMemoryExhausted;
-			return;
-		}
-		privStrncpy(current->prefixGot, prefix, n + 1);
-		if (caseError != NULL)
-			return;
-	}
-	current->internalGot = internal;
-	if (strcmp(msg, current->msgWant) != 0) {
+	c->caught = true;
+	if (strcmp(msg, c->msgWant) != 0) {
 		n = strlen(msg);
-		current->msgGot = (char *) malloc((n + 1) * sizeof (char));
-		if (current->msgGot == NULL) {
+		c->msgGot = (char *) malloc((n + 1) * sizeof (char));
+		if (c->msgGot == NULL) {
 			caseError = caseErrorMemoryExhausted;
 			return;
 		}
-		privStrncpy(current->msgGot, msg, n + 1);
+		privStrncpy(c->msgGot, msg, n + 1);
 		if (caseError != NULL)
 			return;
 	}
@@ -101,8 +88,6 @@ static void freeCases(struct errorCase *first)
 
 	p = first;
 	while (p != NULL) {
-		if (p->prefixGot != NULL)
-			free(p->prefixGot);
 		if (p->msgGot != NULL)
 			free(p->msgGot);
 		next = p->next;
@@ -120,11 +105,6 @@ static void reportCases(testingT *t, struct errorCase *p)
 			p = p->next;
 			continue;
 		}
-		if (p->prefixGot != NULL)
-			// TODO use diff
-			testingTErrorfFull(t, p->file, p->line, "%s prefix string doesn't contain \"programmer error\": %s", p->name, p->prefixGot);
-		if (p->internalGot)
-			testingTErrorfFull(t, p->file, p->line, "%s error is marked internal; should not have been", p->name);
 		if (p->msgGot != NULL)
 			// TODO use diff
 			testingTErrorfFull(t, p->file, p->line, "%s message doesn't contain expected substring:" diff("%s"),

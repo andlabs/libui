@@ -19,6 +19,11 @@ static void handleProgrammerError(const char *msg, void *data)
 	}
 }
 
+static void deferResetProgrammerError(testingT *t, void *data)
+{
+	uiprivTestHookReportProgrammerError(NULL, NULL);
+}
+
 #define allcallsCase(f, ...) \
 	static void beforeInitCase ## f ## Impl(testingT *t, void *data) \
 	{ \
@@ -26,6 +31,7 @@ static void handleProgrammerError(const char *msg, void *data)
 		memset(c, 0, sizeof (struct errorCase)); \
 		c->msgWant = "attempt to call " #f "() before uiInit()"; \
 		uiprivTestHookReportProgrammerError(handleProgrammerError, c); \
+		testingTDefer(t, deferResetProgrammerError, NULL); \
 		f(__VA_ARGS__); \
 		if (!c->caught) \
 			testingTErrorf(t, "did not throw a programmer error; should have"); \
@@ -34,7 +40,6 @@ static void handleProgrammerError(const char *msg, void *data)
 				c->msgGot, c->msgWant); \
 			testingUtilFreeStrdup(c->msgGot); \
 		} \
-		uiprivTestHookReportProgrammerError(NULL, NULL); \
 	}
 allcallsCase(uiQueueMain, NULL, NULL)
 #include "allcalls.h"
@@ -60,57 +65,52 @@ testingTestInSet(beforeTests, FunctionsFailBeforeInit)
 		testingTRun(t, beforeInitCases[i].name, beforeInitCases[i].f, &c);
 }
 
-#if 0
-TODOTODO
-
-static struct errorCase *runCasesWrongThread(void)
-{
-	struct errorCase *first = NULL;
-	struct errorCase *last = NULL;
-
-#define allcallsMsgSuffix "on a thread other than the GUI thread"
-#include "allcalls.h"
-#undef allcallsMsgSuffix
-	return first;
-}
-
-static void wrongThreadThreadProc(void *data)
-{
-	struct errorCase **pCases = (struct errorCase **) data;
-
-	uiprivTestHookReportProgrammerError(catalogProgrammerError);
-	*pCases = runCasesWrongThread();
-	uiprivTestHookReportProgrammerError(NULL);
-	// do this now in case memory was exhausted and something gets allocated before we return to the main thread
-	if (caseError != NULL) {
-		freeCases(*pCases);
-		*pCases = NULL;
+#define allcallsCase(f, ...) \
+	static void wrongThreadCase ## f ## ThreadProc(void *data) \
+	{ \
+		f(__VA_ARGS__); \
+	} \
+	static void wrongThreadCase ## f ## Impl(testingT *t, void *data) \
+	{ \
+		struct errorCase *c = (struct errorCase *) data; \
+		threadThread *thread; \
+		threadSysError err; \
+		memset(c, 0, sizeof (struct errorCase)); \
+		c->msgWant = "attempt to call " #f "() on a thread other than the GUI thread"; \
+		uiprivTestHookReportProgrammerError(handleProgrammerError, c); \
+		testingTDefer(t, deferResetProgrammerError, NULL); \
+		err = threadNewThread(wrongThreadCase ## f ## ThreadProc, NULL, &thread); \
+		if (err != 0) \
+			testingTFatalf(t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err)); \
+		err = threadThreadWaitAndFree(thread); \
+		if (err != 0) \
+			testingTFatalf(t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err)); \
+		if (!c->caught) \
+			testingTErrorf(t, "did not throw a programmer error; should have"); \
+		if (c->msgGot != NULL) { \
+			testingTErrorf(t, "message doesn't contain expected string:" diff("%s"), \
+				c->msgGot, c->msgWant); \
+			testingUtilFreeStrdup(c->msgGot); \
+		} \
 	}
-}
+#include "allcalls.h"
+#undef allcallsCase
+
+static const struct {
+	const char *name;
+	void (*f)(testingT *, void *);
+} wrongThreadCases[] = {
+#define allcallsCase(f, ...) { #f, wrongThreadCase ## f ## Impl },
+#include "allcalls.h"
+#undef allcallsCase
+	{ NULL, NULL },
+};
 
 testingTest(FunctionsFailOnWrongThread)
 {
-	struct errorCase *cases;
-	threadThread *thread;
-	threadSysError err;
+	struct errorCase c;
+	size_t i;
 
-	caseError = NULL;
-	err = threadNewThread(wrongThreadThreadProc, &cases, &thread);
-	if (err != 0)
-		testingTFatalf(t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	err = threadThreadWaitAndFree(thread);
-	if (err != 0)
-		testingTFatalf(t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	if (caseError != NULL) {
-		freeCases(cases);
-		testingTErrorf(t, "%s running tests", caseError);
-		if (caseError != caseErrorMemoryExhausted && caseError != caseErrorEncodingError)
-			free(caseError);
-		caseError = NULL;
-		testingTFailNow(t);
-	}
-	reportCases(t, cases);
-	freeCases(cases);
+	for (i = 0; wrongThreadCases[i].name != NULL; i++)
+		testingTRun(t, wrongThreadCases[i].name, wrongThreadCases[i].f, &c);
 }
-
-#endif

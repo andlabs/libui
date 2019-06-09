@@ -11,11 +11,13 @@ struct errorParams errorParams;
 void catchProgrammerError(const char *prefix, const char *msg, const char *suffix, bool internal)
 {
 	errorParams.caught = true;
-	if (strstr(prefix, "programmer error") == NULL)
+	if (strcmp(prefix, "libui programmer error") != 0)
+		// TODO use diff
 		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s prefix string doesn't contain \"programmer error\": %s", errorParams.exprstr, prefix);
 	if (internal)
 		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s error is marked internal; should not have been", errorParams.exprstr);
-	if (strstr(msg, errorParams.msgWant) == NULL)
+	if (strcmp(msg, errorParams.msgWant) != 0)
+		// TODO use diff
 		testingTErrorfFull(errorParams.t, errorParams.file, errorParams.line, "%s: message doesn't contain expected substring:" diff("%s"),
 			errorParams.exprstr, msg, errorParams.msgWant);
 }

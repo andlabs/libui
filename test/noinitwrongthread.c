@@ -57,7 +57,7 @@ static void catalogProgrammerError(const char *prefix, const char *msg, const ch
 	size_t n;
 
 	current->caught = true;
-	if (strstr(prefix, "programmer error") == NULL) {
+	if (strcmp(prefix, "libui programmer error") != 0) {
 		n = strlen(prefix);
 		current->prefixGot = (char *) malloc((n + 1) * sizeof (char));
 		if (current->prefixGot == NULL) {
@@ -69,7 +69,7 @@ static void catalogProgrammerError(const char *prefix, const char *msg, const ch
 			return;
 	}
 	current->internalGot = internal;
-	if (strstr(msg, current->msgWant) == NULL) {
+	if (strcmp(msg, current->msgWant) != 0) {
 		n = strlen(msg);
 		current->msgGot = (char *) malloc((n + 1) * sizeof (char));
 		if (current->msgGot == NULL) {
@@ -121,10 +121,12 @@ static void reportCases(testingT *t, struct errorCase *p)
 			continue;
 		}
 		if (p->prefixGot != NULL)
+			// TODO use diff
 			testingTErrorfFull(t, p->file, p->line, "%s prefix string doesn't contain \"programmer error\": %s", p->name, p->prefixGot);
 		if (p->internalGot)
 			testingTErrorfFull(t, p->file, p->line, "%s error is marked internal; should not have been", p->name);
 		if (p->msgGot != NULL)
+			// TODO use diff
 			testingTErrorfFull(t, p->file, p->line, "%s message doesn't contain expected substring:" diff("%s"),
 				p->name, p->msgGot, p->msgWant);
 		p = p->next;

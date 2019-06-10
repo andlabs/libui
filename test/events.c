@@ -929,32 +929,39 @@ struct checkEventErrorsParams {
 	int idPlaceholder;
 	bool blockedPlaceholder;
 	uiEvent *firingEvent;
+	uiEvent *eventWithHandlers;
 };
 
-#define checkErrorCase(call, msgWant) \
-	static void doCheck ## __LINE__(void *data) \
+// TODO clean up these macros
+#define checkCat(a, b) a ## b
+#define checkErrorCaseFull(line, call, msgWant) \
+	static void checkCat(doCheck, line)(void *data) \
 	{ \
 		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
 		(void) p; /* in the event call does not use this */ \
 		call; \
 	}
-#define checkErrorCaseWhileFiring(call, msgWant) \
-	static void eventHandler ## __LINE__(void *sender, void *args, void *data) \
+#define checkErrorCase(call, msgWant) checkErrorCaseFull(__LINE__, call, msgWant)
+#define checkErrorCaseWhileFiringFull(line, call, msgWant) \
+	static void checkCat(eventHandler, line)(void *sender, void *args, void *data) \
 	{ \
 		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
 		(void) p; /* in the event call does not use this */ \
 		call; \
 	} \
-	static void doCheck ## __LINE__(void *data) \
+	static void checkCat(doCheck, line)(void *data) \
 	{ \
 		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
 		int id; \
-		id = uiEventAddHandler(p->firingEvent, eventHandler ## __LINE__, NULL, p); \
+		id = uiEventAddHandler(p->firingEvent, checkCat(eventHandler, line), NULL, p); \
 		uiEventFire(p->firingEvent, NULL, NULL); \
 		uiEventDeleteHandler(p->firingEvent, id); \
 	}
+#define checkErrorCaseWhileFiring(call, msgWant) checkErrorCaseWhileFiringFull(__LINE__, call, msgWant)
 #include "events_errors.h"
+#undef checkErrorCaseWhileFiringFull
 #undef checkErrorCaseWhileFiring
+#undef checkErrorCaseFull
 #undef checkErrorCase
 
 static const struct {
@@ -962,11 +969,14 @@ static const struct {
 	void (*f)(void *data);
 	const char *msgWant;
 } eventErrorCases[] = {
-#define checkErrorCase(call, msgWant) { #call, doCheck ## __LINE__, msgWant },
-#define checkErrorCaseWhileFiring(call, msgWant) checkErrorCase(call, msgWant)
+#define checkErrorCaseFull(line, callstr, msgWant) { callstr, checkCat(doCheck, line), msgWant },
+#define checkErrorCase(call, msgWant) checkErrorCaseFull(__LINE__, #call, msgWant)
+#define checkErrorCaseWhileFiring(call, msgWant) checkErrorCaseFull(__LINE__, #call, msgWant)
 #include "events_errors.h"
 #undef checkErrorCaseWhileFiring
 #undef checkErrorCase
+#undef checkErrorCaseFull
+#undef checkCat
 	{ NULL, NULL, NULL, },
 };
 
@@ -990,6 +1000,9 @@ testingTest(EventErrors)
 	p.handlerPlaceholder = handler;
 	p.nonNullSender = &p;
 	p.firingEvent = p.globalEvent;
+	p.eventWithHandlers = uiNewEvent(&opts);
+	// TODO properly free this
+	uiEventAddHandler(p.eventWithHandlers, handler, &p, &p);
 
 	for (i = 0; eventErrorCases[i].name != NULL; i++)
 		checkProgrammerError(t, eventErrorCases[i].name, eventErrorCases[i].f, &p, eventErrorCases[i].msgWant);

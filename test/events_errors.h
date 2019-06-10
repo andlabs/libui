@@ -2,7 +2,7 @@
 
 checkErrorCase(uiNewEvent(NULL),
 	"uiNewEvent(): invalid null pointer for uiEventOptions")
-checkErrorCase(uiNewEvent(p->eventOptionsBadSize),
+checkErrorCase(uiNewEvent(&(p->eventOptionsBadSize)),
 	"uiNewEvent(): wrong size 1 for uiEventOptions")
 
 checkErrorCase(uiEventFree(NULL),
@@ -12,15 +12,15 @@ checkErrorCaseWhileFiring(uiEventFree(p->firingEvent),
 checkErrorCase(uiEventFree(p->eventWithHandlers),
 	"uiEventFree(): can't free event that still has handlers registered")
 
-checkErrorCase(uiEventAddHandler(NULL, p->handlerFunc, p->senderPlaceholder, p->dataPlaceholder),
+checkErrorCase(uiEventAddHandler(NULL, p->handlerPlaceholder, p->senderPlaceholder, p->dataPlaceholder),
 	"uiEventAddHandler(): invalid null pointer for uiEvent")
-checkErrorCaseWhileFiring(uiEventAddHandler(p->firingEvent, p->handlerFunc, p->senderPlaceholder, p->dataPlaceholder),
+checkErrorCaseWhileFiring(uiEventAddHandler(p->firingEvent, p->handlerPlaceholder, p->senderPlaceholder, p->dataPlaceholder),
 	"uiEventAddHandler(): can't change a uiEvent while it is firing")
 checkErrorCase(uiEventAddHandler(p->eventPlaceholder, NULL, p->senderPlaceholder, p->dataPlaceholder),
 	"uiEventAddHandler(): invalid null pointer for uiEventHandler")
-checkErrorCase(uiEventAddHandler(p->globalEvent, p->handlerFunc, p->nonNullSender, p->dataPlaceholder),
+checkErrorCase(uiEventAddHandler(p->globalEvent, p->handlerPlaceholder, p->nonNullSender, p->dataPlaceholder),
 	"uiEventAddHandler(): can't use a non-NULL sender with a global event")
-checkErrorCase(uiEventAddHandler(p->nonglobalEvent, p->handlerFunc, NULL, p->dataPlaceholder),
+checkErrorCase(uiEventAddHandler(p->nonglobalEvent, p->handlerPlaceholder, NULL, p->dataPlaceholder),
 	"uiEventAddHandler(): can't use a NULL sender with a non-global event")
 
 checkErrorCase(uiEventDeleteHandler(NULL, p->idPlaceholder),

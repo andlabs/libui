@@ -1,9 +1,12 @@
 // 28 may 2019
 #include "test.h"
 
-struct errorCase {
+struct checkProgrammerErrorParams {
+	const char *file;
+	long line;
 	void (*f)(void *data);
 	void *data;
+	bool inThread;
 	bool caught;
 	char *msgGot;
 	const char *msgWant;
@@ -11,11 +14,11 @@ struct errorCase {
 
 static void handleProgrammerError(const char *msg, void *data)
 {
-	struct errorCase *c = (struct errorCase *) data;
+	struct checkProgrammerErrorParams *p = (struct checkProgrammerErrorParams *) data;
 
-	c->caught = true;
-	if (strcmp(msg, c->msgWant) != 0)
-		c->msgGot = testingUtilStrdup(msg);
+	p->caught = true;
+	if (strcmp(msg, p->msgWant) != 0)
+		p->msgGot = testingUtilStrdup(msg);
 }
 
 static void deferResetProgrammerError(testingT *t, void *data)
@@ -23,23 +26,56 @@ static void deferResetProgrammerError(testingT *t, void *data)
 	uiprivTestHookReportProgrammerError(NULL, NULL);
 }
 
-static void doCase(testingT *t, void *data)
+static void checkProgrammerErrorThreadProc(void *data)
 {
-	struct errorCase *c = (struct errorCase *) data;
+	struct checkProgrammerErrorParams *p = (struct checkProgrammerErrorParams *) data;
 
-	c->caught = false;
-	c->msgGot = NULL;
-	uiprivTestHookReportProgrammerError(handleProgrammerError, c);
+	(*(p->f))(p->data);
+}
+
+static void checkProgrammerErrorSubtestImpl(testingT *t, void *data)
+{
+	struct checkProgrammerErrorParams *p = (struct checkProgrammerErrorParams *) data;
+
+	uiprivTestHookReportProgrammerError(handleProgrammerError, p);
 	testingTDefer(t, deferResetProgrammerError, NULL);
-	(*(c->f))(c->data);
-	if (!c->caught)
-		testingTErrorf(t, "did not throw a programmer error; should have");
-	if (c->msgGot != NULL) {
-		testingTErrorf(t, "message doesn't match expected string:" diff("%s"),
-			c->msgGot, c->msgWant);
-		testingUtilFreeStrdup(c->msgGot);
+	if (p->inThread) {
+		threadThread *thread;
+		threadSysError err;
+
+		err = threadNewThread(checkProgrammerErrorThreadProc, p, &thread);
+		if (err != 0)
+			testingTFatalfFull(t, p->file, p->line, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+		err = threadThreadWaitAndFree(thread);
+		if (err != 0)
+			testingTFatalfFull(t, p->file, p->line, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	} else
+		(*(p->f))(p->data);
+	if (!p->caught)
+		testingTErrorfFull(t, p->file, p->line, "did not throw a programmer error; should have");
+	if (p->msgGot != NULL) {
+		testingTErrorfFull(t, p->file, p->line, "message doesn't match expected string:" diff("%s"),
+			p->msgGot, p->msgWant);
+		testingUtilFreeStrdup(p->msgGot);
 	}
 }
+
+void checkProgrammerErrorFull(testingT *t, const char *file, long line, const char *name, void (*f)(void *data), void *data, const char *msgWant, bool inThread)
+{
+	struct checkProgrammerErrorParams p;
+
+	memset(&p, 0, sizeof (struct checkProgrammerErrorParams));
+	p.file = file;
+	p.line = line;
+	p.f = f;
+	p.data = data;
+	p.inThread = inThread;
+	p.msgWant = msgWant;
+	testingTRun(t, name, checkProgrammerErrorSubtestImpl, &p);
+}
+
+#define checkProgrammerError(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, false)
+#define checkProgrammerErrorInThread(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, true)
 
 #define allcallsCase(f, ...) \
 	void doCase ## f(void *data) \
@@ -58,9 +94,12 @@ static const struct {
 } allCases[] = {
 #define allcallsCase(f, ...) { #f, doCase ## f, \
 	"attempt to call " #f "() before uiInit()", \
-	"attempt to call " #f "() on a thread other than the GUI thread", \
+	allcallsThread(#f), \
 },
-	{ "uiQueueMain", doCaseuiQueueMain, "attempt to call uiQueueMain() before uiInit()", NULL },
+#define allcallsThread(f) NULL
+allcallsCase(uiQueueMain, NULL, NULL)
+#undef allcallsThread
+#define allcallsThread(f) "attempt to call " f "() on a thread other than the GUI thread"
 #include "allcalls.h"
 #undef allcallsCase
 	{ NULL, NULL, NULL, NULL },
@@ -68,70 +107,22 @@ static const struct {
 
 testingTestInSet(beforeTests, FunctionsFailBeforeInit)
 {
-	struct errorCase c;
 	size_t i;
 
-	memset(&c, 0, sizeof (struct errorCase));
 	for (i = 0; allCases[i].name != NULL; i++) {
-		c.f = allCases[i].f;
-		c.msgWant = allCases[i].beforeInitWant;
-		if (c.msgWant == NULL)
+		if (allCases[i].beforeInitWant == NULL)
 			continue;
-		testingTRun(t, allCases[i].name, doCase, &c);
+		checkProgrammerError(t, allCases[i].name, allCases[i].f, NULL, allCases[i].beforeInitWant);
 	}
-}
-
-struct runInThreadParams {
-	testingT *t;
-	void (*f)(void *data);
-};
-
-static void runInThreadThreadProc(void *data)
-{
-	struct runInThreadParams *p = (struct runInThreadParams *) data;
-
-	(*(p->f))(NULL);
-}
-
-static void runInThread(void *data)
-{
-	struct runInThreadParams *p = (struct runInThreadParams *) data;
-	threadThread *thread;
-	threadSysError err;
-
-	err = threadNewThread(runInThreadThreadProc, p, &thread);
-	if (err != 0)
-		testingTFatalf(p->t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	err = threadThreadWaitAndFree(thread);
-	if (err != 0)
-		testingTFatalf(p->t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-}
-
-static void doCaseInThread(testingT *t, void *data)
-{
-	struct errorCase *c = (struct errorCase *) data;
-	struct runInThreadParams *p;
-
-	p = (struct runInThreadParams *) (c->data);
-	p->t = t;
-	doCase(t, c);
 }
 
 testingTest(FunctionsFailOnWrongThread)
 {
-	struct errorCase c;
-	struct runInThreadParams p;
 	size_t i;
 
-	memset(&c, 0, sizeof (struct errorCase));
-	c.f = runInThread;
-	memset(&p, 0, sizeof (struct runInThreadParams));
-	c.data = &p;
 	for (i = 0; allCases[i].name != NULL; i++) {
-		p.f = allCases[i].f;
-		c.msgWant = allCases[i].wrongThreadWant;
-		if (c.msgWant == NULL)
+		if (allCases[i].wrongThreadWant == NULL)
 			continue;
-		testingTRun(t, allCases[i].name, doCaseInThread, &c);
+		checkProgrammerErrorInThread(t, allCases[i].name, allCases[i].f, NULL, allCases[i].wrongThreadWant);
 	}
 }

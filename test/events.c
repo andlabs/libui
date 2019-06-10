@@ -1057,3 +1057,5 @@ testingTest(EventErrors)
 }
 
 #endif
+
+// TODO check deleting each internal event

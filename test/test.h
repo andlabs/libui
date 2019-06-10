@@ -34,22 +34,11 @@ struct errorParams {
 	const char *msgWant;
 	bool caught;
 };
-extern void catchProgrammerError(const char *msg, void *data);
-#define testProgrammerError(tt, expr, mw) { \
-	struct errorParams errorParams; \
-	testingTLogf(t, "*** %s", #expr); \
-	uiprivTestHookReportProgrammerError(catchProgrammerError, &errorParams); \
-	errorParams.t = tt; \
-	errorParams.file = __FILE__; \
-	errorParams.line = __LINE__; \
-	errorParams.exprstr = #expr; \
-	errorParams.msgWant = mw; \
-	errorParams.caught = false; \
-	expr; \
-	if (!errorParams.caught) \
-		testingTErrorfFull(t, errorParams.file, errorParams.line, "%s did not throw a programmer error; should have", #expr); \
-	uiprivTestHookReportProgrammerError(NULL, NULL); \
-}
 
 // init.c
 extern testingSet *beforeTests;
+
+// errors.c
+extern void checkProgrammerErrorFull(testingT *t, const char *file, long line, const char *name, void (*f)(void *data), void *data, const char *msgWant, bool inThread);
+#define checkProgrammerError(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, false)
+#define checkProgrammerErrorInThread(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, true)

@@ -2,6 +2,7 @@
 
 libui_test_sources = [
 	'controls.c',
+	'errors.c',
 	'events.c',
 	'initmain.c',
 	'main.c',

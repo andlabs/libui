@@ -6,16 +6,6 @@ void timeoutMain(void *data)
 	uiMain();
 }
 
-void catchProgrammerError(const char *msg, void *data)
-{
-	struct errorParams *errorParams = (struct errorParams *) data;
-
-	errorParams->caught = true;
-	if (strcmp(msg, errorParams->msgWant) != 0)
-		testingTErrorfFull(errorParams->t, errorParams->file, errorParams->line, "%s: message doesn't match expected string:" diff("%s"),
-			errorParams->exprstr, msg, errorParams->msgWant);
-}
-
 static void runSetORingResults(testingSet *set, const struct testingOptions *options, bool *anyRun, bool *anyFailed)
 {
 	bool ar, af;

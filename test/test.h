@@ -26,14 +26,6 @@ extern void timeoutMain(void *data);
 		testingTErrorf(t, "uiMain() timed out (%s)", timeoutstr); \
 	} \
 }
-struct errorParams {
-	testingT *t;
-	const char *file;
-	long line;
-	const char *exprstr;
-	const char *msgWant;
-	bool caught;
-};
 
 // init.c
 extern testingSet *beforeTests;

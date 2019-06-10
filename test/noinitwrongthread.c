@@ -12,13 +12,10 @@ struct errorCase {
 static void handleProgrammerError(const char *msg, void *data)
 {
 	struct errorCase *c = (struct errorCase *) data;
-	size_t n;
 
 	c->caught = true;
-	if (strcmp(msg, c->msgWant) != 0) {
-		n = strlen(msg);
+	if (strcmp(msg, c->msgWant) != 0)
 		c->msgGot = testingUtilStrdup(msg);
-	}
 }
 
 static void deferResetProgrammerError(testingT *t, void *data)

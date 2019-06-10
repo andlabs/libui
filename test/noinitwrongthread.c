@@ -2,8 +2,8 @@
 #include "test.h"
 
 struct errorCase {
-	void (*f)(testingT *t, struct errorCase *c);
-	void (*g)(testingT *t, struct errorCase *c);
+	void (*f)(void *data);
+	void *data;
 	bool caught;
 	char *msgGot;
 	const char *msgWant;
@@ -34,7 +34,7 @@ static void doCase(testingT *t, void *data)
 	c->msgGot = NULL;
 	uiprivTestHookReportProgrammerError(handleProgrammerError, c);
 	testingTDefer(t, deferResetProgrammerError, NULL);
-	(*(c->f))(t, c);
+	(*(c->f))(c->data);
 	if (!c->caught)
 		testingTErrorf(t, "did not throw a programmer error; should have");
 	if (c->msgGot != NULL) {
@@ -45,7 +45,7 @@ static void doCase(testingT *t, void *data)
 }
 
 #define allcallsCase(f, ...) \
-	void doCase ## f(testingT *t, struct errorCase *c) \
+	void doCase ## f(void *data) \
 	{ \
 		f(__VA_ARGS__); \
 	}
@@ -55,7 +55,7 @@ allcallsCase(uiQueueMain, NULL, NULL)
 
 static const struct {
 	const char *name;
-	void (*f)(testingT *t, struct errorCase *c);
+	void (*f)(void *data);
 	const char *beforeInitWant;
 	const char *wrongThreadWant;
 } allCases[] = {
@@ -84,38 +84,57 @@ testingTestInSet(beforeTests, FunctionsFailBeforeInit)
 	}
 }
 
+struct runInThreadParams {
+	testingT *t;
+	void (*f)(void *data);
+};
+
 static void runInThreadThreadProc(void *data)
 {
-	struct errorCase *c = (struct errorCase *) data;
+	struct runInThreadParams *p = (struct runInThreadParams *) data;
 
-	(*(c->g))(NULL, NULL);
+	(*(p->f))(NULL);
 }
 
-static void runInThread(testingT *t, struct errorCase *c)
+static void runInThread(void *data)
 {
+	struct runInThreadParams *p = (struct runInThreadParams *) data;
 	threadThread *thread;
 	threadSysError err;
 
-	err = threadNewThread(runInThreadThreadProc, c, &thread);
+	err = threadNewThread(runInThreadThreadProc, p, &thread);
 	if (err != 0)
-		testingTFatalf(t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+		testingTFatalf(p->t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
 	err = threadThreadWaitAndFree(thread);
 	if (err != 0)
-		testingTFatalf(t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+		testingTFatalf(p->t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+}
+
+static void doCaseInThread(testingT *t, void *data)
+{
+	struct errorCase *c = (struct errorCase *) data;
+	struct runInThreadParams *p;
+
+	p = (struct runInThreadParams *) (c->data);
+	p->t = t;
+	doCase(t, c);
 }
 
 testingTest(FunctionsFailOnWrongThread)
 {
 	struct errorCase c;
+	struct runInThreadParams p;
 	size_t i;
 
 	memset(&c, 0, sizeof (struct errorCase));
 	c.f = runInThread;
+	memset(&p, 0, sizeof (struct runInThreadParams));
+	c.data = &p;
 	for (i = 0; allCases[i].name != NULL; i++) {
-		c.g = allCases[i].f;
+		p.f = allCases[i].f;
 		c.msgWant = allCases[i].wrongThreadWant;
 		if (c.msgWant == NULL)
 			continue;
-		testingTRun(t, allCases[i].name, doCase, &c);
+		testingTRun(t, allCases[i].name, doCaseInThread, &c);
 	}
 }

@@ -916,146 +916,83 @@ testingTest(EventInvalidateSender)
 	runArgsSubtests(t, &p);
 }
 
-#if 0
-TODOTODO
-// TODO table-ize these
-
-static void testWhileFiring(void *sender, void *args, void *data)
-{
-	testingT *t = (testingT *) data;
-	uiEvent *firingEvent = (uiEvent *) args;
-	void *senderPlaceholder, *argsPlaceholder, *dataPlaceholder;
-	int idPlaceholder;
-	bool blockedPlaceholder;
-
-	senderPlaceholder = NULL;
-	argsPlaceholder = NULL;
-	dataPlaceholder = NULL;
-	idPlaceholder = 0;
-	blockedPlaceholder = false;
-
-	testProgrammerError(t, uiEventFree(firingEvent),
-		"uiEventFree(): can't change a uiEvent while it is firing");
-	testProgrammerError(t, uiEventAddHandler(firingEvent, handler, senderPlaceholder, dataPlaceholder),
-		"uiEventAddHandler(): can't change a uiEvent while it is firing");
-	testProgrammerError(t, uiEventDeleteHandler(firingEvent, idPlaceholder),
-		"uiEventDeleteHandler(): can't change a uiEvent while it is firing");
-	testProgrammerError(t, uiEventFire(firingEvent, senderPlaceholder, argsPlaceholder),
-		"uiEventFire(): can't recursively fire a uiEvent");
-	testProgrammerError(t, uiEventSetHandlerBlocked(firingEvent, idPlaceholder, blockedPlaceholder),
-		"uiEventSetHandlerBlocked(): can't change a uiEvent while it is firing");
-	testProgrammerError(t, uiEventInvalidateSender(firingEvent, senderPlaceholder),
-		"uiEventInvalidateSender(): can't change a uiEvent while it is firing");
-}
-
-struct deferDeleteFiringHandlerParams {
-	uiEvent *e;
-	int id;
-};
-
-static void deferDeleteFiringHandler(testingT *t, void *data)
-{
-	struct deferDeleteFiringHandlerParams *p = (struct deferDeleteFiringHandlerParams *) data;
-
-	uiEventDeleteHandler(p->e, p->id);
-}
-
-testingTest(EventErrors)
-{
-	uiEvent *globalEvent, *nonglobalEvent;
-	uiEventOptions opts;
+struct checkEventErrorsParams {
+	uiEvent *globalEvent;
+	uiEvent *nonglobalEvent;
 	uiEventOptions eventOptionsBadSize;
 	uiEvent *eventPlaceholder;
-	void *senderPlaceholder, *argsPlaceholder, *dataPlaceholder;
+	uiEventHandler handlerPlaceholder;
+	void *senderPlaceholder;
+	void *argsPlaceholder;
+	void *dataPlaceholder;
 	void *nonNullSender;
 	int idPlaceholder;
 	bool blockedPlaceholder;
 	uiEvent *firingEvent;
-	struct deferDeleteFiringHandlerParams *fp;
+};
 
-	testProgrammerError(t, uiNewEvent(NULL),
-		"uiNewEvent(): invalid null pointer for uiEventOptions");
-	memset(&eventOptionsBadSize, 0, sizeof (uiEventOptions));
-	eventOptionsBadSize.Size = 1;
-	testProgrammerError(t, uiNewEvent(&eventOptionsBadSize),
-		"uiNewEvent(): wrong size 1 for uiEventOptions");
+#define checkErrorCase(call, msgWant) \
+	static void doCheck ## __LINE__(void *data) \
+	{ \
+		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
+		(void) p; /* in the event call does not use this */ \
+		call; \
+	}
+#define checkErrorCaseWhileFiring(call, msgWant) \
+	static void eventHandler ## __LINE__(void *sender, void *args, void *data) \
+	{ \
+		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
+		(void) p; /* in the event call does not use this */ \
+		call; \
+	} \
+	static void doCheck ## __LINE__(void *data) \
+	{ \
+		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
+		int id; \
+		id = uiEventAddHandler(p->firingEvent, eventHandler ## __LINE__, NULL, p); \
+		uiEventFire(p->firingEvent, NULL, NULL); \
+		uiEventDeleteHandler(p->firingEvent, id); \
+	}
+#include "events_errors.h"
+#undef checkErrorCaseWhileFiring
+#undef checkErrorCase
 
+static const struct {
+	const char *name;
+	void (*f)(void *data);
+	const char *msgWant;
+} eventErrorCases[] = {
+#define checkErrorCase(call, msgWant) { #call, doCheck ## __LINE__, msgWant },
+#define checkErrorCaseWhileFiring(call, msgWant) checkErrorCase(call, msgWant)
+#include "events_errors.h"
+#undef checkErrorCaseWhileFiring
+#undef checkErrorCase
+	{ NULL, NULL, NULL, },
+};
+
+testingTest(EventErrors)
+{
+	struct checkEventErrorsParams p;
+	uiEventOptions opts;
+	size_t i;
+
+	memset(&p, 0, sizeof (struct checkEventErrorsParams));
+	p.eventOptionsBadSize.Size = 1;
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
 	opts.Global = true;
-	globalEvent = uiNewEvent(&opts);
-	testingTDefer(t, deferEventFree, globalEvent);
+	p.globalEvent = uiNewEvent(&opts);
+	testingTDefer(t, deferEventFree, p.globalEvent);
 	opts.Global = false;
-	nonglobalEvent = uiNewEvent(&opts);
-	testingTDefer(t, deferEventFree, nonglobalEvent);
+	p.nonglobalEvent = uiNewEvent(&opts);
+	testingTDefer(t, deferEventFree, p.nonglobalEvent);
+	p.eventPlaceholder = p.globalEvent;
+	p.handlerPlaceholder = handler;
+	p.nonNullSender = &p;
+	p.firingEvent = p.globalEvent;
 
-	testProgrammerError(t, uiEventFree(NULL),
-		"uiEventFree(): invalid null pointer for uiEvent");
-	// We test trying to free a uiEvent with handlers later, when we actually need to make one for testing firing.
-
-	eventPlaceholder = globalEvent;
-	senderPlaceholder = NULL;
-	argsPlaceholder = NULL;
-	dataPlaceholder = NULL;
-	nonNullSender = &globalEvent;
-	idPlaceholder = 0;
-	blockedPlaceholder = false;
-
-	testProgrammerError(t, uiEventAddHandler(NULL, handler, senderPlaceholder, dataPlaceholder),
-		"uiEventAddHandler(): invalid null pointer for uiEvent");
-	testProgrammerError(t, uiEventAddHandler(eventPlaceholder, NULL, senderPlaceholder, dataPlaceholder),
-		"uiEventAddHandler(): invalid null pointer for uiEventHandler");
-	testProgrammerError(t, uiEventAddHandler(globalEvent, handler, nonNullSender, dataPlaceholder),
-		"uiEventAddHandler(): can't use a non-NULL sender with a global event");
-	testProgrammerError(t, uiEventAddHandler(nonglobalEvent, handler, NULL, dataPlaceholder),
-		"uiEventAddHandler(): can't use a NULL sender with a non-global event");
-
-	testProgrammerError(t, uiEventDeleteHandler(NULL, idPlaceholder),
-		"uiEventDeleteHandler(): invalid null pointer for uiEvent");
-	testProgrammerError(t, uiEventDeleteHandler(eventPlaceholder, 5),
-		"uiEventDeleteHandler(): event handler 5 not found");
-
-	testProgrammerError(t, uiEventFire(NULL, senderPlaceholder, argsPlaceholder),
-		"uiEventFire(): invalid null pointer for uiEvent");
-	testProgrammerError(t, uiEventFire(globalEvent, nonNullSender, argsPlaceholder),
-		"uiEventFire(): can't use a non-NULL sender with a global event");
-	testProgrammerError(t, uiEventFire(nonglobalEvent, NULL, argsPlaceholder),
-		"uiEventFire(): can't use a NULL sender with a non-global event");
-
-	testProgrammerError(t, uiEventHandlerBlocked(NULL, idPlaceholder),
-		"uiEventHandlerBlocked(): invalid null pointer for uiEvent");
-	testProgrammerError(t, uiEventHandlerBlocked(eventPlaceholder, 5),
-		"uiEventHandlerBlocked(): event handler 5 not found");
-
-	testProgrammerError(t, uiEventSetHandlerBlocked(NULL, idPlaceholder, blockedPlaceholder),
-		"uiEventSetHandlerBlocked(): invalid null pointer for uiEvent");
-	testProgrammerError(t, uiEventSetHandlerBlocked(eventPlaceholder, 5, blockedPlaceholder),
-		"uiEventSetHandlerBlocked(): event handler 5 not found");
-
-	testProgrammerError(t, uiEventInvalidateSender(NULL, senderPlaceholder),
-		"uiEventInvalidateSender(): invalid null pointer for uiEvent");
-	testProgrammerError(t, uiEventInvalidateSender(globalEvent, NULL),
-		"uiEventInvalidateSender(): can't invalidate a global event");
-	testProgrammerError(t, uiEventInvalidateSender(nonglobalEvent, NULL),
-		"uiEventInvalidateSender(): can't use a NULL sender with a non-global event");
-
-	memset(&opts, 0, sizeof (uiEventOptions));
-	opts.Size = sizeof (uiEventOptions);
-	opts.Global = true;
-	firingEvent = uiNewEvent(&opts);
-	testingTDefer(t, deferEventFree, firingEvent);
-	fp = (struct deferDeleteFiringHandlerParams *) malloc(sizeof (struct deferDeleteFiringHandlerParams));
-	if (fp == NULL)
-		testingTFatalf(t, "memory exhausted allocating storage for deleting firing event handler");
-	testingTDefer(t, deferFree, fp);
-	fp->e = firingEvent;
-	fp->id = uiEventAddHandler(fp->e, testWhileFiring, NULL, t);
-	testingTDefer(t, deferDeleteFiringHandler, fp);
-	testProgrammerError(t, uiEventFree(firingEvent),
-		"uiEventFree(): can't free event that still has handlers registered");
-	uiEventFire(firingEvent, NULL, firingEvent);
+	for (i = 0; eventErrorCases[i].name != NULL; i++)
+		checkProgrammerError(t, eventErrorCases[i].name, eventErrorCases[i].f, &p, eventErrorCases[i].msgWant);
 }
-
-#endif
 
 // TODO check deleting each internal event

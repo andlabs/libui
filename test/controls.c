@@ -24,16 +24,22 @@ static void testVtableTestMethod(uiControl *c, void *implData)
 	// do nothing
 }
 
-static void createTestVtables(uiControlVtable *vtable, uiControlOSVtable **osVtable)
+static void createTestVtable(uiControlVtable *vtable)
 {
 	memset(&vtable, 0, sizeof (uiControlVtable));
 	vtable.Size = sizeof (uiControlVtable);
 	vtable.Init = testVtableInit;
 	vtable.Free = testVtableFree;
-	memset(&osVtable, 0, sizeof (struct testOSVtable));
-	osVtable.Size = sizeof (struct testOSVtable);
-	osVtable.TestMethod = testVtableTestMethod;
 }
+
+// TODO namePlaceholder == "name"
+struct checkControlErrorsParams {
+	const char *namePlaceholder;
+	uiControlVtable *vtablePlaceholder;
+	uiControlOSVtable *osVtablePlaceholder;
+	size_t implDataSizePlaceholder;
+	uiControlVtable *badSizeVtable;
+};
 
 testingTest(ControlErrors)
 {

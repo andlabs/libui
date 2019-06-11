@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../ui.h"
+#ifdef libuiOSHeader
+#include libuiOSHeader
+#endif
 #include "../common/testhooks.h"
 #include "lib/testing.h"
 #include "lib/thread.h"
@@ -34,3 +37,7 @@ extern testingSet *beforeTests;
 extern void checkProgrammerErrorFull(testingT *t, const char *file, long line, const char *name, void (*f)(void *data), void *data, const char *msgWant, bool inThread);
 #define checkProgrammerError(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, false)
 #define checkProgrammerErrorInThread(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, true)
+
+// controls.c
+extern uiControlOSVtable *allocOSVtableFull(testingT *t, const char *file, long line);
+#define allocOSVtable(t) allocOSVtableFull(t, __FILE__, __LINE__)

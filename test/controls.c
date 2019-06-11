@@ -3,10 +3,6 @@
 
 #if 0
 
-struct testOSVtable {
-	void (*TestMethod)(uiControl *c, void *implData);
-};
-
 struct testOSImplData {
 	bool initCalled;
 	bool *freeCalled;
@@ -28,7 +24,7 @@ static void testVtableTestMethod(uiControl *c, void *implData)
 	// do nothing
 }
 
-static void createTestVtables(uiControlVtable *vtable, struct testOSVtable *osVtable)
+static void createTestVtables(uiControlVtable *vtable, uiControlOSVtable **osVtable)
 {
 	memset(&vtable, 0, sizeof (uiControlVtable));
 	vtable.Size = sizeof (uiControlVtable);

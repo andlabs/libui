@@ -11,6 +11,20 @@ libui_test_sources = [
 
 if libui_OS == 'windows'
 	libui_test_sources += [
+		'controls_windows.c',
+	]
+else if libui_OS == 'darwin'
+	libui_test_sources += [
+		'controls_darwin.m',
+	]
+else
+	libui_test_sources += [
+		'controls_unix.c',
+	]
+endif
+
+if libui_OS == 'windows'
+	libui_test_sources += [
 		windows.compile_resources('resources_' + libui_mode + '.rc',
 			args: libui_manifest_args,
 			depend_files: ['test_' + libui_mode + '.manifest']),

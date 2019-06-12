@@ -13,7 +13,7 @@ if libui_OS == 'windows'
 	libui_test_sources += [
 		'controls_windows.c',
 	]
-else if libui_OS == 'darwin'
+elif libui_OS == 'darwin'
 	libui_test_sources += [
 		'controls_darwin.m',
 	]

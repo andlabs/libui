@@ -1,9 +1,7 @@
 // 8 june 2019
 #include "test.h"
 
-#if 0
-
-struct testOSImplData {
+struct testImplData {
 	bool initCalled;
 	bool *freeCalled;
 	bool testMethodCalled;
@@ -32,7 +30,6 @@ static void createTestVtable(uiControlVtable *vtable)
 	vtable.Free = testVtableFree;
 }
 
-// TODO namePlaceholder == "name"
 struct checkControlErrorsParams {
 	const char *namePlaceholder;
 	uiControlVtable *vtablePlaceholder;
@@ -41,32 +38,46 @@ struct checkControlErrorsParams {
 	uiControlVtable *badSizeVtable;
 };
 
+// TODO clean up these macros
+#define checkCat(a, b) a ## b
+#define checkErrorCaseFull(line, call, msgWant) \
+	static void checkCat(doCheck, line)(void *data) \
+	{ \
+		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
+		(void) p; /* in the event call does not use this */ \
+		call; \
+	}
+#define checkErrorCase(call, msgWant) checkErrorCaseFull(__LINE__, call, msgWant)
+#include "controls_errors.h"
+#undef checkErrorCaseFull
+#undef checkErrorCase
+
+static const struct {
+	const char *name;
+	void (*f)(void *data);
+	const char *msgWant;
+} controlErrorCases[] = {
+#define checkErrorCaseFull(line, callstr, msgWant) { callstr, checkCat(doCheck, line), msgWant },
+#define checkErrorCase(call, msgWant) checkErrorCaseFull(__LINE__, #call, msgWant)
+#include "events_errors.h"
+#undef checkErrorCase
+#undef checkErrorCaseFull
+#undef checkCat
+	{ NULL, NULL, NULL, },
+};
+
 testingTest(ControlErrors)
 {
-	uiControlVtable vtablePlacheolder, vtableBadSize;
-	struct testOSVtable osVtablePlaceholder;
+	struct checkControlErrorsParams p;
+	size_t i;
 
-	// create valid vtables
-	createTestVtables(&vtablePlaceholder, &osVtablePlaceholder);
+	memset(&p, 0, sizeof (struct checkControlErrorsParams));
+	p.namePlaceholder = "name";
+	createTestVtable(&p.vtablePlaceholder);
+	// TODO osVtablePlaceholder
+	p.implDataSizePlaceholder = sizeof (struct testImplData);
+	p.badSizeVtable.Size = 1;
 
-	testProgrammerError(t, uiRegisterControlType(NULL, &vtablePlaceholder, &osVtablePlaceholder, sizeof (struct testImplData)),
-		"invalid null pointer for name passed into uiRegisterControlType()");
-	testProgrammerError(t, uiRegisterControlType("name", NULL, &osVtablePlaceholder, sizeof (struct testImplData)),
-		"invalid null pointer for uiControlVtable passed into uiRegisterControlType()");
-	memset(&vtableBadSize, 0, sizeof (uiEventOptions));
-	vtableBadSize.Size = 1;
-	testProgrammerError(t, uiRegisterControlType("name", &badVtableSize, &osVtablePlaceholder, sizeof (struct testImplData)),
-		"wrong size 1 for uiControlVtable in uiRegisterControlType()");
-#define testBadMethod(method) { \
-	uiControlVtable bad ## method ## MethodVtable; \
-	bad ## method ## MethodVtable = vtablePlaceholder; \
-	bad ## method ## MehtodVtable.method = NULL; \
-	testProgrammerError(t, uiRegisterControlType("name", &bad ## method ## MethodVtable, &osVtablePlaceholder, sizeof (struct testImplData)), \
-		"TODO"); \
-	}
-	testProgrammerError(t, uiRegisterControlType("name", &vtablePlaceholder, NULL, sizeof (struct testImplData)),
-		"invalid null pointer for uiControlOSVtable passed into uiRegisterControlType()");
-	// OS vtable sizes are tested per-OS
+	for (i = 0; controlErrorCases[i].name != NULL; i++)
+		checkProgrammerError(t, controlErrorCases[i].name, controlErrorCases[i].f, &p, controlErrorCases[i].msgWant);
 }
-
-#endif

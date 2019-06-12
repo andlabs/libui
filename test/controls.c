@@ -17,17 +17,12 @@ static void testVtableFree(uiControl *c, void *implData)
 	// do nothing
 }
 
-static void testVtableTestMethod(uiControl *c, void *implData)
-{
-	// do nothing
-}
-
 static void createTestVtable(uiControlVtable *vtable)
 {
-	memset(&vtable, 0, sizeof (uiControlVtable));
-	vtable.Size = sizeof (uiControlVtable);
-	vtable.Init = testVtableInit;
-	vtable.Free = testVtableFree;
+	memset(vtable, 0, sizeof (uiControlVtable));
+	vtable->Size = sizeof (uiControlVtable);
+	vtable->Init = testVtableInit;
+	vtable->Free = testVtableFree;
 }
 
 struct checkControlErrorsParams {
@@ -35,7 +30,7 @@ struct checkControlErrorsParams {
 	uiControlVtable *vtablePlaceholder;
 	uiControlOSVtable *osVtablePlaceholder;
 	size_t implDataSizePlaceholder;
-	uiControlVtable *badSizeVtable;
+	uiControlVtable *vtableBadSize;
 };
 
 // TODO clean up these macros
@@ -43,7 +38,7 @@ struct checkControlErrorsParams {
 #define checkErrorCaseFull(line, call, msgWant) \
 	static void checkCat(doCheck, line)(void *data) \
 	{ \
-		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
+		struct checkControlErrorsParams *p = (struct checkControlErrorsParams *) data; \
 		(void) p; /* in the event call does not use this */ \
 		call; \
 	}
@@ -59,7 +54,7 @@ static const struct {
 } controlErrorCases[] = {
 #define checkErrorCaseFull(line, callstr, msgWant) { callstr, checkCat(doCheck, line), msgWant },
 #define checkErrorCase(call, msgWant) checkErrorCaseFull(__LINE__, #call, msgWant)
-#include "events_errors.h"
+#include "controls_errors.h"
 #undef checkErrorCase
 #undef checkErrorCaseFull
 #undef checkCat
@@ -69,14 +64,19 @@ static const struct {
 testingTest(ControlErrors)
 {
 	struct checkControlErrorsParams p;
+	uiControlVtable vtable;
+	uiControlVtable vtableBadSize;
 	size_t i;
 
 	memset(&p, 0, sizeof (struct checkControlErrorsParams));
 	p.namePlaceholder = "name";
-	createTestVtable(&p.vtablePlaceholder);
+	createTestVtable(&vtable);
+	p.vtablePlaceholder = &vtable;
 	// TODO osVtablePlaceholder
 	p.implDataSizePlaceholder = sizeof (struct testImplData);
-	p.badSizeVtable.Size = 1;
+	memset(&vtableBadSize, 0, sizeof (uiControlVtable));
+	vtableBadSize.Size = 1;
+	p.vtableBadSize = &vtableBadSize;
 
 	for (i = 0; controlErrorCases[i].name != NULL; i++)
 		checkProgrammerError(t, controlErrorCases[i].name, controlErrorCases[i].f, &p, controlErrorCases[i].msgWant);

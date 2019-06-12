@@ -3,8 +3,8 @@
 
 bool uiprivOSVtableValid(uiControlOSVtable *osVtable, const char *func)
 {
-	if (vtable->Size != sizeof (uiControlOSVtable)) {
-		uiprivProgrammerErrorWrongStructSize(vtable->Size, "uiControlOSVtable", func);
+	if (osVtable->Size != sizeof (uiControlOSVtable)) {
+		uiprivProgrammerErrorWrongStructSize(osVtable->Size, "uiControlOSVtable", func);
 		return false;
 	}
 	return true;

@@ -70,14 +70,13 @@ static const struct {
 testingTest(ControlErrors)
 {
 	struct checkControlErrorsParams p;
-	uiControlVtable vtable;
 	uiControlVtable vtableBadSize;
 	size_t i;
 
 	memset(&p, 0, sizeof (struct checkControlErrorsParams));
 	p.namePlaceholder = "name";
-	createTestVtable(&vtable);
-	p.vtablePlaceholder = &vtable;
+	p.vtablePlaceholder = allocVtable(t);
+	testingTDefer(t, deferFree, p.vtablePlaceholder);
 	// TODO osVtablePlaceholder
 	p.implDataSizePlaceholder = sizeof (struct testImplData);
 	memset(&vtableBadSize, 0, sizeof (uiControlVtable));

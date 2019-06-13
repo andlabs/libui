@@ -17,12 +17,18 @@ static void testVtableFree(uiControl *c, void *implData)
 	// do nothing
 }
 
-static void createTestVtable(uiControlVtable *vtable)
+uiControlVtable *allocVtableFull(testingT *t, const char *file, long line)
 {
-	memset(vtable, 0, sizeof (uiControlVtable));
-	vtable->Size = sizeof (uiControlVtable);
-	vtable->Init = testVtableInit;
-	vtable->Free = testVtableFree;
+	uiControlVtable *v;
+
+	v = (uiControlVtable *) malloc(sizeof (uiControlVtable));
+	if (v == NULL)
+		testingTFatalfFull(t, file, line, "memory exhausted allocating uiControlVtable");
+	memset(v, 0, sizeof (uiControlVtable));
+	v->Size = sizeof (uiControlVtable);
+	v->Init = testVtableInit;
+	v->Free = testVtableFree;
+	return v;
 }
 
 struct checkControlErrorsParams {

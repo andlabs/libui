@@ -39,5 +39,7 @@ extern void checkProgrammerErrorFull(testingT *t, const char *file, long line, c
 #define checkProgrammerErrorInThread(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, true)
 
 // controls.c
+extern uiControlVtable *allocVtableFull(testingT *t, const char *file, long line);
+#define allocVtable(t) allocVtableFull(t, __FILE__, __LINE__)
 extern uiControlOSVtable *allocOSVtableFull(testingT *t, const char *file, long line);
 #define allocOSVtable(t) allocOSVtableFull(t, __FILE__, __LINE__)

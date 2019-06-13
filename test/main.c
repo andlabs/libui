@@ -6,6 +6,16 @@ void timeoutMain(void *data)
 	uiMain();
 }
 
+void deferFree(testingT *t, void *data)
+{
+	free(data);
+}
+
+void deferEventFree(testingT *t, void *data)
+{
+	uiEventFree((uiEvent *) data);
+}
+
 static void runSetORingResults(testingSet *set, const struct testingOptions *options, bool *anyRun, bool *anyFailed)
 {
 	bool ar, af;

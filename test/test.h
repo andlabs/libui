@@ -29,6 +29,8 @@ extern void timeoutMain(void *data);
 		testingTErrorf(t, "uiMain() timed out (%s)", timeoutstr); \
 	} \
 }
+extern void deferFree(testingT *t, void *data);
+extern void deferEventFree(testingT *t, void *data);
 
 // init.c
 extern testingSet *beforeTests;

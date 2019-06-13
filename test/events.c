@@ -160,16 +160,6 @@ static void runGlobalSubtests(testingT *t, void *data)
 	testingTRun(t, "Nonglobal", runArgsSubtests, data);
 }
 
-static void deferFree(testingT *t, void *data)
-{
-	free(data);
-}
-
-static void deferEventFree(testingT *t, void *data)
-{
-	uiEventFree((uiEvent *) data);
-}
-
 static void deferUnregisterHandler(testingT *t, void *data)
 {
 	unregisterHandler((struct handler *) data);

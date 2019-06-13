@@ -6,12 +6,6 @@ static void dummyHandler(void *sender, void *args, void *data)
 	// do nothing
 }
 
-// TODO deduplicate this with events.c
-static void deferEventFree(testingT *t, void *data)
-{
-	uiEventFree((uiEvent *) data);
-}
-
 struct checkEventErrorsParams {
 	uiEvent *globalEvent;
 	uiEvent *nonglobalEvent;

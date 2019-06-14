@@ -39,6 +39,11 @@ extern testingSet *beforeTests;
 extern void checkProgrammerErrorFull(testingT *t, const char *file, long line, const char *name, void (*f)(void *data), void *data, const char *msgWant, bool inThread);
 #define checkProgrammerError(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, false)
 #define checkProgrammerErrorInThread(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, true)
+struct checkErrorCase {
+	const char *name;
+	void (*f)(void *data);
+	const char *msgWant;
+};
 
 // controls.c
 extern uiControlVtable *allocVtableFull(testingT *t, const char *file, long line);

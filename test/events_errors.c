@@ -6,7 +6,7 @@ static void dummyHandler(void *sender, void *args, void *data)
 	// do nothing
 }
 
-struct checkEventErrorsParams {
+struct checkErrorParams {
 	uiEvent *globalEvent;
 	uiEvent *nonglobalEvent;
 	uiEventOptions eventOptionsBadSize;
@@ -27,7 +27,7 @@ struct checkEventErrorsParams {
 #define checkErrorCaseFull(line, call, msgWant) \
 	static void checkCat(doCheck, line)(void *data) \
 	{ \
-		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
+		struct checkErrorParams *p = (struct checkErrorParams *) data; \
 		(void) p; /* in the event call does not use this */ \
 		call; \
 	}
@@ -35,13 +35,13 @@ struct checkEventErrorsParams {
 #define checkErrorCaseWhileFiringFull(line, call, msgWant) \
 	static void checkCat(eventHandler, line)(void *sender, void *args, void *data) \
 	{ \
-		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
+		struct checkErrorParams *p = (struct checkErrorParams *) data; \
 		(void) p; /* in the event call does not use this */ \
 		call; \
 	} \
 	static void checkCat(doCheck, line)(void *data) \
 	{ \
-		struct checkEventErrorsParams *p = (struct checkEventErrorsParams *) data; \
+		struct checkErrorParams *p = (struct checkErrorParams *) data; \
 		int id; \
 		id = uiEventAddHandler(p->firingEvent, checkCat(eventHandler, line), NULL, p); \
 		uiEventFire(p->firingEvent, NULL, NULL); \
@@ -58,7 +58,7 @@ static const struct {
 	const char *name;
 	void (*f)(void *data);
 	const char *msgWant;
-} eventErrorCases[] = {
+} checkErrorCases[] = {
 #define checkErrorCaseFull(line, callstr, msgWant) { callstr, checkCat(doCheck, line), msgWant },
 #define checkErrorCase(call, msgWant) checkErrorCaseFull(__LINE__, #call, msgWant)
 #define checkErrorCaseWhileFiring(call, msgWant) checkErrorCaseFull(__LINE__, #call, msgWant)
@@ -72,11 +72,11 @@ static const struct {
 
 testingTest(EventErrors)
 {
-	struct checkEventErrorsParams p;
+	struct checkErrorParams p;
 	uiEventOptions opts;
 	size_t i;
 
-	memset(&p, 0, sizeof (struct checkEventErrorsParams));
+	memset(&p, 0, sizeof (struct checkErrorParams));
 	p.eventOptionsBadSize.Size = 1;
 	memset(&opts, 0, sizeof (uiEventOptions));
 	opts.Size = sizeof (uiEventOptions);
@@ -94,8 +94,8 @@ testingTest(EventErrors)
 	// TODO properly free this
 	uiEventAddHandler(p.eventWithHandlers, dummyHandler, &p, &p);
 
-	for (i = 0; eventErrorCases[i].name != NULL; i++)
-		checkProgrammerError(t, eventErrorCases[i].name, eventErrorCases[i].f, &p, eventErrorCases[i].msgWant);
+	for (i = 0; checkErrorCases[i].name != NULL; i++)
+		checkProgrammerError(t, checkErrorCases[i].name, checkErrorCases[i].f, &p, checkErrorCases[i].msgWant);
 }
 
 // TODO check deleting each internal event

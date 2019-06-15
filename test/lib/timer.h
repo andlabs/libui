@@ -3,6 +3,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef int64_t timerDuration;
 typedef int64_t timerTime;
 
@@ -36,3 +40,7 @@ typedef uint64_t timerSysError;
 extern timerSysError timerRunWithTimeout(timerDuration d, void (*f)(void *data), void *data, bool *timedOut);
 
 extern timerSysError timerSleep(timerDuration d);
+
+#ifdef __cplusplus
+}
+#endif

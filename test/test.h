@@ -13,6 +13,10 @@
 #include "lib/thread.h"
 #include "lib/timer.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define diff(fmt) "\ngot  " fmt "\nwant " fmt
 
 // main.c
@@ -36,17 +40,21 @@ extern void deferEventFree(testingT *t, void *data);
 extern testingSet *beforeTests;
 
 // errors.c
-extern void checkProgrammerErrorFull(testingT *t, const char *file, long line, const char *name, void (*f)(void *data), void *data, const char *msgWant, bool inThread);
-#define checkProgrammerError(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, false)
-#define checkProgrammerErrorInThread(t, name, f, data, msgWant) checkProgrammerErrorFull(t, __FILE__, __LINE__, name, f, data, msgWant, true)
 struct checkErrorCase {
 	const char *name;
-	void (*f)(void *data);
+	void (*f)(void);
 	const char *msgWant;
 };
+extern void checkProgrammerErrorsFull(testingT *t, const char *file, long line, struct checkErrorCase *cases, bool inThread);
+#define checkProgrammerErrors(t, cases) checkProgrammerErrorsFull(t, __FILE__, __LINE__, cases, false)
+#define checkProgrammerErrorsInThread(t, cases) checkProgrammerErrorsFull(t, __FILE__, __LINE__, cases, true)
 
 // controls.c
 extern uiControlVtable *allocVtableFull(testingT *t, const char *file, long line);
 #define allocVtable(t) allocVtableFull(t, __FILE__, __LINE__)
 extern uiControlOSVtable *allocOSVtableFull(testingT *t, const char *file, long line);
 #define allocOSVtable(t) allocOSVtableFull(t, __FILE__, __LINE__)
+
+#ifdef __cplusplus
+}
+#endif

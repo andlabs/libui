@@ -4,10 +4,9 @@
 struct checkProgrammerErrorParams {
 	const char *file;
 	long line;
-	void (*f)(void *data);
-	void *data;
 	bool inThread;
 	bool caught;
+	void (*f)(void);
 	char *msgGot;
 	const char *msgWant;
 };
@@ -30,7 +29,7 @@ static void checkProgrammerErrorThreadProc(void *data)
 {
 	struct checkProgrammerErrorParams *p = (struct checkProgrammerErrorParams *) data;
 
-	(*(p->f))(p->data);
+	(*(p->f))();
 }
 
 static void checkProgrammerErrorSubtestImpl(testingT *t, void *data)
@@ -50,7 +49,7 @@ static void checkProgrammerErrorSubtestImpl(testingT *t, void *data)
 		if (err != 0)
 			testingTFatalfFull(t, p->file, p->line, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
 	} else
-		(*(p->f))(p->data);
+		(*(p->f))();
 	if (!p->caught)
 		testingTErrorfFull(t, p->file, p->line, "did not throw a programmer error; should have");
 	if (p->msgGot != NULL) {
@@ -60,16 +59,20 @@ static void checkProgrammerErrorSubtestImpl(testingT *t, void *data)
 	}
 }
 
-void checkProgrammerErrorFull(testingT *t, const char *file, long line, const char *name, void (*f)(void *data), void *data, const char *msgWant, bool inThread)
+void checkProgrammerErrorsFull(testingT *t, const char *file, long line, const struct checkErrorCase *cases, bool inThread)
 {
+	const struct checkErrorCase *c;
 	struct checkProgrammerErrorParams p;
 
 	memset(&p, 0, sizeof (struct checkProgrammerErrorParams));
 	p.file = file;
 	p.line = line;
-	p.f = f;
-	p.data = data;
 	p.inThread = inThread;
-	p.msgWant = msgWant;
-	testingTRun(t, name, checkProgrammerErrorSubtestImpl, &p);
+	for (c = cases; c->name != NULL; c++) {
+		p.caught = false;
+		p.f = c->f;
+		p.msgGot = NULL;
+		p.msgWant = c->msgWant;
+		testingTRun(t, c->name, checkProgrammerErrorSubtestImpl, &p);
+	}
 }

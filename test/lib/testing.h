@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define testingprivImplName(basename) testingprivImpl ## basename
 
 #define testingprivScaffoldName(basename) testingprivScaffold ## basename
@@ -104,3 +108,7 @@ extern void testingprivTLogvfFullThen(testingT *, void (*)(testingT *), const ch
 // Utility functions, provided here to avoid mucking up the sharedbits functions.
 extern char *testingUtilStrdup(const char *s);
 extern void testingUtilFreeStrdup(char *s);
+
+#ifdef __cplusplus
+}
+#endif

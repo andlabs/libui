@@ -2,6 +2,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // I don't like this threading model, but let's use it for now so I can continue working
 
 typedef struct threadThread threadThread;
@@ -18,3 +22,7 @@ typedef uint64_t threadSysError;
 
 extern threadSysError threadNewThread(void (*f)(void *data), void *data, threadThread **t);
 extern threadSysError threadThreadWaitAndFree(threadThread *t);
+
+#ifdef __cplusplus
+}
+#endif

@@ -22,25 +22,39 @@ struct checkErrorParams {
 	uiEvent *eventWithHandlers;
 };
 
-#define checkErrorCaseWhileFiringFull(line, call, msgWant) \
-	static void checkCat(eventHandler, line)(void *sender, void *args, void *data) \
+#define checkEventErrorCat(a, b) a ## b
+
+// First, define the firing-case handlers.
+#define checkErrorCase(call, msgWant)
+#define checkEventErrorCaseWhileFiringFull(line, call, msgWant) \
+	static void checkEventErrorCat(eventHandler, line)(void *sender, void *args, void *data) \
 	{ \
 		struct checkErrorParams *p = (struct checkErrorParams *) data; \
 		(void) p; /* in the event call does not use this */ \
 		call; \
 	} \
-	static void checkCat(runEventCheck, line)(struct checkErrorParams *p) \
+	static void checkEventErrorCat(runEventCheck, line)(struct checkErrorParams *p) \
 	{ \
 		int id; \
-		id = uiEventAddHandler(p->firingEvent, checkCat(eventHandler, line), NULL, p); \
+		id = uiEventAddHandler(p->firingEvent, checkEventErrorCat(eventHandler, line), NULL, p); \
 		uiEventFire(p->firingEvent, NULL, NULL); \
 		uiEventDeleteHandler(p->firingEvent, id); \
-	} \
-	checkErrorCaseFull(line, checkCat(runEventCheck, line)(p), msgWant)
-#define checkErrorCaseWhileFiring(call, msgWant) checkErrorCaseWhileFiringFull(__LINE__, call, msgWant)
-#include "events_errors.h"
-#undef checkErrorCaseWhileFiringFull
-#undef checkErrorCaseWhileFiring
+	}
+#define checkEventErrorCaseWhileFiring(call, msgWant) checkEventErrorCaseWhileFiringFull(__LINE__, call, msgWant)
+#include "event_errors.h"
+#undef checkEventErrorCaseWhileFiring
+#undef checkEventErrorCaseWhileFiringFull
+#undef checkErrorCase
+
+#define checkEventErrorCaseWhileFiringFull(line, call, msgWant) checkErrorCaseFull(line, #call, checkEventErrorCat(runEventCheck, line), msgWant)
+#define checkEventErrorCaseWhileFiring(call, msgWant) checkEventErrorCaseWhileFiringFull(__LINE__, call, msgWant)
+#define checkErrorHeader "events_errors.h"
+#include "events.h"
+#undef checkErrorHeader
+#undef checkEventErrorCaseWhileFiring
+#undef checkEventErrorCaseWhileFiringFull
+
+#undef checkEventErrorCat
 
 testingTest(EventErrors)
 {

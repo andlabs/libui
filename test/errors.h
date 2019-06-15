@@ -15,9 +15,9 @@
 // Feel free to redefine checkErrorParams and checkErrorCases as necessary.
 
 #define checkErrorCat(a, b) a ## b
-#define checkErrorCase(call, msgWant) checkErrorCaseFull(__LINE__, call, msgWant)
+#define checkErrorCase(call, msgWant) checkErrorCaseFull(__LINE__, #call, call, msgWant)
 
-#define checkErrorCaseFull(line, call, msgWant) \
+#define checkErrorCaseFull(line, name, call, msgWant) \
 	static void checkErrorCat(doCheck, line)(void *data) \
 	{ \
 		struct checkErrorParams *p = (struct checkErrorParams *) data; \
@@ -28,7 +28,7 @@
 #undef checkErrorCaseFull
 
 static const struct checkErrorCase checkErrorCases[] = {
-#define checkErrorCaseFull(line, callstr, msgWant) { callstr, checkErrorCat(doCheck, line), msgWant },
+#define checkErrorCaseFull(line, name, call, msgWant) { name, checkErrorCat(doCheck, line), msgWant },
 #include checkErrorHeader
 #undef checkErrorCaseFull
 	{ NULL, NULL, NULL, },

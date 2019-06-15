@@ -7,14 +7,14 @@ checkErrorCase(uiNewEvent(&(p->eventOptionsBadSize)),
 
 checkErrorCase(uiEventFree(NULL),
 	"uiEventFree(): invalid null pointer for uiEvent")
-checkErrorCaseWhileFiring(uiEventFree(p->firingEvent),
+checkEventErrorCaseWhileFiring(uiEventFree(p->firingEvent),
 	"uiEventFree(): can't change a uiEvent while it is firing")
 checkErrorCase(uiEventFree(p->eventWithHandlers),
 	"uiEventFree(): can't free event that still has handlers registered")
 
 checkErrorCase(uiEventAddHandler(NULL, p->handlerPlaceholder, p->senderPlaceholder, p->dataPlaceholder),
 	"uiEventAddHandler(): invalid null pointer for uiEvent")
-checkErrorCaseWhileFiring(uiEventAddHandler(p->firingEvent, p->handlerPlaceholder, p->senderPlaceholder, p->dataPlaceholder),
+checkEventErrorCaseWhileFiring(uiEventAddHandler(p->firingEvent, p->handlerPlaceholder, p->senderPlaceholder, p->dataPlaceholder),
 	"uiEventAddHandler(): can't change a uiEvent while it is firing")
 checkErrorCase(uiEventAddHandler(p->eventPlaceholder, NULL, p->senderPlaceholder, p->dataPlaceholder),
 	"uiEventAddHandler(): invalid null pointer for uiEventHandler")
@@ -25,14 +25,14 @@ checkErrorCase(uiEventAddHandler(p->nonglobalEvent, p->handlerPlaceholder, NULL,
 
 checkErrorCase(uiEventDeleteHandler(NULL, p->idPlaceholder),
 	"uiEventDeleteHandler(): invalid null pointer for uiEvent")
-checkErrorCaseWhileFiring(uiEventDeleteHandler(p->firingEvent, p->idPlaceholder),
+checkEventErrorCaseWhileFiring(uiEventDeleteHandler(p->firingEvent, p->idPlaceholder),
 	"uiEventDeleteHandler(): can't change a uiEvent while it is firing")
 checkErrorCase(uiEventDeleteHandler(p->eventPlaceholder, 5),
 	"uiEventDeleteHandler(): event handler 5 not found")
 
 checkErrorCase(uiEventFire(NULL, p->senderPlaceholder, p->argsPlaceholder),
 	"uiEventFire(): invalid null pointer for uiEvent")
-checkErrorCaseWhileFiring(uiEventFire(p->firingEvent, p->senderPlaceholder, p->argsPlaceholder),
+checkEventErrorCaseWhileFiring(uiEventFire(p->firingEvent, p->senderPlaceholder, p->argsPlaceholder),
 	"uiEventFire(): can't recursively fire a uiEvent")
 checkErrorCase(uiEventFire(p->globalEvent, p->nonNullSender, p->argsPlaceholder),
 	"uiEventFire(): can't use a non-NULL sender with a global event")
@@ -46,14 +46,14 @@ checkErrorCase(uiEventHandlerBlocked(p->eventPlaceholder, 5),
 
 checkErrorCase(uiEventSetHandlerBlocked(NULL, p->idPlaceholder, p->blockedPlaceholder),
 	"uiEventSetHandlerBlocked(): invalid null pointer for uiEvent")
-checkErrorCaseWhileFiring(uiEventSetHandlerBlocked(p->firingEvent, p->idPlaceholder, p->blockedPlaceholder),
+checkEventErrorCaseWhileFiring(uiEventSetHandlerBlocked(p->firingEvent, p->idPlaceholder, p->blockedPlaceholder),
 	"uiEventSetHandlerBlocked(): can't change a uiEvent while it is firing")
 checkErrorCase(uiEventSetHandlerBlocked(p->eventPlaceholder, 5, p->blockedPlaceholder),
 	"uiEventSetHandlerBlocked(): event handler 5 not found")
 
 checkErrorCase(uiEventInvalidateSender(NULL, p->senderPlaceholder),
 	"uiEventInvalidateSender(): invalid null pointer for uiEvent")
-checkErrorCaseWhileFiring(uiEventInvalidateSender(p->firingEvent, p->senderPlaceholder),
+checkEventErrorCaseWhileFiring(uiEventInvalidateSender(p->firingEvent, p->senderPlaceholder),
 	"uiEventInvalidateSender(): can't change a uiEvent while it is firing")
 checkErrorCase(uiEventInvalidateSender(p->globalEvent, NULL),
 	"uiEventInvalidateSender(): can't invalidate a global event")

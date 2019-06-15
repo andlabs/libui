@@ -1,13 +1,13 @@
 # 23 march 2019
 
 libui_test_sources = [
-	'controls.c',
+#	'controls.c',
 	'errors.c',
 	'events.c',
-	'events_errors.c',
+	'events_errors.cpp',
 	'initmain.c',
 	'main.c',
-	'noinitwrongthread.c',
+#	'noinitwrongthread.c',
 ]
 
 if libui_OS == 'windows'

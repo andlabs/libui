@@ -1,7 +1,8 @@
 # 23 march 2019
 
 libui_test_sources = [
-#	'controls.c',
+	'controls.c',
+	'controls_errors.cpp',
 	'errors.c',
 	'events.c',
 	'events_errors.cpp',

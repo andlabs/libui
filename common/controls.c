@@ -204,6 +204,15 @@ void *uiControlImplData(uiControl *c)
 	return c->implData;
 }
 
+static uiControl testHookControlWithInvalidControlMarker = {
+	.controlID = 5,
+};
+
+uiControl *uiprivTestHookControlWithInvalidControlMarker(void)
+{
+	return &testHookControlWithInvalidControlMarker;
+}
+
 static uiControl testHookControlWithInvalidType = {
 	.controlID = controlTypeID,
 	.typeID = 5,

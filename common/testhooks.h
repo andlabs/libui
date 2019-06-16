@@ -9,6 +9,7 @@ typedef void (*uiprivTestHookReportProgrammerErrorFunc)(const char *msg, void *d
 uiprivExtern void uiprivTestHookReportProgrammerError(uiprivTestHookReportProgrammerErrorFunc f, void *data);
 
 // controls.c
+uiprivExtern uiControl *uiprivTestHookControlWithInvalidControlMarker(void);
 uiprivExtern uiControl *uiprivTestHookControlWithInvalidType(void);
 
 #ifdef __cplusplus

@@ -64,9 +64,17 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 	{
 		"uiCheckControlType() with non-control",
 		[](void) {
-			static char buf[] = "this is not a uiControl";
+			// TODO make sure this is fine; if not, just use the following check instead
+			static char buf[] = "this is not a uiControl but is big enough to at the very least not cause a problem with UB hopefully";
 
 			uiCheckControlType(buf, uiControlType());
+		},
+		"uiCheckControlType(): object passed in not a uiControl",
+	},
+	{
+		"uiCheckControlType() with uiControl without uiControlType() marker",
+		[](void) {
+			uiCheckControlType(uiprivTestHookControlWithInvalidControlMarker(), uiControlType());
 		},
 		"uiCheckControlType(): object passed in not a uiControl",
 	},

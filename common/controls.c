@@ -48,6 +48,10 @@ uint32_t uiRegisterControlType(const char *name, const uiControlVtable *vtable, 
 
 	if (!uiprivCheckInitializedAndThread())
 		return 0;
+	if (name == NULL) {
+		uiprivProgrammerErrorNullPointer("name", uiprivFunc);
+		return 0;
+	}
 	if (vtable == NULL) {
 		uiprivProgrammerErrorNullPointer("uiControlVtable", uiprivFunc);
 		return 0;

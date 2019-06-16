@@ -23,7 +23,7 @@ static const struct checkErrorCase cases[] = {
 	
 			memset(&vtable, 0, sizeof (uiControlVtable));
 			vtable.Size = 1;
-			uiRegisterControlSize("name", &vtable, NULL, 0);
+			uiRegisterControlType("name", &vtable, NULL, 0);
 		},
 		"uiRegisterControlType(): wrong size 1 for uiControlVtable",
 	},

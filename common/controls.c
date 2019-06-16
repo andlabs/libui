@@ -42,7 +42,7 @@ uint32_t uiControlType(void)
 
 static uint32_t nextControlID = UINT32_C(0x80000000);
 
-uint32_t uiRegisterControlType(const char *name, uiControlVtable *vtable, uiControlOSVtable *osVtable, size_t implDataSize)
+uint32_t uiRegisterControlType(const char *name, const uiControlVtable *vtable, const uiControlOSVtable *osVtable, size_t implDataSize)
 {
 	struct controlType *ct;
 

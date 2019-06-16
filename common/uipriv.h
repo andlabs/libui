@@ -70,8 +70,8 @@ uiprivPrintfFunc(
 extern void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal);
 
 // controls.c
-extern bool uiprivOSVtableValid(uiControlOSVtable *osVtable, const char *func);
-extern uiControlOSVtable *uiprivCloneOSVtable(uiControlOSVtable *osVtable);
+extern bool uiprivOSVtableValid(const uiControlOSVtable *osVtable, const char *func);
+extern uiControlOSVtable *uiprivCloneOSVtable(const uiControlOSVtable *osVtable);
 
 #ifdef __cplusplus
 }

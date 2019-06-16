@@ -75,7 +75,7 @@ struct uiControlVtable {
 	void (*Free)(uiControl *c, void *implData);
 };
 
-uiprivExtern uint32_t uiRegisterControlType(const char *nane, uiControlVtable *vtable, uiControlOSVtable *osVtable, size_t implDataSize);
+uiprivExtern uint32_t uiRegisterControlType(const char *nane, const uiControlVtable *vtable, const uiControlOSVtable *osVtable, size_t implDataSize);
 uiprivExtern void *uiCheckControlType(void *c, uint32_t type);
 
 uiprivExtern uiControl *uiNewControl(uint32_t type, void *initData);

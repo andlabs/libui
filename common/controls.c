@@ -193,6 +193,26 @@ void uiControlFree(uiControl *c)
 	uiprivFree(c);
 }
 
+void uiControlSetParent(uiControl *c, uiControl *parent)
+{
+	if (!uiprivCheckInitializedAndThread())
+		return;
+	if (c == NULL) {
+		uiprivProgrammerErrorNullPointer("uiControl", uiprivFunc);
+		return;
+	}
+
+	if (c->parent == NULL && parent == NULL) {
+		uiprivProgrammerErrorReparenting("no", "no", uiprivFunc);
+		return;
+	}
+	if (c->parent != NULL && parent != NULL) {
+		uiprivProgrammerErrorReparenting("a", "another", uiprivFunc);
+		return;
+	}
+	c->parent = parent;
+}
+
 void *uiControlImplData(uiControl *c)
 {
 	if (!uiprivCheckInitializedAndThread())

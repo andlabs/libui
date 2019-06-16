@@ -90,4 +90,8 @@
 	uiprivProgrammerError("%s(): cannot be called on a control with has a parent", \
 		func)
 
+#define uiprivProgrammerErrorReparenting(current, next, func) \
+	uiprivProgrammerError("%s(): cannot set a control with %s parent to have %s parent", \
+		func, current, next)
+
 // }

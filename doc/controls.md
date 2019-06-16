@@ -99,6 +99,26 @@ It is a programmer error to specify `NULL` for `c`.
 
 **For control implementations**: This function calls your vtable's `Free()` method. Parameter validity checks are already performed, `uiControlOnFree()` handlers have been called, and `uiControl`-specific events have been invalidated. Your `Free()` should invalidate any events that are specific to your controls, call `uiControlFree()` on all the children of this control, and free dynamically allocated memory that is part of your implementation data. Once your `Free()` method returns, libui will take care of freeing the implementation data memory block itself.
 
+## `uiControlSetParent()`
+
+```c
+uiprivExtern void uiControlSetParent(uiControl *c, uiControl *parent);
+```
+
+`uiControlSetParent()` marks `parent` as the parent of `c`. `parent` may be `NULL`, in which case the control has no parent.
+
+This function is used by the implementation of a container control to actually establish a parent-child relationship from libui's point of view. This function is only intended to be called by control implementations. You should not call it directly; instead, use the methods provided by your container control to add children.
+
+This function can only be used to set the parent of an unparented control or to remove its parent. It may not be used to change the parent of an already parented control. It is a programmer error to set the parent of a control that already has a parent to something other than `NULL`, or to set the parent of a control with no parent to `NULL`. (The idea here is to reinforce the concept of container implementations being responsible for setting their children properly, not the user.)
+
+It is a programmer error to pass `NULL` or a non-control for `c`.
+
+TODO circular parenting
+
+**For control implementations**: You would call this when adding a control to your container, preferably before actually doing the OS-level work involved. Likewise, call this when removing a child, preferably after doing the OS-level work involved.
+
+TODO do things this way to avoid needing to check if reparenting from a container implementation, or do that manually each time?
+
 ## `uiControlImplData()`
 
 ```c

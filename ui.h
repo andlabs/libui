@@ -80,6 +80,7 @@ uiprivExtern void *uiCheckControlType(void *c, uint32_t type);
 
 uiprivExtern uiControl *uiNewControl(uint32_t type, void *initData);
 uiprivExtern void uiControlFree(uiControl *c);
+uiprivExtern void uiControlSetParent(uiControl *c, uiControl *parent);
 uiprivExtern void *uiControlImplData(uiControl *c);
 uiprivExtern uiEvent *uiControlOnFree(void);
 

@@ -42,7 +42,7 @@ Each method is named for the `uiControl` function that it implements. As such, d
 ### `uiRegisterControlType()`
 
 ```c
-uint32_t uiRegisterControlType(const char *name, uiControlVtable *vtable, uiControlOSVtable *osVtable, size_t implDataSize);
+uint32_t uiRegisterControlType(const char *name, const uiControlVtable *vtable, const uiControlOSVtable *osVtable, size_t implDataSize);
 ```
 
 `uiRegisterControlType()` registers a new `uiControl` type with the given vtables and returns its ID as passed to `uiNewControl()`. `implDataSize` is the size of the implementation data struct that is created by `uiNewControl()`.

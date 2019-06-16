@@ -50,9 +50,8 @@ extern void checkProgrammerErrorsFull(testingT *t, const char *file, long line, 
 #define checkProgrammerErrorsInThread(t, cases) checkProgrammerErrorsFull(t, __FILE__, __LINE__, cases, true)
 
 // controls.c
-extern const uiControlVtable testVtable;
-extern uiControlOSVtable *allocOSVtableFull(testingT *t, const char *file, long line);
-#define allocOSVtable(t) allocOSVtableFull(t, __FILE__, __LINE__)
+extern const uiControlVtable *testVtable(void);
+extern const uiControlOSVtable *testOSVtable(void);
 
 #ifdef __cplusplus
 }

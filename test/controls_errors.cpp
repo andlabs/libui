@@ -31,7 +31,7 @@ static const struct checkErrorCase cases[] = {
 	{
 		"uiRegisterControlType() with NULL OS vtable",
 		[](void) {
-			uiRegisterControlType("name", &testVtable, NULL, 0);
+			uiRegisterControlType("name", testVtable(), NULL, 0);
 		},
 		"uiRegisterControlType(): invalid null pointer for uiControlOSVtable",
 	},

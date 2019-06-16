@@ -17,8 +17,13 @@ static void testVtableFree(uiControl *c, void *implData)
 	// do nothing
 }
 
-const uiControlVtable testVtable = {
+static const uiControlVtable vtable = {
 	.Size = sizeof (uiControlVtable),
 	.Init = testVtableInit,
 	.Free = testVtableFree,
 };
+
+const uiControlVtable *testVtable(void)
+{
+	return &vtable;
+}

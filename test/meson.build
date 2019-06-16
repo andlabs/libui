@@ -17,7 +17,7 @@ if libui_OS == 'windows'
 	]
 elif libui_OS == 'darwin'
 	libui_test_sources += [
-#		'controls_darwin.m',
+		'controls_darwin.m',
 	]
 else
 	libui_test_sources += [

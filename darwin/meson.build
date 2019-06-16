@@ -1,7 +1,7 @@
 # 23 march 2019
 
 libui_sources += [
-	'darwin/control.m',
+	'darwin/controls.m',
 	'darwin/main.m',
 ]
 

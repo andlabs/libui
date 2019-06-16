@@ -41,13 +41,7 @@ uiprivExtern void uiFreeText(char *text);
 typedef struct uiControl uiControl;
 
 struct uiControl {
-	uint32_t Signature;
-	uint32_t OSSignature;
-	uint32_t TypeSignature;
-	void (*Destroy)(uiControl *);
 	uintptr_t (*Handle)(uiControl *);
-	uiControl *(*Parent)(uiControl *);
-	void (*SetParent)(uiControl *, uiControl *);
 	int (*Toplevel)(uiControl *);
 	int (*Visible)(uiControl *);
 	void (*Show)(uiControl *);
@@ -58,10 +52,7 @@ struct uiControl {
 };
 // TOOD add argument names to all arguments
 #define uiControl(this) ((uiControl *) (this))
-uiprivExtern void uiControlDestroy(uiControl *);
 uiprivExtern uintptr_t uiControlHandle(uiControl *);
-uiprivExtern uiControl *uiControlParent(uiControl *);
-uiprivExtern void uiControlSetParent(uiControl *, uiControl *);
 uiprivExtern int uiControlToplevel(uiControl *);
 uiprivExtern int uiControlVisible(uiControl *);
 uiprivExtern void uiControlShow(uiControl *);
@@ -74,7 +65,6 @@ uiprivExtern uiControl *uiAllocControl(size_t n, uint32_t OSsig, uint32_t typesi
 uiprivExtern void uiFreeControl(uiControl *);
 
 // TODO make sure all controls have these
-uiprivExtern void uiControlVerifySetParent(uiControl *, uiControl *);
 uiprivExtern int uiControlEnabledToUser(uiControl *);
 
 uiprivExtern void uiUserBugCannotSetParentOnToplevel(const char *type);

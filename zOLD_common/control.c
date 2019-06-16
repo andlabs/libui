@@ -7,16 +7,6 @@ uintptr_t uiControlHandle(uiControl *c)
 	return (*(c->Handle))(c);
 }
 
-uiControl *uiControlParent(uiControl *c)
-{
-	return (*(c->Parent))(c);
-}
-
-void uiControlSetParent(uiControl *c, uiControl *parent)
-{
-	(*(c->SetParent))(c, parent);
-}
-
 int uiControlToplevel(uiControl *c)
 {
 	return (*(c->Toplevel))(c);
@@ -50,19 +40,6 @@ void uiControlEnable(uiControl *c)
 void uiControlDisable(uiControl *c)
 {
 	(*(c->Disable))(c);
-}
-
-void uiControlVerifySetParent(uiControl *c, uiControl *parent)
-{
-	uiControl *curParent;
-
-	if (uiControlToplevel(c))
-		uiprivUserBug("You cannot give a toplevel uiControl a parent. (control: %p)", c);
-	curParent = uiControlParent(c);
-	if (parent != NULL && curParent != NULL)
-		uiprivUserBug("You cannot give a uiControl a parent while it already has one. (control: %p; current parent: %p; new parent: %p)", c, curParent, parent);
-	if (parent == NULL && curParent == NULL)
-		uiprivImplBug("attempt to double unparent uiControl %p", c);
 }
 
 int uiControlEnabledToUser(uiControl *c)

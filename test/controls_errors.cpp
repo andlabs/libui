@@ -27,7 +27,19 @@ static const struct checkErrorCase cases[] = {
 		},
 		"uiRegisterControlType(): wrong size 1 for uiControlVtable",
 	},
-	// TODO individual methods
+#define checkVtableMethod(name) \
+	{ \
+		"uiRegisterControlType() with NULL " #name " method", \
+		[](void) { \
+			uiControlVtable vtable; \
+			vtable = *testVtable(); \
+			vtable.name = NULL; \
+			uiRegisterControlType("name", &vtable, NULL, 0); \
+		}, \
+		"uiRegisterControlType(): required uiControlVtable method " #name "() missing for uiControl type name", \
+	}
+	checkVtableMethod(Init),
+	checkVtableMethod(Free),
 	{
 		"uiRegisterControlType() with NULL OS vtable",
 		[](void) {

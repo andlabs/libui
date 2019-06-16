@@ -106,7 +106,7 @@ static const struct checkErrorCase cases[] = {
 			checkWithGlobalEvent([](uiEvent *e) {
 				int handler;
 	
-				handler = uiEventAddHandler(e, dummyHander, NULL, NULL);
+				handler = uiEventAddHandler(e, dummyHandler, NULL, NULL);
 				uiEventFree(e);
 				uiEventDeleteHandler(e, handler);
 			});
@@ -213,10 +213,10 @@ static const struct checkErrorCase cases[] = {
 		"uiEventFire() with a NULL sender on a non-global event",
 		[](void) {
 			checkWithNonglobalEvent([](uiEvent *e) {
-				uiEventFIre(e, NULL, NULL);
+				uiEventFire(e, NULL, NULL);
 			});
 		},
-		"uiEventFire(): can't use a NULL sender with a non-global event")
+		"uiEventFire(): can't use a NULL sender with a non-global event",
 	},
 	
 	{

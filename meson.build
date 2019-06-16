@@ -2,7 +2,7 @@
 
 # TODO I'm not sure how to allow building 32-bit instead of 64-bit with meson
 
-# TODO remove cpp from this list once https://github.com/mesonbuild/meson/issues/5181 is settled; move it to the OS checks and under cpp-multithread
+# TODO remove cpp from this list once https://github.com/mesonbuild/meson/issues/5181 is settled; move it to the OS checks and under test and cpp-multithread
 project('libui', ['c', 'cpp'],
 	meson_version: '>=0.48.0',
 	default_options: [

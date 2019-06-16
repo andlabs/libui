@@ -45,7 +45,7 @@ struct checkErrorCase {
 	void (*f)(void);
 	const char *msgWant;
 };
-extern void checkProgrammerErrorsFull(testingT *t, const char *file, long line, struct checkErrorCase *cases, bool inThread);
+extern void checkProgrammerErrorsFull(testingT *t, const char *file, long line, const struct checkErrorCase *cases, bool inThread);
 #define checkProgrammerErrors(t, cases) checkProgrammerErrorsFull(t, __FILE__, __LINE__, cases, false)
 #define checkProgrammerErrorsInThread(t, cases) checkProgrammerErrorsFull(t, __FILE__, __LINE__, cases, true)
 

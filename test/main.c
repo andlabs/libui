@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
 		printf("FAIL\n");
 		return 1;
 	}
+	testControlType = uiRegisterControlType("TestControl", testVtable(), testOSVtable(), testImplDataSize());
 	runSetORingResults(NULL, &opts, &anyRun, &anyFailed);
 
 	if (!anyRun)

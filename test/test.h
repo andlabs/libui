@@ -52,6 +52,8 @@ extern void checkProgrammerErrorsFull(testingT *t, const char *file, long line, 
 // controls.c
 extern const uiControlVtable *testVtable(void);
 extern const uiControlOSVtable *testOSVtable(void);
+extern size_t testImplDataSize(void);
+extern uint32_t testControlType;
 
 #ifdef __cplusplus
 }

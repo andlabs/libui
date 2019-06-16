@@ -27,3 +27,11 @@ const uiControlVtable *testVtable(void)
 {
 	return &vtable;
 }
+
+size_t testImplDataSize(void)
+{
+	return sizeof (struct testImplData);
+}
+
+// TODO explicitly make/document 0 as always invalid
+uint32_t testControlType = 0;

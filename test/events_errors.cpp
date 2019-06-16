@@ -91,6 +91,13 @@ static const struct checkErrorCase cases[] = {
 		},
 		"uiEventFree(): invalid null pointer for uiEvent",
 	},
+#define checkEventFreeInternal(which) \
+	{ \
+		"uiEventFree() called on " #which, \
+		[](void) { uiEventFree(which); }, \
+		"uiEventFree(): can't free a libui-provided event", \
+	}
+	checkEventFreeInternal(uiControlOnFree()),
 	{
 		"uiEventFree() while said event is firing",
 		[](void) {
@@ -303,5 +310,3 @@ testingTest(EventErrors)
 {
 	checkProgrammerErrors(t, cases);
 }
-
-// TODO check deleting each internal event

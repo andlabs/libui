@@ -7,7 +7,7 @@ libui_test_sources = [
 	'events_errors.cpp',
 	'initmain.c',
 	'main.c',
-#	'noinitwrongthread.c',
+	'noinitwrongthread.cpp',
 ]
 
 if libui_OS == 'windows'

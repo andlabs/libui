@@ -4,6 +4,9 @@
 
 allcallsCase(uiMain, /* no arguments */)
 allcallsCase(uiQuit, /* no arguments */)
+#ifdef allcallsIncludeQueueMain
+allcallsCase(uiQueueMain, NULL, NULL)
+#endif
 
 allcallsCase(uiNewEvent, NULL)
 allcallsCase(uiEventAddHandler, NULL, NULL, NULL, NULL)

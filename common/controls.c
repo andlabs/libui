@@ -1,5 +1,6 @@
 // 8 june 2019
 #include "uipriv.h"
+#include "testhooks.h"
 
 struct controlType {
 	uint32_t id;
@@ -201,4 +202,14 @@ void *uiControlImplData(uiControl *c)
 		return NULL;
 	}
 	return c->implData;
+}
+
+static uiControl testHookControlWithInvalidType = {
+	.controlID = controlTypeID,
+	.typeID = 5,
+};
+
+uiControl *uiprivTestHookControlWithInvalidType(void)
+{
+	return &testHookControlWithInvalidType;
 }

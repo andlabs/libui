@@ -73,9 +73,16 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 	{
 		"uiCheckControlType() with a control with an unknown type",
 		[](void) {
-			// TODO
+			uiCheckControlType(uiprivTestHookControlWithInvalidType(), testControlType);
 		},
-		"TODO",
+		"uiCheckControlType(): unknown uiControl type 5 found in uiControl (this is likely not a real uiControl or some data is corrupt)",
+	},
+	{
+		"uiCheckControlType() with a control with an unknown type, even with uiControlType()",
+		[](void) {
+			uiCheckControlType(uiprivTestHookControlWithInvalidType(), uiControlType());
+		},
+		"uiCheckControlType(): unknown uiControl type 5 found in uiControl (this is likely not a real uiControl or some data is corrupt)",
 	},
 	{
 		"uiCheckControlType() asking for an unknown control type",

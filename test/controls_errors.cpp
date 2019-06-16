@@ -1,6 +1,9 @@
 // 11 june 2019
 #include "test.h"
 
+// TODO once this is filled in, verify against the documentation that this is all the error cases
+// TODO add an internal marker to uiEvent as well, just to be safe?
+
 static const struct checkErrorCase casesBeforeOSVtable[] = {
 	{
 		"uiRegisterControlType() with NULL name",
@@ -56,7 +59,7 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 		[](void) {
 			uiCheckControlType(NULL, uiControlType());
 		},
-		"TODO",
+		"uiCheckControlType(): invalid null pointer for uiControl",
 	},
 	{
 		"uiCheckControlType() with non-control",
@@ -65,7 +68,7 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 
 			uiCheckControlType(buf, uiControlType());
 		},
-		"TODO",
+		"uiCheckControlType(): object passed in not a uiControl",
 	},
 	{
 		"uiCheckControlType() with a control with an unknown type",
@@ -94,14 +97,14 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 		[](void) {
 			uiNewControl(uiControlType(), NULL);
 		},
-		"TODO",
+		"uiNewControl(): uiControlType() passed in when specific control type needed",
 	},
 	{
 		"uiNewControl() with an unknown control type",
 		[](void) {
 			uiNewControl(5, NULL);
 		},
-		"TODO",
+		"uiNewControl(): unknown uiControl type 5 requested",
 	},
 	// TODO have Init() fail
 
@@ -112,7 +115,7 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 		[](void) {
 			uiControlImplData(NULL);
 		},
-		"TODO",
+		"uiControlImplData(): invalid null pointer for uiControl",
 	},
 	{ NULL, NULL, NULL },
 };

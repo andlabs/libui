@@ -7,9 +7,12 @@ struct testImplData {
 	bool testMethodCalled;
 };
 
+static int failInit = 5;
+void *testControlFailInit = &failInit;
+
 static bool testVtableInit(uiControl *c, void *implData, void *initData)
 {
-	return true;
+	return initData != testControlFailInit;
 }
 
 static void testVtableFree(uiControl *c, void *implData)
@@ -35,3 +38,4 @@ size_t testImplDataSize(void)
 
 // TODO explicitly make/document 0 as always invalid
 uint32_t testControlType = 0;
+uint32_t testControlType2 = 0;

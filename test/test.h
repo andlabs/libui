@@ -50,10 +50,12 @@ extern void checkProgrammerErrorsFull(testingT *t, const char *file, long line, 
 #define checkProgrammerErrorsInThread(t, cases) checkProgrammerErrorsFull(t, __FILE__, __LINE__, cases, true)
 
 // controls.c
+extern void *testControlFailInit;
 extern const uiControlVtable *testVtable(void);
 extern const uiControlOSVtable *testOSVtable(void);
 extern size_t testImplDataSize(void);
 extern uint32_t testControlType;
+extern uint32_t testControlType2;
 
 #ifdef __cplusplus
 }

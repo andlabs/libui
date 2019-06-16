@@ -80,16 +80,24 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 	{
 		"uiCheckControlType() asking for an unknown control type",
 		[](void) {
-			// TODO
+			uiControl *c;
+
+			c = uiNewControl(testControlType, NULL);
+			uiCheckControlType(c, 5);
+			uiControlFree(c);
 		},
-		"TODO",
+		"uiCheckControlType(): unknown uiControl type 5 requested",
 	},
 	{
 		"uiCheckControlType() with a type mismatch",
 		[](void) {
-			// TODO
+			uiControl *c;
+
+			c = uiNewControl(testControlType, NULL);
+			uiCheckControlType(c, testControlType2);
+			uiControlFree(c);
 		},
-		"TODO",
+		"uiCheckControlType(): wrong uiControl type passed: got TestControl, want TestControl2",
 	},
 
 	{
@@ -106,9 +114,28 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 		},
 		"uiNewControl(): unknown uiControl type 5 requested",
 	},
-	// TODO have Init() fail
+	{
+		"uiNewControl() with Init() failing",
+		[](void) {
+			uiNewControl(testControlType, testControlFailInit);
+		},
+		"uiNewControl(): invalid init data for TestControl",
+	},
 
-	// TODO uiControlFree()
+	{
+		"uiControlFree() with a NULL uiControl",
+		[](void) {
+			uiControlFree(NULL);
+		},
+		"uiControlFree(): invalid null pointer for uiControl",
+	},
+	{
+		"uiControlFree() with a uiControl that still has a parent",
+		[](void) {
+			// TODO
+		},
+		"TODO",
+	},
 
 	{
 		"uiControlImplData() with a NULL uiControl",

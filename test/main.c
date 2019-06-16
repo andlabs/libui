@@ -50,6 +50,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	testControlType = uiRegisterControlType("TestControl", testVtable(), testOSVtable(), testImplDataSize());
+	testControlType2 = uiRegisterControlType("TestControl2", testVtable(), testOSVtable(), testImplDataSize());
+
 	runSetORingResults(NULL, &opts, &anyRun, &anyFailed);
 
 	if (!anyRun)

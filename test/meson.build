@@ -16,8 +16,11 @@ if libui_OS == 'windows'
 		'controls_windows.c',
 	]
 elif libui_OS == 'darwin'
+	add_languages('objcpp',
+		required: true)
 	libui_test_sources += [
 		'controls_darwin.m',
+		'controls_darwin_errors.mm',
 	]
 else
 	libui_test_sources += [

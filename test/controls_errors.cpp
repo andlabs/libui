@@ -215,6 +215,6 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 testingTest(ControlErrors)
 {
 	checkProgrammerErrors(t, casesBeforeOSVtable);
-	// OS vtable sizes are tested per-OS
+	checkProgrammerErrors(t, controlOSVtableCases);
 	checkProgrammerErrors(t, casesAfterOSVtable);
 }

@@ -57,6 +57,9 @@ extern size_t testImplDataSize(void);
 extern uint32_t testControlType;
 extern uint32_t testControlType2;
 
+// controls_errors.cpp
+extern const struct checkErrorCase controlOSVtableCases[];
+
 #ifdef __cplusplus
 }
 #endif

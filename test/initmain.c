@@ -1,6 +1,8 @@
 // 10 april 2019
 #include "test.h"
 
+// TODO test the number of calls to queued functions made
+
 testingSet *beforeTests = NULL;
 
 #define errInvalidOptions "options parameter to uiInit() must be NULL"

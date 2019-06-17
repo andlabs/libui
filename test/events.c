@@ -1,6 +1,8 @@
 // 18 may 2019
 #include "test.h"
 
+// TODO test the number of calls to handlers made
+
 struct handler {
 	uiEvent *e;
 	int id;

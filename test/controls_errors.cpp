@@ -147,9 +147,59 @@ static const struct checkErrorCase casesAfterOSVtable[] = {
 	{
 		"uiControlFree() with a uiControl that still has a parent",
 		[](void) {
-			// TODO
+			uiControl *c, *d;
+
+			c = uiNewControl(testControlType, NULL);
+			d = uiNewControl(testControlType, NULL);
+
+			// this should fail
+			uiControlSetParent(c, d);
+			uiControlFree(c);
+
+			uiControlSetParent(c, NULL);
+			uiControlFree(d);
+			uiControlFree(c);
 		},
-		"TODO",
+		"uiControlFree(): cannot be called on a control with has a parent",
+	},
+
+	{
+		"uiControlSetParent() with a NULL uiControl",
+		[](void) {
+			uiControlSetParent(NULL, NULL);
+		},
+		"uiControlSetParent(): invalid null pointer for uiControl",
+	},
+	{
+		"uiControlSetParent() to unparent an already parentless control",
+		[](void) {
+			uiControl *c;
+
+			c = uiNewControl(testControlType, NULL);
+			uiControlSetParent(c, NULL);
+			uiControlFree(c);
+		},
+		"uiControlSetParent(): cannot set a control with no parent to have no parent",
+	},
+	{
+		"uiControlSetParent() to reparent an already parented control",
+		[](void) {
+			uiControl *c, *d, *e;
+
+			c = uiNewControl(testControlType, NULL);
+			d = uiNewControl(testControlType, NULL);
+			e = uiNewControl(testControlType, NULL);
+
+			// this should fail
+			uiControlSetParent(c, d);
+			uiControlSetParent(c, e);
+
+			uiControlSetParent(c, NULL);
+			uiControlFree(e);
+			uiControlFree(d);
+			uiControlFree(c);
+		},
+		"uiControlSetParent(): cannot set a control with a parent to have another parent",
 	},
 
 	{

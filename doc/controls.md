@@ -114,10 +114,12 @@ This function can only be used to set the parent of an unparented control or to 
 It is a programmer error to pass `NULL` or a non-control for `c`.
 
 TODO circular parenting
+TODO self-parenting
+TODO top-levels and parenting
 
 **For control implementations**: You would call this when adding a control to your container, preferably before actually doing the OS-level work involved. Likewise, call this when removing a child, preferably after doing the OS-level work involved.
 
-TODO do things this way to avoid needing to check if reparenting from a container implementation, or do that manually each time?
+TODO do things this way to avoid needing to check if reparenting from a container implementation, or do that manually each time? we used to have uiControlVerifySetParent()...
 
 ## `uiControlImplData()`
 

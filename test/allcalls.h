@@ -23,5 +23,6 @@ allcallsCase(uiCheckControlType, NULL, 0)
 
 allcallsCase(uiNewControl, 0, NULL)
 allcallsCase(uiControlFree, NULL)
+allcallsCase(uiControlSetParent, NULL, NULL)
 allcallsCase(uiControlImplData, NULL)
 allcallsCase(uiControlOnFree, /* no arguments */)

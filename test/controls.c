@@ -4,6 +4,8 @@
 struct counts {
 	unsigned long countInit;
 	unsigned long countFree;
+
+	unsigned long countEventOnFree;
 };
 
 static void checkCountsFull(testingT *t, const char *file, long line, const struct counts *got, const struct counts *want)
@@ -14,6 +16,13 @@ static void checkCountsFull(testingT *t, const char *file, long line, const stru
 			got->count ## method, want->count ## method)
 	check(Init);
 	check(Free);
+#undef check
+
+#define check(event) \
+	if (got->countEvent ## event != want->countEvent ## event) \
+		testingTErrorfFull(t, file, line, "wrong number of fires of uiControl" #event "():" diff("%lu"), \
+			got->countEvent ## event, want->countEvent ## event)
+	check(OnFree);
 #undef check
 }
 
@@ -71,11 +80,19 @@ size_t testImplDataSize(void)
 uint32_t testControlType = 0;
 uint32_t testControlType2 = 0;
 
+static void eventFreeHandler(void *sender, void *args, void *data)
+{
+	struct counts *counts = (struct counts *) data;
+
+	counts->countEventOnFree++;
+}
+
 testingTest(ControlMethodsCalled)
 {
 	uiControl *c;
 	struct counts counts;
 	struct counts want;
+	int handler;
 
 	testingTLogf(t, "*** uiNewControl()");
 	memset(&counts, 0, sizeof (struct counts));
@@ -86,10 +103,12 @@ testingTest(ControlMethodsCalled)
 
 	testingTLogf(t, "*** uiControlFree()");
 	memset(&counts, 0, sizeof (struct counts));
-	// TODO add event handler
+	handler = uiEventAddHandler(uiControlOnFree(), eventFreeHandler, c, &counts);
 	uiControlFree(c);
+	uiEventDeleteHandler(uiControlOnFree(), handler);
 	memset(&want, 0, sizeof (struct counts));
 	want.countFree = 1;
+	want.countEventOnFree = 1;
 	checkCounts(t, &counts, &want);
 }
 

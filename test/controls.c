@@ -111,5 +111,3 @@ testingTest(ControlMethodsCalled)
 	want.countEventOnFree = 1;
 	checkCounts(t, &counts, &want);
 }
-
-// TODO test freeing a parent frees the child

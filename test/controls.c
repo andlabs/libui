@@ -2,20 +2,21 @@
 #include "test.h"
 
 struct testInitData {
-	bool *freeCalled;
+	unsigned long *freeCount;
 };
 
 struct testImplData {
 	bool initCalled;
-	bool *freeCalled;
+	unsigned long *freeCount;
 };
 
 static struct testInitData failInit;
 void *testControlFailInit = &failInit;
 
+// TODO document that impl data is zero-initialized before this is called
 static bool testVtableInit(uiControl *c, void *implData, void *initData)
 {
-	struct testImplData *d = (struct testInitData *) implData;
+	struct testImplData *d = (struct testImplData *) implData;
 	struct testInitData *tid = (struct testInitData *) initData;
 
 	d->initCalled = true;
@@ -23,16 +24,16 @@ static bool testVtableInit(uiControl *c, void *implData, void *initData)
 		return false;
 	if (tid == NULL)
 		return true;
-	d->freeCalled = tid->freeCalled;
+	d->freeCount = tid->freeCount;
 	return true;
 }
 
 static void testVtableFree(uiControl *c, void *implData)
 {
-	struct testImplData *d = (struct testInitData *) implData;
+	struct testImplData *d = (struct testImplData *) implData;
 
-	if (d->freeCalled != NULL)
-		*(d->freeCalled) = true;
+	if (d->freeCount != NULL)
+		(*(d->freeCount))++;
 }
 
 static const uiControlVtable vtable = {
@@ -60,10 +61,10 @@ testingTest(ControlMethodsCalled)
 	uiControl *c;
 	struct testImplData *d;
 	struct testInitData tid;
-	bool freeCalled = false;
+	unsigned long freeCount = 0;
 
 	memset(&tid, 0, sizeof (struct testInitData));
-	tid.freeCalled = &freeCalled;
+	tid.freeCount = &freeCount;
 	c = uiNewControl(testControlType, &tid);
 	d = (struct testImplData *) uiControlImplData(c);
 	if (d == NULL)
@@ -72,8 +73,9 @@ testingTest(ControlMethodsCalled)
 		testingTErrorf(t, "uiNewControl() did not call Init(); should have");
 	// TODO add event handler
 	uiControlFree(c);
-	if (!freeCalled)
-		testingTErrorf(t, "uiControlFree() did not call Free(); should have");
+	if (freeCount != 1)
+		testingTErrorf(t, "uiControlFree() wrong Free() call count:" diff("%lu"),
+			freeCount, 1UL);
 }
 
 // TODO test freeing a parent frees the child

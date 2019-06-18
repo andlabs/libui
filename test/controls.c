@@ -1,30 +1,45 @@
 // 8 june 2019
 #include "test.h"
 
-struct testInitData {
-	unsigned long *freeCount;
+struct counts {
+	unsigned long countInit;
+	unsigned long countFree;
 };
+
+static void checkCountsFull(testingT *t, const char *file, long line, const struct counts *got, const struct counts *want)
+{
+#define check(method) \
+	if (got->count ## method != want->count ## method) \
+		testingTErrorfFull(t, file, line, "wrong number of calls to " #method "():" diff("%lu"), \
+			got->count ## method, want->count ## method)
+	check(Init);
+	check(Free);
+#undef check
+}
+
+#define checkCounts(t, got, want) checkCountsFull(t, __FILE__, __LINE__, got, want)
 
 struct testImplData {
-	bool initCalled;
-	unsigned long *freeCount;
+	struct counts *counts;
 };
 
-static struct testInitData failInit;
+static struct counts failInit;
 void *testControlFailInit = &failInit;
 
 // TODO document that impl data is zero-initialized before this is called
+// TODO we'll also have to eventually deal with the fact that NULL is not required to be 0... or at least confirm that
 static bool testVtableInit(uiControl *c, void *implData, void *initData)
 {
 	struct testImplData *d = (struct testImplData *) implData;
-	struct testInitData *tid = (struct testInitData *) initData;
+	struct counts *counts = (struct counts *) initData;
 
-	d->initCalled = true;
-	if (tid == testControlFailInit)
+	if (initData == testControlFailInit)
 		return false;
-	if (tid == NULL)
+	if (initData == NULL)
 		return true;
-	d->freeCount = tid->freeCount;
+	if (d->counts == NULL)
+		d->counts = counts;
+	d->counts->countInit++;
 	return true;
 }
 
@@ -32,8 +47,8 @@ static void testVtableFree(uiControl *c, void *implData)
 {
 	struct testImplData *d = (struct testImplData *) implData;
 
-	if (d->freeCount != NULL)
-		(*(d->freeCount))++;
+	if (d->counts != NULL)
+		d->counts->countFree++;
 }
 
 static const uiControlVtable vtable = {
@@ -59,23 +74,23 @@ uint32_t testControlType2 = 0;
 testingTest(ControlMethodsCalled)
 {
 	uiControl *c;
-	struct testImplData *d;
-	struct testInitData tid;
-	unsigned long freeCount = 0;
+	struct counts counts;
+	struct counts want;
 
-	memset(&tid, 0, sizeof (struct testInitData));
-	tid.freeCount = &freeCount;
-	c = uiNewControl(testControlType, &tid);
-	d = (struct testImplData *) uiControlImplData(c);
-	if (d == NULL)
-		testingTErrorf(t, "uiControlImplData() returned NULL; should not have");
-	else if (!d->initCalled)
-		testingTErrorf(t, "uiNewControl() did not call Init(); should have");
+	testingTLogf(t, "*** uiNewControl()");
+	memset(&counts, 0, sizeof (struct counts));
+	c = uiNewControl(testControlType, &counts);
+	memset(&want, 0, sizeof (struct counts));
+	want.countInit = 1;
+	checkCounts(t, &counts, &want);
+
+	testingTLogf(t, "*** uiControlFree()");
+	memset(&counts, 0, sizeof (struct counts));
 	// TODO add event handler
 	uiControlFree(c);
-	if (freeCount != 1)
-		testingTErrorf(t, "uiControlFree() wrong Free() call count:" diff("%lu"),
-			freeCount, 1UL);
+	memset(&want, 0, sizeof (struct counts));
+	want.countFree = 1;
+	checkCounts(t, &counts, &want);
 }
 
 // TODO test freeing a parent frees the child

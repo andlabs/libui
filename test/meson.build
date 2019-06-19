@@ -23,6 +23,7 @@ elif libui_OS == 'darwin'
 else
 	libui_test_sources += [
 		'controls_unix.c',
+		'controls_unix_errors.cpp',
 	]
 endif
 

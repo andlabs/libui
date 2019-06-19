@@ -1,6 +1,7 @@
 # 23 march 2019
 
 libui_sources += [
+	'unix/controls.c',
 	'unix/main.c',
 ]
 

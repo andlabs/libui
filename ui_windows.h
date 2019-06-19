@@ -11,6 +11,10 @@ This file assumes that you have included <windows.h> and "ui.h" beforehand. It p
 extern "C" {
 #endif
 
+struct uiControlOSVtable {
+	size_t Size;
+};
+
 #ifdef __cplusplus
 }
 #endif

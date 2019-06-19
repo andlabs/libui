@@ -14,6 +14,7 @@ libui_test_sources = [
 if libui_OS == 'windows'
 	libui_test_sources += [
 		'controls_windows.c',
+		'controls_windows_errors.cpp',
 	]
 elif libui_OS == 'darwin'
 	libui_test_sources += [

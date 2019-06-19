@@ -4,5 +4,9 @@
 * [Initialization and the Main Loop](init-main.md)
 * [Event Handling](events.md)
 * [Controls](controls.md)
+* Windows
+** [Controls](windows-controls.md)
+* Unix
+** [Controls](unix-controls.md)
 * macOS
 ** [Controls](darwin-controls.md)

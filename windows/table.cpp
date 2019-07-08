@@ -230,6 +230,59 @@ int uiprivTableProgress(uiTable *t, int item, int subitem, int modelColumn, LONG
 	return progress;
 }
 
+void uiTableHeaderSetSortIndicator(uiTable *t, int column, uiSort order)
+{
+	HWND lvhdr;
+	int fmt;
+
+	if (order == uiSortAscending)
+		fmt = HDF_SORTUP;
+	else if (order == uiSortDescending)
+		fmt = HDF_SORTDOWN;
+	else
+		fmt = 0;
+
+	lvhdr = ListView_GetHeader(t->hwnd);
+	if (lvhdr) {
+		HDITEM hdri = {};
+		hdri.mask = HDI_FORMAT;
+		if (Header_GetItem(lvhdr, column, &hdri)) {
+			hdri.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
+			hdri.fmt |= fmt;
+			Header_SetItem(lvhdr, column, &hdri);
+		}
+	}
+}
+
+uiSort uiTableHeaderSortIndicator(uiTable *t, int column)
+{
+	HWND lvhdr;
+
+	lvhdr = ListView_GetHeader(t->hwnd);
+	if (lvhdr) {
+		HDITEM hdri = {};
+		hdri.mask = HDI_FORMAT;
+		if (Header_GetItem(lvhdr, column, &hdri)) {
+			if (hdri.fmt & HDF_SORTUP)
+				return uiSortAscending;
+			if (hdri.fmt & HDF_SORTDOWN)
+				return uiSortDescending;
+		}
+	}
+	return uiSortNone;
+}
+
+void uiTableHeaderOnClicked(uiTable *t, void (*f)(uiTable *table, int column, void *data), void *data)
+{
+	t->headerOnClicked = f;
+	t->headerOnClickedData = data;
+}
+
+static void defaultHeaderOnClicked(uiTable *table, int column, void *data)
+{
+	// do nothing
+}
+
 // TODO properly integrate compound statements
 static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 {
@@ -310,9 +363,20 @@ static BOOL onWM_NOTIFY(uiControl *c, HWND hwnd, NMHDR *nmhdr, LRESULT *lResult)
 			}
 			return FALSE;
 		}
+	case LVN_COLUMNCLICK:
+		{
+			NMLISTVIEW *nm = (NMLISTVIEW *) nmhdr;
+
+			hr = uiprivTableFinishEditingText(t);
+			if (hr != S_OK) {
+				// TODO
+				return FALSE;
+			}
+			t->headerOnClicked(t, nm->iSubItem, t->headerOnClickedData);
+			return TRUE;
+		}
 	// the real list view accepts changes when scrolling or clicking column headers
 	case LVN_BEGINSCROLL:
-	case LVN_COLUMNCLICK:
 		hr = uiprivTableFinishEditingText(t);
 		if (hr != S_OK) {
 			// TODO
@@ -490,6 +554,7 @@ uiTable *uiNewTable(uiTableParams *p)
 	t->columns = new std::vector<uiprivTableColumnParams *>;
 	t->model = p->Model;
 	t->backgroundColumn = p->RowBackgroundColorModelColumn;
+	uiTableHeaderOnClicked(t, defaultHeaderOnClicked, NULL);
 
 	// WS_CLIPCHILDREN is here to prevent drawing over the edit box used for editing text
 	t->hwnd = uiWindowsEnsureCreateControlHWND(WS_EX_CLIENTEDGE,

@@ -211,3 +211,7 @@ whatever this is seems to have no documentation... it appears to be related to  
 unreachable code optimizations
 https://docs.microsoft.com/en-us/cpp/intrinsics/assume?view=vs-2017
 https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
+
+
+(#gtk) [01:57:47]  <gwutz2[m]>	I have a question about blocking signal handlers from emission when using a GtkSearchEntry. As i did it in the past with signal emissions is to block the handler, set anything on the Entry, unblock the handler. But the search entry emits after 150 ms therefore this does not work for GtkSearchEntrys. Is there a good way to archieve the same?
+

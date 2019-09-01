@@ -43,6 +43,65 @@ static inline HRESULT lastErrorToHRESULT(DWORD lastError)
 	return HRESULT_FROM_WIN32(lastError);
 }
 
+static void paintIntoBuffer(HWND hwnd, UINT uMsg, HDC dc, RECT *r)
+{
+	HPAINTBUFFER bbuf;
+	HDC bdc;
+	HRESULT hr;
+
+	// TODO begin check errors
+	bbuf = BeginBufferedPaint(dc, r, BPBF_TOPDOWNDIB, NULL, &bdc);
+	if (uMsg == WM_PAINT)
+		SendMessageW(hwnd, WM_PRINTCLIENT, (WPARAM) bdc, PRF_CLIENT | PRF_ERASEBKGND);
+	else
+		SendMessageW(hwnd, WM_PRINT, (WPARAM) bdc, PRF_ERASEBKGND | PRF_NONCLIENT);
+	hr = BufferedPaintSetAlpha(bbuf, NULL, 255);
+	hr = EndBufferedPaint(bbuf, TRUE);
+	// TODO end check errors
+}
+
+static LRESULT CALLBACK buttonSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	PAINTSTRUCT ps;
+	HDC dc;
+	RECT r;
+
+	switch (uMsg) {
+	case WM_PAINT:
+		// TODO begin check errors
+#if 0
+		dc = BeginPaint(hwnd, &ps);
+//		paintIntoBuffer(hwnd, uMsg, dc, &(ps.rcPaint));
+		DefSubclassProc(hwnd, uMsg, (WPARAM) dc, lParam);
+		EndPaint(hwnd, &ps);
+#else
+		DefSubclassProc(hwnd, uMsg, wParam, lParam);
+		if (0) {
+			RECT r;
+
+			GetClientRect(hwnd, &r);
+			MapWindowRect(hwnd, GetParent(hwnd), &r);
+			InvalidateRect(GetParent(hwnd), &r, TRUE);
+		}
+#endif
+		// TODO end check errors
+		return 0;
+//TODO	case WM_NCPAINT:
+		// TODO begin check errors
+		dc = GetDCEx(hwnd, (HRGN) wParam, DCX_WINDOW | DCX_INTERSECTRGN);
+		GetRgnBox((HRGN) wParam, &r);
+		paintIntoBuffer(hwnd, uMsg, dc, &r);
+		ReleaseDC(hwnd, dc);
+		// TODO end check errors
+		return 0;
+	case WM_NCDESTROY:
+		if (RemoveWindowSubclass(hwnd, buttonSubProc, uIdSubclass) == FALSE)
+			diele("RemoveWindowSubclass()");
+                break;
+        }
+        return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+}
+
 HINSTANCE hInstance;
 HRGN rgn;
 BOOL created = FALSE;
@@ -66,30 +125,30 @@ void onWM_CREATE(HWND hwnd)
 	hr = DwmEnableBlurBehindWindow(hwnd, &dbb);
 	if (hr != S_OK)
 		diehr("DwmEnableBlurBehindWindow()", hr);
-CreateWindowExW(0,
+HWND w1=CreateWindowExW(0,
 L"BUTTON",L"Hello",
 WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,
 3*OURWIDTH/4,150,
 OURWIDTH/6,25,
 hwnd,NULL,hInstance,NULL);
-SetWindowTheme(CreateWindowExW(0,
+//SetWindowSubclass(w1, buttonSubProc, 0, 0);
+HWND w2=CreateWindowExW(0,
 L"BUTTON",L"Hello",
 WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,
 3*OURWIDTH/4,200,
 OURWIDTH/6,25,
-hwnd,NULL,hInstance,NULL),L"",L"");
+hwnd,NULL,hInstance,NULL);
+SetWindowTheme(w2,L"",L"");
+//SetWindowSubclass(w2, buttonSubProc, 0, 0);
 }
 
-void onWM_PAINT(HWND hwnd)
+void doPaint(HWND hwnd, HDC dc, RECT *rcPaint)
 {
-	HDC dc;
-	PAINTSTRUCT ps;
-	RECT r;
+	RECT r, r2;
+	HPAINTBUFFER bbuf;
+	HDC bdc;
+	HRESULT hr;
 
-	ZeroMemory(&ps, sizeof (PAINTSTRUCT));
-	dc = BeginPaint(hwnd, &ps);
-	if (dc == NULL)
-		diele("BeginPaint()");
 	// First, fill with BLACK_BRUSH to satisfy the DWM
 	r.left = 0;
 	r.top = 0;
@@ -97,29 +156,49 @@ void onWM_PAINT(HWND hwnd)
 	r.bottom = OURHEIGHT;
 	// TODO check error
 	FillRect(dc, &r, (HBRUSH) GetStockObject(BLACK_BRUSH));
-static DWORD c=GetSysColor(COLOR_BTNFACE);
-BYTE x[4];
-x[3]=0xFF;
-x[2]=GetRValue(c);
-x[1]=GetGValue(c);
-x[0]=GetBValue(c);
-static HBITMAP b=CreateBitmap(1,1,1,32,x);
-if(b==NULL)diele("CreateBitmap()");
-HDC dc2=CreateCompatibleDC(dc);
-if(dc==NULL)diele("CreateCompatibleDC()");
-HGDIOBJ prev=SelectObject(dc2,b);
-StretchBlt(dc,OURWIDTH/2,0,OURWIDTH/2,OURHEIGHT,
-dc2,0,0,1,1,SRCCOPY);
-SelectObject(dc2,prev);
-DeleteDC(dc2);
-DeleteObject(b);
-r.left=3*OURWIDTH/4;
-r.top=100;
-r.right=7*OURWIDTH/8;
-r.bottom=25;
-auto m=SetBkMode(dc,TRANSPARENT);
-TextOutW(dc,r.left,r.top,L"Hello",5);
-SetBkMode(dc, m);
+
+	r.left = OURWIDTH / 2;
+	// TODO check error
+	IntersectRect(&r2, &r, rcPaint);
+	bbuf = BeginBufferedPaint(dc, &r, BPBF_TOPDOWNDIB, NULL, &bdc);
+	if (bbuf == NULL)
+		diele("BeginBufferedPaint()");
+	// TODO start check errors
+	FillRect(bdc, &r, GetSysColorBrush(COLOR_BTNFACE));
+	r.left = 3 * OURWIDTH / 4;
+	r.top = 100;
+	r.right = 7 * OURWIDTH / 8;
+	r.bottom = 25;
+	auto m = SetBkMode(bdc,TRANSPARENT);
+	TextOutW(bdc, r.left, r.top, L"Hello", 5);
+	SetBkMode(bdc, m);
+	// TODO end check errors
+	hr = BufferedPaintSetAlpha(bbuf, NULL, 255);
+	if (hr != S_OK)
+		diehr("BufferedPaintSetAlpha()", hr);
+	hr = EndBufferedPaint(bbuf, TRUE);
+	if (hr != S_OK)
+		diehr("EndBufferedPaint()", hr);
+}
+
+void onWM_PAINT(HWND hwnd, WPARAM wParam)
+{
+	HDC dc;
+	PAINTSTRUCT ps;
+	RECT rcPaint;
+
+	if (wParam != 0) {
+		// TODO check errors
+		GetClientRect(hwnd, &rcPaint);
+		doPaint(hwnd, (HDC) wParam, &rcPaint);
+		return;
+	}
+
+	ZeroMemory(&ps, sizeof (PAINTSTRUCT));
+	dc = BeginPaint(hwnd, &ps);
+	if (dc == NULL)
+		diele("BeginPaint()");
+	doPaint(hwnd, dc, &(ps.rcPaint));
 	EndPaint(hwnd, &ps);
 }
 
@@ -130,7 +209,9 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		onWM_CREATE(hwnd);
 		break;
 	case WM_PAINT:
-		onWM_PAINT(hwnd);
+//	case WM_PRINTCLIENT:
+//	case WM_ERASEBKGND:
+		onWM_PAINT(hwnd, wParam);
 		break;
 	case WM_CLOSE:
 		PostQuitMessage(0);
@@ -173,6 +254,10 @@ int main(int argc, char *argv[])
 	hDefaultCursor = LoadCursorW(NULL, IDC_ARROW);
 	if (hDefaultCursor == NULL)
 		diele("LoadCursorW(IDC_ARROW)");
+
+	hr = BufferedPaintInit();
+	if (hr != S_OK)
+		diehr("BufferedPaintInit()", hr);
 
 	ZeroMemory(&wc, sizeof (WNDCLASSW));
 	wc.lpszClassName = L"mainwin";
@@ -218,5 +303,6 @@ int main(int argc, char *argv[])
 			DispatchMessageW(&msg);
 		}
 	}
+	BufferedPaintUnInit();
 	return 0;
 }

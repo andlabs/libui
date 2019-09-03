@@ -15,10 +15,11 @@
 #include <vssym32.h>
 #include <windowsx.h>
 #include <dwmapi.h>
+#include "detours.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-// cl windwmblurbehindtest.cpp -MT -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib dwmapi.lib windows.res
+// cl windwmblurbehindtest.cpp -MT -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib dwmapi.lib detours.lib windows.res
 
 void diele(const char *func)
 {
@@ -60,6 +61,166 @@ static void paintIntoBuffer(HWND hwnd, UINT uMsg, HDC dc, RECT *r)
 	// TODO end check errors
 }
 
+static HWND bpHWND = NULL;
+static HDC bpDC = NULL;
+static HDC bpPSDC = NULL;
+static HDC bpBufDC = NULL;
+static HPAINTBUFFER bpBuf = NULL;
+
+static HDC (WINAPI *origBeginPaint)(HWND hwnd, LPPAINTSTRUCT ps) = BeginPaint;
+static HDC WINAPI ourBeginPaint(HWND hwnd, LPPAINTSTRUCT ps)
+{
+	HDC dc, bdc;
+	HPAINTBUFFER bbuf;
+
+	if (bpHWND == NULL) {
+		dc = (*origBeginPaint)(hwnd, ps);
+		if (dc == NULL)
+			return NULL;
+		bbuf = BeginBufferedPaint(dc, &(ps->rcPaint), BPBF_TOPDOWNDIB, NULL, &bdc);
+		if (bbuf == NULL)		// just draw normally, not much else we can do but deal with the graphical glitches
+			return dc;
+		bpHWND = hwnd;
+		bpDC = dc;
+		bpPSDC = ps->hdc;
+		ps->hdc = bdc;
+		bpBufDC = bdc;
+		bpBuf = bbuf;
+		return bdc;
+	}
+	return (*origBeginPaint)(hwnd, ps);
+}
+
+static HANIMATIONBUFFER bpHAB = NULL;
+static HDC bpFromDC = NULL;
+static HDC bpFromBufDC = NULL;
+static HPAINTBUFFER bpFromBuf = NULL;
+static HDC bpToDC = NULL;
+static HDC bpToBufDC = NULL;
+static HPAINTBUFFER bpToBuf = NULL;
+
+static HANIMATIONBUFFER (STDAPICALLTYPE *origBeginBufferedAnimation)(HWND hwnd, HDC hdcTarget, const RECT *prcTarget, BP_BUFFERFORMAT dwFormat, BP_PAINTPARAMS *pPaintParams, BP_ANIMATIONPARAMS *pAnimationParams, HDC *phdcFrom, HDC *phdcTo) = BeginBufferedAnimation;
+static HANIMATIONBUFFER STDAPICALLTYPE ourBeginBufferedAnimation(HWND hwnd, HDC hdcTarget, const RECT *prcTarget, BP_BUFFERFORMAT dwFormat, BP_PAINTPARAMS *pPaintParams, BP_ANIMATIONPARAMS *pAnimationParams, HDC *phdcFrom, HDC *phdcTo)
+{
+	HANIMATIONBUFFER hab;
+	HDC bdc;
+	HPAINTBUFFER bbuf;
+	bool doit;
+
+	doit = false;
+	if (bpHWND != NULL && bpHWND == hwnd && bpBufDC != NULL && bpBufDC == hdcTarget) {
+		doit = true;
+		hdcTarget = bpDC;
+	}
+	hab = (*origBeginBufferedAnimation)(hwnd, hdcTarget, prcTarget, dwFormat, pPaintParams, pAnimationParams, phdcFrom, phdcTo);
+	if (!doit)
+		return hab;
+	if (hab == NULL)
+		return NULL;
+	bpHAB = hab;
+	if (phdcFrom != NULL && *phdcFrom != NULL) {
+		bbuf = BeginBufferedPaint(*phdcFrom, prcTarget, BPBF_TOPDOWNDIB, NULL, &bdc);
+		if (bbuf != NULL) {		// otherwise, just draw normally, not much else we can do but deal with the graphical glitches
+			bpFromDC = *phdcFrom;
+			*phdcFrom = bdc;
+			bpFromBufDC = bdc;
+			bpFromBuf = bbuf;
+		}
+	}
+	if (phdcTo != NULL && *phdcTo != NULL) {
+		bbuf = BeginBufferedPaint(*phdcTo, prcTarget, BPBF_TOPDOWNDIB, NULL, &bdc);
+		if (bbuf != NULL) {
+			bpToDC = *phdcTo;
+			*phdcTo = bdc;
+			bpToBufDC = bdc;
+			bpToBuf = bbuf;
+		}
+	}
+	return hab;
+}
+
+static BOOL (STDAPICALLTYPE *origBufferedPaintRenderAnimation)(HWND hwnd, HDC hdcTarget) = BufferedPaintRenderAnimation;
+static BOOL STDAPICALLTYPE ourBufferedPaintRenderAnimation(HWND hwnd, HDC hdcTarget)
+{
+	if (bpHWND != NULL && bpHWND == hwnd && bpBufDC != NULL && bpBufDC == hdcTarget)
+		hdcTarget = bpDC;
+	return (*origBufferedPaintRenderAnimation)(hwnd, hdcTarget);
+}
+
+static HRESULT (STDAPICALLTYPE *origEndBufferedAnimation)(HANIMATIONBUFFER hbpAnimation, BOOL fUpdateTarget) = EndBufferedAnimation;
+static HRESULT STDAPICALLTYPE ourEndBufferedAnimation(HANIMATIONBUFFER hbpAnimation, BOOL fUpdateTarget)
+{
+	HRESULT hrFrom1 = S_OK;
+	HRESULT hrFrom2 = S_OK;
+	HRESULT hrTo1 = S_OK;
+	HRESULT hrTo2 = S_OK;
+	HRESULT hr = S_OK;
+
+	if (bpHAB != NULL && bpHAB == hbpAnimation) {
+		if (bpFromDC != NULL) {
+			hrFrom1 = BufferedPaintSetAlpha(bpFromBuf, NULL, 255);
+			hrFrom2 = EndBufferedPaint(bpFromBuf, TRUE);
+			bpFromDC = NULL;
+			bpFromBufDC = NULL;
+			bpFromBuf = NULL;
+		}
+		if (bpToDC != NULL) {
+			hrTo1 = BufferedPaintSetAlpha(bpToBuf, NULL, 255);
+			hrTo2 = EndBufferedPaint(bpToBuf, TRUE);
+			bpToDC = NULL;
+			bpToBufDC = NULL;
+			bpToBuf = NULL;
+		}
+		bpHAB = NULL;
+	}
+	hr = (*origEndBufferedAnimation)(hbpAnimation, fUpdateTarget);
+	if (hrFrom1 != S_OK)
+		return hrFrom1;
+	if (hrFrom2 != S_OK)
+		return hrFrom2;
+	if (hrTo1 != S_OK)
+		return hrTo1;
+	if (hrTo2 != S_OK)
+		return hrTo2;
+	return hr;
+}
+
+static BOOL (WINAPI *origEndPaint)(HWND hwnd, CONST PAINTSTRUCT *ps) = EndPaint;
+static BOOL WINAPI ourEndPaint(HWND hwnd, CONST PAINTSTRUCT *ps)
+{
+	HRESULT hr1, hr2;
+	BOOL ret;
+	DWORD lasterr;
+
+	if (bpHWND == NULL || bpHWND != hwnd)
+		return (*origEndPaint)(hwnd, ps);
+	// TODO don't const this
+	((PAINTSTRUCT *) ps)->hdc = bpPSDC;
+	hr1 = BufferedPaintSetAlpha(bpBuf, NULL, 255);
+	hr2 = EndBufferedPaint(bpBuf, TRUE);
+	ret = (*origEndPaint)(hwnd, ps);
+	lasterr = GetLastError();
+	bpHWND = NULL;
+	bpDC = NULL;
+	bpPSDC = NULL;
+	bpBufDC = NULL;
+	bpBuf = NULL;
+	if (hr1 != S_OK) {
+		SetLastError(ERROR_GEN_FAILURE);
+		if (HRESULT_FACILITY(hr1) == FACILITY_WIN32)
+			SetLastError(HRESULT_CODE(hr1));
+		return 0;
+	}
+	if (hr2 != S_OK) {
+		SetLastError(ERROR_GEN_FAILURE);
+		if (HRESULT_FACILITY(hr2) == FACILITY_WIN32)
+			SetLastError(HRESULT_CODE(hr2));
+		return 0;
+	}
+	SetLastError(lasterr);
+	return ret;
+}
+
 static LRESULT CALLBACK buttonSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
 	PAINTSTRUCT ps;
@@ -74,6 +235,29 @@ static LRESULT CALLBACK buttonSubProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 //		paintIntoBuffer(hwnd, uMsg, dc, &(ps.rcPaint));
 		DefSubclassProc(hwnd, uMsg, (WPARAM) dc, lParam);
 		EndPaint(hwnd, &ps);
+#elif 1
+		if (wParam != 0)
+			break;
+
+		DetourTransactionBegin();
+		DetourUpdateThread(GetCurrentThread());
+		DetourAttach(&((PVOID &) origBeginPaint), ourBeginPaint);
+		DetourAttach(&((PVOID &) origBeginBufferedAnimation), ourBeginBufferedAnimation);
+//TODO		DetourAttach(&((PVOID &) origBufferedPaintRenderAnimation), ourBufferedPaintRenderAnimation);
+		DetourAttach(&((PVOID &) origEndBufferedAnimation), ourEndBufferedAnimation);
+		DetourAttach(&((PVOID &) origEndPaint), ourEndPaint);
+		DetourTransactionCommit();
+
+		DefSubclassProc(hwnd, uMsg, wParam, lParam);
+
+		DetourTransactionBegin();
+		DetourUpdateThread(GetCurrentThread());
+		DetourDetach(&((PVOID &) origBeginPaint), ourBeginPaint);
+		DetourDetach(&((PVOID &) origBeginBufferedAnimation), ourBeginBufferedAnimation);
+//TODO		DetourDetach(&((PVOID &) origBufferedPaintRenderAnimation), ourBufferedPaintRenderAnimation);
+		DetourDetach(&((PVOID &) origEndBufferedAnimation), ourEndBufferedAnimation);
+		DetourDetach(&((PVOID &) origEndPaint), ourEndPaint);
+		DetourTransactionCommit();
 #else
 		DefSubclassProc(hwnd, uMsg, wParam, lParam);
 		if (0) {
@@ -131,7 +315,7 @@ WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,
 3*OURWIDTH/4,150,
 OURWIDTH/6,25,
 hwnd,NULL,hInstance,NULL);
-//SetWindowSubclass(w1, buttonSubProc, 0, 0);
+SetWindowSubclass(w1, buttonSubProc, 0, 0);
 HWND w2=CreateWindowExW(0,
 L"BUTTON",L"Hello",
 WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,
@@ -139,7 +323,7 @@ WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,
 OURWIDTH/6,25,
 hwnd,NULL,hInstance,NULL);
 SetWindowTheme(w2,L"",L"");
-//SetWindowSubclass(w2, buttonSubProc, 0, 0);
+SetWindowSubclass(w2, buttonSubProc, 0, 0);
 }
 
 void doPaint(HWND hwnd, HDC dc, RECT *rcPaint)

@@ -15,11 +15,11 @@
 #include <vssym32.h>
 #include <windowsx.h>
 #include <dwmapi.h>
-#include "detours.h"
+#include "_res/detours.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-// cl windwmblurbehindtest.cpp -MT -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib dwmapi.lib detours.lib windows.res
+// cl windwmblurbehindtest.cpp -MT -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib dwmapi.lib _res\detours.lib _res\windows.res
 
 void diele(const char *func)
 {

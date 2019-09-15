@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// cl winbuttonexplorertheme.cpp -MT -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib windows.res
+// cl winbuttonexplorertheme.cpp -MT -link user32.lib kernel32.lib gdi32.lib comctl32.lib uxtheme.lib msimg32.lib _res\windows.res
 
 void diele(const char *func)
 {

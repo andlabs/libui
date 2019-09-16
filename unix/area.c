@@ -248,6 +248,9 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 	// clicking doesn't automatically transfer keyboard focus; we must do so manually (thanks tristan in irc.gimp.net/#gtk+)
 	gtk_widget_grab_focus(w);
 
+	me.Down = e->button;
+	me.Up = 0;
+
 	// we handle multiple clicks ourselves here, in the same way as we do on Windows
 	if (e->type != GDK_BUTTON_PRESS)
 		// ignore GDK's generated double-clicks and beyond
@@ -265,9 +268,6 @@ static gboolean areaWidget_button_press_event(GtkWidget *w, GdkEventButton *e)
 		e->x, e->y,
 		e->time, maxTime,
 		maxDistance, maxDistance);
-
-	me.Down = e->button;
-	me.Up = 0;
 
 	// and set things up for window drags
 	a->dragevent = e;

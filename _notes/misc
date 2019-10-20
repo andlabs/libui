@@ -215,3 +215,11 @@ https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
 
 (#gtk) [01:57:47]  <gwutz2[m]>	I have a question about blocking signal handlers from emission when using a GtkSearchEntry. As i did it in the past with signal emissions is to block the handler, set anything on the Entry, unblock the handler. But the search entry emits after 150 ms therefore this does not work for GtkSearchEntrys. Is there a good way to archieve the same?
 
+
+https://devblogs.microsoft.com/oldnewthing/20191010-00/?p=102978
+	TODO put this in the right file
+
+https://devblogs.microsoft.com/oldnewthing/20191011-00/?p=102989
+https://devblogs.microsoft.com/oldnewthing/20191015-00/?p=102996
+	TODO put this one in the right file too?
+	the first one in this block isn't part of that TODO

@@ -165,7 +165,7 @@ Lua | [libuilua](https://github.com/zevv/libuilua), [libui-lua](https://github.c
 Nim | [ui](https://github.com/nim-lang/ui)
 Perl6 | [perl6-libui](https://github.com/Garland-g/perl6-libui)
 PHP | [ui](https://github.com/krakjoe/ui)
-Python | [pylibui](https://github.com/joaoventura/pylibui), [pylibui-cffi](https://github.com/Yardanico/pylibui-cffi)
+Python | [pylibui](https://github.com/joaoventura/pylibui)
 Ruby | [libui-ruby](https://github.com/jamescook/libui-ruby)
 Rust | [libui-rs](https://github.com/rust-native-ui/libui-rs)
 Scala | [scalaui](https://github.com/lolgab/scalaui)

@@ -1,6 +1,8 @@
 // 28 april 2019
 // TODO pin down minimum POSIX versions (depends on what macOS 10.8 conforms to and what GLib/GTK+ require)
+// TODO also pin down which of these I should be defining, because apparently FreeBSD only checks for _XOPEN_SOURCE (and 2004 POSIX says that defining this as 600 *implies* _POSIX_C_SOURCE being 200112L so only _XOPEN_SOURCE is needed...)
 #define _POSIX_C_SOURCE 200112L
+#define _XOPEN_SOURCE 600
 #include <errno.h>
 #include <stdlib.h>
 #include <pthread.h>

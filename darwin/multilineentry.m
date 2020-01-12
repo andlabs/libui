@@ -32,11 +32,13 @@ struct uiMultilineEntry {
 	return self;
 }
 
+// [e->tv setTextColor:[NSColor textColor]] in finishMultilineentry
+// does not work due to an cocoa bug which stops the text 
+// from changing pre control initialization so we resort
+// to changing the text on the delegate method instead
 - (void)textDidChange:(NSNotification *)aNotification {
     NSTextView *tv = (NSTextView *)[aNotification object];
-	if (isDarkMode()) {
-    	[tv setTextColor:[NSColor whiteColor]];
-	}
+	[tv setTextColor:[NSColor textColor]];
 }
 
 - (NSSize)intrinsicContentSize
@@ -149,7 +151,7 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	[e->tv setRulerVisible:NO];
 
 	if (isDarkMode()) {
-		[e->tv setBackgroundColor:[NSColor windowBackgroundColor]];
+		[e->tv setBackgroundColor:[NSColor controlBackgroundColor]];
 	} else {
 		[e->tv setBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]];
 	}

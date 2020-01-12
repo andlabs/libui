@@ -151,7 +151,7 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	[e->tv setRulerVisible:NO];
 
 	if (isDarkMode()) {
-		[e->tv setBackgroundColor:[NSColor controlBackgroundColor]];
+		e->tv.backgroundColor = NSColor.textBackgroundColor;
 	} else {
 		[e->tv setBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]];
 	}
@@ -233,6 +233,11 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	p.HScroll = hscroll;
 	p.VScroll = YES;
 	e->sv = uiprivMkScrollView(&p, &(e->d));
+
+	if (isDarkMode()) {
+		e->sv.drawsBackground= YES;
+		e->sv.backgroundColor = NSColor.textBackgroundColor;
+	}
 
 	uiMultilineEntryOnChanged(e, defaultOnChanged, NULL);
 

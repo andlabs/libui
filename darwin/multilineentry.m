@@ -1,10 +1,11 @@
 // 8 december 2015
 #import "uipriv_darwin.h"
+#include "util.h"
 
 // NSTextView has no intrinsic content size by default, which wreaks havoc on a pure-Auto Layout system
 // we'll have to take over to get it to work
 // see also http://stackoverflow.com/questions/24210153/nstextview-not-properly-resizing-with-auto-layout and http://stackoverflow.com/questions/11237622/using-autolayout-with-expanding-nstextviews
-@interface intrinsicSizeTextView : NSTextView {
+@interface intrinsicSizeTextView : NSTextView<NSTextViewDelegate> {
 	uiMultilineEntry *libui_e;
 }
 - (id)initWithFrame:(NSRect)r e:(uiMultilineEntry *)e;
@@ -25,9 +26,17 @@ struct uiMultilineEntry {
 - (id)initWithFrame:(NSRect)r e:(uiMultilineEntry *)e
 {
 	self = [super initWithFrame:r];
+	self.delegate = self;
 	if (self)
 		self->libui_e = e;
 	return self;
+}
+
+- (void)textDidChange:(NSNotification *)aNotification {
+    NSTextView *tv = (NSTextView *)[aNotification object];
+	if (isDarkMode()) {
+    	[tv setTextColor:[NSColor whiteColor]];
+	}
 }
 
 - (NSSize)intrinsicContentSize
@@ -130,7 +139,6 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 
 	// NSText properties:
 	// this is what Interface Builder sets the background color to
-	[e->tv setBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]];
 	[e->tv setDrawsBackground:YES];
 	[e->tv setEditable:YES];
 	[e->tv setSelectable:YES];
@@ -139,6 +147,13 @@ static uiMultilineEntry *finishMultilineEntry(BOOL hscroll)
 	[e->tv setImportsGraphics:NO];
 	[e->tv setUsesFontPanel:NO];
 	[e->tv setRulerVisible:NO];
+
+	if (isDarkMode()) {
+		[e->tv setBackgroundColor:[NSColor windowBackgroundColor]];
+	} else {
+		[e->tv setBackgroundColor:[NSColor colorWithCalibratedWhite:1.0 alpha:1.0]];
+	}
+
 	// we'll handle font last
 	// while setAlignment: has been around since 10.0, the named constant "NSTextAlignmentNatural" seems to have only been introduced in 10.11
 #define ourNSTextAlignmentNatural 4

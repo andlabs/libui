@@ -11,7 +11,7 @@ if libui_OS == 'windows'
 		'lib/thread_windows.c',
 		'lib/timer_windows.c',
 	]
-else
+else # including Haiku, since it's POSIX-compliant
 	libui_test_sources += [
 		'lib/thread_darwinunix.c',
 		'lib/timer_darwinunix.c'

@@ -21,6 +21,8 @@ elif libui_OS == 'darwin'
 		'controls_darwin.m',
 		'controls_darwin_errors.m',
 	]
+elif libui_OS == 'haiku'
+	# TODO
 else
 	libui_test_sources += [
 		'controls_unix.c',

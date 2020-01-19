@@ -6,7 +6,12 @@
 #define uiprivOSHeader "../ui_haiku.h"
 #include "../common/uipriv.h"
 
+constexpr uint32 uiprivMsgQueueMain = 'uiQM';
+
 // main.cpp
 class uiprivApplication : public BApplication {
+public:
+	using BApplication::BApplication;
+	virtual void MessageReceived(BMessage *msg) override;
 };
 extern uiprivApplication *uiprivApp;

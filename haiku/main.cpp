@@ -5,7 +5,7 @@ uiprivApplication *uiprivApp;
 
 // TODO add format string warning detection to all these functions, where available
 // TODO also see if we can convert this to a string, or use a known type for status_t instead of assuming it's int(32_t)
-#define uiprivInitReturnStatus(err, msg, status) uiprivInitReturnErrorf(err, "%s: %d", msg, status)
+#define uiprivInitReturnStatus(err, msg, status) uiprivInitReturnErrorf(err, "%s: %ld", msg, status)
 
 static thread_id mainThread;
 
@@ -35,9 +35,49 @@ void uiQuit(void)
 	uiprivApp->Quit();
 }
 
+struct queueMainArgs {
+	void (*f)(void *data);
+	void *data;
+};
+
+void uiprivApplication::MessageReceived(BMessage *msg)
+{
+	const void *data;
+	const struct queueMainArgs *args;
+	ssize_t size;
+	status_t status;
+
+	switch (msg->what) {
+	case uiprivMsgQueueMain:
+		status = msg->FindData("args", B_ANY_TYPE,
+			&data, &size);
+		if (status != B_OK)
+			uiprivInternalError("BMessage::FindData() failed in uiprivApplication::MessageReceived() for uiQueueMain(): %ld", status);
+		args = (const struct queueMainArgs *) data;
+		(*(args->f))(args->data);
+		delete msg;
+		return;
+	}
+	BApplication::MessageReceived(msg);
+}
+
 void uiprivSysQueueMain(void (*f)(void *data), void *data)
 {
-//	TODO
+	BMessage *msg;
+	struct queueMainArgs args;
+	status_t status;
+
+	args.f = f;
+	args.data = data;
+	msg = new BMessage(uiprivMsgQueueMain);
+	status = msg->AddData("args", B_RAW_TYPE,
+		&args, sizeof (struct queueMainArgs), true, 1);
+	if (status != B_OK)
+		// TODO decide if we should just give up in this case like we do with user errors
+		uiprivInternalError("BMessage::AddData() failed in uiQueueMain(): %ld", status);
+	status = uiprivApp->PostMessage(msg);
+	if (status != B_OK)
+		uiprivInternalError("BApplication::PostMessage() failed in uiQueueMain(): %ld", status);
 }
 
 bool uiprivSysCheckThread(void)

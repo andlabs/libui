@@ -1,6 +1,7 @@
 # 12 january 2020
 
 libui_sources += [
+	'haiku/controls.cpp',
 	'haiku/main.cpp',
 ]
 

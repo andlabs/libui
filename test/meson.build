@@ -31,7 +31,7 @@ if runresult.returncode() != 0
 endif
 # TODO make sure this works properly on Windows
 foreach casename : runresult.stdout().split()
-	test(casename, libui_tester,
+	test(casename, libui_testparent,
 		args: [casename],
 		is_parallel: false,
 		should_fail: false)

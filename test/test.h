@@ -43,7 +43,7 @@ extern "C" {
 #error unknown compiler for making constructors in C; cannot continue
 #endif
 
-#define Test(basename) \
+#define testingprivMk(basename) \
 	void testingprivImplName(basename)(int *testingprivRet); \
 	testingprivMkScaffold(basename) \
 	testingprivMkCtor(basename) \

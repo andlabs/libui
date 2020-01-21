@@ -23,6 +23,18 @@ typedef uint64_t threadSysError;
 extern threadSysError threadNewThread(void (*f)(void *data), void *data, threadThread **t);
 extern threadSysError threadThreadWaitAndFree(threadThread *t);
 
+typedef int64_t threadDuration;
+
+#define threadDurationMin ((threadDuration) INT64_MIN)
+#define threadDurationMax ((threadDuration) INT64_MAX)
+
+#define threadNanosecond ((threadDuration) 1)
+#define threadMicrosecond ((threadDuration) 1000)
+#define threadMillisecond ((threadDuration) 1000000)
+#define threadSecond ((threadDuration) 1000000000)
+
+extern threadSysError threadSleep(threadDuration d);
+
 #ifdef __cplusplus
 }
 #endif

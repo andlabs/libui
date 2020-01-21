@@ -4,8 +4,10 @@
 #define _POSIX_C_SOURCE 200112L
 #define _XOPEN_SOURCE 600
 #include <errno.h>
-#include <stdlib.h>
 #include <pthread.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
 #include "thread.h"
 
 // Do not put any test cases in this file; they will not be run.
@@ -62,4 +64,22 @@ threadSysError threadThreadWaitAndFree(threadThread *t)
 	// TODO do we have to release t->thread somehow?
 	free(t);
 	return 0;
+}
+
+threadSysError threadSleep(threadDuration d)
+{
+	struct timespec duration, remaining;
+	int err;
+
+	duration.tv_sec = d / threadSecond;
+	duration.tv_nsec = d % threadSecond;
+	for (;;) {
+		errno = 0;
+		if (nanosleep(&duration, &remaining) == 0)
+			return 0;
+		err = errno;
+		if (err != EINTR)
+			return (threadSysError) err;
+		duration = remaining;
+	}
 }

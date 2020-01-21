@@ -52,6 +52,26 @@ static HRESULT WINAPI hrWaitForSingleObject(HANDLE handle, DWORD timeout)
 	return S_OK;
 }
 
+static HRESULT WINAPI hrCreateWaitableTimerW(LPSECURITY_ATTRIBUTES attributes, BOOL manualReset, LPCWSTR name, HANDLE *handle)
+{
+	SetLastError(0);
+	*handle = CreateWaitableTimerW(attributes, manualReset, name);
+	if (*handle == NULL)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+static HRESULT WINAPI hrSetWaitableTimer(HANDLE timer, const LARGE_INTEGER *duration, LONG period, PTIMERAPCROUTINE completionRoutine, LPVOID completionData, BOOL resume)
+{
+	BOOL ret;
+
+	SetLastError(0);
+	ret = SetWaitableTimer(timer, duration, period, completionRoutine, completionData, resume);
+	if (ret == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
 struct threadThread {
 	uintptr_t handle;
 	void (*f)(void *data);
@@ -99,4 +119,25 @@ threadSysError threadThreadWaitAndFree(threadThread *t)
 	CloseHandle((HANDLE) (t->handle));
 	free(t);
 	return 0;
+}
+
+threadSysError timerSleep(threadDuration d)
+{
+	HANDLE timer;
+	LARGE_INTEGER duration;
+	HRESULT hr;
+
+	duration.QuadPart = d / 100;
+	duration.QuadPart = -duration.QuadPart;
+	hr = hrCreateWaitableTimerW(NULL, TRUE, NULL, &timer);
+	if (hr != S_OK)
+		return (threadSysError) hr;
+	hr = hrSetWaitableTimer(timer, &duration, 0, NULL, NULL, FALSE);
+	if (hr != S_OK) {
+		CloseHandle(timer);
+		return (threadSysError) hr;
+	}
+	hr = hrWaitForSingleObject(timer, INFINITE);
+	CloseHandle(timer);
+	return (threadSysError) hr;
 }

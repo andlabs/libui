@@ -44,6 +44,7 @@ Test(InitAfterInitialized)
 
 struct testParams {
 	uint32_t flag;
+	threadSysError err;
 };
 
 /*
@@ -148,8 +149,7 @@ static void queueThread(void *data)
 {
 	struct testParams *p = (struct testParams *) data;
 
-	// TODO reintegrate the timer somehow
-//	p->err = timerSleep(1250 * timerMillisecond);
+	p->err = threadSleep(1250 * threadMillisecond);
 	uiQueueMain(queued, p);
 }
 
@@ -168,8 +168,8 @@ Test(QueueMain_DifferentThread)
 	err = threadThreadWaitAndFree(thread);
 	if (err != 0)
 		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-//	if (p.err != 0)
-//		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
+	if (p.err != 0)
+		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.err));
 	if (p.flag != 1)
 		TestErrorf("uiQueueMain() didn't set flag properly:" diff("%d"),
 			p.flag, 1);
@@ -179,7 +179,7 @@ static void queueOrderThread(void *data)
 {
 	struct testParams *p = (struct testParams *) data;
 
-//	p->err = timerSleep(1250 * timerMillisecond);
+	p->err = threadSleep(1250 * threadMillisecond);
 	queueOrder(p);
 }
 
@@ -198,8 +198,8 @@ Test(QueueMain_DifferentThreadSequence)
 	err = threadThreadWaitAndFree(thread);
 	if (err != 0)
 		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-//	if (p.err != 0)
-//		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
+	if (p.err != 0)
+		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.err));
 	checkOrder(p.flag);
 }
 

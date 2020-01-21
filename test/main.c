@@ -36,6 +36,30 @@ static int testcmp(const void *aa, const void *bb)
 	return strcmp(a->name, b->name);
 }
 
+static const char *basename(const char *file)
+{
+	const char *p;
+
+	for (;;) {
+		p = strpbrk(file, "/\\");
+		if (p == NULL)
+			break;
+		file = p + 1;
+	}
+	return file;
+}
+
+void testingprivLogf(FILE *f, const char *filename, long line, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	fprintf(f, "%s:%ld: ", basename(filename), line);
+	vfprintf(f, fmt, ap);
+	fprintf(f, "\n");
+	va_end(ap);
+}
+
 int main(int argc, char *argv[])
 {
 	struct test *t;

@@ -1,5 +1,5 @@
 // 27 february 2018
-
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../ui.h"
-#ifdef testingprivOSHeader
-#include testingprivOSHeader
+#ifdef libuiOSHeader
+#include libuiOSHeader
 #endif
 
 #ifdef __cplusplus
@@ -75,6 +75,10 @@ sharedbitsPrintfFunc(
 	extern void testingprivLogf(FILE *f, const char *filename, long line, const char *fmt, ...),
 	4, 5);
 #undef sharedbitsPrintfFunc
+
+// end of test framework definitions
+
+#define diff(fmt) "\ngot  " fmt "\nwant " fmt
 
 #ifdef __cplusplus
 }

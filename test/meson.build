@@ -1,6 +1,7 @@
 # 19 january 2020
 
 libui_test_sources = [
+	'initmain.c',
 	'main.c',
 ]
 

@@ -1,6 +1,8 @@
 // 19 january 2020
 #include "test.h"
 
+// Do not put any test cases in this file; they will not be run.
+
 struct test {
 	const char *name;
 	int (*f)(void);

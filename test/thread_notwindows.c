@@ -8,6 +8,8 @@
 #include <pthread.h>
 #include "thread.h"
 
+// Do not put any test cases in this file; they will not be run.
+
 struct threadThread {
 	pthread_t thread;
 	void (*f)(void *data);

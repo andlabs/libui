@@ -2,22 +2,44 @@
 
 libui_test_sources = [
 	'initmain.c',
-	'main.c',
 ]
 
-libui_test_sources_without_cases = []
+libui_test_sources_without_cases = [
+	'main.c',
+]
 if libui_OS == 'windows'
 	libui_test_sources_without_cases += [
+		'thread_windows.c',
 		windows.compile_resources('resources_' + libui_mode + '.rc',
 			args: libui_manifest_args,
 			depend_files: ['test_' + libui_mode + '.manifest']),
 	]
+else
+	libui_test_sources_without_cases += [
+		'thread_notwindows.c',
+	]
+endif
+
+libui_test_deps = [
+	dependency('threads',
+		required: true),
+]
+if libui_OS == 'windows'
+	# static mode already gives us these dependencies
+	if libui_mode != 'static'
+		libui_test_deps += [
+			meson.get_compiler('c').find_library('kernel32',
+				required: true),
+			meson.get_compiler('c').find_library('user32',
+				required: true),
+		]
+	endif
 endif
 
 # TODO once we upgrade to 0.49.0, add pie: true
 # TODO once we upgrade to 0.50.0, add protocol: 'exitcode'
 libui_testparent = executable('testparent', libui_test_sources + libui_test_sources_without_cases,
-	dependencies: libui_binary_deps,
+	dependencies: libui_binary_deps + libui_test_deps,
 	link_with: libui_libui,
 	gui_app: false,
 	install: false)

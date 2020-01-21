@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include "thread.h"
 
+// Do not put any test cases in this file; they will not be run.
+
 static HRESULT lastErrorCodeToHRESULT(DWORD lastError)
 {
 	if (lastError == 0)

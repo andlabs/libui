@@ -1,5 +1,6 @@
 // 10 april 2019
 #include "test.h"
+#include "thread.h"
 
 // TODO test the number of calls to queued functions made
 
@@ -28,24 +29,21 @@ TestNoInit(Init)
 			err.Message, errInvalidOptions);
 }
 
-#if 0
-
-testingTest(InitAfterInitialized)
+Test(InitAfterInitialized)
 {
 	uiInitError err;
 
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
 	if (uiInit(NULL, &err))
-		testingTErrorf(t, "uiInit() after a previous successful call succeeded; expected failure");
+		TestErrorf("uiInit() after a previous successful call succeeded; expected failure");
 	if (strcmp(err.Message, errAlreadyInitialized) != 0)
-		testingTErrorf(t, "uiInit() after a previous successful call returned bad error message:" diff("%s"),
+		TestErrorf("uiInit() after a previous successful call returned bad error message:" diff("%s"),
 			err.Message, errAlreadyInitialized);
 }
 
 struct testParams {
 	uint32_t flag;
-	timerSysError err;
 };
 
 /*
@@ -62,19 +60,20 @@ static void queued(void *data)
 	uiQuit();
 }
 
-testingTest(QueueMain)
+Test(QueueMain)
 {
 	struct testParams p;
 
 	memset(&p, 0, sizeof (struct testParams));
 	p.flag = 0;
 	uiQueueMain(queued, &p);
-	timeout_uiMain(t, 5 * timerSecond);
+	uiMain();
 	if (p.flag != 1)
-		testingTErrorf(t, "uiQueueMain() didn't set flag properly:" diff("%d"),
+		TestErrorf("uiQueueMain() didn't set flag properly:" diff("%d"),
 			p.flag, 1);
 }
 
+// TODO there has to be a way to do this that absolutely will not possibly go in the wrong order... or produce a false positive
 #define queueOp(name, expr) \
 	static void name(void *data) \
 	{ \
@@ -111,7 +110,9 @@ static void queueOrder(struct testParams *p)
 	uiQueueMain(done, NULL);
 }
 
-static void checkOrderFull(testingT *t, const char *file, long line, uint32_t flag)
+// TODO avoid the need to carry over testingprivRet
+// TODO also actually handle file and line again
+static void checkOrderFull(int *testingprivRet, const char *file, long line, uint32_t flag)
 {
 	int i;
 
@@ -119,37 +120,40 @@ static void checkOrderFull(testingT *t, const char *file, long line, uint32_t fl
 		return;
 	for (i = 1; i < 6; i++)
 		if (flag == orders[i].result) {
-			testingTErrorfFull(t, file, line, "wrong order:" diff("%" PRIu32 " (%s)"),
+			TestErrorf("wrong order:" diff("%" PRIu32 " (%s)"),
 				flag, orders[i].order,
 				orders[0].result, orders[0].order);
 			return;
 		}
-	testingTErrorfFull(t, file, line, "wrong result:" diff("%" PRIu32 " (%s)"),
+	TestErrorf("wrong result:" diff("%" PRIu32 " (%s)"),
 		flag, "unknown order",
 		orders[0].result, orders[0].order);
 }
 
-#define checkOrder(t, flag) checkOrderFull(t, __FILE__, __LINE__, flag)
+#define checkOrder(flag) checkOrderFull(testingprivRet, __FILE__, __LINE__, flag)
 
-testingTest(QueueMain_Sequence)
+Test(QueueMain_Sequence)
 {
 	struct testParams p;
 
 	memset(&p, 0, sizeof (struct testParams));
 	queueOrder(&p);
-	timeout_uiMain(t, 5 * timerSecond);
-	checkOrder(t, p.flag);
+	uiMain();
+	checkOrder(p.flag);
 }
+
+// TODO make a version of these where the thread is started by a queued function
 
 static void queueThread(void *data)
 {
 	struct testParams *p = (struct testParams *) data;
 
-	p->err = timerSleep(1250 * timerMillisecond);
+	// TODO reintegrate the timer somehow
+//	p->err = timerSleep(1250 * timerMillisecond);
 	uiQueueMain(queued, p);
 }
 
-testingTest(QueueMain_DifferentThread)
+Test(QueueMain_DifferentThread)
 {
 	threadThread *thread;
 	threadSysError err;
@@ -159,15 +163,15 @@ testingTest(QueueMain_DifferentThread)
 	p.flag = 0;
 	err = threadNewThread(queueThread, &p, &thread);
 	if (err != 0)
-		testingTFatalf(t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	timeout_uiMain(t, 5 * timerSecond);
+		TestFatalf("error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	uiMain();
 	err = threadThreadWaitAndFree(thread);
 	if (err != 0)
-		testingTFatalf(t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	if (p.err != 0)
-		testingTErrorf(t, "error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
+		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+//	if (p.err != 0)
+//		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
 	if (p.flag != 1)
-		testingTErrorf(t, "uiQueueMain() didn't set flag properly:" diff("%d"),
+		TestErrorf("uiQueueMain() didn't set flag properly:" diff("%d"),
 			p.flag, 1);
 }
 
@@ -175,11 +179,11 @@ static void queueOrderThread(void *data)
 {
 	struct testParams *p = (struct testParams *) data;
 
-	p->err = timerSleep(1250 * timerMillisecond);
+//	p->err = timerSleep(1250 * timerMillisecond);
 	queueOrder(p);
 }
 
-testingTest(QueueMain_DifferentThreadSequence)
+Test(QueueMain_DifferentThreadSequence)
 {
 	threadThread *thread;
 	threadSysError err;
@@ -189,17 +193,17 @@ testingTest(QueueMain_DifferentThreadSequence)
 	p.flag = 1;		// make sure it's initialized just in case
 	err = threadNewThread(queueOrderThread, &p, &thread);
 	if (err != 0)
-		testingTFatalf(t, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	timeout_uiMain(t, 5 * timerSecond);
+		TestFatalf("error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	uiMain();
 	err = threadThreadWaitAndFree(thread);
 	if (err != 0)
-		testingTFatalf(t, "error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	if (p.err != 0)
-		testingTErrorf(t, "error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
-	checkOrder(t, p.flag);
+		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+//	if (p.err != 0)
+//		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " timerSysErrorFmt, timerSysErrorFmtArg(p.err));
+	checkOrder(p.flag);
 }
 
-//#if 0
+#if 0
 static void timer(void *data)
 {
 	int *n = (int *) data;

@@ -16,10 +16,7 @@ extern "C" {
 #endif
 
 #define testingprivImplName(basename) testingprivImpl ## basename
-
 #define testingprivScaffoldName(basename) testingprivScaffold ## basename
-#define testingprivMkScaffold(basename) \
-	static int testingprivScaffoldName(basename)(void) { int ret = 0; testingprivImplName(basename)(&ret); return ret; }
 
 // references:
 // - https://gitlab.gnome.org/GNOME/glib/blob/master/glib/gconstructor.h
@@ -43,14 +40,34 @@ extern "C" {
 #error unknown compiler for making constructors in C; cannot continue
 #endif
 
-#define testingprivMk(basename) \
-	void testingprivImplName(basename)(int *testingprivRet); \
-	testingprivMkScaffold(basename) \
-	testingprivMkCtor(basename) \
-	void testingprivImplName(basename)(int *testingprivRet)
-
 #define Test(Name) \
-	testingprivMk(Test ## Name)
+	void testingprivImplName(Test ## Name)(int *testingprivRet); \
+	static int testingprivScaffoldName(Test ## Name)(void) \
+	{ \
+		int ret = 0; \
+		uiInitError err; \
+		memset(&err, 0, sizeof (uiInitError)); \
+		err.Size = sizeof (uiInitError); \
+		if (!uiInit(NULL, &err)) { \
+			fprintf(stderr, "error initializing libui for Test" #Name ": %s\n", err.Message); \
+			return 1; \
+		} \
+		testingprivImplName(Test ## Name)(&ret); \
+		return ret; \
+	} \
+	testingprivMkCtor(Test ## Name) \
+	void testingprivImplName(Test ## Name)(int *testingprivRet)
+
+#define TestNoInit(Name) \
+	void testingprivImplName(Test ## Name)(int *testingprivRet); \
+	static int testingprivScaffoldName(Test ## Name)(void) \
+	{ \
+		int ret = 0; \
+		testingprivImplName(Test ## Name)(&ret); \
+		return ret; \
+	} \
+	testingprivMkCtor(Test ## Name) \
+	void testingprivImplName(Test ## Name)(int *testingprivRet)
 
 // These can only be called directly from the Test functions.
 // TODO make it otherwise

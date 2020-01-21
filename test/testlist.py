@@ -4,7 +4,7 @@
 import fileinput
 import re
 
-r = re.compile('^Test\(([A-Za-z0-9_]+)\)$')
+r = re.compile('^(?:Test|TestNoInit)\(([A-Za-z0-9_]+)\)$')
 for line in fileinput.input():
 	match = r.match(line)
 	if match is not None:

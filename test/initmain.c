@@ -6,7 +6,7 @@
 #define errInvalidOptions "options parameter to uiInit() must be NULL"
 #define errAlreadyInitialized "libui already initialized"
 
-Test(Init)
+TestNoInit(Init)
 {
 	uiInitError err;
 

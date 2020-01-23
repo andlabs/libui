@@ -41,56 +41,49 @@ extern "C" {
 #endif
 
 #define Test(Name) \
-	void testingprivImplName(Test ## Name)(int *testingprivRet); \
-	static int testingprivScaffoldName(Test ## Name)(void) \
+	void testingprivImplName(Test ## Name)(void); \
+	static void testingprivScaffoldName(Test ## Name)(void) \
 	{ \
-		int ret = 0; \
 		uiInitError err; \
 		memset(&err, 0, sizeof (uiInitError)); \
 		err.Size = sizeof (uiInitError); \
 		if (!uiInit(NULL, &err)) { \
 			fprintf(stderr, "error initializing libui for Test" #Name ": %s\n", err.Message); \
-			return 1; \
+			TestFailNow(); \
 		} \
-		testingprivImplName(Test ## Name)(&ret); \
-		return ret; \
+		testingprivImplName(Test ## Name)(); \
 	} \
 	testingprivMkCtor(Test ## Name) \
-	void testingprivImplName(Test ## Name)(int *testingprivRet)
+	void testingprivImplName(Test ## Name)(void)
 
 #define TestNoInit(Name) \
-	void testingprivImplName(Test ## Name)(int *testingprivRet); \
-	static int testingprivScaffoldName(Test ## Name)(void) \
+	void testingprivImplName(Test ## Name)(void); \
+	static void testingprivScaffoldName(Test ## Name)(void) \
 	{ \
-		int ret = 0; \
-		testingprivImplName(Test ## Name)(&ret); \
-		return ret; \
+		testingprivImplName(Test ## Name)(); \
 	} \
 	testingprivMkCtor(Test ## Name) \
-	void testingprivImplName(Test ## Name)(int *testingprivRet)
+	void testingprivImplName(Test ## Name)(void)
 
-// These can only be called directly from the Test functions.
-// TODO make it otherwise
-#define TestFail() (*testingprivRet = 1)
-#define TestFailNow() {TestFail(); return;}
-// see https://mesonbuild.com/Unit-tests.html#skipped-tests-and-hard-errors
-#define TestSkipNow() {*testingprivRet = 77; return;}
+extern void TestFail(void);
+extern void TestFailNow(void);
+extern void TestSkipNow(void);
 
 #define TestLogf(...) \
-	(testingprivLogf(stdout, __FILE__, __LINE__, __VA_ARGS__))
+	(testingprivLogfFullThen(stdout, NULL, __FILE__, __LINE__, __VA_ARGS__))
 #define TestErrorf(...) \
-	{testingprivLogf(stderr, __FILE__, __LINE__, __VA_ARGS__); TestFail();}
+	(testingprivLogfFullThen(stderr, TestFail, __FILE__, __LINE__, __VA_ARGS__))
 #define TestFatalf(...) \
-	{testingprivLogf(stderr, __FILE__, __LINE__, __VA_ARGS__); TestFailNow();}
+	(testingprivLogfFullThen(stderr, TestFailNow, __FILE__, __LINE__, __VA_ARGS__))
 // TODO remember if this needs to go to stdout or to stderr
 #define TestSkipf(...) \
-	{testingprivLogf(stderr, __FILE__, __LINE__, __VA_ARGS__); TestSkipNow();}
+	(testingprivLogfFullThen(stderr, TestSkipNow, __FILE__, __LINE__, __VA_ARGS__))
 
-extern void testingprivRegisterTest(const char *name, int (*f)(void));
+extern void testingprivRegisterTest(const char *name, void (*f)(void));
 #include "../sharedbits/printfwarn_header.h"
 sharedbitsPrintfFunc(
-	extern void testingprivLogf(FILE *f, const char *filename, long line, const char *fmt, ...),
-	4, 5);
+	extern void testingprivLogfFullThen(FILE *f, void (*then)(void), const char *filename, long line, const char *fmt, ...),
+	5, 6);
 #undef sharedbitsPrintfFunc
 
 // end of test framework definitions

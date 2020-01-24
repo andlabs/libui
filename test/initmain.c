@@ -52,6 +52,7 @@ TODO if I remove the uiQuit() from this test on Windows, I will occasionally get
 === RUN   TestQueueMain_DifferentThread
     ../test/initmain.c:161: uiMain() timed out (5s)
 --- FAIL: TestQueueMain_DifferentThread (4.9989539s)
+TODO see if this is still relevant
 */
 static void queued(void *data)
 {
@@ -111,7 +112,6 @@ static void queueOrder(struct testParams *p)
 	uiQueueMain(done, NULL);
 }
 
-// TODO also actually handle file and line again
 static void checkOrderFull(const char *file, long line, uint32_t flag)
 {
 	int i;
@@ -120,12 +120,12 @@ static void checkOrderFull(const char *file, long line, uint32_t flag)
 		return;
 	for (i = 1; i < 6; i++)
 		if (flag == orders[i].result) {
-			TestErrorf("wrong order:" diff("%" PRIu32 " (%s)"),
+			TestErrorfFull(file, line, "wrong order:" diff("%" PRIu32 " (%s)"),
 				flag, orders[i].order,
 				orders[0].result, orders[0].order);
 			return;
 		}
-	TestErrorf("wrong result:" diff("%" PRIu32 " (%s)"),
+	TestErrorfFull(file, line, "wrong result:" diff("%" PRIu32 " (%s)"),
 		flag, "unknown order",
 		orders[0].result, orders[0].order);
 }

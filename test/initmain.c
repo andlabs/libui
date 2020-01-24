@@ -111,9 +111,8 @@ static void queueOrder(struct testParams *p)
 	uiQueueMain(done, NULL);
 }
 
-// TODO avoid the need to carry over testingprivRet
 // TODO also actually handle file and line again
-static void checkOrderFull(int *testingprivRet, const char *file, long line, uint32_t flag)
+static void checkOrderFull(const char *file, long line, uint32_t flag)
 {
 	int i;
 
@@ -131,7 +130,7 @@ static void checkOrderFull(int *testingprivRet, const char *file, long line, uin
 		orders[0].result, orders[0].order);
 }
 
-#define checkOrder(flag) checkOrderFull(testingprivRet, __FILE__, __LINE__, flag)
+#define checkOrder(flag) checkOrderFull(__FILE__, __LINE__, flag)
 
 Test(QueueMain_Sequence)
 {

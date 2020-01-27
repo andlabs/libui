@@ -97,6 +97,16 @@ sharedbitsPrintfFunc(
 
 #define diff(fmt) "\ngot  " fmt "\nwant " fmt
 
+// errors.c
+struct checkErrorCase {
+	const char *name;
+	void (*f)(void);
+	const char *msgWant;
+};
+extern void checkProgrammerErrorsFull(const char *file, long line, const struct checkErrorCase *cases, bool inThread);
+#define checkProgrammerErrors(cases) checkProgrammerErrorsFull(__FILE__, __LINE__, cases, false)
+#define checkProgrammerErrorsInThread(cases) checkProgrammerErrorsFull(__FILE__, __LINE__, cases, true)
+
 #ifdef __cplusplus
 }
 #endif

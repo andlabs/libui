@@ -2,9 +2,11 @@
 
 libui_test_sources = [
 	'initmain.c',
+	'noinitwrongthread.c',
 ]
 
 libui_test_sources_without_cases = [
+	'errors.c',
 	'main.c',
 ]
 if libui_OS == 'windows'

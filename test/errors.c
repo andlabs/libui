@@ -1,5 +1,7 @@
 // 28 may 2019
 #include "test.h"
+#include "thread.h"
+#include "../common/testhooks.h"
 
 // Do not put any test cases in this file; they will not be run.
 
@@ -71,11 +73,11 @@ void checkProgrammerErrorsFull(const char *file, long line, const struct checkEr
 	const struct checkErrorCase *c;
 	struct checkProgrammerErrorParams p;
 
-	uiprivTestHookReportProgrammerError(handleProgrammerError, p);
 	memset(&p, 0, sizeof (struct checkProgrammerErrorParams));
 	p.file = file;
 	p.line = line;
 	p.inThread = inThread;
+	uiprivTestHookReportProgrammerError(handleProgrammerError, &p);
 	for (c = cases; c->name != NULL; c++) {
 		p.caught = false;
 		p.f = c->f;

@@ -40,6 +40,7 @@ struct queueMainArgs {
 	void *data;
 };
 
+// note: msg is owned by the BLooper base class and should not be freed by us
 void uiprivApplication::MessageReceived(BMessage *msg)
 {
 	const void *data;
@@ -55,7 +56,6 @@ void uiprivApplication::MessageReceived(BMessage *msg)
 			uiprivInternalError("BMessage::FindData() failed in uiprivApplication::MessageReceived() for uiQueueMain(): %ld", status);
 		args = (const struct queueMainArgs *) data;
 		(*(args->f))(args->data);
-		delete msg;
 		return;
 	}
 	BApplication::MessageReceived(msg);
@@ -76,6 +76,8 @@ void uiprivSysQueueMain(void (*f)(void *data), void *data)
 		// TODO decide if we should just give up in this case like we do with user errors
 		uiprivInternalError("BMessage::AddData() failed in uiQueueMain(): %ld", status);
 	status = uiprivApp->PostMessage(msg);
+	// msg is copied by PostMessage() so we can delete it here
+	delete msg;
 	if (status != B_OK)
 		uiprivInternalError("BApplication::PostMessage() failed in uiQueueMain(): %ld", status);
 }

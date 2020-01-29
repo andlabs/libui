@@ -121,7 +121,7 @@ threadSysError threadThreadWaitAndFree(threadThread *t)
 	return 0;
 }
 
-threadSysError timerSleep(threadDuration d)
+threadSysError threadSleep(threadDuration d)
 {
 	HANDLE timer;
 	LARGE_INTEGER duration;

@@ -52,7 +52,7 @@ static void checkProgrammerErrorSubtestImpl(struct checkProgrammerErrorParams *p
 
 		err = threadNewThread(checkProgrammerErrorThreadProc, p, &thread);
 		if (err != 0)
-			// TODO these should only fatal out of the subtest
+			// TODO these should only fatal out of the subtest (see TODO below)
 			TestFatalfFull(p->file, p->line, "error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err));
 		err = threadThreadWaitAndFree(thread);
 		if (err != 0)

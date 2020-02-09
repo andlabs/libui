@@ -30,8 +30,10 @@ bool uiprivInitReturnErrorf(uiInitError *err, const char *fmt, ...)
 	va_start(ap, fmt);
 	n = uiprivVsnprintf(err->Message, 256, fmt, ap);
 	va_end(ap);
-	if (n < 0)
+	if (n < 0) {
 		uiprivInternalError("encoding error returning initialization error; this means something is very very wrong with libui itself");
+		abort();		// TODO handle this scenario more gracefully
+	}
 	if (n >= 256) {
 		// the formatted message is too long; truncate it
 		err->Message[252] = '.';

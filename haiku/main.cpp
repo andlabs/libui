@@ -3,8 +3,7 @@
 
 uiprivApplication *uiprivApp;
 
-// TODO add format string warning detection to all these functions, where available
-// TODO also see if we can convert this to a string, or use a known type for status_t instead of assuming it's int(32_t)
+// TODO see if we can convert this to a string, or use a known type for status_t instead of assuming it's int(32_t)
 #define uiprivInitReturnStatus(err, msg, status) uiprivInitReturnErrorf(err, "%s: %ld", msg, status)
 
 static thread_id mainThread;
@@ -52,8 +51,10 @@ void uiprivApplication::MessageReceived(BMessage *msg)
 	case uiprivMsgQueueMain:
 		status = msg->FindData("args", B_ANY_TYPE,
 			&data, &size);
-		if (status != B_OK)
+		if (status != B_OK) {
 			uiprivInternalError("BMessage::FindData() failed in uiprivApplication::MessageReceived() for uiQueueMain(): %ld", status);
+			return;
+		}
 		args = (const struct queueMainArgs *) data;
 		(*(args->f))(args->data);
 		return;
@@ -72,9 +73,11 @@ void uiprivSysQueueMain(void (*f)(void *data), void *data)
 	msg = new BMessage(uiprivMsgQueueMain);
 	status = msg->AddData("args", B_RAW_TYPE,
 		&args, sizeof (struct queueMainArgs), true, 1);
-	if (status != B_OK)
-		// TODO decide if we should just give up in this case like we do with user errors
+	if (status != B_OK) {
 		uiprivInternalError("BMessage::AddData() failed in uiQueueMain(): %ld", status);
+		delete msg;
+		return;
+	}
 	status = uiprivApp->PostMessage(msg);
 	// msg is copied by PostMessage() so we can delete it here
 	delete msg;
@@ -91,5 +94,4 @@ void uiprivReportError(const char *prefix, const char *msg, const char *suffix, 
 {
 	fprintf(stderr, "*** %s: %s. %s\n", prefix, msg, suffix);
 	debugger("TODO");
-	abort();		// we shouldn't reach here
 }

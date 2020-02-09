@@ -42,7 +42,6 @@ static inline void setHInstance(void)
 	ICC_DATE_CLASSES |		/* date/time picker */		\
 	0)
 
-// TODO add format string warning detection to all these functions, where available
 #define uiprivInitReturnHRESULT(err, msg, hr) uiprivInitReturnErrorf(err, "%s: 0x%08I32X", msg, hr)
 
 static DWORD mainThread;
@@ -106,8 +105,10 @@ void uiMain(void)
 		hr = uiprivHrGetMessageW(&msg, NULL, 0, 0);
 		if (hr == S_FALSE)		// WM_QUIT
 			return;
-		if (hr != S_OK)
+		if (hr != S_OK) {
 			uiprivInternalError("GetMessageW() failed in uiMain(): 0x%08I32X", hr);
+			return;
+		}
 		// TODO IsDialogMessage()
 		TranslateMessage(&msg);
 		DispatchMessageW(&msg);
@@ -148,5 +149,4 @@ void uiprivReportError(const char *prefix, const char *msg, const char *suffix, 
 	OutputDebugStringA(suffix);
 	OutputDebugStringA("\n");
 	DebugBreak();
-	abort();		// we shouldn't reach here
 }

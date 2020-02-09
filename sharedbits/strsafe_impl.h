@@ -16,7 +16,7 @@ int sharedbitsPrefixName(Vsnprintf)(char *s, size_t n, const char *fmt, va_list 
 	// TODO figure out how to disambiguate between encoding errors (returns negative value; does not have documented errno values), other errors (returns negative value; errno == EINVAL), and truncations (returns -1; does not have documented errno values)
 	ret = vsnprintf_s(s, n, _TRUNCATE, fmt, ap);
 	if (ret == -1)
-		// TODO make this safe
+		// TODO make this safe (by having these functions return size_t? I forget now...)
 		return (int) n;
 	return ret;
 #else
@@ -52,7 +52,7 @@ char *sharedbitsPrefixName(Strncpy)(char *dest, const char *src, size_t n)
 	// because strncpy_s() doesn't do this
 	memset(dest, '\0', n * sizeof (char));
 	err = strncpy_s(dest, n, src, _TRUNCATE);
-	if (err != 0 && err != STRUNCATE)
+	if (err != 0 && err != STRUNCATE) {
 		// Yes folks, apparently strerror() is unsafe (it's not reentrant, but that's not the point of the MSVC security functions; that's about buffer overflows, and as you'll soon see there really is no need for what the "safe' version is given reentrancy concerns), and not only that, but the replacement, strerror_s(), requires copying and allocation! it's almost like they were TRYING to shove as many error conditions as possible in!
 		// Oh, and you can't just use _sys_errlist[] to bypass this, because even that has a deprecation warning, telling you to use strerror() instead, which in turn sends you back to strerror_s()!
 		// Of course, the fact _sys_errlist[] is a thing and that it's deprecated out of security and not reentrancy shows that the error strings returned by strerror()/strerror_s() are static and unchanging throughout the lifetime of the program, so a truly reentrant strerror_s() would just return the raw const string array directly, or a placeholder like "unknown error" otherwise, but that would be too easy!
@@ -60,6 +60,8 @@ char *sharedbitsPrefixName(Strncpy)(char *dest, const char *src, size_t n)
 		// (Furthermore, cppreference.com says there's strerrorlen_s(), but a) fuck C11, and b) MSDN does not concur.)
 		// So, alas, you'll have to live with just having the error code; sorry.
 		sharedbitsprivInternalError("error calling strncpy_s(): %d", err);
+		return 0;
+	}
 	return dest;
 #else
 	return strncpy(dest, src, n);

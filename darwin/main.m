@@ -127,7 +127,6 @@ void uiprivReportError(const char *prefix, const char *msg, const char *suffix, 
 	[NSException raise:exceptionName
 		format:@"%s: %s", prefix, msg];
 	debugBreak();
-	abort();		// we shouldn't reach here
 }
 
 #ifdef __clang__

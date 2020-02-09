@@ -63,5 +63,4 @@ void uiprivReportError(const char *prefix, const char *msg, const char *suffix, 
 {
 	g_critical("%s: %s. %s", prefix, msg, suffix);
 	G_BREAKPOINT();
-	abort();		// we shouldn't reach here
 }

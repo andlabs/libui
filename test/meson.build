@@ -49,7 +49,9 @@ libui_testparent = executable('testparent', libui_test_sources + libui_test_sour
 pymod = import('python')
 python = pymod.find_installation()
 # Using files() is the cleanest way to ensure the python script gets the right filenames regardless of how meson sandboxes the command it's running.
-runresult = run_command(python, files(['testlist.py'] + libui_test_sources))
+libui_testlist_py = files(['testlist.py'])
+libui_test_sources_files = files(libui_test_sources)
+runresult = run_command(python, libui_testlist_py + ['list'] + libui_test_sources_files)
 if runresult.returncode() != 0
 	error('testlist.py failed; cannot compute list of test cases. Exit code @0@; stderr:\n@1@'.format(runresult.returncode(), runresult.stderr()))
 endif

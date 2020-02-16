@@ -109,7 +109,6 @@ def main():
 		match = r.match(line)
 		if match is not None:
 			casenames.append(match.group(1))
-	print('*', casenames)
 	cmd.run(casenames)
 
 main()

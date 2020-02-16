@@ -93,6 +93,8 @@ sharedbitsPrintfFunc(
 	5, 6);
 #undef sharedbitsPrintfFunc
 
+#include "testlist.h"
+
 // end of test framework definitions
 
 #define diff(fmt) "\ngot  " fmt "\nwant " fmt

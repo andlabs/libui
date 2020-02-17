@@ -1,4 +1,5 @@
 // 27 february 2018
+#include <errno.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -61,6 +62,8 @@ extern void TestSkipNow(void);
 #define TestSkipf(...) \
 	(testingprivLogfFullThen(stderr, TestSkipNow, __FILE__, __LINE__, __VA_ARGS__))
 // TODO TestSkipfFull (after resolving above TODO)
+
+extern void TestDefer(void (*f)(void *data), void *data);
 
 #include "../sharedbits/printfwarn_header.h"
 sharedbitsPrintfFunc(

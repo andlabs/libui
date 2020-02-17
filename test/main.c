@@ -11,6 +11,22 @@ static int testcmp(const void *aa, const void *bb)
 	return strcmp(a->name, b->name);
 }
 
+struct defer {
+	void (*f)(void *data);
+	void *data;
+	struct defer *next;
+};
+
+static struct defer *defers = NULL;
+
+static void runDefers(void)
+{
+	struct defer *d;
+
+	for (d = defers; d != NULL; d = d->next)
+		(*(d->f))(d->data);
+}
+
 static int testingprivRet = 0;
 
 void TestFail(void)
@@ -27,6 +43,22 @@ void TestSkipNow(void)
 {
 	// see https://mesonbuild.com/Unit-tests.html#skipped-tests-and-hard-errors
 	exit(77);
+}
+
+void TestDefer(void (*f)(void *data), void *data)
+{
+	struct defer *d;
+
+	d = (struct defer *) malloc(sizeof (struct defer));
+	if (d != NULL) {
+		fprintf(stderr, "** internal error: memory exhausted in TestDefer()\n");
+		abort();
+	}
+	memset(d, 0, sizeof (struct defer));
+	d->f = f;
+	d->data = data;
+	d->next = defers;
+	defers = d;
 }
 
 static const char *basename(const char *file)
@@ -71,6 +103,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	testingprivRet = 0;
+	if (atexit(runDefers) != 0) {
+		fprintf(stderr, "atexit(runDefers) failed (errno %d); can't test\n", errno);
+		return 1;
+	}
 	(*(t->f))();
 	return testingprivRet;
 }

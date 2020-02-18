@@ -50,7 +50,7 @@ void TestDefer(void (*f)(void *data), void *data)
 	struct defer *d;
 
 	d = (struct defer *) malloc(sizeof (struct defer));
-	if (d != NULL) {
+	if (d == NULL) {
 		fprintf(stderr, "** internal error: memory exhausted in TestDefer()\n");
 		abort();
 	}

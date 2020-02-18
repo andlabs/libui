@@ -150,21 +150,26 @@ struct baseParams {
 
 /*
 static void runArgsSubtests(struct baseParams *p)
-Test(xxxx_Args)
+Te_st(xxxx_Args)
 testImpl(xxxxx, true, NULL, (&p))
-Test(xxxx_NoArgs)
+Te_st(xxxx_NoArgs)
 testImpl(xxxxx, true, NULL, NULL)
 
 static void runGlobalSubtests(struct baseParams *p)
-Test(xxxx_Global_Args)
+Te_st(xxxx_Global_Args)
 testImpl(xxxx, true, NULL, (&p))
-Test(xxxx_Global_NoArgs)
+Te_st(xxxx_Global_NoArgs)
 testImpl(xxxxx, true, NULL, NULL)
-Test(xxxx_Nonglobal_Args)
+Te_st(xxxx_Nonglobal_Args)
 testImpl(xxxxx, false, (&p), (&p))
-Test(xxxx_Nonglobal_NoArgs)
+Te_st(xxxx_Nonglobal_NoArgs)
 testImpl(xxxxx, false, (&p), NULL)
 */
+
+static void deferEventFree(void *data)
+{
+	uiEventFree((uiEvent *) data);
+}
 
 static void deferUnregisterHandler(void *data)
 {

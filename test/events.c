@@ -148,24 +148,6 @@ struct baseParams {
 		f(&p); \
 	}
 
-/*
-static void runArgsSubtests(struct baseParams *p)
-Te_st(xxxx_Args)
-testImpl(xxxxx, true, NULL, (&p))
-Te_st(xxxx_NoArgs)
-testImpl(xxxxx, true, NULL, NULL)
-
-static void runGlobalSubtests(struct baseParams *p)
-Te_st(xxxx_Global_Args)
-testImpl(xxxx, true, NULL, (&p))
-Te_st(xxxx_Global_NoArgs)
-testImpl(xxxxx, true, NULL, NULL)
-Te_st(xxxx_Nonglobal_Args)
-testImpl(xxxxx, false, (&p), (&p))
-Te_st(xxxx_Nonglobal_NoArgs)
-testImpl(xxxxx, false, (&p), NULL)
-*/
-
 static void deferEventFree(void *data)
 {
 	uiEventFree((uiEvent *) data);
@@ -208,12 +190,8 @@ testImpl(basicEventFunctionalityImpl, false, (&p), (&p))
 Test(BasicEventFunctionality_Nonglobal_NoArgs)
 testImpl(basicEventFunctionalityImpl, false, (&p), NULL)
 
-#if 0
-// TODO CONTINUE HERE
-
-static void addDeleteEventHandlersImpl(testingT *t, void *data)
+static void addDeleteEventHandlersImpl(struct baseParams *p)
 {
-	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
 	struct handler *h;
@@ -239,7 +217,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 	TestDefer(deferUnregisterHandler, h + 1);
 	TestDefer(deferUnregisterHandler, h + 0);
 
-	testingTLogf(t, "*** initial handlers");
+	TestLogf("*** initial handlers");
 	registerHandler(h + 0, e, p->sender, p->args);
 	registerHandler(h + 1, e, p->sender, p->args);
 	registerHandler(h + 2, e, p->sender, p->args);
@@ -252,7 +230,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 6, 3);
 
-	testingTLogf(t, "*** deleting a handler from the middle");
+	TestLogf("*** deleting a handler from the middle");
 	unregisterHandler(h + 1);
 	wantRun(h + 0);
 	wantNotRun(h + 1);
@@ -263,7 +241,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 6, 2);
 
-	testingTLogf(t, "*** adding handler after deleting a handler from the middle");
+	TestLogf("*** adding handler after deleting a handler from the middle");
 	registerHandler(h + 3, e, p->sender, p->args);
 	wantRun(h + 0);
 	wantNotRun(h + 1);
@@ -274,7 +252,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 	run(e, p-> sender, p->args,
 		h, 6, 3);
 
-	testingTLogf(t, "*** deleting first handler added and adding another");
+	TestLogf("*** deleting first handler added and adding another");
 	unregisterHandler(h + 0);
 	registerHandler(h + 4, e, p->sender, p->args);
 	wantNotRun(h + 0);
@@ -286,7 +264,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 6, 3);
 
-	testingTLogf(t, "*** deleting most recently added handler and adding another");
+	TestLogf("*** deleting most recently added handler and adding another");
 	unregisterHandler(h + 4);
 	registerHandler(h + 5, e, p->sender, p->args);
 	wantNotRun(h + 0);
@@ -298,7 +276,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 6, 3);
 
-	testingTLogf(t, "*** deleting all handlers");
+	TestLogf("*** deleting all handlers");
 	unregisterHandler(h + 2);
 	unregisterHandler(h + 3);
 	unregisterHandler(h + 5);
@@ -311,7 +289,7 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 6, 0);
 
-	testingTLogf(t, "*** adding handler after deleting all handlers");
+	TestLogf("*** adding handler after deleting all handlers");
 	registerHandler(h + 0, e, p->sender, p->args);
 	wantRun(h + 0);
 	wantNotRun(h + 1);
@@ -323,18 +301,17 @@ static void addDeleteEventHandlersImpl(testingT *t, void *data)
 		h, 6, 1);
 }
 
-testingTest(AddDeleteEventHandlers)
-{
-	struct baseParams p;
+Test(AddDeleteEventHandlers_Global_Args)
+testImpl(addDeleteEventHandlersImpl, true, NULL, (&p))
+Test(AddDeleteEventHandlers_Global_NoArgs)
+testImpl(addDeleteEventHandlersImpl, true, NULL, NULL)
+Test(AddDeleteEventHandlers_Nonglobal_Args)
+testImpl(addDeleteEventHandlersImpl, false, (&p), (&p))
+Test(AddDeleteEventHandlers_Nonglobal_NoArgs)
+testImpl(addDeleteEventHandlersImpl, false, (&p), NULL)
 
-	memset(&p, 0, sizeof (struct baseParams));
-	p.impl = addDeleteEventHandlersImpl;
-	runGlobalSubtests(t, &p);
-}
-
-static void eventSendersHonoredImpl(testingT *t, void *data)
+static void eventSendersHonoredImpl(struct baseParams *p)
 {
-	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
 	struct handler *h;
@@ -360,17 +337,17 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	// dynamically allocate these so we don't run the risk of upsetting an optimizer somewhere, since we don't touch this memory
 	sender1 = malloc(16);
 	if (sender1 == NULL)
-		testingTFatalf(t, "memory exhausted allocating sender 1");
+		TestFatalf("memory exhausted allocating sender 1");
 	memset(sender1, 5, 16);
 	TestDefer(free, sender1);
 	sender2 = malloc(32);
 	if (sender2 == NULL)
-		testingTFatalf(t, "memory exhausted allocating sender 2");
+		TestFatalf("memory exhausted allocating sender 2");
 	memset(sender2, 10, 32);
 	TestDefer(free, sender2);
 	sender3 = malloc(64);
 	if (sender3 == NULL)
-		testingTFatalf(t, "memory exhausted allocating sender 3");
+		TestFatalf("memory exhausted allocating sender 3");
 	memset(sender3, 15, 64);
 	TestDefer(free, sender3);
 
@@ -379,7 +356,7 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	registerHandler(h + 2, e, sender3, p->args);
 	registerHandler(h + 3, e, sender1, p->args);
 
-	testingTLogf(t, "*** sender 1");
+	TestLogf("*** sender 1");
 	wantRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -387,7 +364,7 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 2);
 
-	testingTLogf(t, "*** sender 2");
+	TestLogf("*** sender 2");
 	wantNotRun(h + 0);
 	wantRun(h + 1);
 	wantNotRun(h + 2);
@@ -395,7 +372,7 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** sender 3");
+	TestLogf("*** sender 3");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantRun(h + 2);
@@ -403,7 +380,7 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	run(e, sender3, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** an entirely different sender");
+	TestLogf("*** an entirely different sender");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -411,7 +388,7 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	run(e, p, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** deleting one of sender 1's handlers doesn't affect the other");
+	TestLogf("*** deleting one of sender 1's handlers doesn't affect the other");
 	unregisterHandler(h + 3);
 	wantRun(h + 0);
 	wantNotRun(h + 1);
@@ -420,7 +397,7 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** after registering a handler with the above entirely different sender, it will work");
+	TestLogf("*** after registering a handler with the above entirely different sender, it will work");
 	registerHandler(h + 3, e, p, p->args);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
@@ -430,18 +407,13 @@ static void eventSendersHonoredImpl(testingT *t, void *data)
 		h, 4, 1);
 }
 
-testingTest(EventSendersHonored)
-{
-	struct baseParams p;
+Test(EventSendersHonored_Args)
+testImpl(eventSendersHonoredImpl, true, NULL, (&p))
+Test(EventSendersHonored_NoArgs)
+testImpl(eventSendersHonoredImpl, true, NULL, NULL)
 
-	memset(&p, 0, sizeof (struct baseParams));
-	p.impl = eventSendersHonoredImpl;
-	runArgsSubtests(t, &p);
-}
-
-static void eventBlocksHonoredImpl(testingT *t, void *data)
+static void eventBlocksHonoredImpl(struct baseParams *p)
 {
-	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
 	struct handler *h;
@@ -461,7 +433,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	TestDefer(deferUnregisterHandler, h + 1);
 	TestDefer(deferUnregisterHandler, h + 0);
 
-	testingTLogf(t, "*** initial handlers are unblocked");
+	TestLogf("*** initial handlers are unblocked");
 	registerHandler(h + 0, e, p->sender, p->args);
 	registerHandler(h + 1, e, p->sender, p->args);
 	registerHandler(h + 2, e, p->sender, p->args);
@@ -471,7 +443,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 3);
 
-	testingTLogf(t, "*** blocking handler 2 omits it");
+	TestLogf("*** blocking handler 2 omits it");
 	uiEventSetHandlerBlocked(e, h[1].id, true);
 	wantRun(h + 0);
 	wantBlocked(h + 1);
@@ -479,7 +451,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 2);
 
-	testingTLogf(t, "*** blocking handler 3 omits both 2 and 3");
+	TestLogf("*** blocking handler 3 omits both 2 and 3");
 	uiEventSetHandlerBlocked(e, h[2].id, true);
 	wantRun(h + 0);
 	wantBlocked(h + 1);
@@ -487,7 +459,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 1);
 
-	testingTLogf(t, "*** unblocking handler 2 omits only 3");
+	TestLogf("*** unblocking handler 2 omits only 3");
 	uiEventSetHandlerBlocked(e, h[1].id, false);
 	wantRun(h + 0);
 	wantRun(h + 1);
@@ -495,7 +467,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 2);
 
-	testingTLogf(t, "*** blocking an already blocked handler is a no-op");
+	TestLogf("*** blocking an already blocked handler is a no-op");
 	uiEventSetHandlerBlocked(e, h[2].id, true);
 	wantRun(h + 0);
 	wantRun(h + 1);
@@ -503,7 +475,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 2);
 
-	testingTLogf(t, "*** unblocking an already unblocked handler is a no-op");
+	TestLogf("*** unblocking an already unblocked handler is a no-op");
 	uiEventSetHandlerBlocked(e, h[1].id, false);
 	wantRun(h + 0);
 	wantRun(h + 1);
@@ -511,7 +483,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 2);
 
-	testingTLogf(t, "*** blocking everything omits everything");
+	TestLogf("*** blocking everything omits everything");
 	uiEventSetHandlerBlocked(e, h[0].id, true);
 	uiEventSetHandlerBlocked(e, h[1].id, true);
 	uiEventSetHandlerBlocked(e, h[2].id, true);
@@ -521,7 +493,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 0);
 
-	testingTLogf(t, "*** unblocking everything omits nothing");
+	TestLogf("*** unblocking everything omits nothing");
 	uiEventSetHandlerBlocked(e, h[0].id, false);
 	uiEventSetHandlerBlocked(e, h[1].id, false);
 	uiEventSetHandlerBlocked(e, h[2].id, false);
@@ -531,7 +503,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 3);
 
-	testingTLogf(t, "*** blocking something again works");
+	TestLogf("*** blocking something again works");
 	uiEventSetHandlerBlocked(e, h[2].id, true);
 	wantRun(h + 0);
 	wantRun(h + 1);
@@ -539,7 +511,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 2);
 
-	testingTLogf(t, "*** deleting a blocked handler and adding a new one doesn't keep the new one blocked");
+	TestLogf("*** deleting a blocked handler and adding a new one doesn't keep the new one blocked");
 	unregisterHandler(h + 2);
 	registerHandler(h + 2, e, p->sender, p->args);
 	wantRun(h + 0);
@@ -548,7 +520,7 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 	run(e, p->sender, p->args,
 		h, 3, 3);
 
-	testingTLogf(t, "*** adding a new handler while one is blocked doesn't affect the blocked one");
+	TestLogf("*** adding a new handler while one is blocked doesn't affect the blocked one");
 	unregisterHandler(h + 2);
 	uiEventSetHandlerBlocked(e, h[1].id, true);
 	registerHandler(h + 2, e, p->sender, p->args);
@@ -559,18 +531,17 @@ static void eventBlocksHonoredImpl(testingT *t, void *data)
 		h, 3, 2);
 }
 
-testingTest(EventBlocksHonored)
-{
-	struct baseParams p;
+Test(EventBlocksHonored_Global_Args)
+testImpl(eventBlocksHonoredImpl, true, NULL, (&p))
+Test(EventBlocksHonored_Global_NoArgs)
+testImpl(eventBlocksHonoredImpl, true, NULL, NULL)
+Test(EventBlocksHonored_Nonglobal_Args)
+testImpl(eventBlocksHonoredImpl, false, (&p), (&p))
+Test(EventBlocksHonored_Nonglobal_NoArgs)
+testImpl(eventBlocksHonoredImpl, false, (&p), NULL)
 
-	memset(&p, 0, sizeof (struct baseParams));
-	p.impl = eventBlocksHonoredImpl;
-	runGlobalSubtests(t, &p);
-}
-
-static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
+static void eventBlocksHonoredWithDifferentSendersImpl(struct baseParams *p)
 {
-	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
 	struct handler *h;
@@ -596,12 +567,12 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	// dynamically allocate these so we don't run the risk of upsetting an optimizer somewhere, since we don't touch this memory
 	sender1 = malloc(16);
 	if (sender1 == NULL)
-		testingTFatalf(t, "memory exhausted allocating sender 1");
+		TestFatalf("memory exhausted allocating sender 1");
 	memset(sender1, 5, 16);
 	TestDefer(free, sender1);
 	sender2 = malloc(32);
 	if (sender2 == NULL)
-		testingTFatalf(t, "memory exhausted allocating sender 2");
+		TestFatalf("memory exhausted allocating sender 2");
 	memset(sender2, 10, 32);
 	TestDefer(free, sender2);
 
@@ -610,7 +581,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	registerHandler(h + 2, e, sender2, p->args);
 	registerHandler(h + 3, e, sender1, p->args);
 
-	testingTLogf(t, "*** sender 1 with nothing blocked");
+	TestLogf("*** sender 1 with nothing blocked");
 	wantRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -618,7 +589,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 2);
 
-	testingTLogf(t, "*** sender 2 with nothing blocked");
+	TestLogf("*** sender 2 with nothing blocked");
 	wantNotRun(h + 0);
 	wantRun(h + 1);
 	wantRun(h + 2);
@@ -626,7 +597,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 2);
 
-	testingTLogf(t, "*** an entirely different sender with nothing blocked");
+	TestLogf("*** an entirely different sender with nothing blocked");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -634,7 +605,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, p, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** blocking one of sender 1's handlers only runs the other");
+	TestLogf("*** blocking one of sender 1's handlers only runs the other");
 	uiEventSetHandlerBlocked(e, h[3].id, true);
 	wantRun(h + 0);
 	wantNotRun(h + 1);
@@ -643,7 +614,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** blocking one of sender 1's handlers doesn't affect sender 2");
+	TestLogf("*** blocking one of sender 1's handlers doesn't affect sender 2");
 	wantNotRun(h + 0);
 	wantRun(h + 1);
 	wantRun(h + 2);
@@ -651,7 +622,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 2);
 
-	testingTLogf(t, "*** blocking one of sender 1's handlers doesn't affect the above entirely different sender");
+	TestLogf("*** blocking one of sender 1's handlers doesn't affect the above entirely different sender");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -659,7 +630,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, p, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** blocking one of sender 2's handlers only runs the other");
+	TestLogf("*** blocking one of sender 2's handlers only runs the other");
 	uiEventSetHandlerBlocked(e, h[2].id, true);
 	wantNotRun(h + 0);
 	wantRun(h + 1);
@@ -668,7 +639,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** blocking one of sender 2's handlers doesn't affect sender 1");
+	TestLogf("*** blocking one of sender 2's handlers doesn't affect sender 1");
 	wantRun(h + 0);
 	wantNotRun(h + 1);
 	wantBlocked(h + 2);
@@ -676,7 +647,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** blocking one of sender 2's handlers doesn't affect the above entirely different sender");
+	TestLogf("*** blocking one of sender 2's handlers doesn't affect the above entirely different sender");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantBlocked(h + 2);
@@ -684,7 +655,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, p, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** deleting the blocked sender 2 handler only runs the other");
+	TestLogf("*** deleting the blocked sender 2 handler only runs the other");
 	unregisterHandler(h + 2);
 	wantNotRun(h + 0);
 	wantRun(h + 1);
@@ -693,7 +664,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** deleting the blocked sender 2 handler doesn't affect sender 1");
+	TestLogf("*** deleting the blocked sender 2 handler doesn't affect sender 1");
 	wantRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -701,7 +672,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** deleting the blocked sender 2 handler doesn't affect the above entirely different sender");
+	TestLogf("*** deleting the blocked sender 2 handler doesn't affect the above entirely different sender");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -709,7 +680,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, p, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** adding a new sender 1 handler doesn't affect the existing blocked one");
+	TestLogf("*** adding a new sender 1 handler doesn't affect the existing blocked one");
 	h[2].name = "sender 1 handler 3";
 	registerHandler(h + 2, e, sender1, p->args);
 	wantRun(h + 0);
@@ -719,7 +690,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 2);
 
-	testingTLogf(t, "*** adding a new sender 1 handler doesn't affect sender 2");
+	TestLogf("*** adding a new sender 1 handler doesn't affect sender 2");
 	wantNotRun(h + 0);
 	wantRun(h + 1);
 	wantNotRun(h + 2);
@@ -727,7 +698,7 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** adding a new sender 1 handler doesn't affect the above entirely different handler");
+	TestLogf("*** adding a new sender 1 handler doesn't affect the above entirely different handler");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -736,18 +707,17 @@ static void eventBlocksHonoredWithDifferentSendersImpl(testingT *t, void *data)
 		h, 4, 0);
 }
 
-testingTest(EventBlocksHonoredWithDifferentSenders)
-{
-	struct baseParams p;
+Test(EventBlocksHonoredWithDifferentSenders_Global_Args)
+testImpl(eventBlocksHonoredWithDifferentSendersImpl, true, NULL, (&p))
+Test(EventBlocksHonoredWithDifferentSenders_Global_NoArgs)
+testImpl(eventBlocksHonoredWithDifferentSendersImpl, true, NULL, NULL)
+Test(EventBlocksHonoredWithDifferentSenders_Nonglobal_Args)
+testImpl(eventBlocksHonoredWithDifferentSendersImpl, false, (&p), (&p))
+Test(EventBlocksHonoredWithDifferentSenders_Nonglobal_NoArgs)
+testImpl(eventBlocksHonoredWithDifferentSendersImpl, false, (&p), NULL)
 
-	memset(&p, 0, sizeof (struct baseParams));
-	p.impl = eventBlocksHonoredWithDifferentSendersImpl;
-	runGlobalSubtests(t, &p);
-}
-
-static void eventInvalidateSenderImpl(testingT *t, void *data)
+static void eventInvalidateSenderImpl(struct baseParams *p)
 {
-	struct baseParams *p = (struct baseParams *) data;
 	uiEvent *e;
 	uiEventOptions opts;
 	struct handler *h;
@@ -773,12 +743,12 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	// dynamically allocate these so we don't run the risk of upsetting an optimizer somewhere, since we don't touch this memory
 	sender1 = malloc(16);
 	if (sender1 == NULL)
-		testingTFatalf(t, "memory exhausted allocating sender 1");
+		TestFatalf("memory exhausted allocating sender 1");
 	memset(sender1, 5, 16);
 	TestDefer(free, sender1);
 	sender2 = malloc(32);
 	if (sender2 == NULL)
-		testingTFatalf(t, "memory exhausted allocating sender 2");
+		TestFatalf("memory exhausted allocating sender 2");
 	memset(sender2, 10, 32);
 	TestDefer(free, sender2);
 
@@ -787,7 +757,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	registerHandler(h + 2, e, sender2, p->args);
 	registerHandler(h + 3, e, sender1, p->args);
 
-	testingTLogf(t, "*** sender 1 initial state");
+	TestLogf("*** sender 1 initial state");
 	wantRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -795,7 +765,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 2);
 
-	testingTLogf(t, "*** invalidating sender 1 disables it");
+	TestLogf("*** invalidating sender 1 disables it");
 	uiEventInvalidateSender(e, sender1);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
@@ -804,7 +774,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** unblocking one of sender 1's handlers does nothing");
+	TestLogf("*** unblocking one of sender 1's handlers does nothing");
 	uiEventSetHandlerBlocked(e, h[3].id, false);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
@@ -813,7 +783,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** blocking one of sender 1's handlers saves the flag setting, but does not otherwise have any effect");
+	TestLogf("*** blocking one of sender 1's handlers saves the flag setting, but does not otherwise have any effect");
 	uiEventSetHandlerBlocked(e, h[3].id, true);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
@@ -822,7 +792,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** and unblocking it again only affects the flag, nothing else");
+	TestLogf("*** and unblocking it again only affects the flag, nothing else");
 	uiEventSetHandlerBlocked(e, h[3].id, false);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
@@ -831,7 +801,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** sender 1 being invalidated has no effect on sender 2");
+	TestLogf("*** sender 1 being invalidated has no effect on sender 2");
 	wantNotRun(h + 0);
 	wantRun(h + 1);
 	wantRun(h + 2);
@@ -839,7 +809,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 2);
 
-	testingTLogf(t, "*** sender 1 being invalidated has no effect on an entirely different sender");
+	TestLogf("*** sender 1 being invalidated has no effect on an entirely different sender");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantNotRun(h + 2);
@@ -847,7 +817,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, p, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** deleting an unblocked sender 1 handler and then adding another one does not block the new one");
+	TestLogf("*** deleting an unblocked sender 1 handler and then adding another one does not block the new one");
 	unregisterHandler(h + 3);
 	registerHandler(h + 3, e, sender1, p->args);
 	wantNotRun(h + 0);
@@ -857,7 +827,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** sender 2 initial state");
+	TestLogf("*** sender 2 initial state");
 	wantNotRun(h + 0);
 	wantRun(h + 1);
 	wantRun(h + 2);
@@ -865,7 +835,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 2);
 
-	testingTLogf(t, "*** invalidating sender 2 disables it");
+	TestLogf("*** invalidating sender 2 disables it");
 	uiEventInvalidateSender(e, sender2);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
@@ -874,7 +844,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** blocking one of sender 2's handlers saves the flag setting, but does not otherwise have any effect");
+	TestLogf("*** blocking one of sender 2's handlers saves the flag setting, but does not otherwise have any effect");
 	uiEventSetHandlerBlocked(e, h[2].id, true);
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
@@ -883,7 +853,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender2, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** sender 2 being invalidated has no effect on sender 1");
+	TestLogf("*** sender 2 being invalidated has no effect on sender 1");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantBlocked(h + 2);
@@ -891,7 +861,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, sender1, p->args,
 		h, 4, 1);
 
-	testingTLogf(t, "*** sender 2 being invalidated has no effect on the above entirely different sender");
+	TestLogf("*** sender 2 being invalidated has no effect on the above entirely different sender");
 	wantNotRun(h + 0);
 	wantNotRun(h + 1);
 	wantBlocked(h + 2);
@@ -899,7 +869,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 	run(e, p, p->args,
 		h, 4, 0);
 
-	testingTLogf(t, "*** deleting a blocked sender 2 handler and then adding another one does not block the new one");
+	TestLogf("*** deleting a blocked sender 2 handler and then adding another one does not block the new one");
 	unregisterHandler(h + 2);
 	registerHandler(h + 2, e, sender2, p->args);
 	wantNotRun(h + 0);
@@ -910,13 +880,7 @@ static void eventInvalidateSenderImpl(testingT *t, void *data)
 		h, 4, 1);
 }
 
-testingTest(EventInvalidateSender)
-{
-	struct baseParams p;
-
-	memset(&p, 0, sizeof (struct baseParams));
-	p.impl = eventInvalidateSenderImpl;
-	runArgsSubtests(t, &p);
-}
-
-#endif
+Test(EventInvalidateSender_Args)
+testImpl(eventInvalidateSenderImpl, true, NULL, (&p))
+Test(EventInvalidateSender_NoArgs)
+testImpl(eventInvalidateSenderImpl, true, NULL, NULL)

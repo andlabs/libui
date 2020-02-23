@@ -3,9 +3,9 @@
 # Using files() is the cleanest way to ensure the python script below gets the right filenames regardless of how meson sandboxes the command it's running.
 libui_test_sources = files([
 	'events.c',
-	'events_errors.cpp',
+#	'events_errors.cpp',
 	'initmain.c',
-	'noinitwrongthread.c',
+#	'noinitwrongthread.c',
 ])
 
 libui_test_sources_without_cases = [

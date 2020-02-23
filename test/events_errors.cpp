@@ -1,6 +1,8 @@
 // 10 june 2019
 #include "test.h"
 
+// TODO consider rewriting this in C
+
 static void dummyHandler(void *sender, void *args, void *data)
 {
 	// do nothing
@@ -306,7 +308,7 @@ static const struct checkErrorCase cases[] = {
 	{ NULL, NULL, NULL },
 };
 
-testingTest(EventErrors)
+Test(EventErrors)
 {
-	checkProgrammerErrors(t, cases);
+	checkProgrammerErrors(cases);
 }

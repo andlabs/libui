@@ -45,6 +45,12 @@ _UI_ENUM(uiForEach) {
 	uiForEachStop,
 };
 
+typedef struct uiArea uiArea;
+typedef struct uiAreaHandler uiAreaHandler;
+typedef struct uiAreaDrawParams uiAreaDrawParams;
+typedef struct uiAreaMouseEvent uiAreaMouseEvent;
+typedef struct uiAreaKeyEvent uiAreaKeyEvent;
+
 typedef struct uiInitOptions uiInitOptions;
 
 struct uiInitOptions {
@@ -297,11 +303,6 @@ _UI_EXTERN char *uiSaveFile(uiWindow *parent);
 _UI_EXTERN void uiMsgBox(uiWindow *parent, const char *title, const char *description);
 _UI_EXTERN void uiMsgBoxError(uiWindow *parent, const char *title, const char *description);
 
-typedef struct uiArea uiArea;
-typedef struct uiAreaHandler uiAreaHandler;
-typedef struct uiAreaDrawParams uiAreaDrawParams;
-typedef struct uiAreaMouseEvent uiAreaMouseEvent;
-typedef struct uiAreaKeyEvent uiAreaKeyEvent;
 
 typedef struct uiDrawContext uiDrawContext;
 

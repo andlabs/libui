@@ -5,23 +5,6 @@
 
 // TODO https://github.com/Microsoft/Windows-classic-samples/blob/master/Samples/Win7Samples/multimedia/DirectWrite/PadWrite/TextEditor.cpp notes on explicit RTL handling under MirrorXCoordinate(); also in areadraw.cpp too?
 
-static uiModifiers getModifiers(void)
-{
-	uiModifiers m = 0;
-
-	if ((GetKeyState(VK_CONTROL) & 0x80) != 0)
-		m |= uiModifierCtrl;
-	if ((GetKeyState(VK_MENU) & 0x80) != 0)
-		m |= uiModifierAlt;
-	if ((GetKeyState(VK_SHIFT) & 0x80) != 0)
-		m |= uiModifierShift;
-	if ((GetKeyState(VK_LWIN) & 0x80) != 0)
-		m |= uiModifierSuper;
-	if ((GetKeyState(VK_RWIN) & 0x80) != 0)
-		m |= uiModifierSuper;
-	return m;
-}
-
 /*
 Windows doesn't natively support mouse crossing events.
 
@@ -206,25 +189,7 @@ static int areaKeyEvent(uiArea *a, int up, WPARAM wParam, LPARAM lParam)
 				goto keyFound;
 			}
 
-	// okay, those above cases didn't match anything
-	// first try the extended keys
-	for (i = 0; extKeys[i].vk != VK_SNAPSHOT; i++)
-		if (extKeys[i].vk == wParam) {
-			ke.ExtKey = extKeys[i].extkey;
-			goto keyFound;
-		}
-
-	// then try modifier keys
-	for (i = 0; modKeys[i].vk != VK_SNAPSHOT; i++)
-		if (modKeys[i].vk == wParam) {
-			ke.Modifier = modKeys[i].mod;
-			// and don't include the key in Modifiers
-			ke.Modifiers &= ~ke.Modifier;
-			goto keyFound;
-		}
-
-	// and finally everything else
-	if (uiprivFromScancode((lParam >> 16) & 0xFF, &ke))
+	if (fillKeyEvent(ke, wParam, lParam))
 		goto keyFound;
 
 	// not a supported key, assume unhandled

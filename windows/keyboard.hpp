@@ -74,3 +74,48 @@ static const struct {
 	{ VK_RWIN, uiModifierSuper },
 	{ VK_SNAPSHOT, 0 },
 };
+
+static uiModifiers getModifiers(void)
+{
+	uiModifiers m = 0;
+
+	if ((GetKeyState(VK_CONTROL) & 0x80) != 0)
+		m |= uiModifierCtrl;
+	if ((GetKeyState(VK_MENU) & 0x80) != 0)
+		m |= uiModifierAlt;
+	if ((GetKeyState(VK_SHIFT) & 0x80) != 0)
+		m |= uiModifierShift;
+	if ((GetKeyState(VK_LWIN) & 0x80) != 0)
+		m |= uiModifierSuper;
+	if ((GetKeyState(VK_RWIN) & 0x80) != 0)
+		m |= uiModifierSuper;
+	return m;
+}
+
+
+static BOOL fillKeyEvent(uiAreaKeyEvent &ke, WPARAM wParam, LPARAM lParam)
+{
+	int i = 0;
+
+	for (i = 0; extKeys[i].vk != VK_SNAPSHOT; i++) {
+		if (extKeys[i].vk == wParam) {
+			ke.ExtKey = extKeys[i].extkey;
+			return TRUE;
+		}
+	}
+
+	for (i = 0; modKeys[i].vk != VK_SNAPSHOT; i++) {
+		if (modKeys[i].vk == wParam) {
+			ke.Modifier = modKeys[i].mod;
+			ke.Modifiers &= ~ke.Modifier;
+			return TRUE;
+		}
+	}
+
+	// TODO the original code only did this if ke.Modifiers == 0 - why?
+	if (uiprivFromScancode((lParam >> 16) & 0xFF, &ke)) {
+		return TRUE;
+	}
+
+	return FALSE;
+}

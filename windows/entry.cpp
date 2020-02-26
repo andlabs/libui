@@ -7,8 +7,26 @@ struct uiEntry {
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 	BOOL inhibitChanged;
+	WNDPROC native_wndproc;
 };
 
+
+
+static LRESULT CALLBACK entryWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+		case WM_GETDLGCODE:
+			return DLGC_HASSETSEL | DLGC_WANTALLKEYS;
+			break;
+		case WM_KEYUP:
+		case WM_KEYDOWN:
+			break;
+	}
+
+	WNDPROC native_wndproc = (WNDPROC)GetProp(hwnd, L"NATIVE_WNDPROC"); 
+	return CallWindowProcW(native_wndproc, hwnd, uMsg, wParam, lParam);
+}
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
 	uiEntry *e = uiEntry(c);
@@ -25,6 +43,9 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 static void uiEntryDestroy(uiControl *c)
 {
 	uiEntry *e = uiEntry(c);
+
+	(WNDPROC)SetWindowLongPtrW(e->hwnd, GWLP_WNDPROC, (LONG_PTR)e->native_wndproc);
+	RemoveProp(e->hwnd, L"NATIVE_WNDPROC");
 
 	uiWindowsUnregisterWM_COMMANDHandler(e->hwnd);
 	uiWindowsEnsureDestroyWindow(e->hwnd);
@@ -105,6 +126,10 @@ static uiEntry *finishNewEntry(DWORD style)
 		TRUE);
 
 	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
+
+	e->native_wndproc = (WNDPROC)SetWindowLongPtrW(e->hwnd, GWLP_WNDPROC, (LONG_PTR)entryWndProc);
+	SetProp(e->hwnd, L"NATIVE_WNDPROC", (HANDLE)e->native_wndproc);
+
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
 	return e;

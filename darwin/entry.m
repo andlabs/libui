@@ -101,13 +101,14 @@ static void triggerOnKeyEvent(void *key, void *e, void *data)
 		ke.ExtKey = 0;
 		ke.Modifier = 0;
 		ke.Modifiers = parseModifiers(theEvent);
+		ke.Up = ([theEvent type] == NSKeyUp ? 1 : 0);
 
 		if (uiprivFromKeycode([theEvent keyCode], &ke))
 			uiprivMapWalkWithData(self->entries, &ke, triggerOnKeyEvent);
 
 		return theEvent;
 	};
-	eventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask handler:eventHandler];
+	eventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:(NSKeyDownMask | NSKeyUpMask) handler:eventHandler];
 
 	return self;
 }

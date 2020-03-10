@@ -157,3 +157,21 @@ BOOL uiprivKeycodeModifier(unsigned short keycode, uiModifiers *mod)
 		}
 	return NO;
 }
+
+uiModifiers parseModifiers(NSEvent *e)
+{
+	NSEventModifierFlags mods;
+	uiModifiers m;
+
+	m = 0;
+	mods = [e modifierFlags];
+	if ((mods & NSControlKeyMask) != 0)
+		m |= uiModifierCtrl;
+	if ((mods & NSAlternateKeyMask) != 0)
+		m |= uiModifierAlt;
+	if ((mods & NSShiftKeyMask) != 0)
+		m |= uiModifierShift;
+	if ((mods & NSCommandKeyMask) != 0)
+		m |= uiModifierSuper;
+	return m;
+}

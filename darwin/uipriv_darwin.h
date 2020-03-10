@@ -111,6 +111,7 @@ extern int uiprivSendAreaEvents(NSEvent *);
 // areaevents.m
 extern BOOL uiprivFromKeycode(unsigned short keycode, uiAreaKeyEvent *ke);
 extern BOOL uiprivKeycodeModifier(unsigned short keycode, uiModifiers *mod);
+extern uiModifiers parseModifiers(NSEvent *e);
 
 // draw.m
 extern uiDrawContext *uiprivDrawNewContext(CGContextRef, CGFloat);

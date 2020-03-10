@@ -67,24 +67,6 @@ static BOOL isSearchField(NSTextField *tf)
 	return [tf isKindOfClass:[NSSearchField class]];
 }
 
-static uiModifiers parseModifiers(NSEvent *e)
-{
-	NSEventModifierFlags mods;
-	uiModifiers m;
-
-	m = 0;
-	mods = [e modifierFlags];
-	if ((mods & NSControlKeyMask) != 0)
-		m |= uiModifierCtrl;
-	if ((mods & NSAlternateKeyMask) != 0)
-		m |= uiModifierAlt;
-	if ((mods & NSShiftKeyMask) != 0)
-		m |= uiModifierShift;
-	if ((mods & NSCommandKeyMask) != 0)
-		m |= uiModifierSuper;
-	return m;
-}
-
 static void triggerOnKeyEvent(void *key, void *e, void *data)
 {
 	uiEntry *entry = (uiEntry *)e;

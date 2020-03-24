@@ -1,6 +1,5 @@
 // 7 april 2015
 #include "uipriv_windows.hpp"
-#include "../common/general.h"
 
 struct uiButton {
 	uiWindowsControl c;
@@ -32,6 +31,11 @@ static void uiButtonDestroy(uiControl *c)
 }
 
 uiWindowsControlAllDefaultsExceptDestroy(uiButton)
+
+static int max(int first, int second)
+{
+	return (first < second) ? second : first;
+}
 
 // from http://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define buttonHeight 14

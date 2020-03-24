@@ -1,12 +1,16 @@
 // 13 august 2015
 #import "uipriv_darwin.h"
-#import "../common/general.h"
 
 @interface libui_NSButton : NSButton
 @property int minWidth;
 @property int minHeight;
 - (id)initWithFrame:(NSRect)frameRect;
 @end
+
+static int max(int first, int second)
+{
+	return (first < second) ? second : first;
+}
 
 @implementation libui_NSButton
 

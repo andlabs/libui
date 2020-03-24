@@ -1,5 +1,36 @@
 // 13 august 2015
 #import "uipriv_darwin.h"
+#import "../common/general.h"
+
+@interface libui_NSButton : NSButton
+@property int minWidth;
+@property int minHeight;
+- (id)initWithFrame:(NSRect)frameRect;
+@end
+
+@implementation libui_NSButton
+
+- (id)initWithFrame:(NSRect)frameRect
+{
+	self = [super initWithFrame: frameRect];
+	if (self) {
+		self.minHeight = -1;
+		self.minWidth = -1;
+	}
+	return self;
+}
+
+- (NSSize)intrinsicContentSize
+{
+	NSSize s;
+
+	s = [super intrinsicContentSize];
+	s.width = max(self.minWidth, s.width);
+	s.height = max(self.minHeight, s.height);
+	return s;
+}
+
+@end
 
 struct uiButton {
 	uiDarwinControl c;
@@ -78,6 +109,13 @@ void uiButtonSetText(uiButton *b, const char *text)
 	[b->button setTitle:uiprivToNSString(text)];
 }
 
+void uiButtonSetMinSize(uiButton *b, int width, int height)
+{
+	libui_NSButton *libui_btn = (libui_NSButton *)b->button;
+	libui_btn.minWidth = width;
+	libui_btn.minHeight = height;
+}
+
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
 {
 	b->onClicked = f;
@@ -95,7 +133,7 @@ uiButton *uiNewButton(const char *text)
 
 	uiDarwinNewControl(uiButton, b);
 
-	b->button = [[NSButton alloc] initWithFrame:NSZeroRect];
+	b->button = [[libui_NSButton alloc] initWithFrame:NSZeroRect];
 	[b->button setTitle:uiprivToNSString(text)];
 	[b->button setButtonType:NSMomentaryPushInButton];
 	[b->button setBordered:YES];

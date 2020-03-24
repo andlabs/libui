@@ -1,11 +1,14 @@
 // 7 april 2015
 #include "uipriv_windows.hpp"
+#include "../common/general.h"
 
 struct uiButton {
 	uiWindowsControl c;
 	HWND hwnd;
 	void (*onClicked)(uiButton *, void *);
 	void *onClickedData;
+	int minHeight;
+	int minWidth;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
@@ -44,8 +47,8 @@ static void uiButtonMinimumSize(uiWindowsControl *c, int *width, int *height)
 	size.cx = 0;		// explicitly ask for ideal size
 	size.cy = 0;
 	if (SendMessageW(b->hwnd, BCM_GETIDEALSIZE, 0, (LPARAM) (&size)) != FALSE) {
-		*width = size.cx;
-		*height = size.cy;
+		*width = max(size.cx, (LONG)(b->minWidth));
+		*height = max(size.cy, (LONG)(b->minHeight));
 		return;
 	}
 
@@ -57,6 +60,9 @@ static void uiButtonMinimumSize(uiWindowsControl *c, int *width, int *height)
 	uiWindowsGetSizing(b->hwnd, &sizing);
 	uiWindowsSizingDlgUnitsToPixels(&sizing, NULL, &y);
 	*height = y;
+
+	*width = max(*width, b->minWidth);
+	*height = max(y, b->minHeight);
 }
 
 static void defaultOnClicked(uiButton *b, void *data)
@@ -76,6 +82,13 @@ void uiButtonSetText(uiButton *b, const char *text)
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
 
+void uiButtonSetMinSize(uiButton *b, int width, int height)
+{
+	b->minHeight = height;
+	b->minWidth = width;
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
+}
+
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
 {
 	b->onClicked = f;
@@ -88,6 +101,8 @@ uiButton *uiNewButton(const char *text)
 	WCHAR *wtext;
 
 	uiWindowsNewControl(uiButton, b);
+	b->minHeight = -1;
+	b->minWidth = -1;
 
 	wtext = toUTF16(text);
 	b->hwnd = uiWindowsEnsureCreateControlHWND(0,

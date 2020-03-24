@@ -1,5 +1,6 @@
 // 8 april 2015
 #include "uipriv_windows.hpp"
+#include "keyboard.hpp"
 
 struct uiEntry {
 	uiWindowsControl c;
@@ -7,7 +8,45 @@ struct uiEntry {
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 	BOOL inhibitChanged;
+	int (*onKeyEvent)(uiEntry *, uiAreaKeyEvent *);
+	void *self;
+	WNDPROC native_wndproc;
 };
+
+
+static LRESULT CALLBACK entryWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	BOOL righthand = FALSE;
+	uiAreaKeyEvent ke;
+	ke.Key = 0;
+	ke.ExtKey = 0;
+	ke.Modifier = 0;
+	ke.Modifiers = getModifiers();
+	ke.Up = 0;
+
+	int (*onKeyEvent)(uiEntry *, uiAreaKeyEvent *) =  (int (*)(uiEntry *, uiAreaKeyEvent *))GetProp(hwnd, L"ON_KEY_EVENT");
+	uiEntry *self =  (uiEntry *)GetProp(hwnd, L"SELF");
+
+	switch (uMsg)
+	{
+		case WM_GETDLGCODE:
+			return DLGC_HASSETSEL | DLGC_WANTALLKEYS;
+			break;
+		case WM_KEYUP:
+			ke.Up = 1;
+		case WM_KEYDOWN:
+			if (onKeyEvent) {
+				fillKeyEvent(ke, wParam, lParam);
+				if ((*onKeyEvent)(self, &ke)) {
+					return TRUE;
+				}
+			}
+			break;
+	}
+
+	WNDPROC native_wndproc = (WNDPROC)GetProp(hwnd, L"NATIVE_WNDPROC"); 
+	return CallWindowProcW(native_wndproc, hwnd, uMsg, wParam, lParam);
+}
 
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 {
@@ -25,6 +64,11 @@ static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
 static void uiEntryDestroy(uiControl *c)
 {
 	uiEntry *e = uiEntry(c);
+
+	(WNDPROC)SetWindowLongPtrW(e->hwnd, GWLP_WNDPROC, (LONG_PTR)e->native_wndproc);
+	RemoveProp(e->hwnd, L"NATIVE_WNDPROC");
+	RemoveProp(e->hwnd, L"ON_KEY_EVENT");
+	RemoveProp(e->hwnd, L"SELF");
 
 	uiWindowsUnregisterWM_COMMANDHandler(e->hwnd);
 	uiWindowsEnsureDestroyWindow(e->hwnd);
@@ -56,6 +100,13 @@ static void defaultOnChanged(uiEntry *e, void *data)
 	// do nothing
 }
 
+static int defaultOnKeyEvent(uiEntry *e, uiAreaKeyEvent *event)
+{
+	// do nothing
+	return FALSE;
+}
+
+
 char *uiEntryText(uiEntry *e)
 {
 	return uiWindowsWindowText(e->hwnd);
@@ -74,6 +125,12 @@ void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 {
 	e->onChanged = f;
 	e->onChangedData = data;
+}
+
+void uiEntryOnKeyEvent(uiEntry *e, int (*f)(uiEntry *, uiAreaKeyEvent *))
+{
+	e->onKeyEvent = f;
+	SetProp(e->hwnd, L"ON_KEY_EVENT", (HGLOBAL)(f));
 }
 
 int uiEntryReadOnly(uiEntry *e)
@@ -105,7 +162,13 @@ static uiEntry *finishNewEntry(DWORD style)
 		TRUE);
 
 	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
+
+	e->native_wndproc = (WNDPROC)SetWindowLongPtrW(e->hwnd, GWLP_WNDPROC, (LONG_PTR)entryWndProc);
+	SetProp(e->hwnd, L"NATIVE_WNDPROC", (HGLOBAL)e->native_wndproc);
+	SetProp(e->hwnd, L"SELF", (HGLOBAL)e);
+
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
+	uiEntryOnKeyEvent(e, defaultOnKeyEvent);
 
 	return e;
 }

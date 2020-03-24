@@ -31,6 +31,7 @@ extern void *uiprivMapGet(uiprivMap *m, void *key);
 extern void uiprivMapSet(uiprivMap *m, void *key, void *value);
 extern void uiprivMapDelete(uiprivMap *m, void *key);
 extern void uiprivMapWalk(uiprivMap *m, void (*f)(void *key, void *value));
+extern void uiprivMapWalkWithData(uiprivMap *m, void *data, void (*f)(void *key, void *value, void *data));
 extern void uiprivMapReset(uiprivMap *m);
 
 // menu.m
@@ -110,6 +111,7 @@ extern int uiprivSendAreaEvents(NSEvent *);
 // areaevents.m
 extern BOOL uiprivFromKeycode(unsigned short keycode, uiAreaKeyEvent *ke);
 extern BOOL uiprivKeycodeModifier(unsigned short keycode, uiModifiers *mod);
+extern uiModifiers parseModifiers(NSEvent *e);
 
 // draw.m
 extern uiDrawContext *uiprivDrawNewContext(CGContextRef, CGFloat);

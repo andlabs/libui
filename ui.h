@@ -45,6 +45,12 @@ _UI_ENUM(uiForEach) {
 	uiForEachStop,
 };
 
+typedef struct uiArea uiArea;
+typedef struct uiAreaHandler uiAreaHandler;
+typedef struct uiAreaDrawParams uiAreaDrawParams;
+typedef struct uiAreaMouseEvent uiAreaMouseEvent;
+typedef struct uiAreaKeyEvent uiAreaKeyEvent;
+
 typedef struct uiInitOptions uiInitOptions;
 
 struct uiInitOptions {
@@ -162,6 +168,7 @@ typedef struct uiEntry uiEntry;
 _UI_EXTERN char *uiEntryText(uiEntry *e);
 _UI_EXTERN void uiEntrySetText(uiEntry *e, const char *text);
 _UI_EXTERN void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data);
+_UI_EXTERN void uiEntryOnKeyEvent(uiEntry *e, int (*f)(uiEntry *e, uiAreaKeyEvent *event));
 _UI_EXTERN int uiEntryReadOnly(uiEntry *e);
 _UI_EXTERN void uiEntrySetReadOnly(uiEntry *e, int readonly);
 _UI_EXTERN uiEntry *uiNewEntry(void);
@@ -297,11 +304,6 @@ _UI_EXTERN char *uiSaveFile(uiWindow *parent);
 _UI_EXTERN void uiMsgBox(uiWindow *parent, const char *title, const char *description);
 _UI_EXTERN void uiMsgBoxError(uiWindow *parent, const char *title, const char *description);
 
-typedef struct uiArea uiArea;
-typedef struct uiAreaHandler uiAreaHandler;
-typedef struct uiAreaDrawParams uiAreaDrawParams;
-typedef struct uiAreaMouseEvent uiAreaMouseEvent;
-typedef struct uiAreaKeyEvent uiAreaKeyEvent;
 
 typedef struct uiDrawContext uiDrawContext;
 

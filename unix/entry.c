@@ -1,5 +1,6 @@
 // 11 june 2015
 #include "uipriv_unix.h"
+#include "keyboard.h"
 
 struct uiEntry {
 	uiUnixControl c;
@@ -9,6 +10,7 @@ struct uiEntry {
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 	gulong onChangedSignal;
+	int (*onKeyEvent)(uiEntry *, uiAreaKeyEvent *);
 };
 
 uiUnixControlAllDefaults(uiEntry)
@@ -23,6 +25,22 @@ static void onChanged(GtkEditable *editable, gpointer data)
 static void defaultOnChanged(uiEntry *e, void *data)
 {
 	// do nothing
+}
+
+static gboolean onKeyEvent(GtkEditable *editable, GdkEventKey *event, gpointer data)
+{
+	uiEntry *e = (uiEntry*)(data);
+	uiAreaKeyEvent ke;
+	if (fillUiKeyEvent(&ke, event))
+		return (*(e->onKeyEvent))(e, &ke);
+	return GDK_EVENT_PROPAGATE;
+}
+
+static int defaultOnKeyEvent(uiEntry *e, uiAreaKeyEvent *uke)
+{
+	// do nothing
+	// return GDK_EVENT_STOP; // to stop further key handling
+	return GDK_EVENT_PROPAGATE;
 }
 
 char *uiEntryText(uiEntry *e)
@@ -43,6 +61,11 @@ void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 {
 	e->onChanged = f;
 	e->onChangedData = data;
+}
+
+void uiEntryOnKeyEvent(uiEntry *e, int (*f)(uiEntry *, uiAreaKeyEvent *))
+{
+	e->onKeyEvent = f;
 }
 
 int uiEntryReadOnly(uiEntry *e)
@@ -72,6 +95,11 @@ static uiEntry *finishNewEntry(GtkWidget *w, const gchar *signal)
 
 	e->onChangedSignal = g_signal_connect(e->widget, signal, G_CALLBACK(onChanged), e);
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
+
+	gtk_widget_add_events(e->widget, GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK);
+	g_signal_connect(e->widget, "key_press_event", G_CALLBACK(onKeyEvent), e);
+	g_signal_connect(e->widget, "key_release_event", G_CALLBACK(onKeyEvent), e);
+	uiEntryOnKeyEvent(e, defaultOnKeyEvent);
 
 	return e;
 }

@@ -59,6 +59,7 @@ struct uiEntry {
 	NSTextField *textfield;
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
+	int (*onKeyEvent)(uiEntry *, uiAreaKeyEvent *);
 };
 
 static BOOL isSearchField(NSTextField *tf)
@@ -66,8 +67,19 @@ static BOOL isSearchField(NSTextField *tf)
 	return [tf isKindOfClass:[NSSearchField class]];
 }
 
+static void triggerOnKeyEvent(void *key, void *e, void *data)
+{
+	uiEntry *entry = (uiEntry *)e;
+	void *firstResponder = [entry->textfield window].firstResponder;
+	BOOL sameObj = (entry->textfield == firstResponder);
+	BOOL currentEditor = (entry->textfield.currentEditor && entry->textfield.currentEditor == firstResponder);
+	if (sameObj || currentEditor)
+		entry->onKeyEvent(entry, data);
+}
+
 @interface entryDelegateClass : NSObject<NSTextFieldDelegate> {
 	uiprivMap *entries;
+	id eventMonitor;
 }
 - (void)controlTextDidChange:(NSNotification *)note;
 - (IBAction)onSearch:(id)sender;
@@ -82,11 +94,28 @@ static BOOL isSearchField(NSTextField *tf)
 	self = [super init];
 	if (self)
 		self->entries = uiprivNewMap();
+
+	NSEvent* (^eventHandler)(NSEvent*) = ^(NSEvent *theEvent) {
+		uiAreaKeyEvent ke;
+		ke.Key = 0;
+		ke.ExtKey = 0;
+		ke.Modifier = 0;
+		ke.Modifiers = parseModifiers(theEvent);
+		ke.Up = ([theEvent type] == NSKeyUp ? 1 : 0);
+
+		if (uiprivFromKeycode([theEvent keyCode], &ke))
+			uiprivMapWalkWithData(self->entries, &ke, triggerOnKeyEvent);
+
+		return theEvent;
+	};
+	eventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:(NSKeyDownMask | NSKeyUpMask) handler:eventHandler];
+
 	return self;
 }
 
 - (void)dealloc
 {
+	[NSEvent removeMonitor:eventMonitor];
 	uiprivMapDestroy(self->entries);
 	[super dealloc];
 }
@@ -155,6 +184,11 @@ void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 	e->onChangedData = data;
 }
 
+void uiEntryOnKeyEvent(uiEntry *e, int (*f)(uiEntry *, uiAreaKeyEvent *))
+{
+	e->onKeyEvent = f;
+}
+
 int uiEntryReadOnly(uiEntry *e)
 {
 	return [e->textfield isEditable] == NO;
@@ -173,6 +207,12 @@ void uiEntrySetReadOnly(uiEntry *e, int readonly)
 static void defaultOnChanged(uiEntry *e, void *data)
 {
 	// do nothing
+}
+
+static int defaultOnKeyEvent(uiEntry *e, uiAreaKeyEvent *ke)
+{
+	// do nothing
+	return FALSE;
 }
 
 // these are based on interface builder defaults; my comments in the old code weren't very good so I don't really know what talked about what, sorry :/
@@ -220,6 +260,7 @@ static uiEntry *finishNewEntry(Class class)
 	}
 	[entryDelegate registerEntry:e];
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
+	uiEntryOnKeyEvent(e, defaultOnKeyEvent);
 
 	return e;
 }

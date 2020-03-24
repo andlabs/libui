@@ -55,6 +55,20 @@ void uiprivMapWalk(uiprivMap *m, void (*f)(void *key, void *value))
 	NSEndMapTableEnumeration(&e);
 }
 
+void uiprivMapWalkWithData(uiprivMap *m, void *data, void (*f)(void *key, void *value, void *data))
+{
+	NSMapEnumerator e;
+	void *k, *v;
+
+	e = NSEnumerateMapTable(m->m);
+	k = NULL;	
+	v = NULL;
+	while (NSNextMapEnumeratorPair(&e, &k, &v))
+		f(k, v, data);
+	NSEndMapTableEnumeration(&e);
+}
+
+
 void uiprivMapReset(uiprivMap *m)
 {
 	NSResetMapTable(m->m);

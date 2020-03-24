@@ -11,7 +11,6 @@
 	BOOL libui_enabled;
 }
 - (id)initWithFrame:(NSRect)r area:(uiArea *)a;
-- (uiModifiers)parseModifiers:(NSEvent *)e;
 - (void)doMouseEvent:(NSEvent *)e;
 - (int)sendKeyEvent:(uiAreaKeyEvent *)ke;
 - (int)doKeyDownUp:(NSEvent *)e up:(int)up;
@@ -87,24 +86,6 @@ struct uiArea {
 	return YES;
 }
 
-- (uiModifiers)parseModifiers:(NSEvent *)e
-{
-	NSEventModifierFlags mods;
-	uiModifiers m;
-
-	m = 0;
-	mods = [e modifierFlags];
-	if ((mods & NSControlKeyMask) != 0)
-		m |= uiModifierCtrl;
-	if ((mods & NSAlternateKeyMask) != 0)
-		m |= uiModifierAlt;
-	if ((mods & NSShiftKeyMask) != 0)
-		m |= uiModifierShift;
-	if ((mods & NSCommandKeyMask) != 0)
-		m |= uiModifierSuper;
-	return m;
-}
-
 - (void)setupNewTrackingArea
 {
 	self->libui_ta = [[NSTrackingArea alloc] initWithRect:[self bounds]
@@ -178,7 +159,7 @@ struct uiArea {
 		break;
 	}
 
-	me.Modifiers = [self parseModifiers:e];
+	me.Modifiers = parseModifiers(e);
 
 	pmb = [NSEvent pressedMouseButtons];
 	me.Held1To64 = 0;
@@ -260,7 +241,7 @@ mouseEvent(otherMouseUp)
 	ke.ExtKey = 0;
 	ke.Modifier = 0;
 
-	ke.Modifiers = [self parseModifiers:e];
+	ke.Modifiers = parseModifiers(e);
 
 	ke.Up = up;
 
@@ -292,7 +273,7 @@ mouseEvent(otherMouseUp)
 	if (!uiprivKeycodeModifier([e keyCode], &whichmod))
 		return 0;
 	ke.Modifier = whichmod;
-	ke.Modifiers = [self parseModifiers:e];
+	ke.Modifiers = parseModifiers(e);
 	ke.Up = (ke.Modifiers & ke.Modifier) == 0;
 	// and then drop the current modifier from Modifiers
 	ke.Modifiers &= ~ke.Modifier;

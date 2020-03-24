@@ -1,4 +1,5 @@
 // 21 april 2016
+#define NOMINMAX
 #include "winapi.hpp"
 #include "../ui.h"
 #include "../ui_windows.h"

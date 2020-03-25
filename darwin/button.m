@@ -116,6 +116,13 @@ void uiButtonSetMinSize(uiButton *b, int width, int height)
 	libui_btn.minHeight = height;
 }
 
+void uiButtonPreferredSize(uiButton *b, int *width, int *height)
+{
+	NSSize s = b->button.intrinsicContentSize;
+	*width = s.width;
+	*height = s.height;
+}
+
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
 {
 	b->onClicked = f;

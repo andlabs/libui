@@ -89,6 +89,11 @@ void uiButtonSetMinSize(uiButton *b, int width, int height)
 	uiWindowsControlMinimumSizeChanged(uiWindowsControl(b));
 }
 
+void uiButtonPreferredSize(uiButton *b, int *width, int *height)
+{
+	uiButtonMinimumSize(uiWindowsControl(b), width, height);
+}
+
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
 {
 	b->onClicked = f;

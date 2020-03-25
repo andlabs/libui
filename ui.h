@@ -144,6 +144,8 @@ _UI_EXTERN char *uiButtonText(uiButton *b);
 _UI_EXTERN void uiButtonSetText(uiButton *b, const char *text);
 _UI_EXTERN void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *b, void *data), void *data);
 _UI_EXTERN uiButton *uiNewButton(const char *text);
+_UI_EXTERN void uiButtonSetMinSize(uiButton *b, int width, int height);
+_UI_EXTERN void uiButtonPreferredSize(uiButton *b, int *width, int *height);
 
 typedef struct uiBox uiBox;
 #define uiBox(this) ((uiBox *) (this))

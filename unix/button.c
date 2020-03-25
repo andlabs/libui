@@ -33,6 +33,18 @@ void uiButtonSetText(uiButton *b, const char *text)
 	gtk_button_set_label(b->button, text);
 }
 
+void uiButtonSetMinSize(uiButton *b, int width, int height)
+{
+	gtk_widget_set_size_request(b->widget, width, height);
+}
+
+void uiButtonPreferredSize(uiButton *b, int *width, int *height)
+{
+	gtk_widget_show(b->widget);
+	gtk_widget_get_preferred_height(b->widget, NULL, height);
+	gtk_widget_get_preferred_width(b->widget, NULL, width);
+}
+
 void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *, void *), void *data)
 {
 	b->onClicked = f;

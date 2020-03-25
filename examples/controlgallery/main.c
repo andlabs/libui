@@ -37,6 +37,11 @@ static uiControl *makeBasicControlsPage(void)
 	uiBoxAppend(hbox,
 		uiControl(uiNewCheckbox("Checkbox")),
 		0);
+	uiButton *btn = uiNewButton("Wide");
+	uiButtonSetMinSize(btn, 150, -1);
+	uiBoxAppend(hbox,
+		uiControl(btn),
+		0);
 
 	uiBoxAppend(vbox,
 		uiControl(uiNewLabel("This is a label. Right now, labels can only span one line.")),

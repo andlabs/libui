@@ -59,3 +59,9 @@ void uiWindowsEnsureGetWindowRect(HWND hwnd, RECT *r)
 		r->bottom = 0;
 	}
 }
+
+void uiWindowsSetFocus(HWND hwnd)
+{
+	if (SetFocus(hwnd) == 0)
+		logLastError(L"error setting ficus");
+}

@@ -147,6 +147,7 @@ uiWindowsControlDefaultHide(uiForm)
 uiWindowsControlDefaultEnabled(uiForm)
 uiWindowsControlDefaultEnable(uiForm)
 uiWindowsControlDefaultDisable(uiForm)
+uiWindowsControlDefaultSetFocus(uiForm)
 
 static void uiFormSyncEnableState(uiWindowsControl *c, int enabled)
 {

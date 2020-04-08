@@ -83,6 +83,11 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	{ \
 		gtk_widget_set_sensitive(type(c)->widget, FALSE); \
 	}
+#define uiUnixControlDefaultSetFocus(type) \
+	static void type ## SetFocus(uiControl *c) \
+	{ \
+		gtk_widget_grab_focus(type(c)->widget); \
+	}
 // TODO this whole addedBefore stuff is a MASSIVE HACK.
 #define uiUnixControlDefaultSetContainer(type) \
 	static void type ## SetContainer(uiUnixControl *c, GtkContainer *container, gboolean remove) \
@@ -110,6 +115,7 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	uiUnixControlDefaultEnabled(type) \
 	uiUnixControlDefaultEnable(type) \
 	uiUnixControlDefaultDisable(type) \
+	uiUnixControlDefaultSetFocus(type) \
 	uiUnixControlDefaultSetContainer(type)
 
 #define uiUnixControlAllDefaults(type) \
@@ -130,6 +136,7 @@ _UI_EXTERN void uiUnixControlSetContainer(uiUnixControl *, GtkContainer *, gbool
 	uiControl(var)->Enabled = type ## Enabled; \
 	uiControl(var)->Enable = type ## Enable; \
 	uiControl(var)->Disable = type ## Disable; \
+	uiControl(var)->SetFocus = type ## SetFocus; \
 	uiUnixControl(var)->SetContainer = type ## SetContainer;
 // TODO document
 _UI_EXTERN uiUnixControl *uiUnixAllocControl(size_t n, uint32_t typesig, const char *typenamestr);

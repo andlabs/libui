@@ -236,6 +236,7 @@ uiWindowsControlDefaultDisable(uiWindow)
 uiWindowsControlDefaultSyncEnableState(uiWindow)
 // TODO
 uiWindowsControlDefaultSetParentHWND(uiWindow)
+uiWindowsControlDefaultSetFocus(uiWindow)
 
 static void uiWindowMinimumSize(uiWindowsControl *c, int *width, int *height)
 {

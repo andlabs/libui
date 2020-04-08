@@ -694,6 +694,7 @@ uiDarwinControlDefaultHide(uiGrid, view)
 uiDarwinControlDefaultEnabled(uiGrid, view)
 uiDarwinControlDefaultEnable(uiGrid, view)
 uiDarwinControlDefaultDisable(uiGrid, view)
+uiDarwinControlDefaultSetFocus(uiGrid, view)
 
 static void uiGridSyncEnableState(uiDarwinControl *c, int enabled)
 {

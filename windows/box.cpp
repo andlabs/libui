@@ -143,6 +143,7 @@ uiWindowsControlDefaultHide(uiBox)
 uiWindowsControlDefaultEnabled(uiBox)
 uiWindowsControlDefaultEnable(uiBox)
 uiWindowsControlDefaultDisable(uiBox)
+uiWindowsControlDefaultSetFocus(uiBox)
 
 static void uiBoxSyncEnableState(uiWindowsControl *c, int enabled)
 {

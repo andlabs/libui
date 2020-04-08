@@ -482,6 +482,7 @@ uiDarwinControlDefaultHide(uiForm, view)
 uiDarwinControlDefaultEnabled(uiForm, view)
 uiDarwinControlDefaultEnable(uiForm, view)
 uiDarwinControlDefaultDisable(uiForm, view)
+uiDarwinControlDefaultSetFocus(uiForm, view)
 
 static void uiFormSyncEnableState(uiDarwinControl *c, int enabled)
 {

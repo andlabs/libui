@@ -112,6 +112,7 @@ uiWindowsControlDefaultHide(uiTab)
 uiWindowsControlDefaultEnabled(uiTab)
 uiWindowsControlDefaultEnable(uiTab)
 uiWindowsControlDefaultDisable(uiTab)
+uiWindowsControlDefaultSetFocus(uiTab)
 
 static void uiTabSyncEnableState(uiWindowsControl *c, int enabled)
 {

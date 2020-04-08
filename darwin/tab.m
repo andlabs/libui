@@ -115,6 +115,7 @@ uiDarwinControlDefaultHide(uiTab, tabview)
 uiDarwinControlDefaultEnabled(uiTab, tabview)
 uiDarwinControlDefaultEnable(uiTab, tabview)
 uiDarwinControlDefaultDisable(uiTab, tabview)
+uiDarwinControlDefaultSetFocus(uiTab, tabview)
 
 static void uiTabSyncEnableState(uiDarwinControl *c, int enabled)
 {

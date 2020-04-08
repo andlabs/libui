@@ -43,6 +43,7 @@ uiDarwinControlDefaultHide(uiGroup, box)
 uiDarwinControlDefaultEnabled(uiGroup, box)
 uiDarwinControlDefaultEnable(uiGroup, box)
 uiDarwinControlDefaultDisable(uiGroup, box)
+uiDarwinControlDefaultSetFocus(uiGroup, box)
 
 static void uiGroupSyncEnableState(uiDarwinControl *c, int enabled)
 {

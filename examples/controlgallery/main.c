@@ -17,6 +17,13 @@ static int onShouldQuit(void *data)
 	return 1;
 }
 
+static uiEntry *focusable = NULL;
+static void wideOnClicked(uiButton *b, void *data)
+{
+	if (focusable)
+		uiControlSetFocus(uiControl(focusable));
+}
+
 static uiControl *makeBasicControlsPage(void)
 {
 	uiBox *vbox;
@@ -42,6 +49,7 @@ static uiControl *makeBasicControlsPage(void)
 	uiBoxAppend(hbox,
 		uiControl(btn),
 		0);
+	uiButtonOnClicked(btn, wideOnClicked, NULL);
 
 	uiBoxAppend(vbox,
 		uiControl(uiNewLabel("This is a label. Right now, labels can only span one line.")),
@@ -59,9 +67,12 @@ static uiControl *makeBasicControlsPage(void)
 	uiFormSetPadded(entryForm, 1);
 	uiGroupSetChild(group, uiControl(entryForm));
 
+
+	focusable = uiNewEntry();
+
 	uiFormAppend(entryForm,
 		"Entry",
-		uiControl(uiNewEntry()),
+		uiControl(focusable),
 		0);
 	uiFormAppend(entryForm,
 		"Password Entry",

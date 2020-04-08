@@ -380,6 +380,7 @@ uiDarwinControlDefaultHide(uiBox, view)
 uiDarwinControlDefaultEnabled(uiBox, view)
 uiDarwinControlDefaultEnable(uiBox, view)
 uiDarwinControlDefaultDisable(uiBox, view)
+uiDarwinControlDefaultSetFocus(uiBox, view)
 
 static void uiBoxSyncEnableState(uiDarwinControl *c, int enabled)
 {

@@ -100,6 +100,11 @@ _UI_EXTERN void uiDarwinControlChildVisibilityChanged(uiDarwinControl *);
 		uiDarwinControl(c)->enabled = NO; \
 		uiDarwinControlSyncEnableState(uiDarwinControl(c), uiControlEnabledToUser(c)); \
 	}
+#define uiDarwinControlDefaultSetFocus(type, handlefield) \
+	static void type ## SetFocus(uiControl *c) \
+	{ \
+		return; \
+	}
 #define uiDarwinControlDefaultSyncEnableState(type, handlefield) \
 	static void type ## SyncEnableState(uiDarwinControl *c, int enabled) \
 	{ \
@@ -159,6 +164,7 @@ _UI_EXTERN void uiDarwinControlChildVisibilityChanged(uiDarwinControl *);
 	uiDarwinControlDefaultEnabled(type, handlefield) \
 	uiDarwinControlDefaultEnable(type, handlefield) \
 	uiDarwinControlDefaultDisable(type, handlefield) \
+	uiDarwinControlDefaultSetFocus(type, handlefield) \
 	uiDarwinControlDefaultSyncEnableState(type, handlefield) \
 	uiDarwinControlDefaultSetSuperview(type, handlefield) \
 	uiDarwinControlDefaultHugsTrailingEdge(type, handlefield) \
@@ -186,6 +192,7 @@ _UI_EXTERN void uiDarwinControlChildVisibilityChanged(uiDarwinControl *);
 	uiControl(var)->Enabled = type ## Enabled; \
 	uiControl(var)->Enable = type ## Enable; \
 	uiControl(var)->Disable = type ## Disable; \
+	uiControl(var)->SetFocus = type ## SetFocus; \
 	uiDarwinControl(var)->SyncEnableState = type ## SyncEnableState; \
 	uiDarwinControl(var)->SetSuperview = type ## SetSuperview; \
 	uiDarwinControl(var)->HugsTrailingEdge = type ## HugsTrailingEdge; \

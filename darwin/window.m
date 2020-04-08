@@ -189,6 +189,7 @@ static void uiWindowHide(uiControl *c)
 uiDarwinControlDefaultEnabled(uiWindow, window)
 uiDarwinControlDefaultEnable(uiWindow, window)
 uiDarwinControlDefaultDisable(uiWindow, window)
+uiDarwinControlDefaultSetFocus(uiWindow, window)
 
 static void uiWindowSyncEnableState(uiDarwinControl *c, int enabled)
 {

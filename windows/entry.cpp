@@ -121,6 +121,18 @@ void uiEntrySetText(uiEntry *e, const char *text)
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
 
+void uiEntrySelectText(uiEntry *e, int start, int end)
+{
+	e->inhibitChanged = TRUE;
+	uiWindowsSetlectWindowText(e->hwnd, start, end);
+	e->inhibitChanged = FALSE;
+}
+
+void uiEntrySelectAllText(uiEntry *e)
+{
+	uiEntrySelectText(e, 0, -1);
+}
+
 void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 {
 	e->onChanged = f;

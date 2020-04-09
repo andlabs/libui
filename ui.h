@@ -171,6 +171,8 @@ typedef struct uiEntry uiEntry;
 #define uiEntry(this) ((uiEntry *) (this))
 _UI_EXTERN char *uiEntryText(uiEntry *e);
 _UI_EXTERN void uiEntrySetText(uiEntry *e, const char *text);
+_UI_EXTERN void uiEntrySelectText(uiEntry *e, int start, int end);
+_UI_EXTERN void uiEntrySelectAllText(uiEntry *e);
 _UI_EXTERN void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data);
 _UI_EXTERN void uiEntryOnKeyEvent(uiEntry *e, int (*f)(uiEntry *e, uiAreaKeyEvent *event));
 _UI_EXTERN int uiEntryReadOnly(uiEntry *e);

@@ -108,7 +108,7 @@ void uiWindowsSetWindowText(HWND hwnd, const char *text)
 
 void uiWindowsSetlectWindowText(HWND hwnd, int start, int end)
 {
-	SendMessage(hwnd, EM_SETSEL, 0, -1);
+	SendMessage(hwnd, EM_SETSEL, start, end);
 }
 
 int uiprivStricmp(const char *a, const char *b)

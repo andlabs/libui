@@ -178,6 +178,17 @@ void uiEntrySetText(uiEntry *e, const char *text)
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
 
+void uiEntrySelectText(uiEntry *e, int start, int end)
+{
+	NSRange range = {start, end - start};
+	[e->textfield.currentEditor setSelectedRange:range];
+}
+
+void uiEntrySelectAllText(uiEntry *e)
+{
+	[e->textfield selectText:cWindow];
+}
+
 void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 {
 	e->onChanged = f;

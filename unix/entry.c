@@ -57,6 +57,20 @@ void uiEntrySetText(uiEntry *e, const char *text)
 	// don't queue the control for resize; entry sizes are independent of their contents
 }
 
+void uiEntrySelectText(uiEntry *e, int start, int end)
+{
+	// we need to inhibit sending of ::changed because this WILL send a ::changed otherwise
+	g_signal_handler_block(e->editable, e->onChangedSignal);
+	gtk_editable_select_region(e->entry, start, end);
+	g_signal_handler_unblock(e->editable, e->onChangedSignal);
+	// don't queue the control for resize; entry sizes are independent of their contents
+}
+
+void uiEntrySelectAllText(uiEntry *e)
+{
+	uiEntrySelectText(e, 0, -1);
+}
+
 void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *, void *), void *data)
 {
 	e->onChanged = f;

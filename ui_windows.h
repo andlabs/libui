@@ -218,6 +218,7 @@ _UI_EXTERN void uiWindowsEnsureGetWindowRect(HWND hwnd, RECT *r);
 // TODO document
 _UI_EXTERN char *uiWindowsWindowText(HWND hwnd);
 _UI_EXTERN void uiWindowsSetWindowText(HWND hwnd, const char *text);
+_UI_EXTERN void uiWindowsSetlectWindowText(HWND hwnd, int start, int end);
 
 // TODO document
 _UI_EXTERN int uiWindowsWindowTextWidth(HWND hwnd);

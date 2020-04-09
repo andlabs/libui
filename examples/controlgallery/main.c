@@ -20,8 +20,10 @@ static int onShouldQuit(void *data)
 static uiEntry *focusable = NULL;
 static void wideOnClicked(uiButton *b, void *data)
 {
-	if (focusable)
+	if (focusable) {
 		uiControlSetFocus(uiControl(focusable));
+		uiEntrySelectAllText(focusable);
+	}
 }
 
 static uiControl *makeBasicControlsPage(void)

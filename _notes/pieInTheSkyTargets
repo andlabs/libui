@@ -1,0 +1,11 @@
+SGI IRIS 2000
+sgi iris 2500T
+sgi iris 3130
+https://en.wikipedia.org/wiki/Sun-1
+https://en.wikipedia.org/wiki/Sun-2
+https://en.wikipedia.org/wiki/Sun-3
+https://en.wikipedia.org/wiki/HP_9000
+https://en.wikipedia.org/wiki/HP_series_80
+https://en.wikipedia.org/wiki/HP_9845C
+
+note that some of these are 68000-based systems, and a few of those I want to look up for my own interests — especially since those would probably will just suffice with the GTK+ 3 port assuming a modern unix-like system can be run on them

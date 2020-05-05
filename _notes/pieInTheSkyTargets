@@ -9,3 +9,50 @@ https://en.wikipedia.org/wiki/HP_series_80
 https://en.wikipedia.org/wiki/HP_9845C
 
 note that some of these are 68000-based systems, and a few of those I want to look up for my own interests — especially since those would probably will just suffice with the GTK+ 3 port assuming a modern unix-like system can be run on them
+
+IRIX {
+007-2006-120.pdf
+http://irix7.com/techpubs/007-2006-120.pdf
+
+007-2006-130.pdf
+http://irix7.com/techpubs/007-2006-130.pdf
+
+007-2167-005.pdf
+http://irix7.com/techpubs/007-2167-005.pdf
+
+007-2167-006.pdf
+http://irix7.com/techpubs/007-2167-006.pdf
+
+007-2006-080.pdf
+http://irix7.com/techpubs/007-2006-080.pdf
+
+007-2006-090.pdf
+http://irix7.com/techpubs/007-2006-090.pdf
+
+007-2006-100.pdf
+http://irix7.com/techpubs/007-2006-100.pdf
+
+007-2167-001.pdf
+http://irix7.com/techpubs/007-2167-001.pdf
+
+007-2167-002.pdf
+http://irix7.com/techpubs/007-2167-002.pdf
+
+007-2167-003.pdf
+http://irix7.com/techpubs/007-2167-003.pdf
+
+007-2851-001.pdf
+http://irix7.com/techpubs/007-2851-001.pdf
+
+007-1472-020.pdf
+http://irix7.com/techpubs/007-1472-020.pdf
+
+007-1797-020.pdf
+http://irix7.com/techpubs/007-1797-020.pdf
+
+007-1797-030.pdf
+http://irix7.com/techpubs/007-1797-030.pdf
+
+007-3951-001.pdf
+http://irix7.com/techpubs/007-3951-001.pdf
+} GTK+ is not an option because of no dbus, but maybe we could get away with mixing Motif and some 2D library that's in IRIX itself? but which one?...

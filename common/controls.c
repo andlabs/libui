@@ -184,9 +184,6 @@ void uiControlFree(uiControl *c)
 		return;
 	}
 
-	uiEventFire(uiControlOnFree(), c, NULL);
-	uiEventInvalidateSender(uiControlOnFree(), c);
-
 	callVtable(c->type->vtable.Free, c, c->implData);
 
 	uiprivFree(c->implData);

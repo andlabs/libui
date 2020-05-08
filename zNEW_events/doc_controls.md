@@ -132,3 +132,11 @@ void *uiControlImplData(uiControl *c);
 This function is meant to be used by control implementations only. There is in general no guarantee as to the size or format of this pointer. Normal users should not call `uiControlImplData()`.
 
 It is a programmer error to pass `NULL` or a non-`uiControl` for `c`.
+
+## `uiControlOnFree()`
+
+```c
+uiEvent *uiControlOnFree(void);
+```
+
+`uiControlOnFree()` returns a `uiEvent` that is fired by `uiControlFree()` to indicate that a control is about to be freed. In your handler, `sender` is the control in question and `args` is `NULL`.

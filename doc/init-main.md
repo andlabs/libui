@@ -117,6 +117,8 @@ void uiMain(void);
 
 `uiMain()` runs the main event loop. It does not return until `uiQuit()` is called.
 
+TODO make it illegal to call more than once?
+
 ### `uiQuit()`
 
 ```c

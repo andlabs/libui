@@ -8,9 +8,9 @@
 TestNoInit(InitFailure)
 {
 	uiInitError err;
-//TODO	void *ctx;
+	void *ctx;
 
-//TODO	ctx = beginCheckProgrammerError(NULL);
+	ctx = beginCheckProgrammerError(NULL);
 	uiprivTestHookSetInitShouldFailArtificially(true);
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
@@ -19,7 +19,7 @@ TestNoInit(InitFailure)
 	else if (strcmp(err.Message, "general failure") != 0)
 		TestErrorf("uiInit() failed with wrong message:" diff("%s"),
 			err.Message, "general failure");
-//TODO	endCheckProgrammerError(ctx);
+	endCheckProgrammerError(ctx);
 }
 
 TestNoInit(InitWithNonNullOptionsIsProgrammerError)

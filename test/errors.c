@@ -8,7 +8,7 @@
 struct checkProgrammerErrorParams {
 	bool caught;
 	char *msgGot;
-	const char *msgWant;
+	const char *msgWant;		// NULL if should not be caught
 };
 
 static char *ourStrdup(const char *s)
@@ -72,10 +72,8 @@ void *beginCheckProgrammerError(const char *want)
 	return p;
 }
 
-void endCheckProgrammerErrorFull(const char *file, long line, void *context)
+static void checkWantProgrammerError(const char *file, long line, struct checkProgrammerErrorParams *p)
 {
-	struct checkProgrammerErrorParams *p = (struct checkProgrammerErrorParams *) context;
-
 	if (!p->caught)
 		TestErrorfFull(file, line, "did not throw a programmer error; should have");
 	if (p->msgGot != NULL) {
@@ -83,6 +81,26 @@ void endCheckProgrammerErrorFull(const char *file, long line, void *context)
 			p->msgGot, p->msgWant);
 		free(p->msgGot);
 	}
+}
+
+static void checkWantNoProgrammerError(const char *file, long line, struct checkProgrammerErrorParams *p)
+{
+	if (p->caught)
+		TestErrorfFull(file, line, "threw a programmer error; should not have");
+	if (p->msgGot != NULL) {
+		TestErrorfFull(file, line, "got unexpected programmer error message when none was expected: %s", p->msgGot);
+		free(p->msgGot);
+	}
+}
+
+void endCheckProgrammerErrorFull(const char *file, long line, void *context)
+{
+	struct checkProgrammerErrorParams *p = (struct checkProgrammerErrorParams *) context;
+
+	if (p->msgWant != NULL)
+		checkWantProgrammerError(file, line, p);
+	else
+		checkWantNoProgrammerError(file, line, p);
 	free(p);
 	uiprivTestHookReportProgrammerError(NULL, NULL);
 }

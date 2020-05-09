@@ -1,8 +1,26 @@
 // 10 april 2019
 #include "test.h"
 #include "thread.h"
+#include "../common/testhooks.h"
 
 // TODO test the number of calls to queued functions made
+
+TestNoInit(InitFailure)
+{
+	uiInitError err;
+//TODO	void *ctx;
+
+//TODO	ctx = beginCheckProgrammerError(NULL);
+	uiprivTestHookSetInitShouldFailArtificially(true);
+	memset(&err, 0, sizeof (uiInitError));
+	err.Size = sizeof (uiInitError);
+	if (uiInit(NULL, &err))
+		TestErrorf("uiInit() succeeded; expected failure");
+	else if (strcmp(err.Message, "general failure") != 0)
+		TestErrorf("uiInit() failed with wrong message:" diff("%s"),
+			err.Message, "general failure");
+//TODO	endCheckProgrammerError(ctx);
+}
 
 TestNoInit(InitWithNonNullOptionsIsProgrammerError)
 {

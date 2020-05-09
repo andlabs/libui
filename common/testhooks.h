@@ -4,6 +4,9 @@
 extern "C" {
 #endif
 
+// main.c
+uiprivExtern void uiprivTestHookSetInitShouldFailArtificially(bool shouldFail);
+
 // errors.c
 typedef void (*uiprivTestHookReportProgrammerErrorFunc)(const char *msg, void *data);
 uiprivExtern void uiprivTestHookReportProgrammerError(uiprivTestHookReportProgrammerErrorFunc f, void *data);

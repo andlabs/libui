@@ -1,5 +1,6 @@
 // 19 april 2019
 #include "uipriv.h"
+#include "testhooks.h"
 
 enum {
 	stateUninitialized,
@@ -13,6 +14,13 @@ enum {
 static int state = stateUninitialized;
 
 #define initialized() (state != stateUninitialized && state != stateError)
+
+bool testHookInitShouldFail = false;
+
+void uiprivTestHookSetInitShouldFailArtificially(bool shouldFail)
+{
+	testHookInitShouldFail = shouldFail;
+}
 
 bool uiInit(void *options, uiInitError *err)
 {
@@ -37,6 +45,10 @@ bool uiInit(void *options, uiInitError *err)
 		return false;
 	}
 
+	if (testHookInitShouldFail) {
+		state = stateError;
+		return uiprivInitReturnErrorf(err, "general failure");
+	}
 	if (!uiprivSysInit(options, err)) {
 		state = stateError;
 		return false;

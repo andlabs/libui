@@ -138,40 +138,44 @@ TestNoInit(InitIncorrectlyAfterIncorrectInitialization)
 	endCheckProgrammerError(ctx);
 }
 
-// TODOTODOTODOTODOTODOTODOTODOTODOTODOTODO
-
-struct testParams {
-	uint32_t flag;
+struct testQueueMainParams {
+	unsigned int n;
 	threadSysError err;
 };
 
-/*
-TODO if I remove the uiQuit() from this test on Windows, I will occasionally get
-=== RUN   TestQueueMain_DifferentThread
-    ../test/initmain.c:161: uiMain() timed out (5s)
---- FAIL: TestQueueMain_DifferentThread (4.9989539s)
-TODO see if this is still relevant
-*/
 static void queued(void *data)
 {
-	struct testParams *p = (struct testParams *) data;
+	struct testQueueMainParams *p = (struct testQueueMainParams *) data;
 
-	p->flag = 1;
+	p->n++;
+	if (p->n > 2)
+		p->n = 2;
 	uiQuit();
 }
 
 Test(QueueMain)
 {
-	struct testParams p;
+	struct testQueueMainParams p;
 
-	memset(&p, 0, sizeof (struct testParams));
-	p.flag = 0;
+	memset(&p, 0, sizeof (struct testQueueMainParams));
+	p.n = 0;
 	uiQueueMain(queued, &p);
 	uiMain();
-	if (p.flag != 1)
-		TestErrorf("uiQueueMain() didn't set flag properly:" diff("%d"),
-			p.flag, 1);
+	switch (p.n) {
+	case 0:
+		TestErrorf("uiQueueMain() function was not called");
+		break;
+	case 1:
+		// do nothing; this is the expected case
+		break;
+	default:
+		TestErrorf("uiQueueMain() called more than once");
+	}
 }
+
+// TODOTODOTODOTODOTODOTODOTODOTODOTODOTODO
+
+#if 0
 
 // TODO there has to be a way to do this that absolutely will not possibly go in the wrong order... or produce a false positive
 #define queueOp(name, expr) \
@@ -312,4 +316,6 @@ static void timer(void *data)
 testingTest(Timer)
 {
 }
+#endif
+
 #endif

@@ -1,24 +1,47 @@
 // 19 april 2019
 #include "uipriv.h"
 
-static bool initialized = false;
+enum {
+	stateUninitialized,
+	stateBeforeMain,
+	stateInMain,
+	stateQuitting,
+	stateAfterMain,
+	stateError,
+};
+
+static int state = stateUninitialized;
+
+#define initialized() (state != stateUninitialized && state != stateError)
 
 bool uiInit(void *options, uiInitError *err)
 {
-	if (err == NULL)
+	if (state != stateUninitialized) {
+		uiprivProgrammerErrorMultipleCalls(uiprivFunc);
+		state = stateError;
 		return false;
-	if (err->Size != sizeof (uiInitError))
+	}
+	if (options != NULL) {
+		uiprivProgrammerErrorBadInitOptions(uiprivFunc);
+		state = stateError;
 		return false;
-
-	if (initialized)
-		return uiprivInitReturnErrorf(err, "libui already initialized");
-
-	if (options != NULL)
-		return uiprivInitReturnErrorf(err, "options parameter to uiInit() must be NULL");
-
-	if (!uiprivSysInit(options, err))
+	}
+	if (err == NULL) {
+		uiprivProgrammerErrorNullPointer("uiInitError", uiprivFunc);
+		state = stateError;
 		return false;
-	initialized = true;
+	}
+	if (err->Size != sizeof (uiInitError)) {
+		uiprivProgrammerErrorWrongStructSize(err->Size, "uiInitError", uiprivFunc);
+		state = stateError;
+		return false;
+	}
+
+	if (!uiprivSysInit(options, err)) {
+		state = stateError;
+		return false;
+	}
+	state = stateBeforeMain;
 	return true;
 }
 
@@ -44,9 +67,39 @@ bool uiprivInitReturnErrorf(uiInitError *err, const char *fmt, ...)
 	return false;
 }
 
+void uiMain(void)
+{
+	if (!uiprivCheckInitializedAndThread())
+		return;
+	if (state != stateBeforeMain) {
+		uiprivProgrammerErrorMultipleCalls(uiprivFunc);
+		return;
+	}
+	state = stateInMain;
+	uiprivSysMain();
+	state = stateAfterMain;
+}
+
+void uiQuit(void)
+{
+	if (!uiprivCheckInitializedAndThread())
+		return;
+	if (state == stateQuitting || state == stateAfterMain) {
+		uiprivProgrammerErrorMultipleCalls(uiprivFunc);
+		return;
+	}
+	if (state != stateInMain) {
+		// the above handle the other states, so stateBeforeMain is what's left
+		uiprivProgrammerErrorQuitBeforeMain(uiprivFunc);
+		return;
+	}
+	state = stateQuitting;
+	uiprivSysQuit();
+}
+
 void uiQueueMain(void (*f)(void *data), void *data)
 {
-	if (!initialized) {
+	if (!initialized()) {
 		uiprivProgrammerErrorNotInitialized(uiprivFunc);
 		return;
 	}
@@ -56,7 +109,7 @@ void uiQueueMain(void (*f)(void *data), void *data)
 bool uiprivCheckInitializedAndThreadImpl(const char *func)
 {
 	// While it does seem risky to not lock this, if this changes during the execution of this function it means only that it was changed from a different thread, and since it can only change from false to true, an error will be reported anyway.
-	if (!initialized) {
+	if (!initialized()) {
 		uiprivProgrammerErrorNotInitialized(func);
 		return false;
 	}

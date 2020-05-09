@@ -40,6 +40,8 @@ extern bool uiprivSysInit(void *options, uiInitError *err);
 uiprivPrintfFunc(
 	extern bool uiprivInitReturnErrorf(uiInitError *err, const char *fmt, ...),
 	2, 3);
+extern void uiprivSysMain(void);
+extern void uiprivSysQuit(void);
 extern void uiprivSysQueueMain(void (*f)(void *data), void *data);
 extern bool uiprivCheckInitializedAndThreadImpl(const char *func);
 #define uiprivCheckInitializedAndThread() uiprivCheckInitializedAndThreadImpl(uiprivFunc)

@@ -24,6 +24,19 @@
 
 // }
 
+// main {
+
+#define uiprivProgrammerErrorMultipleCalls(func) \
+	uiprivProgrammerError("%s(): attempt to call more than once", func)
+
+#define uiprivProgrammerErrorBadInitOptions(func) \
+	uiprivProgrammerError("%s(): invalid uiInitOptions passed", func)
+
+#define uiprivProgrammerErrorQuitBeforeMain(func) \
+	uiprivProgrammerError("%s(): attempt to call before uiMain()", func)
+
+// }
+
 // controls {
 
 #define uiprivProgrammerErrorRequiredControlMethodMissing(typeName, tableType, methodName, func) \

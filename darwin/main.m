@@ -56,17 +56,13 @@ bool uiprivSysInit(void *options, uiInitError *err)
 	return true;
 }
 
-void uiMain(void)
+void uiprivSysMain(void)
 {
-	if (!uiprivCheckInitializedAndThread())
-		return;
 	[uiprivApp run];
 }
 
-void uiQuit(void)
+void uiprivSysQuit(void)
 {
-	if (!uiprivCheckInitializedAndThread())
-		return;
 	@autoreleasepool {
 		NSEvent *e;
 

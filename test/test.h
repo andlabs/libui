@@ -80,7 +80,7 @@ sharedbitsPrintfFunc(
 // errors.c
 extern void *beginCheckProgrammerError(const char *want);
 extern void endCheckProgrammerErrorFull(const char *file, long line, void *context);
-#define endCheckProgrammerError(context) checkProgrammerErrorFull(__FILE__, __LINE__, context)
+#define endCheckProgrammerError(context) endCheckProgrammerErrorFull(__FILE__, __LINE__, context)
 
 #ifdef __cplusplus
 }

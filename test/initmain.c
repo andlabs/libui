@@ -4,43 +4,97 @@
 
 // TODO test the number of calls to queued functions made
 
-#define errInvalidOptions "options parameter to uiInit() must be NULL"
-#define errAlreadyInitialized "libui already initialized"
-
-TestNoInit(Init)
+TestNoInit(InitWithNonNullOptionsIsProgrammerError)
 {
-	uiInitError err;
+	void *ctx;
 
+	ctx = beginCheckProgrammerError("uiInit(): invalid uiInitOptions passed");
+	if (uiInit(ctx, NULL))
+		TestErrorf("uiInit() with non-NULL options succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+}
+
+TestNoInit(InitWithNullErrorIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiInit(): invalid null pointer for uiInitError");
 	if (uiInit(NULL, NULL))
 		TestErrorf("uiInit() with NULL error succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+}
 
+TestNoInit(InitWithWrongErrorSizeIsProgrammerError)
+{
+	uiInitError err;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiInit(): wrong size 2 for uiInitError");
 	memset(&err, 0, sizeof (uiInitError));
-
 	err.Size = 2;
 	if (uiInit(NULL, &err))
 		TestErrorf("uiInit() with error with invalid size succeeded; expected failure");
-
-	err.Size = sizeof (uiInitError);
-
-	if (uiInit(&err, &err))
-		TestErrorf("uiInit() with non-NULL options succeeded; expected failure");
-	if (strcmp(err.Message, errInvalidOptions) != 0)
-		TestErrorf("uiInit() with non-NULL options returned bad error message:" diff("%s"),
-			err.Message, errInvalidOptions);
+	endCheckProgrammerError(ctx);
 }
 
-Test(InitAfterInitialized)
+Test(InitCorrectlyAfterInitializedSuccessfully)
 {
 	uiInitError err;
+	void *ctx;
 
+	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
 	if (uiInit(NULL, &err))
-		TestErrorf("uiInit() after a previous successful call succeeded; expected failure");
-	if (strcmp(err.Message, errAlreadyInitialized) != 0)
-		TestErrorf("uiInit() after a previous successful call returned bad error message:" diff("%s"),
-			err.Message, errAlreadyInitialized);
+		TestFatalf("uiInit() after a previous successful call succeeded; expected failure");
+	endCheckProgrammerError(ctx);
 }
+
+Test(InitIncorrectlyAfterInitializedSuccessfully)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
+	if (uiInit(NULL, NULL))
+		TestFatalf("bad uiInit() after a previous successful call succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+}
+
+// TODO TestNoInit(InitCorrectlyAfterFailureToInitailize)
+// TODO TestNoInit(InitIncorrectlyAfterFailureToInitialize)
+
+TestNoInit(InitCorrectlyAfterIncorrectInitialization)
+{
+	uiInitError err;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiInit(): invalid uiInitOptions passed");
+	if (uiInit(ctx, NULL))
+		TestErrorf("uiInit() with non-NULL options succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
+	memset(&err, 0, sizeof (uiInitError));
+	err.Size = sizeof (uiInitError);
+	if (uiInit(NULL, &err))
+		TestFatalf("uiInit() after a previous successful call succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+}
+
+TestNoInit(InitIncorrectlyAfterIncorrectInitialization)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiInit(): invalid uiInitOptions passed");
+	if (uiInit(ctx, NULL))
+		TestErrorf("uiInit() with non-NULL options succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
+	if (uiInit(NULL, NULL))
+		TestFatalf("bad uiInit() after a previous successful call succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+}
+
+// TODOTODOTODOTODOTODOTODOTODOTODOTODOTODO
 
 struct testParams {
 	uint32_t flag;

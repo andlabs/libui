@@ -78,8 +78,49 @@ Test(InitIncorrectlyAfterInitializedSuccessfully)
 	endCheckProgrammerError(ctx);
 }
 
-// TODO TestNoInit(InitCorrectlyAfterFailureToInitailize)
-// TODO TestNoInit(InitIncorrectlyAfterFailureToInitialize)
+TestNoInit(InitCorrectlyAfterFailureToInitialize)
+{
+	uiInitError err;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError(NULL);
+	uiprivTestHookSetInitShouldFailArtificially(true);
+	memset(&err, 0, sizeof (uiInitError));
+	err.Size = sizeof (uiInitError);
+	if (uiInit(NULL, &err))
+		TestErrorf("uiInit() succeeded; expected failure");
+	else if (strcmp(err.Message, "general failure") != 0)
+		TestErrorf("uiInit() failed with wrong message:" diff("%s"),
+			err.Message, "general failure");
+	endCheckProgrammerError(ctx);
+	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
+	memset(&err, 0, sizeof (uiInitError));
+	err.Size = sizeof (uiInitError);
+	if (uiInit(NULL, &err))
+		TestFatalf("uiInit() after a previous successful call succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+}
+
+TestNoInit(InitIncorrectlyAfterFailureToInitialize)
+{
+	uiInitError err;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError(NULL);
+	uiprivTestHookSetInitShouldFailArtificially(true);
+	memset(&err, 0, sizeof (uiInitError));
+	err.Size = sizeof (uiInitError);
+	if (uiInit(NULL, &err))
+		TestErrorf("uiInit() succeeded; expected failure");
+	else if (strcmp(err.Message, "general failure") != 0)
+		TestErrorf("uiInit() failed with wrong message:" diff("%s"),
+			err.Message, "general failure");
+	endCheckProgrammerError(ctx);
+	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
+	if (uiInit(NULL, NULL))
+		TestFatalf("bad uiInit() after a previous successful call succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+}
 
 TestNoInit(InitCorrectlyAfterIncorrectInitialization)
 {

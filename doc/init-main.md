@@ -6,7 +6,7 @@
 
 In order to use libui, you must first initialize it. All initialization is done through the `uiInit()` function. This is usually one of the first things you do in your program.
 
-The thread you call `uiInit()` on becomes the "UI thread". This is the thread that all your UI is done on from the perspective of the operating system, so it is absolutely essential that you do **not** call any other function of libui from any other thread that you create (except for `uiQueueMain()`, which is discussed later).
+The thread you call `uiInit()` on becomes the "GUI thread". This is the thread that all your UI is done on from the perspective of the operating system, so it is absolutely essential that you do **not** call any other function of libui from any other thread that you create (except for `uiQueueMain()`, which is discussed later).
 
 Furthermore, on some systems, this thread must also be the thread that `main()` is called on; macOS is the notable example here. Therefore, to be safe, you should only call `uiInit()` from `main()`, or from a function that runs on the same thread as `main()`. If you are using a language binding, that binding may provide further instruction on how to do so in that language.
 
@@ -87,7 +87,7 @@ bool uiInit(void *options, uiInitError *err);
 
 `options` must be `NULL`; no options are currently defined. If `options` is not `NULL`, `uiInit()` will return an error without initializing anything.
 
-As part of initialization, the thread that `uiInit()` is called on becomes the UI thread. All of the functions of libui except `uiQueueMain()` **must** be called from this thread. On platforms where which thread you run GUI code on is restricted, `uiMain()` will return an error if it is called from the wrong thread; to avoid this, you should always call `uiInit()` from the thread that `main()` itself is called from.
+As part of initialization, the thread that `uiInit()` is called on becomes the GUI thread. All of the functions of libui except `uiQueueMain()` **must** be called from this thread. On platforms where which thread you run GUI code on is restricted, `uiMain()` will return an error if it is called from the wrong thread; to avoid this, you should always call `uiInit()` from the thread that `main()` itself is called from.
 
 If `uiInit()` fails, no other libui function is safe to call. This means that you cannot use any of libui's message box functions to report the error.
 

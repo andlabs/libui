@@ -23,7 +23,7 @@ TestNoInit(FunctionsFailBeforeInit)
 }
 
 static const struct checkErrorCase wrongThreadCases[] = {
-#define allcallsCase(f, ...) { #f "()", allcallsCaseFuncName(f), "attempt to call " #f "() on a thread other than the UI thread" },
+#define allcallsCase(f, ...) { #f "()", allcallsCaseFuncName(f), "attempt to call " #f "() on a thread other than the GUI thread" },
 #include "allcalls.h"
 #undef allcallsCase
 	{ NULL, NULL, NULL },

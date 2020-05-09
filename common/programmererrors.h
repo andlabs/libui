@@ -7,7 +7,7 @@
 		func)
 
 #define uiprivProgrammerErrorWrongThread(func) \
-	uiprivProgrammerError("attempt to call %s() on a thread other than the UI thread", \
+	uiprivProgrammerError("attempt to call %s() on a thread other than the GUI thread", \
 		func)
 
 #define uiprivProgrammerErrorWrongStructSize(badSize, structName, func) \

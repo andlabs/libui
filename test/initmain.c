@@ -5,7 +5,7 @@
 
 // TODO test the number of calls to queued functions made
 
-TestNoInit(InitFailure)
+static void testImplInitFailure(void)
 {
 	uiInitError err;
 	void *ctx;
@@ -22,7 +22,12 @@ TestNoInit(InitFailure)
 	endCheckProgrammerError(ctx);
 }
 
-TestNoInit(InitWithNonNullOptionsIsProgrammerError)
+TestNoInit(InitFailure)
+{
+	testImplInitFailure();
+}
+
+static void testImplNonNullOptions(void)
 {
 	void *ctx;
 
@@ -30,6 +35,11 @@ TestNoInit(InitWithNonNullOptionsIsProgrammerError)
 	if (uiInit(ctx, NULL))
 		TestErrorf("uiInit() with non-NULL options succeeded; expected failure");
 	endCheckProgrammerError(ctx);
+}
+
+TestNoInit(InitWithNonNullOptionsIsProgrammerError)
+{
+	testImplNonNullOptions();
 }
 
 TestNoInit(InitWithNullErrorIsProgrammerError)
@@ -83,42 +93,23 @@ TestNoInit(InitCorrectlyAfterFailureToInitialize)
 	uiInitError err;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError(NULL);
-	uiprivTestHookSetInitShouldFailArtificially(true);
-	memset(&err, 0, sizeof (uiInitError));
-	err.Size = sizeof (uiInitError);
-	if (uiInit(NULL, &err))
-		TestErrorf("uiInit() succeeded; expected failure");
-	else if (strcmp(err.Message, "general failure") != 0)
-		TestErrorf("uiInit() failed with wrong message:" diff("%s"),
-			err.Message, "general failure");
-	endCheckProgrammerError(ctx);
+	testImplInitFailure();
 	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
 	if (uiInit(NULL, &err))
-		TestFatalf("uiInit() after a previous successful call succeeded; expected failure");
+		TestFatalf("uiInit() after a previous failed call succeeded; expected failure");
 	endCheckProgrammerError(ctx);
 }
 
 TestNoInit(InitIncorrectlyAfterFailureToInitialize)
 {
-	uiInitError err;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError(NULL);
-	uiprivTestHookSetInitShouldFailArtificially(true);
-	memset(&err, 0, sizeof (uiInitError));
-	err.Size = sizeof (uiInitError);
-	if (uiInit(NULL, &err))
-		TestErrorf("uiInit() succeeded; expected failure");
-	else if (strcmp(err.Message, "general failure") != 0)
-		TestErrorf("uiInit() failed with wrong message:" diff("%s"),
-			err.Message, "general failure");
-	endCheckProgrammerError(ctx);
+	testImplInitFailure();
 	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
 	if (uiInit(NULL, NULL))
-		TestFatalf("bad uiInit() after a previous successful call succeeded; expected failure");
+		TestFatalf("bad uiInit() after a previous failed call succeeded; expected failure");
 	endCheckProgrammerError(ctx);
 }
 
@@ -127,15 +118,12 @@ TestNoInit(InitCorrectlyAfterIncorrectInitialization)
 	uiInitError err;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiInit(): invalid uiInitOptions passed");
-	if (uiInit(ctx, NULL))
-		TestErrorf("uiInit() with non-NULL options succeeded; expected failure");
-	endCheckProgrammerError(ctx);
+	testImplNonNullOptions();
 	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
 	if (uiInit(NULL, &err))
-		TestFatalf("uiInit() after a previous successful call succeeded; expected failure");
+		TestFatalf("uiInit() after a previous erroneous call succeeded; expected failure");
 	endCheckProgrammerError(ctx);
 }
 
@@ -143,13 +131,10 @@ TestNoInit(InitIncorrectlyAfterIncorrectInitialization)
 {
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiInit(): invalid uiInitOptions passed");
-	if (uiInit(ctx, NULL))
-		TestErrorf("uiInit() with non-NULL options succeeded; expected failure");
-	endCheckProgrammerError(ctx);
+	testImplNonNullOptions();
 	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
 	if (uiInit(NULL, NULL))
-		TestFatalf("bad uiInit() after a previous successful call succeeded; expected failure");
+		TestFatalf("bad uiInit() after a previous erroneous call succeeded; expected failure");
 	endCheckProgrammerError(ctx);
 }
 

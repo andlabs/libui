@@ -5,7 +5,7 @@
 
 // TODO test the number of calls to queued functions made
 
-static void testImplInitFailure(void)
+static void testImplInitFailureFull(const char *file, long line)
 {
 	uiInitError err;
 	void *ctx;
@@ -15,27 +15,31 @@ static void testImplInitFailure(void)
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
 	if (uiInit(NULL, &err))
-		TestErrorf("uiInit() succeeded; expected failure");
+		TestErrorfFull(file, line, "uiInit() succeeded; expected failure");
 	else if (strcmp(err.Message, "general failure") != 0)
-		TestErrorf("uiInit() failed with wrong message:" diff("%s"),
+		TestErrorfFull(file, line, "uiInit() failed with wrong message:" diff("%s"),
 			err.Message, "general failure");
 	endCheckProgrammerError(ctx);
 }
+
+#define testImplInitFailure() testImplInitFailureFull(__FILE__, __LINE__)
 
 TestNoInit(InitFailure)
 {
 	testImplInitFailure();
 }
 
-static void testImplNonNullOptions(void)
+static void testImplNonNullOptionsFull(const char *file, long line)
 {
 	void *ctx;
 
 	ctx = beginCheckProgrammerError("uiInit(): invalid uiInitOptions passed");
 	if (uiInit(ctx, NULL))
-		TestErrorf("uiInit() with non-NULL options succeeded; expected failure");
+		TestErrorfFull(file, line, "uiInit() with non-NULL options succeeded; expected failure");
 	endCheckProgrammerError(ctx);
 }
+
+#define testImplNonNullOptions() testImplNonNullOptionsFull(__FILE__, __LINE__)
 
 TestNoInit(InitWithNonNullOptionsIsProgrammerError)
 {
@@ -175,18 +179,25 @@ Test(QueueMain)
 
 // TODOTODOTODOTODOTODOTODOTODOTODOTODOTODO
 
-#if 0
+struct queuedOrder {
+	int calls[4];
+	int i;
+	unsigned int extraCalls;
+};
 
-// TODO there has to be a way to do this that absolutely will not possibly go in the wrong order... or produce a false positive
-#define queueOp(name, expr) \
-	static void name(void *data) \
-	{ \
-		struct testParams *p = (struct testParams *) data; \
-		p->flag = p->flag expr; \
+static void queueOrder(struct queuedOrder *q, int n)
+{
+	if (q->i < 4) {
+		q->calls[q->i] = n;
+		q->i++;
+		return;
 	}
-queueOp(sub2, - 2)
-queueOp(div3, / 3)
-queueOp(mul8, * 8)
+	q->extraCalls++;
+	if (q->extraCalls > 9)
+		q->extraCalls = 9;
+}
+
+#if 0
 
 static void done(void *data)
 {
@@ -234,7 +245,7 @@ static void checkOrderFull(const char *file, long line, uint32_t flag)
 
 #define checkOrder(flag) checkOrderFull(__FILE__, __LINE__, flag)
 
-Test(QueueMain_Sequence)
+TODOTest(QueueMain_Sequence)
 {
 	struct testParams p;
 
@@ -254,7 +265,7 @@ static void queueThread(void *data)
 	uiQueueMain(queued, p);
 }
 
-Test(QueueMain_DifferentThread)
+TODOTest(QueueMain_DifferentThread)
 {
 	threadThread *thread;
 	threadSysError err;
@@ -284,7 +295,7 @@ static void queueOrderThread(void *data)
 	queueOrder(p);
 }
 
-Test(QueueMain_DifferentThreadSequence)
+TODOTest(QueueMain_DifferentThreadSequence)
 {
 	threadThread *thread;
 	threadSysError err;

@@ -396,6 +396,7 @@ Test(QueueMain_DifferentThread)
 	if (err != 0)
 		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
 	if (p.sleepErr != 0)
+		// TODO is this really a good thing to do? we have a separate set of tests for launching the thread from within uiMain() now, so...
 		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr));
 	switch (p.n) {
 	case 0:
@@ -562,7 +563,7 @@ static void queueCreateQueueThread(void *data)
 		uiQuit();
 }
 
-// TODO make a version of this where functions are queued by both the main thread and a secondary thread (which is why there are two queues)
+// TODO make an Interleaved version of this test too
 Test(QueueMain_DifferentThreadSequenceStartedByQueuedFunction)
 {
 	threadSysError err;

@@ -140,6 +140,91 @@ TestNoInit(InitIncorrectlyAfterIncorrectInitialization)
 	endCheckProgrammerError(ctx);
 }
 
+static void done(void *data)
+{
+	uiQuit();
+}
+
+Test(MainCalledTwiceIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiMain(): attempt to call more than once");
+	uiQueueMain(done, NULL);
+	uiMain();
+	uiMain();
+	endCheckProgrammerError(ctx);
+}
+
+static void mainAndQuit(void *data)
+{
+	uiMain();
+	uiQuit();
+}
+
+Test(MainCalledRecursivelyIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiMain(): attempt to call more than once");
+	uiQueueMain(mainAndQuit, NULL);
+	uiMain();
+	uiMain();
+	endCheckProgrammerError(ctx);
+}
+
+// largely redundant due to InitCorrectlyAfterInitializedSuccessfully, but include it anyway just to be safe
+Test(InitAfterMainIsProgrammerError)
+{
+	uiInitError err;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
+	uiQueueMain(done, NULL);
+	uiMain();
+	memset(&err, 0, sizeof (uiInitError));
+	err.Size = sizeof (uiInitError);
+	if (uiInit(NULL, &err))
+		TestFatalf("uiInit() after a previous successful call succeeded; expected failure");
+	endCheckProgrammerError(ctx);
+}
+
+Test(QuitBeforeMainIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiQuit(): attempt to call before uiMain()");
+	uiQuit();
+	endCheckProgrammerError(ctx);
+}
+
+static void quitTwice(void *data)
+{
+	uiQuit();
+	uiQuit();
+}
+
+Test(QuitCalledTwiceIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiQuit(): attempt to call more than once");
+	uiQueueMain(quitTwice, NULL);
+	uiMain();
+	endCheckProgrammerError(ctx);
+}
+
+Test(QuitAfterMainIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiQuit(): attempt to call more than once");
+	uiQueueMain(done, NULL);
+	uiMain();
+	uiQuit();
+	endCheckProgrammerError(ctx);
+}
+
 struct simpleTestParams {
 	unsigned int n;
 	threadSysError err;
@@ -240,11 +325,6 @@ queueStep(step21, struct queueTestParams, order2, 1)
 queueStep(step22, struct queueTestParams, order2, 2)
 queueStep(step23, struct queueTestParams, order2, 3)
 queueStep(step24, struct queueTestParams, order2, 4)
-
-static void done(void *data)
-{
-	uiQuit();
-}
 
 static void queueOrder1(struct queueTestParams *p)
 {

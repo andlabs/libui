@@ -227,10 +227,12 @@ Test(QuitAfterMainIsProgrammerError)
 
 struct simpleTestParams {
 	unsigned int n;
-	threadSysError err;
+	threadThread *thread;
+	threadSysError createErr;
+	threadSysError sleepErr;
 };
 
-static void queued(void *data)
+static void queueSimple(void *data)
 {
 	struct simpleTestParams *p = (struct simpleTestParams *) data;
 
@@ -246,7 +248,7 @@ Test(QueueMain)
 
 	memset(&p, 0, sizeof (struct simpleTestParams));
 	p.n = 0;
-	uiQueueMain(queued, &p);
+	uiQueueMain(queueSimple, &p);
 	uiMain();
 	switch (p.n) {
 	case 0:
@@ -308,7 +310,9 @@ static void queueCheckOrderFull(const char *file, long line, struct queuedOrder 
 struct queueTestParams {
 	struct queuedOrder order1;
 	struct queuedOrder order2;
-	threadSysError err;
+	threadThread *thread;
+	threadSysError createErr;
+	threadSysError sleepErr;
 };
 
 #define queueStep(name, type, field, n) \
@@ -345,27 +349,33 @@ Test(QueueMain_Sequence)
 	queueCheckOrder(&(p.order1), 4, 1, 2, 3, 4);
 }
 
-#if 0
-TODOTest(QueueMain_SequenceWorksEvenWithFunctionsAlreadyQueued)
+static void queueOrder1ExceptStep2(void *data)
+{
+	struct queueTestParams *p = (struct queueTestParams *) data;
+
+	uiQueueMain(step11, p);
+	uiQueueMain(step13, p);
+	uiQueueMain(step14, p);
+	uiQueueMain(done, NULL);
+}
+
+Test(QueueMain_SequenceWorksEvenWithFunctionsAlreadyQueued)
 {
 	struct queueTestParams p;
 
 	memset(&p, 0, sizeof (struct queueTestParams));
-	uiQueueMain(step2);
-	uiQueueMain(queueOrder1ExceptForStep2(&p));
+	uiQueueMain(queueOrder1ExceptStep2, &p);
+	uiQueueMain(step12, &p);
 	uiMain();
 	queueCheckOrder(&(p.order1), 4, 2, 1, 3, 4);
 }
-#endif
-
-// TODO make a version of these where the thread is started by a queued function
 
 static void queueThread(void *data)
 {
 	struct simpleTestParams *p = (struct simpleTestParams *) data;
 
-	p->err = threadSleep(1250 * threadMillisecond);
-	uiQueueMain(queued, p);
+	p->sleepErr = threadSleep(1250 * threadMillisecond);
+	uiQueueMain(queueSimple, p);
 }
 
 Test(QueueMain_DifferentThread)
@@ -383,8 +393,45 @@ Test(QueueMain_DifferentThread)
 	err = threadThreadWaitAndFree(thread);
 	if (err != 0)
 		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	if (p.err != 0)
-		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.err));
+	if (p.sleepErr != 0)
+		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr));
+	switch (p.n) {
+	case 0:
+		TestErrorf("uiQueueMain() function was not called");
+		break;
+	case 1:
+		// do nothing; this is the expected case
+		break;
+	default:
+		TestErrorf("uiQueueMain() called more than once");
+	}
+}
+
+static void queueCreateThread(void *data)
+{
+	struct simpleTestParams *p = (struct simpleTestParams *) data;
+
+	p->createErr = threadNewThread(queueThread, p, &(p->thread));
+	if (p->createErr != 0)
+		uiQuit();
+}
+
+Test(QueueMain_DifferentThreadStartedByQueuedFunction)
+{
+	threadSysError err;
+	struct simpleTestParams p;
+
+	memset(&p, 0, sizeof (struct simpleTestParams));
+	p.n = 0;
+	uiQueueMain(queueCreateThread, &p);
+	uiMain();
+	if (p.createErr != 0)
+		TestFatalf("error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(p.createErr));
+	err = threadThreadWaitAndFree(p.thread);
+	if (err != 0)
+		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	if (p.sleepErr != 0)
+		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr));
 	switch (p.n) {
 	case 0:
 		TestErrorf("uiQueueMain() function was not called");
@@ -410,7 +457,7 @@ static void queueOrderThread(void *data)
 {
 	struct queueTestParams *p = (struct queueTestParams *) data;
 
-	p->err = threadSleep(1250 * threadMillisecond);
+	p->sleepErr = threadSleep(1250 * threadMillisecond);
 	queueOrder2(p);
 }
 
@@ -429,8 +476,36 @@ Test(QueueMain_DifferentThreadSequence)
 	err = threadThreadWaitAndFree(thread);
 	if (err != 0)
 		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	if (p.err != 0)
-		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.err));
+	if (p.sleepErr != 0)
+		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr));
+	queueCheckOrder(&(p.order2), 4, 3, 2, 4, 1);
+}
+
+static void queueCreateQueueThread(void *data)
+{
+	struct queueTestParams *p = (struct queueTestParams *) data;
+
+	p->createErr = threadNewThread(queueOrderThread, p, &(p->thread));
+	if (p->createErr != 0)
+		uiQuit();
+}
+
+// TODO make a version of this where functions are queued by both the main thread and a secondary thread (which is why there are two queues)
+Test(QueueMain_DifferentThreadSequenceStartedByQueuedFunction)
+{
+	threadSysError err;
+	struct queueTestParams p;
+
+	memset(&p, 0, sizeof (struct queueTestParams));
+	uiQueueMain(queueCreateQueueThread, &p);
+	uiMain();
+	if (p.createErr != 0)
+		TestFatalf("error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(p.createErr));
+	err = threadThreadWaitAndFree(p.thread);
+	if (err != 0)
+		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	if (p.sleepErr != 0)
+		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr));
 	queueCheckOrder(&(p.order2), 4, 3, 2, 4, 1);
 }
 

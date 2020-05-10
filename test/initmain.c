@@ -310,9 +310,11 @@ static void queueCheckOrderFull(const char *file, long line, struct queuedOrder 
 struct queueTestParams {
 	struct queuedOrder order1;
 	struct queuedOrder order2;
+	unsigned int n;
 	threadThread *thread;
 	threadSysError createErr;
-	threadSysError sleepErr;
+	threadSysError sleepErr1;
+	threadSysError sleepErr2;
 };
 
 #define queueStep(name, type, field, n) \
@@ -457,11 +459,10 @@ static void queueOrderThread(void *data)
 {
 	struct queueTestParams *p = (struct queueTestParams *) data;
 
-	p->sleepErr = threadSleep(1250 * threadMillisecond);
+	p->sleepErr1 = threadSleep(1250 * threadMillisecond);
 	queueOrder2(p);
 }
 
-// TODO make a version of this where functions are queued by both the main thread and a secondary thread (which is why there are two queues)
 Test(QueueMain_DifferentThreadSequence)
 {
 	threadThread *thread;
@@ -476,9 +477,80 @@ Test(QueueMain_DifferentThreadSequence)
 	err = threadThreadWaitAndFree(thread);
 	if (err != 0)
 		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	if (p.sleepErr != 0)
-		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr));
+	if (p.sleepErr1 != 0)
+		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr1));
 	queueCheckOrder(&(p.order2), 4, 3, 2, 4, 1);
+}
+
+static void doneInterleaved(void *data)
+{
+	struct queueTestParams *p = (struct queueTestParams *) data;
+
+	p->n++;
+	if (p->n == 2)
+		uiQuit();
+}
+
+static void queueOrder1Interleaved(struct queueTestParams *p)
+{
+	uiQueueMain(step13, p);
+	uiQueueMain(step11, p);
+	uiQueueMain(step12, p);
+	uiQueueMain(step14, p);
+	uiQueueMain(doneInterleaved, p);
+}
+
+static void queueOrder2Interleaved(struct queueTestParams *p)
+{
+	uiQueueMain(step24, p);
+	uiQueueMain(step22, p);
+	uiQueueMain(step21, p);
+	uiQueueMain(step23, p);
+	uiQueueMain(doneInterleaved, p);
+}
+
+static void queueOrderThread1Interleaved(void *data)
+{
+	struct queueTestParams *p = (struct queueTestParams *) data;
+
+	p->sleepErr1 = threadSleep(1250 * threadMillisecond);
+	queueOrder1Interleaved(p);
+}
+
+static void queueOrderThread2Interleaved(void *data)
+{
+	struct queueTestParams *p = (struct queueTestParams *) data;
+
+	p->sleepErr2 = threadSleep(1250 * threadMillisecond);
+	queueOrder2Interleaved(p);
+}
+
+Test(QueueMain_DifferentThreadSequenceInterleaved)
+{
+	threadThread *thread1, *thread2;
+	threadSysError err;
+	struct queueTestParams p;
+
+	memset(&p, 0, sizeof (struct queueTestParams));
+	err = threadNewThread(queueOrderThread1Interleaved, &p, &thread1);
+	if (err != 0)
+		TestFatalf("error creating thread 1: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	err = threadNewThread(queueOrderThread2Interleaved, &p, &thread2);
+	if (err != 0)
+		TestFatalf("error creating thread 2: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	uiMain();
+	err = threadThreadWaitAndFree(thread1);
+	if (err != 0)
+		TestFatalf("error waiting for thread 1 to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	if (p.sleepErr1 != 0)
+		TestErrorf("error sleeping in thread 1 to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr1));
+	err = threadThreadWaitAndFree(thread2);
+	if (err != 0)
+		TestFatalf("error waiting for thread 2 to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
+	if (p.sleepErr2 != 0)
+		TestErrorf("error sleeping in thread 2 to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr2));
+	queueCheckOrder(&(p.order1), 4, 3, 1, 2, 4);
+	queueCheckOrder(&(p.order2), 4, 4, 2, 1, 3);
 }
 
 static void queueCreateQueueThread(void *data)
@@ -504,8 +576,8 @@ Test(QueueMain_DifferentThreadSequenceStartedByQueuedFunction)
 	err = threadThreadWaitAndFree(p.thread);
 	if (err != 0)
 		TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err));
-	if (p.sleepErr != 0)
-		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr));
+	if (p.sleepErr1 != 0)
+		TestErrorf("error sleeping in thread to ensure a high likelihood the uiQueueMain() is run after uiMain() starts: " threadSysErrorFmt, threadSysErrorFmtArg(p.sleepErr1));
 	queueCheckOrder(&(p.order2), 4, 3, 2, 4, 1);
 }
 

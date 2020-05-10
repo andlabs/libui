@@ -225,6 +225,8 @@ Test(QuitAfterMainIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
+// TODO I'm not convinced the rest of this file constitutes meaningful tests of uiQueueMain() behavior, especially since it's more than likely that all my threads are running so quickly the tests might as well be single-threaded and/or non-interleaved, but at the same time it's thorough enough that I'm not sure what would
+
 struct simpleTestParams {
 	unsigned int n;
 	threadThread *thread;

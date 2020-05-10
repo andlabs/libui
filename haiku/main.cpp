@@ -3,11 +3,7 @@
 
 uiprivApplication *uiprivApp;
 
-// TODO see if we can convert this to a string, or use a known type for status_t instead of assuming it's int(32_t)
-// - https://www.haiku-os.org/docs/api/SupportDefs_8h.html#a0969fa9dac055f91eebe733902dd928a
-// - https://review.haiku-os.org/c/haiku/+/2171/3/src/system/boot/platform/u-boot/start.cpp
-// - https://github.com/haiku/haiku/blob/master/src/system/libroot/posix/string/strerror.c
-#define uiprivInitReturnStatus(err, msg, status) uiprivInitReturnErrorf(err, "%s: %ld", msg, status)
+#define uiprivInitReturnStatus(err, msg, status) uiprivInitReturnErrorf(err, "%s: %" uiprivStatustFmt, msg, status)
 
 static thread_id mainThread;
 
@@ -50,7 +46,7 @@ void uiprivApplication::MessageReceived(BMessage *msg)
 		status = msg->FindData("args", B_ANY_TYPE,
 			&data, &size);
 		if (status != B_OK) {
-			uiprivInternalError("BMessage::FindData() failed in uiprivApplication::MessageReceived() for uiQueueMain(): %ld", status);
+			uiprivInternalError("BMessage::FindData() failed in uiprivApplication::MessageReceived() for uiQueueMain(): %" uiprivStatustFmt, status);
 			return;
 		}
 		args = (const struct queueMainArgs *) data;
@@ -72,7 +68,7 @@ void uiprivSysQueueMain(void (*f)(void *data), void *data)
 	status = msg->AddData("args", B_RAW_TYPE,
 		&args, sizeof (struct queueMainArgs), true, 1);
 	if (status != B_OK) {
-		uiprivInternalError("BMessage::AddData() failed in uiQueueMain(): %ld", status);
+		uiprivInternalError("BMessage::AddData() failed in uiQueueMain(): %" uiprivStatustFmt, status);
 		delete msg;
 		return;
 	}
@@ -80,7 +76,7 @@ void uiprivSysQueueMain(void (*f)(void *data), void *data)
 	// msg is copied by PostMessage() so we can delete it here
 	delete msg;
 	if (status != B_OK)
-		uiprivInternalError("BApplication::PostMessage() failed in uiQueueMain(): %ld", status);
+		uiprivInternalError("BApplication::PostMessage() failed in uiQueueMain(): %" uiprivStatustFmt, status);
 }
 
 bool uiprivSysCheckThread(void)

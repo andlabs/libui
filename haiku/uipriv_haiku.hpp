@@ -7,6 +7,7 @@
 #include "../common/uipriv.h"
 
 // B_PRId32 is the correct format for status_t; see, for instance, https://review.haiku-os.org/c/haiku/+/2171/3/src/system/boot/platform/u-boot/start.cpp
+// TODO consider using strings instead (we're limited to POSIX's ill-designed strerror() APIs unless we provide a forever-truncating version of strerror_r())
 #define uiprivStatustFmt B_PRId32
 
 constexpr uint32 uiprivMsgQueueMain = 'uiQM';

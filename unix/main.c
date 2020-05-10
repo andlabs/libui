@@ -16,17 +16,13 @@ bool uiprivSysInit(void *options, uiInitError *err)
 	return true;
 }
 
-void uiMain(void)
+void uiprivSysMain(void)
 {
-	if (!uiprivCheckInitializedAndThread())
-		return;
 	gtk_main();
 }
 
-void uiQuit(void)
+void uiprivSysQuit(void)
 {
-	if (!uiprivCheckInitializedAndThread())
-		return;
 	gtk_main_quit();
 }
 

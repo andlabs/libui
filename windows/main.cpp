@@ -94,13 +94,11 @@ bool uiprivSysInit(void *options, uiInitError *err)
 	return true;
 }
 
-void uiMain(void)
+void uiprivSysMain(void)
 {
 	MSG msg;
 	HRESULT hr;
 
-	if (!uiprivCheckInitializedAndThread())
-		return;
 	for (;;) {
 		hr = uiprivHrGetMessageW(&msg, NULL, 0, 0);
 		if (hr == S_FALSE)		// WM_QUIT
@@ -115,10 +113,8 @@ void uiMain(void)
 	}
 }
 
-void uiQuit(void)
+void uiprivSysQuit(void)
 {
-	if (!uiprivCheckInitializedAndThread())
-		return;
 	PostQuitMessage(0);
 }
 

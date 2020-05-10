@@ -6,7 +6,7 @@ uiprivApplication *uiprivApp;
 // TODO see if we can convert this to a string, or use a known type for status_t instead of assuming it's int(32_t)
 // - https://www.haiku-os.org/docs/api/SupportDefs_8h.html#a0969fa9dac055f91eebe733902dd928a
 // - https://review.haiku-os.org/c/haiku/+/2171/3/src/system/boot/platform/u-boot/start.cpp
-- https://github.com/haiku/haiku/blob/master/src/system/libroot/posix/string/strerror.c
+// - https://github.com/haiku/haiku/blob/master/src/system/libroot/posix/string/strerror.c
 #define uiprivInitReturnStatus(err, msg, status) uiprivInitReturnErrorf(err, "%s: %ld", msg, status)
 
 static thread_id mainThread;
@@ -22,18 +22,13 @@ bool uiprivSysInit(void *options, uiInitError *err)
 	return true;
 }
 
-void uiMain(void)
+void uiprivSysMain(void)
 {
-	if (!uiprivCheckInitializedAndThread())
-		return;
 	uiprivApp->Run();
 }
 
-// TODO if this is called beofre uiMain(), uiprivApp will be deleted; either ban doing this outright or catch this scenario
-void uiQuit(void)
+void uiprivSysQuit(void)
 {
-	if (!uiprivCheckInitializedAndThread())
-		return;
 	uiprivApp->Quit();
 }
 

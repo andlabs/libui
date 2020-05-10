@@ -197,63 +197,78 @@ static void queueOrder(struct queuedOrder *q, int n)
 		q->extraCalls = 9;
 }
 
-#if 0
+static void queueCheckOrderFull(const char *file, long line, struct queuedOrder *got, int wantI, int wantA, int wantB, int wantC, int wantD)
+{
+	int wantarr[4];
+	int i;
+
+	if (got->i != wantI || got->extraCalls != 0) {
+		const char *orMore;
+
+		orMore = "";
+		if (got->extraCalls >= 9)
+			orMore = " or more";
+		TestErrorfFull(file, line, "wrong number of queued function calls:" diff("%d%s"),
+			got->i + got->extraCalls, orMore,
+			wantI, "");
+	}
+	wantarr[0] = wantA;
+	wantarr[1] = wantB;
+	wantarr[2] = wantC;
+	wantarr[3] = wantD;
+	for (i = 0; i < 4; i++)
+		if (got->calls[i] != wantarr[i])
+			TestErrorfFull(file, line, "wrong value for call %d in sequence:" diff("%d"),
+				i + 1, got->calls[i], wantarr[i]);
+}
+
+#define queueCheckOrder(got, i, a, b, c, d) queueCheckOrderFull(__FILE__, __LINE__, got, i, a, b, c, d)
+
+struct queueTestParams {
+	struct queuedOrder order1;
+	struct queuedOrder order2;
+};
+
+#define queueStep(name, type, field, n) \
+	static void name(void *data) \
+	{ \
+		type *p = (type *) data; \
+		queueOrder(&(p->field), n); \
+	}
+queueStep(step11, struct queueTestParams, order1, 1)
+queueStep(step12, struct queueTestParams, order1, 2)
+queueStep(step13, struct queueTestParams, order1, 3)
+queueStep(step14, struct queueTestParams, order1, 4)
+queueStep(step21, struct queueTestParams, order2, 1)
+queueStep(step22, struct queueTestParams, order2, 2)
+queueStep(step23, struct queueTestParams, order2, 3)
+queueStep(step24, struct queueTestParams, order2, 4)
 
 static void done(void *data)
 {
 	uiQuit();
 }
 
-static const struct {
-	uint32_t result;
-	const char *order;
-} orders[] = {
-	{ 8, "sub2 -> div3 -> mul8" },			// the one we want
-	{ 13, "sub2 -> mul8 -> div3" },
-	{ 0, "div3 -> sub2 -> mul8" },
-	{ 14, "div3 -> mul8 -> sub2" },
-	{ 18, "mul8 -> sub2 -> div3" },
-	{ 16, "mul8 -> div3 -> sub2" },
-};
-
-static void queueOrder(struct testParams *p)
+static void queueOrder1(struct queueTestParams *p)
 {
-	p->flag = 7;
-	uiQueueMain(sub2, p);
-	uiQueueMain(div3, p);
-	uiQueueMain(mul8, p);
+	uiQueueMain(step11, p);
+	uiQueueMain(step12, p);
+	uiQueueMain(step13, p);
+	uiQueueMain(step14, p);
 	uiQueueMain(done, NULL);
 }
 
-static void checkOrderFull(const char *file, long line, uint32_t flag)
+Test(QueueMain_Sequence)
 {
-	int i;
+	struct queueTestParams p;
 
-	if (flag == orders[0].result)
-		return;
-	for (i = 1; i < 6; i++)
-		if (flag == orders[i].result) {
-			TestErrorfFull(file, line, "wrong order:" diff("%" PRIu32 " (%s)"),
-				flag, orders[i].order,
-				orders[0].result, orders[0].order);
-			return;
-		}
-	TestErrorfFull(file, line, "wrong result:" diff("%" PRIu32 " (%s)"),
-		flag, "unknown order",
-		orders[0].result, orders[0].order);
-}
-
-#define checkOrder(flag) checkOrderFull(__FILE__, __LINE__, flag)
-
-TODOTest(QueueMain_Sequence)
-{
-	struct testParams p;
-
-	memset(&p, 0, sizeof (struct testParams));
-	queueOrder(&p);
+	memset(&p, 0, sizeof (struct queueTestParams));
+	queueOrder1(&p);
 	uiMain();
-	checkOrder(p.flag);
+	queueCheckOrder(&(p.order1), 4, 1, 2, 3, 4);
 }
+
+#if 0
 
 // TODO make a version of these where the thread is started by a queued function
 

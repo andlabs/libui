@@ -47,9 +47,9 @@ uint32_t uiRegisterControlType(const char *name, const uiControlVtable *vtable, 
 
 `uiRegisterControlType()` registers a new `uiControl` type with the given vtables and returns its ID as passed to `uiNewControl()`. `implDataSize` is the size of the implementation data struct that is created by `uiNewControl()`.
 
-Each type has a name, passed in the `name` parameter. The type name is only used for debugging and error reporting purposes. The type name is copied into libui-internal memory; the `name` pointer passed to `uiRegisterControlType()` is not used after it returns. It is a programmer error to specify `NULL` for `name`. (TODO anything else? Empty string? Duplicate name?)
+Each type has a name, passed in the `name` parameter. The type name is only used for debugging and error reporting purposes. The type name is copied into libui-internal memory; the `name` pointer passed to `uiRegisterControlType()` is not used after it returns. It is a programmer error to specify `NULL` for `name`. (TODO anything else? Empty string? Duplicate name?) (TODO reserved name rules)
 
-`uiControlVtable` describes the functions of a `uiControl` common between platforms, and is discussed on this page. `uiControlOSVtable` describes functionst hat vary from OS to OS, and are described in the respective OS-specific uiControl implementation pages. The two vtables are copied into libui-internal memory; the vtable pointers passed to `uiRegisterControlType()` are not used after it returns.
+`uiControlVtable` describes the functions of a `uiControl` common between platforms, and is discussed above. `uiControlOSVtable` describes functionst hat vary from OS to OS, and are described in the respective OS-specific uiControl implementation pages. The two vtables are copied into libui-internal memory; the vtable pointers passed to `uiRegisterControlType()` are not used after it returns.
 
 It is a programmer error to specify `NULL` for either vtable. It is also a programmer error to specify `NULL` for any of the methods in either vtable — that is, all methods are required. It is also a programmer error to pass the wrong value to the `Size` field of either vtable.
 
@@ -93,11 +93,9 @@ void uiControlFree(uiControl *c);
 
 If `c` has children, those children are also freed. It is a programmer error to free a control that is itself a child of another control.
 
-If `c` has any registered events, those event handlers will be set to be no longer run via `uiEventInvalidateSender()`. The registered handlers themselves will not be removed, to avoid the scenario of another `uiControl` being created with the same pointer value later triggering your handler unexpectedly.
-
 It is a programmer error to specify `NULL` for `c`.
 
-**For control implementations**: This function calls your vtable's `Free()` method. Parameter validity checks are already performed, `uiControlOnFree()` handlers have been called, and `uiControl`-specific events have been invalidated. Your `Free()` should invalidate any events that are specific to your controls, call `uiControlFree()` on all the children of this control, and free dynamically allocated memory that is part of your implementation data. Once your `Free()` method returns, libui will take care of freeing the implementation data memory block itself.
+**For control implementations**: This function calls your vtable's `Free()` method. Parameter validity checks are already performed. Your `Free()` should call `uiControlFree()` on all your control's children and free dynamically allocated memory that is part of your implementation data. Once your `Free()` method returns, libui will take care of freeing the implementation data memory block itself.
 
 ## `uiControlSetParent()`
 
@@ -113,13 +111,14 @@ This function can only be used to set the parent of an unparented control or to 
 
 It is a programmer error to pass `NULL` or a non-control for `c`.
 
-TODO circular parenting
-TODO self-parenting
+It is a programmer error to introduce a cycle when changing the parent of a control. By extension, it is a programmer error to make a control its own parent.
+
 TODO top-levels and parenting
 
 **For control implementations**: You would call this when adding a control to your container, preferably before actually doing the OS-level work involved. Likewise, call this when removing a child, preferably after doing the OS-level work involved.
 
 TODO do things this way to avoid needing to check if reparenting from a container implementation, or do that manually each time? we used to have uiControlVerifySetParent()...
+TODO I forgot what this meant
 
 ## `uiControlImplData()`
 

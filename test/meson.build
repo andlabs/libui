@@ -54,7 +54,7 @@ libui_testlist_h = custom_target(
 	command: [python, libui_testlist_py, 'header', '@OUTPUT@', '@INPUT@'])
 libui_testlist_c = custom_target(
 	'testlist.c',
-	input: libui_test_sources,
+	input: libui_test_sources + libui_allcalls_headers,
 	output: ['testlist.c'],
 	command: [python, libui_testlist_py, 'source', '@OUTPUT@', '@INPUT@'])
 

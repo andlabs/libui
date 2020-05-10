@@ -1,16 +1,13 @@
 // 28 may 2019
 #include "test.h"
-
-		if match is not None:
-			f = match.group(1)
-			casenames.append('TestCallOnWrongThreadIsProgrammerError_' + f)
+#include "thread.h"
 
 // TODO rename to FunctionsFailBeforeInit?
 #define allcallsCase(f, ...) \
 	TestNoInit(CallBeforeInitIsProgrammerError_ ## f) \
 	{ \
 		void *ctx; \
-		ctx = beginCheckProgrammerError("atteTODOmpt to call " #f "() before uiInit()"); \
+		ctx = beginCheckProgrammerError("attempt to call " #f "() before uiInit()"); \
 		f(__VA_ARGS__); \
 		endCheckProgrammerError(ctx); \
 	}
@@ -21,7 +18,7 @@ TestNoInit(CallBeforeInitIsProgrammerError_uiQueueMain)
 {
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("atteTODOmpt to call uiQueueMain() before uiInit()");
+	ctx = beginCheckProgrammerError("attempt to call uiQueueMain() before uiInit()");
 	uiQueueMain(NULL, NULL);
 	endCheckProgrammerError(ctx);
 }
@@ -37,7 +34,7 @@ TestNoInit(CallBeforeInitIsProgrammerError_uiQueueMain)
 		threadThread *thread; \
 		threadSysError err; \
 		void *ctx; \
-		ctx = beginCheckProgrammerError("atteTODOmpt to call " #f "() on a thread other than the GUI thread"); \
+		ctx = beginCheckProgrammerError("attempt to call " #f "() on a thread other than the GUI thread"); \
 		err = threadNewThread(threadTest ## f, NULL, &thread); \
 		if (err != 0) \
 			TestFatalf("error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err)); \

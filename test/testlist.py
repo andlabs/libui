@@ -159,8 +159,8 @@ def main():
 		if match is not None:
 			f = match.group(1)
 			# noinitwrongthread.c
-			casenames.append('TestCallBeforeInitIsProgrammerError_' + f)
-			casenames.append('TestCallOnWrongThreadIsProgrammerError_' + f)
+			casenames.append('CallBeforeInitIsProgrammerError_' + f)
+			casenames.append('CallOnWrongThreadIsProgrammerError_' + f)
 	cmd.run(sorted(casenames))
 
 main()

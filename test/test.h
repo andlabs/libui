@@ -82,6 +82,9 @@ extern void *beginCheckProgrammerError(const char *want);
 extern void endCheckProgrammerErrorFull(const char *file, long line, void *context);
 #define endCheckProgrammerError(context) endCheckProgrammerErrorFull(__FILE__, __LINE__, context)
 
+// controls.c
+extern const uiControlOSVtable *testOSVtable(void);
+
 #ifdef __cplusplus
 }
 #endif

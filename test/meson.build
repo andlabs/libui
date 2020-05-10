@@ -2,12 +2,18 @@
 
 # Using files() is the cleanest way to ensure the python script below gets the right filenames regardless of how meson sandboxes the command it's running.
 libui_test_sources = files([
+	'controls.c',
 	'initmain.c',
 	'noinitwrongthread.c',
 ])
 libui_allcalls_headers = files([
 	'allcalls.h',
 ])
+if libui_OS == 'darwin'
+	libui_test_sources += files([
+		'controls_darwin.m',
+	])
+endif
 
 libui_test_sources_without_cases = [
 	'errors.c',

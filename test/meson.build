@@ -3,7 +3,10 @@
 # Using files() is the cleanest way to ensure the python script below gets the right filenames regardless of how meson sandboxes the command it's running.
 libui_test_sources = files([
 	'initmain.c',
-#	'noinitwrongthread.c',
+	'noinitwrongthread.c',
+])
+libui_allcalls_headers = files([
+	'allcalls.h',
 ])
 
 libui_test_sources_without_cases = [
@@ -46,7 +49,7 @@ libui_testlist_py = files(['testlist.py'])
 
 libui_testlist_h = custom_target(
 	'testlist.h',
-	input: libui_test_sources,
+	input: libui_test_sources + libui_allcalls_headers,
 	output: ['testlist.h'],
 	command: [python, libui_testlist_py, 'header', '@OUTPUT@', '@INPUT@'])
 libui_testlist_c = custom_target(
@@ -63,7 +66,7 @@ libui_testparent = executable('testparent', libui_test_sources + libui_test_sour
 	gui_app: false,
 	install: false)
 
-runresult = run_command(python, libui_testlist_py + ['list'] + libui_test_sources)
+runresult = run_command(python, libui_testlist_py + ['list'] + libui_test_sources + libui_allcalls_headers)
 if runresult.returncode() != 0
 	error('testlist.py failed; cannot compute list of test cases. Exit code @0@; stderr:\n@1@'.format(runresult.returncode(), runresult.stderr()))
 endif

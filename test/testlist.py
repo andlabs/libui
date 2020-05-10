@@ -128,7 +128,8 @@ def usage():
 	sys.exit(1)
 
 def main():
-	r = re.compile('^(?:Test|TestNoInit)\(([A-Za-z0-9_]+)\)$')
+	rTest = re.compile('^(?:Test|TestNoInit)\(([A-Za-z0-9_]+)\)$')
+	rAllCalls = re.compile('^(?:allcallsCase)\(([A-Za-z0-9_]+),')
 
 	if len(sys.argv) < 2:
 		usage()
@@ -151,9 +152,15 @@ def main():
 
 	casenames = []
 	for line in fileinput.input(files = files):
-		match = r.match(line)
+		match = rTest.match(line)
 		if match is not None:
 			casenames.append(match.group(1))
+		match = rAllCalls.match(line)
+		if match is not None:
+			f = match.group(1)
+			# noinitwrongthread.c
+			casenames.append('TestCallBeforeInitIsProgrammerError_' + f)
+			casenames.append('TestCallOnWrongThreadIsProgrammerError_' + f)
 	cmd.run(sorted(casenames))
 
 main()

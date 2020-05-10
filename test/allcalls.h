@@ -4,9 +4,7 @@
 
 allcallsCase(uiMain, /* no arguments */)
 allcallsCase(uiQuit, /* no arguments */)
-#ifdef allcallsIncludeQueueMain
-allcallsCase(uiQueueMain, NULL, NULL)
-#endif
+// uiQueueMain() is defined in all files explicitly since it isn't instantiated for all possible allcalls tests
 
 allcallsCase(uiControlType, /* no arguments */)
 
@@ -17,4 +15,3 @@ allcallsCase(uiNewControl, 0, NULL)
 allcallsCase(uiControlFree, NULL)
 allcallsCase(uiControlSetParent, NULL, NULL)
 allcallsCase(uiControlImplData, NULL)
-allcallsCase(uiControlOnFree, /* no arguments */)

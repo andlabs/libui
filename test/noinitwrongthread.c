@@ -1,35 +1,52 @@
 // 28 may 2019
 #include "test.h"
 
-#define allcallsCaseFuncName(f) allcallsCaseFunc ## f
-#define allcallsCase(f, ...) static void allcallsCaseFuncName(f)(void) { f(__VA_ARGS__); }
-#define allcallsIncludeQueueMain
+		if match is not None:
+			f = match.group(1)
+			casenames.append('TestCallOnWrongThreadIsProgrammerError_' + f)
+
+// TODO rename to FunctionsFailBeforeInit?
+#define allcallsCase(f, ...) \
+	TestNoInit(CallBeforeInitIsProgrammerError_ ## f) \
+	{ \
+		void *ctx; \
+		ctx = beginCheckProgrammerError("atteTODOmpt to call " #f "() before uiInit()"); \
+		f(__VA_ARGS__); \
+		endCheckProgrammerError(ctx); \
+	}
 #include "allcalls.h"
-#undef allcallsIncludeQueueMain
 #undef allcallsCase
 
-static const struct checkErrorCase beforeInitCases[] = {
-#define allcallsCase(f, ...) { #f "()", allcallsCaseFuncName(f), "attempt to call " #f "() before uiInit()" },
-#define allcallsIncludeQueueMain
-#include "allcalls.h"
-#undef allcallsIncludeQueueMain
-#undef allcallsCase
-	{ NULL, NULL, NULL },
-};
-
-TestNoInit(FunctionsFailBeforeInit)
+TestNoInit(CallBeforeInitIsProgrammerError_uiQueueMain)
 {
-	checkProgrammerErrors(beforeInitCases);
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("atteTODOmpt to call uiQueueMain() before uiInit()");
+	uiQueueMain(NULL, NULL);
+	endCheckProgrammerError(ctx);
 }
 
-static const struct checkErrorCase wrongThreadCases[] = {
-#define allcallsCase(f, ...) { #f "()", allcallsCaseFuncName(f), "attempt to call " #f "() on a thread other than the GUI thread" },
+// TODO rename to FunctionsFailOnWrongThread?
+#define allcallsCase(f, ...) \
+	static void threadTest ## f(void *data) \
+	{ \
+		f(__VA_ARGS__); \
+	} \
+	Test(CallOnWrongThreadIsProgrammerError_ ## f) \
+	{ \
+		threadThread *thread; \
+		threadSysError err; \
+		void *ctx; \
+		ctx = beginCheckProgrammerError("atteTODOmpt to call " #f "() on a thread other than the GUI thread"); \
+		err = threadNewThread(threadTest ## f, NULL, &thread); \
+		if (err != 0) \
+			TestFatalf("error creating thread: " threadSysErrorFmt, threadSysErrorFmtArg(err)); \
+		err = threadThreadWaitAndFree(thread); \
+		if (err != 0) \
+			TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err)); \
+		endCheckProgrammerError(ctx); \
+	}
 #include "allcalls.h"
 #undef allcallsCase
-	{ NULL, NULL, NULL },
-};
 
-Test(FunctionsFailOnWrongThread)
-{
-	checkProgrammerErrorsInThread(wrongThreadCases);
-}
+// no uiQueueMain() test for the wrong thread; it's supposed to be callable from any thread

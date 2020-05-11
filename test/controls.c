@@ -176,19 +176,7 @@ Test(CheckingNullControlIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
-// TODO should this test be the same as the following one instead?
 Test(CheckingNonControlIsProgrammerError)
-{
-	// TODO make sure this is fine; if not, just use the following check instead
-	static char buf[] = "this is not a uiControl but is big enough to at the very least not cause a problem with UB hopefully";
-	void *ctx;
-
-	ctx = beginCheckProgrammerError("uiCheckControlType(): object passed in not a uiControl");
-	uiCheckControlType(buf, uiControlType());
-	endCheckProgrammerError(ctx);
-}
-
-Test(CheckingControlWithoutControlMarkerIsProgrammerError)
 {
 	void *ctx;
 

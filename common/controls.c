@@ -222,7 +222,8 @@ void *uiControlImplData(uiControl *c)
 }
 
 static uiControl testHookControlWithInvalidControlMarker = {
-	.controlID = 0,
+	// use something other than 0 here to make it look like accidental real data
+	.controlID = UINT32_C(0x5A5A5A5A),
 };
 
 uiControl *uiprivTestHookControlWithInvalidControlMarker(void)

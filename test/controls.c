@@ -2,6 +2,37 @@
 #include "test.h"
 #include "../common/testhooks.h"
 
+static bool vtableNopInit(uiControl *c, void *implData, void *initData)
+{
+	return true;
+}
+
+static void vtableNopFree(uiControl *c, void *implData)
+{
+	// do nothing
+}
+
+// TODO we'll have to eventually find out for real if memset(0) is sufficient to set pointers to NULL or not; C99 doesn't seem to say
+Test(ControlImplDataIsClearedOnNewControl)
+{
+	char memory[32];
+	uiControlVtable vt;
+	uint32_t type;
+	uiControl *c;
+	char *implData;
+
+	vt.Size = sizeof (uiControlVtable);
+	vt.Init = vtableNopInit;
+	vt.Free = vtableNopFree;
+	type = uiRegisterControlType("TestControl", &vt, testOSVtable(), sizeof (memory));
+	c = uiNewControl(type, NULL);
+	implData = (char *) uiControlImplData(c);
+	memset(memory, 0, sizeof (memory));
+	if (memcmp(implData, memory, sizeof (memory)) != 0)
+		TestErrorf("control impl data memory not properly cleared on creation");
+	uiControlFree(c);
+}
+
 struct counts {
 	unsigned int countInit;
 	unsigned int countFree;
@@ -14,8 +45,6 @@ struct testImplData {
 static struct counts failInit;
 static void *testControlFailInit = &failInit;
 
-// TODO document that impl data is zero-initialized before this is called
-// TODO we'll also have to eventually deal with the fact that NULL is not required to be 0... or at least confirm that
 static bool testVtableInit(uiControl *c, void *implData, void *initData)
 {
 	struct testImplData *d = (struct testImplData *) implData;
@@ -323,7 +352,7 @@ Test(RemovingParentFromExplicitlyParentlessControlIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
-Test(ReparentingAlreadyParentedControlIsProgrammerError)
+Test(ReparentingAlreadyParentedControlToDifferentParentIsProgrammerError)
 {
 	uiControl *c, *d, *e;
 	void *ctx;
@@ -347,7 +376,28 @@ Test(ReparentingAlreadyParentedControlIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
-// TODO document and then test the above but for the same parent
+Test(ReparentingAlreadyParentedControlToSameParentIsProgrammerError)
+{
+	uiControl *c, *d;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with a parent to have another parent");
+
+	c = uiNewControl(testControlType(), NULL);
+	d = uiNewControl(testControlType(), NULL);
+
+	// this should fail
+	uiControlSetParent(c, d);
+	uiControlSetParent(c, d);
+
+	// this should not (cleanup)
+	uiControlSetParent(c, NULL);
+	// TODO make sure all cleanups are in reverse order
+	uiControlFree(d);
+	uiControlFree(c);
+
+	endCheckProgrammerError(ctx);
+}
 
 Test(GettingImplDataOfNullControlIsProgrammerError)
 {

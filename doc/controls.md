@@ -81,7 +81,7 @@ This function is meant for control implementations to use in the implementation 
 
 It is a programmer error to pass an invalid value for either `type` or `initData`.
 
-**For control implementations**: This function allocates both the `uiControl` and the memory for the implementation data, and then passes both of these allocations as well as the value of `initData` into your `Init()` method. Return `false` from the `Init()` method if `initData` is invalid; if it is valid, initialize the control and return `true`. To discourage direct use of `uiNewControl()`, you should generally not allow `initData` to be `NULL`, even if there are no parameters. Do **not** return `false` for any other reason, including other forms of initialization failures; see [Error handling](error-handling.md) for details on what to do instead.
+**For control implementations**: This function allocates both the `uiControl` and the memory for the implementation data, and then passes both of these allocations as well as the value of `initData` into your `Init()` method. Before calling `Init()`, libui will clear the `implData` memory, as with `memset(0)`. Return `false` from the `Init()` method if `initData` is invalid; if it is valid, initialize the control and return `true`. To discourage direct use of `uiNewControl()`, you should generally not allow `initData` to be `NULL`, even if there are no parameters. Do **not** return `false` for any other reason, including other forms of initialization failures; see [Error handling](error-handling.md) for details on what to do instead.
 
 ### `uiControlFree()`
 
@@ -107,7 +107,7 @@ uiprivExtern void uiControlSetParent(uiControl *c, uiControl *parent);
 
 This function is used by the implementation of a container control to actually establish a parent-child relationship from libui's point of view. This function is only intended to be called by control implementations. You should not call it directly; instead, use the methods provided by your container control to add children.
 
-This function can only be used to set the parent of an unparented control or to remove its parent. It may not be used to change the parent of an already parented control. It is a programmer error to set the parent of a control that already has a parent to something other than `NULL`, or to set the parent of a control with no parent to `NULL`. (The idea here is to reinforce the concept of container implementations being responsible for setting their children properly, not the user.)
+This function can only be used to set the parent of an unparented control or to remove its parent. It may not be used to change the parent of an already parented control. It is a programmer error to set the parent of a control that already has a parent to something other than `NULL` (even if to the same parent), or to set the parent of a control with no parent to `NULL`. (The idea here is to reinforce the concept of container implementations being responsible for setting their children properly, not the user.)
 
 It is a programmer error to pass `NULL` or a non-control for `c`.
 

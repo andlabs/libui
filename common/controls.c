@@ -222,7 +222,7 @@ void *uiControlImplData(uiControl *c)
 }
 
 static uiControl testHookControlWithInvalidControlMarker = {
-	.controlID = 5,
+	.controlID = 0,
 };
 
 uiControl *uiprivTestHookControlWithInvalidControlMarker(void)
@@ -232,7 +232,7 @@ uiControl *uiprivTestHookControlWithInvalidControlMarker(void)
 
 static uiControl testHookControlWithInvalidType = {
 	.controlID = controlTypeID,
-	.typeID = 5,
+	.typeID = 0,
 };
 
 uiControl *uiprivTestHookControlWithInvalidType(void)

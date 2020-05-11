@@ -2,9 +2,6 @@
 #include "test.h"
 #include "../common/testhooks.h"
 
-// TODO replace hardcoded control types of 5 with a constant from the test hook system
-// TODO also test 0 here too
-
 struct counts {
 	unsigned int countInit;
 	unsigned int countFree;
@@ -55,7 +52,6 @@ static const uiControlVtable vtable = {
 
 static uint32_t testControlType(void)
 {
-	// TODO explicitly make/document 0 as always invalid
 	static uint32_t type = 0;
 
 	if (type == 0)
@@ -205,7 +201,7 @@ Test(CheckingControlWithAnUnknownTypeIsProgrammerError)
 {
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 5 found in uiControl (this is likely not a real uiControl or some data is corrupt)");
+	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 0 found in uiControl (this is likely not a real uiControl or some data is corrupt)");
 	uiCheckControlType(uiprivTestHookControlWithInvalidType(), testControlType());
 	endCheckProgrammerError(ctx);
 }
@@ -214,7 +210,7 @@ Test(CheckingControlWithAnUnknownTypeIsProgrammerErrorEvenIfCheckingAgainstuiCon
 {
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 5 found in uiControl (this is likely not a real uiControl or some data is corrupt)");
+	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 0 found in uiControl (this is likely not a real uiControl or some data is corrupt)");
 	uiCheckControlType(uiprivTestHookControlWithInvalidType(), uiControlType());
 	endCheckProgrammerError(ctx);
 }
@@ -224,9 +220,9 @@ Test(CheckingForUnknownControlTypeIsProgrammerError)
 	uiControl *c;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 5 requested");
+	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 0 requested");
 	c = uiNewControl(testControlType(), NULL);
-	uiCheckControlType(c, 5);
+	uiCheckControlType(c, 0);
 	uiControlFree(c);
 	endCheckProgrammerError(ctx);
 }
@@ -256,8 +252,8 @@ Test(NewControlOfUnknownTypeIsProgrammerError)
 {
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiNewControl(): unknown uiControl type 5 requested");
-	uiNewControl(5, NULL);
+	ctx = beginCheckProgrammerError("uiNewControl(): unknown uiControl type 0 requested");
+	uiNewControl(0, NULL);
 	endCheckProgrammerError(ctx);
 }
 

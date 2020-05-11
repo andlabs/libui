@@ -18,7 +18,7 @@ uint32_t uiControlType(void);
 
 `uiControl` is an opaque type that describes a control.
 
-`uiControlType()` is the type identifier of a `uiControl` as passed to `uiCheckControlType()`. You rarely need to call this directly; the `uiControl()` conversion macro does this for you.
+`uiControlType()` is the type identifier of a `uiControl` as passed to `uiCheckControlType()`. You rarely need to call this directly; the `uiControl()` conversion macro does this for you. A control type identifier of 0 is always invalid; this can be used to initialize the variables that hold the returned identifiers from `uiRegisterControlType()`.
 
 ### `uiControlVtable`
 

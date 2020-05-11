@@ -3,6 +3,7 @@
 #include "../common/testhooks.h"
 
 // TODO replace hardcoded control types of 5 with a constant from the test hook system
+// TODO also test 0 here too
 
 struct counts {
 	unsigned int countInit;

@@ -69,6 +69,8 @@ This function is intended to be used to implement a macro that converts an arbit
 #define uiButton(c) ((uiButton *) uiCheckControlType((c), uiButtonType()))
 ```
 
+(TODO document passing uiControlType() to this, or even make doing so unnecessary)
+
 ### `uiNewControl()`
 
 ```c
@@ -109,7 +111,7 @@ This function is used by the implementation of a container control to actually e
 
 This function can only be used to set the parent of an unparented control or to remove its parent. It may not be used to change the parent of an already parented control. It is a programmer error to set the parent of a control that already has a parent to something other than `NULL` (even if to the same parent), or to set the parent of a control with no parent to `NULL`. (The idea here is to reinforce the concept of container implementations being responsible for setting their children properly, not the user.)
 
-It is a programmer error to pass `NULL` or a non-control for `c`.
+It is a programmer error to pass `NULL` for `c`. (TODO non-uiControl for either c or parent?)
 
 It is a programmer error to introduce a cycle when changing the parent of a control. By extension, it is a programmer error to make a control its own parent.
 
@@ -130,4 +132,4 @@ void *uiControlImplData(uiControl *c);
 
 This function is meant to be used by control implementations only. There is in general no guarantee as to the size or format of this pointer. Normal users should not call `uiControlImplData()`.
 
-It is a programmer error to pass `NULL` or a non-`uiControl` for `c`.
+It is a programmer error to pass `NULL` for `c`. (TODO non-uiControl?)

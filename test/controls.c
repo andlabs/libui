@@ -21,6 +21,7 @@ Test(ControlImplDataIsClearedOnNewControl)
 	uiControl *c;
 	char *implData;
 
+	memset(&vt, 0, sizeof (uiControlVtable));
 	vt.Size = sizeof (uiControlVtable);
 	vt.Init = vtableNopInit;
 	vt.Free = vtableNopFree;
@@ -30,6 +31,23 @@ Test(ControlImplDataIsClearedOnNewControl)
 	memset(memory, 0, sizeof (memory));
 	if (memcmp(implData, memory, sizeof (memory)) != 0)
 		TestErrorf("control impl data memory not properly cleared on creation");
+	uiControlFree(c);
+}
+
+Test(ZeroSizeImplDataIsNULL)
+{
+	uiControlVtable vt;
+	uint32_t type;
+	uiControl *c;
+
+	memset(&vt, 0, sizeof (uiControlVtable));
+	vt.Size = sizeof (uiControlVtable);
+	vt.Init = vtableNopInit;
+	vt.Free = vtableNopFree;
+	type = uiRegisterControlType("TestControl", &vt, testOSVtable(), 0);
+	c = uiNewControl(type, NULL);
+	if (uiControlImplData(c) != NULL)
+		TestErrorf("control impl data is non-NULL despite being of size 0");
 	uiControlFree(c);
 }
 
@@ -396,6 +414,66 @@ Test(ReparentingAlreadyParentedControlToSameParentIsProgrammerError)
 	uiControlFree(d);
 	uiControlFree(c);
 
+	endCheckProgrammerError(ctx);
+}
+
+Test(ControlParentCyclesDisallowed_TwoControls)
+{
+	uiControl *c, *d;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("TODO");
+
+	c = uiNewControl(testControlType(), NULL);
+	d = uiNewControl(testControlType(), NULL);
+
+	// this should fail
+	uiControlSetParent(c, d);
+	uiControlSetParent(d, c);
+
+	// this should not (cleanup)
+	uiControlSetParent(c, NULL);
+	uiControlFree(d);
+	uiControlFree(c);
+
+	endCheckProgrammerError(ctx);
+}
+
+Test(ControlParentCyclesDisallowed_ThreeControls)
+{
+	uiControl *c, *d, *e;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("TODO");
+
+	c = uiNewControl(testControlType(), NULL);
+	d = uiNewControl(testControlType(), NULL);
+	e = uiNewControl(testControlType(), NULL);
+
+	// this should fail
+	uiControlSetParent(c, d);
+	uiControlSetParent(d, e);
+	uiControlSetParent(e, c);
+
+	// this should not (cleanup)
+	uiControlSetParent(d, NULL);
+	uiControlSetParent(c, NULL);
+	uiControlFree(e);
+	uiControlFree(d);
+	uiControlFree(c);
+
+	endCheckProgrammerError(ctx);
+}
+
+Test(ControlCannotBeItsOwnParent)
+{
+	uiControl *c;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("TODO");
+	c = uiNewControl(testControlType(), NULL);
+	uiControlSetParent(c, c);
+	uiControlFree(c);
 	endCheckProgrammerError(ctx);
 }
 

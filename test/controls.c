@@ -295,8 +295,7 @@ Test(SetParentWithNullControlIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
-// TODO copy this test but first setting and then removing the parent first, instead of just testing the initial state
-Test(RemovingParentFromParentlessControlIsProgrammerError)
+Test(RemovingParentFromInitiallyParentlessControlIsProgrammerError)
 {
 	uiControl *c;
 	void *ctx;
@@ -305,6 +304,22 @@ Test(RemovingParentFromParentlessControlIsProgrammerError)
 	c = uiNewControl(testControlType(), NULL);
 	uiControlSetParent(c, NULL);
 	uiControlFree(c);
+	endCheckProgrammerError(ctx);
+}
+
+Test(RemovingParentFromExplicitlyParentlessControlIsProgrammerError)
+{
+	uiControl *c, *d;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with no parent to have no parent");
+	c = uiNewControl(testControlType(), NULL);
+	d = uiNewControl(testControlType(), NULL);
+	uiControlSetParent(c, d);
+	uiControlSetParent(c, NULL);
+	uiControlSetParent(c, NULL);
+	uiControlFree(c);
+	uiControlFree(d);
 	endCheckProgrammerError(ctx);
 }
 
@@ -332,7 +347,7 @@ Test(ReparentingAlreadyParentedControlIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
-// TODO define and then test the above but for the same parent
+// TODO document and then test the above but for the same parent
 
 Test(GettingImplDataOfNullControlIsProgrammerError)
 {

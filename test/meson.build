@@ -17,6 +17,10 @@ elif libui_OS == 'darwin'
 	libui_test_sources += files([
 		'controls_darwin.m',
 	])
+else
+	libui_test_sources += files([
+		'controls_unix.c',
+	])
 endif
 
 libui_test_sources_without_cases = [

@@ -435,7 +435,7 @@ Test(ControlParentCyclesDisallowed_TwoControls)
 	d = uiNewControl(testControlType(), NULL);
 
 	uiControlSetParent(c, d);
-	ctx = beginCheckProgrammerError("TODO");
+	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot create a parent cycle");
 	uiControlSetParent(d, c);
 	endCheckProgrammerError(ctx);
 
@@ -457,7 +457,7 @@ Test(ControlParentCyclesDisallowed_ThreeControls)
 
 	uiControlSetParent(c, d);
 	uiControlSetParent(d, e);
-	ctx = beginCheckProgrammerError("TODO");
+	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot create a parent cycle");
 	uiControlSetParent(e, c);
 	endCheckProgrammerError(ctx);
 
@@ -475,7 +475,7 @@ Test(ControlCannotBeItsOwnParent)
 	void *ctx;
 
 	c = uiNewControl(testControlType(), NULL);
-	ctx = beginCheckProgrammerError("TODO");
+	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot create a parent cycle");
 	uiControlSetParent(c, c);
 	endCheckProgrammerError(ctx);
 	uiControlFree(c);

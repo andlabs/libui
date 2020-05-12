@@ -237,6 +237,10 @@ void uiControlSetParent(uiControl *c, uiControl *parent)
 		uiprivProgrammerErrorReparenting("a", "another", uiprivFunc);
 		return;
 	}
+	if (parentHasCycle(c, parent)) {
+		uiprivProgrammerErrorControlParentCycle(uiprivFunc);
+		return;
+	}
 	c->parent = parent;
 }
 

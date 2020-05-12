@@ -75,4 +75,7 @@
 	uiprivProgrammerError("%s(): cannot set a control with %s parent to have %s parent", \
 		func, current, next)
 
+#define uiprivProgrammerErrorControlParentCycle(func) \
+	uiprivProgrammerError("%s(): cannot create a parent cycle", func)
+
 // }

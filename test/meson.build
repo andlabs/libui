@@ -17,6 +17,10 @@ elif libui_OS == 'darwin'
 	libui_test_sources += files([
 		'controls_darwin.m',
 	])
+elif libui_OS == 'haiku'
+	libui_test_sources += files([
+		'controls_haiku.c',
+	])
 else
 	libui_test_sources += files([
 		'controls_unix.c',

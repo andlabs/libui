@@ -8,8 +8,8 @@ static void testImplInitFailureFull(const char *file, long line)
 	uiInitError err;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError(NULL);
 	uiprivTestHookSetInitShouldFailArtificially(true);
+	ctx = beginCheckProgrammerError(NULL);
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
 	if (uiInit(NULL, &err))
@@ -149,28 +149,27 @@ Test(MainCalledTwiceIsProgrammerError)
 {
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiMain(): attempt to call more than once");
 	uiQueueMain(done, NULL);
 	uiMain();
+	ctx = beginCheckProgrammerError("uiMain(): attempt to call more than once");
 	uiMain();
 	endCheckProgrammerError(ctx);
 }
 
 static void mainAndQuit(void *data)
 {
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiMain(): attempt to call more than once");
 	uiMain();
+	endCheckProgrammerError(ctx);
 	uiQuit();
 }
 
 Test(MainCalledRecursivelyIsProgrammerError)
 {
-	void *ctx;
-
-	ctx = beginCheckProgrammerError("uiMain(): attempt to call more than once");
 	uiQueueMain(mainAndQuit, NULL);
 	uiMain();
-	uiMain();
-	endCheckProgrammerError(ctx);
 }
 
 // largely redundant due to InitCorrectlyAfterInitializedSuccessfully, but include it anyway just to be safe
@@ -179,9 +178,9 @@ Test(InitAfterMainIsProgrammerError)
 	uiInitError err;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
 	uiQueueMain(done, NULL);
 	uiMain();
+	ctx = beginCheckProgrammerError("uiInit(): attempt to call more than once");
 	memset(&err, 0, sizeof (uiInitError));
 	err.Size = sizeof (uiInitError);
 	if (uiInit(NULL, &err))
@@ -200,27 +199,27 @@ Test(QuitBeforeMainIsProgrammerError)
 
 static void quitTwice(void *data)
 {
+	void *ctx;
+
 	uiQuit();
+	ctx = beginCheckProgrammerError("uiQuit(): attempt to call more than once");
 	uiQuit();
+	endCheckProgrammerError(ctx);
 }
 
 Test(QuitCalledTwiceIsProgrammerError)
 {
-	void *ctx;
-
-	ctx = beginCheckProgrammerError("uiQuit(): attempt to call more than once");
 	uiQueueMain(quitTwice, NULL);
 	uiMain();
-	endCheckProgrammerError(ctx);
 }
 
 Test(QuitAfterMainIsProgrammerError)
 {
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiQuit(): attempt to call more than once");
 	uiQueueMain(done, NULL);
 	uiMain();
+	ctx = beginCheckProgrammerError("uiQuit(): attempt to call more than once");
 	uiQuit();
 	endCheckProgrammerError(ctx);
 }

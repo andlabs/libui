@@ -192,6 +192,7 @@ void uiControlFree(uiControl *c)
 
 static bool parentHasCycle(uiControl *c, uiControl *parent)
 {
+	// TODO remember if this is the correct way to use a local uiprivArray
 	uiprivArray parents;
 	size_t i;
 
@@ -202,17 +203,17 @@ static bool parentHasCycle(uiControl *c, uiControl *parent)
 
 	uiprivArrayInit(parents, uiControl *, 16, "uiControl parent list");
 	// add these now, as they are counted as part of any cycles
-	*((uiControl *) uiprivArrayAppend(parents, 1)) = c;
-	*((uiControl *) uiprivArrayAppend(parents, 1)) = parent;
+	*((uiControl **) uiprivArrayAppend(&parents, 1)) = c;
+	*((uiControl **) uiprivArrayAppend(&parents, 1)) = parent;
 	for (c = parent->parent; c != NULL; c = c->parent) {
 		// TODO this doesn't need to be sequential, but I don't imagine this list will ever be long enough to make it matter... yet
 		for (i = 0; i < parents.len; i++)
-			if (c == uiprivArrayAt(parents, uiControl *, i)) {
+			if (c == *uiprivArrayAt(parents, uiControl *, i)) {
 				uiprivArrayFree(parents);
 				return true;
 			}
 		// new parent; mark it as visited
-		*((uiControl *) uiprivArrayAppend(parents, 1)) = c;
+		*((uiControl **) uiprivArrayAppend(&parents, 1)) = c;
 	}
 
 	uiprivArrayFree(parents);

@@ -5,6 +5,10 @@
 
 // Do not put any test cases in this file; they will not be run.
 
+// Notes on these functions:
+// - Try to wrap them as tightly around the specific calls being tested as possible, to avoid accidentally catching something else.
+// - I don't know if these are thread-safe yet (TODO potentially make them so so this first part can be made tighter).
+
 struct checkProgrammerErrorParams {
 	bool caught;
 	char *msgGot;

@@ -216,37 +216,51 @@ Test(NullControlOSVtableIsProgrammerError)
 
 Test(CheckingNullControlIsProgrammerError)
 {
+	uint32_t ctrlType;
 	void *ctx;
 
+	ctrlType = uiControlType();
 	ctx = beginCheckProgrammerError("uiCheckControlType(): invalid null pointer for uiControl");
-	uiCheckControlType(NULL, uiControlType());
+	uiCheckControlType(NULL, ctrlType);
 	endCheckProgrammerError(ctx);
 }
 
 Test(CheckingNonControlIsProgrammerError)
 {
+	uiControl *c;
+	uint32_t ctrlType;
 	void *ctx;
 
+	c = uiprivTestHookControlWithInvalidControlMarker();
+	ctrlType = uiControlType();
 	ctx = beginCheckProgrammerError("uiCheckControlType(): object passed in not a uiControl");
-	uiCheckControlType(uiprivTestHookControlWithInvalidControlMarker(), uiControlType());
+	uiCheckControlType(c, ctrlType);
 	endCheckProgrammerError(ctx);
 }
 
 Test(CheckingControlWithAnUnknownTypeIsProgrammerError)
 {
+	uiControl *c;
+	uint32_t ctrlType;
 	void *ctx;
 
+	c = uiprivTestHookControlWithInvalidType();
+	ctrlType = testControlType();
 	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 0 found in uiControl (this is likely not a real uiControl or some data is corrupt)");
-	uiCheckControlType(uiprivTestHookControlWithInvalidType(), testControlType());
+	uiCheckControlType(c, ctrlType);
 	endCheckProgrammerError(ctx);
 }
 
 Test(CheckingControlWithAnUnknownTypeIsProgrammerErrorEvenIfCheckingAgainstuiControlType)
 {
+	uiControl *c;
+	uint32_t ctrlType;
 	void *ctx;
 
+	c = uiprivTestHookControlWithInvalidType();
+	ctrlType = uiControlType();
 	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 0 found in uiControl (this is likely not a real uiControl or some data is corrupt)");
-	uiCheckControlType(uiprivTestHookControlWithInvalidType(), uiControlType());
+	uiCheckControlType(c, ctrlType);
 	endCheckProgrammerError(ctx);
 }
 
@@ -255,31 +269,35 @@ Test(CheckingForUnknownControlTypeIsProgrammerError)
 	uiControl *c;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 0 requested");
 	c = uiNewControl(testControlType(), NULL);
+	ctx = beginCheckProgrammerError("uiCheckControlType(): unknown uiControl type 0 requested");
 	uiCheckControlType(c, 0);
-	uiControlFree(c);
 	endCheckProgrammerError(ctx);
+	uiControlFree(c);
 }
 
 Test(CheckControlTypeFailsCorrectly)
 {
 	uiControl *c;
+	uint32_t ctrlType;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiCheckControlType(): wrong uiControl type passed: got TestControl, want TestControl2");
 	c = uiNewControl(testControlType(), NULL);
-	uiCheckControlType(c, testControlType2());
-	uiControlFree(c);
+	ctrlType = testControlType2();
+	ctx = beginCheckProgrammerError("uiCheckControlType(): wrong uiControl type passed: got TestControl, want TestControl2");
+	uiCheckControlType(c, ctrlType);
 	endCheckProgrammerError(ctx);
+	uiControlFree(c);
 }
 
 Test(NewControlOfTypeControlIsProgrammerError)
 {
+	uint32_t ctrlType;
 	void *ctx;
 
+	ctrlType = uiControlType();
 	ctx = beginCheckProgrammerError("uiNewControl(): uiControlType() passed in when specific control type needed");
-	uiNewControl(uiControlType(), NULL);
+	uiNewControl(ctrlType, NULL);
 	endCheckProgrammerError(ctx);
 }
 
@@ -294,10 +312,12 @@ Test(NewControlOfUnknownTypeIsProgrammerError)
 
 Test(NewControlWithInvalidInitDataIsProgrammerError)
 {
+	uint32_t ctrlType;
 	void *ctx;
 
+	ctrlType = testControlType();
 	ctx = beginCheckProgrammerError("uiNewControl(): invalid init data for TestControl");
-	uiNewControl(testControlType(), testControlFailInit);
+	uiNewControl(ctrlType, testControlFailInit);
 	endCheckProgrammerError(ctx);
 }
 
@@ -310,27 +330,23 @@ Test(FreeingNullControlIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
-// TODO go back through all these tests and make the programmer error check as finely scoped as necessary
 Test(FreeingParentedControlIsProgrammerError)
 {
 	uiControl *c, *d;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiControlFree(): cannot be called on a control with has a parent");
-
 	c = uiNewControl(testControlType(), NULL);
 	d = uiNewControl(testControlType(), NULL);
 
-	// this should fail
 	uiControlSetParent(c, d);
+	ctx = beginCheckProgrammerError("uiControlFree(): cannot be called on a control with has a parent");
 	uiControlFree(c);
+	endCheckProgrammerError(ctx);
 
-	// this should not fail; it's normal cleanup
+	// cleanup
 	uiControlSetParent(c, NULL);
 	uiControlFree(d);
 	uiControlFree(c);
-
-	endCheckProgrammerError(ctx);
 }
 
 Test(SetParentWithNullControlIsProgrammerError)
@@ -347,11 +363,11 @@ Test(RemovingParentFromInitiallyParentlessControlIsProgrammerError)
 	uiControl *c;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with no parent to have no parent");
 	c = uiNewControl(testControlType(), NULL);
+	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with no parent to have no parent");
 	uiControlSetParent(c, NULL);
-	uiControlFree(c);
 	endCheckProgrammerError(ctx);
+	uiControlFree(c);
 }
 
 Test(RemovingParentFromExplicitlyParentlessControlIsProgrammerError)
@@ -359,15 +375,15 @@ Test(RemovingParentFromExplicitlyParentlessControlIsProgrammerError)
 	uiControl *c, *d;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with no parent to have no parent");
 	c = uiNewControl(testControlType(), NULL);
 	d = uiNewControl(testControlType(), NULL);
 	uiControlSetParent(c, d);
 	uiControlSetParent(c, NULL);
+	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with no parent to have no parent");
 	uiControlSetParent(c, NULL);
-	uiControlFree(c);
-	uiControlFree(d);
 	endCheckProgrammerError(ctx);
+	uiControlFree(d);
+	uiControlFree(c);
 }
 
 Test(ReparentingAlreadyParentedControlToDifferentParentIsProgrammerError)
@@ -375,23 +391,20 @@ Test(ReparentingAlreadyParentedControlToDifferentParentIsProgrammerError)
 	uiControl *c, *d, *e;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with a parent to have another parent");
-
 	c = uiNewControl(testControlType(), NULL);
 	d = uiNewControl(testControlType(), NULL);
 	e = uiNewControl(testControlType(), NULL);
 
-	// this should fail
 	uiControlSetParent(c, d);
+	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with a parent to have another parent");
 	uiControlSetParent(c, e);
+	endCheckProgrammerError(ctx);
 
-	// this should not (cleanup)
+	// cleanup
 	uiControlSetParent(c, NULL);
 	uiControlFree(e);
 	uiControlFree(d);
 	uiControlFree(c);
-
-	endCheckProgrammerError(ctx);
 }
 
 Test(ReparentingAlreadyParentedControlToSameParentIsProgrammerError)
@@ -399,22 +412,18 @@ Test(ReparentingAlreadyParentedControlToSameParentIsProgrammerError)
 	uiControl *c, *d;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with a parent to have another parent");
-
 	c = uiNewControl(testControlType(), NULL);
 	d = uiNewControl(testControlType(), NULL);
 
-	// this should fail
 	uiControlSetParent(c, d);
+	ctx = beginCheckProgrammerError("uiControlSetParent(): cannot set a control with a parent to have another parent");
 	uiControlSetParent(c, d);
+	endCheckProgrammerError(ctx);
 
-	// this should not (cleanup)
+	// cleanup
 	uiControlSetParent(c, NULL);
-	// TODO make sure all cleanups are in reverse order
 	uiControlFree(d);
 	uiControlFree(c);
-
-	endCheckProgrammerError(ctx);
 }
 
 Test(ControlParentCyclesDisallowed_TwoControls)
@@ -422,21 +431,19 @@ Test(ControlParentCyclesDisallowed_TwoControls)
 	uiControl *c, *d;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("TODO");
-
 	c = uiNewControl(testControlType(), NULL);
 	d = uiNewControl(testControlType(), NULL);
 
-	// this should fail
 	uiControlSetParent(c, d);
+	ctx = beginCheckProgrammerError("TODO");
 	uiControlSetParent(d, c);
+	endCheckProgrammerError(ctx);
 
-	// this should not (cleanup)
+	// cleanup
+	// TODO reformat all the other tests to have clear init, test, and cleanup sections, and also maybe remove these "// cleanup" comments
 	uiControlSetParent(c, NULL);
 	uiControlFree(d);
 	uiControlFree(c);
-
-	endCheckProgrammerError(ctx);
 }
 
 Test(ControlParentCyclesDisallowed_ThreeControls)
@@ -444,25 +451,22 @@ Test(ControlParentCyclesDisallowed_ThreeControls)
 	uiControl *c, *d, *e;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("TODO");
-
 	c = uiNewControl(testControlType(), NULL);
 	d = uiNewControl(testControlType(), NULL);
 	e = uiNewControl(testControlType(), NULL);
 
-	// this should fail
 	uiControlSetParent(c, d);
 	uiControlSetParent(d, e);
+	ctx = beginCheckProgrammerError("TODO");
 	uiControlSetParent(e, c);
+	endCheckProgrammerError(ctx);
 
-	// this should not (cleanup)
+	// cleanup
 	uiControlSetParent(d, NULL);
 	uiControlSetParent(c, NULL);
 	uiControlFree(e);
 	uiControlFree(d);
 	uiControlFree(c);
-
-	endCheckProgrammerError(ctx);
 }
 
 Test(ControlCannotBeItsOwnParent)
@@ -470,11 +474,11 @@ Test(ControlCannotBeItsOwnParent)
 	uiControl *c;
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("TODO");
 	c = uiNewControl(testControlType(), NULL);
+	ctx = beginCheckProgrammerError("TODO");
 	uiControlSetParent(c, c);
-	uiControlFree(c);
 	endCheckProgrammerError(ctx);
+	uiControlFree(c);
 }
 
 Test(GettingImplDataOfNullControlIsProgrammerError)

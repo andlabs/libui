@@ -12,6 +12,14 @@ static void vtableNopFree(uiControl *c, void *implData)
 	// do nothing
 }
 
+void testControlLoadNopVtable(uiControlVtable *vtable)
+{
+	memset(vtable, 0, sizeof (uiControlVtable));
+	vtable->Size = sizeof (uiControlVtable);
+	vtable->Init = vtableNopInit;
+	vtable->Free = vtableNopFree;
+}
+
 // TODO we'll have to eventually find out for real if memset(0) is sufficient to set pointers to NULL or not; C99 doesn't seem to say
 Test(ControlImplDataIsClearedOnNewControl)
 {
@@ -21,10 +29,7 @@ Test(ControlImplDataIsClearedOnNewControl)
 	uiControl *c;
 	char *implData;
 
-	memset(&vt, 0, sizeof (uiControlVtable));
-	vt.Size = sizeof (uiControlVtable);
-	vt.Init = vtableNopInit;
-	vt.Free = vtableNopFree;
+	testControlLoadNopVtable(&vt);
 	type = uiRegisterControlType("TestControl", &vt, testOSVtable(), sizeof (memory));
 	c = uiNewControl(type, NULL);
 	implData = (char *) uiControlImplData(c);
@@ -40,10 +45,7 @@ Test(ZeroSizeImplDataIsNULL)
 	uint32_t type;
 	uiControl *c;
 
-	memset(&vt, 0, sizeof (uiControlVtable));
-	vt.Size = sizeof (uiControlVtable);
-	vt.Init = vtableNopInit;
-	vt.Free = vtableNopFree;
+	testControlLoadNopVtable(&vt);
 	type = uiRegisterControlType("TestControl", &vt, testOSVtable(), 0);
 	c = uiNewControl(type, NULL);
 	if (uiControlImplData(c) != NULL)
@@ -181,7 +183,7 @@ Test(WrongControlVtableSizeIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
-Test(ControlVtableWithMIssingInitMethodIsProgrammerError)
+Test(ControlVtableWithMissingInitMethodIsProgrammerError)
 {
 	uiControlVtable vt;
 	void *ctx;
@@ -193,7 +195,7 @@ Test(ControlVtableWithMIssingInitMethodIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
-Test(ControlVtableWithMIssingFreeMethodIsProgrammerError)
+Test(ControlVtableWithMissingFreeMethodIsProgrammerError)
 {
 	uiControlVtable vt;
 	void *ctx;

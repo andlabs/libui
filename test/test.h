@@ -83,6 +83,7 @@ extern void endCheckProgrammerErrorFull(const char *file, long line, void *conte
 #define endCheckProgrammerError(context) endCheckProgrammerErrorFull(__FILE__, __LINE__, context)
 
 // controls.c
+extern void testControlLoadNopVtable(uiControlVtable *vtable);
 extern const uiControlOSVtable *testOSVtable(void);
 
 #ifdef __cplusplus

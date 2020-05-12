@@ -6,7 +6,7 @@
 // Do not put any test cases in this file; they will not be run.
 
 // Notes on these functions:
-// - Try to wrap them as tightly around the specific calls being tested as possible, to avoid accidentally catching something else.
+// - Try to wrap them as tightly around the specific calls being tested as possible, to avoid accidentally catching something else. Ideally, only one libui function call should be made between a begin/end pair, even indirectly.
 // - I don't know if these are thread-safe yet (TODO potentially make them so so this first part can be made tighter).
 
 struct checkProgrammerErrorParams {

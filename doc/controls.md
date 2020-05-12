@@ -47,7 +47,7 @@ uint32_t uiRegisterControlType(const char *name, const uiControlVtable *vtable, 
 
 `uiRegisterControlType()` registers a new `uiControl` type with the given vtables and returns its ID as passed to `uiNewControl()`. `implDataSize` is the size of the implementation data struct that is created by `uiNewControl()`.
 
-Each type has a name, passed in the `name` parameter. The type name is only used for debugging and error reporting purposes. The type name is copied into libui-internal memory; the `name` pointer passed to `uiRegisterControlType()` is not used after it returns. It is a programmer error to specify `NULL` for `name`. (TODO anything else? Empty string? Duplicate name?) (TODO reserved name rules)
+Each type has a name, passed in the `name` parameter. The type name is only used for debugging and error reporting purposes. The type name should be a standard C string using the system encoding (TODO proper terminology), rather than a UTF-8 string as with the rest of libui. The type name is copied into libui-internal memory; the `name` pointer passed to `uiRegisterControlType()` is not used after it returns. It is a programmer error to specify `NULL` for `name`. (TODO anything else? Empty string? Duplicate name?) (TODO reserved name rules)
 
 `uiControlVtable` describes the functions of a `uiControl` common between platforms, and is discussed above. `uiControlOSVtable` describes functionst hat vary from OS to OS, and are described in the respective OS-specific uiControl implementation pages. The two vtables are copied into libui-internal memory; the vtable pointers passed to `uiRegisterControlType()` are not used after it returns.
 

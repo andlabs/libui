@@ -78,7 +78,7 @@ libui_testlist_c = custom_target(
 
 # TODO once we upgrade to 0.49.0, add pie: true
 # TODO once we upgrade to 0.50.0, add protocol: 'exitcode'
-libui_testparent = executable('testparent', libui_test_sources + libui_test_sources_without_cases + [libui_testlist_c, libui_testlist_h],
+libui_testrunner = executable('testrunner', libui_test_sources + libui_test_sources_without_cases + [libui_testlist_c, libui_testlist_h],
 	dependencies: libui_binary_deps + libui_test_deps,
 	link_with: libui_libui,
 	gui_app: false,
@@ -89,7 +89,7 @@ if runresult.returncode() != 0
 	error('testlist.py failed; cannot compute list of test cases. Exit code @0@; stderr:\n@1@'.format(runresult.returncode(), runresult.stderr()))
 endif
 foreach casename : runresult.stdout().split()
-	test(casename, libui_testparent,
+	test(casename, libui_testrunner,
 		args: [casename],
 		is_parallel: false,
 		should_fail: false)

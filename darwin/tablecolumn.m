@@ -32,6 +32,15 @@
 	return nil;			// appease compiler
 }
 
+static void setTitle(uiprivTableColumn *col, NSString *str)
+{
+	if ([col respondsToSelector:@selector(setTitle:)]) {
+		[col setTitle:str];
+	} else {
+		[[col headerCell] setStringValue:str];
+	}
+}
+
 @end
 
 struct textColumnCreateParams {
@@ -599,7 +608,7 @@ void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, 
 
 	str = [NSString stringWithUTF8String:name];
 	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
-	[col setTitle:str];
+	setTitle(col, str);
 	[t->tv addTableColumn:col];
 }
 
@@ -618,7 +627,7 @@ void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn
 
 	str = [NSString stringWithUTF8String:name];
 	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
-	[col setTitle:str];
+	setTitle(col, str);
 	[t->tv addTableColumn:col];
 }
 
@@ -645,7 +654,7 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 
 	str = [NSString stringWithUTF8String:name];
 	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
-	[col setTitle:str];
+	setTitle(col, str);
 	[t->tv addTableColumn:col];
 }
 
@@ -665,7 +674,7 @@ void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModel
 
 	str = [NSString stringWithUTF8String:name];
 	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
-	[col setTitle:str];
+	setTitle(col, str);
 	[t->tv addTableColumn:col];
 }
 
@@ -693,7 +702,7 @@ void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxM
 
 	str = [NSString stringWithUTF8String:name];
 	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
-	[col setTitle:str];
+	setTitle(col, str);
 	[t->tv addTableColumn:col];
 }
 
@@ -704,7 +713,7 @@ void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressMo
 
 	str = [NSString stringWithUTF8String:name];
 	col = [[uiprivProgressBarTableColumn alloc] initWithIdentifier:str table:t model:t->m modelColumn:progressModelColumn];
-	[col setTitle:str];
+	setTitle(col, str);
 	[t->tv addTableColumn:col];
 }
 
@@ -715,6 +724,6 @@ void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonModelColu
 
 	str = [NSString stringWithUTF8String:name];
 	col = [[uiprivButtonTableColumn alloc] initWithIdentifier:str table:t model:t->m modelColumn:buttonModelColumn editableColumn:buttonClickableModelColumn];
-	[col setTitle:str];
+	setTitle(col, str);
 	[t->tv addTableColumn:col];
 }

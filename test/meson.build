@@ -9,7 +9,11 @@ libui_test_sources = files([
 libui_allcalls_headers = files([
 	'allcalls.h',
 ])
-if libui_OS == 'darwin'
+if libui_OS == 'windows'
+	libui_test_sources += files([
+		'controls_windows.c',
+	])
+elif libui_OS == 'darwin'
 	libui_test_sources += files([
 		'controls_darwin.m',
 	])

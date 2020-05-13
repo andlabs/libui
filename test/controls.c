@@ -12,12 +12,24 @@ static void vtableNopFree(uiControl *c, void *implData)
 	// do nothing
 }
 
+static void vtableNopParentChanging(uiControl *c, void *implData, uiControl *oldParent)
+{
+	// do nothing
+}
+
+static void vtableNopParentChanged(uiControl *c, void *implData, uiControl *newParent)
+{
+	// do nothing
+}
+
 void testControlLoadNopVtable(uiControlVtable *vtable)
 {
 	memset(vtable, 0, sizeof (uiControlVtable));
 	vtable->Size = sizeof (uiControlVtable);
 	vtable->Init = vtableNopInit;
 	vtable->Free = vtableNopFree;
+	vtable->ParentChanging = vtableNopParentChanging;
+	vtable->ParentChanged = vtableNopParentChanged;
 }
 
 // TODO we'll have to eventually find out for real if memset(0) is sufficient to set pointers to NULL or not; C99 doesn't seem to say
@@ -56,6 +68,10 @@ Test(ZeroSizeImplDataIsNULL)
 struct counts {
 	unsigned int countInit;
 	unsigned int countFree;
+	unsigned int countParentChanging;
+	unsigned int countParentChanged;
+	uiControl *oldParent;
+	uiControl *newParent;
 };
 
 struct testImplData {
@@ -93,10 +109,37 @@ static void testVtableFree(uiControl *c, void *implData)
 	}
 }
 
+static void testVtableParentChanging(uiControl *c, void *implData, uiControl *oldParent)
+{
+	struct testImplData *d = (struct testImplData *) implData;
+
+	if (d->counts != NULL) {
+		d->counts->oldParent = oldParent;
+		d->counts->countParentChanging++;
+		if (d->counts->countParentChanging > 3)
+			d->counts->countParentChanging = 3;
+	}
+}
+
+static void testVtableParentChanged(uiControl *c, void *implData, uiControl *newParent)
+{
+	struct testImplData *d = (struct testImplData *) implData;
+
+	if (d->counts != NULL) {
+		d->counts->newParent = newParent;
+		d->counts->countParentChanged++;
+		if (d->counts->countParentChanged > 3)
+			d->counts->countParentChanged = 3;
+	}
+}
+
+
 static const uiControlVtable vtable = {
 	.Size = sizeof (uiControlVtable),
 	.Init = testVtableInit,
 	.Free = testVtableFree,
+	.ParentChanging = testVtableParentChanging,
+	.ParentChanged = testVtableParentChanged,
 };
 
 static uint32_t testControlType(void)
@@ -119,7 +162,7 @@ static uint32_t testControlType2(void)
 
 Test(ControlMethodsCalled)
 {
-	uiControl *c;
+	uiControl *c, *d;
 	struct counts counts;
 
 	memset(&counts, 0, sizeof (struct counts));
@@ -137,6 +180,81 @@ Test(ControlMethodsCalled)
 	}
 	if (counts.countFree != 0)
 		TestErrorf("Free() called unexpectedly by uiNewControl()");
+	// yes, the casts to void * are necessary, because the "equivalence" of data pointers to void * is really just the compiler doing conversions for you and this does not (and cannot) extend to the parameter lists of varargs functions (https://stackoverflow.com/questions/34723062, https://stackoverflow.com/questions/9053658)
+	if (counts.countParentChanging != 0)
+		TestErrorf("ParentChanging() called unexpectedly by uiNewControl(); most recent oldParent = %p", (void *) (counts.oldParent));
+	if (counts.countParentChanged != 0)
+		TestErrorf("ParentChanged() called unexpectedly by uiNewControl(); most recent newParent = %p", (void *) (counts.newParent));
+
+	d = uiNewControl(testControlType(), NULL);
+
+	uiControlSetParent(c, d);
+	switch (counts.countParentChanging) {
+	case 0:
+		TestErrorf("ParentChanging() was not called by SetParent(non-NULL)");
+		break;
+	case 1:
+		// do nothing; this is the expected case
+		break;
+	default:
+		TestErrorf("ParentChanging() called more than once by SetParent(non-NULL)");
+	}
+	if (counts.oldParent != NULL)
+		TestErrorf("ParentChanging() called with wrong oldParent by SetParent(non-NULL) (if called more than once, this is the most recent call):" diff("%p"),
+			(void *) (counts.oldParent), (void *) NULL);
+	switch (counts.countParentChanged) {
+	case 0:
+		TestErrorf("ParentChanged() was not called by SetParent(non-NULL)");
+		break;
+	case 1:
+		// do nothing; this is the expected case
+		break;
+	default:
+		TestErrorf("ParentChanged() called more than once by SetParent(non-NULL)");
+	}
+	if (counts.newParent != d)
+		TestErrorf("ParentChanged() called with wrong newParent by SetParent(non-NULL) (if called more than once, this is the most recent call):" diff("%p"),
+			(void *) (counts.newParent), (void *) d);
+	if (counts.countInit != 1)
+		TestErrorf("Init() called unexpectedly by uiControlSetParent(non-NULL)");
+	if (counts.countFree != 0)
+		TestErrorf("Free() called unexpectedly by uiControlSetParent(non-NULL)");
+
+	uiControlSetParent(c, NULL);
+	switch (counts.countParentChanging) {
+	case 0:
+	case 1:
+		TestErrorf("ParentChanging() was not called by SetParent(NULL)");
+		break;
+	case 2:
+		// do nothing; this is the expected case
+		break;
+	default:
+		TestErrorf("ParentChanging() called more than once by SetParent(NULL)");
+	}
+	if (counts.oldParent != d)
+		TestErrorf("ParentChanging() called with wrong oldParent by SetParent(NULL) (if called more than once, this is the most recent call):" diff("%p"),
+			(void *) (counts.oldParent), (void *) d);
+	switch (counts.countParentChanged) {
+	case 0:
+	case 1:
+		TestErrorf("ParentChanged() was not called by SetParent(NULL)");
+		break;
+	case 2:
+		// do nothing; this is the expected case
+		break;
+	default:
+		TestErrorf("ParentChanged() called more than once by SetParent(NULL)");
+	}
+	if (counts.newParent != NULL)
+		TestErrorf("ParentChanged() called with wrong newParent by SetParent(NULL) (if called more than once, this is the most recent call):" diff("%p"),
+			(void *) (counts.newParent), (void *) NULL);
+	if (counts.countInit != 1)
+		TestErrorf("Init() called unexpectedly by uiControlSetParent(NULL)");
+	if (counts.countFree != 0)
+		TestErrorf("Free() called unexpectedly by uiControlSetParent(NULL)");
+
+	uiControlFree(d);
 
 	uiControlFree(c);
 	switch (counts.countFree) {
@@ -151,6 +269,10 @@ Test(ControlMethodsCalled)
 	}
 	if (counts.countInit != 1)
 		TestErrorf("Init() called unexpectedly by uiControlFree()");
+	if (counts.countParentChanging != 2)
+		TestErrorf("ParentChanging() called unexpectedly by uiNewControl(); most recent oldParent = %p", (void *) (counts.oldParent));
+	if (counts.countParentChanged != 2)
+		TestErrorf("ParentChanged() called unexpectedly by uiNewControl(); most recent newParent = %p", (void *) (counts.newParent));
 }
 
 Test(NullControlTypeNameIsProgrammerError)
@@ -203,6 +325,30 @@ Test(ControlVtableWithMissingFreeMethodIsProgrammerError)
 	ctx = beginCheckProgrammerError("uiRegisterControlType(): required uiControlVtable method Free() missing for uiControl type name");
 	vt = vtable;
 	vt.Free = NULL;
+	uiRegisterControlType("name", &vt, NULL, 0);
+	endCheckProgrammerError(ctx);
+}
+
+Test(ControlVtableWithMissingParentChangingMethodIsProgrammerError)
+{
+	uiControlVtable vt;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiRegisterControlType(): required uiControlVtable method ParentChanging() missing for uiControl type name");
+	vt = vtable;
+	vt.ParentChanging = NULL;
+	uiRegisterControlType("name", &vt, NULL, 0);
+	endCheckProgrammerError(ctx);
+}
+
+Test(ControlVtableWithMissingParentChangedMethodIsProgrammerError)
+{
+	uiControlVtable vt;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiRegisterControlType(): required uiControlVtable method ParentChanged() missing for uiControl type name");
+	vt = vtable;
+	vt.ParentChanged = NULL;
 	uiRegisterControlType("name", &vt, NULL, 0);
 	endCheckProgrammerError(ctx);
 }

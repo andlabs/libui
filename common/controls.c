@@ -68,6 +68,8 @@ uint32_t uiRegisterControlType(const char *name, const uiControlVtable *vtable, 
 	}
 	checkMethod(Init)
 	checkMethod(Free)
+	checkMethod(ParentChanging)
+	checkMethod(ParentChanged)
 #undef checkMethod
 
 	if (osVtable == NULL) {
@@ -241,7 +243,10 @@ void uiControlSetParent(uiControl *c, uiControl *parent)
 		uiprivProgrammerErrorControlParentCycle(uiprivFunc);
 		return;
 	}
+
+	callVtable(c->type->vtable.ParentChanging, c, c->implData, c->parent);
 	c->parent = parent;
+	callVtable(c->type->vtable.ParentChanged, c, c->implData, c->parent);
 }
 
 void *uiControlImplData(uiControl *c)

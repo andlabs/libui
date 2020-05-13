@@ -54,6 +54,8 @@ struct uiControlVtable {
 	size_t Size;
 	bool (*Init)(uiControl *c, void *implData, void *initData);
 	void (*Free)(uiControl *c, void *implData);
+	void (*ParentChanging)(uiControl *c, void *implData, uiControl *oldParent);
+	void (*ParentChanged)(uiControl *c, void *implData, uiControl *newParent);
 };
 
 uiprivExtern uint32_t uiRegisterControlType(const char *nane, const uiControlVtable *vtable, const uiControlOSVtable *osVtable, size_t implDataSize);

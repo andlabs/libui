@@ -28,6 +28,8 @@ struct uiControlVtable {
 	size_t Size;
 	bool (*Init)(uiControl *c, void *implData, void *initData);
 	void (*Free)(uiControl *c, void *implData);
+	void (*ParentChanging)(uiControl *c, void *implData, uiControl *oldParent);
+	void (*ParentChanged)(uiControl *c, void *implData, uiControl *newParent);
 };
 ```
 
@@ -117,7 +119,9 @@ It is a programmer error to introduce a cycle when changing the parent of a cont
 
 TODO top-levels and parenting
 
-**For control implementations**: You would call this when adding a control to your container, preferably before actually doing the OS-level work involved. Likewise, call this when removing a child, preferably after doing the OS-level work involved.
+**For control implementations**: You would call this when adding a control to your container, preferably before actually doing any internal bookkeeping. Likewise, call this when removing a child, preferably after doing any internal bookkeeping.
+
+The child will receive a call to its `ParentChanging()` method before the actual change happens, and a call to `ParentChanged()` afterward, receiving the old and new parent, respectively, as an argument. This is where OS-specific parenting code would go; specific instructions can be found in each OS's uiControl implementation page.
 
 TODO do things this way to avoid needing to check if reparenting from a container implementation, or do that manually each time? we used to have uiControlVerifySetParent()...
 TODO I forgot what this meant

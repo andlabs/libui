@@ -5,4 +5,7 @@ libui_sources += [
 	'common/controls.c',
 	'common/errors.c',
 	'common/main.c',
+	'common/utf8.c',
+
+	'common/third_party/utf.c',
 ]

@@ -1,6 +1,5 @@
 // 8 june 2019
 #include "uipriv.h"
-#include "testhooks.h"
 
 struct controlType {
 	uint32_t id;

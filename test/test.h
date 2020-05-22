@@ -11,6 +11,7 @@
 #ifdef libuiOSHeader
 #include libuiOSHeader
 #endif
+#include "../common/testhooks.h"
 
 #ifdef __cplusplus
 extern "C" {

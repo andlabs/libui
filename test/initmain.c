@@ -1,7 +1,6 @@
 // 10 april 2019
 #include "test.h"
 #include "thread.h"
-#include "../common/testhooks.h"
 
 static void testImplInitFailureFull(const char *file, long line)
 {

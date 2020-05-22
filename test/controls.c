@@ -1,6 +1,5 @@
 // 8 june 2019
 #include "test.h"
-#include "../common/testhooks.h"
 
 static bool vtableNopInit(uiControl *c, void *implData, void *initData)
 {

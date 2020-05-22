@@ -1,6 +1,5 @@
 // 19 april 2019
 #include "uipriv.h"
-#include "testhooks.h"
 
 enum {
 	stateUninitialized,

@@ -9,6 +9,7 @@
 #ifdef uiprivOSHeader
 #include uiprivOSHeader
 #endif
+#include "testhooks.h"
 
 #ifdef __cplusplus
 extern "C" {

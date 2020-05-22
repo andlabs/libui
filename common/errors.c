@@ -1,6 +1,5 @@
 // 12 may 2019
 #include "uipriv.h"
-#include "testhooks.h"
 
 #define internalErrorPrefix "libui internal error"
 // TODO add debugging advice?

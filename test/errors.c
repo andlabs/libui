@@ -1,7 +1,6 @@
 // 28 may 2019
 #include "test.h"
 #include "thread.h"
-#include "../common/testhooks.h"
 
 // Do not put any test cases in this file; they will not be run.
 

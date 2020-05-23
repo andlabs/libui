@@ -66,7 +66,7 @@ uiprivExtern void uiControlFree(uiControl *c);
 uiprivExtern void uiControlSetParent(uiControl *c, uiControl *parent);
 uiprivExtern void *uiControlImplData(uiControl *c);
 
-typedef struct uiWindow uiWindow;
+typedef uiControl uiWindow;
 uiprivExtern uint32_t uiWindowType(void);
 #define uiWindow(obj) ((uiWindow *) uiCheckControlType((obj), uiWindowType()))
 

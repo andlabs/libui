@@ -3,9 +3,10 @@
 
 #define defaultStyleMask (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
 
-struct uiWindow {
-	uiDarwinControl c;
+struct windowImplData {
 	NSWindow *window;
+	char *title;
+#if 0
 	uiControl *child;
 	int margined;
 	int (*onClosing)(uiWindow *, void *);
@@ -16,7 +17,10 @@ struct uiWindow {
 	BOOL suppressSizeChanged;
 	int fullscreen;
 	int borderless;
+#endif
 };
+
+#if 0
 
 @implementation uiprivNSWindow
 
@@ -367,24 +371,25 @@ static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
 	// do nothing
 }
 
-uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
+#endif
+
+static bool windowInit(uiControl *c, void *implData, void *initData)
 {
-	uiWindow *w;
+	windowImplData *w = (windowImplData *) implData;
 
-	uiprivFinalizeMenus();
-
-	uiDarwinNewControl(uiWindow, w);
-
-	w->window = [[uiprivNSWindow alloc] initWithContentRect:NSMakeRect(0, 0, (CGFloat) width, (CGFloat) height)
+	w->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, TODO, TODO)
 		styleMask:defaultStyleMask
 		backing:NSBackingStoreBuffered
 		defer:YES];
-	[w->window setTitle:uiprivToNSString(title)];
+
+	w->title = NULL;
+	[w->window setTitle:@""];
 
 	// do NOT release when closed
 	// we manually do this in uiWindowDestroy() above
 	[w->window setReleasedWhenClosed:NO];
 
+#if 0
 	if (windowDelegate == nil) {
 		windowDelegate = [[windowDelegateClass new] autorelease];
 		[uiprivDelegates addObject:windowDelegate];
@@ -392,9 +397,62 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	[windowDelegate registerWindow:w];
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
+#endif
 
-	return w;
+	return true;
 }
+
+static void windowFree(uiControl *c, void *implData)
+{
+}
+
+static void windowParentChanging(uiControl *c, void *implData, uiControl *oldParent)
+{
+}
+
+static void windowParentChanged(uiControl *c, void *implData, uiControl *newParent)
+{
+}
+
+static const uiControlVtable windowVtable = {
+	.Size = sizeof (uiControlVtable),
+	.Init = windowInit,
+	.Free = windowFree,
+	.ParentChanging = windowParentChanging,
+	.ParentChanged = windowParentChanged,
+};
+
+static const uiControlOSVtable windowOSVtable = {
+	.Size = sizeof (uiControlOSVtable),
+};
+
+static uint32_t windowType = 0;
+
+uint32_t uiWindowType(void)
+{
+	if (windowType == 0)
+		windowType = uiRegisterControlType("uiWindow", &windowVtable, &windowOSVtable, sizeof (windowImplData));
+	return windowType;
+}
+
+uiWindow *uiNewWindow(void)
+{
+	return (uiWindow *) uiNewControl(uiWindowType(), NULL);
+}
+
+const char *uiWindowTitle(uiWindow *w)
+{
+	if (w->title == NULL)
+		return "";
+	return w->title;
+}
+
+void uiWindowSetTitle(uiWindow *w, const char *title)
+{
+	// TODO
+}
+
+#if 0
 
 // utility function for menus
 uiWindow *uiprivWindowFromNSWindow(NSWindow *w)
@@ -405,3 +463,5 @@ uiWindow *uiprivWindowFromNSWindow(NSWindow *w)
 		return NULL;
 	return [windowDelegate lookupWindow:w];
 }
+
+#endif

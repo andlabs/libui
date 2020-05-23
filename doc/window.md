@@ -11,12 +11,12 @@ TODO
 ### `uiWindow`
 
 ```c
-typedef struct uiWindow uiWindow;
+typedef uiControl uiWindow;
 uiprivExtern uint32_t uiWindowType(void);
 #define uiWindow(obj) ((uiWindow *) uiCheckControlType((obj), uiWindowType()))
 ```
 
-`uiWindow` is an opaque `uiControl` type that represents a window.
+`uiWindow` is a `uiControl` that represents a window.
 
 Windows are the highest level of a control hierarchy that is visibile on screen. All controls that are current visible are contained within a `uiWindow`, and it is the size and position of the window that ultimately decides their size and position (though a control's minimum size may contribute to this). Windows also have titles, which are used to identify the window to the user.
 

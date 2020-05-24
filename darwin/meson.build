@@ -3,6 +3,7 @@
 libui_sources += [
 	'darwin/controls.m',
 	'darwin/main.m',
+	'darwin/window.m',
 ]
 
 libui_deps += [

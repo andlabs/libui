@@ -79,3 +79,11 @@
 	uiprivProgrammerError("%s(): cannot create a parent cycle", func)
 
 // }
+
+// windows {
+
+// TODO have any parameters, such as what the window is and what the parent is? to add func we'll need to carry that out from uiControlSetParent() (which means exposing that in the API)
+#define uiprivProgrammerErrorCannotHaveWindowsAsChildren() \
+	uiprivProgrammerError("cannot set a uiWindow as the child of another uiControl")
+
+// }

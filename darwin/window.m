@@ -249,16 +249,6 @@ static void uiWindowChildVisibilityChanged(uiDarwinControl *c)
 	windowRelayout(w);
 }
 
-char *uiWindowTitle(uiWindow *w)
-{
-	return uiDarwinNSStringToText([w->window title]);
-}
-
-void uiWindowSetTitle(uiWindow *w, const char *title)
-{
-	[w->window setTitle:uiprivToNSString(title)];
-}
-
 void uiWindowContentSize(uiWindow *w, int *width, int *height)
 {
 	NSRect r;
@@ -375,19 +365,20 @@ static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
 
 static bool windowInit(uiControl *c, void *implData, void *initData)
 {
-	windowImplData *w = (windowImplData *) implData;
+	struct windowImplData *wi = (struct windowImplData *) implData;
 
-	w->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, TODO, TODO)
+	// TODO grab the exact values from Interface Builder
+	wi->window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 100, 100)
 		styleMask:defaultStyleMask
 		backing:NSBackingStoreBuffered
 		defer:YES];
 
-	w->title = NULL;
-	[w->window setTitle:@""];
+	wi->title = NULL;
+	[wi->window setTitle:@""];
 
 	// do NOT release when closed
 	// we manually do this in uiWindowDestroy() above
-	[w->window setReleasedWhenClosed:NO];
+	[wi->window setReleasedWhenClosed:NO];
 
 #if 0
 	if (windowDelegate == nil) {
@@ -404,14 +395,24 @@ static bool windowInit(uiControl *c, void *implData, void *initData)
 
 static void windowFree(uiControl *c, void *implData)
 {
+	struct windowImplData *wi = (struct windowImplData *) implData;
+
+	if (wi->title != NULL) {
+		uiprivFreeUTF8(wi->title);
+		wi->title = NULL;
+	}
+	[wi->window release];
+	wi->window = nil;
 }
 
 static void windowParentChanging(uiControl *c, void *implData, uiControl *oldParent)
 {
+	uiprivProgrammerErrorCannotHaveWindowsAsChildren();
 }
 
 static void windowParentChanged(uiControl *c, void *implData, uiControl *newParent)
 {
+	uiprivProgrammerErrorCannotHaveWindowsAsChildren();
 }
 
 static const uiControlVtable windowVtable = {
@@ -431,7 +432,7 @@ static uint32_t windowType = 0;
 uint32_t uiWindowType(void)
 {
 	if (windowType == 0)
-		windowType = uiRegisterControlType("uiWindow", &windowVtable, &windowOSVtable, sizeof (windowImplData));
+		windowType = uiRegisterControlType("uiWindow", &windowVtable, &windowOSVtable, sizeof (struct windowImplData));
 	return windowType;
 }
 
@@ -442,14 +443,21 @@ uiWindow *uiNewWindow(void)
 
 const char *uiWindowTitle(uiWindow *w)
 {
-	if (w->title == NULL)
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	if (wi->title == NULL)
 		return "";
-	return w->title;
+	return wi->title;
 }
 
 void uiWindowSetTitle(uiWindow *w, const char *title)
 {
-	// TODO
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	if (wi->title != NULL)
+		uiprivFreeUTF8(wi->title);
+	wi->title = uiprivSanitizeUTF8(title);
+	[wi->window setTitle:[NSString stringWithUTF8String:wi->title]];
 }
 
 #if 0

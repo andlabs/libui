@@ -446,6 +446,7 @@ const char *uiWindowTitle(uiWindow *w)
 	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
 
 	if (wi->title == NULL)
+		// TODO replace this with a dedicated UTF-8 empty string object
 		return "";
 	return wi->title;
 }

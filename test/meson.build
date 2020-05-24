@@ -5,6 +5,7 @@ libui_test_sources = files([
 	'controls.c',
 	'initmain.c',
 	'noinitwrongthread.c',
+	'window.c',
 ])
 libui_allcalls_headers = files([
 	'allcalls.h',

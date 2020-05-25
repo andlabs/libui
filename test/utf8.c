@@ -3,7 +3,8 @@
 
 // Do not put any test cases in this file; they will not be run.
 
-/* C99 notes on the safety of storing UTF-8 data directly in char:
+/* TODO address all this
+C99 notes on the safety of storing UTF-8 data directly in char:
 - §5.2.4.2.1¶1 says char, signed char, and unsigned char must be no fewer than 8 bits wide
 - §6.2.5¶15 states that char must either be signed char or unsigned char (or some equivalent)
 	- footnote 35 says that CHAR_MIN can be used to detect which one was chosen, which can help in some of the situations below
@@ -58,4 +59,35 @@ bool utf8equal(const char *s, const char *t)
 	}
 }
 
-// TODO utf8diff
+static void utf8hexdump(char buf[64], const char *s)
+{
+	int i;
+	uint8_t x;
+
+	for (i = 0; i < 60; i += 3) {
+		x = (uint8_t) (*s);
+		s++;
+		buf[i + 0] = "0123456789ABCDEF"[(x & 0xF0) >> 4];
+		buf[i + 1] = "0123456789ABCDEF"[x & 0x0F];
+		if (x == 0) {
+			buf[i + 2] = '\0';
+			break;
+		}
+		buf[i + 2] = ' ';
+	}
+	if (i >= 60) {
+		buf[60] = '.';
+		buf[61] = '.';
+		buf[62] = '.';
+		buf[63] = '\0';
+	}
+}
+
+void utf8diffErrorfFull(const char *file, long line, const char *msg, const char *got, const char *want)
+{
+	char a[64], b[64];
+
+	utf8hexdump(a, got);
+	utf8hexdump(b, want);
+	TestErrorfFull(file, line, "%s:" diff("%s"), msg, a, b);
+}

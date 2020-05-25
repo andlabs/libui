@@ -87,6 +87,19 @@ extern void endCheckProgrammerErrorFull(const char *file, long line, void *conte
 extern void testControlLoadNopVtable(uiControlVtable *vtable);
 extern const uiControlOSVtable *testOSVtable(void);
 
+// utf8.c
+extern const char testUTF8Empty[];
+extern const char testUTF8ASCIIOnly[];
+extern const char testUTF8WithTwoByte[];
+extern const char testUTF8WithThreeByte[];
+extern const char testUTF8WithFourByte[];
+extern const char testUTF8Combined[];
+extern const char testUTF8InvalidInput[];
+extern const char testUTF8InvalidOutput[];
+extern bool utf8equal(const char *s, const char *t);
+extern void utf8diffErrorfFull(const char *file, long line, const char *msg, const char *got, const char *want);
+#define utf8diffErrorf(msg, got, want) utf8diffErrorfFull(__FILE__, __LINE__, msg, got, want)
+
 #ifdef __cplusplus
 }
 #endif

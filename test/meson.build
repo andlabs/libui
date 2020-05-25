@@ -31,6 +31,7 @@ endif
 libui_test_sources_without_cases = [
 	'errors.c',
 	'main.c',
+	'utf8.c',
 ]
 if libui_OS == 'windows'
 	libui_test_sources_without_cases += [

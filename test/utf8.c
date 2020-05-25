@@ -3,6 +3,7 @@
 
 // Do not put any test cases in this file; they will not be run.
 
+// TODO specify these hex constants in a signedness-safe way
 const char testUTF8Empty[] = { 0 };
 const char testUTF8ASCIIOnly[] = { 0x74, 0x65, 0x73, 0x74, 0 };
 const char testUTF8WithTwoByte[] = { 0x74, 0xC3, 0xA9, 0x73, 0x74, 0 };

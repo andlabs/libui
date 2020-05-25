@@ -83,7 +83,7 @@ static void utf8hexdump(char buf[64], const char *s)
 	}
 }
 
-void utf8diffErrorfFull(const char *file, long line, const char *msg, const char *got, const char *want)
+void utf8diffErrorFull(const char *file, long line, const char *msg, const char *got, const char *want)
 {
 	char a[64], b[64];
 

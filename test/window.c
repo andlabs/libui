@@ -26,13 +26,59 @@ Test(InitialWindowTitleIsEmptyString)
 
 	w = uiNewWindow();
 	title = uiWindowTitle(w);
-	// TODO have a utf8cmp()
-	if (*title != 0)
-		// TODO have a diffUTF8
-		TestErrorf("brand new uiWindow has wrong title:" diff("%s"),
-			title, "(empty string)");
+	if (!utf8equal(title, testUTF8Empty))
+		utf8diffError("brand new uiWindow has wrong title", title, testUTF8Empty);
 	uiControlFree(uiControl(w));
 }
 
-// TODO check that SetTitle works, and also that it sanitizes
-// TODO for all the above, check that the underlying title was also set appropriately
+static void testSetWindowTitleImplFull(const char *file, long line, const char *title, const char *want)
+{
+	uiWindow *w;
+	const char *got;
+
+	w = uiNewWindow();
+	uiWindowSetTitle(w, title);
+	got = uiWindowTitle(w);
+	if (!utf8equal(got, want))
+		utf8diffErrorFull(file, line, "uiWindowTitle() reported wrong title after uiWindowSetTitle()", got, want);
+	uiControlFree(uiControl(w));
+}
+
+#define testSetWindowTitleImpl(title, want) testSetWindowTitleImplFull(__FILE__, __LINE__, title, want)
+
+Test(SetWindowTitle_Empty)
+{
+	testSetWindowTitleImpl(testUTF8Empty, testUTF8Empty);
+}
+
+Test(SetWindowTitle_ASCIIOnly)
+{
+	testSetWindowTitleImpl(testUTF8ASCIIOnly, testUTF8ASCIIOnly);
+}
+
+Test(SetWindowTitle_WithTwoByte)
+{
+	testSetWindowTitleImpl(testUTF8WithTwoByte, testUTF8WithTwoByte);
+}
+
+Test(SetWindowTitle_WithThreeByte)
+{
+	testSetWindowTitleImpl(testUTF8WithThreeByte, testUTF8WithThreeByte);
+}
+
+Test(SetWindowTitle_WithFourByte)
+{
+	testSetWindowTitleImpl(testUTF8WithFourByte, testUTF8WithFourByte);
+}
+
+Test(SetWindowTitle_Combined)
+{
+	testSetWindowTitleImpl(testUTF8Combined, testUTF8Combined);
+}
+
+Test(SetWindowTitle_Invalid)
+{
+	testSetWindowTitleImpl(testUTF8InvalidInput, testUTF8InvalidOutput);
+}
+
+// TODO for all the above, check that the underlying OS-level title was also set appropriately

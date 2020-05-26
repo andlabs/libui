@@ -75,7 +75,7 @@ uint32_t uiRegisterControlType(const char *name, const uiControlVtable *vtable, 
 		uiprivProgrammerErrorNullPointer("uiControlOSVtable", uiprivFunc);
 		return 0;
 	}
-	if (!uiprivOSVtableValid(osVtable, uiprivFunc))
+	if (!uiprivOSVtableValid(name, osVtable, uiprivFunc))
 		return 0;
 
 	ct = (struct controlType *) uiprivArrayAppend(&controlTypes, 1);
@@ -257,6 +257,11 @@ void *uiControlImplData(uiControl *c)
 		return NULL;
 	}
 	return c->implData;
+}
+
+uiControlOSVtable *uiprivControlOSVtable(uiControl *c)
+{
+	return c->type->osVtable;
 }
 
 static uiControl testHookControlWithInvalidControlMarker = {

@@ -69,6 +69,7 @@ uiprivExtern void *uiControlImplData(uiControl *c);
 typedef uiControl uiWindow;
 uiprivExtern uint32_t uiWindowType(void);
 #define uiWindow(obj) ((uiWindow *) uiCheckControlType((obj), uiWindowType()))
+// TODO provide events for window close button clicked
 
 uiprivExtern uiWindow *uiNewWindow(void);
 uiprivExtern const char *uiWindowTitle(uiWindow *w);

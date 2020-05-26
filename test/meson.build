@@ -17,6 +17,7 @@ if libui_OS == 'windows'
 elif libui_OS == 'darwin'
 	libui_test_sources += files([
 		'controls_darwin.m',
+		'window_darwin.m',
 	])
 elif libui_OS == 'haiku'
 	libui_test_sources += files([
@@ -50,6 +51,7 @@ libui_test_deps = [
 	dependency('threads',
 		required: true),
 ]
+# TODO deduplicate these
 if libui_OS == 'windows'
 	# static mode already gives us these dependencies
 	if libui_mode != 'static'
@@ -57,6 +59,17 @@ if libui_OS == 'windows'
 			meson.get_compiler('c').find_library('kernel32',
 				required: true),
 			meson.get_compiler('c').find_library('user32',
+				required: true),
+		]
+	endif
+elif libui_OS == 'darwin'
+	# static mode already gives us these dependencies
+	if libui_mode != 'static'
+		libui_test_deps += [
+			meson.get_compiler('objc').find_library('objc',
+				required: true),
+			dependency('appleframeworks',
+				modules: ['Foundation', 'AppKit'],
 				required: true),
 		]
 	endif

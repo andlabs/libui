@@ -73,8 +73,9 @@ uiprivPrintfFunc(
 extern void uiprivReportError(const char *prefix, const char *msg, const char *suffix, bool internal);
 
 // controls.c
-extern bool uiprivOSVtableValid(const uiControlOSVtable *osVtable, const char *func);
+extern bool uiprivOSVtableValid(const char *name, const uiControlOSVtable *osVtable, const char *func);
 extern uiControlOSVtable *uiprivCloneOSVtable(const uiControlOSVtable *osVtable);
+extern uiControlOSVtable *uiprivControlOSVtable(uiControl *c);
 
 // utf8.c
 extern char *uiprivSanitizeUTF8(const char *str);

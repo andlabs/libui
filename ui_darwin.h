@@ -13,7 +13,11 @@ extern "C" {
 
 struct uiControlOSVtable {
 	size_t Size;
+	id (*Handle)(uiControl *c, void *implData);
+	// TODO provide events for handle creation and destruction
 };
+
+uiprivExtern id uiDarwinControlHandle(uiControl *c);
 
 #ifdef __cplusplus
 }

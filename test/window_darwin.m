@@ -1,31 +1,25 @@
 // 24 may 2020
-#include "test.h"
+#import "test_darwin.h"
 
-Test(CannotMakeWindowAChild)
+Test(WindowHasHandleFromStart)
 {
-	uiWindow *a, *b;
-	void *ctx;
+	uiWindow *a;
 
 	a = uiNewWindow();
-	b = uiNewWindow();
-
-	ctx = beginCheckProgrammerError("cannot set a uiWindow as the child of another uiControl");
-	uiControlSetParent(a, b);
-	// TODO this should not be necessary
-	uiControlSetParent(a, NULL);
-	endCheckProgrammerError(ctx);
-
-	uiControlFree(uiControl(b));
+	if (uiDarwinControlHandle(uiControl(a)) == nil)
+		TestErrorf("uiDarwinControlHandle(brand new uiWindow) is nil; should not be");
 	uiControlFree(uiControl(a));
 }
 
-Test(InitialWindowTitleIsEmptyString)
+Test(InitialWindowTitleIsEmptyString_OSLevel)
 {
 	uiWindow *w;
+	NSWindow *nsw;
 	const char *title;
 
 	w = uiNewWindow();
-	title = uiWindowTitle(w);
+	nsw = (NSWindow *) uiDarwinControlHandle(uiControl(w));
+	title = [[nsw title] UTF8String];
 	if (!utf8equal(title, testUTF8Empty))
 		utf8diffError("brand new uiWindow has wrong title", title, testUTF8Empty);
 	uiControlFree(uiControl(w));
@@ -34,11 +28,13 @@ Test(InitialWindowTitleIsEmptyString)
 static void testSetWindowTitleImplFull(const char *file, long line, const char *title, const char *want)
 {
 	uiWindow *w;
+	NSWindow *nsw;
 	const char *got;
 
 	w = uiNewWindow();
 	uiWindowSetTitle(w, title);
-	got = uiWindowTitle(w);
+	nsw = (NSWindow *) uiDarwinControlHandle(uiControl(w));
+	got = [[nsw title] UTF8String];
 	if (!utf8equal(got, want))
 		utf8diffErrorFull(file, line, "uiWindowTitle() reported wrong title after uiWindowSetTitle()", got, want);
 	uiControlFree(uiControl(w));
@@ -46,37 +42,37 @@ static void testSetWindowTitleImplFull(const char *file, long line, const char *
 
 #define testSetWindowTitleImpl(title, want) testSetWindowTitleImplFull(__FILE__, __LINE__, title, want)
 
-Test(SetWindowTitle_Empty)
+Test(SetWindowTitle_OSLevel_Empty)
 {
 	testSetWindowTitleImpl(testUTF8Empty, testUTF8Empty);
 }
 
-Test(SetWindowTitle_ASCIIOnly)
+Test(SetWindowTitle_OSLevel_ASCIIOnly)
 {
 	testSetWindowTitleImpl(testUTF8ASCIIOnly, testUTF8ASCIIOnly);
 }
 
-Test(SetWindowTitle_WithTwoByte)
+Test(SetWindowTitle_OSLevel_WithTwoByte)
 {
 	testSetWindowTitleImpl(testUTF8WithTwoByte, testUTF8WithTwoByte);
 }
 
-Test(SetWindowTitle_WithThreeByte)
+Test(SetWindowTitle_OSLevel_WithThreeByte)
 {
 	testSetWindowTitleImpl(testUTF8WithThreeByte, testUTF8WithThreeByte);
 }
 
-Test(SetWindowTitle_WithFourByte)
+Test(SetWindowTitle_OSLevel_WithFourByte)
 {
 	testSetWindowTitleImpl(testUTF8WithFourByte, testUTF8WithFourByte);
 }
 
-Test(SetWindowTitle_Combined)
+Test(SetWindowTitle_OSLevel_Combined)
 {
 	testSetWindowTitleImpl(testUTF8Combined, testUTF8Combined);
 }
 
-Test(SetWindowTitle_Invalid)
+Test(SetWindowTitle_OSLevel_Invalid)
 {
 	testSetWindowTitleImpl(testUTF8InvalidInput, testUTF8InvalidOutput);
 }

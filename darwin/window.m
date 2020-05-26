@@ -415,6 +415,13 @@ static void windowParentChanged(uiControl *c, void *implData, uiControl *newPare
 	uiprivProgrammerErrorCannotHaveWindowsAsChildren();
 }
 
+static id windowHandle(uiControl *c, void *implData)
+{
+	struct windowImplData *wi = (struct windowImplData *) implData;
+
+	return wi->window;
+}
+
 static const uiControlVtable windowVtable = {
 	.Size = sizeof (uiControlVtable),
 	.Init = windowInit,
@@ -425,6 +432,7 @@ static const uiControlVtable windowVtable = {
 
 static const uiControlOSVtable windowOSVtable = {
 	.Size = sizeof (uiControlOSVtable),
+	.Handle = windowHandle,
 };
 
 static uint32_t windowType = 0;

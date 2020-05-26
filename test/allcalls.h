@@ -15,3 +15,9 @@ allcallsCase(uiNewControl, 0, NULL)
 allcallsCase(uiControlFree, NULL)
 allcallsCase(uiControlSetParent, NULL, NULL)
 allcallsCase(uiControlImplData, NULL)
+
+allcallsCase(uiWindowType, /* no arguments */)
+
+allcallsCase(uiNewWindow, /* no arguments */)
+allcallsCase(uiWindowTitle, NULL)
+allcallsCase(uiWindowSetTitle, NULL, NULL)

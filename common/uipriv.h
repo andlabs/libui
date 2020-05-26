@@ -81,6 +81,12 @@ extern uiControlOSVtable *uiprivControlOSVtable(uiControl *c);
 extern char *uiprivSanitizeUTF8(const char *str);
 extern void uiprivFreeUTF8(char *sanitized);
 
+// window.c
+extern uint32_t uiprivSysWindowType(void);
+extern uiWindow *uiprivSysNewWindow(void);
+extern const char *uiprivSysWindowTitle(uiWindow *w);
+extern void uiprivSysWindowSetTitle(uiWindow *w, const char *title);
+
 #ifdef __cplusplus
 }
 #endif

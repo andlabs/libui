@@ -21,6 +21,7 @@ struct windowImplData {
 };
 
 #if 0
+// skip {
 
 @implementation uiprivNSWindow
 
@@ -151,8 +152,6 @@ static void uiWindowDestroy(uiControl *c)
 	[w->window release];
 	uiFreeControl(uiControl(w));
 }
-
-uiDarwinControlDefaultHandle(uiWindow, window)
 
 uiControl *uiWindowParent(uiControl *c)
 {
@@ -361,6 +360,7 @@ static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
 	// do nothing
 }
 
+// } skip
 #endif
 
 static bool windowInit(uiControl *c, void *implData, void *initData)
@@ -437,19 +437,19 @@ static const uiControlOSVtable windowOSVtable = {
 
 static uint32_t windowType = 0;
 
-uint32_t uiWindowType(void)
+uint32_t uiprivSysWindowType(void)
 {
 	if (windowType == 0)
 		windowType = uiRegisterControlType("uiWindow", &windowVtable, &windowOSVtable, sizeof (struct windowImplData));
 	return windowType;
 }
 
-uiWindow *uiNewWindow(void)
+uiWindow *uiprivSysNewWindow(void)
 {
 	return (uiWindow *) uiNewControl(uiWindowType(), NULL);
 }
 
-const char *uiWindowTitle(uiWindow *w)
+const char *uiprivSysWindowTitle(uiWindow *w)
 {
 	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
 
@@ -459,7 +459,7 @@ const char *uiWindowTitle(uiWindow *w)
 	return wi->title;
 }
 
-void uiWindowSetTitle(uiWindow *w, const char *title)
+void uiprivSysWindowSetTitle(uiWindow *w, const char *title)
 {
 	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
 

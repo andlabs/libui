@@ -1,8 +1,6 @@
 // 28 may 2019
-#include "test.h"
-#include "thread.h"
-
-// TODO split the macros in this file into its own file
+#import "test_darwin.h"
+#import "thread.h"
 
 // TODO rename to FunctionsFailBeforeInit?
 #define allcallsCase(f, ...) \
@@ -13,17 +11,8 @@
 		f(__VA_ARGS__); \
 		endCheckProgrammerError(ctx); \
 	}
-#include "allcalls.h"
+#include "allcalls_darwin.h"
 #undef allcallsCase
-
-TestNoInit(CallBeforeInitIsProgrammerError_uiQueueMain)
-{
-	void *ctx;
-
-	ctx = beginCheckProgrammerError("attempt to call uiQueueMain() before uiInit()");
-	uiQueueMain(NULL, NULL);
-	endCheckProgrammerError(ctx);
-}
 
 // TODO rename to FunctionsFailOnWrongThread?
 #define allcallsCase(f, ...) \
@@ -45,7 +34,5 @@ TestNoInit(CallBeforeInitIsProgrammerError_uiQueueMain)
 			TestFatalf("error waiting for thread to finish: " threadSysErrorFmt, threadSysErrorFmtArg(err)); \
 		endCheckProgrammerError(ctx); \
 	}
-#include "allcalls.h"
+#include "allcalls_darwin.h"
 #undef allcallsCase
-
-// no uiQueueMain() test for the wrong thread; it's supposed to be callable from any thread

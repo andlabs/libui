@@ -13,7 +13,10 @@ extern "C" {
 
 struct uiControlOSVtable {
 	size_t Size;
+	GtkWidget *(*Handle)(uiControl *c, void *implData);
 };
+
+uiprivExtern GtkWidget *uiUnixControlHandle(uiControl *c);
 
 #ifdef __cplusplus
 }

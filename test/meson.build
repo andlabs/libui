@@ -30,6 +30,7 @@ elif libui_OS == 'haiku'
 else
 	libui_test_sources += files([
 		'controls_unix.c',
+		'window_unix.c',
 	])
 endif
 
@@ -74,6 +75,18 @@ elif libui_OS == 'darwin'
 				required: true),
 			dependency('appleframeworks',
 				modules: ['Foundation', 'AppKit'],
+				required: true),
+		]
+	endif
+elif libui_OS == 'haiku'
+	# TODO
+else
+	# static mode already gives us these dependencies
+	if libui_mode != 'static'
+		libui_test_deps += [
+			dependency('gtk+-3.0',
+				version: '>=3.10.0',
+				method: 'pkg-config',
 				required: true),
 		]
 	endif

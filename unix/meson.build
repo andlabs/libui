@@ -3,6 +3,7 @@
 libui_sources += [
 	'unix/controls.c',
 	'unix/main.c',
+	'unix/window.c',
 ]
 
 libui_deps += [

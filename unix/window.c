@@ -1,13 +1,13 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
-struct uiWindow {
-	uiUnixControl c;
-
+struct windowImplData {
 	GtkWidget *widget;
 	GtkContainer *container;
 	GtkWindow *window;
 
+	char *title;
+#if 0
 	GtkWidget *vboxWidget;
 	GtkContainer *vboxContainer;
 	GtkBox *vbox;
@@ -25,7 +25,11 @@ struct uiWindow {
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
 	gboolean fullscreen;
+#endif
 };
+
+#if 0
+// skip {
 
 static gboolean onClosing(GtkWidget *win, GdkEvent *e, gpointer data)
 {
@@ -118,11 +122,6 @@ uiUnixControlDefaultSetContainer(uiWindow)
 char *uiWindowTitle(uiWindow *w)
 {
 	return uiUnixStrdupText(gtk_window_get_title(w->window));
-}
-
-void uiWindowSetTitle(uiWindow *w, const char *title)
-{
-	gtk_window_set_title(w->window, title);
 }
 
 void uiWindowContentSize(uiWindow *w, int *width, int *height)
@@ -229,18 +228,20 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 	uiprivSetMargined(w->childHolderContainer, w->margined);
 }
 
-uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
+// } skip
+#endif
+
+static bool windowInit(uiControl *c, void *implData, void *initData)
 {
-	uiWindow *w;
+	struct windowImplData *wi = (struct windowImplData *) implData;
 
-	uiUnixNewControl(uiWindow, w);
+	wi->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	wi->container = GTK_CONTAINER(wi->widget);
+	wi->window = GTK_WINDOW(wi->widget);
 
-	w->widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	w->container = GTK_CONTAINER(w->widget);
-	w->window = GTK_WINDOW(w->widget);
-
-	gtk_window_set_title(w->window, title);
-	gtk_window_resize(w->window, width, height);
+	gtk_window_set_title(wi->window, "");
+#if 0
+	gtk_window_resize(wi->window, width, height);
 
 	w->vboxWidget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	w->vboxContainer = GTK_CONTAINER(w->vboxWidget);
@@ -270,10 +271,87 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	g_signal_connect(w->childHolderWidget, "size-allocate", G_CALLBACK(onSizeAllocate), w);
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
+#endif
 
-	// normally it's SetParent() that does this, but we can't call SetParent() on a uiWindow
-	// TODO we really need to clean this up, especially since see uiWindowDestroy() above
-	g_object_ref(w->widget);
+	// TODO replace this with a function that does this and sets the visibility stuff
+	g_object_ref(wi->widget);
 
-	return w;
+	return true;
+}
+
+static void windowFree(uiControl *c, void *implData)
+{
+	struct windowImplData *wi = (struct windowImplData *) implData;
+
+	if (wi->title != NULL) {
+		uiprivFreeUTF8(wi->title);
+		wi->title = NULL;
+	}
+	// use gtk_widget_destroy() instead of g_object_unref() because GTK+ has internal references (see #165)
+	// TODO just do this in general?
+	gtk_widget_destroy(wi->widget);
+}
+
+static void windowParentChanging(uiControl *c, void *implData, uiControl *oldParent)
+{
+	uiprivProgrammerErrorCannotHaveWindowsAsChildren();
+}
+
+static void windowParentChanged(uiControl *c, void *implData, uiControl *newParent)
+{
+	uiprivProgrammerErrorCannotHaveWindowsAsChildren();
+}
+
+static GtkWidget *windowHandle(uiControl *c, void *implData)
+{
+	struct windowImplData *wi = (struct windowImplData *) implData;
+
+	return wi->widget;
+}
+
+static const uiControlVtable windowVtable = {
+	.Size = sizeof (uiControlVtable),
+	.Init = windowInit,
+	.Free = windowFree,
+	.ParentChanging = windowParentChanging,
+	.ParentChanged = windowParentChanged,
+};
+
+static const uiControlOSVtable windowOSVtable = {
+	.Size = sizeof (uiControlOSVtable),
+	.Handle = windowHandle,
+};
+
+static uint32_t windowType = 0;
+
+uint32_t uiprivSysWindowType(void)
+{
+	if (windowType == 0)
+		windowType = uiRegisterControlType("uiWindow", &windowVtable, &windowOSVtable, sizeof (struct windowImplData));
+	return windowType;
+}
+
+uiWindow *uiprivSysNewWindow(void)
+{
+	return (uiWindow *) uiNewControl(uiWindowType(), NULL);
+}
+
+const char *uiprivSysWindowTitle(uiWindow *w)
+{
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	if (wi->title == NULL)
+		// TODO replace this with a dedicated UTF-8 empty string object
+		return "";
+	return wi->title;
+}
+
+void uiprivSysWindowSetTitle(uiWindow *w, const char *title)
+{
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	if (wi->title != NULL)
+		uiprivFreeUTF8(wi->title);
+	wi->title = uiprivSanitizeUTF8(title);
+	gtk_window_set_title(wi->window, wi->title);
 }

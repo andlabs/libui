@@ -159,6 +159,7 @@ static uint32_t testControlType2(void)
 	return type;
 }
 
+// TODO do this but for the OS-specific methods
 Test(ControlMethodsCalled)
 {
 	uiControl *c, *d;

@@ -43,3 +43,12 @@ Test(ControlOSVtableWithMissingHandleMethodIsProgrammerError)
 	uiRegisterControlType("name", &vtable, &osvt, 0);
 	endCheckProgrammerError(ctx);
 }
+
+Test(GettingDarwinHandleOfNullControlIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiDarwinControlHandle(): invalid null pointer for uiControl");
+	uiDarwinControlHandle(NULL);
+	endCheckProgrammerError(ctx);
+}

@@ -19,7 +19,10 @@ const char *uiWindowTitle(uiWindow *w)
 {
 	if (!uiprivCheckInitializedAndThread())
 		return NULL;
-	// TODO check for w == NULL?
+	if (w == NULL) {
+		uiprivProgrammerErrorNullPointer("uiWindow", uiprivFunc);
+		return NULL;
+	}
 	return uiprivSysWindowTitle(w);
 }
 
@@ -27,7 +30,13 @@ void uiWindowSetTitle(uiWindow *w, const char *title)
 {
 	if (!uiprivCheckInitializedAndThread())
 		return;
-	// TODO check for w == NULL?
-	// TODO other errors
+	if (w == NULL) {
+		uiprivProgrammerErrorNullPointer("uiWindow", uiprivFunc);
+		return;
+	}
+	if (title == NULL) {
+		uiprivProgrammerErrorNullPointer("title", uiprivFunc);
+		return;
+	}
 	uiprivSysWindowSetTitle(w, title);
 }

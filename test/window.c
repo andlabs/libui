@@ -80,3 +80,33 @@ Test(SetWindowTitle_Invalid)
 {
 	testSetWindowTitleImpl(testUTF8InvalidInput, testUTF8InvalidOutput);
 }
+
+Test(WindowTitleWIthNULLWindowIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiWindowTitle(): invalid null pointer for uiWindow");
+	uiWindowTitle(NULL);
+	endCheckProgrammerError(ctx);
+}
+
+Test(SetWindowTitleWIthNULLWindowIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiWindowSetTitle(): invalid null pointer for uiWindow");
+	uiWindowSetTitle(NULL, NULL);
+	endCheckProgrammerError(ctx);
+}
+
+Test(SetWindowTitleWIthNULLTitleIsProgrammerError)
+{
+	uiWindow *w;
+	void *ctx;
+
+	w = uiNewWindow();
+	ctx = beginCheckProgrammerError("uiWindowSetTitle(): invalid null pointer for title");
+	uiWindowSetTitle(w, NULL);
+	endCheckProgrammerError(ctx);
+	uiControlFree(uiControl(w));
+}

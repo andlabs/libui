@@ -42,4 +42,4 @@ For all other `uiControl`s defined by libui, the returned object is of the appro
 
 * TODO
 
-TODO invalid value for c
+It is a programmer error to pass `NULL` for `c`. TODO a non-`uiControl`?

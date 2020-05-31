@@ -44,6 +44,8 @@ const char *uiWindowTitle(uiWindow *w);
 
 The memory storing the title is owned by libui and should not be modified. The returned pointer is valid until the title is changed or `w` is destroyed; in general, you should not store the returned string pointer directly for later use.
 
+It is a programmer error to pass `NULL` for `w`. TODO for this and all other functions: either don't bother doing this check or do a redundant uiControl type check as well...
+
 ### `uiWindowSetTitle()`
 
 ```c
@@ -53,3 +55,5 @@ void uiWindowSetTitle(uiWindow *w, const char *title);
 `uiWindowSetTitle()` changes `w`'s title to `title`.
 
 It is a programmer error to pass `NULL` for `title`. If `title` is not valid UTF-8, `U+FFFD` characters will be used to sanitize the string.
+
+It is a programmer error to pass `NULL` for `w`.

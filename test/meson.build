@@ -25,7 +25,8 @@ elif libui_OS == 'darwin'
 	])
 elif libui_OS == 'haiku'
 	libui_test_sources += files([
-		'controls_haiku.c',
+		'controls_haiku.cpp',
+		'window_haiku.cpp',
 	])
 else
 	libui_test_sources += files([
@@ -79,7 +80,15 @@ elif libui_OS == 'darwin'
 		]
 	endif
 elif libui_OS == 'haiku'
-	# TODO
+	# static mode already gives us these dependencies
+	if libui_mode != 'static'
+		libui_test_deps += [
+			meson.get_compiler('cpp').find_library('root',
+				required: true),
+			meson.get_compiler('cpp').find_library('be',
+				required: true),
+		]
+	endif
 else
 	# static mode already gives us these dependencies
 	if libui_mode != 'static'

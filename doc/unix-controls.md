@@ -6,6 +6,8 @@
 
 TODO
 
+TODO talk about how each uiControl on Unix should have one GTK+ widget and that GTK+ composite widgets should be used directly for anything more complex
+
 ## Reference
 
 ### `uiControlOSVtable`

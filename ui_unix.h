@@ -1,7 +1,7 @@
 // 7 april 2015
 
 /*
-This file assumes that you have included <gtk/gtk.h> and "ui.h" beforehand. It provides API-specific functions for interfacing with foreign controls on Unix systems that use GTK+ to provide their UI (currently all except Mac OS X).
+This file assumes that you have included <gtk/gtk.h> and "ui.h" beforehand. It provides API-specific functions for interfacing with foreign controls on Unix systems that use GTK+ to provide their UI (currently all except Mac OS X and Haiku).
 */
 
 #ifndef uiprivIncludeGuard_ui_unix_h

@@ -3,6 +3,7 @@
 libui_sources += [
 	'haiku/controls.cpp',
 	'haiku/main.cpp',
+	'haiku/window.cpp',
 ]
 
 libui_deps += [

@@ -48,33 +48,34 @@ static void *windowHandle(uiControl *c, void *implData)
 }
 
 // gotta do this because of lack of C99-style initializers in C++11
-static void windowVtable(uiControlVtable *vt)
-{
-	vt->Size = sizeof (uiControlVtable);
-	vt->Init = windowInit;
-	vt->Free = windowFree;
-	vt->ParentChanging = windowParentChanging;
-	vt->ParentChanged = windowParentChanged;
-}
+// see also https://stackoverflow.com/questions/11516657/c-structure-initialization
+static const uiControlVtable windowVtable = [](void) {
+	uiControlVtable vt;
 
-static void windowOSVtable(uiControlOSVtable *osvt)
-{
-	osvt->Size = sizeof (uiControlOSVtable);
-	osvt->Handle = windowHandle;
-}
+	memset(&vt, 0, sizeof (uiControlVtable));
+	vt.Size = sizeof (uiControlVtable);
+	vt.Init = windowInit;
+	vt.Free = windowFree;
+	vt.ParentChanging = windowParentChanging;
+	vt.ParentChanged = windowParentChanged;
+	return vt;
+}();
+
+static const uiControlOSVtable windowOSVtable = [](void) {
+	uiControlOSVtable vt;
+
+	memset(&vt, 0, sizeof (uiControlOSVtable));
+	vt.Size = sizeof (uiControlOSVtable);
+	vt.Handle = windowHandle;
+	return vt;
+}();
 
 static uint32_t windowType = 0;
 
 uint32_t uiprivSysWindowType(void)
 {
-	if (windowType == 0) {
-		uiControlVtable vt;
-		uiControlOSVtable osvt;
-
-		windowVtable(&vt);
-		windowOSVtable(&osvt);
-		windowType = uiRegisterControlType("uiWindow", &vt, &osvt, sizeof (struct windowImplData));
-	}
+	if (windowType == 0)
+		windowType = uiRegisterControlType("uiWindow", &windowVtable, &windowOSVtable, sizeof (struct windowImplData));
 	return windowType;
 }
 

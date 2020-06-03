@@ -26,7 +26,11 @@ elif libui_OS == 'darwin'
 elif libui_OS == 'haiku'
 	libui_test_sources += files([
 		'controls_haiku.cpp',
+		'noinitwrongthread_haiku.cpp',
 		'window_haiku.cpp',
+	])
+	libui_allcalls_headers += files([
+		'allcalls_haiku.hpp',
 	])
 else
 	libui_test_sources += files([

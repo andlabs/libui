@@ -35,7 +35,11 @@ elif libui_OS == 'haiku'
 else
 	libui_test_sources += files([
 		'controls_unix.c',
+		'noinitwrongthread_unix.c',
 		'window_unix.c',
+	])
+	libui_allcalls_headers += files([
+		'allcalls_unix.h',
 	])
 endif
 

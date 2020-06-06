@@ -3,9 +3,10 @@
 
 #define windowClass L"libui_uiWindowClass"
 
-struct uiWindow {
-	uiWindowsControl c;
+struct windowImplData {
 	HWND hwnd;
+	const char *title;
+#if 0
 	HMENU menubar;
 	uiControl *child;
 	BOOL shownOnce;
@@ -20,7 +21,11 @@ struct uiWindow {
 	int fullscreen;
 	WINDOWPLACEMENT fsPrevPlacement;
 	int borderless;
+#endif
 };
+
+#if 0
+// TODO {
 
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing
 #define windowMargin 7
@@ -64,22 +69,11 @@ static void windowRelayout(uiWindow *w)
 
 static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	LONG_PTR ww;
-	uiWindow *w;
-	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
 	WINDOWPOS *wp = (WINDOWPOS *) lParam;
 	MINMAXINFO *mmi = (MINMAXINFO *) lParam;
 	int width, height;
 	LRESULT lResult;
 
-	ww = GetWindowLongPtrW(hwnd, GWLP_USERDATA);
-	if (ww == 0) {
-		if (uMsg == WM_CREATE)
-			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (cs->lpCreateParams));
-		// fall through to DefWindowProc() anyway
-		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-	}
-	w = uiWindow((void *) ww);
 	if (handleParentMessages(hwnd, uMsg, wParam, lParam, &lResult) != FALSE)
 		return lResult;
 	switch (uMsg) {
@@ -122,20 +116,6 @@ static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 		return 0;		// we destroyed it already
 	}
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
-}
-
-ATOM registerWindowClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
-{
-	WNDCLASSW wc;
-
-	ZeroMemory(&wc, sizeof (WNDCLASSW));
-	wc.lpszClassName = windowClass;
-	wc.lpfnWndProc = windowWndProc;
-	wc.hInstance = hInstance;
-	wc.hIcon = hDefaultIcon;
-	wc.hCursor = hDefaultCursor;
-	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
-	return RegisterClassW(&wc);
 }
 
 void unregisterWindowClass(void)
@@ -465,19 +445,7 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		hasMenubarBOOL = TRUE;
 	w->hasMenubar = hasMenubarBOOL;
 
-#define style WS_OVERLAPPEDWINDOW
-#define exstyle 0
-
 	wtitle = toUTF16(title);
-	w->hwnd = CreateWindowExW(exstyle,
-		windowClass, wtitle,
-		style,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		// use the raw width and height for now
-		// this will get CW_USEDEFAULT (hopefully) predicting well
-		// even if it doesn't, we're adjusting it later
-		width, height,
-		NULL, NULL, hInstance, w);
 	if (w->hwnd == NULL)
 		logLastError(L"error creating window");
 	uiprivFree(wtitle);
@@ -497,6 +465,156 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	windows[w] = true;
 	return w;
 }
+
+// } TODO
+#endif
+
+static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	LONG_PTR ww;
+	uiWindow *w;
+	struct windowImplData *wi;
+	CREATESTRUCTW *cs = (CREATESTRUCTW *) lParam;
+
+	ww = GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+	if (ww == 0) {
+		if (uMsg == WM_CREATE)
+			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) (cs->lpCreateParams));
+		// fall through to DefWindowProc() anyway
+		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+	}
+	w = uiWindow((void *) ww);
+	wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+	switch (uMsg) {
+	case WM_CLOSE:
+		// don't destroy the window on close; programs decide if they should when handling the closing event
+		return 0;
+	}
+	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+}
+
+HRESULT uiprivRegisterWindowClass(HICON hDefaultIcon, HCURSOR hDefaultCursor)
+{
+	WNDCLASSW wc;
+
+	ZeroMemory(&wc, sizeof (WNDCLASSW));
+	wc.lpszClassName = windowClass;
+	wc.lpfnWndProc = windowWndProc;
+	wc.hInstance = uipriv_hInstance;
+	wc.hIcon = hDefaultIcon;
+	wc.hCursor = hDefaultCursor;
+	wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
+	return uiprivHrRegisterClassW(&wc);
+}
+
+static bool windowInit(uiControl *c, void *implData, void *initData)
+{
+	struct windowImplData *wi = (struct windowImplData *) implData;
+	HRESULT hr;
+
+#define style WS_OVERLAPPEDWINDOW
+#define exstyle 0
+	hr = uiprivHrCreateWindowExW(exstyle,
+		windowClass, L"",
+		style,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		NULL, NULL, uipriv_hInstance, c,
+		&(wi->hwnd));
+	if (hr != S_OK) {
+		// TODO
+	}
+
+	return true;
+}
+
+static void windowFree(uiControl *c, void *implData)
+{
+	struct windowImplData *wi = (struct windowImplData *) implData;
+
+	if (wi->title != NULL) {
+		uiprivFreeUTF8(wi->title);
+		wi->title = NULL;
+	}
+	xxxx
+}
+
+static void windowParentChanging(uiControl *c, void *implData, uiControl *oldParent)
+{
+	uiprivProgrammerErrorCannotHaveWindowsAsChildren();
+}
+
+static void windowParentChanged(uiControl *c, void *implData, uiControl *newParent)
+{
+	uiprivProgrammerErrorCannotHaveWindowsAsChildren();
+}
+
+static HWND windowHandle(uiControl *c, void *implData)
+{
+	struct windowImplData *wi = (struct windowImplData *) implData;
+
+	return wi->hwnd;
+}
+
+// gotta do this because of lack of C99-style initializers in C++11
+// see also https://stackoverflow.com/questions/11516657/c-structure-initialization
+static const uiControlVtable windowVtable = [](void) {
+	uiControlVtable vt;
+
+	memset(&vt, 0, sizeof (uiControlVtable));
+	vt.Size = sizeof (uiControlVtable);
+	vt.Init = windowInit;
+	vt.Free = windowFree;
+	vt.ParentChanging = windowParentChanging;
+	vt.ParentChanged = windowParentChanged;
+	return vt;
+}();
+
+static const uiControlOSVtable windowOSVtable = [](void) {
+	uiControlOSVtable vt;
+
+	memset(&vt, 0, sizeof (uiControlOSVtable));
+	vt.Size = sizeof (uiControlOSVtable);
+	vt.Handle = windowHandle;
+	return vt;
+}();
+
+static uint32_t windowType = 0;
+
+uint32_t uiprivSysWindowType(void)
+{
+	if (windowType == 0)
+		windowType = uiRegisterControlType("uiWindow", &windowVtable, &windowOSVtable, sizeof (struct windowImplData));
+	return windowType;
+}
+
+uiWindow *uiprivSysNewWindow(void)
+{
+	return (uiWindow *) uiNewControl(uiWindowType(), NULL);
+}
+
+const char *uiprivSysWindowTitle(uiWindow *w)
+{
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	if (wi->title == NULL)
+		// TODO replace this with a dedicated UTF-8 empty string object
+		return "";
+	return wi->title;
+}
+
+void uiprivSysWindowSetTitle(uiWindow *w, const char *title)
+{
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	if (wi->title != NULL)
+		uiprivFreeUTF8(wi->title);
+	wi->title = uiprivSanitizeUTF8(title);
+	// TODO
+}
+
+
+#if 0
 
 // this cannot queue a resize because it's called by the resize handler
 void ensureMinimumWindowSize(uiWindow *w)
@@ -534,3 +652,5 @@ void enableAllWindowsExcept(uiWindow *which)
 		EnableWindow(w.first->hwnd, TRUE);
 	}
 }
+
+#endif

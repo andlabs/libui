@@ -16,3 +16,6 @@ enum {
 };
 extern HWND uiprivUtilWindow;
 extern HRESULT uiprivInitUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor);
+
+// window.cpp
+extern HRESULT uiprivRegisterWindowClass(HICON hDefaultIcon, HCURSOR hDefaultCursor);

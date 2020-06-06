@@ -39,6 +39,7 @@ HRESULT uiprivInitUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor)
 	return uiprivHrCreateWindowExW(0,
 		utilWindowClass, L"libui utility window",
 		WS_OVERLAPPEDWINDOW,
+		// TODO CW_USEDEFAULT?
 		0, 0, 100, 100,
 		NULL, NULL, uipriv_hInstance, NULL,
 		&uiprivUtilWindow);

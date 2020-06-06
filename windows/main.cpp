@@ -71,6 +71,10 @@ bool uiprivSysInit(void *options, uiInitError *err)
 	if (hr != S_OK)
 		return uiprivInitReturnHRESULT(err, "failed to initialize the utility window", hr);
 
+	hr = uiprivRegisterWindowClass(hDefaultIcon, hDefaultCursor);
+	if (hr != S_OK)
+		return uiprivInitReturnHRESULT(err, "failed to register the uiWindow window class", hr);
+
 	ZeroMemory(&icc, sizeof (INITCOMMONCONTROLSEX));
 	icc.dwSize = sizeof (INITCOMMONCONTROLSEX);
 	icc.dwICC = wantedICCClasses;

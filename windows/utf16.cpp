@@ -1,9 +1,10 @@
 // 21 april 2016
 #include "uipriv_windows.hpp"
 
-// see http://stackoverflow.com/a/29556509/3408572
+// TODO clean this up
+#define emptyUTF16() ((WCHAR *) uiprivAlloc(1 * sizeof (WCHAR), "WCHAR[]"))
 
-WCHAR *toUTF16(const char *str)
+WCHAR *uiprivToUTF16(const char *str)
 {
 	WCHAR *wstr;
 	WCHAR *wp;
@@ -23,7 +24,7 @@ WCHAR *toUTF16(const char *str)
 	return wstr;
 }
 
-char *toUTF8(const WCHAR *wstr)
+char *uiprivToUTF8(const WCHAR *wstr)
 {
 	char *str;
 	char *sp;
@@ -42,6 +43,8 @@ char *toUTF8(const WCHAR *wstr)
 	}
 	return str;
 }
+
+#if 0
 
 WCHAR *utf16dup(const WCHAR *orig)
 {
@@ -147,3 +150,5 @@ WCHAR *itoutf16(int i)
 	s = ss.str();		// to be safe
 	return utf16dup(s.c_str());
 }
+
+#endif

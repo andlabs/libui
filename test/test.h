@@ -96,9 +96,19 @@ extern const char testUTF8WithFourByte[];
 extern const char testUTF8Combined[];
 extern const char testUTF8InvalidInput[];
 extern const char testUTF8InvalidOutput[];
+extern const uint16_t testUTF16Empty[];
+extern const uint16_t testUTF16ASCIIOnly[];
+extern const uint16_t testUTF16WithTwoByte[];
+extern const uint16_t testUTF16WithThreeByte[];
+extern const uint16_t testUTF16WithFourByte[];
+extern const uint16_t testUTF16Combined[];
+extern const uint16_t testUTF16InvalidOutput[];
 extern bool utf8equal(const char *s, const char *t);
 extern void utf8diffErrorFull(const char *file, long line, const char *msg, const char *got, const char *want);
 #define utf8diffError(msg, got, want) utf8diffErrorFull(__FILE__, __LINE__, msg, got, want)
+extern bool utf16equal(const uint16_t *s, const uint16_t *t);
+extern void utf16diffErrorFull(const char *file, long line, const char *msg, const uint16_t *got, const uint16_t *want);
+#define utf16diffError(msg, got, want) utf16diffErrorFull(__FILE__, __LINE__, msg, got, want)
 
 #ifdef __cplusplus
 }

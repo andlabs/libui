@@ -19,3 +19,7 @@ extern HRESULT uiprivInitUtilWindow(HICON hDefaultIcon, HCURSOR hDefaultCursor);
 
 // window.cpp
 extern HRESULT uiprivRegisterWindowClass(HICON hDefaultIcon, HCURSOR hDefaultCursor);
+
+// utf16.cpp
+extern WCHAR *uiprivToUTF16(const char *str);
+extern char *uiprivToUTF8(const WCHAR *wstr);

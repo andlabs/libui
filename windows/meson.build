@@ -5,7 +5,9 @@ windows = import('windows')
 libui_sources += [
 	'windows/controls.cpp',
 	'windows/main.cpp',
+	'windows/utf16.cpp',
 	'windows/utilwin.cpp',
+	'windows/window.cpp',
 	'windows/winhresult.cpp',
 ]
 

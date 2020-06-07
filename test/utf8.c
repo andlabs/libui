@@ -43,6 +43,16 @@ const char testUTF8WithFourByte[] = { 0x74, 0xF0, 0x9D, 0x90, 0x9E, 0x73, 0x74, 
 const char testUTF8Combined[] = { 0x74, 0x65, 0xCC, 0x81, 0x73, 0x74, 0 };
 const char testUTF8InvalidInput[] = { 0x74, 0xC3, 0x29, 0x73, 0x74, 0 };
 const char testUTF8InvalidOutput[] = { 0x74, 0xEF, 0xBF, 0xBD, 0x29, 0x73, 0x74, 0 };
+// TODO multiline versions
+
+const uint16_t testUTF16Empty[] = { 0 };
+const uint16_t testUTF16ASCIIOnly[] = { 0x0074, 0x0065, 0x0073, 0x0074, 0 };
+const uint16_t testUTF16WithTwoByte[] = { 0x0074, 0x00E9, 0x0073, 0x0074, 0 };
+const uint16_t testUTF16WithThreeByte[] = { 0x0074, 0x24D4, 0x0073, 0x0074, 0 };
+const uint16_t testUTF16WithFourByte[] = { 0x0074, 0xD835, 0xDC1E, 0x0073, 0x0074, 0 };
+const uint16_t testUTF16Combined[] = { 0x0074, 0x0065, 0x0301, 0x0073, 0x0074, 0 };
+// no UTF-16 invalid input since we don't input UTF-16
+const uint16_t testUTF16InvalidOutput[] = { 0x0074, 0xFFFD, 0x0029, 0x0073, 0x0074, 0 };
 
 // TODO figure out if strcmp() is adequate for this
 bool utf8equal(const char *s, const char *t)
@@ -89,5 +99,54 @@ void utf8diffErrorFull(const char *file, long line, const char *msg, const char 
 
 	utf8hexdump(a, got);
 	utf8hexdump(b, want);
+	TestErrorfFull(file, line, "%s:" diff("%s"), msg, a, b);
+}
+
+bool utf16equal(const uint16_t *s, const uint16_t *t)
+{
+	for (;;) {
+		if (*s == 0 && *t == 0)
+			return true;
+		if (*s == 0 || *t == 0)
+			return false;
+		if (*s != *t)
+			return false;
+		s++;
+		t++;
+	}
+}
+
+static void utf16hexdump(char buf[64], const uint16_t *s)
+{
+	int i;
+	uint16_t x;
+
+	for (i = 0; i < 60; i += 5) {
+		x = (uint16_t) (*s);
+		s++;
+		buf[i + 0] = "0123456789ABCDEF"[(x & 0xF000) >> 12];
+		buf[i + 1] = "0123456789ABCDEF"[(x & 0x0F00) >> 8];
+		buf[i + 2] = "0123456789ABCDEF"[(x & 0x00F0) >> 4];
+		buf[i + 3] = "0123456789ABCDEF"[x & 0x000F];
+		if (x == 0) {
+			buf[i + 4] = '\0';
+			break;
+		}
+		buf[i + 4] = ' ';
+	}
+	if (i >= 60) {
+		buf[60] = '.';
+		buf[61] = '.';
+		buf[62] = '.';
+		buf[63] = '\0';
+	}
+}
+
+void utf16diffErrorFull(const char *file, long line, const char *msg, const uint16_t *got, const uint16_t *want)
+{
+	char a[64], b[64];
+
+	utf16hexdump(a, got);
+	utf16hexdump(b, want);
 	TestErrorfFull(file, line, "%s:" diff("%s"), msg, a, b);
 }

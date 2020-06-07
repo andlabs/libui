@@ -261,17 +261,6 @@ static void uiWindowChildVisibilityChanged(uiWindowsControl *c)
 	uiWindowsControlMinimumSizeChanged(c);
 }
 
-char *uiWindowTitle(uiWindow *w)
-{
-	return uiWindowsWindowText(w->hwnd);
-}
-
-void uiWindowSetTitle(uiWindow *w, const char *title)
-{
-	uiWindowsSetWindowText(w->hwnd, title);
-	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
-}
-
 // this is used for both fullscreening and centering
 // see also https://blogs.msdn.microsoft.com/oldnewthing/20100412-00/?p=14353 and https://blogs.msdn.microsoft.com/oldnewthing/20050505-04/?p=35703
 static void windowMonitorRect(HWND hwnd, RECT *r)
@@ -606,13 +595,19 @@ const char *uiprivSysWindowTitle(uiWindow *w)
 void uiprivSysWindowSetTitle(uiWindow *w, const char *title)
 {
 	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+	WCHAR *wtitle;
 
 	if (wi->title != NULL)
 		uiprivFreeUTF8(wi->title);
 	wi->title = uiprivSanitizeUTF8(title);
-	// TODO
+	wtitle = uiprivToUTF16(wi->title);
+	hr = uiprivHrSetWindowTextW(wi->hwnd, wtitle);
+	uiprivFree(wtitle);
+	if (hr != S_OK) {
+		// TODO
+	}
+	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
 }
-
 
 #if 0
 

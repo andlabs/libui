@@ -82,3 +82,11 @@ HRESULT WINAPI uiprivHrLoadCursorW(HINSTANCE hInstance, LPCWSTR name, HCURSOR *h
 		return lastErrorToHRESULT();
 	return S_OK;
 }
+
+HRESULT WINAPI uiprivHrSetWindowTextW(HWND hwnd, LPCWSTR text)
+{
+	SetLastError(0);
+	if (SetWindowTextW(hwnd, text) == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}

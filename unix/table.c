@@ -257,6 +257,7 @@ static void progressBarColumnDataFunc(GtkTreeViewColumn *c, GtkCellRenderer *r, 
 	// TODO avoid the need for this
 	path = gtk_tree_model_get_path(GTK_TREE_MODEL(m), iter);
 	rc->row = gtk_tree_path_get_indices(path)[0];
+	gtk_tree_path_free(path);
 	rc->col = p->modelColumn;
 	val = (gint *) g_hash_table_lookup(p->t->indeterminatePositions, rc);
 	if (pval == -1) {

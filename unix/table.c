@@ -62,6 +62,7 @@ static void setEditable(uiTableModel *m, GtkTreeIter *iter, int modelColumn, Gtk
 	// TODO avoid the need for this
 	path = gtk_tree_model_get_path(GTK_TREE_MODEL(m), iter);
 	row = gtk_tree_path_get_indices(path)[0];
+	gtk_tree_path_free(path);
 	editable = uiprivTableModelCellEditable(m, row, modelColumn) != 0;
 	g_object_set(r, prop, editable, NULL);
 }

@@ -13,6 +13,11 @@ libui_allcalls_headers = files([
 if libui_OS == 'windows'
 	libui_test_sources += files([
 		'controls_windows.c',
+		'noinitwrongthread_windows.c',
+		'window_windows.c',
+	])
+	libui_allcalls_headers += files([
+		'allcalls_windows.h',
 	])
 elif libui_OS == 'darwin'
 	libui_test_sources += files([
@@ -51,6 +56,7 @@ libui_test_sources_without_cases = [
 if libui_OS == 'windows'
 	libui_test_sources_without_cases += [
 		'thread_windows.c',
+		'utf8_windows.c',
 		windows.compile_resources('resources_' + libui_mode + '.rc',
 			args: libui_manifest_args,
 			depend_files: ['test_' + libui_mode + '.manifest']),

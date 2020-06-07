@@ -86,6 +86,7 @@ This function is meant for control implementations to use in the implementation 
 It is a programmer error to pass an invalid value for either `type` or `initData`.
 
 **For control implementations**: This function allocates both the `uiControl` and the memory for the implementation data, and then passes both of these allocations as well as the value of `initData` into your `Init()` method. Before calling `Init()`, libui will clear the `implData` memory, as with `memset(0)`. Return `false` from the `Init()` method if `initData` is invalid; if it is valid, initialize the control and return `true`. To discourage direct use of `uiNewControl()`, you should generally not allow `initData` to be `NULL`, even if there are no parameters. Do **not** return `false` for any other reason, including other forms of initialization failures; see [Error handling](error-handling.md) for details on what to do instead.
+TODO is this whole spiel about the return value even necessary? shouldn't the outer library be responsible for handling errors instead?
 
 ### `uiControlFree()`
 

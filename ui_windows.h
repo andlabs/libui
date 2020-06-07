@@ -13,7 +13,10 @@ extern "C" {
 
 struct uiControlOSVtable {
 	size_t Size;
+	HWND (*Handle)(uiControl *c, void *implData);
 };
+
+uiprivExtern HWND uiWindowsControlHandle(uiControl *c);
 
 #ifdef __cplusplus
 }

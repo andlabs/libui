@@ -90,3 +90,11 @@ HRESULT WINAPI uiprivHrSetWindowTextW(HWND hwnd, LPCWSTR text)
 		return lastErrorToHRESULT();
 	return S_OK;
 }
+
+HRESULT WINAPI uiprivHrDestroyWindow(HWND hwnd)
+{
+	SetLastError(0);
+	if (DestroyWindow(hwnd) == 0)
+		return lastErrorToHRESULT();
+	return S_OK;
+}

@@ -1,7 +1,9 @@
 // 21 april 2016
 #include "uipriv_windows.hpp"
+#include "../common/third_party/utf.h"
 
 // TODO clean this up
+#define emptyUTF8() ((char *) uiprivAlloc(1 * sizeof (char), "char[]"))
 #define emptyUTF16() ((WCHAR *) uiprivAlloc(1 * sizeof (WCHAR), "WCHAR[]"))
 
 WCHAR *uiprivToUTF16(const char *str)

@@ -5,7 +5,7 @@
 
 struct windowImplData {
 	HWND hwnd;
-	const char *title;
+	char *title;
 #if 0
 	HMENU menubar;
 	uiControl *child;
@@ -154,18 +154,6 @@ static void uiWindowDestroy(uiControl *c)
 	windows.erase(w);
 	uiWindowsEnsureDestroyWindow(w->hwnd);
 	uiFreeControl(uiControl(w));
-}
-
-uiWindowsControlDefaultHandle(uiWindow)
-
-uiControl *uiWindowParent(uiControl *c)
-{
-	return NULL;
-}
-
-void uiWindowSetParent(uiControl *c, uiControl *parent)
-{
-	uiUserBugCannotSetParentOnToplevel("uiWindow");
 }
 
 static int uiWindowToplevel(uiControl *c)
@@ -511,7 +499,8 @@ static bool windowInit(uiControl *c, void *implData, void *initData)
 		NULL, NULL, uipriv_hInstance, c,
 		&(wi->hwnd));
 	if (hr != S_OK) {
-		// TODO
+		uiprivInternalError("CreateWindowExW() failed in windowInit(): 0x%08I32X", hr);
+		return true;
 	}
 
 	return true;
@@ -520,12 +509,15 @@ static bool windowInit(uiControl *c, void *implData, void *initData)
 static void windowFree(uiControl *c, void *implData)
 {
 	struct windowImplData *wi = (struct windowImplData *) implData;
+	HRESULT hr;
 
 	if (wi->title != NULL) {
 		uiprivFreeUTF8(wi->title);
 		wi->title = NULL;
 	}
-	xxxx
+	hr = uiprivHrDestroyWindow(wi->hwnd);
+	if (hr != S_OK)
+		uiprivInternalError("DestroyWindow() failed in windowFree(): 0x%08I32X", hr);
 }
 
 static void windowParentChanging(uiControl *c, void *implData, uiControl *oldParent)
@@ -596,6 +588,7 @@ void uiprivSysWindowSetTitle(uiWindow *w, const char *title)
 {
 	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
 	WCHAR *wtitle;
+	HRESULT hr;
 
 	if (wi->title != NULL)
 		uiprivFreeUTF8(wi->title);
@@ -603,9 +596,8 @@ void uiprivSysWindowSetTitle(uiWindow *w, const char *title)
 	wtitle = uiprivToUTF16(wi->title);
 	hr = uiprivHrSetWindowTextW(wi->hwnd, wtitle);
 	uiprivFree(wtitle);
-	if (hr != S_OK) {
-		// TODO
-	}
+	if (hr != S_OK)
+		uiprivInternalError("SetWindowTextW() failed in uiWindowSetTitle(): 0x%08I32X", hr);
 	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
 }
 

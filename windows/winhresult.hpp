@@ -8,3 +8,4 @@ extern HRESULT WINAPI uiprivHrPostMessageW(HWND hwnd, UINT uMsg, WPARAM wParam, 
 extern HRESULT WINAPI uiprivHrLoadIconW(HINSTANCE hInstance, LPCWSTR name, HICON *hIcon);
 extern HRESULT WINAPI uiprivHrLoadCursorW(HINSTANCE hInstance, LPCWSTR name, HCURSOR *hCursor);
 extern HRESULT WINAPI uiprivHrSetWindowTextW(HWND hwnd, LPCWSTR text);
+extern HRESULT WINAPI uiprivHrDestroyWindow(HWND hwnd);

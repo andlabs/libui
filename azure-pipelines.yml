@@ -23,8 +23,8 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/linux-386-install-gtk-dev-ninja.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
+  - template: azure-pipelines/linux-386-install-gtk-dev.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
@@ -46,8 +46,8 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/linux-386-install-gtk-dev-ninja.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
+  - template: azure-pipelines/linux-386-install-gtk-dev.yml
   - template: azure-pipelines/configure.yml
     parameters:
       beforeConfigure: export CFLAGS=-m32 CXXFLAGS=-m32 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
@@ -69,8 +69,8 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/linux-install-gtk-dev-ninja.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
+  - template: azure-pipelines/linux-install-gtk-dev.yml
   - template: azure-pipelines/configure.yml
     parameters:
       defaultLibrary: shared
@@ -91,8 +91,8 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
-  - template: azure-pipelines/linux-install-gtk-dev-ninja.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
+  - template: azure-pipelines/linux-install-gtk-dev.yml
   - template: azure-pipelines/configure.yml
     parameters:
       defaultLibrary: static
@@ -117,7 +117,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/vs2015-install-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
@@ -143,7 +143,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/vs2015-install-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
@@ -170,7 +170,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/vs2015-install-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
@@ -196,7 +196,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/vs2015-install-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
@@ -227,7 +227,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
@@ -253,7 +253,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
@@ -280,7 +280,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
@@ -306,7 +306,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/windows-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
@@ -339,7 +339,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/darwin-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:
@@ -361,7 +361,7 @@ jobs:
     clean: all
   steps:
   - template: azure-pipelines/setup-python3.yml
-  - template: azure-pipelines/install-latest-meson.yml
+  - template: azure-pipelines/install-latest-meson-ninja.yml
   - template: azure-pipelines/darwin-install-ninja.yml
   - template: azure-pipelines/configure.yml
     parameters:

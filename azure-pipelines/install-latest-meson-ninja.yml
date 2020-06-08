@@ -1,0 +1,9 @@
+# 4 april 2019
+
+# TODO remove ninja installation from non-Linux OSs and make the same ninja via pip change in the AppVeyor script
+
+steps:
+- script: |
+    python -m pip install --upgrade pip setuptools wheel
+    pip install meson ninja
+  displayName: 'Install Latest Meson and Ninja'

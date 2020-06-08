@@ -1,6 +1,0 @@
-# 7 april 2019
-
-steps:
-- script: |
-    sudo apt-get install libgtk-3-dev ninja-build
-  displayName: 'Install GTK+ Dev Files and Ninja'

@@ -13,5 +13,5 @@ steps:
     sudo apt-get install --allow-downgrades \
       gcc-multilib g++-multilib \
       $llvmPackages \
-      libgtk-3-dev:i386 ninja-build
-  displayName: 'Install GTK+ Dev Files and Ninja'
+      libgtk-3-dev:i386
+  displayName: 'Install GTK+ Dev Files'

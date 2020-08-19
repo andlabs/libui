@@ -188,20 +188,15 @@ static gboolean uiTableModel_iter_nth_child(GtkTreeModel *mm, GtkTreeIter *iter,
 {
 	uiTableModel *m = uiTableModel(mm);
 
-	g_return_val_if_fail(iter->stamp == m->stamp, FALSE);
+	if (parent != NULL || n < 0 || n >= uiprivTableModelNumRows(m)) {
+		iter->stamp = 0;
+		return FALSE;
+	}
 
-	if (parent != NULL)
-		goto bad;
-	if (n < 0)
-		goto bad;
-	if (n >= uiprivTableModelNumRows(m))
-		goto bad;
 	iter->stamp = m->stamp;
 	iter->user_data = GINT_TO_POINTER(n);
+
 	return TRUE;
-bad:
-	iter->stamp = 0;
-	return FALSE;
 }
 
 gboolean uiTableModel_iter_parent(GtkTreeModel *mm, GtkTreeIter *iter, GtkTreeIter *child)

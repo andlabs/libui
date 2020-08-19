@@ -52,9 +52,6 @@ static GType uiTableModel_get_column_type(GtkTreeModel *mm, gint index)
 	return G_TYPE_INVALID;
 }
 
-#define STAMP_GOOD 0x1234
-#define STAMP_BAD 0x5678
-
 static gboolean uiTableModel_get_iter(GtkTreeModel *mm, GtkTreeIter *iter, GtkTreePath *path)
 {
 	uiTableModel *m = uiTableModel(mm);
@@ -67,21 +64,22 @@ static gboolean uiTableModel_get_iter(GtkTreeModel *mm, GtkTreeIter *iter, GtkTr
 		goto bad;
 	if (row >= uiprivTableModelNumRows(m))
 		goto bad;
-	iter->stamp = STAMP_GOOD;
+	iter->stamp = m->stamp;
 	iter->user_data = GINT_TO_POINTER(row);
 	return TRUE;
 bad:
-	iter->stamp = STAMP_BAD;
+	iter->stamp = 0;
 	return FALSE;
 }
 
 // GtkListStore returns NULL on error; let's do that too
 static GtkTreePath *uiTableModel_get_path(GtkTreeModel *mm, GtkTreeIter  *iter)
 {
+	uiTableModel *m = uiTableModel(mm);
 	gint row;
 
-	if (iter->stamp != STAMP_GOOD)
-		return NULL;
+	g_return_val_if_fail(iter->stamp == m->stamp, NULL);
+
 	row = GPOINTER_TO_INT(iter->user_data);
 	return gtk_tree_path_new_from_indices(row, -1);
 }
@@ -95,8 +93,8 @@ static void uiTableModel_get_value(GtkTreeModel *mm, GtkTreeIter *iter, gint col
 	double r, g, b, a;
 	GdkRGBA rgba;
 
-	if (iter->stamp != STAMP_GOOD)
-		return;
+	g_return_if_fail(iter->stamp == m->stamp);
+
 	row = GPOINTER_TO_INT(iter->user_data);
 	tvalue = uiprivTableModelCellValue(m, row, column);
 	switch (uiprivTableModelColumnType(m, column)) {
@@ -138,12 +136,12 @@ static gboolean uiTableModel_iter_next(GtkTreeModel *mm, GtkTreeIter *iter)
 	uiTableModel *m = uiTableModel(mm);
 	gint row;
 
-	if (iter->stamp != STAMP_GOOD)
-		return FALSE;
+	g_return_val_if_fail(iter->stamp == m->stamp, FALSE);
+
 	row = GPOINTER_TO_INT(iter->user_data);
 	row++;
 	if (row >= uiprivTableModelNumRows(m)) {
-		iter->stamp = STAMP_BAD;
+		iter->stamp = 0;
 		return FALSE;
 	}
 	iter->user_data = GINT_TO_POINTER(row);
@@ -152,14 +150,15 @@ static gboolean uiTableModel_iter_next(GtkTreeModel *mm, GtkTreeIter *iter)
 
 static gboolean uiTableModel_iter_previous(GtkTreeModel *mm, GtkTreeIter *iter)
 {
+	uiTableModel *m = uiTableModel(mm);
 	gint row;
 
-	if (iter->stamp != STAMP_GOOD)
-		return FALSE;
+	g_return_val_if_fail(iter->stamp == m->stamp, FALSE);
+
 	row = GPOINTER_TO_INT(iter->user_data);
 	row--;
 	if (row < 0) {
-		iter->stamp = STAMP_BAD;
+		iter->stamp = 0;
 		return FALSE;
 	}
 	iter->user_data = GINT_TO_POINTER(row);
@@ -189,25 +188,25 @@ static gboolean uiTableModel_iter_nth_child(GtkTreeModel *mm, GtkTreeIter *iter,
 {
 	uiTableModel *m = uiTableModel(mm);
 
-	if (iter->stamp != STAMP_GOOD)
-		return FALSE;
+	g_return_val_if_fail(iter->stamp == m->stamp, FALSE);
+
 	if (parent != NULL)
 		goto bad;
 	if (n < 0)
 		goto bad;
 	if (n >= uiprivTableModelNumRows(m))
 		goto bad;
-	iter->stamp = STAMP_GOOD;
+	iter->stamp = m->stamp;
 	iter->user_data = GINT_TO_POINTER(n);
 	return TRUE;
 bad:
-	iter->stamp = STAMP_BAD;
+	iter->stamp = 0;
 	return FALSE;
 }
 
 gboolean uiTableModel_iter_parent(GtkTreeModel *mm, GtkTreeIter *iter, GtkTreeIter *child)
 {
-	iter->stamp = STAMP_BAD;
+	iter->stamp = 0;
 	return FALSE;
 }
 
@@ -240,6 +239,9 @@ uiTableModel *uiNewTableModel(uiTableModelHandler *mh)
 	uiTableModel *m;
 
 	m = uiTableModel(g_object_new(uiTableModelType, NULL));
+	while ((m->stamp = g_random_int()) == 0) {
+		//iter of 0 means invalid
+	}
 	m->mh = mh;
 	return m;
 }
@@ -255,7 +257,7 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 	GtkTreeIter iter;
 
 	path = gtk_tree_path_new_from_indices(newIndex, -1);
-	iter.stamp = STAMP_GOOD;
+	iter.stamp = m->stamp;
 	iter.user_data = GINT_TO_POINTER(newIndex);
 	gtk_tree_model_row_inserted(GTK_TREE_MODEL(m), path, &iter);
 	gtk_tree_path_free(path);
@@ -267,7 +269,7 @@ void uiTableModelRowChanged(uiTableModel *m, int index)
 	GtkTreeIter iter;
 
 	path = gtk_tree_path_new_from_indices(index, -1);
-	iter.stamp = STAMP_GOOD;
+	iter.stamp = m->stamp;
 	iter.user_data = GINT_TO_POINTER(index);
 	gtk_tree_model_row_changed(GTK_TREE_MODEL(m), path, &iter);
 	gtk_tree_path_free(path);

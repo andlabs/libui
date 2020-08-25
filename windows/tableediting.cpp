@@ -168,11 +168,6 @@ HRESULT uiprivTableFinishEditingText(uiTable *t)
 	p = (*(t->columns))[t->editedSubitem];
 	uiprivTableModelSetCellValue(t->model, t->editedItem, p->textModelColumn, value);
 	uiFreeTableValue(value);
-	// always refresh the value in case the model rejected it
-	if (SendMessageW(t->hwnd, LVM_UPDATE, (WPARAM) (t->editedItem), 0) == (LRESULT) (-1)) {
-		logLastError(L"LVM_UPDATE");
-		return E_FAIL;
-	}
 	return uiprivTableAbortEditingText(t);
 }
 
@@ -250,11 +245,6 @@ HRESULT uiprivTableHandleNM_CLICK(uiTable *t, NMITEMACTIVATE *nm, LRESULT *lResu
 		uiFreeTableValue(value);
 	} else
 		uiprivTableModelSetCellValue(t->model, ht.iItem, modelColumn, NULL);
-	// always refresh the value in case the model rejected it
-	if (SendMessageW(t->hwnd, LVM_UPDATE, (WPARAM) (ht.iItem), 0) == (LRESULT) (-1)) {
-		logLastError(L"LVM_UPDATE");
-		return E_FAIL;
-	}
 
 done:
 	*lResult = 0;

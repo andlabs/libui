@@ -181,6 +181,8 @@ struct textColumnCreateParams {
 			[self->cb setTransparent:NO];
 			uiDarwinSetControlFont(self->cb, NSRegularControlSize);
 			[self->cb setTranslatesAutoresizingMaskIntoConstraints:NO];
+			[self->cb setTarget:self];
+			[self->cb setAction:@selector(uiprivOnCheckboxAction:)];
 			[self addSubview:self->cb];
 
 			if (self->tf != nil) {

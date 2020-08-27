@@ -24,6 +24,7 @@ libui_test_sources = [
 	'page14.c',
 	'page15.c',
 	'page16.c',
+	'page17.c',
 	'spaced.c',
 ]
 

@@ -42,12 +42,6 @@ void uiprivTableModelSetCellValue(uiTableModel *m, int row, int column, const ui
 	mh = uiprivTableModelHandler(m);
 	(*(mh->SetCellValue))(mh, m, row, column, value);
 
-	// Abort redraw for button columns which signal being clicked
-	// by setting NULL.
-	// TODO check if NULL is never a valid value otherwise
-	if (value == NULL)
-		return;
-
 	uiTableModelRowChanged(m, row);
 }
 

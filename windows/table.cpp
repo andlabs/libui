@@ -479,6 +479,26 @@ void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonModelColu
 	p->buttonClickableModelColumn = buttonClickableModelColumn;
 }
 
+int uiTableHeaderVisible(uiTable *t)
+{
+	HWND header = ListView_GetHeader(t->hwnd);
+	if (header) {
+		LONG style = GetWindowLong(header, GWL_STYLE);
+		return !(style & HDS_HIDDEN);
+	}
+	// TODO abort here?
+	return 0;
+}
+
+void uiTableHeaderSetVisible(uiTable *t, int visible)
+{
+	LONG style = GetWindowLong(t->hwnd, GWL_STYLE);
+	if (visible)
+		SetWindowLong(t->hwnd, GWL_STYLE, style & ~LVS_NOCOLUMNHEADER);
+	else
+		SetWindowLong(t->hwnd, GWL_STYLE, style | LVS_NOCOLUMNHEADER);
+}
+
 uiTable *uiNewTable(uiTableParams *p)
 {
 	uiTable *t;

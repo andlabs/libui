@@ -14,8 +14,10 @@
 @interface uiprivTableView : NSTableView {
 	uiTable *uiprivT;
 	uiTableModel *uiprivM;
+	NSTableHeaderView *headerViewRef;
 }
 - (id)initWithFrame:(NSRect)r uiprivT:(uiTable *)t uiprivM:(uiTableModel *)m;
+- (void)restoreHeaderView;
 @end
 
 @implementation uiprivTableView
@@ -26,8 +28,14 @@
 	if (self) {
 		self->uiprivT = t;
 		self->uiprivM = m;
+		self->headerViewRef = [self headerView];
 	}
 	return self;
+}
+
+- (void)restoreHeaderView
+{
+	[self setHeaderView:self->headerViewRef];
 }
 
 // TODO is this correct for overflow scrolling?
@@ -168,6 +176,19 @@ static void uiTableDestroy(uiControl *c)
 	[t->tv release];
 	[t->sv release];
 	uiFreeControl(uiControl(t));
+}
+
+int uiTableHeaderVisible(uiTable *t)
+{
+	return [t->tv headerView] != nil;
+}
+
+void uiTableHeaderSetVisible(uiTable *t, int visible)
+{
+	if (visible)
+		[(uiprivTableView*)t->tv restoreHeaderView];
+	else
+		[t->tv setHeaderView:nil];
 }
 
 uiTable *uiNewTable(uiTableParams *p)

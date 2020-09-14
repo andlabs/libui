@@ -477,6 +477,16 @@ void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonModelColu
 	g_ptr_array_add(t->columnParams, p);
 }
 
+int uiTableHeaderVisible(uiTable *t)
+{
+	return gtk_tree_view_get_headers_visible(t->tv);
+}
+
+void uiTableHeaderSetVisible(uiTable *t, int visible)
+{
+	gtk_tree_view_set_headers_visible(t->tv, visible);
+}
+
 uiUnixControlAllDefaultsExceptDestroy(uiTable)
 
 static void uiTableDestroy(uiControl *c)

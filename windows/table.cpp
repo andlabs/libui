@@ -520,3 +520,14 @@ uiTable *uiNewTable(uiTableParams *p)
 
 	return t;
 }
+
+int uiTableColumnWidth(uiTable *t, int column)
+{
+	return ListView_GetColumnWidth(t->hwnd, column);
+}
+
+void uiTableColumnSetWidth(uiTable *t, int column, int width)
+{
+	ListView_SetColumnWidth(t->hwnd, column, width);
+}
+

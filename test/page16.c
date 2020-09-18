@@ -98,11 +98,26 @@ static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row,
 		checkStates[row] = uiTableValueInt(val);
 }
 
+uiSpinbox *columnID;
+uiSpinbox *columnWidth;
+static void changedColumnID(uiSpinbox *s, void *data)
+{
+	uiTable *t = data;
+	uiSpinboxSetValue(columnWidth, uiTableColumnWidth(t, uiSpinboxValue(columnID)));
+}
+
+static void changedColumnWidth(uiSpinbox *s, void *data)
+{
+	uiTable *t = data;
+	uiTableColumnSetWidth(t, uiSpinboxValue(columnID), uiSpinboxValue(columnWidth));
+}
+
 static uiTableModel *m;
 
 uiBox *makePage16(void)
 {
 	uiBox *page16;
+	uiBox *controls;
 	uiTable *t;
 	uiTableParams p;
 	uiTableTextColumnOptionalParams tp;
@@ -119,6 +134,8 @@ uiBox *makePage16(void)
 	memset(checkStates, 0, 15 * sizeof (int));
 
 	page16 = newVerticalBox();
+	controls = newHorizontalBox();
+	uiBoxAppend(page16, uiControl(controls), 0);
 
 	mh.NumColumns = modelNumColumns;
 	mh.ColumnType = modelColumnType;
@@ -151,6 +168,16 @@ uiBox *makePage16(void)
 
 	uiTableAppendProgressBarColumn(t, "Progress Bar",
 		8);
+
+	uiBoxAppend(controls, uiControl(uiNewLabel("Column")), 0);
+	columnID = uiNewSpinbox(0, INT_MAX);
+	uiBoxAppend(controls, uiControl(columnID), 0);
+	uiBoxAppend(controls, uiControl(uiNewLabel("Width")), 0);
+	columnWidth = uiNewSpinbox(0, INT_MAX);
+	uiBoxAppend(controls, uiControl(columnWidth), 0);
+
+	uiSpinboxOnChanged(columnID, changedColumnID, t);
+	uiSpinboxOnChanged(columnWidth, changedColumnWidth, t);
 
 	return page16;
 }

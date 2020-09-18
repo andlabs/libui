@@ -216,3 +216,16 @@ uiTable *uiNewTable(uiTableParams *p)
 
 	return t;
 }
+
+int uiTableColumnWidth(uiTable *t, int column)
+{
+	NSTableColumn *tc = [t->tv tableColumnWithIdentifier:[@(column) stringValue]];
+	return [tc width];
+}
+
+void uiTableColumnSetWidth(uiTable *t, int column, int width)
+{
+	NSTableColumn *tc = [t->tv tableColumnWithIdentifier:[@(column) stringValue]];
+	[tc setWidth: width];
+}
+

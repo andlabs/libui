@@ -1324,11 +1324,13 @@ _UI_EXTERN uiTableModel *uiNewTableModel(uiTableModelHandler *mh);
 // free table models currently associated with a uiTable.
 _UI_EXTERN void uiFreeTableModel(uiTableModel *m);
 
-// uiTableModelRowInserted() tells any uiTable associated with m
-// that a new row has been added to m at index index. You call
-// this function when the number of rows in your model has
-// changed; after calling it, NumRows() should returm the new row
-// count.
+// uiTableModelRowInserted() tell all uiTables associated with
+// the uiTableModel m that a new row has been added to m at
+// index newIndex.
+// You must insert the row data in your model before calling this
+// function.
+// NumRows() must represent the new row count before you call
+// this function.
 _UI_EXTERN void uiTableModelRowInserted(uiTableModel *m, int newIndex);
 
 // uiTableModelRowChanged() tells any uiTable associated with m

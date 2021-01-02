@@ -668,6 +668,10 @@ _UI_EXTERN void uiAttributeColor(const uiAttribute *a, double *r, double *g, dou
 // error to specify an invalid color.
 _UI_EXTERN uiAttribute *uiNewBackgroundAttribute(double r, double g, double b, double a);
 
+// uiAttributeBackground() returns the background color stored in a. It is an
+// error to call this on a uiAttribute that does not hold a background color.
+_UI_EXTERN void uiAttributeBackground(const uiAttribute *a, double *r, double *g, double *b, double *alpha);
+
 // TODO reuse uiAttributeColor() for background colors, or make a new function...
 
 // uiUnderline specifies a type of underline to use on text.

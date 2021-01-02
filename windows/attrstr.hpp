@@ -39,6 +39,12 @@ class drawingEffectsAttr : public IUnknown {
 	double b;
 	double a;
 
+	bool hasBackground;
+	double br;
+	double bg;
+	double bb;
+	double ba;
+
 	bool hasUnderline;
 	uiUnderline u;
 
@@ -56,9 +62,11 @@ public:
 	virtual ULONG STDMETHODCALLTYPE Release(void);
 
 	void setColor(double r, double g, double b, double a);
+	void setBackground(double r, double g, double b, double a);
 	void setUnderline(uiUnderline u);
 	void setUnderlineColor(double r, double g, double b, double a);
 	HRESULT mkColorBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b);
+	HRESULT mkBackgroundBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b);
 	HRESULT underline(uiUnderline *u);
 	HRESULT mkUnderlineBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b);
 };

@@ -183,6 +183,11 @@ uiAttribute *uiNewBackgroundAttribute(double r, double g, double b, double a)
 	return at;
 }
 
+void uiAttributeBackground(const uiAttribute *a, double *r, double *g, double *b, double *alpha)
+{
+	uiAttributeColor(a, r, g, b, alpha);
+}
+
 uiAttribute *uiNewUnderlineAttribute(uiUnderline u)
 {
 	uiAttribute *a;

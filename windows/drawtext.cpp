@@ -143,6 +143,7 @@ drawingEffectsAttr::drawingEffectsAttr(void)
 {
 	this->refcount = 1;
 	this->hasColor = false;
+	this->hasBackground = false;
 	this->hasUnderline = false;
 	this->hasUnderlineColor = false;
 }
@@ -185,6 +186,15 @@ void drawingEffectsAttr::setColor(double r, double g, double b, double a)
 	this->a = a;
 }
 
+void drawingEffectsAttr::setBackground(double r, double g, double b, double a)
+{
+	this->hasBackground = true;
+	this->br = r;
+	this->bg = g;
+	this->bb = b;
+	this->ba = a;
+}
+
 void drawingEffectsAttr::setUnderline(uiUnderline u)
 {
 	this->hasUnderline = true;
@@ -207,6 +217,15 @@ HRESULT drawingEffectsAttr::mkColorBrush(ID2D1RenderTarget *rt, ID2D1SolidColorB
 		return S_OK;
 	}
 	return mkSolidBrush(rt, this->r, this->g, this->b, this->a, b);
+}
+
+HRESULT drawingEffectsAttr::mkBackgroundBrush(ID2D1RenderTarget *rt, ID2D1SolidColorBrush **b)
+{
+	if (!this->hasBackground) {
+		*b = NULL;
+		return S_OK;
+	}
+	return mkSolidBrush(rt, this->br, this->bg, this->bb, this->ba, b);
 }
 
 HRESULT drawingEffectsAttr::underline(uiUnderline *u)
@@ -316,28 +335,54 @@ public:
 	{
 		D2D1_POINT_2F baseline;
 		drawingEffectsAttr *dea = (drawingEffectsAttr *) clientDrawingEffect;
-		ID2D1SolidColorBrush *brush;
+		ID2D1SolidColorBrush *foregroundBrush;
+		ID2D1SolidColorBrush *backgroundBrush;
 
 		baseline.x = baselineOriginX;
 		baseline.y = baselineOriginY;
-		brush = NULL;
+		foregroundBrush = NULL;
+		backgroundBrush = NULL;
 		if (dea != NULL) {
 			HRESULT hr;
 
-			hr = dea->mkColorBrush(this->rt, &brush);
+			hr = dea->mkColorBrush(this->rt, &foregroundBrush);
+			if (hr != S_OK)
+				return hr;
+
+			hr = dea->mkBackgroundBrush(this->rt, &backgroundBrush);
 			if (hr != S_OK)
 				return hr;
 		}
-		if (brush == NULL) {
-			brush = this->black;
-			brush->AddRef();
+		if (foregroundBrush == NULL) {
+			foregroundBrush = this->black;
+			foregroundBrush->AddRef();
+		}
+		if (backgroundBrush != nullptr) {
+			// Get width of text
+			float totalWidth = 0;
+			for (UINT32 index = 0; index < glyphRun->glyphCount; index++) {
+				totalWidth += glyphRun->glyphAdvances[index];
+			}
+
+			// Get height of text
+			DWRITE_FONT_METRICS fontMetrics;
+			glyphRun->fontFace->GetMetrics(&fontMetrics);
+			float adjust = glyphRun->fontEmSize / fontMetrics.designUnitsPerEm;
+			float ascent = adjust * fontMetrics.ascent;
+			float descent = adjust * fontMetrics.descent;
+			D2D1_RECT_F rect = D2D1::RectF(baselineOriginX,
+									 baselineOriginY - ascent,
+									 baselineOriginX + totalWidth,
+									 baselineOriginY + descent);
+
+			this->rt->FillRectangle(rect, backgroundBrush);
 		}
 		this->rt->DrawGlyphRun(
 			baseline,
 			glyphRun,
-			brush,
+			foregroundBrush,
 			measuringMode);
-		brush->Release();
+		foregroundBrush->Release();
 		return S_OK;
 	}
 

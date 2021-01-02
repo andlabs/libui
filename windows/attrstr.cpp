@@ -33,6 +33,7 @@ static std::hash<double> doubleHash;
 class combinedEffectsAttr : public IUnknown {
 	ULONG refcount;
 	uiAttribute *colorAttr;
+	uiAttribute *backgroundAttr;
 	uiAttribute *underlineAttr;
 	uiAttribute *underlineColorAttr;
 
@@ -45,6 +46,11 @@ class combinedEffectsAttr : public IUnknown {
 			if (this->colorAttr != NULL)
 				uiprivAttributeRelease(this->colorAttr);
 			this->colorAttr = uiprivAttributeRetain(a);
+			break;
+		case uiAttributeTypeBackground:
+			if (this->backgroundAttr != NULL)
+				uiprivAttributeRelease(this->backgroundAttr);
+			this->backgroundAttr = uiprivAttributeRetain(a);
 			break;
 		case uiAttributeTypeUnderline:
 			if (this->underlineAttr != NULL)
@@ -74,6 +80,7 @@ public:
 	{
 		this->refcount = 1;
 		this->colorAttr = NULL;
+		this->backgroundAttr = NULL;
 		this->underlineAttr = NULL;
 		this->underlineColorAttr = NULL;
 		this->setAttribute(a);
@@ -83,6 +90,8 @@ public:
 	{
 		if (this->colorAttr != NULL)
 			uiprivAttributeRelease(this->colorAttr);
+		if (this->backgroundAttr != NULL)
+			uiprivAttributeRelease(this->backgroundAttr);
 		if (this->underlineAttr != NULL)
 			uiprivAttributeRelease(this->underlineAttr);
 		if (this->underlineColorAttr != NULL)
@@ -124,6 +133,7 @@ public:
 		combinedEffectsAttr *b;
 
 		b = new combinedEffectsAttr(this->colorAttr);
+		b->setAttribute(this->backgroundAttr);
 		b->setAttribute(this->underlineAttr);
 		b->setAttribute(this->underlineColorAttr);
 		b->setAttribute(a);
@@ -139,6 +149,13 @@ public:
 
 		if (this->colorAttr != NULL) {
 			uiAttributeColor(this->colorAttr, &r, &g, &b, &a);
+			ret ^= doubleHash(r);
+			ret ^= doubleHash(g);
+			ret ^= doubleHash(b);
+			ret ^= doubleHash(a);
+		}
+		if (this->backgroundAttr != NULL) {
+			uiAttributeBackground(this->backgroundAttr, &r, &g, &b, &a);
 			ret ^= doubleHash(r);
 			ret ^= doubleHash(g);
 			ret ^= doubleHash(b);
@@ -162,6 +179,7 @@ public:
 		if (b == NULL)
 			return false;
 		return combinedEffectsAttr::attrEqual(this->colorAttr, b->colorAttr) &&
+			combinedEffectsAttr::attrEqual(this->backgroundAttr, b->backgroundAttr) &&
 			combinedEffectsAttr::attrEqual(this->underlineAttr, b->underlineAttr) &&
 			combinedEffectsAttr::attrEqual(this->underlineColorAttr, b->underlineColorAttr);
 	}
@@ -176,6 +194,10 @@ public:
 		if (this->colorAttr != NULL) {
 			uiAttributeColor(this->colorAttr, &r, &g, &b, &a);
 			dea->setColor(r, g, b, a);
+		}
+		if (this->backgroundAttr != NULL) {
+			uiAttributeBackground(this->backgroundAttr, &r, &g, &b, &a);
+			dea->setBackground(r, g, b, a);
 		}
 		if (this->underlineAttr != NULL)
 			dea->setUnderline(uiAttributeUnderline(this->underlineAttr));
@@ -338,14 +360,15 @@ static uiForEach processAttribute(const uiAttributedString *s, const uiAttribute
 		// and fall through to set the underline style through the drawing effect
 	case uiAttributeTypeColor:
 	case uiAttributeTypeUnderlineColor:
+	case uiAttributeTypeBackground:
 		// TODO const-correct this properly
 		hr = addEffectAttributeToRange(p, start, end, (uiAttribute *) attr);
 		if (hr != S_OK)
 			logHRESULT(L"error applying effect (color, underline, or underline color) attribute", hr);
 		break;
-	case uiAttributeTypeBackground:
-		addBackgroundParams(p, start, end, attr);
-		break;
+	// case uiAttributeTypeBackground:
+	// 	addBackgroundParams(p, start, end, attr);
+	// 	break;
 	case uiAttributeTypeFeatures:
 		// only generate an attribute if not NULL
 		// TODO do we still need to do this or not...

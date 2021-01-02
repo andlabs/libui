@@ -20,6 +20,9 @@ struct uiWindow {
 	uiControl *child;
 	int margined;
 
+	int width;
+	int height;
+
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	void (*onContentSizeChanged)(uiWindow *, void *);
@@ -101,17 +104,36 @@ uiUnixControlDefaultVisible(uiWindow)
 static void uiWindowShow(uiControl *c)
 {
 	uiWindow *w = uiWindow(c);
+	int width;
+	int height;
 
 	// don't use gtk_widget_show_all() as that will show all children, regardless of user settings
 	// don't use gtk_widget_show(); that doesn't bring to front or give keyboard focus
 	// (gtk_window_present() does call gtk_widget_show() though)
 	gtk_window_present(w->window);
+
+	// set the size properly
+	width = w->width;
+	height = w->height;
+	if (w->menubar)	{
+		GtkRequisition min, nat;
+		int menuheight;
+
+		gtk_widget_get_preferred_size(w->menubar, &min, &nat);
+		menuheight = min.height;
+		if (nat.height > menuheight)
+			menuheight = nat.height;
+	    height += menuheight;
+	}
+	gtk_window_resize(w->window, width, height);
 }
 
 uiUnixControlDefaultHide(uiWindow)
 uiUnixControlDefaultEnabled(uiWindow)
 uiUnixControlDefaultEnable(uiWindow)
 uiUnixControlDefaultDisable(uiWindow)
+uiUnixControlDefaultSetFocus(uiWindow)
+uiUnixControlDefaultSetMinSize(uiWindow)
 // TODO?
 uiUnixControlDefaultSetContainer(uiWindow)
 
@@ -252,6 +274,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	if (hasMenubar) {
 		w->menubar = uiprivMakeMenubar(uiWindow(w));
 		gtk_container_add(w->vboxContainer, w->menubar);
+	} else {
+		w->menubar = NULL;
 	}
 
 	w->childHolderWidget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);

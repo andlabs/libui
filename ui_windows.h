@@ -102,6 +102,15 @@ _UI_EXTERN void uiWindowsControlChildVisibilityChanged(uiWindowsControl *);
 		uiWindowsControl(c)->enabled = 0; \
 		uiWindowsControlSyncEnableState(uiWindowsControl(c), uiControlEnabledToUser(c)); \
 	}
+#define uiWindowsControlDefaultSetFocus(type) \
+	static void type ## SetFocus(uiControl *c) \
+	{ \
+		SetFocus(type(c)->hwnd); \
+	}
+#define uiWindowsControlDefaultSetMinSize(type) \
+	static void type ## SetMinSize(uiControl *c, int w, int h) \
+	{ \
+	}
 #define uiWindowsControlDefaultSyncEnableState(type) \
 	static void type ## SyncEnableState(uiWindowsControl *c, int enabled) \
 	{ \
@@ -152,6 +161,8 @@ _UI_EXTERN void uiWindowsControlChildVisibilityChanged(uiWindowsControl *);
 	uiWindowsControlDefaultEnabled(type) \
 	uiWindowsControlDefaultEnable(type) \
 	uiWindowsControlDefaultDisable(type) \
+	uiWindowsControlDefaultSetFocus(type) \
+	uiWindowsControlDefaultSetMinSize(type) \
 	uiWindowsControlDefaultSyncEnableState(type) \
 	uiWindowsControlDefaultSetParentHWND(type) \
 	uiWindowsControlDefaultMinimumSizeChanged(type) \
@@ -177,6 +188,8 @@ _UI_EXTERN void uiWindowsControlChildVisibilityChanged(uiWindowsControl *);
 	uiControl(var)->Enabled = type ## Enabled; \
 	uiControl(var)->Enable = type ## Enable; \
 	uiControl(var)->Disable = type ## Disable; \
+	uiControl(var)->SetFocus = type ## SetFocus; \
+	uiControl(var)->SetMinSize = type ## SetMinSize; \
 	uiWindowsControl(var)->SyncEnableState = type ## SyncEnableState; \
 	uiWindowsControl(var)->SetParentHWND = type ## SetParentHWND; \
 	uiWindowsControl(var)->MinimumSize = type ## MinimumSize; \

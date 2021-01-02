@@ -436,6 +436,7 @@ uiWindowsControlDefaultHide(uiGrid)
 uiWindowsControlDefaultEnabled(uiGrid)
 uiWindowsControlDefaultEnable(uiGrid)
 uiWindowsControlDefaultDisable(uiGrid)
+uiWindowsControlDefaultSetFocus(uiGrid)
 
 static void uiGridSyncEnableState(uiWindowsControl *c, int enabled)
 {
@@ -513,6 +514,12 @@ static void uiGridMinimumSizeChanged(uiWindowsControl *c)
 		return;
 	}
 	gridRelayout(g);
+}
+
+static void uiGridSetMinSize(uiControl *c, int w, int h)
+{
+    // checkme
+    uiGridMinimumSizeChanged(uiWindowsControl(c));
 }
 
 uiWindowsControlDefaultLayoutRect(uiGrid)

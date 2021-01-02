@@ -75,6 +75,7 @@ uiWindowsControlDefaultHide(uiGroup)
 uiWindowsControlDefaultEnabled(uiGroup)
 uiWindowsControlDefaultEnable(uiGroup)
 uiWindowsControlDefaultDisable(uiGroup)
+uiWindowsControlDefaultSetFocus(uiGroup)
 
 static void uiGroupSyncEnableState(uiWindowsControl *c, int enabled)
 {
@@ -116,6 +117,12 @@ static void uiGroupMinimumSizeChanged(uiWindowsControl *c)
 		return;
 	}
 	groupRelayout(g);
+}
+
+static void uiGroupSetMinSize(uiControl *c, int w, int h)
+{
+    // checkme
+    uiGroupMinimumSizeChanged(uiWindowsControl(c));
 }
 
 uiWindowsControlDefaultLayoutRect(uiGroup)

@@ -147,6 +147,7 @@ uiWindowsControlDefaultHide(uiForm)
 uiWindowsControlDefaultEnabled(uiForm)
 uiWindowsControlDefaultEnable(uiForm)
 uiWindowsControlDefaultDisable(uiForm)
+uiWindowsControlDefaultSetFocus(uiForm)
 
 static void uiFormSyncEnableState(uiWindowsControl *c, int enabled)
 {
@@ -229,6 +230,12 @@ static void uiFormMinimumSizeChanged(uiWindowsControl *c)
 		return;
 	}
 	formRelayout(f);
+}
+
+static void uiFormSetMinSize(uiControl *c, int w, int h)
+{
+    // checkme
+    uiFormMinimumSizeChanged(uiWindowsControl(c));
 }
 
 uiWindowsControlDefaultLayoutRect(uiForm)

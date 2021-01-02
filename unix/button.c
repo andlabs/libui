@@ -51,5 +51,7 @@ uiButton *uiNewButton(const char *text)
 	g_signal_connect(b->widget, "clicked", G_CALLBACK(onClicked), b);
 	uiButtonOnClicked(b, defaultOnClicked, NULL);
 
+	gtk_widget_set_size_request(b->widget, 64, 1);
+
 	return b;
 }

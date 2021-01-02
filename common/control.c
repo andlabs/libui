@@ -57,6 +57,18 @@ void uiControlDisable(uiControl *c)
 	(*(c->Disable))(c);
 }
 
+void uiControlSetFocus(uiControl *c)
+{
+	(*(c->SetFocus))(c);
+}
+
+void uiControlSetMinSize(uiControl *c, int w, int h)
+{
+    c->MinWidth = w;
+    c->MinHeight = h;
+    (*(c->SetMinSize))(c, w, h);
+}
+
 #define uiprivControlSignature 0x7569436F
 
 uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const char *typenamestr)
@@ -67,6 +79,10 @@ uiControl *uiAllocControl(size_t size, uint32_t OSsig, uint32_t typesig, const c
 	c->Signature = uiprivControlSignature;
 	c->OSSignature = OSsig;
 	c->TypeSignature = typesig;
+
+	c->MinWidth = -1;
+	c->MinHeight = -1;
+
 	return c;
 }
 

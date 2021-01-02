@@ -112,6 +112,7 @@ uiWindowsControlDefaultHide(uiTab)
 uiWindowsControlDefaultEnabled(uiTab)
 uiWindowsControlDefaultEnable(uiTab)
 uiWindowsControlDefaultDisable(uiTab)
+uiWindowsControlDefaultSetFocus(uiTab)
 
 static void uiTabSyncEnableState(uiWindowsControl *c, int enabled)
 {
@@ -161,6 +162,12 @@ static void uiTabMinimumSizeChanged(uiWindowsControl *c)
 		return;
 	}
 	tabRelayout(t);
+}
+
+static void uiTabSetMinSize(uiControl *c, int w, int h)
+{
+    // checkme
+    uiTabMinimumSizeChanged(uiWindowsControl(c));
 }
 
 uiWindowsControlDefaultLayoutRect(uiTab)

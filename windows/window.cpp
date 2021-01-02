@@ -232,6 +232,7 @@ static void uiWindowHide(uiControl *c)
 uiWindowsControlDefaultEnabled(uiWindow)
 uiWindowsControlDefaultEnable(uiWindow)
 uiWindowsControlDefaultDisable(uiWindow)
+uiWindowsControlDefaultSetFocus(uiWindow)
 // TODO we need to do something about undocumented fields in the OS control types
 uiWindowsControlDefaultSyncEnableState(uiWindow)
 // TODO
@@ -271,6 +272,11 @@ static void uiWindowLayoutRect(uiWindowsControl *c, RECT *r)
 
 	// the layout rect is the client rect in this case
 	uiWindowsEnsureGetClientRect(w->hwnd, r);
+}
+
+static void uiWindowSetMinSize(uiControl *c, int w, int h)
+{
+    // TODO: relayout, eventually
 }
 
 uiWindowsControlDefaultAssignControlIDZOrder(uiWindow)

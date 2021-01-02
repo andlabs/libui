@@ -242,6 +242,9 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	gtk_window_set_title(w->window, title);
 	gtk_window_resize(w->window, width, height);
 
+	// it will put the created window on top-right instead bottom-right
+	gtk_window_set_type_hint(w->window, GDK_WINDOW_TYPE_HINT_MENU);
+
 	w->vboxWidget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	w->vboxContainer = GTK_CONTAINER(w->vboxWidget);
 	w->vbox = GTK_BOX(w->vboxWidget);

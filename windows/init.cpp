@@ -105,8 +105,12 @@ const char *uiInit(uiInitOptions *o)
 	ZeroMemory(&icc, sizeof (INITCOMMONCONTROLSEX));
 	icc.dwSize = sizeof (INITCOMMONCONTROLSEX);
 	icc.dwICC = wantedICCClasses;
-	if (InitCommonControlsEx(&icc) == 0)
-		return ieLastErr("initializing Common Controls");
+	if (InitCommonControlsEx(&icc) == 0) {
+		DWORD last_err = GetLastError();
+		if (last_err != 0) {
+			return initerr("=" "initializing Common Controls", L"GetLastError() ==", last_err);
+		}
+	}
 
 	hr = CoInitialize(NULL);
 	if (hr != S_OK && hr != S_FALSE)

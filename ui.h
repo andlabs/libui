@@ -226,6 +226,9 @@ _UI_EXTERN uiSeparator *uiNewVerticalSeparator(void);
 typedef struct uiCombobox uiCombobox;
 #define uiCombobox(this) ((uiCombobox *) (this))
 _UI_EXTERN void uiComboboxAppend(uiCombobox *c, const char *text);
+_UI_EXTERN void uiComboboxInsertAt(uiCombobox *c, int n, const char *text);
+_UI_EXTERN void uiComboboxDelete(uiCombobox *c, int n);
+_UI_EXTERN void uiComboboxClear(uiCombobox *c);
 _UI_EXTERN int uiComboboxSelected(uiCombobox *c);
 _UI_EXTERN void uiComboboxSetSelected(uiCombobox *c, int n);
 _UI_EXTERN void uiComboboxOnSelected(uiCombobox *c, void (*f)(uiCombobox *c, void *data), void *data);

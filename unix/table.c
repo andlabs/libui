@@ -522,3 +522,16 @@ uiTable *uiNewTable(uiTableParams *p)
 
 	return t;
 }
+
+int uiTableColumnWidth(uiTable *t, int column)
+{
+	GtkTreeViewColumn *c = gtk_tree_view_get_column(t->tv, column);
+	return gtk_tree_view_column_get_width(c);
+}
+
+void uiTableColumnSetWidth(uiTable *t, int column, int width)
+{
+	GtkTreeViewColumn *c = gtk_tree_view_get_column(t->tv, column);
+	gtk_tree_view_column_set_fixed_width(c, width);
+}
+

@@ -1458,6 +1458,12 @@ _UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
 // uiNewTable() creates a new uiTable with the specified parameters.
 _UI_EXTERN uiTable *uiNewTable(uiTableParams *params);
 
+// uiTableColumnWidth() return current table column width
+_UI_EXTERN int uiTableColumnWidth(uiTable *t, int column);
+
+// uiTableColumnSetWidth() set table column width
+_UI_EXTERN void uiTableColumnSetWidth(uiTable *t, int column, int width);
+
 #ifdef __cplusplus
 }
 #endif

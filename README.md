@@ -88,6 +88,7 @@ But libui is not dead; I am working on it whenever I can, and I hope to get it t
 * All platforms:
 	* [Meson](https://mesonbuild.com/) 0.48.0 or newer
 	* Any of Meson's backends; this section assumes you are using [Ninja](https://ninja-build.org/), but there is no reason the other backends shouldn't work.
+	* [vcpkg] If you are using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager you can download and install libui with CMake integration in a single command: vcpkg install libui
 * Windows: either
 	* Microsoft Visual Studio 2013 or newer (2013 is needed for `va_copy()`) — you can build either a static or a shared library
 	* MinGW-w64 (other flavors of MinGW may not work) — **you can only build a static library**; shared library support will be re-added once the following features come in:

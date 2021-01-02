@@ -1255,6 +1255,12 @@ _UI_EXTERN uiTableValue *uiNewTableValueColor(double r, double g, double b, doub
 // TODO define whether all this, for both uiTableValue and uiAttribute, is undefined behavior or a caught error
 _UI_EXTERN void uiTableValueColor(const uiTableValue *v, double *r, double *g, double *b, double *a);
 
+_UI_ENUM(uiSort) {
+	uiSortNone,
+	uiSortAscending,
+	uiSortDescending
+};
+
 // uiTableModel is an object that provides the data for a uiTable.
 // This data is returned via methods you provide in the
 // uiTableModelHandler struct.
@@ -1457,6 +1463,22 @@ _UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
 
 // uiNewTable() creates a new uiTable with the specified parameters.
 _UI_EXTERN uiTable *uiNewTable(uiTableParams *params);
+
+// uiTableHeaderSetSortIndicator() sets the sort indicator of the table
+// header to display an appropriate arrow on the column header
+_UI_EXTERN void uiTableHeaderSetSortIndicator(uiTable *t,
+	int column,
+	uiSort order);
+
+// uiTableHeaderSortIndicator returns the sort indicator of the specified
+// column
+_UI_EXTERN uiSort uiTableHeaderSortIndicator(uiTable *t, int column);
+
+// uiTableHeaderOnClicked() sets a callback function to be called
+// when a table column header is clicked
+_UI_EXTERN void uiTableHeaderOnClicked(uiTable *t,
+	void (*f)(uiTable *table, int column, void *data),
+	void *data);
 
 #ifdef __cplusplus
 }

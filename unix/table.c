@@ -18,6 +18,8 @@ struct uiTable {
 	// TODO document this properly
 	GHashTable *indeterminatePositions;
 	guint indeterminateTimer;
+	void (*headerOnClicked)(uiTable *, int, void *);
+	void *headerOnClickedData;
 };
 
 // use the same size as GtkFileChooserWidget's treeview
@@ -327,6 +329,59 @@ static void buttonColumnClicked(GtkCellRenderer *r, gchar *pathstr, gpointer dat
 	onEdited(p->m, p->modelColumn, pathstr, NULL, NULL);
 }
 
+uiSort uiTableHeaderSortIndicator(uiTable *t, int lcol)
+{
+	GtkTreeViewColumn *c = gtk_tree_view_get_column(t->tv, lcol);
+
+	if (c == NULL || gtk_tree_view_column_get_sort_indicator(c) == FALSE)
+		return uiSortNone;
+
+	if (gtk_tree_view_column_get_sort_order(c) == GTK_SORT_ASCENDING)
+		return uiSortAscending;
+	else
+		return uiSortDescending;
+}
+
+void uiTableHeaderSetSortIndicator(uiTable *t, int lcol, uiSort order)
+{
+	GtkTreeViewColumn *c = gtk_tree_view_get_column(t->tv, lcol);
+
+	if (c == NULL)
+		return;
+
+	if (order == uiSortNone) {
+		gtk_tree_view_column_set_sort_indicator(c, FALSE);
+		return;
+	}
+
+	gtk_tree_view_column_set_sort_indicator(c, TRUE);
+	if (order == uiSortAscending)
+		gtk_tree_view_column_set_sort_order(c, GTK_SORT_ASCENDING);
+	else
+		gtk_tree_view_column_set_sort_order(c, GTK_SORT_DESCENDING);
+}
+
+void uiTableHeaderOnClicked(uiTable *t, void (*f)(uiTable *, int, void *), void *data)
+{
+	t->headerOnClicked = f;
+	t->headerOnClickedData = data;
+}
+
+static void defaultHeaderOnClicked(uiTable *table, int column, void *data)
+{
+	// do nothing
+}
+
+static void headerOnClicked(GtkTreeViewColumn *c, gpointer data)
+{
+	guint i;
+	uiTable *t = uiTable(data);
+
+	for (i = 0; i < gtk_tree_view_get_n_columns(t->tv); ++i)
+		if (gtk_tree_view_get_column(t->tv, i) == c)
+			t->headerOnClicked(t, i, t->headerOnClickedData);
+}
+
 static GtkTreeViewColumn *addColumn(uiTable *t, const char *name)
 {
 	GtkTreeViewColumn *c;
@@ -334,6 +389,8 @@ static GtkTreeViewColumn *addColumn(uiTable *t, const char *name)
 	c = gtk_tree_view_column_new();
 	gtk_tree_view_column_set_resizable(c, TRUE);
 	gtk_tree_view_column_set_title(c, name);
+	gtk_tree_view_column_set_clickable(c, 1);
+	g_signal_connect(c, "clicked", G_CALLBACK(headerOnClicked), t);
 	gtk_tree_view_append_column(t->tv, c);
 	return c;
 }
@@ -519,6 +576,8 @@ uiTable *uiNewTable(uiTableParams *p)
 
 	t->indeterminatePositions = g_hash_table_new_full(rowcolHash, rowcolEqual,
 		uiprivFree, uiprivFree);
+
+	uiTableHeaderOnClicked(t, defaultHeaderOnClicked, NULL);
 
 	return t;
 }

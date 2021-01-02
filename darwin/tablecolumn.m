@@ -584,6 +584,7 @@ void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, 
 	struct textColumnCreateParams p;
 	uiprivTableColumn *col;
 	NSString *str;
+	NSString *ident;
 
 	memset(&p, 0, sizeof (struct textColumnCreateParams));
 	p.t = t;
@@ -597,8 +598,9 @@ void uiTableAppendTextColumn(uiTable *t, const char *name, int textModelColumn, 
 	else
 		p.textParams = uiprivDefaultTextColumnOptionalParams;
 
+	ident = [@([[t->tv tableColumns] count]) stringValue];
+	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:ident params:&p];
 	str = [NSString stringWithUTF8String:name];
-	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
 	[col setTitle:str];
 	[t->tv addTableColumn:col];
 }
@@ -608,6 +610,7 @@ void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn
 	struct textColumnCreateParams p;
 	uiprivTableColumn *col;
 	NSString *str;
+	NSString *ident;
 
 	memset(&p, 0, sizeof (struct textColumnCreateParams));
 	p.t = t;
@@ -616,8 +619,9 @@ void uiTableAppendImageColumn(uiTable *t, const char *name, int imageModelColumn
 	p.makeImageView = YES;
 	p.imageModelColumn = imageModelColumn;
 
+	ident = [@([[t->tv tableColumns] count]) stringValue];
+	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:ident params:&p];
 	str = [NSString stringWithUTF8String:name];
-	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
 	[col setTitle:str];
 	[t->tv addTableColumn:col];
 }
@@ -627,6 +631,7 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 	struct textColumnCreateParams p;
 	uiprivTableColumn *col;
 	NSString *str;
+	NSString *ident;
 
 	memset(&p, 0, sizeof (struct textColumnCreateParams));
 	p.t = t;
@@ -643,8 +648,9 @@ void uiTableAppendImageTextColumn(uiTable *t, const char *name, int imageModelCo
 	p.makeImageView = YES;
 	p.imageModelColumn = imageModelColumn;
 
+	ident = [@([[t->tv tableColumns] count]) stringValue];
+	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:ident params:&p];
 	str = [NSString stringWithUTF8String:name];
-	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
 	[col setTitle:str];
 	[t->tv addTableColumn:col];
 }
@@ -654,6 +660,7 @@ void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModel
 	struct textColumnCreateParams p;
 	uiprivTableColumn *col;
 	NSString *str;
+	NSString *ident;
 
 	memset(&p, 0, sizeof (struct textColumnCreateParams));
 	p.t = t;
@@ -663,8 +670,9 @@ void uiTableAppendCheckboxColumn(uiTable *t, const char *name, int checkboxModel
 	p.checkboxModelColumn = checkboxModelColumn;
 	p.checkboxEditableModelColumn = checkboxEditableModelColumn;
 
+	ident = [@([[t->tv tableColumns] count]) stringValue];
+	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:ident params:&p];
 	str = [NSString stringWithUTF8String:name];
-	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
 	[col setTitle:str];
 	[t->tv addTableColumn:col];
 }
@@ -674,6 +682,7 @@ void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxM
 	struct textColumnCreateParams p;
 	uiprivTableColumn *col;
 	NSString *str;
+	NSString *ident;
 
 	memset(&p, 0, sizeof (struct textColumnCreateParams));
 	p.t = t;
@@ -691,8 +700,9 @@ void uiTableAppendCheckboxTextColumn(uiTable *t, const char *name, int checkboxM
 	p.checkboxModelColumn = checkboxModelColumn;
 	p.checkboxEditableModelColumn = checkboxEditableModelColumn;
 
+	ident = [@([[t->tv tableColumns] count]) stringValue];
+	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:ident params:&p];
 	str = [NSString stringWithUTF8String:name];
-	col = [[uiprivTextImageCheckboxTableColumn alloc] initWithIdentifier:str params:&p];
 	[col setTitle:str];
 	[t->tv addTableColumn:col];
 }
@@ -701,9 +711,11 @@ void uiTableAppendProgressBarColumn(uiTable *t, const char *name, int progressMo
 {
 	uiprivTableColumn *col;
 	NSString *str;
+	NSString *ident;
 
+	ident = [@([[t->tv tableColumns] count]) stringValue];
+	col = [[uiprivProgressBarTableColumn alloc] initWithIdentifier:ident table:t model:t->m modelColumn:progressModelColumn];
 	str = [NSString stringWithUTF8String:name];
-	col = [[uiprivProgressBarTableColumn alloc] initWithIdentifier:str table:t model:t->m modelColumn:progressModelColumn];
 	[col setTitle:str];
 	[t->tv addTableColumn:col];
 }
@@ -712,9 +724,11 @@ void uiTableAppendButtonColumn(uiTable *t, const char *name, int buttonModelColu
 {
 	uiprivTableColumn *col;
 	NSString *str;
+	NSString *ident;
 
+	ident = [@([[t->tv tableColumns] count]) stringValue];
+	col = [[uiprivButtonTableColumn alloc] initWithIdentifier:ident table:t model:t->m modelColumn:buttonModelColumn editableColumn:buttonClickableModelColumn];
 	str = [NSString stringWithUTF8String:name];
-	col = [[uiprivButtonTableColumn alloc] initWithIdentifier:str table:t model:t->m modelColumn:buttonModelColumn editableColumn:buttonClickableModelColumn];
 	[col setTitle:str];
 	[t->tv addTableColumn:col];
 }

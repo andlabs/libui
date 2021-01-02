@@ -100,6 +100,21 @@ static void modelSetCellValue(uiTableModelHandler *mh, uiTableModel *m, int row,
 
 static uiTableModel *m;
 
+static void headerOnClicked(uiTable *t, int col, void *data)
+{
+	static int prev = 0;
+
+	if (prev != col)
+		uiTableHeaderSetSortIndicator(t, prev, uiSortNone);
+
+	if (uiTableHeaderSortIndicator(t, col) == uiSortAscending)
+		uiTableHeaderSetSortIndicator(t, col, uiSortDescending);
+	else
+		uiTableHeaderSetSortIndicator(t, col, uiSortAscending);
+
+	prev = col;
+}
+
 uiBox *makePage16(void)
 {
 	uiBox *page16;
@@ -151,6 +166,8 @@ uiBox *makePage16(void)
 
 	uiTableAppendProgressBarColumn(t, "Progress Bar",
 		8);
+
+	uiTableHeaderOnClicked(t, headerOnClicked, NULL);
 
 	return page16;
 }

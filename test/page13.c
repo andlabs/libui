@@ -119,11 +119,11 @@ uiBox *makePage13(void)
 	uiBoxAppend(page13, uiControl(rb), 0);
 
 	b = uiNewButton("Horizontal");
-	uiButtonOnClicked(b, buttonClicked, uiNewHorizontalBox);
+	uiButtonOnClicked(b, buttonClicked, (void *) uiNewHorizontalBox);
 	uiBoxAppend(page13, uiControl(b), 0);
 
 	b = uiNewButton("Vertical");
-	uiButtonOnClicked(b, buttonClicked, uiNewVerticalBox);
+	uiButtonOnClicked(b, buttonClicked, (void *) uiNewVerticalBox);
 	uiBoxAppend(page13, uiControl(b), 0);
 
 	f = newForm();

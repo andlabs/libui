@@ -660,10 +660,10 @@ static const struct {
 	int height;
 	int stride;
 } files[] = {
-	{ "andlabs_16x16test_24june2016.png", dat0, 16, 16, 64 },
-	{ "andlabs_32x32test_24june2016.png", dat1, 32, 32, 128 },
-	{ "tango-icon-theme-0.8.90_16x16_x-office-spreadsheet.png", dat2, 16, 16, 64 },
-	{ "tango-icon-theme-0.8.90_32x32_x-office-spreadsheet.png", dat3, 32, 32, 128 },
+	{ "andlabs_16x16test_24june2016.png", (void *) dat0, 16, 16, 64 },
+	{ "andlabs_32x32test_24june2016.png", (void *) dat1, 32, 32, 128 },
+	{ "tango-icon-theme-0.8.90_16x16_x-office-spreadsheet.png", (void *) dat2, 16, 16, 64 },
+	{ "tango-icon-theme-0.8.90_32x32_x-office-spreadsheet.png", (void *) dat3, 32, 32, 128 },
 };
 
 void appendImageNamed(uiImage *img, const char *name)

@@ -8,6 +8,7 @@ uiArea *area;
 uiAreaHandler handler;
 uiFontButton *fontButton;
 uiCombobox *alignment;
+uiCheckbox *systemFont;
 
 uiAttributedString *attrstr;
 
@@ -97,15 +98,21 @@ static void handlerDraw(uiAreaHandler *a, uiArea *area, uiAreaDrawParams *p)
 	uiDrawTextLayout *textLayout;
 	uiFontDescriptor defaultFont;
 	uiDrawTextLayoutParams params;
+	int useSystemFont = uiCheckboxChecked(systemFont);
 
 	params.String = attrstr;
-	uiFontButtonFont(fontButton, &defaultFont);
+	if (useSystemFont)
+		uiLoadControlFont(&defaultFont);
+	else
+		uiFontButtonFont(fontButton, &defaultFont);
 	params.DefaultFont = &defaultFont;
 	params.Width = p->AreaWidth;
 	params.Align = (uiDrawTextAlign) uiComboboxSelected(alignment);
 	textLayout = uiDrawNewTextLayout(&params);
 	uiDrawText(p->Context, textLayout, 0, 0);
 	uiDrawFreeTextLayout(textLayout);
+
+	//TODO RENAME?
 	uiFreeFontButtonFont(&defaultFont);
 }
 
@@ -136,6 +143,11 @@ static void onFontChanged(uiFontButton *b, void *data)
 }
 
 static void onComboboxSelected(uiCombobox *b, void *data)
+{
+	uiAreaQueueRedrawAll(area);
+}
+
+static void onCheckboxToggled(uiCheckbox *b, void *data)
 {
 	uiAreaQueueRedrawAll(area);
 }
@@ -207,6 +219,10 @@ int main(void)
 	uiComboboxSetSelected(alignment, 0);		// start with left alignment
 	uiComboboxOnSelected(alignment, onComboboxSelected, NULL);
 	uiFormAppend(form, "Alignment", uiControl(alignment), 0);
+
+	systemFont = uiNewCheckbox("");
+	uiCheckboxOnToggled(systemFont, onCheckboxToggled, NULL);
+	uiFormAppend(form, "System Font", uiControl(systemFont), 0);
 
 	area = uiNewArea(&handler);
 	uiBoxAppend(hbox, uiControl(area), 1);

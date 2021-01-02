@@ -534,3 +534,53 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	// TODO make sure the behavior of this on empty strings is the same on all platforms (ideally should be 0-width, line height-height; TODO note this in the docs too)
 	*height = metrics.height;
 }
+
+void uiLoadControlFont(uiFontDescriptor *f)
+{
+	fontCollection *collection;
+	IDWriteGdiInterop *gdi;
+	IDWriteFont *dwfont;
+	IDWriteFontFamily *dwfamily;
+	NONCLIENTMETRICSW metrics;
+	HDC dc;
+	WCHAR *family;
+	double size;
+	int pixels;
+	HRESULT hr;
+
+	metrics.cbSize = sizeof(metrics);
+	if (!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0))
+			logLastError(L"error getting non-client metrics");
+	hr = dwfactory->GetGdiInterop(&gdi);
+	if (hr != S_OK)
+			logHRESULT(L"error getting GDI interop", hr);
+
+	hr = gdi->CreateFontFromLOGFONT(&metrics.lfMessageFont, &dwfont);
+	if (hr != S_OK)
+			logHRESULT(L"error loading font", hr);
+
+	hr = dwfont->GetFontFamily(&dwfamily);
+	if (hr != S_OK)
+			logHRESULT(L"error loading font family", hr);
+	collection = uiprivLoadFontCollection();
+	family = uiprivFontCollectionFamilyName(collection, dwfamily);
+
+	dc = GetDC(NULL);
+	if (dc == NULL)
+		logLastError(L"error getting DC");
+	pixels = GetDeviceCaps(dc, LOGPIXELSY);
+	if (pixels == 0)
+			logLastError(L"error getting device caps");
+	size = abs(metrics.lfMessageFont.lfHeight) * 72 / pixels;
+
+	uiprivFontDescriptorFromIDWriteFont(dwfont, f);
+	f->Family = toUTF8(family);
+	f->Size = size;
+
+	uiprivFree(family);
+	uiprivFontCollectionFree(collection);
+	dwfamily->Release();
+	gdi->Release();
+	if (ReleaseDC(NULL, dc) == 0)
+		logLastError(L"error releasing DC");
+}

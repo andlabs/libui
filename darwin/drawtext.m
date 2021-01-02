@@ -212,3 +212,15 @@ void uiDrawTextLayoutExtents(uiDrawTextLayout *tl, double *width, double *height
 	[tl->frame returnWidth:width height:NULL];
 	[tl->forLines returnWidth:NULL height:height];
 }
+
+void uiLoadControlFont(uiFontDescriptor *f)
+{
+	CTFontRef ctfont;
+	CTFontDescriptorRef ctdesc;
+
+	ctfont = (CTFontRef) [NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSControlSizeRegular]];
+	ctdesc = CTFontCopyFontDescriptor(ctfont);
+	uiprivFontDescriptorFromCTFontDescriptor(ctdesc, f);
+	CFRelease(ctdesc);
+	f->Size = CTFontGetSize(ctfont);
+}

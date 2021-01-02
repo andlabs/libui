@@ -16,6 +16,8 @@ struct uiTable {
 	uiprivScrollViewData *d;
 	int backgroundColumn;
 	uiTableModel *m;
+	void (*onRowDoubleClicked)(uiTable *, int, void *);
+	void *onRowDoubleClickedData;
 };
 
 // tablecolumn.m

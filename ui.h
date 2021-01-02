@@ -130,7 +130,7 @@ _UI_EXTERN void uiWindowSetBorderless(uiWindow *w, int borderless);
 _UI_EXTERN void uiWindowSetChild(uiWindow *w, uiControl *child);
 _UI_EXTERN int uiWindowMargined(uiWindow *w);
 _UI_EXTERN void uiWindowSetMargined(uiWindow *w, int margined);
-_UI_EXTERN uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar);
+_UI_EXTERN uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar, int resizable);
 
 typedef struct uiButton uiButton;
 #define uiButton(this) ((uiButton *) (this))
@@ -292,8 +292,8 @@ _UI_EXTERN uiMenuItem *uiMenuAppendAboutItem(uiMenu *m);
 _UI_EXTERN void uiMenuAppendSeparator(uiMenu *m);
 _UI_EXTERN uiMenu *uiNewMenu(const char *name);
 
-_UI_EXTERN char *uiOpenFile(uiWindow *parent);
-_UI_EXTERN char *uiSaveFile(uiWindow *parent);
+_UI_EXTERN char *uiOpenFile(uiWindow *parent, char* filter);
+_UI_EXTERN char *uiSaveFile(uiWindow *parent, char* filter);
 _UI_EXTERN void uiMsgBox(uiWindow *parent, const char *title, const char *description);
 _UI_EXTERN void uiMsgBoxError(uiWindow *parent, const char *title, const char *description);
 

@@ -11,6 +11,7 @@
 typedef struct uiTableModelClass uiTableModelClass;
 struct uiTableModel {
 	GObject parent_instance;
+	gint stamp;
 	uiTableModelHandler *mh;
 };
 struct uiTableModelClass {

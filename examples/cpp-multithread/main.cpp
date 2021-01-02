@@ -12,24 +12,28 @@ using namespace std;
 uiMultilineEntry *e;
 condition_variable cv;
 mutex m;
-unique_lock<mutex> ourlock(m);
 thread *timeThread;
+bool quitting = false;
 
 void sayTime(void *data)
 {
 	char *s = (char *) data;
 
 	uiMultilineEntryAppend(e, s);
-	delete s;
+	delete[] s;
 }
 
 void threadproc(void)
 {
-	ourlock.lock();
-	while (cv.wait_for(ourlock, chrono::seconds(1)) == cv_status::timeout) {
+	while (!quitting) {
 		time_t t;
 		char *base;
 		char *s;
+
+		{
+			unique_lock<mutex> ourlock(m);
+			(void)cv.wait_for(ourlock, chrono::seconds(1));
+		}
 
 		t = time(NULL);
 		base = ctime(&t);
@@ -41,6 +45,7 @@ void threadproc(void)
 
 int onClosing(uiWindow *w, void *data)
 {
+	quitting = true;
 	cv.notify_all();
 	// C++ throws a hissy fit if you don't do this
 	// we might as well, to ensure no uiQueueMain() gets in after uiQuit()
@@ -82,7 +87,6 @@ int main(void)
 	uiBoxAppend(b, uiControl(e), 1);
 
 	// timeThread needs to lock ourlock itself - see http://stackoverflow.com/a/34121629/3408572
-	ourlock.unlock();
 	timeThread = new thread(threadproc);
 
 	uiWindowOnClosing(w, onClosing, NULL);

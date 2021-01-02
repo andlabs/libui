@@ -14,3 +14,9 @@ void uiprivDisableAutocorrect(NSTextView *tv)
 	[tv setAutomaticLinkDetectionEnabled:NO];
 	[tv setSmartInsertDeleteEnabled:NO];
 }
+
+bool isDarkMode()
+{
+	NSString *osxMode = [[NSUserDefaults standardUserDefaults] stringForKey:@"AppleInterfaceStyle"];
+	return [osxMode isEqualToString:@"Dark"];
+}

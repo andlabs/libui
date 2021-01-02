@@ -89,3 +89,5 @@ extern CFAttributedStringRef uiprivAttributedStringToCFAttributedString(uiDrawTe
 - (id)initWithStart:(size_t)s end:(size_t)e r:(double)red g:(double)green b:(double)blue a:(double)alpha;
 - (void)draw:(CGContextRef)c layout:(uiDrawTextLayout *)layout at:(double)x y:(double)y utf8Mapping:(const size_t *)u16tou8;
 @end
+
+CGColorRef mkcolor(double r, double g, double b, double a);

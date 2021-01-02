@@ -3,6 +3,8 @@
 #import "draw.h"
 #import "attrstr.h"
 
+#define inRange(min, x, max) ((min) <= (x) && (x) <= (max))
+
 // problem: for a CTFrame made from an empty string, the CTLine array will be empty, and we will crash when doing anything requiring a CTLine
 // solution: for those cases, maintain a separate framesetter just for computing those things
 // in the usual case, the separate copy will just be identical to the regular one, with extra references to everything within
@@ -18,7 +20,40 @@
 - (void)draw:(uiDrawContext *)c textLayout:(uiDrawTextLayout *)tl at:(double)x y:(double)y;
 - (void)returnWidth:(double *)width height:(double *)height;
 - (CFArrayRef)lines;
+- (void)lineOrigins:(CFRange)range origins:(CGPoint*)origins;
 @end
+
+struct uiDrawTextLayout {
+	uiprivTextFrame *frame;
+	uiprivTextFrame *forLines;
+	BOOL empty;
+
+	// for converting CFAttributedString indices from/to byte offsets
+	size_t *u8tou16;
+	size_t nUTF8;
+	size_t *u16tou8;
+	size_t nUTF16;
+};
+
+CGColorRef mkcolor(double r, double g, double b, double a)
+{
+	CGColorSpaceRef colorspace;
+	CGColorRef color;
+	CGFloat components[4];
+
+	// TODO we should probably just create this once and recycle it throughout program execution...
+	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+	if (colorspace == NULL) {
+		// TODO
+	}
+	components[0] = r;
+	components[1] = g;
+	components[2] = b;
+	components[3] = a;
+	color = CGColorCreate(colorspace, components);
+	CFRelease(colorspace);
+	return color;
+}
 
 @implementation uiprivDrawTextBackgroundParams
 
@@ -38,7 +73,58 @@
 
 - (void)draw:(CGContextRef)c layout:(uiDrawTextLayout *)layout at:(double)x y:(double)y utf8Mapping:(const size_t *)u16tou8
 {
-	// TODO
+	long startI = u16tou8[self->start];
+	long endI = u16tou8[self->end];
+
+	CGColorRef color = mkcolor(self->r, self->g, self->b, self->a);
+
+	double frameHeight;
+	[layout->frame returnWidth:NULL height:&frameHeight];
+
+	CFArrayRef lines = [layout->frame lines];
+	size_t numOfLines = CFArrayGetCount(lines);
+	CGPoint lineOrigins[numOfLines];
+
+	[layout->frame lineOrigins:CFRangeMake(0, numOfLines) origins:lineOrigins];
+	for (size_t i = 0; i < numOfLines; i++) {
+		CTLineRef line = CFArrayGetValueAtIndex(lines, i);
+		CFRange lr = CTLineGetStringRange(line);
+		CFIndex lineStart = lr.location;
+		CFIndex lineEnd = lineStart + lr.length;
+		if (inRange(startI, lineStart, endI) ||
+			inRange(startI, lineEnd, endI) || 
+			inRange(lineStart, startI, lineEnd) ||
+			inRange(lineStart, endI, lineEnd)) {
+
+			CFArrayRef glyphruns = CTLineGetGlyphRuns(line);
+			size_t numOfRuns = CFArrayGetCount(glyphruns);
+			for (size_t j = 0; j < numOfRuns; j++) {
+				// from https://stackoverflow.com/a/5341819/2352201
+				CTRunRef run = CFArrayGetValueAtIndex(glyphruns, j);
+				CFRange runRange = CTRunGetStringRange(run);
+				CFIndex runStart = runRange.location;
+				CFIndex runEnd = runStart + runRange.length;
+				if (startI <= runStart && runEnd <= endI) {
+					CGRect rect;
+
+					CGFloat ascent; //height above the baseline
+					CGFloat descent; //height below the baseline
+					rect.size.width = CTRunGetTypographicBounds(run, CFRangeMake(0, 0), &ascent, &descent, NULL);
+					rect.size.height = ascent + descent;
+
+					rect.origin.x = lineOrigins[i].x + x + CTLineGetOffsetForStringIndex(line, runRange.location, NULL);
+					rect.origin.y = (frameHeight - lineOrigins[i].y) + y - ascent + descent;
+					rect.origin.y -= descent;
+
+					CGContextAddRect(c, rect);
+					CGContextSetFillColorWithColor(c, color);
+					CGContextDrawPath(c, kCGPathFill);
+				}
+			}
+		}
+	}
+
+	CFRelease(color);
 }
 
 @end
@@ -109,7 +195,7 @@
 	textMatrix = CGContextGetTextMatrix(c->c);
 
 	for (dtb in self->backgroundParams)
-		/* TODO */;
+		[dtb draw:c->c layout:tl at:x y:y utf8Mapping:tl->u16tou8];
 
 	// Core Text doesn't draw onto a flipped view correctly; we have to pretend it was unflipped
 	// see the iOS bits of the first example at https://developer.apple.com/library/mac/documentation/StringsTextFonts/Conceptual/CoreText_Programming/LayoutOperations/LayoutOperations.html#//apple_ref/doc/uid/TP40005533-CH12-SW1 (iOS is naturally flipped)
@@ -147,19 +233,12 @@
 	return CTFrameGetLines(self->frame);
 }
 
+- (void)lineOrigins:(CFRange)range origins:(CGPoint*)origins
+{
+	CTFrameGetLineOrigins(self->frame, range, origins);
+}
+
 @end
-
-struct uiDrawTextLayout {
-	uiprivTextFrame *frame;
-	uiprivTextFrame *forLines;
-	BOOL empty;
-
-	// for converting CFAttributedString indices from/to byte offsets
-	size_t *u8tou16;
-	size_t nUTF8;
-	size_t *u16tou8;
-	size_t nUTF16;
-};
 
 uiDrawTextLayout *uiDrawNewTextLayout(uiDrawTextLayoutParams *p)
 {

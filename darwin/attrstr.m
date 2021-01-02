@@ -271,26 +271,6 @@ static void addFontAttributeToRange(struct foreachParams *p, size_t start, size_
 	}
 }
 
-static CGColorRef mkcolor(double r, double g, double b, double a)
-{
-	CGColorSpaceRef colorspace;
-	CGColorRef color;
-	CGFloat components[4];
-
-	// TODO we should probably just create this once and recycle it throughout program execution...
-	colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-	if (colorspace == NULL) {
-		// TODO
-	}
-	components[0] = r;
-	components[1] = g;
-	components[2] = b;
-	components[3] = a;
-	color = CGColorCreate(colorspace, components);
-	CFRelease(colorspace);
-	return color;
-}
-
 static void addBackgroundAttribute(struct foreachParams *p, size_t start, size_t end, double r, double g, double b, double a)
 {
 	uiprivDrawTextBackgroundParams *dtb;
@@ -308,6 +288,7 @@ static void addBackgroundAttribute(struct foreachParams *p, size_t start, size_t
 		return;
 	}
 
+	CFAttributedStringSetAttribute(p->mas, CFRangeMake(start, end - start), (CFStringRef)@"FORCE_RUN", [NSString stringWithFormat:@"%lu %lu", start, end]);
 	dtb = [[uiprivDrawTextBackgroundParams alloc] initWithStart:start end:end r:r g:g b:b a:a];
 	[p->backgroundParams addObject:dtb];
 	[dtb release];

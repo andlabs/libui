@@ -242,6 +242,7 @@ struct uiWindowsSizing {
 };
 _UI_EXTERN void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing);
 _UI_EXTERN void uiWindowsSizingDlgUnitsToPixels(uiWindowsSizing *sizing, int *x, int *y);
+_UI_EXTERN void uiWindowsSizingCharsToPixels(uiWindowsSizing *sizing, int *x, int width_chars);
 _UI_EXTERN void uiWindowsSizingStandardPadding(uiWindowsSizing *sizing, int *x, int *y);
 
 // TODO document

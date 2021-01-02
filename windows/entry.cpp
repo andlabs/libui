@@ -7,6 +7,7 @@ struct uiEntry {
 	void (*onChanged)(uiEntry *, void *);
 	void *onChangedData;
 	BOOL inhibitChanged;
+	int width_chars;
 };
 
 static BOOL onWM_COMMAND(uiControl *c, HWND hwnd, WORD code, LRESULT *lResult)
@@ -47,6 +48,9 @@ static void uiEntryMinimumSize(uiWindowsControl *c, int *width, int *height)
 	y = entryHeight;
 	uiWindowsGetSizing(e->hwnd, &sizing);
 	uiWindowsSizingDlgUnitsToPixels(&sizing, &x, &y);
+	if (e->width_chars > 0) {
+		uiWindowsSizingCharsToPixels(&sizing, &x, e->width_chars);
+	}
 	*width = x;
 	*height = y;
 }
@@ -107,6 +111,8 @@ static uiEntry *finishNewEntry(DWORD style)
 	uiWindowsRegisterWM_COMMANDHandler(e->hwnd, onWM_COMMAND, uiControl(e));
 	uiEntryOnChanged(e, defaultOnChanged, NULL);
 
+	e->width_chars = 0;
+
 	return e;
 }
 
@@ -131,4 +137,9 @@ uiEntry *uiNewSearchEntry(void)
 	hr = SetWindowTheme(e->hwnd, L"SearchBoxEdit", NULL);
 	// TODO will hr be S_OK if themes are disabled?
 	return e;
+}
+
+void uiEntrySetWidthChars(uiEntry *e, int nchars)
+{
+	e->width_chars = nchars;
 }

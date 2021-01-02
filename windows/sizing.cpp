@@ -48,6 +48,12 @@ void uiWindowsSizingDlgUnitsToPixels(uiWindowsSizing *sizing, int *x, int *y)
 		*y = dlgUnitsToY(*y, sizing->BaseY);
 }
 
+void uiWindowsSizingCharsToPixels(uiWindowsSizing *sizing, int *x, int width_chars)
+{
+	if (x != NULL)
+		*x = sizing->BaseX * width_chars;
+}
+
 // from https://msdn.microsoft.com/en-us/library/windows/desktop/dn742486.aspx#sizingandspacing and https://msdn.microsoft.com/en-us/library/windows/desktop/bb226818%28v=vs.85%29.aspx
 // this X value is really only for buttons but I don't see a better one :/
 #define winXPadding 4

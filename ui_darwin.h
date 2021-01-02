@@ -65,7 +65,7 @@ _UI_EXTERN void uiDarwinControlChildVisibilityChanged(uiDarwinControl *);
 		return 0; \
 	}
 #define uiDarwinControlDefaultVisible(type, handlefield) \
-	static int type ## Visible(uiControl *c) \
+	static int type ## Visible(const uiControl *c) \
 	{ \
 		return uiDarwinControl(c)->visible; \
 	}
@@ -84,7 +84,7 @@ _UI_EXTERN void uiDarwinControlChildVisibilityChanged(uiDarwinControl *);
 		uiDarwinNotifyVisibilityChanged(uiDarwinControl(c)); \
 	}
 #define uiDarwinControlDefaultEnabled(type, handlefield) \
-	static int type ## Enabled(uiControl *c) \
+	static int type ## Enabled(const uiControl *c) \
 	{ \
 		return uiDarwinControl(c)->enabled; \
 	}

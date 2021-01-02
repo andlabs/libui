@@ -85,10 +85,10 @@ struct uiControl {
 	uiControl *(*Parent)(uiControl *);
 	void (*SetParent)(uiControl *, uiControl *);
 	int (*Toplevel)(uiControl *);
-	int (*Visible)(uiControl *);
+	int (*Visible)(const uiControl *);
 	void (*Show)(uiControl *);
 	void (*Hide)(uiControl *);
-	int (*Enabled)(uiControl *);
+	int (*Enabled)(const uiControl *);
 	void (*Enable)(uiControl *);
 	void (*Disable)(uiControl *);
 };
@@ -99,10 +99,10 @@ _UI_EXTERN uintptr_t uiControlHandle(uiControl *);
 _UI_EXTERN uiControl *uiControlParent(uiControl *);
 _UI_EXTERN void uiControlSetParent(uiControl *, uiControl *);
 _UI_EXTERN int uiControlToplevel(uiControl *);
-_UI_EXTERN int uiControlVisible(uiControl *);
+_UI_EXTERN int uiControlVisible(const uiControl *);
 _UI_EXTERN void uiControlShow(uiControl *);
 _UI_EXTERN void uiControlHide(uiControl *);
-_UI_EXTERN int uiControlEnabled(uiControl *);
+_UI_EXTERN int uiControlEnabled(const uiControl *);
 _UI_EXTERN void uiControlEnable(uiControl *);
 _UI_EXTERN void uiControlDisable(uiControl *);
 

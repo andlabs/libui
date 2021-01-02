@@ -67,7 +67,7 @@ _UI_EXTERN void uiWindowsControlChildVisibilityChanged(uiWindowsControl *);
 		return 0; \
 	}
 #define uiWindowsControlDefaultVisible(type) \
-	static int type ## Visible(uiControl *c) \
+	static int type ## Visible(const uiControl *c) \
 	{ \
 		return uiWindowsControl(c)->visible; \
 	}
@@ -86,7 +86,7 @@ _UI_EXTERN void uiWindowsControlChildVisibilityChanged(uiWindowsControl *);
 		uiWindowsControlNotifyVisibilityChanged(uiWindowsControl(c)); \
 	}
 #define uiWindowsControlDefaultEnabled(type) \
-	static int type ## Enabled(uiControl *c) \
+	static int type ## Enabled(const uiControl *c) \
 	{ \
 		return uiWindowsControl(c)->enabled; \
 	}

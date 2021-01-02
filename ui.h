@@ -1383,6 +1383,9 @@ struct uiTableParams {
 	// If CellValue() for this column for any row returns NULL, that
 	// row will also use the default background color.
 	int RowBackgroundColorModelColumn;
+	// MultiSelect sets selection mode for the table.
+	// 0=single selection, 1=allow multiple rows to be selected
+	int MultiSelect;
 };
 
 // uiTable is a uiControl that shows tabular data, allowing users to
@@ -1454,6 +1457,32 @@ _UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
 	const char *name,
 	int buttonModelColumn,
 	int buttonClickableModelColumn);
+
+// uiTableOnSelectionChanged sets a callback to invoke upon changes
+// in the set of selected items in the table.
+_UI_EXTERN void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *t, void *data), void *data);
+
+// uiTableSelection holds an array of row indexes for a table.
+// it's safe to fiddle with the Items data in place (eg a caller
+// might want to sort them - that's ok). But probably best not to
+// change NumItems or try to reallocate Items.
+typedef struct uiTableSelection uiTableSelection;
+struct uiTableSelection
+{
+	int NumItems;
+	int* Items;
+};
+
+// uiTableCurrentSelection returns a uiTableSelection containing
+// an array of all the selected rows in the table.
+// If no rows are selected, a uiTableSelection will still be
+// returned, with NumItems set to 0.
+// The caller is responsible for calling uiFreeTableSelection()
+// when finished with the uiTableSelection.
+_UI_EXTERN uiTableSelection* uiTableCurrentSelection(uiTable* t);
+
+// uiFreeTableSelection frees any memory allocated to a uiTableSelection
+_UI_EXTERN void uiFreeTableSelection(uiTableSelection* sel);
 
 // uiNewTable() creates a new uiTable with the specified parameters.
 _UI_EXTERN uiTable *uiNewTable(uiTableParams *params);

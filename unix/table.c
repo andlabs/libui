@@ -18,6 +18,8 @@ struct uiTable {
 	// TODO document this properly
 	GHashTable *indeterminatePositions;
 	guint indeterminateTimer;
+	void (*onSelectionChanged)(uiTable *, void *);
+	void *onSelectionChangedData;
 };
 
 // use the same size as GtkFileChooserWidget's treeview
@@ -494,9 +496,82 @@ static void uiTableDestroy(uiControl *c)
 	uiFreeControl(uiControl(t));
 }
 
+static void onChanged(GtkTreeSelection *sel, gpointer data)
+{
+	uiTable* t = uiTable(data);
+	(*(t->onSelectionChanged))(t, t->onSelectionChangedData);
+}
+
+static void defaultOnSelectionChanged(uiTable *t, void *data)
+{
+	// do nothing
+}
+
+void uiTableOnSelectionChanged(uiTable *t, void (*f)(uiTable *, void *), void *data)
+{
+	t->onSelectionChanged = f;
+	t->onSelectionChangedData = data;
+}
+
+// internal implementation of uiTableSelection (growable, because we
+// don't know the size of the selection in advance under Gtk+)
+// So we have extra stuff hanging on to the end of the public
+// uiTableSelection we return, but callers don't have to care.
+// Yay C!
+struct growableTableSelection
+{
+	uiTableSelection sel;
+	int cap;
+	// TODO: could have an int here for single-selection case to avoid extra alloc...
+};
+
+static void collectSelection( GtkTreeModel *model,
+	GtkTreePath *path,
+	GtkTreeIter *iter,
+	gpointer data)
+{
+	struct growableTableSelection* it = (struct growableTableSelection*)data;
+	int depth = gtk_tree_path_get_depth(path);
+	gint* indices = gtk_tree_path_get_indices(path);
+	if (depth < 1)
+		return;
+
+	// append to collection
+	if (it->sel.NumItems == it->cap) {
+		// initial alloc or grow
+		if (it->cap == 0) {
+			it->cap = 16;
+		} else {
+			it->cap *= 2;
+		}
+		it->sel.Items = uiprivRealloc(it->sel.Items, sizeof(int) * it->cap, "int[]");
+	}
+	it->sel.Items[it->sel.NumItems++] = (int)indices[0];
+}
+
+uiTableSelection* uiTableCurrentSelection(uiTable* t)
+{
+	struct growableTableSelection* g = uiprivAlloc(sizeof(struct growableTableSelection), "uiTableSelection");
+	g->sel.NumItems = 0;
+	g->sel.Items = NULL;
+	g->cap = 0;
+	gtk_tree_selection_selected_foreach( gtk_tree_view_get_selection(t->tv), collectSelection, (gpointer)g);
+	return (uiTableSelection*)g;
+}
+
+void uiFreeTableSelection(uiTableSelection* sel)
+{
+	struct growableTableSelection* g = (struct growableTableSelection*)sel;
+	if (g->sel.Items)
+		uiprivFree(g->sel.Items);
+	uiprivFree(g);
+}
+
 uiTable *uiNewTable(uiTableParams *p)
 {
 	uiTable *t;
+	GtkTreeSelection* sel;
+	GtkSelectionMode selMode;
 
 	uiUnixNewControl(uiTable, t);
 
@@ -519,6 +594,14 @@ uiTable *uiNewTable(uiTableParams *p)
 
 	t->indeterminatePositions = g_hash_table_new_full(rowcolHash, rowcolEqual,
 		uiprivFree, uiprivFree);
+
+	sel = gtk_tree_view_get_selection(t->tv);
+	selMode = GTK_SELECTION_SINGLE;
+	if (p->MultiSelect == 1)
+		selMode = GTK_SELECTION_MULTIPLE;
+	gtk_tree_selection_set_mode(sel, selMode);
+	g_signal_connect(sel, "changed", G_CALLBACK(onChanged), t);
+	uiTableOnSelectionChanged(t, defaultOnSelectionChanged, NULL);
 
 	return t;
 }

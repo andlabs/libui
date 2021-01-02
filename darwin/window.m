@@ -367,6 +367,8 @@ static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
 	// do nothing
 }
 
+static NSPoint lastTopLeftPoint;
+
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindow *w;
@@ -380,6 +382,13 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 		backing:NSBackingStoreBuffered
 		defer:YES];
 	[w->window setTitle:uiprivToNSString(title)];
+
+	if (NSEqualPoints(lastTopLeftPoint, NSZeroPoint)) {
+		// issue "cascadeTopLeftFromPoint" twice on first time
+		// to have window position in a good place
+		lastTopLeftPoint = [w->window cascadeTopLeftFromPoint:lastTopLeftPoint];
+	}
+	lastTopLeftPoint = [w->window cascadeTopLeftFromPoint:lastTopLeftPoint];
 
 	// do NOT release when closed
 	// we manually do this in uiWindowDestroy() above

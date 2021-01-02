@@ -1,5 +1,6 @@
 // 15 august 2015
 #import "uipriv_darwin.h"
+#import <string.h>
 
 #define defaultStyleMask (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
 
@@ -42,6 +43,7 @@ struct uiWindow {
 - (void)registerWindow:(uiWindow *)w;
 - (void)unregisterWindow:(uiWindow *)w;
 - (uiWindow *)lookupWindow:(NSWindow *)w;
+@property (nonatomic, retain) NSView* vibrantView;
 @end
 
 @implementation windowDelegateClass
@@ -122,6 +124,74 @@ struct uiWindow {
 @end
 
 static windowDelegateClass *windowDelegate = nil;
+
+
+static void SetVibrancy(NSWindow* window_, NSView* vibrant_view, const char *type) {
+  //if (!base::mac::IsAtLeastOS10_10()) return;
+
+  if (type == NULL) {
+    if (vibrant_view == nil) return;
+
+    [vibrant_view removeFromSuperview];
+    [window_ setVibrantView:nil];
+
+    return;
+  }
+
+  NSVisualEffectView* effect_view = (NSVisualEffectView*)vibrant_view;
+  if (effect_view == nil) {
+    effect_view = [[[NSVisualEffectView alloc]
+        initWithFrame: [[window_ contentView] bounds]] autorelease];
+
+	// TODO: uncomment this and fix its issue
+    //[window_ setVibrantView:(NSView*)effect_view];
+
+    [effect_view setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+    [effect_view setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
+    [effect_view setState:NSVisualEffectStateActive];
+    [[window_ contentView] addSubview:effect_view
+                           positioned:NSWindowBelow
+                           relativeTo:nil];
+  }
+
+  NSVisualEffectMaterial vibrancyType = NSVisualEffectMaterialLight;
+
+  if (!strcmp(type, "appearance-based")) {
+    vibrancyType = NSVisualEffectMaterialAppearanceBased;
+  } else if (!strcmp(type, "light")) {
+    vibrancyType = NSVisualEffectMaterialLight;
+  } else if (!strcmp(type, "dark")) {
+    vibrancyType = NSVisualEffectMaterialDark;
+  } else if (!strcmp(type, "titlebar")) {
+    vibrancyType = NSVisualEffectMaterialTitlebar;
+  }
+
+  //if (base::mac::IsAtLeastOS10_11()) {
+    // TODO(kevinsawicki): Use NSVisualEffectMaterial* constants directly once
+    // they are available in the minimum SDK version
+    if (!strcmp(type, "selection")) {
+      // NSVisualEffectMaterialSelection
+      vibrancyType = (NSVisualEffectMaterial) 4;
+    } else if (!strcmp(type, "menu")) {
+      // NSVisualEffectMaterialMenu
+      vibrancyType = (NSVisualEffectMaterial) 5;
+    } else if (!strcmp(type, "popover")) {
+      // NSVisualEffectMaterialPopover
+      vibrancyType = (NSVisualEffectMaterial) 6;
+    } else if (!strcmp(type, "sidebar")) {
+      // NSVisualEffectMaterialSidebar
+      vibrancyType = (NSVisualEffectMaterial) 7;
+    } else if (!strcmp(type, "medium-light")) {
+      // NSVisualEffectMaterialMediumLight
+      vibrancyType = (NSVisualEffectMaterial) 8;
+    } else if (!strcmp(type, "ultra-dark")) {
+      // NSVisualEffectMaterialUltraDark
+      vibrancyType = (NSVisualEffectMaterial) 9;
+    }
+  //}
+
+  [effect_view setMaterial:vibrancyType];
+}
 
 static void removeConstraints(uiWindow *w)
 {
@@ -367,6 +437,7 @@ static void defaultOnPositionContentSizeChanged(uiWindow *w, void *data)
 	// do nothing
 }
 
+
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindow *w;
@@ -392,6 +463,8 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 	[windowDelegate registerWindow:w];
 	uiWindowOnClosing(w, defaultOnClosing, NULL);
 	uiWindowOnContentSizeChanged(w, defaultOnPositionContentSizeChanged, NULL);
+
+	SetVibrancy(w->window, [windowDelegate vibrantView], "ultra-dark");
 
 	return w;
 }

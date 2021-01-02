@@ -48,8 +48,11 @@ int uiWindowsWindowTextWidth(HWND hwnd)
 
 	size.cx = 0;
 	size.cy = 0;
+	//save the max width of multiline text
+	auto maxWidth = size.cx;
 
 	text = windowTextAndLen(hwnd, &len);
+	WCHAR *start = text, *end = text;
 	if (len == 0)		// no text; nothing to do
 		goto noTextOrError;
 
@@ -66,12 +69,31 @@ int uiWindowsWindowTextWidth(HWND hwnd)
 		ReleaseDC(hwnd, dc);
 		goto noTextOrError;
 	}
-	if (GetTextExtentPoint32W(dc, text, len, &size) == 0) {
-		logLastError(L"error getting text extent point");
-		// continue anyway, assuming size is 0
-		size.cx = 0;
-		size.cy = 0;
+	
+	// calculate width of each line
+	while(start != text + len) {
+		while(*start == '\n' && start != text + len) {
+			start++;
+		}
+		if(start == text + len) {
+			break;
+		}
+		end = start + 1;
+		while(*end != '\n' && end != text + len){
+			end++;
+		}
+		if (GetTextExtentPoint32W(dc, start, end - start, &size) == 0) {
+			logLastError(L"error getting text extent point");
+			// continue anyway, assuming size is 0
+			size.cx = 0;
+			size.cy = 0;
+		}
+		if(size.cx > maxWidth) {
+			maxWidth = size.cx;
+		}
+		start = end;
 	}
+	
 	// continue on errors; we got what we want
 	if (SelectObject(dc, prevfont) != hMessageFont)
 		logLastError(L"error restoring previous font into device context");
@@ -79,7 +101,7 @@ int uiWindowsWindowTextWidth(HWND hwnd)
 		logLastError(L"error releasing DC");
 
 	uiprivFree(text);
-	return size.cx;
+	return maxWidth;
 
 noTextOrError:
 	uiprivFree(text);

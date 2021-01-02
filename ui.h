@@ -1324,11 +1324,13 @@ _UI_EXTERN uiTableModel *uiNewTableModel(uiTableModelHandler *mh);
 // free table models currently associated with a uiTable.
 _UI_EXTERN void uiFreeTableModel(uiTableModel *m);
 
-// uiTableModelRowInserted() tells any uiTable associated with m
-// that a new row has been added to m at index index. You call
-// this function when the number of rows in your model has
-// changed; after calling it, NumRows() should returm the new row
-// count.
+// uiTableModelRowInserted() tell all uiTables associated with
+// the uiTableModel m that a new row has been added to m at
+// index newIndex.
+// You must insert the row data in your model before calling this
+// function.
+// NumRows() must represent the new row count before you call
+// this function.
 _UI_EXTERN void uiTableModelRowInserted(uiTableModel *m, int newIndex);
 
 // uiTableModelRowChanged() tells any uiTable associated with m
@@ -1337,12 +1339,13 @@ _UI_EXTERN void uiTableModelRowInserted(uiTableModel *m, int newIndex);
 // this if your data changes at some other point.
 _UI_EXTERN void uiTableModelRowChanged(uiTableModel *m, int index);
 
-// uiTableModelRowDeleted() tells any uiTable associated with m
-// that the row at index index has been deleted. You call this
-// function when the number of rows in your model has changed;
-// after calling it, NumRows() should returm the new row
-// count.
-// TODO for this and Inserted: make sure the "after" part is right; clarify if it's after returning or after calling
+// uiTableModelRowDeleted() tells all uiTables associated with
+// the uiTableModel m that the row at index oldIndex has been
+// deleted.
+// You must delete the row from your model before you call this
+// function.
+// NumRows() must represent the new row count before you call
+// this function.
 _UI_EXTERN void uiTableModelRowDeleted(uiTableModel *m, int oldIndex);
 // TODO reordering/moving
 

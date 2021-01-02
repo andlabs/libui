@@ -41,6 +41,8 @@ void uiprivTableModelSetCellValue(uiTableModel *m, int row, int column, const ui
 
 	mh = uiprivTableModelHandler(m);
 	(*(mh->SetCellValue))(mh, m, row, column, value);
+
+	uiTableModelRowChanged(m, row);
 }
 
 const uiTableTextColumnOptionalParams uiprivDefaultTextColumnOptionalParams = {

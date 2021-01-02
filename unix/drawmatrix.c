@@ -31,35 +31,41 @@ static void c2m(cairo_matrix_t *c, uiDrawMatrix *m)
 void uiDrawMatrixTranslate(uiDrawMatrix *m, double x, double y)
 {
 	cairo_matrix_t c;
+	cairo_matrix_t tmp;
 
 	m2c(m, &c);
-	cairo_matrix_translate(&c, x, y);
+	cairo_matrix_init_translate(&tmp, x, y);
+	cairo_matrix_multiply(&c, &c, &tmp);
 	c2m(&c, m);
 }
 
 void uiDrawMatrixScale(uiDrawMatrix *m, double xCenter, double yCenter, double x, double y)
 {
 	cairo_matrix_t c;
+	cairo_matrix_t tmp;
 	double xt, yt;
 
 	m2c(m, &c);
 	xt = x;
 	yt = y;
 	uiprivScaleCenter(xCenter, yCenter, &xt, &yt);
-	cairo_matrix_translate(&c, xt, yt);
-	cairo_matrix_scale(&c, x, y);
-	cairo_matrix_translate(&c, -xt, -yt);
+	cairo_matrix_init_translate(&tmp, xt, yt);
+	cairo_matrix_scale(&tmp, x, y);
+	cairo_matrix_translate(&tmp, -xt, -yt);
+	cairo_matrix_multiply(&c, &c, &tmp);
 	c2m(&c, m);
 }
 
 void uiDrawMatrixRotate(uiDrawMatrix *m, double x, double y, double amount)
 {
 	cairo_matrix_t c;
+	cairo_matrix_t tmp;
 
 	m2c(m, &c);
-	cairo_matrix_translate(&c, x, y);
-	cairo_matrix_rotate(&c, amount);
-	cairo_matrix_translate(&c, -x, -y);
+	cairo_matrix_init_translate(&tmp, x, y);
+	cairo_matrix_rotate(&tmp, amount);
+	cairo_matrix_translate(&tmp, -x, -y);
+	cairo_matrix_multiply(&c, &c, &tmp);
 	c2m(&c, m);
 }
 

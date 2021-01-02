@@ -132,65 +132,217 @@ _UI_EXTERN int uiWindowMargined(uiWindow *w);
 _UI_EXTERN void uiWindowSetMargined(uiWindow *w, int margined);
 _UI_EXTERN uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar);
 
+// uiButton is a common pushbutton, containing a text label.
 typedef struct uiButton uiButton;
 #define uiButton(this) ((uiButton *) (this))
+
+// uiButtonText returns the button label text.
+// The returned text is owned by the caller and should be freed with uiFreeText()
 _UI_EXTERN char *uiButtonText(uiButton *b);
+
+// uiButtonSetText sets the text label on the button
 _UI_EXTERN void uiButtonSetText(uiButton *b, const char *text);
+
+// uiButtonOnClicked sets the function which is called when the button
+// is clicked (or otherwise activated).
+// A button may only have one OnClicked function registered at a time.
+// The data value is passed on to the callback.
 _UI_EXTERN void uiButtonOnClicked(uiButton *b, void (*f)(uiButton *b, void *data), void *data);
+
+// uiNewButton creates a new uiButton, with the label from `text`.
 _UI_EXTERN uiButton *uiNewButton(const char *text);
 
+// uiBox is a ontrol that holds a group of Controls horizontally
+// or vertically. If horizontally, then all controls have the same
+// height. If vertically, then all controls have the same width.
+// By default, each control has its preferred width (horizontal)
+// or height (vertical); if a control is marked "stretchy", it will
+// take whatever space is left over. If multiple controls are marked
+// stretchy, they will be given equal shares of the leftover space.
+// There can also be space between each control ("padding").
+// Destroying a uiBox will also destroy it's children.
 typedef struct uiBox uiBox;
 #define uiBox(this) ((uiBox *) (this))
+
+// uiBoxAppend adds a child control to the uiBox.
 _UI_EXTERN void uiBoxAppend(uiBox *b, uiControl *child, int stretchy);
+
+// uiBoxDelete removes a child control from the box
+// TODO: confirm: is the child destroyed?
 _UI_EXTERN void uiBoxDelete(uiBox *b, int index);
+
+// uiBoxPadded returns true if the box is set to apply standard
+// padding between children.
 _UI_EXTERN int uiBoxPadded(uiBox *b);
+
+// uiBoxSetPadded enables or disables padding between children.
+// The exact amount of padding depends on the platform - libui
+// attempts to conform to 'native' style recomendations.
 _UI_EXTERN void uiBoxSetPadded(uiBox *b, int padded);
+
+// uiNewHorizontalBox creates a new uiBox which lays out it's
+// children horizontally
 _UI_EXTERN uiBox *uiNewHorizontalBox(void);
+
+// uiNewVerticalBox creates a new uiBox which lays out it's
+// children vertically
 _UI_EXTERN uiBox *uiNewVerticalBox(void);
 
+// uiCheckbox is a control that represents a box with a text label at its
+// side. When the user clicks the checkbox, a check mark will appear
+// in the box; clicking it again removes the check.
 typedef struct uiCheckbox uiCheckbox;
 #define uiCheckbox(this) ((uiCheckbox *) (this))
+
+// uiCheckboxText returns a copy of the checkbox label.
+// The returned string should be freed with uiFreeText() after use 
 _UI_EXTERN char *uiCheckboxText(uiCheckbox *c);
+
+// uiCheckboxSetText sets the checkbox label text
 _UI_EXTERN void uiCheckboxSetText(uiCheckbox *c, const char *text);
+
+// uiCheckboxOnToggled installs the callback function which will be
+// called when the checkbox state is changed.
+// Any previously installed callback will be overriden.
+// The `data` parameter is passed verbatim to the callback when
+// it is invoked.
+// The callback will only be invoked in response to user interaction -
+// calling uiCheckboxSetChecked() will not trigger it.
 _UI_EXTERN void uiCheckboxOnToggled(uiCheckbox *c, void (*f)(uiCheckbox *c, void *data), void *data);
+
+// uiCheckboxChecked returns the current state of the checkbox -
+// true for checked, false for unchecked.
 _UI_EXTERN int uiCheckboxChecked(uiCheckbox *c);
+
+// uiCheckboxSetChecked sets the state of the checkbox.
+// This will not trigger the uiCheckboxOnToggled callback.
 _UI_EXTERN void uiCheckboxSetChecked(uiCheckbox *c, int checked);
+
+// uiNewCheckbox creates a new uiCheckbox control.
+// The checkbox label will be set to the `text` param.
 _UI_EXTERN uiCheckbox *uiNewCheckbox(const char *text);
 
+// uiEntry is a control that represents a space that the user can
+// type a single line of text into.
 typedef struct uiEntry uiEntry;
 #define uiEntry(this) ((uiEntry *) (this))
+
+// uiEntryText returns a copy of the currently-entered text
+// The returned string should be freed with uiFreeText() after use 
 _UI_EXTERN char *uiEntryText(uiEntry *e);
+
+// uiEntrySetText sets the entry contents to `text`
+// This will not trigger the uiEntryOnChanged callback.
 _UI_EXTERN void uiEntrySetText(uiEntry *e, const char *text);
+
+// uiEntryOnChanged installs a callback function to be invoked whenever
+// the user alters the text.
+// It will not be called in response to uiEntrySetText()
+// Any previously installed callback will be overriden.
+// The callback will receive `data` as a parameter.
 _UI_EXTERN void uiEntryOnChanged(uiEntry *e, void (*f)(uiEntry *e, void *data), void *data);
+
+// uiEntryReadOnly returns whether the uiEntry can be changed.
 _UI_EXTERN int uiEntryReadOnly(uiEntry *e);
+
+// uiEntryReadOnly sets whether the uiEntry can be changed.
 _UI_EXTERN void uiEntrySetReadOnly(uiEntry *e, int readonly);
+
+// uiNewEntry creates a standard single-line text entry control.
 _UI_EXTERN uiEntry *uiNewEntry(void);
+
+// uiNewPasswordEntry creates a uiEntry suitable for entering passwords.
+// The text entered will be obscured, according to the native
+// style of the runtime platform.
 _UI_EXTERN uiEntry *uiNewPasswordEntry(void);
+
+// uiNewSearchEntry creates a uiEntry for entering searches, with
+// appearance according to the styles and conventions of the runtime
+// platform (eg - some platforms display a little magnifying glass
+// image beside the text).
 _UI_EXTERN uiEntry *uiNewSearchEntry(void);
 
+// uiLabel is a Control that represents a line of text that cannot be
+// interacted with.
 typedef struct uiLabel uiLabel;
 #define uiLabel(this) ((uiLabel *) (this))
+
+
+// uiLabelText returns a copy of the currently-showing text
+// The returned string should be freed with uiFreeText() after use 
 _UI_EXTERN char *uiLabelText(uiLabel *l);
+
+// uiLabelSetText sets the text of the label.
 _UI_EXTERN void uiLabelSetText(uiLabel *l, const char *text);
+
+// uiNewLabel creates a new uiLabel control, showing the given text.
 _UI_EXTERN uiLabel *uiNewLabel(const char *text);
 
+// uiTab is a control that holds tabbed pages of controls. Each tab
+// has a label. The user can click on the tabs themselves to switch
+// pages. Individual pages can also have margins.
+// When destroyed, a uiTab will also destroy all it's child controls.
 typedef struct uiTab uiTab;
 #define uiTab(this) ((uiTab *) (this))
+
+// uiTabAppend adds the given page to the end of the uiTab.
 _UI_EXTERN void uiTabAppend(uiTab *t, const char *name, uiControl *c);
+
+// uiTabInsertAt adds the given page to the uiTab such that it is the
+// nth page of the uiTab (starting at 0).
 _UI_EXTERN void uiTabInsertAt(uiTab *t, const char *name, int before, uiControl *c);
+
+
+// uiTabDelete deletes the nth page of the Tab.
+// TODO: confirm: is Destroy called on the page?
 _UI_EXTERN void uiTabDelete(uiTab *t, int index);
+
+// uiTabNumPages returns the number of pages in the uiTab.
 _UI_EXTERN int uiTabNumPages(uiTab *t);
+
+// uiTabMargined returns whether page n (starting at 0) of the uiTab
+// has margins around its child.
 _UI_EXTERN int uiTabMargined(uiTab *t, int page);
+
+// uiTabSetMargined controls whether page n (starting at 0) of the uiTab
+// has margins around its child. The size of the margins are
+// determined by the OS and its best practices.
 _UI_EXTERN void uiTabSetMargined(uiTab *t, int page, int margined);
+
+// uiNewTab creates a new uiTab control
 _UI_EXTERN uiTab *uiNewTab(void);
 
+// uiGroup is a control that holds another control and wraps it around
+// a labelled box (though some systems make this box invisible).
+// You can use this to group related controls together.
+// When the uiGroup is destroyed, it will destroy it's child in turn.
 typedef struct uiGroup uiGroup;
 #define uiGroup(this) ((uiGroup *) (this))
+
+// uiGroupTitle returns the currently-set title
+// The returned string should be freed with uiFreeText() after use 
 _UI_EXTERN char *uiGroupTitle(uiGroup *g);
+
+// uiGroupSetTitle sets the group's title to `title`
 _UI_EXTERN void uiGroupSetTitle(uiGroup *g, const char *title);
+
+
+// uiGroupSetChild sets the Group's child to `child`.
+// If `child` is null, the Group will not have a child.
+// Any existing child will be destroyed (TODO: confirm!)
 _UI_EXTERN void uiGroupSetChild(uiGroup *g, uiControl *c);
+
+
+// uiGroupMargined returns whether the group has margins around its child.
 _UI_EXTERN int uiGroupMargined(uiGroup *g);
+
+
+// uiGroupSetMargined controls whether the group has margins around its
+// child. The size of the margins are determined by the OS and its
+// best practices.
 _UI_EXTERN void uiGroupSetMargined(uiGroup *g, int margined);
+
+// uiNewGroup creates a new uiGroup
 _UI_EXTERN uiGroup *uiNewGroup(const char *title);
 
 // spinbox/slider rules:

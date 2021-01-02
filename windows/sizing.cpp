@@ -34,7 +34,10 @@ void getSizing(HWND hwnd, uiWindowsSizing *sizing, HFONT font)
 
 void uiWindowsGetSizing(HWND hwnd, uiWindowsSizing *sizing)
 {
-	return getSizing(hwnd, sizing, hMessageFont);
+	if (messageFontSizing.BaseX == 0) {
+		getSizing(hwnd, &messageFontSizing, hMessageFont);
+	}
+	*sizing = messageFontSizing;
 }
 
 #define dlgUnitsToX(dlg, baseX) MulDiv((dlg), (baseX), 4)

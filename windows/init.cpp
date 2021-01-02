@@ -6,6 +6,7 @@ HINSTANCE hInstance;
 int nCmdShow;
 
 HFONT hMessageFont;
+uiWindowsSizing messageFontSizing;
 
 // LONGTERM needed?
 HBRUSH hollowBrush;
@@ -94,6 +95,11 @@ const char *uiInit(uiInitOptions *o)
 	hMessageFont = CreateFontIndirectW(&(ncm.lfMessageFont));
 	if (hMessageFont == NULL)
 		return ieLastErr("loading default messagebox font; this is the default UI font");
+
+	// Initialize to zero to means that the values are unknown.
+	messageFontSizing.BaseX = 0;
+	messageFontSizing.BaseY = 0;
+	messageFontSizing.InternalLeading = 0;
 
 	if (initContainer(hDefaultIcon, hDefaultCursor) == 0)
 		return ieLastErr("initializing uiWindowsMakeContainer() window class");

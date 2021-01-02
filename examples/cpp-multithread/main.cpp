@@ -6,14 +6,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <atomic>
 #include "../../ui.h"
 using namespace std;
 
 uiMultilineEntry *e;
 condition_variable cv;
 mutex m;
-unique_lock<mutex> ourlock(m);
 thread *timeThread;
+atomic<bool> running(true);
 
 void sayTime(void *data)
 {
@@ -25,8 +26,9 @@ void sayTime(void *data)
 
 void threadproc(void)
 {
-	ourlock.lock();
-	while (cv.wait_for(ourlock, chrono::seconds(1)) == cv_status::timeout) {
+	unique_lock<mutex> ourlock(m);
+	while (running.load()) {
+		cv.wait_for(ourlock, chrono::seconds(1));
 		time_t t;
 		char *base;
 		char *s;
@@ -41,6 +43,10 @@ void threadproc(void)
 
 int onClosing(uiWindow *w, void *data)
 {
+	{
+		unique_lock<mutex> l(m);
+		running = false;
+	}
 	cv.notify_all();
 	// C++ throws a hissy fit if you don't do this
 	// we might as well, to ensure no uiQueueMain() gets in after uiQuit()
@@ -81,8 +87,6 @@ int main(void)
 
 	uiBoxAppend(b, uiControl(e), 1);
 
-	// timeThread needs to lock ourlock itself - see http://stackoverflow.com/a/34121629/3408572
-	ourlock.unlock();
 	timeThread = new thread(threadproc);
 
 	uiWindowOnClosing(w, onClosing, NULL);

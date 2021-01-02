@@ -209,6 +209,8 @@ typedef struct uiSlider uiSlider;
 #define uiSlider(this) ((uiSlider *) (this))
 _UI_EXTERN int uiSliderValue(uiSlider *s);
 _UI_EXTERN void uiSliderSetValue(uiSlider *s, int value);
+_UI_EXTERN int uiSliderHasTooltip(uiSlider *s);
+_UI_EXTERN void uiSliderSetHasTooltip(uiSlider *s, int hasTooltip);
 _UI_EXTERN void uiSliderOnChanged(uiSlider *s, void (*f)(uiSlider *s, void *data), void *data);
 _UI_EXTERN uiSlider *uiNewSlider(int min, int max);
 

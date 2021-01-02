@@ -4,6 +4,7 @@
 static uiSpinbox *spinbox;
 static uiSlider *slider;
 static uiProgressBar *pbar;
+static uiCheckbox *checkbox;
 
 #define CHANGED(what) \
 	static void on ## what ## Changed(ui ## what *this, void *data) \
@@ -75,6 +76,18 @@ static void selectNone(uiButton *b, void *data)
 	uiRadioButtonsSetSelected(rb, -1);
 }
 
+static void sliderEnableTooltip(uiButton *b, void *data)
+{
+	uiSliderSetHasTooltip(uiSlider(data), 1);
+	uiCheckboxSetChecked(checkbox, uiSliderHasTooltip(uiSlider(data)));
+}
+
+static void sliderDisableTooltip(uiButton *b, void *data)
+{
+	uiSliderSetHasTooltip(uiSlider(data), 0);
+	uiCheckboxSetChecked(checkbox, uiSliderHasTooltip(uiSlider(data)));
+}
+
 uiBox *makePage4(void)
 {
 	uiBox *page4;
@@ -92,6 +105,21 @@ uiBox *makePage4(void)
 	slider = uiNewSlider(0, 100);
 	uiSliderOnChanged(slider, onSliderChanged, NULL);
 	uiBoxAppend(page4, uiControl(slider), 0);
+
+	hbox = newHorizontalBox();
+	slider = uiNewSlider(0, 100);
+	uiBoxAppend(hbox, uiControl(slider), 1);
+	b = uiNewButton("Enable Tooltip");
+	uiButtonOnClicked(b, sliderEnableTooltip, slider);
+	uiBoxAppend(hbox, uiControl(b), 0);
+	b = uiNewButton("Disable Tooltip");
+	uiButtonOnClicked(b, sliderDisableTooltip, slider);
+	uiBoxAppend(hbox, uiControl(b), 0);
+	checkbox = uiNewCheckbox("Has Tooltip");
+	uiControlDisable(uiControl(checkbox));
+	uiCheckboxSetChecked(checkbox, uiSliderHasTooltip(slider));
+	uiBoxAppend(hbox, uiControl(checkbox), 0);
+	uiBoxAppend(page4, uiControl(hbox), 0);
 
 	pbar = uiNewProgressBar();
 	uiBoxAppend(page4, uiControl(pbar), 0);

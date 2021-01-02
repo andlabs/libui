@@ -13,6 +13,7 @@ struct uiWindow {
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
 	int margined;
+	int resizeable;
 	BOOL hasMenubar;
 	void (*onContentSizeChanged)(uiWindow *, void *);
 	void *onContentSizeChangedData;
@@ -426,6 +427,21 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 {
 	w->margined = margined;
 	windowRelayout(w);
+}
+
+int uiWindowResizeable(uiWindow *w)
+{
+	return w->resizeable;
+}
+
+void uiWindowSetResizeable(uiWindow *w, int resizeable)
+{
+	w->resizeable = resizeable;
+	if (w->resizeable) {
+		setStyle(w->hwnd, getStyle(w->hwnd) | WS_THICKFRAME | WS_MAXIMIZEBOX);
+	} else {
+		setStyle(w->hwnd, getStyle(w->hwnd) & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX);
+	}
 }
 
 // see http://blogs.msdn.com/b/oldnewthing/archive/2003/09/11/54885.aspx and http://blogs.msdn.com/b/oldnewthing/archive/2003/09/13/54917.aspx

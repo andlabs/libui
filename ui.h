@@ -1455,6 +1455,13 @@ _UI_EXTERN void uiTableAppendButtonColumn(uiTable *t,
 	int buttonModelColumn,
 	int buttonClickableModelColumn);
 
+// uiTableHeaderVisible() returns whether the table header is visible
+// or not.
+_UI_EXTERN int uiTableHeaderVisible(uiTable *t);
+
+// uiTableHeaderSetVisible() sets the visibility of the table header.
+_UI_EXTERN void uiTableHeaderSetVisible(uiTable *t, int visible);
+
 // uiNewTable() creates a new uiTable with the specified parameters.
 _UI_EXTERN uiTable *uiNewTable(uiTableParams *params);
 

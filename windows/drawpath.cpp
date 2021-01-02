@@ -50,6 +50,9 @@ void uiDrawPathNewFigure(uiDrawPath *p, double x, double y)
 {
 	D2D1_POINT_2F pt;
 
+	if (p->sink == NULL)
+		userbug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
+
 	if (p->inFigure)
 		p->sink->EndFigure(D2D1_FIGURE_END_OPEN);
 	pt.x = x;
@@ -162,6 +165,9 @@ void uiDrawPathNewFigureWithArc(uiDrawPath *p, double xCenter, double yCenter, d
 {
 	struct arc a;
 
+	if (p->sink == NULL)
+		userbug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
+
 	a.xCenter = xCenter;
 	a.yCenter = yCenter;
 	a.radius = radius;
@@ -175,6 +181,9 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 {
 	D2D1_POINT_2F pt;
 
+	if (p->sink == NULL)
+		userbug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
+
 	pt.x = x;
 	pt.y = y;
 	p->sink->AddLine(pt);
@@ -183,6 +192,9 @@ void uiDrawPathLineTo(uiDrawPath *p, double x, double y)
 void uiDrawPathArcTo(uiDrawPath *p, double xCenter, double yCenter, double radius, double startAngle, double sweep, int negative)
 {
 	struct arc a;
+
+	if (p->sink == NULL)
+		userbug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
 
 	a.xCenter = xCenter;
 	a.yCenter = yCenter;
@@ -197,6 +209,9 @@ void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, doubl
 {
 	D2D1_BEZIER_SEGMENT s;
 
+	if (p->sink == NULL)
+		userbug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
+
 	s.point1.x = c1x;
 	s.point1.y = c1y;
 	s.point2.x = c2x;
@@ -208,12 +223,18 @@ void uiDrawPathBezierTo(uiDrawPath *p, double c1x, double c1y, double c2x, doubl
 
 void uiDrawPathCloseFigure(uiDrawPath *p)
 {
+	if (p->sink == NULL)
+		userbug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
+
 	p->sink->EndFigure(D2D1_FIGURE_END_CLOSED);
 	p->inFigure = FALSE;
 }
 
 void uiDrawPathAddRectangle(uiDrawPath *p, double x, double y, double width, double height)
 {
+	if (p->sink == NULL)
+		userbug("You cannot modify a uiDrawPath that has been ended. (path: %p)", p);
+
 	// this is the same algorithm used by cairo and Core Graphics, according to their documentations
 	uiDrawPathNewFigure(p, x, y);
 	uiDrawPathLineTo(p, x + width, y);

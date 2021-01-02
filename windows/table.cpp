@@ -36,16 +36,16 @@ void uiTableModelRowInserted(uiTableModel *m, int newIndex)
 	item.iItem = newIndex;
 	item.iSubItem = 0;
 	for (auto t : *(m->tables)) {
+		// update selection state
+		if (SendMessageW(t->hwnd, LVM_INSERTITEM, 0, (LPARAM) (&item)) == (LRESULT) (-1))
+			logLastError(L"error calling LVM_INSERTITEM in uiTableModelRowInserted() to update selection state");
+
 		// actually insert the rows
 		if (SendMessageW(t->hwnd, LVM_SETITEMCOUNT, (WPARAM) newCount, LVSICF_NOINVALIDATEALL) == 0)
 			logLastError(L"error calling LVM_SETITEMCOUNT in uiTableModelRowInserted()");
 		// and redraw every row from the new row down to simulate adding it
 		if (SendMessageW(t->hwnd, LVM_REDRAWITEMS, (WPARAM) newIndex, (LPARAM) (newCount - 1)) == FALSE)
 			logLastError(L"error calling LVM_REDRAWITEMS in uiTableModelRowInserted()");
-
-		// update selection state
-		if (SendMessageW(t->hwnd, LVM_INSERTITEM, 0, (LPARAM) (&item)) == (LRESULT) (-1))
-			logLastError(L"error calling LVM_INSERTITEM in uiTableModelRowInserted() to update selection state");
 	}
 }
 

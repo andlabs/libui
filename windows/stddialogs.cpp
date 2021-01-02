@@ -16,7 +16,7 @@
 
 #define windowHWND(w) ((HWND) uiControlHandle(uiControl(w)))
 
-char *commonItemDialog(HWND parent, REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd)
+char *commonItemDialog(HWND parent, REFCLSID clsid, REFIID iid, FILEOPENDIALOGOPTIONS optsadd, const char *filename)
 {
 	IFileDialog *d = NULL;
 	FILEOPENDIALOGOPTIONS opts;
@@ -33,6 +33,19 @@ char *commonItemDialog(HWND parent, REFCLSID clsid, REFIID iid, FILEOPENDIALOGOP
 		// always return NULL on error
 		goto out;
 	}
+		
+	// file name
+	if (filename != NULL) {
+		size_t size = strlen(filename) + 1;
+		wchar_t* filenameWchar = new wchar_t[size];
+
+		size_t outSize;
+		mbstowcs_s(&outSize, filenameWchar, size, filename, size - 1);
+
+		LPCWSTR filenameLPCWSTR = filenameWchar;
+		d->SetFileName(filenameLPCWSTR);
+	}
+
 	hr = d->GetOptions(&opts);
 	if (hr != S_OK) {
 		logHRESULT(L"error getting current options", hr);
@@ -83,19 +96,31 @@ char *uiOpenFile(uiWindow *parent)
 	disableAllWindowsExcept(parent);
 	res = commonItemDialog(windowHWND(parent),
 		CLSID_FileOpenDialog, IID_IFileOpenDialog,
-		FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
+		FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE, NULL);
 	enableAllWindowsExcept(parent);
 	return res;
 }
 
-char *uiSaveFile(uiWindow *parent)
+char *uiOpenFolder(uiWindow *parent)
+{
+	char *res;
+
+	disableAllWindowsExcept(parent);
+	res = commonItemDialog(windowHWND(parent),
+		CLSID_FileOpenDialog, IID_IFileOpenDialog,
+		FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE, NULL);
+	enableAllWindowsExcept(parent);
+	return res;
+}
+
+char *uiSaveFile(uiWindow *parent, const char *filename)
 {
 	char *res;
 
 	disableAllWindowsExcept(parent);
 	res = commonItemDialog(windowHWND(parent),
 		CLSID_FileSaveDialog, IID_IFileSaveDialog,
-		FOS_OVERWRITEPROMPT | FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE);
+		FOS_OVERWRITEPROMPT | FOS_NOCHANGEDIR | FOS_ALLNONSTORAGEITEMS | FOS_NOVALIDATE | FOS_SHAREAWARE | FOS_NOTESTFILECREATE | FOS_NODEREFERENCELINKS | FOS_FORCESHOWHIDDEN | FOS_DEFAULTNOMINIMODE, filename);
 	enableAllWindowsExcept(parent);
 	return res;
 }

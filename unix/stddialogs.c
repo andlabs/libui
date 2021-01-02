@@ -6,7 +6,7 @@
 
 #define windowWindow(w) (GTK_WINDOW(uiControlHandle(uiControl(w))))
 
-static char *filedialog(GtkWindow *parent, GtkFileChooserAction mode, const gchar *confirm)
+static char *filedialog(GtkWindow *parent, GtkFileChooserAction mode, const gchar *confirm, const char *defaultFilename)
 {
 	GtkWidget *fcd;
 	GtkFileChooser *fc;
@@ -23,6 +23,9 @@ static char *filedialog(GtkWindow *parent, GtkFileChooserAction mode, const gcha
 	gtk_file_chooser_set_show_hidden(fc, TRUE);
 	gtk_file_chooser_set_do_overwrite_confirmation(fc, TRUE);
 	gtk_file_chooser_set_create_folders(fc, TRUE);
+	if (defaultFilename != NULL) {
+		gtk_file_chooser_set_current_name(fc, defaultFilename);
+	}
 	response = gtk_dialog_run(GTK_DIALOG(fcd));
 	if (response != GTK_RESPONSE_ACCEPT) {
 		gtk_widget_destroy(fcd);
@@ -35,12 +38,17 @@ static char *filedialog(GtkWindow *parent, GtkFileChooserAction mode, const gcha
 
 char *uiOpenFile(uiWindow *parent)
 {
-	return filedialog(windowWindow(parent), GTK_FILE_CHOOSER_ACTION_OPEN, "_Open");
+	return filedialog(windowWindow(parent), GTK_FILE_CHOOSER_ACTION_OPEN, "_Open", NULL);
 }
 
-char *uiSaveFile(uiWindow *parent)
+char *uiOpenFolder(uiWindow *parent)
 {
-	return filedialog(windowWindow(parent), GTK_FILE_CHOOSER_ACTION_SAVE, "_Save");
+	return filedialog(windowWindow(parent), GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, "_Open", NULL);
+}
+
+char *uiSaveFile(uiWindow *parent, const char *filename)
+{
+	return filedialog(windowWindow(parent), GTK_FILE_CHOOSER_ACTION_SAVE, "_Save", filename);
 }
 
 static void msgbox(GtkWindow *parent, const char *title, const char *description, GtkMessageType type, GtkButtonsType buttons)

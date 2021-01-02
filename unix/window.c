@@ -229,6 +229,11 @@ void uiWindowSetMargined(uiWindow *w, int margined)
 	uiprivSetMargined(w->childHolderContainer, w->margined);
 }
 
+void uiWindowSetTopmost(uiWindow *w, int topmost)
+{
+	gtk_window_set_keep_above(w->window, topmost == 1);
+}
+
 uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 {
 	uiWindow *w;

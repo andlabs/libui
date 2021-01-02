@@ -627,6 +627,19 @@ void uiGridInsertAt(uiGrid *g, uiControl *c, uiControl *existing, uiAt at, int x
 	add(g, gc);
 }
 
+void uiGridDelete(uiGrid *g, int index)
+{
+	uiControl *c;
+
+	c = (*(g->children))[index]->c;
+	uiControlSetParent(c, NULL);
+	uiWindowsControlSetParentHWND(uiWindowsControl(c), NULL);
+	g->children->erase(g->children->begin() + index);
+	gridRecomputeMinMax(g);
+	gridArrangeChildren(g);
+	uiWindowsControlMinimumSizeChanged(uiWindowsControl(g));
+}
+
 int uiGridPadded(uiGrid *g)
 {
 	return g->padded;

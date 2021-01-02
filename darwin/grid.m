@@ -599,6 +599,35 @@ struct uiGrid {
 	[self append:gc];
 }
 
+- (void)delete:(int)n
+{
+	gridChild *gc;
+	BOOL update;
+	int oldnh, oldnv;
+
+	gc = (gridChild *) [self->children objectAtIndex:n];
+
+	uiControlSetParent(gc.c, NULL);
+	uiDarwinControlSetSuperview(uiDarwinControl(gc.c), nil);
+
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(gc.c), gc.oldHorzHuggingPri, NSLayoutConstraintOrientationHorizontal);
+	uiDarwinControlSetHuggingPriority(uiDarwinControl(gc.c), gc.oldVertHuggingPri, NSLayoutConstraintOrientationVertical);
+
+	oldnh = [self nhexpand];
+	oldnv = [self nvexpand];
+	[self->children removeObjectAtIndex:n];
+
+	update = NO;
+	if (gc.hexpand)
+		if (oldnh == 0)
+			update = YES;
+	if (gc.vexpand)
+		if (oldnv == 0)
+			update = YES;
+	if (update)
+		uiDarwinNotifyEdgeHuggingChanged(uiDarwinControl(self->g));
+}
+
 - (int)isPadded
 {
 	return self->padded;

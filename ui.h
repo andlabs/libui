@@ -289,6 +289,7 @@ _UI_EXTERN uiMenuItem *uiMenuAppendCheckItem(uiMenu *m, const char *name);
 _UI_EXTERN uiMenuItem *uiMenuAppendQuitItem(uiMenu *m);
 _UI_EXTERN uiMenuItem *uiMenuAppendPreferencesItem(uiMenu *m);
 _UI_EXTERN uiMenuItem *uiMenuAppendAboutItem(uiMenu *m);
+_UI_EXTERN uiMenuItem *uiMenuAppendSubmenu(uiMenu *m, uiMenu* child);
 _UI_EXTERN void uiMenuAppendSeparator(uiMenu *m);
 _UI_EXTERN uiMenu *uiNewMenu(const char *name);
 

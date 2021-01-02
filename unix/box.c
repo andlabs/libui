@@ -88,6 +88,18 @@ void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 	g_array_append_val(b->controls, bc);
 }
 
+int uiBoxChild(uiBox *b, uiControl *c)
+{
+        guint i;
+        for (i = 0; i < b->controls->len; i++) {
+                struct boxChild *bc = ctrl(b, i);
+                if (bc->c == c) {
+                        return 1;
+                }
+        }
+        return 0;
+}
+
 void uiBoxDelete(uiBox *b, int index)
 {
 	struct boxChild *bc;

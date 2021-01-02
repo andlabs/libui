@@ -292,6 +292,17 @@ struct uiBox {
 	[bc release];		// we don't need the initial reference now
 }
 
+ - (int)Child:(uiControl *)c
+{
+	boxChild *bc;
+	for (bc in self->children) {
+		if (bc.c == c) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 - (void)delete:(int)n
 {
 	boxChild *bc;

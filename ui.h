@@ -142,6 +142,7 @@ _UI_EXTERN uiButton *uiNewButton(const char *text);
 typedef struct uiBox uiBox;
 #define uiBox(this) ((uiBox *) (this))
 _UI_EXTERN void uiBoxAppend(uiBox *b, uiControl *child, int stretchy);
+_UI_EXTERN int uiBoxChild(uiBox *b, uiControl *c);
 _UI_EXTERN void uiBoxDelete(uiBox *b, int index);
 _UI_EXTERN int uiBoxPadded(uiBox *b);
 _UI_EXTERN void uiBoxSetPadded(uiBox *b, int padded);
@@ -694,7 +695,7 @@ _UI_EXTERN uiUnderline uiAttributeUnderline(const uiAttribute *a);
 // platform-specific colors for suggestion underlines; to use them
 // correctly, pair them with uiUnderlineSuggestion (though they can
 // be used on other types of underline as well).
-// 
+//
 // If an underline type is applied but no underline color is
 // specified, the text color is used instead. If an underline color
 // is specified without an underline type, the underline color
@@ -730,10 +731,10 @@ _UI_EXTERN void uiAttributeUnderlineColor(const uiAttribute *a, uiUnderlineColor
 // uiOpenTypeFeatures instance. Each value is a 32-bit integer,
 // often used as a Boolean flag, but sometimes as an index to choose
 // a glyph shape to use.
-// 
+//
 // If a font does not support a certain feature, that feature will be
 // ignored. (TODO verify this on all OSs)
-// 
+//
 // See the OpenType specification at
 // https://www.microsoft.com/typography/otspec/featuretags.htm
 // for the complete list of available features, information on specific
@@ -774,7 +775,7 @@ _UI_EXTERN void uiOpenTypeFeaturesRemove(uiOpenTypeFeatures *otf, char a, char b
 // uiOpenTypeFeaturesGet() determines whether the given feature
 // tag is present in otf. If it is, *value is set to the tag's value and
 // nonzero is returned. Otherwise, zero is returned.
-// 
+//
 // Note that if uiOpenTypeFeaturesGet() returns zero, value isn't
 // changed. This is important: if a feature is not present in a
 // uiOpenTypeFeatures, the feature is NOT treated as if its

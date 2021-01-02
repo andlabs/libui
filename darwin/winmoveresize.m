@@ -110,17 +110,21 @@ static void minMaxAutoLayoutSizes(NSWindow *w, NSSize *min, NSSize *max)
 
 	// maximum: encourage the window to be as large as possible
 	contentView = [w contentView];
+	// regarding UINT_MAX:
+	// largest possible value (empirically on High Sierra): 
+	//            4294967384.0 ~
+	// UINT_MAX = 4294967295 
 	cw = uiprivMkConstraint(contentView, NSLayoutAttributeWidth,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
-		0, CGFLOAT_MAX,
+		0, UINT_MAX,
 		@"window maximum width finding constraint");
 	[cw setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:cw];
 	ch = uiprivMkConstraint(contentView, NSLayoutAttributeHeight,
 		NSLayoutRelationEqual,
 		nil, NSLayoutAttributeNotAnAttribute,
-		0, CGFLOAT_MAX,
+		0, UINT_MAX,
 		@"window maximum height finding constraint");
 	[ch setPriority:NSLayoutPriorityDragThatCanResizeWindow];
 	[contentView addConstraint:ch];
@@ -206,15 +210,40 @@ static void onResizeDrag(struct onResizeDragParams *p, NSEvent *e)
 
 	// constrain
 	// TODO should we constrain against anything else as well? minMaxAutoLayoutSizes() already gives us nonnegative sizes, but...
-	if (frame.size.width < p->min.width)
+	if (frame.size.width < p->min.width){
+		if(p->edge == uiWindowResizeEdgeLeft ||
+		   p->edge == uiWindowResizeEdgeTopLeft ||
+		   p->edge == uiWindowResizeEdgeBottomLeft) {
+			frame.origin.x += frame.size.width - p->min.width;
+		}
 		frame.size.width = p->min.width;
-	if (frame.size.height < p->min.height)
+	}
+	if (frame.size.height < p->min.height){
+		if(p->edge == uiWindowResizeEdgeBottom ||
+		   p->edge == uiWindowResizeEdgeBottomLeft ||
+		   p->edge == uiWindowResizeEdgeBottomRight) {
+			frame.origin.y += frame.size.height - p->min.height;
+		}
 		frame.size.height = p->min.height;
+	}
+
 	// TODO > or >= ?
-	if (frame.size.width > p->max.width)
+	if (frame.size.width > p->max.width){
+		if(p->edge == uiWindowResizeEdgeLeft ||
+		   p->edge == uiWindowResizeEdgeTopLeft ||
+		   p->edge == uiWindowResizeEdgeBottomLeft) {
+			frame.origin.x -= p->max.width - frame.size.width;
+		}
 		frame.size.width = p->max.width;
-	if (frame.size.height > p->max.height)
+	}
+	if (frame.size.height > p->max.height){
+		if(p->edge == uiWindowResizeEdgeBottom ||
+		   p->edge == uiWindowResizeEdgeBottomLeft ||
+		   p->edge == uiWindowResizeEdgeBottomRight) {
+			frame.origin.y -= p->max.height - frame.size.height;
+		}
 		frame.size.height = p->max.height;
+	}
 
 	[p->w setFrame:frame display:YES];			// and do reflect the new frame immediately
 }

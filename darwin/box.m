@@ -37,6 +37,7 @@
 - (CGFloat)paddingAmount;
 - (void)establishOurConstraints;
 - (void)append:(uiControl *)c stretchy:(int)stretchy;
+- (int)countChildren;
 - (void)delete:(int)n;
 - (int)isPadded;
 - (void)setPadded:(int)p;
@@ -292,6 +293,11 @@ struct uiBox {
 	[bc release];		// we don't need the initial reference now
 }
 
+- (int)countChildren
+{
+	return (int) [self->children count];
+}
+
 - (void)delete:(int)n
 {
 	boxChild *bc;
@@ -421,6 +427,11 @@ static void uiBoxChildVisibilityChanged(uiDarwinControl *c)
 	uiBox *b = uiBox(c);
 
 	[b->view establishOurConstraints];
+}
+
+int uiBoxNumChildren(uiBox *b)
+{
+	return [b->view countChildren];
 }
 
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)

@@ -101,6 +101,11 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 		NULL);
 }
 
+int uiFormNumChildren(uiForm *f)
+{
+	return (int) f->children->len;
+}
+
 void uiFormDelete(uiForm *f, int index)
 {
 	struct formChild *fc;

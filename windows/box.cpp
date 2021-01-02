@@ -254,6 +254,11 @@ static void boxArrangeChildren(uiBox *b)
 		uiWindowsControlAssignControlIDZOrder(uiWindowsControl(bc.c), &controlID, &insertAfter);
 }
 
+int uiBoxNumChildren(uiBox *b)
+{
+	return (int) b->controls->size();
+}
+
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
 	struct boxChild bc;

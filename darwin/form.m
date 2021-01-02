@@ -39,6 +39,7 @@
 - (CGFloat)paddingAmount;
 - (void)establishOurConstraints;
 - (void)append:(NSString *)label c:(uiControl *)c stretchy:(int)stretchy;
+- (int)countChildren;
 - (void)delete:(int)n;
 - (int)isPadded;
 - (void)setPadded:(int)p;
@@ -394,6 +395,11 @@ struct uiForm {
 	[fc release];		// we don't need the initial reference now
 }
 
+- (int)countChildren
+{
+	return (int) [self->children count];
+}
+
 - (void)delete:(int)n
 {
 	formChild *fc;
@@ -532,6 +538,11 @@ void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy)
 	if (c == NULL)
 		uiprivUserBug("You cannot add NULL to a uiForm.");
 	[f->view append:uiprivToNSString(label) c:c stretchy:stretchy];
+}
+
+int uiFormNumChildren(uiForm *f)
+{
+	return [f->view countChildren];
 }
 
 void uiFormDelete(uiForm *f, int n)

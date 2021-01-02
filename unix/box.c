@@ -47,6 +47,11 @@ static void uiBoxDestroy(uiControl *c)
 	uiFreeControl(uiControl(b));
 }
 
+int uiBoxNumChildren(uiBox *b)
+{
+	return (int) b->controls->len;
+}
+
 void uiBoxAppend(uiBox *b, uiControl *c, int stretchy)
 {
 	struct boxChild bc;

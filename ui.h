@@ -142,6 +142,7 @@ _UI_EXTERN uiButton *uiNewButton(const char *text);
 typedef struct uiBox uiBox;
 #define uiBox(this) ((uiBox *) (this))
 _UI_EXTERN void uiBoxAppend(uiBox *b, uiControl *child, int stretchy);
+_UI_EXTERN int uiBoxNumChildren(uiBox *b);
 _UI_EXTERN void uiBoxDelete(uiBox *b, int index);
 _UI_EXTERN int uiBoxPadded(uiBox *b);
 _UI_EXTERN void uiBoxSetPadded(uiBox *b, int padded);
@@ -1100,6 +1101,7 @@ _UI_EXTERN uiColorButton *uiNewColorButton(void);
 typedef struct uiForm uiForm;
 #define uiForm(this) ((uiForm *) (this))
 _UI_EXTERN void uiFormAppend(uiForm *f, const char *label, uiControl *c, int stretchy);
+_UI_EXTERN int uiFormNumChildren(uiForm *f);
 _UI_EXTERN void uiFormDelete(uiForm *f, int index);
 _UI_EXTERN int uiFormPadded(uiForm *f);
 _UI_EXTERN void uiFormSetPadded(uiForm *f, int padded);

@@ -37,6 +37,7 @@ void threadproc(void)
 		strcpy(s, base);
 		uiQueueMain(sayTime, s);
 	}
+	ourlock.unlock();
 }
 
 int onClosing(uiWindow *w, void *data)

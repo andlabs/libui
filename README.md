@@ -158,6 +158,7 @@ D | [DerelictLibui (flat API)](https://github.com/Extrawurst/DerelictLibui), [li
 Euphoria | [libui-euphoria](https://github.com/ghaberek/libui-euphoria)
 Harbour | [hbui](https://github.com/rjopek/hbui)
 Haskell | [haskell-libui](https://github.com/beijaflor-io/haskell-libui)
+Janet | [JanetUI](https://github.com/janet-lang/janetui)
 JavaScript/Node.js | [libui-node](https://github.com/parro-it/libui-node), [libui.js (merged into libui-node?)](https://github.com/mavenave/libui.js), [proton-native](https://github.com/kusti8/proton-native), [vuido](https://github.com/mimecorg/vuido)
 Julia | [Libui.jl](https://github.com/joa-quim/Libui.jl)
 Kotlin | [kotlin-libui](https://github.com/msink/kotlin-libui)

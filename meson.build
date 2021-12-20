@@ -174,3 +174,8 @@ if libui_mode == 'static'
 endif
 subdir('test')
 subdir('examples')
+
+pkg = import('pkgconfig')
+pkg.generate(
+  libui_libui,
+  description : 'a portable GUI library for C')

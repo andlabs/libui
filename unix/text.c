@@ -13,5 +13,5 @@ void uiFreeText(char *t)
 
 int uiprivStricmp(const char *a, const char *b)
 {
-	return strcasecmp(a, b);
+	return g_ascii_strcasecmp(a, b);
 }

@@ -6,8 +6,8 @@
 struct windowImplData {
 	NSWindow *window;
 	char *title;
-#if 0
 	uiControl *child;
+#if 0
 	int margined;
 	int (*onClosing)(uiWindow *, void *);
 	void *onClosingData;
@@ -377,7 +377,7 @@ static bool windowInit(uiControl *c, void *implData, void *initData)
 	[wi->window setTitle:@""];
 
 	// do NOT release when closed
-	// we manually do this in uiWindowDestroy() above
+	// we manually do this in Free() below
 	[wi->window setReleasedWhenClosed:NO];
 
 #if 0
@@ -393,10 +393,25 @@ static bool windowInit(uiControl *c, void *implData, void *initData)
 	return true;
 }
 
+static void connectChild(struct windowImplData *wi)
+{
+	// TODO
+}
+
+static void disconnectChild(struct winodwImplData *wi)
+{
+	// TODO
+}
+
 static void windowFree(uiControl *c, void *implData)
 {
 	struct windowImplData *wi = (struct windowImplData *) implData;
 
+	if (wi->child != NULL) {
+		disconnectChild(wi);
+		uiControlFree(wi->child);
+		wi->child = NULL;
+	}
 	if (wi->title != NULL) {
 		uiprivFreeUTF8(wi->title);
 		wi->title = NULL;
@@ -467,6 +482,24 @@ void uiprivSysWindowSetTitle(uiWindow *w, const char *title)
 		uiprivFreeUTF8(wi->title);
 	wi->title = uiprivSanitizeUTF8(title);
 	[wi->window setTitle:[NSString stringWithUTF8String:wi->title]];
+}
+
+uiControl *uiprivSysWindowChild(uiWindow *w)
+{
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	return wi->child;
+}
+
+void uiprivSysWindowSetChild(uiWindow *w, uiControl *child)
+{
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	if (wi->child != NULL)
+		disconnectChild(wi);
+	wi->child = child;
+	if (wi->child != NULL)
+		connectChild(wi);
 }
 
 #if 0

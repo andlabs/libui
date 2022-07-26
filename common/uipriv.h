@@ -86,6 +86,8 @@ extern uint32_t uiprivSysWindowType(void);
 extern uiWindow *uiprivSysNewWindow(void);
 extern const char *uiprivSysWindowTitle(uiWindow *w);
 extern void uiprivSysWindowSetTitle(uiWindow *w, const char *title);
+extern uiControl *uiprivSysWindowChild(uiWindow *w);
+extern void uiprivSysWindowSetChild(uiWindow *w, uiControl *child);
 
 #ifdef __cplusplus
 }

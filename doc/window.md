@@ -57,3 +57,25 @@ void uiWindowSetTitle(uiWindow *w, const char *title);
 It is a programmer error to pass `NULL` for `title`. If `title` is not valid UTF-8, `U+FFFD` characters will be used to sanitize the string.
 
 It is a programmer error to pass `NULL` for `w`.
+
+### `uiWindowChild()`
+
+```c
+uiprivExtern uiControl *uiWindowChild(uiWindow *w);
+```
+
+`uiWindowChild()` returns the current child of `w`, or `NULL` if there is none.
+
+It is a programmer error to pass `NULL` for `w`.
+
+### `uiWindowSetChild()`
+
+```c
+uiprivExtern void uiWindowSetChild(uiWindow *w, uiControl *child);
+```
+
+`uiWindowSetChild()` sets the child control of `w` to `child`. If `child` is `NULL`, `w` will have its child removed, and the window will be empty. If `w` already has a child, then the child is seamlessly swapped out, and the current child will be free to add to another parent.
+
+A window can only have one child control at a time, and that child will be given the entire area of the window. Multiple controls within a window are handled using the other container control types.
+
+It is a programmer error to pass `NULL` for `w`. It is also a programmer error to pass a control for `child` that is already the child of some other control.

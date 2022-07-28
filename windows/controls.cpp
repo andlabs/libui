@@ -13,6 +13,7 @@ bool uiprivOSVtableValid(const char *name, const uiControlOSVtable *osVtable, co
 		return 0; \
 	}
 	checkMethod(Handle)
+	checkMethod(ParentHandleForChild)
 	return true;
 }
 
@@ -39,4 +40,22 @@ HWND uiWindowsControlHandle(uiControl *c)
 	}
 	osVtable = uiprivControlOSVtable(c);
 	return callVtable(osVtable->Handle, c, uiControlImplData(c));
+}
+
+HWND uiWindowsControlParentHandle(uiControl *c)
+{
+	uiControl *parent;
+	uiControlOSVtable *parentVtable;
+
+	if (!uiprivCheckInitializedAndThread())
+		return NULL;
+	if (c == NULL) {
+		uiprivProgrammerErrorNullPointer("uiControl", uiprivFunc);
+		return NULL;
+	}
+	parent = uiControlParent(c);
+	if (parent == NULL)
+		return NULL;
+	parentVtable = uiprivControlOSVtable(parent);
+	return callVtable(parentVtable->ParentHandleForChild, parent, uiControlImplData(parent), c);
 }

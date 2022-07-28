@@ -537,6 +537,14 @@ static HWND windowHandle(uiControl *c, void *implData)
 	return wi->hwnd;
 }
 
+static HWND windowParentHandleForChild(uiControl *c, void *implData, uiControl *child)
+{
+	struct windowImplData *wi = (struct windowImplData *) implData;
+
+	// In this case, we have a fixed handle for the entire lifetime of the uiWindow that should be used as the parent.
+	return wi->hwnd;
+}
+
 // gotta do this because of lack of C99-style initializers in C++11
 // see also https://stackoverflow.com/questions/11516657/c-structure-initialization
 static const uiControlVtable windowVtable = [](void) {
@@ -557,6 +565,7 @@ static const uiControlOSVtable windowOSVtable = [](void) {
 	memset(&vt, 0, sizeof (uiControlOSVtable));
 	vt.Size = sizeof (uiControlOSVtable);
 	vt.Handle = windowHandle;
+	vt.ParentHandleForChild = windowParentHandleForChild;
 	return vt;
 }();
 

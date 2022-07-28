@@ -15,6 +15,8 @@ typedef struct uiControlOSVtable uiControlOSVtable;
 struct uiControlOSVtable {
 	size_t Size;
 	HWND (*Handle)(uiControl *c, void *implData);
+	HWND (*ParentHandleForChild)(uiControl *c, void *implData, uiControl *child);
+};
 };
 ```
 
@@ -43,3 +45,36 @@ For all other `uiControl`s defined by libui, the returned window is of the appro
 * TODO
 
 It is a programmer error to pass `NULL` for `c`. TODO a non-`uiControl`?
+
+**For control implementations**: This function does the above programmer error checks and then calls your `Handle()` method. You do not need to repeat the check yourself.
+
+### `uiWindowsControlParentHandle()`
+
+```c
+uiprivExtern HWND uiWindowsControlParentHandle(uiControl *c);
+```
+
+`uiWindowsControlParentHandle()` returns the parent handle for `c`, or `NULL` if there currently is no such handle (either because `c` has no parent control or because none of its parent controls have a handle).
+
+This is the parent from the point of view of the Windows API. When creating the window handle for a uiControl, this is the handle to use as the `hwndParent`.
+
+The value returned by this function TODO should not be stored TODO refer to the top of this page for the control model
+
+It is a programmer error to pass `NULL` for `c`. TODO a non-`uiControl`?
+
+**For control implementations**: This function does the above programmer error checks; you do not need to repeat the checks yourself.
+
+Unlike the other functions that operate on a `uiControl`, this function actually calls the `ParentHandleForChild()` method of the *parent control* of `c`, passing `c` as the `child` argument. If your parent control is a container that has window handles to use as the parent handles of its children, you should return the approprpiate window handle. (As an example of a case where knowing the child is important, `uiTab` has a separate parent handle for each of its tab pages.)
+
+If your parent control is a container that does not have window handles of its own, you should call `uiWindowsControlParentHandle()` on the parent control itself, which will cause libui to chain up until it has reached the top level:
+
+```c
+static HWND controlParentHandleForChild(uiControl *c, void *implData, uiControl *child)
+{
+	return uiWindowsControlParentHandle(c);
+}
+```
+
+If your parent control is not a container, return `NULL`. TODO programmer error?
+
+As libui ensures that the arguments to `ParentHandleForChild()` are actually related, you do not need to check that `child` is actually your child yourself.

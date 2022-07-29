@@ -127,6 +127,8 @@ The child will receive a call to its `ParentChanging()` method before the actual
 TODO do things this way to avoid needing to check if reparenting from a container implementation, or do that manually each time? we used to have uiControlVerifySetParent()...
 TODO I forgot what this meant
 
+Container implementations are free to un-parent and then immediately re-parent a child should some platform-specific need to recreate any existing OS-level relations arise. For example, on Windows, this would be how to signal that a new parent handle is available, and the child would respond by destroying its current window handles and creating new ones. Refer to each individual platform documentation for details. In particular, this means that implemenations of `ParentChanging()` and `ParentChanged()` should not make any assumptions as to why the parent is changing.
+
 ## `uiControlImplData()`
 
 ```c

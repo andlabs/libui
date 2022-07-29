@@ -58,7 +58,7 @@ uiprivExtern HWND uiWindowsControlParentHandle(uiControl *c);
 
 This is the parent from the point of view of the Windows API. When creating the window handle for a uiControl, this is the handle to use as the `hwndParent`.
 
-The value returned by this function TODO should not be stored TODO refer to the top of this page for the control model
+The value returned by this function is valid until the control's parent changes for any reason. TODO should not be stored anyway TODO use `ParentChanging()`/`ParentChanged()` to destroy/create (respectively) window handles TODO refer to the top of this page for the control model
 
 It is a programmer error to pass `NULL` for `c`. TODO a non-`uiControl`?
 

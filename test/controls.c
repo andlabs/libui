@@ -1,34 +1,72 @@
 // 8 june 2019
 #include "test.h"
 
-static bool vtableNopInit(uiControl *c, void *implData, void *initData)
+static bool testControlInit(uiControl *c, void *implData, void *initData)
+{
+	struct testControlImplData *ti = (struct testControlImplData *) implData;
+	struct testControlImplData *tinit = (struct testControlImplData *) initData;
+
+	if (tinit == NULL)
+		return true;
+	*ti = *tinit;
+	if (ti->realVtable != NULL && ti->realVtable->Init != NULL)
+		return (*(ti->realVtable->Init))(c, ti->realImplData, initData);
+	return true;
+}
+
+static void testControlFree(uiControl *c, void *implData)
+{
+	struct testControlImplData *ti = (struct testControlImplData *) implData;
+
+	if (ti->realVtable != NULL && ti->realVtable->Free != NULL)
+		(*(ti->realVtable->Free))(c, ti->realImplData);
+}
+
+static void testControlParentChanging(uiControl *c, void *implData, uiControl *oldParent)
+{
+	struct testControlImplData *ti = (struct testControlImplData *) implData;
+
+	if (ti->realVtable != NULL && ti->realVtable->ParentChanging != NULL)
+		(*(ti->realVtable->ParentChanging))(c, ti->realImplData, oldParent);
+}
+
+static void testControlParentChanged(uiControl *c, void *implData, uiControl *newParent)
+{
+	struct testControlImplData *ti = (struct testControlImplData *) implData;
+
+	if (ti->realVtable != NULL && ti->realVtable->ParentChanged != NULL)
+		(*(ti->realVtable->ParentChanged))(c, ti->realImplData, newParent);
+}
+
+static const uiControlVtable vtable = {
+	.Size = sizeof (uiControlVtable),
+	.Init = testControlInit,
+	.Free = testControlFree,
+	.ParentChanging = testControlParentChanging,
+	.ParentChanged = testControlParentChanged,
+};
+
+const uiControlVtable *testControlVtable(void)
+{
+	return &vtable;
+}
+
+// the following are kludges for just these first two tests
+static bool nopInit(uiControl *c, void *implData, void *initData)
 {
 	return true;
 }
 
-static void vtableNopFree(uiControl *c, void *implData)
+static void nopFree(uiControl *c, void *implData)
 {
 	// do nothing
 }
 
-static void vtableNopParentChanging(uiControl *c, void *implData, uiControl *oldParent)
+static void testControlVtableWithNopInitFree(uiControlVtable *vt)
 {
-	// do nothing
-}
-
-static void vtableNopParentChanged(uiControl *c, void *implData, uiControl *newParent)
-{
-	// do nothing
-}
-
-void testControlLoadNopVtable(uiControlVtable *vtable)
-{
-	memset(vtable, 0, sizeof (uiControlVtable));
-	vtable->Size = sizeof (uiControlVtable);
-	vtable->Init = vtableNopInit;
-	vtable->Free = vtableNopFree;
-	vtable->ParentChanging = vtableNopParentChanging;
-	vtable->ParentChanged = vtableNopParentChanged;
+	*vt = vtable;
+	vt->Init = nopInit;
+	vt->Free = nopFree;
 }
 
 // TODO we'll have to eventually find out for real if memset(0) is sufficient to set pointers to NULL or not; C99 doesn't seem to say
@@ -40,8 +78,8 @@ Test(ControlImplDataIsClearedOnNewControl)
 	uiControl *c;
 	char *implData;
 
-	testControlLoadNopVtable(&vt);
-	type = uiRegisterControlType("TestControl", &vt, testOSVtable(), sizeof (memory));
+	testControlVtableWithNopInitFree(&vt);
+	type = uiRegisterControlType("TestControl", &vt, testControlOSVtable(), sizeof (memory));
 	c = uiNewControl(type, NULL);
 	implData = (char *) uiControlImplData(c);
 	memset(memory, 0, sizeof (memory));
@@ -56,12 +94,30 @@ Test(ZeroSizeImplDataIsNULL)
 	uint32_t type;
 	uiControl *c;
 
-	testControlLoadNopVtable(&vt);
-	type = uiRegisterControlType("TestControl", &vt, testOSVtable(), 0);
+	testControlVtableWithNopInitFree(&vt);
+	type = uiRegisterControlType("TestControl", &vt, testControlOSVtable(), 0);
 	c = uiNewControl(type, NULL);
 	if (uiControlImplData(c) != NULL)
 		TestErrorf("control impl data is non-NULL despite being of size 0");
 	uiControlFree(c);
+}
+
+uint32_t testControlType(void)
+{
+	static uint32_t type = 0;
+
+	if (type == 0)
+		type = uiRegisterControlType("TestControl", testControlVtable(), testControlOSVtable(), sizeof (struct testControlImplData));
+	return type;
+}
+
+static uint32_t testControlType2(void)
+{
+	static uint32_t type = 0;
+
+	if (type == 0)
+		type = uiRegisterControlType("TestControl2", testControlVtable(), testControlOSVtable(), sizeof (struct testControlImplData));
+	return type;
 }
 
 struct counts {
@@ -73,101 +129,65 @@ struct counts {
 	uiControl *newParent;
 };
 
-struct testImplData {
-	struct counts *counts;
-};
-
-static struct counts failInit;
-static void *testControlFailInit = &failInit;
-
-static bool testVtableInit(uiControl *c, void *implData, void *initData)
+static bool countsInit(uiControl *c, void *implData, void *initData)
 {
-	struct testImplData *d = (struct testImplData *) implData;
-	struct counts *counts = (struct counts *) initData;
+	struct counts *counts = (struct counts *) implData;
 
-	if (initData == testControlFailInit)
-		return false;
-	if (initData == NULL)
-		return true;
-	if (d->counts == NULL)
-		d->counts = counts;
-	d->counts->countInit++;
-	if (d->counts->countInit > 2)
-		d->counts->countInit = 2;
+	counts->countInit++;
+	if (counts->countInit > 2)
+		counts->countInit = 2;
 	return true;
 }
 
-static void testVtableFree(uiControl *c, void *implData)
+static void countsFree(uiControl *c, void *implData)
 {
-	struct testImplData *d = (struct testImplData *) implData;
+	struct counts *counts = (struct counts *) implData;
 
-	if (d->counts != NULL) {
-		d->counts->countFree++;
-		if (d->counts->countFree > 2)
-			d->counts->countFree = 2;
-	}
+	counts->countFree++;
+	if (counts->countFree > 2)
+		counts->countFree = 2;
 }
 
-static void testVtableParentChanging(uiControl *c, void *implData, uiControl *oldParent)
+static void countsParentChanging(uiControl *c, void *implData, uiControl *oldParent)
 {
-	struct testImplData *d = (struct testImplData *) implData;
+	struct counts *counts = (struct counts *) implData;
 
-	if (d->counts != NULL) {
-		d->counts->oldParent = oldParent;
-		d->counts->countParentChanging++;
-		if (d->counts->countParentChanging > 3)
-			d->counts->countParentChanging = 3;
-	}
+	counts->oldParent = oldParent;
+	counts->countParentChanging++;
+	if (counts->countParentChanging > 3)
+		counts->countParentChanging = 3;
 }
 
-static void testVtableParentChanged(uiControl *c, void *implData, uiControl *newParent)
+static void countsParentChanged(uiControl *c, void *implData, uiControl *newParent)
 {
-	struct testImplData *d = (struct testImplData *) implData;
+	struct counts *counts = (struct counts *) implData;
 
-	if (d->counts != NULL) {
-		d->counts->newParent = newParent;
-		d->counts->countParentChanged++;
-		if (d->counts->countParentChanged > 3)
-			d->counts->countParentChanged = 3;
-	}
+	counts->newParent = newParent;
+	counts->countParentChanged++;
+	if (counts->countParentChanged > 3)
+		counts->countParentChanged = 3;
 }
 
-
-static const uiControlVtable vtable = {
-	.Size = sizeof (uiControlVtable),
-	.Init = testVtableInit,
-	.Free = testVtableFree,
-	.ParentChanging = testVtableParentChanging,
-	.ParentChanged = testVtableParentChanged,
+static const uiControlVtable countsVtable = {
+	.Init = countsInit,
+	.Free = countsFree,
+	.ParentChanging = countsParentChanging,
+	.ParentChanged = countsParentChanged,
 };
-
-static uint32_t testControlType(void)
-{
-	static uint32_t type = 0;
-
-	if (type == 0)
-		type = uiRegisterControlType("TestControl", &vtable, testOSVtable(), sizeof (struct testImplData));
-	return type;
-}
-
-static uint32_t testControlType2(void)
-{
-	static uint32_t type = 0;
-
-	if (type == 0)
-		type = uiRegisterControlType("TestControl2", &vtable, testOSVtable(), sizeof (struct testImplData));
-	return type;
-}
 
 // TODO do this but for the OS-specific methods
 Test(ControlMethodsCalled)
 {
 	uiControl *c, *d;
+	struct testControlImplData initData;
 	struct counts counts;
 
 	memset(&counts, 0, sizeof (struct counts));
 
-	c = uiNewControl(testControlType(), &counts);
+	initData.realVtable = &countsVtable;
+	initData.realOSVtable = NULL;
+	initData.realImplData = &counts;
+	c = uiNewControl(testControlType(), &initData);
 	switch (counts.countInit) {
 	case 0:
 		TestErrorf("Init() was not called");
@@ -458,14 +478,24 @@ Test(NewControlOfUnknownTypeIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
+static bool alwaysFailInit(uiControl *c, void *implData, void *initData)
+{
+	return false;
+}
+
 Test(NewControlWithInvalidInitDataIsProgrammerError)
 {
 	uint32_t ctrlType;
+	struct testControlImplData initData;
+	uiControlVtable vtable;
 	void *ctx;
 
 	ctrlType = testControlType();
 	ctx = beginCheckProgrammerError("uiNewControl(): invalid init data for TestControl");
-	uiNewControl(ctrlType, testControlFailInit);
+	memset(&vtable, 0, sizeof (uiControlVtable));
+	vtable.Init = alwaysFailInit;
+	initData.realVtable = &vtable;
+	uiNewControl(ctrlType, &initData);
 	endCheckProgrammerError(ctx);
 }
 

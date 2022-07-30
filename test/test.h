@@ -84,8 +84,14 @@ extern void endCheckProgrammerErrorFull(const char *file, long line, void *conte
 #define endCheckProgrammerError(context) endCheckProgrammerErrorFull(__FILE__, __LINE__, context)
 
 // controls.c
-extern void testControlLoadNopVtable(uiControlVtable *vtable);
-extern const uiControlOSVtable *testOSVtable(void);
+struct testControlImplData {
+	const uiControlVtable *realVtable;
+	const uiControlOSVtable *realOSVtable;
+	void *realImplData;
+};
+extern const uiControlVtable *testControlVtable(void);
+extern const uiControlOSVtable *testControlOSVtable(void);
+extern uint32_t testControlType(void);
 
 // utf8.c
 extern const char testUTF8Empty[];

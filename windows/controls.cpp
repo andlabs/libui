@@ -81,6 +81,8 @@ HRESULT uiWindowsControlSetControlPos(uiControl *c, const RECT *r)
 
 HRESULT uiWindowsSetControlHandlePos(HWND hwnd, const RECT *r)
 {
+	if (!uiprivCheckInitializedAndThread())
+		return E_FAIL;
 	// TODO
 	return S_OK;
 }

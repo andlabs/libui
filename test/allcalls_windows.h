@@ -4,3 +4,6 @@
 
 allcallsCase(uiWindowsControlHandle, NULL)
 allcallsCase(uiWindowsControlParentHandle, NULL)
+allcallsCase(uiWindowsControlSetControlPos, NULL, NULL)
+
+allcallsCase(uiWindowsSetControlHandlePos, NULL, NULL)

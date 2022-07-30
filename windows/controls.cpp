@@ -14,6 +14,7 @@ bool uiprivOSVtableValid(const char *name, const uiControlOSVtable *osVtable, co
 	}
 	checkMethod(Handle)
 	checkMethod(ParentHandleForChild)
+	checkMethod(SetControlPos)
 	return true;
 }
 
@@ -53,9 +54,33 @@ HWND uiWindowsControlParentHandle(uiControl *c)
 		uiprivProgrammerErrorNullPointer("uiControl", uiprivFunc);
 		return NULL;
 	}
-	parent = uiControlParent(c);
+	parent = uiprivControlParent(c);
 	if (parent == NULL)
 		return NULL;
 	parentVtable = uiprivControlOSVtable(parent);
 	return callVtable(parentVtable->ParentHandleForChild, parent, uiControlImplData(parent), c);
+}
+
+HRESULT uiWindowsControlSetControlPos(uiControl *c, const RECT *r)
+{
+	uiControlOSVtable *osVtable;
+
+	if (!uiprivCheckInitializedAndThread())
+		return E_FAIL;
+	if (c == NULL) {
+		uiprivProgrammerErrorNullPointer("uiControl", uiprivFunc);
+		return E_FAIL;
+	}
+	if (r == NULL) {
+		uiprivProgrammerErrorNullPointer("RECT", uiprivFunc);
+		return E_FAIL;
+	}
+	osVtable = uiprivControlOSVtable(c);
+	return callVtable(osVtable->SetControlPos, c, uiControlImplData(c), r);
+}
+
+HRESULT uiWindowsSetControlHandlePos(HWND hwnd, const RECT *r)
+{
+	// TODO
+	return S_OK;
 }

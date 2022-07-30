@@ -97,7 +97,7 @@ Test(GettingWindowsParentHandleOfNullControlIsProgrammerError)
 {
 	void *ctx;
 
-	ctx = beginCheckProgrammerError("uiWindowsControlHandle(): invalid null pointer for uiControl");
+	ctx = beginCheckProgrammerError("uiWindowsControlParentHandle(): invalid null pointer for uiControl");
 	uiWindowsControlParentHandle(NULL);
 	endCheckProgrammerError(ctx);
 }
@@ -111,7 +111,7 @@ Test(SettingWindowsControlPosOfNullControlIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
-Test(SettingWindowsControlPosOfNullControlIsProgrammerError)
+Test(SettingWindowsControlPosToNullRectIsProgrammerError)
 {
 #if 0
 	// TODO

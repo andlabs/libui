@@ -264,6 +264,11 @@ uiControlOSVtable *uiprivControlOSVtable(uiControl *c)
 	return c->type->osVtable;
 }
 
+uiControl *uiprivControlParent(uiControl *c)
+{
+	return c->parent;
+}
+
 static uiControl testHookControlWithInvalidControlMarker = {
 	// use something other than 0 here to make it look like accidental real data
 	.controlID = UINT32_C(0x5A5A5A5A),

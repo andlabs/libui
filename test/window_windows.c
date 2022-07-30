@@ -87,7 +87,7 @@ Test(WindowsCannotSetWindowControlPos)
 
 	w = uiNewWindow();
 
-	ctx = beginCheckProgrammerError("cannot set a uiWindow as the child of another uiControl");
+	ctx = beginCheckProgrammerError("cannot call uiWindowsControlSetControlPos() on a uiWindow");
 	r.left = 0;
 	r.top = 0;
 	r.right = 640;

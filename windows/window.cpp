@@ -6,9 +6,9 @@
 struct windowImplData {
 	HWND hwnd;
 	char *title;
+	uiControl *child;
 #if 0
 	HMENU menubar;
-	uiControl *child;
 	BOOL shownOnce;
 	int visible;
 	int (*onClosing)(uiWindow *, void *);
@@ -143,10 +143,6 @@ static void uiWindowDestroy(uiControl *c)
 	// first hide ourselves
 	ShowWindow(w->hwnd, SW_HIDE);
 	// now destroy the child
-	if (w->child != NULL) {
-		uiControlSetParent(w->child, NULL);
-		uiControlDestroy(w->child);
-	}
 	// now free the menubar, if any
 	if (w->menubar != NULL)
 		freeMenubar(w->menubar);
@@ -361,10 +357,7 @@ void uiWindowSetBorderless(uiWindow *w, int borderless)
 
 void uiWindowSetChild(uiWindow *w, uiControl *child)
 {
-	if (w->child != NULL) {
-		uiControlSetParent(w->child, NULL);
-		uiWindowsControlSetParentHWND(uiWindowsControl(w->child), NULL);
-	}
+	if (w->child != NULL) {}
 	w->child = child;
 	if (w->child != NULL) {
 		uiControlSetParent(w->child, uiControl(w));
@@ -511,6 +504,11 @@ static void windowFree(uiControl *c, void *implData)
 	struct windowImplData *wi = (struct windowImplData *) implData;
 	HRESULT hr;
 
+	if (wi->child != NULL) {
+		uiControlSetParent(wi->child, NULL);
+		uiControlFree(wi->child);
+		wi->child = NULL;
+	}
 	if (wi->title != NULL) {
 		uiprivFreeUTF8(wi->title);
 		wi->title = NULL;
@@ -608,6 +606,24 @@ void uiprivSysWindowSetTitle(uiWindow *w, const char *title)
 	if (hr != S_OK)
 		uiprivInternalError("SetWindowTextW() failed in uiWindowSetTitle(): 0x%08I32X", hr);
 	// don't queue resize; the caption isn't part of what affects layout and sizing of the client area (it'll be ellipsized if too long)
+}
+
+uiControl *uiprivSysWindowChild(uiWindow *w)
+{
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	return wi->child;
+}
+
+void uiprivSysWindowSetChild(uiWindow *w, uiControl *child)
+{
+	struct windowImplData *wi = (struct windowImplData *) uiControlImplData(uiControl(w));
+
+	if (wi->child != NULL)
+		uiControlSetParent(wi->child, NULL);
+	wi->child = child;
+	if (wi->child != NULL)
+		uiControlSetParent(wi->child, uiControl(w));
 }
 
 #if 0

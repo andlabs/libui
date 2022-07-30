@@ -1,6 +1,16 @@
 // 31 may 2020
 #include "uipriv_haiku.hpp"
 
+uiControl *uiprivSysWindowChild(uiWindow *w)
+{
+	// TODO
+	return NULL;
+}
+void uiprivSysWindowSetChild(uiWindow *w, uiControl *child)
+{
+	// TODO
+}
+
 struct windowImplData {
 	BWindow *window;
 	char *title;

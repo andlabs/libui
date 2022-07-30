@@ -1,6 +1,16 @@
 // 11 june 2015
 #include "uipriv_unix.h"
 
+uiControl *uiprivSysWindowChild(uiWindow *w)
+{
+	// TODO
+	return NULL;
+}
+void uiprivSysWindowSetChild(uiWindow *w, uiControl *child)
+{
+	// TODO
+}
+
 struct windowImplData {
 	GtkWidget *widget;
 	GtkContainer *container;

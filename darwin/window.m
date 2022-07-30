@@ -398,7 +398,7 @@ static void connectChild(struct windowImplData *wi)
 	// TODO
 }
 
-static void disconnectChild(struct winodwImplData *wi)
+static void disconnectChild(struct windowImplData *wi)
 {
 	// TODO
 }

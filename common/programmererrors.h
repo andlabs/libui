@@ -86,4 +86,8 @@
 #define uiprivProgrammerErrorCannotHaveWindowsAsChildren() \
 	uiprivProgrammerError("cannot set a uiWindow as the child of another uiControl")
 
+// for Windows only
+#define uiprivProgrammerErrorCannotCallSetControlPosOnWindow() \
+	uiprivProgrammerError("cannot call uiWindowsControlSetControlPos() on a uiWindow")
+
 // }

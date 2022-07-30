@@ -79,19 +79,19 @@ If your parent control is not a container, return `NULL`. TODO programmer error?
 
 As libui ensures that the arguments to `ParentHandleForChild()` are actually related, you do not need to check that `child` is actually your child yourself.
 
-### `uiWindowsSetControlPos()`
+### `uiWindowsControlSetControlPos()`
 
 ```c
-uiprivExtern HRESULT uiWindowsSetControlPos(uiControl *c, const RECT *r);
+uiprivExtern HRESULT uiWindowsControlSetControlPos(uiControl *c, const RECT *r);
 ```
 
-`uiWindowsSetControlPos()` causes `c` to be moved and resized to fill `r`. `r` must be in the *client* coordinates of `c`'s parent handle.
+`uiWindowsControlSetControlPos()` causes `c` to be moved and resized to fill `r`. `r` must be in the *client* coordinates of `c`'s parent handle.
 
 This function should be called by container implementations to reposition its children, either in response to a window being resized or when children need to be laid out due to some change (such as visibility). Users should not call this function directly.
 
 It returns `S_OK` if the resize succeeded or some error if the resize failed *from the perspective of the OS*. It will not return an error in the event of a libui-specific programmer or internal error of some other sort. This error return is only intended for libui-internal use; see the control implementation details below.
 
-It is a programmer error to pass `NULL` for `c` or `r`.
+It is a programmer error to pass `NULL` for `c` or `r`. It is also a programmer error to call `uiWindowsControlSetControlPos()` on a `uiWindow`.
 
 **For control implementations**: This function calls your `SetControlPos()` method. For a simple control with a single window handle, the method should do nothing but call `uiWindowsSetControlHandlePos()` and return its return value:
 

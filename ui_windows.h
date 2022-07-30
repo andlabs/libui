@@ -20,7 +20,7 @@ struct uiControlOSVtable {
 
 uiprivExtern HWND uiWindowsControlHandle(uiControl *c);
 uiprivExtern HWND uiWindowsControlParentHandle(uiControl *c);
-uiprivExtern HRESULT uiWindowsSetControlPos(uiControl *c, const RECT *r);
+uiprivExtern HRESULT uiWindowsControlSetControlPos(uiControl *c, const RECT *r);
 
 uiprivExtern HRESULT uiWindowsSetControlHandlePos(HWND hwnd, const RECT *r);
 

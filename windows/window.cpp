@@ -439,6 +439,23 @@ uiWindow *uiNewWindow(const char *title, int width, int height, int hasMenubar)
 // } TODO
 #endif
 
+static void windowRelayout(struct windowImplData *wi)
+{
+	RECT r;
+	HRESULT hr;
+
+	if (wi->child == NULL)
+		return;
+	hr = uiprivHrGetClientRect(wi->hwnd, &r);
+	if (hr != S_OK) {
+		uiprivInternalError("GetClientRect() failed in windowRelayout(): 0x%08I32X", hr);
+		return;
+	}
+	hr = uiWindowsControlSetControlPos(wi->child, &r);
+	if (hr != S_OK)
+		uiprivInternalError("uiWindowsSetControlHandlePos() failed in windowRelayout(): 0x%08I32X", hr);
+}
+
 static LRESULT CALLBACK windowWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LONG_PTR ww;
@@ -543,6 +560,12 @@ static HWND windowParentHandleForChild(uiControl *c, void *implData, uiControl *
 	return wi->hwnd;
 }
 
+static HRESULT windowSetControlPos(uiControl *c, void *implData, const RECT *r)
+{
+	uiprivProgrammerErrorCannotCallSetControlPosOnWindow();
+	return E_FAIL;
+}
+
 // gotta do this because of lack of C99-style initializers in C++11
 // see also https://stackoverflow.com/questions/11516657/c-structure-initialization
 static const uiControlVtable windowVtable = [](void) {
@@ -564,6 +587,7 @@ static const uiControlOSVtable windowOSVtable = [](void) {
 	vt.Size = sizeof (uiControlOSVtable);
 	vt.Handle = windowHandle;
 	vt.ParentHandleForChild = windowParentHandleForChild;
+	vt.SetControlPos = windowSetControlPos;
 	return vt;
 }();
 
@@ -622,8 +646,10 @@ void uiprivSysWindowSetChild(uiWindow *w, uiControl *child)
 	if (wi->child != NULL)
 		uiControlSetParent(wi->child, NULL);
 	wi->child = child;
-	if (wi->child != NULL)
+	if (wi->child != NULL) {
 		uiControlSetParent(wi->child, uiControl(w));
+		windowRelayout(wi);
+	}
 }
 
 #if 0

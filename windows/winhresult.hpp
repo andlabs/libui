@@ -9,3 +9,5 @@ extern HRESULT WINAPI uiprivHrLoadIconW(HINSTANCE hInstance, LPCWSTR name, HICON
 extern HRESULT WINAPI uiprivHrLoadCursorW(HINSTANCE hInstance, LPCWSTR name, HCURSOR *hCursor);
 extern HRESULT WINAPI uiprivHrSetWindowTextW(HWND hwnd, LPCWSTR text);
 extern HRESULT WINAPI uiprivHrDestroyWindow(HWND hwnd);
+extern HRESULT WINAPI uiprivHrGetWindowRect(HWND hwnd, LPRECT r);
+extern HRESULT WINAPI uiprivHrGetClientRect(HWND hwnd, LPRECT r);

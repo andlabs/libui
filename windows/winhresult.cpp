@@ -98,3 +98,21 @@ HRESULT WINAPI uiprivHrDestroyWindow(HWND hwnd)
 		return lastErrorToHRESULT();
 	return S_OK;
 }
+
+HRESULT WINAPI uiprivHrGetWindowRect(HWND hwnd, LPRECT r)
+{
+	SetLastError(0);
+	if (GetWindowRect(hwnd, r) == 0)
+		// TODO set r to a zero rect?
+		return lastErrorToHRESULT();
+	return S_OK;
+}
+
+HRESULT WINAPI uiprivHrGetClientRect(HWND hwnd, LPRECT r)
+{
+	SetLastError(0);
+	if (GetClientRect(hwnd, r) == 0)
+		// TODO set r to a zero rect?
+		return lastErrorToHRESULT();
+	return S_OK;
+}

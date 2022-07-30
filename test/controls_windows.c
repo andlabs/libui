@@ -11,10 +11,16 @@ static HWND osVtableNopParentHandleForChild(uiControl *c, void *implData, uiCont
 	return NULL;
 }
 
+HRESULT osVtableNopSetControlPos(uiControl *c, void *implData, const RECT *r)
+{
+	return S_OK;
+}
+
 static const uiControlOSVtable osVtable = {
 	.Size = sizeof (uiControlOSVtable),
 	.Handle = osVtableNopHandle,
 	.ParentHandleForChild = osVtableNopParentHandleForChild,
+	.SetControlPos = osVtableNopSetControlPos,
 };
 
 const uiControlOSVtable *testOSVtable(void)
@@ -64,6 +70,20 @@ Test(ControlOSVtableWithMissingParentHandleForChildMethodIsProgrammerError)
 	endCheckProgrammerError(ctx);
 }
 
+Test(ControlOSVtableWithMissingSetControlPosMethodIsProgrammerError)
+{
+	uiControlVtable vtable;
+	uiControlOSVtable osvt;
+	void *ctx;
+
+	testControlLoadNopVtable(&vtable);
+	ctx = beginCheckProgrammerError("uiRegisterControlType(): required uiControlOSVtable method SetControlPos() missing for uiControl type name");
+	osvt = osVtable;
+	osvt.SetControlPos = NULL;
+	uiRegisterControlType("name", &vtable, &osvt, 0);
+	endCheckProgrammerError(ctx);
+}
+
 Test(GettingWindowsHandleOfNullControlIsProgrammerError)
 {
 	void *ctx;
@@ -81,3 +101,27 @@ Test(GettingWindowsParentHandleOfNullControlIsProgrammerError)
 	uiWindowsControlParentHandle(NULL);
 	endCheckProgrammerError(ctx);
 }
+
+Test(SettingWindowsControlPosOfNullControlIsProgrammerError)
+{
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiWindowsControlSetControlPos(): invalid null pointer for uiControl");
+	uiWindowsControlSetControlPos(NULL, NULL);
+	endCheckProgrammerError(ctx);
+}
+
+Test(SettingWindowsControlPosOfNullControlIsProgrammerError)
+{
+#if 0
+	// TODO
+	uiControl *c;
+	void *ctx;
+
+	ctx = beginCheckProgrammerError("uiWindowsControlSetControlPos(): invalid null pointer for RECT");
+	uiWindowsControlSetControlPos(c, NULL);
+	endCheckProgrammerError(ctx);
+#endif
+}
+
+// TODO uiWindowsSetControlHandlePos errors

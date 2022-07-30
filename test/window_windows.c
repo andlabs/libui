@@ -78,3 +78,22 @@ Test(SetWindowTitle_OSLevel_Invalid)
 {
 	testSetWindowTitleImpl(testUTF8InvalidInput, testUTF16InvalidOutput);
 }
+
+Test(WindowsCannotSetWindowControlPos)
+{
+	uiWindow *w;
+	RECT r;
+	void *ctx;
+
+	w = uiNewWindow();
+
+	ctx = beginCheckProgrammerError("cannot set a uiWindow as the child of another uiControl");
+	r.left = 0;
+	r.top = 0;
+	r.right = 640;
+	r.bottom = 480;
+	uiWindowsControlSetControlPos(uiControl(w), &r);
+	endCheckProgrammerError(ctx);
+
+	uiControlFree(uiControl(w));
+}

@@ -15,10 +15,14 @@ struct uiControlOSVtable {
 	size_t Size;
 	HWND (*Handle)(uiControl *c, void *implData);
 	HWND (*ParentHandleForChild)(uiControl *c, void *implData, uiControl *child);
+	HRESULT (*SetControlPos)(uiControl *c, void *implData, const RECT *r);
 };
 
 uiprivExtern HWND uiWindowsControlHandle(uiControl *c);
 uiprivExtern HWND uiWindowsControlParentHandle(uiControl *c);
+uiprivExtern HRESULT uiWindowsSetControlPos(uiControl *c, const RECT *r);
+
+uiprivExtern HRESULT uiWindowsSetControlHandlePos(HWND hwnd, const RECT *r);
 
 #ifdef __cplusplus
 }

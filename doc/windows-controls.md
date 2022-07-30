@@ -16,7 +16,7 @@ struct uiControlOSVtable {
 	size_t Size;
 	HWND (*Handle)(uiControl *c, void *implData);
 	HWND (*ParentHandleForChild)(uiControl *c, void *implData, uiControl *child);
-};
+	HRESULT (*SetControlPos)(uiControl *c, void *implData, const RECT *r);
 };
 ```
 
@@ -78,3 +78,40 @@ static HWND controlParentHandleForChild(uiControl *c, void *implData, uiControl 
 If your parent control is not a container, return `NULL`. TODO programmer error?
 
 As libui ensures that the arguments to `ParentHandleForChild()` are actually related, you do not need to check that `child` is actually your child yourself.
+
+### `uiWindowsSetControlPos()`
+
+```c
+uiprivExtern HRESULT uiWindowsSetControlPos(uiControl *c, const RECT *r);
+```
+
+`uiWindowsSetControlPos()` causes `c` to be moved and resized to fill `r`. `r` must be in the *client* coordinates of `c`'s parent handle.
+
+This function should be called by container implementations to reposition its children, either in response to a window being resized or when children need to be laid out due to some change (such as visibility). Users should not call this function directly.
+
+It returns `S_OK` if the resize succeeded or some error if the resize failed *from the perspective of the OS*. It will not return an error in the event of a libui-specific programmer or internal error of some other sort. This error return is only intended for libui-internal use; see the control implementation details below.
+
+It is a programmer error to pass `NULL` for `c` or `r`.
+
+**For control implementations**: This function calls your `SetControlPos()` method. For a simple control with a single window handle, the method should do nothing but call `uiWindowsSetControlHandlePos()` and return its return value:
+
+```c
+static HWND controlSetControlPos(uiControl *c, void *implData, RECT *r)
+{
+	controlImplData *ci = (controlImplData *) implData;
+
+	return uiWindowsSetControlHandlePos(ci->hwnd, r);
+}
+```
+
+If your control is a container, then your method should call this function recursively, passing an appropriate `RECT` for each of its children, returning the first error it finds (if any). If those children have a different parent handle from your own, then you will need ot make sure those `RECT`s are in the *client* coordinates of those parent handles. Return any error as soon as possible, to minimize ill effects (and to prepare for a potential switch to using `DeferWindowPos()` and friends instead).
+
+You can also use this function to initiate a reposition of any children in the even that their layout has changed. In this case, TODO how to handle errors TODO something here about saving r
+
+### `uiWindowsSetControlHandlePos()`
+
+```c
+uiprivExtern HRESULT uiWindowsSetControlHandlePos(HWND hwnd, const RECT *r);
+```
+
+TODO

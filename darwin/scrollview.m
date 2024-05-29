@@ -2,7 +2,7 @@
 #include "uipriv_darwin.h"
 
 // see http://stackoverflow.com/questions/37979445/how-do-i-properly-set-up-a-scrolling-nstableview-using-auto-layout-what-ive-tr for why we don't use auto layout
-// TODO do the same with uiGroup and uiTab?
+// TODO do the same with uiScrollView and uiTab?
 
 struct uiprivScrollViewData {
 	BOOL hscroll;
@@ -38,8 +38,10 @@ NSScrollView *uiprivMkScrollView(uiprivScrollViewCreateParams *p, uiprivScrollVi
 	[sv setVerticalScrollElasticity:NSScrollElasticityAutomatic];
 	[sv setAllowsMagnification:NO];
 
-	[sv setDocumentView:p->DocumentView];
-	d = uiprivNew(uiprivScrollViewData);
+    if (p->DocumentView != nil)
+    	[sv setDocumentView:p->DocumentView];
+
+    d = uiprivNew(uiprivScrollViewData);
 	uiprivScrollViewSetScrolling(sv, d, p->HScroll, p->VScroll);
 
 	*dout = d;
@@ -58,4 +60,66 @@ void uiprivScrollViewSetScrolling(NSScrollView *sv, uiprivScrollViewData *d, BOO
 void uiprivScrollViewFreeData(NSScrollView *sv, uiprivScrollViewData *d)
 {
 	uiprivFree(d);
+}
+
+struct uiScroll {
+    uiDarwinControl c;
+    NSScrollView *sv;
+    uiprivScrollViewData *d;
+    uiControl *child;
+};
+
+static void uiScrollDestroy(uiControl *c)
+{
+    uiScroll *g = uiScroll(c);
+
+    if (g->child != NULL) {
+        uiControlSetParent(g->child, NULL);
+        uiDarwinControlSetSuperview(uiDarwinControl(g->child), nil);
+        uiControlDestroy(g->child);
+    }
+    [g->sv release];
+    uiFreeControl(uiControl(g));
+}
+
+uiDarwinControlAllDefaultsExceptDestroy(uiScroll, sv)
+
+void uiScrollSetChild(uiScroll *g, uiControl *child)
+{
+    if (g->child != NULL) {
+        uiControlSetParent(g->child, NULL);
+        uiDarwinControlSetSuperview(uiDarwinControl(g->child), nil);
+    }
+    g->child = child;
+
+    if (g->child != NULL) {
+        NSView *childView = (NSView *) uiControlHandle(g->child);
+        uiControlSetParent(g->child, uiControl(g));
+        uiDarwinControlSetSuperview(uiDarwinControl(g->child), [g->sv contentView]);
+        [childView removeFromSuperview];
+        [childView setTranslatesAutoresizingMaskIntoConstraints:NO];
+        [g->sv setDocumentView:childView];
+        uiDarwinControlSyncEnableState(uiDarwinControl(g->child), uiControlEnabledToUser(uiControl(g)));
+    }
+}
+
+
+uiScroll *uiNewScroll(void)
+{
+    uiScroll *g;
+
+    uiDarwinNewControl(uiScroll, g);
+
+    uiprivScrollViewCreateParams params = {
+        nil,
+        nil,
+        NO,
+        YES,
+        YES,
+        YES
+    };
+
+    g->sv = uiprivMkScrollView(&params, &g->d);
+
+    return g;
 }

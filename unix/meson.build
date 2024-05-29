@@ -35,6 +35,7 @@ libui_sources += [
 	'unix/opentype.c',
 	'unix/progressbar.c',
 	'unix/radiobuttons.c',
+	'unix/scrollview.c',
 	'unix/separator.c',
 	'unix/slider.c',
 	'unix/spinbox.c',

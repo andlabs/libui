@@ -297,6 +297,11 @@ _UI_EXTERN char *uiSaveFile(uiWindow *parent);
 _UI_EXTERN void uiMsgBox(uiWindow *parent, const char *title, const char *description);
 _UI_EXTERN void uiMsgBoxError(uiWindow *parent, const char *title, const char *description);
 
+typedef struct uiScroll uiScroll;
+#define uiScroll(this) ((uiScroll *) (this))
+_UI_EXTERN uiScroll *uiNewScroll(void);
+_UI_EXTERN void uiScrollSetChild(uiScroll *scroll, uiControl *ctl);
+
 typedef struct uiArea uiArea;
 typedef struct uiAreaHandler uiAreaHandler;
 typedef struct uiAreaDrawParams uiAreaDrawParams;

@@ -1,5 +1,6 @@
 // 9 april 2015
 #include "uipriv_unix.h"
+#include <strings.h>
 
 char *uiUnixStrdupText(const char *t)
 {
